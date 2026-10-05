@@ -1,0 +1,1 @@
+function Confectory.YogiBox::Create () -> string {provide Confectory.YogiBox::Create with Confectory.YogiBox::CreateBody;}

@@ -1,0 +1,6 @@
+implementation Confectory.InstantTable::SetCellBody for Confectory.InstantTable::SetCell (string view, string id, string field, string value) -> bool {
+import Confectory.EditWorkspace::Read as Read (string, string) -> string[];
+import Confectory.SchemaEditing::SetValue as SetValue (string, string, string) -> string;
+import Confectory.EditWorkspace::SetTextIfRevision as SetTextIfRevision (string, string, string, long) -> bool;
+body common "SetCell.csbody";
+}

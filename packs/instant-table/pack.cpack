@@ -1,0 +1,19 @@
+pack Confectory.InstantTable version "0.1.0" {
+dependency Confectory.EditWorkspace version "0.1.0";
+dependency Confectory.SchemaEditing version "0.1.0";
+dependency Confectory.ChangeSet version "0.1.0";
+element Create function "Create.celem";
+element CreateBody implementation "CreateBody.celem";
+element Snapshot function "Snapshot.celem";
+element SnapshotBody implementation "SnapshotBody.celem";
+element SetCell function "SetCell.celem";
+element SetCellBody implementation "SetCellBody.celem";
+element Definition function "Definition.celem";
+element DefinitionBody implementation "DefinitionBody.celem";
+element Confirm function "Confirm.celem";
+element ConfirmBody implementation "ConfirmBody.celem";
+element Close function "Close.celem";
+element CloseBody implementation "CloseBody.celem";
+element Poll function "Poll.celem";
+element PollBody implementation "PollBody.celem";
+}

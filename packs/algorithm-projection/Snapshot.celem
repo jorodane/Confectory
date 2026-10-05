@@ -1,0 +1,1 @@
+function Confectory.AlgorithmProjection::Snapshot (string view, string function) -> string {provide Confectory.AlgorithmProjection::Snapshot with Confectory.AlgorithmProjection::SnapshotBody;}

@@ -1,0 +1,1 @@
+function Confectory.YogiBox::Receive (string recipient, string package) -> string {provide Confectory.YogiBox::Receive with Confectory.YogiBox::ReceiveBody;}

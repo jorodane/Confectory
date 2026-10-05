@@ -1,0 +1,7 @@
+implementation Confectory.InstantTable::CreateBody for Confectory.InstantTable::Create (string workspace, string[] ids, string[] columns, string request) -> string {
+import Confectory.EditWorkspace::Read as Read (string, string) -> string[];
+import Confectory.EditWorkspace::Subscribe as Subscribe (string, string) -> string[];
+import Confectory.EditWorkspace::Unsubscribe as Unsubscribe (string[]) -> void;
+import Confectory.SchemaEditing::Inspect as Inspect (string) -> string;
+body common "Create.csbody";
+}

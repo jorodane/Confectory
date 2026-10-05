@@ -1,0 +1,1 @@
+implementation Confectory.Window::CaptureBody for Confectory.Window::Capture (long[] surfaces, int view, int x, int y, int width, int height) -> string {import Confectory.Window::SurfaceDimensions as Dimensions (long[], int) -> int[];body common "Capture.csbody";}

@@ -1,0 +1,1 @@
+function Confectory.YogiBox::Seal (string box, bool sealedState) -> void {provide Confectory.YogiBox::Seal with Confectory.YogiBox::SealBody;}

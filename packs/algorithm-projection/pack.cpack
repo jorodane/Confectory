@@ -1,0 +1,18 @@
+pack Confectory.AlgorithmProjection version "0.1.0" {
+dependency Confectory.SchemaEditing version "0.1.0";
+dependency Confectory.EditWorkspace version "0.1.0";
+element Provider function "Provider.celem";
+element ProviderBody implementation "ProviderBody.celem";
+element Open function "Open.celem";
+element OpenBody implementation "OpenBody.celem";
+element Notify function "Notify.celem";
+element NotifyBody implementation "NotifyBody.celem";
+element DrainMaintenance function "DrainMaintenance.celem";
+element DrainMaintenanceBody implementation "DrainMaintenanceBody.celem";
+element Regenerate function "Regenerate.celem";
+element RegenerateBody implementation "RegenerateBody.celem";
+element Snapshot function "Snapshot.celem";
+element SnapshotBody implementation "SnapshotBody.celem";
+element Close function "Close.celem";
+element CloseBody implementation "CloseBody.celem";
+}

@@ -1,0 +1,1 @@
+function Confectory.AlgorithmProjection::Close (string view) -> void {provide Confectory.AlgorithmProjection::Close with Confectory.AlgorithmProjection::CloseBody;}

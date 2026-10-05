@@ -1,0 +1,1 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.YogiBox."+box) as object[];if(state is null)return;lock(state[0]){state[5]=true;((System.Text.Json.Nodes.JsonArray)state[1]).Clear();((System.Collections.Generic.Dictionary<string,System.Text.Json.Nodes.JsonObject>)state[4]).Clear();state[3]="";AppDomain.CurrentDomain.SetData("Confectory.YogiBox."+box,null);}

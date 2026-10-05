@@ -1,0 +1,4 @@
+implementation Confectory.InstantTable::CloseBody for Confectory.InstantTable::Close (string view) -> void {
+import Confectory.EditWorkspace::Unsubscribe as Unsubscribe (string[]) -> void;
+body common "Close.csbody";
+}

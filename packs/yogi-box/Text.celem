@@ -1,0 +1,1 @@
+function Confectory.YogiBox::Text (string box, string text) -> void {provide Confectory.YogiBox::Text with Confectory.YogiBox::TextBody;}

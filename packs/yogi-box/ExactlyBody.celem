@@ -1,0 +1,5 @@
+implementation Confectory.YogiBox::ExactlyBody for Confectory.YogiBox::Exactly (string box, string workspace, string[] ids, string[] fields) -> void {
+import Confectory.EditWorkspace::Read as Read (string, string) -> string[];
+import Confectory.SchemaEditing::Inspect as Inspect (string) -> string;
+body common "Exactly.csbody";
+}

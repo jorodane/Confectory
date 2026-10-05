@@ -1,0 +1,1 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.InstantTable."+view) as object[];if(state is null)return;lock(state[0]){if((bool)state[6])return;foreach(var token in (System.Collections.Generic.List<string[]>)state[5])calls.Unsubscribe.Invoke(token);state[6]=true;AppDomain.CurrentDomain.SetData("Confectory.InstantTable."+view,null);}

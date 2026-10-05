@@ -1,0 +1,4 @@
+implementation Confectory.YogiBox::SealBody for Confectory.YogiBox::Seal (string box, bool sealedState) -> void {
+
+body common "Seal.csbody";
+}

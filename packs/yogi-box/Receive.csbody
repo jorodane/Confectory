@@ -1,0 +1,1 @@
+throw new InvalidOperationException("Select an explicit local recipient provider; no external handoff configured");

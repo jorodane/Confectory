@@ -1,0 +1,5 @@
+implementation Confectory.AlgorithmProjection::CloseBody for Confectory.AlgorithmProjection::Close (string view) -> void {
+
+import Confectory.SchemaEditing::Cancel as Cancel (string) -> void;
+body common "Close.csbody";
+}

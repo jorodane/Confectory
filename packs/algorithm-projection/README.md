@@ -1,0 +1,5 @@
+# AlgorithmProjection
+
+Open borrows an EditWorkspace and owns only explanatory projection records and its bounded maintenance queue. Regenerate reads an explicitly linked function/provider/body and publishes only if all three revisions still match. Snapshot reports stale after later edits. Function descriptions use current declaration grammar. The installed SDK's Roslyn parser explains actual C# branches, loops, calls, assignments and exceptions without rewriting source. This is syntax explanation, not semantic validation or code generation; invalid syntax remains explicit.
+
+Human functional Notify calls coalesce per function/batch for DrainMaintenance. Human metadata changes do not request maintenance. AI-origin changes require their author to update the projection; the consumer performs the local parser update, without another AI request. No per-keystroke AI or external service exists here. Close cancels this view's SchemaEditing scope and joins pending work with a five-second bound, retaining ownership if cleanup is incomplete. Android has no native host provider yet.

@@ -1,0 +1,7 @@
+implementation Confectory.AlgorithmProjection::RegenerateBody for Confectory.AlgorithmProjection::Regenerate (string view, string function, string implementation, string bodyID) -> bool {
+import Confectory.EditWorkspace::Read as Read (string, string) -> string[];
+import Confectory.AlgorithmProjection::Provider as Provider (string, string, string) -> string;
+import Confectory.SchemaEditing::BeginScope as BeginScope (string) -> void;
+import Confectory.SchemaEditing::EndScope as EndScope () -> void;
+body common "Regenerate.csbody";
+}

@@ -1,0 +1,4 @@
+implementation Confectory.YogiBox::DiscardBody for Confectory.YogiBox::Discard (string box) -> void {
+
+body common "Discard.csbody";
+}

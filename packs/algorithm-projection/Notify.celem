@@ -1,0 +1,1 @@
+function Confectory.AlgorithmProjection::Notify (string view, string function, string implementation, string bodyID, string origin, string changeKind, string batch) -> void {provide Confectory.AlgorithmProjection::Notify with Confectory.AlgorithmProjection::NotifyBody;}

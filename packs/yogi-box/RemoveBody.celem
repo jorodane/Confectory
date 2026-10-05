@@ -1,0 +1,4 @@
+implementation Confectory.YogiBox::RemoveBody for Confectory.YogiBox::Remove (string box, string item) -> bool {
+
+body common "Remove.csbody";
+}

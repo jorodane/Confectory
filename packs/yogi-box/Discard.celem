@@ -1,0 +1,1 @@
+function Confectory.YogiBox::Discard (string box) -> void {provide Confectory.YogiBox::Discard with Confectory.YogiBox::DiscardBody;}

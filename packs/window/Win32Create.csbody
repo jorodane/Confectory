@@ -1,3 +1,5 @@
+[System.Runtime.InteropServices.DllImport("user32.dll")]
+static extern short GetKeyState(int key);
 [System.Runtime.InteropServices.DllImport("kernel32.dll")]
 static extern uint GetCurrentThreadId();
 [System.Runtime.InteropServices.DllImport("user32.dll",CharSet=System.Runtime.InteropServices.CharSet.Unicode,SetLastError=true)]
@@ -83,7 +85,7 @@ if(surfaces[0]==0)
     if(char.IsLowSurrogate(value)){if(pending.Remove(handle,out char high))Emit(index,12,0,0,char.ConvertToUtf32(high,value));return IntPtr.Zero;}
     pending.Remove(handle);if(!char.IsControl(value))Emit(index,12,0,0,value);return IntPtr.Zero;
    }
-   if(message==0x100||message==0x101){Emit(index,message==0x100?5:6,0,0,unchecked((int)wParam.ToInt64()),(packed>>30)&1);return DefWindowProcW(hwnd,message,wParam,lParam);}
+   if(message==0x100||message==0x101){Emit(index,message==0x100?5:6,0,0,unchecked((int)wParam.ToInt64()),((packed>>30)&1)|((GetKeyState(0x11)&0x8000)!=0?2:0)|((GetKeyState(0x10)&0x8000)!=0?4:0)|((GetKeyState(0x12)&0x8000)!=0?8:0));return DefWindowProcW(hwnd,message,wParam,lParam);}
    if(message==0x5){Emit(index,7,packed&65535,(packed>>16)&65535);return IntPtr.Zero;}
    if(message==0x8||message==0x1F){((System.Collections.Generic.Dictionary<long,char>)context[8]).Remove(hwnd.ToInt64());Emit(index,9);return DefWindowProcW(hwnd,message,wParam,lParam);}
    if(message==0x215){Emit(index,11);return DefWindowProcW(hwnd,message,wParam,lParam);}

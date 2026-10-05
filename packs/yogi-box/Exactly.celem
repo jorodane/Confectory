@@ -1,0 +1,1 @@
+function Confectory.YogiBox::Exactly (string box, string workspace, string[] ids, string[] fields) -> void {provide Confectory.YogiBox::Exactly with Confectory.YogiBox::ExactlyBody;}

@@ -1,0 +1,4 @@
+implementation Confectory.YogiBox::CompleteCaptureBody for Confectory.YogiBox::CompleteCapture (string box, string ticket, string image) -> bool {
+
+body common "CompleteCapture.csbody";
+}

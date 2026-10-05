@@ -1,0 +1,4 @@
+implementation Confectory.YogiBox::SnapshotBody for Confectory.YogiBox::Snapshot (string box) -> string {
+
+body common "Snapshot.csbody";
+}

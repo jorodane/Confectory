@@ -1,0 +1,4 @@
+implementation Confectory.InstantTable::DefinitionBody for Confectory.InstantTable::Definition (string view) -> string {
+
+body common "Definition.csbody";
+}

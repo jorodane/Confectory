@@ -1,0 +1,26 @@
+pack Confectory.YogiBox version "0.1.0" {
+dependency Confectory.EditWorkspace version "0.1.0";
+dependency Confectory.SchemaEditing version "0.1.0";
+element Create function "Create.celem";
+element CreateBody implementation "CreateBody.celem";
+element Exactly function "Exactly.celem";
+element ExactlyBody implementation "ExactlyBody.celem";
+element ReserveCapture function "ReserveCapture.celem";
+element ReserveCaptureBody implementation "ReserveCaptureBody.celem";
+element CompleteCapture function "CompleteCapture.celem";
+element CompleteCaptureBody implementation "CompleteCaptureBody.celem";
+element Remove function "Remove.celem";
+element RemoveBody implementation "RemoveBody.celem";
+element Text function "Text.celem";
+element TextBody implementation "TextBody.celem";
+element Seal function "Seal.celem";
+element SealBody implementation "SealBody.celem";
+element Snapshot function "Snapshot.celem";
+element SnapshotBody implementation "SnapshotBody.celem";
+element Receive function "Receive.celem";
+element ReceiveBody implementation "ReceiveBody.celem";
+element Handoff function "Handoff.celem";
+element HandoffBody implementation "HandoffBody.celem";
+element Discard function "Discard.celem";
+element DiscardBody implementation "DiscardBody.celem";
+}

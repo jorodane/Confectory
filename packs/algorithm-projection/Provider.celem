@@ -1,0 +1,1 @@
+function Confectory.AlgorithmProjection::Provider (string contract, string implementation, string body) -> string {provide Confectory.AlgorithmProjection::Provider with Confectory.AlgorithmProjection::ProviderBody;}

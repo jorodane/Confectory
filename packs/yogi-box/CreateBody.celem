@@ -1,0 +1,4 @@
+implementation Confectory.YogiBox::CreateBody for Confectory.YogiBox::Create () -> string {
+
+body common "Create.csbody";
+}

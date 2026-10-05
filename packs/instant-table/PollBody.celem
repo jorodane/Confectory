@@ -1,0 +1,4 @@
+implementation Confectory.InstantTable::PollBody for Confectory.InstantTable::Poll (string view) -> string[] {
+import Confectory.EditWorkspace::Poll as Poll (string[]) -> string[];
+body common "Poll.csbody";
+}

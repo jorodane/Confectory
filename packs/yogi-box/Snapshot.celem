@@ -1,0 +1,1 @@
+function Confectory.YogiBox::Snapshot (string box) -> string {provide Confectory.YogiBox::Snapshot with Confectory.YogiBox::SnapshotBody;}

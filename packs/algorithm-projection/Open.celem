@@ -1,0 +1,1 @@
+function Confectory.AlgorithmProjection::Open (string workspace) -> string {provide Confectory.AlgorithmProjection::Open with Confectory.AlgorithmProjection::OpenBody;}

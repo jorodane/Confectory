@@ -1,0 +1,1 @@
+function Confectory.Window::Capture (long[] surfaces, int view, int x, int y, int width, int height) -> string {description "Capture only the explicit bounded owned client region as RGB24; no clipboard/files/external pixels.";}

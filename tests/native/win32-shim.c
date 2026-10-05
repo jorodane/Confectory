@@ -4,6 +4,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/syscall.h>
+int16_t GetKeyState(int32_t key){(void)key;return 0;}
 uint32_t GetCurrentThreadId(void){return (uint32_t)syscall(SYS_gettid);}
 typedef intptr_t (*proc_t)(intptr_t,uint32_t,intptr_t,intptr_t);
 static proc_t callback;

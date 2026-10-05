@@ -1,0 +1,1 @@
+function Confectory.Window::Place (long[] surfaces, int view, int x, int y) -> void {description "Position an existing desktop client window; Android app surfaces do not claim independent native desktop positioning.";}

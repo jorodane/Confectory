@@ -1,0 +1,1 @@
+if(text.Length>4096)throw new ArgumentException("Yogi text exceeds bound");var state=AppDomain.CurrentDomain.GetData("Confectory.YogiBox."+box) as object[]??throw new ObjectDisposedException("YogiBox");lock(state[0]){if((bool)state[5])throw new ObjectDisposedException("YogiBox");state[3]=text;state[2]=false;}

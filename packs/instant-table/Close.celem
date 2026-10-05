@@ -1,0 +1,1 @@
+function Confectory.InstantTable::Close (string view) -> void {provide Confectory.InstantTable::Close with Confectory.InstantTable::CloseBody;}

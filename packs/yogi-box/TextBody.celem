@@ -1,0 +1,4 @@
+implementation Confectory.YogiBox::TextBody for Confectory.YogiBox::Text (string box, string text) -> void {
+
+body common "Text.csbody";
+}

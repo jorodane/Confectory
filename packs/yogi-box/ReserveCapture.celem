@@ -1,0 +1,1 @@
+function Confectory.YogiBox::ReserveCapture (string box, string source, int view, int x, int y, int width, int height) -> string {provide Confectory.YogiBox::ReserveCapture with Confectory.YogiBox::ReserveCaptureBody;}

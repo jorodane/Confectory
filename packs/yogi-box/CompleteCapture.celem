@@ -1,0 +1,1 @@
+function Confectory.YogiBox::CompleteCapture (string box, string ticket, string image) -> bool {provide Confectory.YogiBox::CompleteCapture with Confectory.YogiBox::CompleteCaptureBody;}

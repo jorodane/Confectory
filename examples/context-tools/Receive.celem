@@ -1,0 +1,1 @@
+implementation Example.ContextTools::Receive for Confectory.YogiBox::Receive (string recipient, string package) -> string {body common "Receive.csbody";}

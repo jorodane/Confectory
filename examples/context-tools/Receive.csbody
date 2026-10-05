@@ -1,0 +1,1 @@
+if(recipient!="local-inspector")throw new ArgumentException("Only the explicit local inspector is configured");var copy=System.Text.Json.Nodes.JsonNode.Parse(package)!;string attachment=copy["attachment"]!.GetValue<string>();AppDomain.CurrentDomain.SetData("Example.ContextTools.Receipt."+attachment,copy.ToJsonString());return attachment;

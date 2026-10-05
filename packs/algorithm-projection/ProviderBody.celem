@@ -1,0 +1,5 @@
+implementation Confectory.AlgorithmProjection::ProviderBody for Confectory.AlgorithmProjection::Provider (string contract, string implementation, string body) -> string {
+
+import Confectory.SchemaEditing::Call as Call (string, string) -> string;
+body common "Provider.csbody";
+}

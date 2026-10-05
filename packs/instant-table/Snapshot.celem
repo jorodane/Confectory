@@ -1,0 +1,1 @@
+function Confectory.InstantTable::Snapshot (string view) -> string {provide Confectory.InstantTable::Snapshot with Confectory.InstantTable::SnapshotBody;}

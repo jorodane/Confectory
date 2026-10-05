@@ -1,0 +1,4 @@
+implementation Confectory.YogiBox::ReceiveBody for Confectory.YogiBox::Receive (string recipient, string package) -> string {
+
+body common "Receive.csbody";
+}

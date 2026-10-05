@@ -1,0 +1,1 @@
+function Confectory.InstantTable::Definition (string view) -> string {provide Confectory.InstantTable::Definition with Confectory.InstantTable::DefinitionBody;}

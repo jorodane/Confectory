@@ -1,0 +1,1 @@
+function Confectory.InstantTable::SetCell (string view, string id, string field, string value) -> bool {provide Confectory.InstantTable::SetCell with Confectory.InstantTable::SetCellBody;}

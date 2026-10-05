@@ -1,0 +1,1 @@
+function Confectory.YogiBox::Remove (string box, string item) -> bool {provide Confectory.YogiBox::Remove with Confectory.YogiBox::RemoveBody;}

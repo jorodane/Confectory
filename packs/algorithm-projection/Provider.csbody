@@ -1,0 +1,1 @@
+if(OperatingSystem.IsAndroid())throw new PlatformNotSupportedException("Native Android projection host strategy unavailable");return calls.Call.Invoke("algorithmProject",new System.Text.Json.Nodes.JsonObject{["contract"]=contract,["implementation"]=implementation,["body"]=body}.ToJsonString());

@@ -1,0 +1,1 @@
+function Confectory.InstantTable::Create (string workspace, string[] ids, string[] columns, string request) -> string {provide Confectory.InstantTable::Create with Confectory.InstantTable::CreateBody;}

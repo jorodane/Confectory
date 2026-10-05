@@ -1,0 +1,1 @@
+string box=Guid.NewGuid().ToString("N");AppDomain.CurrentDomain.SetData("Confectory.YogiBox."+box,new object[]{new object(),new System.Text.Json.Nodes.JsonArray(),false,"",new System.Collections.Generic.Dictionary<string,System.Text.Json.Nodes.JsonObject>(StringComparer.Ordinal),false});return box;

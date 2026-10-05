@@ -1,0 +1,1 @@
+function Confectory.AlgorithmProjection::Regenerate (string view, string function, string implementation, string bodyID) -> bool {provide Confectory.AlgorithmProjection::Regenerate with Confectory.AlgorithmProjection::RegenerateBody;}

@@ -27,4 +27,8 @@ element Win32Draw function "Win32Draw.celem";
 element Win32DrawBody implementation "Win32DrawBody.celem";
 element Win32Close function "Win32Close.celem";
 element Win32CloseBody implementation "Win32CloseBody.celem";
+element Capture function "Capture.celem";
+element CaptureBody implementation "CaptureBody.celem";
+element Place function "Place.celem";
+element PlaceBody implementation "PlaceBody.celem";
 }

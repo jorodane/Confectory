@@ -1,0 +1,4 @@
+implementation Confectory.YogiBox::HandoffBody for Confectory.YogiBox::Handoff (string box, string recipient) -> string {
+import Confectory.YogiBox::Receive as Receive (string, string) -> string;
+body common "Handoff.csbody";
+}

@@ -50,10 +50,11 @@ try
             }
             reply=new JsonObject{["project"]=project,["namespace"]=manifest.Namespace,["units"]=units};break;
         }
+        case "algorithmProject":reply=AlgorithmProjectionOperations.Execute(request);break;
         case "inspect":
         {
             var element=new Parser(S("text"),"<draft>").ParseElement();
-            reply=new JsonObject{["id"]=element.Id,["kind"]=element.Kind,["parent"]=element.Parent,["values"]=JsonSerializer.SerializeToNode(element.Values.ToDictionary(x=>x.Key,x=>x.Value.Value))};break;
+            reply=new JsonObject{["id"]=element.Id,["kind"]=element.Kind,["parent"]=element.Parent,["description"]=element.Description,["signature"]=JsonSerializer.SerializeToNode(element.Signature),["values"]=JsonSerializer.SerializeToNode(element.Values.ToDictionary(x=>x.Key,x=>x.Value.Value))};break;
         }
         case "setValue":
         {

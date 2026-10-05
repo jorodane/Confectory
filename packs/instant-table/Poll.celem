@@ -1,0 +1,1 @@
+function Confectory.InstantTable::Poll (string view) -> string[] {provide Confectory.InstantTable::Poll with Confectory.InstantTable::PollBody;}

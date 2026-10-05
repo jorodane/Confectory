@@ -1,0 +1,1 @@
+function Confectory.YogiBox::Handoff (string box, string recipient) -> string {provide Confectory.YogiBox::Handoff with Confectory.YogiBox::HandoffBody;}

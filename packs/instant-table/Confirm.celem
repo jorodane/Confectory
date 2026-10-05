@@ -1,0 +1,1 @@
+function Confectory.InstantTable::Confirm (string view, string[] ids, string target) -> string[] {provide Confectory.InstantTable::Confirm with Confectory.InstantTable::ConfirmBody;}

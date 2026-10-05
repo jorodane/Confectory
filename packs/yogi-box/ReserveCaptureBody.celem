@@ -1,0 +1,4 @@
+implementation Confectory.YogiBox::ReserveCaptureBody for Confectory.YogiBox::ReserveCapture (string box, string source, int view, int x, int y, int width, int height) -> string {
+
+body common "ReserveCapture.csbody";
+}

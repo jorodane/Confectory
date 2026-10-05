@@ -1,0 +1,4 @@
+implementation Confectory.AlgorithmProjection::DrainMaintenanceBody for Confectory.AlgorithmProjection::DrainMaintenance (string view) -> string {
+
+body common "DrainMaintenance.csbody";
+}
