@@ -1,6 +1,6 @@
 # Requirements and executable tests
 
-The initial requirement/verification table was written before implementation. Named tests below were added after implementation to make the map directly searchable. `C` means `CoreTests` in `tests/test_core.py`; `I` means `IntegrationTests` in `tests/test_integration.py`. Current results are in `VERIFICATION.md`.
+The initial requirement/verification table was written before implementation. Named tests below remain searchable after the C# rewrite. `C` means `CoreTests` in `tests/Confectory.Tests/CoreTests.cs`; `I` means `IntegrationTests` in `tests/Confectory.Tests/IntegrationTests.cs`. The dependency-free console runner executes the tests against the C# library and real .NET target tool. Current results are in `VERIFICATION.md`.
 
 | ID | Specification requirement | Verification |
 | --- | --- | --- |
@@ -42,12 +42,13 @@ Exact version expectations and `*`, primitive C# contract types, synchronous fun
 | MODULE02 | C `test_explicit_binding_beats_multiple_defaults`, `test_different_defaults_conflict`, `test_module_missing_default`, `test_same_default_deduplicates_through_nested_modules`, `test_invalid_default_cannot_hide_behind_explicit_binding` |
 | CYCLE01 | C `test_inheritance_cycle`, `test_containment_cycle`, `test_module_inclusion_cycle`, `test_reference_cycle_is_allowed`; I `test_recursive_function_calls_execute` |
 | TARGET01 | I `test_target_specific_common_fallback_and_linux_launcher`, `test_distinct_module_defaults_and_missing_target_fail_before_execution`, `test_broken_selected_target_body_does_not_fall_back` |
-| TOOL01 | I `test_missing_target_and_tool_protocol_errors`, `test_tool_source_change_invalidates_local_artifacts`, `test_inherited_build_target_uses_parent_owned_tool` |
+| TOOL01 | I `test_missing_target_and_tool_protocol_errors`, `test_tool_binary_change_invalidates_local_artifacts`, `test_inherited_build_target_uses_parent_owned_tool` |
 | GRAPH01 | C `test_transitive_stage_view_inheritance_and_always`, `test_unused_documents_are_not_read`; I `test_actual_linked_output_and_public_catalog` |
 | VERSION01 | I `test_selected_versions_warn_without_breaking_executable`, `test_addition_of_a_newer_pack_does_not_change_project_selected_version` |
 | LOCAL01 | I `test_unchanged_build_and_provider_only_change` |
 | LOCAL02 | I `test_unchanged_build_and_provider_only_change`, `test_contract_change_rechecks_consumers_and_rebuilds_only_affected_packs` |
 | LOCAL03 | I `test_local_compilation_reads_do_not_grow_with_unrelated_element_documents`, `test_unrelated_contract_in_same_pack_does_not_invalidate_consumers` |
-| CACHE01 | I `test_corrupted_local_artifact_is_rebuilt`, `test_tool_source_change_invalidates_local_artifacts`, `test_failure_preserves_latest_successful_runnable_output`; C `test_changed_text_with_restored_mtime_is_not_a_stale_document_hit` |
+| CACHE01 | I `test_corrupted_local_artifact_is_rebuilt`, `test_tool_binary_change_invalidates_local_artifacts`, `test_failure_preserves_latest_successful_runnable_output`; C `test_changed_text_with_restored_mtime_is_not_a_stale_document_hit`, `test_corrupted_document_cache_is_reparsed` |
 | META01 | I `test_actual_linked_output_and_public_catalog`; pending loader requirements MOD01–MOD06 are documented separately |
 | SCOPE01 | Manual source/diff review; tests compile through the independent target pack and never use the old repository |
+| C# migration | I `test_cli_preserves_json_reports_and_exit_codes`, `test_validate_checks_unreached_declarations_without_compiling`, `test_utf8_pack_and_body_paths_with_spaces_execute`, `test_compiler_artifacts_cannot_escape_requested_output`; C `test_non_utf8_source_reports_owned_location`, `test_owned_source_symlink_cannot_escape_pack` |

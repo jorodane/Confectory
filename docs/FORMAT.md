@@ -98,12 +98,12 @@ Without `in`, calls resolve in the current consumer scope. The final linker crea
 
 ```text
 buildtarget Confectory.Build.DotNet::Portable {
-    tool "tool.py";
+    tool "bin/Release/net8.0/Confectory.Build.DotNet.dll";
     option mode "portable";
 }
 ```
 
-Tools are executable owned files; `.py` uses the bootstrap's Python interpreter. Requests use protocol `1` and one JSON object on stdin. Return one JSON object on stdout. Errors have `{"protocol":1,"ok":false,"error":"..."}` and a nonzero process exit status. The tool is a trusted compiler/packager, not a sandbox.
+Tools are executable owned files. A `.dll` tool is launched using `CONFECTORY_DOTNET`, the current .NET host, `DOTNET_ROOT`, or `dotnet` on PATH; other files are launched directly. The bundled target tool is built by `dotnet build Confectory.sln -c Release`. The core hashes its executable plus adjacent `.deps.json`/`.runtimeconfig.json` files; tools must fingerprint any further implementation dependencies. Requests use protocol `1` and one JSON object on stdin. Return one JSON object on stdout. Errors have `{"protocol":1,"ok":false,"error":"..."}` and a nonzero process exit status. The tool is a trusted compiler/packager, not a sandbox.
 
 | Operation | Core supplies | Tool returns |
 | --- | --- | --- |
@@ -112,7 +112,7 @@ Tools are executable owned files; `.py` uses the bootstrap's Python interpreter.
 | `compile-pack` | Owned generated sources and public contract reference images | At least `artifacts.assembly`; no consumer implementation references |
 | `link` | Actual generated bindings, executable contract/provider assemblies, catalog resource and output root | `artifacts.application`, preserved `artifacts.publicCatalog`, other package files and executable `run` array |
 
-Every artifact must exist beneath the requested output root. Cache records hash all returned local artifacts. Final packaging copies executable contract assemblies, not reference-only images. The current .NET pack calls SDK `csc.dll` directly, emits .NET 8 runtime configuration, copies dependencies and optionally creates a Linux launcher. None of those compiler/package decisions lives in `confectory/build.py`.
+Every artifact must exist beneath the requested output root. Cache records hash all returned local artifacts. Final packaging copies executable contract assemblies, not reference-only images. The current .NET pack calls SDK `csc.dll` directly, emits .NET 8 runtime configuration, copies dependencies and optionally creates a Linux launcher. None of those compiler/package decisions lives in `src/Confectory.Core/Build.cs`.
 
 ## Public linkage catalog
 

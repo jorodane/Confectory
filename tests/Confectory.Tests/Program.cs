@@ -1,0 +1,22 @@
+using System.Diagnostics;
+using System.Reflection;
+using Confectory.Core;
+using Confectory.Tests;
+
+string fakeReply = Path.Combine(AppContext.BaseDirectory, "fake-reply.txt");
+if (File.Exists(fakeReply)) { Console.Write(File.ReadAllText(fakeReply)); return 0; }
+
+Environment.SetEnvironmentVariable("CONFECTORY_DOTNET", Processes.DotNet());
+var watch = Stopwatch.StartNew(); int passed = 0, failed = 0;
+string? filter = args.Length == 0 ? null : args[0];
+foreach (var type in new[] { typeof(CoreTests), typeof(IntegrationTests) })
+foreach (var method in type.GetMethods().Where(x => x.Name.StartsWith("test_", StringComparison.Ordinal)).OrderBy(x => x.Name, StringComparer.Ordinal))
+{
+    string name = type.Name + "." + method.Name;
+    if (filter is not null && !name.Contains(filter, StringComparison.OrdinalIgnoreCase)) continue;
+    using var test = (TestCase)Activator.CreateInstance(type)!;
+    try { method.Invoke(test, null); passed++; Console.WriteLine($"PASS {name}"); }
+    catch (TargetInvocationException ex) { failed++; Console.WriteLine($"FAIL {name}\n{ex.InnerException}"); }
+}
+Console.WriteLine($"{passed} passed, {failed} failed; {watch.Elapsed.TotalSeconds:F3}s");
+return failed == 0 && passed > 0 ? 0 : 1;

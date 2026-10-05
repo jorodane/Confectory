@@ -1,5 +1,5 @@
 buildtarget Confectory.Build.DotNet::Linux {
     description ".NET 8 package with a Linux shell launcher";
-    tool "tool.py";
+    tool "bin/Release/net8.0/Confectory.Build.DotNet.dll";
     option mode "linux";
 }

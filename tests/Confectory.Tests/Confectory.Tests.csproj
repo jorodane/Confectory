@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/Confectory.Core/Confectory.Core.csproj" />
+    <ProjectReference Include="../../src/Confectory.Cli/Confectory.Cli.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="../../targets/dotnet/Confectory.Build.DotNet.csproj" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+</Project>
