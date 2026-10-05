@@ -1,0 +1,2 @@
+implementation Confectory.WorkerTasks::VerifyCompletionBody for Confectory.WorkerTasks::VerifyCompletion (string specification, string progress, string evidence) -> bool {
+body common "VerifyCompletion.csbody";}

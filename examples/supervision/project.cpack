@@ -22,4 +22,5 @@ element Release function "Release.celem";
 element ReleaseBody implementation "ReleaseBody.celem";
 element Counts function "Counts.celem";
 element CountsBody implementation "CountsBody.celem";
+element Verifier implementation "Verifier.celem";
 }

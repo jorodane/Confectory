@@ -1,0 +1,2 @@
+implementation Confectory.WorkerTasks::FinishBody for Confectory.WorkerTasks::Finish (string session, string controller, long epoch, string commandID, string task, string evidence) -> void {import Confectory.WorkerTasks::Command as Command (string, string, string, string) -> string;
+body common "Finish.csbody";}

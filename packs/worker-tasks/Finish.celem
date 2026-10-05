@@ -1,0 +1,1 @@
+function Confectory.WorkerTasks::Finish (string session, string controller, long epoch, string commandID, string task, string evidence) -> void {provide Confectory.WorkerTasks::Finish with Confectory.WorkerTasks::FinishBody;}

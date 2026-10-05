@@ -1,0 +1,1 @@
+implementation Example.Supervision::Verifier for Confectory.WorkerTasks::VerifyCompletion (string specification, string progress, string evidence) -> bool {body common "Verifier.csbody";}

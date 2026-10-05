@@ -37,4 +37,6 @@ provide Confectory.FileStream::LeasePath with Confectory.FileStream::LeasePathBo
 provide Confectory.FileStream::Snapshot with Confectory.FileStream::SnapshotBody;
 provide Confectory.FileStream::WriteAtomic with Confectory.FileStream::WriteAtomicBody;
 provide Confectory.WorkerTasks::ChiefJournal with Confectory.WorkerTasks::ChiefJournalBody;
+provide Confectory.WorkerTasks::VerifyCompletion with Example.Supervision::Verifier;
+provide Confectory.WorkerTasks::Finish with Confectory.WorkerTasks::FinishBody;
 }

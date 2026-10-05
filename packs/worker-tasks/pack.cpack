@@ -34,4 +34,8 @@ element Close function "Close.celem";
 element CloseBody implementation "CloseBody.celem";
 element ChiefJournal function "ChiefJournal.celem";
 element ChiefJournalBody implementation "ChiefJournalBody.celem";
+element VerifyCompletion function "VerifyCompletion.celem";
+element VerifyCompletionBody implementation "VerifyCompletionBody.celem";
+element Finish function "Finish.celem";
+element FinishBody implementation "FinishBody.celem";
 }

@@ -6,4 +6,5 @@ import Confectory.Agent::Start as AgentStart (string, string, string) -> string;
 import Confectory.Agent::Poll as AgentPoll (string) -> string;
 import Confectory.Agent::Cancel as AgentCancel (string) -> void;
 import Confectory.Agent::CloseRun as AgentCloseRun (string) -> void;
+import Confectory.WorkerTasks::VerifyCompletion as VerifyCompletion (string, string, string) -> bool;
 body common "Command.csbody";}

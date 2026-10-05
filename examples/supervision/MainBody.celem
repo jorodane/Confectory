@@ -39,4 +39,5 @@ import Confectory.FileStream::WriteAtomic as FileStreamWriteAtomic (string, stri
 import Example.Supervision::Release as Release (string) -> void;
 import Example.Supervision::Counts as Counts () -> string;
 import Confectory.WorkerTasks::ChiefJournal as WorkerTasksChiefJournal (string) -> string;
+import Confectory.WorkerTasks::Finish as WorkerTasksFinish (string, string, long, string, string, string) -> void;
 body common "MainBody.csbody";}

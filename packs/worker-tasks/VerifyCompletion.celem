@@ -1,0 +1,1 @@
+function Confectory.WorkerTasks::VerifyCompletion (string specification, string progress, string evidence) -> bool {provide Confectory.WorkerTasks::VerifyCompletion with Confectory.WorkerTasks::VerifyCompletionBody;}

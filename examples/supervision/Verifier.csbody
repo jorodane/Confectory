@@ -1,0 +1,1 @@
+return System.Text.Json.Nodes.JsonNode.Parse(specification)!["completion"]!.GetValue<string>()=="exact diagnostic marker"&&progress=="validated-result"&&evidence=="marker-exact-check-passed";
