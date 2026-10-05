@@ -1,3 +1,4 @@
+int timeout=300000;string? timeoutText=Environment.GetEnvironmentVariable("CONFECTORY_AUTHORING_TIMEOUT_MS");if(timeoutText is not null&&(!int.TryParse(timeoutText,out timeout)||timeout<1000||timeout>900000))throw new ArgumentException("CONFECTORY_AUTHORING_TIMEOUT_MS must be between 1000 and 900000.");
 string host=Environment.GetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST")??throw new InvalidOperationException("Explicit authoring tool strategy required.");
 string dotnet=Environment.GetEnvironmentVariable("CONFECTORY_DOTNET")??"dotnet";
 var request=System.Text.Json.Nodes.JsonNode.Parse(payload)!.AsObject();request["operation"]=operation;
@@ -18,7 +19,7 @@ lock(registry)
 try
 {
 var output=process.StandardOutput.ReadToEndAsync();var error=process.StandardError.ReadToEndAsync();process.StandardInput.Write(request.ToJsonString());process.StandardInput.Close();
-if(!process.WaitForExit(120000)){process.Kill(true);process.WaitForExit();throw new TimeoutException("Authoring tool timeout.");}
+if(!process.WaitForExit(timeout)){process.Kill(true);process.WaitForExit();throw new TimeoutException("Authoring tool timeout.");}
 string reply=output.GetAwaiter().GetResult(),stderr=error.GetAwaiter().GetResult();if(process.ExitCode!=0)throw new InvalidOperationException("Authoring process failed: "+stderr);
 var result=System.Text.Json.Nodes.JsonNode.Parse(reply)!.AsObject();if(!result["ok"]!.GetValue<bool>())throw new InvalidOperationException(result["code"]!.GetValue<string>()+": "+result["message"]!.GetValue<string>());
 return result["result"]!.ToJsonString();

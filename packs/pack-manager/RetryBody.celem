@@ -1,0 +1,4 @@
+implementation Confectory.PackManager::RetryBody for Confectory.PackManager::Retry (string session, string transaction, string target) -> string[] {
+import Confectory.PackManager::Apply as Apply (string, string, string) -> string[];
+body common "Retry.csbody";
+}

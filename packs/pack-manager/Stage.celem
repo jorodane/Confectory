@@ -1,0 +1,1 @@
+function Confectory.PackManager::Stage (string session, string action, string source, string name, string expectation, bool optional) -> string {description "Stage explicit source-pin registration/update/removal without activating.";}

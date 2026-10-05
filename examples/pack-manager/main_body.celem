@@ -1,0 +1,32 @@
+implementation Example.PackManager::MainBody for Example.PackManager::Main () -> int {
+import Confectory.FileStream::Capabilities as FileStreamCapabilities () -> string[];
+import Confectory.FileStream::Commit as FileStreamCommit (string, string[], string[], string[]) -> string[];
+import Confectory.FileStream::CopySources as FileStreamCopySources (string, string) -> void;
+import Confectory.FileStream::LeasePath as FileStreamLeasePath (string) -> string;
+import Confectory.FileStream::Snapshot as FileStreamSnapshot (string) -> string[];
+import Confectory.FileStream::WriteAtomic as FileStreamWriteAtomic (string, string) -> void;
+import Confectory.SchemaEditing::BeginScope as SchemaEditingBeginScope (string) -> void;
+import Confectory.SchemaEditing::Call as SchemaEditingCall (string, string) -> string;
+import Confectory.SchemaEditing::Cancel as SchemaEditingCancel (string) -> void;
+import Confectory.SchemaEditing::Create as SchemaEditingCreate (string, string) -> string;
+import Confectory.SchemaEditing::Describe as SchemaEditingDescribe (string) -> string;
+import Confectory.SchemaEditing::EndScope as SchemaEditingEndScope () -> void;
+import Confectory.SchemaEditing::Inspect as SchemaEditingInspect (string) -> string;
+import Confectory.SchemaEditing::Pending as SchemaEditingPending (string) -> int;
+import Confectory.SchemaEditing::Prepare as SchemaEditingPrepare (string, string) -> string;
+import Confectory.SchemaEditing::Register as SchemaEditingRegister (string, string, string, string) -> string;
+import Confectory.SchemaEditing::SetValue as SchemaEditingSetValue (string, string, string) -> string;
+import Confectory.SchemaEditing::Validate as SchemaEditingValidate (string, string) -> string;
+import Confectory.PackManager::AddHook as PackManagerAddHook (string, string, string, int) -> void;
+import Confectory.PackManager::Apply as PackManagerApply (string, string, string) -> string[];
+import Confectory.PackManager::Cancel as PackManagerCancel (string) -> void;
+import Confectory.PackManager::Close as PackManagerClose (string) -> void;
+import Confectory.PackManager::Dispatch as PackManagerDispatch (string, string, string) -> string;
+import Confectory.PackManager::Inspect as PackManagerInspect (string, string, string) -> string;
+import Confectory.PackManager::Open as PackManagerOpen (string) -> string;
+import Confectory.PackManager::Pending as PackManagerPending (string, string) -> string;
+import Confectory.PackManager::Restore as PackManagerRestore (string, string) -> void;
+import Confectory.PackManager::Retry as PackManagerRetry (string, string, string) -> string[];
+import Confectory.PackManager::Stage as PackManagerStage (string, string, string, string, string, bool) -> string;
+body common "main.csbody";
+}

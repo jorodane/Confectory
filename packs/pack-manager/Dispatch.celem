@@ -1,0 +1,1 @@
+function Confectory.PackManager::Dispatch (string functionID, string operation, string payload) -> string {provide Confectory.PackManager::Dispatch with Confectory.PackManager::DispatchBody;description "Caller-selected typed public hook routing; no dynamic private provider access.";}

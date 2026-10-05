@@ -1,0 +1,1 @@
+implementation Example.PackManager::BetaBody for Example.PackManager::Beta (string operation, string payload) -> string {body common "Beta.csbody";}

@@ -1,0 +1,1 @@
+function Confectory.PackManager::Inspect (string session, string entry, string target) -> string {description "Inspect actual usage and selected pins without invoking tool/runtime hooks.";}

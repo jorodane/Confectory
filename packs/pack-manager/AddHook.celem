@@ -1,0 +1,1 @@
+function Confectory.PackManager::AddHook (string session, string operation, string functionID, int priority) -> void {description "Register public hook ID and deterministic priority; no dispatch yet.";}

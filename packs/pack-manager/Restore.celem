@@ -1,0 +1,1 @@
+function Confectory.PackManager::Restore (string session, string transaction) -> void {description "Recover same-project transaction journal with stable retry/completed-hook key.";}

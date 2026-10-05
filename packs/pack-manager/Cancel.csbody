@@ -1,0 +1,3 @@
+if(AppDomain.CurrentDomain.GetData("Confectory.PackManager."+session) is not System.Text.Json.Nodes.JsonObject state)return;
+string[] transactions;lock(state){state["active"]=false;transactions=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(state["transactions"]!.AsObject(),x=>x.Key));}
+foreach(string transaction in transactions)calls.Cancel.Invoke(session+":"+transaction);

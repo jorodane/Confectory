@@ -1,0 +1,1 @@
+function Confectory.PackManager::Close (string session) -> void {description "Dispose live session only; never delete pins or user saves.";}

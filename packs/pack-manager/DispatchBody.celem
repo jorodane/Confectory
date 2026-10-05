@@ -1,0 +1,3 @@
+implementation Confectory.PackManager::DispatchBody for Confectory.PackManager::Dispatch (string functionID, string operation, string payload) -> string {
+body common "Dispatch.csbody";
+}

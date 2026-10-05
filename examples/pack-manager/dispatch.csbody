@@ -1,0 +1,1 @@
+return functionID switch {"Example.PackManager::Alpha"=>calls.Alpha.Invoke(operation,payload),"Example.PackManager::Beta"=>calls.Beta.Invoke(operation,payload),"Example.PackManager::First"=>calls.First.Invoke(operation,payload),_=>throw new InvalidOperationException("No typed hook route for "+functionID)};

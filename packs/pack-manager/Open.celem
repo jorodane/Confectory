@@ -1,0 +1,1 @@
+function Confectory.PackManager::Open (string project) -> string {description "Open project-local pack management session; no runtime load.";}

@@ -1,0 +1,7 @@
+implementation Confectory.PackManager::StageBody for Confectory.PackManager::Stage (string session, string action, string source, string name, string expectation, bool optional) -> string {
+import Confectory.SchemaEditing::Call as Call (string, string) -> string;
+import Confectory.FileStream::Snapshot as Snapshot (string) -> string[];
+import Confectory.FileStream::CopySources as CopySources (string, string) -> void;
+import Confectory.FileStream::WriteAtomic as WriteAtomic (string, string) -> void;
+body common "Stage.csbody";
+}

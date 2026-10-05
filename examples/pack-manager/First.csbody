@@ -1,0 +1,1 @@
+var events=AppDomain.CurrentDomain.GetData("Example.PackManager.events") as System.Collections.Generic.List<string>??throw new InvalidOperationException("Hook owner missing.");events.Add("First");return "accepted";

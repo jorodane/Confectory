@@ -1,0 +1,2 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.PackManager."+session) as System.Text.Json.Nodes.JsonObject??throw new ObjectDisposedException("PackManager");
+return calls.Call.Invoke("packUsage",new System.Text.Json.Nodes.JsonObject{["project"]=state["project"]!.GetValue<string>(),["entry"]=entry,["target"]=target}.ToJsonString());

@@ -1,0 +1,5 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.PackManager."+session) as System.Text.Json.Nodes.JsonObject??throw new ObjectDisposedException("PackManager");
+if(!Guid.TryParseExact(transaction,"N",out _))throw new ArgumentException("Transaction GUID required.");
+var saved=calls.Snapshot.Invoke(System.IO.Path.Combine(state["root"]!.GetValue<string>(),".confectory","pack-manager",transaction+".json"));if(saved[0]!="exists")throw new System.IO.FileNotFoundException("Transaction journal missing.");
+var record=System.Text.Json.Nodes.JsonNode.Parse(saved[1])!.AsObject();if(record["project"]!.GetValue<string>()!=state["project"]!.GetValue<string>()||record["id"]!.GetValue<string>()!=transaction)throw new ArgumentException("Transaction project/identity mismatch.");
+lock(state){state["transactions"]![transaction]=record;state["snapshots"]![transaction]=record.ToJsonString();}

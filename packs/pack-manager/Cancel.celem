@@ -1,0 +1,1 @@
+function Confectory.PackManager::Cancel (string session) -> void {description "Cancel pending owned validation; preserve active selection and journals.";}

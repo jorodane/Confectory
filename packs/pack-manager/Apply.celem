@@ -1,0 +1,1 @@
+function Confectory.PackManager::Apply (string session, string transaction, string target) -> string[] {description "Validate candidate, dispatch deterministic hooks, conditionally activate; failed update keeps old selection.";}

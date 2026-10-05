@@ -1,0 +1,12 @@
+implementation Confectory.PackManager::ApplyBody for Confectory.PackManager::Apply (string session, string transaction, string target) -> string[] {
+import Confectory.SchemaEditing::Prepare as Prepare (string, string) -> string;
+import Confectory.SchemaEditing::Validate as Validate (string, string) -> string;
+import Confectory.FileStream::CopySources as CopySources (string, string) -> void;
+import Confectory.FileStream::WriteAtomic as WriteAtomic (string, string) -> void;
+import Confectory.FileStream::Commit as Commit (string, string[], string[], string[]) -> string[];
+import Confectory.PackManager::Dispatch as Dispatch (string, string, string) -> string;
+import Confectory.SchemaEditing::BeginScope as BeginScope (string) -> void;
+import Confectory.SchemaEditing::EndScope as EndScope () -> void;
+import Confectory.FileStream::Snapshot as Snapshot (string) -> string[];
+body common "Apply.csbody";
+}

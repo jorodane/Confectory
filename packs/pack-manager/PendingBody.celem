@@ -1,0 +1,3 @@
+implementation Confectory.PackManager::PendingBody for Confectory.PackManager::Pending (string session, string transaction) -> string {
+body common "Pending.csbody";
+}

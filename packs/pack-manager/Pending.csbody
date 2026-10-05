@@ -1,0 +1,1 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.PackManager."+session) as System.Text.Json.Nodes.JsonObject??throw new ObjectDisposedException("PackManager");lock(state)return state["snapshots"]![transaction]?.GetValue<string>()??throw new ArgumentException("Unknown transaction.");

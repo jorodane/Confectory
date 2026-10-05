@@ -1,0 +1,4 @@
+implementation Confectory.PackManager::OpenBody for Confectory.PackManager::Open (string project) -> string {
+import Confectory.FileStream::Snapshot as Snapshot (string) -> string[];
+body common "Open.csbody";
+}

@@ -1,0 +1,27 @@
+void Check(bool value,string message){if(!value)throw new Exception(message);}
+string project=Environment.GetEnvironmentVariable("CONFECTORY_TEST_AUTHOR_PROJECT")??throw new Exception("Project required"),source=Environment.GetEnvironmentVariable("CONFECTORY_TEST_PACK_SOURCE")??throw new Exception("Pack source required");
+string root=System.IO.Path.GetDirectoryName(project)!,before=System.IO.File.ReadAllText(project);var events=new System.Collections.Generic.List<string>();AppDomain.CurrentDomain.SetData("Example.PackManager.events",events);AppDomain.CurrentDomain.SetData("Example.PackManager.fail",true);
+string session=calls.PackManagerOpen.Invoke(project);string save=System.IO.Path.Combine(root,".confectory","user-saves","keep.txt");calls.FileStreamWriteAtomic.Invoke(save,"user data");
+void Hooks(string handle){calls.PackManagerAddHook.Invoke(handle,"update","Example.PackManager::Beta",10);calls.PackManagerAddHook.Invoke(handle,"update","Example.PackManager::Alpha",10);calls.PackManagerAddHook.Invoke(handle,"update","Example.PackManager::First",-1);}
+try
+{
+ Hooks(session);var inspected=System.Text.Json.Nodes.JsonNode.Parse(calls.PackManagerInspect.Invoke(session,"","portable"))!;Check(events.Count==0,"Discovery never dispatches hooks");
+ string transaction=calls.PackManagerStage.Invoke(session,"update",source,"Api","999",false);Check(System.IO.File.ReadAllText(project)==before&&events.Count==0,"Staging never activates or dispatches");
+ var failed=calls.PackManagerApply.Invoke(session,transaction,"portable");Check(failed[0]=="failed"&&System.IO.File.ReadAllText(project)==before&&!System.IO.File.Exists(System.IO.Path.Combine(root,".pack-lock.json")),"Hook failure retains old registration");Check(string.Join(",",events)=="First,Alpha,Beta","Deterministic priority and ID ties");
+ calls.PackManagerClose.Invoke(session);session=calls.PackManagerOpen.Invoke(project);calls.PackManagerRestore.Invoke(session,transaction);Hooks(session);
+ var applied=calls.PackManagerRetry.Invoke(session,transaction,"portable");Check(applied[0]=="applied"&&string.Join(",",events)=="First,Alpha,Beta,Beta","Stable recovered retry skips completed hooks");Check(calls.PackManagerApply.Invoke(session,transaction,"portable")[0]=="applied"&&events.Count==4,"Applied transaction repeat no duplicate hook");
+ var catalog=System.Text.Json.Nodes.JsonNode.Parse(System.IO.File.ReadAllText(System.IO.Path.Combine(root,".pack-lock.json")))!;string pin=catalog["pins"]!["Api"]!["path"]!.GetValue<string>();Check(pin.StartsWith("packs"+System.IO.Path.DirectorySeparatorChar)&&System.IO.File.Exists(System.IO.Path.Combine(root,pin)),"Project-local pin exists");
+ var usage=System.Text.Json.Nodes.JsonNode.Parse(calls.PackManagerInspect.Invoke(session,"","portable"))!;Check(usage["warnings"]!.AsArray().Count>0,"Version mismatch remains warning");
+ string sourceText=System.IO.File.ReadAllText(System.IO.Path.Combine(System.IO.Path.GetDirectoryName(source)!,"Value.celem"));
+ try
+ {
+  System.IO.File.WriteAllText(System.IO.Path.Combine(System.IO.Path.GetDirectoryName(source)!,"Value.celem"),sourceText.Replace("-> int","-> long",StringComparison.Ordinal));string good=System.IO.File.ReadAllText(project);string bad=calls.PackManagerStage.Invoke(session,"update",source,"Api","2",false);var rejected=calls.PackManagerApply.Invoke(session,bad,"portable");Check(rejected[0]=="failed"&&System.IO.File.ReadAllText(project)==good,"Actual contract failure retains working pin");Check(events.Count==4,"Invalid candidate never dispatches hooks");
+ }
+ finally{System.IO.File.WriteAllText(System.IO.Path.Combine(System.IO.Path.GetDirectoryName(source)!,"Value.celem"),sourceText);}
+ Check(System.IO.File.ReadAllText(save)=="user data","Failure/retry preserves saves");
+ string unused=Environment.GetEnvironmentVariable("CONFECTORY_TEST_UNUSED_SOURCE")??throw new Exception("Unused pack required");string optional=calls.PackManagerStage.Invoke(session,"update",unused,"Unused","*",true);Check(calls.PackManagerApply.Invoke(session,optional,"portable")[0]=="applied","Optional source pin");
+ var unusedUsage=System.Text.Json.Nodes.JsonNode.Parse(calls.PackManagerInspect.Invoke(session,"","portable"))!;bool notUsed=false;foreach(var pack in unusedUsage["packs"]!.AsArray())if(pack!["namespace"]!.GetValue<string>()=="Unused")notUsed=!pack["used"]!.GetValue<bool>();Check(notUsed,"Registered optional import is truly unused");
+ string remove=calls.PackManagerStage.Invoke(session,"remove","","Unused","*",true);Check(calls.PackManagerApply.Invoke(session,remove,"portable")[0]=="applied"&&System.IO.File.Exists(save),"Removal unregisters without deleting user saves");Check(System.IO.File.Exists(System.IO.Path.Combine(root,pin)),"Old pins retained; no implicit cleanup");
+}
+finally{calls.PackManagerClose.Invoke(session);calls.PackManagerClose.Invoke(session);AppDomain.CurrentDomain.SetData("Example.PackManager.events",null);}
+Console.WriteLine("PackManager local pin/update/usage/hooks/retry/preservation PASS");return 0;

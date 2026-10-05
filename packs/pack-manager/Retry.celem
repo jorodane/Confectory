@@ -1,0 +1,1 @@
+function Confectory.PackManager::Retry (string session, string transaction, string target) -> string[] {description "Retry same transaction and unfinished hooks with stable idempotency key.";}

@@ -10,6 +10,10 @@ try
     JsonNode? reply;
     switch(S("operation"))
     {
+        case "outputsDescribe": case "outputsValidate": case "outputsBuild": case "outputsLast":
+            reply=BuildParticipationOperations.Execute(S("operation"),request);break;
+        case "packSource": case "packManifest": case "packUsage":
+            reply=PackOperations.Execute(S("operation"),request,FormatManifest);break;
         case "describe":
         {
             string project=Path.GetFullPath(S("project")),root=Path.GetDirectoryName(project)!;
@@ -17,15 +21,31 @@ try
             if(manifest.Kind!="project")throw new ArgumentException("Explicit ProjectPack required.");
             var units=new JsonArray();
             units.Add(new JsonObject{["id"]=manifest.Namespace+"::ProjectManifest",["kind"]="project",["path"]=Path.GetFileName(project)});
-            foreach(var (name,locator) in manifest.Elements)
+            void AddOwned(Manifest owner,string manifestPath,bool pin)
             {
-                string path=Owned(root,locator.Path);var element=new Parser(File.ReadAllText(path),path).ParseElement();
-                if(element.Id!=manifest.Namespace+"::"+name||element.Kind!=locator.Kind)throw new ArgumentException("Manifest/declaration identity mismatch.");
-                units.Add(new JsonObject{["id"]=element.Id,["kind"]=element.Kind,["path"]=Path.GetRelativePath(root,path)});
-                foreach(var (target,body) in element.Bodies)
+                if(pin)units.Add(new JsonObject{["id"]=owner.Namespace+"::PackManifest",["kind"]="pack",["path"]=Path.GetRelativePath(root,manifestPath)});
+                foreach(var (name,locator) in owner.Elements)
                 {
-                    string bodyPath=Owned(root,Path.GetRelativePath(root,Path.Combine(Path.GetDirectoryName(path)!,body.Path)));
-                    units.Add(new JsonObject{["id"]=element.Id+"/body:"+target,["kind"]="body",["path"]=Path.GetRelativePath(root,bodyPath)});
+                    string path=Owned(root,Path.GetRelativePath(root,Path.Combine(Path.GetDirectoryName(manifestPath)!,locator.Path)));var element=new Parser(File.ReadAllText(path),path).ParseElement();
+                    if(element.Id!=owner.Namespace+"::"+name||element.Kind!=locator.Kind)throw new ArgumentException("Manifest/declaration identity mismatch.");
+                    units.Add(new JsonObject{["id"]=element.Id,["kind"]=element.Kind,["path"]=Path.GetRelativePath(root,path)});
+                    foreach(var (target,body) in element.Bodies)
+                    {
+                        string bodyPath=Owned(root,Path.GetRelativePath(root,Path.Combine(Path.GetDirectoryName(path)!,body.Path)));
+                        units.Add(new JsonObject{["id"]=element.Id+"/body:"+target,["kind"]="body",["path"]=Path.GetRelativePath(root,bodyPath)});
+                    }
+                }
+            }
+            AddOwned(manifest,project,false);
+            string lockPath=Path.Combine(root,".pack-lock.json");
+            if(File.Exists(lockPath))
+            {
+                var pins=JsonNode.Parse(File.ReadAllText(lockPath))!["pins"]!.AsObject();
+                foreach(var (ns,pin) in pins.OrderBy(x=>x.Key,StringComparer.Ordinal))
+                {
+                    if(pin?["editable"]?.GetValue<bool>()!=true||!manifest.Registry.TryGetValue(ns,out var registration))continue;
+                    string owned=Owned(root,registration.Path);if(Path.GetFullPath(Path.Combine(root,pin["path"]!.GetValue<string>()))!=owned)throw new ArgumentException("Editable pin registration mismatch.");
+                    var pack=new Parser(File.ReadAllText(owned),owned).ParseManifest();if(pack.Kind!="pack"||pack.Namespace!=ns)throw new ArgumentException("Editable pin namespace mismatch.");AddOwned(pack,owned,true);
                 }
             }
             reply=new JsonObject{["project"]=project,["namespace"]=manifest.Namespace,["units"]=units};break;
@@ -58,7 +78,13 @@ try
         {
             string original=Path.GetFullPath(S("original")),candidate=Path.GetFullPath(S("candidate"));
             var manifest=new Parser(File.ReadAllText(candidate),candidate).ParseManifest();
-            foreach(var ns in manifest.Registry.Keys.ToArray())manifest.Registry[ns]=manifest.Registry[ns] with{Path=Path.GetFullPath(Path.Combine(Path.GetDirectoryName(original)!,manifest.Registry[ns].Path))};
+            foreach(var ns in manifest.Registry.Keys.ToArray())
+            {
+                string originalRoot=Path.GetDirectoryName(original)!,resolved=Path.GetFullPath(Path.Combine(originalRoot,manifest.Registry[ns].Path));
+                string prefix=originalRoot.TrimEnd(Path.DirectorySeparatorChar)+Path.DirectorySeparatorChar;
+                if(resolved.StartsWith(prefix,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal))resolved=Path.Combine(Path.GetDirectoryName(candidate)!,Path.GetRelativePath(originalRoot,resolved));
+                manifest.Registry[ns]=manifest.Registry[ns] with{Path=resolved};
+            }
             foreach(var item in request["additions"]!.AsArray())
             {
                 string path=item!["path"]!.GetValue<string>(),kind=item["kind"]!.GetValue<string>(),id=item["id"]!.GetValue<string>();

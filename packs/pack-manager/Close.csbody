@@ -1,0 +1,2 @@
+calls.Cancel.Invoke(session);
+AppDomain.CurrentDomain.SetData("Confectory.PackManager."+session,null);

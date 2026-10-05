@@ -1,0 +1,1 @@
+function Confectory.PackManager::Pending (string session, string transaction) -> string {description "Read transaction/journal state, retry key and completed hooks.";}

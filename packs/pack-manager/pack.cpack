@@ -1,0 +1,26 @@
+pack Confectory.PackManager version "0.1.0" {
+dependency Confectory.SchemaEditing version "0.1.0";
+dependency Confectory.FileStream version "0.1.0";
+element Open function "Open.celem";
+element OpenBody implementation "OpenBody.celem";
+element Inspect function "Inspect.celem";
+element InspectBody implementation "InspectBody.celem";
+element Stage function "Stage.celem";
+element StageBody implementation "StageBody.celem";
+element AddHook function "AddHook.celem";
+element AddHookBody implementation "AddHookBody.celem";
+element Dispatch function "Dispatch.celem";
+element DispatchBody implementation "DispatchBody.celem";
+element Apply function "Apply.celem";
+element ApplyBody implementation "ApplyBody.celem";
+element Pending function "Pending.celem";
+element PendingBody implementation "PendingBody.celem";
+element Retry function "Retry.celem";
+element RetryBody implementation "RetryBody.celem";
+element Close function "Close.celem";
+element CloseBody implementation "CloseBody.celem";
+element Cancel function "Cancel.celem";
+element CancelBody implementation "CancelBody.celem";
+element Restore function "Restore.celem";
+element RestoreBody implementation "RestoreBody.celem";
+}

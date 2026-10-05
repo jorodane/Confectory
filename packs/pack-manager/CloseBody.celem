@@ -1,0 +1,4 @@
+implementation Confectory.PackManager::CloseBody for Confectory.PackManager::Close (string session) -> void {
+import Confectory.PackManager::Cancel as Cancel (string) -> void;
+body common "Close.csbody";
+}

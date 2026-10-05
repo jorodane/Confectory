@@ -1,0 +1,1 @@
+var events=AppDomain.CurrentDomain.GetData("Example.PackManager.events") as System.Collections.Generic.List<string>??throw new InvalidOperationException("Hook owner missing.");events.Add("Beta");if(AppDomain.CurrentDomain.GetData("Example.PackManager.fail") is true){AppDomain.CurrentDomain.SetData("Example.PackManager.fail",false);return "retry-needed";}return "accepted";

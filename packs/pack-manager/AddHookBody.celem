@@ -1,0 +1,3 @@
+implementation Confectory.PackManager::AddHookBody for Confectory.PackManager::AddHook (string session, string operation, string functionID, int priority) -> void {
+body common "AddHook.csbody";
+}

@@ -1,0 +1,6 @@
+implementation Example.PackManager::DispatchBody for Confectory.PackManager::Dispatch (string functionID, string operation, string payload) -> string {
+import Example.PackManager::Alpha as Alpha (string, string) -> string;
+import Example.PackManager::Beta as Beta (string, string) -> string;
+import Example.PackManager::First as First (string, string) -> string;
+body common "dispatch.csbody";
+}

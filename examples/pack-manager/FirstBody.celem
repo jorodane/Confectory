@@ -1,0 +1,1 @@
+implementation Example.PackManager::FirstBody for Example.PackManager::First (string operation, string payload) -> string {body common "First.csbody";}

@@ -1,0 +1,3 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.PackManager."+session) as System.Text.Json.Nodes.JsonObject??throw new ObjectDisposedException("PackManager");
+if(operation is not ("register" or "update" or "remove")||!System.Text.RegularExpressions.Regex.IsMatch(functionID,@"^[A-Za-z_][A-Za-z_0-9.] *::[A-Za-z_][A-Za-z_0-9]*$".Replace(" ","")))throw new ArgumentException("Explicit operation and qualified public hook ID required.");
+lock(state){foreach(var item in state["hooks"]!.AsArray())if(item!["operation"]!.GetValue<string>()==operation&&item["id"]!.GetValue<string>()==functionID)throw new ArgumentException("Duplicate hook.");state["hooks"]!.AsArray().Add(new System.Text.Json.Nodes.JsonObject{["operation"]=operation,["id"]=functionID,["priority"]=priority});}

@@ -1,0 +1,23 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.PackManager."+session) as System.Text.Json.Nodes.JsonObject??throw new ObjectDisposedException("PackManager");
+if(action is not ("register" or "update" or "remove"))throw new ArgumentException("Explicit pack lifecycle action required.");
+string project=state["project"]!.GetValue<string>(),root=state["root"]!.GetValue<string>();var baseline=calls.Snapshot.Invoke(project);string lockPath=System.IO.Path.Combine(root,".pack-lock.json");var lockBaseline=calls.Snapshot.Invoke(lockPath);
+var catalog=lockBaseline[0]=="missing"?new System.Text.Json.Nodes.JsonObject{["version"]=1,["project"]=project,["pins"]=new System.Text.Json.Nodes.JsonObject()}:System.Text.Json.Nodes.JsonNode.Parse(lockBaseline[1])!.AsObject();
+if(catalog["version"]!.GetValue<int>()!=1||catalog["project"]!.GetValue<string>()!=project)throw new ArgumentException("Pack lock version/project identity mismatch.");
+string transaction=Guid.NewGuid().ToString("N"),relative="",selectedVersion="",sourceHash="";
+if(action!="remove")
+{
+ source=System.IO.Path.GetFullPath(source);var described=System.Text.Json.Nodes.JsonNode.Parse(calls.Call.Invoke("packSource",new System.Text.Json.Nodes.JsonObject{["path"]=source}.ToJsonString()))!;
+ if(described["namespace"]!.GetValue<string>()!=name)throw new ArgumentException("Requested namespace does not match source.");
+ if(described["toolBootstrap"]!.GetValue<bool>())throw new NotSupportedException("Source-only pins do not package build-target SDK artifacts; keep bootstrap explicit until an artifact strategy exists.");
+ string temporary=System.IO.Path.Combine(root,".confectory","pin-stages",transaction);calls.CopySources.Invoke(System.IO.Path.GetDirectoryName(source)!,temporary);
+ var copied=System.Text.Json.Nodes.JsonNode.Parse(calls.Call.Invoke("packSource",new System.Text.Json.Nodes.JsonObject{["path"]=System.IO.Path.Combine(temporary,System.IO.Path.GetFileName(source))}.ToJsonString()))!;
+ if(copied["hash"]!.GetValue<string>()!=described["hash"]!.GetValue<string>())throw new InvalidOperationException("Source changed during copy; retry explicitly.");
+ selectedVersion=copied["version"]!.GetValue<string>();sourceHash=copied["hash"]!.GetValue<string>();
+ relative=System.IO.Path.Combine("packs",name,transaction,System.IO.Path.GetFileName(source));string destination=System.IO.Path.Combine(root,System.IO.Path.GetDirectoryName(relative)!);System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(destination)!);System.IO.Directory.Move(temporary,destination);
+ catalog["pins"]![name]=new System.Text.Json.Nodes.JsonObject{["version"]=selectedVersion,["path"]=relative,["source"]=source,["originHash"]=sourceHash,["expectation"]=expectation,["optional"]=optional,["editable"]=true};
+}
+else catalog["pins"]!.AsObject().Remove(name);
+string manifest=System.Text.Json.JsonSerializer.Deserialize<string>(calls.Call.Invoke("packManifest",new System.Text.Json.Nodes.JsonObject{["text"]=baseline[1],["namespace"]=name,["action"]=action,["path"]=relative,["expectation"]=expectation}.ToJsonString()))!;
+var record=new System.Text.Json.Nodes.JsonObject{["id"]=transaction,["project"]=project,["operation"]=action,["namespace"]=name,["version"]=selectedVersion,["path"]=relative,["sourceHash"]=sourceHash,["baseline"]=baseline[2],["lockBaseline"]=lockBaseline[2],["manifest"]=manifest,["catalog"]=catalog.ToJsonString(),["state"]="staged",["error"]="",["completed"]=new System.Text.Json.Nodes.JsonArray()};
+lock(state){if(!state["active"]!.GetValue<bool>())throw new OperationCanceledException("Pack session canceled.");state["transactions"]!.AsObject().Add(transaction,record);state["snapshots"]![transaction]=record.ToJsonString();}
+calls.WriteAtomic.Invoke(System.IO.Path.Combine(root,".confectory","pack-manager",transaction+".json"),record.ToJsonString());return transaction;
