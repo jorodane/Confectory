@@ -1,6 +1,5 @@
+.vs/
 .confectory/
-__pycache__/
-*.py[cod]
 bin/
 obj/
 Builds/
