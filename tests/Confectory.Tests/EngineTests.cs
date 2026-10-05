@@ -9,7 +9,7 @@ public sealed class EngineTests : TestCase
     {
         string sample=Path.Combine(f.Root,"engine-sample");
         Fixture.CopyTree(Path.Combine(Fixture.Repo,"examples","engine"),sample);
-        foreach(string pack in new[]{"runtime-base","realtime-update","render-input","base-ui","window","project-manager","project-execution"})
+        foreach(string pack in new[]{"runtime-base","realtime-update","render-input","base-ui","window","project-manager","project-execution","file-stream","schema-editing","edit-workspace","save","change-set","element-view"})
             Fixture.CopyTree(Path.Combine(Fixture.Repo,"packs",pack),Path.Combine(f.Root,"packs",pack));
         string project=Path.Combine(sample,"project.cpack");
         File.WriteAllText(project,File.ReadAllText(project)
@@ -17,7 +17,7 @@ public sealed class EngineTests : TestCase
             .Replace("../../targets/dotnet/pack.cpack","../target/pack.cpack",StringComparison.Ordinal));
         var report=new Builder(project,"portable").Build();
         Equal("Confectory.Engine::Main",Text(report,"entry"));
-        Sequence(new[]{"Confectory.BaseUI","Confectory.Engine","Confectory.ProjectExecution","Confectory.ProjectManager","Confectory.RealTimeUpdate","Confectory.RenderInput","Confectory.RuntimeBase","Confectory.Window"},Strings(report,"includedPacks"));
+        Sequence(new[]{"Confectory.BaseUI","Confectory.ChangeSet","Confectory.EditWorkspace","Confectory.ElementView","Confectory.Engine","Confectory.FileStream","Confectory.ProjectExecution","Confectory.ProjectManager","Confectory.RealTimeUpdate","Confectory.RenderInput","Confectory.RuntimeBase","Confectory.Save","Confectory.SchemaEditing","Confectory.Window"},Strings(report,"includedPacks"));
         var cached=new Builder(project,"portable").Build();
         Equal(0,Strings(cached,"statistics","compiledImplementations").Length);
         File.AppendAllText(Path.Combine(f.Root,"packs","base-ui","Labels.csbody"),"\n// provider-only locality probe\n");

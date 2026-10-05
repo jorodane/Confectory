@@ -23,4 +23,22 @@ registry Confectory.ProjectExecution "../../packs/project-execution/pack.cpack";
 dependency Confectory.ProjectExecution version "0.1.0";
 registry Confectory.ProjectManager "../../packs/project-manager/pack.cpack";
 dependency Confectory.ProjectManager version "0.1.0";
+
+registry Confectory.FileStream "../../packs/file-stream/pack.cpack";
+dependency Confectory.FileStream version "0.1.0";
+
+registry Confectory.SchemaEditing "../../packs/schema-editing/pack.cpack";
+dependency Confectory.SchemaEditing version "0.1.0";
+
+registry Confectory.EditWorkspace "../../packs/edit-workspace/pack.cpack";
+dependency Confectory.EditWorkspace version "0.1.0";
+
+registry Confectory.Save "../../packs/save/pack.cpack";
+dependency Confectory.Save version "0.1.0";
+
+registry Confectory.ChangeSet "../../packs/change-set/pack.cpack";
+dependency Confectory.ChangeSet version "0.1.0";
+
+registry Confectory.ElementView "../../packs/element-view/pack.cpack";
+dependency Confectory.ElementView version "0.1.0";
 }

@@ -1,0 +1,1 @@
+function Example.Authoring::Main () -> int { provide Example.Authoring::Main with Example.Authoring::MainBody; use object Example.Authoring::Counter; }

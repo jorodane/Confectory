@@ -1,11 +1,15 @@
 int timeout=0;
 string? timeoutText=Environment.GetEnvironmentVariable("CONFECTORY_BASEUI_CLOSE_AFTER_MS");
 if(timeoutText is not null&&(!int.TryParse(timeoutText,out timeout)||timeout<0)){Console.Error.WriteLine("CONFECTORY_BASEUI_CLOSE_AFTER_MS must be nonnegative.");return 2;}
+bool authoring=Environment.GetEnvironmentVariable("CONFECTORY_ELEMENT_UI")=="1";int initialHeight=authoring?760:420;
 bool scripted=Environment.GetEnvironmentVariable("CONFECTORY_BASEUI_SCRIPTED")=="1";
 var capabilities=calls.Capabilities.Invoke();
 if(capabilities[0]!=1){Console.Error.WriteLine("This desktop entry requires independent native windows. Android uses the app-owned surface entry.");return 1;}
 string[] titles={"Confectory BaseUI A","Confectory BaseUI B"};
 long[] surfaces=Array.Empty<long>();
+var elementViews=new string[]{"",""};var workspaces=new string[]{"",""};var elementSelections=new string[]{"",""};var createKinds=new[]{"object","category","concept","function","module","schema"};var createKind=new int[2];var elementStatus=new string[]{"Open project [O], then attach [A]","Open project [O], then attach [A]"};
+var ownedWorkspaces=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);System.Threading.Tasks.Task<string[]>? authorJob=null;int authorJobView=-1,createdNumber=0;var resetElementViews=new bool[2];string authorOwner=Guid.NewGuid().ToString("N");
+
 bool interrupted=false;
 ConsoleCancelEventHandler cancelHandler=(_,e)=>{e.Cancel=true;interrupted=true;};
 Console.CancelKeyPress+=cancelHandler;
@@ -15,7 +19,68 @@ var held=new bool[2,4];var drag=new bool[2];var dragX=new int[2];var dragY=new i
 var projectManagers=new string[2][];var projectViews=new long[2][];var projectContexts=new string[]{"",""};var projectExecutions=new string[]{"",""};var projectStates=new string[]{"",""};
 var projectErrors=new string[]{"",""};
 string projectRoot=Environment.GetEnvironmentVariable("CONFECTORY_PROJECT_ROOT")??Environment.CurrentDirectory;
-string[] projectPaths={Environment.GetEnvironmentVariable("CONFECTORY_PROJECT_A")??System.IO.Path.Combine(projectRoot,"examples","projects","a","project.cpack"),Environment.GetEnvironmentVariable("CONFECTORY_PROJECT_B")??System.IO.Path.Combine(projectRoot,"examples","projects","b","project.cpack")};
+string[] projectPaths={Environment.GetEnvironmentVariable("CONFECTORY_PROJECT_A")??System.IO.Path.Combine(projectRoot,"examples","projects",authoring?"authoring":"a","project.cpack"),Environment.GetEnvironmentVariable("CONFECTORY_PROJECT_B")??System.IO.Path.Combine(projectRoot,"examples","projects",authoring?"authoring":"b","project.cpack")};
+void ConnectElement(int view)
+{
+ if(!authoring||workspaces[view]==""||!IsOpen(view))return;
+ if(elementViews[view]!="")calls.ElementViewClose.Invoke(elementViews[view]);
+ var size=calls.ViewStatus.Invoke(views[view]);elementViews[view]=calls.ElementViewCreate.Invoke(workspaces[view],elementSelections[view],view==0?"card":"table",(int)size[0],(int)size[1]);calls.Invalidate.Invoke(views[view]);
+}
+void AuthorAction(int view,int action)
+{
+ if(authorJob is not null){elementStatus[view]="Busy: owned authoring job in progress";calls.Invalidate.Invoke(views[view]);return;}
+ string workspace=workspaces[view],id=elementSelections[view];
+ if(action!=1&&workspace==""){elementStatus[view]="Attach explicit project first [A]";calls.Invalidate.Invoke(views[view]);return;}
+ string project="",existing="",oldWorkspace="";
+ if(action==1)
+ {
+  if(projectContexts[view]==""){elementStatus[view]="Open project data first [O]";calls.Invalidate.Invoke(views[view]);return;}
+  var context=calls.ProjectContext.Invoke(projectManagers[view],projectContexts[view]);if(context[5]!="open"){elementStatus[view]="Selected project context is closed";calls.Invalidate.Invoke(views[view]);return;}project=context[1];
+  foreach(string candidate in ownedWorkspaces)try{if(calls.EditWorkspaceIdentity.Invoke(candidate)[0]==System.IO.Path.GetFullPath(project))existing=candidate;}catch(ObjectDisposedException){}
+ }
+ if(action==10)
+ {
+  oldWorkspace=workspace;
+  for(int v=0;v<2;v++){resetElementViews[v]=workspaces[v]==workspace;if(resetElementViews[v]){if(elementViews[v]!="")calls.ElementViewClose.Invoke(elementViews[v]);elementViews[v]="";workspaces[v]="";}}
+ }
+ string kind=createKinds[createKind[view]];int number=++createdNumber;authorJobView=view;elementStatus[view]="Working: action "+action;calls.Invalidate.Invoke(views[view]);
+ string chosenProject=project,chosenExisting=existing,old=oldWorkspace;
+ authorJob=System.Threading.Tasks.Task.Run(()=>
+ {
+  calls.SchemaEditingBeginScope.Invoke(authorOwner);
+  try
+  {
+   if(action==1)
+   {
+    string handle=chosenExisting!=""?chosenExisting:calls.EditWorkspaceOpen.Invoke(chosenProject,"local-user","authoring");if(chosenExisting=="")calls.SaveRestore.Invoke(handle);
+    var ids=calls.EditWorkspaceList.Invoke(handle);string selected=System.Linq.Enumerable.FirstOrDefault(ids,x=>x.EndsWith("::Counter",StringComparison.Ordinal))??System.Linq.Enumerable.First(ids,x=>calls.EditWorkspaceRead.Invoke(handle,x)[1]=="object");return new[]{"attached",handle,selected,""};
+   }
+   if(action==2){string ns=id.Split(new[]{"::"},StringSplitOptions.None)[0],created=ns+"::Created"+number;calls.EditWorkspaceCreate.Invoke(workspace,kind,created);calls.EditWorkspaceSetValue.Invoke(workspace,created,"count","0");return new[]{"created",workspace,created,""};}
+   if(action==3){var unit=calls.EditWorkspaceRead.Invoke(workspace,id);var inspected=System.Text.Json.Nodes.JsonNode.Parse(calls.SchemaEditingInspect.Invoke(unit[3]))!;int count=inspected["values"]?["count"]?.GetValue<int>()??0;calls.EditWorkspaceSetValue.Invoke(workspace,id,"count",(count+1).ToString(System.Globalization.CultureInfo.InvariantCulture));return new[]{"edited",workspace,id,"count="+(count+1)};}
+   if(action==4){var ids=calls.EditWorkspaceList.Invoke(workspace);int index=Array.IndexOf(ids,id);return new[]{"selected",workspace,ids[(index+1)%ids.Length],""};}
+   if(action==5){var ids=calls.EditWorkspaceList.Invoke(workspace);string selected=System.Linq.Enumerable.First(ids,x=>x.EndsWith("::MainBody/body:common",StringComparison.Ordinal));calls.EditWorkspaceSetText.Invoke(workspace,selected,"Console.WriteLine(\"Edited authoring draft runs\"); return 0;\n");return new[]{"body edited",workspace,selected,"Draft only"};}
+   if(action==6){var result=calls.ChangeSetPreview.Invoke(workspace,OperatingSystem.IsWindows()?"windows":"linux");return new[]{result[0],workspace,id,string.Join(" | ",System.Linq.Enumerable.Skip(result,1))};}
+   if(action==7){calls.SaveWrite.Invoke(workspace);return new[]{"saved",workspace,id,"Final source unchanged"};}
+   if(action==8||action==9){var selected=action==8?new[]{id}:calls.EditWorkspaceList.Invoke(workspace);var review=calls.ChangeSetReview.Invoke(workspace,selected);if(review[0]=="conflict")return new[]{"conflict",workspace,id,string.Join(" | ",System.Linq.Enumerable.Skip(review,1))};var result=calls.ChangeSetConfirm.Invoke(workspace,selected,OperatingSystem.IsWindows()?"windows":"linux");return new[]{result[0],workspace,id,string.Join(" | ",System.Linq.Enumerable.Skip(result,1))};}
+   if(action==10){var identity=calls.EditWorkspaceIdentity.Invoke(workspace);calls.SaveWrite.Invoke(workspace);calls.EditWorkspaceClose.Invoke(workspace);string handle=calls.EditWorkspaceOpen.Invoke(identity[0],identity[1],identity[2]);calls.SaveRestore.Invoke(handle);return new[]{"restored",handle,id,old};}
+   return new[]{"error",workspace,id,"Unknown action"};
+  }
+  catch(Exception error){return new[]{"error",workspace,id,error.Message};}
+  finally{calls.SchemaEditingEndScope.Invoke();}
+ });
+}
+void PollAuthorJob()
+{
+ if(authorJob is null||!authorJob.IsCompleted)return;var result=authorJob.GetAwaiter().GetResult();authorJob=null;int view=authorJobView;
+ elementStatus[view]=result[0]+(result[3]!=""?": "+result[3].Replace("\n"," "):"");if(elementStatus[view].Length>80)elementStatus[view]=elementStatus[view][..80];
+ if(result[0]!="error")
+ {
+  ownedWorkspaces.Add(result[1]);workspaces[view]=result[1];elementSelections[view]=result[2];if(elementViews[view]=="")ConnectElement(view);else if(calls.ElementViewInfo.Invoke(elementViews[view])[1]!=result[2])calls.ElementViewBind.Invoke(elementViews[view],result[2]);
+  if(result[0]=="restored")for(int v=0;v<2;v++)if(v!=view&&resetElementViews[v]){workspaces[v]=result[1];ConnectElement(v);elementStatus[v]="Shared workspace restored";}
+ }
+ calls.Invalidate.Invoke(views[view]);Array.Clear(resetElementViews);Console.WriteLine("author view="+view+" state="+result[0]+" unit="+result[2]+" detail="+result[3].Replace("\n"," "));
+}
+
 void ProjectAction(int view,int action)
 {
  try
@@ -38,6 +103,7 @@ void Connect(int view)
 void Disconnect(int view)
 {
  if(subscriptions[view] is not null)foreach(var s in subscriptions[view])calls.Unsubscribe.Invoke(s);
+ if(elementViews[view]!=""){calls.ElementViewClose.Invoke(elementViews[view]);elementViews[view]="";}
  subscriptions[view]=null!;drag[view]=false;for(int k=0;k<4;k++)held[view,k]=false;
  calls.Input.Invoke(owners[view],models[view],views[view],9,0,0,0,0);
 }
@@ -48,17 +114,25 @@ void Reopen(int view)
  var status=calls.ViewStatus.Invoke(views[view]);
  calls.Reopen.Invoke(surfaces,view,titles[view],(int)status[0],(int)status[1]);
  var actual=calls.SurfaceDimensions.Invoke(surfaces,view);calls.Input.Invoke(owners[view],models[view],views[view],7,actual[0],actual[1],0,0);
- Connect(view);Console.WriteLine("reopened "+view);
+ Connect(view);ConnectElement(view);Console.WriteLine("reopened "+view);
 }
 void Input(int view,int type,int x,int y,int code,int flags)
 {
  if(type==8){Disconnect(view);calls.Close.Invoke(surfaces,view);Console.WriteLine("closed "+view);return;}
  if(!IsOpen(view))return;
- int projectAction=calls.ProjectInput.Invoke(projectViews[view],type,x,y,code,flags);if(projectAction>0)ProjectAction(view,projectAction);
+ int elementAction=0;
+ if(authoring)
+ {
+  if(type==5&&flags==0&&(code==75||code==107)){createKind[view]=(createKind[view]+1)%createKinds.Length;elementStatus[view]="Create kind="+createKinds[createKind[view]];calls.Invalidate.Invoke(views[view]);return;}
+  if(elementViews[view]!="")elementAction=calls.ElementViewInput.Invoke(elementViews[view],type,x,y,code,flags);
+  else if(type==5&&flags==0&&(code==65||code==97))elementAction=1;
+  if(elementAction>0)AuthorAction(view,elementAction);
+ }
+ int projectAction=elementAction==0?calls.ProjectInput.Invoke(projectViews[view],type,x,y,code,flags):0;if(projectAction>0)ProjectAction(view,projectAction);
  calls.Input.Invoke(owners[view],models[view],views[view],type,x,y,code,flags);
  if(type==10)calls.Invalidate.Invoke(views[view]);
  if(type==1){var world=calls.Pick.Invoke(displayed[view],x,y);_ = world;}
- if(type==1&&y>250&&projectAction==0){drag[view]=true;dragX[view]=x;dragY[view]=y;}
+ if(type==1&&y>250&&projectAction==0&&elementAction==0){drag[view]=true;dragX[view]=x;dragY[view]=y;}
  if(type==3&&drag[view]){calls.QueueCameraIntent.Invoke(queues[view],x-dragX[view],y-dragY[view],1);dragX[view]=x;dragY[view]=y;}
  if(type==2||type==9||type==11)drag[view]=false;
  if(type==4)calls.QueueCameraIntent.Invoke(queues[view],0,0,Math.Pow(1.1,code/120.0));
@@ -72,11 +146,11 @@ try
 {
  for(int v=0;v<2;v++)
  {
-  projectManagers[v]=calls.ProjectCreateManager.Invoke(64);projectViews[v]=calls.CreateProjectView.Invoke(480,420);
+  projectManagers[v]=calls.ProjectCreateManager.Invoke(64);projectViews[v]=calls.CreateProjectView.Invoke(480,initialHeight);
   owners[v]=calls.CreateOwner.Invoke(8);models[v]=new[]{calls.CreateInstance.Invoke(owners[v],"Confectory.BaseUI::Count"),calls.CreateInstance.Invoke(owners[v],"Confectory.BaseUI::Toggle")};
-  views[v]=calls.CreateView.Invoke(480,420);cameras[v]=new double[]{0,0,1};queues[v]=new double[]{0,0,1};displayed[v]=(double[])cameras[v].Clone();Connect(v);
+  views[v]=calls.CreateView.Invoke(480,initialHeight);cameras[v]=new double[]{0,0,1};queues[v]=new double[]{0,0,1};displayed[v]=(double[])cameras[v].Clone();Connect(v);
  }
- surfaces=calls.CreateSurfaces.Invoke(titles,480,420);
+ surfaces=calls.CreateSurfaces.Invoke(titles,480,initialHeight);
  for(int v=0;v<2;v++){var actual=calls.SurfaceDimensions.Invoke(surfaces,v);calls.Input.Invoke(owners[v],models[v],views[v],7,actual[0],actual[1],0,0);}
  var schedule=calls.CreateSchedule.Invoke(16);
  calls.Register.Invoke(schedule,"Confectory.BaseUI::Input","input",0);
@@ -95,6 +169,7 @@ try
  bool scriptedOnce=false;
  while(!interrupted&&(IsOpen(0)||IsOpen(1)))
  {
+  PollAuthorJob();for(int v=0;v<2;v++)if(elementViews[v]!=""&&calls.ElementViewPoll.Invoke(elementViews[v])){calls.Invalidate.Invoke(views[v]);var info=calls.ElementViewInfo.Invoke(elementViews[v]);Console.WriteLine("element projection view="+v+" unit="+info[1]+" revision="+calls.EditWorkspaceRead.Invoke(info[0],info[1])[4]);}
   double now=watch.Elapsed.TotalSeconds,elapsed=now-previous;previous=now;
   var timing=calls.Advance.Invoke(clock,elapsed,1.0/120,1.0/60,1.0/50,4);dropped+=timing[4];
   Dispatch("input",id=>{var events=calls.Pump.Invoke(surfaces);for(int i=0;i<events.Length;i+=6)Input(events[i],events[i+1],events[i+2],events[i+3],events[i+4],events[i+5]);});
@@ -135,7 +210,12 @@ try
      displayed[v]=(double[])cameras[v].Clone(); // same immutable-by-convention frame for labels/render/picking
      calls.Draw.Invoke(surfaces,v,calls.Layout.Invoke(views[v]),calls.Labels.Invoke(views[v],displayed[v]));var context=projectContexts[v]==""?Array.Empty<string>():calls.ProjectContext.Invoke(projectManagers[v],projectContexts[v]);var execution=projectExecutions[v]==""?Array.Empty<string>():calls.ExecutionObserve.Invoke(calls.ProjectExecutions.Invoke(projectManagers[v]),projectExecutions[v]);
      var size=calls.ViewStatus.Invoke(views[v]);calls.ProjectInput.Invoke(projectViews[v],7,(int)size[0],(int)size[1],0,0);
-     calls.Draw.Invoke(surfaces,v,calls.ProjectLayout.Invoke(projectViews[v]),calls.ProjectLabels.Invoke(context,execution,projectErrors[v]));calls.Presented.Invoke(views[v]);
+     calls.Draw.Invoke(surfaces,v,calls.ProjectLayout.Invoke(projectViews[v]),calls.ProjectLabels.Invoke(context,execution,projectErrors[v]));if(authoring)
+     {
+      if(elementViews[v]!=""){calls.ElementViewInput.Invoke(elementViews[v],7,(int)size[0],(int)size[1],0,0);calls.Draw.Invoke(surfaces,v,calls.ElementViewLayout.Invoke(elementViews[v]),calls.ElementViewLabels.Invoke(elementViews[v],"Kind="+createKinds[createKind[v]]+" [K] | "+elementStatus[v]));}
+      else calls.Draw.Invoke(surfaces,v,new[]{20,230,Math.Max(1,(int)size[0]-40),50,0x344878},new[]{elementStatus[v]});
+     }
+     calls.Presented.Invoke(views[v]);
     }
    }
   });
@@ -149,6 +229,9 @@ finally
 {
  Console.CancelKeyPress-=cancelHandler;
  void Cleanup(Action release){try{release();}catch(Exception ex){Console.Error.WriteLine("Cleanup failed: "+ex.Message);}}
+ if(authorJob is not null){calls.SchemaEditingCancel.Invoke(authorOwner);try{if(!authorJob.Wait(5000))Console.Error.WriteLine("Authoring job did not finish within cancellation grace period.");}catch(Exception error){Console.Error.WriteLine("Authoring cleanup: "+error.Message);}}
+ for(int v=0;v<2;v++)if(elementViews[v]!="")Cleanup(()=>calls.ElementViewClose.Invoke(elementViews[v]));
+ foreach(string workspace in ownedWorkspaces)Cleanup(()=>calls.EditWorkspaceClose.Invoke(workspace));
  for(int v=0;v<2;v++)
  {
   if(subscriptions[v] is not null)foreach(var s in subscriptions[v])Cleanup(()=>calls.Unsubscribe.Invoke(s));
