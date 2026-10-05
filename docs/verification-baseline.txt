@@ -1,0 +1,43 @@
+FAIL VerificationTests.test_always_implementation_without_import_scope_is_rejected
+System.Exception: Expected BuildError IMPLEMENTATION_SCOPE
+   at Confectory.Tests.TestCase.Error(String code, Action action) in /workspace/Confectory/tests/Confectory.Tests/Support.cs:line 130
+   at Confectory.Tests.VerificationTests.test_always_implementation_without_import_scope_is_rejected() in /workspace/Confectory/tests/Confectory.Tests/VerificationTests.cs:line 69
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+FAIL VerificationTests.test_direct_implementation_imports_include_dependency_closure
+System.Exception: Assertion failed
+   at Confectory.Tests.TestCase.True(Boolean condition, String message) in /workspace/Confectory/tests/Confectory.Tests/Support.cs:line 124
+   at Confectory.Tests.VerificationTests.test_direct_implementation_imports_include_dependency_closure() in /workspace/Confectory/tests/Confectory.Tests/VerificationTests.cs:line 87
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+FAIL VerificationTests.test_direct_implementation_inclusion_compiles_and_packages_all_routes
+System.Exception: always: included implementation DLL is missing
+   at Confectory.Tests.TestCase.True(Boolean condition, String message) in /workspace/Confectory/tests/Confectory.Tests/Support.cs:line 124
+   at Confectory.Tests.VerificationTests.test_direct_implementation_inclusion_compiles_and_packages_all_routes() in /workspace/Confectory/tests/Confectory.Tests/VerificationTests.cs:line 31
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+FAIL VerificationTests.test_direct_implementation_invalid_body_fails_all_routes
+System.Exception: Expected BuildError TARGET_FAILURE
+   at Confectory.Tests.TestCase.Error(String code, Action action) in /workspace/Confectory/tests/Confectory.Tests/Support.cs:line 130
+   at Confectory.Tests.VerificationTests.test_direct_implementation_invalid_body_fails_all_routes() in /workspace/Confectory/tests/Confectory.Tests/VerificationTests.cs:line 47
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+FAIL VerificationTests.test_direct_implementation_missing_target_body_fails
+System.Exception: Expected BuildError MISSING_TARGET_IMPLEMENTATION
+   at Confectory.Tests.TestCase.Error(String code, Action action) in /workspace/Confectory/tests/Confectory.Tests/Support.cs:line 130
+   at Confectory.Tests.VerificationTests.test_direct_implementation_missing_target_body_fails() in /workspace/Confectory/tests/Confectory.Tests/VerificationTests.cs:line 56
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+FAIL VerificationTests.test_direct_implementation_validates_contract
+System.Exception: Expected BuildError CONTRACT_MISMATCH
+   at Confectory.Tests.TestCase.Error(String code, Action action) in /workspace/Confectory/tests/Confectory.Tests/Support.cs:line 130
+   at Confectory.Tests.VerificationTests.test_direct_implementation_validates_contract() in /workspace/Confectory/tests/Confectory.Tests/VerificationTests.cs:line 63
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+FAIL VerificationTests.test_multi_implementation_check_and_final_reuse
+System.Exception: Expected /tmp/confectory-test-b8275863b54844c69f4f81124f93fe61/App/.confectory/cache/artifacts/6f18e84e9acac80ad0b3358ca82bb204047dbe39e2337e29162994be42812c54/Pack_E68ba9eb197fc29b246916dbd.dll; actual /tmp/confectory-test-b8275863b54844c69f4f81124f93fe61/App/.confectory/cache/artifacts/b79680a035383a4f115bdcfb39f9f0c68696652d84f6c1055af9887485436dd0/Pack_E68ba9eb197fc29b246916dbd.dll
+   at Confectory.Tests.TestCase.Equal[T](T expected, T actual) in /workspace/Confectory/tests/Confectory.Tests/Support.cs:line 125
+   at Confectory.Tests.VerificationTests.test_multi_implementation_check_and_final_reuse() in /workspace/Confectory/tests/Confectory.Tests/VerificationTests.cs:line 102
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+0 passed, 7 failed; 25.771s

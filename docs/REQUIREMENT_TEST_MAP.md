@@ -4,7 +4,7 @@ The initial requirement/verification table was written before implementation. Na
 
 | ID | Specification requirement | Verification |
 | --- | --- | --- |
-| CORE01 | §§1,2,4 ProjectPack + target; engine is a ProjectPack | Build/run app and engine samples using the same API; missing project/target/entry errors; no implicit project. |
+| CORE01 | §§1,2,4 ProjectPack + target; engine is a ProjectPack | App/sample pipeline passes. Actual engine self-hosting is incomplete: the engine sample only prints a name; core/CLI/tool use ordinary csproj builds. |
 | DECL01 | §2 Dedicated structure language, C# bodies, explanations | Parse owned manifests/elements with locations; unknown syntax, wrong locator/header, duplicate fields and escaped paths fail. |
 | ID01 | §2 Namespace-qualified identity | Same local ID in different namespaces succeeds; duplicate namespace/element fails; moving source location preserves identity. |
 | LINK01 | §§2,20 Missing/wrong-kind/incompatible links | Missing namespace/element/dependency, mismatched kind/signature/function identity and invalid entry fail with source diagnostics. |
@@ -52,3 +52,7 @@ Exact version expectations and `*`, primitive C# contract types, synchronous fun
 | META01 | I `test_actual_linked_output_and_public_catalog`; pending loader requirements MOD01–MOD06 are documented separately |
 | SCOPE01 | Manual source/diff review; tests compile through the independent target pack and never use the old repository |
 | C# migration | I `test_cli_preserves_json_reports_and_exit_codes`, `test_validate_checks_unreached_declarations_without_compiling`, `test_utf8_pack_and_body_paths_with_spaces_execute`, `test_compiler_artifacts_cannot_escape_requested_output`; C `test_non_utf8_source_reports_owned_location`, `test_owned_source_symlink_cannot_escape_pack` |
+
+## Migration verification regressions
+
+`VerificationTests` adds nine executed tests: successful and invalid-body direct inclusion for always/use/contain; missing target body; incompatible contract; missing root import scope; import dependency closure for all three paths; module implementation edges; pruning an unused invalid body while local checking rejects it; and multi-implementation local/final cache reuse across unused-body, used-body and contract changes. See `VERIFICATION.md` and the captured observations for exact compilation counts. CORE01 engine self-hosting, self-contained packaging and Windows execution are explicitly incomplete/unverified.

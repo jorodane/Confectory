@@ -8,6 +8,10 @@ Read [technical design](docs/TECHNICAL_DESIGN.md), [requirement-to-test map](doc
 
 Requirements: the .NET 8 **SDK**. All projects use the .NET standard library and have no external NuGet dependencies; restore works offline with the included `NuGet.Config`. The target pack discovers `dotnet` on PATH; alternatively set `CONFECTORY_DOTNET` to the actual executable (`dotnet.exe` on Windows).
 
+Building the core/CLI/tool/tests or compiling a ProjectPack requires the SDK. Running an already generated application requires only the .NET 8 `Microsoft.NETCore.App` runtime and its `dotnet` host. The CLI starts on that runtime, but build/check/validate use the SDK-dependent target tool. Generated packages are framework-dependent; there is no self-contained distribution. Linux execution with an isolated runtime-only installation is verified in the evidence report.
+
+On Windows, run `build-windows.bat` to build the entire solution in Release. It uses the script's directory, so it can be called from another working directory. It performs only the build and returns the .NET build exit code; it does not install tools or run tests. Outputs are in each project's `bin/Release/net8.0/` directory. The .NET 8 SDK must already be installed.
+
 ```sh
 dotnet build Confectory.sln -c Release
 dotnet tests/Confectory.Tests/bin/Release/net8.0/Confectory.Tests.dll
@@ -34,6 +38,8 @@ if (result.ExitCode != 0) throw new Exception(result.Stderr);
 Add a project reference to `src/Confectory.Core/Confectory.Core.csproj` to use this API from a C# host. `Builder.Check(namespace)` compiles against contracts only; `Builder.Validate()` inspects all registered declarations. `BuildError.Diagnostic` exposes an error code and source location. The CLI preserves the previous JSON report structure and `build`, `check`, `validate` operations; only its invocation changes.
 
 The app prints `Hello Confectory from common` for portable, or `Hello Confectory from linux` for Linux. The engine composition sample prints `Confectory.Engine built as a ProjectPack`; it proves the common build path, not a complete engine. The core is an ordinary C# library but does not yet build itself from pack declarations.
+
+Implementation artifacts are cached per element within their owning pack. A full local check and a final selected subset reuse the same DLLs. Use each pack result's `assemblies` or `implementationArtifacts` to enumerate all DLLs; `assembly`/`reference` are aliases for the first implementation only. `compiledImplementations`, `reusedImplementations` and `targetInvocations` distinguish local compilation from source reads. Final builds still compile bindings and package a fresh output when every local DLL is reused.
 
 Generated state is isolated beneath the selected ProjectPack's `.confectory/`: per-document caches, content-addressed local artifacts and unique final output directories. A failed candidate leaves the previous successful output and `latest.json` intact. Source packs are not modified by builds. C# declaration cache keys are separate from the old Python cache; existing sources need no conversion, and the first C# build creates fresh artifacts. Publication is a separate action.
 

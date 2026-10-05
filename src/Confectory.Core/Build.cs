@@ -42,6 +42,8 @@ public sealed class TargetTool
     }
     public JsonObject Invoke(string operation, object? payload = null)
     {
+        Registry.Statistics.TargetInvocations.TryGetValue(operation, out int count);
+        Registry.Statistics.TargetInvocations[operation] = count + 1;
         var request = JsonData.Object(new { protocol = Protocol, operation, target = Target, options = Element.Options });
         if (payload is not null) foreach (var (key, value) in JsonData.Object(payload)) request[key] = value?.DeepClone();
         string[] command = System.IO.Path.GetExtension(Path) == ".dll" ? [Processes.DotNet(), Path] : [Path];
@@ -148,26 +150,46 @@ public sealed class Builder
     }
     public JsonObject CompilePack(string ns, IEnumerable<Element> implementations)
     {
-        List<string[]> sources = []; var refs = new Dictionary<string, JsonObject>(StringComparer.Ordinal); List<string> metadata = [];
+        var artifacts = new Dictionary<string, JsonObject>(StringComparer.Ordinal);
+        bool compiled = false;
         foreach (var e in implementations.OrderBy(x => x.Id, StringComparer.Ordinal))
         {
             Registry.Implementation(e.Function!, e.Id, e.Id, e.Loc);
             if (!e.Bodies.TryGetValue(Target, out var body) && !e.Bodies.TryGetValue("common", out body)) throw new BuildError("MISSING_TARGET_IMPLEMENTATION", $"No {Target}/common body for {e.Id}", e.Loc);
             string path = PackPaths.Owned(Path.GetDirectoryName(Registry.Paths[PackPaths.Namespace(body.Origin)])!, body.Path, body.Loc);
-            sources.Add([Generation.Symbol(e.Id) + ".cs", Generation.ImplementationSource(e, Documents.Body(path), path)]);
+            string code = Generation.ImplementationSource(e, Documents.Body(path), path);
+            var refs = new Dictionary<string, JsonObject>(StringComparer.Ordinal);
             foreach (string id in new[] { e.Function! }.Concat(e.Imports.Values.Select(x => x.Id))) refs[id] = Contract(id);
-            metadata.Add(e.Id);
+            // Cache each owned implementation independently. A contract-only
+            // check of the whole pack and a final subset use identical keys.
+            string key = JsonData.Digest(new object[] { Generation.Abi, Tool.Identity, "implementation-v1", ns, e.Id, code,
+                refs.OrderBy(x => x.Key, StringComparer.Ordinal).Select(x => new[] { x.Key, x.Value["key"]!.GetValue<string>() }).ToArray() });
+            var artifact = cache.Get(key);
+            if (artifact is not null) Statistics.ReusedImplementations.Add(e.Id);
+            else
+            {
+                artifact = cache.Produce(key, work => Tool.Invoke("compile-pack", new
+                {
+                    output = work, name = "Pack_" + Generation.Symbol(ns) + "_" + Generation.Symbol(e.Id),
+                    sources = new[] { WriteSource(Path.Combine(work, Generation.Symbol(e.Id) + ".cs"), code) },
+                    references = refs.Values.Select(x => x["reference"]!.GetValue<string>()).ToArray()
+                })["artifacts"]!.AsObject());
+                Statistics.CompiledImplementations.Add(e.Id); compiled = true;
+            }
+            if (!artifact.ContainsKey("assembly")) throw new BuildError("TOOL_PROTOCOL", "Pack compilation must return an assembly");
+            var item = JsonData.Object(artifact); item["key"] = key; artifacts[e.Id] = item;
         }
-        string key = JsonData.Digest(new object[] { Generation.Abi, Tool.Identity, "pack", ns, sources, refs.OrderBy(x => x.Key, StringComparer.Ordinal).Select(x => new[] { x.Key, x.Value["key"]!.GetValue<string>() }).ToArray() });
-        var artifact = cache.Get(key);
-        if (artifact is not null) Statistics.ReusedPacks.Add(ns);
-        else
-        {
-            artifact = cache.Produce(key, work => Tool.Invoke("compile-pack", new { output = work, name = "Pack_" + Generation.Symbol(ns), sources = sources.Select(x => WriteSource(Path.Combine(work, x[0]), x[1])).ToArray(), references = refs.Values.Select(x => x["reference"]!.GetValue<string>()).ToArray() })["artifacts"]!.AsObject());
-            Statistics.CompiledPacks.Add(ns);
-        }
-        if (!artifact.ContainsKey("assembly")) throw new BuildError("TOOL_PROTOCOL", "Pack compilation must return an assembly");
-        var result = JsonData.Object(artifact); result["key"] = key; result["implementations"] = JsonSerializer.SerializeToNode(metadata); return result;
+        if (artifacts.Count == 0) throw new BuildError("LOCAL_INPUT", $"No implementation declarations in {ns}");
+        if (compiled) Statistics.CompiledPacks.Add(ns); else Statistics.ReusedPacks.Add(ns);
+        string composition = JsonData.Digest(new object[] { "pack-composition-v1", ns, artifacts.Select(x => new[] { x.Key, x.Value["key"]!.GetValue<string>() }).ToArray() });
+        // 'assembly'/'reference' are legacy aliases for the first implementation;
+        // consumers of a multi-implementation pack must use the complete list.
+        var result = artifacts.Values.First().DeepClone().AsObject();
+        result["key"] = composition;
+        result["implementations"] = JsonSerializer.SerializeToNode(artifacts.Keys.ToArray());
+        result["assemblies"] = JsonSerializer.SerializeToNode(artifacts.Values.Select(x => x["assembly"]!.GetValue<string>()).ToArray());
+        result["implementationArtifacts"] = JsonSerializer.SerializeToNode(artifacts, JsonData.Options);
+        return result;
     }
     public JsonObject Check(string ns)
     {
@@ -194,7 +216,9 @@ public sealed class Builder
         {
             string source = WriteSource(Path.Combine(work, "Bindings.cs"), code), catalog = Path.Combine(work, "sources", "public-linkage.json");
             JsonData.AtomicWrite(catalog, Generation.PublicCatalog(plan, packs, Contracts, Target));
-            var result = Tool.Invoke("link", new { output = work, name = "Confectory.App", sources = new[] { source }, references = Contracts.Values.Concat(packs.Values).Select(x => x["assembly"]!.GetValue<string>()).ToArray(), resources = new[] { new { path = catalog, name = "public-linkage.json" } } });
+            var result = Tool.Invoke("link", new { output = work, name = "Confectory.App", sources = new[] { source },
+                references = Contracts.Values.Select(x => x["assembly"]!.GetValue<string>()).Concat(packs.Values.SelectMany(x => x["assemblies"]!.AsArray().Select(a => a!.GetValue<string>()))).ToArray(),
+                resources = new[] { new { path = catalog, name = "public-linkage.json" } } });
             if (result["run"] is not JsonArray runArray || runArray.Count == 0 || runArray.Any(x => x is not JsonValue v || !v.TryGetValue<string>(out _))) throw new BuildError("TOOL_PROTOCOL", "Link tool must return an executable command");
             if (result["artifacts"] is not JsonObject artifacts || !artifacts.ContainsKey("application")) throw new BuildError("TOOL_PROTOCOL", "Link tool must return an application artifact");
             foreach (var (_, value) in artifacts)

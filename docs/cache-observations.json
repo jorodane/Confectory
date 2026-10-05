@@ -1,0 +1,879 @@
+[
+  {
+    "scenario": "closure-always",
+    "elapsedMilliseconds": null,
+    "statistics": {
+      "readDocuments": [
+        "App/project.cpack",
+        "Api/pack.cpack",
+        "Provider/pack.cpack",
+        "Unused/pack.cpack",
+        "Helper/pack.cpack",
+        "Extra/pack.cpack",
+        "target/pack.cpack",
+        "target/portable.celem",
+        "App/Main.celem",
+        "App/MainBody.celem",
+        "Api/Value.celem",
+        "Provider/ValueBody.celem",
+        "Api/Helper.celem",
+        "Helper/Body.celem",
+        "Extra/Body.celem",
+        "Api/Extra.celem",
+        "App/main.csbody",
+        "Extra/extra.csbody",
+        "Helper/helper.csbody",
+        "Provider/value.csbody"
+      ],
+      "parsedDocuments": [
+        "App/project.cpack",
+        "Api/pack.cpack",
+        "Provider/pack.cpack",
+        "Unused/pack.cpack",
+        "Helper/pack.cpack",
+        "Extra/pack.cpack",
+        "target/pack.cpack",
+        "target/portable.celem",
+        "App/Main.celem",
+        "App/MainBody.celem",
+        "Api/Value.celem",
+        "Provider/ValueBody.celem",
+        "Api/Helper.celem",
+        "Helper/Body.celem",
+        "Extra/Body.celem",
+        "Api/Extra.celem"
+      ],
+      "checkedContracts": [
+        "App::Main",
+        "Api::Value",
+        "Api::Helper",
+        "Api::Extra"
+      ],
+      "compiledContracts": [
+        "App::Main",
+        "Api::Value",
+        "Api::Extra",
+        "Api::Helper"
+      ],
+      "reusedContracts": [],
+      "compiledPacks": [
+        "App",
+        "Extra",
+        "Helper",
+        "Provider"
+      ],
+      "reusedPacks": [],
+      "compiledImplementations": [
+        "App::MainBody",
+        "Extra::Body",
+        "Helper::Body",
+        "Provider::ValueBody"
+      ],
+      "reusedImplementations": [],
+      "targetInvocations": {
+        "fingerprint": 1,
+        "compile-contract": 4,
+        "compile-pack": 4,
+        "link": 1
+      },
+      "fullRebuilds": 0
+    },
+    "artifacts": {
+      "App::MainBody": {
+        "assembly": "Pack_E68ba9eb197fc29b246916dbd_E516e07bef57c08ea18f63573.dll",
+        "key": "2010a53a8c2cfafea812d1ccfc8d3547a942f7992989c816131feef378336371"
+      },
+      "Extra::Body": {
+        "assembly": "Pack_Efe3e84ae9f3f3cba2bb48b24_E671be085bd57968e2e6b037e.dll",
+        "key": "e3bc18a55d38d861432dd9679991d545d0d867882305352bf7dff3745cf41dcb"
+      },
+      "Helper::Body": {
+        "assembly": "Pack_E993085147ce8e4f53b120735_E04beda48c21ab83b206a1c38.dll",
+        "key": "766656b829debe893ce9629837f146365c7419514a2e5b38710fb0c46fd40733"
+      },
+      "Provider::ValueBody": {
+        "assembly": "Pack_E33f9a30399fa52a1648f4bd3_Ee08c8e03e46df0d8705e9c07.dll",
+        "key": "a53d8447ea332309936f08350d67409ac41728bf53e5bc254bf06005fd182e24"
+      }
+    }
+  },
+  {
+    "scenario": "closure-use",
+    "elapsedMilliseconds": null,
+    "statistics": {
+      "readDocuments": [
+        "App/project.cpack",
+        "Api/pack.cpack",
+        "Provider/pack.cpack",
+        "Unused/pack.cpack",
+        "Helper/pack.cpack",
+        "Extra/pack.cpack",
+        "App/Main.celem",
+        "Extra/Body.celem",
+        "Api/Extra.celem",
+        "Api/Helper.celem",
+        "Helper/Body.celem",
+        "Extra/extra.csbody",
+        "Helper/helper.csbody"
+      ],
+      "parsedDocuments": [
+        "App/project.cpack",
+        "Api/pack.cpack",
+        "Provider/pack.cpack",
+        "Unused/pack.cpack",
+        "Helper/pack.cpack",
+        "Extra/pack.cpack",
+        "App/Main.celem",
+        "Extra/Body.celem",
+        "Api/Extra.celem",
+        "Api/Helper.celem",
+        "Helper/Body.celem"
+      ],
+      "checkedContracts": [
+        "App::Main",
+        "Api::Value",
+        "Api::Extra",
+        "Api::Helper"
+      ],
+      "compiledContracts": [],
+      "reusedContracts": [
+        "App::Main",
+        "Api::Value",
+        "Api::Extra",
+        "Api::Helper"
+      ],
+      "compiledPacks": [],
+      "reusedPacks": [
+        "App",
+        "Extra",
+        "Helper",
+        "Provider"
+      ],
+      "compiledImplementations": [],
+      "reusedImplementations": [
+        "App::MainBody",
+        "Extra::Body",
+        "Helper::Body",
+        "Provider::ValueBody"
+      ],
+      "targetInvocations": {
+        "fingerprint": 1,
+        "link": 1
+      },
+      "fullRebuilds": 0
+    },
+    "artifacts": {
+      "App::MainBody": {
+        "assembly": "Pack_E68ba9eb197fc29b246916dbd_E516e07bef57c08ea18f63573.dll",
+        "key": "2010a53a8c2cfafea812d1ccfc8d3547a942f7992989c816131feef378336371"
+      },
+      "Extra::Body": {
+        "assembly": "Pack_Efe3e84ae9f3f3cba2bb48b24_E671be085bd57968e2e6b037e.dll",
+        "key": "e3bc18a55d38d861432dd9679991d545d0d867882305352bf7dff3745cf41dcb"
+      },
+      "Helper::Body": {
+        "assembly": "Pack_E993085147ce8e4f53b120735_E04beda48c21ab83b206a1c38.dll",
+        "key": "766656b829debe893ce9629837f146365c7419514a2e5b38710fb0c46fd40733"
+      },
+      "Provider::ValueBody": {
+        "assembly": "Pack_E33f9a30399fa52a1648f4bd3_Ee08c8e03e46df0d8705e9c07.dll",
+        "key": "a53d8447ea332309936f08350d67409ac41728bf53e5bc254bf06005fd182e24"
+      }
+    }
+  },
+  {
+    "scenario": "closure-contain",
+    "elapsedMilliseconds": null,
+    "statistics": {
+      "readDocuments": [
+        "App/project.cpack",
+        "Api/pack.cpack",
+        "Provider/pack.cpack",
+        "Unused/pack.cpack",
+        "Helper/pack.cpack",
+        "Extra/pack.cpack",
+        "App/Main.celem",
+        "Extra/Body.celem",
+        "Api/Extra.celem",
+        "Api/Helper.celem",
+        "Helper/Body.celem",
+        "Extra/extra.csbody",
+        "Helper/helper.csbody"
+      ],
+      "parsedDocuments": [
+        "App/project.cpack",
+        "Api/pack.cpack",
+        "Provider/pack.cpack",
+        "Unused/pack.cpack",
+        "Helper/pack.cpack",
+        "Extra/pack.cpack",
+        "App/Main.celem",
+        "Extra/Body.celem",
+        "Api/Extra.celem",
+        "Api/Helper.celem",
+        "Helper/Body.celem"
+      ],
+      "checkedContracts": [
+        "App::Main",
+        "Api::Value",
+        "Api::Extra",
+        "Api::Helper"
+      ],
+      "compiledContracts": [],
+      "reusedContracts": [
+        "App::Main",
+        "Api::Value",
+        "Api::Extra",
+        "Api::Helper"
+      ],
+      "compiledPacks": [],
+      "reusedPacks": [
+        "App",
+        "Extra",
+        "Helper",
+        "Provider"
+      ],
+      "compiledImplementations": [],
+      "reusedImplementations": [
+        "App::MainBody",
+        "Extra::Body",
+        "Helper::Body",
+        "Provider::ValueBody"
+      ],
+      "targetInvocations": {
+        "fingerprint": 1,
+        "link": 1
+      },
+      "fullRebuilds": 0
+    },
+    "artifacts": {
+      "App::MainBody": {
+        "assembly": "Pack_E68ba9eb197fc29b246916dbd_E516e07bef57c08ea18f63573.dll",
+        "key": "2010a53a8c2cfafea812d1ccfc8d3547a942f7992989c816131feef378336371"
+      },
+      "Extra::Body": {
+        "assembly": "Pack_Efe3e84ae9f3f3cba2bb48b24_E671be085bd57968e2e6b037e.dll",
+        "key": "e3bc18a55d38d861432dd9679991d545d0d867882305352bf7dff3745cf41dcb"
+      },
+      "Helper::Body": {
+        "assembly": "Pack_E993085147ce8e4f53b120735_E04beda48c21ab83b206a1c38.dll",
+        "key": "766656b829debe893ce9629837f146365c7419514a2e5b38710fb0c46fd40733"
+      },
+      "Provider::ValueBody": {
+        "assembly": "Pack_E33f9a30399fa52a1648f4bd3_Ee08c8e03e46df0d8705e9c07.dll",
+        "key": "a53d8447ea332309936f08350d67409ac41728bf53e5bc254bf06005fd182e24"
+      }
+    }
+  },
+  {
+    "scenario": "direct-always",
+    "elapsedMilliseconds": null,
+    "statistics": {
+      "readDocuments": [
+        "App/project.cpack",
+        "Api/pack.cpack",
+        "Provider/pack.cpack",
+        "Unused/pack.cpack",
+        "Extra/pack.cpack",
+        "target/pack.cpack",
+        "target/portable.celem",
+        "App/Main.celem",
+        "App/MainBody.celem",
+        "Api/Value.celem",
+        "Provider/ValueBody.celem",
+        "Extra/Body.celem",
+        "Api/Extra.celem",
+        "App/main.csbody",
+        "Extra/extra.csbody",
+        "Provider/value.csbody"
+      ],
+      "parsedDocuments": [
+        "App/project.cpack",
+        "Api/pack.cpack",
+        "Provider/pack.cpack",
+        "Unused/pack.cpack",
+        "Extra/pack.cpack",
+        "target/pack.cpack",
+        "target/portable.celem",
+        "App/Main.celem",
+        "App/MainBody.celem",
+        "Api/Value.celem",
+        "Provider/ValueBody.celem",
+        "Extra/Body.celem",
+        "Api/Extra.celem"
+      ],
+      "checkedContracts": [
+        "App::Main",
+        "Api::Value",
+        "Api::Extra"
+      ],
+      "compiledContracts": [
+        "App::Main",
+        "Api::Value",
+        "Api::Extra"
+      ],
+      "reusedContracts": [],
+      "compiledPacks": [
+        "App",
+        "Extra",
+        "Provider"
+      ],
+      "reusedPacks": [],
+      "compiledImplementations": [
+        "App::MainBody",
+        "Extra::Body",
+        "Provider::ValueBody"
+      ],
+      "reusedImplementations": [],
+      "targetInvocations": {
+        "fingerprint": 1,
+        "compile-contract": 3,
+        "compile-pack": 3,
+        "link": 1
+      },
+      "fullRebuilds": 0
+    },
+    "artifacts": {
+      "App::MainBody": {
+        "assembly": "Pack_E68ba9eb197fc29b246916dbd_E516e07bef57c08ea18f63573.dll",
+        "key": "59a1a5cecafd9a4966bf8b810cd59fd882c4d34d96cde3e648e7737a4e7d7099"
+      },
+      "Extra::Body": {
+        "assembly": "Pack_Efe3e84ae9f3f3cba2bb48b24_E671be085bd57968e2e6b037e.dll",
+        "key": "73dd1f0aa9c4c63dd8ad0fc3c50dadb215963e0e3bf239f24a745f86622414e4"
+      },
+      "Provider::ValueBody": {
+        "assembly": "Pack_E33f9a30399fa52a1648f4bd3_Ee08c8e03e46df0d8705e9c07.dll",
+        "key": "6cfaa9c7a69d65047d523898e052d07ae6cf1b2988cf3b6e9b3b6dbe80e5c449"
+      }
+    }
+  },
+  {
+    "scenario": "direct-use",
+    "elapsedMilliseconds": null,
+    "statistics": {
+      "readDocuments": [
+        "App/project.cpack",
+        "Api/pack.cpack",
+        "Provider/pack.cpack",
+        "Unused/pack.cpack",
+        "Extra/pack.cpack",
+        "App/Main.celem",
+        "Extra/Body.celem",
+        "Api/Extra.celem",
+        "Extra/extra.csbody"
+      ],
+      "parsedDocuments": [
+        "App/project.cpack",
+        "Api/pack.cpack",
+        "Provider/pack.cpack",
+        "Unused/pack.cpack",
+        "Extra/pack.cpack",
+        "App/Main.celem",
+        "Extra/Body.celem",
+        "Api/Extra.celem"
+      ],
+      "checkedContracts": [
+        "App::Main",
+        "Api::Value",
+        "Api::Extra"
+      ],
+      "compiledContracts": [],
+      "reusedContracts": [
+        "App::Main",
+        "Api::Value",
+        "Api::Extra"
+      ],
+      "compiledPacks": [],
+      "reusedPacks": [
+        "App",
+        "Extra",
+        "Provider"
+      ],
+      "compiledImplementations": [],
+      "reusedImplementations": [
+        "App::MainBody",
+        "Extra::Body",
+        "Provider::ValueBody"
+      ],
+      "targetInvocations": {
+        "fingerprint": 1,
+        "link": 1
+      },
+      "fullRebuilds": 0
+    },
+    "artifacts": {
+      "App::MainBody": {
+        "assembly": "Pack_E68ba9eb197fc29b246916dbd_E516e07bef57c08ea18f63573.dll",
+        "key": "59a1a5cecafd9a4966bf8b810cd59fd882c4d34d96cde3e648e7737a4e7d7099"
+      },
+      "Extra::Body": {
+        "assembly": "Pack_Efe3e84ae9f3f3cba2bb48b24_E671be085bd57968e2e6b037e.dll",
+        "key": "73dd1f0aa9c4c63dd8ad0fc3c50dadb215963e0e3bf239f24a745f86622414e4"
+      },
+      "Provider::ValueBody": {
+        "assembly": "Pack_E33f9a30399fa52a1648f4bd3_Ee08c8e03e46df0d8705e9c07.dll",
+        "key": "6cfaa9c7a69d65047d523898e052d07ae6cf1b2988cf3b6e9b3b6dbe80e5c449"
+      }
+    }
+  },
+  {
+    "scenario": "direct-contain",
+    "elapsedMilliseconds": null,
+    "statistics": {
+      "readDocuments": [
+        "App/project.cpack",
+        "Api/pack.cpack",
+        "Provider/pack.cpack",
+        "Unused/pack.cpack",
+        "Extra/pack.cpack",
+        "App/Main.celem",
+        "Extra/Body.celem",
+        "Api/Extra.celem",
+        "Extra/extra.csbody"
+      ],
+      "parsedDocuments": [
+        "App/project.cpack",
+        "Api/pack.cpack",
+        "Provider/pack.cpack",
+        "Unused/pack.cpack",
+        "Extra/pack.cpack",
+        "App/Main.celem",
+        "Extra/Body.celem",
+        "Api/Extra.celem"
+      ],
+      "checkedContracts": [
+        "App::Main",
+        "Api::Value",
+        "Api::Extra"
+      ],
+      "compiledContracts": [],
+      "reusedContracts": [
+        "App::Main",
+        "Api::Value",
+        "Api::Extra"
+      ],
+      "compiledPacks": [],
+      "reusedPacks": [
+        "App",
+        "Extra",
+        "Provider"
+      ],
+      "compiledImplementations": [],
+      "reusedImplementations": [
+        "App::MainBody",
+        "Extra::Body",
+        "Provider::ValueBody"
+      ],
+      "targetInvocations": {
+        "fingerprint": 1,
+        "link": 1
+      },
+      "fullRebuilds": 0
+    },
+    "artifacts": {
+      "App::MainBody": {
+        "assembly": "Pack_E68ba9eb197fc29b246916dbd_E516e07bef57c08ea18f63573.dll",
+        "key": "59a1a5cecafd9a4966bf8b810cd59fd882c4d34d96cde3e648e7737a4e7d7099"
+      },
+      "Extra::Body": {
+        "assembly": "Pack_Efe3e84ae9f3f3cba2bb48b24_E671be085bd57968e2e6b037e.dll",
+        "key": "73dd1f0aa9c4c63dd8ad0fc3c50dadb215963e0e3bf239f24a745f86622414e4"
+      },
+      "Provider::ValueBody": {
+        "assembly": "Pack_E33f9a30399fa52a1648f4bd3_Ee08c8e03e46df0d8705e9c07.dll",
+        "key": "6cfaa9c7a69d65047d523898e052d07ae6cf1b2988cf3b6e9b3b6dbe80e5c449"
+      }
+    }
+  },
+  {
+    "scenario": "multi-check",
+    "elapsedMilliseconds": 3183,
+    "statistics": {
+      "readDocuments": [
+        "App/project.cpack",
+        "Api/pack.cpack",
+        "Provider/pack.cpack",
+        "Unused/pack.cpack",
+        "target/pack.cpack",
+        "target/portable.celem",
+        "App/MainBody.celem",
+        "App/Main.celem",
+        "Api/Value.celem",
+        "App/UnusedBody.celem",
+        "App/Spare.celem",
+        "App/main.csbody",
+        "App/unused.csbody"
+      ],
+      "parsedDocuments": [
+        "App/project.cpack",
+        "Api/pack.cpack",
+        "Provider/pack.cpack",
+        "Unused/pack.cpack",
+        "target/pack.cpack",
+        "target/portable.celem",
+        "App/MainBody.celem",
+        "App/Main.celem",
+        "Api/Value.celem",
+        "App/UnusedBody.celem",
+        "App/Spare.celem"
+      ],
+      "checkedContracts": [
+        "App::Main",
+        "Api::Value",
+        "App::Spare"
+      ],
+      "compiledContracts": [
+        "App::Main",
+        "Api::Value",
+        "App::Spare"
+      ],
+      "reusedContracts": [],
+      "compiledPacks": [
+        "App"
+      ],
+      "reusedPacks": [],
+      "compiledImplementations": [
+        "App::MainBody",
+        "App::UnusedBody"
+      ],
+      "reusedImplementations": [],
+      "targetInvocations": {
+        "fingerprint": 1,
+        "compile-contract": 3,
+        "compile-pack": 2
+      },
+      "fullRebuilds": 0
+    },
+    "artifacts": {
+      "App::MainBody": {
+        "assembly": "Pack_E68ba9eb197fc29b246916dbd_E516e07bef57c08ea18f63573.dll",
+        "key": "d76c8fe8714a3aae9e49e755301bc34bcfa66c5e9ea931e095dd14a123099bae"
+      },
+      "App::UnusedBody": {
+        "assembly": "Pack_E68ba9eb197fc29b246916dbd_E7c13ac087a70200900dd1370.dll",
+        "key": "d841a06b09c479fc8fcb9394b20b3350cbdc256d69d0b766fed1d096ff580389"
+      }
+    }
+  },
+  {
+    "scenario": "multi-final-after-check",
+    "elapsedMilliseconds": null,
+    "statistics": {
+      "readDocuments": [
+        "Provider/ValueBody.celem",
+        "Provider/value.csbody"
+      ],
+      "parsedDocuments": [
+        "Provider/ValueBody.celem"
+      ],
+      "checkedContracts": [
+        "App::Main",
+        "Api::Value"
+      ],
+      "compiledContracts": [],
+      "reusedContracts": [
+        "App::Main",
+        "Api::Value"
+      ],
+      "compiledPacks": [
+        "Provider"
+      ],
+      "reusedPacks": [
+        "App"
+      ],
+      "compiledImplementations": [
+        "Provider::ValueBody"
+      ],
+      "reusedImplementations": [
+        "App::MainBody"
+      ],
+      "targetInvocations": {
+        "fingerprint": 1,
+        "compile-pack": 1,
+        "link": 1
+      },
+      "fullRebuilds": 0
+    },
+    "artifacts": {
+      "App::MainBody": {
+        "assembly": "Pack_E68ba9eb197fc29b246916dbd_E516e07bef57c08ea18f63573.dll",
+        "key": "d76c8fe8714a3aae9e49e755301bc34bcfa66c5e9ea931e095dd14a123099bae"
+      },
+      "Provider::ValueBody": {
+        "assembly": "Pack_E33f9a30399fa52a1648f4bd3_Ee08c8e03e46df0d8705e9c07.dll",
+        "key": "39f424c5f4702cf69e2906c7d5c4c17d9401e6b1f815ddb18d929991fc43133c"
+      }
+    }
+  },
+  {
+    "scenario": "multi-no-change",
+    "elapsedMilliseconds": null,
+    "statistics": {
+      "readDocuments": [],
+      "parsedDocuments": [],
+      "checkedContracts": [
+        "App::Main",
+        "Api::Value"
+      ],
+      "compiledContracts": [],
+      "reusedContracts": [
+        "App::Main",
+        "Api::Value"
+      ],
+      "compiledPacks": [],
+      "reusedPacks": [
+        "App",
+        "Provider"
+      ],
+      "compiledImplementations": [],
+      "reusedImplementations": [
+        "App::MainBody",
+        "Provider::ValueBody"
+      ],
+      "targetInvocations": {
+        "fingerprint": 1,
+        "link": 1
+      },
+      "fullRebuilds": 0
+    },
+    "artifacts": {
+      "App::MainBody": {
+        "assembly": "Pack_E68ba9eb197fc29b246916dbd_E516e07bef57c08ea18f63573.dll",
+        "key": "d76c8fe8714a3aae9e49e755301bc34bcfa66c5e9ea931e095dd14a123099bae"
+      },
+      "Provider::ValueBody": {
+        "assembly": "Pack_E33f9a30399fa52a1648f4bd3_Ee08c8e03e46df0d8705e9c07.dll",
+        "key": "39f424c5f4702cf69e2906c7d5c4c17d9401e6b1f815ddb18d929991fc43133c"
+      }
+    }
+  },
+  {
+    "scenario": "multi-unused-body",
+    "elapsedMilliseconds": null,
+    "statistics": {
+      "readDocuments": [],
+      "parsedDocuments": [],
+      "checkedContracts": [
+        "App::Main",
+        "Api::Value"
+      ],
+      "compiledContracts": [],
+      "reusedContracts": [
+        "App::Main",
+        "Api::Value"
+      ],
+      "compiledPacks": [],
+      "reusedPacks": [
+        "App",
+        "Provider"
+      ],
+      "compiledImplementations": [],
+      "reusedImplementations": [
+        "App::MainBody",
+        "Provider::ValueBody"
+      ],
+      "targetInvocations": {
+        "fingerprint": 1,
+        "link": 1
+      },
+      "fullRebuilds": 0
+    },
+    "artifacts": {
+      "App::MainBody": {
+        "assembly": "Pack_E68ba9eb197fc29b246916dbd_E516e07bef57c08ea18f63573.dll",
+        "key": "d76c8fe8714a3aae9e49e755301bc34bcfa66c5e9ea931e095dd14a123099bae"
+      },
+      "Provider::ValueBody": {
+        "assembly": "Pack_E33f9a30399fa52a1648f4bd3_Ee08c8e03e46df0d8705e9c07.dll",
+        "key": "39f424c5f4702cf69e2906c7d5c4c17d9401e6b1f815ddb18d929991fc43133c"
+      }
+    }
+  },
+  {
+    "scenario": "multi-check-unused-body",
+    "elapsedMilliseconds": null,
+    "statistics": {
+      "readDocuments": [
+        "App/unused.csbody"
+      ],
+      "parsedDocuments": [],
+      "checkedContracts": [
+        "App::Main",
+        "Api::Value",
+        "App::Spare"
+      ],
+      "compiledContracts": [],
+      "reusedContracts": [
+        "App::Main",
+        "Api::Value",
+        "App::Spare"
+      ],
+      "compiledPacks": [
+        "App"
+      ],
+      "reusedPacks": [],
+      "compiledImplementations": [
+        "App::UnusedBody"
+      ],
+      "reusedImplementations": [
+        "App::MainBody"
+      ],
+      "targetInvocations": {
+        "fingerprint": 1,
+        "compile-pack": 1
+      },
+      "fullRebuilds": 0
+    },
+    "artifacts": {
+      "App::MainBody": {
+        "assembly": "Pack_E68ba9eb197fc29b246916dbd_E516e07bef57c08ea18f63573.dll",
+        "key": "d76c8fe8714a3aae9e49e755301bc34bcfa66c5e9ea931e095dd14a123099bae"
+      },
+      "App::UnusedBody": {
+        "assembly": "Pack_E68ba9eb197fc29b246916dbd_E7c13ac087a70200900dd1370.dll",
+        "key": "e5873deac8643ddb5e3cf9919223eaefd774ccc84d169cb141244326c922f8aa"
+      }
+    }
+  },
+  {
+    "scenario": "multi-final-after-recheck",
+    "elapsedMilliseconds": null,
+    "statistics": {
+      "readDocuments": [],
+      "parsedDocuments": [],
+      "checkedContracts": [
+        "App::Main",
+        "Api::Value"
+      ],
+      "compiledContracts": [],
+      "reusedContracts": [
+        "App::Main",
+        "Api::Value"
+      ],
+      "compiledPacks": [],
+      "reusedPacks": [
+        "App",
+        "Provider"
+      ],
+      "compiledImplementations": [],
+      "reusedImplementations": [
+        "App::MainBody",
+        "Provider::ValueBody"
+      ],
+      "targetInvocations": {
+        "fingerprint": 1,
+        "link": 1
+      },
+      "fullRebuilds": 0
+    },
+    "artifacts": {
+      "App::MainBody": {
+        "assembly": "Pack_E68ba9eb197fc29b246916dbd_E516e07bef57c08ea18f63573.dll",
+        "key": "d76c8fe8714a3aae9e49e755301bc34bcfa66c5e9ea931e095dd14a123099bae"
+      },
+      "Provider::ValueBody": {
+        "assembly": "Pack_E33f9a30399fa52a1648f4bd3_Ee08c8e03e46df0d8705e9c07.dll",
+        "key": "39f424c5f4702cf69e2906c7d5c4c17d9401e6b1f815ddb18d929991fc43133c"
+      }
+    }
+  },
+  {
+    "scenario": "multi-used-body",
+    "elapsedMilliseconds": null,
+    "statistics": {
+      "readDocuments": [
+        "App/main.csbody"
+      ],
+      "parsedDocuments": [],
+      "checkedContracts": [
+        "App::Main",
+        "Api::Value"
+      ],
+      "compiledContracts": [],
+      "reusedContracts": [
+        "App::Main",
+        "Api::Value"
+      ],
+      "compiledPacks": [
+        "App"
+      ],
+      "reusedPacks": [
+        "Provider"
+      ],
+      "compiledImplementations": [
+        "App::MainBody"
+      ],
+      "reusedImplementations": [
+        "Provider::ValueBody"
+      ],
+      "targetInvocations": {
+        "fingerprint": 1,
+        "compile-pack": 1,
+        "link": 1
+      },
+      "fullRebuilds": 0
+    },
+    "artifacts": {
+      "App::MainBody": {
+        "assembly": "Pack_E68ba9eb197fc29b246916dbd_E516e07bef57c08ea18f63573.dll",
+        "key": "383be5861bcd8d5da50f350b983cea28b633c967729efb3f154cd6802addecea"
+      },
+      "Provider::ValueBody": {
+        "assembly": "Pack_E33f9a30399fa52a1648f4bd3_Ee08c8e03e46df0d8705e9c07.dll",
+        "key": "39f424c5f4702cf69e2906c7d5c4c17d9401e6b1f815ddb18d929991fc43133c"
+      }
+    }
+  },
+  {
+    "scenario": "multi-public-contract",
+    "elapsedMilliseconds": null,
+    "statistics": {
+      "readDocuments": [
+        "App/MainBody.celem",
+        "Provider/ValueBody.celem"
+      ],
+      "parsedDocuments": [
+        "App/MainBody.celem",
+        "Provider/ValueBody.celem"
+      ],
+      "checkedContracts": [
+        "App::Main",
+        "Api::Value"
+      ],
+      "compiledContracts": [
+        "Api::Value"
+      ],
+      "reusedContracts": [
+        "App::Main"
+      ],
+      "compiledPacks": [
+        "App",
+        "Provider"
+      ],
+      "reusedPacks": [],
+      "compiledImplementations": [
+        "App::MainBody",
+        "Provider::ValueBody"
+      ],
+      "reusedImplementations": [],
+      "targetInvocations": {
+        "fingerprint": 1,
+        "compile-contract": 1,
+        "compile-pack": 2,
+        "link": 1
+      },
+      "fullRebuilds": 0
+    },
+    "artifacts": {
+      "App::MainBody": {
+        "assembly": "Pack_E68ba9eb197fc29b246916dbd_E516e07bef57c08ea18f63573.dll",
+        "key": "56a34bc2ef4aaee8546136d1fd381a9dea72c4c9df53cb5d8a52cc812dc61ffb"
+      },
+      "Provider::ValueBody": {
+        "assembly": "Pack_E33f9a30399fa52a1648f4bd3_Ee08c8e03e46df0d8705e9c07.dll",
+        "key": "682f50ce4e7bc9680ad27a6c914b1812bbcfd3e7e51dca9408445e6c7647f3db"
+      }
+    }
+  }
+]

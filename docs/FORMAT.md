@@ -94,6 +94,10 @@ import Example.Api::Greeting as Greeting (string) -> string in Example.App::Chil
 
 Without `in`, calls resolve in the current consumer scope. The final linker creates different typed adapters when independent objects bind the same function differently. It does not make global runtime state or infer object lifetimes.
 
+An implementation reached directly through `always`, `use implementation`, `contain implementation`, or a module's implementation edge is selected, contract-validated, compiled and packaged, together with its declared import closure. A root `always` implementation has no implicit consumer: imports must specify `in Namespace::Consumer`, otherwise `IMPLEMENTATION_SCOPE` rejects it. Direct edges from a consumer or its module carry that consumer's binding scope. An inherited implementation parent supplies declaration metadata; inheritance alone does not select its DLL.
+
+Compilation/cache units are individual implementations owned by a pack. Local checking compiles every implementation in that pack against public contracts; a final build selects only its graph. Each pack result exposes all `assemblies` and an ID-keyed `implementationArtifacts` map. Legacy `assembly`/`reference` refer only to the first selected implementation. Public catalog entries identify each implementation's DLL. `compiledPacks` means at least one owned implementation compiled; `compiledImplementations` identifies exact units and `targetInvocations` counts provider operations. The `compile-pack` operation is invoked once per implementation with one generated source.
+
 ## Build-target tool protocol
 
 ```text

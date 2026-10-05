@@ -92,6 +92,9 @@ public sealed class BuildStatistics
     public List<string> ReusedContracts { get; set; } = [];
     public List<string> CompiledPacks { get; set; } = [];
     public List<string> ReusedPacks { get; set; } = [];
+    public List<string> CompiledImplementations { get; set; } = [];
+    public List<string> ReusedImplementations { get; set; } = [];
+    public Dictionary<string, int> TargetInvocations { get; set; } = new(StringComparer.Ordinal);
     public int FullRebuilds { get; set; }
 }
 

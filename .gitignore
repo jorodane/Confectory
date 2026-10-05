@@ -8,3 +8,6 @@ Builds/
 *.exe
 *.apk
 *.docx
+# Historical bytecode left in pre-migration working directories.
+__pycache__/
+*.py[cod]

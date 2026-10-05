@@ -91,7 +91,7 @@ public static class Generation
             packs = plan.Reached.Select(PackPaths.Namespace).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).Select(ns => new { @namespace = ns, version = plan.Registry.Packs[ns].Version }).ToArray(),
             elements,
             functions = contracts.Keys.Order(StringComparer.Ordinal).Select(id => new { id, contract = plan.Registry.Get(id).Signature, interfaceType = Interface(id)["global::".Length..], assembly = Path.GetFileName(contracts[id]["assembly"]!.GetValue<string>()) }).ToArray(),
-            implementations = plan.Implementations.OrderBy(x => x.Key, StringComparer.Ordinal).Select(x => new { id = x.Key, function = x.Value.Function, implementationType = Implementation(x.Key)["global::".Length..], assembly = Path.GetFileName(packs[PackPaths.Namespace(x.Key)]["assembly"]!.GetValue<string>()), bodySelection = x.Value.Bodies.ContainsKey(target) ? target : "common" }).ToArray(),
+            implementations = plan.Implementations.OrderBy(x => x.Key, StringComparer.Ordinal).Select(x => new { id = x.Key, function = x.Value.Function, implementationType = Implementation(x.Key)["global::".Length..], assembly = Path.GetFileName(packs[PackPaths.Namespace(x.Key)]["implementationArtifacts"]![x.Key]!["assembly"]!.GetValue<string>()), bodySelection = x.Value.Bodies.ContainsKey(target) ? target : "common" }).ToArray(),
             bindings = plan.Bindings.Values.ToArray(), coreProvidesRuntimeModLoader = false
         });
     }

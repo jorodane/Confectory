@@ -136,7 +136,7 @@ public sealed class Planner(Registry registry, string target)
     public Dictionary<string, Element> Implementations { get; } = new(StringComparer.Ordinal);
     private readonly Dictionary<string, ModuleContract> moduleCache = new(StringComparer.Ordinal);
     private readonly HashSet<string> structuralDone = new(StringComparer.Ordinal);
-    private readonly HashSet<(string Id, bool Active)> visited = [];
+    private readonly HashSet<(string Id, bool Active, string? Consumer)> visited = [];
 
     public void Structural(string id, IReadOnlyList<string>? stack = null)
     {
@@ -196,18 +196,39 @@ public sealed class Planner(Registry registry, string target)
         }
         return result;
     }
-    public void Visit(string id, string? expected = null, string? source = null, SourceLocation? loc = null, bool active = true)
+    public void Visit(string id, string? expected = null, string? source = null, SourceLocation? loc = null, bool active = true, string? consumer = null)
     {
         var e = Registry.Get(id, expected, source, loc);
-        if (!visited.Add((id, active))) return;
+        if (!visited.Add((id, active, e.Kind is "implementation" or "module" ? consumer : null))) return;
         Reached.Add(id); Structural(id); var effective = Registry.Effective(id);
+        string? scope = e.Kind is "implementation" or "module" or "buildtarget" ? consumer : id;
+        if (active && e.Kind == "implementation")
+        {
+            effective = Registry.Implementation(effective.Function!, id, id, effective.Loc);
+            if (!effective.Bodies.ContainsKey(Target) && !effective.Bodies.ContainsKey("common"))
+                throw new BuildError("MISSING_TARGET_IMPLEMENTATION", $"{id} has neither {Target} nor common body", effective.Loc);
+            Implementations[id] = effective;
+            Visit(effective.Function!, "function", id, effective.Loc, false);
+            foreach (var imported in effective.Imports.Values)
+            {
+                string importScope = imported.Scope ?? scope ?? throw new BuildError("IMPLEMENTATION_SCOPE",
+                    $"Directly included implementation {id} has no consumer scope for {imported.Id}; declare 'in Namespace::Consumer' on the import", imported.Loc);
+                Visit(imported.Id, "function", imported.Origin, imported.Loc, false);
+                if (imported.Scope is not null) Visit(importScope, source: imported.Origin, loc: imported.Loc);
+                Bind(importScope, imported.Id);
+            }
+        }
         if (e.Parent is not null) Visit(e.Parent, e.Kind, id, e.Loc, false);
         foreach (var reference in effective.Uses.Concat(effective.Contains))
         {
-            Visit(reference.Id, reference.Kind, reference.Origin ?? id, reference.Loc, active && reference.Kind != "function");
-            if (active && reference.Kind == "function") Bind(id, reference.Id);
+            // Direct implementation edges select executable code even when the
+            // containing declaration was reached as module/contract metadata.
+            Visit(reference.Id, reference.Kind, reference.Origin ?? id, reference.Loc,
+                reference.Kind == "implementation" || (active && reference.Kind != "function"), scope);
+            if (active && reference.Kind == "function")
+                Bind(scope ?? throw new BuildError("IMPLEMENTATION_SCOPE", $"No consumer scope for function use in {id}", reference.Loc), reference.Id);
         }
-        foreach (var reference in effective.Modules.Concat(effective.Includes)) Visit(reference.Id, "module", reference.Origin ?? id, reference.Loc, false);
+        foreach (var reference in effective.Modules.Concat(effective.Includes)) Visit(reference.Id, "module", reference.Origin ?? id, reference.Loc, false, scope);
         foreach (var (fn, provider) in effective.Provides) Registry.Implementation(fn, provider.Id, provider.Origin ?? id, provider.Loc);
         if (e.Kind == "module") Module(id);
         else if (active && e.Kind is not ("implementation" or "buildtarget")) foreach (string fn in ModulesFor(id).Required.Keys) Bind(id, fn);
@@ -234,8 +255,8 @@ public sealed class Planner(Registry registry, string target)
         var impl = Registry.Implementation(function, provider.Id, source, provider.Loc);
         if (!impl.Bodies.ContainsKey(Target) && !impl.Bodies.ContainsKey("common")) throw new BuildError("MISSING_TARGET_IMPLEMENTATION", $"{impl.Id} has neither {Target} nor common body", impl.Loc);
         var node = new Binding(owner, function, impl.Id);
-        Bindings[key] = node; Implementations[impl.Id] = impl;
-        Visit(owner); Visit(function, "function", active: false); Visit(impl.Id, "implementation");
+        Bindings[key] = node;
+        Visit(owner); Visit(function, "function", active: false); Visit(impl.Id, "implementation", consumer: owner);
         foreach (var (alias, imported) in impl.Imports)
         {
             string scope = imported.Scope ?? owner;

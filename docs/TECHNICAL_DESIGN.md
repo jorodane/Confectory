@@ -32,7 +32,7 @@ An implementation declares one function contract and a map of body files. Select
 
 ## Contracts, linking and reuse
 
-Generate one small C# interface assembly per function identity. This avoids invalidating consumers for unrelated contracts in the same pack. Implementations compile per owning pack against only these contracts and framework references, never another pack's implementation assembly. Named C# imports expose those interfaces. Local checking can therefore produce a real implementation DLL with only contract providers installed. It does not assert executable completeness.
+Generate one small C# interface assembly per function identity. This avoids invalidating consumers for unrelated contracts in the same pack. Implementations compile independently within their owning pack against only these contracts and framework references, never another pack's implementation assembly. Named C# imports expose those interfaces. Local checking can therefore produce real implementation DLLs with only contract providers installed. Whole-pack checking and a final subset share the same per-implementation cache keys. This does not assert executable completeness.
 
 Final graph traversal starts at the ProjectPack entry and explicit always-include roots. Follow references, containment, inheritance, modules, selected providers and their declared imports. Only reached implementation packs and contracts enter the executable package. Manifest registration and final inclusion are reported separately. Build-target tools are build-time dependencies and are not bundled into the app. Generate concrete interface adapters/import factories for actual providers, including lazy references for recursion; no stub or missing implementation is packaged.
 
@@ -42,7 +42,7 @@ Content-addressed contract/pack keys cover generator/protocol version, target-to
 
 The requirement map is written before code. Run declaration/graph tests plus integration tests that invoke the actual target compiler and execute the resulting app. Record source reads/parses, checked contracts, compiled/reused contract and implementation artifacts, and included/excluded packs. Also build an engine-labelled ProjectPack through the identical path and demonstrate portable CLR and Linux launcher packaging.
 
-This stage excludes runtime owners/state/hot reload, UI/MVC, physics, input, editor, AI, collaboration, Save/Confirm and product pack management. Preserve their specification requirements for later packs. The C# core does not yet build itself through pack declarations; the engine sample proves engine ProjectPack composition only. Platform signing/AOT/mobile/native Windows packaging and legacy migration remain future target-pack work.
+This stage excludes runtime owners/state/hot reload, UI/MVC, physics, input, editor, AI, collaboration, Save/Confirm and product pack management. Preserve their specification requirements for later packs. The C# core does not build itself through pack declarations: the engine sample contains only a bootstrap function that prints a name. It demonstrates the ProjectPack pipeline but supplies no actual engine runtime components or reproducible self-hosting. Platform signing/AOT/mobile/native Windows packaging and legacy migration remain future target-pack work.
 
 ## Publication
 
