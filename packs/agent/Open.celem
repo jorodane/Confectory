@@ -1,0 +1,1 @@
+function Confectory.Agent::Open (string config) -> string {provide Confectory.Agent::Open with Confectory.Agent::OpenBody;}

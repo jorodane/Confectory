@@ -1,0 +1,1 @@
+lock(AppDomain.CurrentDomain){var counts=(int[])AppDomain.CurrentDomain.GetData("Example.Agent.Counts")!;return new System.Text.Json.Nodes.JsonObject{["open"]=counts[0],["cancel"]=counts[1],["close"]=counts[2]}.ToJsonString();}

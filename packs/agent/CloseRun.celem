@@ -1,0 +1,1 @@
+function Confectory.Agent::CloseRun (string execution) -> void {provide Confectory.Agent::CloseRun with Confectory.Agent::CloseRunBody;}

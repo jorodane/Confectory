@@ -1,0 +1,18 @@
+pack Confectory.Agent version "0.1.0" {
+element Cancel function "Cancel.celem";
+element CancelBody implementation "CancelBody.celem";
+element Close function "Close.celem";
+element CloseBody implementation "CloseBody.celem";
+element CloseRun function "CloseRun.celem";
+element CloseRunBody implementation "CloseRunBody.celem";
+element Open function "Open.celem";
+element OpenBody implementation "OpenBody.celem";
+element Policy function "Policy.celem";
+element PolicyBody implementation "PolicyBody.celem";
+element Poll function "Poll.celem";
+element PollBody implementation "PollBody.celem";
+element Provider function "Provider.celem";
+element ProviderBody implementation "ProviderBody.celem";
+element Start function "Start.celem";
+element StartBody implementation "StartBody.celem";
+}

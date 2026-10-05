@@ -1,0 +1,1 @@
+function Confectory.Agent::Poll (string execution) -> string {provide Confectory.Agent::Poll with Confectory.Agent::PollBody;}

@@ -1,0 +1,1 @@
+function Confectory.Agent::Cancel (string execution) -> void {provide Confectory.Agent::Cancel with Confectory.Agent::CancelBody;}

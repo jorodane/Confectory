@@ -1,0 +1,4 @@
+implementation Confectory.Agent::PolicyBody for Confectory.Agent::Policy () -> string {
+
+body common "Policy.csbody";
+}

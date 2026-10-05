@@ -1,0 +1,4 @@
+implementation Confectory.Agent::PollBody for Confectory.Agent::Poll (string execution) -> string {
+
+body common "Poll.csbody";
+}

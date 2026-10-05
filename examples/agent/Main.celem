@@ -1,0 +1,10 @@
+function Example.Agent::Main () -> int {provide Example.Agent::Main with Example.Agent::MainBody;
+provide Confectory.Agent::Cancel with Confectory.Agent::CancelBody;
+provide Confectory.Agent::Close with Confectory.Agent::CloseBody;
+provide Confectory.Agent::CloseRun with Confectory.Agent::CloseRunBody;
+provide Confectory.Agent::Open with Confectory.Agent::OpenBody;
+provide Confectory.Agent::Policy with Example.Agent::Policy;
+provide Confectory.Agent::Poll with Confectory.Agent::PollBody;
+provide Confectory.Agent::Provider with Example.Agent::Provider;
+provide Confectory.Agent::Start with Confectory.Agent::StartBody;
+}

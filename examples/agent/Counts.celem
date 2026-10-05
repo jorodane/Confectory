@@ -1,0 +1,1 @@
+function Example.Agent::Counts () -> string {provide Example.Agent::Counts with Example.Agent::CountsBody;}

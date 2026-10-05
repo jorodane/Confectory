@@ -1,0 +1,1 @@
+function Example.Agent::Release (string gate) -> void {provide Example.Agent::Release with Example.Agent::ReleaseBody;}

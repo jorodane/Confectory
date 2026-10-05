@@ -1,0 +1,1 @@
+implementation Example.Agent::ReleaseBody for Example.Agent::Release (string gate) -> void {body common "ReleaseBody.csbody";}

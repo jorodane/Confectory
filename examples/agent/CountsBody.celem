@@ -1,0 +1,1 @@
+implementation Example.Agent::CountsBody for Example.Agent::Counts () -> string {body common "CountsBody.csbody";}

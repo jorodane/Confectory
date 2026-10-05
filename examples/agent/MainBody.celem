@@ -1,0 +1,12 @@
+implementation Example.Agent::MainBody for Example.Agent::Main () -> int {
+import Confectory.Agent::Cancel as Cancel (string) -> void;
+import Confectory.Agent::Close as Close (string) -> void;
+import Confectory.Agent::CloseRun as CloseRun (string) -> void;
+import Confectory.Agent::Open as Open (string) -> string;
+import Confectory.Agent::Policy as Policy () -> string;
+import Confectory.Agent::Poll as Poll (string) -> string;
+import Confectory.Agent::Provider as Provider (string, string, string, string) -> string;
+import Confectory.Agent::Start as Start (string, string, string) -> string;
+import Example.Agent::Release as Release (string) -> void;
+import Example.Agent::Counts as Counts () -> string;
+body common "MainBody.csbody";}

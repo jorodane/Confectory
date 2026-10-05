@@ -1,0 +1,1 @@
+function Confectory.Agent::Start (string agent, string requestID, string request) -> string {provide Confectory.Agent::Start with Confectory.Agent::StartBody;}

@@ -1,0 +1,5 @@
+implementation Confectory.Agent::StartBody for Confectory.Agent::Start (string agent, string requestID, string request) -> string {
+import Confectory.Agent::Policy as Policy () -> string;
+import Confectory.Agent::Provider as Provider (string, string, string, string) -> string;
+body common "Start.csbody";
+}

@@ -1,0 +1,1 @@
+function Confectory.Agent::Close (string agent) -> void {provide Confectory.Agent::Close with Confectory.Agent::CloseBody;}

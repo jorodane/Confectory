@@ -1,0 +1,2 @@
+if(operation=="cancel"||operation=="close")return "{}";
+throw new InvalidOperationException("Agent provider not configured; select an explicit provider implementation.");

@@ -1,0 +1,4 @@
+implementation Confectory.Agent::OpenBody for Confectory.Agent::Open (string config) -> string {
+
+body common "Open.csbody";
+}

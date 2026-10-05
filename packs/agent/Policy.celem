@@ -1,0 +1,1 @@
+function Confectory.Agent::Policy () -> string {provide Confectory.Agent::Policy with Confectory.Agent::PolicyBody;}
