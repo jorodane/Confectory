@@ -1,0 +1,1 @@
+function Confectory.Recipe::Close (string recipe) -> void {provide Confectory.Recipe::Close with Confectory.Recipe::CloseBody;}

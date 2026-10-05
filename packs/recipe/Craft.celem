@@ -1,0 +1,1 @@
+function Confectory.Recipe::Craft (string recipe, string inventory) -> bool {provide Confectory.Recipe::Craft with Confectory.Recipe::CraftBody;}

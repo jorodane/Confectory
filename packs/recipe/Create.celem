@@ -1,0 +1,1 @@
+function Confectory.Recipe::Create (string declaration) -> string {provide Confectory.Recipe::Create with Confectory.Recipe::CreateBody;}

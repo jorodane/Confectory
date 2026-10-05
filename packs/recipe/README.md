@@ -1,0 +1,3 @@
+# Recipe composition contract
+
+Create reads public declared object metadata: concept=recipe, ingredients as a JSON object string of qualified resource IDs to positive integer amounts (1..100), output qualified ID and outputCount 1..100. Craft delegates one atomic registered Inventory.Apply transaction, false/unchanged on insufficient stock. Snapshot describes IDs/deltas; Close releases only this recipe instance. Recipe composition used only Inventory public Apply contract; no prior Inventory/Harvest implementation reading or editing needed. Ingredient/game concepts are fictional game mechanics.

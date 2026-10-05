@@ -1,0 +1,11 @@
+pack Confectory.Recipe version "0.1.0" {
+dependency Confectory.Inventory version "0.1.0";
+element Create function "Create.celem";
+element CreateBody implementation "CreateBody.celem";
+element Craft function "Craft.celem";
+element CraftBody implementation "CraftBody.celem";
+element Snapshot function "Snapshot.celem";
+element SnapshotBody implementation "SnapshotBody.celem";
+element Close function "Close.celem";
+element CloseBody implementation "CloseBody.celem";
+}

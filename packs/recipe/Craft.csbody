@@ -1,0 +1,1 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.Recipe."+recipe) as object[]??throw new ObjectDisposedException("Recipe");lock(state[0]){if((bool)state[4])throw new ObjectDisposedException("Recipe");return calls.Apply.Invoke(inventory,(string[])state[2],(int[])state[3]);}

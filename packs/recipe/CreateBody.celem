@@ -1,0 +1,4 @@
+implementation Confectory.Recipe::CreateBody for Confectory.Recipe::Create (string declaration) -> string {
+
+body common "Create.csbody";
+}

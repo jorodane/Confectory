@@ -1,0 +1,1 @@
+function Confectory.Recipe::Snapshot (string recipe) -> string {provide Confectory.Recipe::Snapshot with Confectory.Recipe::SnapshotBody;}

@@ -1,0 +1,4 @@
+implementation Confectory.Recipe::CloseBody for Confectory.Recipe::Close (string recipe) -> void {
+
+body common "Close.csbody";
+}

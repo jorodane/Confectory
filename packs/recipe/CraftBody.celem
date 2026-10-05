@@ -1,0 +1,4 @@
+implementation Confectory.Recipe::CraftBody for Confectory.Recipe::Craft (string recipe, string inventory) -> bool {
+import Confectory.Inventory::Apply as Apply (string, string[], int[]) -> bool;
+body common "Craft.csbody";
+}

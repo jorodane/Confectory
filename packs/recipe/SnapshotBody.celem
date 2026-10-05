@@ -1,0 +1,4 @@
+implementation Confectory.Recipe::SnapshotBody for Confectory.Recipe::Snapshot (string recipe) -> string {
+
+body common "Snapshot.csbody";
+}
