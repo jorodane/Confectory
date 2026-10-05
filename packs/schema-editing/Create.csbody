@@ -1,0 +1,1 @@
+var payload=new System.Text.Json.Nodes.JsonObject{["kind"]=kind, ["id"]=id};string result=calls.Call.Invoke("create",payload.ToJsonString());return System.Text.Json.JsonSerializer.Deserialize<string>(result)!;

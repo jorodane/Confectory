@@ -1,0 +1,1 @@
+function Confectory.SchemaEditing::Describe (string project) -> string {description "Describe only owned project declarations and body units.";}

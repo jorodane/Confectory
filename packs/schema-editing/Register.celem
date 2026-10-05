@@ -1,0 +1,1 @@
+function Confectory.SchemaEditing::Register (string text, string id, string kind, string path) -> string {description "Register an owned declaration in a draft ProjectPack.";}

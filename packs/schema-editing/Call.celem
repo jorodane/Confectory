@@ -1,0 +1,1 @@
+function Confectory.SchemaEditing::Call (string operation, string payload) -> string {description "Invoke replaceable authoring tool; controlled JSON response. No project execution.";}

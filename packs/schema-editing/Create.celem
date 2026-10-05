@@ -1,0 +1,1 @@
+function Confectory.SchemaEditing::Create (string kind, string id) -> string {description "Create a valid category, concept, function, module, object or schema declaration.";}

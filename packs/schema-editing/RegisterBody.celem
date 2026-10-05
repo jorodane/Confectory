@@ -1,0 +1,4 @@
+implementation Confectory.SchemaEditing::RegisterBody for Confectory.SchemaEditing::Register (string text, string id, string kind, string path) -> string {
+import Confectory.SchemaEditing::Call as Call (string, string) -> string;
+body common "Register.csbody";
+}

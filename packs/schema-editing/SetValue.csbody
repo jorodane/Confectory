@@ -1,0 +1,1 @@
+var payload=new System.Text.Json.Nodes.JsonObject{["text"]=text, ["field"]=field, ["value"]=System.Text.Json.Nodes.JsonNode.Parse(value)};string result=calls.Call.Invoke("setValue",payload.ToJsonString());return System.Text.Json.JsonSerializer.Deserialize<string>(result)!;

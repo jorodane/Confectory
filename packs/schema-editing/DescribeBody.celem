@@ -1,0 +1,4 @@
+implementation Confectory.SchemaEditing::DescribeBody for Confectory.SchemaEditing::Describe (string project) -> string {
+import Confectory.SchemaEditing::Call as Call (string, string) -> string;
+body common "Describe.csbody";
+}

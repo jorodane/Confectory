@@ -1,0 +1,10 @@
+function Example.SchemaEditing::Main () -> int {provide Example.SchemaEditing::Main with Example.SchemaEditing::MainBody;
+provide Confectory.SchemaEditing::Call with Confectory.SchemaEditing::CallBody;
+provide Confectory.SchemaEditing::Describe with Confectory.SchemaEditing::DescribeBody;
+provide Confectory.SchemaEditing::Inspect with Confectory.SchemaEditing::InspectBody;
+provide Confectory.SchemaEditing::SetValue with Confectory.SchemaEditing::SetValueBody;
+provide Confectory.SchemaEditing::Create with Confectory.SchemaEditing::CreateBody;
+provide Confectory.SchemaEditing::Register with Confectory.SchemaEditing::RegisterBody;
+provide Confectory.SchemaEditing::Prepare with Confectory.SchemaEditing::PrepareBody;
+provide Confectory.SchemaEditing::Validate with Confectory.SchemaEditing::ValidateBody;
+}

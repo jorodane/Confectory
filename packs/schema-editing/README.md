@@ -1,0 +1,9 @@
+# SchemaEditing
+
+Ordinary pack with Describe, Inspect, SetValue, Create, Register, Prepare and Validate public operations. Call is the replaceable tool contract. The desktop Call provider requires explicit `CONFECTORY_ELEMENT_AUTHORING_HOST` pointing to the built `targets/element-authoring` tool; it never starts project code for Describe/Inspect. Validate uses public Core structural validation, owned body compilation and complete consumer build. Preview's explicit `run` request is separate from inspection.
+
+Editable declarations belong to the selected ProjectPack root, including owned implementation body units. Imported packs are not editable models. SetValue authors scalar metadata while preserving every supported declaration statement: kind/ID, public signature, inheritance, module/include/require/default/provide, use/contain, imports/body selection and buildtarget fields. Comments and formatting may be normalized. This is not a full schema-driven property editor or migration system. Create supports category, concept, function, module, object and schema; function provider bindings are still explicit.
+
+Candidate Prepare resolves registry paths against the original project before validation. Final project source never receives candidate relocation changes. The tool depends on existing public Core APIs; no compiler policy or private-provider access was added. Android cannot launch this desktop process strategy; native authoring strategy remains an explicit target gap.
+
+Verification: SchemaEditingTests runs generated pack calls, all creation kinds, formatter preservation, scalar rejection, owned-only description, actual compilation and signature/module failure, then checks a SetValue-only body change recompiles only SetValueBody with no contracts.

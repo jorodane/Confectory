@@ -1,0 +1,11 @@
+implementation Example.SchemaEditing::MainBody for Example.SchemaEditing::Main () -> int {
+import Confectory.SchemaEditing::Call as Call (string, string) -> string;
+import Confectory.SchemaEditing::Describe as Describe (string) -> string;
+import Confectory.SchemaEditing::Inspect as Inspect (string) -> string;
+import Confectory.SchemaEditing::SetValue as SetValue (string, string, string) -> string;
+import Confectory.SchemaEditing::Create as Create (string, string) -> string;
+import Confectory.SchemaEditing::Register as Register (string, string, string, string) -> string;
+import Confectory.SchemaEditing::Prepare as Prepare (string, string) -> string;
+import Confectory.SchemaEditing::Validate as Validate (string, string) -> string;
+body common "main.csbody";
+}

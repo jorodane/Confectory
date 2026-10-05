@@ -1,0 +1,1 @@
+function Confectory.SchemaEditing::SetValue (string text, string field, string value) -> string {description "Set scalar JSON metadata preserving every public declaration statement.";}

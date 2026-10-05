@@ -1,0 +1,4 @@
+implementation Confectory.SchemaEditing::InspectBody for Confectory.SchemaEditing::Inspect (string text) -> string {
+import Confectory.SchemaEditing::Call as Call (string, string) -> string;
+body common "Inspect.csbody";
+}

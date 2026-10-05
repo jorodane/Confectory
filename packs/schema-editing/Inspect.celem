@@ -1,0 +1,1 @@
+function Confectory.SchemaEditing::Inspect (string text) -> string {description "Inspect draft declaration identity, kind, inheritance and scalar metadata.";}

@@ -1,0 +1,10 @@
+string host=Environment.GetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST")??throw new InvalidOperationException("Explicit authoring tool strategy required.");
+string dotnet=Environment.GetEnvironmentVariable("CONFECTORY_DOTNET")??"dotnet";
+var request=System.Text.Json.Nodes.JsonNode.Parse(payload)!.AsObject();request["operation"]=operation;
+var start=new System.Diagnostics.ProcessStartInfo(dotnet){UseShellExecute=false,RedirectStandardInput=true,RedirectStandardOutput=true,RedirectStandardError=true};start.ArgumentList.Add(System.IO.Path.GetFullPath(host));
+using var process=System.Diagnostics.Process.Start(start)??throw new InvalidOperationException("Authoring tool did not start.");
+var output=process.StandardOutput.ReadToEndAsync();var error=process.StandardError.ReadToEndAsync();process.StandardInput.Write(request.ToJsonString());process.StandardInput.Close();
+if(!process.WaitForExit(120000)){process.Kill(true);process.WaitForExit();throw new TimeoutException("Authoring tool timeout.");}
+string reply=output.GetAwaiter().GetResult(),stderr=error.GetAwaiter().GetResult();if(process.ExitCode!=0)throw new InvalidOperationException("Authoring process failed: "+stderr);
+var result=System.Text.Json.Nodes.JsonNode.Parse(reply)!.AsObject();if(!result["ok"]!.GetValue<bool>())throw new InvalidOperationException(result["code"]!.GetValue<string>()+": "+result["message"]!.GetValue<string>());
+return result["result"]!.ToJsonString();

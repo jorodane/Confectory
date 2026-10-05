@@ -1,0 +1,18 @@
+pack Confectory.SchemaEditing version "0.1.0" {
+element Call function "Call.celem";
+element CallBody implementation "CallBody.celem";
+element Describe function "Describe.celem";
+element DescribeBody implementation "DescribeBody.celem";
+element Inspect function "Inspect.celem";
+element InspectBody implementation "InspectBody.celem";
+element SetValue function "SetValue.celem";
+element SetValueBody implementation "SetValueBody.celem";
+element Create function "Create.celem";
+element CreateBody implementation "CreateBody.celem";
+element Register function "Register.celem";
+element RegisterBody implementation "RegisterBody.celem";
+element Prepare function "Prepare.celem";
+element PrepareBody implementation "PrepareBody.celem";
+element Validate function "Validate.celem";
+element ValidateBody implementation "ValidateBody.celem";
+}

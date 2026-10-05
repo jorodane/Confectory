@@ -1,0 +1,1 @@
+var payload=new System.Text.Json.Nodes.JsonObject{["project"]=project, ["target"]=target};string result=calls.Call.Invoke("validate",payload.ToJsonString());return result;

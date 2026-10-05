@@ -1,0 +1,1 @@
+var payload=new System.Text.Json.Nodes.JsonObject{["text"]=text};string result=calls.Call.Invoke("inspect",payload.ToJsonString());return result;

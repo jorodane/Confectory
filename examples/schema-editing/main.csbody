@@ -1,0 +1,18 @@
+void Check(bool value,string message){if(!value)throw new Exception(message);}
+foreach(string kind in new[]{"category","concept","function","module","object","schema"})
+{
+ string declaration=calls.Create.Invoke(kind,"App::Authored");string updated=calls.SetValue.Invoke(declaration,"score","7");var parsed=System.Text.Json.Nodes.JsonNode.Parse(calls.Inspect.Invoke(updated))!;Check(parsed["kind"]!.GetValue<string>()==kind&&parsed["values"]!["score"]!.GetValue<int>()==7,"Authored kind/scalar value");
+}
+string original="implementation App::Body for App::Function (int number) -> int extends App::Parent { description \"functional\"; module App::Module; provide App::Function with App::Body; use object App::Thing; contain concept App::Idea; import App::Function as Fn (int) -> int in App::Scope; body common \"main.csbody\"; }";
+string edited=calls.SetValue.Invoke(original,"flag","true");Check(edited.Contains("(int number) -> int extends App::Parent")&&edited.Contains("import App::Function as Fn (int) -> int in App::Scope;")&&edited.Contains("module App::Module;")&&edited.Contains("provide App::Function with App::Body;"),"Contract/binding/inheritance preservation");
+string module=calls.SetValue.Invoke("module App::Rules { include App::Other; require App::Function (int) -> int; default App::Function with App::Body; }","range","3");Check(module.Contains("require App::Function (int) -> int;")&&module.Contains("default App::Function with App::Body;")&&module.Contains("include App::Other;"),"Module preservation");
+bool invalid=false;try{calls.SetValue.Invoke(original,"flag","null");}catch(InvalidOperationException){invalid=true;}Check(invalid,"Unsupported null metadata rejected");
+string project=Environment.GetEnvironmentVariable("CONFECTORY_TEST_AUTHOR_PROJECT")??throw new Exception("Test project required");var description=System.Text.Json.Nodes.JsonNode.Parse(calls.Describe.Invoke(project))!;Check(description["units"]!.AsArray().Count==4,"Only owned declarations/body described");
+Check(calls.Validate.Invoke(project,"portable").Contains("valid"),"Actual structural/compiler validation");
+string body=System.IO.Path.Combine(System.IO.Path.GetDirectoryName(project)!,"main.csbody"),before=System.IO.File.ReadAllText(body);
+try{System.IO.File.WriteAllText(body,"this is invalid C#;");bool compileFailure=false;try{calls.Validate.Invoke(project,"portable");}catch(InvalidOperationException){compileFailure=true;}Check(compileFailure,"Functional body compile failure detected");}finally{System.IO.File.WriteAllText(body,before);}
+string ownedDeclaration=System.IO.Path.Combine(System.IO.Path.GetDirectoryName(project)!,"MainBody.celem"),contract=System.IO.File.ReadAllText(ownedDeclaration);
+try{System.IO.File.WriteAllText(ownedDeclaration,contract.Replace("() -> int","() -> long",StringComparison.Ordinal));bool mismatch=false;try{calls.Validate.Invoke(project,"portable");}catch(InvalidOperationException){mismatch=true;}Check(mismatch,"Mismatched public implementation contract rejected");}finally{System.IO.File.WriteAllText(ownedDeclaration,contract);}
+string main=System.IO.Path.Combine(System.IO.Path.GetDirectoryName(project)!,"Main.celem"),mainText=System.IO.File.ReadAllText(main);
+try{System.IO.File.WriteAllText(main,mainText.Replace("{","{ module App::Absent;",StringComparison.Ordinal));bool moduleFailure=false;try{calls.Validate.Invoke(project,"portable");}catch(InvalidOperationException){moduleFailure=true;}Check(moduleFailure,"Missing module cannot be confirmed");}finally{System.IO.File.WriteAllText(main,mainText);}
+Console.WriteLine("SchemaEditing authoring/preservation/compiler PASS");return 0;

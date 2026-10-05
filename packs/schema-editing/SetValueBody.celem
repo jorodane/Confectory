@@ -1,0 +1,4 @@
+implementation Confectory.SchemaEditing::SetValueBody for Confectory.SchemaEditing::SetValue (string text, string field, string value) -> string {
+import Confectory.SchemaEditing::Call as Call (string, string) -> string;
+body common "SetValue.csbody";
+}

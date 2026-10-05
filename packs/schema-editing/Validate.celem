@@ -1,0 +1,1 @@
+function Confectory.SchemaEditing::Validate (string project, string target) -> string {description "Structural validation plus owned body compilation and consumer binding build.";}

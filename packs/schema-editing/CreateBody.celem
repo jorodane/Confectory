@@ -1,0 +1,4 @@
+implementation Confectory.SchemaEditing::CreateBody for Confectory.SchemaEditing::Create (string kind, string id) -> string {
+import Confectory.SchemaEditing::Call as Call (string, string) -> string;
+body common "Create.csbody";
+}

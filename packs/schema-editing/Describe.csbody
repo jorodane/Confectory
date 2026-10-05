@@ -1,0 +1,1 @@
+var payload=new System.Text.Json.Nodes.JsonObject{["project"]=project};string result=calls.Call.Invoke("describe",payload.ToJsonString());return result;

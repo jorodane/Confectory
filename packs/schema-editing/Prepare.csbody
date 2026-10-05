@@ -1,0 +1,1 @@
+var payload=new System.Text.Json.Nodes.JsonObject{["original"]=original, ["candidate"]=candidate, ["additions"]=new System.Text.Json.Nodes.JsonArray()};string result=calls.Call.Invoke("prepare",payload.ToJsonString());return System.Text.Json.JsonSerializer.Deserialize<string>(result)!;

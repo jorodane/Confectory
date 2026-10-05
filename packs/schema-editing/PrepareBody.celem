@@ -1,0 +1,4 @@
+implementation Confectory.SchemaEditing::PrepareBody for Confectory.SchemaEditing::Prepare (string original, string candidate) -> string {
+import Confectory.SchemaEditing::Call as Call (string, string) -> string;
+body common "Prepare.csbody";
+}
