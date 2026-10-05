@@ -1,0 +1,5 @@
+# SourceEditor
+
+Reusable arbitrary multiline declaration/body text buffer. Create takes the caller's element/unit ID and source text. Input consumes Unicode scalar text event 12 and navigation/edit keys; Text returns exactly the user buffer. Apply uses public EditWorkspace.SetTextIfRevision, preserving a stale buffer when another draft revision intervenes. No fixed function/body snippet is used by this pack.
+
+In the engine authoring slice F2 opens the selected body/declaration, initially selects all, F3 applies a draft, Escape cancels and F4 selects all. Enter inserts newline, Tab spaces, Backspace/Delete and left/right/Home/End edit the buffer. Save/Confirm remain separate. User-entered function signatures are parsed and link-validated like other declarations. Native View close/reopen retains its buffer; owner shutdown releases it. Full IDE, clipboard, IME composition, syntax coloring and Android native text/authoring integration remain open; ASCII/shifted X11 keys, Unicode API buffers and Win32 scalar delivery are implemented/tested separately.

@@ -1,0 +1,1 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.SourceEditor."+buffer) as object[]??throw new ObjectDisposedException("SourceEditor");return calls.SetTextIfRevision.Invoke(workspace,(string)state[0],((System.Text.StringBuilder)state[1]).ToString(),expected)?new[]{"draft-applied"}:new[]{"stale-draft","The unit changed while editing; review buffer before retry."};

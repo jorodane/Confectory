@@ -1,0 +1,1 @@
+function Confectory.SourceEditor::Close (string buffer) -> void {description "Dispose local text buffer without implicitly confirming or saving.";}

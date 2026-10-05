@@ -1,0 +1,4 @@
+implementation Confectory.SourceEditor::ApplyBody for Confectory.SourceEditor::Apply (string buffer, string workspace, long expected) -> string[] {
+import Confectory.EditWorkspace::SetTextIfRevision as SetTextIfRevision (string, string, string, long) -> bool;
+body common "Apply.csbody";
+}

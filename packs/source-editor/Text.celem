@@ -1,0 +1,1 @@
+function Confectory.SourceEditor::Text (string buffer) -> string {description "Return arbitrary user-entered source text.";}

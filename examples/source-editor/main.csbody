@@ -1,0 +1,21 @@
+void Check(bool value,string message){if(!value)throw new Exception(message);}
+string project=Environment.GetEnvironmentVariable("CONFECTORY_TEST_AUTHOR_PROJECT")??throw new Exception("Project required"),file=Environment.GetEnvironmentVariable("CONFECTORY_USER_SOURCE_FILE")??throw new Exception("User source file required");
+string workspace=calls.EditWorkspaceOpen.Invoke(project,"user","arbitrary-source"),body="App::MainBody/body:common";string buffer=calls.SourceEditorCreate.Invoke(body,calls.EditWorkspaceRead.Invoke(workspace,body)[3]);
+void Type(string handle,string text){for(int i=0;i<text.Length;i++){int code=char.IsHighSurrogate(text[i])?char.ConvertToUtf32(text[i],text[++i]):text[i];if(code=='\n')calls.SourceEditorInput.Invoke(handle,5,0xFF0D);else calls.SourceEditorInput.Invoke(handle,12,code);}}
+try
+{
+ string userText=calls.FileStreamSnapshot.Invoke(file)[1];Type(buffer,userText);Check(calls.SourceEditorText.Invoke(buffer)==userText,"Arbitrary user-specified body buffer");Check(calls.SourceEditorApply.Invoke(buffer,workspace,0)[0]=="draft-applied","User body applies through public revision contract");
+ var preview=calls.ChangeSetPreview.Invoke(workspace,"portable");Check(preview[0]=="preview"&&preview[2].Contains("user entered 51"),"Actual user body build/run: "+string.Join("|",preview));calls.SaveWrite.Invoke(workspace);
+ calls.EditWorkspaceClose.Invoke(workspace);workspace=calls.EditWorkspaceOpen.Invoke(project,"user","arbitrary-source");calls.SaveRestore.Invoke(workspace);Check(calls.EditWorkspaceRead.Invoke(workspace,body)[3]==userText,"Arbitrary body draft recovery");Check(calls.ChangeSetConfirm.Invoke(workspace,new[]{body},"portable")[0]=="confirmed","User body confirms");
+ calls.EditWorkspaceClose.Invoke(workspace);workspace=calls.EditWorkspaceOpen.Invoke(project,"user","arbitrary-source");calls.SaveRestore.Invoke(workspace);Check(calls.EditWorkspaceRead.Invoke(workspace,body)[6]=="clean","Successful confirmed saved body is not resurrected");
+ string contract="App::Main";var snapshot=calls.EditWorkspaceRead.Invoke(workspace,contract);string text=snapshot[3].Replace("() -> int","() -> long",StringComparison.Ordinal);string declaration=calls.SourceEditorCreate.Invoke(contract,snapshot[3]);
+ try
+ {
+  Type(declaration,text);Check(calls.SourceEditorApply.Invoke(declaration,workspace,long.Parse(snapshot[4]))[0]=="draft-applied","User-specified function contract pathway");var failed=calls.ChangeSetConfirm.Invoke(workspace,new[]{contract},"portable");Check(failed[0]=="invalid"&&calls.EditWorkspaceRead.Invoke(workspace,contract)[6]=="dirty","Real mismatched contract fails and retains draft");
+  Check(calls.SourceEditorApply.Invoke(declaration,workspace,long.Parse(snapshot[4]))[0]=="stale-draft","Stale buffer does not overwrite peer revision");
+ }
+ finally{calls.SourceEditorClose.Invoke(declaration);}
+ string unicode=calls.SourceEditorCreate.Invoke("buffer","old");try{calls.SourceEditorInput.Invoke(unicode,12,0x1F642);Check(calls.SourceEditorText.Invoke(unicode)==char.ConvertFromUtf32(0x1F642),"Unicode scalar insertion");calls.SourceEditorInput.Invoke(unicode,5,0xFF08);Check(calls.SourceEditorText.Invoke(unicode)=="","Surrogate pair deletes coherently");}finally{calls.SourceEditorClose.Invoke(unicode);}
+}
+finally{calls.SourceEditorClose.Invoke(buffer);calls.EditWorkspaceClose.Invoke(workspace);}
+Console.WriteLine("SourceEditor arbitrary user body/contract execution/recovery/stale PASS");return 0;

@@ -1,0 +1,3 @@
+implementation Confectory.SourceEditor::CloseBody for Confectory.SourceEditor::Close (string buffer) -> void {
+body common "Close.csbody";
+}

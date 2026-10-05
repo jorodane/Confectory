@@ -1,0 +1,3 @@
+implementation Confectory.SourceEditor::TextBody for Confectory.SourceEditor::Text (string buffer) -> string {
+body common "Text.csbody";
+}

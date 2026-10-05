@@ -1,0 +1,1 @@
+function Confectory.SourceEditor::Apply (string buffer, string workspace, long expected) -> string[] {description "Apply arbitrary user buffer as draft through public revision-checked editing contract; never Confirm.";}

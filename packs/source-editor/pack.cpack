@@ -1,0 +1,17 @@
+pack Confectory.SourceEditor version "0.1.0" {
+dependency Confectory.EditWorkspace version "0.1.0";
+element Create function "Create.celem";
+element CreateBody implementation "CreateBody.celem";
+element Text function "Text.celem";
+element TextBody implementation "TextBody.celem";
+element Input function "Input.celem";
+element InputBody implementation "InputBody.celem";
+element Labels function "Labels.celem";
+element LabelsBody implementation "LabelsBody.celem";
+element Layout function "Layout.celem";
+element LayoutBody implementation "LayoutBody.celem";
+element Close function "Close.celem";
+element CloseBody implementation "CloseBody.celem";
+element Apply function "Apply.celem";
+element ApplyBody implementation "ApplyBody.celem";
+}

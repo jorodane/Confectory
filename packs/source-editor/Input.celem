@@ -1,0 +1,1 @@
+function Confectory.SourceEditor::Input (string buffer, int type, int code) -> int {description "Apply Unicode text/key editing; return apply/cancel intents separately.";}

@@ -1,0 +1,1 @@
+function Confectory.SourceEditor::Labels (string buffer, string status) -> string[] {description "Project current text/caret with bounded visible lines.";}

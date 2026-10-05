@@ -1,1 +1,1 @@
-function Confectory.RenderInput::Pump (long[] surfaces) -> int[] { description "Return flat six-integer input/lifecycle records per View without blocking."; }
+function Confectory.RenderInput::Pump (long[] surfaces) -> int[] { description "Return flat six-integer input/lifecycle records per View without blocking; type 12 carries a Unicode text scalar in code."; }

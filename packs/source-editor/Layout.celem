@@ -1,0 +1,1 @@
+function Confectory.SourceEditor::Layout (int width, int height) -> int[] {description "Reusable source-editor render slots.";}

@@ -36,14 +36,15 @@ try
    if(kind==6) Emit(view,3,I(64),I(68));
    if(kind==2||kind==3)
    {
-    int key=(int)XLookupKeysym(buffer,0);
+    int level=(I(80)&1)!=0?1:0;int key=(int)XLookupKeysym(buffer,level);
+    int TextCode(int symbol)=>symbol>=32&&symbol<=126||symbol>=160&&symbol<=255?symbol:(symbol&unchecked((int)0xFF000000))==0x01000000?symbol&0x00FFFFFF:0;
     if(kind==3&&XPending(d)>0)
     {
      XPeekEvent(d,peek);
      if(System.Runtime.InteropServices.Marshal.ReadInt32(peek)==2&&System.Runtime.InteropServices.Marshal.ReadIntPtr(peek,32).ToInt64()==P(32)&&System.Runtime.InteropServices.Marshal.ReadInt32(peek,84)==I(84)&&System.Runtime.InteropServices.Marshal.ReadIntPtr(peek,56).ToInt64()==P(56))
-     {XNextEvent(d,peek);Emit(view,5,0,0,key,1);continue;}
+     {XNextEvent(d,peek);Emit(view,5,0,0,key,1);int repeated=TextCode(key);if(repeated!=0)Emit(view,12,0,0,repeated,1);continue;}
     }
-    Emit(view,kind==2?5:6,0,0,key);
+    Emit(view,kind==2?5:6,0,0,key);int text=TextCode(key);if(kind==2&&text!=0)Emit(view,12,0,0,text);
    }
    if(kind==22) Emit(view,7,I(56),I(60));
    if(kind==33&&(nuint)P(40)==protocols&&I(48)==32&&(nuint)P(56)==close) Emit(view,8);

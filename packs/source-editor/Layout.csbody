@@ -1,0 +1,1 @@
+int inset=Math.Min(20,Math.Max(0,width/20)),top=Math.Min(230,Math.Max(0,height-150)),row=Math.Max(1,Math.Min(24,Math.Max(1,height-150-top)/14));var result=new int[70];for(int i=0;i<14;i++){int offset=i*5;result[offset]=inset;result[offset+1]=top+i*row;result[offset+2]=Math.Max(1,width-2*inset);result[offset+3]=row;result[offset+4]=i<3?0x304060:0x202838;}return result;

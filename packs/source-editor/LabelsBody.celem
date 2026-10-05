@@ -1,0 +1,3 @@
+implementation Confectory.SourceEditor::LabelsBody for Confectory.SourceEditor::Labels (string buffer, string status) -> string[] {
+body common "Labels.csbody";
+}
