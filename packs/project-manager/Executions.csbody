@@ -1,0 +1,2 @@
+if(manager.Length<5||manager[1]!="active")throw new InvalidOperationException("Manager is disposed.");
+return System.Text.Json.JsonSerializer.Deserialize<string[]>(manager[3])!;

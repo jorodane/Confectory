@@ -1,0 +1,19 @@
+function Example.ProjectManager::Main () -> int {
+provide Example.ProjectManager::Main with Example.ProjectManager::MainBody;
+provide Confectory.ProjectManager::CreateManager with Confectory.ProjectManager::CreateManagerBody;
+provide Confectory.ProjectManager::CreateProject with Confectory.ProjectManager::CreateProjectBody;
+provide Confectory.ProjectManager::Open with Confectory.ProjectManager::OpenBody;
+provide Confectory.ProjectManager::Select with Confectory.ProjectManager::SelectBody;
+provide Confectory.ProjectManager::Context with Confectory.ProjectManager::ContextBody;
+provide Confectory.ProjectManager::Close with Confectory.ProjectManager::CloseBody;
+provide Confectory.ProjectManager::Executions with Confectory.ProjectManager::ExecutionsBody;
+provide Confectory.ProjectManager::Launch with Confectory.ProjectManager::LaunchBody;
+provide Confectory.ProjectManager::Dispose with Confectory.ProjectManager::DisposeBody;
+provide Confectory.ProjectExecution::CreateSession with Confectory.ProjectExecution::CreateSessionBody;
+provide Confectory.ProjectExecution::DescribeProject with Confectory.ProjectExecution::DescribeProjectBody;
+provide Confectory.ProjectExecution::Launch with Confectory.ProjectExecution::LaunchBody;
+provide Confectory.ProjectExecution::Stop with Confectory.ProjectExecution::StopBody;
+provide Confectory.ProjectExecution::Observe with Confectory.ProjectExecution::ObserveBody;
+provide Confectory.ProjectExecution::Poll with Confectory.ProjectExecution::PollBody;
+provide Confectory.ProjectExecution::Dispose with Confectory.ProjectExecution::DisposeBody;
+}

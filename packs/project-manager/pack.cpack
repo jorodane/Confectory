@@ -1,0 +1,21 @@
+pack Confectory.ProjectManager version "0.1.0" {
+ dependency Confectory.ProjectExecution version "0.1.0";
+element CreateManager function "CreateManager.celem";
+element CreateManagerBody implementation "CreateManagerBody.celem";
+element CreateProject function "CreateProject.celem";
+element CreateProjectBody implementation "CreateProjectBody.celem";
+element Open function "Open.celem";
+element OpenBody implementation "OpenBody.celem";
+element Select function "Select.celem";
+element SelectBody implementation "SelectBody.celem";
+element Context function "Context.celem";
+element ContextBody implementation "ContextBody.celem";
+element Close function "Close.celem";
+element CloseBody implementation "CloseBody.celem";
+element Executions function "Executions.celem";
+element ExecutionsBody implementation "ExecutionsBody.celem";
+element Launch function "Launch.celem";
+element LaunchBody implementation "LaunchBody.celem";
+element Dispose function "Dispose.celem";
+element DisposeBody implementation "DisposeBody.celem";
+}

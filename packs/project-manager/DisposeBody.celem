@@ -1,0 +1,4 @@
+implementation Confectory.ProjectManager::DisposeBody for Confectory.ProjectManager::Dispose (string[] manager) -> void {
+import Confectory.ProjectExecution::Dispose as DisposeExecutions (string[]) -> void;
+body common "Dispose.csbody";
+}

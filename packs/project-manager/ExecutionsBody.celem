@@ -1,0 +1,3 @@
+implementation Confectory.ProjectManager::ExecutionsBody for Confectory.ProjectManager::Executions (string[] manager) -> string[] {
+body common "Executions.csbody";
+}

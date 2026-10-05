@@ -1,0 +1,1 @@
+function Confectory.ProjectManager::Executions (string[] manager) -> string[] {description "Borrow owned execution session for public Observe/Stop/Poll; manager disposal stops workers.";}

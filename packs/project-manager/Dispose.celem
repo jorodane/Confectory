@@ -1,0 +1,1 @@
+function Confectory.ProjectManager::Dispose (string[] manager) -> void {description "Stop owned executions and release contexts. Idempotent; caller policy is stop-on-dispose.";}

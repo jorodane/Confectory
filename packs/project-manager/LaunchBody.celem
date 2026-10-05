@@ -1,0 +1,4 @@
+implementation Confectory.ProjectManager::LaunchBody for Confectory.ProjectManager::Launch (string[] manager, string context, string entry, string target) -> string {
+import Confectory.ProjectExecution::Launch as Execute (string[], string, string, string) -> string;
+body common "Launch.csbody";
+}

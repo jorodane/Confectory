@@ -1,0 +1,3 @@
+if(manager.Length<5||manager[1]!="active")throw new InvalidOperationException("Manager is disposed.");
+for(int i=4;i<manager.Length;i++)if(manager[i] is not null){var value=System.Text.Json.JsonSerializer.Deserialize<string[]>(manager[i])!;if(value[0]==context){value[5]="closed";manager[i]=System.Text.Json.JsonSerializer.Serialize(value);if(manager[2]==context)manager[2]="";return;}}
+throw new ArgumentException("Unknown context in this manager.");

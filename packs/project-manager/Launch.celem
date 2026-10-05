@@ -1,0 +1,1 @@
+function Confectory.ProjectManager::Launch (string[] manager, string context, string entry, string target) -> string {description "Launch a named open context; empty entry selects its declared entry, never an editor entry.";}

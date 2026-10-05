@@ -1,0 +1,1 @@
+function Confectory.ProjectManager::Select (string[] manager, string context) -> void {description "Select an explicitly open context without launching code.";}

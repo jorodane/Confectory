@@ -1,0 +1,1 @@
+function Confectory.ProjectManager::Context (string[] manager, string context) -> string[] {description "Context snapshot: handle,path,namespace,defaultEntry,targets,state. Empty handle reads active or returns empty.";}

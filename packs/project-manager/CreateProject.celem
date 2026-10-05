@@ -1,0 +1,1 @@
+function Confectory.ProjectManager::CreateProject (string[] manager, string name, string directory, string targetPack) -> string {description "Explicitly create a new local ProjectPack; existing directories never overwritten.";}

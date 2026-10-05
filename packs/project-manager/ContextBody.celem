@@ -1,0 +1,3 @@
+implementation Confectory.ProjectManager::ContextBody for Confectory.ProjectManager::Context (string[] manager, string context) -> string[] {
+body common "Context.csbody";
+}

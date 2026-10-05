@@ -1,0 +1,1 @@
+function Confectory.ProjectManager::Open (string[] manager, string project) -> string {description "Open project data without executing; repeated open returns existing context.";}

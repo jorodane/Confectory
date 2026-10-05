@@ -1,0 +1,4 @@
+implementation Confectory.ProjectManager::CreateManagerBody for Confectory.ProjectManager::CreateManager (int capacity) -> string[] {
+import Confectory.ProjectExecution::CreateSession as CreateSession () -> string[];
+body common "CreateManager.csbody";
+}

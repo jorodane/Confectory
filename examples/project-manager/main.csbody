@@ -1,0 +1,31 @@
+void Assert(bool value,string message){if(!value)throw new Exception(message);}
+string root=Environment.GetEnvironmentVariable("CONFECTORY_TEST_REPO")??Environment.CurrentDirectory;
+var manager=calls.CreateManager.Invoke(64);var other=calls.CreateManager.Invoke(8);var executions=calls.Executions.Invoke(manager);
+string a=System.IO.Path.Combine(root,"examples","projects","a","project.cpack"),b=System.IO.Path.Combine(root,"examples","projects","b","project.cpack");
+string Wait(string handle)
+{
+ var watch=System.Diagnostics.Stopwatch.StartNew();while(watch.ElapsedMilliseconds<60000){var value=calls.ExecutionObserve.Invoke(executions,handle);if(value[1]!="building")return value[1];System.Threading.Thread.Sleep(10);}throw new Exception("Execution timeout");
+}
+string temp=System.IO.Path.Combine(System.IO.Path.GetTempPath(),"confectory-manager-"+Guid.NewGuid().ToString("N"));
+try
+{
+ Assert(calls.Context.Invoke(manager,"").Length==0,"No implicit active project");
+ bool nullRejected=false;try{calls.Open.Invoke(manager,"");}catch(ArgumentException){nullRejected=true;}Assert(nullRejected,"No null loading");
+ for(int cycle=0;cycle<3;cycle++)
+ {
+  string ca=calls.Open.Invoke(manager,a),cb=calls.Open.Invoke(manager,b);Assert(ca!=cb,"Independent contexts");Assert(calls.Open.Invoke(manager,a)==ca,"Repeated open");
+  calls.Select.Invoke(manager,ca);Assert(calls.Context.Invoke(manager,"")[0]==ca,"Active A");calls.Select.Invoke(manager,cb);Assert(calls.Context.Invoke(manager,"")[0]==cb,"Active B");Assert(calls.Context.Invoke(other,"").Length==0,"Manager isolation");
+  bool crossRejected=false;try{calls.Select.Invoke(other,ca);}catch(ArgumentException){crossRejected=true;}Assert(crossRejected,"Cross-manager context rejection");
+  string ea=calls.Launch.Invoke(manager,ca,"","portable"),eb=calls.Launch.Invoke(manager,cb,"","portable");Assert(Wait(ea)=="running"&&Wait(eb)=="running","Actual independent projects");
+  calls.Close.Invoke(manager,ca);calls.Close.Invoke(manager,ca);Assert(calls.ExecutionObserve.Invoke(executions,ea)[1]=="running","Closing data does not stop execution");
+  bool closedRejected=false;try{calls.Launch.Invoke(manager,ca,"","portable");}catch(ArgumentException){closedRejected=true;}Assert(closedRejected,"No launch from closed context");
+  string reopened=calls.Open.Invoke(manager,a);Assert(reopened!=ca,"Fresh reopened context");
+  calls.ExecutionStop.Invoke(executions,ea);Assert(calls.Context.Invoke(manager,reopened)[5]=="open","Stop does not close context");Assert(calls.ExecutionObserve.Invoke(executions,eb)[1]=="running","B remains running");
+  calls.ExecutionStop.Invoke(executions,eb);calls.Close.Invoke(manager,reopened);calls.Close.Invoke(manager,cb);calls.ExecutionPoll.Invoke(executions);
+ }
+ string created=calls.CreateProject.Invoke(manager,"Created",temp,System.IO.Path.Combine(root,"targets","dotnet","pack.cpack"));Assert(calls.Context.Invoke(manager,created)[2]=="Project.Created","Create project");
+ bool overwriteRejected=false;try{calls.CreateProject.Invoke(manager,"Created",temp,System.IO.Path.Combine(root,"targets","dotnet","pack.cpack"));}catch(InvalidOperationException){overwriteRejected=true;}Assert(overwriteRejected,"No overwrite");
+ string own=calls.Open.Invoke(manager,a);string owned=calls.Launch.Invoke(manager,own,"","portable");Wait(owned);calls.Dispose.Invoke(manager);bool disposed=false;try{calls.ExecutionObserve.Invoke(executions,owned);}catch(InvalidOperationException){disposed=true;}Assert(disposed,"Manager owns execution disposal");
+}
+finally{calls.Dispose.Invoke(manager);calls.Dispose.Invoke(other);if(System.IO.Directory.Exists(temp))System.IO.Directory.Delete(temp,true);}
+Console.WriteLine("ProjectManager lifecycle PASS");return 0;

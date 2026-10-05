@@ -1,0 +1,19 @@
+implementation Example.ProjectManager::MainBody for Example.ProjectManager::Main () -> int {
+import Confectory.ProjectManager::CreateManager as CreateManager (int) -> string[];
+import Confectory.ProjectManager::CreateProject as CreateProject (string[], string, string, string) -> string;
+import Confectory.ProjectManager::Open as Open (string[], string) -> string;
+import Confectory.ProjectManager::Select as Select (string[], string) -> void;
+import Confectory.ProjectManager::Context as Context (string[], string) -> string[];
+import Confectory.ProjectManager::Close as Close (string[], string) -> void;
+import Confectory.ProjectManager::Executions as Executions (string[]) -> string[];
+import Confectory.ProjectManager::Launch as Launch (string[], string, string, string) -> string;
+import Confectory.ProjectManager::Dispose as Dispose (string[]) -> void;
+import Confectory.ProjectExecution::CreateSession as ExecutionCreateSession () -> string[];
+import Confectory.ProjectExecution::DescribeProject as ExecutionDescribeProject (string) -> string[];
+import Confectory.ProjectExecution::Launch as ExecutionLaunch (string[], string, string, string) -> string;
+import Confectory.ProjectExecution::Stop as ExecutionStop (string[], string) -> void;
+import Confectory.ProjectExecution::Observe as ExecutionObserve (string[], string) -> string[];
+import Confectory.ProjectExecution::Poll as ExecutionPoll (string[]) -> string[];
+import Confectory.ProjectExecution::Dispose as ExecutionDispose (string[]) -> void;
+body common "main.csbody";
+}

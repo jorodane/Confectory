@@ -1,0 +1,7 @@
+if(manager.Length<5||manager[1]!="active")throw new InvalidOperationException("Manager is disposed.");
+if(string.IsNullOrWhiteSpace(project))throw new ArgumentException("Explicit project path required.");
+string path=System.IO.Path.GetFullPath(project);int free=-1;
+for(int i=4;i<manager.Length;i++){if(manager[i] is null){if(free<0)free=i;continue;}var existing=System.Text.Json.JsonSerializer.Deserialize<string[]>(manager[i])!;if(existing[1]==path&&existing[5]=="open")return existing[0];}
+if(free<0)throw new InvalidOperationException("Context capacity reached; create another manager.");
+var description=calls.DescribeProject.Invoke(path);string id=Guid.NewGuid().ToString("N");
+manager[free]=System.Text.Json.JsonSerializer.Serialize(new[]{id,path,description[0],description[1],description[2],"open"});return id;

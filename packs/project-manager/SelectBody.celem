@@ -1,0 +1,3 @@
+implementation Confectory.ProjectManager::SelectBody for Confectory.ProjectManager::Select (string[] manager, string context) -> void {
+body common "Select.csbody";
+}

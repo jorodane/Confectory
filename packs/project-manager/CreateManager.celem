@@ -1,0 +1,1 @@
+function Confectory.ProjectManager::CreateManager (int capacity) -> string[] {description "Caller-owned project contexts and owned execution session.";}

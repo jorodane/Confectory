@@ -1,0 +1,2 @@
+if(capacity<1||capacity>10000)throw new ArgumentOutOfRangeException(nameof(capacity));
+var manager=new string[capacity+4];manager[0]=Guid.NewGuid().ToString("N");manager[1]="active";manager[2]="";manager[3]=System.Text.Json.JsonSerializer.Serialize(calls.CreateSession.Invoke());return manager;

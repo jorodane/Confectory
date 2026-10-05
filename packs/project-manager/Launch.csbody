@@ -1,0 +1,4 @@
+if(manager.Length<5||manager[1]!="active")throw new InvalidOperationException("Manager is disposed.");
+if(string.IsNullOrWhiteSpace(context)||string.IsNullOrWhiteSpace(target))throw new ArgumentException("Explicit context and target required.");
+for(int i=4;i<manager.Length;i++)if(manager[i] is not null){var value=System.Text.Json.JsonSerializer.Deserialize<string[]>(manager[i])!;if(value[0]==context&&value[5]=="open")return calls.Execute.Invoke(System.Text.Json.JsonSerializer.Deserialize<string[]>(manager[3])!,value[1],entry==""?value[3]:entry,target);}
+throw new ArgumentException("Launch requires an open context; no implicit project.");
