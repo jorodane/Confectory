@@ -1,0 +1,47 @@
+if(paths.Length!=hashes.Length||paths.Length!=texts.Length)throw new ArgumentException("Commit arrays must have matching lengths.");
+root=System.IO.Path.GetFullPath(root);if(!System.IO.Directory.Exists(root))throw new ArgumentException("Existing root required.");
+string prefix=root.TrimEnd(System.IO.Path.DirectorySeparatorChar)+System.IO.Path.DirectorySeparatorChar;
+var comparison=OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal;
+var destinations=new string[paths.Length];var originals=new byte[]?[paths.Length];
+var unique=new System.Collections.Generic.HashSet<string>(OperatingSystem.IsWindows()?StringComparer.OrdinalIgnoreCase:StringComparer.Ordinal);
+for(int i=0;i<paths.Length;i++)
+{
+ if(string.IsNullOrWhiteSpace(paths[i])||System.IO.Path.IsPathRooted(paths[i]))throw new ArgumentException("Commit uses owned relative paths.");
+ string full=System.IO.Path.GetFullPath(System.IO.Path.Combine(root,paths[i]));if(!full.StartsWith(prefix,comparison)||!unique.Add(full))throw new ArgumentException("Path escape or duplicate destination.");
+ string? current=full;while(current is not null&&current.Length>=root.Length){if((System.IO.File.Exists(current)||System.IO.Directory.Exists(current))&&(System.IO.File.GetAttributes(current)&System.IO.FileAttributes.ReparsePoint)!=0)throw new ArgumentException("Symlink destinations are not owned files.");current=System.IO.Path.GetDirectoryName(current);}
+ if(System.IO.File.Exists(full)&&(System.IO.File.GetAttributes(full)&System.IO.FileAttributes.ReadOnly)!=0)throw new UnauthorizedAccessException("Selected file is read-only.");destinations[i]=full;
+}
+string leasePath=calls.LeasePath.Invoke(root);
+for(string? current=leasePath;current is not null&&current.Length>=root.Length;current=System.IO.Path.GetDirectoryName(current))
+ if((System.IO.File.Exists(current)||System.IO.Directory.Exists(current))&&(System.IO.File.GetAttributes(current)&System.IO.FileAttributes.ReparsePoint)!=0)throw new ArgumentException("Source lease must remain inside owned storage.");
+System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(leasePath)!);
+System.IO.FileStream? lease=null;var watch=System.Diagnostics.Stopwatch.StartNew();while(lease is null){try{lease=new System.IO.FileStream(leasePath,System.IO.FileMode.OpenOrCreate,System.IO.FileAccess.ReadWrite,System.IO.FileShare.None);}catch(System.IO.IOException){if(watch.ElapsedMilliseconds>=5000)throw new TimeoutException("Source lease is busy; retry without discarding drafts.");System.Threading.Thread.Sleep(10);}}
+using(lease)
+{
+ var conflicts=new System.Collections.Generic.List<string>{"conflict"};
+ for(int i=0;i<paths.Length;i++)
+ {
+  // Hash and rollback image must describe the same read, including BOM/encoding bytes.
+  byte[]? bytes=System.IO.File.Exists(destinations[i])?System.IO.File.ReadAllBytes(destinations[i]):null;
+  string actual=bytes is null?"missing":Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes)).ToLowerInvariant();
+  if(actual!=hashes[i])conflicts.Add(paths[i]);else originals[i]=bytes;
+ }
+ if(conflicts.Count>1)return conflicts.ToArray();
+ int attempted=0;
+ try
+ {
+  for(int i=0;i<paths.Length;i++){attempted=i+1;calls.WriteAtomic.Invoke(destinations[i],texts[i]);}
+ }
+ catch(Exception apply)
+ {
+  var failures=new System.Collections.Generic.List<Exception>{apply};
+  for(int i=attempted-1;i>=0;i--)try
+  {
+   if(originals[i] is null){if(System.IO.File.Exists(destinations[i]))System.IO.File.Delete(destinations[i]);}
+   else{string temporary=destinations[i]+".rollback-"+Guid.NewGuid().ToString("N");try{System.IO.File.WriteAllBytes(temporary,originals[i]!);System.IO.File.Move(temporary,destinations[i],true);}finally{if(System.IO.File.Exists(temporary))System.IO.File.Delete(temporary);}}
+  }
+  catch(Exception rollback){failures.Add(rollback);}
+  throw new AggregateException("Commit failed; original bytes restored where possible. Draft remains caller-owned.",failures);
+ }
+ return new[]{"applied"};
+}

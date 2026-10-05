@@ -1,0 +1,1 @@
+if(string.IsNullOrWhiteSpace(root))throw new ArgumentException("Explicit root required.");return System.IO.Path.Combine(System.IO.Path.GetFullPath(root),".confectory","source-transaction.lock");

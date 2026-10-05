@@ -1,0 +1,1 @@
+function Confectory.FileStream::Commit (string root, string[] paths, string[] hashes, string[] texts) -> string[] {description "Root-constrained optimistic batch, selected conflicts or applied; rollback on failure.";}

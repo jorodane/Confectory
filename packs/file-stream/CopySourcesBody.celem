@@ -1,0 +1,3 @@
+implementation Confectory.FileStream::CopySourcesBody for Confectory.FileStream::CopySources (string root, string destination) -> void {
+body common "CopySources.csbody";
+}

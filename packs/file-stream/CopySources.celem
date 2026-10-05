@@ -1,0 +1,1 @@
+function Confectory.FileStream::CopySources (string root, string destination) -> void {description "Copy source workspace into a new destination, excluding generated state and symlinks.";}

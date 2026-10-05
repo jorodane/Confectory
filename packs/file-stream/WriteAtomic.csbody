@@ -1,0 +1,6 @@
+if(string.IsNullOrWhiteSpace(path))throw new ArgumentException("Explicit path required.");
+path=System.IO.Path.GetFullPath(path);string directory=System.IO.Path.GetDirectoryName(path)!;System.IO.Directory.CreateDirectory(directory);
+if(System.IO.File.Exists(path)&&(System.IO.File.GetAttributes(path)&System.IO.FileAttributes.ReadOnly)!=0)throw new UnauthorizedAccessException("File is read-only.");
+string temporary=System.IO.Path.Combine(directory,".confectory-write-"+Guid.NewGuid().ToString("N"));
+try{System.IO.File.WriteAllText(temporary,text,new System.Text.UTF8Encoding(false));System.IO.File.Move(temporary,path,true);}
+finally{if(System.IO.File.Exists(temporary))System.IO.File.Delete(temporary);}

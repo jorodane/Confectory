@@ -1,0 +1,3 @@
+implementation Confectory.FileStream::LeasePathBody for Confectory.FileStream::LeasePath (string root) -> string {
+body common "LeasePath.csbody";
+}

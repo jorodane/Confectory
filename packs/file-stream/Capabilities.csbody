@@ -1,0 +1,1 @@
+return new[]{"local-filesystem","atomic-single-file-replace","cooperative-batch-lease-and-rollback","no-publish-authority"};

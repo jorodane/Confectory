@@ -1,0 +1,5 @@
+if(string.IsNullOrWhiteSpace(path))throw new ArgumentException("Explicit path required.");
+if(!System.IO.File.Exists(path))return new[]{"missing","","missing"};
+byte[] bytes=System.IO.File.ReadAllBytes(path);string text;
+using(var stream=new System.IO.MemoryStream(bytes))using(var reader=new System.IO.StreamReader(stream,new System.Text.UTF8Encoding(false,true),true))text=reader.ReadToEnd();
+return new[]{"exists",text,Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes)).ToLowerInvariant()};

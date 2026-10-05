@@ -1,0 +1,9 @@
+implementation Example.FileStream::MainBody for Example.FileStream::Main () -> int {
+import Confectory.FileStream::Snapshot as Snapshot (string) -> string[];
+import Confectory.FileStream::WriteAtomic as WriteAtomic (string, string) -> void;
+import Confectory.FileStream::LeasePath as LeasePath (string) -> string;
+import Confectory.FileStream::Commit as Commit (string, string[], string[], string[]) -> string[];
+import Confectory.FileStream::CopySources as CopySources (string, string) -> void;
+import Confectory.FileStream::Capabilities as Capabilities () -> string[];
+body common "main.csbody";
+}

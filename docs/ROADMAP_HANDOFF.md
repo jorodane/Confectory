@@ -1,5 +1,13 @@
 # Confectory pack roadmap and handoff
 
+## Local delegated-run handoff (2026-10-05)
+
+Current branch is `integration/checkpoint-3`; fetched origin main has no commits beyond the current local ancestry. Preserve `[Checkpoint 1]` at `73d793fdd9784a447780cc1e01bd7155a3a15370` and `[Checkpoint 2]` at `07ab2d735bf2387f7b3592d36082b08afb50b4f2`. Windows correction is `2a81f43`, evidence `e242ef1`; see WINDOWS_NATIVE_FIX.md. The user's original native Windows failure is not erased by Linux shim coverage: corrected actual Windows acceptance remains pending. Full correction regression suite: 87 passed, zero failed; both real Linux GUI probes and Windows target compilation passed.
+
+FileStream is the first independent Checkpoint 3 foundation. Read CHECKPOINT_3_WORK_LOG.md and packs/file-stream/README.md before extending it. Continue with SchemaEditing, shared participant/project/work-context EditWorkspace, versioned Save/restore, selected ChangeSet validation/Confirm, then reusable ElementView card/table consumers. No editing milestone is complete yet; no source lease participation by ProjectExecution is claimed. Keep UI ownership and data storage independent, and leave drafts intact on conflict.
+
+This delegated run authorizes source, tests and local commits only. Do not push, publish, merge or externally share files until separate authorization. Earlier publication history below is historical evidence, not permission for this run. Android APK/runtime remains blocked by missing Google SDK/full JDK and pending explicit SDK license acceptance; original DOCX byte materialization remains proxy-blocked, although the complete official extracted version-1 design text was read.
+
 Start with CHECKPOINT_2.md for project/context/execution workflow and CHECKPOINT_1.md for the runnable engine and exact commands, and PACK_WORK_LOG.md for pack IDs, public contracts, observed outside reads/edits and rebuild scope. Do not resume Golemancer work or revert to the saved Python baseline.
 
 ## Current durable state

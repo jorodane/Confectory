@@ -1,0 +1,1 @@
+function Confectory.FileStream::LeasePath (string root) -> string {description "Public source-lease path shared by participating build and Confirm consumers.";}

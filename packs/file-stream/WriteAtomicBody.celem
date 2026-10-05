@@ -1,0 +1,3 @@
+implementation Confectory.FileStream::WriteAtomicBody for Confectory.FileStream::WriteAtomic (string path, string text) -> void {
+body common "WriteAtomic.csbody";
+}

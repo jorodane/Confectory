@@ -1,0 +1,14 @@
+pack Confectory.FileStream version "0.1.0" {
+element Snapshot function "Snapshot.celem";
+element SnapshotBody implementation "SnapshotBody.celem";
+element WriteAtomic function "WriteAtomic.celem";
+element WriteAtomicBody implementation "WriteAtomicBody.celem";
+element LeasePath function "LeasePath.celem";
+element LeasePathBody implementation "LeasePathBody.celem";
+element Commit function "Commit.celem";
+element CommitBody implementation "CommitBody.celem";
+element CopySources function "CopySources.celem";
+element CopySourcesBody implementation "CopySourcesBody.celem";
+element Capabilities function "Capabilities.celem";
+element CapabilitiesBody implementation "CapabilitiesBody.celem";
+}

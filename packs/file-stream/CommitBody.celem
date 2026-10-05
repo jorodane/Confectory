@@ -1,0 +1,5 @@
+implementation Confectory.FileStream::CommitBody for Confectory.FileStream::Commit (string root, string[] paths, string[] hashes, string[] texts) -> string[] {
+import Confectory.FileStream::LeasePath as LeasePath (string) -> string;
+import Confectory.FileStream::WriteAtomic as WriteAtomic (string, string) -> void;
+body common "Commit.csbody";
+}

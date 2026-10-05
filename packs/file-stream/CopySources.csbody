@@ -1,0 +1,21 @@
+root=System.IO.Path.GetFullPath(root);destination=System.IO.Path.GetFullPath(destination);
+if(!System.IO.Directory.Exists(root)||System.IO.Directory.Exists(destination)||System.IO.File.Exists(destination))throw new ArgumentException("Existing source and new destination required.");
+if((System.IO.File.GetAttributes(root)&System.IO.FileAttributes.ReparsePoint)!=0)throw new ArgumentException("Source root symlinks are not copied.");
+if(destination.StartsWith(root.TrimEnd(System.IO.Path.DirectorySeparatorChar)+System.IO.Path.DirectorySeparatorChar,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal)&&!destination.Contains(System.IO.Path.DirectorySeparatorChar+".confectory"+System.IO.Path.DirectorySeparatorChar))throw new ArgumentException("Nested copies require generated workspace scope.");
+void Copy(string source,string target)
+{
+ System.IO.Directory.CreateDirectory(target);
+ foreach(string file in System.IO.Directory.GetFiles(source))
+ {
+  if((System.IO.File.GetAttributes(file)&System.IO.FileAttributes.ReparsePoint)!=0)throw new ArgumentException("Source symlinks are not copied.");
+  string extension=System.IO.Path.GetExtension(file).ToLowerInvariant();if(extension is ".dll" or ".exe" or ".apk" or ".pdb")continue;
+  System.IO.File.Copy(file,System.IO.Path.Combine(target,System.IO.Path.GetFileName(file)),false);
+ }
+ foreach(string directory in System.IO.Directory.GetDirectories(source))
+ {
+  string name=System.IO.Path.GetFileName(directory);if(name is ".git" or ".confectory" or "bin" or "obj")continue;
+  if((System.IO.File.GetAttributes(directory)&System.IO.FileAttributes.ReparsePoint)!=0)throw new ArgumentException("Source symlinks are not copied.");
+  Copy(directory,System.IO.Path.Combine(target,name));
+ }
+}
+try{Copy(root,destination);}catch{if(System.IO.Directory.Exists(destination))System.IO.Directory.Delete(destination,true);throw;}

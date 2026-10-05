@@ -1,0 +1,1 @@
+function Confectory.FileStream::Capabilities () -> string[] {description "Filesystem scope/platform capabilities; no source-edit or publish authority inferred.";}

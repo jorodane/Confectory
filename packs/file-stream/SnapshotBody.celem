@@ -1,0 +1,3 @@
+implementation Confectory.FileStream::SnapshotBody for Confectory.FileStream::Snapshot (string path) -> string[] {
+body common "Snapshot.csbody";
+}

@@ -1,0 +1,1 @@
+function Confectory.FileStream::WriteAtomic (string path, string text) -> void {description "Atomically replace one UTF-8 local file without Save/Confirm semantics.";}

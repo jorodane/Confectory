@@ -1,0 +1,8 @@
+function Example.FileStream::Main () -> int {provide Example.FileStream::Main with Example.FileStream::MainBody;
+provide Confectory.FileStream::Snapshot with Confectory.FileStream::SnapshotBody;
+provide Confectory.FileStream::WriteAtomic with Confectory.FileStream::WriteAtomicBody;
+provide Confectory.FileStream::LeasePath with Confectory.FileStream::LeasePathBody;
+provide Confectory.FileStream::Commit with Confectory.FileStream::CommitBody;
+provide Confectory.FileStream::CopySources with Confectory.FileStream::CopySourcesBody;
+provide Confectory.FileStream::Capabilities with Confectory.FileStream::CapabilitiesBody;
+}

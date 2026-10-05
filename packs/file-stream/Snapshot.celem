@@ -1,0 +1,1 @@
+function Confectory.FileStream::Snapshot (string path) -> string[] {description "Read exact-byte hash and text: existence,text,hash. Missing is a distinct baseline.";}

@@ -1,0 +1,25 @@
+void Check(bool value,string message){if(!value)throw new Exception(message);}
+string root=System.IO.Path.Combine(System.IO.Path.GetTempPath(),"confectory-io-"+Guid.NewGuid().ToString("N"));System.IO.Directory.CreateDirectory(root);
+string outside=root+"-outside",copy=root+"-copy";
+try
+{
+ string a=System.IO.Path.Combine(root,"a.txt"),b=System.IO.Path.Combine(root,"b.txt");Check(calls.Snapshot.Invoke(a)[0]=="missing","Missing baseline");
+ calls.WriteAtomic.Invoke(a,"alpha\n한글");var initial=calls.Snapshot.Invoke(a);Check(initial[1]=="alpha\n한글"&&initial[2].Length==64,"Readable bytes/hash");
+ Check(calls.Commit.Invoke(root,new[]{"a.txt","b.txt"},new[]{initial[2],"missing"},new[]{"next","second"})[0]=="applied","Selected atomic local batch");
+ var baseline=calls.Snapshot.Invoke(a);calls.WriteAtomic.Invoke(a,"external");var conflict=calls.Commit.Invoke(root,new[]{"a.txt","b.txt"},new[]{baseline[2],calls.Snapshot.Invoke(b)[2]},new[]{"overwrite","also overwrite"});Check(conflict.Length==2&&conflict[0]=="conflict"&&conflict[1]=="a.txt"&&calls.Snapshot.Invoke(b)[1]=="second","Conflict leaves all selected originals");
+ bool escape=false;try{calls.Commit.Invoke(root,new[]{"../escape.txt"},new[]{"missing"},new[]{"bad"});}catch(ArgumentException){escape=true;}Check(escape,"Owned path escape rejected");
+ bool duplicate=false;try{calls.Commit.Invoke(root,new[]{"a.txt","a.txt"},new[]{"x","x"},new[]{"x","x"});}catch(ArgumentException){duplicate=true;}Check(duplicate,"Duplicate selected paths rejected");
+ calls.WriteAtomic.Invoke(System.IO.Path.Combine(root,"block"),"not a directory");string before=calls.Snapshot.Invoke(a)[2];bool rolledBack=false;
+ try{calls.Commit.Invoke(root,new[]{"a.txt","block/child.txt"},new[]{before,"missing"},new[]{"temporary","cannot write"});}catch(AggregateException){rolledBack=true;}
+ Check(rolledBack&&calls.Snapshot.Invoke(a)[2]==before,"Failure restores exact original bytes");
+ System.IO.File.SetAttributes(a,System.IO.FileAttributes.ReadOnly);bool protectedFile=false;try{calls.Commit.Invoke(root,new[]{"a.txt"},new[]{before},new[]{"bad"});}catch(UnauthorizedAccessException){protectedFile=true;}finally{System.IO.File.SetAttributes(a,System.IO.FileAttributes.Normal);}Check(protectedFile,"Read-only protection");
+ if(OperatingSystem.IsLinux())
+ {
+  System.IO.Directory.CreateDirectory(outside);string link=System.IO.Path.Combine(root,"link");System.IO.Directory.CreateSymbolicLink(link,outside);bool symlink=false;try{calls.Commit.Invoke(root,new[]{"link/foreign.txt"},new[]{"missing"},new[]{"bad"});}catch(ArgumentException){symlink=true;}Check(symlink&&!System.IO.File.Exists(System.IO.Path.Combine(outside,"foreign.txt")),"Symlink ownership");System.IO.Directory.Delete(link);
+  string scope=System.IO.Path.Combine(root,".confectory");System.IO.Directory.Delete(scope,true);System.IO.Directory.CreateSymbolicLink(scope,outside);bool leaseEscape=false;try{calls.Commit.Invoke(root,new[]{"a.txt"},new[]{before},new[]{"bad"});}catch(ArgumentException){leaseEscape=true;}Check(leaseEscape&&!System.IO.File.Exists(System.IO.Path.Combine(outside,"source-transaction.lock")),"Lease symlink ownership");System.IO.Directory.Delete(scope);
+ }
+ calls.WriteAtomic.Invoke(System.IO.Path.Combine(root,".confectory","generated.txt"),"generated");calls.CopySources.Invoke(root,copy);Check(System.IO.File.Exists(System.IO.Path.Combine(copy,"a.txt"))&&!System.IO.Directory.Exists(System.IO.Path.Combine(copy,".confectory")),"Source-copy isolation");
+ Check(calls.LeasePath.Invoke(root)==System.IO.Path.Combine(root,".confectory","source-transaction.lock"),"Public shared lease path");
+}
+finally{if(System.IO.Directory.Exists(root))System.IO.Directory.Delete(root,true);if(System.IO.Directory.Exists(outside))System.IO.Directory.Delete(outside,true);if(System.IO.Directory.Exists(copy))System.IO.Directory.Delete(copy,true);}
+Console.WriteLine("FileStream local IO/rollback PASS");return 0;

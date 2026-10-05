@@ -1,0 +1,1 @@
+return new[]{"android-app-private-files","atomic-single-file-replace","cooperative-batch-lease-and-rollback","external-storage:requires-host-grant","no-publish-authority"};
