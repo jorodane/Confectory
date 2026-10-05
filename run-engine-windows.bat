@@ -1,17 +1,17 @@
 @echo off
 setlocal
 rem Double-click or run from CMD. Build-only behavior remains in build-windows.bat.
-set "confectory_dotnet=dotnet"
-if defined CONFECTORY_DOTNET set "confectory_dotnet=%CONFECTORY_DOTNET%"
+set "confectory_launcher_dotnet=dotnet"
+if defined CONFECTORY_DOTNET set "confectory_launcher_dotnet=%CONFECTORY_DOTNET%"
 pushd "%~dp0"
 if errorlevel 1 goto failed
 set "confectory_pushed=1"
-"%confectory_dotnet%" build "Confectory.sln" --configuration Release --nologo
+"%confectory_launcher_dotnet%" build "Confectory.sln" --configuration Release --nologo
 set "confectory_exit=%errorlevel%"
 if not "%confectory_exit%"=="0" goto report_failed
 if not defined CONFECTORY_PROJECT_EXECUTION_HOST set "CONFECTORY_PROJECT_EXECUTION_HOST=%CD%\targets\project-execution-host\bin\Release\net8.0\Confectory.ProjectExecutionHost.dll"
 if not defined CONFECTORY_PROJECT_ROOT set "CONFECTORY_PROJECT_ROOT=%CD%"
-"%confectory_dotnet%" "src\Confectory.Cli\bin\Release\net8.0\Confectory.Cli.dll" run "examples\engine\project.cpack" windows
+"%confectory_launcher_dotnet%" "src\Confectory.Cli\bin\Release\net8.0\Confectory.Cli.dll" run "examples\engine\project.cpack" windows
 set "confectory_exit=%errorlevel%"
 if not "%confectory_exit%"=="0" goto report_failed
 popd

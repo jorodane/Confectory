@@ -132,6 +132,9 @@ public sealed class IntegrationTests : TestCase
     public void test_cli_run_streams_output_propagates_exit_and_spaced_paths()
     {
         string cli=Path.Combine(Fixture.Repo,"src","Confectory.Cli","bin","Release","net8.0","Confectory.Cli.dll");
+        // Windows environment names are case insensitive: a helper must not overwrite CONFECTORY_DOTNET.
+        foreach(string batch in new[]{"build-windows.bat","run-engine-windows.bat"})
+            True(!File.ReadAllText(Path.Combine(Fixture.Repo,batch)).Contains("set \"confectory_dotnet=",StringComparison.OrdinalIgnoreCase));
         using var spaced=new Fixture(Path.Combine(f.Root,"launch project with spaces"));
         spaced.Body("App","main.csbody","Console.WriteLine(\"launched project\"); Console.Error.WriteLine(\"visible diagnostic\"); return 7;");spaced.Sync();
         var result=Processes.Run([Processes.DotNet(),cli,"run",spaced.Project,"portable"],timeoutSeconds:90);
