@@ -1,0 +1,1 @@
+function Confectory.BuildParticipation::LastSuccessful (string root, string plan) -> string {description "Read last successful output artifact set without building or launching.";}

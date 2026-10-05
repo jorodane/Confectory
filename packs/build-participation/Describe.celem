@@ -1,0 +1,1 @@
+function Confectory.BuildParticipation::Describe (string root, string plan) -> string {description "Pure declared multi-output usage closure; no fingerprint tool or hooks.";}

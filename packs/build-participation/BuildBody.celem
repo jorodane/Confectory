@@ -1,0 +1,4 @@
+implementation Confectory.BuildParticipation::BuildBody for Confectory.BuildParticipation::Build (string root, string plan) -> string {
+import Confectory.SchemaEditing::Call as Call (string, string) -> string;
+body common "Build.csbody";
+}

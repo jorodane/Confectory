@@ -1,0 +1,1 @@
+function Confectory.BuildParticipation::Validate (string root, string plan) -> string {description "Pure contract/planning validation; executable body compilation belongs to Build.";}

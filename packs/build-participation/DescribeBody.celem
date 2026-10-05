@@ -1,0 +1,4 @@
+implementation Confectory.BuildParticipation::DescribeBody for Confectory.BuildParticipation::Describe (string root, string plan) -> string {
+import Confectory.SchemaEditing::Call as Call (string, string) -> string;
+body common "Describe.csbody";
+}

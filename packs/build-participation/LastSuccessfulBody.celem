@@ -1,0 +1,4 @@
+implementation Confectory.BuildParticipation::LastSuccessfulBody for Confectory.BuildParticipation::LastSuccessful (string root, string plan) -> string {
+import Confectory.SchemaEditing::Call as Call (string, string) -> string;
+body common "LastSuccessful.csbody";
+}

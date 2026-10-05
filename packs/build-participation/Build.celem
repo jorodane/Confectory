@@ -1,0 +1,1 @@
+function Confectory.BuildParticipation::Build (string root, string plan) -> string {description "Explicit generic output builds, retain previous successful plan receipt on failure.";}

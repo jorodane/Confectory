@@ -1,0 +1,18 @@
+function Example.BuildParticipation::Main () -> int {provide Example.BuildParticipation::Main with Example.BuildParticipation::MainBody;
+provide Confectory.SchemaEditing::BeginScope with Confectory.SchemaEditing::BeginScopeBody;
+provide Confectory.SchemaEditing::Call with Confectory.SchemaEditing::CallBody;
+provide Confectory.SchemaEditing::Cancel with Confectory.SchemaEditing::CancelBody;
+provide Confectory.SchemaEditing::Create with Confectory.SchemaEditing::CreateBody;
+provide Confectory.SchemaEditing::Describe with Confectory.SchemaEditing::DescribeBody;
+provide Confectory.SchemaEditing::EndScope with Confectory.SchemaEditing::EndScopeBody;
+provide Confectory.SchemaEditing::Inspect with Confectory.SchemaEditing::InspectBody;
+provide Confectory.SchemaEditing::Pending with Confectory.SchemaEditing::PendingBody;
+provide Confectory.SchemaEditing::Prepare with Confectory.SchemaEditing::PrepareBody;
+provide Confectory.SchemaEditing::Register with Confectory.SchemaEditing::RegisterBody;
+provide Confectory.SchemaEditing::SetValue with Confectory.SchemaEditing::SetValueBody;
+provide Confectory.SchemaEditing::Validate with Confectory.SchemaEditing::ValidateBody;
+provide Confectory.BuildParticipation::Build with Confectory.BuildParticipation::BuildBody;
+provide Confectory.BuildParticipation::Describe with Confectory.BuildParticipation::DescribeBody;
+provide Confectory.BuildParticipation::LastSuccessful with Confectory.BuildParticipation::LastSuccessfulBody;
+provide Confectory.BuildParticipation::Validate with Confectory.BuildParticipation::ValidateBody;
+}

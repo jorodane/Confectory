@@ -1,0 +1,15 @@
+void Check(bool value,string message){if(!value)throw new Exception(message);}
+string project=Environment.GetEnvironmentVariable("CONFECTORY_TEST_AUTHOR_PROJECT")??throw new Exception("Project required"),root=System.IO.Path.GetDirectoryName(project)!;
+string plan=new System.Text.Json.Nodes.JsonObject{["version"]=1,["outputs"]=new System.Text.Json.Nodes.JsonArray(new System.Text.Json.Nodes.JsonObject{["id"]="client",["project"]=project,["entry"]="App::Client",["target"]="linux"},new System.Text.Json.Nodes.JsonObject{["id"]="service",["project"]=project,["entry"]="App::Service",["target"]="portable"})}.ToJsonString();
+string tool=Environment.GetEnvironmentVariable("CONFECTORY_TEST_TOOL")??throw new Exception("Tool path required"),held=tool+".held";
+try
+{
+ System.IO.File.Move(tool,held);var described=System.Text.Json.Nodes.JsonNode.Parse(calls.BuildParticipationDescribe.Invoke(root,plan))!;Check(described["state"]!.GetValue<string>()=="planned","Discovery does not execute or require build tool");
+ var validated=System.Text.Json.Nodes.JsonNode.Parse(calls.BuildParticipationValidate.Invoke(root,plan))!;Check(validated["outputs"]!.AsArray().Count==2,"Generic outputs validated");
+}
+finally{if(System.IO.File.Exists(held))System.IO.File.Move(held,tool);}
+var built=System.Text.Json.Nodes.JsonNode.Parse(calls.BuildParticipationBuild.Invoke(root,plan))!;Check(built["state"]!.GetValue<string>()=="built","Actual two-output build");var outputs=built["outputs"]!.AsArray();Check(outputs[0]!["target"]!.GetValue<string>()!=outputs[1]!["target"]!.GetValue<string>()&&outputs[0]!["entry"]!.GetValue<string>()!=outputs[1]!["entry"]!.GetValue<string>(),"Distinct targets/entries");
+bool clientUI=false,serviceUI=false;foreach(var value in outputs[0]!["includedPacks"]!.AsArray())if(value!.GetValue<string>()=="UI")clientUI=true;foreach(var value in outputs[1]!["includedPacks"]!.AsArray())if(value!.GetValue<string>()=="UI")serviceUI=true;Check(clientUI&&!serviceUI,"Unreachable UI absent from service closure/output");
+string successful=calls.BuildParticipationLastSuccessful.Invoke(root,plan);string body=System.IO.Path.Combine(root,"service.csbody"),before=System.IO.File.ReadAllText(body);
+try{System.IO.File.WriteAllText(body,"invalid source;");var failed=System.Text.Json.Nodes.JsonNode.Parse(calls.BuildParticipationBuild.Invoke(root,plan))!;Check(failed["state"]!.GetValue<string>()=="failed"&&calls.BuildParticipationLastSuccessful.Invoke(root,plan)==successful,"Failed output retains previous successful artifact set");}finally{System.IO.File.WriteAllText(body,before);}
+Console.WriteLine("BuildParticipation pure discovery/multi-output closure/retention PASS");return 0;

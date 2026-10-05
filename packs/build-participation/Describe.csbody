@@ -1,0 +1,1 @@
+return calls.Call.Invoke("outputsDescribe",new System.Text.Json.Nodes.JsonObject{["root"]=root,["plan"]=plan}.ToJsonString());

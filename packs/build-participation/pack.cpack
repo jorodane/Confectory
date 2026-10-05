@@ -1,0 +1,11 @@
+pack Confectory.BuildParticipation version "0.1.0" {
+dependency Confectory.SchemaEditing version "0.1.0";
+element Describe function "Describe.celem";
+element DescribeBody implementation "DescribeBody.celem";
+element Validate function "Validate.celem";
+element ValidateBody implementation "ValidateBody.celem";
+element Build function "Build.celem";
+element BuildBody implementation "BuildBody.celem";
+element LastSuccessful function "LastSuccessful.celem";
+element LastSuccessfulBody implementation "LastSuccessfulBody.celem";
+}
