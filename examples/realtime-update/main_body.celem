@@ -7,5 +7,8 @@ import Confectory.RealTimeUpdate::IsRegistered as IsRegistered (string[], string
 import Confectory.RealTimeUpdate::Advance as Advance (double[], double, double, double, double, int) -> double[];
 import Confectory.RealTimeUpdate::QueueCameraIntent as QueueCameraIntent (double[], double, double, double) -> void;
 import Confectory.RealTimeUpdate::PresentCamera as PresentCamera (double[], double[]) -> double[];
+import Confectory.RealTimeUpdate::DispatchTokens as DispatchTokens (string[], string) -> string[];
+import Confectory.RealTimeUpdate::ResolveDispatch as ResolveDispatch (string[], string, string) -> string[];
+import Confectory.RealTimeUpdate::Pick as Pick (double[], double, double) -> double[];
 body common "main.csbody";
 }

@@ -1,0 +1,4 @@
+if(snapshot.Length!=3||!double.IsFinite(snapshot[0])||!double.IsFinite(snapshot[1])||!double.IsFinite(snapshot[2])||snapshot[2]<=0||!double.IsFinite(x)||!double.IsFinite(y))throw new ArgumentException("Invalid displayed camera/picking coordinates.");
+double worldX=x/snapshot[2]+snapshot[0],worldY=y/snapshot[2]+snapshot[1];
+if(!double.IsFinite(worldX)||!double.IsFinite(worldY))throw new ArgumentException("Picking overflow.");
+return new[]{worldX,worldY};

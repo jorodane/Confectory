@@ -4,9 +4,12 @@ var accumulated = new double[] { clock[0] + elapsed, clock[1] + elapsed, clock[2
 double variableDelta = accumulated[0], renderDelta = accumulated[1];
 bool variable = variablePeriod == 0 || variableDelta >= variablePeriod;
 bool render = renderPeriod == 0 || renderDelta >= renderPeriod;
-double totalSteps = Math.Floor(accumulated[2] / fixedPeriod);
+double quotient = accumulated[2] / fixedPeriod;
+if(!double.IsFinite(quotient))throw new ArgumentException("Fixed-step accumulator overflow.");
+double totalSteps = Math.Floor(quotient);
 int steps = (int)Math.Min(totalSteps, maximumSteps);
 double dropped = Math.Max(0, totalSteps - steps) * fixedPeriod;
-double remainder = accumulated[2] % fixedPeriod;
+double remainder = Math.Max(0,accumulated[2] - totalSteps * fixedPeriod);
+if(remainder>=fixedPeriod)remainder=Math.BitDecrement(fixedPeriod);
 clock[0] = variable ? 0 : accumulated[0]; clock[1] = render ? 0 : accumulated[1]; clock[2] = remainder;
 return new double[] { variable ? 1 : 0, render ? 1 : 0, steps, remainder / fixedPeriod, dropped, variable ? variableDelta : 0, render ? renderDelta : 0, fixedPeriod };

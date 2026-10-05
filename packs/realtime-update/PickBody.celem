@@ -1,0 +1,1 @@
+implementation Confectory.RealTimeUpdate::PickBody for Confectory.RealTimeUpdate::Pick (double[] snapshot, double x, double y) -> double[] { body common "Pick.csbody"; }

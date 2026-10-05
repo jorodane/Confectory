@@ -1,0 +1,10 @@
+var items = new System.Collections.Generic.List<(string Token, int Priority, int Sequence)>();
+for (int i = 1; i < schedule.Length; i++)
+{
+ if (schedule[i] is null) continue;
+ using var d = System.Text.Json.JsonDocument.Parse(schedule[i]); var r = d.RootElement;
+ if (r[1].GetString() == phase) items.Add((schedule[i],r[2].GetInt32(),r[3].GetInt32()));
+}
+items.Sort((a,b) => { int c = a.Priority.CompareTo(b.Priority); return c == 0 ? a.Sequence.CompareTo(b.Sequence) : c; });
+return System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(items, x => x.Token));
+

@@ -1,0 +1,1 @@
+function Confectory.RealTimeUpdate::Pick (double[] snapshot, double x, double y) -> double[] { description "Map viewport-local logical coordinates to world coordinates using the exact displayed 2D snapshot."; }

@@ -1,0 +1,1 @@
+function Confectory.RealTimeUpdate::DispatchTokens (string[] schedule, string phase) -> string[] { description "Snapshot opaque registration tokens in priority and stable registration order."; }

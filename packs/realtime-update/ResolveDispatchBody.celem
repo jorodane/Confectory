@@ -1,0 +1,1 @@
+implementation Confectory.RealTimeUpdate::ResolveDispatchBody for Confectory.RealTimeUpdate::ResolveDispatch (string[] schedule, string token, string phase) -> string[] { body common "ResolveDispatch.csbody"; }

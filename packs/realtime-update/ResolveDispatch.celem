@@ -1,0 +1,1 @@
+function Confectory.RealTimeUpdate::ResolveDispatch (string[] schedule, string token, string phase) -> string[] { description "Resolve a still-live dispatch token to function ID and priority; replacements wait for next dispatch."; }

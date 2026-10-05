@@ -8,4 +8,7 @@ provide Confectory.RealTimeUpdate::IsRegistered with Confectory.RealTimeUpdate::
 provide Confectory.RealTimeUpdate::Advance with Confectory.RealTimeUpdate::AdvanceBody;
 provide Confectory.RealTimeUpdate::QueueCameraIntent with Confectory.RealTimeUpdate::QueueCameraIntentBody;
 provide Confectory.RealTimeUpdate::PresentCamera with Confectory.RealTimeUpdate::PresentCameraBody;
+provide Confectory.RealTimeUpdate::DispatchTokens with Confectory.RealTimeUpdate::DispatchTokensBody;
+provide Confectory.RealTimeUpdate::ResolveDispatch with Confectory.RealTimeUpdate::ResolveDispatchBody;
+provide Confectory.RealTimeUpdate::Pick with Confectory.RealTimeUpdate::PickBody;
 }

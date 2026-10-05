@@ -1,0 +1,8 @@
+for(int i=1;i<schedule.Length;i++)
+{
+ if(schedule[i]!=token)continue;
+ using var document=System.Text.Json.JsonDocument.Parse(token);var record=document.RootElement;
+ if(record[1].GetString()!=phase)return Array.Empty<string>();
+ return new[]{record[0].GetString()!,record[2].GetInt32().ToString(System.Globalization.CultureInfo.InvariantCulture)};
+}
+return Array.Empty<string>();

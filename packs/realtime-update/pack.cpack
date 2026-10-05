@@ -15,4 +15,10 @@ element QueueCameraIntent function "QueueCameraIntent.celem";
 element QueueCameraIntentBody implementation "QueueCameraIntentBody.celem";
 element PresentCamera function "PresentCamera.celem";
 element PresentCameraBody implementation "PresentCameraBody.celem";
+element DispatchTokens function "DispatchTokens.celem";
+element DispatchTokensBody implementation "DispatchTokensBody.celem";
+element ResolveDispatch function "ResolveDispatch.celem";
+element ResolveDispatchBody implementation "ResolveDispatchBody.celem";
+element Pick function "Pick.celem";
+element PickBody implementation "PickBody.celem";
 }
