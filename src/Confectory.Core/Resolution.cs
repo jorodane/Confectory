@@ -29,7 +29,7 @@ public sealed class Registry
         {
             if (dep == ns) throw new BuildError("DEPENDENCY", "A pack must not depend on itself", expectation.Loc);
             if (!Packs.TryGetValue(dep, out var selected)) throw new BuildError("MISSING_NAMESPACE", $"Dependency {dep} is not registered", expectation.Loc);
-            if (expectation.Version != "*" && expectation.Version != selected.Version)
+            if (!VersionExpectation.Matches(expectation.Version, selected.Version))
                 Warnings.Add(new("warning", "VERSION_MISMATCH", $"{ns} expects {dep} {expectation.Version}; selected {selected.Version}", expectation.Loc));
         }
     }

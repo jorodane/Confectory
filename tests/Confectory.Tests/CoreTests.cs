@@ -102,6 +102,15 @@ public sealed class CoreTests : TestCase
     }
     public void test_unused_documents_are_not_read()
     { f.Add("Unused", "object", "Dormant", "not valid declaration text"); var plan = f.Plan(); True(!plan.Reached.Contains("Unused::Dormant")); True(!plan.Registry.Statistics.ReadDocuments.Any(p => p.EndsWith("Dormant.celem", StringComparison.Ordinal))); }
+    public void test_version_ranges_are_pure_warnings_without_selection_changes()
+    {
+        foreach(string range in new[]{"^1.0.0",">=1.0.0 <2.0.0","1.*","~1.0"})
+        { f.Packs["App"].Dependencies["Api"]=range;f.Sync();var registry=f.Registry();Equal(0,registry.Warnings.Count);Equal("1",registry.Packs["Api"].Version); }
+        foreach(string range in new[]{"^2.0.0",">=2 <3","unsupported-range"})
+        { f.Packs["App"].Dependencies["Api"]=range;f.Sync();var registry=f.Registry();Equal("VERSION_MISMATCH",registry.Warnings[0].Code);Equal("1",registry.Packs["Api"].Version); }
+        True(VersionExpectation.Matches("^0.2.3","0.2.9"));True(!VersionExpectation.Matches("^0.2.3","0.3.0"));True(VersionExpectation.Matches("^0.0.3","0.0.3"));True(!VersionExpectation.Matches("^0.0.3","0.0.4"));
+    }
+
     public void test_version_mismatch_is_only_warning_and_is_pinned()
     { f.Packs["App"].Dependencies["Api"] = "999"; f.Sync(); var plan = f.Plan(); Equal("VERSION_MISMATCH", plan.Registry.Warnings[0].Code); Equal("1", plan.Registry.Packs["Api"].Version); }
     public void test_owned_source_path_cannot_escape_pack()
