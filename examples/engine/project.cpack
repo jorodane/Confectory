@@ -41,4 +41,6 @@ dependency Confectory.ChangeSet version "0.1.0";
 
 registry Confectory.ElementView "../../packs/element-view/pack.cpack";
 dependency Confectory.ElementView version "0.1.0";
+registry Confectory.SourceEditor "../../packs/source-editor/pack.cpack";
+dependency Confectory.SourceEditor version "0.1.0";
 }

@@ -5,8 +5,9 @@ bool authoring=Environment.GetEnvironmentVariable("CONFECTORY_ELEMENT_UI")=="1";
 bool scripted=Environment.GetEnvironmentVariable("CONFECTORY_BASEUI_SCRIPTED")=="1";
 var capabilities=calls.Capabilities.Invoke();
 if(capabilities[0]!=1){Console.Error.WriteLine("This desktop entry requires independent native windows. Android uses the app-owned surface entry.");return 1;}
-string[] titles={"Confectory BaseUI A","Confectory BaseUI B"};
+string windowPrefix=Environment.GetEnvironmentVariable("CONFECTORY_WINDOW_PREFIX")??"Confectory BaseUI";string[] titles={windowPrefix+" A",windowPrefix+" B"};
 long[] surfaces=Array.Empty<long>();
+var textBuffers=new string[]{"",""};var textRevisions=new long[2];
 var elementViews=new string[]{"",""};var workspaces=new string[]{"",""};var elementSelections=new string[]{"",""};var createKinds=new[]{"object","category","concept","function","module","schema"};var createKind=new int[2];var elementStatus=new string[]{"Open project [O], then attach [A]","Open project [O], then attach [A]"};
 var ownedWorkspaces=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);System.Threading.Tasks.Task<string[]>? authorJob=null;int authorJobView=-1,createdNumber=0;var resetElementViews=new bool[2];string authorOwner=Guid.NewGuid().ToString("N");
 
@@ -53,7 +54,7 @@ void AuthorAction(int view,int action)
    if(action==1)
    {
     string handle=chosenExisting!=""?chosenExisting:calls.EditWorkspaceOpen.Invoke(chosenProject,"local-user","authoring");if(chosenExisting=="")calls.SaveRestore.Invoke(handle);
-    var ids=calls.EditWorkspaceList.Invoke(handle);string selected=System.Linq.Enumerable.FirstOrDefault(ids,x=>x.EndsWith("::Counter",StringComparison.Ordinal))??System.Linq.Enumerable.First(ids,x=>calls.EditWorkspaceRead.Invoke(handle,x)[1]=="object");return new[]{"attached",handle,selected,""};
+    var ids=calls.EditWorkspaceList.Invoke(handle);string? preferred=Environment.GetEnvironmentVariable("CONFECTORY_SELECTED_ELEMENT");string selected=preferred is not null&&Array.IndexOf(ids,preferred)>=0?preferred:System.Linq.Enumerable.FirstOrDefault(ids,x=>x.EndsWith("::Counter",StringComparison.Ordinal))??System.Linq.Enumerable.First(ids,x=>calls.EditWorkspaceRead.Invoke(handle,x)[1] is not ("project" or "pack"));return new[]{"attached",handle,selected,""};
    }
    if(action==2){string ns=id.Split(new[]{"::"},StringSplitOptions.None)[0],created=ns+"::Created"+number;calls.EditWorkspaceCreate.Invoke(workspace,kind,created);calls.EditWorkspaceSetValue.Invoke(workspace,created,"count","0");return new[]{"created",workspace,created,""};}
    if(action==3){var unit=calls.EditWorkspaceRead.Invoke(workspace,id);var inspected=System.Text.Json.Nodes.JsonNode.Parse(calls.SchemaEditingInspect.Invoke(unit[3]))!;int count=inspected["values"]?["count"]?.GetValue<int>()??0;calls.EditWorkspaceSetValue.Invoke(workspace,id,"count",(count+1).ToString(System.Globalization.CultureInfo.InvariantCulture));return new[]{"edited",workspace,id,"count="+(count+1)};}
@@ -62,6 +63,7 @@ void AuthorAction(int view,int action)
    if(action==6){var result=calls.ChangeSetPreview.Invoke(workspace,OperatingSystem.IsWindows()?"windows":"linux");return new[]{result[0],workspace,id,string.Join(" | ",System.Linq.Enumerable.Skip(result,1))};}
    if(action==7){calls.SaveWrite.Invoke(workspace);return new[]{"saved",workspace,id,"Final source unchanged"};}
    if(action==8||action==9){var selected=action==8?new[]{id}:calls.EditWorkspaceList.Invoke(workspace);var review=calls.ChangeSetReview.Invoke(workspace,selected);if(review[0]=="conflict")return new[]{"conflict",workspace,id,string.Join(" | ",System.Linq.Enumerable.Skip(review,1))};var result=calls.ChangeSetConfirm.Invoke(workspace,selected,OperatingSystem.IsWindows()?"windows":"linux");return new[]{result[0],workspace,id,string.Join(" | ",System.Linq.Enumerable.Skip(result,1))};}
+   if(action==11){var result=calls.SourceEditorApply.Invoke(textBuffers[view],workspace,textRevisions[view]);return new[]{result[0],workspace,id,result.Length>1?result[1]:"User text applied as draft"};}
    if(action==10){var identity=calls.EditWorkspaceIdentity.Invoke(workspace);calls.SaveWrite.Invoke(workspace);calls.EditWorkspaceClose.Invoke(workspace);string handle=calls.EditWorkspaceOpen.Invoke(identity[0],identity[1],identity[2]);calls.SaveRestore.Invoke(handle);return new[]{"restored",handle,id,old};}
    return new[]{"error",workspace,id,"Unknown action"};
   }
@@ -73,6 +75,7 @@ void PollAuthorJob()
 {
  if(authorJob is null||!authorJob.IsCompleted)return;var result=authorJob.GetAwaiter().GetResult();authorJob=null;int view=authorJobView;
  elementStatus[view]=result[0]+(result[3]!=""?": "+result[3].Replace("\n"," "):"");if(elementStatus[view].Length>80)elementStatus[view]=elementStatus[view][..80];
+ if(result[0]=="draft-applied"&&textBuffers[view]!=""){calls.SourceEditorClose.Invoke(textBuffers[view]);textBuffers[view]="";}
  if(result[0]!="error")
  {
   ownedWorkspaces.Add(result[1]);workspaces[view]=result[1];elementSelections[view]=result[2];if(elementViews[view]=="")ConnectElement(view);else if(calls.ElementViewInfo.Invoke(elementViews[view])[1]!=result[2])calls.ElementViewBind.Invoke(elementViews[view],result[2]);
@@ -121,6 +124,21 @@ void Input(int view,int type,int x,int y,int code,int flags)
 {
  if(type==8){Disconnect(view);calls.Close.Invoke(surfaces,view);Console.WriteLine("closed "+view);return;}
  if(!IsOpen(view))return;
+ if(authoring)
+ {
+  if(textBuffers[view]==""&&type==5&&flags==0&&(code==72||code==104)){string self=Environment.GetEnvironmentVariable("CONFECTORY_SELF_PROJECT")??"";if(self==""){elementStatus[view]="Explicit self ProjectPack path required";return;}projectPaths[view]=self;ProjectAction(view,1);AuthorAction(view,1);return;}
+  if(textBuffers[view]==""&&type==5&&flags==0&&(code==89||code==121)){if(workspaces[view]==""||authorJob is not null)return;var identity=calls.EditWorkspaceIdentity.Invoke(workspaces[view]);var executions=calls.ProjectExecutions.Invoke(projectManagers[view]);if(projectExecutions[view]!=""&&calls.ExecutionObserve.Invoke(executions,projectExecutions[view])[1] is "running" or "building")return;projectExecutions[view]=calls.ExecutionLaunchConfigured.Invoke(executions,identity[0],"Confectory.Engine::Main",OperatingSystem.IsWindows()?"windows":"linux",new[]{"CONFECTORY_WINDOW_PREFIX","CONFECTORY_SELF_PROJECT","CONFECTORY_ELEMENT_UI","CONFECTORY_PROJECT_A","CONFECTORY_PROJECT_B","CONFECTORY_SELECTED_ELEMENT","CONFECTORY_BASEUI_CLOSE_AFTER_MS"},new[]{"Confectory A-prime",identity[0],"1",Environment.GetEnvironmentVariable("CONFECTORY_PRIME_PROJECT")??projectPaths[view],Environment.GetEnvironmentVariable("CONFECTORY_PRIME_PROJECT")??projectPaths[view],"","0"});Console.WriteLine("independent editor launch handle="+projectExecutions[view]+" source="+identity[0]);return;}
+  bool openText=type==5&&flags==0&&(OperatingSystem.IsWindows()?code==113:code==0xFFBF);
+  if(openText&&textBuffers[view]==""&&elementViews[view]!=""&&authorJob is null)
+  {
+   var snapshot=calls.EditWorkspaceRead.Invoke(workspaces[view],elementSelections[view]);if(snapshot[1] is "project" or "pack"){elementStatus[view]="Manifest edits use pack/registration controls";return;}
+   textBuffers[view]=calls.SourceEditorCreate.Invoke(elementSelections[view],snapshot[3]);textRevisions[view]=long.Parse(snapshot[4],System.Globalization.CultureInfo.InvariantCulture);calls.Invalidate.Invoke(views[view]);return;
+  }
+  if(textBuffers[view]!=""&&(type is 5 or 6 or 12))
+  {
+   if(authorJob is not null)return;int intent=calls.SourceEditorInput.Invoke(textBuffers[view],type,code);if(intent==2)AuthorAction(view,11);if(intent==3){calls.SourceEditorClose.Invoke(textBuffers[view]);textBuffers[view]="";}calls.Invalidate.Invoke(views[view]);return;
+  }
+ }
  int elementAction=0;
  if(authoring)
  {
@@ -182,6 +200,7 @@ try
    {
     var executionSession=calls.ProjectExecutions.Invoke(projectManagers[v]);
     if(projectExecutions[v]!=""){var execution=calls.ExecutionObserve.Invoke(executionSession,projectExecutions[v]);if(projectStates[v]!=execution[1]){projectStates[v]=execution[1];calls.Invalidate.Invoke(views[v]);Console.WriteLine("execution view="+v+" state="+execution[1]+" handle="+execution[0]);}}
+    if(projectExecutions[v]!=""&&Environment.GetEnvironmentVariable("CONFECTORY_RENDER_TRACE")=="1")foreach(string line in calls.ExecutionOutput.Invoke(executionSession,projectExecutions[v]))Console.WriteLine("child "+projectExecutions[v]+" "+line);
     foreach(string notice in calls.ExecutionPoll.Invoke(executionSession))_ = notice;
     if(!IsOpen(v))continue;
     var a=calls.RuntimePoll.Invoke(owners[v],subscriptions[v][0]);var b=calls.RuntimePoll.Invoke(owners[v],subscriptions[v][1]);
@@ -213,7 +232,8 @@ try
      var size=calls.ViewStatus.Invoke(views[v]);calls.ProjectInput.Invoke(projectViews[v],7,(int)size[0],(int)size[1],0,0);
      calls.Draw.Invoke(surfaces,v,calls.ProjectLayout.Invoke(projectViews[v]),calls.ProjectLabels.Invoke(context,execution,projectErrors[v]));if(authoring)
      {
-      if(elementViews[v]!=""){calls.ElementViewInput.Invoke(elementViews[v],7,(int)size[0],(int)size[1],0,0);calls.Draw.Invoke(surfaces,v,calls.ElementViewLayout.Invoke(elementViews[v]),calls.ElementViewLabels.Invoke(elementViews[v],"Kind="+createKinds[createKind[v]]+" [K] | "+elementStatus[v]));}
+      if(textBuffers[v]!="")calls.Draw.Invoke(surfaces,v,calls.SourceEditorLayout.Invoke((int)size[0],(int)size[1]),calls.SourceEditorLabels.Invoke(textBuffers[v],elementStatus[v]));
+      else if(elementViews[v]!=""){calls.ElementViewInput.Invoke(elementViews[v],7,(int)size[0],(int)size[1],0,0);var elementLabels=calls.ElementViewLabels.Invoke(elementViews[v],"Kind="+createKinds[createKind[v]]+" [K] | "+elementStatus[v]);calls.Draw.Invoke(surfaces,v,calls.ElementViewLayout.Invoke(elementViews[v]),elementLabels);if(Environment.GetEnvironmentVariable("CONFECTORY_RENDER_TRACE")=="1")Console.WriteLine("render "+windowPrefix+" view="+v+" label="+elementLabels[0]);}
       else calls.Draw.Invoke(surfaces,v,new[]{20,230,Math.Max(1,(int)size[0]-40),50,0x344878},new[]{elementStatus[v]});
      }
      calls.Presented.Invoke(views[v]);
@@ -232,6 +252,7 @@ finally
  void Cleanup(Action release){try{release();}catch(Exception ex){Console.Error.WriteLine("Cleanup failed: "+ex.Message);}}
  if(authorJob is not null){calls.SchemaEditingCancel.Invoke(authorOwner);try{if(!authorJob.Wait(5000))Console.Error.WriteLine("Authoring job did not finish within cancellation grace period.");}catch(Exception error){Console.Error.WriteLine("Authoring cleanup: "+error.Message);}}
  for(int v=0;v<2;v++)if(elementViews[v]!="")Cleanup(()=>calls.ElementViewClose.Invoke(elementViews[v]));
+ for(int v=0;v<2;v++)if(textBuffers[v]!="")Cleanup(()=>calls.SourceEditorClose.Invoke(textBuffers[v]));
  foreach(string workspace in ownedWorkspaces)Cleanup(()=>calls.EditWorkspaceClose.Invoke(workspace));
  for(int v=0;v<2;v++)
  {

@@ -104,4 +104,12 @@ provide Confectory.SchemaEditing::BeginScope with Confectory.SchemaEditing::Begi
 provide Confectory.SchemaEditing::Cancel with Confectory.SchemaEditing::CancelBody;
 provide Confectory.SchemaEditing::EndScope with Confectory.SchemaEditing::EndScopeBody;
 provide Confectory.SchemaEditing::Pending with Confectory.SchemaEditing::PendingBody;
+provide Confectory.SourceEditor::Create with Confectory.SourceEditor::CreateBody;
+provide Confectory.SourceEditor::Text with Confectory.SourceEditor::TextBody;
+provide Confectory.SourceEditor::Input with Confectory.SourceEditor::InputBody;
+provide Confectory.SourceEditor::Labels with Confectory.SourceEditor::LabelsBody;
+provide Confectory.SourceEditor::Layout with Confectory.SourceEditor::LayoutBody;
+provide Confectory.SourceEditor::Close with Confectory.SourceEditor::CloseBody;
+provide Confectory.SourceEditor::Apply with Confectory.SourceEditor::ApplyBody;
+provide Confectory.ProjectExecution::LaunchConfigured with Confectory.ProjectExecution::LaunchConfiguredBody;
 }
