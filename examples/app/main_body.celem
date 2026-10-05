@@ -1,0 +1,4 @@
+implementation Example.App::MainBody for Example.App::Main () -> int {
+    import Example.Api::Greeting as Greeting (string) -> string;
+    body common "main.csbody";
+}

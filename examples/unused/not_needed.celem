@@ -1,0 +1,3 @@
+object Example.Unused::NotNeeded {
+    value note = "Not in the app's usage graph";
+}

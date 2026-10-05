@@ -1,0 +1,5 @@
+function Example.App::Main () -> int {
+    description "Print a message and return success";
+    provide Example.App::Main with Example.App::MainBody;
+    provide Example.Api::Greeting with Example.Provider::GreetingBody;
+}

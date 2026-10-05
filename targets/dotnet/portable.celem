@@ -1,0 +1,5 @@
+buildtarget Confectory.Build.DotNet::Portable {
+    description "Portable CLR package requiring .NET 8";
+    tool "tool.py";
+    option mode "portable";
+}

@@ -1,0 +1,2 @@
+Console.WriteLine(calls.Greeting.Invoke("Confectory"));
+return 0;

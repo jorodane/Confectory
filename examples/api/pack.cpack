@@ -1,0 +1,3 @@
+pack Example.Api version "0.1.0" {
+    element Greeting function "greeting.celem";
+}

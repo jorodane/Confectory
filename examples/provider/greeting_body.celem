@@ -1,0 +1,4 @@
+implementation Example.Provider::GreetingBody for Example.Api::Greeting (string name) -> string {
+    body common "greeting.csbody";
+    body linux "greeting_linux.csbody";
+}

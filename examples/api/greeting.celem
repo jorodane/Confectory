@@ -1,0 +1,3 @@
+function Example.Api::Greeting (string name) -> string {
+    description "A target-independent greeting contract; no implementation here";
+}

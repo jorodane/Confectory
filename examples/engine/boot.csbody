@@ -1,0 +1,2 @@
+Console.WriteLine("Confectory.Engine built as a ProjectPack");
+return 0;

@@ -1,0 +1,3 @@
+function Confectory.Engine::Boot () -> int {
+    provide Confectory.Engine::Boot with Confectory.Engine::BootBody;
+}

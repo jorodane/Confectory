@@ -1,0 +1,4 @@
+pack Example.Provider version "0.1.0" {
+    dependency Example.Api version "0.1.0";
+    element GreetingBody implementation "greeting_body.celem";
+}

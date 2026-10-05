@@ -1,0 +1,75 @@
+test_changed_text_with_restored_mtime_is_not_a_stale_document_hit (tests.test_core.CoreTests.test_changed_text_with_restored_mtime_is_not_a_stale_document_hit) ... ok
+test_containment_cycle (tests.test_core.CoreTests.test_containment_cycle) ... ok
+test_default_not_in_module_contract (tests.test_core.CoreTests.test_default_not_in_module_contract) ... ok
+test_different_defaults_conflict (tests.test_core.CoreTests.test_different_defaults_conflict) ... ok
+test_duplicate_element (tests.test_core.CoreTests.test_duplicate_element) ... ok
+test_duplicate_namespace (tests.test_core.CoreTests.test_duplicate_namespace) ... ok
+test_duplicate_target_body_and_unknown_syntax (tests.test_core.CoreTests.test_duplicate_target_body_and_unknown_syntax) ... ok
+test_entry_is_required_and_typed (tests.test_core.CoreTests.test_entry_is_required_and_typed) ... ok
+test_explicit_binding_beats_multiple_defaults (tests.test_core.CoreTests.test_explicit_binding_beats_multiple_defaults) ... ok
+test_explicit_empty_description_overrides_parent (tests.test_core.CoreTests.test_explicit_empty_description_overrides_parent) ... ok
+test_import_signature_mismatch (tests.test_core.CoreTests.test_import_signature_mismatch) ... ok
+test_inheritance_cycle (tests.test_core.CoreTests.test_inheritance_cycle) ... ok
+test_inherited_binding_beats_defaults (tests.test_core.CoreTests.test_inherited_binding_beats_defaults) ... ok
+test_inherited_values_and_provenance_without_parent_mutation (tests.test_core.CoreTests.test_inherited_values_and_provenance_without_parent_mutation) ... ok
+test_invalid_default_cannot_hide_behind_explicit_binding (tests.test_core.CoreTests.test_invalid_default_cannot_hide_behind_explicit_binding) ... ok
+test_missing_element (tests.test_core.CoreTests.test_missing_element) ... ok
+test_missing_final_provider (tests.test_core.CoreTests.test_missing_final_provider) ... ok
+test_missing_namespace (tests.test_core.CoreTests.test_missing_namespace) ... ok
+test_missing_target_and_common_body (tests.test_core.CoreTests.test_missing_target_and_common_body) ... ok
+test_module_contract_signature (tests.test_core.CoreTests.test_module_contract_signature) ... ok
+test_module_inclusion_cycle (tests.test_core.CoreTests.test_module_inclusion_cycle) ... ok
+test_module_missing_default (tests.test_core.CoreTests.test_module_missing_default) ... ok
+test_namespace_qualified_same_local_id (tests.test_core.CoreTests.test_namespace_qualified_same_local_id) ... ok
+test_owned_source_path_cannot_escape_pack (tests.test_core.CoreTests.test_owned_source_path_cannot_escape_pack) ... ok
+test_parent_missing_wrong_kind_and_multiple_parent_syntax (tests.test_core.CoreTests.test_parent_missing_wrong_kind_and_multiple_parent_syntax) ... ok
+test_project_input_cannot_be_a_regular_pack (tests.test_core.CoreTests.test_project_input_cannot_be_a_regular_pack) ... ok
+test_provider_signature_mismatch (tests.test_core.CoreTests.test_provider_signature_mismatch) ... ok
+test_provider_wrong_function_identity (tests.test_core.CoreTests.test_provider_wrong_function_identity) ... ok
+test_reference_cycle_is_allowed (tests.test_core.CoreTests.test_reference_cycle_is_allowed) ... ok
+test_same_default_deduplicates_through_nested_modules (tests.test_core.CoreTests.test_same_default_deduplicates_through_nested_modules) ... ok
+test_single_module_default (tests.test_core.CoreTests.test_single_module_default) ... ok
+test_transitive_stage_view_inheritance_and_always (tests.test_core.CoreTests.test_transitive_stage_view_inheritance_and_always) ... ok
+test_undeclared_cross_pack_dependency (tests.test_core.CoreTests.test_undeclared_cross_pack_dependency) ... ok
+test_unused_documents_are_not_read (tests.test_core.CoreTests.test_unused_documents_are_not_read) ... ok
+test_version_mismatch_is_only_warning_and_is_pinned (tests.test_core.CoreTests.test_version_mismatch_is_only_warning_and_is_pinned) ... ok
+test_wrong_element_kind (tests.test_core.CoreTests.test_wrong_element_kind) ... ok
+test_wrong_locator_and_source_locations (tests.test_core.CoreTests.test_wrong_locator_and_source_locations) ... ok
+test_actual_linked_output_and_public_catalog (tests.test_integration.IntegrationTests.test_actual_linked_output_and_public_catalog) ... ok
+test_addition_of_a_newer_pack_does_not_change_project_selected_version (tests.test_integration.IntegrationTests.test_addition_of_a_newer_pack_does_not_change_project_selected_version) ... ok
+test_broken_selected_target_body_does_not_fall_back (tests.test_integration.IntegrationTests.test_broken_selected_target_body_does_not_fall_back) ... ok
+test_contract_change_rechecks_consumers_and_rebuilds_only_affected_packs (tests.test_integration.IntegrationTests.test_contract_change_rechecks_consumers_and_rebuilds_only_affected_packs) ... ok
+test_contract_location_move_keeps_identity_and_local_dlls (tests.test_integration.IntegrationTests.test_contract_location_move_keeps_identity_and_local_dlls) ... ok
+test_contract_only_compile_without_provider_and_reuse_at_final_link (tests.test_integration.IntegrationTests.test_contract_only_compile_without_provider_and_reuse_at_final_link) ... ok
+test_corrupted_local_artifact_is_rebuilt (tests.test_integration.IntegrationTests.test_corrupted_local_artifact_is_rebuilt) ... ok
+test_csharp_body_is_type_checked_against_generated_contract (tests.test_integration.IntegrationTests.test_csharp_body_is_type_checked_against_generated_contract) ... ok
+test_distinct_module_defaults_and_missing_target_fail_before_execution (tests.test_integration.IntegrationTests.test_distinct_module_defaults_and_missing_target_fail_before_execution) ... ok
+test_engine_projectpack_uses_identical_build_path (tests.test_integration.IntegrationTests.test_engine_projectpack_uses_identical_build_path) ... ok
+test_failure_preserves_latest_successful_runnable_output (tests.test_integration.IntegrationTests.test_failure_preserves_latest_successful_runnable_output) ... ok
+test_implementation_inherits_target_body_from_owning_pack (tests.test_integration.IntegrationTests.test_implementation_inherits_target_body_from_owning_pack) ... ok
+test_independent_scopes_and_inherited_bindings_execute (tests.test_integration.IntegrationTests.test_independent_scopes_and_inherited_bindings_execute) ... ok
+test_inherited_build_target_uses_parent_owned_tool (tests.test_integration.IntegrationTests.test_inherited_build_target_uses_parent_owned_tool) ... ok
+test_inherited_cross_pack_references_keep_original_owner_dependencies (tests.test_integration.IntegrationTests.test_inherited_cross_pack_references_keep_original_owner_dependencies) ... ok
+test_local_compilation_reads_do_not_grow_with_unrelated_element_documents (tests.test_integration.IntegrationTests.test_local_compilation_reads_do_not_grow_with_unrelated_element_documents) ... ok
+test_missing_target_and_tool_protocol_errors (tests.test_integration.IntegrationTests.test_missing_target_and_tool_protocol_errors) ... ok
+test_private_implementation_class_cannot_be_an_authoring_reference (tests.test_integration.IntegrationTests.test_private_implementation_class_cannot_be_an_authoring_reference) ... ok
+test_recursive_function_calls_execute (tests.test_integration.IntegrationTests.test_recursive_function_calls_execute) ... ok
+test_selected_versions_warn_without_breaking_executable (tests.test_integration.IntegrationTests.test_selected_versions_warn_without_breaking_executable) ... ok
+test_target_specific_common_fallback_and_linux_launcher (tests.test_integration.IntegrationTests.test_target_specific_common_fallback_and_linux_launcher) ... ok
+test_tool_source_change_invalidates_local_artifacts (tests.test_integration.IntegrationTests.test_tool_source_change_invalidates_local_artifacts) ... ok
+test_unchanged_build_and_provider_only_change (tests.test_integration.IntegrationTests.test_unchanged_build_and_provider_only_change) ... ok
+test_unrelated_contract_in_same_pack_does_not_invalidate_consumers (tests.test_integration.IntegrationTests.test_unrelated_contract_in_same_pack_does_not_invalidate_consumers) ... ok
+
+----------------------------------------------------------------------
+Ran 61 tests in 100.156s
+
+OK
+
+Final catalog and actual generated provider-class boundary checks
+test_actual_linked_output_and_public_catalog (tests.test_integration.IntegrationTests.test_actual_linked_output_and_public_catalog) ... ok
+test_private_implementation_class_cannot_be_an_authoring_reference (tests.test_integration.IntegrationTests.test_private_implementation_class_cannot_be_an_authoring_reference) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 5.328s
+
+OK

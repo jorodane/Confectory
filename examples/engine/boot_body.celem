@@ -1,0 +1,3 @@
+implementation Confectory.Engine::BootBody for Confectory.Engine::Boot () -> int {
+    body common "boot.csbody";
+}

@@ -1,0 +1,15 @@
+project Example.App version "0.1.0" {
+    description "Minimum executable with contracts in a separate pack";
+    entry Example.App::Main;
+    registry Example.Api "../api/pack.cpack";
+    registry Example.Provider "../provider/pack.cpack";
+    registry Example.Unused "../unused/pack.cpack";
+    registry Confectory.Build.DotNet "../../targets/dotnet/pack.cpack";
+    dependency Example.Api version "0.1.0";
+    dependency Example.Provider version "0.1.0";
+    dependency Confectory.Build.DotNet version "0.1.0";
+    target portable Confectory.Build.DotNet::Portable;
+    target linux Confectory.Build.DotNet::Linux;
+    element Main function "main.celem";
+    element MainBody implementation "main_body.celem";
+}

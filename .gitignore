@@ -1,0 +1,11 @@
+.confectory/
+__pycache__/
+*.py[cod]
+bin/
+obj/
+Builds/
+*.dll
+*.pdb
+*.exe
+*.apk
+*.docx

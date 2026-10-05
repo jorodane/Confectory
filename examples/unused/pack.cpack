@@ -1,0 +1,4 @@
+pack Example.Unused version "0.1.0" {
+    description "Registered but unused; its declaration must not be opened by the app build";
+    element NotNeeded object "not_needed.celem";
+}
