@@ -1,0 +1,3 @@
+implementation Confectory.BaseUI::ProjectLabelsBody for Confectory.BaseUI::ProjectLabels (string[] context, string[] execution, string error) -> string[] {
+body common "ProjectLabels.csbody";
+}

@@ -1,0 +1,1 @@
+function Confectory.BaseUI::ProjectInput (long[] view, int type, int x, int y, int code, int flags) -> int {}

@@ -1,4 +1,5 @@
 function Confectory.Engine::Main () -> int {
+use view Confectory.BaseUI::ProjectPanel;
 use view Confectory.BaseUI::ControlPanel;
 provide Confectory.Engine::Main with Confectory.Engine::MainBody;
 provide Confectory.RuntimeBase::CreateOwner with Confectory.RuntimeBase::CreateOwnerBody;
@@ -34,4 +35,23 @@ provide Confectory.BaseUI::Invalidate with Confectory.BaseUI::InvalidateBody;
 provide Confectory.BaseUI::Presented with Confectory.BaseUI::PresentedBody;
 provide Confectory.Window::SurfaceInfo with Confectory.Window::SurfaceInfoBody;
 provide Confectory.Window::SurfaceDimensions with Confectory.Window::SurfaceDimensionsBody;
+provide Confectory.ProjectManager::CreateManager with Confectory.ProjectManager::CreateManagerBody;
+provide Confectory.ProjectManager::Open with Confectory.ProjectManager::OpenBody;
+provide Confectory.ProjectManager::Select with Confectory.ProjectManager::SelectBody;
+provide Confectory.ProjectManager::Context with Confectory.ProjectManager::ContextBody;
+provide Confectory.ProjectManager::Close with Confectory.ProjectManager::CloseBody;
+provide Confectory.ProjectManager::Executions with Confectory.ProjectManager::ExecutionsBody;
+provide Confectory.ProjectManager::Launch with Confectory.ProjectManager::LaunchBody;
+provide Confectory.ProjectManager::Dispose with Confectory.ProjectManager::DisposeBody;
+provide Confectory.ProjectExecution::CreateSession with Confectory.ProjectExecution::CreateSessionBody;
+provide Confectory.ProjectExecution::DescribeProject with Confectory.ProjectExecution::DescribeProjectBody;
+provide Confectory.ProjectExecution::Launch with Confectory.ProjectExecution::LaunchBody;
+provide Confectory.ProjectExecution::Stop with Confectory.ProjectExecution::StopBody;
+provide Confectory.ProjectExecution::Observe with Confectory.ProjectExecution::ObserveBody;
+provide Confectory.ProjectExecution::Poll with Confectory.ProjectExecution::PollBody;
+provide Confectory.ProjectExecution::Dispose with Confectory.ProjectExecution::DisposeBody;
+provide Confectory.BaseUI::CreateProjectView with Confectory.BaseUI::CreateProjectViewBody;
+provide Confectory.BaseUI::ProjectLayout with Confectory.BaseUI::ProjectLayoutBody;
+provide Confectory.BaseUI::ProjectInput with Confectory.BaseUI::ProjectInputBody;
+provide Confectory.BaseUI::ProjectLabels with Confectory.BaseUI::ProjectLabelsBody;
 }

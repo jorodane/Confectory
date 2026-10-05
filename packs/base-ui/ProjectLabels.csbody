@@ -1,0 +1,6 @@
+if(context.Length!=0&&context.Length!=6||execution.Length!=0&&execution.Length!=7)throw new ArgumentException("Invalid public project/execution snapshot.");
+string project=context.Length==0?"No project open":context[2]+" ["+context[5]+"]";
+string state=execution.Length==0?"No execution":execution[1]+" "+execution[0].Substring(0,Math.Min(8,execution[0].Length));
+if(execution.Length!=0&&execution[6]!="")state+=" error: "+execution[6].Split('\n')[0];
+if(error!="")state="Error: "+error.Split('\n')[0];
+return new[]{project,state,"Open [O]","Start [S]","Stop [T]","Close [C]"};

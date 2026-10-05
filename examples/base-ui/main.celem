@@ -1,4 +1,5 @@
 function Example.BaseUI::Main () -> int {
+use view Confectory.BaseUI::ProjectPanel;
 provide Example.BaseUI::Main with Example.BaseUI::MainBody;
 provide Confectory.BaseUI::CreateView with Confectory.BaseUI::CreateViewBody;
 provide Confectory.BaseUI::Layout with Confectory.BaseUI::LayoutBody;
@@ -16,4 +17,8 @@ provide Confectory.RuntimeBase::DisposeOwner with Confectory.RuntimeBase::Dispos
 provide Confectory.BaseUI::ViewStatus with Confectory.BaseUI::ViewStatusBody;
 provide Confectory.BaseUI::Invalidate with Confectory.BaseUI::InvalidateBody;
 provide Confectory.BaseUI::Presented with Confectory.BaseUI::PresentedBody;
+provide Confectory.BaseUI::CreateProjectView with Confectory.BaseUI::CreateProjectViewBody;
+provide Confectory.BaseUI::ProjectLayout with Confectory.BaseUI::ProjectLayoutBody;
+provide Confectory.BaseUI::ProjectInput with Confectory.BaseUI::ProjectInputBody;
+provide Confectory.BaseUI::ProjectLabels with Confectory.BaseUI::ProjectLabelsBody;
 }

@@ -1,0 +1,4 @@
+implementation Confectory.BaseUI::ProjectInputBody for Confectory.BaseUI::ProjectInput (long[] view, int type, int x, int y, int code, int flags) -> int {
+import Confectory.BaseUI::ProjectLayout as Layout (long[]) -> int[];
+body common "ProjectInput.csbody";
+}

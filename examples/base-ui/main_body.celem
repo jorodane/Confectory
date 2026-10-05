@@ -15,5 +15,9 @@ import Confectory.RuntimeBase::DisposeOwner as DisposeOwner (string[]) -> void;
 import Confectory.BaseUI::ViewStatus as ViewStatus (long[]) -> long[];
 import Confectory.BaseUI::Invalidate as Invalidate (long[]) -> void;
 import Confectory.BaseUI::Presented as Presented (long[]) -> void;
+import Confectory.BaseUI::CreateProjectView as CreateProjectView (int, int) -> long[];
+import Confectory.BaseUI::ProjectLayout as ProjectLayout (long[]) -> int[];
+import Confectory.BaseUI::ProjectInput as ProjectInput (long[], int, int, int, int, int) -> int;
+import Confectory.BaseUI::ProjectLabels as ProjectLabels (string[], string[], string) -> string[];
 body common "main.csbody";
 }

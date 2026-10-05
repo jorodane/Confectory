@@ -15,7 +15,21 @@ public sealed class ProjectExecutionTests : TestCase
    Environment.SetEnvironmentVariable("CONFECTORY_PROJECT_EXECUTION_HOST",Path.Combine(Fixture.Repo,"targets","project-execution-host","bin","Release","net8.0","Confectory.ProjectExecutionHost.dll"));Environment.SetEnvironmentVariable("CONFECTORY_TEST_REPO",Fixture.Repo);
    var result=Processes.Run(Strings(first,"run"),timeoutSeconds:120);Equal(0,result.ExitCode);True(result.Stdout.Contains("ProjectExecution lifecycle PASS",StringComparison.Ordinal),result.Stderr);var cached=new Builder(project,"portable").Build();Equal(0,Strings(cached,"statistics","compiledImplementations").Length);
    File.AppendAllText(Path.Combine(pack,"Observe.csbody"),"\n// provider-only locality check\n");var changed=new Builder(project,"portable").Build();Sequence(new[]{"Confectory.ProjectExecution::ObserveBody"},Strings(changed,"statistics","compiledImplementations"));Equal(0,Strings(changed,"statistics","compiledContracts").Length);
-   var android=new Builder(project,"android").Build();var catalog=System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(Text(android,"publicCatalog")))!;
+   File.WriteAllText(Path.Combine(sample,"main.csbody"),"""
+   var session=calls.CreateSession.Invoke();
+   try
+   {
+    if(calls.Capabilities.Invoke()[0]!="android-app-surface")throw new Exception("Android capability selection");
+    string handle=calls.Launch.Invoke(session,"explicit.cpack","Project::Main","android");
+    var state=calls.Observe.Invoke(session,handle);
+    if(state[1]!="failed"||!state[6].Contains("not yet available"))throw new Exception("Unsupported native app launch must be explicit");
+    calls.Stop.Invoke(session,handle);
+    if(calls.Poll.Invoke(session).Length!=4||calls.Poll.Invoke(session).Length!=0)throw new Exception("Android terminal handle policy");
+   }
+   finally{calls.Dispose.Invoke(session);}
+   Console.WriteLine("Android execution capability managed probe PASS; native app launch unavailable");return 0;
+   """);
+   var android=new Builder(project,"android").Build();Output(android,"Android execution capability managed probe PASS; native app launch unavailable");var catalog=System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(Text(android,"publicCatalog")))!;
    foreach(string id in new[]{"Confectory.ProjectExecution::LaunchBody","Confectory.ProjectExecution::CapabilitiesBody"})Equal("android",catalog["implementations"]!.AsArray().Single(x=>x!["id"]!.GetValue<string>()==id)!["bodySelection"]!.GetValue<string>());
   }
   finally{Environment.SetEnvironmentVariable("CONFECTORY_PROJECT_EXECUTION_HOST",host);Environment.SetEnvironmentVariable("CONFECTORY_TEST_REPO",repo);}

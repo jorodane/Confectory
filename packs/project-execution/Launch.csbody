@@ -12,7 +12,7 @@ try
  process.Start();
  _=System.Threading.Tasks.Task.Run(async()=>
  {
-  string error="";var errors=System.Threading.Tasks.Task.Run(async()=>{string? line;while((line=await process.StandardError.ReadLineAsync())is not null){if(error.Length<4096)error+=line+"\n";}});
+  string error="";var errors=System.Threading.Tasks.Task.Run(async()=>{string? line;while((line=await process.StandardError.ReadLineAsync())is not null){if(error.Length<4096){string addition=line+"\n";error+=addition.Substring(0,Math.Min(4096-error.Length,addition.Length));}}});
   try
   {
    string? first=await process.StandardOutput.ReadLineAsync();

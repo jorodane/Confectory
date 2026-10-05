@@ -26,4 +26,11 @@ for(int cycle=0;cycle<20;cycle++)
  Check(calls.Read.Invoke(owner,models[0])[0]==3,"reopen lost model");
  calls.Unsubscribe.Invoke(reopened);calls.DisposeOwner.Invoke(owner);
 }
+var projectView=calls.CreateProjectView.Invoke(480,420);var panel=calls.ProjectLayout.Invoke(projectView);int px=panel[10]+2,py=panel[11]+2;
+Check(calls.ProjectInput.Invoke(projectView,1,px,py,0,0)==-1,"capture project button");Check(calls.ProjectInput.Invoke(projectView,2,0,0,0,0)==-1,"project outside release cancelled");
+calls.ProjectInput.Invoke(projectView,1,px,py,0,0);Check(calls.ProjectInput.Invoke(projectView,2,px,py,0,0)==1,"project Open release");
+calls.ProjectInput.Invoke(projectView,1,px,py,0,0);calls.ProjectInput.Invoke(projectView,9,0,0,0,0);Check(calls.ProjectInput.Invoke(projectView,2,px,py,0,0)==0,"project focus cancellation");
+Check(calls.ProjectInput.Invoke(projectView,5,0,0,83,1)==0&&calls.ProjectInput.Invoke(projectView,5,0,0,83,0)==2,"project keyboard repeat");
+calls.ProjectInput.Invoke(projectView,7,320,240,0,0);Check(calls.ProjectLayout.Invoke(projectView)[2]<=320,"responsive project layout");
+Check(calls.ProjectLabels.Invoke(Array.Empty<string>(),Array.Empty<string>(),"Explicit context required")[1].StartsWith("Error:"),"project errors visible");
 Console.WriteLine("BaseUI controls and lifetime PASS");return 0;

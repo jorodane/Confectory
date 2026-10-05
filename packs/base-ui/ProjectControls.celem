@@ -1,0 +1,10 @@
+module Confectory.BaseUI::ProjectControls {
+require Confectory.BaseUI::CreateProjectView (int, int) -> long[];
+default Confectory.BaseUI::CreateProjectView with Confectory.BaseUI::CreateProjectViewBody;
+require Confectory.BaseUI::ProjectLayout (long[]) -> int[];
+default Confectory.BaseUI::ProjectLayout with Confectory.BaseUI::ProjectLayoutBody;
+require Confectory.BaseUI::ProjectInput (long[], int, int, int, int, int) -> int;
+default Confectory.BaseUI::ProjectInput with Confectory.BaseUI::ProjectInputBody;
+require Confectory.BaseUI::ProjectLabels (string[], string[], string) -> string[];
+default Confectory.BaseUI::ProjectLabels with Confectory.BaseUI::ProjectLabelsBody;
+}

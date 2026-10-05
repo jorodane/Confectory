@@ -19,4 +19,8 @@ element Main function "main.celem";
 element MainBody implementation "main_body.celem";
 element FixedUpdate function "FixedUpdate.celem";
 element FixedUpdateBody implementation "FixedUpdateBody.celem";
+registry Confectory.ProjectExecution "../../packs/project-execution/pack.cpack";
+dependency Confectory.ProjectExecution version "0.1.0";
+registry Confectory.ProjectManager "../../packs/project-manager/pack.cpack";
+dependency Confectory.ProjectManager version "0.1.0";
 }

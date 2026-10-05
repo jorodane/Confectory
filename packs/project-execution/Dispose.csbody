@@ -1,6 +1,8 @@
 if(session.Length!=2)throw new ArgumentException("Invalid session.");if(session[1]=="disposed")return;
 if(AppDomain.CurrentDomain.GetData(session[0]) is not System.Collections.Generic.Dictionary<string,object[]> records)throw new InvalidOperationException("Unknown execution session.");
 string[] handles;lock(records)handles=System.Linq.Enumerable.ToArray(records.Keys);
-foreach(string handle in handles)calls.Stop.Invoke(session,handle);
+var failures=new System.Collections.Generic.List<Exception>();
+foreach(string handle in handles)try{calls.Stop.Invoke(session,handle);}catch(Exception ex){failures.Add(ex);}
+if(failures.Count!=0)throw new AggregateException("Some owned executions did not stop; session retained for retry.",failures);
 lock(records){foreach(var record in records.Values)if(record[1] is System.Diagnostics.Process p)p.Dispose();records.Clear();}
 AppDomain.CurrentDomain.SetData(session[0],null);session[1]="disposed";

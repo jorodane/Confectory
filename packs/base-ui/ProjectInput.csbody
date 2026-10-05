@@ -1,0 +1,7 @@
+if(view.Length!=3)throw new ArgumentException("Invalid project View.");if(type==7){if(x>0&&y>0){view[0]=x;view[1]=y;}return 0;}
+if(type is 9 or 11){view[2]=0;return 0;}
+int Hit(){var rects=calls.Layout.Invoke(view);for(int i=2;i<6;i++){int j=i*5;if(x>=rects[j]&&x<rects[j]+rects[j+2]&&y>=rects[j+1]&&y<rects[j+1]+rects[j+3])return i-1;}return 0;}
+if(type==1){view[2]=Hit();return view[2]!=0?-1:0;}
+if(type==2){int pressed=(int)view[2];view[2]=0;return pressed!=0?(Hit()==pressed?pressed:-1):0;}
+if(type==5&&flags==0)return code switch{79 or 111=>1,83 or 115=>2,84 or 116=>3,67 or 99=>4,_=>0};
+return 0;

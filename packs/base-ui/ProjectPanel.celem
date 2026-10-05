@@ -1,0 +1,1 @@
+view Confectory.BaseUI::ProjectPanel { module Confectory.BaseUI::ProjectControls; value nodeIDs = "project,status,open,start,stop,close"; value model = "public project context and execution snapshots; no table ownership"; }

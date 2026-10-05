@@ -12,6 +12,23 @@ Console.CancelKeyPress+=cancelHandler;
 var owners=new string[2][];var models=new int[2][];var subscriptions=new string[2][][];var views=new long[2][];
 var cameras=new double[2][];var queues=new double[2][];var displayed=new double[2][];
 var held=new bool[2,4];var drag=new bool[2];var dragX=new int[2];var dragY=new int[2];
+var projectManagers=new string[2][];var projectViews=new long[2][];var projectContexts=new string[]{"",""};var projectExecutions=new string[]{"",""};var projectStates=new string[]{"",""};
+var projectErrors=new string[]{"",""};
+string projectRoot=Environment.GetEnvironmentVariable("CONFECTORY_PROJECT_ROOT")??Environment.CurrentDirectory;
+string[] projectPaths={Environment.GetEnvironmentVariable("CONFECTORY_PROJECT_A")??System.IO.Path.Combine(projectRoot,"examples","projects","a","project.cpack"),Environment.GetEnvironmentVariable("CONFECTORY_PROJECT_B")??System.IO.Path.Combine(projectRoot,"examples","projects","b","project.cpack")};
+void ProjectAction(int view,int action)
+{
+ try
+ {
+  projectErrors[view]="";var manager=projectManagers[view];var executions=calls.ProjectExecutions.Invoke(manager);
+  if(action==1){projectContexts[view]=calls.ProjectOpen.Invoke(manager,projectPaths[view]);calls.ProjectSelect.Invoke(manager,projectContexts[view]);}
+  if(action==2){if(projectContexts[view]=="")throw new InvalidOperationException("Open project data first.");if(projectExecutions[view]!=""&&calls.ExecutionObserve.Invoke(executions,projectExecutions[view])[1] is "running" or "building")return;projectExecutions[view]=calls.ProjectLaunch.Invoke(manager,projectContexts[view],"",OperatingSystem.IsWindows()?"windows":"linux");}
+  if(action==3&&projectExecutions[view]!="")calls.ExecutionStop.Invoke(executions,projectExecutions[view]);
+  if(action==4&&projectContexts[view]!="")calls.ProjectClose.Invoke(manager,projectContexts[view]);
+  calls.Invalidate.Invoke(views[view]);Console.WriteLine("project action view="+view+" action="+action+" context="+(projectContexts[view]==""?"none":calls.ProjectContext.Invoke(manager,projectContexts[view])[5])+" execution="+(projectExecutions[view]==""?"none":calls.ExecutionObserve.Invoke(executions,projectExecutions[view])[1]));
+ }
+ catch(Exception ex){projectErrors[view]=ex.Message;Console.Error.WriteLine("Project action view="+view+": "+ex.Message);calls.Invalidate.Invoke(views[view]);}
+}
 void Connect(int view)
 {
  subscriptions[view]=new[]{calls.Subscribe.Invoke(owners[view],models[view][0],"Confectory.BaseUI::Count"),calls.Subscribe.Invoke(owners[view],models[view][1],"Confectory.BaseUI::Toggle")};
@@ -37,10 +54,11 @@ void Input(int view,int type,int x,int y,int code,int flags)
 {
  if(type==8){Disconnect(view);calls.Close.Invoke(surfaces,view);Console.WriteLine("closed "+view);return;}
  if(!IsOpen(view))return;
+ int projectAction=calls.ProjectInput.Invoke(projectViews[view],type,x,y,code,flags);if(projectAction>0)ProjectAction(view,projectAction);
  calls.Input.Invoke(owners[view],models[view],views[view],type,x,y,code,flags);
  if(type==10)calls.Invalidate.Invoke(views[view]);
  if(type==1){var world=calls.Pick.Invoke(displayed[view],x,y);_ = world;}
- if(type==1&&y>250){drag[view]=true;dragX[view]=x;dragY[view]=y;}
+ if(type==1&&y>250&&projectAction==0){drag[view]=true;dragX[view]=x;dragY[view]=y;}
  if(type==3&&drag[view]){calls.QueueCameraIntent.Invoke(queues[view],x-dragX[view],y-dragY[view],1);dragX[view]=x;dragY[view]=y;}
  if(type==2||type==9||type==11)drag[view]=false;
  if(type==4)calls.QueueCameraIntent.Invoke(queues[view],0,0,Math.Pow(1.1,code/120.0));
@@ -54,6 +72,7 @@ try
 {
  for(int v=0;v<2;v++)
  {
+  projectManagers[v]=calls.ProjectCreateManager.Invoke(64);projectViews[v]=calls.CreateProjectView.Invoke(480,420);
   owners[v]=calls.CreateOwner.Invoke(8);models[v]=new[]{calls.CreateInstance.Invoke(owners[v],"Confectory.BaseUI::Count"),calls.CreateInstance.Invoke(owners[v],"Confectory.BaseUI::Toggle")};
   views[v]=calls.CreateView.Invoke(480,420);cameras[v]=new double[]{0,0,1};queues[v]=new double[]{0,0,1};displayed[v]=(double[])cameras[v].Clone();Connect(v);
  }
@@ -83,8 +102,12 @@ try
   for(int step=0;step<(int)timing[2];step++)Dispatch("fixed",id=>calls.FixedUpdate.Invoke(simulation,timing[7]));
   if(timing[0]!=0)Dispatch("state",id=>
   {
-   for(int v=0;v<2;v++)if(IsOpen(v))
+   for(int v=0;v<2;v++)
    {
+    var executionSession=calls.ProjectExecutions.Invoke(projectManagers[v]);
+    if(projectExecutions[v]!=""){var execution=calls.ExecutionObserve.Invoke(executionSession,projectExecutions[v]);if(projectStates[v]!=execution[1]){projectStates[v]=execution[1];calls.Invalidate.Invoke(views[v]);Console.WriteLine("execution view="+v+" state="+execution[1]+" handle="+execution[0]);}}
+    foreach(string notice in calls.ExecutionPoll.Invoke(executionSession))_ = notice;
+    if(!IsOpen(v))continue;
     var a=calls.RuntimePoll.Invoke(owners[v],subscriptions[v][0]);var b=calls.RuntimePoll.Invoke(owners[v],subscriptions[v][1]);
     if(a.Length!=0||b.Length!=0){var count=calls.Read.Invoke(owners[v],models[v][0]);var toggle=calls.Read.Invoke(owners[v],models[v][1]);calls.UpdateView.Invoke(views[v],count[0],count[1],toggle[0],toggle[1]);Console.WriteLine("view "+v+" count="+count[0]+" toggle="+toggle[0]);}
     calls.QueueCameraIntent.Invoke(queues[v],((held[v,1]?1:0)-(held[v,0]?1:0))*100*timing[5],((held[v,3]?1:0)-(held[v,2]?1:0))*100*timing[5],1);
@@ -110,7 +133,9 @@ try
     else if(timing[1]!=0&&(calls.ViewStatus.Invoke(views[v])[2]!=0||now<0.1))
     {
      displayed[v]=(double[])cameras[v].Clone(); // same immutable-by-convention frame for labels/render/picking
-     calls.Draw.Invoke(surfaces,v,calls.Layout.Invoke(views[v]),calls.Labels.Invoke(views[v],displayed[v]));calls.Presented.Invoke(views[v]);
+     calls.Draw.Invoke(surfaces,v,calls.Layout.Invoke(views[v]),calls.Labels.Invoke(views[v],displayed[v]));var context=projectContexts[v]==""?Array.Empty<string>():calls.ProjectContext.Invoke(projectManagers[v],projectContexts[v]);var execution=projectExecutions[v]==""?Array.Empty<string>():calls.ExecutionObserve.Invoke(calls.ProjectExecutions.Invoke(projectManagers[v]),projectExecutions[v]);
+     var size=calls.ViewStatus.Invoke(views[v]);calls.ProjectInput.Invoke(projectViews[v],7,(int)size[0],(int)size[1],0,0);
+     calls.Draw.Invoke(surfaces,v,calls.ProjectLayout.Invoke(projectViews[v]),calls.ProjectLabels.Invoke(context,execution,projectErrors[v]));calls.Presented.Invoke(views[v]);
     }
    }
   });
@@ -127,6 +152,7 @@ finally
  for(int v=0;v<2;v++)
  {
   if(subscriptions[v] is not null)foreach(var s in subscriptions[v])Cleanup(()=>calls.Unsubscribe.Invoke(s));
+  if(projectManagers[v] is not null)Cleanup(()=>calls.ProjectDispose.Invoke(projectManagers[v]));
   if(owners[v] is not null)Cleanup(()=>calls.DisposeOwner.Invoke(owners[v]));
  }
  if(surfaces.Length>0)Cleanup(()=>calls.Close.Invoke(surfaces,-1));

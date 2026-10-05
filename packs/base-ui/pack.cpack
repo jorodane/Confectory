@@ -24,4 +24,14 @@ element Invalidate function "Invalidate.celem";
 element InvalidateBody implementation "InvalidateBody.celem";
 element Presented function "Presented.celem";
 element PresentedBody implementation "PresentedBody.celem";
+element CreateProjectView function "CreateProjectView.celem";
+element CreateProjectViewBody implementation "CreateProjectViewBody.celem";
+element ProjectLayout function "ProjectLayout.celem";
+element ProjectLayoutBody implementation "ProjectLayoutBody.celem";
+element ProjectInput function "ProjectInput.celem";
+element ProjectInputBody implementation "ProjectInputBody.celem";
+element ProjectLabels function "ProjectLabels.celem";
+element ProjectLabelsBody implementation "ProjectLabelsBody.celem";
+element ProjectControls module "ProjectControls.celem";
+element ProjectPanel view "ProjectPanel.celem";
 }
