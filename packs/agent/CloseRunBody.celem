@@ -1,4 +1,5 @@
 implementation Confectory.Agent::CloseRunBody for Confectory.Agent::CloseRun (string execution) -> void {
 import Confectory.Agent::Cancel as Cancel (string) -> void;
+import Confectory.Agent::Provider as Provider (string, string, string, string) -> string;
 body common "CloseRun.csbody";
 }
