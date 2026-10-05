@@ -1,3 +1,4 @@
 implementation Confectory.FileStream::CopySourcesBody for Confectory.FileStream::CopySources (string root, string destination) -> void {
+import Confectory.FileStream::LeasePath as LeasePath (string) -> string;
 body common "CopySources.csbody";
 }

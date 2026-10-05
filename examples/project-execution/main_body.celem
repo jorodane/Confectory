@@ -7,5 +7,6 @@ import Confectory.ProjectExecution::Stop as Stop (string[], string) -> void;
 import Confectory.ProjectExecution::Poll as Poll (string[]) -> string[];
 import Confectory.ProjectExecution::Dispose as Dispose (string[]) -> void;
 import Confectory.ProjectExecution::DescribeProject as DescribeProject (string) -> string[];
+import Confectory.FileStream::LeasePath as LeasePath (string) -> string;
 body common "main.csbody";
 }

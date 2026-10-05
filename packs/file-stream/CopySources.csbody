@@ -18,4 +18,7 @@ void Copy(string source,string target)
   Copy(directory,System.IO.Path.Combine(target,name));
  }
 }
-try{Copy(root,destination);}catch{if(System.IO.Directory.Exists(destination))System.IO.Directory.Delete(destination,true);throw;}
+string leasePath=calls.LeasePath.Invoke(root);
+for(string? current=leasePath;current is not null&&current.Length>=root.Length;current=System.IO.Path.GetDirectoryName(current))if((System.IO.File.Exists(current)||System.IO.Directory.Exists(current))&&(System.IO.File.GetAttributes(current)&System.IO.FileAttributes.ReparsePoint)!=0)throw new ArgumentException("Source lease must remain in owned storage.");
+System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(leasePath)!);System.IO.FileStream? lease=null;var watch=System.Diagnostics.Stopwatch.StartNew();while(lease is null)try{lease=new System.IO.FileStream(leasePath,System.IO.FileMode.OpenOrCreate,System.IO.FileAccess.ReadWrite,System.IO.FileShare.None);}catch(System.IO.IOException){if(watch.ElapsedMilliseconds>=5000)throw new TimeoutException("Source lease busy; retain drafts and retry.");System.Threading.Thread.Sleep(10);}
+using(lease)try{Copy(root,destination);}catch{if(System.IO.Directory.Exists(destination))System.IO.Directory.Delete(destination,true);throw;}

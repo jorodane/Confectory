@@ -10,4 +10,6 @@ target portable Confectory.Build.DotNet::Portable;
 target android Confectory.Build.DotNet::Portable;
 element Main function "main.celem";
 element MainBody implementation "main_body.celem";
+registry Confectory.FileStream "../../packs/file-stream/pack.cpack";
+dependency Confectory.FileStream version "0.1.0";
 }

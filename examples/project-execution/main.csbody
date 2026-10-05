@@ -10,6 +10,12 @@ try
 {
  Assert(calls.DescribeProject.Invoke(project)[0]=="Example.ProjectA","Description");
  bool nullRejected=false;try{calls.Launch.Invoke(session,"","","portable");}catch(ArgumentException){nullRejected=true;}Assert(nullRejected,"No implicit project");
+ string leasePath=calls.LeasePath.Invoke(System.IO.Path.GetDirectoryName(project)!);System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(leasePath)!);string held;
+ using(var lease=new System.IO.FileStream(leasePath,System.IO.FileMode.OpenOrCreate,System.IO.FileAccess.ReadWrite,System.IO.FileShare.None))
+ {
+  held=calls.Launch.Invoke(session,project,"Example.ProjectA::Main","portable");System.Threading.Thread.Sleep(500);Assert(calls.Observe.Invoke(session,held)[1]=="building","Execution build honors public source lease");
+ }
+ Wait(held,"running");calls.Stop.Invoke(session,held);calls.Poll.Invoke(session);
  for(int cycle=0;cycle<3;cycle++)
  {
   string a=calls.Launch.Invoke(session,project,"Example.ProjectA::Main","portable"),b=calls.Launch.Invoke(session,project,"Example.ProjectA::Main","portable");

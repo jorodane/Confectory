@@ -7,7 +7,7 @@ try
 {
  string tool=Environment.GetEnvironmentVariable("CONFECTORY_PROJECT_EXECUTION_HOST")??throw new InvalidOperationException("Set CONFECTORY_PROJECT_EXECUTION_HOST to the owned host DLL.");
  var start=new System.Diagnostics.ProcessStartInfo(Environment.GetEnvironmentVariable("CONFECTORY_DOTNET")??"dotnet"){UseShellExecute=false,RedirectStandardOutput=true,RedirectStandardError=true};
- foreach(string arg in new[]{tool,"run",project,entry,target})start.ArgumentList.Add(arg);
+ foreach(string arg in new[]{tool,"run",project,entry,target,calls.LeasePath.Invoke(System.IO.Path.GetDirectoryName(project)!)})start.ArgumentList.Add(arg);
  var process=new System.Diagnostics.Process{StartInfo=start};lock(records)record[1]=process;
  process.Start();
  _=System.Threading.Tasks.Task.Run(async()=>

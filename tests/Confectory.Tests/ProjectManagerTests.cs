@@ -8,7 +8,8 @@ public sealed class ProjectManagerTests : TestCase
   string sample=Path.Combine(f.Root,"manager-sample"),pack=Path.Combine(f.Root,"packs","project-execution");
   Fixture.CopyTree(Path.Combine(Fixture.Repo,"examples","project-manager"),sample);Fixture.CopyTree(Path.Combine(Fixture.Repo,"packs","project-execution"),pack);
   Fixture.CopyTree(Path.Combine(Fixture.Repo,"packs","project-manager"),Path.Combine(f.Root,"packs","project-manager"));
-  string project=Path.Combine(sample,"project.cpack");File.WriteAllText(project,File.ReadAllText(project).Replace("../../packs/project-execution/pack.cpack","../packs/project-execution/pack.cpack",StringComparison.Ordinal).Replace("../../packs/project-manager/pack.cpack","../packs/project-manager/pack.cpack",StringComparison.Ordinal).Replace("../../targets/dotnet/pack.cpack","../target/pack.cpack",StringComparison.Ordinal));
+  Fixture.CopyTree(Path.Combine(Fixture.Repo,"packs","file-stream"),Path.Combine(f.Root,"packs","file-stream"));
+  string project=Path.Combine(sample,"project.cpack");File.WriteAllText(project,File.ReadAllText(project).Replace("../../packs/","../packs/",StringComparison.Ordinal).Replace("../../targets/dotnet/pack.cpack","../target/pack.cpack",StringComparison.Ordinal));
   var first=new Builder(project,"portable").Build();
   string? host=Environment.GetEnvironmentVariable("CONFECTORY_PROJECT_EXECUTION_HOST"),repo=Environment.GetEnvironmentVariable("CONFECTORY_TEST_REPO");
   try

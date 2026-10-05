@@ -10,11 +10,12 @@ try
   if(manifest.Kind!="project")throw new ArgumentException("A ProjectPack is required.");
   Console.WriteLine(JsonSerializer.Serialize(new[]{manifest.Namespace,manifest.Entry??"",string.Join(",",manifest.Targets.Keys.Order(StringComparer.Ordinal))}));return 0;
  }
- if(args.Length!=4||args[0]!="run")throw new ArgumentException("Usage: describe ProjectPack | run ProjectPack entry target");
+ if((args.Length!=4&&args.Length!=5)||args[0]!="run")throw new ArgumentException("Usage: describe ProjectPack | run ProjectPack entry target [sourceLeasePath]");
  string project=Path.GetFullPath(args[1]);if(string.IsNullOrWhiteSpace(args[2])||string.IsNullOrWhiteSpace(args[3]))throw new ArgumentException("Explicit entry and target required.");
  string folder=Path.Combine(Path.GetDirectoryName(project)!,".confectory");Directory.CreateDirectory(folder);
+ string leasePath=args.Length==5?Path.GetFullPath(args[4]):Path.Combine(folder,"execution-build.lock");Directory.CreateDirectory(Path.GetDirectoryName(leasePath)!);
  FileStream? lease=null;var watch=Stopwatch.StartNew();
- while(lease is null){try{lease=new FileStream(Path.Combine(folder,"execution-build.lock"),FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None);}catch(IOException){if(watch.Elapsed>TimeSpan.FromMinutes(2))throw new TimeoutException("Build lease timeout.");Thread.Sleep(20);}}
+ while(lease is null){try{lease=new FileStream(leasePath,FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None);}catch(IOException){if(watch.Elapsed>TimeSpan.FromMinutes(2))throw new TimeoutException("Build lease timeout.");Thread.Sleep(20);}}
  string[] command;
  using(lease)
  {

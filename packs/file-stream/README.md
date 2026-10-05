@@ -23,3 +23,5 @@ dotnet tests/Confectory.Tests/bin/Release/net8.0/Confectory.Tests.dll FileStream
 ```
 
 This increment is a foundation for Checkpoint 3, not a completed editing milestone.
+
+CopySources holds the public source lease while taking its candidate copy. LeasePath has an ordinary owning-pack default provider; consumers may still select compatible providers. ProjectExecution Launch passes this public path to its host's build lease, so participating source Confirm/copy/execution build operations coordinate without Core policy. Readable snapshots remain non-locking reads; external nonparticipating writes still require baseline conflict checks.
