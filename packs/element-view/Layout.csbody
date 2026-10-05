@@ -1,0 +1,3 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.ElementView."+view) as object[]??throw new ObjectDisposedException("ElementView");
+int w=(int)state[3],h=(int)state[4];int inset=Math.Min(20,Math.Max(0,w/20)),width=Math.Max(1,w-2*inset);int top=Math.Min(230,Math.Max(0,h/3)),row=Math.Max(1,Math.Min(24,Math.Max(1,h-150-top)/14));var result=new int[14*5];
+for(int i=0;i<14;i++){int j=i*5;result[j]=inset;result[j+1]=top+i*row;result[j+2]=width;result[j+3]=row;result[j+4]=i<4?0x242838:(int)state[7]==i-3?0x4868A0:0x344878;}return result;

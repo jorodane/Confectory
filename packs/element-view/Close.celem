@@ -1,0 +1,1 @@
+function Confectory.ElementView::Close (string view) -> void {description "Dispose borrowed subscription/View; workspace remains active.";}

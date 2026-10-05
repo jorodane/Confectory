@@ -1,0 +1,1 @@
+function Confectory.ElementView::Input (string view, int type, int x, int y, int code, int flags) -> int {description "Return View command intent; no schema/file/compile work in input processing.";}

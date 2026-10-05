@@ -1,0 +1,1 @@
+function Confectory.ElementView::Poll (string view) -> bool {description "Update element projection only on scoped revision or aggregate membership change.";}

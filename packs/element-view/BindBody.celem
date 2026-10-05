@@ -1,0 +1,6 @@
+implementation Confectory.ElementView::BindBody for Confectory.ElementView::Bind (string view, string id) -> void {
+import Confectory.EditWorkspace::Subscribe as Subscribe (string, string) -> string[];
+import Confectory.EditWorkspace::Read as Read (string, string) -> string[];
+import Confectory.EditWorkspace::Unsubscribe as Unsubscribe (string[]) -> void;
+body common "Bind.csbody";
+}

@@ -1,0 +1,3 @@
+implementation Confectory.ElementView::LabelsBody for Confectory.ElementView::Labels (string view, string status) -> string[] {
+body common "Labels.csbody";
+}

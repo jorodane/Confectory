@@ -1,0 +1,1 @@
+if(AppDomain.CurrentDomain.GetData("Confectory.ElementView."+view) is not object[] state)return;calls.Unsubscribe.Invoke((string[])state[5]);AppDomain.CurrentDomain.SetData("Confectory.ElementView."+view,null);

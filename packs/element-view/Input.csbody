@@ -1,0 +1,5 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.ElementView."+view) as object[]??throw new ObjectDisposedException("ElementView");
+if(type==7){if(x>0&&y>0){state[3]=x;state[4]=y;}return 0;}if(type is 9 or 11){state[7]=0;return 0;}
+int Hit(){var rect=calls.Layout.Invoke(view);for(int i=4;i<14;i++){int j=i*5;if(x>=rect[j]&&x<rect[j]+rect[j+2]&&y>=rect[j+1]&&y<rect[j+1]+rect[j+3])return i-3;}return 0;}
+if(type==1){state[7]=Hit();return (int)state[7]!=0?-1:0;}if(type==2){int pressed=(int)state[7];state[7]=0;return pressed!=0?(Hit()==pressed?pressed:-1):0;}
+if(type==5&&flags==0)return code switch{65 or 97=>1,78 or 110=>2,73 or 105=>3,74 or 106=>4,69 or 101=>5,86 or 118=>6,68 or 100=>7,70 or 102=>8,71 or 103=>9,87 or 119=>10,_=>0};return 0;

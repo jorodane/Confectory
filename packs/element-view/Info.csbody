@@ -1,0 +1,2 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.ElementView."+view) as object[]??throw new ObjectDisposedException("ElementView");
+return new[]{(string)state[0],(string)state[1],(string)state[2],view};

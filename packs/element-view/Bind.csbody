@@ -1,0 +1,2 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.ElementView."+view) as object[]??throw new ObjectDisposedException("ElementView");
+var token=calls.Subscribe.Invoke((string)state[0],id);var snapshot=calls.Read.Invoke((string)state[0],id);calls.Unsubscribe.Invoke((string[])state[5]);state[1]=id;state[5]=token;state[6]=snapshot;state[7]=0;

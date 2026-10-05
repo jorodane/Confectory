@@ -1,0 +1,1 @@
+function Confectory.ElementView::Layout (string view) -> int[] {description "Reusable stable render slots for card/table and authoring controls.";}

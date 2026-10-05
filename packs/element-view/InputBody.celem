@@ -1,0 +1,4 @@
+implementation Confectory.ElementView::InputBody for Confectory.ElementView::Input (string view, int type, int x, int y, int code, int flags) -> int {
+import Confectory.ElementView::Layout as Layout (string) -> int[];
+body common "Input.csbody";
+}

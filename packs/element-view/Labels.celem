@@ -1,0 +1,1 @@
+function Confectory.ElementView::Labels (string view, string status) -> string[] {description "Project borrowed IDs/draft snapshots without table-owned data semantics.";}

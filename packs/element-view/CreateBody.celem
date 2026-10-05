@@ -1,0 +1,6 @@
+implementation Confectory.ElementView::CreateBody for Confectory.ElementView::Create (string workspace, string id, string mode, int width, int height) -> string {
+import Confectory.EditWorkspace::Subscribe as Subscribe (string, string) -> string[];
+import Confectory.EditWorkspace::Read as Read (string, string) -> string[];
+import Confectory.EditWorkspace::List as List (string) -> string[];
+body common "Create.csbody";
+}

@@ -1,0 +1,1 @@
+function Confectory.ElementView::Info (string view) -> string[] {description "Return borrowed workspace,selected ID,mode and native-independent View identity.";}

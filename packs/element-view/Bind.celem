@@ -1,0 +1,1 @@
+function Confectory.ElementView::Bind (string view, string id) -> void {description "Change only View selection/subscription; models stay workspace-owned.";}

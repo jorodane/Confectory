@@ -1,0 +1,3 @@
+implementation Confectory.ElementView::LayoutBody for Confectory.ElementView::Layout (string view) -> int[] {
+body common "Layout.csbody";
+}

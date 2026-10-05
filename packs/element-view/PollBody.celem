@@ -1,0 +1,5 @@
+implementation Confectory.ElementView::PollBody for Confectory.ElementView::Poll (string view) -> bool {
+import Confectory.EditWorkspace::Poll as Poll (string[]) -> string[];
+import Confectory.EditWorkspace::List as List (string) -> string[];
+body common "Poll.csbody";
+}

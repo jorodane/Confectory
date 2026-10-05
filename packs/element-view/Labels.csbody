@@ -1,0 +1,4 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.ElementView."+view) as object[]??throw new ObjectDisposedException("ElementView");
+var snapshot=(string[])state[6];string body=snapshot[3].Replace("\r","").Replace("\n"," ");if(body.Length>64)body=body[..64];
+string aggregate=(string)state[2]=="table"?"Table ID | kind | state ("+((string[])state[8]).Length+" rows)":"Card element";
+return new[]{aggregate+" | "+snapshot[1]+" | "+snapshot[6],snapshot[0],body,status,"Attach current project / restore [A]","Create draft [N]; cycle kind [K]","Count +1 [I]","Next element [J]","Edit functional Main body [E]","Build/run draft preview [V]","Save local diffs [D]","Confirm selected unit [F]","Confirm all drafts [G]","Save, owner close / reopen [W]"};

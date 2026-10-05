@@ -1,0 +1,3 @@
+implementation Confectory.ElementView::InfoBody for Confectory.ElementView::Info (string view) -> string[] {
+body common "Info.csbody";
+}

@@ -1,0 +1,3 @@
+if(mode is not ("card" or "table")||width<1||height<1)throw new ArgumentException("Card/table mode and positive dimensions required.");
+var token=calls.Subscribe.Invoke(workspace,id);var snapshot=calls.Read.Invoke(workspace,id);string view=Guid.NewGuid().ToString("N");
+AppDomain.CurrentDomain.SetData("Confectory.ElementView."+view,new object[]{workspace,id,mode,width,height,token,snapshot,0,calls.List.Invoke(workspace)});return view;

@@ -1,0 +1,3 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.ElementView."+view) as object[]??throw new ObjectDisposedException("ElementView");
+bool changed=false;var snapshot=calls.Poll.Invoke((string[])state[5]);if(snapshot.Length!=0){state[6]=snapshot;changed=true;}
+var ids=calls.List.Invoke((string)state[0]);if(!System.Linq.Enumerable.SequenceEqual(ids,(string[])state[8])){state[8]=ids;changed=true;}return changed;
