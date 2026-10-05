@@ -78,6 +78,7 @@ void PollAuthorJob()
  if(result[0]=="draft-applied"&&textBuffers[view]!=""){calls.SourceEditorClose.Invoke(textBuffers[view]);textBuffers[view]="";}
  if(result[0]!="error")
  {
+  if(elementViews[view]!=""&&calls.ElementViewInfo.Invoke(elementViews[view])[0]!=result[1]){calls.ElementViewClose.Invoke(elementViews[view]);elementViews[view]="";}
   ownedWorkspaces.Add(result[1]);workspaces[view]=result[1];elementSelections[view]=result[2];if(elementViews[view]=="")ConnectElement(view);else if(calls.ElementViewInfo.Invoke(elementViews[view])[1]!=result[2])calls.ElementViewBind.Invoke(elementViews[view],result[2]);
   if(result[0]=="restored")for(int v=0;v<2;v++)if(v!=view&&resetElementViews[v]){workspaces[v]=result[1];ConnectElement(v);elementStatus[v]="Shared workspace restored";}
  }
