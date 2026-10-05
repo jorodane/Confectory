@@ -3,5 +3,6 @@ import Confectory.MultiPlay::Connect as Connect (string, string) -> string;
 import Confectory.EditWorkspace::Open as WorkspaceOpen (string, string, string) -> string;
 import Confectory.Save::Restore as Restore (string) -> void;
 import Confectory.MultiPlay::Disconnect as Drop (string) -> void;
+import Confectory.MultiPlay::Exchange as Exchange (string, string) -> string;
 body common "Open.csbody";
 }
