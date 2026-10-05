@@ -4,6 +4,7 @@ lock(record)
 {
  if(record["state"]!.GetValue<string>()=="applied")return new[]{"applied",transaction};
  string root=state["root"]!.GetValue<string>(),project=state["project"]!.GetValue<string>();string candidate=System.IO.Path.Combine(root,".confectory","pin-validation",transaction);
+ bool SourceMatches(){if(record["sourceBaselines"] is not System.Text.Json.Nodes.JsonArray baselines)return true;foreach(var item in baselines)if(calls.Snapshot.Invoke(System.IO.Path.Combine(root,item!["path"]!.GetValue<string>()))[2]!=item["hash"]!.GetValue<string>())return false;return true;}
  bool Active(){lock(state)return state["active"]!.GetValue<bool>();}
  void Journal(){string snapshot=record.ToJsonString();lock(state)state["snapshots"]![transaction]=snapshot;calls.WriteAtomic.Invoke(System.IO.Path.Combine(root,".confectory","pack-manager",transaction+".json"),snapshot);}
  calls.BeginScope.Invoke(session+":"+transaction);
@@ -12,7 +13,7 @@ lock(record)
   if(!Active())throw new OperationCanceledException("Pack session canceled.");
   record["state"]="validating";record["error"]="";Journal();calls.CopySources.Invoke(root,candidate);string copied=System.IO.Path.Combine(candidate,System.IO.Path.GetFileName(project));calls.WriteAtomic.Invoke(copied,record["manifest"]!.GetValue<string>());calls.WriteAtomic.Invoke(copied,calls.Prepare.Invoke(project,copied));calls.Validate.Invoke(copied,target);
   if(!Active())throw new OperationCanceledException("Pack session canceled.");
-  if(calls.Snapshot.Invoke(project)[2]!=record["baseline"]!.GetValue<string>()||calls.Snapshot.Invoke(System.IO.Path.Combine(root,".pack-lock.json"))[2]!=record["lockBaseline"]!.GetValue<string>()){record["state"]="conflict";record["error"]="Registration changed before hooks; no hooks dispatched.";Journal();return new[]{"conflict",transaction,record["error"]!.GetValue<string>()};}
+  if(!SourceMatches()||calls.Snapshot.Invoke(project)[2]!=record["baseline"]!.GetValue<string>()||calls.Snapshot.Invoke(System.IO.Path.Combine(root,".pack-lock.json"))[2]!=record["lockBaseline"]!.GetValue<string>()){record["state"]="conflict";record["error"]="Registration changed before hooks; no hooks dispatched.";Journal();return new[]{"conflict",transaction,record["error"]!.GetValue<string>()};}
   var hooks=new System.Collections.Generic.List<System.Text.Json.Nodes.JsonObject>();lock(state)foreach(var item in state["hooks"]!.AsArray())if(item!["operation"]!.GetValue<string>()==record["operation"]!.GetValue<string>())hooks.Add(item.AsObject());
   hooks.Sort((a,b)=>{int priority=a["priority"]!.GetValue<int>().CompareTo(b["priority"]!.GetValue<int>());return priority!=0?priority:StringComparer.Ordinal.Compare(a["id"]!.GetValue<string>(),b["id"]!.GetValue<string>());});
   record["state"]="hooks";Journal();
@@ -24,6 +25,7 @@ lock(record)
    record["completed"]!.AsArray().Add(id);Journal();
   }
   if(!Active())throw new OperationCanceledException("Pack session canceled before activation.");
+  if(!SourceMatches()){record["state"]="conflict";record["error"]="Owned source changed during validation/hooks; selection retained.";Journal();return new[]{"conflict",transaction,record["error"]!.GetValue<string>()};}
   var result=calls.Commit.Invoke(root,new[]{System.IO.Path.GetFileName(project),".pack-lock.json"},new[]{record["baseline"]!.GetValue<string>(),record["lockBaseline"]!.GetValue<string>()},new[]{record["manifest"]!.GetValue<string>(),record["catalog"]!.GetValue<string>()});
   if(result[0]!="applied"){record["state"]="conflict";record["error"]=string.Join("|",result);Journal();return result;}
   record["state"]="applied";try{Journal();return new[]{"applied",transaction};}catch(Exception journal){return new[]{"applied",transaction,"Journal warning: "+journal.Message};}
