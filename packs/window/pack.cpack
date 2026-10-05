@@ -1,0 +1,4 @@
+pack Confectory.Window version "0.1.0" {
+    element Open function "open.celem";
+    element Native implementation "native.celem";
+}

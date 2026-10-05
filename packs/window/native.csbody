@@ -1,0 +1,113 @@
+// Native APIs are owned by this implementation pack; the build core is unchanged.
+[System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode, SetLastError = true)]
+static extern IntPtr CreateWindowExW(uint exStyle, string className, string title, uint style, int x, int y, int width, int height, IntPtr parent, IntPtr menu, IntPtr instance, IntPtr parameter);
+[System.Runtime.InteropServices.DllImport("user32.dll")]
+static extern bool IsWindow(IntPtr window);
+[System.Runtime.InteropServices.DllImport("user32.dll")]
+static extern bool DestroyWindow(IntPtr window);
+[System.Runtime.InteropServices.DllImport("user32.dll")]
+static extern bool PeekMessageW(IntPtr message, IntPtr window, uint min, uint max, uint remove);
+[System.Runtime.InteropServices.DllImport("user32.dll")]
+static extern bool TranslateMessage(IntPtr message);
+[System.Runtime.InteropServices.DllImport("user32.dll")]
+static extern IntPtr DispatchMessageW(IntPtr message);
+[System.Runtime.InteropServices.DllImport("libX11.so.6")]
+static extern IntPtr XOpenDisplay(IntPtr name);
+[System.Runtime.InteropServices.DllImport("libX11.so.6")]
+static extern int XCloseDisplay(IntPtr display);
+[System.Runtime.InteropServices.DllImport("libX11.so.6")]
+static extern nuint XDefaultRootWindow(IntPtr display);
+[System.Runtime.InteropServices.DllImport("libX11.so.6")]
+static extern nuint XCreateSimpleWindow(IntPtr display, nuint parent, int x, int y, uint width, uint height, uint borderWidth, nuint border, nuint background);
+[System.Runtime.InteropServices.DllImport("libX11.so.6", CharSet = System.Runtime.InteropServices.CharSet.Ansi)]
+static extern int XStoreName(IntPtr display, nuint window, string name);
+[System.Runtime.InteropServices.DllImport("libX11.so.6", CharSet = System.Runtime.InteropServices.CharSet.Ansi)]
+static extern nuint XInternAtom(IntPtr display, string name, bool onlyIfExists);
+[System.Runtime.InteropServices.DllImport("libX11.so.6")]
+static extern int XSetWMProtocols(IntPtr display, nuint window, ref nuint protocols, int count);
+[System.Runtime.InteropServices.DllImport("libX11.so.6")]
+static extern int XSelectInput(IntPtr display, nuint window, nint mask);
+[System.Runtime.InteropServices.DllImport("libX11.so.6")]
+static extern int XMapWindow(IntPtr display, nuint window);
+[System.Runtime.InteropServices.DllImport("libX11.so.6")]
+static extern int XFlush(IntPtr display);
+[System.Runtime.InteropServices.DllImport("libX11.so.6")]
+static extern int XPending(IntPtr display);
+[System.Runtime.InteropServices.DllImport("libX11.so.6")]
+static extern int XNextEvent(IntPtr display, IntPtr eventBuffer);
+[System.Runtime.InteropServices.DllImport("libX11.so.6")]
+static extern int XDestroyWindow(IntPtr display, nuint window);
+
+if (width <= 0 || height <= 0 || closeAfterMilliseconds < 0)
+{
+    Console.Error.WriteLine("Window dimensions must be positive and timeout nonnegative.");
+    return 2;
+}
+var elapsed = System.Diagnostics.Stopwatch.StartNew();
+bool TimedOut() => closeAfterMilliseconds > 0 && elapsed.ElapsedMilliseconds >= closeAfterMilliseconds;
+if (OperatingSystem.IsWindows())
+{
+    // The built-in STATIC class supplies DefWindowProc and normal WM_CLOSE handling.
+    IntPtr window = CreateWindowExW(0, "STATIC", title, 0x10CF0000, unchecked((int)0x80000000), unchecked((int)0x80000000), width, height, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
+    if (window == IntPtr.Zero)
+    {
+        Console.Error.WriteLine("CreateWindowEx failed: " + System.Runtime.InteropServices.Marshal.GetLastWin32Error());
+        return 1;
+    }
+    IntPtr message = System.Runtime.InteropServices.Marshal.AllocHGlobal(64);
+    try
+    {
+        while (IsWindow(window) && !TimedOut())
+        {
+            while (PeekMessageW(message, IntPtr.Zero, 0, 0, 1)) { TranslateMessage(message); DispatchMessageW(message); }
+            System.Threading.Thread.Sleep(10);
+        }
+        return 0;
+    }
+    finally { if (IsWindow(window)) DestroyWindow(window); System.Runtime.InteropServices.Marshal.FreeHGlobal(message); }
+}
+if (OperatingSystem.IsLinux())
+{
+    IntPtr display = XOpenDisplay(IntPtr.Zero);
+    if (display == IntPtr.Zero) { Console.Error.WriteLine("Cannot open X11 display. Set DISPLAY to a working X11/XWayland session."); return 1; }
+    nuint window = 0;
+    IntPtr eventBuffer = System.Runtime.InteropServices.Marshal.AllocHGlobal(24 * IntPtr.Size);
+    try
+    {
+        window = XCreateSimpleWindow(display, XDefaultRootWindow(display), 0, 0, (uint)width, (uint)height, 0, 0, 0x202020);
+        if (window == 0) { Console.Error.WriteLine("XCreateSimpleWindow failed."); return 1; }
+        XStoreName(display, window, title);
+        nuint close = XInternAtom(display, "WM_DELETE_WINDOW", false);
+        nuint protocols = XInternAtom(display, "WM_PROTOCOLS", false);
+        XSetWMProtocols(display, window, ref close, 1);
+        XSelectInput(display, window, 1 << 17); // StructureNotifyMask
+        XMapWindow(display, window); XFlush(display);
+        bool running = true;
+        while (running && !TimedOut())
+        {
+            while (XPending(display) > 0)
+            {
+                XNextEvent(display, eventBuffer);
+                int type = System.Runtime.InteropServices.Marshal.ReadInt32(eventBuffer);
+                if (type == 17) { window = 0; running = false; }
+                // XClientMessageEvent.data follows five native-long/pointer fields and format.
+                int dataOffset = IntPtr.Size == 8 ? 56 : 28;
+                int protocolOffset = IntPtr.Size == 8 ? 40 : 20;
+                int formatOffset = IntPtr.Size == 8 ? 48 : 24;
+                if (type == 33 && (nuint)System.Runtime.InteropServices.Marshal.ReadIntPtr(eventBuffer, protocolOffset) == protocols
+                    && System.Runtime.InteropServices.Marshal.ReadInt32(eventBuffer, formatOffset) == 32
+                    && (nuint)System.Runtime.InteropServices.Marshal.ReadIntPtr(eventBuffer, dataOffset) == close) running = false;
+            }
+            System.Threading.Thread.Sleep(10);
+        }
+        return 0;
+    }
+    finally
+    {
+        if (window != 0) XDestroyWindow(display, window);
+        XCloseDisplay(display);
+        System.Runtime.InteropServices.Marshal.FreeHGlobal(eventBuffer);
+    }
+}
+Console.Error.WriteLine("This window pack supports Windows and Linux/X11.");
+return 1;

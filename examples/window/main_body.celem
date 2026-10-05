@@ -1,0 +1,4 @@
+implementation Example.Window::MainBody for Example.Window::Main () -> int {
+    import Confectory.Window::Open as Open (string, int, int, int) -> int;
+    body common "main.csbody";
+}

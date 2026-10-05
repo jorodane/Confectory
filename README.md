@@ -4,6 +4,8 @@ A .NET 8 build core for **ProjectPack + target**. It resolves namespace-qualifie
 
 Read [technical design](docs/TECHNICAL_DESIGN.md), [requirement-to-test map](docs/REQUIREMENT_TEST_MAP.md), [declaration format and tool protocol](docs/FORMAT.md), [verification evidence](docs/VERIFICATION.md), and [mod extension boundary](docs/MOD_EXTENSION_BOUNDARY.md).
 
+The first runtime sample is [Confectory.Window](packs/window/README.md): a reusable single-window contract/provider and an executable ProjectPack. It implements Windows Win32 and Linux X11/XWayland; Linux window creation and close events are executed in tests, while Windows runtime execution remains unverified.
+
 ## Run from the repository root
 
 Requirements: the .NET 8 **SDK**. All projects use the .NET standard library and have no external NuGet dependencies; restore works offline with the included `NuGet.Config`. The target pack discovers `dotnet` on PATH; alternatively set `CONFECTORY_DOTNET` to the actual executable (`dotnet.exe` on Windows).

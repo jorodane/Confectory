@@ -1,0 +1,3 @@
+function Confectory.Window::Open (string title, int width, int height, int closeAfterMilliseconds) -> int {
+    description "Open one native window and process events until close. Zero timeout waits for user close; positive timeout supports automated smoke tests. Returns process exit status.";
+}

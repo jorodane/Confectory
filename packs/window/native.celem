@@ -1,0 +1,3 @@
+implementation Confectory.Window::Native for Confectory.Window::Open (string title, int width, int height, int closeAfterMilliseconds) -> int {
+    body common "native.csbody";
+}

@@ -1,0 +1,4 @@
+function Example.Window::Main () -> int {
+    provide Example.Window::Main with Example.Window::MainBody;
+    provide Confectory.Window::Open with Confectory.Window::Native;
+}

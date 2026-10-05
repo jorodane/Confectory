@@ -1,0 +1,8 @@
+int timeout = 0;
+string? value = Environment.GetEnvironmentVariable("CONFECTORY_WINDOW_CLOSE_AFTER_MS");
+if (value is not null && (!int.TryParse(value, out timeout) || timeout < 0))
+{
+    Console.Error.WriteLine("CONFECTORY_WINDOW_CLOSE_AFTER_MS must be a nonnegative integer.");
+    return 2;
+}
+return calls.Open.Invoke("Confectory", 800, 600, timeout);
