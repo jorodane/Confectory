@@ -1,0 +1,6 @@
+if (owner.Length < 3 || string.IsNullOrEmpty(owner[0]) || owner[0] == "disposed" || instance < 2 || instance >= owner.Length || owner[instance] is null) return false;
+using var document = System.Text.Json.JsonDocument.Parse(owner[instance]);
+var record = document.RootElement;
+if (!record[3].GetBoolean() || record[1].GetInt64() == value) return false;
+owner[instance] = System.Text.Json.JsonSerializer.Serialize(new object[] { record[0].GetString()!, value, checked(record[2].GetInt64() + 1), true });
+return true;

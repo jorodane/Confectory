@@ -1,0 +1,4 @@
+if (owner.Length < 3) throw new ArgumentException("Invalid owner.");
+if (owner[0] == "disposed") return;
+owner[0] = "disposed";
+Array.Clear(owner, 2, owner.Length - 2);

@@ -1,0 +1,1 @@
+function Confectory.RuntimeBase::DisposeOwner (string[] owner) -> void { description "Idempotently invalidate owned instances; subscription polling ignores late updates."; }

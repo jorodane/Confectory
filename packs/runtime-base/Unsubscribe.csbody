@@ -1,0 +1,2 @@
+if (subscription.Length != 5) throw new ArgumentException("Invalid subscription.");
+subscription[0] = "disposed";

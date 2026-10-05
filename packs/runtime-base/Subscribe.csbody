@@ -1,0 +1,5 @@
+if (owner.Length < 3 || string.IsNullOrEmpty(owner[0]) || owner[0] == "disposed" || instance < 2 || instance >= owner.Length || owner[instance] is null) throw new InvalidOperationException("Instance is unavailable.");
+using var document = System.Text.Json.JsonDocument.Parse(owner[instance]);
+var record = document.RootElement;
+if (!record[3].GetBoolean() || record[0].GetString() != elementID) throw new InvalidOperationException("Element subscription mismatch.");
+return new[] { "active", instance.ToString(System.Globalization.CultureInfo.InvariantCulture), elementID, record[2].GetInt64().ToString(System.Globalization.CultureInfo.InvariantCulture), owner[0] };

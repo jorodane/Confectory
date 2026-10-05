@@ -1,0 +1,1 @@
+implementation Confectory.RuntimeBase::DisposeOwnerBody for Confectory.RuntimeBase::DisposeOwner (string[] owner) -> void { body common "DisposeOwner.csbody"; }

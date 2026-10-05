@@ -1,0 +1,1 @@
+function Confectory.RuntimeBase::Read (string[] owner, int instance) -> long[] { description "Read consumer-owned numeric model value and revision as a coherent snapshot."; }

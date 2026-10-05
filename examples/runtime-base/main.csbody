@@ -1,0 +1,25 @@
+void Check(bool condition, string message) { if (!condition) throw new Exception(message); }
+for (int repeat = 0; repeat < 30; repeat++)
+{
+ var left = calls.CreateOwner.Invoke(8); var right = calls.CreateOwner.Invoke(8);
+ int a = calls.CreateInstance.Invoke(left, "Example::Count"); int b = calls.CreateInstance.Invoke(right, "Example::Count");
+ var sa = calls.Subscribe.Invoke(left, a, "Example::Count"); var sb = calls.Subscribe.Invoke(right, b, "Example::Count");
+ Check(calls.Write.Invoke(left, a, 7), "first write");
+ Check(!calls.Write.Invoke(left, a, 7), "equal write must not notify");
+ Check(calls.Poll.Invoke(left, sa)[0] == 7, "local update");
+ Check(calls.Poll.Invoke(right, sb).Length == 0, "unrelated owner notified");
+ Check(calls.Read.Invoke(right, b)[0] == 0, "shared instance state");
+ bool mismatch = false; try { calls.Poll.Invoke(right, sa); } catch (InvalidOperationException) { mismatch = true; }
+ Check(mismatch, "cross-owner subscription accepted");
+ calls.Unsubscribe.Invoke(sa); calls.Unsubscribe.Invoke(sa);
+ calls.Write.Invoke(left, a, 8); Check(calls.Poll.Invoke(left, sa).Length == 0, "late event delivered");
+ Check(calls.Read.Invoke(left, a)[0] == 8, "view disposal destroyed model");
+ var reopened = calls.Subscribe.Invoke(left, a, "Example::Count");
+ calls.Write.Invoke(left, a, 9); Check(calls.Poll.Invoke(left, reopened)[0] == 9, "reopen");
+ calls.DisposeOwner.Invoke(left); calls.DisposeOwner.Invoke(left);
+ Check(calls.Poll.Invoke(left, reopened).Length == 0, "disposed owner delivered event");
+ Check(!calls.Write.Invoke(left, a, 10), "disposed owner accepted command");
+ Check(calls.Read.Invoke(right, b)[0] == 0, "other owner destroyed");
+ calls.Unsubscribe.Invoke(sb); calls.DisposeOwner.Invoke(right);
+}
+Console.WriteLine("RuntimeBase lifecycle PASS"); return 0;

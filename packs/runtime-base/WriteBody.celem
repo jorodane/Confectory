@@ -1,0 +1,1 @@
+implementation Confectory.RuntimeBase::WriteBody for Confectory.RuntimeBase::Write (string[] owner, int instance, long value) -> bool { body common "Write.csbody"; }

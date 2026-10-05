@@ -1,0 +1,1 @@
+function Confectory.RuntimeBase::CreateInstance (string[] owner, string elementID) -> int { description "Create an owner-held instance; non-owning instance IDs are owner-scoped."; }

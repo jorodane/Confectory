@@ -1,0 +1,1 @@
+function Confectory.RuntimeBase::Write (string[] owner, int instance, long value) -> bool { description "Apply a validated model command; equal-value writes do not emit a revision."; }

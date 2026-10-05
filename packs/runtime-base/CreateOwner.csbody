@@ -1,0 +1,4 @@
+if (capacity < 1 || capacity > 100000) throw new ArgumentOutOfRangeException(nameof(capacity));
+var state = new string[capacity + 2];
+state[0] = Guid.NewGuid().ToString("N"); state[1] = "0";
+return state;

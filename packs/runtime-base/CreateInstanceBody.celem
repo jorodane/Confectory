@@ -1,0 +1,1 @@
+implementation Confectory.RuntimeBase::CreateInstanceBody for Confectory.RuntimeBase::CreateInstance (string[] owner, string elementID) -> int { body common "CreateInstance.csbody"; }

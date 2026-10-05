@@ -1,0 +1,1 @@
+function Confectory.RuntimeBase::Unsubscribe (string[] subscription) -> void { description "Idempotently release a non-owning subscription without destroying the model."; }

@@ -1,0 +1,5 @@
+if (owner.Length < 3 || string.IsNullOrEmpty(owner[0]) || owner[0] == "disposed" || instance < 2 || instance >= owner.Length || owner[instance] is null) throw new InvalidOperationException("Instance is unavailable.");
+using var record = System.Text.Json.JsonDocument.Parse(owner[instance]);
+var value = record.RootElement;
+if (!value[3].GetBoolean()) throw new InvalidOperationException("Instance is disposed.");
+return new long[] { value[1].GetInt64(), value[2].GetInt64() };

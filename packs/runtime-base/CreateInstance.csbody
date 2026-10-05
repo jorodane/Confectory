@@ -1,0 +1,8 @@
+if (owner.Length < 3 || string.IsNullOrEmpty(owner[0]) || owner[0] == "disposed") throw new InvalidOperationException("Owner is disposed or invalid.");
+if (string.IsNullOrWhiteSpace(elementID)) throw new ArgumentException("Element ID is required.");
+int count = int.Parse(owner[1], System.Globalization.CultureInfo.InvariantCulture);
+if (count + 2 >= owner.Length) throw new InvalidOperationException("Owner capacity exhausted.");
+int id = count + 2;
+owner[id] = System.Text.Json.JsonSerializer.Serialize(new object[] { elementID, 0L, 0L, true });
+owner[1] = (count + 1).ToString(System.Globalization.CultureInfo.InvariantCulture);
+return id;

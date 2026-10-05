@@ -1,0 +1,1 @@
+function Confectory.RuntimeBase::Subscribe (string[] owner, int instance, string elementID) -> string[] { description "Subscribe to one instance and element, recording current revision after connection."; }

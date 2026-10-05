@@ -1,0 +1,1 @@
+implementation Confectory.RuntimeBase::CreateOwnerBody for Confectory.RuntimeBase::CreateOwner (int capacity) -> string[] { body common "CreateOwner.csbody"; }

@@ -1,0 +1,1 @@
+function Confectory.RuntimeBase::CreateOwner (int capacity) -> string[] { description "Create an isolated lifetime owner; returned state is opaque to consumers."; }

@@ -1,0 +1,1 @@
+implementation Confectory.RuntimeBase::ReadBody for Confectory.RuntimeBase::Read (string[] owner, int instance) -> long[] { body common "Read.csbody"; }

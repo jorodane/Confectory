@@ -1,0 +1,1 @@
+implementation Confectory.RuntimeBase::PollBody for Confectory.RuntimeBase::Poll (string[] owner, string[] subscription) -> long[] { body common "Poll.csbody"; }

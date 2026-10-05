@@ -1,0 +1,1 @@
+implementation Confectory.RuntimeBase::SubscribeBody for Confectory.RuntimeBase::Subscribe (string[] owner, int instance, string elementID) -> string[] { body common "Subscribe.csbody"; }

@@ -1,0 +1,1 @@
+function Confectory.RuntimeBase::Poll (string[] owner, string[] subscription) -> long[] { description "Return only changed local value and revision; late events after release are ignored."; }

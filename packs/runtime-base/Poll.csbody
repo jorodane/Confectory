@@ -1,0 +1,11 @@
+if (subscription.Length != 5 || subscription[0] != "active" || owner.Length < 3 || string.IsNullOrEmpty(owner[0]) || owner[0] == "disposed") return Array.Empty<long>();
+if (subscription[4] != owner[0]) throw new InvalidOperationException("Subscription belongs to another Owner.");
+int instance = int.Parse(subscription[1], System.Globalization.CultureInfo.InvariantCulture);
+if (instance < 2 || instance >= owner.Length || owner[instance] is null) return Array.Empty<long>();
+using var document = System.Text.Json.JsonDocument.Parse(owner[instance]);
+var record = document.RootElement;
+if (!record[3].GetBoolean() || record[0].GetString() != subscription[2]) return Array.Empty<long>();
+long revision = record[2].GetInt64();
+if (revision == long.Parse(subscription[3], System.Globalization.CultureInfo.InvariantCulture)) return Array.Empty<long>();
+subscription[3] = revision.ToString(System.Globalization.CultureInfo.InvariantCulture);
+return new long[] { record[1].GetInt64(), revision };

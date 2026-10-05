@@ -1,0 +1,18 @@
+pack Confectory.RuntimeBase version "0.1.0" {
+    element CreateOwner function "CreateOwner.celem";
+    element CreateOwnerBody implementation "CreateOwnerBody.celem";
+    element CreateInstance function "CreateInstance.celem";
+    element CreateInstanceBody implementation "CreateInstanceBody.celem";
+    element Read function "Read.celem";
+    element ReadBody implementation "ReadBody.celem";
+    element Write function "Write.celem";
+    element WriteBody implementation "WriteBody.celem";
+    element Subscribe function "Subscribe.celem";
+    element SubscribeBody implementation "SubscribeBody.celem";
+    element Poll function "Poll.celem";
+    element PollBody implementation "PollBody.celem";
+    element Unsubscribe function "Unsubscribe.celem";
+    element UnsubscribeBody implementation "UnsubscribeBody.celem";
+    element DisposeOwner function "DisposeOwner.celem";
+    element DisposeOwnerBody implementation "DisposeOwnerBody.celem";
+}
