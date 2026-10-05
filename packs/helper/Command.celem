@@ -1,0 +1,1 @@
+function Confectory.Helper::Command (string store, string actor, string operation, string payload) -> string {provide Confectory.Helper::Command with Confectory.Helper::CommandBody;}

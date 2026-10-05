@@ -1,0 +1,20 @@
+pack Confectory.Helper version "0.1.0" {
+dependency Confectory.Agent version "0.1.0";
+dependency Confectory.FileStream version "0.1.0";
+element Open function "Open.celem";
+element OpenBody implementation "OpenBody.celem";
+element Command function "Command.celem";
+element CommandBody implementation "CommandBody.celem";
+element Recruit function "Recruit.celem";
+element RecruitBody implementation "RecruitBody.celem";
+element Remember function "Remember.celem";
+element RememberBody implementation "RememberBody.celem";
+element Inspect function "Inspect.celem";
+element InspectBody implementation "InspectBody.celem";
+element Profile function "Profile.celem";
+element ProfileBody implementation "ProfileBody.celem";
+element Close function "Close.celem";
+element CloseBody implementation "CloseBody.celem";
+element Talk function "Talk.celem";
+element TalkBody implementation "TalkBody.celem";
+}

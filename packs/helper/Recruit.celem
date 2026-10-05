@@ -1,0 +1,1 @@
+function Confectory.Helper::Recruit (string store, string owner, string template) -> string {provide Confectory.Helper::Recruit with Confectory.Helper::RecruitBody;}

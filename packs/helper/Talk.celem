@@ -1,0 +1,1 @@
+function Confectory.Helper::Talk (string store, string helper, string owner, string agent, string conversationID, string message) -> string {provide Confectory.Helper::Talk with Confectory.Helper::TalkBody;}

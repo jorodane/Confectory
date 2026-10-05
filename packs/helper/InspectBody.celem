@@ -1,0 +1,3 @@
+implementation Confectory.Helper::InspectBody for Confectory.Helper::Inspect (string store, string helper, string owner) -> string {
+import Confectory.Helper::Command as Command (string, string, string, string) -> string;
+body common "Inspect.csbody";}

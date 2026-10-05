@@ -1,0 +1,3 @@
+implementation Confectory.Helper::RememberBody for Confectory.Helper::Remember (string store, string helper, string owner, string memoryID, string text) -> void {
+import Confectory.Helper::Command as Command (string, string, string, string) -> string;
+body common "Remember.csbody";}

@@ -1,0 +1,3 @@
+implementation Confectory.Helper::OpenBody for Confectory.Helper::Open (string directory) -> string {
+import Confectory.FileStream::Snapshot as Snapshot (string) -> string[];
+body common "Open.csbody";}

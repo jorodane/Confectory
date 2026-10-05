@@ -1,0 +1,1 @@
+return System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(store,owner,"recruit",template))!["helper"]!.GetValue<string>();

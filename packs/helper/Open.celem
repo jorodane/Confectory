@@ -1,0 +1,1 @@
+function Confectory.Helper::Open (string directory) -> string {provide Confectory.Helper::Open with Confectory.Helper::OpenBody;}

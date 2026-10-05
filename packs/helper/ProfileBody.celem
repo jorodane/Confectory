@@ -1,0 +1,3 @@
+implementation Confectory.Helper::ProfileBody for Confectory.Helper::Profile (string store, string helper) -> string {
+import Confectory.Helper::Command as Command (string, string, string, string) -> string;
+body common "Profile.csbody";}

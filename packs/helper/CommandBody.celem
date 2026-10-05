@@ -1,0 +1,3 @@
+implementation Confectory.Helper::CommandBody for Confectory.Helper::Command (string store, string actor, string operation, string payload) -> string {
+import Confectory.FileStream::Commit as Commit (string, string[], string[], string[]) -> string[];
+body common "Command.csbody";}

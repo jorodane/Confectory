@@ -1,0 +1,1 @@
+function Confectory.Helper::Inspect (string store, string helper, string owner) -> string {provide Confectory.Helper::Inspect with Confectory.Helper::InspectBody;}

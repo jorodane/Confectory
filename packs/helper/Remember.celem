@@ -1,0 +1,1 @@
+function Confectory.Helper::Remember (string store, string helper, string owner, string memoryID, string text) -> void {provide Confectory.Helper::Remember with Confectory.Helper::RememberBody;}

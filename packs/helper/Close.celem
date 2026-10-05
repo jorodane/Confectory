@@ -1,0 +1,1 @@
+function Confectory.Helper::Close (string store) -> void {provide Confectory.Helper::Close with Confectory.Helper::CloseBody;}

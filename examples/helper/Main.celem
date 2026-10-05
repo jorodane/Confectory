@@ -1,0 +1,15 @@
+function Example.Helper::Main () -> int {provide Example.Helper::Main with Example.Helper::MainBody;
+provide Confectory.Helper::Close with Confectory.Helper::CloseBody;
+provide Confectory.Helper::Command with Confectory.Helper::CommandBody;
+provide Confectory.Helper::Inspect with Confectory.Helper::InspectBody;
+provide Confectory.Helper::Open with Confectory.Helper::OpenBody;
+provide Confectory.Helper::Profile with Confectory.Helper::ProfileBody;
+provide Confectory.Helper::Recruit with Confectory.Helper::RecruitBody;
+provide Confectory.Helper::Remember with Confectory.Helper::RememberBody;
+provide Confectory.FileStream::Capabilities with Confectory.FileStream::CapabilitiesBody;
+provide Confectory.FileStream::Commit with Confectory.FileStream::CommitBody;
+provide Confectory.FileStream::CopySources with Confectory.FileStream::CopySourcesBody;
+provide Confectory.FileStream::LeasePath with Confectory.FileStream::LeasePathBody;
+provide Confectory.FileStream::Snapshot with Confectory.FileStream::SnapshotBody;
+provide Confectory.FileStream::WriteAtomic with Confectory.FileStream::WriteAtomicBody;
+}

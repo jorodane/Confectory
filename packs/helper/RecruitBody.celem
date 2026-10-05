@@ -1,0 +1,3 @@
+implementation Confectory.Helper::RecruitBody for Confectory.Helper::Recruit (string store, string owner, string template) -> string {
+import Confectory.Helper::Command as Command (string, string, string, string) -> string;
+body common "Recruit.csbody";}

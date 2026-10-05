@@ -1,0 +1,3 @@
+implementation Confectory.Helper::CloseBody for Confectory.Helper::Close (string store) -> void {
+
+body common "Close.csbody";}

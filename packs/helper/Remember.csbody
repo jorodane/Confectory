@@ -1,0 +1,1 @@
+calls.Command.Invoke(store,owner,"remember",new System.Text.Json.Nodes.JsonObject{["helper"]=helper,["memoryID"]=memoryID,["text"]=text}.ToJsonString());

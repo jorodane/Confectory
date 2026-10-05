@@ -1,0 +1,4 @@
+implementation Confectory.Helper::TalkBody for Confectory.Helper::Talk (string store, string helper, string owner, string agent, string conversationID, string message) -> string {
+import Confectory.Helper::Inspect as Inspect (string, string, string) -> string;
+import Confectory.Agent::Start as AgentStart (string, string, string) -> string;
+body common "Talk.csbody";}

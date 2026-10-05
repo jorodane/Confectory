@@ -1,0 +1,15 @@
+implementation Example.Helper::MainBody for Example.Helper::Main () -> int {
+import Confectory.Helper::Close as HelperClose (string) -> void;
+import Confectory.Helper::Command as HelperCommand (string, string, string, string) -> string;
+import Confectory.Helper::Inspect as HelperInspect (string, string, string) -> string;
+import Confectory.Helper::Open as HelperOpen (string) -> string;
+import Confectory.Helper::Profile as HelperProfile (string, string) -> string;
+import Confectory.Helper::Recruit as HelperRecruit (string, string, string) -> string;
+import Confectory.Helper::Remember as HelperRemember (string, string, string, string, string) -> void;
+import Confectory.FileStream::Capabilities as FileStreamCapabilities () -> string[];
+import Confectory.FileStream::Commit as FileStreamCommit (string, string[], string[], string[]) -> string[];
+import Confectory.FileStream::CopySources as FileStreamCopySources (string, string) -> void;
+import Confectory.FileStream::LeasePath as FileStreamLeasePath (string) -> string;
+import Confectory.FileStream::Snapshot as FileStreamSnapshot (string) -> string[];
+import Confectory.FileStream::WriteAtomic as FileStreamWriteAtomic (string, string) -> void;
+body common "MainBody.csbody";}

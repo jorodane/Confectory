@@ -1,0 +1,1 @@
+function Confectory.Helper::Profile (string store, string helper) -> string {provide Confectory.Helper::Profile with Confectory.Helper::ProfileBody;}
