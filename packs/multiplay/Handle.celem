@@ -1,0 +1,1 @@
+function Confectory.MultiPlay::Handle (string room, string participant, string operation, string payload) -> string {provide Confectory.MultiPlay::Handle with Confectory.MultiPlay::HandleBody;description "Dispatch local room messages through a selected public contract.";}

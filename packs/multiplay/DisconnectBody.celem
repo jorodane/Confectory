@@ -1,0 +1,3 @@
+implementation Confectory.MultiPlay::DisconnectBody for Confectory.MultiPlay::Disconnect (string client) -> void {
+body common "Disconnect.csbody";
+}

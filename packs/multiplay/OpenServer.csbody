@@ -1,0 +1,36 @@
+if(string.IsNullOrWhiteSpace(room))throw new ArgumentException("Explicit room required.");
+var policy=System.Text.Json.Nodes.JsonNode.Parse(calls.Policy.Invoke())!;
+if(policy["transport"]!.GetValue<string>()!="loopback-tcp"||policy["topology"]!.GetValue<string>()!="local-star")throw new NotSupportedException("This provider supports loopback TCP/local star only.");
+int maxClients=policy["maxClients"]!.GetValue<int>(),maxBytes=policy["maxBytes"]!.GetValue<int>(),timeout=policy["timeoutMs"]!.GetValue<int>(),idle=policy["idleMs"]!.GetValue<int>();
+if(maxClients<1||maxClients>16||maxBytes<256||maxBytes>65536||timeout<100||timeout>60000||idle<timeout||idle>900000)throw new ArgumentException("Invalid bounded local policy.");
+string Read(System.IO.Stream stream){byte[] header=new byte[4];stream.ReadExactly(header);int size=System.Buffers.Binary.BinaryPrimitives.ReadInt32BigEndian(header);if(size<=0||size>maxBytes)throw new System.IO.InvalidDataException("Message bound exceeded.");byte[] bytes=new byte[size];stream.ReadExactly(bytes);return new System.Text.UTF8Encoding(false,true).GetString(bytes);}
+void Write(System.IO.Stream stream,string text){byte[] bytes=System.Text.Encoding.UTF8.GetBytes(text);if(bytes.Length==0||bytes.Length>maxBytes)throw new System.IO.InvalidDataException("Message bound exceeded.");byte[] header=new byte[4];System.Buffers.Binary.BinaryPrimitives.WriteInt32BigEndian(header,bytes.Length);stream.Write(header);stream.Write(bytes);stream.Flush();}
+
+string token=Guid.NewGuid().ToString("N"),secret=Guid.NewGuid().ToString("N");var stop=new System.Threading.CancellationTokenSource();var listener=new System.Net.Sockets.TcpListener(System.Net.IPAddress.Loopback,0);listener.Start(maxClients);
+var sockets=new System.Collections.Concurrent.ConcurrentDictionary<string,System.Net.Sockets.TcpClient>();var workers=new System.Collections.Generic.List<System.Threading.Tasks.Task>();
+var accept=System.Threading.Tasks.Task.Run(async()=>
+{
+ try
+ {
+  while(!stop.IsCancellationRequested)
+  {
+   var socket=await listener.AcceptTcpClientAsync(stop.Token);if(sockets.Count>=maxClients){socket.Dispose();continue;}string id=Guid.NewGuid().ToString("N");sockets[id]=socket;
+   var worker=System.Threading.Tasks.Task.Run(()=>
+   {
+    string participant="";bool joined=false;
+    try
+    {
+     socket.ReceiveTimeout=idle;socket.SendTimeout=timeout;using var stream=socket.GetStream();var hello=System.Text.Json.Nodes.JsonNode.Parse(Read(stream))!;
+     participant=hello["participant"]!.GetValue<string>();if(hello["secret"]!.GetValue<string>()!=secret||hello["room"]!.GetValue<string>()!=room||string.IsNullOrWhiteSpace(participant)||participant.Length>64)throw new ArgumentException("Invalid local session handshake.");
+     string reply=calls.Handle.Invoke(room,participant,"join","{}");joined=true;Write(stream,reply);
+     while(!stop.IsCancellationRequested){string request=Read(stream);if(System.Text.Json.Nodes.JsonNode.Parse(request)?["control"]?.GetValue<string>()=="close"){calls.Handle.Invoke(room,participant,"leave","{}");joined=false;Write(stream,"{\"state\":\"left\"}");break;}string result;try{result=calls.Handle.Invoke(room,participant,"message",request);}catch(Exception error){result=new System.Text.Json.Nodes.JsonObject{["state"]="error",["message"]=error.Message}.ToJsonString();}Write(stream,result);}
+    }
+    catch(Exception){ }
+    finally{if(joined)try{calls.Handle.Invoke(room,participant,"leave","{}");}catch(Exception){ }sockets.TryRemove(id,out _);socket.Dispose();}
+   });lock(workers){workers.RemoveAll(task=>task.IsCompleted);workers.Add(worker);}
+  }
+ }
+ catch(OperationCanceledException){ }catch(ObjectDisposedException){ }catch(System.Net.Sockets.SocketException) when(stop.IsCancellationRequested){ }
+});
+AppDomain.CurrentDomain.SetData("Confectory.MultiPlay.Server."+token,new object[]{listener,stop,sockets,workers,accept});
+string endpoint=new System.Text.Json.Nodes.JsonObject{["host"]="127.0.0.1",["port"]=((System.Net.IPEndPoint)listener.LocalEndpoint).Port,["room"]=room,["secret"]=secret,["maxBytes"]=maxBytes,["timeoutMs"]=timeout}.ToJsonString();return new[]{token,endpoint};

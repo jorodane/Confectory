@@ -1,0 +1,3 @@
+implementation Confectory.MultiPlay::ConnectBody for Confectory.MultiPlay::Connect (string endpoint, string participant) -> string {
+body common "Connect.csbody";
+}

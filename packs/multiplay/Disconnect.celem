@@ -1,0 +1,1 @@
+function Confectory.MultiPlay::Disconnect (string client) -> void {provide Confectory.MultiPlay::Disconnect with Confectory.MultiPlay::DisconnectBody;description "Dispose only this transport connection; draft ownership is separate.";}

@@ -1,0 +1,1 @@
+function Confectory.MultiPlay::CloseServer (string server) -> void {provide Confectory.MultiPlay::CloseServer with Confectory.MultiPlay::CloseServerBody;description "Stop owned listener connections and workers; idempotent.";}

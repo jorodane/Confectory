@@ -1,0 +1,3 @@
+implementation Confectory.MultiPlay::CloseServerBody for Confectory.MultiPlay::CloseServer (string server) -> void {
+body common "CloseServer.csbody";
+}

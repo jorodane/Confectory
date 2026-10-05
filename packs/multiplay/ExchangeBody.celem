@@ -1,0 +1,3 @@
+implementation Confectory.MultiPlay::ExchangeBody for Confectory.MultiPlay::Exchange (string client, string payload) -> string {
+body common "Exchange.csbody";
+}

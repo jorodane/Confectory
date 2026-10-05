@@ -1,0 +1,5 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.MultiPlay.Server."+server) as object[];if(state is null)return;
+((System.Threading.CancellationTokenSource)state[1]).Cancel();((System.Net.Sockets.TcpListener)state[0]).Stop();foreach(var socket in ((System.Collections.Concurrent.ConcurrentDictionary<string,System.Net.Sockets.TcpClient>)state[2]).Values)socket.Dispose();
+if(!((System.Threading.Tasks.Task)state[4]).Wait(5000))throw new TimeoutException("Listener cleanup timeout; owner retained for retry.");
+System.Threading.Tasks.Task[] workers;var list=(System.Collections.Generic.List<System.Threading.Tasks.Task>)state[3];lock(list)workers=list.ToArray();if(!System.Threading.Tasks.Task.WaitAll(workers,5000))throw new TimeoutException("Client cleanup timeout; owner retained for retry.");
+((System.Threading.CancellationTokenSource)state[1]).Dispose();AppDomain.CurrentDomain.SetData("Confectory.MultiPlay.Server."+server,null);

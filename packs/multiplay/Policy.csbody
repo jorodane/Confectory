@@ -1,0 +1,1 @@
+return "{\"transport\":\"loopback-tcp\",\"topology\":\"local-star\",\"maxClients\":8,\"maxBytes\":65536,\"timeoutMs\":10000,\"idleMs\":600000}";

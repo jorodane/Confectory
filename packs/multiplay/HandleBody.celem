@@ -1,0 +1,3 @@
+implementation Confectory.MultiPlay::HandleBody for Confectory.MultiPlay::Handle (string room, string participant, string operation, string payload) -> string {
+body common "Handle.csbody";
+}

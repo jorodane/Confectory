@@ -1,0 +1,5 @@
+implementation Confectory.MultiPlay::OpenServerBody for Confectory.MultiPlay::OpenServer (string room) -> string[] {
+import Confectory.MultiPlay::Policy as Policy () -> string;
+import Confectory.MultiPlay::Handle as Handle (string, string, string, string) -> string;
+body common "OpenServer.csbody";
+}

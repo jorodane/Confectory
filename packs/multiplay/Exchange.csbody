@@ -1,0 +1,5 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.MultiPlay.Client."+client) as object[]??throw new ObjectDisposedException("MultiPlay client");int maxBytes=(int)state[3];
+string Read(System.IO.Stream stream){byte[] header=new byte[4];stream.ReadExactly(header);int size=System.Buffers.Binary.BinaryPrimitives.ReadInt32BigEndian(header);if(size<=0||size>maxBytes)throw new System.IO.InvalidDataException("Message bound exceeded.");byte[] bytes=new byte[size];stream.ReadExactly(bytes);return new System.Text.UTF8Encoding(false,true).GetString(bytes);}
+void Write(System.IO.Stream stream,string text){byte[] bytes=System.Text.Encoding.UTF8.GetBytes(text);if(bytes.Length==0||bytes.Length>maxBytes)throw new System.IO.InvalidDataException("Message bound exceeded.");byte[] header=new byte[4];System.Buffers.Binary.BinaryPrimitives.WriteInt32BigEndian(header,bytes.Length);stream.Write(header);stream.Write(bytes);stream.Flush();}
+
+lock(state[2]){var stream=(System.IO.Stream)state[1];Write(stream,payload);return Read(stream);}

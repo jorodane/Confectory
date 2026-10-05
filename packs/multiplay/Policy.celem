@@ -1,0 +1,1 @@
+function Confectory.MultiPlay::Policy () -> string {provide Confectory.MultiPlay::Policy with Confectory.MultiPlay::PolicyBody;description "Select supported local topology and bounded transport policy.";}

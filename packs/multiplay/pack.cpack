@@ -1,0 +1,16 @@
+pack Confectory.MultiPlay version "0.1.0" {
+element Policy function "Policy.celem";
+element PolicyBody implementation "PolicyBody.celem";
+element Handle function "Handle.celem";
+element HandleBody implementation "HandleBody.celem";
+element OpenServer function "OpenServer.celem";
+element OpenServerBody implementation "OpenServerBody.celem";
+element CloseServer function "CloseServer.celem";
+element CloseServerBody implementation "CloseServerBody.celem";
+element Connect function "Connect.celem";
+element ConnectBody implementation "ConnectBody.celem";
+element Exchange function "Exchange.celem";
+element ExchangeBody implementation "ExchangeBody.celem";
+element Disconnect function "Disconnect.celem";
+element DisconnectBody implementation "DisconnectBody.celem";
+}

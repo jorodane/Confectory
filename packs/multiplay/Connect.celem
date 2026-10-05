@@ -1,0 +1,1 @@
+function Confectory.MultiPlay::Connect (string endpoint, string participant) -> string {provide Confectory.MultiPlay::Connect with Confectory.MultiPlay::ConnectBody;description "Connect one explicit participant to the configured loopback room.";}

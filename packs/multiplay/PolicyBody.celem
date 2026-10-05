@@ -1,0 +1,3 @@
+implementation Confectory.MultiPlay::PolicyBody for Confectory.MultiPlay::Policy () -> string {
+body common "Policy.csbody";
+}

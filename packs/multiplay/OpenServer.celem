@@ -1,0 +1,1 @@
+function Confectory.MultiPlay::OpenServer (string room) -> string[] {provide Confectory.MultiPlay::OpenServer with Confectory.MultiPlay::OpenServerBody;description "Open an owned loopback-only listener and return opaque server token plus endpoint.";}

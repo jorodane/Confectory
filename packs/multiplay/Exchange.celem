@@ -1,0 +1,1 @@
+function Confectory.MultiPlay::Exchange (string client, string payload) -> string {provide Confectory.MultiPlay::Exchange with Confectory.MultiPlay::ExchangeBody;description "Exchange one framed bounded message on this owned client.";}

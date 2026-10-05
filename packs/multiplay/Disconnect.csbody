@@ -1,0 +1,4 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.MultiPlay.Client."+client) as object[];if(state is null)return;
+try{lock(state[2]){var stream=(System.IO.Stream)state[1];byte[] bytes=System.Text.Encoding.UTF8.GetBytes("{\"control\":\"close\"}"),header=new byte[4];System.Buffers.Binary.BinaryPrimitives.WriteInt32BigEndian(header,bytes.Length);stream.Write(header);stream.Write(bytes);stream.Flush();stream.ReadExactly(header);int size=System.Buffers.Binary.BinaryPrimitives.ReadInt32BigEndian(header);if(size<=0||size>(int)state[3])throw new System.IO.InvalidDataException("Reply bound exceeded.");stream.ReadExactly(new byte[size]);}}
+catch(Exception error) when(error is System.IO.IOException or System.Net.Sockets.SocketException or ObjectDisposedException){ }
+finally{((System.Net.Sockets.TcpClient)state[0]).Dispose();AppDomain.CurrentDomain.SetData("Confectory.MultiPlay.Client."+client,null);}
