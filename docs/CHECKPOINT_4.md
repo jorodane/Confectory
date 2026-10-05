@@ -1,6 +1,6 @@
 # Checkpoint 4 — independent editor self-edit and pack management
 
-Dedicated local branch `integration/checkpoint-4`, preserving Checkpoint 3 `4dbb7d7`. Final native self-edit and relevant regressions pass, with the corrected assertion rerun recorded below. Existing Checkpoint 1 remains `73d793fdd9784a447780cc1e01bd7155a3a15370`.
+Dedicated local branch `integration/checkpoint-4`, preserving Checkpoint 3 `4dbb7d7`. Final native self-edit and the complete relevant suite pass. Existing Checkpoint 1 remains `73d793fdd9784a447780cc1e01bd7155a3a15370`.
 
 ## Runnable workflows
 
@@ -34,12 +34,12 @@ Windows native acceptance of the earlier STATIC-class correction and new text in
 
 ## Final evidence
 
-Full suite: 94 passed, one stale Android provider-selection assertion failed (998.816s). The assertion was corrected for Launch → LaunchConfigured delegation; its complete ProjectManager consumer passed 1/1 (66.163s). All 95 scenarios have final passing evidence. After the native workspace-switch fix, the final Engine consumer passed 1/1 (172.817s), including three actual X11 scripted repeats. No single 95/0 full run is claimed.
+Final complete suite on Checkpoint 4 code: **95 passed, 0 failed; 915.010 seconds**. Command: the installed SDK running `tests/Confectory.Tests/bin/Release/net8.0/Confectory.Tests.dll` with DISPLAY=:97. This includes the corrected Android provider assertion and final workspace-switch fix. Earlier 94/1 plus focused evidence is superseded by this complete pass. Final Engine consumer separately passed 1/1 (172.817s), including three actual X11 scripted repeats.
 
 Actual X11 self-edit passes arbitrary native text input, project-local pin ownership, Save/restore/selected Confirm, unchanged loaded A versus user-authored A-prime, separate immutable loaded artifact paths, A-prime opening a different project then its own engine source, failed draft/source/artifact retention, unapplied-buffer close/reopen and owner/child cleanup. Screenshot was visually inspected locally; it shows the changed ElementView applied to an ordinary function, not a table-owned model. Screenshots/logs/binaries remain outside Git. Prior actual mixed camera/input, control, resize, repeat, close/reopen and SIGINT checks pass.
 
 Final Linux and Windows engine targets compile. The workspace-switch fix rebuilt exactly Confectory.Engine::MainBody and zero contracts in both the self engine and Windows target. A project switch closes/recreates only the affected ElementView projection because Bind can change an element ID within its existing workspace, not replace its workspace. Stable windows/runtime models/controls survive; actual X11 checks verify it.
 
-Outstanding gates: corrected native Windows acceptance and native text/IME UX; Android Google SDK/full JDK/license prerequisites, APK/device run and native authoring/app execution; source-plus-artifact pin packaging for SDK packs. Original Library DOCX byte materialization remains HTTP 403 blocked; complete official extracted version-1 text was read. Keep these distinct from passing managed tests and source deliverables. No push, publication or main integration is performed by this local continuation.
+Outstanding gates: corrected native Windows acceptance and native text/IME UX; Android Google SDK/full JDK/license prerequisites, APK/device run and native authoring/app execution; source-plus-artifact pin packaging for SDK packs. The complete specification was already verified: all twenty sections via eighteen official bounded reads. Original binary transfer is not an outstanding specification-reading gap. Existing explicit authorization permits ordinary public source/docs/tests publication and safe main integration; the earlier local-only restriction is superseded. Binaries/images/secrets/raw chat/original documents remain excluded.
 
 Windows spot check stays asynchronous: run `run-authoring-windows.bat`, use O/A to attach a project, J to select a declaration/body, F2/F3 for user text, D/W for recovery and F for selected Confirm. Check both native windows, button isolation, shifted typing, close/reopen, mixed camera sources and final shutdown. Record launcher output and exact environment if it fails; Linux compilation/shim does not replace this gate.
