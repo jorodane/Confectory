@@ -9,13 +9,15 @@ public sealed class EngineTests : TestCase
     {
         string sample=Path.Combine(f.Root,"engine-sample");
         Fixture.CopyTree(Path.Combine(Fixture.Repo,"examples","engine"),sample);
-        foreach(string pack in new[]{"runtime-base","realtime-update","render-input","base-ui","window","project-manager","project-execution","file-stream","schema-editing","edit-workspace","save","change-set","element-view","source-editor"})
+        foreach(string pack in new[]{"runtime-base","realtime-update","render-input","base-ui","window","project-manager","project-execution","file-stream","schema-editing","edit-workspace","save","change-set","element-view","source-editor","agent","helper","worker-tasks"})
             Fixture.CopyTree(Path.Combine(Fixture.Repo,"packs",pack),Path.Combine(f.Root,"packs",pack));
         string project=Path.Combine(sample,"project.cpack");
         File.WriteAllText(project,File.ReadAllText(project)
             .Replace("../../packs/","../packs/",StringComparison.Ordinal)
             .Replace("../../targets/dotnet/pack.cpack","../target/pack.cpack",StringComparison.Ordinal));
+        File.WriteAllText(Path.Combine(f.Root,"packs","agent","Provider.csbody"),"unselected invalid provider");
         var report=new Builder(project,"portable").Build();
+        True(!Strings(report,"includedPacks").Contains("Confectory.Agent")&&!Strings(report,"includedPacks").Contains("Confectory.Helper")&&!Strings(report,"includedPacks").Contains("Confectory.WorkerTasks"),"Optional AI packs cannot become engine prerequisites");
         Equal("Confectory.Engine::Main",Text(report,"entry"));
         Sequence(new[]{"Confectory.BaseUI","Confectory.ChangeSet","Confectory.EditWorkspace","Confectory.ElementView","Confectory.Engine","Confectory.FileStream","Confectory.ProjectExecution","Confectory.ProjectManager","Confectory.RealTimeUpdate","Confectory.RenderInput","Confectory.RuntimeBase","Confectory.Save","Confectory.SchemaEditing","Confectory.SourceEditor","Confectory.Window"},Strings(report,"includedPacks"));
         var cached=new Builder(project,"portable").Build();

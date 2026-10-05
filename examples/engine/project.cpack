@@ -43,4 +43,10 @@ registry Confectory.ElementView "../../packs/element-view/pack.cpack";
 dependency Confectory.ElementView version "0.1.0";
 registry Confectory.SourceEditor "../../packs/source-editor/pack.cpack";
 dependency Confectory.SourceEditor version "0.1.0";
+registry Confectory.Agent "../../packs/agent/pack.cpack";
+dependency Confectory.Agent version "0.1.0";
+registry Confectory.Helper "../../packs/helper/pack.cpack";
+dependency Confectory.Helper version "0.1.0";
+registry Confectory.WorkerTasks "../../packs/worker-tasks/pack.cpack";
+dependency Confectory.WorkerTasks version "0.1.0";
 }
