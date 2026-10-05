@@ -129,6 +129,15 @@ public sealed class IntegrationTests : TestCase
         f.FakeTool("{\"protocol\":999,\"ok\":true}"); Error("TOOL_PROTOCOL", () => new Builder(f.Project, "portable"));
         f.FakeTool("{\"protocol\":1,\"ok\":false,\"error\":\"intentional tool failure\"}"); Error("TARGET_FAILURE", () => new Builder(f.Project, "portable"));
     }
+    public void test_cli_run_streams_output_propagates_exit_and_spaced_paths()
+    {
+        string cli=Path.Combine(Fixture.Repo,"src","Confectory.Cli","bin","Release","net8.0","Confectory.Cli.dll");
+        using var spaced=new Fixture(Path.Combine(f.Root,"launch project with spaces"));
+        spaced.Body("App","main.csbody","Console.WriteLine(\"launched project\"); Console.Error.WriteLine(\"visible diagnostic\"); return 7;");spaced.Sync();
+        var result=Processes.Run([Processes.DotNet(),cli,"run",spaced.Project,"portable"],timeoutSeconds:90);
+        Equal(7,result.ExitCode);True(result.Stdout.Contains("launched project",StringComparison.Ordinal));True(result.Stderr.Contains("visible diagnostic",StringComparison.Ordinal));
+        var missing=Processes.Run([Processes.DotNet(),cli,"run",spaced.Project,"missing"],timeoutSeconds:30);Equal(1,missing.ExitCode);True(missing.Stdout.Contains("MISSING_TARGET",StringComparison.Ordinal));
+    }
     public void test_cli_preserves_json_reports_and_exit_codes()
     {
         string cli = Path.Combine(Fixture.Repo, "src", "Confectory.Cli", "bin", "Release", "net8.0", "Confectory.Cli.dll");
