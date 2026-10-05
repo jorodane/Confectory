@@ -1,0 +1,8 @@
+implementation Confectory.Save::WriteBody for Confectory.Save::Write (string handle) -> string {
+import Confectory.Save::Location as Location (string) -> string;
+import Confectory.EditWorkspace::Identity as Identity (string) -> string[];
+import Confectory.EditWorkspace::Export as Export (string) -> string;
+import Confectory.FileStream::Snapshot as Snapshot (string) -> string[];
+import Confectory.FileStream::Commit as Commit (string, string[], string[], string[]) -> string[];
+body common "Write.csbody";
+}

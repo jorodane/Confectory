@@ -1,0 +1,4 @@
+implementation Confectory.Save::LocationBody for Confectory.Save::Location (string handle) -> string {
+import Confectory.EditWorkspace::Identity as Identity (string) -> string[];
+body common "Location.csbody";
+}

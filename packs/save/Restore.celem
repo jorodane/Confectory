@@ -1,0 +1,1 @@
+function Confectory.Save::Restore (string handle) -> void {description "Restore saved diffs and original baseline into the explicit workspace.";}

@@ -1,0 +1,1 @@
+string saved=calls.Read.Invoke(handle);if(saved!="")calls.RestoreDraft.Invoke(handle,saved);

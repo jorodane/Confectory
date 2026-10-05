@@ -1,0 +1,1 @@
+function Confectory.Save::Write (string handle) -> string {description "Persist changed units only; never modify final sources.";}

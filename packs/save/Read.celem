@@ -1,0 +1,1 @@
+function Confectory.Save::Read (string handle) -> string {description "Read local saved draft or empty if absent.";}

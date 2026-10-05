@@ -1,0 +1,5 @@
+implementation Confectory.Save::RestoreBody for Confectory.Save::Restore (string handle) -> void {
+import Confectory.Save::Read as Read (string) -> string;
+import Confectory.EditWorkspace::Restore as RestoreDraft (string, string) -> void;
+body common "Restore.csbody";
+}
