@@ -1,0 +1,10 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+handle) as System.Text.Json.Nodes.JsonObject??throw new ObjectDisposedException("EditWorkspace");var notices=new System.Collections.Generic.List<string>();
+foreach(string id in selected)
+{
+ string path,kind;long revision;lock(state){var unit=state["units"]![id];if(unit is null)continue;path=System.IO.Path.Combine(state["root"]!.GetValue<string>(),unit["path"]!.GetValue<string>());kind=unit["kind"]!.GetValue<string>();revision=unit["revision"]!.GetValue<long>();}
+ var disk=calls.Snapshot.Invoke(path);lock(state){var unit=state["units"]![id]!;if(disk[2]==unit["baseline"]!.GetValue<string>())continue;if(unit["revision"]!.GetValue<long>()!=revision||unit["draft"]!.GetValue<string>()!=unit["original"]!.GetValue<string>()){notices.Add(id);notices.Add("baseline-changed");continue;}}
+ if(disk[0]!="exists"){notices.Add(id);notices.Add("missing");continue;}
+ if(kind is not ("body" or "project" or "pack")){var parsed=System.Text.Json.Nodes.JsonNode.Parse(calls.Inspect.Invoke(disk[1]))!;if(parsed["id"]!.GetValue<string>()!=id||parsed["kind"]!.GetValue<string>()!=kind){notices.Add(id);notices.Add("identity-changed");continue;}}
+ lock(state){var unit=state["units"]![id]!;if(unit["revision"]!.GetValue<long>()!=revision||unit["draft"]!.GetValue<string>()!=unit["original"]!.GetValue<string>()){notices.Add(id);notices.Add("baseline-changed");continue;}unit["baseline"]=disk[2];unit["original"]=disk[1];unit["draft"]=disk[1];unit["revision"]=revision+1;notices.Add(id);notices.Add("refreshed");}
+}
+return notices.ToArray();

@@ -1,0 +1,1 @@
+implementation Confectory.EditWorkspace::RefreshCleanBody for Confectory.EditWorkspace::RefreshClean (string handle, string[] selected) -> string[] {import Confectory.FileStream::Snapshot as Snapshot (string) -> string[];import Confectory.SchemaEditing::Inspect as Inspect (string) -> string;body common "RefreshClean.csbody";}

@@ -1,0 +1,1 @@
+function Confectory.EditWorkspace::RefreshClean (string handle, string[] selected) -> string[] {provide Confectory.EditWorkspace::RefreshClean with Confectory.EditWorkspace::RefreshCleanBody;description "Observe confirmed disk changes; update only unchanged clean units and preserve dirty draft baselines.";}

@@ -33,4 +33,6 @@ element Close function "Close.celem";
 element CloseBody implementation "CloseBody.celem";
 element SetTextIfRevision function "SetTextIfRevision.celem";
 element SetTextIfRevisionBody implementation "SetTextIfRevisionBody.celem";
+element RefreshClean function "RefreshClean.celem";
+element RefreshCleanBody implementation "RefreshCleanBody.celem";
 }
