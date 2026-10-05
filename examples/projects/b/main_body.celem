@@ -1,0 +1,1 @@
+implementation Example.ProjectB::MainBody for Example.ProjectB::Main () -> int {body common "main.csbody";}

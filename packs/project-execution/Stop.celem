@@ -1,0 +1,1 @@
+function Confectory.ProjectExecution::Stop (string[] session, string handle) -> void { description "Idempotently stop this execution only, including its worker tree."; }

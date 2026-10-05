@@ -1,0 +1,1 @@
+implementation Confectory.ProjectExecution::DisposeBody for Confectory.ProjectExecution::Dispose (string[] session) -> void { import Confectory.ProjectExecution::Stop as Stop (string[], string) -> void; body common "Dispose.csbody"; }

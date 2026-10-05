@@ -1,0 +1,1 @@
+return new[]{"desktop-process","build-and-run","read-only-description","stop-owned-tree","runtime-inspection:unavailable","runtime-call:unavailable"};

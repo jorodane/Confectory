@@ -1,0 +1,1 @@
+function Example.ProjectA::Main () -> int {provide Example.ProjectA::Main with Example.ProjectA::MainBody;}

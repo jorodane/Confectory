@@ -1,0 +1,9 @@
+if(string.IsNullOrWhiteSpace(project))throw new ArgumentException("Project path is required; no implicit project.");
+string tool=Environment.GetEnvironmentVariable("CONFECTORY_PROJECT_EXECUTION_HOST")??throw new InvalidOperationException("Execution host tool is not configured.");
+var start=new System.Diagnostics.ProcessStartInfo(Environment.GetEnvironmentVariable("CONFECTORY_DOTNET")??"dotnet"){UseShellExecute=false,RedirectStandardOutput=true,RedirectStandardError=true};
+foreach(string arg in new[]{tool,"describe",System.IO.Path.GetFullPath(project)})start.ArgumentList.Add(arg);
+using var process=System.Diagnostics.Process.Start(start)??throw new InvalidOperationException("Description host did not start.");
+var output=process.StandardOutput.ReadToEndAsync();var error=process.StandardError.ReadToEndAsync();
+if(!process.WaitForExit(10000)){process.Kill(true);throw new TimeoutException("Description timed out.");}
+if(process.ExitCode!=0)throw new ArgumentException(error.GetAwaiter().GetResult());
+return System.Text.Json.JsonSerializer.Deserialize<string[]>(output.GetAwaiter().GetResult())??throw new InvalidOperationException("Invalid description response.");

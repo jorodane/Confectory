@@ -1,0 +1,1 @@
+function Confectory.ProjectExecution::CreateSession () -> string[] { description "Create a caller-owned execution session; Dispose stops its owned workers."; }

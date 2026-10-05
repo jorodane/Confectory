@@ -1,0 +1,1 @@
+function Confectory.ProjectExecution::Observe (string[] session, string handle) -> string[] { description "Fresh handle snapshot: handle, state, project, entry, target, exit code, error."; }

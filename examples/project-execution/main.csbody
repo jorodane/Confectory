@@ -1,0 +1,28 @@
+void Assert(bool value,string message){if(!value)throw new Exception(message);}
+string root=Environment.GetEnvironmentVariable("CONFECTORY_TEST_REPO")??Environment.CurrentDirectory;
+string project=System.IO.Path.Combine(root,"examples","projects","a","project.cpack");
+string original=System.IO.File.ReadAllText(project);var session=calls.CreateSession.Invoke();var other=calls.CreateSession.Invoke();
+string[] Wait(string handle,params string[] desired)
+{
+ var watch=System.Diagnostics.Stopwatch.StartNew();while(watch.ElapsedMilliseconds<60000){var status=calls.Observe.Invoke(session,handle);if(Array.IndexOf(desired,status[1])>=0)return status;System.Threading.Thread.Sleep(10);}throw new Exception("Execution timeout");
+}
+try
+{
+ Assert(calls.DescribeProject.Invoke(project)[0]=="Example.ProjectA","Description");
+ bool nullRejected=false;try{calls.Launch.Invoke(session,"","","portable");}catch(ArgumentException){nullRejected=true;}Assert(nullRejected,"No implicit project");
+ for(int cycle=0;cycle<3;cycle++)
+ {
+  string a=calls.Launch.Invoke(session,project,"Example.ProjectA::Main","portable"),b=calls.Launch.Invoke(session,project,"Example.ProjectA::Main","portable");
+  Assert(a!=b,"Stable unique instance handles");Wait(a,"running");Wait(b,"running");
+  bool crossRejected=false;try{calls.Observe.Invoke(other,a);}catch(ArgumentException){crossRejected=true;}Assert(crossRejected,"Session isolation");
+  calls.Stop.Invoke(session,a);calls.Stop.Invoke(session,a);Assert(calls.Observe.Invoke(session,a)[1]=="stopped","Stop repeat");Assert(calls.Observe.Invoke(session,b)[1]=="running","Other execution unaffected");
+  calls.Stop.Invoke(session,b);Assert(calls.Poll.Invoke(session).Length==8,"Two termination notifications");Assert(calls.Poll.Invoke(session).Length==0,"Notify once");
+ }
+ string alternate=calls.Launch.Invoke(session,project,"Example.ProjectA::Inspect","portable");Assert(Wait(alternate,"exited","failed")[1]=="exited","Select alternate entry");calls.Poll.Invoke(session);
+ string broken=calls.Launch.Invoke(session,project,"Example.ProjectA::Missing","portable");Assert(Wait(broken,"failed")[6].Length!=0,"Build error observed");calls.Poll.Invoke(session);
+ string pending=calls.Launch.Invoke(session,project,"Example.ProjectA::Main","portable");calls.Stop.Invoke(session,pending);Assert(calls.Observe.Invoke(session,pending)[1]=="stopped","Stop while building");
+ Assert(System.IO.File.ReadAllText(project)==original,"Execution never rewrites source");
+}
+finally{calls.Dispose.Invoke(session);calls.Dispose.Invoke(session);calls.Dispose.Invoke(other);}
+bool disposed=false;try{calls.Observe.Invoke(session,"missing");}catch(InvalidOperationException){disposed=true;}Assert(disposed,"Disposed caller");
+Console.WriteLine("ProjectExecution lifecycle PASS");return 0;

@@ -1,0 +1,7 @@
+if(session.Length!=2||session[1]!="active"||AppDomain.CurrentDomain.GetData(session[0]) is not System.Collections.Generic.Dictionary<string,object[]> records)throw new InvalidOperationException("Execution session is disposed.");
+if(string.IsNullOrWhiteSpace(project)||string.IsNullOrWhiteSpace(entry)||string.IsNullOrWhiteSpace(target))throw new ArgumentException("Explicit project, entry and target required.");
+project=System.IO.Path.GetFullPath(project);string handle=Guid.NewGuid().ToString("N");
+var record=new object[]{new string[]{handle,"building",project,entry,target,"",""},null!,false};
+lock(records)records.Add(handle,record);
+lock(records){var status=(string[])record[0];status[1]="failed";status[6]="Android app execution provider is not yet available; desktop processes are not supported.";}
+return handle;

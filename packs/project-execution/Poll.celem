@@ -1,0 +1,1 @@
+function Confectory.ProjectExecution::Poll (string[] session) -> string[] { description "Consume terminal notifications once as flat handle/state/exit/error quadruples."; }

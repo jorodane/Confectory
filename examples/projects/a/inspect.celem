@@ -1,0 +1,1 @@
+function Example.ProjectA::Inspect () -> int {provide Example.ProjectA::Inspect with Example.ProjectA::InspectBody;}

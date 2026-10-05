@@ -1,0 +1,4 @@
+if(session.Length!=2||session[1]!="active"||AppDomain.CurrentDomain.GetData(session[0]) is not System.Collections.Generic.Dictionary<string,object[]> records)throw new InvalidOperationException("Execution session is disposed.");
+var result=new System.Collections.Generic.List<string>();
+lock(records)foreach(var record in records.Values){var status=(string[])record[0];if(!(bool)record[2]&&status[1] is "stopped" or "exited" or "failed"){record[2]=true;result.AddRange(new[]{status[0],status[1],status[5],status[6]});}}
+return result.ToArray();

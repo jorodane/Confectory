@@ -1,0 +1,1 @@
+function Confectory.ProjectExecution::Dispose (string[] session) -> void { description "Stop all owned executions, release host objects; no source edits or project-context close."; }

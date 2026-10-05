@@ -1,0 +1,1 @@
+implementation Confectory.ProjectExecution::ObserveBody for Confectory.ProjectExecution::Observe (string[] session, string handle) -> string[] { body common "Observe.csbody"; }

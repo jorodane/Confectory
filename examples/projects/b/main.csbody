@@ -1,0 +1,1 @@
+int duration=60000;string? configured=Environment.GetEnvironmentVariable("CONFECTORY_PROJECT_DURATION_MS");if(configured is not null&&!int.TryParse(configured,out duration))return 2;System.Threading.Thread.Sleep(Math.Clamp(duration,0,600000));return 0;

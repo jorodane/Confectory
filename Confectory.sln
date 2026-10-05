@@ -18,6 +18,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Confectory.Tests", "tests\C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Confectory.AndroidExport", "targets\android-export\Confectory.AndroidExport.csproj", "{644991FC-D703-40C0-BEAF-51318DD62FD9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Confectory.ProjectExecutionHost", "targets\project-execution-host\Confectory.ProjectExecutionHost.csproj", "{A9F533DC-8974-40A1-9EB5-87FFF0AC87A1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -47,6 +49,10 @@ Global
 		{644991FC-D703-40C0-BEAF-51318DD62FD9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{644991FC-D703-40C0-BEAF-51318DD62FD9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{644991FC-D703-40C0-BEAF-51318DD62FD9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A9F533DC-8974-40A1-9EB5-87FFF0AC87A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A9F533DC-8974-40A1-9EB5-87FFF0AC87A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A9F533DC-8974-40A1-9EB5-87FFF0AC87A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A9F533DC-8974-40A1-9EB5-87FFF0AC87A1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{45070A74-222B-447A-B314-759CB61BD6DF} = {FFB9DECD-9217-4394-9731-E710FB8214C6}
@@ -54,5 +60,6 @@ Global
 		{CA13B47B-4C72-4AD5-9204-E780CEB675DF} = {2AA2EFB5-9071-48D9-B7DC-E1765BFF7D9B}
 		{36476D29-E75C-4BB4-9BFA-B90FAFF8332A} = {701F284E-1D70-4B9C-A12C-537384B8B37B}
 		{644991FC-D703-40C0-BEAF-51318DD62FD9} = {2AA2EFB5-9071-48D9-B7DC-E1765BFF7D9B}
+		{A9F533DC-8974-40A1-9EB5-87FFF0AC87A1} = {2AA2EFB5-9071-48D9-B7DC-E1765BFF7D9B}
 	EndGlobalSection
 EndGlobal

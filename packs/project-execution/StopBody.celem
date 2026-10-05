@@ -1,0 +1,1 @@
+implementation Confectory.ProjectExecution::StopBody for Confectory.ProjectExecution::Stop (string[] session, string handle) -> void { body common "Stop.csbody"; }

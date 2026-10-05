@@ -1,0 +1,12 @@
+if(session.Length!=2||session[1]!="active"||AppDomain.CurrentDomain.GetData(session[0]) is not System.Collections.Generic.Dictionary<string,object[]> records)throw new InvalidOperationException("Execution session is disposed.");
+lock(records)
+{
+ if(!records.TryGetValue(handle,out var record))throw new ArgumentException("Unknown execution handle for this session.");
+ var status=(string[])record[0];if(status[1] is "stopped" or "exited" or "failed")return;
+ if(record[1] is System.Diagnostics.Process process)
+ {
+  try{if(!process.HasExited){process.Kill(true);if(!process.WaitForExit(5000))throw new TimeoutException("Worker did not terminate.");}}
+  catch(InvalidOperationException){if(!process.HasExited)throw;}
+ }
+ status[1]="stopped";status[5]="";
+}

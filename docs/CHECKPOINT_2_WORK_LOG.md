@@ -1,0 +1,19 @@
+# Checkpoint 2 pack work log
+
+Base: published Checkpoint 1 73d793f; branch integration/checkpoint-2, remote fetched with no newer main work. Source/test/specification publication and safe fast-forward integration remain authorized. User Windows/Android UX checks are asynchronous.
+
+## ProjectExecution increment
+
+Intended IDs/public contracts: Confectory.ProjectExecution::{CreateSession,Capabilities,DescribeProject,Launch,Observe,Stop,Poll,Dispose}, corresponding Body IDs. Launch explicitly identifies ProjectPack, entry and target and returns a stable session-owned handle immediately. The strategy is capability-selected; desktop builds/runs in an owned worker process. Android overrides declare unavailable app execution rather than pretending desktop process semantics. Data description never executes project code. Runtime inspection/calls are separately unavailable capabilities, not implicit source edits. No editor entry required.
+
+Outside implementation reads: src/Confectory.Core/{Build,Declarations,Resolution}.cs for public Builder/Manifest/Parser APIs and whether entry can be selected in-memory; FORMAT documents contracts but no runtime build/launch service. The host uses existing public Builder.Registry.Project.Entry selection without source mutation or core edits. Existing engine/Android exporter declarations were read for real import/binding and packaging patterns; test runner/RuntimeBaseTests fixture read for isolation/locality conventions. Outside edits: new host .NET project/solution registration, test runner/regression consumers and subsequent engine composition. No core or compiler target implementation edits. New helper is owned build/run strategy infrastructure, not a mandatory engine/editor host.
+
+Rebuild scope: new execution contracts, owned provider bodies, strategy worker, generated consumers. Provider-only Observe edits must rebuild exactly ObserveBody; shared contracts separately consumer tested. Functional gates: independent repeated execution handles, alternate entry, errors, immediate build cancellation, terminal-once notifications, caller disposal, unchanged source. Android managed override is a distinct compile/selection gate; native app strategy remains open.
+
+## ProjectManager increment design
+
+Intended public IDs: Confectory.ProjectManager::{CreateManager,CreateProject,Open,Select,Context,Close,Launch,Dispose}; explicit context handles separate data opening from execution. Managers own contexts and a caller-disposal execution session, while Close only closes data context; execution stops are explicit independent calls. No default/null project loading. Repeated Open returns the same open context; reopen gets a fresh context handle. No editor-only entry or fixed engine/game roles. CreateProject writes only an explicitly new local directory and never overwrites existing projects. Actual external reads/edits and measured gates will be recorded with implementation.
+
+## Android setup boundary
+
+.NET Android workload installed: 34.0.43/8.0.100 with .NET 8.0.31 runtime packs. Google SDK terms: https://developer.android.com/studio#terms-and-conditions; explicit acceptance is sdkmanager --licenses or AcceptAndroidSDKLicenses=True and remains unapproved. Google SDK absent. Official Microsoft full-JDK download returned HTTP 403; another official source may be used within authorized tooling scope, without bypassing access restrictions. No APK/device coverage claimed.

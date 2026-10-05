@@ -1,0 +1,1 @@
+function Confectory.ProjectExecution::Launch (string[] session, string project, string entry, string target) -> string { description "Return a stable asynchronous instance handle for an explicit ProjectPack, entry and target."; }

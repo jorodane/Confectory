@@ -1,0 +1,11 @@
+function Example.ProjectExecution::Main () -> int {
+provide Example.ProjectExecution::Main with Example.ProjectExecution::MainBody;
+provide Confectory.ProjectExecution::CreateSession with Confectory.ProjectExecution::CreateSessionBody;
+provide Confectory.ProjectExecution::Capabilities with Confectory.ProjectExecution::CapabilitiesBody;
+provide Confectory.ProjectExecution::Launch with Confectory.ProjectExecution::LaunchBody;
+provide Confectory.ProjectExecution::Observe with Confectory.ProjectExecution::ObserveBody;
+provide Confectory.ProjectExecution::Stop with Confectory.ProjectExecution::StopBody;
+provide Confectory.ProjectExecution::Poll with Confectory.ProjectExecution::PollBody;
+provide Confectory.ProjectExecution::Dispose with Confectory.ProjectExecution::DisposeBody;
+provide Confectory.ProjectExecution::DescribeProject with Confectory.ProjectExecution::DescribeProjectBody;
+}

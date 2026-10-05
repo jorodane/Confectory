@@ -1,0 +1,18 @@
+pack Confectory.ProjectExecution version "0.1.0" {
+ element CreateSession function "CreateSession.celem";
+ element CreateSessionBody implementation "CreateSessionBody.celem";
+ element Capabilities function "Capabilities.celem";
+ element CapabilitiesBody implementation "CapabilitiesBody.celem";
+ element Launch function "Launch.celem";
+ element LaunchBody implementation "LaunchBody.celem";
+ element Observe function "Observe.celem";
+ element ObserveBody implementation "ObserveBody.celem";
+ element Stop function "Stop.celem";
+ element StopBody implementation "StopBody.celem";
+ element Poll function "Poll.celem";
+ element PollBody implementation "PollBody.celem";
+ element Dispose function "Dispose.celem";
+ element DisposeBody implementation "DisposeBody.celem";
+ element DescribeProject function "DescribeProject.celem";
+ element DescribeProjectBody implementation "DescribeProjectBody.celem";
+}

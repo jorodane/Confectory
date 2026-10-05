@@ -1,0 +1,11 @@
+implementation Example.ProjectExecution::MainBody for Example.ProjectExecution::Main () -> int {
+import Confectory.ProjectExecution::CreateSession as CreateSession () -> string[];
+import Confectory.ProjectExecution::Capabilities as Capabilities () -> string[];
+import Confectory.ProjectExecution::Launch as Launch (string[], string, string, string) -> string;
+import Confectory.ProjectExecution::Observe as Observe (string[], string) -> string[];
+import Confectory.ProjectExecution::Stop as Stop (string[], string) -> void;
+import Confectory.ProjectExecution::Poll as Poll (string[]) -> string[];
+import Confectory.ProjectExecution::Dispose as Dispose (string[]) -> void;
+import Confectory.ProjectExecution::DescribeProject as DescribeProject (string) -> string[];
+body common "main.csbody";
+}

@@ -1,0 +1,6 @@
+if(session.Length!=2)throw new ArgumentException("Invalid session.");if(session[1]=="disposed")return;
+if(AppDomain.CurrentDomain.GetData(session[0]) is not System.Collections.Generic.Dictionary<string,object[]> records)throw new InvalidOperationException("Unknown execution session.");
+string[] handles;lock(records)handles=System.Linq.Enumerable.ToArray(records.Keys);
+foreach(string handle in handles)calls.Stop.Invoke(session,handle);
+lock(records){foreach(var record in records.Values)if(record[1] is System.Diagnostics.Process p)p.Dispose();records.Clear();}
+AppDomain.CurrentDomain.SetData(session[0],null);session[1]="disposed";

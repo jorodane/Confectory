@@ -1,0 +1,1 @@
+implementation Example.ProjectB::InspectBody for Example.ProjectB::Inspect () -> int {body common "inspect.csbody";}

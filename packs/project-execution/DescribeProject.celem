@@ -1,0 +1,1 @@
+function Confectory.ProjectExecution::DescribeProject (string project) -> string[] { description "Read project namespace/default entry/targets without executing or compiling project code."; }
