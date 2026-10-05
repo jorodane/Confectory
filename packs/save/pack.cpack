@@ -9,4 +9,6 @@ element Read function "Read.celem";
 element ReadBody implementation "ReadBody.celem";
 element Restore function "Restore.celem";
 element RestoreBody implementation "RestoreBody.celem";
+element Acknowledge function "Acknowledge.celem";
+element AcknowledgeBody implementation "AcknowledgeBody.celem";
 }

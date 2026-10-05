@@ -1,0 +1,1 @@
+function Confectory.Save::Acknowledge (string handle, string[] selected) -> void {provide Confectory.Save::Acknowledge with Confectory.Save::AcknowledgeBody;description "Remove matching confirmed units from persisted diffs without saving other unsaved edits.";}

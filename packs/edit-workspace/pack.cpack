@@ -31,4 +31,6 @@ element Unsubscribe function "Unsubscribe.celem";
 element UnsubscribeBody implementation "UnsubscribeBody.celem";
 element Close function "Close.celem";
 element CloseBody implementation "CloseBody.celem";
+element SetTextIfRevision function "SetTextIfRevision.celem";
+element SetTextIfRevisionBody implementation "SetTextIfRevisionBody.celem";
 }

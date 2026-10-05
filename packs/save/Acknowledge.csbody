@@ -1,0 +1,8 @@
+string path=calls.Location.Invoke(handle);var snapshot=calls.Snapshot.Invoke(path);if(snapshot[0]=="missing")return;
+var saved=System.Text.Json.Nodes.JsonNode.Parse(snapshot[1])!.AsObject();var changes=saved["changes"]!.AsArray();bool changed=false;
+for(int i=changes.Count-1;i>=0;i--)
+{
+ var unit=changes[i]!;string id=unit["id"]!.GetValue<string>();if(Array.IndexOf(selected,id)<0)continue;
+ var current=calls.Read.Invoke(handle,id);if(current[6]=="clean"&&current[3]==unit["draft"]!.GetValue<string>()){changes.RemoveAt(i);changed=true;}
+}
+if(!changed)return;var identity=calls.Identity.Invoke(handle);var result=calls.Commit.Invoke(identity[3],new[]{System.IO.Path.GetRelativePath(identity[3],path)},new[]{snapshot[2]},new[]{saved.ToJsonString()});if(result[0]!="applied")throw new InvalidOperationException("Concurrent saved-draft change; final source already confirmed, saved bookkeeping needs review.");

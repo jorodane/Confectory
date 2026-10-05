@@ -1,8 +1,1 @@
-var state=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+handle) as System.Text.Json.Nodes.JsonObject??throw new ObjectDisposedException("EditWorkspace");
-string kind;lock(state)kind=state["units"]![id]?["kind"]?.GetValue<string>()??throw new ArgumentException("Unknown owned unit.");
-if(kind=="project")throw new ArgumentException("Project registration changes use Create.");
-if(kind!="body"){var parsed=System.Text.Json.Nodes.JsonNode.Parse(calls.Inspect.Invoke(text))!;if(parsed["id"]!.GetValue<string>()!=id||parsed["kind"]!.GetValue<string>()!=kind)throw new ArgumentException("Stable element ID and kind required.");}
-lock(state){var unit=state["units"]![id] as System.Text.Json.Nodes.JsonObject??throw new ArgumentException("Unknown owned unit.");
-
- if(unit["draft"]!.GetValue<string>()==text)return;unit["draft"]=text;unit["revision"]=unit["revision"]!.GetValue<long>()+1;
-}
+calls.SetTextIfRevision.Invoke(handle,id,text,-1);

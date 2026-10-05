@@ -1,0 +1,1 @@
+function Confectory.EditWorkspace::SetTextIfRevision (string handle, string id, string text, long expected) -> bool {provide Confectory.EditWorkspace::SetTextIfRevision with Confectory.EditWorkspace::SetTextIfRevisionBody;description "Validate arbitrary declaration/body text and atomically apply only at expected draft revision; negative expected is unconditional.";}

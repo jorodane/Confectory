@@ -7,5 +7,6 @@ import Confectory.SchemaEditing::Prepare as Prepare (string, string) -> string;
 import Confectory.SchemaEditing::Validate as Validate (string, string) -> string;
 import Confectory.EditWorkspace::Accept as Accept (string, string[]) -> void;
 import Confectory.FileStream::Commit as Commit (string, string[], string[], string[]) -> string[];
+import Confectory.Save::Acknowledge as Acknowledge (string, string[]) -> void;
 body common "Confirm.csbody";
 }
