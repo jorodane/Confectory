@@ -1,0 +1,7 @@
+implementation Confectory.CollaborationEditing::OpenBody for Confectory.CollaborationEditing::Open (string endpoint, string project, string participant, string context) -> string {
+import Confectory.MultiPlay::Connect as Connect (string, string) -> string;
+import Confectory.EditWorkspace::Open as WorkspaceOpen (string, string, string) -> string;
+import Confectory.Save::Restore as Restore (string) -> void;
+import Confectory.MultiPlay::Disconnect as Drop (string) -> void;
+body common "Open.csbody";
+}

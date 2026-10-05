@@ -1,0 +1,1 @@
+function Confectory.CollaborationEditing::Close (string session) -> void {provide Confectory.CollaborationEditing::Close with Confectory.CollaborationEditing::CloseBody;description "Save and release only this owned session/workspace; no source/save deletion.";}

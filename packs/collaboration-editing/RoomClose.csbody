@@ -1,0 +1,1 @@
+AppDomain.CurrentDomain.SetData("Confectory.Collaboration.Room."+room,null);

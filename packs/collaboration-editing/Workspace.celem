@@ -1,0 +1,1 @@
+function Confectory.CollaborationEditing::Workspace (string session) -> string {provide Confectory.CollaborationEditing::Workspace with Confectory.CollaborationEditing::WorkspaceBody;description "Borrow participant workspace; Views do not own it.";}

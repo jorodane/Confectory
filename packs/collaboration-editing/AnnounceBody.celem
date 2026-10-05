@@ -1,0 +1,5 @@
+implementation Confectory.CollaborationEditing::AnnounceBody for Confectory.CollaborationEditing::Announce (string session, string[] selected) -> string {
+import Confectory.EditWorkspace::Read as Read (string, string) -> string[];
+import Confectory.MultiPlay::Exchange as Exchange (string, string) -> string;
+body common "Announce.csbody";
+}

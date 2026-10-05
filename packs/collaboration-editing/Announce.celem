@@ -1,0 +1,1 @@
+function Confectory.CollaborationEditing::Announce (string session, string[] selected) -> string {provide Confectory.CollaborationEditing::Announce with Confectory.CollaborationEditing::AnnounceBody;description "Publish intent metadata only, never draft text.";}

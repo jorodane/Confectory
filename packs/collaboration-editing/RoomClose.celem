@@ -1,0 +1,1 @@
+function Confectory.CollaborationEditing::RoomClose (string room) -> void {provide Confectory.CollaborationEditing::RoomClose with Confectory.CollaborationEditing::RoomCloseBody;description "Release room metadata without deleting source or participant saves.";}

@@ -1,0 +1,3 @@
+implementation Confectory.CollaborationEditing::RoomCloseBody for Confectory.CollaborationEditing::RoomClose (string room) -> void {
+body common "RoomClose.csbody";
+}

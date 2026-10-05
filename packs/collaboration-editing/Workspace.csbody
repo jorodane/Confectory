@@ -1,0 +1,2 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.Collaboration.Client."+session) as System.Text.Json.Nodes.JsonObject??throw new ObjectDisposedException("Collaboration client");
+lock(state)return state["workspace"]!.GetValue<string>();

@@ -1,0 +1,7 @@
+implementation Confectory.CollaborationEditing::PollBody for Confectory.CollaborationEditing::Poll (string session) -> string {
+import Confectory.MultiPlay::Exchange as Exchange (string, string) -> string;
+import Confectory.EditWorkspace::RefreshClean as RefreshClean (string, string[]) -> string[];
+import Confectory.SchemaEditing::BeginScope as BeginScope (string) -> void;
+import Confectory.SchemaEditing::EndScope as EndScope () -> void;
+body common "Poll.csbody";
+}

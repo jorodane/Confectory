@@ -1,0 +1,37 @@
+var roomState=AppDomain.CurrentDomain.GetData("Confectory.Collaboration.Room."+room) as System.Text.Json.Nodes.JsonObject??throw new ObjectDisposedException("Collaboration room");
+lock(roomState)
+{
+ var participants=roomState["participants"]!.AsObject();
+ if(operation=="join")
+ {
+  if(!calls.Authorize.Invoke(participant,"talk",""))return "{\"state\":\"denied\"}";
+  if(participants[participant] is not System.Text.Json.Nodes.JsonObject existing){if(participants.Count>=64)return "{\"state\":\"full\"}";participants[participant]=new System.Text.Json.Nodes.JsonObject{["connections"]=1,["intents"]=new System.Text.Json.Nodes.JsonObject(),["watch"]=new System.Text.Json.Nodes.JsonObject()};}else existing["connections"]=existing["connections"]!.GetValue<int>()+1;
+  return "{\"state\":\"joined\"}";
+ }
+ var actor=participants[participant] as System.Text.Json.Nodes.JsonObject??throw new ArgumentException("Unknown participant.");
+ if(operation=="leave"){actor["connections"]=Math.Max(0,actor["connections"]!.GetValue<int>()-1);return "{\"state\":\"left\"}";}
+ if(operation!="message")throw new ArgumentException("Unknown operation.");var request=System.Text.Json.Nodes.JsonNode.Parse(payload)!;string op=request["op"]!.GetValue<string>();
+ var tracked=roomState["confirmed"]!.AsObject();var units=roomState["units"]!.AsObject();var intents=actor["intents"]!.AsObject();
+ string Hash(string id){string relative=units[id]?.GetValue<string>()??throw new ArgumentException("Unknown owned unit.");return calls.Snapshot.Invoke(System.IO.Path.Combine(roomState["root"]!.GetValue<string>(),relative))[2];}
+ void Observe(string id){string hash=Hash(id);if(tracked[id] is null&&tracked.Count>=64)throw new ArgumentException("Tracked unit bound exceeded.");if(tracked[id] is null)tracked[id]=new System.Text.Json.Nodes.JsonObject{["hash"]=hash,["revision"]=0L};else if(tracked[id]!["hash"]!.GetValue<string>()!=hash){long revision=roomState["revision"]!.GetValue<long>()+1;roomState["revision"]=revision;tracked[id]!["hash"]=hash;tracked[id]!["revision"]=revision;}}
+ if(op=="announce")
+ {
+  var changes=request["units"]!.AsArray();if(changes.Count>64)throw new ArgumentException("Intent bound exceeded.");
+  foreach(var item in changes){string id=item!["id"]!.GetValue<string>();if(!calls.Authorize.Invoke(participant,"work",id))return "{\"state\":\"denied\"}";Observe(id);if(actor["watch"]![id] is null&&actor["watch"]!.AsObject().Count>=64)throw new ArgumentException("Watch bound exceeded.");actor["watch"]![id]=true;if(item["dirty"]!.GetValue<bool>()){if(intents[id] is null&&intents.Count>=64)throw new ArgumentException("Participant intent bound exceeded.");intents[id]=item.DeepClone();}else intents.Remove(id);}
+ }
+ else if(op=="check")
+ {
+  var selected=request["units"]!.AsArray();if(selected.Count!=1)throw new ArgumentException("One existing unit per bounded Confirm.");var unit=selected[0]!;string id=unit["id"]!.GetValue<string>();if(!calls.Authorize.Invoke(participant,"apply",id))return "{\"state\":\"denied\"}";Observe(id);if(unit["baseline"]!.GetValue<string>()!=tracked[id]!["hash"]!.GetValue<string>())return "{\"state\":\"conflict\"}";return "{\"state\":\"ready\"}";
+ }
+ else if(op=="confirmed"){foreach(var idNode in request["ids"]!.AsArray()){string id=idNode!.GetValue<string>();Observe(id);intents.Remove(id);}}
+ else if(op!="poll")throw new ArgumentException("Unknown message.");
+ foreach(var item in System.Linq.Enumerable.ToArray(tracked))Observe(item.Key);
+ var conflicts=new System.Text.Json.Nodes.JsonArray();foreach(var item in intents)
+ {
+  var candidates=new System.Text.Json.Nodes.JsonArray();foreach(var person in participants)if(person.Value!["connections"]!.GetValue<int>()>0&&person.Value["intents"]![item.Key] is not null)candidates.Add(person.Key);
+  bool changed=item.Value!["baseline"]!.GetValue<string>()!=tracked[item.Key]!["hash"]!.GetValue<string>();if(candidates.Count>1||changed)conflicts.Add(new System.Text.Json.Nodes.JsonObject{["id"]=item.Key,["kind"]=candidates.Count>=3?"clash":candidates.Count>=2?"conflict":"baseline-changed",["participants"]=candidates,["baselineChanged"]=changed});
+ }
+ var observed=new System.Text.Json.Nodes.JsonObject();foreach(var watched in actor["watch"]!.AsObject())if(tracked[watched.Key] is not null)observed[watched.Key]=tracked[watched.Key]!.DeepClone();var editing=new System.Text.Json.Nodes.JsonArray();foreach(var person in participants)if(person.Value!["connections"]!.GetValue<int>()>0)foreach(var intent in person.Value["intents"]!.AsObject())if(actor["watch"]![intent.Key] is not null)editing.Add(new System.Text.Json.Nodes.JsonObject{["participant"]=person.Key,["id"]=intent.Key,["revision"]=intent.Value!["revision"]!.GetValue<long>()});
+ var presence=new System.Text.Json.Nodes.JsonArray();foreach(var person in participants)presence.Add(new System.Text.Json.Nodes.JsonObject{["participant"]=person.Key,["connections"]=person.Value!["connections"]!.GetValue<int>()});
+ return new System.Text.Json.Nodes.JsonObject{["state"]="connected",["confirmed"]=observed,["editing"]=editing,["conflicts"]=conflicts,["presence"]=presence}.ToJsonString();
+}

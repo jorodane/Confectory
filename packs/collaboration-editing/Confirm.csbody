@@ -1,0 +1,11 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.Collaboration.Client."+session) as System.Text.Json.Nodes.JsonObject??throw new ObjectDisposedException("Collaboration client");
+if(selected.Length!=1)return new[]{"unsupported","Bounded collaboration confirms one existing unit."};string transport,workspace;lock(state){if(state["closed"]!.GetValue<bool>())return new[]{"closed"};if(state["confirming"]!.GetValue<bool>())return new[]{"busy"};transport=state["transport"]!.GetValue<string>();if(transport=="")return new[]{"disconnected"};workspace=state["workspace"]!.GetValue<string>();state["confirming"]=true;calls.BeginScope.Invoke(session);}
+bool activated=false;
+try
+{
+ var unit=calls.Read.Invoke(workspace,selected[0]);if(unit[1] is "project" or "pack"||unit[5]=="missing")return new[]{"unsupported","Existing owned unit required."};var units=new System.Text.Json.Nodes.JsonArray{new System.Text.Json.Nodes.JsonObject{["id"]=selected[0],["baseline"]=unit[5]}};
+ var check=System.Text.Json.Nodes.JsonNode.Parse(calls.Exchange.Invoke(transport,new System.Text.Json.Nodes.JsonObject{["op"]="check",["units"]=units}.ToJsonString()))!;string ready=check["state"]!.GetValue<string>();if(ready!="ready")return new[]{ready};
+ var result=calls.Apply.Invoke(workspace,selected,target);if(result[0] is "confirmed" or "confirmed-with-warning"){activated=true;calls.Exchange.Invoke(transport,new System.Text.Json.Nodes.JsonObject{["op"]="confirmed",["ids"]=System.Text.Json.JsonSerializer.SerializeToNode(selected)}.ToJsonString());calls.Announce.Invoke(session,selected);}return result;
+}
+catch(Exception error){return new[]{activated?"confirmed-with-warning":"failed",error.Message};}
+finally{calls.EndScope.Invoke();lock(state)state["confirming"]=false;}

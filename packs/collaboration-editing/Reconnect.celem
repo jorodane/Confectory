@@ -1,0 +1,1 @@
+function Confectory.CollaborationEditing::Reconnect (string session) -> void {provide Confectory.CollaborationEditing::Reconnect with Confectory.CollaborationEditing::ReconnectBody;description "Reconnect the same identity and reannounce retained intent.";}

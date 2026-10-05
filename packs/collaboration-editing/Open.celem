@@ -1,0 +1,1 @@
+function Confectory.CollaborationEditing::Open (string endpoint, string project, string participant, string context) -> string {provide Confectory.CollaborationEditing::Open with Confectory.CollaborationEditing::OpenBody;description "Connect a participant while retaining an independent local draft workspace.";}

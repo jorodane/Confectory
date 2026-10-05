@@ -1,0 +1,9 @@
+implementation Confectory.CollaborationEditing::ConfirmBody for Confectory.CollaborationEditing::Confirm (string session, string[] selected, string target) -> string[] {
+import Confectory.EditWorkspace::Read as Read (string, string) -> string[];
+import Confectory.MultiPlay::Exchange as Exchange (string, string) -> string;
+import Confectory.ChangeSet::Confirm as Apply (string, string[], string) -> string[];
+import Confectory.CollaborationEditing::Announce as Announce (string, string[]) -> string;
+import Confectory.SchemaEditing::BeginScope as BeginScope (string) -> void;
+import Confectory.SchemaEditing::EndScope as EndScope () -> void;
+body common "Confirm.csbody";
+}

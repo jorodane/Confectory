@@ -1,0 +1,3 @@
+implementation Confectory.CollaborationEditing::WorkspaceBody for Confectory.CollaborationEditing::Workspace (string session) -> string {
+body common "Workspace.csbody";
+}

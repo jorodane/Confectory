@@ -1,0 +1,1 @@
+implementation Confectory.CollaborationEditing::HandleBody for Confectory.CollaborationEditing::Handle (string room, string participant, string operation, string payload) -> string {import Confectory.MultiPlay::Handle as Handle (string, string, string, string) -> string;body common "Handle.csbody";}

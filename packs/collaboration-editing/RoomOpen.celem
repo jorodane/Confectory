@@ -1,0 +1,1 @@
+function Confectory.CollaborationEditing::RoomOpen (string project) -> string {provide Confectory.CollaborationEditing::RoomOpen with Confectory.CollaborationEditing::RoomOpenBody;description "Open room ownership and an explicit map of project-owned source units.";}

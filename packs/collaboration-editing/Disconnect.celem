@@ -1,0 +1,1 @@
+function Confectory.CollaborationEditing::Disconnect (string session) -> void {provide Confectory.CollaborationEditing::Disconnect with Confectory.CollaborationEditing::DisconnectBody;description "Disconnect transport while retaining participant drafts and saves.";}

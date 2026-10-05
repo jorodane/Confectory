@@ -1,0 +1,1 @@
+function Confectory.CollaborationEditing::Handle (string room, string participant, string operation, string payload) -> string {provide Confectory.CollaborationEditing::Handle with Confectory.CollaborationEditing::HandleBody;description "Serve bounded participant intent and confirmed-state messages.";}

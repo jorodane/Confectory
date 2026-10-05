@@ -1,0 +1,7 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.Collaboration.Client."+session) as System.Text.Json.Nodes.JsonObject??throw new ObjectDisposedException("Collaboration client");
+string transport,workspace;lock(state){if(state["closed"]!.GetValue<bool>())throw new ObjectDisposedException("Collaboration client");if(state["confirming"]!.GetValue<bool>())return "{\"state\":\"busy\"}";transport=state["transport"]!.GetValue<string>();workspace=state["workspace"]!.GetValue<string>();if(transport=="")return "{\"state\":\"disconnected\"}";state["polling"]=state["polling"]!.GetValue<int>()+1;calls.BeginScope.Invoke(session+":poll");}
+try
+{
+ var reply=System.Text.Json.Nodes.JsonNode.Parse(calls.Exchange.Invoke(transport,"{\"op\":\"poll\"}"))!;if(reply["confirmed"] is System.Text.Json.Nodes.JsonObject confirmed){var refreshed=calls.RefreshClean.Invoke(workspace,System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(confirmed,x=>x.Key)));reply["refresh"]=System.Text.Json.JsonSerializer.SerializeToNode(refreshed);}return reply.ToJsonString();
+}
+finally{calls.EndScope.Invoke();lock(state)state["polling"]=state["polling"]!.GetValue<int>()-1;}

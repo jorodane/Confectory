@@ -9,7 +9,7 @@ if (File.Exists(fakeReply)) { Console.Write(File.ReadAllText(fakeReply)); return
 Environment.SetEnvironmentVariable("CONFECTORY_DOTNET", Processes.DotNet());
 var watch = Stopwatch.StartNew(); int passed = 0, failed = 0;
 string? filter = args.Length == 0 ? null : args[0];
-foreach (var type in new[] { typeof(CoreTests), typeof(IntegrationTests), typeof(VerificationTests), typeof(WindowTests), typeof(Win32ContractTests), typeof(RuntimeBaseTests), typeof(RealTimeUpdateTests), typeof(BaseUITests), typeof(EngineTests), typeof(AndroidPreparationTests), typeof(ProjectExecutionTests), typeof(ProjectManagerTests), typeof(FileStreamTests), typeof(SchemaEditingTests), typeof(EditWorkspaceTests), typeof(ElementViewTests), typeof(PackManagerTests), typeof(SourceEditorTests), typeof(BuildParticipationTests) })
+foreach (var type in new[] { typeof(CoreTests), typeof(IntegrationTests), typeof(VerificationTests), typeof(WindowTests), typeof(Win32ContractTests), typeof(RuntimeBaseTests), typeof(RealTimeUpdateTests), typeof(BaseUITests), typeof(EngineTests), typeof(AndroidPreparationTests), typeof(ProjectExecutionTests), typeof(ProjectManagerTests), typeof(FileStreamTests), typeof(SchemaEditingTests), typeof(EditWorkspaceTests), typeof(ElementViewTests), typeof(PackManagerTests), typeof(SourceEditorTests), typeof(BuildParticipationTests), typeof(CollaborationTests) })
 foreach (var method in type.GetMethods().Where(x => x.Name.StartsWith("test_", StringComparison.Ordinal)).OrderBy(x => x.Name, StringComparer.Ordinal))
 {
     string name = type.Name + "." + method.Name;

@@ -1,0 +1,5 @@
+implementation Confectory.CollaborationEditing::ReconnectBody for Confectory.CollaborationEditing::Reconnect (string session) -> void {
+import Confectory.MultiPlay::Connect as Connect (string, string) -> string;
+import Confectory.CollaborationEditing::Announce as Announce (string, string[]) -> string;
+body common "Reconnect.csbody";
+}

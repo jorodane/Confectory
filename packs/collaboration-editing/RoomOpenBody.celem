@@ -1,0 +1,4 @@
+implementation Confectory.CollaborationEditing::RoomOpenBody for Confectory.CollaborationEditing::RoomOpen (string project) -> string {
+import Confectory.SchemaEditing::Describe as Describe (string) -> string;
+body common "RoomOpen.csbody";
+}

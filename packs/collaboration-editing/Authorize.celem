@@ -1,0 +1,1 @@
+function Confectory.CollaborationEditing::Authorize (string participant, string operation, string element) -> bool {provide Confectory.CollaborationEditing::Authorize with Confectory.CollaborationEditing::AuthorizeBody;description "Select explicit trusted-local Talk Work Apply policy.";}

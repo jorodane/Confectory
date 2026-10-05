@@ -1,0 +1,4 @@
+implementation Confectory.CollaborationEditing::DisconnectBody for Confectory.CollaborationEditing::Disconnect (string session) -> void {
+import Confectory.MultiPlay::Disconnect as Drop (string) -> void;
+body common "Disconnect.csbody";
+}

@@ -1,0 +1,1 @@
+return !string.IsNullOrWhiteSpace(participant)&&(operation is "talk" or "work" or "apply")&&(participant!="observer"||operation!="apply");

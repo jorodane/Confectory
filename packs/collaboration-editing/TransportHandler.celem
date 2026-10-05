@@ -1,0 +1,5 @@
+implementation Confectory.CollaborationEditing::TransportHandler for Confectory.MultiPlay::Handle (string room, string participant, string operation, string payload) -> string {
+import Confectory.CollaborationEditing::Authorize as Authorize (string, string, string) -> bool;
+import Confectory.FileStream::Snapshot as Snapshot (string) -> string[];
+body common "TransportHandler.csbody";
+}

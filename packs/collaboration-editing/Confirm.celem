@@ -1,0 +1,1 @@
+function Confectory.CollaborationEditing::Confirm (string session, string[] selected, string target) -> string[] {provide Confectory.CollaborationEditing::Confirm with Confectory.CollaborationEditing::ConfirmBody;description "Authorize one selected existing unit then validate and conditionally confirm through existing source contracts.";}

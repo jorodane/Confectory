@@ -1,0 +1,1 @@
+function Confectory.CollaborationEditing::Poll (string session) -> string {provide Confectory.CollaborationEditing::Poll with Confectory.CollaborationEditing::PollBody;description "Read early conflicts and confirmed changes; refresh only clean units.";}

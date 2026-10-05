@@ -1,0 +1,7 @@
+implementation Confectory.CollaborationEditing::CloseBody for Confectory.CollaborationEditing::Close (string session) -> void {
+import Confectory.CollaborationEditing::Disconnect as Disconnect (string) -> void;
+import Confectory.Save::Write as Save (string) -> string;
+import Confectory.EditWorkspace::Close as WorkspaceClose (string) -> void;
+import Confectory.SchemaEditing::Cancel as Cancel (string) -> void;
+body common "Close.csbody";
+}

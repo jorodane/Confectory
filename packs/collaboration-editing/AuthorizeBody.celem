@@ -1,0 +1,3 @@
+implementation Confectory.CollaborationEditing::AuthorizeBody for Confectory.CollaborationEditing::Authorize (string participant, string operation, string element) -> bool {
+body common "Authorize.csbody";
+}
