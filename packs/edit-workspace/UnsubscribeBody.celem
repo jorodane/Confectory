@@ -1,0 +1,3 @@
+implementation Confectory.EditWorkspace::UnsubscribeBody for Confectory.EditWorkspace::Unsubscribe (string[] token) -> void {
+body common "Unsubscribe.csbody";
+}

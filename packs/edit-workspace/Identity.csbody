@@ -1,0 +1,2 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+handle) as System.Text.Json.Nodes.JsonObject??throw new ObjectDisposedException("EditWorkspace");
+lock(state)return new[]{state["project"]!.GetValue<string>(),state["participant"]!.GetValue<string>(),state["context"]!.GetValue<string>(),state["root"]!.GetValue<string>()};

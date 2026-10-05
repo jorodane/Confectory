@@ -1,0 +1,1 @@
+function Confectory.EditWorkspace::Read (string handle, string id) -> string[] {description "Read coherent draft snapshot ID,kind,path,text,revision,baseline,dirty.";}

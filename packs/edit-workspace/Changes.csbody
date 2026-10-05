@@ -1,0 +1,10 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+handle) as System.Text.Json.Nodes.JsonObject??throw new ObjectDisposedException("EditWorkspace");
+lock(state)
+{
+ var result=new System.Collections.Generic.List<string>();var unique=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
+ foreach(string id in selected){if(!unique.Add(id))throw new ArgumentException("Duplicate selected unit.");var unit=state["units"]![id] as System.Text.Json.Nodes.JsonObject??throw new ArgumentException("Unknown owned unit.");
+
+ if(unit["draft"]!.GetValue<string>()==unit["original"]!.GetValue<string>()&&unit["baseline"]!.GetValue<string>()!="missing")continue;
+ result.Add(id);result.Add(unit["path"]!.GetValue<string>());result.Add(unit["baseline"]!.GetValue<string>());result.Add(unit["draft"]!.GetValue<string>());}
+ return result.ToArray();
+}

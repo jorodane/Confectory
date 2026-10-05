@@ -1,0 +1,1 @@
+function Confectory.EditWorkspace::Poll (string[] token) -> string[] {description "Coherent changed element snapshot; no changes produce empty result.";}

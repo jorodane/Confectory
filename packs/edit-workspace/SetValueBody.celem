@@ -1,0 +1,6 @@
+implementation Confectory.EditWorkspace::SetValueBody for Confectory.EditWorkspace::SetValue (string handle, string id, string field, string value) -> void {
+import Confectory.EditWorkspace::Read as Read (string, string) -> string[];
+import Confectory.SchemaEditing::SetValue as SetValue (string, string, string) -> string;
+import Confectory.EditWorkspace::SetText as SetText (string, string, string) -> void;
+body common "SetValue.csbody";
+}

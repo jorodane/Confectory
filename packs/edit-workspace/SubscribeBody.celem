@@ -1,0 +1,4 @@
+implementation Confectory.EditWorkspace::SubscribeBody for Confectory.EditWorkspace::Subscribe (string handle, string id) -> string[] {
+import Confectory.EditWorkspace::Read as Read (string, string) -> string[];
+body common "Subscribe.csbody";
+}

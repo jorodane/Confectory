@@ -1,0 +1,5 @@
+lock(AppDomain.CurrentDomain)
+{
+ if(AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+handle) is not System.Text.Json.Nodes.JsonObject state)return;
+ AppDomain.CurrentDomain.SetData("Confectory.EditWorkspace.Identity."+state["identity"]!.GetValue<string>(),null);AppDomain.CurrentDomain.SetData("Confectory.EditWorkspace."+handle,null);
+}

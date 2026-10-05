@@ -1,0 +1,5 @@
+implementation Confectory.EditWorkspace::CreateBody for Confectory.EditWorkspace::Create (string handle, string kind, string id) -> void {
+import Confectory.SchemaEditing::Create as Create (string, string) -> string;
+import Confectory.SchemaEditing::Register as Register (string, string, string, string) -> string;
+body common "Create.csbody";
+}

@@ -1,0 +1,3 @@
+implementation Confectory.EditWorkspace::ExportBody for Confectory.EditWorkspace::Export (string handle) -> string {
+body common "Export.csbody";
+}

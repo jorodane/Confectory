@@ -1,0 +1,15 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+handle) as System.Text.Json.Nodes.JsonObject??throw new ObjectDisposedException("EditWorkspace");
+lock(state)
+{
+ var data=System.Text.Json.Nodes.JsonNode.Parse(saved)!.AsObject();if(data["version"]!.GetValue<int>()!=1||data["project"]!.GetValue<string>()!=state["project"]!.GetValue<string>()||data["participant"]!.GetValue<string>()!=state["participant"]!.GetValue<string>()||data["context"]!.GetValue<string>()!=state["context"]!.GetValue<string>())throw new ArgumentException("Saved draft version/identity mismatch.");
+ var units=state["units"]!.AsObject();var staged=(System.Text.Json.Nodes.JsonObject)units.DeepClone();
+ foreach(var entry in data["changes"]!.AsArray())
+ {
+  var unit=entry!.AsObject();string id=unit["id"]!.GetValue<string>(),path=unit["path"]!.GetValue<string>();string full=System.IO.Path.GetFullPath(System.IO.Path.Combine(state["root"]!.GetValue<string>(),path));
+  if(System.IO.Path.IsPathRooted(path)||!full.StartsWith(state["root"]!.GetValue<string>()+System.IO.Path.DirectorySeparatorChar,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal))throw new ArgumentException("Saved draft path escape.");
+  if(staged[id] is System.Text.Json.Nodes.JsonObject current){if(current["path"]!.GetValue<string>()!=path||current["kind"]!.GetValue<string>()!=unit["kind"]!.GetValue<string>())throw new ArgumentException("Saved unit identity mismatch.");}
+  else if(unit["baseline"]!.GetValue<string>()!="missing"||!id.StartsWith(state["namespace"]!.GetValue<string>()+"::",StringComparison.Ordinal))throw new ArgumentException("Unknown saved unit.");
+  var restored=unit.DeepClone();restored["revision"]=(staged[id]?["revision"]?.GetValue<long>()??0)+1;staged[id]=restored;
+ }
+ state["units"]=staged;
+}

@@ -1,0 +1,3 @@
+implementation Confectory.EditWorkspace::CloseBody for Confectory.EditWorkspace::Close (string handle) -> void {
+body common "Close.csbody";
+}

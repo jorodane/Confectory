@@ -1,0 +1,4 @@
+implementation Confectory.EditWorkspace::SetTextBody for Confectory.EditWorkspace::SetText (string handle, string id, string text) -> void {
+import Confectory.SchemaEditing::Inspect as Inspect (string) -> string;
+body common "SetText.csbody";
+}

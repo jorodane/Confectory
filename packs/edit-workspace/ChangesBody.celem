@@ -1,0 +1,3 @@
+implementation Confectory.EditWorkspace::ChangesBody for Confectory.EditWorkspace::Changes (string handle, string[] selected) -> string[] {
+body common "Changes.csbody";
+}

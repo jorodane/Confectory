@@ -1,0 +1,1 @@
+if(token.Length!=4||token[3]!="active"||AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+token[0]) is null)return Array.Empty<string>();var snapshot=calls.Read.Invoke(token[0],token[1]);if(snapshot[4]==token[2])return Array.Empty<string>();token[2]=snapshot[4];return snapshot;

@@ -1,0 +1,10 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+handle) as System.Text.Json.Nodes.JsonObject??throw new ObjectDisposedException("EditWorkspace");
+lock(state)
+{
+ foreach(string id in selected){var unit=state["units"]![id] as System.Text.Json.Nodes.JsonObject??throw new ArgumentException("Unknown owned unit.");
+
+ var snapshot=calls.Snapshot.Invoke(System.IO.Path.Combine(state["root"]!.GetValue<string>(),unit["path"]!.GetValue<string>()));
+ if(snapshot[0]!="exists"||snapshot[1]!=unit["draft"]!.GetValue<string>())throw new InvalidOperationException("Committed source changed before workspace acceptance; preserve draft.");
+ unit["baseline"]=snapshot[2];unit["original"]=snapshot[1];unit["revision"]=unit["revision"]!.GetValue<long>()+1;
+ }
+}

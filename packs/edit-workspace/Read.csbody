@@ -1,0 +1,3 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+handle) as System.Text.Json.Nodes.JsonObject??throw new ObjectDisposedException("EditWorkspace");
+lock(state){var unit=state["units"]![id] as System.Text.Json.Nodes.JsonObject??throw new ArgumentException("Unknown owned unit.");
+return new[]{id,unit["kind"]!.GetValue<string>(),unit["path"]!.GetValue<string>(),unit["draft"]!.GetValue<string>(),unit["revision"]!.GetValue<long>().ToString(System.Globalization.CultureInfo.InvariantCulture),unit["baseline"]!.GetValue<string>(),unit["draft"]!.GetValue<string>()!=unit["original"]!.GetValue<string>()||unit["baseline"]!.GetValue<string>()=="missing"?"dirty":"clean"};}

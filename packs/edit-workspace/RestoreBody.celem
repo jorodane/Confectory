@@ -1,0 +1,3 @@
+implementation Confectory.EditWorkspace::RestoreBody for Confectory.EditWorkspace::Restore (string handle, string saved) -> void {
+body common "Restore.csbody";
+}

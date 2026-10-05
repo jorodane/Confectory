@@ -1,0 +1,1 @@
+function Confectory.EditWorkspace::Export (string handle) -> string {description "Export versioned identity and changed units only; final files untouched.";}

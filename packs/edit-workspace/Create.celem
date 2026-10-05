@@ -1,0 +1,1 @@
+function Confectory.EditWorkspace::Create (string handle, string kind, string id) -> void {description "Create declaration and dependent manifest registration as drafts only.";}

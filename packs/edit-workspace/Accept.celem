@@ -1,0 +1,1 @@
+function Confectory.EditWorkspace::Accept (string handle, string[] selected) -> void {description "Accept successfully committed units; preserve unselected drafts.";}

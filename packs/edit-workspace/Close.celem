@@ -1,0 +1,1 @@
+function Confectory.EditWorkspace::Close (string handle) -> void {description "Explicit workspace owner disposal; View close must not invoke it.";}

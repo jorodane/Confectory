@@ -1,0 +1,1 @@
+var snapshot=calls.Read.Invoke(handle,id);return new[]{handle,id,snapshot[4],"active"};

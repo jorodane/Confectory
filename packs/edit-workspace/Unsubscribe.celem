@@ -1,0 +1,1 @@
+function Confectory.EditWorkspace::Unsubscribe (string[] token) -> void {description "Idempotently dispose a borrowed element subscription.";}

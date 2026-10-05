@@ -1,0 +1,1 @@
+function Confectory.EditWorkspace::Open (string project, string participant, string context) -> string {description "Open explicit project/work/user identity; same identity shares drafts.";}

@@ -1,0 +1,3 @@
+implementation Confectory.EditWorkspace::ReadBody for Confectory.EditWorkspace::Read (string handle, string id) -> string[] {
+body common "Read.csbody";
+}

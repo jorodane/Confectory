@@ -1,0 +1,3 @@
+implementation Confectory.EditWorkspace::IdentityBody for Confectory.EditWorkspace::Identity (string handle) -> string[] {
+body common "Identity.csbody";
+}

@@ -1,0 +1,1 @@
+function Confectory.EditWorkspace::Identity (string handle) -> string[] {description "Return project, participant, work-context and root identity.";}

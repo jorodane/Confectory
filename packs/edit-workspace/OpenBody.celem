@@ -1,0 +1,5 @@
+implementation Confectory.EditWorkspace::OpenBody for Confectory.EditWorkspace::Open (string project, string participant, string context) -> string {
+import Confectory.SchemaEditing::Describe as Describe (string) -> string;
+import Confectory.FileStream::Snapshot as Snapshot (string) -> string[];
+body common "Open.csbody";
+}

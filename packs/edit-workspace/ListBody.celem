@@ -1,0 +1,3 @@
+implementation Confectory.EditWorkspace::ListBody for Confectory.EditWorkspace::List (string handle) -> string[] {
+body common "List.csbody";
+}

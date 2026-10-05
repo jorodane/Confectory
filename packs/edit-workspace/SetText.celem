@@ -1,0 +1,1 @@
+function Confectory.EditWorkspace::SetText (string handle, string id, string text) -> void {description "Change only one owned unit; stable identity and kind cannot be renamed.";}

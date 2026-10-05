@@ -1,0 +1,4 @@
+implementation Confectory.EditWorkspace::AcceptBody for Confectory.EditWorkspace::Accept (string handle, string[] selected) -> void {
+import Confectory.FileStream::Snapshot as Snapshot (string) -> string[];
+body common "Accept.csbody";
+}

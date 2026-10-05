@@ -1,0 +1,6 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+handle) as System.Text.Json.Nodes.JsonObject??throw new ObjectDisposedException("EditWorkspace");
+lock(state)
+{
+ var changes=new System.Text.Json.Nodes.JsonArray();foreach(var entry in state["units"]!.AsObject()){var unit=entry.Value!;if(unit["draft"]!.GetValue<string>()!=unit["original"]!.GetValue<string>()||unit["baseline"]!.GetValue<string>()=="missing")changes.Add(unit.DeepClone());}
+ return new System.Text.Json.Nodes.JsonObject{["version"]=1,["project"]=state["project"]!.GetValue<string>(),["participant"]=state["participant"]!.GetValue<string>(),["context"]=state["context"]!.GetValue<string>(),["changes"]=changes}.ToJsonString();
+}

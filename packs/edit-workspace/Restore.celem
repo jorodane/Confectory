@@ -1,0 +1,1 @@
+function Confectory.EditWorkspace::Restore (string handle, string saved) -> void {description "Restore same-identity draft with saved original baselines.";}

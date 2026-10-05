@@ -1,0 +1,1 @@
+function Confectory.EditWorkspace::SetValue (string handle, string id, string field, string value) -> void {description "Set scalar metadata through the selected schema contract.";}

@@ -1,0 +1,1 @@
+function Confectory.EditWorkspace::Subscribe (string handle, string id) -> string[] {description "Subscribe to exact element revision; caller owns token lifetime.";}

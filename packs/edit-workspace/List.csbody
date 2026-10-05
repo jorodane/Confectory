@@ -1,0 +1,2 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+handle) as System.Text.Json.Nodes.JsonObject??throw new ObjectDisposedException("EditWorkspace");
+lock(state){var result=new System.Collections.Generic.List<string>();foreach(var item in state["units"]!.AsObject())result.Add(item.Key);return result.ToArray();}
