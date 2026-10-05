@@ -1,0 +1,11 @@
+implementation Confectory.ChangeSet::PreviewBody for Confectory.ChangeSet::Preview (string handle, string target) -> string[] {
+import Confectory.EditWorkspace::Identity as Identity (string) -> string[];
+import Confectory.EditWorkspace::Changes as Changes (string, string[]) -> string[];
+import Confectory.FileStream::CopySources as CopySources (string, string) -> void;
+import Confectory.FileStream::WriteAtomic as WriteAtomic (string, string) -> void;
+import Confectory.SchemaEditing::Prepare as Prepare (string, string) -> string;
+import Confectory.SchemaEditing::Validate as Validate (string, string) -> string;
+import Confectory.EditWorkspace::List as List (string) -> string[];
+import Confectory.SchemaEditing::Call as Call (string, string) -> string;
+body common "Preview.csbody";
+}

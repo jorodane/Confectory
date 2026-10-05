@@ -1,0 +1,1 @@
+function Confectory.ChangeSet::Preview (string handle, string target) -> string[] {description "Build/run copied draft candidate; final files remain unchanged.";}

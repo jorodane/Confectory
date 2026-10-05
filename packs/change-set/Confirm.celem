@@ -1,0 +1,1 @@
+function Confectory.ChangeSet::Confirm (string handle, string[] selected, string target) -> string[] {description "Validate selected candidate and conditionally publish final local files.";}

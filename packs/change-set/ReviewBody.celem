@@ -1,0 +1,6 @@
+implementation Confectory.ChangeSet::ReviewBody for Confectory.ChangeSet::Review (string handle, string[] selected) -> string[] {
+import Confectory.EditWorkspace::Identity as Identity (string) -> string[];
+import Confectory.EditWorkspace::Changes as Changes (string, string[]) -> string[];
+import Confectory.FileStream::Snapshot as Snapshot (string) -> string[];
+body common "Review.csbody";
+}

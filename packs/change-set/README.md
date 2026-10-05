@@ -1,0 +1,5 @@
+# ChangeSet
+
+Review compares only selected dirty units with their original exact-byte hashes. Confirm prepares a copied source candidate, applies selected drafts, relocates candidate registry references, performs structural/owned-body/consumer validation and conditionally commits selected final files through FileStream. New declarations require their ProjectPack registration. Unselected drafts remain live. A stale draft or baseline conflict leaves the final sources and drafts intact; compilation failure never confirms.
+
+Preview separately builds/runs a copied draft candidate. The owned authoring tool stops a preview after 15 seconds and captures its output/exit status. Candidate copies are removed afterward. This is an explicit execution action, not inspection or Confirm. Source-copy and final Commit coordinate participating consumers with FileStream's public lease, including ProjectExecution builds. External nonparticipating editors and crash-proof multi-file transactions are not guaranteed. The engine schedules these operations off its native UI thread with owner cancellation.

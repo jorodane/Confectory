@@ -1,0 +1,14 @@
+string[] selected=calls.List.Invoke(handle);
+var identity=calls.Identity.Invoke(handle);string root=identity[3];var changes=calls.Changes.Invoke(handle,selected);
+string candidate=System.IO.Path.Combine(root,".confectory","candidates",Guid.NewGuid().ToString("N"));
+try
+{
+ calls.CopySources.Invoke(root,candidate);
+ for(int i=0;i<changes.Length;i+=4)calls.WriteAtomic.Invoke(System.IO.Path.Combine(candidate,changes[i+1]),changes[i+3]);
+ string project=System.IO.Path.Combine(candidate,System.IO.Path.GetFileName(identity[0]));calls.WriteAtomic.Invoke(project,calls.Prepare.Invoke(identity[0],project));
+ calls.Validate.Invoke(project,target);
+
+ string reply=calls.Call.Invoke("run",new System.Text.Json.Nodes.JsonObject{["project"]=project,["target"]=target}.ToJsonString());var result=System.Text.Json.Nodes.JsonNode.Parse(reply)!;return new[]{"preview",result["exit"]!.GetValue<int>().ToString(),result["stdout"]!.GetValue<string>(),result["stderr"]!.GetValue<string>()};
+}
+catch(Exception error){return new[]{"invalid",error.Message};}
+finally{if(System.IO.Directory.Exists(candidate))System.IO.Directory.Delete(candidate,true);}

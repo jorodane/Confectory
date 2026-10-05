@@ -1,0 +1,1 @@
+function Confectory.ChangeSet::Review (string handle, string[] selected) -> string[] {description "Review selected baseline conflict paths without modifying sources.";}
