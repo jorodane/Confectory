@@ -1,0 +1,2 @@
+function Example.Supervision::Counts () -> string {provide Example.Supervision::Counts with Example.Supervision::CountsBody;}
+

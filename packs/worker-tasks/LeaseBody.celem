@@ -1,0 +1,3 @@
+implementation Confectory.WorkerTasks::LeaseBody for Confectory.WorkerTasks::Lease (string session, string helper) -> string {
+import Confectory.WorkerTasks::Command as Command (string, string, string, string) -> string;
+body common "Lease.csbody";}

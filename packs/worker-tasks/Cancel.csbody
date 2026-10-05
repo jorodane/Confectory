@@ -1,0 +1,1 @@
+var payload=new System.Text.Json.Nodes.JsonObject{["epoch"]=epoch,["commandID"]=commandID,["task"]=task};string result=calls.Command.Invoke(session,controller,"cancel",payload.ToJsonString());

@@ -1,0 +1,1 @@
+function Confectory.WorkerTasks::Handoff (string session, string controller, long epoch, string commandID, string helper, string replacement) -> string {provide Confectory.WorkerTasks::Handoff with Confectory.WorkerTasks::HandoffBody;}

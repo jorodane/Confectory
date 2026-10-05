@@ -1,0 +1,9 @@
+implementation Confectory.WorkerTasks::CommandBody for Confectory.WorkerTasks::Command (string session, string actor, string operation, string payload) -> string {
+import Confectory.FileStream::Commit as Commit (string, string[], string[], string[]) -> string[];
+import Confectory.Helper::Inspect as HelperInspect (string, string, string) -> string;
+import Confectory.Helper::Recruit as HelperRecruit (string, string, string) -> string;
+import Confectory.Agent::Start as AgentStart (string, string, string) -> string;
+import Confectory.Agent::Poll as AgentPoll (string) -> string;
+import Confectory.Agent::Cancel as AgentCancel (string) -> void;
+import Confectory.Agent::CloseRun as AgentCloseRun (string) -> void;
+body common "Command.csbody";}

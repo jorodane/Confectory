@@ -1,0 +1,1 @@
+var payload=new System.Text.Json.Nodes.JsonObject{};string result=calls.Command.Invoke(session,"","journal",payload.ToJsonString());return result;

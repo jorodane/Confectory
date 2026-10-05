@@ -1,0 +1,3 @@
+implementation Confectory.WorkerTasks::AuthorizeBody for Confectory.WorkerTasks::Authorize (string session, string actor, string action) -> bool {
+import Confectory.WorkerTasks::Command as Command (string, string, string, string) -> string;
+body common "Authorize.csbody";}

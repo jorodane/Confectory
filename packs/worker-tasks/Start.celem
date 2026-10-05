@@ -1,0 +1,1 @@
+function Confectory.WorkerTasks::Start (string session, string controller, long epoch, string commandID, string task, string agent, string request) -> string {provide Confectory.WorkerTasks::Start with Confectory.WorkerTasks::StartBody;}

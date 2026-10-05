@@ -1,0 +1,1 @@
+function Confectory.WorkerTasks::Authorize (string session, string actor, string action) -> bool {provide Confectory.WorkerTasks::Authorize with Confectory.WorkerTasks::AuthorizeBody;}

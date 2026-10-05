@@ -1,0 +1,1 @@
+var payload=new System.Text.Json.Nodes.JsonObject{["action"]=action};string result=calls.Command.Invoke(session,actor,"authorize",payload.ToJsonString());return System.Text.Json.Nodes.JsonNode.Parse(result)!["allowed"]!.GetValue<bool>();

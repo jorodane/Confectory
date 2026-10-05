@@ -1,0 +1,1 @@
+function Confectory.WorkerTasks::Cancel (string session, string controller, long epoch, string commandID, string task) -> void {provide Confectory.WorkerTasks::Cancel with Confectory.WorkerTasks::CancelBody;}

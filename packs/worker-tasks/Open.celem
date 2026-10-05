@@ -1,0 +1,1 @@
+function Confectory.WorkerTasks::Open (string directory, string project, string helpers, string owner, string chief) -> string {provide Confectory.WorkerTasks::Open with Confectory.WorkerTasks::OpenBody;}

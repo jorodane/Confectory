@@ -1,0 +1,1 @@
+function Confectory.WorkerTasks::Pump (string session, string task) -> string {provide Confectory.WorkerTasks::Pump with Confectory.WorkerTasks::PumpBody;}

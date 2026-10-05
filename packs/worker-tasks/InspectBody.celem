@@ -1,0 +1,3 @@
+implementation Confectory.WorkerTasks::InspectBody for Confectory.WorkerTasks::Inspect (string session, string task) -> string {
+import Confectory.WorkerTasks::Command as Command (string, string, string, string) -> string;
+body common "Inspect.csbody";}

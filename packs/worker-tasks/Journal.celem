@@ -1,0 +1,1 @@
+function Confectory.WorkerTasks::Journal (string session) -> string {provide Confectory.WorkerTasks::Journal with Confectory.WorkerTasks::JournalBody;}

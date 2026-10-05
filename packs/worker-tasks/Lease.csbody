@@ -1,0 +1,1 @@
+var payload=new System.Text.Json.Nodes.JsonObject{["helper"]=helper};string result=calls.Command.Invoke(session,"","lease",payload.ToJsonString());return result;

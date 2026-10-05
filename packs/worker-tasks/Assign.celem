@@ -1,0 +1,1 @@
+function Confectory.WorkerTasks::Assign (string session, string actor, long epoch, string commandID, string helper, string task, string specification) -> string {provide Confectory.WorkerTasks::Assign with Confectory.WorkerTasks::AssignBody;}

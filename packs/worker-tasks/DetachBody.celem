@@ -1,0 +1,3 @@
+implementation Confectory.WorkerTasks::DetachBody for Confectory.WorkerTasks::Detach (string session, string controller, long epoch, string commandID, string helper, string reason) -> void {
+import Confectory.WorkerTasks::Command as Command (string, string, string, string) -> string;
+body common "Detach.csbody";}

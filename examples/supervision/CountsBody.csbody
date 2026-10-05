@@ -1,0 +1,2 @@
+lock(AppDomain.CurrentDomain){var counts=AppDomain.CurrentDomain.GetData("Example.Supervision.Counts") as int[]??new int[3];return new System.Text.Json.Nodes.JsonObject{["open"]=counts[0],["cancel"]=counts[1],["close"]=counts[2]}.ToJsonString();}
+

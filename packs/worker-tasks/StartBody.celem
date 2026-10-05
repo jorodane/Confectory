@@ -1,0 +1,3 @@
+implementation Confectory.WorkerTasks::StartBody for Confectory.WorkerTasks::Start (string session, string controller, long epoch, string commandID, string task, string agent, string request) -> string {
+import Confectory.WorkerTasks::Command as Command (string, string, string, string) -> string;
+body common "Start.csbody";}

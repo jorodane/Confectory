@@ -1,0 +1,1 @@
+function Confectory.WorkerTasks::Recover (string session, string chief, string commandID, string helper, string replacement) -> string {provide Confectory.WorkerTasks::Recover with Confectory.WorkerTasks::RecoverBody;}

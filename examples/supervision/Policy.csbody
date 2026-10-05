@@ -1,0 +1,2 @@
+return "{\"maxRuns\":16,\"maxEvents\":32,\"maxBytes\":65536,\"timeoutMs\":10000,\"closeMs\":1000}";
+

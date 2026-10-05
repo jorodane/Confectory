@@ -1,0 +1,1 @@
+var payload=new System.Text.Json.Nodes.JsonObject{["epoch"]=epoch,["commandID"]=commandID,["helper"]=helper,["replacement"]=replacement};string result=calls.Command.Invoke(session,controller,"handoff",payload.ToJsonString());return result;

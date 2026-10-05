@@ -1,0 +1,1 @@
+function Confectory.WorkerTasks::Close (string session) -> void {provide Confectory.WorkerTasks::Close with Confectory.WorkerTasks::CloseBody;}

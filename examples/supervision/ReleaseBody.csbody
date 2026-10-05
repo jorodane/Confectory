@@ -1,0 +1,2 @@
+AppDomain.CurrentDomain.SetData("Example.Supervision.Gate."+gate,true);
+

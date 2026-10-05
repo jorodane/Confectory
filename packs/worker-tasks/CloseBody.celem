@@ -1,0 +1,5 @@
+implementation Confectory.WorkerTasks::CloseBody for Confectory.WorkerTasks::Close (string session) -> void {
+import Confectory.Agent::Cancel as AgentCancel (string) -> void;
+import Confectory.Agent::CloseRun as AgentCloseRun (string) -> void;
+import Confectory.WorkerTasks::Pump as Pump (string, string) -> string;
+body common "Close.csbody";}

@@ -1,0 +1,1 @@
+function Confectory.WorkerTasks::Detach (string session, string controller, long epoch, string commandID, string helper, string reason) -> void {provide Confectory.WorkerTasks::Detach with Confectory.WorkerTasks::DetachBody;}

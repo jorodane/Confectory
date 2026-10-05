@@ -1,0 +1,5 @@
+implementation Confectory.WorkerTasks::OpenBody for Confectory.WorkerTasks::Open (string directory, string project, string helpers, string owner, string chief) -> string {
+import Confectory.Helper::Inspect as HelperInspect (string, string, string) -> string;
+import Confectory.FileStream::Snapshot as Snapshot (string) -> string[];
+import Confectory.FileStream::Commit as Commit (string, string[], string[], string[]) -> string[];
+body common "Open.csbody";}

@@ -1,0 +1,2 @@
+implementation Example.Supervision::ReleaseBody for Example.Supervision::Release (string gate) -> void {body common "ReleaseBody.csbody";}
+

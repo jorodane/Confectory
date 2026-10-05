@@ -1,0 +1,2 @@
+implementation Example.Supervision::Provider for Confectory.Agent::Provider (string config, string execution, string operation, string payload) -> string {body common "Provider.csbody";}
+

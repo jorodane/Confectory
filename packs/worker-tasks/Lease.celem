@@ -1,0 +1,1 @@
+function Confectory.WorkerTasks::Lease (string session, string helper) -> string {provide Confectory.WorkerTasks::Lease with Confectory.WorkerTasks::LeaseBody;}

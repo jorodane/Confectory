@@ -1,0 +1,3 @@
+implementation Confectory.WorkerTasks::HandoffBody for Confectory.WorkerTasks::Handoff (string session, string controller, long epoch, string commandID, string helper, string replacement) -> string {
+import Confectory.WorkerTasks::Command as Command (string, string, string, string) -> string;
+body common "Handoff.csbody";}

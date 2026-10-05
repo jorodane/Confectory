@@ -1,0 +1,1 @@
+implementation Confectory.WorkerTasks::ChiefJournalBody for Confectory.WorkerTasks::ChiefJournal (string session) -> string {import Confectory.WorkerTasks::Command as Command (string, string, string, string) -> string;body common "ChiefJournal.csbody";}

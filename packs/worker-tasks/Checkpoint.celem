@@ -1,0 +1,1 @@
+function Confectory.WorkerTasks::Checkpoint (string session, string controller, long epoch, string commandID, string task, string metadata) -> void {provide Confectory.WorkerTasks::Checkpoint with Confectory.WorkerTasks::CheckpointBody;}

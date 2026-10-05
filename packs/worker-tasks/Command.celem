@@ -1,0 +1,1 @@
+function Confectory.WorkerTasks::Command (string session, string actor, string operation, string payload) -> string {provide Confectory.WorkerTasks::Command with Confectory.WorkerTasks::CommandBody;}

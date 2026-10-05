@@ -1,0 +1,3 @@
+implementation Confectory.WorkerTasks::CheckpointBody for Confectory.WorkerTasks::Checkpoint (string session, string controller, long epoch, string commandID, string task, string metadata) -> void {
+import Confectory.WorkerTasks::Command as Command (string, string, string, string) -> string;
+body common "Checkpoint.csbody";}

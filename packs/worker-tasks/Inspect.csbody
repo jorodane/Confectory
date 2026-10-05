@@ -1,0 +1,1 @@
+var payload=new System.Text.Json.Nodes.JsonObject{["task"]=task};string result=calls.Command.Invoke(session,"","inspect",payload.ToJsonString());return result;

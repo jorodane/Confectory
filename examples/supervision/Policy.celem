@@ -1,0 +1,2 @@
+implementation Example.Supervision::Policy for Confectory.Agent::Policy () -> string {body common "Policy.csbody";}
+

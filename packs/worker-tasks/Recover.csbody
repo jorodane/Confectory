@@ -1,0 +1,1 @@
+var payload=new System.Text.Json.Nodes.JsonObject{["commandID"]=commandID,["helper"]=helper,["replacement"]=replacement};string result=calls.Command.Invoke(session,chief,"recover",payload.ToJsonString());return result;

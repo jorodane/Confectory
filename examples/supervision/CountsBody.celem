@@ -1,0 +1,2 @@
+implementation Example.Supervision::CountsBody for Example.Supervision::Counts () -> string {body common "CountsBody.csbody";}
+

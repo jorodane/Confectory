@@ -1,0 +1,2 @@
+function Example.Supervision::Release (string gate) -> void {provide Example.Supervision::Release with Example.Supervision::ReleaseBody;}
+

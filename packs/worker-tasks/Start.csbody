@@ -1,0 +1,1 @@
+var payload=new System.Text.Json.Nodes.JsonObject{["epoch"]=epoch,["commandID"]=commandID,["task"]=task,["agent"]=agent,["request"]=request};string result=calls.Command.Invoke(session,controller,"start",payload.ToJsonString());return System.Text.Json.Nodes.JsonNode.Parse(result)!["execution"]!.GetValue<string>();
