@@ -1,0 +1,44 @@
+string project=Environment.GetEnvironmentVariable("CONFECTORY_COLLAB_PROJECT")??System.IO.Path.GetFullPath("examples/projects/authoring/project.cpack"),id=Environment.GetEnvironmentVariable("CONFECTORY_COLLAB_ELEMENT")??"Example.Authoring::Counter";
+string room=calls.CollaborationeditingRoomOpen.Invoke(project);string[] server=calls.MultiplayOpenServer.Invoke(room);string[] sessions={"",""},views={"",""},status={"Local participant alice","Local participant bob"};bool[] opened={true,true};var jobs=new System.Threading.Tasks.Task<string[]>?[2];var polls=new System.Threading.Tasks.Task<string>?[2];long[] surfaces=Array.Empty<long>();bool stop=false;ConsoleCancelEventHandler cancel=(_,eventArgs)=>{eventArgs.Cancel=true;stop=true;};Console.CancelKeyPress+=cancel;
+try
+{
+ for(int v=0;v<2;v++){sessions[v]=calls.CollaborationeditingOpen.Invoke(server[1],project,v==0?"alice":"bob","ui-room");string workspace=calls.CollaborationeditingWorkspace.Invoke(sessions[v]);views[v]=calls.ElementviewCreate.Invoke(workspace,id,v==0?"card":"table",480,760);calls.CollaborationeditingAnnounce.Invoke(sessions[v],new[]{id});}
+ surfaces=calls.Create.Invoke(new[]{"Confectory Collaboration Alice","Confectory Collaboration Bob"},480,760);var watch=System.Diagnostics.Stopwatch.StartNew();double next=0;long[] revisions={-1,-1};string[] lastStatus={"",""};
+ while(!stop&&System.Linq.Enumerable.Any(opened,value=>value))
+ {
+  var events=calls.Pump.Invoke(surfaces);
+  for(int i=0;i<events.Length;i+=6)
+  {
+   int v=events[i],type=events[i+1],code=events[i+4];if(!opened[v])continue;if(type==8){opened[v]=false;calls.Close.Invoke(surfaces,v);Console.WriteLine("collab closed view="+v);continue;}
+   if(type==7)calls.ElementviewInput.Invoke(views[v],type,events[i+2],events[i+3],code,events[i+5]);
+   if(type!=5||events[i+5]!=0)continue;if(jobs[v] is not null){status[v]="Owned operation busy";continue;}string session=sessions[v];
+   if(code is 73 or 105)
+   {
+    string workspace=calls.CollaborationeditingWorkspace.Invoke(session);var snapshot=calls.EditworkspaceRead.Invoke(workspace,id);var info=System.Text.Json.Nodes.JsonNode.Parse(calls.SchemaeditingInspect.Invoke(snapshot[3]))!;int count=info["values"]?["count"]?.GetValue<int>()??0;string text=calls.SchemaeditingSetValue.Invoke(snapshot[3],"count",(count+1).ToString());if(!calls.EditworkspaceSetTextIfRevision.Invoke(workspace,id,text,long.Parse(snapshot[4]))){status[v]="Stale local edit; retry against current revision";continue;}calls.CollaborationeditingAnnounce.Invoke(session,new[]{id});status[v]="Local draft count="+(count+1);Console.WriteLine("collab draft view="+v+" count="+(count+1));
+   }
+   if(code is 68 or 100){calls.SaveWrite.Invoke(calls.CollaborationeditingWorkspace.Invoke(session));status[v]="Saved local differences";Console.WriteLine("collab saved view="+v);}
+   if(code is 70 or 102){status[v]="Confirm validating asynchronously";jobs[v]=System.Threading.Tasks.Task.Run(()=>calls.CollaborationeditingConfirm.Invoke(session,new[]{id},OperatingSystem.IsWindows()?"windows":"linux"));}
+   if(code is 66 or 98){calls.CollaborationeditingDisconnect.Invoke(session);status[v]="Disconnected; local draft retained";Console.WriteLine("collab disconnected view="+v);}
+   if(code is 82 or 114){calls.CollaborationeditingReconnect.Invoke(session);status[v]="Reconnected; retained draft reannounced";Console.WriteLine("collab reconnected view="+v);}
+  }
+  for(int v=0;v<2;v++)
+  {
+   if(jobs[v]?.IsCompleted==true){var result=jobs[v]!.GetAwaiter().GetResult();jobs[v]=null;status[v]=string.Join(" | ",result);Console.WriteLine("collab confirm view="+v+" state="+result[0]);}
+   if(polls[v]?.IsCompleted==true)
+   {
+    try{var reply=System.Text.Json.Nodes.JsonNode.Parse(polls[v]!.GetAwaiter().GetResult())!;if(reply["conflicts"] is System.Text.Json.Nodes.JsonArray conflicts&&conflicts.Count>0){string kind=conflicts[0]!["kind"]!.GetValue<string>();string notice=kind+"; local draft preserved";if(status[v]!=notice)Console.WriteLine("collab notice view="+v+" kind="+kind);status[v]=notice;}else if(reply["state"]!.GetValue<string>()=="disconnected")status[v]="Disconnected; local draft retained";}catch(Exception error){status[v]="Transport: "+error.Message;}polls[v]=null;
+   }
+   if(!opened[v])continue;calls.ElementviewPoll.Invoke(views[v]);string workspace=calls.CollaborationeditingWorkspace.Invoke(sessions[v]);long revision=long.Parse(calls.EditworkspaceRead.Invoke(workspace,id)[4]);
+   if(revisions[v]!=revision||lastStatus[v]!=status[v]){revisions[v]=revision;lastStatus[v]=status[v];var labels=calls.ElementviewLabels.Invoke(views[v],status[v]);labels[4]="Local count +1 [I]";labels[5]="Save private draft [D]";labels[6]="Confirm selected source [F]";labels[7]="Disconnect transport [B]";labels[8]="Reconnect same participant [R]";for(int row=9;row<labels.Length;row++)labels[row]="";calls.Draw.Invoke(surfaces,v,calls.ElementviewLayout.Invoke(views[v]),labels);Console.WriteLine("collab render view="+v+" revision="+revision+" "+status[v]);}
+   if(watch.Elapsed.TotalSeconds>=next&&polls[v] is null&&jobs[v] is null){string session=sessions[v];polls[v]=System.Threading.Tasks.Task.Run(()=>calls.CollaborationeditingPoll.Invoke(session));}
+  }
+  if(watch.Elapsed.TotalSeconds>=next)next=watch.Elapsed.TotalSeconds+.1;System.Threading.Thread.Sleep(2);
+ }
+ return 0;
+}
+finally
+{
+ Console.CancelKeyPress-=cancel;
+ for(int v=0;v<2;v++){if(sessions[v]!="")calls.CollaborationeditingClose.Invoke(sessions[v]);if(views[v]!="")calls.ElementviewClose.Invoke(views[v]);}
+ if(surfaces.Length>0)calls.Close.Invoke(surfaces,-1);calls.MultiplayCloseServer.Invoke(server[0]);calls.CollaborationeditingRoomClose.Invoke(room);Console.WriteLine("collab owner cleanup complete");
+}

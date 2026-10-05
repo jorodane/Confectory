@@ -1,0 +1,31 @@
+project Example.CollaborationUI version "0.1.0" {
+entry Example.CollaborationUI::Main;
+registry Confectory.FileStream "../../packs/file-stream/pack.cpack";
+dependency Confectory.FileStream version "0.1.0";
+registry Confectory.SchemaEditing "../../packs/schema-editing/pack.cpack";
+dependency Confectory.SchemaEditing version "0.1.0";
+registry Confectory.EditWorkspace "../../packs/edit-workspace/pack.cpack";
+dependency Confectory.EditWorkspace version "0.1.0";
+registry Confectory.Save "../../packs/save/pack.cpack";
+dependency Confectory.Save version "0.1.0";
+registry Confectory.ChangeSet "../../packs/change-set/pack.cpack";
+dependency Confectory.ChangeSet version "0.1.0";
+registry Confectory.MultiPlay "../../packs/multiplay/pack.cpack";
+dependency Confectory.MultiPlay version "0.1.0";
+registry Confectory.CollaborationEditing "../../packs/collaboration-editing/pack.cpack";
+dependency Confectory.CollaborationEditing version "0.1.0";
+registry Confectory.ElementView "../../packs/element-view/pack.cpack";
+dependency Confectory.ElementView version "0.1.0";
+registry Confectory.Build.DotNet "../../targets/dotnet/pack.cpack";
+dependency Confectory.Build.DotNet version "0.1.0";
+target linux Confectory.Build.DotNet::Linux;
+target portable Confectory.Build.DotNet::Portable;
+target windows Confectory.Build.DotNet::Portable;
+element Main function "main.celem";
+element MainBody implementation "main_body.celem";
+registry Confectory.Window "../../packs/window/pack.cpack";
+dependency Confectory.Window version "0.1.0";
+registry Confectory.RenderInput "../../packs/render-input/pack.cpack";
+dependency Confectory.RenderInput version "0.1.0";
+}
+
