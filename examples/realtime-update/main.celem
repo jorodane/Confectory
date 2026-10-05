@@ -1,0 +1,11 @@
+function Example.RealTimeUpdate::Main () -> int {
+provide Example.RealTimeUpdate::Main with Example.RealTimeUpdate::MainBody;
+provide Confectory.RealTimeUpdate::CreateSchedule with Confectory.RealTimeUpdate::CreateScheduleBody;
+provide Confectory.RealTimeUpdate::Register with Confectory.RealTimeUpdate::RegisterBody;
+provide Confectory.RealTimeUpdate::Unregister with Confectory.RealTimeUpdate::UnregisterBody;
+provide Confectory.RealTimeUpdate::Dispatch with Confectory.RealTimeUpdate::DispatchBody;
+provide Confectory.RealTimeUpdate::IsRegistered with Confectory.RealTimeUpdate::IsRegisteredBody;
+provide Confectory.RealTimeUpdate::Advance with Confectory.RealTimeUpdate::AdvanceBody;
+provide Confectory.RealTimeUpdate::QueueCameraIntent with Confectory.RealTimeUpdate::QueueCameraIntentBody;
+provide Confectory.RealTimeUpdate::PresentCamera with Confectory.RealTimeUpdate::PresentCameraBody;
+}

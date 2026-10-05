@@ -1,0 +1,1 @@
+function Confectory.RealTimeUpdate::PresentCamera (double[] camera, double[] queue) -> double[] { description "Commit all intents once and return the immutable-by-convention render/picking snapshot."; }

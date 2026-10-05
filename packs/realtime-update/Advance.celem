@@ -1,0 +1,1 @@
+function Confectory.RealTimeUpdate::Advance (double[] clock, double elapsed, double variablePeriod, double renderPeriod, double fixedPeriod, int maximumSteps) -> double[] { description "Independent variable/render cadence and bounded accumulated fixed-step catch-up; interpolation alpha is separate."; }

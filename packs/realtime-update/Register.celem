@@ -1,0 +1,1 @@
+function Confectory.RealTimeUpdate::Register (string[] schedule, string functionID, string phase, int priority) -> void { description "Register function ID and named phase; ascending priority then stable registration order."; }

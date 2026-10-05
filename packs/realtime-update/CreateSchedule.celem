@@ -1,0 +1,1 @@
+function Confectory.RealTimeUpdate::CreateSchedule (int capacity) -> string[] { description "Create isolated deterministic registrations."; }

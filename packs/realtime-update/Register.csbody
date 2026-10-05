@@ -1,0 +1,13 @@
+if (schedule.Length < 2 || string.IsNullOrWhiteSpace(functionID) || string.IsNullOrWhiteSpace(phase)) throw new ArgumentException("Invalid registration.");
+int sequence = int.Parse(schedule[0], System.Globalization.CultureInfo.InvariantCulture);
+int free = -1;
+for (int i = 1; i < schedule.Length; i++)
+{
+ if (schedule[i] is null) { if (free < 0) free = i; continue; }
+ using var d = System.Text.Json.JsonDocument.Parse(schedule[i]);
+ if (d.RootElement[0].GetString() == functionID && d.RootElement[1].GetString() == phase) throw new InvalidOperationException("Duplicate function/phase registration.");
+}
+if (free < 0) throw new InvalidOperationException("Schedule capacity exhausted.");
+int next = checked(sequence + 1);
+schedule[free] = System.Text.Json.JsonSerializer.Serialize(new object[] {functionID, phase, priority, sequence});
+schedule[0] = next.ToString(System.Globalization.CultureInfo.InvariantCulture);

@@ -1,0 +1,6 @@
+for (int i = 1; i < schedule.Length; i++)
+{
+ if (schedule[i] is null) continue;
+ using var d = System.Text.Json.JsonDocument.Parse(schedule[i]);
+ if (d.RootElement[0].GetString() == functionID && d.RootElement[1].GetString() == phase) schedule[i] = null!;
+}

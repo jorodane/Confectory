@@ -1,0 +1,18 @@
+pack Confectory.RealTimeUpdate version "0.1.0" {
+element CreateSchedule function "CreateSchedule.celem";
+element CreateScheduleBody implementation "CreateScheduleBody.celem";
+element Register function "Register.celem";
+element RegisterBody implementation "RegisterBody.celem";
+element Unregister function "Unregister.celem";
+element UnregisterBody implementation "UnregisterBody.celem";
+element Dispatch function "Dispatch.celem";
+element DispatchBody implementation "DispatchBody.celem";
+element IsRegistered function "IsRegistered.celem";
+element IsRegisteredBody implementation "IsRegisteredBody.celem";
+element Advance function "Advance.celem";
+element AdvanceBody implementation "AdvanceBody.celem";
+element QueueCameraIntent function "QueueCameraIntent.celem";
+element QueueCameraIntentBody implementation "QueueCameraIntentBody.celem";
+element PresentCamera function "PresentCamera.celem";
+element PresentCameraBody implementation "PresentCameraBody.celem";
+}

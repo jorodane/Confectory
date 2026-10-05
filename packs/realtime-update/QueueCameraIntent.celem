@@ -1,0 +1,1 @@
+function Confectory.RealTimeUpdate::QueueCameraIntent (double[] queue, double dx, double dy, double zoomFactor) -> void { description "Accumulate keyboard, drag, wheel and programmatic intents before camera presentation."; }

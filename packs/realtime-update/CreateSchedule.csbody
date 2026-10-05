@@ -1,0 +1,2 @@
+if (capacity < 1 || capacity > 100000) throw new ArgumentOutOfRangeException(nameof(capacity));
+var schedule = new string[capacity + 1]; schedule[0] = "0"; return schedule;

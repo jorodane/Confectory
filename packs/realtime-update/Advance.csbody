@@ -1,0 +1,12 @@
+if (clock.Length != 3 || !double.IsFinite(elapsed) || elapsed < 0 || !double.IsFinite(variablePeriod) || variablePeriod < 0 || !double.IsFinite(renderPeriod) || renderPeriod < 0 || !double.IsFinite(fixedPeriod) || fixedPeriod <= 0 || maximumSteps < 1) throw new ArgumentException("Invalid cadence or clock.");
+for (int i = 0; i < 3; i++) if (!double.IsFinite(clock[i]) || clock[i] < 0 || !double.IsFinite(clock[i] + elapsed)) throw new ArgumentException("Invalid clock accumulator.");
+var accumulated = new double[] { clock[0] + elapsed, clock[1] + elapsed, clock[2] + elapsed };
+double variableDelta = accumulated[0], renderDelta = accumulated[1];
+bool variable = variablePeriod == 0 || variableDelta >= variablePeriod;
+bool render = renderPeriod == 0 || renderDelta >= renderPeriod;
+double totalSteps = Math.Floor(accumulated[2] / fixedPeriod);
+int steps = (int)Math.Min(totalSteps, maximumSteps);
+double dropped = Math.Max(0, totalSteps - steps) * fixedPeriod;
+double remainder = accumulated[2] % fixedPeriod;
+clock[0] = variable ? 0 : accumulated[0]; clock[1] = render ? 0 : accumulated[1]; clock[2] = remainder;
+return new double[] { variable ? 1 : 0, render ? 1 : 0, steps, remainder / fixedPeriod, dropped, variable ? variableDelta : 0, render ? renderDelta : 0, fixedPeriod };

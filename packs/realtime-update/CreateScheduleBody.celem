@@ -1,0 +1,1 @@
+implementation Confectory.RealTimeUpdate::CreateScheduleBody for Confectory.RealTimeUpdate::CreateSchedule (int capacity) -> string[] { body common "CreateSchedule.csbody"; }

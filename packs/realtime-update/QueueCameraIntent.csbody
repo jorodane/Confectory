@@ -1,0 +1,4 @@
+if (queue.Length != 3 || !double.IsFinite(dx) || !double.IsFinite(dy) || !double.IsFinite(zoomFactor) || zoomFactor <= 0) throw new ArgumentException("Invalid camera intent.");
+double x = queue[0] + dx, y = queue[1] + dy, z = queue[2] * zoomFactor;
+if (!double.IsFinite(x) || !double.IsFinite(y) || !double.IsFinite(z) || z <= 0) throw new ArgumentException("Camera intent overflow.");
+queue[0] = x; queue[1] = y; queue[2] = z;

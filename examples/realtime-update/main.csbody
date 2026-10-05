@@ -1,0 +1,31 @@
+void Check(bool condition, string message) { if (!condition) throw new Exception(message); }
+var schedule = calls.CreateSchedule.Invoke(16);
+calls.Register.Invoke(schedule, "Example::Render", "presentation", 0);
+calls.Register.Invoke(schedule, "Example::Camera", "presentation", -10);
+calls.Register.Invoke(schedule, "Example::Picking", "presentation", 0);
+var dispatch = calls.Dispatch.Invoke(schedule, "presentation");
+Check(string.Join(",", dispatch) == "Example::Camera,Example::Render,Example::Picking", "deterministic priority ties");
+calls.Register.Invoke(schedule, "Example::Late", "presentation", 0);
+Check(dispatch.Length == 3 && calls.Dispatch.Invoke(schedule, "presentation").Length == 4, "dispatch snapshot");
+calls.Unregister.Invoke(schedule, "Example::Picking", "presentation");
+Check(!calls.IsRegistered.Invoke(schedule, "Example::Picking", "presentation"), "pending unregister");
+var clock = new double[3];
+var first = calls.Advance.Invoke(clock, 0.005, 0.01, 0.02, 0.01, 3);
+Check(first[0] == 0 && first[1] == 0 && first[2] == 0 && Math.Abs(first[3] - 0.5) < 1e-8, "independent cadence");
+var second = calls.Advance.Invoke(clock, 0.011, 0.01, 0.02, 0.01, 3);
+Check(second[0] == 1 && second[1] == 0 && second[2] == 1, "variable/fixed independent of render");
+var third = calls.Advance.Invoke(clock, 0.007, 0.01, 0.02, 0.01, 3);
+Check(third[0] == 0 && third[1] == 1 && third[2] == 1, "independent render cadence");
+var stall = calls.Advance.Invoke(clock, 0.1, 0.01, 0.02, 0.01, 3);
+Check(stall[2] == 3 && stall[4] >= 0.06 && stall[3] >= 0 && stall[3] < 1, "bounded catch-up and remainder");
+var camera = new double[] { 0, 0, 1 }; var queue = new double[] { 0, 0, 1 };
+calls.QueueCameraIntent.Invoke(queue, 1, 0, 1); // keyboard
+calls.QueueCameraIntent.Invoke(queue, 2, 3, 1); // drag
+calls.QueueCameraIntent.Invoke(queue, 0, 0, 1.2); // wheel
+calls.QueueCameraIntent.Invoke(queue, -1, 4, 1); // programmatic
+Check(camera[0] == 0 && camera[1] == 0 && camera[2] == 1, "input mutated published camera");
+var snapshot = calls.PresentCamera.Invoke(camera, queue);
+Check(snapshot[0] == 2 && snapshot[1] == 7 && Math.Abs(snapshot[2]-1.2) < 1e-8, "mixed-input coherent position");
+calls.QueueCameraIntent.Invoke(queue, 4, 0, 1); calls.PresentCamera.Invoke(camera, queue);
+Check(snapshot[0] == 2, "previous frame snapshot changed");
+Console.WriteLine("RealTimeUpdate cadence and camera PASS"); return 0;

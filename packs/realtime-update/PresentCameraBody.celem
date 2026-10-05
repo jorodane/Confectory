@@ -1,0 +1,1 @@
+implementation Confectory.RealTimeUpdate::PresentCameraBody for Confectory.RealTimeUpdate::PresentCamera (double[] camera, double[] queue) -> double[] { body common "PresentCamera.csbody"; }

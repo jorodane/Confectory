@@ -1,0 +1,1 @@
+implementation Confectory.RealTimeUpdate::IsRegisteredBody for Confectory.RealTimeUpdate::IsRegistered (string[] schedule, string functionID, string phase) -> bool { body common "IsRegistered.csbody"; }

@@ -1,0 +1,1 @@
+function Confectory.RealTimeUpdate::Dispatch (string[] schedule, string phase) -> string[] { description "Snapshot ordered IDs: additions during dispatch appear on the next dispatch."; }

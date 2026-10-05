@@ -1,0 +1,1 @@
+implementation Confectory.RealTimeUpdate::RegisterBody for Confectory.RealTimeUpdate::Register (string[] schedule, string functionID, string phase, int priority) -> void { body common "Register.csbody"; }

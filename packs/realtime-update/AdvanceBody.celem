@@ -1,0 +1,1 @@
+implementation Confectory.RealTimeUpdate::AdvanceBody for Confectory.RealTimeUpdate::Advance (double[] clock, double elapsed, double variablePeriod, double renderPeriod, double fixedPeriod, int maximumSteps) -> double[] { body common "Advance.csbody"; }

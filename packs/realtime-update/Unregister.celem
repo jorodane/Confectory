@@ -1,0 +1,1 @@
+function Confectory.RealTimeUpdate::Unregister (string[] schedule, string functionID, string phase) -> void { description "Remove a registration; check IsRegistered before invoking a pending dispatch item."; }

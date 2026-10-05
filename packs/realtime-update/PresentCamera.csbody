@@ -1,0 +1,6 @@
+if (camera.Length != 3 || queue.Length != 3) throw new ArgumentException("Invalid camera state.");
+double x = camera[0] + queue[0], y = camera[1] + queue[1], z = camera[2] * queue[2];
+if (!double.IsFinite(x) || !double.IsFinite(y) || !double.IsFinite(z) || z <= 0) throw new ArgumentException("Camera state overflow.");
+camera[0] = x; camera[1] = y; camera[2] = Math.Clamp(z, 0.01, 100);
+queue[0] = 0; queue[1] = 0; queue[2] = 1;
+return (double[])camera.Clone();

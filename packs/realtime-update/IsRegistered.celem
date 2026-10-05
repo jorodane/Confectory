@@ -1,0 +1,1 @@
+function Confectory.RealTimeUpdate::IsRegistered (string[] schedule, string functionID, string phase) -> bool { description "Honor removal of not-yet-invoked snapshot IDs during current dispatch."; }

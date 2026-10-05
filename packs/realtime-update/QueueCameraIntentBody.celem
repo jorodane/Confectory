@@ -1,0 +1,1 @@
+implementation Confectory.RealTimeUpdate::QueueCameraIntentBody for Confectory.RealTimeUpdate::QueueCameraIntent (double[] queue, double dx, double dy, double zoomFactor) -> void { body common "QueueCameraIntent.csbody"; }

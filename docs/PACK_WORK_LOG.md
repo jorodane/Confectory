@@ -28,3 +28,7 @@ dotnet src/Confectory.Cli/bin/Release/net8.0/Confectory.Cli.dll build examples/r
 Use the returned `run` array to execute. Output: `RuntimeBase lifecycle PASS`.
 
 This increment is not [Checkpoint 1]. Remaining milestone: RealTimeUpdate, coherent mixed-input camera snapshots, reusable window/render/input capabilities, BaseUI, composed engine ProjectPack, two-window GUI checks, Android surface/lifecycle counterpart and target verification, checkpoint handoff.
+
+## Increment 2: RealTimeUpdate
+
+Intended/public IDs: `Confectory.RealTimeUpdate::{CreateSchedule,Register,Unregister,Dispatch,IsRegistered,Advance,QueueCameraIntent,PresentCamera}` and corresponding Body IDs. Contracts separate scheduling, cadence planning and camera intent/presentation policy. No new outside implementation reads; test registration and new regression consumer are the only outside edits. Public primitive/array ABI is sufficient. Rebuild scope: eight new contracts and bodies plus consumer; no core/window/runtime-base rebuild required. Functional executable passed cadence, order, catch-up/overflow and mixed-input snapshot assertions. Independent provider-locality regression changes only AdvanceBody. Consumer invocation guards and same-ID re-registration policy are documented limitations.
