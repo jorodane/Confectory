@@ -1,16 +1,4 @@
 // Native APIs are owned by this implementation pack; the build core is unchanged.
-[System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode, SetLastError = true)]
-static extern IntPtr CreateWindowExW(uint exStyle, string className, string title, uint style, int x, int y, int width, int height, IntPtr parent, IntPtr menu, IntPtr instance, IntPtr parameter);
-[System.Runtime.InteropServices.DllImport("user32.dll")]
-static extern bool IsWindow(IntPtr window);
-[System.Runtime.InteropServices.DllImport("user32.dll")]
-static extern bool DestroyWindow(IntPtr window);
-[System.Runtime.InteropServices.DllImport("user32.dll")]
-static extern bool PeekMessageW(IntPtr message, IntPtr window, uint min, uint max, uint remove);
-[System.Runtime.InteropServices.DllImport("user32.dll")]
-static extern bool TranslateMessage(IntPtr message);
-[System.Runtime.InteropServices.DllImport("user32.dll")]
-static extern IntPtr DispatchMessageW(IntPtr message);
 [System.Runtime.InteropServices.DllImport("libX11.so.6")]
 static extern IntPtr XOpenDisplay(IntPtr name);
 [System.Runtime.InteropServices.DllImport("libX11.so.6")]
@@ -47,24 +35,21 @@ var elapsed = System.Diagnostics.Stopwatch.StartNew();
 bool TimedOut() => closeAfterMilliseconds > 0 && elapsed.ElapsedMilliseconds >= closeAfterMilliseconds;
 if (OperatingSystem.IsWindows())
 {
-    // The built-in STATIC class supplies DefWindowProc and normal WM_CLOSE handling.
-    IntPtr window = CreateWindowExW(0, "STATIC", title, 0x10CF0000, unchecked((int)0x80000000), unchecked((int)0x80000000), width, height, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
-    if (window == IntPtr.Zero)
-    {
-        Console.Error.WriteLine("CreateWindowEx failed: " + System.Runtime.InteropServices.Marshal.GetLastWin32Error());
-        return 1;
-    }
-    IntPtr message = System.Runtime.InteropServices.Marshal.AllocHGlobal(64);
+    var surfaces=new long[2];
     try
     {
-        while (IsWindow(window) && !TimedOut())
+        calls.Win32Create.Invoke(surfaces,0,title,width,height);
+        while(surfaces[1]!=0&&!TimedOut())
         {
-            while (PeekMessageW(message, IntPtr.Zero, 0, 0, 1)) { TranslateMessage(message); DispatchMessageW(message); }
+            var events=calls.Win32Pump.Invoke(surfaces);
+            for(int i=0;i<events.Length;i+=6)if(events[i+1]==8)calls.Win32Close.Invoke(surfaces,0);
             System.Threading.Thread.Sleep(10);
         }
         return 0;
     }
-    finally { if (IsWindow(window)) DestroyWindow(window); System.Runtime.InteropServices.Marshal.FreeHGlobal(message); }
+    catch(Exception ex){Console.Error.WriteLine(ex);return 1;}
+    finally{calls.Win32Close.Invoke(surfaces,-1);}
+
 }
 if (OperatingSystem.IsLinux())
 {

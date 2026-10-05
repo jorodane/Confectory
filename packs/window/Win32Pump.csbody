@@ -1,0 +1,16 @@
+[System.Runtime.InteropServices.DllImport("kernel32.dll")]
+static extern uint GetCurrentThreadId();
+[System.Runtime.InteropServices.DllImport("user32.dll")]
+static extern bool PeekMessageW(IntPtr message,IntPtr window,uint minimum,uint maximum,uint remove);
+[System.Runtime.InteropServices.DllImport("user32.dll")]
+static extern bool TranslateMessage(IntPtr message);
+[System.Runtime.InteropServices.DllImport("user32.dll")]
+static extern IntPtr DispatchMessageW(IntPtr message);
+if(!OperatingSystem.IsWindows())throw new PlatformNotSupportedException("Win32 pump provider.");
+var context=AppDomain.CurrentDomain.GetData("Confectory.Win32."+surfaces[0]) as object[]??throw new InvalidOperationException("Win32 session is disposed.");
+if((uint)context[7]!=GetCurrentThreadId())throw new InvalidOperationException("Win32 surfaces must run on the creating UI thread.");
+var buffer=System.Runtime.InteropServices.Marshal.AllocHGlobal(48);
+try{int processed=0;while(processed<4096&&PeekMessageW(buffer,IntPtr.Zero,0,0,1)){TranslateMessage(buffer);DispatchMessageW(buffer);processed++;}}
+finally{System.Runtime.InteropServices.Marshal.FreeHGlobal(buffer);}
+if(context[5] is Exception failure)throw new InvalidOperationException("Win32 callback failed.",failure);
+var queue=(System.Collections.Generic.Queue<int[]>)context[3];var events=new System.Collections.Generic.List<int>();while(queue.Count!=0)events.AddRange(queue.Dequeue());return events.ToArray();

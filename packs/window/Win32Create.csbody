@@ -1,0 +1,124 @@
+[System.Runtime.InteropServices.DllImport("kernel32.dll")]
+static extern uint GetCurrentThreadId();
+[System.Runtime.InteropServices.DllImport("user32.dll",CharSet=System.Runtime.InteropServices.CharSet.Unicode,SetLastError=true)]
+static extern ushort RegisterClassExW(IntPtr cls);
+[System.Runtime.InteropServices.DllImport("user32.dll",CharSet=System.Runtime.InteropServices.CharSet.Unicode,SetLastError=true)]
+static extern IntPtr CreateWindowExW(uint ex,string cls,string title,uint style,int x,int y,int width,int height,IntPtr parent,IntPtr menu,IntPtr instance,IntPtr param);
+[System.Runtime.InteropServices.DllImport("user32.dll",CharSet=System.Runtime.InteropServices.CharSet.Unicode)]
+static extern IntPtr DefWindowProcW(IntPtr window,uint message,IntPtr wParam,IntPtr lParam);
+[System.Runtime.InteropServices.DllImport("kernel32.dll",CharSet=System.Runtime.InteropServices.CharSet.Unicode)]
+static extern IntPtr GetModuleHandleW(string? name);
+[System.Runtime.InteropServices.DllImport("user32.dll")]
+static extern IntPtr LoadCursorW(IntPtr instance,IntPtr name);
+[System.Runtime.InteropServices.DllImport("user32.dll")]
+static extern bool AdjustWindowRectEx(IntPtr rect,uint style,bool menu,uint ex);
+[System.Runtime.InteropServices.DllImport("user32.dll")]
+static extern IntPtr SetFocus(IntPtr window);
+[System.Runtime.InteropServices.DllImport("user32.dll")]
+static extern IntPtr SetCapture(IntPtr window);
+[System.Runtime.InteropServices.DllImport("user32.dll")]
+static extern bool ReleaseCapture();
+[System.Runtime.InteropServices.DllImport("user32.dll")]
+static extern bool ScreenToClient(IntPtr window,IntPtr point);
+[System.Runtime.InteropServices.DllImport("user32.dll")]
+static extern IntPtr BeginPaint(IntPtr window,IntPtr paint);
+[System.Runtime.InteropServices.DllImport("user32.dll")]
+static extern bool EndPaint(IntPtr window,IntPtr paint);
+[System.Runtime.InteropServices.DllImport("gdi32.dll")]
+static extern bool BitBlt(IntPtr destination,int x,int y,int width,int height,IntPtr source,int sx,int sy,uint raster);
+[System.Runtime.InteropServices.DllImport("gdi32.dll")]
+static extern IntPtr SelectObject(IntPtr dc,IntPtr item);
+[System.Runtime.InteropServices.DllImport("gdi32.dll")]
+static extern bool DeleteObject(IntPtr item);
+[System.Runtime.InteropServices.DllImport("gdi32.dll")]
+static extern bool DeleteDC(IntPtr dc);
+if(!OperatingSystem.IsWindows())throw new PlatformNotSupportedException("Win32 window provider.");
+if(view<0||view>=surfaces.Length-1||width<1||height<1)throw new ArgumentException("Invalid native view.");
+if(surfaces[view+1]!=0)return;
+object[] context;
+if(surfaces[0]==0)
+{
+ long id;do{id=BitConverter.ToInt64(Guid.NewGuid().ToByteArray(),0);}while(id==0||AppDomain.CurrentDomain.GetData("Confectory.Win32."+id) is not null);surfaces[0]=id;
+ string name="Confectory_Window_"+Guid.NewGuid().ToString("N");
+ context=new object[]{null!,name,GetModuleHandleW(null),new System.Collections.Generic.Queue<int[]>(),new System.Collections.Generic.Dictionary<long,object[]>(),null!,new System.Collections.Generic.HashSet<long>(),GetCurrentThreadId()};
+ int Find(IntPtr hwnd){for(int i=1;i<surfaces.Length;i++)if(surfaces[i]==hwnd.ToInt64())return i-1;return -1;}
+ void Emit(int index,int kind,int x=0,int y=0,int code=0,int flags=0){if(index>=0)((System.Collections.Generic.Queue<int[]>)context[3]).Enqueue(new[]{index,kind,x,y,code,flags});}
+ void ReleaseFrame(long handle)
+ {
+  var frames=(System.Collections.Generic.Dictionary<long,object[]>)context[4];if(!frames.Remove(handle,out var frame))return;
+  SelectObject((IntPtr)frame[0],(IntPtr)frame[4]);DeleteObject((IntPtr)frame[1]);DeleteDC((IntPtr)frame[0]);
+ }
+ IntPtr Procedure(IntPtr hwnd,uint message,IntPtr wParam,IntPtr lParam)
+ {
+  try
+  {
+   int index=Find(hwnd),packed=unchecked((int)lParam.ToInt64()),x=(short)(packed&65535),y=(short)(packed>>16);
+   if(message==0x14)return (IntPtr)1; // buffered WM_PAINT owns background, never STATIC erase/paint
+   if(message==0xF)
+   {
+    var paint=System.Runtime.InteropServices.Marshal.AllocHGlobal(80);
+    try
+    {
+     IntPtr dc=BeginPaint(hwnd,paint);
+     if(((System.Collections.Generic.Dictionary<long,object[]>)context[4]).TryGetValue(hwnd.ToInt64(),out var frame))
+     {if(!BitBlt(dc,0,0,(int)frame[2],(int)frame[3],(IntPtr)frame[0],0,0,0x00CC0020))throw new InvalidOperationException("Buffered paint failed.");}
+     else Emit(index,10);
+    }
+    finally{EndPaint(hwnd,paint);System.Runtime.InteropServices.Marshal.FreeHGlobal(paint);}
+    return IntPtr.Zero;
+   }
+   if(message==0x201||message==0x203){SetFocus(hwnd);SetCapture(hwnd);Emit(index,1,x,y);return IntPtr.Zero;}
+   if(message==0x202){Emit(index,2,x,y);ReleaseCapture();return IntPtr.Zero;}
+   if(message==0x200){Emit(index,3,x,y);return IntPtr.Zero;}
+   if(message==0x20A)
+   {
+    var point=System.Runtime.InteropServices.Marshal.AllocHGlobal(8);
+    try{System.Runtime.InteropServices.Marshal.WriteInt32(point,0,x);System.Runtime.InteropServices.Marshal.WriteInt32(point,4,y);if(!ScreenToClient(hwnd,point))throw new InvalidOperationException("Wheel coordinate conversion failed.");Emit(index,4,System.Runtime.InteropServices.Marshal.ReadInt32(point,0),System.Runtime.InteropServices.Marshal.ReadInt32(point,4),(short)(wParam.ToInt64()>>16));}
+    finally{System.Runtime.InteropServices.Marshal.FreeHGlobal(point);}return IntPtr.Zero;
+   }
+   if(message==0x100||message==0x101){Emit(index,message==0x100?5:6,0,0,unchecked((int)wParam.ToInt64()),(packed>>30)&1);return DefWindowProcW(hwnd,message,wParam,lParam);}
+   if(message==0x5){Emit(index,7,packed&65535,(packed>>16)&65535);return IntPtr.Zero;}
+   if(message==0x8||message==0x1F){Emit(index,9);return DefWindowProcW(hwnd,message,wParam,lParam);}
+   if(message==0x215){Emit(index,11);return DefWindowProcW(hwnd,message,wParam,lParam);}
+   if(message==0x10){if(((System.Collections.Generic.HashSet<long>)context[6]).Add(hwnd.ToInt64()))Emit(index,8);return IntPtr.Zero;}
+   if(message==0x82){ReleaseFrame(hwnd.ToInt64());if(!((System.Collections.Generic.HashSet<long>)context[6]).Remove(hwnd.ToInt64()))Emit(index,8);}
+   // Default OS hit testing, caption dragging, system menu, minimize/maximize and Alt+F4.
+   return DefWindowProcW(hwnd,message,wParam,lParam);
+  }
+  catch(Exception ex){context[5]=ex;return DefWindowProcW(hwnd,message,wParam,lParam);}
+ }
+ // Bodies are method-local; emit a non-generic unmanaged delegate ABI without changing core generation.
+ var assembly=System.Reflection.Emit.AssemblyBuilder.DefineDynamicAssembly(new System.Reflection.AssemblyName("ConfectoryWin32Callback_"+Guid.NewGuid().ToString("N")),System.Reflection.Emit.AssemblyBuilderAccess.RunAndCollect);
+ var type=assembly.DefineDynamicModule("Native").DefineType("WndProc",System.Reflection.TypeAttributes.Public|System.Reflection.TypeAttributes.Sealed,typeof(MulticastDelegate));
+ var attribute=typeof(System.Runtime.InteropServices.UnmanagedFunctionPointerAttribute).GetConstructor(new[]{typeof(System.Runtime.InteropServices.CallingConvention)})!;
+ type.SetCustomAttribute(new System.Reflection.Emit.CustomAttributeBuilder(attribute,new object[]{System.Runtime.InteropServices.CallingConvention.Winapi}));
+ type.DefineConstructor(System.Reflection.MethodAttributes.Public|System.Reflection.MethodAttributes.HideBySig|System.Reflection.MethodAttributes.RTSpecialName,System.Reflection.CallingConventions.Standard,new[]{typeof(object),typeof(IntPtr)}).SetImplementationFlags(System.Reflection.MethodImplAttributes.Runtime|System.Reflection.MethodImplAttributes.Managed);
+ type.DefineMethod("Invoke",System.Reflection.MethodAttributes.Public|System.Reflection.MethodAttributes.HideBySig|System.Reflection.MethodAttributes.NewSlot|System.Reflection.MethodAttributes.Virtual,typeof(IntPtr),new[]{typeof(IntPtr),typeof(uint),typeof(IntPtr),typeof(IntPtr)}).SetImplementationFlags(System.Reflection.MethodImplAttributes.Runtime|System.Reflection.MethodImplAttributes.Managed);
+ var procedure=(Func<IntPtr,uint,IntPtr,IntPtr,IntPtr>)Procedure;
+ var callback=Delegate.CreateDelegate(type.CreateType()!,procedure.Target,procedure.Method);context[0]=callback; // rooted until all HWNDs destroyed/class unregistered
+ var cls=System.Runtime.InteropServices.Marshal.AllocHGlobal(IntPtr.Size==8?80:48);var className=System.Runtime.InteropServices.Marshal.StringToHGlobalUni(name);
+ try
+ {
+  for(int offset=0;offset<(IntPtr.Size==8?80:48);offset+=4)System.Runtime.InteropServices.Marshal.WriteInt32(cls,offset,0);
+  System.Runtime.InteropServices.Marshal.WriteInt32(cls,0,IntPtr.Size==8?80:48);System.Runtime.InteropServices.Marshal.WriteInt32(cls,4,8);
+  System.Runtime.InteropServices.Marshal.WriteIntPtr(cls,8,System.Runtime.InteropServices.Marshal.GetFunctionPointerForDelegate(callback));
+  System.Runtime.InteropServices.Marshal.WriteIntPtr(cls,IntPtr.Size==8?24:20,(IntPtr)context[2]);System.Runtime.InteropServices.Marshal.WriteIntPtr(cls,IntPtr.Size==8?40:28,LoadCursorW(IntPtr.Zero,(IntPtr)32512));
+  System.Runtime.InteropServices.Marshal.WriteIntPtr(cls,IntPtr.Size==8?64:40,className);
+  if(RegisterClassExW(cls)==0)throw new InvalidOperationException("RegisterClassExW failed: "+System.Runtime.InteropServices.Marshal.GetLastWin32Error());
+  AppDomain.CurrentDomain.SetData("Confectory.Win32."+surfaces[0],context);
+ }
+ catch{surfaces[0]=0;throw;}
+ finally{System.Runtime.InteropServices.Marshal.FreeHGlobal(cls);System.Runtime.InteropServices.Marshal.FreeHGlobal(className);}
+}
+else context=AppDomain.CurrentDomain.GetData("Confectory.Win32."+surfaces[0]) as object[]??throw new InvalidOperationException("Win32 session is disposed.");
+if((uint)context[7]!=GetCurrentThreadId())throw new InvalidOperationException("Win32 surfaces must run on the creating UI thread.");
+var rect=System.Runtime.InteropServices.Marshal.AllocHGlobal(16);
+try
+{
+ System.Runtime.InteropServices.Marshal.WriteInt32(rect,0,0);System.Runtime.InteropServices.Marshal.WriteInt32(rect,4,0);System.Runtime.InteropServices.Marshal.WriteInt32(rect,8,width);System.Runtime.InteropServices.Marshal.WriteInt32(rect,12,height);
+ if(!AdjustWindowRectEx(rect,0x10CF0000,false,0))throw new InvalidOperationException("AdjustWindowRectEx failed.");
+ int outerWidth=System.Runtime.InteropServices.Marshal.ReadInt32(rect,8)-System.Runtime.InteropServices.Marshal.ReadInt32(rect,0),outerHeight=System.Runtime.InteropServices.Marshal.ReadInt32(rect,12)-System.Runtime.InteropServices.Marshal.ReadInt32(rect,4);
+ var hwnd=CreateWindowExW(0,(string)context[1],title,0x10CF0000,100+view*(width+20),100,outerWidth,outerHeight,IntPtr.Zero,IntPtr.Zero,(IntPtr)context[2],IntPtr.Zero);
+ if(hwnd==IntPtr.Zero)throw new InvalidOperationException("CreateWindowExW failed: "+System.Runtime.InteropServices.Marshal.GetLastWin32Error());surfaces[view+1]=hwnd.ToInt64();
+}
+finally{System.Runtime.InteropServices.Marshal.FreeHGlobal(rect);}

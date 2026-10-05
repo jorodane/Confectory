@@ -1,0 +1,1 @@
+function Confectory.Window::Win32Pump (long[] surfaces) -> int[] {provide Confectory.Window::Win32Pump with Confectory.Window::Win32PumpBody;description "Owned Win32 native capability; persistent class, HWND routing and buffered paint.";}

@@ -1,0 +1,1 @@
+implementation Confectory.Window::Win32DrawBody for Confectory.Window::Win32Draw (long[] surfaces, int view, int[] rectangles, string[] labels) -> void {body common "Win32Draw.csbody";}

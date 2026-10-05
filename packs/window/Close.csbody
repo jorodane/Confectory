@@ -1,18 +1,14 @@
-[System.Runtime.InteropServices.DllImport("user32.dll")]
-static extern bool IsWindow(IntPtr w);
-[System.Runtime.InteropServices.DllImport("user32.dll")]
-static extern bool DestroyWindow(IntPtr w);
 [System.Runtime.InteropServices.DllImport("libX11.so.6")]
 static extern int XDestroyWindow(IntPtr d,nuint w);
 [System.Runtime.InteropServices.DllImport("libX11.so.6")]
 static extern int XCloseDisplay(IntPtr d);
 if(view < -1 || view >= surfaces.Length-1) throw new ArgumentOutOfRangeException(nameof(view));
+if(OperatingSystem.IsWindows()){calls.Win32Close.Invoke(surfaces,view);return;}
 for(int i=1;i<surfaces.Length;i++)
 {
  if(view!=-1&&i!=view+1) continue;
  if(surfaces[i]==0) continue;
- if(OperatingSystem.IsWindows()) { if(IsWindow((IntPtr)surfaces[i])) DestroyWindow((IntPtr)surfaces[i]); }
- else if(surfaces[0]!=0) XDestroyWindow((IntPtr)surfaces[0],(nuint)surfaces[i]);
+ if(surfaces[0]!=0) XDestroyWindow((IntPtr)surfaces[0],(nuint)surfaces[i]);
  surfaces[i]=0;
 }
 if(view==-1&&surfaces[0]!=0) { XCloseDisplay((IntPtr)surfaces[0]);surfaces[0]=0; }

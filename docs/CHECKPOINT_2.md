@@ -46,3 +46,7 @@ DISPLAY=:97 "$CONFECTORY_DOTNET" tests/Confectory.Tests/bin/Release/net8.0/Confe
 ```
 
 Use an existing X11 session instead of :97 where appropriate. GUI test tooling uses Python locally; Windows application launch does not. Do not add temporary captures/build outputs to Git. User platform spot checks remain asynchronous and do not gate further pack work.
+
+## Windows acceptance correction
+
+Native Windows user acceptance **failed**, including pointer/focus/non-client/paint behavior and the published launcher. A scoped Window-class/backbuffer/launcher correction is documented in [WINDOWS_NATIVE_FIX.md](WINDOWS_NATIVE_FIX.md). Compilation and Linux ABI/shim tests do not establish Windows acceptance; corrected Windows runtime remains pending a focused asynchronous recheck.

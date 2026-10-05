@@ -1,0 +1,28 @@
+[System.Runtime.InteropServices.DllImport("user32.dll")]
+static extern int SimCounter(int index);
+[System.Runtime.InteropServices.DllImport("user32.dll")]
+static extern IntPtr SimSend(IntPtr hwnd,uint message,IntPtr wp,IntPtr lp);
+[System.Runtime.InteropServices.DllImport("user32.dll")]
+static extern void SimKey(int key);
+void Check(bool value,string message){if(!value)throw new Exception(message);}
+var surfaces=new long[3];
+try
+{
+ calls.Create.Invoke(surfaces,0,"A",480,420);calls.Create.Invoke(surfaces,1,"B",480,420);GC.Collect();GC.WaitForPendingFinalizers();GC.Collect();
+ Check(SimCounter(0)==1,"Owned registered class per session");
+ bool wrongThread=System.Threading.Tasks.Task.Run(()=>{try{calls.Pump.Invoke(surfaces);return false;}catch(InvalidOperationException ex){return ex.Message.Contains("creating UI thread");}}).GetAwaiter().GetResult();Check(wrongThread,"Native thread ownership enforced");
+ Check(SimSend((IntPtr)surfaces[1],0x84,IntPtr.Zero,IntPtr.Zero)==(IntPtr)1,"Default hit testing delegated");
+ SimSend((IntPtr)surfaces[1],0xA1,IntPtr.Zero,IntPtr.Zero);SimSend((IntPtr)surfaces[1],0xA3,IntPtr.Zero,IntPtr.Zero);SimSend((IntPtr)surfaces[1],0x112,(IntPtr)0xF020,IntPtr.Zero);Check(SimCounter(2)==3,"Default caption/system commands delegated");
+ SimSend((IntPtr)surfaces[1],0x201,IntPtr.Zero,(IntPtr)((120<<16)|30));SimSend((IntPtr)surfaces[1],0x202,IntPtr.Zero,(IntPtr)((120<<16)|30));SimKey(13);
+ var events=calls.Pump.Invoke(surfaces);int presses=0,keys=0;for(int i=0;i<events.Length;i+=6){Check(events[i]==0,"Left input routed to other HWND");if(events[i+1]==1){Check(events[i+2]==30&&events[i+3]==120,"Client mouse coordinates");presses++;}if(events[i+1]==5)keys++;}Check(presses==1&&keys==1,"Sent and posted events routed once");
+ SimSend((IntPtr)surfaces[2],0x201,IntPtr.Zero,(IntPtr)((120<<16)|30));SimKey(32);events=calls.Pump.Invoke(surfaces);bool cancelled=false,right=false;for(int i=0;i<events.Length;i+=6){if(events[i]==0&&events[i+1]==9)cancelled=true;if(events[i]==1&&events[i+1]==5)right=true;}Check(cancelled&&right,"Focus transfers and keyboard follows focused HWND");
+ SimSend((IntPtr)surfaces[2],0x20A,(IntPtr)(120<<16),(IntPtr)((250<<16)|150));events=calls.Pump.Invoke(surfaces);Check(events.Length==6&&events[0]==1&&events[1]==4&&events[2]==50&&events[3]==150&&events[4]==120,"Wheel screen-to-client conversion");
+ int[] rectangles={0,0,480,420,0x202020};string[] labels={"Frame"};
+ calls.Draw.Invoke(surfaces,0,rectangles,labels);calls.Draw.Invoke(surfaces,0,new[]{20,270,440,30,0x303040},new[]{"Overlay"});Check(SimCounter(8)==0,"No direct foreground paint before WM_PAINT");
+ Check(calls.Pump.Invoke(surfaces).Length==0,"Cached paint must not cause invalidation feedback");Check(SimCounter(6)==1&&SimCounter(7)==1&&SimCounter(8)==1&&SimCounter(11)==0,"Single balanced backbuffer paint without erase");
+ calls.Draw.Invoke(surfaces,0,rectangles,labels);calls.Pump.Invoke(surfaces);Check(SimCounter(12)==1,"Value update recreated backbuffer");
+ long rightHandle=surfaces[2];SimSend((IntPtr)surfaces[1],0x10,IntPtr.Zero,IntPtr.Zero);events=calls.Pump.Invoke(surfaces);Check(events.Length==6&&events[1]==8,"Native close request");calls.Close.Invoke(surfaces,0);Check(surfaces[1]==0&&surfaces[2]==rightHandle&&SimCounter(9)==1&&SimCounter(10)==1,"Close isolated and GDI released");
+ calls.Create.Invoke(surfaces,0,"Reopened",480,420);Check(surfaces[2]==rightHandle&&SimCounter(0)==1,"Reopen reuses class and preserves other HWND");
+}
+finally{calls.Close.Invoke(surfaces,-1);}
+Check(SimCounter(13)==1,"Class/callback lifetime release");Console.WriteLine("Win32 ABI/shim contract PASS; NOT Windows runtime coverage");return 0;

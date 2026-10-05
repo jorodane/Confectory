@@ -1,1 +1,2 @@
-implementation Confectory.Window::ReopenBody for Confectory.Window::Reopen (long[] surfaces, int view, string title, int width, int height) -> void { body common "Reopen.csbody"; }
+implementation Confectory.Window::ReopenBody for Confectory.Window::Reopen (long[] surfaces, int view, string title, int width, int height) -> void { import Confectory.Window::Win32Create as Win32Create (long[], int, string, int, int) -> void;
+body common "Reopen.csbody"; }

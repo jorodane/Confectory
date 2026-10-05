@@ -1,0 +1,24 @@
+[System.Runtime.InteropServices.DllImport("kernel32.dll")]
+static extern uint GetCurrentThreadId();
+[System.Runtime.InteropServices.DllImport("user32.dll")]
+static extern bool IsWindow(IntPtr window);
+[System.Runtime.InteropServices.DllImport("user32.dll",SetLastError=true)]
+static extern bool DestroyWindow(IntPtr window);
+[System.Runtime.InteropServices.DllImport("user32.dll",CharSet=System.Runtime.InteropServices.CharSet.Unicode,SetLastError=true)]
+static extern bool UnregisterClassW(string name,IntPtr instance);
+if(!OperatingSystem.IsWindows())throw new PlatformNotSupportedException("Win32 close provider.");
+if(view < -1||view>=surfaces.Length-1)throw new ArgumentException("Invalid view.");
+if(surfaces[0]==0)return;
+string key="Confectory.Win32."+surfaces[0];var context=AppDomain.CurrentDomain.GetData(key) as object[]??throw new InvalidOperationException("Win32 session is disposed.");
+if((uint)context[7]!=GetCurrentThreadId())throw new InvalidOperationException("Win32 surfaces must run on the creating UI thread.");
+for(int i=1;i<surfaces.Length;i++)
+{
+ if(view!=-1&&i!=view+1||surfaces[i]==0)continue;
+ ((System.Collections.Generic.HashSet<long>)context[6]).Add(surfaces[i]);
+ if(IsWindow((IntPtr)surfaces[i])&&!DestroyWindow((IntPtr)surfaces[i]))throw new InvalidOperationException("DestroyWindow failed: "+System.Runtime.InteropServices.Marshal.GetLastWin32Error());surfaces[i]=0;
+}
+if(view==-1)
+{
+ if(!UnregisterClassW((string)context[1],(IntPtr)context[2]))throw new InvalidOperationException("UnregisterClassW failed: "+System.Runtime.InteropServices.Marshal.GetLastWin32Error());
+ AppDomain.CurrentDomain.SetData(key,null);surfaces[0]=0; // callback remains rooted through synchronous destruction/unregistration
+}

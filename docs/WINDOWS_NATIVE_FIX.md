@@ -1,0 +1,29 @@
+# Windows native acceptance failure and scoped correction
+
+Windows user acceptance of Checkpoints 1/2 failed: client pointer/focus routing, native caption controls/drag, repaint flashing and newly published batch launch were reported unusable. Linux success and Windows managed compilation did not establish Windows usability. This correction is a candidate pending actual Windows recheck; no Windows runtime execution is claimed in this Linux environment.
+
+## Evidence and correction
+
+CreateSurfaces/Reopen and the original Open provider used `STATIC` as a top-level class. [Microsoft documents STATIC](https://learn.microsoft.com/en-us/windows/win32/controls/about-static-controls) as unable to receive ordinary keyboard focus, returning HTTRANSPARENT without SS_NOTIFY, consuming non-client button messages and repainting its own content. That contradicts the engine's client-input and direct-GDI drawing design. It explains a concrete class of the reported behavior; individual user observations are not presumed independently reproduced here.
+
+Window now owns a registered class and a rooted, non-generic unmanaged WndProc delegate. Explicit HWND-to-View mapping captures both sent/synchronous and dispatched messages. Client presses set native focus/capture, release/capture-loss/focus-loss are distinguished, wheel screen coordinates convert to client coordinates, and keyboard routes by the actual HWND. Default hit testing, caption drag/double click, system menu/minimize/maximize and Alt+F4 delegate to DefWindowProc. Close is queued to preserve consumer cleanup and independent multiwindow ownership.
+
+Draw updates a per-HWND retained compatible bitmap; WM_PAINT uses BeginPaint/EndPaint and one clipped BitBlt. The class suppresses redundant background erasure. Base and overlay requests compose before the next pump paints the completed cached frame. Paint does not request another model redraw when a cached frame exists. Value updates keep the same bitmap; resize alone reallocates it. HWND destruction frees GDI state; class unregistration occurs after all HWNDs are destroyed, before callback root release. Callback exceptions are retained and surfaced through Pump, not thrown across unmanaged frames. No cosmetic render throttle was introduced.
+
+Added public owning-pack native capability IDs: Confectory.Window::{Win32Create,Win32Pump,Win32Draw,Win32Close} and matching Body IDs. Existing window/render/input signatures stay compatible. Common providers call these public IDs; X11 code remains its native path. The original single-window Open API now shares the corrected Win32 provider. Method-local provider generation cannot declare an author delegate type, so the owning Win32 body uses Reflection.Emit for a non-generic unmanaged callback ABI rather than modifying the core or importing another provider's private class.
+
+## Separate launcher issue
+
+The user-confirmed working temporary flow calls build-windows.bat, builds the pack and invokes the returned dotnet/DLL command. The published CLI run path builds and launches that same structured command, but its target build was silent. No actual Windows reproduction proves the launcher root cause. run-engine-windows.bat now uses the confirmed `call build-windows.bat` first step, CALL for its dotnet invocation (also preserves return if PATH resolves a batch wrapper), and useful solution/pack/start stages. CLI run reports actual selected dotnet/project/target, final command, started PID and exit status. build-windows.bat remains build-only; CONFECTORY_DOTNET and spaced paths are preserved, failures retain code and pause visibly. No PowerShell policy changes or Python requirement.
+
+## Verification and focused user check
+
+Linux ABI/shim fixture invokes the real generated Win32 provider bodies with only the OS guard removed in copied test files. A small native User32/GDI fixture verifies registered callback ABI/root across GC, UI-thread ownership, default hit/non-client dispatch, synchronous and queued event routing, native-focus HWND routing, wheel conversion, one balanced backbuffer paint without erase/invalidation feedback, bitmap reuse, isolated close/reopen and GDI/class cleanup. Win32Draw-only edit rebuilds exactly its provider body with zero contract recompiles. This is an ABI/contract test, not Windows OS or UX coverage.
+
+Windows named target compiled successfully. Actual Linux X11 pointer/camera/reopen/interruption and ProjectManager A/B worker/UI probes are separately retained. Full relevant regressions are run; exact outcomes are appended below when completed.
+
+When convenient, pull the correction and double-click run-engine-windows.bat. Observe the last stage if it fails to open. A short native check is sufficient initially: client-click Increment/Enabled in A and B and confirm isolation, wheel over the client, then drag/maximize/minimize/close one caption and reopen with R in the other. Watch for flashing and check Enter/Space after clicking each window. No exhaustive before-bed repeat is requested; user spot checks remain asynchronous.
+
+Targeted evidence: solution build zero warnings/errors; Win32 ABI/shim contract plus provider-locality test passed (11.271 seconds), including wrong-thread rejection. General CLI launcher regression passed (3.975 seconds). Both actual Linux GUI probes passed. Full regression suite is in progress at the scoped fix publication; its final result will be appended separately. This candidate is not Windows acceptance.
+
+Exact-source candidate Windows profile compiled successfully; latest native ABI/shim and provider-locality gate passed (11.736 seconds), followed by final exact-source rerun. The helper enforces creating UI thread ownership and initializes/reuses retained bitmaps. Linux paths are preserved; standalone Win32 fixtures ship C source only, no native DLL.

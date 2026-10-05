@@ -1,1 +1,2 @@
-implementation Confectory.Window::DrawBody for Confectory.RenderInput::Draw (long[] surfaces, int view, int[] rectangles, string[] labels) -> void { body android "Draw.android.csbody"; body common "Draw.csbody"; }
+implementation Confectory.Window::DrawBody for Confectory.RenderInput::Draw (long[] surfaces, int view, int[] rectangles, string[] labels) -> void { body android "Draw.android.csbody"; import Confectory.Window::Win32Draw as Win32Draw (long[], int, int[], string[]) -> void;
+body common "Draw.csbody"; }

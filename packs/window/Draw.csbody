@@ -10,42 +10,12 @@ static extern int XFillRectangle(IntPtr d,nuint w,IntPtr gc,int x,int y,uint wid
 static extern int XDrawString(IntPtr d,nuint w,IntPtr gc,int x,int y,string text,int length);
 [System.Runtime.InteropServices.DllImport("libX11.so.6")]
 static extern int XFlush(IntPtr d);
-[System.Runtime.InteropServices.DllImport("user32.dll")]
-static extern IntPtr GetDC(IntPtr w);
-[System.Runtime.InteropServices.DllImport("user32.dll")]
-static extern int ReleaseDC(IntPtr w,IntPtr dc);
-[System.Runtime.InteropServices.DllImport("gdi32.dll")]
-static extern uint SetDCBrushColor(IntPtr dc,uint color);
-[System.Runtime.InteropServices.DllImport("gdi32.dll")]
-static extern IntPtr GetStockObject(int index);
-[System.Runtime.InteropServices.DllImport("gdi32.dll")]
-static extern IntPtr SelectObject(IntPtr dc,IntPtr obj);
-[System.Runtime.InteropServices.DllImport("gdi32.dll")]
-static extern bool Rectangle(IntPtr dc,int left,int top,int right,int bottom);
-[System.Runtime.InteropServices.DllImport("gdi32.dll",CharSet=System.Runtime.InteropServices.CharSet.Unicode)]
-static extern bool TextOutW(IntPtr dc,int x,int y,string text,int length);
-[System.Runtime.InteropServices.DllImport("gdi32.dll")]
-static extern uint SetTextColor(IntPtr dc,uint color);
-[System.Runtime.InteropServices.DllImport("gdi32.dll")]
-static extern int SetBkMode(IntPtr dc,int mode);
 if(view<0||view>=surfaces.Length-1||rectangles.Length%5!=0||labels.Length!=rectangles.Length/5) throw new ArgumentException("Invalid render request.");
 for(int i=0;i<rectangles.Length;i+=5) if(rectangles[i+2]<1||rectangles[i+3]<1) throw new ArgumentException("Invalid rectangle size.");
 long handle=surfaces[view+1]; if(handle==0) return;
 if(OperatingSystem.IsWindows())
 {
- var dc=GetDC((IntPtr)handle); if(dc==IntPtr.Zero) throw new InvalidOperationException("GetDC failed.");
- var previous=SelectObject(dc,GetStockObject(18));
- try
- {
-  SetTextColor(dc,0xFFFFFF);SetBkMode(dc,1);
-  for(int i=0;i<rectangles.Length;i+=5)
-  {
-   uint color=(uint)rectangles[i+4];SetDCBrushColor(dc,((color&255)<<16)|(color&0xFF00)|((color>>16)&255));
-   Rectangle(dc,rectangles[i],rectangles[i+1],rectangles[i]+rectangles[i+2],rectangles[i+1]+rectangles[i+3]);
-   string label=labels[i/5]; TextOutW(dc,rectangles[i]+10,rectangles[i+1]+10,label,label.Length);
-  }
- }
- finally { SelectObject(dc,previous);ReleaseDC((IntPtr)handle,dc); }
+ calls.Win32Draw.Invoke(surfaces,view,rectangles,labels);return;
 }
 else if(surfaces[0]!=0)
 {

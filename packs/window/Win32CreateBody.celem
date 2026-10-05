@@ -1,0 +1,1 @@
+implementation Confectory.Window::Win32CreateBody for Confectory.Window::Win32Create (long[] surfaces, int view, string title, int width, int height) -> void {body common "Win32Create.csbody";}

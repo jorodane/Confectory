@@ -1,0 +1,1 @@
+function Confectory.Window::Win32Create (long[] surfaces, int view, string title, int width, int height) -> void {provide Confectory.Window::Win32Create with Confectory.Window::Win32CreateBody;description "Owned Win32 native capability; persistent class, HWND routing and buffered paint.";}

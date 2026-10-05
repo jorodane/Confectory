@@ -19,4 +19,12 @@ element SurfaceInfo function "SurfaceInfo.celem";
 element SurfaceInfoBody implementation "SurfaceInfoBody.celem";
 element SurfaceDimensions function "SurfaceDimensions.celem";
 element SurfaceDimensionsBody implementation "SurfaceDimensionsBody.celem";
+element Win32Create function "Win32Create.celem";
+element Win32CreateBody implementation "Win32CreateBody.celem";
+element Win32Pump function "Win32Pump.celem";
+element Win32PumpBody implementation "Win32PumpBody.celem";
+element Win32Draw function "Win32Draw.celem";
+element Win32DrawBody implementation "Win32DrawBody.celem";
+element Win32Close function "Win32Close.celem";
+element Win32CloseBody implementation "Win32CloseBody.celem";
 }

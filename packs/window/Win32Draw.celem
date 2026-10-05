@@ -1,0 +1,1 @@
+function Confectory.Window::Win32Draw (long[] surfaces, int view, int[] rectangles, string[] labels) -> void {provide Confectory.Window::Win32Draw with Confectory.Window::Win32DrawBody;description "Owned Win32 native capability; persistent class, HWND routing and buffered paint.";}

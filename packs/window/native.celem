@@ -1,3 +1,6 @@
 implementation Confectory.Window::Native for Confectory.Window::Open (string title, int width, int height, int closeAfterMilliseconds) -> int {
-    body common "native.csbody";
+    import Confectory.Window::Win32Create as Win32Create (long[], int, string, int, int) -> void;
+import Confectory.Window::Win32Pump as Win32Pump (long[]) -> int[];
+import Confectory.Window::Win32Close as Win32Close (long[], int) -> void;
+body common "native.csbody";
 }

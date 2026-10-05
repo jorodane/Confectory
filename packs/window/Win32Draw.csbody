@@ -1,0 +1,60 @@
+[System.Runtime.InteropServices.DllImport("kernel32.dll")]
+static extern uint GetCurrentThreadId();
+[System.Runtime.InteropServices.DllImport("user32.dll")]
+static extern IntPtr GetDC(IntPtr window);
+[System.Runtime.InteropServices.DllImport("user32.dll")]
+static extern int ReleaseDC(IntPtr window,IntPtr dc);
+[System.Runtime.InteropServices.DllImport("user32.dll")]
+static extern bool GetClientRect(IntPtr window,IntPtr rectangle);
+[System.Runtime.InteropServices.DllImport("user32.dll")]
+static extern bool InvalidateRect(IntPtr window,IntPtr rectangle,bool erase);
+[System.Runtime.InteropServices.DllImport("gdi32.dll")]
+static extern IntPtr CreateCompatibleDC(IntPtr dc);
+[System.Runtime.InteropServices.DllImport("gdi32.dll")]
+static extern IntPtr CreateCompatibleBitmap(IntPtr dc,int width,int height);
+[System.Runtime.InteropServices.DllImport("gdi32.dll")]
+static extern IntPtr SelectObject(IntPtr dc,IntPtr item);
+[System.Runtime.InteropServices.DllImport("gdi32.dll")]
+static extern bool DeleteObject(IntPtr item);
+[System.Runtime.InteropServices.DllImport("gdi32.dll")]
+static extern bool DeleteDC(IntPtr dc);
+[System.Runtime.InteropServices.DllImport("gdi32.dll")]
+static extern IntPtr GetStockObject(int index);
+[System.Runtime.InteropServices.DllImport("gdi32.dll")]
+static extern uint SetDCBrushColor(IntPtr dc,uint color);
+[System.Runtime.InteropServices.DllImport("user32.dll")]
+static extern int FillRect(IntPtr dc,IntPtr rect,IntPtr brush);
+[System.Runtime.InteropServices.DllImport("gdi32.dll",CharSet=System.Runtime.InteropServices.CharSet.Unicode)]
+static extern bool TextOutW(IntPtr dc,int x,int y,string text,int count);
+[System.Runtime.InteropServices.DllImport("gdi32.dll")]
+static extern uint SetTextColor(IntPtr dc,uint color);
+[System.Runtime.InteropServices.DllImport("gdi32.dll")]
+static extern int SetBkMode(IntPtr dc,int mode);
+if(!OperatingSystem.IsWindows())throw new PlatformNotSupportedException("Win32 draw provider.");
+if(view<0||view>=surfaces.Length-1||rectangles.Length%5!=0||labels.Length!=rectangles.Length/5)throw new ArgumentException("Invalid render request.");
+long handle=surfaces[view+1];if(handle==0)return;
+var context=AppDomain.CurrentDomain.GetData("Confectory.Win32."+surfaces[0]) as object[]??throw new InvalidOperationException("Win32 session is disposed.");
+if((uint)context[7]!=GetCurrentThreadId())throw new InvalidOperationException("Win32 surfaces must run on the creating UI thread.");
+var frames=(System.Collections.Generic.Dictionary<long,object[]>)context[4];var rect=System.Runtime.InteropServices.Marshal.AllocHGlobal(16);
+try
+{
+ if(!GetClientRect((IntPtr)handle,rect))throw new InvalidOperationException("GetClientRect failed.");int width=System.Runtime.InteropServices.Marshal.ReadInt32(rect,8),height=System.Runtime.InteropServices.Marshal.ReadInt32(rect,12);if(width<1||height<1)return;
+ if(!frames.TryGetValue(handle,out var frame)||(int)frame[2]!=width||(int)frame[3]!=height)
+ {
+  if(frame is not null){SelectObject((IntPtr)frame[0],(IntPtr)frame[4]);DeleteObject((IntPtr)frame[1]);DeleteDC((IntPtr)frame[0]);frames.Remove(handle);}
+  var screen=GetDC((IntPtr)handle);if(screen==IntPtr.Zero)throw new InvalidOperationException("GetDC failed.");
+  IntPtr dc=IntPtr.Zero,bitmap=IntPtr.Zero,previousBitmap=IntPtr.Zero;
+  try{dc=CreateCompatibleDC(screen);bitmap=CreateCompatibleBitmap(screen,width,height);if(dc==IntPtr.Zero||bitmap==IntPtr.Zero)throw new InvalidOperationException("Backbuffer allocation failed.");previousBitmap=SelectObject(dc,bitmap);if(previousBitmap==IntPtr.Zero||previousBitmap==(IntPtr)(-1))throw new InvalidOperationException("Bitmap selection failed.");SetDCBrushColor(dc,0x202020);if(FillRect(dc,rect,GetStockObject(18))==0)throw new InvalidOperationException("Initial buffer fill failed.");frame=new object[]{dc,bitmap,width,height,previousBitmap};frames.Add(handle,frame);}
+  catch{if(dc!=IntPtr.Zero&&previousBitmap!=IntPtr.Zero&&previousBitmap!=(IntPtr)(-1))SelectObject(dc,previousBitmap);if(bitmap!=IntPtr.Zero)DeleteObject(bitmap);if(dc!=IntPtr.Zero)DeleteDC(dc);throw;}
+  finally{ReleaseDC((IntPtr)handle,screen);}
+ }
+ var memory=(IntPtr)frame![0];SetTextColor(memory,0xFFFFFF);SetBkMode(memory,1);var brush=GetStockObject(18);
+ for(int i=0;i<rectangles.Length;i+=5)
+ {
+  if(rectangles[i+2]<1||rectangles[i+3]<1)throw new ArgumentException("Invalid rectangle.");uint color=(uint)rectangles[i+4];SetDCBrushColor(memory,((color&255)<<16)|(color&0xFF00)|((color>>16)&255));
+  System.Runtime.InteropServices.Marshal.WriteInt32(rect,0,rectangles[i]);System.Runtime.InteropServices.Marshal.WriteInt32(rect,4,rectangles[i+1]);System.Runtime.InteropServices.Marshal.WriteInt32(rect,8,rectangles[i]+rectangles[i+2]);System.Runtime.InteropServices.Marshal.WriteInt32(rect,12,rectangles[i+1]+rectangles[i+3]);
+  if(FillRect(memory,rect,brush)==0)throw new InvalidOperationException("Buffered fill failed.");string label=labels[i/5];if(!TextOutW(memory,rectangles[i]+10,rectangles[i+1]+10,label,label.Length))throw new InvalidOperationException("Buffered text failed.");
+ }
+ if(!InvalidateRect((IntPtr)handle,IntPtr.Zero,false))throw new InvalidOperationException("InvalidateRect failed.");
+}
+finally{System.Runtime.InteropServices.Marshal.FreeHGlobal(rect);}

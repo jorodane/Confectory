@@ -1,0 +1,1 @@
+implementation Confectory.Window::Win32PumpBody for Confectory.Window::Win32Pump (long[] surfaces) -> int[] {body common "Win32Pump.csbody";}

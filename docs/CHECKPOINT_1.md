@@ -68,3 +68,7 @@ The .NET android workload was installed with authorized official-source tooling:
 Complete design baseline version 1 was read in 18 bounded Library text chunks: all 20 sections, lines 1–1029, 44,761 characters. The current extraction renders 39 pages for the same source version reported as 37 pages originally. Readable extraction/per-chunk evidence are private local files outside Git. Original DOCX byte materialization failed at the network proxy; no original-byte hash/verification is claimed.
 
 Source/specifications/tests publication is authorized, superseding the initial local-only restriction. Commits are coherent and remote commits are verified; no force pushes or credential changes. Source history retains the completed window baseline and original compiler bootstrap. Generated binaries/images, original documents, credentials and raw chat logs are excluded. Exact checkpoint commit and remote integration status are reported at completion rather than guessed in this document.
+
+## Windows acceptance correction
+
+Native Windows user acceptance **failed**, including pointer/focus/non-client/paint behavior and the published launcher. A scoped Window-class/backbuffer/launcher correction is documented in [WINDOWS_NATIVE_FIX.md](WINDOWS_NATIVE_FIX.md). Compilation and Linux ABI/shim tests do not establish Windows acceptance; corrected Windows runtime remains pending a focused asynchronous recheck.

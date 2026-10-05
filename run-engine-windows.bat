@@ -6,12 +6,15 @@ if defined CONFECTORY_DOTNET set "confectory_launcher_dotnet=%CONFECTORY_DOTNET%
 pushd "%~dp0"
 if errorlevel 1 goto failed
 set "confectory_pushed=1"
-"%confectory_launcher_dotnet%" build "Confectory.sln" --configuration Release --nologo
+echo [Confectory 1/3] Building solution with %confectory_launcher_dotnet%
+call "%~dp0build-windows.bat"
 set "confectory_exit=%errorlevel%"
 if not "%confectory_exit%"=="0" goto report_failed
 if not defined CONFECTORY_PROJECT_EXECUTION_HOST set "CONFECTORY_PROJECT_EXECUTION_HOST=%CD%\targets\project-execution-host\bin\Release\net8.0\Confectory.ProjectExecutionHost.dll"
 if not defined CONFECTORY_PROJECT_ROOT set "CONFECTORY_PROJECT_ROOT=%CD%"
-"%confectory_launcher_dotnet%" "src\Confectory.Cli\bin\Release\net8.0\Confectory.Cli.dll" run "examples\engine\project.cpack" windows
+echo [Confectory 2/3] Building Windows engine ProjectPack, then launching it.
+echo First uncached pack compilation can take a while; progress stages follow below.
+call "%confectory_launcher_dotnet%" "src\Confectory.Cli\bin\Release\net8.0\Confectory.Cli.dll" run "examples\engine\project.cpack" windows
 set "confectory_exit=%errorlevel%"
 if not "%confectory_exit%"=="0" goto report_failed
 popd

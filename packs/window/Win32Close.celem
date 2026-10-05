@@ -1,0 +1,1 @@
+function Confectory.Window::Win32Close (long[] surfaces, int view) -> void {provide Confectory.Window::Win32Close with Confectory.Window::Win32CloseBody;description "Owned Win32 native capability; persistent class, HWND routing and buffered paint.";}

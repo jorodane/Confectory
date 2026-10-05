@@ -1,5 +1,3 @@
-[System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
-static extern IntPtr CreateWindowExW(uint ex, string cls, string title, uint style, int x, int y, int width, int height, IntPtr parent, IntPtr menu, IntPtr instance, IntPtr parameter);
 [System.Runtime.InteropServices.DllImport("libX11.so.6")]
 static extern IntPtr XOpenDisplay(IntPtr name);
 [System.Runtime.InteropServices.DllImport("libX11.so.6")]
@@ -22,34 +20,14 @@ static extern int XFlush(IntPtr d);
 static extern int XDestroyWindow(IntPtr d, nuint w);
 [System.Runtime.InteropServices.DllImport("libX11.so.6")]
 static extern int XCloseDisplay(IntPtr d);
-[System.Runtime.InteropServices.DllImport("user32.dll")]
-static extern bool DestroyWindow(IntPtr w);
-[System.Runtime.InteropServices.DllImport("user32.dll")]
-static extern bool AdjustWindowRectEx(IntPtr rect,uint style,bool menu,uint exStyle);
-(int Width,int Height) OuterSize(int requestedWidth,int requestedHeight)
-{
- var rect=System.Runtime.InteropServices.Marshal.AllocHGlobal(16);
- try
- {
-  System.Runtime.InteropServices.Marshal.WriteInt32(rect,0,0);System.Runtime.InteropServices.Marshal.WriteInt32(rect,4,0);
-  System.Runtime.InteropServices.Marshal.WriteInt32(rect,8,requestedWidth);System.Runtime.InteropServices.Marshal.WriteInt32(rect,12,requestedHeight);
-  if(!AdjustWindowRectEx(rect,0x10CF0000,false,0))throw new InvalidOperationException("AdjustWindowRectEx failed.");
-  return (System.Runtime.InteropServices.Marshal.ReadInt32(rect,8)-System.Runtime.InteropServices.Marshal.ReadInt32(rect,0),System.Runtime.InteropServices.Marshal.ReadInt32(rect,12)-System.Runtime.InteropServices.Marshal.ReadInt32(rect,4));
- }
- finally{System.Runtime.InteropServices.Marshal.FreeHGlobal(rect);}
-}
+
 if (titles.Length < 1 || titles.Length > 16 || width < 1 || height < 1) throw new ArgumentException("Invalid surface request.");
 var surfaces = new long[titles.Length + 1];
 try
 {
  if (OperatingSystem.IsWindows())
  {
-  var size=OuterSize(width,height);
-  for (int i = 0; i < titles.Length; i++)
-  {
-   var w = CreateWindowExW(0,"STATIC",titles[i],0x10CF0000,100+i*(width+20),100,size.Width,size.Height,IntPtr.Zero,IntPtr.Zero,IntPtr.Zero,IntPtr.Zero);
-   if (w == IntPtr.Zero) throw new InvalidOperationException("CreateWindowEx failed."); surfaces[i+1] = w.ToInt64();
-  }
+  for(int i=0;i<titles.Length;i++)calls.Win32Create.Invoke(surfaces,i,titles[i],width,height);
  }
  else if (OperatingSystem.IsLinux() && !OperatingSystem.IsAndroid())
  {
@@ -69,6 +47,11 @@ try
 }
 catch
 {
- for(int i=1;i<surfaces.Length;i++) if(surfaces[i]!=0) { if(OperatingSystem.IsWindows()) DestroyWindow((IntPtr)surfaces[i]); else if(surfaces[0]!=0) XDestroyWindow((IntPtr)surfaces[0],(nuint)surfaces[i]); }
- if(surfaces[0]!=0) XCloseDisplay((IntPtr)surfaces[0]); throw;
+ if(OperatingSystem.IsWindows())calls.Win32Close.Invoke(surfaces,-1);
+ else
+ {
+  for(int i=1;i<surfaces.Length;i++)if(surfaces[i]!=0&&surfaces[0]!=0)XDestroyWindow((IntPtr)surfaces[0],(nuint)surfaces[i]);
+  if(surfaces[0]!=0)XCloseDisplay((IntPtr)surfaces[0]);
+ }
+ throw;
 }

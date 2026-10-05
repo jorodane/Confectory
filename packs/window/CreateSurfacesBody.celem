@@ -1,1 +1,3 @@
-implementation Confectory.Window::CreateSurfacesBody for Confectory.Window::CreateSurfaces (string[] titles, int width, int height) -> long[] { body common "CreateSurfaces.csbody"; }
+implementation Confectory.Window::CreateSurfacesBody for Confectory.Window::CreateSurfaces (string[] titles, int width, int height) -> long[] { import Confectory.Window::Win32Create as Win32Create (long[], int, string, int, int) -> void;
+import Confectory.Window::Win32Close as Win32Close (long[], int) -> void;
+body common "CreateSurfaces.csbody"; }
