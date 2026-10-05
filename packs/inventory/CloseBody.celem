@@ -1,0 +1,4 @@
+implementation Confectory.Inventory::CloseBody for Confectory.Inventory::Close (string inventory) -> void {
+
+body common "Close.csbody";
+}

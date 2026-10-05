@@ -1,0 +1,3 @@
+# Inventory public contract
+
+Create(resources,initial) returns an opaque independent instance, up to 64 unique qualified resource IDs, nonnegative quantities. Snapshot returns instance/revision/quantities. Apply applies the whole registered resource delta list atomically under the existing instance: false for insufficient stock without any mutation, throws for unknown ID/overflow/invalid input; one successful batch increments revision once. Duplicate resource deltas compose in order. Close fences and releases only that instance. No project/editor/Helper semantics and no global shared inventory.

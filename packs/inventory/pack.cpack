@@ -1,0 +1,10 @@
+pack Confectory.Inventory version "0.1.0" {
+element Create function "Create.celem";
+element CreateBody implementation "CreateBody.celem";
+element Snapshot function "Snapshot.celem";
+element SnapshotBody implementation "SnapshotBody.celem";
+element Apply function "Apply.celem";
+element ApplyBody implementation "ApplyBody.celem";
+element Close function "Close.celem";
+element CloseBody implementation "CloseBody.celem";
+}

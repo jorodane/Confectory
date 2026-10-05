@@ -1,0 +1,1 @@
+function Confectory.Inventory::Snapshot (string inventory) -> string {provide Confectory.Inventory::Snapshot with Confectory.Inventory::SnapshotBody;}

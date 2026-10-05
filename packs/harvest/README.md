@@ -1,0 +1,3 @@
+# Harvest plant contract
+
+Plant is a reusable declared schema with descriptions/help in current Confectory grammar. Create accepts public SchemaEditing.Inspect object metadata with concept=harvest-plant, qualified resource ID, yield 1..100 and regrowSeconds 0.1..3600; returns independent instance. Collect calls Inventory.Apply and enters cooldown only on success. Step advances finite bounded local time; Snapshot exposes ID/instance/readiness/remaining/resource/yield. Close releases only that plant. New plants/resources use declarations and public contracts, not edits to this implementation. This is game mechanics, not real-world explosives guidance.

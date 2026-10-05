@@ -1,0 +1,4 @@
+implementation Confectory.Harvest::CollectBody for Confectory.Harvest::Collect (string plant, string inventory) -> bool {
+import Confectory.Inventory::Apply as Apply (string, string[], int[]) -> bool;
+body common "Collect.csbody";
+}

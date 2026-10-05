@@ -1,0 +1,1 @@
+function Confectory.Harvest::Collect (string plant, string inventory) -> bool {provide Confectory.Harvest::Collect with Confectory.Harvest::CollectBody;}

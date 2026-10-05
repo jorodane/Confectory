@@ -1,0 +1,4 @@
+implementation Confectory.Inventory::ApplyBody for Confectory.Inventory::Apply (string inventory, string[] resources, int[] changes) -> bool {
+
+body common "Apply.csbody";
+}

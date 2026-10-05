@@ -1,0 +1,1 @@
+function Confectory.Harvest::Create (string declaration) -> string {provide Confectory.Harvest::Create with Confectory.Harvest::CreateBody;}

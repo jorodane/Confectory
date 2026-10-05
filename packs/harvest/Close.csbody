@@ -1,0 +1,1 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.Harvest."+plant) as object[];if(state is null)return;lock(state[0]){state[6]=true;AppDomain.CurrentDomain.SetData("Confectory.Harvest."+plant,null);}

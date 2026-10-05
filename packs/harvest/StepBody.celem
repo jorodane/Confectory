@@ -1,0 +1,4 @@
+implementation Confectory.Harvest::StepBody for Confectory.Harvest::Step (string plant, double seconds) -> void {
+
+body common "Step.csbody";
+}

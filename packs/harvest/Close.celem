@@ -1,0 +1,1 @@
+function Confectory.Harvest::Close (string plant) -> void {provide Confectory.Harvest::Close with Confectory.Harvest::CloseBody;}

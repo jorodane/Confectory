@@ -1,0 +1,1 @@
+function Confectory.Harvest::Step (string plant, double seconds) -> void {provide Confectory.Harvest::Step with Confectory.Harvest::StepBody;}

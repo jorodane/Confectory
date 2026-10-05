@@ -1,0 +1,1 @@
+function Confectory.Inventory::Create (string[] resources, int[] initial) -> string {provide Confectory.Inventory::Create with Confectory.Inventory::CreateBody;}

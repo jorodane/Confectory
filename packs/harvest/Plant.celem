@@ -1,0 +1,9 @@
+object Confectory.Harvest::Plant {
+description "Reusable harvest plant schema. Override resource/yield/regrowSeconds in a declared plant; instances have independent readiness and yield only registered resources.";
+value concept = "harvest-plant";
+value resource = "Confectory.Harvest::UnspecifiedResource";
+value yield = 1;
+value regrowSeconds = 1.0;
+value editorHelpYield = "Positive integer 1..100 units produced by one successful harvest; no resource is created by a failed harvest.";
+value editorHelpResource = "Qualified existing resource element ID; not a path or display name.";
+}

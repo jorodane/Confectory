@@ -1,0 +1,1 @@
+function Confectory.Inventory::Close (string inventory) -> void {provide Confectory.Inventory::Close with Confectory.Inventory::CloseBody;}

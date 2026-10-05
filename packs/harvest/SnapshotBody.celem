@@ -1,0 +1,4 @@
+implementation Confectory.Harvest::SnapshotBody for Confectory.Harvest::Snapshot (string plant) -> string {
+
+body common "Snapshot.csbody";
+}

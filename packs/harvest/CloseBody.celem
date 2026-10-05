@@ -1,0 +1,4 @@
+implementation Confectory.Harvest::CloseBody for Confectory.Harvest::Close (string plant) -> void {
+
+body common "Close.csbody";
+}

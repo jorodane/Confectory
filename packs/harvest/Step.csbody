@@ -1,0 +1,1 @@
+if(!double.IsFinite(seconds)||seconds<0||seconds>1)throw new ArgumentException("Bounded plant update delta required");var state=AppDomain.CurrentDomain.GetData("Confectory.Harvest."+plant) as object[]??throw new ObjectDisposedException("Plant");lock(state[0]){if((bool)state[6])throw new ObjectDisposedException("Plant");state[5]=Math.Max(0,(double)state[5]-seconds);}

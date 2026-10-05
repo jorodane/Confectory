@@ -1,0 +1,4 @@
+implementation Confectory.Inventory::SnapshotBody for Confectory.Inventory::Snapshot (string inventory) -> string {
+
+body common "Snapshot.csbody";
+}

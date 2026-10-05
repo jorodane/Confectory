@@ -1,0 +1,1 @@
+function Confectory.Harvest::Snapshot (string plant) -> string {provide Confectory.Harvest::Snapshot with Confectory.Harvest::SnapshotBody;}

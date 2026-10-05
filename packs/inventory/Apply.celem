@@ -1,0 +1,1 @@
+function Confectory.Inventory::Apply (string inventory, string[] resources, int[] changes) -> bool {provide Confectory.Inventory::Apply with Confectory.Inventory::ApplyBody;}
