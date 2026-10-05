@@ -1,0 +1,29 @@
+void Check(bool condition,string message){if(!condition)throw new Exception(message);}
+for(int cycle=0;cycle<20;cycle++)
+{
+ var owner=calls.CreateOwner.Invoke(8);
+ int[] models={calls.CreateInstance.Invoke(owner,"Example::Count"),calls.CreateInstance.Invoke(owner,"Example::Toggle")};
+ int[] other={calls.CreateInstance.Invoke(owner,"Example::Count"),calls.CreateInstance.Invoke(owner,"Example::Toggle")};
+ var view=calls.CreateView.Invoke(640,480);var untouched=calls.CreateView.Invoke(640,480);var original=view;
+ var subscription=calls.Subscribe.Invoke(owner,models[0],"Example::Count");
+ var layout=calls.Layout.Invoke(view);int x=layout[10]+2,y=layout[11]+2;
+ calls.Input.Invoke(owner,models,view,1,x,y,0,0);calls.Input.Invoke(owner,models,view,2,0,0,0,0);
+ Check(calls.Read.Invoke(owner,models[0])[0]==0,"outside release activated");
+ calls.Input.Invoke(owner,models,view,1,x,y,0,0);calls.Input.Invoke(owner,models,view,2,x,y,0,0);
+ var update=calls.Poll.Invoke(owner,subscription);Check(update[0]==1,"button failed");
+ calls.UpdateView.Invoke(view,update[0],update[1],0,0);
+ Check(object.ReferenceEquals(original,view)&&calls.ViewStatus.Invoke(view)[3]==1&&calls.ViewStatus.Invoke(untouched)[3]==0&&calls.Read.Invoke(owner,other[0])[0]==0,"view recreated or unrelated state changed");
+ calls.Input.Invoke(owner,models,view,5,0,0,13,0);calls.Input.Invoke(owner,models,view,5,0,0,13,1);calls.Input.Invoke(owner,models,view,6,0,0,13,0);
+ Check(calls.Read.Invoke(owner,models[0])[0]==2,"keyboard repeats duplicated");
+ calls.Input.Invoke(owner,models,view,5,0,0,13,0);calls.Input.Invoke(owner,models,view,11,0,0,0,0);calls.Input.Invoke(owner,models,view,6,0,0,13,0);
+ Check(calls.Read.Invoke(owner,models[0])[0]==3,"pointer cancellation released keyboard");
+ calls.Input.Invoke(owner,models,view,1,x,y,0,0);calls.Input.Invoke(owner,models,view,9,0,0,0,0);calls.Input.Invoke(owner,models,view,2,x,y,0,0);
+ Check(calls.Read.Invoke(owner,models[0])[0]==3,"focus loss activated");
+ calls.Input.Invoke(owner,models,view,7,320,240,0,0);Check(calls.Layout.Invoke(view)[2]==320,"resize");
+ Check(calls.ViewStatus.Invoke(view)[7]==1&&calls.ViewStatus.Invoke(view)[3]==1,"resize lost state");
+ calls.Unsubscribe.Invoke(subscription);
+ var reopened=calls.Subscribe.Invoke(owner,models[0],"Example::Count");
+ Check(calls.Read.Invoke(owner,models[0])[0]==3,"reopen lost model");
+ calls.Unsubscribe.Invoke(reopened);calls.DisposeOwner.Invoke(owner);
+}
+Console.WriteLine("BaseUI controls and lifetime PASS");return 0;

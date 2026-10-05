@@ -47,3 +47,10 @@ This stage excludes runtime owners/state/hot reload, UI/MVC, physics, input, edi
 ## Publication
 
 Prepare and review all source/docs/tests first. Before the first push, ask whether this source set may be published to the currently **public** repository and which branch to use. Do not infer new-repository publication permission from historical Golemancer authorization.
+
+
+## Later runtime pack milestone
+
+The initial-stage exclusions above describe the compiler bootstrap at that stage. RuntimeBase, RealTimeUpdate, RenderInput, Window and BaseUI now supply a runnable engine ProjectPack through the existing pipeline; no core source or .NET compile/link protocol change is needed. Public contracts, actual outside implementation reads/edits, per-body rebuild scope and separate functional/structure gates are recorded in PACK_WORK_LOG.md. CHECKPOINT_1.md records target coverage and remaining limits. The complete version-1 Library baseline was read through 18 bounded text reads after original-byte materialization was blocked; complete extracted text is retained privately outside Git. The native Android app candidate is not represented as a completed APK/runtime result.
+
+Source/specification/test publication to the public Confectory repository is now explicitly authorized. This supersedes the initial first-push approval hold. No generated binary, image, credential, raw chat log or original document is a publication candidate.

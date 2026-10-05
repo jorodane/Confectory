@@ -1,0 +1,27 @@
+pack Confectory.BaseUI version "0.1.0" {
+dependency Confectory.RuntimeBase version "0.1.0";
+element CreateView function "CreateView.celem";
+element CreateViewBody implementation "CreateViewBody.celem";
+element Layout function "Layout.celem";
+element LayoutBody implementation "LayoutBody.celem";
+element Input function "Input.celem";
+element InputBody implementation "InputBody.celem";
+element UpdateView function "UpdateView.celem";
+element UpdateViewBody implementation "UpdateViewBody.celem";
+element Labels function "Labels.celem";
+element LabelsBody implementation "LabelsBody.celem";
+element Controls module "Controls.celem";
+element ScalarSchema schema "ScalarSchema.celem";
+element BooleanSchema schema "BooleanSchema.celem";
+element Count object "Count.celem";
+element Toggle object "Toggle.celem";
+element CountView view "CountView.celem";
+element ToggleView view "ToggleView.celem";
+element ControlPanel view "ControlPanel.celem";
+element ViewStatus function "ViewStatus.celem";
+element ViewStatusBody implementation "ViewStatusBody.celem";
+element Invalidate function "Invalidate.celem";
+element InvalidateBody implementation "InvalidateBody.celem";
+element Presented function "Presented.celem";
+element PresentedBody implementation "PresentedBody.celem";
+}

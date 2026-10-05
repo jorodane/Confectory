@@ -1,0 +1,1 @@
+implementation Confectory.Window::PumpBody for Confectory.RenderInput::Pump (long[] surfaces) -> int[] { body android "Pump.android.csbody"; body common "Pump.csbody"; }

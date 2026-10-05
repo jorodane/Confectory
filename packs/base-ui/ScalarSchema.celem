@@ -1,0 +1,1 @@
+schema Confectory.BaseUI::ScalarSchema { value type = "int64"; value default = 0; }

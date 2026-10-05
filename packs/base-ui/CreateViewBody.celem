@@ -1,0 +1,1 @@
+implementation Confectory.BaseUI::CreateViewBody for Confectory.BaseUI::CreateView (int width, int height) -> long[] {  body common "CreateView.csbody"; }

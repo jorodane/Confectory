@@ -1,0 +1,1 @@
+function Confectory.Window::SurfaceDimensions (long[] surfaces, int view) -> int[] { description "Query current desktop client dimensions; absent surfaces return empty. Android dimensions come from app surface callbacks."; }

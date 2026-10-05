@@ -1,0 +1,1 @@
+object Confectory.BaseUI::Count { use schema Confectory.BaseUI::ScalarSchema; value role = "consumer-owned counter"; }

@@ -1,0 +1,1 @@
+implementation Confectory.BaseUI::UpdateViewBody for Confectory.BaseUI::UpdateView (long[] view, long count, long countRevision, long toggle, long toggleRevision) -> void {  body common "UpdateView.csbody"; }

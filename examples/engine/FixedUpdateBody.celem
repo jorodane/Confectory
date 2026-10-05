@@ -1,0 +1,1 @@
+implementation Confectory.Engine::FixedUpdateBody for Confectory.Engine::FixedUpdate (long[] state, double delta) -> void { body common "FixedUpdate.csbody"; }

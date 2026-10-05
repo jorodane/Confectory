@@ -1,0 +1,19 @@
+function Example.BaseUI::Main () -> int {
+provide Example.BaseUI::Main with Example.BaseUI::MainBody;
+provide Confectory.BaseUI::CreateView with Confectory.BaseUI::CreateViewBody;
+provide Confectory.BaseUI::Layout with Confectory.BaseUI::LayoutBody;
+provide Confectory.BaseUI::Input with Confectory.BaseUI::InputBody;
+provide Confectory.BaseUI::UpdateView with Confectory.BaseUI::UpdateViewBody;
+provide Confectory.BaseUI::Labels with Confectory.BaseUI::LabelsBody;
+provide Confectory.RuntimeBase::CreateOwner with Confectory.RuntimeBase::CreateOwnerBody;
+provide Confectory.RuntimeBase::CreateInstance with Confectory.RuntimeBase::CreateInstanceBody;
+provide Confectory.RuntimeBase::Read with Confectory.RuntimeBase::ReadBody;
+provide Confectory.RuntimeBase::Write with Confectory.RuntimeBase::WriteBody;
+provide Confectory.RuntimeBase::Subscribe with Confectory.RuntimeBase::SubscribeBody;
+provide Confectory.RuntimeBase::Poll with Confectory.RuntimeBase::PollBody;
+provide Confectory.RuntimeBase::Unsubscribe with Confectory.RuntimeBase::UnsubscribeBody;
+provide Confectory.RuntimeBase::DisposeOwner with Confectory.RuntimeBase::DisposeOwnerBody;
+provide Confectory.BaseUI::ViewStatus with Confectory.BaseUI::ViewStatusBody;
+provide Confectory.BaseUI::Invalidate with Confectory.BaseUI::InvalidateBody;
+provide Confectory.BaseUI::Presented with Confectory.BaseUI::PresentedBody;
+}

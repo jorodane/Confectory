@@ -1,0 +1,1 @@
+implementation Confectory.Window::ReopenBody for Confectory.Window::Reopen (long[] surfaces, int view, string title, int width, int height) -> void { body common "Reopen.csbody"; }

@@ -1,0 +1,1 @@
+function Confectory.BaseUI::Presented (long[] view) -> void { description "Acknowledge a successful presentation without recreating View state."; }

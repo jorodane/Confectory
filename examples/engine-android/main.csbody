@@ -1,0 +1,2 @@
+// Native Activity owns the surface and invokes generated public-contract adapters.
+return 0;

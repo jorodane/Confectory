@@ -1,0 +1,1 @@
+function Confectory.Window::CreateSurfaces (string[] titles, int width, int height) -> long[] { description "Create persistent desktop windows; surface state is opaque."; }

@@ -1,0 +1,3 @@
+function Confectory.Window::SurfaceLifecycle (long[] state, string action, int width, int height) -> bool {
+ description "Apply app-owned surface lifecycle, retain model lifetime independently, and return whether presentation may run.";
+}

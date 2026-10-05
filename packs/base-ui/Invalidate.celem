@@ -1,0 +1,1 @@
+function Confectory.BaseUI::Invalidate (long[] view) -> void { description "Request presentation without accessing opaque View fields."; }

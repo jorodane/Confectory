@@ -1,0 +1,1 @@
+function Confectory.BaseUI::CreateView (int width, int height) -> long[] { description "Create one persistent control state; constructor is not called on value updates."; }

@@ -1,10 +1,22 @@
 project Confectory.Engine version "0.1.0" {
-    description "Engine composition boundary proof; not the complete engine product";
-    entry Confectory.Engine::Boot;
-    registry Confectory.Build.DotNet "../../targets/dotnet/pack.cpack";
-    dependency Confectory.Build.DotNet version "0.1.0";
-    target portable Confectory.Build.DotNet::Portable;
-    target linux Confectory.Build.DotNet::Linux;
-    element Boot function "boot.celem";
-    element BootBody implementation "boot_body.celem";
+entry Confectory.Engine::Main;
+registry Confectory.RuntimeBase "../../packs/runtime-base/pack.cpack";
+dependency Confectory.RuntimeBase version "0.1.0";
+registry Confectory.RealTimeUpdate "../../packs/realtime-update/pack.cpack";
+dependency Confectory.RealTimeUpdate version "0.1.0";
+registry Confectory.RenderInput "../../packs/render-input/pack.cpack";
+dependency Confectory.RenderInput version "0.1.0";
+registry Confectory.BaseUI "../../packs/base-ui/pack.cpack";
+dependency Confectory.BaseUI version "0.1.0";
+registry Confectory.Window "../../packs/window/pack.cpack";
+dependency Confectory.Window version "0.1.0";
+registry Confectory.Build.DotNet "../../targets/dotnet/pack.cpack";
+dependency Confectory.Build.DotNet version "0.1.0";
+target windows Confectory.Build.DotNet::Portable;
+target portable Confectory.Build.DotNet::Portable;
+target linux Confectory.Build.DotNet::Linux;
+element Main function "main.celem";
+element MainBody implementation "main_body.celem";
+element FixedUpdate function "FixedUpdate.celem";
+element FixedUpdateBody implementation "FixedUpdateBody.celem";
 }

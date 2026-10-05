@@ -1,0 +1,1 @@
+view Confectory.BaseUI::CountView { use object Confectory.BaseUI::Count; value widget = "number label and activation button"; value nodeIDs = "count,increment"; }

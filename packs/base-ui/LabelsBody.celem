@@ -1,0 +1,1 @@
+implementation Confectory.BaseUI::LabelsBody for Confectory.BaseUI::Labels (long[] view, double[] camera) -> string[] {  body common "Labels.csbody"; }

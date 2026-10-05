@@ -1,0 +1,1 @@
+function Confectory.Window::Reopen (long[] surfaces, int view, string title, int width, int height) -> void { description "Reopen only one closed surface in an existing session."; }

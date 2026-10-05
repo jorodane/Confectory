@@ -1,0 +1,2 @@
+if(width<1||height<1) throw new ArgumentException("View dimensions must be positive.");
+return new long[]{0,1,width,height,0,0,1,0,0,0,0,0};

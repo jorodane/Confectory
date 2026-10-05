@@ -1,0 +1,1 @@
+function Confectory.BaseUI::Layout (long[] view) -> int[] { description "Logical responsive control layout with stable node slots; native adapter owns device conversion."; }

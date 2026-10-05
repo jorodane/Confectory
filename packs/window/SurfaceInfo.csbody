@@ -1,0 +1,2 @@
+if(surfaces.Length<2)throw new ArgumentException("Invalid surface session.");
+var info=new long[(surfaces.Length-1)*2];for(int i=1;i<surfaces.Length;i++){info[(i-1)*2]=surfaces[i]!=0?1:0;info[(i-1)*2+1]=surfaces[i];}return info;

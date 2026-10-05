@@ -1,0 +1,74 @@
+[System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+static extern IntPtr CreateWindowExW(uint ex, string cls, string title, uint style, int x, int y, int width, int height, IntPtr parent, IntPtr menu, IntPtr instance, IntPtr parameter);
+[System.Runtime.InteropServices.DllImport("libX11.so.6")]
+static extern IntPtr XOpenDisplay(IntPtr name);
+[System.Runtime.InteropServices.DllImport("libX11.so.6")]
+static extern nuint XDefaultRootWindow(IntPtr d);
+[System.Runtime.InteropServices.DllImport("libX11.so.6")]
+static extern nuint XCreateSimpleWindow(IntPtr d, nuint parent, int x, int y, uint w, uint h, uint border, nuint foreground, nuint background);
+[System.Runtime.InteropServices.DllImport("libX11.so.6", CharSet = System.Runtime.InteropServices.CharSet.Ansi)]
+static extern int XStoreName(IntPtr d, nuint w, string name);
+[System.Runtime.InteropServices.DllImport("libX11.so.6", CharSet = System.Runtime.InteropServices.CharSet.Ansi)]
+static extern nuint XInternAtom(IntPtr d, string name, bool only);
+[System.Runtime.InteropServices.DllImport("libX11.so.6")]
+static extern int XSetWMProtocols(IntPtr d, nuint w, ref nuint atom, int count);
+[System.Runtime.InteropServices.DllImport("libX11.so.6")]
+static extern int XSelectInput(IntPtr d, nuint w, nint mask);
+[System.Runtime.InteropServices.DllImport("libX11.so.6")]
+static extern int XMapWindow(IntPtr d, nuint w);
+[System.Runtime.InteropServices.DllImport("libX11.so.6")]
+static extern int XFlush(IntPtr d);
+[System.Runtime.InteropServices.DllImport("libX11.so.6")]
+static extern int XDestroyWindow(IntPtr d, nuint w);
+[System.Runtime.InteropServices.DllImport("libX11.so.6")]
+static extern int XCloseDisplay(IntPtr d);
+[System.Runtime.InteropServices.DllImport("user32.dll")]
+static extern bool DestroyWindow(IntPtr w);
+[System.Runtime.InteropServices.DllImport("user32.dll")]
+static extern bool AdjustWindowRectEx(IntPtr rect,uint style,bool menu,uint exStyle);
+(int Width,int Height) OuterSize(int requestedWidth,int requestedHeight)
+{
+ var rect=System.Runtime.InteropServices.Marshal.AllocHGlobal(16);
+ try
+ {
+  System.Runtime.InteropServices.Marshal.WriteInt32(rect,0,0);System.Runtime.InteropServices.Marshal.WriteInt32(rect,4,0);
+  System.Runtime.InteropServices.Marshal.WriteInt32(rect,8,requestedWidth);System.Runtime.InteropServices.Marshal.WriteInt32(rect,12,requestedHeight);
+  if(!AdjustWindowRectEx(rect,0x10CF0000,false,0))throw new InvalidOperationException("AdjustWindowRectEx failed.");
+  return (System.Runtime.InteropServices.Marshal.ReadInt32(rect,8)-System.Runtime.InteropServices.Marshal.ReadInt32(rect,0),System.Runtime.InteropServices.Marshal.ReadInt32(rect,12)-System.Runtime.InteropServices.Marshal.ReadInt32(rect,4));
+ }
+ finally{System.Runtime.InteropServices.Marshal.FreeHGlobal(rect);}
+}
+if (titles.Length < 1 || titles.Length > 16 || width < 1 || height < 1) throw new ArgumentException("Invalid surface request.");
+var surfaces = new long[titles.Length + 1];
+try
+{
+ if (OperatingSystem.IsWindows())
+ {
+  var size=OuterSize(width,height);
+  for (int i = 0; i < titles.Length; i++)
+  {
+   var w = CreateWindowExW(0,"STATIC",titles[i],0x10CF0000,100+i*(width+20),100,size.Width,size.Height,IntPtr.Zero,IntPtr.Zero,IntPtr.Zero,IntPtr.Zero);
+   if (w == IntPtr.Zero) throw new InvalidOperationException("CreateWindowEx failed."); surfaces[i+1] = w.ToInt64();
+  }
+ }
+ else if (OperatingSystem.IsLinux() && !OperatingSystem.IsAndroid())
+ {
+  var d = XOpenDisplay(IntPtr.Zero); if (d == IntPtr.Zero) throw new InvalidOperationException("Cannot open X11 display."); surfaces[0] = d.ToInt64();
+  nuint close = XInternAtom(d,"WM_DELETE_WINDOW",false);
+  for (int i = 0; i < titles.Length; i++)
+  {
+   nuint w = XCreateSimpleWindow(d,XDefaultRootWindow(d),20+i*(width+20),40,(uint)width,(uint)height,0,0,0x202020);
+   if (w == 0) throw new InvalidOperationException("XCreateSimpleWindow failed."); surfaces[i+1] = (long)w;
+   XStoreName(d,w,titles[i]); XSetWMProtocols(d,w,ref close,1);
+   XSelectInput(d,w,(1<<0)|(1<<1)|(1<<2)|(1<<3)|(1<<6)|(1<<15)|(1<<17)|(1<<21)); XMapWindow(d,w);
+  }
+  XFlush(d);
+ }
+ else throw new PlatformNotSupportedException("Desktop surface provider requires Win32 or X11; Android requires app-owned surface lifecycle.");
+ return surfaces;
+}
+catch
+{
+ for(int i=1;i<surfaces.Length;i++) if(surfaces[i]!=0) { if(OperatingSystem.IsWindows()) DestroyWindow((IntPtr)surfaces[i]); else if(surfaces[0]!=0) XDestroyWindow((IntPtr)surfaces[0],(nuint)surfaces[i]); }
+ if(surfaces[0]!=0) XCloseDisplay((IntPtr)surfaces[0]); throw;
+}

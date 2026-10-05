@@ -118,9 +118,9 @@ public sealed class IntegrationTests : TestCase
         for (int i = 0; i < 40; i++) { string ns = "Extra" + i; large.NewPack(ns); large.Add(ns, "object", "Data", "invalid and deliberately unopened"); }
         large.Sync(); var big = new Builder(large.Project, "portable").Check("App"); static string[] Reads(JsonObject r) => Strings(r, "statistics", "readDocuments").Where(p => p.EndsWith(".celem", StringComparison.Ordinal) || p.EndsWith(".csbody", StringComparison.Ordinal)).ToArray(); Equal(Reads(small).Length, Reads(big).Length); True(!Reads(big).Any(p => p.Contains("Extra", StringComparison.Ordinal)));
     }
-    public void test_engine_projectpack_uses_identical_build_path()
+    public void test_bootstrap_projectpack_uses_identical_build_path()
     {
-        string engine = Path.Combine(f.Root, "engine"); Fixture.CopyTree(Path.Combine(Fixture.Repo, "examples", "engine"), engine); string project = Path.Combine(engine, "project.cpack"); File.WriteAllText(project, File.ReadAllText(project).Replace("../../targets/dotnet/pack.cpack", "../target/pack.cpack", StringComparison.Ordinal)); var report = new Builder(project, "portable").Build(); Output(report, "Confectory.Engine built as a ProjectPack"); Equal("Confectory.Engine::Boot", Text(report, "entry"));
+        string engine = Path.Combine(f.Root, "engine"); Fixture.CopyTree(Path.Combine(Fixture.Repo, "examples", "build-bootstrap"), engine); string project = Path.Combine(engine, "project.cpack"); File.WriteAllText(project, File.ReadAllText(project).Replace("../../targets/dotnet/pack.cpack", "../target/pack.cpack", StringComparison.Ordinal)); var report = new Builder(project, "portable").Build(); Output(report, "Confectory.Engine built as a ProjectPack"); Equal("Confectory.Engine::Boot", Text(report, "entry"));
     }
     public void test_missing_target_and_tool_protocol_errors()
     {

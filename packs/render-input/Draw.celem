@@ -1,0 +1,1 @@
+function Confectory.RenderInput::Draw (long[] surfaces, int view, int[] rectangles, string[] labels) -> void { description "Draw reusable control rectangles and labels into one existing surface."; }

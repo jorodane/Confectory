@@ -35,3 +35,13 @@ DISPLAY=:97 dotnet tests/Confectory.Tests/bin/Release/net8.0/Confectory.Tests.dl
 ```
 
 The scope is one synchronous window/event loop. Rendering, input contracts, multiple windows, persistent runtime owners and an editor are separate work. This pack alone does not establish engine self-hosting.
+
+## Persistent surface capabilities
+
+The original Open contract remains available. New IDs `CreateSurfaces`, `Reopen`, `Close`, `Capabilities`, `SurfaceLifecycle`, `SurfaceInfo`, and `SurfaceDimensions` add persistent session ownership without changing the build core. `Confectory.Window::{PumpBody,DrawBody}` implement the independent RenderInput contracts. Common bodies use Win32/X11; Android-specific bodies override Pump/Draw/Capabilities with the same contracts.
+
+Desktop CreateSurfaces accepts 1–16 window titles and a positive initial size. SurfaceInfo returns `[active,opaqueResourceIdentity]` pairs, and SurfaceDimensions queries current desktop client size. Windows creation adjusts outer frame size to the requested client area. The returned array is an opaque session token; do not inspect, alter or share it between unrelated sessions. Pump/Draw/Reopen/Close operate on that token. Close(view) removes only that window, retaining session resources; Close(-1) releases all windows and the shared X11 display. Reopen replaces only an absent handle. Creation failure releases already-created native resources. Win32 pointer capture and X11's automatic button grab preserve outside-release handling. The X11 adapter currently requires the 64-bit event ABI and coalesces autorepeat release/press pairs.
+
+Capabilities is `[nativeIndependentWindows,appOwnedSurface,touch]`: desktop `[1,0,0]`, Android `[0,1,1]`. Android SurfaceLifecycle receives an opaque five-slot state initially zero and actions `created`, `changed`, `surfaceDestroyed`, `resume`, `pause`, `destroy`. It separates surface availability from app resume and model lifetime. Surface loss pauses presentation and disconnects View subscriptions; model Owners survive until Activity destruction. Destroy cannot be revived. Surface recreation increments generation. The Android native bridge is an adapter resource and holds no model state.
+
+The initial native renderer uses X11 rectangles/text or Win32 GDI; it is not a GPU render pack, high-DPI/accessibility-complete UI or native Wayland provider. Windows code is compiled through the Windows-named framework-dependent profile but has not run on Windows in this environment. Android's managed contracts and target-specific bodies compile; the exported Activity/SurfaceView project needs the missing Android toolchain and is not yet claimed to compile or run.

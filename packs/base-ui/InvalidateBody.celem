@@ -1,0 +1,1 @@
+implementation Confectory.BaseUI::InvalidateBody for Confectory.BaseUI::Invalidate (long[] view) -> void { body common "Invalidate.csbody"; }

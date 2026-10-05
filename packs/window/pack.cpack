@@ -1,4 +1,22 @@
 pack Confectory.Window version "0.1.0" {
+dependency Confectory.RenderInput version "0.1.0";
     element Open function "open.celem";
     element Native implementation "native.celem";
+
+element CreateSurfaces function "CreateSurfaces.celem";
+element CreateSurfacesBody implementation "CreateSurfacesBody.celem";
+element PumpBody implementation "PumpBody.celem";
+element DrawBody implementation "DrawBody.celem";
+element Close function "Close.celem";
+element CloseBody implementation "CloseBody.celem";
+element Capabilities function "Capabilities.celem";
+element CapabilitiesBody implementation "CapabilitiesBody.celem";
+element Reopen function "Reopen.celem";
+element ReopenBody implementation "ReopenBody.celem";
+element SurfaceLifecycle function "SurfaceLifecycle.celem";
+element SurfaceLifecycleBody implementation "SurfaceLifecycleBody.celem";
+element SurfaceInfo function "SurfaceInfo.celem";
+element SurfaceInfoBody implementation "SurfaceInfoBody.celem";
+element SurfaceDimensions function "SurfaceDimensions.celem";
+element SurfaceDimensionsBody implementation "SurfaceDimensionsBody.celem";
 }

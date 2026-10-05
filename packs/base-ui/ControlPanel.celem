@@ -1,0 +1,1 @@
+view Confectory.BaseUI::ControlPanel { module Confectory.BaseUI::Controls; contain view Confectory.BaseUI::CountView; contain view Confectory.BaseUI::ToggleView; value nodeIDs = "header,count,increment,enabled,camera"; value layout = "vertical responsive logical units"; }

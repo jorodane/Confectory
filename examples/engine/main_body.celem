@@ -1,0 +1,36 @@
+implementation Confectory.Engine::MainBody for Confectory.Engine::Main () -> int {
+import Confectory.RuntimeBase::CreateOwner as CreateOwner (int) -> string[];
+import Confectory.RuntimeBase::CreateInstance as CreateInstance (string[], string) -> int;
+import Confectory.RuntimeBase::Read as Read (string[], int) -> long[];
+import Confectory.RuntimeBase::Write as Write (string[], int, long) -> bool;
+import Confectory.RuntimeBase::Subscribe as Subscribe (string[], int, string) -> string[];
+import Confectory.RuntimeBase::Poll as RuntimePoll (string[], string[]) -> long[];
+import Confectory.RuntimeBase::Unsubscribe as Unsubscribe (string[]) -> void;
+import Confectory.RuntimeBase::DisposeOwner as DisposeOwner (string[]) -> void;
+import Confectory.RealTimeUpdate::CreateSchedule as CreateSchedule (int) -> string[];
+import Confectory.RealTimeUpdate::Register as Register (string[], string, string, int) -> void;
+import Confectory.RealTimeUpdate::Advance as Advance (double[], double, double, double, double, int) -> double[];
+import Confectory.RealTimeUpdate::QueueCameraIntent as QueueCameraIntent (double[], double, double, double) -> void;
+import Confectory.RealTimeUpdate::PresentCamera as PresentCamera (double[], double[]) -> double[];
+import Confectory.RenderInput::Pump as Pump (long[]) -> int[];
+import Confectory.RenderInput::Draw as Draw (long[], int, int[], string[]) -> void;
+import Confectory.BaseUI::CreateView as CreateView (int, int) -> long[];
+import Confectory.BaseUI::Layout as Layout (long[]) -> int[];
+import Confectory.BaseUI::Input as Input (string[], int[], long[], int, int, int, int, int) -> void;
+import Confectory.BaseUI::UpdateView as UpdateView (long[], long, long, long, long) -> void;
+import Confectory.BaseUI::Labels as Labels (long[], double[]) -> string[];
+import Confectory.Window::CreateSurfaces as CreateSurfaces (string[], int, int) -> long[];
+import Confectory.Window::Reopen as Reopen (long[], int, string, int, int) -> void;
+import Confectory.Window::Close as Close (long[], int) -> void;
+import Confectory.Window::Capabilities as Capabilities () -> int[];
+import Confectory.Engine::FixedUpdate as FixedUpdate (long[], double) -> void;
+import Confectory.RealTimeUpdate::DispatchTokens as DispatchTokens (string[], string) -> string[];
+import Confectory.RealTimeUpdate::ResolveDispatch as ResolveDispatch (string[], string, string) -> string[];
+import Confectory.RealTimeUpdate::Pick as Pick (double[], double, double) -> double[];
+import Confectory.BaseUI::ViewStatus as ViewStatus (long[]) -> long[];
+import Confectory.BaseUI::Invalidate as Invalidate (long[]) -> void;
+import Confectory.BaseUI::Presented as Presented (long[]) -> void;
+import Confectory.Window::SurfaceInfo as SurfaceInfo (long[]) -> long[];
+import Confectory.Window::SurfaceDimensions as SurfaceDimensions (long[], int) -> int[];
+body common "main.csbody";
+}

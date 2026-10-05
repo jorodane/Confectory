@@ -1,0 +1,133 @@
+int timeout=0;
+string? timeoutText=Environment.GetEnvironmentVariable("CONFECTORY_BASEUI_CLOSE_AFTER_MS");
+if(timeoutText is not null&&(!int.TryParse(timeoutText,out timeout)||timeout<0)){Console.Error.WriteLine("CONFECTORY_BASEUI_CLOSE_AFTER_MS must be nonnegative.");return 2;}
+bool scripted=Environment.GetEnvironmentVariable("CONFECTORY_BASEUI_SCRIPTED")=="1";
+var capabilities=calls.Capabilities.Invoke();
+if(capabilities[0]!=1){Console.Error.WriteLine("This desktop entry requires independent native windows. Android uses the app-owned surface entry.");return 1;}
+string[] titles={"Confectory BaseUI A","Confectory BaseUI B"};
+long[] surfaces=Array.Empty<long>();
+bool interrupted=false;
+ConsoleCancelEventHandler cancelHandler=(_,e)=>{e.Cancel=true;interrupted=true;};
+Console.CancelKeyPress+=cancelHandler;
+var owners=new string[2][];var models=new int[2][];var subscriptions=new string[2][][];var views=new long[2][];
+var cameras=new double[2][];var queues=new double[2][];var displayed=new double[2][];
+var held=new bool[2,4];var drag=new bool[2];var dragX=new int[2];var dragY=new int[2];
+void Connect(int view)
+{
+ subscriptions[view]=new[]{calls.Subscribe.Invoke(owners[view],models[view][0],"Confectory.BaseUI::Count"),calls.Subscribe.Invoke(owners[view],models[view][1],"Confectory.BaseUI::Toggle")};
+ var count=calls.Read.Invoke(owners[view],models[view][0]);var toggle=calls.Read.Invoke(owners[view],models[view][1]);
+ calls.UpdateView.Invoke(views[view],count[0],count[1],toggle[0],toggle[1]);calls.Invalidate.Invoke(views[view]);
+}
+void Disconnect(int view)
+{
+ if(subscriptions[view] is not null)foreach(var s in subscriptions[view])calls.Unsubscribe.Invoke(s);
+ subscriptions[view]=null!;drag[view]=false;for(int k=0;k<4;k++)held[view,k]=false;
+ calls.Input.Invoke(owners[view],models[view],views[view],9,0,0,0,0);
+}
+bool IsOpen(int view)=>calls.SurfaceInfo.Invoke(surfaces)[view*2]!=0;
+void Reopen(int view)
+{
+ if(IsOpen(view))return;
+ var status=calls.ViewStatus.Invoke(views[view]);
+ calls.Reopen.Invoke(surfaces,view,titles[view],(int)status[0],(int)status[1]);
+ var actual=calls.SurfaceDimensions.Invoke(surfaces,view);calls.Input.Invoke(owners[view],models[view],views[view],7,actual[0],actual[1],0,0);
+ Connect(view);Console.WriteLine("reopened "+view);
+}
+void Input(int view,int type,int x,int y,int code,int flags)
+{
+ if(type==8){Disconnect(view);calls.Close.Invoke(surfaces,view);Console.WriteLine("closed "+view);return;}
+ if(!IsOpen(view))return;
+ calls.Input.Invoke(owners[view],models[view],views[view],type,x,y,code,flags);
+ if(type==10)calls.Invalidate.Invoke(views[view]);
+ if(type==1){var world=calls.Pick.Invoke(displayed[view],x,y);_ = world;}
+ if(type==1&&y>250){drag[view]=true;dragX[view]=x;dragY[view]=y;}
+ if(type==3&&drag[view]){calls.QueueCameraIntent.Invoke(queues[view],x-dragX[view],y-dragY[view],1);dragX[view]=x;dragY[view]=y;}
+ if(type==2||type==9||type==11)drag[view]=false;
+ if(type==4)calls.QueueCameraIntent.Invoke(queues[view],0,0,Math.Pow(1.1,code/120.0));
+ int key=code switch {37 or 0xFF51=>0,39 or 0xFF53=>1,38 or 0xFF52=>2,40 or 0xFF54=>3,_=>-1};
+ if(key>=0&&(type==5||type==6))held[view,key]=type==5;
+ if(type==9)for(int k=0;k<4;k++)held[view,k]=false;
+ if(type==5&&flags==0&&(code==82||code==114))Reopen(1-view);
+ if(type==5&&flags==0&&(code==80||code==112))calls.QueueCameraIntent.Invoke(queues[view],10,10,1); // programmatic command intent
+}
+try
+{
+ for(int v=0;v<2;v++)
+ {
+  owners[v]=calls.CreateOwner.Invoke(8);models[v]=new[]{calls.CreateInstance.Invoke(owners[v],"Confectory.BaseUI::Count"),calls.CreateInstance.Invoke(owners[v],"Confectory.BaseUI::Toggle")};
+  views[v]=calls.CreateView.Invoke(480,420);cameras[v]=new double[]{0,0,1};queues[v]=new double[]{0,0,1};displayed[v]=(double[])cameras[v].Clone();Connect(v);
+ }
+ surfaces=calls.CreateSurfaces.Invoke(titles,480,420);
+ for(int v=0;v<2;v++){var actual=calls.SurfaceDimensions.Invoke(surfaces,v);calls.Input.Invoke(owners[v],models[v],views[v],7,actual[0],actual[1],0,0);}
+ var schedule=calls.CreateSchedule.Invoke(16);
+ calls.Register.Invoke(schedule,"Confectory.BaseUI::Input","input",0);
+ calls.Register.Invoke(schedule,"Confectory.Engine::FixedUpdate","fixed",0);
+ calls.Register.Invoke(schedule,"Confectory.BaseUI::UpdateView","state",0);
+ calls.Register.Invoke(schedule,"Confectory.RealTimeUpdate::PresentCamera","presentation",-10);
+ calls.Register.Invoke(schedule,"Confectory.RenderInput::Draw","presentation",0);
+ var watch=System.Diagnostics.Stopwatch.StartNew();double previous=0;var clock=new double[3];var simulation=new long[2];double dropped=0;
+ bool dispatching=false;
+ void Dispatch(string phase,Action<string> invoke)
+ {
+  if(dispatching)throw new InvalidOperationException("Reentrant phase dispatch.");dispatching=true;
+  try{foreach(string token in calls.DispatchTokens.Invoke(schedule,phase)){var registration=calls.ResolveDispatch.Invoke(schedule,token,phase);if(registration.Length==0)continue;string id=registration[0];try{invoke(id);}catch(Exception ex){throw new InvalidOperationException("Phase "+phase+", function "+id+", priority "+registration[1]+" failed.",ex);}}}
+  finally{dispatching=false;}
+ }
+ bool scriptedOnce=false;
+ while(!interrupted&&(IsOpen(0)||IsOpen(1)))
+ {
+  double now=watch.Elapsed.TotalSeconds,elapsed=now-previous;previous=now;
+  var timing=calls.Advance.Invoke(clock,elapsed,1.0/120,1.0/60,1.0/50,4);dropped+=timing[4];
+  Dispatch("input",id=>{var events=calls.Pump.Invoke(surfaces);for(int i=0;i<events.Length;i+=6)Input(events[i],events[i+1],events[i+2],events[i+3],events[i+4],events[i+5]);});
+  // Fixed simulation catch-up is distinct from display interpolation timing[3].
+  for(int step=0;step<(int)timing[2];step++)Dispatch("fixed",id=>calls.FixedUpdate.Invoke(simulation,timing[7]));
+  if(timing[0]!=0)Dispatch("state",id=>
+  {
+   for(int v=0;v<2;v++)if(IsOpen(v))
+   {
+    var a=calls.RuntimePoll.Invoke(owners[v],subscriptions[v][0]);var b=calls.RuntimePoll.Invoke(owners[v],subscriptions[v][1]);
+    if(a.Length!=0||b.Length!=0){var count=calls.Read.Invoke(owners[v],models[v][0]);var toggle=calls.Read.Invoke(owners[v],models[v][1]);calls.UpdateView.Invoke(views[v],count[0],count[1],toggle[0],toggle[1]);Console.WriteLine("view "+v+" count="+count[0]+" toggle="+toggle[0]);}
+    calls.QueueCameraIntent.Invoke(queues[v],((held[v,1]?1:0)-(held[v,0]?1:0))*100*timing[5],((held[v,3]?1:0)-(held[v,2]?1:0))*100*timing[5],1);
+   }
+  });
+  if(scripted&&!scriptedOnce&&now>0.1)
+  {
+   scriptedOnce=true;var rect=calls.Layout.Invoke(views[0]);int x=rect[10]+5,y=rect[11]+5;Input(0,1,x,y,0,0);Input(0,2,x,y,0,0);
+   if(calls.Read.Invoke(owners[0],models[0][0])[0]!=1||calls.Read.Invoke(owners[1],models[1][0])[0]!=0)throw new Exception("Intended View assertion failed.");
+   long unchanged=calls.SurfaceInfo.Invoke(surfaces)[3];Input(0,8,0,0,0,0);Reopen(0);
+   if(calls.SurfaceInfo.Invoke(surfaces)[3]!=unchanged||calls.Read.Invoke(owners[0],models[0][0])[0]!=1)throw new Exception("Local reopen assertion failed.");
+   Console.WriteLine("two-window isolation/reopen PASS");
+  }
+  Dispatch("presentation",id=>
+  {
+   for(int v=0;v<2;v++)if(IsOpen(v))
+   {
+    if(id=="Confectory.RealTimeUpdate::PresentCamera")
+    {
+     var frame=calls.PresentCamera.Invoke(cameras[v],queues[v]);
+     if(frame[0]!=displayed[v][0]||frame[1]!=displayed[v][1]||frame[2]!=displayed[v][2])calls.Invalidate.Invoke(views[v]);
+    }
+    else if(timing[1]!=0&&(calls.ViewStatus.Invoke(views[v])[2]!=0||now<0.1))
+    {
+     displayed[v]=(double[])cameras[v].Clone(); // same immutable-by-convention frame for labels/render/picking
+     calls.Draw.Invoke(surfaces,v,calls.Layout.Invoke(views[v]),calls.Labels.Invoke(views[v],displayed[v]));calls.Presented.Invoke(views[v]);
+    }
+   }
+  });
+  if(timeout>0&&watch.ElapsedMilliseconds>=timeout)break;
+  System.Threading.Thread.Sleep(1);
+ }
+ Console.WriteLine("engine stopped; fixedTicks="+simulation[0]+" droppedSeconds="+dropped.ToString(System.Globalization.CultureInfo.InvariantCulture));return 0;
+}
+catch(Exception ex){Console.Error.WriteLine(ex);return 1;}
+finally
+{
+ Console.CancelKeyPress-=cancelHandler;
+ void Cleanup(Action release){try{release();}catch(Exception ex){Console.Error.WriteLine("Cleanup failed: "+ex.Message);}}
+ for(int v=0;v<2;v++)
+ {
+  if(subscriptions[v] is not null)foreach(var s in subscriptions[v])Cleanup(()=>calls.Unsubscribe.Invoke(s));
+  if(owners[v] is not null)Cleanup(()=>calls.DisposeOwner.Invoke(owners[v]));
+ }
+ if(surfaces.Length>0)Cleanup(()=>calls.Close.Invoke(surfaces,-1));
+}

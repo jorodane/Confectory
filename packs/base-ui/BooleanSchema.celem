@@ -1,0 +1,1 @@
+schema Confectory.BaseUI::BooleanSchema { value type = "boolean"; value scalarEncoding = "0=false,1=true"; value default = false; }

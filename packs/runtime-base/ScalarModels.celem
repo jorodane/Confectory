@@ -1,0 +1,6 @@
+module Confectory.RuntimeBase::ScalarModels {
+ require Confectory.RuntimeBase::Read (string[], int) -> long[];
+ default Confectory.RuntimeBase::Read with Confectory.RuntimeBase::ReadBody;
+ require Confectory.RuntimeBase::Write (string[], int, long) -> bool;
+ default Confectory.RuntimeBase::Write with Confectory.RuntimeBase::WriteBody;
+}

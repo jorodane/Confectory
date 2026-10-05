@@ -1,0 +1,3 @@
+if(view.Length!=12||toggle<0||toggle>1) throw new ArgumentException("Invalid supplied View value.");
+if(view[5]==countRevision&&view[10]==toggleRevision) return;
+view[4]=count;view[5]=countRevision;view[8]=toggle;view[10]=toggleRevision;view[6]=1;

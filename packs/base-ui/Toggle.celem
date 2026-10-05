@@ -1,0 +1,1 @@
+object Confectory.BaseUI::Toggle { use schema Confectory.BaseUI::BooleanSchema; value role = "consumer-owned boolean"; }

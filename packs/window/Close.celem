@@ -1,0 +1,1 @@
+function Confectory.Window::Close (long[] surfaces, int view) -> void { description "Close one View, or all surfaces for view minus one; idempotent."; }

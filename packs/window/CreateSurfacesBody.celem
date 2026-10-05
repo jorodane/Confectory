@@ -1,0 +1,1 @@
+implementation Confectory.Window::CreateSurfacesBody for Confectory.Window::CreateSurfaces (string[] titles, int width, int height) -> long[] { body common "CreateSurfaces.csbody"; }

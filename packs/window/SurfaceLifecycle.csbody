@@ -1,0 +1,13 @@
+if(state.Length!=5)throw new ArgumentException("Invalid lifecycle state.");
+if(state[4]<0) return false;
+switch(action)
+{
+ case "created": if(width<1||height<1)throw new ArgumentException("Invalid surface size.");state[0]=1;state[2]=width;state[3]=height;state[4]=checked(state[4]+1);break;
+ case "changed": if(width<1||height<1)throw new ArgumentException("Invalid surface size.");state[2]=width;state[3]=height;break;
+ case "surfaceDestroyed": state[0]=0;break;
+ case "resume": state[1]=1;break;
+ case "pause": state[1]=0;break;
+ case "destroy": state[0]=0;state[1]=0;state[4]=-1;break;
+ default: throw new ArgumentException("Unknown lifecycle action.");
+}
+return state[0]!=0&&state[1]!=0&&state[2]>0&&state[3]>0;

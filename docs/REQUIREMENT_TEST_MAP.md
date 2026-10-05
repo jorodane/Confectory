@@ -4,7 +4,7 @@ The initial requirement/verification table was written before implementation. Na
 
 | ID | Specification requirement | Verification |
 | --- | --- | --- |
-| CORE01 | §§1,2,4 ProjectPack + target; engine is a ProjectPack | App/sample pipeline passes. Actual engine self-hosting is incomplete: the engine sample only prints a name; core/CLI/tool use ordinary csproj builds. |
+| CORE01 | §§1,2,4 ProjectPack + target; engine is a ProjectPack | App/sample pipeline and role-composed two-View engine pass. Core/CLI/tool remain ordinary csproj bootstraps; compiler self-hosting is not claimed. |
 | DECL01 | §2 Dedicated structure language, C# bodies, explanations | Parse owned manifests/elements with locations; unknown syntax, wrong locator/header, duplicate fields and escaped paths fail. |
 | ID01 | §2 Namespace-qualified identity | Same local ID in different namespaces succeeds; duplicate namespace/element fails; moving source location preserves identity. |
 | LINK01 | §§2,20 Missing/wrong-kind/incompatible links | Missing namespace/element/dependency, mismatched kind/signature/function identity and invalid entry fail with source diagnostics. |
@@ -31,7 +31,7 @@ Exact version expectations and `*`, primitive C# contract types, synchronous fun
 
 | Requirement | Named test evidence |
 | --- | --- |
-| CORE01 | I `test_engine_projectpack_uses_identical_build_path`; C `test_project_input_cannot_be_a_regular_pack`, `test_entry_is_required_and_typed` |
+| CORE01 | I `test_bootstrap_projectpack_uses_identical_build_path`; EngineTests `test_role_composition_two_windows_and_cleanup`; C `test_project_input_cannot_be_a_regular_pack`, `test_entry_is_required_and_typed` |
 | DECL01 | C `test_wrong_locator_and_source_locations`, `test_duplicate_target_body_and_unknown_syntax`, `test_owned_source_path_cannot_escape_pack` |
 | ID01 | C `test_namespace_qualified_same_local_id`, `test_duplicate_namespace`, `test_duplicate_element`; I `test_contract_location_move_keeps_identity_and_local_dlls` |
 | LINK01 | C `test_missing_namespace`, `test_missing_element`, `test_wrong_element_kind`, `test_undeclared_cross_pack_dependency`, `test_provider_signature_mismatch`, `test_import_signature_mismatch`, `test_provider_wrong_function_identity`, `test_missing_final_provider` |
@@ -55,4 +55,7 @@ Exact version expectations and `*`, primitive C# contract types, synchronous fun
 
 ## Migration verification regressions
 
-`VerificationTests` adds nine executed tests: successful and invalid-body direct inclusion for always/use/contain; missing target body; incompatible contract; missing root import scope; import dependency closure for all three paths; module implementation edges; pruning an unused invalid body while local checking rejects it; and multi-implementation local/final cache reuse across unused-body, used-body and contract changes. See `VERIFICATION.md` and the captured observations for exact compilation counts. CORE01 engine self-hosting, self-contained packaging and Windows execution are explicitly incomplete/unverified.
+`VerificationTests` adds nine executed tests: successful and invalid-body direct inclusion for always/use/contain; missing target body; incompatible contract; missing root import scope; import dependency closure for all three paths; module implementation edges; pruning an unused invalid body while local checking rejects it; and multi-implementation local/final cache reuse across unused-body, used-body and contract changes. See `VERIFICATION.md` and the captured observations for exact compilation counts. Core/compiler self-hosting, self-contained packaging and Windows execution remain incomplete/unverified; the later runnable engine ProjectPack milestone is recorded in CHECKPOINT_1.md.
+
+
+Runtime pack gates: RuntimeBaseTests (isolated/shared lifetime, release/reopen and provider locality), RealTimeUpdateTests (cadence/catch-up/order/token replacement/camera/picking snapshots), BaseUITests (intended controls/repeat/cancel/resize/locality), EngineTests (real composed provider graph, two-window isolation/reopen and labels-only rebuild), AndroidPreparationTests (managed Android overrides/lifecycle/export and provider locality). Actual X11 click/autorepeat/resize/camera/close/reopen/SIGINT checks are in `tests/gui/engine_x11_spotcheck.py`. Android native SDK template/APK/runtime and Windows execution are separate not-run gates.

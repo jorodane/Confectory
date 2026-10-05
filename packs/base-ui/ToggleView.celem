@@ -1,0 +1,1 @@
+view Confectory.BaseUI::ToggleView { use object Confectory.BaseUI::Toggle; value widget = "boolean toggle"; value nodeIDs = "enabled"; }

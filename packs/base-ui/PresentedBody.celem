@@ -1,0 +1,1 @@
+implementation Confectory.BaseUI::PresentedBody for Confectory.BaseUI::Presented (long[] view) -> void { body common "Presented.csbody"; }

@@ -1,0 +1,1 @@
+function Confectory.BaseUI::Input (string[] owner, int[] models, long[] view, int type, int x, int y, int code, int flags) -> void { description "Controller requests model changes; inside press/release, focus/cancel and keyboard repeat semantics."; }

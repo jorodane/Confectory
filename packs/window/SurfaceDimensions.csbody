@@ -1,0 +1,20 @@
+[System.Runtime.InteropServices.DllImport("user32.dll")]
+static extern bool GetClientRect(IntPtr window,IntPtr rect);
+[System.Runtime.InteropServices.DllImport("libX11.so.6")]
+static extern int XGetGeometry(IntPtr display,nuint window,out nuint root,out int x,out int y,out uint width,out uint height,out uint border,out uint depth);
+if(OperatingSystem.IsAndroid())throw new PlatformNotSupportedException("Android dimensions are supplied by app-owned surface callbacks.");
+if(view<0||view>=surfaces.Length-1)throw new ArgumentOutOfRangeException(nameof(view));
+if(surfaces[view+1]==0)return Array.Empty<int>();
+if(OperatingSystem.IsWindows())
+{
+ var rect=System.Runtime.InteropServices.Marshal.AllocHGlobal(16);
+ try
+ {
+  if(!GetClientRect((IntPtr)surfaces[view+1],rect))throw new InvalidOperationException("GetClientRect failed.");
+  return new[]{System.Runtime.InteropServices.Marshal.ReadInt32(rect,8)-System.Runtime.InteropServices.Marshal.ReadInt32(rect,0),System.Runtime.InteropServices.Marshal.ReadInt32(rect,12)-System.Runtime.InteropServices.Marshal.ReadInt32(rect,4)};
+ }
+ finally{System.Runtime.InteropServices.Marshal.FreeHGlobal(rect);}
+}
+if(surfaces[0]==0)throw new InvalidOperationException("Surface session is disposed.");
+if(XGetGeometry((IntPtr)surfaces[0],(nuint)surfaces[view+1],out _,out _,out _,out uint width,out uint height,out _,out _)==0)throw new InvalidOperationException("XGetGeometry failed.");
+return new[]{checked((int)width),checked((int)height)};

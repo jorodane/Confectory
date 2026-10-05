@@ -1,0 +1,2 @@
+if(view.Length!=12||camera.Length!=3) throw new ArgumentException("Invalid presentation state.");
+return new[]{"Confectory BaseUI", "Count: "+view[4],(view[1]==1?"> ":"")+"Increment (press and release)",(view[1]==2?"> ":"")+"Enabled: "+(view[8]!=0?"yes":"no"),FormattableString.Invariant($"Camera: {camera[0]:F1}, {camera[1]:F1}  zoom {camera[2]:F2}")};

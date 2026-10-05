@@ -1,0 +1,1 @@
+function Confectory.RenderInput::Pump (long[] surfaces) -> int[] { description "Return flat six-integer input/lifecycle records per View without blocking."; }

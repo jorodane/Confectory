@@ -1,0 +1,19 @@
+implementation Example.BaseUI::MainBody for Example.BaseUI::Main () -> int {
+import Confectory.BaseUI::CreateView as CreateView (int, int) -> long[];
+import Confectory.BaseUI::Layout as Layout (long[]) -> int[];
+import Confectory.BaseUI::Input as Input (string[], int[], long[], int, int, int, int, int) -> void;
+import Confectory.BaseUI::UpdateView as UpdateView (long[], long, long, long, long) -> void;
+import Confectory.BaseUI::Labels as Labels (long[], double[]) -> string[];
+import Confectory.RuntimeBase::CreateOwner as CreateOwner (int) -> string[];
+import Confectory.RuntimeBase::CreateInstance as CreateInstance (string[], string) -> int;
+import Confectory.RuntimeBase::Read as Read (string[], int) -> long[];
+import Confectory.RuntimeBase::Write as Write (string[], int, long) -> bool;
+import Confectory.RuntimeBase::Subscribe as Subscribe (string[], int, string) -> string[];
+import Confectory.RuntimeBase::Poll as Poll (string[], string[]) -> long[];
+import Confectory.RuntimeBase::Unsubscribe as Unsubscribe (string[]) -> void;
+import Confectory.RuntimeBase::DisposeOwner as DisposeOwner (string[]) -> void;
+import Confectory.BaseUI::ViewStatus as ViewStatus (long[]) -> long[];
+import Confectory.BaseUI::Invalidate as Invalidate (long[]) -> void;
+import Confectory.BaseUI::Presented as Presented (long[]) -> void;
+body common "main.csbody";
+}

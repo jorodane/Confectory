@@ -1,0 +1,1 @@
+implementation Confectory.Window::CloseBody for Confectory.Window::Close (long[] surfaces, int view) -> void { body common "Close.csbody"; }

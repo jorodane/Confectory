@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+ <PropertyGroup><OutputType>Exe</OutputType></PropertyGroup>
+ <ItemGroup><ProjectReference Include="../../src/Confectory.Core/Confectory.Core.csproj" /></ItemGroup>
+<ItemGroup><Compile Remove="templates/**/*.cs" /><Content Include="templates/**/*" CopyToOutputDirectory="PreserveNewest" /></ItemGroup>
+</Project>

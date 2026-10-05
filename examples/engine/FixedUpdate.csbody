@@ -1,0 +1,2 @@
+if(state.Length!=2||!double.IsFinite(delta)||delta<=0)throw new ArgumentException("Invalid fixed state.");
+long ticks=checked(state[0]+1),micros=checked(state[1]+(long)Math.Round(delta*1000000));state[0]=ticks;state[1]=micros;

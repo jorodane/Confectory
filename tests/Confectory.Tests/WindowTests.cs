@@ -20,8 +20,10 @@ public sealed class WindowTests : TestCase
         string sample = Path.Combine(f.Root, "window-sample"), packs = Path.Combine(f.Root, "packs", "window");
         Fixture.CopyTree(Path.Combine(Fixture.Repo, "examples", "window"), sample);
         Fixture.CopyTree(Path.Combine(Fixture.Repo, "packs", "window"), packs);
+        Fixture.CopyTree(Path.Combine(Fixture.Repo, "packs", "render-input"), Path.Combine(f.Root, "packs", "render-input"));
         string project = Path.Combine(sample, "project.cpack");
         File.WriteAllText(project, File.ReadAllText(project)
+            .Replace("../../packs/render-input/pack.cpack", "../packs/render-input/pack.cpack", StringComparison.Ordinal)
             .Replace("../../packs/window/pack.cpack", "../packs/window/pack.cpack", StringComparison.Ordinal)
             .Replace("../../targets/dotnet/pack.cpack", "../target/pack.cpack", StringComparison.Ordinal));
         var first = new Builder(project, "portable").Build();

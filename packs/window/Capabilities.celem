@@ -1,0 +1,1 @@
+function Confectory.Window::Capabilities () -> int[] { description "Return multiwindow, externally-owned surface, touch capability flags."; }

@@ -1,0 +1,1 @@
+function Confectory.BaseUI::ViewStatus (long[] view) -> long[] { description "Read a fresh width,height,dirty,count,countRevision,toggle,toggleRevision,focus snapshot."; }

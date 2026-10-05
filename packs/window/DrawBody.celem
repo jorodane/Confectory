@@ -1,0 +1,1 @@
+implementation Confectory.Window::DrawBody for Confectory.RenderInput::Draw (long[] surfaces, int view, int[] rectangles, string[] labels) -> void { body android "Draw.android.csbody"; body common "Draw.csbody"; }

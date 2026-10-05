@@ -1,0 +1,23 @@
+if(view.Length!=12||models.Length!=2) throw new ArgumentException("Invalid View/model connection.");
+if(type==7) { if(x>0&&y>0) {view[2]=x;view[3]=y;view[6]=1;} return; }
+int Hit()
+{
+ var rectangles=calls.Layout.Invoke(view);
+ for(int control=1;control<=2;control++) { int i=(control+1)*5;if(x>=rectangles[i]&&y>=rectangles[i+1]&&x<rectangles[i]+rectangles[i+2]&&y<rectangles[i+1]+rectangles[i+3]) return control; }
+ return 0;
+}
+void Activate(int control)
+{
+ if(control<1||control>2) return;
+ var current=calls.Read.Invoke(owner,models[control-1]);
+ long next=control==1?checked(current[0]+1):(current[0]==0?1:0);
+ calls.Write.Invoke(owner,models[control-1],next);
+}
+if(type==1) {view[0]=Hit();if(view[0]!=0)view[1]=view[0];view[6]=1;}
+if(type==2) {int pressed=(int)view[0];view[0]=0;if(pressed!=0&&Hit()==pressed)Activate(pressed);view[6]=1;}
+if(type==3) {int hover=Hit();if(view[7]!=hover){view[7]=hover;view[6]=1;}}
+if(type==9) {view[0]=0;view[9]=0;view[6]=1;}
+if(type==11) {view[0]=0;view[6]=1;} // pointer cancellation does not release keyboard source
+if(type==5&&code==9&&flags==0) {view[1]=view[1]==1?2:1;view[6]=1;}
+if(type==5&&(code==13||code==32||code==0xFF0D||code==0x20)&&flags==0&&view[9]==0) {view[9]=view[1];view[6]=1;}
+if(type==6&&(code==13||code==32||code==0xFF0D||code==0x20)&&view[9]!=0) {int pressed=(int)view[9];view[9]=0;Activate(pressed);view[6]=1;}

@@ -1,0 +1,1 @@
+implementation Confectory.BaseUI::LayoutBody for Confectory.BaseUI::Layout (long[] view) -> int[] {  body common "Layout.csbody"; }

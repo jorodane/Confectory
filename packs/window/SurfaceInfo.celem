@@ -1,0 +1,1 @@
+function Confectory.Window::SurfaceInfo (long[] surfaces) -> long[] { description "Read active flag and opaque native resource identity for each logical View; identities are diagnostic/comparison values only."; }

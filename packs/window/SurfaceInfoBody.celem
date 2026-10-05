@@ -1,0 +1,1 @@
+implementation Confectory.Window::SurfaceInfoBody for Confectory.Window::SurfaceInfo (long[] surfaces) -> long[] { body common "SurfaceInfo.csbody"; }

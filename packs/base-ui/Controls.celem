@@ -1,0 +1,19 @@
+module Confectory.BaseUI::Controls {
+ include Confectory.RuntimeBase::ScalarModels;
+ require Confectory.BaseUI::CreateView (int, int) -> long[];
+ default Confectory.BaseUI::CreateView with Confectory.BaseUI::CreateViewBody;
+ require Confectory.BaseUI::Layout (long[]) -> int[];
+ default Confectory.BaseUI::Layout with Confectory.BaseUI::LayoutBody;
+ require Confectory.BaseUI::Input (string[], int[], long[], int, int, int, int, int) -> void;
+ default Confectory.BaseUI::Input with Confectory.BaseUI::InputBody;
+ require Confectory.BaseUI::UpdateView (long[], long, long, long, long) -> void;
+ default Confectory.BaseUI::UpdateView with Confectory.BaseUI::UpdateViewBody;
+ require Confectory.BaseUI::Labels (long[], double[]) -> string[];
+ default Confectory.BaseUI::Labels with Confectory.BaseUI::LabelsBody;
+require Confectory.BaseUI::ViewStatus (long[]) -> long[];
+default Confectory.BaseUI::ViewStatus with Confectory.BaseUI::ViewStatusBody;
+require Confectory.BaseUI::Invalidate (long[]) -> void;
+default Confectory.BaseUI::Invalidate with Confectory.BaseUI::InvalidateBody;
+require Confectory.BaseUI::Presented (long[]) -> void;
+default Confectory.BaseUI::Presented with Confectory.BaseUI::PresentedBody;
+}

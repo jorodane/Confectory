@@ -1,0 +1,1 @@
+function Confectory.BaseUI::UpdateView (long[] view, long count, long countRevision, long toggle, long toggleRevision) -> void { description "Update only supplied properties; stable View/control state and focus survive model updates."; }

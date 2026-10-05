@@ -15,4 +15,5 @@ pack Confectory.RuntimeBase version "0.1.0" {
     element UnsubscribeBody implementation "UnsubscribeBody.celem";
     element DisposeOwner function "DisposeOwner.celem";
     element DisposeOwnerBody implementation "DisposeOwnerBody.celem";
+element ScalarModels module "ScalarModels.celem";
 }

@@ -39,7 +39,7 @@ if (result.ExitCode != 0) throw new Exception(result.Stderr);
 
 Add a project reference to `src/Confectory.Core/Confectory.Core.csproj` to use this API from a C# host. `Builder.Check(namespace)` compiles against contracts only; `Builder.Validate()` inspects all registered declarations. `BuildError.Diagnostic` exposes an error code and source location. The CLI preserves the previous JSON report structure and `build`, `check`, `validate` operations; only its invocation changes.
 
-The app prints `Hello Confectory from common` for portable, or `Hello Confectory from linux` for Linux. The engine composition sample prints `Confectory.Engine built as a ProjectPack`; it proves the common build path, not a complete engine. The core is an ordinary C# library but does not yet build itself from pack declarations.
+The app prints `Hello Confectory from common` for portable, or `Hello Confectory from linux` for Linux. The old compiler/bootstrap sample is preserved in `examples/build-bootstrap`. `examples/engine` now builds a runnable role-based engine ProjectPack with RuntimeBase, RealTimeUpdate, RenderInput, Window and BaseUI, opening two independent desktop Views. The core is an ordinary C# library but does not yet build itself from pack declarations.
 
 Implementation artifacts are cached per element within their owning pack. A full local check and a final selected subset reuse the same DLLs. Use each pack result's `assemblies` or `implementationArtifacts` to enumerate all DLLs; `assembly`/`reference` are aliases for the first implementation only. `compiledImplementations`, `reusedImplementations` and `targetInvocations` distinguish local compilation from source reads. Final builds still compile bindings and package a fresh output when every local DLL is reused.
 
@@ -54,3 +54,17 @@ The initial target pack produces framework-dependent .NET 8 assemblies, portable
 In a restricted environment with a read-only home directory, set `DOTNET_CLI_HOME` to a writable directory before building. If MSBuild worker processes are restricted, use `dotnet build Confectory.sln -c Release -m:1 -p:UseSharedCompilation=false`.
 
 Generic schema/object/view declarations carry owned metadata and graph relationships only; this core does not claim complete product schema/UI semantics. The public catalog describes the linked surface. Whole-project authoring exports, mod build-mode controls and the object-specific external-mod inheritance flag are recorded requirements for their next stage. Compiled C# and target tools are trusted executable code; this bootstrap provides no security sandbox.
+
+
+## Runnable pack checkpoint
+
+Build `examples/engine/project.cpack` for `windows` (framework-dependent CLR profile), `linux` (launcher), or `portable`. The engine is composed through the same ID/contract pipeline as other projects; the core contains no engine host or UI/platform policies.
+
+```
+dotnet build Confectory.sln -c Release
+dotnet src/Confectory.Cli/bin/Release/net8.0/Confectory.Cli.dll build examples/engine/project.cpack windows
+```
+
+Execute the returned `run` array. Each View has an independent counter/toggle, persistent controls, resize handling, drag/arrow/wheel/programmatic camera intents, and local subscriptions. Close one View and press R in the remaining View to reopen it without losing its model or recreating the other window. Close both to exit; Ctrl+C cleans up. Linux needs X11/XWayland. Set `CONFECTORY_BASEUI_CLOSE_AFTER_MS=1000` for a bounded run and `CONFECTORY_BASEUI_SCRIPTED=1` for the isolation/reopen probe.
+
+Android preparation uses the same common UI/model/camera contracts on one app-owned surface with two logical Views. Managed contracts/body selection and source export are verified; native Android SDK app compilation, APK, emulator and device execution remain explicitly unverified until prerequisites are authorized and installed. See [checkpoint verification](docs/CHECKPOINT_1.md), [roadmap/handoff](docs/ROADMAP_HANDOFF.md), [pack work record](docs/PACK_WORK_LOG.md), and [Android preparation](targets/android-export/README.md). Windows code is compiled but Windows runtime checks remain asynchronous.
