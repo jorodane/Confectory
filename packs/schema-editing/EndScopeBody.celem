@@ -1,0 +1,1 @@
+implementation Confectory.SchemaEditing::EndScopeBody for Confectory.SchemaEditing::EndScope () -> void {body common "EndScope.csbody";}

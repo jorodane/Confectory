@@ -1,0 +1,1 @@
+implementation Confectory.SchemaEditing::CancelBody for Confectory.SchemaEditing::Cancel (string owner) -> void {body common "Cancel.csbody";}

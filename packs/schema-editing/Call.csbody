@@ -2,9 +2,26 @@ string host=Environment.GetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOS
 string dotnet=Environment.GetEnvironmentVariable("CONFECTORY_DOTNET")??"dotnet";
 var request=System.Text.Json.Nodes.JsonNode.Parse(payload)!.AsObject();request["operation"]=operation;
 var start=new System.Diagnostics.ProcessStartInfo(dotnet){UseShellExecute=false,RedirectStandardInput=true,RedirectStandardOutput=true,RedirectStandardError=true};start.ArgumentList.Add(System.IO.Path.GetFullPath(host));
-using var process=System.Diagnostics.Process.Start(start)??throw new InvalidOperationException("Authoring tool did not start.");
+object[] registry;
+lock(AppDomain.CurrentDomain)
+{
+ registry=AppDomain.CurrentDomain.GetData("Confectory.SchemaEditing.Jobs") as object[]??new object[]{new System.Threading.AsyncLocal<string?>(),new System.Collections.Generic.Dictionary<string,System.Collections.Generic.HashSet<System.Diagnostics.Process>>(StringComparer.Ordinal),new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal)};
+ AppDomain.CurrentDomain.SetData("Confectory.SchemaEditing.Jobs",registry);
+}
+string owner=((System.Threading.AsyncLocal<string?>)registry[0]).Value??"unscoped";using var process=new System.Diagnostics.Process{StartInfo=start};
+var jobs=(System.Collections.Generic.Dictionary<string,System.Collections.Generic.HashSet<System.Diagnostics.Process>>)registry[1];
+lock(registry)
+{
+ if(((System.Collections.Generic.HashSet<string>)registry[2]).Contains(owner))throw new OperationCanceledException("Authoring owner canceled.");
+ process.Start();if(!jobs.TryGetValue(owner,out var owned)){owned=new System.Collections.Generic.HashSet<System.Diagnostics.Process>();jobs.Add(owner,owned);}owned.Add(process);
+}
+try
+{
 var output=process.StandardOutput.ReadToEndAsync();var error=process.StandardError.ReadToEndAsync();process.StandardInput.Write(request.ToJsonString());process.StandardInput.Close();
 if(!process.WaitForExit(120000)){process.Kill(true);process.WaitForExit();throw new TimeoutException("Authoring tool timeout.");}
 string reply=output.GetAwaiter().GetResult(),stderr=error.GetAwaiter().GetResult();if(process.ExitCode!=0)throw new InvalidOperationException("Authoring process failed: "+stderr);
 var result=System.Text.Json.Nodes.JsonNode.Parse(reply)!.AsObject();if(!result["ok"]!.GetValue<bool>())throw new InvalidOperationException(result["code"]!.GetValue<string>()+": "+result["message"]!.GetValue<string>());
 return result["result"]!.ToJsonString();
+
+}
+finally{lock(registry){if(jobs.TryGetValue(owner,out var owned)){owned.Remove(process);if(owned.Count==0)jobs.Remove(owner);}}}

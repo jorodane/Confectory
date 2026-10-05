@@ -1,3 +1,4 @@
 implementation Confectory.SchemaEditing::CallBody for Confectory.SchemaEditing::Call (string operation, string payload) -> string {
 body common "Call.csbody";
+body android "Call.android.csbody";
 }

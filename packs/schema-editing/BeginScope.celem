@@ -1,0 +1,1 @@
+function Confectory.SchemaEditing::BeginScope (string owner) -> void {description "Begin explicit owned tool-call cancellation scope on caller async context.";}

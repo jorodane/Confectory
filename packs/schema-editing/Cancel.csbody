@@ -1,0 +1,13 @@
+object[] registry;
+lock(AppDomain.CurrentDomain)
+{
+ registry=AppDomain.CurrentDomain.GetData("Confectory.SchemaEditing.Jobs") as object[]??new object[]{new System.Threading.AsyncLocal<string?>(),new System.Collections.Generic.Dictionary<string,System.Collections.Generic.HashSet<System.Diagnostics.Process>>(StringComparer.Ordinal),new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal)};
+ AppDomain.CurrentDomain.SetData("Confectory.SchemaEditing.Jobs",registry);
+}
+System.Diagnostics.Process[] pending;
+lock(registry)
+{
+ ((System.Collections.Generic.HashSet<string>)registry[2]).Add(owner);var jobs=(System.Collections.Generic.Dictionary<string,System.Collections.Generic.HashSet<System.Diagnostics.Process>>)registry[1];
+ pending=jobs.TryGetValue(owner,out var owned)?System.Linq.Enumerable.ToArray(owned):Array.Empty<System.Diagnostics.Process>();
+}
+foreach(var process in pending)try{if(!process.HasExited)process.Kill(true);}catch(InvalidOperationException){}catch(System.ComponentModel.Win32Exception){}

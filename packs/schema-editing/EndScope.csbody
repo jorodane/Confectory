@@ -1,0 +1,1 @@
+if(AppDomain.CurrentDomain.GetData("Confectory.SchemaEditing.Jobs") is object[] registry)((System.Threading.AsyncLocal<string?>)registry[0]).Value=null;

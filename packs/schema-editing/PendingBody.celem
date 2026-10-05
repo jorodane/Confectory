@@ -1,0 +1,1 @@
+implementation Confectory.SchemaEditing::PendingBody for Confectory.SchemaEditing::Pending (string owner) -> int {body common "Pending.csbody";}

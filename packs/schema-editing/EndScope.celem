@@ -1,0 +1,1 @@
+function Confectory.SchemaEditing::EndScope () -> void {description "Release current async owner scope after its jobs finish.";}

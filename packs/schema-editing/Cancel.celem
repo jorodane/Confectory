@@ -1,0 +1,1 @@
+function Confectory.SchemaEditing::Cancel (string owner) -> void {description "Cancel only this owner scope and terminate its pending tool process trees.";}

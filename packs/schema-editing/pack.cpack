@@ -15,4 +15,12 @@ element Prepare function "Prepare.celem";
 element PrepareBody implementation "PrepareBody.celem";
 element Validate function "Validate.celem";
 element ValidateBody implementation "ValidateBody.celem";
+element BeginScope function "BeginScope.celem";
+element BeginScopeBody implementation "BeginScopeBody.celem";
+element Cancel function "Cancel.celem";
+element CancelBody implementation "CancelBody.celem";
+element EndScope function "EndScope.celem";
+element EndScopeBody implementation "EndScopeBody.celem";
+element Pending function "Pending.celem";
+element PendingBody implementation "PendingBody.celem";
 }

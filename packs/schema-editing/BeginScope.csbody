@@ -1,0 +1,8 @@
+if(string.IsNullOrWhiteSpace(owner))throw new ArgumentException("Explicit owner required.");
+object[] registry;
+lock(AppDomain.CurrentDomain)
+{
+ registry=AppDomain.CurrentDomain.GetData("Confectory.SchemaEditing.Jobs") as object[]??new object[]{new System.Threading.AsyncLocal<string?>(),new System.Collections.Generic.Dictionary<string,System.Collections.Generic.HashSet<System.Diagnostics.Process>>(StringComparer.Ordinal),new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal)};
+ AppDomain.CurrentDomain.SetData("Confectory.SchemaEditing.Jobs",registry);
+}
+lock(registry){((System.Collections.Generic.HashSet<string>)registry[2]).Remove(owner);((System.Threading.AsyncLocal<string?>)registry[0]).Value=owner;}

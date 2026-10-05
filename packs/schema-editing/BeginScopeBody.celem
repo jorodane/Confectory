@@ -1,0 +1,1 @@
+implementation Confectory.SchemaEditing::BeginScopeBody for Confectory.SchemaEditing::BeginScope (string owner) -> void {body common "BeginScope.csbody";}

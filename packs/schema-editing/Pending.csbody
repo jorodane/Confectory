@@ -1,0 +1,1 @@
+if(AppDomain.CurrentDomain.GetData("Confectory.SchemaEditing.Jobs") is not object[] registry)return 0;lock(registry){var jobs=(System.Collections.Generic.Dictionary<string,System.Collections.Generic.HashSet<System.Diagnostics.Process>>)registry[1];return jobs.TryGetValue(owner,out var owned)?owned.Count:0;}
