@@ -1,0 +1,1 @@
+function Confectory.ProjectExecution::Output (string[] session, string handle) -> string[] {provide Confectory.ProjectExecution::Output with Confectory.ProjectExecution::OutputBody; description "Drain bounded diagnostic lines of this owned instance; oldest lines may overflow after 256 entries.";}

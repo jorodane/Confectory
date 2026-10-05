@@ -1,0 +1,1 @@
+implementation Confectory.ProjectExecution::OutputBody for Confectory.ProjectExecution::Output (string[] session, string handle) -> string[] {body common "Output.csbody";}

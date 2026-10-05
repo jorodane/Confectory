@@ -31,7 +31,7 @@ public sealed class ProjectExecutionTests : TestCase
    Console.WriteLine("Android execution capability managed probe PASS; native app launch unavailable");return 0;
    """);
    var android=new Builder(project,"android").Build();Output(android,"Android execution capability managed probe PASS; native app launch unavailable");var catalog=System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(Text(android,"publicCatalog")))!;
-   foreach(string id in new[]{"Confectory.ProjectExecution::LaunchBody","Confectory.ProjectExecution::CapabilitiesBody"})Equal("android",catalog["implementations"]!.AsArray().Single(x=>x!["id"]!.GetValue<string>()==id)!["bodySelection"]!.GetValue<string>());
+   foreach(string id in new[]{"Confectory.ProjectExecution::LaunchConfiguredBody","Confectory.ProjectExecution::CapabilitiesBody"})Equal("android",catalog["implementations"]!.AsArray().Single(x=>x!["id"]!.GetValue<string>()==id)!["bodySelection"]!.GetValue<string>());
   }
   finally{Environment.SetEnvironmentVariable("CONFECTORY_PROJECT_EXECUTION_HOST",host);Environment.SetEnvironmentVariable("CONFECTORY_TEST_REPO",repo);}
  }

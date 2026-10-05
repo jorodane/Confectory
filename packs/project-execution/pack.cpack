@@ -16,4 +16,8 @@ dependency Confectory.FileStream version "0.1.0";
  element DisposeBody implementation "DisposeBody.celem";
  element DescribeProject function "DescribeProject.celem";
  element DescribeProjectBody implementation "DescribeProjectBody.celem";
+ element LaunchConfigured function "LaunchConfigured.celem";
+ element LaunchConfiguredBody implementation "LaunchConfiguredBody.celem";
+ element Output function "Output.celem";
+ element OutputBody implementation "OutputBody.celem";
 }

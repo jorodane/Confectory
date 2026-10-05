@@ -1,0 +1,32 @@
+if(session.Length!=2||session[1]!="active"||AppDomain.CurrentDomain.GetData(session[0]) is not System.Collections.Generic.Dictionary<string,object[]> records)throw new InvalidOperationException("Execution session is disposed.");
+if(string.IsNullOrWhiteSpace(project)||string.IsNullOrWhiteSpace(entry)||string.IsNullOrWhiteSpace(target))throw new ArgumentException("Explicit project, entry and target required.");
+if(names.Length!=values.Length)throw new ArgumentException("Configuration names and values must pair.");
+var configuration=new System.Collections.Generic.Dictionary<string,string>(StringComparer.Ordinal);
+for(int i=0;i<names.Length;i++){if(string.IsNullOrWhiteSpace(names[i])||names[i].Contains('=')||names[i].Contains('\0')||values[i].Contains('\0')||!configuration.TryAdd(names[i],values[i]))throw new ArgumentException("Invalid or duplicate child environment setting.");}
+project=System.IO.Path.GetFullPath(project);string handle=Guid.NewGuid().ToString("N");
+var record=new object[]{new string[]{handle,"building",project,entry,target,"",""},null!,false,new System.Collections.Generic.Queue<string>()};
+lock(records)records.Add(handle,record);
+try
+{
+ string tool=Environment.GetEnvironmentVariable("CONFECTORY_PROJECT_EXECUTION_HOST")??throw new InvalidOperationException("Set CONFECTORY_PROJECT_EXECUTION_HOST to the owned host DLL.");
+ var start=new System.Diagnostics.ProcessStartInfo(Environment.GetEnvironmentVariable("CONFECTORY_DOTNET")??"dotnet"){UseShellExecute=false,RedirectStandardOutput=true,RedirectStandardError=true};
+ foreach(string arg in new[]{tool,"run",project,entry,target,calls.LeasePath.Invoke(System.IO.Path.GetDirectoryName(project)!)})start.ArgumentList.Add(arg);
+ foreach(var setting in configuration)start.Environment[setting.Key]=setting.Value;
+ var process=new System.Diagnostics.Process{StartInfo=start};lock(records)record[1]=process;
+ process.Start();
+ _=System.Threading.Tasks.Task.Run(async()=>
+ {
+  string error="";var errors=System.Threading.Tasks.Task.Run(async()=>{string? line;while((line=await process.StandardError.ReadLineAsync())is not null){lock(records){var lines=(System.Collections.Generic.Queue<string>)record[3];if(lines.Count==256)lines.Dequeue();lines.Enqueue(line.Length>4096?line[..4096]:line);}
+if(error.Length<4096){string addition=line+"\n";error+=addition.Substring(0,Math.Min(4096-error.Length,addition.Length));}}});
+  try
+  {
+   string? first=await process.StandardOutput.ReadLineAsync();
+   if(first is not null){using var reply=System.Text.Json.JsonDocument.Parse(first);if(reply.RootElement.GetProperty("state").GetString()=="running")lock(records){var status=(string[])record[0];if(status[1]=="building")status[1]="running";}}
+   await process.StandardOutput.ReadToEndAsync();await process.WaitForExitAsync();await errors;
+   lock(records){var status=(string[])record[0];if(status[1]!="stopped"){status[1]=process.ExitCode==0?"exited":"failed";status[5]=process.ExitCode.ToString(System.Globalization.CultureInfo.InvariantCulture);status[6]=error;}}
+  }
+  catch(Exception ex){lock(records){var status=(string[])record[0];if(status[1]!="stopped"){status[1]="failed";status[6]=ex.Message;}}}
+ });
+}
+catch(Exception ex){lock(records){var status=(string[])record[0];status[1]="failed";status[6]=ex.Message;}}
+return handle;

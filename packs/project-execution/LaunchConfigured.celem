@@ -1,0 +1,1 @@
+function Confectory.ProjectExecution::LaunchConfigured (string[] session, string project, string entry, string target, string[] names, string[] values) -> string { provide Confectory.ProjectExecution::LaunchConfigured with Confectory.ProjectExecution::LaunchConfiguredBody; description "Launch an independently owned ProjectPack with explicit child environment settings."; }

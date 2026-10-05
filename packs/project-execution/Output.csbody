@@ -1,0 +1,2 @@
+if(session.Length!=2||session[1]!="active"||AppDomain.CurrentDomain.GetData(session[0]) is not System.Collections.Generic.Dictionary<string,object[]> records)throw new InvalidOperationException("Execution session is disposed.");
+lock(records){if(!records.TryGetValue(handle,out var record))throw new ArgumentException("Unknown owned instance.");if(record.Length<4)return Array.Empty<string>();var lines=(System.Collections.Generic.Queue<string>)record[3];var result=lines.ToArray();lines.Clear();return result;}

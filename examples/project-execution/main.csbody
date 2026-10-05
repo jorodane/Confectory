@@ -24,8 +24,10 @@ try
   calls.Stop.Invoke(session,a);calls.Stop.Invoke(session,a);Assert(calls.Observe.Invoke(session,a)[1]=="stopped","Stop repeat");Assert(calls.Observe.Invoke(session,b)[1]=="running","Other execution unaffected");
   calls.Stop.Invoke(session,b);Assert(calls.Poll.Invoke(session).Length==8,"Two termination notifications");Assert(calls.Poll.Invoke(session).Length==0,"Notify once");
  }
+ string configured=calls.LaunchConfigured.Invoke(session,project,"Example.ProjectA::Main","portable",new[]{"CONFECTORY_PROJECT_DURATION_MS"},new[]{"0"});Assert(Wait(configured,"exited","failed")[1]=="exited","Explicit child configuration overrides inherited duration");calls.Poll.Invoke(session);
+ bool duplicateRejected=false;try{calls.LaunchConfigured.Invoke(session,project,"Example.ProjectA::Main","portable",new[]{"X","X"},new[]{"1","2"});}catch(ArgumentException){duplicateRejected=true;}Assert(duplicateRejected,"Invalid configuration rejected before instance registration");
  string alternate=calls.Launch.Invoke(session,project,"Example.ProjectA::Inspect","portable");Assert(Wait(alternate,"exited","failed")[1]=="exited","Select alternate entry");calls.Poll.Invoke(session);
- string broken=calls.Launch.Invoke(session,project,"Example.ProjectA::Missing","portable");Assert(Wait(broken,"failed")[6].Length!=0,"Build error observed");calls.Poll.Invoke(session);
+ string broken=calls.Launch.Invoke(session,project,"Example.ProjectA::Missing","portable");Assert(Wait(broken,"failed")[6].Length!=0,"Build error observed");Assert(calls.Output.Invoke(session,broken).Length>0&&calls.Output.Invoke(session,broken).Length==0,"Owned diagnostics drain once without commands");calls.Poll.Invoke(session);
  string pending=calls.Launch.Invoke(session,project,"Example.ProjectA::Main","portable");calls.Stop.Invoke(session,pending);Assert(calls.Observe.Invoke(session,pending)[1]=="stopped","Stop while building");
  Assert(System.IO.File.ReadAllText(project)==original,"Execution never rewrites source");
 }
