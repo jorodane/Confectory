@@ -22,7 +22,7 @@ string projectRoot=Environment.GetEnvironmentVariable("CONFECTORY_PROJECT_ROOT")
 string[] projectPaths={Environment.GetEnvironmentVariable("CONFECTORY_PROJECT_A")??System.IO.Path.Combine(projectRoot,"examples","projects",authoring?"authoring":"a","project.cpack"),Environment.GetEnvironmentVariable("CONFECTORY_PROJECT_B")??System.IO.Path.Combine(projectRoot,"examples","projects",authoring?"authoring":"b","project.cpack")};
 void ConnectElement(int view)
 {
- if(!authoring||workspaces[view]==""||!IsOpen(view))return;
+ if(!authoring||authorJob is not null||workspaces[view]==""||!IsOpen(view))return;
  if(elementViews[view]!="")calls.ElementViewClose.Invoke(elementViews[view]);
  var size=calls.ViewStatus.Invoke(views[view]);elementViews[view]=calls.ElementViewCreate.Invoke(workspaces[view],elementSelections[view],view==0?"card":"table",(int)size[0],(int)size[1]);calls.Invalidate.Invoke(views[view]);
 }
@@ -36,7 +36,7 @@ void AuthorAction(int view,int action)
  {
   if(projectContexts[view]==""){elementStatus[view]="Open project data first [O]";calls.Invalidate.Invoke(views[view]);return;}
   var context=calls.ProjectContext.Invoke(projectManagers[view],projectContexts[view]);if(context[5]!="open"){elementStatus[view]="Selected project context is closed";calls.Invalidate.Invoke(views[view]);return;}project=context[1];
-  foreach(string candidate in ownedWorkspaces)try{if(calls.EditWorkspaceIdentity.Invoke(candidate)[0]==System.IO.Path.GetFullPath(project))existing=candidate;}catch(ObjectDisposedException){}
+  foreach(string candidate in ownedWorkspaces)try{if(string.Equals(calls.EditWorkspaceIdentity.Invoke(candidate)[0],System.IO.Path.GetFullPath(project),OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal))existing=candidate;}catch(ObjectDisposedException){}
  }
  if(action==10)
  {
@@ -78,6 +78,7 @@ void PollAuthorJob()
   ownedWorkspaces.Add(result[1]);workspaces[view]=result[1];elementSelections[view]=result[2];if(elementViews[view]=="")ConnectElement(view);else if(calls.ElementViewInfo.Invoke(elementViews[view])[1]!=result[2])calls.ElementViewBind.Invoke(elementViews[view],result[2]);
   if(result[0]=="restored")for(int v=0;v<2;v++)if(v!=view&&resetElementViews[v]){workspaces[v]=result[1];ConnectElement(v);elementStatus[v]="Shared workspace restored";}
  }
+ for(int v=0;v<2;v++)if(elementViews[v]==""&&workspaces[v]!="")ConnectElement(v);
  calls.Invalidate.Invoke(views[view]);Array.Clear(resetElementViews);Console.WriteLine("author view="+view+" state="+result[0]+" unit="+result[2]+" detail="+result[3].Replace("\n"," "));
 }
 
@@ -169,7 +170,7 @@ try
  bool scriptedOnce=false;
  while(!interrupted&&(IsOpen(0)||IsOpen(1)))
  {
-  PollAuthorJob();for(int v=0;v<2;v++)if(elementViews[v]!=""&&calls.ElementViewPoll.Invoke(elementViews[v])){calls.Invalidate.Invoke(views[v]);var info=calls.ElementViewInfo.Invoke(elementViews[v]);Console.WriteLine("element projection view="+v+" unit="+info[1]+" revision="+calls.EditWorkspaceRead.Invoke(info[0],info[1])[4]);}
+  PollAuthorJob();for(int v=0;v<2;v++)if(authorJob is null&&elementViews[v]!=""&&calls.ElementViewPoll.Invoke(elementViews[v])){calls.Invalidate.Invoke(views[v]);var info=calls.ElementViewInfo.Invoke(elementViews[v]);Console.WriteLine("element projection view="+v+" unit="+info[1]+" revision="+calls.EditWorkspaceRead.Invoke(info[0],info[1])[4]);}
   double now=watch.Elapsed.TotalSeconds,elapsed=now-previous;previous=now;
   var timing=calls.Advance.Invoke(clock,elapsed,1.0/120,1.0/60,1.0/50,4);dropped+=timing[4];
   Dispatch("input",id=>{var events=calls.Pump.Invoke(surfaces);for(int i=0;i<events.Length;i+=6)Input(events[i],events[i+1],events[i+2],events[i+3],events[i+4],events[i+5]);});
