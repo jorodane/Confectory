@@ -1,0 +1,11 @@
+implementation Confectory.EditorHome::CommandBody for Confectory.EditorHome::Command (string session, string operation, string payload) -> string {
+import Confectory.ProjectManager::Open as Open (string[], string) -> string;
+import Confectory.ProjectManager::CreateProject as CreateProject (string[], string, string, string) -> string;
+import Confectory.ProjectManager::Context as Context (string[], string) -> string[];
+import Confectory.FileStream::BrowseDirectory as Browse (string, int, int) -> string[];
+import Confectory.FileStream::WriteAtomic as WriteAtomic (string, string) -> void;
+import Confectory.EditWorkspace::Open as WorkspaceOpen (string, string, string) -> string;
+import Confectory.EditWorkspace::Create as Create (string, string, string) -> void;
+import Confectory.EditWorkspace::SetValue as SetValue (string, string, string, string) -> void;
+import Confectory.Save::Write as Save (string) -> string;
+body common "Command.csbody"; }

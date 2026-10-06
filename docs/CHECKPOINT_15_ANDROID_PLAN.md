@@ -1,0 +1,11 @@
+# Android entry/home equivalent
+
+Required target remains Android. CP15 builds its managed profile but the common desktop Main checks Window capabilities and rejects app-owned Android surface mode with a clear required-provider message. It must not call desktop positioning or manufacture several independent native windows.
+
+The Android composition should borrow one app-owned surface; show the intro and home as logical regions; request two-column cards when usable width permits, with bounded scroll and touch hit regions. Sidebar may collapse and resize in that surface. BaseUI Grid/Stack/Field/Button contracts and immutable cached domain snapshots remain reusable; app-owned rendering/text measurement/font scaling and keyboard/IME need real providers.
+
+Pointer IDs are distinct from keyboard modifier flags. Preserve capture per pointer; cancel on pause, surface resize/replacement and app destroy. Surface loss releases controls/render resources without deleting project catalog/text/model state. Resume creates new surface-local controls and restores route/model state; final app Owner disposal joins serialized directory/project jobs and closes session/workspaces. UI native callbacks enqueue events; project filesystem/compiler work stays off the callback/render thread. No camera/game/multiplayer/AI provider is an entry dependency.
+
+Folder selection must use an authorized Android storage picker and granted storage contract; FileStream desktop path browsing is not proof of Storage Access Framework support. Project validation occurs before registration through the target's public project-description capability. Create intent uses existing ProjectInfo/workspace/Save semantics when app storage/authoring providers are available; no automatic Confirm/run.
+
+Inspected prerequisites: existing .NET Android workload is present; `command -v javac sdkmanager adb` returned none, as did Windows cmd.exe/PowerShell/Wine. No JDK, SDK manager, adb installation or license acceptance was performed. No APK packaging, emulator/device installation, native touch, resume/pause/surface-loss or IME run is claimed. These remain explicit required-target gates; desktop Linux and managed profile compilation do not close them.

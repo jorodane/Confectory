@@ -1,0 +1,7 @@
+function Confectory.EditorHome::CloseSession (string session) -> void {
+provide Confectory.EditWorkspace::Close with Confectory.EditWorkspace::CloseBody;
+provide Confectory.ProjectManager::Dispose with Confectory.ProjectManager::DisposeBody;
+provide Confectory.ProjectExecution::Dispose with Confectory.ProjectExecution::DisposeBody;
+provide Confectory.ProjectExecution::Stop with Confectory.ProjectExecution::StopBody;
+provide Confectory.EditorHome::CloseSession with Confectory.EditorHome::CloseSessionBody;
+}

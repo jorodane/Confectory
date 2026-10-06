@@ -16,3 +16,9 @@ Authority: full readable design baseline v1, section8 “시작 화면과 프로
 | No default permanently exposed full IDE panels | Element/source/property tools used to exercise contracts | Temporary integration tooling must remain a test consumer; future Views compose by specification |
 
 Functional workflow and UX fidelity are separate gates. BaseUI Field/Stack and renderer metrics are generic mechanisms; labels/actions/domain validation remain in consumers. No production Editor composition is included in CP14.
+
+## CP15 separate entry/home composition
+
+`examples/editor-home` now composes a fresh `Confectory.EditorHome` ProjectPack from the section8 behavior above. It registers no temporary `Confectory.Editor` or SourceEditor/AI roles. The old consumer remains unchanged. Entry/Home implements offline optional connect/Later presentation, wordmark transition, left management sidebar, two-column project list with split New/Open first card, folder browse/validation, required name focus and multiline intent, create-to-project landing, persistent card metadata/reopen, OS folder action and explicit listing removal. BaseUI adds only a generic Grid; its editor-free consumer is `examples/grid-game`.
+
+Functional acceptance and original visual acceptance remain separate: original logo/subtitle/palette/font/timing assets are absent, so the available text wordmark/action hint are documented functional fallbacks, not approved visual reproduction. Already-connected skip awaits an actual connection-state contract; no provider/account is invented. Listing deletion retains files; destructive project deletion semantics are unresolved. The section8 full project workspace/sidebar/chat/log/grievance/run/upward navigation remains the next slice, not the CP15 landing.

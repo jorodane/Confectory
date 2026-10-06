@@ -1,0 +1,7 @@
+function Confectory.EditorHome::CreateSession (string repository, string storage) -> string {
+provide Confectory.ProjectManager::CreateManager with Confectory.ProjectManager::CreateManagerBody;
+provide Confectory.ProjectExecution::CreateSession with Confectory.ProjectExecution::CreateSessionBody;
+provide Confectory.FileStream::Snapshot with Confectory.FileStream::SnapshotBody;
+provide Confectory.FileStream::WriteAtomic with Confectory.FileStream::WriteAtomicBody;
+provide Confectory.EditorHome::CreateSession with Confectory.EditorHome::CreateSessionBody;
+}
