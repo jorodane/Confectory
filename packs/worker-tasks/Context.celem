@@ -1,0 +1,1 @@
+function Confectory.WorkerTasks::Context (string session) -> string[] {provide Confectory.WorkerTasks::Context with Confectory.WorkerTasks::ContextBody;description "Read borrowed session project, owner and chief identities without task creation or private Helper memory.";}

@@ -1,0 +1,1 @@
+implementation Confectory.WorkerTasks::ContextBody for Confectory.WorkerTasks::Context (string session) -> string[] {import Confectory.WorkerTasks::Command as Command (string, string, string, string) -> string;body common "Context.csbody";}

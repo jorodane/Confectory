@@ -38,4 +38,6 @@ element VerifyCompletion function "VerifyCompletion.celem";
 element VerifyCompletionBody implementation "VerifyCompletionBody.celem";
 element Finish function "Finish.celem";
 element FinishBody implementation "FinishBody.celem";
+element Context function "Context.celem";
+element ContextBody implementation "ContextBody.celem";
 }
