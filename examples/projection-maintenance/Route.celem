@@ -1,0 +1,5 @@
+implementation Example.ProjectionMaintenance::Route for Confectory.AlgorithmProjection::MaintenanceCallback (string request) -> void {
+import Confectory.WorkerTasks::Context as WorkerTasksContext (string) -> string[];
+import Confectory.WorkerTasks::Assign as WorkerTasksAssign (string, string, long, string, string, string, string) -> string;
+body common "Route.csbody";
+}

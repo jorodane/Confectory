@@ -99,4 +99,8 @@ import Confectory.ProjectExecution::LaunchConfigured as ProjectExecutionLaunchCo
 import Confectory.ProjectExecution::CreateSession as ProjectExecutionCreateSession () -> string[];
 import Confectory.ProjectExecution::Observe as ProjectExecutionObserve (string[], string) -> string[];
 import Confectory.Window::Place as WindowPlace (long[], int, int, int) -> void;
+import Confectory.AlgorithmProjection::Changed as AlgorithmProjectionChanged (string, string[], string, string, string) -> string;
+import Confectory.AlgorithmProjection::Maintain as AlgorithmProjectionMaintain (string) -> string;
+import Confectory.AlgorithmProjection::BrowseDraft as AlgorithmProjectionBrowseDraft (string, string, string, string, string) -> string;
+import Confectory.AlgorithmProjection::EditorDescribe as AlgorithmProjectionEditorDescribe (string, string) -> string;
 body common "MainBody.csbody";}

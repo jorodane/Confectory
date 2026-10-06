@@ -1,0 +1,27 @@
+implementation Example.ProjectionMaintenance::MainBody for Example.ProjectionMaintenance::Main () -> int {
+import Confectory.Helper::Open as HelperOpen (string) -> string;
+import Confectory.Helper::Recruit as HelperRecruit (string, string, string) -> string;
+import Confectory.Helper::Close as HelperClose (string) -> void;
+import Confectory.WorkerTasks::Open as WorkerTasksOpen (string, string, string, string, string) -> string;
+import Confectory.WorkerTasks::Close as WorkerTasksClose (string) -> void;
+import Confectory.WorkerTasks::Inspect as WorkerTasksInspect (string, string) -> string;
+import Confectory.EditWorkspace::Open as EditWorkspaceOpen (string, string, string) -> string;
+import Confectory.EditWorkspace::Close as EditWorkspaceClose (string) -> void;
+import Confectory.EditWorkspace::Read as EditWorkspaceRead (string, string) -> string[];
+import Confectory.EditWorkspace::SetText as EditWorkspaceSetText (string, string, string) -> void;
+import Confectory.EditWorkspace::Changes as EditWorkspaceChanges (string, string[]) -> string[];
+import Confectory.EditWorkspace::Identity as EditWorkspaceIdentity (string) -> string[];
+import Confectory.ChangeSet::Confirm as ChangeSetConfirm (string, string[], string) -> string[];
+import Confectory.AlgorithmProjection::Open as AlgorithmProjectionOpen (string) -> string;
+import Confectory.AlgorithmProjection::Close as AlgorithmProjectionClose (string) -> void;
+import Confectory.AlgorithmProjection::Regenerate as AlgorithmProjectionRegenerate (string, string, string, string) -> bool;
+import Confectory.AlgorithmProjection::Snapshot as AlgorithmProjectionSnapshot (string, string) -> string;
+import Confectory.AlgorithmProjection::Changed as AlgorithmProjectionChanged (string, string[], string, string, string) -> string;
+import Confectory.AlgorithmProjection::Maintain as AlgorithmProjectionMaintain (string) -> string;
+import Confectory.AlgorithmProjection::Browse as AlgorithmProjectionBrowse (string, string, string, string, string) -> string;
+import Confectory.AlgorithmProjection::Delta as AlgorithmProjectionDelta (string, string, string, string, string) -> string;
+import Confectory.AlgorithmProjection::ApplyDelta as AlgorithmProjectionApplyDelta (string, string) -> string;
+import Confectory.AlgorithmProjection::Query as AlgorithmProjectionQuery (string, string, string, string) -> string;
+import Confectory.AlgorithmProjection::EditorDescribe as AlgorithmProjectionEditorDescribe (string, string) -> string;
+body common "MainBody.csbody";
+}
