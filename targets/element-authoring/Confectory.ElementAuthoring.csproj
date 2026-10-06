@@ -1,1 +1,28 @@
-<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>Exe</OutputType></PropertyGroup><ItemGroup><ProjectReference Include="../../src/Confectory.Core/Confectory.Core.csproj" /><Reference Include="Microsoft.CodeAnalysis"><HintPath>$(MSBuildSDKsPath)/../Roslyn/bincore/Microsoft.CodeAnalysis.dll</HintPath><Private>true</Private></Reference><Reference Include="Microsoft.CodeAnalysis.CSharp"><HintPath>$(MSBuildSDKsPath)/../Roslyn/bincore/Microsoft.CodeAnalysis.CSharp.dll</HintPath><Private>true</Private></Reference></ItemGroup></Project>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <ConfectoryRoslynDirectory Condition="'$(ConfectoryRoslynDirectory)' == ''">$(MSBuildSDKsPath)/../Roslyn/bincore</ConfectoryRoslynDirectory>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/Confectory.Core/Confectory.Core.csproj" />
+    <Reference Include="Microsoft.CodeAnalysis">
+      <HintPath>$(ConfectoryRoslynDirectory)/Microsoft.CodeAnalysis.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="Microsoft.CodeAnalysis.CSharp">
+      <HintPath>$(ConfectoryRoslynDirectory)/Microsoft.CodeAnalysis.CSharp.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+  </ItemGroup>
+  <Target Name="ValidateAuthoringSdk" BeforeTargets="ResolveAssemblyReferences;ResolveReferences">
+    <Error Condition="!$([System.String]::Copy('$(NETCoreSdkVersion)').StartsWith('8.0.'))"
+           Text="Confectory.ElementAuthoring targets net8.0 and requires the .NET 8 SDK Roslyn assemblies. Build from the repository with its global.json; run dotnet --list-sdks to check for an installed 8.0 SDK. A .NET 8 runtime or reference pack alone is not the SDK. Do not use SDK 9/10 Roslyn binaries with net8.0." />
+    <Error Condition="!Exists('$(ConfectoryRoslynDirectory)/Microsoft.CodeAnalysis.dll') Or !Exists('$(ConfectoryRoslynDirectory)/Microsoft.CodeAnalysis.CSharp.dll')"
+           Text="The selected .NET 8 SDK Roslyn library pair is missing. Check the selected SDK installation and ConfectoryRoslynDirectory; no libraries are downloaded automatically." />
+    <GetAssemblyIdentity AssemblyFiles="$(ConfectoryRoslynDirectory)/Microsoft.CodeAnalysis.dll;$(ConfectoryRoslynDirectory)/Microsoft.CodeAnalysis.CSharp.dll">
+      <Output TaskParameter="Assemblies" ItemName="ConfectoryRoslynIdentity" />
+    </GetAssemblyIdentity>
+    <Error Condition="!$([System.String]::Copy('%(ConfectoryRoslynIdentity.Version)').StartsWith('4.'))"
+           Text="Wrong-major Roslyn library: %(ConfectoryRoslynIdentity.Identity) version %(ConfectoryRoslynIdentity.Version). The .NET 8 SDK supplies Roslyn 4.x; do not substitute SDK 10 Roslyn 5.x into this net8.0 tool." />
+  </Target>
+</Project>
