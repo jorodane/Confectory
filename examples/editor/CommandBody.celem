@@ -1,0 +1,27 @@
+implementation Confectory.Editor::CommandBody for Confectory.Editor::Command (string session, string operation, string payload) -> string {
+import Confectory.ProjectManager::CreateProject as ProjectManagerCreateProject (string[], string, string, string) -> string;
+import Confectory.ProjectManager::Open as ProjectManagerOpen (string[], string) -> string;
+import Confectory.ProjectManager::Select as ProjectManagerSelect (string[], string) -> void;
+import Confectory.ProjectManager::Context as ProjectManagerContext (string[], string) -> string[];
+import Confectory.ProjectManager::Executions as ProjectManagerExecutions (string[]) -> string[];
+import Confectory.ProjectManager::Launch as ProjectManagerLaunch (string[], string, string, string) -> string;
+import Confectory.ProjectExecution::Observe as ProjectExecutionObserve (string[], string) -> string[];
+import Confectory.ProjectExecution::Stop as ProjectExecutionStop (string[], string) -> void;
+import Confectory.ProjectExecution::Output as ProjectExecutionOutput (string[], string) -> string[];
+import Confectory.EditWorkspace::Open as EditWorkspaceOpen (string, string, string) -> string;
+import Confectory.EditWorkspace::List as EditWorkspaceList (string) -> string[];
+import Confectory.EditWorkspace::Read as EditWorkspaceRead (string, string) -> string[];
+import Confectory.EditWorkspace::Create as EditWorkspaceCreate (string, string, string) -> void;
+import Confectory.EditWorkspace::SetValue as EditWorkspaceSetValue (string, string, string, string) -> void;
+import Confectory.EditWorkspace::SetTextIfRevision as EditWorkspaceSetTextIfRevision (string, string, string, long) -> bool;
+import Confectory.EditWorkspace::Changes as EditWorkspaceChanges (string, string[]) -> string[];
+import Confectory.Save::Write as SaveWrite (string) -> string;
+import Confectory.Save::Restore as SaveRestore (string) -> void;
+import Confectory.ChangeSet::Review as ChangeSetReview (string, string[]) -> string[];
+import Confectory.ChangeSet::Confirm as ChangeSetConfirm (string, string[], string) -> string[];
+import Confectory.SchemaEditing::Inspect as SchemaEditingInspect (string) -> string;
+import Confectory.FileStream::WriteAtomic as FileStreamWriteAtomic (string, string) -> void;
+import Confectory.FileStream::BrowseDirectory as FileStreamBrowseDirectory (string, int, int) -> string[];
+import Confectory.ElementView::Create as ElementViewCreate (string, string, string, int, int) -> string;
+import Confectory.ElementView::Close as ElementViewClose (string) -> void;
+body common "Command.csbody"; }

@@ -1,0 +1,14 @@
+implementation Confectory.Editor::VerifyContractsBody for Confectory.Editor::VerifyContracts () -> int {
+import Confectory.BaseUI::CreateControls as BaseUICreateControls (int[]) -> string;
+import Confectory.BaseUI::ControlState as BaseUIControlState (string, string, int) -> int[];
+import Confectory.BaseUI::ControlInput as BaseUIControlInput (string, int[], int, int, int) -> int;
+import Confectory.BaseUI::CloseControls as BaseUICloseControls (string) -> void;
+import Confectory.UINavigation::Create as UINavigationCreate (string) -> string;
+import Confectory.UINavigation::Route as UINavigationRoute (string, long, int, int, int, bool, int, int[]) -> string;
+import Confectory.UINavigation::Group as UINavigationGroup (string, string, int, int[]) -> string;
+import Confectory.SourceEditor::Create as SourceEditorCreate (string, string) -> string;
+import Confectory.SourceEditor::Input as SourceEditorInput (string, int, int) -> int;
+import Confectory.SourceEditor::Snapshot as SourceEditorSnapshot (string) -> string[];
+import Confectory.SourceEditor::Close as SourceEditorClose (string) -> void;
+import Confectory.FileStream::BrowseDirectory as FileStreamBrowseDirectory (string, int, int) -> string[];
+body common "VerifyContracts.csbody"; }

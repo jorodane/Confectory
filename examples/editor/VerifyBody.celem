@@ -1,0 +1,3 @@
+implementation Confectory.Editor::VerifyBody for Confectory.Editor::Verify () -> int {
+import Confectory.Editor::CreateSession as CreateSession (string, string) -> string; import Confectory.Editor::Command as Command (string, string, string) -> string; import Confectory.Editor::Snapshot as Snapshot (string) -> string; import Confectory.Editor::CloseSession as CloseSession (string) -> void;
+body common "Verify.csbody"; }

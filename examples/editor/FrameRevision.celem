@@ -1,0 +1,1 @@
+object Confectory.Editor::FrameRevision { value initial = 0; description "View-owned presentation frame revision; workspace models are borrowed."; }

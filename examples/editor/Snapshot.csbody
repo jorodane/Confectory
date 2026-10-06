@@ -1,0 +1,2 @@
+
+var state=AppDomain.CurrentDomain.GetData("Confectory.Editor.Session."+session) as object[]??throw new ObjectDisposedException("Editor session");return (string)System.Threading.Volatile.Read(ref state[4]);

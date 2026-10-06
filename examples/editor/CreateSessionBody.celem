@@ -1,0 +1,5 @@
+implementation Confectory.Editor::CreateSessionBody for Confectory.Editor::CreateSession (string repository, string storage) -> string {
+import Confectory.ProjectManager::CreateManager as ProjectManagerCreateManager (int) -> string[];
+import Confectory.FileStream::Snapshot as FileStreamSnapshot (string) -> string[];
+import Confectory.FileStream::WriteAtomic as FileStreamWriteAtomic (string, string) -> void;
+body common "CreateSession.csbody"; }

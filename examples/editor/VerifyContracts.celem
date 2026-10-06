@@ -1,0 +1,14 @@
+function Confectory.Editor::VerifyContracts () -> int {
+provide Confectory.BaseUI::CreateControls with Confectory.BaseUI::CreateControlsBody;
+provide Confectory.BaseUI::ControlState with Confectory.BaseUI::ControlStateBody;
+provide Confectory.BaseUI::ControlInput with Confectory.BaseUI::ControlInputBody;
+provide Confectory.BaseUI::CloseControls with Confectory.BaseUI::CloseControlsBody;
+provide Confectory.UINavigation::Create with Confectory.UINavigation::CreateBody;
+provide Confectory.UINavigation::Route with Confectory.UINavigation::RouteBody;
+provide Confectory.UINavigation::Group with Confectory.UINavigation::GroupBody;
+provide Confectory.SourceEditor::Create with Confectory.SourceEditor::CreateBody;
+provide Confectory.SourceEditor::Input with Confectory.SourceEditor::InputBody;
+provide Confectory.SourceEditor::Snapshot with Confectory.SourceEditor::SnapshotBody;
+provide Confectory.SourceEditor::Close with Confectory.SourceEditor::CloseBody;
+provide Confectory.FileStream::BrowseDirectory with Confectory.FileStream::BrowseDirectoryBody;
+provide Confectory.Editor::VerifyContracts with Confectory.Editor::VerifyContractsBody; }

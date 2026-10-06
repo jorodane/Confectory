@@ -1,0 +1,31 @@
+implementation Confectory.Editor::MainBody for Confectory.Editor::Main () -> int {
+import Confectory.SchemaEditing::BeginScope as SchemaEditingBeginScope (string) -> void;
+import Confectory.SchemaEditing::EndScope as SchemaEditingEndScope () -> void;
+import Confectory.SchemaEditing::Cancel as SchemaEditingCancel (string) -> void;
+import Confectory.BaseUI::CreateControls as BaseUICreateControls (int[]) -> string;
+import Confectory.BaseUI::ControlState as BaseUIControlState (string, string, int) -> int[];
+import Confectory.BaseUI::ControlInput as BaseUIControlInput (string, int[], int, int, int) -> int;
+import Confectory.BaseUI::CloseControls as BaseUICloseControls (string) -> void;
+import Confectory.UINavigation::Create as UINavigationCreate (string) -> string;
+import Confectory.UINavigation::Route as UINavigationRoute (string, long, int, int, int, bool, int, int[]) -> string;
+import Confectory.UINavigation::Group as UINavigationGroup (string, string, int, int[]) -> string;
+import Confectory.SourceEditor::Create as SourceEditorCreate (string, string) -> string;
+import Confectory.SourceEditor::Input as SourceEditorInput (string, int, int) -> int;
+import Confectory.SourceEditor::Snapshot as SourceEditorSnapshot (string) -> string[];
+import Confectory.SourceEditor::Close as SourceEditorClose (string) -> void;
+import Confectory.Window::CreateSurfaces as WindowCreateSurfaces (string[], int, int) -> long[];
+import Confectory.Window::Place as WindowPlace (long[], int, int, int) -> void;
+import Confectory.Window::Reopen as WindowReopen (long[], int, string, int, int) -> void;
+import Confectory.Window::Close as WindowClose (long[], int) -> void;
+import Confectory.Window::SurfaceInfo as WindowSurfaceInfo (long[]) -> long[];
+import Confectory.Window::SurfaceDimensions as WindowSurfaceDimensions (long[], int) -> int[];
+import Confectory.Window::Capabilities as WindowCapabilities () -> int[];
+import Confectory.RenderInput::Pump as RenderInputPump (long[]) -> int[];
+import Confectory.RenderInput::Draw as RenderInputDraw (long[], int, int[], string[]) -> void;
+import Confectory.RealTimeUpdate::Advance as RealTimeUpdateAdvance (double[], double, double, double, double, int) -> double[];
+import Confectory.RuntimeBase::CreateOwner as RuntimeBaseCreateOwner (int) -> string[];
+import Confectory.RuntimeBase::CreateInstance as RuntimeBaseCreateInstance (string[], string) -> int;
+import Confectory.RuntimeBase::Write as RuntimeBaseWrite (string[], int, long) -> bool;
+import Confectory.RuntimeBase::DisposeOwner as RuntimeBaseDisposeOwner (string[]) -> void;
+import Confectory.Editor::CreateSession as CreateSession (string, string) -> string; import Confectory.Editor::Snapshot as Snapshot (string) -> string; import Confectory.Editor::Command as Command (string, string, string) -> string; import Confectory.Editor::CloseSession as CloseSession (string) -> void;
+body common "Main.csbody"; }
