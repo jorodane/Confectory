@@ -71,7 +71,7 @@ try:
  resize(d,a,700,600);ui.flush(d);time.sleep(.2);assert field(0,1)['nativeHandle']==identity
  h=focus(0,1);ui.key(h,0xFF09);wait(lambda r:r[0]['native']['focus']==2,'native Tab app navigation')
  ui.key(a,0xFFC3);ui.folder(find,window,cancel=True);wait(lambda r:'"state":"cancelled"' in log_path.read_text(),'native folder cancellation')
- ui.key(a,0xFFC3);ui.folder(find,window,str(store));wait(lambda r:'"state":"selected"' in log_path.read_text(),'native folder select');assert str(store) in log_path.read_text()
+ ui.key(a,0xFFC3);ui.folder(find,window,str(store));wait(lambda r:'"state":"selected"' in log_path.read_text(),'native folder select');assert any(json.loads(line[14:]).get('path')==str(store) for line in log_path.read_text().splitlines() if line.startswith('NATIVE_FOLDER ')),'Native chooser selected a child rather than the typed parent'
  old_host=rows()[1]['host'];ui.key(a,0xFFC4);wait(lambda r:r[1]['host']!=old_host,'native host reopen');assert rows()[1]['values'][0]=='Synthetic clipboard';assert field(1,1)['nativeHandle']!=h2
  ui.key(a,0xFFC3);window(b'Select folder');os.killpg(app.pid,signal.SIGINT);assert app.wait(timeout=15)==0,log_path.read_text()[-2000:];assert not find(b'Select folder') and not find(b'Native input A') and not find(b'Native input B')
  print('Native GTK selection/word/clipboard/cut/paste/source undo-redo/View isolation/readonly-disabled/external selection/retained identity/hide-show/resize/Tab/native folder select-cancel/close-reopen/owner dialog cleanup PASS');print('Private evidence:',store)

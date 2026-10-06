@@ -85,6 +85,13 @@ class NativeControls:
             if path is not None:
                 self.click(dialog,300,180)
                 self.key(dialog,'l',(0xFFE3,));self.text(dialog,path.rstrip('/')+'/');self.key(dialog,0xFF08);time.sleep(.3)
+                # GTK's location entry navigates/commits the typed directory first;
+                # selecting a list row before Ctrl+L must not choose that child instead.
+                self.key(dialog,0xFF0D);time.sleep(.3)
+                if find(b'Select folder'):
+                    # A first Return may accept GTK path completion; the next
+                    # commits the completed location before the Select action.
+                    self.key(dialog,0xFF0D);time.sleep(.3)
             if find(b'Select folder'):
                 attributes=c.create_string_buffer(136);assert self.attributes(self.display,dialog,attributes);width=c.c_int.from_buffer(attributes,8).value;height=c.c_int.from_buffer(attributes,12).value
                 self.click(dialog,width-45,height-25);time.sleep(.25)

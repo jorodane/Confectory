@@ -163,7 +163,7 @@ try:
     subprocess.run(['import','-window',str(a),os.path.join(storage,'create.png')],check=True)
     click(a,22);native_controls.folder(find,await_window,storage);wait(lambda t:not t['nativePickerPending'] and 22 in t['rects'][::5],'native parent selected')
     click(a,23);trace=wait(lambda t:t['screen']=='project','created project')
-    path=project(trace)['path'];folder=os.path.dirname(path);ns=project(trace)['namespace']
+    path=project(trace)['path'];folder=os.path.dirname(path);ns=project(trace)['namespace'];assert os.path.dirname(folder)==storage,'Native chooser selected a child rather than the typed parent'
     click(a,6);b=await_window(b'Confectory Editor B');wait(lambda t:str(1) in t['model']['views'],'shared view',1)
     click(a,30);wait(lambda t:t['screen']=='element','element list');click(a,41);type_text(a,'Counter');click(a,43);wait(lambda t:t['screen']=='project' and t['model']['views']['0']['element'].endswith('::Counter'),'new object')
     assert latest(1)['model']['views']['1']['element'].endswith('MainBody/body:common'),'selection leaked into sibling View'

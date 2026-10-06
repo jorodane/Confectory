@@ -177,7 +177,7 @@ try:
     # Tab exits multiline field through the shared configured navigation policy.
     press(a,0xFF09);wait(lambda t:t['focus']==12,'shared Tab navigation')
     click(a,12);native_controls.folder(find,await_window,storage);wait(lambda t:not t['nativePickerPending'] and 12 in t['hits'][::5],'native parent selected')
-    click(a,13);state=wait(lambda t:t['screen']=='project','create enters project');assert state['model']['selected']['title']=='Gui Home';path=state['model']['selected']['path'];assert os.path.isfile(path)
+    click(a,13);state=wait(lambda t:t['screen']=='project','create enters project');assert state['model']['selected']['title']=='Gui Home';path=state['model']['selected']['path'];assert os.path.isfile(path);assert os.path.dirname(os.path.dirname(path))==storage,'Native chooser selected a child rather than the typed parent'
     leave_project(a);state=wait(lambda t:t['screen']=='home' and len(t['model']['cards'])==1,'leave to cards');assert state['controls']==token and state['buffers']==buffers;screenshot(a,'home-card')
     click(a,101);assert open(folder_request).read().strip()==os.path.dirname(path),'OS folder request uses selected project directory'
     # First add card and project card occupy equal columns on the same row.
