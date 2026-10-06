@@ -8,4 +8,12 @@ import Confectory.EditWorkspace::Open as WorkspaceOpen (string, string, string) 
 import Confectory.EditWorkspace::Create as Create (string, string, string) -> void;
 import Confectory.EditWorkspace::SetValue as SetValue (string, string, string, string) -> void;
 import Confectory.Save::Write as Save (string) -> string;
+import Confectory.ProjectShell::Create as ShellCreate (string) -> string;
+import Confectory.ProjectShell::Command as ShellCommand (string, string, string) -> string;
+import Confectory.ProjectShell::Snapshot as ShellSnapshot (string) -> string;
+import Confectory.ProjectManager::Launch as Launch (string[], string, string, string) -> string;
+import Confectory.ProjectManager::Executions as Executions (string[]) -> string[];
+import Confectory.ProjectExecution::Observe as Observe (string[], string) -> string[];
+import Confectory.ProjectExecution::Output as Output (string[], string) -> string[];
+import Confectory.ProjectExecution::Stop as Stop (string[], string) -> void;
 body common "Command.csbody"; }

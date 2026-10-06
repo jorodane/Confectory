@@ -35,4 +35,14 @@ provide Confectory.ProjectManager::Dispose with Confectory.ProjectManager::Dispo
 provide Confectory.ProjectExecution::Dispose with Confectory.ProjectExecution::DisposeBody;
 provide Confectory.ProjectExecution::Stop with Confectory.ProjectExecution::StopBody;
 provide Confectory.EditorHome::Verify with Confectory.EditorHome::VerifyBody;
+provide Confectory.ProjectShell::Create with Confectory.ProjectShell::CreateBody;
+provide Confectory.ProjectShell::Command with Confectory.ProjectShell::CommandBody;
+provide Confectory.ProjectShell::Snapshot with Confectory.ProjectShell::SnapshotBody;
+provide Confectory.ProjectManager::Launch with Confectory.ProjectManager::LaunchBody;
+provide Confectory.ProjectExecution::Launch with Confectory.ProjectExecution::LaunchBody;
+provide Confectory.ProjectExecution::LaunchConfigured with Confectory.ProjectExecution::LaunchConfiguredBody;
+provide Confectory.ProjectManager::Executions with Confectory.ProjectManager::ExecutionsBody;
+provide Confectory.ProjectExecution::Observe with Confectory.ProjectExecution::ObserveBody;
+provide Confectory.ProjectExecution::Output with Confectory.ProjectExecution::OutputBody;
+provide Confectory.ProjectShell::Close with Confectory.ProjectShell::CloseBody;
 }

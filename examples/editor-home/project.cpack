@@ -1,4 +1,5 @@
 project Confectory.EditorHome version "0.1.0" {
+registry Confectory.ProjectShell "../../packs/project-shell/pack.cpack"; dependency Confectory.ProjectShell version "0.1.0";
 entry Confectory.EditorHome::Main;
 registry Confectory.ProjectManager "../../packs/project-manager/pack.cpack"; dependency Confectory.ProjectManager version "0.1.0";
 registry Confectory.ProjectExecution "../../packs/project-execution/pack.cpack"; dependency Confectory.ProjectExecution version "0.1.0";
@@ -20,4 +21,5 @@ element Snapshot function "Snapshot.celem"; element SnapshotBody implementation 
 element CloseSession function "CloseSession.celem"; element CloseSessionBody implementation "CloseSessionBody.celem";
 element Main function "Main.celem"; element MainBody implementation "MainBody.celem";
 element Verify function "Verify.celem"; element VerifyBody implementation "VerifyBody.celem";
+element VerifyShell function "VerifyShell.celem"; element VerifyShellBody implementation "VerifyShellBody.celem";
 }

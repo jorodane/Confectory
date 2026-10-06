@@ -4,4 +4,5 @@ provide Confectory.ProjectManager::Dispose with Confectory.ProjectManager::Dispo
 provide Confectory.ProjectExecution::Dispose with Confectory.ProjectExecution::DisposeBody;
 provide Confectory.ProjectExecution::Stop with Confectory.ProjectExecution::StopBody;
 provide Confectory.EditorHome::CloseSession with Confectory.EditorHome::CloseSessionBody;
+provide Confectory.ProjectShell::Close with Confectory.ProjectShell::CloseBody;
 }

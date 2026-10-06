@@ -1,0 +1,6 @@
+implementation Confectory.EditorHome::VerifyShellBody for Confectory.EditorHome::VerifyShell () -> int {
+import Confectory.EditorHome::CreateSession as CreateSession (string, string) -> string;
+import Confectory.EditorHome::Command as Command (string, string, string) -> string;
+import Confectory.EditorHome::Snapshot as Snapshot (string) -> string;
+import Confectory.EditorHome::CloseSession as CloseSession (string) -> void;
+body common "VerifyShell.csbody"; }

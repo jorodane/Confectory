@@ -1,4 +1,5 @@
 implementation Confectory.EditorHome::CloseSessionBody for Confectory.EditorHome::CloseSession (string session) -> void {
 import Confectory.EditWorkspace::Close as WorkspaceClose (string) -> void;
 import Confectory.ProjectManager::Dispose as Dispose (string[]) -> void;
+import Confectory.ProjectShell::Close as ShellClose (string) -> void;
 body common "CloseSession.csbody"; }
