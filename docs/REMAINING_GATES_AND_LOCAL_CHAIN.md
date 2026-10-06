@@ -77,3 +77,16 @@ On integration/checkpoint-9, preserve C8 f62371aa9358c3c5909a79e91e14a1d0a045901
 One bounded executor check succeeded at 2026-10-06 02:38:45 UTC, exit0, original cwd and HEAD visible. This confirms successful command access, not merely task admission or a claim that every disconnected channel recovered. No new environment was created.
 
 Completed local gates: focused projection consumer/delivery 2/0, strengthened inherited-schema invalidation 1/0, actual Linux workbench/read-only projection/Confirm/two games/close/reopen/SIGINT cleanup passed. Managed Windows and Android maintenance-consumer compilation passed 64 selected contracts/implementations. Final regression from the retained ignored runner passed **109/0 in 1912.364s**; source stayed frozen throughout. Both managed workbench target builds also passed 112 selected contracts/implementations. The local [Checkpoint 9] marker contains the completed acceptance and durable handoff. Native Windows execution, Android SDK/JDK/adb/licenses/APK/runtime, live model description/behavior review, full DOCX byte materialization, broader retention/compaction policy, full editor and Mesh remain independent gaps. WINDOWS_COMPILER_TRANSPORT_FIX.md distinguishes necessary selected references from artificial repeated-reference stress inputs. No external publication or retry of the denied push.
+
+
+## Checkpoint 10 completed local optional Stage milestone
+
+Preserve C9 9d1c85bbd562d1ab494b6f2e924c37ba7c202de8. Dedicated integration/checkpoint-10 increments:
+
+- 8651b683a641fd9b0370eaa2cc741c4f8a9b25b4 optional Stage lifecycle/composition pack and outside-read/policy ledger.
+- 408d180e584e9573727cdde9d952281ff329d357 two-stage consumer, independent preview, public-contract lifecycle/locality regression and actual X11 harness.
+- [Checkpoint 10] local acceptance/documentation marker follows these increments; its exact hash is in the branch log.
+
+Full source-frozen run passed **111/0, 1973.653s**. Focused Stage 2/0 (118.885s), actual Linux GUI/visual/isolated state/stop/return/transition/selected close/reopen/SIGINT cleanup and named windows/android managed builds passed. Stage lab selects 74 contracts/providers, preview 27; preview excludes Stage, RuntimeBase and ProjectExecution. Stage Command provider edit rebuilds only that provider, zero contracts; no existing product/Core/target implementation/shared contract changed. No general physics/render authoring/mod-loader/Mesh completion is implied.
+
+The existing .NET Android workload 34.0.43/8.0.100 is installed; Google SDK/adb/sdkmanager and full JDK remain absent, selected JDK directory empty, and SDK licenses/native Stage surface consumer/APK/runtime acceptance unresolved. No install/license acceptance/live provider/external write attempted. Native Windows still needs actual user-environment acceptance; asynchronous spot checks do not block independent work. DOCX bytes remain proxy-blocked, verified complete official text was read. Stage policies/commands/full handoff are in CHECKPOINT_10.md and CHECKPOINT_10_WORK_LOG.md. Preserve optional Stage boundaries while specifying separate general 2D/3D physics/render/domain and eventual mod-loader/Mesh contracts.
