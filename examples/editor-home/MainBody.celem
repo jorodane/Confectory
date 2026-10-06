@@ -30,4 +30,9 @@ import Confectory.RenderInput::DrawText as DrawText (long[], int, int[], int[], 
 import Confectory.RealTimeUpdate::Advance as Advance (double[], double, double, double, double, int) -> double[];
 import Confectory.RuntimeBase::CreateOwner as CreateOwner (int) -> string[];
 import Confectory.RuntimeBase::DisposeOwner as DisposeOwner (string[]) -> void;
+import Confectory.BaseUI::RoundedBox as RoundedBox (int[], int, int) -> int[];
+import Confectory.BaseUI::RoundedButton as RoundedButton (string, int, int[], string, int[], int, bool, bool) -> string;
+import Confectory.BaseUI::RoundedInput as RoundedInput (string, long, int[], int[], int[], int, int, int, int) -> int;
+import Confectory.BaseUI::AnchorPanel as AnchorPanel (int[], int[], int[], int, int) -> int[];
+import Confectory.BaseUI::ClipRegions as ClipRegions (int[], int[]) -> int[];
 body common "Main.csbody"; }
