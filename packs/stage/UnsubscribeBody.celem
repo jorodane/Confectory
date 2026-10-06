@@ -1,0 +1,4 @@
+implementation Confectory.Stage::UnsubscribeBody for Confectory.Stage::Unsubscribe (string stage, string subscription) -> void {
+import Confectory.Stage::Command as Command (string, string, string) -> string;
+body common "Unsubscribe.csbody";
+}

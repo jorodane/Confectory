@@ -1,0 +1,1 @@
+function Confectory.Stage::Create (string stageID, string configuration) -> string { provide Confectory.Stage::Create with Confectory.Stage::CreateBody; description "Reserved isolated stage; validated cadence/return policy, scalar Owner, empty execution session. No scene or child process implicitly launches."; }

@@ -1,0 +1,1 @@
+function Confectory.Stage::Drain (string stage, long epoch) -> int { provide Confectory.Stage::Drain with Confectory.Stage::DrainBody; description "UI-thread drain of still-active async registrations; callbacks after stop/close/reentry are ignored."; }

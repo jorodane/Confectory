@@ -1,0 +1,1 @@
+function Confectory.Stage::Snapshot (string stage) -> string { provide Confectory.Stage::Snapshot with Confectory.Stage::SnapshotBody; description "Fresh lifecycle, model/revision, resource reference, diagnostics and owned execution snapshots; no mutable private state."; }

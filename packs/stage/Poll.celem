@@ -1,0 +1,1 @@
+function Confectory.Stage::Poll (string stage, string subscription) -> long[] { provide Confectory.Stage::Poll with Confectory.Stage::PollBody; description "Only changed value/revision; released/closed subscriptions produce empty results. Reject cross-stage active subscriptions."; }

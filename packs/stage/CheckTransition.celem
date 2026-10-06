@@ -1,0 +1,1 @@
+function Confectory.Stage::CheckTransition (string from, string to, string policy) -> bool { provide Confectory.Stage::CheckTransition with Confectory.Stage::CheckTransitionBody; description "Optional synchronous preflight policy. Veto/exception occurs before target preparation or source mutation."; }

@@ -1,0 +1,1 @@
+function Confectory.Stage::Unregister (string stage, string functionID, string phase) -> void { provide Confectory.Stage::Unregister with Confectory.Stage::UnregisterBody; description "Remove owned definition/active token; pending dispatch cannot invoke removed registrations."; }

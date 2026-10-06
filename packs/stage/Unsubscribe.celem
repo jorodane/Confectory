@@ -1,0 +1,1 @@
+function Confectory.Stage::Unsubscribe (string stage, string subscription) -> void { provide Confectory.Stage::Unsubscribe with Confectory.Stage::UnsubscribeBody; description "Idempotently release this non-owning observer."; }

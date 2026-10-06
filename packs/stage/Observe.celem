@@ -1,0 +1,1 @@
+function Confectory.Stage::Observe (string stage, string execution) -> string[] { provide Confectory.Stage::Observe with Confectory.Stage::ObserveBody; description "Observe this stage-owned execution through existing ProjectExecution; no cross-stage handle access."; }

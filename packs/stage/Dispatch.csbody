@@ -1,0 +1,1 @@
+string result=calls.Command.Invoke(stage,"dispatch",new System.Text.Json.Nodes.JsonObject{["epoch"]=epoch,["phase"]=phase,["data"]=data}.ToJsonString());return System.Text.Json.Nodes.JsonNode.Parse(result)!["accepted"]!.GetValue<bool>();

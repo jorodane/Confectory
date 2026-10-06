@@ -1,0 +1,1 @@
+function Confectory.Stage::Close (string stage) -> string { provide Confectory.Stage::Close with Confectory.Stage::CloseBody; description "Idempotent release of owned workers/resources/subscriptions/Owner. Failed cleanup retains closing context for explicit retry."; }

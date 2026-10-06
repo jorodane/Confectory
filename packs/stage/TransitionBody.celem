@@ -1,0 +1,4 @@
+implementation Confectory.Stage::TransitionBody for Confectory.Stage::Transition (string from, string to, string policy) -> string {
+import Confectory.Stage::Command as Command (string, string, string) -> string;
+body common "Transition.csbody";
+}

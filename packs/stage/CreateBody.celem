@@ -1,0 +1,4 @@
+implementation Confectory.Stage::CreateBody for Confectory.Stage::Create (string stageID, string configuration) -> string {
+import Confectory.Stage::Command as Command (string, string, string) -> string;
+body common "Create.csbody";
+}

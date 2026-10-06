@@ -1,0 +1,1 @@
+implementation Confectory.Stage::ReleaseResourcesBody for Confectory.Stage::ReleaseResources (string stage, string resource) -> void { body common "ReleaseResources.csbody"; }

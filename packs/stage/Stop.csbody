@@ -1,0 +1,1 @@
+string result=calls.Command.Invoke(stage,"stop",new System.Text.Json.Nodes.JsonObject{}.ToJsonString());return result;

@@ -1,0 +1,4 @@
+implementation Confectory.Stage::SubscribeBody for Confectory.Stage::Subscribe (string stage) -> string {
+import Confectory.Stage::Command as Command (string, string, string) -> string;
+body common "Subscribe.csbody";
+}

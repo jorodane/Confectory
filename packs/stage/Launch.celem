@@ -1,0 +1,1 @@
+function Confectory.Stage::Launch (string stage, string project, string entry, string target, string[] names, string[] values) -> string { provide Confectory.Stage::Launch with Confectory.Stage::LaunchBody; description "Explicit asynchronous owned ProjectExecution child launch while active; observe separately. Not automatic entry readiness or resumed child state."; }

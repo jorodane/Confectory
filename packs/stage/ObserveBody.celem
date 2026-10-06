@@ -1,0 +1,4 @@
+implementation Confectory.Stage::ObserveBody for Confectory.Stage::Observe (string stage, string execution) -> string[] {
+import Confectory.Stage::Command as Command (string, string, string) -> string;
+body common "Observe.csbody";
+}

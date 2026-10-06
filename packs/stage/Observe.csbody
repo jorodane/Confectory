@@ -1,0 +1,1 @@
+string result=calls.Command.Invoke(stage,"observe",new System.Text.Json.Nodes.JsonObject{["execution"]=execution}.ToJsonString());return System.Text.Json.JsonSerializer.Deserialize<string[]>(System.Text.Json.Nodes.JsonNode.Parse(result)!["execution"]!.ToJsonString())!;

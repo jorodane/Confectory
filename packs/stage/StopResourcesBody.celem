@@ -1,0 +1,1 @@
+implementation Confectory.Stage::StopResourcesBody for Confectory.Stage::StopResources (string stage, string resource) -> void { body common "StopResources.csbody"; }

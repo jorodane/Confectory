@@ -1,0 +1,1 @@
+function Confectory.Stage::Enter (string stage) -> bool { provide Confectory.Stage::Enter with Confectory.Stage::EnterBody; description "Prepare configured resources before activation. Returning preserve keeps local instances; forbid refuses reentry. No external process resumes implicitly."; }

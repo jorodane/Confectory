@@ -1,0 +1,1 @@
+string result=calls.Command.Invoke(stage,"enter",new System.Text.Json.Nodes.JsonObject{}.ToJsonString());return System.Text.Json.Nodes.JsonNode.Parse(result)!["accepted"]!.GetValue<bool>();

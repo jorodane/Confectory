@@ -1,0 +1,1 @@
+string result=calls.Command.Invoke(stage,"poll",new System.Text.Json.Nodes.JsonObject{["subscription"]=subscription}.ToJsonString());return System.Text.Json.JsonSerializer.Deserialize<long[]>(System.Text.Json.Nodes.JsonNode.Parse(result)!["model"]!.ToJsonString())!;

@@ -1,0 +1,4 @@
+implementation Confectory.Stage::EnterBody for Confectory.Stage::Enter (string stage) -> bool {
+import Confectory.Stage::Command as Command (string, string, string) -> string;
+body common "Enter.csbody";
+}

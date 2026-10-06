@@ -1,0 +1,1 @@
+string result=calls.Command.Invoke(stage,"launch",new System.Text.Json.Nodes.JsonObject{["project"]=project,["entry"]=entry,["target"]=target,["names"]=System.Text.Json.JsonSerializer.SerializeToNode(names),["values"]=System.Text.Json.JsonSerializer.SerializeToNode(values)}.ToJsonString());return System.Text.Json.Nodes.JsonNode.Parse(result)!["execution"]!.GetValue<string>();

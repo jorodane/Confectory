@@ -1,0 +1,4 @@
+implementation Confectory.Stage::DispatchBody for Confectory.Stage::Dispatch (string stage, long epoch, string phase, string data) -> bool {
+import Confectory.Stage::Command as Command (string, string, string) -> string;
+body common "Dispatch.csbody";
+}

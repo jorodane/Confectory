@@ -1,0 +1,4 @@
+implementation Confectory.Stage::RegisterBody for Confectory.Stage::Register (string stage, string functionID, string phase, int priority) -> void {
+import Confectory.Stage::Command as Command (string, string, string) -> string;
+body common "Register.csbody";
+}

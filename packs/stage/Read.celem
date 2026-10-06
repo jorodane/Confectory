@@ -1,0 +1,1 @@
+function Confectory.Stage::Read (string stage) -> long[] { provide Confectory.Stage::Read with Confectory.Stage::ReadBody; description "Borrow a fresh coherent scalar model snapshot. World/render contexts are independently supplied resources, not this scalar."; }

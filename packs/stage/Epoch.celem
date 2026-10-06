@@ -1,0 +1,1 @@
+function Confectory.Stage::Epoch (string stage) -> long { provide Confectory.Stage::Epoch with Confectory.Stage::EpochBody; description "Current lifecycle generation, zero after close. Capture with commands/callbacks to reject stopped/reentered/replaced work."; }

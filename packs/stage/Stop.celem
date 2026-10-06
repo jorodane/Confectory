@@ -1,0 +1,1 @@
+function Confectory.Stage::Stop (string stage) -> string { provide Confectory.Stage::Stop with Confectory.Stage::StopBody; description "Invalidate lifecycle epoch, unregister dispatch and stop owned workers while retaining model/world/view resources and subscriptions."; }

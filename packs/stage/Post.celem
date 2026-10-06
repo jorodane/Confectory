@@ -1,0 +1,1 @@
+function Confectory.Stage::Post (string stage, long epoch, string functionID, string data) -> bool { provide Confectory.Stage::Post with Confectory.Stage::PostBody; description "Only background-thread-safe operation: bounded intent queue, generation checked at enqueue and drain. No background model access."; }

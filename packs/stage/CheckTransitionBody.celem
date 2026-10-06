@@ -1,0 +1,1 @@
+implementation Confectory.Stage::CheckTransitionBody for Confectory.Stage::CheckTransition (string from, string to, string policy) -> bool { body common "CheckTransition.csbody"; }

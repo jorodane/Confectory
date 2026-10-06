@@ -1,0 +1,1 @@
+function Confectory.Stage::Register (string stage, string functionID, string phase, int priority) -> void { provide Confectory.Stage::Register with Confectory.Stage::RegisterBody; description "Own a RealTimeUpdate registration; priority/token ordering is reused. Active bindings stop at Stop and definitions return at Enter."; }

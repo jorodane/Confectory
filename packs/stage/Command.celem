@@ -1,0 +1,1 @@
+function Confectory.Stage::Command (string stage, string operation, string payload) -> string { provide Confectory.Stage::Command with Confectory.Stage::CommandBody; description "Owned Stage lifecycle policy boundary; prefer typed public adapters. Caller-serialized except Post."; }

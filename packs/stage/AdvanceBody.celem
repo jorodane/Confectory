@@ -1,0 +1,4 @@
+implementation Confectory.Stage::AdvanceBody for Confectory.Stage::Advance (string stage, long epoch, double elapsed) -> string {
+import Confectory.Stage::Command as Command (string, string, string) -> string;
+body common "Advance.csbody";
+}

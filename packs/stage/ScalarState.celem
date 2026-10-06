@@ -1,0 +1,1 @@
+object Confectory.Stage::ScalarState { description "Stage-owned diagnostic scalar instance, not a general world/schema model."; }

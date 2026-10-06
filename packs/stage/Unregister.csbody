@@ -1,0 +1,1 @@
+string result=calls.Command.Invoke(stage,"unregister",new System.Text.Json.Nodes.JsonObject{["functionID"]=functionID,["phase"]=phase}.ToJsonString());

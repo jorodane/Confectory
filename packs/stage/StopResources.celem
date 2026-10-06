@@ -1,0 +1,1 @@
+function Confectory.Stage::StopResources (string stage, string resource) -> void { provide Confectory.Stage::StopResources with Confectory.Stage::StopResourcesBody; description "Idempotent consumer pause/input-backlog cleanup; keep local world/view state. No automatic DLL unloading or model reset."; }

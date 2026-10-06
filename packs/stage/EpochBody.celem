@@ -1,0 +1,4 @@
+implementation Confectory.Stage::EpochBody for Confectory.Stage::Epoch (string stage) -> long {
+import Confectory.Stage::Command as Command (string, string, string) -> string;
+body common "Epoch.csbody";
+}

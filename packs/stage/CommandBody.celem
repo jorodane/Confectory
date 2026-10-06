@@ -1,0 +1,28 @@
+implementation Confectory.Stage::CommandBody for Confectory.Stage::Command (string stage, string operation, string payload) -> string {
+import Confectory.RuntimeBase::CreateOwner as RuntimeBaseCreateOwner (int) -> string[];
+import Confectory.RuntimeBase::CreateInstance as RuntimeBaseCreateInstance (string[], string) -> int;
+import Confectory.RuntimeBase::Read as RuntimeBaseRead (string[], int) -> long[];
+import Confectory.RuntimeBase::Write as RuntimeBaseWrite (string[], int, long) -> bool;
+import Confectory.RuntimeBase::Subscribe as RuntimeBaseSubscribe (string[], int, string) -> string[];
+import Confectory.RuntimeBase::Poll as RuntimeBasePoll (string[], string[]) -> long[];
+import Confectory.RuntimeBase::Unsubscribe as RuntimeBaseUnsubscribe (string[]) -> void;
+import Confectory.RuntimeBase::DisposeOwner as RuntimeBaseDisposeOwner (string[]) -> void;
+import Confectory.RealTimeUpdate::CreateSchedule as RealTimeUpdateCreateSchedule (int) -> string[];
+import Confectory.RealTimeUpdate::Register as RealTimeUpdateRegister (string[], string, string, int) -> void;
+import Confectory.RealTimeUpdate::Unregister as RealTimeUpdateUnregister (string[], string, string) -> void;
+import Confectory.RealTimeUpdate::DispatchTokens as RealTimeUpdateDispatchTokens (string[], string) -> string[];
+import Confectory.RealTimeUpdate::ResolveDispatch as RealTimeUpdateResolveDispatch (string[], string, string) -> string[];
+import Confectory.RealTimeUpdate::IsRegistered as RealTimeUpdateIsRegistered (string[], string, string) -> bool;
+import Confectory.RealTimeUpdate::Advance as RealTimeUpdateAdvance (double[], double, double, double, double, int) -> double[];
+import Confectory.ProjectExecution::CreateSession as ProjectExecutionCreateSession () -> string[];
+import Confectory.ProjectExecution::LaunchConfigured as ProjectExecutionLaunchConfigured (string[], string, string, string, string[], string[]) -> string;
+import Confectory.ProjectExecution::Observe as ProjectExecutionObserve (string[], string) -> string[];
+import Confectory.ProjectExecution::Stop as ProjectExecutionStop (string[], string) -> void;
+import Confectory.ProjectExecution::Dispose as ProjectExecutionDispose (string[]) -> void;
+import Confectory.Stage::PrepareResources as StagePrepareResources (string, string) -> string;
+import Confectory.Stage::StopResources as StageStopResources (string, string) -> void;
+import Confectory.Stage::ReleaseResources as StageReleaseResources (string, string) -> void;
+import Confectory.Stage::CheckTransition as StageCheckTransition (string, string, string) -> bool;
+import Confectory.Stage::Event as StageEvent (string, long, string, string, string) -> void;
+body common "Command.csbody";
+}

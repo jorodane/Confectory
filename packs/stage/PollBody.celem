@@ -1,0 +1,4 @@
+implementation Confectory.Stage::PollBody for Confectory.Stage::Poll (string stage, string subscription) -> long[] {
+import Confectory.Stage::Command as Command (string, string, string) -> string;
+body common "Poll.csbody";
+}

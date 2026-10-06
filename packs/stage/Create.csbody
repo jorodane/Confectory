@@ -1,0 +1,1 @@
+string result=calls.Command.Invoke("","create",new System.Text.Json.Nodes.JsonObject{["stageID"]=stageID,["configuration"]=System.Text.Json.Nodes.JsonNode.Parse(configuration)}.ToJsonString());return System.Text.Json.Nodes.JsonNode.Parse(result)!["stage"]!.GetValue<string>();

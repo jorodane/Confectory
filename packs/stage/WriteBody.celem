@@ -1,0 +1,4 @@
+implementation Confectory.Stage::WriteBody for Confectory.Stage::Write (string stage, long epoch, long value) -> bool {
+import Confectory.Stage::Command as Command (string, string, string) -> string;
+body common "Write.csbody";
+}

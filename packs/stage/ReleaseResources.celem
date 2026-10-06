@@ -1,0 +1,1 @@
+function Confectory.Stage::ReleaseResources (string stage, string resource) -> void { provide Confectory.Stage::ReleaseResources with Confectory.Stage::ReleaseResourcesBody; description "Idempotent release of accepted resource composition. On failure Stage retains closing ownership for retry."; }

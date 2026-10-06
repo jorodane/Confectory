@@ -1,0 +1,1 @@
+function Confectory.Stage::Dispatch (string stage, long epoch, string phase, string data) -> bool { provide Confectory.Stage::Dispatch with Confectory.Stage::DispatchBody; description "Token snapshot dispatch with lifecycle/reentrancy checks; phase failure aborts remaining callbacks and reports phase/function/priority."; }

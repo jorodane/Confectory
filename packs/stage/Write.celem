@@ -1,0 +1,1 @@
+function Confectory.Stage::Write (string stage, long epoch, long value) -> bool { provide Confectory.Stage::Write with Confectory.Stage::WriteBody; description "UI-owner-thread model command; stale/inactive lifecycle generations are ignored."; }

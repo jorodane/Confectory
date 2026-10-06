@@ -1,0 +1,1 @@
+string result=calls.Command.Invoke(stage,"advance",new System.Text.Json.Nodes.JsonObject{["epoch"]=epoch,["elapsed"]=elapsed}.ToJsonString());return result;

@@ -1,0 +1,1 @@
+function Confectory.Stage::Transition (string from, string to, string policy) -> string { provide Confectory.Stage::Transition with Confectory.Stage::TransitionBody; description "Explicit keep-prior or stop-prior. Veto/preparation failure leaves the source unchanged. No global current Stage or atomic cross-process transition."; }

@@ -1,0 +1,4 @@
+implementation Confectory.Stage::LaunchBody for Confectory.Stage::Launch (string stage, string project, string entry, string target, string[] names, string[] values) -> string {
+import Confectory.Stage::Command as Command (string, string, string) -> string;
+body common "Launch.csbody";
+}

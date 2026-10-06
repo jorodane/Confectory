@@ -1,0 +1,1 @@
+function Confectory.Stage::Event (string stage, long epoch, string functionID, string phase, string data) -> void { provide Confectory.Stage::Event with Confectory.Stage::EventBody; description "Consumer dispatches actual public ID-bound callbacks on the creating UI thread; no provider reflection or global singleton."; }

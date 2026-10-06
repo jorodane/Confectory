@@ -1,0 +1,1 @@
+function Confectory.Stage::Advance (string stage, long epoch, double elapsed) -> string { provide Confectory.Stage::Advance with Confectory.Stage::AdvanceBody; description "Fixed/update/camera/present/render consumer policy; independent cadence and bounded catch-up use existing RealTimeUpdate. Stale stages do not advance."; }

@@ -1,0 +1,1 @@
+function Confectory.Stage::Subscribe (string stage) -> string { provide Confectory.Stage::Subscribe with Confectory.Stage::SubscribeBody; description "Non-owning model View subscription. Stop retains it; unsubscribe/View close does not destroy the Stage."; }

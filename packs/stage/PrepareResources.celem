@@ -1,0 +1,1 @@
+function Confectory.Stage::PrepareResources (string stage, string configuration) -> string { provide Confectory.Stage::PrepareResources with Confectory.Stage::PrepareResourcesBody; description "Consumer owns construction cleanup on failure, returns one opaque scene/world/view resource reference. Stage takes ownership on success; no renderer/physics is required."; }
