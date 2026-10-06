@@ -1,0 +1,4 @@
+implementation Example.PhysicsLab::ScenePumpBody for Example.PhysicsLab::ScenePump (string scene) -> int[] {
+import Confectory.RenderInput::Pump as Pump (long[]) -> int[];
+body common "ScenePumpBody.csbody";
+}

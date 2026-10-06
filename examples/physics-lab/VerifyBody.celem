@@ -1,0 +1,19 @@
+implementation Example.PhysicsLab::VerifyBody for Example.PhysicsLab::Verify () -> int {
+import Confectory.Physics2D::CreateWorld as CreateWorld (string, string) -> string;
+import Confectory.Physics2D::Epoch as Epoch (string) -> long;
+import Confectory.Physics2D::CreateBody as CreateBody (string, string) -> string;
+import Confectory.Physics2D::SetCollider as SetCollider (string, long, string, string) -> bool;
+import Confectory.Physics2D::QueueChange as QueueChange (string, long, string) -> bool;
+import Confectory.Physics2D::RemoveBody as RemoveBody (string, long, string) -> bool;
+import Confectory.Physics2D::Commit as Commit (string, long) -> string;
+import Confectory.Physics2D::CancelPending as CancelPending (string, long) -> int;
+import Confectory.Physics2D::Step as Step (string, long, double) -> string;
+import Confectory.Physics2D::Snapshot as Snapshot (string, double) -> string;
+import Confectory.Physics2D::QueryAabb as QueryAabb (string, double[], int) -> string;
+import Confectory.Physics2D::Events as Events (string, long, int) -> string;
+import Confectory.Physics2D::DisposeWorld as DisposeWorld (string) -> bool;
+import Confectory.Physics2D::Capabilities as Capabilities () -> string;
+import Confectory.RealTimeUpdate::Advance as Advance (double[], double, double, double, double, int) -> double[];
+import Confectory.Physics2D::Fence as Fence (string) -> long;
+body common "VerifyBody.csbody";
+}

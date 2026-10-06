@@ -1,0 +1,1 @@
+string scene=System.Text.Json.Nodes.JsonNode.Parse(calls.StageSnapshot.Invoke(stage))!["resource"]!.ToString();if(functionID=="Example.PhysicsLab::SceneFixed"){var plan=System.Text.Json.JsonSerializer.Deserialize<double[]>(data)!;calls.SceneFixed.Invoke(scene,plan[7]);}

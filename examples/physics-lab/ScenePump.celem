@@ -1,0 +1,1 @@
+function Example.PhysicsLab::ScenePump (string scene) -> int[] { provide Example.PhysicsLab::ScenePump with Example.PhysicsLab::ScenePumpBody;  }

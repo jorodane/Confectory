@@ -1,0 +1,3 @@
+implementation Example.PhysicsLab::SceneWorldBody for Example.PhysicsLab::SceneWorld (string scene) -> string {
+body common "SceneWorldBody.csbody";
+}

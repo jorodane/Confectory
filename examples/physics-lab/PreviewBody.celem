@@ -1,0 +1,24 @@
+implementation Example.PhysicsLab::PreviewBody for Example.PhysicsLab::Preview () -> int {
+import Example.PhysicsLab::SceneCreate as SceneCreate (string, string, bool, double) -> string;
+import Example.PhysicsLab::SceneWorld as SceneWorld (string) -> string;
+import Example.PhysicsLab::SceneFixed as SceneFixed (string, double) -> void;
+import Example.PhysicsLab::SceneDraw as SceneDraw (string, string, double) -> void;
+import Example.PhysicsLab::ScenePump as ScenePump (string) -> int[];
+import Example.PhysicsLab::SceneClose as SceneClose (string) -> void;
+import Confectory.Physics2D::CreateWorld as CreateWorld (string, string) -> string;
+import Confectory.Physics2D::Epoch as Epoch (string) -> long;
+import Confectory.Physics2D::CreateBody as CreateBody (string, string) -> string;
+import Confectory.Physics2D::SetCollider as SetCollider (string, long, string, string) -> bool;
+import Confectory.Physics2D::QueueChange as QueueChange (string, long, string) -> bool;
+import Confectory.Physics2D::RemoveBody as RemoveBody (string, long, string) -> bool;
+import Confectory.Physics2D::Commit as Commit (string, long) -> string;
+import Confectory.Physics2D::CancelPending as CancelPending (string, long) -> int;
+import Confectory.Physics2D::Step as Step (string, long, double) -> string;
+import Confectory.Physics2D::Snapshot as Snapshot (string, double) -> string;
+import Confectory.Physics2D::QueryAabb as QueryAabb (string, double[], int) -> string;
+import Confectory.Physics2D::Events as Events (string, long, int) -> string;
+import Confectory.Physics2D::DisposeWorld as DisposeWorld (string) -> bool;
+import Confectory.Physics2D::Capabilities as Capabilities () -> string;
+import Confectory.RealTimeUpdate::Advance as Advance (double[], double, double, double, double, int) -> double[];
+body common "PreviewBody.csbody";
+}

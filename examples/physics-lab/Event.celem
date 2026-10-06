@@ -1,0 +1,5 @@
+implementation Example.PhysicsLab::Event for Confectory.Stage::Event (string stage, long epoch, string functionID, string phase, string data) -> void {
+import Confectory.Stage::Snapshot as StageSnapshot (string) -> string;
+import Example.PhysicsLab::SceneFixed as SceneFixed (string, double) -> void;
+body common "Event.csbody";
+}

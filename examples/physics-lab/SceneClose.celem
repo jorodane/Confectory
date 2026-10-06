@@ -1,0 +1,1 @@
+function Example.PhysicsLab::SceneClose (string scene) -> void { provide Example.PhysicsLab::SceneClose with Example.PhysicsLab::SceneCloseBody;  }

@@ -1,0 +1,1 @@
+function Example.PhysicsLab::SceneFixed (string scene, double delta) -> void { provide Example.PhysicsLab::SceneFixed with Example.PhysicsLab::SceneFixedBody;  }

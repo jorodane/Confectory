@@ -1,0 +1,5 @@
+implementation Example.PhysicsLab::SceneDrawBody for Example.PhysicsLab::SceneDraw (string scene, string status, double alpha) -> void {
+import Confectory.Physics2D::Snapshot as Snapshot (string, double) -> string;
+import Confectory.RenderInput::Draw as Draw (long[], int, int[], string[]) -> void;
+body common "SceneDrawBody.csbody";
+}

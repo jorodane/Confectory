@@ -1,0 +1,1 @@
+function Example.PhysicsLab::ScenePause (string scene) -> void { provide Example.PhysicsLab::ScenePause with Example.PhysicsLab::ScenePauseBody;  }

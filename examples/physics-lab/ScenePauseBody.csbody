@@ -1,0 +1,1 @@
+string world=calls.SceneWorld.Invoke(scene);calls.Fence.Invoke(world);

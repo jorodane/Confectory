@@ -1,0 +1,7 @@
+implementation Example.PhysicsLab::ScenePauseBody for Example.PhysicsLab::ScenePause (string scene) -> void {
+import Example.PhysicsLab::SceneWorld as SceneWorld (string) -> string;
+import Confectory.Physics2D::Fence as Fence (string) -> long;
+import Confectory.Physics2D::Epoch as Epoch (string) -> long;
+import Confectory.Physics2D::CancelPending as CancelPending (string, long) -> int;
+body common "ScenePauseBody.csbody";
+}

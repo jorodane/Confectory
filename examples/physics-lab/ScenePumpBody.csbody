@@ -1,0 +1,1 @@
+var state=(object[])AppDomain.CurrentDomain.GetData("Example.PhysicsLab.Scene."+scene)!;return ((long[])state[1]).Length==0?Array.Empty<int>():calls.Pump.Invoke((long[])state[1]);

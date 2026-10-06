@@ -1,0 +1,4 @@
+implementation Example.PhysicsLab::Release for Confectory.Stage::ReleaseResources (string stage, string resource) -> void {
+import Example.PhysicsLab::SceneClose as SceneClose (string) -> void;
+body common "Release.csbody";
+}

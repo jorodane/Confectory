@@ -1,0 +1,1 @@
+function Example.PhysicsLab::SceneDraw (string scene, string status, double alpha) -> void { provide Example.PhysicsLab::SceneDraw with Example.PhysicsLab::SceneDrawBody;  }

@@ -1,0 +1,4 @@
+implementation Example.PhysicsLab::Pause for Confectory.Stage::StopResources (string stage, string resource) -> void {
+import Example.PhysicsLab::ScenePause as ScenePause (string) -> void;
+body common "Pause.csbody";
+}

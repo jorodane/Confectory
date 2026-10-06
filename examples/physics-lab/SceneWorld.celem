@@ -1,0 +1,1 @@
+function Example.PhysicsLab::SceneWorld (string scene) -> string { provide Example.PhysicsLab::SceneWorld with Example.PhysicsLab::SceneWorldBody;  }

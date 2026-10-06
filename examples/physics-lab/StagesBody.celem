@@ -1,0 +1,29 @@
+implementation Example.PhysicsLab::StagesBody for Example.PhysicsLab::Stages () -> int {
+import Confectory.Stage::Create as StageCreate (string, string) -> string;
+import Confectory.Stage::Enter as StageEnter (string) -> bool;
+import Confectory.Stage::Register as StageRegister (string, string, string, int) -> void;
+import Confectory.Stage::Advance as StageAdvance (string, long, double) -> string;
+import Confectory.Stage::Epoch as StageEpoch (string) -> long;
+import Confectory.Stage::Stop as StageStop (string) -> string;
+import Confectory.Stage::Close as StageClose (string) -> string;
+import Confectory.Stage::Snapshot as StageSnapshot (string) -> string;
+import Confectory.Stage::Transition as StageTransition (string, string, string) -> string;
+import Confectory.Physics2D::CreateWorld as CreateWorld (string, string) -> string;
+import Confectory.Physics2D::Epoch as Epoch (string) -> long;
+import Confectory.Physics2D::CreateBody as CreateBody (string, string) -> string;
+import Confectory.Physics2D::SetCollider as SetCollider (string, long, string, string) -> bool;
+import Confectory.Physics2D::QueueChange as QueueChange (string, long, string) -> bool;
+import Confectory.Physics2D::RemoveBody as RemoveBody (string, long, string) -> bool;
+import Confectory.Physics2D::Commit as Commit (string, long) -> string;
+import Confectory.Physics2D::CancelPending as CancelPending (string, long) -> int;
+import Confectory.Physics2D::Step as Step (string, long, double) -> string;
+import Confectory.Physics2D::Snapshot as Snapshot (string, double) -> string;
+import Confectory.Physics2D::QueryAabb as QueryAabb (string, double[], int) -> string;
+import Confectory.Physics2D::Events as Events (string, long, int) -> string;
+import Confectory.Physics2D::DisposeWorld as DisposeWorld (string) -> bool;
+import Confectory.Physics2D::Capabilities as Capabilities () -> string;
+import Example.PhysicsLab::SceneWorld as SceneWorld (string) -> string;
+import Example.PhysicsLab::SceneDraw as SceneDraw (string, string, double) -> void;
+import Example.PhysicsLab::ScenePump as ScenePump (string) -> int[];
+body common "StagesBody.csbody";
+}

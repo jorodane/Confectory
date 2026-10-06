@@ -1,0 +1,1 @@
+return (string)((object[])AppDomain.CurrentDomain.GetData("Example.PhysicsLab.Scene."+scene)!)[2];

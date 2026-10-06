@@ -1,0 +1,1 @@
+function Example.PhysicsLab::SceneCreate (string ownerID, string name, bool gui, double gravity) -> string { provide Example.PhysicsLab::SceneCreate with Example.PhysicsLab::SceneCreateBody;  }

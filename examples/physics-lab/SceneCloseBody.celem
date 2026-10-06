@@ -1,0 +1,5 @@
+implementation Example.PhysicsLab::SceneCloseBody for Example.PhysicsLab::SceneClose (string scene) -> void {
+import Confectory.Physics2D::DisposeWorld as DisposeWorld (string) -> bool;
+import Confectory.Window::Close as WindowClose (long[], int) -> void;
+body common "SceneCloseBody.csbody";
+}

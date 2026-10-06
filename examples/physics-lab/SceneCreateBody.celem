@@ -1,0 +1,21 @@
+implementation Example.PhysicsLab::SceneCreateBody for Example.PhysicsLab::SceneCreate (string ownerID, string name, bool gui, double gravity) -> string {
+import Confectory.Physics2D::CreateWorld as CreateWorld (string, string) -> string;
+import Confectory.Physics2D::Epoch as Epoch (string) -> long;
+import Confectory.Physics2D::CreateBody as CreateBody (string, string) -> string;
+import Confectory.Physics2D::SetCollider as SetCollider (string, long, string, string) -> bool;
+import Confectory.Physics2D::QueueChange as QueueChange (string, long, string) -> bool;
+import Confectory.Physics2D::RemoveBody as RemoveBody (string, long, string) -> bool;
+import Confectory.Physics2D::Commit as Commit (string, long) -> string;
+import Confectory.Physics2D::CancelPending as CancelPending (string, long) -> int;
+import Confectory.Physics2D::Step as Step (string, long, double) -> string;
+import Confectory.Physics2D::Snapshot as Snapshot (string, double) -> string;
+import Confectory.Physics2D::QueryAabb as QueryAabb (string, double[], int) -> string;
+import Confectory.Physics2D::Events as Events (string, long, int) -> string;
+import Confectory.Physics2D::DisposeWorld as DisposeWorld (string) -> bool;
+import Confectory.Physics2D::Capabilities as Capabilities () -> string;
+import Confectory.Window::Capabilities as WindowCapabilities () -> int[];
+import Confectory.Window::CreateSurfaces as WindowCreateSurfaces (string[], int, int) -> long[];
+import Confectory.Window::Place as WindowPlace (long[], int, int, int) -> void;
+import Confectory.Window::Close as WindowClose (long[], int) -> void;
+body common "SceneCreateBody.csbody";
+}
