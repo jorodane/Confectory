@@ -1,0 +1,12 @@
+
+if(view.Length!=12)throw new ArgumentException("Invalid View");
+if(operation!="query"&&(control<0||control>2))throw new ArgumentOutOfRangeException(nameof(control));
+bool Eligible(int id)=>id>=1&&id<=2&&(view[10]&(1L<<id))==0&&(view[11]&(1L<<id))==0;
+if(operation=="set"){if(control!=0&&!Eligible(control))throw new ArgumentException("Focus target unavailable");view[1]=control;view[0]=0;view[9]=0;view[6]=1;}
+else if(operation is "disable" or "enable" or "hide" or "show"){
+ if(control==0)throw new ArgumentException("Control ID required");int slot=operation is "hide" or "show"?11:10;
+ if(operation is "hide" or "disable")view[slot]|=1L<<control;else view[slot]&=~(1L<<control);
+ if(!Eligible((int)view[1]))view[1]=0;if(!Eligible((int)view[0]))view[0]=0;if(!Eligible((int)view[9]))view[9]=0;view[6]=1;
+}else if(operation!="query")throw new ArgumentException("Unknown focus operation");
+return new[]{(int)view[1],Eligible(1)?1:0,Eligible(2)?1:0};
+

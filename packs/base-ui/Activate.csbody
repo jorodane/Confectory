@@ -1,0 +1,4 @@
+
+if(models.Length!=2)throw new ArgumentException("Expected two basic control models");var focus=calls.Focus.Invoke(view,"query",0);if(control<1||control>2||focus[control]==0)return false;
+var current=calls.Read.Invoke(owner,models[control-1]);return calls.Write.Invoke(owner,models[control-1],control==1?checked(current[0]+1):(current[0]==0?1:0));
+

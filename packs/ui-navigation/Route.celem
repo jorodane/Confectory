@@ -1,0 +1,1 @@
+function Confectory.UINavigation::Route (string state, long eventID, int type, int key, int flags, bool textEditing, int currentFocus, int[] eligible) -> string { description "Public focus/navigation operation; see owning pack README."; }

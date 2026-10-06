@@ -1,0 +1,1 @@
+implementation Confectory.UINavigation::RouteBody for Confectory.UINavigation::Route (string state, long eventID, int type, int key, int flags, bool textEditing, int currentFocus, int[] eligible) -> string {  body common "Route.csbody"; }

@@ -14,6 +14,9 @@ import Confectory.RealTimeUpdate::QueueCameraIntent as QueueCameraIntent (double
 import Confectory.RealTimeUpdate::PresentCamera as PresentCamera (double[], double[]) -> double[];
 import Confectory.RenderInput::Pump as Pump (long[]) -> int[];
 import Confectory.RenderInput::Draw as Draw (long[], int, int[], string[]) -> void;
+import Confectory.UINavigation::Create as NavigationCreate (string) -> string;
+import Confectory.UINavigation::Route as NavigationRoute (string, long, int, int, int, bool, int, int[]) -> string;
+import Confectory.BaseUI::Focus as Focus (long[], string, int) -> int[];
 import Confectory.BaseUI::CreateView as CreateView (int, int) -> long[];
 import Confectory.BaseUI::Layout as Layout (long[]) -> int[];
 import Confectory.BaseUI::Input as Input (string[], int[], long[], int, int, int, int, int) -> void;

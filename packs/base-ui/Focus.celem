@@ -1,0 +1,1 @@
+function Confectory.BaseUI::Focus (long[] view, string operation, int control) -> int[] { description "Public focus/navigation operation; see owning pack README."; }

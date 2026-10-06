@@ -1,0 +1,1 @@
+function Confectory.UINavigation::Create (string configuration) -> string { description "Public focus/navigation operation; see owning pack README."; }

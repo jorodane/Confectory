@@ -34,4 +34,8 @@ element ProjectLabels function "ProjectLabels.celem";
 element ProjectLabelsBody implementation "ProjectLabelsBody.celem";
 element ProjectControls module "ProjectControls.celem";
 element ProjectPanel view "ProjectPanel.celem";
+element Focus function "Focus.celem";
+element FocusBody implementation "FocusBody.celem";
+element Activate function "Activate.celem";
+element ActivateBody implementation "ActivateBody.celem";
 }

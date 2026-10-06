@@ -1,0 +1,22 @@
+implementation Example.UINavigation::GuiBody for Example.UINavigation::Gui () -> int {
+import Confectory.UINavigation::Create as NavCreate (string) -> string;
+import Confectory.UINavigation::Route as NavRoute (string, long, int, int, int, bool, int, int[]) -> string;
+import Confectory.BaseUI::CreateView as CreateView (int, int) -> long[];
+import Confectory.BaseUI::Focus as Focus (long[], string, int) -> int[];
+import Confectory.BaseUI::Activate as Activate (string[], int[], long[], int) -> bool;
+import Confectory.BaseUI::Input as Input (string[], int[], long[], int, int, int, int, int) -> void;
+import Confectory.BaseUI::Layout as Layout (long[]) -> int[];
+import Confectory.BaseUI::Labels as Labels (long[], double[]) -> string[];
+import Confectory.BaseUI::UpdateView as UpdateView (long[], long, long, long, long) -> void;
+import Confectory.RuntimeBase::CreateOwner as CreateOwner (int) -> string[];
+import Confectory.RuntimeBase::CreateInstance as CreateInstance (string[], string) -> int;
+import Confectory.RuntimeBase::Read as Read (string[], int) -> long[];
+import Confectory.RuntimeBase::Write as Write (string[], int, long) -> bool;
+import Confectory.RuntimeBase::DisposeOwner as DisposeOwner (string[]) -> void;
+import Confectory.Window::CreateSurfaces as CreateSurfaces (string[], int, int) -> long[];
+import Confectory.Window::Place as Place (long[], int, int, int) -> void;
+import Confectory.Window::Close as Close (long[], int) -> void;
+import Confectory.Window::SurfaceInfo as SurfaceInfo (long[]) -> long[];
+import Confectory.RenderInput::Pump as Pump (long[]) -> int[];
+import Confectory.RenderInput::Draw as Draw (long[], int, int[], string[]) -> void;
+body common "Gui.csbody"; }
