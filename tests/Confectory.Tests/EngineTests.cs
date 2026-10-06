@@ -9,7 +9,7 @@ public sealed class EngineTests : TestCase
     {
         string sample=Path.Combine(f.Root,"engine-sample");
         Fixture.CopyTree(Path.Combine(Fixture.Repo,"examples","engine"),sample);
-        foreach(string pack in new[]{"runtime-base","realtime-update","render-input","base-ui","window","project-manager","project-execution","file-stream","schema-editing","edit-workspace","save","change-set","element-view","source-editor","agent","helper","worker-tasks"})
+        foreach(string pack in new[]{"runtime-base","realtime-update","render-input","base-ui","ui-navigation","window","project-manager","project-execution","file-stream","schema-editing","edit-workspace","save","change-set","element-view","source-editor","agent","helper","worker-tasks"})
             Fixture.CopyTree(Path.Combine(Fixture.Repo,"packs",pack),Path.Combine(f.Root,"packs",pack));
         string project=Path.Combine(sample,"project.cpack");
         File.WriteAllText(project,File.ReadAllText(project)
@@ -19,7 +19,7 @@ public sealed class EngineTests : TestCase
         var report=new Builder(project,"portable").Build();
         True(!Strings(report,"includedPacks").Contains("Confectory.Agent")&&!Strings(report,"includedPacks").Contains("Confectory.Helper")&&!Strings(report,"includedPacks").Contains("Confectory.WorkerTasks"),"Optional AI packs cannot become engine prerequisites");
         Equal("Confectory.Engine::Main",Text(report,"entry"));
-        Sequence(new[]{"Confectory.BaseUI","Confectory.ChangeSet","Confectory.EditWorkspace","Confectory.ElementView","Confectory.Engine","Confectory.FileStream","Confectory.ProjectExecution","Confectory.ProjectManager","Confectory.RealTimeUpdate","Confectory.RenderInput","Confectory.RuntimeBase","Confectory.Save","Confectory.SchemaEditing","Confectory.SourceEditor","Confectory.Window"},Strings(report,"includedPacks"));
+        Sequence(new[]{"Confectory.BaseUI","Confectory.ChangeSet","Confectory.EditWorkspace","Confectory.ElementView","Confectory.Engine","Confectory.FileStream","Confectory.ProjectExecution","Confectory.ProjectManager","Confectory.RealTimeUpdate","Confectory.RenderInput","Confectory.RuntimeBase","Confectory.Save","Confectory.SchemaEditing","Confectory.SourceEditor","Confectory.UINavigation","Confectory.Window"},Strings(report,"includedPacks"));
         var cached=new Builder(project,"portable").Build();
         Equal(0,Strings(cached,"statistics","compiledImplementations").Length);
         File.AppendAllText(Path.Combine(f.Root,"packs","base-ui","Labels.csbody"),"\n// provider-only locality probe\n");
