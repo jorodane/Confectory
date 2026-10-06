@@ -10,7 +10,7 @@ Checkpoint 9 is now a locally runnable durable AlgorithmProjection milestone on 
 
 ## Current handoff (2026-10-06)
 
-Start the completed Editor with `bash examples/editor/run-editor.sh` on Linux or `powershell -ExecutionPolicy Bypass -File examples/editor/run-editor.ps1` on Windows. Existing SDK8 is required; `CONFECTORY_DOTNET` selects its executable. Nothing is installed. See [Editor instructions](../examples/editor/README.md), [ownership/reuse](EDITOR_UI_OWNERSHIP.md), [pack work ledger](CHECKPOINT_13_WORK_LOG.md) and [Windows checks](CHECKPOINT_13_WINDOWS_CHECK.md).
+Start the completed Editor with `bash examples/editor/run-editor.sh` on Linux or double-click the root `run-editor-windows.bat` on Windows. The batch entry uses ordinary CMD/existing dotnet, keeps failure diagnostics visible and writes `.confectory/editor-launch.log` without PowerShell or terminal navigation. Existing SDK8 is required; `CONFECTORY_DOTNET` selects its executable. Nothing is installed. See [Editor instructions](../examples/editor/README.md), [ownership/reuse](EDITOR_UI_OWNERSHIP.md), [pack work ledger](CHECKPOINT_13_WORK_LOG.md) and [Windows checks](CHECKPOINT_13_WINDOWS_CHECK.md).
 
 BaseUI owns Button presentation/hit/state/activation/cancel/lifetime. Editor and editor-free game only configure layout/text/palette and bind domain actions. SourceEditor Snapshot/Refresh preserve stable buffer identity/caret/selection for clean projections. Field/layout and typed element projection remain explicit next boundaries; do not claim a whole general widget library. Domain models remain caller-owned and Views borrow identity independently of tables. Core and native adapters were not edited.
 
