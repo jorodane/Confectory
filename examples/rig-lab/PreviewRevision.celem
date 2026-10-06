@@ -1,0 +1,1 @@
+object Example.RigLab::PreviewRevision { value initial = 0; description "View-owned presentation revision; source models remain workspace-owned."; }

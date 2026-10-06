@@ -1,0 +1,3 @@
+implementation Example.RigLab::FixtureBody for Example.RigLab::Fixture () -> string {
+body common "FixtureBody.csbody";
+}

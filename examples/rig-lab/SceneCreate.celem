@@ -1,0 +1,1 @@
+function Example.RigLab::SceneCreate (string ownerID, string title, string plane, bool gui, string rig, string definition) -> string { provide Example.RigLab::SceneCreate with Example.RigLab::SceneCreateBody; }

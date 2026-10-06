@@ -44,3 +44,11 @@ Historical earlier publication authorization does not apply to this current loca
 
 
 Stage follow-on: retain explicit return/transition and cleanup retry policies. General 2D/3D physics and render packs must work as independent preview/test consumers without Stage. Next concrete domain contracts (world/contact/layers, body shape/motion, render frame/camera/resource capabilities) should be specified before broader modeling; Ballistic2D/scalar diagnostic are not these contracts. Render authoring and mod-loader require explicit packaging/provider selection/trust/retirement policies; Mesh remains later and optional. No live provider or external publication is authorized here.
+
+## Later: shared semantic entry-point explorer
+
+Discover Category/Concept and Module/Function elements through shared public discovery and source-free projection, then enter the appropriate existing editor. Helpers should consume the same results and put namespace-qualified target IDs in Worker instructions. New semantic elements may start from a suitable parent or project root. Reuse existing edit/task context facilities; do not add a second private registry or default raw implementation scan. Search/index design and freshness handling require later design work. This is distinct from keyboard focus navigation and is not an immediate Rig/Motion checkpoint expansion.
+
+## Priority correction: usable editor composition next
+
+Prioritize [the bounded desktop Editor ProjectPack proposal](NEXT_EDITOR_COMPOSITION.md) ahead of more optional domain packs. Existing tested project, workspace, source/property View, Save/Review/Confirm and execution capabilities need one discoverable end-to-end interface. No requirement to finish every pack, live AI, MeshGeneration or Android before that useful desktop milestone. Rig/Motion and Navigation increments stay preserved; this is planning, not an immediate expansion of their scope.

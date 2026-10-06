@@ -1,0 +1,1 @@
+Console.WriteLine("Rig asset ProjectPack compiled with selected source documents"); return 0;

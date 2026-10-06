@@ -1,0 +1,23 @@
+implementation Example.RigLab::SceneInputBody for Example.RigLab::SceneInput (string scene) -> int[] {
+import Confectory.RigMotion::Validate as Validate (string) -> string;
+import Confectory.RigMotion::Evaluate as Evaluate (string, string, double, bool) -> string;
+import Confectory.RigMotion::Project as Project (string, string) -> string;
+import Confectory.RigMotion::Capabilities as RigCapabilities () -> string;
+import Confectory.RenderAuthoring::Validate as RenderValidate (string) -> string;
+import Confectory.RenderAuthoring::Resolve as Resolve (string) -> string;
+import Example.RigLab::Fixture as Fixture () -> string;
+import Example.RigLab::RenderFixture as RenderFixture () -> string;
+import Confectory.RuntimeBase::CreateOwner as CreateOwner (int) -> string[];
+import Confectory.RuntimeBase::CreateInstance as CreateInstance (string[], string) -> int;
+import Confectory.RuntimeBase::Write as Write (string[], int, long) -> bool;
+import Confectory.RuntimeBase::DisposeOwner as DisposeOwner (string[]) -> void;
+import Confectory.Window::Capabilities as WindowCapabilities () -> int[];
+import Confectory.Window::CreateSurfaces as WindowCreate (string[], int, int) -> long[];
+import Confectory.Window::Place as WindowPlace (long[], int, int, int) -> void;
+import Confectory.Window::SurfaceDimensions as WindowDimensions (long[], int) -> int[];
+import Confectory.Window::Close as WindowClose (long[], int) -> void;
+import Confectory.RenderInput::Draw as Draw (long[], int, int[], string[]) -> void;
+import Confectory.RenderInput::Pump as Pump (long[]) -> int[];
+import Example.RigLab::Compose as Compose (string, string) -> string;
+body common "SceneInputBody.csbody";
+}

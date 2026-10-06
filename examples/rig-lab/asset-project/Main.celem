@@ -1,0 +1,1 @@
+function Example.RigAsset::Main () -> int { use object Example.RigAsset::Rig; use object Example.RigAsset::Render; provide Example.RigAsset::Main with Example.RigAsset::MainBody; }

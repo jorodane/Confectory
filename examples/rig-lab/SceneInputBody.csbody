@@ -1,0 +1,1 @@
+var state=AppDomain.CurrentDomain.GetData("Example.RigLab.Scene."+scene) as object[];if(state is null)return Array.Empty<int>();if((int)state[9]!=Environment.CurrentManagedThreadId)throw new InvalidOperationException("UI thread required");return (bool)state[11]?calls.Pump.Invoke((long[])state[2]):Array.Empty<int>();

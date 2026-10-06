@@ -1,0 +1,1 @@
+function Example.RigLab::RenderFixture () -> string { provide Example.RigLab::RenderFixture with Example.RigLab::RenderFixtureBody; }

@@ -1,0 +1,11 @@
+function Example.RigLab::Verify () -> int { provide Example.RigLab::Verify with Example.RigLab::VerifyBody;
+provide Confectory.RigMotion::Validate with Confectory.RigMotion::ValidateBody;
+provide Confectory.RigMotion::Evaluate with Confectory.RigMotion::EvaluateBody;
+provide Confectory.RigMotion::Capabilities with Confectory.RigMotion::CapabilitiesBody;
+provide Confectory.RigMotion::Project with Confectory.RigMotion::ProjectBody;
+provide Confectory.RigMotion::Command with Confectory.RigMotion::CommandBody;
+provide Confectory.RenderAuthoring::Resolve with Confectory.RenderAuthoring::ResolveBody;
+provide Confectory.RenderAuthoring::Validate with Confectory.RenderAuthoring::ValidateBody;
+provide Confectory.RenderAuthoring::Capabilities with Confectory.RenderAuthoring::CapabilitiesBody;
+provide Confectory.RenderAuthoring::Command with Confectory.RenderAuthoring::CommandBody;
+}

@@ -1,0 +1,1 @@
+function Example.RigLab::SceneFrame (string scene, string rig, string definition, string action, double time, bool loop, string status) -> string { provide Example.RigLab::SceneFrame with Example.RigLab::SceneFrameBody; }

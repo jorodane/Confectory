@@ -1,0 +1,1 @@
+function Example.RigLab::SceneInput (string scene) -> int[] { provide Example.RigLab::SceneInput with Example.RigLab::SceneInputBody; }

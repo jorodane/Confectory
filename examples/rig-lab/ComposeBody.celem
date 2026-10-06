@@ -1,0 +1,11 @@
+implementation Example.RigLab::ComposeBody for Example.RigLab::Compose (string rig, string definition) -> string {
+import Confectory.RigMotion::Validate as Validate (string) -> string;
+import Confectory.RigMotion::Evaluate as Evaluate (string, string, double, bool) -> string;
+import Confectory.RigMotion::Project as Project (string, string) -> string;
+import Confectory.RigMotion::Capabilities as RigCapabilities () -> string;
+import Confectory.RenderAuthoring::Validate as RenderValidate (string) -> string;
+import Confectory.RenderAuthoring::Resolve as Resolve (string) -> string;
+import Example.RigLab::Fixture as Fixture () -> string;
+import Example.RigLab::RenderFixture as RenderFixture () -> string;
+body common "ComposeBody.csbody";
+}
