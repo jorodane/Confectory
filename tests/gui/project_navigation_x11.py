@@ -99,10 +99,12 @@ stall=os.path.join(storage,'stall-description')
 wrapper=os.path.join(storage,'existing-dotnet-test-wrapper.sh')
 with open(wrapper,'w') as stream:stream.write('#!/bin/sh\nif [ "$2" = "describe" ] && [ -f '+shlex.quote(stall)+' ]; then sleep 1; fi\nexec '+shlex.quote(os.environ.get('CONFECTORY_DOTNET') or shutil.which('dotnet'))+' "$@"\n')
 os.chmod(wrapper,0o700);env['CONFECTORY_DOTNET']=os.environ.get('CONFECTORY_DOTNET') or shutil.which('dotnet')
-app=None;log=None
+app=None;log=None;launch_count=0
 
 def launch():
-    global app,log
+    global app,log,launch_count
+    if launch_count and os.path.isfile(log_path):shutil.copy2(log_path,os.path.join(storage,f"native-launch-{launch_count}.log"))
+    launch_count+=1
     log=open(log_path,'w',encoding='utf-8');app=subprocess.Popen(report['run'],cwd=repo,env=env,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
     return await_window(b'Confectory - Projects')
 def latest():
@@ -175,6 +177,8 @@ try:
         event=Event(kind,0,1,display,a,root,0,100,x,y,0,0,0,1,1);buf=c.create_string_buffer(192);c.memmove(buf,c.byref(event),c.sizeof(event));assert send(display,a,0,0,buf)
     flush(display);time.sleep(.3);assert latest()['model']['shell']['menu']==''
     click(a,43);state=wait(lambda t:t['model']['shell']['menu']=='grievance','grievance');assert state['model']['shell']['grievance']=={'available':False,'unresolved':None,'highestUrgency':None};assert 38 not in state['hits'][::5];screenshot(a,'grievance-unavailable');click(a,42);wait(lambda t:t['model']['shell']['menu']=='','close grievance')
+    for _ in range(8):
+        click(a,44);wait(lambda t:t['model']['shell']['navigation']=='main' and 45 in t['hits'][::5],'repeated Navigate open');time.sleep(.35);assert latest()['model']['shell']['navigation']=='main','stable frame/focus must not dismiss Navigate';press(a,0xFF1B);wait(lambda t:t['model']['shell']['navigation']=='','repeated Escape dismiss')
     click(a,44);state=wait(lambda t:t['model']['shell']['navigation']=='main' and 45 in t['hits'][::5],'upward menu');p=state['navigationPanel'];assert p[4]==0 and p[1]+p[3]<state['height']-84;assert 38 not in state['hits'][::5];assert state['controls']==control
     click(a,48);state=wait(lambda t:t['model']['shell']['navigation']=='project' and 50 in t['hits'][::5],'submenu');p=state['submenuPanel'];assert p[4]==2 and p[0]>=0;screenshot(a,'rounded-navigation');click(a,50);state=wait(lambda t:t['model']['shell']['menu']=='info' and not t['navigationPanel'],'information route');assert state['model']['selected']['context']==context;click(a,42);wait(lambda t:t['model']['shell']['menu']=='','close information')
     # Native keyboard activation, held/repeated key and Escape cancellation.

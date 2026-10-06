@@ -39,6 +39,7 @@ import Confectory.BaseUI.NativeInput::Field as NativeField (string, string, int,
 import Confectory.BaseUI.NativeInput::Poll as NativePoll (string, string) -> string;
 import Confectory.BaseUI.NativeInput::Focus as NativeFocus (string, string, int) -> void;
 import Confectory.BaseUI.NativeInput::Frame as NativeFrame (string, string[]) -> void;
+import Confectory.BaseUI.NativeInput::Clip as NativeClip (string, string, int[]) -> void;
 import Confectory.BaseUI.NativeInput::Close as NativeClose (string) -> void;
 import Confectory.NativeUI::Request as NativeRequest (string, string, string, long) -> string;
 body common "Main.csbody"; }

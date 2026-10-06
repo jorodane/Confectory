@@ -9,6 +9,18 @@ def api(name,result,args):
 open_display=api('XOpenDisplay',P,[c.c_char_p]);d=open_display(None);assert d,'Live isolated DISPLAY required';ui=NativeControls(d)
 query=api('XQueryTree',c.c_int,[P,U,c.POINTER(U),c.POINTER(U),c.POINTER(P),c.POINTER(c.c_uint)]);fetch=api('XFetchName',c.c_int,[P,U,c.POINTER(P)]);free=api('XFree',c.c_int,[P])
 resize=api('XResizeWindow',c.c_int,[P,U,c.c_uint,c.c_uint])
+shape=c.CDLL('libXext.so.6');shape.XShapeGetRectangles.restype=P;shape.XShapeGetRectangles.argtypes=[P,U,c.c_int,c.POINTER(c.c_int),c.POINTER(c.c_int)]
+class Rectangle(c.Structure):
+ _fields_=[('x',c.c_short),('y',c.c_short),('width',c.c_ushort),('height',c.c_ushort)]
+observed_shapes=set()
+def shape_width(window,kind=0):
+ count,ordering=c.c_int(),c.c_int();rectangles=shape.XShapeGetRectangles(d,int(window),kind,c.byref(count),c.byref(ordering));assert rectangles and count.value
+ try:
+  width=max(r.x+r.width for r in c.cast(rectangles,c.POINTER(Rectangle))[:count.value])
+  if width not in observed_shapes:observed_shapes.add(width);print("Observed native visual clip width:",width,flush=True)
+  return width
+ finally:free(rectangles)
+
 def find(title):
  root,parent,children,count=U(),U(),P(),c.c_uint();query(d,ui.root,c.byref(root),c.byref(parent),c.byref(children),c.byref(count))
  try:
@@ -54,6 +66,7 @@ try:
  h=focus(0,2);ui.text(h,'first line\nsecond line');value(0,1,'first line\nsecond line');ui.key(h,'z',(0xFFE3,));wait(lambda r:r[0]['values'][1]!='first line\nsecond line','toolkit source undo');ui.key(h,'z',(0xFFE3,0xFFE1));value(0,1,'first line\nsecond line')
  h=focus(0,3);ui.key(h,'q');value(0,2,'Synthetic readonly');ui.click(field(0,4)['nativeHandle'],8,8);ui.key(a,0xFFBE);h=focus(0,1);ui.key(h,'q');assert rows()[0]['values'][3]=='Synthetic disabled'
  ui.key(h,0xFFC5);r=value(0,0,'External model value');assert field(0,1)['nativeHandle']==identity and field(0,1)['binding']==token;wait(lambda r:field(0,1)['caret']==8 and field(0,1)['anchor']==3,'external model selection')
+ ui.key(h,0xFFC1);wait(lambda r:shape_width(identity)==230 and shape_width(identity,2)==230,'native visual/input clip');assert field(0,1)['nativeHandle']==identity and rows()[0]['values'][0]=='External model value';ui.click(a,370,70);wait(lambda r:not field(0,1)['focus'],'clipped region cannot take native focus');ui.click(int(identity),60,20);wait(lambda r:field(0,1)['focus'],'visible native region takes focus');ui.key(h,0xFFC1);wait(lambda r:shape_width(identity)==460 and shape_width(identity,2)==460,'native clip restoration');assert field(0,1)['binding']==token
  ui.key(h,0xFFC0);wait(lambda r:all(not f['visible'] for f in r[0]['native']['fields']),'hidden fields');ui.key(a,0xFFC0);wait(lambda r:any(f['id']==1 and f['visible'] and f['nativeHandle']==identity for f in r[0]['native']['fields']),'same native identity after show')
  resize(d,a,700,600);ui.flush(d);time.sleep(.2);assert field(0,1)['nativeHandle']==identity
  h=focus(0,1);ui.key(h,0xFF09);wait(lambda r:r[0]['native']['focus']==2,'native Tab app navigation')

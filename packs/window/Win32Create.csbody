@@ -17,6 +17,8 @@ static extern bool AdjustWindowRectEx(IntPtr rect,uint style,bool menu,uint ex);
 [System.Runtime.InteropServices.DllImport("user32.dll")]
 static extern IntPtr SetFocus(IntPtr window);
 [System.Runtime.InteropServices.DllImport("user32.dll")]
+static extern bool IsChild(IntPtr parent,IntPtr child);
+[System.Runtime.InteropServices.DllImport("user32.dll")]
 static extern IntPtr SetCapture(IntPtr window);
 [System.Runtime.InteropServices.DllImport("user32.dll")]
 static extern bool ReleaseCapture();
@@ -56,6 +58,7 @@ if(surfaces[0]==0)
   try
   {
    int index=Find(hwnd),packed=unchecked((int)lParam.ToInt64()),x=(short)(packed&65535),y=(short)(packed>>16);
+   if(traceNative&&message is 0x6 or 0x7 or 0x8 or 0x1F or 0x215 or 0x201 or 0x202 or 0x203)Console.Error.WriteLine("NATIVE_WINDOW "+System.Text.Json.JsonSerializer.Serialize(new{stamp=System.Diagnostics.Stopwatch.GetTimestamp(),operation="window-event",handle=hwnd.ToInt64(),view=index,message,wParam=wParam.ToInt64(),lParam=lParam.ToInt64()}));
    if(message==0x14)return (IntPtr)1; // buffered WM_PAINT owns background, never STATIC erase/paint
    if(message==0xF)
    {
@@ -89,6 +92,7 @@ if(surfaces[0]==0)
    }
    if(message==0x100||message==0x101){Emit(index,message==0x100?5:6,0,0,unchecked((int)wParam.ToInt64()),((packed>>30)&1)|((GetKeyState(0x11)&0x8000)!=0?2:0)|((GetKeyState(0x10)&0x8000)!=0?4:0)|((GetKeyState(0x12)&0x8000)!=0?8:0));return DefWindowProcW(hwnd,message,wParam,lParam);}
    if(message==0x5){Emit(index,7,packed&65535,(packed>>16)&65535);return IntPtr.Zero;}
+   if(message==0x8&&IsChild(hwnd,wParam))return DefWindowProcW(hwnd,message,wParam,lParam);
    if(message==0x8||message==0x1F){((System.Collections.Generic.Dictionary<long,char>)context[8]).Remove(hwnd.ToInt64());Emit(index,9);return DefWindowProcW(hwnd,message,wParam,lParam);}
    if(message==0x215){Emit(index,11);return DefWindowProcW(hwnd,message,wParam,lParam);}
    if(message==0x10){if(((System.Collections.Generic.HashSet<long>)context[6]).Add(hwnd.ToInt64()))Emit(index,8);return IntPtr.Zero;}
@@ -127,9 +131,9 @@ var rect=System.Runtime.InteropServices.Marshal.AllocHGlobal(16);
 try
 {
  System.Runtime.InteropServices.Marshal.WriteInt32(rect,0,0);System.Runtime.InteropServices.Marshal.WriteInt32(rect,4,0);System.Runtime.InteropServices.Marshal.WriteInt32(rect,8,width);System.Runtime.InteropServices.Marshal.WriteInt32(rect,12,height);
- if(!AdjustWindowRectEx(rect,0x10CF0000,false,0))throw new InvalidOperationException("AdjustWindowRectEx failed.");
+ if(!AdjustWindowRectEx(rect,0x12CF0000,false,0))throw new InvalidOperationException("AdjustWindowRectEx failed.");
  int outerWidth=System.Runtime.InteropServices.Marshal.ReadInt32(rect,8)-System.Runtime.InteropServices.Marshal.ReadInt32(rect,0),outerHeight=System.Runtime.InteropServices.Marshal.ReadInt32(rect,12)-System.Runtime.InteropServices.Marshal.ReadInt32(rect,4);
- var hwnd=CreateWindowExW(0,(string)context[1],title,0x10CF0000,100+view*(width+20),100,outerWidth,outerHeight,IntPtr.Zero,IntPtr.Zero,(IntPtr)context[2],IntPtr.Zero);
+ var hwnd=CreateWindowExW(0,(string)context[1],title,0x12CF0000,100+view*(width+20),100,outerWidth,outerHeight,IntPtr.Zero,IntPtr.Zero,(IntPtr)context[2],IntPtr.Zero);
  if(hwnd==IntPtr.Zero)throw new InvalidOperationException("CreateWindowExW failed: "+System.Runtime.InteropServices.Marshal.GetLastWin32Error());surfaces[view+1]=hwnd.ToInt64();
 }
 finally{System.Runtime.InteropServices.Marshal.FreeHGlobal(rect);}

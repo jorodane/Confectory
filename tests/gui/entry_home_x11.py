@@ -99,10 +99,12 @@ stall=os.path.join(storage,'stall-description')
 wrapper=os.path.join(storage,'existing-dotnet-test-wrapper.sh')
 with open(wrapper,'w') as stream:stream.write('#!/bin/sh\nif [ "$2" = "describe" ] && [ -f '+shlex.quote(stall)+' ]; then sleep 1; fi\nexec '+shlex.quote(os.environ.get('CONFECTORY_DOTNET') or shutil.which('dotnet'))+' "$@"\n')
 os.chmod(wrapper,0o700);env['CONFECTORY_DOTNET']=wrapper
-app=None;log=None
+app=None;log=None;launch_count=0
 
 def launch():
-    global app,log
+    global app,log,launch_count
+    if launch_count and os.path.isfile(log_path):shutil.copy2(log_path,os.path.join(storage,f"native-launch-{launch_count}.log"))
+    launch_count+=1
     log=open(log_path,'w',encoding='utf-8');app=subprocess.Popen(report['run'],cwd=repo,env=env,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
     return await_window(b'Confectory - Projects')
 def latest():

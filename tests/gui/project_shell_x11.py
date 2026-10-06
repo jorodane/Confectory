@@ -99,10 +99,12 @@ stall=os.path.join(storage,'stall-description')
 wrapper=os.path.join(storage,'existing-dotnet-test-wrapper.sh')
 with open(wrapper,'w') as stream:stream.write('#!/bin/sh\nif [ "$2" = "describe" ] && [ -f '+shlex.quote(stall)+' ]; then sleep 1; fi\nexec '+shlex.quote(os.environ.get('CONFECTORY_DOTNET') or shutil.which('dotnet'))+' "$@"\n')
 os.chmod(wrapper,0o700);env['CONFECTORY_DOTNET']=os.environ.get('CONFECTORY_DOTNET') or shutil.which('dotnet')
-app=None;log=None
+app=None;log=None;launch_count=0
 
 def launch():
-    global app,log
+    global app,log,launch_count
+    if launch_count and os.path.isfile(log_path):shutil.copy2(log_path,os.path.join(storage,f"native-launch-{launch_count}.log"))
+    launch_count+=1
     log=open(log_path,'w',encoding='utf-8');app=subprocess.Popen(report['run'],cwd=repo,env=env,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
     return await_window(b'Confectory - Projects')
 def latest():
@@ -178,7 +180,8 @@ try:
     click(a,39);wait(lambda t:t['model']['shell']['tab']=='chat' and 38 in t['hits'][::5],'chat tab');assert latest()['chatBuffers'][context]==buffer
     click(a,38);chat_field=json.loads(latest()['fields']['38']);chat_handle=int(chat_field['nativeHandle']);native_controls.key(chat_handle,'a',(0xFFE3,));native_controls.key(chat_handle,'v',(0xFFE3,));wait(lambda t:json.loads(t['fields']['38'])['text']==expected_logs,'native logs copy/paste into editable chat');native_controls.text(chat_handle,'A local project draft');wait(lambda t:json.loads(t['fields']['38'])['text']=='A local project draft','restore synthetic local draft')
     click(a,33);state=wait(lambda t:t['model']['shell']['menu']=='project' and 34 in t['hits'][::5],'project name menu');assert 38 not in state['hits'][::5] and 36 not in state['hits'][::5]
-    click(a,34);wait(lambda t:t['model']['shell']['menu']=='info','project info');assert 'Workspace' not in latest()['texts'],'modal overlay suppresses covered workspace text';screenshot(a,'project-info');click(a,42);wait(lambda t:t['model']['shell']['menu']=='','close info')
+    modal_field=json.loads(state['fields']['38']);assert modal_field['visible'] and not modal_field['enabled'],'non-overlapping modal keeps native text visible but ineligible';assert modal_field['nativeHandle']==chat_field['nativeHandle']
+    click(a,34);wait(lambda t:t['model']['shell']['menu']=='info','project info');state=latest();menu_bounds=(216,58,440,290);workspace_clips=[state['textClips'][n*4:n*4+4] for n,text in enumerate(state['texts']) if text=='Workspace'];assert all(x>=menu_bounds[0]+menu_bounds[2] or x+w<=menu_bounds[0] or y>=menu_bounds[1]+menu_bounds[3] or y+h<=menu_bounds[1] for x,y,w,h in workspace_clips),'Workspace text clips exclude covered menu region';screenshot(a,'project-info');click(a,42);wait(lambda t:t['model']['shell']['menu']=='','close info')
     click(a,33);wait(lambda t:t['model']['shell']['menu']=='project','menu');click(a,35);wait(lambda t:t['model']['shell']['menu']=='settings','honest read-only settings');click(a,42);wait(lambda t:t['model']['shell']['menu']=='','close settings')
     click(a,6);wait(lambda t:t['model']['shell']['menu']=='providers','provider panel remains offline');assert not latest()['model']['shell']['liveProvider'];click(a,42);wait(lambda t:t['model']['shell']['menu']=='','close providers')
     click(a,33);wait(lambda t:t['model']['shell']['menu']=='project','folder menu');click(a,16);assert open(folder_request).read().strip()==os.path.dirname(path);click(a,42);wait(lambda t:t['model']['shell']['menu']=='','close folder menu')
@@ -191,6 +194,7 @@ try:
     for i in range(0,len(state['hits']),5):_,x,y,w,h=state['hits'][i:i+5];assert 0<=x<x+w<=640 and 0<=y<y+h<=520
     screenshot(a,'project-narrow');click(a,7);wait(lambda t:not t['sidebar'],'sidebar collapsed');click(a,7);wait(lambda t:t['sidebar'],'sidebar restored')
     click(a,37);wait(lambda t:t['model']['execution']['state']=='stopped','stop one child');click(a,39);wait(lambda t:38 in t['hits'][::5],'return draft');assert latest()['chatBuffers'][context]==buffer
+    click(a,40);wait(lambda t:t['model']['shell']['tab']=='logs','hide retained chat before resize');resize(display,a,700,540);flush(display);wait(lambda t:t['width']==700 and t['height']==540,'resize while chat binding hidden')
     leave_project(a);state=wait(lambda t:t['screen']=='home' and t['model']['selected'] is None and t['model']['shell'] is None,'leave hides project chat without null project');assert state['controls']==home
     # Create a second project: its chat starts independently and cannot select/open project A.
     click(a,2);wait(lambda t:t['screen']=='create','second New');click(a,10);type_text(a,'Shell Gui B');click(a,13);state=wait(lambda t:t['screen']=='project' and t['model']['selected']['title']=='Shell Gui B','second context')

@@ -10,6 +10,9 @@ try
 {
  calls.Create.Invoke(surfaces,0,"A",480,420);calls.Create.Invoke(surfaces,1,"B",480,420);GC.Collect();GC.WaitForPendingFinalizers();GC.Collect();
  Check(SimCounter(0)==1,"Owned registered class per session");
+ Check(SimCounter(19)==2,"Parent render DC excludes native children in both Views");
+ SimSend((IntPtr)surfaces[1],0x8,(IntPtr)(surfaces[1]+10000),IntPtr.Zero);Check(calls.Pump.Invoke(surfaces).Length==0,"Focus entering native descendant stays inside View");
+ SimSend((IntPtr)surfaces[1],0x8,(IntPtr)9999,IntPtr.Zero);var outside=calls.Pump.Invoke(surfaces);Check(outside.Length==6&&outside[1]==9,"External focus loss still cancels View input");
  bool wrongThread=System.Threading.Tasks.Task.Run(()=>{try{calls.Pump.Invoke(surfaces);return false;}catch(InvalidOperationException ex){return ex.Message.Contains("creating UI thread");}}).GetAwaiter().GetResult();Check(wrongThread,"Native thread ownership enforced");
  Check(SimSend((IntPtr)surfaces[1],0x84,IntPtr.Zero,IntPtr.Zero)==(IntPtr)1,"Default hit testing delegated");
  SimSend((IntPtr)surfaces[1],0xA1,IntPtr.Zero,IntPtr.Zero);SimSend((IntPtr)surfaces[1],0xA3,IntPtr.Zero,IntPtr.Zero);SimSend((IntPtr)surfaces[1],0x112,(IntPtr)0xF020,IntPtr.Zero);Check(SimCounter(2)==3,"Default caption/system commands delegated");

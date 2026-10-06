@@ -1,0 +1,1 @@
+implementation Confectory.BaseUI.NativeInput::ClipBody for Confectory.BaseUI.NativeInput::Clip (string host, string field, int[] regions) -> void { import Confectory.NativeUI::Request as Request (string, string, string, long) -> string; body common "Clip.csbody"; }

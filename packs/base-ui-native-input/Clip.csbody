@@ -1,0 +1,1 @@
+if(string.IsNullOrWhiteSpace(field)||field.Length>256||regions.Length%4!=0||regions.Length>1024)throw new ArgumentException("Native clip region budget");calls.Request.Invoke(host,"clip",System.Text.Json.JsonSerializer.Serialize(new{key=field,regions}),0);

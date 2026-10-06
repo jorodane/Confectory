@@ -21,9 +21,10 @@ uint16_t RegisterClassExW(void *cls){uint32_t *u=cls;void **p=cls;if(u[0]!=80||!
 intptr_t GetModuleHandleW(const uint16_t *name){(void)name;return 1;}
 intptr_t LoadCursorW(intptr_t h,intptr_t name){(void)h;return name;}
 int AdjustWindowRectEx(int *rect,uint32_t style,int menu,uint32_t ex){(void)style;(void)menu;(void)ex;rect[0]-=8;rect[1]-=31;rect[2]+=8;rect[3]+=8;return 1;}
-intptr_t CreateWindowExW(uint32_t ex,const uint16_t *cls,const uint16_t *title,uint32_t style,int x,int y,int width,int height,intptr_t parent,intptr_t menu,intptr_t instance,intptr_t param){(void)ex;(void)cls;(void)title;(void)style;(void)x;(void)y;(void)parent;(void)menu;(void)instance;(void)param;intptr_t h=100+nwindow;windows[nwindow++]=(struct window){h,width-16,height-39,1};callback(h,0x81,0,0);return h;}
+intptr_t CreateWindowExW(uint32_t ex,const uint16_t *cls,const uint16_t *title,uint32_t style,int x,int y,int width,int height,intptr_t parent,intptr_t menu,intptr_t instance,intptr_t param){(void)ex;(void)cls;(void)title;if(style&0x02000000)counters[19]++;(void)x;(void)y;(void)parent;(void)menu;(void)instance;(void)param;intptr_t h=100+nwindow;windows[nwindow++]=(struct window){h,width-16,height-39,1};callback(h,0x81,0,0);return h;}
 intptr_t DefWindowProcW(intptr_t hwnd,uint32_t msg,intptr_t wp,intptr_t lp){(void)hwnd;(void)wp;(void)lp;if(msg==0x84){counters[1]++;return 1;}if(msg==0xA1||msg==0xA3||msg==0x112)counters[2]++;return 0;}
 intptr_t SetFocus(intptr_t hwnd){intptr_t old=focus;focus=hwnd;if(old&&old!=hwnd)callback(old,8,hwnd,0);return old;}
+int IsChild(intptr_t parent,intptr_t child){return child==parent+10000;}
 intptr_t SetCapture(intptr_t hwnd){counters[3]++;return hwnd;}
 int ReleaseCapture(void){counters[4]++;return 1;}
 int ScreenToClient(intptr_t hwnd,int *point){(void)hwnd;point[0]-=100;point[1]-=100;counters[5]++;return 1;}

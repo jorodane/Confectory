@@ -30,8 +30,8 @@ public sealed class ProjectShellTests : TestCase
         string consumer=Consumer("editor-home"),project=Path.Combine(consumer,"project.cpack");var built=new Builder(project,"linux").Build();OptionalExcluded(built);string report=Path.Combine(f.Root,"shell native report.json");File.WriteAllText(report,built.ToJsonString());var run=Processes.Run(new[]{"python",Path.Combine(Fixture.Repo,"tests","gui","project_shell_x11.py"),report},timeoutSeconds:240);True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("Project shell actual X11"));
         File.AppendAllText(Path.Combine(consumer,"Main.csbody"),"\n// project shell presentation locality probe\n");var changed=new Builder(project,"linux").Build();Sequence(new[]{"Confectory.EditorHome::MainBody"},Strings(changed,"statistics","compiledImplementations"));Equal(0,Strings(changed,"statistics","compiledContracts").Length);
     }
-    public void test_project_shell_windows_android_managed_profiles_compile_only()
+    public void test_project_shell_windows_compile_and_missing_android_provider()
     {
-        string consumer=Consumer("editor-home");foreach(string target in new[]{"windows","android"}){var built=new Builder(Path.Combine(consumer,"project.cpack"),target).Build();True(built["tool"]!["ok"]!.GetValue<bool>());OptionalExcluded(built);}
+        string consumer=Consumer("editor-home"),project=Path.Combine(consumer,"project.cpack");var built=new Builder(project,"windows").Build();True(built["tool"]!["ok"]!.GetValue<bool>());OptionalExcluded(built);Error("MISSING_TARGET_IMPLEMENTATION",()=>new Builder(project,"android").Build());
     }
 }
