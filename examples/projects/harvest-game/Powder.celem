@@ -1,0 +1,1 @@
+object Example.HarvestGame::Powder { description "Fictional harvest resource for the local mechanics test."; value concept = "resource"; }

@@ -1,0 +1,1 @@
+function Example.HarvestGame::Throw (string inventory, double x, double y, double gravity) -> string {description "Create a scoped moving fictional projectile and consume one crafted item only on successful creation; caller owns the returned flight/landing/fuse/effect instance.";provide Example.HarvestGame::Throw with Example.HarvestGame::ThrowBody;}

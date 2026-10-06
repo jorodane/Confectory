@@ -1,0 +1,1 @@
+object Example.HarvestGame::BombRecipe { description "Compose registered ingredient IDs through Recipe.Craft, with atomic stock changes."; value concept = "recipe"; value ingredients = "{\"Example.HarvestGame::Herb\":1,\"Example.HarvestGame::Timber\":1,\"Example.HarvestGame::Powder\":2}"; value output = "Example.HarvestGame::Bomb"; value outputCount = 1; }

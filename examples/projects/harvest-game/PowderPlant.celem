@@ -1,0 +1,1 @@
+object Example.HarvestGame::PowderPlant extends Confectory.Harvest::Plant { description "Harvest fictional powder; author yield using the shared table or normal object View."; value concept = "harvest-plant"; value resource = "Example.HarvestGame::Powder"; value yield = 2; value regrowSeconds = 0.3; }

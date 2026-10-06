@@ -1,0 +1,1 @@
+function Confectory.Ballistic2D::Close (string projectile) -> void {provide Confectory.Ballistic2D::Close with Confectory.Ballistic2D::CloseBody;}

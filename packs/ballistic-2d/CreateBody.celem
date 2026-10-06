@@ -1,0 +1,4 @@
+implementation Confectory.Ballistic2D::CreateBody for Confectory.Ballistic2D::Create (double x, double y, double targetX, double targetY, double flightSeconds, double fuseSeconds, double gravity) -> string {
+
+body common "Create.csbody";
+}

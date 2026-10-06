@@ -1,0 +1,1 @@
+function Confectory.Ballistic2D::Snapshot (string projectile, double interpolation) -> string {provide Confectory.Ballistic2D::Snapshot with Confectory.Ballistic2D::SnapshotBody;}

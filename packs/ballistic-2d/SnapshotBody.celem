@@ -1,0 +1,4 @@
+implementation Confectory.Ballistic2D::SnapshotBody for Confectory.Ballistic2D::Snapshot (string projectile, double interpolation) -> string {
+
+body common "Snapshot.csbody";
+}

@@ -1,0 +1,1 @@
+function Confectory.Ballistic2D::Step (string projectile, double seconds) -> void {provide Confectory.Ballistic2D::Step with Confectory.Ballistic2D::StepBody;}

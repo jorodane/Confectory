@@ -1,0 +1,1 @@
+object Example.HarvestGame::Bomb { description "Fictional timed game item; no real-world construction instructions."; value concept = "crafted-item"; }

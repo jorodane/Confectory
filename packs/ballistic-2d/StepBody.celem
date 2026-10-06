@@ -1,0 +1,4 @@
+implementation Confectory.Ballistic2D::StepBody for Confectory.Ballistic2D::Step (string projectile, double seconds) -> void {
+
+body common "Step.csbody";
+}

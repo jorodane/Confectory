@@ -1,0 +1,1 @@
+string projectile=calls.Create.Invoke(80,190,x,y,0.8,0.3,gravity);try{if(calls.Apply.Invoke(inventory,new[]{"Example.HarvestGame::Bomb"},new[]{-1}))return projectile;calls.Close.Invoke(projectile);return "";}catch{calls.Close.Invoke(projectile);throw;}

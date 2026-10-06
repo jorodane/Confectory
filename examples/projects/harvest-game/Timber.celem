@@ -1,0 +1,1 @@
+object Example.HarvestGame::Timber { description "Fictional crafting ingredient."; value concept = "resource"; }
