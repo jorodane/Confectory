@@ -1,0 +1,1 @@
+function Confectory.BaseUI::ControlState (string surface, string operation, int control) -> int[] { description "Query returns focus,pressed,hover,eligibleIDs; operations focus/cancel/show/hide/enable/disable preserve models."; }

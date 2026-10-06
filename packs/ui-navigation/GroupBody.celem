@@ -1,0 +1,1 @@
+implementation Confectory.UINavigation::GroupBody for Confectory.UINavigation::Group (string state, string group, int currentFocus, int[] eligible) -> string { body common "Group.csbody"; }

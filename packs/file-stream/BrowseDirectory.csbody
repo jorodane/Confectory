@@ -1,0 +1,18 @@
+if(offset<0||limit<1||limit>128)throw new ArgumentOutOfRangeException("Directory page bounds");
+string full=System.IO.Path.GetFullPath(directory);
+var info=new System.IO.DirectoryInfo(full);
+if(!info.Exists||(info.Attributes&System.IO.FileAttributes.ReparsePoint)!=0)throw new ArgumentException("Choose an existing ordinary directory");
+var candidates=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Take(info.EnumerateFileSystemInfos(),4097));
+if(candidates.Length>4096)throw new ArgumentException("Directory entry budget exceeded; choose a narrower folder");
+var ordinary=System.Linq.Enumerable.Where(candidates,x=>(x.Attributes&System.IO.FileAttributes.ReparsePoint)==0);
+var byKind=System.Linq.Enumerable.OrderBy(ordinary,x=>(x.Attributes&System.IO.FileAttributes.Directory)!=0?0:1);
+var byName=System.Linq.Enumerable.ThenBy(byKind,x=>x.Name,StringComparer.OrdinalIgnoreCase);
+var entries=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.ThenBy(byName,x=>x.Name,StringComparer.Ordinal));
+if(offset>entries.Length)offset=entries.Length;
+int end=Math.Min(entries.Length,offset+limit);
+var result=new System.Collections.Generic.List<string>{full,info.Parent?.FullName??full,end<entries.Length?end.ToString(System.Globalization.CultureInfo.InvariantCulture):"-1"};
+for(int n=offset;n<end;n++)
+{
+ var entry=entries[n];result.Add((entry.Attributes&System.IO.FileAttributes.Directory)!=0?"directory":"file");result.Add(entry.Name);result.Add(entry.FullName);
+}
+return result.ToArray();

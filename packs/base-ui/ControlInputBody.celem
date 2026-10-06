@@ -1,0 +1,1 @@
+implementation Confectory.BaseUI::ControlInputBody for Confectory.BaseUI::ControlInput (string surface, int[] rectangles, int type, int x, int y) -> int { body common "ControlInput.csbody"; }

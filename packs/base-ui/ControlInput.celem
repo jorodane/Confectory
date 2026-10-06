@@ -1,0 +1,1 @@
+function Confectory.BaseUI::ControlInput (string surface, int[] rectangles, int type, int x, int y) -> int { description "Pointer press/release intent and hover/cancel only; keyboard group policy remains optional Navigation."; }

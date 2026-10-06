@@ -1,0 +1,6 @@
+
+var state=AppDomain.CurrentDomain.GetData("Confectory.BaseUI.Controls."+surface) as object[]??throw new ObjectDisposedException("Control surface");if((int)state[0]!=Environment.CurrentManagedThreadId)throw new InvalidOperationException("UI thread required");if(rectangles.Length%5!=0||rectangles.Length>640)throw new ArgumentException("Control rectangle records are ID,x,y,width,height");var controls=(System.Collections.Generic.Dictionary<int,int>)state[1];int Hit(){for(int n=rectangles.Length-5;n>=0;n-=5){int id=rectangles[n];if(controls.TryGetValue(id,out int flags)&&flags==3&&rectangles[n+3]>0&&rectangles[n+4]>0&&x>=rectangles[n+1]&&y>=rectangles[n+2]&&(long)x<(long)rectangles[n+1]+rectangles[n+3]&&(long)y<(long)rectangles[n+2]+rectangles[n+4])return id;}return 0;}
+if(type==1){int hit=Hit();state[3]=hit;if(hit!=0)state[2]=hit;state[4]=hit;}
+if(type==2){int pressed=(int)state[3];state[3]=0;if(pressed!=0&&Hit()==pressed)return pressed;}
+if(type==3)state[4]=Hit();if(type is 7 or 9 or 11){state[3]=0;state[4]=0;}return 0;
+

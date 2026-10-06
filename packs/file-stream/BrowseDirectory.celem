@@ -1,0 +1,1 @@
+function Confectory.FileStream::BrowseDirectory (string directory, int offset, int limit) -> string[] { description "Explicit source-free directory metadata page: current,parent,nextOffset followed by kind,name,path triples; no source parsing."; }

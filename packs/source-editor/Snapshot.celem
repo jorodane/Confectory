@@ -1,0 +1,1 @@
+function Confectory.SourceEditor::Snapshot (string buffer) -> string[] { description "Coherent caller-serialized buffer snapshot: ID,text,UTF16 caret offset,all-or-caret selection."; }

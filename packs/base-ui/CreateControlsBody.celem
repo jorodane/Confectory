@@ -1,0 +1,1 @@
+implementation Confectory.BaseUI::CreateControlsBody for Confectory.BaseUI::CreateControls (int[] controls) -> string { body common "CreateControls.csbody"; }

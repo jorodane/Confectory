@@ -1,0 +1,1 @@
+function Confectory.BaseUI::CloseControls (string surface) -> void { description "Release only UI control state; idempotent and never closes borrowed element/workspace models."; }

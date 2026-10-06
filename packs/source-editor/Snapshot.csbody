@@ -1,0 +1,3 @@
+
+var state=AppDomain.CurrentDomain.GetData("Confectory.SourceEditor."+buffer) as object[]??throw new ObjectDisposedException("SourceEditor");return new[]{(string)state[0],((System.Text.StringBuilder)state[1]).ToString(),((int)state[2]).ToString(System.Globalization.CultureInfo.InvariantCulture),(bool)state[3]?"all":"caret"};
+

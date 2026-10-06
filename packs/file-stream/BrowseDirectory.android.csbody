@@ -1,0 +1,1 @@
+throw new PlatformNotSupportedException("Android directory selection requires an app-private or explicitly granted storage picker provider; desktop filesystem browsing is unavailable.");

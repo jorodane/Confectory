@@ -1,0 +1,3 @@
+
+var state=AppDomain.CurrentDomain.GetData("Confectory.BaseUI.Controls."+surface) as object[];if(state is null)return;if((int)state[0]!=Environment.CurrentManagedThreadId)throw new InvalidOperationException("UI thread required");AppDomain.CurrentDomain.SetData("Confectory.BaseUI.Controls."+surface,null);
+

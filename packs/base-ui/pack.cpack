@@ -38,4 +38,12 @@ element Focus function "Focus.celem";
 element FocusBody implementation "FocusBody.celem";
 element Activate function "Activate.celem";
 element ActivateBody implementation "ActivateBody.celem";
+element CreateControls function "CreateControls.celem";
+element CreateControlsBody implementation "CreateControlsBody.celem";
+element ControlState function "ControlState.celem";
+element ControlStateBody implementation "ControlStateBody.celem";
+element ControlInput function "ControlInput.celem";
+element ControlInputBody implementation "ControlInputBody.celem";
+element CloseControls function "CloseControls.celem";
+element CloseControlsBody implementation "CloseControlsBody.celem";
 }

@@ -1,0 +1,1 @@
+implementation Confectory.BaseUI::CloseControlsBody for Confectory.BaseUI::CloseControls (string surface) -> void { body common "CloseControls.csbody"; }

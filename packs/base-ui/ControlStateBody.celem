@@ -1,0 +1,1 @@
+implementation Confectory.BaseUI::ControlStateBody for Confectory.BaseUI::ControlState (string surface, string operation, int control) -> int[] { body common "ControlState.csbody"; }

@@ -14,4 +14,6 @@ element Close function "Close.celem";
 element CloseBody implementation "CloseBody.celem";
 element Apply function "Apply.celem";
 element ApplyBody implementation "ApplyBody.celem";
+element Snapshot function "Snapshot.celem";
+element SnapshotBody implementation "SnapshotBody.celem";
 }

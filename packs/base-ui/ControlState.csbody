@@ -1,0 +1,7 @@
+
+var state=AppDomain.CurrentDomain.GetData("Confectory.BaseUI.Controls."+surface) as object[]??throw new ObjectDisposedException("Control surface");if((int)state[0]!=Environment.CurrentManagedThreadId)throw new InvalidOperationException("Control surface requires creating UI thread");var controls=(System.Collections.Generic.Dictionary<int,int>)state[1];bool Eligible(int id)=>controls.TryGetValue(id,out int flags)&&flags==3;
+if(operation=="focus"){if(control!=0&&!Eligible(control))throw new ArgumentException("Unavailable focus control");if((int)state[2]!=control)state[3]=0;state[2]=control;}
+else if(operation is "hide" or "show" or "disable" or "enable"){if(!controls.ContainsKey(control))throw new ArgumentException("Unknown control");int mask=operation is "hide" or "show"?1:2;controls[control]=operation is "hide" or "disable"?controls[control]&~mask:controls[control]|mask;if(!Eligible((int)state[2]))state[2]=0;if(!Eligible((int)state[3]))state[3]=0;if(!Eligible((int)state[4]))state[4]=0;}
+else if(operation=="cancel"){state[3]=0;state[4]=0;}
+else if(operation!="query")throw new ArgumentException("Unknown control operation");var result=new System.Collections.Generic.List<int>{(int)state[2],(int)state[3],(int)state[4]};foreach(int id in System.Linq.Enumerable.OrderBy(controls.Keys,x=>x))if(Eligible(id))result.Add(id);return result.ToArray();
+

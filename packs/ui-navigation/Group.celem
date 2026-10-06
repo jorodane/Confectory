@@ -1,0 +1,1 @@
+function Confectory.UINavigation::Group (string state, string group, int currentFocus, int[] eligible) -> string { description "Programmatic configured group transition with eligible remembered focus; preserves bound release consumption and event identity."; }

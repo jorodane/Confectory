@@ -1,0 +1,1 @@
+function Confectory.BaseUI::CreateControls (int[] controls) -> string { description "Create caller-owned generic focus/pointer surface for logical control IDs; no element model ownership."; }

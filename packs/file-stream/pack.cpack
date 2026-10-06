@@ -11,4 +11,6 @@ element CopySources function "CopySources.celem";
 element CopySourcesBody implementation "CopySourcesBody.celem";
 element Capabilities function "Capabilities.celem";
 element CapabilitiesBody implementation "CapabilitiesBody.celem";
+element BrowseDirectory function "BrowseDirectory.celem";
+element BrowseDirectoryBody implementation "BrowseDirectoryBody.celem";
 }
