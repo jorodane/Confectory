@@ -1,0 +1,35 @@
+implementation Example.FieldGame::MainBody for Example.FieldGame::Main () -> int {
+import Confectory.BaseUI::CreateControls as CreateControls (int[]) -> string;
+import Confectory.BaseUI::ControlState as ControlState (string, string, int) -> int[];
+import Confectory.BaseUI::Button as Button (string, int, int[], string, int[], bool, bool) -> string;
+import Confectory.BaseUI::ButtonInput as ButtonInput (string, long, int[], int[], int, int, int, int) -> int;
+import Confectory.BaseUI::CloseControls as CloseControls (string) -> void;
+import Confectory.UINavigation::Create as NavCreate (string) -> string;
+import Confectory.UINavigation::Route as NavRoute (string, long, int, int, int, bool, int, int[]) -> string;
+import Confectory.RuntimeBase::CreateOwner as CreateOwner (int) -> string[];
+import Confectory.RuntimeBase::CreateInstance as CreateInstance (string[], string) -> int;
+import Confectory.RuntimeBase::Read as Read (string[], int) -> long[];
+import Confectory.RuntimeBase::Write as Write (string[], int, long) -> bool;
+import Confectory.RuntimeBase::DisposeOwner as DisposeOwner (string[]) -> void;
+import Confectory.RealTimeUpdate::Advance as Advance (double[], double, double, double, double, int) -> double[];
+import Confectory.Window::CreateSurfaces as WindowCreate (string[], int, int) -> long[];
+import Confectory.Window::Place as WindowPlace (long[], int, int, int) -> void;
+import Confectory.Window::Close as WindowClose (long[], int) -> void;
+import Confectory.Window::SurfaceInfo as WindowInfo (long[]) -> long[];
+import Confectory.Window::Capabilities as WindowCapabilities () -> int[];
+import Confectory.RenderInput::Pump as Pump (long[]) -> int[];
+import Confectory.RenderInput::Draw as Draw (long[], int, int[], string[]) -> void;
+import Confectory.BaseUI::CreateText as CreateText (string, string) -> string;
+import Confectory.BaseUI::TextInput as TextInput (string, int, int, int) -> int;
+import Confectory.BaseUI::TextSnapshot as TextSnapshot (string) -> string[];
+import Confectory.BaseUI::RefreshText as RefreshText (string, string) -> void;
+import Confectory.BaseUI::CloseText as CloseText (string) -> void;
+import Confectory.BaseUI::SelectText as SelectText (string, int, int) -> void;
+import Confectory.BaseUI::Field as Field (string, int, string, string, int[], string, int[], bool, bool) -> string;
+import Confectory.BaseUI::FieldInput as FieldInput (string, int, string, string, int, int, int, int, int, string) -> int;
+import Confectory.BaseUI::Stack as Stack (int[], int, int, int[]) -> int[];
+import Confectory.Window::SurfaceDimensions as Dimensions (long[], int) -> int[];
+import Confectory.Window::Reopen as Reopen (long[], int, string, int, int) -> void;
+import Confectory.RenderInput::MeasureText as MeasureText (long[], int, string) -> string;
+import Confectory.RenderInput::DrawText as DrawText (long[], int, int[], int[], string[]) -> void;
+body common "main.csbody"; }

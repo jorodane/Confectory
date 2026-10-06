@@ -1,0 +1,1 @@
+function Confectory.BaseUI::RefreshText (string buffer, string text) -> void { description "Refresh clean text while preserving token and mapping caret/selection through the changed span."; provide Confectory.BaseUI::RefreshText with Confectory.BaseUI::RefreshTextBody; }

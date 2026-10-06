@@ -1,1 +1,1 @@
-implementation Confectory.SourceEditor::RefreshBody for Confectory.SourceEditor::Refresh (string buffer, string text) -> void { body common "Refresh.csbody"; }
+implementation Confectory.SourceEditor::RefreshBody for Confectory.SourceEditor::Refresh (string buffer, string text) -> void { import Confectory.BaseUI::RefreshText as RefreshText (string, string) -> void; body common "Refresh.csbody"; }

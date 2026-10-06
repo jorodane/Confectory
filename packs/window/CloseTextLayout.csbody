@@ -1,0 +1,5 @@
+[System.Runtime.InteropServices.DllImport("libgobject-2.0.so.0")]static extern void g_object_unref(IntPtr instance);
+[System.Runtime.InteropServices.DllImport("libpango-1.0.so.0")]static extern void pango_font_description_free(IntPtr description);
+[System.Runtime.InteropServices.DllImport("libcairo.so.2")]static extern void cairo_destroy(IntPtr context);
+[System.Runtime.InteropServices.DllImport("libcairo.so.2")]static extern void cairo_surface_destroy(IntPtr surface);
+if(layout.Length!=4)throw new ArgumentException("Text layout handle");if(layout[2]!=0){g_object_unref((IntPtr)layout[2]);layout[2]=0;}if(layout[3]!=0){pango_font_description_free((IntPtr)layout[3]);layout[3]=0;}if(layout[1]!=0){cairo_destroy((IntPtr)layout[1]);layout[1]=0;}if(layout[0]!=0){cairo_surface_destroy((IntPtr)layout[0]);layout[0]=0;}

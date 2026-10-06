@@ -1,0 +1,13 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.BaseUI.Text."+buffer) as object[]??throw new ObjectDisposedException("Text input");
+var text=(System.Text.StringBuilder)state[1];int caret=(int)state[2],anchor=(int)state[4];bool all=(bool)state[3];int key=code;
+if(OperatingSystem.IsWindows())key=code switch{8=>0xFF08,9=>0xFF09,13=>0xFF0D,27=>0xFF1B,35=>0xFF57,36=>0xFF50,37=>0xFF51,39=>0xFF53,46=>0xFFFF,114=>0xFFC0,115=>0xFFC1,_=>code};
+if(type==5&&key==0xFFC0)return 2;if(type==5&&key==0xFF1B)return 3;if(type==5&&key==0xFFC1){state[4]=0;state[2]=text.Length;state[3]=true;return 1;}
+void DeleteSelection(){int first=all?0:Math.Min(anchor,caret),last=all?text.Length:Math.Max(anchor,caret);if(last>first){text.Remove(first,last-first);caret=first;}anchor=caret;all=false;}
+if(type==12){if(!System.Text.Rune.IsValid(code)||code<32)return 0;DeleteSelection();string inserted=char.ConvertFromUtf32(code);text.Insert(caret,inserted);caret+=inserted.Length;anchor=caret;}
+else if(type==5){
+ if(key is 0xFF08 or 0xFFFF){bool selected=all||anchor!=caret;if(selected)DeleteSelection();else if(key==0xFF08&&caret>0){int length=caret>=2&&char.IsLowSurrogate(text[caret-1])&&char.IsHighSurrogate(text[caret-2])?2:1;text.Remove(caret-length,length);caret-=length;}else if(key==0xFFFF&&caret<text.Length){int length=caret+1<text.Length&&char.IsHighSurrogate(text[caret])&&char.IsLowSurrogate(text[caret+1])?2:1;text.Remove(caret,length);}anchor=caret;all=false;}
+ else if(key is 0xFF0D or 0xFF09){DeleteSelection();text.Insert(caret,key==0xFF0D?"\n":"  ");caret+=key==0xFF0D?1:2;anchor=caret;}
+ else if(key is 0xFF51 or 0xFF53 or 0xFF50 or 0xFF57){if(all)anchor=caret;all=false;if(key==0xFF51&&caret>0){caret--;if(caret>0&&char.IsLowSurrogate(text[caret]))caret--;}else if(key==0xFF53&&caret<text.Length){if(char.IsHighSurrogate(text[caret])&&caret+1<text.Length)caret++;caret++;}else if(key==0xFF50){while(caret>0&&text[caret-1]!='\n')caret--;}else if(key==0xFF57){while(caret<text.Length&&text[caret]!='\n')caret++;}if((flags&4)==0)anchor=caret;}
+ else return 0;
+}else return 0;
+state[2]=caret;state[3]=all;state[4]=anchor;return 1;

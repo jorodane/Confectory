@@ -1,10 +1,1 @@
-var state=AppDomain.CurrentDomain.GetData("Confectory.SourceEditor."+buffer) as object[]??throw new ObjectDisposedException("SourceEditor");
-var content=(System.Text.StringBuilder)state[1];string previous=content.ToString();
-if(previous==text)return;
-int prefix=0;while(prefix<previous.Length&&prefix<text.Length&&previous[prefix]==text[prefix])prefix++;
-int suffix=0;while(suffix<previous.Length-prefix&&suffix<text.Length-prefix&&previous[previous.Length-suffix-1]==text[text.Length-suffix-1])suffix++;
-int caret=(int)state[2],oldEnd=previous.Length-suffix,newEnd=text.Length-suffix;
-if(caret>prefix)caret=caret>=oldEnd?caret+newEnd-oldEnd:Math.Min(newEnd,prefix+caret-prefix);
-caret=Math.Clamp(caret,0,text.Length);
-if(caret>0&&caret<text.Length&&char.IsHighSurrogate(text[caret-1])&&char.IsLowSurrogate(text[caret]))caret--;
-content.Clear();content.Append(text);state[2]=caret;
+calls.RefreshText.Invoke(buffer,text);

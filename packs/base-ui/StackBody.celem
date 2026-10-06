@@ -1,0 +1,3 @@
+implementation Confectory.BaseUI::StackBody for Confectory.BaseUI::Stack (int[] bounds, int axis, int gap, int[] extents) -> int[] {
+
+body common "Stack.csbody"; }

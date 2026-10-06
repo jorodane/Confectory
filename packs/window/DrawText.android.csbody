@@ -1,0 +1,1 @@
+throw new PlatformNotSupportedException("Android clipped text painting requires an app-owned provider matching its native text metrics; managed profile is not native app coverage.");

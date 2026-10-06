@@ -1,0 +1,1 @@
+function Confectory.BaseUI::CloseText (string buffer) -> void { description "Release only text input state; idempotent, independent of caller domain model."; provide Confectory.BaseUI::CloseText with Confectory.BaseUI::CloseTextBody; }

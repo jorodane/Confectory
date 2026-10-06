@@ -1,0 +1,6 @@
+implementation Confectory.BaseUI::FieldInputBody for Confectory.BaseUI::FieldInput (string surface, int control, string buffer, string frame, int type, int x, int y, int code, int flags, string mode) -> int {
+import Confectory.BaseUI::ControlState as ControlState (string, string, int) -> int[];
+import Confectory.BaseUI::TextSnapshot as TextSnapshot (string) -> string[];
+import Confectory.BaseUI::TextInput as TextInput (string, int, int, int) -> int;
+import Confectory.BaseUI::SelectText as SelectText (string, int, int) -> void;
+body common "FieldInput.csbody"; }

@@ -1,3 +1,1 @@
-implementation Confectory.SourceEditor::InputBody for Confectory.SourceEditor::Input (string buffer, int type, int code) -> int {
-body common "Input.csbody";
-}
+implementation Confectory.SourceEditor::InputBody for Confectory.SourceEditor::Input (string buffer, int type, int code) -> int { import Confectory.BaseUI::TextInput as TextInput (string, int, int, int) -> int; body common "Input.csbody"; }

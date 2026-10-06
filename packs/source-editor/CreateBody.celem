@@ -1,3 +1,1 @@
-implementation Confectory.SourceEditor::CreateBody for Confectory.SourceEditor::Create (string id, string text) -> string {
-body common "Create.csbody";
-}
+implementation Confectory.SourceEditor::CreateBody for Confectory.SourceEditor::Create (string id, string text) -> string { import Confectory.BaseUI::CreateText as CreateText (string, string) -> string; body common "Create.csbody"; }

@@ -1,0 +1,1 @@
+function Confectory.Window::CreateTextLayout (long[] surfaces, int view) -> long[] { provide Confectory.Window::CreateTextLayout with Confectory.Window::CreateTextLayoutBody; }

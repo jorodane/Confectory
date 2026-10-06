@@ -1,1 +1,1 @@
-AppDomain.CurrentDomain.SetData("Confectory.SourceEditor."+buffer,null);
+calls.CloseText.Invoke(buffer);

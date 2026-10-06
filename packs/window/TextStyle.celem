@@ -1,0 +1,1 @@
+function Confectory.Window::TextStyle () -> string { provide Confectory.Window::TextStyle with Confectory.Window::TextStyleBody; }

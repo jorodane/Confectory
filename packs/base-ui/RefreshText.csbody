@@ -1,0 +1,11 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.BaseUI.Text."+buffer) as object[]??throw new ObjectDisposedException("Text input");
+var content=(System.Text.StringBuilder)state[1];string previous=content.ToString();
+if(previous==text)return;
+int prefix=0;while(prefix<previous.Length&&prefix<text.Length&&previous[prefix]==text[prefix])prefix++;
+int suffix=0;while(suffix<previous.Length-prefix&&suffix<text.Length-prefix&&previous[previous.Length-suffix-1]==text[text.Length-suffix-1])suffix++;
+int caret=(int)state[2],anchor=(int)state[4],oldEnd=previous.Length-suffix,newEnd=text.Length-suffix;
+int Map(int position){if(position>prefix)position=position>=oldEnd?position+newEnd-oldEnd:Math.Min(newEnd,position);position=Math.Clamp(position,0,text.Length);if(position>0&&position<text.Length&&char.IsHighSurrogate(text[position-1])&&char.IsLowSurrogate(text[position]))position--;return position;}
+if(caret>prefix)caret=caret>=oldEnd?caret+newEnd-oldEnd:Math.Min(newEnd,prefix+caret-prefix);
+caret=Math.Clamp(caret,0,text.Length);
+if(caret>0&&caret<text.Length&&char.IsHighSurrogate(text[caret-1])&&char.IsLowSurrogate(text[caret]))caret--;
+content.Clear();content.Append(text);state[2]=caret;state[4]=(bool)state[3]?0:Map(anchor);

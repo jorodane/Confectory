@@ -1,0 +1,1 @@
+throw new PlatformNotSupportedException("Android text metrics require an app-owned native text/shaping provider matching its renderer; managed profile is not native coverage.");

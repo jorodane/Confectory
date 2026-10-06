@@ -11,7 +11,6 @@ import Confectory.UINavigation::Create as UINavigationCreate (string) -> string;
 import Confectory.UINavigation::Route as UINavigationRoute (string, long, int, int, int, bool, int, int[]) -> string;
 import Confectory.UINavigation::Group as UINavigationGroup (string, string, int, int[]) -> string;
 import Confectory.SourceEditor::Create as SourceEditorCreate (string, string) -> string;
-import Confectory.SourceEditor::Input as SourceEditorInput (string, int, int) -> int;
 import Confectory.SourceEditor::Snapshot as SourceEditorSnapshot (string) -> string[];
 import Confectory.SourceEditor::Close as SourceEditorClose (string) -> void;
 import Confectory.Window::CreateSurfaces as WindowCreateSurfaces (string[], int, int) -> long[];
@@ -30,4 +29,9 @@ import Confectory.RuntimeBase::Write as RuntimeBaseWrite (string[], int, long) -
 import Confectory.RuntimeBase::DisposeOwner as RuntimeBaseDisposeOwner (string[]) -> void;
 import Confectory.Editor::CreateSession as CreateSession (string, string) -> string; import Confectory.Editor::Snapshot as Snapshot (string) -> string; import Confectory.Editor::Command as Command (string, string, string) -> string; import Confectory.Editor::CloseSession as CloseSession (string) -> void;
 import Confectory.SourceEditor::Refresh as SourceEditorRefresh (string, string) -> void;
+import Confectory.BaseUI::Field as BaseUIField (string, int, string, string, int[], string, int[], bool, bool) -> string;
+import Confectory.BaseUI::FieldInput as BaseUIFieldInput (string, int, string, string, int, int, int, int, int, string) -> int;
+import Confectory.BaseUI::Stack as BaseUIStack (int[], int, int, int[]) -> int[];
+import Confectory.RenderInput::MeasureText as MeasureText (long[], int, string) -> string;
+import Confectory.RenderInput::DrawText as DrawText (long[], int, int[], int[], string[]) -> void;
 body common "Main.csbody"; }

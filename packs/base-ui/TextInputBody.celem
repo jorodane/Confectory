@@ -1,0 +1,3 @@
+implementation Confectory.BaseUI::TextInputBody for Confectory.BaseUI::TextInput (string buffer, int type, int code, int flags) -> int {
+
+body common "TextInput.csbody"; }

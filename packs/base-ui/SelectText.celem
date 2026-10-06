@@ -1,0 +1,1 @@
+function Confectory.BaseUI::SelectText (string buffer, int anchor, int caret) -> void { description "Set public UTF16 selection endpoints, clamped to Unicode scalar boundaries; no content mutation."; provide Confectory.BaseUI::SelectText with Confectory.BaseUI::SelectTextBody; }

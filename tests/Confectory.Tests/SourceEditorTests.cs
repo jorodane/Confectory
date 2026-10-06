@@ -4,7 +4,7 @@ public sealed class SourceEditorTests : TestCase
 {
  public void test_arbitrary_user_body_contract_edit_recovery_and_locality()
  {
-  string sample=Path.Combine(f.Root,"source-sample");Fixture.CopyTree(Path.Combine(Fixture.Repo,"examples","source-editor"),sample);foreach(string name in new[]{"file-stream","schema-editing","edit-workspace","save","change-set","source-editor"})Fixture.CopyTree(Path.Combine(Fixture.Repo,"packs",name),Path.Combine(f.Root,"packs",name));
+  string sample=Path.Combine(f.Root,"source-sample");Fixture.CopyTree(Path.Combine(Fixture.Repo,"examples","source-editor"),sample);foreach(string name in new[]{"base-ui","runtime-base","file-stream","schema-editing","edit-workspace","save","change-set","source-editor"})Fixture.CopyTree(Path.Combine(Fixture.Repo,"packs",name),Path.Combine(f.Root,"packs",name));
   string project=Path.Combine(sample,"project.cpack");File.WriteAllText(project,File.ReadAllText(project).Replace("../../packs/","../packs/",StringComparison.Ordinal).Replace("../../targets/dotnet/pack.cpack","../target/pack.cpack",StringComparison.Ordinal));
   string user=Path.Combine(f.Root,"user.csbody");File.WriteAllText(user,"Console.WriteLine(\"user entered \" + (17 * 3)); return 0;");string[] names={"CONFECTORY_ELEMENT_AUTHORING_HOST","CONFECTORY_TEST_AUTHOR_PROJECT","CONFECTORY_USER_SOURCE_FILE"};var old=names.Select(Environment.GetEnvironmentVariable).ToArray();
   try

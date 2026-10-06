@@ -1,0 +1,3 @@
+implementation Confectory.BaseUI::RefreshTextBody for Confectory.BaseUI::RefreshText (string buffer, string text) -> void {
+
+body common "RefreshText.csbody"; }

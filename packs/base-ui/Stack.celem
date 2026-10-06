@@ -1,0 +1,1 @@
+function Confectory.BaseUI::Stack (int[] bounds, int axis, int gap, int[] extents) -> int[] { description "Pure bounded horizontal0/vertical1 stack: positive fixed extents, zero shares remaining space; deterministic clipped rectangles."; provide Confectory.BaseUI::Stack with Confectory.BaseUI::StackBody; }

@@ -1,0 +1,16 @@
+[System.Runtime.InteropServices.DllImport("libX11.so.6")]static extern IntPtr XDefaultVisual(IntPtr display,int screen);
+[System.Runtime.InteropServices.DllImport("libcairo.so.2")]static extern IntPtr cairo_xlib_surface_create(IntPtr display,nuint drawable,IntPtr visual,int width,int height);
+[System.Runtime.InteropServices.DllImport("libcairo.so.2")]static extern IntPtr cairo_create(IntPtr surface);
+[System.Runtime.InteropServices.DllImport("libcairo.so.2")]static extern int cairo_status(IntPtr context);
+[System.Runtime.InteropServices.DllImport("libcairo.so.2")]static extern void cairo_destroy(IntPtr context);
+[System.Runtime.InteropServices.DllImport("libcairo.so.2")]static extern void cairo_surface_destroy(IntPtr surface);
+[System.Runtime.InteropServices.DllImport("libpangocairo-1.0.so.0")]static extern IntPtr pango_cairo_create_layout(IntPtr context);
+[System.Runtime.InteropServices.DllImport("libpango-1.0.so.0",CharSet=System.Runtime.InteropServices.CharSet.Ansi)]static extern IntPtr pango_font_description_from_string(string description);
+[System.Runtime.InteropServices.DllImport("libpango-1.0.so.0")]static extern void pango_layout_set_font_description(IntPtr layout,IntPtr description);
+[System.Runtime.InteropServices.DllImport("libpango-1.0.so.0")]static extern void pango_layout_set_single_paragraph_mode(IntPtr layout,bool single);
+[System.Runtime.InteropServices.DllImport("libpango-1.0.so.0")]static extern void pango_font_description_free(IntPtr description);
+[System.Runtime.InteropServices.DllImport("libgobject-2.0.so.0")]static extern void g_object_unref(IntPtr instance);
+if(!OperatingSystem.IsLinux()||OperatingSystem.IsAndroid())throw new PlatformNotSupportedException("X11 text layout provider requires Linux desktop");
+var dimensions=calls.Dimensions.Invoke(surfaces,view);if(dimensions.Length!=2||surfaces[0]==0)throw new ObjectDisposedException("Text surface");IntPtr surface=IntPtr.Zero,context=IntPtr.Zero,layout=IntPtr.Zero,font=IntPtr.Zero;
+try{surface=cairo_xlib_surface_create((IntPtr)surfaces[0],(nuint)surfaces[view+1],XDefaultVisual((IntPtr)surfaces[0],0),dimensions[0],dimensions[1]);context=cairo_create(surface);if(cairo_status(context)!=0)throw new InvalidOperationException("Cairo text context unavailable");layout=pango_cairo_create_layout(context);font=pango_font_description_from_string(calls.TextStyle.Invoke());if(layout==IntPtr.Zero||font==IntPtr.Zero)throw new InvalidOperationException("Pango text layout unavailable");pango_layout_set_font_description(layout,font);pango_layout_set_single_paragraph_mode(layout,true);return new[]{surface.ToInt64(),context.ToInt64(),layout.ToInt64(),font.ToInt64()};}
+catch{if(layout!=IntPtr.Zero)g_object_unref(layout);if(font!=IntPtr.Zero)pango_font_description_free(font);if(context!=IntPtr.Zero)cairo_destroy(context);if(surface!=IntPtr.Zero)cairo_surface_destroy(surface);throw;}

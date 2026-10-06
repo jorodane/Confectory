@@ -1,0 +1,3 @@
+implementation Confectory.BaseUI::SelectTextBody for Confectory.BaseUI::SelectText (string buffer, int anchor, int caret) -> void {
+
+body common "SelectText.csbody"; }

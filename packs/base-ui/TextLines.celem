@@ -1,0 +1,1 @@
+function Confectory.BaseUI::TextLines (string metrics, int[] bounds, int color, int firstLine, int scrollX) -> string { description "Create reusable line render frame using actual renderer geometry and bounded whole-glyph clipping."; provide Confectory.BaseUI::TextLines with Confectory.BaseUI::TextLinesBody; }

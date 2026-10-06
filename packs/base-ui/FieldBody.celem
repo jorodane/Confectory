@@ -1,0 +1,5 @@
+implementation Confectory.BaseUI::FieldBody for Confectory.BaseUI::Field (string surface, int control, string buffer, string metrics, int[] bounds, string hint, int[] palette, bool visible, bool enabled) -> string {
+import Confectory.BaseUI::ControlState as ControlState (string, string, int) -> int[];
+import Confectory.BaseUI::TextSnapshot as TextSnapshot (string) -> string[];
+import Confectory.BaseUI::TextLines as TextLines (string, int[], int, int, int) -> string;
+body common "Field.csbody"; }

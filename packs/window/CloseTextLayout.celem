@@ -1,0 +1,1 @@
+function Confectory.Window::CloseTextLayout (long[] layout) -> void { provide Confectory.Window::CloseTextLayout with Confectory.Window::CloseTextLayoutBody; }

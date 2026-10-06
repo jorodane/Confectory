@@ -1,0 +1,1 @@
+function Confectory.RenderInput::MeasureText (long[] surfaces, int view, string text) -> string { description "Actual renderer text geometry: matching font/insets, line starts and UTF16 scalar-boundary caret advances. Same geometry is used by text painting, caret and pointer selection."; }

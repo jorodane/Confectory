@@ -31,4 +31,10 @@ element Capture function "Capture.celem";
 element CaptureBody implementation "CaptureBody.celem";
 element Place function "Place.celem";
 element PlaceBody implementation "PlaceBody.celem";
+element TextStyle function "TextStyle.celem"; element TextStyleBody implementation "TextStyleBody.celem";
+element CreateTextLayout function "CreateTextLayout.celem"; element CreateTextLayoutBody implementation "CreateTextLayoutBody.celem";
+element CloseTextLayout function "CloseTextLayout.celem"; element CloseTextLayoutBody implementation "CloseTextLayoutBody.celem";
+element Win32MeasureText function "Win32MeasureText.celem"; element Win32MeasureTextBody implementation "Win32MeasureTextBody.celem";
+element MeasureTextBody implementation "MeasureTextBody.celem";
+element DrawTextBody implementation "DrawTextBody.celem"; element Win32DrawText function "Win32DrawText.celem"; element Win32DrawTextBody implementation "Win32DrawTextBody.celem";
 }

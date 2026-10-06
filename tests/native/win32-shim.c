@@ -11,7 +11,7 @@ static proc_t callback;
 struct window { intptr_t handle; int width,height,alive; };
 static struct window windows[32];static int nwindow;static intptr_t focus;
 struct message {intptr_t hwnd;uint32_t msg;uint32_t pad;intptr_t wp,lp;uint32_t time;int x,y;uint32_t private;};
-static struct message queue[512];static int front,back;static int counters[16];static int64_t nextgdi=1000;
+static struct message queue[512];static int front,back;static int counters[24];static int64_t nextgdi=1000;
 static struct window *find(intptr_t h){for(int i=0;i<nwindow;i++)if(windows[i].handle==h)return &windows[i];return 0;}
 int SimCounter(int index){return counters[index];}
 intptr_t SimSend(intptr_t hwnd,uint32_t msg,intptr_t wp,intptr_t lp){return callback(hwnd,msg,wp,lp);}
@@ -51,3 +51,9 @@ int SetBkMode(intptr_t dc,int mode){(void)dc;return mode;}
 int IsWindow(intptr_t hwnd){struct window*w=find(hwnd);return w&&w->alive;}
 int DestroyWindow(intptr_t hwnd){struct window*w=find(hwnd);if(!w)return 0;callback(hwnd,0x82,0,0);w->alive=0;return 1;}
 int UnregisterClassW(const uint16_t *name,intptr_t instance){(void)name;(void)instance;for(int i=0;i<nwindow;i++)if(windows[i].alive)return 0;counters[13]++;return 1;}
+
+int GetTextMetricsW(intptr_t dc,void *metrics){(void)dc;memset(metrics,0,64);((int*)metrics)[0]=16;((int*)metrics)[1]=12;((int*)metrics)[2]=4;return 1;}
+int GetTextExtentExPointW(intptr_t dc,const uint16_t *text,int count,int maximum,int *fit,int *advances,int *size){(void)dc;(void)maximum;int total=0;for(int i=0;i<count;i++){total+=text[i]=='W'?11:text[i]=='i'?3:text[i]>=0xAC00&&text[i]<=0xD7A3?14:7;advances[i]=total;}*fit=count;size[0]=total;size[1]=16;return 1;}
+int SaveDC(intptr_t dc){(void)dc;counters[16]++;return 1;}
+int RestoreDC(intptr_t dc,int saved){(void)dc;(void)saved;counters[17]++;return 1;}
+int IntersectClipRect(intptr_t dc,int left,int top,int right,int bottom){(void)dc;counters[18]++;return right>left&&bottom>top?2:0;}

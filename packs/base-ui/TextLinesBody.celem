@@ -1,0 +1,3 @@
+implementation Confectory.BaseUI::TextLinesBody for Confectory.BaseUI::TextLines (string metrics, int[] bounds, int color, int firstLine, int scrollX) -> string {
+
+body common "TextLines.csbody"; }

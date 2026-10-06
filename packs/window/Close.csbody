@@ -2,12 +2,15 @@
 static extern int XDestroyWindow(IntPtr d,nuint w);
 [System.Runtime.InteropServices.DllImport("libX11.so.6")]
 static extern int XCloseDisplay(IntPtr d);
+[System.Runtime.InteropServices.DllImport("libX11.so.6")]static extern int XUngrabPointer(IntPtr display,nuint time);
 if(view < -1 || view >= surfaces.Length-1) throw new ArgumentOutOfRangeException(nameof(view));
+if(surfaces[0]!=0)AppDomain.CurrentDomain.SetData("Confectory.Window.TextMetrics."+surfaces[0],null);
 if(OperatingSystem.IsWindows()){calls.Win32Close.Invoke(surfaces,view);return;}
 for(int i=1;i<surfaces.Length;i++)
 {
  if(view!=-1&&i!=view+1) continue;
  if(surfaces[i]==0) continue;
+ string captureKey="Confectory.X11.Pointer."+surfaces[0];if(AppDomain.CurrentDomain.GetData(captureKey) is long captured&&captured==surfaces[i]){XUngrabPointer((IntPtr)surfaces[0],0);AppDomain.CurrentDomain.SetData(captureKey,null);}
  if(surfaces[0]!=0) XDestroyWindow((IntPtr)surfaces[0],(nuint)surfaces[i]);
  surfaces[i]=0;
 }

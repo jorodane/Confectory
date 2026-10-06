@@ -1,0 +1,1 @@
+object Example.FieldGame::Score { value initial = 0; description "Game-owned score; buttons contain no editor/model semantics."; }

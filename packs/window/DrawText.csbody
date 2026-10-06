@@ -1,0 +1,12 @@
+[System.Runtime.InteropServices.DllImport("libX11.so.6")]static extern int XFlush(IntPtr display);
+[System.Runtime.InteropServices.DllImport("libcairo.so.2")]static extern void cairo_save(IntPtr context);
+[System.Runtime.InteropServices.DllImport("libcairo.so.2")]static extern void cairo_restore(IntPtr context);
+[System.Runtime.InteropServices.DllImport("libcairo.so.2")]static extern void cairo_rectangle(IntPtr context,double x,double y,double width,double height);
+[System.Runtime.InteropServices.DllImport("libcairo.so.2")]static extern void cairo_clip(IntPtr context);
+[System.Runtime.InteropServices.DllImport("libcairo.so.2")]static extern void cairo_move_to(IntPtr context,double x,double y);
+[System.Runtime.InteropServices.DllImport("libcairo.so.2")]static extern void cairo_set_source_rgb(IntPtr context,double red,double green,double blue);
+[System.Runtime.InteropServices.DllImport("libcairo.so.2")]static extern void cairo_surface_flush(IntPtr surface);
+[System.Runtime.InteropServices.DllImport("libpango-1.0.so.0")]static extern void pango_layout_set_text(IntPtr layout,byte[] text,int count);
+[System.Runtime.InteropServices.DllImport("libpangocairo-1.0.so.0")]static extern void pango_cairo_show_layout(IntPtr context,IntPtr layout);
+if(clips.Length%4!=0||origins.Length!=clips.Length/2||labels.Length!=clips.Length/4||labels.Length>2048||view<0||view>=surfaces.Length-1)throw new ArgumentException("Clipped text frame budget/shape");if(surfaces[view+1]==0)return;if(OperatingSystem.IsWindows()){calls.Win32DrawText.Invoke(surfaces,view,clips,origins,labels);return;}
+long[] native=calls.CreateTextLayout.Invoke(surfaces,view);try{IntPtr context=(IntPtr)native[1];for(int n=0;n<labels.Length;n++){int k=n*4;if(clips[k+2]<1||clips[k+3]<1)throw new ArgumentException("Text clip size");cairo_save(context);try{cairo_rectangle(context,clips[k],clips[k+1],clips[k+2],clips[k+3]);cairo_clip(context);cairo_set_source_rgb(context,1,1,1);cairo_move_to(context,origins[n*2],origins[n*2+1]);byte[] bytes=System.Text.Encoding.UTF8.GetBytes(labels[n]);pango_layout_set_text((IntPtr)native[2],bytes,bytes.Length);pango_cairo_show_layout(context,(IntPtr)native[2]);}finally{cairo_restore(context);}}cairo_surface_flush((IntPtr)native[0]);XFlush((IntPtr)surfaces[0]);}finally{calls.CloseTextLayout.Invoke(native);}

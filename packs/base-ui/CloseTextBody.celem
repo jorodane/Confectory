@@ -1,0 +1,3 @@
+implementation Confectory.BaseUI::CloseTextBody for Confectory.BaseUI::CloseText (string buffer) -> void {
+
+body common "CloseText.csbody"; }

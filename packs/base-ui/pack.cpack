@@ -48,4 +48,14 @@ element CloseControls function "CloseControls.celem";
 element CloseControlsBody implementation "CloseControlsBody.celem";
 element Button function "Button.celem"; element ButtonBody implementation "ButtonBody.celem";
 element ButtonInput function "ButtonInput.celem"; element ButtonInputBody implementation "ButtonInputBody.celem";
+element CreateText function "CreateText.celem"; element CreateTextBody implementation "CreateTextBody.celem";
+element TextInput function "TextInput.celem"; element TextInputBody implementation "TextInputBody.celem";
+element TextSnapshot function "TextSnapshot.celem"; element TextSnapshotBody implementation "TextSnapshotBody.celem";
+element RefreshText function "RefreshText.celem"; element RefreshTextBody implementation "RefreshTextBody.celem";
+element CloseText function "CloseText.celem"; element CloseTextBody implementation "CloseTextBody.celem";
+element SelectText function "SelectText.celem"; element SelectTextBody implementation "SelectTextBody.celem";
+element Stack function "Stack.celem"; element StackBody implementation "StackBody.celem";
+element TextLines function "TextLines.celem"; element TextLinesBody implementation "TextLinesBody.celem";
+element Field function "Field.celem"; element FieldBody implementation "FieldBody.celem";
+element FieldInput function "FieldInput.celem"; element FieldInputBody implementation "FieldInputBody.celem";
 }

@@ -7,7 +7,7 @@ public sealed class Win32ContractTests : TestCase
   if(!OperatingSystem.IsLinux())return; // explicit Linux ABI fixture; native Windows user QA remains separate
   string sample=Path.Combine(f.Root,"win32-probe"),pack=Path.Combine(f.Root,"packs","window"),native=Path.Combine(f.Root,"native");
   Fixture.CopyTree(Path.Combine(Fixture.Repo,"tests","native","win32-probe"),sample);Fixture.CopyTree(Path.Combine(Fixture.Repo,"packs","window"),pack);Fixture.CopyTree(Path.Combine(Fixture.Repo,"packs","render-input"),Path.Combine(f.Root,"packs","render-input"));Directory.CreateDirectory(native);
-  foreach(string name in new[]{"Win32Create","Win32Pump","Win32Draw","Win32Close"})
+  foreach(string name in new[]{"Win32Create","Win32Pump","Win32Draw","Win32Close","Win32MeasureText","Win32DrawText"})
   {
    string path=Path.Combine(pack,name+".csbody");string text=File.ReadAllText(path);text=System.Text.RegularExpressions.Regex.Replace(text,"if\\(!OperatingSystem.IsWindows\\(\\)\\)throw new PlatformNotSupportedException\\([^;]+;","");File.WriteAllText(path,text);
   }

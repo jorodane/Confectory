@@ -1,0 +1,1 @@
+function Confectory.BaseUI::TextSnapshot (string buffer) -> string[] { description "Coherent public text snapshot: id,text,UTF16caret,all|caret,selectionAnchor,selectionCaret."; provide Confectory.BaseUI::TextSnapshot with Confectory.BaseUI::TextSnapshotBody; }

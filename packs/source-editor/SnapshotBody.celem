@@ -1,1 +1,1 @@
-implementation Confectory.SourceEditor::SnapshotBody for Confectory.SourceEditor::Snapshot (string buffer) -> string[] { body common "Snapshot.csbody"; }
+implementation Confectory.SourceEditor::SnapshotBody for Confectory.SourceEditor::Snapshot (string buffer) -> string[] { import Confectory.BaseUI::TextSnapshot as TextSnapshot (string) -> string[]; body common "Snapshot.csbody"; }

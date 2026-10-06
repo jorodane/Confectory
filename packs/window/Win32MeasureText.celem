@@ -1,0 +1,1 @@
+function Confectory.Window::Win32MeasureText (long[] surfaces, int view, string text) -> string { provide Confectory.Window::Win32MeasureText with Confectory.Window::Win32MeasureTextBody; }

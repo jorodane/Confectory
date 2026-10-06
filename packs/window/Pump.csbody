@@ -8,6 +8,9 @@ static extern int XPeekEvent(IntPtr d,IntPtr e);
 static extern nuint XLookupKeysym(IntPtr e, int index);
 [System.Runtime.InteropServices.DllImport("libX11.so.6", CharSet = System.Runtime.InteropServices.CharSet.Ansi)]
 static extern nuint XInternAtom(IntPtr d, string name, bool only);
+[System.Runtime.InteropServices.DllImport("libX11.so.6")]static extern int XGrabPointer(IntPtr display,nuint window,bool ownerEvents,uint mask,int pointerMode,int keyboardMode,nuint confine,nuint cursor,nuint time);
+[System.Runtime.InteropServices.DllImport("libX11.so.6")]static extern int XUngrabPointer(IntPtr display,nuint time);
+[System.Runtime.InteropServices.DllImport("libX11.so.6")]static extern int XSetInputFocus(IntPtr display,nuint window,int revert,nuint time);
 var events = new System.Collections.Generic.List<int>();
 void Emit(int view,int type,int x=0,int y=0,int code=0,int flags=0) { events.AddRange(new[]{view,type,x,y,code,flags}); }
 int Find(long handle) { for(int i=1;i<surfaces.Length;i++) if(surfaces[i]==handle) return i-1; return -1; }
@@ -31,7 +34,7 @@ try
    if(kind==4||kind==5)
    {
     int button=I(84); if(button==4||button==5) { if(kind==4) Emit(view,4,0,0,button==4?120:-120); }
-    else if(button==1) Emit(view,kind==4?1:2,I(64),I(68));
+    else if(button==1){string captureKey="Confectory.X11.Pointer."+surfaces[0];if(kind==4){XSetInputFocus(d,(nuint)surfaces[view+1],1,0);if(XGrabPointer(d,(nuint)surfaces[view+1],false,76,1,1,0,0,0)==0)AppDomain.CurrentDomain.SetData(captureKey,surfaces[view+1]);}else if(AppDomain.CurrentDomain.GetData(captureKey) is long captured&&captured==surfaces[view+1]){XUngrabPointer(d,0);AppDomain.CurrentDomain.SetData(captureKey,null);}Emit(view,kind==4?1:2,I(64),I(68));}
    }
    if(kind==6) Emit(view,3,I(64),I(68));
    if(kind==2||kind==3)
@@ -49,7 +52,7 @@ try
    if(kind==22) Emit(view,7,I(56),I(60));
    if(kind==33&&(nuint)P(40)==protocols&&I(48)==32&&(nuint)P(56)==close) Emit(view,8);
    if(kind==17) { surfaces[view+1]=0; Emit(view,8); }
-   if(kind==10) Emit(view,9);
+   if(kind==10){string captureKey="Confectory.X11.Pointer."+surfaces[0];if(AppDomain.CurrentDomain.GetData(captureKey) is long captured&&captured==surfaces[view+1]){XUngrabPointer(d,0);AppDomain.CurrentDomain.SetData(captureKey,null);}Emit(view,9);}
    if(kind==12) Emit(view,10);
   }
  }

@@ -1,3 +1,4 @@
 
-var state=AppDomain.CurrentDomain.GetData("Confectory.BaseUI.Controls."+surface) as object[];if(state is null)return;if((int)state[0]!=Environment.CurrentManagedThreadId)throw new InvalidOperationException("UI thread required");AppDomain.CurrentDomain.SetData("Confectory.BaseUI.Button.Input."+surface,null);AppDomain.CurrentDomain.SetData("Confectory.BaseUI.Controls."+surface,null);
+var state=AppDomain.CurrentDomain.GetData("Confectory.BaseUI.Controls."+surface) as object[];if(state is null)return;if((int)state[0]!=Environment.CurrentManagedThreadId)throw new InvalidOperationException("UI thread required");AppDomain.CurrentDomain.SetData("Confectory.BaseUI.Button.Input."+surface,null);
+foreach(int id in ((System.Collections.Generic.Dictionary<int,int>)state[1]).Keys)AppDomain.CurrentDomain.SetData("Confectory.BaseUI.Field."+surface+"."+id,null);AppDomain.CurrentDomain.SetData("Confectory.BaseUI.Controls."+surface,null);
 

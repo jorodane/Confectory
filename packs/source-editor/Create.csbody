@@ -1,1 +1,1 @@
-string buffer=Guid.NewGuid().ToString("N");AppDomain.CurrentDomain.SetData("Confectory.SourceEditor."+buffer,new object[]{id,new System.Text.StringBuilder(text),text.Length,true});return buffer;
+return calls.CreateText.Invoke(id,text);

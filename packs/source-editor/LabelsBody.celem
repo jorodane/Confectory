@@ -1,3 +1,1 @@
-implementation Confectory.SourceEditor::LabelsBody for Confectory.SourceEditor::Labels (string buffer, string status) -> string[] {
-body common "Labels.csbody";
-}
+implementation Confectory.SourceEditor::LabelsBody for Confectory.SourceEditor::Labels (string buffer, string status) -> string[] { import Confectory.BaseUI::TextSnapshot as TextSnapshot (string) -> string[]; body common "Labels.csbody"; }

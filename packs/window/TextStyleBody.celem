@@ -1,0 +1,2 @@
+implementation Confectory.Window::TextStyleBody for Confectory.Window::TextStyle () -> string {
+body common "TextStyle.csbody"; }

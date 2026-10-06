@@ -1,0 +1,1 @@
+function Confectory.RenderInput::DrawText (long[] surfaces, int view, int[] clips, int[] origins, string[] labels) -> void { description "Overlay measured Unicode text at explicit pixel origins clipped to supplied regions, preserving the existing frame; use the same font as MeasureText."; }

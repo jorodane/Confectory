@@ -1,0 +1,4 @@
+implementation Confectory.Window::CreateTextLayoutBody for Confectory.Window::CreateTextLayout (long[] surfaces, int view) -> long[] {
+import Confectory.Window::SurfaceDimensions as Dimensions (long[], int) -> int[];
+import Confectory.Window::TextStyle as TextStyle () -> string;
+body common "CreateTextLayout.csbody"; }

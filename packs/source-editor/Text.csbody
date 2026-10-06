@@ -1,2 +1,1 @@
-var state=AppDomain.CurrentDomain.GetData("Confectory.SourceEditor."+buffer) as object[]??throw new ObjectDisposedException("SourceEditor");
-return ((System.Text.StringBuilder)state[1]).ToString();
+return calls.TextSnapshot.Invoke(buffer)[1];

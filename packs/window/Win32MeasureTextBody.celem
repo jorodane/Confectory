@@ -1,0 +1,2 @@
+implementation Confectory.Window::Win32MeasureTextBody for Confectory.Window::Win32MeasureText (long[] surfaces, int view, string text) -> string {
+body common "Win32MeasureText.csbody"; }

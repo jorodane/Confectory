@@ -1,5 +1,7 @@
 project Example.SourceEditor version "0.1.0" {
 entry Example.SourceEditor::Main;
+registry Confectory.BaseUI "../../packs/base-ui/pack.cpack"; dependency Confectory.BaseUI version "0.1.0";
+registry Confectory.RuntimeBase "../../packs/runtime-base/pack.cpack"; dependency Confectory.RuntimeBase version "0.1.0";
 registry Confectory.FileStream "../../packs/file-stream/pack.cpack";
 dependency Confectory.FileStream version "0.1.0";
 registry Confectory.SchemaEditing "../../packs/schema-editing/pack.cpack";

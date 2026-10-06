@@ -1,34 +1,11 @@
-[System.Runtime.InteropServices.DllImport("libX11.so.6")]
-static extern IntPtr XCreateGC(IntPtr d,nuint w,nuint mask,IntPtr values);
-[System.Runtime.InteropServices.DllImport("libX11.so.6")]
-static extern int XFreeGC(IntPtr d,IntPtr gc);
-[System.Runtime.InteropServices.DllImport("libX11.so.6")]
-static extern int XSetForeground(IntPtr d,IntPtr gc,nuint color);
-[System.Runtime.InteropServices.DllImport("libX11.so.6")]
-static extern int XFillRectangle(IntPtr d,nuint w,IntPtr gc,int x,int y,uint width,uint height);
-[System.Runtime.InteropServices.DllImport("libX11.so.6",CharSet=System.Runtime.InteropServices.CharSet.Ansi)]
-static extern int XDrawString(IntPtr d,nuint w,IntPtr gc,int x,int y,string text,int length);
-[System.Runtime.InteropServices.DllImport("libX11.so.6")]
-static extern int XFlush(IntPtr d);
-if(view<0||view>=surfaces.Length-1||rectangles.Length%5!=0||labels.Length!=rectangles.Length/5) throw new ArgumentException("Invalid render request.");
-for(int i=0;i<rectangles.Length;i+=5) if(rectangles[i+2]<1||rectangles[i+3]<1) throw new ArgumentException("Invalid rectangle size.");
-long handle=surfaces[view+1]; if(handle==0) return;
-if(OperatingSystem.IsWindows())
-{
- calls.Win32Draw.Invoke(surfaces,view,rectangles,labels);return;
-}
-else if(surfaces[0]!=0)
-{
- var d=(IntPtr)surfaces[0]; var gc=XCreateGC(d,(nuint)handle,0,IntPtr.Zero);
- if(gc==IntPtr.Zero) throw new InvalidOperationException("XCreateGC failed.");
- try
- {
-  for(int i=0;i<rectangles.Length;i+=5)
-  {
-   XSetForeground(d,gc,(nuint)rectangles[i+4]);XFillRectangle(d,(nuint)handle,gc,rectangles[i],rectangles[i+1],(uint)rectangles[i+2],(uint)rectangles[i+3]);
-   XSetForeground(d,gc,0xFFFFFF);string label=labels[i/5];XDrawString(d,(nuint)handle,gc,rectangles[i]+10,rectangles[i+1]+24,label,System.Text.Encoding.UTF8.GetByteCount(label));
-  }
-  XFlush(d);
- }
- finally { XFreeGC(d,gc); }
-}
+[System.Runtime.InteropServices.DllImport("libX11.so.6")]static extern int XFlush(IntPtr display);
+[System.Runtime.InteropServices.DllImport("libcairo.so.2")]static extern void cairo_set_source_rgb(IntPtr context,double red,double green,double blue);
+[System.Runtime.InteropServices.DllImport("libcairo.so.2")]static extern void cairo_rectangle(IntPtr context,double x,double y,double width,double height);
+[System.Runtime.InteropServices.DllImport("libcairo.so.2")]static extern void cairo_fill(IntPtr context);
+[System.Runtime.InteropServices.DllImport("libcairo.so.2")]static extern void cairo_move_to(IntPtr context,double x,double y);
+[System.Runtime.InteropServices.DllImport("libcairo.so.2")]static extern void cairo_surface_flush(IntPtr surface);
+[System.Runtime.InteropServices.DllImport("libpango-1.0.so.0")]static extern void pango_layout_set_text(IntPtr layout,byte[] text,int count);
+[System.Runtime.InteropServices.DllImport("libpangocairo-1.0.so.0")]static extern void pango_cairo_show_layout(IntPtr context,IntPtr layout);
+if(view<0||view>=surfaces.Length-1||rectangles.Length%5!=0||labels.Length!=rectangles.Length/5)throw new ArgumentException("Invalid render request");for(int i=0;i<rectangles.Length;i+=5)if(rectangles[i+2]<1||rectangles[i+3]<1)throw new ArgumentException("Invalid rectangle size");if(surfaces[view+1]==0)return;
+if(OperatingSystem.IsWindows()){calls.Win32Draw.Invoke(surfaces,view,rectangles,labels);return;}
+long[] native=calls.CreateTextLayout.Invoke(surfaces,view);try{var context=(IntPtr)native[1];for(int i=0;i<rectangles.Length;i+=5){int color=rectangles[i+4];cairo_set_source_rgb(context,((color>>16)&255)/255.0,((color>>8)&255)/255.0,(color&255)/255.0);cairo_rectangle(context,rectangles[i],rectangles[i+1],rectangles[i+2],rectangles[i+3]);cairo_fill(context);string label=labels[i/5];if(label.Length==0)continue;cairo_set_source_rgb(context,1,1,1);cairo_move_to(context,rectangles[i]+10,rectangles[i+1]+4);byte[] bytes=System.Text.Encoding.UTF8.GetBytes(label);pango_layout_set_text((IntPtr)native[2],bytes,bytes.Length);pango_cairo_show_layout(context,(IntPtr)native[2]);}cairo_surface_flush((IntPtr)native[0]);XFlush((IntPtr)surfaces[0]);}finally{calls.CloseTextLayout.Invoke(native);}

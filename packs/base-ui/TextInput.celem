@@ -1,0 +1,1 @@
+function Confectory.BaseUI::TextInput (string buffer, int type, int code, int flags) -> int { description "Edit Unicode text and a caret/range; return edit1, submit2, cancel3 separately. Flags include shift4."; provide Confectory.BaseUI::TextInput with Confectory.BaseUI::TextInputBody; }

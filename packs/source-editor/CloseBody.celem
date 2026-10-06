@@ -1,3 +1,1 @@
-implementation Confectory.SourceEditor::CloseBody for Confectory.SourceEditor::Close (string buffer) -> void {
-body common "Close.csbody";
-}
+implementation Confectory.SourceEditor::CloseBody for Confectory.SourceEditor::Close (string buffer) -> void { import Confectory.BaseUI::CloseText as CloseText (string) -> void; body common "Close.csbody"; }
