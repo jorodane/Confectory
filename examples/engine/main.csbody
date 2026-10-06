@@ -121,6 +121,7 @@ void Reopen(int view)
  var actual=calls.SurfaceDimensions.Invoke(surfaces,view);calls.Input.Invoke(owners[view],models[view],views[view],7,actual[0],actual[1],0,0);
  Connect(view);ConnectElement(view);Console.WriteLine("reopened "+view);
 }
+string[] navigation={calls.NavigationCreate.Invoke("{\"initial\":\"basic-controls\",\"groups\":[{\"id\":\"basic-controls\",\"controls\":[1,2]}],\"bindings\":[{\"id\":\"demo-x11-tab\",\"key\":65289,\"group\":\"basic-controls\",\"action\":\"next\",\"priority\":0,\"text\":false},{\"id\":\"demo-tab\",\"key\":9,\"group\":\"basic-controls\",\"action\":\"next\",\"priority\":0,\"text\":false}]}"),calls.NavigationCreate.Invoke("{\"initial\":\"basic-controls\",\"groups\":[{\"id\":\"basic-controls\",\"controls\":[1,2]}],\"bindings\":[{\"id\":\"demo-x11-tab\",\"key\":65289,\"group\":\"basic-controls\",\"action\":\"next\",\"priority\":0,\"text\":false},{\"id\":\"demo-tab\",\"key\":9,\"group\":\"basic-controls\",\"action\":\"next\",\"priority\":0,\"text\":false}]}")};long[] navigationEvent=new long[2];
 void Input(int view,int type,int x,int y,int code,int flags)
 {
  if(type==8){Disconnect(view);calls.Close.Invoke(surfaces,view);Console.WriteLine("closed "+view);return;}
@@ -140,6 +141,7 @@ void Input(int view,int type,int x,int y,int code,int flags)
    if(authorJob is not null)return;int intent=calls.SourceEditorInput.Invoke(textBuffers[view],type,code);if(intent==2)AuthorAction(view,11);if(intent==3){calls.SourceEditorClose.Invoke(textBuffers[view]);textBuffers[view]="";}calls.Invalidate.Invoke(views[view]);return;
   }
  }
+ var focus=calls.Focus.Invoke(views[view],"query",0);navigation[view]=calls.NavigationRoute.Invoke(navigation[view],navigationEvent[view]++,type,code,flags,false,focus[0],System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Where(new[]{1,2},c=>focus[c]!=0)));var routed=System.Text.Json.Nodes.JsonNode.Parse(navigation[view])!;if(routed["consumed"]!.GetValue<bool>()){calls.Focus.Invoke(views[view],"set",routed["focus"]!.GetValue<int>());return;}
  int elementAction=0;
  if(authoring)
  {
@@ -149,6 +151,7 @@ void Input(int view,int type,int x,int y,int code,int flags)
   if(elementAction>0)AuthorAction(view,elementAction);
  }
  int projectAction=elementAction==0?calls.ProjectInput.Invoke(projectViews[view],type,x,y,code,flags):0;if(projectAction>0)ProjectAction(view,projectAction);
+
  calls.Input.Invoke(owners[view],models[view],views[view],type,x,y,code,flags);
  if(type==10)calls.Invalidate.Invoke(views[view]);
  if(type==1){var world=calls.Pick.Invoke(displayed[view],x,y);_ = world;}

@@ -1,0 +1,1 @@
+implementation Confectory.UINavigation::CreateBody for Confectory.UINavigation::Create (string configuration) -> string {  body common "Create.csbody"; }

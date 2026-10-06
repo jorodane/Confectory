@@ -1,5 +1,7 @@
 project Confectory.Engine version "0.1.0" {
 entry Confectory.Engine::Main;
+registry Confectory.UINavigation "../../packs/ui-navigation/pack.cpack";
+dependency Confectory.UINavigation version "0.1.0";
 registry Confectory.RuntimeBase "../../packs/runtime-base/pack.cpack";
 dependency Confectory.RuntimeBase version "0.1.0";
 registry Confectory.RealTimeUpdate "../../packs/realtime-update/pack.cpack";

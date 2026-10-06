@@ -1,0 +1,10 @@
+function Example.UINavigation::Main () -> int { provide Example.UINavigation::Main with Example.UINavigation::MainBody;
+provide Confectory.UINavigation::Create with Confectory.UINavigation::CreateBody;
+provide Confectory.UINavigation::Route with Confectory.UINavigation::RouteBody;
+provide Confectory.BaseUI::CreateView with Confectory.BaseUI::CreateViewBody;
+provide Confectory.BaseUI::Focus with Confectory.BaseUI::FocusBody;
+provide Confectory.BaseUI::Layout with Confectory.BaseUI::LayoutBody;
+provide Confectory.BaseUI::Input with Confectory.BaseUI::InputBody;
+provide Confectory.RuntimeBase::Read with Confectory.RuntimeBase::ReadBody;
+provide Confectory.RuntimeBase::Write with Confectory.RuntimeBase::WriteBody;
+}

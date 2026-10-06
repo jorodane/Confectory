@@ -2,4 +2,7 @@ if(view.Length!=12||view[2]<1||view[3]<1) throw new ArgumentException("Invalid V
 int w=(int)Math.Min(view[2],int.MaxValue),h=(int)Math.Min(view[3],int.MaxValue);
 int inset=Math.Min(20,Math.Max(0,(w-1)/4));int cw=Math.Max(1,w-inset*2);
 int header=Math.Min(50,Math.Max(1,h/8)),row=Math.Min(48,Math.Max(1,h/7));
-return new[]{0,0,w,h,0x202020,inset,header,cw,row,0x303040,inset,header+row+8,cw,row,view[0]==1||view[9]==1?0x4868A0:view[7]==1?0x405C90:0x344878,inset,header+2*row+16,cw,row,view[0]==2||view[9]==2?0x488070:view[8]!=0?0x286850:0x404048,inset,header+3*row+24,cw,Math.Max(1,h-(header+3*row+24)-inset),0x282830};
+var layout=new[]{0,0,w,h,0x202020,inset,header,cw,row,0x303040,inset,header+row+8,cw,row,view[0]==1||view[9]==1?0x4868A0:view[7]==1?0x405C90:0x344878,inset,header+2*row+16,cw,row,view[0]==2||view[9]==2?0x488070:view[8]!=0?0x286850:0x404048,inset,header+3*row+24,cw,Math.Max(1,h-(header+3*row+24)-inset),0x282830};
+
+for(int control=1;control<=2;control++)if((view[11]&(1L<<control))!=0){int i=(control+1)*5;layout[i+2]=0;layout[i+3]=0;}
+return layout;

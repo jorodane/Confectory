@@ -1,0 +1,13 @@
+# Optional UI Navigation fix
+
+The user reported corrected native Windows window/button/focus operation, then identified Tab inventory toggle colliding with BaseUI focus traversal. That is user-observed Windows acceptance of prior window work; it does not establish Windows acceptance of this new fix.
+
+Cause: BaseUI Input unconditionally toggled private basic focus on Tab and returned void. The fix removes that policy, adds public basic Focus/Activate operations and composes optional dependency-free UINavigation in explicit consumers. Engine preserves its demo Tab traversal through configuration; the inventory consumer gives toggle higher priority and uses F6 internally. Consumed records stop before lower basic/project/element/game routing; existing source-editor text routing takes precedence. No core or native platform implementation changes.
+
+Public IDs: BaseUI::{Focus,FocusBody,Activate,ActivateBody}; UINavigation::{Create,CreateBody,Route,RouteBody}. Consumer state is per View. Owner/model/subscription contracts are unchanged. Shared BaseUI changes are tested by existing controls/lifetime consumers and the engine; hidden/disabled pointer/activation checks accompany focus eligibility. Navigation itself has no OS/editor/runtime dependency.
+
+Actual outside implementation reads: BaseUI Input/CreateView/Labels/Layout and engine input routing were necessary to remove the confirmed hardcoded policy, introduce focus-owned operations and locate input consumption before lower controllers. Declarations did not describe existing key-routing priority or private eligibility representation. These are explicitly changed owning BaseUI and engine consumer files; Navigation does not reach into their internals. Test-only X11 harness reuses the prior native ABI injection/capture scaffold, whose purpose is external OS evidence. No other pack implementation edited.
+
+Functional and locality gates are separate: the executable routing consumer covers same-key open/close, single-record dedup, repeat, two states/windows/groups, Unicode/text/modifier suppression, disabled/hidden controls, valid fallback/restoration and activation release/cancellation. Owned Route-only policy edit recompiles RouteBody with zero contracts. Actual X11 GUI gate exercises Tab open/close, F6 traversal, window isolation, text gating, selected close and SIGINT cleanup. Full regression and managed target evidence are recorded at final freeze, not assumed from focused tests.
+
+Native Windows new-fix acceptance remains asynchronous. Android toolchain prerequisites are absent; named managed compilation is not an APK or runtime acceptance. Keyboard focus navigation is distinct from the later semantic entry-point explorer.

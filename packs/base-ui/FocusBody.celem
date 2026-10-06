@@ -1,0 +1,1 @@
+implementation Confectory.BaseUI::FocusBody for Confectory.BaseUI::Focus (long[] view, string operation, int control) -> int[] {  body common "Focus.csbody"; }
