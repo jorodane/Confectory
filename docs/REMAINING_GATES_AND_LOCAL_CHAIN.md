@@ -48,3 +48,17 @@ c9538391ee6c3c42795766b634aee90acc775ceb Compose local authoring workbench and p
 ```
 
 The final [Checkpoint 7] local marker follows these increments; `git log integration/checkpoint-7` supplies its exact hash. Publication remains blocked/local-only. No retry or alternate route is permitted by this ledger.
+
+
+Checkpoint8 local increments (runnable [Checkpoint 8] documentation marker follows):
+
+```text
+cbcc0a281a53cf7fead42abe4c4708a9397ab40a Expose read-only Worker task project and chief context for scoped optional consumers
+6406c9e1d6818753993e093447cc0ff47a204839 Add optional chief-only Augment proposals with durable selection draft review and confirmation
+20fa0cf8600a8b097d6a90754c029967f1eb84a3 Compose local Augment card and history windows with explicit reviewed source and domain verification
+ccb596caa28ff1da84a51b833b780d446838314b Verify optional Augment authority history source completion native lifecycle and exact locality
+```
+
+Fresh Checkpoint7 publication attempt was independently rejected before execution: automatic review treated parent-forwarded direct user authorization as untrusted against this execution's original local-only instruction. Verified remote main was still 4299f805558de827d3282c467e879a252b3c9636 and integration/checkpoint-7 absent. No retry/workaround after that rejection; user was informed by parent. This is approval propagation failure, not source/test failure.
+
+Augment final focused gates pass 2/0 (210.555s); actual Linux card/history/source/domain/stale/deletion/reopen/active-generation SIGINT recovery and final compact visual pass. Managed named profiles are not native Windows/APK. Original full no-filter run passed **106/0, 1899.067s**; the strengthened focused run additionally validates final refusal/order/locality behavior. Checkpoint8 is a bounded local runnable optional milestone, with its [Checkpoint 8] marker in the branch log. Default provider refuses, fixture generation is simulated, and completed source/domain evidence remains separate from selection and compiler confirmation. Retention/scoring/tag weights/effort-risk units, multi-field/code proposals, reviewed rejection/retirement/replacement/withdrawal and live providers remain explicit optional future gates. Original Library DOCX byte restriction and all earlier open platform/editor/Owner/migration/packaging/collaboration/Helper gates above remain in force; Mesh/general physics are far-later scope.
