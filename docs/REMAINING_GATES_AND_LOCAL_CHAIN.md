@@ -62,3 +62,18 @@ ccb596caa28ff1da84a51b833b780d446838314b Verify optional Augment authority histo
 Fresh Checkpoint7 publication attempt was independently rejected before execution: automatic review treated parent-forwarded direct user authorization as untrusted against this execution's original local-only instruction. Verified remote main was still 4299f805558de827d3282c467e879a252b3c9636 and integration/checkpoint-7 absent. No retry/workaround after that rejection; user was informed by parent. This is approval propagation failure, not source/test failure.
 
 Augment final focused gates pass 2/0 (210.555s); actual Linux card/history/source/domain/stale/deletion/reopen/active-generation SIGINT recovery and final compact visual pass. Managed named profiles are not native Windows/APK. Original full no-filter run passed **106/0, 1899.067s**; the strengthened focused run additionally validates final refusal/order/locality behavior. Checkpoint8 is a bounded local runnable optional milestone, with its [Checkpoint 8] marker in the branch log. Default provider refuses, fixture generation is simulated, and completed source/domain evidence remains separate from selection and compiler confirmation. Retention/scoring/tag weights/effort-risk units, multi-field/code proposals, reviewed rejection/retirement/replacement/withdrawal and live providers remain explicit optional future gates. Original Library DOCX byte restriction and all earlier open platform/editor/Owner/migration/packaging/collaboration/Helper gates above remain in force; Mesh/general physics are far-later scope.
+
+
+## Checkpoint 9 completed local milestone
+
+On integration/checkpoint-9, preserve C8 f62371aa9358c3c5909a79e91e14a1d0a0459016 and these local increments:
+
+- 91037778eb383e1c4027cdd7334a3d672c237787 Windows-limit compiler response files and visible launcher progress.
+- 8e9a93b real reference measurements and dependency-scope documentation.
+- ab434f5 durable qualified source-free projection pack and trusted authoring host.
+- 97e1d612476323b56d598bb9023588b65ea0f9cf bounded workbench/changed-ID/chief routing consumers and independent functional/locality tests.
+- 2df5679 preserved pending acceptance record after executor-disconnect notification.
+
+One bounded executor check succeeded at 2026-10-06 02:38:45 UTC, exit0, original cwd and HEAD visible. This confirms successful command access, not merely task admission or a claim that every disconnected channel recovered. No new environment was created.
+
+Completed local gates: focused projection consumer/delivery 2/0, strengthened inherited-schema invalidation 1/0, actual Linux workbench/read-only projection/Confirm/two games/close/reopen/SIGINT cleanup passed. Managed Windows and Android maintenance-consumer compilation passed 64 selected contracts/implementations. Final regression from the retained ignored runner passed **109/0 in 1912.364s**; source stayed frozen throughout. Both managed workbench target builds also passed 112 selected contracts/implementations. The local [Checkpoint 9] marker contains the completed acceptance and durable handoff. Native Windows execution, Android SDK/JDK/adb/licenses/APK/runtime, live model description/behavior review, full DOCX byte materialization, broader retention/compaction policy, full editor and Mesh remain independent gaps. WINDOWS_COMPILER_TRANSPORT_FIX.md distinguishes necessary selected references from artificial repeated-reference stress inputs. No external publication or retry of the denied push.

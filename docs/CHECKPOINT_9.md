@@ -1,6 +1,6 @@
-# Checkpoint 9 acceptance record — pending full regression
+# Checkpoint 9 — durable public projection milestone
 
-Local source increments are committed on `integration/checkpoint-9`; this file is not a completed checkpoint marker while the final regression runs. Base Checkpoint8 f62371aa9358c3c5909a79e91e14a1d0a0459016 is preserved. No push, merge, upload or publication.
+Runnable local milestone on `integration/checkpoint-9`. Final combined regression passed **109 tests, zero failures, 1912.364s**; the local [Checkpoint 9] marker records this final acceptance and handoff. Base Checkpoint8 f62371aa9358c3c5909a79e91e14a1d0a0459016 is preserved. No push, merge, upload or publication.
 
 - 91037778eb383e1c4027cdd7334a3d672c237787: compiler response-file/progress prerequisite.
 - 8e9a93b: real selected-reference measurements, distinguished from repeated-reference stress input.
@@ -15,13 +15,13 @@ Regeneration still parses the selected whole C# function. Measured final focused
 
 Human functional changes reuse existing EditWorkspace/ChangeSet IDs and coalesce at explicit batch boundaries. Maintain calls the consumer-selected routing hook, locally regenerates and acknowledges only accepted requests. Metadata changes do not recruit automatic maintenance. AI authors update their own projection. The optional maintenance consumer checks the selected chief/project and assigns one ordinary ready Task to an editor Helper, deduplicated by stable request command/task IDs. It does not start an Agent; no live description generation or behavioral review is claimed. The production projection pack has no Helper/WorkerTasks/Agent dependency.
 
-## Verified so far
+## Verified acceptance
 
 Focused delivery/consumer checks passed 2/0 in 95.745s; inherited-schema strengthening passed 1/0 in 8.667s. Actual source/draft isolation, qualified variants, stale/version rejection, close/reopen, conditional batch acknowledgment, chief Task routing, real changed-ID Confirm and delta/repeat/tamper rejection executed. Functional and locality gates are separate: the owning Browse implementation rebuilt alone with zero contracts; the final runner also checks a public description-only edit causes no DLL recompilation.
 
 Actual X11 workbench check passed on DISPLAY=:97: read-only bounded projection/public description, scoped capture and sealed-package handling, retained shared drafts and table reopen, new resource/recipe Confirm, two independent game surfaces with visible motion/effect, close cleanup and active-projection SIGINT recovery. Screenshot `/tmp/checkpoint9-live-workbench.png` was visually inspected and is outside Git. Logs: `/tmp/checkpoint9-workbench-gui.log`, `/tmp/checkpoint9-fresh-consumer.log`. Fresh consumer means OS-process freshness, not a fresh AI reasoning worker. Ten traced service calls selected three digest paths per query/publication; registry-document maximum two for the private fixture; no returned raw source. Selected authoring regeneration still reads private source in its author role. See the explicit read/rebuild ledger in CHECKPOINT_9_WORK_LOG.md.
 
-Named Windows and Android maintenance-consumer builds passed, 64 selected managed contracts/implementations, tool.ok=true. These are Portable net8.0 builds, not native Windows/Android runtime or APK evidence. adb/sdkmanager/javac remain absent; tool installation/licenses are not authorized. Original full DOCX byte materialization remains proxy-blocked; the verified official design text was read.
+Named Windows and Android maintenance-consumer builds passed, 64 selected managed contracts/implementations, tool.ok=true. Both workbench profiles also compiled, 112 selected managed contracts/implementations. A standalone guarded public consumer subsequently passed with zero direct private-source file opens, 230.652ms total query wall time and 1656-byte protocol response; its trusted child service source reads were separately traced. These are Portable net8.0 builds, not native Windows/Android runtime or APK evidence. adb/sdkmanager/javac remain absent; tool installation/licenses are not authorized. Original full DOCX byte materialization remains proxy-blocked; the verified official design text was read.
 
 ## Exact combined checks
 
@@ -40,7 +40,7 @@ The final combined runner was copied to ignored `.confectory/verification-checkp
 DISPLAY=:97 dotnet .confectory/verification-checkpoint9/Confectory.Tests.dll
 ```
 
-Full output `/tmp/checkpoint9-full-tests.log`; currently running. No final pass count is asserted yet.
+Full output `/tmp/checkpoint9-full-tests.log`; process exited 0. **109 passed, 0 failed; 1912.364s**, including all earlier checkpoint regressions, Windows-limit compiler regression, both new projection tests, and public-description-only rebuild locality. Final measured syntax analysis: **81.6998ms** for 49455-byte selected source/3603 nodes; full artifact 578852 bytes, bounded root 1283 bytes and delta 1880 bytes. The guarded standalone public query separately measured 230.652ms total process/service/query work and a 1656-byte protocol envelope.
 
 ```
 dotnet src/Confectory.Cli/bin/Release/net8.0/Confectory.Cli.dll build examples/authoring-workbench/project.cpack linux
