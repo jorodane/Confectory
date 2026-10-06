@@ -1,0 +1,1 @@
+object Confectory.Physics2D::WorldRevision { description "Owned diagnostic revision scalar; not a general 2D/3D world schema."; }

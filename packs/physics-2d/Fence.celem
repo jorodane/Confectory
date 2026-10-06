@@ -1,0 +1,1 @@
+function Confectory.Physics2D::Fence (string world) -> long { provide Confectory.Physics2D::Fence with Confectory.Physics2D::FenceBody; description "Owner safe-point generation change: retain body poses/tick, cancel pending intents and contact listeners; old async epoch rejected. No implicit simulation restart."; }

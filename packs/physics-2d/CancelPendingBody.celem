@@ -1,0 +1,1 @@
+implementation Confectory.Physics2D::CancelPendingBody for Confectory.Physics2D::CancelPending (string world, long epoch) -> int { import Confectory.Physics2D::Command as Command (string, string, string) -> string; body common "CancelPending.csbody"; }

@@ -1,0 +1,1 @@
+implementation Confectory.Physics2D::QueueChangeBody for Confectory.Physics2D::QueueChange (string world, long epoch, string change) -> bool { import Confectory.Physics2D::Command as Command (string, string, string) -> string; body common "QueueChange.csbody"; }

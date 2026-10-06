@@ -1,0 +1,1 @@
+implementation Confectory.Physics2D::DisposeWorldBody for Confectory.Physics2D::DisposeWorld (string world) -> bool { import Confectory.Physics2D::Command as Command (string, string, string) -> string; body common "DisposeWorld.csbody"; }

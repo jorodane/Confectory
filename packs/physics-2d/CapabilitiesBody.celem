@@ -1,0 +1,1 @@
+implementation Confectory.Physics2D::CapabilitiesBody for Confectory.Physics2D::Capabilities () -> string { body common "Capabilities.csbody"; }

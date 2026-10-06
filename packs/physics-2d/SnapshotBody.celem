@@ -1,0 +1,1 @@
+implementation Confectory.Physics2D::SnapshotBody for Confectory.Physics2D::Snapshot (string world, double alpha) -> string { import Confectory.Physics2D::Command as Command (string, string, string) -> string; body common "Snapshot.csbody"; }

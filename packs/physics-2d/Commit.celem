@@ -1,0 +1,1 @@
+function Confectory.Physics2D::Commit (string world, long epoch) -> string { provide Confectory.Physics2D::Commit with Confectory.Physics2D::CommitBody; description "Atomically apply queued changes at owner-thread safe boundary; rejected batch discarded, live state retained, IDs never reused."; }

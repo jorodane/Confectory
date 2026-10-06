@@ -1,0 +1,1 @@
+function Confectory.Physics2D::Command (string world, string operation, string payload) -> string { provide Confectory.Physics2D::Command with Confectory.Physics2D::CommandBody; description "Owned transactional 2D lifetime/change/contact policy boundary; adapters preserve public scalar/JSON contracts."; }

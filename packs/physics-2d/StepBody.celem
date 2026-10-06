@@ -1,0 +1,1 @@
+implementation Confectory.Physics2D::StepBody for Confectory.Physics2D::Step (string world, long epoch, double fixedDelta) -> string { import Confectory.Physics2D::Command as Command (string, string, string) -> string; body common "Step.csbody"; }

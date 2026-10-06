@@ -1,0 +1,1 @@
+implementation Confectory.Physics2D::RemoveBodyBody for Confectory.Physics2D::RemoveBody (string world, long epoch, string body) -> bool { import Confectory.Physics2D::Command as Command (string, string, string) -> string; body common "RemoveBody.csbody"; }

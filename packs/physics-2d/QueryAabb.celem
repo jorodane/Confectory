@@ -1,0 +1,1 @@
+function Confectory.Physics2D::QueryAabb (string world, double[] bounds, int maximum) -> string { provide Confectory.Physics2D::QueryAabb with Confectory.Physics2D::QueryAabbBody; description "Exact circle/box overlap of committed simulation positions, numeric-ID ordered, explicit truncation; no display-state mutation."; }

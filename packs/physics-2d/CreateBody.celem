@@ -1,0 +1,1 @@
+function Confectory.Physics2D::CreateBody (string world, string definition) -> string { provide Confectory.Physics2D::CreateBody with Confectory.Physics2D::CreateBodyBody; description "Reserve a world-scoped body ID and queue validated definition; visible only after successful Commit."; }

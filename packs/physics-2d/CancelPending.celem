@@ -1,0 +1,1 @@
+function Confectory.Physics2D::CancelPending (string world, long epoch) -> int { provide Confectory.Physics2D::CancelPending with Confectory.Physics2D::CancelPendingBody; description "Drop queued changes when owning context stops; committed body state remains."; }

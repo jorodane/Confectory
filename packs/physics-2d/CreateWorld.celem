@@ -1,0 +1,1 @@
+function Confectory.Physics2D::CreateWorld (string ownerID, string configuration) -> string { provide Confectory.Physics2D::CreateWorld with Confectory.Physics2D::CreateWorldBody; description "Create an independent physics lifetime Owner; explicit 2D units/gravity/fixed period, no Stage/render dependency."; }

@@ -1,0 +1,1 @@
+System.Text.Json.Nodes.JsonObject request=new(){["epoch"]=epoch,["change"]=System.Text.Json.Nodes.JsonNode.Parse(change)};string response=calls.Command.Invoke(world,"queue",request.ToJsonString());return System.Text.Json.Nodes.JsonNode.Parse(response)!["accepted"]!.GetValue<bool>();

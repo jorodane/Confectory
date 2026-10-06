@@ -1,0 +1,1 @@
+implementation Confectory.Physics2D::EventsBody for Confectory.Physics2D::Events (string world, long afterSequence, int maximum) -> string { import Confectory.Physics2D::Command as Command (string, string, string) -> string; body common "Events.csbody"; }

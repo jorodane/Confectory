@@ -1,0 +1,1 @@
+function Confectory.Physics2D::SetCollider (string world, long epoch, string body, string definition) -> bool { provide Confectory.Physics2D::SetCollider with Confectory.Physics2D::SetColliderBody; description "Queue one circle or static box collider; unsupported body/shape combinations fail Commit atomically."; }

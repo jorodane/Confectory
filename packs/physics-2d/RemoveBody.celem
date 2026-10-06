@@ -1,0 +1,1 @@
+function Confectory.Physics2D::RemoveBody (string world, long epoch, string body) -> bool { provide Confectory.Physics2D::RemoveBody with Confectory.Physics2D::RemoveBodyBody; description "Removal is deferred until Commit; world-scoped ID cannot remove a body in another world."; }

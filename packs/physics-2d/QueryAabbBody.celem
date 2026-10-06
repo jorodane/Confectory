@@ -1,0 +1,1 @@
+implementation Confectory.Physics2D::QueryAabbBody for Confectory.Physics2D::QueryAabb (string world, double[] bounds, int maximum) -> string { import Confectory.Physics2D::Command as Command (string, string, string) -> string; body common "QueryAabb.csbody"; }

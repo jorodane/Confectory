@@ -1,0 +1,1 @@
+function Confectory.Physics2D::Step (string world, long epoch, double fixedDelta) -> string { provide Confectory.Physics2D::Step with Confectory.Physics2D::StepBody; description "One validated exact fixed tick; queued changes must be committed first. Unsupported motion/multiple contacts reject without changing tick/state/events."; }

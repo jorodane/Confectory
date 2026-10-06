@@ -1,0 +1,1 @@
+System.Text.Json.Nodes.JsonObject request=new();string response=calls.Command.Invoke(world,"epoch",request.ToJsonString());return System.Text.Json.Nodes.JsonNode.Parse(response)!["epoch"]!.GetValue<long>();

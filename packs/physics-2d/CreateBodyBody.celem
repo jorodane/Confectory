@@ -1,0 +1,1 @@
+implementation Confectory.Physics2D::CreateBodyBody for Confectory.Physics2D::CreateBody (string world, string definition) -> string { import Confectory.Physics2D::Command as Command (string, string, string) -> string; body common "CreateBody.csbody"; }

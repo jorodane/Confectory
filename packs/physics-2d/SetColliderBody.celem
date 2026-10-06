@@ -1,0 +1,1 @@
+implementation Confectory.Physics2D::SetColliderBody for Confectory.Physics2D::SetCollider (string world, long epoch, string body, string definition) -> bool { import Confectory.Physics2D::Command as Command (string, string, string) -> string; body common "SetCollider.csbody"; }

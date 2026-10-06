@@ -1,0 +1,1 @@
+return System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(world,"fence","{}"))!["epoch"]!.GetValue<long>();

@@ -1,0 +1,1 @@
+System.Text.Json.Nodes.JsonObject request=new(){["bounds"]=System.Text.Json.JsonSerializer.SerializeToNode(bounds),["maximum"]=maximum};string response=calls.Command.Invoke(world,"query",request.ToJsonString());return response;

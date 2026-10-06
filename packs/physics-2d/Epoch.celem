@@ -1,0 +1,1 @@
+function Confectory.Physics2D::Epoch (string world) -> long { provide Confectory.Physics2D::Epoch with Confectory.Physics2D::EpochBody; description "Closed world has epoch zero; old handles never alias a recreated world."; }

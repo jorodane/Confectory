@@ -1,0 +1,1 @@
+function Confectory.Physics2D::Snapshot (string world, double alpha) -> string { provide Confectory.Physics2D::Snapshot with Confectory.Physics2D::SnapshotBody; description "Fresh coherent previous/current/display positions at alpha 0..1; interpolation never advances simulation."; }

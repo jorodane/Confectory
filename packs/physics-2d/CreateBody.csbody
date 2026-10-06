@@ -1,0 +1,1 @@
+System.Text.Json.Nodes.JsonObject request=new(){["definition"]=System.Text.Json.Nodes.JsonNode.Parse(definition)};string response=calls.Command.Invoke(world,"body",request.ToJsonString());return System.Text.Json.Nodes.JsonNode.Parse(response)!["body"]!.ToString();

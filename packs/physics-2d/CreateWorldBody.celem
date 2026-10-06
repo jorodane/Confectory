@@ -1,0 +1,1 @@
+implementation Confectory.Physics2D::CreateWorldBody for Confectory.Physics2D::CreateWorld (string ownerID, string configuration) -> string { import Confectory.Physics2D::Command as Command (string, string, string) -> string; body common "CreateWorld.csbody"; }

@@ -1,0 +1,1 @@
+System.Text.Json.Nodes.JsonObject request=new(){["alpha"]=alpha};string response=calls.Command.Invoke(world,"snapshot",request.ToJsonString());return response;

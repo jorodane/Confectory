@@ -1,0 +1,1 @@
+function Confectory.Physics2D::QueueChange (string world, long epoch, string change) -> bool { provide Confectory.Physics2D::QueueChange with Confectory.Physics2D::QueueChangeBody; description "Thread-safe bounded validated remove/velocity/transform/collider intents; acceptance is queued, not applied. Caller acceptance order defines deterministic commit order."; }

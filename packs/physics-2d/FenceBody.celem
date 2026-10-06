@@ -1,0 +1,1 @@
+implementation Confectory.Physics2D::FenceBody for Confectory.Physics2D::Fence (string world) -> long { import Confectory.Physics2D::Command as Command (string, string, string) -> string; body common "Fence.csbody"; }

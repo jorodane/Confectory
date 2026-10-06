@@ -1,0 +1,1 @@
+function Confectory.Physics2D::Events (string world, long afterSequence, int maximum) -> string { provide Confectory.Physics2D::Events with Confectory.Physics2D::EventsBody; description "Read non-destructive begin/stay/end contact events by sequence; retention loss explicit, consumers independently own cursors."; }

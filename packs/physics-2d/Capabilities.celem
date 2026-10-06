@@ -1,0 +1,1 @@
+function Confectory.Physics2D::Capabilities () -> string { provide Confectory.Physics2D::Capabilities with Confectory.Physics2D::CapabilitiesBody; description "Explicit selected provider support/limits; no broad rigid-body/3D/CCD claim."; }
