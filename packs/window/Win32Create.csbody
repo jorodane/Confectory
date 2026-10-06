@@ -50,6 +50,7 @@ if(surfaces[0]==0)
   var frames=(System.Collections.Generic.Dictionary<long,object[]>)context[4];if(!frames.Remove(handle,out var frame))return;
   SelectObject((IntPtr)frame[0],(IntPtr)frame[4]);DeleteObject((IntPtr)frame[1]);DeleteDC((IntPtr)frame[0]);
  }
+ bool traceNative=Environment.GetEnvironmentVariable("CONFECTORY_NATIVE_TRACE")=="1";
  IntPtr Procedure(IntPtr hwnd,uint message,IntPtr wParam,IntPtr lParam)
  {
   try
@@ -58,6 +59,7 @@ if(surfaces[0]==0)
    if(message==0x14)return (IntPtr)1; // buffered WM_PAINT owns background, never STATIC erase/paint
    if(message==0xF)
    {
+    if(traceNative)Console.Error.WriteLine("NATIVE_WINDOW "+System.Text.Json.JsonSerializer.Serialize(new{stamp=System.Diagnostics.Stopwatch.GetTimestamp(),operation="parent-paint",handle=hwnd.ToInt64(),view=index}));
     var paint=System.Runtime.InteropServices.Marshal.AllocHGlobal(80);
     try
     {

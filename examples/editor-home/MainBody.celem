@@ -14,6 +14,7 @@ import Confectory.BaseUI::Button as Button (string, int, int[], string, int[], b
 import Confectory.BaseUI::ButtonInput as ButtonInput (string, long, int[], int[], int, int, int, int) -> int;
 import Confectory.BaseUI::CreateText as CreateText (string, string) -> string;
 import Confectory.BaseUI::TextSnapshot as TextSnapshot (string) -> string[];
+import Confectory.BaseUI::ReplaceText as ReplaceText (string, string, int, int) -> void;
 import Confectory.BaseUI::CloseText as CloseText (string) -> void;
 import Confectory.BaseUI::Grid as Grid (int[], int, int, int, int, int) -> int[];
 import Confectory.BaseUI::Stack as Stack (int[], int, int, int[]) -> int[];

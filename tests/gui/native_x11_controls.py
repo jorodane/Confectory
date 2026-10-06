@@ -59,6 +59,16 @@ class NativeControls:
         rx,ry,child=c.c_int(),c.c_int(),U()
         assert self.translate(self.display,int(window),self.root,x,y,c.byref(rx),c.byref(ry),c.byref(child))
         self.motion(self.display,-1,rx.value,ry.value,0);self.button(self.display,1,1,0);self.button(self.display,1,0,0);self.flush(self.display);time.sleep(.12)
+    def drag(self,window,start,end):
+        self.click(window,*start)
+        rx,ry,child=c.c_int(),c.c_int(),U()
+        assert self.translate(self.display,int(window),self.root,*end,c.byref(rx),c.byref(ry),c.byref(child))
+        self.button(self.display,1,1,0);self.motion(self.display,-1,rx.value,ry.value,0);self.button(self.display,1,0,0);self.flush(self.display);time.sleep(.15)
+    def scroll(self,window,x,y,steps):
+        self.click(window,x,y)
+        for _ in range(abs(steps)):
+            self.button(self.display,5 if steps>0 else 4,1,0);self.button(self.display,5 if steps>0 else 4,0,0)
+        self.flush(self.display);time.sleep(.15)
     def text(self,window,text):
         self.key(window,'a',(0xFFE3,)) # toolkit-owned Select All
         for char in text:
