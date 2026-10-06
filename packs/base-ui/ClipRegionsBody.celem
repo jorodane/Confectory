@@ -1,0 +1,1 @@
+implementation Confectory.BaseUI::ClipRegionsBody for Confectory.BaseUI::ClipRegions (int[] clip, int[] masks) -> int[] { body common "ClipRegions.csbody"; }

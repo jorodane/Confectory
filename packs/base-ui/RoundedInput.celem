@@ -1,0 +1,1 @@
+function Confectory.BaseUI::RoundedInput (string surface, long eventID, int[] rectangles, int[] radii, int[] buttons, int type, int x, int y, int activation) -> int { provide Confectory.BaseUI::RoundedInput with Confectory.BaseUI::RoundedInputBody; }

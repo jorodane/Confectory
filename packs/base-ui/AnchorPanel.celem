@@ -1,0 +1,1 @@
+function Confectory.BaseUI::AnchorPanel (int[] viewport, int[] anchor, int[] size, int gap, int preferred) -> int[] { provide Confectory.BaseUI::AnchorPanel with Confectory.BaseUI::AnchorPanelBody; }

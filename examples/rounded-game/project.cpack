@@ -1,0 +1,8 @@
+project Example.RoundedGame version "0.1.0" {
+entry Example.RoundedGame::Main;
+registry Confectory.BaseUI "../../packs/base-ui/pack.cpack"; dependency Confectory.BaseUI version "0.1.0";
+registry Confectory.RuntimeBase "../../packs/runtime-base/pack.cpack"; dependency Confectory.RuntimeBase version "0.1.0";
+registry Confectory.Build.DotNet "../../targets/dotnet/pack.cpack"; dependency Confectory.Build.DotNet version "0.1.0";
+target linux Confectory.Build.DotNet::Linux; target windows Confectory.Build.DotNet::Portable; target android Confectory.Build.DotNet::Portable;
+element Main function "Main.celem"; element MainBody implementation "MainBody.celem";
+}

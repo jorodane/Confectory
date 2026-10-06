@@ -1,0 +1,1 @@
+function Confectory.BaseUI::RoundedHit (int[] bounds, int radius, int x, int y) -> bool { provide Confectory.BaseUI::RoundedHit with Confectory.BaseUI::RoundedHitBody; }

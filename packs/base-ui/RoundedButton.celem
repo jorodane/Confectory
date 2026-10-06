@@ -1,0 +1,1 @@
+function Confectory.BaseUI::RoundedButton (string surface, int control, int[] bounds, string label, int[] palette, int radius, bool visible, bool enabled) -> string { provide Confectory.BaseUI::RoundedButton with Confectory.BaseUI::RoundedButtonBody; }

@@ -1,0 +1,4 @@
+implementation Confectory.BaseUI::RoundedInputBody for Confectory.BaseUI::RoundedInput (string surface, long eventID, int[] rectangles, int[] radii, int[] buttons, int type, int x, int y, int activation) -> int {
+import Confectory.BaseUI::RoundedHit as RoundedHit (int[], int, int, int) -> bool;
+import Confectory.BaseUI::ButtonInput as ButtonInput (string, long, int[], int[], int, int, int, int) -> int;
+body common "RoundedInput.csbody"; }

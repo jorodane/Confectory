@@ -1,0 +1,2 @@
+implementation Confectory.BaseUI::RoundedHitBody for Confectory.BaseUI::RoundedHit (int[] bounds, int radius, int x, int y) -> bool {
+body common "RoundedHit.csbody"; }

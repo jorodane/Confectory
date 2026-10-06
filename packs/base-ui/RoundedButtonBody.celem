@@ -1,0 +1,4 @@
+implementation Confectory.BaseUI::RoundedButtonBody for Confectory.BaseUI::RoundedButton (string surface, int control, int[] bounds, string label, int[] palette, int radius, bool visible, bool enabled) -> string {
+import Confectory.BaseUI::Button as Button (string, int, int[], string, int[], bool, bool) -> string;
+import Confectory.BaseUI::RoundedBox as RoundedBox (int[], int, int) -> int[];
+body common "RoundedButton.csbody"; }

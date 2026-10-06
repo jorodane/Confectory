@@ -1,0 +1,2 @@
+implementation Confectory.BaseUI::RoundedBoxBody for Confectory.BaseUI::RoundedBox (int[] bounds, int radius, int color) -> int[] {
+body common "RoundedBox.csbody"; }

@@ -1,0 +1,1 @@
+function Confectory.BaseUI::ClipRegions (int[] clip, int[] masks) -> int[] { provide Confectory.BaseUI::ClipRegions with Confectory.BaseUI::ClipRegionsBody; }

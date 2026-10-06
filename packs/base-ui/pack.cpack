@@ -59,4 +59,10 @@ element TextLines function "TextLines.celem"; element TextLinesBody implementati
 element Field function "Field.celem"; element FieldBody implementation "FieldBody.celem";
 element FieldInput function "FieldInput.celem"; element FieldInputBody implementation "FieldInputBody.celem";
 element Grid function "Grid.celem"; element GridBody implementation "GridBody.celem";
+element RoundedBox function "RoundedBox.celem"; element RoundedBoxBody implementation "RoundedBoxBody.celem";
+element RoundedHit function "RoundedHit.celem"; element RoundedHitBody implementation "RoundedHitBody.celem";
+element RoundedButton function "RoundedButton.celem"; element RoundedButtonBody implementation "RoundedButtonBody.celem";
+element RoundedInput function "RoundedInput.celem"; element RoundedInputBody implementation "RoundedInputBody.celem";
+element AnchorPanel function "AnchorPanel.celem"; element AnchorPanelBody implementation "AnchorPanelBody.celem";
+element ClipRegions function "ClipRegions.celem"; element ClipRegionsBody implementation "ClipRegionsBody.celem";
 }

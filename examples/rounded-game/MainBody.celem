@@ -1,0 +1,11 @@
+implementation Example.RoundedGame::MainBody for Example.RoundedGame::Main () -> int {
+import Confectory.BaseUI::RoundedBox as RoundedBox (int[], int, int) -> int[];
+import Confectory.BaseUI::RoundedHit as RoundedHit (int[], int, int, int) -> bool;
+import Confectory.BaseUI::RoundedButton as RoundedButton (string, int, int[], string, int[], int, bool, bool) -> string;
+import Confectory.BaseUI::RoundedInput as RoundedInput (string, long, int[], int[], int[], int, int, int, int) -> int;
+import Confectory.BaseUI::AnchorPanel as AnchorPanel (int[], int[], int[], int, int) -> int[];
+import Confectory.BaseUI::ClipRegions as ClipRegions (int[], int[]) -> int[];
+import Confectory.BaseUI::CreateControls as CreateControls (int[]) -> string;
+import Confectory.BaseUI::ControlState as ControlState (string, string, int) -> int[];
+import Confectory.BaseUI::CloseControls as CloseControls (string) -> void;
+body common "Main.csbody"; }
