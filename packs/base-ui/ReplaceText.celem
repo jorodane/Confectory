@@ -1,0 +1,1 @@
+function Confectory.BaseUI::ReplaceText (string buffer, string value, int caret, int anchor) -> void { description "Synchronize an explicit borrowed native input/model value and UTF16 selection without implementing keyboard/clipboard/IME commands."; provide Confectory.BaseUI::ReplaceText with Confectory.BaseUI::ReplaceTextBody; }

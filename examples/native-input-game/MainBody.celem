@@ -1,0 +1,23 @@
+implementation Example.NativeInputGame::MainBody for Example.NativeInputGame::Main () -> int {
+import Confectory.Window::CreateSurfaces as CreateSurfaces (string[], int, int) -> long[];
+import Confectory.Window::SurfaceInfo as SurfaceInfo (long[]) -> long[];
+import Confectory.Window::Close as CloseSurfaces (long[], int) -> void;
+import Confectory.RenderInput::Pump as Pump (long[]) -> int[];
+import Confectory.RenderInput::Draw as Draw (long[], int, int[], string[]) -> void;
+import Confectory.BaseUI::CreateControls as CreateControls (int[]) -> string;
+import Confectory.BaseUI::ControlState as ControlState (string, string, int) -> int[];
+import Confectory.BaseUI::CloseControls as CloseControls (string) -> void;
+import Confectory.BaseUI::CreateText as CreateText (string, string) -> string;
+import Confectory.BaseUI::TextSnapshot as TextSnapshot (string) -> string[];
+import Confectory.BaseUI::CloseText as CloseText (string) -> void;
+import Confectory.BaseUI.NativeInput::Create as CreateNative (long[], int) -> string;
+import Confectory.BaseUI.NativeInput::Field as NativeField (string, string, int, string, int[], string, string, bool, bool, bool) -> string;
+import Confectory.BaseUI.NativeInput::Poll as NativePoll (string, string) -> string;
+import Confectory.BaseUI.NativeInput::Focus as NativeFocus (string, string, int) -> void;
+import Confectory.BaseUI.NativeInput::Frame as NativeFrame (string, string[]) -> void;
+import Confectory.BaseUI.NativeInput::Close as CloseNative (string) -> void;
+import Confectory.NativeUI::Request as NativeRequest (string, string, string, long) -> string;
+import Confectory.Window::Reopen as Reopen (long[], int, string, int, int) -> void;
+import Confectory.BaseUI::ReplaceText as ReplaceText (string, string, int, int) -> void;
+body common "Main.csbody";
+}

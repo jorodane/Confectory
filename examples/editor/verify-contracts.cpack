@@ -8,6 +8,8 @@ registry Confectory.ChangeSet "../../packs/change-set/pack.cpack"; dependency Co
 registry Confectory.SchemaEditing "../../packs/schema-editing/pack.cpack"; dependency Confectory.SchemaEditing version "0.1.0";
 registry Confectory.FileStream "../../packs/file-stream/pack.cpack"; dependency Confectory.FileStream version "0.1.0";
 registry Confectory.ElementView "../../packs/element-view/pack.cpack"; dependency Confectory.ElementView version "0.1.0";
+registry Confectory.NativeUI "../../packs/native-ui-desktop/pack.cpack"; dependency Confectory.NativeUI version "0.1.0";
+registry Confectory.BaseUI.NativeInput "../../packs/base-ui-native-input/pack.cpack"; dependency Confectory.BaseUI.NativeInput version "0.1.0";
 registry Confectory.BaseUI "../../packs/base-ui/pack.cpack"; dependency Confectory.BaseUI version "0.1.0";
 registry Confectory.UINavigation "../../packs/ui-navigation/pack.cpack"; dependency Confectory.UINavigation version "0.1.0";
 registry Confectory.SourceEditor "../../packs/source-editor/pack.cpack"; dependency Confectory.SourceEditor version "0.1.0";

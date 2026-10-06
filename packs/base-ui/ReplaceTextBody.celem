@@ -1,0 +1,1 @@
+implementation Confectory.BaseUI::ReplaceTextBody for Confectory.BaseUI::ReplaceText (string buffer, string value, int caret, int anchor) -> void { import Confectory.BaseUI::SelectText as SelectText (string, int, int) -> void; body common "ReplaceText.csbody"; }

@@ -1,0 +1,1 @@
+implementation Confectory.SourceEditor::BorrowTextBody for Confectory.SourceEditor::BorrowText (string source) -> string { import Confectory.BaseUI::TextSnapshot as TextSnapshot (string) -> string[]; body common "BorrowText.csbody"; }

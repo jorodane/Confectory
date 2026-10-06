@@ -1,0 +1,1 @@
+function Confectory.BaseUI.NativeInput::Close (string host) -> void { provide Confectory.BaseUI.NativeInput::Close with Confectory.BaseUI.NativeInput::CloseBody; }

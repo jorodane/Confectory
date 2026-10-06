@@ -1,0 +1,9 @@
+pack Confectory.BaseUI.NativeInput version "0.1.0" {
+dependency Confectory.BaseUI version "0.1.0"; dependency Confectory.NativeUI version "0.1.0";
+element Create function "Create.celem"; element CreateBody implementation "CreateBody.celem";
+element Field function "Field.celem"; element FieldBody implementation "FieldBody.celem";
+element Poll function "Poll.celem"; element PollBody implementation "PollBody.celem";
+element Focus function "Focus.celem"; element FocusBody implementation "FocusBody.celem";
+element Frame function "Frame.celem"; element FrameBody implementation "FrameBody.celem";
+element Close function "Close.celem"; element CloseBody implementation "CloseBody.celem";
+}

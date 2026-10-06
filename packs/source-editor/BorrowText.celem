@@ -1,0 +1,1 @@
+function Confectory.SourceEditor::BorrowText (string source) -> string { description "Borrow the BaseUI text-model handle for a retained native View binding. SourceEditor caller retains ownership; retire native Views before closing/replacing source."; provide Confectory.SourceEditor::BorrowText with Confectory.SourceEditor::BorrowTextBody; }

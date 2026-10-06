@@ -29,9 +29,15 @@ import Confectory.RuntimeBase::Write as RuntimeBaseWrite (string[], int, long) -
 import Confectory.RuntimeBase::DisposeOwner as RuntimeBaseDisposeOwner (string[]) -> void;
 import Confectory.Editor::CreateSession as CreateSession (string, string) -> string; import Confectory.Editor::Snapshot as Snapshot (string) -> string; import Confectory.Editor::Command as Command (string, string, string) -> string; import Confectory.Editor::CloseSession as CloseSession (string) -> void;
 import Confectory.SourceEditor::Refresh as SourceEditorRefresh (string, string) -> void;
-import Confectory.BaseUI::Field as BaseUIField (string, int, string, string, int[], string, int[], bool, bool) -> string;
-import Confectory.BaseUI::FieldInput as BaseUIFieldInput (string, int, string, string, int, int, int, int, int, string) -> int;
 import Confectory.BaseUI::Stack as BaseUIStack (int[], int, int, int[]) -> int[];
 import Confectory.RenderInput::MeasureText as MeasureText (long[], int, string) -> string;
 import Confectory.RenderInput::DrawText as DrawText (long[], int, int[], int[], string[]) -> void;
+import Confectory.BaseUI.NativeInput::Create as NativeCreate (long[], int) -> string;
+import Confectory.BaseUI.NativeInput::Field as NativeField (string, string, int, string, int[], string, string, bool, bool, bool) -> string;
+import Confectory.BaseUI.NativeInput::Poll as NativePoll (string, string) -> string;
+import Confectory.BaseUI.NativeInput::Focus as NativeFocus (string, string, int) -> void;
+import Confectory.BaseUI.NativeInput::Frame as NativeFrame (string, string[]) -> void;
+import Confectory.BaseUI.NativeInput::Close as NativeClose (string) -> void;
+import Confectory.NativeUI::Request as NativeRequest (string, string, string, long) -> string;
+import Confectory.SourceEditor::BorrowText as BorrowText (string) -> string;
 body common "Main.csbody"; }

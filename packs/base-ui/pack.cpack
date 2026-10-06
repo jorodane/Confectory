@@ -65,4 +65,5 @@ element RoundedButton function "RoundedButton.celem"; element RoundedButtonBody 
 element RoundedInput function "RoundedInput.celem"; element RoundedInputBody implementation "RoundedInputBody.celem";
 element AnchorPanel function "AnchorPanel.celem"; element AnchorPanelBody implementation "AnchorPanelBody.celem";
 element ClipRegions function "ClipRegions.celem"; element ClipRegionsBody implementation "ClipRegionsBody.celem";
+element ReplaceText function "ReplaceText.celem"; element ReplaceTextBody implementation "ReplaceTextBody.celem";
 }

@@ -23,6 +23,8 @@ atom=native('XInternAtom',U,P,c.c_char_p,c.c_int)
 class Event(c.Structure):
     _fields_=[('type',c.c_int),('serial',U),('send',c.c_int),('display',P),('window',U),('root',U),('subwindow',U),('time',U),('x',c.c_int),('y',c.c_int),('xr',c.c_int),('yr',c.c_int),('state',c.c_uint),('detail',c.c_uint),('same',c.c_int)]
 display=open_display(None);assert display,'Live X11 DISPLAY required'
+from native_x11_controls import NativeControls
+native_controls=NativeControls(display)
 root=root_window(display);report=json.load(open(sys.argv[1],encoding='utf-8'))
 
 def find(wanted):
@@ -46,6 +48,11 @@ def await_window(wanted):
     raise AssertionError('Game surface not mapped')
 
 def press(window,key):
+    if 'latest' in globals():
+        trace=latest();field=trace.get('fields',{}).get(str(trace.get('focus',0))) if trace else None
+        if isinstance(field,str):field=json.loads(field)
+        if field and field.get('native') and field.get('visible'):
+            native_controls.key(int(field['nativeHandle']),key);return
     for kind in (2,3):
         event=Event(kind,0,1,display,window,root,0,100,0,0,0,0,0,keycode(display,key if isinstance(key,int) else ord(key)),1)
         buffer=c.create_string_buffer(192);c.memmove(buffer,c.byref(event),c.sizeof(event));assert send(display,window,0,0,buffer)
@@ -114,23 +121,22 @@ def wait(predicate,message,view=0,seconds=40):
 def click(window,id,view=0):
     raise_window(display,window);flush(display)
     trace=wait(lambda t:id in t['rects'][::5],f'Control {id} unavailable',view)
+    field=trace.get('fields',{}).get(str(id))
+    if isinstance(field,str):field=json.loads(field)
+    if field and field.get('native'):
+        native_controls.click(int(field['nativeHandle']),min(50,field['bounds'][2]//2),field['bounds'][3]//2);wait(lambda t:t['focus']==id,'native pointer focus',view);return
     n=trace['rects'][::5].index(id)*5;_,x,y,w,h=trace['rects'][n:n+5]
     for kind in (4,5):
         event=Event(kind,0,1,display,window,root,0,100,x+w//2,y+h//2,0,0,0,1,1)
         buf=c.create_string_buffer(192);c.memmove(buf,c.byref(event),c.sizeof(event));assert send(display,window,0,0,buf)
         flush(display);time.sleep(.03)
     time.sleep(.12)
-def type_text(window,text):
-    press(window,0xFFC1) # F4 selects all in the public SourceEditor buffer.
-    for index,char in enumerate(text):
-        stamp=200+index
-        symbol=0xFF0D if char=='\n' else ord(char);code=keycode(display,symbol);assert code,f'No X keycode for {char!r}'
-        shift=1 if lookup(display,code,0)!=symbol and lookup(display,code,1)==symbol else 0
-        for kind in (2,3):
-            event=Event(kind,0,1,display,window,root,0,stamp,0,0,0,0,shift,code,1)
-            buf=c.create_string_buffer(192);c.memmove(buf,c.byref(event),c.sizeof(event));assert send(display,window,0,0,buf)
-        flush(display);time.sleep(.002)
-    time.sleep(.12)
+def type_text(window,text,view=0):
+    trace=wait(lambda t:t['focus'] in [int(k) for k in t.get('fields',{})],'native text focus',view);field=trace['fields'].get(str(trace['focus']))
+    if isinstance(field,str):field=json.loads(field)
+    assert field and field.get('native'),'Visible input must use a native widget'
+    native_controls.text(int(field['nativeHandle']),text)
+
 def project(trace,view=0):
     id=trace['model']['views'][str(view)]['project'];return next(p for p in trace['model']['projects'] if p['id']==id)
 def select_body(window,view=0):
@@ -150,29 +156,19 @@ try:
     click(a,1);wait(lambda t:t['screen']=='create','new project form')
     click(a,23);wait(lambda t:t['focus']==20,'required name focus')
     click(a,20);type_text(a,'Game');press(a,0xFF57)
-    measured=wait(lambda t:t['fields']['20']['text']=='Game' and t['fields']['20']['caret'],'generic create field measured frame')['fields']['20']
-    origin=measured['textOrigins'];positions=measured['metrics']['lines'][0]['positions'];caret=measured['caret']
-    assert caret[0]==origin[0]+positions[-1] and caret[1]==origin[1] and caret[3]==measured['metrics']['height'],'Editor uses renderer-measured end caret'
-    bitmap=image(display,a,caret[0],caret[1]+caret[3]//2,1,1,U(-1).value,2);assert bitmap
-    try:assert pixel(bitmap,0,0)&0xffffff==0xFFDC80,'Editor actual caret pixel misaligned'
-    finally:destroy(bitmap)
-    for kind,x in ((4,origin[0]+positions[1]),(6,origin[0]+positions[3]),(5,origin[0]+positions[3])):
-        event=Event(kind,0,1,display,a,root,0,500,x,origin[1]+4,0,0,0,1,1);buf=c.create_string_buffer(192);c.memmove(buf,c.byref(event),c.sizeof(event));assert send(display,a,0,0,buf);flush(display);time.sleep(.04)
-    press(a,'x');wait(lambda t:t['fields']['20']['text']=='Gxe','Editor click/drag range replacement')
-    type_text(a,'W'*90);press(a,0xFF57);wait(lambda t:t['fields']['20']['scrollX']>0,'Editor generic horizontal viewport')
+    measured=wait(lambda t:t['fields']['20']['text']=='Game' and t['fields']['20']['caret']==4,'native create field caret')['fields']['20'];assert measured['provider']=='gtk3' and measured['native']
+    handle=measured['nativeHandle'];native_controls.key(handle,0xFF50);native_controls.key(handle,0xFF53);native_controls.key(handle,0xFF53,(0xFFE1,));native_controls.key(handle,0xFF53,(0xFFE1,));native_controls.key(handle,'x');wait(lambda t:t['fields']['20']['text']=='Gxe','native Shift selection replacement')
+    type_text(a,'W'*90);press(a,0xFF57);wait(lambda t:t['fields']['20']['caret']==90,'native horizontal editing caret')
     type_text(a,'GuiWorkflow');click(a,21);type_text(a,'A local designed editor workflow\nwith saved drafts.')
     subprocess.run(['import','-window',str(a),os.path.join(storage,'create.png')],check=True)
-    click(a,22);wait(lambda t:t['screen']=='browse','actual parent folder picker');click(a,13);wait(lambda t:t['pages'][0]>0,'folder next visible page');click(a,14);wait(lambda t:t['pages'][0]==0,'folder previous visible page');click(a,11);wait(lambda t:t['screen']=='create','chosen parent')
+    click(a,22);native_controls.folder(find,await_window,storage);wait(lambda t:not t['nativePickerPending'] and 22 in t['rects'][::5],'native parent selected')
     click(a,23);trace=wait(lambda t:t['screen']=='project','created project')
     path=project(trace)['path'];folder=os.path.dirname(path);ns=project(trace)['namespace']
     click(a,6);b=await_window(b'Confectory Editor B');wait(lambda t:str(1) in t['model']['views'],'shared view',1)
     click(a,30);wait(lambda t:t['screen']=='element','element list');click(a,41);type_text(a,'Counter');click(a,43);wait(lambda t:t['screen']=='project' and t['model']['views']['0']['element'].endswith('::Counter'),'new object')
     assert latest(1)['model']['views']['1']['element'].endswith('MainBody/body:common'),'selection leaked into sibling View'
     click(a,54);type_text(a,f'object {ns}::Counter {{ value count = 7; }}\n');click(a,34);wait(lambda t:t['model']['lastOperation']=='text' and t['model']['status']=='Applied text to local draft','object text')
-    click(a,54);source_frame=wait(lambda t:t['focus']==54,'source focus')['fields']['54'];source_origin=source_frame['textOrigins']
-    for kind in (4,5):
-        event=Event(kind,0,1,display,a,root,0,700,source_origin[0]+4,source_origin[1]+4,0,0,0,1,1);buf=c.create_string_buffer(192);c.memmove(buf,c.byref(event),c.sizeof(event));assert send(display,a,0,0,buf);flush(display);time.sleep(.03)
-    press(a,0xFF57);at=wait(lambda t:t['focus']==54 and int(t['buffer'][2])==len(t['buffer'][1].rstrip('\n')),'source line end');before_caret=int(at['buffer'][2]);press(a,0xFF51);press(a,0xFF51);old_buffer=wait(lambda t:t['focus']==54 and int(t['buffer'][2])==before_caret-2,'source caret')['buffer'];old_token=latest()['bufferToken']
+    click(a,54);source_frame=wait(lambda t:t['focus']==54,'source focus')['fields']['54'];native_controls.key(source_frame['nativeHandle'],0xFF50,(0xFFE3,));press(a,0xFF57);at=wait(lambda t:t['focus']==54 and int(t['buffer'][2])==len(t['buffer'][1].rstrip('\n')),'native source line end');before_caret=int(at['buffer'][2]);press(a,0xFF51);press(a,0xFF51);old_buffer=wait(lambda t:t['focus']==54 and int(t['buffer'][2])==before_caret-2,'source caret')['buffer'];old_token=latest()['bufferToken']
     click(a,33);wait(lambda t:300 in t['rects'][::5],'property fallback');click(a,300);click(a,45);type_text(a,'9');click(a,46);wait(lambda t:t['model']['lastOperation']=='value' and 'Error:' not in t['model']['status'],'property edit')
     updated=latest();assert updated['bufferToken']==old_token,'clean source buffer identity recreated';assert int(updated['buffer'][2])==int(old_buffer[2])+len(updated['buffer'][1])-len(old_buffer[1]),'caret did not follow changed span';assert updated['buffer'][3]==old_buffer[3],'selection lost on source refresh'
     for n in range(10):
@@ -183,8 +179,7 @@ try:
     raise_window(display,a);flush(display);time.sleep(.1)
     subprocess.run(['import','-window',str(a),os.path.join(storage,'workspace.png')],check=True)
     shutdown()
-    a=launch();wait(lambda t:t['screen']=='home','restart home');click(a,2);wait(lambda t:t['screen']=='browse','Open folder picker')
-    trace=latest();page=trace['model']['pickers']['0'];index=next(i for i in range((len(page)-3)//3) if page[4+i*3]=='GuiWorkflow');click(a,100+index);wait(lambda t:t['model']['pickers']['0'][0]==folder,'entered project folder');click(a,11)
+    a=launch();wait(lambda t:t['screen']=='home','restart home');click(a,2);native_controls.folder(find,await_window,folder)
     trace=wait(lambda t:t['screen']=='project','opened saved project');assert trace['model']['views']['0']['unit'][3]==source,'saved draft not restored'
     click(a,36);wait(lambda t:t['screen']=='review','Review');click(a,49);trace=wait(lambda t:t['model'].get('confirmResult',[''])[0]=='confirmed','Confirm',seconds=120)
     assert open(os.path.join(folder,'main.csbody')).read()==source,'Confirm final source'
@@ -192,7 +187,7 @@ try:
     click(a,38);wait(lambda t:project(t)['execution']['state']=='stopped','Stop')
     click(a,6);b=await_window(b'Confectory Editor B');wait(lambda t:'1' in t['model']['views'],'reopened borrowed View',1)
     resize(display,a,640,520);flush(display);wait(lambda t:37 in t['rects'][::5] and t['rects'][t['rects'][::5].index(37)*5+1]<640,'resize footer')
-    click(b,54,1);type_text(b,'this draft must remain local');close(b);wait(lambda t:'1' not in t['model']['views'],'close one View')
+    click(b,54,1);type_text(b,'this draft must remain local',1);close(b);wait(lambda t:'1' not in t['model']['views'],'close one View')
     click(a,6);b=await_window(b'Confectory Editor B');wait(lambda t:'1' in t['model']['views'],'reopen View',1)
     assert open(os.path.join(folder,'main.csbody')).read()==source,'pending View edits leaked into final source'
     raise_window(display,a);flush(display);time.sleep(.1)
@@ -208,7 +203,7 @@ try:
     os.killpg(app.pid,signal.SIGINT);assert app.wait(timeout=30)==0,open(log_path).read()[-4000:];log.close();assert 'owners, buffers, jobs, workspace and children disposed' in open(log_path).read()
     assert os.path.isfile(os.path.join(folder,'main.csbody'))
     assert not find(b'Confectory Editor A') and not find(b'Confectory Editor B')
-    print('Editor native create/folder-open, element/source/property edit, Save/restart, Review/Confirm, Run/Stop/output, independent borrowed Views, resize/close/reopen, folder/element/review pagination, buffer identity/caret, compiler/stale/external errors, recovery, in-flight interrupt and cleanup PASS')
+    print('Editor native create/folder-open, element/source/property edit, Save/restart, Review/Confirm, Run/Stop/output, independent borrowed Views, resize/close/reopen, native folder select/cancel and element/review pagination, buffer identity/caret, compiler/stale/external errors, recovery, in-flight interrupt and cleanup PASS')
     print('Private evidence:',storage)
 finally:
     if app and app.poll() is None:

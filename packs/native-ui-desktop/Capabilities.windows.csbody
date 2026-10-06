@@ -1,0 +1,1 @@
+return new System.Text.Json.Nodes.JsonObject{["provider"]="win32-rich-edit",["implemented"]=true,["platformMatches"]=OperatingSystem.IsWindows(),["textControls"]=true,["folderPicker"]=true,["folderLocator"]="filesystem-path",["uiOwnership"]="creating-thread; folder dialog owns cancellable STA thread",["requires"]="Windows, Msftedit.dll, COM Shell dialog"}.ToJsonString();

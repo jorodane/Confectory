@@ -1,0 +1,9 @@
+implementation Example.NativeInputGame::VerifyBody for Example.NativeInputGame::Verify () -> int {
+import Confectory.NativeUI::Capabilities as Capabilities () -> string;
+import Confectory.NativeUI::Request as Request (string, string, string, long) -> string;
+import Confectory.BaseUI::CreateText as CreateText (string, string) -> string;
+import Confectory.BaseUI::ReplaceText as ReplaceText (string, string, int, int) -> void;
+import Confectory.BaseUI::TextSnapshot as TextSnapshot (string) -> string[];
+import Confectory.BaseUI::CloseText as CloseText (string) -> void;
+body common "Verify.csbody";
+}

@@ -1,0 +1,1 @@
+function Confectory.NativeUI::Capabilities () -> string { description "Selected runtime-service implementation and prerequisites, separated from managed compile/native runtime/packaging evidence; opaque browser/Android locators require their own provider."; provide Confectory.NativeUI::Capabilities with Confectory.NativeUI::CapabilitiesBody; }

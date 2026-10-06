@@ -1,0 +1,1 @@
+if(value.Length>1048576)throw new ArgumentException("Native/model text snapshot budget");var state=AppDomain.CurrentDomain.GetData("Confectory.BaseUI.Text."+buffer) as object[]??throw new ObjectDisposedException("Text input");var text=(System.Text.StringBuilder)state[1];if(text.ToString()!=value){text.Clear();text.Append(value);}calls.SelectText.Invoke(buffer,anchor,caret);

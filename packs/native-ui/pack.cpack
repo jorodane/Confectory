@@ -1,0 +1,4 @@
+pack Confectory.NativeUI version "0.1.0" {
+element Create function "Create.celem"; element CreateBody implementation "CreateBody.celem";
+element Request function "Request.celem"; element Capabilities function "Capabilities.celem";
+}

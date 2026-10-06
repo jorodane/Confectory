@@ -1,0 +1,1 @@
+function Confectory.BaseUI.NativeInput::Field (string host, string surface, int control, string buffer, int[] bounds, string mode, string hint, bool visible, bool enabled, bool readOnly) -> string { provide Confectory.BaseUI.NativeInput::Field with Confectory.BaseUI.NativeInput::FieldBody; }

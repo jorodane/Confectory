@@ -1,0 +1,1 @@
+implementation Confectory.BaseUI.NativeInput::CreateBody for Confectory.BaseUI.NativeInput::Create (long[] surfaces, int view) -> string { import Confectory.NativeUI::Create as Create (long[], int) -> string; body common "Create.csbody"; }

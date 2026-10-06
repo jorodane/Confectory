@@ -1,0 +1,1 @@
+function Confectory.BaseUI.NativeInput::Poll (string host, string surface) -> string { provide Confectory.BaseUI.NativeInput::Poll with Confectory.BaseUI.NativeInput::PollBody; }

@@ -1,0 +1,1 @@
+function Confectory.NativeUI::Create (long[] surfaces, int view) -> string { description "Borrow one explicit native surface; own native controls/dialogs on creating UI thread, fail unsupported capability without custom fallback."; provide Confectory.NativeUI::Create with Confectory.NativeUI::CreateBody; }

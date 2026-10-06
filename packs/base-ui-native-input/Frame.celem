@@ -1,0 +1,1 @@
+function Confectory.BaseUI.NativeInput::Frame (string host, string[] shown) -> void { provide Confectory.BaseUI.NativeInput::Frame with Confectory.BaseUI.NativeInput::FrameBody; }

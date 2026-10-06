@@ -1,0 +1,1 @@
+calls.TextSnapshot.Invoke(source);return source;

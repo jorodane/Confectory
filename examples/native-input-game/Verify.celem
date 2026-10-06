@@ -1,0 +1,1 @@
+function Example.NativeInputGame::Verify () -> int { provide Example.NativeInputGame::Verify with Example.NativeInputGame::VerifyBody; }

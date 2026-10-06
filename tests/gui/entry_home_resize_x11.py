@@ -23,6 +23,8 @@ atom=native('XInternAtom',U,P,c.c_char_p,c.c_int)
 class Event(c.Structure):
     _fields_=[('type',c.c_int),('serial',U),('send',c.c_int),('display',P),('window',U),('root',U),('subwindow',U),('time',U),('x',c.c_int),('y',c.c_int),('xr',c.c_int),('yr',c.c_int),('state',c.c_uint),('detail',c.c_uint),('same',c.c_int)]
 display=open_display(None);assert display,'Live X11 DISPLAY required'
+from native_x11_controls import NativeControls
+native_controls=NativeControls(display)
 root=root_window(display);report=json.load(open(sys.argv[1],encoding='utf-8'))
 
 def find(wanted):
@@ -46,6 +48,11 @@ def await_window(wanted):
     raise AssertionError('Game surface not mapped')
 
 def press(window,key):
+    if 'latest' in globals():
+        trace=latest();field=trace.get('fields',{}).get(str(trace.get('focus',0))) if trace else None
+        if isinstance(field,str):field=json.loads(field)
+        if field and field.get('native') and field.get('visible'):
+            native_controls.key(int(field['nativeHandle']),key);return
     for kind in (2,3):
         event=Event(kind,0,1,display,window,root,0,100,0,0,0,0,0,keycode(display,key if isinstance(key,int) else ord(key)),1)
         buffer=c.create_string_buffer(192);c.memmove(buffer,c.byref(event),c.sizeof(event));assert send(display,window,0,0,buffer)
@@ -118,6 +125,10 @@ def wait(predicate,message,seconds=30):
 def click(window,id):
     raise_window(display,window);flush(display)
     state=wait(lambda t:id in t['hits'][::5],f'Control {id} unavailable')
+    field=state.get('fields',{}).get(str(id))
+    if isinstance(field,str):field=json.loads(field)
+    if field and field.get('native'):
+        native_controls.click(int(field['nativeHandle']),min(50,field['bounds'][2]//2),field['bounds'][3]//2);wait(lambda t:t['focus']==id,'native pointer focus');return
     n=state['hits'][::5].index(id)*5;_,x,y,w,h=state['hits'][n:n+5]
     for kind in (4,5):
         event=Event(kind,0,1,display,window,root,0,100,x+w//2,y+h//2,0,0,0,1,1)
@@ -129,15 +140,11 @@ def leave_project(window):
     click(window,15)
 
 def type_text(window,text):
-    press(window,0xFFC1)
-    for index,char in enumerate(text):
-        symbol=0xFF0D if char=='\n' else ord(char);code=keycode(display,symbol);assert code
-        shift=1 if lookup(display,code,0)!=symbol and lookup(display,code,1)==symbol else 0
-        for kind in (2,3):
-            event=Event(kind,0,1,display,window,root,0,200+index,0,0,0,0,shift,code,1)
-            buf=c.create_string_buffer(192);c.memmove(buf,c.byref(event),c.sizeof(event));assert send(display,window,0,0,buf)
-        flush(display);time.sleep(.003)
-    time.sleep(.15)
+    trace=wait(lambda t:t['focus'] in [int(k) for k in t.get('fields',{})],'native text focus');field=trace['fields'].get(str(trace['focus']))
+    if isinstance(field,str):field=json.loads(field)
+    assert field and field.get('native'),'Visible input must use a native widget'
+    native_controls.text(int(field['nativeHandle']),text)
+
 def screenshot(window,name):
     path=os.path.join(storage,name+'.png');subprocess.run(['import','-window',str(window),path],check=True);return path
 

@@ -31,7 +31,7 @@ public sealed class EditorTests : TestCase
             string owned=Path.Combine(f.Root,"owned "+role);Fixture.CopyTree(Path.Combine(Fixture.Repo,"packs",role),owned);File.WriteAllText(project,File.ReadAllText(project).Replace(Path.Combine(Fixture.Repo,"packs",role,"pack.cpack"),Path.Combine(owned,"pack.cpack"),StringComparison.Ordinal));
         }
         var built=new Builder(project,"linux").Build();RunOwned(built,Path.Combine(f.Root,"folder pages"),"Editor public controls ownership");ExcludeOptional(built);
-        foreach(var policy in new[]{("base-ui","ControlState","Confectory.BaseUI::ControlStateBody"),("ui-navigation","Group","Confectory.UINavigation::GroupBody"),("source-editor","Snapshot","Confectory.SourceEditor::SnapshotBody"),("source-editor","Refresh","Confectory.SourceEditor::RefreshBody"),("file-stream","BrowseDirectory","Confectory.FileStream::BrowseDirectoryBody")})
+        foreach(var policy in new[]{("base-ui","ControlState","Confectory.BaseUI::ControlStateBody"),("ui-navigation","Group","Confectory.UINavigation::GroupBody"),("source-editor","Snapshot","Confectory.SourceEditor::SnapshotBody"),("source-editor","Refresh","Confectory.SourceEditor::RefreshBody"),("source-editor","BorrowText","Confectory.SourceEditor::BorrowTextBody"),("file-stream","BrowseDirectory","Confectory.FileStream::BrowseDirectoryBody")})
         {
             File.AppendAllText(Path.Combine(f.Root,"owned "+policy.Item1,policy.Item2+".csbody"),"\n// owning public provider implementation locality probe\n");var changed=new Builder(project,"linux").Build();Sequence(new[]{policy.Item3},Strings(changed,"statistics","compiledImplementations"));Equal(0,Strings(changed,"statistics","compiledContracts").Length);
         }
@@ -52,6 +52,8 @@ public sealed class EditorTests : TestCase
     }
     public void test_editor_windows_and_android_managed_target_profiles_are_compile_only()
     {
-        string consumer=Consumer();foreach(string target in new[]{"windows","android"})foreach(string entry in new[]{"project","verify-contracts"}){var built=new Builder(Path.Combine(consumer,entry+".cpack"),target).Build();True(built["tool"]!["ok"]!.GetValue<bool>());ExcludeOptional(built);}
+        string consumer=Consumer();foreach(string target in new[]{"windows"})foreach(string entry in new[]{"project","verify-contracts"}){var built=new Builder(Path.Combine(consumer,entry+".cpack"),target).Build();True(built["tool"]!["ok"]!.GetValue<bool>());ExcludeOptional(built);}
+        Error("MISSING_TARGET_IMPLEMENTATION",()=>new Builder(Path.Combine(consumer,"project.cpack"),"android").Build());
+        var model=new Builder(Path.Combine(consumer,"verify-contracts.cpack"),"android").Build();True(model["tool"]!["ok"]!.GetValue<bool>());
     }
 }

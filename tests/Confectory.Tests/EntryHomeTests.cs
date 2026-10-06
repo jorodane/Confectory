@@ -37,6 +37,7 @@ public sealed class EntryHomeTests : TestCase
     }
     public void test_entry_home_windows_android_managed_profiles_compile_only()
     {
-        string consumer=Consumer("editor-home");foreach(string target in new[]{"windows","android"}){var built=new Builder(Path.Combine(consumer,"project.cpack"),target).Build();True(built["tool"]!["ok"]!.GetValue<bool>());Offline(built);}
+        string consumer=Consumer("editor-home");foreach(string target in new[]{"windows"}){var built=new Builder(Path.Combine(consumer,"project.cpack"),target).Build();True(built["tool"]!["ok"]!.GetValue<bool>());Offline(built);}
+        Error("MISSING_TARGET_IMPLEMENTATION",()=>new Builder(Path.Combine(consumer,"project.cpack"),"android").Build());
     }
 }

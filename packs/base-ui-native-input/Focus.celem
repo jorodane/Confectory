@@ -1,0 +1,1 @@
+function Confectory.BaseUI.NativeInput::Focus (string host, string surface, int control) -> void { provide Confectory.BaseUI.NativeInput::Focus with Confectory.BaseUI.NativeInput::FocusBody; }

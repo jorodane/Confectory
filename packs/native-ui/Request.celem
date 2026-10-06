@@ -1,0 +1,1 @@
+function Confectory.NativeUI::Request (string host, string operation, string payload, long parent) -> string { description "Native UI service: configure/snapshot/focus/frame/close and native folder dialog; controls own platform editing/IME. Parent used only at host creation."; }

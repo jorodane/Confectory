@@ -1,0 +1,1 @@
+if(view<0||view>=surfaces.Length-1||surfaces[view+1]==0)throw new ArgumentException("An open native parent View is required");return calls.Request.Invoke("","create","{}",surfaces[view+1]);

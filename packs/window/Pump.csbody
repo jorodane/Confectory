@@ -53,7 +53,7 @@ try
    if(kind==22){string captureKey="Confectory.X11.Pointer."+surfaces[0];if(AppDomain.CurrentDomain.GetData(captureKey) is long captured&&captured==surfaces[view+1]){XUngrabPointer(d,0);AppDomain.CurrentDomain.SetData(captureKey,null);}Emit(view,7,I(56),I(60));}
    if(kind==33&&(nuint)P(40)==protocols&&I(48)==32&&(nuint)P(56)==close) Emit(view,8);
    if(kind==17) { surfaces[view+1]=0; Emit(view,8); }
-   if(kind==10){XGetInputFocus(d,out nuint focused,out _);if(I(16)==0&&I(44)==5&&focused==(nuint)surfaces[view+1])continue;string captureKey="Confectory.X11.Pointer."+surfaces[0];if(AppDomain.CurrentDomain.GetData(captureKey) is long captured&&captured==surfaces[view+1]){XUngrabPointer(d,0);AppDomain.CurrentDomain.SetData(captureKey,null);}Emit(view,9);}
+   if(kind==10){XGetInputFocus(d,out nuint focused,out _);if(focused==(nuint)surfaces[view+1]||I(44)==2||I(40) is 1 or 2)continue;string captureKey="Confectory.X11.Pointer."+surfaces[0];if(AppDomain.CurrentDomain.GetData(captureKey) is long captured&&captured==surfaces[view+1]){XUngrabPointer(d,0);AppDomain.CurrentDomain.SetData(captureKey,null);}Emit(view,9);}
    if(kind==12) Emit(view,10);
   }
  }
