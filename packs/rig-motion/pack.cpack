@@ -1,0 +1,14 @@
+pack Confectory.RigMotion version "0.1.0" {
+element Command function "Command.celem";
+element CommandBody implementation "CommandBody.celem";
+element Validate function "Validate.celem";
+element ValidateBody implementation "ValidateBody.celem";
+element Evaluate function "Evaluate.celem";
+element EvaluateBody implementation "EvaluateBody.celem";
+element Project function "Project.celem";
+element ProjectBody implementation "ProjectBody.celem";
+element Capabilities function "Capabilities.celem";
+element CapabilitiesBody implementation "CapabilitiesBody.celem";
+element RigSchema schema "RigSchema.celem";
+element RigDocument object "RigDocument.celem";
+}

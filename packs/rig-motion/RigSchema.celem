@@ -1,0 +1,1 @@
+schema Confectory.RigMotion::RigSchema { description "Version1 bounded JSON domain; validation through public pack functions."; value dataFormat = "rig-motion-json-v1"; }

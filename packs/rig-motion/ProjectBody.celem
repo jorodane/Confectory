@@ -1,0 +1,4 @@
+implementation Confectory.RigMotion::ProjectBody for Confectory.RigMotion::Project (string pose, string plane) -> string {
+import Confectory.RigMotion::Command as Command (string, string, string) -> string;
+body common "Project.csbody";
+}

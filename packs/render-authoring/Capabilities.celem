@@ -1,0 +1,1 @@
+function Confectory.RenderAuthoring::Capabilities () -> string { description "Version1 bounded public Capabilities; see pack README for schemas and limits."; }

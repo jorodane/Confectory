@@ -1,0 +1,3 @@
+implementation Confectory.RigMotion::CommandBody for Confectory.RigMotion::Command (string operation, string document, string arguments) -> string {
+body common "Command.csbody";
+}

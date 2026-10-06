@@ -1,0 +1,1 @@
+schema Confectory.RenderAuthoring::RenderDefinitionSchema { description "Version1 bounded JSON domain; validation through public pack functions."; value dataFormat = "render-authoring-json-v1"; }

@@ -1,0 +1,1 @@
+function Confectory.RenderAuthoring::Resolve (string document) -> string { description "Version1 bounded public Resolve; see pack README for schemas and limits."; }

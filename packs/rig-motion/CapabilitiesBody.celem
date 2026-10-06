@@ -1,0 +1,4 @@
+implementation Confectory.RigMotion::CapabilitiesBody for Confectory.RigMotion::Capabilities () -> string {
+import Confectory.RigMotion::Command as Command (string, string, string) -> string;
+body common "Capabilities.csbody";
+}

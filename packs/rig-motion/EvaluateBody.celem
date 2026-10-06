@@ -1,0 +1,4 @@
+implementation Confectory.RigMotion::EvaluateBody for Confectory.RigMotion::Evaluate (string document, string action, double time, bool loop) -> string {
+import Confectory.RigMotion::Command as Command (string, string, string) -> string;
+body common "Evaluate.csbody";
+}

@@ -1,0 +1,3 @@
+implementation Confectory.RenderAuthoring::CommandBody for Confectory.RenderAuthoring::Command (string operation, string document, string arguments) -> string {
+body common "Command.csbody";
+}

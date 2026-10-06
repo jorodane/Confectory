@@ -1,0 +1,4 @@
+implementation Confectory.RenderAuthoring::ValidateBody for Confectory.RenderAuthoring::Validate (string document) -> string {
+import Confectory.RenderAuthoring::Command as Command (string, string, string) -> string;
+body common "Validate.csbody";
+}

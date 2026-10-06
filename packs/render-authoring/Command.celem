@@ -1,0 +1,1 @@
+function Confectory.RenderAuthoring::Command (string operation, string document, string arguments) -> string { description "Version1 bounded public Command; see pack README for schemas and limits."; }

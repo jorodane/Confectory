@@ -1,0 +1,1 @@
+function Confectory.RenderAuthoring::Validate (string document) -> string { description "Version1 bounded public Validate; see pack README for schemas and limits."; }

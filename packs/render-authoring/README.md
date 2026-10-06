@@ -1,0 +1,9 @@
+# Confectory.RenderAuthoring 0.1
+
+Dependency-free public contracts `Validate(document)`, `Resolve(document)` and `Capabilities()` exchange JSON strings. `RenderDefinitionSchema`/`RenderDefinitionDocument` make the document usable through existing workspace contracts. `Command` is the explicit common validation/resolution policy boundary.
+
+[fixture-render.json](../../examples/rig-lab/fixture-render.json) is the complete version 1 example. Categories inherit style/rules maps, base Actions, common Rig reference and independently grouped layers. Child Actions preserve inherited meaning; motion references may be refined. Explicit `removeActions`/`removeLayers` support removal before redefinition. All category lineages are validated, including unused categories. Missing parents, cycles, meaning changes without removal, absent removal targets and duplicate effective layer orders are rejected.
+
+The Object carries expression, optional reference and selected category/rig, optional Concept with directional/structural reference harness, and Phenotype states referencing available Actions. References remain metadata; no remote asset fetch or generation happens. The example consumer explicitly validates common Rig identity, layer joint references and Action motion/meaning against RigMotion. These cross-document checks belong to composition, not to either dependency-free pack alone.
+
+Layers have stable ID/name, order [-128,128], visibility, RGB color and one or more joint IDs. Groups may share joints. Layers are never automatically synthesized per joint. Resolve yields deterministic sorted layers and inherited maps/Actions; the geometric consumer draws them in order. Masks, skinning, image/model generation and production output remain later work. Object expression/reference and Concept harness are retained metadata, not claimed visual generation.

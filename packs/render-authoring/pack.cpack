@@ -1,0 +1,12 @@
+pack Confectory.RenderAuthoring version "0.1.0" {
+element Command function "Command.celem";
+element CommandBody implementation "CommandBody.celem";
+element Validate function "Validate.celem";
+element ValidateBody implementation "ValidateBody.celem";
+element Resolve function "Resolve.celem";
+element ResolveBody implementation "ResolveBody.celem";
+element Capabilities function "Capabilities.celem";
+element CapabilitiesBody implementation "CapabilitiesBody.celem";
+element RenderDefinitionSchema schema "RenderDefinitionSchema.celem";
+element RenderDefinitionDocument object "RenderDefinitionDocument.celem";
+}

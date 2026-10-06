@@ -1,0 +1,1 @@
+function Confectory.RigMotion::Project (string pose, string plane) -> string { description "Version1 bounded public Project; see pack README for schemas and limits."; }

@@ -1,0 +1,4 @@
+implementation Confectory.RenderAuthoring::CapabilitiesBody for Confectory.RenderAuthoring::Capabilities () -> string {
+import Confectory.RenderAuthoring::Command as Command (string, string, string) -> string;
+body common "Capabilities.csbody";
+}

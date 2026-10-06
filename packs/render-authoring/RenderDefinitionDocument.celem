@@ -1,0 +1,1 @@
+object Confectory.RenderAuthoring::RenderDefinitionDocument { use schema Confectory.RenderAuthoring::RenderDefinitionSchema; description "Reusable source document metadata; Views borrow model ownership."; value document = ""; }

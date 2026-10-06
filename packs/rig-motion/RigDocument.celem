@@ -1,0 +1,1 @@
+object Confectory.RigMotion::RigDocument { use schema Confectory.RigMotion::RigSchema; description "Reusable source document metadata; Views borrow model ownership."; value document = ""; }

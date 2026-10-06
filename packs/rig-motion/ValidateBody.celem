@@ -1,0 +1,4 @@
+implementation Confectory.RigMotion::ValidateBody for Confectory.RigMotion::Validate (string document) -> string {
+import Confectory.RigMotion::Command as Command (string, string, string) -> string;
+body common "Validate.csbody";
+}

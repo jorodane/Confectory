@@ -1,0 +1,4 @@
+implementation Confectory.RenderAuthoring::ResolveBody for Confectory.RenderAuthoring::Resolve (string document) -> string {
+import Confectory.RenderAuthoring::Command as Command (string, string, string) -> string;
+body common "Resolve.csbody";
+}

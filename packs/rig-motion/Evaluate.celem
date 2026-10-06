@@ -1,0 +1,1 @@
+function Confectory.RigMotion::Evaluate (string document, string action, double time, bool loop) -> string { description "Version1 bounded public Evaluate; see pack README for schemas and limits."; }
