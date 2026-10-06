@@ -56,3 +56,5 @@ Prioritize [the bounded desktop Editor ProjectPack proposal](NEXT_EDITOR_COMPOSI
 ## Current publication scope (supersedes earlier local-only notes)
 
 The direct user lifted the temporary git-push restriction and requested completed current branches be pushed for inspection. CP11 and the scoped SDK8 fix are already published; final current increment publication follows its recorded validation. No main merge/force push or external artifact sharing is authorized by that instruction. Native Windows unknowns for new Rig/Navigation surfaces remain explicit despite user acceptance of prior window interactions.
+
+Checkpoint12 bounded Rig/Render authoring and optional Navigation complete: combined118/0,2272.911s, exit0; native Linux lifecycle/resize/Confirm/interruption and provider-only locality gates pass. Managed secondary-target builds10/10 pass; native Windows new surfaces and Android APK/runtime remain explicitly unrun. Next priority is the existing designed editor workflow composition, not more optional feature packs. See CHECKPOINT_12.md and NEXT_EDITOR_COMPOSITION.md.

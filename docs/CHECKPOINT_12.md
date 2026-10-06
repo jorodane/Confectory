@@ -1,6 +1,6 @@
 # Checkpoint 12: bounded Rig authoring and optional Navigation
 
-Integration branch preserves CP11 a0f77a4 and the SDK8 compatibility fix b017085. RigMotion/RenderAuthoring source increment 0cfc96c; reusable preview/workspace consumers 95c6e44. Navigation source increment 6ada6ab, engine regression fixture correction cebdc82. Navigation has an isolated branch based on b017085, preserving separation from optional Rig work. Checkpoint marker and final regression evidence will be added only after the frozen run succeeds.
+Integration branch preserves CP11 a0f77a4 and the SDK8 compatibility fix b017085. RigMotion/RenderAuthoring source increment 0cfc96c; reusable preview/workspace consumers 95c6e44. Navigation source increment 6ada6ab, engine regression fixture correction cebdc82. Navigation has an isolated branch based on b017085, preserving separation from optional Rig work. The final frozen regression completed successfully: **118 passed, 0 failed; 2272.911s**, captured process exit code **0**. Source remained frozen; later native-test/documentation commits do not change product code. The checkpoint marker records this accepted run.
 
 ## Delivered behavior
 
@@ -11,6 +11,8 @@ Ordinary preview ProjectPack works independently of Stage/Physics/Helper. The au
 Optional UINavigation has no BaseUI/OS dependency. Consumer-configured bindings/groups own traversal, priority/consumption, release activation and focus restoration through public requests. BaseUI adds only Focus/Activate primitives and removes unconditional Tab traversal; engine explicitly composes demo Tab traversal. Inventory demonstration binds higher-priority Tab toggle and independent F6 traversal, including Win32/X11 key codes. Same-event dedup/repeat cannot toggle twice. Source-editor text routing precedes demo navigation; text/modifier permission is explicit. This is not semantic element search or a full widget/IME framework.
 
 ## Gates and limits
+
+Final whole solution build: zero warnings/errors (2.33s). Accepted full command is the test DLL invocation below, log `/tmp/checkpoint12-final-regression.log`. Independent Navigation branch build: zero warnings/errors; final focused test 1/0 (15.768s), source matches integration Navigation/BaseUI/engine byte-for-byte. Additional actual-GUI engine test 1/0 (160.479s); pure Rig/Render owned-policy locality gate passes both with zero contracts. Managed verify/preview/workbench (Windows and Android) six builds and Navigation project/gui four builds all report tool.ok=true. No new full tests are inferred from old interrupted runs.
 
 Actual Linux X11: standalone motion pixels/pause/scrub/actual client resize/persistent window/close; two independent front/side Views, H/P/D/L/O authored changes, layer visibility, Save/reload with stable XIDs, actual Confirm with continuing frames, selected close, reopen, SIGINT during scoped Confirm and Owner/session cleanup. Captures were inspected locally under /tmp and are not in Git. Navigation actual Tab open/close/F6, independent two-window groups, text gating and cleanup pass. Existing engine native click/outside-release/autorepeat/resize/mixed camera/close/reopen/SIGINT flow passes after Navigation composition.
 
