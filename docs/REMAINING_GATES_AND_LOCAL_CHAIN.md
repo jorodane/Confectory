@@ -93,3 +93,5 @@ The existing .NET Android workload 34.0.43/8.0.100 is installed; Google SDK/adb/
 
 
 C11 local chain: Physics pack 474b45c7e26316bb0d11ba94f0e23c1df19ef265; consumers/tests a9b50f96e647a613e2815fb7bd4cb83bcd7f3974. General multi-contact solver/stacking/CCD/rotation/constraints and Physics3D remain outside this bounded isolated-pair provider. Mature solver integration requires an explicit dependency/version/license/platform packaging decision before installation. Rendering authoring, mod-loader and Mesh remain future scope.
+
+C11 acceptance: full113/0 (2120.559s), native X11 visible motion/contact/bounce plus independent Stage worlds, Stop/Enter/close/reopen/SIGINT cleanup. Managed windows/android preview37/37 and Stage70/70. See CHECKPOINT_11.md; native Windows/APK gates and general solver capabilities remain unclaimed. Direct user authorization supersedes the earlier temporary no-push restriction.
