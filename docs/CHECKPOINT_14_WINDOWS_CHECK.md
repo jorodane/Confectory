@@ -1,0 +1,11 @@
+# CP14 asynchronous Windows spot check
+
+Use the reviewed CP14 source commit once its publication is separately confirmed. Interim ce217cc lacks later native focus/resize/provider corrections; do not treat it as final acceptance. Existing .NET SDK8 is required. Double-click root `run-editor-windows.bat`; failure diagnostics remain in ignored `.confectory/editor-launch.log`. No PowerShell or installation is required.
+
+1. In New project, enter `Game`, press End: caret should follow the final e using actual font width and height. Click between letters, drag a range and replace it; only the selected text should change. Repeat with variable-width `Wi` and Korean input if available; composition/preedit behavior is an open capability, not promised coverage.
+2. Type a long name/description/source line. End should scroll horizontally to the caret. Clicking in the scrolled text should position by visible measured glyphs. Resize narrower and wider: text/buffer identity remains and caret viewport follows changed geometry.
+3. Use Shift+arrow, F4/select all, Backspace/Delete, Tab and single-line Enter. Drag outside, move focus away, resize during drag and return: an old gesture must not resume. Shift+click/clipboard/undo are outside this slice.
+4. Create a project, add/edit an element and JSON property, Save/Review/Confirm/Run/Stop. Invalid JSON stays editable and does not update the model. Open the borrowed second View; selection/focus/text actions affect the intended View. Close/reopen and interrupt while a job runs; retained drafts and normal cleanup must remain usable.
+5. Build `examples/field-game/project.cpack windows` with the CLI and execute its build-report `run` array. Without `CONFECTORY_FIELD_GAME_GUI`, it runs independent generic behavioral fixtures. With `CONFECTORY_FIELD_GAME_GUI=1`, check two game Views, fields, JSON amount validation, independent score, F7 reopen and native pointer/caret behavior. `CONFECTORY_FIELD_GAME_TRACE=1` enables private diagnostics; keep raw logs/screenshots outside Git.
+
+Record OS/SDK, exact commit, actions and observed failures. User checks are asynchronous and do not block local Linux development. Linux Win32 ABI/shim verification and managed Windows builds are separate evidence, not native Windows GUI acceptance. Android native app prerequisites/providers remain absent; no APK/runtime claim.

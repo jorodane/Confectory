@@ -31,13 +31,14 @@ public sealed class EngineTests : TestCase
         {
             var start=new ProcessStartInfo(command[0]){RedirectStandardOutput=true,RedirectStandardError=true,UseShellExecute=false};
             foreach(var arg in command.Skip(1))start.ArgumentList.Add(arg);
-            start.Environment["CONFECTORY_BASEUI_CLOSE_AFTER_MS"]="400";
+            // Native font/shaping cold start is outside the scripted interaction latency assertion.
+            start.Environment["CONFECTORY_BASEUI_CLOSE_AFTER_MS"]="1500";
             start.Environment["CONFECTORY_BASEUI_SCRIPTED"]="1";
             bool gui=OperatingSystem.IsWindows()||(OperatingSystem.IsLinux()&&!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DISPLAY")));
             using var process=Process.Start(start)!;
             if(!process.WaitForExit(10000)){process.Kill(true);throw new Exception("Engine did not stop");}
             var stdout=process.StandardOutput.ReadToEnd();var stderr=process.StandardError.ReadToEnd();
-            if(gui){Equal(0,process.ExitCode);True(stdout.Contains("two-window isolation/reopen PASS",StringComparison.Ordinal),stdout+stderr);}
+            if(gui){True(!stderr.Contains("Fontconfig error: No writable cache directories",StringComparison.Ordinal),stderr);Equal(0,process.ExitCode);True(stdout.Contains("two-window isolation/reopen PASS",StringComparison.Ordinal),stdout+stderr);}
             else {Equal(1,process.ExitCode);True(stderr.Contains("Cannot open X11 display",StringComparison.Ordinal),stderr);}
         }
     }

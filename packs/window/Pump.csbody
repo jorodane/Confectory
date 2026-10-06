@@ -11,6 +11,7 @@ static extern nuint XInternAtom(IntPtr d, string name, bool only);
 [System.Runtime.InteropServices.DllImport("libX11.so.6")]static extern int XGrabPointer(IntPtr display,nuint window,bool ownerEvents,uint mask,int pointerMode,int keyboardMode,nuint confine,nuint cursor,nuint time);
 [System.Runtime.InteropServices.DllImport("libX11.so.6")]static extern int XUngrabPointer(IntPtr display,nuint time);
 [System.Runtime.InteropServices.DllImport("libX11.so.6")]static extern int XSetInputFocus(IntPtr display,nuint window,int revert,nuint time);
+[System.Runtime.InteropServices.DllImport("libX11.so.6")]static extern int XGetInputFocus(IntPtr display,out nuint window,out int revert);
 var events = new System.Collections.Generic.List<int>();
 void Emit(int view,int type,int x=0,int y=0,int code=0,int flags=0) { events.AddRange(new[]{view,type,x,y,code,flags}); }
 int Find(long handle) { for(int i=1;i<surfaces.Length;i++) if(surfaces[i]==handle) return i-1; return -1; }
@@ -49,10 +50,10 @@ try
     }
     Emit(view,kind==2?5:6,0,0,key,modifiers);int text=TextCode(key);if(kind==2&&text!=0)Emit(view,12,0,0,text);
    }
-   if(kind==22) Emit(view,7,I(56),I(60));
+   if(kind==22){string captureKey="Confectory.X11.Pointer."+surfaces[0];if(AppDomain.CurrentDomain.GetData(captureKey) is long captured&&captured==surfaces[view+1]){XUngrabPointer(d,0);AppDomain.CurrentDomain.SetData(captureKey,null);}Emit(view,7,I(56),I(60));}
    if(kind==33&&(nuint)P(40)==protocols&&I(48)==32&&(nuint)P(56)==close) Emit(view,8);
    if(kind==17) { surfaces[view+1]=0; Emit(view,8); }
-   if(kind==10){string captureKey="Confectory.X11.Pointer."+surfaces[0];if(AppDomain.CurrentDomain.GetData(captureKey) is long captured&&captured==surfaces[view+1]){XUngrabPointer(d,0);AppDomain.CurrentDomain.SetData(captureKey,null);}Emit(view,9);}
+   if(kind==10){XGetInputFocus(d,out nuint focused,out _);if(I(16)==0&&I(44)==5&&focused==(nuint)surfaces[view+1])continue;string captureKey="Confectory.X11.Pointer."+surfaces[0];if(AppDomain.CurrentDomain.GetData(captureKey) is long captured&&captured==surfaces[view+1]){XUngrabPointer(d,0);AppDomain.CurrentDomain.SetData(captureKey,null);}Emit(view,9);}
    if(kind==12) Emit(view,10);
   }
  }

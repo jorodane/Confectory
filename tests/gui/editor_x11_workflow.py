@@ -149,7 +149,18 @@ try:
     subprocess.run(['import','-window',str(a),os.path.join(storage,'home.png')],check=True)
     click(a,1);wait(lambda t:t['screen']=='create','new project form')
     click(a,23);wait(lambda t:t['focus']==20,'required name focus')
-    click(a,20);type_text(a,'GuiWorkflow');click(a,21);type_text(a,'A local designed editor workflow\nwith saved drafts.')
+    click(a,20);type_text(a,'Game');press(a,0xFF57)
+    measured=wait(lambda t:t['fields']['20']['text']=='Game' and t['fields']['20']['caret'],'generic create field measured frame')['fields']['20']
+    origin=measured['textOrigins'];positions=measured['metrics']['lines'][0]['positions'];caret=measured['caret']
+    assert caret[0]==origin[0]+positions[-1] and caret[1]==origin[1] and caret[3]==measured['metrics']['height'],'Editor uses renderer-measured end caret'
+    bitmap=image(display,a,caret[0],caret[1]+caret[3]//2,1,1,U(-1).value,2);assert bitmap
+    try:assert pixel(bitmap,0,0)&0xffffff==0xFFDC80,'Editor actual caret pixel misaligned'
+    finally:destroy(bitmap)
+    for kind,x in ((4,origin[0]+positions[1]),(6,origin[0]+positions[3]),(5,origin[0]+positions[3])):
+        event=Event(kind,0,1,display,a,root,0,500,x,origin[1]+4,0,0,0,1,1);buf=c.create_string_buffer(192);c.memmove(buf,c.byref(event),c.sizeof(event));assert send(display,a,0,0,buf);flush(display);time.sleep(.04)
+    press(a,'x');wait(lambda t:t['fields']['20']['text']=='Gxe','Editor click/drag range replacement')
+    type_text(a,'W'*90);press(a,0xFF57);wait(lambda t:t['fields']['20']['scrollX']>0,'Editor generic horizontal viewport')
+    type_text(a,'GuiWorkflow');click(a,21);type_text(a,'A local designed editor workflow\nwith saved drafts.')
     subprocess.run(['import','-window',str(a),os.path.join(storage,'create.png')],check=True)
     click(a,22);wait(lambda t:t['screen']=='browse','actual parent folder picker');click(a,13);wait(lambda t:t['pages'][0]>0,'folder next visible page');click(a,14);wait(lambda t:t['pages'][0]==0,'folder previous visible page');click(a,11);wait(lambda t:t['screen']=='create','chosen parent')
     click(a,23);trace=wait(lambda t:t['screen']=='project','created project')
@@ -158,7 +169,10 @@ try:
     click(a,30);wait(lambda t:t['screen']=='element','element list');click(a,41);type_text(a,'Counter');click(a,43);wait(lambda t:t['screen']=='project' and t['model']['views']['0']['element'].endswith('::Counter'),'new object')
     assert latest(1)['model']['views']['1']['element'].endswith('MainBody/body:common'),'selection leaked into sibling View'
     click(a,54);type_text(a,f'object {ns}::Counter {{ value count = 7; }}\n');click(a,34);wait(lambda t:t['model']['lastOperation']=='text' and t['model']['status']=='Applied text to local draft','object text')
-    click(a,54);wait(lambda t:t['focus']==54,'source focus');press(a,0xFF57);at=wait(lambda t:t['focus']==54 and int(t['buffer'][2])==len(t['buffer'][1].rstrip('\n')),'source line end');before_caret=int(at['buffer'][2]);press(a,0xFF51);press(a,0xFF51);old_buffer=wait(lambda t:t['focus']==54 and int(t['buffer'][2])==before_caret-2,'source caret')['buffer'];old_token=latest()['bufferToken']
+    click(a,54);source_frame=wait(lambda t:t['focus']==54,'source focus')['fields']['54'];source_origin=source_frame['textOrigins']
+    for kind in (4,5):
+        event=Event(kind,0,1,display,a,root,0,700,source_origin[0]+4,source_origin[1]+4,0,0,0,1,1);buf=c.create_string_buffer(192);c.memmove(buf,c.byref(event),c.sizeof(event));assert send(display,a,0,0,buf);flush(display);time.sleep(.03)
+    press(a,0xFF57);at=wait(lambda t:t['focus']==54 and int(t['buffer'][2])==len(t['buffer'][1].rstrip('\n')),'source line end');before_caret=int(at['buffer'][2]);press(a,0xFF51);press(a,0xFF51);old_buffer=wait(lambda t:t['focus']==54 and int(t['buffer'][2])==before_caret-2,'source caret')['buffer'];old_token=latest()['bufferToken']
     click(a,33);wait(lambda t:300 in t['rects'][::5],'property fallback');click(a,300);click(a,45);type_text(a,'9');click(a,46);wait(lambda t:t['model']['lastOperation']=='value' and 'Error:' not in t['model']['status'],'property edit')
     updated=latest();assert updated['bufferToken']==old_token,'clean source buffer identity recreated';assert int(updated['buffer'][2])==int(old_buffer[2])+len(updated['buffer'][1])-len(old_buffer[1]),'caret did not follow changed span';assert updated['buffer'][3]==old_buffer[3],'selection lost on source refresh'
     for n in range(10):
