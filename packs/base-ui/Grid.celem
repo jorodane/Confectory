@@ -1,0 +1,1 @@
+function Confectory.BaseUI::Grid (int[] bounds, int columns, int gap, int rowHeight, int count, int scrollY) -> int[] { description "Pure equal-column row-major grid with deterministic remainder and viewport clipping. Offscreen cells have zero height; scroll is caller policy."; provide Confectory.BaseUI::Grid with Confectory.BaseUI::GridBody; }

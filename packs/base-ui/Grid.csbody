@@ -1,0 +1,5 @@
+if(bounds.Length!=4||bounds[2]<1||bounds[3]<1||bounds[2]>8192||bounds[3]>8192||columns<1||columns>32||gap<0||gap>8192||rowHeight<1||rowHeight>8192||count<0||count>128||scrollY<0||scrollY>1048576)throw new ArgumentException("Grid bounds/columns/gap/row/count/scroll budget");
+int spacing=Math.Min(gap,columns==1?0:bounds[2]/(columns-1));int available=bounds[2]-spacing*(columns-1),baseWidth=available/columns,remainder=available%columns;
+var result=new int[count*4];
+for(int n=0;n<count;n++){int column=n%columns,row=n/columns,x=column*(baseWidth+spacing)+Math.Min(column,remainder),width=baseWidth+(column<remainder?1:0);long top=(long)row*(rowHeight+gap)-scrollY;int start=(int)Math.Clamp(top,0,bounds[3]),end=(int)Math.Clamp(top+rowHeight,0,bounds[3]);int offset=n*4;result[offset]=checked(bounds[0]+x);result[offset+1]=checked(bounds[1]+start);result[offset+2]=width;result[offset+3]=Math.Max(0,end-start);}
+return result;

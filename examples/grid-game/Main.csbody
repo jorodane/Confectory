@@ -1,0 +1,9 @@
+void Check(bool condition,string message){if(!condition)throw new Exception(message);}
+var cells=calls.Grid.Invoke(new[]{10,20,101,100},2,5,40,5,0);
+Check(System.Linq.Enumerable.SequenceEqual(cells,new[]{10,20,48,40,63,20,48,40,10,65,48,40,63,65,48,40,10,110,48,10}),"two-column order and clipping");
+var scrolled=calls.Grid.Invoke(new[]{0,0,100,50},2,4,40,6,44);Check(scrolled[3]==0&&scrolled[7]==0&&scrolled[9]==0&&scrolled[11]==40&&scrolled[19]==6,"caller scroll and hidden rows");
+var odd=calls.Grid.Invoke(new[]{0,0,100,30},2,5,20,2,0);Check(odd[2]==48&&odd[6]==47&&odd[4]+odd[6]==100,"deterministic remainder");
+for(int width=1;width<=1024;width+=7)for(int columns=1;columns<=4;columns++){var frame=calls.Grid.Invoke(new[]{0,0,width,180},columns,12,80,12,37);for(int n=0;n<frame.Length;n+=4)Check(frame[n]>=0&&frame[n]+frame[n+2]<=width&&frame[n+1]>=0&&frame[n+1]+frame[n+3]<=180,"responsive viewport");}
+Check(calls.Grid.Invoke(new[]{0,0,1,1},2,99,1,0,0).Length==0,"empty grid");
+foreach(var bad in new[]{-1,129}){bool rejected=false;try{calls.Grid.Invoke(new[]{0,0,100,100},2,4,40,bad,0);}catch(ArgumentException){rejected=true;}Check(rejected,"count budget");}
+Console.WriteLine("Editor-free Grid consumer: responsive two columns, clipping, scroll, empty and budgets passed");return 0;

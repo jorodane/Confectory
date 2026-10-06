@@ -1,0 +1,1 @@
+implementation Example.GridGame::MainBody for Example.GridGame::Main () -> int { import Confectory.BaseUI::Grid as Grid (int[], int, int, int, int, int) -> int[]; body common "Main.csbody"; }

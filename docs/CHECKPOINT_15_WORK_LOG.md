@@ -1,0 +1,43 @@
+# CP15 entry/home pack ledger
+
+Authority: readable baseline v1 section8 (lines383–421), `EDITOR_SPEC_IMPLEMENTATION_MAP.md`. Branch starts at published CP14 `234c246586698d66f4de54c26da96e48901b07c8`. CP13/14 `examples/editor` remains a functional validation consumer; no production layout is copied from it. Current work is local only.
+
+## Increment 1 — shared grid
+
+Intended pack/IDs: `Confectory.BaseUI::Grid`, `GridBody`; public `(int[] bounds,int columns,int gap,int rowHeight,int count,int scrollY)->int[]`. Pure equal-width row-major cells, deterministic left-to-right remainder, viewport clipping, caller-controlled scroll; 128-cell/32-column bounds. No editor/model/project semantics. Independent `Example.GridGame` consumer covers widths1–1024, 1–4columns, scroll/offscreen/empty/budgets.
+
+Outside implementation reads: BaseUI Stack body to keep bounded layout conventions; Field body/frame output and Button body/frame output to compose existing public frames; Window MeasureText/DrawText and BaseUI TextLines bodies after actual screenshot exposed an incorrect consumer baseline assumption. Reason: public DrawText contract did not document whether origins were top-left or baseline; native behavior needed verification. No Core/target changes. Pack manifests and implementation import declarations were read to wire ordinary public providers/transitive dependencies; consumer needs explicit composition bindings, not private state.
+
+Rebuild scope: additive Grid contract/provider and importing GridGame/EditorHome consumers on first inclusion; Grid body-only probe must compile exactly GridBody, zero contracts. Existing implementations are unaffected by additive registration.
+
+## Increment 2 — shared Field fill correction
+
+Actual native visual inspection found Field drew a focus-colored outer rectangle but only filled existing text rows, leaving unused multiline space focus-colored. Necessary outside edit: `packs/base-ui/Field.csbody` fills the entire inset content using existing palette[2], preserving two-pixel normal/focus border. Existing signature/state/metrics/input remain unchanged. Public contract already declares content palette; no new shared contract needed. Independent field-game asserts the full interior rectangle, and Field/native existing Editor consumers must be rechecked. Rebuild scope: exactly FieldBody, zero contracts in provider probe.
+
+## Increment 3 — fresh production entry/home composition
+
+Intended namespace/IDs: `Confectory.EditorHome::{Main,CreateSession,Command,Snapshot,CloseSession,Verify}` plus each Body in `examples/editor-home`. Main composes BaseUI Button/Field/Stack/Grid, UINavigation, RuntimeBase Owner, RealTimeUpdate and Window/RenderInput. Model commands compose ProjectManager, EditWorkspace/Save and FileStream; they never read those packs' private state. No temporary Editor/SourceEditor or Agent/Helper/multiplayer dependency is registered.
+
+Outside reads: temporary Editor CreateSession/Command and Main first startup lines only to understand already-public project metadata/recent/workspace and tool-host integration. Reason: ProjectManager CreateProject exposes identifier/directory but not human title/multiline initial intent; existing EditWorkspace Create/SetValue and Save contracts preserve these as saved local ProjectInfo drafts. These reads informed contract composition, not layout reuse. ProjectManager Open/CreateProject/Context bodies and ProjectExecution DescribeProject were inspected to verify validation-before-registration, no-overwrite and required description host; FileStream BrowseDirectory body to verify bounded source-free pages. No outside edits to these roles.
+
+Actual consumer edits: new entry/home files only; existing examples/editor unchanged. Runtime settings/catalog in ignored `.confectory/editor-home`. Filesystem/project commands serialized on owned background tasks; UI renders immutable cached snapshots. Controls, text buffers, native surface and Owner persist across routes/resizes, and finally joins pending work and disposes every owner. Project landing is bounded entry handoff, not the section8 full project workspace.
+
+Production behavior: optional offline connect presentation/Later, title/action-hint staged entry and top-left transition, management sidebar, two-column project cards with internally split New/Open first card, folder selection/pages/validation, required name/error focus and multiline initial intent, create/enter/leave/reopen, persistent listing metadata, open-folder command, explicit remove-listing confirmation that retains files.
+
+Visual fidelity gate remains distinct: no original logo image, exact subtitle, palette, fonts or transition timing asset was available in the repository/readable section8. Text wordmark/action hint and typographic project marker are functional fallbacks, not approved visual identity. No connected-Agent skip claim: no live provider/account state is introduced. Delete wording is deliberately explicit listing removal; filesystem deletion policy requires a later product decision.
+
+## Validation record
+
+Pending final exact commands/results and screenshot IDs; see CP15 handoff when complete. Native screenshots/raw logs live only under /tmp; no binaries, images, secrets or chat logs enter Git. Windows checks asynchronous. Android requires app-owned surface/touch/lifecycle/storage/IME providers; managed profile compilation is not APK/runtime evidence.
+
+## Final gates (2026-10-06)
+
+Functional gates: solution Release build0warnings/0errors; `EntryHomeTests`4passed/0failed (410.703s), including offline create/validation/restart/remove/cleanup and actual X11 entry/home; existing Editor native workflow plus Field editor-free input/geometry/lifetime/locality2passed/0failed (453.344s), including Field native scales1/1.5. Managed Windows and Android profiles compile; no native Windows or APK/runtime inference.
+
+Locality/structure gates are separate assertions: copied owning Grid body comment compiles exactly `Confectory.BaseUI::GridBody`; Field provider probes include exactly FieldBody; copied production Command/Main body comments compile exactly their own Body, with zero contracts. Fresh production registered/included closure excludes temporary Editor/SourceEditor and all optional AI/multiplayer roles. Existing examples/editor source and original Windows launcher are unchanged. Initial presentation locality attempt ran while Field source was being visually repaired, producing an extra FieldBody rebuild; the final gate froze sources and used an owned BaseUI copy, then passed. No failure was hidden or treated as a UX pass.
+
+Additional actual X11 run on final production report passes strengthened native acceptance: seven valid project fixtures exercise actual card next/previous; a private xdg-open fixture records the selected folder argument; a private existing-dotnet wrapper stalls only the public describe call for1second so trace proves UI remains responsive during an in-flight job before SIGINT joins it. This tests request dispatch, not a Linux file manager application. Native pixel assertions catch vertical button text clipping and verify empty multiline content vs focus border. Private screenshots were inspected at960×700 and640×520.
+
+Readable source ledger: all pack `.celem` provider/import declarations were inspected programmatically for explicit composition closure, not `.csbody` bodies or private runtime state. Additional outside metadata/contract reads: RuntimeBase owner/instance, RealTimeUpdate cadence, Window capabilities/surface contracts, UINavigation Create/Route/Group and Create body, FileStream Snapshot/WriteAtomic, Save Write, EditWorkspace Create/SetValue/Close. Existing test harness/Support/Editor/Field tests were read to use actual native fixtures and test runner. Actual outside edits are limited to BaseUI Grid/Field/docs/manifest, RenderInput README origin clarification, independent field-game assertion and test runner/tests. Core, native Window providers, other target/provider bodies and temporary Editor remain unedited.
+
+Evidence remains local in `.confectory/cp15-evidence` and `/tmp/confectory-entry-home-gui-jcqm4su_`. Supported current Library helper failed before upload on its connection attempt; an authorized-network retry was rejected by automatic approval review because external screenshot upload conflicts with this continuation's local-only/no-external-sharing scope. No upload identity/success is claimed; no alternate route was used. Further private Library saving requires renewed approval. No branch push/publication/main merge performed.
