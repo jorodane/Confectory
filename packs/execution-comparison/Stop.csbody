@@ -1,0 +1,1 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.ExecutionComparison."+view) as object[];if(state is null)return;lock(state[0]){if((bool)state[5])return;if(((System.Collections.Generic.Dictionary<string,string>)state[2]).TryGetValue(name,out var handle))calls.Stop.Invoke((string[])state[1],handle);}

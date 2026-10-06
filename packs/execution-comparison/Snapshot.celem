@@ -1,0 +1,1 @@
+function Confectory.ExecutionComparison::Snapshot (string view) -> string {provide Confectory.ExecutionComparison::Snapshot with Confectory.ExecutionComparison::SnapshotBody;}

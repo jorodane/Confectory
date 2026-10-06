@@ -1,0 +1,4 @@
+implementation Confectory.ExecutionComparison::OutputBody for Confectory.ExecutionComparison::Output (string view, string name) -> string[] {
+import Confectory.ProjectExecution::Output as Output (string[], string) -> string[];
+body common "Output.csbody";
+}

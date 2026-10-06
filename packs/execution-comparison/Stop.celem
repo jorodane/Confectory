@@ -1,0 +1,1 @@
+function Confectory.ExecutionComparison::Stop (string view, string name) -> void {provide Confectory.ExecutionComparison::Stop with Confectory.ExecutionComparison::StopBody;}

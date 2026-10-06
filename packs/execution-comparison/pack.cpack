@@ -1,0 +1,15 @@
+pack Confectory.ExecutionComparison version "0.1.0" {
+dependency Confectory.ProjectExecution version "0.1.0";
+element Create function "Create.celem";
+element CreateBody implementation "CreateBody.celem";
+element Launch function "Launch.celem";
+element LaunchBody implementation "LaunchBody.celem";
+element Snapshot function "Snapshot.celem";
+element SnapshotBody implementation "SnapshotBody.celem";
+element Output function "Output.celem";
+element OutputBody implementation "OutputBody.celem";
+element Stop function "Stop.celem";
+element StopBody implementation "StopBody.celem";
+element Close function "Close.celem";
+element CloseBody implementation "CloseBody.celem";
+}

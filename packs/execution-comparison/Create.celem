@@ -1,0 +1,1 @@
+function Confectory.ExecutionComparison::Create (bool sharedInput, string inputSource) -> string {provide Confectory.ExecutionComparison::Create with Confectory.ExecutionComparison::CreateBody;}

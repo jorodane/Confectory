@@ -1,0 +1,25 @@
+implementation Example.ExecutionComparison::MainBody for Example.ExecutionComparison::Main () -> int {
+import Confectory.ExecutionComparison::Create as ExecutionComparisonCreate (bool, string) -> string;
+import Confectory.ExecutionComparison::Snapshot as ExecutionComparisonSnapshot (string) -> string;
+import Confectory.ExecutionComparison::Close as ExecutionComparisonClose (string) -> void;
+import Confectory.ExecutionComparison::Output as ExecutionComparisonOutput (string, string) -> string[];
+import Confectory.ExecutionComparison::Stop as ExecutionComparisonStop (string, string) -> void;
+import Confectory.ExecutionComparison::Launch as ExecutionComparisonLaunch (string, string, string, string, string, string[], string[]) -> string;
+import Confectory.ProjectExecution::Capabilities as ProjectExecutionCapabilities () -> string[];
+import Confectory.ProjectExecution::Output as ProjectExecutionOutput (string[], string) -> string[];
+import Confectory.ProjectExecution::Poll as ProjectExecutionPoll (string[]) -> string[];
+import Confectory.ProjectExecution::Stop as ProjectExecutionStop (string[], string) -> void;
+import Confectory.ProjectExecution::Launch as ProjectExecutionLaunch (string[], string, string, string) -> string;
+import Confectory.ProjectExecution::Dispose as ProjectExecutionDispose (string[]) -> void;
+import Confectory.ProjectExecution::DescribeProject as ProjectExecutionDescribeProject (string) -> string[];
+import Confectory.ProjectExecution::LaunchConfigured as ProjectExecutionLaunchConfigured (string[], string, string, string, string[], string[]) -> string;
+import Confectory.ProjectExecution::CreateSession as ProjectExecutionCreateSession () -> string[];
+import Confectory.ProjectExecution::Observe as ProjectExecutionObserve (string[], string) -> string[];
+import Confectory.FileStream::Snapshot as FileStreamSnapshot (string) -> string[];
+import Confectory.FileStream::Capabilities as FileStreamCapabilities () -> string[];
+import Confectory.FileStream::LeasePath as FileStreamLeasePath (string) -> string;
+import Confectory.FileStream::WriteAtomic as FileStreamWriteAtomic (string, string) -> void;
+import Confectory.FileStream::Commit as FileStreamCommit (string, string[], string[], string[]) -> string[];
+import Confectory.FileStream::CopySources as FileStreamCopySources (string, string) -> void;
+body common "MainBody.csbody";
+}

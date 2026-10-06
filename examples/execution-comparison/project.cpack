@@ -1,0 +1,14 @@
+project Example.ExecutionComparison version "0.1.0" {
+entry Example.ExecutionComparison::Main;
+registry Confectory.ExecutionComparison "../../packs/execution-comparison/pack.cpack";
+dependency Confectory.ExecutionComparison version "0.1.0";
+registry Confectory.ProjectExecution "../../packs/project-execution/pack.cpack";
+dependency Confectory.ProjectExecution version "0.1.0";
+registry Confectory.FileStream "../../packs/file-stream/pack.cpack";
+dependency Confectory.FileStream version "0.1.0";
+registry Confectory.Build.DotNet "../../targets/dotnet/pack.cpack";
+dependency Confectory.Build.DotNet version "0.1.0";
+target portable Confectory.Build.DotNet::Portable;
+element Main function "Main.celem";
+element MainBody implementation "MainBody.celem";
+}

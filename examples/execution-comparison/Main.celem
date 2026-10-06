@@ -1,0 +1,24 @@
+function Example.ExecutionComparison::Main () -> int {provide Example.ExecutionComparison::Main with Example.ExecutionComparison::MainBody;
+provide Confectory.ExecutionComparison::Create with Confectory.ExecutionComparison::CreateBody;
+provide Confectory.ExecutionComparison::Snapshot with Confectory.ExecutionComparison::SnapshotBody;
+provide Confectory.ExecutionComparison::Close with Confectory.ExecutionComparison::CloseBody;
+provide Confectory.ExecutionComparison::Output with Confectory.ExecutionComparison::OutputBody;
+provide Confectory.ExecutionComparison::Stop with Confectory.ExecutionComparison::StopBody;
+provide Confectory.ExecutionComparison::Launch with Confectory.ExecutionComparison::LaunchBody;
+provide Confectory.ProjectExecution::Capabilities with Confectory.ProjectExecution::CapabilitiesBody;
+provide Confectory.ProjectExecution::Output with Confectory.ProjectExecution::OutputBody;
+provide Confectory.ProjectExecution::Poll with Confectory.ProjectExecution::PollBody;
+provide Confectory.ProjectExecution::Stop with Confectory.ProjectExecution::StopBody;
+provide Confectory.ProjectExecution::Launch with Confectory.ProjectExecution::LaunchBody;
+provide Confectory.ProjectExecution::Dispose with Confectory.ProjectExecution::DisposeBody;
+provide Confectory.ProjectExecution::DescribeProject with Confectory.ProjectExecution::DescribeProjectBody;
+provide Confectory.ProjectExecution::LaunchConfigured with Confectory.ProjectExecution::LaunchConfiguredBody;
+provide Confectory.ProjectExecution::CreateSession with Confectory.ProjectExecution::CreateSessionBody;
+provide Confectory.ProjectExecution::Observe with Confectory.ProjectExecution::ObserveBody;
+provide Confectory.FileStream::Snapshot with Confectory.FileStream::SnapshotBody;
+provide Confectory.FileStream::Capabilities with Confectory.FileStream::CapabilitiesBody;
+provide Confectory.FileStream::LeasePath with Confectory.FileStream::LeasePathBody;
+provide Confectory.FileStream::WriteAtomic with Confectory.FileStream::WriteAtomicBody;
+provide Confectory.FileStream::Commit with Confectory.FileStream::CommitBody;
+provide Confectory.FileStream::CopySources with Confectory.FileStream::CopySourcesBody;
+}

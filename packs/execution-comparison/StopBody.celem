@@ -1,0 +1,4 @@
+implementation Confectory.ExecutionComparison::StopBody for Confectory.ExecutionComparison::Stop (string view, string name) -> void {
+import Confectory.ProjectExecution::Stop as Stop (string[], string) -> void;
+body common "Stop.csbody";
+}

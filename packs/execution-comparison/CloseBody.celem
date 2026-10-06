@@ -1,0 +1,4 @@
+implementation Confectory.ExecutionComparison::CloseBody for Confectory.ExecutionComparison::Close (string view) -> void {
+import Confectory.ProjectExecution::Dispose as Dispose (string[]) -> void;
+body common "Close.csbody";
+}

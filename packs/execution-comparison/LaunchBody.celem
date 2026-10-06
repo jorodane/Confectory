@@ -1,0 +1,4 @@
+implementation Confectory.ExecutionComparison::LaunchBody for Confectory.ExecutionComparison::Launch (string view, string name, string project, string entry, string target, string[] names, string[] values) -> string {
+import Confectory.ProjectExecution::LaunchConfigured as Launch (string[], string, string, string, string[], string[]) -> string;
+body common "Launch.csbody";
+}

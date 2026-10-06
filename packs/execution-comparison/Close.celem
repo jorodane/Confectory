@@ -1,0 +1,1 @@
+function Confectory.ExecutionComparison::Close (string view) -> void {provide Confectory.ExecutionComparison::Close with Confectory.ExecutionComparison::CloseBody;}

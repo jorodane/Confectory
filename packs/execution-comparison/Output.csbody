@@ -1,0 +1,1 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.ExecutionComparison."+view) as object[]??throw new ObjectDisposedException("Comparison");lock(state[0]){if((bool)state[5])throw new ObjectDisposedException("Comparison");return calls.Output.Invoke((string[])state[1],((System.Collections.Generic.Dictionary<string,string>)state[2])[name]);}
