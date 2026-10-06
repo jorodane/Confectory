@@ -1,0 +1,2 @@
+// Caller-selected chief routing boundary. Default has no external side effects.
+return;

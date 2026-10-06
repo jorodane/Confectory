@@ -1,0 +1,1 @@
+return calls.Call.Invoke("editorDescribe",new System.Text.Json.Nodes.JsonObject{["project"]=project,["element"]=element}.ToJsonString());

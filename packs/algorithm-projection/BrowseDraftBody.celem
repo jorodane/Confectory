@@ -1,0 +1,5 @@
+implementation Confectory.AlgorithmProjection::BrowseDraftBody for Confectory.AlgorithmProjection::BrowseDraft (string workspace, string function, string implementation, string target, string options) -> string {
+import Confectory.EditWorkspace::Identity as Identity (string) -> string[];
+import Confectory.SchemaEditing::Call as Call (string, string) -> string;
+body common "BrowseDraft.csbody";
+}

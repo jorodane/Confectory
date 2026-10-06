@@ -1,0 +1,5 @@
+implementation Confectory.AlgorithmProjection::QueueBody for Confectory.AlgorithmProjection::Queue (string workspace, string action, string request) -> string {
+import Confectory.EditWorkspace::Identity as Identity (string) -> string[];
+import Confectory.SchemaEditing::Call as Call (string, string) -> string;
+body common "Queue.csbody";
+}

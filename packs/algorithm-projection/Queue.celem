@@ -1,0 +1,1 @@
+function Confectory.AlgorithmProjection::Queue (string workspace, string action, string request) -> string {provide Confectory.AlgorithmProjection::Queue with Confectory.AlgorithmProjection::QueueBody;}

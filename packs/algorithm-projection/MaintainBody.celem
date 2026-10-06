@@ -1,0 +1,8 @@
+implementation Confectory.AlgorithmProjection::MaintainBody for Confectory.AlgorithmProjection::Maintain (string view) -> string {
+import Confectory.AlgorithmProjection::Queue as Queue (string, string, string) -> string;
+import Confectory.AlgorithmProjection::MaintenanceCallback as Callback (string) -> void;
+import Confectory.SchemaEditing::BeginScope as BeginScope (string) -> void;
+import Confectory.SchemaEditing::EndScope as EndScope () -> void;
+import Confectory.AlgorithmProjection::Regenerate as Regenerate (string, string, string, string) -> bool;
+body common "Maintain.csbody";
+}

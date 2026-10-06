@@ -1,0 +1,4 @@
+implementation Confectory.AlgorithmProjection::ApplyDeltaBody for Confectory.AlgorithmProjection::ApplyDelta (string snapshot, string delta) -> string {
+
+body common "ApplyDelta.csbody";
+}

@@ -1,0 +1,1 @@
+var identity=calls.Identity.Invoke(workspace);var payload=System.Text.Json.Nodes.JsonNode.Parse(request)!.AsObject();payload["project"]=identity[0];payload["participant"]=identity[1];payload["context"]=identity[2];payload["action"]=action;return calls.Call.Invoke("projectionQueue",payload.ToJsonString());

@@ -1,0 +1,5 @@
+implementation Confectory.AlgorithmProjection::PublishDraftBody for Confectory.AlgorithmProjection::PublishDraft (string workspace, string artifact, string sourceHashes, string versions, string publicContract) -> string {
+import Confectory.SchemaEditing::Call as Call (string, string) -> string;
+import Confectory.EditWorkspace::Identity as Identity (string) -> string[];
+body common "PublishDraft.csbody";
+}

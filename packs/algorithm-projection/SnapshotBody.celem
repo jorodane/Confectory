@@ -1,4 +1,9 @@
 implementation Confectory.AlgorithmProjection::SnapshotBody for Confectory.AlgorithmProjection::Snapshot (string view, string function) -> string {
 import Confectory.EditWorkspace::Read as Read (string, string) -> string[];
+import Confectory.EditWorkspace::Identity as Identity (string) -> string[];
+import Confectory.AlgorithmProjection::QueryDraft as Query (string, string, string, string) -> string;
+import Confectory.AlgorithmProjection::ListDraft as List (string, string) -> string;
+import Confectory.SchemaEditing::BeginScope as BeginScope (string) -> void;
+import Confectory.SchemaEditing::EndScope as EndScope () -> void;
 body common "Snapshot.csbody";
 }

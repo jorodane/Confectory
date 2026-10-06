@@ -1,0 +1,4 @@
+implementation Confectory.AlgorithmProjection::MaintenanceCallbackBody for Confectory.AlgorithmProjection::MaintenanceCallback (string request) -> void {
+
+body common "MaintenanceCallback.csbody";
+}

@@ -1,0 +1,4 @@
+implementation Confectory.AlgorithmProjection::PublishBody for Confectory.AlgorithmProjection::Publish (string project, string artifact, string sourceHashes) -> string {
+import Confectory.SchemaEditing::Call as Call (string, string) -> string;
+body common "Publish.csbody";
+}

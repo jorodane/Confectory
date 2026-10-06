@@ -1,0 +1,1 @@
+function Confectory.AlgorithmProjection::Versions (string workspace, string function, string implementation, string target) -> string {provide Confectory.AlgorithmProjection::Versions with Confectory.AlgorithmProjection::VersionsBody;}

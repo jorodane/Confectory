@@ -1,0 +1,1 @@
+function Confectory.AlgorithmProjection::ListDraft (string workspace, string function) -> string {provide Confectory.AlgorithmProjection::ListDraft with Confectory.AlgorithmProjection::ListDraftBody;}

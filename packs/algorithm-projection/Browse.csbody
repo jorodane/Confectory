@@ -1,0 +1,1 @@
+var request=System.Text.Json.Nodes.JsonNode.Parse(options)!.AsObject();request["project"]=project;request["function"]=function;request["implementation"]=implementation;request["target"]=target;return calls.Call.Invoke("projectionBrowse",request.ToJsonString());

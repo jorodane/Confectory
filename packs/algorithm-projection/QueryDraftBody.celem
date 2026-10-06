@@ -1,0 +1,5 @@
+implementation Confectory.AlgorithmProjection::QueryDraftBody for Confectory.AlgorithmProjection::QueryDraft (string workspace, string function, string implementation, string target) -> string {
+import Confectory.SchemaEditing::Call as Call (string, string) -> string;
+import Confectory.EditWorkspace::Identity as Identity (string) -> string[];
+body common "QueryDraft.csbody";
+}

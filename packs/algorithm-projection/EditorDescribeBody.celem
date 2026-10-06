@@ -1,0 +1,4 @@
+implementation Confectory.AlgorithmProjection::EditorDescribeBody for Confectory.AlgorithmProjection::EditorDescribe (string project, string element) -> string {
+import Confectory.SchemaEditing::Call as Call (string, string) -> string;
+body common "EditorDescribe.csbody";
+}

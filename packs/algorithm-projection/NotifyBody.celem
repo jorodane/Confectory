@@ -1,4 +1,7 @@
 implementation Confectory.AlgorithmProjection::NotifyBody for Confectory.AlgorithmProjection::Notify (string view, string function, string implementation, string bodyID, string origin, string changeKind, string batch) -> void {
 import Confectory.AlgorithmProjection::Regenerate as Regenerate (string, string, string, string) -> bool;
+import Confectory.AlgorithmProjection::Queue as Queue (string, string, string) -> string;
+import Confectory.SchemaEditing::BeginScope as BeginScope (string) -> void;
+import Confectory.SchemaEditing::EndScope as EndScope () -> void;
 body common "Notify.csbody";
 }

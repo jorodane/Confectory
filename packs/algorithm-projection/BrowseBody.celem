@@ -1,0 +1,4 @@
+implementation Confectory.AlgorithmProjection::BrowseBody for Confectory.AlgorithmProjection::Browse (string project, string function, string implementation, string target, string options) -> string {
+import Confectory.SchemaEditing::Call as Call (string, string) -> string;
+body common "Browse.csbody";
+}

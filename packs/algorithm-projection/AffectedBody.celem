@@ -1,0 +1,4 @@
+implementation Confectory.AlgorithmProjection::AffectedBody for Confectory.AlgorithmProjection::Affected (string project, string[] changedIDs) -> string {
+import Confectory.SchemaEditing::Call as Call (string, string) -> string;
+body common "Affected.csbody";
+}

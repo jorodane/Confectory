@@ -1,0 +1,4 @@
+implementation Confectory.AlgorithmProjection::ListBody for Confectory.AlgorithmProjection::List (string project, string function) -> string {
+import Confectory.SchemaEditing::Call as Call (string, string) -> string;
+body common "List.csbody";
+}

@@ -1,0 +1,4 @@
+implementation Confectory.AlgorithmProjection::QueryBody for Confectory.AlgorithmProjection::Query (string project, string function, string implementation, string target) -> string {
+import Confectory.SchemaEditing::Call as Call (string, string) -> string;
+body common "Query.csbody";
+}
