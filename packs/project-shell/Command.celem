@@ -1,0 +1,1 @@
+function Confectory.ProjectShell::Command (string shell, string operation, string payload) -> string { provide Confectory.ProjectShell::Command with Confectory.ProjectShell::CommandBody; }

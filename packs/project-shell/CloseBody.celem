@@ -1,0 +1,1 @@
+implementation Confectory.ProjectShell::CloseBody for Confectory.ProjectShell::Close (string shell) -> void { body common "Close.csbody"; }

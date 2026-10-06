@@ -1,0 +1,1 @@
+function Confectory.ProjectShell::Create (string project) -> string { provide Confectory.ProjectShell::Create with Confectory.ProjectShell::CreateBody; }

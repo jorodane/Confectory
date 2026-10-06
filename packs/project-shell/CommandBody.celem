@@ -1,0 +1,1 @@
+implementation Confectory.ProjectShell::CommandBody for Confectory.ProjectShell::Command (string shell, string operation, string payload) -> string { body common "Command.csbody"; }

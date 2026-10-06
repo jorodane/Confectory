@@ -1,0 +1,6 @@
+implementation Example.ProjectShellModel::MainBody for Example.ProjectShellModel::Main () -> int {
+import Confectory.ProjectShell::Create as Create (string) -> string;
+import Confectory.ProjectShell::Command as Command (string, string, string) -> string;
+import Confectory.ProjectShell::Snapshot as Snapshot (string) -> string;
+import Confectory.ProjectShell::Close as Close (string) -> void;
+body common "Main.csbody"; }

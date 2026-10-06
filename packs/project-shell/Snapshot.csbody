@@ -1,0 +1,1 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.ProjectShell."+shell) as object[]??throw new ObjectDisposedException("Project shell");return System.Threading.Volatile.Read(ref state[1]) as string??throw new ObjectDisposedException("Project shell");

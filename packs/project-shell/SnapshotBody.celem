@@ -1,0 +1,1 @@
+implementation Confectory.ProjectShell::SnapshotBody for Confectory.ProjectShell::Snapshot (string shell) -> string { body common "Snapshot.csbody"; }

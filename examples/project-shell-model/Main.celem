@@ -1,0 +1,1 @@
+function Example.ProjectShellModel::Main () -> int { provide Example.ProjectShellModel::Main with Example.ProjectShellModel::MainBody; }

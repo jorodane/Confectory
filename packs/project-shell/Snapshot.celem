@@ -1,0 +1,1 @@
+function Confectory.ProjectShell::Snapshot (string shell) -> string { provide Confectory.ProjectShell::Snapshot with Confectory.ProjectShell::SnapshotBody; }

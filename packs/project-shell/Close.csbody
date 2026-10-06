@@ -1,0 +1,1 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.ProjectShell."+shell) as object[];if(state is null)return;lock(state){if((bool)state[2])return;state[2]=true;AppDomain.CurrentDomain.SetData("Confectory.ProjectShell."+shell,null);}

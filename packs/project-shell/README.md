@@ -1,0 +1,11 @@
+# ProjectShell role pack
+
+Public IDs: Create(project snapshot JSON), Command(shell,operation,payload JSON), Snapshot(shell), Close(shell). The caller owns this opaque shell token and supplies a validated, already-open project snapshot with nonempty `context`, fully qualified `path`, `title` and optional namespace/description. ProjectShell borrows immutable project identity. It never opens a project, creates a ProjectContext, reads filesystem/source, starts execution or connects a provider. It has no dependency on Editor, ProjectManager, FileStream or AI. Closing a shell never closes its borrowed project or other shells.
+
+All Commands require exact project `context` in payload. `tab` accepts chat/logs, `menu` accepts closed/project/info/settings/providers, `draft` retains bounded4096-character local text, `log` retains64meaningful512-character entries. Empty log updates preserve latest meaningful line. Draft is explicitly offline; `liveProvider=false`, no fake response/message transmission, counts0 because no participant/provider binding exists. Cached immutable Snapshot is coherent across changes. Close is idempotent and later public operations reject disposed tokens.
+
+Direction is project→project-chat. `Create(null)`/missing context and cross-context Commands reject before loading anything. Standalone private Helper chat is a distinct optional role: original section9 allows it without a project but forbids opening projects as a side effect. This pack does not implement or imitate it.
+
+EditorHome owns validated ProjectManager contexts/executions and these shell tokens until app-session disposal. It uses public commands to render the selected project's panel. Leaving stops only that project's execution and hides/cancels its visual interaction; shell draft/log/model remains app-owned for explicit reopening. Closing all windows joins pending work, closes every shell and owned execution session. No table-owned model semantics.
+
+`examples/project-shell-model` is a standalone model consumer (no EditorHome, GUI, ProjectManager, FileStream or AI) proving null/cross-context rejection, independent drafts/routes/logs and close. Generic presentation stays in shared BaseUI Button/Field/Stack and existing independent widget consumers; this pack adds no widget catalog or Core host.
