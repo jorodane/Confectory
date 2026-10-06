@@ -1,6 +1,6 @@
-# Checkpoint14 shared Field milestone — validation in progress
+# Checkpoint14 bounded shared Field milestone — local
 
-Preserved public baseline: CP13 831fd45, Windows launcher7f38520, interim CP14 ce217cc on integration/checkpoint-14. Further publication/merge is paused. This slice extends role packs and ordinary ProjectPack consumers; no engine/editor host is added to Core.
+Preserved public baseline: CP13 831fd45, Windows launcher7f38520, interim CP14 ce217cc on integration/checkpoint-14. Final implementation fixes are local commit f5fcc2a. Further publication/merge is paused. This slice extends role packs and ordinary ProjectPack consumers; no engine/editor host is added to Core.
 
 ## Bounded delivered scope
 
@@ -31,7 +31,7 @@ dotnet .confectory/cp14-affected-runner/Confectory.Tests.dll EngineTests FieldTe
 
 Functional and structural/locality gates are recorded separately. Linux native Editor workflow and independent Field font/caret pixels, Korean/emoji scalar geometry, click/range replacement, keyboard selection, capture/cancel, full-run scrolling, format rules, resize/reopen and interrupt cleanup passed. Independent Field ran at font scales1 and1.5; this is not OS DPI coverage. Provider-only probes require exactly one owning implementation and zero compiled contracts; excluded authoring/AI closure is checked independently.
 
-Full124-case process remains active with a recorded Engine cold-font timing/cache failure. The earlier Android resolution failure was fixed and passed1/0 in49.882s. Affected Field/Editor managed targets passed2/0 in522.525s. Engine timing correction passed1/0 in180.865s; stronger native cache/no-error verification and final affected GUI/locality runs are pending. No full clean124/0 claim is made while the process runs. See CHECKPOINT_14_WORK_LOG.md for actual outside reads/edits/rebuild scopes and later final evidence.
+The complete124-case run finished123 passed/1 failed in3472.495s (exit1). Its sole failure was the pre-correction Engine cold-font auto-close/cache fixture. The repaired source and stronger no-native-cache-error assertion passed in the final affected run: Engine + actual Editor GUI + independent Field/native/locality/managed targets3 passed/0 failed in601.722s (exit0). All other123 broad cases passed; no known functional failure remains after the repaired-case rerun. This is not a single clean124/0 full-run claim. Earlier Android resolution repair passed1/0 in49.882s; initial affected Field/Editor profiles passed2/0 in522.525s. Functional and structure/locality gates are met for the bounded desktop slice; unsupported native-platform and broader editing capabilities below remain open. See CHECKPOINT_14_WORK_LOG.md for actual outside reads/edits/rebuild scopes and exact repair evidence.
 
 ## Limits and next-stage handoff
 
@@ -41,4 +41,4 @@ Editing remains scalar-safe rather than complete grapheme/Bidi/IME text handling
 
 CP13/CP14 Editor is a functional validation consumer. Read EDITOR_SPEC_IMPLEMENTATION_MAP.md before production UI composition; the original section8 specification is authority. Typed domain projection/custom Element Views and remaining layout primitives should be implemented as coherent role-pack increments with independent consumers, rather than extending this temporary screen into production design. Existing models/Views remain reusable outside tables. No editor rewrite, optional AI or multiplayer work is included.
 
-Full official design text is readable; original DOCX bytes/page metadata and requested Library screenshot materialization remain blocked. Own native evidence was captured/viewed privately under /tmp and is excluded from Git. No binaries/images/secrets/raw chat logs are committed. See CHECKPOINT_14_WINDOWS_CHECK.md for asynchronous user checks.
+Full official design text is readable; original DOCX bytes/page metadata and requested Library screenshot materialization remain blocked. Own native evidence was captured/viewed privately under /tmp and is excluded from Git. No binaries/images/secrets/raw chat logs are committed. See CHECKPOINT_14_WINDOWS_CHECK.md for asynchronous user checks and CHECKPOINT_14_ANDROID_PLAN.md for the app-surface equivalent and exact keyboard/text-provider gaps.
