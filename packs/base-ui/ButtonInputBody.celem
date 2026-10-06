@@ -1,0 +1,1 @@
+implementation Confectory.BaseUI::ButtonInputBody for Confectory.BaseUI::ButtonInput (string surface, long eventID, int[] rectangles, int[] buttons, int type, int x, int y, int activation) -> int { import Confectory.BaseUI::ControlInput as ControlInput (string, int[], int, int, int) -> int; body common "ButtonInput.csbody"; }

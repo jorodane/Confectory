@@ -1,0 +1,22 @@
+implementation Example.ButtonGame::MainBody for Example.ButtonGame::Main () -> int {
+import Confectory.BaseUI::CreateControls as CreateControls (int[]) -> string;
+import Confectory.BaseUI::ControlState as ControlState (string, string, int) -> int[];
+import Confectory.BaseUI::Button as Button (string, int, int[], string, int[], bool, bool) -> string;
+import Confectory.BaseUI::ButtonInput as ButtonInput (string, long, int[], int[], int, int, int, int) -> int;
+import Confectory.BaseUI::CloseControls as CloseControls (string) -> void;
+import Confectory.UINavigation::Create as NavCreate (string) -> string;
+import Confectory.UINavigation::Route as NavRoute (string, long, int, int, int, bool, int, int[]) -> string;
+import Confectory.RuntimeBase::CreateOwner as CreateOwner (int) -> string[];
+import Confectory.RuntimeBase::CreateInstance as CreateInstance (string[], string) -> int;
+import Confectory.RuntimeBase::Read as Read (string[], int) -> long[];
+import Confectory.RuntimeBase::Write as Write (string[], int, long) -> bool;
+import Confectory.RuntimeBase::DisposeOwner as DisposeOwner (string[]) -> void;
+import Confectory.RealTimeUpdate::Advance as Advance (double[], double, double, double, double, int) -> double[];
+import Confectory.Window::CreateSurfaces as WindowCreate (string[], int, int) -> long[];
+import Confectory.Window::Place as WindowPlace (long[], int, int, int) -> void;
+import Confectory.Window::Close as WindowClose (long[], int) -> void;
+import Confectory.Window::SurfaceInfo as WindowInfo (long[]) -> long[];
+import Confectory.Window::Capabilities as WindowCapabilities () -> int[];
+import Confectory.RenderInput::Pump as Pump (long[]) -> int[];
+import Confectory.RenderInput::Draw as Draw (long[], int, int[], string[]) -> void;
+body common "main.csbody"; }

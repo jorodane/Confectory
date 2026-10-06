@@ -46,4 +46,6 @@ element ControlInput function "ControlInput.celem";
 element ControlInputBody implementation "ControlInputBody.celem";
 element CloseControls function "CloseControls.celem";
 element CloseControlsBody implementation "CloseControlsBody.celem";
+element Button function "Button.celem"; element ButtonBody implementation "ButtonBody.celem";
+element ButtonInput function "ButtonInput.celem"; element ButtonInputBody implementation "ButtonInputBody.celem";
 }

@@ -1,0 +1,1 @@
+implementation Confectory.BaseUI::ButtonBody for Confectory.BaseUI::Button (string surface, int control, int[] bounds, string label, int[] palette, bool visible, bool enabled) -> string { body common "Button.csbody"; }

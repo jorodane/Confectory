@@ -1,0 +1,19 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.BaseUI.Controls."+surface) as object[]??throw new ObjectDisposedException("Control surface");
+if((int)state[0]!=Environment.CurrentManagedThreadId)throw new InvalidOperationException("Button requires creating UI thread");
+var controls=(System.Collections.Generic.Dictionary<int,int>)state[1];
+if(!controls.ContainsKey(control)||bounds.Length!=4||bounds[2]<1||bounds[3]<1||bounds[2]>8192||bounds[3]>8192||label.Length>2048||palette.Length!=5)throw new ArgumentException("Button configuration bounds");
+foreach(int color in palette)if(color<0||color>0xFFFFFF)throw new ArgumentException("Button palette is RGB");
+controls[control]=(visible?1:0)|(enabled?2:0);
+bool Eligible(int id)=>controls.TryGetValue(id,out int flags)&&flags==3;
+if(!Eligible((int)state[2]))state[2]=0;if(!Eligible((int)state[3]))state[3]=0;if(!Eligible((int)state[4]))state[4]=0;
+var dispatch=AppDomain.CurrentDomain.GetData("Confectory.BaseUI.Button.Input."+surface) as object[];
+int keyboard=dispatch is null?0:(int)dispatch[2];
+if(keyboard!=0&&(!Eligible(keyboard)||(int)state[2]!=keyboard)){dispatch![2]=0;keyboard=0;}
+bool focus=(int)state[2]==control,pressed=(int)state[3]==control||keyboard==control,hover=(int)state[4]==control;
+int colorIndex=!enabled?4:pressed?2:focus?3:hover?1:0;
+return new System.Text.Json.Nodes.JsonObject{
+ ["id"]=control,["visible"]=visible,["enabled"]=enabled,["focus"]=focus,["pressed"]=pressed,["hover"]=hover,
+ ["rectangles"]=System.Text.Json.JsonSerializer.SerializeToNode(visible?new[]{bounds[0],bounds[1],bounds[2],bounds[3],palette[colorIndex]}:Array.Empty<int>()),
+ ["labels"]=System.Text.Json.JsonSerializer.SerializeToNode(visible?new[]{label}:Array.Empty<string>()),
+ ["hit"]=System.Text.Json.JsonSerializer.SerializeToNode(visible&&enabled?new[]{control,bounds[0],bounds[1],bounds[2],bounds[3]}:Array.Empty<int>())
+}.ToJsonString();

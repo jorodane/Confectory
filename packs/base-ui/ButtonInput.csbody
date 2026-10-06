@@ -1,0 +1,18 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.BaseUI.Controls."+surface) as object[]??throw new ObjectDisposedException("Control surface");
+if((int)state[0]!=Environment.CurrentManagedThreadId)throw new InvalidOperationException("Button input requires creating UI thread");
+var controls=(System.Collections.Generic.Dictionary<int,int>)state[1];
+if(eventID<0||buttons.Length>128||rectangles.Length%5!=0||rectangles.Length>640||activation==int.MinValue)throw new ArgumentException("Button input budget");
+var allowed=new System.Collections.Generic.HashSet<int>();foreach(int id in buttons)if(id<1||!controls.ContainsKey(id)||!allowed.Add(id))throw new ArgumentException("Unique registered button IDs required");
+bool Eligible(int id)=>allowed.Contains(id)&&controls.TryGetValue(id,out int flags)&&flags==3;
+string key="Confectory.BaseUI.Button.Input."+surface;
+var dispatch=AppDomain.CurrentDomain.GetData(key) as object[];
+if(dispatch is null){dispatch=new object[]{-1L,false,0};AppDomain.CurrentDomain.SetData(key,dispatch);}
+long previous=(long)dispatch[0];if(eventID<previous)throw new ArgumentException("Button event identity must increase");
+int pointer=0;
+if(eventID>previous){dispatch[0]=eventID;dispatch[1]=false;pointer=calls.ControlInput.Invoke(surface,rectangles,type,x,y);if(type is 7 or 9 or 11)dispatch[2]=0;}
+int held=(int)dispatch[2];if(held!=0&&(!Eligible(held)||(int)state[2]!=held))dispatch[2]=0;
+if((bool)dispatch[1])return 0;
+if(pointer!=0&&Eligible(pointer)){dispatch[1]=true;return pointer;}
+if(activation<0){int id=-activation;if(Eligible(id)&&(int)state[2]==id)dispatch[2]=id;return 0;}
+if(activation>0){int armed=(int)dispatch[2];dispatch[2]=0;if(armed==activation&&Eligible(activation)&&(int)state[2]==activation){dispatch[1]=true;return activation;}}
+return 0;

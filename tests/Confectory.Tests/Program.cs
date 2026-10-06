@@ -8,12 +8,12 @@ if (File.Exists(fakeReply)) { Console.Write(File.ReadAllText(fakeReply)); return
 
 Environment.SetEnvironmentVariable("CONFECTORY_DOTNET", Processes.DotNet());
 var watch = Stopwatch.StartNew(); int passed = 0, failed = 0;
-string? filter = args.Length == 0 ? null : args[0];
-foreach (var type in new[] { typeof(CoreTests), typeof(IntegrationTests), typeof(VerificationTests), typeof(WindowTests), typeof(Win32ContractTests), typeof(RuntimeBaseTests), typeof(RealTimeUpdateTests), typeof(BaseUITests), typeof(EngineTests), typeof(AndroidPreparationTests), typeof(ProjectExecutionTests), typeof(ProjectManagerTests), typeof(FileStreamTests), typeof(SchemaEditingTests), typeof(EditWorkspaceTests), typeof(ElementViewTests), typeof(PackManagerTests), typeof(SourceEditorTests), typeof(BuildParticipationTests), typeof(CollaborationTests), typeof(AgentTests), typeof(HelperTests), typeof(WorkerTasksTests), typeof(Checkpoint7Tests), typeof(AugmentTests), typeof(CompilerTransportTests), typeof(ProjectionDeliveryTests), typeof(StageTests), typeof(Physics2DTests), typeof(ToolchainSelectionTests), typeof(RigMotionTests), typeof(UINavigationTests), typeof(EditorTests) })
+string[] filters = args;
+foreach (var type in new[] { typeof(CoreTests), typeof(IntegrationTests), typeof(VerificationTests), typeof(WindowTests), typeof(Win32ContractTests), typeof(RuntimeBaseTests), typeof(RealTimeUpdateTests), typeof(BaseUITests), typeof(EngineTests), typeof(AndroidPreparationTests), typeof(ProjectExecutionTests), typeof(ProjectManagerTests), typeof(FileStreamTests), typeof(SchemaEditingTests), typeof(EditWorkspaceTests), typeof(ElementViewTests), typeof(PackManagerTests), typeof(SourceEditorTests), typeof(BuildParticipationTests), typeof(CollaborationTests), typeof(AgentTests), typeof(HelperTests), typeof(WorkerTasksTests), typeof(Checkpoint7Tests), typeof(AugmentTests), typeof(CompilerTransportTests), typeof(ProjectionDeliveryTests), typeof(StageTests), typeof(Physics2DTests), typeof(ToolchainSelectionTests), typeof(RigMotionTests), typeof(UINavigationTests), typeof(EditorTests), typeof(ButtonTests) })
 foreach (var method in type.GetMethods().Where(x => x.Name.StartsWith("test_", StringComparison.Ordinal)).OrderBy(x => x.Name, StringComparer.Ordinal))
 {
     string name = type.Name + "." + method.Name;
-    if (filter is not null && !name.Contains(filter, StringComparison.OrdinalIgnoreCase)) continue;
+    if (filters.Length != 0 && !filters.Any(filter => name.Contains(filter, StringComparison.OrdinalIgnoreCase))) continue;
     using var test = (TestCase)Activator.CreateInstance(type)!;
     try { method.Invoke(test, null); passed++; Console.WriteLine($"PASS {name}"); }
     catch (TargetInvocationException ex) { failed++; Console.WriteLine($"FAIL {name}\n{ex.InnerException}"); }
