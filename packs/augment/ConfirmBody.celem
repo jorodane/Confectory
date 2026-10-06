@@ -1,0 +1,4 @@
+implementation Confectory.Augment::ConfirmBody for Confectory.Augment::Confirm (string view, string actor, string commandID, string selection, string reviewToken, string target) -> string {
+import Confectory.Augment::Command as Command (string, string, string, string) -> string;
+body common "Confirm.csbody";
+}

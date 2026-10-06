@@ -1,0 +1,8 @@
+implementation Confectory.Augment::OpenBody for Confectory.Augment::Open (string directory, string project, string tasks, string workspace, string actor, string[] targets, string[] fields) -> string {
+import Confectory.WorkerTasks::Context as Context (string) -> string[];
+import Confectory.WorkerTasks::Authorize as Authorize (string, string, string) -> bool;
+import Confectory.EditWorkspace::Identity as Identity (string) -> string[];
+import Confectory.FileStream::Snapshot as FileSnapshot (string) -> string[];
+import Confectory.FileStream::Commit as Commit (string, string[], string[], string[]) -> string[];
+body common "Open.csbody";
+}

@@ -1,0 +1,1 @@
+function Confectory.Augment::Select (string view, string actor, string commandID, string card) -> string {provide Confectory.Augment::Select with Confectory.Augment::SelectBody;}

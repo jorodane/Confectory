@@ -1,0 +1,1 @@
+function Confectory.Augment::Skip (string view, string actor, string commandID, string reason) -> void {provide Confectory.Augment::Skip with Confectory.Augment::SkipBody;}

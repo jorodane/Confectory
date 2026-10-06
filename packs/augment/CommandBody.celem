@@ -1,0 +1,21 @@
+implementation Confectory.Augment::CommandBody for Confectory.Augment::Command (string view, string actor, string operation, string payload) -> string {
+import Confectory.WorkerTasks::Context as TaskContext (string) -> string[];
+import Confectory.WorkerTasks::Authorize as Authorize (string, string, string) -> bool;
+import Confectory.WorkerTasks::Assign as Assign (string, string, long, string, string, string, string) -> string;
+import Confectory.WorkerTasks::Inspect as TaskInspect (string, string) -> string;
+import Confectory.WorkerTasks::Lease as TaskLease (string, string) -> string;
+import Confectory.WorkerTasks::Cancel as TaskCancel (string, string, long, string, string) -> void;
+import Confectory.EditWorkspace::Identity as Identity (string) -> string[];
+import Confectory.EditWorkspace::Read as Read (string, string) -> string[];
+import Confectory.EditWorkspace::SetTextIfRevision as SetText (string, string, string, long) -> bool;
+import Confectory.SchemaEditing::Inspect as Inspect (string) -> string;
+import Confectory.SchemaEditing::SetValue as SetValue (string, string, string) -> string;
+import Confectory.SchemaEditing::BeginScope as BeginScope (string) -> void;
+import Confectory.SchemaEditing::EndScope as EndScope () -> void;
+import Confectory.FileStream::Snapshot as FileSnapshot (string) -> string[];
+import Confectory.FileStream::Commit as Commit (string, string[], string[], string[]) -> string[];
+import Confectory.ChangeSet::Confirm as SourceConfirm (string, string[], string) -> string[];
+import Confectory.YogiBox::Exactly as YogiExactly (string, string, string[], string[]) -> void;
+import Confectory.Augment::Provider as Provider (string, string, string) -> string;
+body common "Command.csbody";
+}

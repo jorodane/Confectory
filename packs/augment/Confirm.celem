@@ -1,0 +1,1 @@
+function Confectory.Augment::Confirm (string view, string actor, string commandID, string selection, string reviewToken, string target) -> string {provide Confectory.Augment::Confirm with Confectory.Augment::ConfirmBody;}

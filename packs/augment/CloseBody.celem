@@ -1,0 +1,5 @@
+implementation Confectory.Augment::CloseBody for Confectory.Augment::Close (string view) -> void {
+import Confectory.Augment::Provider as Provider (string, string, string) -> string;
+import Confectory.SchemaEditing::Cancel as CancelSchema (string) -> void;
+body common "Close.csbody";
+}

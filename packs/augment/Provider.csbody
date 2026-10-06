@@ -1,0 +1,1 @@
+if(operation=="cancel")return "{}";throw new InvalidOperationException("No creative provider configured; explicitly select a local fixture or separately authorized adapter");

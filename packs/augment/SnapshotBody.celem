@@ -1,0 +1,4 @@
+implementation Confectory.Augment::SnapshotBody for Confectory.Augment::Snapshot (string view) -> string {
+import Confectory.Augment::Command as Command (string, string, string, string) -> string;
+body common "Snapshot.csbody";
+}

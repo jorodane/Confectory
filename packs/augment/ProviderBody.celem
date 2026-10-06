@@ -1,0 +1,4 @@
+implementation Confectory.Augment::ProviderBody for Confectory.Augment::Provider (string operation, string requestID, string payload) -> string {
+
+body common "Provider.csbody";
+}

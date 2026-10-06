@@ -1,0 +1,4 @@
+implementation Confectory.Augment::ReviewBody for Confectory.Augment::Review (string view, string actor, string commandID, string selection) -> string {
+import Confectory.Augment::Command as Command (string, string, string, string) -> string;
+body common "Review.csbody";
+}

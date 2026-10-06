@@ -1,0 +1,1 @@
+function Confectory.Augment::Reroll (string view, string actor, string commandID, string direction) -> string {provide Confectory.Augment::Reroll with Confectory.Augment::RerollBody;}

@@ -1,0 +1,1 @@
+calls.Command.Invoke(view,actor,"skip",new System.Text.Json.Nodes.JsonObject{["commandID"]=commandID,["reason"]=reason}.ToJsonString());

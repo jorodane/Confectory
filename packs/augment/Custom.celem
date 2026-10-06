@@ -1,0 +1,1 @@
+function Confectory.Augment::Custom (string view, string actor, string commandID, string text) -> string {provide Confectory.Augment::Custom with Confectory.Augment::CustomBody;}

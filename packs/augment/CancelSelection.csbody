@@ -1,0 +1,1 @@
+calls.Command.Invoke(view,actor,"cancel",new System.Text.Json.Nodes.JsonObject{["commandID"]=commandID,["selection"]=selection,["reason"]=reason}.ToJsonString());

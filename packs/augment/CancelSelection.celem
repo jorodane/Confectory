@@ -1,0 +1,1 @@
+function Confectory.Augment::CancelSelection (string view, string actor, string commandID, string selection, string reason) -> void {provide Confectory.Augment::CancelSelection with Confectory.Augment::CancelSelectionBody;}

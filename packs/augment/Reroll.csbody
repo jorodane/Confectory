@@ -1,0 +1,1 @@
+return calls.Command.Invoke(view,actor,"reroll",new System.Text.Json.Nodes.JsonObject{["commandID"]=commandID,["direction"]=direction}.ToJsonString());

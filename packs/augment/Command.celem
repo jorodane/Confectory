@@ -1,0 +1,1 @@
+function Confectory.Augment::Command (string view, string actor, string operation, string payload) -> string {provide Confectory.Augment::Command with Confectory.Augment::CommandBody;}

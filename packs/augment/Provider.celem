@@ -1,0 +1,1 @@
+function Confectory.Augment::Provider (string operation, string requestID, string payload) -> string {provide Confectory.Augment::Provider with Confectory.Augment::ProviderBody;}

@@ -1,0 +1,1 @@
+function Confectory.Augment::Open (string directory, string project, string tasks, string workspace, string actor, string[] targets, string[] fields) -> string {provide Confectory.Augment::Open with Confectory.Augment::OpenBody;}

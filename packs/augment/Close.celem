@@ -1,0 +1,1 @@
+function Confectory.Augment::Close (string view) -> void {provide Confectory.Augment::Close with Confectory.Augment::CloseBody;}

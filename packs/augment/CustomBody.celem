@@ -1,0 +1,4 @@
+implementation Confectory.Augment::CustomBody for Confectory.Augment::Custom (string view, string actor, string commandID, string text) -> string {
+import Confectory.Augment::Command as Command (string, string, string, string) -> string;
+body common "Custom.csbody";
+}

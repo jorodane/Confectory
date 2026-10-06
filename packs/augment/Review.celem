@@ -1,0 +1,1 @@
+function Confectory.Augment::Review (string view, string actor, string commandID, string selection) -> string {provide Confectory.Augment::Review with Confectory.Augment::ReviewBody;}

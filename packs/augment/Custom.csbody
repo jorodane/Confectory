@@ -1,0 +1,1 @@
+return calls.Command.Invoke(view,actor,"custom",new System.Text.Json.Nodes.JsonObject{["commandID"]=commandID,["text"]=text}.ToJsonString());

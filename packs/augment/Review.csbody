@@ -1,0 +1,1 @@
+return calls.Command.Invoke(view,actor,"review",new System.Text.Json.Nodes.JsonObject{["commandID"]=commandID,["selection"]=selection}.ToJsonString());

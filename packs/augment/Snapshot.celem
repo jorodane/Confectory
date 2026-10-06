@@ -1,0 +1,1 @@
+function Confectory.Augment::Snapshot (string view) -> string {provide Confectory.Augment::Snapshot with Confectory.Augment::SnapshotBody;}

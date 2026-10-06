@@ -1,0 +1,1 @@
+function Confectory.Augment::Stage (string view, string actor, string commandID, string selection) -> string {provide Confectory.Augment::Stage with Confectory.Augment::StageBody;}

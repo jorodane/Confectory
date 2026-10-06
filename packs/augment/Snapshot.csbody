@@ -1,0 +1,1 @@
+return calls.Command.Invoke(view,"","snapshot","{}");

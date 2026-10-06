@@ -1,0 +1,4 @@
+implementation Confectory.Augment::SelectBody for Confectory.Augment::Select (string view, string actor, string commandID, string card) -> string {
+import Confectory.Augment::Command as Command (string, string, string, string) -> string;
+body common "Select.csbody";
+}
