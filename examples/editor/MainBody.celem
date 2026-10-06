@@ -4,7 +4,8 @@ import Confectory.SchemaEditing::EndScope as SchemaEditingEndScope () -> void;
 import Confectory.SchemaEditing::Cancel as SchemaEditingCancel (string) -> void;
 import Confectory.BaseUI::CreateControls as BaseUICreateControls (int[]) -> string;
 import Confectory.BaseUI::ControlState as BaseUIControlState (string, string, int) -> int[];
-import Confectory.BaseUI::ControlInput as BaseUIControlInput (string, int[], int, int, int) -> int;
+import Confectory.BaseUI::Button as BaseUIButton (string, int, int[], string, int[], bool, bool) -> string;
+import Confectory.BaseUI::ButtonInput as BaseUIButtonInput (string, long, int[], int[], int, int, int, int) -> int;
 import Confectory.BaseUI::CloseControls as BaseUICloseControls (string) -> void;
 import Confectory.UINavigation::Create as UINavigationCreate (string) -> string;
 import Confectory.UINavigation::Route as UINavigationRoute (string, long, int, int, int, bool, int, int[]) -> string;
@@ -28,4 +29,5 @@ import Confectory.RuntimeBase::CreateInstance as RuntimeBaseCreateInstance (stri
 import Confectory.RuntimeBase::Write as RuntimeBaseWrite (string[], int, long) -> bool;
 import Confectory.RuntimeBase::DisposeOwner as RuntimeBaseDisposeOwner (string[]) -> void;
 import Confectory.Editor::CreateSession as CreateSession (string, string) -> string; import Confectory.Editor::Snapshot as Snapshot (string) -> string; import Confectory.Editor::Command as Command (string, string, string) -> string; import Confectory.Editor::CloseSession as CloseSession (string) -> void;
+import Confectory.SourceEditor::Refresh as SourceEditorRefresh (string, string) -> void;
 body common "Main.csbody"; }

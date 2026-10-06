@@ -83,6 +83,7 @@ resize=native('XResizeWindow',c.c_int,P,U,c.c_uint,c.c_uint)
 raise_window=native('XRaiseWindow',c.c_int,P,U)
 repo=os.path.abspath(os.path.join(os.path.dirname(__file__),'../..'))
 storage=tempfile.mkdtemp(prefix='confectory-editor-gui-')
+for n in range(20):os.mkdir(os.path.join(storage,f'Picker{n:02d}'))
 log_path=os.path.join(storage,'gui.log')
 env=os.environ.copy();env.update(CONFECTORY_EDITOR_REPO=repo,CONFECTORY_EDITOR_STORAGE=storage,CONFECTORY_EDITOR_TRACE='1')
 app=None;log=None
@@ -150,15 +151,20 @@ try:
     click(a,23);wait(lambda t:t['focus']==20,'required name focus')
     click(a,20);type_text(a,'GuiWorkflow');click(a,21);type_text(a,'A local designed editor workflow\nwith saved drafts.')
     subprocess.run(['import','-window',str(a),os.path.join(storage,'create.png')],check=True)
-    click(a,22);wait(lambda t:t['screen']=='browse','actual parent folder picker');click(a,11);wait(lambda t:t['screen']=='create','chosen parent')
+    click(a,22);wait(lambda t:t['screen']=='browse','actual parent folder picker');click(a,13);wait(lambda t:t['pages'][0]>0,'folder next visible page');click(a,14);wait(lambda t:t['pages'][0]==0,'folder previous visible page');click(a,11);wait(lambda t:t['screen']=='create','chosen parent')
     click(a,23);trace=wait(lambda t:t['screen']=='project','created project')
     path=project(trace)['path'];folder=os.path.dirname(path);ns=project(trace)['namespace']
     click(a,6);b=await_window(b'Confectory Editor B');wait(lambda t:str(1) in t['model']['views'],'shared view',1)
     click(a,30);wait(lambda t:t['screen']=='element','element list');click(a,41);type_text(a,'Counter');click(a,43);wait(lambda t:t['screen']=='project' and t['model']['views']['0']['element'].endswith('::Counter'),'new object')
     assert latest(1)['model']['views']['1']['element'].endswith('MainBody/body:common'),'selection leaked into sibling View'
     click(a,54);type_text(a,f'object {ns}::Counter {{ value count = 7; }}\n');click(a,34);wait(lambda t:t['model']['lastOperation']=='text' and t['model']['status']=='Applied text to local draft','object text')
+    click(a,54);at=wait(lambda t:t['focus']==54,'source focus');before_caret=int(at['buffer'][2]);press(a,0xFF51);press(a,0xFF51);old_buffer=wait(lambda t:t['focus']==54 and int(t['buffer'][2])==before_caret-2,'source caret')['buffer'];old_token=latest()['bufferToken']
     click(a,33);wait(lambda t:300 in t['rects'][::5],'property fallback');click(a,300);click(a,45);type_text(a,'9');click(a,46);wait(lambda t:t['model']['lastOperation']=='value' and 'Error:' not in t['model']['status'],'property edit')
-    click(a,32);select_body(a);click(a,54);type_text(a,'this is deliberately invalid C#;');click(a,35);wait(lambda t:t['model']['lastOperation']=='save','Save invalid local draft');click(a,36);wait(lambda t:t['screen']=='review','invalid draft Review');before=latest()['frames'];click(a,49);invalid=wait(lambda t:t['model'].get('confirmResult',[''])[0]=='invalid','compiler error retained',seconds=120);assert invalid['frames']>before+3,'Confirm blocked presentation';assert open(os.path.join(folder,'main.csbody')).read()=='return 0;\n';click(a,50);wait(lambda t:t['screen']=='project','edit invalid draft');click(a,54);source='Console.WriteLine("Editor GUI run"); System.Threading.Thread.Sleep(60000); return 0;\n';type_text(a,source);click(a,35);wait(lambda t:t['model']['lastOperation']=='save' and t['model']['status'].startswith('Saved'),'Save')
+    updated=latest();assert updated['bufferToken']==old_token,'clean source buffer identity recreated';assert int(updated['buffer'][2])==int(old_buffer[2])+len(updated['buffer'][1])-len(old_buffer[1]),'caret did not follow changed span';assert updated['buffer'][3]==old_buffer[3],'selection lost on source refresh'
+    for n in range(10):
+        click(a,30);wait(lambda t:t['screen']=='element','new object navigation');click(a,41);type_text(a,f'Extra{n:02d}');click(a,43);wait(lambda t:t['screen']=='project' and t['model']['views']['0']['element'].endswith(f'::Extra{n:02d}'),'repeated object create')
+    click(a,30);wait(lambda t:t['screen']=='element','paged owned units');click(a,15);wait(lambda t:t['pages'][1]>0,'element next page');click(a,14);wait(lambda t:t['pages'][1]==0,'element previous page')
+    click(a,44);wait(lambda t:t['screen']=='project','workspace');click(a,32);select_body(a);click(a,54);type_text(a,'this is deliberately invalid C#;');click(a,35);wait(lambda t:t['model']['lastOperation']=='save','Save invalid local draft');click(a,36);wait(lambda t:t['screen']=='review','invalid draft Review');click(a,15);review_page=wait(lambda t:t['pages'][2]>0,'Review next page');changes=review_page['model']['review']['changes'];row=changes[review_page['pages'][2]*4];click(a,400);wait(lambda t:row not in t['selected'],'scope checkbox removed');click(a,400);wait(lambda t:row in t['selected'],'scope checkbox restored');click(a,14);wait(lambda t:t['pages'][2]==0,'Review previous page');before=latest()['frames'];click(a,49);wait(lambda t:t.get('job')=='confirm','invalid Confirm active');close(b);invalid=wait(lambda t:t['model'].get('confirmResult',[''])[0]=='invalid','compiler error retained',seconds=120);assert invalid['frames']>before+3,'Confirm blocked presentation';wait(lambda t:'1' not in t['model']['views'],'closed View subscription drains after active job');assert not find(b'Confectory Editor B');assert open(os.path.join(folder,'main.csbody')).read()=='return 0;\n';click(a,50);wait(lambda t:t['screen']=='project','edit invalid draft');click(a,54);source='Console.WriteLine("Editor GUI run"); System.Threading.Thread.Sleep(60000); return 0;\n';type_text(a,source);click(a,35);wait(lambda t:t['model']['lastOperation']=='save' and t['model']['status'].startswith('Saved'),'Save')
     assert open(os.path.join(folder,'main.csbody')).read()=='return 0;\n','Save changed final source'
     raise_window(display,a);flush(display);time.sleep(.1)
     subprocess.run(['import','-window',str(a),os.path.join(storage,'workspace.png')],check=True)
@@ -188,7 +194,7 @@ try:
     os.killpg(app.pid,signal.SIGINT);assert app.wait(timeout=30)==0,open(log_path).read()[-4000:];log.close();assert 'owners, buffers, jobs, workspace and children disposed' in open(log_path).read()
     assert os.path.isfile(os.path.join(folder,'main.csbody'))
     assert not find(b'Confectory Editor A') and not find(b'Confectory Editor B')
-    print('Editor native create/folder-open, element/source/property edit, Save/restart, Review/Confirm, Run/Stop/output, independent borrowed Views, resize/close/reopen compiler/stale/external errors, recovery, in-flight interrupt and cleanup PASS')
+    print('Editor native create/folder-open, element/source/property edit, Save/restart, Review/Confirm, Run/Stop/output, independent borrowed Views, resize/close/reopen, folder/element/review pagination, buffer identity/caret, compiler/stale/external errors, recovery, in-flight interrupt and cleanup PASS')
     print('Private evidence:',storage)
 finally:
     if app and app.poll() is None:
