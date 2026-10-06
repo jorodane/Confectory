@@ -22,6 +22,21 @@ The compiler regression passed: one test, zero failures, 2.322 seconds. It actua
 
 These are actual Linux process/compiler checks, including a command far above the Windows command-line limit. Native Windows acceptance remains pending; no Windows runtime or APK execution is claimed. To spot-check on Windows, build Release and run `run-engine-windows.bat`; retain the new PID/progress/completion lines and any target diagnostic. Development does not wait for this asynchronous check.
 
+## Stress arguments versus real selected references
+
+The preliminary 103,734-character probe deliberately supplied the same `System.Runtime.dll` reference 600 times. Those repeated references were unnecessary to that tiny test function. This was a transport stress test, not a measurement of normal engine compilation. The later registered regression uses the same construction at different temporary path lengths and measures 124,509 characters. These counts use the target's explicit expanded-command estimate, not captured Windows process command lines.
+
+For comparison, the new target actually relinked the retained Checkpoint 6 engine and Checkpoint 8 Augment artifact sets, using their original contract/implementation paths and generated binding sources copied into temporary output workspaces:
+
+| Selected composition | Contract references | Implementation references | Unique project paths | Framework references | Expanded estimate | Response launch estimate |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Confectory.Engine, Checkpoint 6 | 116 | 116 | 232 of 232 | 163 | 66,500 | 216 |
+| Example.Augment, Checkpoint 8 | 82 | 82 | 164 of 164 | 163 | 53,472 | 216 |
+
+Both real relinks succeeded and removed their response files. Engine project-reference arguments contributed 45,008 estimated characters and framework-reference arguments 21,131; the copied source argument contributed 47. Augment project references contributed 31,980 with the same framework/source counts. Remaining characters are options/output and launch overhead. Measurements are Linux paths for retained compositions, not the user's current Windows build. No raw body text is passed on compiler argv.
+
+The public planner starts from the entry and explicit `always` roots, selects implementations through binding/import and declared dependency edges, and compiles selected implementations. `CompilePack` deduplicates each implementation's own contract and declared imported contracts by ID. Final linking supplies the selected contract assemblies and selected implementation assemblies, rather than every registered pack. The target adds the entire .NET 8 reference pack as a broad compile-time framework set. A referenced assembly is not thereby proven runtime-used or necessary to the smallest possible compiler set. No project-reference duplicates appeared in either measured composition. Exact duplicate-path elimination is a possible separate optimization; framework pruning or removal of declared dependencies requires analysis and consumer testing. Response files solve transport limits without claiming a minimal dependency set.
+
 ## Locality and rebuild scope
 
 Public target-tool compile/link contracts are unchanged; result diagnostics are additive. The dotnet target implementation and CLI launcher own these changes. The regression reads the existing test Fixture and public target request/result protocol. No Core, platform-window, UI pack or application behavior was edited for this fix. Changing the target tool rebuilds managed artifacts selected for Linux, Windows and Android; platform capability/acceptance gates remain separate. This is a local coherent increment on `integration/checkpoint-9`, ahead of the unfinished projection increment, and is not a completed Checkpoint 9 marker. No publication is authorized.
