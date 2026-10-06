@@ -121,8 +121,11 @@ proc,thread,lines,samples=start(sys.argv[1]);w=await_window(b'Confectory Rig pre
 until(lambda:len(samples['preview'])>12,'preview did not render');first=samples['preview'][0];last=samples['preview'][-1];assert first['pose']!=last['pose'];assert layer_pixels(w,0x3baaf5)>0 and layer_pixels(w,0xf1c232)>0
 press(w,' ');time.sleep(.12);paused=samples['preview'][-1]['pose']['time'];time.sleep(.15);assert samples['preview'][-1]['pose']['time']==paused
 press(w,0xff53);until(lambda:samples['preview'][-1]['pose']['time']!=paused,'scrub did not update');assert find(b'Confectory Rig preview')==w
+resize=native('XResizeWindow',c.c_int,P,U,c.c_uint,c.c_uint);resize(display,w,500,380);flush(display);time.sleep(.15);assert find(b'Confectory Rig preview')==w;bitmap=image(display,w,0,0,500,380,U(-1).value,2);assert bitmap
+try:assert pixel(bitmap,10,365)&0xffffff==0x293847,'footer did not follow actual client resize'
+finally:destroy(bitmap)
 snap(w,'/tmp/checkpoint12-rig-preview.png');close(w);finish(proc,thread,lines);assert not find(b'Confectory Rig preview')
-print('Standalone real X11 motion/pause/scrub/persistent window/pixels/close PASS',flush=True)
+print('Standalone real X11 motion/pause/scrub/resize/persistent window/pixels/close PASS',flush=True)
 
 proc,thread,lines,samples=start(sys.argv[2],True);a=await_window(b'Confectory Rig A');b=await_window(b'Confectory Rig B')
 until(lambda:len(samples[0])>8 and len(samples[1])>8,'comparison frames absent');assert samples[0][-1]['playing'] and not samples[1][-1]['playing'];assert samples[0][-1]['snapshot']['plane']=='front' and samples[1][-1]['snapshot']['plane']=='side'
