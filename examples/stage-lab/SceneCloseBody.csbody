@@ -1,0 +1,1 @@
+var sceneState=AppDomain.CurrentDomain.GetData("Example.StageLab.Scene."+scene) as object[];if(sceneState is null)return;if(((long[])sceneState[1]).Length>0)calls.WindowClose.Invoke((long[])sceneState[1],-1);calls.Ballistic2DClose.Invoke((string)sceneState[2]);AppDomain.CurrentDomain.SetData("Example.StageLab.Scene."+scene,null);

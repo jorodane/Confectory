@@ -1,0 +1,12 @@
+implementation Example.StageLab::PreviewBody for Example.StageLab::Preview () -> int {
+import Example.StageLab::SceneNew as SceneNew (string, bool, double) -> string;
+import Example.StageLab::SceneInput as SceneInput (string, double, double, double) -> void;
+import Example.StageLab::SceneFixed as SceneFixed (string, double) -> void;
+import Example.StageLab::ScenePresent as ScenePresent (string) -> void;
+import Example.StageLab::ScenePump as ScenePump (string) -> int[];
+import Example.StageLab::SceneSnapshot as SceneSnapshot (string, double) -> string;
+import Example.StageLab::SceneDraw as SceneDraw (string, string, long, double) -> void;
+import Example.StageLab::ScenePause as ScenePause (string) -> void;
+import Example.StageLab::SceneClose as SceneClose (string) -> void;
+body common "PreviewBody.csbody";
+}

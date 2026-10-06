@@ -1,0 +1,1 @@
+function Example.StageLab::SceneDraw (string scene, string status, long value, double alpha) -> void { provide Example.StageLab::SceneDraw with Example.StageLab::SceneDrawBody; }

@@ -1,0 +1,27 @@
+implementation Example.StageLab::MainBody for Example.StageLab::Main () -> int {
+import Confectory.Stage::Create as StageCreate (string, string) -> string;
+import Confectory.Stage::Enter as StageEnter (string) -> bool;
+import Confectory.Stage::Transition as StageTransition (string, string, string) -> string;
+import Confectory.Stage::Stop as StageStop (string) -> string;
+import Confectory.Stage::Close as StageClose (string) -> string;
+import Confectory.Stage::Snapshot as StageSnapshot (string) -> string;
+import Confectory.Stage::Epoch as StageEpoch (string) -> long;
+import Confectory.Stage::Read as StageRead (string) -> long[];
+import Confectory.Stage::Write as StageWrite (string, long, long) -> bool;
+import Confectory.Stage::Register as StageRegister (string, string, string, int) -> void;
+import Confectory.Stage::Unregister as StageUnregister (string, string, string) -> void;
+import Confectory.Stage::Advance as StageAdvance (string, long, double) -> string;
+import Confectory.Stage::Dispatch as StageDispatch (string, long, string, string) -> bool;
+import Confectory.Stage::Post as StagePost (string, long, string, string) -> bool;
+import Confectory.Stage::Drain as StageDrain (string, long) -> int;
+import Confectory.Stage::Subscribe as StageSubscribe (string) -> string;
+import Confectory.Stage::Poll as StagePoll (string, string) -> long[];
+import Confectory.Stage::Unsubscribe as StageUnsubscribe (string, string) -> void;
+import Confectory.Stage::Launch as StageLaunch (string, string, string, string, string[], string[]) -> string;
+import Confectory.Stage::Observe as StageObserve (string, string) -> string[];
+import Example.StageLab::SceneInput as SceneInput (string, double, double, double) -> void;
+import Example.StageLab::ScenePump as ScenePump (string) -> int[];
+import Example.StageLab::SceneSnapshot as SceneSnapshot (string, double) -> string;
+import Example.StageLab::SceneDraw as SceneDraw (string, string, long, double) -> void;
+body common "MainBody.csbody";
+}

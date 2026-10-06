@@ -1,0 +1,1 @@
+var sceneState=AppDomain.CurrentDomain.GetData("Example.StageLab.Scene."+scene) as object[]??throw new ObjectDisposedException("Scene");calls.Ballistic2DStep.Invoke((string)sceneState[2],seconds);sceneState[6]=(long)sceneState[6]+1;

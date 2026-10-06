@@ -1,0 +1,1 @@
+var sceneState=AppDomain.CurrentDomain.GetData("Example.StageLab.Scene."+scene) as object[]??throw new ObjectDisposedException("Scene");sceneState[5]=calls.RealTimeUpdatePresentCamera.Invoke((double[])sceneState[3],(double[])sceneState[4]);

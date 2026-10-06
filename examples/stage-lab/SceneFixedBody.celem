@@ -1,0 +1,4 @@
+implementation Example.StageLab::SceneFixedBody for Example.StageLab::SceneFixed (string scene, double seconds) -> void {
+import Confectory.Ballistic2D::Step as Ballistic2DStep (string, double) -> void;
+body common "SceneFixedBody.csbody";
+}

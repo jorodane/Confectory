@@ -1,0 +1,1 @@
+function Example.StageLab::ScenePresent (string scene) -> void { provide Example.StageLab::ScenePresent with Example.StageLab::ScenePresentBody; }

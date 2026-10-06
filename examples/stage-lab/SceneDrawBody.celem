@@ -1,0 +1,6 @@
+implementation Example.StageLab::SceneDrawBody for Example.StageLab::SceneDraw (string scene, string status, long value, double alpha) -> void {
+import Confectory.Ballistic2D::Snapshot as Ballistic2DSnapshot (string, double) -> string;
+import Confectory.RenderInput::Draw as RenderInputDraw (long[], int, int[], string[]) -> void;
+import Confectory.Window::SurfaceDimensions as WindowSurfaceDimensions (long[], int) -> int[];
+body common "SceneDrawBody.csbody";
+}

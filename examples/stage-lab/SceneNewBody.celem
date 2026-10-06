@@ -1,0 +1,9 @@
+implementation Example.StageLab::SceneNewBody for Example.StageLab::SceneNew (string name, bool gui, double gravity) -> string {
+import Confectory.Window::Capabilities as WindowCapabilities () -> int[];
+import Confectory.Window::CreateSurfaces as WindowCreateSurfaces (string[], int, int) -> long[];
+import Confectory.Window::Place as WindowPlace (long[], int, int, int) -> void;
+import Confectory.Window::Close as WindowClose (long[], int) -> void;
+import Confectory.Ballistic2D::Create as Ballistic2DCreate (double, double, double, double, double, double, double) -> string;
+import Confectory.Ballistic2D::Close as Ballistic2DClose (string) -> void;
+body common "SceneNewBody.csbody";
+}

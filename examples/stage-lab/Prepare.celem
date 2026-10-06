@@ -1,0 +1,4 @@
+implementation Example.StageLab::Prepare for Confectory.Stage::PrepareResources (string stage, string configuration) -> string {
+import Example.StageLab::SceneNew as SceneNew (string, bool, double) -> string;
+body common "Prepare.csbody";
+}

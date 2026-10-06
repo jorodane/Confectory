@@ -1,0 +1,1 @@
+if(AppDomain.CurrentDomain.GetData("Example.StageLab.FailRelease") is true){AppDomain.CurrentDomain.SetData("Example.StageLab.FailRelease",false);throw new InvalidOperationException("Explicit one-time release failure");}if(resource!="")calls.SceneClose.Invoke(resource);

@@ -1,0 +1,1 @@
+var sceneState=AppDomain.CurrentDomain.GetData("Example.StageLab.Scene."+scene) as object[]??throw new ObjectDisposedException("Scene");calls.RealTimeUpdateQueueCameraIntent.Invoke((double[])sceneState[4],dx,dy,zoom);

@@ -1,0 +1,1 @@
+function Example.StageLab::SceneInput (string scene, double dx, double dy, double zoom) -> void { provide Example.StageLab::SceneInput with Example.StageLab::SceneInputBody; }

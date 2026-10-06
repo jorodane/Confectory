@@ -1,0 +1,7 @@
+# Stage lab and independent preview
+
+Build `project.cpack linux` with the Confectory CLI. Default headless run needs `CONFECTORY_STAGE_CHILD_PROJECT` pointing at a private authoring fixture and `CONFECTORY_PROJECT_EXECUTION_HOST` pointing at the existing built execution host. The regression test creates these privately and verifies failures/cleanup through public contracts.
+
+`CONFECTORY_STAGE_MODE=ui` opens native A/B windows. Arrows move the selected camera; S stops its Stage, E returns it, T enters the other Stage and stops the source, B enters both, Q closes only the selected Stage. Closing both exits. Ctrl+C releases both. Optional `CONFECTORY_STAGE_TRACE=1` emits public snapshots for the native harness; `CONFECTORY_STAGE_CLOSE_MS` bounds a smoke run. Models, schedules, camera queues and ballistic contexts are independent. Stop preserves resource/window identity; Close releases it. No whole-view recreation is used for updates or return.
+
+Build `preview.cpack linux` to use the same scene/render/camera/bounded projectile components directly, with no selected Stage/ProjectExecution dependency. `CONFECTORY_STAGE_MODE=ui` gives a short visible preview. These are consumer experiments, not general render/physics APIs or a full editor. Native Android needs an app-owned surface consumer and platform lifecycle policy; this desktop lab fails its capability check rather than claiming identical multiwindow behavior.

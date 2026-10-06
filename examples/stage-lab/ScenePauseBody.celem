@@ -1,0 +1,4 @@
+implementation Example.StageLab::ScenePauseBody for Example.StageLab::ScenePause (string scene) -> void {
+
+body common "ScenePauseBody.csbody";
+}

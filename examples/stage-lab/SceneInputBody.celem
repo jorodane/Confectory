@@ -1,0 +1,4 @@
+implementation Example.StageLab::SceneInputBody for Example.StageLab::SceneInput (string scene, double dx, double dy, double zoom) -> void {
+import Confectory.RealTimeUpdate::QueueCameraIntent as RealTimeUpdateQueueCameraIntent (double[], double, double, double) -> void;
+body common "SceneInputBody.csbody";
+}

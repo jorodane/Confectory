@@ -1,0 +1,1 @@
+var cfg=System.Text.Json.Nodes.JsonNode.Parse(configuration)!;if(cfg["failPrepare"]?.GetValue<bool>()==true)throw new InvalidOperationException("Explicit experiment prepare failure");return calls.SceneNew.Invoke(cfg["name"]?.ToString()??"scene",cfg["gui"]?.GetValue<bool>()??false,cfg["gravity"]?.GetValue<double>()??180);

@@ -1,0 +1,12 @@
+implementation Example.StageLab::Event for Confectory.Stage::Event (string stage, long epoch, string functionID, string phase, string data) -> void {
+import Confectory.Stage::Snapshot as StageSnapshot (string) -> string;
+import Confectory.Stage::Read as StageRead (string) -> long[];
+import Confectory.Stage::Write as StageWrite (string, long, long) -> bool;
+import Confectory.Stage::Stop as StageStop (string) -> string;
+import Confectory.Stage::Unregister as StageUnregister (string, string, string) -> void;
+import Example.StageLab::SceneFixed as SceneFixed (string, double) -> void;
+import Example.StageLab::SceneInput as SceneInput (string, double, double, double) -> void;
+import Example.StageLab::ScenePresent as ScenePresent (string) -> void;
+import Example.StageLab::SceneDraw as SceneDraw (string, string, long, double) -> void;
+body common "Event.csbody";
+}

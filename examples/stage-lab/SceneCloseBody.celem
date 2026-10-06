@@ -1,0 +1,5 @@
+implementation Example.StageLab::SceneCloseBody for Example.StageLab::SceneClose (string scene) -> void {
+import Confectory.Ballistic2D::Close as Ballistic2DClose (string) -> void;
+import Confectory.Window::Close as WindowClose (long[], int) -> void;
+body common "SceneCloseBody.csbody";
+}

@@ -1,0 +1,1 @@
+function Example.StageLab::SceneSnapshot (string scene, double alpha) -> string { provide Example.StageLab::SceneSnapshot with Example.StageLab::SceneSnapshotBody; }

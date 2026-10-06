@@ -1,0 +1,4 @@
+implementation Example.StageLab::SceneSnapshotBody for Example.StageLab::SceneSnapshot (string scene, double alpha) -> string {
+import Confectory.Ballistic2D::Snapshot as Ballistic2DSnapshot (string, double) -> string;
+body common "SceneSnapshotBody.csbody";
+}

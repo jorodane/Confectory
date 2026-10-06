@@ -1,0 +1,1 @@
+function Example.StageLab::ScenePump (string scene) -> int[] { provide Example.StageLab::ScenePump with Example.StageLab::ScenePumpBody; }

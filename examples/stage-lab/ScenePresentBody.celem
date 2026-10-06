@@ -1,0 +1,4 @@
+implementation Example.StageLab::ScenePresentBody for Example.StageLab::ScenePresent (string scene) -> void {
+import Confectory.RealTimeUpdate::PresentCamera as RealTimeUpdatePresentCamera (double[], double[]) -> double[];
+body common "ScenePresentBody.csbody";
+}

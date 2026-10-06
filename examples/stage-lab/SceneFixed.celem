@@ -1,0 +1,1 @@
+function Example.StageLab::SceneFixed (string scene, double seconds) -> void { provide Example.StageLab::SceneFixed with Example.StageLab::SceneFixedBody; }

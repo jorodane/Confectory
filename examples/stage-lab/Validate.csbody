@@ -1,0 +1,2 @@
+if(AppDomain.CurrentDomain.GetData("Example.StageLab.MutatePreflight") is true)calls.StageWrite.Invoke(from,calls.StageEpoch.Invoke(from),999);
+return AppDomain.CurrentDomain.GetData("Example.StageLab.Veto") is not true;

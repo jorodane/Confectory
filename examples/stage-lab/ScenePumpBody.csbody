@@ -1,0 +1,1 @@
+var sceneState=AppDomain.CurrentDomain.GetData("Example.StageLab.Scene."+scene) as object[]??throw new ObjectDisposedException("Scene");return ((long[])sceneState[1]).Length==0?Array.Empty<int>():calls.RenderInputPump.Invoke((long[])sceneState[1]);

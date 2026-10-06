@@ -1,0 +1,6 @@
+implementation Example.StageLab::Validate for Confectory.Stage::CheckTransition (string from, string to, string policy) -> bool {
+
+import Confectory.Stage::Epoch as StageEpoch (string) -> long;
+import Confectory.Stage::Write as StageWrite (string, long, long) -> bool;
+body common "Validate.csbody";
+}
