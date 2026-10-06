@@ -76,20 +76,38 @@ internal static class Target
         string output = Path.GetFullPath(Required(request, "output")); Directory.CreateDirectory(output);
         string name = Required(request, "name"), assembly = Path.Combine(output, name + ".dll"), reference = Path.Combine(output, name + ".ref.dll");
         bool final = Required(request, "operation") == "link";
-        var start = new ProcessStartInfo(sdk.DotNet) { RedirectStandardOutput = true, RedirectStandardError = true, UseShellExecute = false };
-        foreach (string flag in new[] { sdk.Compiler, "-nologo", "-noconfig", "-nostdlib+", "-langversion:12", "-deterministic+", "-optimize+", "-nullable:enable", "-warnaserror+", final ? "-target:exe" : "-target:library", "-out:" + assembly }) start.ArgumentList.Add(flag);
-        if (!final) start.ArgumentList.Add("-refout:" + reference);
         string[] references = Strings(request, "references");
-        foreach (string path in sdk.Framework.Concat(references)) start.ArgumentList.Add("-reference:" + path);
-        foreach (string source in Strings(request, "sources")) start.ArgumentList.Add(source);
-        using var compiler = Process.Start(start) ?? throw new IOException("Could not start C# compiler");
-        var stdout = compiler.StandardOutput.ReadToEndAsync(); var stderr = compiler.StandardError.ReadToEndAsync();
-        if (!compiler.WaitForExit(90_000)) { compiler.Kill(true); compiler.WaitForExit(); throw new TimeoutException("C# compilation exceeded 90s"); }
-        string compilerOutput = stdout.GetAwaiter().GetResult(), compilerError = stderr.GetAwaiter().GetResult();
-        if (compiler.ExitCode != 0) throw new InvalidOperationException(compilerOutput.Trim() + "\n" + compilerError.Trim());
+        var compilerArguments = new List<string> { "-nologo", "-nostdlib+", "-langversion:12", "-deterministic+", "-optimize+", "-nullable:enable", "-warnaserror+", final ? "-target:exe" : "-target:library", "-out:" + assembly };
+        if (!final) compilerArguments.Add("-refout:" + reference);
+        foreach (string path in sdk.Framework.Concat(references)) compilerArguments.Add("-reference:" + path);
+        foreach (string source in Strings(request, "sources")) compilerArguments.Add(source);
+        // Provider JSON already travels on stdin. Roslyn's reference-heavy argv
+        // previously exceeded Windows CreateProcess's command-line limit.
+        // Keep -noconfig outside the response file (Roslyn ignores it inside).
+        string responsePath = Path.Combine(output, ".csc-" + Guid.NewGuid().ToString("N") + ".rsp");
+        string QuoteResponse(string argument)
+        {
+            if (argument.IndexOfAny(new[] { '\r', '\n', '\0', '"' }) >= 0 || argument.EndsWith("\\", StringComparison.Ordinal))
+                throw new ArgumentException("Compiler argument contains unsupported quote/newline/trailing slash; no response-file injection allowed");
+            return "\"" + argument + "\"";
+        }
+        int expandedCharacters = sdk.DotNet.Length + sdk.Compiler.Length + 16 + compilerArguments.Sum(argument => argument.Length + 3);
+        int launchCharacters = sdk.DotNet.Length + sdk.Compiler.Length + responsePath.Length + 24;
+        try
+        {
+            File.WriteAllLines(responsePath, compilerArguments.Select(QuoteResponse), new UTF8Encoding(false));
+            var start = new ProcessStartInfo(sdk.DotNet) { RedirectStandardOutput = true, RedirectStandardError = true, UseShellExecute = false };
+            start.ArgumentList.Add(sdk.Compiler); start.ArgumentList.Add("-noconfig"); start.ArgumentList.Add("@" + responsePath);
+            using var compiler = Process.Start(start) ?? throw new IOException("Could not start C# compiler");
+            var stdout = compiler.StandardOutput.ReadToEndAsync(); var stderr = compiler.StandardError.ReadToEndAsync();
+            if (!compiler.WaitForExit(90_000)) { compiler.Kill(true); compiler.WaitForExit(); throw new TimeoutException("C# compilation exceeded 90s"); }
+            string compilerOutput = stdout.GetAwaiter().GetResult(), compilerError = stderr.GetAwaiter().GetResult();
+            if (compiler.ExitCode != 0) throw new InvalidOperationException(compilerOutput.Trim() + "\n" + compilerError.Trim());
+        }
+        finally { if (File.Exists(responsePath)) File.Delete(responsePath); }
         var artifacts = new JsonObject();
         if (final) artifacts["application"] = assembly; else { artifacts["assembly"] = assembly; artifacts["reference"] = reference; }
-        var result = new JsonObject { ["protocol"] = 1, ["ok"] = true, ["artifacts"] = artifacts };
+        var result = new JsonObject { ["protocol"] = 1, ["ok"] = true, ["artifacts"] = artifacts, ["compilerTransport"] = new JsonObject { ["mode"] = "response-file", ["arguments"] = compilerArguments.Count, ["frameworkReferences"] = sdk.Framework.Length, ["projectReferences"] = references.Length, ["sources"] = Strings(request,"sources").Length, ["expandedCommandCharacters"] = expandedCharacters, ["launchCommandCharacters"] = launchCharacters, ["responseRemoved"] = !File.Exists(responsePath) } };
         if (!final) return result;
         foreach (string dependency in references)
         {
