@@ -1,0 +1,1 @@
+function Confectory.SourceEditor::Refresh (string buffer, string text) -> void { description "Refresh clean View text while retaining buffer identity and selection; map caret through the changed span and clamp UTF16 boundaries."; provide Confectory.SourceEditor::Refresh with Confectory.SourceEditor::RefreshBody; }

@@ -11,4 +11,5 @@ import Confectory.SourceEditor::Input as SourceEditorInput (string, int, int) ->
 import Confectory.SourceEditor::Snapshot as SourceEditorSnapshot (string) -> string[];
 import Confectory.SourceEditor::Close as SourceEditorClose (string) -> void;
 import Confectory.FileStream::BrowseDirectory as FileStreamBrowseDirectory (string, int, int) -> string[];
+import Confectory.SourceEditor::Refresh as SourceEditorRefresh (string, string) -> void;
 body common "VerifyContracts.csbody"; }

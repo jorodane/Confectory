@@ -8,6 +8,7 @@ provide Confectory.UINavigation::Route with Confectory.UINavigation::RouteBody;
 provide Confectory.UINavigation::Group with Confectory.UINavigation::GroupBody;
 provide Confectory.SourceEditor::Create with Confectory.SourceEditor::CreateBody;
 provide Confectory.SourceEditor::Input with Confectory.SourceEditor::InputBody;
+provide Confectory.SourceEditor::Refresh with Confectory.SourceEditor::RefreshBody;
 provide Confectory.SourceEditor::Snapshot with Confectory.SourceEditor::SnapshotBody;
 provide Confectory.SourceEditor::Close with Confectory.SourceEditor::CloseBody;
 provide Confectory.FileStream::BrowseDirectory with Confectory.FileStream::BrowseDirectoryBody;

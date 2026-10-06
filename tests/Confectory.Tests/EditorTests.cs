@@ -31,7 +31,7 @@ public sealed class EditorTests : TestCase
             string owned=Path.Combine(f.Root,"owned "+role);Fixture.CopyTree(Path.Combine(Fixture.Repo,"packs",role),owned);File.WriteAllText(project,File.ReadAllText(project).Replace(Path.Combine(Fixture.Repo,"packs",role,"pack.cpack"),Path.Combine(owned,"pack.cpack"),StringComparison.Ordinal));
         }
         var built=new Builder(project,"linux").Build();RunOwned(built,Path.Combine(f.Root,"folder pages"),"Editor public controls ownership");ExcludeOptional(built);
-        foreach(var policy in new[]{("base-ui","ControlState","Confectory.BaseUI::ControlStateBody"),("ui-navigation","Group","Confectory.UINavigation::GroupBody"),("source-editor","Snapshot","Confectory.SourceEditor::SnapshotBody"),("file-stream","BrowseDirectory","Confectory.FileStream::BrowseDirectoryBody")})
+        foreach(var policy in new[]{("base-ui","ControlState","Confectory.BaseUI::ControlStateBody"),("ui-navigation","Group","Confectory.UINavigation::GroupBody"),("source-editor","Snapshot","Confectory.SourceEditor::SnapshotBody"),("source-editor","Refresh","Confectory.SourceEditor::RefreshBody"),("file-stream","BrowseDirectory","Confectory.FileStream::BrowseDirectoryBody")})
         {
             File.AppendAllText(Path.Combine(f.Root,"owned "+policy.Item1,policy.Item2+".csbody"),"\n// owning public provider implementation locality probe\n");var changed=new Builder(project,"linux").Build();Sequence(new[]{policy.Item3},Strings(changed,"statistics","compiledImplementations"));Equal(0,Strings(changed,"statistics","compiledContracts").Length);
         }
