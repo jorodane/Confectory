@@ -52,3 +52,7 @@ Discover Category/Concept and Module/Function elements through shared public dis
 ## Priority correction: usable editor composition next
 
 Prioritize [the bounded desktop Editor ProjectPack proposal](NEXT_EDITOR_COMPOSITION.md) ahead of more optional domain packs. Existing tested project, workspace, source/property View, Save/Review/Confirm and execution capabilities need one discoverable end-to-end interface. No requirement to finish every pack, live AI, MeshGeneration or Android before that useful desktop milestone. Rig/Motion and Navigation increments stay preserved; this is planning, not an immediate expansion of their scope.
+
+## Current publication scope (supersedes earlier local-only notes)
+
+The direct user lifted the temporary git-push restriction and requested completed current branches be pushed for inspection. CP11 and the scoped SDK8 fix are already published; final current increment publication follows its recorded validation. No main merge/force push or external artifact sharing is authorized by that instruction. Native Windows unknowns for new Rig/Navigation surfaces remain explicit despite user acceptance of prior window interactions.

@@ -135,8 +135,8 @@ press(a,'L');until(lambda:any(x['id']=='tool' and x['visible'] for x in samples[
 press(a,'S');until(lambda:samples[0][-1]['status']=='draft saved','save absent');assert open(os.path.join(asset,'Rig.celem')).read()==original
 press(a,'R');until(lambda:samples[0][-1]['status']=='saved draft reloaded','reload absent');assert samples[0][-1]['snapshot']['documentHash']==expected and find(b'Confectory Rig B')==b
 snap(a,'/tmp/checkpoint12-rig-author-front.png');snap(b,'/tmp/checkpoint12-rig-author-side.png')
-press(a,'C');until(lambda:any('RIG_UI confirm confirmed' in x for x in lines),'actual Confirm absent',120);assert open(os.path.join(asset,'Rig.celem')).read()!=original
+before=len(samples[0]);press(a,'C');until(lambda:samples[0][-1]['status']=='confirming; draft edits paused','background Confirm status absent');until(lambda:len(samples[0])>before+3,'rendering stopped during Confirm');until(lambda:any('RIG_UI confirm confirmed' in x for x in lines),'actual Confirm absent',120);assert open(os.path.join(asset,'Rig.celem')).read()!=original
 close(a);until(lambda:not find(b'Confectory Rig A'),'selected view did not close');assert find(b'Confectory Rig B')==b;before=len(samples[1]);until(lambda:len(samples[1])>before+4,'surviving view stopped')
 finish(proc,thread,lines,True);assert not find(b'Confectory Rig B')
-proc,thread,lines,samples=start(sys.argv[2],True);await_window(b'Confectory Rig A');await_window(b'Confectory Rig B');until(lambda:len(samples[1])>2,'reopen frames absent');finish(proc,thread,lines,True)
+proc,thread,lines,samples=start(sys.argv[2],True);await_window(b'Confectory Rig A');await_window(b'Confectory Rig B');until(lambda:len(samples[1])>2,'reopen frames absent');a=await_window(b'Confectory Rig A');press(a,'P');time.sleep(.08);press(a,'C');until(lambda:samples[0][-1]['status']=='confirming; draft edits paused','interrupt test did not start owned Confirm');finish(proc,thread,lines,True)
 print('Two real X11 Views independent time/projection; H/P/D/L/O edits, persistent Save/reload, actual Confirm, selected close, reopen/SIGINT cleanup PASS',flush=True)
