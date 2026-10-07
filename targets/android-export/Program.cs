@@ -1,4 +1,3 @@
-using System.Text;
 using System.Text.Json;
 using Confectory.Core;
 
@@ -23,7 +22,7 @@ var report=builder.Build();
 var registry=builder.Registry;
 var statistics=builder.Statistics;
 var plan=new Planner(registry,"android").Plan();
-var entry=registry.Project.Entry!;var binding=plan.Bindings[new(entry,entry)];
+var entry=registry.Project.Entry!;
 Directory.CreateDirectory(output);string generated=Path.Combine(output,"Generated");Directory.CreateDirectory(generated);
 if(packageSdk is not null)File.WriteAllText(Path.Combine(output,"global.json"),JsonSerializer.Serialize(new{sdk=new{version=packageSdk,rollForward="latestPatch",allowPrerelease=false}}));
 var contracts=plan.Bindings.Values.Select(x=>x.Function).Concat(plan.Implementations.Values.Select(x=>x.Function!)).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
@@ -36,25 +35,19 @@ foreach(string path in Directory.GetFiles(compiledOutput,"*.dll").Where(x=>Path.
 }
 var selections=plan.Implementations.Values.OrderBy(x=>x.Id,StringComparer.Ordinal).Select(x=>(object)new{id=x.Id,selection=x.Bodies.ContainsKey("android")?"android":"common"}).ToList();
 File.WriteAllText(Path.Combine(generated,"Bindings.cs"),Generation.FinalSource(plan));
-var facade=new StringBuilder("namespace Confectory.Android;\npublic static class PackCalls\n{\n");
-foreach(var (alias,imported) in binding.Imports.OrderBy(x=>x.Key,StringComparer.Ordinal))
-{
- var signature=registry.Get(imported[1],"function").Signature!;
- var names=signature.Args.Select(x=>x.Name).ToArray();
- var parameters=string.Join(", ",signature.Args.Select(x=>x.Type+" "+x.Name));
- facade.AppendLine($" public static {signature.Return} {alias}({parameters}) {{ {(signature.Return=="void"?"":"return ")}new {Generation.BindingSymbol(new(imported[0],imported[1]))}().Invoke({string.Join(", ",names)}); }}");
-}
-facade.AppendLine("}");File.WriteAllText(Path.Combine(generated,"PackCalls.cs"),facade.ToString());
+string invocation=$"new {Generation.BindingSymbol(new(entry,entry))}().Invoke()";
+string entryStatement=registry.Get(entry).Signature!.Return=="int"?$"return {invocation};":$"{invocation}; return 0;";
+File.WriteAllText(Path.Combine(generated,"PackEntry.cs"),$"namespace Confectory.Android;\npublic static class PackEntry {{ public static int Run() {{ {entryStatement} }} }}\n");
 string templateRoot=Path.Combine(AppContext.BaseDirectory,"templates");
 File.Copy(Path.Combine(templateRoot,"AndroidManifest.xml"),Path.Combine(output,"AndroidManifest.xml"));
 var androidManifest=System.Xml.Linq.XDocument.Load(Path.Combine(output,"AndroidManifest.xml"));
 androidManifest.Root!.Element("uses-sdk")!.SetAttributeValue(System.Xml.Linq.XName.Get("targetSdkVersion","http://schemas.android.com/apk/res/android"),settings.TargetSdk);
 androidManifest.Save(Path.Combine(output,"AndroidManifest.xml"));
 File.WriteAllText(Path.Combine(output,"bundle-config.json"),JsonSerializer.Serialize(new{optimizations=new{uncompressNativeLibraries=new{enabled=true,alignment="PAGE_ALIGNMENT_16K"}}}));
-File.Copy(PackPaths.Owned(Path.GetDirectoryName(registry.Paths["Confectory.Window"])!,"android/AndroidSurfaceBridge.cs"),Path.Combine(output,"AndroidSurfaceBridge.cs"));
-bool home=registry.Project.Namespace=="Confectory.EditorHome";
-File.Copy(Path.Combine(templateRoot,home?"EditorHomeActivity.cs":"MainActivity.cs"),Path.Combine(output,"MainActivity.cs"));
-if(home){File.Copy(Path.Combine(templateRoot,"NativeFieldHost.cs"),Path.Combine(output,"NativeFieldHost.cs"));string core=typeof(Parser).Assembly.Location;File.Copy(core,Path.Combine(managed,"Confectory.Core.dll"),true);if(!references.Contains("Confectory.Core.dll"))references.Add("Confectory.Core.dll");}
+foreach(string template in new[]{"GenericActivity.cs","NativeFieldHost.cs","AndroidDocumentImport.cs"})
+ File.Copy(Path.Combine(templateRoot,template),Path.Combine(output,template=="GenericActivity.cs"?"MainActivity.cs":template));
+string core=typeof(Parser).Assembly.Location;File.Copy(core,Path.Combine(managed,"Confectory.Core.dll"),true);
+if(!references.Contains("Confectory.Core.dll"))references.Add("Confectory.Core.dll");
 string projectText=File.ReadAllText(Path.Combine(templateRoot,"App.csproj.template"));
 projectText=settings.Apply(projectText);
 string referenceItems=string.Join("\n",references.Select(name=>$"<Reference Include=\"{Path.GetFileNameWithoutExtension(name)}\"><HintPath>Managed/{name}</HintPath></Reference>"));
