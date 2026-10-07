@@ -38,18 +38,18 @@ internal static class Target
             executable = rootHint is not null && File.Exists(Path.Combine(rootHint, filename)) ? Path.Combine(rootHint, filename) : null;
             executable ??= (Environment.GetEnvironmentVariable("PATH") ?? "").Split(Path.PathSeparator).Select(p => Path.Combine(p, filename)).FirstOrDefault(File.Exists);
         }
-        if (string.IsNullOrEmpty(executable) || !File.Exists(executable)) throw new InvalidOperationException("Install the .NET 8 SDK or set CONFECTORY_DOTNET to its dotnet executable");
+        if (string.IsNullOrEmpty(executable) || !File.Exists(executable)) throw new InvalidOperationException("Install the .NET 10 SDK or set CONFECTORY_DOTNET to its dotnet executable");
         string dotnet = Resolve(executable), root = Path.GetDirectoryName(dotnet)!;
         string sdkRoot = Path.Combine(root, "sdk");
-        string? sdk = Directory.Exists(sdkRoot) ? Directory.EnumerateDirectories(sdkRoot, "8.*").Where(p => File.Exists(Path.Combine(p, "Roslyn", "bincore", "csc.dll"))).OrderBy(VersionKey).LastOrDefault() : null;
-        if (sdk is null) throw new InvalidOperationException("The target pack requires an installed .NET 8 SDK, not only a runtime");
+        string? sdk = Directory.Exists(sdkRoot) ? Directory.EnumerateDirectories(sdkRoot, "10.*").Where(p => File.Exists(Path.Combine(p, "Roslyn", "bincore", "csc.dll"))).OrderBy(VersionKey).LastOrDefault() : null;
+        if (sdk is null) throw new InvalidOperationException("The target pack requires an installed .NET 10 SDK, not only a runtime");
         string refsRoot = Path.Combine(root, "packs", "Microsoft.NETCore.App.Ref");
-        string? refs = Directory.Exists(refsRoot) ? Directory.EnumerateDirectories(refsRoot, "8.*").OrderBy(VersionKey).LastOrDefault() : null;
-        if (refs is null) throw new InvalidOperationException("The SDK has no .NET 8 reference pack");
-        string[] framework = Directory.GetFiles(Path.Combine(refs, "ref", "net8.0"), "*.dll").Order(StringComparer.Ordinal).ToArray();
+        string? refs = Directory.Exists(refsRoot) ? Directory.EnumerateDirectories(refsRoot, "10.*").OrderBy(VersionKey).LastOrDefault() : null;
+        if (refs is null) throw new InvalidOperationException("The SDK has no .NET 10 reference pack");
+        string[] framework = Directory.GetFiles(Path.Combine(refs, "ref", "net10.0"), "*.dll").Order(StringComparer.Ordinal).ToArray();
         string runtimeRoot = Path.Combine(root, "shared", "Microsoft.NETCore.App");
-        string? runtime = Directory.Exists(runtimeRoot) ? Directory.EnumerateDirectories(runtimeRoot, "8.*").OrderBy(VersionKey).LastOrDefault() : null;
-        if (framework.Length == 0 || runtime is null) throw new InvalidOperationException("The SDK has no complete .NET 8 references/runtime");
+        string? runtime = Directory.Exists(runtimeRoot) ? Directory.EnumerateDirectories(runtimeRoot, "10.*").OrderBy(VersionKey).LastOrDefault() : null;
+        if (framework.Length == 0 || runtime is null) throw new InvalidOperationException("The SDK has no complete .NET 10 references/runtime");
         return new(dotnet, Path.Combine(sdk, "Roslyn", "bincore", "csc.dll"), framework, runtime);
     }
     private static object[] FileHashes(IEnumerable<string> paths) => paths.Select(p => (object)new[] { Path.GetFileName(p), Hash(p) }).ToArray();
@@ -66,7 +66,7 @@ internal static class Target
                 options = request["options"], flags = "C#12/deterministic/nullable/warnings-as-errors", host = mode == "linux" ? Environment.OSVersion.Platform.ToString() : "portable"
             };
             string fingerprint = Convert.ToHexString(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(identity))).ToLowerInvariant();
-            return JsonSerializer.SerializeToNode(new { protocol = 1, ok = true, fingerprint, sdk = Path.GetFileName(Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(sdk.Compiler)))), framework = "net8.0", compiler = sdk.Compiler, mode })!.AsObject();
+            return JsonSerializer.SerializeToNode(new { protocol = 1, ok = true, fingerprint, sdk = Path.GetFileName(Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(sdk.Compiler)))), framework = "net10.0", compiler = sdk.Compiler, mode })!.AsObject();
         }
         if (operation is not ("compile-contract" or "compile-pack" or "link")) throw new InvalidOperationException($"Unknown tool operation {operation}");
         return Compile(request, sdk, mode);
@@ -116,7 +116,7 @@ internal static class Target
             File.Copy(dependency, destination, true);
         }
         string config = Path.Combine(output, name + ".runtimeconfig.json");
-        File.WriteAllText(config, JsonSerializer.Serialize(new { runtimeOptions = new { tfm = "net8.0", framework = new { name = "Microsoft.NETCore.App", version = "8.0.0" }, rollForward = "LatestPatch" } }, new JsonSerializerOptions { WriteIndented = true }) + "\n", new UTF8Encoding(false));
+        File.WriteAllText(config, JsonSerializer.Serialize(new { runtimeOptions = new { tfm = "net10.0", framework = new { name = "Microsoft.NETCore.App", version = "10.0.0" }, rollForward = "LatestPatch" } }, new JsonSerializerOptions { WriteIndented = true }) + "\n", new UTF8Encoding(false));
         artifacts["runtimeconfig"] = config;
         foreach (var resource in request["resources"]?.AsArray() ?? [])
         {

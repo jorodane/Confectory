@@ -7,7 +7,7 @@ if [[ "$editor_dotnet" == */* ]]; then export PATH="$(dirname -- "$editor_dotnet
 export CONFECTORY_EDITOR_REPO="$editor_root"
 "$editor_dotnet" build Confectory.sln -c Release
 mkdir -p .confectory
-"$editor_dotnet" src/Confectory.Cli/bin/Release/net8.0/Confectory.Cli.dll build examples/editor/project.cpack linux > .confectory/editor-launch.json
+"$editor_dotnet" src/Confectory.Cli/bin/Release/net10.0/Confectory.Cli.dll build examples/editor/project.cpack linux > .confectory/editor-launch.json
 python - <<'PY'
 import json,os
 with open('.confectory/editor-launch.json',encoding='utf-8') as stream: report=json.load(stream)

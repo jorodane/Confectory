@@ -7,22 +7,22 @@ using Confectory.Core;
 try {
  var request=JsonNode.Parse(Console.In.ReadToEnd())!.AsObject();
  string root=Path.GetFullPath(Path.Combine(AppContext.BaseDirectory,"../../../../.."));
- string compiler=Path.Combine(root,"targets","dotnet","bin","Release","net8.0","Confectory.Build.DotNet.dll"),assets=Path.Combine(root,"packs","browser-runtime","assets");
+ string compiler=Path.Combine(root,"targets","dotnet","bin","Release","net10.0","Confectory.Build.DotNet.dll"),assets=Path.Combine(root,"packs","browser-runtime","assets");
  string dotnet=Processes.DotNet(),sdkRoot=Path.GetDirectoryName(new FileInfo(dotnet).ResolveLinkTarget(true)?.FullName??dotnet)!;
  string workloadRoot=Path.Combine(sdkRoot,"packs","Microsoft.NET.Runtime.WebAssembly.Sdk");
- if(!Directory.Exists(workloadRoot))throw new IOException("Install the approved .NET 8 wasm-tools workload before browser builds");
+ if(!Directory.Exists(workloadRoot))throw new IOException("Install the approved .NET 10 wasm-tools workload before browser builds");
  string operation=request["operation"]!.GetValue<string>();
  if(operation!="link"){
   var delegated=Invoke(dotnet,new[]{compiler},request.ToJsonString());var result=JsonNode.Parse(delegated.Output)!.AsObject();
   if(operation=="fingerprint"){
    var hashes=Directory.GetFiles(assets).Order(StringComparer.Ordinal).Select(Hash).Concat(Directory.GetFiles(Path.Combine(AppContext.BaseDirectory,"templates")).Order(StringComparer.Ordinal).Select(Hash));
-   result["fingerprint"]="independent-browser-wasm-v1:"+Hash(compiler)+":"+Hash(Path.Combine(root,"src","Confectory.Core","bin","Release","net8.0","Confectory.Core.dll"))+":"+string.Join(":",Directory.GetDirectories(workloadRoot).Select(Path.GetFileName))+":"+string.Join(":",hashes)+":"+result["fingerprint"];
+   result["fingerprint"]="independent-browser-wasm-v1:"+Hash(compiler)+":"+Hash(Path.Combine(root,"src","Confectory.Core","bin","Release","net10.0","Confectory.Core.dll"))+":"+string.Join(":",Directory.GetDirectories(workloadRoot).Select(Path.GetFileName))+":"+string.Join(":",hashes)+":"+result["fingerprint"];
    result["capabilities"]=JsonSerializer.SerializeToNode(new{runtime="browser-wasm",backendRequired=false,staticOutput=true,nativeFilesystem=false,dynamicCompilation=false});
   }
   Console.WriteLine(result.ToJsonString());return delegated.Exit;
  }
  string output=Path.GetFullPath(request["output"]!.GetValue<string>()),project=Path.Combine(output,"wasm-project");Directory.CreateDirectory(project);
- var references=request["references"]!.AsArray().Select(x=>x!.GetValue<string>()).Append(Path.Combine(root,"src","Confectory.Core","bin","Release","net8.0","Confectory.Core.dll")).Distinct(StringComparer.Ordinal).ToArray();
+ var references=request["references"]!.AsArray().Select(x=>x!.GetValue<string>()).Append(Path.Combine(root,"src","Confectory.Core","bin","Release","net10.0","Confectory.Core.dll")).Distinct(StringComparer.Ordinal).ToArray();
  string items=string.Join("\n",references.Select(path=>$"<Reference Include=\"{Escape(Path.GetFileNameWithoutExtension(path))}\"><HintPath>{Escape(path)}</HintPath></Reference>"));
  foreach(var item in request["sources"]!.AsArray())File.Copy(item!.GetValue<string>(),Path.Combine(project,Path.GetFileName(item.GetValue<string>())));
  File.Copy(Path.Combine(AppContext.BaseDirectory,"templates","Bridge.cs"),Path.Combine(project,"Bridge.cs"));
@@ -30,7 +30,7 @@ try {
  string resources=string.Join("\n",request["resources"]!.AsArray().Select(item=>$"<EmbeddedResource Include=\"{Escape(item!["path"]!.GetValue<string>())}\"><LogicalName>{Escape(item["name"]!.GetValue<string>())}</LogicalName></EmbeddedResource>"));
  File.WriteAllText(Path.Combine(project,"App.csproj"),$"""
  <Project Sdk="Microsoft.NET.Sdk.WebAssembly">
- <PropertyGroup><TargetFramework>net8.0</TargetFramework><OutputType>Exe</OutputType><AssemblyName>Confectory.Browser.App</AssemblyName><RuntimeIdentifier>browser-wasm</RuntimeIdentifier><AllowUnsafeBlocks>true</AllowUnsafeBlocks><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable><LangVersion>12</LangVersion><PublishTrimmed>false</PublishTrimmed><WasmMainJSPath>app.js</WasmMainJSPath><WasmBuildNative>false</WasmBuildNative><RunAOTCompilation>false</RunAOTCompilation><WasmEnableWebcil>false</WasmEnableWebcil><WasmStripILAfterAOT>false</WasmStripILAfterAOT><WasmGenerateAppBundle>true</WasmGenerateAppBundle><WasmEnableThreads>false</WasmEnableThreads><TreatWarningsAsErrors>false</TreatWarningsAsErrors></PropertyGroup>
+ <PropertyGroup><TargetFramework>net10.0</TargetFramework><OutputType>Exe</OutputType><AssemblyName>Confectory.Browser.App</AssemblyName><RuntimeIdentifier>browser-wasm</RuntimeIdentifier><AllowUnsafeBlocks>true</AllowUnsafeBlocks><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable><LangVersion>12</LangVersion><PublishTrimmed>false</PublishTrimmed><WasmMainJSPath>app.js</WasmMainJSPath><WasmBuildNative>false</WasmBuildNative><RunAOTCompilation>false</RunAOTCompilation><WasmEnableWebcil>false</WasmEnableWebcil><WasmStripILAfterAOT>false</WasmStripILAfterAOT><WasmGenerateAppBundle>true</WasmGenerateAppBundle><WasmEnableThreads>false</WasmEnableThreads><TreatWarningsAsErrors>false</TreatWarningsAsErrors></PropertyGroup>
  <ItemGroup>{items}</ItemGroup><ItemGroup>{resources}</ItemGroup>
  <ItemGroup><WasmExtraFilesToDeploy Include="index.html" /><WasmExtraFilesToDeploy Include="style.css" /></ItemGroup>
  </Project>

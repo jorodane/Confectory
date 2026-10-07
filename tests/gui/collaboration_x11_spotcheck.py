@@ -69,7 +69,7 @@ def close(window):
 
 private_root=pathlib.Path(tempfile.mkdtemp(prefix='confectory-collaboration-ui-'));repo=pathlib.Path(__file__).resolve().parents[2]
 shutil.copytree(repo/'examples/projects/authoring',private_root/'project',ignore=shutil.ignore_patterns('.confectory','bin','obj'));project=private_root/'project/project.cpack';project.write_text(project.read_text().replace('../../../targets/dotnet/pack.cpack',str(repo/'targets/dotnet/pack.cpack')))
-env=os.environ.copy();env['CONFECTORY_COLLAB_PROJECT']=str(project);env['CONFECTORY_ELEMENT_AUTHORING_HOST']=str(repo/'targets/element-authoring/bin/Release/net8.0/Confectory.ElementAuthoring.dll');logs=[]
+env=os.environ.copy();env['CONFECTORY_COLLAB_PROJECT']=str(project);env['CONFECTORY_ELEMENT_AUTHORING_HOST']=str(repo/'targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll');logs=[]
 process=subprocess.Popen(report['run'],env=env,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True);thread=threading.Thread(target=lambda:logs.extend(iter(process.stdout.readline,'')),daemon=True);thread.start()
 def await_named(name):
  deadline=time.monotonic()+30

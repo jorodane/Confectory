@@ -34,7 +34,7 @@ public sealed class RigMotionTests : TestCase
         string? host=Environment.GetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST"),mode=Environment.GetEnvironmentVariable("CONFECTORY_RIG_MODE"),selected=Environment.GetEnvironmentVariable("CONFECTORY_RIG_AUTHOR_PROJECT");
         try
         {
-            Environment.SetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST",Path.Combine(Fixture.Repo,"targets","element-authoring","bin","Release","net8.0","Confectory.ElementAuthoring.dll"));Environment.SetEnvironmentVariable("CONFECTORY_RIG_MODE",null);Environment.SetEnvironmentVariable("CONFECTORY_RIG_AUTHOR_PROJECT",assetProject);
+            Environment.SetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST",Path.Combine(Fixture.Repo,"targets","element-authoring","bin","Release","net10.0","Confectory.ElementAuthoring.dll"));Environment.SetEnvironmentVariable("CONFECTORY_RIG_MODE",null);Environment.SetEnvironmentVariable("CONFECTORY_RIG_AUTHOR_PROJECT",assetProject);
             foreach(string name in new[]{"preview","workbench"})
             {
                 var built=new Builder(Path.Combine(consumer,name+".cpack"),"linux").Build();var run=Processes.Run(Strings(built,"run"),timeoutSeconds:240);

@@ -1,6 +1,6 @@
 string repo=System.IO.Path.GetFullPath(repository),folder=System.IO.Path.GetFullPath(storage);
 if(!System.IO.File.Exists(System.IO.Path.Combine(repo,"targets","dotnet","pack.cpack")))throw new ArgumentException("Confectory repository required");
-foreach(var host in new[]{("CONFECTORY_ELEMENT_AUTHORING_HOST","element-authoring","Confectory.ElementAuthoring.dll"),("CONFECTORY_PROJECT_EXECUTION_HOST","project-execution-host","Confectory.ProjectExecutionHost.dll")})if(Environment.GetEnvironmentVariable(host.Item1) is null)Environment.SetEnvironmentVariable(host.Item1,System.IO.Path.Combine(repo,"targets",host.Item2,"bin","Release","net8.0",host.Item3));
+foreach(var host in new[]{("CONFECTORY_ELEMENT_AUTHORING_HOST","element-authoring","Confectory.ElementAuthoring.dll"),("CONFECTORY_PROJECT_EXECUTION_HOST","project-execution-host","Confectory.ProjectExecutionHost.dll")})if(Environment.GetEnvironmentVariable(host.Item1) is null)Environment.SetEnvironmentVariable(host.Item1,System.IO.Path.Combine(repo,"targets",host.Item2,"bin","Release","net10.0",host.Item3));
 string path=System.IO.Path.Combine(folder,"projects.json");var raw=calls.FileSnapshot.Invoke(path);var cards=new System.Text.Json.Nodes.JsonArray();
 if(raw[0]=="exists"){cards=System.Text.Json.Nodes.JsonNode.Parse(raw[1])!.AsArray();if(cards.Count>32)throw new ArgumentException("Project catalog budget");foreach(var card in cards){if(card?["path"] is null||card["title"] is null)throw new ArgumentException("Invalid project catalog");}}
 else calls.WriteAtomic.Invoke(path,"[]");

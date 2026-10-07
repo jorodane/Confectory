@@ -14,8 +14,8 @@ def newest(pattern):
     if not found:
         raise SystemExit('missing installed prerequisite: ' + pattern)
     return max(found, key=lambda p: tuple(int(x) for x in p.parts[-3].split('.') if x.isdigit()))
-net = newest('packs/Microsoft.NETCore.App.Ref/*/ref/net8.0')
-android = newest('packs/Microsoft.Android.Ref.34/*/ref/net8.0')
+net = newest('packs/Microsoft.NETCore.App.Ref/*/ref/net10.0')
+android = newest('packs/Microsoft.Android.Ref.34/*/ref/net10.0')
 compilers = list(sdk.glob('sdk/*/Roslyn/bincore/csc.dll'))
 if not compilers:
     raise SystemExit('missing installed C# compiler')

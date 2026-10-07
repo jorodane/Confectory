@@ -84,7 +84,7 @@ shutil.copytree(os.path.join(repo,'examples/projects/harvest-game'),source,dirs_
 project=os.path.join(source,'project.cpack')
 text=open(project,encoding='utf-8').read().replace('../../../packs/',repo+'/packs/').replace('../../../targets/',repo+'/targets/')
 open(project,'w',encoding='utf-8').write(text)
-env=os.environ.copy();env['CONFECTORY_WORKBENCH_PROJECT']=project;env['CONFECTORY_PROJECT_EXECUTION_HOST']=os.path.join(repo,'targets/project-execution-host/bin/Release/net8.0/Confectory.ProjectExecutionHost.dll');env.pop('CONFECTORY_WORKBENCH_CLOSE_MS',None)
+env=os.environ.copy();env['CONFECTORY_WORKBENCH_PROJECT']=project;env['CONFECTORY_PROJECT_EXECUTION_HOST']=os.path.join(repo,'targets/project-execution-host/bin/Release/net10.0/Confectory.ProjectExecutionHost.dll');env.pop('CONFECTORY_WORKBENCH_CLOSE_MS',None)
 process=subprocess.Popen(report['run'],env=env,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True)
 lines=[];errors=[]
 def collect(stream,target):

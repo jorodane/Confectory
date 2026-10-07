@@ -18,7 +18,7 @@ public sealed class EditorTests : TestCase
         var env=new Dictionary<string,string?>();foreach(string name in new[]{"CONFECTORY_EDITOR_REPO","CONFECTORY_EDITOR_TEST_STORAGE","CONFECTORY_ELEMENT_AUTHORING_HOST","CONFECTORY_PROJECT_EXECUTION_HOST"})env[name]=Environment.GetEnvironmentVariable(name);
         try
         {
-            Environment.SetEnvironmentVariable("CONFECTORY_EDITOR_REPO",Fixture.Repo);Environment.SetEnvironmentVariable("CONFECTORY_EDITOR_TEST_STORAGE",storage);Environment.SetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST",Path.Combine(Fixture.Repo,"targets","element-authoring","bin","Release","net8.0","Confectory.ElementAuthoring.dll"));Environment.SetEnvironmentVariable("CONFECTORY_PROJECT_EXECUTION_HOST",Path.Combine(Fixture.Repo,"targets","project-execution-host","bin","Release","net8.0","Confectory.ProjectExecutionHost.dll"));
+            Environment.SetEnvironmentVariable("CONFECTORY_EDITOR_REPO",Fixture.Repo);Environment.SetEnvironmentVariable("CONFECTORY_EDITOR_TEST_STORAGE",storage);Environment.SetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST",Path.Combine(Fixture.Repo,"targets","element-authoring","bin","Release","net10.0","Confectory.ElementAuthoring.dll"));Environment.SetEnvironmentVariable("CONFECTORY_PROJECT_EXECUTION_HOST",Path.Combine(Fixture.Repo,"targets","project-execution-host","bin","Release","net10.0","Confectory.ProjectExecutionHost.dll"));
             var run=Processes.Run(Strings(built,"run"),timeoutSeconds:300);True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains(expected,StringComparison.Ordinal),run.Stdout);
         }
         finally{foreach(var item in env)Environment.SetEnvironmentVariable(item.Key,item.Value);}

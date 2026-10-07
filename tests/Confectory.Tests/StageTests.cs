@@ -17,7 +17,7 @@ public sealed class StageTests : TestCase
         try
         {
             Environment.SetEnvironmentVariable(keys[0],childProject);
-            Environment.SetEnvironmentVariable(keys[1],Path.Combine(Fixture.Repo,"targets","project-execution-host","bin","Release","net8.0","Confectory.ProjectExecutionHost.dll"));
+            Environment.SetEnvironmentVariable(keys[1],Path.Combine(Fixture.Repo,"targets","project-execution-host","bin","Release","net10.0","Confectory.ProjectExecutionHost.dll"));
             Environment.SetEnvironmentVariable(keys[2],null);
             var built=new Builder(project,"linux").Build();
             var run=Processes.Run(Strings(built,"run"),timeoutSeconds:120);

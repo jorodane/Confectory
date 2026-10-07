@@ -31,7 +31,7 @@ public sealed class Fixture : IDisposable
     public Dictionary<string, string> Targets { get; } = new() { ["portable"] = "Confectory.Build.DotNet::Portable", ["linux"] = "Confectory.Build.DotNet::Linux" };
     public Dictionary<string, string> ExtraRegistry { get; } = new(StringComparer.Ordinal);
     public string Project => Path.Combine(Packs["App"].Root, "project.cpack");
-    public string ToolPath => Path.Combine(Root, "target", "bin", "Release", "net8.0", "Confectory.Build.DotNet.dll");
+    public string ToolPath => Path.Combine(Root, "target", "bin", "Release", "net10.0", "Confectory.Build.DotNet.dll");
 
     public Fixture(string? root = null)
     {
@@ -102,7 +102,7 @@ public sealed class Fixture : IDisposable
         File.WriteAllText(Path.Combine(fake, "fake-reply.txt"), reply);
         foreach (string name in new[] { "portable.celem", "linux.celem" })
         {
-            string path = Path.Combine(Root, "target", name); File.WriteAllText(path, File.ReadAllText(path).Replace("bin/Release/net8.0/Confectory.Build.DotNet.dll", "fake/Confectory.Tests.dll", StringComparison.Ordinal));
+            string path = Path.Combine(Root, "target", name); File.WriteAllText(path, File.ReadAllText(path).Replace("bin/Release/net10.0/Confectory.Build.DotNet.dll", "fake/Confectory.Tests.dll", StringComparison.Ordinal));
         }
     }
     public static void CopyTree(string source, string destination)

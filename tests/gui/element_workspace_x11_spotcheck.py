@@ -81,8 +81,8 @@ shutil.copytree(repo/'examples/projects/authoring',private_root/'project',ignore
 project=private_root/'project/project.cpack'
 project.write_text(project.read_text().replace('../../../targets/dotnet/pack.cpack',str(repo/'targets/dotnet/pack.cpack')))
 env['CONFECTORY_ELEMENT_UI']='1';env['CONFECTORY_PROJECT_A']=str(project);env['CONFECTORY_PROJECT_B']=str(project)
-env['CONFECTORY_ELEMENT_AUTHORING_HOST']=str(repo/'targets/element-authoring/bin/Release/net8.0/Confectory.ElementAuthoring.dll')
-env['CONFECTORY_PROJECT_EXECUTION_HOST']=str(repo/'targets/project-execution-host/bin/Release/net8.0/Confectory.ProjectExecutionHost.dll')
+env['CONFECTORY_ELEMENT_AUTHORING_HOST']=str(repo/'targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll')
+env['CONFECTORY_PROJECT_EXECUTION_HOST']=str(repo/'targets/project-execution-host/bin/Release/net10.0/Confectory.ProjectExecutionHost.dll')
 process = subprocess.Popen(report['run'], env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 thread = threading.Thread(target=lambda: logs.extend(iter(process.stdout.readline, '')), daemon=True); thread.start()
 def wait_log(text):

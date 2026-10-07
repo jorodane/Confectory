@@ -9,8 +9,8 @@ pushd "%~dp0"
 if errorlevel 1 exit /b 1
 call "%~dp0build-windows.bat"
 if errorlevel 1 goto failed
-set "CONFECTORY_ELEMENT_AUTHORING_HOST=%CD%\targets\element-authoring\bin\Release\net8.0\Confectory.ElementAuthoring.dll"
-call "%confectory_browser_dotnet%" "src\Confectory.Cli\bin\Release\net8.0\Confectory.Cli.dll" run "examples\project-browser\project.cpack" windows
+set "CONFECTORY_ELEMENT_AUTHORING_HOST=%CD%\targets\element-authoring\bin\Release\net10.0\Confectory.ElementAuthoring.dll"
+call "%confectory_browser_dotnet%" "src\Confectory.Cli\bin\Release\net10.0\Confectory.Cli.dll" run "examples\project-browser\project.cpack" windows
 set "confectory_browser_exit=%errorlevel%"
 popd
 exit /b %confectory_browser_exit%

@@ -7,7 +7,7 @@ try {
  var request=JsonNode.Parse(Console.In.ReadToEnd())!.AsObject();
  string root=Path.GetFullPath(Path.Combine(AppContext.BaseDirectory,"../../../../.."));
  string assets=Path.Combine(root,"packs","browser-host","assets");
- string compiler=Path.Combine(root,"targets","dotnet","bin","Release","net8.0","Confectory.Build.DotNet.dll");
+ string compiler=Path.Combine(root,"targets","dotnet","bin","Release","net10.0","Confectory.Build.DotNet.dll");
  if(!File.Exists(compiler))throw new IOException("Build trusted targets/dotnet before the local browser target");
  string dotnet=Environment.GetEnvironmentVariable("CONFECTORY_DOTNET")??"dotnet";
  var start=new ProcessStartInfo(dotnet){RedirectStandardInput=true,RedirectStandardOutput=true,RedirectStandardError=true,UseShellExecute=false};start.ArgumentList.Add(compiler);

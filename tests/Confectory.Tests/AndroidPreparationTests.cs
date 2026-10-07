@@ -42,7 +42,7 @@ public sealed class AndroidPreparationTests : TestCase
         var catalog=JsonNode.Parse(File.ReadAllText(Text(report,"publicCatalog")))!;
         foreach(string id in new[]{"Confectory.Window::DrawBody","Confectory.Window::PumpBody"})
             Equal("android",catalog["implementations"]!.AsArray().Single(x=>x!["id"]!.GetValue<string>()==id)!["bodySelection"]!.GetValue<string>());
-        string exporter=Path.Combine(Fixture.Repo,"targets","android-export","bin","Release","net8.0","Confectory.AndroidExport.dll");
+        string exporter=Path.Combine(Fixture.Repo,"targets","android-export","bin","Release","net10.0","Confectory.AndroidExport.dll");
         string output=Path.Combine(f.Root,"android-export");
         var result=Processes.Run([Processes.DotNet(),exporter,project,output],timeoutSeconds:90);
         Equal(0,result.ExitCode);
@@ -50,7 +50,7 @@ public sealed class AndroidPreparationTests : TestCase
         True(export["managedCompiled"]!.GetValue<bool>());
         True(!export["androidAppCompiled"]!.GetValue<bool>()&&!export["apkProduced"]!.GetValue<bool>());
         string sdkProject=File.ReadAllText(Path.Combine(output,"Confectory.Android.csproj"));
-        True(sdkProject.Contains("net8.0-android",StringComparison.Ordinal));
+        True(sdkProject.Contains("net10.0-android",StringComparison.Ordinal));
         True(sdkProject.Contains("Managed/Contract_",StringComparison.Ordinal)&&sdkProject.Contains("Managed/Pack_",StringComparison.Ordinal));
         True(File.Exists(Path.Combine(output,"Generated","PackCalls.cs")));
         var cached=new Builder(project,"android").Build();Equal(0,Strings(cached,"statistics","compiledImplementations").Length);

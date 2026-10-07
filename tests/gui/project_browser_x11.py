@@ -29,7 +29,7 @@ source=os.path.join(storage,'project.cpack')
 with open(source,'w') as f:f.write('project BrowserFixture version "0.1.0" { entry BrowserFixture::Step; element First concept "First.celem"; element Second concept "Second.celem"; element Step function "Step.celem"; element Motion module "Motion.celem"; }')
 for name,kind in [('First','concept'),('Second','concept'),('Step','function'),('Motion','module')]:
     with open(os.path.join(storage,name+'.celem'),'w') as f:f.write(kind+' BrowserFixture::'+name+(' () -> int' if kind=='function' else '')+' { }\n')
-logpath=os.path.join(storage,'browser.log');log=open(logpath,'w');env=os.environ.copy();env.update(CONFECTORY_BROWSER_PROJECT=source,CONFECTORY_BROWSER_TRACE='1',CONFECTORY_ELEMENT_AUTHORING_HOST=os.path.join(repo,'targets/element-authoring/bin/Release/net8.0/Confectory.ElementAuthoring.dll'))
+logpath=os.path.join(storage,'browser.log');log=open(logpath,'w');env=os.environ.copy();env.update(CONFECTORY_BROWSER_PROJECT=source,CONFECTORY_BROWSER_TRACE='1',CONFECTORY_ELEMENT_AUTHORING_HOST=os.path.join(repo,'targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll'))
 app=subprocess.Popen(report['run'],cwd=repo,env=env,stdout=log,stderr=log,start_new_session=True)
 def latest():
     lines=open(logpath).read().splitlines()

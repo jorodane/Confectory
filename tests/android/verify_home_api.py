@@ -11,9 +11,9 @@ export = Path(sys.argv[2]).resolve()
 dotnet = Path(os.environ.get('CONFECTORY_DOTNET') or shutil.which('dotnet') or '').resolve()
 root = dotnet.parent
 sdk = sorted((root / 'sdk').glob('*/Roslyn/bincore/csc.dll'))[-1]
-net = sorted((root / 'packs/Microsoft.NETCore.App.Ref').glob('*/ref/net8.0'))[-1]
-android = sorted((root / 'packs/Microsoft.Android.Ref.34').glob('*/ref/net8.0'))[-1]
-core = repo / 'src/Confectory.Core/bin/Release/net8.0/Confectory.Core.dll'
+net = sorted((root / 'packs/Microsoft.NETCore.App.Ref').glob('*/ref/net10.0'))[-1]
+android = sorted((root / 'packs/Microsoft.Android.Ref.34').glob('*/ref/net10.0'))[-1]
+core = repo / 'src/Confectory.Core/bin/Release/net10.0/Confectory.Core.dll'
 assert core.is_file(), 'Build Core/AndroidExport first'
 with tempfile.TemporaryDirectory(prefix='confectory-home-android-api-') as temporary:
     work = Path(temporary)

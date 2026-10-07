@@ -131,7 +131,7 @@ public sealed class IntegrationTests : TestCase
     }
     public void test_cli_run_streams_output_propagates_exit_and_spaced_paths()
     {
-        string cli=Path.Combine(Fixture.Repo,"src","Confectory.Cli","bin","Release","net8.0","Confectory.Cli.dll");
+        string cli=Path.Combine(Fixture.Repo,"src","Confectory.Cli","bin","Release","net10.0","Confectory.Cli.dll");
         // Windows environment names are case insensitive: a helper must not overwrite CONFECTORY_DOTNET.
         foreach(string batch in new[]{"build-windows.bat","run-engine-windows.bat"})
             True(!File.ReadAllText(Path.Combine(Fixture.Repo,batch)).Contains("set \"confectory_dotnet=",StringComparison.OrdinalIgnoreCase));
@@ -144,7 +144,7 @@ public sealed class IntegrationTests : TestCase
     }
     public void test_cli_preserves_json_reports_and_exit_codes()
     {
-        string cli = Path.Combine(Fixture.Repo, "src", "Confectory.Cli", "bin", "Release", "net8.0", "Confectory.Cli.dll");
+        string cli = Path.Combine(Fixture.Repo, "src", "Confectory.Cli", "bin", "Release", "net10.0", "Confectory.Cli.dll");
         var check = Processes.Run([Processes.DotNet(), cli, "check", f.Project, "portable", "App"]); Equal(0, check.ExitCode); Equal("contract-only", Text(JsonNode.Parse(check.Stdout)!, "mode"));
         var build = Processes.Run([Processes.DotNet(), cli, "build", f.Project, "portable"]); Equal(0, build.ExitCode); Output(JsonNode.Parse(build.Stdout)!.AsObject(), "5");
         var missing = Processes.Run([Processes.DotNet(), cli, "build", f.Project, "absent"]); Equal(1, missing.ExitCode); Equal("MISSING_TARGET", Text(JsonNode.Parse(missing.Stdout)!["diagnostics"]![0]!, "code")); True(missing.Stderr.Contains("MISSING_TARGET", StringComparison.Ordinal));

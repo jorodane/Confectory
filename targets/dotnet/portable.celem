@@ -1,5 +1,5 @@
 buildtarget Confectory.Build.DotNet::Portable {
-    description "Portable CLR package requiring .NET 8";
-    tool "bin/Release/net8.0/Confectory.Build.DotNet.dll";
+    description "Portable CLR package requiring .NET 10";
+    tool "bin/Release/net10.0/Confectory.Build.DotNet.dll";
     option mode "portable";
 }

@@ -1,6 +1,6 @@
 # Confectory C# build core
 
-A .NET 8 build core for **ProjectPack + target**. It resolves namespace-qualified pack elements, generates C# contracts, compiles owned implementations locally, and links actual providers through a build-target pack. The core, CLI, target tool and tests are implemented in C#; Python is not required. Runtime and UI are assembled from ordinary packs, including the current small draft-authoring slice. Full editor, physics and mod loading are later packs.
+A .NET 10 build core for **ProjectPack + target**. It resolves namespace-qualified pack elements, generates C# contracts, compiles owned implementations locally, and links actual providers through a build-target pack. The core, CLI, target tool and tests are implemented in C#; Python is not required. Runtime and UI are assembled from ordinary packs, including the current small draft-authoring slice. Full editor, physics and mod loading are later packs.
 
 Read [technical design](docs/TECHNICAL_DESIGN.md), [requirement-to-test map](docs/REQUIREMENT_TEST_MAP.md), [declaration format and tool protocol](docs/FORMAT.md), [verification evidence](docs/VERIFICATION.md), and [mod extension boundary](docs/MOD_EXTENSION_BOUNDARY.md).
 
@@ -10,24 +10,24 @@ The first runtime sample is [Confectory.Window](packs/window/README.md): a reusa
 
 ## Run from the repository root
 
-Requirements: the .NET 8 **SDK**. All projects use the .NET standard library and have no external NuGet dependencies; restore works offline with the included `NuGet.Config`. The target pack discovers `dotnet` on PATH; alternatively set `CONFECTORY_DOTNET` to the actual executable (`dotnet.exe` on Windows).
+Requirements: the .NET 10 **SDK**. All projects use the .NET standard library and have no external NuGet dependencies; restore works offline with the included `NuGet.Config`. The target pack discovers `dotnet` on PATH; alternatively set `CONFECTORY_DOTNET` to the actual executable (`dotnet.exe` on Windows).
 
-The repository's `global.json` selects the newest installed stable **8.0 SDK** (8.0.100 or later), even when SDK 9/10 is installed beside it. The authoring tool directly uses the selected SDK's Roslyn assemblies, so building it with SDK 10's Roslyn while targeting net8.0 causes CS1705/System.Runtime version conflicts. SDK selection and the target runtime are separate: a .NET 8 runtime/reference pack alone does not provide the SDK. Keep SDK 10 installed; this repository chooses SDK 8 locally. Run `dotnet --list-sdks`, then run `dotnet --version` from this repository and check that it reports `8.0.*`. If no 8.0 SDK appears in the list, building requires an existing/approved .NET 8 SDK installation; no scripts install one automatically. Run the Windows scripts from the updated checkout; both enter the repository before building. See [SDK compatibility fix evidence](docs/SDK8_COMPATIBILITY_FIX.md).
+The repository's `global.json` selects the newest installed stable **10.0 SDK** (10.0.100 or later). All managed hosts, generated pack assemblies and the browser WASM runtime target .NET 10. The authoring tool uses SDK 10 Roslyn 5.x and rejects older SDK/Roslyn pairs. Run `dotnet --version` from this checkout and check `10.0.*`; scripts do not install tools automatically. SDK 8 may remain installed for older checkouts. Historical SDK 8 evidence remains in the documentation.
 
-Building the core/CLI/tool/tests or compiling a ProjectPack requires the SDK. Running an already generated application requires only the .NET 8 `Microsoft.NETCore.App` runtime and its `dotnet` host. The CLI starts on that runtime, but build/check/validate use the SDK-dependent target tool. Generated packages are framework-dependent; there is no self-contained distribution. Linux execution with an isolated runtime-only installation is verified in the evidence report.
+Building the core/CLI/tool/tests or compiling a ProjectPack requires the SDK. Running an already generated application requires only the .NET 10 `Microsoft.NETCore.App` runtime and its `dotnet` host. The CLI starts on that runtime, but build/check/validate use the SDK-dependent target tool. Generated packages are framework-dependent; there is no self-contained distribution. Linux execution with an isolated runtime-only installation is verified in the evidence report.
 
-On Windows, run `build-windows.bat` to build the entire solution in Release. It uses the script's directory, so it can be called from another working directory. It performs only the build and returns the .NET build exit code; it does not install tools or run tests. Outputs are in each project's `bin/Release/net8.0/` directory. The .NET 8 SDK must already be installed.
+On Windows, run `build-windows.bat` to build the entire solution in Release. It uses the script's directory, so it can be called from another working directory. It performs only the build and returns the .NET build exit code; it does not install tools or run tests. Outputs are in each project's `bin/Release/net10.0/` directory. The .NET 10 SDK must already be installed.
 
 ```sh
 dotnet build Confectory.sln -c Release
-dotnet tests/Confectory.Tests/bin/Release/net8.0/Confectory.Tests.dll
-dotnet src/Confectory.Cli/bin/Release/net8.0/Confectory.Cli.dll build examples/app/project.cpack portable
-dotnet src/Confectory.Cli/bin/Release/net8.0/Confectory.Cli.dll check examples/app/project.cpack portable Example.App
-dotnet src/Confectory.Cli/bin/Release/net8.0/Confectory.Cli.dll validate examples/app/project.cpack portable
-dotnet src/Confectory.Cli/bin/Release/net8.0/Confectory.Cli.dll build examples/engine/project.cpack portable
+dotnet tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll
+dotnet src/Confectory.Cli/bin/Release/net10.0/Confectory.Cli.dll build examples/app/project.cpack portable
+dotnet src/Confectory.Cli/bin/Release/net10.0/Confectory.Cli.dll check examples/app/project.cpack portable Example.App
+dotnet src/Confectory.Cli/bin/Release/net10.0/Confectory.Cli.dll validate examples/app/project.cpack portable
+dotnet src/Confectory.Cli/bin/Release/net10.0/Confectory.Cli.dll build examples/engine/project.cpack portable
 ```
 
-Build the solution in **Release** before invoking the CLI: the bundled target declarations locate their owned tool at `targets/dotnet/bin/Release/net8.0/Confectory.Build.DotNet.dll`. Rebuild the solution after changing that tool's C# source. Linux can also use the `linux` target, which selects Linux bodies before common bodies and produces a shell launcher. Tests invoke the actual SDK compiler and generated applications; they fail if the required target tool or SDK is missing.
+Build the solution in **Release** before invoking the CLI: the bundled target declarations locate their owned tool at `targets/dotnet/bin/Release/net10.0/Confectory.Build.DotNet.dll`. Rebuild the solution after changing that tool's C# source. Linux can also use the `linux` target, which selects Linux bodies before common bodies and produces a shell launcher. Tests invoke the actual SDK compiler and generated applications; they fail if the required target tool or SDK is missing.
 
 The CLI prints JSON including a `run` command, included/excluded packs, source-read statistics and compiled/reused artifacts. To compile and execute directly:
 
@@ -53,7 +53,7 @@ Generated state is isolated beneath the selected ProjectPack's `.confectory/`: p
 
 Contracts support synchronous primitive C# types (`void`, `bool`, `int`, `long`, `float`, `double`, `string`) and one-dimensional arrays. Exact dependency version expectations and `*` are supported; a mismatch warns. The registry chooses a concrete manifest path and never searches for a newer version or rewrites that choice. Versioned imported-pack installation/update management is later pack work.
 
-The initial target pack produces framework-dependent .NET 8 assemblies, portable packaging and a Linux launcher. Windows execution, Android/iOS, native apphosts, signing, AOT and runtime DLL replacement are not verified here. Linux declaration caches use `statx` modification/change times and file identity; where these are unavailable, the requested documents are reread rather than trusting modification time alone. Builds are currently intended for one writer per ProjectPack. Generated bindings compose functions per consumer scope; persistent runtime instance state belongs in runtime packs.
+The initial target pack produces framework-dependent .NET 10 assemblies, portable packaging and a Linux launcher. Windows execution, Android/iOS, native apphosts, signing, AOT and runtime DLL replacement are not verified here. Linux declaration caches use `statx` modification/change times and file identity; where these are unavailable, the requested documents are reread rather than trusting modification time alone. Builds are currently intended for one writer per ProjectPack. Generated bindings compose functions per consumer scope; persistent runtime instance state belongs in runtime packs.
 
 In a restricted environment with a read-only home directory, set `DOTNET_CLI_HOME` to a writable directory before building. If MSBuild worker processes are restricted, use `dotnet build Confectory.sln -c Release -m:1 -p:UseSharedCompilation=false`.
 
@@ -66,7 +66,7 @@ Build `examples/engine/project.cpack` for `windows` (framework-dependent CLR pro
 
 ```
 dotnet build Confectory.sln -c Release
-dotnet src/Confectory.Cli/bin/Release/net8.0/Confectory.Cli.dll build examples/engine/project.cpack windows
+dotnet src/Confectory.Cli/bin/Release/net10.0/Confectory.Cli.dll build examples/engine/project.cpack windows
 ```
 
 On Windows, double-click `run-engine-windows.bat` (or invoke it from CMD) to build and launch directly. It keeps failure diagnostics visible; `CONFECTORY_DOTNET` supports a selected host, including paths with spaces. Existing `build-windows.bat` remains build-only. No manual PowerShell/JSON parsing or Python is required. On other platforms, use the general CLI `run <ProjectPack> <target>` command or execute the build report's `run` array. Checkpoint 2 adds per-View Open/Start/Stop/Close project controls and stable execution status. Open project data separately from running gameplay; View/context/execution lifetimes are independent. See [Checkpoint 2 commands and coverage](docs/CHECKPOINT_2.md). Each View also has an independent counter/toggle, persistent controls, resize handling, drag/arrow/wheel/programmatic camera intents, and local subscriptions. Close one View and press R in the remaining View to reopen it without losing its model or recreating the other window. Close both to exit; Ctrl+C cleans up. Linux needs X11/XWayland. Set `CONFECTORY_BASEUI_CLOSE_AFTER_MS=1000` for a bounded run and `CONFECTORY_BASEUI_SCRIPTED=1` for the isolation/reopen probe.

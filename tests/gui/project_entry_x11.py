@@ -7,7 +7,7 @@ def bind(name,result,args):
  f=getattr(x,name);f.restype=result;f.argtypes=args;return f
 display=bind('XOpenDisplay',P,[c.c_char_p])(None);assert display
 native=NativeControls(display);fetch=bind('XFetchName',c.c_int,[P,U,c.POINTER(P)]);atom=bind('XInternAtom',U,[P,c.c_char_p,c.c_int]);send=bind('XSendEvent',c.c_int,[P,U,c.c_int,c.c_long,P])
-repo=pathlib.Path(sys.argv[1]);dotnet=os.environ['CONFECTORY_DOTNET'];host=repo/'targets/desktop-entry/bin/Release/net8.0/Confectory.DesktopEntry.dll'
+repo=pathlib.Path(sys.argv[1]);dotnet=os.environ['CONFECTORY_DOTNET'];host=repo/'targets/desktop-entry/bin/Release/net10.0/Confectory.DesktopEntry.dll'
 with tempfile.TemporaryDirectory(prefix='confectory-file-entry-') as folder:
  root=pathlib.Path(folder);env=os.environ.copy();env.update(CONFECTORY_ENTRY_SCOPE=str(root/'scope'),CONFECTORY_ENTRY_STORAGE=str(root/'inboxes'),CONFECTORY_HOME_STORAGE=str(root/'settings'),CONFECTORY_HOME_TRACE='1',CONFECTORY_EDITOR_REPO=str(repo))
  project=root/'한글 공백 프로젝트.cproj';project.write_text('project UserProject version "1" { standalone true; entry UserProject::Main; registry Evil "UNTRUSTED_BUILD_TOOL_DO_NOT_LOAD"; target linux Evil::Build; target windows Evil::Build; }',encoding='utf8')

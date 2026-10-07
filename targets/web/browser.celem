@@ -1,5 +1,5 @@
 buildtarget Confectory.Build.Web::Browser {
 description "Local trusted .NET browser host; browser DOM, no arbitrary browser C# runtime";
-tool "bin/Release/net8.0/Confectory.Build.Web.dll";
+tool "bin/Release/net10.0/Confectory.Build.Web.dll";
 option mode "portable";
 }

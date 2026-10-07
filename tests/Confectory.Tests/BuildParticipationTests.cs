@@ -10,7 +10,7 @@ public sealed class BuildParticipationTests : TestCase
   string project=Path.Combine(sample,"project.cpack");File.WriteAllText(project,File.ReadAllText(project).Replace("../../packs/","../packs/",StringComparison.Ordinal).Replace("../../targets/dotnet/pack.cpack","../target/pack.cpack",StringComparison.Ordinal));string[] names={"CONFECTORY_ELEMENT_AUTHORING_HOST","CONFECTORY_TEST_AUTHOR_PROJECT","CONFECTORY_TEST_TOOL"};var old=names.Select(Environment.GetEnvironmentVariable).ToArray();
   try
   {
-   Environment.SetEnvironmentVariable(names[0],Path.Combine(Fixture.Repo,"targets","element-authoring","bin","Release","net8.0","Confectory.ElementAuthoring.dll"));Environment.SetEnvironmentVariable(names[1],f.Project);Environment.SetEnvironmentVariable(names[2],f.ToolPath);
+   Environment.SetEnvironmentVariable(names[0],Path.Combine(Fixture.Repo,"targets","element-authoring","bin","Release","net10.0","Confectory.ElementAuthoring.dll"));Environment.SetEnvironmentVariable(names[1],f.Project);Environment.SetEnvironmentVariable(names[2],f.ToolPath);
    var built=new Builder(project,"portable").Build();var result=Processes.Run(Strings(built,"run"),timeoutSeconds:180);True(result.ExitCode==0,result.Stderr+result.Stdout);True(result.Stdout.Contains("BuildParticipation pure discovery/multi-output closure/retention PASS",StringComparison.Ordinal),result.Stderr);
    File.AppendAllText(Path.Combine(f.Root,"packs","build-participation","Describe.csbody"),"\n// plan-only provider edit\n");var changed=new Builder(project,"portable").Build();Sequence(new[]{"Confectory.BuildParticipation::DescribeBody"},Strings(changed,"statistics","compiledImplementations"));Equal(0,Strings(changed,"statistics","compiledContracts").Length);
   }

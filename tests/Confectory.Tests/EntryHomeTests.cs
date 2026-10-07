@@ -27,7 +27,7 @@ public sealed class EntryHomeTests : TestCase
     public void test_fresh_entry_home_project_contracts_and_consumer_locality()
     {
         string consumer=Consumer("editor-home"),project=Path.Combine(consumer,"verify.cpack"),manager=Path.Combine(f.Root,"owned project manager");Fixture.CopyTree(Path.Combine(Fixture.Repo,"packs","project-manager"),manager);File.WriteAllText(project,File.ReadAllText(project).Replace(Path.Combine(Fixture.Repo,"packs","project-manager","pack.cpack"),Path.Combine(manager,"pack.cpack"),StringComparison.Ordinal));var built=new Builder(project,"linux").Build();Offline(built);
-        string? repo=Environment.GetEnvironmentVariable("CONFECTORY_EDITOR_REPO"),host=Environment.GetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST");try{Environment.SetEnvironmentVariable("CONFECTORY_EDITOR_REPO",Fixture.Repo);Environment.SetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST",Path.Combine(Fixture.Repo,"targets","element-authoring","bin","Release","net8.0","Confectory.ElementAuthoring.dll"));var run=Processes.Run(Strings(built,"run"),timeoutSeconds:180);True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("Entry/home contracts:"));}finally{Environment.SetEnvironmentVariable("CONFECTORY_EDITOR_REPO",repo);Environment.SetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST",host);}
+        string? repo=Environment.GetEnvironmentVariable("CONFECTORY_EDITOR_REPO"),host=Environment.GetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST");try{Environment.SetEnvironmentVariable("CONFECTORY_EDITOR_REPO",Fixture.Repo);Environment.SetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST",Path.Combine(Fixture.Repo,"targets","element-authoring","bin","Release","net10.0","Confectory.ElementAuthoring.dll"));var run=Processes.Run(Strings(built,"run"),timeoutSeconds:180);True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("Entry/home contracts:"));}finally{Environment.SetEnvironmentVariable("CONFECTORY_EDITOR_REPO",repo);Environment.SetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST",host);}
         File.AppendAllText(Path.Combine(manager,"PlanCreation.csbody"),"\n// naming policy provider locality probe\n");var naming=new Builder(project,"linux").Build();Sequence(new[]{"Confectory.ProjectManager::PlanCreationBody"},Strings(naming,"statistics","compiledImplementations"));Equal(0,Strings(naming,"statistics","compiledContracts").Length);
         File.AppendAllText(Path.Combine(consumer,"owned editor-home-model","Command.csbody"),"\n// entry/home command locality probe\n");var changed=new Builder(project,"linux").Build();Sequence(new[]{"Confectory.EditorHome.Model::CommandBody"},Strings(changed,"statistics","compiledImplementations"));Equal(0,Strings(changed,"statistics","compiledContracts").Length);
     }
@@ -40,7 +40,7 @@ public sealed class EntryHomeTests : TestCase
     public void test_android_home_export_selects_activity_and_metadata_parser_without_engine_surface_sample()
     {
         string consumer=Consumer("editor-home"),project=Path.Combine(consumer,"project.cpack"),output=Path.Combine(f.Root,"home Android export");
-        string exporter=Path.Combine(Fixture.Repo,"targets","android-export","bin","Release","net8.0","Confectory.AndroidExport.dll");
+        string exporter=Path.Combine(Fixture.Repo,"targets","android-export","bin","Release","net10.0","Confectory.AndroidExport.dll");
         var result=Processes.Run(new[]{Processes.DotNet(),exporter,project,output},timeoutSeconds:240);
         True(result.ExitCode==0,result.Stdout+result.Stderr);
         string activity=File.ReadAllText(Path.Combine(output,"MainActivity.cs")),sdk=File.ReadAllText(Path.Combine(output,"Confectory.Android.csproj"));
@@ -59,7 +59,7 @@ public sealed class EntryHomeTests : TestCase
     public void test_android_export_owned_settings_formats_xml_and_rejects_credentials_before_build()
     {
         string consumer=Consumer("editor-home"),project=Path.Combine(consumer,"project.cpack"),settings=Path.Combine(consumer,"AndroidExport.celem");
-        string exporter=Path.Combine(Fixture.Repo,"targets","android-export","bin","Release","net8.0","Confectory.AndroidExport.dll");
+        string exporter=Path.Combine(Fixture.Repo,"targets","android-export","bin","Release","net10.0","Confectory.AndroidExport.dll");
         string original=File.ReadAllText(settings);
         string declaration(string values)=>"object Confectory.EditorHome::AndroidExport extends Confectory.AndroidExport.Settings::Defaults { "+values+" }";
         foreach(string format in new[]{"apk","aab"})

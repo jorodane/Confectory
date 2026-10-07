@@ -7,7 +7,7 @@ $env:CONFECTORY_EDITOR_REPO = $EditorRoot
 & $EditorDotnet build Confectory.sln -c Release
 if ($LASTEXITCODE -ne 0) { throw 'Solution build failed' }
 New-Item -ItemType Directory -Force '.confectory' | Out-Null
-$EditorReply = & $EditorDotnet 'src/Confectory.Cli/bin/Release/net8.0/Confectory.Cli.dll' build 'examples/editor/project.cpack' windows
+$EditorReply = & $EditorDotnet 'src/Confectory.Cli/bin/Release/net10.0/Confectory.Cli.dll' build 'examples/editor/project.cpack' windows
 if ($LASTEXITCODE -ne 0) { throw ($EditorReply -join "`n") }
 $EditorReply | Set-Content -Encoding utf8 '.confectory/editor-launch.json'
 $EditorReport = ($EditorReply -join "`n") | ConvertFrom-Json

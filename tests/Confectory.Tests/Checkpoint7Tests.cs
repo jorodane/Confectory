@@ -12,10 +12,10 @@ public sealed class Checkpoint7Tests : TestCase
  }
  private static string Run(JsonObject report,Dictionary<string,string> environment)
  {
-  string[] command=Strings(report,"run");var info=new ProcessStartInfo(command[0]){UseShellExecute=false,RedirectStandardOutput=true,RedirectStandardError=true};foreach(string arg in command.Skip(1))info.ArgumentList.Add(arg);foreach(var pair in environment)info.Environment[pair.Key]=pair.Value;info.Environment["CONFECTORY_PROJECT_EXECUTION_HOST"]=Path.Combine(Fixture.Repo,"targets","project-execution-host","bin","Release","net8.0","Confectory.ProjectExecutionHost.dll");
+  string[] command=Strings(report,"run");var info=new ProcessStartInfo(command[0]){UseShellExecute=false,RedirectStandardOutput=true,RedirectStandardError=true};foreach(string arg in command.Skip(1))info.ArgumentList.Add(arg);foreach(var pair in environment)info.Environment[pair.Key]=pair.Value;info.Environment["CONFECTORY_PROJECT_EXECUTION_HOST"]=Path.Combine(Fixture.Repo,"targets","project-execution-host","bin","Release","net10.0","Confectory.ProjectExecutionHost.dll");
   using var process=Process.Start(info)??throw new Exception("Consumer launch failed");var output=process.StandardOutput.ReadToEndAsync();var error=process.StandardError.ReadToEndAsync();try{System.Threading.Tasks.Task.WhenAll(output,error).WaitAsync(TimeSpan.FromSeconds(180)).GetAwaiter().GetResult();True(process.WaitForExit(5000)&&process.ExitCode==0,error.Result+output.Result);return output.Result;}finally{if(!process.HasExited)process.Kill(entireProcessTree:true);}
  }
- private static string Host=>Path.Combine(Fixture.Repo,"targets","element-authoring","bin","Release","net8.0","Confectory.ElementAuthoring.dll");
+ private static string Host=>Path.Combine(Fixture.Repo,"targets","element-authoring","bin","Release","net10.0","Confectory.ElementAuthoring.dll");
  public void test_context_tools_real_workspace_capture_projection_confirm_and_locality()
  {
   string project=CopyConsumer("examples/context-tools","../../");string source=Path.Combine(f.Root,"source");Fixture.CopyTree(Path.Combine(Fixture.Repo,"examples","projects","authoring"),source);string sourceProject=Path.Combine(source,"project.cpack");File.WriteAllText(sourceProject,File.ReadAllText(sourceProject).Replace("../../../packs/","../packs/",StringComparison.Ordinal).Replace("../../../targets/dotnet/pack.cpack","../target/pack.cpack",StringComparison.Ordinal));

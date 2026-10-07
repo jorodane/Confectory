@@ -13,7 +13,7 @@ repo = pathlib.Path(__file__).resolve().parents[2]
 root = pathlib.Path(sys.argv[1]) if len(sys.argv) > 1 else pathlib.Path(tempfile.mkdtemp(prefix='confectory-self-edit-'))
 root.mkdir(parents=True, exist_ok=True)
 dotnet = os.environ.get('CONFECTORY_DOTNET', 'dotnet')
-cli = repo / 'src/Confectory.Cli/bin/Release/net8.0/Confectory.Cli.dll'
+cli = repo / 'src/Confectory.Cli/bin/Release/net10.0/Confectory.Cli.dll'
 for name, source in [('engine', repo/'examples/engine'), ('prime-project', repo/'examples/projects/authoring'), ('pin-tool', repo/'examples/pack-manager')]:
     destination = root/name
     if destination.exists():
@@ -34,7 +34,7 @@ finally{calls.PackManagerClose.Invoke(session);}
 return 0;
 ''')
 env = os.environ.copy()
-env.update(CONFECTORY_SELF_PROJECT=str(root/'engine/project.cpack'), CONFECTORY_PIN_SOURCE=str(repo/'packs/element-view/pack.cpack'), CONFECTORY_ELEMENT_AUTHORING_HOST=str(repo/'targets/element-authoring/bin/Release/net8.0/Confectory.ElementAuthoring.dll'), CONFECTORY_AUTHORING_TIMEOUT_MS='900000')
+env.update(CONFECTORY_SELF_PROJECT=str(root/'engine/project.cpack'), CONFECTORY_PIN_SOURCE=str(repo/'packs/element-view/pack.cpack'), CONFECTORY_ELEMENT_AUTHORING_HOST=str(repo/'targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll'), CONFECTORY_AUTHORING_TIMEOUT_MS='900000')
 subprocess.run([dotnet, str(cli), 'run', str(root/'pin-tool/project.cpack'), 'portable'], env=env, check=True)
 report = subprocess.run([dotnet, str(cli), 'build', str(root/'engine/project.cpack'), 'linux'], env=env, capture_output=True, text=True, check=True)
 json.loads(report.stdout)

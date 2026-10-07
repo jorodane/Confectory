@@ -20,12 +20,12 @@ set "confectory_windowless_dotnet=dotnet"
 if defined CONFECTORY_DOTNET set "confectory_windowless_dotnet=%CONFECTORY_DOTNET%"
 pushd "%~dp0"
 if errorlevel 1 goto bad_directory
-echo Building existing .NET 8 tools. Build output follows.
+echo Building existing .NET 10 tools. Build output follows.
 call "%~dp0build-windows.bat"
 if errorlevel 1 goto failed
-set "CONFECTORY_ELEMENT_AUTHORING_HOST=%CD%\targets\element-authoring\bin\Release\net8.0\Confectory.ElementAuthoring.dll"
+set "CONFECTORY_ELEMENT_AUTHORING_HOST=%CD%\targets\element-authoring\bin\Release\net10.0\Confectory.ElementAuthoring.dll"
 echo Launching windowless browser for "%CONFECTORY_BROWSER_PROJECT%"
-call "%confectory_windowless_dotnet%" "src\Confectory.Cli\bin\Release\net8.0\Confectory.Cli.dll" run "examples\windowless-browser-proof\project.cpack" windows
+call "%confectory_windowless_dotnet%" "src\Confectory.Cli\bin\Release\net10.0\Confectory.Cli.dll" run "examples\windowless-browser-proof\project.cpack" windows
 set "confectory_windowless_exit=%errorlevel%"
 popd
 goto finished

@@ -179,7 +179,7 @@ public static class Processes
         if (!string.IsNullOrEmpty(root) && File.Exists(Path.Combine(root, filename))) return PackPaths.Resolve(Path.Combine(root, filename));
         foreach (string part in (Environment.GetEnvironmentVariable("PATH") ?? "").Split(Path.PathSeparator))
             if (File.Exists(Path.Combine(part, filename))) return PackPaths.Resolve(Path.Combine(part, filename));
-        throw new BuildError("TOOL_EXECUTION", "Install .NET 8 or set CONFECTORY_DOTNET to its dotnet executable");
+        throw new BuildError("TOOL_EXECUTION", "Install .NET 10 or set CONFECTORY_DOTNET to its dotnet executable");
     }
     public static ProcessResult Run(IReadOnlyList<string> command, string? input = null, string? directory = null, int timeoutSeconds = 120)
         => RunAsync(command, input, directory, timeoutSeconds).GetAwaiter().GetResult();

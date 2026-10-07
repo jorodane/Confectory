@@ -13,7 +13,7 @@ call "%~dp0verify-desktop-entry-windows.bat"
 exit /b %errorlevel%
 :failed
 echo [Confectory] Installation build failed with exit code %confectory_entry_build_exit%.
-echo [Confectory] Check the diagnostics above and the existing .NET 8 SDK selected by global.json.
+echo [Confectory] Check the diagnostics above and the existing .NET 10 SDK selected by global.json.
 echo [Confectory] Retry build-windows.bat from this checkout. No tools or file associations were installed.
 exit /b %confectory_entry_build_exit%
 :source_missing
