@@ -1,2 +1,6 @@
-var adapter=AppDomain.CurrentDomain.GetData("Confectory.Android.ProjectEntry") as Func<string,string,string,string>??throw new PlatformNotSupportedException("Android file entry requires owning Activity intent/grant adapter");
+Func<string,string,string,string>? adapter=operation=="listen"
+ ? AppDomain.CurrentDomain.GetData("Confectory.Android.ProjectEntry") as Func<string,string,string,string>
+ : AppDomain.CurrentDomain.GetData("Confectory.Android.ProjectEntry.Owner."+handle) as Func<string,string,string,string>;
+if(adapter is null&&operation=="close"&&AppDomain.CurrentDomain.GetData("Confectory.Android.ProjectEntry.Closed."+handle) is true)return "{}";
+if(adapter is null)throw new PlatformNotSupportedException("Android entry listener owner is unavailable; explicit Activity intent/grant provider is required");
 return adapter(handle,operation,payload);

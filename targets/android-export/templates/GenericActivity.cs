@@ -84,12 +84,29 @@ public sealed class MainActivity : Activity,Choreographer.IFrameCallback
     }
     string EntryRequest(string handle,string operation,string payload)
     {
-        if(operation=="listen"){string id=Guid.NewGuid().ToString("N");entryOwners.Add(id);return id;}
-        if(!entryOwners.Contains(handle))throw new InvalidOperationException("Entry owner closed");
+        if(operation=="listen")
+        {
+            if(closed)throw new InvalidOperationException("Activity owner retired");string id=Guid.NewGuid().ToString("N");entryOwners.Add(id);
+            AppDomain.CurrentDomain.SetData("Confectory.Android.ProjectEntry.Owner."+id,(Func<string,string,string,string>)OwnedEntryRequest);return id;
+        }
+        if(!entryOwners.Contains(handle)){if(operation=="close"&&AppDomain.CurrentDomain.GetData("Confectory.Android.ProjectEntry.Closed."+handle) is true)return "{}";throw new InvalidOperationException("Entry owner unavailable");}
+        if(closed&&operation!="close")throw new InvalidOperationException("Activity owner retired");
         if(operation=="poll")return inbox.Count==0?"{}":inbox.Dequeue();
         if(operation=="reply")return "{}"; // Android ACTION_VIEW has no synchronous caller reply channel.
-        if(operation=="close"){entryOwners.Remove(handle);if(entryOwners.Count==0)inbox.Clear();return "{}";}
+        if(operation=="close")
+        {
+            if(entryOwners.Count==1)inbox.Clear();AndroidCloseHistory.Mark("Confectory.Android.ProjectEntry.Closed.",handle);
+            entryOwners.Remove(handle);AppDomain.CurrentDomain.SetData("Confectory.Android.ProjectEntry.Owner."+handle,null);return "{}";
+        }
         throw new PlatformNotSupportedException("Android entry operation unavailable: "+operation);
+    }
+    string OwnedEntryRequest(string handle,string operation,string payload)
+    {
+        if(Looper.MyLooper()==Looper.MainLooper)return EntryRequest(handle,operation,payload);
+        if(operation!="close")throw new InvalidOperationException("Entry inbox requests require the main looper");
+        var completion=new System.Threading.Tasks.TaskCompletionSource<string>(System.Threading.Tasks.TaskCreationOptions.RunContinuationsAsynchronously);
+        using var handler=new Handler(Looper.MainLooper!);if(!handler.Post(()=>{try{completion.TrySetResult(EntryRequest(handle,operation,payload));}catch(Exception error){completion.TrySetException(error);}}))throw new InvalidOperationException("Main looper rejected entry cleanup");
+        return completion.Task.WaitAsync(TimeSpan.FromSeconds(20)).GetAwaiter().GetResult();
     }
     protected override void OnNewIntent(Intent? intent){base.OnNewIntent(intent);if(intent is not null&&pickerState!="pending")AcceptIntent(intent);}
     async void AcceptIntent(Intent? intent)
@@ -135,7 +152,8 @@ public sealed class MainActivity : Activity,Choreographer.IFrameCallback
             {
                 step=null;retire=null;stop=null;
                 foreach(var key in fields.Keys.ToArray())try{NativeRequest(key,"close","{}",0);}catch(Exception error){global::Android.Util.Log.Warn("Confectory","Owned native release retained for retry: "+error.Message);}
-                entryOwners.Clear();inbox.Clear();pickerEpoch++;surface?.Close();
+                foreach(var handle in entryOwners.ToArray())try{EntryRequest(handle,"close","{}");}catch(Exception error){global::Android.Util.Log.Warn("Confectory","Owned entry release retained for retry: "+error.Message);}
+                pickerEpoch++;surface?.Close();
                 // The private HostLoop token remains provider-owned until its pending jobs/resources close.
             }
         }
