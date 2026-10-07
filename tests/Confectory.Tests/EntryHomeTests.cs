@@ -60,6 +60,31 @@ public sealed class EntryHomeTests : TestCase
         True(report["bodySelections"]!.AsArray().Any(row=>row!["id"]!.ToString()=="Confectory.EditorHome::MainBody"&&row["selection"]!.ToString()=="common"));
         True(!Directory.GetFiles(output,"*.apk",SearchOption.AllDirectories).Any()&&!Directory.GetFiles(output,"*.aab",SearchOption.AllDirectories).Any());
     }
+    public void test_android_generic_export_accepts_renamed_no_window_int_and_void_entries()
+    {
+        foreach(bool returnsVoid in new[]{false,true})
+        {
+            string ns=returnsVoid?"Example.VoidEntry":"Example.RenamedProduct";
+            string consumer=Path.Combine(f.Root,returnsVoid?"void Android product":"renamed Android product");Directory.CreateDirectory(consumer);
+            string project=Path.Combine(consumer,"project.cpack"),output=Path.Combine(consumer,"export");
+            File.WriteAllText(project,"project "+ns+" version \"0.1.0\" { standalone true; registry Confectory.Build.DotNet \""+Path.Combine(Fixture.Repo,"targets","dotnet","pack.cpack")+"\"; dependency Confectory.Build.DotNet version \"0.1.0\"; element Main function \"Main.celem\"; element MainBody implementation \"MainBody.celem\"; entry "+ns+"::Main; target android Confectory.Build.DotNet::Portable; }");
+            string type=returnsVoid?"void":"int";
+            File.WriteAllText(Path.Combine(consumer,"Main.celem"),"function "+ns+"::Main () -> "+type+" { provide "+ns+"::Main with "+ns+"::MainBody; }");
+            File.WriteAllText(Path.Combine(consumer,"MainBody.celem"),"implementation "+ns+"::MainBody for "+ns+"::Main () -> "+type+" { body common \"Main.csbody\"; }");
+            File.WriteAllText(Path.Combine(consumer,"Main.csbody"),returnsVoid?"Console.WriteLine(\"void product entry\");return;":"return 7;");
+            string exporter=Path.Combine(Fixture.Repo,"targets","android-export","bin","Release","net10.0","Confectory.AndroidExport.dll");
+            var result=Processes.Run(new[]{Processes.DotNet(),exporter,project,output},timeoutSeconds:180);True(result.ExitCode==0,result.Stdout+result.Stderr);
+            string entry=File.ReadAllText(Path.Combine(output,"Generated","PackEntry.cs")),activity=File.ReadAllText(Path.Combine(output,"MainActivity.cs"));
+            True(entry.Contains("static int Run",StringComparison.Ordinal)&&entry.Contains(".Invoke()",StringComparison.Ordinal));
+            True(activity.Contains("PackEntry.Run()",StringComparison.Ordinal)&&activity.Contains("no presentation loop was registered",StringComparison.Ordinal));
+            True(!activity.Contains("PackCalls.",StringComparison.Ordinal)&&!activity.Contains("DrawHome",StringComparison.Ordinal));
+            True(!File.Exists(Path.Combine(output,"AndroidSurfaceBridge.cs")),"Generic entry acquired mandatory Window sample bridge");
+            var report=JsonNode.Parse(File.ReadAllText(Path.Combine(output,"export-report.json")))!;Equal(ns+"::Main",report["entry"]!.ToString());
+            var contracts=report["contracts"]!.AsArray();Equal(1,contracts.Count);Equal(ns+"::Main",contracts[0]!.ToString());
+            var body=report["bodySelections"]!.AsArray().Single()!;Equal(ns+"::MainBody",body["id"]!.ToString());Equal("common",body["selection"]!.ToString());
+            True(!Directory.GetFiles(output,"*.apk",SearchOption.AllDirectories).Any(),"Source export claimed package coverage");
+        }
+    }
     public void test_android_export_owned_settings_formats_xml_and_rejects_credentials_before_build()
     {
         string consumer=Consumer("editor-home"),project=Path.Combine(consumer,"project.cpack"),settings=Path.Combine(consumer,"AndroidExport.celem");
