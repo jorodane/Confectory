@@ -1,0 +1,9 @@
+project Example.TextServicesProbe version "0.1.0" {
+entry Example.TextServicesProbe::Main;
+registry Confectory.Win32TextServices "../text-services/pack.cpack"; dependency Confectory.Win32TextServices version "0.1.0";
+registry Confectory.Window "../window/pack.cpack"; dependency Confectory.Window version "0.1.0";
+registry Confectory.RenderInput "../render-input/pack.cpack"; dependency Confectory.RenderInput version "0.1.0";
+registry Confectory.Build.DotNet "../target/pack.cpack"; dependency Confectory.Build.DotNet version "0.1.0";
+target portable Confectory.Build.DotNet::Portable;
+element Main function "Main.celem"; element MainBody implementation "MainBody.celem";
+}

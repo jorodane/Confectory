@@ -1,0 +1,1 @@
+function Example.TextServicesProbe::Main () -> int { provide Example.TextServicesProbe::Main with Example.TextServicesProbe::MainBody; }

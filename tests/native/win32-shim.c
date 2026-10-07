@@ -58,3 +58,11 @@ int GetTextExtentExPointW(intptr_t dc,const uint16_t *text,int count,int maximum
 int SaveDC(intptr_t dc){(void)dc;counters[16]++;return 1;}
 int RestoreDC(intptr_t dc,int saved){(void)dc;(void)saved;counters[17]++;return 1;}
 int IntersectClipRect(intptr_t dc,int left,int top,int right,int bottom){(void)dc;counters[18]++;return right>left&&bottom>top?2:0;}
+
+/* Additional host ABI services for the separate windowless TextServices fixture. */
+uint32_t GetWindowThreadProcessId(intptr_t hwnd,void *process){(void)process;return find(hwnd)?GetCurrentThreadId():0;}
+uint32_t GetSysColor(int index){(void)index;return 0xffffff;}
+int ClientToScreen(intptr_t hwnd,int *point){(void)hwnd;point[0]+=100;point[1]+=100;return 1;}
+int GetDeviceCaps(intptr_t dc,int index){(void)dc;return index==88||index==90?96:0;}
+intptr_t ImmGetContext(intptr_t hwnd){(void)hwnd;return 0;}
+int ImmReleaseContext(intptr_t hwnd,intptr_t context){(void)hwnd;(void)context;return 1;}

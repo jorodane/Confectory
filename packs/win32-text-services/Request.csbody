@@ -1,0 +1,117 @@
+[System.Runtime.InteropServices.DllImport("kernel32.dll")]static extern uint GetCurrentThreadId();
+[System.Runtime.InteropServices.DllImport("user32.dll")]static extern uint GetWindowThreadProcessId(IntPtr window,IntPtr process);
+[System.Runtime.InteropServices.DllImport("user32.dll")]static extern bool IsWindow(IntPtr window);
+[System.Runtime.InteropServices.DllImport("user32.dll")]static extern IntPtr GetDC(IntPtr window);
+[System.Runtime.InteropServices.DllImport("user32.dll")]static extern int ReleaseDC(IntPtr window,IntPtr dc);
+[System.Runtime.InteropServices.DllImport("user32.dll")]static extern uint GetSysColor(int index);
+[System.Runtime.InteropServices.DllImport("user32.dll")]static extern IntPtr SetFocus(IntPtr window);
+[System.Runtime.InteropServices.DllImport("user32.dll")]static extern bool ScreenToClient(IntPtr window,IntPtr point);
+[System.Runtime.InteropServices.DllImport("user32.dll")]static extern bool ClientToScreen(IntPtr window,IntPtr point);
+[System.Runtime.InteropServices.DllImport("gdi32.dll")]static extern IntPtr CreateCompatibleDC(IntPtr dc);
+[System.Runtime.InteropServices.DllImport("gdi32.dll")]static extern bool DeleteDC(IntPtr dc);
+[System.Runtime.InteropServices.DllImport("gdi32.dll")]static extern int GetDeviceCaps(IntPtr dc,int index);
+[System.Runtime.InteropServices.DllImport("gdi32.dll")]static extern int SaveDC(IntPtr dc);
+[System.Runtime.InteropServices.DllImport("gdi32.dll")]static extern bool RestoreDC(IntPtr dc,int saved);
+[System.Runtime.InteropServices.DllImport("gdi32.dll")]static extern int IntersectClipRect(IntPtr dc,int left,int top,int right,int bottom);
+[System.Runtime.InteropServices.DllImport("imm32.dll")]static extern IntPtr ImmGetContext(IntPtr window);
+[System.Runtime.InteropServices.DllImport("imm32.dll")]static extern bool ImmReleaseContext(IntPtr window,IntPtr context);
+if(!OperatingSystem.IsWindows())throw new PlatformNotSupportedException("Win32 TextServices proof provider.");
+if(IntPtr.Size!=8)throw new PlatformNotSupportedException("This initial TextServ C++ vtable proof supports Windows x64 only.");
+if(payload.Length>2097152)throw new ArgumentException("TextServices payload budget");var args=System.Text.Json.Nodes.JsonNode.Parse(payload)!.AsObject();
+Type NativeType(Type result,Type[] parameters){string key="Confectory.Win32TextServices.ABI."+result.FullName+"."+string.Join(";",System.Linq.Enumerable.Select(parameters,t=>t.FullName));lock(typeof(AppDomain)){if(AppDomain.CurrentDomain.GetData(key) is Type found)return found;var assembly=System.Reflection.Emit.AssemblyBuilder.DefineDynamicAssembly(new System.Reflection.AssemblyName("TextServicesABI_"+Guid.NewGuid().ToString("N")),System.Reflection.Emit.AssemblyBuilderAccess.RunAndCollect);var type=assembly.DefineDynamicModule("Native").DefineType("Callback",System.Reflection.TypeAttributes.Public|System.Reflection.TypeAttributes.Sealed,typeof(MulticastDelegate));type.SetCustomAttribute(new System.Reflection.Emit.CustomAttributeBuilder(typeof(System.Runtime.InteropServices.UnmanagedFunctionPointerAttribute).GetConstructor(new[]{typeof(System.Runtime.InteropServices.CallingConvention)})!,new object[]{System.Runtime.InteropServices.CallingConvention.Winapi}));type.DefineConstructor(System.Reflection.MethodAttributes.Public|System.Reflection.MethodAttributes.HideBySig|System.Reflection.MethodAttributes.RTSpecialName,System.Reflection.CallingConventions.Standard,new[]{typeof(object),typeof(IntPtr)}).SetImplementationFlags(System.Reflection.MethodImplAttributes.Runtime|System.Reflection.MethodImplAttributes.Managed);type.DefineMethod("Invoke",System.Reflection.MethodAttributes.Public|System.Reflection.MethodAttributes.HideBySig|System.Reflection.MethodAttributes.NewSlot|System.Reflection.MethodAttributes.Virtual,result,parameters).SetImplementationFlags(System.Reflection.MethodImplAttributes.Runtime|System.Reflection.MethodImplAttributes.Managed);var created=type.CreateType()!;AppDomain.CurrentDomain.SetData(key,created);return created;}}
+Delegate Bind(IntPtr pointer,Type result,params Type[] parameters)=>System.Runtime.InteropServices.Marshal.GetDelegateForFunctionPointer(pointer,NativeType(result,parameters));
+void Check(int hr,string step){if(hr<0)throw new InvalidOperationException("TextServices "+step+" failed: 0x"+hr.ToString("X8"));}
+void Rect(IntPtr target,int[] bounds){System.Runtime.InteropServices.Marshal.WriteInt32(target,0,bounds[0]);System.Runtime.InteropServices.Marshal.WriteInt32(target,4,bounds[1]);System.Runtime.InteropServices.Marshal.WriteInt32(target,8,checked(bounds[0]+bounds[2]));System.Runtime.InteropServices.Marshal.WriteInt32(target,12,checked(bounds[1]+bounds[3]));}
+void Bounds(int[] b){if(b.Length!=4||b[2]<1||b[3]<1||b[2]>8192||b[3]>8192||Math.Abs((long)b[0])>1048576||Math.Abs((long)b[1])>1048576)throw new ArgumentException("TextServices bounds");}
+if(operation=="create"){
+ IntPtr parent=(IntPtr)parentWindow;if(!IsWindow(parent))throw new ArgumentException("Borrowed live parent required");if(GetWindowThreadProcessId(parent,IntPtr.Zero)!=GetCurrentThreadId())throw new InvalidOperationException("TextServices parent requires creating UI thread");string text=args["text"]!.ToString();if(text.Length>1048576)throw new ArgumentException("Text budget");int[] bounds=System.Text.Json.JsonSerializer.Deserialize<int[]>(args["bounds"]!.ToJsonString())!;Bounds(bounds);
+ var state=new object[]{Environment.CurrentManagedThreadId,parent,IntPtr.Zero,IntPtr.Zero,IntPtr.Zero,IntPtr.Zero,new System.Collections.Generic.List<Delegate>(),IntPtr.Zero,IntPtr.Zero,bounds,false,IntPtr.Zero,new int[5],args["readonly"]?.GetValue<bool>()??true,false,new System.Collections.Generic.Dictionary<string,Delegate>(),1u,IntPtr.Zero};
+ var callbacks=(System.Collections.Generic.List<Delegate>)state[6];var functions=(System.Collections.Generic.Dictionary<string,Delegate>)state[15];IntPtr unknown=IntPtr.Zero;
+ try{
+  state[2]=System.Runtime.InteropServices.NativeLibrary.Load("Msftedit.dll");
+  state[4]=System.Runtime.InteropServices.Marshal.AllocHGlobal(IntPtr.Size);state[5]=System.Runtime.InteropServices.Marshal.AllocHGlobal(IntPtr.Size*42);System.Runtime.InteropServices.Marshal.WriteIntPtr((IntPtr)state[4],(IntPtr)state[5]);
+  state[7]=System.Runtime.InteropServices.Marshal.AllocHGlobal(92);state[8]=System.Runtime.InteropServices.Marshal.AllocHGlobal(156);System.Runtime.InteropServices.Marshal.Copy(new byte[92],0,(IntPtr)state[7],92);System.Runtime.InteropServices.Marshal.Copy(new byte[156],0,(IntPtr)state[8],156);System.Runtime.InteropServices.Marshal.WriteInt32((IntPtr)state[7],0,92);System.Runtime.InteropServices.Marshal.WriteInt32((IntPtr)state[7],4,unchecked((int)0xE0000000));System.Runtime.InteropServices.Marshal.WriteInt32((IntPtr)state[7],12,180);System.Runtime.InteropServices.Marshal.WriteInt32((IntPtr)state[7],20,0xFFFFFF);byte[] face=System.Text.Encoding.Unicode.GetBytes("Segoe UI\0");System.Runtime.InteropServices.Marshal.Copy(face,0,(IntPtr)state[7]+26,face.Length);System.Runtime.InteropServices.Marshal.WriteInt32((IntPtr)state[8],0,156);
+  IntPtr screen=GetDC(parent);try{state[17]=CreateCompatibleDC(screen);}finally{ReleaseDC(parent,screen);}if((IntPtr)state[17]==IntPtr.Zero)throw new InvalidOperationException("Text measurement DC creation failed");
+  Guid hostIID=System.Runtime.InteropServices.Marshal.PtrToStructure<Guid>(System.Runtime.InteropServices.NativeLibrary.GetExport((IntPtr)state[2],"IID_ITextHost")),unknownIID=new Guid("00000000-0000-0000-C000-000000000046");
+  void Callback(int slot,Delegate callback){var method=callback.Method;var types=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(method.GetParameters(),p=>p.ParameterType));var rooted=Delegate.CreateDelegate(NativeType(method.ReturnType,types),callback.Target,method);callbacks.Add(rooted);System.Runtime.InteropServices.Marshal.WriteIntPtr((IntPtr)state[5],slot*IntPtr.Size,System.Runtime.InteropServices.Marshal.GetFunctionPointerForDelegate(rooted));}
+  int WriteInt(IntPtr pointer,int value){System.Runtime.InteropServices.Marshal.WriteInt32(pointer,value);return 0;}int WritePointer(IntPtr pointer,IntPtr value){System.Runtime.InteropServices.Marshal.WriteIntPtr(pointer,value);return 0;}
+  Callback(0,(Func<IntPtr,IntPtr,IntPtr,int>)((self,iid,result)=>{Guid requested=System.Runtime.InteropServices.Marshal.PtrToStructure<Guid>(iid);if(requested!=hostIID&&requested!=unknownIID){WritePointer(result,IntPtr.Zero);return unchecked((int)0x80004002);}state[16]=(uint)state[16]+1;return WritePointer(result,self);}));
+  Callback(1,(Func<IntPtr,uint>)(self=>{uint count=(uint)state[16]+1;state[16]=count;return count;}));
+  Callback(2,(Func<IntPtr,uint>)(self=>{uint count=(uint)state[16];if(count>0)count--;state[16]=count;return count;}));
+  Callback(3,(Func<IntPtr,IntPtr>)(self=>(IntPtr)state[11]!=IntPtr.Zero?(IntPtr)state[11]:(IntPtr)state[17]));
+  Callback(4,(Func<IntPtr,IntPtr,int>)((self,dc)=>1));
+  Callback(5,(Func<IntPtr,int,int,int>)((self,bar,show)=>1));
+  Callback(6,(Func<IntPtr,int,int,int>)((self,bar,flags)=>1));
+  Callback(7,(Func<IntPtr,int,int,int,int,int>)((self,bar,min,max,redraw)=>1));
+  Callback(8,(Func<IntPtr,int,int,int,int>)((self,bar,pos,redraw)=>1));
+  Callback(9,(Action<IntPtr,IntPtr,int>)((self,rect,erase)=>{}));
+  Callback(10,(Action<IntPtr,int>)((self,update)=>{}));
+  Callback(11,(Func<IntPtr,IntPtr,int,int,int>)((self,bitmap,w,h)=>{var caret=(int[])state[12];caret[2]=w;caret[3]=h;return 1;}));
+  Callback(12,(Func<IntPtr,int,int>)((self,show)=>{((int[])state[12])[4]=show;return 1;}));
+  Callback(13,(Func<IntPtr,int,int,int>)((self,x,y)=>{var caret=(int[])state[12];caret[0]=x;caret[1]=y;return 1;}));
+  Callback(14,(Func<IntPtr,uint,uint,int>)((self,id,timeout)=>0)); // passive proof: interactive timer routing is not implemented
+  Callback(15,(Action<IntPtr,uint>)((self,id)=>{}));
+  Callback(16,(Action<IntPtr,int,int,IntPtr,IntPtr,IntPtr,IntPtr,uint>)((self,dx,dy,scroll,clip,region,update,flags)=>{}));
+  Callback(17,(Action<IntPtr,int>)((self,capture)=>{}));
+  Callback(18,(Action<IntPtr>)(self=>SetFocus(parent)));
+  Callback(19,(Action<IntPtr,IntPtr,int>)((self,cursor,textCursor)=>{}));
+  Callback(20,(Func<IntPtr,IntPtr,int>)((self,point)=>ScreenToClient(parent,point)?1:0));
+  Callback(21,(Func<IntPtr,IntPtr,int>)((self,point)=>ClientToScreen(parent,point)?1:0));
+  Callback(22,(Func<IntPtr,IntPtr,int>)((self,old)=>WriteInt(old,0)));
+  Callback(23,(Func<IntPtr,int,int>)((self,next)=>0));
+  Callback(24,(Func<IntPtr,IntPtr,int>)((self,rect)=>{Rect(rect,(int[])state[9]);return 0;}));
+  Callback(25,(Func<IntPtr,IntPtr,int>)((self,rect)=>{Rect(rect,new[]{0,0,0,0});return 0;}));
+  Callback(26,(Func<IntPtr,IntPtr,int>)((self,format)=>WritePointer(format,(IntPtr)state[7])));
+  Callback(27,(Func<IntPtr,IntPtr,int>)((self,format)=>WritePointer(format,(IntPtr)state[8])));
+  Callback(28,(Func<IntPtr,int,uint>)((self,index)=>GetSysColor(index)));
+  Callback(29,(Func<IntPtr,IntPtr,int>)((self,style)=>WriteInt(style,0)));
+  Callback(30,(Func<IntPtr,IntPtr,int>)((self,length)=>WriteInt(length,1048576)));
+  Callback(31,(Func<IntPtr,IntPtr,int>)((self,bars)=>WriteInt(bars,0)));
+  Callback(32,(Func<IntPtr,IntPtr,int>)((self,password)=>{System.Runtime.InteropServices.Marshal.WriteInt16(password,0);return 0;}));
+  Callback(33,(Func<IntPtr,IntPtr,int>)((self,position)=>WriteInt(position,-1)));
+  Callback(34,(Func<IntPtr,IntPtr,int>)((self,extent)=>{var b=(int[])state[9];int dpi=Math.Max(1,GetDeviceCaps((IntPtr)state[17],88));WriteInt(extent,b[2]*2540/dpi);WriteInt(extent+4,b[3]*2540/dpi);return 0;}));
+  Callback(35,(Func<IntPtr,IntPtr,int>)((self,format)=>0));
+  Callback(36,(Func<IntPtr,IntPtr,int>)((self,format)=>0));
+  Callback(37,(Func<IntPtr,uint,IntPtr,int>)((self,mask,bits)=>WriteInt(bits,(int)(mask&(uint)(2|0x40|((bool)state[13]?4:0))))));
+  Callback(38,(Func<IntPtr,uint,IntPtr,int>)((self,notice,data)=>0));
+  Callback(39,(Func<IntPtr,IntPtr>)(self=>ImmGetContext(parent)));
+  Callback(40,(Action<IntPtr,IntPtr>)((self,context)=>ImmReleaseContext(parent,context)));
+  Callback(41,(Func<IntPtr,IntPtr,int>)((self,width)=>WriteInt(width,0)));
+  var output=System.Runtime.InteropServices.Marshal.AllocHGlobal(IntPtr.Size);try{
+   Check((int)Bind(System.Runtime.InteropServices.NativeLibrary.GetExport((IntPtr)state[2],"CreateTextServices"),typeof(int),typeof(IntPtr),typeof(IntPtr),typeof(IntPtr)).DynamicInvoke(IntPtr.Zero,(IntPtr)state[4],output)!,"create");unknown=System.Runtime.InteropServices.Marshal.ReadIntPtr(output);if(unknown==IntPtr.Zero)throw new InvalidOperationException("CreateTextServices returned null");
+   var table=System.Runtime.InteropServices.Marshal.ReadIntPtr(unknown);var query=Bind(System.Runtime.InteropServices.Marshal.ReadIntPtr(table),typeof(int),typeof(IntPtr),typeof(IntPtr),typeof(IntPtr));
+   Check((int)query.DynamicInvoke(unknown,System.Runtime.InteropServices.NativeLibrary.GetExport((IntPtr)state[2],"IID_ITextServices"),output)!,"query service");state[3]=System.Runtime.InteropServices.Marshal.ReadIntPtr(output);
+   Bind(System.Runtime.InteropServices.Marshal.ReadIntPtr(table,2*IntPtr.Size),typeof(uint),typeof(IntPtr)).DynamicInvoke(unknown);unknown=IntPtr.Zero;
+  }finally{System.Runtime.InteropServices.Marshal.FreeHGlobal(output);}
+  IntPtr service=(IntPtr)state[3],vtable=System.Runtime.InteropServices.Marshal.ReadIntPtr(service);
+  void Method(string name,int slot,Type result,params Type[] parameters)=>functions.Add(name,Bind(System.Runtime.InteropServices.Marshal.ReadIntPtr(vtable,slot*IntPtr.Size),result,parameters));
+  Method("release",2,typeof(uint),typeof(IntPtr));Method("send",3,typeof(int),typeof(IntPtr),typeof(uint),typeof(IntPtr),typeof(IntPtr),typeof(IntPtr));
+  Method("draw",4,typeof(int),typeof(IntPtr),typeof(uint),typeof(int),typeof(IntPtr),typeof(IntPtr),typeof(IntPtr),typeof(IntPtr),typeof(IntPtr),typeof(IntPtr),typeof(IntPtr),typeof(IntPtr),typeof(uint),typeof(int));
+  Method("activate",9,typeof(int),typeof(IntPtr),typeof(IntPtr));Method("deactivate",10,typeof(int),typeof(IntPtr));Method("uiActivate",11,typeof(int),typeof(IntPtr));Method("uiDeactivate",12,typeof(int),typeof(IntPtr));Method("properties",19,typeof(int),typeof(IntPtr),typeof(uint),typeof(uint));
+  var rectangle=System.Runtime.InteropServices.Marshal.AllocHGlobal(16);var textPointer=System.Runtime.InteropServices.Marshal.StringToHGlobalUni(text);var resultPointer=System.Runtime.InteropServices.Marshal.AllocHGlobal(IntPtr.Size);try{Rect(rectangle,bounds);Check((int)functions["activate"].DynamicInvoke(service,rectangle)!,"in-place activate");Check((int)functions["send"].DynamicInvoke(service,0xCu,IntPtr.Zero,textPointer,resultPointer)!,"initial text");}finally{System.Runtime.InteropServices.Marshal.FreeHGlobal(rectangle);System.Runtime.InteropServices.Marshal.FreeHGlobal(textPointer);System.Runtime.InteropServices.Marshal.FreeHGlobal(resultPointer);}
+  string token=Guid.NewGuid().ToString("N");AppDomain.CurrentDomain.SetData("Confectory.Win32TextServices."+token,state);return token;
+ }catch{
+  if(unknown!=IntPtr.Zero){var table=System.Runtime.InteropServices.Marshal.ReadIntPtr(unknown);Bind(System.Runtime.InteropServices.Marshal.ReadIntPtr(table,2*IntPtr.Size),typeof(uint),typeof(IntPtr)).DynamicInvoke(unknown);}
+  if((IntPtr)state[3]!=IntPtr.Zero){var serviceTable=System.Runtime.InteropServices.Marshal.ReadIntPtr((IntPtr)state[3]);Bind(System.Runtime.InteropServices.Marshal.ReadIntPtr(serviceTable,2*IntPtr.Size),typeof(uint),typeof(IntPtr)).DynamicInvoke((IntPtr)state[3]);}
+  if((IntPtr)state[17]!=IntPtr.Zero)DeleteDC((IntPtr)state[17]);foreach(int n in new[]{7,8,4,5})if((IntPtr)state[n]!=IntPtr.Zero)System.Runtime.InteropServices.Marshal.FreeHGlobal((IntPtr)state[n]);if((IntPtr)state[2]!=IntPtr.Zero)System.Runtime.InteropServices.NativeLibrary.Free((IntPtr)state[2]);throw;
+ }
+}
+var owned=AppDomain.CurrentDomain.GetData("Confectory.Win32TextServices."+host) as object[]??throw new ObjectDisposedException("TextServices");
+if((int)owned[0]!=Environment.CurrentManagedThreadId)throw new InvalidOperationException("TextServices requires creating UI thread");if(operation=="close"&&(bool)owned[10])return "{}";if((bool)owned[10])throw new ObjectDisposedException("TextServices");
+IntPtr nativeService=(IntPtr)owned[3];var methods=(System.Collections.Generic.Dictionary<string,Delegate>)owned[15];
+long Send(uint message,IntPtr wparam,IntPtr lparam){var result=System.Runtime.InteropServices.Marshal.AllocHGlobal(IntPtr.Size);try{Check((int)methods["send"].DynamicInvoke(nativeService,message,wparam,lparam,result)!,"message");return System.Runtime.InteropServices.Marshal.ReadIntPtr(result).ToInt64();}finally{System.Runtime.InteropServices.Marshal.FreeHGlobal(result);}}
+if(operation=="snapshot"){int size=checked((int)Send(0xEu,IntPtr.Zero,IntPtr.Zero));if(size<0||size>1048576)throw new InvalidOperationException("Text snapshot budget");var text=System.Runtime.InteropServices.Marshal.AllocHGlobal((size+1)*2);var selection=System.Runtime.InteropServices.Marshal.AllocHGlobal(8);try{Send(0xDu,(IntPtr)(size+1),text);Send(0x434u,IntPtr.Zero,selection);return new System.Text.Json.Nodes.JsonObject{["text"]=System.Runtime.InteropServices.Marshal.PtrToStringUni(text)??"",["anchor"]=System.Runtime.InteropServices.Marshal.ReadInt32(selection),["caret"]=System.Runtime.InteropServices.Marshal.ReadInt32(selection,4),["caretGeometry"]=System.Text.Json.JsonSerializer.SerializeToNode((int[])owned[12]),["bounds"]=System.Text.Json.JsonSerializer.SerializeToNode((int[])owned[9]),["focus"]=(bool)owned[14],["readonly"]=(bool)owned[13],["provider"]="win32-windowless-textservices-proof",["interactiveReady"]=false,["parent"]=((IntPtr)owned[1]).ToInt64().ToString()}.ToJsonString();}finally{System.Runtime.InteropServices.Marshal.FreeHGlobal(text);System.Runtime.InteropServices.Marshal.FreeHGlobal(selection);}}
+if(operation=="focus"){bool focus=args["focus"]!.GetValue<bool>();if(focus!=(bool)owned[14]){Check((int)methods[focus?"uiActivate":"uiDeactivate"].DynamicInvoke(nativeService)!,"UI focus");owned[14]=focus;}return "{}";}
+if(operation=="send"){long result=Send(args["message"]!.GetValue<uint>(),(IntPtr)(args["wparam"]?.GetValue<long>()??0),(IntPtr)(args["lparam"]?.GetValue<long>()??0));return new System.Text.Json.Nodes.JsonObject{["result"]=result}.ToJsonString();}
+if(operation=="pointer"){
+ int[] bounds=System.Text.Json.JsonSerializer.Deserialize<int[]>(args["bounds"]!.ToJsonString())!;Bounds(bounds);if(!System.Linq.Enumerable.SequenceEqual(bounds,(int[])owned[9])){owned[9]=bounds;Check((int)methods["properties"].DynamicInvoke(nativeService,0x180000u,0x180000u)!,"pointer layout change");}
+ int kind=args["kind"]!.GetValue<int>(),x=args["x"]!.GetValue<int>(),y=args["y"]!.GetValue<int>();if(kind is not (1 or 2 or 3)||x<short.MinValue||x>short.MaxValue||y<short.MinValue||y>short.MaxValue)throw new ArgumentException("Pointer proof packet");Send(kind==1?0x201u:kind==2?0x202u:0x200u,kind==2?IntPtr.Zero:(IntPtr)1,(IntPtr)((y<<16)|(x&65535)));return "{}";
+}
+if(operation=="draw"){
+ long[] surfaces=System.Text.Json.JsonSerializer.Deserialize<long[]>(args["surfaces"]!.ToJsonString())!;int view=args["view"]!.GetValue<int>();if(view<0||view>=surfaces.Length-1||surfaces[view+1]!=((IntPtr)owned[1]).ToInt64())throw new ArgumentException("TextServices canvas must belong to borrowed parent");
+ int[] bounds=System.Text.Json.JsonSerializer.Deserialize<int[]>(args["bounds"]!.ToJsonString())!,regions=System.Text.Json.JsonSerializer.Deserialize<int[]>(args["regions"]!.ToJsonString())!;Bounds(bounds);if(regions.Length%4!=0||regions.Length>1024)throw new ArgumentException("TextServices region budget");for(int n=0;n<regions.Length;n+=4)if(regions[n+2]<1||regions[n+3]<1||regions[n]<bounds[0]||regions[n+1]<bounds[1]||(long)regions[n]+regions[n+2]>(long)bounds[0]+bounds[2]||(long)regions[n+1]+regions[n+3]>(long)bounds[1]+bounds[3])throw new ArgumentException("TextServices clip outside native layout");
+ if(!System.Linq.Enumerable.SequenceEqual(bounds,(int[])owned[9])){owned[9]=bounds;Check((int)methods["properties"].DynamicInvoke(nativeService,0x180000u,0x180000u)!,"layout change");}
+ long[]? canvas=null;IntPtr rect=IntPtr.Zero,update=IntPtr.Zero;try{canvas=calls.AcquireCanvas.Invoke(surfaces,view);rect=System.Runtime.InteropServices.Marshal.AllocHGlobal(16);update=System.Runtime.InteropServices.Marshal.AllocHGlobal(16);owned[11]=(IntPtr)canvas[1];Rect(rect,bounds);for(int n=0;n<regions.Length;n+=4){int saved=SaveDC((IntPtr)canvas[1]);if(saved==0)throw new InvalidOperationException("TextServices clip save failed");try{var clip=regions[n..(n+4)];Rect(update,clip);if(IntersectClipRect((IntPtr)canvas[1],clip[0],clip[1],clip[0]+clip[2],clip[1]+clip[3])==0)throw new InvalidOperationException("TextServices clip failed");Check((int)methods["draw"].DynamicInvoke(nativeService,1u,-1,IntPtr.Zero,IntPtr.Zero,(IntPtr)canvas[1],IntPtr.Zero,rect,IntPtr.Zero,update,IntPtr.Zero,0u,(bool)owned[14]?0:-1)!,"draw");}finally{if(!RestoreDC((IntPtr)canvas[1],saved))throw new InvalidOperationException("TextServices clip restore failed");}}}finally{owned[11]=IntPtr.Zero;System.Runtime.InteropServices.Marshal.FreeHGlobal(rect);System.Runtime.InteropServices.Marshal.FreeHGlobal(update);if(canvas is not null)calls.ReleaseCanvas.Invoke(surfaces,view,canvas);}return "{}";
+}
+if(operation=="close"){if((IntPtr)owned[11]!=IntPtr.Zero)throw new InvalidOperationException("Cannot close TextServices during drawing");if((bool)owned[14])methods["uiDeactivate"].DynamicInvoke(nativeService);methods["deactivate"].DynamicInvoke(nativeService);methods["release"].DynamicInvoke(nativeService);owned[3]=IntPtr.Zero;DeleteDC((IntPtr)owned[17]);foreach(int n in new[]{7,8,4,5})System.Runtime.InteropServices.Marshal.FreeHGlobal((IntPtr)owned[n]);((System.Collections.Generic.List<Delegate>)owned[6]).Clear();methods.Clear();System.Runtime.InteropServices.NativeLibrary.Free((IntPtr)owned[2]);owned[10]=true;return "{}";}
+throw new ArgumentException("Unknown TextServices proof operation");

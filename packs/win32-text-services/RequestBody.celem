@@ -1,0 +1,4 @@
+implementation Confectory.Win32TextServices::RequestBody for Confectory.Win32TextServices::Request (string host, string operation, string payload, long parentWindow) -> string {
+import Confectory.Window::Win32AcquireCanvas as AcquireCanvas (long[], int) -> long[];
+import Confectory.Window::Win32ReleaseCanvas as ReleaseCanvas (long[], int, long[]) -> void;
+body common "Request.csbody"; }

@@ -1,0 +1,7 @@
+implementation Example.TextServicesProbe::MainBody for Example.TextServicesProbe::Main () -> int {
+import Confectory.Window::Win32Create as Create (long[], int, string, int, int) -> void;
+import Confectory.Window::Win32Pump as Pump (long[]) -> int[];
+import Confectory.Window::Win32Draw as Draw (long[], int, int[], string[]) -> void;
+import Confectory.Window::Win32Close as Close (long[], int) -> void;
+import Confectory.Win32TextServices::Request as Text (string, string, string, long) -> string;
+body common "Main.csbody"; }

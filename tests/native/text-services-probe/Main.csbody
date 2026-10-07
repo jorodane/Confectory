@@ -1,0 +1,18 @@
+[System.Runtime.InteropServices.DllImport("msftedit.dll")]static extern int TextProofCounter(int index);
+void Check(bool value,string reason){if(!value)throw new Exception(reason);}
+var surfaces=new long[2];var tokens=new System.Collections.Generic.List<string>();System.Text.Json.Nodes.JsonNode J(string value)=>System.Text.Json.Nodes.JsonNode.Parse(value)!;
+try{calls.Create.Invoke(surfaces,0,"Text proof",480,420);calls.Draw.Invoke(surfaces,0,new[]{0,0,480,420,0x14212B},new[]{""});
+string a=calls.Text.Invoke("","create",System.Text.Json.JsonSerializer.Serialize(new{text="Native first",bounds=new[]{10,20,200,100},@readonly=true}),surfaces[1]);tokens.Add(a);
+string b=calls.Text.Invoke("","create",System.Text.Json.JsonSerializer.Serialize(new{text="Native second",bounds=new[]{100,60,200,100},@readonly=true}),surfaces[1]);tokens.Add(b);
+Check(J(calls.Text.Invoke(a,"snapshot","{}",0))["text"]!.ToString()=="Native first","Coherent native text snapshot");
+Check(J(calls.Text.Invoke(b,"snapshot","{}",0))["text"]!.ToString()=="Native second","Retained objects have independent native text");
+for(int n=0;n<8;n++){calls.Text.Invoke(a,"draw",System.Text.Json.JsonSerializer.Serialize(new{surfaces,view=0,bounds=new[]{10+n,20,200,100},regions=new[]{10+n,20,60,100}}),0);calls.Text.Invoke(b,"draw",System.Text.Json.JsonSerializer.Serialize(new{surfaces,view=0,bounds=new[]{100,60,200,100},regions=new[]{100,60,200,100}}),0);calls.Pump.Invoke(surfaces);}
+Check(TextProofCounter(0)==2&&TextProofCounter(2)==16&&TextProofCounter(3)==7,"Drawing/movement retains native identity and updates native layout");
+calls.Text.Invoke(a,"send","{\"message\":177,\"wparam\":1,\"lparam\":5}",0);var snapshot=J(calls.Text.Invoke(a,"snapshot","{}",0));Check(snapshot["anchor"]!.GetValue<int>()==1&&snapshot["caret"]!.GetValue<int>()==5,"Native selection is projected without manual selection layout");
+calls.Text.Invoke(a,"pointer",System.Text.Json.JsonSerializer.Serialize(new{kind=1,x=30,y=40,bounds=new[]{17,20,200,100}}),0);calls.Text.Invoke(a,"pointer",System.Text.Json.JsonSerializer.Serialize(new{kind=2,x=30,y=40,bounds=new[]{17,20,200,100}}),0);
+bool thread=System.Threading.Tasks.Task.Run(()=>{try{calls.Text.Invoke(a,"snapshot","{}",0);return false;}catch(InvalidOperationException){return true;}}).GetAwaiter().GetResult();Check(thread,"Text object is UI-thread owned");
+bool clip=false;try{calls.Text.Invoke(a,"draw",System.Text.Json.JsonSerializer.Serialize(new{surfaces,view=0,bounds=new[]{17,20,200,100},regions=new[]{0,0,50,50}}),0);}catch(ArgumentException){clip=true;}Check(clip,"Reject clip outside native layout");
+calls.Text.Invoke(a,"close","{}",0);calls.Text.Invoke(a,"close","{}",0);Check(J(calls.Text.Invoke(b,"snapshot","{}",0))["text"]!.ToString()=="Native second","Closing one native object preserves the other");
+bool disposed=false;try{calls.Text.Invoke(a,"snapshot","{}",0);}catch(ObjectDisposedException){disposed=true;}Check(disposed,"Late native object use is rejected");
+}finally{foreach(string token in tokens)calls.Text.Invoke(token,"close","{}",0);calls.Close.Invoke(surfaces,-1);}
+Check(TextProofCounter(0)==TextProofCounter(1),"Every native object releases on owner close");Console.WriteLine("TextServices ABI proof PASS; NOT Windows runtime/IME coverage");return 0;

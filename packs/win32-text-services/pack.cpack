@@ -1,0 +1,4 @@
+pack Confectory.Win32TextServices version "0.1.0" {
+dependency Confectory.Window version "0.1.0";
+element Request function "Request.celem"; element RequestBody implementation "RequestBody.celem";
+}
