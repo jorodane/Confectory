@@ -1,0 +1,1 @@
+function Confectory.Window::Win32AcquireCanvas (long[] surfaces, int view) -> long[] { provide Confectory.Window::Win32AcquireCanvas with Confectory.Window::Win32AcquireCanvasBody; description "Borrow the owned buffered GDI canvas on its UI thread; release before pumping, drawing or closing this View."; }

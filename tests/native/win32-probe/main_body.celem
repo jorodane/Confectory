@@ -5,5 +5,7 @@ import Confectory.Window::Win32Draw as Draw (long[], int, int[], string[]) -> vo
 import Confectory.Window::Win32Close as Close (long[], int) -> void;
 import Confectory.Window::Win32MeasureText as MeasureText (long[], int, string) -> string;
 import Confectory.Window::Win32DrawText as DrawText (long[], int, int[], int[], string[]) -> void;
+import Confectory.Window::Win32AcquireCanvas as AcquireCanvas (long[], int) -> long[];
+import Confectory.Window::Win32ReleaseCanvas as ReleaseCanvas (long[], int, long[]) -> void;
 body common "main.csbody";
 }

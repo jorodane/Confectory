@@ -1,0 +1,1 @@
+function Confectory.Window::Win32ReleaseCanvas (long[] surfaces, int view, long[] canvas) -> void { provide Confectory.Window::Win32ReleaseCanvas with Confectory.Window::Win32ReleaseCanvasBody; description "Restore borrowed GDI state, retire the lease and invalidate the completed buffered frame."; }

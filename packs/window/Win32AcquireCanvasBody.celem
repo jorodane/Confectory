@@ -1,0 +1,1 @@
+implementation Confectory.Window::Win32AcquireCanvasBody for Confectory.Window::Win32AcquireCanvas (long[] surfaces, int view) -> long[] { body common "Win32AcquireCanvas.csbody"; }

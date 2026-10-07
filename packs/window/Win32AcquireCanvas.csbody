@@ -1,0 +1,11 @@
+[System.Runtime.InteropServices.DllImport("kernel32.dll")]static extern uint GetCurrentThreadId();
+[System.Runtime.InteropServices.DllImport("gdi32.dll")]static extern int SaveDC(IntPtr dc);
+if(!OperatingSystem.IsWindows())throw new PlatformNotSupportedException("Win32 buffered canvas provider.");
+if(view<0||view>=surfaces.Length-1||surfaces[view+1]==0)throw new ArgumentException("Open View required.");
+var context=AppDomain.CurrentDomain.GetData("Confectory.Win32."+surfaces[0]) as object[]??throw new ObjectDisposedException("Win32 session");
+if((uint)context[7]!=GetCurrentThreadId())throw new InvalidOperationException("Win32 canvas requires creating UI thread.");
+var frames=(System.Collections.Generic.Dictionary<long,object[]>)context[4];long handle=surfaces[view+1];if(!frames.TryGetValue(handle,out var frame))throw new InvalidOperationException("Draw the base frame before canvas composition.");
+if(frame.Length==5){frame=new object[]{frame[0],frame[1],frame[2],frame[3],frame[4],0L,0};frames[handle]=frame;}
+if((long)frame[5]!=0)throw new InvalidOperationException("Canvas already borrowed.");
+int saved=SaveDC((IntPtr)frame[0]);if(saved==0)throw new InvalidOperationException("Canvas DC save failed.");long token;do{token=BitConverter.ToInt64(Guid.NewGuid().ToByteArray(),0);}while(token==0);frame[5]=token;frame[6]=saved;
+return new[]{token,((IntPtr)frame[0]).ToInt64(),(long)(int)frame[2],(long)(int)frame[3],handle};

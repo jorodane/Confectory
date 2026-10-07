@@ -1,0 +1,11 @@
+[System.Runtime.InteropServices.DllImport("kernel32.dll")]static extern uint GetCurrentThreadId();
+[System.Runtime.InteropServices.DllImport("gdi32.dll")]static extern bool RestoreDC(IntPtr dc,int saved);
+[System.Runtime.InteropServices.DllImport("user32.dll")]static extern bool InvalidateRect(IntPtr window,IntPtr rectangle,bool erase);
+if(!OperatingSystem.IsWindows())throw new PlatformNotSupportedException("Win32 buffered canvas provider.");
+if(canvas.Length!=5)throw new ArgumentException("Opaque canvas lease required.");if(canvas[0]==0)return;
+if(view<0||view>=surfaces.Length-1||surfaces[view+1]!=canvas[4])throw new ArgumentException("Canvas belongs to another View.");
+var context=AppDomain.CurrentDomain.GetData("Confectory.Win32."+surfaces[0]) as object[]??throw new ObjectDisposedException("Win32 session");
+if((uint)context[7]!=GetCurrentThreadId())throw new InvalidOperationException("Win32 canvas requires creating UI thread.");
+var frames=(System.Collections.Generic.Dictionary<long,object[]>)context[4];if(!frames.TryGetValue(canvas[4],out var frame)||frame.Length<7||(long)frame[5]!=canvas[0]||((IntPtr)frame[0]).ToInt64()!=canvas[1])throw new InvalidOperationException("Stale or foreign canvas lease.");
+bool restored=RestoreDC((IntPtr)frame[0],(int)frame[6]);frame[5]=0L;frame[6]=0;canvas[0]=0;if(!restored)throw new InvalidOperationException("Canvas DC restore failed.");
+if(!InvalidateRect((IntPtr)canvas[4],IntPtr.Zero,false))throw new InvalidOperationException("Canvas frame invalidation failed.");

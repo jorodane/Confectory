@@ -1,0 +1,1 @@
+implementation Confectory.Window::Win32ReleaseCanvasBody for Confectory.Window::Win32ReleaseCanvas (long[] surfaces, int view, long[] canvas) -> void { body common "Win32ReleaseCanvas.csbody"; }
