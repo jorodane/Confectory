@@ -49,10 +49,13 @@ public sealed class MainActivity : Activity,Choreographer.IFrameCallback
     {
         if(operation=="create")
         {
-            if(parent!=1)throw new ArgumentException("Android native fields need the current surface owner");
-            string id=Guid.NewGuid().ToString("N");fields.Add(id,new NativeFieldHost(this));return id;
+            if(surface is null||parent!=surface.ParentId)throw new ArgumentException("Android native fields need the current surface owner");
+            if(closed)throw new InvalidOperationException("Activity owner retired");
+            string id=Guid.NewGuid().ToString("N");fields.Add(id,new NativeFieldHost(this));
+            AppDomain.CurrentDomain.SetData("Confectory.Android.NativeUI.Owner."+id,(Func<string,string,string,long,string>)OwnedNativeRequest);return id;
         }
-        if(!fields.TryGetValue(host,out var field))throw new InvalidOperationException("Native field owner is unavailable");
+        if(!fields.TryGetValue(host,out var field)){if(operation=="close"&&Guid.TryParseExact(host,"N",out _))return "{}";throw new InvalidOperationException("Native field owner is unavailable");}
+        if(closed&&operation!="close")throw new InvalidOperationException("Activity owner retired");
         if(operation=="folder-begin")
         {
             if(pickerState=="pending")throw new InvalidOperationException("Android document picker already pending");
@@ -67,8 +70,17 @@ public sealed class MainActivity : Activity,Choreographer.IFrameCallback
         }
         if(operation=="folder-cancel"){if(pickerHost==host){pickerEpoch++;pickerState="cancelled";}return "{}";}
         if(operation=="open-folder")throw new PlatformNotSupportedException("Android app-private folders are owned by the app; external desktop file managers are unavailable");
-        if(operation=="close"){if(pickerHost==host){pickerEpoch++;pickerState="cancelled";}try{field.Dispose();}finally{fields.Remove(host);}return "{}";}
+        if(operation=="close"){if(pickerHost==host){pickerEpoch++;pickerState="cancelled";}field.Dispose();fields.Remove(host);AppDomain.CurrentDomain.SetData("Confectory.Android.NativeUI.Owner."+host,null);return "{}";}
         return field.Request(operation,payload);
+    }
+    string OwnedNativeRequest(string host,string operation,string payload,long parent)
+    {
+        if(Looper.MyLooper()==Looper.MainLooper)return NativeRequest(host,operation,payload,parent);
+        if(operation!="close")throw new InvalidOperationException("Native UI requests require the main looper");
+        var completion=new System.Threading.Tasks.TaskCompletionSource<string>(System.Threading.Tasks.TaskCreationOptions.RunContinuationsAsynchronously);
+        using var handler=new Handler(Looper.MainLooper!);if(!handler.Post(()=>{try{completion.TrySetResult(NativeRequest(host,operation,payload,parent));}catch(Exception error){completion.TrySetException(error);}}))throw new InvalidOperationException("Main looper rejected native cleanup");
+        // Only a worker waits; Activity main looper never blocks on its own release callback.
+        return completion.Task.WaitAsync(TimeSpan.FromSeconds(20)).GetAwaiter().GetResult();
     }
     string EntryRequest(string handle,string operation,string payload)
     {
@@ -122,8 +134,8 @@ public sealed class MainActivity : Activity,Choreographer.IFrameCallback
             try{retire?.Invoke();}finally
             {
                 step=null;retire=null;stop=null;
-                foreach(var f in fields.Values)try{f.Dispose();}catch(Exception error){global::Android.Util.Log.Warn("Confectory",error.Message);}
-                fields.Clear();entryOwners.Clear();inbox.Clear();pickerEpoch++;surface?.Close();
+                foreach(var key in fields.Keys.ToArray())try{NativeRequest(key,"close","{}",0);}catch(Exception error){global::Android.Util.Log.Warn("Confectory","Owned native release retained for retry: "+error.Message);}
+                entryOwners.Clear();inbox.Clear();pickerEpoch++;surface?.Close();
                 // The private HostLoop token remains provider-owned until its pending jobs/resources close.
             }
         }
@@ -146,6 +158,7 @@ internal sealed class ProductSurface : View
     string[] labels=Array.Empty<string>(),texts=Array.Empty<string>();
     long[]? token;bool closed;int primaryPointer=-1;bool touchCancelled;
     public string Diagnostic="";
+    public long ParentId=>token is null||closed?0:token[1];
     float Density=>Resources!.DisplayMetrics!.Density;
     public int LogicalWidth=>Math.Max(1,(int)(Width/Density));
     public int LogicalHeight=>Math.Max(1,(int)(Height/Density));
@@ -163,8 +176,10 @@ internal sealed class ProductSurface : View
         if(operation=="CreateSurfaces")
         {
             var titles=(string[])args[0];if((int)args[1]<1||(int)args[2]<1)throw new ArgumentException("Invalid requested surface dimensions");if(titles.Length!=1)throw new PlatformNotSupportedException("Android host has one Activity surface, not independent desktop windows");
-            if(token is not null&&!closed)throw new InvalidOperationException("Surface already owned");closed=false;token=new long[]{1,1};return token;
+            if(token is not null&&!closed)throw new InvalidOperationException("Surface already owned");closed=false;long id;do{id=BitConverter.ToInt64(Guid.NewGuid().ToByteArray(),0);}while(id==0||AppDomain.CurrentDomain.GetData("Confectory.Android.Window.Owner."+id) is not null);
+            token=new long[]{id,id};AppDomain.CurrentDomain.SetData("Confectory.Android.Window.Owner."+id,(Func<string,object[],object>)Request);return token;
         }
+        if(operation=="Close"&&closed&&token is not null&&ReferenceEquals(args[0],token))return new object();
         Check(args);
         if(operation!="Pump"&&args.Length>1&&args[1] is int view&&view!=0&&!(operation=="Close"&&view==-1))throw new ArgumentOutOfRangeException("view","Android Activity owns one surface");
         switch(operation)
@@ -230,5 +245,5 @@ internal sealed class ProductSurface : View
     static int Key(Keycode k)=>k switch{Keycode.Tab=>0xff09,Keycode.Enter=>0xff0d,Keycode.Escape=>0xff1b,Keycode.Space=>32,Keycode.DpadLeft=>0xff51,Keycode.DpadUp=>0xff52,Keycode.DpadRight=>0xff53,Keycode.DpadDown=>0xff54,_=>0};
     public override bool OnKeyDown(Keycode code,KeyEvent? e){int k=Key(code);if(k==0)return base.OnKeyDown(code,e);Emit(5,0,0,k,e?.RepeatCount>0?1:0);return true;}
     public override bool OnKeyUp(Keycode code,KeyEvent? e){int k=Key(code);if(k==0)return base.OnKeyUp(code,e);Emit(6,0,0,k);return true;}
-    public void Close(){if(closed)return;closed=true;events.Clear();if(token is not null){token[0]=0;token[1]=0;}}
+    public void Close(){if(closed)return;closed=true;events.Clear();if(token is not null){AppDomain.CurrentDomain.SetData("Confectory.Android.Window.Owner."+token[0],null);token[1]=0;}}
 }

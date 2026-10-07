@@ -11,7 +11,7 @@ internal sealed class NativeFieldHost : IDisposable
     readonly Activity activity;
     readonly FrameLayout overlay;
     readonly Dictionary<string,Field> fields=new();
-    readonly Queue<int> events=new();
+    readonly Queue<int> events=new();bool disposed;
     sealed class Field
     {
         public required ClippedEdit Edit;
@@ -94,5 +94,19 @@ internal sealed class NativeFieldHost : IDisposable
         if(operation=="close"){Dispose();return "{}";}
         throw new PlatformNotSupportedException("Android native field operation unavailable: "+operation+"; folder paths and native folder paths are not desktop-equivalent");
     }
-    public void Dispose(){foreach(var f in fields.Values){overlay.RemoveView(f.Edit);f.Edit.Dispose();}fields.Clear();if(overlay.Parent is ViewGroup parent)parent.RemoveView(overlay);overlay.Dispose();}
+    public void Dispose()
+    {
+        if(disposed)return;var errors=new List<Exception>();
+        foreach(var key in fields.Keys.ToArray())
+        {
+            var field=fields[key];try{overlay.RemoveView(field.Edit);}catch(Exception error){errors.Add(error);}
+            try{field.Edit.Dispose();fields.Remove(key);}catch(Exception error){errors.Add(error);}
+        }
+        if(fields.Count==0)
+        {
+            try{if(overlay.Parent is ViewGroup parent)parent.RemoveView(overlay);}catch(Exception error){errors.Add(error);}
+            try{overlay.Dispose();disposed=true;}catch(Exception error){errors.Add(error);}
+        }
+        if(errors.Count>0)throw new AggregateException("Native fields remain owned until cleanup retry succeeds",errors);
+    }
 }

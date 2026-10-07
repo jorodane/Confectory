@@ -1,2 +1,3 @@
-var adapter=AppDomain.CurrentDomain.GetData("Confectory.Android.Window") as Func<string,object[],object>??throw new PlatformNotSupportedException("Android window operation requires owning Activity adapter");
+if(surfaces.Length==2&&surfaces[1]==0)return;
+var adapter=AppDomain.CurrentDomain.GetData("Confectory.Android.Window.Owner."+surfaces[0]) as Func<string,object[],object>??throw new PlatformNotSupportedException("Android window operation requires owning Activity adapter");
 adapter("Close",new object[]{surfaces, view});
