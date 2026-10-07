@@ -13,7 +13,7 @@ public sealed class ButtonTests : TestCase
             foreach(string key in new[]{"compiledContracts","compiledImplementations"})True(!Strings(built,"statistics",key).Any(x=>new[]{"Confectory.Editor::","Confectory.EditWorkspace::","Confectory.SourceEditor::","Confectory.ProjectManager::","Confectory.Helper::","Confectory.Agent::"}.Any(prefix=>x.StartsWith(prefix,StringComparison.Ordinal))));
             foreach(string name in new[]{"Button","ButtonInput"}){File.AppendAllText(Path.Combine(owned,name+".csbody"),"\n// shared button provider locality probe\n");var changed=new Builder(project,"linux").Build();Sequence(new[]{"Confectory.BaseUI::"+name+"Body"},Strings(changed,"statistics","compiledImplementations"));Equal(0,Strings(changed,"statistics","compiledContracts").Length);}
             if(!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DISPLAY"))){string report=Path.Combine(f.Root,"button native report.json");File.WriteAllText(report,built.ToJsonString());var native=Processes.Run(new[]{"python",Path.Combine(Fixture.Repo,"tests","gui","button_game_x11.py"),report},timeoutSeconds:120);True(native.ExitCode==0,native.Stdout+native.Stderr);True(native.Stdout.Contains("Editor-free native game shares BaseUI Button",StringComparison.Ordinal));}
-            else Console.WriteLine("SKIP native button game: no actual DISPLAY");
+            else Skip("native button game: no actual DISPLAY");
             foreach(string target in new[]{"windows","android"}){var compiled=new Builder(project,target).Build();True(compiled["tool"]!["ok"]!.GetValue<bool>());}
         }
         finally{Environment.SetEnvironmentVariable("CONFECTORY_BUTTON_GAME_GUI",gui);}

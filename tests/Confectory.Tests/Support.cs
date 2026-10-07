@@ -118,8 +118,11 @@ public sealed class Fixture : IDisposable
     public void Dispose() { if (Directory.Exists(Root)) Directory.Delete(Root, true); }
 }
 
+public sealed class SkippedException(string reason) : Exception(reason);
+
 public abstract class TestCase : IDisposable
 {
+    protected static void Skip(string reason) => throw new SkippedException(reason);
     protected readonly Fixture f = new();
     protected static void True(bool condition, string message = "Assertion failed") { if (!condition) throw new Exception(message); }
     protected static void Equal<T>(T expected, T actual) { if (!EqualityComparer<T>.Default.Equals(expected, actual)) throw new Exception($"Expected {expected}; actual {actual}"); }

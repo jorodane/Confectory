@@ -21,7 +21,7 @@ public sealed class NativeUITests : TestCase
     }
     public void test_native_gtk_actual_editing_picker_and_lifetime()
     {
-        if(string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DISPLAY"))){Console.WriteLine("SKIP native service GUI: no actual DISPLAY");return;}
+        if(string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DISPLAY"))){Skip("native service GUI: no actual DISPLAY");}
         string consumer=Consumer(),project=Path.Combine(consumer,"project.cpack");var built=new Builder(project,"linux").Build();string report=Path.Combine(f.Root,"native report.json");File.WriteAllText(report,built.ToJsonString());var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests","gui","native_input_x11.py"),report},timeoutSeconds:180);True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("owner dialog cleanup PASS"));
         var windows=new Builder(project,"windows").Build();True(windows["tool"]!["ok"]!.GetValue<bool>());Console.WriteLine("Windows native provider managed compilation only; no Windows IME/dialog runtime claim");
     }

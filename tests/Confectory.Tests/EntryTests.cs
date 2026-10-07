@@ -48,7 +48,7 @@ public sealed class EntryTests : TestCase
    var acknowledgment=Acknowledge();var opened=Processes.Run(new[]{Processes.DotNet(),entry,"open",input,"--repository",installation},timeoutSeconds:40);True(opened.ExitCode==0,opened.Stdout+opened.Stderr);Equal(input,acknowledgment.GetAwaiter().GetResult());True(!Directory.Exists(Path.Combine(f.Root,".confectory")),"Installed tool forwarding never builds incoming pack");
   }finally{Environment.SetEnvironmentVariable("CONFECTORY_ENTRY_STORAGE",storage);Environment.SetEnvironmentVariable("CONFECTORY_ENTRY_SCOPE",scope);}
   // CMD execution belongs on Windows. Linux proves clean output/rebuild/runtime, not batch parsing.
-  if(!OperatingSystem.IsWindows()){Console.WriteLine("NOT RUN: actual Windows CMD bootstrap/registry import (no Windows host)");return;}
+  if(!OperatingSystem.IsWindows())Skip("Actual Windows CMD bootstrap/registry import requires Windows host");
   (int code,string output) Batch(string script,string? argument=null,string? dotnet=null){string invocation="\""+Path.Combine(installation,script)+"\""+(argument is null?"":" \""+argument+"\"");var start=new System.Diagnostics.ProcessStartInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System),"cmd.exe")){UseShellExecute=false,RedirectStandardOutput=true,RedirectStandardError=true,Arguments="/d /v:off /s /c \""+invocation+"\"",WorkingDirectory=f.Root};start.Environment["CONFECTORY_DOTNET"]=dotnet??Processes.DotNet();start.Environment["CONFECTORY_NO_PAUSE"]="1";using var process=System.Diagnostics.Process.Start(start)!;var stdout=process.StandardOutput.ReadToEndAsync();var stderr=process.StandardError.ReadToEndAsync();if(!process.WaitForExit(180000)){process.Kill(true);throw new TimeoutException("Windows missing-output bootstrap");}return(process.ExitCode,stdout.GetAwaiter().GetResult()+stderr.GetAwaiter().GetResult());}
   File.Delete(entry);var recovered=Batch("open-project-windows.bat",Path.Combine(f.Root,"missing.cproj"));True(recovered.code!=0&&recovered.output.Contains("Building this trusted checkout"),recovered.output);Outputs();True(!File.Exists(Path.Combine(installation,".confectory","Confectory.cproj.reg")),"Opening does not generate/import associations");
   File.Delete(entry);var failed=Batch("open-project-windows.bat",input,Path.Combine(installation,"no-dotnet.exe"));True(failed.code!=0&&failed.output.Contains("Installation build failed")&&!File.Exists(entry),failed.output);
@@ -63,7 +63,7 @@ public sealed class EntryTests : TestCase
  }
  public void test_project_file_entry_actual_x11_startup_and_existing_instance()
  {
-  if(string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DISPLAY"))){Console.WriteLine("SKIP file entry GUI: no DISPLAY");return;}
+  if(string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DISPLAY"))){Skip("file entry GUI: no DISPLAY");}
   var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests","gui","project_entry_x11.py"),Fixture.Repo},timeoutSeconds:300);True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("ProjectEntry actual X11 PASS"));
  }
  public void test_library_open_edit_and_external_transition_policy()

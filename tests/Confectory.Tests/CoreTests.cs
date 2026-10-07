@@ -132,7 +132,7 @@ public sealed class CoreTests : TestCase
     }
     public void test_owned_source_symlink_cannot_escape_pack()
     {
-        if (!OperatingSystem.IsLinux()) return;
+        if (!OperatingSystem.IsLinux()) Skip("Requires Linux fixture host");
         string outside = Path.Combine(f.Root, "outside.celem"); File.WriteAllText(outside, "function Api::Value (int n) -> int {}");
         string link = Path.Combine(f.Packs["Api"].Root, "linked.celem"); File.CreateSymbolicLink(link, outside);
         f.Packs["Api"].Elements["Value"] = ("function", "linked.celem"); f.Sync(); Error("OWNERSHIP", () => f.Registry());

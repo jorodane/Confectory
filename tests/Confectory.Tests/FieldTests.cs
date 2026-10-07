@@ -35,7 +35,7 @@ public sealed class FieldTests : TestCase
                     finally{Environment.SetEnvironmentVariable("CONFECTORY_TEXT_SCALE",prior);}
                 }
             }
-            else Console.WriteLine("SKIP native Field pixels/capture: no actual DISPLAY");
+            else Skip("native Field pixels/capture: no actual DISPLAY");
             foreach(string target in new[]{"windows","android"}){var compiled=new Builder(project,target).Build();True(compiled["tool"]!["ok"]!.GetValue<bool>());}
         }
         finally{Environment.SetEnvironmentVariable("CONFECTORY_FIELD_GAME_GUI",gui);}

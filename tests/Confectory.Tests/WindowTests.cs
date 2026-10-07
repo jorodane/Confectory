@@ -98,5 +98,6 @@ public sealed class WindowTests : TestCase
                 Marshal.FreeHGlobal(message); if (display != IntPtr.Zero) XCloseDisplay(display);
             }
         }
+        if(!OperatingSystem.IsWindows() && !(OperatingSystem.IsLinux() && !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DISPLAY")))) Skip("Native runtime requires Windows or Linux DISPLAY; managed/negative assertions ran only");
     }
 }

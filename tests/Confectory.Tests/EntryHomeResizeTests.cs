@@ -4,7 +4,7 @@ public sealed class EntryHomeResizeTests : TestCase
 {
     public void test_entry_home_tiny_and_zero_client_suspend_restore_preserve_input_lifetimes()
     {
-        if(string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DISPLAY"))){Console.WriteLine("SKIP native resize: no DISPLAY");return;}
+        if(string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DISPLAY"))){Skip("native resize: no DISPLAY");}
         string consumer=Path.Combine(f.Root,"small client home"),window=Path.Combine(f.Root,"owned window");Fixture.CopyTree(Path.Combine(Fixture.Repo,"examples","editor-home"),consumer);Fixture.CopyTree(Path.Combine(Fixture.Repo,"packs","window"),window);
         string project=Path.Combine(consumer,"project.cpack");File.WriteAllText(project,File.ReadAllText(project).Replace("../../",Fixture.Repo+"/").Replace(Path.Combine(Fixture.Repo,"packs","window","pack.cpack"),Path.Combine(window,"pack.cpack")));
         string flag=Path.Combine(f.Root,"zero-client.flag"),body=Path.Combine(window,"SurfaceDimensions.csbody");File.WriteAllText(body,"if(System.IO.File.Exists("+System.Text.Json.JsonSerializer.Serialize(flag)+"))return new[]{0,0};\n"+File.ReadAllText(body));

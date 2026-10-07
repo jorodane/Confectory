@@ -4,7 +4,7 @@ public sealed class ProjectNavigationTests : TestCase
 {
     public void test_project_browser_actual_semantic_windows_and_consumer_locality()
     {
-        if(string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DISPLAY"))){Console.WriteLine("SKIP browser native GUI: no DISPLAY");return;}
+        if(string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DISPLAY"))){Skip("browser native GUI: no DISPLAY");}
         string consumer=Path.Combine(f.Root,"semantic browser");Fixture.CopyTree(Path.Combine(Fixture.Repo,"examples","project-browser"),consumer);
         string project=Path.Combine(consumer,"project.cpack");File.WriteAllText(project,File.ReadAllText(project).Replace("../../",Fixture.Repo+"/"));
         var built=new Builder(project,"linux").Build();string report=Path.Combine(f.Root,"browser.json");File.WriteAllText(report,built.ToJsonString());
@@ -14,7 +14,7 @@ public sealed class ProjectNavigationTests : TestCase
     }
     public void test_window_placement_actual_x11_snap_alignment_and_recovery()
     {
-        if(string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DISPLAY"))){Console.WriteLine("SKIP placement GUI: no DISPLAY");return;}
+        if(string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DISPLAY"))){Skip("placement GUI: no DISPLAY");}
         string consumer=Path.Combine(f.Root,"placement gui");Fixture.CopyTree(Path.Combine(Fixture.Repo,"tests","native","window-placement-probe"),consumer);
         string project=Path.Combine(consumer,"project.cpack");File.WriteAllText(project,File.ReadAllText(project).Replace("../../../",Fixture.Repo+"/"));
         var built=new Builder(project,"linux").Build();string report=Path.Combine(f.Root,"placement.json");File.WriteAllText(report,built.ToJsonString());
@@ -44,7 +44,7 @@ public sealed class ProjectNavigationTests : TestCase
     }
     public void test_project_navigation_actual_linux_context_keyboard_pointer_resize_and_cleanup()
     {
-        if(string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DISPLAY"))){Console.WriteLine("SKIP native navigation: no DISPLAY");return;}
+        if(string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DISPLAY"))){Skip("native navigation: no DISPLAY");}
         string consumer=Path.Combine(f.Root,"navigation home");Fixture.CopyTree(Path.Combine(Fixture.Repo,"examples","editor-home"),consumer);
         string project=Path.Combine(consumer,"project.cpack");File.WriteAllText(project,File.ReadAllText(project).Replace("../../",Fixture.Repo+"/"));var built=new Builder(project,"linux").Build();string report=Path.Combine(f.Root,"navigation.json");File.WriteAllText(report,built.ToJsonString());var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests","gui","project_navigation_x11.py"),report},timeoutSeconds:240);True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("Project navigation actual X11:"));
         File.AppendAllText(Path.Combine(consumer,"Main.csbody"),"\n// project navigation presentation locality probe\n");var changed=new Builder(project,"linux").Build();Sequence(new[]{"Confectory.EditorHome::MainBody"},Strings(changed,"statistics","compiledImplementations"));Equal(0,Strings(changed,"statistics","compiledContracts").Length);

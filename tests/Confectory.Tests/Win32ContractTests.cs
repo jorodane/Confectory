@@ -4,7 +4,7 @@ public sealed class Win32ContractTests : TestCase
 {
  public void test_retained_text_services_canvas_abi_and_provider_locality()
  {
-  if(!OperatingSystem.IsLinux())return;
+  if(!OperatingSystem.IsLinux())Skip("Requires Linux fixture host");
   string sample=Path.Combine(f.Root,"text-probe"),pack=Path.Combine(f.Root,"text-services"),window=Path.Combine(f.Root,"window"),native=Path.Combine(f.Root,"native");
   Fixture.CopyTree(Path.Combine(Fixture.Repo,"tests","native","text-services-probe"),sample);Fixture.CopyTree(Path.Combine(Fixture.Repo,"packs","win32-text-services"),pack);Fixture.CopyTree(Path.Combine(Fixture.Repo,"packs","window"),window);Fixture.CopyTree(Path.Combine(Fixture.Repo,"packs","render-input"),Path.Combine(f.Root,"render-input"));Directory.CreateDirectory(native);
   foreach(string name in new[]{"Win32Create","Win32Pump","Win32Draw","Win32Close","Win32AcquireCanvas","Win32ReleaseCanvas"}){string path=Path.Combine(window,name+".csbody");File.WriteAllText(path,System.Text.RegularExpressions.Regex.Replace(File.ReadAllText(path),"if\\(!OperatingSystem.IsWindows\\(\\)\\)throw new PlatformNotSupportedException\\([^;]+;",""));}
@@ -18,7 +18,7 @@ public sealed class Win32ContractTests : TestCase
  }
  public void test_windowless_consumer_owner_cleanup_after_native_failure()
  {
-  if(!OperatingSystem.IsLinux())return;
+  if(!OperatingSystem.IsLinux())Skip("Requires Linux fixture host");
   string sample=Path.Combine(f.Root,"examples","proof"),native=Path.Combine(f.Root,"native");Directory.CreateDirectory(native);
   Fixture.CopyTree(Path.Combine(Fixture.Repo,"examples","windowless-browser-proof"),sample);
   foreach(string pack in new[]{"ui-navigation","win32-text-services","ui-order","window-placement","base-ui","runtime-base","window","render-input","edit-workspace","schema-editing","file-stream"})Fixture.CopyTree(Path.Combine(Fixture.Repo,"packs",pack),Path.Combine(f.Root,"packs",pack));
@@ -89,7 +89,7 @@ Console.WriteLine("Windowless consumer owner cleanup ABI PASS; NOT Windows runti
  }
  public void test_native_callback_routing_paint_and_lifetime_contract()
  {
-  if(!OperatingSystem.IsLinux())return; // explicit Linux ABI fixture; native Windows user QA remains separate
+  if(!OperatingSystem.IsLinux())Skip("Requires Linux fixture host"); // explicit Linux ABI fixture; native Windows user QA remains separate
   string sample=Path.Combine(f.Root,"win32-probe"),pack=Path.Combine(f.Root,"packs","window"),native=Path.Combine(f.Root,"native");
   Fixture.CopyTree(Path.Combine(Fixture.Repo,"tests","native","win32-probe"),sample);Fixture.CopyTree(Path.Combine(Fixture.Repo,"packs","window"),pack);Fixture.CopyTree(Path.Combine(Fixture.Repo,"packs","render-input"),Path.Combine(f.Root,"packs","render-input"));Directory.CreateDirectory(native);
   foreach(string name in new[]{"Win32Create","Win32Pump","Win32Draw","Win32Close","Win32MeasureText","Win32DrawText","Win32AcquireCanvas","Win32ReleaseCanvas","BindPresentation","PresentBuffered"})

@@ -46,7 +46,7 @@ public sealed class EditorTests : TestCase
     }
     public void test_editor_native_designed_create_open_edit_save_review_confirm_run_stop_and_lifetime()
     {
-        if(string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DISPLAY"))){Console.WriteLine("SKIP native editor: no actual DISPLAY");return;}
+        if(string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DISPLAY"))){Skip("native editor: no actual DISPLAY");}
         string consumer=Consumer();var built=new Builder(Path.Combine(consumer,"project.cpack"),"linux").Build();ExcludeOptional(built);string report=Path.Combine(f.Root,"editor native report.json");File.WriteAllText(report,built.ToJsonString());var run=Processes.Run(new[]{"python",Path.Combine(Fixture.Repo,"tests","gui","editor_x11_workflow.py"),report},timeoutSeconds:360);True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("Editor native create/folder-open",StringComparison.Ordinal),run.Stdout);
         File.AppendAllText(Path.Combine(consumer,"Main.csbody"),"\n// owning editor presentation locality probe\n");var changed=new Builder(Path.Combine(consumer,"project.cpack"),"linux").Build();Sequence(new[]{"Confectory.Editor::MainBody"},Strings(changed,"statistics","compiledImplementations"));Equal(0,Strings(changed,"statistics","compiledContracts").Length);
     }

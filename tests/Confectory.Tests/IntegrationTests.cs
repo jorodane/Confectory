@@ -50,7 +50,7 @@ public sealed class IntegrationTests : TestCase
     public void test_target_specific_common_fallback_and_linux_launcher()
     {
         Output(Build(), "5");
-        if (!OperatingSystem.IsLinux()) return;
+        if (!OperatingSystem.IsLinux()) Skip("Requires Linux fixture host");
         var linux = Build("linux"); Output(linux, "32"); Equal("run", Path.GetFileName(Strings(linux, "run")[0])); f.Add("Provider", "implementation", "ValueBody", "implementation Provider::ValueBody for Api::Value (int n) -> int { body common \"value.csbody\"; }"); var fallback = Build("linux"); Output(fallback, "5");
         var catalog = JsonNode.Parse(File.ReadAllText(Text(fallback, "publicCatalog")))!; Equal("common", Text(catalog["implementations"]!.AsArray().Single(x => Text(x!, "id") == "Provider::ValueBody")!, "bodySelection"));
     }

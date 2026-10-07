@@ -5,7 +5,7 @@ public sealed class BrowserWasmTests : TestCase
     public void test_independent_browser_wasm_actual_chromium_and_owner_provider_locality()
     {
         string sdk=Path.GetDirectoryName(new FileInfo(Processes.DotNet()).ResolveLinkTarget(true)?.FullName??Processes.DotNet())!;
-        if(!Directory.Exists(Path.Combine(sdk,"packs","Microsoft.NET.Runtime.WebAssembly.Sdk"))){Console.WriteLine("SKIP independent WASM: install .NET8 wasm-tools; source/managed compilation is not runtime coverage");return;}
+        if(!Directory.Exists(Path.Combine(sdk,"packs","Microsoft.NET.Runtime.WebAssembly.Sdk"))){Skip("independent WASM: install .NET10 wasm-tools; source/managed compilation is not runtime coverage");}
         string consumer=Path.Combine(f.Root,"browser wasm consumer"),provider=Path.Combine(f.Root,"owned browser runtime");Fixture.CopyTree(Path.Combine(Fixture.Repo,"examples","editor-home-browser"),consumer);Fixture.CopyTree(Path.Combine(Fixture.Repo,"packs","browser-runtime"),provider);
         string project=Path.Combine(consumer,"project.cproj");File.WriteAllText(project,File.ReadAllText(project).Replace("../../",Fixture.Repo+"/",StringComparison.Ordinal).Replace(Path.Combine(Fixture.Repo,"packs","browser-runtime","pack.cpack"),Path.Combine(provider,"pack.cpack"),StringComparison.Ordinal));
         var baseline=new Builder(project,"browser");var built=baseline.Build();

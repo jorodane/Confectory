@@ -41,5 +41,6 @@ public sealed class EngineTests : TestCase
             if(gui){True(!stderr.Contains("Fontconfig error: No writable cache directories",StringComparison.Ordinal),stderr);Equal(0,process.ExitCode);True(stdout.Contains("two-window isolation/reopen PASS",StringComparison.Ordinal),stdout+stderr);}
             else {Equal(1,process.ExitCode);True(stderr.Contains("Cannot open X11 display",StringComparison.Ordinal),stderr);}
         }
+        if(!OperatingSystem.IsWindows() && !(OperatingSystem.IsLinux() && !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DISPLAY")))) Skip("Native runtime requires Windows or Linux DISPLAY; managed/negative assertions ran only");
     }
 }
