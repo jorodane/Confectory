@@ -1,3 +1,4 @@
+if(AppDomain.CurrentDomain.GetData("Confectory.Android.Window") is Func<string,object[],object> adapter){adapter("Draw",new object[]{surfaces, view, rectangles, labels});return;}
 if(surfaces.Length!=3)throw new ArgumentException("Invalid Android surface token.");
 var context=AppDomain.CurrentDomain.GetData("Confectory.Android.Surface."+surfaces[0]) as object[];
 if(context is null)throw new InvalidOperationException("Android app-owned surface session is unavailable.");

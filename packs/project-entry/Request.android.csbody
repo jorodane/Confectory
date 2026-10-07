@@ -1,1 +1,2 @@
-throw new PlatformNotSupportedException("Android file entry requires an Activity intent/content-URI adapter and user-granted storage; desktop named pipes are unavailable.");
+var adapter=AppDomain.CurrentDomain.GetData("Confectory.Android.ProjectEntry") as Func<string,string,string,string>??throw new PlatformNotSupportedException("Android file entry requires owning Activity intent/grant adapter");
+return adapter(handle,operation,payload);

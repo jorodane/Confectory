@@ -1,2 +1,2 @@
 var adapter=AppDomain.CurrentDomain.GetData("Confectory.Android.Window") as Func<string,object[],object>??throw new PlatformNotSupportedException("Android window operation requires owning Activity adapter");
-adapter("DrawText",new object[]{surfaces, view, clips, origins, labels});
+adapter("Close",new object[]{surfaces, view});

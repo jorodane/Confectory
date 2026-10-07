@@ -1,1 +1,1 @@
-implementation Confectory.Window::SurfaceDimensionsBody for Confectory.Window::SurfaceDimensions (long[] surfaces, int view) -> int[] { body common "SurfaceDimensions.csbody"; }
+implementation Confectory.Window::SurfaceDimensionsBody for Confectory.Window::SurfaceDimensions (long[] surfaces, int view) -> int[] { body android "SurfaceDimensions.android.csbody"; body common "SurfaceDimensions.csbody"; }

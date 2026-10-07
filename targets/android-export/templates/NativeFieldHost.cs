@@ -14,12 +14,29 @@ internal sealed class NativeFieldHost : IDisposable
     readonly Queue<int> events=new();
     sealed class Field
     {
-        public required EditText Edit;
+        public required ClippedEdit Edit;
         public required string Binding;
         public int Id;
         public bool ReadOnly,Deferred;
         public global::Android.Text.Method.IKeyListener? KeyListener;
         public HashSet<int> Commands=new();
+    }
+    sealed class ClippedEdit : EditText
+    {
+        public global::Android.Graphics.Path? Clip;
+        public int[] Regions=Array.Empty<int>();
+        public ClippedEdit(global::Android.Content.Context context):base(context){}
+        public override void Draw(global::Android.Graphics.Canvas? canvas)
+        {
+            if(canvas is null)return;int save=canvas.Save();try{if(Clip is not null)canvas.ClipPath(Clip);base.Draw(canvas);}finally{canvas.RestoreToCount(save);}
+        }
+        public override bool OnTouchEvent(MotionEvent? e)
+        {
+            if(e is not null&&e.ActionMasked==MotionEventActions.Down&&Clip is not null)
+            {bool hit=false;for(int i=0;i<Regions.Length;i+=4)hit|=e.GetX()>=Regions[i]&&e.GetY()>=Regions[i+1]&&e.GetX()<Regions[i]+Regions[i+2]&&e.GetY()<Regions[i+1]+Regions[i+3];if(!hit)return false;}
+            return base.OnTouchEvent(e);
+        }
+        protected override void Dispose(bool disposing){if(disposing){Clip?.Dispose();Clip=null;}base.Dispose(disposing);}
     }
     public NativeFieldHost(Activity activity)
     {
@@ -41,7 +58,7 @@ internal sealed class NativeFieldHost : IDisposable
             int id=args["id"]!.GetValue<int>();string binding=args["binding"]!.ToString(),key=id+":"+binding;
             if(!fields.TryGetValue(key,out var field))
             {
-                var edit=new EditText(activity);field=new Field{Edit=edit,Binding=binding,Id=id,KeyListener=edit.KeyListener};fields.Add(key,field);overlay.AddView(edit);
+                var edit=new ClippedEdit(activity);field=new Field{Edit=edit,Binding=binding,Id=id,KeyListener=edit.KeyListener};fields.Add(key,field);overlay.AddView(edit);
                 var captured=field;edit.KeyPress+=(_,e)=>
                 {
                     int code=e.KeyCode switch{Keycode.Enter=>13,Keycode.Tab=>9,Keycode.Escape=>27,_=>0};
@@ -61,6 +78,13 @@ internal sealed class NativeFieldHost : IDisposable
             {LeftMargin=(int)(rect[0]!.GetValue<int>()*d),TopMargin=(int)(rect[1]!.GetValue<int>()*d)};
             return Snapshot(field).ToJsonString();
         }
+        if(operation=="clip")
+        {
+            string key=args["key"]!.ToString();if(!fields.TryGetValue(key,out var f))return "{}";
+            var r=args["regions"]!.AsArray();float d=activity.Resources!.DisplayMetrics!.Density;var b=(FrameLayout.LayoutParams)f.Edit.LayoutParameters!;var regions=new int[r.Count];var path=new global::Android.Graphics.Path();
+            for(int i=0;i<r.Count;i+=4){int x=(int)(r[i]!.GetValue<int>()*d)-b.LeftMargin,y=(int)(r[i+1]!.GetValue<int>()*d)-b.TopMargin,w=(int)(r[i+2]!.GetValue<int>()*d),h=(int)(r[i+3]!.GetValue<int>()*d);regions[i]=x;regions[i+1]=y;regions[i+2]=w;regions[i+3]=h;path.AddRect(x,y,x+w,y+h,global::Android.Graphics.Path.Direction.Cw!);}
+            f.Edit.Clip?.Dispose();f.Edit.Clip=path;f.Edit.Regions=regions;f.Edit.Invalidate();return "{}";
+        }
         if(operation=="snapshot"){var result=new JsonArray();foreach(var f in fields.Values)result.Add(Snapshot(f));return result.ToJsonString();}
         if(operation=="events"){var result=new JsonArray();while(events.Count>0)result.Add(events.Dequeue());return result.ToJsonString();}
         if(operation=="frame"){var shown=args["shown"]!.AsArray().Select(n=>n!.ToString()).ToHashSet();foreach(var item in fields)if(!shown.Contains(item.Key)){item.Value.Edit.ClearFocus();item.Value.Edit.Visibility=ViewStates.Gone;}return "{}";}
@@ -68,7 +92,7 @@ internal sealed class NativeFieldHost : IDisposable
         if(operation=="commands"){int id=args["id"]!.GetValue<int>();foreach(var f in fields.Values)if(f.Id==id)f.Commands=args["keys"]!.AsArray().Select(n=>n!.GetValue<int>()).ToHashSet();return "{}";}
         if(operation=="forget"){string binding=args["binding"]!.ToString();foreach(string key in fields.Keys.Where(k=>fields[k].Binding==binding).ToArray()){overlay.RemoveView(fields[key].Edit);fields[key].Edit.Dispose();fields.Remove(key);}return "{}";}
         if(operation=="close"){Dispose();return "{}";}
-        throw new PlatformNotSupportedException("Android native field operation unavailable: "+operation+"; folder paths and arbitrary native clip regions are not desktop-equivalent");
+        throw new PlatformNotSupportedException("Android native field operation unavailable: "+operation+"; folder paths and native folder paths are not desktop-equivalent");
     }
     public void Dispose(){foreach(var f in fields.Values){overlay.RemoveView(f.Edit);f.Edit.Dispose();}fields.Clear();if(overlay.Parent is ViewGroup parent)parent.RemoveView(overlay);overlay.Dispose();}
 }

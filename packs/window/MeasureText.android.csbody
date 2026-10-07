@@ -1,1 +1,2 @@
-throw new PlatformNotSupportedException("Android text metrics require an app-owned native text/shaping provider matching its renderer; managed profile is not native coverage.");
+var adapter=AppDomain.CurrentDomain.GetData("Confectory.Android.Window") as Func<string,object[],object>??throw new PlatformNotSupportedException("Android window operation requires owning Activity adapter");
+return (string)adapter("MeasureText",new object[]{surfaces, view, text});
