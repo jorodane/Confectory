@@ -1,0 +1,1 @@
+pack Confectory.HostLoop version "0.1.0" { standalone false; element Run function "Run.celem"; element RunBody implementation "RunBody.celem"; element Schedule function "Schedule.celem"; element ScheduleBody implementation "ScheduleBody.celem"; }

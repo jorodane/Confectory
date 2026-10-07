@@ -1,0 +1,13 @@
+# HostLoop role
+
+Public elements: `Confectory.HostLoop::Run(string token)->int` and `Schedule(string token)->void`. This role owns host cadence and job scheduling, not editor layout or commands. The actual `examples/editor-home/project.cpack` entry registers closures for its existing Render/Action/input flow and invokes Run. Browser and Android must install their ordinary target host before invoking that same entry.
+
+Private, process-local bridge: `AppContext["Confectory.HostLoop." + token]` is `object[]{Func<bool> step, Action dispose}`. A step returns true while alive. The target host schedules steps, calls dispose once on stop/error, and removes the registry entry. Desktop Run blocks and sleeps two milliseconds between steps; browser RAF and Android app callbacks return immediately from Run. Host callbacks must remain alive until disposal. Dispose is idempotent. Stop/closed waits through further steps for any scheduled job to finish; it never synchronously waits on an unfinished job in an app callback.
+
+`AppContext["Confectory.HostLoop.Job." + token]` is `object[]{Func<string> work, TaskCompletionSource<string> completion}`. Schedule takes ownership and removes this entry. Desktop/Android run work on a task. Browser runs bounded local metadata/filesystem work synchronously and resolves the completion; unsupported compiler/process operations must be rejected by their owning providers. No thread or browser UI implementation belongs in Core.
+
+The browser/Android Run bodies dispatch their installed `Func<string,int>` under `Confectory.HostLoop.Run.browser` / `.android`. Missing hosts raise a capability error rather than using a test shell. Window and NativeInput providers still own surface/render/input capabilities. Android app surfaces do not imply desktop OS multiwindow capability.
+
+Increment boundary: reads actual EditorHome Main/MainBody/project manifest and NativeUI Request provider bodies because the old Main used a blocking desktop loop, direct OS folder launching, and an Android-specific shell instead of the actual common product flow. Edits are those files plus this role pack; shared UI Render and Action bodies are unchanged. OpenFolder now requests the owning NativeUI provider operation `open-folder` with JSON `{path}`, allowing target-specific diagnostics.
+
+Rebuild scope: the new role contracts and EditorHome Main import/signature closure, selected HostLoop bodies and selected NativeUI Request body; no Core change. Subsequent target scheduling-body edits should rebuild only the selected provider and affected linked artifact, subject to target compiler cache policy. Functional cross-target product tests and structural/locality tests are separate gates; isolated shell tests are not product target proof.

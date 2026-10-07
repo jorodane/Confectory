@@ -1,0 +1,1 @@
+function Confectory.HostLoop::Run (string token) -> int { provide Confectory.HostLoop::Run with Confectory.HostLoop::RunBody; }

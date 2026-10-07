@@ -1,0 +1,1 @@
+implementation Confectory.HostLoop::ScheduleBody for Confectory.HostLoop::Schedule (string token) -> void { body common "Schedule.csbody"; body browser "Schedule.browser.csbody"; body android "Schedule.android.csbody"; }

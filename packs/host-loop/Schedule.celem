@@ -1,0 +1,1 @@
+function Confectory.HostLoop::Schedule (string token) -> void { provide Confectory.HostLoop::Schedule with Confectory.HostLoop::ScheduleBody; }

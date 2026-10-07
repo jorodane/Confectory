@@ -1,3 +1,4 @@
+if(operation=="open-folder"){var request=System.Text.Json.Nodes.JsonNode.Parse(payload)??throw new ArgumentException("Missing folder request");string path=request["path"]?.ToString()??throw new ArgumentException("Missing path");var info=new System.Diagnostics.ProcessStartInfo{FileName="xdg-open",UseShellExecute=false};info.ArgumentList.Add(System.IO.Directory.Exists(path)?path:System.IO.Path.GetDirectoryName(path)!);System.Diagnostics.Process.Start(info)?.Dispose();return "{\"state\":\"opened\"}";}
 [System.Runtime.InteropServices.DllImport("libgobject-2.0.so.0",CharSet=System.Runtime.InteropServices.CharSet.Ansi)]static extern void g_signal_stop_emission_by_name(IntPtr instance,string signal);
 [System.Runtime.InteropServices.DllImport("libgdk-3.so.0")]static extern IntPtr gdk_x11_display_get_xdisplay(IntPtr display);
 [System.Runtime.InteropServices.DllImport("libX11.so.6")]static extern int XGetInputFocus(IntPtr display,out nuint focused,out int revert);

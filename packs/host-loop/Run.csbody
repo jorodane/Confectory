@@ -1,0 +1,1 @@
+string key="Confectory.HostLoop."+token;var state=(object[])(AppContext.GetData(key)??throw new InvalidOperationException("Unknown host loop"));var step=(Func<bool>)state[0];var dispose=(Action)state[1];try{while(step())System.Threading.Thread.Sleep(2);}finally{try{dispose();}finally{AppContext.SetData(key,null);}}return 0;

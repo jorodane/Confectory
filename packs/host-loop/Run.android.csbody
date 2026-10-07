@@ -1,0 +1,1 @@
+var run=AppContext.GetData("Confectory.HostLoop.Run.android") as Func<string,int>??throw new PlatformNotSupportedException("android host loop provider is not installed");return run(token);
