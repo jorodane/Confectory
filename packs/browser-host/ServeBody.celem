@@ -1,0 +1,6 @@
+implementation Confectory.BrowserHost::ServeBody for Confectory.BrowserHost::Serve (string repository, string assets) -> int {
+import Confectory.EditorHome::CreateSession as CreateSession (string, string) -> string;
+import Confectory.EditorHome::Command as Command (string, string, string) -> string;
+import Confectory.EditorHome::Snapshot as Snapshot (string) -> string;
+import Confectory.EditorHome::CloseSession as CloseSession (string) -> void;
+body common "Serve.csbody"; }

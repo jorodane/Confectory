@@ -1,0 +1,60 @@
+string root=System.IO.Path.GetFullPath(repository),assetRoot=System.IO.Path.GetFullPath(assets);
+string scratch=System.IO.Path.Combine(System.IO.Path.GetTempPath(),"confectory-browser-"+Guid.NewGuid().ToString("N"));
+System.IO.Directory.CreateDirectory(scratch);
+int port=int.TryParse(Environment.GetEnvironmentVariable("CONFECTORY_WEB_PORT"),out int configured)?configured:0;
+if(port==0){var probe=new System.Net.Sockets.TcpListener(System.Net.IPAddress.Loopback,0);probe.Start();port=((System.Net.IPEndPoint)probe.LocalEndpoint).Port;probe.Stop();}
+if(port<1024||port>65535)throw new ArgumentException("Browser host requires an unprivileged loopback port");
+string origin="http://127.0.0.1:"+port,token=Guid.NewGuid().ToString("N"),session="";
+using var listener=new System.Net.HttpListener();listener.Prefixes.Add(origin+"/");
+var stopped=new System.Threading.CancellationTokenSource();
+ConsoleCancelEventHandler cancel=(sender,eventArgs)=>{eventArgs.Cancel=true;stopped.Cancel();listener.Close();};
+Console.CancelKeyPress+=cancel;
+try{
+ session=calls.CreateSession.Invoke(root,System.IO.Path.Combine(scratch,"catalog"));listener.Start();
+ Console.WriteLine("CONFECTORY_BROWSER "+origin+"/#"+token);Console.Out.Flush();
+ while(!stopped.IsCancellationRequested){
+  System.Net.HttpListenerContext context;try{context=listener.GetContext();}catch(System.Net.HttpListenerException)when(stopped.IsCancellationRequested){break;}catch(ObjectDisposedException)when(stopped.IsCancellationRequested){break;}
+  var request=context.Request;var response=context.Response;
+  response.Headers["Cache-Control"]="no-store";response.Headers["X-Content-Type-Options"]="nosniff";
+  response.Headers["Content-Security-Policy"]="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'";
+  response.Headers["Referrer-Policy"]="no-referrer";
+  try{
+   string path=request.Url!.AbsolutePath;
+   if(request.Url.Authority!=new Uri(origin).Authority)throw new InvalidOperationException("Unexpected host");
+   if(path.StartsWith("/api/",StringComparison.Ordinal)){
+    if(request.Headers["X-Confectory-Session"]!=token||request.Headers["Origin"] is string senderOrigin&&senderOrigin!=origin)throw new UnauthorizedAccessException("Local browser session required");
+    if(request.HttpMethod!="POST"||request.ContentLength64<0||request.ContentLength64>2097152)throw new ArgumentException("Bounded POST required");
+    using var reader=new System.IO.StreamReader(request.InputStream,System.Text.Encoding.UTF8);string payload=reader.ReadToEnd();
+    if(System.Text.Encoding.UTF8.GetByteCount(payload)>2097152)throw new ArgumentException("Import budget exceeded");
+    var args=System.Text.Json.Nodes.JsonNode.Parse(payload)!.AsObject();
+    string result;
+    if(path=="/api/snapshot")result=calls.Snapshot.Invoke(session);
+    else if(path=="/api/import"){
+     string name=args["name"]!.GetValue<string>(),text=args["text"]!.GetValue<string>();
+     if(name!=System.IO.Path.GetFileName(name)||name.IndexOfAny(new[]{'/', '\\', '\0'})>=0||name.Length>240)throw new ArgumentException("Import requires a filename, not a filesystem path");
+     string extension=System.IO.Path.GetExtension(name).ToLowerInvariant();if(extension!=".cproj"&&extension!=".cpack")throw new ArgumentException("Choose a .cproj or legacy .cpack file");
+     if(System.Text.Encoding.UTF8.GetByteCount(text)>1048576)throw new ArgumentException("Manifest exceeds one MiB");
+     string key=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(name+"\n"+text)));
+     string folder=System.IO.Path.Combine(scratch,"imports",key);System.IO.Directory.CreateDirectory(folder);string file=System.IO.Path.Combine(folder,name);
+     System.IO.File.WriteAllText(file,text,new System.Text.UTF8Encoding(false));
+     var model=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(session))!;
+     if(model["selected"]?["path"]?.ToString()==file)result=model.ToJsonString();
+     else result=calls.Command.Invoke(session,"open-request",System.Text.Json.JsonSerializer.Serialize(new{path=file}));
+    }
+    else if(path=="/api/leave")result=calls.Command.Invoke(session,"leave",System.Text.Json.JsonSerializer.Serialize(new{draft=args["draft"]?.ToString()??""}));
+    else throw new ArgumentException("Browser capability does not expose build/run, native paths, or arbitrary commands");
+    response.ContentType="application/json; charset=utf-8";byte[] bytes=System.Text.Encoding.UTF8.GetBytes(result);response.ContentLength64=bytes.Length;response.OutputStream.Write(bytes);
+   }else{
+    if(request.HttpMethod!="GET")throw new ArgumentException("GET required");
+    string file=path switch{"/"=>"index.html","/app.js"=>"app.js","/style.css"=>"style.css",_=>throw new ArgumentException("Unknown browser asset")};
+    response.ContentType=file.EndsWith(".js",StringComparison.Ordinal)?"text/javascript":file.EndsWith(".css",StringComparison.Ordinal)?"text/css":"text/html; charset=utf-8";
+    byte[] bytes=System.IO.File.ReadAllBytes(System.IO.Path.Combine(assetRoot,file));response.ContentLength64=bytes.Length;response.OutputStream.Write(bytes);
+   }
+  }catch(Exception error){response.StatusCode=error is UnauthorizedAccessException?403:400;response.ContentType="application/json";byte[] bytes=System.Text.Encoding.UTF8.GetBytes(System.Text.Json.JsonSerializer.Serialize(new{error=error.Message}));response.OutputStream.Write(bytes);}
+  finally{response.Close();}
+ }
+ return 0;
+}finally{
+ Console.CancelKeyPress-=cancel;listener.Close();if(session.Length>0)calls.CloseSession.Invoke(session);
+ try{System.IO.Directory.Delete(scratch,true);}catch(System.IO.IOException){}stopped.Dispose();
+}

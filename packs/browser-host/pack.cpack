@@ -1,0 +1,4 @@
+pack Confectory.BrowserHost version "0.1.0" {
+standalone false;
+element Serve function "Serve.celem"; element ServeBody implementation "ServeBody.celem";
+}

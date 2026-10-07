@@ -1,0 +1,1 @@
+function Confectory.BrowserHost::Serve (string repository, string assets) -> int { provide Confectory.BrowserHost::Serve with Confectory.BrowserHost::ServeBody; }
