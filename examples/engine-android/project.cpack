@@ -1,4 +1,5 @@
 project Confectory.Engine.Android version "0.1.0" {
+standalone true;
 entry Confectory.Engine.Android::Main;
 registry Confectory.RuntimeBase "../../packs/runtime-base/pack.cpack";
 dependency Confectory.RuntimeBase version "0.1.0";

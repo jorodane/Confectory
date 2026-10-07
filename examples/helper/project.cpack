@@ -1,4 +1,5 @@
 project Example.Helper version "0.1.0" {
+standalone true;
 entry Example.Helper::Main;
 registry Confectory.Helper "../../packs/helper/pack.cpack";
 dependency Confectory.Helper version "0.1.0";

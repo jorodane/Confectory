@@ -1,4 +1,5 @@
 project Example.ProjectionMaintenance version "0.1.0" {
+standalone true;
 entry Example.ProjectionMaintenance::Main;
 registry Confectory.WorkerTasks "../../packs/worker-tasks/pack.cpack";
 dependency Confectory.WorkerTasks version "0.1.0";

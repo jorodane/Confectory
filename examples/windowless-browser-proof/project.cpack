@@ -1,4 +1,5 @@
 project Example.WindowlessBrowserProof version "0.1.0" {
+standalone true;
 registry Confectory.UINavigation "../../packs/ui-navigation/pack.cpack"; dependency Confectory.UINavigation version "0.1.0";
 entry Example.WindowlessBrowserProof::Main;
 registry Confectory.Win32TextServices "../../packs/win32-text-services/pack.cpack"; dependency Confectory.Win32TextServices version "0.1.0";

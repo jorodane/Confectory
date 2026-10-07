@@ -1,4 +1,5 @@
 project Example.PhysicsLab version "0.1.0" {
+standalone true;
 entry Example.PhysicsLab::Preview;
 registry Confectory.Physics2D "../../packs/physics-2d/pack.cpack";
 dependency Confectory.Physics2D version "0.1.0";

@@ -1,4 +1,5 @@
 project Example.BuildParticipation version "0.1.0" {
+standalone true;
 entry Example.BuildParticipation::Main;
 registry Confectory.SchemaEditing "../../packs/schema-editing/pack.cpack";
 dependency Confectory.SchemaEditing version "0.1.0";

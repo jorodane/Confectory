@@ -1,4 +1,5 @@
 project Example.BaseUI version "0.1.0" {
+standalone true;
 entry Example.BaseUI::Main;
 registry Confectory.BaseUI "../../packs/base-ui/pack.cpack";
 registry Confectory.RuntimeBase "../../packs/runtime-base/pack.cpack";

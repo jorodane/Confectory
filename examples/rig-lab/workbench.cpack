@@ -1,4 +1,5 @@
 project Example.RigLab version "0.1.0" {
+standalone true;
 entry Example.RigLab::Workbench;
 registry Confectory.RigMotion "../../packs/rig-motion/pack.cpack";
 dependency Confectory.RigMotion version "0.1.0";

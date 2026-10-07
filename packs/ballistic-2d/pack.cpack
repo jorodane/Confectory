@@ -1,4 +1,5 @@
 pack Confectory.Ballistic2D version "0.1.0" {
+standalone false;
 element Create function "Create.celem";
 element CreateBody implementation "CreateBody.celem";
 element Step function "Step.celem";

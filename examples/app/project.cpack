@@ -1,4 +1,5 @@
 project Example.App version "0.1.0" {
+standalone true;
     description "Minimum executable with contracts in a separate pack";
     entry Example.App::Main;
     registry Example.Api "../api/pack.cpack";

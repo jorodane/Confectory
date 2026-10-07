@@ -1,4 +1,5 @@
 project Confectory.Editor version "0.1.0" {
+standalone true;
 entry Confectory.Editor::Verify;
 registry Confectory.ProjectManager "../../packs/project-manager/pack.cpack"; dependency Confectory.ProjectManager version "0.1.0";
 registry Confectory.ProjectExecution "../../packs/project-execution/pack.cpack"; dependency Confectory.ProjectExecution version "0.1.0";

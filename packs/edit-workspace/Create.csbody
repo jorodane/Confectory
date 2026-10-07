@@ -3,7 +3,7 @@ string manifestID,previous;
 lock(state)
 {
  if(state["units"]![id] is not null)throw new ArgumentException("Element already exists.");
- manifestID=state["namespace"]!.GetValue<string>()+"::ProjectManifest";previous=state["units"]![manifestID]!["draft"]!.GetValue<string>();
+ manifestID=state["namespace"]!.GetValue<string>()+(state["units"]![state["namespace"]!.GetValue<string>()+"::ProjectManifest"] is null?"::PackManifest":"::ProjectManifest");previous=state["units"]![manifestID]!["draft"]!.GetValue<string>();
 }
 // Tool startup and formatting happen outside the draft lock so Views can read coherent snapshots.
 string text=calls.Create.Invoke(kind,id);string name=id[(id.IndexOf("::",StringComparison.Ordinal)+2)..],path="elements/"+name+".celem";

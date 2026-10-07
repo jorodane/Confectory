@@ -1,0 +1,5 @@
+pack Confectory.ProjectEntry version "0.1.0" {
+standalone false;
+element Request function "Request.celem";
+element RequestBody implementation "RequestBody.celem";
+}

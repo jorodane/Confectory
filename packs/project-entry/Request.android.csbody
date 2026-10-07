@@ -1,0 +1,1 @@
+throw new PlatformNotSupportedException("Android file entry requires an Activity intent/content-URI adapter and user-granted storage; desktop named pipes are unavailable.");

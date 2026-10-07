@@ -1,4 +1,5 @@
 project Example.Augment version "0.1.0" {
+standalone true;
 entry Example.Augment::Main;
 registry Confectory.Augment "../../packs/augment/pack.cpack";
 dependency Confectory.Augment version "0.1.0";

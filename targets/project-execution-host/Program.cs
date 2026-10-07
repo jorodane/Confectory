@@ -7,11 +7,11 @@ try
  if(args.Length==2&&args[0]=="describe")
  {
   string path=Path.GetFullPath(args[1]);var manifest=new Parser(File.ReadAllText(path),path).ParseManifest();
-  if(manifest.Kind!="project")throw new ArgumentException("A ProjectPack is required.");
-  Console.WriteLine(JsonSerializer.Serialize(new[]{manifest.Namespace,manifest.Entry??"",string.Join(",",manifest.Targets.Keys.Order(StringComparer.Ordinal))}));return 0;
+
+  Console.WriteLine(JsonSerializer.Serialize(new[]{manifest.Namespace,manifest.Entry??"",string.Join(",",manifest.Targets.Keys.Order(StringComparer.Ordinal)),manifest.Kind,manifest.SupportsStandalone?"true":"false"}));return 0;
  }
  if((args.Length!=4&&args.Length!=5)||args[0]!="run")throw new ArgumentException("Usage: describe ProjectPack | run ProjectPack entry target [sourceLeasePath]");
- string project=Path.GetFullPath(args[1]);if(string.IsNullOrWhiteSpace(args[2])||string.IsNullOrWhiteSpace(args[3]))throw new ArgumentException("Explicit entry and target required.");
+ string project=Path.GetFullPath(args[1]);var runnable=new Parser(File.ReadAllText(project),project).ParseManifest();if(runnable.Kind!="project"||!runnable.SupportsStandalone)throw new ArgumentException("This pack does not support standalone execution; open/edit it or compose a runnable ProjectPack.");if(string.IsNullOrWhiteSpace(args[2])||string.IsNullOrWhiteSpace(args[3]))throw new ArgumentException("Explicit entry and target required.");
  string folder=Path.Combine(Path.GetDirectoryName(project)!,".confectory");Directory.CreateDirectory(folder);
  string leasePath=args.Length==5?Path.GetFullPath(args[4]):Path.Combine(folder,"execution-build.lock");Directory.CreateDirectory(Path.GetDirectoryName(leasePath)!);
  FileStream? lease=null;var watch=Stopwatch.StartNew();

@@ -1,4 +1,5 @@
 pack Confectory.InstantTable version "0.1.0" {
+standalone false;
 dependency Confectory.EditWorkspace version "0.1.0";
 dependency Confectory.SchemaEditing version "0.1.0";
 dependency Confectory.ChangeSet version "0.1.0";

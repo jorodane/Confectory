@@ -1,3 +1,4 @@
+string entrySession="";
 int timeout=0;
 string? timeoutText=Environment.GetEnvironmentVariable("CONFECTORY_BASEUI_CLOSE_AFTER_MS");
 if(timeoutText is not null&&(!int.TryParse(timeoutText,out timeout)||timeout<0)){Console.Error.WriteLine("CONFECTORY_BASEUI_CLOSE_AFTER_MS must be nonnegative.");return 2;}
@@ -194,6 +195,7 @@ try
  AppDomain.CurrentDomain.SetData("Confectory.Engine.Presentation."+presentationID,(Func<long[],int,int,int,bool>)((live,v,w,h)=>{if(Environment.CurrentManagedThreadId!=presentationThread||!ReferenceEquals(live,surfaces))throw new InvalidOperationException("Presentation Owner/thread mismatch");if(interrupted||rendering||!IsOpen(v)||w<1||h<1)return false;calls.Input.Invoke(owners[v],models[v],views[v],7,w,h,0,0);RenderView(v,false);return true;}));
  for(int v=0;v<2;v++){RenderView(v,false);BindView(v);}
  }
+ if(windowPrefix=="Confectory BaseUI")entrySession=calls.EntryRequest.Invoke(Environment.GetEnvironmentVariable("CONFECTORY_ENTRY_SCOPE")??Environment.GetEnvironmentVariable("CONFECTORY_PROJECT_ROOT")??Environment.CurrentDirectory,"listen","{}");
  var schedule=calls.CreateSchedule.Invoke(16);
  calls.Register.Invoke(schedule,"Confectory.BaseUI::Input","input",0);
  calls.Register.Invoke(schedule,"Confectory.Engine::FixedUpdate","fixed",0);
@@ -211,6 +213,7 @@ try
  bool scriptedOnce=false;
  while(!interrupted&&(IsOpen(0)||IsOpen(1)))
  {
+  if(entrySession.Length>0){var request=System.Text.Json.Nodes.JsonNode.Parse(calls.EntryRequest.Invoke(entrySession,"poll","{}"))!;if(request["id"] is not null){string id=request["id"]!.ToString(),path=request["path"]!.ToString(),status="opened",notice="";try{bool active=projectContexts[0]!=""&&calls.ProjectContext.Invoke(projectManagers[0],projectContexts[0])[5]=="open";bool same=active&&string.Equals(calls.ProjectContext.Invoke(projectManagers[0],projectContexts[0])[1],path,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal);if(same)status="already-open";else if(authorJob is not null||workspaces[0]!=""||active){status="busy";notice="Existing project/drafts retained; open this file after closing the current context";}else{projectPaths[0]=path;ProjectAction(0,1);if(projectErrors[0].Length>0)throw new InvalidOperationException(projectErrors[0]);}}catch(Exception error){status="failed";notice=error.Message;}calls.EntryRequest.Invoke(entrySession,"reply",System.Text.Json.JsonSerializer.Serialize(new{id,status,message=notice}));}}
   PollAuthorJob();for(int v=0;v<2;v++)if(authorJob is null&&elementViews[v]!=""&&calls.ElementViewPoll.Invoke(elementViews[v])){calls.Invalidate.Invoke(views[v]);var info=calls.ElementViewInfo.Invoke(elementViews[v]);Console.WriteLine("element projection view="+v+" unit="+info[1]+" revision="+calls.EditWorkspaceRead.Invoke(info[0],info[1])[4]);}
   double now=watch.Elapsed.TotalSeconds,elapsed=now-previous;previous=now;
   var timing=calls.Advance.Invoke(clock,elapsed,1.0/120,1.0/60,1.0/50,4);dropped+=timing[4];
@@ -262,6 +265,7 @@ try
 catch(Exception ex){Console.Error.WriteLine(ex);return 1;}
 finally
 {
+ if(entrySession.Length>0)calls.EntryRequest.Invoke(entrySession,"close","{}");
  Console.CancelKeyPress-=cancelHandler;
  void Cleanup(Action release){try{release();}catch(Exception ex){Console.Error.WriteLine("Cleanup failed: "+ex.Message);}}
  if(OperatingSystem.IsWindows())for(int v=0;v<2;v++)if(surfaces.Length>v+1&&surfaces[v+1]!=0){int closing=v;Cleanup(()=>calls.BindPresentation.Invoke(surfaces,closing,""));}AppDomain.CurrentDomain.SetData("Confectory.Engine.Presentation."+presentationID,null);

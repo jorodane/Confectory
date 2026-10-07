@@ -1,4 +1,5 @@
 project Example.EditWorkspace version "0.1.0" {
+standalone true;
 entry Example.EditWorkspace::Main;
 registry Confectory.FileStream "../../packs/file-stream/pack.cpack";
 dependency Confectory.FileStream version "0.1.0";

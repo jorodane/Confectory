@@ -113,5 +113,6 @@ import Confectory.ProjectExecution::LaunchConfigured as ExecutionLaunchConfigure
 import Confectory.ProjectExecution::Output as ExecutionOutput (string[], string) -> string[];
 import Confectory.Window::BindPresentation as BindPresentation (long[], int, string) -> void;
 import Confectory.Window::PresentBuffered as PresentBuffered (long[], int) -> void;
+import Confectory.ProjectEntry::Request as EntryRequest (string,string,string) -> string;
 body common "main.csbody";
 }

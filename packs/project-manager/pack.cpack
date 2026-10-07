@@ -1,4 +1,5 @@
 pack Confectory.ProjectManager version "0.1.0" {
+standalone false;
  dependency Confectory.ProjectExecution version "0.1.0";
 element CreateManager function "CreateManager.celem";
 element CreateManagerBody implementation "CreateManagerBody.celem";

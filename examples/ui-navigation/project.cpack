@@ -1,4 +1,5 @@
-project Example.UINavigation version "0.1.0" { entry Example.UINavigation::Main;
+project Example.UINavigation version "0.1.0" {
+standalone true; entry Example.UINavigation::Main;
 registry Confectory.UINavigation "../../packs/ui-navigation/pack.cpack"; dependency Confectory.UINavigation version "0.1.0";
 registry Confectory.BaseUI "../../packs/base-ui/pack.cpack"; dependency Confectory.BaseUI version "0.1.0";
 registry Confectory.RuntimeBase "../../packs/runtime-base/pack.cpack"; dependency Confectory.RuntimeBase version "0.1.0";

@@ -1,4 +1,5 @@
 pack Confectory.Save version "0.1.0" {
+standalone false;
 dependency Confectory.EditWorkspace version "0.1.0";
 dependency Confectory.FileStream version "0.1.0";
 element Location function "Location.celem";

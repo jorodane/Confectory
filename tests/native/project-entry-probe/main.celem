@@ -1,0 +1,1 @@
+function Example.EntryProbe::Main () -> int { provide Example.EntryProbe::Main with Example.EntryProbe::MainBody; }

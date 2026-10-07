@@ -1,4 +1,5 @@
 project Example.ProjectA version "0.1.0" {
+standalone true;
 entry Example.ProjectA::Main;
 registry Confectory.Build.DotNet "../../../targets/dotnet/pack.cpack";
 dependency Confectory.Build.DotNet version "0.1.0";

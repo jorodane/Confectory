@@ -1,4 +1,5 @@
 project Example.ExecutionComparison version "0.1.0" {
+standalone true;
 entry Example.ExecutionComparison::Main;
 registry Confectory.ExecutionComparison "../../packs/execution-comparison/pack.cpack";
 dependency Confectory.ExecutionComparison version "0.1.0";

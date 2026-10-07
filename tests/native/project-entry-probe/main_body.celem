@@ -1,0 +1,1 @@
+implementation Example.EntryProbe::MainBody for Example.EntryProbe::Main () -> int { import Confectory.ProjectEntry::Request as Request (string,string,string) -> string; body common "main.csbody"; }

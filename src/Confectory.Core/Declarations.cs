@@ -36,6 +36,8 @@ public sealed class Manifest
     public string Version { get; set; } = "";
     public string Description { get; set; } = "";
     public SourceLocation Loc { get; set; } = new();
+    public bool? Standalone { get; set; }
+    public bool SupportsStandalone => Standalone ?? (Kind == "project" && Entry is not null);
     public string? Entry { get; set; }
     public Dictionary<string, Locator> Elements { get; set; } = new(StringComparer.Ordinal);
     public Dictionary<string, Dependency> Dependencies { get; set; } = new(StringComparer.Ordinal);
@@ -194,6 +196,11 @@ public sealed class Parser
                 case "registry": Unique(manifest.Registry, Name(), new(QuotedString(), token.Loc), token.Loc); break;
                 case "target": Unique(manifest.Targets, Name(), new(Name(true), token.Loc), token.Loc); break;
                 case "always": manifest.Always.Add(new(Name(true), token.Loc)); break;
+                case "standalone":
+                    if (!seen.Add(token.Value)) throw new BuildError("DUPLICATE_DECLARATION", "Duplicate standalone", token.Loc);
+                    var flag = Pop();
+                    if (flag.Quoted || flag.Value is not ("true" or "false")) throw new BuildError("SYNTAX", "standalone requires true or false", flag.Loc);
+                    manifest.Standalone = flag.Value == "true"; break;
                 case "entry": case "description":
                     if (!seen.Add(token.Value)) throw new BuildError("DUPLICATE_DECLARATION", $"Duplicate {token.Value}", token.Loc);
                     if (token.Value == "entry") manifest.Entry = Name(true); else manifest.Description = QuotedString(); break;

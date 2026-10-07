@@ -223,7 +223,7 @@ try:
     catalog=json.load(open(os.path.join(storage,'projects.json')))
     for n in range(6):
         directory=os.path.join(storage,f'Recent{n}');shutil.copytree(os.path.dirname(path),directory)
-        catalog.append({'path':os.path.join(directory,'project.cpack'),'title':f'Recent {n}','description':'Valid local project fixture'})
+        catalog.append({'path':os.path.join(directory,os.path.basename(path)),'title':f'Recent {n}','description':'Valid local project fixture'})
     with open(os.path.join(storage,'projects.json'),'w') as stream:json.dump(catalog,stream)
     a=launch();wait(lambda t:t['screen']=='intro' and 1 in t['hits'][::5],'restart intro');click(a,1);state=wait(lambda t:t['screen']=='home' and len(t['model']['cards'])==7,'restart catalog');assert state['controls']!=token
     click(a,4);wait(lambda t:2 not in t['hits'][::5] and 103 in t['hits'][::5],'project card next row');click(a,5);wait(lambda t:2 in t['hits'][::5] and 100 in t['hits'][::5],'project card previous row')

@@ -1,4 +1,5 @@
 pack Confectory.RealTimeUpdate version "0.1.0" {
+standalone false;
 element CreateSchedule function "CreateSchedule.celem";
 element CreateScheduleBody implementation "CreateScheduleBody.celem";
 element Register function "Register.celem";

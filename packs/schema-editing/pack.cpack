@@ -1,4 +1,5 @@
 pack Confectory.SchemaEditing version "0.1.0" {
+standalone false;
 element Call function "Call.celem";
 element CallBody implementation "CallBody.celem";
 element Describe function "Describe.celem";

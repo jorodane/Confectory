@@ -1,0 +1,1 @@
+function Confectory.ProjectEntry::Request (string handle, string operation, string payload) -> string { provide Confectory.ProjectEntry::Request with Confectory.ProjectEntry::RequestBody; description "Owned desktop file-open inbox: listen(scope), poll, reply, close. File opening never implies execution."; }

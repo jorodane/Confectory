@@ -18,9 +18,9 @@ try
         {
             string project=Path.GetFullPath(S("project")),root=Path.GetDirectoryName(project)!;
             var manifest=new Parser(File.ReadAllText(project),project).ParseManifest();
-            if(manifest.Kind!="project")throw new ArgumentException("Explicit ProjectPack required.");
+
             var units=new JsonArray();
-            units.Add(new JsonObject{["id"]=manifest.Namespace+"::ProjectManifest",["kind"]="project",["path"]=Path.GetFileName(project)});
+            units.Add(new JsonObject{["id"]=manifest.Namespace+(manifest.Kind=="project"?"::ProjectManifest":"::PackManifest"),["kind"]=manifest.Kind,["path"]=Path.GetFileName(project)});
             void AddOwned(Manifest owner,string manifestPath,bool pin)
             {
                 if(pin)units.Add(new JsonObject{["id"]=owner.Namespace+"::PackManifest",["kind"]="pack",["path"]=Path.GetRelativePath(root,manifestPath)});
@@ -48,7 +48,7 @@ try
                     var pack=new Parser(File.ReadAllText(owned),owned).ParseManifest();if(pack.Kind!="pack"||pack.Namespace!=ns)throw new ArgumentException("Editable pin namespace mismatch.");AddOwned(pack,owned,true);
                 }
             }
-            reply=new JsonObject{["project"]=project,["namespace"]=manifest.Namespace,["units"]=units};break;
+            reply=new JsonObject{["project"]=project,["namespace"]=manifest.Namespace,["kind"]=manifest.Kind,["supportsStandalone"]=manifest.SupportsStandalone,["units"]=units};break;
         }
         case "projectionBrowse": case "projectionDelta":reply=ProjectionDelivery.Execute(S("operation"),request);break;
         case "projectionAffected": case "projectionVersions": case "projectionQueue": case "projectionPublish": case "projectionQuery": case "projectionList": case "editorDescribe":reply=ProjectionArtifacts.Execute(S("operation"),request);break;
@@ -98,7 +98,7 @@ try
         }
         case "run":
         {
-            var built=new Builder(S("project"),S("target")).Build();var command=built["run"]!.AsArray().Select(x=>x!.GetValue<string>()).ToArray();
+            string project=S("project");var manifest=new Parser(File.ReadAllText(project),project).ParseManifest();if(manifest.Kind!="project"||!manifest.SupportsStandalone)throw new ArgumentException("Selected pack does not support standalone execution");var built=new Builder(project,S("target")).Build();var command=built["run"]!.AsArray().Select(x=>x!.GetValue<string>()).ToArray();
             var start=new System.Diagnostics.ProcessStartInfo(command[0]){UseShellExecute=false,RedirectStandardOutput=true,RedirectStandardError=true};foreach(string part in command.Skip(1))start.ArgumentList.Add(part);
             using var process=System.Diagnostics.Process.Start(start)??throw new InvalidOperationException("Preview process did not start.");
             var output=process.StandardOutput.ReadToEndAsync();var errors=process.StandardError.ReadToEndAsync();
@@ -107,7 +107,9 @@ try
         }
         case "validate":
         {
-            var builder=new Builder(S("project"),S("target"));builder.Validate();builder.Check(builder.Registry.Project.Namespace);builder.Build();
+            string candidate=S("project");var manifest=new Parser(File.ReadAllText(candidate),candidate).ParseManifest();
+            if(manifest.Kind=="pack"){foreach(var (name,unit) in manifest.Elements){string path=PackPaths.Owned(Path.GetDirectoryName(candidate)!,unit.Path);var element=new Parser(File.ReadAllText(path),path).ParseElement();if(element.Id!=manifest.Namespace+"::"+name||element.Kind!=unit.Kind)throw new ArgumentException("Pack unit identity mismatch");foreach(var body in element.Bodies.Values)File.ReadAllText(PackPaths.Owned(Path.GetDirectoryName(path)!,body.Path));}reply=new JsonObject{["state"]="valid",["level"]="owned-syntax-only",["linkValidated"]=false};break;}
+            var builder=new Builder(candidate,S("target"));builder.Validate();builder.Check(builder.Registry.Project.Namespace);builder.Build();
             reply=new JsonObject{["state"]="valid"};break;
         }
         default:throw new ArgumentException("Unknown authoring operation.");
@@ -154,6 +156,7 @@ static string FormatManifest(Manifest manifest)
 {
     var text=new StringBuilder(manifest.Kind+" "+manifest.Namespace+" version "+Quote(manifest.Version)+" {\n");
     if(manifest.Description!="")text.AppendLine("description "+Quote(manifest.Description)+";");
+    if(manifest.Standalone is not null)text.AppendLine("standalone "+(manifest.Standalone.Value?"true":"false")+";");
     if(manifest.Entry is not null)text.AppendLine("entry "+manifest.Entry+";");
     foreach(var (id,value) in manifest.Registry)text.AppendLine("registry "+id+" "+Quote(value.Path)+";");
     foreach(var (id,value) in manifest.Dependencies)text.AppendLine("dependency "+id+" version "+Quote(value.Version)+";");

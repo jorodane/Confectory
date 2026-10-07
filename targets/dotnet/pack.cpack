@@ -1,4 +1,5 @@
 pack Confectory.Build.DotNet version "0.1.0" {
+standalone false;
     description "Framework-dependent .NET compilation and portable or Linux packaging";
     element Portable buildtarget "portable.celem";
     element Linux buildtarget "linux.celem";

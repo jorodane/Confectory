@@ -1,4 +1,5 @@
 pack Confectory.Agent version "0.1.0" {
+standalone false;
 element Cancel function "Cancel.celem";
 element CancelBody implementation "CancelBody.celem";
 element Close function "Close.celem";

@@ -1,4 +1,5 @@
 project Example.UIOrderGame version "0.1.0" {
+standalone true;
 entry Example.UIOrderGame::Main;
 registry Confectory.WindowPlacement "../../packs/window-placement/pack.cpack"; dependency Confectory.WindowPlacement version "0.1.0";
 registry Confectory.UIOrder "../../packs/ui-order/pack.cpack"; dependency Confectory.UIOrder version "0.1.0";

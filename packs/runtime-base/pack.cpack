@@ -1,4 +1,5 @@
 pack Confectory.RuntimeBase version "0.1.0" {
+standalone false;
     element CreateOwner function "CreateOwner.celem";
     element CreateOwnerBody implementation "CreateOwnerBody.celem";
     element CreateInstance function "CreateInstance.celem";

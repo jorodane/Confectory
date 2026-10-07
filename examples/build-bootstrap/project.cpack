@@ -1,4 +1,5 @@
 project Confectory.Engine version "0.1.0" {
+standalone true;
     description "Engine composition boundary proof; not the complete engine product";
     entry Confectory.Engine::Boot;
     registry Confectory.Build.DotNet "../../targets/dotnet/pack.cpack";

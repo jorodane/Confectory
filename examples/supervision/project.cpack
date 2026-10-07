@@ -1,4 +1,5 @@
 project Example.Supervision version "0.1.0" {
+standalone true;
 entry Example.Supervision::Main;
 registry Confectory.Agent "../../packs/agent/pack.cpack";
 dependency Confectory.Agent version "0.1.0";

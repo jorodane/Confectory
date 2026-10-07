@@ -1,4 +1,6 @@
 project Confectory.Engine version "0.1.0" {
+standalone true;
+registry Confectory.ProjectEntry "../../packs/project-entry/pack.cpack"; dependency Confectory.ProjectEntry version "0.1.0";
 entry Confectory.Engine::Main;
 registry Confectory.UINavigation "../../packs/ui-navigation/pack.cpack";
 dependency Confectory.UINavigation version "0.1.0";

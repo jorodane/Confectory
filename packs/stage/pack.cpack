@@ -1,4 +1,5 @@
 pack Confectory.Stage version "0.1.0" {
+standalone false;
 dependency Confectory.RuntimeBase version "0.1.0";
 dependency Confectory.RealTimeUpdate version "0.1.0";
 dependency Confectory.ProjectExecution version "0.1.0";

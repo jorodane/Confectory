@@ -1,4 +1,5 @@
 pack Confectory.BaseUI.NativeInput version "0.1.0" {
+standalone false;
 dependency Confectory.BaseUI version "0.1.0"; dependency Confectory.NativeUI version "0.1.0";
 element Create function "Create.celem"; element CreateBody implementation "CreateBody.celem";
 element Field function "Field.celem"; element FieldBody implementation "FieldBody.celem";

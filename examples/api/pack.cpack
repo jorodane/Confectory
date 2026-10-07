@@ -1,3 +1,4 @@
 pack Example.Api version "0.1.0" {
+standalone false;
     element Greeting function "greeting.celem";
 }

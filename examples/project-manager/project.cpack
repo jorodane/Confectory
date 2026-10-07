@@ -1,4 +1,5 @@
 project Example.ProjectManager version "0.1.0" {
+standalone true;
 entry Example.ProjectManager::Main;
 registry Confectory.ProjectManager "../../packs/project-manager/pack.cpack";
 dependency Confectory.ProjectManager version "0.1.0";

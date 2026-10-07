@@ -1,4 +1,5 @@
 pack Confectory.SourceEditor version "0.1.0" {
+standalone false;
 dependency Confectory.BaseUI version "0.1.0";
 dependency Confectory.EditWorkspace version "0.1.0";
 element Create function "Create.celem";

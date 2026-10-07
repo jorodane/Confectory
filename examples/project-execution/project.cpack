@@ -1,4 +1,5 @@
 project Example.ProjectExecution version "0.1.0" {
+standalone true;
 entry Example.ProjectExecution::Main;
 registry Confectory.ProjectExecution "../../packs/project-execution/pack.cpack";
 dependency Confectory.ProjectExecution version "0.1.0";

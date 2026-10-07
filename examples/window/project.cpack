@@ -1,4 +1,5 @@
 project Example.Window version "0.1.0" {
+standalone true;
     entry Example.Window::Main;
     registry Confectory.RenderInput "../../packs/render-input/pack.cpack";
     registry Confectory.Window "../../packs/window/pack.cpack";

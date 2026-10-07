@@ -1,4 +1,5 @@
 project Example.AuthoringWorkbench version "0.1.0" {
+standalone true;
 entry Example.AuthoringWorkbench::Main;
 registry Confectory.InstantTable "../../packs/instant-table/pack.cpack";
 dependency Confectory.InstantTable version "0.1.0";

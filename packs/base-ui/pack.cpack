@@ -1,4 +1,5 @@
 pack Confectory.BaseUI version "0.1.0" {
+standalone false;
 dependency Confectory.RuntimeBase version "0.1.0";
 element CreateView function "CreateView.celem";
 element CreateViewBody implementation "CreateViewBody.celem";

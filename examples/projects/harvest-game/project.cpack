@@ -1,4 +1,5 @@
 project Example.HarvestGame version "0.1.0" {
+standalone true;
 entry Example.HarvestGame::Main;
 registry Confectory.Inventory "../../../packs/inventory/pack.cpack";
 dependency Confectory.Inventory version "0.1.0";

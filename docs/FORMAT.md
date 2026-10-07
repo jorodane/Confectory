@@ -1,11 +1,12 @@
 # Declaration format and target protocol
 
-This is a dedicated structure language, not XML, JSON pack data or a new general-purpose programming language. UTF-8 `.cpack` and `.celem` files support `//` comments, quoted JSON strings and semicolon-terminated statements. Identifiers currently use ASCII letters, digits and underscores; namespaces additionally use dots. Cross-pack references always use `Namespace::Element`.
+This is a dedicated structure language, not XML, JSON pack data or a new general-purpose programming language. UTF-8 `.cproj`, `.cpack` and `.celem` files support `//` comments, quoted JSON strings and semicolon-terminated statements. Identifiers currently use ASCII letters, digits and underscores; namespaces additionally use dots. Cross-pack references always use `Namespace::Element`.
 
 ## Manifests and locations
 
 ```text
 project Example.App version "0.1.0" {
+    standalone true;
     entry Example.App::Main;
     registry Example.Api "../api/pack.cpack";
     registry Example.Provider "../provider/pack.cpack";
@@ -21,6 +22,8 @@ project Example.App version "0.1.0" {
 ```
 
 A regular `pack Namespace version "..." { ... }` has dependency and element declarations but no project registry, target selection or entry. The namespace is the pack ID in this first format. Registry paths locate selected packs; they do not author a function/object connection. All element/body/tool locations stay inside their owning pack, including symlink resolution. A ProjectPack may locate external selected pack directories.
+
+New ProjectPack filenames use `.cproj`; legacy `.cpack` ProjectPacks remain valid. `standalone true;` / `standalone false;` explicitly declare independent execution capability for either kind. Legacy omission defaults to a ProjectPack with an entry being standalone, and plain packs being nonstandalone. Opening/editing never requires standalone capability; target/tool/native readiness is separately assessed by host roles and actual explicit build/run. A true plain pack still requires ProjectPack composition. See [desktop file entry](PROJECT_FILE_ENTRY.md).
 
 An entry must be a function with `() -> int` (exit status) or `() -> void`. Target mappings refer to `buildtarget` elements. `always` adds a validated root, not an exception to uniqueness or contract checking. Build traversal reads the linked graph; `validate` additionally inspects every registered declaration for otherwise-unreached errors, without compiling unused bodies.
 

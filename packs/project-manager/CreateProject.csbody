@@ -10,7 +10,7 @@ try
  System.IO.File.WriteAllText(System.IO.Path.Combine(stage,"main.celem"),"function "+ns+"::Main () -> int { provide "+ns+"::Main with "+ns+"::MainBody; }\n");
  System.IO.File.WriteAllText(System.IO.Path.Combine(stage,"main_body.celem"),"implementation "+ns+"::MainBody for "+ns+"::Main () -> int { body common \"main.csbody\"; }\n");
  System.IO.File.WriteAllText(System.IO.Path.Combine(stage,"main.csbody"),"return 0;\n");
- string manifest="project "+ns+" version \"0.1.0\" {\nentry "+ns+"::Main;\nregistry Confectory.Build.DotNet \""+tool.Replace("\\","/")+"\";\ndependency Confectory.Build.DotNet version \"0.1.0\";\ntarget portable Confectory.Build.DotNet::Portable;\ntarget windows Confectory.Build.DotNet::Portable;\ntarget linux Confectory.Build.DotNet::Linux;\nelement Main function \"main.celem\";\nelement MainBody implementation \"main_body.celem\";\n}\n";
- System.IO.File.WriteAllText(System.IO.Path.Combine(stage,"project.cpack"),manifest);System.IO.Directory.Move(stage,root);committed=true;return calls.Open.Invoke(manager,System.IO.Path.Combine(root,"project.cpack"));
+ string manifest="project "+ns+" version \"0.1.0\" {\nstandalone true;\nentry "+ns+"::Main;\nregistry Confectory.Build.DotNet \""+tool.Replace("\\","/")+"\";\ndependency Confectory.Build.DotNet version \"0.1.0\";\ntarget portable Confectory.Build.DotNet::Portable;\ntarget windows Confectory.Build.DotNet::Portable;\ntarget linux Confectory.Build.DotNet::Linux;\nelement Main function \"main.celem\";\nelement MainBody implementation \"main_body.celem\";\n}\n";
+ System.IO.File.WriteAllText(System.IO.Path.Combine(stage,"project.cproj"),manifest);System.IO.Directory.Move(stage,root);committed=true;return calls.Open.Invoke(manager,System.IO.Path.Combine(root,"project.cproj"));
 }
 catch{if(System.IO.Directory.Exists(stage))System.IO.Directory.Delete(stage,true);if(committed)System.IO.Directory.Delete(root,true);throw;}

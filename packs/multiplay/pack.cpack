@@ -1,4 +1,5 @@
 pack Confectory.MultiPlay version "0.1.0" {
+standalone false;
 element Policy function "Policy.celem";
 element PolicyBody implementation "PolicyBody.celem";
 element Handle function "Handle.celem";

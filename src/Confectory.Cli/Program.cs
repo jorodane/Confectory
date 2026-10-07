@@ -22,5 +22,5 @@ catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or IOExcep
 
 static void Usage()
 {
-    Console.Error.WriteLine("Usage: Confectory.Cli build|validate|run <project.cpack> <target>\n       Confectory.Cli check <project.cpack> <target> <pack-namespace>");
+    Console.Error.WriteLine("Usage: Confectory.Cli build|validate|run <project.cproj|legacy.cpack> <target>\n       Confectory.Cli check <project.cproj|legacy.cpack> <target> <pack-namespace>");
 }

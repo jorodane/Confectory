@@ -8,7 +8,7 @@ internal static class RunProject
 {
  public static async Task<int> Execute(string project,string target)
  {
-  project=Path.GetFullPath(project);string dotnet=Processes.DotNet();string cli=Assembly.GetExecutingAssembly().Location;var watch=Stopwatch.StartNew();
+  project=Path.GetFullPath(project);var declaration=new Parser(File.ReadAllText(project),project).ParseManifest();if(declaration.Kind!="project"||!declaration.SupportsStandalone)throw new ArgumentException("Standalone execution is disabled; opening/editing remains available.");string dotnet=Processes.DotNet();string cli=Assembly.GetExecutingAssembly().Location;var watch=Stopwatch.StartNew();
   Console.Error.WriteLine($"[Confectory] Resolving/building {project} for {target} using {dotnet}");
   var start=new ProcessStartInfo(dotnet){UseShellExecute=false,RedirectStandardOutput=true,RedirectStandardError=true,WorkingDirectory=Environment.CurrentDirectory};foreach(string argument in new[]{cli,"build",project,target})start.ArgumentList.Add(argument);start.Environment["CONFECTORY_DOTNET"]=dotnet;
   int progressSeconds=10;string? configured=Environment.GetEnvironmentVariable("CONFECTORY_BUILD_HEARTBEAT_SECONDS");if(configured is not null&&(!int.TryParse(configured,out progressSeconds)||progressSeconds<1||progressSeconds>60))throw new ArgumentException("Build heartbeat must be 1..60 seconds");

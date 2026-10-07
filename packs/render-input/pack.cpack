@@ -1,4 +1,5 @@
 pack Confectory.RenderInput version "0.1.0" {
+standalone false;
 element Pump function "Pump.celem";
 element Draw function "Draw.celem";
 element MeasureText function "MeasureText.celem";

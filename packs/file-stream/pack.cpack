@@ -1,4 +1,5 @@
 pack Confectory.FileStream version "0.1.0" {
+standalone false;
 element Snapshot function "Snapshot.celem";
 element SnapshotBody implementation "SnapshotBody.celem";
 element WriteAtomic function "WriteAtomic.celem";

@@ -1,1 +1,1 @@
-function Confectory.ProjectExecution::DescribeProject (string project) -> string[] { description "Read project namespace/default entry/targets without executing or compiling project code."; }
+function Confectory.ProjectExecution::DescribeProject (string project) -> string[] { description "Read pack metadata without executing or compiling code. Snapshot fields: namespace, default entry (empty for library), target CSV, kind, effective standalone. First three fields retain legacy positions."; }

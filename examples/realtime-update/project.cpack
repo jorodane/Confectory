@@ -1,4 +1,5 @@
 project Example.RealTimeUpdate version "0.1.0" {
+standalone true;
 entry Example.RealTimeUpdate::Main;
 registry Confectory.RealTimeUpdate "../../packs/realtime-update/pack.cpack";
 registry Confectory.Build.DotNet "../../targets/dotnet/pack.cpack";

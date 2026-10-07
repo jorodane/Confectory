@@ -1,4 +1,5 @@
 pack Confectory.Augment version "0.1.0" {
+standalone false;
 dependency Confectory.WorkerTasks version "0.1.0";
 dependency Confectory.EditWorkspace version "0.1.0";
 dependency Confectory.SchemaEditing version "0.1.0";

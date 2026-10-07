@@ -1,4 +1,5 @@
 pack Confectory.CollaborationEditing version "0.1.0" {
+standalone false;
 dependency Confectory.MultiPlay version "0.1.0";
 dependency Confectory.EditWorkspace version "0.1.0";
 dependency Confectory.Save version "0.1.0";

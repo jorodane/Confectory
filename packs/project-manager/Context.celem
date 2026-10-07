@@ -1,1 +1,1 @@
-function Confectory.ProjectManager::Context (string[] manager, string context) -> string[] {description "Context snapshot: handle,path,namespace,defaultEntry,targets,state. Empty handle reads active or returns empty.";}
+function Confectory.ProjectManager::Context (string[] manager, string context) -> string[] {description "Context snapshot: handle,path,namespace,defaultEntry,targets,state,kind,effectiveStandalone. First six fields retain legacy positions. Empty handle reads active or returns empty.";}
