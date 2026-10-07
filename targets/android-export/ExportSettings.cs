@@ -20,7 +20,7 @@ internal sealed record ExportSettings(string ApplicationId, string Title, string
         string Text(string key) => values[key].Value.GetString() ?? throw new InvalidOperationException("Expected text settings value.");
         string id=Text("applicationId"), title=Text("applicationTitle"), version=Text("versionName"), format=Text("packageFormat");
         int code=values["versionCode"].Value.GetInt32();
-        if (!Regex.IsMatch(id, @"\A[A-Za-z][A-Za-z0-9_]*(?:\.[A-Za-z][A-Za-z0-9_]*)+\z") || code < 1 || code > 2100000000 || format is not ("apk" or "aab"))
+        if (id.Length > 255 || !Regex.IsMatch(id, @"\A[A-Za-z][A-Za-z0-9_]*(?:\.[A-Za-z][A-Za-z0-9_]*)+\z") || code < 1 || code > 2100000000 || format is not ("apk" or "aab"))
             throw new InvalidOperationException("Invalid Android application ID, version code or package format.");
         if (title.Length is < 1 or > 128 || version.Length is < 1 or > 128 || title.Any(char.IsControl) || version.Any(char.IsControl))
             throw new InvalidOperationException("Android title/version must be bounded printable text.");
