@@ -65,3 +65,29 @@ DISPLAY=:97 PATH=/workspace/toolchains/dotnet-10.0.401:$PATH DOTNET_CLI_HOME=/tm
 ```
 
 Actual full PASS report `/tmp/confectory-shared-runtime-r2-original-replay-home-x11.log`, evidence `/tmp/confectory-entry-home-gui-7u_i9p9x`. No product, helper, input order, timeout or assertion changed between the failed original scenario and this replay. Native package build completion was the sequencing change. Earlier FAIL reports and negative controls remain evidence of the intermittent issue; they are not omitted from the outcome.
+
+### Original-scenario replay series and stable input identity
+
+After Android native package jobs settled, two further sequential runs used the same original command, DISPLAY :97, dense default `/tmp`, original per-character NativeControls input, original ten-second close condition and unchanged product source. Both passed:
+
+| Original scenario run | Result | Private report | Private GUI evidence |
+| --- | --- | --- | --- |
+| Initial post-R1/R2 original run | FAIL at invalid-folder chooser close | `/tmp/confectory-shared-runtime-r2-home-x11.log` | Failure image `/tmp/confectory-shared-r2-dialog.png` |
+| Original replay 1 after native jobs settled | PASS | `/tmp/confectory-shared-runtime-r2-original-replay-home-x11.log` | `/tmp/confectory-entry-home-gui-7u_i9p9x` |
+| Original replay 2 | PASS | `/tmp/confectory-shared-runtime-r2-original-replay2-home-x11.log` | `/tmp/confectory-entry-home-gui-vza0ot1m` |
+| Original replay 3 | PASS | `/tmp/confectory-shared-runtime-r2-original-replay3-home-x11.log` | `/tmp/confectory-entry-home-gui-0038uov6` |
+
+Replay 2 and 3 reused the replay-1 command and entry scope; only private report/failure-image filenames changed. No files were deleted, no artificial stressor was introduced, and no product/helper/input/timeout/assertion was patched. A fresh base-environment check showed TMPDIR, XDG_CACHE_HOME, XDG_CONFIG_HOME and GSETTINGS_BACKEND all unset; `tempfile.gettempdir()` was `/tmp`, with 6,301 immediate entries then. Android native jobs remained inactive during these replays and resumed afterward. These three original-scenario passes establish the observed normal-workload result; they do not erase prior failures or prove a GTK performance fix. The earlier delayed-input failure remains unresolved/intermittent.
+
+SHA256 identities of the actual tested worktree inputs, unchanged through these three runs:
+
+| Input | SHA256 |
+| --- | --- |
+| `examples/editor-home/project.cpack` | `30fc997c50211707f40e1ba4c75d96dc71fbd3a97039cd1473d73cf103ab24ab` |
+| `examples/editor-home/Main.csbody` | `ea2c4102d69eb52cd7654d8ff3a5cf9ef744e579daef84d3a2a2beb8d77b39f5` |
+| `examples/editor-home/MainBody.celem` | `791837dc76f8ac1a1f5996ea3ea42e0dcc32c13914c7167c23eeab096d97b74a` |
+| `packs/editor-home-model/CloseSession.csbody` | `642b0f24513eb7f3447d895b61909107fc4e71903dd373aeceb51a6dcd87f156` |
+| `packs/host-loop/Run.csbody` | `ce76ea9fd15b82a381ef883e12cb840d88d9dccf0281de490a85ccdc497ed51e` |
+| `packs/host-loop/Close.csbody` | `1853ab10a8c9fdb7a1d0942fcafa4d41943c05c8234fb9842576388ee154f6e2` |
+
+The existing explicit private HostLoop bridge ABI remains documented for this increment. Relocating its Step lookup behind an additional provider delegate is deferred to a separate increment; no Core or product source was changed for these checks. The clipboard input experiment remains private, unregistered and unpublished.
