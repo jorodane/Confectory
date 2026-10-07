@@ -23,7 +23,7 @@ public sealed class MainActivity : Activity,Choreographer.IFrameCallback
     {
         base.OnCreate(state);
         surface=new ProductSurface(this);SetContentView(surface);
-        string storage=FilesDir!.AbsolutePath;System.Environment.SetEnvironmentVariable("CONFECTORY_EDITOR_REPO",storage);System.Environment.SetEnvironmentVariable("CONFECTORY_HOME_STORAGE",System.IO.Path.Combine(storage,"editor-home"));
+        string storage=FilesDir!.AbsolutePath;System.IO.Directory.SetCurrentDirectory(storage);
         AppDomain.CurrentDomain.SetData("Confectory.Android.Host.Owner",owner);
         AppDomain.CurrentDomain.SetData("Confectory.Android.Window",(Func<string,object[],object>)surface.Request);
         AppDomain.CurrentDomain.SetData("Confectory.Android.NativeUI",(Func<string,string,string,long,string>)NativeRequest);
