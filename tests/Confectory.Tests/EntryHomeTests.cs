@@ -37,6 +37,53 @@ public sealed class EntryHomeTests : TestCase
         string consumer=Consumer("editor-home"),project=Path.Combine(consumer,"project.cpack");var built=new Builder(project,"linux").Build();Offline(built);string report=Path.Combine(f.Root,"home native report.json");File.WriteAllText(report,built.ToJsonString());var run=Processes.Run(new[]{"python",Path.Combine(Fixture.Repo,"tests","gui","entry_home_x11.py"),report},timeoutSeconds:240);True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("Entry/home actual X11"));
         File.AppendAllText(Path.Combine(consumer,"Main.csbody"),"\n// fresh presentation locality probe\n");var changed=new Builder(project,"linux").Build();Sequence(new[]{"Confectory.EditorHome::MainBody"},Strings(changed,"statistics","compiledImplementations"));Equal(0,Strings(changed,"statistics","compiledContracts").Length);
     }
+    public void test_android_home_export_selects_activity_and_metadata_parser_without_engine_surface_sample()
+    {
+        string consumer=Consumer("editor-home"),project=Path.Combine(consumer,"project.cpack"),output=Path.Combine(f.Root,"home Android export");
+        string exporter=Path.Combine(Fixture.Repo,"targets","android-export","bin","Release","net8.0","Confectory.AndroidExport.dll");
+        var result=Processes.Run(new[]{Processes.DotNet(),exporter,project,output},timeoutSeconds:240);
+        True(result.ExitCode==0,result.Stdout+result.Stderr);
+        string activity=File.ReadAllText(Path.Combine(output,"MainActivity.cs")),sdk=File.ReadAllText(Path.Combine(output,"Confectory.Android.csproj"));
+        True(activity.Contains("PackCalls.CreateSession",StringComparison.Ordinal)&&activity.Contains("Intent.ActionOpenDocument",StringComparison.Ordinal));
+        True(!activity.Contains("public sealed class PackSurface",StringComparison.Ordinal),"Home received engine sample Activity");
+        True(File.Exists(Path.Combine(output,"NativeFieldHost.cs"))&&File.Exists(Path.Combine(output,"Managed","Confectory.Core.dll")));
+        True(sdk.Contains("Managed/Confectory.Core.dll",StringComparison.Ordinal));
+        var report=JsonNode.Parse(File.ReadAllText(Path.Combine(output,"export-report.json")))!;
+        True(report["managedCompiled"]!.GetValue<bool>()&&!report["androidAppCompiled"]!.GetValue<bool>()&&!report["apkProduced"]!.GetValue<bool>());
+        True(report["bodySelections"]!.AsArray().Any(row=>row!["id"]!.ToString()=="Confectory.EditorHome::MainBody"&&row["selection"]!.ToString()=="android"));
+        True(!Directory.GetFiles(output,"*.apk",SearchOption.AllDirectories).Any()&&!Directory.GetFiles(output,"*.aab",SearchOption.AllDirectories).Any());
+    }
+    public void test_android_export_owned_settings_formats_xml_and_rejects_credentials_before_build()
+    {
+        string consumer=Consumer("editor-home"),project=Path.Combine(consumer,"project.cpack"),settings=Path.Combine(consumer,"AndroidExport.celem");
+        string exporter=Path.Combine(Fixture.Repo,"targets","android-export","bin","Release","net8.0","Confectory.AndroidExport.dll");
+        string original=File.ReadAllText(settings);
+        string declaration(string values)=>"object Confectory.EditorHome::AndroidExport extends Confectory.AndroidExport.Settings::Defaults { "+values+" }";
+        foreach(string format in new[]{"apk","aab"})
+        {
+            string title="한글 App & < > $& $([System.Math]::Abs(-2))",version="1.2 & <beta> $&";
+            File.WriteAllText(settings,declaration("value applicationId = "+System.Text.Json.JsonSerializer.Serialize("org.example.entry")+"; value applicationTitle = "+System.Text.Json.JsonSerializer.Serialize(title)+"; value versionName = "+System.Text.Json.JsonSerializer.Serialize(version)+"; value versionCode = 42; value packageFormat = "+System.Text.Json.JsonSerializer.Serialize(format)+";"));
+            string output=Path.Combine(f.Root,"settings "+format);
+            var result=Processes.Run(new[]{Processes.DotNet(),exporter,project,output},timeoutSeconds:240);True(result.ExitCode==0,result.Stdout+result.Stderr);
+            var xml=System.Xml.Linq.XDocument.Load(Path.Combine(output,"Confectory.Android.csproj"));
+            string Text(string tag)=>Uri.UnescapeDataString(xml.Descendants(tag).Single().Value);
+            Equal("org.example.entry",Text("ApplicationId"));Equal(title,Text("ApplicationTitle"));Equal(version,Text("ApplicationDisplayVersion"));Equal("42",Text("ApplicationVersion"));Equal(format,Text("AndroidPackageFormats"));Equal(format,Text("AndroidPackageFormat"));
+            var evaluated=Processes.Run(new[]{Processes.DotNet(),"msbuild",Path.Combine(output,"Confectory.Android.csproj"),"-getProperty:ApplicationTitle"},timeoutSeconds:30);True(evaluated.ExitCode==0,evaluated.Stderr);Equal(title,evaluated.Stdout.TrimEnd('\r','\n'));
+            string raw=File.ReadAllText(Path.Combine(output,"Confectory.Android.csproj"));True(raw.Contains("_CreateAndroidDebugSigningKey",StringComparison.Ordinal)&&raw.Contains("SignAndroidPackage",StringComparison.Ordinal),"Unsigned build lacks signing guard");
+            True(!File.Exists(Path.Combine(output,"package-report.json")),"Source-only export claimed a package");
+        }
+        // Poisoned implementation proves rejected settings never reach managed source compilation.
+        File.WriteAllText(Path.Combine(consumer,"Main.android.csbody"),"not valid C#");
+        foreach(var invalid in new[]{("badid","value applicationId = \"not.an-app\";"),("badformat","value packageFormat = \"zip\";"),("password","value keystorePassword = \"must-not-be-stored\";"),("keystore","value keystorePath = \"must-not-be-stored\";")})
+        {
+            File.WriteAllText(settings,declaration(invalid.Item2));string output=Path.Combine(f.Root,invalid.Item1);
+            var result=Processes.Run(new[]{Processes.DotNet(),exporter,project,output},timeoutSeconds:20);
+            True(result.ExitCode!=0,"Invalid settings accepted");True(!Directory.Exists(output),"Rejected metadata created an export");
+            True(!result.Stderr.Contains("must-not-be-stored",StringComparison.Ordinal),"Rejected credentials leaked into diagnostic");
+            True(!result.Stderr.Contains("CS100",StringComparison.Ordinal),"Settings validation ran after source compilation");
+        }
+        File.WriteAllText(settings,original);
+    }
     public void test_android_home_activity_dispatch_requires_adapter_and_preserves_public_domain()
     {
         string consumer=Consumer("editor-home"),project=Path.Combine(consumer,"project.cpack");

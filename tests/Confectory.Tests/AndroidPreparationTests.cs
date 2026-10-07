@@ -9,7 +9,7 @@ public sealed class AndroidPreparationTests : TestCase
     {
         string sample=Path.Combine(f.Root,"android-sample");
         Fixture.CopyTree(Path.Combine(Fixture.Repo,"examples","engine-android"),sample);
-        foreach(string pack in new[]{"runtime-base","realtime-update","render-input","base-ui","window"})
+        foreach(string pack in new[]{"runtime-base","realtime-update","render-input","base-ui","window","android-export-settings"})
             Fixture.CopyTree(Path.Combine(Fixture.Repo,"packs",pack),Path.Combine(f.Root,"packs",pack));
         string project=Path.Combine(sample,"project.cpack");
         File.WriteAllText(project,File.ReadAllText(project)
