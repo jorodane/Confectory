@@ -21,7 +21,7 @@ try {
     Write-Host 'Building trusted Confectory exporter. No signing key is created.'
     & $dotnet build (Join-Path $repo 'Confectory.sln') -c Release --nologo
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-    $exporter = Join-Path $repo 'targets\android-export\bin\Release\net8.0\Confectory.AndroidExport.dll'
+    $exporter = Join-Path $repo 'targets\android-export\bin\Release\net10.0\Confectory.AndroidExport.dll'
     & $dotnet $exporter $Project $Output --package
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     Write-Host "Unsigned export: $Output"

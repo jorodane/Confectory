@@ -47,6 +47,10 @@ foreach(var (alias,imported) in binding.Imports.OrderBy(x=>x.Key,StringComparer.
 facade.AppendLine("}");File.WriteAllText(Path.Combine(generated,"PackCalls.cs"),facade.ToString());
 string templateRoot=Path.Combine(AppContext.BaseDirectory,"templates");
 File.Copy(Path.Combine(templateRoot,"AndroidManifest.xml"),Path.Combine(output,"AndroidManifest.xml"));
+var androidManifest=System.Xml.Linq.XDocument.Load(Path.Combine(output,"AndroidManifest.xml"));
+androidManifest.Root!.Element("uses-sdk")!.SetAttributeValue(System.Xml.Linq.XName.Get("targetSdkVersion","http://schemas.android.com/apk/res/android"),settings.TargetSdk);
+androidManifest.Save(Path.Combine(output,"AndroidManifest.xml"));
+File.WriteAllText(Path.Combine(output,"bundle-config.json"),JsonSerializer.Serialize(new{optimizations=new{uncompressNativeLibraries=new{enabled=true,alignment="PAGE_ALIGNMENT_16K"}}}));
 File.Copy(PackPaths.Owned(Path.GetDirectoryName(registry.Paths["Confectory.Window"])!,"android/AndroidSurfaceBridge.cs"),Path.Combine(output,"AndroidSurfaceBridge.cs"));
 bool home=registry.Project.Namespace=="Confectory.EditorHome";
 File.Copy(Path.Combine(templateRoot,home?"EditorHomeActivity.cs":"MainActivity.cs"),Path.Combine(output,"MainActivity.cs"));

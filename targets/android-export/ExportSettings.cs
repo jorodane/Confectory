@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 using Confectory.Core;
 
 // Target-owned metadata contract. Core has no Android settings grammar.
-internal sealed record ExportSettings(string ApplicationId, string Title, string VersionName, int VersionCode, string Format, string KeyAlias="confectory", string Framework="net8.0-android")
+internal sealed record ExportSettings(string ApplicationId, string Title, string VersionName, int VersionCode, string Format, string KeyAlias="confectory", string Framework="net10.0-android", int TargetSdk=36)
 {
     public const string DefaultsId = "Confectory.AndroidExport.Settings::Defaults";
     public static ExportSettings Read(Registry registry)
@@ -14,7 +14,7 @@ internal sealed record ExportSettings(string ApplicationId, string Title, string
         if (candidates.Length > 1) throw new InvalidOperationException("Only one owned Android export settings object is allowed.");
         if (candidates.Length == 0) return new("org.confectory.checkpoint", "Confectory BaseUI", "0.1", 1, "apk");
         var values = registry.Effective(candidates[0].Id).Values;
-        string[] allowed = ["applicationId", "applicationTitle", "versionName", "versionCode", "packageFormat", "androidTargetFramework", "keyAlias", "keyAlgorithm", "keySize", "keyValidityDays", "keyDistinguishedName"];
+        string[] allowed = ["applicationId", "applicationTitle", "versionName", "versionCode", "packageFormat", "androidTargetFramework", "androidTargetSdkVersion", "keyAlias", "keyAlgorithm", "keySize", "keyValidityDays", "keyDistinguishedName"];
         if (values.Keys.Any(x => !allowed.Contains(x, StringComparer.Ordinal)))
             throw new InvalidOperationException("Android export settings contain an unsupported field; credentials must never be saved here.");
         string Text(string key) => values[key].Value.GetString() ?? throw new InvalidOperationException("Expected text settings value.");
@@ -27,10 +27,12 @@ internal sealed record ExportSettings(string ApplicationId, string Title, string
         if (Text("keyAlgorithm") is not ("RSA" or "EC") || Text("keyAlias").Length is < 1 or > 128 || Text("keyDistinguishedName").Length is < 1 or > 1024
             || values["keySize"].Value.GetInt32() is < 256 or > 8192 || values["keyValidityDays"].Value.GetInt32() is < 1 or > 36500)
             throw new InvalidOperationException("Invalid nonsecret key generation defaults.");
-        string framework=values.TryGetValue("androidTargetFramework",out var target)?target.Value.GetString()??"":"net8.0-android";
-        if(framework is not ("net8.0-android" or "net9.0-android" or "net10.0-android"))throw new InvalidOperationException("Unsupported Android framework; select an installed supported SDK/workload.");
+        string framework=values.TryGetValue("androidTargetFramework",out var target)?target.Value.GetString()??"":"net10.0-android";
+        if(framework != "net10.0-android")throw new InvalidOperationException("Unsupported Android framework; select an installed supported SDK/workload.");
         if(Text("keyAlias").StartsWith('-')||Text("keyAlias").Any(char.IsControl))throw new InvalidOperationException("Invalid key alias.");
-        return new(id,title,version,code,format,Text("keyAlias"),framework);
+        int targetSdk=values.TryGetValue("androidTargetSdkVersion",out var api)?api.Value.GetInt32():36;
+        if(targetSdk is <23 or >36)throw new InvalidOperationException("Android target SDK must be supported by the selected API36 workload.");
+        return new(id,title,version,code,format,Text("keyAlias"),framework,targetSdk);
     }
     public string Apply(string template)
     {

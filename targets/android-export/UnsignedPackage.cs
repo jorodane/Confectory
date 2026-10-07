@@ -14,7 +14,7 @@ internal static class UnsignedPackage
         if(process.ExitCode!=0){Console.Error.WriteLine("Android packaging failed; no successful package result is recorded.");return process.ExitCode;}
         var artifacts=Directory.GetFiles(Path.Combine(output,"bin"),"*."+settings.Format,SearchOption.AllDirectories);
         if(artifacts.Length==0){Console.Error.WriteLine("Packaging reported success without an artifact.");return 1;}
-        File.WriteAllText(Path.Combine(output,"package-report.json"),JsonSerializer.Serialize(new{kind="android-unsigned-package",format=settings.Format,keyAlias=settings.KeyAlias,targetFramework=settings.Framework,androidAppCompiled=true,signed=false,artifacts},new JsonSerializerOptions{WriteIndented=true}));
+        File.WriteAllText(Path.Combine(output,"package-report.json"),JsonSerializer.Serialize(new{kind="android-unsigned-package",format=settings.Format,keyAlias=settings.KeyAlias,targetFramework=settings.Framework,targetSdkVersion=settings.TargetSdk,androidAppCompiled=true,signed=false,playAcceptanceVerified=false,artifacts},new JsonSerializerOptions{WriteIndented=true}));
         Console.WriteLine(JsonSerializer.Serialize(new{output,format=settings.Format,androidAppCompiled=true,signed=false,artifacts}));
         return 0;
     }

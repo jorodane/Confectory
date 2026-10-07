@@ -66,7 +66,7 @@ public sealed class EntryHomeTests : TestCase
         {
             string title="한글 App & < > $& $([System.Math]::Abs(-2))",version="1.2 & <beta> $&";
             File.WriteAllText(settings,declaration("value applicationId = "+System.Text.Json.JsonSerializer.Serialize("org.example.entry")+"; value applicationTitle = "+System.Text.Json.JsonSerializer.Serialize(title)+"; value versionName = "+System.Text.Json.JsonSerializer.Serialize(version)+"; value versionCode = 42; value packageFormat = "+System.Text.Json.JsonSerializer.Serialize(format)+";"));
-            string framework=format=="aab"?"net10.0-android":"net8.0-android";
+            string framework="net10.0-android";
             File.WriteAllText(settings,File.ReadAllText(settings).Replace(" }"," value androidTargetFramework = "+System.Text.Json.JsonSerializer.Serialize(framework)+"; }"));
             string output=Path.Combine(f.Root,"settings "+format);
             var result=Processes.Run(new[]{Processes.DotNet(),exporter,project,output},timeoutSeconds:240);True(result.ExitCode==0,result.Stdout+result.Stderr);

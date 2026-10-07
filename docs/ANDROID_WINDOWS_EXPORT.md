@@ -18,9 +18,9 @@ value keyAlias = "your-existing-upload-key-alias";
 }
 ```
 
-Use your real application ID and existing upload-key alias. Keep the application ID stable for updates and advance versionCode for each upload. Select `apk` for a locally installable signed APK instead. There is no keystore/password/path settings field. Existing projects retain `net8.0-android` for compatibility; this legacy default is **not a current general Play-submission configuration**. Framework selection must match the selected SDK major and installed Android workload; the exporter rejects mismatches before provider compilation and pins the selected SDK version in the generated project.
+Use your real application ID and existing upload-key alias. Keep the application ID stable for updates and advance versionCode for each upload. Select `apk` for a locally installable signed APK instead. There is no keystore/password/path settings field. The default is now `net10.0-android` after the authorized whole-project migration. Previous net8/API34 artifacts are historical packaging evidence only. Framework selection must match the selected SDK major and installed Android workload; the exporter rejects mismatches before provider compilation and pins the selected SDK version in the generated project.
 
-Prerequisites on Windows: .NET8 runtime for the Confectory tools; selected .NET10 SDK/Android workload for the modern candidate; its compatible full JDK (current Microsoft guidance recommends JDK21); Android SDK API36 and the workload's required build-tools. Set `JAVA_HOME`, `ANDROID_HOME`, and optionally `CONFECTORY_DOTNET` to your installed host. Tools installed in a cloud workspace are not installed on your PC. Dependency/license installation is a separate explicit local action, not performed by this script. Microsoft documents how its `InstallAndroidDependencies` target resolves the selected project's exact dependencies: https://learn.microsoft.com/en-us/dotnet/android/getting-started/installation/dependencies . Do not merely change a manifest number on the old runtime.
+Prerequisites on Windows: .NET10 runtime/SDK for the Confectory tools; its Android workload for the modern candidate; its compatible full JDK (current Microsoft guidance recommends JDK21); Android SDK API36 and the workload's required build-tools. Set `JAVA_HOME`, `ANDROID_HOME`, and optionally `CONFECTORY_DOTNET` to your installed .NET10 host. `CONFECTORY_ANDROID_DOTNET` can select a separate native-packaging host; the generated global.json pins a matching installed SDK. Tools installed in a cloud workspace are not installed on your PC. Dependency/license installation is a separate explicit local action, not performed by this script. Microsoft documents how its `InstallAndroidDependencies` target resolves the selected project's exact dependencies: https://learn.microsoft.com/en-us/dotnet/android/getting-started/installation/dependencies . Do not merely change a manifest number on the old runtime.
 
 Optional CLI-style wrapper usage from `C:\Confectory`:
 
@@ -37,7 +37,7 @@ The signing helper invokes JDK jarsigner for AAB and Java/apksigner plus prior z
 To retry signing an existing current export without rebuilding (local console only):
 
 ```bat
-dotnet targets\android-export\bin\Release\net8.0\Confectory.AndroidExport.dll --sign-export "C:\YourExport" "C:\YourExistingKey.jks"
+dotnet targets\android-export\bin\Release\net10.0\Confectory.AndroidExport.dll --sign-export "C:\YourExport" "C:\YourExistingKey.jks"
 ```
 
 The selected key path is not persisted. No passwords are accepted as arguments or redirected input. This command has not been executed with a real key in development.
@@ -49,7 +49,7 @@ As checked on 2026-10-07, Google's live ordinary mobile new-app/update policy re
 The live page-size guidance also requires 16KB support for 64-bit native libraries on API35+ and states noncompliant-update blocking from 2027-02-01: https://developer.android.com/guide/practices/page-sizes . This project embeds a native .NET runtime. Framework support alone does not validate every native dependency or archive alignment. Read-only inspection is available without Python/NDK:
 
 ```bat
-dotnet targets\android-export\bin\Release\net8.0\Confectory.AndroidExport.dll --inspect-package "C:\YourExport\bin\Release\net10.0-android\org.yourcompany.yourapp.aab"
+dotnet targets\android-export\bin\Release\net10.0\Confectory.AndroidExport.dll --inspect-package "C:\YourExport\bin\Release\net10.0-android\org.yourcompany.yourapp.aab"
 ```
 
 It lists actual arm64/x86_64 `.so` ELF LOAD alignment and RELRO-end checks; exit1 means failed/absent coverage. It explicitly does **not** claim APK ZIP alignment, 16KB device runtime, or Play acceptance. Follow Google's separate ZIP/bundletool/device checks. Actual SDK manifest target, native libraries, current upload-key registration and Play Console validation remain necessary. Upload the verified signed AAB yourself to your selected Play testing track; the workflow does not access your account or upload anything.
@@ -58,6 +58,6 @@ It lists actual arm64/x86_64 `.so` ELF LOAD alignment and RELRO-end checks; exit
 
 Public settings addition: `Confectory.AndroidExport.Settings::Defaults.androidTargetFramework`; existing IDs/role signatures unchanged. Target-owned exporter, unsigned report, optional signer/native inspector and Windows entry scripts changed. Outside reads: existing Home/engine settings and exporter SDK Package policy; Oracle/Android signing tool manuals and Play requirements. No Core, runtime model, browser renderer or editor UI implementation changed. Rebuild scope: exporter/tests and the selected Android export; settings alter generated app metadata/framework, not managed function signatures. Signing is a separate local operation and never changes pack sources.
 
-Functional/security gates: solution builds with zero warnings/errors; test fixtures cover password-free arguments, child-only environment, no shell, alias injection refusal, and 4KB/RELRO/truncated ELF rejection. Settings tests cover format/framework export and hostile XML/MSBuild values plus credential rejection before compilation. No test generates a key or performs real signing. Windows file picker/console execution and actual signing remain unrun here. API36 SDK/package/device verification is pending separate approved tool installation; no modern candidate is labelled Play-ready.
+Functional/security gates: solution builds with zero warnings/errors; test fixtures cover password-free arguments, child-only environment, no shell, alias injection refusal, and 4KB/RELRO/truncated ELF rejection. Settings tests cover format/framework export and hostile XML/MSBuild values plus credential rejection before compilation. No test generates a key or performs real signing. Windows file picker/console execution and actual signing remain unrun here. API36 tools are installed with approval; actual package/archive checks are recorded separately. No modern candidate is labelled Play-ready solely by generation or signing.
 
 Official signing references: https://docs.oracle.com/en/java/javase/17/docs/specs/man/jarsigner.html , https://developer.android.com/tools/apksigner , https://developer.android.com/studio/publish/app-signing .
