@@ -97,4 +97,8 @@ class NativeControls:
                 self.click(dialog,width-45,height-25);time.sleep(.25)
         deadline=time.monotonic()+10
         while find(b'Select folder') and time.monotonic()<deadline:time.sleep(.04)
+        if find(b'Select folder'):
+            import os,subprocess
+            trace=os.environ.get('CONFECTORY_DIALOG_FAILURE_SCREENSHOT')
+            if trace:subprocess.run(['import','-display',os.environ['DISPLAY'],'-window',str(dialog),trace],check=False)
         assert not find(b'Select folder'),'Native chooser did not close'
