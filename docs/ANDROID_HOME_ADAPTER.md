@@ -84,3 +84,18 @@ OnNewIntent explicitly refuses a request while the document picker is still pend
 Each Home Activity also holds an owner token for the installed global adapters. OnDestroy always disposes its own native controls, but only the current owner clears global delegates or closes the retained session when finishing. An older configuration instance therefore cannot tear down adapters installed by its replacement. Existing private draft restoration and common model Leave policy are retained.
 
 Android API34 compilation of the corrected Activity and actual generated bindings passed (only the existing Java.Interop/System.Runtime reference-assumption warning). The source-export regression checks the selected Activity metadata is SingleTask; SDK package manifest verification is recorded in the next gate. Device task/picker/rotation behavior remains unrun because no app signing/device installation is authorized.
+
+### Actual ownership-fix export gates
+
+The current integrated exporter was invoked end to end with `--package` on the Home-owned APK and AAB settings fixtures, producing fresh `/tmp/confectory-home-android-apk-single-task` and `/tmp/confectory-home-android-aab-single-task` projects. Both public Package builds succeeded with zero warnings/errors (27.43s APK, 34.37s AAB). Actual APK `aapt2 dump xmltree --file AndroidManifest.xml` and AAB `bundletool dump manifest --module=base` show `launchMode=2` (singleTask), package `org.confectory.checkpoint`, versionCode 1/versionName 0.1.0, compile SDK 34. This verifies SDK metadata generation as well as C# source selection.
+
+The latest root test assembly ran `test_android_home_export_selects_activity_and_metadata_parser_without_engine_surface_sample`: 1 passed, 0 failed, 202.886s. The fixture uses the current extracted shared Home model and asserts SingleTask, generated manifest presence, disabled trimming, and reflection JSON support. Build/test logs are `/tmp/confectory-android-owner-test-build.log` and `/tmp/confectory-android-owner-export-test.log`.
+
+Fresh unsigned artifact evidence:
+
+| Format | Bytes | SHA256 |
+| --- | ---: | --- |
+| APK | 35,659,000 | `88d964725e67b343a54b5eacec8698dc16dff0822665ad4c8e6bf4cddce26c17` |
+| AAB | 29,369,523 | `3a2514cf89e0e37d9d9df830d10d63c3428c8bd1f53df9e277b8648f50ab1fad` |
+
+Both archives contain classes.dex and their manifest, with no JAR certificate entries. APK `apksigner verify --verbose` returns expected exit 1 / missing META-INF/MANIFEST.MF; AAB `jarsigner -verify` reports unsigned. Neither standard Android/Xamarin debug-keystore path exists. Package logs are `/tmp/confectory-android-apk-single-task.log` and `/tmp/confectory-android-aab-single-task.log`; artifact binaries remain outside Git. The SingleTask picker/cancellation/configuration callback order and owner cleanup on a device remain unrun. No signing key, device installation, upload, or worker push was performed.
