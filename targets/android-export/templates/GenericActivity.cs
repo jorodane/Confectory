@@ -54,7 +54,7 @@ public sealed class MainActivity : Activity,Choreographer.IFrameCallback
             string id=Guid.NewGuid().ToString("N");fields.Add(id,new NativeFieldHost(this));
             AppDomain.CurrentDomain.SetData("Confectory.Android.NativeUI.Owner."+id,(Func<string,string,string,long,string>)OwnedNativeRequest);return id;
         }
-        if(!fields.TryGetValue(host,out var field)){if(operation=="close"&&Guid.TryParseExact(host,"N",out _))return "{}";throw new InvalidOperationException("Native field owner is unavailable");}
+        if(!fields.TryGetValue(host,out var field)){if(operation=="close"&&AppDomain.CurrentDomain.GetData("Confectory.Android.NativeUI.Closed."+host) is true)return "{}";throw new InvalidOperationException("Native field owner is unavailable");}
         if(closed&&operation!="close")throw new InvalidOperationException("Activity owner retired");
         if(operation=="folder-begin")
         {
@@ -70,7 +70,7 @@ public sealed class MainActivity : Activity,Choreographer.IFrameCallback
         }
         if(operation=="folder-cancel"){if(pickerHost==host){pickerEpoch++;pickerState="cancelled";}return "{}";}
         if(operation=="open-folder")throw new PlatformNotSupportedException("Android app-private folders are owned by the app; external desktop file managers are unavailable");
-        if(operation=="close"){if(pickerHost==host){pickerEpoch++;pickerState="cancelled";}field.Dispose();fields.Remove(host);AppDomain.CurrentDomain.SetData("Confectory.Android.NativeUI.Owner."+host,null);return "{}";}
+        if(operation=="close"){if(pickerHost==host){pickerEpoch++;pickerState="cancelled";}field.Dispose();fields.Remove(host);AndroidCloseHistory.Mark("Confectory.Android.NativeUI.Closed.",host);AppDomain.CurrentDomain.SetData("Confectory.Android.NativeUI.Owner."+host,null);return "{}";}
         return field.Request(operation,payload);
     }
     string OwnedNativeRequest(string host,string operation,string payload,long parent)
@@ -245,5 +245,15 @@ internal sealed class ProductSurface : View
     static int Key(Keycode k)=>k switch{Keycode.Tab=>0xff09,Keycode.Enter=>0xff0d,Keycode.Escape=>0xff1b,Keycode.Space=>32,Keycode.DpadLeft=>0xff51,Keycode.DpadUp=>0xff52,Keycode.DpadRight=>0xff53,Keycode.DpadDown=>0xff54,_=>0};
     public override bool OnKeyDown(Keycode code,KeyEvent? e){int k=Key(code);if(k==0)return base.OnKeyDown(code,e);Emit(5,0,0,k,e?.RepeatCount>0?1:0);return true;}
     public override bool OnKeyUp(Keycode code,KeyEvent? e){int k=Key(code);if(k==0)return base.OnKeyUp(code,e);Emit(6,0,0,k);return true;}
-    public void Close(){if(closed)return;closed=true;events.Clear();if(token is not null){AppDomain.CurrentDomain.SetData("Confectory.Android.Window.Owner."+token[0],null);token[1]=0;}}
+    public void Close(){if(closed)return;closed=true;events.Clear();if(token is not null){AndroidCloseHistory.Mark("Confectory.Android.Window.Closed.",token[0].ToString(System.Globalization.CultureInfo.InvariantCulture));AppDomain.CurrentDomain.SetData("Confectory.Android.Window.Owner."+token[0],null);token[1]=0;}}
+}
+
+// Idempotence applies only to proved successful releases, bounded to the latest4096 process-owned records.
+internal static class AndroidCloseHistory
+{
+    static readonly Queue<string> records=new();static readonly object gate=new();
+    public static void Mark(string prefix,string token)
+    {
+        string key=prefix+token;lock(gate){if(AppDomain.CurrentDomain.GetData(key) is true)return;AppDomain.CurrentDomain.SetData(key,true);records.Enqueue(key);while(records.Count>4096)AppDomain.CurrentDomain.SetData(records.Dequeue(),null);}
+    }
 }

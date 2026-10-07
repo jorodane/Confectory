@@ -11,13 +11,13 @@ internal sealed class NativeFieldHost : IDisposable
     readonly Activity activity;
     readonly FrameLayout overlay;
     readonly Dictionary<string,Field> fields=new();
-    readonly Queue<int> events=new();bool disposed;
+    readonly Queue<int> events=new();bool disposed,overlayDetached;
     sealed class Field
     {
         public required ClippedEdit Edit;
         public required string Binding;
         public int Id;
-        public bool ReadOnly,Deferred;
+        public bool ReadOnly,Deferred,Detached;
         public global::Android.Text.Method.IKeyListener? KeyListener;
         public HashSet<int> Commands=new();
     }
@@ -99,13 +99,19 @@ internal sealed class NativeFieldHost : IDisposable
         if(disposed)return;var errors=new List<Exception>();
         foreach(var key in fields.Keys.ToArray())
         {
-            var field=fields[key];try{overlay.RemoveView(field.Edit);}catch(Exception error){errors.Add(error);}
-            try{field.Edit.Dispose();fields.Remove(key);}catch(Exception error){errors.Add(error);}
+            var field=fields[key];
+            if(!field.Detached)
+            {
+                try{if(field.Edit.Parent is ViewGroup parent)parent.RemoveView(field.Edit);field.Detached=field.Edit.Parent is null;if(!field.Detached)throw new InvalidOperationException("Native field parent detach pending");}
+                catch(Exception error){errors.Add(error);}
+            }
+            // Keep the Java handle callable until its required parent detach is verified.
+            if(field.Detached)try{field.Edit.Dispose();fields.Remove(key);}catch(Exception error){errors.Add(error);}
         }
         if(fields.Count==0)
         {
-            try{if(overlay.Parent is ViewGroup parent)parent.RemoveView(overlay);}catch(Exception error){errors.Add(error);}
-            try{overlay.Dispose();disposed=true;}catch(Exception error){errors.Add(error);}
+            if(!overlayDetached)try{if(overlay.Parent is ViewGroup parent)parent.RemoveView(overlay);overlayDetached=overlay.Parent is null;if(!overlayDetached)throw new InvalidOperationException("Native overlay parent detach pending");}catch(Exception error){errors.Add(error);}
+            if(overlayDetached)try{overlay.Dispose();disposed=true;}catch(Exception error){errors.Add(error);}
         }
         if(errors.Count>0)throw new AggregateException("Native fields remain owned until cleanup retry succeeds",errors);
     }

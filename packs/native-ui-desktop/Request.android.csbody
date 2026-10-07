@@ -1,6 +1,6 @@
 Func<string,string,string,long,string>? adapter=operation=="create"
  ? AppDomain.CurrentDomain.GetData("Confectory.Android.NativeUI") as Func<string,string,string,long,string>
  : AppDomain.CurrentDomain.GetData("Confectory.Android.NativeUI.Owner."+host) as Func<string,string,string,long,string>;
-if(adapter is null&&operation=="close"&&Guid.TryParseExact(host,"N",out _))return "{}";
+if(adapter is null&&operation=="close"&&AppDomain.CurrentDomain.GetData("Confectory.Android.NativeUI.Closed."+host) is true)return "{}";
 if(adapter is null)throw new PlatformNotSupportedException("Android native UI owner is unavailable; app-owned provider is required");
 return adapter(host,operation,payload,parent);
