@@ -1,1 +1,12 @@
-var state=AppDomain.CurrentDomain.GetData("Confectory.EditorHome."+session) as object[];if(state is null)return;lock(state){if((bool)state[6])return;state[6]=true;try{foreach(string shell in ((System.Collections.Generic.Dictionary<string,string>)state[7]).Values)calls.ShellClose.Invoke(shell);foreach(string workspace in (System.Collections.Generic.List<string>)state[5])calls.WorkspaceClose.Invoke(workspace);}finally{calls.Dispose.Invoke((string[])state[0]);AppDomain.CurrentDomain.SetData("Confectory.EditorHome."+session,null);}}
+var state=AppDomain.CurrentDomain.GetData("Confectory.EditorHome."+session) as object[];if(state is null)return;
+lock(state){
+ // true means closing: commands are rejected, but CloseSession remains retryable.
+ state[6]=true;var errors=new System.Collections.Generic.List<Exception>();
+ var shells=(System.Collections.Generic.Dictionary<string,string>)state[7];
+ foreach(var shell in System.Linq.Enumerable.ToArray(shells)){try{calls.ShellClose.Invoke(shell.Value);shells.Remove(shell.Key);}catch(Exception error){errors.Add(error);}}
+ var workspaces=(System.Collections.Generic.List<string>)state[5];
+ foreach(string workspace in workspaces.ToArray()){try{calls.WorkspaceClose.Invoke(workspace);workspaces.Remove(workspace);}catch(Exception error){errors.Add(error);}}
+ try{calls.Dispose.Invoke((string[])state[0]);}catch(Exception error){errors.Add(error);}
+ if(errors.Count>0)throw new AggregateException("Entry/home resources remain closing; retry CloseSession",errors);
+ AppDomain.CurrentDomain.SetData("Confectory.EditorHome."+session,null);
+}
