@@ -1,0 +1,2 @@
+implementation Confectory.UIOrder::UpdateBody for Confectory.UIOrder::Update (string state, string operation, string payload) -> string {
+body common "Update.csbody"; }

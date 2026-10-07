@@ -1,0 +1,6 @@
+implementation Example.UIOrderGame::MainBody for Example.UIOrderGame::Main () -> int {
+import Confectory.UIOrder::Create as Create () -> string;
+import Confectory.UIOrder::Update as Update (string, string, string) -> string;
+import Confectory.UIOrder::Compose as Compose (string, int[]) -> string;
+import Confectory.UIOrder::Hit as Hit (string, int, int) -> int[];
+body common "Main.csbody"; }

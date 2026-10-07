@@ -1,0 +1,32 @@
+if(state.Length>262144||payload.Length>16384)throw new ArgumentException("UI Order state budget");
+var model=System.Text.Json.Nodes.JsonNode.Parse(state)!.AsObject();var args=System.Text.Json.Nodes.JsonNode.Parse(payload)!.AsObject();var windows=model["windows"]!.AsArray();if(windows.Count>32)throw new ArgumentException("UI Order window budget");
+long revision=model["revision"]!.GetValue<long>();if(args["frameRevision"] is not null&&args["frameRevision"]!.GetValue<long>()!=revision)throw new InvalidOperationException("Stale UI Order frame");
+int id=args["id"]?.GetValue<int>()??0;System.Text.Json.Nodes.JsonNode? Row(int key)=>System.Linq.Enumerable.FirstOrDefault(windows,x=>x!["id"]!.GetValue<int>()==key);
+void Bounds(int[] b){if(b.Length!=4||b[2]<1||b[3]<1||b[2]>8192||b[3]>8192||Math.Abs((long)b[0])>1048576||Math.Abs((long)b[1])>1048576)throw new ArgumentException("UI Order bounds");}
+System.Text.Json.Nodes.JsonArray Controls(System.Text.Json.Nodes.JsonNode? value){var controls=value?.DeepClone() as System.Text.Json.Nodes.JsonArray??new();if(controls.Count>128)throw new ArgumentException("Window control budget");var ids=new System.Collections.Generic.HashSet<int>();foreach(var c in controls){int key=c!["id"]!.GetValue<int>();if(key<1||!ids.Add(key))throw new ArgumentException("Unique positive control ID required inside window");Bounds(System.Text.Json.JsonSerializer.Deserialize<int[]>(c["bounds"]!.ToJsonString())!);c["enabled"]=c["enabled"]?.GetValue<bool>()??true;c["visible"]=c["visible"]?.GetValue<bool>()??true;}return controls;}
+long Next(){long serial=checked(model["serial"]!.GetValue<long>()+1);model["serial"]=serial;return serial;}
+var row=Row(id);
+if(operation=="open"){
+ if(id<1||row is not null||windows.Count==32)throw new ArgumentException("Unique positive window ID and available lifetime slot required");
+ var bounds=System.Text.Json.JsonSerializer.Deserialize<int[]>(args["bounds"]!.ToJsonString())!;Bounds(bounds);var controls=Controls(args["controls"]);
+ row=new System.Text.Json.Nodes.JsonObject{["id"]=id,["order"]=args["order"]?.GetValue<int>()??0,["serial"]=Next(),["bounds"]=System.Text.Json.JsonSerializer.SerializeToNode(bounds),["visible"]=true,["minimized"]=false,["enabled"]=args["enabled"]?.GetValue<bool>()??true,["opaque"]=args["opaque"]?.GetValue<bool>()??true,["modal"]=args["modal"]?.GetValue<bool>()??false,["focus"]=0,["controls"]=controls};windows.Add(row);if(row["enabled"]!.GetValue<bool>())model["active"]=id;
+}else if(operation=="clear"){windows.Clear();model["active"]=0;
+}else{
+ if(row is null)throw new ArgumentException("Unknown UI window");
+ if(operation=="close"){windows.Remove(row);if(model["active"]!.GetValue<int>()==id)model["active"]=0;}
+ else if(operation=="move"){var b=System.Text.Json.JsonSerializer.Deserialize<int[]>(args["bounds"]!.ToJsonString())!;Bounds(b);row["bounds"]=System.Text.Json.JsonSerializer.SerializeToNode(b);}
+ else if(operation=="controls"){row["controls"]=Controls(args["controls"]);if(!System.Linq.Enumerable.Any(row["controls"]!.AsArray(),c=>c!["id"]!.GetValue<int>()==row["focus"]!.GetValue<int>()&&c["enabled"]!.GetValue<bool>()&&c["visible"]!.GetValue<bool>()))row["focus"]=0;}
+ else if(operation=="order")row["order"]=args["order"]!.GetValue<int>();
+ else if(operation=="minimize")row["minimized"]=true;
+ else if(operation=="restore"){row["minimized"]=false;row["visible"]=true;}
+ else if(operation=="show"||operation=="hide")row["visible"]=operation=="show";
+ else if(operation=="enable"||operation=="disable")row["enabled"]=operation=="enable";
+ else if(operation=="activate"){
+  if(!row["visible"]!.GetValue<bool>()||row["minimized"]!.GetValue<bool>()||!row["enabled"]!.GetValue<bool>())throw new InvalidOperationException("Unavailable window cannot activate");
+  var ordered=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.ThenBy(System.Linq.Enumerable.OrderBy(System.Linq.Enumerable.Where(windows,x=>x!["visible"]!.GetValue<bool>()&&!x["minimized"]!.GetValue<bool>()),x=>x!["order"]!.GetValue<int>()),x=>x!["serial"]!.GetValue<long>()));
+  var modal=System.Linq.Enumerable.LastOrDefault(ordered,x=>x!["modal"]!.GetValue<bool>());if(modal is not null&&Array.IndexOf(ordered,row)<Array.IndexOf(ordered,modal))throw new InvalidOperationException("Modal window blocks underlying activation");
+  int focus=args["control"]?.GetValue<int>()??row["focus"]!.GetValue<int>();if(focus!=0&&!System.Linq.Enumerable.Any(row["controls"]!.AsArray(),c=>c!["id"]!.GetValue<int>()==focus&&c["visible"]!.GetValue<bool>()&&c["enabled"]!.GetValue<bool>()))throw new InvalidOperationException("Focus must belong to an eligible control in this window");
+  row["focus"]=focus;row["serial"]=Next();model["active"]=id;
+ }else throw new ArgumentException("Unknown UI Order operation");
+}
+model["revision"]=checked(revision+1);return model.ToJsonString();

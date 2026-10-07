@@ -1,0 +1,1 @@
+return new System.Text.Json.Nodes.JsonObject{["revision"]=0L,["serial"]=0L,["active"]=0,["windows"]=new System.Text.Json.Nodes.JsonArray()}.ToJsonString();

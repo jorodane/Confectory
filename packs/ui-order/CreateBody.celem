@@ -1,0 +1,2 @@
+implementation Confectory.UIOrder::CreateBody for Confectory.UIOrder::Create () -> string {
+body common "Create.csbody"; }

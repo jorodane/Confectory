@@ -1,0 +1,2 @@
+implementation Confectory.UIOrder::HitBody for Confectory.UIOrder::Hit (string frame, int x, int y) -> int[] {
+body common "Hit.csbody"; }

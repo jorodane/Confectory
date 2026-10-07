@@ -1,0 +1,1 @@
+function Confectory.UIOrder::Hit (string frame, int x, int y) -> int[] { provide Confectory.UIOrder::Hit with Confectory.UIOrder::HitBody; }

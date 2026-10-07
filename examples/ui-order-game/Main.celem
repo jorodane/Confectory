@@ -1,0 +1,1 @@
+function Example.UIOrderGame::Main () -> int { provide Example.UIOrderGame::Main with Example.UIOrderGame::MainBody; }

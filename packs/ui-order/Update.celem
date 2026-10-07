@@ -1,0 +1,1 @@
+function Confectory.UIOrder::Update (string state, string operation, string payload) -> string { provide Confectory.UIOrder::Update with Confectory.UIOrder::UpdateBody; }

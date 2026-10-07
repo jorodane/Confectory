@@ -1,0 +1,3 @@
+implementation Confectory.UIOrder::ComposeBody for Confectory.UIOrder::Compose (string state, int[] viewport) -> string {
+import Confectory.BaseUI::ClipRegions as ClipRegions (int[], int[]) -> int[];
+body common "Compose.csbody"; }

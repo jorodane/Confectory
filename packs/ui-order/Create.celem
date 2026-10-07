@@ -1,0 +1,1 @@
+function Confectory.UIOrder::Create () -> string { provide Confectory.UIOrder::Create with Confectory.UIOrder::CreateBody; }

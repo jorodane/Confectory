@@ -1,0 +1,26 @@
+System.Text.Json.Nodes.JsonNode J(string value)=>System.Text.Json.Nodes.JsonNode.Parse(value)!;
+void Check(bool value,string reason){if(!value)throw new Exception(reason);}
+string state=calls.Create.Invoke();void Command(string op,object value)=>state=calls.Update.Invoke(state,op,System.Text.Json.JsonSerializer.Serialize(value));
+string Frame()=>calls.Compose.Invoke(state,new[]{0,0,640,480});int[] IDs(string frame)=>System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(J(frame)["windows"]!.AsArray(),w=>w!["id"]!.GetValue<int>()));
+void Open(int id,int order,int x,int y,bool modal=false,bool enabled=true,bool opaque=true)=>Command("open",new{id,order,bounds=new[]{x,y,200,160},modal,enabled,opaque,controls=new[]{new{id=10,bounds=new[]{10,40,170,80}}}});
+Open(1,0,10,10);Open(2,0,110,30);Open(3,5,280,10);
+string frame=Frame();Check(System.Linq.Enumerable.SequenceEqual(IDs(frame),new[]{1,2,3}),"Render Order followed by deterministic activation order");
+Check(System.Linq.Enumerable.SequenceEqual(calls.Hit.Invoke(frame,140,90),new[]{2,10,0}),"Top visible field owns overlap");
+var row=J(frame)["windows"]![0]!;int[] clipped=System.Text.Json.JsonSerializer.Deserialize<int[]>(row["controls"]![0]!["regions"]!.ToJsonString())!;for(int n=0;n<clipped.Length;n+=4)Check(clipped[n]+clipped[n+2]<=110||clipped[n+1]+clipped[n+3]<=30,"Native field shares visual occlusion");
+Command("activate",new{id=1,control=10,frameRevision=J(frame)["revision"]!.GetValue<long>()});frame=Frame();
+Check(System.Linq.Enumerable.SequenceEqual(IDs(frame),new[]{2,1,3}),"Activation raises only inside equal Render Order");
+Check(J(frame)["active"]!.GetValue<int>()==1&&J(frame)["windows"]![1]!["focus"]!.GetValue<int>()==10,"Field keyboard focus remains inside raised window");
+Check(calls.Hit.Invoke(frame,140,90)[0]==1&&calls.Hit.Invoke(frame,290,90)[0]==3,"Hit and final render order agree");
+long stale=J(frame)["revision"]!.GetValue<long>();Command("move",new{id=1,bounds=new[]{30,100,200,160}});frame=Frame();Check(calls.Hit.Invoke(frame,50,150)[1]==10,"Field geometry moves with window");
+bool rejected=false;try{Command("activate",new{id=2,frameRevision=stale});}catch(InvalidOperationException){rejected=true;}Check(rejected,"Stale hit snapshot cannot change activation");
+Command("disable",new{id=1});frame=Frame();Check(System.Linq.Enumerable.SequenceEqual(calls.Hit.Invoke(frame,50,150),new[]{1,0,1}),"Disabled opaque panels block lower input");
+Command("enable",new{id=1});Open(4,7,20,20,true);frame=Frame();Check(calls.Hit.Invoke(frame,500,300)[0]==4&&calls.Hit.Invoke(frame,500,300)[2]==1,"Modal outside is blocked");Check(J(frame)["active"]!.GetValue<int>()==4,"Modal owns keyboard eligibility");
+rejected=false;try{Command("activate",new{id=2});}catch(InvalidOperationException){rejected=true;}Check(rejected,"Modal prevents background activation");
+Command("minimize",new{id=4});frame=Frame();Check(!System.Linq.Enumerable.Contains(IDs(frame),4)&&J(frame)["modal"]!.GetValue<int>()==0,"Minimized modal releases its barrier");Command("restore",new{id=4});Check(J(Frame())["modal"]!.GetValue<int>()==4,"Restore preserves modal identity");Command("close",new{id=4});Check(!System.Linq.Enumerable.Contains(IDs(Frame()),4),"Closed windows lose hit and render lifetime");
+Command("hide",new{id=1});Check(!System.Linq.Enumerable.Contains(IDs(Frame()),1),"Hidden controls cannot hit");Command("show",new{id=1});
+Command("close",new{id=1});Open(1,0,10,10);frame=Frame();Check(J(frame)["windows"]![1]!["focus"]!.GetValue<int>()==0,"Reopen has fresh per-window focus");
+string independent=calls.Create.Invoke();Check(J(calls.Compose.Invoke(independent,new[]{0,0,640,480}))["windows"]!.AsArray().Count==0,"Independent consumers cannot leak UI state");
+Command("open",new{id=5,order=8,bounds=new[]{280,10,200,160},opaque=false,controls=Array.Empty<object>()});Check(calls.Hit.Invoke(Frame(),290,90)[0]==3,"Transparent empty panel passes through to visible lower field");Command("close",new{id=5});
+Command("open",new{id=6,order=8,bounds=new[]{280,10,200,160},enabled=false,controls=Array.Empty<object>()});Check(System.Linq.Enumerable.SequenceEqual(calls.Hit.Invoke(Frame(),290,90),new[]{6,0,1}),"Noninteractive opaque foreground blocks clicks and native pixels");Command("close",new{id=6});
+Command("activate",new{id=1,control=10});Command("controls",new{id=1,controls=new[]{new{id=10,bounds=new[]{10,40,170,80},enabled=false}}});Check(J(Frame())["windows"]![1]!["focus"]!.GetValue<int>()==0,"Disabled control layout retires keyboard field focus");
+Command("clear",new{});Check(IDs(Frame()).Length==0,"Closing consumer retires all order state");Console.WriteLine("Shared UI Order game consumer PASS");return 0;

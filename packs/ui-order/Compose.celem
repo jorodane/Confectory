@@ -1,0 +1,1 @@
+function Confectory.UIOrder::Compose (string state, int[] viewport) -> string { provide Confectory.UIOrder::Compose with Confectory.UIOrder::ComposeBody; }

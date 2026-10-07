@@ -2,6 +2,16 @@ using Confectory.Core;
 namespace Confectory.Tests;
 public sealed class ProjectNavigationTests : TestCase
 {
+    public void test_shared_ui_order_independent_consumer_and_provider_locality()
+    {
+        string consumer=Path.Combine(f.Root,"order game"), pack=Path.Combine(f.Root,"order pack");
+        Fixture.CopyTree(Path.Combine(Fixture.Repo,"examples","ui-order-game"),consumer);
+        Fixture.CopyTree(Path.Combine(Fixture.Repo,"packs","ui-order"),pack);
+        string project=Path.Combine(consumer,"project.cpack");File.WriteAllText(project,File.ReadAllText(project).Replace("../../packs/ui-order/pack.cpack",Path.Combine(pack,"pack.cpack")).Replace("../../",Fixture.Repo+"/"));
+        var built=new Builder(project,"portable").Build();Output(built,"Shared UI Order game consumer PASS");
+        True(!Strings(built,"includedPacks").Any(x=>x.Contains("Editor")||x.Contains("ProjectShell")),"UI order remains independent of editor presentation");
+        File.AppendAllText(Path.Combine(pack,"Compose.csbody"),"\n// ordered-frame provider locality probe\n");var changed=new Builder(project,"portable").Build();Sequence(new[]{"Confectory.UIOrder::ComposeBody"},Strings(changed,"statistics","compiledImplementations"));Equal(0,Strings(changed,"statistics","compiledContracts").Length);Output(changed,"Shared UI Order game consumer PASS");
+    }
     public void test_editor_free_rounded_widgets_edge_placement_occlusion_and_provider_locality()
     {
         string consumer=Path.Combine(f.Root,"rounded game");Fixture.CopyTree(Path.Combine(Fixture.Repo,"examples","rounded-game"),consumer);
