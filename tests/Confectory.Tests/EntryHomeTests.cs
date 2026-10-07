@@ -66,11 +66,13 @@ public sealed class EntryHomeTests : TestCase
         {
             string title="한글 App & < > $& $([System.Math]::Abs(-2))",version="1.2 & <beta> $&";
             File.WriteAllText(settings,declaration("value applicationId = "+System.Text.Json.JsonSerializer.Serialize("org.example.entry")+"; value applicationTitle = "+System.Text.Json.JsonSerializer.Serialize(title)+"; value versionName = "+System.Text.Json.JsonSerializer.Serialize(version)+"; value versionCode = 42; value packageFormat = "+System.Text.Json.JsonSerializer.Serialize(format)+";"));
+            string framework=format=="aab"?"net10.0-android":"net8.0-android";
+            File.WriteAllText(settings,File.ReadAllText(settings).Replace(" }"," value androidTargetFramework = "+System.Text.Json.JsonSerializer.Serialize(framework)+"; }"));
             string output=Path.Combine(f.Root,"settings "+format);
             var result=Processes.Run(new[]{Processes.DotNet(),exporter,project,output},timeoutSeconds:240);True(result.ExitCode==0,result.Stdout+result.Stderr);
             var xml=System.Xml.Linq.XDocument.Load(Path.Combine(output,"Confectory.Android.csproj"));
             string Text(string tag)=>Uri.UnescapeDataString(xml.Descendants(tag).Single().Value);
-            Equal("org.example.entry",Text("ApplicationId"));Equal(title,Text("ApplicationTitle"));Equal(version,Text("ApplicationDisplayVersion"));Equal("42",Text("ApplicationVersion"));Equal(format,Text("AndroidPackageFormats"));Equal(format,Text("AndroidPackageFormat"));
+            Equal("org.example.entry",Text("ApplicationId"));Equal(title,Text("ApplicationTitle"));Equal(version,Text("ApplicationDisplayVersion"));Equal("42",Text("ApplicationVersion"));Equal(format,Text("AndroidPackageFormats"));Equal(format,Text("AndroidPackageFormat"));Equal(framework,Text("TargetFramework"));
             var evaluated=Processes.Run(new[]{Processes.DotNet(),"msbuild",Path.Combine(output,"Confectory.Android.csproj"),"-getProperty:ApplicationTitle"},timeoutSeconds:30);True(evaluated.ExitCode==0,evaluated.Stderr);Equal(title,evaluated.Stdout.TrimEnd('\r','\n'));
             string raw=File.ReadAllText(Path.Combine(output,"Confectory.Android.csproj"));True(raw.Contains("_CreateAndroidDebugSigningKey",StringComparison.Ordinal)&&raw.Contains("SignAndroidPackage",StringComparison.Ordinal),"Unsigned build lacks signing guard");
             True(!File.Exists(Path.Combine(output,"package-report.json")),"Source-only export claimed a package");

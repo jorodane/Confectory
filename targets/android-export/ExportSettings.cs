@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 using Confectory.Core;
 
 // Target-owned metadata contract. Core has no Android settings grammar.
-internal sealed record ExportSettings(string ApplicationId, string Title, string VersionName, int VersionCode, string Format)
+internal sealed record ExportSettings(string ApplicationId, string Title, string VersionName, int VersionCode, string Format, string KeyAlias="confectory", string Framework="net8.0-android")
 {
     public const string DefaultsId = "Confectory.AndroidExport.Settings::Defaults";
     public static ExportSettings Read(Registry registry)
@@ -14,7 +14,7 @@ internal sealed record ExportSettings(string ApplicationId, string Title, string
         if (candidates.Length > 1) throw new InvalidOperationException("Only one owned Android export settings object is allowed.");
         if (candidates.Length == 0) return new("org.confectory.checkpoint", "Confectory BaseUI", "0.1", 1, "apk");
         var values = registry.Effective(candidates[0].Id).Values;
-        string[] allowed = ["applicationId", "applicationTitle", "versionName", "versionCode", "packageFormat", "keyAlias", "keyAlgorithm", "keySize", "keyValidityDays", "keyDistinguishedName"];
+        string[] allowed = ["applicationId", "applicationTitle", "versionName", "versionCode", "packageFormat", "androidTargetFramework", "keyAlias", "keyAlgorithm", "keySize", "keyValidityDays", "keyDistinguishedName"];
         if (values.Keys.Any(x => !allowed.Contains(x, StringComparer.Ordinal)))
             throw new InvalidOperationException("Android export settings contain an unsupported field; credentials must never be saved here.");
         string Text(string key) => values[key].Value.GetString() ?? throw new InvalidOperationException("Expected text settings value.");
@@ -27,7 +27,10 @@ internal sealed record ExportSettings(string ApplicationId, string Title, string
         if (Text("keyAlgorithm") is not ("RSA" or "EC") || Text("keyAlias").Length is < 1 or > 128 || Text("keyDistinguishedName").Length is < 1 or > 1024
             || values["keySize"].Value.GetInt32() is < 256 or > 8192 || values["keyValidityDays"].Value.GetInt32() is < 1 or > 36500)
             throw new InvalidOperationException("Invalid nonsecret key generation defaults.");
-        return new(id,title,version,code,format);
+        string framework=values.TryGetValue("androidTargetFramework",out var target)?target.Value.GetString()??"":"net8.0-android";
+        if(framework is not ("net8.0-android" or "net9.0-android" or "net10.0-android"))throw new InvalidOperationException("Unsupported Android framework; select an installed supported SDK/workload.");
+        if(Text("keyAlias").StartsWith('-')||Text("keyAlias").Any(char.IsControl))throw new InvalidOperationException("Invalid key alias.");
+        return new(id,title,version,code,format,Text("keyAlias"),framework);
     }
     public string Apply(string template)
     {
@@ -36,6 +39,7 @@ internal sealed record ExportSettings(string ApplicationId, string Title, string
             ? "%"+((int)c).ToString("X2",System.Globalization.CultureInfo.InvariantCulture) : c.ToString()));
         string Replace(string source, string tag, string value) => Regex.Replace(source,"<"+tag+">[^<]*</"+tag+">", _ => "<"+tag+">"+SecurityElement.Escape(Literal(value))+"</"+tag+">");
         foreach(var (tag,value) in new[]{("ApplicationId",ApplicationId),("ApplicationTitle",Title),("ApplicationVersion",VersionCode.ToString(System.Globalization.CultureInfo.InvariantCulture)),("ApplicationDisplayVersion",VersionName)}) template=Replace(template,tag,value);
+        template=Replace(template,"TargetFramework",Framework);
         return template.Replace("</PropertyGroup>", $"<AndroidPackageFormats>{Format}</AndroidPackageFormats><AndroidPackageFormat>{Format}</AndroidPackageFormat>\n</PropertyGroup>", StringComparison.Ordinal);
     }
 }

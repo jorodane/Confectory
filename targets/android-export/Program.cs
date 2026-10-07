@@ -2,17 +2,30 @@ using System.Text;
 using System.Text.Json;
 using Confectory.Core;
 
+if(args.Length==3&&args[0]=="--sign-export")return Confectory.AndroidExport.LocalSigning.Interactive(args[1],args[2]);
+if(args.Length==2&&args[0]=="--inspect-package")return Confectory.AndroidExport.NativePackageInspection.Inspect(args[1]);
 if(args.Length is < 2 or > 3 || (args.Length == 3 && args[2] != "--package")){Console.Error.WriteLine("Usage: AndroidExport <ProjectPack> <new-output-directory> [--package]");return 2;}
 string project=Path.GetFullPath(args[0]),output=Path.GetFullPath(args[1]);
 if(Directory.Exists(output)){Console.Error.WriteLine("Output directory must be new; preserve existing exports.");return 2;}
 var builder=new Builder(project,"android");
 var settings=ExportSettings.Read(builder.Registry);
+string? packageSdk=null;
+if(args.Length==3)
+{
+    string androidDotnet=Environment.GetEnvironmentVariable("CONFECTORY_ANDROID_DOTNET")??Processes.DotNet();
+    var sdk=Processes.Run(new[]{androidDotnet,"--list-sdks"},directory:Path.GetTempPath(),timeoutSeconds:30);
+    string required=settings.Framework.Split('.')[0][3..];
+    packageSdk=sdk.Stdout.Split('\n').Select(line=>line.Trim().Split(' ')[0]).Where(version=>version.StartsWith(required+".",StringComparison.Ordinal)&&Version.TryParse(version,out _)).OrderBy(version=>Version.Parse(version)).LastOrDefault();
+    if(sdk.ExitCode!=0||packageSdk is null)
+    {Console.Error.WriteLine($"Install .NET {required} SDK with its Android workload for {settings.Framework}; set CONFECTORY_ANDROID_DOTNET to its installed host. No package built.");return 1;}
+}
 var report=builder.Build();
 var registry=builder.Registry;
 var statistics=builder.Statistics;
 var plan=new Planner(registry,"android").Plan();
 var entry=registry.Project.Entry!;var binding=plan.Bindings[new(entry,entry)];
 Directory.CreateDirectory(output);string generated=Path.Combine(output,"Generated");Directory.CreateDirectory(generated);
+if(packageSdk is not null)File.WriteAllText(Path.Combine(output,"global.json"),JsonSerializer.Serialize(new{sdk=new{version=packageSdk,rollForward="latestPatch",allowPrerelease=false}}));
 var contracts=plan.Bindings.Values.Select(x=>x.Function).Concat(plan.Implementations.Values.Select(x=>x.Function!)).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
 string managed=Path.Combine(output,"Managed");Directory.CreateDirectory(managed);
 string compiledOutput=report["output"]!.GetValue<string>();

@@ -4,6 +4,7 @@ value applicationTitle = "Confectory";
 value versionName = "0.1.0";
 value versionCode = 1;
 value packageFormat = "apk";
+value androidTargetFramework = "net8.0-android";
 value keyAlias = "confectory";
 value keyAlgorithm = "RSA";
 value keySize = 2048;
