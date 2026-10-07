@@ -5,7 +5,7 @@ using Android.Graphics;
 
 namespace Confectory.Android;
 
-[Activity(Label="Confectory BaseUI",MainLauncher=true,Exported=true)]
+[Activity(MainLauncher=true,Exported=true)]
 public sealed class MainActivity : Activity
 {
     private PackSurface? surface;

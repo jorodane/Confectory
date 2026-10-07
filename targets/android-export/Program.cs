@@ -33,6 +33,7 @@ foreach(var (alias,imported) in binding.Imports.OrderBy(x=>x.Key,StringComparer.
 }
 facade.AppendLine("}");File.WriteAllText(Path.Combine(generated,"PackCalls.cs"),facade.ToString());
 string templateRoot=Path.Combine(AppContext.BaseDirectory,"templates");
+File.Copy(Path.Combine(templateRoot,"AndroidManifest.xml"),Path.Combine(output,"AndroidManifest.xml"));
 File.Copy(PackPaths.Owned(Path.GetDirectoryName(registry.Paths["Confectory.Window"])!,"android/AndroidSurfaceBridge.cs"),Path.Combine(output,"AndroidSurfaceBridge.cs"));
 bool home=registry.Project.Namespace=="Confectory.EditorHome";
 File.Copy(Path.Combine(templateRoot,home?"EditorHomeActivity.cs":"MainActivity.cs"),Path.Combine(output,"MainActivity.cs"));

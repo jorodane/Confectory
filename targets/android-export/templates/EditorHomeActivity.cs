@@ -13,7 +13,7 @@ namespace Confectory.Android;
 
 // Android owns one Activity, native text/IME/touch, and user-granted import.
 // Project selection, drafts, Leave, catalogs, and shell ownership remain pack calls.
-[Activity(Label="Confectory",MainLauncher=true,Exported=true,LaunchMode=global::Android.Content.PM.LaunchMode.SingleTop,
+[Activity(MainLauncher=true,Exported=true,LaunchMode=global::Android.Content.PM.LaunchMode.SingleTop,
     WindowSoftInputMode=SoftInput.AdjustResize)]
 [IntentFilter(new[]{Intent.ActionView},Categories=new[]{Intent.CategoryDefault,Intent.CategoryBrowsable},DataMimeType="application/octet-stream",DataScheme="content")]
 [IntentFilter(new[]{Intent.ActionView},Categories=new[]{Intent.CategoryDefault,Intent.CategoryBrowsable},DataMimeType="text/plain",DataScheme="content")]
