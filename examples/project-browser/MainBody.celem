@@ -1,0 +1,32 @@
+implementation Example.ProjectBrowser::MainBody for Example.ProjectBrowser::Main () -> int {
+import Confectory.UIOrder::Create as OrderCreate () -> string;
+import Confectory.UIOrder::Update as OrderUpdate (string, string, string) -> string;
+import Confectory.UIOrder::Compose as OrderCompose (string, int[]) -> string;
+import Confectory.UIOrder::Hit as OrderHit (string, int, int) -> int[];
+import Confectory.EditWorkspace::Open as WorkspaceOpen (string, string, string) -> string;
+import Confectory.EditWorkspace::List as WorkspaceList (string) -> string[];
+import Confectory.EditWorkspace::Read as WorkspaceRead (string, string) -> string[];
+import Confectory.EditWorkspace::SetText as WorkspaceSetText (string, string, string) -> void;
+import Confectory.EditWorkspace::Close as WorkspaceClose (string) -> void;
+import Confectory.Window::CreateSurfaces as CreateSurfaces (string[], int, int) -> long[];
+import Confectory.Window::SurfaceDimensions as Dimensions (long[], int) -> int[];
+import Confectory.Window::Close as CloseSurfaces (long[], int) -> void;
+import Confectory.RenderInput::Pump as Pump (long[]) -> int[];
+import Confectory.RenderInput::Draw as Draw (long[], int, int[], string[]) -> void;
+import Confectory.RenderInput::DrawText as DrawText (long[], int, int[], int[], string[]) -> void;
+import Confectory.BaseUI::CreateControls as CreateControls (int[]) -> string;
+import Confectory.BaseUI::CloseControls as CloseControls (string) -> void;
+import Confectory.BaseUI::CreateText as CreateText (string, string) -> string;
+import Confectory.BaseUI::TextSnapshot as TextSnapshot (string) -> string[];
+import Confectory.BaseUI::CloseText as CloseText (string) -> void;
+import Confectory.BaseUI::ClipRegions as ClipRegions (int[], int[]) -> int[];
+import Confectory.BaseUI.NativeInput::Create as NativeCreate (long[], int) -> string;
+import Confectory.BaseUI.NativeInput::Field as NativeField (string, string, int, string, int[], string, string, bool, bool, bool) -> string;
+import Confectory.BaseUI.NativeInput::Poll as NativePoll (string, string) -> string;
+import Confectory.BaseUI.NativeInput::Focus as NativeFocus (string, string, int) -> void;
+import Confectory.BaseUI.NativeInput::Frame as NativeFrame (string, string[]) -> void;
+import Confectory.BaseUI.NativeInput::Clip as NativeClip (string, string, int[]) -> void;
+import Confectory.BaseUI.NativeInput::Close as NativeClose (string) -> void;
+import Confectory.RuntimeBase::CreateOwner as CreateOwner (int) -> string[];
+import Confectory.RuntimeBase::DisposeOwner as DisposeOwner (string[]) -> void;
+body common "Main.csbody"; }

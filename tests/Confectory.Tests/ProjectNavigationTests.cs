@@ -2,6 +2,16 @@ using Confectory.Core;
 namespace Confectory.Tests;
 public sealed class ProjectNavigationTests : TestCase
 {
+    public void test_project_browser_actual_semantic_windows_and_consumer_locality()
+    {
+        if(string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DISPLAY"))){Console.WriteLine("SKIP browser native GUI: no DISPLAY");return;}
+        string consumer=Path.Combine(f.Root,"semantic browser");Fixture.CopyTree(Path.Combine(Fixture.Repo,"examples","project-browser"),consumer);
+        string project=Path.Combine(consumer,"project.cpack");File.WriteAllText(project,File.ReadAllText(project).Replace("../../",Fixture.Repo+"/"));
+        var built=new Builder(project,"linux").Build();string report=Path.Combine(f.Root,"browser.json");File.WriteAllText(report,built.ToJsonString());
+        var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests","gui","project_browser_x11.py"),report},timeoutSeconds:180);True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("Project browser actual X11:"));
+        File.AppendAllText(Path.Combine(consumer,"Main.csbody"),"\n// browser presentation consumer locality\n");var changed=new Builder(project,"linux").Build();Sequence(new[]{"Example.ProjectBrowser::MainBody"},Strings(changed,"statistics","compiledImplementations"));Equal(0,Strings(changed,"statistics","compiledContracts").Length);
+        var windows=new Builder(project,"windows").Build();True(windows["output"] is not null,"Windows managed consumer build");
+    }
     public void test_shared_ui_order_independent_consumer_and_provider_locality()
     {
         string consumer=Path.Combine(f.Root,"order game"), pack=Path.Combine(f.Root,"order pack");
