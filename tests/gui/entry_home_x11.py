@@ -147,6 +147,28 @@ def type_text(window,text):
     assert field and field.get('native'),'Visible input must use a native widget'
     native_controls.text(int(field['nativeHandle']),text)
 
+def paste_seed(window,text):
+    # Own this isolated display's clipboard; Unicode ingress is toolkit paste, not an IME claim.
+    code="""import ctypes as c,sys
+P=c.c_void_p
+gtk=c.CDLL('libgtk-3.so.0');gdk=c.CDLL('libgdk-3.so.0')
+gtk.gtk_init_check.argtypes=[P,P];gtk.gtk_init_check.restype=c.c_int
+assert gtk.gtk_init_check(None,None)
+gdk.gdk_atom_intern.argtypes=[c.c_char_p,c.c_int];gdk.gdk_atom_intern.restype=P
+gtk.gtk_clipboard_get.argtypes=[P];gtk.gtk_clipboard_get.restype=P
+clip=gtk.gtk_clipboard_get(gdk.gdk_atom_intern(b'CLIPBOARD',0))
+gtk.gtk_clipboard_set_text.argtypes=[P,c.c_char_p,c.c_int];gtk.gtk_clipboard_set_text.restype=None
+value=sys.argv[1].encode('utf-8');gtk.gtk_clipboard_set_text(clip,value,len(value))
+print('READY',flush=True)
+gtk.gtk_main()
+"""
+    seed=subprocess.Popen([sys.executable,'-c',code,text],stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True,env=env)
+    try:
+        assert seed.stdout.readline().strip()=='READY'
+        native_controls.key(window,'a',(0xFFE3,));native_controls.key(window,'v',(0xFFE3,))
+        wait(lambda t:json.loads(t['fields'][str(t['focus'])])['text']==text,'owned Unicode clipboard paste')
+    finally:seed.terminate();seed.wait(timeout=10)
+
 def screenshot(window,name):
     path=os.path.join(storage,name+'.png');subprocess.run(['import','-window',str(window),path],check=True);return path
 
@@ -175,8 +197,15 @@ try:
     click(a,2);wait(lambda t:t['screen']=='create','New');click(a,13);state=wait(lambda t:t['focus']==10 and 'required' in t['message'],'required name focus');assert state['fields']['10']
     click(a,10);type_text(a,'Gui Home');click(a,11);type_text(a,'Initial intent\nNo Agent required');state=wait(lambda t:'No Agent required' in json.loads(t['fields']['11'])['text'],'multiline intent');assert_text_and_field_pixels(a,state);screenshot(a,'create')
     # Tab exits multiline field through the shared configured navigation policy.
-    press(a,0xFF09);wait(lambda t:t['focus']==12,'shared Tab navigation')
-    click(a,12);native_controls.folder(find,await_window,storage);wait(lambda t:not t['nativePickerPending'] and 12 in t['hits'][::5],'native parent selected')
+    press(a,0xFF09);wait(lambda t:t['focus']==30,'shared Tab reaches explicit parent input')
+    state=latest();parent_field=json.loads(state['fields']['30']);destination_field=json.loads(state['fields']['31']);assert parent_field['text']==storage and destination_field['readonly'] and destination_field['text']==os.path.join(storage,'Gui Home');assert 'Parent folder' in state['texts'] and 'Destination (read-only)' in state['texts'];parent_handle=int(parent_field['nativeHandle']);destination_handle=int(destination_field['nativeHandle'])
+    button=state['hits'][state['hits'][::5].index(12)*5:][:5];assert button[1]>=parent_field['bounds'][0]+parent_field['bounds'][2] and button[2]==parent_field['bounds'][1];assert destination_field['bounds'][1]>parent_field['bounds'][1]+parent_field['bounds'][3]
+    typed_parent=os.path.join(storage,'입력 Parent');os.mkdir(typed_parent);paste_seed(parent_handle,typed_parent);click(a,10);paste_seed(int(json.loads(latest()['fields']['10'])['nativeHandle']),'ㄹㅇㅋㅋ');state=wait(lambda t:json.loads(t['fields']['31'])['text']==os.path.join(typed_parent,'ㄹㅇㅋㅋ'),'separate live Unicode destination');assert json.loads(state['fields']['30'])['text']==typed_parent
+    expected_destination=os.path.join(typed_parent,'ㄹㅇㅋㅋ');click(a,31);native_controls.key(destination_handle,'a',(0xFFE3,));native_controls.key(destination_handle,'c',(0xFFE3,));native_controls.key(destination_handle,'q');time.sleep(.2);assert json.loads(latest()['fields']['31'])['text']==expected_destination
+    click(a,30);native_controls.key(parent_handle,'a',(0xFFE3,));native_controls.key(parent_handle,'v',(0xFFE3,));wait(lambda t:json.loads(t['fields']['30'])['text']==expected_destination,'read-only destination native copy');paste_seed(parent_handle,typed_parent)
+    click(a,12);native_controls.folder(find,await_window,cancel=True);state=wait(lambda t:not t['nativePickerPending'] and 12 in t['hits'][::5],'parent picker cancel restores');assert json.loads(state['fields']['30'])['text']==typed_parent and json.loads(state['fields']['31'])['text']==expected_destination;assert int(json.loads(state['fields']['30'])['nativeHandle'])==parent_handle and int(json.loads(state['fields']['31'])['nativeHandle'])==destination_handle;screenshot(a,'parent-and-destination')
+    click(a,10);type_text(a,'Gui Home')
+    click(a,12);native_controls.folder(find,await_window,storage);wait(lambda t:not t['nativePickerPending'] and 12 in t['hits'][::5] and json.loads(t['fields']['30'])['text']==storage and json.loads(t['fields']['31'])['text']==os.path.join(storage,'Gui Home'),'native parent selected and rendered');assert json.loads(latest()['fields']['30'])['text']==storage and json.loads(latest()['fields']['31'])['text']==os.path.join(storage,'Gui Home')
     click(a,13);state=wait(lambda t:t['screen']=='project','create enters project');assert state['model']['selected']['title']=='Gui Home';path=state['model']['selected']['path'];assert os.path.isfile(path);assert os.path.dirname(os.path.dirname(path))==storage,'Native chooser selected a child rather than the typed parent'
     leave_project(a);state=wait(lambda t:t['screen']=='home' and len(t['model']['cards'])==1,'leave to cards');assert state['controls']==token and state['buffers']==buffers;screenshot(a,'home-card')
     click(a,101);assert open(folder_request).read().strip()==os.path.dirname(path),'OS folder request uses selected project directory'
