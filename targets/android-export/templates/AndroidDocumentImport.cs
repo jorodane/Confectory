@@ -4,7 +4,10 @@ namespace Confectory.Android;
 // Granted provider reads only. Copies are editable app-owned files; no provider write authority is retained.
 internal static class AndroidDocumentImport
 {
+    static readonly object importGate=new();
     public static string Copy(ContentResolver resolver,global::Android.Net.Uri uri,string root,bool tree)
+    {lock(importGate)return CopyOwned(resolver,uri,root,tree);}
+    static string CopyOwned(ContentResolver resolver,global::Android.Net.Uri uri,string root,bool tree)
     {
         if(uri.Scheme!="content")throw new ArgumentException("User-granted content URI required");
         // Stable URI identity reopens the existing app-owned copy without erasing edits.
