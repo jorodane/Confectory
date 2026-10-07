@@ -1,0 +1,1 @@
+implementation Confectory.Window::BindPresentationBody for Confectory.Window::BindPresentation (long[] surfaces, int view, string callbackID) -> void { body common "BindPresentation.csbody"; }

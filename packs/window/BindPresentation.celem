@@ -1,0 +1,1 @@
+function Confectory.Window::BindPresentation (long[] surfaces, int view, string callbackID) -> void { provide Confectory.Window::BindPresentation with Confectory.Window::BindPresentationBody; description "Opt-in Win32 size-specific presentation, opaque consumer callback identity; empty identity unbinds before Owner cleanup."; }

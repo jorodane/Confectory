@@ -30,6 +30,10 @@ intptr_t GetModuleHandleW(const uint16_t *name){(void)name;return 1;}
 intptr_t LoadCursorW(intptr_t h,intptr_t name){(void)h;return name;}
 int AdjustWindowRectEx(int *rect,uint32_t style,int menu,uint32_t ex){(void)style;(void)menu;(void)ex;rect[0]-=8;rect[1]-=31;rect[2]+=8;rect[3]+=8;return 1;}
 intptr_t CreateWindowExW(uint32_t ex,const uint16_t *cls,const uint16_t *title,uint32_t style,int x,int y,int width,int height,intptr_t parent,intptr_t menu,intptr_t instance,intptr_t param){(void)ex;(void)cls;(void)title;if(style&0x02000000)counters[19]++;(void)x;(void)y;(void)parent;(void)menu;(void)instance;(void)param;intptr_t h=100+nwindow;windows[nwindow++]=(struct window){h,width-16,height-39,1};callback(h,0x81,0,0);return h;}
+static int modal_stage;
+int SimModalStage(void){return modal_stage;}
+void SimResize(intptr_t hwnd,int width,int height){struct window *w=find(hwnd);if(w){w->width=width;w->height=height;TextProofDeliver(hwnd,5,0,(intptr_t)((uint32_t)width|((uint32_t)height<<16)));}}
+void SimModalResize(intptr_t hwnd,int width,int height){modal_stage=1;TextProofDeliver(hwnd,0x231,0,0);SimResize(hwnd,width,height);TextProofDeliver(hwnd,15,0,0);TextProofDeliver(hwnd,0x232,0,0);modal_stage=0;}
 intptr_t DefWindowProcW(intptr_t hwnd,uint32_t msg,intptr_t wp,intptr_t lp){(void)hwnd;(void)wp;(void)lp;if(msg==0x84){counters[1]++;return 1;}if(msg==0xA1||msg==0xA3||msg==0x112)counters[2]++;return 0;}
 intptr_t SetFocus(intptr_t hwnd){intptr_t old=focus;focus=hwnd;if(old&&old!=hwnd)TextProofDeliver(old,8,hwnd,0);return old;}
 int IsChild(intptr_t parent,intptr_t child){return child==parent+10000;}
@@ -50,6 +54,7 @@ intptr_t GetDC(intptr_t hwnd){return hwnd+10000;}
 int ReleaseDC(intptr_t hwnd,intptr_t dc){(void)hwnd;(void)dc;return 1;}
 int GetClientRect(intptr_t hwnd,int *rect){struct window*w=find(hwnd);if(!w)return 0;rect[0]=rect[1]=0;rect[2]=w->width;rect[3]=w->height;return 1;}
 int InvalidateRect(intptr_t hwnd,void *rect,int erase){(void)rect;if(erase)counters[11]++;for(int i=front;i<back;i++)if(queue[i%512].hwnd==hwnd&&queue[i%512].msg==15)return 1;SimPost(hwnd,15,0,0);return 1;}
+int UpdateWindow(intptr_t hwnd){int pending=0;for(int n=front;n<back;n++)if(queue[n%512].hwnd==hwnd&&queue[n%512].msg==15){queue[n%512].msg=0;pending=1;}if(pending)TextProofDeliver(hwnd,15,0,0);return 1;}
 intptr_t CreateCompatibleDC(intptr_t dc){(void)dc;return nextgdi++;}
 intptr_t CreateCompatibleBitmap(intptr_t dc,int width,int height){(void)dc;(void)width;(void)height;counters[12]++;return nextgdi++;}
 intptr_t GetStockObject(int index){return index+8000;}

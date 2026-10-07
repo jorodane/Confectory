@@ -7,32 +7,34 @@ System.Text.Json.Nodes.JsonNode? row=items[key];
 void Policy(System.Text.Json.Nodes.JsonNode r){int[] b=Array(r["bounds"]!),h=Array(r["handle"]!),m=Array(r["minimum"]!);Bounds(b);if(h.Length!=4||m.Length!=2||h[0]<0||h[1]<0||h[2]<1||h[3]<1||(long)h[0]+h[2]>b[2]||(long)h[1]+h[3]>b[3]||m[0]<1||m[1]<1||m[0]>8192||m[1]>8192)throw new ArgumentException("Placement handle must fit geometry");}
 int[] Clamp(System.Text.Json.Nodes.JsonNode r,int[] b){if(model["area"] is null)return b;int[] a=Array(model["area"]!),h=Array(r["handle"]!),m=Array(r["minimum"]!);for(int axis=0;axis<2;axis++){int low=a[axis],high=a[axis]+a[axis+2]-b[axis+2];if(low>high){int visible=Math.Min(m[axis],Math.Min(h[axis+2],a[axis+2]));low=a[axis]+visible-h[axis]-h[axis+2];high=a[axis]+a[axis+2]-visible-h[axis];}b[axis]=Math.Clamp(b[axis],low,high);}return b;}
 void Store(System.Text.Json.Nodes.JsonNode r,int[] b)=>r["bounds"]=System.Text.Json.JsonSerializer.SerializeToNode(b);
+void Contact(System.Text.Json.Nodes.JsonNode r,string target,int left,int top,int right,int bottom)=>r["contact"]=new System.Text.Json.Nodes.JsonObject{["target"]=target,["edges"]=System.Text.Json.JsonSerializer.SerializeToNode(new[]{left,top,right,bottom})};
 System.Text.Json.Nodes.JsonObject Anchor(string target,double x,double y,double px,double py)=>new(){["target"]=target,["point"]=System.Text.Json.JsonSerializer.SerializeToNode(new[]{x,y}),["pivot"]=System.Text.Json.JsonSerializer.SerializeToNode(new[]{px,py})};
 bool Cycle(string source,string target){var seen=new System.Collections.Generic.HashSet<string>{source};while(target!="viewport"){if(!seen.Add(target))return true;var other=items[target];if(other?["anchor"] is null)return false;target=other["anchor"]!["target"]!.GetValue<string>();}return false;}
-if(operation=="viewport"){int[] a=Array(args["bounds"]!);Bounds(a);model["area"]=System.Text.Json.JsonSerializer.SerializeToNode(a);}
+if(operation=="viewport"){int[] a=Array(args["bounds"]!);Bounds(a);model["area"]=System.Text.Json.JsonSerializer.SerializeToNode(a);foreach(var item in items)item.Value!["contact"]=null;}
 else if(operation=="open"){
  if(row is not null&&row["live"]!.GetValue<bool>())throw new ArgumentException("Duplicate placement key");if(row is null&&items.Count>=64)throw new ArgumentException("Placement identity budget");
  // Reopening the same stable key is reappearance, never a native resource resurrection.
- var anchor=row?["anchor"]?.DeepClone();row=new System.Text.Json.Nodes.JsonObject{["bounds"]=args["bounds"]!.DeepClone(),["handle"]=args["handle"]!.DeepClone(),["minimum"]=args["minimum"]!.DeepClone(),["anchor"]=anchor,["live"]=true,["suspended"]=false};Policy(row);items[key]=row;
+ var anchor=row?["anchor"]?.DeepClone();row=new System.Text.Json.Nodes.JsonObject{["bounds"]=args["bounds"]!.DeepClone(),["handle"]=args["handle"]!.DeepClone(),["minimum"]=args["minimum"]!.DeepClone(),["anchor"]=anchor,["live"]=true,["suspended"]=false,["contact"]=null};Policy(row);items[key]=row;
 }else{
  if(row is null)throw new ArgumentException("Unknown placement key");
- if(operation=="remove")row["live"]=false;
- else if(operation=="availability")row["live"]=args["live"]!.GetValue<bool>();
+ if(operation=="remove"){row["live"]=false;row["contact"]=null;}
+ else if(operation=="availability"){bool live=args["live"]!.GetValue<bool>();if(!live||row["live"]!.GetValue<bool>()!=live)row["contact"]=null;row["live"]=live;}
  else if(operation=="geometry"||operation=="move"){
   int[] previous=Array(row["bounds"]!),b=Array(args["bounds"]!);Bounds(b);if(operation=="move"&&(b[2]!=previous[2]||b[3]!=previous[3]))throw new ArgumentException("Position gesture cannot resize");
-  Store(row,b);if(args["handle"] is not null)row["handle"]=args["handle"]!.DeepClone();if(args["minimum"] is not null)row["minimum"]=args["minimum"]!.DeepClone();Policy(row);
+  row["contact"]=null;Store(row,b);if(args["handle"] is not null)row["handle"]=args["handle"]!.DeepClone();if(args["minimum"] is not null)row["minimum"]=args["minimum"]!.DeepClone();Policy(row);
   if(operation=="move"){
    row["anchor"]=null;row["suspended"]=false;b=Clamp(row,b);Store(row,b);
    if(model["area"] is not null){int[] a=Array(model["area"]!);int ex=b[2]<=a[2]?(b[0]==a[0]?0:b[0]+b[2]==a[0]+a[2]?1:-1):-1,ey=b[3]<=a[3]?(b[1]==a[1]?0:b[1]+b[3]==a[1]+a[3]?1:-1):-1;
-    if(ex>=0||ey>=0){double px=ex==1?1:0,py=ey==1?1:0;row["anchor"]=Anchor("viewport",ex>=0?ex:(b[0]-a[0])/(double)a[2],ey>=0?ey:(b[1]-a[1])/(double)a[3],px,py);}
-    else{
-     // Exact edge contact during a position gesture only; stable ordinal ties, no proximity magnet.
-     foreach(var candidate in System.Linq.Enumerable.OrderBy(items,x=>x.Key,StringComparer.Ordinal)){
-      var other=candidate.Value!;if(candidate.Key==key||!other["live"]!.GetValue<bool>()||other["anchor"] is null||other["suspended"]!.GetValue<bool>()||Cycle(key,candidate.Key))continue;int[] t=Array(other["bounds"]!);bool overlapX=b[0]<t[0]+t[2]&&b[0]+b[2]>t[0],overlapY=b[1]<t[1]+t[3]&&b[1]+b[3]>t[1];
-      if(overlapX&&(b[1]==t[1]+t[3]||b[1]+b[3]==t[1])){bool below=b[1]==t[1]+t[3];row["anchor"]=Anchor(candidate.Key,(b[0]-t[0])/(double)t[2],below?1:0,0,below?0:1);break;}
-      if(overlapY&&(b[0]==t[0]+t[2]||b[0]+b[2]==t[0])){bool right=b[0]==t[0]+t[2];row["anchor"]=Anchor(candidate.Key,right?1:0,(b[1]-t[1])/(double)t[3],right?0:1,0);break;}
-     }
+    // Already-anchored window contact precedes coincident viewport contact.
+    // A crossed edge counts as contact; a remaining gap never does.
+    foreach(var candidate in System.Linq.Enumerable.OrderBy(items,x=>x.Key,StringComparer.Ordinal)){
+     var other=candidate.Value!;if(candidate.Key==key||!other["live"]!.GetValue<bool>()||other["anchor"] is null||other["suspended"]!.GetValue<bool>()||Cycle(key,candidate.Key))continue;int[] t=Array(other["bounds"]!);bool overlapX=b[0]<t[0]+t[2]&&b[0]+b[2]>t[0],overlapY=b[1]<t[1]+t[3]&&b[1]+b[3]>t[1];
+     bool below=b[1]==t[1]+t[3]||previous[1]>t[1]+t[3]&&b[1]<t[1]+t[3],above=b[1]+b[3]==t[1]||previous[1]+previous[3]<t[1]&&b[1]+b[3]>t[1];
+     if(overlapX&&(below||above)){b[1]=below?t[1]+t[3]:t[1]-b[3];Store(row,b);row["anchor"]=Anchor(candidate.Key,(b[0]-t[0])/(double)t[2],below?1:0,0,below?0:1);Contact(row,candidate.Key,0,below?1:0,0,below?0:1);break;}
+     bool right=b[0]==t[0]+t[2]||previous[0]>t[0]+t[2]&&b[0]<t[0]+t[2],left=b[0]+b[2]==t[0]||previous[0]+previous[2]<t[0]&&b[0]+b[2]>t[0];
+     if(overlapY&&(right||left)){b[0]=right?t[0]+t[2]:t[0]-b[2];Store(row,b);row["anchor"]=Anchor(candidate.Key,right?1:0,(b[1]-t[1])/(double)t[3],right?0:1,0);Contact(row,candidate.Key,right?1:0,0,right?0:1,0);break;}
     }
+    if(row["anchor"] is null&&(ex>=0||ey>=0)){double px=ex==1?1:0,py=ey==1?1:0;row["anchor"]=Anchor("viewport",ex>=0?ex:(b[0]-a[0])/(double)a[2],ey>=0?ey:(b[1]-a[1])/(double)a[3],px,py);Contact(row,"viewport",ex==0?1:0,ey==0?1:0,ex==1?1:0,ey==1?1:0);}
    }
   }
  }else throw new ArgumentException("Unknown placement operation");
@@ -45,6 +47,8 @@ void Resolve(string k){if(done.Contains(k))return;if(!visiting.Add(k))throw new 
  if(anchor is not null){string target=anchor["target"]!.GetValue<string>();int[]? t=null;if(target=="viewport")t=model["area"] is null?null:Array(model["area"]!);else if(items[target] is System.Text.Json.Nodes.JsonNode reference&&reference["live"]!.GetValue<bool>()){Resolve(target);if(!reference["suspended"]!.GetValue<bool>())t=Array(reference["bounds"]!);}
   if(t is null)suspended=true;else{double[] point=System.Text.Json.JsonSerializer.Deserialize<double[]>(anchor["point"]!.ToJsonString())!,pivot=System.Text.Json.JsonSerializer.Deserialize<double[]>(anchor["pivot"]!.ToJsonString())!;if(point.Length!=2||pivot.Length!=2)throw new ArgumentException("Placement anchor dimensions");for(int axis=0;axis<2;axis++){double position=t[axis]+point[axis]*t[axis+2]-pivot[axis]*b[axis+2];if(!double.IsFinite(position)||Math.Abs(position)>1048576)throw new ArgumentException("Placement anchor range");b[axis]=checked((int)Math.Round(position,MidpointRounding.AwayFromZero));}}
  }
- r["suspended"]=suspended;Store(r,Clamp(r,b));
+ r["suspended"]=suspended;b=Clamp(r,b);Store(r,b);
+ if(r["contact"] is System.Text.Json.Nodes.JsonNode contact){string target=contact["target"]!.GetValue<string>();int[]? t=target=="viewport"?(model["area"] is null?null:Array(model["area"]!)):items[target] is System.Text.Json.Nodes.JsonNode other&&other["live"]!.GetValue<bool>()&&!other["suspended"]!.GetValue<bool>()?Array(other["bounds"]!):null;int[] edges=Array(contact["edges"]!);if(t is null||suspended||edges.Length!=4)r["contact"]=null;else{bool viewport=target=="viewport",overlapX=b[0]<t[0]+t[2]&&b[0]+b[2]>t[0],overlapY=b[1]<t[1]+t[3]&&b[1]+b[3]>t[1];bool[] touching={b[0]==t[0]+(viewport?0:t[2])&&(viewport||overlapY),b[1]==t[1]+(viewport?0:t[3])&&(viewport||overlapX),b[0]+b[2]==t[0]+(viewport?t[2]:0)&&(viewport||overlapY),b[1]+b[3]==t[1]+(viewport?t[3]:0)&&(viewport||overlapX)};for(int edge=0;edge<4;edge++)if(edges[edge]==1&&!touching[edge]){r["contact"]=null;break;}}}
+
 }visiting.Remove(k);done.Add(k);}
 foreach(var item in items)Resolve(item.Key);return model.ToJsonString();

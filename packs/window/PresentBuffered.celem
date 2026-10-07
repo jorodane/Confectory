@@ -1,0 +1,1 @@
+function Confectory.Window::PresentBuffered (long[] surfaces, int view) -> void { provide Confectory.Window::PresentBuffered with Confectory.Window::PresentBufferedBody; description "Same-thread Win32 commit of a completed invalidated buffer via WM_PAINT; no simulation or input drain; registered size presentation may defer safely."; }

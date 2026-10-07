@@ -14,4 +14,5 @@ registry Confectory.FileStream "../../packs/file-stream/pack.cpack"; dependency 
 registry Confectory.Build.DotNet "../../targets/dotnet/pack.cpack"; dependency Confectory.Build.DotNet version "0.1.0";
 target windows Confectory.Build.DotNet::Portable;
 element Main function "Main.celem"; element MainBody implementation "MainBody.celem";
+element PresentationBody implementation "PresentationBody.celem";
 }

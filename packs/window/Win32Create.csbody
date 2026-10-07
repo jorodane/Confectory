@@ -36,6 +36,10 @@ static extern IntPtr SelectObject(IntPtr dc,IntPtr item);
 static extern bool DeleteObject(IntPtr item);
 [System.Runtime.InteropServices.DllImport("gdi32.dll")]
 static extern bool DeleteDC(IntPtr dc);
+[System.Runtime.InteropServices.DllImport("user32.dll")]static extern bool GetClientRect(IntPtr window,IntPtr rect);
+[System.Runtime.InteropServices.DllImport("gdi32.dll")]static extern IntPtr GetStockObject(int item);
+[System.Runtime.InteropServices.DllImport("gdi32.dll")]static extern uint SetDCBrushColor(IntPtr dc,uint color);
+[System.Runtime.InteropServices.DllImport("user32.dll")]static extern int FillRect(IntPtr dc,IntPtr rect,IntPtr brush);
 if(!OperatingSystem.IsWindows())throw new PlatformNotSupportedException("Win32 window provider.");
 if(view<0||view>=surfaces.Length-1||width<1||height<1)throw new ArgumentException("Invalid native view.");
 if(surfaces[view+1]!=0)return;
@@ -44,7 +48,7 @@ if(surfaces[0]==0)
 {
  long id;do{id=BitConverter.ToInt64(Guid.NewGuid().ToByteArray(),0);}while(id==0||AppDomain.CurrentDomain.GetData("Confectory.Win32."+id) is not null);surfaces[0]=id;
  string name="Confectory_Window_"+Guid.NewGuid().ToString("N");
- context=new object[]{null!,name,GetModuleHandleW(null),new System.Collections.Generic.Queue<int[]>(),new System.Collections.Generic.Dictionary<long,object[]>(),null!,new System.Collections.Generic.HashSet<long>(),GetCurrentThreadId(),new System.Collections.Generic.Dictionary<long,char>(),false};
+ context=new object[]{null!,name,GetModuleHandleW(null),new System.Collections.Generic.Queue<int[]>(),new System.Collections.Generic.Dictionary<long,object[]>(),null!,new System.Collections.Generic.HashSet<long>(),GetCurrentThreadId(),new System.Collections.Generic.Dictionary<long,char>(),false,new System.Collections.Generic.Dictionary<long,string>(),false,false,new System.Collections.Generic.Dictionary<long,int[]>()};
  int Find(IntPtr hwnd){for(int i=1;i<surfaces.Length;i++)if(surfaces[i]==hwnd.ToInt64())return i-1;return -1;}
  void Emit(int index,int kind,int x=0,int y=0,int code=0,int flags=0){if(index>=0)((System.Collections.Generic.Queue<int[]>)context[3]).Enqueue(new[]{index,kind,x,y,code,flags});}
  void ReleaseFrame(long handle)
@@ -53,30 +57,38 @@ if(surfaces[0]==0)
   SelectObject((IntPtr)frame[0],(IntPtr)frame[4]);DeleteObject((IntPtr)frame[1]);DeleteDC((IntPtr)frame[0]);
  }
  bool traceNative=Environment.GetEnvironmentVariable("CONFECTORY_NATIVE_TRACE")=="1";
+ int[] ClientSize(IntPtr hwnd){var rect=System.Runtime.InteropServices.Marshal.AllocHGlobal(16);try{if(!GetClientRect(hwnd,rect))throw new InvalidOperationException("Presentation client geometry failed");return new[]{System.Runtime.InteropServices.Marshal.ReadInt32(rect,8)-System.Runtime.InteropServices.Marshal.ReadInt32(rect,0),System.Runtime.InteropServices.Marshal.ReadInt32(rect,12)-System.Runtime.InteropServices.Marshal.ReadInt32(rect,4)};}finally{System.Runtime.InteropServices.Marshal.FreeHGlobal(rect);}}
+ void PresentSize(IntPtr hwnd,int index){if(index<0||(bool)context[11]||(bool)context[12]||context[5] is Exception)return;long handle=hwnd.ToInt64();var bindings=(System.Collections.Generic.Dictionary<long,string>)context[10];if(!bindings.TryGetValue(handle,out string? callbackID))return;
+ foreach(var borrowed in ((System.Collections.Generic.Dictionary<long,object[]>)context[4]).Values)if(borrowed.Length>5&&(long)borrowed[5]!=0)return;
+ int[] size=ClientSize(hwnd);if(size[0]<1||size[1]<1)return;var sizes=(System.Collections.Generic.Dictionary<long,int[]>)context[13];if(sizes.TryGetValue(handle,out var previous)&&previous[0]==size[0]&&previous[1]==size[1])return;
+ if(traceNative)Console.Error.WriteLine("NATIVE_WINDOW "+System.Text.Json.JsonSerializer.Serialize(new{stamp=System.Diagnostics.Stopwatch.GetTimestamp(),operation="presentation-request",view=index,width=size[0],height=size[1]}));context[11]=true;try{bool completed=calls.Presentation.Invoke(callbackID,surfaces,index,size[0],size[1]);if(completed)sizes[handle]=size;if(traceNative)Console.Error.WriteLine("NATIVE_WINDOW "+System.Text.Json.JsonSerializer.Serialize(new{stamp=System.Diagnostics.Stopwatch.GetTimestamp(),operation="presentation-complete",view=index,width=size[0],height=size[1],completed}));}finally{context[11]=false;}
+ }
  IntPtr Procedure(IntPtr hwnd,uint message,IntPtr wParam,IntPtr lParam)
  {
   try
   {
    int index=Find(hwnd),packed=unchecked((int)lParam.ToInt64()),x=(short)(packed&65535),y=(short)(packed>>16);
-   if(traceNative&&message is 0x6 or 0x7 or 0x8 or 0x1F or 0x215 or 0x201 or 0x202 or 0x203)Console.Error.WriteLine("NATIVE_WINDOW "+System.Text.Json.JsonSerializer.Serialize(new{stamp=System.Diagnostics.Stopwatch.GetTimestamp(),operation="window-event",handle=hwnd.ToInt64(),view=index,message,wParam=wParam.ToInt64(),lParam=lParam.ToInt64()}));
+   if(traceNative&&message is 0x6 or 0x7 or 0x8 or 0x1F or 0x215 or 0x201 or 0x202 or 0x203 or 0x5 or 0x231 or 0x232)Console.Error.WriteLine("NATIVE_WINDOW "+System.Text.Json.JsonSerializer.Serialize(new{stamp=System.Diagnostics.Stopwatch.GetTimestamp(),operation="window-event",handle=hwnd.ToInt64(),view=index,message,wParam=wParam.ToInt64(),lParam=lParam.ToInt64()}));
    if(message==0x14)return (IntPtr)1; // buffered WM_PAINT owns background, never STATIC erase/paint
    if(message==0xF)
    {
     if(traceNative)Console.Error.WriteLine("NATIVE_WINDOW "+System.Text.Json.JsonSerializer.Serialize(new{stamp=System.Diagnostics.Stopwatch.GetTimestamp(),operation="parent-paint",handle=hwnd.ToInt64(),view=index}));
-    var paint=System.Runtime.InteropServices.Marshal.AllocHGlobal(80);
+    PresentSize(hwnd,index);var client=ClientSize(hwnd);var paint=System.Runtime.InteropServices.Marshal.AllocHGlobal(80);var clientRect=System.Runtime.InteropServices.Marshal.AllocHGlobal(16);bool copied=false;
     try
     {
      IntPtr dc=BeginPaint(hwnd,paint);
-     if(((System.Collections.Generic.Dictionary<long,object[]>)context[4]).TryGetValue(hwnd.ToInt64(),out var frame))
-     {if(!BitBlt(dc,0,0,(int)frame[2],(int)frame[3],(IntPtr)frame[0],0,0,0x00CC0020))throw new InvalidOperationException("Buffered paint failed.");}
+     var frames=(System.Collections.Generic.Dictionary<long,object[]>)context[4];frames.TryGetValue(hwnd.ToInt64(),out var frame);
+     if(frame is not null&&frame.Length>5&&(long)frame[5]!=0)return IntPtr.Zero; // never expose a borrowed/incomplete composition
+     if(frame is null||(int)frame[2]!=client[0]||(int)frame[3]!=client[1]){System.Runtime.InteropServices.Marshal.WriteInt32(clientRect,0,0);System.Runtime.InteropServices.Marshal.WriteInt32(clientRect,4,0);System.Runtime.InteropServices.Marshal.WriteInt32(clientRect,8,client[0]);System.Runtime.InteropServices.Marshal.WriteInt32(clientRect,12,client[1]);SetDCBrushColor(dc,0x202020);if(FillRect(dc,clientRect,GetStockObject(18))==0)throw new InvalidOperationException("Safe resize background failed");}
+     if(frame is not null&&client[0]>0&&client[1]>0){if(!BitBlt(dc,0,0,Math.Min((int)frame[2],client[0]),Math.Min((int)frame[3],client[1]),(IntPtr)frame[0],0,0,0x00CC0020))throw new InvalidOperationException("Buffered paint failed.");copied=true;}
      else Emit(index,10);
     }
-    finally{EndPaint(hwnd,paint);System.Runtime.InteropServices.Marshal.FreeHGlobal(paint);}
+    finally{EndPaint(hwnd,paint);if(traceNative)Console.Error.WriteLine("NATIVE_WINDOW "+System.Text.Json.JsonSerializer.Serialize(new{stamp=System.Diagnostics.Stopwatch.GetTimestamp(),operation="parent-paint-complete",view=index,copied}));System.Runtime.InteropServices.Marshal.FreeHGlobal(clientRect);System.Runtime.InteropServices.Marshal.FreeHGlobal(paint);}
     return IntPtr.Zero;
    }
    if(message==0x201||message==0x203){SetFocus(hwnd);SetCapture(hwnd);Emit(index,1,x,y);return IntPtr.Zero;}
    if(message==0x202){Emit(index,2,x,y);context[9]=true;try{ReleaseCapture();}finally{context[9]=false;}return IntPtr.Zero;}
-   if(message==0x200){Emit(index,3,x,y);return IntPtr.Zero;}
+   if(message==0x200){if(traceNative)Console.Error.WriteLine("NATIVE_WINDOW "+System.Text.Json.JsonSerializer.Serialize(new{stamp=System.Diagnostics.Stopwatch.GetTimestamp(),operation="pointer-enqueue",view=index,x,y,queued=((System.Collections.Generic.Queue<int[]>)context[3]).Count}));Emit(index,3,x,y);return IntPtr.Zero;}
    if(message==0x20A)
    {
     var point=System.Runtime.InteropServices.Marshal.AllocHGlobal(8);
@@ -91,12 +103,12 @@ if(surfaces[0]==0)
     pending.Remove(handle);if(!char.IsControl(value))Emit(index,12,0,0,value);return IntPtr.Zero;
    }
    if(message==0x100||message==0x101){Emit(index,message==0x100?5:6,0,0,unchecked((int)wParam.ToInt64()),((packed>>30)&1)|((GetKeyState(0x11)&0x8000)!=0?2:0)|((GetKeyState(0x10)&0x8000)!=0?4:0)|((GetKeyState(0x12)&0x8000)!=0?8:0));return DefWindowProcW(hwnd,message,wParam,lParam);}
-   if(message==0x5){Emit(index,7,packed&65535,(packed>>16)&65535);return IntPtr.Zero;}
+   if(message==0x5){Emit(index,7,packed&65535,(packed>>16)&65535);if(wParam.ToInt64()!=1)PresentSize(hwnd,index);return IntPtr.Zero;}
    if(message==0x8&&IsChild(hwnd,wParam))return DefWindowProcW(hwnd,message,wParam,lParam);
    if(message==0x8||message==0x1F){((System.Collections.Generic.Dictionary<long,char>)context[8]).Remove(hwnd.ToInt64());Emit(index,9);return DefWindowProcW(hwnd,message,wParam,lParam);}
    if(message==0x215){if(!(bool)context[9])Emit(index,11);return DefWindowProcW(hwnd,message,wParam,lParam);}
    if(message==0x10){if(((System.Collections.Generic.HashSet<long>)context[6]).Add(hwnd.ToInt64()))Emit(index,8);return IntPtr.Zero;}
-   if(message==0x82){((System.Collections.Generic.Dictionary<long,char>)context[8]).Remove(hwnd.ToInt64());ReleaseFrame(hwnd.ToInt64());if(!((System.Collections.Generic.HashSet<long>)context[6]).Remove(hwnd.ToInt64()))Emit(index,8);}
+   if(message==0x82){((System.Collections.Generic.Dictionary<long,string>)context[10]).Remove(hwnd.ToInt64());((System.Collections.Generic.Dictionary<long,int[]>)context[13]).Remove(hwnd.ToInt64());((System.Collections.Generic.Dictionary<long,char>)context[8]).Remove(hwnd.ToInt64());ReleaseFrame(hwnd.ToInt64());if(!((System.Collections.Generic.HashSet<long>)context[6]).Remove(hwnd.ToInt64()))Emit(index,8);}
    // Default OS hit testing, caption dragging, system menu, minimize/maximize and Alt+F4.
    return DefWindowProcW(hwnd,message,wParam,lParam);
   }

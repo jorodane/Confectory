@@ -1,0 +1,10 @@
+[System.Runtime.InteropServices.DllImport("kernel32.dll")]static extern uint GetCurrentThreadId();
+[System.Runtime.InteropServices.DllImport("user32.dll")]static extern bool UpdateWindow(IntPtr window);
+if(!OperatingSystem.IsWindows())throw new PlatformNotSupportedException("Buffered synchronous presentation currently requires Win32");
+if(view<0||view>=surfaces.Length-1||surfaces[view+1]==0)throw new ArgumentException("Presentation view");
+var context=AppDomain.CurrentDomain.GetData("Confectory.Win32."+surfaces[0]) as object[]??throw new InvalidOperationException("Win32 session is disposed");
+if((uint)context[7]!=GetCurrentThreadId())throw new InvalidOperationException("Presentation must run on the creating UI thread");
+if((bool)context[12])throw new InvalidOperationException("Cannot present a closing session");
+foreach(var frame in ((System.Collections.Generic.Dictionary<long,object[]>)context[4]).Values)if(frame.Length>5&&(long)frame[5]!=0)throw new InvalidOperationException("Release every canvas before presenting a complete frame");
+if(!UpdateWindow((IntPtr)surfaces[view+1]))throw new InvalidOperationException("Buffered presentation request failed");
+if(context[5] is Exception failure)throw new InvalidOperationException("Presentation callback failed",failure);

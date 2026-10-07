@@ -1,4 +1,5 @@
 function Example.Win32Probe::Main () -> int {provide Example.Win32Probe::Main with Example.Win32Probe::MainBody;
+provide Confectory.Window::Presentation with Example.Win32Probe::PresentationBody;
 provide Confectory.Window::Win32Create with Confectory.Window::Win32CreateBody;
 provide Confectory.Window::Win32Pump with Confectory.Window::Win32PumpBody;
 provide Confectory.Window::Win32Draw with Confectory.Window::Win32DrawBody;

@@ -1,0 +1,1 @@
+implementation Confectory.Window::PresentBufferedBody for Confectory.Window::PresentBuffered (long[] surfaces, int view) -> void { body common "PresentBuffered.csbody"; }

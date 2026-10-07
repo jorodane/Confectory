@@ -9,4 +9,5 @@ dependency Confectory.Build.DotNet version "0.1.0";
 target portable Confectory.Build.DotNet::Portable;
 element Main function "main.celem";
 element MainBody implementation "main_body.celem";
+element PresentationBody implementation "presentation_body.celem";
 }

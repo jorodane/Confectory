@@ -1,0 +1,2 @@
+// Default: consumers opt in through BindPresentation and their ProjectPack provider.
+return false;

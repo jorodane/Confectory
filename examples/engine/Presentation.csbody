@@ -1,0 +1,1 @@
+var callback=AppDomain.CurrentDomain.GetData("Confectory.Engine.Presentation."+callbackID) as Func<long[],int,int,int,bool>??throw new ObjectDisposedException("Engine ProjectPack presentation Owner");return callback(surfaces,view,width,height);

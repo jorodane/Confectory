@@ -49,6 +49,6 @@ if(row is not null){string key=Key(row);bool registered=known[key] is not null;
  else if(operation is "move" or "drag" or "reach" or "restore" or "show" or "activate"){Geometry(row,operation=="drag"?"move":"geometry");Availability(row);}
  else if(operation is "minimize" or "hide")Availability(row);
 }
-var placed=System.Text.Json.Nodes.JsonNode.Parse(placement)!["items"]!;foreach(var window in windows)if(window!["reach"] is not null)window["bounds"]=placed[Key(window)]!["bounds"]!.DeepClone();
+var placed=System.Text.Json.Nodes.JsonNode.Parse(placement)!["items"]!;foreach(var window in windows){if(window!["reach"] is not null){window["bounds"]=placed[Key(window)]!["bounds"]!.DeepClone();window["contact"]=placed[Key(window)]!["contact"]?.DeepClone();}else window!["contact"]=null;}
 model["placement"]=placement;
 model["revision"]=checked(revision+1);return model.ToJsonString();

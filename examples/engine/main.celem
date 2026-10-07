@@ -1,6 +1,7 @@
 function Confectory.Engine::Main () -> int {
 use view Confectory.BaseUI::ProjectPanel;
 use view Confectory.BaseUI::ControlPanel;
+provide Confectory.Window::Presentation with Confectory.Engine::PresentationBody;
 provide Confectory.Engine::Main with Confectory.Engine::MainBody;
 provide Confectory.UINavigation::Create with Confectory.UINavigation::CreateBody;
 provide Confectory.UINavigation::Route with Confectory.UINavigation::RouteBody;

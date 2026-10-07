@@ -1,0 +1,1 @@
+var callback=AppDomain.CurrentDomain.GetData("Example.Win32Probe.Presentation."+callbackID) as Func<long[],int,int,int,bool>??throw new ObjectDisposedException("Probe presentation owner");return callback(surfaces,view,width,height);

@@ -113,13 +113,28 @@ void Disconnect(int view)
  calls.Input.Invoke(owners[view],models[view],views[view],9,0,0,0,0);
 }
 bool IsOpen(int view)=>calls.SurfaceInfo.Invoke(surfaces)[view*2]!=0;
+string presentationID=Guid.NewGuid().ToString("N");int presentationThread=Environment.CurrentManagedThreadId;bool rendering=false;
+void RenderView(int v,bool refreshSnapshot){if(rendering)throw new InvalidOperationException("Reentrant ProjectPack rendering");rendering=true;try{
+     if(refreshSnapshot)displayed[v]=(double[])cameras[v].Clone(); // resize paint reuses the last coherent presentation snapshot
+     calls.Draw.Invoke(surfaces,v,calls.Layout.Invoke(views[v]),calls.Labels.Invoke(views[v],displayed[v]));var context=projectContexts[v]==""?Array.Empty<string>():calls.ProjectContext.Invoke(projectManagers[v],projectContexts[v]);var execution=projectExecutions[v]==""?Array.Empty<string>():calls.ExecutionObserve.Invoke(calls.ProjectExecutions.Invoke(projectManagers[v]),projectExecutions[v]);
+     var size=calls.ViewStatus.Invoke(views[v]);calls.ProjectInput.Invoke(projectViews[v],7,(int)size[0],(int)size[1],0,0);
+     calls.Draw.Invoke(surfaces,v,calls.ProjectLayout.Invoke(projectViews[v]),calls.ProjectLabels.Invoke(context,execution,projectErrors[v]));if(authoring)
+     {
+      if(textBuffers[v]!="")calls.Draw.Invoke(surfaces,v,calls.SourceEditorLayout.Invoke((int)size[0],(int)size[1]),calls.SourceEditorLabels.Invoke(textBuffers[v],elementStatus[v]));
+      else if(elementViews[v]!=""){calls.ElementViewInput.Invoke(elementViews[v],7,(int)size[0],(int)size[1],0,0);var elementLabels=calls.ElementViewLabels.Invoke(elementViews[v],"Kind="+createKinds[createKind[v]]+" [K] | "+elementStatus[v]);calls.Draw.Invoke(surfaces,v,calls.ElementViewLayout.Invoke(elementViews[v]),elementLabels);if(Environment.GetEnvironmentVariable("CONFECTORY_RENDER_TRACE")=="1")Console.WriteLine("render "+windowPrefix+" view="+v+" label="+elementLabels[0]);}
+      else calls.Draw.Invoke(surfaces,v,new[]{20,230,Math.Max(1,(int)size[0]-40),50,0x344878},new[]{elementStatus[v]});
+     }
+     if(OperatingSystem.IsWindows())calls.PresentBuffered.Invoke(surfaces,v);calls.Presented.Invoke(views[v]);
+}finally{rendering=false;}
+}
+void BindView(int v){if(OperatingSystem.IsWindows())calls.BindPresentation.Invoke(surfaces,v,presentationID);}
 void Reopen(int view)
 {
  if(IsOpen(view))return;
  var status=calls.ViewStatus.Invoke(views[view]);
  calls.Reopen.Invoke(surfaces,view,titles[view],(int)status[0],(int)status[1]);
  var actual=calls.SurfaceDimensions.Invoke(surfaces,view);calls.Input.Invoke(owners[view],models[view],views[view],7,actual[0],actual[1],0,0);
- Connect(view);ConnectElement(view);Console.WriteLine("reopened "+view);
+ Connect(view);ConnectElement(view);if(OperatingSystem.IsWindows()){RenderView(view,false);BindView(view);}Console.WriteLine("reopened "+view);
 }
 string[] navigation={calls.NavigationCreate.Invoke("{\"initial\":\"basic-controls\",\"groups\":[{\"id\":\"basic-controls\",\"controls\":[1,2]}],\"bindings\":[{\"id\":\"demo-x11-tab\",\"key\":65289,\"group\":\"basic-controls\",\"action\":\"next\",\"priority\":0,\"text\":false},{\"id\":\"demo-tab\",\"key\":9,\"group\":\"basic-controls\",\"action\":\"next\",\"priority\":0,\"text\":false}]}"),calls.NavigationCreate.Invoke("{\"initial\":\"basic-controls\",\"groups\":[{\"id\":\"basic-controls\",\"controls\":[1,2]}],\"bindings\":[{\"id\":\"demo-x11-tab\",\"key\":65289,\"group\":\"basic-controls\",\"action\":\"next\",\"priority\":0,\"text\":false},{\"id\":\"demo-tab\",\"key\":9,\"group\":\"basic-controls\",\"action\":\"next\",\"priority\":0,\"text\":false}]}")};long[] navigationEvent=new long[2];
 void Input(int view,int type,int x,int y,int code,int flags)
@@ -175,6 +190,10 @@ try
  }
  surfaces=calls.CreateSurfaces.Invoke(titles,480,initialHeight);
  for(int v=0;v<2;v++){var actual=calls.SurfaceDimensions.Invoke(surfaces,v);calls.Input.Invoke(owners[v],models[v],views[v],7,actual[0],actual[1],0,0);}
+ if(OperatingSystem.IsWindows()){
+ AppDomain.CurrentDomain.SetData("Confectory.Engine.Presentation."+presentationID,(Func<long[],int,int,int,bool>)((live,v,w,h)=>{if(Environment.CurrentManagedThreadId!=presentationThread||!ReferenceEquals(live,surfaces))throw new InvalidOperationException("Presentation Owner/thread mismatch");if(interrupted||rendering||!IsOpen(v)||w<1||h<1)return false;calls.Input.Invoke(owners[v],models[v],views[v],7,w,h,0,0);RenderView(v,false);return true;}));
+ for(int v=0;v<2;v++){RenderView(v,false);BindView(v);}
+ }
  var schedule=calls.CreateSchedule.Invoke(16);
  calls.Register.Invoke(schedule,"Confectory.BaseUI::Input","input",0);
  calls.Register.Invoke(schedule,"Confectory.Engine::FixedUpdate","fixed",0);
@@ -231,16 +250,7 @@ try
     }
     else if(timing[1]!=0&&(calls.ViewStatus.Invoke(views[v])[2]!=0||now<0.1))
     {
-     displayed[v]=(double[])cameras[v].Clone(); // same immutable-by-convention frame for labels/render/picking
-     calls.Draw.Invoke(surfaces,v,calls.Layout.Invoke(views[v]),calls.Labels.Invoke(views[v],displayed[v]));var context=projectContexts[v]==""?Array.Empty<string>():calls.ProjectContext.Invoke(projectManagers[v],projectContexts[v]);var execution=projectExecutions[v]==""?Array.Empty<string>():calls.ExecutionObserve.Invoke(calls.ProjectExecutions.Invoke(projectManagers[v]),projectExecutions[v]);
-     var size=calls.ViewStatus.Invoke(views[v]);calls.ProjectInput.Invoke(projectViews[v],7,(int)size[0],(int)size[1],0,0);
-     calls.Draw.Invoke(surfaces,v,calls.ProjectLayout.Invoke(projectViews[v]),calls.ProjectLabels.Invoke(context,execution,projectErrors[v]));if(authoring)
-     {
-      if(textBuffers[v]!="")calls.Draw.Invoke(surfaces,v,calls.SourceEditorLayout.Invoke((int)size[0],(int)size[1]),calls.SourceEditorLabels.Invoke(textBuffers[v],elementStatus[v]));
-      else if(elementViews[v]!=""){calls.ElementViewInput.Invoke(elementViews[v],7,(int)size[0],(int)size[1],0,0);var elementLabels=calls.ElementViewLabels.Invoke(elementViews[v],"Kind="+createKinds[createKind[v]]+" [K] | "+elementStatus[v]);calls.Draw.Invoke(surfaces,v,calls.ElementViewLayout.Invoke(elementViews[v]),elementLabels);if(Environment.GetEnvironmentVariable("CONFECTORY_RENDER_TRACE")=="1")Console.WriteLine("render "+windowPrefix+" view="+v+" label="+elementLabels[0]);}
-      else calls.Draw.Invoke(surfaces,v,new[]{20,230,Math.Max(1,(int)size[0]-40),50,0x344878},new[]{elementStatus[v]});
-     }
-     calls.Presented.Invoke(views[v]);
+     RenderView(v,true);
     }
    }
   });
@@ -254,6 +264,7 @@ finally
 {
  Console.CancelKeyPress-=cancelHandler;
  void Cleanup(Action release){try{release();}catch(Exception ex){Console.Error.WriteLine("Cleanup failed: "+ex.Message);}}
+ if(OperatingSystem.IsWindows())for(int v=0;v<2;v++)if(surfaces.Length>v+1&&surfaces[v+1]!=0){int closing=v;Cleanup(()=>calls.BindPresentation.Invoke(surfaces,closing,""));}AppDomain.CurrentDomain.SetData("Confectory.Engine.Presentation."+presentationID,null);
  if(authorJob is not null){calls.SchemaEditingCancel.Invoke(authorOwner);try{if(!authorJob.Wait(5000))Console.Error.WriteLine("Authoring job did not finish within cancellation grace period.");}catch(Exception error){Console.Error.WriteLine("Authoring cleanup: "+error.Message);}}
  for(int v=0;v<2;v++)if(elementViews[v]!="")Cleanup(()=>calls.ElementViewClose.Invoke(elementViews[v]));
  for(int v=0;v<2;v++)if(textBuffers[v]!="")Cleanup(()=>calls.SourceEditorClose.Invoke(textBuffers[v]));

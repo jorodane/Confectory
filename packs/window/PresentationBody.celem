@@ -1,0 +1,1 @@
+implementation Confectory.Window::PresentationBody for Confectory.Window::Presentation (string callbackID, long[] surfaces, int view, int width, int height) -> bool { body common "Presentation.csbody"; }

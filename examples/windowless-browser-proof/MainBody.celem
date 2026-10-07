@@ -27,4 +27,6 @@ import Confectory.BaseUI::ReplaceText as ReplaceText (string, string, int, int) 
 import Confectory.UINavigation::Create as NavCreate (string) -> string;
 import Confectory.UINavigation::Group as NavGroup (string, string, int, int[]) -> string;
 import Confectory.UINavigation::Route as NavRoute (string, long, int, int, int, bool, int, int[]) -> string;
+import Confectory.Window::BindPresentation as BindPresentation (long[], int, string) -> void;
+import Confectory.Window::PresentBuffered as PresentBuffered (long[], int) -> void;
 body common "Main.csbody"; }

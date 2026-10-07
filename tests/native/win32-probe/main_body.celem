@@ -7,5 +7,7 @@ import Confectory.Window::Win32MeasureText as MeasureText (long[], int, string) 
 import Confectory.Window::Win32DrawText as DrawText (long[], int, int[], int[], string[]) -> void;
 import Confectory.Window::Win32AcquireCanvas as AcquireCanvas (long[], int) -> long[];
 import Confectory.Window::Win32ReleaseCanvas as ReleaseCanvas (long[], int, long[]) -> void;
+import Confectory.Window::BindPresentation as BindPresentation (long[], int, string) -> void;
+import Confectory.Window::PresentBuffered as PresentBuffered (long[], int) -> void;
 body common "main.csbody";
 }

@@ -111,5 +111,7 @@ import Confectory.SourceEditor::Close as SourceEditorClose (string) -> void;
 import Confectory.SourceEditor::Apply as SourceEditorApply (string, string, long) -> string[];
 import Confectory.ProjectExecution::LaunchConfigured as ExecutionLaunchConfigured (string[], string, string, string, string[], string[]) -> string;
 import Confectory.ProjectExecution::Output as ExecutionOutput (string[], string) -> string[];
+import Confectory.Window::BindPresentation as BindPresentation (long[], int, string) -> void;
+import Confectory.Window::PresentBuffered as PresentBuffered (long[], int) -> void;
 body common "main.csbody";
 }

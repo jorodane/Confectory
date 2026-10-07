@@ -51,4 +51,5 @@ registry Confectory.Helper "../../packs/helper/pack.cpack";
 dependency Confectory.Helper version "0.1.0";
 registry Confectory.WorkerTasks "../../packs/worker-tasks/pack.cpack";
 dependency Confectory.WorkerTasks version "0.1.0";
+element PresentationBody implementation "PresentationBody.celem";
 }

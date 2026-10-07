@@ -1,0 +1,1 @@
+var callback=AppDomain.CurrentDomain.GetData("Example.WindowlessBrowserProof.Presentation."+callbackID) as Func<long[],int,int,int,bool>??throw new ObjectDisposedException("Presentation Owner");return callback(surfaces,view,width,height);

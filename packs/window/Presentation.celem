@@ -1,0 +1,1 @@
+function Confectory.Window::Presentation (string callbackID, long[] surfaces, int view, int width, int height) -> bool { provide Confectory.Window::Presentation with Confectory.Window::PresentationBody; description "Consumer-selected same-UI-thread layout/paint callback; no simulation dispatch."; }
