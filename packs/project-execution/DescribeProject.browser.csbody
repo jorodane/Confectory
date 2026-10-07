@@ -1,0 +1,3 @@
+if(!OperatingSystem.IsBrowser())throw new PlatformNotSupportedException("Browser metadata requires the browser runtime adapter");
+var describe=AppDomain.CurrentDomain.GetData("Confectory.Browser.Metadata") as Func<string,string[]>??throw new PlatformNotSupportedException("Browser metadata adapter has not been initialized");
+return describe(project);

@@ -1,0 +1,1 @@
+throw new PlatformNotSupportedException("Independent browser/WASM does not support dynamic project compilation or external process execution; select a capable host explicitly.");
