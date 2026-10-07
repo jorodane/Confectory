@@ -27,7 +27,8 @@ try:
   page.screenshot(path='/tmp/confectory-same-editor-create.png');click(560,460);page.wait_for_timeout(150)
   page.screenshot(path="/tmp/confectory-before-folder-chooser.png")
   with page.expect_file_chooser() as cancelled:click(540,164)
-  cancelled.value.set_files([]);revision=page.evaluate('confectoryPlatform.presented');page.wait_for_function('(revision)=>confectoryPlatform.presented>revision+1',arg=revision)
+  # Playwright cannot set_files([]) for webkitdirectory: exercise public provider cancellation, not physical OS Cancel.
+  page.evaluate("()=>{const [host]=[...confectoryPlatform.hosts].find(([_,h])=>h.picker?.state==='pending');confectoryPlatform.request('native',JSON.stringify({host,operation:'folder-cancel',payload:'{}',parent:0}));}");revision=page.evaluate('confectoryPlatform.presented');page.wait_for_function('(revision)=>confectoryPlatform.presented>revision+1',arg=revision)
   assert page.locator('textarea[data-control="38"]').count()==0
   with page.expect_file_chooser() as chooser:click(540,164)
   chooser.value.set_files(str(folder));chat=page.locator('textarea[data-control="38"]');chat.wait_for(state='visible');chat.fill('command test');chat.click()
