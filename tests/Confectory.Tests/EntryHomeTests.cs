@@ -46,6 +46,7 @@ public sealed class EntryHomeTests : TestCase
         string activity=File.ReadAllText(Path.Combine(output,"MainActivity.cs")),sdk=File.ReadAllText(Path.Combine(output,"Confectory.Android.csproj"));
         True(activity.Contains("PackCalls.CreateSession",StringComparison.Ordinal)&&activity.Contains("Intent.ActionOpenDocument",StringComparison.Ordinal));
         True(!activity.Contains("public sealed class PackSurface",StringComparison.Ordinal),"Home received engine sample Activity");
+        True(activity.Contains("LaunchMode.SingleTask",StringComparison.Ordinal)&&!activity.Contains("LaunchMode.SingleTop",StringComparison.Ordinal),"A second file launch can create another Home Activity sharing its retained session");
         True(File.Exists(Path.Combine(output,"NativeFieldHost.cs"))&&File.Exists(Path.Combine(output,"Managed","Confectory.Core.dll")));
         True(sdk.Contains("Managed/Confectory.Core.dll",StringComparison.Ordinal));
         True(File.Exists(Path.Combine(output,"AndroidManifest.xml")),"Export omitted required Android manifest");

@@ -13,7 +13,7 @@ namespace Confectory.Android;
 
 // Android owns one Activity, native text/IME/touch, and user-granted import.
 // Project selection, drafts, Leave, catalogs, and shell ownership remain pack calls.
-[Activity(MainLauncher=true,Exported=true,LaunchMode=global::Android.Content.PM.LaunchMode.SingleTop,
+[Activity(MainLauncher=true,Exported=true,LaunchMode=global::Android.Content.PM.LaunchMode.SingleTask,
     WindowSoftInputMode=SoftInput.AdjustResize)]
 [IntentFilter(new[]{Intent.ActionView},Categories=new[]{Intent.CategoryDefault,Intent.CategoryBrowsable},DataMimeType="application/octet-stream",DataScheme="content")]
 [IntentFilter(new[]{Intent.ActionView},Categories=new[]{Intent.CategoryDefault,Intent.CategoryBrowsable},DataMimeType="text/plain",DataScheme="content")]
@@ -32,10 +32,12 @@ public sealed class MainActivity : Activity
     TextView? status;
     EditText? draft,source;
     bool assigning;
+    readonly object activityOwner=new();
     readonly Dictionary<string,NativeFieldHost> nativeHosts=new();
     protected override void OnCreate(Bundle? saved)
     {
         base.OnCreate(saved);
+        AppDomain.CurrentDomain.SetData("Confectory.Android.Home.Owner",activityOwner);
         AppDomain.CurrentDomain.SetData("Confectory.Android.NativeUI",(Func<string,string,string,long,string>)Request);
         AppDomain.CurrentDomain.SetData("Confectory.Android.DescribeProject",(Func<string,string[]>)Describe);
         if(retained is null)
@@ -46,7 +48,14 @@ public sealed class MainActivity : Activity
         }
         DrawHome();if(saved is null&&Intent?.Data is not null)Import(Intent);
     }
-    protected override void OnNewIntent(Intent? intent){base.OnNewIntent(intent);if(intent is not null){Intent=intent;Import(intent);}}
+    protected override void OnNewIntent(Intent? intent)
+    {
+        base.OnNewIntent(intent);if(intent is null)return;
+        // SingleTask delivers repeated file entry to this Activity instead of sharing one session across two Activities.
+        // A pending picker owns its result; this request is refused rather than queued or loaded later.
+        if(State.Picker){Message("Document picker is pending; file request refused and current edits retained");return;}
+        Intent=intent;Import(intent);
+    }
     static string[] Describe(string path)
     {
         var m=new Parser(System.IO.File.ReadAllText(path),path).ParseManifest();
@@ -160,8 +169,14 @@ public sealed class MainActivity : Activity
     protected override void OnDestroy()
     {
         foreach(var host in nativeHosts.Values)host.Dispose();nativeHosts.Clear();
-        AppDomain.CurrentDomain.SetData("Confectory.Android.NativeUI",null);AppDomain.CurrentDomain.SetData("Confectory.Android.DescribeProject",null);
-        if(IsFinishing&&retained is not null){PackCalls.CloseSession(retained.Session);retained=null;}
+        // Configuration replacement can install its adapters before old teardown completes.
+        // Only the Activity that currently owns them may clear adapters or retire the shared session.
+        if(ReferenceEquals(AppDomain.CurrentDomain.GetData("Confectory.Android.Home.Owner"),activityOwner))
+        {
+            AppDomain.CurrentDomain.SetData("Confectory.Android.Home.Owner",null);
+            AppDomain.CurrentDomain.SetData("Confectory.Android.NativeUI",null);AppDomain.CurrentDomain.SetData("Confectory.Android.DescribeProject",null);
+            if(IsFinishing&&retained is not null){PackCalls.CloseSession(retained.Session);retained=null;}
+        }
         base.OnDestroy();
     }
 }
