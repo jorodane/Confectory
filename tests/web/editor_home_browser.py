@@ -32,7 +32,10 @@ try:
   page.evaluate("""()=>{const [host]=[...confectoryPlatform.hosts].find(([_,h])=>[...h.fields.values()].some(row=>row.args.id===38&&row.args.visible));window.commandHost=host;confectoryPlatform.request('native',JSON.stringify({host,operation:'commands',payload:JSON.stringify({id:38,keys:[0xff0d]}),parent:0}));}""")
   page.keyboard.press('Enter');expect(chat).to_have_value('command test')
   page.evaluate("confectoryPlatform.request('native',JSON.stringify({host:window.commandHost,operation:'commands',payload:JSON.stringify({id:38,keys:[]}),parent:0}))")
-  page.keyboard.press('Enter');expect(chat).to_have_value('command test\n');chat.fill('실제 공용 editor draft');page.wait_for_timeout(150)
+  page.keyboard.press('Enter');expect(chat).to_have_value('command test\n');chat.fill('selection 😀');chat.click();page.keyboard.press('End');page.keyboard.press('Shift+ArrowLeft')
+  selection=page.evaluate("JSON.parse(confectoryPlatform.request('native',JSON.stringify({host:window.commandHost,operation:'snapshot',payload:'{}',parent:0}))).find(row=>row.id===38)")
+  assert (selection['caret'],selection['anchor'])==(10,12),selection
+  chat.fill('실제 공용 editor draft');page.wait_for_timeout(150)
   page.evaluate('window.originalChat=document.querySelector("textarea[data-control=\\"38\\"]")');chat.click();page.keyboard.press('End');page.keyboard.type(' keyboard');page.wait_for_timeout(150)
   assert chat.input_value()=='실제 공용 editor draft keyboard';click(270,30);page.wait_for_timeout(100);click(270,236);page.wait_for_timeout(200)
   click(800,174);chat.wait_for(state='visible');expect(chat).to_have_value('실제 공용 editor draft keyboard')
