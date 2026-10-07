@@ -24,4 +24,5 @@ import Confectory.FileStream::WriteAtomic as FileStreamWriteAtomic (string, stri
 import Confectory.FileStream::BrowseDirectory as FileStreamBrowseDirectory (string, int, int) -> string[];
 import Confectory.ElementView::Create as ElementViewCreate (string, string, string, int, int) -> string;
 import Confectory.ElementView::Close as ElementViewClose (string) -> void;
+import Confectory.ProjectManager::PlanCreation as PlanCreation (string, string) -> string[];
 body common "Command.csbody"; }

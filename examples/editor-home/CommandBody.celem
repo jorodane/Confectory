@@ -16,4 +16,5 @@ import Confectory.ProjectManager::Executions as Executions (string[]) -> string[
 import Confectory.ProjectExecution::Observe as Observe (string[], string) -> string[];
 import Confectory.ProjectExecution::Output as Output (string[], string) -> string[];
 import Confectory.ProjectExecution::Stop as Stop (string[], string) -> void;
+import Confectory.ProjectManager::PlanCreation as PlanCreation (string, string) -> string[];
 body common "Command.csbody"; }

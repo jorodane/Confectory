@@ -1,0 +1,1 @@
+implementation Confectory.ProjectManager::PlanCreationBody for Confectory.ProjectManager::PlanCreation (string title, string parent) -> string[] { body common "PlanCreation.csbody"; }

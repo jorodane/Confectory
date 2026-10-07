@@ -2,6 +2,8 @@ pack Confectory.ProjectManager version "0.1.0" {
  dependency Confectory.ProjectExecution version "0.1.0";
 element CreateManager function "CreateManager.celem";
 element CreateManagerBody implementation "CreateManagerBody.celem";
+element PlanCreation function "PlanCreation.celem";
+element PlanCreationBody implementation "PlanCreationBody.celem";
 element CreateProject function "CreateProject.celem";
 element CreateProjectBody implementation "CreateProjectBody.celem";
 element Open function "Open.celem";

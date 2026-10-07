@@ -1,0 +1,1 @@
+function Confectory.ProjectManager::PlanCreation (string title, string parent) -> string[] { provide Confectory.ProjectManager::PlanCreation with Confectory.ProjectManager::PlanCreationBody; }

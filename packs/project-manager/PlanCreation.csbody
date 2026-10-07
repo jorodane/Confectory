@@ -1,0 +1,8 @@
+if(string.IsNullOrWhiteSpace(title))throw new ArgumentException("Project name is required");
+if(title.Length>128||title!=title.Trim()||title.EndsWith('.')||title is "." or ".."||System.Linq.Enumerable.Any(title,c=>char.IsControl(c)||"<>:\"/\\|?*".Contains(c)))throw new ArgumentException("Project name must be one portable folder component without leading/trailing spaces or trailing dots");
+string stem=title.Split('.')[0];if(System.Text.RegularExpressions.Regex.IsMatch(stem,"^(CON|PRN|AUX|NUL|COM[1-9¹²³]|LPT[1-9¹²³])$",System.Text.RegularExpressions.RegexOptions.IgnoreCase))throw new ArgumentException("Reserved project folder name");
+if(string.IsNullOrWhiteSpace(parent))throw new ArgumentException("Explicit parent folder is required");string parentPath=System.IO.Path.GetFullPath(parent);if(!System.IO.Directory.Exists(parentPath))throw new ArgumentException("Parent folder must exist");
+string destination=System.IO.Path.GetFullPath(System.IO.Path.Combine(parentPath,title));if(System.IO.Path.GetDirectoryName(destination)!=System.IO.Path.TrimEndingDirectorySeparator(parentPath))throw new ArgumentException("Project folder must be directly inside its parent");
+if(System.IO.Directory.Exists(destination)||System.IO.File.Exists(destination))throw new InvalidOperationException("New project directory must not exist: "+destination);
+string identifier=System.Text.RegularExpressions.Regex.Replace(title,"[^A-Za-z0-9_]","_").Trim('_');if(identifier.Length==0)identifier="LocalProject";if(char.IsDigit(identifier[0]))identifier="P_"+identifier;
+return new[]{title,identifier,destination};
