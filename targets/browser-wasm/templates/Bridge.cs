@@ -2,6 +2,7 @@ using System.Runtime.InteropServices.JavaScript;
 using System.Text.Json;
 using Confectory.Core;
 namespace Confectory.Browser;
+[System.Runtime.Versioning.SupportedOSPlatform("browser")]
 public static partial class Bridge
 {
     private static bool initialized;
