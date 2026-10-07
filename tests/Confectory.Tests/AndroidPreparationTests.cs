@@ -52,7 +52,8 @@ public sealed class AndroidPreparationTests : TestCase
         string sdkProject=File.ReadAllText(Path.Combine(output,"Confectory.Android.csproj"));
         True(sdkProject.Contains("net10.0-android",StringComparison.Ordinal));
         True(sdkProject.Contains("Managed/Contract_",StringComparison.Ordinal)&&sdkProject.Contains("Managed/Pack_",StringComparison.Ordinal));
-        True(File.Exists(Path.Combine(output,"Generated","PackCalls.cs")));
+        True(File.Exists(Path.Combine(output,"Generated","PackEntry.cs")));
+        True(!File.Exists(Path.Combine(output,"Generated","PackCalls.cs")));
         var cached=new Builder(project,"android").Build();Equal(0,Strings(cached,"statistics","compiledImplementations").Length);
         File.AppendAllText(Path.Combine(f.Root,"packs","window","Draw.android.csbody"),"\n// Android provider locality\n");
         var changed=new Builder(project,"android").Build();
