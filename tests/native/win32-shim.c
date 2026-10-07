@@ -77,7 +77,7 @@ int ClientToScreen(intptr_t hwnd,int *point){(void)hwnd;point[0]+=100;point[1]+=
 int GetDeviceCaps(intptr_t dc,int index){(void)dc;return index==88||index==90?96:0;}
 static int ime_context_available;static int ime_stats[12];
 void TextProofImeAvailable(int available){ime_context_available=available;}
-intptr_t ImmGetContext(intptr_t hwnd){(void)hwnd;return ime_context_available?900:0;}
+intptr_t ImmGetContext(intptr_t hwnd){(void)hwnd;if(ime_context_available)ime_stats[9]++;return ime_context_available?900:0;}
 int ImmReleaseContext(intptr_t hwnd,intptr_t context){(void)hwnd;if(context==900)ime_stats[2]++;return 1;}
 
 /* Host timers/cursor ABI fixture; no elapsed-time or operating-system simulation. */
@@ -98,6 +98,8 @@ int TextProofIme(int index){return ime_stats[index];}
 
 static int ole_count,ole_fail;
 int OleInitialize(void *reserved){(void)reserved;if(ole_fail)return (int)0x80010106u;ole_count++;return ole_count>1?1:0;}
-void OleUninitialize(void){ole_count--;}
+static void (*ole_callback)(void);
+void TextProofOleCallback(void (*callback)(void)){ole_callback=callback;}
+void OleUninitialize(void){ole_count--;if(ole_callback){void (*call)(void)=ole_callback;ole_callback=0;call();}}
 int TextProofOleCount(void){return ole_count;}
 void TextProofOleFail(int fail){ole_fail=fail;}
