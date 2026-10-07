@@ -1,0 +1,1 @@
+((Func<string,string,string>)AppContext.GetData("Confectory.Browser.Platform")!)("close",System.Text.Json.JsonSerializer.Serialize(new{surfaces,view}));if(view<0){Array.Clear(surfaces);}else if(view+1<surfaces.Length)surfaces[view+1]=0;

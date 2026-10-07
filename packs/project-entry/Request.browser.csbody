@@ -1,0 +1,1 @@
+if(operation=="listen")return Guid.NewGuid().ToString("N");if(operation=="poll")return "{}";if(operation is "close" or "reply")return "{}";throw new PlatformNotSupportedException("Browser entry accepts only selected user files; native IPC is unavailable");

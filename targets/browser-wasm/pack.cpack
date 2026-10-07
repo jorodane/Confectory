@@ -1,4 +1,5 @@
 pack Confectory.Build.BrowserWasm version "0.1.0" {
 standalone false;
+element Platform buildtarget "platform.celem";
 element Browser buildtarget "browser.celem";
 }

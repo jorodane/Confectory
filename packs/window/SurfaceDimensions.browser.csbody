@@ -1,0 +1,1 @@
+return System.Text.Json.JsonSerializer.Deserialize<int[]>(((Func<string,string,string>)AppContext.GetData("Confectory.Browser.Platform")!)("dimensions",System.Text.Json.JsonSerializer.Serialize(new{surfaces,view})))!;

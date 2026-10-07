@@ -1,0 +1,1 @@
+buildtarget Confectory.Build.BrowserWasm::Platform { description "Generic browser Canvas/DOM platform executing the consumer entry and common UI layout"; tool "bin/Release/net10.0/Confectory.Build.BrowserWasm.dll"; option mode "portable"; option browserUI "platform"; }

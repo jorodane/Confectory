@@ -1,3 +1,3 @@
 implementation Confectory.Window::DrawBody for Confectory.RenderInput::Draw (long[] surfaces, int view, int[] rectangles, string[] labels) -> void { body android "Draw.android.csbody"; import Confectory.Window::Win32Draw as Win32Draw (long[], int, int[], string[]) -> void;
 import Confectory.Window::CreateTextLayout as CreateTextLayout (long[], int) -> long[]; import Confectory.Window::CloseTextLayout as CloseTextLayout (long[]) -> void;
-body common "Draw.csbody"; }
+body browser "Draw.browser.csbody"; body common "Draw.csbody"; }

@@ -1,0 +1,1 @@
+return ((Func<string,string,string>)AppContext.GetData("Confectory.Browser.Platform")!)("native",System.Text.Json.JsonSerializer.Serialize(new{host,operation,payload,parent}));

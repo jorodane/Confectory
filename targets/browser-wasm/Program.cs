@@ -9,6 +9,7 @@ try {
  string root=Path.GetFullPath(Path.Combine(AppContext.BaseDirectory,"../../../../.."));
  string compiler=Path.Combine(root,"targets","dotnet","bin","Release","net10.0","Confectory.Build.DotNet.dll"),assets=Path.Combine(root,"packs","browser-runtime","assets");
  string dotnet=Processes.DotNet(),sdkRoot=Path.GetDirectoryName(new FileInfo(dotnet).ResolveLinkTarget(true)?.FullName??dotnet)!;
+ if(request["options"]?["browserUI"]?.GetValue<string>()=="platform")assets=Path.Combine(root,"packs","browser-platform","assets");
  string workloadRoot=Path.Combine(sdkRoot,"packs","Microsoft.NET.Runtime.WebAssembly.Sdk");
  if(!Directory.Exists(workloadRoot))throw new IOException("Install the approved .NET 10 wasm-tools workload before browser builds");
  string operation=request["operation"]!.GetValue<string>();

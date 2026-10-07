@@ -1,0 +1,1 @@
+return ((Func<string,string,string>)AppContext.GetData("Confectory.Browser.Platform")!)("measure",System.Text.Json.JsonSerializer.Serialize(new{surfaces,view,text}));

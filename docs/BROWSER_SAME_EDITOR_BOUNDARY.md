@@ -21,9 +21,9 @@ The installed `/workspace/toolchains/dotnet-10.0.401/packs/Microsoft.NET.Runtime
 
 A worker can potentially address the loop and background-task boundaries. It cannot make a single document native multiwindow or replace direct OS process calls. No same-editor Chromium acceptance is claimed. The .NET 10 migration worker owns target Program/project/framework edits; this increment does not overlap them.
 
-## Required decision before behavior edits
+## Superseding authorization and implementation direction
 
-Resolve the real editor's capability requirement and direct folder-opening operation through an explicit input-pack/public-contract decision. Do not silently relax the guard, change example view behavior, or substitute the earlier demonstration. After this decision, implement reusable Window/RenderInput/NativeUI/ProjectEntry/metadata target providers and test the unchanged selected editor content on an actual worker-enabled browser runtime. Native filesystem and dynamic compilation remain unsupported browser capabilities unless separately provided.
+The user subsequently authorized ordinary pack target implementations and common runtime refactoring, while freezing test integrity and requiring the same actual editor content. The shared editor runtime now owns a reusable HostLoop Step/dispose/scheduling boundary and folder-operation contract use. Browser providers must report single-document surfaces honestly and consume the actual common Render/Action/layout. The earlier requirement to wait before behavior edits is superseded by this explicit authorization; unrelated demonstration UI still does not count as acceptance.
 
 ## Scope ledger and gates
 

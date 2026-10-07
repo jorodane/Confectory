@@ -1,4 +1,4 @@
 implementation Confectory.FileStream::CapabilitiesBody for Confectory.FileStream::Capabilities () -> string[] {
-body common "Capabilities.csbody";
+body browser "Capabilities.browser.csbody"; body common "Capabilities.csbody";
 body android "Capabilities.android.csbody";
 }

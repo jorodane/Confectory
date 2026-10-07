@@ -1,1 +1,1 @@
-implementation Confectory.ProjectEntry::RequestBody for Confectory.ProjectEntry::Request (string handle,string operation,string payload) -> string { body common "Request.csbody"; body android "Request.android.csbody"; }
+implementation Confectory.ProjectEntry::RequestBody for Confectory.ProjectEntry::Request (string handle,string operation,string payload) -> string { body browser "Request.browser.csbody"; body common "Request.csbody"; body android "Request.android.csbody"; }

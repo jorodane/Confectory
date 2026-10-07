@@ -3,4 +3,4 @@ import Confectory.Window::Win32MeasureText as Win32MeasureText (long[], int, str
 import Confectory.Window::CreateTextLayout as CreateTextLayout (long[], int) -> long[];
 import Confectory.Window::CloseTextLayout as CloseTextLayout (long[]) -> void;
 import Confectory.Window::TextStyle as TextStyle () -> string;
-body android "MeasureText.android.csbody"; body common "MeasureText.csbody"; }
+body android "MeasureText.android.csbody"; body browser "MeasureText.browser.csbody"; body common "MeasureText.csbody"; }

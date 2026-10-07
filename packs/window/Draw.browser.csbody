@@ -1,0 +1,1 @@
+((Func<string,string,string>)AppContext.GetData("Confectory.Browser.Platform")!)("draw",System.Text.Json.JsonSerializer.Serialize(new{surfaces,view,rectangles,labels}));

@@ -1,2 +1,2 @@
 implementation Confectory.Window::PumpBody for Confectory.RenderInput::Pump (long[] surfaces) -> int[] { body android "Pump.android.csbody"; import Confectory.Window::Win32Pump as Win32Pump (long[]) -> int[];
-body common "Pump.csbody"; }
+body browser "Pump.browser.csbody"; body common "Pump.csbody"; }

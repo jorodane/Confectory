@@ -1,1 +1,1 @@
-implementation Confectory.NativeUI::RequestBody for Confectory.NativeUI::Request (string host, string operation, string payload, long parent) -> string { body android "Request.android.csbody"; body windows "Request.windows.csbody"; body linux "Request.linux.csbody"; }
+implementation Confectory.NativeUI::RequestBody for Confectory.NativeUI::Request (string host, string operation, string payload, long parent) -> string { body browser "Request.browser.csbody"; body android "Request.android.csbody"; body windows "Request.windows.csbody"; body linux "Request.linux.csbody"; }
