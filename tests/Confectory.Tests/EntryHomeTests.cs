@@ -44,16 +44,20 @@ public sealed class EntryHomeTests : TestCase
         var result=Processes.Run(new[]{Processes.DotNet(),exporter,project,output},timeoutSeconds:240);
         True(result.ExitCode==0,result.Stdout+result.Stderr);
         string activity=File.ReadAllText(Path.Combine(output,"MainActivity.cs")),sdk=File.ReadAllText(Path.Combine(output,"Confectory.Android.csproj"));
-        True(activity.Contains("PackCalls.CreateSession",StringComparison.Ordinal)&&activity.Contains("Intent.ActionOpenDocument",StringComparison.Ordinal));
+        True(activity.Contains("PackEntry.Run()",StringComparison.Ordinal)&&activity.Contains("Confectory.HostLoop.Run.android",StringComparison.Ordinal));
+        True(!activity.Contains("PackCalls.CreateSession",StringComparison.Ordinal)&&!activity.Contains("PackCalls.Command",StringComparison.Ordinal)&&!activity.Contains("DrawHome",StringComparison.Ordinal),"Android host must not replace actual product controls/model commands");
+        True(File.Exists(Path.Combine(output,"AndroidDocumentImport.cs")),"Generic granted import adapter missing");
+        string entry=File.ReadAllText(Path.Combine(output,"Generated","PackEntry.cs"));
+        True(entry.Contains("static int Run",StringComparison.Ordinal),"Generated actual ProjectPack entry bridge missing");
         True(!activity.Contains("public sealed class PackSurface",StringComparison.Ordinal),"Home received engine sample Activity");
-        True(activity.Contains("LaunchMode.SingleTask",StringComparison.Ordinal)&&!activity.Contains("LaunchMode.SingleTop",StringComparison.Ordinal),"A second file launch can create another Home Activity sharing its retained session");
+        True(activity.Contains("LaunchMode.SingleTask",StringComparison.Ordinal)&&!activity.Contains("LaunchMode.SingleTop",StringComparison.Ordinal),"Product Activity must own one controller for repeated external entry");
         True(File.Exists(Path.Combine(output,"NativeFieldHost.cs"))&&File.Exists(Path.Combine(output,"Managed","Confectory.Core.dll")));
         True(sdk.Contains("Managed/Confectory.Core.dll",StringComparison.Ordinal));
         True(File.Exists(Path.Combine(output,"AndroidManifest.xml")),"Export omitted required Android manifest");
         var xml=System.Xml.Linq.XDocument.Parse(sdk);Equal("false",xml.Descendants("PublishTrimmed").Single().Value);Equal("true",xml.Descendants("JsonSerializerIsReflectionEnabledByDefault").Single().Value);
         var report=JsonNode.Parse(File.ReadAllText(Path.Combine(output,"export-report.json")))!;
         True(report["managedCompiled"]!.GetValue<bool>()&&!report["androidAppCompiled"]!.GetValue<bool>()&&!report["apkProduced"]!.GetValue<bool>());
-        True(report["bodySelections"]!.AsArray().Any(row=>row!["id"]!.ToString()=="Confectory.EditorHome::MainBody"&&row["selection"]!.ToString()=="android"));
+        True(report["bodySelections"]!.AsArray().Any(row=>row!["id"]!.ToString()=="Confectory.EditorHome::MainBody"&&row["selection"]!.ToString()=="common"));
         True(!Directory.GetFiles(output,"*.apk",SearchOption.AllDirectories).Any()&&!Directory.GetFiles(output,"*.aab",SearchOption.AllDirectories).Any());
     }
     public void test_android_export_owned_settings_formats_xml_and_rejects_credentials_before_build()
