@@ -1,0 +1,3 @@
+implementation Confectory.EditorHome.Browser::MainBody for Confectory.EditorHome.Browser::Main () -> int {
+import Confectory.BrowserRuntime::Initialize as Initialize () -> int;
+body browser "Main.browser.csbody"; }

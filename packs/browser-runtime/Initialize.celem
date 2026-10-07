@@ -1,0 +1,1 @@
+function Confectory.BrowserRuntime::Initialize () -> int { provide Confectory.BrowserRuntime::Initialize with Confectory.BrowserRuntime::InitializeBody; }

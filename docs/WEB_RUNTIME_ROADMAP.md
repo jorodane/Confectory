@@ -17,3 +17,7 @@ Read-only `/workspace/toolchains/dotnet-8.0.425/dotnet workload list` lists `and
 5. Run Chromium against locally served static output with the .NET backend stopped. Verify initial runtime startup, render/input/IME where supported, file import/repeat/cancel/dirty protection, Leave/reopen, no unexpected network or external service, browser reload/lifetime cleanup, honest missing build/run/native capabilities, and output integrity. Re-run native/Android consumers after shared contract changes.
 
 This route requires implementation and real runtime artifacts/tests, not just adding a `web` target name or copying HTML. The current local-host build target is described explicitly as local and must remain distinguishable from the independent runtime target.
+
+## Implemented follow-up
+
+The previously pending independent runtime route is now implemented as distinct `browser` target/`Confectory.EditorHome.Browser` ProjectPack after explicit user authorization for `wasm-tools`. See [INDEPENDENT_BROWSER_WASM.md](INDEPENDENT_BROWSER_WASM.md) for actual runtime artifacts, static-only Chromium gates and current restricted capabilities. This document's earlier tooling/blocker section records the original local-host stage; it is not the current installation status. The original loopback route remains intact. Future household-server remote IDE is a separate scope; no remote bind/auth/build/AI implementation or deployment occurred here.

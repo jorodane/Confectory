@@ -1,0 +1,1 @@
+function Confectory.BrowserRuntime::Render (string snapshot) -> void { provide Confectory.BrowserRuntime::Render with Confectory.BrowserRuntime::RenderBody; }

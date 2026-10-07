@@ -1,0 +1,7 @@
+pack Confectory.BrowserRuntime version "0.1.0" {
+standalone false;
+dependency Confectory.EditorHome.Model version "0.1.0";
+dependency Confectory.ProjectExecution version "0.1.0";
+element Render function "Render.celem"; element RenderBody implementation "RenderBody.celem";
+element Initialize function "Initialize.celem"; element InitializeBody implementation "InitializeBody.celem";
+}

@@ -1,0 +1,8 @@
+implementation Confectory.BrowserRuntime::InitializeBody for Confectory.BrowserRuntime::Initialize () -> int {
+import Confectory.EditorHome.Model::CreateSession as CreateSession (string,string) -> string;
+import Confectory.EditorHome.Model::Command as Command (string,string,string) -> string;
+import Confectory.EditorHome.Model::Snapshot as Snapshot (string) -> string;
+import Confectory.EditorHome.Model::CloseSession as CloseSession (string) -> void;
+import Confectory.ProjectExecution::DescribeProject as DescribeProject (string) -> string[];
+import Confectory.BrowserRuntime::Render as Render (string) -> void;
+body browser "Initialize.browser.csbody"; }

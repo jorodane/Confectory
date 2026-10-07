@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><OutputType>Exe</OutputType></PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="../../targets/browser-wasm/Confectory.Build.BrowserWasm.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="../../targets/web/Confectory.Build.Web.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="../../targets/desktop-entry/Confectory.DesktopEntry.csproj" />
     <ProjectReference Include="../../src/Confectory.Core/Confectory.Core.csproj" />
