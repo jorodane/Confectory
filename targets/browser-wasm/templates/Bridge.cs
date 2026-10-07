@@ -69,6 +69,6 @@ public static partial class Bridge
         if(errors.Count>0)throw new AggregateException("Browser owners remain available for cleanup retry",errors);
         if(active.Count>0)return false;
         (AppDomain.CurrentDomain.GetData("Confectory.Browser.Close") as Action)?.Invoke();
-        AppDomain.CurrentDomain.SetData("Confectory.Browser.Metadata",null);AppDomain.CurrentDomain.SetData("Confectory.Browser.Render",null);initialized=false;return true;
+        AppDomain.CurrentDomain.SetData("Confectory.Browser.Metadata",null);AppDomain.CurrentDomain.SetData("Confectory.Browser.Render",null);AppContext.SetData("Confectory.Browser.Platform",null);AppContext.SetData("Confectory.HostLoop.Run.browser",null);AppContext.SetData("Confectory.HostLoop.Close.browser",null);initialized=false;return true;
     }
 }

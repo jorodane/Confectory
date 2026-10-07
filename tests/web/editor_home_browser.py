@@ -19,13 +19,20 @@ try:
   page.goto('http://127.0.0.1:'+str(server.server_port));page.wait_for_function('globalThis.confectoryPlatform?.loops.size>0');page.wait_for_timeout(2100)
   page.screenshot(path='/tmp/confectory-same-editor-first.png');click(600,510);page.wait_for_timeout(150)
   click(275,164);name=page.locator('input[data-control="10"]');intent=page.locator('textarea[data-control="11"]');name.wait_for(state='visible')
-  name.fill('BrowserActual');intent.fill('actual common layout 한글 draft');page.wait_for_timeout(150);assert name.input_value()=='BrowserActual'
+  name.fill('BrowserActual');name.click();page.keyboard.press('Tab');expect(intent).to_be_focused();page.keyboard.press('Shift+Tab');expect(name).to_be_focused();intent.fill('actual common layout 한글 draft');page.wait_for_timeout(150);assert name.input_value()=='BrowserActual'
   page.evaluate('window.originalName=document.querySelector("input[data-control=\\"10\\"]")');click(560,460);page.wait_for_timeout(150);click(275,164);name.wait_for(state='visible')
   assert page.evaluate('window.originalName===document.querySelector("input[data-control=\\"10\\"]")');assert name.input_value()=='BrowserActual'
   page.screenshot(path='/tmp/confectory-same-editor-create.png');click(560,460);page.wait_for_timeout(150)
   page.screenshot(path="/tmp/confectory-before-folder-chooser.png")
+  with page.expect_file_chooser() as cancelled:click(540,164)
+  cancelled.value.set_files([]);revision=page.evaluate('confectoryPlatform.presented');page.wait_for_function('(revision)=>confectoryPlatform.presented>revision+1',arg=revision)
+  assert page.locator('textarea[data-control="38"]').count()==0
   with page.expect_file_chooser() as chooser:click(540,164)
-  chooser.value.set_files(str(folder));chat=page.locator('textarea[data-control="38"]');chat.wait_for(state='visible');chat.fill('실제 공용 editor draft');page.wait_for_timeout(150)
+  chooser.value.set_files(str(folder));chat=page.locator('textarea[data-control="38"]');chat.wait_for(state='visible');chat.fill('command test');chat.click()
+  page.evaluate("""()=>{const [host]=[...confectoryPlatform.hosts].find(([_,h])=>[...h.fields.values()].some(row=>row.args.id===38&&row.args.visible));window.commandHost=host;confectoryPlatform.request('native',JSON.stringify({host,operation:'commands',payload:JSON.stringify({id:38,keys:[0xff0d]}),parent:0}));}""")
+  page.keyboard.press('Enter');expect(chat).to_have_value('command test')
+  page.evaluate("confectoryPlatform.request('native',JSON.stringify({host:window.commandHost,operation:'commands',payload:JSON.stringify({id:38,keys:[]}),parent:0}))")
+  page.keyboard.press('Enter');expect(chat).to_have_value('command test\n');chat.fill('실제 공용 editor draft');page.wait_for_timeout(150)
   page.evaluate('window.originalChat=document.querySelector("textarea[data-control=\\"38\\"]")');chat.click();page.keyboard.press('End');page.keyboard.type(' keyboard');page.wait_for_timeout(150)
   assert chat.input_value()=='실제 공용 editor draft keyboard';click(270,30);page.wait_for_timeout(100);click(270,236);page.wait_for_timeout(200)
   click(800,174);chat.wait_for(state='visible');expect(chat).to_have_value('실제 공용 editor draft keyboard')
