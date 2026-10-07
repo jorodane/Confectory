@@ -18,6 +18,8 @@ try:
    before=page.evaluate('confectoryPlatform.presented');page.mouse.click(x,y);page.wait_for_function('(before)=>confectoryPlatform.presented>before+1',arg=before)
   page.goto('http://127.0.0.1:'+str(server.server_port));page.wait_for_function('globalThis.confectoryPlatform?.loops.size>0');page.wait_for_timeout(2100)
   page.screenshot(path='/tmp/confectory-same-editor-first.png');click(600,510);page.wait_for_timeout(150)
+  page.evaluate("confectoryPlatform.canvas.addEventListener('wheel',()=>window.lastWheel=confectoryPlatform.events.slice(-6))")
+  page.mouse.move(900,400);page.mouse.wheel(0,100);page.wait_for_function('window.lastWheel?.[1]===4');assert page.evaluate('window.lastWheel[4]')==-120
   click(275,164);name=page.locator('input[data-control="10"]');intent=page.locator('textarea[data-control="11"]');name.wait_for(state='visible')
   name.fill('BrowserActual');name.click();page.keyboard.press('Tab');expect(intent).to_be_focused();page.keyboard.press('Shift+Tab');expect(name).to_be_focused();intent.fill('actual common layout 한글 draft');page.wait_for_timeout(150);assert name.input_value()=='BrowserActual'
   page.evaluate('window.originalName=document.querySelector("input[data-control=\\"10\\"]")');click(560,460);page.wait_for_timeout(150);click(275,164);name.wait_for(state='visible')
