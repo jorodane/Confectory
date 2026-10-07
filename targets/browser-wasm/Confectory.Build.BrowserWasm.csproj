@@ -2,4 +2,13 @@
 <PropertyGroup><OutputType>Exe</OutputType></PropertyGroup>
 <ItemGroup><ProjectReference Include="../../src/Confectory.Core/Confectory.Core.csproj" /></ItemGroup>
 <ItemGroup><Compile Remove="templates/**/*.cs" /><Content Include="templates/**/*" CopyToOutputDirectory="PreserveNewest" /></ItemGroup>
+<ItemGroup><ProjectReference Include="../dotnet/Confectory.Build.DotNet.csproj" ReferenceOutputAssembly="false" /></ItemGroup>
+<Target Name="PackageOwnedBrowserResources" AfterTargets="Build">
+<ItemGroup><CompilerBundle Include="../dotnet/bin/$(Configuration)/$(TargetFramework)/*" />
+<PlatformAssets Include="../../packs/browser-platform/assets/*" />
+<DemoAssets Include="../../packs/browser-runtime/assets/*" /></ItemGroup>
+<Copy SourceFiles="@(CompilerBundle)" DestinationFolder="$(OutDir)compiler" />
+<Copy SourceFiles="@(PlatformAssets)" DestinationFolder="$(OutDir)assets/platform" />
+<Copy SourceFiles="@(DemoAssets)" DestinationFolder="$(OutDir)assets/demo" />
+</Target>
 </Project>

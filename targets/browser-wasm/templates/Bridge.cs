@@ -6,7 +6,7 @@ namespace Confectory.Browser;
 public static partial class Bridge
 {
     private static bool initialized;
-    private static readonly HashSet<string> disposed=new(),active=new();
+    private static readonly HashSet<string> disposed=new(),active=new(),closing=new();
     [JSImport("request","confectory.browser.platform")] private static partial string Platform(string operation,string payload);
     [JSImport("run","confectory.browser.platform")] private static partial void RunLoop(string token);
     [JSImport("render","confectory.browser.dom")] private static partial void RenderDOM(string snapshot);
@@ -14,7 +14,7 @@ public static partial class Bridge
     public static int Initialize()
     {
         if(initialized)return 0;
-        string root="/confectory-owned";Directory.CreateDirectory(root);Environment.SetEnvironmentVariable("CONFECTORY_EDITOR_REPO",root);Environment.SetEnvironmentVariable("CONFECTORY_HOME_STORAGE",root+"/home");
+        string root="/confectory-owned";Directory.CreateDirectory(root);Directory.SetCurrentDirectory(root);
         AppDomain.CurrentDomain.SetData("Confectory.Browser.VirtualRoot",root);
         AppContext.SetData("Confectory.Browser.Platform",(Func<string,string,string>)((operation,payload)=>Platform(operation,payload)));
         AppContext.SetData("Confectory.HostLoop.Run.browser",(Func<string,int>)(token=>{active.Add(token);RunLoop(token);return 0;}));
@@ -27,18 +27,24 @@ public static partial class Bridge
             var manifest=new Parser(text,file).ParseManifest();
             return new[]{manifest.Namespace,manifest.Entry??"",string.Join(",",manifest.Targets.Keys.Order(StringComparer.Ordinal)),manifest.Kind,manifest.SupportsStandalone?"true":"false"};
         }));
-        int result=global::Program.Main();initialized=result==0;return result;
+        try{int result=global::Program.Main();initialized=result==0;return result;}catch(Exception error){Console.Error.WriteLine(error.ToString());throw;}
     }
     [JSExport]
     public static bool Step(string token)
     {
         if(disposed.Contains(token))return false;
+        if(closing.Contains(token)){DisposeLoop(token);return !disposed.Contains(token);}
         var callbacks=AppContext.GetData("Confectory.HostLoop."+token) as object[];
         if(callbacks is null)return false;
         try{if(((Func<bool>)callbacks[0])())return true;}catch{DisposeLoop(token);throw;}
-        DisposeLoop(token);return false;
+        closing.Add(token);DisposeLoop(token);return !disposed.Contains(token);
     }
-    private static void DisposeLoop(string token){if(!disposed.Add(token))return;active.Remove(token);var callbacks=AppContext.GetData("Confectory.HostLoop."+token) as object[];if(callbacks is not null)((Action)callbacks[1])();AppContext.SetData("Confectory.HostLoop."+token,null);}
+    private static void DisposeLoop(string token)
+    {
+        if(disposed.Contains(token))return;
+        var close=AppContext.GetData("Confectory.HostLoop.Close.browser") as Func<string,bool>??throw new PlatformNotSupportedException("HostLoop close provider required");
+        if(close(token)){disposed.Add(token);active.Remove(token);}
+    }
     [JSExport]
     public static string ImportFiles(string names,string contents)
     {
@@ -57,10 +63,12 @@ public static partial class Bridge
         }catch(Exception error){return JsonSerializer.Serialize(new{error=error.Message});}
     }
     [JSExport]
-    public static void Close()
+    public static bool Close()
     {
-        foreach(string token in active.ToArray())DisposeLoop(token);
+        var errors=new List<Exception>();foreach(string token in active.ToArray()){closing.Add(token);try{DisposeLoop(token);}catch(Exception error){errors.Add(error);}}
+        if(errors.Count>0)throw new AggregateException("Browser owners remain available for cleanup retry",errors);
+        if(active.Count>0)return false;
         (AppDomain.CurrentDomain.GetData("Confectory.Browser.Close") as Action)?.Invoke();
-        AppDomain.CurrentDomain.SetData("Confectory.Browser.Metadata",null);AppDomain.CurrentDomain.SetData("Confectory.Browser.Render",null);initialized=false;
+        AppDomain.CurrentDomain.SetData("Confectory.Browser.Metadata",null);AppDomain.CurrentDomain.SetData("Confectory.Browser.Render",null);initialized=false;return true;
     }
 }

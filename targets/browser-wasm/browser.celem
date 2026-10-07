@@ -1,5 +1,5 @@
 buildtarget Confectory.Build.BrowserWasm::Browser {
 description "Independent browser/WASM runtime; static assets and session-owned virtual file storage";
 tool "bin/Release/net10.0/Confectory.Build.BrowserWasm.dll";
-option mode "portable";
+option mode "portable"; option compiler "compiler/Confectory.Build.DotNet.dll"; option assetRoot "assets/demo";
 }
