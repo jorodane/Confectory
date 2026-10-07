@@ -13,6 +13,6 @@ dotnet build Confectory.sln -c Release --nologo
 dotnet tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll CoreTests ToolchainSelectionTests CompilerTransportTests RuntimeBaseTests RealTimeUpdateTests
 ```
 
-Release build: zero warnings/errors, 18.18s. Official `wasm-tools` workload 10.0.112 installed alongside Android36.1.2, preserving SDK8. Repository NuGet.Config clears feeds; workload installation explicitly used `--source https://api.nuget.org/v3/index.json --skip-manifest-update`. No signing credentials or external deployment involved.
+Release build: zero warnings/errors, 18.18s. The listed regression command passed 46 tests, zero failures, 58.985s, including SDK/Roslyn guards, clean/incremental authoring ABI, 600-reference Windows command-length transport, RuntimeBase/RealTimeUpdate locality. Official `wasm-tools` workload 10.0.112 installed alongside Android36.1.2, preserving SDK8. Repository NuGet.Config clears feeds; workload installation explicitly used `--source https://api.nuget.org/v3/index.json --skip-manifest-update`. No signing credentials or external deployment involved.
 
 Migration build/test evidence is not proof that a separate browser/Android shell runs the desktop editor ProjectPack. Same-pack platform execution, actual Windows GUI and Android device/signing are separate gates.
