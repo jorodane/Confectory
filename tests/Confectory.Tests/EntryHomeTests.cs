@@ -48,6 +48,8 @@ public sealed class EntryHomeTests : TestCase
         True(!activity.Contains("public sealed class PackSurface",StringComparison.Ordinal),"Home received engine sample Activity");
         True(File.Exists(Path.Combine(output,"NativeFieldHost.cs"))&&File.Exists(Path.Combine(output,"Managed","Confectory.Core.dll")));
         True(sdk.Contains("Managed/Confectory.Core.dll",StringComparison.Ordinal));
+        True(File.Exists(Path.Combine(output,"AndroidManifest.xml")),"Export omitted required Android manifest");
+        var xml=System.Xml.Linq.XDocument.Parse(sdk);Equal("false",xml.Descendants("PublishTrimmed").Single().Value);Equal("true",xml.Descendants("JsonSerializerIsReflectionEnabledByDefault").Single().Value);
         var report=JsonNode.Parse(File.ReadAllText(Path.Combine(output,"export-report.json")))!;
         True(report["managedCompiled"]!.GetValue<bool>()&&!report["androidAppCompiled"]!.GetValue<bool>()&&!report["apkProduced"]!.GetValue<bool>());
         True(report["bodySelections"]!.AsArray().Any(row=>row!["id"]!.ToString()=="Confectory.EditorHome::MainBody"&&row["selection"]!.ToString()=="android"));
