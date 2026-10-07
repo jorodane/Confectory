@@ -1,0 +1,4 @@
+pack Confectory.AndroidExport.Settings version "0.1.0" {
+standalone false;
+element Defaults object "Defaults.celem";
+}

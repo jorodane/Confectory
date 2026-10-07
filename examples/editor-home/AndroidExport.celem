@@ -1,0 +1,1 @@
+object Confectory.EditorHome::AndroidExport extends Confectory.AndroidExport.Settings::Defaults { }

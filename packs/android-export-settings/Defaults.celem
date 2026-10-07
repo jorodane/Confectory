@@ -1,0 +1,12 @@
+object Confectory.AndroidExport.Settings::Defaults {
+value applicationId = "org.confectory.checkpoint";
+value applicationTitle = "Confectory";
+value versionName = "0.1.0";
+value versionCode = 1;
+value packageFormat = "apk";
+value keyAlias = "confectory";
+value keyAlgorithm = "RSA";
+value keySize = 2048;
+value keyValidityDays = 10000;
+value keyDistinguishedName = "CN=Confectory";
+}

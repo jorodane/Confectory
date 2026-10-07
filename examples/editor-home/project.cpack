@@ -1,5 +1,7 @@
 project Confectory.EditorHome version "0.1.0" {
 standalone true;
+registry Confectory.AndroidExport.Settings "../../packs/android-export-settings/pack.cpack"; dependency Confectory.AndroidExport.Settings version "0.1.0";
+element AndroidExport object "AndroidExport.celem";
 registry Confectory.ProjectEntry "../../packs/project-entry/pack.cpack"; dependency Confectory.ProjectEntry version "0.1.0";
 registry Confectory.ProjectShell "../../packs/project-shell/pack.cpack"; dependency Confectory.ProjectShell version "0.1.0";
 registry Confectory.NativeUI "../../packs/native-ui-desktop/pack.cpack"; dependency Confectory.NativeUI version "0.1.0";

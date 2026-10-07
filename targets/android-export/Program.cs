@@ -2,10 +2,11 @@ using System.Text;
 using System.Text.Json;
 using Confectory.Core;
 
-if(args.Length!=2){Console.Error.WriteLine("Usage: AndroidExport <ProjectPack> <new-output-directory>");return 2;}
+if(args.Length is < 2 or > 3 || (args.Length == 3 && args[2] != "--package")){Console.Error.WriteLine("Usage: AndroidExport <ProjectPack> <new-output-directory> [--package]");return 2;}
 string project=Path.GetFullPath(args[0]),output=Path.GetFullPath(args[1]);
 if(Directory.Exists(output)){Console.Error.WriteLine("Output directory must be new; preserve existing exports.");return 2;}
 var builder=new Builder(project,"android");
+var settings=ExportSettings.Read(builder.Registry);
 var report=builder.Build();
 var registry=builder.Registry;
 var statistics=builder.Statistics;
@@ -33,9 +34,13 @@ foreach(var (alias,imported) in binding.Imports.OrderBy(x=>x.Key,StringComparer.
 facade.AppendLine("}");File.WriteAllText(Path.Combine(generated,"PackCalls.cs"),facade.ToString());
 string templateRoot=Path.Combine(AppContext.BaseDirectory,"templates");
 File.Copy(PackPaths.Owned(Path.GetDirectoryName(registry.Paths["Confectory.Window"])!,"android/AndroidSurfaceBridge.cs"),Path.Combine(output,"AndroidSurfaceBridge.cs"));
-File.Copy(Path.Combine(templateRoot,"MainActivity.cs"),Path.Combine(output,"MainActivity.cs"));
+bool home=registry.Project.Namespace=="Confectory.EditorHome";
+File.Copy(Path.Combine(templateRoot,home?"EditorHomeActivity.cs":"MainActivity.cs"),Path.Combine(output,"MainActivity.cs"));
+if(home){File.Copy(Path.Combine(templateRoot,"NativeFieldHost.cs"),Path.Combine(output,"NativeFieldHost.cs"));string core=typeof(Parser).Assembly.Location;File.Copy(core,Path.Combine(managed,"Confectory.Core.dll"),true);if(!references.Contains("Confectory.Core.dll"))references.Add("Confectory.Core.dll");}
 string projectText=File.ReadAllText(Path.Combine(templateRoot,"App.csproj.template"));
+projectText=settings.Apply(projectText);
 string referenceItems=string.Join("\n",references.Select(name=>$"<Reference Include=\"{Path.GetFileNameWithoutExtension(name)}\"><HintPath>Managed/{name}</HintPath></Reference>"));
 File.WriteAllText(Path.Combine(output,"Confectory.Android.csproj"),projectText.Replace("</Project>","<ItemGroup>\n"+referenceItems+"\n</ItemGroup>\n</Project>",StringComparison.Ordinal));
 File.WriteAllText(Path.Combine(output,"export-report.json"),JsonSerializer.Serialize(new{kind="android-source-export",managedCompiled=true,androidAppCompiled=false,apkProduced=false,project=registry.Project.Namespace,entry,bodySelections=selections,contracts,statistics},JsonData.Options));
+if(args.Length==3)return UnsignedPackage.Build(output,settings);
 Console.WriteLine(JsonSerializer.Serialize(new{output,managedCompiled=true,androidAppCompiled=false,apkProduced=false,implementations=selections.Count,contracts=contracts.Length}));return 0;

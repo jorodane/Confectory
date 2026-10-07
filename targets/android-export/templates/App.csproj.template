@@ -6,4 +6,7 @@
   <ApplicationVersion>1</ApplicationVersion><ApplicationDisplayVersion>0.1</ApplicationDisplayVersion>
   <Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings><LangVersion>12</LangVersion>
  </PropertyGroup>
+ <Target Name="ConfectoryRejectImplicitSigning" BeforeTargets="_CreateAndroidDebugSigningKey;_Sign;SignAndroidPackage">
+  <Error Text="Confectory export requires unsigned packaging. Key creation and signing require a separate explicit ephemeral action." />
+ </Target>
 </Project>
