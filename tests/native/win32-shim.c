@@ -33,8 +33,9 @@ intptr_t CreateWindowExW(uint32_t ex,const uint16_t *cls,const uint16_t *title,u
 intptr_t DefWindowProcW(intptr_t hwnd,uint32_t msg,intptr_t wp,intptr_t lp){(void)hwnd;(void)wp;(void)lp;if(msg==0x84){counters[1]++;return 1;}if(msg==0xA1||msg==0xA3||msg==0x112)counters[2]++;return 0;}
 intptr_t SetFocus(intptr_t hwnd){intptr_t old=focus;focus=hwnd;if(old&&old!=hwnd)TextProofDeliver(old,8,hwnd,0);return old;}
 int IsChild(intptr_t parent,intptr_t child){return child==parent+10000;}
-intptr_t SetCapture(intptr_t hwnd){counters[3]++;return hwnd;}
-int ReleaseCapture(void){counters[4]++;if(focus)TextProofDeliver(focus,0x215,0,0);return 1;}
+static intptr_t host_capture;
+intptr_t SetCapture(intptr_t hwnd){counters[3]++;intptr_t old=host_capture;host_capture=hwnd;return old;}
+int ReleaseCapture(void){counters[4]++;intptr_t old=host_capture;host_capture=0;if(old)TextProofDeliver(old,0x215,0,0);return 1;}
 int ScreenToClient(intptr_t hwnd,int *point){(void)hwnd;point[0]-=100;point[1]-=100;counters[5]++;return 1;}
 intptr_t BeginPaint(intptr_t hwnd,void *paint){(void)hwnd;memset(paint,0,72);counters[6]++;return 500;}
 int EndPaint(intptr_t hwnd,void *paint){(void)hwnd;(void)paint;counters[7]++;return 1;}
@@ -51,9 +52,11 @@ int GetClientRect(intptr_t hwnd,int *rect){struct window*w=find(hwnd);if(!w)retu
 int InvalidateRect(intptr_t hwnd,void *rect,int erase){(void)rect;if(erase)counters[11]++;for(int i=front;i<back;i++)if(queue[i%512].hwnd==hwnd&&queue[i%512].msg==15)return 1;SimPost(hwnd,15,0,0);return 1;}
 intptr_t CreateCompatibleDC(intptr_t dc){(void)dc;return nextgdi++;}
 intptr_t CreateCompatibleBitmap(intptr_t dc,int width,int height){(void)dc;(void)width;(void)height;counters[12]++;return nextgdi++;}
-intptr_t GetStockObject(int index){return index;}
+intptr_t GetStockObject(int index){return index+8000;}
 uint32_t SetDCBrushColor(intptr_t dc,uint32_t color){(void)dc;return color;}
-int FillRect(intptr_t dc,void *rect,intptr_t brush){(void)dc;(void)rect;(void)brush;return 1;}
+static int caret_fill[6];
+int FillRect(intptr_t dc,void *rect,intptr_t brush){if(brush==8000){caret_fill[0]++;memcpy(caret_fill+1,rect,16);caret_fill[5]=(int)dc;}return 1;}
+int TextProofCaretFill(int index){return caret_fill[index];}
 int TextOutW(intptr_t dc,int x,int y,const uint16_t *text,int count){(void)dc;(void)x;(void)y;(void)text;(void)count;return 1;}
 uint32_t SetTextColor(intptr_t dc,uint32_t color){(void)dc;return color;}
 int SetBkMode(intptr_t dc,int mode){(void)dc;return mode;}
@@ -72,5 +75,29 @@ uint32_t GetWindowThreadProcessId(intptr_t hwnd,void *process){(void)process;ret
 uint32_t GetSysColor(int index){(void)index;return 0xffffff;}
 int ClientToScreen(intptr_t hwnd,int *point){(void)hwnd;point[0]+=100;point[1]+=100;return 1;}
 int GetDeviceCaps(intptr_t dc,int index){(void)dc;return index==88||index==90?96:0;}
-intptr_t ImmGetContext(intptr_t hwnd){(void)hwnd;return 0;}
-int ImmReleaseContext(intptr_t hwnd,intptr_t context){(void)hwnd;(void)context;return 1;}
+static int ime_context_available;static int ime_stats[12];
+void TextProofImeAvailable(int available){ime_context_available=available;}
+intptr_t ImmGetContext(intptr_t hwnd){(void)hwnd;return ime_context_available?900:0;}
+int ImmReleaseContext(intptr_t hwnd,intptr_t context){(void)hwnd;if(context==900)ime_stats[2]++;return 1;}
+
+/* Host timers/cursor ABI fixture; no elapsed-time or operating-system simulation. */
+static struct {intptr_t window;uintptr_t id;} host_timers[256];
+uintptr_t SetTimer(intptr_t window,uintptr_t id,uint32_t timeout,void *proc){(void)timeout;(void)proc;for(int n=0;n<256;n++)if(host_timers[n].window==window&&host_timers[n].id==id)return id;for(int n=0;n<256;n++)if(!host_timers[n].id){host_timers[n].window=window;host_timers[n].id=id;return id;}return 0;}
+int KillTimer(intptr_t window,uintptr_t id){for(int n=0;n<256;n++)if(host_timers[n].window==window&&host_timers[n].id==id){host_timers[n].id=0;return 1;}return 0;}
+int TextProofTimerCount(void){int count=0;for(int n=0;n<256;n++)if(host_timers[n].id)count++;return count;}
+intptr_t TextProofTimer(int index){for(int n=0;n<256;n++)if(host_timers[n].id&&index--==0)return (intptr_t)host_timers[n].id;return 0;}
+intptr_t GetCapture(void){return host_capture;}
+static intptr_t last_cursor;
+intptr_t SetCursor(intptr_t cursor){intptr_t old=last_cursor;last_cursor=cursor;return old;}
+intptr_t TextProofCursor(void){return last_cursor;}
+
+uint32_t GetCaretBlinkTime(void){return 0xffffffffu;}
+int ImmSetCompositionWindow(intptr_t context,const int *form){if(context!=900||form[0]!=2)return 0;ime_stats[0]++;ime_stats[3]=form[1];ime_stats[4]=form[2];return 1;}
+int ImmSetCandidateWindow(intptr_t context,const int *form){if(context!=900||form[0]!=0||form[1]!=0x80)return 0;ime_stats[1]++;for(int n=0;n<4;n++)ime_stats[5+n]=form[4+n];return 1;}
+int TextProofIme(int index){return ime_stats[index];}
+
+static int ole_count,ole_fail;
+int OleInitialize(void *reserved){(void)reserved;if(ole_fail)return (int)0x80010106u;ole_count++;return ole_count>1?1:0;}
+void OleUninitialize(void){ole_count--;}
+int TextProofOleCount(void){return ole_count;}
+void TextProofOleFail(int fail){ole_fail=fail;}

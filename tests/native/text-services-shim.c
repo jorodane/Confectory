@@ -16,6 +16,15 @@ static int send(struct service *s,uint32_t message,intptr_t wp,intptr_t lp,intpt
  if(message==7)stats[4]++;else if(message==8)stats[5]++;else if(message==0x100)stats[6]++;else if(message==0x102)stats[7]++;else if(message==0x10D||message==0x10E||message==0x10F)stats[8]++;
  if(message==0x109)return 1;
  if(message==0x100&&wp==999)return (int)0x80004005u;
+ if(message==0x500){int ok=((int(*)(struct host *,uint32_t,uint32_t))s->host->vtable[14])(s->host,17,25);*result=ok;}
+ if(message==0x501)((void(*)(struct host *,uint32_t))s->host->vtable[15])(s->host,17);
+ if(message==0x502){((void(*)(struct host *,void *,int))s->host->vtable[9])(s->host,0,1);((void(*)(struct host *,int))s->host->vtable[10])(s->host,1);}
+ if(message==0x113&&wp==17)stats[9]++;
+ if(message==0x503)((void(*)(struct host *,int))s->host->vtable[17])(s->host,(int)wp);
+ if(message==0x20A){stats[10]++;stats[11]=(int)wp;stats[12]=(int)lp;}
+ if(message==0x505){int client[4]={0};((int(*)(struct host *,int *))s->host->vtable[24])(s->host,client);((int(*)(struct host *,void *,int,int))s->host->vtable[11])(s->host,0,2,16);((int(*)(struct host *,int,int))s->host->vtable[13])(s->host,client[0]+9,client[1]+16);((int(*)(struct host *,int))s->host->vtable[12])(s->host,1);}
+ if(message==0x504)((void(*)(struct host *,intptr_t,int))s->host->vtable[19])(s->host,wp,1);
+
  if(message==0xC){const uint16_t *text=(const uint16_t *)lp;int count=0;while(text[count])count++;uint16_t *copy=calloc((size_t)count+1,2);if(!copy)return (int)0x8007000eu;memcpy(copy,text,(size_t)count*2);free(s->text);s->text=copy;s->length=count;s->anchor=s->caret=0;*result=1;}
  else if(message==0xE)*result=s->length;
  else if(message==0xD){int count=s->length;if(count>=wp)count=(int)wp-1;if(count<0)count=0;memcpy((void *)lp,s->text,(size_t)count*2);((uint16_t *)lp)[count]=0;*result=count;}

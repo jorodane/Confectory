@@ -6,7 +6,7 @@ echo Confectory windowless browser proof - Windows x64, read-only
 goto project_input
 :editable_banner
 echo Confectory EXPERIMENTAL native editing bridge - Windows x64
-echo Caret and IME host completion and real Windows validation are pending.
+echo Real Windows native editing, IME, clipboard and DPI validation are pending.
 :project_input
 if not "%~1"=="" set "CONFECTORY_BROWSER_PROJECT=%~f1"
 if defined CONFECTORY_BROWSER_PROJECT goto check_project
