@@ -1,1 +1,1 @@
-return new[]{"android-app-surface","launch:unavailable","read-only-description:host-tool-required","runtime-inspection:unavailable","runtime-call:unavailable"};
+return new[]{"android-app-surface","launch:unavailable","read-only-description:"+(AppDomain.CurrentDomain.GetData("Confectory.Android.DescribeProject") is null?"adapter-required":"available"),"runtime-inspection:unavailable","runtime-call:unavailable"};

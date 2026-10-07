@@ -2,4 +2,4 @@ implementation Confectory.EditorHome::CreateSessionBody for Confectory.EditorHom
 import Confectory.ProjectManager::CreateManager as CreateManager (int) -> string[];
 import Confectory.FileStream::Snapshot as FileSnapshot (string) -> string[];
 import Confectory.FileStream::WriteAtomic as WriteAtomic (string, string) -> void;
-body common "CreateSession.csbody"; }
+body android "CreateSession.android.csbody"; body common "CreateSession.csbody"; }

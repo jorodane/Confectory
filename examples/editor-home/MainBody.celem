@@ -48,4 +48,4 @@ import Confectory.UIOrder::Compose as OrderCompose (string, int[]) -> string;
 import Confectory.UIOrder::Hit as OrderHit (string, int, int) -> int[];
 import Confectory.ProjectManager::PlanCreation as PlanCreation (string, string) -> string[];
 import Confectory.ProjectEntry::Request as EntryRequest (string,string,string) -> string;
-body common "Main.csbody"; }
+body android "Main.android.csbody"; body common "Main.csbody"; }

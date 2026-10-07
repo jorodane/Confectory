@@ -1,1 +1,1 @@
-implementation Confectory.NativeUI::CapabilitiesBody for Confectory.NativeUI::Capabilities () -> string { body windows "Capabilities.windows.csbody"; body linux "Capabilities.linux.csbody"; }
+implementation Confectory.NativeUI::CapabilitiesBody for Confectory.NativeUI::Capabilities () -> string { body android "Capabilities.android.csbody"; body windows "Capabilities.windows.csbody"; body linux "Capabilities.linux.csbody"; }

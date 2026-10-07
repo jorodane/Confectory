@@ -1,0 +1,1 @@
+var describe=AppDomain.CurrentDomain.GetData("Confectory.Android.DescribeProject") as Func<string,string[]>??throw new PlatformNotSupportedException("Metadata-only Android description requires an installed application parser adapter");return describe(System.IO.Path.GetFullPath(project));

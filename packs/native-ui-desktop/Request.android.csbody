@@ -1,0 +1,2 @@
+var adapter=AppDomain.CurrentDomain.GetData("Confectory.Android.NativeUI") as Func<string,string,string,long,string>??throw new PlatformNotSupportedException("Android NativeUI requires the owning Activity adapter; managed build alone is not native runtime evidence");
+return adapter(host,operation,payload,parent);
