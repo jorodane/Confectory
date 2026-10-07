@@ -1,4 +1,4 @@
-function Confectory.EditorHome::Command (string session, string operation, string payload) -> string {
+function Confectory.EditorHome.Model::Command (string session, string operation, string payload) -> string {
 provide Confectory.ProjectManager::Open with Confectory.ProjectManager::OpenBody;
 provide Confectory.ProjectExecution::DescribeProject with Confectory.ProjectExecution::DescribeProjectBody;
 provide Confectory.ProjectManager::CreateProject with Confectory.ProjectManager::CreateProjectBody;
@@ -24,7 +24,7 @@ provide Confectory.EditWorkspace::Identity with Confectory.EditWorkspace::Identi
 provide Confectory.EditWorkspace::Export with Confectory.EditWorkspace::ExportBody;
 provide Confectory.FileStream::Commit with Confectory.FileStream::CommitBody;
 provide Confectory.FileStream::LeasePath with Confectory.FileStream::LeasePathBody;
-provide Confectory.EditorHome::Command with Confectory.EditorHome::CommandBody;
+provide Confectory.EditorHome.Model::Command with Confectory.EditorHome.Model::CommandBody;
 provide Confectory.ProjectShell::Create with Confectory.ProjectShell::CreateBody;
 provide Confectory.ProjectShell::Command with Confectory.ProjectShell::CommandBody;
 provide Confectory.ProjectShell::Snapshot with Confectory.ProjectShell::SnapshotBody;

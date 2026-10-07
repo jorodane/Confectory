@@ -2,6 +2,7 @@ project Confectory.EditorHome version "0.1.0" {
 standalone true;
 registry Confectory.AndroidExport.Settings "../../packs/android-export-settings/pack.cpack"; dependency Confectory.AndroidExport.Settings version "0.1.0";
 element AndroidExport object "AndroidExport.celem";
+registry Confectory.EditorHome.Model "../../packs/editor-home-model/pack.cpack"; dependency Confectory.EditorHome.Model version "0.1.0";
 registry Confectory.ProjectEntry "../../packs/project-entry/pack.cpack"; dependency Confectory.ProjectEntry version "0.1.0";
 registry Confectory.ProjectShell "../../packs/project-shell/pack.cpack"; dependency Confectory.ProjectShell version "0.1.0";
 registry Confectory.NativeUI "../../packs/native-ui-desktop/pack.cpack"; dependency Confectory.NativeUI version "0.1.0";
@@ -23,10 +24,6 @@ registry Confectory.Window "../../packs/window/pack.cpack"; dependency Confector
 registry Confectory.RenderInput "../../packs/render-input/pack.cpack"; dependency Confectory.RenderInput version "0.1.0";
 registry Confectory.Build.DotNet "../../targets/dotnet/pack.cpack"; dependency Confectory.Build.DotNet version "0.1.0";
 target linux Confectory.Build.DotNet::Linux; target windows Confectory.Build.DotNet::Portable; target android Confectory.Build.DotNet::Portable;
-element CreateSession function "CreateSession.celem"; element CreateSessionBody implementation "CreateSessionBody.celem";
-element Command function "Command.celem"; element CommandBody implementation "CommandBody.celem";
-element Snapshot function "Snapshot.celem"; element SnapshotBody implementation "SnapshotBody.celem";
-element CloseSession function "CloseSession.celem"; element CloseSessionBody implementation "CloseSessionBody.celem";
 element Main function "Main.celem"; element MainBody implementation "MainBody.celem";
 element Verify function "Verify.celem"; element VerifyBody implementation "VerifyBody.celem";
 element VerifyShell function "VerifyShell.celem"; element VerifyShellBody implementation "VerifyShellBody.celem";

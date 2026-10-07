@@ -1,0 +1,2 @@
+implementation Confectory.EditorHome.Model::SnapshotBody for Confectory.EditorHome.Model::Snapshot (string session) -> string {
+body common "Snapshot.csbody"; }

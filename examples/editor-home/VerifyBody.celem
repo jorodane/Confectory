@@ -1,8 +1,8 @@
 implementation Confectory.EditorHome::VerifyBody for Confectory.EditorHome::Verify () -> int {
-import Confectory.EditorHome::CreateSession as CreateSession (string, string) -> string;
-import Confectory.EditorHome::Command as Command (string, string, string) -> string;
-import Confectory.EditorHome::Snapshot as Snapshot (string) -> string;
-import Confectory.EditorHome::CloseSession as CloseSession (string) -> void;
+import Confectory.EditorHome.Model::CreateSession as CreateSession (string, string) -> string;
+import Confectory.EditorHome.Model::Command as Command (string, string, string) -> string;
+import Confectory.EditorHome.Model::Snapshot as Snapshot (string) -> string;
+import Confectory.EditorHome.Model::CloseSession as CloseSession (string) -> void;
 import Confectory.EditWorkspace::Open as WorkspaceOpen (string,string,string) -> string;
 import Confectory.EditWorkspace::Create as Create (string,string,string) -> void;
 import Confectory.EditWorkspace::SetValue as SetValue (string,string,string,string) -> void;

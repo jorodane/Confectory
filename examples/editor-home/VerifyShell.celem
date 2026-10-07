@@ -1,10 +1,10 @@
 function Confectory.EditorHome::VerifyShell () -> int {
-provide Confectory.EditorHome::CreateSession with Confectory.EditorHome::CreateSessionBody;
+provide Confectory.EditorHome.Model::CreateSession with Confectory.EditorHome.Model::CreateSessionBody;
 provide Confectory.ProjectManager::CreateManager with Confectory.ProjectManager::CreateManagerBody;
 provide Confectory.ProjectExecution::CreateSession with Confectory.ProjectExecution::CreateSessionBody;
 provide Confectory.FileStream::Snapshot with Confectory.FileStream::SnapshotBody;
 provide Confectory.FileStream::WriteAtomic with Confectory.FileStream::WriteAtomicBody;
-provide Confectory.EditorHome::Command with Confectory.EditorHome::CommandBody;
+provide Confectory.EditorHome.Model::Command with Confectory.EditorHome.Model::CommandBody;
 provide Confectory.ProjectManager::Open with Confectory.ProjectManager::OpenBody;
 provide Confectory.ProjectExecution::DescribeProject with Confectory.ProjectExecution::DescribeProjectBody;
 provide Confectory.ProjectManager::CreateProject with Confectory.ProjectManager::CreateProjectBody;
@@ -28,8 +28,8 @@ provide Confectory.EditWorkspace::Identity with Confectory.EditWorkspace::Identi
 provide Confectory.EditWorkspace::Export with Confectory.EditWorkspace::ExportBody;
 provide Confectory.FileStream::Commit with Confectory.FileStream::CommitBody;
 provide Confectory.FileStream::LeasePath with Confectory.FileStream::LeasePathBody;
-provide Confectory.EditorHome::Snapshot with Confectory.EditorHome::SnapshotBody;
-provide Confectory.EditorHome::CloseSession with Confectory.EditorHome::CloseSessionBody;
+provide Confectory.EditorHome.Model::Snapshot with Confectory.EditorHome.Model::SnapshotBody;
+provide Confectory.EditorHome.Model::CloseSession with Confectory.EditorHome.Model::CloseSessionBody;
 provide Confectory.EditWorkspace::Close with Confectory.EditWorkspace::CloseBody;
 provide Confectory.ProjectManager::Dispose with Confectory.ProjectManager::DisposeBody;
 provide Confectory.ProjectExecution::Dispose with Confectory.ProjectExecution::DisposeBody;

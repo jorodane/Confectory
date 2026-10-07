@@ -1,0 +1,15 @@
+pack Confectory.EditorHome.Model version "0.1.0" {
+standalone false;
+dependency Confectory.EditWorkspace version "0.1.0";
+dependency Confectory.FileStream version "0.1.0";
+dependency Confectory.ProjectExecution version "0.1.0";
+dependency Confectory.ProjectManager version "0.1.0";
+dependency Confectory.ProjectShell version "0.1.0";
+dependency Confectory.Save version "0.1.0";
+dependency Confectory.SchemaEditing version "0.1.0";
+
+element CreateSession function "CreateSession.celem"; element CreateSessionBody implementation "CreateSessionBody.celem";
+element Command function "Command.celem"; element CommandBody implementation "CommandBody.celem";
+element Snapshot function "Snapshot.celem"; element SnapshotBody implementation "SnapshotBody.celem";
+element CloseSession function "CloseSession.celem"; element CloseSessionBody implementation "CloseSessionBody.celem";
+}

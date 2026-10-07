@@ -1,0 +1,3 @@
+function Confectory.EditorHome.Model::Snapshot (string session) -> string {
+provide Confectory.EditorHome.Model::Snapshot with Confectory.EditorHome.Model::SnapshotBody;
+}
