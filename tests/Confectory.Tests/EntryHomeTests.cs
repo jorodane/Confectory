@@ -104,6 +104,25 @@ try{
 """);
         var built=new Builder(project,"android").Build();var run=Processes.Run(Strings(built,"run"));True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("Android owner dispatch failure/retry/idempotence protocol passed",StringComparison.Ordinal));
     }
+    public void test_android_project_entry_preserves_listener_release_owner_and_rejects_unknown_close()
+    {
+        string consumer=Path.Combine(f.Root,"Android entry owner dispatch");Directory.CreateDirectory(consumer);string project=Path.Combine(consumer,"project.cpack");
+        File.WriteAllText(project,"project Example.AndroidEntryOwnerProbe version \"0.1.0\" { standalone true; registry Confectory.ProjectEntry \""+Path.Combine(Fixture.Repo,"packs","project-entry","pack.cpack")+"\"; dependency Confectory.ProjectEntry version \"0.1.0\"; registry Confectory.Build.DotNet \""+Path.Combine(Fixture.Repo,"targets","dotnet","pack.cpack")+"\"; dependency Confectory.Build.DotNet version \"0.1.0\"; element Main function \"Main.celem\";element MainBody implementation \"MainBody.celem\";entry Example.AndroidEntryOwnerProbe::Main;target android Confectory.Build.DotNet::Portable; }");
+        File.WriteAllText(Path.Combine(consumer,"Main.celem"),"function Example.AndroidEntryOwnerProbe::Main () -> int { provide Example.AndroidEntryOwnerProbe::Main with Example.AndroidEntryOwnerProbe::MainBody; }");
+        File.WriteAllText(Path.Combine(consumer,"MainBody.celem"),"implementation Example.AndroidEntryOwnerProbe::MainBody for Example.AndroidEntryOwnerProbe::Main () -> int { import Confectory.ProjectEntry::Request as Request (string,string,string) -> string;body common \"Main.csbody\"; }");
+        File.WriteAllText(Path.Combine(consumer,"Main.csbody"),"""
+string host=Guid.NewGuid().ToString("N"),ownerKey="Confectory.Android.ProjectEntry.Owner."+host,closedKey="Confectory.Android.ProjectEntry.Closed."+host;int attempts=0,wrongOwner=0;
+AppDomain.CurrentDomain.SetData("Confectory.Android.ProjectEntry",(Func<string,string,string,string>)((h,o,p)=>{wrongOwner++;throw new Exception("New Activity must not release old owner");}));
+AppDomain.CurrentDomain.SetData(ownerKey,(Func<string,string,string,string>)((h,o,p)=>{attempts++;if(attempts==1)throw new InvalidOperationException("Injected listener release failure");AppDomain.CurrentDomain.SetData(closedKey,true);AppDomain.CurrentDomain.SetData(ownerKey,null);return "{}";}));
+try{
+ bool failed=false;try{calls.Request.Invoke(host,"close","{}");}catch(InvalidOperationException){failed=true;}if(!failed||AppDomain.CurrentDomain.GetData(ownerKey) is null)throw new Exception("Failed listener release owner was lost");
+ calls.Request.Invoke(host,"close","{}");calls.Request.Invoke(host,"close","{}");if(attempts!=2||wrongOwner!=0)throw new Exception("Owner dispatch or successful-close idempotence failed");
+ bool unknown=false;try{calls.Request.Invoke(Guid.NewGuid().ToString("N"),"close","{}");}catch(PlatformNotSupportedException){unknown=true;}if(!unknown)throw new Exception("Unknown GUID owner was silently closed");
+ Console.WriteLine("Android entry owner dispatch failure/retry/idempotence protocol passed; no Android device execution");return 0;
+}finally{AppDomain.CurrentDomain.SetData(ownerKey,null);AppDomain.CurrentDomain.SetData(closedKey,null);AppDomain.CurrentDomain.SetData("Confectory.Android.ProjectEntry",null);}
+""");
+        var built=new Builder(project,"android").Build();var run=Processes.Run(Strings(built,"run"));True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("Android entry owner dispatch failure/retry/idempotence protocol passed",StringComparison.Ordinal));
+    }
     public void test_android_export_owned_settings_formats_xml_and_rejects_credentials_before_build()
     {
         string consumer=Consumer("editor-home"),project=Path.Combine(consumer,"project.cpack"),settings=Path.Combine(consumer,"AndroidExport.celem");
