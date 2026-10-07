@@ -1,0 +1,7 @@
+function Example.PlacementProbe::Main () -> int {
+provide Example.PlacementProbe::Main with Example.PlacementProbe::MainBody;
+provide Confectory.Window::CreateSurfaces with Confectory.Window::CreateSurfacesBody;
+provide Confectory.Window::Close with Confectory.Window::CloseBody;
+provide Confectory.RenderInput::Pump with Confectory.Window::PumpBody;
+provide Confectory.RenderInput::Draw with Confectory.Window::DrawBody;
+}

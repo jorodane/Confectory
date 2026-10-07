@@ -1,0 +1,10 @@
+implementation Example.PlacementProbe::MainBody for Example.PlacementProbe::Main () -> int {
+import Confectory.WindowPlacement::Create as Create () -> string;
+import Confectory.WindowPlacement::Update as Update (string,string,string) -> string;
+import Confectory.Window::CreateSurfaces as Surfaces (string[],int,int) -> long[];
+import Confectory.Window::SurfaceDimensions as Dimensions (long[],int) -> int[];
+import Confectory.Window::Close as Close (long[],int) -> void;
+import Confectory.RenderInput::Pump as Pump (long[]) -> int[];
+import Confectory.RenderInput::Draw as Draw (long[],int,int[],string[]) -> void;
+body common "main.csbody";
+}
