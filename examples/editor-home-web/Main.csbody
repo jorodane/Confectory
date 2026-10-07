@@ -1,0 +1,2 @@
+string root=Environment.GetEnvironmentVariable("CONFECTORY_EDITOR_REPO")??Environment.CurrentDirectory;
+return calls.Serve.Invoke(root,System.IO.Path.Combine(AppContext.BaseDirectory,"browser-assets"));

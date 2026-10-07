@@ -1,0 +1,4 @@
+pack Confectory.Build.Web version "0.1.0" {
+standalone false;
+element Browser buildtarget "browser.celem";
+}

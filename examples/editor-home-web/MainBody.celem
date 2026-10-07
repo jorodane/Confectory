@@ -1,0 +1,3 @@
+implementation Confectory.EditorHome.Web::MainBody for Confectory.EditorHome.Web::Main () -> int {
+import Confectory.BrowserHost::Serve as Serve (string,string) -> int;
+body common "Main.csbody"; }

@@ -1,34 +1,53 @@
-# Browser provider draft — integration boundary
+# Local browser Entry/Home milestone
 
-This is a local review increment, **not a runnable or published browser milestone**.
+**This is a runnable local .NET host with browser UI. It is not the requested independent browser/WASM runtime.** The earlier unlinked provider draft is superseded by the shared-model extraction and tested consumer described here. The remaining independent-runtime implementation is in [WEB_RUNTIME_ROADMAP.md](WEB_RUNTIME_ROADMAP.md).
 
-Owned pack: `Confectory.BrowserHost`. Public element: `Serve(repository:string, assets:string)->int`. Provider: `ServeBody`. It imports existing `Confectory.EditorHome::{CreateSession,Command,Snapshot,CloseSession}` contracts and adds no platform code to core. Browser assets implement DOM rendering, keyboard/touch-native HTML inputs and text areas, file picker import, manifest draft downloads, repeat-open draft retention, explicit Leave confirmation/cancellation, and browser unload protection. Play/build/native filesystem operations are deliberately absent from the HTTP surface. Download initiation does not mark the draft saved: browser cancellation cannot be acknowledged by this provider.
+The ProjectPack `Confectory.EditorHome.Web` composes `Confectory.EditorHome.Model`, `Confectory.BrowserHost`, project/file/domain packs and the target pack `Confectory.Build.Web::Browser`. Target name `web` currently means this explicitly local host. No native Window/NativeUI or AI providers are reached. The engine entry is an ordinary linked ProjectPack function; core has no browser-specific host logic.
 
-The provider is a **local .NET loopback host with browser UI**, not a static site, WebAssembly runtime, or arbitrary C# browser execution target. It requires the .NET host and existing trusted metadata-description host. Imported file contents are staged in a temporary per-session folder, interpreted by existing metadata-only project opening, and deleted on orderly owner exit. Imported registries and scripts are not built or executed. No external website, external upload or service is used.
+## Run locally
 
-## Integration blocker
+With .NET 8 SDK and existing trusted repository hosts built:
 
-The current shared model contracts belong to `examples/editor-home`, which is itself a ProjectPack. Core correctly rejects registering a ProjectPack as a library dependency. A runnable browser consumer needs coordinated extraction of its four domain contracts/providers to a reusable library pack (and native/Android consumer contract updates), or an explicitly owned export that materializes their trusted sources into a browser consumer. This increment performs neither shared edit nor source duplication. Consequently there is **no browser execution target/consumer yet**, and `ServeBody` has not been compiled through the public pack linker.
+```sh
+dotnet build Confectory.sln -c Release
+dotnet build targets/web/Confectory.Build.Web.csproj -c Release
+CONFECTORY_EDITOR_REPO="$PWD" dotnet src/Confectory.Cli/bin/Release/net8.0/Confectory.Cli.dll run examples/editor-home-web/project.cproj web
+```
 
-Root coordination explicitly paused shared extraction to avoid conflicts with Android. The source is retained for integration review; it must not be reported as browser completion.
+On Windows, run `run-web-home-windows.bat`. Windows script execution is not verified in this Linux environment. Open the printed `http://127.0.0.1:<port>/#<session>` URL in a browser. Keep the local host running; Ctrl+C ends its owner and removes staged imported files. `CONFECTORY_WEB_PORT` optionally selects an unprivileged local port. The final build output includes `browser-assets/index.html`, `app.js`, `style.css`, linked managed application/provider assemblies and public linkage catalog; no external website was deployed.
 
-## Security and capability review
+## Current capabilities and UX
 
-The provider binds only `127.0.0.1`, requires a random per-process session header on APIs, rejects foreign Origin/Host, exposes a fixed static asset allowlist, sets a restrictive CSP, limits import size to one MiB, and allows only snapshot/import/leave operations. It accepts filenames rather than arbitrary local paths. Different selected projects remain blocked by the existing `open-request` policy even if the local draft is clean. Same imported filename and contents map to one staged path and do not reload buffers. Changed contents at the same filename map to a distinct project and therefore require explicit Leave.
+DOM rendering, responsive layout, browser keyboard/touch-native controls and text inputs, explicitly selected `.cproj`/legacy `.cpack` imports, a manifest draft area and draft download work. Existing Entry/Home CreateSession/Command/Snapshot/CloseSession public operations are used through generated bindings. Declaration metadata is interpreted without executing imported pack code or reading/building its untrusted registry dependencies. Library packs can open with standalone false. `.cproj` requires a ProjectPack.
 
-Signing inputs are unrelated to this provider and have not been added. Browser drafts remain in memory and are lost on tab/process exit unless downloaded; unload protection is advisory browser UX rather than durable save.
+Same imported filename and contents map to the same staged path and return the existing project without replacing manifest/chat drafts. A different selected file is refused until explicit Leave, even when the current project is clean. Leave asks for confirmation if drafts are dirty; Cancel preserves selection and buffers. Confirmed Leave retains drafts only in this browser session, and reopening the same import restores them. Picker cancellation preserves buffers. Browser unload protection is advisory UX, not durable save. Download initiation leaves the dirty marker intact because cancellation/save completion cannot be acknowledged by this provider.
 
-## Verification in this increment
+Build/Play, arbitrary commands, native OS filesystem browsing, file associations, desktop multiwindow and AI connections are absent from the browser HTTP surface and visibly identified in UI. The local host requires .NET and trusted repository metadata-description hosts; this capability does not establish browser-native C# execution. Import transfers the chosen bytes to the same machine's loopback process only. Session metadata/staged files are temporary, not an external upload or account-backed persistence.
 
-- `node --check packs/browser-host/assets/app.js` — passed.
-- `git diff --check` — passed (tracked tree before staging).
-- Chromium is installed. Actual startup/render/input/import/repeat/cancel/unsaved browser verification **has not run**, because the runnable consumer/linker boundary is unresolved.
-- No browser target build, source compilation, deployment, main merge, or external push was performed by this worker.
+## Security/lifetime boundary
 
-Next integration gate: wire a real ProjectPack through public contracts, compile ServeBody, run the loopback host, drive Chromium through startup/input/import/same-file repeat/different-file refusal/Leave cancel/reopen/download cancellation/unauthorized API/invalid imports/owner exit. Separate source locality and functional gates. Check final targets and affected model consumers after any shared contract extraction.
+The provider binds only `127.0.0.1`, requires a random per-process session header on APIs, rejects foreign Origin/Host, exposes a fixed static asset allowlist, sets a restrictive CSP, limits imported manifest size to one MiB, and allows only snapshot/import/leave operations. Imports accept filenames rather than caller-selected filesystem paths. Plain pack metadata validation is delegated to the reusable existing DescribeProject contract. No keystore/password/schema/signing input was added by this worker. Abrupt process termination can leave the private temporary session folder; no automatic global temp deletion is performed.
 
-## Outside implementation reads
+## Functional and structure gates
 
-Read `examples/editor-home/{Main.celem,MainBody.celem,CreateSession.celem,CreateSessionBody.celem,CreateSession.csbody,Command.celem,Command.csbody,Snapshot.csbody,CloseSession.celem,CloseSessionBody.celem,project.cpack}` to discover domain ownership, existing public operations and provider reachability. The existing contracts are usable but cannot be selected as a library while owned by a ProjectPack. Read `src/Confectory.Core/Build.cs` and existing target manifests/programs to inspect existing tool protocol and public linkage constraints, without editing them. Read baseline design sections on ProjectPack/core/target ownership. No applicable repository AGENTS or skills were found in initial file searches. No outside implementation was edited.
+Actual Chromium against the real linked ProjectPack passed startup/render/input, Unicode/spaces import, invalid manifest rejection, same-file repeat buffer retention, different-file refusal, file picker cancellation, dirty Leave cancel, clean-active guard, explicit Leave/reopen, manifest draft download, responsive 390px view, forbidden/unauthorized APIs and orderly owner exit. Final packaged asset build was rerun through this same browser gate. A private screenshot was inspected at `/tmp/confectory-browser-verified.png`; no images or binaries are in Git.
 
-Rebuild scope when integrated: BrowserHost ServeBody and browser consumer bindings, plus any shared model contract consumers only if extraction/namespace changes are adopted. Existing native UI/provider implementations are untouched in this increment.
+Exact commands used (SDK selected through `CONFECTORY_DOTNET`, .NET home under `/tmp`):
+
+```sh
+dotnet build targets/web/Confectory.Build.Web.csproj -c Release
+dotnet src/Confectory.Cli/bin/Release/net8.0/Confectory.Cli.dll build examples/editor-home-web/project.cproj web > /tmp/confectory-web-build2.json
+python3 tests/web/browser_entry.py /workspace/Confectory-web-platform /tmp/confectory-web-build2.json
+node --check packs/browser-host/assets/app.js
+git diff --check
+```
+
+The linked consumer build had zero warnings and reached the shared model without native providers. The automated BrowserTests runner separately exercises a consumer-local BrowserHost provider change and asserts exactly `Confectory.BrowserHost::ServeBody` compiled with zero contracts; this gate remains separate from browser functionality. Native model/shell-domain and Android managed adapter regression commands/results are recorded in the final worker handoff, and root owns actual Linux native GUI checks after integration. No independent WASM build, static-site runtime, Windows browser execution, browser IME composition, Android browser execution, deployment or main merge is claimed.
+
+## Locality/ownership ledger
+
+Intended public elements: BrowserHost Serve(repository, assets)->int / ServeBody; EditorHome.Web Main/MainBody; Build.Web Browser target; shared Model four domain operations (see ENTRY_HOME_MODEL_PACK.md).
+
+Outside implementation reads: existing native Home Main declarations and model sources/providers were inspected to discover domain ownership, operations and provider reachability; dotnet target/tool and core build protocol were read to implement delegation and preserve linkage artifacts. Model extraction was explicitly coordinated with root after Android worker completion. Native consumers' declarations/manifests and two locality fixtures were edited because a ProjectPack cannot be a library dependency; no platform logic was put in core. Root owns Android packaging/settings. Browser target delegates compilation to the existing trusted DotNet tool, owns its target identity, fingerprints browser assets and compiler, and packages those assets in its link output. Main reads only selected pack asset paths; HTTP routes never expose arbitrary asset paths.
+
+Affected rebuild scope: first shared model namespace change rebuilds model contracts/providers and native/browser consumer bindings; thereafter BrowserHost body-only changes compile its provider only. A browser asset or target-tool change affects the target identity and therefore its target-specific compiled artifacts; current tool protocol does not have a separate link-only asset fingerprint. This broader target rebuild is explicit. Runtime assets are copied into final output, rather than silently reading changed source assets from the repository.

@@ -1,0 +1,16 @@
+project Confectory.EditorHome.Web version "0.1.0" {
+standalone true;
+registry Confectory.EditorHome.Model "../../packs/editor-home-model/pack.cpack"; dependency Confectory.EditorHome.Model version "0.1.0";
+registry Confectory.ProjectShell "../../packs/project-shell/pack.cpack"; dependency Confectory.ProjectShell version "0.1.0";
+entry Confectory.EditorHome.Web::Main;
+registry Confectory.ProjectManager "../../packs/project-manager/pack.cpack"; dependency Confectory.ProjectManager version "0.1.0";
+registry Confectory.ProjectExecution "../../packs/project-execution/pack.cpack"; dependency Confectory.ProjectExecution version "0.1.0";
+registry Confectory.EditWorkspace "../../packs/edit-workspace/pack.cpack"; dependency Confectory.EditWorkspace version "0.1.0";
+registry Confectory.SchemaEditing "../../packs/schema-editing/pack.cpack"; dependency Confectory.SchemaEditing version "0.1.0";
+registry Confectory.Save "../../packs/save/pack.cpack"; dependency Confectory.Save version "0.1.0";
+registry Confectory.FileStream "../../packs/file-stream/pack.cpack"; dependency Confectory.FileStream version "0.1.0";
+registry Confectory.BrowserHost "../../packs/browser-host/pack.cpack"; dependency Confectory.BrowserHost version "0.1.0";
+registry Confectory.Build.Web "../../targets/web/pack.cpack"; dependency Confectory.Build.Web version "0.1.0";
+target web Confectory.Build.Web::Browser;
+element Main function "Main.celem"; element MainBody implementation "MainBody.celem";
+}
