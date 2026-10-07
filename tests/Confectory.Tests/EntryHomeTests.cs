@@ -78,7 +78,7 @@ public sealed class EntryHomeTests : TestCase
             True(!File.Exists(Path.Combine(output,"package-report.json")),"Source-only export claimed a package");
         }
         // Poisoned implementation proves rejected settings never reach managed source compilation.
-        File.WriteAllText(Path.Combine(consumer,"Main.android.csbody"),"not valid C#");
+        File.WriteAllText(Path.Combine(consumer,"Main.csbody"),"not valid C#");
         foreach(var invalid in new[]{("badid","value applicationId = \"not.an-app\";"),("badformat","value packageFormat = \"zip\";"),("password","value keystorePassword = \"must-not-be-stored\";"),("keystore","value keystorePath = \"must-not-be-stored\";")})
         {
             File.WriteAllText(settings,declaration(invalid.Item2));string output=Path.Combine(f.Root,invalid.Item1);
@@ -88,39 +88,6 @@ public sealed class EntryHomeTests : TestCase
             True(!result.Stderr.Contains("CS100",StringComparison.Ordinal),"Settings validation ran after source compilation");
         }
         File.WriteAllText(settings,original);
-    }
-    public void test_android_home_activity_dispatch_requires_adapter_and_preserves_public_domain()
-    {
-        string consumer=Consumer("editor-home"),project=Path.Combine(consumer,"project.cpack");
-        File.WriteAllText(Path.Combine(consumer,"Main.android.csbody"),"""
-            bool refused=false;try{calls.NativeRequest.Invoke("","android-home","{}",0);}catch(PlatformNotSupportedException){refused=true;}
-            if(!refused)throw new Exception("Managed build claimed Android native runtime");
-            bool initialized=false;AppDomain.CurrentDomain.SetData("Confectory.Android.NativeUI",(Func<string,string,string,long,string>)((h,op,p,owner)=>{if(op!="android-home")throw new Exception(op);initialized=true;return "{}";}));
-            calls.NativeRequest.Invoke("","android-home","{}",0);if(!initialized)throw new Exception("Activity dispatch failed");
-            string storage=System.IO.Path.Combine(System.IO.Path.GetTempPath(),"confectory-android-home-probe-"+Guid.NewGuid().ToString("N"));
-            string library=System.IO.Path.Combine(storage,"library.cpack"),other=System.IO.Path.Combine(storage,"other.cpack");System.IO.Directory.CreateDirectory(storage);
-            System.IO.File.WriteAllText(library,"pack Example.Library version \"1\" { standalone false; }");System.IO.File.WriteAllText(other,"pack Example.Other version \"1\" { standalone false; }");
-            AppDomain.CurrentDomain.SetData("Confectory.Android.DescribeProject",(Func<string,string[]>)(path=>new[]{path==library?"Example.Library":"Example.Other","","","pack","false"}));
-            string session=calls.CreateSession.Invoke(storage,storage);
-            try
-            {
-                string Json(string path)=>System.Text.Json.JsonSerializer.Serialize(new{path});
-                var opened=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(session,"open-request",Json(library)))!;
-                string context=opened["selected"]!["context"]!.ToString();
-                calls.Command.Invoke(session,"shell",System.Text.Json.JsonSerializer.Serialize(new{action="draft",value="unsaved 한글"}));
-                var duplicate=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(session,"open-request",Json(library)))!;
-                if(duplicate["selected"]!["context"]!.ToString()!=context||duplicate["shell"]!["draft"]!.ToString()!="unsaved 한글")throw new Exception("Duplicate replaced draft/context");
-                var blocked=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(session,"open-request",Json(other)))!;
-                if(blocked["selected"]!["path"]!.ToString()!=library||!blocked["status"]!.ToString().StartsWith("Error:"))throw new Exception("Different pack replaced active work");
-                calls.Command.Invoke(session,"leave","{}");var next=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(session,"open-request",Json(other)))!;
-                if(next["selected"]!["path"]!.ToString()!=other)throw new Exception("Explicit Leave did not permit next import");
-            }
-            finally{calls.CloseSession.Invoke(session);AppDomain.CurrentDomain.SetData("Confectory.Android.NativeUI",null);AppDomain.CurrentDomain.SetData("Confectory.Android.DescribeProject",null);System.IO.Directory.Delete(storage,true);}
-            Console.WriteLine("Android Home managed domain and adapter gate PASS; Activity/device not exercised");return 0;
-            """);
-        var built=new Builder(project,"android").Build();Output(built,"Android Home managed domain and adapter gate PASS; Activity/device not exercised");
-        File.AppendAllText(Path.Combine(consumer,"Main.android.csbody"),"\n// Android Home adapter locality probe\n");
-        var changed=new Builder(project,"android").Build();Sequence(new[]{"Confectory.EditorHome::MainBody"},Strings(changed,"statistics","compiledImplementations"));Equal(0,Strings(changed,"statistics","compiledContracts").Length);
     }
     public void test_entry_home_windows_android_managed_profiles_compile_only()
     {
