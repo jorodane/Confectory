@@ -21,11 +21,11 @@ public sealed class Win32ContractTests : TestCase
   if(!OperatingSystem.IsLinux())return;
   string sample=Path.Combine(f.Root,"examples","proof"),native=Path.Combine(f.Root,"native");Directory.CreateDirectory(native);
   Fixture.CopyTree(Path.Combine(Fixture.Repo,"examples","windowless-browser-proof"),sample);
-  foreach(string pack in new[]{"ui-navigation","win32-text-services","ui-order","base-ui","runtime-base","window","render-input","edit-workspace","schema-editing","file-stream"})Fixture.CopyTree(Path.Combine(Fixture.Repo,"packs",pack),Path.Combine(f.Root,"packs",pack));
+  foreach(string pack in new[]{"ui-navigation","win32-text-services","ui-order","window-placement","base-ui","runtime-base","window","render-input","edit-workspace","schema-editing","file-stream"})Fixture.CopyTree(Path.Combine(Fixture.Repo,"packs",pack),Path.Combine(f.Root,"packs",pack));
   string project=Path.Combine(sample,"project.cpack");File.WriteAllText(project,File.ReadAllText(project).Replace("../../targets/dotnet/pack.cpack","../../target/pack.cpack"));
   string window=Path.Combine(f.Root,"packs","window");
   foreach(string path in Directory.GetFiles(window,"Win32*.csbody"))File.WriteAllText(path,System.Text.RegularExpressions.Regex.Replace(File.ReadAllText(path),"if\\(!OperatingSystem.IsWindows\\(\\)\\)throw new PlatformNotSupportedException\\([^;]+;",""));
-  foreach(string name in new[]{"CreateSurfaces","Close"}){string path=Path.Combine(window,name+".csbody");File.WriteAllText(path,File.ReadAllText(path).Replace("OperatingSystem.IsWindows()","IntPtr.Size==8"));}
+  foreach(string name in new[]{"CreateSurfaces","Close","Pump","SurfaceDimensions","Draw","DrawText"}){string path=Path.Combine(window,name+".csbody");File.WriteAllText(path,File.ReadAllText(path).Replace("OperatingSystem.IsWindows()","IntPtr.Size==8"));}
   string provider=Path.Combine(f.Root,"packs","win32-text-services","Request.csbody");string providerText=System.Text.RegularExpressions.Regex.Replace(File.ReadAllText(provider),"if\\(!OperatingSystem.IsWindows\\(\\)\\)throw new PlatformNotSupportedException\\([^;]+;","");File.WriteAllText(provider,providerText.Replace("System.Runtime.InteropServices.NativeLibrary.Load(\"Msftedit.dll\")","System.Runtime.InteropServices.NativeLibrary.Load("+System.Text.Json.JsonSerializer.Serialize(Path.Combine(native,"libmsftedit.dll.so"))+")"));
   Equal(0,Processes.Run(new[]{"gcc","-shared","-fPIC","-Wall","-Wextra","-Werror",Path.Combine(Fixture.Repo,"tests","native","win32-shim.c"),"-o",Path.Combine(native,"libuser32.dll.so")}).ExitCode);
   Equal(0,Processes.Run(new[]{"gcc","-shared","-fPIC","-Wall","-Wextra","-Werror",Path.Combine(Fixture.Repo,"tests","native","text-services-shim.c"),"-o",Path.Combine(native,"libmsftedit.dll.so")}).ExitCode);
@@ -38,6 +38,7 @@ public sealed class Win32ContractTests : TestCase
 [System.Runtime.InteropServices.DllImport("user32.dll")]static extern int TextProofSubclasses();
 [System.Runtime.InteropServices.DllImport("user32.dll")]static extern int TextProofTimerCount();
 [System.Runtime.InteropServices.DllImport("user32.dll")]static extern int SimCounter(int index);
+[System.Runtime.InteropServices.DllImport("user32.dll")]static extern void SimPost(long window,uint message,long wparam,long lparam);
 """+text;
   text=text.Replace("Console.CancelKeyPress+=interrupt;while", """
 Console.CancelKeyPress+=interrupt;
@@ -45,11 +46,18 @@ foreach(string id in System.Linq.Enumerable.Take(calls.WorkspaceList.Invoke(work
 if(editors.Count!=2)throw new Exception("Need two real consumer Views");
 foreach(var data in editors.Values){calls.TextRequest.Invoke(data[1],"focus","{\"focus\":true}",0);calls.TextRequest.Invoke(data[1],"send","{\"message\":1280}",0);}
 AppDomain.CurrentDomain.SetData("OwnerProofModels",System.Linq.Enumerable.ToArray(models.Values));AppDomain.CurrentDomain.SetData("OwnerProofWorkspace",workspace);AppDomain.CurrentDomain.SetData("OwnerProofOwner",owner);
-TextProofFail(5);stop=true;while
+long Point(int x,int y)=>unchecked((ushort)(short)x)|((long)unchecked((ushort)(short)y)<<16);
+SimPost(surfaces[1],0x201,0,Point(370,185));SimPost(surfaces[1],0x200,0,Point(80,80));SimPost(surfaces[1],0x202,0,Point(80,80));
+SimPost(surfaces[1],0x201,0,Point(80,80));SimPost(surfaces[1],0x200,0,Point(-20000,-20000));SimPost(surfaces[1],0x202,0,Point(-20000,-20000));while
+""");
+  text=text.Replace(" double now=watch.Elapsed.TotalSeconds;", """
+var dragged=System.Linq.Enumerable.Last(editors);var checkedFrame=J(calls.OrderCompose.Invoke(state,new[]{0,0,width,height}));var draggedRow=System.Linq.Enumerable.First(checkedFrame["windows"]!.AsArray(),r=>r!["id"]!.GetValue<int>()==dragged.Key)!;int[] draggedBounds=System.Text.Json.JsonSerializer.Deserialize<int[]>(draggedRow["bounds"]!.ToJsonString())!;
+if(draggedBounds[0]!=0||draggedBounds[1]!=0||draggedBounds[2]!=560||draggedBounds[3]!=430||draggedRow["focus"]!.GetValue<int>()!=10||!J(calls.TextRequest.Invoke(dragged.Value[1],"model-snapshot","{}",0))["focus"]!.GetValue<bool>())throw new Exception("Actual consumer header drag lost reachable bounds/size/independent native input focus");
+AppDomain.CurrentDomain.SetData("OwnerProofDragChecked",true);TextProofFail(5);stop=true;suspended=true;double now=watch.Elapsed.TotalSeconds;
 """);
   text+="""
 bool failure=false;try{RunWindowless();}catch(AggregateException){failure=true;}finally{TextProofFail(0);}
-if(!failure||TextProofCounter(0)!=2||TextProofCounter(1)!=2||TextProofCounter(13)!=2||TextProofOleCount()!=0||TextProofSubclasses()!=0||TextProofTimerCount()!=0||SimCounter(13)!=1)throw new Exception("Actual consumer finally skipped native host/OLE/input/surface cleanup after native focus failure");
+if(!failure||AppDomain.CurrentDomain.GetData("OwnerProofDragChecked") is not true||TextProofCounter(0)!=2||TextProofCounter(1)!=2||TextProofCounter(13)!=2||TextProofOleCount()!=0||TextProofSubclasses()!=0||TextProofTimerCount()!=0||SimCounter(13)!=1)throw new Exception("Actual consumer finally skipped native host/OLE/input/surface cleanup after native focus failure");
 foreach(string buffer in (string[])AppDomain.CurrentDomain.GetData("OwnerProofModels")!){bool closed=false;try{calls.TextSnapshot.Invoke(buffer);}catch(ObjectDisposedException){closed=true;}if(!closed)throw new Exception("Model was not closed");}
 bool workspaceClosed=false;try{calls.WorkspaceList.Invoke((string)AppDomain.CurrentDomain.GetData("OwnerProofWorkspace")!);}catch(ObjectDisposedException){workspaceClosed=true;}if(!workspaceClosed)throw new Exception("Workspace was not closed");
 bool ownerClosed=false;try{calls.FixtureInstance.Invoke((string[])AppDomain.CurrentDomain.GetData("OwnerProofOwner")!,"late");}catch(InvalidOperationException){ownerClosed=true;}if(!ownerClosed)throw new Exception("RuntimeBase Owner was not closed");

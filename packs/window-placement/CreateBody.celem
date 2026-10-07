@@ -1,0 +1,1 @@
+implementation Confectory.WindowPlacement::CreateBody for Confectory.WindowPlacement::Create () -> string { body common "Create.csbody"; }

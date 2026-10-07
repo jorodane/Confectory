@@ -1,0 +1,1 @@
+implementation Confectory.WindowPlacement::UpdateBody for Confectory.WindowPlacement::Update (string state, string operation, string payload) -> string { body common "Update.csbody"; }

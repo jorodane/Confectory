@@ -1,5 +1,6 @@
 project Example.UIOrderGame version "0.1.0" {
 entry Example.UIOrderGame::Main;
+registry Confectory.WindowPlacement "../../packs/window-placement/pack.cpack"; dependency Confectory.WindowPlacement version "0.1.0";
 registry Confectory.UIOrder "../../packs/ui-order/pack.cpack"; dependency Confectory.UIOrder version "0.1.0";
 registry Confectory.BaseUI "../../packs/base-ui/pack.cpack"; dependency Confectory.BaseUI version "0.1.0";
 registry Confectory.RuntimeBase "../../packs/runtime-base/pack.cpack"; dependency Confectory.RuntimeBase version "0.1.0";

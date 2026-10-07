@@ -5,17 +5,20 @@ int id=args["id"]?.GetValue<int>()??0;System.Text.Json.Nodes.JsonNode? Row(int k
 void Bounds(int[] b){if(b.Length!=4||b[2]<1||b[3]<1||b[2]>8192||b[3]>8192||Math.Abs((long)b[0])>1048576||Math.Abs((long)b[1])>1048576)throw new ArgumentException("UI Order bounds");}
 System.Text.Json.Nodes.JsonArray Controls(System.Text.Json.Nodes.JsonNode? value){var controls=value?.DeepClone() as System.Text.Json.Nodes.JsonArray??new();if(controls.Count>128)throw new ArgumentException("Window control budget");var ids=new System.Collections.Generic.HashSet<int>();foreach(var c in controls){int key=c!["id"]!.GetValue<int>();if(key<1||!ids.Add(key))throw new ArgumentException("Unique positive control ID required inside window");Bounds(System.Text.Json.JsonSerializer.Deserialize<int[]>(c["bounds"]!.ToJsonString())!);int radius=c["radius"]?.GetValue<int>()??0;if(radius<0||radius>128)throw new ArgumentException("Control radius budget");c["radius"]=radius;c["enabled"]=c["enabled"]?.GetValue<bool>()??true;c["visible"]=c["visible"]?.GetValue<bool>()??true;}return controls;}
 System.Text.Json.Nodes.JsonNode? Shape(System.Text.Json.Nodes.JsonNode? value,int[] bounds){if(value is null)return null;int[] rects=System.Text.Json.JsonSerializer.Deserialize<int[]>(value.ToJsonString())!;if(rects.Length%4!=0||rects.Length==0||rects.Length>1024)throw new ArgumentException("Window shape budget");for(int n=0;n<rects.Length;n+=4)if(rects[n]<0||rects[n+1]<0||rects[n+2]<1||rects[n+3]<1||(long)rects[n]+rects[n+2]>bounds[2]||(long)rects[n+1]+rects[n+3]>bounds[3])throw new ArgumentException("Window shape must fit local bounds");return System.Text.Json.JsonSerializer.SerializeToNode(rects);}
+System.Text.Json.Nodes.JsonNode? Reach(System.Text.Json.Nodes.JsonNode? value,int[] bounds){if(value is null)return null;int[] handle=System.Text.Json.JsonSerializer.Deserialize<int[]>(value["handle"]!.ToJsonString())!,minimum=System.Text.Json.JsonSerializer.Deserialize<int[]>(value["minimum"]!.ToJsonString())!;if(handle.Length!=4||minimum.Length!=2||handle[0]<0||handle[1]<0||handle[2]<1||handle[3]<1||(long)handle[0]+handle[2]>bounds[2]||(long)handle[1]+handle[3]>bounds[3]||minimum[0]<1||minimum[1]<1||minimum[0]>8192||minimum[1]>8192)throw new ArgumentException("Reachability requires a local drag handle and positive minimum visible extent");return new System.Text.Json.Nodes.JsonObject{["handle"]=System.Text.Json.JsonSerializer.SerializeToNode(handle),["minimum"]=System.Text.Json.JsonSerializer.SerializeToNode(minimum)};}
 long Next(){long serial=checked(model["serial"]!.GetValue<long>()+1);model["serial"]=serial;return serial;}
 var row=Row(id);
-if(operation=="open"){
+if(operation=="workarea"){var area=System.Text.Json.JsonSerializer.Deserialize<int[]>(args["bounds"]!.ToJsonString())!;Bounds(area);model["workarea"]=System.Text.Json.JsonSerializer.SerializeToNode(area);
+}else if(operation=="open"){
  if(id<1||row is not null||windows.Count==32)throw new ArgumentException("Unique positive window ID and available lifetime slot required");
  var bounds=System.Text.Json.JsonSerializer.Deserialize<int[]>(args["bounds"]!.ToJsonString())!;Bounds(bounds);var controls=Controls(args["controls"]);
- row=new System.Text.Json.Nodes.JsonObject{["id"]=id,["order"]=args["order"]?.GetValue<int>()??0,["serial"]=Next(),["bounds"]=System.Text.Json.JsonSerializer.SerializeToNode(bounds),["shape"]=Shape(args["shape"],bounds),["visible"]=true,["minimized"]=false,["enabled"]=args["enabled"]?.GetValue<bool>()??true,["opaque"]=args["opaque"]?.GetValue<bool>()??true,["modal"]=args["modal"]?.GetValue<bool>()??false,["focus"]=0,["controls"]=controls};windows.Add(row);if(row["enabled"]!.GetValue<bool>())model["active"]=id;
+ row=new System.Text.Json.Nodes.JsonObject{["id"]=id,["order"]=args["order"]?.GetValue<int>()??0,["serial"]=Next(),["bounds"]=System.Text.Json.JsonSerializer.SerializeToNode(bounds),["shape"]=Shape(args["shape"],bounds),["reach"]=Reach(args["reach"],bounds),["visible"]=true,["minimized"]=false,["enabled"]=args["enabled"]?.GetValue<bool>()??true,["opaque"]=args["opaque"]?.GetValue<bool>()??true,["modal"]=args["modal"]?.GetValue<bool>()??false,["focus"]=0,["controls"]=controls};windows.Add(row);if(row["enabled"]!.GetValue<bool>())model["active"]=id;
 }else if(operation=="clear"){windows.Clear();model["active"]=0;
 }else{
  if(row is null)throw new ArgumentException("Unknown UI window");
  if(operation=="close"){windows.Remove(row);if(model["active"]!.GetValue<int>()==id)model["active"]=0;}
- else if(operation=="move"){var b=System.Text.Json.JsonSerializer.Deserialize<int[]>(args["bounds"]!.ToJsonString())!;Bounds(b);var shape=Shape(args.ContainsKey("shape")?args["shape"]:row["shape"],b);row["bounds"]=System.Text.Json.JsonSerializer.SerializeToNode(b);row["shape"]=shape;}
+ else if(operation=="move"||operation=="drag"){var b=System.Text.Json.JsonSerializer.Deserialize<int[]>(args["bounds"]!.ToJsonString())!;Bounds(b);if(operation=="drag"){int[] old=System.Text.Json.JsonSerializer.Deserialize<int[]>(row["bounds"]!.ToJsonString())!;if(b[2]!=old[2]||b[3]!=old[3])throw new ArgumentException("Position gesture cannot resize");}var shape=Shape(args.ContainsKey("shape")?args["shape"]:row["shape"],b);row["bounds"]=System.Text.Json.JsonSerializer.SerializeToNode(b);row["shape"]=shape;row["reach"]=Reach(args.ContainsKey("reach")?args["reach"]:row["reach"],b);}
+ else if(operation=="reach")row["reach"]=Reach(args["reach"],System.Text.Json.JsonSerializer.Deserialize<int[]>(row["bounds"]!.ToJsonString())!);
  else if(operation=="shape")row["shape"]=Shape(args["shape"],System.Text.Json.JsonSerializer.Deserialize<int[]>(row["bounds"]!.ToJsonString())!);
  else if(operation=="controls"){row["controls"]=Controls(args["controls"]);if(!System.Linq.Enumerable.Any(row["controls"]!.AsArray(),c=>c!["id"]!.GetValue<int>()==row["focus"]!.GetValue<int>()&&c["enabled"]!.GetValue<bool>()&&c["visible"]!.GetValue<bool>()))row["focus"]=0;}
  else if(operation=="order")row["order"]=args["order"]!.GetValue<int>();
@@ -31,4 +34,21 @@ if(operation=="open"){
   row["focus"]=focus;row["serial"]=Next();model["active"]=id;
  }else throw new ArgumentException("Unknown UI Order operation");
 }
+string placement=model["placement"]?.GetValue<string>()??calls.PlacementCreate.Invoke();
+void Place(string op,object value)=>placement=calls.PlacementUpdate.Invoke(placement,op,System.Text.Json.JsonSerializer.Serialize(value));
+string Key(System.Text.Json.Nodes.JsonNode w)=>w["id"]!.GetValue<int>().ToString(System.Globalization.CultureInfo.InvariantCulture);
+void Geometry(System.Text.Json.Nodes.JsonNode w,string op){var policy=w["reach"]!;Place(op,new{key=Key(w),bounds=System.Text.Json.JsonSerializer.Deserialize<int[]>(w["bounds"]!.ToJsonString())!,handle=System.Text.Json.JsonSerializer.Deserialize<int[]>(policy["handle"]!.ToJsonString())!,minimum=System.Text.Json.JsonSerializer.Deserialize<int[]>(policy["minimum"]!.ToJsonString())!});}
+void Availability(System.Text.Json.Nodes.JsonNode w)=>Place("availability",new{key=Key(w),live=w["visible"]!.GetValue<bool>()&&!w["minimized"]!.GetValue<bool>()});
+if(model["placement"] is null){if(model["workarea"] is not null)Place("viewport",new{bounds=System.Text.Json.JsonSerializer.Deserialize<int[]>(model["workarea"]!.ToJsonString())!});foreach(var window in windows)if(window!["reach"] is not null){Geometry(window,"open");Availability(window);}}
+if(operation=="clear")placement=calls.PlacementCreate.Invoke();
+if(model["workarea"] is not null&&operation=="workarea")Place("viewport",new{bounds=System.Text.Json.JsonSerializer.Deserialize<int[]>(model["workarea"]!.ToJsonString())!});
+var known=System.Text.Json.Nodes.JsonNode.Parse(placement)!["items"]!.AsObject();
+if(row is not null){string key=Key(row);bool registered=known[key] is not null;
+ if(operation=="close"||row["reach"] is null){if(registered)Place("remove",new{key});}
+ else if(operation=="open"&&model["placement"] is not null||operation=="reach"&&!registered){Geometry(row,"open");Availability(row);}
+ else if(operation is "move" or "drag" or "reach" or "restore" or "show" or "activate"){Geometry(row,operation=="drag"?"move":"geometry");Availability(row);}
+ else if(operation is "minimize" or "hide")Availability(row);
+}
+var placed=System.Text.Json.Nodes.JsonNode.Parse(placement)!["items"]!;foreach(var window in windows)if(window!["reach"] is not null)window["bounds"]=placed[Key(window)]!["bounds"]!.DeepClone();
+model["placement"]=placement;
 model["revision"]=checked(revision+1);return model.ToJsonString();

@@ -1,0 +1,4 @@
+pack Confectory.WindowPlacement version "0.1.0" {
+element Create function "Create.celem"; element CreateBody implementation "CreateBody.celem";
+element Update function "Update.celem"; element UpdateBody implementation "UpdateBody.celem";
+}

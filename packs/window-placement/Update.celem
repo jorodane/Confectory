@@ -1,0 +1,1 @@
+function Confectory.WindowPlacement::Update (string state, string operation, string payload) -> string { provide Confectory.WindowPlacement::Update with Confectory.WindowPlacement::UpdateBody; }

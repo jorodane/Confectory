@@ -17,10 +17,13 @@ public sealed class ProjectNavigationTests : TestCase
         string consumer=Path.Combine(f.Root,"order game"), pack=Path.Combine(f.Root,"order pack");
         Fixture.CopyTree(Path.Combine(Fixture.Repo,"examples","ui-order-game"),consumer);
         Fixture.CopyTree(Path.Combine(Fixture.Repo,"packs","ui-order"),pack);
-        string project=Path.Combine(consumer,"project.cpack");File.WriteAllText(project,File.ReadAllText(project).Replace("../../packs/ui-order/pack.cpack",Path.Combine(pack,"pack.cpack")).Replace("../../",Fixture.Repo+"/"));
+        string placementPack=Path.Combine(f.Root,"placement pack");Fixture.CopyTree(Path.Combine(Fixture.Repo,"packs","window-placement"),placementPack);
+        string project=Path.Combine(consumer,"project.cpack");File.WriteAllText(project,File.ReadAllText(project).Replace("../../packs/window-placement/pack.cpack",Path.Combine(placementPack,"pack.cpack")).Replace("../../packs/ui-order/pack.cpack",Path.Combine(pack,"pack.cpack")).Replace("../../",Fixture.Repo+"/"));
         var built=new Builder(project,"portable").Build();Output(built,"Shared UI Order game consumer PASS");
         True(!Strings(built,"includedPacks").Any(x=>x.Contains("Editor")||x.Contains("ProjectShell")),"UI order remains independent of editor presentation");
         File.AppendAllText(Path.Combine(pack,"Compose.csbody"),"\n// ordered-frame provider locality probe\n");var changed=new Builder(project,"portable").Build();Sequence(new[]{"Confectory.UIOrder::ComposeBody"},Strings(changed,"statistics","compiledImplementations"));Equal(0,Strings(changed,"statistics","compiledContracts").Length);Output(changed,"Shared UI Order game consumer PASS");
+        File.AppendAllText(Path.Combine(pack,"Update.csbody"),"\n// reachability policy provider locality probe\n");var policy=new Builder(project,"portable").Build();Sequence(new[]{"Confectory.UIOrder::UpdateBody"},Strings(policy,"statistics","compiledImplementations"));Equal(0,Strings(policy,"statistics","compiledContracts").Length);Output(policy,"Shared UI Order game consumer PASS");
+        File.AppendAllText(Path.Combine(placementPack,"Update.csbody"),"\n// independent geometry provider locality probe\n");var geometry=new Builder(project,"portable").Build();Sequence(new[]{"Confectory.WindowPlacement::UpdateBody"},Strings(geometry,"statistics","compiledImplementations"));Equal(0,Strings(geometry,"statistics","compiledContracts").Length);Output(geometry,"Shared UI Order game consumer PASS");
     }
     public void test_editor_free_rounded_widgets_edge_placement_occlusion_and_provider_locality()
     {

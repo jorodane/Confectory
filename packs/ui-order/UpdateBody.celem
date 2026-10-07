@@ -1,2 +1,4 @@
 implementation Confectory.UIOrder::UpdateBody for Confectory.UIOrder::Update (string state, string operation, string payload) -> string {
+import Confectory.WindowPlacement::Create as PlacementCreate () -> string;
+import Confectory.WindowPlacement::Update as PlacementUpdate (string, string, string) -> string;
 body common "Update.csbody"; }

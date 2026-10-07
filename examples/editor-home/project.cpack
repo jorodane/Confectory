@@ -2,6 +2,7 @@ project Confectory.EditorHome version "0.1.0" {
 registry Confectory.ProjectShell "../../packs/project-shell/pack.cpack"; dependency Confectory.ProjectShell version "0.1.0";
 registry Confectory.NativeUI "../../packs/native-ui-desktop/pack.cpack"; dependency Confectory.NativeUI version "0.1.0";
 registry Confectory.BaseUI.NativeInput "../../packs/base-ui-native-input/pack.cpack"; dependency Confectory.BaseUI.NativeInput version "0.1.0";
+registry Confectory.WindowPlacement "../../packs/window-placement/pack.cpack"; dependency Confectory.WindowPlacement version "0.1.0";
 registry Confectory.UIOrder "../../packs/ui-order/pack.cpack"; dependency Confectory.UIOrder version "0.1.0";
 entry Confectory.EditorHome::Main;
 registry Confectory.ProjectManager "../../packs/project-manager/pack.cpack"; dependency Confectory.ProjectManager version "0.1.0";
