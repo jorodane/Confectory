@@ -24,4 +24,7 @@ import Confectory.RuntimeBase::CreateOwner as CreateOwner (int) -> string[];
 import Confectory.RuntimeBase::DisposeOwner as DisposeOwner (string[]) -> void;
 import Confectory.Win32TextServices::Request as TextRequest (string, string, string, long) -> string;
 import Confectory.BaseUI::ReplaceText as ReplaceText (string, string, int, int) -> void;
+import Confectory.UINavigation::Create as NavCreate (string) -> string;
+import Confectory.UINavigation::Group as NavGroup (string, string, int, int[]) -> string;
+import Confectory.UINavigation::Route as NavRoute (string, long, int, int, int, bool, int, int[]) -> string;
 body common "Main.csbody"; }

@@ -1,4 +1,7 @@
 function Example.WindowlessBrowserProof::Main () -> int {
+provide Confectory.UINavigation::Create with Confectory.UINavigation::CreateBody;
+provide Confectory.UINavigation::Group with Confectory.UINavigation::GroupBody;
+provide Confectory.UINavigation::Route with Confectory.UINavigation::RouteBody;
 provide Confectory.RenderInput::Pump with Confectory.Window::PumpBody;
 provide Confectory.RenderInput::Draw with Confectory.Window::DrawBody;
 provide Confectory.RenderInput::DrawText with Confectory.Window::DrawTextBody;
