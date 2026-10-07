@@ -85,6 +85,25 @@ public sealed class EntryHomeTests : TestCase
             True(!Directory.GetFiles(output,"*.apk",SearchOption.AllDirectories).Any(),"Source export claimed package coverage");
         }
     }
+    public void test_android_native_request_preserves_owner_release_and_rejects_unknown_close()
+    {
+        string consumer=Path.Combine(f.Root,"Android owner dispatch");Directory.CreateDirectory(consumer);string project=Path.Combine(consumer,"project.cpack");
+        File.WriteAllText(project,"project Example.AndroidOwnerProbe version \"0.1.0\" { standalone true; registry Confectory.NativeUI \""+Path.Combine(Fixture.Repo,"packs","native-ui-desktop","pack.cpack")+"\"; dependency Confectory.NativeUI version \"0.1.0\"; registry Confectory.Build.DotNet \""+Path.Combine(Fixture.Repo,"targets","dotnet","pack.cpack")+"\"; dependency Confectory.Build.DotNet version \"0.1.0\"; element Main function \"Main.celem\";element MainBody implementation \"MainBody.celem\";entry Example.AndroidOwnerProbe::Main;target android Confectory.Build.DotNet::Portable; }");
+        File.WriteAllText(Path.Combine(consumer,"Main.celem"),"function Example.AndroidOwnerProbe::Main () -> int { provide Example.AndroidOwnerProbe::Main with Example.AndroidOwnerProbe::MainBody; }");
+        File.WriteAllText(Path.Combine(consumer,"MainBody.celem"),"implementation Example.AndroidOwnerProbe::MainBody for Example.AndroidOwnerProbe::Main () -> int { import Confectory.NativeUI::Request as Request (string,string,string,long) -> string;body common \"Main.csbody\"; }");
+        File.WriteAllText(Path.Combine(consumer,"Main.csbody"),"""
+string host=Guid.NewGuid().ToString("N"),ownerKey="Confectory.Android.NativeUI.Owner."+host,closedKey="Confectory.Android.NativeUI.Closed."+host;int attempts=0,wrongOwner=0;
+AppDomain.CurrentDomain.SetData("Confectory.Android.NativeUI",(Func<string,string,string,long,string>)((h,o,p,n)=>{wrongOwner++;throw new Exception("New Activity must not release old owner");}));
+AppDomain.CurrentDomain.SetData(ownerKey,(Func<string,string,string,long,string>)((h,o,p,n)=>{attempts++;if(attempts==1)throw new InvalidOperationException("Injected native release failure");AppDomain.CurrentDomain.SetData(closedKey,true);AppDomain.CurrentDomain.SetData(ownerKey,null);return "{}";}));
+try{
+ bool failed=false;try{calls.Request.Invoke(host,"close","{}",0);}catch(InvalidOperationException){failed=true;}if(!failed||AppDomain.CurrentDomain.GetData(ownerKey) is null)throw new Exception("Failed native release owner was lost");
+ calls.Request.Invoke(host,"close","{}",0);calls.Request.Invoke(host,"close","{}",0);if(attempts!=2||wrongOwner!=0)throw new Exception("Owner dispatch or successful-close idempotence failed");
+ bool unknown=false;try{calls.Request.Invoke(Guid.NewGuid().ToString("N"),"close","{}",0);}catch(PlatformNotSupportedException){unknown=true;}if(!unknown)throw new Exception("Unknown GUID owner was silently closed");
+ Console.WriteLine("Android owner dispatch failure/retry/idempotence protocol passed; no native device execution");return 0;
+}finally{AppDomain.CurrentDomain.SetData(ownerKey,null);AppDomain.CurrentDomain.SetData(closedKey,null);AppDomain.CurrentDomain.SetData("Confectory.Android.NativeUI",null);}
+""");
+        var built=new Builder(project,"android").Build();var run=Processes.Run(Strings(built,"run"));True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("Android owner dispatch failure/retry/idempotence protocol passed",StringComparison.Ordinal));
+    }
     public void test_android_export_owned_settings_formats_xml_and_rejects_credentials_before_build()
     {
         string consumer=Consumer("editor-home"),project=Path.Combine(consumer,"project.cpack"),settings=Path.Combine(consumer,"AndroidExport.celem");
