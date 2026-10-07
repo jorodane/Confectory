@@ -2,7 +2,7 @@
 
 Entry point: double-click `export-android-windows.bat`, select an engine ProjectPack, and follow the local prompts. There is currently no Android export menu in Home. The script builds the trusted exporter, creates a new timestamped output under `%LOCALAPPDATA%\Confectory\exports`, and packages the format in the selected project's AndroidExport object. It does not install development tools, create keys, install the app, or contact Play. The wrapper permits its own PowerShell script for that process only; it does not persist an execution-policy change.
 
-For current Home use `examples\editor-home\project.cpack`. For the packaged two-logical-View Surface sample use `examples\engine-android\project.cpack`. Home supports app-owned imported manifest metadata/editing/drafts/Leave; arbitrary imported projects cannot Build/Play in it. This is not full desktop editor parity. The Activity templates currently cover these consumer contracts; arbitrary unrelated ProjectPacks are not automatically Android apps.
+For the actual shared editor product use `examples\editor-home\project.cpack`. The exporter calls its generated real ProjectPack entry through the same generic Android Activity used for other valid entries; product UI remains in the common controller. Android supplies one Activity surface, native fields and app-private imported document copies. Multiple independent OS windows, desktop file-manager launching and arbitrary imported Build/Play are unsupported capabilities. Native APK/AAB compilation is separate from Android device/lifecycle/IME acceptance.
 
 Project settings are **nonsecret** and live in `examples/editor-home/AndroidExport.celem` (or the selected consumer's own registered AndroidExport object). For a modern AAB candidate:
 
@@ -14,6 +14,7 @@ value versionName = "0.1.0";
 value versionCode = 1;
 value packageFormat = "aab";
 value androidTargetFramework = "net10.0-android";
+value androidTargetSdkVersion = 36;
 value keyAlias = "your-existing-upload-key-alias";
 }
 ```
