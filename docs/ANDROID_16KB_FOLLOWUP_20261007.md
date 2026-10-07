@@ -44,3 +44,23 @@ Cross-check: official [check_elf_alignment.sh](https://android.googlesource.com/
 No official stable RELRO correction has been verified, so the conditional authorization to apply a known resolving update was not exercised. SDK10/runtime10.0.12 are already newer than the runtime10.0.4 mentioned in36.1.43 notes; a blind workload update or older workload-set pin is not a substantiated fix. No downloads/installation, new terms, source changes, native rebuild, runtime switch or artifact mutation were made.
 
 Smallest next step is an upstream clarification/reproducer review of the two representative readelf layouts and exact package versions against the current Android RELRO rule, identifying a specific stable corrected runtime/SDK release or confirming these disjoint-tail layouts are accepted. No issue was posted externally. If a correction is identified, perform the authorized stable update and rebuild the original EditorHome AAB/APK with all unchanged inspection gates. Otherwise authorized16KB device/emulator execution can establish runtime behavior, while separately authorized Play validation establishes submission behavior. Current static formula remains failed; an actual runtime defect or Play rejection is not proven.
+
+## Authorized latest-stable A/B installation attempt
+
+Parent correctly requested empirical comparison rather than treating release-note silence as a result. The known stable36.1.69 comparison was attempted once using its officially documented workload-set10.0.301.1. Existing4.9GB SDK directory was copied with `cp -a --reflink=auto` to `/workspace/toolchains/dotnet-10-android-36.1.69`; original SDK and final artifacts were untouched. This copy is an isolation container, not a successfully installed36.1.69 toolchain.
+
+```sh
+DOTNET_CLI_HOME=/tmp/confectory-dotnet10-stable /workspace/toolchains/dotnet-10-android-36.1.69/dotnet workload install android --version 10.0.301.1 --source https://api.nuget.org/v3/index.json
+```
+
+An initial invocation combining `--version` and `--skip-manifest-update` was rejected by the official CLI because these options cannot be combined; it installed no successful workload. The corrected command above selected36.1.69 and started normal official pack installation. Workload-set reconciliation also considered the already installed wasm-tools workload in the copied SDK. It failed downloading `microsoft.net.runtime.emscripten.3.1.56.cache.linux-x64` version10.0.9, exited1 and rolled back the newly installed Android36.1.69 packs. Exact private log `/tmp/confectory-android-stable-install.log` ends:
+
+```
+Workload installation failed: One or more errors occurred. (Downloading microsoft.net.runtime.emscripten.3.1.56.cache.linux-x64 version 10.0.9 failed)
+```
+
+The CLI log does not identify HTTP status or whether the package is missing, network-filtered or unavailable for another reason; no403 or unsupported-SDK diagnosis is inferred from that line. Subsequent workload lists for BOTH original and copied SDK report android36.1.2 and wasm-tools10.0.112, manifest mode10.0.400-manifests.63b36e85. No new license acceptance or device/signing action occurred. No manually injected package, binary patch, preview runtime or alternative version sweep was attempted.
+
+Per the explicit instruction to stop on official download blockage, the comparison stops at installation. **No36.1.69 APK/AAB was built: neither PASS nor identical RELRO FAIL on the latest stable is claimed.** Existing36.1.2 evidence remains unchanged. The smallest remaining prerequisite is completing this single official workload-set installation in an environment where its official dependency feed is available (a clean Android-only SDK could avoid reconciliation of an unrelated existing wasm workload, but was not attempted here). Then use the same unchanged EditorHome entry to produce new unsigned APK/AAB and apply every existing LOAD, raw RELRO, ZIP, BundleConfig, manifest and unsigned-status gate. Runtime/Play validation remains separate. No upstream report was posted or drafted as if latest-stable failure had been reproduced.
+
+This increment changes documentation only; no public contracts, pack bodies, product behavior or checker changed. Latest stable empirical compatibility status is BLOCKED/NOT RUN, distinct from the original installed toolchain's static RELRO failures.
