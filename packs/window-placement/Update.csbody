@@ -10,6 +10,38 @@ void Store(System.Text.Json.Nodes.JsonNode r,int[] b)=>r["bounds"]=System.Text.J
 void Contact(System.Text.Json.Nodes.JsonNode r,string target,int left,int top,int right,int bottom)=>r["contact"]=new System.Text.Json.Nodes.JsonObject{["target"]=target,["edges"]=System.Text.Json.JsonSerializer.SerializeToNode(new[]{left,top,right,bottom})};
 System.Text.Json.Nodes.JsonObject Anchor(string target,double x,double y,double px,double py)=>new(){["target"]=target,["point"]=System.Text.Json.JsonSerializer.SerializeToNode(new[]{x,y}),["pivot"]=System.Text.Json.JsonSerializer.SerializeToNode(new[]{px,py})};
 bool Cycle(string source,string target){var seen=new System.Collections.Generic.HashSet<string>{source};while(target!="viewport"){if(!seen.Add(target))return true;var other=items[target];if(other?["anchor"] is null)return false;target=other["anchor"]!["target"]!.GetValue<string>();}return false;}
+// One classifier for direct drag and stationary relation reconstruction.
+void Classify(string movingKey,System.Text.Json.Nodes.JsonNode moving,int[] previous,int[] b,bool allowSnap){
+ if(model["area"] is not null){int[] a=Array(model["area"]!);int ex=b[2]<=a[2]?(b[0]==a[0]?0:b[0]+b[2]==a[0]+a[2]?1:-1):-1,ey=b[3]<=a[3]?(b[1]==a[1]?0:b[1]+b[3]==a[1]+a[3]?1:-1):-1;
+    // Distances are client-coordinate pixels, independent of native/DPI adapters.
+    const int snapDistance=8;
+    bool Near(int distance)=>Math.Abs((long)distance)<=snapDistance&&(allowSnap||distance==0);
+    // Adjacent contact first, then matching-edge alignment; stable key/axis ties.
+    for(int mode=0;mode<2&&moving["anchor"] is null;mode++)foreach(var candidate in System.Linq.Enumerable.OrderBy(items,x=>x.Key,StringComparer.Ordinal)){
+     var other=candidate.Value!;if(candidate.Key==movingKey||!other["live"]!.GetValue<bool>()||other["anchor"] is null||other["suspended"]!.GetValue<bool>()||Cycle(movingKey,candidate.Key))continue;
+     int[] t=Array(other["bounds"]!),snapped=(int[])b.Clone(),edges=new int[4],targetEdges=new[]{-1,-1,-1,-1};double[] point={(b[0]-t[0])/(double)t[2],(b[1]-t[1])/(double)t[3]},pivot={0,0};
+     bool overlapX=b[0]<t[0]+t[2]&&b[0]+b[2]>t[0],overlapY=b[1]<t[1]+t[3]&&b[1]+b[3]>t[1];int attachedAxis=-1;
+     if(mode==0){
+      int[] distances={b[1]-(t[1]+t[3]),b[1]+b[3]-t[1],b[0]-(t[0]+t[2]),b[0]+b[2]-t[0]};
+      bool[] eligible={overlapX&&(Near(distances[0])||previous[1]>t[1]+t[3]&&b[1]<t[1]+t[3]),overlapX&&(Near(distances[1])||previous[1]+previous[3]<t[1]&&b[1]+b[3]>t[1]),overlapY&&(Near(distances[2])||previous[0]>t[0]+t[2]&&b[0]<t[0]+t[2]),overlapY&&(Near(distances[3])||previous[0]+previous[2]<t[0]&&b[0]+b[2]>t[0])};
+      int chosen=-1;for(int n=0;n<4;n++)if(eligible[n]&&(chosen<0||Math.Abs((long)distances[n])<Math.Abs((long)distances[chosen])))chosen=n;
+      if(chosen<0)continue;attachedAxis=chosen<2?1:0;bool after=chosen%2==0;int ownEdge=attachedAxis+(after?0:2),targetEdge=attachedAxis+(after?2:0);snapped[attachedAxis]=t[attachedAxis]+(after?t[attachedAxis+2]:-b[attachedAxis+2]);point[attachedAxis]=after?1:0;pivot[attachedAxis]=after?0:1;edges[ownEdge]=1;targetEdges[ownEdge]=targetEdge;
+     }
+     // Matching top/top, bottom/bottom, left/left, right/right lines retain arbitrary offsets outside the band.
+     for(int axis=0;axis<2;axis++)if(axis!=attachedAxis){int leading=b[axis]-t[axis],trailing=b[axis]+b[axis+2]-t[axis]-t[axis+2];int side=Near(leading)?0:-1;if(Near(trailing)&&(side<0||Math.Abs((long)trailing)<Math.Abs((long)leading)))side=1;if(side<0)continue;int edge=axis+side*2;snapped[axis]=t[axis]+side*(t[axis+2]-b[axis+2]);point[axis]=side;pivot[axis]=side;edges[edge]=1;targetEdges[edge]=edge;}
+     if(!System.Linq.Enumerable.Any(edges,x=>x==1))continue;
+     if(!allowSnap&&!System.Linq.Enumerable.SequenceEqual(snapped,b))continue;
+     b=snapped;Store(moving,b);moving["anchor"]=Anchor(candidate.Key,point[0],point[1],pivot[0],pivot[1]);Contact(moving,candidate.Key,edges[0],edges[1],edges[2],edges[3]);moving["contact"]!["targetEdges"]=System.Text.Json.JsonSerializer.SerializeToNode(targetEdges);break;
+    }
+    if(moving["anchor"] is null){
+     // Near viewport boundaries snap to the exact boundary, never retain a gap/penetration.
+     for(int axis=0;axis<2;axis++)if(b[axis+2]<=a[axis+2]){int leading=b[axis]-a[axis],trailing=b[axis]+b[axis+2]-a[axis]-a[axis+2];if(Near(leading)||Near(trailing))b[axis]=a[axis]+(Near(leading)&&(!Near(trailing)||Math.Abs((long)leading)<=Math.Abs((long)trailing))?0:a[axis+2]-b[axis+2]);}
+     if(!allowSnap&&!System.Linq.Enumerable.SequenceEqual(b,Array(moving["bounds"]!)))return;
+     Store(moving,b);ex=b[2]<=a[2]?(b[0]==a[0]?0:b[0]+b[2]==a[0]+a[2]?1:-1):-1;ey=b[3]<=a[3]?(b[1]==a[1]?0:b[1]+b[3]==a[1]+a[3]?1:-1):-1;
+     if(ex>=0||ey>=0){double px=ex==1?1:0,py=ey==1?1:0;moving["anchor"]=Anchor("viewport",ex>=0?ex:(b[0]-a[0])/(double)a[2],ey>=0?ey:(b[1]-a[1])/(double)a[3],px,py);Contact(moving,"viewport",ex==0?1:0,ey==0?1:0,ex==1?1:0,ey==1?1:0);}
+    }
+   }
+}
 if(operation=="viewport"){int[] a=Array(args["bounds"]!);Bounds(a);model["area"]=System.Text.Json.JsonSerializer.SerializeToNode(a);foreach(var item in items)item.Value!["contact"]=null;}
 else if(operation=="open"){
  if(row is not null&&row["live"]!.GetValue<bool>())throw new ArgumentException("Duplicate placement key");if(row is null&&items.Count>=64)throw new ArgumentException("Placement identity budget");
@@ -26,35 +58,13 @@ else if(operation=="open"){
   row["intent"]=System.Text.Json.JsonSerializer.SerializeToNode(intended);
   row["contact"]=null;Store(row,b);if(args["handle"] is not null)row["handle"]=args["handle"]!.DeepClone();if(args["minimum"] is not null)row["minimum"]=args["minimum"]!.DeepClone();Policy(row);
   if(operation=="move"){
+   var affected=new System.Collections.Generic.HashSet<string>{key};bool expanded;do{expanded=false;foreach(var item in items)if(item.Value!["anchor"] is System.Text.Json.Nodes.JsonNode relation&&affected.Contains(relation["target"]!.GetValue<string>())&&affected.Add(item.Key))expanded=true;}while(expanded);
+   affected.Remove(key);var stationary=new System.Collections.Generic.Dictionary<string,int[]>();foreach(string child in affected){var dependent=items[child]!;stationary[child]=Array(dependent["bounds"]!);dependent["anchor"]=null;dependent["contact"]=null;dependent["suspended"]=false;dependent["intent"]=dependent["bounds"]!.DeepClone();}
    row["anchor"]=null;row["suspended"]=false;b=Clamp(row,b);Store(row,b);
-   if(model["area"] is not null){int[] a=Array(model["area"]!);int ex=b[2]<=a[2]?(b[0]==a[0]?0:b[0]+b[2]==a[0]+a[2]?1:-1):-1,ey=b[3]<=a[3]?(b[1]==a[1]?0:b[1]+b[3]==a[1]+a[3]?1:-1):-1;
-    // Distances are client-coordinate pixels, independent of native/DPI adapters.
-    const int snapDistance=8;
-    bool Near(int distance)=>Math.Abs((long)distance)<=snapDistance;
-    // Adjacent contact first, then matching-edge alignment; stable key/axis ties.
-    for(int mode=0;mode<2&&row["anchor"] is null;mode++)foreach(var candidate in System.Linq.Enumerable.OrderBy(items,x=>x.Key,StringComparer.Ordinal)){
-     var other=candidate.Value!;if(candidate.Key==key||!other["live"]!.GetValue<bool>()||other["anchor"] is null||other["suspended"]!.GetValue<bool>()||Cycle(key,candidate.Key))continue;
-     int[] t=Array(other["bounds"]!),snapped=(int[])b.Clone(),edges=new int[4],targetEdges=new[]{-1,-1,-1,-1};double[] point={(b[0]-t[0])/(double)t[2],(b[1]-t[1])/(double)t[3]},pivot={0,0};
-     bool overlapX=b[0]<t[0]+t[2]&&b[0]+b[2]>t[0],overlapY=b[1]<t[1]+t[3]&&b[1]+b[3]>t[1];int attachedAxis=-1;
-     if(mode==0){
-      int[] distances={b[1]-(t[1]+t[3]),b[1]+b[3]-t[1],b[0]-(t[0]+t[2]),b[0]+b[2]-t[0]};
-      bool[] eligible={overlapX&&(Near(distances[0])||previous[1]>t[1]+t[3]&&b[1]<t[1]+t[3]),overlapX&&(Near(distances[1])||previous[1]+previous[3]<t[1]&&b[1]+b[3]>t[1]),overlapY&&(Near(distances[2])||previous[0]>t[0]+t[2]&&b[0]<t[0]+t[2]),overlapY&&(Near(distances[3])||previous[0]+previous[2]<t[0]&&b[0]+b[2]>t[0])};
-      int chosen=-1;for(int n=0;n<4;n++)if(eligible[n]&&(chosen<0||Math.Abs((long)distances[n])<Math.Abs((long)distances[chosen])))chosen=n;
-      if(chosen<0)continue;attachedAxis=chosen<2?1:0;bool after=chosen%2==0;int ownEdge=attachedAxis+(after?0:2),targetEdge=attachedAxis+(after?2:0);snapped[attachedAxis]=t[attachedAxis]+(after?t[attachedAxis+2]:-b[attachedAxis+2]);point[attachedAxis]=after?1:0;pivot[attachedAxis]=after?0:1;edges[ownEdge]=1;targetEdges[ownEdge]=targetEdge;
-     }
-     // Matching top/top, bottom/bottom, left/left, right/right lines retain arbitrary offsets outside the band.
-     for(int axis=0;axis<2;axis++)if(axis!=attachedAxis){int leading=b[axis]-t[axis],trailing=b[axis]+b[axis+2]-t[axis]-t[axis+2];int side=Near(leading)?0:-1;if(Near(trailing)&&(side<0||Math.Abs((long)trailing)<Math.Abs((long)leading)))side=1;if(side<0)continue;int edge=axis+side*2;snapped[axis]=t[axis]+side*(t[axis+2]-b[axis+2]);point[axis]=side;pivot[axis]=side;edges[edge]=1;targetEdges[edge]=edge;}
-     if(!System.Linq.Enumerable.Any(edges,x=>x==1))continue;
-     b=snapped;Store(row,b);row["anchor"]=Anchor(candidate.Key,point[0],point[1],pivot[0],pivot[1]);Contact(row,candidate.Key,edges[0],edges[1],edges[2],edges[3]);row["contact"]!["targetEdges"]=System.Text.Json.JsonSerializer.SerializeToNode(targetEdges);break;
-    }
-    if(row["anchor"] is null){
-     // Near viewport boundaries snap to the exact boundary, never retain a gap/penetration.
-     for(int axis=0;axis<2;axis++)if(b[axis+2]<=a[axis+2]){int leading=b[axis]-a[axis],trailing=b[axis]+b[axis+2]-a[axis]-a[axis+2];if(Near(leading)||Near(trailing))b[axis]=a[axis]+(Near(leading)&&(!Near(trailing)||Math.Abs((long)leading)<=Math.Abs((long)trailing))?0:a[axis+2]-b[axis+2]);}
-     Store(row,b);ex=b[2]<=a[2]?(b[0]==a[0]?0:b[0]+b[2]==a[0]+a[2]?1:-1):-1;ey=b[3]<=a[3]?(b[1]==a[1]?0:b[1]+b[3]==a[1]+a[3]?1:-1):-1;
-     if(ex>=0||ey>=0){double px=ex==1?1:0,py=ey==1?1:0;row["anchor"]=Anchor("viewport",ex>=0?ex:(b[0]-a[0])/(double)a[2],ey>=0?ey:(b[1]-a[1])/(double)a[3],px,py);Contact(row,"viewport",ex==0?1:0,ey==0?1:0,ex==1?1:0,ey==1?1:0);}
-    }
-   }
+   Classify(key,row,previous,b,true);
    row["intent"]=row["bounds"]!.DeepClone();
+   // Iterate bounded passes so exact stationary chains can rebuild regardless of key order.
+   for(int pass=0;pass<affected.Count;pass++){bool attached=false;foreach(string child in System.Linq.Enumerable.OrderBy(affected,x=>x,StringComparer.Ordinal)){var dependent=items[child]!;if(!dependent["live"]!.GetValue<bool>()||dependent["anchor"] is not null)continue;int[] fixedBounds=stationary[child];Classify(child,dependent,fixedBounds,(int[])fixedBounds.Clone(),false);if(dependent["anchor"] is not null)attached=true;}if(!attached)break;}
   }
  }else throw new ArgumentException("Unknown placement operation");
 }

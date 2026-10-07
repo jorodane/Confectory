@@ -53,6 +53,10 @@ with tempfile.TemporaryDirectory(prefix='confectory-placement-gui-') as local:
         assert s['state']['items']['pane']['contact']['edges']==[1,1,0,0]
         time.sleep(.08);assert pixel(window,402,2)==0x3388ff and pixel(window,402,60)==0x3388ff and pixel(window,500,50)!=0x3388ff,'actual blue contact pixels'
         native.button(display,1,0,0);native.flush(display);wait(lambda s:s['drag']=='','release capture');time.sleep(.08);assert pixel(window,402,2)!=0x3388ff,'release removes actual blue pixels'
+        for destination in (300,200,300,200):
+            s=latest();rx=bounds(s,'reference')[0];pointer(window,rx+12,12);native.button(display,1,1,0);native.flush(display);wait(lambda s:s['drag']=='reference','reference title capture')
+            pointer(window,destination+12,12);wait(lambda s:bounds(s,'reference')[0]==destination and bounds(s,'pane')==[400,0,200,100],'only dragged reference moves')
+            native.button(display,1,0,0);native.flush(display);wait(lambda s:s['drag']=='' and bounds(s,'pane')==[400,0,200,100],'release cannot carry connected pane');time.sleep(.12);assert bounds(latest(),'pane')==[400,0,200,100],'no delayed parent offset'
         for _ in range(3):
             native.resize(display,window,300,200);native.flush(display);wait(lambda s:bounds(s,'free')==[200,120,100,80],'temporary safety bounds')
             native.resize(display,window,600,400);native.flush(display);wait(lambda s:bounds(s,'free')==[500,320,100,80],'partial recovery')
@@ -61,7 +65,7 @@ with tempfile.TemporaryDirectory(prefix='confectory-placement-gui-') as local:
         pointer(window,212,132);native.button(display,1,1,0);native.flush(display);wait(lambda s:s['drag']=='free','free title capture');pointer(window,132,122);wait(lambda s:bounds(s,'free')==[120,110,100,80],'direct move replaces recovery');native.button(display,1,0,0);native.flush(display);wait(lambda s:s['drag']=='','direct move release')
         native.resize(display,window,800,600);native.flush(display);wait(lambda s:bounds(s,'free')==[120,110,100,80],'old free placement stays canceled')
         data=c.create_string_buffer(192);c.c_int.from_buffer(data).value=33;U.from_buffer(data,32).value=window;U.from_buffer(data,40).value=atom(display,b'WM_PROTOCOLS',0);c.c_int.from_buffer(data,48).value=32;U.from_buffer(data,56).value=atom(display,b'WM_DELETE_WINDOW',0);assert send(display,window,0,0,data);native.flush(display)
-        assert app.wait(timeout=5)==0;assert 'Placement GUI cleanup PASS' in open(path).read();print('Placement actual X11 PASS: pointer, exact contact/alignment, blue pixels, repeated/partial recovery, direct move, cleanup')
+        assert app.wait(timeout=5)==0;assert 'Placement GUI cleanup PASS' in open(path).read();print('Placement actual X11 PASS: pointer, exact contact/alignment, blue pixels, repeated/partial recovery, isolated connected reference drag, direct move, cleanup')
     finally:
         native.button(display,1,0,0);native.flush(display)
         if app.poll() is None:os.killpg(app.pid,signal.SIGTERM);app.wait(timeout=5)
