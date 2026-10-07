@@ -6,13 +6,16 @@ const uint8_t IID_ITextHost[16]={5};
 const uint8_t IID_ITextServices[16]={6};
 struct host {void **vtable;};
 struct service {void **vtable;struct host *host;uint16_t *text;int length,anchor,caret,refs;};
-static int stats[8];
+static int stats[16];
 int TextProofCounter(int index){return stats[index];}
 static int query(struct service *s,const void *iid,void **out){if(memcmp(iid,IID_ITextServices,16)){*out=0;return (int)0x80004002u;}s->refs++;*out=s;return 0;}
 static uint32_t addref(struct service *s){return (uint32_t)++s->refs;}
 static uint32_t release(struct service *s){if(--s->refs)return (uint32_t)s->refs;((uint32_t(*)(struct host *))s->host->vtable[2])(s->host);free(s->text);free(s);stats[1]++;return 0;}
 static int send(struct service *s,uint32_t message,intptr_t wp,intptr_t lp,intptr_t *result){
  *result=0;
+ if(message==7)stats[4]++;else if(message==8)stats[5]++;else if(message==0x100)stats[6]++;else if(message==0x102)stats[7]++;else if(message==0x10D||message==0x10E||message==0x10F)stats[8]++;
+ if(message==0x109)return 1;
+ if(message==0x100&&wp==999)return (int)0x80004005u;
  if(message==0xC){const uint16_t *text=(const uint16_t *)lp;int count=0;while(text[count])count++;uint16_t *copy=calloc((size_t)count+1,2);if(!copy)return (int)0x8007000eu;memcpy(copy,text,(size_t)count*2);free(s->text);s->text=copy;s->length=count;s->anchor=s->caret=0;*result=1;}
  else if(message==0xE)*result=s->length;
  else if(message==0xD){int count=s->length;if(count>=wp)count=(int)wp-1;if(count<0)count=0;memcpy((void *)lp,s->text,(size_t)count*2);((uint16_t *)lp)[count]=0;*result=count;}

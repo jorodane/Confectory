@@ -23,4 +23,5 @@ import Confectory.BaseUI::ClipRegions as ClipRegions (int[], int[]) -> int[];
 import Confectory.RuntimeBase::CreateOwner as CreateOwner (int) -> string[];
 import Confectory.RuntimeBase::DisposeOwner as DisposeOwner (string[]) -> void;
 import Confectory.Win32TextServices::Request as TextRequest (string, string, string, long) -> string;
+import Confectory.BaseUI::ReplaceText as ReplaceText (string, string, int, int) -> void;
 body common "Main.csbody"; }

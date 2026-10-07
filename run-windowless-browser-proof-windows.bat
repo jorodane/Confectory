@@ -1,7 +1,13 @@
 @echo off
 setlocal DisableDelayedExpansion
 set "confectory_windowless_exit=2"
+if "%CONFECTORY_WINDOWLESS_EDIT%"=="1" goto editable_banner
 echo Confectory windowless browser proof - Windows x64, read-only
+goto project_input
+:editable_banner
+echo Confectory EXPERIMENTAL native editing bridge - Windows x64
+echo Caret and IME host completion and real Windows validation are pending.
+:project_input
 if not "%~1"=="" set "CONFECTORY_BROWSER_PROJECT=%~f1"
 if defined CONFECTORY_BROWSER_PROJECT goto check_project
 echo Enter the full path to an existing project.cpack.
@@ -18,7 +24,7 @@ echo Building existing .NET 8 tools. Build output follows.
 call "%~dp0build-windows.bat"
 if errorlevel 1 goto failed
 set "CONFECTORY_ELEMENT_AUTHORING_HOST=%CD%\targets\element-authoring\bin\Release\net8.0\Confectory.ElementAuthoring.dll"
-echo Launching read-only browser for "%CONFECTORY_BROWSER_PROJECT%"
+echo Launching windowless browser for "%CONFECTORY_BROWSER_PROJECT%"
 call "%confectory_windowless_dotnet%" "src\Confectory.Cli\bin\Release\net8.0\Confectory.Cli.dll" run "examples\windowless-browser-proof\project.cpack" windows
 set "confectory_windowless_exit=%errorlevel%"
 popd
@@ -37,6 +43,6 @@ echo Project not found. Provide an existing project.cpack path without surroundi
 echo Usage: run-windowless-browser-proof-windows.bat "C:\path\to\project.cpack"
 :finished
 echo Launcher exit code: %confectory_windowless_exit%
-echo Read-only proof: keyboard editing and IME are not implemented.
+echo Default mode is read-only. Editable mode is an unverified host bridge experiment.
 if not defined CONFECTORY_NO_PAUSE pause
 exit /b %confectory_windowless_exit%
