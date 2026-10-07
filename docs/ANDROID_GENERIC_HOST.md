@@ -69,3 +69,20 @@ Owner policy: failed native release delegates remain bound to their original own
 ProjectEntry listener tokens now route through their original Activity-bound provider rather than the current global Activity delegate. Failed close retains the listener handle and callback; proven successful close adds the same bounded lightweight closed record used by native/window resources. Unknown/expired listener close is an error. Retire attempts each listener close and retains failures instead of clearing all handles. Worker-thread cleanup marshals to the main looper; no main-looper self-wait. No implicit ACTION_VIEW intent filter or OS file association is installed: only explicitly delivered user-granted content intents and the SAF picker are supported.
 
 Other owned global delegates were inspected: Window requests route by unique surface owner; NativeUI by host owner; HostLoop.Close uses explicit private token policy and its delegate captures no Activity; DescribeProject is a static parser adapter with no owner release resource; HostLoop.Schedule owns job tokens directly. Global creation/bootstrap delegates may select the current Activity, but release does not cross into a replacement Activity. Device callback/failure behavior remains unrun and is separate from managed routing regression and SDK compile/package gates.
+
+### Final rebuild after ProjectEntry owner routing
+
+The latest product snapshot includes the browser registry/target additions and root56d7b37 listener owner fix; selected Android/common product source was frozen during these exports. After the original unchanged-condition Linux GUI replays settled, four fresh `-entry-final` outputs were built through the same actual exporter `--package` pipeline. No prior artifact was overwritten. APK used current actual `examples/editor-home/project.cpack`; AAB used `/tmp/confectory-current-editor-aab-entry-input`, an exact current source copy with registry paths rebased and only its owned package format changed. SHA identity is recorded in `/tmp/confectory-current-editor-source-entry-identity.json`.
+
+SDK builds: actual product APK70.29s/AAB80.12s; minimal no-Window APK91.44s/AAB101.26s, each0 warnings/errors. Independent actual manifest target/compile36, APK official ZIP alignment, AAB PAGE_ALIGNMENT_16K configuration+bundle validation, unsigned signatures/no certificate entries and no debug-keystore checks all pass. All20 ELF64 LOAD entries align/congrue16KiB; strict18 raw RELRO warnings remain, with no rounded-tail writable LOAD overlap. Prior `-final` builds above remain valid baseline proof before the listener-routing change.
+
+| Latest source | Format | Bytes | SHA256 |
+| --- | --- | ---: | --- |
+| actual-editor | apk | 42,314,637 | `815d58474f2568d18accf931f83d46c64c2fcbbc2db18497e005eba2258e053b` |
+| actual-editor | aab | 42,249,789 | `20a6b69aa839e1c785dc5ea6b186901b5296d55a664e25de46b1181fe710594d` |
+| minimal | apk | 41,781,608 | `273ca3069e5c5a9978171ebe48897bb1291462f4f32c1ca73b80fdf0911c44e9` |
+| minimal | aab | 41,722,505 | `ae2f962bf111488e31f620e58273ecd21c855297146ff2742aaec238a1d882c3` |
+
+Latest outputs: `/tmp/confectory-{actual-editor,minimal}-api36-{apk,aab}-entry-final`; detailed verification `/tmp/confectory-current-android-entry-final-verification.json` and summary with `-summary.json`, raw archive evidence `-entry-final-verified-*`. The exact commands still use `/tmp/confectory-current-android-package.sh`. Root durable actual Android ProjectEntry dispatch failure/retry/unknown-close regression passed1/0/0 skipped in3.601s; native-owner+lifetime protocol gates passed2/0/0 skipped in6.432s. Managed protocol tests do not execute Android Java/native controls.
+
+No further source changes were made during verification. No OS file association, native task/IME/configuration/grant failure execution, signing/key creation, device/emulator installation, upload or Play readiness is claimed. No worker push was performed.
