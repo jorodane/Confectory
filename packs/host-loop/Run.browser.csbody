@@ -1,1 +1,1 @@
-var run=AppContext.GetData("Confectory.HostLoop.Run.browser") as Func<string,int>??throw new PlatformNotSupportedException("browser host loop provider is not installed");return run(token);
+AppContext.SetData("Confectory.HostLoop.Close.browser",(Func<string,bool>)calls.Close.Invoke);var run=AppContext.GetData("Confectory.HostLoop.Run.browser") as Func<string,int>??throw new PlatformNotSupportedException("browser host loop provider is not installed");return run(token);

@@ -1,0 +1,1 @@
+string key="Confectory.HostLoop."+token;var state=AppContext.GetData(key) as object[];if(state is null)return true;((Action)state[1])();bool closed=state.Length<4||((Func<bool>)state[3])();if(closed)AppContext.SetData(key,null);return closed;

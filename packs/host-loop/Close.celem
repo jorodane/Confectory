@@ -1,0 +1,1 @@
+function Confectory.HostLoop::Close (string token) -> bool { description "Attempt owned host cleanup. Return false while an asynchronous job is pending; retain failed cleanup for retry."; provide Confectory.HostLoop::Close with Confectory.HostLoop::CloseBody; }

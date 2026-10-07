@@ -1,1 +1,1 @@
-implementation Confectory.HostLoop::RunBody for Confectory.HostLoop::Run (string token) -> int { body common "Run.csbody"; body browser "Run.browser.csbody"; body android "Run.android.csbody"; }
+implementation Confectory.HostLoop::RunBody for Confectory.HostLoop::Run (string token) -> int { import Confectory.HostLoop::Close as Close (string) -> bool; body common "Run.csbody"; body browser "Run.browser.csbody"; body android "Run.android.csbody"; }

@@ -1,0 +1,1 @@
+implementation Confectory.HostLoop::CloseBody for Confectory.HostLoop::Close (string token) -> bool { body common "Close.csbody"; }
