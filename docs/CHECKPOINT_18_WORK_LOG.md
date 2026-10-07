@@ -73,3 +73,26 @@ Shared chooser helper follow-up: a single Return repaired Editor but the affecte
 Final affected shared-helper NativeInputGame actual GUI passed with exact returned-folder path, editing/clipboard/source undo, independent Views, actual bounding/input clip and pointer focus exclusion, readOnly/disabled/external selection, hide/show/resize/Tab, select/cancel/reopen and owner-close dialog cleanup (`/tmp/cp18-native-picker-final.log`, private `/tmp/confectory-native-service-rp76bomj`). The Windows saved-focus owner guard build passed (`/tmp/cp18-windows-owner-guard.json`): **only Confectory.NativeUI::RequestBody compiled; zero public contracts; zero full rebuilds**, dependent link rebuilt. This closes its managed compilation and locality gate, not Windows runtime acceptance. Python syntax and git diff whitespace checks passed. No further broad rerun is warranted by a Windows-only guard and test input correction; the affected actual GUI consumers were repeated instead.
 
 Final bounded local gate status: all selected regressions have passing evidence, with the chronological 16/1 baseline and subsequent repaired Editor/Home/NativeInputGame full workflows preserved. Windows runtime/IME/flicker/style/DPI/actual picker restoration, long Logs scroll displacement and Android/web/firmware/backend remain open as described above. Files in this increment are source/test/docs only; no binaries, screenshots, raw traces or private documents are committed. Main was neither changed nor merged by this executor. Next ownership belongs to the documented native Windows verification; broader backend work stays paused until that integration gate.
+
+
+## UI-only navigation and intentional native transitions — 2026-10-07
+
+Intended public elementIDs remain `EditorHome::Main`, `EditorHome::Command`, `NativeUI::Request` and `Window::Win32Create`; existing signatures are sufficient for this corrective increment. Lightweight menu/navigation/tab/draft changes use the current public Command synchronously, avoiding a global job that disables every button and pushes NavGroup focus into Logs/chat. ProjectManager::Context was inspected and confirmed to read retained manager state without filesystem loading. Native hide/disable/forget transfers focused RichEdit to the borrowed parent before User32 clears focus. The window provider suppresses only its synchronous pointer-up ReleaseCapture notification; unexpected capture changes still emit cancellation.
+
+Functional and structure gates are separate. Win32ContractTests exercises both expected-release suppression and external-capture cancellation through an explicit Linux ABI fixture; it is not Windows runtime coverage. Windows EditorHome managed compilation changes MainBody, RequestBody and Win32CreateBody only, with zero compiled contracts and zero full rebuilds. A final RequestBody-only rebuild covers the additional forget transition. Actual Linux navigation acceptance runs independently through ProjectNavigationTests; results are recorded after completion.
+
+`docs/UI_ORDER_NATIVE_INTEGRATION.md` preserves the next requested browser/multiple-semantic-editor experiment, reusable common UI Order boundary and windowless native-text integration acceptance. These are still pending implementation; this corrective increment does not claim to finish them. Existing Home design stays intact. Library browser source full-content read succeeded; official materialization helper download failed, so original local bytes are unverified. Windows/Wine/cross-compiler prerequisites are absent. No installation, Library upload, main edit or merge was performed.
+
+Final commands and evidence (private logs, not Git):
+
+```sh
+export CONFECTORY_DOTNET=/workspace/toolchains/dotnet-8.0.425/dotnet
+export DOTNET_CLI_HOME=/tmp/confectory-dotnet
+export PATH=/workspace/toolchains/dotnet-8.0.425:$PATH
+DISPLAY=:96 dotnet tests/Confectory.Tests/bin/Release/net8.0/Confectory.Tests.dll Win32ContractTests ProjectNavigationTests.test_project_navigation_actual
+dotnet src/Confectory.Cli/bin/Release/net8.0/Confectory.Cli.dll build examples/editor-home/project.cpack windows
+```
+
+`/tmp/cp18-navigation-state-gates.log`: 2 passed, 0 failed, 152.429s. Actual X11 evidence retained privately in `/tmp/confectory-project-shell-gui-hmubisan`. Python syntax and `git diff --check` pass. Windows reports `/tmp/cp18-navigation-state-windows.json` and `/tmp/cp18-navigation-state-windows-final.json` have no warnings, zero compiled contracts and zero full rebuilds. First build compiles the three changed bodies; final build compiles RequestBody alone. These commands verify compilation and Linux/shim behavior, not actual Windows editing/IME.
+
+Windows spot check: run `run-home-windows.bat`, open an existing project, open Navigate repeatedly from both chat and readonly Logs, hold it open, use Escape/outside click, switch tabs and select/copy Logs. Tabs should not show Working solely for the UI change. Repeat with a focused text field, after chooser cancellation/selection, minimize/restore and close. Set `CONFECTORY_NATIVE_TRACE=1` in CMD before launching for private focus/capture diagnostics; do not commit logs. The next-stage windowless proof and shared UI Order/browser experiment remain open as documented above.

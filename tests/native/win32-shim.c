@@ -26,7 +26,7 @@ intptr_t DefWindowProcW(intptr_t hwnd,uint32_t msg,intptr_t wp,intptr_t lp){(voi
 intptr_t SetFocus(intptr_t hwnd){intptr_t old=focus;focus=hwnd;if(old&&old!=hwnd)callback(old,8,hwnd,0);return old;}
 int IsChild(intptr_t parent,intptr_t child){return child==parent+10000;}
 intptr_t SetCapture(intptr_t hwnd){counters[3]++;return hwnd;}
-int ReleaseCapture(void){counters[4]++;return 1;}
+int ReleaseCapture(void){counters[4]++;if(focus)callback(focus,0x215,0,0);return 1;}
 int ScreenToClient(intptr_t hwnd,int *point){(void)hwnd;point[0]-=100;point[1]-=100;counters[5]++;return 1;}
 intptr_t BeginPaint(intptr_t hwnd,void *paint){(void)hwnd;memset(paint,0,72);counters[6]++;return 500;}
 int EndPaint(intptr_t hwnd,void *paint){(void)hwnd;(void)paint;counters[7]++;return 1;}

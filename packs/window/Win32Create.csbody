@@ -44,7 +44,7 @@ if(surfaces[0]==0)
 {
  long id;do{id=BitConverter.ToInt64(Guid.NewGuid().ToByteArray(),0);}while(id==0||AppDomain.CurrentDomain.GetData("Confectory.Win32."+id) is not null);surfaces[0]=id;
  string name="Confectory_Window_"+Guid.NewGuid().ToString("N");
- context=new object[]{null!,name,GetModuleHandleW(null),new System.Collections.Generic.Queue<int[]>(),new System.Collections.Generic.Dictionary<long,object[]>(),null!,new System.Collections.Generic.HashSet<long>(),GetCurrentThreadId(),new System.Collections.Generic.Dictionary<long,char>()};
+ context=new object[]{null!,name,GetModuleHandleW(null),new System.Collections.Generic.Queue<int[]>(),new System.Collections.Generic.Dictionary<long,object[]>(),null!,new System.Collections.Generic.HashSet<long>(),GetCurrentThreadId(),new System.Collections.Generic.Dictionary<long,char>(),false};
  int Find(IntPtr hwnd){for(int i=1;i<surfaces.Length;i++)if(surfaces[i]==hwnd.ToInt64())return i-1;return -1;}
  void Emit(int index,int kind,int x=0,int y=0,int code=0,int flags=0){if(index>=0)((System.Collections.Generic.Queue<int[]>)context[3]).Enqueue(new[]{index,kind,x,y,code,flags});}
  void ReleaseFrame(long handle)
@@ -75,7 +75,7 @@ if(surfaces[0]==0)
     return IntPtr.Zero;
    }
    if(message==0x201||message==0x203){SetFocus(hwnd);SetCapture(hwnd);Emit(index,1,x,y);return IntPtr.Zero;}
-   if(message==0x202){Emit(index,2,x,y);ReleaseCapture();return IntPtr.Zero;}
+   if(message==0x202){Emit(index,2,x,y);context[9]=true;try{ReleaseCapture();}finally{context[9]=false;}return IntPtr.Zero;}
    if(message==0x200){Emit(index,3,x,y);return IntPtr.Zero;}
    if(message==0x20A)
    {
@@ -94,7 +94,7 @@ if(surfaces[0]==0)
    if(message==0x5){Emit(index,7,packed&65535,(packed>>16)&65535);return IntPtr.Zero;}
    if(message==0x8&&IsChild(hwnd,wParam))return DefWindowProcW(hwnd,message,wParam,lParam);
    if(message==0x8||message==0x1F){((System.Collections.Generic.Dictionary<long,char>)context[8]).Remove(hwnd.ToInt64());Emit(index,9);return DefWindowProcW(hwnd,message,wParam,lParam);}
-   if(message==0x215){Emit(index,11);return DefWindowProcW(hwnd,message,wParam,lParam);}
+   if(message==0x215){if(!(bool)context[9])Emit(index,11);return DefWindowProcW(hwnd,message,wParam,lParam);}
    if(message==0x10){if(((System.Collections.Generic.HashSet<long>)context[6]).Add(hwnd.ToInt64()))Emit(index,8);return IntPtr.Zero;}
    if(message==0x82){((System.Collections.Generic.Dictionary<long,char>)context[8]).Remove(hwnd.ToInt64());ReleaseFrame(hwnd.ToInt64());if(!((System.Collections.Generic.HashSet<long>)context[6]).Remove(hwnd.ToInt64()))Emit(index,8);}
    // Default OS hit testing, caption dragging, system menu, minimize/maximize and Alt+F4.
