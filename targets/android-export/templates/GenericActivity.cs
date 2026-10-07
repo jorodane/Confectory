@@ -41,7 +41,9 @@ public sealed class MainActivity : Activity,Choreographer.IFrameCallback
     {
         if(step is not null)throw new InvalidOperationException("One product controller per Android Activity");
         var state=AppContext.GetData("Confectory.HostLoop."+token) as object[]??throw new InvalidOperationException("Missing common product loop");
-        step=(Func<bool>)state[0];retire=(Action)state[1];stop=state.Length>2?state[2] as Action:null;Schedule();return 0;
+        var close=AppContext.GetData("Confectory.HostLoop.Close.android") as Func<string,bool>??throw new PlatformNotSupportedException("Public HostLoop.Close Android provider is not installed");
+        step=(Func<bool>)state[0];stop=state.Length>2?state[2] as Action:null;
+        retire=()=>{if(!close(token))global::Android.Util.Log.Info("Confectory","HostLoop cleanup pending; private owner token retained");};Schedule();return 0;
     }
     string NativeRequest(string host,string operation,string payload,long parent)
     {
