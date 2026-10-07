@@ -1,0 +1,1 @@
+return new[]{"browser-wasm","metadata-only-description","dynamic-compilation:unavailable","external-process:unavailable","runtime-call:unavailable"};

@@ -1,1 +1,1 @@
-implementation Confectory.ProjectExecution::CapabilitiesBody for Confectory.ProjectExecution::Capabilities () -> string[] { body common "Capabilities.csbody"; body android "Capabilities.android.csbody"; }
+implementation Confectory.ProjectExecution::CapabilitiesBody for Confectory.ProjectExecution::Capabilities () -> string[] { body browser "Capabilities.browser.csbody"; body common "Capabilities.csbody"; body android "Capabilities.android.csbody"; }
