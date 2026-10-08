@@ -45,6 +45,32 @@ public static partial class Bridge
         var close=AppContext.GetData("Confectory.HostLoop.Close.browser") as Func<string,bool>??throw new PlatformNotSupportedException("HostLoop close provider required");
         if(close(token)){disposed.Add(token);active.Remove(token);}
     }
+    // Target-owned transport: only virtual user files, never runtime assemblies or model schemas.
+    [JSExport]
+    public static string ExportStorage()
+    {
+        const string root="/confectory-owned";
+        var files=new SortedDictionary<string,string>(StringComparer.Ordinal);long bytes=0;
+        if(Directory.Exists(root))foreach(string file in Directory.EnumerateFiles(root,"*",SearchOption.AllDirectories)){
+            if(files.Count>=512)throw new IOException("Browser storage file budget exceeded");
+            var info=new FileInfo(file);if((info.Attributes&FileAttributes.ReparsePoint)!=0)throw new IOException("Browser storage links are unsupported");
+            bytes+=info.Length;if(bytes>16777216)throw new IOException("Browser storage byte budget exceeded");
+            files.Add(Path.GetRelativePath(root,file),Convert.ToBase64String(File.ReadAllBytes(file)));
+        }
+        return JsonSerializer.Serialize(files);
+    }
+    [JSExport]
+    public static void RestoreStorage(string snapshot)
+    {
+        if(initialized)throw new InvalidOperationException("Restore must precede entry startup");
+        const string root="/confectory-owned";
+        if(snapshot.Length>23000000)throw new IOException("Browser storage encoded budget exceeded");
+        var files=JsonSerializer.Deserialize<Dictionary<string,string>>(snapshot)??throw new IOException("Invalid browser storage");
+        if(files.Count>512)throw new IOException("Browser storage file budget exceeded");
+        var staged=new List<(string path,byte[] bytes)>();long total=0;
+        foreach(var row in files){string path=Path.GetFullPath(Path.Combine(root,row.Key));if(!path.StartsWith(root+"/",StringComparison.Ordinal))throw new UnauthorizedAccessException("Browser storage boundary");byte[] data=Convert.FromBase64String(row.Value);total+=data.Length;if(total>16777216)throw new IOException("Browser storage byte budget exceeded");staged.Add((path,data));}
+        foreach(var row in staged){Directory.CreateDirectory(Path.GetDirectoryName(row.path)!);File.WriteAllBytes(row.path,row.bytes);}
+    }
     [JSExport]
     public static string ImportFiles(string names,string contents)
     {

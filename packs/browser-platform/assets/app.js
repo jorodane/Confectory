@@ -1,6 +1,7 @@
+import {openStorage} from './storage.js';
 import {dotnet} from './_framework/dotnet.js';
 const surface=document.getElementById('surface'),canvas=document.querySelector('canvas'),ctx=canvas.getContext('2d'),overlay=document.getElementById('fields');
-const events=[],hosts=new Map(),closedHosts=new Set(),loops=new Set();let bridge,serial=1,picker=null,presented=0;
+const events=[],hosts=new Map(),closedHosts=new Set(),loops=new Set();let bridge,storage,serial=1,picker=null,presented=0;
 function font(){ctx.font='14px sans-serif';ctx.textBaseline='top';}font();
 function size(){const w=Math.max(1,surface.clientWidth),h=Math.max(1,surface.clientHeight);if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;font();}return[w,h];}
 function key(e){if(typeof e.key!=='string')return 0;return({Tab:0xff09,Enter:0xff0d,Escape:0xff1b,ArrowLeft:0xff51,ArrowUp:0xff52,ArrowRight:0xff53,ArrowDown:0xff54,Backspace:0xff08,Delete:0xffff})[e.key]??(e.key.length===1?e.key.charCodeAt(0):0);}
@@ -26,6 +27,8 @@ function native(a){let h=hosts.get(a.host),p=JSON.parse(a.payload);if(a.operatio
  case 'archive-begin':{if(h.archive?.state==='pending')throw Error('Archive transfer pending');if(typeof p.name!=='string'||!/^[-\w. ]{1,96}\.zip$/.test(p.name)||typeof p.base64!=='string'||p.base64.length>12582912)throw Error('Invalid bounded source archive');const bytes=Uint8Array.from(atob(p.base64),c=>c.charCodeAt(0));if(bytes.length>9437184)throw Error('Archive byte budget');const url=URL.createObjectURL(new Blob([bytes],{type:'application/zip'})),link=document.createElement('a');link.href=url;link.download=p.name;document.body.append(link);try{link.click();h.archive={state:'offered'};}finally{link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}return{};}
  case 'archive-poll':{const result=h.archive??{state:'idle'};h.archive=null;return result;}
  case 'archive-cancel':h.archive={state:'cancelled'};return{};
+ case 'storage-flush':{if(!storage)throw Error('Owned storage not initialized');if(h.storage?.state==='pending')throw Error('Storage commit already pending');h.storage={state:'pending'};storage.flush().then(()=>h.storage={state:'saved'},error=>h.storage={state:'error',error:error.message});return{};}
+ case 'storage-poll':{const result=h.storage??{state:'idle'};if(result.state!=='pending')h.storage=null;return result;}
  case 'open-folder':throw Error('Browser cannot launch OS file manager; selected files remain virtual');
  default:throw Error('Unsupported NativeUI operation '+a.operation);
  }}
@@ -40,4 +43,4 @@ function request(operation,payload){const a=JSON.parse(payload);let result={};sw
  case 'close':events.length=0;ctx.clearRect(0,0,canvas.width,canvas.height);break;
  default:throw Error('Unsupported platform operation '+operation);
  }return typeof result==='string'?result:JSON.stringify(result);}
-const runtime=await dotnet.create();runtime.setModuleImports('confectory.browser.platform',{request,run:token=>{loops.add(token);requestAnimationFrame(function tick(){if(!loops.has(token))return;try{if(bridge.Step(token))requestAnimationFrame(tick);else loops.delete(token);}catch(e){loops.delete(token);console.error(e);}});}});runtime.setModuleImports('confectory.browser.dom',{render:()=>{throw Error('Alternate demo rendering is not a same-editor provider');}});const config=runtime.getConfig(),exports=await runtime.getAssemblyExports(config.mainAssemblyName);bridge=exports.Confectory.Browser.Bridge;const result=bridge.Initialize();globalThis.confectoryPlatform={bridge,events,hosts,loops,canvas,request,result,get presented(){return presented}};addEventListener('pagehide',()=>bridge.Close());
+const runtime=await dotnet.create();runtime.setModuleImports('confectory.browser.platform',{request,run:token=>{loops.add(token);requestAnimationFrame(function tick(){if(!loops.has(token))return;try{if(bridge.Step(token))requestAnimationFrame(tick);else loops.delete(token);}catch(e){loops.delete(token);console.error(e);}});}});runtime.setModuleImports('confectory.browser.dom',{render:()=>{throw Error('Alternate demo rendering is not a same-editor provider');}});const config=runtime.getConfig(),exports=await runtime.getAssemblyExports(config.mainAssemblyName);bridge=exports.Confectory.Browser.Bridge;storage=await openStorage(bridge);const result=bridge.Initialize();globalThis.confectoryPlatform={storage,bridge,events,hosts,loops,canvas,request,result,get presented(){return presented}};addEventListener('pagehide',()=>bridge.Close());
