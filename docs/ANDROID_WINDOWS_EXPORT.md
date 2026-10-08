@@ -65,3 +65,19 @@ Official signing references: https://docs.oracle.com/en/java/javase/17/docs/spec
 
 
 Unsigned alignment correction: actual API36 SDK `Package` output had an unaligned `resources.arsc` entry even with AndroidZipAlignment16 because the usual signing targets were deliberately bypassed. The exporter now resolves installed stable build-tools before APK packaging, aligns only its newly generated unsigned artifact through an owned temporary path, verifies it, then records success. No signing target/key is involved. Outside reads were UnsignedPackage, SDK-generated archive and the official zipalign command used already by the local signer. Rebuild scope is exporter and newly packaged APKs; pack contracts, common UI and AAB generation are unchanged. Actual fresh pipeline replay is documented in the current Android archive gate ledger.
+
+
+## Failure visibility repair (2026-10-08)
+
+Double-click/no-argument BAT entry now pauses after success, failure or cancellation, preserving the child exit code before `pause`. Runs with explicit CLI arguments return immediately with that code; run from an existing CMD window to retain diagnostics:
+
+```bat
+cd /d "C:\Confectory"
+export-android-windows.bat -Project "C:\Confectory\examples\editor-home\project.cpack" -Unsigned
+```
+
+The actual example entry is `examples/editor-home/project.cpack`. The user's remembered “Verify” error has not been captured: no wrong-selection, SDK or product failure cause is asserted. Read the complete first error, phase and selected ProjectPack/output paths before pressing a key; report those diagnostics. The wrapper prints a planned output path before building; on failure it may contain partial output, and package/export reports only exist if their respective stages wrote them. No new log/transcript is recorded, especially across signing. `-Unsigned` never prompts for signing; otherwise signing still requires explicit `SIGN` and an existing selected key.
+
+JDK javac/jar, Android SDK directory, dotnet executable and expected exporter output are checked. Native package SDK/API/build-tools compatibility remains diagnosed by the actual SDK invocation; nothing is automatically installed. PowerShell catch uses non-terminating Console error output followed by exit1 instead of Write-Error under ErrorActionPreference=Stop. Build/package failures identify the stage and preserve child nonzero exit codes. Missing PowerShell itself is shown by CMD and also held by the no-argument BAT pause.
+
+Scope/ledger: Windows Android-export entry scripts only, no pack/elementID/public contract or exporter implementation changes. Existing docs and scripts were read to trace exit and explicit signing boundaries; contracts do not govern console lifetime. Source review checks exit capture before pause, argument-based no-pause branch, diagnostic catch and explicit SIGN guard. Windows CMD/PowerShell/double-click execution is NOT RUN (Linux host has neither); no user PC was operated, no credentials/keys/device/upload action occurred. Rebuild scope none. Windows spot check: missing prerequisite and invalid ProjectPack must show a readable message and wait in no-argument flow; explicit `-Project` invocation must return nonzero without waiting; a valid unsigned AAB must retain output path and avoid signing.
