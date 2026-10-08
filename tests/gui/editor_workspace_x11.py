@@ -166,9 +166,16 @@ try:
     state=wait(lambda t:t['screen']=='home','home');controls=(state['homeControls'],state['projectControls']);buffers=state['buffers']
     click(a,2);wait(lambda t:t['screen']=='create','create');click(a,10);type_text(a,'Source Flow')
     click(a,11);type_text(a,'Persistent source draft')
-    # Keep the normal parent chooser, original per-character driver and ten-second close gate.
-    click(a,12);native_controls.folder(find,await_window,storage)
-    wait(lambda t:not t['nativePickerPending'] and field_text(t,30)==storage,'parent picker')
+    chooser_cycles=int(os.environ.get('CONFECTORY_GTK_CHOOSER_CYCLES','1'))
+    assert 1<=chooser_cycles<=100,'Chooser repetitions must retain at least one original selection gate'
+    for cycle in range(chooser_cycles):
+        # Cancellation must restore actual Home input before the same chooser is retried.
+        click(a,12);native_controls.folder(find,await_window,cancel=True)
+        wait(lambda t:not t['nativePickerPending'] and field_text(t,10)=='Source Flow' and field_text(t,11)=='Persistent source draft','parent cancel retains Home input')
+        # Keep the normal parent chooser, original per-character driver and ten-second close gate.
+        click(a,12);native_controls.folder(find,await_window,storage)
+        wait(lambda t:not t['nativePickerPending'] and field_text(t,30)==storage,'parent picker')
+        print('Actual Home original chooser cancel/retry/select cycle',cycle,'PASS',flush=True)
     click(a,13);state=wait(lambda t:t['screen']=='project','actual project creation')
     manifest=state['model']['selected']['path'];source=os.path.join(os.path.dirname(manifest),'main.csbody')
     original=open(source,encoding='utf-8').read();assert original=='return 0;\n'

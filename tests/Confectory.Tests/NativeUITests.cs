@@ -3,6 +3,13 @@ using Confectory.Core;
 namespace Confectory.Tests;
 public sealed class NativeUITests : TestCase
 {
+    public void test_native_gtk_standalone_original_directory_diagnostic()
+    {
+        if(string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DISPLAY"))){Skip("standalone GTK diagnostic: no actual DISPLAY");}
+        var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests","gui","gtk_chooser_diagnostic.py"),"3"},timeoutSeconds:180);
+        True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("Standalone GTK original input/cancel/retry/exact selection PASS"));
+        Console.Write(run.Stdout);
+    }
     string Consumer()
     {
         string path=Path.Combine(f.Root,"native public consumer");Fixture.CopyTree(Path.Combine(Fixture.Repo,"examples","native-input-game"),path);
