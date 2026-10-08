@@ -1,0 +1,4 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType><NativeFieldSource Condition="'$(NativeFieldSource)' == ''">$(MSBuildThisFileDirectory)../../../targets/android-export/templates/NativeFieldHost.cs</NativeFieldSource></PropertyGroup>
+  <ItemGroup><Compile Include="$(NativeFieldSource)" Link="NativeFieldHost.cs" /></ItemGroup>
+</Project>

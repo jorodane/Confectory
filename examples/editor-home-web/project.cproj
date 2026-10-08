@@ -1,5 +1,6 @@
 project Confectory.EditorHome.Web version "0.1.0" {
 standalone true;
+registry Confectory.ChangeSet "../../packs/change-set/pack.cpack"; dependency Confectory.ChangeSet version "0.1.0";
 registry Confectory.PackWorkspace "../../packs/pack-workspace/pack.cpack"; dependency Confectory.PackWorkspace version "0.1.0";
 registry Confectory.EditorHome.Model "../../packs/editor-home-model/pack.cpack"; dependency Confectory.EditorHome.Model version "0.1.0";
 registry Confectory.ProjectShell "../../packs/project-shell/pack.cpack"; dependency Confectory.ProjectShell version "0.1.0";

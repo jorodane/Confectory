@@ -47,6 +47,8 @@ androidManifest.Save(Path.Combine(output,"AndroidManifest.xml"));
 File.WriteAllText(Path.Combine(output,"bundle-config.json"),JsonSerializer.Serialize(new{optimizations=new{uncompressNativeLibraries=new{enabled=true,alignment="PAGE_ALIGNMENT_16K"}}}));
 foreach(string template in new[]{"GenericActivity.cs","NativeFieldHost.cs","AndroidDocumentImport.cs","MetadataAuthoring.cs"})
  File.Copy(Path.Combine(templateRoot,template),Path.Combine(output,template=="GenericActivity.cs"?"MainActivity.cs":template));
+string resourceValues=Path.Combine(output,"Resources","values");Directory.CreateDirectory(resourceValues);
+File.Copy(Path.Combine(templateRoot,"NativeFieldStyle.xml"),Path.Combine(resourceValues,"NativeFieldStyle.xml"));
 string core=typeof(Parser).Assembly.Location;File.Copy(core,Path.Combine(managed,"Confectory.Core.dll"),true);
 if(!references.Contains("Confectory.Core.dll"))references.Add("Confectory.Core.dll");
 string projectText=File.ReadAllText(Path.Combine(templateRoot,"App.csproj.template"));

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- Borrow the Activity theme; only text/IME field contrast is overridden. -->
+  <style name="ConfectoryNativeField">
+    <item name="android:textColor">#E4EEF5</item>
+    <item name="android:textColorHint">#AEC2D1</item>
+    <item name="android:textColorHighlight">#45677A</item>
+    <item name="android:colorAccent">#77AAC6</item>
+    <item name="android:colorControlActivated">#77AAC6</item>
+  </style>
+</resources>

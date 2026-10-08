@@ -4,5 +4,9 @@ import Confectory.EditWorkspace::List as List (string) -> string[];
 import Confectory.EditWorkspace::Read as Read (string, string) -> string[];
 import Confectory.EditWorkspace::SetTextIfRevision as Edit (string, string, string, long) -> bool;
 import Confectory.Save::Write as Save (string) -> string;
+import Confectory.EditWorkspace::Identity as Identity (string) -> string[];
+import Confectory.FileStream::Snapshot as FileSnapshot (string) -> string[];
+import Confectory.ChangeSet::Review as Review (string, string[]) -> string[];
+import Confectory.ChangeSet::Confirm as Confirm (string, string[], string) -> string[];
 body common "Command.csbody";
 }

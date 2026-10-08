@@ -1,0 +1,51 @@
+# Android native Field composition and contrast
+
+User device evidence: the user downloaded/installed the actual editor-home through Google Play and saw the same product UI. Korean 입력 “게임” appeared as separated jamo; dark fields had black text. This is reported device behavior, not a device session executed here. Only IME and field contrast are in scope. Layout/bounds, safe areas, responsive placement and other mobile redesign remain unchanged.
+
+## Cause and change
+
+NativeFieldHost.configure used to call EditText.SetSingleLine and assign KeyListener on every product frame. Android's public TextView.setKeyListener calls InputMethodManager.restartInput even when the same listener is supplied; setSingleLine also reapplies transformation/input configuration rather than returning when unchanged. This is a concrete mechanism for invalidating the IME's composing connection between keystrokes. Source: [AOSP TextView](https://raw.githubusercontent.com/aosp-mirror/platform_frameworks_base/master/core/java/android/widget/TextView.java), setKeyListener/setSingleLine. It establishes the adapter defect; actual Korean keyboard acceptance still requires the user's device.
+
+The retained native Field now applies mode and readonly/listener/focusability only on initial configuration or a real transition, and defers these transitions while the native Editable has a composing span. Ordinary frames do not set text, selection or input configuration when native state already owns the same value. Existing external-text deferral while focused/composing remains; after release the pending external value can be applied. Snapshots continue to return native text, caret/anchor and composing state through unchanged NativeInput Field/Poll contracts. Native commands remain suppressed during composition; there is no jamo normalization, post-hoc Hangul assembly, alternate text model or replacement keyboard.
+
+Native fields had no explicit foreground/hint/highlight/theme contrast and inherited Activity defaults over the product's dark field background. The generic Android provider now specifies foreground #E4EEF5, hint #AEC2D1, selection highlight #45677A and accent/activated tint #77AAC6. An Activity-derived theme overlay supplies native cursor/selection-handle tint, including API24-28 where newer direct cursor APIs are unavailable. Native shape, touch/selection mechanics and typography remain platform-owned; no reflection/private cursor API is used. The exporter copies this XML into generated Resources/values. No product layout/color code or desktop/browser provider is edited.
+
+## Scope and locality
+
+Intended contracts/elements: Confectory.NativeUI::Request (Android native adapter), Confectory.BaseUI.NativeInput::{Field,Poll} consumer contract, actual Confectory.EditorHome::Main. Public signatures and common pack bodies are unchanged. The edits are generic Android exporter adapter/template/resource-copy plus actual export regression. Outside reads: NativeInput Field/Poll buffer synchronization, BaseUI ReplaceText, real Main native fields, GenericActivity UI-thread routing/lifetime, Android public framework input methods and installed SDK bindings. These establish that common contracts already preserve native snapshots but cannot implement Android input lifecycle/colors themselves. No Core or private application model is edited. Rebuild scope: exporter/template and actual Android app resource/native compilation; no desktop/browser implementation edit. Functional and source/locality gates are separate.
+
+## Evidence and limits
+
+Library screenshot libfile_61aab745135481919e51ae58471e148e was prepared through the current Library materialization route and its bundled helper in this consumer environment. Download failed and no readable image file was produced. Pixel inspection is therefore unverified; contrast work is based on the user's description and explicit provider defaults. No image or helper/data log is tracked in Git.
+
+The harness compiles the actual NativeFieldHost source against explicit Android protocol doubles. It feeds native composing and committed values, continuous Korean/English mixing, deletion state, caret movement, selection, external replacement while composing/focused and after release, multiple retained fields, readonly transitions, command suppression during composition, and contrast assignments. Repeated frames must not mutate text/selection/mode/listener or composing state. The original HEAD template fails “presentation destroyed composing span”; the corrected source passes. Doubles deliberately observe API calls and native state ownership; they do not implement a Korean IME and are not product-screen/device acceptance. After actual product export, the same harness is run against its generated NativeFieldHost.cs.
+
+Commands:
+
+```sh
+DOTNET_CLI_HOME=/tmp/confectory-dotnet10 /workspace/toolchains/dotnet-10.0.401/dotnet build tests/Confectory.Tests/Confectory.Tests.csproj -c Release --nologo
+DOTNET_CLI_HOME=/tmp/confectory-dotnet10 /workspace/toolchains/dotnet-10.0.401/dotnet run --project tests/android/native_field_harness/NativeFieldHarness.csproj -c Release -p:NativeFieldSource=/workspace/Confectory/targets/android-export/templates/NativeFieldHost.cs
+DOTNET_CLI_HOME=/tmp/confectory-dotnet10 CONFECTORY_DOTNET=/workspace/toolchains/dotnet-10.0.401/dotnet /workspace/toolchains/dotnet-10.0.401/dotnet tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll --require-runtime test_android_home_export_selects_activity_and_metadata_parser_without_engine_surface_sample
+bash /tmp/confectory-current-android-package.sh /tmp/confectory-editor-home-minsdk24-aab-input/project.cpack /tmp/confectory-editor-home-ime-aab
+```
+
+The AAB input is the actual editor-home owned source copy used for minSDK24 verification, with identical Main/source bytes and only registry rebasing plus package ID/format overrides; no test-screen replacement. Exporter uses the current generic Android host and resource template. The helper environment is documented in ANDROID_MINIMUM_SDK.md. Fresh output preserves previous exports. No signing, key generation, installation, Play upload or new tool installation is performed. No emulator/system images are installed here; adb is not started or reconfigured. Real IME/font contrast/device acceptance remains separate from compiled packaging and protocol checks.
+
+User recheck: export/sign a fresh AAB locally with the existing key using the usual workflow. In the actual Home name and intent fields, input “게임”, “게임 게임”, Korean/English mixed text; delete/retype part of a syllable; move the caret to edit existing text; select/replace text; move focus between fields and return. Repeat in actual chat/source fields. Check foreground, hint, caret, selected text and selection handles on dark fields. Device keyboard/composition behavior is not claimed fixed solely from a mock pass.
+
+## Next bounded work proposal (not implemented)
+
+The current actual Home Edit sources/Save draft flow retains local drafts while Run reads final sources. PackWorkspace documents select/page/edit/save/sources but exposes no review/Confirm operation in Home. Existing ChangeSet::Review/Confirm can review baseline conflicts and validate a copied candidate before conditional final-file commit. The appropriate next candidate is an explicitly selected desktop compiler-backed draft→review→Confirm→Run connection, with revision/conflict checks, validation failure leaving finals untouched, and per-context View/state/ownership retained. Reuse existing contracts before introducing a new mechanism. This is a proposal for parent scope reconciliation, not authorization for automatic original-file replacement, self hot-reload or dynamic mobile/browser compiler support. Mobile layout, gamepad/key binding, remote server and Play symbol-warning work stay deferred. GTK chooser timing and Windows/device spot checks remain independent known gates.
+
+
+## Completed gates
+
+Relevant exporter/tests build: zero warnings/errors, final4.70s. Actual-product export regression: **1 passed,0 failed,0 skipped,167.107s**, including common actual entry, generic Activity and exported field theme. Corrected template and actual generated NativeFieldHost protocol harness both PASS; the old5b6ced6 source fails the composing-preservation gate. Private logs `/tmp/confectory-android-ime-{build,harness,before-harness,exported-harness,export-regression}.log`. The harness covers composed/native text without rewriting it; it cannot verify a Samsung/Gboard Korean IME.
+
+Actual unchanged editor-home Main source byte identity and public export entry were verified against the current repo; exported NativeFieldHost and theme XML match their current templates byte-for-byte. The first inspection attempted to recognize a descriptive generated binding symbol; generated symbols are hashed, so authoritative export-report entry plus source identity were used instead. This inspection error did not indicate a product build failure.
+
+Fresh unsigned actual product AAB **PASS,zero warnings/errors,57.03s native Package build**; `/tmp/confectory-editor-home-ime-aab.log`. Managed pack source stage compiled122 contracts/122 implementations, linked once, zero full rebuilds; the Core build fingerprint/new consumer scope required compilation and is not claimed as narrow incremental locality. No common pack body or public function signature changed.
+
+Official installed bundletool finds compiled `style/ConfectoryNativeField` in the actual AAB, and manifest confirms min24/target36. SHA256 `997769988041f2458f3c073ec754a26486f19f35dcce08c587af308dfc1d10f6`. Resource/manifest dumps: `/tmp/confectory-editor-home-ime-resources.txt`, `/tmp/confectory-editor-home-ime-manifest.xml`. Native packaging verifies public SDK resource symbols and API compatibility; it does not render the field on a device.
+
+Nominal palette contrast over the product #1C2933 field: foreground12.62:1, hint8.09:1, cursor/accent5.90:1; foreground over selected background #45677A5.14:1. These are computed opaque color ratios, not screenshot/device measurements. Native theme/OEM handle appearance still requires the user's check. The screenshot could not be materialized and remains visually unreviewed.
