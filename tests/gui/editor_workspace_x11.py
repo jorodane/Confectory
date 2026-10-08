@@ -85,6 +85,7 @@ def close(window):
 
 import tempfile,shutil,zipfile
 raise_window=native('XRaiseWindow',c.c_int,P,U)
+resize=native('XResizeWindow',c.c_int,P,U,c.c_uint,c.c_uint)
 repo=os.environ.get('CONFECTORY_GUI_REPO',os.path.abspath(os.path.join(os.path.dirname(__file__),'../..')))
 storage=tempfile.mkdtemp(prefix='confectory-source-workspace-gui-')
 log_path=os.path.join(storage,'native.log')
@@ -175,6 +176,15 @@ try:
     click(a,58);state=wait(lambda t:t['model']['status'].startswith('Local source draft saved'),'draft saved')
     assert open(source,encoding='utf-8').read()==original,'Save must retain final source'
     assert state['controls']==controls and state['buffers']==buffers,'no wholesale control recreation'
+    source_handle=json.loads(state['fields']['54'])['nativeHandle']
+    resize(display,a,760,620);flush(display)
+    state=wait(lambda t:t['width']==760 and 54 in t['fields'] and field_text(t,54)=='return 17;\n','source editor responsive resize')
+    assert state['controls']==controls and state['buffers']==buffers
+    assert json.loads(state['fields']['54'])['nativeHandle']==source_handle,'resize preserves native source field'
+    for i in range(0,len(state['hits']),5):
+        _,x,y,w,h=state['hits'][i:i+5];assert 0<=x<x+w<=760 and 0<=y<y+h<=620,'responsive visible hit confined'
+    resize(display,a,1000,760);flush(display)
+    wait(lambda t:t['width']==1000 and field_text(t,54)=='return 17;\n','source editor expanded')
     leave_project(a);wait(lambda t:t['screen']=='home','leave');click(a,100);wait(lambda t:t['screen']=='project','reopen')
     click(a,55);state=wait(lambda t:field_text(t,54)=='return 17;\n','same-process restored draft')
     first_native=json.loads(state['fields']['54'])['nativeHandle'];click(a,58)
