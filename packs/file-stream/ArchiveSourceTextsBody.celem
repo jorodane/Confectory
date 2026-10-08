@@ -1,0 +1,1 @@
+implementation Confectory.FileStream::ArchiveSourceTextsBody for Confectory.FileStream::ArchiveSourceTexts (string root, string[] relativePaths, string[] texts) -> string[] {body common "ArchiveSourceTexts.csbody";}

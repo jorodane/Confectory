@@ -5,5 +5,7 @@ import Confectory.FileStream::LeasePath as LeasePath (string) -> string;
 import Confectory.FileStream::Commit as Commit (string, string[], string[], string[]) -> string[];
 import Confectory.FileStream::CopySources as CopySources (string, string) -> void;
 import Confectory.FileStream::Capabilities as Capabilities () -> string[];
+import Confectory.FileStream::ArchiveSources as ArchiveSources (string, string[]) -> string[];
+import Confectory.FileStream::ArchiveSourceTexts as ArchiveSourceTexts (string, string[], string[]) -> string[];
 body common "main.csbody";
 }

@@ -1,0 +1,1 @@
+function Confectory.FileStream::ArchiveSources (string root, string[] relativePaths) -> string[] {description "Bounded ZIP of explicitly selected owned text source files: filename, base64 bytes, SHA256. Never resolves dependencies or compiles imported input.";}

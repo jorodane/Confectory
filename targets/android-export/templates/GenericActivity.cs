@@ -18,6 +18,7 @@ public sealed class MainActivity : Activity,Choreographer.IFrameCallback
     readonly Queue<string> inbox=new();readonly HashSet<string> entryOwners=new();
     string pickerHost="",pickerState="idle",pickerPath="",pickerError="";int pickerEpoch,pickerRequest;
     readonly Dictionary<string,string> imported=new();
+    string archiveHost="",archiveState="idle",archiveError="";byte[]? archiveBytes;int archiveRequest=31001;
     bool resumed,scheduled,closed;
     protected override void OnCreate(Bundle? state)
     {
@@ -56,6 +57,18 @@ public sealed class MainActivity : Activity,Choreographer.IFrameCallback
         }
         if(!fields.TryGetValue(host,out var field)){if(operation=="close"&&AppDomain.CurrentDomain.GetData("Confectory.Android.NativeUI.Closed."+host) is true)return "{}";throw new InvalidOperationException("Native field owner is unavailable");}
         if(closed&&operation!="close")throw new InvalidOperationException("Activity owner retired");
+        if(operation=="archive-begin")
+        {
+            if(archiveState=="pending")throw new InvalidOperationException("Archive transfer already pending");
+            var args=JsonNode.Parse(payload)!.AsObject();string name=args["name"]!.GetValue<string>(),encoded=args["base64"]!.GetValue<string>();
+            if(name.Length>96||!name.EndsWith(".zip",StringComparison.OrdinalIgnoreCase)||name.Any(c=>!(char.IsLetterOrDigit(c)||c=='-'||c=='_'||c=='.'||c==' '))||encoded.Length>12582912)throw new ArgumentException("Invalid bounded source archive");
+            byte[] bytes=Convert.FromBase64String(encoded);if(bytes.Length>9437184)throw new ArgumentException("Archive byte budget exceeded");
+            archiveHost=host;archiveBytes=bytes;archiveState="pending";archiveError="";archiveRequest=31001+(archiveRequest-31000)%1000;
+            var intent=new Intent(Intent.ActionCreateDocument);intent.AddCategory(Intent.CategoryOpenable);intent.SetType("application/zip");intent.PutExtra(Intent.ExtraTitle,name);intent.AddFlags(ActivityFlags.GrantWriteUriPermission);
+            try{StartActivityForResult(intent,archiveRequest);}catch{archiveBytes=null;archiveState="idle";throw;}return "{}";
+        }
+        if(operation=="archive-poll"){if(archiveHost!=host)return "{\"state\":\"idle\"}";string result=new JsonObject{["state"]=archiveState,["error"]=archiveError}.ToJsonString();if(archiveState!="pending")archiveState="idle";return result;}
+        if(operation=="archive-cancel"){if(archiveHost==host){archiveRequest++;archiveBytes=null;archiveState="cancelled";}return "{}";}
         if(operation=="folder-begin")
         {
             if(pickerState=="pending")throw new InvalidOperationException("Android document picker already pending");
@@ -70,7 +83,7 @@ public sealed class MainActivity : Activity,Choreographer.IFrameCallback
         }
         if(operation=="folder-cancel"){if(pickerHost==host){pickerEpoch++;pickerState="cancelled";}return "{}";}
         if(operation=="open-folder")throw new PlatformNotSupportedException("Android app-private folders are owned by the app; external desktop file managers are unavailable");
-        if(operation=="close"){if(pickerHost==host){pickerEpoch++;pickerState="cancelled";}field.Dispose();fields.Remove(host);AndroidCloseHistory.Mark("Confectory.Android.NativeUI.Closed.",host);AppDomain.CurrentDomain.SetData("Confectory.Android.NativeUI.Owner."+host,null);return "{}";}
+        if(operation=="close"){if(archiveHost==host){archiveRequest++;archiveBytes=null;archiveState="cancelled";}if(pickerHost==host){pickerEpoch++;pickerState="cancelled";}field.Dispose();fields.Remove(host);AndroidCloseHistory.Mark("Confectory.Android.NativeUI.Closed.",host);AppDomain.CurrentDomain.SetData("Confectory.Android.NativeUI.Owner."+host,null);return "{}";}
         return field.Request(operation,payload);
     }
     string OwnedNativeRequest(string host,string operation,string payload,long parent)
@@ -122,7 +135,9 @@ public sealed class MainActivity : Activity,Choreographer.IFrameCallback
     }
     protected override async void OnActivityResult(int requestCode,Result resultCode,Intent? data)
     {
-        base.OnActivityResult(requestCode,resultCode,data);if(requestCode!=pickerRequest)return;int epoch=pickerEpoch;
+        base.OnActivityResult(requestCode,resultCode,data);
+        if(requestCode==archiveRequest){if(archiveState!="pending")return;if(resultCode!=Result.Ok||data?.Data is null){archiveRequest++;archiveBytes=null;archiveState="cancelled";return;}int transfer=archiveRequest;try{if(closed||!fields.ContainsKey(archiveHost))throw new InvalidOperationException("Archive owner retired");byte[] bytes=archiveBytes!;var uri=data.Data;await System.Threading.Tasks.Task.Run(()=>{using var output=ContentResolver!.OpenOutputStream(uri,"wt")??throw new System.IO.IOException("Document grant is not writable");output.Write(bytes);output.Flush();});if(!closed&&transfer==archiveRequest&&archiveState=="pending")archiveState="saved";}catch(Exception error){if(!closed&&transfer==archiveRequest&&archiveState=="pending"){archiveError=error.Message;archiveState="error";}}finally{if(transfer==archiveRequest)archiveBytes=null;}return;}
+        if(requestCode!=pickerRequest)return;int epoch=pickerEpoch;
         if(pickerState!="pending")return;if(resultCode!=Result.Ok||data?.Data is null){pickerState="cancelled";return;}
         try{string path=await Import(data.Data,true);if(!closed&&epoch==pickerEpoch){pickerPath=path;pickerState="selected";}}
         catch(Exception error){if(!closed&&epoch==pickerEpoch){pickerError=error.Message;pickerState="error";}}

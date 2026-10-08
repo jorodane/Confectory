@@ -5,4 +5,6 @@ provide Confectory.FileStream::LeasePath with Confectory.FileStream::LeasePathBo
 provide Confectory.FileStream::Commit with Confectory.FileStream::CommitBody;
 provide Confectory.FileStream::CopySources with Confectory.FileStream::CopySourcesBody;
 provide Confectory.FileStream::Capabilities with Confectory.FileStream::CapabilitiesBody;
+provide Confectory.FileStream::ArchiveSources with Confectory.FileStream::ArchiveSourcesBody;
+provide Confectory.FileStream::ArchiveSourceTexts with Confectory.FileStream::ArchiveSourceTextsBody;
 }

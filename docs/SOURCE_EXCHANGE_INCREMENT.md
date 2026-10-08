@@ -1,0 +1,9 @@
+# Owned source exchange increment
+
+Public IDs: Confectory.FileStream::ArchiveSources, ArchiveSourcesBody, ArchiveSourceTexts, ArchiveSourceTextsBody; existing Confectory.NativeUI::Request adds archive-begin/poll/cancel operations. No Core change. Consumer provides explicit owned paths/texts and chooses either provider; no namespace, schema, alias or sample path selection.
+
+Outside implementation reads: existing FileStream Snapshot/CopySources public IO semantics; NativeUI browser service dispatcher and Android GenericActivity owner/picker lifecycle, required to implement actual target services because current Request operation protocol had no transfer operation. Outside edits: browser app.js and Android GenericActivity target-owned dispatchers only; FileStream example is the auxiliary consumer gate. Actual product UI is integrated separately through these public IDs.
+
+Functional: solution test build 0 warnings/errors; FileStreamTests --require-runtime 1 passed,0 failed,0 skipped,38.789s (selected ZIP contents, working-copy no-final-write, exclusions plus unchanged transaction suite). Locality: unchanged Snapshot-only provider rebuild assertion passed, no compiled contracts. New public archive IDs affect only importers; browser asset changes rebuild selected browser output and Android host template changes require native target regeneration.
+
+Android compile: preserved prior actual EditorHome export copied to /tmp, only target-owned MainActivity source replaced; default Build failed XA1030 existing AOT/trimming mismatch. Retried with RunAOTCompilation=false for provider compile only, not claimed APK/device gate. Browser/Android actual new EditorHome transfer interaction is pending integration verification; no physical picker, user download acceptance or device execution claimed.

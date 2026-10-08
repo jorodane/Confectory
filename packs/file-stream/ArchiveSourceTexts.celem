@@ -1,0 +1,1 @@
+function Confectory.FileStream::ArchiveSourceTexts (string root, string[] relativePaths, string[] texts) -> string[] {description "Export explicit owned working-copy texts without applying them; filename, base64 ZIP, SHA256.";}

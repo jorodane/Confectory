@@ -14,4 +14,8 @@ element Capabilities function "Capabilities.celem";
 element CapabilitiesBody implementation "CapabilitiesBody.celem";
 element BrowseDirectory function "BrowseDirectory.celem";
 element BrowseDirectoryBody implementation "BrowseDirectoryBody.celem";
+element ArchiveSources function "ArchiveSources.celem";
+element ArchiveSourcesBody implementation "ArchiveSourcesBody.celem";
+element ArchiveSourceTexts function "ArchiveSourceTexts.celem";
+element ArchiveSourceTextsBody implementation "ArchiveSourceTextsBody.celem";
 }

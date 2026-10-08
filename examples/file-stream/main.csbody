@@ -3,6 +3,10 @@ string root=System.IO.Path.Combine(System.IO.Path.GetTempPath(),"confectory-io-"
 string outside=root+"-outside",copy=root+"-copy";
 try
 {
+ calls.WriteAtomic.Invoke(System.IO.Path.Combine(root,"project.cpack"),"project Example.Export version \"1\" {}\n");
+ var archived=calls.ArchiveSources.Invoke(root,new[]{"project.cpack"});using(var archive=new System.IO.Compression.ZipArchive(new System.IO.MemoryStream(Convert.FromBase64String(archived[1])))){Check(archive.Entries.Count==1&&archive.Entries[0].FullName=="project.cpack","Exact selected archive entries");}
+ var working=calls.ArchiveSourceTexts.Invoke(root,new[]{"project.cpack"},new[]{"changed working text"});Check(working[2]!=archived[2]&&calls.Snapshot.Invoke(System.IO.Path.Combine(root,"project.cpack"))[1].StartsWith("project"),"Working copy archive does not apply finals");
+ foreach(var rejected in new[]{"../outside.txt",".confectory/generated.txt","bin/output.txt","password.txt"}){bool denied=false;try{calls.ArchiveSources.Invoke(root,new[]{rejected});}catch(ArgumentException){denied=true;}Check(denied,"Archive ownership/exclusion "+rejected);}
  string a=System.IO.Path.Combine(root,"a.txt"),b=System.IO.Path.Combine(root,"b.txt");Check(calls.Snapshot.Invoke(a)[0]=="missing","Missing baseline");
  calls.WriteAtomic.Invoke(a,"alpha\n한글");var initial=calls.Snapshot.Invoke(a);Check(initial[1]=="alpha\n한글"&&initial[2].Length==64,"Readable bytes/hash");
  Check(calls.Commit.Invoke(root,new[]{"a.txt","b.txt"},new[]{initial[2],"missing"},new[]{"next","second"})[0]=="applied","Selected atomic local batch");
