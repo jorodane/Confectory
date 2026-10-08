@@ -25,7 +25,7 @@ case "effective":{
    inspectedReply["effectiveDraftRevisions"]=revisions;
    inspectedReply["effective"]=System.Text.Json.Nodes.JsonNode.Parse(calls.Locate.Invoke("effective",System.Text.Json.JsonSerializer.Serialize(new{project=identity[0],manifest,id=inspectedId,text=u[3],drafts})));return inspectedReply.ToJsonString();
   }
-  var ids=new System.Collections.Generic.List<string>();foreach(var edge in inspectedReply["inspection"]!["relations"]!["edges"]!.AsArray()){ids.Add(edge!["target"]!.GetValue<string>());if(edge["function"] is not null)ids.Add(edge["function"]!.GetValue<string>());}
+  var ids=new System.Collections.Generic.List<string>();foreach(var edge in inspectedReply["inspection"]!["relations"]!["edges"]!.AsArray()){ids.Add(edge!["target"]!.GetValue<string>());if(edge["function"] is not null)ids.Add(edge["function"]!.GetValue<string>());if(edge["scope"] is not null)ids.Add(edge["scope"]!.GetValue<string>());}
   inspectedReply["locations"]=System.Text.Json.Nodes.JsonNode.Parse(calls.Locate.Invoke("locate",System.Text.Json.JsonSerializer.Serialize(new{project=identity[0],manifest,ids=ids.ToArray()})));
  }
  return inspectedReply.ToJsonString();

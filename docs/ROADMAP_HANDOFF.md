@@ -227,3 +227,7 @@ New ordinary Confectory.SemanticCatalog Query pack, composed into actual EditorH
 ## Lazy edit data and implementation-body navigation
 
 Work branch `lazy-edit-materialization` continues `e532ce5`; see [contracts, locality, schema decision and verification](LAZY_EDIT_MATERIALIZATION.md). This increment implements deferred text/baselines and current-draft implementation source navigation through the existing EditorHome domain route. It does not complete the editor UI. No main merge is authorized.
+
+## Schema decision audit and independent declared references
+
+[Schema comparison and editor status](SCHEMA_CONTRACT_DECISION_AND_EDITOR_STATUS.md) distinguishes established design/parser rules from the unchosen generic schema representation. Existing Rig/Render JSON is domain-specific, not a general schema decision. No schema representation is implemented. The bounded independent continuation fills existing typed use/contain and named/scoped import inspection gaps via the actual product route; layouts and main are unchanged. Overall editor completion is not claimed; completed, independently actionable and user-policy-dependent items have separate rows.
