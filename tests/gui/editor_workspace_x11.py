@@ -161,7 +161,7 @@ def export_save(path):
 
 try:
     a=launch();wait(lambda t:t['screen']=='intro' and 1 in t['hits'][::5],'intro');click(a,1)
-    state=wait(lambda t:t['screen']=='home','home');controls=state['controls'];buffers=state['buffers']
+    state=wait(lambda t:t['screen']=='home','home');controls=(state['homeControls'],state['projectControls']);buffers=state['buffers']
     click(a,2);wait(lambda t:t['screen']=='create','create');click(a,10);type_text(a,'Source Flow')
     click(a,11);type_text(a,'Persistent source draft')
     # Keep the normal parent chooser, original per-character driver and ten-second close gate.
@@ -170,32 +170,35 @@ try:
     click(a,13);state=wait(lambda t:t['screen']=='project','actual project creation')
     manifest=state['model']['selected']['path'];source=os.path.join(os.path.dirname(manifest),'main.csbody')
     original=open(source,encoding='utf-8').read();assert original=='return 0;\n'
-    click(a,55);state=wait(lambda t:t['model'].get('workspace') and 54 in t['fields'],'source editor')
+    click(a,55);state=wait(lambda t:t['model'].get('workspace') and '54' in t['fields'],'source editor')
     assert state['model']['workspace']['unit']['kind']=='body'
     click(a,54);type_text(a,'return 17;\n');wait(lambda t:field_text(t,54)=='return 17;\n','typed source')
-    click(a,58);state=wait(lambda t:t['model']['status'].startswith('Local source draft saved'),'draft saved')
+    click(a,58);state=wait(lambda t:t['model']['status'].startswith('Local source draft saved') and t['message']=='Local source draft saved; final sources unchanged' and not t['job'],'draft saved')
     assert open(source,encoding='utf-8').read()==original,'Save must retain final source'
-    assert state['controls']==controls and state['buffers']==buffers,'no wholesale control recreation'
+    assert (state['homeControls'],state['projectControls'])==controls and state['buffers']==buffers,'no wholesale control recreation'
+    subprocess.run(['import','-window',str(a),os.path.join(storage,'source-normal.png')],check=True)
     source_handle=json.loads(state['fields']['54'])['nativeHandle']
     resize(display,a,760,620);flush(display)
-    state=wait(lambda t:t['width']==760 and 54 in t['fields'] and field_text(t,54)=='return 17;\n','source editor responsive resize')
-    assert state['controls']==controls and state['buffers']==buffers
+    state=wait(lambda t:t['width']==760 and '54' in t['fields'] and field_text(t,54)=='return 17;\n','source editor responsive resize')
+    assert (state['homeControls'],state['projectControls'])==controls and state['buffers']==buffers
     assert json.loads(state['fields']['54'])['nativeHandle']==source_handle,'resize preserves native source field'
     for i in range(0,len(state['hits']),5):
         _,x,y,w,h=state['hits'][i:i+5];assert 0<=x<x+w<=760 and 0<=y<y+h<=620,'responsive visible hit confined'
+    subprocess.run(['import','-window',str(a),os.path.join(storage,'source-resized.png')],check=True)
     resize(display,a,1000,760);flush(display)
     wait(lambda t:t['width']==1000 and field_text(t,54)=='return 17;\n','source editor expanded')
     leave_project(a);wait(lambda t:t['screen']=='home','leave');click(a,100);wait(lambda t:t['screen']=='project','reopen')
     click(a,55);state=wait(lambda t:field_text(t,54)=='return 17;\n','same-process restored draft')
     first_native=json.loads(state['fields']['54'])['nativeHandle'];click(a,58)
-    wait(lambda t:t['model']['status'].startswith('Local source draft saved') and not t['job'],'repeat save')
+    wait(lambda t:t['model']['status'].startswith('Local source draft saved') and t['message']=='Local source draft saved; final sources unchanged' and not t['job'] and not t['job'],'repeat save')
     assert json.loads(latest()['fields']['54'])['nativeHandle']==first_native,'save preserves native source field'
     end(a)
     a=launch();wait(lambda t:t['screen']=='intro' and 1 in t['hits'][::5],'restart');click(a,1)
     state=wait(lambda t:t['screen']=='home' and len(t['model']['cards'])==1,'recent project persisted')
-    assert state['controls']!=controls,'fresh process owner'
+    assert (state['homeControls'],state['projectControls'])!=controls,'fresh process owner'
     click(a,100);wait(lambda t:t['screen']=='project','recent reopen');click(a,55)
     wait(lambda t:field_text(t,54)=='return 17;\n','process restart persisted source draft')
+    subprocess.run(['import','-window',str(a),'/tmp/confectory-workspace-source.png'],check=True)
     archive=os.path.join(storage,'source-workcopy.zip');click(a,59);export_save(archive)
     wait(lambda t:not t['nativePickerPending'] and t['message']=='Working-copy ZIP saved','export acknowledgement')
     assert os.path.isfile(archive),'native save produced ZIP'
