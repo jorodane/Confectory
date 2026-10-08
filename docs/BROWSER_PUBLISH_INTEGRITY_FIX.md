@@ -1,0 +1,17 @@
+# Browser publish input ownership and integrity
+
+The original responsive actual-product run failed before entry startup. Chromium enforced the SDK's resource integrity catalogue and rejected `Confectory.Core.w199sjapaw.dll`. The original failure is preserved in `/tmp/confectory-workspace-browser-responsive-actual.log`; detailed replay is `/tmp/confectory-workspace-browser-responsive-replay.log`. No timeout, input, product body or SRI policy was changed to bypass it.
+
+Concrete evidence: SDK boot catalogue and build `wwwroot` contained Core SHA256 base64 `FD4Ttq0weCZC44sQ8W05AMQVHLiDdZ5DH/zQ8gAiWu4=`. Publish `wwwroot` and emitted site contained `/lPlEKg8ekEjk8gb8p3QTj+8vJNMdJ5Yo+eRQ9s0buY=`. The latter exactly matched the root Core/tool DLL after a concurrent solution build. External Reference HintPaths remained mutable between SDK build and publish reads. This is a target packaging ownership defect, separate from responsive layout and storage behavior.
+
+Fix: the generic browser build target captures each reference once into its newly owned `wasm-project/owned-references`, then passes only those private files to the SDK. Conflicting filenames fail explicitly. It selects the exact SDK `bin/Release/net10.0/publish/wwwroot` bundle, and validates every named SHA256 boot resource before returning successful output. The original SDK-generated boot catalogue and bytes remain unchanged; SRI is retained. Missing/unsupported catalogue or any resource mismatch fails the build honestly. Target fingerprint version changes so affected browser artifacts are rebuilt.
+
+Role/IDs: existing browser target Build/Platform contracts. No pack/public core signatures or product namespace routing changes. Outside reads: generated SDK boot/resource copies and root Core output to establish the race. Only target Program changes because references/public contracts describe linkage but cannot make asynchronous SDK inputs immutable. Rebuild scope is selected browser target artifacts/link output; common contracts remain unchanged. Functional product UI and compiler locality gates remain separate.
+
+Focused verification invokes the *compiled target's* real integrity gate via reflection (no duplicated validator) against preserved real good and bad outputs:
+
+```
+DOTNET_CLI_HOME=/tmp/confectory-dotnet10 CONFECTORY_DOTNET=/workspace/toolchains/dotnet-10.0.401/dotnet python3 tests/web/verify_browser_bundle.py targets/browser-wasm/bin/Release/net10.0/Confectory.Build.BrowserWasm.dll /tmp/confectory-workspace-browser-final-build.json /tmp/confectory-workspace-browser-responsive-build.json
+```
+
+Result: good output accepted; original broken output rejected with `WASM published resource integrity mismatch: Confectory.Core.w199sjapaw.dll`. Native target build: zero warnings/errors. Actual rebuilt responsive product verification follows root integration; this focused pass alone is not product UI success.

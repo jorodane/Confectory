@@ -16,14 +16,19 @@ try {
   var delegated=Invoke(dotnet,new[]{compiler},request.ToJsonString());var result=JsonNode.Parse(delegated.Output)!.AsObject();
   if(operation=="fingerprint"){
    var hashes=OwnedFiles(assets).Order(StringComparer.Ordinal).Select(Hash).Concat(OwnedFiles(Path.Combine(AppContext.BaseDirectory,"templates")).Order(StringComparer.Ordinal).Select(Hash));
-   result["fingerprint"]="independent-browser-wasm-v1:"+Hash(compiler)+":"+Hash(metadata)+":"+string.Join(":",Directory.GetDirectories(workloadRoot).Select(Path.GetFileName))+":"+string.Join(":",hashes)+":"+result["fingerprint"];
+   result["fingerprint"]="independent-browser-wasm-v2-owned-references:"+Hash(compiler)+":"+Hash(metadata)+":"+string.Join(":",Directory.GetDirectories(workloadRoot).Select(Path.GetFileName))+":"+string.Join(":",hashes)+":"+result["fingerprint"];
    result["capabilities"]=JsonSerializer.SerializeToNode(new{runtime="browser-wasm",backendRequired=false,staticOutput=true,nativeFilesystem=false,dynamicCompilation=false});
   }
   Console.WriteLine(result.ToJsonString());return delegated.Exit;
  }
  string output=Path.GetFullPath(request["output"]!.GetValue<string>()),project=Path.Combine(output,"wasm-project");Directory.CreateDirectory(project);
  var references=request["references"]!.AsArray().Select(x=>x!.GetValue<string>()).Append(metadata).Distinct(StringComparer.Ordinal).ToArray();
- string items=string.Join("\n",references.Select(path=>$"<Reference Include=\"{Escape(Path.GetFileNameWithoutExtension(path))}\"><HintPath>{Escape(path)}</HintPath></Reference>"));
+ // SDK build and publish may read a HintPath at different times. Capture mutable
+ // consumer/tool outputs once so boot SRI and deployed bytes use the same input.
+ string referenceRoot=Path.Combine(project,"owned-references");Directory.CreateDirectory(referenceRoot);
+ var captured=new Dictionary<string,string>(StringComparer.OrdinalIgnoreCase);
+ foreach(string source in references){string name=Path.GetFileName(source),destination=Path.Combine(referenceRoot,name);if(captured.TryGetValue(name,out string? prior)){if(Hash(prior)!=Hash(source))throw new IOException("Conflicting browser reference filename: "+name);continue;}File.Copy(source,destination);captured.Add(name,destination);}
+ string items=string.Join("\n",captured.Values.Select(path=>$"<Reference Include=\"{Escape(Path.GetFileNameWithoutExtension(path))}\"><HintPath>{Escape(path)}</HintPath></Reference>"));
  foreach(var item in request["sources"]!.AsArray())File.Copy(item!.GetValue<string>(),Path.Combine(project,Path.GetFileName(item.GetValue<string>())));
  File.Copy(PackPaths.Owned(AppContext.BaseDirectory,"templates/Bridge.cs"),Path.Combine(project,"Bridge.cs"));
  File.Copy(PackPaths.Owned(AppContext.BaseDirectory,"templates/MetadataAuthoring.cs"),Path.Combine(project,"MetadataAuthoring.cs"));
@@ -41,8 +46,11 @@ try {
  var build=Invoke(dotnet,new[]{"publish",Path.Combine(project,"App.csproj"),"-c","Release","--nologo"},null,project);
  File.WriteAllText(Path.Combine(output,"browser-build.log"),build.Output+build.Error);
  if(build.Exit!=0)throw new InvalidOperationException("Browser/WASM SDK publish failed: "+build.Output+build.Error);
- string runtimeScript=Directory.GetFiles(project,"dotnet.js",SearchOption.AllDirectories).OrderByDescending(p=>p.Contains("publish",StringComparison.Ordinal)).FirstOrDefault(p=>Path.GetFileName(Path.GetDirectoryName(p))=="_framework")??throw new IOException("WASM SDK did not produce its static framework");
- string bundle=Path.GetDirectoryName(Path.GetDirectoryName(runtimeScript))!;
+ string bundle=Path.Combine(project,"bin","Release","net10.0","publish","wwwroot");
+ string runtimeScript=Path.Combine(bundle,"_framework","dotnet.js");
+ if(!File.Exists(runtimeScript))throw new IOException("WASM SDK did not produce its expected publish bundle");
+ VerifyBundle(bundle);
+
  string site=Path.Combine(output,"site");CopyTree(bundle,site);
  foreach(string file in OwnedFiles(assets))File.Copy(file,Path.Combine(site,Path.GetFileName(file)),true);
  string publicCatalog=request["resources"]!.AsArray().First(x=>x!["name"]!.ToString()=="public-linkage.json")!["path"]!.GetValue<string>();
@@ -59,3 +67,12 @@ static void CopyTree(string source,string destination){Directory.CreateDirectory
 
 static string OwnedOption(JsonObject request,string name){string relative=request["options"]?[name]?.GetValue<string>()??throw new ArgumentException("Target must declare "+name);if(Path.IsPathRooted(relative))throw new ArgumentException("Declared target resource must be relative: "+name);string path=PackPaths.Owned(AppContext.BaseDirectory,relative);if(!Directory.Exists(path)&&!File.Exists(path))throw new IOException("Declared target resource missing: "+path);return path;}
 static string[] OwnedFiles(string directory){directory=PackPaths.Owned(AppContext.BaseDirectory,Path.GetRelativePath(AppContext.BaseDirectory,directory));return Directory.GetFiles(directory).Select(path=>{PackPaths.Owned(AppContext.BaseDirectory,Path.GetRelativePath(AppContext.BaseDirectory,path));return path;}).ToArray();}
+
+static void VerifyBundle(string bundle){
+ string framework=Path.Combine(bundle,"_framework"),script=File.ReadAllText(Path.Combine(framework,"dotnet.js"));
+ const string begin="/*json-start*/",end="/*json-end*/";int start=script.IndexOf(begin,StringComparison.Ordinal),stop=script.IndexOf(end,StringComparison.Ordinal);
+ if(start<0||stop<=start)throw new IOException("WASM SDK boot integrity catalogue missing");
+ var boot=JsonNode.Parse(script[(start+begin.Length)..stop])??throw new IOException("WASM SDK boot catalogue invalid");int checkedFiles=0;
+ void Visit(JsonNode? node){if(node is JsonObject row){if(row["name"] is JsonValue nameNode&&row["hash"] is JsonValue hashNode){string name=nameNode.GetValue<string>(),expected=hashNode.GetValue<string>();if(!expected.StartsWith("sha256-",StringComparison.Ordinal))throw new IOException("Unsupported WASM integrity algorithm: "+name);string path=Path.GetFullPath(Path.Combine(framework,name));if(!path.StartsWith(framework+Path.DirectorySeparatorChar,StringComparison.Ordinal)||!File.Exists(path))throw new IOException("WASM boot resource missing or outside bundle: "+name);string actual="sha256-"+Convert.ToBase64String(SHA256.HashData(File.ReadAllBytes(path)));if(actual!=expected)throw new IOException("WASM published resource integrity mismatch: "+name);checkedFiles++;}foreach(var child in row)Visit(child.Value);}else if(node is JsonArray array)foreach(var child in array)Visit(child);}
+ Visit(boot);if(checkedFiles==0)throw new IOException("WASM boot catalogue contains no verified resources");
+}
