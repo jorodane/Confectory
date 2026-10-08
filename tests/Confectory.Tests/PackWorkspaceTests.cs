@@ -33,6 +33,11 @@ public sealed class PackWorkspaceTests : TestCase
  if(System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(b))!["query"]!.ToString()!="")throw new Exception("View filter leaked");
  var page=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(a,"page","{\"page\":999}"))!;if(page["page"]!.GetValue<int>()!=0)throw new Exception("Empty page not clamped");
  bool longRejected=false;try{calls.Command.Invoke(a,"filter",System.Text.Json.JsonSerializer.Serialize(new{query=new string('x',257)}));}catch(ArgumentException){longRejected=true;}if(!longRejected)throw new Exception("Unbounded filter accepted");
+ calls.Command.Invoke(a,"select","{\"id\":\"App::ZItem00\"}");
+ var declared=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(a,"inspect","{}"))!;if(declared["inspection"]!["relations"]!["edges"]!.AsArray().Count!=0||declared["inspectionRevision"]!.GetValue<long>()!=0)throw new Exception("Empty declaration inspection");
+ calls.Command.Invoke(a,"edit",System.Text.Json.JsonSerializer.Serialize(new{text="object App::ZItem00 extends Missing::Parent { module Missing::Role; }",expectedRevision=0}));
+ var changedInspection=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(a,"inspect","{}"))!;if(changedInspection["inspection"]!["relations"]!["edges"]!.AsArray().Count!=2||changedInspection["inspectionRevision"]!.GetValue<long>()!=1)throw new Exception("Inspection ignored selected draft");
+ Select(a);bool bodyRefused=false;try{calls.Command.Invoke(a,"inspect","{}");}catch(InvalidOperationException){bodyRefused=true;}if(!bodyRefused)throw new Exception("Body treated as declaration");
  var objects=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(a,"filter","{\"kind\":\"object\"}"))!;if(objects["total"]!.GetValue<int>()!=40||objects["units"]!.AsArray().Count!=32)throw new Exception("Kind pagination first page");
  var last=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(a,"page","{\"page\":1}"))!;if(last["units"]!.AsArray().Count!=8||last["units"]![0]!["id"]!.ToString()!="App::ZItem32")throw new Exception("Stable filtered page ordering");
  var reset=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(a,"filter","{}"))!;if(reset["total"]!.GetValue<int>()!=initial["total"]!.GetValue<int>()||reset["page"]!.GetValue<int>()!=0)throw new Exception("Filter reset failed");
@@ -61,6 +66,7 @@ public sealed class PackWorkspaceTests : TestCase
  try{Environment.SetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST",Path.Combine(Fixture.Repo,"targets","element-authoring","bin","Release","net10.0","Confectory.ElementAuthoring.dll"));Environment.SetEnvironmentVariable("CONFECTORY_TEST_AUTHOR_PROJECT",f.Project);
  var built=new Builder(project,"portable").Build();Output(built,"PackWorkspace independent contexts/revision/save/reopen PASS");
  File.AppendAllText(Path.Combine(f.Root,"packs","pack-workspace","Snapshot.csbody"),"\n// locality\n");var changed=new Builder(project,"portable").Build();PackRebuilt(changed, new[]{"Confectory.PackWorkspace::SnapshotBody"});Equal(0,Strings(changed,"statistics","compiledContracts").Length);
+ File.AppendAllText(Path.Combine(f.Root,"packs","pack-workspace","Command.csbody"),"\n// selected-inspection locality\n");var commandChanged=new Builder(project,"portable").Build();PackRebuilt(commandChanged,new[]{"Confectory.PackWorkspace::CommandBody"});Equal(0,Strings(commandChanged,"statistics","compiledContracts").Length);
  }finally{Environment.SetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST",host);Environment.SetEnvironmentVariable("CONFECTORY_TEST_AUTHOR_PROJECT",selected);}
  }
  public void test_target_metadata_owned_sources_no_registry_execution()
@@ -84,6 +90,8 @@ public sealed class PackWorkspaceTests : TestCase
  string payload=System.Text.Json.JsonSerializer.Serialize(new{project=Path.Combine(root,"project.cpack")});var metadata=JsonNode.Parse(MetadataAuthoring.Call(root,"describe",payload))!;
  if(metadata["units"]!.AsArray().Count!=4)throw new Exception("Owned unit description");
  var inspected=JsonNode.Parse(MetadataAuthoring.Call(root,"inspect","{\"text\":\"object Any.Renamed::Value { }\"}"))!;if(inspected["id"]!.GetValue<string>()!="Any.Renamed::Value")throw new Exception("Inspect identity");
+ var relationships=JsonNode.Parse(MetadataAuthoring.Call(root,"inspect",System.Text.Json.JsonSerializer.Serialize(new{text="module Any.Renamed::Rules extends Missing::Parent { module Missing::Role; include Missing::Child; require Missing::Function (int) -> int; default Missing::Function with Missing::Body; provide Missing::Function with Missing::Explicit; }"})))!["relations"]!;
+ if(relationships["scope"]!.ToString()!="declared"||relationships["edges"]!.AsArray().Count!=6||!System.Linq.Enumerable.Any(relationships["edges"]!.AsArray(),e=>e!["role"]!.ToString()=="provide"&&e["target"]!.ToString()=="Missing::Explicit"&&e["function"]!.ToString()=="Missing::Function"))throw new Exception("Target direct relationship contract");
  string created=System.Text.Json.JsonSerializer.Deserialize<string>(MetadataAuthoring.Call(root,"create",System.Text.Json.JsonSerializer.Serialize(new{kind="object",id="Any.Renamed::ProjectInfo"})))!;
  string changed=System.Text.Json.JsonSerializer.Deserialize<string>(MetadataAuthoring.Call(root,"setValue",System.Text.Json.JsonSerializer.Serialize(new{text=created,field="title",value="한글 🧁"})))!;
  if(JsonNode.Parse(MetadataAuthoring.Call(root,"inspect",System.Text.Json.JsonSerializer.Serialize(new{text=changed})))!["values"]!["title"]!.GetValue<string>()!="한글 🧁")throw new Exception("Scalar edit lost");
@@ -91,9 +99,13 @@ public sealed class PackWorkspaceTests : TestCase
  if(!registered.Contains("elements/ProjectInfo.celem",StringComparison.Ordinal)||!registered.Contains("../../missing-do-not-read.cpack",StringComparison.Ordinal))throw new Exception("Registration changed unrelated metadata");
  bool refused=false;try{MetadataAuthoring.Call(root,"validate",payload);}catch(PlatformNotSupportedException){refused=true;}if(!refused)throw new Exception("Compiler operation accepted");
  refused=false;try{MetadataAuthoring.Call(root,"describe",System.Text.Json.JsonSerializer.Serialize(new{project=Path.Combine(root,"..","outside.cpack")}));}catch{refused=true;}if(!refused)throw new Exception("Owned root escaped");
+ Console.WriteLine("RELATIONS:"+relationships.ToJsonString());
  Console.WriteLine("Target metadata owned units/inspect/compiler refusal PASS");
  }finally{Directory.Delete(root,true);}
  """);
  var result=Processes.Run(new[]{Environment.GetEnvironmentVariable("CONFECTORY_DOTNET")??"dotnet","run","--project",Path.Combine(folder,"check.csproj"),"-c","Release"},timeoutSeconds:120);True(result.ExitCode==0,result.Stdout+result.Stderr);True(result.Stdout.Contains("Target metadata owned units/inspect/compiler refusal PASS",StringComparison.Ordinal),result.Stdout+result.Stderr);
+ var desktop=Processes.Run(new[]{Processes.DotNet(),Path.Combine(Fixture.Repo,"targets","element-authoring","bin","Release","net10.0","Confectory.ElementAuthoring.dll")},input:System.Text.Json.JsonSerializer.Serialize(new{operation="inspect",text="module Any.Renamed::Rules extends Missing::Parent { module Missing::Role; include Missing::Child; require Missing::Function (int) -> int; default Missing::Function with Missing::Body; provide Missing::Function with Missing::Explicit; }"}),timeoutSeconds:30);
+ var expected=System.Text.Json.Nodes.JsonNode.Parse(desktop.Stdout)!;True(expected["ok"]!.GetValue<bool>(),desktop.Stdout);var targetRelations=System.Text.Json.Nodes.JsonNode.Parse(result.Stdout.Split('\n').Single(line=>line.StartsWith("RELATIONS:",StringComparison.Ordinal))[10..]);True(System.Text.Json.Nodes.JsonNode.DeepEquals(expected["result"]!["relations"],targetRelations),"Target relation replies differ");
+
  }
 }

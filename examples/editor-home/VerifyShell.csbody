@@ -8,6 +8,13 @@ try{
  var filtered=Run("workspace",new{context=contextA,action="filter",query=unitId.ToUpperInvariant(),kind="body"})["workspace"]!;Check(filtered["total"]!.GetValue<int>()==1&&filtered["unit"]!["id"]!.ToString()==unitId,"actual product ID/kind navigation");
  var empty=Run("workspace",new{context=contextA,action="filter",query="missing::unit"})["workspace"]!;Check(empty["total"]!.GetValue<int>()==0&&empty["selected"]!.ToString()==unitId,"navigation does not replace selection");
  var wrong=Run("workspace",new{context="stale",action="filter",query="wrong"});Check(wrong["status"]!.ToString().StartsWith("Error:")&&wrong["workspace"]!["query"]!.ToString()=="missing::unit","stale navigation context refused");
+ Run("workspace",new{context=contextA,action="select",id=unitId[..unitId.IndexOf("::",StringComparison.Ordinal)]+"::ProjectInfo"});
+ var inspected=Run("workspace",new{context=contextA,action="inspect"})["workspace"]!;Check(inspected["inspection"]!["kind"]!.ToString()=="object"&&inspected["inspection"]!["relations"]!["scope"]!.ToString()=="declared","actual selected element inspection");
+ string declaration=inspected["unit"]!["text"]!.ToString();long rev=inspected["unit"]!["revision"]!.GetValue<long>();
+ Run("workspace",new{context=contextA,action="open",text=declaration.Insert(declaration.LastIndexOf('}'),"module Missing::Role;"),expectedRevision=rev});
+ var draftInspection=Run("workspace",new{context=contextA,action="inspect"})["workspace"]!;Check(draftInspection["inspection"]!["relations"]!["edges"]!.AsArray().Count==1&&draftInspection["inspectionRevision"]!.GetValue<long>()==rev+1,"actual inspection reads draft without resolving missing target");
+ Run("workspace",new{context=contextA,action="open",text=declaration,expectedRevision=rev+1});
+ Run("workspace",new{context=contextA,action="select",id=unitId});
  Run("workspace",new{context=contextA,action="filter"});
  Run("shell",new{context=contextA,action="draft",value="A retained local draft"});System.IO.File.WriteAllText(System.IO.Path.Combine(System.IO.Path.GetDirectoryName(pathA)!,"main.csbody"),"Console.WriteLine(\"Shell child A\");while(true)System.Threading.Thread.Sleep(20);\n");Run("run",new{context=contextA,target="linux"});Wait(contextA,"running");
  var b=Run("create",new{title="ShellB",description="B intent",directory=root});string contextB=b["selected"]!["context"]!.ToString(),pathB=b["selected"]!["path"]!.ToString();Run("shell",new{context=contextB,action="draft",value="B isolated local draft"});System.IO.File.WriteAllText(System.IO.Path.Combine(System.IO.Path.GetDirectoryName(pathB)!,"main.csbody"),"Console.WriteLine(\"Shell child B\");while(true)System.Threading.Thread.Sleep(20);\n");Run("run",new{context=contextB,target="linux"});Wait(contextB,"running");

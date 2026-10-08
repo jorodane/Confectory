@@ -8,7 +8,7 @@ internal static class MetadataAuthoring
  {
  if(payload.Length>2097152)throw new ArgumentException("Metadata payload budget");
  var request=JsonNode.Parse(payload)!.AsObject();string S(string key)=>request[key]!.GetValue<string>();
- if(operation=="inspect"){string text=S("text");if(text.Length>1048576)throw new ArgumentException("Declaration budget");var e=new Parser(text,"<draft>").ParseElement();return new JsonObject{["id"]=e.Id,["kind"]=e.Kind,["parent"]=e.Parent,["description"]=e.Description,["signature"]=JsonSerializer.SerializeToNode(e.Signature),["values"]=JsonSerializer.SerializeToNode(e.Values.ToDictionary(x=>x.Key,x=>x.Value.Value))}.ToJsonString();}
+ if(operation=="inspect"){string text=S("text");if(text.Length>1048576)throw new ArgumentException("Declaration budget");var e=new Parser(text,"<draft>").ParseElement();return new JsonObject{["id"]=e.Id,["kind"]=e.Kind,["parent"]=e.Parent,["relations"]=DeclaredRelations.Describe(e),["description"]=e.Description,["signature"]=JsonSerializer.SerializeToNode(e.Signature),["values"]=JsonSerializer.SerializeToNode(e.Values.ToDictionary(x=>x.Key,x=>x.Value.Value))}.ToJsonString();}
 
  if(operation=="create"){string kind=S("kind"),id=S("id");if(kind is not ("category" or "concept" or "function" or "module" or "object" or "schema"))throw new ArgumentException("Unsupported authored kind");string text=kind+" "+id+(kind=="function"?" () -> int":"")+" { }\n";new Parser(text,"<new>").ParseElement();return JsonSerializer.Serialize(text);}
  if(operation=="setValue"){var element=new Parser(S("text"),"<draft>").ParseElement();var value=JsonSerializer.SerializeToElement(request["value"]);if(value.ValueKind is not (JsonValueKind.String or JsonValueKind.Number or JsonValueKind.True or JsonValueKind.False))throw new ArgumentException("Scalar metadata required");element.Values[S("field")]=new(value,element.Id,new());string text=Format(element);new Parser(text,"<draft>").ParseElement();return JsonSerializer.Serialize(text);}
@@ -61,4 +61,22 @@ static string FormatManifest(Manifest manifest)
     return text.AppendLine("}").ToString();
 }
 
+}
+
+internal static class DeclaredRelations
+{
+ public static JsonObject Describe(Element e)
+ {
+  var rows=new System.Collections.Generic.List<(string Role,string Target,string? Function)>();
+  if(e.Parent is not null)rows.Add(("parent",e.Parent,null));
+  foreach(var r in e.Modules)rows.Add(("module",r.Id,null));
+  foreach(var r in e.Includes)rows.Add(("include",r.Id,null));
+  foreach(var r in e.Requires)rows.Add(("require",r.Key,null));
+  foreach(var r in e.Defaults)rows.Add(("default",r.Value.Id,r.Key));
+  foreach(var r in e.Provides)rows.Add(("provide",r.Value.Id,r.Key));
+  var edges=new JsonArray();
+  foreach(var r in System.Linq.Enumerable.ThenBy(System.Linq.Enumerable.ThenBy(System.Linq.Enumerable.OrderBy(rows,x=>x.Role,StringComparer.Ordinal),x=>x.Target,StringComparer.Ordinal),x=>x.Function,StringComparer.Ordinal))
+   edges.Add(new JsonObject{["role"]=r.Role,["target"]=r.Target,["function"]=r.Function});
+  return new JsonObject{["scope"]="declared",["owner"]=e.Id,["edges"]=edges};
+ }
 }

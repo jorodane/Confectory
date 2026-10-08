@@ -2,6 +2,12 @@ var state=AppDomain.CurrentDomain.GetData("Confectory.PackWorkspace."+handle) as
 var request=System.Text.Json.Nodes.JsonNode.Parse(payload)?.AsObject()??throw new ArgumentException("Object payload required.");
 lock(state){if(state["closing"]!.GetValue<bool>())throw new ObjectDisposedException("PackWorkspace");string draft=state["draft"]!.GetValue<string>();bool conflict=false;
 switch(operation){
+case "inspect":{
+ string inspectedId=state["selected"]!.GetValue<string>();if(inspectedId=="")throw new InvalidOperationException("Select an owned declaration first.");
+ var u=calls.Read.Invoke(draft,inspectedId);if(u[1] is "body" or "project" or "pack")throw new InvalidOperationException("Direct relations require an element declaration.");
+ var inspectedReply=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(handle))!.AsObject();
+ inspectedReply["inspection"]=System.Text.Json.Nodes.JsonNode.Parse(calls.Inspect.Invoke(u[3]));inspectedReply["inspectionRevision"]=long.Parse(u[4],System.Globalization.CultureInfo.InvariantCulture);return inspectedReply.ToJsonString();
+}
 case "filter":{
  string query=request["query"]?.GetValue<string>()??"",kind=request["kind"]?.GetValue<string>()??"";
  if(query.Length>256||kind.Length>64)throw new ArgumentException("Navigation filter is too long.");
