@@ -89,6 +89,8 @@ Android packaging used installed JDK21/API36 and the existing local unsigned pac
 
 ## User and next-stage handoff
 
+2026-10-08 user verification update: the user reports Windows still operates normally after the pack-DLL integration, and reports pushing the verified work to main. Fetched origin/main c0ace90 includes the pack-DLL commits and initial Linux diagnostics. This is user-confirmed general Windows runtime acceptance, supplementing the earlier managed compilation evidence. No Windows speed measurements or individual keyboard/IME/dialog feature validation were supplied; those narrower claims are not inferred. The Linux GTK intermittent failure remains open as documented in LINUX_GTK_CHOOSER_DIAGNOSTIC.md.
+
 Pull/build this work branch with the existing .NET10 workflow. Expect one initial pack-layout cache miss without deleting old caches; subsequent unchanged build should report compile-contract=0, compile-pack=0, link=1. Element counts can remain 130 because they describe logical participants; inspect targetInvocations and distinct assembly paths for physical work. Windows users should capture two consecutive same-target latest.json reports and elapsed times so the earlier all-cold cache behavior can be diagnosed independently. Existing locally customized Android settings/keys should be preserved.
 
 Keep BaseUI/Window split as accepted. Do not add a mod loader, private cross-pack coupling, main merge or unrelated UI fixes to this increment. Follow-up UI failures and native platform acceptance above remain separately scoped. Public ABI consumers must rebuild against v2 before any future loader work.
