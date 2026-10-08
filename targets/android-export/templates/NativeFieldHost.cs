@@ -66,6 +66,9 @@ internal sealed class NativeFieldHost : IDisposable
                 edit.SetHighlightColor(global::Android.Graphics.Color.Rgb(69,103,122));field=new Field{Edit=edit,Binding=binding,Id=id,KeyListener=edit.KeyListener};fields.Add(key,field);overlay.AddView(edit);
                 var captured=field;edit.KeyPress+=(_,e)=>
                 {
+                    // Android's event binding starts Handled=true. Preserve native editing
+                    // unless this handler actually routes a registered application command.
+                    e.Handled=false;
                     int code=e.KeyCode switch{Keycode.Enter=>13,Keycode.Tab=>9,Keycode.Escape=>27,_=>0};
                     if(code==0||Composing(edit)||!captured.Commands.Contains(code))return;
                     foreach(int n in new[]{id,e.Event?.Action==KeyEventActions.Up?6:5,0,0,code,e.Event?.RepeatCount>0?1:0})events.Enqueue(n);e.Handled=true;

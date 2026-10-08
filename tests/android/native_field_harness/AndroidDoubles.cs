@@ -6,9 +6,10 @@ namespace Android.Text.Method { public interface IKeyListener {}public class Lis
 namespace Android.Text {public class Editable {public int Composition=-1;} }
 namespace Android.Views.InputMethods {public static class BaseInputConnection {public static int GetComposingSpanStart(Text.Editable e)=>e.Composition;}public enum ShowFlags{Implicit}public class InputMethodManager{public void ShowSoftInput(Widget.EditText e,ShowFlags f){} } }
 namespace Android.Views {
- public enum ViewStates {Visible,Gone}public enum MotionEventActions{Down}public enum Keycode{Enter,Tab,Escape}public enum KeyEventActions{Up,Down}
+ public enum ViewStates {Visible,Gone}public enum MotionEventActions{Down}public enum Keycode{DpadLeft=21,DpadRight=22,A=29,Space=62,Enter=66,Del=67,Tab=61,Escape=111,ForwardDel=112}public enum KeyEventActions{Down=0,Up=1}
  public class MotionEvent {public MotionEventActions ActionMasked;public float GetX()=>0;public float GetY()=>0;}
- public class KeyEvent{public KeyEventActions Action;public int RepeatCount;}public class KeyArgs:EventArgs{public Keycode KeyCode;public KeyEvent? Event;public bool Handled;}
+ // Matches installed Mono.Android View.IOnKeyListenerImplementor: new KeyEventArgs(true,...).
+ public class KeyEvent{public KeyEventActions Action;public int RepeatCount;}public class KeyArgs:EventArgs{public Keycode KeyCode;public KeyEvent? Event;public bool Handled=true;}
  public class ContextThemeWrapper:Content.Context{public int Style;public ContextThemeWrapper(Content.Context c,int s){Style=s;}}
  public class View:IDisposable {public object? Parent;public ViewGroup.LayoutParams LayoutParameters=null!;public ViewStates Visibility;public bool Enabled=true,Focusable=true,FocusableInTouchMode=true,HasFocus;public virtual bool OnTouchEvent(MotionEvent? e)=>true;public virtual void Draw(Graphics.Canvas? c){}public void Invalidate(){}public void ClearFocus(){HasFocus=false;}public void RequestFocus(){HasFocus=true;}protected virtual void Dispose(bool b){}public void Dispose(){Dispose(true);} }
  public class ViewGroup:View{public virtual void RemoveView(View v){v.Parent=null;}public class LayoutParams{public const int MatchParent=-1;public int Width,Height;public LayoutParams(int w,int h){Width=w;Height=h;} } }
