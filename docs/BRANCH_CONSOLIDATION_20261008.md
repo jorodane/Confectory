@@ -30,3 +30,9 @@ Verified explicit completed commit markers in the canonical stack reach **Checkp
 ## Verification
 
 Check Git bundle completeness/checksum, remote archive exact SHAs, ancestry from every deletion candidate to work/current, fresh PR state, final main/default/canonical refs, retained branches and clean working tree. Compare source trees excluding recovery/roadmap documents to `3ff6077`; no functional source may differ. No code tests are rerun for refs/documentation-only administration. Prior feature evidence remains unchanged in its own handoffs.
+
+## Completed result
+
+All seven planned owned remote branch names were deleted atomically with exact-SHA delete leases after archive verification. Every archive ref still matches its original SHA. Twenty-four remote heads remain: work/current plus the 23 retained original heads, including unchanged main. Their exact names/SHAs/reasons and deletion confirmations are in the ledger. Local feature/worktree branches remain, and the 15 non-ancestor local histories were not integrated or removed. The local remote fetch configuration originally fetched main only; an additive work/current mapping and its upstream were configured for future ordinary pulls. Only the seven verified-absent stale remote-tracking cache refs were removed. No forced update to work/current, main, or another branch tip was used; leases applied only to deletes.
+
+The source tree comparison to completed 3ff6077 shows only recovery/roadmap documents changed. The default branch remains main at f215a704522f9c256a4190f908d6016fe15ab3a6. This administration introduces no new functional checkpoint, schema decision or feature implementation.

@@ -565,5 +565,156 @@
     "stage18_document": "docs/CHECKPOINT_18_WORK_LOG.md",
     "new_checkpoint_assigned": false
   },
-  "deletion_results": []
+  "deletion_results": [
+    {
+      "branch": "declared-element-relations",
+      "sha": "372d686a84a1ec647f516b19f0893b02f11fd00f",
+      "backup_ref": "refs/tags/archive/branches/20261008/declared-element-relations",
+      "deleted": true,
+      "remote_archive_verified": true
+    },
+    {
+      "branch": "effective-metadata-explanation",
+      "sha": "347521bb0b774497670e208f398ade151e050a10",
+      "backup_ref": "refs/tags/archive/branches/20261008/effective-metadata-explanation",
+      "deleted": true,
+      "remote_archive_verified": true
+    },
+    {
+      "branch": "lazy-edit-materialization",
+      "sha": "3ff60772404567678e77af111d62e3d3975e923b",
+      "backup_ref": "refs/tags/archive/branches/20261008/lazy-edit-materialization",
+      "deleted": true,
+      "remote_archive_verified": true
+    },
+    {
+      "branch": "lazy-semantic-catalog",
+      "sha": "e532ce562591eba27eda4127a4d9bfe1aa377a43",
+      "backup_ref": "refs/tags/archive/branches/20261008/lazy-semantic-catalog",
+      "deleted": true,
+      "remote_archive_verified": true
+    },
+    {
+      "branch": "owned-element-navigation",
+      "sha": "4e9ff89ae3a56146ce067b06db2e8589d0224d29",
+      "backup_ref": "refs/tags/archive/branches/20261008/owned-element-navigation",
+      "deleted": true,
+      "remote_archive_verified": true
+    },
+    {
+      "branch": "relation-target-registration",
+      "sha": "6bcf5afb711bfa289ac61f147b5d6e975718622f",
+      "backup_ref": "refs/tags/archive/branches/20261008/relation-target-registration",
+      "deleted": true,
+      "remote_archive_verified": true
+    },
+    {
+      "branch": "required-function-signatures",
+      "sha": "447e473627c0b5d3a65e08a287cef69387e88948",
+      "backup_ref": "refs/tags/archive/branches/20261008/required-function-signatures",
+      "deleted": true,
+      "remote_archive_verified": true
+    }
+  ],
+  "completed_utc": "2026-10-08T18:09:46.544691+00:00",
+  "verified_retained_remote_branches": [
+    {
+      "branch": "android-native-key-pass-through",
+      "sha": "f215a704522f9c256a4190f908d6016fe15ab3a6"
+    },
+    {
+      "branch": "csharp-core",
+      "sha": "f1774b77b15f3f41039702214704b2d039226257"
+    },
+    {
+      "branch": "fix/checkpoint-11-sdk8",
+      "sha": "b017085d91ca88f7ff4d9a1c9c0ad4ee4095740d"
+    },
+    {
+      "branch": "fix/editor-windows-launcher",
+      "sha": "7f38520ba2de0b78f08239f41f0372aade3d3d00"
+    },
+    {
+      "branch": "fix/ui-navigation",
+      "sha": "c111a6c1fbf04470384779efa89e9132456296ef"
+    },
+    {
+      "branch": "integration/checkpoint-1",
+      "sha": "73d793fdd9784a447780cc1e01bd7155a3a15370"
+    },
+    {
+      "branch": "integration/checkpoint-11",
+      "sha": "a0f77a4d08dd6ddaa087de77697269a7b7cb7371"
+    },
+    {
+      "branch": "integration/checkpoint-12",
+      "sha": "302740dbd80a8a394d19a1920a41b94fddf3ae97"
+    },
+    {
+      "branch": "integration/checkpoint-13",
+      "sha": "831fd45da3bd6f15170a8ad2bc450f82b6626aaa"
+    },
+    {
+      "branch": "integration/checkpoint-14",
+      "sha": "234c246586698d66f4de54c26da96e48901b07c8"
+    },
+    {
+      "branch": "integration/checkpoint-15-entry-home",
+      "sha": "1f9343fd097c0038d6f664097734166094304b58"
+    },
+    {
+      "branch": "integration/checkpoint-16-project-shell",
+      "sha": "54dfa521fa8e29bea0ab0768d9faf83af3fb15fe"
+    },
+    {
+      "branch": "integration/checkpoint-17-project-navigation",
+      "sha": "bca15ceb590912d9e57cca072b75cd552189ffe3"
+    },
+    {
+      "branch": "integration/checkpoint-18-native-ui",
+      "sha": "1208272e08e1658d6989ec7e7abf5f3a9cfca0a1"
+    },
+    {
+      "branch": "integration/checkpoint-2",
+      "sha": "07ab2d735bf2387f7b3592d36082b08afb50b4f2"
+    },
+    {
+      "branch": "integration/checkpoint-3",
+      "sha": "4dbb7d7e3b5020e1182c2b34e7a1330a25a31e93"
+    },
+    {
+      "branch": "integration/checkpoint-4",
+      "sha": "4299f805558de827d3282c467e879a252b3c9636"
+    },
+    {
+      "branch": "integration/checkpoint-5",
+      "sha": "15bfc78ac829c08d08d6b20120bdef48deec7fd3"
+    },
+    {
+      "branch": "linux-gtk-chooser-fix",
+      "sha": "68d31982c57c0f0902616ca8b345f03a6b5f95f3"
+    },
+    {
+      "branch": "main",
+      "sha": "f215a704522f9c256a4190f908d6016fe15ab3a6"
+    },
+    {
+      "branch": "pack-dll-boundaries",
+      "sha": "a36751f45294eb5470ac5fac4a94ddedbc355e78"
+    },
+    {
+      "branch": "verify-csharp-core",
+      "sha": "b750d0d2b06acb738ffca5b442a8d78d4b58aa42"
+    },
+    {
+      "branch": "window-pack",
+      "sha": "4a7b07df510449c7ec49dc1e657ec94b67dcb752"
+    },
+    {
+      "branch": "work/current",
+      "sha": "f8381c67690a72ce86855398faac2b7fb9c39c30"
+    }
+  ],
+  "administration_head_before_final_record": "f8381c67690a72ce86855398faac2b7fb9c39c30",
+  "no_functional_changes": true
 }
