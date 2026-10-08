@@ -1,0 +1,4 @@
+implementation Confectory.SemanticCatalog::QueryBody for Confectory.SemanticCatalog::Query (string project, string request) -> string {
+import Confectory.SchemaEditing::Call as Call (string,string) -> string;
+body common "Query.csbody";
+}

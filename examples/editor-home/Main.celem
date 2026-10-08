@@ -1,4 +1,5 @@
 function Confectory.EditorHome::Main () -> int {
+provide Confectory.SemanticCatalog::Query with Confectory.SemanticCatalog::QueryBody;
 provide Confectory.Window::Capabilities with Confectory.Window::CapabilitiesBody;
 provide Confectory.UINavigation::Create with Confectory.UINavigation::CreateBody;
 provide Confectory.UINavigation::Route with Confectory.UINavigation::RouteBody;

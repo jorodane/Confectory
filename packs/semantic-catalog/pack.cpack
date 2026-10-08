@@ -1,0 +1,6 @@
+pack Confectory.SemanticCatalog version "0.1.0" {
+standalone false;
+dependency Confectory.SchemaEditing version "0.1.0";
+element Query function "Query.celem";
+element QueryBody implementation "QueryBody.celem";
+}

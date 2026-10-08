@@ -5,6 +5,7 @@ registry Confectory.PackWorkspace "../../packs/pack-workspace/pack.cpack"; depen
 registry Confectory.HostLoop "../../packs/host-loop/pack.cpack"; dependency Confectory.HostLoop version "0.1.0";
 registry Confectory.AndroidExport.Settings "../../packs/android-export-settings/pack.cpack"; dependency Confectory.AndroidExport.Settings version "0.1.0";
 element AndroidExport object "AndroidExport.celem";
+registry Confectory.SemanticCatalog "../../packs/semantic-catalog/pack.cpack"; dependency Confectory.SemanticCatalog version "0.1.0";
 registry Confectory.EditorHome.Model "../../packs/editor-home-model/pack.cpack"; dependency Confectory.EditorHome.Model version "0.1.0";
 registry Confectory.ProjectEntry "../../packs/project-entry/pack.cpack"; dependency Confectory.ProjectEntry version "0.1.0";
 registry Confectory.ProjectShell "../../packs/project-shell/pack.cpack"; dependency Confectory.ProjectShell version "0.1.0";

@@ -1,5 +1,6 @@
 pack Confectory.EditorHome.Model version "0.1.0" {
 standalone false;
+dependency Confectory.SemanticCatalog version "0.1.0";
 dependency Confectory.ChangeSet version "0.1.0";
 dependency Confectory.PackWorkspace version "0.1.0";
 dependency Confectory.EditWorkspace version "0.1.0";

@@ -1,0 +1,2 @@
+var query=System.Text.Json.Nodes.JsonNode.Parse(request)?.AsObject()??throw new ArgumentException("Catalog request object required.");
+return calls.Call.Invoke("catalog",new System.Text.Json.Nodes.JsonObject{["project"]=project,["request"]=query}.ToJsonString());

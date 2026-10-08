@@ -1,4 +1,5 @@
 function Confectory.EditorHome::Verify () -> int {
+provide Confectory.SemanticCatalog::Query with Confectory.SemanticCatalog::QueryBody;
 provide Confectory.EditorHome.Model::CreateSession with Confectory.EditorHome.Model::CreateSessionBody;
 provide Confectory.ProjectManager::CreateManager with Confectory.ProjectManager::CreateManagerBody;
 provide Confectory.ProjectExecution::CreateSession with Confectory.ProjectExecution::CreateSessionBody;

@@ -1,0 +1,1 @@
+function Confectory.SemanticCatalog::Query (string project, string request) -> string {description "Read selected owner manifest locators and requested declaration without opening an editing workspace.";}
