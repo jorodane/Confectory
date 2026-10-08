@@ -30,6 +30,7 @@ public sealed class MainActivity : Activity,Choreographer.IFrameCallback
         AppDomain.CurrentDomain.SetData("Confectory.Android.NativeUI",(Func<string,string,string,long,string>)NativeRequest);
         AppContext.SetData("Confectory.HostLoop.Run.android",(Func<string,int>)Run);
         AppDomain.CurrentDomain.SetData("Confectory.Android.ProjectEntry",(Func<string,string,string,string>)EntryRequest);
+        AppDomain.CurrentDomain.SetData("Confectory.SchemaEditing.TargetCall",(Func<string,string,string>)((operation,payload)=>MetadataAuthoring.Call(storage,operation,payload)));
         AppDomain.CurrentDomain.SetData("Confectory.Android.DescribeProject",(Func<string,string[]>)Describe);
         try{int result=PackEntry.Run();if(step is null)surface.Diagnostic="Project entry completed ("+result+"); no presentation loop was registered.";AcceptIntent(Intent);}
         catch{try{Retire();}finally{ClearAdapters();}throw;}
@@ -176,6 +177,7 @@ public sealed class MainActivity : Activity,Choreographer.IFrameCallback
     void ClearAdapters()
     {
         if(!ReferenceEquals(AppDomain.CurrentDomain.GetData("Confectory.Android.Host.Owner"),owner))return;
+        AppDomain.CurrentDomain.SetData("Confectory.SchemaEditing.TargetCall",null);
         AppDomain.CurrentDomain.SetData("Confectory.Android.Host.Owner",null);AppDomain.CurrentDomain.SetData("Confectory.Android.Window",null);AppDomain.CurrentDomain.SetData("Confectory.Android.NativeUI",null);AppContext.SetData("Confectory.HostLoop.Run.android",null);AppDomain.CurrentDomain.SetData("Confectory.Android.ProjectEntry",null);AppDomain.CurrentDomain.SetData("Confectory.Android.DescribeProject",null);
     }
     protected override void OnDestroy()

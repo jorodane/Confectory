@@ -27,6 +27,7 @@ public static partial class Bridge
             var manifest=new Parser(text,file).ParseManifest();
             return new[]{manifest.Namespace,manifest.Entry??"",string.Join(",",manifest.Targets.Keys.Order(StringComparer.Ordinal)),manifest.Kind,manifest.SupportsStandalone?"true":"false"};
         }));
+        AppDomain.CurrentDomain.SetData("Confectory.SchemaEditing.TargetCall",(Func<string,string,string>)((operation,payload)=>MetadataAuthoring.Call(root,operation,payload)));
         try{int result=global::Program.Main();initialized=result==0;return result;}catch(Exception error){Console.Error.WriteLine(error.ToString());throw;}
     }
     [JSExport]
@@ -95,6 +96,7 @@ public static partial class Bridge
         if(errors.Count>0)throw new AggregateException("Browser owners remain available for cleanup retry",errors);
         if(active.Count>0)return false;
         (AppDomain.CurrentDomain.GetData("Confectory.Browser.Close") as Action)?.Invoke();
+        AppDomain.CurrentDomain.SetData("Confectory.SchemaEditing.TargetCall",null);
         AppDomain.CurrentDomain.SetData("Confectory.Browser.Metadata",null);AppDomain.CurrentDomain.SetData("Confectory.Browser.Render",null);AppContext.SetData("Confectory.Browser.Platform",null);AppContext.SetData("Confectory.HostLoop.Run.browser",null);AppContext.SetData("Confectory.HostLoop.Close.browser",null);initialized=false;return true;
     }
 }

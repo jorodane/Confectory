@@ -44,7 +44,7 @@ var androidManifest=System.Xml.Linq.XDocument.Load(Path.Combine(output,"AndroidM
 androidManifest.Root!.Element("uses-sdk")!.SetAttributeValue(System.Xml.Linq.XName.Get("targetSdkVersion","http://schemas.android.com/apk/res/android"),settings.TargetSdk);
 androidManifest.Save(Path.Combine(output,"AndroidManifest.xml"));
 File.WriteAllText(Path.Combine(output,"bundle-config.json"),JsonSerializer.Serialize(new{optimizations=new{uncompressNativeLibraries=new{enabled=true,alignment="PAGE_ALIGNMENT_16K"}}}));
-foreach(string template in new[]{"GenericActivity.cs","NativeFieldHost.cs","AndroidDocumentImport.cs"})
+foreach(string template in new[]{"GenericActivity.cs","NativeFieldHost.cs","AndroidDocumentImport.cs","MetadataAuthoring.cs"})
  File.Copy(Path.Combine(templateRoot,template),Path.Combine(output,template=="GenericActivity.cs"?"MainActivity.cs":template));
 string core=typeof(Parser).Assembly.Location;File.Copy(core,Path.Combine(managed,"Confectory.Core.dll"),true);
 if(!references.Contains("Confectory.Core.dll"))references.Add("Confectory.Core.dll");

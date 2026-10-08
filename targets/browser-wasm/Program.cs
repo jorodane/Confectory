@@ -26,6 +26,8 @@ try {
  string items=string.Join("\n",references.Select(path=>$"<Reference Include=\"{Escape(Path.GetFileNameWithoutExtension(path))}\"><HintPath>{Escape(path)}</HintPath></Reference>"));
  foreach(var item in request["sources"]!.AsArray())File.Copy(item!.GetValue<string>(),Path.Combine(project,Path.GetFileName(item.GetValue<string>())));
  File.Copy(PackPaths.Owned(AppContext.BaseDirectory,"templates/Bridge.cs"),Path.Combine(project,"Bridge.cs"));
+ File.Copy(PackPaths.Owned(AppContext.BaseDirectory,"templates/MetadataAuthoring.cs"),Path.Combine(project,"MetadataAuthoring.cs"));
+
  foreach(string file in OwnedFiles(assets))File.Copy(file,Path.Combine(project,Path.GetFileName(file)));
  string resources=string.Join("\n",request["resources"]!.AsArray().Select(item=>$"<EmbeddedResource Include=\"{Escape(item!["path"]!.GetValue<string>())}\"><LogicalName>{Escape(item["name"]!.GetValue<string>())}</LogicalName></EmbeddedResource>"));
  File.WriteAllText(Path.Combine(project,"App.csproj"),$"""

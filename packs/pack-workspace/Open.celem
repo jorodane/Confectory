@@ -1,0 +1,13 @@
+function Confectory.PackWorkspace::Open (string project, string participant, string context) -> string {
+provide Confectory.PackWorkspace::Open with Confectory.PackWorkspace::OpenBody;
+provide Confectory.EditWorkspace::Open with Confectory.EditWorkspace::OpenBody;
+provide Confectory.EditWorkspace::Close with Confectory.EditWorkspace::CloseBody;
+provide Confectory.EditWorkspace::Identity with Confectory.EditWorkspace::IdentityBody;
+provide Confectory.EditWorkspace::Restore with Confectory.EditWorkspace::RestoreBody;
+provide Confectory.SchemaEditing::Describe with Confectory.SchemaEditing::DescribeBody;
+provide Confectory.SchemaEditing::Call with Confectory.SchemaEditing::CallBody;
+provide Confectory.FileStream::Snapshot with Confectory.FileStream::SnapshotBody;
+provide Confectory.Save::Restore with Confectory.Save::RestoreBody;
+provide Confectory.Save::Read with Confectory.Save::ReadBody;
+provide Confectory.Save::Location with Confectory.Save::LocationBody;
+description "Explicit bounded source workspace open.";}

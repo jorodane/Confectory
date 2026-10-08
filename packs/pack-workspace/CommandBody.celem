@@ -1,0 +1,8 @@
+implementation Confectory.PackWorkspace::CommandBody for Confectory.PackWorkspace::Command (string handle, string operation, string payload) -> string {
+import Confectory.PackWorkspace::Snapshot as Snapshot (string) -> string;
+import Confectory.EditWorkspace::List as List (string) -> string[];
+import Confectory.EditWorkspace::Read as Read (string, string) -> string[];
+import Confectory.EditWorkspace::SetTextIfRevision as Edit (string, string, string, long) -> bool;
+import Confectory.Save::Write as Save (string) -> string;
+body common "Command.csbody";
+}

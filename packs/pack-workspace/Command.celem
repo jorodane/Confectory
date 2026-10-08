@@ -1,0 +1,15 @@
+function Confectory.PackWorkspace::Command (string handle, string operation, string payload) -> string {
+provide Confectory.PackWorkspace::Command with Confectory.PackWorkspace::CommandBody;
+provide Confectory.PackWorkspace::Snapshot with Confectory.PackWorkspace::SnapshotBody;
+provide Confectory.EditWorkspace::List with Confectory.EditWorkspace::ListBody;
+provide Confectory.EditWorkspace::Read with Confectory.EditWorkspace::ReadBody;
+provide Confectory.EditWorkspace::Identity with Confectory.EditWorkspace::IdentityBody;
+provide Confectory.EditWorkspace::SetTextIfRevision with Confectory.EditWorkspace::SetTextIfRevisionBody;
+provide Confectory.EditWorkspace::Export with Confectory.EditWorkspace::ExportBody;
+provide Confectory.SchemaEditing::Inspect with Confectory.SchemaEditing::InspectBody;
+provide Confectory.SchemaEditing::Call with Confectory.SchemaEditing::CallBody;
+provide Confectory.FileStream::Snapshot with Confectory.FileStream::SnapshotBody;
+provide Confectory.FileStream::Commit with Confectory.FileStream::CommitBody;
+provide Confectory.Save::Write with Confectory.Save::WriteBody;
+provide Confectory.Save::Location with Confectory.Save::LocationBody;
+description "Explicit bounded source workspace command.";}

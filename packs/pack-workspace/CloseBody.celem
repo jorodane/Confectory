@@ -1,0 +1,4 @@
+implementation Confectory.PackWorkspace::CloseBody for Confectory.PackWorkspace::Close (string handle) -> void {
+import Confectory.EditWorkspace::Close as CloseDraft (string) -> void;
+body common "Close.csbody";
+}

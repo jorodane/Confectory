@@ -1,0 +1,6 @@
+lock(AppDomain.CurrentDomain){
+string draft=calls.OpenDraft.Invoke(project,participant,context),key="Confectory.PackWorkspace.Draft."+draft;
+int owners=AppDomain.CurrentDomain.GetData(key) is int count?count:0;
+if(owners==0){try{calls.Restore.Invoke(draft);}catch(Exception startup){try{calls.CloseDraft.Invoke(draft);}catch(Exception cleanup){throw new AggregateException("Workspace restore and cleanup failed.",startup,cleanup);}throw;}}
+string handle=Guid.NewGuid().ToString("N");
+AppDomain.CurrentDomain.SetData("Confectory.PackWorkspace."+handle,new System.Text.Json.Nodes.JsonObject{["draft"]=draft,["selected"]="",["page"]=0,["closing"]=false});AppDomain.CurrentDomain.SetData(key,owners+1);return handle;}

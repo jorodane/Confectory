@@ -1,0 +1,4 @@
+function Confectory.PackWorkspace::Close (string handle) -> void {
+provide Confectory.PackWorkspace::Close with Confectory.PackWorkspace::CloseBody;
+provide Confectory.EditWorkspace::Close with Confectory.EditWorkspace::CloseBody;
+description "Explicit bounded source workspace close.";}

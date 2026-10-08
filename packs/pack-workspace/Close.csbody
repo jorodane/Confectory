@@ -1,0 +1,4 @@
+lock(AppDomain.CurrentDomain){if(AppDomain.CurrentDomain.GetData("Confectory.PackWorkspace."+handle) is not System.Text.Json.Nodes.JsonObject state)return;
+lock(state){state["closing"]=true;string draft=state["draft"]!.GetValue<string>(),key="Confectory.PackWorkspace.Draft."+draft;int owners=AppDomain.CurrentDomain.GetData(key) is int count?count:1;
+if(owners<=1){calls.CloseDraft.Invoke(draft);AppDomain.CurrentDomain.SetData(key,null);}else AppDomain.CurrentDomain.SetData(key,owners-1);
+AppDomain.CurrentDomain.SetData("Confectory.PackWorkspace."+handle,null);}}

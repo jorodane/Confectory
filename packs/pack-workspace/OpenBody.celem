@@ -1,0 +1,6 @@
+implementation Confectory.PackWorkspace::OpenBody for Confectory.PackWorkspace::Open (string project, string participant, string context) -> string {
+import Confectory.EditWorkspace::Open as OpenDraft (string, string, string) -> string;
+import Confectory.Save::Restore as Restore (string) -> void;
+import Confectory.EditWorkspace::Close as CloseDraft (string) -> void;
+body common "Open.csbody";
+}
