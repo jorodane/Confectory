@@ -4,6 +4,56 @@ namespace Confectory.Tests;
 
 public sealed class CoreTests : TestCase
 {
+    public void test_direct_schema_fields_data_inheritance_and_reference_cycles()
+    {
+        f.Add("App", "schema", "Shape", "schema App::Shape { field name single general string; field n single general int; field flags multiple general bool; field child single compound App::Leaf; field peer single reference App::Shape; field callback single function Api::Value; }");
+        f.Add("App", "schema", "Leaf", "schema App::Leaf { field enabled single general bool; }");
+        f.Add("App", "schema", "Derived", "schema App::Derived extends App::Shape { field note single general string; }");
+        f.Add("App", "object", "A", "object App::A { use schema App::Derived; data name = \"\"; data n = 0; data flags = [false, true]; data child = { enabled = false; }; data peer = App::B; data callback = Provider::ValueBody; }");
+        f.Add("App", "object", "B", "object App::B { use schema App::Shape; data peer = App::A; }");
+        f.Add("App", "object", "C", "object App::C extends App::A { data n = 2; }");
+        f.Main("provide Api::Value with Provider::ValueBody; use object App::C;"); f.Sync();
+        var r = f.Registry(); var before = JsonData.Digest(r.Get("App::A"));
+        var plan = f.Plan(); True(plan.Reached.IsSupersetOf(["App::Shape", "App::Leaf", "App::Derived", "App::A", "App::B", "App::C"])); True(!plan.Bindings.ContainsKey(new("App::C", "Api::Value")), "A data function association implicitly selected a provider");
+        Equal(2, r.Effective("App::C").Data["n"].Scalar!.Value.GetInt32()); Equal("App::A", r.Effective("App::C").Data["name"].Origin); Equal(before, JsonData.Digest(r.Get("App::A")));
+        Equal("App::Shape", r.Effective("App::Derived").Fields["name"].Origin);
+        var original = r.Get("App::A"); var formatted = "object App::A { use schema App::Derived; " + SchemaContracts.FormatDeclarations(original) + " }";
+        Equal(6, new Parser(formatted, "roundtrip").ParseElement().Data.Count);
+    }
+    public void test_direct_schema_diagnostics_and_unset_compatibility()
+    {
+        f.Add("App", "schema", "Shape", "schema App::Shape { field n single general int; }");
+        f.Add("App", "object", "O", "object App::O { use schema App::Shape; value legacy = false; }"); f.Sync(); SchemaContracts.Validate(f.Registry(), "App::O");
+        foreach (var data in new[] { "data n = false;", "data n = [1];", "data n = 2147483648;", "data unknown = 0;" })
+        { f.Add("App", "object", "O", "object App::O { use schema App::Shape; " + data + " }"); f.Sync(); Error(data.Contains("unknown") ? "SCHEMA_UNKNOWN_FIELD" : "SCHEMA_TYPE", () => SchemaContracts.Validate(f.Registry(), "App::O")); }
+        f.Add("App", "schema", "Child", "schema App::Child extends App::Shape { field n multiple general int; }"); f.Sync(); Error("SCHEMA_INHERITANCE", () => f.Registry().Effective("App::Child"));
+        Error("DUPLICATE_DECLARATION", () => new Parser("schema X::S { field n single general int; field n single general int; }", "dup").ParseElement());
+        Error("SCHEMA_CARDINALITY", () => new Parser("schema X::S { field n single general int[]; }", "array").ParseElement());
+        f.Add("App", "schema", "Cycle", "schema App::Cycle { field child single compound App::Cycle; }"); f.Sync(); Error("STRUCTURAL_CYCLE", () => new Planner(f.Registry(), "portable").Structural("App::Cycle"));
+        f.Add("App", "schema", "Wrong", "schema App::Wrong { field callback single function App::Shape; }"); f.Sync(); Error("ELEMENT_KIND", () => SchemaContracts.Validate(f.Registry(), "App::Wrong"));
+        f.Add("App", "schema", "Missing", "schema App::Missing { field peer single reference Api::Absent; }"); f.Sync(); Error("MISSING_ELEMENT", () => SchemaContracts.Validate(f.Registry(), "App::Missing"));
+        f.Add("App", "schema", "Other", "schema App::Other { field n single general int; }");
+        f.Add("App", "object", "O", "object App::O { use schema App::Shape; use schema App::Other; }"); f.Sync(); Error("SCHEMA_AMBIGUITY", () => SchemaContracts.Fields(f.Registry(), "App::O"));
+    }
+
+    public void test_direct_schema_reference_contract_dependency_and_transport_safety()
+    {
+        f.Add("App", "schema", "Shape", "schema App::Shape { field peer single reference App::Shape; field call single function Api::Value; }");
+        f.Add("App", "object", "Target", "object App::Target {}");
+        f.Add("App", "object", "O", "object App::O { use schema App::Shape; data peer = App::Target; }"); f.Sync(); Error("SCHEMA_REFERENCE", () => SchemaContracts.Validate(f.Registry(), "App::O"));
+        f.Add("App", "object", "O", "object App::O { use schema App::Shape; data call = Api::Value; }"); f.Sync(); Error("ELEMENT_KIND", () => SchemaContracts.Validate(f.Registry(), "App::O"));
+        f.Add("Api", "function", "Other", "function Api::Other () -> int {}");
+        f.Add("Provider", "implementation", "OtherBody", "implementation Provider::OtherBody for Api::Other () -> int { body common \"value.csbody\"; }");
+        f.Add("App", "object", "O", "object App::O { use schema App::Shape; data call = Provider::OtherBody; }"); f.Sync(); Error("IMPLEMENTATION_ID", () => SchemaContracts.Validate(f.Registry(), "App::O"));
+        f.Add("Provider", "implementation", "ValueBody", "implementation Provider::ValueBody for Api::Value (string n) -> int { body common \"value.csbody\"; }");
+        f.Add("App", "object", "O", "object App::O { use schema App::Shape; data call = Provider::ValueBody; }"); f.Sync(); Error("CONTRACT_MISMATCH", () => SchemaContracts.Validate(f.Registry(), "App::O"));
+        f.Packs["App"].Dependencies.Remove("Api"); f.Sync(); Error("UNDECLARED_DEPENDENCY", () => SchemaContracts.Validate(f.Registry(), "App::Shape"));
+        var e = new Parser("object X::O {}", "draft").ParseElement();
+        using var hostile = System.Text.Json.JsonDocument.Parse("{\"a = 0; b\":1}"); Error("IDENTIFIER", () => SchemaContracts.SetData(e, "x", hostile.RootElement));
+        using var nullData = System.Text.Json.JsonDocument.Parse("null"); Error("SCHEMA_DATA", () => SchemaContracts.SetData(e, "x", nullData.RootElement)); Equal(0, e.Data.Count);
+        using var refData = System.Text.Json.JsonDocument.Parse("{\"$ref\":\"X::O; value hacked = 1\"}"); Error("IDENTIFIER", () => SchemaContracts.SetData(e, "x", refData.RootElement)); Equal(0, e.Data.Count);
+    }
+
     public void test_namespace_qualified_same_local_id()
     {
         f.Add("Api", "object", "Same", "object Api::Same {}"); f.Add("Provider", "object", "Same", "object Provider::Same {}");

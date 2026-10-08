@@ -1,3 +1,5 @@
+> Superseded decision: the user approved direct `.celem` declarations. See [implemented grammar, product path and verification](DIRECT_SCHEMA_FIELDS.md). The older pending-question audit below is retained as history.
+
 # Schema representation decision and layout-independent editor status
 
 This audit continues `7585892`. It does not implement either schema representation, a new schema type system, semantic merge or a new UI. A small independent declared-reference inspection gap is addressed separately below. Overall editor functionality is incomplete.

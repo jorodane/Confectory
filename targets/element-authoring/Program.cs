@@ -63,7 +63,11 @@ try
         case "inspect":
         {
             var element=new Parser(S("text"),"<draft>").ParseElement();
-            reply=new JsonObject{["id"]=element.Id,["kind"]=element.Kind,["parent"]=element.Parent,["relations"]=DeclaredRelations.Describe(element),["description"]=element.Description,["signature"]=JsonSerializer.SerializeToNode(element.Signature),["editor"]=AlgorithmProjectionOperations.Editor(element),["values"]=JsonSerializer.SerializeToNode(element.Values.ToDictionary(x=>x.Key,x=>x.Value.Value))};break;
+            reply=new JsonObject{["id"]=element.Id,["kind"]=element.Kind,["parent"]=element.Parent,["relations"]=DeclaredRelations.Describe(element),["description"]=element.Description,["signature"]=JsonSerializer.SerializeToNode(element.Signature),["editor"]=AlgorithmProjectionOperations.Editor(element),["fields"]=JsonSerializer.SerializeToNode(element.Fields),["data"]=JsonSerializer.SerializeToNode(element.Data),["values"]=JsonSerializer.SerializeToNode(element.Values.ToDictionary(x=>x.Key,x=>x.Value.Value))};break;
+        }
+        case "setField": case "setData":
+        {
+            var element=new Parser(S("text"),"<draft>").ParseElement();if(S("operation")=="setField")SchemaContracts.SetField(element,S("field"),JsonSerializer.SerializeToElement(request["value"]));else SchemaContracts.SetData(element,S("field"),JsonSerializer.SerializeToElement(request["value"]));string formatted=Format(element);new Parser(formatted,"<draft>").ParseElement();reply=JsonValue.Create(formatted);break;
         }
         case "setValue":
         {
@@ -152,6 +156,7 @@ static string Format(Element element)
     foreach(var (id,value) in element.Provides)text.AppendLine("provide "+id+" with "+value.Id+";");
     foreach(var value in element.Uses)text.AppendLine("use "+value.Kind+" "+value.Id+";");
     foreach(var value in element.Contains)text.AppendLine("contain "+value.Kind+" "+value.Id+";");
+    text.Append(SchemaContracts.FormatDeclarations(element));
     foreach(var (name,value) in element.Values)text.AppendLine("value "+name+" = "+value.Value.GetRawText()+";");
     foreach(var (alias,value) in element.Imports)text.AppendLine("import "+value.Id+" as "+alias+" "+Signature(value.Signature,false)+(value.Scope is null?"":" in "+value.Scope)+";");
     foreach(var (target,value) in element.Bodies)text.AppendLine("body "+target+" "+Quote(value.Path)+";");

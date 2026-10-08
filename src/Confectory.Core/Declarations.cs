@@ -29,6 +29,9 @@ public sealed record Import(string Id, FunctionSignature Signature, string? Scop
 public sealed record Body(string Path, SourceLocation Loc, string Origin);
 public sealed record MetadataValue(JsonElement Value, string Origin, SourceLocation Loc);
 
+public sealed record SchemaField(string Cardinality, string Kind, string Type, string Origin, SourceLocation Loc);
+public sealed record SchemaDatum(string Kind, JsonElement? Scalar, string? Reference, List<SchemaDatum>? Items, Dictionary<string, SchemaDatum>? Members, string Origin, SourceLocation Loc);
+
 public sealed class Manifest
 {
     public string Kind { get; set; } = "";
@@ -59,6 +62,8 @@ public sealed class Element
     public Dictionary<string, ElementReference> Provides { get; set; } = new(StringComparer.Ordinal);
     public List<ElementReference> Uses { get; set; } = [];
     public List<ElementReference> Contains { get; set; } = [];
+    public Dictionary<string, SchemaField> Fields { get; set; } = new(StringComparer.Ordinal);
+    public Dictionary<string, SchemaDatum> Data { get; set; } = new(StringComparer.Ordinal);
     public Dictionary<string, MetadataValue> Values { get; set; } = new(StringComparer.Ordinal);
     public Dictionary<string, Import> Imports { get; set; } = new(StringComparer.Ordinal);
     public Dictionary<string, Body> Bodies { get; set; } = new(StringComparer.Ordinal);
@@ -174,6 +179,34 @@ public sealed class Parser
         if (!map.TryAdd(key, value)) throw new BuildError("DUPLICATE_DECLARATION", $"Duplicate declaration {key}", loc);
     }
 
+    private SchemaDatum Datum(string origin, int depth = 0)
+    {
+        if (depth > 64) throw new BuildError("SCHEMA_DEPTH", "Typed data nesting exceeds 64", Current.Loc);
+        var loc = Current.Loc;
+        if (Eat("["))
+        {
+            List<SchemaDatum> items = [];
+            while (!Eat("]")) { items.Add(Datum(origin, depth + 1)); if (Eat("]")) break; Expect(","); }
+            return new("multiple", null, null, items, null, origin, loc);
+        }
+        if (Eat("{"))
+        {
+            Dictionary<string, SchemaDatum> members = new(StringComparer.Ordinal);
+            while (!Eat("}")) { string name = Name(); Expect("="); Unique(members, name, Datum(origin, depth + 1), loc); Expect(";"); }
+            return new("compound", null, null, null, members, origin, loc);
+        }
+        if (!Current.Quoted && Regex.IsMatch(Current.Value, "\\A(?:" + QualifiedPattern + ")\\z"))
+            return new("reference", null, Name(true), null, null, origin, loc);
+        var token = Pop();
+        try
+        {
+            var value = token.Quoted ? JsonSerializer.SerializeToElement(token.Value) : JsonSerializer.Deserialize<JsonElement>(token.Value);
+            if (value.ValueKind is not (JsonValueKind.String or JsonValueKind.Number or JsonValueKind.True or JsonValueKind.False)) throw new JsonException("Primitive required");
+            return new("general", value, null, null, null, origin, loc);
+        }
+        catch (JsonException ex) { throw new BuildError("SCHEMA_DATA", ex.Message, token.Loc); }
+    }
+
     public Manifest ParseManifest()
     {
         var first = Pop();
@@ -240,6 +273,15 @@ public sealed class Parser
                 case "use": case "contain":
                     string kind = Kind(); var reference = new ElementReference(Name(true), token.Loc, e.Id, kind);
                     (token.Value == "use" ? e.Uses : e.Contains).Add(reference); break;
+                case "field" when e.Kind == "schema":
+                    string fieldName = Name(), cardinality = Name();
+                    if (cardinality is not ("single" or "multiple")) throw new BuildError("SCHEMA_CARDINALITY", "Expected single or multiple", token.Loc);
+                    string fieldKind = Name(), fieldType;
+                    if (fieldKind is "compound" or "reference" or "function") fieldType = Name(true);
+                    else { if (fieldKind != "general") throw new BuildError("SCHEMA_FIELD_KIND", "Expected general, compound, reference or function", token.Loc); fieldType = Type(true); if (fieldType.EndsWith("[]", StringComparison.Ordinal)) throw new BuildError("SCHEMA_CARDINALITY", "Use multiple instead of an array field type", token.Loc); }
+                    Unique(e.Fields, fieldName, new(cardinality, fieldKind, fieldType, e.Id, token.Loc), token.Loc); break;
+                case "data" when e.Kind == "object":
+                    string dataName = Name(); Expect("="); Unique(e.Data, dataName, Datum(e.Id), token.Loc); break;
                 case "value":
                     string name = Name(); Expect("="); var value = Pop(); JsonElement data;
                     try

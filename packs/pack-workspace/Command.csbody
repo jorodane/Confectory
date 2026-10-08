@@ -30,13 +30,13 @@ case "effective":{
  }
  return inspectedReply.ToJsonString();
 }
-case "value":{
+case "value": case "data": case "field":{
  string selectedValue=state["selected"]!.GetValue<string>();if(selectedValue=="")throw new InvalidOperationException("Select an owned declaration first.");
  var u=calls.Read.Invoke(draft,selectedValue);if(u[1] is "body" or "project" or "pack")throw new InvalidOperationException("Scalar values require an element declaration.");
  long expectedValue=request["expectedRevision"]!.GetValue<long>();if(expectedValue<0)throw new ArgumentOutOfRangeException("expectedRevision");
  if(long.Parse(u[4],System.Globalization.CultureInfo.InvariantCulture)!=expectedValue){conflict=true;state["review"]=null;break;}
  if(request["value"] is null)throw new ArgumentException("An explicit primitive value is required.");
- string formatted=calls.SetValue.Invoke(u[3],request["field"]!.GetValue<string>(),request["value"]!.ToJsonString());if(formatted.Length>1048576)throw new ArgumentException("Draft exceeds one million characters.");
+ string formatted=(operation is "data" or "field")?System.Text.Json.JsonSerializer.Deserialize<string>(calls.Locate.Invoke(operation=="field"?"setField":"setData",System.Text.Json.JsonSerializer.Serialize(new{text=u[3],field=request["field"]!.GetValue<string>(),value=request["value"]})))!:calls.SetValue.Invoke(u[3],request["field"]!.GetValue<string>(),request["value"]!.ToJsonString());if(formatted.Length>1048576)throw new ArgumentException("Draft exceeds one million characters.");
  conflict=!calls.Edit.Invoke(draft,selectedValue,formatted,expectedValue);if(conflict||calls.Read.Invoke(draft,selectedValue)[4]!=u[4])state["review"]=null;break;
 }
 case "follow":{

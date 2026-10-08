@@ -23,9 +23,22 @@ compiler = max(compilers, key=lambda p: tuple(int(x) for x in p.parts[-4].split(
 with tempfile.TemporaryDirectory(prefix='confectory-android-api-') as temp:
     work = pathlib.Path(temp)
     implicit = work / 'GlobalUsings.cs'
-    implicit.write_text('global using System; global using System.Collections.Generic; global using System.Linq; global using System.Threading;\n')
+    implicit.write_text('global using System; global using System.IO; global using System.Collections.Generic; global using System.Linq; global using System.Threading;\n')
     refs = list(net.glob('*.dll')) + list(android.glob('*.dll')) + list((export / 'Managed').glob('*.dll'))
     sources = [export / 'MainActivity.cs', export / 'NativeFieldHost.cs', export / 'AndroidDocumentImport.cs', implicit] + list((export / 'Generated').glob('*.cs'))
+    metadata = export / 'MetadataAuthoring.cs'
+    if metadata.exists():
+        sources.append(metadata)
+    # Resource types are SDK-generated. Compile their actual emitted declaration
+    # and assembly rather than inventing a runtime Resource substitute.
+    if 'Resource.Style.' in (export / 'NativeFieldHost.cs').read_text():
+        designers = list((export / 'obj').glob('**/__Microsoft.Android.Resource.Designer.cs'))
+        designers = [source for source in designers if (source.parent / '_Microsoft.Android.Resource.Designer.dll').exists()]
+        if not designers:
+            raise SystemExit('missing SDK-generated Android Resource designer; build the unsigned export with the installed Android SDK first')
+        designer = max(designers, key=lambda source: source.stat().st_mtime_ns)
+        sources.append(designer)
+        refs.append(designer.parent / '_Microsoft.Android.Resource.Designer.dll')
     args = ['-nologo', '-target:library', '-nullable:enable', '-langversion:12', '-out:' + str(work / 'ApiProbe.dll')]
     args += ['-r:' + str(p) for p in refs] + [str(p) for p in sources]
     response = work / 'compile.rsp'

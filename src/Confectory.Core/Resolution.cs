@@ -82,6 +82,10 @@ public sealed class Registry
             var p = Effective(parent.Id, [..stack, id]);
             if (e.Signature is not null && !e.Signature.Matches(p.Signature)) throw new BuildError("CONTRACT_MISMATCH", "Inherited function/implementation signature changed", e.Loc);
             if (e.Kind == "implementation" && e.Function != p.Function) throw new BuildError("IMPLEMENTATION_ID", "Implementation inheritance cannot change function identity", e.Loc);
+            foreach (var (name, field) in e.Fields)
+                if (p.Fields.TryGetValue(name, out var inherited) && (field.Cardinality != inherited.Cardinality || field.Kind != inherited.Kind || field.Type != inherited.Type))
+                    throw new BuildError("SCHEMA_INHERITANCE", $"Inherited field {name} contract changed", field.Loc);
+            e.Fields = Merge(p.Fields, e.Fields); e.Data = Merge(p.Data, e.Data);
             e.Values = Merge(p.Values, e.Values); e.Provides = Merge(p.Provides, e.Provides); e.Requires = Merge(p.Requires, e.Requires);
             e.Defaults = Merge(p.Defaults, e.Defaults); e.Imports = Merge(p.Imports, e.Imports); e.Bodies = Merge(p.Bodies, e.Bodies); e.Options = Merge(p.Options, e.Options);
             e.Modules = [..p.Modules, ..e.Modules]; e.Includes = [..p.Includes, ..e.Includes]; e.Uses = [..p.Uses, ..e.Uses]; e.Contains = [..p.Contains, ..e.Contains];
@@ -145,6 +149,7 @@ public sealed class Planner(Registry registry, string target)
         if (structuralDone.Contains(id)) return;
         var e = Registry.Get(id);
         List<ElementReference> edges = [..e.Contains, ..e.Includes.Select(x => x with { Kind = "module" }), ..e.Modules.Select(x => x with { Kind = "module" })];
+        edges.AddRange(e.Fields.Values.Where(f => f.Kind == "compound").Select(f => new ElementReference(f.Type, f.Loc, f.Origin, "schema")));
         if (e.Parent is not null) edges.Insert(0, new(e.Parent, e.Loc, id, e.Kind));
         foreach (var edge in edges) { Registry.Get(edge.Id, edge.Kind, id, edge.Loc); Structural(edge.Id, [..stack, id]); }
         structuralDone.Add(id);
@@ -201,6 +206,8 @@ public sealed class Planner(Registry registry, string target)
         var e = Registry.Get(id, expected, source, loc);
         if (!visited.Add((id, active, e.Kind is "implementation" or "module" ? consumer : null))) return;
         Reached.Add(id); Structural(id); var effective = Registry.Effective(id);
+        foreach (var reference in SchemaContracts.Validate(Registry, id))
+            Visit(reference.Id, reference.Kind, reference.Origin ?? id, reference.Loc, false);
         string? scope = e.Kind is "implementation" or "module" or "buildtarget" ? consumer : id;
         if (active && e.Kind == "implementation")
         {

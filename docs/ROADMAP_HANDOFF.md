@@ -239,3 +239,6 @@ Work branch `lazy-edit-materialization` continues `e532ce5`; see [contracts, loc
 ## Canonical work branch and recovery
 
 Future authorized work accumulates on `work/current`. [Branch consolidation](BRANCH_CONSOLIDATION_20261008.md) and [exact SHA recovery ledger](BRANCH_RECOVERY_20261008.json) preserve the completed 3ff6077 stack, archive eligible owned remote names before deletion, and retain unrelated/divergent worker histories. This is refs/documentation administration only; main and feature sources are unchanged. Checkpoint17 completion and stage18 documents are distinguished; no new checkpoint number or schema decision is assigned by branch cleanup.
+
+
+Direct schema field/data declarations and actual revisioned EditorHome commands now follow the approved `.celem` direction. See [grammar, validation, pack boundary and verification](DIRECT_SCHEMA_FIELDS.md). Existing scalar metadata/domain JSON compatibility is retained; automatic schema-generated Views and function invocation remain separate work.

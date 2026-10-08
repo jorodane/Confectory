@@ -19,3 +19,6 @@ Require relation edges now include `signature` in the exact existing ordinary-fu
 Existing Call protocol operation `locate {project,manifest,ids}` queries only selected/requested owning manifest locators. It distinguishes registered, unregistered and unavailable, without opening target declarations or resolving dependencies/contracts. Desktop and owned-root mobile/browser policies preserve their existing read authority. See [scope and tri-state contract](../../docs/RELATION_TARGET_REGISTRATION.md).
 
 Call effective reuses public Registry.Effective and Planner.Module/ModulesFor with validated root-owned draft overlays. It does not call Bind/Plan, compile, read implementation bodies or select runnable providers. Mobile/browser retain owned-root graph preflight. [Effective explanation scope](../../docs/EFFECTIVE_METADATA_EXPLANATION.md).
+
+
+Direct schema field/data declarations and actual revisioned EditorHome commands now follow the approved `.celem` direction. See [grammar, validation, pack boundary and verification](../../docs/DIRECT_SCHEMA_FIELDS.md). Existing scalar metadata/domain JSON compatibility is retained; automatic schema-generated Views and function invocation remain separate work.

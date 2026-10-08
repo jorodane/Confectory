@@ -6,6 +6,24 @@ namespace Confectory.Tests;
 
 public sealed class IntegrationTests : TestCase
 {
+    public void test_schema_metadata_changes_relink_without_contract_or_provider_rebuild()
+    {
+        string schema = f.Add("App", "schema", "Shape", "schema App::Shape { field n single general int; }");
+        string data = f.Add("App", "object", "O", "object App::O { use schema App::Shape; data n = 2; }");
+        f.Main("provide Api::Value with Provider::ValueBody; use object App::O;"); f.Sync();
+        var first = Build(); Output(first, "5"); string oldKey = Text(first, "key");
+        File.WriteAllText(schema, "schema App::Shape { field n single general int; field note single general string; }");
+        var schemaChanged = Build(); Output(schemaChanged, "5"); True(oldKey != Text(schemaChanged, "key"));
+        Equal(0, Strings(schemaChanged, "statistics", "compiledPacks").Length); Equal(0, Strings(schemaChanged, "statistics", "compiledContracts").Length);
+        File.WriteAllText(data, "object App::O { use schema App::Shape; data n = 3; }");
+        var dataChanged = Build(); Output(dataChanged, "5"); True(Text(schemaChanged, "key") != Text(dataChanged, "key"));
+        Equal(0, Strings(dataChanged, "statistics", "compiledPacks").Length); Equal(0, Strings(dataChanged, "statistics", "compiledContracts").Length);
+        string text = File.ReadAllText(Text(dataChanged, "publicCatalog")); True(!text.Contains(f.Root, StringComparison.Ordinal), "Public schema metadata leaked build paths");
+        var catalog = JsonNode.Parse(text)!; var item = catalog["elements"]!.AsArray().Single(e => Text(e!, "id") == "App::O")!;
+        Equal(3, item["typedData"]!["n"]!["scalar"]!.GetValue<int>());
+        Equal(2, catalog["elements"]!.AsArray().Single(e => Text(e!, "id") == "App::Shape")!["schemaFields"]!.AsObject().Count);
+    }
+
     public void test_actual_linked_output_and_public_catalog()
     {
         var report = Build(); Output(report, "5"); Sequence(["App", "Provider"], Strings(report, "statistics", "compiledPacks"));

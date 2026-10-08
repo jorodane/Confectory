@@ -139,7 +139,7 @@ internal static class ChangeStamp
 
 public sealed class Documents(string cache, BuildStatistics statistics)
 {
-    private const string Format = "csharp-declarations-v1";
+    private const string Format = "csharp-declarations-v2-schema";
     private T Read<T>(string input, string role, Func<string, string, T> parse)
     {
         string path = PackPaths.Resolve(input);

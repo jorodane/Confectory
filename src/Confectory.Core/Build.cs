@@ -225,12 +225,13 @@ public sealed class Builder
         foreach (var group in plan.Implementations.Values.GroupBy(x => PackPaths.Namespace(x.Id)).OrderBy(x => x.Key, StringComparer.Ordinal)) packs[group.Key] = CompilePack(group.Key, group);
         foreach (var node in plan.Bindings.Values) Contract(node.Function);
         string code = Generation.FinalSource(plan);
-        string key = JsonData.Digest(new object[] { ArtifactLayout, Generation.Abi, Tool.Identity, "link", code, packs.ToDictionary(x => x.Key, x => x.Value["key"]!.GetValue<string>()), Contracts.ToDictionary(x => x.Key, x => x.Value["key"]!.GetValue<string>()) });
+        var catalogData = Generation.PublicCatalog(plan, packs, Contracts, Target);
+        string key = JsonData.Digest(new object[] { ArtifactLayout, Generation.Abi, Tool.Identity, "link", code, JsonData.Digest(catalogData), packs.ToDictionary(x => x.Key, x => x.Value["key"]!.GetValue<string>()), Contracts.ToDictionary(x => x.Key, x => x.Value["key"]!.GetValue<string>()) });
         string outputRoot = Path.Combine(State, "outputs", Target), work = Path.Combine(outputRoot, $"{key}.{Guid.NewGuid():N}.pending"); Directory.CreateDirectory(work);
         try
         {
             string source = WriteSource(Path.Combine(work, "Bindings.cs"), code), catalog = Path.Combine(work, "sources", "public-linkage.json");
-            JsonData.AtomicWrite(catalog, Generation.PublicCatalog(plan, packs, Contracts, Target));
+            JsonData.AtomicWrite(catalog, catalogData);
             var result = Tool.Invoke("link", new { output = work, name = "Confectory.App", sources = new[] { source },
                 references = Contracts.Values.Select(x => x["assembly"]!.GetValue<string>()).Concat(packs.Values.SelectMany(x => x["assemblies"]!.AsArray().Select(a => a!.GetValue<string>()))).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray(),
                 resources = new[] { new { path = catalog, name = "public-linkage.json" } } });
@@ -263,6 +264,7 @@ public sealed class Builder
         foreach (string local in manifest.Elements.Keys)
         {
             string id = ns + "::" + local; var e = Registry.Effective(id); planner.Structural(id);
+            SchemaContracts.Validate(Registry, id);
             if (e.Kind == "implementation") Registry.Implementation(e.Function!, id, id, e.Loc);
             else if (e.Kind == "module") planner.Module(id);
             foreach (var reference in e.Uses.Concat(e.Contains)) Registry.Get(reference.Id, reference.Kind, reference.Origin ?? id, reference.Loc);

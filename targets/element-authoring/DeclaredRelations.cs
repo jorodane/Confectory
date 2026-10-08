@@ -15,6 +15,9 @@ internal static class DeclaredRelations
   foreach(var r in e.Uses)Add("use",r.Id,kind:r.Kind);
   foreach(var r in e.Contains)Add("contain",r.Id,kind:r.Kind);
   foreach(var r in e.Imports)Add("import",r.Value.Id,kind:"function",alias:r.Key,scope:r.Value.Scope,signature:r.Value.Signature);
+  foreach(var f in e.Fields.Where(x=>x.Value.Kind!="general"))Add("field",f.Value.Type,kind:f.Value.Kind=="function"?"function":"schema",alias:f.Key);
+  void Datum(SchemaDatum d){if(d.Reference is not null)Add("data",d.Reference);if(d.Items is not null)foreach(var i in d.Items)Datum(i);if(d.Members is not null)foreach(var m in d.Members.Values)Datum(m);}
+  foreach(var d in e.Data.Values)Datum(d);
   var edges=new JsonArray();
   foreach(var r in rows.OrderBy(x=>x.Role,StringComparer.Ordinal).ThenBy(x=>x.Target,StringComparer.Ordinal).ThenBy(x=>x.Function,StringComparer.Ordinal).ThenBy(x=>x.Kind,StringComparer.Ordinal).ThenBy(x=>x.Alias,StringComparer.Ordinal))
   {

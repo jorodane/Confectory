@@ -74,6 +74,13 @@ public static class Generation
         lines.AppendLine("    }"); lines.AppendLine("}");
         return lines.ToString().Replace("\r\n", "\n", StringComparison.Ordinal);
     }
+    private static object PublicDatum(SchemaDatum datum) => new
+    {
+        kind = datum.Kind, scalar = datum.Scalar, reference = datum.Reference, origin = datum.Origin,
+        items = datum.Items?.Select(PublicDatum).ToArray(),
+        members = datum.Members?.ToDictionary(p => p.Key, p => PublicDatum(p.Value), StringComparer.Ordinal)
+    };
+
     public static JsonObject PublicCatalog(Planner plan, Dictionary<string, JsonObject> packs, Dictionary<string, JsonObject> contracts, string target)
     {
         List<JsonObject> elements = [];
@@ -83,6 +90,8 @@ public static class Generation
             var item = JsonData.Object(new { id, kind = e.Kind, parent = e.Parent, description = e.Description });
             if (e.Signature is not null) item["contract"] = JsonSerializer.SerializeToNode(e.Signature, JsonData.Options);
             if (e.Values.Count > 0) item["metadataValues"] = JsonSerializer.SerializeToNode(e.Values.ToDictionary(x => x.Key, x => new { value = x.Value.Value, origin = x.Value.Origin }), JsonData.Options);
+            if (e.Fields.Count > 0) item["schemaFields"] = JsonSerializer.SerializeToNode(e.Fields.ToDictionary(p => p.Key, p => new { cardinality = p.Value.Cardinality, kind = p.Value.Kind, type = p.Value.Type, origin = p.Value.Origin }), JsonData.Options);
+            if (e.Data.Count > 0) item["typedData"] = JsonSerializer.SerializeToNode(e.Data.ToDictionary(p => p.Key, p => PublicDatum(p.Value)), JsonData.Options);
             elements.Add(item);
         }
         return JsonData.Object(new
