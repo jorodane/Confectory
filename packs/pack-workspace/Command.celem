@@ -3,6 +3,8 @@ provide Confectory.PackWorkspace::Command with Confectory.PackWorkspace::Command
 provide Confectory.PackWorkspace::Snapshot with Confectory.PackWorkspace::SnapshotBody;
 provide Confectory.EditWorkspace::List with Confectory.EditWorkspace::ListBody;
 provide Confectory.EditWorkspace::Read with Confectory.EditWorkspace::ReadBody;
+provide Confectory.EditWorkspace::Status with Confectory.EditWorkspace::StatusBody;
+provide Confectory.EditWorkspace::DiscoverBodies with Confectory.EditWorkspace::DiscoverBodiesBody;
 provide Confectory.EditWorkspace::Identity with Confectory.EditWorkspace::IdentityBody;
 provide Confectory.EditWorkspace::SetTextIfRevision with Confectory.EditWorkspace::SetTextIfRevisionBody;
 provide Confectory.EditWorkspace::Export with Confectory.EditWorkspace::ExportBody;

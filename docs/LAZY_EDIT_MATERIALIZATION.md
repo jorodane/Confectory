@@ -1,0 +1,38 @@
+# Lazy edit data and implementation-body navigation
+
+The EditorHome public Model Command `workspace` route supports `filter`, `select`, and now `bodies`. This is domain navigation with the existing layout. There is no new editor UI control or complete editor product claim.
+
+EditWorkspace Open retains all initially owned unit IDs, including target body IDs. It snapshots owned manifests needed for draft registration. SchemaEditing Call `describe` with `metadataOnly: true` skips ordinary declaration parsing and body-byte reads. Implementation declarations are still parsed to discover their declared body locators; editable desktop pin manifests remain supported. The default full description behavior is unchanged. This is lazy source-data materialization, not a zero-declaration-read Open or a whole-project point-in-time snapshot.
+
+New public elements:
+
+- `Confectory.EditWorkspace::Status(handle,id) -> string[]`: the original seven-position Read metadata layout, empty text, with an eighth `loaded|deferred` indicator. Deferred baseline is the literal `deferred`. No file reads.
+- `Confectory.EditWorkspace::DiscoverBodies(handle,id) -> string`: current implementation draft body locators, declaration revision, materialization state and retained removed IDs. No body source reads.
+- SchemaEditing existing `Call` operation `bodyUnits`: parses supplied owned implementation draft, verifies identity and owned paths, returns target locators. Desktop, Android and browser adapters implement the same operation.
+- PackWorkspace existing `Command` operation `bodies`: selected implementation or its selected body; returns Snapshot plus `bodies`. Selection and review remain intact. Snapshot rows add `materialization`.
+
+Read captures text and conflict baseline on the first successful access. Missing source leaves the unit deferred and retryable. Later Reads reuse coherent session drafts. SetText first materializes its baseline. Changes, Export and RefreshClean skip deferred units. Existing revision, Save, Review, explicit Confirm and owner Close semantics remain. Restore also validates bodies discovered from a saved implementation draft, so newly discovered existing-source targets survive reopening.
+
+Discovery stages changes atomically. Deferred paths can follow a changed locator. Retargeting any already materialized body is rejected rather than reconnecting its draft silently. Removed locators remain in the session and saved dirty drafts; `retained` makes this explicit. These conservative semantics leave explicit removal/retarget reconciliation for a later pack. First Read checks root ownership and symbolic links again; descriptor ownership is not treated as permanent authorization for a replaced filesystem path.
+
+## Locality and structure
+
+Intended implementation edits: EditWorkspace Open/Read/Status/DiscoverBodies/SetTextIfRevision/Changes/Export/Restore/RefreshClean and PackWorkspace Snapshot/Command. Outside implementation reads and edits: SchemaEditing desktop/Android/browser adapters were necessary because existing Inspect returns semantic metadata, not owned current-draft body locators; existing Describe eagerly parses ordinary declarations and the native adapter reads body source. Added optional metadata-only description and a bodyUnits operation to the existing public Call contract. No Core/parser/resolver changes. Outside-pack implementation reads also included Core `Infrastructure.cs` to verify the public PackPaths ownership behavior and `Declarations.cs` to confirm the existing scalar value grammar for the separate schema decision. These were read-only verification; no private Core implementation was copied into edit bodies. Existing ChangeSet Preview and Model Command bodies were read to verify lazy Changes compatibility and public action routing; Model implementation routing already handles arbitrary workspace actions and needed no edit.
+
+Consumer provider declarations in the existing examples and PackWorkspace public defaults supply the two new EditWorkspace functions. These are shared-contract additions, so initial rebuilding includes changed public provider declarations and new contracts. Subsequent body-only edits must remain pack-local; existing Read, Snapshot and Command locality regression gates verify zero compiled contracts. Functional and locality gates are separate assertions. No View/table-owned model or layout changes.
+
+## Schema contract decision
+
+Design baseline sections 2, 3 and 6 establish schema items, names/types, cardinality, general/compound/function kinds, scalar/reference values, nested/repeated structures, inheritance and function contracts/returns. Section 6 explicitly leaves the full type grammar and generic/async/error/cancellation/permission/side-effect expression undefined. Existing scalar `value` support is not a complete schema-item authoring contract. Core currently rejects raw object/array metadata values; a JSON document would need string encoding and a pack-owned schema contract.
+
+Minimum decision before generic schema authoring: should schema-item definitions use a pack-owned JSON document encoded in an existing string value, or dedicated `.celem` field grammar? The former can proceed in a schema pack without a parser change; the latter requires a versioned parser/public-contract decision and broader consumer rebuild coverage. Neither is selected implicitly here. Lazy loading and body navigation do not depend on this choice.
+
+## Verification and next stage
+
+Use SDK `/workspace/toolchains/dotnet-10.0.401/dotnet` with `DOTNET_CLI_HOME=/tmp/confectory-dotnet10` and `CONFECTORY_DOTNET` set to that SDK executable. Build `targets/element-authoring -c Release` and `tests/Confectory.Tests -c Release`; run the test runner with `--require-runtime EditWorkspaceTests PackWorkspaceTests SchemaEditingTests SourceEditorTests ElementViewTests test_project_shell_domain_isolated_execution_no_null_chat_open_and_context_cleanup test_project_shell_windows_and_android_managed_compile`.
+
+Coverage includes public EditorHome route, deferred list rows, missing source retry, first-read freshness, loaded retarget conflict, saved discovered body restoration, removed body draft retention, two contexts, revision conflicts, Save/reopen, selective Review/Confirm, owner/subscription cleanup, metadata adapter parity and body-only locality. Managed Windows/Android compilation is not native runtime or APK/device coverage. This task adds no native GUI layout changes and makes no new visual/device-run claim. This environment has no DISPLAY or Xvfb executable, so a new native Linux visual run was unavailable; no tools were installed.
+
+Next stage: expose existing navigation in deliberate product controls, implement explicit retained-body reconciliation, decide schema-item encoding, and add native Windows/Android spot checks asynchronously. Overall editor remains unfinished. Work branch publication is authorized; main merge remains excluded.
+
+Verified this increment: authoring host build and test-suite build each completed with 0 warnings/errors. The eight selected functional/consumer/locality gates completed **8 passed, 0 failed, 0 skipped in 234.318s**. Read, Status, DiscoverBodies, Snapshot and Command body-only locality assertions each require zero compiled contracts. Logs remain local at `/tmp/confectory-lazy-authoring-build.log`, `/tmp/confectory-lazy-build.log` and `/tmp/confectory-lazy-tests-verified.log`. An earlier run used the stale pre-change authoring executable and failed the new bodyUnits operation; explicitly rebuilding the host resolved it, and the final complete run passed.

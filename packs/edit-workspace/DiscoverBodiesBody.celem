@@ -1,0 +1,5 @@
+implementation Confectory.EditWorkspace::DiscoverBodiesBody for Confectory.EditWorkspace::DiscoverBodies (string handle, string id) -> string {
+import Confectory.EditWorkspace::Read as Read (string, string) -> string[];
+import Confectory.SchemaEditing::Call as Metadata (string, string) -> string;
+body common "DiscoverBodies.csbody";
+}

@@ -1,0 +1,1 @@
+function Confectory.EditWorkspace::Status (string handle, string id) -> string[] {description "Owned unit metadata without materializing text; deferred baseline until first read.";}

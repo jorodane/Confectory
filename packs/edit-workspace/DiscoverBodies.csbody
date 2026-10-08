@@ -1,0 +1,11 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+handle) as System.Text.Json.Nodes.JsonObject??throw new ObjectDisposedException("EditWorkspace");
+lock(state){var declaration=calls.Read.Invoke(handle,id);if(declaration[1]!="implementation")throw new ArgumentException("Select an owned implementation.");
+var reply=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("bodyUnits",System.Text.Json.JsonSerializer.Serialize(new{project=state["project"]!.GetValue<string>(),id,path=declaration[2],text=declaration[3]})))!.AsObject();
+var staged=(System.Text.Json.Nodes.JsonObject)state["units"]!.DeepClone();var active=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
+foreach(var item in reply["units"]!.AsArray()){string bodyId=item!["id"]!.GetValue<string>(),path=item["path"]!.GetValue<string>();active.Add(bodyId);
+ if(staged[bodyId] is System.Text.Json.Nodes.JsonObject existing){if(existing["path"]!.GetValue<string>()!=path){if(existing["draft"] is not null)throw new InvalidOperationException("Loaded body locator changed; preserve draft and resolve explicitly.");existing["path"]=path;}}
+ else staged[bodyId]=new System.Text.Json.Nodes.JsonObject{["id"]=bodyId,["kind"]="body",["path"]=path,["revision"]=0L};
+ item["materialization"]=staged[bodyId]!["draft"] is null?"deferred":"loaded";
+}
+var retained=new System.Text.Json.Nodes.JsonArray();foreach(var item in staged){if(item.Key.StartsWith(id+"/body:",StringComparison.Ordinal)&&!active.Contains(item.Key))retained.Add(item.Key);}
+state["units"]=staged;reply["retained"]=retained;reply["declarationRevision"]=long.Parse(declaration[4],System.Globalization.CultureInfo.InvariantCulture);return reply.ToJsonString();}

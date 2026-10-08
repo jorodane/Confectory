@@ -1,0 +1,3 @@
+implementation Confectory.EditWorkspace::StatusBody for Confectory.EditWorkspace::Status (string handle, string id) -> string[] {
+body common "Status.csbody";
+}

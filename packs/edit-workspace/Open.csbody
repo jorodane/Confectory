@@ -5,12 +5,13 @@ string key="Confectory.EditWorkspace.Identity."+identity;
 lock(AppDomain.CurrentDomain)
 {
  if(AppDomain.CurrentDomain.GetData(key) is string existing)return existing;
- var description=System.Text.Json.Nodes.JsonNode.Parse(calls.Describe.Invoke(project))!;var units=new System.Text.Json.Nodes.JsonObject();string root=System.IO.Path.GetDirectoryName(project)!;
+ var description=System.Text.Json.Nodes.JsonNode.Parse(calls.Describe.Invoke("describe",System.Text.Json.JsonSerializer.Serialize(new{project,metadataOnly=true})))!;var units=new System.Text.Json.Nodes.JsonObject();string root=System.IO.Path.GetDirectoryName(project)!;
  foreach(var item in description["units"]!.AsArray())
  {
-  string id=item!["id"]!.GetValue<string>(),path=item["path"]!.GetValue<string>();var snapshot=calls.Snapshot.Invoke(System.IO.Path.Combine(root,path));
-  if(snapshot[0]!="exists")throw new System.IO.FileNotFoundException("Owned unit missing.",path);
-  units.Add(id,new System.Text.Json.Nodes.JsonObject{["id"]=id,["kind"]=item["kind"]!.GetValue<string>(),["path"]=path,["baseline"]=snapshot[2],["original"]=snapshot[1],["draft"]=snapshot[1],["revision"]=0L});
+  string id=item!["id"]!.GetValue<string>(),path=item["path"]!.GetValue<string>();
+  var unit=new System.Text.Json.Nodes.JsonObject{["id"]=id,["kind"]=item["kind"]!.GetValue<string>(),["path"]=path,["revision"]=0L};
+  if(unit["kind"]!.GetValue<string>() is "project" or "pack"){var snapshot=calls.Snapshot.Invoke(System.IO.Path.Combine(root,path));if(snapshot[0]!="exists")throw new System.IO.FileNotFoundException("Owned manifest missing.",path);unit["baseline"]=snapshot[2];unit["original"]=snapshot[1];unit["draft"]=snapshot[1];}
+  units.Add(id,unit);
  }
  string handle=Guid.NewGuid().ToString("N");var state=new System.Text.Json.Nodes.JsonObject{["project"]=project,["root"]=root,["participant"]=participant,["context"]=context,["namespace"]=description["namespace"]!.GetValue<string>(),["identity"]=identity,["units"]=units};
  AppDomain.CurrentDomain.SetData("Confectory.EditWorkspace."+handle,state);AppDomain.CurrentDomain.SetData(key,handle);return handle;

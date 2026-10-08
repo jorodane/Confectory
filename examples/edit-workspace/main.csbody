@@ -3,6 +3,23 @@ string project=Environment.GetEnvironmentVariable("CONFECTORY_TEST_AUTHOR_PROJEC
 string workspace=calls.EditWorkspaceOpen.Invoke(project,"participant-one","lesson");string peer=calls.EditWorkspaceOpen.Invoke(project,"participant-one","lesson"),other=calls.EditWorkspaceOpen.Invoke(project,"participant-two","lesson");
 Check(workspace==peer&&workspace!=other,"Shared same user/project/work-context; independent participant");
 string body="App::MainBody/body:common",manifest="App::ProjectManifest",created="App::Counter";
+Check(calls.EditWorkspaceStatus.Invoke(workspace,body)[7]=="deferred","Open does not materialize body source");
+var bodyLocators=System.Text.Json.Nodes.JsonNode.Parse(calls.EditWorkspaceBodies.Invoke(workspace,"App::MainBody"))!;
+Check(bodyLocators["units"]!.AsArray().Count>0&&calls.EditWorkspaceStatus.Invoke(workspace,body)[7]=="deferred","Body discovery does not materialize source");
+string bodyPath=System.IO.Path.Combine(System.IO.Path.GetDirectoryName(project)!,calls.EditWorkspaceStatus.Invoke(workspace,body)[2]);string latest=System.IO.File.ReadAllText(bodyPath)+"\n// first read captures latest confirmed bytes\n";System.IO.File.WriteAllText(bodyPath,latest);
+System.IO.File.Delete(bodyPath);bool missingRead=false;try{calls.EditWorkspaceRead.Invoke(workspace,body);}catch(System.IO.FileNotFoundException){missingRead=true;}Check(missingRead&&calls.EditWorkspaceStatus.Invoke(workspace,body)[7]=="deferred","Missing first read remains deferred and retryable");System.IO.File.WriteAllText(bodyPath,latest);
+Check(calls.EditWorkspaceRead.Invoke(workspace,body)[3]==latest&&calls.EditWorkspaceStatus.Invoke(workspace,body)[7]=="loaded","Deferred baseline captures first-read bytes");
+string impl=calls.EditWorkspaceRead.Invoke(workspace,"App::MainBody")[3];
+calls.EditWorkspaceSetText.Invoke(workspace,"App::MainBody",impl.Replace("main.csbody","retarget.csbody",StringComparison.Ordinal));
+bool retargetRejected=false;try{calls.EditWorkspaceBodies.Invoke(workspace,"App::MainBody");}catch(InvalidOperationException){retargetRejected=true;}Check(retargetRejected&&calls.EditWorkspaceRead.Invoke(workspace,body)[3]==latest,"Loaded body retarget preserves source draft");calls.EditWorkspaceSetText.Invoke(workspace,"App::MainBody",impl);
+string discovery=calls.EditWorkspaceOpen.Invoke(project,"participant-one","body-discovery");string extraPath=System.IO.Path.Combine(System.IO.Path.GetDirectoryName(project)!,"extra.csbody");System.IO.File.WriteAllText(extraPath,"// original additional body");
+try{
+ string expanded=impl[..impl.LastIndexOf('}')]+" body android \"extra.csbody\"; }";
+ calls.EditWorkspaceSetText.Invoke(discovery,"App::MainBody",expanded);var found=System.Text.Json.Nodes.JsonNode.Parse(calls.EditWorkspaceBodies.Invoke(discovery,"App::MainBody"))!;
+ string extra="App::MainBody/body:android";Check(calls.EditWorkspaceStatus.Invoke(discovery,extra)[7]=="deferred","New target body remains deferred");calls.EditWorkspaceSetText.Invoke(discovery,extra,"// edited additional body");calls.SaveWrite.Invoke(discovery);calls.EditWorkspaceClose.Invoke(discovery);
+ discovery=calls.EditWorkspaceOpen.Invoke(project,"participant-one","body-discovery");calls.SaveRestore.Invoke(discovery);Check(calls.EditWorkspaceRead.Invoke(discovery,extra)[3]=="// edited additional body","Reopen restores body discovered from saved implementation draft");
+ calls.EditWorkspaceSetText.Invoke(discovery,"App::MainBody",impl);var removed=System.Text.Json.Nodes.JsonNode.Parse(calls.EditWorkspaceBodies.Invoke(discovery,"App::MainBody"))!;Check(System.Linq.Enumerable.Any(removed["retained"]!.AsArray(),x=>x!.ToString()==extra)&&calls.EditWorkspaceRead.Invoke(discovery,extra)[6]=="dirty","Removed locator retains independent body draft");
+}finally{calls.EditWorkspaceClose.Invoke(discovery);System.IO.File.Delete(extraPath);}
 var subscription=calls.EditWorkspaceSubscribe.Invoke(peer,body);
 string original=calls.EditWorkspaceRead.Invoke(workspace,body)[3];
 try

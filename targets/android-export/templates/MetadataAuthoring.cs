@@ -17,6 +17,7 @@ internal static class MetadataAuthoring
  string selected=PackPaths.Owned(ownerRoot,Path.GetRelativePath(ownerRoot,Path.GetFullPath(S("project"))));
  return RelationLocators.Query(S("manifest"),Path.GetDirectoryName(selected)!,request["ids"]!.AsArray().Select(x=>x!.GetValue<string>()).ToArray(),path=>Read(PackPaths.Owned(ownerRoot,Path.GetRelativePath(ownerRoot,path)))).ToJsonString();
  }
+ if(operation=="bodyUnits"){request["project"]=PackPaths.Owned(ownerRoot,Path.GetRelativePath(ownerRoot,Path.GetFullPath(S("project"))));return BodyUnitMetadata.Query(request).ToJsonString();}
  if(operation=="inspect"){string text=S("text");if(text.Length>1048576)throw new ArgumentException("Declaration budget");var e=new Parser(text,"<draft>").ParseElement();return new JsonObject{["id"]=e.Id,["kind"]=e.Kind,["parent"]=e.Parent,["relations"]=DeclaredRelations.Describe(e),["description"]=e.Description,["signature"]=JsonSerializer.SerializeToNode(e.Signature),["values"]=JsonSerializer.SerializeToNode(e.Values.ToDictionary(x=>x.Key,x=>x.Value.Value))}.ToJsonString();}
 
  if(operation=="create"){string kind=S("kind"),id=S("id");if(kind is not ("category" or "concept" or "function" or "module" or "object" or "schema"))throw new ArgumentException("Unsupported authored kind");string text=kind+" "+id+(kind=="function"?" () -> int":"")+" { }\n";new Parser(text,"<new>").ParseElement();return JsonSerializer.Serialize(text);}
@@ -26,9 +27,9 @@ internal static class MetadataAuthoring
  string project=PackPaths.Owned(ownerRoot,Path.GetRelativePath(ownerRoot,Path.GetFullPath(S("project")))),root=Path.GetDirectoryName(project)!;var m=new Parser(Read(project),project).ParseManifest();var units=new JsonArray();
  units.Add(new JsonObject{["id"]=m.Namespace+(m.Kind=="project"?"::ProjectManifest":"::PackManifest"),["kind"]=m.Kind,["path"]=Path.GetFileName(project)});
  foreach(var item in m.Elements.OrderBy(x=>x.Key,StringComparer.Ordinal)){
- if(units.Count>=256)throw new ArgumentException("Owned source unit budget exceeded");string file=PackPaths.Owned(root,item.Value.Path);var e=new Parser(Read(file),file).ParseElement();if(e.Id!=m.Namespace+"::"+item.Key||e.Kind!=item.Value.Kind)throw new ArgumentException("Owned declaration identity mismatch");
+ if(units.Count>=256)throw new ArgumentException("Owned source unit budget exceeded");string file=PackPaths.Owned(root,item.Value.Path);if(request["metadataOnly"]?.GetValue<bool>()==true&&item.Value.Kind!="implementation"){units.Add(new JsonObject{["id"]=m.Namespace+"::"+item.Key,["kind"]=item.Value.Kind,["path"]=Path.GetRelativePath(root,file)});continue;}var e=new Parser(Read(file),file).ParseElement();if(e.Id!=m.Namespace+"::"+item.Key||e.Kind!=item.Value.Kind)throw new ArgumentException("Owned declaration identity mismatch");
  units.Add(new JsonObject{["id"]=e.Id,["kind"]=e.Kind,["path"]=Path.GetRelativePath(root,file)});
- foreach(var b in e.Bodies.OrderBy(x=>x.Key,StringComparer.Ordinal)){if(units.Count>=256)throw new ArgumentException("Owned source unit budget exceeded");string body=PackPaths.Owned(Path.GetDirectoryName(file)!,b.Value.Path);Read(body);units.Add(new JsonObject{["id"]=e.Id+"/body:"+b.Key,["kind"]= "body",["path"]=Path.GetRelativePath(root,body)});}}
+ foreach(var b in e.Bodies.OrderBy(x=>x.Key,StringComparer.Ordinal)){if(units.Count>=256)throw new ArgumentException("Owned source unit budget exceeded");string body=PackPaths.Owned(Path.GetDirectoryName(file)!,b.Value.Path);if(request["metadataOnly"]?.GetValue<bool>()!=true)Read(body);units.Add(new JsonObject{["id"]=e.Id+"/body:"+b.Key,["kind"]= "body",["path"]=Path.GetRelativePath(root,body)});}}
  return new JsonObject{["project"]=project,["namespace"]=m.Namespace,["kind"]=m.Kind,["supportsStandalone"]=m.SupportsStandalone,["units"]=units}.ToJsonString();
  }
  static string Read(string file){var info=new FileInfo(file);if(info.Length>1048576)throw new ArgumentException("Owned source file budget exceeded");return File.ReadAllText(file);}
@@ -208,5 +209,21 @@ internal static class SemanticCatalogService
   }
   catch(Confectory.Core.BuildError error){return new System.Text.Json.Nodes.JsonObject{["status"]="unavailable",["scope"]="owned-declarations",["code"]=error.Diagnostic.Code,["message"]=error.Diagnostic.Message};}
   catch(Exception error){return new System.Text.Json.Nodes.JsonObject{["status"]="unavailable",["scope"]="owned-declarations",["code"]="CATALOG_UNAVAILABLE",["message"]=error.Message};}
+ }
+}
+
+internal static class BodyUnitMetadata
+{
+ public static JsonObject Query(JsonObject request)
+ {
+ string root=Path.GetDirectoryName(Path.GetFullPath(request["project"]!.GetValue<string>()))!;
+ string declaration=PackPaths.Owned(root,request["path"]!.GetValue<string>());
+ string text=request["text"]!.GetValue<string>();if(text.Length>1048576)throw new ArgumentException("Declaration budget");
+ var element=new Parser(text,declaration).ParseElement();if(element.Kind!="implementation"||element.Id!=request["id"]!.GetValue<string>())throw new ArgumentException("Owned implementation identity required.");
+ if(element.Bodies.Count>256)throw new ArgumentException("Body locator budget");
+ var units=new JsonArray();foreach(var item in element.Bodies.OrderBy(x=>x.Key,StringComparer.Ordinal)){
+ string body=PackPaths.Owned(root,Path.GetRelativePath(root,Path.Combine(Path.GetDirectoryName(declaration)!,item.Value.Path)));
+ units.Add(new JsonObject{["id"]=element.Id+"/body:"+item.Key,["kind"]="body",["target"]=item.Key,["path"]=Path.GetRelativePath(root,body)});}
+ return new JsonObject{["implementation"]=element.Id,["units"]=units};
  }
 }

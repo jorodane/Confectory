@@ -2,5 +2,7 @@ function Confectory.PackWorkspace::Snapshot (string handle) -> string {
 provide Confectory.PackWorkspace::Snapshot with Confectory.PackWorkspace::SnapshotBody;
 provide Confectory.EditWorkspace::List with Confectory.EditWorkspace::ListBody;
 provide Confectory.EditWorkspace::Read with Confectory.EditWorkspace::ReadBody;
+provide Confectory.EditWorkspace::Status with Confectory.EditWorkspace::StatusBody;
+provide Confectory.EditWorkspace::DiscoverBodies with Confectory.EditWorkspace::DiscoverBodiesBody;
 provide Confectory.EditWorkspace::Identity with Confectory.EditWorkspace::IdentityBody;
 description "Explicit bounded source workspace snapshot.";}

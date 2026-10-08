@@ -14,6 +14,8 @@ provide Confectory.EditWorkspace::Open with Confectory.EditWorkspace::OpenBody;
 provide Confectory.EditWorkspace::Identity with Confectory.EditWorkspace::IdentityBody;
 provide Confectory.EditWorkspace::List with Confectory.EditWorkspace::ListBody;
 provide Confectory.EditWorkspace::Read with Confectory.EditWorkspace::ReadBody;
+provide Confectory.EditWorkspace::Status with Confectory.EditWorkspace::StatusBody;
+provide Confectory.EditWorkspace::DiscoverBodies with Confectory.EditWorkspace::DiscoverBodiesBody;
 provide Confectory.EditWorkspace::Create with Confectory.EditWorkspace::CreateBody;
 provide Confectory.EditWorkspace::SetValue with Confectory.EditWorkspace::SetValueBody;
 provide Confectory.EditWorkspace::SetTextIfRevision with Confectory.EditWorkspace::SetTextIfRevisionBody;

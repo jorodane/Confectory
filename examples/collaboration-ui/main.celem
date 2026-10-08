@@ -27,6 +27,8 @@ provide Confectory.EditWorkspace::List with Confectory.EditWorkspace::ListBody;
 provide Confectory.EditWorkspace::Open with Confectory.EditWorkspace::OpenBody;
 provide Confectory.EditWorkspace::Poll with Confectory.EditWorkspace::PollBody;
 provide Confectory.EditWorkspace::Read with Confectory.EditWorkspace::ReadBody;
+provide Confectory.EditWorkspace::Status with Confectory.EditWorkspace::StatusBody;
+provide Confectory.EditWorkspace::DiscoverBodies with Confectory.EditWorkspace::DiscoverBodiesBody;
 provide Confectory.EditWorkspace::RefreshClean with Confectory.EditWorkspace::RefreshCleanBody;
 provide Confectory.EditWorkspace::Restore with Confectory.EditWorkspace::RestoreBody;
 provide Confectory.EditWorkspace::SetText with Confectory.EditWorkspace::SetTextBody;

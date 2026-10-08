@@ -23,6 +23,7 @@ public sealed class PackWorkspaceTests : TestCase
  string project=Environment.GetEnvironmentVariable("CONFECTORY_TEST_AUTHOR_PROJECT")!;
  string a=calls.Open.Invoke(project,"alice","one"),b=calls.Open.Invoke(project,"alice","two");
  var initial=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(a))!;
+ if(!System.Linq.Enumerable.Any(initial["units"]!.AsArray(),x=>x!["materialization"]!.GetValue<string>()=="deferred"))throw new Exception("Snapshot materialized every owned unit");
  string id=System.Linq.Enumerable.First(initial["units"]!.AsArray(),x=>x!["kind"]!.GetValue<string>()=="body")!["id"]!.GetValue<string>();
  string Select(string h)=>calls.Command.Invoke(h,"select",System.Text.Json.JsonSerializer.Serialize(new{id}));
  string original=System.Text.Json.Nodes.JsonNode.Parse(Select(a))!["unit"]!["text"]!.GetValue<string>();Select(b);
@@ -87,6 +88,12 @@ public sealed class PackWorkspaceTests : TestCase
  File.WriteAllText(Path.Combine(root,"project.cpack"),"project Any.Renamed version \"0.1.0\" { standalone true; registry Evil \"../../missing-do-not-read.cpack\"; element Main function \"main.celem\"; element MainBody implementation \"body.celem\"; }");
  File.WriteAllText(Path.Combine(root,"main.celem"),"function Any.Renamed::Main () -> int { }");
  File.WriteAllText(Path.Combine(root,"body.celem"),"implementation Any.Renamed::MainBody for Any.Renamed::Main () -> int { body common \"main.csbody\"; }");File.WriteAllText(Path.Combine(root,"main.csbody"),"throw new Exception(\"never execute\");");
+ string lazyPayload=System.Text.Json.JsonSerializer.Serialize(new{project=Path.Combine(root,"project.cpack"),metadataOnly=true});
+ File.Delete(Path.Combine(root,"main.celem"));File.Delete(Path.Combine(root,"main.csbody"));
+ var lazyDescription=JsonNode.Parse(MetadataAuthoring.Call(root,"describe",lazyPayload))!;if(lazyDescription["units"]!.AsArray().Count!=4)throw new Exception("Locator description reads deferred declarations or body bytes");
+ var bodyMetadata=JsonNode.Parse(MetadataAuthoring.Call(root,"bodyUnits",System.Text.Json.JsonSerializer.Serialize(new{project=Path.Combine(root,"project.cpack"),id="Any.Renamed::MainBody",path="body.celem",text=File.ReadAllText(Path.Combine(root,"body.celem"))})))!;
+ if(bodyMetadata["units"]![0]!["id"]!.ToString()!="Any.Renamed::MainBody/body:common")throw new Exception("Draft implementation body navigation");
+ File.WriteAllText(Path.Combine(root,"main.celem"),"function Any.Renamed::Main () -> int { }");File.WriteAllText(Path.Combine(root,"main.csbody"),"throw new Exception(\"never execute\");");
  string payload=System.Text.Json.JsonSerializer.Serialize(new{project=Path.Combine(root,"project.cpack")});var metadata=JsonNode.Parse(MetadataAuthoring.Call(root,"describe",payload))!;
  if(metadata["units"]!.AsArray().Count!=4)throw new Exception("Owned unit description");
  var inspected=JsonNode.Parse(MetadataAuthoring.Call(root,"inspect","{\"text\":\"object Any.Renamed::Value { }\"}"))!;if(inspected["id"]!.GetValue<string>()!="Any.Renamed::Value")throw new Exception("Inspect identity");

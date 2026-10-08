@@ -1,3 +1,4 @@
 implementation Confectory.EditWorkspace::ReadBody for Confectory.EditWorkspace::Read (string handle, string id) -> string[] {
+import Confectory.FileStream::Snapshot as Snapshot (string) -> string[];
 body common "Read.csbody";
 }

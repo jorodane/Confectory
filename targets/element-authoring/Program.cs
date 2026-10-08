@@ -14,6 +14,7 @@ try
             reply=BuildParticipationOperations.Execute(S("operation"),request);break;
         case "packSource": case "packManifest": case "packUsage":
             reply=PackOperations.Execute(S("operation"),request,FormatManifest);break;
+        case "bodyUnits":reply=BodyUnitMetadata.Query(request);break;
         case "describe":
         {
             string project=Path.GetFullPath(S("project")),root=Path.GetDirectoryName(project)!;
@@ -26,7 +27,7 @@ try
                 if(pin)units.Add(new JsonObject{["id"]=owner.Namespace+"::PackManifest",["kind"]="pack",["path"]=Path.GetRelativePath(root,manifestPath)});
                 foreach(var (name,locator) in owner.Elements)
                 {
-                    string path=Owned(root,Path.GetRelativePath(root,Path.Combine(Path.GetDirectoryName(manifestPath)!,locator.Path)));var element=new Parser(File.ReadAllText(path),path).ParseElement();
+                    string path=Owned(root,Path.GetRelativePath(root,Path.Combine(Path.GetDirectoryName(manifestPath)!,locator.Path)));if(request["metadataOnly"]?.GetValue<bool>()==true&&locator.Kind!="implementation"){units.Add(new JsonObject{["id"]=owner.Namespace+"::"+name,["kind"]=locator.Kind,["path"]=Path.GetRelativePath(root,path)});continue;}var element=new Parser(File.ReadAllText(path),path).ParseElement();
                     if(element.Id!=owner.Namespace+"::"+name||element.Kind!=locator.Kind)throw new ArgumentException("Manifest/declaration identity mismatch.");
                     units.Add(new JsonObject{["id"]=element.Id,["kind"]=element.Kind,["path"]=Path.GetRelativePath(root,path)});
                     foreach(var (target,body) in element.Bodies)

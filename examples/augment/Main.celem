@@ -61,6 +61,8 @@ provide Confectory.EditWorkspace::Export with Confectory.EditWorkspace::ExportBo
 provide Confectory.EditWorkspace::Accept with Confectory.EditWorkspace::AcceptBody;
 provide Confectory.EditWorkspace::Changes with Confectory.EditWorkspace::ChangesBody;
 provide Confectory.EditWorkspace::Read with Confectory.EditWorkspace::ReadBody;
+provide Confectory.EditWorkspace::Status with Confectory.EditWorkspace::StatusBody;
+provide Confectory.EditWorkspace::DiscoverBodies with Confectory.EditWorkspace::DiscoverBodiesBody;
 provide Confectory.EditWorkspace::Identity with Confectory.EditWorkspace::IdentityBody;
 provide Confectory.EditWorkspace::List with Confectory.EditWorkspace::ListBody;
 provide Confectory.EditWorkspace::RefreshClean with Confectory.EditWorkspace::RefreshCleanBody;

@@ -7,8 +7,18 @@ lock(state)
  {
   var unit=entry!.AsObject();string id=unit["id"]!.GetValue<string>(),path=unit["path"]!.GetValue<string>();string full=System.IO.Path.GetFullPath(System.IO.Path.Combine(state["root"]!.GetValue<string>(),path));
   if(System.IO.Path.IsPathRooted(path)||!full.StartsWith(state["root"]!.GetValue<string>()+System.IO.Path.DirectorySeparatorChar,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal))throw new ArgumentException("Saved draft path escape.");
-  if(staged[id] is System.Text.Json.Nodes.JsonObject current){if(current["path"]!.GetValue<string>()!=path||current["kind"]!.GetValue<string>()!=unit["kind"]!.GetValue<string>())throw new ArgumentException("Saved unit identity mismatch.");}
-  else if(unit["baseline"]!.GetValue<string>()!="missing"||!id.StartsWith(state["namespace"]!.GetValue<string>()+"::",StringComparison.Ordinal))throw new ArgumentException("Unknown saved unit.");
+  bool known=staged[id] is System.Text.Json.Nodes.JsonObject;
+  bool same=known&&staged[id]!["path"]!.GetValue<string>()==path&&staged[id]!["kind"]!.GetValue<string>()==unit["kind"]!.GetValue<string>();
+  if(!same&&unit["kind"]!.GetValue<string>()=="body"){
+   int marker=id.IndexOf("/body:",StringComparison.Ordinal);if(marker<0)throw new ArgumentException("Unknown saved body.");string owner=id[..marker];var implementation=staged[owner] as System.Text.Json.Nodes.JsonObject??throw new ArgumentException("Unknown body owner.");
+   if(implementation["kind"]!.GetValue<string>()!="implementation")throw new ArgumentException("Body owner kind mismatch.");
+   var savedImplementation=System.Linq.Enumerable.FirstOrDefault(data["changes"]!.AsArray(),x=>x!["id"]!.GetValue<string>()==owner);
+   string text=savedImplementation?["draft"]?.GetValue<string>()??calls.Read.Invoke(handle,owner)[3];
+   var discovered=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("bodyUnits",System.Text.Json.JsonSerializer.Serialize(new{project=state["project"]!.GetValue<string>(),id=owner,path=implementation["path"]!.GetValue<string>(),text})))!;
+   if(!System.Linq.Enumerable.Any(discovered["units"]!.AsArray(),x=>x!["id"]!.GetValue<string>()==id&&x["path"]!.GetValue<string>()==path))throw new ArgumentException("Saved body locator mismatch.");
+   if(known&&staged[id]!["draft"] is not null)throw new ArgumentException("Loaded saved body path mismatch.");
+  }else if(known&&!same)throw new ArgumentException("Saved unit identity mismatch.");
+  else if(!known&&(unit["baseline"]!.GetValue<string>()!="missing"||!id.StartsWith(state["namespace"]!.GetValue<string>()+"::",StringComparison.Ordinal)))throw new ArgumentException("Unknown saved unit.");
   var restored=unit.DeepClone();restored["revision"]=(staged[id]?["revision"]?.GetValue<long>()??0)+1;staged[id]=restored;
  }
  state["units"]=staged;

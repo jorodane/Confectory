@@ -2,13 +2,17 @@ var state=AppDomain.CurrentDomain.GetData("Confectory.PackWorkspace."+handle) as
 var request=System.Text.Json.Nodes.JsonNode.Parse(payload)?.AsObject()??throw new ArgumentException("Object payload required.");
 lock(state){if(state["closing"]!.GetValue<bool>())throw new ObjectDisposedException("PackWorkspace");string draft=state["draft"]!.GetValue<string>();bool conflict=false;
 switch(operation){
+case "bodies":{
+ string selectedBody=state["selected"]!.GetValue<string>();if(selectedBody=="")throw new InvalidOperationException("Select an owned implementation.");int separator=selectedBody.IndexOf("/body:",StringComparison.Ordinal);if(separator>=0)selectedBody=selectedBody[..separator];
+ var bodies=calls.DiscoverBodies.Invoke(draft,selectedBody);var bodyReply=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(handle))!.AsObject();bodyReply["bodies"]=System.Text.Json.Nodes.JsonNode.Parse(bodies);return bodyReply.ToJsonString();
+}
 case "inspect":
 case "locate":
 case "effective":{
  string inspectedId=state["selected"]!.GetValue<string>();if(inspectedId=="")throw new InvalidOperationException("Select an owned declaration first.");
  var u=calls.Read.Invoke(draft,inspectedId);if(u[1] is "body" or "project" or "pack")throw new InvalidOperationException("Direct relations require an element declaration.");
  var inspectedReply=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(handle))!.AsObject();
- inspectedReply["inspection"]=System.Text.Json.Nodes.JsonNode.Parse(calls.Inspect.Invoke(u[3]));inspectedReply["inspectionRevision"]=long.Parse(u[4],System.Globalization.CultureInfo.InvariantCulture);
+ inspectedReply["inspection"]=System.Text.Json.Nodes.JsonNode.Parse(calls.Inspect.Invoke(u[3]));if(inspectedReply["inspection"]!["id"]!.GetValue<string>()!=u[0]||inspectedReply["inspection"]!["kind"]!.GetValue<string>()!=u[1])throw new InvalidOperationException("Owned declaration identity changed; repair the source explicitly.");inspectedReply["inspectionRevision"]=long.Parse(u[4],System.Globalization.CultureInfo.InvariantCulture);
  if(operation is "locate" or "effective"){
   var identity=calls.Identity.Invoke(draft);var units=calls.List.Invoke(draft);string manifestId=System.Linq.Enumerable.FirstOrDefault(units,id=>id.EndsWith("::ProjectManifest",StringComparison.Ordinal))??System.Linq.Enumerable.First(units,id=>id.EndsWith("::PackManifest",StringComparison.Ordinal));var manifestUnit=calls.Read.Invoke(draft,manifestId);string manifest=manifestUnit[3];
   inspectedReply["locationManifestRevision"]=long.Parse(manifestUnit[4],System.Globalization.CultureInfo.InvariantCulture);

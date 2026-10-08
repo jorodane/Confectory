@@ -1,0 +1,1 @@
+function Confectory.EditWorkspace::DiscoverBodies (string handle, string id) -> string {description "Discover owned implementation draft body locators without reading body source. Loaded path changes are rejected.";}

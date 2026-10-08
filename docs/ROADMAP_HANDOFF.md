@@ -223,3 +223,7 @@ Existing common Core resolver now backs selected root-owned draft value/origin a
 ## Lazy semantic browsing before editing (2026-10-08)
 
 New ordinary Confectory.SemanticCatalog Query pack, composed into actual EditorHome, supplies confirmed manifest locator pages and requested-declaration metadata through Core Documents. Actual domain gates prove catalog list/read leaves workspace null, reads0/1 declarations and guards explicit context. Source/draft scopes remain separate; eager editing-session Open/List is still future work. Pack/contract/API/locality/cache/platform evidence and remaining schema grammar decision: [semantic-catalog README](../packs/semantic-catalog/README.md). Overall layout-independent editor work is not finished: next is lazy editing materialization/body discovery, then schema-based properties/reference editing after defining schema-item representation. No layout changes.
+
+## Lazy edit data and implementation-body navigation
+
+Work branch `lazy-edit-materialization` continues `e532ce5`; see [contracts, locality, schema decision and verification](LAZY_EDIT_MATERIALIZATION.md). This increment implements deferred text/baselines and current-draft implementation source navigation through the existing EditorHome domain route. It does not complete the editor UI. No main merge is authorized.

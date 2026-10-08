@@ -1,6 +1,7 @@
 implementation Confectory.PackWorkspace::SnapshotBody for Confectory.PackWorkspace::Snapshot (string handle) -> string {
 import Confectory.EditWorkspace::List as List (string) -> string[];
 import Confectory.EditWorkspace::Read as Read (string, string) -> string[];
+import Confectory.EditWorkspace::Status as Status (string, string) -> string[];
 import Confectory.EditWorkspace::Identity as Identity (string) -> string[];
 body common "Snapshot.csbody";
 }
