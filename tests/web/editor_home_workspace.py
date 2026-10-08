@@ -20,7 +20,17 @@ try:
   def files():return json.loads(page.evaluate('confectoryPlatform.bridge.ExportStorage()'))
   page.goto('http://127.0.0.1:'+str(server.server_port));ready();click(275,164)
   name=page.locator('input[data-control="10"]');name.wait_for(state='visible');name.fill('WorkspaceActual');page.locator('textarea[data-control="11"]').fill('actual reusable workspace 한글')
-  click(360,462);page.wait_for_function("drawnLabels.some(s=>s==='Edit sources')");click(1106,100)
+  click(360,462);page.wait_for_function("drawnLabels.some(s=>s==='Edit sources')")
+  def color(x,y):return page.evaluate('([x,y])=>Array.from(confectoryPlatform.canvas.getContext("2d").getImageData(x,y,1,1).data).slice(0,3)',[x,y])
+  # Existing selected-runtime capabilities must control actual product actions.
+  assert color(1026,775)==[40,51,60],'Unsupported browser Run must be visibly disabled'
+  page.evaluate('window.drawnLabels=[]');click(1026,788)
+  assert not page.evaluate("drawnLabels.some(s=>s.startsWith('Error:')||s==='Run requested')"),'Disabled Run invoked execution'
+  click(270,30);page.wait_for_function("drawnLabels.some(s=>s==='Open folder')")
+  assert color(630,187)==[40,51,60],'OS folder action must be visibly disabled; selected-folder import remains available'
+  page.evaluate('window.drawnLabels=[]');click(270,187)
+  assert not page.evaluate("drawnLabels.some(s=>s.startsWith('Unable to open folder:'))"),'Disabled OS-folder action invoked its unsupported provider'
+  click(250,322);click(1106,100)
   editor=page.locator('textarea[data-control="54"]');editor.wait_for(state='visible');initial=editor.input_value();assert initial.strip()
   originals=files();bodies={k:v for k,v in originals.items() if k.endswith('/main.csbody')};assert len(bodies)==1,bodies
   body_path,original_body=next(iter(bodies.items()));assert base64.b64decode(original_body).decode()==initial
@@ -46,5 +56,5 @@ try:
   assert files()[body_path]==original_body
   assert not errors,errors;assert any(url.endswith('.wasm') for _,url in requests);assert all(method=='GET' and '/api/' not in url for method,url in requests)
   assert page.evaluate('confectoryPlatform.bridge.Close()');browser.close()
-  print('PASS actual EditorHome UI create/edit/stable field/Save acknowledged/leave/reopen/480px resize/narrow Save/reload/ZIP export; final source unchanged, static GET-only WASM')
+  print('PASS actual EditorHome selected-runtime action capabilities/UI create/edit/stable field/Save acknowledged/leave/reopen/480px resize/narrow Save/reload/ZIP export; final source unchanged, static GET-only WASM')
 finally:server.shutdown()

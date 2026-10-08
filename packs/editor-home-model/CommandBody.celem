@@ -21,4 +21,5 @@ import Confectory.PackWorkspace::Open as PackOpen (string,string,string) -> stri
 import Confectory.PackWorkspace::Command as PackCommand (string,string,string) -> string;
 import Confectory.PackWorkspace::Snapshot as PackSnapshot (string) -> string;
 import Confectory.FileStream::ArchiveSourceTexts as Archive (string,string[],string[]) -> string[];
+import Confectory.ProjectExecution::Capabilities as ExecutionCapabilities () -> string[];
 body common "Command.csbody"; }

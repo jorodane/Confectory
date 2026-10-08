@@ -1,1 +1,1 @@
-return "{\"runtime\":\"browser-wasm\",\"nativeMultiwindow\":false,\"nativeFilesystem\":false,\"dynamicCompilation\":false,\"textIME\":true}";
+return "{\"runtime\":\"browser-wasm\",\"nativeMultiwindow\":false,\"nativeFilesystem\":false,\"dynamicCompilation\":false,\"folderPicker\":true,\"fileImport\":true,\"openFolder\":false,\"textIME\":true}";

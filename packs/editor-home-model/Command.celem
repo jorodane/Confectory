@@ -34,6 +34,7 @@ provide Confectory.EditWorkspace::List with Confectory.EditWorkspace::ListBody;
 provide Confectory.EditWorkspace::Restore with Confectory.EditWorkspace::RestoreBody;
 provide Confectory.Save::Read with Confectory.Save::ReadBody;
 provide Confectory.Save::Restore with Confectory.Save::RestoreBody;
+provide Confectory.ProjectExecution::Capabilities with Confectory.ProjectExecution::CapabilitiesBody;
 provide Confectory.EditorHome.Model::Command with Confectory.EditorHome.Model::CommandBody;
 provide Confectory.ProjectShell::Create with Confectory.ProjectShell::CreateBody;
 provide Confectory.ProjectShell::Command with Confectory.ProjectShell::CommandBody;

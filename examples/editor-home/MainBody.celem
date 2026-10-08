@@ -50,4 +50,6 @@ import Confectory.ProjectManager::PlanCreation as PlanCreation (string, string) 
 import Confectory.ProjectEntry::Request as EntryRequest (string,string,string) -> string;
 import Confectory.HostLoop::Run as HostRun (string) -> int;
 import Confectory.HostLoop::Schedule as HostSchedule (string) -> void;
+import Confectory.NativeUI::Capabilities as NativeCapabilities () -> string;
+import Confectory.ProjectExecution::Capabilities as ExecutionCapabilities () -> string[];
 body common "Main.csbody"; }

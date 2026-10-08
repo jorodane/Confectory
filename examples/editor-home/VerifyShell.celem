@@ -13,6 +13,7 @@ provide Confectory.PackWorkspace::Open with Confectory.PackWorkspace::OpenBody;
 provide Confectory.PackWorkspace::Snapshot with Confectory.PackWorkspace::SnapshotBody;
 provide Confectory.Save::Read with Confectory.Save::ReadBody;
 provide Confectory.Save::Restore with Confectory.Save::RestoreBody;
+provide Confectory.ProjectExecution::Capabilities with Confectory.ProjectExecution::CapabilitiesBody;
 provide Confectory.EditorHome.Model::Command with Confectory.EditorHome.Model::CommandBody;
 provide Confectory.ProjectManager::Open with Confectory.ProjectManager::OpenBody;
 provide Confectory.ProjectExecution::DescribeProject with Confectory.ProjectExecution::DescribeProjectBody;
