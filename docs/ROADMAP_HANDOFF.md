@@ -207,3 +207,7 @@ Reuse existing PackWorkspace/EditWorkspace/SchemaEditing and desktop draft-revie
 ## Direct element relation inspection (2026-10-08)
 
 Continues owned-element-navigation: additive SchemaEditing Inspect relation JSON and selected draft PackWorkspace inspect operation, reachable through actual EditorHome.Model. Parent/module/include/require/default/provide edges are declared metadata only; no target loading, effective interpretation, graph edits or layout. Contract/usage, implementation read/edit ledger, rebuild scope and target limits: [DECLARED_ELEMENT_RELATIONS.md](DECLARED_ELEMENT_RELATIONS.md). New layout can consume these data through existing commands. Follow-up candidates are bounded required-function contract presentation and explicit owning-pack target availability; full lazy indexing/effective graphs remain later.
+
+## Required-function contract lookup (2026-10-08)
+
+Declared require edges now expose the existing FunctionSignature serialization, with no duplicate contract model or new operation. Actual selected module draft query preserves qualified identity and revision; desktop/Android/browser response parity and existing functional/locality gates are retained. [REQUIRED_FUNCTION_SIGNATURES.md](REQUIRED_FUNCTION_SIGNATURES.md) records use, scope, commands and remaining editor-facing gaps. No layout, invocation, AI authority or larger follow-up starts in this increment.

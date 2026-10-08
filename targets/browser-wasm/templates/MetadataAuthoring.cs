@@ -76,7 +76,11 @@ internal static class DeclaredRelations
   foreach(var r in e.Provides)rows.Add(("provide",r.Value.Id,r.Key));
   var edges=new JsonArray();
   foreach(var r in System.Linq.Enumerable.ThenBy(System.Linq.Enumerable.ThenBy(System.Linq.Enumerable.OrderBy(rows,x=>x.Role,StringComparer.Ordinal),x=>x.Target,StringComparer.Ordinal),x=>x.Function,StringComparer.Ordinal))
-   edges.Add(new JsonObject{["role"]=r.Role,["target"]=r.Target,["function"]=r.Function});
+  {
+   var edge=new JsonObject{["role"]=r.Role,["target"]=r.Target,["function"]=r.Function};
+   if(r.Role=="require")edge["signature"]=System.Text.Json.JsonSerializer.SerializeToNode(e.Requires[r.Target].Signature);
+   edges.Add(edge);
+  }
   return new JsonObject{["scope"]="declared",["owner"]=e.Id,["edges"]=edges};
  }
 }

@@ -92,6 +92,12 @@ public sealed class PackWorkspaceTests : TestCase
  var inspected=JsonNode.Parse(MetadataAuthoring.Call(root,"inspect","{\"text\":\"object Any.Renamed::Value { }\"}"))!;if(inspected["id"]!.GetValue<string>()!="Any.Renamed::Value")throw new Exception("Inspect identity");
  var relationships=JsonNode.Parse(MetadataAuthoring.Call(root,"inspect",System.Text.Json.JsonSerializer.Serialize(new{text="module Any.Renamed::Rules extends Missing::Parent { module Missing::Role; include Missing::Child; require Missing::Function (int) -> int; default Missing::Function with Missing::Body; provide Missing::Function with Missing::Explicit; }"})))!["relations"]!;
  if(relationships["scope"]!.ToString()!="declared"||relationships["edges"]!.AsArray().Count!=6||!System.Linq.Enumerable.Any(relationships["edges"]!.AsArray(),e=>e!["role"]!.ToString()=="provide"&&e["target"]!.ToString()=="Missing::Explicit"&&e["function"]!.ToString()=="Missing::Function"))throw new Exception("Target direct relationship contract");
+ foreach(var contract in new[]{"() -> void","(string,int[],bool) -> string[]","(long[],double,float[]) -> bool"}){
+ var requirement=JsonNode.Parse(MetadataAuthoring.Call(root,"inspect",System.Text.Json.JsonSerializer.Serialize(new{text="module Any.Renamed::Rules { require Missing::Function "+contract+"; }"})))!["relations"]!["edges"]![0]!;
+ string named=contract.Replace("string,int[],bool","string arg0,int[] arg1,bool arg2",StringComparison.Ordinal).Replace("long[],double,float[]","long[] arg0,double arg1,float[] arg2",StringComparison.Ordinal);
+ var signature=JsonNode.Parse(MetadataAuthoring.Call(root,"inspect",System.Text.Json.JsonSerializer.Serialize(new{text="function Missing::Function "+named+" {}"})))!["signature"];
+ if(!JsonNode.DeepEquals(requirement["signature"],signature))throw new Exception("Target required signature format");
+ }
  string created=System.Text.Json.JsonSerializer.Deserialize<string>(MetadataAuthoring.Call(root,"create",System.Text.Json.JsonSerializer.Serialize(new{kind="object",id="Any.Renamed::ProjectInfo"})))!;
  string changed=System.Text.Json.JsonSerializer.Deserialize<string>(MetadataAuthoring.Call(root,"setValue",System.Text.Json.JsonSerializer.Serialize(new{text=created,field="title",value="한글 🧁"})))!;
  if(JsonNode.Parse(MetadataAuthoring.Call(root,"inspect",System.Text.Json.JsonSerializer.Serialize(new{text=changed})))!["values"]!["title"]!.GetValue<string>()!="한글 🧁")throw new Exception("Scalar edit lost");

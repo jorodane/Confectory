@@ -9,6 +9,12 @@ string module=calls.SetValue.Invoke("module App::Rules { include App::Other; req
 var direct=System.Text.Json.Nodes.JsonNode.Parse(calls.Inspect.Invoke("module App::Rules extends Missing::Parent { module Missing::Role; include Missing::Child; require Missing::Function (int) -> int; default Missing::Function with Missing::Body; provide Missing::Function with Missing::Explicit; }"))!["relations"]!;
 Check(direct["scope"]!.ToString()=="declared"&&direct["owner"]!.ToString()=="App::Rules"&&direct["edges"]!.AsArray().Count==6,"Direct relation scope/count");
 Check(System.Linq.Enumerable.Any(direct["edges"]!.AsArray(),e=>e!["role"]!.ToString()=="default"&&e["target"]!.ToString()=="Missing::Body"&&e["function"]!.ToString()=="Missing::Function"),"Default relation identity");
+foreach(var requiredText in new[]{"() -> void","(string,int[],bool) -> string[]","(long[],double,float[]) -> bool"}){
+ var required=System.Text.Json.Nodes.JsonNode.Parse(calls.Inspect.Invoke("module App::Rules { require Missing::Function "+requiredText+"; }"))!["relations"]!["edges"]![0]!;
+ string named=requiredText.Replace("string,int[],bool","string arg0,int[] arg1,bool arg2",StringComparison.Ordinal).Replace("long[],double,float[]","long[] arg0,double arg1,float[] arg2",StringComparison.Ordinal);
+ var signature=System.Text.Json.Nodes.JsonNode.Parse(calls.Inspect.Invoke("function Missing::Function "+named+" {}"))!["signature"];
+ Check(required["target"]!.ToString()=="Missing::Function"&&System.Text.Json.Nodes.JsonNode.DeepEquals(required["signature"],signature),"Required function signature differs from existing function format");
+}
 bool invalid=false;try{calls.SetValue.Invoke(original,"flag","null");}catch(InvalidOperationException){invalid=true;}Check(invalid,"Unsupported null metadata rejected");
 string project=Environment.GetEnvironmentVariable("CONFECTORY_TEST_AUTHOR_PROJECT")??throw new Exception("Test project required");var description=System.Text.Json.Nodes.JsonNode.Parse(calls.Describe.Invoke(project))!;Check(description["units"]!.AsArray().Count==4,"Only owned declarations/body described");
 Check(calls.Validate.Invoke(project,"portable").Contains("valid"),"Actual structural/compiler validation");
