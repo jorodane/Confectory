@@ -13,6 +13,6 @@ public sealed class BrowserTests : TestCase
         string output=built["output"]!.GetValue<string>();foreach(string asset in new[]{"index.html","app.js","style.css"})True(File.Exists(Path.Combine(output,"browser-assets",asset)),"browser bundle missing "+asset);
         string report=Path.Combine(f.Root,"browser report.json");File.WriteAllText(report,built.ToJsonString());
         var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests","web","browser_entry.py"),Fixture.Repo,report},timeoutSeconds:150);True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("Actual Chromium Browser Entry/Home PASS"));
-        File.AppendAllText(Path.Combine(provider,"Serve.csbody"),"\n// owned browser provider locality probe\n");var changed=new Builder(project,"web").Build();Sequence(new[]{"Confectory.BrowserHost::ServeBody"},Strings(changed,"statistics","compiledImplementations"));Equal(0,Strings(changed,"statistics","compiledContracts").Length);
+        File.AppendAllText(Path.Combine(provider,"Serve.csbody"),"\n// owned browser provider locality probe\n");var changed=new Builder(project,"web").Build();PackRebuilt(changed, new[]{"Confectory.BrowserHost::ServeBody"});Equal(0,Strings(changed,"statistics","compiledContracts").Length);
     }
 }

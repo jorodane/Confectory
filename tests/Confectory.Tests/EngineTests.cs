@@ -24,7 +24,7 @@ public sealed class EngineTests : TestCase
         Equal(0,Strings(cached,"statistics","compiledImplementations").Length);
         File.AppendAllText(Path.Combine(f.Root,"packs","base-ui","Labels.csbody"),"\n// provider-only locality probe\n");
         var changed=new Builder(project,"portable").Build();
-        Sequence(new[]{"Confectory.BaseUI::LabelsBody"},Strings(changed,"statistics","compiledImplementations"));
+        PackRebuilt(changed, new[]{"Confectory.BaseUI::LabelsBody"});
         Equal(0,Strings(changed,"statistics","compiledContracts").Length);
         var command=Strings(changed,"run");
         for(int repeat=0;repeat<3;repeat++)
@@ -34,11 +34,13 @@ public sealed class EngineTests : TestCase
             // Native font/shaping cold start is outside the scripted interaction latency assertion.
             start.Environment["CONFECTORY_BASEUI_CLOSE_AFTER_MS"]="1500";
             start.Environment["CONFECTORY_BASEUI_SCRIPTED"]="1";
+            start.Environment["CONFECTORY_ENTRY_STORAGE"]=Path.Combine(f.Root,"engine-entry");
+            start.Environment["CONFECTORY_ENTRY_SCOPE"]=sample;
             bool gui=OperatingSystem.IsWindows()||(OperatingSystem.IsLinux()&&!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DISPLAY")));
             using var process=Process.Start(start)!;
             if(!process.WaitForExit(10000)){process.Kill(true);throw new Exception("Engine did not stop");}
             var stdout=process.StandardOutput.ReadToEnd();var stderr=process.StandardError.ReadToEnd();
-            if(gui){True(!stderr.Contains("Fontconfig error: No writable cache directories",StringComparison.Ordinal),stderr);Equal(0,process.ExitCode);True(stdout.Contains("two-window isolation/reopen PASS",StringComparison.Ordinal),stdout+stderr);}
+            if(gui){True(!stderr.Contains("Fontconfig error: No writable cache directories",StringComparison.Ordinal),stderr);True(process.ExitCode==0,"Engine exit "+process.ExitCode+"\n"+stdout+stderr);True(stdout.Contains("two-window isolation/reopen PASS",StringComparison.Ordinal),stdout+stderr);}
             else {Equal(1,process.ExitCode);True(stderr.Contains("Cannot open X11 display",StringComparison.Ordinal),stderr);}
         }
         if(!OperatingSystem.IsWindows() && !(OperatingSystem.IsLinux() && !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DISPLAY")))) Skip("Native runtime requires Windows or Linux DISPLAY; managed/negative assertions ran only");

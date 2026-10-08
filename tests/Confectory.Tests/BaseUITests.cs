@@ -23,7 +23,7 @@ public sealed class BaseUITests : TestCase
         Equal(0, Strings(cached, "statistics", "compiledImplementations").Length);
         File.AppendAllText(Path.Combine(pack, "UpdateView.csbody"), "\n// local provider edit\n");
         var changed = new Builder(project, "portable").Build();
-        Sequence(["Confectory.BaseUI::UpdateViewBody"], Strings(changed, "statistics", "compiledImplementations"));
+        PackRebuilt(changed, ["Confectory.BaseUI::UpdateViewBody"]);
         Equal(0, Strings(changed, "statistics", "compiledContracts").Length);
         Output(changed, "BaseUI controls and lifetime PASS");
     }

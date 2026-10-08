@@ -22,7 +22,7 @@ public sealed class RigMotionTests : TestCase
             True(!Strings(built,"statistics",key).Any(x=>new[]{"Confectory.Stage::","Confectory.Physics2D::","Confectory.Window::","Confectory.Helper::","Confectory.EditWorkspace::"}.Any(prefix=>x.StartsWith(prefix,StringComparison.Ordinal))));
         File.AppendAllText(Path.Combine(owned,"Command.csbody"),"\n// owned RigMotion locality probe\n");
         var changed=new Builder(project,"linux").Build();
-        Sequence(new[]{"Confectory.RigMotion::CommandBody"},Strings(changed,"statistics","compiledImplementations"));
+        PackRebuilt(changed, new[]{"Confectory.RigMotion::CommandBody"});
         Equal(0,Strings(changed,"statistics","compiledContracts").Length);
     }
     public void test_independent_preview_and_workspace_save_reload_confirm_owner_cleanup()

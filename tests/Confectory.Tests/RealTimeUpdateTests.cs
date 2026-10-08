@@ -21,7 +21,7 @@ public sealed class RealTimeUpdateTests : TestCase
         Equal(0, Strings(cached, "statistics", "compiledImplementations").Length);
         File.AppendAllText(Path.Combine(pack, "Advance.csbody"), "\n// local provider edit\n");
         var changed = new Builder(project, "portable").Build();
-        Sequence(["Confectory.RealTimeUpdate::AdvanceBody"], Strings(changed, "statistics", "compiledImplementations"));
+        PackRebuilt(changed, ["Confectory.RealTimeUpdate::AdvanceBody"]);
         Equal(0, Strings(changed, "statistics", "compiledContracts").Length);
         Output(changed, "RealTimeUpdate cadence and camera PASS");
     }

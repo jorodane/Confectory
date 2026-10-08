@@ -45,7 +45,7 @@ public sealed class PackWorkspaceTests : TestCase
  string? host=Environment.GetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST"),selected=Environment.GetEnvironmentVariable("CONFECTORY_TEST_AUTHOR_PROJECT");
  try{Environment.SetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST",Path.Combine(Fixture.Repo,"targets","element-authoring","bin","Release","net10.0","Confectory.ElementAuthoring.dll"));Environment.SetEnvironmentVariable("CONFECTORY_TEST_AUTHOR_PROJECT",f.Project);
  var built=new Builder(project,"portable").Build();Output(built,"PackWorkspace independent contexts/revision/save/reopen PASS");
- File.AppendAllText(Path.Combine(f.Root,"packs","pack-workspace","Snapshot.csbody"),"\n// locality\n");var changed=new Builder(project,"portable").Build();Sequence(new[]{"Confectory.PackWorkspace::SnapshotBody"},Strings(changed,"statistics","compiledImplementations"));Equal(0,Strings(changed,"statistics","compiledContracts").Length);
+ File.AppendAllText(Path.Combine(f.Root,"packs","pack-workspace","Snapshot.csbody"),"\n// locality\n");var changed=new Builder(project,"portable").Build();PackRebuilt(changed, new[]{"Confectory.PackWorkspace::SnapshotBody"});Equal(0,Strings(changed,"statistics","compiledContracts").Length);
  }finally{Environment.SetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST",host);Environment.SetEnvironmentVariable("CONFECTORY_TEST_AUTHOR_PROJECT",selected);}
  }
  public void test_target_metadata_owned_sources_no_registry_execution()

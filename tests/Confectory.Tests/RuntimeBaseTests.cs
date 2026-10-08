@@ -21,7 +21,7 @@ public sealed class RuntimeBaseTests : TestCase
         Equal(0, Strings(cached, "statistics", "compiledImplementations").Length);
         File.AppendAllText(Path.Combine(pack, "Write.csbody"), "\n// local provider edit\n");
         var changed = new Builder(project, "portable").Build();
-        Sequence(["Confectory.RuntimeBase::WriteBody"], Strings(changed, "statistics", "compiledImplementations"));
+        PackRebuilt(changed, ["Confectory.RuntimeBase::WriteBody"]);
         Equal(0, Strings(changed, "statistics", "compiledContracts").Length);
         Output(changed, "RuntimeBase lifecycle PASS");
     }

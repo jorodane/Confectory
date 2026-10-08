@@ -6,7 +6,7 @@ namespace Confectory.Core;
 
 public static class Generation
 {
-    public const string Abi = "confectory-csharp-interface-v1";
+    public const string Abi = "confectory-csharp-interface-v2-pack-assemblies";
     public static string Symbol(string id) => "E" + JsonData.Digest(id)[..24];
     public static string Interface(string id) => $"global::Confectory.Contracts.{Symbol(id)}.IInvoke";
     public static string Implementation(string id) => $"global::Confectory.Implementations.{Symbol(PackPaths.Namespace(id))}.{Symbol(id)}";

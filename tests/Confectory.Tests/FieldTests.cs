@@ -23,7 +23,7 @@ public sealed class FieldTests : TestCase
             foreach(var probe in new[]{(owned,"Confectory.BaseUI","Field"),(owned,"Confectory.BaseUI","FieldInput"),(owned,"Confectory.BaseUI","TextInput"),(owned,"Confectory.BaseUI","Stack"),(window,"Confectory.Window","MeasureText"),(window,"Confectory.Window","DrawText"),(window,"Confectory.Window","Pump"), (window,"Confectory.Window","CreateTextLayout"), (owned,"Confectory.BaseUI","TextLines")})
             {
                 File.AppendAllText(Path.Combine(probe.Item1,probe.Item3+".csbody"),"\n// CP14 selected provider locality probe\n");
-                var changed=new Builder(project,"linux").Build();Sequence(new[]{probe.Item2+"::"+probe.Item3+"Body"},Strings(changed,"statistics","compiledImplementations"));Equal(0,Strings(changed,"statistics","compiledContracts").Length);
+                var changed=new Builder(project,"linux").Build();PackRebuilt(changed, new[]{probe.Item2+"::"+probe.Item3+"Body"});Equal(0,Strings(changed,"statistics","compiledContracts").Length);
             }
             if(!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DISPLAY")))
             {

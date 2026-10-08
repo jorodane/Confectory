@@ -47,6 +47,36 @@ public sealed class IntegrationTests : TestCase
         f.Add("Api", "function", "UnusedContract", "function Api::UnusedContract (int n) -> int {}"); f.Sync(); Build(); f.Add("Api", "function", "UnusedContract", "function Api::UnusedContract (string n) -> string {}"); var report = Build(); Output(report, "5");
         Equal(0, Strings(report, "statistics", "compiledPacks").Length); Equal(0, Strings(report, "statistics", "compiledContracts").Length); True(!Strings(report, "statistics", "readDocuments").Any(p => p.EndsWith("UnusedContract.celem", StringComparison.Ordinal)));
     }
+    public void test_pack_contract_and_implementation_artifacts_and_reference_invalidation()
+    {
+        f.Add("Api", "function", "Extra", "function Api::Extra (int n) -> int {}");
+        f.Add("Provider", "implementation", "ExtraBody", "implementation Provider::ExtraBody for Api::Extra (int n) -> int { body common \"extra.csbody\"; }");
+        f.Body("Provider", "extra.csbody", "return n + 7;"); f.Always = ["Provider::ExtraBody"]; f.Sync();
+        var first = Build(); Output(first, "5");
+        Equal(Builder.ArtifactLayout, Text(first, "artifactLayout"));
+        Equal(Text(first, "contractArtifacts", "Api::Value", "assembly"), Text(first, "contractArtifacts", "Api::Extra", "assembly"));
+        Sequence(["Api", "App"], Strings(first, "statistics", "compiledContractPacks").Order(StringComparer.Ordinal));
+        Equal(2, first["statistics"]!["targetInvocations"]!["compile-contract"]!.GetValue<int>());
+        Equal(2, first["statistics"]!["targetInvocations"]!["compile-pack"]!.GetValue<int>());
+        Equal(5, Directory.GetFiles(Text(first, "output"), "*.dll").Length);
+        var provider = first["implementationArtifacts"]!["Provider"]!;
+        Sequence([Text(provider, "assembly")], Strings(provider, "assemblies"));
+        var catalog = JsonNode.Parse(File.ReadAllText(Text(first, "publicCatalog")))!;
+        Equal(Generation.Abi, Text(catalog, "abi"));
+        Equal(1, catalog["implementations"]!.AsArray().Where(x => Text(x!, "id").StartsWith("Provider::", StringComparison.Ordinal)).Select(x => Text(x!, "assembly")).Distinct().Count());
+        var warm = Build(); Equal(0, Strings(warm, "statistics", "compiledContractPacks").Length);
+        f.Body("Provider", "extra.csbody", "return n + 8;");
+        var body = Build(); Output(body, "5"); PackRebuilt(body, ["Provider::ExtraBody"]);
+        Sequence(["Provider::ExtraBody", "Provider::ValueBody"], Strings(body, "statistics", "compiledImplementations"));
+        Equal(0, Strings(body, "statistics", "compiledContracts").Length);
+        // Even a compatible parameter-name change replaces the physical Api contract DLL.
+        f.Add("Api", "function", "Extra", "function Api::Extra (int renamed) -> int {}");
+        var contract = Build(); Output(contract, "5");
+        Sequence(["Api"], Strings(contract, "statistics", "compiledContractPacks"));
+        Sequence(["Api::Extra", "Api::Value"], Strings(contract, "statistics", "compiledContracts"));
+        Sequence(["App", "Provider"], Strings(contract, "statistics", "compiledPacks"));
+        Output(first, "5");
+    }
     public void test_target_specific_common_fallback_and_linux_launcher()
     {
         Output(Build(), "5");

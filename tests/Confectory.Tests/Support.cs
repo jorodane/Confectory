@@ -127,6 +127,23 @@ public abstract class TestCase : IDisposable
     protected static void True(bool condition, string message = "Assertion failed") { if (!condition) throw new Exception(message); }
     protected static void Equal<T>(T expected, T actual) { if (!EqualityComparer<T>.Default.Equals(expected, actual)) throw new Exception($"Expected {expected}; actual {actual}"); }
     protected static void Sequence<T>(IEnumerable<T> expected, IEnumerable<T> actual) { if (!expected.SequenceEqual(actual)) throw new Exception($"Expected [{string.Join(",", expected)}]; actual [{string.Join(",", actual)}]"); }
+    // A body change rebuilds every selected implementation in its physical owner pack.
+    protected static void PackRebuilt(JsonObject report, IEnumerable<string> editedIds)
+    {
+        string[] ids = editedIds.ToArray();
+        string[] packs = ids.Select(PackPaths.Namespace).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
+        Sequence(packs, Strings(report, "statistics", "compiledPacks").Order(StringComparer.Ordinal));
+        string[] expected = packs.SelectMany(ns => Strings(report, "implementationArtifacts", ns, "implementations")).Order(StringComparer.Ordinal).ToArray();
+        True(ids.All(expected.Contains), "Edited implementation must remain selected");
+        Sequence(expected, Strings(report, "statistics", "compiledImplementations").Order(StringComparer.Ordinal));
+        foreach (string ns in packs)
+        {
+            Sequence([Text(report, "implementationArtifacts", ns, "assembly")], Strings(report, "implementationArtifacts", ns, "assemblies"));
+            foreach (string id in Strings(report, "implementationArtifacts", ns, "implementations"))
+                Equal(Text(report, "implementationArtifacts", ns, "assembly"), Text(report, "implementationArtifacts", ns, "implementationArtifacts", id, "assembly"));
+        }
+        Equal(packs.Length, report["statistics"]!["targetInvocations"]!["compile-pack"]!.GetValue<int>());
+    }
     protected static BuildError Error(string code, Action action)
     {
         try { action(); } catch (BuildError ex) { Equal(code, ex.Diagnostic.Code); return ex; }

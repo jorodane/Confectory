@@ -133,62 +133,75 @@ public sealed class Builder
     }
     private static string WriteSource(string path, string text)
     { File.WriteAllText(path, text, new UTF8Encoding(false)); return path; }
+    // Physical artifacts are pack-owned. Element IDs remain logical catalog entries.
+    public const string ArtifactLayout = "pack-assemblies-v2";
+    private readonly Dictionary<string, string[]> contractGroups = new(StringComparer.Ordinal);
+    private void PrepareContracts(IEnumerable<string> ids)
+    {
+        // Check may be followed by Build on the same Builder (candidate validation).
+        // Re-select logical aliases so a larger checked DLL cannot leak into a pruned link.
+        Contracts.Clear(); contractGroups.Clear();
+        foreach (var group in ids.Distinct(StringComparer.Ordinal).GroupBy(PackPaths.Namespace))
+            contractGroups[group.Key] = group.Order(StringComparer.Ordinal).ToArray();
+    }
     public JsonObject Contract(string id)
     {
         if (Contracts.TryGetValue(id, out var cached)) return cached;
-        string code = Generation.ContractSource(Registry.Get(id, "function")), name = "Contract_" + Generation.Symbol(id);
-        string key = JsonData.Digest(new[] { Generation.Abi, Tool.Identity, "contract", code });
+        string ns = PackPaths.Namespace(id);
+        if (!contractGroups.TryGetValue(ns, out var ids))
+            contractGroups[ns] = ids = [id];
+        if (!ids.Contains(id, StringComparer.Ordinal))
+            throw new BuildError("CONTRACT_SELECTION", $"Contract {id} was not in the prepared pack selection");
+        var sources = ids.Select(fn => (Id: fn, Code: Generation.ContractSource(Registry.Get(fn, "function")))).ToArray();
+        string name = "Contracts_" + Generation.Symbol(ns);
+        string key = JsonData.Digest(new object[] { ArtifactLayout, Generation.Abi, Tool.Identity, "contracts", ns, sources.Select(x => new[] { x.Id, x.Code }).ToArray() });
         var artifact = cache.Get(key);
-        if (artifact is not null) Statistics.ReusedContracts.Add(id);
+        if (artifact is not null) { Statistics.ReusedContracts.AddRange(ids); Statistics.ReusedContractPacks.Add(ns); }
         else
         {
-            artifact = cache.Produce(key, work => Tool.Invoke("compile-contract", new { output = work, name, sources = new[] { WriteSource(Path.Combine(work, name + ".cs"), code) }, references = Array.Empty<string>() })["artifacts"]!.AsObject());
-            Statistics.CompiledContracts.Add(id);
+            artifact = cache.Produce(key, work => Tool.Invoke("compile-contract", new { output = work, name,
+                sources = sources.Select(x => WriteSource(Path.Combine(work, Generation.Symbol(x.Id) + ".cs"), x.Code)).ToArray(), references = Array.Empty<string>() })["artifacts"]!.AsObject());
+            Statistics.CompiledContracts.AddRange(ids); Statistics.CompiledContractPacks.Add(ns);
         }
         if (!artifact.ContainsKey("assembly") || !artifact.ContainsKey("reference")) throw new BuildError("TOOL_PROTOCOL", "Contract compilation must return assembly and reference");
-        var result = JsonData.Object(artifact); result["key"] = key; Contracts[id] = result; return result;
+        foreach (string fn in ids) { var item = JsonData.Object(artifact); item["key"] = key; item["pack"] = ns; Contracts[fn] = item; }
+        return Contracts[id];
     }
     public JsonObject CompilePack(string ns, IEnumerable<Element> implementations)
     {
-        var artifacts = new Dictionary<string, JsonObject>(StringComparer.Ordinal);
-        bool compiled = false;
-        foreach (var e in implementations.OrderBy(x => x.Id, StringComparer.Ordinal))
+        var selected = implementations.OrderBy(x => x.Id, StringComparer.Ordinal).ToArray();
+        if (selected.Length == 0) throw new BuildError("LOCAL_INPUT", $"No implementation declarations in {ns}");
+        if (contractGroups.Count == 0) PrepareContracts(selected.SelectMany(e => new[] { e.Function! }.Concat(e.Imports.Values.Select(x => x.Id))));
+        var sources = new List<(string Id, string Code)>();
+        var refs = new Dictionary<string, JsonObject>(StringComparer.Ordinal);
+        foreach (var e in selected)
         {
+            if (PackPaths.Namespace(e.Id) != ns) throw new BuildError("LOCAL_INPUT", "Cannot compile elements owned by different packs together");
             Registry.Implementation(e.Function!, e.Id, e.Id, e.Loc);
             if (!e.Bodies.TryGetValue(Target, out var body) && !e.Bodies.TryGetValue("common", out body)) throw new BuildError("MISSING_TARGET_IMPLEMENTATION", $"No {Target}/common body for {e.Id}", e.Loc);
             string path = PackPaths.Owned(Path.GetDirectoryName(Registry.Paths[PackPaths.Namespace(body.Origin)])!, body.Path, body.Loc);
-            string code = Generation.ImplementationSource(e, Documents.Body(path), path);
-            var refs = new Dictionary<string, JsonObject>(StringComparer.Ordinal);
-            foreach (string id in new[] { e.Function! }.Concat(e.Imports.Values.Select(x => x.Id))) refs[id] = Contract(id);
-            // Cache each owned implementation independently. A contract-only
-            // check of the whole pack and a final subset use identical keys.
-            string key = JsonData.Digest(new object[] { Generation.Abi, Tool.Identity, "implementation-v1", ns, e.Id, code,
-                refs.OrderBy(x => x.Key, StringComparer.Ordinal).Select(x => new[] { x.Key, x.Value["key"]!.GetValue<string>() }).ToArray() });
-            var artifact = cache.Get(key);
-            if (artifact is not null) Statistics.ReusedImplementations.Add(e.Id);
-            else
-            {
-                artifact = cache.Produce(key, work => Tool.Invoke("compile-pack", new
-                {
-                    output = work, name = "Pack_" + Generation.Symbol(ns) + "_" + Generation.Symbol(e.Id),
-                    sources = new[] { WriteSource(Path.Combine(work, Generation.Symbol(e.Id) + ".cs"), code) },
-                    references = refs.Values.Select(x => x["reference"]!.GetValue<string>()).ToArray()
-                })["artifacts"]!.AsObject());
-                Statistics.CompiledImplementations.Add(e.Id); compiled = true;
-            }
-            if (!artifact.ContainsKey("assembly")) throw new BuildError("TOOL_PROTOCOL", "Pack compilation must return an assembly");
-            var item = JsonData.Object(artifact); item["key"] = key; artifacts[e.Id] = item;
+            sources.Add((e.Id, Generation.ImplementationSource(e, Documents.Body(path), path)));
+            foreach (string fn in new[] { e.Function! }.Concat(e.Imports.Values.Select(x => x.Id))) refs[fn] = Contract(fn);
         }
-        if (artifacts.Count == 0) throw new BuildError("LOCAL_INPUT", $"No implementation declarations in {ns}");
-        if (compiled) Statistics.CompiledPacks.Add(ns); else Statistics.ReusedPacks.Add(ns);
-        string composition = JsonData.Digest(new object[] { "pack-composition-v1", ns, artifacts.Select(x => new[] { x.Key, x.Value["key"]!.GetValue<string>() }).ToArray() });
-        // 'assembly'/'reference' are legacy aliases for the first implementation;
-        // consumers of a multi-implementation pack must use the complete list.
-        var result = artifacts.Values.First().DeepClone().AsObject();
-        result["key"] = composition;
-        result["implementations"] = JsonSerializer.SerializeToNode(artifacts.Keys.ToArray());
-        result["assemblies"] = JsonSerializer.SerializeToNode(artifacts.Values.Select(x => x["assembly"]!.GetValue<string>()).ToArray());
-        result["implementationArtifacts"] = JsonSerializer.SerializeToNode(artifacts, JsonData.Options);
+        string key = JsonData.Digest(new object[] { ArtifactLayout, Generation.Abi, Tool.Identity, "implementations", ns,
+            sources.Select(x => new[] { x.Id, x.Code }).ToArray(),
+            refs.OrderBy(x => x.Key, StringComparer.Ordinal).Select(x => new[] { x.Key, x.Value["key"]!.GetValue<string>() }).ToArray() });
+        var artifact = cache.Get(key);
+        if (artifact is not null) { Statistics.ReusedPacks.Add(ns); Statistics.ReusedImplementations.AddRange(selected.Select(x => x.Id)); }
+        else
+        {
+            artifact = cache.Produce(key, work => Tool.Invoke("compile-pack", new { output = work, name = "Pack_" + Generation.Symbol(ns),
+                sources = sources.Select(x => WriteSource(Path.Combine(work, Generation.Symbol(x.Id) + ".cs"), x.Code)).ToArray(),
+                references = refs.Values.Select(x => x["reference"]!.GetValue<string>()).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray()
+            })["artifacts"]!.AsObject());
+            Statistics.CompiledPacks.Add(ns); Statistics.CompiledImplementations.AddRange(selected.Select(x => x.Id));
+        }
+        if (!artifact.ContainsKey("assembly")) throw new BuildError("TOOL_PROTOCOL", "Pack compilation must return an assembly");
+        var item = JsonData.Object(artifact); item["key"] = key;
+        var result = item.DeepClone().AsObject();
+        result["implementations"] = JsonSerializer.SerializeToNode(selected.Select(x => x.Id).ToArray());
+        result["assemblies"] = new JsonArray(artifact["assembly"]);
+        result["implementationArtifacts"] = JsonSerializer.SerializeToNode(selected.ToDictionary(x => x.Id, _ => item), JsonData.Options);
         return result;
     }
     public JsonObject Check(string ns)
@@ -202,22 +215,24 @@ public sealed class Builder
             implementations.Add(Registry.Implementation(e.Function!, id, id, e.Loc));
         }
         if (implementations.Count == 0) throw new BuildError("LOCAL_INPUT", $"No implementation declarations in {ns}", pack.Loc);
-        return JsonData.Object(new { mode = "contract-only", pack = ns, target = Target, artifact = CompilePack(ns, implementations), warnings = Registry.Warnings, statistics = Statistics });
+        PrepareContracts(implementations.SelectMany(e => new[] { e.Function! }.Concat(e.Imports.Values.Select(x => x.Id))));
+        return JsonData.Object(new { mode = "contract-only", artifactLayout = ArtifactLayout, pack = ns, target = Target, artifact = CompilePack(ns, implementations), warnings = Registry.Warnings, statistics = Statistics });
     }
     public JsonObject Build()
     {
         var plan = new Planner(Registry, Target).Plan(); var packs = new Dictionary<string, JsonObject>(StringComparer.Ordinal);
+        PrepareContracts(plan.Implementations.Values.SelectMany(e => new[] { e.Function! }.Concat(e.Imports.Values.Select(x => x.Id))).Concat(plan.Bindings.Values.Select(x => x.Function)));
         foreach (var group in plan.Implementations.Values.GroupBy(x => PackPaths.Namespace(x.Id)).OrderBy(x => x.Key, StringComparer.Ordinal)) packs[group.Key] = CompilePack(group.Key, group);
         foreach (var node in plan.Bindings.Values) Contract(node.Function);
         string code = Generation.FinalSource(plan);
-        string key = JsonData.Digest(new object[] { Generation.Abi, Tool.Identity, "link", code, packs.ToDictionary(x => x.Key, x => x.Value["key"]!.GetValue<string>()), Contracts.ToDictionary(x => x.Key, x => x.Value["key"]!.GetValue<string>()) });
+        string key = JsonData.Digest(new object[] { ArtifactLayout, Generation.Abi, Tool.Identity, "link", code, packs.ToDictionary(x => x.Key, x => x.Value["key"]!.GetValue<string>()), Contracts.ToDictionary(x => x.Key, x => x.Value["key"]!.GetValue<string>()) });
         string outputRoot = Path.Combine(State, "outputs", Target), work = Path.Combine(outputRoot, $"{key}.{Guid.NewGuid():N}.pending"); Directory.CreateDirectory(work);
         try
         {
             string source = WriteSource(Path.Combine(work, "Bindings.cs"), code), catalog = Path.Combine(work, "sources", "public-linkage.json");
             JsonData.AtomicWrite(catalog, Generation.PublicCatalog(plan, packs, Contracts, Target));
             var result = Tool.Invoke("link", new { output = work, name = "Confectory.App", sources = new[] { source },
-                references = Contracts.Values.Select(x => x["assembly"]!.GetValue<string>()).Concat(packs.Values.SelectMany(x => x["assemblies"]!.AsArray().Select(a => a!.GetValue<string>()))).ToArray(),
+                references = Contracts.Values.Select(x => x["assembly"]!.GetValue<string>()).Concat(packs.Values.SelectMany(x => x["assemblies"]!.AsArray().Select(a => a!.GetValue<string>()))).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray(),
                 resources = new[] { new { path = catalog, name = "public-linkage.json" } } });
             if (result["run"] is not JsonArray runArray || runArray.Count == 0 || runArray.Any(x => x is not JsonValue v || !v.TryGetValue<string>(out _))) throw new BuildError("TOOL_PROTOCOL", "Link tool must return an executable command");
             if (result["artifacts"] is not JsonObject artifacts || !artifacts.ContainsKey("application")) throw new BuildError("TOOL_PROTOCOL", "Link tool must return an application artifact");
@@ -231,7 +246,7 @@ public sealed class Builder
             var reached = plan.Reached.Select(PackPaths.Namespace).ToHashSet(StringComparer.Ordinal);
             var report = JsonData.Object(new
             {
-                mode = "final", project = Registry.Project.Namespace, target = Target, entry = Registry.Project.Entry, key, output = dest,
+                mode = "final", artifactLayout = ArtifactLayout, project = Registry.Project.Namespace, target = Target, entry = Registry.Project.Entry, key, output = dest,
                 run = runArray.Select(x => x!.GetValue<string>().Replace(work, dest, StringComparison.Ordinal)).ToArray(), publicCatalog = artifacts["publicCatalog"]!.GetValue<string>().Replace(work, dest, StringComparison.Ordinal),
                 registeredPacks = Registry.Packs.Keys.Order(StringComparer.Ordinal).ToArray(), includedPacks = reached.Order(StringComparer.Ordinal).ToArray(), excludedPacks = Registry.Packs.Keys.Except(reached).Order(StringComparer.Ordinal).ToArray(),
                 implementationArtifacts = packs, contractArtifacts = Contracts, bindings = plan.Bindings.Values.ToArray(), warnings = Registry.Warnings, statistics = Statistics, tool = Tool.Info

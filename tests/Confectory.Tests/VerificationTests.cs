@@ -109,7 +109,7 @@ public sealed class VerificationTests : TestCase
         }
     }
 
-    public void test_multi_implementation_check_and_final_reuse()
+    public void test_multi_implementation_check_and_final_subset_boundaries()
     {
         f.Add("App", "function", "Spare", "function App::Spare () -> int {}");
         f.Add("App", "implementation", "UnusedBody", "implementation App::UnusedBody for App::Spare () -> int { body common \"unused.csbody\"; }");
@@ -118,8 +118,10 @@ public sealed class VerificationTests : TestCase
         var local = new Builder(f.Project, "portable").Check("App"); Emit("multi-check", local, watch.ElapsedMilliseconds);
         var first = Build(); Output(first, "5"); Emit("multi-final-after-check", first);
         string caller = Text(first, "implementationArtifacts", "App", "assembly");
-        Equal(Text(local, "artifact", "assembly"), caller);
-        Sequence(["Provider"], Strings(first, "statistics", "compiledPacks"));
+        True(Text(local, "artifact", "assembly") != caller, "Full check and pruned final subsets require distinct pack artifacts");
+        Sequence(["App", "Provider"], Strings(first, "statistics", "compiledPacks"));
+        Equal(1, Strings(local, "artifact", "assemblies").Length);
+        Equal(1, Strings(first, "implementationArtifacts", "App", "assemblies").Length);
         var before = (JsonData.HashBytes(File.ReadAllBytes(caller)), File.GetLastWriteTimeUtc(caller));
         var unchanged = Build(); Output(unchanged, "5"); Emit("multi-no-change", unchanged);
         Equal(0, Strings(unchanged, "statistics", "compiledPacks").Length);
@@ -127,8 +129,9 @@ public sealed class VerificationTests : TestCase
         var unused = Build(); Output(unused, "5"); Emit("multi-unused-body", unused);
         Equal(0, Strings(unused, "statistics", "compiledPacks").Length);
         var recheck = new Builder(f.Project, "portable").Check("App"); Emit("multi-check-unused-body", recheck);
-        Sequence(["App::UnusedBody"], Strings(recheck, "statistics", "compiledImplementations"));
-        Sequence(["App::MainBody"], Strings(recheck, "statistics", "reusedImplementations"));
+        Sequence(["App::MainBody", "App::UnusedBody"], Strings(recheck, "statistics", "compiledImplementations"));
+        Equal(0, Strings(recheck, "statistics", "reusedImplementations").Length);
+        Equal(1, recheck["statistics"]!["targetInvocations"]!["compile-pack"]!.GetValue<int>());
         Equal(before, (JsonData.HashBytes(File.ReadAllBytes(caller)), File.GetLastWriteTimeUtc(caller)));
         var afterCheck = Build(); Emit("multi-final-after-recheck", afterCheck);
         Equal(0, Strings(afterCheck, "statistics", "compiledPacks").Length);
@@ -143,6 +146,19 @@ public sealed class VerificationTests : TestCase
         var changedContract = Build(); Output(changedContract, "changed\n5"); Emit("multi-public-contract", changedContract);
         Sequence(["App", "Provider"], Strings(changedContract, "statistics", "compiledPacks"));
         Sequence(["Api::Value"], Strings(changedContract, "statistics", "compiledContracts"));
+    }
+
+    public void test_same_builder_check_then_pruned_build_reselects_pack_contracts()
+    {
+        f.Add("App", "function", "Spare", "function App::Spare () -> int {}");
+        f.Add("App", "implementation", "SpareBody", "implementation App::SpareBody for App::Spare () -> int { body common \"spare.csbody\"; }");
+        f.Body("App", "spare.csbody", "return 8;"); f.Sync();
+        var builder = new Builder(f.Project, "portable"); builder.Validate();
+        var check = builder.Check("App"); var final = builder.Build(); Output(final, "5");
+        True(Text(check, "artifact", "assembly") != Text(final, "implementationArtifacts", "App", "assembly"));
+        True(!final["contractArtifacts"]!.AsObject().ContainsKey("App::Spare"));
+        Sequence(["App::MainBody"], Strings(final, "implementationArtifacts", "App", "implementations"));
+        Equal(5, Directory.GetFiles(Text(final, "output"), "*.dll").Length);
     }
 
     private static void Emit(string scenario, JsonObject report, long? elapsed = null)

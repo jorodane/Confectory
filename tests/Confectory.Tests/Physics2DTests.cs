@@ -18,7 +18,7 @@ public sealed class Physics2DTests : TestCase
             True(!Strings(built,"statistics",key).Any(x=>x.StartsWith("Confectory.Stage::",StringComparison.Ordinal)||x.StartsWith("Confectory.Ballistic2D::",StringComparison.Ordinal)||x.StartsWith("Confectory.Window::",StringComparison.Ordinal)||x.StartsWith("Confectory.Agent::",StringComparison.Ordinal)));
         File.AppendAllText(Path.Combine(owned,"Command.csbody"),"\n// explicit owned Physics policy locality probe\n");
         var changed=new Builder(project,"linux").Build();
-        Sequence(new[]{"Confectory.Physics2D::CommandBody"},Strings(changed,"statistics","compiledImplementations"));
+        PackRebuilt(changed, new[]{"Confectory.Physics2D::CommandBody"});
         Equal(0,Strings(changed,"statistics","compiledContracts").Length);
     }
     public void test_same_physics_contracts_stage_free_preview_and_two_stage_owned_worlds()

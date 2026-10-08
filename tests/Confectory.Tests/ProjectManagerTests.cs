@@ -20,7 +20,7 @@ public sealed class ProjectManagerTests : TestCase
   True(File.ReadAllText(Path.Combine(owned,"BUILDING.txt")).Contains("cannot compile or launch"));
   string project=Path.Combine(owned,"project.cproj");bool unavailable=false;try{new Builder(project,"portable").Build();}catch(Exception error){unavailable=error.ToString().Contains("MISSING_TOOL");}True(unavailable,"Unprovisioned compiler must fail explicitly");
   Fixture.CopyTree(Path.GetDirectoryName(f.ToolPath)!,Path.Combine(owned,"build","tools"));var created=new Builder(project,"portable").Build();Equal(0,Processes.Run(Strings(created,"run"),timeoutSeconds:60).ExitCode);
-  File.AppendAllText(Path.Combine(f.Root,"project-manager","CreationTemplate.offline.csbody"),"\n// body locality\n");var changed=new Builder(f.Project,"android").Build();Sequence(new[]{"Confectory.ProjectManager::CreationTemplateBody"},Strings(changed,"statistics","compiledImplementations"));Equal(0,Strings(changed,"statistics","compiledContracts").Length);
+  File.AppendAllText(Path.Combine(f.Root,"project-manager","CreationTemplate.offline.csbody"),"\n// body locality\n");var changed=new Builder(f.Project,"android").Build();PackRebuilt(changed, new[]{"Confectory.ProjectManager::CreationTemplateBody"});Equal(0,Strings(changed,"statistics","compiledContracts").Length);
  }
  public void test_project_contexts_and_provider_locality()
  {
@@ -35,7 +35,7 @@ public sealed class ProjectManagerTests : TestCase
   {
    Environment.SetEnvironmentVariable("CONFECTORY_PROJECT_EXECUTION_HOST",Path.Combine(Fixture.Repo,"targets","project-execution-host","bin","Release","net10.0","Confectory.ProjectExecutionHost.dll"));Environment.SetEnvironmentVariable("CONFECTORY_TEST_REPO",Fixture.Repo);
    var result=Processes.Run(Strings(first,"run"),timeoutSeconds:120);Equal(0,result.ExitCode);True(result.Stdout.Contains("ProjectManager lifecycle PASS",StringComparison.Ordinal),result.Stderr);var cached=new Builder(project,"portable").Build();Equal(0,Strings(cached,"statistics","compiledImplementations").Length);
-   File.AppendAllText(Path.Combine(f.Root,"packs","project-manager","Context.csbody"),"\n// provider-only locality check\n");var changed=new Builder(project,"portable").Build();Sequence(new[]{"Confectory.ProjectManager::ContextBody"},Strings(changed,"statistics","compiledImplementations"));Equal(0,Strings(changed,"statistics","compiledContracts").Length);
+   File.AppendAllText(Path.Combine(f.Root,"packs","project-manager","Context.csbody"),"\n// provider-only locality check\n");var changed=new Builder(project,"portable").Build();PackRebuilt(changed, new[]{"Confectory.ProjectManager::ContextBody"});Equal(0,Strings(changed,"statistics","compiledContracts").Length);
    var android=new Builder(project,"android").Build();var catalog=System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(Text(android,"publicCatalog")))!;
    foreach(string id in new[]{"Confectory.ProjectExecution::LaunchConfiguredBody"})Equal("android",catalog["implementations"]!.AsArray().Single(x=>x!["id"]!.GetValue<string>()==id)!["bodySelection"]!.GetValue<string>());
   }

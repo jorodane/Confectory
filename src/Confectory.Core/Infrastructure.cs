@@ -90,6 +90,8 @@ public sealed class BuildStatistics
     public List<string> CheckedContracts { get; set; } = [];
     public List<string> CompiledContracts { get; set; } = [];
     public List<string> ReusedContracts { get; set; } = [];
+    public List<string> CompiledContractPacks { get; set; } = [];
+    public List<string> ReusedContractPacks { get; set; } = [];
     public List<string> CompiledPacks { get; set; } = [];
     public List<string> ReusedPacks { get; set; } = [];
     public List<string> CompiledImplementations { get; set; } = [];

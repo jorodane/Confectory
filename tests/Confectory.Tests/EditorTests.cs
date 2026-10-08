@@ -33,7 +33,7 @@ public sealed class EditorTests : TestCase
         var built=new Builder(project,"linux").Build();RunOwned(built,Path.Combine(f.Root,"folder pages"),"Editor public controls ownership");ExcludeOptional(built);
         foreach(var policy in new[]{("base-ui","ControlState","Confectory.BaseUI::ControlStateBody"),("ui-navigation","Group","Confectory.UINavigation::GroupBody"),("source-editor","Snapshot","Confectory.SourceEditor::SnapshotBody"),("source-editor","Refresh","Confectory.SourceEditor::RefreshBody"),("source-editor","BorrowText","Confectory.SourceEditor::BorrowTextBody"),("file-stream","BrowseDirectory","Confectory.FileStream::BrowseDirectoryBody")})
         {
-            File.AppendAllText(Path.Combine(f.Root,"owned "+policy.Item1,policy.Item2+".csbody"),"\n// owning public provider implementation locality probe\n");var changed=new Builder(project,"linux").Build();Sequence(new[]{policy.Item3},Strings(changed,"statistics","compiledImplementations"));Equal(0,Strings(changed,"statistics","compiledContracts").Length);
+            File.AppendAllText(Path.Combine(f.Root,"owned "+policy.Item1,policy.Item2+".csbody"),"\n// owning public provider implementation locality probe\n");var changed=new Builder(project,"linux").Build();PackRebuilt(changed, new[]{policy.Item3});Equal(0,Strings(changed,"statistics","compiledContracts").Length);
         }
     }
     public void test_editor_create_draft_restart_confirm_execute_errors_recovery_and_independent_contexts()
@@ -42,18 +42,21 @@ public sealed class EditorTests : TestCase
         {
             var built=new Builder(Path.Combine(consumer,example.Item1+".cpack"),"linux").Build();RunOwned(built,Path.Combine(f.Root,example.Item1+" storage"),example.Item2);ExcludeOptional(built);
         }
-        string project=Path.Combine(consumer,"verify.cpack");File.AppendAllText(Path.Combine(consumer,"Command.csbody"),"\n// owning editor workflow locality probe\n");var changed=new Builder(project,"linux").Build();Sequence(new[]{"Confectory.Editor::CommandBody"},Strings(changed,"statistics","compiledImplementations"));Equal(0,Strings(changed,"statistics","compiledContracts").Length);
+        string project=Path.Combine(consumer,"verify.cpack");File.AppendAllText(Path.Combine(consumer,"Command.csbody"),"\n// owning editor workflow locality probe\n");var changed=new Builder(project,"linux").Build();PackRebuilt(changed, new[]{"Confectory.Editor::CommandBody"});Equal(0,Strings(changed,"statistics","compiledContracts").Length);
     }
     public void test_editor_native_designed_create_open_edit_save_review_confirm_run_stop_and_lifetime()
     {
         if(string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DISPLAY"))){Skip("native editor: no actual DISPLAY");}
         string consumer=Consumer();var built=new Builder(Path.Combine(consumer,"project.cpack"),"linux").Build();ExcludeOptional(built);string report=Path.Combine(f.Root,"editor native report.json");File.WriteAllText(report,built.ToJsonString());var run=Processes.Run(new[]{"python",Path.Combine(Fixture.Repo,"tests","gui","editor_x11_workflow.py"),report},timeoutSeconds:360);True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("Editor native create/folder-open",StringComparison.Ordinal),run.Stdout);
-        File.AppendAllText(Path.Combine(consumer,"Main.csbody"),"\n// owning editor presentation locality probe\n");var changed=new Builder(Path.Combine(consumer,"project.cpack"),"linux").Build();Sequence(new[]{"Confectory.Editor::MainBody"},Strings(changed,"statistics","compiledImplementations"));Equal(0,Strings(changed,"statistics","compiledContracts").Length);
+        File.AppendAllText(Path.Combine(consumer,"Main.csbody"),"\n// owning editor presentation locality probe\n");var changed=new Builder(Path.Combine(consumer,"project.cpack"),"linux").Build();PackRebuilt(changed, new[]{"Confectory.Editor::MainBody"});Equal(0,Strings(changed,"statistics","compiledContracts").Length);
     }
     public void test_editor_windows_and_android_managed_target_profiles_are_compile_only()
     {
         string consumer=Consumer();foreach(string target in new[]{"windows"})foreach(string entry in new[]{"project","verify-contracts"}){var built=new Builder(Path.Combine(consumer,entry+".cpack"),target).Build();True(built["tool"]!["ok"]!.GetValue<bool>());ExcludeOptional(built);}
-        Error("MISSING_TARGET_IMPLEMENTATION",()=>new Builder(Path.Combine(consumer,"project.cpack"),"android").Build());
+        var android=new Builder(Path.Combine(consumer,"project.cpack"),"android").Build();True(android["tool"]!["ok"]!.GetValue<bool>());ExcludeOptional(android);
+        var refusal=Processes.Run(Strings(android,"run"));True(refusal.ExitCode!=0&&refusal.Stderr.Contains("Editor desktop requires native windows; Android needs app-owned surface",StringComparison.Ordinal),refusal.Stdout+refusal.Stderr);
+        var catalog=JsonNode.Parse(File.ReadAllText(Text(android,"publicCatalog")))!;
+        Equal("android",catalog["implementations"]!.AsArray().Single(x=>Text(x!,"id")=="Confectory.NativeUI::RequestBody")!["bodySelection"]!.GetValue<string>());
         var model=new Builder(Path.Combine(consumer,"verify-contracts.cpack"),"android").Build();True(model["tool"]!["ok"]!.GetValue<bool>());
     }
 }

@@ -26,7 +26,7 @@ public sealed class StageTests : TestCase
             True(run.Stdout.Contains("Stage owner cleanup complete",StringComparison.Ordinal));
             File.AppendAllText(Path.Combine(owned,"Command.csbody"),"\n// explicit owned Stage policy locality probe\n");
             var changed=new Builder(project,"linux").Build();
-            Sequence(new[]{"Confectory.Stage::CommandBody"},Strings(changed,"statistics","compiledImplementations"));
+            PackRebuilt(changed, new[]{"Confectory.Stage::CommandBody"});
             Equal(0,Strings(changed,"statistics","compiledContracts").Length);
         }
         finally { for(int i=0;i<keys.Length;i++)Environment.SetEnvironmentVariable(keys[i],saved[i]); }

@@ -11,7 +11,7 @@ public sealed class SchemaEditingTests : TestCase
   {
    Environment.SetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST",Path.Combine(Fixture.Repo,"targets","element-authoring","bin","Release","net10.0","Confectory.ElementAuthoring.dll"));Environment.SetEnvironmentVariable("CONFECTORY_TEST_AUTHOR_PROJECT",f.Project);
    var built=new Builder(project,"portable").Build();var result=Processes.Run(Strings(built,"run"),timeoutSeconds:120);True(result.ExitCode==0,result.Stderr+result.Stdout);True(result.Stdout.Contains("SchemaEditing authoring/preservation/compiler PASS",StringComparison.Ordinal),result.Stderr);
-   File.AppendAllText(Path.Combine(pack,"SetValue.csbody"),"\n// local authoring provider change\n");var changed=new Builder(project,"portable").Build();Sequence(new[]{"Confectory.SchemaEditing::SetValueBody"},Strings(changed,"statistics","compiledImplementations"));Equal(0,Strings(changed,"statistics","compiledContracts").Length);
+   File.AppendAllText(Path.Combine(pack,"SetValue.csbody"),"\n// local authoring provider change\n");var changed=new Builder(project,"portable").Build();PackRebuilt(changed, new[]{"Confectory.SchemaEditing::SetValueBody"});Equal(0,Strings(changed,"statistics","compiledContracts").Length);
   }
   finally{Environment.SetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST",host);Environment.SetEnvironmentVariable("CONFECTORY_TEST_AUTHOR_PROJECT",selected);}
  }

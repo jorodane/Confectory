@@ -14,7 +14,7 @@ public sealed class EditWorkspaceTests : TestCase
    var built=new Builder(project,"portable").Build();var result=Processes.Run(Strings(built,"run"),timeoutSeconds:240);True(result.ExitCode==0,result.Stderr+result.Stdout);True(result.Stdout.Contains("EditWorkspace Save/restore selective Confirm/preview/conflict PASS",StringComparison.Ordinal),result.Stderr);
    foreach(var (pack,body,ns) in new[]{("edit-workspace","Read","Confectory.EditWorkspace"),("save","Write","Confectory.Save"),("change-set","Review","Confectory.ChangeSet")})
    {
-    File.AppendAllText(Path.Combine(f.Root,"packs",pack,body+".csbody"),"\n// provider locality check\n");var changed=new Builder(project,"portable").Build();Sequence(new[]{ns+"::"+body+"Body"},Strings(changed,"statistics","compiledImplementations"));Equal(0,Strings(changed,"statistics","compiledContracts").Length);
+    File.AppendAllText(Path.Combine(f.Root,"packs",pack,body+".csbody"),"\n// provider locality check\n");var changed=new Builder(project,"portable").Build();PackRebuilt(changed, new[]{ns+"::"+body+"Body"});Equal(0,Strings(changed,"statistics","compiledContracts").Length);
    }
    var windows=new Builder(project,"windows").Build();True(Strings(windows,"run").Length>1);
    File.WriteAllText(Path.Combine(sample,"main.csbody"),"""

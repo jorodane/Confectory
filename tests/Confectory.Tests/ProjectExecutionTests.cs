@@ -15,7 +15,7 @@ public sealed class ProjectExecutionTests : TestCase
   {
    Environment.SetEnvironmentVariable("CONFECTORY_PROJECT_EXECUTION_HOST",Path.Combine(Fixture.Repo,"targets","project-execution-host","bin","Release","net10.0","Confectory.ProjectExecutionHost.dll"));Environment.SetEnvironmentVariable("CONFECTORY_TEST_REPO",Fixture.Repo);
    var result=Processes.Run(Strings(first,"run"),timeoutSeconds:120);Equal(0,result.ExitCode);True(result.Stdout.Contains("ProjectExecution lifecycle PASS",StringComparison.Ordinal),result.Stderr);var cached=new Builder(project,"portable").Build();Equal(0,Strings(cached,"statistics","compiledImplementations").Length);
-   File.AppendAllText(Path.Combine(pack,"Observe.csbody"),"\n// provider-only locality check\n");var changed=new Builder(project,"portable").Build();Sequence(new[]{"Confectory.ProjectExecution::ObserveBody"},Strings(changed,"statistics","compiledImplementations"));Equal(0,Strings(changed,"statistics","compiledContracts").Length);
+   File.AppendAllText(Path.Combine(pack,"Observe.csbody"),"\n// provider-only locality check\n");var changed=new Builder(project,"portable").Build();PackRebuilt(changed, new[]{"Confectory.ProjectExecution::ObserveBody"});Equal(0,Strings(changed,"statistics","compiledContracts").Length);
    File.WriteAllText(Path.Combine(sample,"main.csbody"),"""
    var session=calls.CreateSession.Invoke();
    try
