@@ -245,3 +245,7 @@ Direct schema field/data declarations and actual revisioned EditorHome commands 
 
 
 Layout-independent schema View rows, explicit nested/list path replacement, signature-driven inputs and read-only function preflight now continue this milestone. Actual function invocation remains unavailable and no layout was changed. See [completed contracts, exact product actions and remaining connection points](SCHEMA_VIEW_AND_CALL_PREFLIGHT.md).
+
+## 2026-10-08 actual semantic EditorHome UI continuation
+
+[EditorHome semantic UI](EDITOR_HOME_SEMANTIC_UI.md) connects existing schema View/field/path/call-preflight and authoring commands to the actual common entry. Geometry follows the existing description provisionally and can be replaced later. Continue within work/current; runtime invocation provider policy, final user layout and device/IME acceptance remain separate. Do not create an alternative test page or transfer schema state to a table.

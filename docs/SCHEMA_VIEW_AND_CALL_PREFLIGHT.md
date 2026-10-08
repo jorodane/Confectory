@@ -1,3 +1,5 @@
+> Follow-up: [actual EditorHome UI integration](EDITOR_HOME_SEMANTIC_UI.md) supersedes the earlier no-layout and unwired-screen status below. The 4c65731 contract milestone and its evidence remain historical.
+
 # Schema View model and function preflight without layout changes
 
 Continuation of direct `.celem` milestone 522aa6c. The user authorized remaining internal pack work while retaining the actual EditorHome layout and forbidding arbitrary runtime invocation authority. This increment prepares reusable data/field and function input models and explicit path editing; it creates no new screen or function executor.

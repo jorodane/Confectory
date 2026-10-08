@@ -37,4 +37,14 @@ public sealed class ProjectShellTests : TestCase
     {
         string consumer=Consumer("editor-home"),project=Path.Combine(consumer,"project.cpack");var built=new Builder(project,"windows").Build();True(built["tool"]!["ok"]!.GetValue<bool>());OptionalExcluded(built);var android=new Builder(project,"android");var managed=android.Build();True(managed["tool"]!["ok"]!.GetValue<bool>());OptionalExcluded(managed);var plan=new Planner(android.Registry,"android").Plan();True(plan.Implementations["Confectory.EditorHome::MainBody"].Bodies.ContainsKey("common")&&!plan.Implementations["Confectory.EditorHome::MainBody"].Bodies.ContainsKey("android"),"Android must execute the actual common EditorHome controller rather than an alternate product shell");True(plan.Implementations["Confectory.HostLoop::RunBody"].Bodies.ContainsKey("android"),"Android is missing its platform host loop provider");True(plan.Implementations["Confectory.EditorHome.Model::CreateSessionBody"].Bodies.ContainsKey("android"),"Shared model lost Android CreateSession selection");
     }
+    public void test_editor_home_semantic_presentation_rebuilds_only_own_provider()
+    {
+        string consumer=Consumer("editor-home"),project=Path.Combine(consumer,"project.cpack");
+        var baseline=new Builder(project,"linux").Build();OptionalExcluded(baseline);
+        File.AppendAllText(Path.Combine(consumer,"Main.csbody"),"\n// semantic presentation owner locality probe\n");
+        var changed=new Builder(project,"linux").Build();PackRebuilt(changed,new[]{"Confectory.EditorHome::MainBody"});
+        Equal(0,Strings(changed,"statistics","compiledContracts").Length);
+        var cached=new Builder(project,"linux").Build();Equal(0,Strings(cached,"statistics","compiledPacks").Length);Equal(0,Strings(cached,"statistics","compiledContracts").Length);
+    }
+
 }

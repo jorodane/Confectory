@@ -193,49 +193,79 @@ def ready_source(window):
     click(window,55);return wait(lambda t:t['model'].get('workspace') and '54' in t['fields'],'source view')
 def final():
     with open(source) as stream:return stream.read()
+def semantic_authoring(window):
+    namespace='Confectory.EditorHome';schema_id=namespace+'::UISchema';object_id=namespace+'::UIObject'
+    def fill(id,text):
+        click(window,id);type_text(window,text);wait(lambda t:field_text(t,id)==text,'native semantic input '+str(id))
+    def done(predicate,message,seconds=30):return wait(lambda t:not t['job'] and predicate(t),message,seconds)
+    def mode(id,field):click(window,id);done(lambda t:str(field) in t['fields'],'semantic mode')
+    mode(73,84);click(window,85);wait(lambda t:'New schema (change kind)' in t['texts'],'schema creation kind');fill(84,schema_id);click(window,86);done(lambda t:t['model']['workspace']['selected']==schema_id,'schema created')
+    click(window,74);done(lambda t:t['model']['workspace'].get('schemaView') is not None,'schema View');click(window,227);fill(208,'score');fill(93,'int');click(window,94);done(lambda t:'field score single general int;' in t['model']['workspace']['unit']['text'],'schema field')
+    mode(73,84)
+    for _ in range(6):
+        if 'New object (change kind)' in latest()['texts']:break
+        click(window,85);time.sleep(.3)
+    assert 'New object (change kind)' in latest()['texts'];fill(84,object_id);click(window,86);done(lambda t:t['model']['workspace']['selected']==object_id,'object created')
+    mode(75,54);fill(54,'object '+object_id+' {\n use schema '+schema_id+';\n data score = 0;\n}\n')
+    click(window,74);done(lambda t:t['model']['workspace'].get('schemaView') is not None and '89' in t['fields'],'object property View');fill(89,'7');click(window,90);done(lambda t:'data score = 7;' in t['model']['workspace']['unit']['text'],'native typed edit')
+    native_field=json.loads(latest()['fields']['89'])['nativeHandle'];mode(75,54);click(window,74);done(lambda t:'89' in t['fields'] and t['model']['workspace'].get('schemaView') is not None,'property reopen');assert json.loads(latest()['fields']['89'])['nativeHandle']==native_field
+    ids=[schema_id,object_id,namespace+'::ProjectManifest']
+    mode(73,207);fill(207,json.dumps(ids));click(window,206);state=done(lambda t:t['model']['workspace'].get('review') is not None,'group review');review=state['model']['workspace']['review'];assert [row['id'] for row in review['units']]==ids
+    assert 'data score = 7;' in review['units'][1]['after'];first_token=review['token'];click(window,205);wait(lambda t:field_text(t,68)==review['units'][1]['after'],'review member navigation');click(window,66);done(lambda t:t['model']['workspace'].get('review') is None,'group cancel');mode(73,207);done(lambda t:t['focus']==207,'restore underlying native form focus')
+    click(window,74);done(lambda t:'89' in t['fields'] and t['model']['workspace'].get('schemaView') is not None,'after cancel');fill(89,'8');click(window,90);done(lambda t:'data score = 8;' in t['model']['workspace']['unit']['text'],'edit after Review')
+    mode(73,207);click(window,206);state=done(lambda t:t['model']['workspace'].get('review') is not None,'group re-review');review=state['model']['workspace']['review'];assert review['token']!=first_token and 'data score = 8;' in review['units'][1]['after']
+    subprocess.run(['import','-window',str(window),'/tmp/confectory-semantic-native-review.png'],check=True)
+    click(window,65);done(lambda t:t['model']['workspace'].get('review') is None and t['model']['status'].startswith('Confirm confirmed'),'group Confirm',340)
+    assert not latest()['model']['workspace']['unit']['dirty']
+    click(window,74);done(lambda t:'89' in t['fields'] and t['model']['workspace'].get('schemaView') is not None,'confirmed properties');subprocess.run(['import','-window',str(window),'/tmp/confectory-semantic-native-ui.png'],check=True)
+    print('PASS native semantic schema/object create/field/data/retained native input/group Review navigation/cancel/edit/re-review/exact Confirm',flush=True)
+
 try:
     a=launch();wait(lambda t:t['screen']=='intro' and 1 in t['hits'][::5],'intro');click(a,1);wait(lambda t:t['screen']=='home','home');click(a,100);wait(lambda t:t['screen']=='project','owned actual editor');state=ready_source(a)
-    assert state['model']['workspace']['unit']['path']=='Main.csbody'
-    edited='Console.WriteLine("CONFIRMED_CHILD_ACTUAL_PACK");\n'+original
-    edit_at(a,0xFF50,'Console.WriteLine("CONFIRMED_CHILD_ACTUAL_PACK");\n',edited);click(a,58);wait(lambda t:'saved' in t.get('message','').lower() or 'saved' in t['model']['status'].lower(),'save');assert final()==original
-    click(a,64);state=wait(lambda t:t['model']['workspace'].get('review') and '67' in t['fields'] and '68' in t['fields'],'review')
-    assert state['model']['workspace']['review']['path']=='Main.csbody' and field_text(state,67)==original and field_text(state,68)==edited
-    assert state['model']['workspace']['review']['status']=='ready';assert 54 not in state['hits'][::5],'underlying source field accepts input during modal'
-    subprocess.run(['import','-window',str(a),'/tmp/confectory-confirm-review.png'],check=True)
-    click(a,66);wait(lambda t:t['model']['workspace'].get('review') is None and '54' in t['fields'],'cancel');assert final()==original and field_text(latest(),54)==edited
-    leave_project(a);wait(lambda t:t['screen']=='home','leave');click(a,100);wait(lambda t:t['screen']=='project','reopen');ready_source(a);assert field_text(latest(),54)==edited
-    # External final source changes after the user has reviewed: Confirm must refuse.
-    click(a,64);wait(lambda t:t['model']['workspace'].get('review') and 65 in t['hits'][::5],'review again')
-    external=original+'\n// independently edited final source\n'
-    with open(source,'w') as stream:stream.write(external)
-    click(a,65);wait(lambda t:t['model']['workspace'].get('review',{}).get('status')=='conflict' and not t['job'],'external conflict');assert final()==external
-    click(a,66);wait(lambda t:t['model']['workspace'].get('review') is None,'cancel conflict');assert field_text(latest(),54)==edited
-    # Restore the controlled fixture, not any user source, for the next independent failure.
-    with open(source,'w') as stream:stream.write(original)
-    invalid=edited+'\nBROKEN_CANDIDATE';edit_at(a,0xFF57,'\nBROKEN_CANDIDATE',invalid);click(a,64);wait(lambda t:t['model']['workspace'].get('review') and 65 in t['hits'][::5],'invalid review');click(a,65)
-    wait(lambda t:t['model']['workspace'].get('review',{}).get('status')=='invalid' and not t['job'],'validation failure',340);assert final()==original
-    click(a,66);wait(lambda t:t['model']['workspace'].get('review') is None,'cancel invalid');assert field_text(latest(),54)==invalid
-    leave_project(a);wait(lambda t:t['screen']=='home','before restart');end(a,interrupt=True)
-    a=launch();wait(lambda t:t['screen']=='intro' and 1 in t['hits'][::5],'restart intro');click(a,1);wait(lambda t:t['screen']=='home','restart');click(a,100);wait(lambda t:t['screen']=='project','restart open');ready_source(a);assert field_text(latest(),54)==invalid and final()==original
-    click(a,54);f=json.loads(latest()['fields']['54']);handle=int(f['nativeHandle']);native_controls.key(handle,0xFF57,(0xFFE3,));native_controls.key(handle,0xFF50,(0xFFE1,));native_controls.key(handle,0xFF08);edited=edited+'\n';wait(lambda t:field_text(t,54)==edited,'repair invalid line');click(a,64);wait(lambda t:t['model']['workspace'].get('review') and 65 in t['hits'][::5],'valid review');click(a,65)
-    wait(lambda t:t['model']['workspace'].get('review') is None and t['model']['status'].startswith('Confirm confirmed') and not t['job'],'successful confirm',340);assert final()==edited
-    assert not latest()['model']['workspace']['unit']['dirty'];assert latest()['model']['workspace']['unit']['text']==edited
-    click(a,36);state=wait(lambda t:t['model']['execution']['state']=='running' and any('CONFIRMED_CHILD_ACTUAL_PACK' in line for line in t['model']['shell']['logs']),'confirmed child editor',340)
-    # Parent source View remains owned, while confirmed pack's actual Main creates a separate child.
-    assert app.poll() is None and state['screen']=='project' and field_text(state,54)==edited
-    r,parent,children,count=U(),U(),P(),c.c_uint();query(display,root,c.byref(r),c.byref(parent),c.byref(children),c.byref(count));named=[]
-    try:
-        for win in c.cast(children,c.POINTER(U))[:count.value]:
-            name=P();fetch(display,win,c.byref(name))
-            if name:
-                try:
-                    if c.string_at(name)==b'Confectory - Projects':named.append(win)
-                finally:free(name)
-    finally:free(children)
-    assert len(named)>=2,'child did not open actual editor native window'
-    subprocess.run(['import','-window',str(a),'/tmp/confectory-confirm-parent-after-run.png'],check=True)
-    click(a,37);wait(lambda t:t['model']['execution']['state']=='stopped','stop child');leave_project(a);wait(lambda t:t['screen']=='home','final leave');end(a)
-    print('PASS actual editor-home GUI owned self-pack Save-draft/review paths-before-after/cancel/reopen/external conflict/invalid compile/restart retention/explicit Confirm/confirmed-source child editor Run/parent isolation/Stop/cleanup')
+    if '--semantic-only' in sys.argv:
+        semantic_authoring(a);leave_project(a);wait(lambda t:t['screen']=='home','semantic leave');end(a)
+    else:
+        assert state['model']['workspace']['unit']['path']=='Main.csbody'
+        edited='Console.WriteLine("CONFIRMED_CHILD_ACTUAL_PACK");\n'+original
+        edit_at(a,0xFF50,'Console.WriteLine("CONFIRMED_CHILD_ACTUAL_PACK");\n',edited);click(a,58);wait(lambda t:'saved' in t.get('message','').lower() or 'saved' in t['model']['status'].lower(),'save');assert final()==original
+        click(a,64);state=wait(lambda t:t['model']['workspace'].get('review') and '67' in t['fields'] and '68' in t['fields'],'review')
+        assert state['model']['workspace']['review']['path']=='Main.csbody' and field_text(state,67)==original and field_text(state,68)==edited
+        assert state['model']['workspace']['review']['status']=='ready';assert 54 not in state['hits'][::5],'underlying source field accepts input during modal'
+        subprocess.run(['import','-window',str(a),'/tmp/confectory-confirm-review.png'],check=True)
+        click(a,66);wait(lambda t:t['model']['workspace'].get('review') is None and '54' in t['fields'],'cancel');assert final()==original and field_text(latest(),54)==edited
+        leave_project(a);wait(lambda t:t['screen']=='home','leave');click(a,100);wait(lambda t:t['screen']=='project','reopen');ready_source(a);assert field_text(latest(),54)==edited
+        # External final source changes after the user has reviewed: Confirm must refuse.
+        click(a,64);wait(lambda t:t['model']['workspace'].get('review') and 65 in t['hits'][::5],'review again')
+        external=original+'\n// independently edited final source\n'
+        with open(source,'w') as stream:stream.write(external)
+        click(a,65);wait(lambda t:t['model']['workspace'].get('review',{}).get('status')=='conflict' and not t['job'],'external conflict');assert final()==external
+        click(a,66);wait(lambda t:t['model']['workspace'].get('review') is None,'cancel conflict');assert field_text(latest(),54)==edited
+        # Restore the controlled fixture, not any user source, for the next independent failure.
+        with open(source,'w') as stream:stream.write(original)
+        invalid=edited+'\nBROKEN_CANDIDATE';edit_at(a,0xFF57,'\nBROKEN_CANDIDATE',invalid);click(a,64);wait(lambda t:t['model']['workspace'].get('review') and 65 in t['hits'][::5],'invalid review');click(a,65)
+        wait(lambda t:t['model']['workspace'].get('review',{}).get('status')=='invalid' and not t['job'],'validation failure',340);assert final()==original
+        click(a,66);wait(lambda t:t['model']['workspace'].get('review') is None,'cancel invalid');assert field_text(latest(),54)==invalid
+        leave_project(a);wait(lambda t:t['screen']=='home','before restart');end(a,interrupt=True)
+        a=launch();wait(lambda t:t['screen']=='intro' and 1 in t['hits'][::5],'restart intro');click(a,1);wait(lambda t:t['screen']=='home','restart');click(a,100);wait(lambda t:t['screen']=='project','restart open');ready_source(a);assert field_text(latest(),54)==invalid and final()==original
+        click(a,54);f=json.loads(latest()['fields']['54']);handle=int(f['nativeHandle']);native_controls.key(handle,0xFF57,(0xFFE3,));native_controls.key(handle,0xFF50,(0xFFE1,));native_controls.key(handle,0xFF08);edited=edited+'\n';wait(lambda t:field_text(t,54)==edited,'repair invalid line');click(a,64);wait(lambda t:t['model']['workspace'].get('review') and 65 in t['hits'][::5],'valid review');click(a,65)
+        wait(lambda t:t['model']['workspace'].get('review') is None and t['model']['status'].startswith('Confirm confirmed') and not t['job'],'successful confirm',340);assert final()==edited
+        assert not latest()['model']['workspace']['unit']['dirty'];assert latest()['model']['workspace']['unit']['text']==edited
+        click(a,36);state=wait(lambda t:t['model']['execution']['state']=='running' and any('CONFIRMED_CHILD_ACTUAL_PACK' in line for line in t['model']['shell']['logs']),'confirmed child editor',340)
+        # Parent source View remains owned, while confirmed pack's actual Main creates a separate child.
+        assert app.poll() is None and state['screen']=='project' and field_text(state,54)==edited
+        r,parent,children,count=U(),U(),P(),c.c_uint();query(display,root,c.byref(r),c.byref(parent),c.byref(children),c.byref(count));named=[]
+        try:
+            for win in c.cast(children,c.POINTER(U))[:count.value]:
+                name=P();fetch(display,win,c.byref(name))
+                if name:
+                    try:
+                        if c.string_at(name)==b'Confectory - Projects':named.append(win)
+                    finally:free(name)
+        finally:free(children)
+        assert len(named)>=2,'child did not open actual editor native window'
+        subprocess.run(['import','-window',str(a),'/tmp/confectory-confirm-parent-after-run.png'],check=True)
+        click(a,37);wait(lambda t:t['model']['execution']['state']=='stopped','stop child');semantic_authoring(a);leave_project(a);wait(lambda t:t['screen']=='home','final leave');end(a)
+        print('PASS actual editor-home GUI owned self-pack Save-draft/review paths-before-after/cancel/reopen/external conflict/invalid compile/restart retention/explicit Confirm/confirmed-source child editor Run/parent isolation/Stop/cleanup')
     print('Private evidence: '+storage)
 finally:
     if app is not None and app.poll() is None:os.killpg(app.pid,signal.SIGTERM);app.wait(timeout=10)
