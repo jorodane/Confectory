@@ -15,3 +15,7 @@ Windows/Linux Request providers reuse existing owner-bound folder dialog state f
 ArchiveSourceTexts now includes .cproj and permits missing owned overlay paths, checking every existing ancestor for links. Auxiliary gate verifies new manifest/element ZIP entries without creating finals and rejects missing drafts below a symlink: FileStreamTests1/0/0,28.040s.
 
 Original NativeUITests run preserved:0 passed,2 failed,0 skipped111.065s. Actual GTK unchanged helper failed 'Native chooser did not close' (10s condition, original dense /tmp and typed input); no timeout/environment/input substitution. Public projection failed historical Android-unsupported assertion after Android provider was legitimately added; Linux and Windows managed projection runs preceding assertion completed. Corrected current Android publiccatalog selection assertion keeps web-negative and contract/locality checks; this is separate from unresolved GTK failure. New actual same-product archive GUI flow remains integration verification.
+
+Android storage-flush/poll mirrors desktop localFS acknowledgement after caller writes complete; host-bound HashSet entry is consumed on poll and removed on owner close. It does not persist grants, payloads, browser state or credentials.
+
+Corrected targeted public projection gate passed1/0/0,40.929s; Linux/Windows managed projection, current Android target catalog, retained web-negative/public-contract gates and Capabilities-only locality all passed. This does not resolve the separate actual GTK chooser failure.

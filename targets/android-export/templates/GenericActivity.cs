@@ -18,6 +18,7 @@ public sealed class MainActivity : Activity,Choreographer.IFrameCallback
     readonly Queue<string> inbox=new();readonly HashSet<string> entryOwners=new();
     string pickerHost="",pickerState="idle",pickerPath="",pickerError="";int pickerEpoch,pickerRequest;
     readonly Dictionary<string,string> imported=new();
+    readonly HashSet<string> storageAcknowledged=new();
     string archiveHost="",archiveState="idle",archiveError="";byte[]? archiveBytes;int archiveRequest=31001;
     bool resumed,scheduled,closed;
     protected override void OnCreate(Bundle? state)
@@ -58,6 +59,8 @@ public sealed class MainActivity : Activity,Choreographer.IFrameCallback
         }
         if(!fields.TryGetValue(host,out var field)){if(operation=="close"&&AppDomain.CurrentDomain.GetData("Confectory.Android.NativeUI.Closed."+host) is true)return "{}";throw new InvalidOperationException("Native field owner is unavailable");}
         if(closed&&operation!="close")throw new InvalidOperationException("Activity owner retired");
+        if(operation=="storage-flush"){storageAcknowledged.Add(host);return "{}";}
+        if(operation=="storage-poll")return storageAcknowledged.Remove(host)?"{\"state\":\"saved\"}":"{\"state\":\"idle\"}";
         if(operation=="archive-begin")
         {
             if(archiveState=="pending")throw new InvalidOperationException("Archive transfer already pending");
@@ -84,7 +87,7 @@ public sealed class MainActivity : Activity,Choreographer.IFrameCallback
         }
         if(operation=="folder-cancel"){if(pickerHost==host){pickerEpoch++;pickerState="cancelled";}return "{}";}
         if(operation=="open-folder")throw new PlatformNotSupportedException("Android app-private folders are owned by the app; external desktop file managers are unavailable");
-        if(operation=="close"){if(archiveHost==host){archiveRequest++;archiveBytes=null;archiveState="cancelled";}if(pickerHost==host){pickerEpoch++;pickerState="cancelled";}field.Dispose();fields.Remove(host);AndroidCloseHistory.Mark("Confectory.Android.NativeUI.Closed.",host);AppDomain.CurrentDomain.SetData("Confectory.Android.NativeUI.Owner."+host,null);return "{}";}
+        if(operation=="close"){storageAcknowledged.Remove(host);if(archiveHost==host){archiveRequest++;archiveBytes=null;archiveState="cancelled";}if(pickerHost==host){pickerEpoch++;pickerState="cancelled";}field.Dispose();fields.Remove(host);AndroidCloseHistory.Mark("Confectory.Android.NativeUI.Closed.",host);AppDomain.CurrentDomain.SetData("Confectory.Android.NativeUI.Owner."+host,null);return "{}";}
         return field.Request(operation,payload);
     }
     string OwnedNativeRequest(string host,string operation,string payload,long parent)
