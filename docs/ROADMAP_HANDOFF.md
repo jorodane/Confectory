@@ -235,3 +235,7 @@ Work branch `lazy-edit-materialization` continues `e532ce5`; see [contracts, loc
 ## Existing authoring command composition
 
 [Actual scalar/reference/Create/grouped Review/Confirm commands](EDITOR_EXISTING_AUTHORING_COMMANDS.md) continue `6f0a692` without layout or schema-representation changes. All four authorized independent items are connected through the common EditorHome domain route. Shared ConfirmReviewed explicitly pins reviewed Changes and is consumer migrated; old Confirm delegates to the same candidate/conditional-commit policy. Generic schema encoding remains the pending user decision and the overall editor remains incomplete.
+
+## Canonical work branch and recovery
+
+Future authorized work accumulates on `work/current`. [Branch consolidation](BRANCH_CONSOLIDATION_20261008.md) and [exact SHA recovery ledger](BRANCH_RECOVERY_20261008.json) preserve the completed 3ff6077 stack, archive eligible owned remote names before deletion, and retain unrelated/divergent worker histories. This is refs/documentation administration only; main and feature sources are unchanged. Checkpoint17 completion and stage18 documents are distinguished; no new checkpoint number or schema decision is assigned by branch cleanup.

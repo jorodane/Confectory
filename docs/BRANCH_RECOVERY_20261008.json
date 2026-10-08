@@ -1,0 +1,569 @@
+{
+  "version": 1,
+  "snapshot_utc": "2026-10-08T18:06:47.372678+00:00",
+  "source_head": "3ff60772404567678e77af111d62e3d3975e923b",
+  "default_branch": "main",
+  "default_branch_sha": "f215a704522f9c256a4190f908d6016fe15ab3a6",
+  "canonical_branch": "work/current",
+  "open_pr_check": {
+    "provider": "connected GitHub search_prs",
+    "state": "open",
+    "count": 0,
+    "note": "two successful queries; CLI GitHub API denied, connector read succeeded"
+  },
+  "remote_branches": [
+    {
+      "branch": "android-native-key-pass-through",
+      "sha": "f215a704522f9c256a4190f908d6016fe15ab3a6",
+      "preserved_in_source": true,
+      "preserved_in_main": true,
+      "decision": "retain",
+      "reason": "ownership/absence of other pending work not positively established; retained despite ancestry coverage"
+    },
+    {
+      "branch": "csharp-core",
+      "sha": "f1774b77b15f3f41039702214704b2d039226257",
+      "preserved_in_source": true,
+      "preserved_in_main": true,
+      "decision": "retain",
+      "reason": "ownership/absence of other pending work not positively established; retained despite ancestry coverage"
+    },
+    {
+      "branch": "declared-element-relations",
+      "sha": "372d686a84a1ec647f516b19f0893b02f11fd00f",
+      "preserved_in_source": true,
+      "preserved_in_main": false,
+      "decision": "delete-after-backup-verification",
+      "reason": "completed owned task branch; exact head preserved in work/current; no open PR reported",
+      "backup_ref": "refs/tags/archive/branches/20261008/declared-element-relations"
+    },
+    {
+      "branch": "effective-metadata-explanation",
+      "sha": "347521bb0b774497670e208f398ade151e050a10",
+      "preserved_in_source": true,
+      "preserved_in_main": false,
+      "decision": "delete-after-backup-verification",
+      "reason": "completed owned task branch; exact head preserved in work/current; no open PR reported",
+      "backup_ref": "refs/tags/archive/branches/20261008/effective-metadata-explanation"
+    },
+    {
+      "branch": "fix/checkpoint-11-sdk8",
+      "sha": "b017085d91ca88f7ff4d9a1c9c0ad4ee4095740d",
+      "preserved_in_source": true,
+      "preserved_in_main": true,
+      "decision": "retain",
+      "reason": "ownership/absence of other pending work not positively established; retained despite ancestry coverage"
+    },
+    {
+      "branch": "fix/editor-windows-launcher",
+      "sha": "7f38520ba2de0b78f08239f41f0372aade3d3d00",
+      "preserved_in_source": true,
+      "preserved_in_main": true,
+      "decision": "retain",
+      "reason": "ownership/absence of other pending work not positively established; retained despite ancestry coverage"
+    },
+    {
+      "branch": "fix/ui-navigation",
+      "sha": "c111a6c1fbf04470384779efa89e9132456296ef",
+      "preserved_in_source": true,
+      "preserved_in_main": true,
+      "decision": "retain",
+      "reason": "checked out in another worktree; retained"
+    },
+    {
+      "branch": "integration/checkpoint-1",
+      "sha": "73d793fdd9784a447780cc1e01bd7155a3a15370",
+      "preserved_in_source": true,
+      "preserved_in_main": true,
+      "decision": "retain",
+      "reason": "ownership/absence of other pending work not positively established; retained despite ancestry coverage"
+    },
+    {
+      "branch": "integration/checkpoint-11",
+      "sha": "a0f77a4d08dd6ddaa087de77697269a7b7cb7371",
+      "preserved_in_source": true,
+      "preserved_in_main": true,
+      "decision": "retain",
+      "reason": "ownership/absence of other pending work not positively established; retained despite ancestry coverage"
+    },
+    {
+      "branch": "integration/checkpoint-12",
+      "sha": "302740dbd80a8a394d19a1920a41b94fddf3ae97",
+      "preserved_in_source": true,
+      "preserved_in_main": true,
+      "decision": "retain",
+      "reason": "ownership/absence of other pending work not positively established; retained despite ancestry coverage"
+    },
+    {
+      "branch": "integration/checkpoint-13",
+      "sha": "831fd45da3bd6f15170a8ad2bc450f82b6626aaa",
+      "preserved_in_source": true,
+      "preserved_in_main": true,
+      "decision": "retain",
+      "reason": "ownership/absence of other pending work not positively established; retained despite ancestry coverage"
+    },
+    {
+      "branch": "integration/checkpoint-14",
+      "sha": "234c246586698d66f4de54c26da96e48901b07c8",
+      "preserved_in_source": true,
+      "preserved_in_main": true,
+      "decision": "retain",
+      "reason": "ownership/absence of other pending work not positively established; retained despite ancestry coverage"
+    },
+    {
+      "branch": "integration/checkpoint-15-entry-home",
+      "sha": "1f9343fd097c0038d6f664097734166094304b58",
+      "preserved_in_source": true,
+      "preserved_in_main": true,
+      "decision": "retain",
+      "reason": "ownership/absence of other pending work not positively established; retained despite ancestry coverage"
+    },
+    {
+      "branch": "integration/checkpoint-16-project-shell",
+      "sha": "54dfa521fa8e29bea0ab0768d9faf83af3fb15fe",
+      "preserved_in_source": true,
+      "preserved_in_main": true,
+      "decision": "retain",
+      "reason": "ownership/absence of other pending work not positively established; retained despite ancestry coverage"
+    },
+    {
+      "branch": "integration/checkpoint-17-project-navigation",
+      "sha": "bca15ceb590912d9e57cca072b75cd552189ffe3",
+      "preserved_in_source": true,
+      "preserved_in_main": true,
+      "decision": "retain",
+      "reason": "ownership/absence of other pending work not positively established; retained despite ancestry coverage"
+    },
+    {
+      "branch": "integration/checkpoint-18-native-ui",
+      "sha": "1208272e08e1658d6989ec7e7abf5f3a9cfca0a1",
+      "preserved_in_source": true,
+      "preserved_in_main": true,
+      "decision": "retain",
+      "reason": "ownership/absence of other pending work not positively established; retained despite ancestry coverage"
+    },
+    {
+      "branch": "integration/checkpoint-2",
+      "sha": "07ab2d735bf2387f7b3592d36082b08afb50b4f2",
+      "preserved_in_source": true,
+      "preserved_in_main": true,
+      "decision": "retain",
+      "reason": "ownership/absence of other pending work not positively established; retained despite ancestry coverage"
+    },
+    {
+      "branch": "integration/checkpoint-3",
+      "sha": "4dbb7d7e3b5020e1182c2b34e7a1330a25a31e93",
+      "preserved_in_source": true,
+      "preserved_in_main": true,
+      "decision": "retain",
+      "reason": "ownership/absence of other pending work not positively established; retained despite ancestry coverage"
+    },
+    {
+      "branch": "integration/checkpoint-4",
+      "sha": "4299f805558de827d3282c467e879a252b3c9636",
+      "preserved_in_source": true,
+      "preserved_in_main": true,
+      "decision": "retain",
+      "reason": "ownership/absence of other pending work not positively established; retained despite ancestry coverage"
+    },
+    {
+      "branch": "integration/checkpoint-5",
+      "sha": "15bfc78ac829c08d08d6b20120bdef48deec7fd3",
+      "preserved_in_source": true,
+      "preserved_in_main": true,
+      "decision": "retain",
+      "reason": "ownership/absence of other pending work not positively established; retained despite ancestry coverage"
+    },
+    {
+      "branch": "lazy-edit-materialization",
+      "sha": "3ff60772404567678e77af111d62e3d3975e923b",
+      "preserved_in_source": true,
+      "preserved_in_main": false,
+      "decision": "delete-after-backup-verification",
+      "reason": "completed owned task branch; exact head preserved in work/current; no open PR reported",
+      "backup_ref": "refs/tags/archive/branches/20261008/lazy-edit-materialization"
+    },
+    {
+      "branch": "lazy-semantic-catalog",
+      "sha": "e532ce562591eba27eda4127a4d9bfe1aa377a43",
+      "preserved_in_source": true,
+      "preserved_in_main": false,
+      "decision": "delete-after-backup-verification",
+      "reason": "completed owned task branch; exact head preserved in work/current; no open PR reported",
+      "backup_ref": "refs/tags/archive/branches/20261008/lazy-semantic-catalog"
+    },
+    {
+      "branch": "linux-gtk-chooser-fix",
+      "sha": "68d31982c57c0f0902616ca8b345f03a6b5f95f3",
+      "preserved_in_source": true,
+      "preserved_in_main": true,
+      "decision": "retain",
+      "reason": "ownership/absence of other pending work not positively established; retained despite ancestry coverage"
+    },
+    {
+      "branch": "main",
+      "sha": "f215a704522f9c256a4190f908d6016fe15ab3a6",
+      "preserved_in_source": true,
+      "preserved_in_main": true,
+      "decision": "retain",
+      "reason": "protected default/canonical branch"
+    },
+    {
+      "branch": "owned-element-navigation",
+      "sha": "4e9ff89ae3a56146ce067b06db2e8589d0224d29",
+      "preserved_in_source": true,
+      "preserved_in_main": false,
+      "decision": "delete-after-backup-verification",
+      "reason": "completed owned task branch; exact head preserved in work/current; no open PR reported",
+      "backup_ref": "refs/tags/archive/branches/20261008/owned-element-navigation"
+    },
+    {
+      "branch": "pack-dll-boundaries",
+      "sha": "a36751f45294eb5470ac5fac4a94ddedbc355e78",
+      "preserved_in_source": true,
+      "preserved_in_main": true,
+      "decision": "retain",
+      "reason": "ownership/absence of other pending work not positively established; retained despite ancestry coverage"
+    },
+    {
+      "branch": "relation-target-registration",
+      "sha": "6bcf5afb711bfa289ac61f147b5d6e975718622f",
+      "preserved_in_source": true,
+      "preserved_in_main": false,
+      "decision": "delete-after-backup-verification",
+      "reason": "completed owned task branch; exact head preserved in work/current; no open PR reported",
+      "backup_ref": "refs/tags/archive/branches/20261008/relation-target-registration"
+    },
+    {
+      "branch": "required-function-signatures",
+      "sha": "447e473627c0b5d3a65e08a287cef69387e88948",
+      "preserved_in_source": true,
+      "preserved_in_main": false,
+      "decision": "delete-after-backup-verification",
+      "reason": "completed owned task branch; exact head preserved in work/current; no open PR reported",
+      "backup_ref": "refs/tags/archive/branches/20261008/required-function-signatures"
+    },
+    {
+      "branch": "verify-csharp-core",
+      "sha": "b750d0d2b06acb738ffca5b442a8d78d4b58aa42",
+      "preserved_in_source": true,
+      "preserved_in_main": true,
+      "decision": "retain",
+      "reason": "ownership/absence of other pending work not positively established; retained despite ancestry coverage"
+    },
+    {
+      "branch": "window-pack",
+      "sha": "4a7b07df510449c7ec49dc1e657ec94b67dcb752",
+      "preserved_in_source": true,
+      "preserved_in_main": true,
+      "decision": "retain",
+      "reason": "ownership/absence of other pending work not positively established; retained despite ancestry coverage"
+    },
+    {
+      "branch": "work/current",
+      "sha": "3ff60772404567678e77af111d62e3d3975e923b",
+      "preserved_in_source": true,
+      "preserved_in_main": false,
+      "decision": "retain",
+      "reason": "protected default/canonical branch"
+    }
+  ],
+  "local_divergent_refs": [
+    {
+      "ref": "refs/heads/fix/checkpoint16-small-field-layout",
+      "sha": "c88db289f8f312a1f774c5f9fbc140aefa71ed0d",
+      "equivalent_patches": 0,
+      "non_equivalent_patches": 1,
+      "decision": "retain unchanged; no functional integration authorized"
+    },
+    {
+      "ref": "refs/heads/integration/browser-native-boundary",
+      "sha": "bf96e155f8d930be1ad62f2376a7124ab1e858d3",
+      "equivalent_patches": 7,
+      "non_equivalent_patches": 1,
+      "decision": "retain unchanged; no functional integration authorized"
+    },
+    {
+      "ref": "refs/heads/integration/browser-resource-contract",
+      "sha": "1e1dd4525e92f4bdf7289c875e508bc1001a532d",
+      "equivalent_patches": 12,
+      "non_equivalent_patches": 1,
+      "decision": "retain unchanged; no functional integration authorized"
+    },
+    {
+      "ref": "refs/heads/integration/web-platform",
+      "sha": "1c0437b3f31c63bfc7a4a8771bb1f121855788d4",
+      "equivalent_patches": 7,
+      "non_equivalent_patches": 1,
+      "decision": "retain unchanged; no functional integration authorized"
+    },
+    {
+      "ref": "refs/heads/work-android-ui",
+      "sha": "191cbb4991434e4a520337ce4e9d05829dd6bc5f",
+      "equivalent_patches": 17,
+      "non_equivalent_patches": 3,
+      "decision": "retain unchanged; no functional integration authorized"
+    },
+    {
+      "ref": "refs/heads/work-browser-bundle-fix",
+      "sha": "763ccc78f1c48901b9f8ae65fe5e74b5e94f5ffd",
+      "equivalent_patches": 2,
+      "non_equivalent_patches": 0,
+      "decision": "retain unchanged; no functional integration authorized"
+    },
+    {
+      "ref": "refs/heads/work-creation-continuation",
+      "sha": "31dcabecdd0e2f94ccafad1520d4731b01844cbc",
+      "equivalent_patches": 2,
+      "non_equivalent_patches": 0,
+      "decision": "retain unchanged; no functional integration authorized"
+    },
+    {
+      "ref": "refs/heads/work-desktop-exchange-continuation",
+      "sha": "9ea8ad1f5f83f389428bed574674cd4c8a06e9ce",
+      "equivalent_patches": 3,
+      "non_equivalent_patches": 0,
+      "decision": "retain unchanged; no functional integration authorized"
+    },
+    {
+      "ref": "refs/heads/work-exchange-continuation",
+      "sha": "98121d7e715f02ba67571891d60419cc055c45f7",
+      "equivalent_patches": 2,
+      "non_equivalent_patches": 0,
+      "decision": "retain unchanged; no functional integration authorized"
+    },
+    {
+      "ref": "refs/heads/work-net10-migration",
+      "sha": "4e73241cf69b9fb36590f35bf355068d9e6418bf",
+      "equivalent_patches": 3,
+      "non_equivalent_patches": 0,
+      "decision": "retain unchanged; no functional integration authorized"
+    },
+    {
+      "ref": "refs/heads/work-pack-workspace-continuation",
+      "sha": "c6938eb7f591e60f7d2e040a0bf16d4594e1c996",
+      "equivalent_patches": 1,
+      "non_equivalent_patches": 0,
+      "decision": "retain unchanged; no functional integration authorized"
+    },
+    {
+      "ref": "refs/heads/work-persistence-continuation",
+      "sha": "7b2b3952e2a0454349dad31c45a1db93e9e4569b",
+      "equivalent_patches": 2,
+      "non_equivalent_patches": 1,
+      "decision": "retain unchanged; no functional integration authorized"
+    },
+    {
+      "ref": "refs/heads/work-shared-editor-runtime",
+      "sha": "75c021874b288931a4f8d44a0fa1c2125f99be55",
+      "equivalent_patches": 5,
+      "non_equivalent_patches": 8,
+      "decision": "retain unchanged; no functional integration authorized"
+    },
+    {
+      "ref": "refs/heads/work-test-result-semantics",
+      "sha": "f0a6ad184dcdb26c74250a8f50edd6a36b07494d",
+      "equivalent_patches": 1,
+      "non_equivalent_patches": 0,
+      "decision": "retain unchanged; no functional integration authorized"
+    },
+    {
+      "ref": "refs/heads/work-workspace-gui",
+      "sha": "e408b92b9f7992e2b4669e80b4c912c092fd78a1",
+      "equivalent_patches": 4,
+      "non_equivalent_patches": 0,
+      "decision": "retain unchanged; no functional integration authorized"
+    }
+  ],
+  "worktrees": [
+    {
+      "path": "/workspace/Confectory",
+      "branch": "work/current",
+      "clean": true
+    },
+    {
+      "path": "/workspace/Confectory-android-ui",
+      "branch": "work-android-ui",
+      "clean": true
+    },
+    {
+      "path": "/workspace/Confectory-audit-20261007",
+      "branch": null,
+      "clean": true
+    },
+    {
+      "path": "/workspace/Confectory-browser-bundle-fix",
+      "branch": "work-browser-bundle-fix",
+      "clean": true
+    },
+    {
+      "path": "/workspace/Confectory-browser-native-platform",
+      "branch": "integration/browser-resource-contract",
+      "clean": true
+    },
+    {
+      "path": "/workspace/Confectory-creation-continuation",
+      "branch": "work-creation-continuation",
+      "clean": true
+    },
+    {
+      "path": "/workspace/Confectory-exchange-continuation",
+      "branch": "work-desktop-exchange-continuation",
+      "clean": true
+    },
+    {
+      "path": "/workspace/Confectory-field-bounds",
+      "branch": "fix/checkpoint16-small-field-layout",
+      "clean": true
+    },
+    {
+      "path": "/workspace/Confectory-navigation",
+      "branch": "fix/ui-navigation",
+      "clean": true
+    },
+    {
+      "path": "/workspace/Confectory-net10",
+      "branch": "work-net10-migration",
+      "clean": true
+    },
+    {
+      "path": "/workspace/Confectory-persistence-continuation",
+      "branch": "work-persistence-continuation",
+      "clean": true
+    },
+    {
+      "path": "/workspace/Confectory-shared-runtime",
+      "branch": "work-shared-editor-runtime",
+      "clean": true
+    },
+    {
+      "path": "/workspace/Confectory-test-semantics",
+      "branch": "work-test-result-semantics",
+      "clean": true
+    },
+    {
+      "path": "/workspace/Confectory-web-platform",
+      "branch": "integration/web-platform",
+      "clean": true
+    },
+    {
+      "path": "/workspace/Confectory-workspace-continuation",
+      "branch": "work-pack-workspace-continuation",
+      "clean": true
+    },
+    {
+      "path": "/workspace/Confectory-workspace-gui",
+      "branch": "work-workspace-gui",
+      "clean": true
+    }
+  ],
+  "local_prefix_rename": {
+    "old_ref": "refs/heads/work",
+    "new_ref": "refs/heads/archive-local-work-20261008",
+    "sha": "b5ea38c3d7eec3eb20f170e68f0f4215b86b2aee",
+    "reason": "prefix collision prevents local work/current; SHA retained unchanged"
+  },
+  "local_bundle": {
+    "path": "/workspace/confectory-branch-recovery/20261008/pre-cleanup.bundle",
+    "sha256": "aa931e0e0a347cd2494ed8c9de284039ffd0112d933374640cf475915c0a006c",
+    "complete_history_verified": true
+  },
+  "checkpoint_evidence": {
+    "highest_explicit_completion_marker": 17,
+    "completion_markers": [
+      {
+        "number": 17,
+        "sha": "bca15ceb590912d9e57cca072b75cd552189ffe3",
+        "title": "[Checkpoint 17] Compose rounded project navigation and repair minimized chat layout"
+      },
+      {
+        "number": 16,
+        "sha": "54dfa521fa8e29bea0ab0768d9faf83af3fb15fe",
+        "title": "[Checkpoint 16] Compose project shell with isolated offline chat and owned execution"
+      },
+      {
+        "number": 15,
+        "sha": "1f9343fd097c0038d6f664097734166094304b58",
+        "title": "[Checkpoint 15] Compose fresh offline entry/home and record verified handoff"
+      },
+      {
+        "number": 14,
+        "sha": "234c246586698d66f4de54c26da96e48901b07c8",
+        "title": "[Checkpoint 14] Record shared Field validation and durable local handoff"
+      },
+      {
+        "number": 13,
+        "sha": "831fd45da3bd6f15170a8ad2bc450f82b6626aaa",
+        "title": "[Checkpoint 13] Runnable Editor and shared BaseUI Button; final affected gates pass"
+      },
+      {
+        "number": 12,
+        "sha": "302740dbd80a8a394d19a1920a41b94fddf3ae97",
+        "title": "[Checkpoint 12] Runnable Rig authoring and configurable Navigation; 118 tests pass"
+      },
+      {
+        "number": 11,
+        "sha": "a0f77a4d08dd6ddaa087de77697269a7b7cb7371",
+        "title": "[Checkpoint 11] Record runnable Physics2D and 113 passing regressions"
+      },
+      {
+        "number": 10,
+        "sha": "420842f4d045cdc66246f9ec715d917ac4786fd6",
+        "title": "[Checkpoint 10] Record runnable optional Stage and 111 passing regressions"
+      },
+      {
+        "number": 9,
+        "sha": "9d1c85bbd562d1ab494b6f2e924c37ba7c202de8",
+        "title": "[Checkpoint 9] durable public projection and batched maintenance milestone"
+      },
+      {
+        "number": 8,
+        "sha": "f62371aa9358c3c5909a79e91e14a1d0a0459016",
+        "title": "[Checkpoint 8] Record runnable local chief-only Augment with 106 regressions and native lifecycle acceptance"
+      },
+      {
+        "number": 7,
+        "sha": "76d72c295f542512fa0000003358b65518833dfa",
+        "title": "[Checkpoint 7] Record runnable local context authoring and declared gameplay with 104 regressions"
+      },
+      {
+        "number": 6,
+        "sha": "a185ac6d50b537be906f9cad50a23790f0addd23",
+        "title": "[Checkpoint 6] Record runnable optional AI roles and 101 passing regressions"
+      },
+      {
+        "number": 5,
+        "sha": "2c4fc76f5f7699856d4f207d4b37b231dc1bb04b",
+        "title": "[Checkpoint 5] Record runnable bounded collaboration and 97 passing regressions"
+      },
+      {
+        "number": 4,
+        "sha": "4299f805558de827d3282c467e879a252b3c9636",
+        "title": "[Checkpoint 4] Record complete 95 passing regressions and publication authorization"
+      },
+      {
+        "number": 4,
+        "sha": "ef43ef3e488d9c9abc8a50e01fda9680e84f2211",
+        "title": "[Checkpoint 4] Verify independent editor self-edit and preserve workspace projection ownership"
+      },
+      {
+        "number": 3,
+        "sha": "4dbb7d7e3b5020e1182c2b34e7a1330a25a31e93",
+        "title": "[Checkpoint 3] Runnable shared draft authoring Save restore and selective Confirm"
+      },
+      {
+        "number": 2,
+        "sha": "07ab2d735bf2387f7b3592d36082b08afb50b4f2",
+        "title": "[Checkpoint 2] Compose independent project contexts and execution controls in engine Views"
+      },
+      {
+        "number": 1,
+        "sha": "73d793fdd9784a447780cc1e01bd7155a3a15370",
+        "title": "[Checkpoint 1] Compose runnable pack engine with persistent BaseUI and Android preparation"
+      }
+    ],
+    "stage18_document": "docs/CHECKPOINT_18_WORK_LOG.md",
+    "new_checkpoint_assigned": false
+  },
+  "deletion_results": []
+}
