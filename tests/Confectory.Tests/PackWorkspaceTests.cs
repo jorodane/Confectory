@@ -33,6 +33,13 @@ public sealed class PackWorkspaceTests : TestCase
  calls.Command.Invoke(a,"save","{}");string owned=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(a))!["unit"]!["path"]!.GetValue<string>();if(System.IO.File.ReadAllText(System.IO.Path.Combine(System.IO.Path.GetDirectoryName(project)!,owned))!=original)throw new Exception("Save modified final source");calls.Close.Invoke(a);calls.Close.Invoke(a);
  a=calls.Open.Invoke(project,"alice","one");if(System.Text.Json.Nodes.JsonNode.Parse(Select(a))!["unit"]!["text"]!.GetValue<string>()!=edited)throw new Exception("Draft lost on reopen");
  var sources=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(a,"sources","{}"))!["files"]!.AsArray();if(!System.Linq.Enumerable.Any(sources,x=>x!["kind"]!.GetValue<string>()=="project"))throw new Exception("Manifest missing");
+ var review=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(a,"review","{\"target\":\"portable\"}"))!["review"]!;
+ if(review["status"]!.ToString()!="ready"||review["path"]!.ToString()!=owned||review["before"]!.ToString()!=original||review["after"]!.ToString()!=edited)throw new Exception("Review omitted owned path or exact source values");
+ bool rejected=false;try{calls.Command.Invoke(a,"confirm","{\"token\":\"forged\"}");}catch(InvalidOperationException){rejected=true;}if(!rejected)throw new Exception("Confirm bypassed review token");
+ string reviewedToken=review["token"]!.ToString(),next=edited+"\n// after-review change\n";long revision=long.Parse(review["revision"]!.ToString());Edit(a,revision,next);
+ rejected=false;try{calls.Command.Invoke(a,"confirm",System.Text.Json.JsonSerializer.Serialize(new{token=reviewedToken}));}catch(InvalidOperationException){rejected=true;}if(!rejected)throw new Exception("Changed draft confirmed with old review token");
+ calls.Command.Invoke(a,"review","{\"target\":\"portable\"}");calls.Command.Invoke(a,"cancel-review","{}");var cancelled=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(a))!;
+ if(cancelled["review"] is not null||cancelled["unit"]!["text"]!.ToString()!=next||System.IO.File.ReadAllText(System.IO.Path.Combine(System.IO.Path.GetDirectoryName(project)!,owned))!=original)throw new Exception("Cancel modified final source or discarded draft");
  calls.Close.Invoke(a);calls.Close.Invoke(b);Console.WriteLine("PackWorkspace independent contexts/revision/save/reopen PASS");return 0;
  """);
  string? host=Environment.GetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST"),selected=Environment.GetEnvironmentVariable("CONFECTORY_TEST_AUTHOR_PROJECT");

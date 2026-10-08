@@ -2,9 +2,29 @@ var state=AppDomain.CurrentDomain.GetData("Confectory.PackWorkspace."+handle) as
 var request=System.Text.Json.Nodes.JsonNode.Parse(payload)?.AsObject()??throw new ArgumentException("Object payload required.");
 lock(state){if(state["closing"]!.GetValue<bool>())throw new ObjectDisposedException("PackWorkspace");string draft=state["draft"]!.GetValue<string>();bool conflict=false;
 switch(operation){
-case "select":string id=request["id"]!.GetValue<string>();calls.Read.Invoke(draft,id);state["selected"]=id;break;
-case "page":int page=request["page"]!.GetValue<int>();if(page<0)throw new ArgumentOutOfRangeException("page");state["page"]=page;break;
-case "edit":string selected=state["selected"]!.GetValue<string>();if(selected=="")throw new InvalidOperationException("Select an owned unit first.");long expected=request["expectedRevision"]!.GetValue<long>();if(expected<0)throw new ArgumentOutOfRangeException("expectedRevision");string text=request["text"]!.GetValue<string>();if(text.Length>1048576)throw new ArgumentException("Draft exceeds one million characters.");conflict=!calls.Edit.Invoke(draft,selected,text,expected);break;
+case "select":string id=request["id"]!.GetValue<string>();calls.Read.Invoke(draft,id);state["review"]=null;state["selected"]=id;break;
+case "page":int page=request["page"]!.GetValue<int>();if(page<0)throw new ArgumentOutOfRangeException("page");state["review"]=null;state["page"]=page;break;
+case "edit":string selected=state["selected"]!.GetValue<string>();if(selected=="")throw new InvalidOperationException("Select an owned unit first.");long expected=request["expectedRevision"]!.GetValue<long>();if(expected<0)throw new ArgumentOutOfRangeException("expectedRevision");string text=request["text"]!.GetValue<string>();if(text.Length>1048576)throw new ArgumentException("Draft exceeds one million characters.");long before=long.Parse(calls.Read.Invoke(draft,selected)[4]);conflict=!calls.Edit.Invoke(draft,selected,text,expected);if(conflict||long.Parse(calls.Read.Invoke(draft,selected)[4])!=before)state["review"]=null;break;
+case "cancel-review":state["review"]=null;break;
+case "review":{
+ string chosen=state["selected"]!.ToString();if(chosen=="")throw new InvalidOperationException("Select an owned source first.");
+ var u=calls.Read.Invoke(draft,chosen);if(u[6]!="dirty")throw new InvalidOperationException("No changes in selected source.");
+ string target=request["target"]?.GetValue<string>()??throw new ArgumentException("Explicit validation target required.");
+ var identity=calls.Identity.Invoke(draft);var file=calls.FileSnapshot.Invoke(System.IO.Path.Combine(identity[3],u[2]));
+ var checkedReview=calls.Review.Invoke(draft,new[]{chosen});calls.Save.Invoke(draft);
+ state["review"]=new System.Text.Json.Nodes.JsonObject{["token"]=Guid.NewGuid().ToString("N"),["id"]=chosen,["path"]=u[2],["target"]=target,["revision"]=u[4],["baseline"]=u[5],["currentHash"]=file[2],["before"]=file[1],["after"]=u[3],["status"]=checkedReview[0]};break;
+}
+case "confirm":{
+ var reviewed=state["review"] as System.Text.Json.Nodes.JsonObject??throw new InvalidOperationException("Review selected source before Confirm.");
+ if(request["token"]?.ToString()!=reviewed["token"]!.ToString()||reviewed["status"]!.ToString()!="ready")throw new InvalidOperationException("A current conflict-free review token is required.");
+ string chosen=reviewed["id"]!.ToString();var u=calls.Read.Invoke(draft,chosen);
+ if(state["selected"]!.ToString()!=chosen||u[4]!=reviewed["revision"]!.ToString()||u[3]!=reviewed["after"]!.ToString())throw new InvalidOperationException("Draft changed after review; review again.");
+ var checkedReview=calls.Review.Invoke(draft,new[]{chosen});
+ string[] confirmed=checkedReview[0]!="ready"?checkedReview:calls.Confirm.Invoke(draft,new[]{chosen},reviewed["target"]!.ToString());
+ reviewed["status"]=confirmed[0];reviewed["message"]=string.Join("\n",confirmed[1..]);reviewed["token"]="";
+ if(confirmed[0] is "confirmed" or "confirmed-with-warning")state["review"]=null;
+ var snapshot=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(handle))!.AsObject();snapshot["confirmation"]=System.Text.Json.JsonSerializer.SerializeToNode(confirmed);return snapshot.ToJsonString();
+}
 case "save":calls.Save.Invoke(draft);break;
 case "sources":var files=new System.Text.Json.Nodes.JsonArray();foreach(string source in calls.List.Invoke(draft)){var u=calls.Read.Invoke(draft,source);files.Add(new System.Text.Json.Nodes.JsonObject{["id"]=u[0],["kind"]=u[1],["path"]=u[2],["text"]=u[3],["revision"]=long.Parse(u[4],System.Globalization.CultureInfo.InvariantCulture),["dirty"]=u[6]=="dirty"});}return new System.Text.Json.Nodes.JsonObject{["files"]=files}.ToJsonString();
 default:throw new ArgumentException("Unknown workspace operation.");}

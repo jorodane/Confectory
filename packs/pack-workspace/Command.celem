@@ -12,4 +12,13 @@ provide Confectory.FileStream::Snapshot with Confectory.FileStream::SnapshotBody
 provide Confectory.FileStream::Commit with Confectory.FileStream::CommitBody;
 provide Confectory.Save::Write with Confectory.Save::WriteBody;
 provide Confectory.Save::Location with Confectory.Save::LocationBody;
+provide Confectory.ChangeSet::Review with Confectory.ChangeSet::ReviewBody;
+provide Confectory.ChangeSet::Confirm with Confectory.ChangeSet::ConfirmBody;
+provide Confectory.EditWorkspace::Changes with Confectory.EditWorkspace::ChangesBody;
+provide Confectory.EditWorkspace::Accept with Confectory.EditWorkspace::AcceptBody;
+provide Confectory.FileStream::CopySources with Confectory.FileStream::CopySourcesBody;
+provide Confectory.FileStream::WriteAtomic with Confectory.FileStream::WriteAtomicBody;
+provide Confectory.SchemaEditing::Prepare with Confectory.SchemaEditing::PrepareBody;
+provide Confectory.SchemaEditing::Validate with Confectory.SchemaEditing::ValidateBody;
+provide Confectory.Save::Acknowledge with Confectory.Save::AcknowledgeBody;
 description "Explicit bounded source workspace command.";}

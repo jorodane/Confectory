@@ -4,6 +4,14 @@ provide Confectory.UINavigation::Create with Confectory.UINavigation::CreateBody
 provide Confectory.UINavigation::Route with Confectory.UINavigation::RouteBody;
 provide Confectory.UINavigation::Group with Confectory.UINavigation::GroupBody;
 provide Confectory.PackWorkspace::Open with Confectory.PackWorkspace::OpenBody;
+provide Confectory.ChangeSet::Review with Confectory.ChangeSet::ReviewBody;
+provide Confectory.ChangeSet::Confirm with Confectory.ChangeSet::ConfirmBody;
+provide Confectory.EditWorkspace::Changes with Confectory.EditWorkspace::ChangesBody;
+provide Confectory.EditWorkspace::Accept with Confectory.EditWorkspace::AcceptBody;
+provide Confectory.FileStream::CopySources with Confectory.FileStream::CopySourcesBody;
+provide Confectory.SchemaEditing::Prepare with Confectory.SchemaEditing::PrepareBody;
+provide Confectory.SchemaEditing::Validate with Confectory.SchemaEditing::ValidateBody;
+provide Confectory.Save::Acknowledge with Confectory.Save::AcknowledgeBody;
 provide Confectory.PackWorkspace::Command with Confectory.PackWorkspace::CommandBody;
 provide Confectory.PackWorkspace::Snapshot with Confectory.PackWorkspace::SnapshotBody;
 provide Confectory.PackWorkspace::Close with Confectory.PackWorkspace::CloseBody;
