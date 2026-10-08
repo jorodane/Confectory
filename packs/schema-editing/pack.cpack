@@ -24,4 +24,8 @@ element EndScope function "EndScope.celem";
 element EndScopeBody implementation "EndScopeBody.celem";
 element Pending function "Pending.celem";
 element PendingBody implementation "PendingBody.celem";
+element DescribeInputs function "DescribeInputs.celem"; element DescribeInputsBody implementation "DescribeInputsBody.celem";
+element ValidateArguments function "ValidateArguments.celem"; element ValidateArgumentsBody implementation "ValidateArgumentsBody.celem";
+element DescribeView function "DescribeView.celem"; element DescribeViewBody implementation "DescribeViewBody.celem";
+element CheckCall function "CheckCall.celem"; element CheckCallBody implementation "CheckCallBody.celem";
 }

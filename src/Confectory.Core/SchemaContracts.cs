@@ -128,6 +128,37 @@ public static class SchemaContracts
         element.Data[name] = FromTransport(value, element.Id);
     }
 
+    public static void SetDataPath(Element element, JsonElement path, JsonElement value)
+    {
+        if (element.Kind != "object" || path.ValueKind != JsonValueKind.Array) throw new BuildError("SCHEMA_DATA", "Object and explicit array path required");
+        var steps = path.EnumerateArray().ToArray();
+        if (steps.Length is < 1 or > 64 || steps[0].ValueKind != JsonValueKind.String) throw new BuildError("SCHEMA_DATA", "Path must start with a field and contain 1–64 steps");
+        foreach (var step in steps)
+            if (step.ValueKind == JsonValueKind.String)
+            {
+                if (!System.Text.RegularExpressions.Regex.IsMatch(step.GetString()!, @"\A[A-Za-z_][A-Za-z_0-9]*(?:\.[A-Za-z_][A-Za-z_0-9]*)*\z")) throw new BuildError("IDENTIFIER", "Expected field path identifier");
+            }
+            else if (step.ValueKind != JsonValueKind.Number || !step.TryGetInt32(out int index) || index < 0) throw new BuildError("SCHEMA_DATA", "Path indexes must be nonnegative integers");
+        if (steps.Length == 1) { SetData(element, steps[0].GetString()!, value); return; }
+        var replacement = FromTransport(value, element.Id);
+        if (!element.Data.TryGetValue(steps[0].GetString()!, out var current)) throw new BuildError("SCHEMA_DATA_PATH", "Explicit parent data is unset; no parent/default is invented");
+        for (int i = 1; i < steps.Length; i++)
+        {
+            bool last = i == steps.Length - 1; var step = steps[i];
+            if (step.ValueKind == JsonValueKind.String && current.Kind == "compound")
+            {
+                string name = step.GetString()!;
+                if (last) { current.Members![name] = replacement; return; }
+                if (!current.Members!.TryGetValue(name, out current)) throw new BuildError("SCHEMA_DATA_PATH", "Explicit parent data is unset");
+            }
+            else if (step.ValueKind == JsonValueKind.Number && current.Kind == "multiple" && step.GetInt32() < current.Items!.Count)
+            {
+                int index = step.GetInt32(); if (last) { current.Items[index] = replacement; return; } current = current.Items[index];
+            }
+            else throw new BuildError("SCHEMA_DATA_PATH", "Path does not address an existing compound/list item");
+        }
+    }
+
     // JSON is transport only; the resulting file stores direct declaration syntax.
     public static SchemaDatum FromTransport(JsonElement value, string origin, int depth = 0)
     {

@@ -1,0 +1,4 @@
+implementation Confectory.SchemaEditing::CheckCallBody for Confectory.SchemaEditing::CheckCall (string view, string path, string arguments, string target) -> string {
+import Confectory.SchemaEditing::ValidateArguments as ValidateArguments (string,string) -> string;
+body common "CheckCall.csbody";
+}

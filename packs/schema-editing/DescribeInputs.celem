@@ -1,0 +1,1 @@
+function Confectory.SchemaEditing::DescribeInputs (string signature) -> string {description "Describe signature-driven input/return metadata without defaults, UI layout or execution."; provide Confectory.SchemaEditing::DescribeInputs with Confectory.SchemaEditing::DescribeInputsBody;}

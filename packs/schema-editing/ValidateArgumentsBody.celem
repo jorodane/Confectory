@@ -1,0 +1,4 @@
+implementation Confectory.SchemaEditing::ValidateArgumentsBody for Confectory.SchemaEditing::ValidateArguments (string signature, string arguments) -> string {
+import Confectory.SchemaEditing::DescribeInputs as DescribeInputs (string) -> string;
+body common "ValidateArguments.csbody";
+}

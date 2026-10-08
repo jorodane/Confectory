@@ -1,0 +1,5 @@
+implementation Confectory.SchemaEditing::DescribeViewBody for Confectory.SchemaEditing::DescribeView (string metadata) -> string {
+import Confectory.SchemaEditing::DescribeInputs as DescribeInputs (string) -> string;
+import Confectory.SchemaEditing::ValidateArguments as ValidateArguments (string,string) -> string;
+body common "DescribeView.csbody";
+}

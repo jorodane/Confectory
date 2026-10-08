@@ -1,7 +1,7 @@
 using System.Linq;
 internal static class EffectiveMetadata
 {
- public static System.Text.Json.Nodes.JsonObject Query(string project,string manifestText,string id,string text,Func<Confectory.Core.Manifest,string> format,Func<string,string> read,System.Text.Json.Nodes.JsonArray? drafts=null)
+ public static System.Text.Json.Nodes.JsonObject Query(string project,string manifestText,string id,string text,Func<Confectory.Core.Manifest,string> format,Func<string,string> read,System.Text.Json.Nodes.JsonArray? drafts=null,bool schemaView=false)
  {
   string temporary=System.IO.Path.Combine(System.IO.Path.GetTempPath(),"confectory-effective-"+Guid.NewGuid().ToString("N"));
   try
@@ -42,10 +42,45 @@ internal static class EffectiveMetadata
    var modules=new System.Text.Json.Nodes.JsonArray();foreach(var reference in effective.Modules)modules.Add(new System.Text.Json.Nodes.JsonObject{["id"]=reference.Id,["origin"]=reference.Origin});
    var schemaFields=effective.Kind=="object"?Confectory.Core.SchemaContracts.Fields(registry,id):effective.Fields;
    var functionContracts=new System.Text.Json.Nodes.JsonObject();foreach(var pair in schemaFields.Where(p=>p.Value.Kind=="function")){var fn=registry.Get(pair.Value.Type,"function",pair.Value.Origin,pair.Value.Loc);functionContracts[pair.Key]=new System.Text.Json.Nodes.JsonObject{["id"]=fn.Id,["signature"]=System.Text.Json.JsonSerializer.SerializeToNode(fn.Signature)};}
-   return new System.Text.Json.Nodes.JsonObject{["scope"]="effective-metadata",["status"]="available",["id"]=id,["sourceKind"]=sourceKind,["fields"]=System.Text.Json.JsonSerializer.SerializeToNode(schemaFields),["functionContracts"]=functionContracts,["data"]=System.Text.Json.JsonSerializer.SerializeToNode(effective.Data),["values"]=values,["modules"]=modules,["requirements"]=requirements,["providers"]=providers,["providerSelection"]="not-performed",["declarationsLoaded"]=System.Text.Json.JsonSerializer.SerializeToNode(registry.Elements.Keys.Order(StringComparer.Ordinal).ToArray()),["registeredManifests"]=registry.Packs.Count,["bodyReads"]=statistics.ReadDocuments.Count(path=>registry.Elements.Values.Any(e=>e.Bodies.Values.Any(b=>Confectory.Core.PackPaths.Owned(System.IO.Path.GetDirectoryName(e.Loc.File)!,b.Path)==path))),["draftOverlayIDs"]=System.Text.Json.JsonSerializer.SerializeToNode(overlayIds.Order(StringComparer.Ordinal).ToArray()),["dependencySource"]="root-owned-drafts-and-confirmed-registered-files"};
+   var schemaModel=schemaView?SchemaModel(registry,effective,schemaFields):null;
+   return new System.Text.Json.Nodes.JsonObject{["scope"]="effective-metadata",["status"]="available",["id"]=id,["sourceKind"]=sourceKind,["fields"]=System.Text.Json.JsonSerializer.SerializeToNode(schemaFields),["functionContracts"]=functionContracts,["schemaModel"]=schemaModel,["data"]=System.Text.Json.JsonSerializer.SerializeToNode(effective.Data),["values"]=values,["modules"]=modules,["requirements"]=requirements,["providers"]=providers,["providerSelection"]="not-performed",["declarationsLoaded"]=System.Text.Json.JsonSerializer.SerializeToNode(registry.Elements.Keys.Order(StringComparer.Ordinal).ToArray()),["registeredManifests"]=registry.Packs.Count,["bodyReads"]=statistics.ReadDocuments.Count(path=>registry.Elements.Values.Any(e=>e.Bodies.Values.Any(b=>Confectory.Core.PackPaths.Owned(System.IO.Path.GetDirectoryName(e.Loc.File)!,b.Path)==path))),["draftOverlayIDs"]=System.Text.Json.JsonSerializer.SerializeToNode(overlayIds.Order(StringComparer.Ordinal).ToArray()),["dependencySource"]="root-owned-drafts-and-confirmed-registered-files"};
   }
   catch(Confectory.Core.BuildError error){return new System.Text.Json.Nodes.JsonObject{["scope"]="effective-metadata",["status"]="unavailable",["id"]=id,["code"]=error.Diagnostic.Code,["message"]=error.Diagnostic.Message};}
   catch(Exception error){return new System.Text.Json.Nodes.JsonObject{["scope"]="effective-metadata",["status"]="unavailable",["id"]=id,["code"]="METADATA_UNAVAILABLE",["message"]=error.Message};}
   finally{if(System.IO.Directory.Exists(temporary))System.IO.Directory.Delete(temporary,true);}
  }
+ static System.Text.Json.Nodes.JsonObject SchemaModel(Confectory.Core.Registry registry,Confectory.Core.Element element,System.Collections.Generic.Dictionary<string,Confectory.Core.SchemaField> fields)
+ {
+  var schemas=new System.Text.Json.Nodes.JsonObject();var functions=new System.Text.Json.Nodes.JsonObject();var implementations=new System.Text.Json.Nodes.JsonObject();
+  System.Text.Json.Nodes.JsonNode Fields(System.Collections.Generic.Dictionary<string,Confectory.Core.SchemaField> items)=>Confectory.Core.JsonData.Object(items.ToDictionary(p=>p.Key,p=>new{cardinality=p.Value.Cardinality,kind=p.Value.Kind,type=p.Value.Type,origin=p.Value.Origin}));
+  void Contracts(System.Collections.Generic.Dictionary<string,Confectory.Core.SchemaField> items)
+  {
+   foreach(var field in items.Values){
+    if(field.Kind=="function"){var fn=registry.Get(field.Type,"function",field.Origin,field.Loc);functions[fn.Id]=System.Text.Json.JsonSerializer.SerializeToNode(fn.Signature,Confectory.Core.JsonData.Options);}
+    else if(field.Kind=="compound"){
+     if(schemas.ContainsKey(field.Type))continue;
+     new Confectory.Core.Planner(registry,"metadata").Structural(field.Type);var schema=registry.Effective(registry.Get(field.Type,"schema",field.Origin,field.Loc).Id);
+     schemas[field.Type]=new System.Text.Json.Nodes.JsonObject{["fields"]=Fields(schema.Fields)};Contracts(schema.Fields);
+    }
+   }
+  }
+  void Associations(System.Collections.Generic.Dictionary<string,Confectory.Core.SchemaField> items,System.Collections.Generic.Dictionary<string,Confectory.Core.SchemaDatum> data)
+  {
+   foreach(var pair in items){if(!data.TryGetValue(pair.Key,out var datum))continue;var field=pair.Value;
+    foreach(var value in field.Cardinality=="multiple"?(datum.Items??[]):new System.Collections.Generic.List<Confectory.Core.SchemaDatum>{datum}){
+     if(field.Kind=="compound"&&value.Members is not null)Associations(registry.Effective(field.Type).Fields,value.Members);
+     if(field.Kind!="function"||value.Reference is null)continue;
+     string key=System.Text.Json.JsonSerializer.Serialize(new[]{field.Type,value.Reference,value.Origin});
+     try{var body=registry.Implementation(field.Type,value.Reference,value.Origin,value.Loc);implementations[key]=new System.Text.Json.Nodes.JsonObject{["status"]="valid",["id"]=body.Id,["function"]=body.Function,["targets"]=System.Text.Json.JsonSerializer.SerializeToNode(body.Bodies.Keys.Order(StringComparer.Ordinal).ToArray())};}
+     catch(Confectory.Core.BuildError error){implementations[key]=new System.Text.Json.Nodes.JsonObject{["status"]="invalid",["code"]=error.Diagnostic.Code,["message"]=error.Message};}
+    }
+   }
+  }
+  Contracts(fields);Associations(fields,element.Data);
+  System.Text.Json.Nodes.JsonObject validation;
+  try{Confectory.Core.SchemaContracts.Validate(registry,element.Id);validation=new System.Text.Json.Nodes.JsonObject{["status"]="valid"};}
+  catch(Confectory.Core.BuildError error){validation=new System.Text.Json.Nodes.JsonObject{["status"]="invalid",["code"]=error.Diagnostic.Code,["message"]=error.Message};}
+  return new System.Text.Json.Nodes.JsonObject{["id"]=element.Id,["kind"]=element.Kind,["validation"]=validation,["fields"]=Fields(fields),["data"]=System.Text.Json.JsonSerializer.SerializeToNode(element.Data,Confectory.Core.JsonData.Options),["schemas"]=schemas,["functions"]=functions,["implementations"]=implementations,["targets"]=System.Text.Json.JsonSerializer.SerializeToNode(registry.Project.Targets.Keys.Order(StringComparer.Ordinal).ToArray()),["executionAuthorized"]=false};
+ }
+
 }

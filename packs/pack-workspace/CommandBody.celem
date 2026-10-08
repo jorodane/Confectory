@@ -14,5 +14,7 @@ import Confectory.EditWorkspace::Changes as Changes (string, string[]) -> string
 import Confectory.EditWorkspace::DiscoverBodies as DiscoverBodies (string, string) -> string;
 import Confectory.SchemaEditing::SetValue as SetValue (string, string, string) -> string;
 import Confectory.EditWorkspace::Create as Create (string, string, string) -> void;
+import Confectory.SchemaEditing::DescribeView as DescribeSchemaView (string) -> string;
+import Confectory.SchemaEditing::CheckCall as CheckCall (string,string,string,string) -> string;
 body common "Command.csbody";
 }

@@ -1,0 +1,1 @@
+function Confectory.SchemaEditing::CheckCall (string view, string path, string arguments, string target) -> string {description "Check one current schema function association, target body and arguments; never invokes it."; provide Confectory.SchemaEditing::CheckCall with Confectory.SchemaEditing::CheckCallBody;}

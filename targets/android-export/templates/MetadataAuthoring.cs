@@ -11,7 +11,7 @@ internal static class MetadataAuthoring
  if(operation=="catalog")return SemanticCatalogService.Query(S("project"),request["request"]!.AsObject(),path=>{string owned=PackPaths.Owned(ownerRoot,Path.GetRelativePath(ownerRoot,path));var file=new FileInfo(owned);if(!file.Exists||file.Length>1048576)throw new IOException("Owned document unavailable");return owned;}).ToJsonString();
  if(operation=="effective"){
  string selected=PackPaths.Owned(ownerRoot,Path.GetRelativePath(ownerRoot,Path.GetFullPath(S("project"))));
- return EffectiveMetadata.Query(selected,S("manifest"),S("id"),S("text"),FormatManifest,path=>Read(PackPaths.Owned(ownerRoot,Path.GetRelativePath(ownerRoot,path))),request["drafts"]?.AsArray()).ToJsonString();
+ return EffectiveMetadata.Query(selected,S("manifest"),S("id"),S("text"),FormatManifest,path=>Read(PackPaths.Owned(ownerRoot,Path.GetRelativePath(ownerRoot,path))),request["drafts"]?.AsArray(),request["schemaView"]?.GetValue<bool>()==true).ToJsonString();
  }
  if(operation=="locate"){
  string selected=PackPaths.Owned(ownerRoot,Path.GetRelativePath(ownerRoot,Path.GetFullPath(S("project"))));
@@ -21,7 +21,7 @@ internal static class MetadataAuthoring
  if(operation=="inspect"){string text=S("text");if(text.Length>1048576)throw new ArgumentException("Declaration budget");var e=new Parser(text,"<draft>").ParseElement();return new JsonObject{["id"]=e.Id,["kind"]=e.Kind,["parent"]=e.Parent,["relations"]=DeclaredRelations.Describe(e),["description"]=e.Description,["signature"]=JsonSerializer.SerializeToNode(e.Signature),["fields"]=JsonSerializer.SerializeToNode(e.Fields),["data"]=JsonSerializer.SerializeToNode(e.Data),["values"]=JsonSerializer.SerializeToNode(e.Values.ToDictionary(x=>x.Key,x=>x.Value.Value))}.ToJsonString();}
 
  if(operation=="create"){string kind=S("kind"),id=S("id");if(kind is not ("category" or "concept" or "function" or "module" or "object" or "schema"))throw new ArgumentException("Unsupported authored kind");string text=kind+" "+id+(kind=="function"?" () -> int":"")+" { }\n";new Parser(text,"<new>").ParseElement();return JsonSerializer.Serialize(text);}
- if(operation is "setField" or "setData"){var element=new Parser(S("text"),"<draft>").ParseElement();if(operation=="setField")SchemaContracts.SetField(element,S("field"),JsonSerializer.SerializeToElement(request["value"]));else SchemaContracts.SetData(element,S("field"),JsonSerializer.SerializeToElement(request["value"]));string text=Format(element);new Parser(text,"<draft>").ParseElement();return JsonSerializer.Serialize(text);}
+ if(operation is "setDataPath" or "setField" or "setData"){var element=new Parser(S("text"),"<draft>").ParseElement();if(operation=="setDataPath")SchemaContracts.SetDataPath(element,JsonSerializer.SerializeToElement(request["path"]),JsonSerializer.SerializeToElement(request["value"]));else if(operation=="setField")SchemaContracts.SetField(element,S("field"),JsonSerializer.SerializeToElement(request["value"]));else SchemaContracts.SetData(element,S("field"),JsonSerializer.SerializeToElement(request["value"]));string text=Format(element);new Parser(text,"<draft>").ParseElement();return JsonSerializer.Serialize(text);}
  if(operation=="setValue"){var element=new Parser(S("text"),"<draft>").ParseElement();var value=JsonSerializer.SerializeToElement(request["value"]);if(value.ValueKind is not (JsonValueKind.String or JsonValueKind.Number or JsonValueKind.True or JsonValueKind.False))throw new ArgumentException("Scalar metadata required");element.Values[S("field")]=new(value,element.Id,new());string text=Format(element);new Parser(text,"<draft>").ParseElement();return JsonSerializer.Serialize(text);}
  if(operation=="register"){var manifest=new Parser(S("text"),"<draft>").ParseManifest();string id=S("id"),path=S("path");if(!id.StartsWith(manifest.Namespace+"::",StringComparison.Ordinal))throw new ArgumentException("Creation belongs to selected namespace");if(Path.IsPathRooted(path)||path.Split('/', '\\').Any(x=>x==".."))throw new ArgumentException("Owned registration path required");manifest.Elements.Add(id[(manifest.Namespace.Length+2)..],new(S("kind"),path,new()));string text=FormatManifest(manifest);new Parser(text,"<draft>").ParseManifest();return JsonSerializer.Serialize(text);}
  if(operation!="describe")throw new PlatformNotSupportedException("This target supports source metadata and draft text only; compiler/Confirm operations require an explicit compiler provider.");
@@ -147,7 +147,7 @@ internal static class RelationLocators
 
 internal static class EffectiveMetadata
 {
- public static System.Text.Json.Nodes.JsonObject Query(string project,string manifestText,string id,string text,Func<Confectory.Core.Manifest,string> format,Func<string,string> read,System.Text.Json.Nodes.JsonArray? drafts=null)
+ public static System.Text.Json.Nodes.JsonObject Query(string project,string manifestText,string id,string text,Func<Confectory.Core.Manifest,string> format,Func<string,string> read,System.Text.Json.Nodes.JsonArray? drafts=null,bool schemaView=false)
  {
   string temporary=System.IO.Path.Combine(System.IO.Path.GetTempPath(),"confectory-effective-"+Guid.NewGuid().ToString("N"));
   try
@@ -188,13 +188,49 @@ internal static class EffectiveMetadata
    var modules=new System.Text.Json.Nodes.JsonArray();foreach(var reference in effective.Modules)modules.Add(new System.Text.Json.Nodes.JsonObject{["id"]=reference.Id,["origin"]=reference.Origin});
    var schemaFields=effective.Kind=="object"?Confectory.Core.SchemaContracts.Fields(registry,id):effective.Fields;
    var functionContracts=new System.Text.Json.Nodes.JsonObject();foreach(var pair in schemaFields.Where(p=>p.Value.Kind=="function")){var fn=registry.Get(pair.Value.Type,"function",pair.Value.Origin,pair.Value.Loc);functionContracts[pair.Key]=new System.Text.Json.Nodes.JsonObject{["id"]=fn.Id,["signature"]=System.Text.Json.JsonSerializer.SerializeToNode(fn.Signature)};}
-   return new System.Text.Json.Nodes.JsonObject{["scope"]="effective-metadata",["status"]="available",["id"]=id,["sourceKind"]=sourceKind,["fields"]=System.Text.Json.JsonSerializer.SerializeToNode(schemaFields),["functionContracts"]=functionContracts,["data"]=System.Text.Json.JsonSerializer.SerializeToNode(effective.Data),["values"]=values,["modules"]=modules,["requirements"]=requirements,["providers"]=providers,["providerSelection"]="not-performed",["declarationsLoaded"]=System.Text.Json.JsonSerializer.SerializeToNode(registry.Elements.Keys.Order(StringComparer.Ordinal).ToArray()),["registeredManifests"]=registry.Packs.Count,["bodyReads"]=statistics.ReadDocuments.Count(path=>registry.Elements.Values.Any(e=>e.Bodies.Values.Any(b=>Confectory.Core.PackPaths.Owned(System.IO.Path.GetDirectoryName(e.Loc.File)!,b.Path)==path))),["draftOverlayIDs"]=System.Text.Json.JsonSerializer.SerializeToNode(overlayIds.Order(StringComparer.Ordinal).ToArray()),["dependencySource"]="root-owned-drafts-and-confirmed-registered-files"};
+   var schemaModel=schemaView?SchemaModel(registry,effective,schemaFields):null;
+   return new System.Text.Json.Nodes.JsonObject{["scope"]="effective-metadata",["status"]="available",["id"]=id,["sourceKind"]=sourceKind,["fields"]=System.Text.Json.JsonSerializer.SerializeToNode(schemaFields),["functionContracts"]=functionContracts,["schemaModel"]=schemaModel,["data"]=System.Text.Json.JsonSerializer.SerializeToNode(effective.Data),["values"]=values,["modules"]=modules,["requirements"]=requirements,["providers"]=providers,["providerSelection"]="not-performed",["declarationsLoaded"]=System.Text.Json.JsonSerializer.SerializeToNode(registry.Elements.Keys.Order(StringComparer.Ordinal).ToArray()),["registeredManifests"]=registry.Packs.Count,["bodyReads"]=statistics.ReadDocuments.Count(path=>registry.Elements.Values.Any(e=>e.Bodies.Values.Any(b=>Confectory.Core.PackPaths.Owned(System.IO.Path.GetDirectoryName(e.Loc.File)!,b.Path)==path))),["draftOverlayIDs"]=System.Text.Json.JsonSerializer.SerializeToNode(overlayIds.Order(StringComparer.Ordinal).ToArray()),["dependencySource"]="root-owned-drafts-and-confirmed-registered-files"};
   }
   catch(Confectory.Core.BuildError error){return new System.Text.Json.Nodes.JsonObject{["scope"]="effective-metadata",["status"]="unavailable",["id"]=id,["code"]=error.Diagnostic.Code,["message"]=error.Diagnostic.Message};}
   catch(Exception error){return new System.Text.Json.Nodes.JsonObject{["scope"]="effective-metadata",["status"]="unavailable",["id"]=id,["code"]="METADATA_UNAVAILABLE",["message"]=error.Message};}
   finally{if(System.IO.Directory.Exists(temporary))System.IO.Directory.Delete(temporary,true);}
  }
+ static System.Text.Json.Nodes.JsonObject SchemaModel(Confectory.Core.Registry registry,Confectory.Core.Element element,System.Collections.Generic.Dictionary<string,Confectory.Core.SchemaField> fields)
+ {
+  var schemas=new System.Text.Json.Nodes.JsonObject();var functions=new System.Text.Json.Nodes.JsonObject();var implementations=new System.Text.Json.Nodes.JsonObject();
+  System.Text.Json.Nodes.JsonNode Fields(System.Collections.Generic.Dictionary<string,Confectory.Core.SchemaField> items)=>Confectory.Core.JsonData.Object(items.ToDictionary(p=>p.Key,p=>new{cardinality=p.Value.Cardinality,kind=p.Value.Kind,type=p.Value.Type,origin=p.Value.Origin}));
+  void Contracts(System.Collections.Generic.Dictionary<string,Confectory.Core.SchemaField> items)
+  {
+   foreach(var field in items.Values){
+    if(field.Kind=="function"){var fn=registry.Get(field.Type,"function",field.Origin,field.Loc);functions[fn.Id]=System.Text.Json.JsonSerializer.SerializeToNode(fn.Signature,Confectory.Core.JsonData.Options);}
+    else if(field.Kind=="compound"){
+     if(schemas.ContainsKey(field.Type))continue;
+     new Confectory.Core.Planner(registry,"metadata").Structural(field.Type);var schema=registry.Effective(registry.Get(field.Type,"schema",field.Origin,field.Loc).Id);
+     schemas[field.Type]=new System.Text.Json.Nodes.JsonObject{["fields"]=Fields(schema.Fields)};Contracts(schema.Fields);
+    }
+   }
+  }
+  void Associations(System.Collections.Generic.Dictionary<string,Confectory.Core.SchemaField> items,System.Collections.Generic.Dictionary<string,Confectory.Core.SchemaDatum> data)
+  {
+   foreach(var pair in items){if(!data.TryGetValue(pair.Key,out var datum))continue;var field=pair.Value;
+    foreach(var value in field.Cardinality=="multiple"?(datum.Items??[]):new System.Collections.Generic.List<Confectory.Core.SchemaDatum>{datum}){
+     if(field.Kind=="compound"&&value.Members is not null)Associations(registry.Effective(field.Type).Fields,value.Members);
+     if(field.Kind!="function"||value.Reference is null)continue;
+     string key=System.Text.Json.JsonSerializer.Serialize(new[]{field.Type,value.Reference,value.Origin});
+     try{var body=registry.Implementation(field.Type,value.Reference,value.Origin,value.Loc);implementations[key]=new System.Text.Json.Nodes.JsonObject{["status"]="valid",["id"]=body.Id,["function"]=body.Function,["targets"]=System.Text.Json.JsonSerializer.SerializeToNode(body.Bodies.Keys.Order(StringComparer.Ordinal).ToArray())};}
+     catch(Confectory.Core.BuildError error){implementations[key]=new System.Text.Json.Nodes.JsonObject{["status"]="invalid",["code"]=error.Diagnostic.Code,["message"]=error.Message};}
+    }
+   }
+  }
+  Contracts(fields);Associations(fields,element.Data);
+  System.Text.Json.Nodes.JsonObject validation;
+  try{Confectory.Core.SchemaContracts.Validate(registry,element.Id);validation=new System.Text.Json.Nodes.JsonObject{["status"]="valid"};}
+  catch(Confectory.Core.BuildError error){validation=new System.Text.Json.Nodes.JsonObject{["status"]="invalid",["code"]=error.Diagnostic.Code,["message"]=error.Message};}
+  return new System.Text.Json.Nodes.JsonObject{["id"]=element.Id,["kind"]=element.Kind,["validation"]=validation,["fields"]=Fields(fields),["data"]=System.Text.Json.JsonSerializer.SerializeToNode(element.Data,Confectory.Core.JsonData.Options),["schemas"]=schemas,["functions"]=functions,["implementations"]=implementations,["targets"]=System.Text.Json.JsonSerializer.SerializeToNode(registry.Project.Targets.Keys.Order(StringComparer.Ordinal).ToArray()),["executionAuthorized"]=false};
+ }
+
 }
+
 
 internal static class SemanticCatalogService
 {

@@ -1,0 +1,10 @@
+if(view.Length>2097152||path.Length>4096)throw new ArgumentException("Call check budget exceeded");
+var model=System.Text.Json.Nodes.JsonNode.Parse(view)!;var steps=System.Text.Json.Nodes.JsonNode.Parse(path)!.AsArray();if(steps.Count is <1 or >64)throw new ArgumentException("Explicit function field path required");
+var row=System.Linq.Enumerable.SingleOrDefault(model["rows"]!.AsArray(),r=>System.Text.Json.Nodes.JsonNode.DeepEquals(r!["path"],steps));var result=new System.Text.Json.Nodes.JsonObject{["status"]="invalid",["executionAuthorized"]=false,["path"]=steps.DeepClone(),["target"]=target};
+void Fail(string code,string message){result["code"]=code;result["message"]=message;}
+if(model["validation"]?["status"]?.ToString()!="valid")Fail("CALL_SOURCE","Current schema data does not pass public validation");
+else if(row is null||row["kind"]!.ToString()!="function"||row["cardinality"]!.ToString()!="single")Fail("CALL_FIELD","Path must select one declared function field/list item");
+else if(row["state"]!.ToString()!="present"||row["association"]?["status"]?.ToString()!="valid")Fail("CALL_ASSOCIATION","Function field has no valid current implementation association");
+else if(!System.Linq.Enumerable.Any(model["targets"]!.AsArray(),t=>t!.ToString()==target))Fail("CALL_TARGET","Requested target is not registered by the current ProjectPack");
+else{var association=row["association"]!;var bodies=association["targets"]!.AsArray();string? selected=System.Linq.Enumerable.Any(bodies,t=>t!.ToString()==target)?target:System.Linq.Enumerable.Any(bodies,t=>t!.ToString()=="common")?"common":null;if(selected is null)Fail("CALL_TARGET","Implementation has no requested target or common body");else{result=System.Text.Json.Nodes.JsonNode.Parse(calls.ValidateArguments.Invoke(row["signature"]!.ToJsonString(),arguments))!.AsObject();result["path"]=steps.DeepClone();result["function"]=row["type"]!.DeepClone();result["implementation"]=association["id"]!.DeepClone();result["target"]=target;result["bodySelection"]=selected;}}
+return result.ToJsonString();

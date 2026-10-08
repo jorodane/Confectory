@@ -54,6 +54,17 @@ public sealed class CoreTests : TestCase
         using var refData = System.Text.Json.JsonDocument.Parse("{\"$ref\":\"X::O; value hacked = 1\"}"); Error("IDENTIFIER", () => SchemaContracts.SetData(e, "x", refData.RootElement)); Equal(0, e.Data.Count);
     }
 
+    public void test_explicit_schema_data_path_edits_preserve_siblings_and_reject_invented_parents()
+    {
+        var e = new Parser("object X::O { data group = { enabled = false; note = \"keep\"; }; data numbers = [0, 2]; }", "draft").ParseElement();
+        using var path = System.Text.Json.JsonDocument.Parse("[\"group\",\"enabled\"]"); using var value = System.Text.Json.JsonDocument.Parse("true"); SchemaContracts.SetDataPath(e, path.RootElement, value.RootElement);
+        Equal(true, e.Data["group"].Members!["enabled"].Scalar!.Value.GetBoolean()); Equal("keep", e.Data["group"].Members!["note"].Scalar!.Value.GetString());
+        using var index = System.Text.Json.JsonDocument.Parse("[\"numbers\",1]"); using var n = System.Text.Json.JsonDocument.Parse("3"); SchemaContracts.SetDataPath(e, index.RootElement, n.RootElement); Equal(0, e.Data["numbers"].Items![0].Scalar!.Value.GetInt32()); Equal(3, e.Data["numbers"].Items![1].Scalar!.Value.GetInt32());
+        string before = SchemaContracts.FormatDeclarations(e);
+        foreach (var invalid in new[] { "[\"numbers\",99]", "[\"missing\",\"value\"]", "[\"group\",0]" })
+        { using var bad = System.Text.Json.JsonDocument.Parse(invalid); Error("SCHEMA_DATA_PATH", () => SchemaContracts.SetDataPath(e, bad.RootElement, n.RootElement)); Equal(before, SchemaContracts.FormatDeclarations(e)); }
+    }
+
     public void test_namespace_qualified_same_local_id()
     {
         f.Add("Api", "object", "Same", "object Api::Same {}"); f.Add("Provider", "object", "Same", "object Provider::Same {}");

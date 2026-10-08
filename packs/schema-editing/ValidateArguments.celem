@@ -1,0 +1,1 @@
+function Confectory.SchemaEditing::ValidateArguments (string signature, string arguments) -> string {description "Validate positional function arguments against an existing public signature; grants no execution authority."; provide Confectory.SchemaEditing::ValidateArguments with Confectory.SchemaEditing::ValidateArgumentsBody;}

@@ -8,35 +8,46 @@ case "bodies":{
 }
 case "inspect":
 case "locate":
-case "effective":{
+case "effective": case "schema-view": case "call-check":{
  string inspectedId=state["selected"]!.GetValue<string>();if(inspectedId=="")throw new InvalidOperationException("Select an owned declaration first.");
  var u=calls.Read.Invoke(draft,inspectedId);if(u[1] is "body" or "project" or "pack")throw new InvalidOperationException("Direct relations require an element declaration.");
  var inspectedReply=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(handle))!.AsObject();
  inspectedReply["inspection"]=System.Text.Json.Nodes.JsonNode.Parse(calls.Inspect.Invoke(u[3]));if(inspectedReply["inspection"]!["id"]!.GetValue<string>()!=u[0]||inspectedReply["inspection"]!["kind"]!.GetValue<string>()!=u[1])throw new InvalidOperationException("Owned declaration identity changed; repair the source explicitly.");inspectedReply["inspectionRevision"]=long.Parse(u[4],System.Globalization.CultureInfo.InvariantCulture);
- if(operation is "locate" or "effective"){
+ if(operation is "locate" or "effective" or "schema-view" or "call-check"){
   var identity=calls.Identity.Invoke(draft);var units=calls.List.Invoke(draft);string manifestId=System.Linq.Enumerable.FirstOrDefault(units,id=>id.EndsWith("::ProjectManifest",StringComparison.Ordinal))??System.Linq.Enumerable.First(units,id=>id.EndsWith("::PackManifest",StringComparison.Ordinal));var manifestUnit=calls.Read.Invoke(draft,manifestId);string manifest=manifestUnit[3];
   inspectedReply["locationManifestRevision"]=long.Parse(manifestUnit[4],System.Globalization.CultureInfo.InvariantCulture);
-  if(operation=="effective"){
+  if(operation is "effective" or "schema-view" or "call-check"){
+   if(operation=="call-check"&&request["id"]?.GetValue<string>()!=inspectedId)throw new InvalidOperationException("Explicit function source ID differs from the selected View.");
+   if(operation=="call-check"&&request["expectedRevision"]!.GetValue<long>()!=long.Parse(u[4],System.Globalization.CultureInfo.InvariantCulture))throw new InvalidOperationException("Function source revision changed; inspect the current View.");
    string rootNamespace=manifestId[..manifestId.IndexOf("::",StringComparison.Ordinal)];var drafts=new System.Text.Json.Nodes.JsonArray();var revisions=new System.Text.Json.Nodes.JsonObject{[inspectedId]=long.Parse(u[4],System.Globalization.CultureInfo.InvariantCulture)};var changes=calls.Changes.Invoke(draft,units);
    for(int n=0;n<changes.Length;n+=4){string changedId=changes[n];if(changedId==inspectedId)continue;var changed=calls.Read.Invoke(draft,changedId);if(changed[1] is "body" or "project" or "pack")continue;
     if(!changedId.StartsWith(rootNamespace+"::",StringComparison.Ordinal)){inspectedReply["effective"]=new System.Text.Json.Nodes.JsonObject{["status"]="unavailable",["scope"]="effective-metadata",["code"]="DIRTY_IMPORTED_DECLARATION",["message"]="Imported owned draft overlays require a separate provider scope."};return inspectedReply.ToJsonString();}
     drafts.Add(new System.Text.Json.Nodes.JsonObject{["id"]=changedId,["text"]=changed[3]});revisions[changedId]=long.Parse(changed[4],System.Globalization.CultureInfo.InvariantCulture);
    }
    inspectedReply["effectiveDraftRevisions"]=revisions;
-   inspectedReply["effective"]=System.Text.Json.Nodes.JsonNode.Parse(calls.Locate.Invoke("effective",System.Text.Json.JsonSerializer.Serialize(new{project=identity[0],manifest,id=inspectedId,text=u[3],drafts})));return inspectedReply.ToJsonString();
+   inspectedReply["effective"]=System.Text.Json.Nodes.JsonNode.Parse(calls.Locate.Invoke("effective",System.Text.Json.JsonSerializer.Serialize(new{project=identity[0],manifest,id=inspectedId,text=u[3],drafts,schemaView=operation is "schema-view" or "call-check"})));
+   if(operation is "schema-view" or "call-check"){
+    var resolved=inspectedReply["effective"]!;if(resolved["status"]!.ToString()!="available")throw new InvalidOperationException("Schema description unavailable: "+resolved["code"]!.ToString());
+    inspectedReply["schemaView"]=System.Text.Json.Nodes.JsonNode.Parse(calls.DescribeSchemaView.Invoke(resolved["schemaModel"]!.ToJsonString()));
+    if(operation=="call-check")inspectedReply["callCheck"]=System.Text.Json.Nodes.JsonNode.Parse(calls.CheckCall.Invoke(inspectedReply["schemaView"]!.ToJsonString(),request["path"]!.ToJsonString(),request["arguments"]!.ToJsonString(),request["target"]!.GetValue<string>()));
+    foreach(var revision in revisions){var current=calls.Read.Invoke(draft,revision.Key);if(long.Parse(current[4],System.Globalization.CultureInfo.InvariantCulture)!=revision.Value!.GetValue<long>())throw new InvalidOperationException("Schema draft changed during description; refresh explicitly.");}
+    if(calls.Read.Invoke(draft,manifestId)[4]!=manifestUnit[4])throw new InvalidOperationException("Manifest changed during schema description; refresh explicitly.");
+   }
+   return inspectedReply.ToJsonString();
   }
   var ids=new System.Collections.Generic.List<string>();foreach(var edge in inspectedReply["inspection"]!["relations"]!["edges"]!.AsArray()){ids.Add(edge!["target"]!.GetValue<string>());if(edge["function"] is not null)ids.Add(edge["function"]!.GetValue<string>());if(edge["scope"] is not null)ids.Add(edge["scope"]!.GetValue<string>());}
   inspectedReply["locations"]=System.Text.Json.Nodes.JsonNode.Parse(calls.Locate.Invoke("locate",System.Text.Json.JsonSerializer.Serialize(new{project=identity[0],manifest,ids=ids.ToArray()})));
  }
  return inspectedReply.ToJsonString();
 }
-case "value": case "data": case "field":{
+case "value": case "data": case "data-path": case "field":{
  string selectedValue=state["selected"]!.GetValue<string>();if(selectedValue=="")throw new InvalidOperationException("Select an owned declaration first.");
- var u=calls.Read.Invoke(draft,selectedValue);if(u[1] is "body" or "project" or "pack")throw new InvalidOperationException("Scalar values require an element declaration.");
+ if(operation=="data-path"&&request["id"]?.GetValue<string>()!=selectedValue)throw new InvalidOperationException("Explicit path-edit source ID differs from the selected View.");
+ var u=calls.Read.Invoke(draft,selectedValue);if(u[1] is "body" or "project" or "pack")throw new InvalidOperationException("Field/data edits require an element declaration.");
  long expectedValue=request["expectedRevision"]!.GetValue<long>();if(expectedValue<0)throw new ArgumentOutOfRangeException("expectedRevision");
  if(long.Parse(u[4],System.Globalization.CultureInfo.InvariantCulture)!=expectedValue){conflict=true;state["review"]=null;break;}
- if(request["value"] is null)throw new ArgumentException("An explicit primitive value is required.");
- string formatted=(operation is "data" or "field")?System.Text.Json.JsonSerializer.Deserialize<string>(calls.Locate.Invoke(operation=="field"?"setField":"setData",System.Text.Json.JsonSerializer.Serialize(new{text=u[3],field=request["field"]!.GetValue<string>(),value=request["value"]})))!:calls.SetValue.Invoke(u[3],request["field"]!.GetValue<string>(),request["value"]!.ToJsonString());if(formatted.Length>1048576)throw new ArgumentException("Draft exceeds one million characters.");
+ if(request["value"] is null)throw new ArgumentException("An explicit value is required.");
+ string formatted=(operation is "data" or "data-path" or "field")?System.Text.Json.JsonSerializer.Deserialize<string>(calls.Locate.Invoke(operation=="field"?"setField":operation=="data-path"?"setDataPath":"setData",System.Text.Json.JsonSerializer.Serialize(new{text=u[3],field=request["field"]?.GetValue<string>(),path=request["path"],value=request["value"]})))!:calls.SetValue.Invoke(u[3],request["field"]!.GetValue<string>(),request["value"]!.ToJsonString());if(formatted.Length>1048576)throw new ArgumentException("Draft exceeds one million characters.");
  conflict=!calls.Edit.Invoke(draft,selectedValue,formatted,expectedValue);if(conflict||calls.Read.Invoke(draft,selectedValue)[4]!=u[4])state["review"]=null;break;
 }
 case "follow":{

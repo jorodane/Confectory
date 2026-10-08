@@ -1,0 +1,3 @@
+implementation Confectory.SchemaEditing::DescribeInputsBody for Confectory.SchemaEditing::DescribeInputs (string signature) -> string {
+body common "DescribeInputs.csbody";
+}

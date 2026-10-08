@@ -1,0 +1,1 @@
+function Confectory.SchemaEditing::DescribeView (string metadata) -> string {description "Project reusable schema field/data rows independent of table layout, files and execution."; provide Confectory.SchemaEditing::DescribeView with Confectory.SchemaEditing::DescribeViewBody;}
