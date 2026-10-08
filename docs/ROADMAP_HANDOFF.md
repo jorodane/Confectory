@@ -215,3 +215,7 @@ Declared require edges now expose the existing FunctionSignature serialization, 
 ## Direct relationship target registration (2026-10-08)
 
 Existing SchemaEditing Call and public Parser provide bounded selected-context locator metadata; PackWorkspace locate collects current direct relation IDs. Registered/unregistered/unavailable are distinct, and plain inspect is not queried. Requested owning manifests only, no target source reads, automatic project opens, effective inheritance, layout or execution rights. Platform owned-root read limits remain explicit. See [RELATION_TARGET_REGISTRATION.md](RELATION_TARGET_REGISTRATION.md) for contracts, draft/disk scope, ledgers and gates. Larger semantic-index/schema/migration policies remain future work.
+
+## Effective metadata explanation (2026-10-08)
+
+Existing common Core resolver now backs selected root-owned draft value/origin and module requirement/default explanation through actual EditorHome workspace effective. Root-owned parent drafts are overlaid via public Changes/Read; imported dirty drafts conservatively unavailable. Provider binding/execution, layout and source Confirm unchanged. Full editor functionality remains incomplete; lazy semantic catalogue then editing-session materialization and explicitly defined schema fields are the remaining dependency order. [EFFECTIVE_METADATA_EXPLANATION.md](EFFECTIVE_METADATA_EXPLANATION.md) records contracts, scope, consumer/locality gates and schema grammar decision.

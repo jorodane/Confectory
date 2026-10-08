@@ -10,5 +10,6 @@ import Confectory.ChangeSet::Review as Review (string, string[]) -> string[];
 import Confectory.ChangeSet::Confirm as Confirm (string, string[], string) -> string[];
 import Confectory.SchemaEditing::Inspect as Inspect (string) -> string;
 import Confectory.SchemaEditing::Call as Locate (string, string) -> string;
+import Confectory.EditWorkspace::Changes as Changes (string, string[]) -> string[];
 body common "Command.csbody";
 }

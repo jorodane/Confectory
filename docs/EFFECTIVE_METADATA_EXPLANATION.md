@@ -1,0 +1,43 @@
+# Effective inheritance and module contract explanation
+
+This continues baseline sections2,3,6 without a new resolver or layout. Existing Core Registry.Effective implements omitted inheritance/explicit overrides and provenance. Planner.Module/ModulesFor already validates and aggregates module requirements/defaults. The editor previously returned declarations and locators only; it now exposes this existing metadata result for the selected root-owned draft.
+
+## Connect and interpret
+
+Actual EditorHome route: `EditorHome.Model::Command(session,"workspace",{context:activeContext,action:"effective"})`. Existing active-context/selection guards apply. The normal snapshot includes inspectionRevision, locationManifestRevision, effectiveDraftRevisions and effective. Scope is effective-metadata; status is available/unavailable. Available replies expose values(field,value,origin), inherited module references(id,origin), requirements(function,signature,origin,defaults), inherited explicit providers(function,implementation,origin), draftOverlayIDs, declarationsLoaded and observed bodyReads. Value0/false/empty overrides retain their explicit meaning; origin is a qualified source ID. Requirements use the existing FunctionSignature format. Defaults are deduplicated candidate IDs supplied by the Core module contract.
+
+**providerSelection:not-performed** is deliberate: inherited explicit provider declarations and module defaults are explained but not selected or invoked. Planner.Bind/Plan would traverse executable providers/imports, so neither is called. A candidate is not certified runnable for a target. This query does not replace validation/Confirm or claim full effective execution linking. Core inheritance/module/signature diagnostics return unavailable with their existing codes; no old/partial result is silently substituted.
+
+Same-root dirty declaration drafts are captured through public EditWorkspace Changes/Read and overlaid into the per-query public Registry.Elements cache after identity/kind/locator checks. Other dependencies come from confirmed files. effectiveDraftRevisions identifies captured owned revisions. The root current draft manifest controls registrations and locators. Dirty imported editable declarations conservatively yield unavailable; selected imported declarations also need a separate provider scope. Imported current manifest/parent data are not part of an atomic multi-file draft transaction. Caller mutations retain the existing serialized milestone policy; these revision labels do not promise a new concurrent merge/snapshot protocol.
+
+The low-level existing SchemaEditing Call operation effective accepts project,manifest,id,text and optional drafts[{id,text}]. Owned overlays are capped at256 IDs and1MiB aggregate declaration text; manifest is capped at1MiB. The service writes only a temporary metadata ProjectPack/cache, relocates registry paths with the existing formatter, and redirects the root Registry path to its actual owner for on-demand parent reads. A library root uses a temporary ProjectPack wrapper to meet the existing Registry input contract; no entry is compiled/launched. Normal completion/errors remove the temporary cache. Forced process termination can leave private temp cache residue, as with existing authoring-process cancellation; no temp outputs enter Git/final source.
+
+Registry construction still reads all registered manifests and checks dependencies: this increment is **not** lazy whole-project indexing. Only required declaration documents are then read by the common resolver; implementation body files are not read, compiled or executed. Missing unrelated registered manifests can make effective explanation unavailable even when locator queries succeed. Mobile/browser preflight preserves existing owned-root manifest access: unsupported/outside-root graphs are unavailable, with no privilege expansion or automatic provisioning. Root sources, Save, review tokens and final Confirm are unchanged.
+
+## Implementation and locality ledger
+
+Elements: PackWorkspace CommandBody extends its existing effective query operation and imports public EditWorkspace Changes; target-owned SchemaEditing Call implementations add the effective metadata protocol. Outside reads: public Core Registry/Planner/Element/FunctionSignature/Documents demonstrate existing behavior and why Bind/Plan must not be used; EditWorkspace Changes/Read/Identity expose owned draft data; existing metadata formatters preserve root-manifest statements. Outside edits: desktop authoring tool and identical Android/browser templates, because existing Call replies did not expose common resolver output. Existing explicit Inspect/Call/Changes bindings and pack dependencies are reused. Core is unchanged; no private editor state or implementation-DLL reference was added.
+
+Physical rebuild scope: selected PackWorkspace implementation assembly/final bindings, desktop authoring tool, regenerated Android/browser apps for metadata templates. Public function signatures stay unchanged; existing physical SnapshotBody/CommandBody and actual EditorHome.Model CommandBody locality probes test owner-only implementation rebuilds and zero contract compilations separately from functionality.
+
+## Verification
+
+Existing SDK10.0.401, DOTNET_CLI_HOME=/tmp/confectory-dotnet10 and CONFECTORY_DOTNET=/workspace/toolchains/dotnet-10.0.401/dotnet:
+
+```
+$CONFECTORY_DOTNET build Confectory.sln -c Release --no-restore
+$CONFECTORY_DOTNET run --project tests/Confectory.Tests -c Release --no-build -- --require-runtime PackWorkspaceTests SchemaEditingTests test_project_shell_domain_isolated_execution_no_null_chat_open_and_context_cleanup test_project_shell_windows_and_android_managed_compile
+```
+
+Gates: parent values/origins, explicit0/false, required signatures/default IDs from Core, root-parent dirty overlay, unchanged confirmed source, Core INHERITANCE_CYCLE diagnostic, unrelated malformed declaration unopened, nonexistent implementation body unread, observed bodyReads0, desktop/compiled metadata-adapter parity and Android/browser template equality. Actual EditorHome opens a non-runnable semantic ProjectPack, edits its parent through existing revisioned workspace commands, selects the child, requests effective explanation and verifies parent draft revision1 and module requirements; an invalid body remains uncompiled/unexecuted. Previous navigation, relations, signatures, target registration, Save/review/cleanup/locality gates remain. Windows/Android common product managed compilation is distinct from OS/device acceptance; no special screen, layout, native package, signing or installation.
+
+## Remaining work and order
+
+1. Lazy semantic catalogue before editing: public manifest locators and Core Documents already support bounded/on-demand reads. Add editor-facing kind/namespace/id browsing and specific declaration retrieval without first opening eager EditWorkspace. This is independently implementable; it does not itself change the existing full owned-draft Open/List contract.
+2. Lazy editing-session materialization: existing Open snapshots all declared bodies; List promises complete body-unit IDs that require implementation metadata. Preserve review baselines/subscriptions and split manifest browsing, body discovery and draft materialization as a coherent shared-contract increment rather than claiming filter==index.
+3. Schema-based properties/references: generic scalar SetValue/Create and domain-specific schema contracts exist, but the baseline explicitly leaves the complete type grammar unsettled. A minimal schema-item representation for name/type/cardinality/compound/reference constraints must be selected before creating a generic schema editor; do not infer types from current value strings or impose a second domain model.
+4. Effective executable-provider explanation and reference migration: public Core binding semantics exist, but target/read scope and editable migration/rollback contracts need separate bounded work. No automatic conflict policy or code execution is added here.
+
+The full layout-independent editor request is not completed by these query/explanation increments. Other UI-facing roles can consume these contracts while the user's layout is prepared.
+
+Recorded (2026-10-08): final solution build passes0 warnings/errors (2.51s); selected five functional/product/provider/target gates pass5/0/0 (131.216s). Private logs /tmp/confectory-effective-build.log and /tmp/confectory-effective-tests.log. Work is based on remote-confirmed6bcf5af and preserves all earlier increments; no main merge, installation or native/device claim.

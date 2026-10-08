@@ -3,14 +3,24 @@ var request=System.Text.Json.Nodes.JsonNode.Parse(payload)?.AsObject()??throw ne
 lock(state){if(state["closing"]!.GetValue<bool>())throw new ObjectDisposedException("PackWorkspace");string draft=state["draft"]!.GetValue<string>();bool conflict=false;
 switch(operation){
 case "inspect":
-case "locate":{
+case "locate":
+case "effective":{
  string inspectedId=state["selected"]!.GetValue<string>();if(inspectedId=="")throw new InvalidOperationException("Select an owned declaration first.");
  var u=calls.Read.Invoke(draft,inspectedId);if(u[1] is "body" or "project" or "pack")throw new InvalidOperationException("Direct relations require an element declaration.");
  var inspectedReply=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(handle))!.AsObject();
  inspectedReply["inspection"]=System.Text.Json.Nodes.JsonNode.Parse(calls.Inspect.Invoke(u[3]));inspectedReply["inspectionRevision"]=long.Parse(u[4],System.Globalization.CultureInfo.InvariantCulture);
- if(operation=="locate"){
+ if(operation is "locate" or "effective"){
   var identity=calls.Identity.Invoke(draft);var units=calls.List.Invoke(draft);string manifestId=System.Linq.Enumerable.FirstOrDefault(units,id=>id.EndsWith("::ProjectManifest",StringComparison.Ordinal))??System.Linq.Enumerable.First(units,id=>id.EndsWith("::PackManifest",StringComparison.Ordinal));var manifestUnit=calls.Read.Invoke(draft,manifestId);string manifest=manifestUnit[3];
   inspectedReply["locationManifestRevision"]=long.Parse(manifestUnit[4],System.Globalization.CultureInfo.InvariantCulture);
+  if(operation=="effective"){
+   string rootNamespace=manifestId[..manifestId.IndexOf("::",StringComparison.Ordinal)];var drafts=new System.Text.Json.Nodes.JsonArray();var revisions=new System.Text.Json.Nodes.JsonObject{[inspectedId]=long.Parse(u[4],System.Globalization.CultureInfo.InvariantCulture)};var changes=calls.Changes.Invoke(draft,units);
+   for(int n=0;n<changes.Length;n+=4){string changedId=changes[n];if(changedId==inspectedId)continue;var changed=calls.Read.Invoke(draft,changedId);if(changed[1] is "body" or "project" or "pack")continue;
+    if(!changedId.StartsWith(rootNamespace+"::",StringComparison.Ordinal)){inspectedReply["effective"]=new System.Text.Json.Nodes.JsonObject{["status"]="unavailable",["scope"]="effective-metadata",["code"]="DIRTY_IMPORTED_DECLARATION",["message"]="Imported owned draft overlays require a separate provider scope."};return inspectedReply.ToJsonString();}
+    drafts.Add(new System.Text.Json.Nodes.JsonObject{["id"]=changedId,["text"]=changed[3]});revisions[changedId]=long.Parse(changed[4],System.Globalization.CultureInfo.InvariantCulture);
+   }
+   inspectedReply["effectiveDraftRevisions"]=revisions;
+   inspectedReply["effective"]=System.Text.Json.Nodes.JsonNode.Parse(calls.Locate.Invoke("effective",System.Text.Json.JsonSerializer.Serialize(new{project=identity[0],manifest,id=inspectedId,text=u[3],drafts})));return inspectedReply.ToJsonString();
+  }
   var ids=new System.Collections.Generic.List<string>();foreach(var edge in inspectedReply["inspection"]!["relations"]!["edges"]!.AsArray()){ids.Add(edge!["target"]!.GetValue<string>());if(edge["function"] is not null)ids.Add(edge["function"]!.GetValue<string>());}
   inspectedReply["locations"]=System.Text.Json.Nodes.JsonNode.Parse(calls.Locate.Invoke("locate",System.Text.Json.JsonSerializer.Serialize(new{project=identity[0],manifest,ids=ids.ToArray()})));
  }

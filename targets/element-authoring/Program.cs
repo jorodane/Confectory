@@ -53,6 +53,8 @@ try
         case "projectionBrowse": case "projectionDelta":reply=ProjectionDelivery.Execute(S("operation"),request);break;
         case "projectionAffected": case "projectionVersions": case "projectionQueue": case "projectionPublish": case "projectionQuery": case "projectionList": case "editorDescribe":reply=ProjectionArtifacts.Execute(S("operation"),request);break;
         case "algorithmProject":reply=AlgorithmProjectionOperations.Execute(request);break;
+        case "effective":
+            reply=EffectiveMetadata.Query(S("project"),S("manifest"),S("id"),S("text"),FormatManifest,path=>{if(new FileInfo(path).Length>1048576)throw new IOException("Manifest budget");return File.ReadAllText(path);},request["drafts"]?.AsArray());break;
         case "locate":
             reply=RelationLocators.Query(S("manifest"),Path.GetDirectoryName(Path.GetFullPath(S("project")))!,request["ids"]!.AsArray().Select(x=>x!.GetValue<string>()).ToArray(),path=>{var file=new FileInfo(path);if(!file.Exists||file.Length>1048576||file.LinkTarget is not null)throw new IOException("Manifest unavailable");return File.ReadAllText(path);});break;
         case "inspect":
