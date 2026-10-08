@@ -2,11 +2,19 @@ var state=AppDomain.CurrentDomain.GetData("Confectory.PackWorkspace."+handle) as
 var request=System.Text.Json.Nodes.JsonNode.Parse(payload)?.AsObject()??throw new ArgumentException("Object payload required.");
 lock(state){if(state["closing"]!.GetValue<bool>())throw new ObjectDisposedException("PackWorkspace");string draft=state["draft"]!.GetValue<string>();bool conflict=false;
 switch(operation){
-case "inspect":{
+case "inspect":
+case "locate":{
  string inspectedId=state["selected"]!.GetValue<string>();if(inspectedId=="")throw new InvalidOperationException("Select an owned declaration first.");
  var u=calls.Read.Invoke(draft,inspectedId);if(u[1] is "body" or "project" or "pack")throw new InvalidOperationException("Direct relations require an element declaration.");
  var inspectedReply=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(handle))!.AsObject();
- inspectedReply["inspection"]=System.Text.Json.Nodes.JsonNode.Parse(calls.Inspect.Invoke(u[3]));inspectedReply["inspectionRevision"]=long.Parse(u[4],System.Globalization.CultureInfo.InvariantCulture);return inspectedReply.ToJsonString();
+ inspectedReply["inspection"]=System.Text.Json.Nodes.JsonNode.Parse(calls.Inspect.Invoke(u[3]));inspectedReply["inspectionRevision"]=long.Parse(u[4],System.Globalization.CultureInfo.InvariantCulture);
+ if(operation=="locate"){
+  var identity=calls.Identity.Invoke(draft);var units=calls.List.Invoke(draft);string manifestId=System.Linq.Enumerable.FirstOrDefault(units,id=>id.EndsWith("::ProjectManifest",StringComparison.Ordinal))??System.Linq.Enumerable.First(units,id=>id.EndsWith("::PackManifest",StringComparison.Ordinal));var manifestUnit=calls.Read.Invoke(draft,manifestId);string manifest=manifestUnit[3];
+  inspectedReply["locationManifestRevision"]=long.Parse(manifestUnit[4],System.Globalization.CultureInfo.InvariantCulture);
+  var ids=new System.Collections.Generic.List<string>();foreach(var edge in inspectedReply["inspection"]!["relations"]!["edges"]!.AsArray()){ids.Add(edge!["target"]!.GetValue<string>());if(edge["function"] is not null)ids.Add(edge["function"]!.GetValue<string>());}
+  inspectedReply["locations"]=System.Text.Json.Nodes.JsonNode.Parse(calls.Locate.Invoke("locate",System.Text.Json.JsonSerializer.Serialize(new{project=identity[0],manifest,ids=ids.ToArray()})));
+ }
+ return inspectedReply.ToJsonString();
 }
 case "filter":{
  string query=request["query"]?.GetValue<string>()??"",kind=request["kind"]?.GetValue<string>()??"";

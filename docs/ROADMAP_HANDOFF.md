@@ -211,3 +211,7 @@ Continues owned-element-navigation: additive SchemaEditing Inspect relation JSON
 ## Required-function contract lookup (2026-10-08)
 
 Declared require edges now expose the existing FunctionSignature serialization, with no duplicate contract model or new operation. Actual selected module draft query preserves qualified identity and revision; desktop/Android/browser response parity and existing functional/locality gates are retained. [REQUIRED_FUNCTION_SIGNATURES.md](REQUIRED_FUNCTION_SIGNATURES.md) records use, scope, commands and remaining editor-facing gaps. No layout, invocation, AI authority or larger follow-up starts in this increment.
+
+## Direct relationship target registration (2026-10-08)
+
+Existing SchemaEditing Call and public Parser provide bounded selected-context locator metadata; PackWorkspace locate collects current direct relation IDs. Registered/unregistered/unavailable are distinct, and plain inspect is not queried. Requested owning manifests only, no target source reads, automatic project opens, effective inheritance, layout or execution rights. Platform owned-root read limits remain explicit. See [RELATION_TARGET_REGISTRATION.md](RELATION_TARGET_REGISTRATION.md) for contracts, draft/disk scope, ledgers and gates. Larger semantic-index/schema/migration policies remain future work.

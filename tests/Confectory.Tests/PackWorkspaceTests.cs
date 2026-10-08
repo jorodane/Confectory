@@ -105,6 +105,21 @@ public sealed class PackWorkspaceTests : TestCase
  if(!registered.Contains("elements/ProjectInfo.celem",StringComparison.Ordinal)||!registered.Contains("../../missing-do-not-read.cpack",StringComparison.Ordinal))throw new Exception("Registration changed unrelated metadata");
  bool refused=false;try{MetadataAuthoring.Call(root,"validate",payload);}catch(PlatformNotSupportedException){refused=true;}if(!refused)throw new Exception("Compiler operation accepted");
  refused=false;try{MetadataAuthoring.Call(root,"describe",System.Text.Json.JsonSerializer.Serialize(new{project=Path.Combine(root,"..","outside.cpack")}));}catch{refused=true;}if(!refused)throw new Exception("Owned root escaped");
+ string locatorManifest="project Any.Renamed version \"0.1.0\" { registry Known \"known.cpack\"; registry Broken \"missing.cpack\"; registry Unused \"must-not-read.cpack\"; element Value object \"not-read.celem\"; }";
+ string knownManifest="pack Known version \"0.1.0\" { element Good module \"not-opened.celem\"; }";File.WriteAllText(Path.Combine(root,"known.cpack"),knownManifest);
+ string[] requested={"Any.Renamed::Value","Any.Renamed::Absent","Known::Good","Known::Absent","Broken::Thing","Unknown::Thing","bad-id"};
+ var located=JsonNode.Parse(MetadataAuthoring.Call(root,"locate",System.Text.Json.JsonSerializer.Serialize(new{project=Path.Combine(root,"project.cpack"),manifest=locatorManifest,ids=requested})))!;
+ string Status(string id)=>located["targets"]!.AsArray().Single(x=>x!["id"]!.ToString()==id)!["status"]!.ToString();
+ if(Status("Any.Renamed::Value")!="registered"||Status("Any.Renamed::Absent")!="unregistered"||Status("Known::Good")!="registered"||Status("Known::Absent")!="unregistered"||Status("Broken::Thing")!="unavailable"||Status("Unknown::Thing")!="unregistered"||Status("bad-id")!="unavailable")throw new Exception("Locator tri-state confusion");
+ int reads=0;RelationLocators.Query(locatorManifest,root,requested,path=>{reads++;if(Path.GetFileName(path)=="known.cpack")return knownManifest;if(Path.GetFileName(path)=="missing.cpack")throw new IOException();throw new Exception("Unrequested namespace opened");});if(reads!=2)throw new Exception("Not scoped/cached to requested manifests");
+ var unknown=RelationLocators.Query("broken",root,new[]{"Known::Good"},_=>throw new Exception("Invalid manifest triggered read"));if(unknown["targets"]![0]!["status"]!.ToString()!="unavailable")throw new Exception("Invalid project treated as missing namespace");
+ var mismatched=RelationLocators.Query(locatorManifest,root,new[]{"Known::Good"},_=>"pack Other version \"1\" {} ");if(mismatched["targets"]![0]!["status"]!.ToString()!="unavailable")throw new Exception("Mismatched registration accepted");
+ string outsideManifest=root+"-external.cpack";try{
+ File.WriteAllText(outsideManifest,knownManifest);string externalRegistration="project Any.Renamed version \"1\" { registry Known \"../"+Path.GetFileName(outsideManifest)+"\"; }";
+ var scoped=JsonNode.Parse(MetadataAuthoring.Call(root,"locate",System.Text.Json.JsonSerializer.Serialize(new{project=Path.Combine(root,"project.cpack"),manifest=externalRegistration,ids=new[]{"Known::Good"}})))!;
+ if(scoped["targets"]![0]!["status"]!.ToString()!="unavailable"||!scoped["targets"]![0]!["namespaceRegistered"]!.GetValue<bool>())throw new Exception("Locator scope broadened outside owned root");
+ }finally{File.Delete(outsideManifest);}
+ Console.WriteLine("LOCATORS:"+located.ToJsonString());
  Console.WriteLine("RELATIONS:"+relationships.ToJsonString());
  Console.WriteLine("Target metadata owned units/inspect/compiler refusal PASS");
  }finally{Directory.Delete(root,true);}
@@ -112,6 +127,10 @@ public sealed class PackWorkspaceTests : TestCase
  var result=Processes.Run(new[]{Environment.GetEnvironmentVariable("CONFECTORY_DOTNET")??"dotnet","run","--project",Path.Combine(folder,"check.csproj"),"-c","Release"},timeoutSeconds:120);True(result.ExitCode==0,result.Stdout+result.Stderr);True(result.Stdout.Contains("Target metadata owned units/inspect/compiler refusal PASS",StringComparison.Ordinal),result.Stdout+result.Stderr);
  var desktop=Processes.Run(new[]{Processes.DotNet(),Path.Combine(Fixture.Repo,"targets","element-authoring","bin","Release","net10.0","Confectory.ElementAuthoring.dll")},input:System.Text.Json.JsonSerializer.Serialize(new{operation="inspect",text="module Any.Renamed::Rules extends Missing::Parent { module Missing::Role; include Missing::Child; require Missing::Function (int) -> int; default Missing::Function with Missing::Body; provide Missing::Function with Missing::Explicit; }"}),timeoutSeconds:30);
  var expected=System.Text.Json.Nodes.JsonNode.Parse(desktop.Stdout)!;True(expected["ok"]!.GetValue<bool>(),desktop.Stdout);var targetRelations=System.Text.Json.Nodes.JsonNode.Parse(result.Stdout.Split('\n').Single(line=>line.StartsWith("RELATIONS:",StringComparison.Ordinal))[10..]);True(System.Text.Json.Nodes.JsonNode.DeepEquals(expected["result"]!["relations"],targetRelations),"Target relation replies differ");
+ File.WriteAllText(Path.Combine(folder,"known.cpack"),"pack Known version \"0.1.0\" { element Good module \"not-opened.celem\"; }");
+ var locatedDesktop=Processes.Run(new[]{Processes.DotNet(),Path.Combine(Fixture.Repo,"targets","element-authoring","bin","Release","net10.0","Confectory.ElementAuthoring.dll")},input:System.Text.Json.JsonSerializer.Serialize(new{operation="locate",project=Path.Combine(folder,"project.cpack"),manifest="project Any.Renamed version \"0.1.0\" { registry Known \"known.cpack\"; registry Broken \"missing.cpack\"; registry Unused \"must-not-read.cpack\"; element Value object \"not-read.celem\"; }",ids=new[]{"Any.Renamed::Value","Any.Renamed::Absent","Known::Good","Known::Absent","Broken::Thing","Unknown::Thing","bad-id"}}),timeoutSeconds:30);
+ var locatorReply=System.Text.Json.Nodes.JsonNode.Parse(locatedDesktop.Stdout)!;True(locatorReply["ok"]!.GetValue<bool>(),locatedDesktop.Stdout);var targetLocators=System.Text.Json.Nodes.JsonNode.Parse(result.Stdout.Split('\n').Single(line=>line.StartsWith("LOCATORS:",StringComparison.Ordinal))[9..]);True(System.Text.Json.Nodes.JsonNode.DeepEquals(locatorReply["result"],targetLocators),"Locator replies differ");
+
 
  }
 }
