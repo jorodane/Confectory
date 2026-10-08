@@ -1,16 +1,19 @@
 if(manager.Length<5||manager[1]!="active")throw new InvalidOperationException("Manager is disposed.");
 if(!System.Text.RegularExpressions.Regex.IsMatch(name,"^[A-Za-z_][A-Za-z0-9_]*$"))throw new ArgumentException("Project name must be an identifier.");
 if(string.IsNullOrWhiteSpace(directory)||string.IsNullOrWhiteSpace(targetPack))throw new ArgumentException("Explicit directory and target pack required.");
-string root=System.IO.Path.GetFullPath(directory),tool=System.IO.Path.GetFullPath(targetPack);
+string root=System.IO.Path.GetFullPath(directory);
 if(System.IO.Directory.Exists(root)||System.IO.File.Exists(root))throw new InvalidOperationException("New project directory must not exist.");
-if(!System.IO.File.Exists(tool)||tool.Contains('"')||tool.Contains('\n')||tool.Contains('\r'))throw new ArgumentException("Invalid target pack path.");
-string ns="Project."+name;string stage=root+".creating-"+Guid.NewGuid().ToString("N");System.IO.Directory.CreateDirectory(stage);bool committed=false;
+string ns="Project."+name;var template=calls.CreationTemplate.Invoke(ns,targetPack);
+if(template.Length==0||template.Length%2!=0)throw new InvalidOperationException("Invalid creation template.");
+string stage=root+".creating-"+Guid.NewGuid().ToString("N");System.IO.Directory.CreateDirectory(stage);bool committed=false;
 try
 {
  System.IO.File.WriteAllText(System.IO.Path.Combine(stage,"main.celem"),"function "+ns+"::Main () -> int { provide "+ns+"::Main with "+ns+"::MainBody; }\n");
  System.IO.File.WriteAllText(System.IO.Path.Combine(stage,"main_body.celem"),"implementation "+ns+"::MainBody for "+ns+"::Main () -> int { body common \"main.csbody\"; }\n");
  System.IO.File.WriteAllText(System.IO.Path.Combine(stage,"main.csbody"),"return 0;\n");
- string manifest="project "+ns+" version \"0.1.0\" {\nstandalone true;\nentry "+ns+"::Main;\nregistry Confectory.Build.DotNet \""+tool.Replace("\\","/")+"\";\ndependency Confectory.Build.DotNet version \"0.1.0\";\ntarget portable Confectory.Build.DotNet::Portable;\ntarget windows Confectory.Build.DotNet::Portable;\ntarget linux Confectory.Build.DotNet::Linux;\nelement Main function \"main.celem\";\nelement MainBody implementation \"main_body.celem\";\n}\n";
- System.IO.File.WriteAllText(System.IO.Path.Combine(stage,"project.cproj"),manifest);System.IO.Directory.Move(stage,root);committed=true;return calls.Open.Invoke(manager,System.IO.Path.Combine(root,"project.cproj"));
+ var paths=new System.Collections.Generic.HashSet<string>(StringComparer.OrdinalIgnoreCase);
+ for(int i=0;i<template.Length;i+=2){string relative=template[i];if(string.IsNullOrWhiteSpace(relative)||System.IO.Path.IsPathRooted(relative)||relative.Contains('\\')||System.Linq.Enumerable.Any(relative.Split('/'),part=>part is "" or "." or "..")||!paths.Add(relative))throw new InvalidOperationException("Unsafe template path.");string path=System.IO.Path.GetFullPath(System.IO.Path.Combine(stage,relative));if(!path.StartsWith(stage+System.IO.Path.DirectorySeparatorChar,StringComparison.Ordinal))throw new InvalidOperationException("Template path escaped staging.");if(System.IO.File.Exists(path))throw new InvalidOperationException("Template overwrites entry source.");System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(path)!);System.IO.File.WriteAllText(path,template[i+1]);}
+ if(!paths.Contains("project.cproj"))throw new InvalidOperationException("Template lacks ProjectPack manifest.");
+ System.IO.Directory.Move(stage,root);committed=true;return calls.Open.Invoke(manager,System.IO.Path.Combine(root,"project.cproj"));
 }
 catch{if(System.IO.Directory.Exists(stage))System.IO.Directory.Delete(stage,true);if(committed)System.IO.Directory.Delete(root,true);throw;}

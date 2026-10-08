@@ -1,4 +1,5 @@
 implementation Confectory.ProjectManager::CreateProjectBody for Confectory.ProjectManager::CreateProject (string[] manager, string name, string directory, string targetPack) -> string {
 import Confectory.ProjectManager::Open as Open (string[], string) -> string;
+import Confectory.ProjectManager::CreationTemplate as CreationTemplate (string, string) -> string[];
 body common "CreateProject.csbody";
 }

@@ -1,0 +1,6 @@
+if(!System.Text.RegularExpressions.Regex.IsMatch(projectNamespace,"^[A-Za-z_][A-Za-z0-9_]*(\\.[A-Za-z_][A-Za-z0-9_]*)*$"))throw new ArgumentException("Invalid project namespace.");
+string tool=System.IO.Path.GetFullPath(targetPack);
+if(!System.IO.File.Exists(tool)||tool.Contains('"')||tool.Contains('\n')||tool.Contains('\r'))throw new ArgumentException("Invalid target pack path.");
+string ns=projectNamespace;
+ string manifest="project "+ns+" version \"0.1.0\" {\nstandalone true;\nentry "+ns+"::Main;\nregistry Confectory.Build.DotNet \""+tool.Replace("\\","/")+"\";\ndependency Confectory.Build.DotNet version \"0.1.0\";\ntarget portable Confectory.Build.DotNet::Portable;\ntarget windows Confectory.Build.DotNet::Portable;\ntarget linux Confectory.Build.DotNet::Linux;\nelement Main function \"main.celem\";\nelement MainBody implementation \"main_body.celem\";\n}\n";
+return new[]{"project.cproj",manifest};

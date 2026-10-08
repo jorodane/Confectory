@@ -1,0 +1,1 @@
+implementation Confectory.ProjectManager::CreationTemplateBody for Confectory.ProjectManager::CreationTemplate (string projectNamespace, string targetPack) -> string[] { body android "CreationTemplate.offline.csbody"; body browser "CreationTemplate.offline.csbody"; body common "CreationTemplate.csbody"; }
