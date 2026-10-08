@@ -17,7 +17,8 @@ internal sealed class NativeFieldHost : IDisposable
         public required ClippedEdit Edit;
         public required string Binding;
         public int Id;
-        public bool ReadOnly,Deferred,Detached;
+        public bool ReadOnly,Deferred,Detached,InputConfigured;
+        public string Mode="";
         public global::Android.Text.Method.IKeyListener? KeyListener;
         public HashSet<int> Commands=new();
     }
@@ -58,7 +59,11 @@ internal sealed class NativeFieldHost : IDisposable
             int id=args["id"]!.GetValue<int>();string binding=args["binding"]!.ToString(),key=id+":"+binding;
             if(!fields.TryGetValue(key,out var field))
             {
-                var edit=new ClippedEdit(activity);field=new Field{Edit=edit,Binding=binding,Id=id,KeyListener=edit.KeyListener};fields.Add(key,field);overlay.AddView(edit);
+                // Theme overlay also supplies native cursor/selection-handle tint on API24-28.
+                var edit=new ClippedEdit(new ContextThemeWrapper(activity,Resource.Style.ConfectoryNativeField));
+                edit.SetTextColor(global::Android.Graphics.Color.Rgb(228,238,245));
+                edit.SetHintTextColor(global::Android.Graphics.Color.Rgb(174,194,209));
+                edit.SetHighlightColor(global::Android.Graphics.Color.Rgb(69,103,122));field=new Field{Edit=edit,Binding=binding,Id=id,KeyListener=edit.KeyListener};fields.Add(key,field);overlay.AddView(edit);
                 var captured=field;edit.KeyPress+=(_,e)=>
                 {
                     int code=e.KeyCode switch{Keycode.Enter=>13,Keycode.Tab=>9,Keycode.Escape=>27,_=>0};
@@ -69,9 +74,27 @@ internal sealed class NativeFieldHost : IDisposable
             string value=args["value"]!.ToString(),mode=args["mode"]!.ToString();bool changed=value!=(field.Edit.Text??"");
             field.Deferred=changed&&(field.Edit.HasFocus||Composing(field.Edit));
             if(changed&&!field.Deferred){field.Edit.Text=value;field.Edit.SetSelection(Math.Clamp(args["anchor"]!.GetValue<int>(),0,value.Length),Math.Clamp(args["caret"]!.GetValue<int>(),0,value.Length));}
-            field.ReadOnly=args["readonly"]!.GetValue<bool>();field.Edit.Enabled=args["enabled"]!.GetValue<bool>();
-            field.Edit.Focusable=!field.ReadOnly;field.Edit.FocusableInTouchMode=!field.ReadOnly;
-            field.Edit.Hint=args["hint"]?.ToString()??"";field.Edit.SetSingleLine(mode=="singleline");field.Edit.KeyListener=field.ReadOnly?null:field.KeyListener;
+            // Input configuration is a transition, not presentation. Reassigning a key listener
+            // restarts Android input even when its value is unchanged; retain the IME Editable.
+            bool readOnly=args["readonly"]!.GetValue<bool>();
+            if(!Composing(field.Edit))
+            {
+                if(!field.InputConfigured||field.Mode!=mode)
+                {
+                    field.Edit.SetSingleLine(mode=="singleline");field.Mode=mode;
+                    if(!field.InputConfigured||!field.ReadOnly)field.KeyListener=field.Edit.KeyListener;
+                }
+                if(!field.InputConfigured||field.ReadOnly!=readOnly)
+                {
+                    if(readOnly)field.Edit.KeyListener=null;
+                    else if(field.ReadOnly)field.Edit.KeyListener=field.KeyListener;
+                    field.Edit.Focusable=!readOnly;field.Edit.FocusableInTouchMode=!readOnly;
+                    field.ReadOnly=readOnly;
+                }
+                field.InputConfigured=true;
+            }
+            field.Edit.Enabled=args["enabled"]!.GetValue<bool>();
+            field.Edit.Hint=args["hint"]?.ToString()??"";
             field.Edit.Visibility=args["visible"]!.GetValue<bool>()?ViewStates.Visible:ViewStates.Gone;
             var rect=args["bounds"]!.AsArray();float d=activity.Resources!.DisplayMetrics!.Density;
             field.Edit.LayoutParameters=new FrameLayout.LayoutParams((int)(rect[2]!.GetValue<int>()*d),(int)(rect[3]!.GetValue<int>()*d))

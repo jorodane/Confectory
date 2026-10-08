@@ -53,6 +53,10 @@ public sealed class EntryHomeTests : TestCase
         True(activity.Contains("LaunchMode.SingleTask",StringComparison.Ordinal)&&!activity.Contains("LaunchMode.SingleTop",StringComparison.Ordinal),"Product Activity must own one controller for repeated external entry");
         True(File.Exists(Path.Combine(output,"NativeFieldHost.cs"))&&File.Exists(Path.Combine(output,"Managed","Confectory.Core.dll")));
         True(sdk.Contains("Managed/Confectory.Core.dll",StringComparison.Ordinal));
+        string fieldStyle=Path.Combine(output,"Resources","values","NativeFieldStyle.xml");
+        True(File.Exists(fieldStyle),"Android field contrast theme missing from actual product export");
+        var palette=System.Xml.Linq.XDocument.Load(fieldStyle);
+        True(palette.Descendants("item").Any(x=>x.Value=="#E4EEF5")&&palette.Descendants("item").Any(x=>x.Value=="#77AAC6"),"Native text/cursor contrast missing");
         True(File.Exists(Path.Combine(output,"AndroidManifest.xml")),"Export omitted required Android manifest");
         var xml=System.Xml.Linq.XDocument.Parse(sdk);Equal("false",xml.Descendants("PublishTrimmed").Single().Value);Equal("true",xml.Descendants("JsonSerializerIsReflectionEnabledByDefault").Single().Value);
         var report=JsonNode.Parse(File.ReadAllText(Path.Combine(output,"export-report.json")))!;
