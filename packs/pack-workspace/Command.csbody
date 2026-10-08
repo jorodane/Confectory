@@ -2,6 +2,11 @@ var state=AppDomain.CurrentDomain.GetData("Confectory.PackWorkspace."+handle) as
 var request=System.Text.Json.Nodes.JsonNode.Parse(payload)?.AsObject()??throw new ArgumentException("Object payload required.");
 lock(state){if(state["closing"]!.GetValue<bool>())throw new ObjectDisposedException("PackWorkspace");string draft=state["draft"]!.GetValue<string>();bool conflict=false;
 switch(operation){
+case "filter":{
+ string query=request["query"]?.GetValue<string>()??"",kind=request["kind"]?.GetValue<string>()??"";
+ if(query.Length>256||kind.Length>64)throw new ArgumentException("Navigation filter is too long.");
+ state["query"]=query;state["kind"]=kind;state["page"]=0;break;
+}
 case "select":string id=request["id"]!.GetValue<string>();calls.Read.Invoke(draft,id);state["review"]=null;state["selected"]=id;break;
 case "page":int page=request["page"]!.GetValue<int>();if(page<0)throw new ArgumentOutOfRangeException("page");state["review"]=null;state["page"]=page;break;
 case "edit":string selected=state["selected"]!.GetValue<string>();if(selected=="")throw new InvalidOperationException("Select an owned unit first.");long expected=request["expectedRevision"]!.GetValue<long>();if(expected<0)throw new ArgumentOutOfRangeException("expectedRevision");string text=request["text"]!.GetValue<string>();if(text.Length>1048576)throw new ArgumentException("Draft exceeds one million characters.");long before=long.Parse(calls.Read.Invoke(draft,selected)[4]);conflict=!calls.Edit.Invoke(draft,selected,text,expected);if(conflict||long.Parse(calls.Read.Invoke(draft,selected)[4])!=before)state["review"]=null;break;

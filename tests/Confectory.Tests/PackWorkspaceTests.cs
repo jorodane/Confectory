@@ -7,6 +7,9 @@ public sealed class PackWorkspaceTests : TestCase
  string sample=Path.Combine(f.Root,"workspace-consumer");Fixture.CopyTree(Path.Combine(Fixture.Repo,"examples","edit-workspace"),sample);
  foreach(string name in new[]{"file-stream","schema-editing","edit-workspace","save","change-set","pack-workspace"})Fixture.CopyTree(Path.Combine(Fixture.Repo,"packs",name),Path.Combine(f.Root,"packs",name));
  string project=Path.Combine(sample,"project.cpack");File.WriteAllText(project,File.ReadAllText(project).Replace("../../packs/","../packs/").Replace("../../targets/dotnet/pack.cpack","../target/pack.cpack").Replace("element Main function", "registry Confectory.PackWorkspace \"../packs/pack-workspace/pack.cpack\"; dependency Confectory.PackWorkspace version \"0.1.0\";\nelement Main function"));
+
+ for(int i=0;i<40;i++){string name="ZItem"+i.ToString("D2");f.Add("App","object",name,"object App::"+name+" {}");}f.Sync();
+
  File.WriteAllText(Path.Combine(sample,"main_body.celem"),"""
  implementation Example.EditWorkspace::MainBody for Example.EditWorkspace::Main () -> int {
  import Confectory.PackWorkspace::Open as Open (string,string,string) -> string;
@@ -23,18 +26,30 @@ public sealed class PackWorkspaceTests : TestCase
  string id=System.Linq.Enumerable.First(initial["units"]!.AsArray(),x=>x!["kind"]!.GetValue<string>()=="body")!["id"]!.GetValue<string>();
  string Select(string h)=>calls.Command.Invoke(h,"select",System.Text.Json.JsonSerializer.Serialize(new{id}));
  string original=System.Text.Json.Nodes.JsonNode.Parse(Select(a))!["unit"]!["text"]!.GetValue<string>();Select(b);
+ var filtered=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(a,"filter",System.Text.Json.JsonSerializer.Serialize(new{query=id.ToUpperInvariant(),kind="body"})))!;
+ if(filtered["total"]!.GetValue<int>()!=1||filtered["unit"]!["id"]!.ToString()!=id||filtered["ownedTotal"]!.GetValue<int>()!=initial["total"]!.GetValue<int>())throw new Exception("Stable ID/kind filter failed");
+ var empty=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(a,"filter","{\"query\":\"missing::unit\"}"))!;
+ if(empty["total"]!.GetValue<int>()!=0||empty["units"]!.AsArray().Count!=0||empty["unit"]!["id"]!.ToString()!=id)throw new Exception("Empty filter lost selection");
+ if(System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(b))!["query"]!.ToString()!="")throw new Exception("View filter leaked");
+ var page=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(a,"page","{\"page\":999}"))!;if(page["page"]!.GetValue<int>()!=0)throw new Exception("Empty page not clamped");
+ bool longRejected=false;try{calls.Command.Invoke(a,"filter",System.Text.Json.JsonSerializer.Serialize(new{query=new string('x',257)}));}catch(ArgumentException){longRejected=true;}if(!longRejected)throw new Exception("Unbounded filter accepted");
+ var objects=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(a,"filter","{\"kind\":\"object\"}"))!;if(objects["total"]!.GetValue<int>()!=40||objects["units"]!.AsArray().Count!=32)throw new Exception("Kind pagination first page");
+ var last=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(a,"page","{\"page\":1}"))!;if(last["units"]!.AsArray().Count!=8||last["units"]![0]!["id"]!.ToString()!="App::ZItem32")throw new Exception("Stable filtered page ordering");
+ var reset=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(a,"filter","{}"))!;if(reset["total"]!.GetValue<int>()!=initial["total"]!.GetValue<int>()||reset["page"]!.GetValue<int>()!=0)throw new Exception("Filter reset failed");
+
  string edited=original+"\n// local draft one\n";
  string Edit(string h,long revision,string text)=>calls.Command.Invoke(h,"edit",System.Text.Json.JsonSerializer.Serialize(new{expectedRevision=revision,text}));
  if(System.Text.Json.Nodes.JsonNode.Parse(Edit(a,0,edited))!["conflict"]!.GetValue<bool>())throw new Exception("Unexpected conflict");
  if(!System.Text.Json.Nodes.JsonNode.Parse(Edit(a,0,"stale"))!["conflict"]!.GetValue<bool>())throw new Exception("Stale edit accepted");
  if(System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(b))!["unit"]!["text"]!.GetValue<string>()!=original)throw new Exception("Contexts leaked");
- string shared=calls.Open.Invoke(project,"alice","one");if(System.Text.Json.Nodes.JsonNode.Parse(Select(shared))!["unit"]!["text"]!.GetValue<string>()!=edited)throw new Exception("Same identity lost live draft");calls.Close.Invoke(shared);calls.Close.Invoke(shared);
+ string shared=calls.Open.Invoke(project,"alice","one");if(System.Text.Json.Nodes.JsonNode.Parse(Select(shared))!["unit"]!["text"]!.GetValue<string>()!=edited)throw new Exception("Same identity lost live draft");calls.Command.Invoke(a,"filter","{\"query\":\"missing::unit\"}");if(System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(shared))!["query"]!.ToString()!="")throw new Exception("Same-draft view filter leaked");calls.Command.Invoke(a,"filter","{}");calls.Close.Invoke(shared);calls.Close.Invoke(shared);
  calls.Command.Invoke(a,"select",System.Text.Json.JsonSerializer.Serialize(new{id=initial["units"]![0]!["id"]!.GetValue<string>()}));if(System.Text.Json.Nodes.JsonNode.Parse(Select(a))!["unit"]!["text"]!.GetValue<string>()!=edited)throw new Exception("Selection discarded draft");
  calls.Command.Invoke(a,"save","{}");string owned=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(a))!["unit"]!["path"]!.GetValue<string>();if(System.IO.File.ReadAllText(System.IO.Path.Combine(System.IO.Path.GetDirectoryName(project)!,owned))!=original)throw new Exception("Save modified final source");calls.Close.Invoke(a);calls.Close.Invoke(a);
  a=calls.Open.Invoke(project,"alice","one");if(System.Text.Json.Nodes.JsonNode.Parse(Select(a))!["unit"]!["text"]!.GetValue<string>()!=edited)throw new Exception("Draft lost on reopen");
  var sources=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(a,"sources","{}"))!["files"]!.AsArray();if(!System.Linq.Enumerable.Any(sources,x=>x!["kind"]!.GetValue<string>()=="project"))throw new Exception("Manifest missing");
  var review=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(a,"review","{\"target\":\"portable\"}"))!["review"]!;
  if(review["status"]!.ToString()!="ready"||review["path"]!.ToString()!=owned||review["before"]!.ToString()!=original||review["after"]!.ToString()!=edited)throw new Exception("Review omitted owned path or exact source values");
+ var reviewFiltered=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(a,"filter","{\"query\":\"missing::unit\"}"))!;if(reviewFiltered["review"]!["token"]!.ToString()!=review["token"]!.ToString()||reviewFiltered["unit"]!["text"]!.ToString()!=edited)throw new Exception("Navigation mutated reviewed draft");calls.Command.Invoke(a,"filter","{}");
  bool rejected=false;try{calls.Command.Invoke(a,"confirm","{\"token\":\"forged\"}");}catch(InvalidOperationException){rejected=true;}if(!rejected)throw new Exception("Confirm bypassed review token");
  string reviewedToken=review["token"]!.ToString(),next=edited+"\n// after-review change\n";long revision=long.Parse(review["revision"]!.ToString());Edit(a,revision,next);
  rejected=false;try{calls.Command.Invoke(a,"confirm",System.Text.Json.JsonSerializer.Serialize(new{token=reviewedToken}));}catch(InvalidOperationException){rejected=true;}if(!rejected)throw new Exception("Changed draft confirmed with old review token");
