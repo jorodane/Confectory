@@ -157,6 +157,8 @@ def export_save(path):
         native_controls.click(dialog,755,575)
     deadline=time.monotonic()+10
     while find(b'Export working copy') and time.monotonic()<deadline:time.sleep(.04)
+    if find(b'Export working copy') and os.environ.get('CONFECTORY_DIALOG_FAILURE_SCREENSHOT'):
+        subprocess.run(['import','-window',str(dialog),os.environ['CONFECTORY_DIALOG_FAILURE_SCREENSHOT']],check=False)
     assert not find(b'Export working copy'),'Native export chooser did not close within original 10-second condition'
 
 try:
@@ -185,6 +187,13 @@ try:
     for i in range(0,len(state['hits']),5):
         _,x,y,w,h=state['hits'][i:i+5];assert 0<=x<x+w<=760 and 0<=y<y+h<=620,'responsive visible hit confined'
     subprocess.run(['import','-window',str(a),os.path.join(storage,'source-resized.png')],check=True)
+    resize(display,a,480,620);flush(display)
+    state=wait(lambda t:t['width']==480 and field_text(t,54)=='return 17;\n','narrow source editor')
+    assert (state['homeControls'],state['projectControls'])==controls and state['buffers']==buffers
+    assert json.loads(state['fields']['54'])['nativeHandle']==source_handle,'narrow resize preserves source field'
+    for i in range(0,len(state['hits']),5):
+        _,x,y,w,h=state['hits'][i:i+5];assert 0<=x<x+w<=480 and 0<=y<y+h<=620,'narrow visible hit confined'
+    subprocess.run(['import','-window',str(a),os.path.join(storage,'source-narrow.png')],check=True)
     resize(display,a,1000,760);flush(display)
     wait(lambda t:t['width']==1000 and field_text(t,54)=='return 17;\n','source editor expanded')
     leave_project(a);wait(lambda t:t['screen']=='home','leave');click(a,100);wait(lambda t:t['screen']=='project','reopen')
