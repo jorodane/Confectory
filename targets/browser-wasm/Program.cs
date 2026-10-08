@@ -16,7 +16,7 @@ try {
   var delegated=Invoke(dotnet,new[]{compiler},request.ToJsonString());var result=JsonNode.Parse(delegated.Output)!.AsObject();
   if(operation=="fingerprint"){
    var hashes=OwnedFiles(assets).Order(StringComparer.Ordinal).Select(Hash).Concat(OwnedFiles(Path.Combine(AppContext.BaseDirectory,"templates")).Order(StringComparer.Ordinal).Select(Hash));
-   result["fingerprint"]="independent-browser-wasm-v2-owned-references:"+Hash(compiler)+":"+Hash(metadata)+":"+string.Join(":",Directory.GetDirectories(workloadRoot).Select(Path.GetFileName))+":"+string.Join(":",hashes)+":"+result["fingerprint"];
+   result["fingerprint"]="independent-browser-wasm-v3-owned-references:"+Hash(compiler)+":"+Hash(metadata)+":"+string.Join(":",Directory.GetDirectories(workloadRoot).Select(Path.GetFileName))+":"+string.Join(":",hashes)+":"+result["fingerprint"];
    result["capabilities"]=JsonSerializer.SerializeToNode(new{runtime="browser-wasm",backendRequired=false,staticOutput=true,nativeFilesystem=false,dynamicCompilation=false});
   }
   Console.WriteLine(result.ToJsonString());return delegated.Exit;
@@ -25,7 +25,9 @@ try {
  var references=request["references"]!.AsArray().Select(x=>x!.GetValue<string>()).Append(metadata).Distinct(StringComparer.Ordinal).ToArray();
  // SDK build and publish may read a HintPath at different times. Capture mutable
  // consumer/tool outputs once so boot SRI and deployed bytes use the same input.
- string referenceRoot=Path.Combine(project,"owned-references");Directory.CreateDirectory(referenceRoot);
+ // Keep captures outside the SDK project: in-project Reference HintPaths are
+ // also discovered by static web asset globs and break compression resolution.
+ string referenceRoot=Path.Combine(output,"owned-references");Directory.CreateDirectory(referenceRoot);
  var captured=new Dictionary<string,string>(StringComparer.OrdinalIgnoreCase);
  foreach(string source in references){string name=Path.GetFileName(source),destination=Path.Combine(referenceRoot,name);if(captured.TryGetValue(name,out string? prior)){if(Hash(prior)!=Hash(source))throw new IOException("Conflicting browser reference filename: "+name);continue;}File.Copy(source,destination);captured.Add(name,destination);}
  string items=string.Join("\n",captured.Values.Select(path=>$"<Reference Include=\"{Escape(Path.GetFileNameWithoutExtension(path))}\"><HintPath>{Escape(path)}</HintPath></Reference>"));
