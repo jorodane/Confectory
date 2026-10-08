@@ -15,9 +15,12 @@ value versionCode = 1;
 value packageFormat = "aab";
 value androidTargetFramework = "net10.0-android";
 value androidTargetSdkVersion = 36;
+value androidMinSdkVersion = 24;
 value keyAlias = "your-existing-upload-key-alias";
 }
 ```
+
+`androidMinSdkVersion` is the minimum supported Android API, independent of `androidTargetSdkVersion`. Its compatible default is 23; the actual editor-home consumer explicitly selects 24. The exporter rejects minimums below 23 or above the selected target SDK before building. It writes the same minimum to generated `SupportedOSPlatformVersion` and manifest `android:minSdkVersion`, and records it in `package-report.json`.
 
 Use your real application ID and existing upload-key alias. Keep the application ID stable for updates and advance versionCode for each upload. Select `apk` for a locally installable signed APK instead. There is no keystore/password/path settings field. The default is now `net10.0-android` after the authorized whole-project migration. Previous net8/API34 artifacts are historical packaging evidence only. Framework selection must match the selected SDK major and installed Android workload; the exporter rejects mismatches before provider compilation and pins the selected SDK version in the generated project.
 
@@ -81,3 +84,14 @@ The actual example entry is `examples/editor-home/project.cpack`. The user's rem
 JDK javac/jar, Android SDK directory, dotnet executable and expected exporter output are checked. Native package SDK/API/build-tools compatibility remains diagnosed by the actual SDK invocation; nothing is automatically installed. PowerShell catch uses non-terminating Console error output followed by exit1 instead of Write-Error under ErrorActionPreference=Stop. Build/package failures identify the stage and preserve child nonzero exit codes. Missing PowerShell itself is shown by CMD and also held by the no-argument BAT pause.
 
 Scope/ledger: Windows Android-export entry scripts only, no pack/elementID/public contract or exporter implementation changes. Existing docs and scripts were read to trace exit and explicit signing boundaries; contracts do not govern console lifetime. Source review checks exit capture before pause, argument-based no-pause branch, diagnostic catch and explicit SIGN guard. Windows CMD/PowerShell/double-click execution is NOT RUN (Linux host has neither); no user PC was operated, no credentials/keys/device/upload action occurred. Rebuild scope none. Windows spot check: missing prerequisite and invalid ProjectPack must show a readable message and wait in no-argument flow; explicit `-Project` invocation must return nonzero without waiting; a valid unsigned AAB must retain output path and avoid signing.
+
+
+### Updating an existing locally configured editor export
+
+If you already set `applicationId = "com.Confectory.Engine"` and `packageFormat = "aab"` in `examples/editor-home/AndroidExport.celem`, preserve those local values when updating this branch. Commit or stash your local settings before `git pull --ff-only`; reapply them afterward and resolve any conflict in this file by keeping your application ID/package format plus exactly one new line inside the settings object:
+
+```text
+value androidMinSdkVersion = 24;
+```
+
+Use `git diff -- examples/editor-home/AndroidExport.celem` to review the result. Generate a **new** AAB through the ordinary exporter, then sign that new artifact locally with your existing upload key. Re-signing the old API23 AAB cannot change its minimum SDK. This setting addresses the reported minimum-API requirement; it does not certify Play acceptance or resolve unrelated runtime/alignment checks. No key generation, Play upload or main merge is part of this update.

@@ -28,7 +28,7 @@ internal static class UnsignedPackage
             }
             finally{if(File.Exists(aligned))File.Delete(aligned);}
         }
-        File.WriteAllText(Path.Combine(output,"package-report.json"),JsonSerializer.Serialize(new{kind="android-unsigned-package",format=settings.Format,keyAlias=settings.KeyAlias,targetFramework=settings.Framework,targetSdkVersion=settings.TargetSdk,androidAppCompiled=true,signed=false,apkZipAlignmentVerified=zipalign is not null,playAcceptanceVerified=false,artifacts},new JsonSerializerOptions{WriteIndented=true}));
+        File.WriteAllText(Path.Combine(output,"package-report.json"),JsonSerializer.Serialize(new{kind="android-unsigned-package",format=settings.Format,keyAlias=settings.KeyAlias,targetFramework=settings.Framework,targetSdkVersion=settings.TargetSdk,minSdkVersion=settings.MinSdk,androidAppCompiled=true,signed=false,apkZipAlignmentVerified=zipalign is not null,playAcceptanceVerified=false,artifacts},new JsonSerializerOptions{WriteIndented=true}));
         Console.WriteLine(JsonSerializer.Serialize(new{output,format=settings.Format,androidAppCompiled=true,signed=false,artifacts}));
         return 0;
     }

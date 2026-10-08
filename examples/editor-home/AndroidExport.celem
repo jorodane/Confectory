@@ -1,1 +1,3 @@
-object Confectory.EditorHome::AndroidExport extends Confectory.AndroidExport.Settings::Defaults { }
+object Confectory.EditorHome::AndroidExport extends Confectory.AndroidExport.Settings::Defaults {
+value androidMinSdkVersion = 24;
+}
