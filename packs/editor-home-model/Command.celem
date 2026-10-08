@@ -24,6 +24,16 @@ provide Confectory.EditWorkspace::Identity with Confectory.EditWorkspace::Identi
 provide Confectory.EditWorkspace::Export with Confectory.EditWorkspace::ExportBody;
 provide Confectory.FileStream::Commit with Confectory.FileStream::CommitBody;
 provide Confectory.FileStream::LeasePath with Confectory.FileStream::LeasePathBody;
+provide Confectory.PackWorkspace::Open with Confectory.PackWorkspace::OpenBody;
+provide Confectory.PackWorkspace::Command with Confectory.PackWorkspace::CommandBody;
+provide Confectory.PackWorkspace::Snapshot with Confectory.PackWorkspace::SnapshotBody;
+provide Confectory.PackWorkspace::Close with Confectory.PackWorkspace::CloseBody;
+provide Confectory.FileStream::ArchiveSourceTexts with Confectory.FileStream::ArchiveSourceTextsBody;
+provide Confectory.EditWorkspace::Close with Confectory.EditWorkspace::CloseBody;
+provide Confectory.EditWorkspace::List with Confectory.EditWorkspace::ListBody;
+provide Confectory.EditWorkspace::Restore with Confectory.EditWorkspace::RestoreBody;
+provide Confectory.Save::Read with Confectory.Save::ReadBody;
+provide Confectory.Save::Restore with Confectory.Save::RestoreBody;
 provide Confectory.EditorHome.Model::Command with Confectory.EditorHome.Model::CommandBody;
 provide Confectory.ProjectShell::Create with Confectory.ProjectShell::CreateBody;
 provide Confectory.ProjectShell::Command with Confectory.ProjectShell::CommandBody;

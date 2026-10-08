@@ -1,5 +1,6 @@
 project Confectory.EditorHome version "0.1.0" {
 standalone true;
+registry Confectory.PackWorkspace "../../packs/pack-workspace/pack.cpack"; dependency Confectory.PackWorkspace version "0.1.0";
 registry Confectory.EditorHome.Model "../../packs/editor-home-model/pack.cpack"; dependency Confectory.EditorHome.Model version "0.1.0";
 registry Confectory.ProjectShell "../../packs/project-shell/pack.cpack"; dependency Confectory.ProjectShell version "0.1.0";
 registry Confectory.NativeUI "../../packs/native-ui-desktop/pack.cpack"; dependency Confectory.NativeUI version "0.1.0";

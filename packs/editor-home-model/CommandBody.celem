@@ -17,4 +17,8 @@ import Confectory.ProjectExecution::Observe as Observe (string[], string) -> str
 import Confectory.ProjectExecution::Output as Output (string[], string) -> string[];
 import Confectory.ProjectExecution::Stop as Stop (string[], string) -> void;
 import Confectory.ProjectManager::PlanCreation as PlanCreation (string, string) -> string[];
+import Confectory.PackWorkspace::Open as PackOpen (string,string,string) -> string;
+import Confectory.PackWorkspace::Command as PackCommand (string,string,string) -> string;
+import Confectory.PackWorkspace::Snapshot as PackSnapshot (string) -> string;
+import Confectory.FileStream::ArchiveSourceTexts as Archive (string,string[],string[]) -> string[];
 body common "Command.csbody"; }

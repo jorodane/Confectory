@@ -4,6 +4,8 @@ lock(state){
  state[6]=true;var errors=new System.Collections.Generic.List<Exception>();
  var shells=(System.Collections.Generic.Dictionary<string,string>)state[7];
  foreach(var shell in System.Linq.Enumerable.ToArray(shells)){try{calls.ShellClose.Invoke(shell.Value);shells.Remove(shell.Key);}catch(Exception error){errors.Add(error);}}
+ var packViews=(System.Collections.Generic.Dictionary<string,string>)state[9];
+ foreach(var view in System.Linq.Enumerable.ToArray(packViews)){try{calls.PackClose.Invoke(view.Value);packViews.Remove(view.Key);}catch(Exception error){errors.Add(error);}}
  var workspaces=(System.Collections.Generic.List<string>)state[5];
  foreach(string workspace in workspaces.ToArray()){try{calls.WorkspaceClose.Invoke(workspace);workspaces.Remove(workspace);}catch(Exception error){errors.Add(error);}}
  try{calls.Dispose.Invoke((string[])state[0]);}catch(Exception error){errors.Add(error);}
