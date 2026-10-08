@@ -2,4 +2,6 @@ object Confectory.EditorHome::AndroidExport extends Confectory.AndroidExport.Set
     value packageFormat = "aab";
     value applicationId = "com.Confectory.Engine";
     value androidMinSdkVersion = 24;
+    value versionCode = 3;
+    value versionName = "0.1.1";
 }
