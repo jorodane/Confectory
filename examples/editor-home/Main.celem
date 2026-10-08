@@ -7,6 +7,7 @@ provide Confectory.UINavigation::Group with Confectory.UINavigation::GroupBody;
 provide Confectory.PackWorkspace::Open with Confectory.PackWorkspace::OpenBody;
 provide Confectory.ChangeSet::Review with Confectory.ChangeSet::ReviewBody;
 provide Confectory.ChangeSet::Confirm with Confectory.ChangeSet::ConfirmBody;
+provide Confectory.ChangeSet::ConfirmReviewed with Confectory.ChangeSet::ConfirmReviewedBody;
 provide Confectory.EditWorkspace::Changes with Confectory.EditWorkspace::ChangesBody;
 provide Confectory.EditWorkspace::Accept with Confectory.EditWorkspace::AcceptBody;
 provide Confectory.FileStream::CopySources with Confectory.FileStream::CopySourcesBody;

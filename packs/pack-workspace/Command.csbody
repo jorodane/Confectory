@@ -30,6 +30,29 @@ case "effective":{
  }
  return inspectedReply.ToJsonString();
 }
+case "value":{
+ string selectedValue=state["selected"]!.GetValue<string>();if(selectedValue=="")throw new InvalidOperationException("Select an owned declaration first.");
+ var u=calls.Read.Invoke(draft,selectedValue);if(u[1] is "body" or "project" or "pack")throw new InvalidOperationException("Scalar values require an element declaration.");
+ long expectedValue=request["expectedRevision"]!.GetValue<long>();if(expectedValue<0)throw new ArgumentOutOfRangeException("expectedRevision");
+ if(long.Parse(u[4],System.Globalization.CultureInfo.InvariantCulture)!=expectedValue){conflict=true;state["review"]=null;break;}
+ if(request["value"] is null)throw new ArgumentException("An explicit primitive value is required.");
+ string formatted=calls.SetValue.Invoke(u[3],request["field"]!.GetValue<string>(),request["value"]!.ToJsonString());if(formatted.Length>1048576)throw new ArgumentException("Draft exceeds one million characters.");
+ conflict=!calls.Edit.Invoke(draft,selectedValue,formatted,expectedValue);if(conflict||calls.Read.Invoke(draft,selectedValue)[4]!=u[4])state["review"]=null;break;
+}
+case "follow":{
+ string source=state["selected"]!.GetValue<string>();if(source=="")throw new InvalidOperationException("Select an owned declaration first.");var u=calls.Read.Invoke(draft,source);
+ long expectedFollow=request["expectedRevision"]!.GetValue<long>();if(expectedFollow<0)throw new ArgumentOutOfRangeException("expectedRevision");if(long.Parse(u[4],System.Globalization.CultureInfo.InvariantCulture)!=expectedFollow)throw new InvalidOperationException("Reference source revision changed; inspect again.");
+ if(u[1] is "body" or "project" or "pack")throw new InvalidOperationException("Reference navigation requires a declaration.");
+ var inspected=System.Text.Json.Nodes.JsonNode.Parse(calls.Inspect.Invoke(u[3]))!;if(inspected["id"]!.GetValue<string>()!=u[0]||inspected["kind"]!.GetValue<string>()!=u[1])throw new InvalidOperationException("Owned declaration identity changed.");
+ string targetId=request["id"]!.GetValue<string>();var edges=inspected["relations"]!["edges"]!.AsArray();
+ if(!System.Linq.Enumerable.Any(edges,e=>e!["target"]!.GetValue<string>()==targetId||e["function"]?.GetValue<string>()==targetId||e["scope"]?.GetValue<string>()==targetId))throw new ArgumentException("Target is not an explicit current declaration reference.");
+ if(!System.Linq.Enumerable.Contains(calls.List.Invoke(draft),targetId,StringComparer.Ordinal))throw new InvalidOperationException("Reference target is outside this owned editing scope; no project was opened.");
+ var target=calls.Read.Invoke(draft,targetId);var verifiedSource=calls.Read.Invoke(draft,source);if(verifiedSource[4]!=u[4]||verifiedSource[3]!=u[3])throw new InvalidOperationException("Reference source changed during navigation; inspect again.");
+ state["selected"]=targetId;state["review"]=null;break;
+}
+case "create":{
+ string createdId=request["id"]!.GetValue<string>(),kind=request["kind"]!.GetValue<string>();calls.Create.Invoke(draft,kind,createdId);state["selected"]=createdId;state["review"]=null;break;
+}
 case "filter":{
  string query=request["query"]?.GetValue<string>()??"",kind=request["kind"]?.GetValue<string>()??"";
  if(query.Length>256||kind.Length>64)throw new ArgumentException("Navigation filter is too long.");
@@ -40,20 +63,28 @@ case "page":int page=request["page"]!.GetValue<int>();if(page<0)throw new Argume
 case "edit":string selected=state["selected"]!.GetValue<string>();if(selected=="")throw new InvalidOperationException("Select an owned unit first.");long expected=request["expectedRevision"]!.GetValue<long>();if(expected<0)throw new ArgumentOutOfRangeException("expectedRevision");string text=request["text"]!.GetValue<string>();if(text.Length>1048576)throw new ArgumentException("Draft exceeds one million characters.");long before=long.Parse(calls.Read.Invoke(draft,selected)[4]);conflict=!calls.Edit.Invoke(draft,selected,text,expected);if(conflict||long.Parse(calls.Read.Invoke(draft,selected)[4])!=before)state["review"]=null;break;
 case "cancel-review":state["review"]=null;break;
 case "review":{
- string chosen=state["selected"]!.ToString();if(chosen=="")throw new InvalidOperationException("Select an owned source first.");
- var u=calls.Read.Invoke(draft,chosen);if(u[6]!="dirty")throw new InvalidOperationException("No changes in selected source.");
- string target=request["target"]?.GetValue<string>()??throw new ArgumentException("Explicit validation target required.");
- var identity=calls.Identity.Invoke(draft);var file=calls.FileSnapshot.Invoke(System.IO.Path.Combine(identity[3],u[2]));
- var checkedReview=calls.Review.Invoke(draft,new[]{chosen});calls.Save.Invoke(draft);
- state["review"]=new System.Text.Json.Nodes.JsonObject{["token"]=Guid.NewGuid().ToString("N"),["id"]=chosen,["path"]=u[2],["target"]=target,["revision"]=u[4],["baseline"]=u[5],["currentHash"]=file[2],["before"]=file[1],["after"]=u[3],["status"]=checkedReview[0]};break;
+ string[] selectedReview=request["ids"] is System.Text.Json.Nodes.JsonArray requested?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(requested,x=>x!.GetValue<string>())):new[]{state["selected"]!.GetValue<string>()};
+ if(selectedReview.Length==0||selectedReview.Length>256||System.Linq.Enumerable.Any(selectedReview,string.IsNullOrWhiteSpace))throw new ArgumentException("Select 1–256 explicit owned units.");
+ if(System.Linq.Enumerable.Count(System.Linq.Enumerable.Distinct(selectedReview,StringComparer.Ordinal))!=selectedReview.Length)throw new ArgumentException("Duplicate reviewed unit.");
+ string target=request["target"]?.GetValue<string>()??throw new ArgumentException("Explicit validation target required.");if(string.IsNullOrWhiteSpace(target))throw new ArgumentException("Explicit validation target required.");
+ var identity=calls.Identity.Invoke(draft);var rows=new System.Text.Json.Nodes.JsonArray();var paths=new System.Collections.Generic.HashSet<string>(OperatingSystem.IsWindows()?StringComparer.OrdinalIgnoreCase:StringComparer.Ordinal);bool dirty=false;
+ foreach(string reviewedId in selectedReview){var u=calls.Read.Invoke(draft,reviewedId);if(!paths.Add(System.IO.Path.GetFullPath(System.IO.Path.Combine(identity[3],u[2]))))throw new ArgumentException("Duplicate reviewed source destination.");dirty|=u[6]=="dirty";
+ string ownedPath=System.IO.Path.GetFullPath(System.IO.Path.Combine(identity[3],u[2]));for(System.IO.FileSystemInfo? node=new System.IO.FileInfo(ownedPath);node is not null;node=node is System.IO.FileInfo fileInfo?fileInfo.Directory:((System.IO.DirectoryInfo)node).Parent){if(node.LinkTarget is not null)throw new ArgumentException("Reviewed paths must remain owned files without symbolic links.");if(node.FullName==identity[3])break;}
+ var file=calls.FileSnapshot.Invoke(ownedPath);rows.Add(new System.Text.Json.Nodes.JsonObject{["id"]=reviewedId,["kind"]=u[1],["path"]=u[2],["revision"]=u[4],["baseline"]=u[5],["currentHash"]=file[2],["before"]=file[1],["after"]=u[3],["dirty"]=u[6]=="dirty"});}
+ if(!dirty)throw new InvalidOperationException("No changes in reviewed sources.");
+ var changes=calls.Changes.Invoke(draft,selectedReview);bool rootManifest=false;for(int i=0;i<changes.Length;i+=4)if(changes[i+1]==System.IO.Path.GetFileName(identity[0]))rootManifest=true;for(int i=0;i<changes.Length;i+=4)if(changes[i+2]=="missing"&&!rootManifest)throw new InvalidOperationException("New declaration review must explicitly include its manifest registration.");
+ foreach(var row in rows){var current=calls.Read.Invoke(draft,row!["id"]!.GetValue<string>());if(current[4]!=row["revision"]!.GetValue<string>()||current[3]!=row["after"]!.GetValue<string>())throw new InvalidOperationException("Draft changed during review; retry.");}
+ var checkedReview=calls.Review.Invoke(draft,selectedReview);calls.Save.Invoke(draft);
+ var review=rows[0]!.DeepClone().AsObject();review["token"]=Guid.NewGuid().ToString("N");review["target"]=target;review["status"]=checkedReview[0];review["selection"]=state["selected"]!.GetValue<string>();review["units"]=rows;review["changes"]=System.Text.Json.JsonSerializer.SerializeToNode(changes);state["review"]=review;break;
 }
 case "confirm":{
- var reviewed=state["review"] as System.Text.Json.Nodes.JsonObject??throw new InvalidOperationException("Review selected source before Confirm.");
+ var reviewed=state["review"] as System.Text.Json.Nodes.JsonObject??throw new InvalidOperationException("Review sources before Confirm.");
  if(request["token"]?.ToString()!=reviewed["token"]!.ToString()||reviewed["status"]!.ToString()!="ready")throw new InvalidOperationException("A current conflict-free review token is required.");
- string chosen=reviewed["id"]!.ToString();var u=calls.Read.Invoke(draft,chosen);
- if(state["selected"]!.ToString()!=chosen||u[4]!=reviewed["revision"]!.ToString()||u[3]!=reviewed["after"]!.ToString())throw new InvalidOperationException("Draft changed after review; review again.");
- var checkedReview=calls.Review.Invoke(draft,new[]{chosen});
- string[] confirmed=checkedReview[0]!="ready"?checkedReview:calls.Confirm.Invoke(draft,new[]{chosen},reviewed["target"]!.ToString());
+ var rows=reviewed["units"]!.AsArray();string[] reviewedIds=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(rows,x=>x!["id"]!.GetValue<string>()));if(rows.Count>1&&(request["ids"] is not System.Text.Json.Nodes.JsonArray confirmedIds||!System.Linq.Enumerable.SequenceEqual(reviewedIds,System.Linq.Enumerable.Select(confirmedIds,x=>x!.GetValue<string>()))))throw new InvalidOperationException("Group Confirm requires the explicit reviewed unit IDs in review order.");bool stale=state["selected"]!.ToString()!=reviewed["selection"]!.ToString();
+ foreach(var row in rows){var u=calls.Read.Invoke(draft,row!["id"]!.ToString());stale|=u[4]!=row["revision"]!.ToString()||u[3]!=row["after"]!.ToString()||u[2]!=row["path"]!.ToString()||u[5]!=row["baseline"]!.ToString();}
+ if(stale){reviewed["status"]="stale";reviewed["token"]="";throw new InvalidOperationException("Draft changed after review; review again.");}
+ string[] ids=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(rows,x=>x!["id"]!.GetValue<string>()));var checkedReview=calls.Review.Invoke(draft,ids);
+ string[] confirmed=checkedReview[0]!="ready"?checkedReview:calls.Confirm.Invoke(draft,ids,reviewed["target"]!.ToString(),System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(reviewed["changes"]!.AsArray(),x=>x!.GetValue<string>())));
  reviewed["status"]=confirmed[0];reviewed["message"]=string.Join("\n",confirmed[1..]);reviewed["token"]="";
  if(confirmed[0] is "confirmed" or "confirmed-with-warning")state["review"]=null;
  var snapshot=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(handle))!.AsObject();snapshot["confirmation"]=System.Text.Json.JsonSerializer.SerializeToNode(confirmed);return snapshot.ToJsonString();

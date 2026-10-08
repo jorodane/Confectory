@@ -56,6 +56,7 @@ provide Confectory.SchemaEditing::Register with Confectory.SchemaEditing::Regist
 provide Confectory.SchemaEditing::SetValue with Confectory.SchemaEditing::SetValueBody;
 provide Confectory.SchemaEditing::Validate with Confectory.SchemaEditing::ValidateBody;
 provide Confectory.ChangeSet::Confirm with Confectory.ChangeSet::ConfirmBody;
+provide Confectory.ChangeSet::ConfirmReviewed with Confectory.ChangeSet::ConfirmReviewedBody;
 provide Confectory.ChangeSet::Preview with Confectory.ChangeSet::PreviewBody;
 provide Confectory.ChangeSet::Review with Confectory.ChangeSet::ReviewBody;
 provide Confectory.FileStream::Capabilities with Confectory.FileStream::CapabilitiesBody;

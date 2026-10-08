@@ -93,6 +93,7 @@ provide Confectory.Save::Restore with Confectory.Save::RestoreBody;
 provide Confectory.ChangeSet::Review with Confectory.ChangeSet::ReviewBody;
 provide Confectory.ChangeSet::Preview with Confectory.ChangeSet::PreviewBody;
 provide Confectory.ChangeSet::Confirm with Confectory.ChangeSet::ConfirmBody;
+provide Confectory.ChangeSet::ConfirmReviewed with Confectory.ChangeSet::ConfirmReviewedBody;
 provide Confectory.YogiBox::Create with Confectory.YogiBox::CreateBody;
 provide Confectory.YogiBox::Snapshot with Confectory.YogiBox::SnapshotBody;
 provide Confectory.YogiBox::ReserveCapture with Confectory.YogiBox::ReserveCaptureBody;

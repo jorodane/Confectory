@@ -10,4 +10,6 @@ element Confirm function "Confirm.celem";
 element ConfirmBody implementation "ConfirmBody.celem";
 element Preview function "Preview.celem";
 element PreviewBody implementation "PreviewBody.celem";
+element ConfirmReviewed function "ConfirmReviewed.celem";
+element ConfirmReviewedBody implementation "ConfirmReviewedBody.celem";
 }

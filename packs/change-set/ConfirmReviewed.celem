@@ -1,0 +1,1 @@
+function Confectory.ChangeSet::ConfirmReviewed (string handle, string[] selected, string target, string[] reviewed) -> string[] {description "Validate and conditionally apply exactly the caller reviewed owned change records; changed drafts return stale.";}

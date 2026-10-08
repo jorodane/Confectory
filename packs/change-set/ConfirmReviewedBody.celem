@@ -1,0 +1,12 @@
+implementation Confectory.ChangeSet::ConfirmReviewedBody for Confectory.ChangeSet::ConfirmReviewed (string handle, string[] selected, string target, string[] reviewed) -> string[] {
+import Confectory.EditWorkspace::Identity as Identity (string) -> string[];
+import Confectory.EditWorkspace::Changes as Changes (string, string[]) -> string[];
+import Confectory.FileStream::CopySources as CopySources (string, string) -> void;
+import Confectory.FileStream::WriteAtomic as WriteAtomic (string, string) -> void;
+import Confectory.SchemaEditing::Prepare as Prepare (string, string) -> string;
+import Confectory.SchemaEditing::Validate as Validate (string, string) -> string;
+import Confectory.EditWorkspace::Accept as Accept (string, string[]) -> void;
+import Confectory.FileStream::Commit as Commit (string, string[], string[], string[]) -> string[];
+import Confectory.Save::Acknowledge as Acknowledge (string, string[]) -> void;
+body common "ConfirmReviewed.csbody";
+}

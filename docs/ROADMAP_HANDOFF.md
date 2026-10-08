@@ -231,3 +231,7 @@ Work branch `lazy-edit-materialization` continues `e532ce5`; see [contracts, loc
 ## Schema decision audit and independent declared references
 
 [Schema comparison and editor status](SCHEMA_CONTRACT_DECISION_AND_EDITOR_STATUS.md) distinguishes established design/parser rules from the unchosen generic schema representation. Existing Rig/Render JSON is domain-specific, not a general schema decision. No schema representation is implemented. The bounded independent continuation fills existing typed use/contain and named/scoped import inspection gaps via the actual product route; layouts and main are unchanged. Overall editor completion is not claimed; completed, independently actionable and user-policy-dependent items have separate rows.
+
+## Existing authoring command composition
+
+[Actual scalar/reference/Create/grouped Review/Confirm commands](EDITOR_EXISTING_AUTHORING_COMMANDS.md) continue `6f0a692` without layout or schema-representation changes. All four authorized independent items are connected through the common EditorHome domain route. Shared ConfirmReviewed explicitly pins reviewed Changes and is consumer migrated; old Confirm delegates to the same candidate/conditional-commit policy. Generic schema encoding remains the pending user decision and the overall editor remains incomplete.

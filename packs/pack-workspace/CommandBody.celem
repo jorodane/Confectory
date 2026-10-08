@@ -7,10 +7,12 @@ import Confectory.Save::Write as Save (string) -> string;
 import Confectory.EditWorkspace::Identity as Identity (string) -> string[];
 import Confectory.FileStream::Snapshot as FileSnapshot (string) -> string[];
 import Confectory.ChangeSet::Review as Review (string, string[]) -> string[];
-import Confectory.ChangeSet::Confirm as Confirm (string, string[], string) -> string[];
+import Confectory.ChangeSet::ConfirmReviewed as Confirm (string, string[], string, string[]) -> string[];
 import Confectory.SchemaEditing::Inspect as Inspect (string) -> string;
 import Confectory.SchemaEditing::Call as Locate (string, string) -> string;
 import Confectory.EditWorkspace::Changes as Changes (string, string[]) -> string[];
 import Confectory.EditWorkspace::DiscoverBodies as DiscoverBodies (string, string) -> string;
+import Confectory.SchemaEditing::SetValue as SetValue (string, string, string) -> string;
+import Confectory.EditWorkspace::Create as Create (string, string, string) -> void;
 body common "Command.csbody";
 }

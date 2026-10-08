@@ -25,6 +25,7 @@ provide Confectory.Save::Write with Confectory.Save::WriteBody;
 provide Confectory.Save::Restore with Confectory.Save::RestoreBody;
 provide Confectory.ChangeSet::Review with Confectory.ChangeSet::ReviewBody;
 provide Confectory.ChangeSet::Confirm with Confectory.ChangeSet::ConfirmBody;
+provide Confectory.ChangeSet::ConfirmReviewed with Confectory.ChangeSet::ConfirmReviewedBody;
 provide Confectory.SchemaEditing::Inspect with Confectory.SchemaEditing::InspectBody;
 provide Confectory.SchemaEditing::BeginScope with Confectory.SchemaEditing::BeginScopeBody;
 provide Confectory.SchemaEditing::EndScope with Confectory.SchemaEditing::EndScopeBody;

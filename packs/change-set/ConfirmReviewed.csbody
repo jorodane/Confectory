@@ -1,0 +1,21 @@
+if(selected.Length==0)return new[]{"empty"};
+selected=(string[])selected.Clone();reviewed=(string[])reviewed.Clone();
+var chosen=calls.Changes.Invoke(handle,selected);if(!System.Linq.Enumerable.SequenceEqual(reviewed,chosen))return new[]{"stale","Selected draft differs from the reviewed changes; review again."};
+var identityCheck=calls.Identity.Invoke(handle);bool manifestSelected=false;for(int i=0;i<chosen.Length;i+=4)if(chosen[i+1]==System.IO.Path.GetFileName(identityCheck[0]))manifestSelected=true;
+for(int i=0;i<chosen.Length;i+=4)if(chosen[i+2]=="missing"&&!manifestSelected)return new[]{"invalid","New declaration requires its manifest registration."};
+var identity=calls.Identity.Invoke(handle);string root=identity[3];var changes=reviewed;
+string candidate=System.IO.Path.Combine(root,".confectory","candidates",Guid.NewGuid().ToString("N"));
+bool committed=false;
+try
+{
+ calls.CopySources.Invoke(root,candidate);
+ for(int i=0;i<changes.Length;i+=4)calls.WriteAtomic.Invoke(System.IO.Path.Combine(candidate,changes[i+1]),changes[i+3]);
+ string project=System.IO.Path.Combine(candidate,System.IO.Path.GetFileName(identity[0]));calls.WriteAtomic.Invoke(project,calls.Prepare.Invoke(identity[0],project));
+ calls.Validate.Invoke(project,target);
+
+ if(!System.Linq.Enumerable.SequenceEqual(changes,calls.Changes.Invoke(handle,selected)))return new[]{"stale","Selected draft changed during validation; review again."};
+ var paths=new string[changes.Length/4];var hashes=new string[paths.Length];var texts=new string[paths.Length];var accepted=new string[paths.Length];for(int i=0;i<paths.Length;i++){accepted[i]=changes[i*4];paths[i]=changes[i*4+1];hashes[i]=changes[i*4+2];texts[i]=changes[i*4+3];}
+ var result=calls.Commit.Invoke(root,paths,hashes,texts);if(result[0]!="applied")return result;committed=true;calls.Accept.Invoke(handle,accepted);calls.Acknowledge.Invoke(handle,accepted);return new[]{"confirmed"};
+}
+catch(Exception error){return new[]{committed?"confirmed-with-warning":"invalid",error.Message};}
+finally{if(System.IO.Directory.Exists(candidate))System.IO.Directory.Delete(candidate,true);}

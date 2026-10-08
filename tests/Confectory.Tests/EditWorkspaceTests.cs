@@ -12,7 +12,7 @@ public sealed class EditWorkspaceTests : TestCase
   {
    Environment.SetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST",Path.Combine(Fixture.Repo,"targets","element-authoring","bin","Release","net10.0","Confectory.ElementAuthoring.dll"));Environment.SetEnvironmentVariable("CONFECTORY_TEST_AUTHOR_PROJECT",f.Project);
    var built=new Builder(project,"portable").Build();var result=Processes.Run(Strings(built,"run"),timeoutSeconds:240);True(result.ExitCode==0,result.Stderr+result.Stdout);True(result.Stdout.Contains("EditWorkspace Save/restore selective Confirm/preview/conflict PASS",StringComparison.Ordinal),result.Stderr);
-   foreach(var (pack,body,ns) in new[]{("edit-workspace","Read","Confectory.EditWorkspace"),("edit-workspace","Status","Confectory.EditWorkspace"),("edit-workspace","DiscoverBodies","Confectory.EditWorkspace"),("save","Write","Confectory.Save"),("change-set","Review","Confectory.ChangeSet")})
+   foreach(var (pack,body,ns) in new[]{("edit-workspace","Read","Confectory.EditWorkspace"),("edit-workspace","Status","Confectory.EditWorkspace"),("edit-workspace","DiscoverBodies","Confectory.EditWorkspace"),("save","Write","Confectory.Save"),("change-set","Review","Confectory.ChangeSet"),("change-set","ConfirmReviewed","Confectory.ChangeSet")})
    {
     File.AppendAllText(Path.Combine(f.Root,"packs",pack,body+".csbody"),"\n// provider locality check\n");var changed=new Builder(project,"portable").Build();PackRebuilt(changed, new[]{ns+"::"+body+"Body"});Equal(0,Strings(changed,"statistics","compiledContracts").Length);
    }

@@ -35,6 +35,7 @@ provide Confectory.Save::Read with Confectory.Save::ReadBody;
 provide Confectory.Save::Restore with Confectory.Save::RestoreBody;
 provide Confectory.Save::Write with Confectory.Save::WriteBody;
 provide Confectory.ChangeSet::Confirm with Confectory.ChangeSet::ConfirmBody;
+provide Confectory.ChangeSet::ConfirmReviewed with Confectory.ChangeSet::ConfirmReviewedBody;
 provide Confectory.ChangeSet::Preview with Confectory.ChangeSet::PreviewBody;
 provide Confectory.ChangeSet::Review with Confectory.ChangeSet::ReviewBody;
 }

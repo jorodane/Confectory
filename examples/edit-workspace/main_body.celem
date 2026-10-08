@@ -37,5 +37,6 @@ import Confectory.ChangeSet::Preview as ChangeSetPreview (string, string) -> str
 import Confectory.ChangeSet::Review as ChangeSetReview (string, string[]) -> string[];
 import Confectory.EditWorkspace::Status as EditWorkspaceStatus (string, string) -> string[];
 import Confectory.EditWorkspace::DiscoverBodies as EditWorkspaceBodies (string, string) -> string;
+import Confectory.ChangeSet::ConfirmReviewed as ReviewedConfirm (string, string[], string, string[]) -> string[];
 body common "main.csbody";
 }
