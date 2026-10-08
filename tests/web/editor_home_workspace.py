@@ -2,7 +2,7 @@
 import base64,http.server,io,json,pathlib,sys,tempfile,threading,zipfile
 from playwright.sync_api import sync_playwright,expect
 report=json.load(open(sys.argv[1]));site=pathlib.Path(report['output'])/'site'
-assert report['entry']=='Confectory.EditorHome::Main'
+assert report['entry']=='Confectory.EditorHome::Main';assert report['tool']['ok']
 class Static(http.server.SimpleHTTPRequestHandler):
  def __init__(self,*a,**kw):super().__init__(*a,directory=str(site),**kw)
  def log_message(self,*a):pass
@@ -12,7 +12,7 @@ try:
   browser=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox']);page=browser.new_page(viewport={'width':1200,'height':850},accept_downloads=True);errors=[];requests=[]
   # Passive observation of the actual canvas labels: original renderer remains invoked.
   page.add_init_script("window.drawnLabels=[];const draw=CanvasRenderingContext2D.prototype.fillText;CanvasRenderingContext2D.prototype.fillText=function(text,...args){drawnLabels.push(String(text));if(drawnLabels.length>2048)drawnLabels.splice(0,1024);return draw.call(this,text,...args);};")
-  page.on('pageerror',lambda e:errors.append(str(e)));page.on('request',lambda r:requests.append((r.method,r.url)))
+  page.on('console',lambda m:print(m.type,m.text,flush=True));page.on('pageerror',lambda e:(errors.append(str(e)),print('PAGEERROR',e.stack,flush=True)));page.on('request',lambda r:requests.append((r.method,r.url)))
   def click(x,y):
    before=page.evaluate('confectoryPlatform.presented');page.mouse.click(x,y);page.wait_for_function('(n)=>confectoryPlatform.presented>n+1',arg=before)
   def ready():
@@ -29,6 +29,12 @@ try:
   assert page.evaluate('window.ownedEditor===document.querySelector("textarea[data-control=\\"54\\"]")');expect(editor).to_have_value(edited)
   assert files()[body_path]==original_body,'Save draft changed final source without Confirm'
   click(270,30);click(270,236);click(800,174);click(1106,100);editor.wait_for(state='visible');expect(editor).to_have_value(edited)
+  page.evaluate('window.narrowEditor=document.querySelector(`textarea[data-control="54"]`)');page.set_viewport_size({'width':480,'height':850});page.wait_for_timeout(250)
+  expect(editor).to_be_visible();expect(editor).to_have_value(edited);assert page.evaluate('window.narrowEditor===document.querySelector(`textarea[data-control="54"]`)')
+  bounds=editor.bounding_box();assert bounds and bounds['x']>=0 and bounds['y']>=180 and bounds['x']+bounds['width']<=480 and bounds['height']>100,bounds
+  page.evaluate('window.drawnLabels=[]');click(221,128);page.wait_for_function("drawnLabels.some(s=>s.includes('Local source draft saved; final sources unchanged'))")
+  assert page.evaluate('window.narrowEditor===document.querySelector(`textarea[data-control="54"]`)');expect(editor).to_have_value(edited);assert files()[body_path]==original_body
+  page.set_viewport_size({'width':1200,'height':850});page.wait_for_timeout(250)
   page.reload();ready();click(800,174);click(1106,100);editor.wait_for(state='visible');expect(editor).to_have_value(edited)
   assert files()[body_path]==original_body
   with page.expect_download() as transfer:click(502,92)
@@ -40,5 +46,5 @@ try:
   assert files()[body_path]==original_body
   assert not errors,errors;assert any(url.endswith('.wasm') for _,url in requests);assert all(method=='GET' and '/api/' not in url for method,url in requests)
   assert page.evaluate('confectoryPlatform.bridge.Close()');browser.close()
-  print('PASS actual EditorHome UI create/edit/stable field/Save acknowledged/leave/reopen/reload/ZIP export; final source unchanged, static GET-only WASM')
+  print('PASS actual EditorHome UI create/edit/stable field/Save acknowledged/leave/reopen/480px resize/narrow Save/reload/ZIP export; final source unchanged, static GET-only WASM')
 finally:server.shutdown()

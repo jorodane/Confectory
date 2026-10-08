@@ -14,3 +14,16 @@ python3 tests/web/editor_home_browser.py /tmp/confectory-workspace-browser-final
 ```
 
 Both commands passed. The unchanged NativeUI regression also covers folder import, controls/input, repeated leave/reopen, original DOM owner release failure/retry/idempotence and static WASM use. Its console includes a missing favicon/resource HTTP404; no page exception or API/backend request occurred. Native source textarea identity after Save, final source byte preservation and exact downloaded ZIP overlay are functional assertions. Build locality is assessed independently by the root compiler report, not inferred from a UI pass.
+
+## Responsive actual product replay and build defect
+
+The first responsive product output failed before initial UI: Chromium rejected Core bytes against the SDK boot integrity catalogue. Original gate log `/tmp/confectory-workspace-browser-responsive-actual.log`, diagnostic replay `/tmp/confectory-workspace-browser-responsive-replay.log`. No assertion/time limit, original input or SRI policy was relaxed. The first immutable-reference layout then failed SDK compression and remains recorded separately. See `BROWSER_PUBLISH_INTEGRITY_FIX.md` for concrete same-byte inside/outside reference location evidence and the general build-target fix.
+
+After immutable sibling reference captures, exact publish-bundle selection and compiled boot-resource integrity validation, the actual product rebuild reports tool.ok=true and zero warnings: `/tmp/confectory-workspace-browser-sibling-fixed-build.json`.
+
+```
+python3 tests/web/editor_home_workspace.py /tmp/confectory-workspace-browser-sibling-fixed-build.json
+python3 tests/web/editor_home_browser.py /tmp/confectory-workspace-browser-sibling-fixed-build.json
+```
+
+Both PASS. In addition to the original full flow, the workspace gate resizes the actual source View to 480x850 after reopen: the same textarea DOM instance and edited text remain, its bounds stay visible inside the viewport, and the wrapped-row Save button produces the actual durable acknowledgement. Restoring 1200x850, reload/reopen, downloaded ZIP verification and final-source preservation all pass. Logs `/tmp/confectory-workspace-browser-sibling-fixed-actual.log` and `...-regression.log`. The original failures are not replaced by this later successful run.
