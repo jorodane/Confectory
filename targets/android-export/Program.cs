@@ -41,6 +41,7 @@ File.WriteAllText(Path.Combine(generated,"PackEntry.cs"),$"namespace Confectory.
 string templateRoot=Path.Combine(AppContext.BaseDirectory,"templates");
 File.Copy(Path.Combine(templateRoot,"AndroidManifest.xml"),Path.Combine(output,"AndroidManifest.xml"));
 var androidManifest=System.Xml.Linq.XDocument.Load(Path.Combine(output,"AndroidManifest.xml"));
+androidManifest.Root!.Element("uses-sdk")!.SetAttributeValue(System.Xml.Linq.XName.Get("minSdkVersion","http://schemas.android.com/apk/res/android"),settings.MinSdk);
 androidManifest.Root!.Element("uses-sdk")!.SetAttributeValue(System.Xml.Linq.XName.Get("targetSdkVersion","http://schemas.android.com/apk/res/android"),settings.TargetSdk);
 androidManifest.Save(Path.Combine(output,"AndroidManifest.xml"));
 File.WriteAllText(Path.Combine(output,"bundle-config.json"),JsonSerializer.Serialize(new{optimizations=new{uncompressNativeLibraries=new{enabled=true,alignment="PAGE_ALIGNMENT_16K"}}}));

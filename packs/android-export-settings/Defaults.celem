@@ -6,6 +6,7 @@ value versionCode = 1;
 value packageFormat = "apk";
 value androidTargetFramework = "net10.0-android";
 value androidTargetSdkVersion = 36;
+value androidMinSdkVersion = 23;
 value keyAlias = "confectory";
 value keyAlgorithm = "RSA";
 value keySize = 2048;

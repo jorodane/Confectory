@@ -132,7 +132,7 @@ try{
         foreach(string format in new[]{"apk","aab"})
         {
             string title="한글 App & < > $& $([System.Math]::Abs(-2))",version="1.2 & <beta> $&";
-            File.WriteAllText(settings,declaration("value applicationId = "+System.Text.Json.JsonSerializer.Serialize("org.example.entry")+"; value applicationTitle = "+System.Text.Json.JsonSerializer.Serialize(title)+"; value versionName = "+System.Text.Json.JsonSerializer.Serialize(version)+"; value versionCode = 42; value packageFormat = "+System.Text.Json.JsonSerializer.Serialize(format)+";"));
+            File.WriteAllText(settings,declaration("value applicationId = "+System.Text.Json.JsonSerializer.Serialize("org.example.entry")+"; value applicationTitle = "+System.Text.Json.JsonSerializer.Serialize(title)+"; value versionName = "+System.Text.Json.JsonSerializer.Serialize(version)+"; value versionCode = 42; "+(format=="aab"?"value androidMinSdkVersion = 24; ":"")+"value packageFormat = "+System.Text.Json.JsonSerializer.Serialize(format)+";"));
             string framework="net10.0-android";
             File.WriteAllText(settings,File.ReadAllText(settings).Replace(" }"," value androidTargetFramework = "+System.Text.Json.JsonSerializer.Serialize(framework)+"; }"));
             string output=Path.Combine(f.Root,"settings "+format);
@@ -140,13 +140,17 @@ try{
             var xml=System.Xml.Linq.XDocument.Load(Path.Combine(output,"Confectory.Android.csproj"));
             string Text(string tag)=>Uri.UnescapeDataString(xml.Descendants(tag).Single().Value);
             Equal("org.example.entry",Text("ApplicationId"));Equal(title,Text("ApplicationTitle"));Equal(version,Text("ApplicationDisplayVersion"));Equal("42",Text("ApplicationVersion"));Equal(format,Text("AndroidPackageFormats"));Equal(format,Text("AndroidPackageFormat"));Equal(framework,Text("TargetFramework"));
+            string expectedMinimum=format=="aab"?"24":"23";Equal(expectedMinimum,Text("SupportedOSPlatformVersion"));
+            var manifest=System.Xml.Linq.XDocument.Load(Path.Combine(output,"AndroidManifest.xml"));
+            Equal(expectedMinimum,manifest.Root!.Element("uses-sdk")!.Attribute(System.Xml.Linq.XName.Get("minSdkVersion","http://schemas.android.com/apk/res/android"))!.Value);
+            Equal("36",manifest.Root!.Element("uses-sdk")!.Attribute(System.Xml.Linq.XName.Get("targetSdkVersion","http://schemas.android.com/apk/res/android"))!.Value);
             var evaluated=Processes.Run(new[]{Processes.DotNet(),"msbuild",Path.Combine(output,"Confectory.Android.csproj"),"-getProperty:ApplicationTitle"},timeoutSeconds:30);True(evaluated.ExitCode==0,evaluated.Stderr);Equal(title,evaluated.Stdout.TrimEnd('\r','\n'));
             string raw=File.ReadAllText(Path.Combine(output,"Confectory.Android.csproj"));True(raw.Contains("_CreateAndroidDebugSigningKey",StringComparison.Ordinal)&&raw.Contains("SignAndroidPackage",StringComparison.Ordinal),"Unsigned build lacks signing guard");
             True(!File.Exists(Path.Combine(output,"package-report.json")),"Source-only export claimed a package");
         }
         // Poisoned implementation proves rejected settings never reach managed source compilation.
         File.WriteAllText(Path.Combine(consumer,"Main.csbody"),"not valid C#");
-        foreach(var invalid in new[]{("badid","value applicationId = \"not.an-app\";"),("badformat","value packageFormat = \"zip\";"),("password","value keystorePassword = \"must-not-be-stored\";"),("keystore","value keystorePath = \"must-not-be-stored\";")})
+        foreach(var invalid in new[]{("minlow","value androidMinSdkVersion = 22;"),("minhigh","value androidMinSdkVersion = 37;"),("minabovetarget","value androidMinSdkVersion = 25; value androidTargetSdkVersion = 24;"),("mintext","value androidMinSdkVersion = \"24\";"),("badid","value applicationId = \"not.an-app\";"),("badformat","value packageFormat = \"zip\";"),("password","value keystorePassword = \"must-not-be-stored\";"),("keystore","value keystorePath = \"must-not-be-stored\";")})
         {
             File.WriteAllText(settings,declaration(invalid.Item2));string output=Path.Combine(f.Root,invalid.Item1);
             var result=Processes.Run(new[]{Processes.DotNet(),exporter,project,output},timeoutSeconds:20);
