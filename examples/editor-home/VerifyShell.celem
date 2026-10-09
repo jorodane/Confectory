@@ -6,6 +6,8 @@ provide Confectory.YogiBox::Exactly with Confectory.YogiBox::ExactlyBody;
 provide Confectory.WorkerTasks::VerifyCompletion with Confectory.ProjectAI::VerifyCompletion;
 provide Confectory.WorkerTasks::Finish with Confectory.WorkerTasks::FinishBody;
 provide Confectory.WorkerTasks::Cancel with Confectory.WorkerTasks::CancelBody;
+provide Confectory.ProjectAI::AdoptionStatus with Confectory.ProjectAI::AdoptionStatusBody;
+provide Confectory.ProjectAI::ReconcileAdoption with Confectory.ProjectAI::ReconcileAdoptionBody;
 provide Confectory.ProjectAI::Adopt with Confectory.ProjectAI::AdoptBody;
 
 provide Confectory.Augment::Provider with Confectory.ProjectAI::AugmentProvider;

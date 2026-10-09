@@ -1,0 +1,4 @@
+implementation Confectory.ProjectAI::ReconcileAdoptionBody for Confectory.ProjectAI::ReconcileAdoption (string session,string task,string receipt,string fingerprint) -> string {
+import Confectory.ProjectAI::AdoptionStatus as AdoptionStatus (string,string) -> string; import Confectory.ProjectAI::Adopt as Adopt (string,string,string,string,string[],string) -> string;
+import Confectory.SchemaEditing::Validate as Validate (string,string) -> string; import Confectory.FileStream::Snapshot as FileSnapshot (string) -> string[]; import Confectory.FileStream::Commit as Commit (string,string[],string[],string[]) -> string[];
+body common "ReconcileAdoption.csbody";}

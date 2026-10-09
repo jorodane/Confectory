@@ -1,0 +1,3 @@
+implementation Confectory.ProjectAI::AdoptionStatusBody for Confectory.ProjectAI::AdoptionStatus (string session,string task) -> string {
+import Confectory.WorkerTasks::Inspect as InspectTask (string,string) -> string; import Confectory.FileStream::Snapshot as FileSnapshot (string) -> string[];
+body common "AdoptionStatus.csbody";}

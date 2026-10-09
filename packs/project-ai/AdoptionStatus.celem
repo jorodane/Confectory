@@ -1,0 +1,1 @@
+function Confectory.ProjectAI::AdoptionStatus (string session,string task) -> string {provide Confectory.ProjectAI::AdoptionStatus with Confectory.ProjectAI::AdoptionStatusBody;}
