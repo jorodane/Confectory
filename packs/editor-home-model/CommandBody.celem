@@ -24,4 +24,13 @@ import Confectory.FileStream::ArchiveSourceTexts as Archive (string,string[],str
 import Confectory.ProjectExecution::Capabilities as ExecutionCapabilities () -> string[];
 import Confectory.ProjectExecution::LaunchConfigured as LaunchConfigured (string[],string,string,string,string[],string[]) -> string;
 import Confectory.SemanticCatalog::Query as Catalog (string,string) -> string;
+import Confectory.ProjectShell::Close as ShellClose (string) -> void;
+import Confectory.ProjectManager::Close as ContextClose (string[],string) -> void;
+import Confectory.PackWorkspace::Close as PackClose (string) -> void;
+import Confectory.FileStream::Snapshot as FileSnapshot (string) -> string[];
+import Confectory.AIConnection::Discover as Connections (string) -> string;
+import Confectory.AIConnection::SettingsSource as ConnectionSource (string,string) -> string;
+import Confectory.AIConnection::MaterializeMetadata as ConnectionMetadata (string) -> string;
+import Confectory.AIConnection::ValidateSettings as CheckSettings (string) -> void;
+import Confectory.AIConnection::ValidateReference as CheckReference (string) -> void;
 body common "Command.csbody"; }

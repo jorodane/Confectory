@@ -1,0 +1,1 @@
+if(reference.Length>128||!System.Text.RegularExpressions.Regex.IsMatch(reference,@"\A(?:|env:(?:OPENAI_API_KEY|CONFECTORY_AI_[A-Z0-9_]+)|codex:managed|relay:[A-Za-z0-9_.-]{1,64})\z"))throw new ArgumentException("Credential reference must be empty or an approved environment/Codex/relay binding name; never enter a credential value here");

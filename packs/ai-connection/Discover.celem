@@ -1,0 +1,1 @@
+function Confectory.AIConnection::Discover (string project) -> string {provide Confectory.AIConnection::Discover with Confectory.AIConnection::DiscoverBody;}

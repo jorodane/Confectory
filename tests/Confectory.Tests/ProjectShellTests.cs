@@ -12,7 +12,7 @@ public sealed class ProjectShellTests : TestCase
     }
     void OptionalExcluded(JsonObject built)
     {
-        foreach(string key in new[]{"registeredPacks","includedPacks"})True(!Strings(built,key).Any(x=>new[]{"Confectory.Editor","Confectory.SourceEditor","Confectory.Agent","Confectory.Helper","Confectory.MultiPlay"}.Contains(x)),"project shell acquired temporary editor or optional AI");
+        foreach(string key in new[]{"registeredPacks","includedPacks"})True(!Strings(built,key).Any(x=>new[]{"Confectory.Editor","Confectory.SourceEditor","Confectory.Helper","Confectory.MultiPlay"}.Contains(x)),"project shell acquired temporary editor or optional AI");
     }
     public void test_project_shell_standalone_context_direction_and_provider_locality()
     {

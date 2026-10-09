@@ -1,1 +1,16 @@
-pack Confectory.AIConnection version "0.1.0" { standalone false; element Connection object "Connection.celem"; element Configuration schema "Configuration.celem"; }
+pack Confectory.AIConnection version "0.1.0" {
+standalone false;
+element ValidateReference function "ValidateReference.celem";
+element ValidateReferenceBody implementation "ValidateReferenceBody.celem";
+element ValidateSettings function "ValidateSettings.celem";
+element ValidateSettingsBody implementation "ValidateSettingsBody.celem";
+element MaterializeMetadata function "MaterializeMetadata.celem";
+element MaterializeMetadataBody implementation "MaterializeMetadataBody.celem";
+dependency Confectory.SchemaEditing version "0.1.0";
+element Discover function "Discover.celem";
+element DiscoverBody implementation "DiscoverBody.celem";
+element SettingsSource function "SettingsSource.celem";
+element SettingsSourceBody implementation "SettingsSourceBody.celem";
+element Connection object "Connection.celem";
+element Configuration schema "Configuration.celem";
+}

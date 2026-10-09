@@ -1,5 +1,11 @@
 project Confectory.EditorHome version "0.1.0" {
 standalone true;
+registry Confectory.Agent "../../packs/agent/pack.cpack"; dependency Confectory.Agent version "0.1.0";
+registry Confectory.DevelopmentTools "../../packs/development-tools/pack.cpack"; dependency Confectory.DevelopmentTools version "0.1.0";
+registry Confectory.AIConnection "../../packs/ai-connection/pack.cpack"; dependency Confectory.AIConnection version "0.1.0";
+registry Confectory.Agent.Responses "../../packs/agent-responses/pack.cpack"; dependency Confectory.Agent.Responses version "0.1.0";
+registry Confectory.Agent.Codex "../../packs/agent-codex/pack.cpack"; dependency Confectory.Agent.Codex version "0.1.0";
+
 registry Confectory.ChangeSet "../../packs/change-set/pack.cpack"; dependency Confectory.ChangeSet version "0.1.0";
 registry Confectory.PackWorkspace "../../packs/pack-workspace/pack.cpack"; dependency Confectory.PackWorkspace version "0.1.0";
 registry Confectory.HostLoop "../../packs/host-loop/pack.cpack"; dependency Confectory.HostLoop version "0.1.0";

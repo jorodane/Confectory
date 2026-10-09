@@ -1,0 +1,1 @@
+implementation Confectory.AIConnection::SettingsSourceBody for Confectory.AIConnection::SettingsSource (string project,string connection) -> string {import Confectory.SchemaEditing::Call as Call (string,string) -> string; body common "SettingsSource.csbody";}

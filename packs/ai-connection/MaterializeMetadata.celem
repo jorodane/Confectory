@@ -1,0 +1,1 @@
+function Confectory.AIConnection::MaterializeMetadata (string directory) -> string {provide Confectory.AIConnection::MaterializeMetadata with Confectory.AIConnection::MaterializeMetadataBody;}

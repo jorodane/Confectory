@@ -1,0 +1,1 @@
+implementation Confectory.AIConnection::DiscoverBody for Confectory.AIConnection::Discover (string project) -> string {import Confectory.SchemaEditing::Call as Call (string,string) -> string; body common "Discover.csbody";}
