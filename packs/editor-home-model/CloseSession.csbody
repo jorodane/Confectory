@@ -8,6 +8,7 @@ lock(state){
  foreach(var view in System.Linq.Enumerable.ToArray(packViews)){try{calls.PackClose.Invoke(view.Value);packViews.Remove(view.Key);}catch(Exception error){errors.Add(error);}}
  var workspaces=(System.Collections.Generic.List<string>)state[5];
  foreach(string workspace in workspaces.ToArray()){try{calls.WorkspaceClose.Invoke(workspace);workspaces.Remove(workspace);}catch(Exception error){errors.Add(error);}}
+ if(((string)state[10]).Length>0)try{calls.HelperClose.Invoke((string)state[10]);state[10]="";}catch(Exception error){errors.Add(error);}
  try{calls.Dispose.Invoke((string[])state[0]);}catch(Exception error){errors.Add(error);}
  if(errors.Count>0)throw new AggregateException("Entry/home resources remain closing; retry CloseSession",errors);
  AppDomain.CurrentDomain.SetData("Confectory.EditorHome."+session,null);

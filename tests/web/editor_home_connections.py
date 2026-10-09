@@ -25,11 +25,17 @@ try:
   # Existing Properties navigation supplies fields from the selected inherited schema.
   assert field(88).input_value()=='["credentialReference"]';click('Next');assert field(88).input_value()=='["executable"]';click('Next');assert field(88).input_value()=='["managedHome"]'
   page.screenshot(path='/tmp/confectory-ai-browser-codex-settings.png')
+  field(38).fill('Browser scoped draft');click('Helper  0');click('Create Main Helper');click('main-helper | global')
+  click('Remember draft in project');page.wait_for_function('(s)=>uiLabels[s]&&performance.now()-uiLabels[s].time<500',arg='Current project memories: 1 | Common included: 0')
+  click('Remember draft as common');click('Common memory: excluded');page.wait_for_function('(s)=>uiLabels[s]&&performance.now()-uiLabels[s].time<500',arg='Current project memories: 1 | Common included: 1')
+  click('Common memory: allowed');page.wait_for_function('(s)=>uiLabels[s]&&performance.now()-uiLabels[s].time<500',arg='Current project memories: 1 | Common included: 0')
+  page.screenshot(path='/tmp/confectory-ai-browser-helper-scope.png');click('Close menu');field(89).wait_for(state='visible')
+
   retired=field(89).get_attribute('data-binding');assert retired
   click('AI settings: Confectory.Agent.Codex::Connection  - Menu');click('Close project')
   page.wait_for_function('(binding)=>!Array.from(document.querySelectorAll("[data-binding]")).some(el=>el.getAttribute("data-binding")===binding)',arg=retired)
   click('Agent  0');click('Confectory.Agent.Codex::Connection');field(89).wait_for(state='visible')
   assert field(89).get_attribute('data-binding')!=retired
   assert not errors,errors
-  browser.close();print('Actual EditorHome browser connection choices / declared Properties / typed draft / Codex fields / close binding retirement and reopen; no authentication/model call PASS')
+  browser.close();print('Actual EditorHome browser connection choices / declared Properties / typed draft / Codex fields / real local scoped Helper controls / close binding retirement and reopen; no authentication/model call PASS')
 finally:server.shutdown()

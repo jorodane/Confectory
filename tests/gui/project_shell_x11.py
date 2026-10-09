@@ -173,6 +173,19 @@ try:
     state=wait(lambda t:t['screen']=='project' and t['model']['shell'],'project owns shell');context=state['model']['selected']['context'];path=state['model']['selected']['path'];assert state['model']['shell']['project']['context']==context and not state['model']['shell']['liveProvider'];project_control=state['controls'];assert project_control!=home
     wait(lambda t:38 in t['hits'][::5],'project chat field');click(a,38);type_text(a,'A local project draft');click(a,41);state=wait(lambda t:t['model']['shell']['draft']=='A local project draft','local draft retained without live sending');buffer=state['chatBuffers'][context];assert 'no message sent' in state['model']['shell']['notice']
     screenshot(a,'project-chat')
+    # Actual product Helper controls use public scoped memory, without a model/provider.
+    click(a,8);wait(lambda t:t['model'].get('helperPanel',{}).get('mode')=='helpers' and 23 in t['hits'][::5],'explicit Helper selection')
+    click(a,23);wait(lambda t:len(t['model']['helpers'])==1 and 20 in t['hits'][::5],'recruit global Main Helper')
+    click(a,20);state=wait(lambda t:t['model'].get('helperPanel',{}).get('mode')=='helper' and t['model'].get('helperContext',{}).get('helper')=='main-helper','connect global Helper to current project')
+    assert state['model']['helperContext']['projectId']==state['model']['selected']['projectId']
+    click(a,26);wait(lambda t:len(t['model']['helperContext']['memory'])==1,'remember draft only for project')
+    click(a,27);wait(lambda t:t['model']['status'].startswith('Saved common'),'explicit common record')
+    assert len(latest()['model']['helperContext']['memory'])==1
+    click(a,25);wait(lambda t:len(t['model']['helperContext']['memory'])==2,'explicit common memory permission')
+    click(a,25);wait(lambda t:len(t['model']['helperContext']['memory'])==1,'exclude common memory again')
+    screenshot(a,'helper-project-scope');click(a,42);wait(lambda t:t['model']['shell']['menu']=='','close Helper controls')
+    assert latest()['chatBuffers'][context]==buffer and latest()['model']['shell']['draft']=='A local project draft'
+
     # Tab/panel changes reuse the same borrowed context and buffer, with hidden controls ineligible.
     click(a,40);state=wait(lambda t:t['model']['shell']['tab']=='logs' and 38 not in t['hits'][::5],'logs tab hides chat interaction');assert state['model']['selected']['context']==context;assert state['model']['shell']['latestLog']
     state=wait(lambda t:53 in t['hits'][::5],'enabled read-only native log View');log_field=json.loads(state['fields']['53']);assert log_field['native'] and log_field['readonly'] and log_field['enabled'];expected_logs='\n'.join(state['model']['shell']['logs']);assert log_field['text']==expected_logs

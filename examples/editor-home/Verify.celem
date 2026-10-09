@@ -1,4 +1,11 @@
 function Confectory.EditorHome::Verify () -> int {
+provide Confectory.Helper::Open with Confectory.Helper::OpenBody;
+provide Confectory.Helper::List with Confectory.Helper::ListBody;
+provide Confectory.Helper::Recruit with Confectory.Helper::RecruitBody;
+provide Confectory.Helper::Command with Confectory.Helper::CommandBody;
+provide Confectory.Helper::ProjectContext with Confectory.Helper::ProjectContextBody;
+provide Confectory.Helper::RememberScoped with Confectory.Helper::RememberScopedBody;
+provide Confectory.Helper::Close with Confectory.Helper::CloseBody;
 use object Confectory.Agent.Responses::Connection; use object Confectory.Agent.Codex::Connection;
 
 provide Confectory.ProjectManager::Close with Confectory.ProjectManager::CloseBody;

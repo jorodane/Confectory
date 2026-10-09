@@ -34,4 +34,9 @@ import Confectory.AIConnection::SettingsSource as ConnectionSource (string,strin
 import Confectory.AIConnection::MaterializeMetadata as ConnectionMetadata (string) -> string;
 import Confectory.AIConnection::ValidateSettings as CheckSettings (string) -> void;
 import Confectory.AIConnection::ValidateReference as CheckReference (string) -> void;
+import Confectory.Helper::Open as HelperOpen (string) -> string;
+import Confectory.Helper::List as HelperList (string,string) -> string;
+import Confectory.Helper::Recruit as HelperRecruit (string,string,string) -> string;
+import Confectory.Helper::ProjectContext as HelperContext (string,string,string,string,bool) -> string;
+import Confectory.Helper::RememberScoped as HelperRemember (string,string,string,string,string,string,string) -> void;
 body common "Command.csbody"; }

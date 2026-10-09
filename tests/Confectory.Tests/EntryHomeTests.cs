@@ -16,7 +16,8 @@ public sealed class EntryHomeTests : TestCase
     }
     void Offline(JsonObject built)
     {
-        foreach(string key in new[]{"registeredPacks","includedPacks"})True(!Strings(built,key).Any(x=>new[]{"Confectory.Editor","Confectory.SourceEditor","Confectory.Helper","Confectory.MultiPlay"}.Contains(x)),"fresh production composition acquired temporary editor or optional AI");
+        foreach(string key in new[]{"registeredPacks","includedPacks"})True(!Strings(built,key).Any(x=>new[]{"Confectory.Editor","Confectory.SourceEditor","Confectory.MultiPlay"}.Contains(x)),"fresh production composition acquired a temporary editor or multiplayer");
+        if(!Strings(built,"registeredPacks").Contains("Confectory.EditorHome.Model"))foreach(string key in new[]{"registeredPacks","includedPacks"})True(!Strings(built,key).Contains("Confectory.Helper"),"non-editor UI consumer acquired optional Helper dependency");
     }
     public void test_grid_editor_free_responsiveness_and_provider_locality()
     {

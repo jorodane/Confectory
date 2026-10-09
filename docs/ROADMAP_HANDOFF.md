@@ -253,3 +253,7 @@ Layout-independent schema View rows, explicit nested/list path replacement, sign
 ## 2026-10-08 actual semantic EditorHome UI continuation
 
 [EditorHome semantic UI](EDITOR_HOME_SEMANTIC_UI.md) connects existing schema View/field/path/call-preflight and authoring commands to the actual common entry. Geometry follows the existing description provisionally and can be replaced later. Continue within work/current; runtime invocation provider policy, final user layout and device/IME acceptance remain separate. Do not create an alternative test page or transfer schema state to a table.
+
+## 2026-10-09 Helper product scope continuation
+
+Actual EditorHome now composes explicit Helper recruitment/selection, current-project memory recording and independent common-memory permission. See [consumer scope and locality ledger](HELPER_PRODUCT_SCOPES.md) and [exact implementation/live boundary](AI_DEVELOPMENT_STATUS.md). Continue on work/current with provider-owned configuration projection and approved async Agent chat/tools/review/build feedback, then original-project close ownership and genuine Augment/Worker/log composition. No live model or account access has occurred; the AI product milestone remains incomplete.
