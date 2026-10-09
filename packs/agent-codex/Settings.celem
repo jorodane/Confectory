@@ -1,0 +1,1 @@
+schema Confectory.Agent.Codex::Settings extends Confectory.AIConnection::Configuration { field executable single general string; value editorHelpExecutable = "User-selected existing Codex executable. Selection never starts a process or signs in."; }

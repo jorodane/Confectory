@@ -1,0 +1,7 @@
+implementation Confectory.Agent.Responses::ProviderBody for Confectory.Agent::Provider (string config, string execution, string operation, string payload) -> string {
+import Confectory.Agent.Responses::ValidateConfig as Validate (string) -> string;
+import Confectory.DevelopmentTools::Definitions as Definitions (string) -> string;
+import Confectory.DevelopmentTools::Snapshot as Scope (string) -> string;
+import Confectory.DevelopmentTools::Invoke as Tool (string, string, string, string) -> string;
+body common "Provider.csbody";
+}

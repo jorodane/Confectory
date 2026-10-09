@@ -1,0 +1,1 @@
+pack Confectory.Agent.Codex version "0.1.0" { standalone false; dependency Confectory.AIConnection version "0.1.0"; element Settings schema "Settings.celem"; element Connection object "Connection.celem"; }

@@ -1,0 +1,1 @@
+pack Confectory.AIConnection version "0.1.0" { standalone false; element Connection object "Connection.celem"; element Configuration schema "Configuration.celem"; }
