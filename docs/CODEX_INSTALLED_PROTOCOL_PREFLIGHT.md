@@ -1,5 +1,9 @@
 # Installed Codex protocol preflight (2026-10-09)
 
+Subsequent implementation and installed unauthenticated startup evidence:
+[no-environment offline gate](CODEX_NO_ENVIRONMENT_OFFLINE_GATE.md). This document
+records the earlier investigation stage; it is not the latest runtime outcome.
+
 The executable `/opt/codex/bin/codex` reports `0.159.0-alpha.3`.
 Public app-server help supports stdio and local experimental JSON-schema generation.
 `codex login status` returned exit 0 / ChatGPT mode; raw output was suppressed.

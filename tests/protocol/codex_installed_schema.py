@@ -13,6 +13,7 @@ import jsonschema
 root, capture = map(pathlib.Path, sys.argv[1:])
 types = {
     "initialize": "InitializeParams",
+    "config/read": "ConfigReadParams",
     "thread/start": "ThreadStartParams",
     "turn/start": "TurnStartParams",
     "turn/interrupt": "TurnInterruptParams",
@@ -32,9 +33,11 @@ for line in capture.read_text().splitlines():
     jsonschema.validators.validator_for(schema)(schema).validate(params)
     if method == "thread/start":
         assert params["sandbox"] == "read-only" and params["ephemeral"]
+        assert params["environments"] == []
         assert params["approvalPolicy"] == "never"
     if method == "turn/start":
         assert params["sandboxPolicy"] == {"type": "readOnly", "networkAccess": False}
+        assert params["environments"] == []
         # Negative checks catch the exact previous compatibility mistakes.
         invalid = json.loads(json.dumps(params))
         invalid["sandboxPolicy"]["type"] = "read-only"
@@ -43,4 +46,4 @@ for line in capture.read_text().splitlines():
 assert seen == set(types), seen
 thread_schema = json.loads(next(root.rglob("ThreadStartParams.json")).read_text())
 assert "readOnly" not in thread_schema["definitions"]["SandboxMode"]["enum"]
-print("Installed schema actual request capture PASS: initialize/thread/start/turn/start/turn/interrupt; no read isolation claim")
+print("Installed schema actual request capture PASS: initialize/config/read/thread/start/turn/start/turn/interrupt; no read isolation claim")

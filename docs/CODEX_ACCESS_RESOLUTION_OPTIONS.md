@@ -1,5 +1,9 @@
 # Codex access resolution options (2026-10-09, research only)
 
+Subsequent implementation and installed unauthenticated startup evidence:
+[no-environment offline gate](CODEX_NO_ENVIRONMENT_OFFLINE_GATE.md). This document
+records the earlier investigation stage; it is not the latest runtime outcome.
+
 There are official candidate paths. Current unsupported status means they are not
 yet implemented and runtime-verified here, not that Codex cannot support this product.
 No security configuration, account storage, authentication, permissions or model
