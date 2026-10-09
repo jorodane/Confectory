@@ -13,4 +13,5 @@ element SettingsSource function "SettingsSource.celem";
 element SettingsSourceBody implementation "SettingsSourceBody.celem";
 element Connection object "Connection.celem";
 element Configuration schema "Configuration.celem";
+element Authorize function "Authorize.celem"; element AuthorizeBody implementation "AuthorizeBody.celem";
 }

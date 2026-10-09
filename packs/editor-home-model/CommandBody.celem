@@ -39,6 +39,8 @@ import Confectory.Helper::List as HelperList (string,string) -> string;
 import Confectory.Helper::Recruit as HelperRecruit (string,string,string) -> string;
 import Confectory.Helper::ProjectContext as HelperContext (string,string,string,string,bool) -> string;
 import Confectory.Helper::RememberScoped as HelperRemember (string,string,string,string,string,string,string) -> void;
+import Confectory.ProjectAI::Permission as AIPermission (string,string) -> string;
+import Confectory.AIConnection::Authorize as Authorize (string,string,string) -> string;
 import Confectory.ProjectAI::Configuration as AIConfig (string,string) -> string;
 import Confectory.ProjectAI::Open as AIOpen (string,string,string,string,string) -> string;
 import Confectory.ProjectAI::Start as AIStart (string,string,string,string) -> string;

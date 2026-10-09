@@ -8,4 +8,5 @@ element ValidateConfig function "ValidateConfig.celem"; element ValidateConfigBo
 element ProviderBody implementation "ProviderBody.celem";
 element Provider function "Provider.celem"; element AdapterBody implementation "AdapterBody.celem";
 element Configuration function "Configuration.celem"; element ConfigurationBody implementation "ConfigurationBody.celem";
+element Permission function "Permission.celem"; element PermissionBody implementation "PermissionBody.celem";
 }

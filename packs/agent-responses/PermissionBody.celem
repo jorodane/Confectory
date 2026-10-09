@@ -1,0 +1,3 @@
+implementation Confectory.Agent.Responses::PermissionBody for Confectory.Agent.Responses::Permission (string config) -> string {
+import Confectory.Agent.Responses::ValidateConfig as Validate (string) -> string;
+body common "Permission.csbody";}

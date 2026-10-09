@@ -18,4 +18,5 @@ element Select function "Select.celem"; element SelectBody implementation "Selec
 element Work function "Work.celem"; element WorkBody implementation "WorkBody.celem";
 element AugmentProvider implementation "AugmentProvider.celem";
 dependency Confectory.FileStream version "0.1.0"; element Adopt function "Adopt.celem"; element AdoptBody implementation "AdoptBody.celem"; element VerifyCompletion implementation "VerifyCompletion.celem";
+element Permission function "Permission.celem"; element PermissionBody implementation "PermissionBody.celem";
 }

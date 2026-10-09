@@ -32,8 +32,8 @@ try:
   click('Common memory: allowed');page.wait_for_function('(s)=>uiLabels[s]&&performance.now()-uiLabels[s].time<500',arg='Current project memories: 1 | Common included: 0')
   page.screenshot(path='/tmp/confectory-ai-browser-helper-scope.png');click('Close menu');field(89).wait_for(state='visible')
   click('Agent  0');click('Confectory.Agent.Responses::Connection');click('Review current message')
-  page.wait_for_function('(s)=>uiLabels[s]&&performance.now()-uiLabels[s].time<500',arg='Error: Browser and Android require an approved credential relay; direct client keys are unsupported.')
-  click('Cancel / close menu');field(89).wait_for(state='visible')
+  field(53).wait_for(state='visible');assert 'credential relay' in field(53).input_value() and 'permissionPolicy' in field(53).input_value()
+  click('Cancel permission review');field(89).wait_for(state='visible')
 
   retired=field(89).get_attribute('data-binding');assert retired
   click('AI settings: Confectory.Agent.Codex::Connection  - Menu');click('Close project')

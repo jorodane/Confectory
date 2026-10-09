@@ -1,0 +1,1 @@
+function Confectory.AIConnection::Authorize (string policy,string projectId,string approvals) -> string {provide Confectory.AIConnection::Authorize with Confectory.AIConnection::AuthorizeBody;}

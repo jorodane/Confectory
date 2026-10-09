@@ -1,0 +1,1 @@
+function Confectory.Agent.Codex::Permission (string config) -> string {provide Confectory.Agent.Codex::Permission with Confectory.Agent.Codex::PermissionBody;}
