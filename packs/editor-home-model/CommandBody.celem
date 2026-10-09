@@ -54,4 +54,5 @@ import Confectory.ProjectAI::Select as SelectCard (string,string,string) -> stri
 import Confectory.ProjectAI::CancelWork as CancelWork (string,string,string) -> void;
 import Confectory.ProjectAI::Work as WorkTask (string,string,string,string) -> string;
 import Confectory.ProjectAI::Adopt as AdoptTask (string,string,string,string,string[],string) -> string;
+import Confectory.ProjectAI::PrepareRecovery as PrepareRecovery (string,string,string) -> string;
 body common "Command.csbody"; }

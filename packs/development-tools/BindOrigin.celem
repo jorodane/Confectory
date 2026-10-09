@@ -1,0 +1,1 @@
+function Confectory.DevelopmentTools::BindOrigin (string capability,string task,string worker,string request) -> void {provide Confectory.DevelopmentTools::BindOrigin with Confectory.DevelopmentTools::BindOriginBody;}

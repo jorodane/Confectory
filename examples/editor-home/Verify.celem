@@ -141,4 +141,6 @@ provide Confectory.ProjectManager::Executions with Confectory.ProjectManager::Ex
 provide Confectory.ProjectExecution::Observe with Confectory.ProjectExecution::ObserveBody;
 provide Confectory.ProjectExecution::Output with Confectory.ProjectExecution::OutputBody;
 provide Confectory.ProjectShell::Close with Confectory.ProjectShell::CloseBody;
+provide Confectory.DevelopmentTools::BindOrigin with Confectory.DevelopmentTools::BindOriginBody;
+provide Confectory.ProjectAI::PrepareRecovery with Confectory.ProjectAI::PrepareRecoveryBody;
 }

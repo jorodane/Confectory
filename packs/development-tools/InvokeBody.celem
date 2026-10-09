@@ -7,4 +7,5 @@ import Confectory.EditWorkspace::SetTextIfRevision as Stage (string, string, str
 import Confectory.EditWorkspace::Create as Create (string, string, string) -> void;
 import Confectory.EditWorkspace::Changes as Changes (string, string[]) -> string[];
 import Confectory.SchemaEditing::Inspect as Inspect (string) -> string;
+import Confectory.FileStream::Commit as Commit (string,string[],string[],string[]) -> string[];
 body common "Invoke.csbody";}

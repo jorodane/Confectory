@@ -12,6 +12,7 @@ element Close function "Close.celem"; element CloseBody implementation "CloseBod
 element Configuration function "Configuration.celem"; element ConfigurationBody implementation "ConfigurationBody.celem";
 element Provider implementation "Provider.celem";
 dependency Confectory.WorkerTasks version "0.1.0"; dependency Confectory.Augment version "0.1.0"; dependency Confectory.PackWorkspace version "0.1.0";
+element PrepareRecovery function "PrepareRecovery.celem"; element PrepareRecoveryBody implementation "PrepareRecoveryBody.celem";
 element EnableTasks function "EnableTasks.celem"; element EnableTasksBody implementation "EnableTasksBody.celem";
 element Propose function "Propose.celem"; element ProposeBody implementation "ProposeBody.celem";
 element Select function "Select.celem"; element SelectBody implementation "SelectBody.celem";

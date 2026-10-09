@@ -1,0 +1,4 @@
+implementation Confectory.ProjectAI::PrepareRecoveryBody for Confectory.ProjectAI::PrepareRecovery (string session,string commandID,string task) -> string {
+import Confectory.WorkerTasks::Inspect as InspectTask (string,string) -> string; import Confectory.WorkerTasks::Assign as Assign (string,string,long,string,string,string,string) -> string;
+import Confectory.DevelopmentTools::Snapshot as ToolsSnapshot (string) -> string;
+body common "PrepareRecovery.csbody";}

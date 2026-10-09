@@ -4,4 +4,5 @@ import Confectory.PackWorkspace::BorrowDraft as Draft (string) -> string;
 import Confectory.PackWorkspace::Close as CloseView (string) -> void;
 import Confectory.EditWorkspace::Read as Read (string, string) -> string[];
 import Confectory.EditWorkspace::List as List (string) -> string[];
+import Confectory.FileStream::Commit as Commit (string,string[],string[],string[]) -> string[];
 body common "Open.csbody";}

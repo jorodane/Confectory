@@ -1,0 +1,1 @@
+implementation Confectory.DevelopmentTools::BindOriginBody for Confectory.DevelopmentTools::BindOrigin (string capability,string task,string worker,string request) -> void {import Confectory.FileStream::Commit as Commit (string,string[],string[],string[]) -> string[]; body common "BindOrigin.csbody";}
