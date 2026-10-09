@@ -18,4 +18,8 @@ element Close function "Close.celem";
 element CloseBody implementation "CloseBody.celem";
 element Talk function "Talk.celem";
 element TalkBody implementation "TalkBody.celem";
+element ProjectContext function "ProjectContext.celem"; element ProjectContextBody implementation "ProjectContextBody.celem";
+element RememberScoped function "RememberScoped.celem"; element RememberScopedBody implementation "RememberScopedBody.celem";
+element Membership function "Membership.celem"; element MembershipBody implementation "MembershipBody.celem";
+element List function "List.celem"; element ListBody implementation "ListBody.celem";
 }

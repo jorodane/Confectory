@@ -1,0 +1,3 @@
+implementation Confectory.Helper::MembershipBody for Confectory.Helper::Membership (string store, string helper, string owner, string kind, string projectId) -> void {
+import Confectory.Helper::Command as Command (string, string, string, string) -> string;
+body common "Membership.csbody";}

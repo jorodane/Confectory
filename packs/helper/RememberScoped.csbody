@@ -1,0 +1,1 @@
+calls.Command.Invoke(store,owner,"remember-scoped",new System.Text.Json.Nodes.JsonObject{["helper"]=helper,["memoryID"]=memoryID,["scope"]=scope,["projectId"]=projectId,["text"]=text}.ToJsonString());
