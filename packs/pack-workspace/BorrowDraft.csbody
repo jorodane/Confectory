@@ -1,0 +1,1 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.PackWorkspace."+handle) as System.Text.Json.Nodes.JsonObject??throw new ObjectDisposedException("PackWorkspace");lock(state){if(state["closing"]!.GetValue<bool>())throw new ObjectDisposedException("PackWorkspace");return state["draft"]!.GetValue<string>();}

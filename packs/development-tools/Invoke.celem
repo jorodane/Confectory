@@ -1,0 +1,1 @@
+function Confectory.DevelopmentTools::Invoke (string capability, string callId, string operation, string arguments) -> string {provide Confectory.DevelopmentTools::Invoke with Confectory.DevelopmentTools::InvokeBody;}

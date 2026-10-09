@@ -1,0 +1,1 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.DevelopmentTools."+capability) as object[];if(state is null)return;lock(state[0]){state[4]=true;calls.CloseView.Invoke((string)state[1]);AppDomain.CurrentDomain.SetData("Confectory.DevelopmentTools."+capability,null);}

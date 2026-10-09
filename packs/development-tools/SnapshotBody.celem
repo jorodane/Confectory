@@ -1,0 +1,2 @@
+implementation Confectory.DevelopmentTools::SnapshotBody for Confectory.DevelopmentTools::Snapshot (string capability) -> string {
+body common "Snapshot.csbody";}

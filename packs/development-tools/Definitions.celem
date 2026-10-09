@@ -1,0 +1,1 @@
+function Confectory.DevelopmentTools::Definitions (string capability) -> string {provide Confectory.DevelopmentTools::Definitions with Confectory.DevelopmentTools::DefinitionsBody;}

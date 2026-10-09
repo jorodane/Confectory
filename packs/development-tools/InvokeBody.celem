@@ -1,0 +1,10 @@
+implementation Confectory.DevelopmentTools::InvokeBody for Confectory.DevelopmentTools::Invoke (string capability, string callId, string operation, string arguments) -> string {
+import Confectory.EditWorkspace::Identity as Identity (string) -> string[];
+import Confectory.EditWorkspace::List as List (string) -> string[];
+import Confectory.EditWorkspace::Status as Status (string, string) -> string[];
+import Confectory.EditWorkspace::Read as Read (string, string) -> string[];
+import Confectory.EditWorkspace::SetTextIfRevision as Stage (string, string, string, long) -> bool;
+import Confectory.EditWorkspace::Create as Create (string, string, string) -> void;
+import Confectory.EditWorkspace::Changes as Changes (string, string[]) -> string[];
+import Confectory.SchemaEditing::Inspect as Inspect (string) -> string;
+body common "Invoke.csbody";}

@@ -189,4 +189,46 @@ public sealed class PackWorkspaceTests : TestCase
 
 
  }
+ public void test_development_tools_owned_scope_shared_draft_no_confirm_and_locality()
+ {
+  string sample=Path.Combine(f.Root,"development-tools-consumer");Fixture.CopyTree(Path.Combine(Fixture.Repo,"examples","edit-workspace"),sample);
+  foreach(string name in new[]{"file-stream","schema-editing","edit-workspace","save","change-set","pack-workspace","development-tools"})Fixture.CopyTree(Path.Combine(Fixture.Repo,"packs",name),Path.Combine(f.Root,"packs",name));
+  string project=Path.Combine(sample,"project.cpack");File.WriteAllText(project,File.ReadAllText(project).Replace("../../packs/","../packs/").Replace("../../targets/dotnet/pack.cpack","../target/pack.cpack").Replace("element Main function","registry Confectory.PackWorkspace \"../packs/pack-workspace/pack.cpack\"; dependency Confectory.PackWorkspace version \"0.1.0\";\nregistry Confectory.DevelopmentTools \"../packs/development-tools/pack.cpack\"; dependency Confectory.DevelopmentTools version \"0.1.0\";\nelement Main function"));
+  f.Add("App","object","ToolObject","object App::ToolObject {value count = 0;}");f.Sync();
+  File.WriteAllText(Path.Combine(sample,"main_body.celem"),"""
+  implementation Example.EditWorkspace::MainBody for Example.EditWorkspace::Main () -> int {
+  import Confectory.DevelopmentTools::Open as ToolsOpen (string,string,string,string,string) -> string;
+  import Confectory.DevelopmentTools::Invoke as Tool (string,string,string,string) -> string;
+  import Confectory.DevelopmentTools::Definitions as Definitions (string) -> string;
+  import Confectory.DevelopmentTools::Snapshot as ToolsSnapshot (string) -> string;
+  import Confectory.DevelopmentTools::Close as ToolsClose (string) -> void;
+  import Confectory.PackWorkspace::Open as Open (string,string,string) -> string;
+  import Confectory.PackWorkspace::Command as Command (string,string,string) -> string;
+  import Confectory.PackWorkspace::Snapshot as Snapshot (string) -> string;
+  import Confectory.PackWorkspace::Close as Close (string) -> void;
+  body common "main.csbody";}
+  """);
+  File.WriteAllText(Path.Combine(sample,"main.csbody"),"""
+  string project=Environment.GetEnvironmentVariable("CONFECTORY_TEST_AUTHOR_PROJECT")!;string view=calls.Open.Invoke(project,"alice","editor"),capability=calls.ToolsOpen.Invoke(project,"project-A","App","alice","editor");
+  void Check(bool value,string reason){if(!value)throw new Exception(reason);}
+  bool Denied(Action action){try{action();return false;}catch(UnauthorizedAccessException){return true;}catch(InvalidOperationException){return true;}}
+  string Request(string id,string text="",long revision=0)=>new System.Text.Json.Nodes.JsonObject{["projectId"]="project-A",["id"]=id,["text"]=text,["expectedRevision"]=revision}.ToJsonString();
+  try{
+   Check(calls.Definitions.Invoke(capability).Contains("project-A")&&!calls.Definitions.Invoke(capability).Contains("confirm"),"bounded tool definitions expose only granted project operations");string final=System.IO.File.ReadAllText(project);calls.Command.Invoke(view,"select","{\"id\":\"App::ToolObject\"}");
+   var read=System.Text.Json.Nodes.JsonNode.Parse(calls.Tool.Invoke(capability,"read","workspace_read",Request("App::ToolObject")))!;long revision=read["revision"]!.GetValue<long>();
+   string edited="object App::ToolObject {value count = 2;}";string args=Request("App::ToolObject",edited,revision);var changed=System.Text.Json.Nodes.JsonNode.Parse(calls.Tool.Invoke(capability,"stage","workspace_stage",args))!;Check(changed["applied"]!.GetValue<bool>(),"tool CAS edit");
+   var human=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(view))!;Check(human["unit"]!["text"]!.ToString()==edited&&human["selected"]!.ToString()=="App::ToolObject","same draft without stealing UI selection");
+   var stale=System.Text.Json.Nodes.JsonNode.Parse(calls.Tool.Invoke(capability,"stale","workspace_stage",Request("App::ToolObject","object App::ToolObject {value count = 3;}",revision)))!;Check(stale["conflict"]!.GetValue<bool>(),"stale revision rejected");
+   calls.Command.Invoke(view,"edit",new System.Text.Json.Nodes.JsonObject{["expectedRevision"]=revision+1,["text"]="object App::ToolObject {value count = 4;}"}.ToJsonString());calls.Tool.Invoke(capability,"stage","workspace_stage",args);Check(System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(view))!["unit"]!["text"]!.ToString().Contains("4"),"duplicate call does not replay stage");
+   Check(Denied(()=>calls.Tool.Invoke(capability,"other-project","workspace_read",Request("App::ToolObject").Replace("project-A","project-B"))),"project isolation");Check(Denied(()=>calls.Tool.Invoke(capability,"foreign","workspace_read",Request("Other::Secret"))),"namespace isolation");
+   Check(Denied(()=>calls.Tool.Invoke(capability,"confirm","confirm",Request("App::ToolObject"))),"no automatic Confirm");Check(Denied(()=>calls.Tool.Invoke(capability,"execute","shell",Request("App::ToolObject"))),"no process authority");
+   calls.Tool.Invoke(capability,"create","workspace_create","{\"projectId\":\"project-A\",\"id\":\"App::ToolCreated\",\"kind\":\"object\"}");Check(System.IO.File.ReadAllText(project)==final,"creation must not write final registration");var snapshot=System.Text.Json.Nodes.JsonNode.Parse(calls.ToolsSnapshot.Invoke(capability))!;Check(snapshot["staged"]!["App::ToolCreated"] is not null&&snapshot["staged"]!["App::ProjectManifest"] is not null,"explicit manifest registration included in staged scope");
+   calls.ToolsClose.Invoke(capability);Check(Denied(()=>calls.Tool.Invoke(capability,"closed","workspace_read",Request("App::ToolObject"))),"closed capability rejects calls");Check(System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(view))!["unit"]!["text"]!.ToString().Contains("4"),"closing tools preserves borrowed UI draft");
+   Console.WriteLine("Development tools scope/shared draft/CAS/dedup/no Confirm/cleanup PASS");return 0;
+  }finally{calls.ToolsClose.Invoke(capability);calls.Close.Invoke(view);}
+  """);
+  string? host=Environment.GetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST"),selected=Environment.GetEnvironmentVariable("CONFECTORY_TEST_AUTHOR_PROJECT");
+  try{Environment.SetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST",Path.Combine(Fixture.Repo,"targets","element-authoring","bin","Release","net10.0","Confectory.ElementAuthoring.dll"));Environment.SetEnvironmentVariable("CONFECTORY_TEST_AUTHOR_PROJECT",f.Project);var built=new Builder(project,"portable").Build();True(!Strings(built,"includedPacks").Contains("Confectory.Agent"));Output(built,"Development tools scope/shared draft/CAS/dedup/no Confirm/cleanup PASS");File.AppendAllText(Path.Combine(f.Root,"packs","development-tools","Invoke.csbody"),"\n// development tool provider locality\n");var changed=new Builder(project,"portable").Build();PackRebuilt(changed,new[]{"Confectory.DevelopmentTools::InvokeBody"});Equal(0,Strings(changed,"statistics","compiledContracts").Length);}
+  finally{Environment.SetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST",host);Environment.SetEnvironmentVariable("CONFECTORY_TEST_AUTHOR_PROJECT",selected);}
+ }
 }

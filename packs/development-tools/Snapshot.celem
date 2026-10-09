@@ -1,0 +1,1 @@
+function Confectory.DevelopmentTools::Snapshot (string capability) -> string {provide Confectory.DevelopmentTools::Snapshot with Confectory.DevelopmentTools::SnapshotBody;}

@@ -1,0 +1,1 @@
+function Confectory.PackWorkspace::BorrowDraft (string handle) -> string {provide Confectory.PackWorkspace::BorrowDraft with Confectory.PackWorkspace::BorrowDraftBody;}

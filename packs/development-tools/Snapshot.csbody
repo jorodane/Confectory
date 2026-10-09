@@ -1,0 +1,1 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.DevelopmentTools."+capability) as object[]??throw new ObjectDisposedException("DevelopmentTools");lock(state[0]){if((bool)state[4])throw new ObjectDisposedException("DevelopmentTools");var result=((System.Text.Json.Nodes.JsonObject)state[3]).DeepClone().AsObject();result.Remove("calls");return result.ToJsonString();}
