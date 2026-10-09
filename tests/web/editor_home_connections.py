@@ -20,6 +20,7 @@ try:
   def field(i):return page.locator('[data-control="'+str(i)+'"]:visible')
   page.goto('http://127.0.0.1:'+str(server.server_port),wait_until='networkidle');click('Agent connection');click('Confectory.Agent.Responses::Connection');field(89).wait_for(state='visible')
   assert field(88).input_value()=='["credentialReference"]'
+  field(89).fill('env:CONFECTORY_AI_BROWSER_FIXTURE');click('Set value');click('Refresh');field(88).wait_for(state='visible')
   field(88).fill('["model"]');field(89).fill('explicit-browser-fixture-model');click('Set value');click('Source');field(54).wait_for(state='visible');assert 'explicit-browser-fixture-model' in field(54).input_value()
   page.screenshot(path='/tmp/confectory-ai-browser-responses-settings.png');click('AI settings: Confectory.Agent.Responses::Connection  - Menu');click('Hide project');click('Agent  0');click('Confectory.Agent.Codex::Connection');field(89).wait_for(state='visible')
   # Existing Properties navigation supplies fields from the selected inherited schema.
@@ -30,6 +31,9 @@ try:
   click('Remember draft as common');click('Common memory: excluded');page.wait_for_function('(s)=>uiLabels[s]&&performance.now()-uiLabels[s].time<500',arg='Current project memories: 1 | Common included: 1')
   click('Common memory: allowed');page.wait_for_function('(s)=>uiLabels[s]&&performance.now()-uiLabels[s].time<500',arg='Current project memories: 1 | Common included: 0')
   page.screenshot(path='/tmp/confectory-ai-browser-helper-scope.png');click('Close menu');field(89).wait_for(state='visible')
+  click('Agent  0');click('Confectory.Agent.Responses::Connection');click('Review current message')
+  page.wait_for_function('(s)=>uiLabels[s]&&performance.now()-uiLabels[s].time<500',arg='Error: Browser and Android require an approved credential relay; direct client keys are unsupported.')
+  click('Cancel / close menu');field(89).wait_for(state='visible')
 
   retired=field(89).get_attribute('data-binding');assert retired
   click('AI settings: Confectory.Agent.Codex::Connection  - Menu');click('Close project')

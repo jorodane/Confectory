@@ -1,0 +1,1 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.ProjectAI."+session) as object[]??throw new ObjectDisposedException("Project AI");lock(state[0])return ((System.Text.Json.Nodes.JsonObject)state[7]).ToJsonString();

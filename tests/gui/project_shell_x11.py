@@ -174,9 +174,9 @@ try:
     wait(lambda t:38 in t['hits'][::5],'project chat field');click(a,38);type_text(a,'A local project draft');click(a,41);state=wait(lambda t:t['model']['shell']['draft']=='A local project draft','local draft retained without live sending');buffer=state['chatBuffers'][context];assert 'no message sent' in state['model']['shell']['notice']
     screenshot(a,'project-chat')
     # Actual product Helper controls use public scoped memory, without a model/provider.
-    click(a,8);wait(lambda t:t['model'].get('helperPanel',{}).get('mode')=='helpers' and 23 in t['hits'][::5],'explicit Helper selection')
+    click(a,8);wait(lambda t:(t['model'].get('helperPanel') or {}).get('mode')=='helpers' and 23 in t['hits'][::5],'explicit Helper selection')
     click(a,23);wait(lambda t:len(t['model']['helpers'])==1 and 20 in t['hits'][::5],'recruit global Main Helper')
-    click(a,20);state=wait(lambda t:t['model'].get('helperPanel',{}).get('mode')=='helper' and t['model'].get('helperContext',{}).get('helper')=='main-helper','connect global Helper to current project')
+    click(a,20);state=wait(lambda t:(t['model'].get('helperPanel') or {}).get('mode')=='helper' and t['model'].get('helperContext',{}).get('helper')=='main-helper','connect global Helper to current project')
     assert state['model']['helperContext']['projectId']==state['model']['selected']['projectId']
     click(a,26);wait(lambda t:len(t['model']['helperContext']['memory'])==1,'remember draft only for project')
     click(a,27);wait(lambda t:t['model']['status'].startswith('Saved common'),'explicit common record')

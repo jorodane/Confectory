@@ -1,0 +1,1 @@
+function Confectory.ProjectAI::Start (string session, string requestID, string message, string authorization) -> string {provide Confectory.ProjectAI::Start with Confectory.ProjectAI::StartBody;}

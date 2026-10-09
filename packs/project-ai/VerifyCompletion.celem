@@ -1,0 +1,1 @@
+implementation Confectory.ProjectAI::VerifyCompletion for Confectory.WorkerTasks::VerifyCompletion (string specification,string progress,string evidence) -> bool {import Confectory.FileStream::Snapshot as FileSnapshot (string) -> string[];body common "VerifyCompletion.csbody";}

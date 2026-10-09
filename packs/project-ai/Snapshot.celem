@@ -1,0 +1,1 @@
+function Confectory.ProjectAI::Snapshot (string session) -> string {provide Confectory.ProjectAI::Snapshot with Confectory.ProjectAI::SnapshotBody;}

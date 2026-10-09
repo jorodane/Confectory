@@ -1,0 +1,1 @@
+string provider=System.Text.Json.Nodes.JsonNode.Parse(config)!["provider"]!.ToString();return provider switch{"responses"=>calls.Responses.Invoke(config,execution,operation,payload),"codex"=>calls.Codex.Invoke(config,execution,operation,payload),_=>throw new ArgumentException("Explicit registered connection provider required")};

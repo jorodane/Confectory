@@ -1,0 +1,1 @@
+return connection switch{"Confectory.Agent.Responses::Connection"=>calls.Responses.Invoke(settings),"Confectory.Agent.Codex::Connection"=>calls.Codex.Invoke(settings),_=>throw new ArgumentException("Connection has no selected configuration role")};

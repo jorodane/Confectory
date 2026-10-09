@@ -1,0 +1,21 @@
+pack Confectory.ProjectAI version "0.1.0" {standalone false;
+dependency Confectory.EditWorkspace version "0.1.0"; dependency Confectory.SchemaEditing version "0.1.0";
+dependency Confectory.Agent version "0.1.0";
+dependency Confectory.DevelopmentTools version "0.1.0";
+dependency Confectory.Agent.Responses version "0.1.0";
+dependency Confectory.Agent.Codex version "0.1.0";
+element Open function "Open.celem"; element OpenBody implementation "OpenBody.celem";
+element Start function "Start.celem"; element StartBody implementation "StartBody.celem";
+element Poll function "Poll.celem"; element PollBody implementation "PollBody.celem";
+element Snapshot function "Snapshot.celem"; element SnapshotBody implementation "SnapshotBody.celem";
+element Close function "Close.celem"; element CloseBody implementation "CloseBody.celem";
+element Configuration function "Configuration.celem"; element ConfigurationBody implementation "ConfigurationBody.celem";
+element Provider implementation "Provider.celem";
+dependency Confectory.WorkerTasks version "0.1.0"; dependency Confectory.Augment version "0.1.0"; dependency Confectory.PackWorkspace version "0.1.0";
+element EnableTasks function "EnableTasks.celem"; element EnableTasksBody implementation "EnableTasksBody.celem";
+element Propose function "Propose.celem"; element ProposeBody implementation "ProposeBody.celem";
+element Select function "Select.celem"; element SelectBody implementation "SelectBody.celem";
+element Work function "Work.celem"; element WorkBody implementation "WorkBody.celem";
+element AugmentProvider implementation "AugmentProvider.celem";
+dependency Confectory.FileStream version "0.1.0"; element Adopt function "Adopt.celem"; element AdoptBody implementation "AdoptBody.celem"; element VerifyCompletion implementation "VerifyCompletion.celem";
+}

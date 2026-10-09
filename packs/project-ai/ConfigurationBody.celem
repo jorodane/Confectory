@@ -1,0 +1,3 @@
+implementation Confectory.ProjectAI::ConfigurationBody for Confectory.ProjectAI::Configuration (string connection, string settings) -> string {
+import Confectory.Agent.Responses::Configuration as Responses (string) -> string; import Confectory.Agent.Codex::Configuration as Codex (string) -> string;
+body common "Configuration.csbody";}

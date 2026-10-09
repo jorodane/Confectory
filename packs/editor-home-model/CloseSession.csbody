@@ -2,6 +2,10 @@ var state=AppDomain.CurrentDomain.GetData("Confectory.EditorHome."+session) as o
 lock(state){
  // true means closing: commands are rejected, but CloseSession remains retryable.
  state[6]=true;var errors=new System.Collections.Generic.List<Exception>();
+ var aiSessions=(System.Collections.Generic.Dictionary<string,string>)state[11];
+ foreach(var entry in System.Linq.Enumerable.ToArray(aiSessions)){try{calls.AIClose.Invoke(entry.Value);aiSessions.Remove(entry.Key);}catch(Exception error){errors.Add(error);}}
+ // Keep borrowed draft/project/Helper resources alive if an AI owner cannot retire.
+ if(errors.Count>0)throw new AggregateException("Project AI remains closing; retry CloseSession",errors);
  var shells=(System.Collections.Generic.Dictionary<string,string>)state[7];
  foreach(var shell in System.Linq.Enumerable.ToArray(shells)){try{calls.ShellClose.Invoke(shell.Value);shells.Remove(shell.Key);}catch(Exception error){errors.Add(error);}}
  var packViews=(System.Collections.Generic.Dictionary<string,string>)state[9];

@@ -1,0 +1,1 @@
+implementation Confectory.ProjectAI::Provider for Confectory.Agent::Provider (string config,string execution,string operation,string payload) -> string {import Confectory.Agent.Responses::Provider as Responses (string,string,string,string) -> string; import Confectory.Agent.Codex::Provider as Codex (string,string,string,string) -> string; body common "Provider.csbody";}
