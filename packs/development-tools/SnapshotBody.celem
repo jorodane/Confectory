@@ -1,2 +1,4 @@
 implementation Confectory.DevelopmentTools::SnapshotBody for Confectory.DevelopmentTools::Snapshot (string capability) -> string {
+import Confectory.EditWorkspace::List as List (string) -> string[];
+import Confectory.EditWorkspace::Status as Status (string,string) -> string[];
 body common "Snapshot.csbody";}

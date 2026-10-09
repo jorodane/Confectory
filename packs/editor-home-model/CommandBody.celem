@@ -49,6 +49,7 @@ import Confectory.ProjectAI::Close as AIClose (string) -> void;
 import Confectory.ProjectAI::EnableTasks as EnableTasks (string,string,string[],string[]) -> void;
 import Confectory.ProjectAI::Propose as Propose (string,string,string,string) -> void;
 import Confectory.ProjectAI::Select as SelectCard (string,string,string) -> string;
+import Confectory.ProjectAI::CancelWork as CancelWork (string,string,string) -> void;
 import Confectory.ProjectAI::Work as WorkTask (string,string,string,string) -> string;
 import Confectory.ProjectAI::Adopt as AdoptTask (string,string,string,string,string[],string) -> string;
 body common "Command.csbody"; }

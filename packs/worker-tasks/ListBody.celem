@@ -1,0 +1,1 @@
+implementation Confectory.WorkerTasks::ListBody for Confectory.WorkerTasks::List (string session) -> string {import Confectory.WorkerTasks::Command as Command (string,string,string,string) -> string;body common "List.csbody";}

@@ -13,6 +13,8 @@ provide Confectory.ProjectAI::EnableTasks with Confectory.ProjectAI::EnableTasks
 provide Confectory.ProjectAI::Propose with Confectory.ProjectAI::ProposeBody;
 provide Confectory.ProjectAI::Select with Confectory.ProjectAI::SelectBody;
 provide Confectory.ProjectAI::Work with Confectory.ProjectAI::WorkBody;
+provide Confectory.ProjectAI::CancelWork with Confectory.ProjectAI::CancelWorkBody;
+provide Confectory.WorkerTasks::List with Confectory.WorkerTasks::ListBody;
 provide Confectory.WorkerTasks::Open with Confectory.WorkerTasks::OpenBody;
 provide Confectory.WorkerTasks::Command with Confectory.WorkerTasks::CommandBody;
 provide Confectory.WorkerTasks::Context with Confectory.WorkerTasks::ContextBody;

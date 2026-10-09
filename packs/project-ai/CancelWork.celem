@@ -1,0 +1,1 @@
+function Confectory.ProjectAI::CancelWork (string session,string commandID,string task) -> void {provide Confectory.ProjectAI::CancelWork with Confectory.ProjectAI::CancelWorkBody;}

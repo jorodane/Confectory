@@ -23,6 +23,7 @@ import Confectory.WorkerTasks::Close as WorkerTasksClose (string) -> void;
 import Confectory.WorkerTasks::Command as WorkerTasksCommand (string, string, string, string) -> string;
 import Confectory.WorkerTasks::Detach as WorkerTasksDetach (string, string, long, string, string, string) -> void;
 import Confectory.WorkerTasks::Handoff as WorkerTasksHandoff (string, string, long, string, string, string) -> string;
+import Confectory.WorkerTasks::List as WorkerTasksList (string) -> string;
 import Confectory.WorkerTasks::Inspect as WorkerTasksInspect (string, string) -> string;
 import Confectory.WorkerTasks::Journal as WorkerTasksJournal (string) -> string;
 import Confectory.WorkerTasks::Lease as WorkerTasksLease (string, string) -> string;

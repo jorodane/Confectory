@@ -1,4 +1,5 @@
 implementation Confectory.ProjectAI::PollBody for Confectory.ProjectAI::Poll (string session) -> string {
 import Confectory.Agent::Poll as AgentPoll (string) -> string; import Confectory.DevelopmentTools::Snapshot as ToolsSnapshot (string) -> string;
 import Confectory.Augment::Snapshot as AugmentSnapshot (string) -> string; import Confectory.WorkerTasks::Pump as Pump (string,string) -> string; import Confectory.WorkerTasks::Inspect as InspectTask (string,string) -> string;
+import Confectory.WorkerTasks::List as ListTasks (string) -> string;
 body common "Poll.csbody";}
