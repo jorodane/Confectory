@@ -33,6 +33,10 @@ try
  }
  calls.Close.Invoke(manager,held);
  string created=calls.CreateProject.Invoke(manager,"Created",temp,System.IO.Path.Combine(root,"targets","dotnet","pack.cpack"));Assert(calls.Context.Invoke(manager,created)[2]=="Project.Created","Create project");
+ string createdManifest=calls.Context.Invoke(manager,created)[1],stable=calls.Identity.Invoke(manager,created);Assert(stable!=created,"Durable ID differs from process context");calls.Close.Invoke(manager,created);string again=calls.Open.Invoke(manager,createdManifest);Assert(calls.Identity.Invoke(manager,again)==stable,"Durable ID survives close/reopen");
+ bool implicitRejected=false;try{calls.Identity.Invoke(manager,"");}catch(ArgumentException){implicitRejected=true;}Assert(implicitRejected,"Identity never uses implicit selection");
+ string[] copies=System.IO.Directory.GetFiles(temp,"*",System.IO.SearchOption.AllDirectories);string copyRoot=System.IO.Path.Combine(temp,"copied");foreach(string source in copies){string destination=System.IO.Path.Combine(copyRoot,System.IO.Path.GetRelativePath(temp,source));System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(destination)!);System.IO.File.Copy(source,destination);}
+ string copied=calls.Open.Invoke(manager,System.IO.Path.Combine(copyRoot,System.IO.Path.GetFileName(createdManifest)));bool rebindRequired=false;try{calls.Identity.Invoke(manager,copied);}catch(InvalidOperationException){rebindRequired=true;}Assert(rebindRequired,"Copied identity cannot relabel prior project memory");calls.Close.Invoke(manager,copied);calls.Close.Invoke(manager,again);
  bool overwriteRejected=false;try{calls.CreateProject.Invoke(manager,"Created",temp,System.IO.Path.Combine(root,"targets","dotnet","pack.cpack"));}catch(InvalidOperationException){overwriteRejected=true;}Assert(overwriteRejected,"No overwrite");
  string own=calls.Open.Invoke(manager,a);string owned=calls.Launch.Invoke(manager,own,"","portable");Wait(owned);calls.Dispose.Invoke(manager);bool disposed=false;try{calls.ExecutionObserve.Invoke(executions,owned);}catch(InvalidOperationException){disposed=true;}Assert(disposed,"Manager owns execution disposal");
 }

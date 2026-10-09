@@ -48,3 +48,9 @@ The latest complete-close change releases only the closed context's native text 
 ProjectManager Open now reclaims closed slots while preserving active projects and creating a fresh context identity. Closed records remain queryable until their slot is reused; they are not an unbounded historical registry. The sample exercises 70 open/close cycles while retaining another open context. Its public contract is unchanged; OpenBody owning-pack locality and zero rebuilt contracts are separately checked. The shared implementation edit is necessary because consumers cannot reclaim the private manager capacity through its public contracts. This push delivers the present connection/settings and project lifetime increment, not completed live AI integration.
 
 Follow-up regressions: test_project_contexts_and_provider_locality, existing Responses/declaration guards, Android metadata export and Windows/Android managed composition passed 4/0/0 in 153.271s. No native Windows, Android device or new APK/AAB execution was performed.
+
+## Durable identity consumer increment
+
+ProjectManager now exposes Identity(manager,explicitContext)->projectId; actual EditorHome selected/shell data includes it. See packs/project-manager/IDENTITY.md for exact binding, CAS, copy/rebind refusal, outside reads and rebuild scope. The current implementation does not assign Helper memory, connect an Agent or resume a Worker by that ID. The roadmap's durable-ID prerequisite is implemented; the remaining AI composition must consume it explicitly.
+
+ProjectManager + concrete public provider fixtures + entry contracts + ProjectShell domain passed5/0/0 in201.486s. Refreshed browser acceptance passed. Linux native project-shell + Android export + Windows/Android managed composition passed3/0/0 in175.717s. Later Codex storage-isolation and additional-schema-field changes are validated separately and must not inherit those earlier gate claims.

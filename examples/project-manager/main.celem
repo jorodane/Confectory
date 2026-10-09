@@ -1,4 +1,8 @@
 function Example.ProjectManager::Main () -> int {
+provide Confectory.FileStream::Snapshot with Confectory.FileStream::SnapshotBody;
+provide Confectory.FileStream::Commit with Confectory.FileStream::CommitBody;
+provide Confectory.FileStream::LeasePath with Confectory.FileStream::LeasePathBody;
+provide Confectory.FileStream::WriteAtomic with Confectory.FileStream::WriteAtomicBody;
 provide Example.ProjectManager::Main with Example.ProjectManager::MainBody;
 provide Confectory.ProjectManager::CreateManager with Confectory.ProjectManager::CreateManagerBody;
 provide Confectory.ProjectManager::CreateProject with Confectory.ProjectManager::CreateProjectBody;
