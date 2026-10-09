@@ -1,0 +1,1 @@
+implementation Confectory.Agent.Codex::ConfigurationBody for Confectory.Agent.Codex::Configuration (string settings) -> string {import Confectory.Agent.Codex::ValidateConfig as Validate (string) -> string; body common "Configuration.csbody";}

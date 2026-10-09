@@ -34,4 +34,5 @@ element Snapshot function "Snapshot.celem";
 element SnapshotBody implementation "SnapshotBody.celem";
 element Close function "Close.celem";
 element CloseBody implementation "CloseBody.celem";
+element BindProvider function "BindProvider.celem"; element BindProviderBody implementation "BindProviderBody.celem";
 }

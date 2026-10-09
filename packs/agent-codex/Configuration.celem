@@ -1,0 +1,1 @@
+function Confectory.Agent.Codex::Configuration (string settings) -> string {provide Confectory.Agent.Codex::Configuration with Confectory.Agent.Codex::ConfigurationBody;}

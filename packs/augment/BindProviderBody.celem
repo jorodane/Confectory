@@ -1,0 +1,1 @@
+implementation Confectory.Augment::BindProviderBody for Confectory.Augment::BindProvider (string view,string actor,string binding) -> void {import Confectory.WorkerTasks::Authorize as Authorize (string,string,string) -> bool;body common "BindProvider.csbody";}

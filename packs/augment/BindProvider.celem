@@ -1,0 +1,1 @@
+function Confectory.Augment::BindProvider (string view,string actor,string binding) -> void {provide Confectory.Augment::BindProvider with Confectory.Augment::BindProviderBody;}

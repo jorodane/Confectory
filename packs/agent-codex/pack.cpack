@@ -4,4 +4,5 @@ dependency Confectory.Agent version "0.1.0"; dependency Confectory.DevelopmentTo
 element Settings schema "Settings.celem"; element Connection object "Connection.celem";
 element ValidateConfig function "ValidateConfig.celem"; element ValidateConfigBody implementation "ValidateConfigBody.celem";
 element ProviderBody implementation "ProviderBody.celem"; element Provider function "Provider.celem"; element AdapterBody implementation "AdapterBody.celem";
+element Configuration function "Configuration.celem"; element ConfigurationBody implementation "ConfigurationBody.celem";
 }
