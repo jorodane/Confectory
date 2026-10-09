@@ -28,14 +28,17 @@ public sealed class AIConnectionTests : TestCase
 import json,sys,time,os
 assert sys.argv[1:]==['app-server']
 assert os.environ.get("CODEX_HOME") and "OPENAI_API_KEY" not in os.environ and "HOME" not in os.environ
-def read():return json.loads(sys.stdin.readline())
+def read():
+ x=json.loads(sys.stdin.readline())
+ with open(os.path.join(os.path.dirname(__file__),'owned-requests.jsonl'),'a') as f:f.write(json.dumps(x)+'\n')
+ return x
 def send(x):print(json.dumps(x),flush=True)
 a=read();assert a['method']=='initialize' and a['params']['capabilities']['experimentalApi'];send({'id':a['id'],'result':{'userAgent':'owned-fixture'}})
 assert read()['method']=='initialized'
-a=read();assert a['method']=='thread/start' and a['params']['ephemeral'] and a['params']['sandbox']=='readOnly' and a['params']['approvalPolicy']=='never'
+a=read();assert a['method']=='thread/start' and a['params']['ephemeral'] and a['params']['sandbox']=='read-only' and a['params']['approvalPolicy']=='never'
 assert all(t['type']=='function' and 'inputSchema' in t for t in a['params']['dynamicTools'])
 assert os.getcwd()==a['params']['cwd'];send({'id':a['id'],'result':{'thread':{'id':'owned-thread'}}})
-a=read();assert a['method']=='turn/start' and a['params']['sandboxPolicy']['access']['readableRoots']==[os.getcwd()]
+a=read();assert a['method']=='turn/start' and a['params']['sandboxPolicy']=={'type':'readOnly','networkAccess':False}
 text=a['params']['input'][0]['text'];assert 'authorization' not in text and 'toolCapability' not in text and 'credentialReference' not in text
 mode=json.loads(text)['message'];send({'id':a['id'],'result':{'turn':{'id':'owned-turn','status':'inProgress'}}})
 if mode=='cancel':
@@ -67,7 +70,7 @@ read()
  }finally{calls.ToolsClose.Invoke(capability);}
  Console.WriteLine("Owned Codex stdio handshake / tool dedup / foreign scope / native approval refusal / cancellation PASS");return 0;
 """"");
- string? oldProject=Environment.GetEnvironmentVariable("CONFECTORY_TEST_CONNECTION_PROJECT"),oldHost=Environment.GetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST");try{Environment.SetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST",Path.Combine(Fixture.Repo,"targets","element-authoring","bin","Release","net10.0","Confectory.ElementAuthoring.dll"));Environment.SetEnvironmentVariable("CONFECTORY_TEST_CONNECTION_PROJECT",project);var first=new Builder(project,"portable").Build();var actual=Processes.Run(Strings(first,"run"),timeoutSeconds:120);Equal(0,actual.ExitCode);True(actual.Stdout.Contains("Owned Codex stdio handshake / tool dedup / foreign scope / native approval refusal / cancellation PASS"),actual.Stderr);new Builder(project,"windows").Build();new Builder(project,"android").Build();File.AppendAllText(Path.Combine(f.Root,"packs","agent-codex","Provider.csbody"),"\n// owning Codex transport locality\n");var changed=new Builder(project,"portable").Build();PackRebuilt(changed,new[]{"Confectory.Agent.Codex::AdapterBody"});Equal(0,Strings(changed,"statistics","compiledContracts").Length);}finally{Environment.SetEnvironmentVariable("CONFECTORY_TEST_CONNECTION_PROJECT",oldProject);Environment.SetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST",oldHost);}
+ string? oldProject=Environment.GetEnvironmentVariable("CONFECTORY_TEST_CONNECTION_PROJECT"),oldHost=Environment.GetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST");try{Environment.SetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST",Path.Combine(Fixture.Repo,"targets","element-authoring","bin","Release","net10.0","Confectory.ElementAuthoring.dll"));Environment.SetEnvironmentVariable("CONFECTORY_TEST_CONNECTION_PROJECT",project);var first=new Builder(project,"portable").Build();var actual=Processes.Run(Strings(first,"run"),timeoutSeconds:120);Equal(0,actual.ExitCode);True(actual.Stdout.Contains("Owned Codex stdio handshake / tool dedup / foreign scope / native approval refusal / cancellation PASS"),actual.Stderr);if(Environment.GetEnvironmentVariable("CONFECTORY_CODEX_SCHEMA_DIRECTORY") is string schemaDirectory){var schemaCheck=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests","protocol","codex_installed_schema.py"),schemaDirectory,Path.Combine(sample,"owned-requests.jsonl")},timeoutSeconds:30);Equal(0,schemaCheck.ExitCode);True(schemaCheck.Stdout.Contains("Installed schema actual request capture PASS"),schemaCheck.Stdout+schemaCheck.Stderr);}new Builder(project,"windows").Build();new Builder(project,"android").Build();File.AppendAllText(Path.Combine(f.Root,"packs","agent-codex","Provider.csbody"),"\n// owning Codex transport locality\n");var changed=new Builder(project,"portable").Build();PackRebuilt(changed,new[]{"Confectory.Agent.Codex::AdapterBody"});Equal(0,Strings(changed,"statistics","compiledContracts").Length);}finally{Environment.SetEnvironmentVariable("CONFECTORY_TEST_CONNECTION_PROJECT",oldProject);Environment.SetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST",oldHost);}
  }
  public void test_declared_connection_settings_and_responses_approval_guards_without_external_network_or_credentials()
  {
