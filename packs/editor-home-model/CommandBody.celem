@@ -21,6 +21,8 @@ import Confectory.ProjectManager::PlanCreation as PlanCreation (string, string) 
 import Confectory.PackWorkspace::Open as PackOpen (string,string,string) -> string;
 import Confectory.PackWorkspace::Command as PackCommand (string,string,string) -> string;
 import Confectory.PackWorkspace::Snapshot as PackSnapshot (string) -> string;
+import Confectory.PackWorkspace::BorrowDraft as ProposalDraft (string) -> string;
+import Confectory.EditWorkspace::Read as ProposalRead (string,string) -> string[];
 import Confectory.FileStream::ArchiveSourceTexts as Archive (string,string[],string[]) -> string[];
 import Confectory.ProjectExecution::Capabilities as ExecutionCapabilities () -> string[];
 import Confectory.ProjectExecution::LaunchConfigured as LaunchConfigured (string[],string,string,string,string[],string[]) -> string;

@@ -35,3 +35,5 @@ Owned edits outside ProjectAI: additive pure Configuration functions in the two 
 ## Evidence boundary
 
 The committed test Provider is generated only in an owned test consumer; shipped Main uses the real qualified transport dispatcher. Tests exercise the actual Main UI and real Agent/Tools/Worker/Augment/storage/compiler machinery against an explicitly simulated model. This is not live creative generation, account login, paid usage or installed Codex verification. See docs/AI_DEVELOPMENT_STATUS.md for exact final commands/results and platform gaps.
+
+Recovery contracts: CancelWork(session, commandID, task) explicitly stops only a selected active Worker. Poll enumerates durable tasks through WorkerTasks.List and retains terminal summaries; it never replays them. Proposal failures carry allowlisted proposalErrorCode and survive owner replacement. EnableTasks rejects manifests and implementation bodies before declaration inspection and publishes its owned handles only after complete initialization; failed setup closes each handle. A fresh proposal request requires explicit public declaration scope and fresh approval.
