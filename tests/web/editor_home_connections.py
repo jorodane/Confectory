@@ -23,7 +23,7 @@ try:
   field(88).fill('["model"]');field(89).fill('explicit-browser-fixture-model');click('Set value');click('Source');field(54).wait_for(state='visible');assert 'explicit-browser-fixture-model' in field(54).input_value()
   page.screenshot(path='/tmp/confectory-ai-browser-responses-settings.png');click('AI settings: Confectory.Agent.Responses::Connection  - Menu');click('Hide project');click('Agent  0');click('Confectory.Agent.Codex::Connection');field(89).wait_for(state='visible')
   # Existing Properties navigation supplies fields from the selected inherited schema.
-  assert field(88).input_value()=='["credentialReference"]';click('Next');assert field(88).input_value()=='["executable"]'
+  assert field(88).input_value()=='["credentialReference"]';click('Next');assert field(88).input_value()=='["executable"]';click('Next');assert field(88).input_value()=='["managedHome"]'
   page.screenshot(path='/tmp/confectory-ai-browser-codex-settings.png')
   retired=field(89).get_attribute('data-binding');assert retired
   click('AI settings: Confectory.Agent.Codex::Connection  - Menu');click('Close project')

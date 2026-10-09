@@ -1,0 +1,1 @@
+function Confectory.Agent.Responses::Provider (string config,string execution,string operation,string payload) -> string {provide Confectory.Agent.Responses::Provider with Confectory.Agent.Responses::AdapterBody;}

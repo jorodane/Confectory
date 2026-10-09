@@ -2,12 +2,79 @@ using Confectory.Core;
 namespace Confectory.Tests;
 public sealed class AIConnectionTests : TestCase
 {
+ public void test_codex_owned_stdio_protocol_fixture_without_installed_codex_authentication_or_external_network()
+ {
+ if(!OperatingSystem.IsLinux())Skip("Owned stdio fixture requires Linux /usr/bin/python3; installed Codex is never used");
+ string sample=Path.Combine(f.Root,"connections");Fixture.CopyTree(Path.Combine(Fixture.Repo,"examples","edit-workspace"),sample);
+ string project=Path.Combine(sample,"project.cpack"),manifest=File.ReadAllText(project).Replace("../../targets/dotnet/pack.cpack","../target/pack.cpack").Replace("../../packs/","../packs/");
+ foreach(string name in new[]{"agent","ai-connection","agent-responses","agent-codex","development-tools","pack-workspace","file-stream","schema-editing","edit-workspace","save","change-set"}){Fixture.CopyTree(Path.Combine(Fixture.Repo,"packs",name),Path.Combine(f.Root,"packs",name));string pack=File.ReadAllText(Path.Combine(f.Root,"packs",name,"pack.cpack")).Split(" version ")[0].Replace("pack ","");if(!manifest.Contains("registry "+pack+" "))manifest=manifest.Replace("element Main function","registry "+pack+" \"../packs/"+name+"/pack.cpack\"; dependency "+pack+" version \"0.1.0\";\nelement Main function");}
+ File.WriteAllText(Path.Combine(sample,"Counter.celem"),"object Example.EditWorkspace::Counter {value count = 0;}");manifest=manifest.Replace("element Main function","element Counter object \"Counter.celem\"; element Main function");File.WriteAllText(project,manifest);string main=Path.Combine(sample,"main.celem");File.WriteAllText(main,File.ReadAllText(main).Replace(" -> int {"," -> int {use object Confectory.Agent.Responses::Connection; use object Confectory.Agent.Codex::Connection;"));
+ File.WriteAllText(Path.Combine(sample,"main_body.celem"),"""
+ implementation Example.EditWorkspace::MainBody for Example.EditWorkspace::Main () -> int {
+ import Confectory.Agent.Codex::ValidateConfig as Validate (string) -> string;
+ import Confectory.Agent.Codex::Provider as Provider (string,string,string,string) -> string;
+ import Confectory.DevelopmentTools::Open as ToolsOpen (string,string,string,string,string) -> string;
+ import Confectory.DevelopmentTools::Snapshot as ToolsSnapshot (string) -> string;
+ import Confectory.DevelopmentTools::Close as ToolsClose (string) -> void;
+ import Confectory.PackWorkspace::Open as ViewOpen (string,string,string) -> string;
+ import Confectory.PackWorkspace::Command as ViewCommand (string,string,string) -> string;
+ import Confectory.PackWorkspace::Close as ViewClose (string) -> void;
+ body common "main.csbody";}
+ """);
+ File.WriteAllText(Path.Combine(sample,"main.csbody"),"""""
+ string project=Environment.GetEnvironmentVariable("CONFECTORY_TEST_CONNECTION_PROJECT")!,root=System.IO.Path.GetDirectoryName(project)!,fixture=System.IO.Path.Combine(root,"owned-codex-protocol.py");
+ System.IO.File.WriteAllText(fixture,""""
+#!/usr/bin/python3
+import json,sys,time,os
+assert sys.argv[1:]==['app-server']
+assert os.environ.get("CODEX_HOME") and "OPENAI_API_KEY" not in os.environ and "HOME" not in os.environ
+def read():return json.loads(sys.stdin.readline())
+def send(x):print(json.dumps(x),flush=True)
+a=read();assert a['method']=='initialize' and a['params']['capabilities']['experimentalApi'];send({'id':a['id'],'result':{'userAgent':'owned-fixture'}})
+assert read()['method']=='initialized'
+a=read();assert a['method']=='thread/start' and a['params']['ephemeral'] and a['params']['sandbox']=='readOnly' and a['params']['approvalPolicy']=='never'
+assert all(t['type']=='function' and 'inputSchema' in t for t in a['params']['dynamicTools'])
+assert os.getcwd()==a['params']['cwd'];send({'id':a['id'],'result':{'thread':{'id':'owned-thread'}}})
+a=read();assert a['method']=='turn/start' and a['params']['sandboxPolicy']['access']['readableRoots']==[os.getcwd()]
+text=a['params']['input'][0]['text'];assert 'authorization' not in text and 'toolCapability' not in text and 'credentialReference' not in text
+mode=json.loads(text)['message'];send({'id':a['id'],'result':{'turn':{'id':'owned-turn','status':'inProgress'}}})
+if mode=='cancel':
+ b=read();assert b['method']=='turn/interrupt';open(os.path.join(os.path.dirname(__file__),'owned-interrupt-marker'),'w').write('owned-turn');sys.exit(0)
+if mode=='foreign':
+ send({'id':'foreign-request','method':'item/tool/call','params':{'threadId':'another-project','turnId':'owned-turn','callId':'foreign','tool':'workspace_stage','arguments':{}}});time.sleep(1);sys.exit(0)
+if mode=='approval':
+ send({'id':'native-request','method':'item/fileChange/requestApproval','params':{'threadId':'owned-thread','turnId':'owned-turn'}});b=read();assert b['id']=='native-request' and 'error' in b;sys.exit(0)
+for n in range(2):
+ send({'id':'rpc-'+str(n),'method':'item/tool/call','params':{'threadId':'owned-thread','turnId':'owned-turn','callId':'same-call','tool':'workspace_stage','arguments':{'projectId':'A','id':'Example.EditWorkspace::Counter','expectedRevision':0,'text':'object Example.EditWorkspace::Counter {value count = 3;}'}}})
+ b=read();assert b['id']=='rpc-'+str(n) and b['result']['success'] and b['result']['contentItems'][0]['type']=='inputText'
+ if n==0:first=b['result']
+ else:assert b['result']==first
+send({'method':'item/completed','params':{'threadId':'owned-thread','turnId':'owned-turn','item':{'id':'answer','type':'agentMessage','text':'Owned fixture staged draft; review required.'}}})
+send({'method':'turn/completed','params':{'threadId':'owned-thread','turn':{'id':'owned-turn','status':'completed'}}})
+read()
+"""");
+ System.IO.File.SetUnixFileMode(fixture,System.IO.UnixFileMode.UserRead|System.IO.UnixFileMode.UserWrite|System.IO.UnixFileMode.UserExecute);
+ string managedHome=System.IO.Path.Combine(root,"owned-managed-home");System.IO.Directory.CreateDirectory(managedHome);string config=new System.Text.Json.Nodes.JsonObject{["managedHome"]=managedHome,["provider"]="codex",["protocol"]="app-server-stdio",["executable"]=fixture,["model"]="owned-protocol-fixture",["credentialReference"]="codex:managed"}.ToJsonString();
+ var checkedConfig=System.Text.Json.Nodes.JsonNode.Parse(calls.Validate.Invoke(config))!;if(checkedConfig["processStarted"]!.GetValue<bool>()||checkedConfig["credentialRead"]!.GetValue<bool>())throw new Exception("Validation started process or read credentials");
+ string rejected=Guid.NewGuid().ToString("N");try{bool denied=false;try{calls.Provider.Invoke(config,rejected,"open","{}");}catch(UnauthorizedAccessException){denied=true;}if(!denied)throw new Exception("Missing grant accepted");}finally{calls.Provider.Invoke(config,rejected,"close","");}
+ string capability=calls.ToolsOpen.Invoke(project,"A","Example.EditWorkspace","alice","editor"),original=System.IO.File.ReadAllText(System.IO.Path.Combine(root,"Counter.celem"));
+ string Request(string mode)=>new System.Text.Json.Nodes.JsonObject{["message"]=mode,["toolCapability"]=capability,["context"]=new System.Text.Json.Nodes.JsonObject{["projectId"]="A"},["authorization"]=new System.Text.Json.Nodes.JsonObject{["projectId"]="A",["executable"]=fixture,["model"]="owned-protocol-fixture",["contentApproved"]=true,["usageApproved"]=true,["processApproved"]=true,["managedCredentialApproved"]=true,["managedConfigurationApproved"]=true,["managedStorageApproved"]=true,["managedHome"]=managedHome,["protocolVerified"]=true}}.ToJsonString();
+ try{
+ foreach(string mode in new[]{"normal","foreign","approval","cancel"}){
+ string execution=Guid.NewGuid().ToString("N");try{calls.Provider.Invoke(config,execution,"open",Request(mode));if(mode=="cancel"){System.Threading.Thread.Sleep(150);calls.Provider.Invoke(config,execution,"cancel","");}string terminal="",text="";for(int n=0;n<1000;n++){var item=System.Text.Json.Nodes.JsonNode.Parse(calls.Provider.Invoke(config,execution,"next",""))!;string kind=item["kind"]!.ToString();if(kind=="delta")text+=item["text"]!.ToString();if(kind is "error" or "completed"){terminal=kind;break;}System.Threading.Thread.Sleep(5);}if(terminal!=(mode=="normal"?"completed":"error")||mode=="normal"&&!text.Contains("review required"))throw new Exception("Unexpected protocol outcome "+mode+" "+terminal);}finally{calls.Provider.Invoke(config,execution,"close","");calls.Provider.Invoke(config,execution,"close","");}if(mode=="cancel"&&!System.IO.File.Exists(System.IO.Path.Combine(root,"owned-interrupt-marker")))throw new Exception("Cancellation did not send scoped turn interrupt");}
+ if(System.IO.File.ReadAllText(System.IO.Path.Combine(root,"Counter.celem"))!=original||System.Text.Json.Nodes.JsonNode.Parse(calls.ToolsSnapshot.Invoke(capability))!["staged"]!["Example.EditWorkspace::Counter"] is null)throw new Exception("Codex fixture bypassed draft boundary");
+ string view=calls.ViewOpen.Invoke(project,"alice","editor");try{calls.ViewCommand.Invoke(view,"select","{\"id\":\"Example.EditWorkspace::Counter\"}");var reviewed=System.Text.Json.Nodes.JsonNode.Parse(calls.ViewCommand.Invoke(view,"review","{\"target\":\"portable\"}"))!["review"]!;if(reviewed["status"]!.ToString()!="ready"||System.IO.File.ReadAllText(System.IO.Path.Combine(root,"Counter.celem"))!=original)throw new Exception("Review changed final source");var applied=System.Text.Json.Nodes.JsonNode.Parse(calls.ViewCommand.Invoke(view,"confirm",new System.Text.Json.Nodes.JsonObject{["token"]=reviewed["token"]!.DeepClone()}.ToJsonString()))!;if(applied["confirmation"]![0]!.ToString()!="confirmed"||!System.IO.File.ReadAllText(System.IO.Path.Combine(root,"Counter.celem")).Contains("count = 3"))throw new Exception("Explicit consumer Confirm/build feedback failed");}finally{calls.ViewClose.Invoke(view);}
+ }finally{calls.ToolsClose.Invoke(capability);}
+ Console.WriteLine("Owned Codex stdio handshake / tool dedup / foreign scope / native approval refusal / cancellation PASS");return 0;
+""""");
+ string? oldProject=Environment.GetEnvironmentVariable("CONFECTORY_TEST_CONNECTION_PROJECT"),oldHost=Environment.GetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST");try{Environment.SetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST",Path.Combine(Fixture.Repo,"targets","element-authoring","bin","Release","net10.0","Confectory.ElementAuthoring.dll"));Environment.SetEnvironmentVariable("CONFECTORY_TEST_CONNECTION_PROJECT",project);var first=new Builder(project,"portable").Build();var actual=Processes.Run(Strings(first,"run"),timeoutSeconds:120);Equal(0,actual.ExitCode);True(actual.Stdout.Contains("Owned Codex stdio handshake / tool dedup / foreign scope / native approval refusal / cancellation PASS"),actual.Stderr);new Builder(project,"windows").Build();new Builder(project,"android").Build();File.AppendAllText(Path.Combine(f.Root,"packs","agent-codex","Provider.csbody"),"\n// owning Codex transport locality\n");var changed=new Builder(project,"portable").Build();PackRebuilt(changed,new[]{"Confectory.Agent.Codex::AdapterBody"});Equal(0,Strings(changed,"statistics","compiledContracts").Length);}finally{Environment.SetEnvironmentVariable("CONFECTORY_TEST_CONNECTION_PROJECT",oldProject);Environment.SetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST",oldHost);}
+ }
  public void test_declared_connection_settings_and_responses_approval_guards_without_external_network_or_credentials()
  {
  string sample=Path.Combine(f.Root,"connections");Fixture.CopyTree(Path.Combine(Fixture.Repo,"examples","edit-workspace"),sample);
  string project=Path.Combine(sample,"project.cpack"),manifest=File.ReadAllText(project).Replace("../../targets/dotnet/pack.cpack","../target/pack.cpack").Replace("../../packs/","../packs/");
  foreach(string name in new[]{"agent","ai-connection","agent-responses","agent-codex","development-tools","pack-workspace","file-stream","schema-editing","edit-workspace","save","change-set"}){Fixture.CopyTree(Path.Combine(Fixture.Repo,"packs",name),Path.Combine(f.Root,"packs",name));string pack=File.ReadAllText(Path.Combine(f.Root,"packs",name,"pack.cpack")).Split(" version ")[0].Replace("pack ","");if(!manifest.Contains("registry "+pack+" "))manifest=manifest.Replace("element Main function","registry "+pack+" \"../packs/"+name+"/pack.cpack\"; dependency "+pack+" version \"0.1.0\";\nelement Main function");}
- File.WriteAllText(Path.Combine(sample,"Counter.celem"),"object Example.EditWorkspace::Counter {value count = 0;}");manifest=manifest.Replace("element Main function","element Counter object \"Counter.celem\"; element Main function");File.WriteAllText(project,manifest);string main=Path.Combine(sample,"main.celem");File.WriteAllText(main,File.ReadAllText(main).Replace(" -> int {"," -> int {provide Confectory.Agent::Provider with Confectory.Agent.Responses::ProviderBody; use object Confectory.Agent.Responses::Connection; use object Confectory.Agent.Codex::Connection;"));
+ File.WriteAllText(Path.Combine(sample,"Counter.celem"),"object Example.EditWorkspace::Counter {value count = 0;}");manifest=manifest.Replace("element Main function","element Counter object \"Counter.celem\"; element Main function");File.WriteAllText(project,manifest);string main=Path.Combine(sample,"main.celem");File.WriteAllText(main,File.ReadAllText(main).Replace(" -> int {"," -> int {use object Confectory.Agent.Responses::Connection; use object Confectory.Agent.Codex::Connection;"));
  File.WriteAllText(Path.Combine(sample,"main_body.celem"),"""
  implementation Example.EditWorkspace::MainBody for Example.EditWorkspace::Main () -> int {
  import Confectory.AIConnection::ValidateReference as Reference (string) -> void;
@@ -16,10 +83,13 @@ public sealed class AIConnectionTests : TestCase
  import Confectory.AIConnection::Discover as Discover (string) -> string;
  import Confectory.AIConnection::SettingsSource as SettingsSource (string,string) -> string;
  import Confectory.Agent.Responses::ValidateConfig as Validate (string) -> string;
- import Confectory.Agent::Provider as Provider (string,string,string,string) -> string;
+ import Confectory.Agent.Responses::Provider as Provider (string,string,string,string) -> string;
  import Confectory.DevelopmentTools::Open as ToolsOpen (string,string,string,string,string) -> string;
  import Confectory.DevelopmentTools::Snapshot as ToolsSnapshot (string) -> string;
  import Confectory.DevelopmentTools::Close as ToolsClose (string) -> void;
+ import Confectory.PackWorkspace::Open as ViewOpen (string,string,string) -> string;
+ import Confectory.PackWorkspace::Command as ViewCommand (string,string,string) -> string;
+ import Confectory.PackWorkspace::Close as ViewClose (string) -> void;
  body common "main.csbody";}
  """);
  File.WriteAllText(Path.Combine(sample,"main.csbody"),"""

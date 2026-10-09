@@ -6,4 +6,5 @@ dependency Confectory.Agent version "0.1.0";
 dependency Confectory.DevelopmentTools version "0.1.0";
 element ValidateConfig function "ValidateConfig.celem"; element ValidateConfigBody implementation "ValidateConfigBody.celem";
 element ProviderBody implementation "ProviderBody.celem";
+element Provider function "Provider.celem"; element AdapterBody implementation "AdapterBody.celem";
 }

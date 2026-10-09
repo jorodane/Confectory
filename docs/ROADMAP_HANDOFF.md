@@ -1,3 +1,5 @@
+Current AI capability/evidence matrix and exact held access boundary: [AI_DEVELOPMENT_STATUS.md](AI_DEVELOPMENT_STATUS.md). This is an intermediate increment; actual Helper/Worker/Augment product composition and live verification remain pending.
+
 # Confectory pack roadmap and handoff
 
 Current authorized branch is **work/current**, main remains unchanged. AI connection declaration/settings UI and project hide/complete-close policy are being integrated on the actual EditorHome entry. Read [current AI/lifetime increment and next stage](AI_CONNECTION_AND_PROJECT_LIFETIME.md); this is not a completed AI development checkpoint. Historical branch/status notes below are not current push instructions.
