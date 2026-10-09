@@ -24,6 +24,12 @@ try:
   page.screenshot(path='/tmp/confectory-ai-browser-responses-settings.png');click('AI settings: Confectory.Agent.Responses::Connection  - Menu');click('Hide project');click('Agent  0');click('Confectory.Agent.Codex::Connection');field(89).wait_for(state='visible')
   # Existing Properties navigation supplies fields from the selected inherited schema.
   assert field(88).input_value()=='["credentialReference"]';click('Next');assert field(88).input_value()=='["executable"]'
-  page.screenshot(path='/tmp/confectory-ai-browser-codex-settings.png');assert not errors,errors
-  browser.close();print('Actual EditorHome browser connection choices / declared Properties / typed draft / Codex fields; no authentication/model call PASS')
+  page.screenshot(path='/tmp/confectory-ai-browser-codex-settings.png')
+  retired=field(89).get_attribute('data-binding');assert retired
+  click('AI settings: Confectory.Agent.Codex::Connection  - Menu');click('Close project')
+  page.wait_for_function('(binding)=>!Array.from(document.querySelectorAll("[data-binding]")).some(el=>el.getAttribute("data-binding")===binding)',arg=retired)
+  click('Agent  0');click('Confectory.Agent.Codex::Connection');field(89).wait_for(state='visible')
+  assert field(89).get_attribute('data-binding')!=retired
+  assert not errors,errors
+  browser.close();print('Actual EditorHome browser connection choices / declared Properties / typed draft / Codex fields / close binding retirement and reopen; no authentication/model call PASS')
 finally:server.shutdown()
