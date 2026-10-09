@@ -13,4 +13,5 @@ element Command function "Command.celem";
 element CommandBody implementation "CommandBody.celem";
 element Close function "Close.celem";
 element CloseBody implementation "CloseBody.celem";
+element BorrowDraft function "BorrowDraft.celem"; element BorrowDraftBody implementation "BorrowDraftBody.celem";
 }

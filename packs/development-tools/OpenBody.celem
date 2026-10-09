@@ -1,0 +1,7 @@
+implementation Confectory.DevelopmentTools::OpenBody for Confectory.DevelopmentTools::Open (string project, string projectId, string namespaceId, string owner, string context) -> string {
+import Confectory.PackWorkspace::Open as OpenView (string, string, string) -> string;
+import Confectory.PackWorkspace::BorrowDraft as Draft (string) -> string;
+import Confectory.PackWorkspace::Close as CloseView (string) -> void;
+import Confectory.EditWorkspace::Read as Read (string, string) -> string[];
+import Confectory.EditWorkspace::List as List (string) -> string[];
+body common "Open.csbody";}

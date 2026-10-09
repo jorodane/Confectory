@@ -1,0 +1,1 @@
+function Confectory.ProjectAI::EnableTasks (string session,string helpers,string[] targets,string[] fields) -> void {provide Confectory.ProjectAI::EnableTasks with Confectory.ProjectAI::EnableTasksBody;}

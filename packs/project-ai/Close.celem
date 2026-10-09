@@ -1,0 +1,1 @@
+function Confectory.ProjectAI::Close (string session) -> void {provide Confectory.ProjectAI::Close with Confectory.ProjectAI::CloseBody;}

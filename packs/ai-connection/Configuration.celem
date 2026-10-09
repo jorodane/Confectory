@@ -1,0 +1,1 @@
+schema Confectory.AIConnection::Configuration { field model single general string; field credentialReference single general string; value editorHelpCredentialReference = "Reference only. Secrets belong to a separately approved credential boundary, never source data."; }

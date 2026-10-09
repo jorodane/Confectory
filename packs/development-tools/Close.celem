@@ -1,0 +1,1 @@
+function Confectory.DevelopmentTools::Close (string capability) -> void {provide Confectory.DevelopmentTools::Close with Confectory.DevelopmentTools::CloseBody;}

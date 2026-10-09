@@ -1,0 +1,3 @@
+implementation Confectory.AIConnection::AuthorizeBody for Confectory.AIConnection::Authorize (string policy,string projectId,string approvals) -> string {
+
+body common "Authorize.csbody";}

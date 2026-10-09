@@ -1,0 +1,7 @@
+implementation Confectory.ProjectAI::EnableTasksBody for Confectory.ProjectAI::EnableTasks (string session,string helpers,string[] targets,string[] fields) -> void {
+import Confectory.WorkerTasks::Open as TasksOpen (string,string,string,string,string) -> string; import Confectory.WorkerTasks::Close as TasksClose (string) -> void;
+import Confectory.PackWorkspace::Open as ViewOpen (string,string,string) -> string; import Confectory.PackWorkspace::BorrowDraft as Draft (string) -> string; import Confectory.PackWorkspace::Close as ViewClose (string) -> void;
+import Confectory.Augment::Open as AugmentOpen (string,string,string,string,string,string[],string[]) -> string; import Confectory.Augment::BindProvider as Bind (string,string,string) -> void; import Confectory.Augment::Close as AugmentClose (string) -> void;
+import Confectory.FileStream::Snapshot as FileSnapshot (string) -> string[];
+import Confectory.EditWorkspace::Read as Read (string,string) -> string[]; import Confectory.SchemaEditing::Inspect as Inspect (string) -> string;
+body common "EnableTasks.csbody";}

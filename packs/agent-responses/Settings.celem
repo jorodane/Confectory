@@ -1,0 +1,1 @@
+schema Confectory.Agent.Responses::Settings extends Confectory.AIConnection::Configuration { field endpoint single general string; field maxRounds single general int; value editorHelpEndpoint = "Exact HTTPS Responses endpoint; HTTP is allowed only for an explicitly approved loopback server."; }

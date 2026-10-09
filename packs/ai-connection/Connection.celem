@@ -1,0 +1,1 @@
+object Confectory.AIConnection::Connection { value configurationSchema = "Confectory.AIConnection::Configuration"; use schema Confectory.AIConnection::Configuration; value role = "ai-connection"; value transport = "unconfigured"; value configuredDoesNotAuthorizeRun = true; value liveVerified = false; data model = ""; data credentialReference = ""; }

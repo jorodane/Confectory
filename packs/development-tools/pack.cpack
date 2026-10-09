@@ -1,0 +1,11 @@
+pack Confectory.DevelopmentTools version "0.1.0" {
+standalone false;
+dependency Confectory.PackWorkspace version "0.1.0";
+dependency Confectory.EditWorkspace version "0.1.0";
+dependency Confectory.SchemaEditing version "0.1.0";
+element Open function "Open.celem"; element OpenBody implementation "OpenBody.celem";
+element Invoke function "Invoke.celem"; element InvokeBody implementation "InvokeBody.celem";
+element Snapshot function "Snapshot.celem"; element SnapshotBody implementation "SnapshotBody.celem";
+element Close function "Close.celem"; element CloseBody implementation "CloseBody.celem";
+element Definitions function "Definitions.celem"; element DefinitionsBody implementation "DefinitionsBody.celem";
+}

@@ -1,0 +1,2 @@
+implementation Confectory.ProjectAI::SnapshotBody for Confectory.ProjectAI::Snapshot (string session) -> string {
+body common "Snapshot.csbody";}

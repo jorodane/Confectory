@@ -1,0 +1,1 @@
+function Confectory.Agent.Responses::ValidateConfig (string config) -> string {provide Confectory.Agent.Responses::ValidateConfig with Confectory.Agent.Responses::ValidateConfigBody;}

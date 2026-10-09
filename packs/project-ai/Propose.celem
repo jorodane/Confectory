@@ -1,0 +1,1 @@
+function Confectory.ProjectAI::Propose (string session,string commandID,string direction,string authorization) -> void {provide Confectory.ProjectAI::Propose with Confectory.ProjectAI::ProposeBody;}

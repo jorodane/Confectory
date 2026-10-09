@@ -1,0 +1,1 @@
+function Confectory.AIConnection::SettingsSource (string project,string connection) -> string {provide Confectory.AIConnection::SettingsSource with Confectory.AIConnection::SettingsSourceBody;}

@@ -1,0 +1,1 @@
+return connection switch{"Confectory.Agent.Responses::Connection"=>calls.Responses.Invoke(config),"Confectory.Agent.Codex::Connection"=>calls.Codex.Invoke(config),_=>throw new ArgumentException("Connection has no selected permission role")};

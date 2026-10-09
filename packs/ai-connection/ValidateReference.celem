@@ -1,0 +1,1 @@
+function Confectory.AIConnection::ValidateReference (string reference) -> void {provide Confectory.AIConnection::ValidateReference with Confectory.AIConnection::ValidateReferenceBody;}

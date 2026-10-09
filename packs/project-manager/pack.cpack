@@ -1,5 +1,6 @@
 pack Confectory.ProjectManager version "0.1.0" {
 standalone false;
+dependency Confectory.FileStream version "0.1.0";
  dependency Confectory.ProjectExecution version "0.1.0";
 element CreateManager function "CreateManager.celem";
 element CreateManagerBody implementation "CreateManagerBody.celem";
@@ -23,4 +24,5 @@ element Launch function "Launch.celem";
 element LaunchBody implementation "LaunchBody.celem";
 element Dispose function "Dispose.celem";
 element DisposeBody implementation "DisposeBody.celem";
+element Identity function "Identity.celem"; element IdentityBody implementation "IdentityBody.celem";
 }

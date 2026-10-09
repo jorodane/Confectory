@@ -1,0 +1,1 @@
+function Confectory.AIConnection::ValidateSettings (string text) -> void {provide Confectory.AIConnection::ValidateSettings with Confectory.AIConnection::ValidateSettingsBody;}

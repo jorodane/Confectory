@@ -1,0 +1,3 @@
+implementation Confectory.ProjectAI::PermissionBody for Confectory.ProjectAI::Permission (string connection,string config) -> string {
+import Confectory.Agent.Responses::Permission as Responses (string) -> string; import Confectory.Agent.Codex::Permission as Codex (string) -> string;
+body common "Permission.csbody";}

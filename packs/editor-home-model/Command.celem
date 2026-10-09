@@ -1,4 +1,5 @@
 function Confectory.EditorHome.Model::Command (string session, string operation, string payload) -> string {
+provide Confectory.ProjectManager::Close with Confectory.ProjectManager::CloseBody;
 provide Confectory.ProjectManager::Open with Confectory.ProjectManager::OpenBody;
 provide Confectory.ProjectExecution::DescribeProject with Confectory.ProjectExecution::DescribeProjectBody;
 provide Confectory.ProjectManager::CreateProject with Confectory.ProjectManager::CreateProjectBody;

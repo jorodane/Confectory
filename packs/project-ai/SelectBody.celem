@@ -1,0 +1,3 @@
+implementation Confectory.ProjectAI::SelectBody for Confectory.ProjectAI::Select (string session,string commandID,string card) -> string {
+import Confectory.Augment::Select as SelectCard (string,string,string,string) -> string;
+body common "Select.csbody";}

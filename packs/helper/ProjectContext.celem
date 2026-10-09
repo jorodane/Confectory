@@ -1,0 +1,1 @@
+function Confectory.Helper::ProjectContext (string store, string helper, string owner, string projectId, bool allowCommon) -> string {provide Confectory.Helper::ProjectContext with Confectory.Helper::ProjectContextBody;}

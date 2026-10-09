@@ -1,0 +1,7 @@
+function Confectory.ProjectManager::Identity (string[] manager,string context) -> string {
+provide Confectory.ProjectManager::Identity with Confectory.ProjectManager::IdentityBody;
+provide Confectory.FileStream::Snapshot with Confectory.FileStream::SnapshotBody;
+provide Confectory.FileStream::Commit with Confectory.FileStream::CommitBody;
+provide Confectory.FileStream::LeasePath with Confectory.FileStream::LeasePathBody;
+provide Confectory.FileStream::WriteAtomic with Confectory.FileStream::WriteAtomicBody;
+description "Explicit open project gets a durable local ID bound to its exact manifest and namespace; copied/moved identity needs explicit rebind.";}

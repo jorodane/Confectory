@@ -1,0 +1,5 @@
+implementation Confectory.ProjectManager::IdentityBody for Confectory.ProjectManager::Identity (string[] manager,string context) -> string {
+import Confectory.ProjectManager::Context as Context (string[],string) -> string[];
+import Confectory.FileStream::Snapshot as Snapshot (string) -> string[];
+import Confectory.FileStream::Commit as Commit (string,string[],string[],string[]) -> string[];
+body common "Identity.csbody";}

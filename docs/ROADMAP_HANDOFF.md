@@ -1,4 +1,8 @@
+Current AI capability/evidence matrix and exact held access boundary: [AI_DEVELOPMENT_STATUS.md](AI_DEVELOPMENT_STATUS.md). This is an intermediate increment; actual Helper/Worker/Augment product composition and live verification remain pending.
+
 # Confectory pack roadmap and handoff
+
+Current authorized branch is **work/current**, main remains unchanged. AI connection declaration/settings UI and project hide/complete-close policy are being integrated on the actual EditorHome entry. Read [current AI/lifetime increment and next stage](AI_CONNECTION_AND_PROJECT_LIFETIME.md); this is not a completed AI development checkpoint. Historical branch/status notes below are not current push instructions.
 
 Latest Linux chooser investigation is on `linux-gtk-chooser-fix`, originally based on pack-DLL commit a36751f. The user subsequently pushed main; fetched origin/main c0ace90 already contains that compiler work and the initial chooser diagnostics. Windows normal operation after pack DLL integration is user-confirmed; no speed measurements or individual input-feature validation were reported. Read [Linux GTK diagnostic handoff](LINUX_GTK_CHOOSER_DIAGNOSTIC.md): strict native tests and actual Home repeated cancel/retry/source/ZIP gates pass, but the historical intermittent chooser failure is **not fixed or closed**. Condition equality and missing historical evidence are explicitly audited. No user Linux QA is required to continue other pack work.
 
@@ -249,3 +253,11 @@ Layout-independent schema View rows, explicit nested/list path replacement, sign
 ## 2026-10-08 actual semantic EditorHome UI continuation
 
 [EditorHome semantic UI](EDITOR_HOME_SEMANTIC_UI.md) connects existing schema View/field/path/call-preflight and authoring commands to the actual common entry. Geometry follows the existing description provisionally and can be replaced later. Continue within work/current; runtime invocation provider policy, final user layout and device/IME acceptance remain separate. Do not create an alternative test page or transfer schema state to a table.
+
+## 2026-10-09 Helper product scope continuation
+
+Actual EditorHome now composes explicit Helper recruitment/selection, current-project memory recording and independent common-memory permission. See [consumer scope and locality ledger](HELPER_PRODUCT_SCOPES.md) and [exact implementation/live boundary](AI_DEVELOPMENT_STATUS.md). Continue on work/current with provider-owned configuration projection and approved async Agent chat/tools/review/build feedback, then original-project close ownership and genuine Augment/Worker/log composition. No live model or account access has occurred; the AI product milestone remains incomplete.
+
+## 2026-10-09 actual AI project composition
+
+[ProjectAI](../packs/project-ai/README.md) now composes approved project chat, scoped tool drafts, original-project lifecycle, genuine-provider three-card proposals/direction, selected ordinary Workers and human reviewed general-source adoption/development log/next proposals into actual Main. The offline fixture deliberately simulates only the provider; actual UI/roles/storage/compiler are exercised. [Verification matrix](AI_DEVELOPMENT_STATUS.md) distinguishes these tests from live account/model/device coverage. Continue on work/current; preserve Android versionCode3/versionName0.1.1 and leave main unchanged. Account setup/live usage/installed Codex verification and browser/Android relay need specific approval. Never silently replay interrupted proposals or Workers, infer legacy memory origin, complete tasks from model prose alone or retarget work with visible selection.

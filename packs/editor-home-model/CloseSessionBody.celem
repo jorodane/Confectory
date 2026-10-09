@@ -3,4 +3,6 @@ import Confectory.EditWorkspace::Close as WorkspaceClose (string) -> void;
 import Confectory.ProjectManager::Dispose as Dispose (string[]) -> void;
 import Confectory.ProjectShell::Close as ShellClose (string) -> void;
 import Confectory.PackWorkspace::Close as PackClose (string) -> void;
+import Confectory.Helper::Close as HelperClose (string) -> void;
+import Confectory.ProjectAI::Close as AIClose (string) -> void;
 body common "CloseSession.csbody"; }

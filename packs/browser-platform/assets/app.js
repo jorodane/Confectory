@@ -16,6 +16,7 @@ function native(a){let h=hosts.get(a.host),p=JSON.parse(a.payload);if(a.operatio
  const el=row.el;if(!row.composing&&el.value!==p.value){el.value=p.value;el.setSelectionRange(Math.min(p.anchor,p.caret),Math.max(p.anchor,p.caret),p.caret<p.anchor?'backward':'forward');}row.args=p;el.placeholder=p.hint;el.disabled=!p.enabled;el.readOnly=p.readonly;el.style.display=p.visible?'block':'none';const [x,y,w,z]=p.bounds;Object.assign(el.style,{left:x+'px',top:y+'px',width:w+'px',height:z+'px'});return snapshot(row);}
  case 'snapshot':return [...h.fields.values()].map(snapshot);
  case 'events':return h.events.splice(0);
+ case 'forget':for(const [key,row] of [...h.fields])if(row.args.binding===p.binding){if(document.activeElement===row.el)row.el.blur();row.held.clear();row.el.remove();h.fields.delete(key);}return{};
  case 'frame':for(const row of h.fields.values())if(!p.shown.includes(row.key)){row.args.visible=false;row.el.style.display='none';}return{};
  case 'focus':{const row=[...h.fields.values()].find(r=>r.args.id===p.id&&r.args.visible);if(row)row.el.focus();else document.activeElement?.blur();return{};}
  case 'clip':{const row=h.fields.get(p.key);if(row){const[x,y,w,z]=row.args.bounds;row.el.style.clipPath=p.regions.length===0?'inset(100%)':`path('${p.regions.reduce((s,v,i,r)=>i%4?s:s+`M${r[i]-x} ${r[i+1]-y}h${r[i+2]}v${r[i+3]}h-${r[i+2]}Z`,'')}')`;}return{};}

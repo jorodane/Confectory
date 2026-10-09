@@ -1,0 +1,1 @@
+function Confectory.Helper::RememberScoped (string store, string helper, string owner, string memoryID, string scope, string projectId, string text) -> void {provide Confectory.Helper::RememberScoped with Confectory.Helper::RememberScopedBody;}

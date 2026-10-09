@@ -1,0 +1,1 @@
+function Confectory.ProjectAI::Permission (string connection,string config) -> string {provide Confectory.ProjectAI::Permission with Confectory.ProjectAI::PermissionBody;}

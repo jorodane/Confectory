@@ -1,0 +1,1 @@
+implementation Confectory.Agent.Responses::ValidateConfigBody for Confectory.Agent.Responses::ValidateConfig (string config) -> string {body common "ValidateConfig.csbody";}

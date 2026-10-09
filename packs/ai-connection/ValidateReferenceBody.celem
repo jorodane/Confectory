@@ -1,0 +1,1 @@
+implementation Confectory.AIConnection::ValidateReferenceBody for Confectory.AIConnection::ValidateReference (string reference) -> void {body common "ValidateReference.csbody";}

@@ -1,5 +1,17 @@
 project Confectory.EditorHome version "0.1.0" {
 standalone true;
+registry Confectory.WorkerTasks "../../packs/worker-tasks/pack.cpack"; dependency Confectory.WorkerTasks version "0.1.0";
+registry Confectory.Augment "../../packs/augment/pack.cpack"; dependency Confectory.Augment version "0.1.0";
+registry Confectory.YogiBox "../../packs/yogi-box/pack.cpack"; dependency Confectory.YogiBox version "0.1.0";
+
+registry Confectory.ProjectAI "../../packs/project-ai/pack.cpack"; dependency Confectory.ProjectAI version "0.1.0";
+registry Confectory.Helper "../../packs/helper/pack.cpack"; dependency Confectory.Helper version "0.1.0";
+registry Confectory.Agent "../../packs/agent/pack.cpack"; dependency Confectory.Agent version "0.1.0";
+registry Confectory.DevelopmentTools "../../packs/development-tools/pack.cpack"; dependency Confectory.DevelopmentTools version "0.1.0";
+registry Confectory.AIConnection "../../packs/ai-connection/pack.cpack"; dependency Confectory.AIConnection version "0.1.0";
+registry Confectory.Agent.Responses "../../packs/agent-responses/pack.cpack"; dependency Confectory.Agent.Responses version "0.1.0";
+registry Confectory.Agent.Codex "../../packs/agent-codex/pack.cpack"; dependency Confectory.Agent.Codex version "0.1.0";
+
 registry Confectory.ChangeSet "../../packs/change-set/pack.cpack"; dependency Confectory.ChangeSet version "0.1.0";
 registry Confectory.PackWorkspace "../../packs/pack-workspace/pack.cpack"; dependency Confectory.PackWorkspace version "0.1.0";
 registry Confectory.SemanticCatalog "../../packs/semantic-catalog/pack.cpack"; dependency Confectory.SemanticCatalog version "0.1.0";

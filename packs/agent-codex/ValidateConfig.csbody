@@ -1,0 +1,8 @@
+if(config.Length>65536)throw new ArgumentException("Configuration bound");
+var value=System.Text.Json.Nodes.JsonNode.Parse(config)!.AsObject();
+foreach(var field in value)if(field.Key is not ("provider" or "protocol" or "executable" or "model" or "credentialReference" or "managedHome"))throw new ArgumentException("Unknown Codex configuration field");
+if(value["provider"]?.ToString()!="codex"||value["protocol"]?.ToString()!="app-server-stdio"||string.IsNullOrWhiteSpace(value["model"]?.ToString()))throw new ArgumentException("Explicit Codex protocol and model required");
+string executable=value["executable"]?.ToString()??"";if(!System.IO.Path.IsPathFullyQualified(executable)||executable.Length>4096||executable.Contains('\n')||executable.Contains('\r'))throw new ArgumentException("Explicit absolute executable required; no PATH discovery or shell arguments");
+string managedHome=value["managedHome"]?.ToString()??"";if(!System.IO.Path.IsPathFullyQualified(managedHome)||managedHome.Length>4096||managedHome==System.IO.Path.GetPathRoot(managedHome))throw new ArgumentException("Explicit approved Codex managed home required; no implicit user home");
+if(value["credentialReference"]?.ToString()!="codex:managed")throw new ArgumentException("Only separately approved Codex managed sign-in is supported");
+return new System.Text.Json.Nodes.JsonObject{["provider"]="codex",["protocol"]="app-server-stdio",["executable"]=executable,["model"]=value["model"]!.DeepClone(),["managedHome"]=managedHome,["credentialReference"]="codex:managed",["clientSupported"]=!OperatingSystem.IsBrowser()&&!OperatingSystem.IsAndroid(),["processStarted"]=false,["credentialRead"]=false}.ToJsonString();

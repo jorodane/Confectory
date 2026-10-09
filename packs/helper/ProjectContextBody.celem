@@ -1,0 +1,3 @@
+implementation Confectory.Helper::ProjectContextBody for Confectory.Helper::ProjectContext (string store, string helper, string owner, string projectId, bool allowCommon) -> string {
+import Confectory.Helper::Command as Command (string, string, string, string) -> string;
+body common "ProjectContext.csbody";}

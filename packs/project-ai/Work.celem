@@ -1,0 +1,1 @@
+function Confectory.ProjectAI::Work (string session,string commandID,string task,string authorization) -> string {provide Confectory.ProjectAI::Work with Confectory.ProjectAI::WorkBody;}

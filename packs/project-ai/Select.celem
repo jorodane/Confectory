@@ -1,0 +1,1 @@
+function Confectory.ProjectAI::Select (string session,string commandID,string card) -> string {provide Confectory.ProjectAI::Select with Confectory.ProjectAI::SelectBody;}

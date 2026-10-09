@@ -1,0 +1,1 @@
+implementation Confectory.PackWorkspace::BorrowDraftBody for Confectory.PackWorkspace::BorrowDraft (string handle) -> string {body common "BorrowDraft.csbody";}

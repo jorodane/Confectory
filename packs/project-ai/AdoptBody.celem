@@ -1,0 +1,5 @@
+implementation Confectory.ProjectAI::AdoptBody for Confectory.ProjectAI::Adopt (string session,string task,string view,string token,string[] ids,string goalEvidence) -> string {
+import Confectory.PackWorkspace::Snapshot as ViewSnapshot (string) -> string; import Confectory.PackWorkspace::Command as ViewCommand (string,string,string) -> string;
+import Confectory.WorkerTasks::Inspect as InspectTask (string,string) -> string; import Confectory.WorkerTasks::Lease as Lease (string,string) -> string; import Confectory.WorkerTasks::Finish as Finish (string,string,long,string,string,string) -> void;
+import Confectory.FileStream::Snapshot as FileSnapshot (string) -> string[]; import Confectory.FileStream::Commit as Commit (string,string[],string[],string[]) -> string[];
+body common "Adopt.csbody";}

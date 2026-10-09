@@ -1,0 +1,1 @@
+implementation Confectory.AIConnection::MaterializeMetadataBody for Confectory.AIConnection::MaterializeMetadata (string directory) -> string {body common "MaterializeMetadata.csbody";}

@@ -1,0 +1,3 @@
+implementation Confectory.Helper::ListBody for Confectory.Helper::List (string store, string owner) -> string {
+import Confectory.Helper::Command as Command (string, string, string, string) -> string;
+body common "List.csbody";}

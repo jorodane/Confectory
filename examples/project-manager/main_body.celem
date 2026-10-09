@@ -15,5 +15,6 @@ import Confectory.ProjectExecution::Stop as ExecutionStop (string[], string) -> 
 import Confectory.ProjectExecution::Observe as ExecutionObserve (string[], string) -> string[];
 import Confectory.ProjectExecution::Poll as ExecutionPoll (string[]) -> string[];
 import Confectory.ProjectExecution::Dispose as ExecutionDispose (string[]) -> void;
+import Confectory.ProjectManager::Identity as Identity (string[],string) -> string;
 body common "main.csbody";
 }

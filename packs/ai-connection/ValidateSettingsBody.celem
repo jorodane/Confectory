@@ -1,0 +1,1 @@
+implementation Confectory.AIConnection::ValidateSettingsBody for Confectory.AIConnection::ValidateSettings (string text) -> void {import Confectory.SchemaEditing::Inspect as Inspect (string) -> string; import Confectory.AIConnection::ValidateReference as Reference (string) -> void; body common "ValidateSettings.csbody";}

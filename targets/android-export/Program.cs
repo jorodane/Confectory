@@ -23,6 +23,7 @@ var registry=builder.Registry;
 var statistics=builder.Statistics;
 var plan=new Planner(registry,"android").Plan();
 var entry=registry.Project.Entry!;
+string linkedCatalog=report["publicCatalog"]?.GetValue<string>()??throw new InvalidOperationException("Public linkage metadata resource missing");
 Directory.CreateDirectory(output);string generated=Path.Combine(output,"Generated");Directory.CreateDirectory(generated);
 if(packageSdk is not null)File.WriteAllText(Path.Combine(output,"global.json"),JsonSerializer.Serialize(new{sdk=new{version=packageSdk,rollForward="latestPatch",allowPrerelease=false}}));
 var contracts=plan.Bindings.Values.Select(x=>x.Function).Concat(plan.Implementations.Values.Select(x=>x.Function!)).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
@@ -53,6 +54,8 @@ string core=typeof(Parser).Assembly.Location;File.Copy(core,Path.Combine(managed
 if(!references.Contains("Confectory.Core.dll"))references.Add("Confectory.Core.dll");
 string projectText=File.ReadAllText(Path.Combine(templateRoot,"App.csproj.template"));
 projectText=settings.Apply(projectText);
+File.Copy(linkedCatalog,Path.Combine(output,"public-linkage.json"));
+projectText=projectText.Replace("</Project>","<ItemGroup><EmbeddedResource Include=\"public-linkage.json\"><LogicalName>public-linkage.json</LogicalName></EmbeddedResource></ItemGroup></Project>",StringComparison.Ordinal);
 string referenceItems=string.Join("\n",references.Select(name=>$"<Reference Include=\"{Path.GetFileNameWithoutExtension(name)}\"><HintPath>Managed/{name}</HintPath></Reference>"));
 File.WriteAllText(Path.Combine(output,"Confectory.Android.csproj"),projectText.Replace("</Project>","<ItemGroup>\n"+referenceItems+"\n</ItemGroup>\n</Project>",StringComparison.Ordinal));
 File.WriteAllText(Path.Combine(output,"export-report.json"),JsonSerializer.Serialize(new{kind="android-source-export",managedCompiled=true,androidAppCompiled=false,apkProduced=false,project=registry.Project.Namespace,entry,bodySelections=selections,contracts,statistics},JsonData.Options));

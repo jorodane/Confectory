@@ -1,0 +1,3 @@
+implementation Confectory.DevelopmentTools::CloseBody for Confectory.DevelopmentTools::Close (string capability) -> void {
+import Confectory.PackWorkspace::Close as CloseView (string) -> void;
+body common "Close.csbody";}

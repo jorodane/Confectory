@@ -1,0 +1,1 @@
+function Confectory.ProjectAI::Open (string project, string projectId, string namespaceId, string helperContext, string config) -> string {provide Confectory.ProjectAI::Open with Confectory.ProjectAI::OpenBody;}

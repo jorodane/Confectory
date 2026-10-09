@@ -1,0 +1,1 @@
+function Confectory.ProjectAI::Poll (string session) -> string {provide Confectory.ProjectAI::Poll with Confectory.ProjectAI::PollBody;}

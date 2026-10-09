@@ -1,0 +1,3 @@
+implementation Confectory.ProjectAI::StartBody for Confectory.ProjectAI::Start (string session, string requestID, string message, string authorization) -> string {
+import Confectory.Agent::Open as AgentOpen (string) -> string; import Confectory.Agent::Start as AgentStart (string,string,string) -> string; import Confectory.Agent::Close as AgentClose (string) -> void;
+body common "Start.csbody";}

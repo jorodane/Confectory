@@ -1,0 +1,1 @@
+function Confectory.ProjectAI::Adopt (string session,string task,string view,string token,string[] ids,string goalEvidence) -> string {provide Confectory.ProjectAI::Adopt with Confectory.ProjectAI::AdoptBody;}
