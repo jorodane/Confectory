@@ -39,6 +39,12 @@ public sealed class ProjectShellTests : TestCase
         string consumer=Consumer("editor-home"),project=Path.Combine(consumer,"project.cpack");var built=new Builder(project,"linux").Build();OptionalExcluded(built);string report=Path.Combine(f.Root,"retained windows.json");File.WriteAllText(report,built.ToJsonString());
         var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests","gui","editor_home_windows_x11.py"),report},timeoutSeconds:180);True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("Actual EditorHome retained windows"));
     }
+    public void test_actual_editor_home_v180_scoped_inputs_and_schema_navigation()
+    {
+        if(string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DISPLAY"))){Skip("scoped editor inputs: no actual DISPLAY");}
+        string consumer=Consumer("editor-home"),project=Path.Combine(consumer,"project.cpack");var built=new Builder(project,"linux").Build();OptionalExcluded(built);string report=Path.Combine(f.Root,"v180 connections.json");File.WriteAllText(report,built.ToJsonString());
+        var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests","gui","editor_home_v180_connections_x11.py"),report},timeoutSeconds:240);True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("Production EditorHome scoped Helper/direction inputs"));
+    }
     public void test_project_shell_windows_and_android_managed_compile()
     {
         string consumer=Consumer("editor-home"),project=Path.Combine(consumer,"project.cpack");var built=new Builder(project,"windows").Build();True(built["tool"]!["ok"]!.GetValue<bool>());OptionalExcluded(built);var android=new Builder(project,"android");var managed=android.Build();True(managed["tool"]!["ok"]!.GetValue<bool>());OptionalExcluded(managed);var plan=new Planner(android.Registry,"android").Plan();True(plan.Implementations["Confectory.EditorHome::MainBody"].Bodies.ContainsKey("common")&&!plan.Implementations["Confectory.EditorHome::MainBody"].Bodies.ContainsKey("android"),"Android must execute the actual common EditorHome controller rather than an alternate product shell");True(plan.Implementations["Confectory.HostLoop::RunBody"].Bodies.ContainsKey("android"),"Android is missing its platform host loop provider");True(plan.Implementations["Confectory.EditorHome.Model::CreateSessionBody"].Bodies.ContainsKey("android"),"Shared model lost Android CreateSession selection");
