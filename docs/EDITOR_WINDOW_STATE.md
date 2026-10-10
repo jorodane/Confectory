@@ -1,5 +1,9 @@
 # Retained EditorHome window state
 
+The later [layout batch](EDITOR_LAYOUT_BATCH.md) bounds working panels above chat and adds responsive proposal columns/paging; older overlap/layout limitations below describe the earlier increment.
+
+The later [multiple-view connection](EDITOR_MULTIPLE_VIEWS.md) extends this foundation with three additional owned source/selected-field windows. The single-workspace limitation below describes the original increment.
+
 This increment connects the existing actual `examples/editor-home` Main to the public UIOrder/WindowPlacement contracts. It does not implement the Sites visual layout. The reference URL failed through the environment proxy (403 / Chromium ERR_TUNNEL_CONNECTION_FAILED). Official Library materialization to the consumer-local destination also failed (`download failed`); no screenshot bytes were obtained or inspected. No archive/download bypass was attempted.
 
 ## Behavior
