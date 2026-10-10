@@ -1,5 +1,7 @@
 # Multiple owned editor views
 
+The later [layout batch](EDITOR_LAYOUT_BATCH.md) bounds working panels above chat and adds responsive proposal columns/paging; older overlap/layout limitations below describe the earlier increment.
+
 This continuation starts from verified `work/current` 3d741de, with main a4418ec preserved. It implements behavior through existing public PackWorkspace, UIOrder/WindowPlacement, BaseUI controls and native text roles. No v180 artwork or unobserved geometry is invented.
 
 ## Consumer connections

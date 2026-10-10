@@ -45,6 +45,12 @@ public sealed class ProjectShellTests : TestCase
         string consumer=Consumer("editor-home"),project=Path.Combine(consumer,"project.cpack");var built=new Builder(project,"linux").Build();OptionalExcluded(built);string report=Path.Combine(f.Root,"v180 connections.json");File.WriteAllText(report,built.ToJsonString());
         var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests","gui","editor_home_v180_connections_x11.py"),report},timeoutSeconds:240);True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("Production EditorHome scoped Helper/direction inputs"));
     }
+    public void test_actual_editor_home_bounded_panels_and_responsive_layout()
+    {
+        if(string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DISPLAY"))){Skip("Editor layout GUI: no actual DISPLAY");}
+        string consumer=Consumer("editor-home"),project=Path.Combine(consumer,"project.cpack");var built=new Builder(project,"linux").Build();OptionalExcluded(built);string report=Path.Combine(f.Root,"editor layout.json");File.WriteAllText(report,built.ToJsonString());
+        var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests","gui","editor_home_layout_x11.py"),report},timeoutSeconds:240);True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("Actual EditorHome bounded Helper/chat/Dock"));
+    }
     public void test_actual_editor_home_multiple_object_views_share_drafts()
     {
         if(string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DISPLAY"))){Skip("multiple editor views: no actual DISPLAY");}

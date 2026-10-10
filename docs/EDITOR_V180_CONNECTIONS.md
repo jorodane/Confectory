@@ -1,5 +1,7 @@
 # v180 consumer connections
 
+The later [layout batch](EDITOR_LAYOUT_BATCH.md) bounds working panels above chat and adds responsive proposal columns/paging; older overlap/layout limitations below describe the earlier increment.
+
 ## Source and ownership
 
 The 2026-10-10 continuation starts at `work/current` 5c3a4ce. Remote main a4418ec has the same tree. The initial local b5ea38c was not used as the implementation baseline. No AGENTS.md or .agents/skills exists in this checkout.
