@@ -32,12 +32,14 @@ python3 tests/web/editor_home_windows.py /tmp/layout-browser.json
 
 ## Windows check at home
 
-1. In a clean checkout, fetch `origin` and fast-forward `work/current` to the commit reported with this batch. Preserve any local edits; do not reset them. Double-click the existing `run-editor-windows.bat` with the repository's required .NET 10 SDK available. This batch does not change the launcher or install anything on your PC.
+Use `run-home-windows.bat` for this layout batch. `run-editor-windows.bat` launches the separate older `examples/editor/project.cpack` consumer (Agent Manager / Offline local mode / Source, Properties and Elements); that screen cannot validate these EditorHome changes. The earlier launcher/log recommendation was incorrect; the implementation and recorded validation target remain `examples/editor-home/project.cpack`.
+
+1. In a clean checkout, fetch `origin` and fast-forward `work/current` to the commit reported with this batch. Preserve any local edits; do not reset them. Double-click the existing `run-home-windows.bat` (which runs `examples/editor-home/project.cpack`) with the repository's required .NET 10 SDK available. This batch does not change the launcher or install anything on your PC.
 2. Create/open a disposable project, open a source, and choose/create a Helper through the left participant rail. Type different text into project chat and the Helper message. Resize between approximately 1200×900, 960×700 and 640×520; both drafts and the Helper Close button should remain usable without overlap.
 3. Open Augment. Without an AI connection, the three empty slots are explicitly placeholders. Wide layout shows three columns; narrow layout pages through Proposal 1/2/3 without a request. Real generation still requires the existing separate review/approval; it is not necessary for this layout check.
 4. Move/fold/reopen a working window, use Source/Properties and the existing object/schema navigation, and hide/reopen the project. Verify retained input and the separate Save draft → Review → Confirm boundary. Do not Confirm test changes into a project you want to preserve.
 
-If launch or native behavior differs, retain `.confectory/editor-launch.log` and the viewport size/action sequence. Managed compilation here does not substitute for Windows runtime acceptance.
+If launch or native behavior differs, retain `.confectory/home-launch.log` and the viewport size/action sequence. Managed compilation here does not substitute for Windows runtime acceptance.
 
 ## Remaining limits
 
