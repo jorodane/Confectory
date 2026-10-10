@@ -21,11 +21,13 @@ try:
   page.goto('http://127.0.0.1:'+str(server.server_port),wait_until='networkidle');click('Later');click('New');field(10).fill('BrowserWindows');click('Create');click('Edit sources');field(54).wait_for(state='visible')
   field(54).fill('return 0; // retained browser draft');click('Save draft');before=field(54).get_attribute('data-binding');content=field(54).input_value()
   # The existing workspace's eight-pixel top inset is its ordinary drag handle.
+  # Use the normal immediate double-click; added per-event delay can stretch
+  # beyond the 400ms production gesture threshold on a busy wasm runtime.
   box=field(54).bounding_box();x=box['x']+12;y=69
-  page.mouse.dblclick(x,y,delay=65);expect(field(54)).to_have_count(0);q=point('Double-click to expand')
+  page.mouse.dblclick(x,y,delay=0);expect(field(54)).to_have_count(0);q=point('Double-click to expand')
   page.mouse.move(q['x']+12,q['y']);page.mouse.down();page.mouse.move(q['x']+12,q['y']+40,steps=8);page.mouse.up();page.wait_for_timeout(200)
   moved=point('Double-click to expand');assert moved['y']>q['y']+25
-  page.mouse.dblclick(moved['x']+12,moved['y'],delay=65);field(54).wait_for(state='visible');assert field(54).get_attribute('data-binding')==before and field(54).input_value()==content
+  page.mouse.dblclick(moved['x']+12,moved['y'],delay=0);field(54).wait_for(state='visible');assert field(54).get_attribute('data-binding')==before and field(54).input_value()==content
   click('BrowserWindows  - Menu');click('Hide project');click('Open');click('Edit sources');field(54).wait_for(state='visible');assert field(54).get_attribute('data-binding')==before and field(54).input_value()==content
   page.set_viewport_size({'width':600,'height':550});page.wait_for_timeout(250);page.set_viewport_size({'width':1200,'height':1050});field(54).wait_for(state='visible');assert field(54).input_value()==content
   page.screenshot(path='/tmp/confectory-browser-retained-windows.png');assert not errors,errors

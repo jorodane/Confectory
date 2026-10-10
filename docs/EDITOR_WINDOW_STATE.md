@@ -1,5 +1,7 @@
 # Retained EditorHome window state
 
+The later [multiple-view connection](EDITOR_MULTIPLE_VIEWS.md) extends this foundation with three additional owned source/selected-field windows. The single-workspace limitation below describes the original increment.
+
 This increment connects the existing actual `examples/editor-home` Main to the public UIOrder/WindowPlacement contracts. It does not implement the Sites visual layout. The reference URL failed through the environment proxy (403 / Chromium ERR_TUNNEL_CONNECTION_FAILED). Official Library materialization to the consumer-local destination also failed (`download failed`); no screenshot bytes were obtained or inspected. No archive/download bypass was attempted.
 
 ## Behavior

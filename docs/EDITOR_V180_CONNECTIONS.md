@@ -22,6 +22,8 @@ This increment changes the production `Confectory.EditorHome::MainBody` consumer
 
 ## Remaining scope
 
+A later [multiple-view increment](EDITOR_MULTIPLE_VIEWS.md) connects additional simultaneous source and selected-field views to the same draft. The visual limitations below remain; the single-workspace statement describes this original increment.
+
 The v180 visual port is not complete. Neutral/gold styling, Helper artwork, exact title-bar layout, arbitrary simultaneous object/compound editors and three side-by-side proposal cards remain unimplemented. Full responsive panel scrolling/workarea sizing and long-label fit are still incomplete; the current tall Helper panel can overlap the chat/Dock. These are not claimed as v180 visual acceptance. The existing central workspace/menu windows and input bindings remain retained. The new schema navigation uses the existing single workspace; it does not claim simultaneous parent/child editing windows.
 
 Helper profile mutation, global conversation lifetime, reroll costs/hold policy, reporting recipients, YogiBox delivery, automatic data migration/merge and new persistent layout policy remain undecided and unchanged. Real accounts/models, user PC changes, native Windows/Android device execution and Sites edits/deployment remain deferred.
