@@ -12,6 +12,9 @@ element Close function "Close.celem"; element CloseBody implementation "CloseBod
 element Configuration function "Configuration.celem"; element ConfigurationBody implementation "ConfigurationBody.celem";
 element Provider implementation "Provider.celem";
 dependency Confectory.WorkerTasks version "0.1.0"; dependency Confectory.Augment version "0.1.0"; dependency Confectory.PackWorkspace version "0.1.0";
+element AdoptionStatus function "AdoptionStatus.celem"; element AdoptionStatusBody implementation "AdoptionStatusBody.celem";
+element ReconcileAdoption function "ReconcileAdoption.celem"; element ReconcileAdoptionBody implementation "ReconcileAdoptionBody.celem";
+element PrepareRecovery function "PrepareRecovery.celem"; element PrepareRecoveryBody implementation "PrepareRecoveryBody.celem";
 element EnableTasks function "EnableTasks.celem"; element EnableTasksBody implementation "EnableTasksBody.celem";
 element Propose function "Propose.celem"; element ProposeBody implementation "ProposeBody.celem";
 element Select function "Select.celem"; element SelectBody implementation "SelectBody.celem";
@@ -19,4 +22,5 @@ element Work function "Work.celem"; element WorkBody implementation "WorkBody.ce
 element AugmentProvider implementation "AugmentProvider.celem";
 dependency Confectory.FileStream version "0.1.0"; element Adopt function "Adopt.celem"; element AdoptBody implementation "AdoptBody.celem"; element VerifyCompletion implementation "VerifyCompletion.celem";
 element Permission function "Permission.celem"; element PermissionBody implementation "PermissionBody.celem";
+element CancelWork function "CancelWork.celem"; element CancelWorkBody implementation "CancelWorkBody.celem";
 }

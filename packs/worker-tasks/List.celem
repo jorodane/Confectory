@@ -1,0 +1,1 @@
+function Confectory.WorkerTasks::List (string session) -> string {provide Confectory.WorkerTasks::List with Confectory.WorkerTasks::ListBody;}

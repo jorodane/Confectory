@@ -1,2 +1,7 @@
 implementation Confectory.DevelopmentTools::SnapshotBody for Confectory.DevelopmentTools::Snapshot (string capability) -> string {
+import Confectory.EditWorkspace::List as List (string) -> string[];
+import Confectory.EditWorkspace::Status as Status (string,string) -> string[];
+import Confectory.EditWorkspace::Read as Read (string,string) -> string[];
+import Confectory.FileStream::BrowseDirectory as Browse (string,int,int) -> string[]; import Confectory.FileStream::Snapshot as FileSnapshot (string) -> string[];
+import Confectory.EditWorkspace::Identity as Identity (string) -> string[];
 body common "Snapshot.csbody";}

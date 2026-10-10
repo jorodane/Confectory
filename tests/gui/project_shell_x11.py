@@ -91,7 +91,7 @@ repo=os.path.abspath(os.path.join(os.path.dirname(__file__),'../..'))
 storage=tempfile.mkdtemp(prefix='confectory-project-shell-gui-')
 for n in range(10):os.mkdir(os.path.join(storage,f'Folder{n:02d}'))
 log_path=os.path.join(storage,'native.log')
-env=os.environ.copy();env.update(CONFECTORY_EDITOR_REPO=repo,CONFECTORY_HOME_STORAGE=storage,CONFECTORY_HOME_TRACE='1',CONFECTORY_ELEMENT_AUTHORING_HOST=os.path.join(repo,'targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll'))
+env=os.environ.copy();env.update(CONFECTORY_EDITOR_REPO=repo,CONFECTORY_HOME_STORAGE=storage,CONFECTORY_ENTRY_STORAGE=os.path.join(storage,'entry'),CONFECTORY_HOME_TRACE='1',CONFECTORY_ELEMENT_AUTHORING_HOST=os.path.join(repo,'targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll'))
 folder_request=os.path.join(storage,'folder-request.txt');os_helper=os.path.join(storage,'os-helper');os.mkdir(os_helper)
 with open(os.path.join(os_helper,'xdg-open'),'w') as stream:stream.write('#!/bin/sh\nprintf "%s\\n" "$1" > '+shlex.quote(folder_request)+'\n')
 os.chmod(os.path.join(os_helper,'xdg-open'),0o700);env['PATH']=os_helper+os.pathsep+env.get('PATH','')
@@ -107,14 +107,27 @@ def launch():
     launch_count+=1
     log=open(log_path,'w',encoding='utf-8');app=subprocess.Popen(report['run'],cwd=repo,env=env,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
     return await_window(b'Confectory - Projects')
+_trace_offset=0
+_trace_latest=None
+_trace_path=None
+_trace_generation=0
 def latest():
-    value=None
+    global _trace_offset,_trace_latest,_trace_path,_trace_generation
+    # Consume complete new records; rereading large provenance traces can miss live input timing.
+    current=(log_path,os.stat(log_path).st_ino)
+    if current!=_trace_path or os.path.getsize(log_path)<_trace_offset:
+        _trace_offset=0;_trace_latest=None;_trace_path=current;_trace_generation=0
     with open(log_path,encoding='utf-8') as stream:
-        for line in stream:
+        stream.seek(_trace_offset)
+        while True:
+            before=stream.tell();line=stream.readline()
+            if not line:break
+            if not line.endswith('\n'):stream.seek(before);break
+            _trace_offset=stream.tell()
             if line.startswith('HOME_UI '):
-                try:value=json.loads(line[8:])
+                try:_trace_latest=json.loads(line[8:]);_trace_generation+=1
                 except json.JSONDecodeError:pass
-    return value
+    return _trace_latest
 
 def wait(predicate,message,seconds=30):
     end=time.monotonic()+seconds
@@ -126,17 +139,17 @@ def wait(predicate,message,seconds=30):
     raise AssertionError(message+' '+str(latest()))
 def click(window,id):
     raise_window(display,window);flush(display)
-    state=wait(lambda t:id in t['hits'][::5],f'Control {id} unavailable')
+    state=wait(lambda t:id in t['hits'][::5] and (not t['job'] or t.get('operation')=='poll') and not t.get('queuedAction',0),f'Control {id} unavailable');before_trace=_trace_generation
     field=state.get('fields',{}).get(str(id))
     if isinstance(field,str):field=json.loads(field)
     if field and field.get('native'):
-        native_controls.click(int(field['nativeHandle']),min(50,field['bounds'][2]//2),field['bounds'][3]//2);wait(lambda t:t['focus']==id,'native pointer focus');return
+        native_controls.click(int(field['nativeHandle']),min(50,field['bounds'][2]//2),field['bounds'][3]//2);wait(lambda t:_trace_generation>before_trace and t['focus']==id and (not t['job'] or t.get('operation')=='poll'),'native pointer focus');return
     n=state['hits'][::5].index(id)*5;_,x,y,w,h=state['hits'][n:n+5]
     for kind in (4,5):
         event=Event(kind,0,1,display,window,root,0,100,x+w//2,y+h//2,0,0,0,1,1)
         buf=c.create_string_buffer(192);c.memmove(buf,c.byref(event),c.sizeof(event));assert send(display,window,0,0,buf)
         flush(display);time.sleep(.04)
-    time.sleep(.15)
+    wait(lambda t:_trace_generation>before_trace and not t.get('pointer',0) and not t.get('queuedAction',0) and (not t['job'] or t.get('operation')=='poll'),'pointer action acknowledgement',seconds=90)
 def leave_project(window):
     click(window,33);wait(lambda t:t['model']['shell']['menu']=='project','project menu')
     click(window,15)

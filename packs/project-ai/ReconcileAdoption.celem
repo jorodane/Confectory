@@ -1,0 +1,1 @@
+function Confectory.ProjectAI::ReconcileAdoption (string session,string task,string receipt,string fingerprint) -> string {provide Confectory.ProjectAI::ReconcileAdoption with Confectory.ProjectAI::ReconcileAdoptionBody;}

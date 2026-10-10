@@ -1,3 +1,5 @@
 implementation Confectory.ProjectAI::WorkBody for Confectory.ProjectAI::Work (string session,string commandID,string task,string authorization) -> string {
 import Confectory.WorkerTasks::Start as WorkerStart (string,string,long,string,string,string,string) -> string; import Confectory.WorkerTasks::Lease as Lease (string,string) -> string; import Confectory.Agent::Open as AgentOpen (string) -> string; import Confectory.Agent::Close as AgentClose (string) -> void;
+import Confectory.WorkerTasks::Inspect as InspectTask (string,string) -> string;
+import Confectory.DevelopmentTools::Open as ToolsOpen (string,string,string,string,string) -> string; import Confectory.DevelopmentTools::BindOrigin as BindOrigin (string,string,string,string) -> void; import Confectory.DevelopmentTools::Close as ToolsClose (string) -> void;
 body common "Work.csbody";}

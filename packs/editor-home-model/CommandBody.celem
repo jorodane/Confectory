@@ -21,6 +21,8 @@ import Confectory.ProjectManager::PlanCreation as PlanCreation (string, string) 
 import Confectory.PackWorkspace::Open as PackOpen (string,string,string) -> string;
 import Confectory.PackWorkspace::Command as PackCommand (string,string,string) -> string;
 import Confectory.PackWorkspace::Snapshot as PackSnapshot (string) -> string;
+import Confectory.PackWorkspace::BorrowDraft as ProposalDraft (string) -> string;
+import Confectory.EditWorkspace::Read as ProposalRead (string,string) -> string[];
 import Confectory.FileStream::ArchiveSourceTexts as Archive (string,string[],string[]) -> string[];
 import Confectory.ProjectExecution::Capabilities as ExecutionCapabilities () -> string[];
 import Confectory.ProjectExecution::LaunchConfigured as LaunchConfigured (string[],string,string,string,string[],string[]) -> string;
@@ -49,6 +51,9 @@ import Confectory.ProjectAI::Close as AIClose (string) -> void;
 import Confectory.ProjectAI::EnableTasks as EnableTasks (string,string,string[],string[]) -> void;
 import Confectory.ProjectAI::Propose as Propose (string,string,string,string) -> void;
 import Confectory.ProjectAI::Select as SelectCard (string,string,string) -> string;
+import Confectory.ProjectAI::CancelWork as CancelWork (string,string,string) -> void;
 import Confectory.ProjectAI::Work as WorkTask (string,string,string,string) -> string;
 import Confectory.ProjectAI::Adopt as AdoptTask (string,string,string,string,string[],string) -> string;
+import Confectory.ProjectAI::PrepareRecovery as PrepareRecovery (string,string,string) -> string;
+import Confectory.ProjectAI::AdoptionStatus as AdoptionStatus (string,string) -> string; import Confectory.ProjectAI::ReconcileAdoption as ReconcileAdoption (string,string,string,string) -> string;
 body common "Command.csbody"; }

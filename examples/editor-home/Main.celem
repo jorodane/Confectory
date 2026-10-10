@@ -6,6 +6,8 @@ provide Confectory.YogiBox::Exactly with Confectory.YogiBox::ExactlyBody;
 provide Confectory.WorkerTasks::VerifyCompletion with Confectory.ProjectAI::VerifyCompletion;
 provide Confectory.WorkerTasks::Finish with Confectory.WorkerTasks::FinishBody;
 provide Confectory.WorkerTasks::Cancel with Confectory.WorkerTasks::CancelBody;
+provide Confectory.ProjectAI::AdoptionStatus with Confectory.ProjectAI::AdoptionStatusBody;
+provide Confectory.ProjectAI::ReconcileAdoption with Confectory.ProjectAI::ReconcileAdoptionBody;
 provide Confectory.ProjectAI::Adopt with Confectory.ProjectAI::AdoptBody;
 
 provide Confectory.Augment::Provider with Confectory.ProjectAI::AugmentProvider;
@@ -13,6 +15,8 @@ provide Confectory.ProjectAI::EnableTasks with Confectory.ProjectAI::EnableTasks
 provide Confectory.ProjectAI::Propose with Confectory.ProjectAI::ProposeBody;
 provide Confectory.ProjectAI::Select with Confectory.ProjectAI::SelectBody;
 provide Confectory.ProjectAI::Work with Confectory.ProjectAI::WorkBody;
+provide Confectory.ProjectAI::CancelWork with Confectory.ProjectAI::CancelWorkBody;
+provide Confectory.WorkerTasks::List with Confectory.WorkerTasks::ListBody;
 provide Confectory.WorkerTasks::Open with Confectory.WorkerTasks::OpenBody;
 provide Confectory.WorkerTasks::Command with Confectory.WorkerTasks::CommandBody;
 provide Confectory.WorkerTasks::Context with Confectory.WorkerTasks::ContextBody;
@@ -180,4 +184,6 @@ provide Confectory.ProjectManager::Executions with Confectory.ProjectManager::Ex
 provide Confectory.ProjectExecution::Observe with Confectory.ProjectExecution::ObserveBody;
 provide Confectory.ProjectExecution::Output with Confectory.ProjectExecution::OutputBody;
 provide Confectory.ProjectShell::Close with Confectory.ProjectShell::CloseBody;
+provide Confectory.DevelopmentTools::BindOrigin with Confectory.DevelopmentTools::BindOriginBody;
+provide Confectory.ProjectAI::PrepareRecovery with Confectory.ProjectAI::PrepareRecoveryBody;
 }

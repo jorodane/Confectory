@@ -181,7 +181,7 @@ try:
     click(a,44);state=wait(lambda t:t['model']['shell']['navigation']=='main' and 45 in t['hits'][::5],'Navigate while report open');assert state['model']['shell']['menu']=='grievance'
     click(a,43);state=wait(lambda t:t['model']['shell']['menu']=='grievance' and not t['navigationPanel'],'Navigate to report in one click')
     # Opaque report body must not route a pointer into underlying root controls.
-    before=state['model']['shell']['tab'];p=next(row for row in state['orderFrame']['windows'] if row['id']==2)['bounds'];x,y=p[0]+p[2]-12,p[1]+20
+    before=state['model']['shell']['tab'];p=next(row for row in state['orderFrame']['windows'] if row['id']==13)['bounds'];x,y=p[0]+p[2]-12,p[1]+20
     for kind in (4,5):
         event=Event(kind,0,1,display,a,root,0,100,x,y,0,0,0,1,1);buf=c.create_string_buffer(192);c.memmove(buf,c.byref(event),c.sizeof(event));assert send(display,a,0,0,buf)
     flush(display);time.sleep(.3);assert latest()['model']['shell']['tab']==before and latest()['model']['shell']['menu']=='grievance'

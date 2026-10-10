@@ -23,6 +23,7 @@ provide Confectory.WorkerTasks::Close with Confectory.WorkerTasks::CloseBody;
 provide Confectory.WorkerTasks::Command with Confectory.WorkerTasks::CommandBody;
 provide Confectory.WorkerTasks::Detach with Confectory.WorkerTasks::DetachBody;
 provide Confectory.WorkerTasks::Handoff with Confectory.WorkerTasks::HandoffBody;
+provide Confectory.WorkerTasks::List with Confectory.WorkerTasks::ListBody;
 provide Confectory.WorkerTasks::Inspect with Confectory.WorkerTasks::InspectBody;
 provide Confectory.WorkerTasks::Journal with Confectory.WorkerTasks::JournalBody;
 provide Confectory.WorkerTasks::Lease with Confectory.WorkerTasks::LeaseBody;
