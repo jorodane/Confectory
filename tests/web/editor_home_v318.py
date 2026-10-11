@@ -1,22 +1,22 @@
-import json,os,pathlib,subprocess,tempfile,time,shutil,sys,http.server,threading,zipfile
+import json,os,pathlib,subprocess,tempfile,time,shutil,sys,http.server,threading,zipfile,signal
 from playwright.sync_api import sync_playwright,expect
 repo=pathlib.Path(sys.argv[1]).resolve();report=json.load(open(sys.argv[2]));root=pathlib.Path(tempfile.mkdtemp(prefix='confectory-v318-home-'))
 project=root/'ordinary-button-game';shutil.copytree(repo/'examples/button-game',project,ignore=shutil.ignore_patterns('.confectory'));manifest=project/'project.cpack';manifest.write_text(manifest.read_text().replace('../../',str(repo)+'/'))
 before={str(p.relative_to(project)):p.read_bytes() for p in project.rglob('*') if p.is_file()}
 env=os.environ.copy();env.update(CONFECTORY_UI='web',CONFECTORY_EDITOR_REPO=str(repo),CONFECTORY_HOME_STORAGE=str(root/'storage'),CONFECTORY_ENTRY_STORAGE=str(root/'storage'),CONFECTORY_WEB_PROJECT=str(manifest),PATH=str(pathlib.Path(env.get('CONFECTORY_DOTNET','dotnet')).parent)+os.pathsep+env['PATH'])
 def start(n):
- log=root/f'host-{n}.log';stream=log.open('w');host=subprocess.Popen(report['run'],cwd=repo,env=env,stdout=stream,stderr=subprocess.STDOUT)
+ log=root/f'host-{n}.log';stream=log.open('w');host=subprocess.Popen(report['run'],cwd=repo,env=env,stdout=stream,stderr=subprocess.STDOUT,start_new_session=True)
  deadline=time.monotonic()+60
  while time.monotonic()<deadline:
   for line in log.read_text().splitlines():
    if line.startswith('CONFECTORY_WEB_UI '):return host,stream,line.split(' ',1)[1]
   if host.poll() is not None:raise AssertionError(log.read_text())
   time.sleep(.1)
- host.terminate();raise AssertionError(log.read_text())
+ os.killpg(host.pid,signal.SIGTERM);host.wait(timeout=10);stream.close();raise AssertionError(log.read_text())
 def stop(host,stream):
- host.terminate()
+ os.killpg(host.pid,signal.SIGTERM)
  try:host.wait(timeout=10)
- except subprocess.TimeoutExpired:host.kill();host.wait()
+ except subprocess.TimeoutExpired:os.killpg(host.pid,signal.SIGKILL);host.wait()
  stream.close()
 reference=root/'reference';zipfile.ZipFile(repo/'reference/site-ui/Confectory-Editor-Prototype-v318.zip').extractall(reference)
 class Static(http.server.SimpleHTTPRequestHandler):
