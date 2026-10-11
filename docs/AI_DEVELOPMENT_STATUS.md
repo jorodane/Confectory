@@ -1,3 +1,7 @@
+# Declaration description form follow-up
+
+[Description form and name decision](DECLARATION_DESCRIPTION_FORM.md) connects the original data textarea to shared declaration drafts with revision checks and existing Save/Review/Confirm. Name remains the actual declaration ID; safe display-name or ID-rename behavior requires an explicit product contract.
+
 # AI development implementation and verification boundary
 
 ## 2026-10-11 ordinary new concept creation

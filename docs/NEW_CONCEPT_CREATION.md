@@ -18,7 +18,7 @@ Save persists the shared local draft. Dirty badges explicitly mean “pending fi
 
 The common transport continues to reject failed operations, preserving the existing revision-conflict contract. The EditorHome public projection exposes fixed diagnostic categories for missing registration, no reviewed changes, unavailable compiler host, and other source failures. UI messages use those fixed categories rather than raw exception text or private paths. IDs and reviewed source content use the existing deliberate public projection.
 
-Name editing remains unsupported because declaration ID rename and reference rewriting have no agreed contract. Description editing in the data form remains unsupported; the existing advanced source editor can edit the actual declaration description with revision checks, Save and Review/Confirm. No new metadata or rename policy is introduced.
+Name editing remains unsupported because declaration ID rename and reference rewriting have no agreed contract. This creation increment originally left description editing to advanced source; the subsequent [description form connection](DECLARATION_DESCRIPTION_FORM.md) enables the ordinary textarea with revision checks, Save and Review/Confirm. No new metadata or rename policy is introduced.
 
 ## Validation
 

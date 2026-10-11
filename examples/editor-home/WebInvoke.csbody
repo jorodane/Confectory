@@ -44,8 +44,8 @@ if(localActions.TryGetValue(endpoint,out var action)){
  if(endpoint=="chatDraft")payload["action"]="draft";
  Command(action[0],payload);return "{\"accepted\":true}";
 }
-if(endpoint is "openEditorView" or "closeEditorView" or "editEditorView" or "saveEditorView" or "editViewField" or "editViewMetadata" or "editViewDefinition"){
- var payload=new System.Text.Json.Nodes.JsonObject{["context"]=selected["context"]!.DeepClone(),["view"]=args["view"]!.DeepClone(),["id"]=args["id"]!.DeepClone(),["action"]=endpoint switch{"openEditorView"=>"open-view","closeEditorView"=>"close-view","saveEditorView"=>"save","editViewField"=>"data-path","editViewMetadata"=>"value","editViewDefinition"=>"field",_=>"open"}};
+if(endpoint is "openEditorView" or "closeEditorView" or "editEditorView" or "saveEditorView" or "editViewField" or "editViewMetadata" or "editViewDescription" or "editViewDefinition"){
+ var payload=new System.Text.Json.Nodes.JsonObject{["context"]=selected["context"]!.DeepClone(),["view"]=args["view"]!.DeepClone(),["id"]=args["id"]!.DeepClone(),["action"]=endpoint switch{"openEditorView"=>"open-view","closeEditorView"=>"close-view","saveEditorView"=>"save","editViewField"=>"data-path","editViewMetadata"=>"value","editViewDescription"=>"description","editViewDefinition"=>"field",_=>"open"}};
  foreach(string field in new[]{"viewMode","text","path","value","field"})if(args[field] is not null)payload[field]=args[field]!.DeepClone();
  if(args["revision"] is not null)payload["expectedRevision"]=args["revision"]!.DeepClone();
  Command("workspace",payload);return "{\"accepted\":true}";
@@ -57,6 +57,7 @@ switch(endpoint){
  case "confirmGroup":request["action"]="confirm";request["token"]=args["token"]!.DeepClone();request["ids"]=args["ids"]!.DeepClone();break;
  case "schema":if(args["id"]?.ToString()!=before["workspace"]?["unit"]?["id"]?.ToString())throw new InvalidOperationException("Schema selection changed");request["action"]="schema-view";break;
  case "editDefinition":if(args["id"]?.ToString()!=before["workspace"]?["unit"]?["id"]?.ToString())throw new InvalidOperationException("Schema declaration selection changed");request["action"]="field";request["id"]=args["id"]!.DeepClone();request["field"]=args["field"]!.DeepClone();request["value"]=args["value"]!.DeepClone();request["expectedRevision"]=args["revision"]!.DeepClone();break;
+ case "editDescription":if(args["id"]?.ToString()!=before["workspace"]?["unit"]?["id"]?.ToString())throw new InvalidOperationException("Object selection changed");request["action"]="description";request["id"]=args["id"]!.DeepClone();request["value"]=args["value"]!.DeepClone();request["expectedRevision"]=args["revision"]!.DeepClone();break;
  case "editMetadata":if(args["id"]?.ToString()!=before["workspace"]?["unit"]?["id"]?.ToString())throw new InvalidOperationException("Object selection changed");request["action"]="value";request["field"]=args["field"]!.DeepClone();request["value"]=args["value"]!.DeepClone();request["expectedRevision"]=args["revision"]!.DeepClone();break;
  case "editField":if(args["id"]?.ToString()!=before["workspace"]?["unit"]?["id"]?.ToString())throw new InvalidOperationException("Schema selection changed");request["action"]="data-path";request["id"]=args["id"]!.DeepClone();request["path"]=args["path"]!.DeepClone();request["value"]=args["value"]!.DeepClone();request["expectedRevision"]=args["revision"]!.DeepClone();break;
  case "sourceUnits":request["action"]="filter";request["kind"]="";request["query"]=args["query"]?.GetValue<string>()??"";break;

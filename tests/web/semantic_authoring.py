@@ -94,6 +94,43 @@ def verify_concept_creation(page,project,mount,send,envelope,browser,browser_act
  expect(page.locator('.window[data-key="schema"] [data-dirty]')).to_have_text('작업 사본',timeout=30000)
  assert 'value initial = 2;' in source_path.read_text() and 'created through ordinary editor' in source_path.read_text()
  assert 'element test object "elements/test.celem"' in (project/'project.cpack').read_text()
+ # The ordinary description form stages only the declaration description, preserving ID/references.
+ manifest_before=(project/'project.cpack').read_bytes()
+ description='일반 폼 설명 "인용"\n두 번째 줄'
+ field=page.locator('.window[data-key="schema"] [data-description]')
+ expect(field).to_be_editable();expect(page.locator('.window[data-key="schema"] input[readonly]')).to_have_value('test')
+ field.fill(description)
+ # A second field edit advances the shared draft: the older description input must not overwrite it.
+ initial=page.locator('[data-schema-field="initial"]');initial.fill('3');initial.locator('..').get_by_role('button',name='Apply field',exact=True).click()
+ expect(page.locator('#status')).to_have_text('Shared field draft updated',timeout=30000);expect(field).to_have_value(description)
+ page.locator('#semantic-save').click();expect(page.locator('#status')).not_to_have_text('Draft saved; final sources unchanged',timeout=30000)
+ expect(page.locator('#status')).to_have_text('소스 작업을 완료하지 못했습니다. 작업 사본과 입력은 유지됩니다. 선택과 변경 검토를 다시 확인하세요.',timeout=30000)
+ expect(field).to_have_value(description)
+ page.locator('[data-operation="reset-description"]').click();expect(field).to_have_value('created through ordinary editor')
+ initial.fill('2');initial.locator('..').get_by_role('button',name='Apply field',exact=True).click();expect(page.locator('#status')).to_have_text('Shared field draft updated',timeout=30000)
+ field.fill(description)
+ page.locator('#semantic-save').click();expect(page.locator('#status')).to_have_text('Draft saved; final sources unchanged',timeout=30000)
+ assert source_path.read_text().find('created through ordinary editor')>=0, 'description Save bypassed Confirm'
+ saved_description=mount();assert saved_description['state']['draft']['dirty'];revision=saved_description['state']['schema']['revision']
+ # Reject a stale description edit through the actual consumer, retaining the saved description draft.
+ request_id='stale-description'
+ assert send(envelope(saved_description,'invoke',endpoint='editDescription',requestId=request_id,expectedRevision=saved_description['revision'],input={'id':prefix+'test','value':'must not replace draft','revision':revision-1}))['ok']
+ for _ in range(400):
+  updated=send(envelope(saved_description,'update'));matches=[row for row in updated.get('results',[]) if row['requestId']==request_id]
+  if matches:break
+  time.sleep(.01)
+ assert matches and not matches[0]['ok'];assert updated['state']['draft']['dirty']
+ assert send(envelope(saved_description,'dispose'))['ok']
+ expect(field).to_have_value(description)
+ page.locator('#semantic-review').click();expect(page.locator('#confirm')).to_be_enabled(timeout=30000)
+ page.locator('.window[data-key="review"] [data-reject]').click()
+ expect(field).to_have_value(description);assert 'created through ordinary editor' in source_path.read_text()
+ page.locator('#semantic-review').click();expect(page.locator('#confirm')).to_be_enabled(timeout=30000)
+ page.locator('#confirm').click();expect(page.locator('#status')).to_have_text('Source confirmed',timeout=180000)
+ assert (project/'project.cpack').read_bytes()==manifest_before, 'description edit changed registrations/references'
+ assert 'object '+prefix+'test' in source_path.read_text() and 'value initial = 2;' in source_path.read_text()
+ print('PASS ordinary description form: shared draft Save, stale revision rejection, Review cancel retains draft, exact Confirm, unchanged ID/value/manifest',flush=True)
+
  close();browser();page.locator('.window[data-key="browser"] [data-tab="concept"]').click()
  expect(page.locator('[data-id="'+prefix+'test"]')).to_be_visible(timeout=30000)
  print('PASS normal lowercase test creation: dirty declaration+registration, Save, editable values, explicit Review, compiler Confirm, actual browser',flush=True)
@@ -105,7 +142,7 @@ def verify_concept_creation(page,project,mount,send,envelope,browser,browser_act
  page.locator('[data-id="'+prefix+'test"]').click()
  expect(page.locator('.window[data-key="schema"] [data-schema-id]')).to_have_text(prefix+'test',timeout=30000)
  expect(page.locator('[data-schema-field="initial"]')).to_have_value('2',timeout=30000)
- expect(page.locator('.window[data-key="schema"] textarea[readonly]')).to_have_value('created through ordinary editor')
+ expect(page.locator('.window[data-key="schema"] [data-description]')).to_have_value(description)
  fresh=mount();assert fresh['state']['draft']['id']==prefix+'test' and not fresh['state']['draft']['dirty'] and not fresh['state']['draft']['creationReviewIds'];assert send(envelope(fresh,'dispose'))['ok']
  page.screenshot(path='/tmp/confectory-new-concept-reopened.png',full_page=True)
  print('PASS new concept actual process reopen: source+registration discovery, editable saved value, actual description, clean draft',flush=True)
