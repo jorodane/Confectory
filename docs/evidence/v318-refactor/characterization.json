@@ -1,0 +1,365 @@
+{
+  "scope": "prototype reference behavior only; not an engine test",
+  "pageErrors": [],
+  "states": [
+    {
+      "text": "Confectory\n👤\n내 정보\n설정\nAGENT\n(1)\n+추가\n>_\nCodex\nHELPER\n(3)\n+추가\n>_\nCodex (3)\n+추가\n2\n루미\n차분한 길잡이\n토리\n호기심 많은 발명가\n벡스\n대담한 탐험가\nUser\n(2/5)\n프로젝트\n팩\n프로젝트\n열기\n＋ 만들기\n▾\n즐겨찾기\n0\n\n☆ 프로젝트 왼쪽의 별을 눌러 추가하세요.\n\n프로젝트 1\n☆\n···\n◈\nDemo Project\n\n작은 세계의 몬스터와 아이템을 함께 만드는 작업실\n\n마지막 편집\n10. 11. 오전 12:00\n팩\n4개\n객체\n18개",
+      "windows": [],
+      "items": [],
+      "tabs": []
+    },
+    {
+      "text": "Confectory\n👤\n내 정보\n설정\nAGENT\n(1)\n+추가\n>_\nCodex\nHELPER\n(3)\n+추가\n>_\nCodex (3)\n+추가\n2\n루미\n차분한 길잡이\n토리\n호기심 많은 발명가\n벡스\n대담한 탐험가\nUser\n(2/5)\n프로젝트\n팩\n로컬\n탐색\n즐겨찾기\n나의 팩\n🔍 검색\n↕ 정렬\n▣\nBaseCore\n에디터와 프로젝트가 공통으로 사용하는 기본 계약을 담은 팩입니다.\n1.0.0\n▣\nGameBasics\n게임 제작에 필요한 기본 기능을 묶은 예시 팩입니다.\n0.4.2\n▣\nAnimationPack\n애니메이션 관련 기능을 담은 예시 팩입니다. 현재 프로젝트의 사용 여부와 설치 여부는 별개입니다.\n0.2.0\n▣\nBaseCore\n1.0.0\n필수\n공식 팩\n\n에디터와 프로젝트가 공통으로 사용하는 기본 계약을 담은 팩입니다.\n\n업데이트\n삭제\n프로토타입 · 팩 작업은 목록 상태만 시뮬레이션합니다.",
+      "windows": [],
+      "items": [],
+      "tabs": []
+    },
+    {
+      "text": "Confectory\n/\nDemo Project ▾\n👤\n내 정보\n설정\nAGENT\n(1)\n+추가\n>_\nCodex\nHELPER\n(3)\n+추가\n>_\nCodex (3)\n+추가\n2\n루미\n총괄팀장\n토리\n기획팀장\n벡스\n개발팀장\nUser\n(2/5)\nWorkspace\n📦\n3\n📫\n3\n🛠️\n▶\n≡\n프로젝트 채팅\nLogs\n루미\n개념 브라우저를 준비했어요. Monster를 열어 함께 살펴볼까요?\n보내기",
+      "windows": [],
+      "items": [],
+      "tabs": [
+        {
+          "label": "Workspace",
+          "selected": "true"
+        }
+      ]
+    },
+    {
+      "text": "Confectory\n/\nDemo Project ▾\n👤\n내 정보\n설정\nAGENT\n(1)\n+추가\n>_\nCodex\nHELPER\n(3)\n+추가\n>_\nCodex (3)\n+추가\n2\n루미\n총괄팀장\n토리\n기획팀장\n벡스\n개발팀장\nUser\n(2/5)\nWorkspace\n📦\n3\n📫\n3\n🛠️\n▶\n≡\n프로젝트 브라우저\n◈\n프로젝트 브라우저\n임시 저장\n확정\n−\n×\n개념\n기능\n모듈\n검색\n＋\nProjectPack\n▾\nProjectPack\n3\n▾\n▱ World\n2\n▾\n▱ Unit\n2\n▾\n▱ Monster\n2\n▾\n◉ Slime\n☠ PoisonSlime\n♨ FireSlime\n▾\n▱ Item\n✧ Weapon\n◈\n▸ World\nCategory\n▧\n▸ Item\nCategory\n프로젝트 채팅\nLogs\n루미\n개념 브라우저를 준비했어요. Monster를 열어 함께 살펴볼까요?\n보내기",
+      "windows": [
+        {
+          "title": "◈프로젝트 브라우저",
+          "rect": {
+            "x": 471,
+            "y": 163,
+            "width": 678,
+            "height": 458
+          },
+          "folded": false,
+          "left": "291px",
+          "top": "99px",
+          "width": "678px",
+          "height": "458px",
+          "selected": true
+        }
+      ],
+      "items": [],
+      "tabs": [
+        {
+          "label": "Workspace",
+          "selected": "true"
+        }
+      ]
+    },
+    {
+      "text": "Confectory\n/\nDemo Project ▾\n👤\n내 정보\n설정\nAGENT\n(1)\n+추가\n>_\nCodex\nHELPER\n(3)\n+추가\n>_\nCodex (3)\n+추가\n2\n루미\n총괄팀장\n토리\n기획팀장\n벡스\n개발팀장\nUser\n(2/5)\nWorkspace\n📦\n3\n📫\n3\n🛠️\n▶\n≡\n메모\n×\n그룹\n×\nWorkspace 1\n×\n◈\n프로젝트 브라우저\n임시 저장\n확정\n−\n×\n개념\n기능\n모듈\n검색\n＋\nProjectPack\n▾\nProjectPack\n3\n▾\n▱ World\n2\n▾\n▱ Unit\n2\n▾\n▱ Monster\n2\n▾\n◉ Slime\n☠ PoisonSlime\n♨ FireSlime\n▾\n▱ Item\n✧ Weapon\n◈\n▸ World\nCategory\n▧\n▸ Item\nCategory\n프로젝트 채팅\nLogs\n루미\n개념 브라우저를 준비했어요. Monster를 열어 함께 살펴볼까요?\n보내기",
+      "windows": [
+        {
+          "title": "◈프로젝트 브라우저",
+          "rect": {
+            "x": 471,
+            "y": 163,
+            "width": 678,
+            "height": 458
+          },
+          "folded": false,
+          "left": "291px",
+          "top": "99px",
+          "width": "678px",
+          "height": "458px",
+          "selected": false
+        }
+      ],
+      "items": [
+        {
+          "kind": "workspace-note",
+          "name": "메모",
+          "text": "보존하는 메모 <literal>",
+          "left": "985px",
+          "top": "83.5px",
+          "width": "230px",
+          "height": "165px",
+          "selected": false
+        },
+        {
+          "kind": "workspace-group",
+          "name": "그룹",
+          "text": null,
+          "left": "910px",
+          "top": "353.5px",
+          "width": "340px",
+          "height": "245px",
+          "selected": false
+        },
+        {
+          "kind": "workspace-portal",
+          "name": "Workspace 1",
+          "text": null,
+          "left": "1007.5px",
+          "top": "43px",
+          "width": "185px",
+          "height": "46px",
+          "selected": true
+        }
+      ],
+      "tabs": [
+        {
+          "label": "Workspace",
+          "selected": "true"
+        }
+      ]
+    },
+    {
+      "text": "Confectory\n/\nDemo Project ▾\n👤\n내 정보\n설정\nAGENT\n(1)\n+추가\n>_\nCodex\nHELPER\n(3)\n+추가\n>_\nCodex (3)\n+추가\n2\n루미\n총괄팀장\n토리\n기획팀장\n벡스\n개발팀장\nUser\n(2/5)\nWorkspace\n📦\n3\n📫\n3\n🛠️\n▶\n≡\n메모\n×\n그룹\n×\nWorkspace 1\n×\n◈\n프로젝트 브라우저\n임시 저장\n확정\n−\n×\n개념\n기능\n모듈\n검색\n＋\nProjectPack\n▾\nProjectPack\n3\n▾\n▱ World\n2\n▾\n▱ Unit\n2\n▾\n▱ Monster\n2\n▾\n◉ Slime\n☠ PoisonSlime\n♨ FireSlime\n▾\n▱ Item\n✧ Weapon\n◈\n▸ World\nCategory\n▧\n▸ Item\nCategory\n프로젝트 채팅\nLogs\n루미\n개념 브라우저를 준비했어요. Monster를 열어 함께 살펴볼까요?\n보내기",
+      "windows": [
+        {
+          "title": "◈프로젝트 브라우저",
+          "rect": {
+            "x": 471,
+            "y": 163,
+            "width": 678,
+            "height": 458
+          },
+          "folded": false,
+          "left": "291px",
+          "top": "99px",
+          "width": "678px",
+          "height": "458px",
+          "selected": false
+        }
+      ],
+      "items": [
+        {
+          "kind": "workspace-note",
+          "name": "메모",
+          "text": "보존하는 메모 <literal>",
+          "left": "1009px",
+          "top": "105.5px",
+          "width": "230px",
+          "height": "165px",
+          "selected": true
+        },
+        {
+          "kind": "workspace-group",
+          "name": "그룹",
+          "text": null,
+          "left": "934px",
+          "top": "375.5px",
+          "width": "340px",
+          "height": "245px",
+          "selected": true
+        },
+        {
+          "kind": "workspace-portal",
+          "name": "Workspace 1",
+          "text": null,
+          "left": "1007.5px",
+          "top": "43px",
+          "width": "185px",
+          "height": "46px",
+          "selected": false
+        }
+      ],
+      "tabs": [
+        {
+          "label": "Workspace",
+          "selected": "true"
+        }
+      ]
+    },
+    {
+      "text": "Confectory\n/\nDemo Project ▾\n👤\n내 정보\n설정\nAGENT\n(1)\n+추가\n>_\nCodex\nHELPER\n(3)\n+추가\n>_\nCodex (3)\n+추가\n2\n루미\n총괄팀장\n토리\n기획팀장\n벡스\n개발팀장\nUser\n(2/5)\nWorkspace\nWorkspace 1\n📦\n3\n📫\n3\n🛠️\n▶\n≡\n메모\n×\n그룹\n×\nWorkspace 1\n×\n◈\n프로젝트 브라우저\n임시 저장\n확정\n−\n×\n개념\n기능\n모듈\n검색\n＋\nProjectPack\n▾\nProjectPack\n3\n▾\n▱ World\n2\n▾\n▱ Unit\n2\n▾\n▱ Monster\n2\n▾\n◉ Slime\n☠ PoisonSlime\n♨ FireSlime\n▾\n▱ Item\n✧ Weapon\n◈\n▸ World\nCategory\n▧\n▸ Item\nCategory\n프로젝트 채팅\nLogs\n루미\n개념 브라우저를 준비했어요. Monster를 열어 함께 살펴볼까요?\n보내기",
+      "windows": [
+        {
+          "title": "◈프로젝트 브라우저",
+          "rect": {
+            "x": 1,
+            "y": 425,
+            "width": 678,
+            "height": 458
+          },
+          "folded": false,
+          "left": "-179px",
+          "top": "361px",
+          "width": "678px",
+          "height": "458px",
+          "selected": true
+        }
+      ],
+      "items": [
+        {
+          "kind": "workspace-note",
+          "name": "메모",
+          "text": "보존하는 메모 <literal>",
+          "left": "539px",
+          "top": "367.5px",
+          "width": "230px",
+          "height": "165px",
+          "selected": false
+        },
+        {
+          "kind": "workspace-group",
+          "name": "그룹",
+          "text": null,
+          "left": "464px",
+          "top": "637.5px",
+          "width": "340px",
+          "height": "245px",
+          "selected": false
+        },
+        {
+          "kind": "workspace-portal",
+          "name": "Workspace 1",
+          "text": null,
+          "left": "537.5px",
+          "top": "305px",
+          "width": "185px",
+          "height": "46px",
+          "selected": false
+        }
+      ],
+      "tabs": [
+        {
+          "label": "Workspace",
+          "selected": "true"
+        },
+        {
+          "label": "Workspace 1",
+          "selected": "false"
+        }
+      ]
+    },
+    {
+      "text": "Confectory\n/\nDemo Project ▾\n👤\n내 정보\n설정\nAGENT\n(1)\n+추가\n>_\nCodex\nHELPER\n(3)\n+추가\n>_\nCodex (3)\n+추가\n2\n루미\n총괄팀장\n토리\n기획팀장\n벡스\n개발팀장\nUser\n(2/5)\nWorkspace\n📦\n3\n📫\n3\n🛠️\n▶\n≡\n◈\n프로젝트 브라우저\n임시 저장\n확정\n−\n×\n개념\n기능\n모듈\n검색\n＋\nProjectPack\n▾\nProjectPack\n3\n▾\n▱ World\n2\n▾\n▱ Unit\n2\n▾\n▱ Monster\n2\n▾\n◉ Slime\n☠ PoisonSlime\n♨ FireSlime\n▾\n▱ Item\n✧ Weapon\n◈\n▸ World\nCategory\n▧\n▸ Item\nCategory\n메모\n×\n그룹\n×\nWorkspace 1\n×\n프로젝트 채팅\nLogs\n루미\n개념 브라우저를 준비했어요. Monster를 열어 함께 살펴볼까요?\n보내기",
+      "windows": [
+        {
+          "title": "◈프로젝트 브라우저",
+          "rect": {
+            "x": 471,
+            "y": 163,
+            "width": 678,
+            "height": 458
+          },
+          "folded": false,
+          "left": "291px",
+          "top": "99px",
+          "width": "678px",
+          "height": "458px",
+          "selected": true
+        }
+      ],
+      "items": [
+        {
+          "kind": "workspace-note",
+          "name": "메모",
+          "text": "보존하는 메모 <literal>",
+          "left": "539px",
+          "top": "367.5px",
+          "width": "230px",
+          "height": "165px",
+          "selected": false
+        },
+        {
+          "kind": "workspace-group",
+          "name": "그룹",
+          "text": null,
+          "left": "464px",
+          "top": "637.5px",
+          "width": "340px",
+          "height": "245px",
+          "selected": false
+        },
+        {
+          "kind": "workspace-portal",
+          "name": "Workspace 1",
+          "text": null,
+          "left": "537.5px",
+          "top": "305px",
+          "width": "185px",
+          "height": "46px",
+          "selected": false
+        }
+      ],
+      "tabs": [
+        {
+          "label": "Workspace",
+          "selected": "true"
+        }
+      ]
+    }
+  ],
+  "comparisons": [
+    {
+      "original": "original-home.png",
+      "refactor": "refactor-home.png",
+      "differentPixelsBoundingBox": [
+        151,
+        320,
+        154,
+        321
+      ],
+      "nonzeroChannels": 6,
+      "maximumChannelDelta": 1
+    },
+    {
+      "original": "original-packs.png",
+      "refactor": "refactor-packs.png",
+      "differentPixelsBoundingBox": null,
+      "nonzeroChannels": 0,
+      "maximumChannelDelta": 0
+    },
+    {
+      "original": "original-workspace.png",
+      "refactor": "refactor-workspace.png",
+      "differentPixelsBoundingBox": null,
+      "nonzeroChannels": 0,
+      "maximumChannelDelta": 0
+    },
+    {
+      "original": "original-browser.png",
+      "refactor": "refactor-browser.png",
+      "differentPixelsBoundingBox": null,
+      "nonzeroChannels": 0,
+      "maximumChannelDelta": 0
+    },
+    {
+      "original": "original-nodes.png",
+      "refactor": "refactor-nodes.png",
+      "differentPixelsBoundingBox": null,
+      "nonzeroChannels": 0,
+      "maximumChannelDelta": 0
+    },
+    {
+      "original": "original-multi-drag.png",
+      "refactor": "refactor-multi-drag.png",
+      "differentPixelsBoundingBox": [
+        1148,
+        170,
+        1149,
+        174
+      ],
+      "nonzeroChannels": 9,
+      "maximumChannelDelta": 2
+    },
+    {
+      "original": "original-returned.png",
+      "refactor": "refactor-returned.png",
+      "differentPixelsBoundingBox": null,
+      "nonzeroChannels": 0,
+      "maximumChannelDelta": 0
+    },
+    {
+      "original": "original-reload.png",
+      "refactor": "refactor-reload.png",
+      "differentPixelsBoundingBox": [
+        24,
+        318,
+        154,
+        464
+      ],
+      "nonzeroChannels": 603,
+      "maximumChannelDelta": 7
+    }
+  ]
+}

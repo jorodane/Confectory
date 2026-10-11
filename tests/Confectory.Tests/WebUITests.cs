@@ -11,6 +11,15 @@ public sealed class WebUITests : TestCase
         var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests","web","editor_home_original_layout.py"),Fixture.Repo,report,reference},timeoutSeconds:180);
         True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS ordinary ProjectPack original Home"));
     }
+    public void test_v318_original_and_refactor_shared_workspace_characterization()
+    {
+        string reference=Path.Combine(f.Root,"v318-reference");
+        string zip=Path.Combine(Fixture.Repo,"reference","site-ui","Confectory-Editor-Prototype-v318.zip");
+        Equal("0a614fe2bf1ad3d8e10dfa8905bb6b61ea9f21b87b2492b2b87ca8566e9e6908",Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(zip))).ToLowerInvariant());
+        System.IO.Compression.ZipFile.ExtractToDirectory(zip,reference);
+        var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/v318_characterization.py"),Fixture.Repo,Path.Combine(reference,"confectory-site"),"/tmp/confectory-v318-characterization"},timeoutSeconds:180);
+        True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS frozen v318 vs refactor"));
+    }
     public void test_actual_editor_review_compact_numeric_and_subset_caption()
     {
         var built=new Builder(Path.Combine(Fixture.Repo,"examples","editor-home","project.cpack"),"linux").Build();

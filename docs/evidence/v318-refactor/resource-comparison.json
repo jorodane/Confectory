@@ -1,0 +1,44 @@
+{
+  "v196": {
+    "app.js": {
+      "bytes": 172975,
+      "sha256": "0a717a0dc35f6a3008af68a7187b2034f67ef27da6faa48988ff090f967876e0"
+    },
+    "style.css": {
+      "bytes": 101700,
+      "sha256": "35f49507f3edf9249ed72d53ee3c130a46ab1ae74c7ccf202a191a5139cdb67d"
+    },
+    "index.html": {
+      "bytes": 660,
+      "sha256": "f820795f68a74fc7caac2c307da97ed6706279eea790132c57fa360feecf1854"
+    }
+  },
+  "v318": {
+    "app.js": {
+      "bytes": 286929,
+      "sha256": "e9964e9eb34ccdde4dd8e4e4c21f77e88960738d985283955cfc8cb947289e96"
+    },
+    "style.css": {
+      "bytes": 141469,
+      "sha256": "382dadd6705bfd6272b4fb8d8323687be84b8738b60033dce620747cf13a0aa7"
+    },
+    "index.html": {
+      "bytes": 660,
+      "sha256": "f820795f68a74fc7caac2c307da97ed6706279eea790132c57fa360feecf1854"
+    }
+  },
+  "consumer": {
+    "app.js": {
+      "bytes": 130065,
+      "sha256": "c8567fc3065eef5bc53ba3a5192500482850043d4b73b19485822c00c6457f29"
+    },
+    "style.css": {
+      "bytes": 101559,
+      "sha256": "f954f31f7eeac850d9017f3fde5fa39999ba5ac8a49bd3d491052f16a7527f0f"
+    },
+    "index.html": {
+      "bytes": 475,
+      "sha256": "1e4e8cedcb113c6f6c67eeafbaff0c663374d2809ac600a41360638917eb650f"
+    }
+  }
+}
