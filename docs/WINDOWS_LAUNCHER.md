@@ -82,6 +82,30 @@ Windows 후보인 [WebView2](https://learn.microsoft.com/en-us/microsoft-edge/we
 이는 구현 계획의 조사이며 SDK/runtime 설치, 제공자 확정, UI 이식 완료를 의미하지
 않습니다. 같은 팩 HTML을 창 내부에서 쓰는 목표와 향후 서버 활용을 구분합니다.
 
+## 정상 stderr 진행 메시지 표시 수정 (2026-10-11)
+
+사용자는 실제 EditorHome 실행 성공을 확인했습니다. `RunProject.cs`의
+`Resolving/building`과 `Pack build process started`는 stderr에 쓰는 정상 진행
+메시지이며, 관측된 `NativeCommandError` 표시만으로 빌드 실패를 뜻하지 않습니다.
+
+`internal/native-tool.ps1`에서 Windows PowerShell의 리디렉션 결과를 문자열로
+변환한 후 화면과 UTF-8 로그에 즉시 기록합니다. stderr를 버리지 않으며, 실제
+실패는 원래 네이티브 종료 코드로 판단해 launcher catch와 배치까지 전달합니다.
+`Continue` 범위는 네이티브 호출 블록에만 한정하고 호출자/로그 쓰기 오류 처리는
+유지합니다. [PowerShell 스트림 리디렉션](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_redirection?view=powershell-5.1)의
+오류 객체를 그대로 Host에 넘겨 생기는 형식 표시를 피하는 변경입니다.
+
+명령 문자열이나 새 비동기 프로세스 관리자를 도입하지 않았습니다. 기존 `&`와
+인수 배열, 동기 파이프라인을 유지해 실행 중 출력과 CLI 종료를 기다립니다.
+Ctrl+C 처리도 기존 PowerShell/CLI 콘솔 경로를 유지하며 Windows 실동작은 미검증입니다.
+
+Windows PowerShell 전용 회귀를 추가했습니다: stderr 진행 후 성공/exit 23,
+양쪽 스트림 각 2,000줄, 지연 종료 대기, 공백/한글 스크립트 경로와 `&`/`!` 인수,
+로그 보존 및 NativeCommandError 장식 부재, 호출자 Stop 설정 보존을 검사합니다.
+이 Linux 환경에는 Windows PowerShell이 없으므로 해당 회귀는 실행하지 못했습니다.
+솔루션 빌드는 경고/오류 0으로 통과했습니다. 정적 회귀 4개 통과,
+CLI/파일 연결 영향 회귀 3개 통과·실패 0·Windows 전용 4개 skip (14.187초).
+
 ## 직접 실행 수정 및 검증 (2026-10-11)
 
 5d1bfc4의 `$home` 대입은 PowerShell의 대소문자 무시 규칙 때문에 읽기 전용

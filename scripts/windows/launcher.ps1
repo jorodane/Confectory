@@ -57,16 +57,11 @@ $dotnet = 'dotnet'
 if ($env:CONFECTORY_DOTNET) { $dotnet = $env:CONFECTORY_DOTNET }
 $log = $null
 $failureCode = 1
+. (Join-Path $PSScriptRoot 'internal\native-tool.ps1')
 function Run-Tool {
     param([string[]]$ToolArguments, [string]$Executable = $dotnet)
     if (!(Get-Command $Executable -CommandType Application -ErrorAction SilentlyContinue)) { throw "Executable not found: $Executable" }
-    $savedPreference = $ErrorActionPreference
-    try {
-        $ErrorActionPreference = 'Continue'
-        $global:LASTEXITCODE = -1
-        & $Executable @ToolArguments 2>&1 | Tee-Object -FilePath $log -Append | Out-Host
-        $toolExit = $LASTEXITCODE
-    } finally { $ErrorActionPreference = $savedPreference }
+    $toolExit = Invoke-ConfectoryNativeTool -Executable $Executable -ToolArguments $ToolArguments -LogPath $log
     if ($toolExit -ne 0) { $script:failureCode = $toolExit; throw "Tool failed with exit $toolExit. Log: $log" }
 }
 function Choose-Project {
