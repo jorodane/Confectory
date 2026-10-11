@@ -43,6 +43,8 @@ Browser WASM publish **did not pass**: normal target invocations exceeded the un
 
 [Final verification manifest](evidence/v196-inner-restoration/verification.json) records successful checks, earlier native automation failures, WASM failure and unavailable device execution separately.
 
+The subsequent [WASM timing comparison](WASM_PUBLISH_INVESTIGATION.md) reproduces the timeout with earlier successful frozen SDK inputs and records unchanged native output bytes. It makes no production changes and does not claim recovery.
+
 ## Remaining work
 
 Browser inline Data-cell editing, category hierarchy, inheritance and drag/reorder are not newly implemented. Original preview/variation/combat/art/balance/function-module check actions, maps/custom windows/pack management and Issues remain unsupported. Worker-specific review, AI permission, advanced source and target windows retain their existing specialized content rather than claiming original DOM restoration. Helper profile/name/art editing, Agent ownership, global conversation/history, coworker flows and recipient delivery need established contracts and further consumer wiring. Home last-edit/pack/object metadata and offline font assets remain incomplete.

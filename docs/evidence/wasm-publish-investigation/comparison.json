@@ -1,0 +1,274 @@
+{
+  "sourceCommit": "6d7a6013abcb8e2b991e28b0d07d2271747f05e6",
+  "targetSourceUnchangedSince": "e3d55ea",
+  "sdk": "10.0.401",
+  "wasmWorkload": "10.0.12",
+  "resourcesOldBytes": 16737704,
+  "resourcesCurrentBytes": 16773759,
+  "changedResources": [
+    "app.js",
+    "consumer.css"
+  ],
+  "referenceCount": 74,
+  "changedReferences": [
+    {
+      "file": "Pack_Ea620445369633f57f16dee9a.dll",
+      "oldSha256": "87ed642dcae691f4f897100478baed23d682300f9ffc9a0529478d3a575897e4",
+      "currentSha256": "a68882d04af819e3c30572cc61290437d8b6585ce130f88abe65ba88156869b5",
+      "oldBytes": 209408,
+      "currentBytes": 209408
+    }
+  ],
+  "bindingsByteIdentical": true,
+  "publicLinkageByteIdentical": true,
+  "nativeWasmByteIdentical": true,
+  "nativeWasmSha256": "2a2d518eb2dcb9657391c28041e82a7ca93c00821be44aade86a0239e3a11df8",
+  "nativeWasmBytes": 3004710,
+  "cpuQuota": "400000 / 100000 = 4 CPUs",
+  "visibleAffinityCpus": 5,
+  "workspaceFilesystem": "overlay",
+  "temporaryFilesystem": "tmpfs",
+  "runs": {
+    "current-normal-2cpu": {
+      "result": "120s timeout",
+      "first": "2026-10-11T11:47:20.1864320Z|before|Restore|",
+      "last": "2026-10-11T11:48:29.7933294Z|before|GeneratePublishCompressedStaticWebAssets|",
+      "durations": [
+        {
+          "target": "_BrowserWasmLinkDotNet",
+          "seconds": 26.644
+        },
+        {
+          "target": "CoreCompile",
+          "seconds": 15.374
+        },
+        {
+          "target": "Restore",
+          "seconds": 2.931
+        },
+        {
+          "target": "_RunWasmOptPostLink",
+          "seconds": 1.758
+        },
+        {
+          "target": "_WasmCompileNativeSourceFiles",
+          "seconds": 1.662
+        },
+        {
+          "target": "GenerateBuildCompressedStaticWebAssets",
+          "seconds": 0.934
+        },
+        {
+          "target": "GenerateStaticWebAssetsManifest",
+          "seconds": 0.798
+        },
+        {
+          "target": "ResolveBuildCompressedStaticWebAssets",
+          "seconds": 0.248
+        }
+      ],
+      "unfinishedCompression": true
+    },
+    "baseline-temp-2cpu": {
+      "result": "PASS SDK diagnostic only",
+      "first": "2026-10-11T11:57:15.5561134Z|before|Restore|",
+      "last": "2026-10-11T11:59:07.0212770Z|after|Publish|",
+      "durations": [
+        {
+          "target": "ComputeFilesToPublish",
+          "seconds": 73.958
+        },
+        {
+          "target": "GeneratePublishCompressedStaticWebAssets",
+          "seconds": 72.531
+        },
+        {
+          "target": "_BrowserWasmLinkDotNet",
+          "seconds": 16.133
+        },
+        {
+          "target": "CoreCompile",
+          "seconds": 7.724
+        },
+        {
+          "target": "Restore",
+          "seconds": 1.287
+        },
+        {
+          "target": "_RunWasmOptPostLink",
+          "seconds": 1.001
+        },
+        {
+          "target": "_WasmCompileNativeSourceFiles",
+          "seconds": 0.999
+        },
+        {
+          "target": "ResolvePublishCompressedStaticWebAssets",
+          "seconds": 0.768
+        }
+      ],
+      "unfinishedCompression": false
+    },
+    "current-temp-2cpu": {
+      "result": "120s timeout",
+      "first": "2026-10-11T12:00:49.2909811Z|before|Restore|",
+      "last": "2026-10-11T12:01:40.3228702Z|before|GeneratePublishCompressedStaticWebAssets|",
+      "durations": [
+        {
+          "target": "_BrowserWasmLinkDotNet",
+          "seconds": 25.559
+        },
+        {
+          "target": "CoreCompile",
+          "seconds": 4.987
+        },
+        {
+          "target": "Restore",
+          "seconds": 2.47
+        },
+        {
+          "target": "_RunWasmOptPostLink",
+          "seconds": 1.624
+        },
+        {
+          "target": "_WasmCompileNativeSourceFiles",
+          "seconds": 1.398
+        },
+        {
+          "target": "GenerateStaticWebAssetsManifest",
+          "seconds": 0.94
+        },
+        {
+          "target": "GenerateBuildCompressedStaticWebAssets",
+          "seconds": 0.681
+        },
+        {
+          "target": "ResolveBuildCompressedStaticWebAssets",
+          "seconds": 0.355
+        }
+      ],
+      "unfinishedCompression": true
+    },
+    "current-normal-quota": {
+      "result": "120s timeout",
+      "first": "2026-10-11T12:06:07.0925244Z|before|Restore|",
+      "last": "2026-10-11T12:06:56.3332260Z|before|GeneratePublishCompressedStaticWebAssets|",
+      "durations": [
+        {
+          "target": "_BrowserWasmLinkDotNet",
+          "seconds": 25.159
+        },
+        {
+          "target": "CoreCompile",
+          "seconds": 4.184
+        },
+        {
+          "target": "Restore",
+          "seconds": 1.637
+        },
+        {
+          "target": "GenerateStaticWebAssetsManifest",
+          "seconds": 1.485
+        },
+        {
+          "target": "_RunWasmOptPostLink",
+          "seconds": 1.48
+        },
+        {
+          "target": "_WasmCompileNativeSourceFiles",
+          "seconds": 1.104
+        },
+        {
+          "target": "GenerateBuildCompressedStaticWebAssets",
+          "seconds": 0.728
+        },
+        {
+          "target": "ResolveBuildCompressedStaticWebAssets",
+          "seconds": 0.561
+        }
+      ],
+      "unfinishedCompression": true
+    },
+    "baseline-workspace-quota": {
+      "result": "120s timeout",
+      "first": "2026-10-11T12:10:12.8960639Z|before|Restore|",
+      "last": "2026-10-11T12:10:56.7527827Z|before|GeneratePublishCompressedStaticWebAssets|",
+      "durations": [
+        {
+          "target": "_BrowserWasmLinkDotNet",
+          "seconds": 24.453
+        },
+        {
+          "target": "Restore",
+          "seconds": 1.649
+        },
+        {
+          "target": "_RunWasmOptPostLink",
+          "seconds": 1.564
+        },
+        {
+          "target": "CoreCompile",
+          "seconds": 1.479
+        },
+        {
+          "target": "GenerateBuildCompressedStaticWebAssets",
+          "seconds": 1.108
+        },
+        {
+          "target": "_WasmCompileNativeSourceFiles",
+          "seconds": 0.917
+        },
+        {
+          "target": "GenerateStaticWebAssetsManifest",
+          "seconds": 0.754
+        },
+        {
+          "target": "ResolveBuildCompressedStaticWebAssets",
+          "seconds": 0.364
+        }
+      ],
+      "unfinishedCompression": true
+    },
+    "current-native-single": {
+      "result": "120s timeout",
+      "first": "2026-10-11T12:14:15.3442303Z|before|Restore|",
+      "last": "2026-10-11T12:15:10.9846899Z|before|GeneratePublishCompressedStaticWebAssets|",
+      "durations": [
+        {
+          "target": "_BrowserWasmLinkDotNet",
+          "seconds": 36.264
+        },
+        {
+          "target": "_RunWasmOptPostLink",
+          "seconds": 2.862
+        },
+        {
+          "target": "_WasmCompileNativeSourceFiles",
+          "seconds": 2.425
+        },
+        {
+          "target": "Restore",
+          "seconds": 1.441
+        },
+        {
+          "target": "CoreCompile",
+          "seconds": 0.889
+        },
+        {
+          "target": "GenerateBuildCompressedStaticWebAssets",
+          "seconds": 0.58
+        },
+        {
+          "target": "GenerateStaticWebAssetsManifest",
+          "seconds": 0.541
+        },
+        {
+          "target": "ResolveBuildCompressedStaticWebAssets",
+          "seconds": 0.335
+        }
+      ],
+      "unfinishedCompression": true
+    }
+  },
+  "limits": "No successful current ordinary ProjectPack WASM build. Old frozen SDK inputs also time out in workspace. These diagnostic SDK copies are not acceptance builds. No timeout, production target, optimization level, compression or integrity change. No production fix justified by this evidence."
+}

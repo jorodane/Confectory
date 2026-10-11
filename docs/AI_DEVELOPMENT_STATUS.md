@@ -1,5 +1,11 @@
 # AI development implementation and verification boundary
 
+## 2026-10-11 WASM publish comparison, blocker remains
+
+[Focused SDK publish investigation](WASM_PUBLISH_INVESTIGATION.md) records six phase traces. Browser target/settings are unchanged since e3d55ea; 73/74 reference DLLs, generated Bindings and public-linkage are byte identical, and rebuilt native WASM is byte identical. Earlier successful frozen SDK inputs also exceed 120s when cold-published in the current workspace. Publish compression is the unfinished phase; CPU/quota-aligned and single-native-thread normal ProjectPack attempts do not recover it. This does not establish a UI/native-code regression. The exact environment/SDK performance cause remains unresolved.
+
+No production fix, compression/SRI alteration, target disablement, special pack/path or timeout relaxation was made. Temporary logging hooks were removed. Current ordinary ProjectPack WASM build remains **not passing**; previous validated UI/managed/native/CRLF results remain separate.
+
 ## 2026-10-11 v196 inner windows, reviewable visual increment
 
 [Original inner-window restoration and evidence](EDITOR_V196_INNER_RESTORATION.md) continues e3d55ea: Dock, concept/function/module browser, actual object/schema rows, source Review, augmentation/direction modal, Yogi clipboard/package and Helper expanded/settings/pinned cards now use the original structures with existing engine actions. Unsupported controls retain honest states; no demo data, individual Worker chat, live accounts, delivery/merge policy or Site changes were introduced.
