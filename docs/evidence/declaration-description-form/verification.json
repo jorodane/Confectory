@@ -1,0 +1,65 @@
+{
+  "base": "103b17208d5f5f17234c46a5729a53543112fe9b",
+  "codeCommit": "4379382",
+  "ordinaryProjectPack": "examples/editor-home/project.cpack",
+  "focusedCreationDescriptionAndReopen": {
+    "result": "PASS",
+    "seconds": 247.459,
+    "case": "test_actual_editor_new_concept_creation_save_confirm_reopen",
+    "checks": [
+      "editable ordinary description textarea",
+      "shared draft Save without final source writes",
+      "pending textarea preserved after field revision conflict",
+      "explicit reset and edit retry",
+      "stale consumer revision rejected",
+      "Review cancellation retains description draft",
+      "exact compiler-backed Confirm",
+      "unchanged declaration ID, values and manifest",
+      "actual host process shutdown/restart",
+      "actual description rediscovered from disk"
+    ]
+  },
+  "declarationPreservation": {
+    "result": "PASS",
+    "seconds": 115.246,
+    "case": "test_authoring_preservation_validation_and_locality",
+    "checks": [
+      "escaped Unicode/quotes/newline roundtrip",
+      "identity/signature/references/data unchanged",
+      "explicit empty description",
+      "non-string rejection",
+      "actual compiler and owning-provider locality"
+    ]
+  },
+  "crlfCheckout": {
+    "result": "PASS",
+    "seconds": 34.675,
+    "case": "test_editor_web_resources_windows_git_checkout_and_actual_startup"
+  },
+  "targets": {
+    "linux": {
+      "toolOk": true,
+      "sdk": "10.0.401",
+      "includedPackCount": 37
+    },
+    "windows": {
+      "toolOk": true,
+      "sdk": "10.0.401",
+      "includedPackCount": 37
+    },
+    "android": {
+      "toolOk": true,
+      "sdk": "10.0.401",
+      "includedPackCount": 37
+    }
+  },
+  "fullWebRegression": {
+    "result": "PASS",
+    "seconds": 618.628,
+    "case": "test_actual_editor_and_button_game_common_web_transport_chromium"
+  },
+  "pausedWorkPreservation": {
+    "head": "f182ea34f6441abc87f14d8fce01ed263a8a0dda",
+    "unchangedRecordedFileHashes": 18
+  }
+}
