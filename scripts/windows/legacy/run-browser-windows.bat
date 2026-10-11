@@ -1,13 +1,14 @@
 @echo off
 setlocal DisableDelayedExpansion
+echo [Legacy demo] This is not the current EditorHome. Use Confectory.bat for the editor.
 if not "%~1"=="" set "CONFECTORY_BROWSER_PROJECT=%~f1"
 if not defined CONFECTORY_BROWSER_PROJECT goto missing_project
 if not exist "%CONFECTORY_BROWSER_PROJECT%" goto missing_project
 set "confectory_browser_dotnet=dotnet"
 if defined CONFECTORY_DOTNET set "confectory_browser_dotnet=%CONFECTORY_DOTNET%"
-pushd "%~dp0"
+pushd "%~dp0..\..\..\"
 if errorlevel 1 exit /b 1
-call "%~dp0build-windows.bat"
+call "%~dp0..\..\..\scripts\windows\internal\build-windows.bat"
 if errorlevel 1 goto failed
 set "CONFECTORY_ELEMENT_AUTHORING_HOST=%CD%\targets\element-authoring\bin\Release\net10.0\Confectory.ElementAuthoring.dll"
 call "%confectory_browser_dotnet%" "src\Confectory.Cli\bin\Release\net10.0\Confectory.Cli.dll" run "examples\project-browser\project.cpack" windows
@@ -18,6 +19,6 @@ exit /b %confectory_browser_exit%
 popd
 exit /b 1
 :missing_project
-echo Usage: run-browser-windows.bat "C:\path\to\project.cpack"
+echo Usage: scripts\windows\legacy\run-browser-windows.bat "C:\path\to\project.cpack"
 echo Choose an existing project. No project is created or moved automatically.
 exit /b 2

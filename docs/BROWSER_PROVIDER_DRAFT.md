@@ -17,7 +17,7 @@ dotnet build targets/web/Confectory.Build.Web.csproj -c Release
 CONFECTORY_EDITOR_REPO="$PWD" dotnet src/Confectory.Cli/bin/Release/net8.0/Confectory.Cli.dll run examples/editor-home-web/project.cproj web
 ```
 
-On Windows, run `run-web-home-windows.bat`. Windows script execution is not verified in this Linux environment. Open the printed `http://127.0.0.1:<port>/#<session>` URL in a browser. Keep the local host running; Ctrl+C ends its owner and removes staged imported files. `CONFECTORY_WEB_PORT` optionally selects an unprivileged local port. The final build output includes `browser-assets/index.html`, `app.js`, `style.css`, linked managed application/provider assemblies and public linkage catalog; no external website was deployed.
+On Windows, run `scripts/windows/legacy/run-web-home-windows.bat`. Windows script execution is not verified in this Linux environment. Open the printed `http://127.0.0.1:<port>/#<session>` URL in a browser. Keep the local host running; Ctrl+C ends its owner and removes staged imported files. `CONFECTORY_WEB_PORT` optionally selects an unprivileged local port. The final build output includes `browser-assets/index.html`, `app.js`, `style.css`, linked managed application/provider assemblies and public linkage catalog; no external website was deployed.
 
 ## Current capabilities and UX
 

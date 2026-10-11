@@ -181,13 +181,13 @@ public sealed class IntegrationTests : TestCase
     {
         string cli=Path.Combine(Fixture.Repo,"src","Confectory.Cli","bin","Release","net10.0","Confectory.Cli.dll");
         // Windows environment names are case insensitive: a helper must not overwrite CONFECTORY_DOTNET.
-        foreach(string batch in new[]{"build-windows.bat","run-engine-windows.bat"})
+        foreach(string batch in new[]{"scripts/windows/internal/build-windows.bat","scripts/windows/legacy/run-engine-windows.bat"})
             True(!File.ReadAllText(Path.Combine(Fixture.Repo,batch)).Contains("set \"confectory_dotnet=",StringComparison.OrdinalIgnoreCase));
         using var spaced=new Fixture(Path.Combine(f.Root,"launch project with spaces"));
         spaced.Body("App","main.csbody","Console.WriteLine(\"launched project\"); Console.Error.WriteLine(\"visible diagnostic\"); return 7;");spaced.Sync();
         var result=Processes.Run([Processes.DotNet(),cli,"run",spaced.Project,"portable"],timeoutSeconds:90);
         Equal(7,result.ExitCode);True(result.Stdout.Contains("launched project",StringComparison.Ordinal));True(result.Stderr.Contains("visible diagnostic",StringComparison.Ordinal));True(result.Stderr.Contains("Resolving/building",StringComparison.Ordinal));True(result.Stderr.Contains("Project process started:",StringComparison.Ordinal));True(result.Stderr.Contains("Project exited: 7",StringComparison.Ordinal));
-        string launcher=File.ReadAllText(Path.Combine(Fixture.Repo,"run-engine-windows.bat"));True(launcher.Contains("call \"%~dp0build-windows.bat\"",StringComparison.OrdinalIgnoreCase));True(launcher.Contains("call \"%confectory_launcher_dotnet%\"",StringComparison.OrdinalIgnoreCase));
+        string launcher=File.ReadAllText(Path.Combine(Fixture.Repo,"scripts/windows/legacy/run-engine-windows.bat"));True(launcher.Contains("call \"%~dp0..\\..\\..\\scripts\\windows\\internal\\build-windows.bat\"",StringComparison.OrdinalIgnoreCase));True(launcher.Contains("call \"%confectory_launcher_dotnet%\"",StringComparison.OrdinalIgnoreCase));
         var missing=Processes.Run([Processes.DotNet(),cli,"run",spaced.Project,"missing"],timeoutSeconds:30);Equal(1,missing.ExitCode);True(missing.Stdout.Contains("MISSING_TARGET",StringComparison.Ordinal));
     }
     public void test_cli_preserves_json_reports_and_exit_codes()

@@ -1,6 +1,6 @@
 # CP15 asynchronous Windows check
 
-Use the local `integration/checkpoint-15-entry-home` branch when made available through the separately authorized delivery route. CP14's `run-editor-windows.bat` still launches the functional validation consumer. New entry/home uses `run-home-windows.bat`; double-click from a writable full checkout with the existing SDK8. No PowerShell or execution-policy change is required. `.confectory/home-launch.log` contains build/runtime diagnostics; first uncached pack compilation can take minutes.
+Use the local `integration/checkpoint-15-entry-home` branch when made available through the separately authorized delivery route. CP14's `scripts/windows/legacy/run-editor-windows.bat` still launches the functional validation consumer. New entry/home uses `scripts/windows/internal/run-home-windows.bat`; double-click from a writable full checkout with the existing SDK8. No PowerShell or execution-policy change is required. `.confectory/home-launch.log` contains build/runtime diagnostics; first uncached pack compilation can take minutes.
 
 1. Verify staged entry and optional Agent connection/Later; connection presentation stays unavailable/offline, and Later reaches projects without a login.
 2. Main has left management sidebar and two-column cards. The first card contains left New/right Open. Collapse/expand preserves state; no separate Open above the area.

@@ -1,9 +1,11 @@
 @echo off
 setlocal DisableDelayedExpansion
-rem Double-click entry: ordinary CMD and existing dotnet only. No PowerShell.
+set "CONFECTORY_UI="
+set "CONFECTORY_WEB_PROJECT="
+rem Internal direct native Home helper. User entry is root Confectory.bat.
 set "confectory_home_dotnet=dotnet"
 if defined CONFECTORY_DOTNET set "confectory_home_dotnet=%CONFECTORY_DOTNET%"
-pushd "%~dp0"
+pushd "%~dp0..\..\..\"
 if errorlevel 1 goto directory_failed
 set "confectory_home_pushed=1"
 set "CONFECTORY_EDITOR_REPO=%CD%"
@@ -20,7 +22,7 @@ set "confectory_home_exit=%errorlevel%"
 if not "%confectory_home_exit%"=="0" goto sdk_failed
 echo [Confectory 1/3] Building solution and editor tool hosts.
 echo Build and runtime output: "%confectory_home_log%"
-call "%~dp0build-windows.bat" >> "%confectory_home_log%" 2>&1
+call "%~dp0..\..\..\scripts\windows\internal\build-windows.bat" >> "%confectory_home_log%" 2>&1
 set "confectory_home_exit=%errorlevel%"
 if not "%confectory_home_exit%"=="0" goto report_failed
 echo [Confectory 2/3] Building Windows Entry/Home ProjectPack, then launching it.
@@ -44,7 +46,7 @@ goto pause_failed
 echo The existing .NET host could not select the required .NET 10 SDK.
 echo global.json remains unchanged; a runtime alone is insufficient.
 echo Check the diagnostics below and CONFECTORY_DOTNET if set.
-echo CONFECTORY_DOTNET should be the full path to an existing SDK8 dotnet.exe.
+echo CONFECTORY_DOTNET should be the full path to an existing .NET 10 SDK dotnet.exe.
 :report_failed
 echo.
 if exist "%confectory_home_log%" type "%confectory_home_log%"

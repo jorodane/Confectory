@@ -18,10 +18,10 @@ if not defined CONFECTORY_BROWSER_PROJECT goto missing_project
 if not exist "%CONFECTORY_BROWSER_PROJECT%" goto missing_project
 set "confectory_windowless_dotnet=dotnet"
 if defined CONFECTORY_DOTNET set "confectory_windowless_dotnet=%CONFECTORY_DOTNET%"
-pushd "%~dp0"
+pushd "%~dp0..\..\..\"
 if errorlevel 1 goto bad_directory
 echo Building existing .NET 10 tools. Build output follows.
-call "%~dp0build-windows.bat"
+call "%~dp0..\..\..\scripts\windows\internal\build-windows.bat"
 if errorlevel 1 goto failed
 set "CONFECTORY_ELEMENT_AUTHORING_HOST=%CD%\targets\element-authoring\bin\Release\net10.0\Confectory.ElementAuthoring.dll"
 echo Launching windowless browser for "%CONFECTORY_BROWSER_PROJECT%"
@@ -40,7 +40,7 @@ echo Could not enter the repository directory.
 goto finished
 :missing_project
 echo Project not found. Provide an existing project.cpack path without surrounding quotes.
-echo Usage: run-windowless-browser-proof-windows.bat "C:\path\to\project.cpack"
+echo Usage: scripts\windows\verification\run-windowless-browser-proof-windows.bat "C:\path\to\project.cpack"
 :finished
 echo Launcher exit code: %confectory_windowless_exit%
 echo Default mode is read-only. Editable mode is an unverified host bridge experiment.

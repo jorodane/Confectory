@@ -1,6 +1,6 @@
 # Asynchronous Windows project-shell check
 
-Use CP16 production `run-home-windows.bat` with existing SDK8; launcher/log path remains `.confectory/home-launch.log`. Original `run-editor-windows.bat` is still the separate functional consumer. Do not install tools or bypass script policy.
+Use CP16 production `scripts/windows/internal/run-home-windows.bat` with existing SDK8; launcher/log path remains `.confectory/home-launch.log`. Original `scripts/windows/legacy/run-editor-windows.bat` is still the separate functional consumer. Do not install tools or bypass script policy.
 
 1. Entry/Later/New/Open/card persistence work as CP15; create/open enters the project shell, not permanent editor/explorer/inspector/console panels.
 2. Project name Menu opens information, read-only settings, folder and leave. Information text must not overlap covered Workspace labels. Modal menus disable underlying chat/run controls; close/collapse/resize cancel stale pressed/focus.

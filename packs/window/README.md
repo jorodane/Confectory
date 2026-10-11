@@ -10,7 +10,7 @@ Install the .NET 8 SDK to build, or only the .NET 8 runtime to execute an existi
 
 ```powershell
 # Windows PowerShell
-.\build-windows.bat
+.\scripts/windows/internal/build-windows.bat
 if ($LASTEXITCODE -ne 0) { throw 'Build failed' }
 $r = dotnet src/Confectory.Cli/bin/Release/net8.0/Confectory.Cli.dll build examples/window/project.cpack portable | ConvertFrom-Json
 if ($LASTEXITCODE -ne 0) { throw 'Pack build failed' }

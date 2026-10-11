@@ -3,7 +3,7 @@ $ErrorActionPreference = 'Stop'
 $phase = 'checking prerequisites'
 try {
     Add-Type -AssemblyName System.Windows.Forms
-    $repo = $PSScriptRoot
+    $repo = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..\..'))
     if (!$Project) {
         $picker = New-Object System.Windows.Forms.OpenFileDialog
         $picker.Title = 'Select engine ProjectPack to export (Home: examples/editor-home/project.cpack)'

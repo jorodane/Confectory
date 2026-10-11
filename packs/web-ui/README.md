@@ -1,5 +1,8 @@
 # WebUI: resources, views and bounded consumer calls
 
+The JavaScript `WebView` class is a state/request client, not an OS WebView control. The embedded HTML editor is not implemented. Windows users enter through `Confectory.bat`; the current external-browser foundation is explicitly under developer diagnostics. See [launcher and embedding investigation](../../docs/WINDOWS_LAUNCHER.md).
+
+
 WebUI is presentation infrastructure. It imports only RuntimeBase and its two
 explicit consumer interfaces, `State` and `Invoke`. It has no editor, project
 manager, Helper, file, shell, compiler, credential or arbitrary function dispatcher.

@@ -1,6 +1,6 @@
 # CP14 asynchronous Windows spot check
 
-Use the reviewed CP14 source commit once its publication is separately confirmed. Interim ce217cc lacks later native focus/resize/provider corrections; do not treat it as final acceptance. Existing .NET SDK8 is required. Double-click root `run-editor-windows.bat`; failure diagnostics remain in ignored `.confectory/editor-launch.log`. No PowerShell or installation is required.
+Use the reviewed CP14 source commit once its publication is separately confirmed. Interim ce217cc lacks later native focus/resize/provider corrections; do not treat it as final acceptance. Existing .NET SDK8 is required. Double-click root `scripts/windows/legacy/run-editor-windows.bat`; failure diagnostics remain in ignored `.confectory/editor-launch.log`. No PowerShell or installation is required.
 
 1. In New project, enter `Game`, press End: caret should follow the final e using actual font width and height. Click between letters, drag a range and replace it; only the selected text should change. Repeat with variable-width `Wi` and Korean input if available; composition/preedit behavior is an open capability, not promised coverage.
 2. Type a long name/description/source line. End should scroll horizontally to the caret. Clicking in the scrolled text should position by visible measured glyphs. Resize narrower and wider: text/buffer identity remains and caret viewport follows changed geometry.

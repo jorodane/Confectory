@@ -10,7 +10,7 @@ D saves only versioned local diffs and original baselines. W saves, explicitly c
 
 ## Run and user checkpoint
 
-Windows: with .NET 8 installed, pull main and double-click `run-authoring-windows.bat`. It calls the same corrected build/launch flow and selects the built authoring strategy. Native Windows usability is still pending corrected user acceptance; this Linux environment has not exercised that OS.
+Windows: with .NET 8 installed, pull main and double-click `scripts/windows/legacy/run-authoring-windows.bat`. It calls the same corrected build/launch flow and selects the built authoring strategy. Native Windows usability is still pending corrected user acceptance; this Linux environment has not exercised that OS.
 
 Linux, from the checkout:
 

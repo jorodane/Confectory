@@ -49,7 +49,7 @@ dotnet src/Confectory.Cli/bin/Release/net8.0/Confectory.Cli.dll build examples/p
 dotnet src/Confectory.Cli/bin/Release/net8.0/Confectory.Cli.dll build examples/projection-maintenance/project.cpack android
 ```
 
-For asynchronous Windows acceptance, build Release and run `run-engine-windows.bat`, then retain PID/progress/completion and target diagnostics. Compiler references now use response files; the real retained engine relink measured 66500 estimated expanded characters and a 216-character launch, with 232 unique project and 163 framework references. The prior 103734-character probe deliberately repeated a reference 600 times and does not establish minimal dependencies. See WINDOWS_COMPILER_TRANSPORT_FIX.md. Native Windows observation does not block local next-pack work.
+For asynchronous Windows acceptance, build Release and run `scripts/windows/legacy/run-engine-windows.bat`, then retain PID/progress/completion and target diagnostics. Compiler references now use response files; the real retained engine relink measured 66500 estimated expanded characters and a 216-character launch, with 232 unique project and 163 framework references. The prior 103734-character probe deliberately repeated a reference 600 times and does not establish minimal dependencies. See WINDOWS_COMPILER_TRANSPORT_FIX.md. Native Windows observation does not block local next-pack work.
 
 ## Next-stage handoff
 

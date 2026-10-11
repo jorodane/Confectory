@@ -11,7 +11,7 @@ Each element's text model belongs to the browser context and survives closing/re
 Windows with an existing .NET 8 SDK:
 
 ```bat
-run-browser-windows.bat "C:\your\existing-project\project.cpack"
+scripts/windows/legacy/run-browser-windows.bat "C:\your\existing-project\project.cpack"
 ```
 
 Linux with built CLI and element-authoring host, GTK3/GtkSourceView4 and live DISPLAY:

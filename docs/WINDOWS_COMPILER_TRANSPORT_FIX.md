@@ -20,7 +20,7 @@ CONFECTORY_BUILD_HEARTBEAT_SECONDS=1 dotnet tests/Confectory.Tests/bin/Release/n
 
 The compiler regression passed: one test, zero failures, 2.322 seconds. It actually compiled with 600 project references plus 163 framework references, Unicode/space-containing source and output paths, and a copied native dotnet host at a space-containing path. Estimated expanded arguments measured 124,509 characters; the response-file launch measured 365. Concurrent successful compilations and a malformed-source failure left no response files. The CLI regression passed: one test, zero failures, 3.701 seconds, covering spaced paths, visible output, build failure and runtime exit-code propagation.
 
-These are actual Linux process/compiler checks, including a command far above the Windows command-line limit. Native Windows acceptance remains pending; no Windows runtime or APK execution is claimed. To spot-check on Windows, build Release and run `run-engine-windows.bat`; retain the new PID/progress/completion lines and any target diagnostic. Development does not wait for this asynchronous check.
+These are actual Linux process/compiler checks, including a command far above the Windows command-line limit. Native Windows acceptance remains pending; no Windows runtime or APK execution is claimed. To spot-check on Windows, build Release and run `scripts/windows/legacy/run-engine-windows.bat`; retain the new PID/progress/completion lines and any target diagnostic. Development does not wait for this asynchronous check.
 
 ## Stress arguments versus real selected references
 

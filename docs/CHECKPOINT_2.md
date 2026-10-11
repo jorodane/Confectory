@@ -4,7 +4,7 @@
 
 ## Runnable desktop workflow
 
-On Windows, double-click `run-engine-windows.bat` or run it from CMD. `build-windows.bat` remains build-only. No manual PowerShell commands, JSON parsing, Python or policy change is required. The launcher honors CONFECTORY_DOTNET, quotes paths with spaces, propagates exact build/child failures and keeps failure diagnostics visible (CONFECTORY_NO_PAUSE=1 disables pause).
+On Windows, double-click `scripts/windows/legacy/run-engine-windows.bat` or run it from CMD. `scripts/windows/internal/build-windows.bat` remains build-only. No manual PowerShell commands, JSON parsing, Python or policy change is required. The launcher honors CONFECTORY_DOTNET, quotes paths with spaces, propagates exact build/child failures and keeps failure diagnostics visible (CONFECTORY_NO_PAUSE=1 disables pause).
 
 On Linux, from the repository root with .NET 8 on PATH:
 

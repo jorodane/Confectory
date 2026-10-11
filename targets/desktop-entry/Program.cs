@@ -18,7 +18,7 @@ try
  if(!File.Exists(Path.Combine(repo,"examples","editor-home","project.cpack")))throw new ArgumentException("An installed, trusted Confectory checkout is required");
  if(command=="registration-file"){
   if(!OperatingSystem.IsWindows())throw new PlatformNotSupportedException("Generate Windows association registration on the Windows installation");
-  string launcher=Path.Combine(repo,"open-project-windows.bat");if(!File.Exists(launcher))throw new FileNotFoundException("Update the installed checkout: project-open launcher missing",launcher);
+  string launcher=Path.Combine(repo,"Confectory.bat");if(!File.Exists(launcher))throw new FileNotFoundException("Update the installed checkout: project-open launcher missing",launcher);
   string commandHost=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System),"cmd.exe");
   string registration=WindowsAssociation.FormatLauncher(commandHost,repo);
   File.WriteAllText(path,registration,System.Text.Encoding.Unicode);Console.WriteLine("Registration file created; review/import it yourself. No registry setting was changed.");return 0;

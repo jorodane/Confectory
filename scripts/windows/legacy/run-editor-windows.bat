@@ -1,9 +1,10 @@
 @echo off
 setlocal DisableDelayedExpansion
+echo [Legacy demo] This is not the current EditorHome. Use Confectory.bat for the editor.
 rem Double-click entry: ordinary CMD and existing dotnet only. No PowerShell.
 set "confectory_editor_dotnet=dotnet"
 if defined CONFECTORY_DOTNET set "confectory_editor_dotnet=%CONFECTORY_DOTNET%"
-pushd "%~dp0"
+pushd "%~dp0..\..\..\"
 if errorlevel 1 goto directory_failed
 set "confectory_editor_pushed=1"
 set "CONFECTORY_EDITOR_REPO=%CD%"
@@ -20,7 +21,7 @@ set "confectory_editor_exit=%errorlevel%"
 if not "%confectory_editor_exit%"=="0" goto sdk_failed
 echo [Confectory 1/3] Building solution and editor tool hosts.
 echo Build and runtime output: "%confectory_editor_log%"
-call "%~dp0build-windows.bat" >> "%confectory_editor_log%" 2>&1
+call "%~dp0..\..\..\scripts\windows\internal\build-windows.bat" >> "%confectory_editor_log%" 2>&1
 set "confectory_editor_exit=%errorlevel%"
 if not "%confectory_editor_exit%"=="0" goto report_failed
 echo [Confectory 2/3] Building Windows Editor ProjectPack, then launching it.
@@ -44,7 +45,7 @@ goto pause_failed
 echo The existing .NET host could not select the required .NET 10 SDK.
 echo global.json remains unchanged; a runtime alone is insufficient.
 echo Check the diagnostics below and CONFECTORY_DOTNET if set.
-echo CONFECTORY_DOTNET should be the full path to an existing SDK8 dotnet.exe.
+echo CONFECTORY_DOTNET should be the full path to an existing .NET 10 SDK dotnet.exe.
 :report_failed
 echo.
 if exist "%confectory_editor_log%" type "%confectory_editor_log%"

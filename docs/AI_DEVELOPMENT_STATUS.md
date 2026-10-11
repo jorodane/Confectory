@@ -1,5 +1,10 @@
 # AI development implementation and verification boundary
 
+## 2026-10-11 Unified Windows entry
+
+Use root `Confectory.bat`; current native EditorHome, build/export and explicit association-file generation are separate choices. Embedded HTML editor is not implemented. External-browser WebUI is a developer diagnostic only; legacy launchers moved out of the root. See [launcher/migration and WebView investigation](WINDOWS_LAUNCHER.md). Latest user main merge 7a008bc was fast-forwarded on work/current; the paused native 18-file work and backup remain untouched. No SDK/WebView installation, signing, registry import, Android version change or Sites change was performed. Windows CMD execution is explicitly unverified here.
+
+
 ## 2026-10-11 Generic web UI foundation
 
 The paused native v180 presentation rewrite is preserved separately and is not
@@ -405,6 +410,6 @@ This is a verified layout increment, not completed v180 visual fidelity. PDF pix
 
 ## 2026-10-10 Windows layout verification launcher correction
 
-The layout batch's Windows instructions previously named the wrong launcher and log. Source inspection confirms `run-home-windows.bat` runs `examples/editor-home/project.cpack` and writes `.confectory/home-launch.log`. `run-editor-windows.bat` runs the separate older `examples/editor/project.cpack` and writes `.confectory/editor-launch.log`; its Agent Manager / Offline local mode screen cannot validate the current EditorHome layout. This was an instruction error, not a change to the implementation or the ProjectPack used for recorded validation.
+The layout batch's Windows instructions previously named the wrong launcher and log. Source inspection confirms `scripts/windows/internal/run-home-windows.bat` runs `examples/editor-home/project.cpack` and writes `.confectory/home-launch.log`. `scripts/windows/legacy/run-editor-windows.bat` runs the separate older `examples/editor/project.cpack` and writes `.confectory/editor-launch.log`; its Agent Manager / Offline local mode screen cannot validate the current EditorHome layout. This was an instruction error, not a change to the implementation or the ProjectPack used for recorded validation.
 
-Corrected `EDITOR_LAYOUT_BATCH.md` and clarified the current versus historical launcher guidance in `ROADMAP_HANDOFF.md`. Other Markdown launcher references were reviewed: CP13/CP14 and `examples/editor` instructions correctly describe the older consumer, while CP15+ Home instructions already select `run-home-windows.bat`. This correction changes documentation only; launchers, packs, layout, main and Android settings are untouched. Validation consists of comparing both batch files' actual CLI target/log assignments, checking the documentation diff and confirming the changed-file scope. No runtime tests were rerun for this documentation-only correction.
+Corrected `EDITOR_LAYOUT_BATCH.md` and clarified the current versus historical launcher guidance in `ROADMAP_HANDOFF.md`. Other Markdown launcher references were reviewed: CP13/CP14 and `examples/editor` instructions correctly describe the older consumer, while CP15+ Home instructions already select `scripts/windows/internal/run-home-windows.bat`. This correction changes documentation only; launchers, packs, layout, main and Android settings are untouched. Validation consists of comparing both batch files' actual CLI target/log assignments, checking the documentation diff and confirming the changed-file scope. No runtime tests were rerun for this documentation-only correction.

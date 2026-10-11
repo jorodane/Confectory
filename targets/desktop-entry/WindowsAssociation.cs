@@ -11,7 +11,7 @@ public static class WindowsAssociation
  public static string FormatLauncher(string commandHost,string repository)
  {
   CheckPaths(commandHost,repository);
-  string launcher=repository.TrimEnd('\\','/')+"\\open-project-windows.bat";
+  string launcher=repository.TrimEnd('\\','/')+"\\Confectory.bat";
   return Registration("\""+commandHost+"\" /d /v:off /s /c \"\""+launcher+"\" \"%1\"\"");
  }
  private static void CheckPaths(params string[] paths)

@@ -38,8 +38,8 @@ Windows recheck from the corrected checkout:
 ```bat
 dotnet --list-sdks
 dotnet --version
-build-windows.bat
-run-engine-windows.bat
+scripts/windows/internal/build-windows.bat
+scripts/windows/legacy/run-engine-windows.bat
 ```
 
 Run these from the repository. The version should report8.0.* when an8.0 SDK is installed, even if10 is also installed. If the list has only10, the current source build prerequisite is an installed8.0 SDK; a runtime/reference pack alone is insufficient. Installation is not performed here. Native Windows and a real side-by-side SDK8/10 matrix remain asynchronous user checks, not claimed passes.

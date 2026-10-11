@@ -1,6 +1,9 @@
 # Repeatable local Windows APK/AAB export
 
-Entry point: double-click `export-android-windows.bat`, select an engine ProjectPack, and follow the local prompts. There is currently no Android export menu in Home. The script builds the trusted exporter, creates a new timestamped output under `%LOCALAPPDATA%\Confectory\exports`, and packages the format in the selected project's AndroidExport object. It does not install development tools, create keys, install the app, or contact Play. The wrapper permits its own PowerShell script for that process only; it does not persist an execution-policy change.
+Windows 사용자 진입점은 루트 `Confectory.bat`의 **4 — unsigned Android export**입니다. 아래 직접 실행/서명 설명은 내부 고급 도구 사용에 해당하며, 통합 메뉴는 서명이나 키 생성을 시작하지 않습니다. [통합 메뉴 안내](WINDOWS_LAUNCHER.md).
+
+
+Entry point: double-click `scripts/windows/internal/export-android-windows.bat`, select an engine ProjectPack, and follow the local prompts. There is currently no Android export menu in Home. The script builds the trusted exporter, creates a new timestamped output under `%LOCALAPPDATA%\Confectory\exports`, and packages the format in the selected project's AndroidExport object. It does not install development tools, create keys, install the app, or contact Play. The wrapper permits its own PowerShell script for that process only; it does not persist an execution-policy change.
 
 For the actual shared editor product use `examples\editor-home\project.cpack`. The exporter calls its generated real ProjectPack entry through the same generic Android Activity used for other valid entries; product UI remains in the common controller. Android supplies one Activity surface, native fields and app-private imported document copies. Multiple independent OS windows, desktop file-manager launching and arbitrary imported Build/Play are unsupported capabilities. Native APK/AAB compilation is separate from Android device/lifecycle/IME acceptance.
 
@@ -29,7 +32,7 @@ Prerequisites on Windows: .NET10 runtime/SDK for the Confectory tools; its Andro
 Optional CLI-style wrapper usage from `C:\Confectory`:
 
 ```bat
-export-android-windows.bat -Project "C:\Confectory\examples\editor-home\project.cpack"
+scripts/windows/internal/export-android-windows.bat -Project "C:\Confectory\examples\editor-home\project.cpack"
 ```
 
 `-Output "C:\YourNewExport"` chooses a new output directory; existing exports are never overwritten. `-Unsigned` skips all signing prompts. The completed unsigned path is shown by the exporter and recorded in `package-report.json`, normally `bin\Release\<selected-framework>\<applicationId>.aab` (or `.apk`). For APK, the unsigned Package output is explicitly aligned with the installed official build-tools `zipalign -P 16 -f 4` and verified with `zipalign -c -P 16 -v 4` before success. The report records `apkZipAlignmentVerified`; AAB bundle alignment is a separate archive/device gate. Failures do not produce a successful package report. A source-only export is still available through the existing two-argument exporter command.
@@ -76,7 +79,7 @@ Double-click/no-argument BAT entry now pauses after success, failure or cancella
 
 ```bat
 cd /d "C:\Confectory"
-export-android-windows.bat -Project "C:\Confectory\examples\editor-home\project.cpack" -Unsigned
+scripts/windows/internal/export-android-windows.bat -Project "C:\Confectory\examples\editor-home\project.cpack" -Unsigned
 ```
 
 The actual example entry is `examples/editor-home/project.cpack`. The user's remembered “Verify” error has not been captured: no wrong-selection, SDK or product failure cause is asserted. Read the complete first error, phase and selected ProjectPack/output paths before pressing a key; report those diagnostics. The wrapper prints a planned output path before building; on failure it may contain partial output, and package/export reports only exist if their respective stages wrote them. No new log/transcript is recorded, especially across signing. `-Unsigned` never prompts for signing; otherwise signing still requires explicit `SIGN` and an existing selected key.

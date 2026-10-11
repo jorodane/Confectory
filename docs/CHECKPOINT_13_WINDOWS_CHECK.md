@@ -1,6 +1,6 @@
 # Checkpoint13 Windows spot check
 
-For the user-confirmed batch/.NET environment, double-click **run-editor-windows.bat** in the repository root. No terminal, manual cd or PowerShell is needed. Keep its console open during initial pack compilation; the Editor opens when it completes. On failure read the retained window and `.confectory/editor-launch.log`, preferably the first error and last stage. The log remains local/ignored. See [launcher evidence](WINDOWS_EDITOR_LAUNCH_FIX.md). No execution-policy bypass/change or installation is performed.
+For the user-confirmed batch/.NET environment, double-click **scripts/windows/legacy/run-editor-windows.bat** in the repository root. No terminal, manual cd or PowerShell is needed. Keep its console open during initial pack compilation; the Editor opens when it completes. On failure read the retained window and `.confectory/editor-launch.log`, preferably the first error and last stage. The log remains local/ignored. See [launcher evidence](WINDOWS_EDITOR_LAUNCH_FIX.md). No execution-policy bypass/change or installation is performed.
 
 Optional existing environment settings `CONFECTORY_DOTNET` (full SDK8 dotnet.exe path) and `CONFECTORY_EDITOR_STORAGE` (owned settings folder) are honored; their use is not required in the normal PATH-based double-click flow. The launcher installs nothing. Native Windows is not accepted merely from the successful managed target builds; these user checks are asynchronous and do not block development.
 

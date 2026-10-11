@@ -1,6 +1,6 @@
 # Checkpoint16 — bounded project shell
 
-Local branch `integration/checkpoint-16-project-shell` from published CP15 `1f9343fd097c0038d6f664097734166094304b58`. Publication is separately coordinated; no push/merge in this increment. Existing CP15 start/home and independent/legacy validation consumers are retained. `examples/editor` and `run-editor-windows.bat` remain untouched.
+Local branch `integration/checkpoint-16-project-shell` from published CP15 `1f9343fd097c0038d6f664097734166094304b58`. Publication is separately coordinated; no push/merge in this increment. Existing CP15 start/home and independent/legacy validation consumers are retained. `examples/editor` and `scripts/windows/legacy/run-editor-windows.bat` remain untouched.
 
 ## Delivered specification slice
 
@@ -14,7 +14,7 @@ Model and text are app-owned per context; control surfaces and buffers persist a
 
 ## Launch and current-source checks
 
-Linux existing SDK8/X11: `bash examples/editor-home/run-home.sh`; this environment can set `CONFECTORY_DOTNET=/workspace/toolchains/dotnet-8.0.425/dotnet`, `DOTNET_CLI_HOME=/tmp/confectory-dotnet`, prepend that SDK directory to PATH and use `DISPLAY=:97` or`:98`. Windows double-click unchanged production launcher `run-home-windows.bat`; asynchronous native checklist below. Settings remain ignored `.confectory/editor-home` or `CONFECTORY_HOME_STORAGE`.
+Linux existing SDK8/X11: `bash examples/editor-home/run-home.sh`; this environment can set `CONFECTORY_DOTNET=/workspace/toolchains/dotnet-8.0.425/dotnet`, `DOTNET_CLI_HOME=/tmp/confectory-dotnet`, prepend that SDK directory to PATH and use `DISPLAY=:97` or`:98`. Windows double-click unchanged production launcher `scripts/windows/internal/run-home-windows.bat`; asynchronous native checklist below. Settings remain ignored `.confectory/editor-home` or `CONFECTORY_HOME_STORAGE`.
 
 Exact scoped test commands/results and local evidence are appended after final gates. Functional and locality/structure assertions are separate; body-only probes must compile precisely the edited Shell or EditorHome provider and zero contracts. Managed Windows/Android profile compilation is compile-only.
 

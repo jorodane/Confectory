@@ -43,13 +43,13 @@ An existing X11 session can replace `:97`. This environment's private test displ
 Xorg :97 -noreset -nolisten tcp -config /workspace/Confectory/docs/window-xorg.conf -logfile /tmp/confectory-xorg.log
 ```
 
-For Windows spot checks, double-click `run-engine-windows.bat` or run it from CMD:
+For Windows spot checks, double-click `scripts/windows/legacy/run-engine-windows.bat` or run it from CMD:
 
 ```
-run-engine-windows.bat
+scripts/windows/legacy/run-engine-windows.bat
 ```
 
-It builds the solution and runs the engine ProjectPack through the general CLI `run` command. No manual PowerShell command, JSON parsing, Python installation or execution-policy change is needed. Paths with spaces are quoted; `CONFECTORY_DOTNET` selects a specific dotnet executable. Build/runtime failures retain their exit code and pause to keep diagnostics visible. Set `CONFECTORY_NO_PAUSE=1` for unattended use. Existing `build-windows.bat` still only builds.
+It builds the solution and runs the engine ProjectPack through the general CLI `run` command. No manual PowerShell command, JSON parsing, Python installation or execution-policy change is needed. Paths with spaces are quoted; `CONFECTORY_DOTNET` selects a specific dotnet executable. Build/runtime failures retain their exit code and pause to keep diagnostics visible. Set `CONFECTORY_NO_PAUSE=1` for unattended use. Existing `scripts/windows/internal/build-windows.bat` still only builds.
 
 Check independent increment/toggle in A/B, outside-release cancellation, Enter/Space repeat and Tab focus, resize, combined camera inputs, A close followed by R in B, both-window close and Ctrl+C. Windows/Android user spot checks are asynchronous; record defects and keep independent pack development moving.
 

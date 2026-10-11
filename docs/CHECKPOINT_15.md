@@ -14,7 +14,7 @@ Main retains controls/text tokens and native surface across route/resizes, rende
 
 Linux: `CONFECTORY_DOTNET=/workspace/toolchains/dotnet-8.0.425/dotnet DISPLAY=:98 bash examples/editor-home/run-home.sh` in this environment. Other consumers may use their existing SDK8 with `CONFECTORY_DOTNET` or PATH. Optional `CONFECTORY_HOME_STORAGE` selects owned local settings; default ignored `.confectory/editor-home`.
 
-Windows: double-click `run-home-windows.bat`. Existing `run-editor-windows.bat` is unchanged. See `CHECKPOINT_15_WINDOWS_CHECK.md` for asynchronous native checks. Android requirements/gaps: `CHECKPOINT_15_ANDROID_PLAN.md`.
+Windows: double-click `scripts/windows/internal/run-home-windows.bat`. Existing `scripts/windows/legacy/run-editor-windows.bat` is unchanged. See `CHECKPOINT_15_WINDOWS_CHECK.md` for asynchronous native checks. Android requirements/gaps: `CHECKPOINT_15_ANDROID_PLAN.md`.
 
 Exact test commands/results and private Library evidence are appended after final gates. Build command: `dotnet build Confectory.sln -c Release` with SDK8 selected by global.json. Registered new gates are `EntryHomeTests`; affected shared Field consumers are existing FieldTests native/locality and existing EditorTests actual GUI. Raw logs and images remain /tmp/ignored; no binaries/images/secrets/raw chat logs in Git.
 
