@@ -76,22 +76,22 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
       served=urllib.request.urlopen(origin+'/assets/'+image_path.name).read()
       assert hashlib.sha256(served).digest()==hashlib.sha256(image_path.read_bytes()).digest()
       assert page.evaluate("async path=>{const image=new Image();image.src=path;await image.decode();return image.naturalWidth>0&&image.naturalHeight>0}",'/assets/'+image_path.name)
-     assert page.locator('.bubble-dock button:disabled').count()==1
+     page.locator('#issues').click();expect(page.locator('.modal')).to_contain_text('연결되지 않았습니다');page.locator('.modal [data-close]').click()
      assert page.locator('.home-side').is_visible()
      assert not page.locator('#source').is_visible(),'raw source should be an explicit advanced view'
-     page.locator('#helpers').click();expect(page.locator('[data-recruit="global"]')).to_be_visible()
+     page.locator('#add-helper').click();expect(page.locator('[data-recruit="global"]')).to_be_visible()
      page.locator('[data-recruit="global"]').click();expect(page.locator('#helper-list')).to_contain_text('main-helper')
      page.locator('#helper-list button').click();expect(page.locator('#helper-summary')).to_contain_text('main-helper',timeout=30000)
      # Common memory excluded by default. No provider or account is opened.
      expect(page.locator('#allow-common')).not_to_be_checked()
      page.locator('#helper-memory').fill('local explicitly scoped note');page.locator('#remember').click();expect(page.locator('#status')).to_contain_text('로컬에 저장됨')
-     page.locator('#chat').click();page.locator('#chat-input').fill('local project message');page.locator('#chat-save').click();expect(page.locator('#status')).to_contain_text('전송 없음')
-     page.locator('#connections').click();expect(page.locator('#connection-list button')).not_to_have_count(0)
+     page.locator('#chat').click();page.locator('#chat-input').fill('local project message');page.locator('#chat-input').blur();expect(page.locator('#status')).to_contain_text('전송 없음')
+     page.locator('#add-agent').click();expect(page.locator('#connection-list button')).not_to_have_count(0)
      local_state=mount();assert local_state['scope']['helperId']=='main-helper';assert not local_state['scope']['allowCommon'];assert local_state['state']['chatDraft']=='local project message';assert local_state['state']['aiState']=='idle';assert 'memory' not in local_state['state']['helperProfile'];assert 'config' not in local_state['state'];assert send(envelope(local_state,'dispose'))['ok']
      for key in ['connections','helpers']:
       page.locator('.window[data-key="'+key+'"] [data-close]').click()
 
-     page.locator('#objects-refresh').click();button=page.locator('[data-id="Example.ButtonGame::Score"]');expect(button).to_be_visible();button.click();expect(page.locator('[data-schema-id]')).to_have_text('Example.ButtonGame::Score');page.screenshot(path='/tmp/confectory-v196-semantic-project.png',full_page=True);page.locator('#yogi').click();page.locator('#yogi-exactly').click();expect(page.locator('#yogi-items')).to_contain_text('Example.ButtonGame::Score');page.locator('#yogi-capture').click();expect(page.locator('#yogi-items')).to_contain_text('선택 영역 이미지',timeout=30000);page.locator('[data-operation="image-preview"]').click();expect(page.locator('[data-yogi-image]')).to_be_visible();assert page.locator('[data-yogi-image]').evaluate("canvas=>{const bytes=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;return new Set(bytes).size>2}")
+     page.locator('#nav').click();button=page.locator('[data-id="Example.ButtonGame::Score"]');expect(button).to_be_visible();button.click();expect(page.locator('[data-schema-id]')).to_have_text('Example.ButtonGame::Score');page.screenshot(path='/tmp/confectory-v196-semantic-project.png',full_page=True);page.locator('#yogi').click();page.locator('#yogi-exactly').click();expect(page.locator('#yogi-items')).to_contain_text('Example.ButtonGame::Score');page.locator('#yogi-capture').click();expect(page.locator('#yogi-items')).to_contain_text('선택 영역 이미지',timeout=30000);page.locator('[data-operation="image-preview"]').click();expect(page.locator('[data-yogi-image]')).to_be_visible();assert page.locator('[data-yogi-image]').evaluate("canvas=>{const bytes=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;return new Set(bytes).size>2}")
      capture_state=mount();images=[item for item in capture_state['state']['yogi']['items'] if item['kind']=='image'];assert len(images)==1 and 'pixels' not in images[0]['capture'];assert 0<images[0]['capture']['width']<=512 and 0<images[0]['capture']['height']<=512
      invalid={'action':'capture','id':'Example.ButtonGame::Score','image':{'encoding':'rgb24-base64','width':1,'height':1,'pixels':'AAAA','hash':'0'*64}}
      assert send(envelope(capture_state,'invoke',endpoint='yogi',requestId='bad-capture-hash',expectedRevision=capture_state['revision'],input=invalid))['ok'];rejected,after_capture=settle(capture_state,'bad-capture-hash');assert not rejected['ok'];assert len(after_capture['state']['yogi']['items'])==2 and after_capture['state']['yogi']['pending']==[];assert send(envelope(capture_state,'dispose'))['ok']
@@ -128,7 +128,7 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
      assert send(envelope(no_task,'dispose'))['ok']
      source=page.locator('#source');text=source.input_value()+'\n// common-web-ui-draft\n';source.fill(text);page.locator('#save').click();expect(page.locator('#status')).to_have_text('Draft saved; final sources unchanged',timeout=30000)
      assert (project/'Score.celem').read_bytes()==original,'Save performed source Confirm'
-     page.locator('#reconnect').click();expect(page.locator('#status')).to_contain_text('Reconnected');expect(source).to_have_value(text)
+     retained_draft=mount();assert retained_draft['state']['draft']['text']==text;assert send(envelope(retained_draft,'dispose'))['ok']
      page.reload();expect(page.locator('#status')).to_have_text('Ready');page.locator('#nav').click();page.locator('#advanced-source').click();expect(source).to_have_value(text)
      # Another independent mount reads the same domain draft, without a UI-only storage copy.
      second=mount();assert second['state']['draft']['text']==text and second['state']['draft']['dirty'];assert 'context' not in second['state'] and 'path' not in second['state']['draft']
@@ -149,15 +149,15 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
      page.locator('#schema').click();expect(page.locator('[data-schema-id]')).to_have_text('Example.ButtonGame::Score',timeout=30000)
      schema_state=mount();assert schema_state['state']['schema']['id']=='Example.ButtonGame::Score';assert send(envelope(schema_state,'dispose'))['ok']
      # Actual settings pack authoring and permission review, with no credentials or provider dispatch.
-     page.locator('.brand').click();expect(page.locator('#manage-ai')).to_be_visible(timeout=30000);page.locator('#global-helpers').click();expect(page.locator('#global-helper-list')).to_contain_text('main-helper');page.locator('#manage-ai').click()
-     page.locator('#settings-catalog button').filter(has_text='Confectory.Agent.Responses::Connection').click()
+     page.locator('.brand').click();expect(page.locator('.home-grid')).to_be_visible(timeout=30000);page.locator('#add-helper').click();expect(page.locator('#global-helper-list')).to_contain_text('main-helper');page.locator('.modal [data-close]').click();page.locator('#add-agent').click()
+     page.locator('#connection-choice').select_option('Confectory.Agent.Responses::Connection');page.locator('#connection-edit').click()
      expect(page.locator('[data-schema-id]')).to_have_text('Confectory.AISettings::Settings',timeout=30000)
      assert not page.locator('#source').is_visible()
      for name,value in [('model','owned-ui-no-call'),('endpoint',owned.endpoint),('credentialReference','')]:
       field=page.locator('[data-schema-field="'+name+'"]');field.fill(value);field.locator('..').get_by_role('button',name='Apply field',exact=True).click();expect(page.locator('#status')).to_have_text('Shared field draft updated',timeout=30000)
      page.locator('#semantic-save').click();expect(page.locator('#status')).to_have_text('Draft saved; final sources unchanged',timeout=30000)
-     page.locator('.brand').click();expect(page.locator('[data-project]')).to_have_count(1,timeout=30000);page.locator('[data-project]').click()
-     page.locator('#connections').click();page.locator('#connection-list button').filter(has_text='Confectory.Agent.Responses::Connection').click();expect(page.locator('#status')).to_contain_text('전송 없음',timeout=30000)
+     page.locator('.brand').click();expect(page.locator('[data-project]')).to_have_count(1,timeout=30000);page.locator('[data-enter]').click()
+     page.locator('#add-agent').click();page.locator('#connection-list button').filter(has_text='Confectory.Agent.Responses::Connection').click();expect(page.locator('#status')).to_contain_text('전송 없음',timeout=30000)
      page.locator('.window[data-key="connections"] [data-close]').click();page.locator('#chat').click();page.locator('#chat-input').fill('review without sending');page.locator('#chat-prepare').click();expect(page.locator('#ai-start')).to_be_disabled(timeout=30000)
      preview=mount();assert preview['state']['aiPreview']['message']=='review without sending';assert 'config' not in preview['state']['aiPreview'];assert len(preview['state']['aiPreview']['requirements'])==2
      assert send(envelope(preview,'invoke',endpoint='startAI',requestId='unapproved-start',expectedRevision=preview['revision'],input={'token':preview['state']['aiPreview']['token']}))['ok'];refused,after=settle(preview,'unapproved-start');assert not refused['ok'] and after['state']['aiOutput'] in [None,''];assert send(envelope(preview,'dispose'))['ok']
@@ -173,7 +173,7 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
        choice=page.locator('[data-permission="'+permission+'"]');choice.check();expect(choice).to_be_enabled(timeout=30000)
       expect(page.locator('#ai-start')).to_be_enabled(timeout=30000);page.locator('#ai-start').click();expect(page.locator('.window[data-key="ai-preview"]')).to_have_count(0,timeout=30000)
      approve_and_start();expect(page.locator('[data-card]')).to_have_count(3,timeout=30000);assert len(owned.requests)==1 and not owned.errors,owned.errors
-     page.locator('[data-card]').first.click();expect(page.locator('#worker-summary button')).to_have_count(1,timeout=30000);page.locator('.window[data-key="augment"] [data-close]').click();page.locator('#worker-summary button').click();page.locator('#worker-prepare').click();approve_and_start()
+     page.locator('[data-card]').first.click();expect(page.locator('#worker-summary button')).to_have_count(1,timeout=30000);page.locator('.window[data-key="augment"] [data-close]').click();page.locator('.home-side [data-helper]').filter(has_text='main-helper').click();page.locator('.modal [data-worker]').click();page.locator('#worker-prepare').click();approve_and_start()
      expect(page.locator('#worker-source-list')).to_contain_text(bodies[0],timeout=30000);expect(page.locator('.window[data-key="worker"]')).to_contain_text('awaiting-verification',timeout=30000);assert len(owned.requests)==4 and not owned.errors,owned.errors
      body_owner=bodies[0].split('::',1)[1].split('/body:',1)[0];locator=re.search(r'element\s+'+re.escape(body_owner)+r'\s+implementation\s+"([^"]+)"',manifest.read_text());assert locator;definition=(project/locator.group(1)).read_text();body_path=project/re.search(r'body\s+common\s+"([^"]+)"',definition).group(1);before_worker=body_path.read_text();assert 'owned HTTP Worker draft' not in before_worker,'Worker bypassed draft boundary'
      page.locator('[data-worker-source]').check();page.locator('#worker-review').click();expect(page.locator('#worker-adopt')).to_be_enabled(timeout=30000);assert body_path.read_text()==before_worker,'Review committed Worker draft'
@@ -186,8 +186,8 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
      pending_text=text+'\n// retained browser input\n';source.fill(pending_text)
      page.locator('.brand').click();expect(page.locator('[data-project]')).to_have_count(1,timeout=30000)
      page.screenshot(path='/tmp/confectory-v196-consumer-home.png',full_page=True)
-     assert page.locator('#open-local').is_disabled(),'browser diagnostic must not acquire native file authority'
-     page.locator('[data-project]').click();expect(page.locator('#source')).to_have_value(pending_text,timeout=30000)
+     page.locator('#open-project').click();expect(page.locator('.modal')).to_contain_text('지원하지 않습니다');page.locator('.modal [data-close]').click()
+     page.locator('[data-enter]').click();expect(page.locator('#source')).to_have_value(pending_text,timeout=30000)
      assert (project/'Score.celem').read_text()==text,'hide/open committed unsaved browser input'
      assert mount()['state']['draft']['text']==text,'HTML input became domain draft without Apply'
      source_window=page.locator('.window[data-key="source"]');source_window.locator('[data-fold]').click();expect(source).not_to_be_visible()

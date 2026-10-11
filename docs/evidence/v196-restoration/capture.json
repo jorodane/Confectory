@@ -1,0 +1,12 @@
+{
+  "reference": "reference/site-ui/Confectory-Editor-Prototype-v196.zip",
+  "referenceSha256": "02d4824e92ed0edbb43113659982b37a99a614117652bde4d8ac92367e334e34",
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "consumer": "ordinary examples/editor-home/project.cpack via real common WebUI; regular examples/button-game/project.cpack",
+  "limits": "Home/project/create frame capture; inner semantic/Helper forms remain incomplete; Windows runtime not executed",
+  "consumerAppSha256": "7440428eca4b93a35d80fd42a89559607d209a83e7f19d7422f473bc3bc3a79b",
+  "sourceEvidence": "/tmp/confectory-original-layout-34uf6fkk"
+}

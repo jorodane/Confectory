@@ -2,6 +2,15 @@ using Confectory.Core;
 namespace Confectory.Tests;
 public sealed class WebUITests : TestCase
 {
+    public void test_actual_editor_original_v196_home_project_and_create_flow()
+    {
+        var built=new Builder(Path.Combine(Fixture.Repo,"examples","editor-home","project.cpack"),"linux").Build();
+        string report=Path.Combine(f.Root,"original-layout.json"),reference=Path.Combine(f.Root,"original-v196");
+        File.WriteAllText(report,built.ToJsonString());
+        System.IO.Compression.ZipFile.ExtractToDirectory(Path.Combine(Fixture.Repo,"reference","site-ui","Confectory-Editor-Prototype-v196.zip"),reference);
+        var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests","web","editor_home_original_layout.py"),Fixture.Repo,report,reference},timeoutSeconds:180);
+        True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS ordinary ProjectPack original Home"));
+    }
     public void test_actual_editor_and_button_game_common_web_transport_chromium()
     {
         foreach(var (folder,kind) in new[]{("button-game","button"),("editor-home","editor")})

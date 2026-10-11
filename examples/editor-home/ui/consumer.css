@@ -12,3 +12,5 @@
 .consumer-definition{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}.consumer-definition label{display:grid;gap:5px;flex:1;min-width:130px}.consumer-definition input,.consumer-definition select{width:100%}
 
 .consumer-object-row{display:flex;align-items:center;gap:8px}.consumer-object-row button{flex:1}
+
+#status[hidden]{display:none!important}

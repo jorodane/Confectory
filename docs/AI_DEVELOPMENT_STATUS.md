@@ -510,3 +510,19 @@ This is a verified layout increment, not completed v180 visual fidelity. PDF pix
 The layout batch's Windows instructions previously named the wrong launcher and log. Source inspection confirms `scripts/windows/internal/run-home-windows.bat` runs `examples/editor-home/project.cpack` and writes `.confectory/home-launch.log`. `scripts/windows/legacy/run-editor-windows.bat` runs the separate older `examples/editor/project.cpack` and writes `.confectory/editor-launch.log`; its Agent Manager / Offline local mode screen cannot validate the current EditorHome layout. This was an instruction error, not a change to the implementation or the ProjectPack used for recorded validation.
 
 Corrected `EDITOR_LAYOUT_BATCH.md` and clarified the current versus historical launcher guidance in `ROADMAP_HANDOFF.md`. Other Markdown launcher references were reviewed: CP13/CP14 and `examples/editor` instructions correctly describe the older consumer, while CP15+ Home instructions already select `scripts/windows/internal/run-home-windows.bat`. This correction changes documentation only; launchers, packs, layout, main and Android settings are untouched. Validation consists of comparing both batch files' actual CLI target/log assignments, checking the documentation diff and confirming the changed-file scope. No runtime tests were rerun for this documentation-only correction.
+
+
+## 2026-10-11 Original v196 frame restoration (first increment)
+
+Restored the frozen original Home/project/create frame before attaching engine actions; removed the operation-oriented Home and development toolbar. Same-viewport reference/consumer captures and explicit incomplete inner-window boundaries are recorded in `EDITOR_V196_SCREEN_RESTORATION.md` and `evidence/v196-restoration/`. This supersedes any inference that earlier functional gates established original-screen fidelity.
+
+Validation of the final UI source:
+- Registered original-frame structural/capture/real-object/draft/scope gate: 1 passed, 0 failed, 0 skipped (47.189s).
+- Full actual common WebUI editor Chromium regression: PASS, including independent draft views, Save/Review/Confirm, Helper scope and owned local simulated-provider Worker review/adoption. No real AI account was called.
+- Generic ButtonGame WebUI Chromium regression and existing native Linux Entry/Home X11 regression: PASS. The latter preserves its existing separate renderer; it is not v196 HTML visual acceptance.
+- Ordinary same EditorHome ProjectPack builds: Linux, browser WASM, Windows and Android all `tool.ok=true`. Windows WebView host build: zero warnings/errors. No pack-specific exception, compiler/timeout/integrity relaxation or Android version change.
+- Windows folder selection delegates directory resolution to the existing model contract, preserving its project.cproj/project.cpack precedence. Parent selection is an owned opaque ticket; unsupported UI actions retain their original positions without invented success.
+
+Actual Windows `Confectory.bat`/WebView runtime and Android device execution remain unavailable here. Inner browser/schema/Review/augmentation/Yogi/Helper DOM, expanded/pinned profiles, full participant grouping, metadata and offline font assets remain unfinished. Visual Home/project review must be assessed separately from the functional results.
+
+The actual Windows Git CRLF checkout/resource startup gate passed after committing the restored UI: 1 passed, 0 failed, 0 skipped (13.077s). Unchanged retained assets, changed UI resource identities, canonical served bytes and prior encoding/content/binary/budget rejection cases were verified. The paused workspace's 18 recorded files and HEAD were rechecked unchanged; main and Android version configuration were preserved.

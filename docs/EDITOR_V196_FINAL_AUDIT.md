@@ -1,4 +1,6 @@
-# v196 consumer final verification
+# v196 consumer functional verification
+
+The later screen-first audit found that the separate consumer renderer did not preserve the original Home/project DOM. This historical functional evidence does not establish the requested visual port. See [screen restoration](EDITOR_V196_SCREEN_RESTORATION.md) for the correction and remaining original-screen scope.
 
 Windows startup follow-up: see [pinned-resource CRLF checkout fix and retry](WEB_RESOURCE_WINDOWS_CHECKOUT.md). Common opt-in canonical UTF-8 LF snapshots now accept retained CRLF checkouts without source repair; exact binary/content identities and budgets remain enforced. Actual Windows runtime acceptance still awaits user retry.
 

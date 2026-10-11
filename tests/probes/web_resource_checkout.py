@@ -10,8 +10,14 @@ with tempfile.TemporaryDirectory(prefix='confectory-checkout-') as temporary:
  git('checkout','-B','work/current','1d48031e9409fb3fcbcd616e190fabd55e38ea6d')
  ui=checkout/'examples/editor-home/ui'
  before={id:hashlib.sha256((ui/id).read_bytes()).hexdigest() for id in resources}
+ # Retained-byte assertions apply to resources whose declared content did not change.
+ # A normal UI implementation update legitimately replaces app.js/consumer.css.
+ unchanged={id for id,row in resources.items() if hashlib.sha256((ui/id).read_bytes().replace(b'\r\n',b'\n') if row.get('bytePolicy')=='utf8-lf-v1' else (ui/id).read_bytes()).hexdigest()==row.get('canonicalSha256',row.get('sha256'))}
+ assert any(resources[id].get('bytePolicy')=='utf8-lf-v1' for id in unchanged) and any(resources[id]['mime']=='image/png' for id in unchanged)
  git('pull','--ff-only','origin','work/current')
- assert before=={id:hashlib.sha256((ui/id).read_bytes()).hexdigest() for id in resources},'pull unexpectedly rewrote existing resources'
+ pulled={id:hashlib.sha256((ui/id).read_bytes()).hexdigest() for id in resources}
+ assert all(before[id]==pulled[id] for id in unchanged),'pull unexpectedly rewrote unchanged resources'
+ before=pulled
  def identity(row):return (row.get('canonicalSize',row.get('size')),row.get('canonicalSha256',row.get('sha256')))
  def start(label,success,diagnostic=""):
   env=os.environ.copy();env.update(CONFECTORY_UI='web',CONFECTORY_EDITOR_REPO=str(checkout),CONFECTORY_ENTRY_STORAGE=str(root/label),CONFECTORY_HOME_STORAGE=str(root/label))
