@@ -1,0 +1,3 @@
+PASS WebUITests.test_actual_editor_new_concept_creation_save_confirm_reopen
+PASS WebUITests.test_actual_editor_review_compact_numeric_and_subset_caption
+2 passed, 0 failed, 0 skipped; 393.257s

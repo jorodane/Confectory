@@ -1,0 +1,16 @@
+{
+  "app.js": {
+    "file": "app.js",
+    "mime": "text/javascript",
+    "bytePolicy": "utf8-lf-v1",
+    "canonicalSize": 129873,
+    "canonicalSha256": "3284929ff982e9e0da98e85c2b17040e5eba9bcbc2f4572e76848129f356b270"
+  },
+  "consumer.css": {
+    "file": "consumer.css",
+    "mime": "text/css",
+    "bytePolicy": "utf8-lf-v1",
+    "canonicalSize": 3837,
+    "canonicalSha256": "e591f17196051d6cd87dd1b6c665337478570d46dd31e4796f2c222ebdec67ad"
+  }
+}

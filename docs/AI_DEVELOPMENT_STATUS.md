@@ -554,3 +554,10 @@ Validation of the final UI source:
 Actual Windows `Confectory.bat`/WebView runtime and Android device execution remain unavailable here. Inner browser/schema/Review/augmentation/Yogi/Helper DOM, expanded/pinned profiles, full participant grouping, metadata and offline font assets remain unfinished. Visual Home/project review must be assessed separately from the functional results.
 
 The actual Windows Git CRLF checkout/resource startup gate passed after committing the restored UI: 1 passed, 0 failed, 0 skipped (13.077s). Unchanged retained assets, changed UI resource identities, canonical served bytes and prior encoding/content/binary/budget rejection cases were verified. The paused workspace's 18 recorded files and HEAD were rechecked unchanged; main and Android version configuration were preserved.
+
+
+## 2026-10-11 Review controls and compact rows
+
+Ordinary 1c3a68b actually reproduced disabled Review checkboxes and a non-collapsing advanced button. Review now selects whole source units, keeps new declarations and registration together, requires fresh exact subset Review after selection changes, and supports all deselected, repeated advanced collapse, cancel/X and reopen. Single semantic changes put the checkbox, field label, struck-through old value and new value on one wrapping row. Reused subset windows refresh their captions. No field-level transaction or new compiler/conflict policy was introduced.
+
+Source 807bd96 final registered Confirm/restart and numeric/subset-caption checks: 2 passed, 0 failed, 0 skipped (393.257s). The broader EditorHome/ButtonGame control regression passed (888.453s) before the final caption-only correction. Final same ordinary ProjectPack Linux/Windows/Android managed builds passed with 37 packs; actual CRLF/LF checkout and resource startup passed (15.355s). Paused 18-file manifest and HEAD, origin/main and Android version settings were preserved. Actual Windows/Android device UI and the existing WASM publishing timeout remain unverified/unresolved. See `REVIEW_SELECTION_CONTROLS.md` and `evidence/review-selection-controls/` for exact snapshots and validation boundaries.
