@@ -1,6 +1,7 @@
 implementation Confectory.EditorHome::WebStartBody for Confectory.EditorHome::WebStart () -> int {
 import Confectory.WebUI::Open as Open (string,string) -> string;
 import Confectory.WebUI::Close as Close (string) -> bool;
+import Confectory.WebViewHost::Serve as EmbeddedServe (string) -> int;
 import Confectory.BrowserHost::Serve as Serve (string) -> int;
 import Confectory.EditorHome::WebBundle as Bundle () -> string;
 import Confectory.EditorHome.Model::CreateSession as CreateSession (string,string) -> string;

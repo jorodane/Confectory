@@ -1,5 +1,9 @@
 # AI development implementation and verification boundary
 
+## 2026-10-11 Embedded host infrastructure; v196 source blocked
+
+Official consumer-local ZIP materialization and one retry both failed with `download failed`. No source bytes or pixels were obtained; v196 porting is not complete. Independent generic Windows WebView2/WinForms host and the same EditorHome pack opt-in transport are implemented. Default startup stays native; no old page/browser demo replaces the requested editor. See [support matrix, blocker and evidence](EMBEDDED_WEB_UI.md).
+
 ## 2026-10-11 Windows stderr presentation fix
 
 User confirmed actual EditorHome starts. Normal CLI stderr progress is now converted to text before host display/logging to avoid Windows PowerShell NativeCommandError decoration. Native exit codes and synchronous execution remain intact. Windows PowerShell regression added but not executable in this Linux environment; see [launcher evidence](WINDOWS_LAUNCHER.md).

@@ -7,5 +7,5 @@ try{
  if(opened["selected"] is null||opened["status"]?.ToString().StartsWith("Error:",StringComparison.Ordinal)==true)throw new InvalidOperationException("Project could not be opened");
  var shown=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(session,"workspace","{\"action\":\"open\"}"))!;
  if(shown["workspace"] is null)throw new InvalidOperationException("Project workspace unavailable");
- owner=calls.Open.Invoke(session,calls.Bundle.Invoke());return calls.Serve.Invoke(owner);
+ owner=calls.Open.Invoke(session,calls.Bundle.Invoke());return Environment.GetEnvironmentVariable("CONFECTORY_UI")=="embedded"?calls.EmbeddedServe.Invoke(owner):calls.Serve.Invoke(owner);
 }finally{if(owner.Length>0)while(!calls.Close.Invoke(owner))System.Threading.Thread.Sleep(2);calls.CloseSession.Invoke(session);}

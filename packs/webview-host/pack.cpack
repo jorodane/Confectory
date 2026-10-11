@@ -1,0 +1,6 @@
+pack Confectory.WebViewHost version "0.1.0" {
+standalone false;
+dependency Confectory.WebUI version "0.1.0";
+element Serve function "Serve.celem";
+element ServeBody implementation "ServeBody.celem";
+}

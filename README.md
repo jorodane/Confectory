@@ -15,7 +15,7 @@ The first runtime sample is [Confectory.Window](packs/window/README.md): a reusa
 
 ## Run from the repository root
 
-Requirements: the .NET 10 **SDK**. All projects use the .NET standard library and have no external NuGet dependencies; restore works offline with the included `NuGet.Config`. The target pack discovers `dotnet` on PATH; alternatively set `CONFECTORY_DOTNET` to the actual executable (`dotnet.exe` on Windows).
+Requirements: the .NET 10 **SDK**. Core/CLI and pack compilation use the .NET standard library. The Windows embedded-rendering host additionally restores the official WebView2 package and WindowsDesktop reference pack from NuGet.org; its source is scoped to that project. See [the embedded host boundary and source blocker](docs/EMBEDDED_WEB_UI.md). The target pack discovers `dotnet` on PATH; alternatively set `CONFECTORY_DOTNET` to the actual executable (`dotnet.exe` on Windows).
 
 The repository's `global.json` selects the newest installed stable **10.0 SDK** (10.0.100 or later). All managed hosts, generated pack assemblies and the browser WASM runtime target .NET 10. The authoring tool uses SDK 10 Roslyn 5.x and rejects older SDK/Roslyn pairs. Run `dotnet --version` from this checkout and check `10.0.*`; scripts do not install tools automatically. SDK 8 may remain installed for older checkouts. Historical SDK 8 evidence remains in the documentation.
 

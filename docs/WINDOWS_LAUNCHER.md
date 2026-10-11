@@ -1,5 +1,7 @@
 # Windows 시작 파일: Confectory.bat
 
+최신: 범용 Windows 내장 호스트는 추가됐지만 v196 원본 다운로드가 막혀 에디터 이식은 미완료입니다. 기본 시작은 계속 네이티브 EditorHome입니다. [진행 범위와 차단](EMBEDDED_WEB_UI.md)을 참고하세요.
+
 저장소 루트의 **Confectory.bat 하나**를 엽니다. 기존 .NET 10 SDK와 Windows에
 있는 Windows PowerShell을 사용하며, 도구를 설치하거나 전역 환경변수/setx를
 설정하지 않습니다. `CONFECTORY_DOTNET`을 이미 지정했다면 해당 실행 파일을

@@ -1,0 +1,36 @@
+if(!OperatingSystem.IsWindows())throw new PlatformNotSupportedException("Embedded WebUI currently requires Windows");
+string host=Environment.GetEnvironmentVariable("CONFECTORY_WEBVIEW_HOST")??throw new InvalidOperationException("CONFECTORY_WEBVIEW_HOST must identify the built generic Windows WebView host");
+if(!System.IO.File.Exists(host))throw new System.IO.FileNotFoundException("Build the generic Windows WebView host before starting embedded WebUI");
+var start=new System.Diagnostics.ProcessStartInfo(Environment.GetEnvironmentVariable("CONFECTORY_DOTNET")??"dotnet"){UseShellExecute=false,RedirectStandardInput=true,RedirectStandardOutput=true};
+start.ArgumentList.Add(System.IO.Path.GetFullPath(host));
+using var process=System.Diagnostics.Process.Start(start)??throw new InvalidOperationException("WebView host did not start");
+int stopping=0;
+ConsoleCancelEventHandler interrupt=(_,e)=>{e.Cancel=true;System.Threading.Interlocked.Exchange(ref stopping,1);try{process.StandardInput.Close();}catch(System.IO.IOException){}};
+Console.CancelKeyPress+=interrupt;
+try{
+ System.Threading.Tasks.Task<string?>? reading=null;
+ while(System.Threading.Volatile.Read(ref stopping)==0){
+  reading??=process.StandardOutput.ReadLineAsync();
+  if(!reading.Wait(100))continue;
+  string? line=reading.GetAwaiter().GetResult();reading=null;if(line is null)break;
+  if(line.Length>2097152)throw new InvalidOperationException("WebView request budget exceeded");
+  var request=System.Text.Json.Nodes.JsonNode.Parse(line)!;string id=request["id"]!.GetValue<string>();
+  var reply=new System.Text.Json.Nodes.JsonObject{["id"]=id};
+  try{
+   switch(request["operation"]!.GetValue<string>()){
+    case "resource":reply["result"]=System.Text.Json.JsonSerializer.SerializeToNode(calls.Resource.Invoke(owner,request["input"]!.GetValue<string>()));break;
+    case "request":reply["result"]=System.Text.Json.Nodes.JsonNode.Parse(calls.Request.Invoke(owner,request["input"]!.ToJsonString()));break;
+    default:throw new ArgumentException("Unknown rendering operation");
+   }
+  }catch(Exception){reply["error"]="transport_rejected";}
+  if(System.Threading.Volatile.Read(ref stopping)==0){process.StandardInput.WriteLine(reply.ToJsonString());process.StandardInput.Flush();}
+ }
+ if(System.Threading.Volatile.Read(ref stopping)!=0)return 130;
+ while(!process.WaitForExit(100))if(System.Threading.Volatile.Read(ref stopping)!=0)return 130;
+ return process.ExitCode;
+}finally{
+ Console.CancelKeyPress-=interrupt;
+ try{process.StandardInput.Close();}catch(System.IO.IOException){}
+ if(!process.HasExited){if(!process.WaitForExit(5000))process.Kill(true);process.WaitForExit();}
+ while(!calls.Close.Invoke(owner))System.Threading.Thread.Sleep(2);
+}

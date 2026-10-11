@@ -1,0 +1,1 @@
+function Confectory.WebViewHost::Serve (string owner) -> int { provide Confectory.WebViewHost::Serve with Confectory.WebViewHost::ServeBody; }
