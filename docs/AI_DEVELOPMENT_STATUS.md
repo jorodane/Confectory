@@ -1,5 +1,15 @@
 # AI development implementation and verification boundary
 
+## 2026-10-11 v196 scoped closeout and field-origin schema navigation
+
+Final connection audit found one existing-contract omission: object property views now project each real field `schemaOrigin` and provide explicit navigation to its owned schema. Compound child origins remain distinct; no arbitrary primary-schema choice is made. Clicking from an independent view changes primary selection while its bound object ID and pending input remain intact. This does not assign, replace or remove an applied schema: PackWorkspace has no public relation authoring command, and scalar metadata/field/data commands cannot represent that operation.
+
+The frozen ZIP Home/browser/schema/augmentation/Helper/packs/Review pages were directly rendered and inspected against consumer evidence. [Final page comparison and required decisions](EDITOR_V196_FINAL_AUDIT.md) separates actual connections from visual/authoring gaps. Declared Run/Review target selection is implemented; a standalone build-only/export job is absent. Windows actual execution awaits user verification. Global Talk ownership/approval and list/null/delete/multiple-schema policies remain explicit blockers; this closeout adds no policy or live account work.
+
+Final stable-source production Chromium: **1 passed, 0 failed, 0 skipped (398.810s)** (`/tmp/confectory-final-audit-browser2.log`). The actual nested object exposes distinct EntryMeta/SceneSpec origins; its independent view opens SceneSpec while retaining its exact object ID and unsent note through hide/raise. All prior capture/Worker adoption/schema group Confirm/target/chat/source/run-stop regressions remain included.
+
+Final ordinary Windows and Android managed builds both report `tool.ok=true`, 37 included packs (`/tmp/confectory-final-audit-windows.json`, `/tmp/confectory-final-audit-android.json`). Static launcher 4 passed; JS/Python syntax and diff checks pass. The preceding Linux native menu/tabs/run/logs/resize/context/lifetime result remains applicable: this closeout changes only HTML assets/DTO and their browser regression, not Model or native UI. The first final browser attempt timed out before EditorHome announced its host URL and is not acceptance evidence; a new Xorg/DISPLAY matching the previously passing environment was supplied for the completed gate recorded below.
+
 ## 2026-10-11 v196 local capture, schema authoring and positive HTML Worker
 
 The ordinary consumer now captures an explicitly owned visible editor window through the original v196 html2canvas resource and existing YogiBox reservation/completion contracts. RGB bytes, dimensions, hash and ownership are checked; routine state omits pixels and explicit local image viewing retrieves one owned item. Capture is bounded DOM rasterization, not a native OS screenshot or external delivery.
