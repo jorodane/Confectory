@@ -1,0 +1,68 @@
+{
+  "sourceCommit": "a5cf7a02a31a9b0cc3cc6d29e268e38d463870f8",
+  "sdk": "10.0.401",
+  "visual": {
+    "test": "test_actual_editor_original_v196_home_project_and_create_flow",
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "seconds": 84.388,
+    "viewport": [
+      1440,
+      1000
+    ]
+  },
+  "browserFunctions": {
+    "test": "test_actual_editor_and_button_game_common_web_transport_chromium",
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "seconds": 365.166
+  },
+  "windowsStyleCheckout": {
+    "test": "test_editor_web_resources_windows_git_checkout_and_actual_startup",
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "seconds": 31.993
+  },
+  "linuxNative": {
+    "command": "python3 tests/gui/entry_home_x11.py /tmp/confectory-inner-linux-final.json",
+    "result": "PASS",
+    "actualPack": "examples/editor-home/project.cpack",
+    "evidence": "/tmp/confectory-entry-home-gui-41x1vt20",
+    "limits": "Separate preserved renderer. Earlier registered/direct attempts failed in GTK chooser automation; final direct ordinary-root run passed after chooser disappearance/input-grab synchronization."
+  },
+  "managedBuilds": {
+    "linux": {
+      "toolOk": true,
+      "includedPacks": 37
+    },
+    "windows": {
+      "toolOk": true,
+      "includedPacks": 37
+    },
+    "android": {
+      "toolOk": true,
+      "includedPacks": 37
+    }
+  },
+  "webviewManagedHost": {
+    "result": "PASS",
+    "warnings": 0,
+    "errors": 0,
+    "seconds": 16.06
+  },
+  "wasmArtifact": {
+    "result": "FAIL",
+    "diagnostic": "TOOL_EXECUTION: Target tool failed: Process exceeded 120s: /workspace/toolchains/dotnet-10.0.401/dotnet",
+    "attempts": "Initial concurrent invocation and isolated 2/4 managed CPU retries",
+    "limits": "No timeout, raw-resource, compression/delivery policy or ProjectPack-specific exception changed."
+  },
+  "runtimeLimits": [
+    "Windows Confectory.bat/WebView2 runtime unavailable",
+    "Android device runtime unavailable",
+    "No live AI account/model invocation",
+    "No Site edits/deployment"
+  ]
+}

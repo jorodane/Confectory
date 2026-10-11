@@ -9,5 +9,17 @@
   "consumer": "ordinary EditorHome ProjectPack/common WebUI and an unmodified regular ButtonGame copy; UI creates a local schema draft through actual contracts",
   "sourceEvidence": "/tmp/confectory-original-layout-qc50whe8",
   "limits": "Actual engine data, empty augment state, no live accounts or external dispatch. Prototype demo identities/data appear only in reference captures. Windows bat/WebView and Android device runtime unavailable.",
-  "consumerCssSha256": "294fa8b85be57d2728918321eb227fe01936afe717da8c64fe7c974912d3a559"
+  "consumerCssSha256": "294fa8b85be57d2728918321eb227fe01936afe717da8c64fe7c974912d3a559",
+  "nativeEvidence": {
+    "sourceEvidence": "/tmp/confectory-entry-home-gui-41x1vt20",
+    "viewport": {
+      "width": 960,
+      "height": 700
+    },
+    "files": [
+      "native-linux-home.png",
+      "native-linux-create.png"
+    ],
+    "limits": "Preserved separate native renderer; functional X11 acceptance, not v196 HTML visual acceptance."
+  }
 }

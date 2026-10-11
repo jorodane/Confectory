@@ -6,7 +6,9 @@
 
 Final same-viewport original/actual window gate: **1 passed, 0 failed, 0 skipped (84.388s)**, 35 PNGs under `docs/evidence/v196-inner-restoration/` with source/app/CSS hashes. Actual root Linux X11 full workflow passed after GTK chooser automation synchronization fixes. Final ordinary root Linux/Windows/Android builds: `tool.ok=true`, **37 packs each**; Windows WebView managed host: **0 warnings/errors (16.06s)**. Native UI remains a separate existing renderer, not v196 HTML visual acceptance.
 
-**Pending/blocked at this reviewable commit:** full browser function regression is running after original-menu authoring selector adaptation; CRLF checkout gate is next. Browser WASM normal SDK publish exceeds the unchanged **120s** limit, including isolated retries, and is **not passing**. Actual Windows launcher/WebView2 and Android device runtime remain unavailable. Original-screen/action completion, missing profile/art ownership, Data-cell/category/inheritance editing and delivery remain explicitly bounded in the linked report. main, Android versions, user settings and the paused original 18-file work remain preserved.
+**Final function verification:** full actual editor + generic ButtonGame Chromium regression **1/0/0 (365.166s)**; Windows-style CRLF checkout/actual startup gate **1/0/0 (31.993s)**. The original-menu schema/field/density/retained-view selectors preserve all nested authoring, grouped Confirm and physical source assertions.
+
+**Remaining blocker:** Browser WASM normal SDK publish exceeds the unchanged **120s** limit, including isolated retries, and is **not passing**. Actual Windows launcher/WebView2 and Android device runtime remain unavailable. Original-screen/action completion, missing profile/art ownership, Data-cell/category/inheritance editing and delivery remain explicitly bounded in the linked report. main, Android versions, user settings and the paused original 18-file work remain preserved.
 
 ## 2026-10-11 portable canonical text snapshots without user repair
 
