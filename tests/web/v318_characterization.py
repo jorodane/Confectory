@@ -42,6 +42,17 @@ def run(browser,url,label):
  window=page.locator('.window[data-key="browser"]');window.locator('[data-fold]').click();expect(window).to_have_class(__import__('re').compile('.*folded.*'));window.locator('[data-fold]').click()
  window.locator('[data-close]').click();expect(window).to_have_count(0);page.locator('#nav').click();expect(window).to_be_visible()
  page.reload(wait_until='domcontentloaded');settle_visuals();page.locator('#later').click();page.locator('[data-enter="demo"]').click();expect(note.locator('textarea')).to_have_value('보존하는 메모 <literal>');capture('reload')
+ # Original v318 regressions: mixed selection, Delete confirmation/cancel and native text deletion.
+ page.mouse.move(440,110);page.mouse.down();page.mouse.move(1435,710,steps=12);page.mouse.up()
+ expect(page.locator('.window.multi-selected,.workspace-decoration.multi-selected')).to_have_count(4)
+ text=note.locator('textarea');text.fill('AX');text.press('Home');text.press('Delete');expect(text).to_have_value('X')
+ expect(page.locator('.window[data-key="browser"]')).to_have_count(1);expect(page.locator('.workspace-decoration')).to_have_count(3);expect(page.locator('.modal')).to_have_count(0)
+ text.fill('보존하는 메모 <literal>');page.locator('#workspace').focus();before_delete=snapshot(page)
+ page.keyboard.press('Delete');expect(page.locator('.modal [data-confirm]')).to_be_visible();page.locator('.modal [data-cancel]').click();assert snapshot(page)==before_delete,'mixed delete cancellation changed nodes'
+ page.locator('#workspace').focus();page.keyboard.press('Delete');page.locator('.modal [data-confirm]').click()
+ expect(page.locator('.workspace-decoration')).to_have_count(0);expect(page.locator('.window')).to_have_count(0);expect(page.locator('#workspace-tabs button')).to_have_count(1)
+ page.locator('#nav').click();expect(page.locator('.window[data-key="browser"]')).to_be_visible();expect(page.locator('[data-tree-id="world"]')).not_to_have_count(0)
+ states.append(snapshot(page))
  assert not errors,errors;context.close();return shots,states
 with server(original) as source,server(repo) as workbench,sync_playwright() as p:
  browser=p.chromium.launch(executable_path='/usr/bin/chromium',headless=True,args=['--no-sandbox','--disable-gpu','--disable-lcd-text','--disable-font-subpixel-positioning','--font-render-hinting=none']);baseline,old=run(browser,source+'/','original');changed,new=run(browser,workbench+'/workbench/v318/','refactor');assert old==new,'behavior snapshots diverged'
@@ -50,4 +61,4 @@ with server(original) as source,server(repo) as workbench,sync_playwright() as p
   with Image.open(a) as first,Image.open(b) as second:
    assert first.size==second.size;diff=ImageChops.difference(first.convert('RGB'),second.convert('RGB'));box=diff.getbbox();hist=diff.histogram();nonzero_channels=sum(hist)-sum(hist[0::256]);maximum=max(i%256 for i,v in enumerate(hist) if v);comparisons.append({'original':a.name,'refactor':b.name,'differentPixelsBoundingBox':box,'nonzeroChannels':nonzero_channels,'maximumChannelDelta':maximum});assert maximum<=8 and nonzero_channels<=768,(a.name,box,nonzero_channels,maximum)
  browser.close();(out/'characterization.json').write_text(json.dumps({'scope':'prototype reference behavior only; not an engine test','pageErrors':[],'states':new,'comparisons':comparisons},ensure_ascii=False,indent=2)+'\n')
- print('PASS frozen v318 vs refactor: 8 matching captures (bounded renderer noise recorded); shared note/group selection and drag/cancel; child navigation/delete cancel; fold/close/reopen/reload; no page errors')
+ print('PASS frozen v318 vs refactor: 8 matching captures (bounded renderer noise recorded); shared note/group selection and drag/cancel; child navigation/delete cancel; fold/close/reopen/reload; mixed Delete/cancel and text Delete; no page errors')

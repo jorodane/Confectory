@@ -287,6 +287,33 @@
           "selected": "true"
         }
       ]
+    },
+    {
+      "text": "Confectory\n/\nDemo Project ▾\n👤\n내 정보\n설정\nAGENT\n(1)\n+추가\n>_\nCodex\nHELPER\n(3)\n+추가\n>_\nCodex (3)\n+추가\n2\n루미\n총괄팀장\n토리\n기획팀장\n벡스\n개발팀장\nUser\n(2/5)\nWorkspace\n📦\n3\n📫\n3\n🛠️\n▶\n≡\n프로젝트 브라우저\n◈\n프로젝트 브라우저\n임시 저장\n확정\n−\n×\n개념\n기능\n모듈\n검색\n＋\nProjectPack\n▾\nProjectPack\n3\n▾\n▱ World\n2\n▾\n▱ Unit\n2\n▾\n▱ Monster\n2\n▾\n◉ Slime\n☠ PoisonSlime\n♨ FireSlime\n▾\n▱ Item\n✧ Weapon\n◈\n▸ World\nCategory\n▧\n▸ Item\nCategory\n프로젝트 채팅\nLogs\n루미\n개념 브라우저를 준비했어요. Monster를 열어 함께 살펴볼까요?\n보내기",
+      "windows": [
+        {
+          "title": "◈프로젝트 브라우저",
+          "rect": {
+            "x": 471,
+            "y": 163,
+            "width": 678,
+            "height": 458
+          },
+          "folded": false,
+          "left": "291px",
+          "top": "99px",
+          "width": "678px",
+          "height": "458px",
+          "selected": true
+        }
+      ],
+      "items": [],
+      "tabs": [
+        {
+          "label": "Workspace",
+          "selected": "true"
+        }
+      ]
     }
   ],
   "comparisons": [
@@ -333,14 +360,9 @@
     {
       "original": "original-multi-drag.png",
       "refactor": "refactor-multi-drag.png",
-      "differentPixelsBoundingBox": [
-        1148,
-        170,
-        1149,
-        174
-      ],
-      "nonzeroChannels": 9,
-      "maximumChannelDelta": 2
+      "differentPixelsBoundingBox": null,
+      "nonzeroChannels": 0,
+      "maximumChannelDelta": 0
     },
     {
       "original": "original-returned.png",
