@@ -78,13 +78,36 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
      page.locator('#chat').click();page.locator('#chat-input').fill('local project message');page.locator('#chat-save').click();expect(page.locator('#status')).to_contain_text('전송 없음')
      page.locator('#connections').click();expect(page.locator('#connection-list button')).not_to_have_count(0)
      local_state=mount();assert local_state['scope']['helperId']=='main-helper';assert not local_state['scope']['allowCommon'];assert local_state['state']['chatDraft']=='local project message';assert local_state['state']['aiState']=='idle';assert 'memory' not in local_state['state']['helperProfile'];assert 'config' not in local_state['state'];assert send(envelope(local_state,'dispose'))['ok']
-     for key in ['connections','chat','helpers']:
+     for key in ['connections','helpers']:
       page.locator('.window[data-key="'+key+'"] [data-close]').click()
 
      page.locator('#objects-refresh').click();button=page.locator('[data-id="Example.ButtonGame::Score"]');expect(button).to_be_visible();button.click();expect(page.locator('[data-schema-id]')).to_have_text('Example.ButtonGame::Score');page.screenshot(path='/tmp/confectory-v196-semantic-project.png',full_page=True);page.locator('.window[data-key="schema"] [data-close]').click();page.locator('#yogi').click();page.locator('#yogi-exactly').click();expect(page.locator('#yogi-items')).to_contain_text('Example.ButtonGame::Score');page.locator('#yogi-text').fill('local object package');page.locator('#yogi-save').click();expect(page.locator('#status')).to_contain_text('내용 적용됨');page.locator('#yogi-seal').click();expect(page.locator('#yogi-seal')).to_have_text('봉인 해제');page.locator('.window[data-key="yogi"] [data-close]').click();page.locator('#nav').click();page.locator('#advanced-source').click();expect(page.locator('#selection')).to_have_text('Example.ButtonGame::Score')
      advanced=mount();bodies=[u['id'] for u in advanced['state']['units'] if u['kind']=='body'];assert bodies,'advanced mode must expose actual owned bodies';assert send(envelope(advanced,'dispose'))['ok']
      page.locator('[data-id="'+bodies[0]+'"]').click();expect(page.locator('#selection')).to_have_text(bodies[0],timeout=30000)
      page.locator('#nav').click();page.locator('[data-id="Example.ButtonGame::Score"]').click();expect(page.locator('#advanced-source')).to_be_enabled(timeout=30000);page.locator('#nav').click();page.locator('#advanced-source').click()
+     # Independent production Model owners retain exact IDs and local input across selection/hide/poll.
+     page.locator('#nav').click();page.locator('#keep-source').click()
+     one=page.locator('.window[data-key="editor-1"]');expect(one.locator('[data-editor-id]')).to_have_text('Example.ButtonGame::Score')
+     first_text=one.locator('[data-editor-source]').input_value();one.locator('[data-editor-source]').fill(first_text+'\n// retained independently\n')
+     page.locator('#nav').click();page.locator('[data-id="'+bodies[0]+'"]').click();page.locator('#nav').click();page.locator('#keep-source').click()
+     two=page.locator('.window[data-key="editor-2"]');expect(two.locator('[data-editor-id]')).to_have_text(bodies[0]);other_text=two.locator('[data-editor-source]').input_value();two.locator('[data-editor-source]').fill(other_text+'\n// second independent input\n')
+     page.locator('#nav').click();page.locator('[data-id="Example.ButtonGame::Score"]').click();expect(page.locator('#advanced-source')).to_be_enabled(timeout=30000)
+     # A primary selection does not retarget either independent source window.
+     expect(one.locator('[data-editor-source]')).to_have_value(first_text+'\n// retained independently\n');expect(two.locator('[data-editor-source]')).to_have_value(other_text+'\n// second independent input\n')
+     page.locator('.brand').click();expect(page.locator('[data-project]')).not_to_have_count(0);page.locator('[data-project]').filter(has_text='ButtonGame').first.click()
+     one=page.locator('.window[data-key="editor-1"]');two=page.locator('.window[data-key="editor-2"]');expect(one.locator('[data-editor-source]')).to_have_value(first_text+'\n// retained independently\n');expect(two.locator('[data-editor-source]')).to_have_value(other_text+'\n// second independent input\n')
+     page.locator('#nav').click();page.locator('#retained-editors button').nth(0).click();one.locator('[data-close]').click();page.locator('#nav').click();page.locator('#retained-editors button').nth(0).click();expect(one.locator('[data-editor-source]')).to_have_value(first_text+'\n// retained independently\n')
+     one.locator('[data-editor-apply]').click();expect(page.locator('#status')).to_have_text('Shared draft updated',timeout=30000)
+     shared=mount();assert shared['state']['draft']['text']==first_text+'\n// retained independently\n';assert shared['state']['editorViews'][0]['id']=='Example.ButtonGame::Score';assert shared['state']['editorViews'][1]['id']==bodies[0];assert send(envelope(shared,'dispose'))['ok']
+     # Restore only the edited draft through the public CAS action, and release clean owners.
+     one.locator('[data-editor-source]').fill(first_text);one.locator('[data-editor-apply]').click();expect(page.locator('#status')).to_have_text('Shared draft updated');one.locator('[data-editor-release]').click();expect(page.locator('#retained-editors button')).to_have_count(1)
+     page.locator('#nav').click();page.locator('#retained-editors button').click();two.locator('[data-editor-reset]').click();two.locator('[data-editor-release]').click()
+     page.locator('#nav').click();page.locator('#object-kind').select_option('function');expect(page.locator('#objects [data-id="Example.ButtonGame::Score"]')).to_have_count(0,timeout=30000);expect(page.locator('#objects [data-id="Example.ButtonGame::Main"]')).to_be_visible(timeout=30000)
+     page.locator('#nav').click();page.locator('#keep-properties').click();prop=page.locator('.window[data-key="editor-1"]');expect(prop.locator('[data-schema-id]')).to_have_text('Example.ButtonGame::Score')
+     page.locator('#nav').click();page.locator('[data-id="Example.ButtonGame::Main"]').click();expect(page.locator('#advanced-source')).to_be_enabled(timeout=30000);page.locator('#nav').click();page.locator('#retained-editors button').click()
+     field=prop.locator('[data-schema-field="initial"]');field.fill('7');field.locator('..').get_by_role('button',name='Apply field',exact=True).click();expect(page.locator('#status')).to_have_text('Shared field draft updated',timeout=30000);expect(prop.locator('[data-schema-field="initial"]')).to_have_value('7')
+     field=prop.locator('[data-schema-field="initial"]');field.fill('0');field.locator('..').get_by_role('button',name='Apply field',exact=True).click();expect(prop.locator('[data-schema-field="initial"]')).to_have_value('0',timeout=30000);prop.locator('[data-operation="release-view"]').click();expect(page.locator('#retained-editors button')).to_have_count(0)
+     page.locator('#object-kind').select_option('object');expect(page.locator('#objects [data-id="Example.ButtonGame::Main"]')).to_have_count(0);expect(page.locator('#objects [data-id="Example.ButtonGame::Score"]')).to_be_visible();page.locator('[data-id="Example.ButtonGame::Score"]').click();expect(page.locator('#advanced-source')).to_be_enabled();page.locator('#nav').click();page.locator('#advanced-source').click();expect(page.locator('#source')).to_be_visible(timeout=30000)
      no_task=mount()
      for endpoint in ['prepareWorker','stopWorker','recoverWorker','inspectAdoption','reviewWorker','adoptWorker']:
       no_task_state=send(envelope(no_task,'update'));request_id='foreign-'+endpoint;assert send(envelope(no_task,'invoke',endpoint=endpoint,requestId=request_id,expectedRevision=no_task_state['revision'],input={'task':'unowned-task','ids':['Unowned::Source'],'token':'forged','goalEvidence':'must not write'}))['ok'];failed,no_task_state=settle(no_task,request_id);assert not failed['ok'],endpoint
@@ -120,12 +143,12 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
       field=page.locator('[data-schema-field="'+name+'"]');field.fill(value);field.locator('..').get_by_role('button',name='Apply field',exact=True).click();expect(page.locator('#status')).to_have_text('Shared field draft updated',timeout=30000)
      page.locator('#semantic-save').click();expect(page.locator('#status')).to_have_text('Draft saved; final sources unchanged',timeout=30000)
      page.locator('.brand').click();expect(page.locator('[data-project]')).to_have_count(1,timeout=30000);page.locator('[data-project]').click()
-     page.locator('#connections').click();page.locator('#connection-list button').filter(has_text='Confectory.Agent.Responses::Connection').click();expect(page.locator('#status')).to_contain_text('전송 없음')
+     page.locator('#connections').click();page.locator('#connection-list button').filter(has_text='Confectory.Agent.Responses::Connection').click();expect(page.locator('#status')).to_contain_text('전송 없음',timeout=30000)
      page.locator('.window[data-key="connections"] [data-close]').click();page.locator('#chat').click();page.locator('#chat-input').fill('review without sending');page.locator('#chat-prepare').click();expect(page.locator('#ai-start')).to_be_disabled(timeout=30000)
      preview=mount();assert preview['state']['aiPreview']['message']=='review without sending';assert 'config' not in preview['state']['aiPreview'];assert len(preview['state']['aiPreview']['requirements'])==2
      assert send(envelope(preview,'invoke',endpoint='startAI',requestId='unapproved-start',expectedRevision=preview['revision'],input={'token':preview['state']['aiPreview']['token']}))['ok'];refused,after=settle(preview,'unapproved-start');assert not refused['ok'] and after['state']['aiOutput'] in [None,''];assert send(envelope(preview,'dispose'))['ok']
      page.locator('[data-permission="contentApproved"]').check();expect(page.locator('#status')).to_contain_text('아직 전송 없음');expect(page.locator('#ai-start')).to_be_disabled()
-     page.locator('#cancel-preview').click();expect(page.locator('#status')).to_contain_text('전송 없음');page.locator('.window[data-key="chat"] [data-close]').click()
+     page.locator('#cancel-preview').click();expect(page.locator('#status')).to_contain_text('전송 없음');page.locator('#logs-tab').click()
      page.locator('#augment').click();page.locator('#augment-direction').fill('retain semantic object focus');page.locator('#reroll').click();expect(page.locator('#ai-start')).to_be_disabled(timeout=30000)
      proposal=mount();assert proposal['state']['aiPreview']['kind']=='proposals' and proposal['state']['aiPreview']['target']=='Example.ButtonGame::Score';assert proposal['state']['augment']['cards']==[];assert proposal['state']['workers']==[];assert send(envelope(proposal,'dispose'))['ok']
      page.locator('#cancel-preview').click();page.locator('.window[data-key="augment"] [data-close]').click()
@@ -159,6 +182,11 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
 
     page.screenshot(path='/tmp/confectory-web-ui-'+kind+'.png',full_page=True);assert not errors,errors;browser.close()
    print('Actual common WebUI '+kind+' Chromium PASS')
+  except Exception:
+   try:
+    page.screenshot(path='/tmp/confectory-web-ui-failure.png',full_page=True);print('UI failure status:',page.locator('#status').inner_text(),flush=True)
+   except Exception:pass
+   raise
   finally:
    if host.poll() is None:host.send_signal(signal.SIGINT)
    try:host.wait(timeout=15)

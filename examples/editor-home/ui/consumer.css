@@ -6,3 +6,5 @@
 .consumer-card-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.consumer-output{white-space:pre-wrap;overflow-wrap:anywhere;max-height:180px;overflow:auto}.window-content textarea{width:100%}#helper-summary,#worker-summary{padding:12px;font-size:12px;overflow-wrap:anywhere}
 
 .window[hidden]{display:none!important}.consumer-worker{display:inline-flex;align-items:center;padding:4px;border:0;background:transparent}.consumer-worker .helper-worker-dot{display:inline-block;position:relative}.consumer-worker:focus-within .worker-status-tooltip{display:block}
+
+.chatbar [hidden]{display:none!important}.chatbar #chat-form{display:flex;gap:6px}.chatbar #chat-input{flex:1;min-width:0}.chatbar .consumer-output{margin:0;max-height:none}.consumer-tools select{max-width:180px}

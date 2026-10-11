@@ -40,6 +40,12 @@ if(localActions.TryGetValue(endpoint,out var action)){
  if(endpoint=="chatDraft")payload["action"]="draft";
  Command(action[0],payload);return "{\"accepted\":true}";
 }
+if(endpoint is "openEditorView" or "closeEditorView" or "editEditorView" or "saveEditorView" or "editViewField" or "editViewMetadata"){
+ var payload=new System.Text.Json.Nodes.JsonObject{["context"]=selected["context"]!.DeepClone(),["view"]=args["view"]!.DeepClone(),["id"]=args["id"]!.DeepClone(),["action"]=endpoint switch{"openEditorView"=>"open-view","closeEditorView"=>"close-view","saveEditorView"=>"save","editViewField"=>"data-path","editViewMetadata"=>"value",_=>"open"}};
+ foreach(string field in new[]{"viewMode","text","path","value","field"})if(args[field] is not null)payload[field]=args[field]!.DeepClone();
+ if(args["revision"] is not null)payload["expectedRevision"]=args["revision"]!.DeepClone();
+ Command("workspace",payload);return "{\"accepted\":true}";
+}
 var request=new System.Text.Json.Nodes.JsonObject{["context"]=selected["context"]!.DeepClone()};
 switch(endpoint){
  case "schema":if(args["id"]?.ToString()!=before["workspace"]?["unit"]?["id"]?.ToString())throw new InvalidOperationException("Schema selection changed");request["action"]="schema-view";break;
@@ -47,7 +53,7 @@ switch(endpoint){
  case "editField":if(args["id"]?.ToString()!=before["workspace"]?["unit"]?["id"]?.ToString())throw new InvalidOperationException("Schema selection changed");request["action"]="data-path";request["id"]=args["id"]!.DeepClone();request["path"]=args["path"]!.DeepClone();request["value"]=args["value"]!.DeepClone();request["expectedRevision"]=args["revision"]!.DeepClone();break;
  case "sourceUnits":request["action"]="filter";request["kind"]="";request["query"]=args["query"]?.GetValue<string>()??"";break;
  case "reviewWorker":if(args["task"]?.ToString()!=before["selectedTask"]?.ToString()||before["selectedTaskContext"]?.ToString()!=selected["context"]!.ToString())throw new InvalidOperationException("Worker selection changed");request["action"]="review";request["target"]=OperatingSystem.IsWindows()?"windows":"linux";request["ids"]=args["ids"]!.DeepClone();break;
- case "objects":request["action"]="filter";request["kind"]="object";request["query"]=args["query"]?.GetValue<string>()??"";break;
+ case "objects":request["action"]="filter";request["kind"]=args["kind"]?.GetValue<string>()??"object";request["query"]=args["query"]?.GetValue<string>()??"";break;
  case "page":request["action"]="page";request["page"]=args["page"]!.GetValue<int>();break;
  case "select":request["action"]="select";request["id"]=args["id"]!.GetValue<string>();break;
  case "editDraft":
