@@ -16,6 +16,8 @@ This increment restores the frozen ZIP's Home and project frame, then attaches e
 
 The ordinary browser host now permits inline **styles**, matching the embedded Windows host, because the original DOM uses them. Inline scripts remain disallowed. No compiler acceptance, ProjectPack-specific build exception, model ownership, draft, Save/Review/Confirm, CRLF policy, launcher configuration, main or Android version change is introduced.
 
+The subsequent [inner-window restoration](EDITOR_V196_INNER_RESTORATION.md) records the next implementation and its separate visual/function evidence. The boundaries below describe this historical first increment.
+
 ## Acceptance boundaries
 
 `tests/web/editor_home_original_layout.py` renders the frozen reference and the ordinary actual EditorHome ProjectPack at 1440×1000. It captures both Home/project/create screens, compares major Home DOM structures, checks the two original tiles/card regions and inline styling, then opens a real regular ButtonGame object, views its actual schema, saves a chat draft, hides the project and reopens it. It uses the normal transport; no fake successful engine or UI-only fixture pack is supplied. It also enters the actual AI settings schema through the original Agent dialog, covering the polling/disposal scope transition. It is registered as `test_actual_editor_original_v196_home_project_and_create_flow`.

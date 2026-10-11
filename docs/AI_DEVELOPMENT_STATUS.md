@@ -1,5 +1,13 @@
 # AI development implementation and verification boundary
 
+## 2026-10-11 v196 inner windows, reviewable visual increment
+
+[Original inner-window restoration and evidence](EDITOR_V196_INNER_RESTORATION.md) continues e3d55ea: Dock, concept/function/module browser, actual object/schema rows, source Review, augmentation/direction modal, Yogi clipboard/package and Helper expanded/settings/pinned cards now use the original structures with existing engine actions. Unsupported controls retain honest states; no demo data, individual Worker chat, live accounts, delivery/merge policy or Site changes were introduced.
+
+Final same-viewport original/actual window gate: **1 passed, 0 failed, 0 skipped (84.388s)**, 35 PNGs under `docs/evidence/v196-inner-restoration/` with source/app/CSS hashes. Actual root Linux X11 full workflow passed after GTK chooser automation synchronization fixes. Final ordinary root Linux/Windows/Android builds: `tool.ok=true`, **37 packs each**; Windows WebView managed host: **0 warnings/errors (16.06s)**. Native UI remains a separate existing renderer, not v196 HTML visual acceptance.
+
+**Pending/blocked at this reviewable commit:** full browser function regression is running after original-menu authoring selector adaptation; CRLF checkout gate is next. Browser WASM normal SDK publish exceeds the unchanged **120s** limit, including isolated retries, and is **not passing**. Actual Windows launcher/WebView2 and Android device runtime remain unavailable. Original-screen/action completion, missing profile/art ownership, Data-cell/category/inheritance editing and delivery remain explicitly bounded in the linked report. main, Android versions, user settings and the paused original 18-file work remain preserved.
+
 ## 2026-10-11 portable canonical text snapshots without user repair
 
 Normal users only update code and run Confectory.bat. Manual re-checkout/global Git settings/source rewriting/cache deletion are not prerequisites. The old command could skip clean CRLF files after attributes were pulled; that investigation tested a directly modified file and missed the retained clean state. The manual recovery procedure is withdrawn as a normal requirement.

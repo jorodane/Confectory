@@ -94,7 +94,12 @@ class NativeControls:
                     self.key(dialog,0xFF0D);time.sleep(.3)
             if find(b'Select folder'):
                 attributes=c.create_string_buffer(136);assert self.attributes(self.display,dialog,attributes);width=c.c_int.from_buffer(attributes,8).value;height=c.c_int.from_buffer(attributes,12).value
-                self.click(dialog,width-45,height-25);time.sleep(.25)
+                try:self.click(dialog,width-45,height-25)
+                except AssertionError:
+                    # Return can accept the folder while click translates coordinates.
+                    # Only a disappeared chooser is success; callers still verify its result.
+                    if find(b'Select folder'):raise
+                time.sleep(.25)
         deadline=time.monotonic()+10
         while find(b'Select folder') and time.monotonic()<deadline:time.sleep(.04)
         if find(b'Select folder'):
@@ -102,3 +107,5 @@ class NativeControls:
             trace=os.environ.get('CONFECTORY_DIALOG_FAILURE_SCREENSHOT')
             if trace:subprocess.run(['import','-display',os.environ['DISPLAY'],'-window',str(dialog),trace],check=False)
         assert not find(b'Select folder'),'Native chooser did not close'
+        # GTK releases its input grab after unmapping the chooser.
+        time.sleep(.2)
