@@ -6,6 +6,12 @@ int ownedTotal=ids.Length;string query=state["query"]?.GetValue<string>()??"",ki
 if(query.Length>0||kind.Length>0)ids=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Where(ids,id=>id.Contains(query,StringComparison.OrdinalIgnoreCase)&&(kind.Length==0||calls.Status.Invoke(draft,id)[1]==kind)));
 int page=state["page"]!.GetValue<int>(),size=32;page=Math.Min(page,Math.Max(0,(ids.Length-1)/size));state["page"]=page;
 var units=new System.Text.Json.Nodes.JsonArray();for(int i=page*size;i<Math.Min(ids.Length,(page+1)*size);i++){var u=calls.Status.Invoke(draft,ids[i]);units.Add(new System.Text.Json.Nodes.JsonObject{["id"]=u[0],["kind"]=u[1],["path"]=u[2],["revision"]=long.Parse(u[4],System.Globalization.CultureInfo.InvariantCulture),["dirty"]=u[6]=="dirty",["materialization"]=u[7]});}
+// Creation review dependencies come from the shared draft, independent of browser filters/pages.
+var creationReviewIds=new System.Text.Json.Nodes.JsonArray();
 string selected=state["selected"]!.GetValue<string>();System.Text.Json.Nodes.JsonObject? unit=null;
+if(selected!=""&&calls.Status.Invoke(draft,selected)[5]=="missing"){
+ foreach(string candidate in calls.List.Invoke(draft)){var status=calls.Status.Invoke(draft,candidate);if(status[5]=="missing")creationReviewIds.Add(candidate);}
+ foreach(string candidate in calls.List.Invoke(draft)){var status=calls.Status.Invoke(draft,candidate);if(status[2]==System.IO.Path.GetFileName(identity[0])){creationReviewIds.Add(candidate);break;}}
+}
 if(selected!=""){var u=calls.Read.Invoke(draft,selected);unit=new System.Text.Json.Nodes.JsonObject{["id"]=u[0],["kind"]=u[1],["path"]=u[2],["text"]=u[3],["revision"]=long.Parse(u[4],System.Globalization.CultureInfo.InvariantCulture),["dirty"]=u[6]=="dirty"};}
-return new System.Text.Json.Nodes.JsonObject{["review"]=state["review"]?.DeepClone(),["project"]=identity[0],["participant"]=identity[1],["context"]=identity[2],["selected"]=selected,["page"]=page,["pageSize"]=size,["total"]=ids.Length,["ownedTotal"]=ownedTotal,["query"]=query,["kind"]=kind,["units"]=units,["unit"]=unit}.ToJsonString();}
+return new System.Text.Json.Nodes.JsonObject{["creationReviewIds"]=creationReviewIds,["review"]=state["review"]?.DeepClone(),["project"]=identity[0],["participant"]=identity[1],["context"]=identity[2],["selected"]=selected,["page"]=page,["pageSize"]=size,["total"]=ids.Length,["ownedTotal"]=ownedTotal,["query"]=query,["kind"]=kind,["units"]=units,["unit"]=unit}.ToJsonString();}

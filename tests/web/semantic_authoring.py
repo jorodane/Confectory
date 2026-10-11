@@ -11,6 +11,51 @@ def verify_schema_authoring(page,project,mount,send,envelope,browser,browser_act
   form=page.locator('.window[data-key="schema"] .schema-row').filter(has=page.locator('[data-definition="name"]'))
   form.locator('[data-definition="name"]').fill(name);form.locator('[data-definition="kind"]').select_option(kind);form.locator('[data-definition="type"]').fill(type_name);form.locator('[data-definition="cardinality"]').select_option(cardinality);form.locator('[data-operation="definition-apply"]').click();expect(page.locator('.window[data-key="schema"]').get_by_role('textbox',name='필드 이름',exact=True).last).to_have_value(name,timeout=30000)
  def close():page.locator('.window[data-key="schema"] [data-close]').click()
+ # Reproduce the ordinary lowercase concept path, without advanced group selection.
+ create('test','object')
+ state=mount();draft=state['state']['draft'];ids=draft['creationReviewIds']
+ assert draft['kind']=='object' and draft['dirty'] and prefix+'test' in ids and prefix+'ProjectManifest' in ids
+ assert any(row['id']==prefix+'test' for row in state['state']['units']), 'new concept hidden by filter/page'
+ # Exercise the old single-unit Review path: safe diagnosis, retained dirty drafts.
+ import time
+ request_id='creation-without-registration'
+ assert send(envelope(state,'invoke',endpoint='reviewDraft',requestId=request_id,expectedRevision=state['revision'],input={'id':prefix+'test'}))['ok']
+ for _ in range(400):
+  updated=send(envelope(state,'update'));matches=[row for row in updated.get('results',[]) if row['requestId']==request_id]
+  if matches:break
+  time.sleep(.01)
+ assert matches and not matches[0]['ok'] and matches[0]['error']['code']=='consumer_error', matches
+ assert updated['state']['sourceError']=='creation_registration_required', updated['state']['sourceError']
+ assert updated['state']['draft']['dirty'] and updated['state']['draft']['creationReviewIds']==ids
+ assert send(envelope(state,'dispose'))['ok']
+ source_path=project/'elements/test.celem';assert not source_path.exists()
+ page.locator('#semantic-save').click();expect(page.locator('#status')).to_have_text('Draft saved; final sources unchanged',timeout=30000)
+ saved=list((project/'.confectory/edit-workspaces').glob('*/draft.json'));assert saved
+ import json
+ assert any({prefix+'test',prefix+'ProjectManifest'} <= {row['id'] for row in json.loads(file.read_text())['changes']} for file in saved)
+ # Description editing uses the existing source authoring contract; no ID rename is introduced.
+ close();browser();browser_action('#advanced-source');expect(page.locator('#source')).to_be_visible()
+ page.locator('#source').fill('object '+prefix+'test { value initial = 1; description "created through ordinary editor"; }\n')
+ page.locator('#apply').click();expect(page.locator('#status')).to_have_text('Shared draft updated',timeout=30000)
+ page.locator('#schema').click();expect(page.locator('[data-schema-field="initial"]')).to_have_value('1',timeout=30000)
+ page.locator('[data-schema-field="initial"]').fill('2');page.locator('#semantic-save').click()
+ expect(page.locator('#status')).to_have_text('필드 입력을 먼저 적용하세요. 입력은 유지됩니다.',timeout=30000)
+ expect(page.locator('[data-schema-field="initial"]')).to_have_value('2')
+ page.locator('[data-schema-field="initial"]').locator('..').get_by_role('button',name='Apply field',exact=True).click()
+ expect(page.locator('#status')).to_have_text('Shared field draft updated',timeout=30000)
+ page.locator('#semantic-save').click();expect(page.locator('#status')).to_have_text('Draft saved; final sources unchanged',timeout=30000)
+ page.locator('#semantic-review').click();expect(page.locator('#review-creation')).to_be_visible(timeout=30000)
+ expect(page.locator('[data-creation-review-id]')).to_have_count(2)
+ page.locator('#review-creation').click();expect(page.locator('#confirm')).to_be_enabled(timeout=30000)
+ page.screenshot(path='/tmp/confectory-new-concept-review.png',full_page=True)
+ assert not source_path.exists(), 'Save/Review wrote final sources'
+ reviewed=mount();assert {row['id'] for row in reviewed['state']['review']['units']}=={prefix+'test',prefix+'ProjectManifest'};assert send(envelope(reviewed,'dispose'))['ok']
+ page.locator('#confirm').click();expect(page.locator('#status')).to_have_text('Source confirmed',timeout=180000)
+ assert 'value initial = 2;' in source_path.read_text() and 'created through ordinary editor' in source_path.read_text()
+ assert 'element test object "elements/test.celem"' in (project/'project.cpack').read_text()
+ close();browser();page.locator('.window[data-key="browser"] [data-tab="concept"]').click()
+ expect(page.locator('[data-id="'+prefix+'test"]')).to_be_visible(timeout=30000)
+ print('PASS normal lowercase test creation: dirty declaration+registration, Save, editable values, explicit Review, compiler Confirm, actual browser',flush=True)
  create('EntryMeta','schema');field('note','general','string');field('enabled','general','bool');close()
  create('SceneSpec','schema');field('child','compound',prefix+'EntryMeta');field('ticks','general','int','multiple');close()
  create('PreviewSettings','object');close();browser();browser_action('#advanced-source');expect(page.locator('#source')).to_be_visible();expect(page.locator('#status')).to_have_text('고급 소스 탐색',timeout=30000)

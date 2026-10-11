@@ -62,7 +62,8 @@ case "follow":{
  state["selected"]=targetId;state["review"]=null;break;
 }
 case "create":{
- string createdId=request["id"]!.GetValue<string>(),kind=request["kind"]!.GetValue<string>();calls.Create.Invoke(draft,kind,createdId);state["selected"]=createdId;state["review"]=null;break;
+ string createdId=request["id"]!.GetValue<string>(),kind=request["kind"]!.GetValue<string>();calls.Create.Invoke(draft,kind,createdId);state["selected"]=createdId;state["review"]=null;
+ state["query"]="";state["kind"]=kind;var createdKindIds=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Where(calls.List.Invoke(draft),candidate=>calls.Status.Invoke(draft,candidate)[1]==kind));Array.Sort(createdKindIds,StringComparer.Ordinal);state["page"]=Array.IndexOf(createdKindIds,createdId)/32;break;
 }
 case "filter":{
  string query=request["query"]?.GetValue<string>()??"",kind=request["kind"]?.GetValue<string>()??"";

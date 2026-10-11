@@ -207,7 +207,12 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
      page.set_viewport_size({'width':960,'height':700});expect(source).to_have_value(pending_text);page.set_viewport_size({'width':1280,'height':720})
      page.locator('#run').click();expect(page.locator('#run')).to_contain_text('중지',timeout=30000)
      execution=mount();assert execution['state']['executionState'] in ['building','running'];assert send(envelope(execution,'dispose'))['ok']
-     page.locator('#run').click();expect(page.locator('#run')).to_contain_text('실행',timeout=30000)
+     # Live execution logs can advance the common revision after Update and before queued Invoke.
+     # A rejected stale request executed nothing: explicitly retry the real UI Stop action only.
+     for attempt in range(5):
+      page.locator('#run').click();expect(page.locator('#run')).to_be_enabled(timeout=30000)
+      if page.locator('#status').inner_text()!='stale_revision':break
+     expect(page.locator('#run')).to_contain_text('실행',timeout=30000)
      stopped=mount();assert stopped['state']['executionState']=='stopped',stopped['state']['executionState'];assert send(envelope(stopped,'dispose'))['ok']
      expect(page.locator('#execution-logs')).to_contain_text('Stopped this project execution');expect(source).to_have_value(pending_text)
      assert (project/'Score.celem').read_text()==text,'Run/Stop applied unconfirmed browser input'

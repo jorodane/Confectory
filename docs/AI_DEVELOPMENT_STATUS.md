@@ -1,5 +1,9 @@
 # AI development implementation and verification boundary
 
+## 2026-10-11 ordinary new concept creation
+
+[Creation diagnosis and consumer fix](NEW_CONCEPT_CREATION.md) connects the existing shared declaration and registration drafts to explicit group Review from the data window, followed by separate compiler-backed Confirm. The reported lowercase `test` is reproduced in an ordinary ButtonGame copy, without assuming the user's unseen project. Failed operations retain the common rejection/CAS contract and display fixed safe diagnostics. Existing name rename policy remains unsupported; declaration description can use the existing source editor.
+
 ## 2026-10-11 WASM publish comparison, blocker remains
 
 [Focused SDK publish investigation](WASM_PUBLISH_INVESTIGATION.md) records six phase traces. Browser target/settings are unchanged since e3d55ea; 73/74 reference DLLs, generated Bindings and public-linkage are byte identical, and rebuilt native WASM is byte identical. Earlier successful frozen SDK inputs also exceed 120s when cold-published in the current workspace. Publish compression is the unfinished phase; CPU/quota-aligned and single-native-thread normal ProjectPack attempts do not recover it. This does not establish a UI/native-code regression. The exact environment/SDK performance cause remains unresolved.
