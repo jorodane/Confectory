@@ -1,0 +1,1 @@
+implementation Confectory.WebUI::ClientBody for Confectory.WebUI::Client () -> string { body common "Client.csbody"; }

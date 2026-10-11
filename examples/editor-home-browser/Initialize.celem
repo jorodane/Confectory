@@ -1,0 +1,1 @@
+function Confectory.EditorHome.Browser::Initialize () -> int { provide Confectory.EditorHome.Browser::Initialize with Confectory.EditorHome.Browser::InitializeBody; }

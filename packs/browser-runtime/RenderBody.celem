@@ -1,1 +1,3 @@
-implementation Confectory.BrowserRuntime::RenderBody for Confectory.BrowserRuntime::Render (string snapshot) -> void { body browser "Render.browser.csbody"; }
+implementation Confectory.BrowserRuntime::RenderBody for Confectory.BrowserRuntime::Render (string snapshot) -> void {
+
+body browser "Render.browser.csbody"; }

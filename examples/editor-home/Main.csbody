@@ -1,3 +1,4 @@
+if(Environment.GetEnvironmentVariable("CONFECTORY_UI")=="web")return calls.WebStart.Invoke();
 // All acquired product resources remain owned until their individual release succeeds.
 var resources=new System.Collections.Generic.List<(string Name,Action Release)>();
 System.Threading.Tasks.Task<string>? job=null;bool stop=false,modelCloseScheduled=false,jobFaultReported=false;int disposalState=0;

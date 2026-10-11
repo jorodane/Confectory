@@ -6,7 +6,7 @@ using System.Text.Json.Nodes;
 try {
  var request=JsonNode.Parse(Console.In.ReadToEnd())!.AsObject();
  string root=Path.GetFullPath(Path.Combine(AppContext.BaseDirectory,"../../../../.."));
- string assets=Path.Combine(root,"packs","browser-host","assets");
+ string assets=Path.Combine(root,"examples","editor-home-web","assets");
  string compiler=Path.Combine(root,"targets","dotnet","bin","Release","net10.0","Confectory.Build.DotNet.dll");
  if(!File.Exists(compiler))throw new IOException("Build trusted targets/dotnet before the local browser target");
  string dotnet=Environment.GetEnvironmentVariable("CONFECTORY_DOTNET")??"dotnet";

@@ -1,0 +1,3 @@
+implementation Confectory.WebUI::CancelledBody for Confectory.WebUI::Cancelled (string cancellation) -> bool {
+
+body common "Cancelled.csbody"; }

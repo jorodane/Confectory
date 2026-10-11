@@ -1,0 +1,3 @@
+implementation Confectory.EditorHome::WebStateBody for Confectory.WebUI::State (string context) -> string {
+import Confectory.EditorHome.Model::Snapshot as Snapshot (string) -> string;
+body common "WebState.csbody"; }

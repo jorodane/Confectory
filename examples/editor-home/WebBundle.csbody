@@ -1,0 +1,31 @@
+var resources=new System.Text.Json.Nodes.JsonObject();
+void Add(string id,string mime,string text){resources[id]=new System.Text.Json.Nodes.JsonObject{["mime"]=mime,["base64"]=Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(text))};}
+Add("index.html","text/html","""
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Confectory web editor</title><link rel="stylesheet" href="style.css"><header><img src="mark.svg" alt=""><h1>Confectory web editor</h1></header><p id="title"></p><small>Local draft workspace. Save does not Review or Confirm source changes.</small><p><button id="objects-refresh">Objects</button><button id="reconnect">Reconnect view</button></p><main><section><h2>Objects</h2><div id="objects"></div><button id="previous">Previous</button><button id="next">Next</button></section><section><h2 id="selection">Source draft</h2><textarea id="source" aria-label="Source draft"></textarea><p><button id="apply">Apply to shared draft</button><button id="save">Save draft</button></p><small>Review / Confirm remain in the existing editor; this first web consumer does not expose them.</small></section></main><output id="status" role="status">Connecting</output><script type="module" src="app.js"></script></html>
+""");
+Add("style.css","text/css","""
+body{font:16px system-ui;background:#10151b;color:#e4eaf1;max-width:1120px;margin:40px auto;padding:0 24px}header{display:flex;gap:16px;align-items:center}header img{width:36px}button{padding:10px 16px;margin:4px;border:1px solid #57718b;border-radius:6px;background:#26384a;color:inherit;cursor:pointer}button:disabled{opacity:.5}main{display:grid;grid-template-columns:320px 1fr;gap:20px}#objects button{display:block;text-align:left;overflow-wrap:anywhere}textarea{box-sizing:border-box;width:100%;height:420px;background:#17212b;color:inherit;padding:16px;font:14px monospace}output{display:block;margin:16px 0}small{color:#adbecf}@media(max-width:700px){main{display:block}}
+""");
+Add("app.js","text/javascript","""
+import {WebView,connectLocal} from './web-ui.js';
+const $=id=>document.getElementById(id),transport=connectLocal();
+let draft=null,dirty=false,busy=false,page=0;
+function controls(){for(const b of document.querySelectorAll('button'))b.disabled=busy;$('source').disabled=busy;}
+const view=new WebView(transport,state=>{$('title').textContent=state.title;page=state.page||0;$('objects').replaceChildren(...state.units.map(unit=>{const b=document.createElement('button');b.textContent=unit.id;b.dataset.id=unit.id;b.onclick=()=>act('select',{id:unit.id});return b;}));
+ if(state.draft&&(!draft||state.draft.id!==draft.id||!dirty)){draft=state.draft;$('source').value=draft.text;$('selection').textContent=draft.id;}controls();});
+async function work(action,message){if(busy)return;busy=true;controls();try{await action();$('status').textContent=message;}catch(e){$('status').textContent=e.message;}finally{busy=false;controls();}}
+async function act(endpoint,input){if(dirty&&['select','objects','page'].includes(endpoint)){$('status').textContent='Apply local input before changing selection';return;}return work(()=>view.call(endpoint,input),'Ready');}
+$('source').oninput=()=>dirty=true;
+async function apply(){if(!draft||!dirty)return;await view.call('editDraft',{id:draft.id,text:$('source').value,revision:draft.revision});dirty=false;draft=view.state.draft;$('source').value=draft.text;await view.update();}
+$('apply').onclick=()=>work(apply,'Shared draft updated');
+$('save').onclick=()=>work(async()=>{await apply();await view.call('saveDraft',{});},'Draft saved; final sources unchanged');
+$('objects-refresh').onclick=()=>act('objects',{});$('previous').onclick=()=>act('page',{page:Math.max(0,page-1)});$('next').onclick=()=>act('page',{page:page+1});
+$('reconnect').onclick=()=>{if(dirty){$('status').textContent='Apply local input before reconnecting';return;}return work(async()=>{await view.dispose();await view.mount();},'Reconnected; shared draft retained');};
+let updating=false;setInterval(async()=>{if(updating||!view.active)return;updating=true;try{await view.update();}catch(e){$('status').textContent=e.message;}finally{updating=false;}},100);
+await view.mount();$('status').textContent='Ready';
+""");
+Add("mark.svg","image/svg+xml","""
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><rect width="40" height="40" rx="8" fill="#83c6e8"/><path d="M28 12H12v16h16" fill="none" stroke="#17212b" stroke-width="5"/></svg>
+""");
+Add("web-ui.js","text/javascript",calls.Client.Invoke());
+return new System.Text.Json.Nodes.JsonObject{["id"]="Confectory.EditorHome",["version"]="1",["entry"]="index.html",["resources"]=resources,["endpoints"]=System.Text.Json.JsonSerializer.SerializeToNode(new[]{"objects","page","select","editDraft","saveDraft"})}.ToJsonString();

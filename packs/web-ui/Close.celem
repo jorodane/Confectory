@@ -1,0 +1,1 @@
+function Confectory.WebUI::Close (string owner) -> bool { provide Confectory.WebUI::Close with Confectory.WebUI::CloseBody; }

@@ -1,0 +1,81 @@
+// Descriptor and context come only from the compiled consumer, never a browser request.
+var bundle=System.Text.Json.Nodes.JsonNode.Parse(descriptor)!.AsObject();
+if(descriptor.Length>4194304||bundle["id"] is null||bundle["version"] is null)throw new ArgumentException("Bounded, identified bundle required");
+var assets=new System.Collections.Generic.Dictionary<string,string[]>(StringComparer.Ordinal);
+foreach(var item in bundle["resources"]!.AsObject()){
+ string path=item.Key,mime=item.Value!["mime"]!.ToString(),data=item.Value["base64"]!.ToString();
+ if(!System.Text.RegularExpressions.Regex.IsMatch(path,@"^[A-Za-z0-9_-]+(?:[./][A-Za-z0-9_-]+)*$")||path.Contains("..",StringComparison.Ordinal))throw new ArgumentException("Bundle-relative resource ID required");
+ if(mime is not ("text/html" or "text/css" or "text/javascript" or "image/png" or "image/jpeg" or "image/svg+xml" or "image/webp"))throw new ArgumentException("Unsupported resource MIME");
+ byte[] bytes=Convert.FromBase64String(data);if(bytes.Length>1048576)throw new ArgumentException("Resource budget exceeded");
+ assets.Add(path,new[]{mime,data,Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes))});
+}
+string entry=bundle["entry"]!.ToString();if(!assets.ContainsKey(entry)||assets[entry][0]!="text/html")throw new ArgumentException("Declared HTML entry required");
+var endpoints=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
+foreach(var e in bundle["endpoints"]!.AsArray())if(!endpoints.Add(e!.GetValue<string>()))throw new ArgumentException("Duplicate endpoint");
+string token=Guid.NewGuid().ToString("N");object gate=new(),execution=new();bool closing=false,closed=false;
+var retiredViews=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
+var owner=calls.CreateOwner.Invoke(1);int revisionInstance=calls.CreateInstance.Invoke(owner,"Confectory.WebUI::Revision");
+var views=new System.Collections.Generic.Dictionary<string,(string Scope,string[] Subscription)>(StringComparer.Ordinal);
+var requests=new System.Collections.Generic.Dictionary<string,(string Fingerprint,string View,System.Threading.CancellationTokenSource Cancel,System.Text.Json.Nodes.JsonObject Row)>(StringComparer.Ordinal);
+System.Text.Json.Nodes.JsonObject State(){string text=calls.State.Invoke(context);if(text.Length>2097152)throw new InvalidOperationException("State budget exceeded");var s=System.Text.Json.Nodes.JsonNode.Parse(text)!.AsObject();if(s["scope"] is not System.Text.Json.Nodes.JsonObject||s["revision"]!.GetValue<long>()<0||s["state"] is null)throw new InvalidOperationException("Invalid consumer state");return s;}
+System.Text.Json.Nodes.JsonObject Error(string code,string id="")=>new(){["ok"]=false,["requestId"]=id,["error"]=new System.Text.Json.Nodes.JsonObject{["code"]=code}};
+System.Text.Json.Nodes.JsonObject? Refresh(){if(!System.Threading.Monitor.TryEnter(execution))return null;try{var s=State();calls.Write.Invoke(owner,revisionInstance,s["revision"]!.GetValue<long>());return s;}finally{System.Threading.Monitor.Exit(execution);}}
+string Dispatch(string text){
+ if(text.Length>2097152)return Error("request_too_large").ToJsonString();
+ lock(gate){
+  try{
+   if(closing)return Error("owner_closed").ToJsonString();
+   var req=System.Text.Json.Nodes.JsonNode.Parse(text)!.AsObject();string op=req["op"]!.ToString();
+   if(op=="mount"){
+    if(views.Count>=32||views.Count+retiredViews.Count>=1024)return Error("view_budget").ToJsonString();var s=Refresh();if(s is null)return Error("busy").ToJsonString();string view=Guid.NewGuid().ToString("N");
+    views.Add(view,(s["scope"]!.ToJsonString(),calls.Subscribe.Invoke(owner,revisionInstance,"Confectory.WebUI::Revision")));
+    s["ok"]=true;s["view"]=view;s["bundle"]=bundle["id"]!.DeepClone();s["version"]=bundle["version"]!.DeepClone();return s.ToJsonString();
+   }
+   string v=req["view"]!.ToString();if(op=="dispose"&&retiredViews.Contains(v))return "{\"ok\":true}";if(!views.TryGetValue(v,out var mounted))return Error("view_closed").ToJsonString();
+   if(op=="dispose"){
+    calls.Unsubscribe.Invoke(mounted.Subscription);views.Remove(v);retiredViews.Add(v);foreach(var row in requests.Values)if(row.View==v)row.Cancel.Cancel();return "{\"ok\":true}";
+   }
+   if(!System.Text.Json.Nodes.JsonNode.DeepEquals(req["scope"],System.Text.Json.Nodes.JsonNode.Parse(mounted.Scope)))return Error("scope_mismatch").ToJsonString();
+   string id=req["requestId"]?.ToString()??"";
+   if(op=="cancel"){
+    if(!requests.TryGetValue(id,out var row)||row.View!=v)return Error("unknown_request",id).ToJsonString();
+    if(row.Row["status"]!.ToString()!="pending")return new System.Text.Json.Nodes.JsonObject{["ok"]=true,["status"]="already_completed",["requestId"]=id}.ToJsonString();
+    row.Cancel.Cancel();return new System.Text.Json.Nodes.JsonObject{["ok"]=true,["status"]="cancellation_requested",["requestId"]=id}.ToJsonString();
+   }
+   if(op=="update"){
+    var s=Refresh();if(s is null)return "{\"ok\":true,\"busy\":true,\"results\":[]}";if(!System.Text.Json.Nodes.JsonNode.DeepEquals(s["scope"],System.Text.Json.Nodes.JsonNode.Parse(mounted.Scope)))return Error("scope_changed").ToJsonString();
+    s["changed"]=calls.Poll.Invoke(owner,mounted.Subscription).Length>0;s["ok"]=true;
+    var results=new System.Text.Json.Nodes.JsonArray();foreach(var row in requests.Values)if(row.View==v&&row.Row["status"]!.ToString()!="pending")results.Add(row.Row.DeepClone());s["results"]=results;return s.ToJsonString();
+   }
+   if(op!="invoke")return Error("unknown_operation",id).ToJsonString();
+   string endpoint=req["endpoint"]!.ToString();if(!endpoints.Contains(endpoint))return Error("endpoint_denied",id).ToJsonString();
+   if(id.Length is <1 or >128)return Error("request_id_required").ToJsonString();
+   string payload=req["input"]?.ToJsonString()??"{}",fingerprint=v+"\n"+endpoint+"\n"+payload+"\n"+req["expectedRevision"];
+   if(requests.TryGetValue(id,out var prior)){var current=Refresh();if(current is null)return Error("busy",id).ToJsonString();if(!System.Text.Json.Nodes.JsonNode.DeepEquals(current["scope"],System.Text.Json.Nodes.JsonNode.Parse(mounted.Scope)))return Error("scope_changed",id).ToJsonString();return prior.Fingerprint==fingerprint?prior.Row.ToJsonString():Error("request_id_reused",id).ToJsonString();}
+   if(System.Linq.Enumerable.Count(requests.Values,r=>r.Row["status"]!.ToString()=="pending")>=32)return Error("busy",id).ToJsonString();
+   if(requests.Count>=1024)return Error("request_budget",id).ToJsonString();
+   long expected=req["expectedRevision"]!.GetValue<long>();
+   var cancel=new System.Threading.CancellationTokenSource();string cancellation=Guid.NewGuid().ToString("N");
+   AppDomain.CurrentDomain.SetData("Confectory.WebUI.Cancel."+cancellation,(Func<bool>)(()=>cancel.IsCancellationRequested));
+   var status=new System.Text.Json.Nodes.JsonObject{["ok"]=true,["requestId"]=id,["status"]="pending"};requests.Add(id,(fingerprint,v,cancel,status));
+   System.Threading.Tasks.Task.Run(()=>{
+    System.Text.Json.Nodes.JsonNode? result=null;string? error=null;
+    try{lock(execution){
+     if(cancel.IsCancellationRequested)error="cancelled";
+     else{var before=State();if(!System.Text.Json.Nodes.JsonNode.DeepEquals(before["scope"],System.Text.Json.Nodes.JsonNode.Parse(mounted.Scope)))error="scope_changed";
+      else if(before["revision"]!.GetValue<long>()!=expected)error="stale_revision";
+      else {string output=calls.Invoke.Invoke(context,endpoint,payload,cancellation);if(output.Length>2097152)throw new InvalidOperationException("Result budget exceeded");result=System.Text.Json.Nodes.JsonNode.Parse(output);if(!System.Text.Json.Nodes.JsonNode.DeepEquals(State()["scope"],System.Text.Json.Nodes.JsonNode.Parse(mounted.Scope))){error="scope_changed";result=null;}}
+     }
+    }}catch(OperationCanceledException){error="cancelled";}catch(Exception){error="consumer_error";}
+    finally{AppDomain.CurrentDomain.SetData("Confectory.WebUI.Cancel."+cancellation,null);}
+    lock(gate){bool retired=closing||!views.ContainsKey(v);if(cancel.IsCancellationRequested||retired){error="cancelled";result=null;}
+     status["ok"]=error is null;status["status"]=error=="cancelled"?"cancelled":error is null?"completed":"failed";
+     if(error is null)status["result"]=result;else status["error"]=new System.Text.Json.Nodes.JsonObject{["code"]=error};
+    }
+   });return status.ToJsonString();
+  }catch(Exception){return Error("invalid_request").ToJsonString();}
+ }
+}
+bool Close(){lock(gate){if(closed)return true;closing=true;foreach(var v in views.Values)calls.Unsubscribe.Invoke(v.Subscription);views.Clear();foreach(var row in requests.Values)row.Cancel.Cancel();foreach(var row in requests.Values)if(row.Row["status"]!.ToString()=="pending")return false;calls.DisposeOwner.Invoke(owner);foreach(var row in requests.Values)row.Cancel.Dispose();closed=true;AppDomain.CurrentDomain.SetData("Confectory.WebUI."+token,null);return true;}}
+AppDomain.CurrentDomain.SetData("Confectory.WebUI."+token,new object[]{(Func<string,string>)Dispatch,(Func<string,string[]>)(path=>{lock(gate){if(closing)throw new ObjectDisposedException("WebUI");return (string[])(assets.TryGetValue(path=="/"?entry:path.TrimStart('/'),out var asset)?asset.Clone():throw new ArgumentException("Unknown resource"));}}),(Func<bool>)Close});
+return token;

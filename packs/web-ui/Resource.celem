@@ -1,0 +1,1 @@
+function Confectory.WebUI::Resource (string owner, string path) -> string[] { provide Confectory.WebUI::Resource with Confectory.WebUI::ResourceBody; }

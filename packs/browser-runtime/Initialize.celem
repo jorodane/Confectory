@@ -1,1 +1,1 @@
-function Confectory.BrowserRuntime::Initialize () -> int { provide Confectory.BrowserRuntime::Initialize with Confectory.BrowserRuntime::InitializeBody; }
+function Confectory.BrowserRuntime::Initialize (string owner) -> int { provide Confectory.BrowserRuntime::Initialize with Confectory.BrowserRuntime::InitializeBody; }

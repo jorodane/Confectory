@@ -1,0 +1,5 @@
+implementation Confectory.EditorHome::WebInvokeBody for Confectory.WebUI::Invoke (string context, string endpoint, string input, string cancellation) -> string {
+import Confectory.WebUI::Cancelled as Cancelled (string) -> bool;
+import Confectory.EditorHome.Model::Command as Command (string,string,string) -> string;
+import Confectory.EditorHome.Model::Snapshot as Snapshot (string) -> string;
+body common "WebInvoke.csbody"; }

@@ -1,0 +1,1 @@
+function Confectory.WebUI::Open (string context, string descriptor) -> string { provide Confectory.WebUI::Open with Confectory.WebUI::OpenBody; }

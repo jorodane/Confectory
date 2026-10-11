@@ -1,0 +1,3 @@
+if(calls.Cancelled.Invoke(cancellation))throw new OperationCanceledException();
+var owner=AppDomain.CurrentDomain.GetData("Example.ButtonGame.Web."+context) as object[]??throw new ObjectDisposedException("ButtonGame");
+long next=calls.ChangeScore.Invoke((string[])owner[0],(int)owner[1],endpoint);return System.Text.Json.JsonSerializer.Serialize(new{score=next});

@@ -1,0 +1,31 @@
+return """
+export function connectLocal() {
+ const key='confectory.webui.session',token=location.hash.slice(1)||sessionStorage.getItem(key)||'';
+ if(location.hash){sessionStorage.setItem(key,token);history.replaceState(null,'',location.pathname);}
+ return localTransport(token);
+}
+// Transport is an injected function: no model names, files, globals or engine dispatcher.
+export function localTransport(token) {
+ return async envelope => {
+  const reply=await fetch('/api/request',{method:'POST',keepalive:envelope.op==='dispose',headers:{'Content-Type':'application/json','X-Confectory-Session':token},body:JSON.stringify(envelope)});
+  if(!reply.ok)throw new Error('transport_rejected');return reply.json();
+ };
+}
+export class WebView {
+ constructor(transport,onState){this.transport=transport;this.onState=onState;this.pending=new Map();this.generation=0;this.active=false;this.onPageHide=()=>{void this.dispose().catch(()=>{});};}
+ check(reply){if(!reply.ok)throw new Error(reply.error?.code||'request_failed');return reply;}
+ async mount(){const generation=++this.generation;const reply=this.check(await this.transport({op:'mount'}));if(generation!==this.generation){await this.transport({op:'dispose',view:reply.view});return;}
+  this.view=reply.view;this.scope=reply.scope;this.active=true;globalThis.addEventListener?.('pagehide',this.onPageHide,{once:true});this.revision=undefined;this.receive(reply);return reply;
+ }
+ receive(reply){const changed=this.revision!==reply.revision;this.revision=reply.revision;this.state=reply.state;if(changed)this.onState?.(reply.state,reply.revision);}
+ async update(){if(!this.active)return;const generation=this.generation;const reply=this.check(await this.transport({op:'update',view:this.view,scope:this.scope}));if(!this.active||generation!==this.generation||reply.busy)return;
+  this.receive(reply);for(const row of reply.results||[]){const pending=this.pending.get(row.requestId);if(pending){this.pending.delete(row.requestId);row.ok?pending.resolve(row.result):pending.reject(new Error(row.error?.code||'request_failed'));}}
+ }
+ call(endpoint,input={}){if(!this.active)return Promise.reject(new Error('view_closed'));const requestId=crypto.randomUUID(),generation=this.generation;
+  const promise=new Promise((resolve,reject)=>{this.pending.set(requestId,{resolve,reject});this.transport({op:'invoke',view:this.view,scope:this.scope,requestId,endpoint,input,expectedRevision:this.revision}).then(reply=>{if(generation!==this.generation)return;if(!reply.ok){this.pending.delete(requestId);reject(new Error(reply.error?.code));}}).catch(error=>{this.pending.delete(requestId);reject(error);});});
+  promise.requestId=requestId;return promise;
+ }
+ async cancel(requestId){return this.check(await this.transport({op:'cancel',view:this.view,scope:this.scope,requestId}));}
+ async dispose(){globalThis.removeEventListener?.('pagehide',this.onPageHide);const view=this.view;++this.generation;this.active=false;for(const p of this.pending.values())p.reject(new Error('view_closed'));this.pending.clear();if(view)this.check(await this.transport({op:'dispose',view}));}
+}
+""";

@@ -53,7 +53,8 @@ with tempfile.TemporaryDirectory(prefix='confectory-wasm-browser-') as temporary
    page.set_viewport_size({'width':390,'height':844});assert page.locator('#source').bounding_box()['width']<390
    page.screenshot(path=os.environ.get('CONFECTORY_BROWSER_SCREENSHOT',str(pathlib.Path(temporary)/'browser.png')));assert not errors,errors
    # Direct WASM bridge refuses unsupported commands without an HTTP API.
-   unsupported=page.evaluate("async () => { const { browserBridge }=await import('./app.js'); return browserBridge.Request('run','{}'); }");assert 'does not expose' in unsupported
+   for denied in ['run','ai-start','command','confirm','readFile']:
+    unsupported=page.evaluate("async operation => { const { browserBridge }=await import('./app.js'); return browserBridge.Request(operation,'{}'); }",denied);assert 'does not expose' in unsupported
    closed=page.evaluate("async()=>{const {browserBridge}=await import('./app.js');browserBridge.Close();browserBridge.Close();return JSON.parse(browserBridge.Request('snapshot','{}'));}");assert 'error' in closed
    page.reload();expect(page.locator('#status')).to_contain_text('Ready');assert page.locator('#project').is_hidden() and page.locator('#cards').inner_text()==''
    assert all(method=='GET' and url.startswith(origin) for method,url in network),network

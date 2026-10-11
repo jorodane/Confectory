@@ -1,0 +1,6 @@
+implementation Example.ButtonGame::WebInvokeBody for Confectory.WebUI::Invoke (string context, string endpoint, string input, string cancellation) -> string {
+import Example.ButtonGame::ChangeScore as ChangeScore (string[],int,string) -> long;
+import Confectory.WebUI::Cancelled as Cancelled (string) -> bool;
+import Confectory.RuntimeBase::Read as Read (string[],int) -> long[];
+import Confectory.RuntimeBase::Write as Write (string[],int,long) -> bool;
+body common "WebInvoke.csbody"; }

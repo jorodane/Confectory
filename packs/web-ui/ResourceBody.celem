@@ -1,0 +1,3 @@
+implementation Confectory.WebUI::ResourceBody for Confectory.WebUI::Resource (string owner, string path) -> string[] {
+
+body common "Resource.csbody"; }

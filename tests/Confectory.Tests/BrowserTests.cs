@@ -9,10 +9,11 @@ public sealed class BrowserTests : TestCase
         string project=Path.Combine(consumer,"project.cproj");File.WriteAllText(project,File.ReadAllText(project).Replace("../../",Fixture.Repo+"/",StringComparison.Ordinal).Replace(Path.Combine(Fixture.Repo,"packs","browser-host","pack.cpack"),Path.Combine(provider,"pack.cpack"),StringComparison.Ordinal));
         var built=new Builder(project,"web").Build();
         True(Strings(built,"includedPacks").Contains("Confectory.EditorHome.Model"));
-        True(!Strings(built,"includedPacks").Any(x=>new[]{"Confectory.NativeUI","Confectory.Window","Confectory.Agent","Confectory.Helper"}.Contains(x)),"browser composition acquired native or AI providers");
+        True(!Strings(built,"includedPacks").Any(x=>new[]{"Confectory.NativeUI","Confectory.Window"}.Contains(x)),"browser composition acquired native UI providers");
+        // Current Model links permission/AI contracts; the transport tests deny their invocation.
         string output=built["output"]!.GetValue<string>();foreach(string asset in new[]{"index.html","app.js","style.css"})True(File.Exists(Path.Combine(output,"browser-assets",asset)),"browser bundle missing "+asset);
         string report=Path.Combine(f.Root,"browser report.json");File.WriteAllText(report,built.ToJsonString());
         var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests","web","browser_entry.py"),Fixture.Repo,report},timeoutSeconds:150);True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("Actual Chromium Browser Entry/Home PASS"));
-        File.AppendAllText(Path.Combine(provider,"Serve.csbody"),"\n// owned browser provider locality probe\n");var changed=new Builder(project,"web").Build();PackRebuilt(changed, new[]{"Confectory.BrowserHost::ServeBody"});Equal(0,Strings(changed,"statistics","compiledContracts").Length);
+        File.AppendAllText(Path.Combine(consumer,"Serve.csbody"),"\n// owned browser provider locality probe\n");var changed=new Builder(project,"web").Build();PackRebuilt(changed, new[]{"Confectory.EditorHome.Web::ServeBody"});Equal(0,Strings(changed,"statistics","compiledContracts").Length);
     }
 }

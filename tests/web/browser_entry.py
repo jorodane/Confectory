@@ -54,7 +54,8 @@ with tempfile.TemporaryDirectory(prefix='confectory-browser-gate-') as temporary
     page.set_viewport_size({'width':390,'height':844});assert page.locator('#source').bounding_box()['width']<390
     page.screenshot(path=os.environ.get('CONFECTORY_BROWSER_SCREENSHOT',str(pathlib.Path(temporary)/'browser.png')));assert not errors,errors
     # Forbidden commands fail with the authenticated session; native path/run cannot be tunneled.
-    reply=page.request.post(origin+'api/run',data='{}',headers={'X-Confectory-Session':token,'Content-Type':'application/json'});assert reply.status==400
+    for denied in ['run','ai-start','command','confirm','readFile']:
+     reply=page.request.post(origin+'api/'+denied,data='{}',headers={'X-Confectory-Session':token,'Content-Type':'application/json'});assert reply.status==400
     browser.close()
    host.send_signal(signal.SIGINT);host.wait(timeout=10);assert host.returncode==0,log.read_text()
    print('Actual Chromium Browser Entry/Home PASS: startup/render/input/import/repeat/cancel/unsaved/clean-active guard/leave/reopen/download/loopback capabilities/owner exit')

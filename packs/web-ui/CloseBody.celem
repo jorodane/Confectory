@@ -1,0 +1,3 @@
+implementation Confectory.WebUI::CloseBody for Confectory.WebUI::Close (string owner) -> bool {
+
+body common "Close.csbody"; }

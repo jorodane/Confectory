@@ -1,0 +1,27 @@
+if(!OperatingSystem.IsBrowser())throw new PlatformNotSupportedException("BrowserRuntime requires an actual browser/WASM runtime");
+if(AppDomain.CurrentDomain.GetData("Confectory.Browser.Request") is not null)throw new InvalidOperationException("Browser owner already initialized");
+string root="/confectory-"+Guid.NewGuid().ToString("N");System.IO.Directory.CreateDirectory(root);AppDomain.CurrentDomain.SetData("Confectory.Browser.VirtualRoot",root);
+string session=calls.CreateSession.Invoke(root,System.IO.Path.Combine(root,"catalog"));bool closed=false;
+string Respond(string value){calls.Render.Invoke(value);return value;}
+AppDomain.CurrentDomain.SetData("Confectory.Browser.Request",(Func<string,string,string>)((operation,payload)=>{
+ if(closed)throw new ObjectDisposedException("Browser owner");
+ if(operation=="snapshot")return Respond(calls.Snapshot.Invoke(session));
+ if(operation=="capabilities")return System.Text.Json.JsonSerializer.Serialize(new{runtime="independent-browser-wasm",backendRequired=false,virtualStorage="session-owned-memory",fileImport=true,manifestDraft=true,download=true,dynamicCompilation=false,projectPlay=false,nativeFilesystem=false,nativeMultiwindow=false,ai=false});
+ var args=System.Text.Json.Nodes.JsonNode.Parse(payload)!.AsObject();
+ if(operation=="import"){
+  string name=args["name"]!.GetValue<string>(),text=args["text"]!.GetValue<string>();
+  if(name.Length>240||name!=System.IO.Path.GetFileName(name)||name.IndexOfAny(new[]{'/', (char)92, (char)0})>=0)throw new ArgumentException("Import requires a filename rather than a filesystem path");
+  string extension=System.IO.Path.GetExtension(name).ToLowerInvariant();if(extension!=".cproj"&&extension!=".cpack")throw new ArgumentException("Choose .cproj or legacy .cpack");
+  if(System.Text.Encoding.UTF8.GetByteCount(text)>1048576)throw new ArgumentException("Manifest exceeds one MiB");
+  string key=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(name+"\n"+text)));
+  string folder=System.IO.Path.Combine(root,"imports",key);System.IO.Directory.CreateDirectory(folder);string file=System.IO.Path.Combine(folder,name);System.IO.File.WriteAllText(file,text);
+  var description=calls.DescribeProject.Invoke(file);if(extension==".cproj"&&description[3]!="project")throw new ArgumentException(".cproj must contain a ProjectPack");
+  var model=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(session))!;
+  if(model["selected"]?["path"]?.ToString()==file)return Respond(model.ToJsonString());
+  return Respond(calls.Command.Invoke(session,"open-request",System.Text.Json.JsonSerializer.Serialize(new{path=file})));
+ }
+ if(operation=="leave")return Respond(calls.Command.Invoke(session,"leave",System.Text.Json.JsonSerializer.Serialize(new{draft=args["draft"]?.ToString()??""})));
+ throw new PlatformNotSupportedException("Browser capability does not expose build/run, native filesystem, or arbitrary commands");
+}));
+AppDomain.CurrentDomain.SetData("Confectory.Browser.Close",(Action)(()=>{if(closed)return;closed=true;try{calls.CloseSession.Invoke(session);}finally{System.IO.Directory.Delete(root,true);AppDomain.CurrentDomain.SetData("Confectory.Browser.VirtualRoot",null);AppDomain.CurrentDomain.SetData("Confectory.Browser.Request",null);AppDomain.CurrentDomain.SetData("Confectory.Browser.Close",null);}}));
+return 0;

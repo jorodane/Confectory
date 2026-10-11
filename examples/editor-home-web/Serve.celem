@@ -1,0 +1,1 @@
+function Confectory.EditorHome.Web::Serve (string repository, string assets) -> int { provide Confectory.EditorHome.Web::Serve with Confectory.EditorHome.Web::ServeBody; }

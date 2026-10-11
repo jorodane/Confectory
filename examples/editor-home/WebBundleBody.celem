@@ -1,0 +1,3 @@
+implementation Confectory.EditorHome::WebBundleBody for Confectory.EditorHome::WebBundle () -> string {
+import Confectory.WebUI::Client as Client () -> string;
+body common "WebBundle.csbody"; }

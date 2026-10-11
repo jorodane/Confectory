@@ -1,0 +1,1 @@
+function Example.ButtonGame::WebStart () -> int { provide Example.ButtonGame::WebStart with Example.ButtonGame::WebStartBody; }

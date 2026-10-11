@@ -1,0 +1,1 @@
+function Example.ButtonGame::ChangeScore (string[] owner,int instance,string operation) -> long { provide Example.ButtonGame::ChangeScore with Example.ButtonGame::ChangeScoreBody; }

@@ -1,0 +1,1 @@
+long next=operation switch{"increase"=>checked(calls.Read.Invoke(owner,instance)[0]+1),"reset"=>0,_=>throw new ArgumentException("Unknown score operation")};calls.Write.Invoke(owner,instance,next);return next;

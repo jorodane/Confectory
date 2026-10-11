@@ -1,0 +1,4 @@
+string context=Guid.NewGuid().ToString("N"),web="";var owner=calls.CreateOwner.Invoke(1);int score=calls.CreateInstance.Invoke(owner,"Example.ButtonGame::Score");
+AppDomain.CurrentDomain.SetData("Example.ButtonGame.Web."+context,new object[]{owner,score});
+try{web=calls.Open.Invoke(context,calls.Bundle.Invoke());return calls.Serve.Invoke(web);}
+finally{if(web.Length>0)while(!calls.Close.Invoke(web))System.Threading.Thread.Sleep(2);calls.DisposeOwner.Invoke(owner);AppDomain.CurrentDomain.SetData("Example.ButtonGame.Web."+context,null);}

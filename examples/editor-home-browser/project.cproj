@@ -23,4 +23,25 @@ registry Confectory.BrowserRuntime "../../packs/browser-runtime/pack.cpack"; dep
 registry Confectory.Build.BrowserWasm "../../targets/browser-wasm/pack.cpack"; dependency Confectory.Build.BrowserWasm version "0.1.0";
 target browser Confectory.Build.BrowserWasm::Browser;
 element Main function "Main.celem"; element MainBody implementation "MainBody.celem";
+element Initialize function "Initialize.celem"; element InitializeBody implementation "InitializeBody.celem";
+registry Confectory.WebUI "../../packs/web-ui/pack.cpack"; dependency Confectory.WebUI version "0.1.0";
+registry Confectory.HostLoop "../../packs/host-loop/pack.cpack"; dependency Confectory.HostLoop version "0.1.0";
+registry Confectory.RuntimeBase "../../packs/runtime-base/pack.cpack"; dependency Confectory.RuntimeBase version "0.1.0";
+registry Confectory.DevelopmentTools "../../packs/development-tools/pack.cpack"; dependency Confectory.DevelopmentTools version "0.1.0";
+registry Confectory.Agent.Responses "../../packs/agent-responses/pack.cpack"; dependency Confectory.Agent.Responses version "0.1.0";
+registry Confectory.Agent.Codex "../../packs/agent-codex/pack.cpack"; dependency Confectory.Agent.Codex version "0.1.0";
+registry Confectory.AndroidExport.Settings "../../packs/android-export-settings/pack.cpack"; dependency Confectory.AndroidExport.Settings version "0.1.0";
+registry Confectory.SemanticCatalog "../../packs/semantic-catalog/pack.cpack"; dependency Confectory.SemanticCatalog version "0.1.0";
+registry Confectory.ProjectEntry "../../packs/project-entry/pack.cpack"; dependency Confectory.ProjectEntry version "0.1.0";
+registry Confectory.NativeUI "../../packs/native-ui-desktop/pack.cpack"; dependency Confectory.NativeUI version "0.1.0";
+registry Confectory.BaseUI.NativeInput "../../packs/base-ui-native-input/pack.cpack"; dependency Confectory.BaseUI.NativeInput version "0.1.0";
+registry Confectory.WindowPlacement "../../packs/window-placement/pack.cpack"; dependency Confectory.WindowPlacement version "0.1.0";
+registry Confectory.UIOrder "../../packs/ui-order/pack.cpack"; dependency Confectory.UIOrder version "0.1.0";
+registry Confectory.BaseUI "../../packs/base-ui/pack.cpack"; dependency Confectory.BaseUI version "0.1.0";
+registry Confectory.UINavigation "../../packs/ui-navigation/pack.cpack"; dependency Confectory.UINavigation version "0.1.0";
+registry Confectory.RealTimeUpdate "../../packs/realtime-update/pack.cpack"; dependency Confectory.RealTimeUpdate version "0.1.0";
+registry Confectory.Window "../../packs/window/pack.cpack"; dependency Confectory.Window version "0.1.0";
+registry Confectory.RenderInput "../../packs/render-input/pack.cpack"; dependency Confectory.RenderInput version "0.1.0";
+registry Confectory.Build.DotNet "../../targets/dotnet/pack.cpack"; dependency Confectory.Build.DotNet version "0.1.0";
+registry Confectory.BrowserHost "../../packs/browser-host/pack.cpack"; dependency Confectory.BrowserHost version "0.1.0";
 }

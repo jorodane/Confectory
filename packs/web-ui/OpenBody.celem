@@ -1,0 +1,11 @@
+implementation Confectory.WebUI::OpenBody for Confectory.WebUI::Open (string context, string descriptor) -> string {
+import Confectory.WebUI::State as State (string) -> string;
+import Confectory.WebUI::Invoke as Invoke (string,string,string,string) -> string;
+import Confectory.RuntimeBase::CreateOwner as CreateOwner (int) -> string[];
+import Confectory.RuntimeBase::CreateInstance as CreateInstance (string[],string) -> int;
+import Confectory.RuntimeBase::Write as Write (string[],int,long) -> bool;
+import Confectory.RuntimeBase::Subscribe as Subscribe (string[],int,string) -> string[];
+import Confectory.RuntimeBase::Poll as Poll (string[],string[]) -> long[];
+import Confectory.RuntimeBase::Unsubscribe as Unsubscribe (string[]) -> void;
+import Confectory.RuntimeBase::DisposeOwner as DisposeOwner (string[]) -> void;
+body common "Open.csbody"; }

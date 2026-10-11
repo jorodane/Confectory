@@ -1,0 +1,22 @@
+var resources=new System.Text.Json.Nodes.JsonObject();
+void Add(string id,string mime,string text){resources[id]=new System.Text.Json.Nodes.JsonObject{["mime"]=mime,["base64"]=Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(text))};}
+Add("index.html","text/html","""
+<!doctype html><html lang="en"><meta charset="utf-8"><title>ButtonGame web view</title><link rel="stylesheet" href="style.css"><header><img src="mark.svg" alt=""><h1>ButtonGame</h1></header><h2>Score: <span id="score">0</span></h2><button id="increase">Increase score</button><button id="reset">Reset score</button><button id="reconnect">Reconnect view</button><output id="status" role="status">Connecting</output><script type="module" src="app.js"></script></html>
+""");
+Add("style.css","text/css","""
+body{font:16px system-ui;background:#10151b;color:#e4eaf1;max-width:1120px;margin:40px auto;padding:0 24px}header{display:flex;gap:16px;align-items:center}header img{width:36px}button{padding:10px 16px;margin:4px;border:1px solid #57718b;border-radius:6px;background:#26384a;color:inherit;cursor:pointer}button:disabled{opacity:.5}main{display:grid;grid-template-columns:320px 1fr;gap:20px}#objects button{display:block;text-align:left;overflow-wrap:anywhere}textarea{box-sizing:border-box;width:100%;height:420px;background:#17212b;color:inherit;padding:16px;font:14px monospace}output{display:block;margin:16px 0}small{color:#adbecf}@media(max-width:700px){main{display:block}}
+""");
+Add("app.js","text/javascript","""
+import {WebView,connectLocal} from './web-ui.js';
+const $=id=>document.getElementById(id),view=new WebView(connectLocal(),s=>$('score').textContent=s.score);
+for(const endpoint of ['increase','reset'])$(endpoint).onclick=async()=>{try{await view.call(endpoint);$('status').textContent='Ready';}catch(e){$('status').textContent=e.message;}};
+$('reconnect').onclick=async()=>{await view.dispose();await view.mount();$('status').textContent='Reconnected';};
+let updating=false;setInterval(async()=>{if(updating||!view.active)return;updating=true;try{await view.update();}catch(e){$('status').textContent=e.message;}finally{updating=false;}},100);
+await view.mount();$('status').textContent='Ready';
+
+""");
+Add("mark.svg","image/svg+xml","""
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><rect width="40" height="40" rx="8" fill="#83c6e8"/><path d="M28 12H12v16h16" fill="none" stroke="#17212b" stroke-width="5"/></svg>
+""");
+Add("web-ui.js","text/javascript",calls.Client.Invoke());
+return new System.Text.Json.Nodes.JsonObject{["id"]="Example.ButtonGame",["version"]="1",["entry"]="index.html",["resources"]=resources,["endpoints"]=System.Text.Json.JsonSerializer.SerializeToNode(new[]{"increase","reset"})}.ToJsonString();

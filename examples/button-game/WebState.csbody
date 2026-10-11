@@ -1,0 +1,2 @@
+var owner=AppDomain.CurrentDomain.GetData("Example.ButtonGame.Web."+context) as object[]??throw new ObjectDisposedException("ButtonGame");var score=calls.Read.Invoke((string[])owner[0],(int)owner[1]);
+return System.Text.Json.JsonSerializer.Serialize(new{scope=new{projectId="Example.ButtonGame",helperId=""},revision=score[1],state=new{score=score[0]}});

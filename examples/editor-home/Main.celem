@@ -1,4 +1,11 @@
 function Confectory.EditorHome::Main () -> int {
+provide Confectory.WebUI::State with Confectory.EditorHome::WebStateBody;
+provide Confectory.WebUI::Invoke with Confectory.EditorHome::WebInvokeBody;
+provide Confectory.RuntimeBase::CreateInstance with Confectory.RuntimeBase::CreateInstanceBody;
+provide Confectory.RuntimeBase::Write with Confectory.RuntimeBase::WriteBody;
+provide Confectory.RuntimeBase::Subscribe with Confectory.RuntimeBase::SubscribeBody;
+provide Confectory.RuntimeBase::Poll with Confectory.RuntimeBase::PollBody;
+provide Confectory.RuntimeBase::Unsubscribe with Confectory.RuntimeBase::UnsubscribeBody;
 provide Confectory.SchemaEditing::BeginScope with Confectory.SchemaEditing::BeginScopeBody;
 provide Confectory.SchemaEditing::EndScope with Confectory.SchemaEditing::EndScopeBody;
 provide Confectory.SchemaEditing::Cancel with Confectory.SchemaEditing::CancelBody;

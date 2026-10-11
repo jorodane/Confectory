@@ -6,7 +6,7 @@
 <Target Name="PackageOwnedBrowserResources" AfterTargets="Build">
 <ItemGroup><CompilerBundle Include="../dotnet/bin/$(Configuration)/$(TargetFramework)/*" />
 <PlatformAssets Include="../../packs/browser-platform/assets/*" />
-<DemoAssets Include="../../packs/browser-runtime/assets/*" /></ItemGroup>
+<DemoAssets Include="../../examples/editor-home-browser/assets/*" /></ItemGroup>
 <Copy SourceFiles="@(CompilerBundle)" DestinationFolder="$(OutDir)compiler" />
 <Copy SourceFiles="@(PlatformAssets)" DestinationFolder="$(OutDir)assets/platform" />
 <Copy SourceFiles="@(DemoAssets)" DestinationFolder="$(OutDir)assets/demo" />

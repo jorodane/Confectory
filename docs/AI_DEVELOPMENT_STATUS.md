@@ -1,5 +1,20 @@
 # AI development implementation and verification boundary
 
+## 2026-10-11 Generic web UI foundation
+
+The paused native v180 presentation rewrite is preserved separately and is not
+part of this change. New WebUI provides pack-owned HTML/CSS/JS/image resources,
+view/subscription lifetime, host-scoped explicitly bound calls, revisions,
+cancellation and disposal. BrowserHost/BrowserRuntime no longer import the editor;
+the actual EditorHome and ButtonGame ProjectPacks are consumers. Editor draft Save
+continues through the same Model/PackWorkspace contracts and does not Confirm.
+No AI/account/permission policy, main branch, Android version or Sites is changed.
+
+See [the foundation record](WEB_UI_FOUNDATION.md) and [public contract](../packs/web-ui/README.md)
+for final checks, the preserved native work, known native ButtonGame baseline failure,
+WASM target timeout and unimplemented remote/WebView/independent HTML startup scope.
+
+
 Work accumulates on work/current. Main is unchanged; the user's Android versionCode3/versionName0.1.1 settings from b91402f remain preserved through627a5e2. The actual AI product roles are composed and under final offline verification; a live AI development checkpoint is not claimed. Public Git push is authorized; no model content transmission, account/key read or creation, login, installation or paid usage has occurred.
 
 | Requested capability | Implemented code/local evidence | Actual EditorHome product UI | Live evidence / remaining work |

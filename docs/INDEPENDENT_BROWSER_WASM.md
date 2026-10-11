@@ -1,10 +1,13 @@
 # Independent browser/WASM milestone
 
+2026-10-11 ownership update: this import-only demonstration now owns its editor adapter and assets under `examples/editor-home-browser` / `examples/editor-home-web`. Generic BrowserRuntime and BrowserHost use the separate [WebUI contract](../packs/web-ui/README.md). The demonstration target assets remain legacy consumer packaging, not the new generic resource mechanism. Historical evidence below predates this separation.
+
+
 `examples/editor-home-browser/project.cproj` is a separate engine ProjectPack targeting `browser`. Its generated entry, shared Entry/Home model, metadata parsing and browser role providers execute inside an actual .NET WebAssembly runtime. The output is a static website; it requires **no .NET application backend or `/api` service**. Local static serving is enough. This does not replace the separately retained local .NET loopback route (`examples/editor-home-web`, target `web`), which remains useful groundwork for a separately authorized future server IDE. No remote IDE, server compilation/AI, multiplayer, authentication, external bind/deployment or upload was added.
 
 ## Composition and capabilities
 
-- ProjectPack/entry: `Confectory.EditorHome.Browser::Main` → `Confectory.BrowserRuntime::Initialize`.
+- ProjectPack/entry: `Confectory.EditorHome.Browser::Main` → `Confectory.EditorHome.Browser::Initialize`.
 - Public renderer: `Confectory.BrowserRuntime::Render(snapshot:string)->void`. Its browser provider invokes the target-owned JavaScript interop adapter. `dom.js` provides reusable keyed DOM rendering, native browser text-input binding and explicitly chosen file reading. Existing controls and card nodes are preserved during state updates.
 - Actual shared model: `Confectory.EditorHome.Model::{CreateSession,Command,Snapshot,CloseSession}`. A new `CreateSession.browser.csbody` initializes owner-scoped virtual memory storage without a desktop execution host. Android and common bodies remain selected on their own targets.
 - Metadata: `Confectory.ProjectExecution::DescribeProject` browser provider delegates to platform-neutral Core Parser through the owned WASM adapter. It reads only staged selected bytes beneath the browser owner root, without registry resolution, Builder invocation, scripts or imported entry execution.
@@ -59,7 +62,7 @@ python3 tests/web/browser_wasm.py /workspace/Confectory-web-platform /tmp/confec
 dotnet tests/Confectory.Tests/bin/Release/net8.0/Confectory.Tests.dll BrowserWasmTests
 ```
 
-The automated second gate builds a consumer-owned browser provider, runs actual Chromium, then appends a comment to that owned Initialize browser body and requires exactly `Confectory.BrowserRuntime::InitializeBody` compiled with zero contracts and stable target identity. Its final result is recorded in the worker handoff. Browser-only additions also retain Android body declarations/common desktop fallback; root owns final native/Android integration builds. Browser IME composition/mobile Safari/Android Chrome, external network hosting and AOT/release trimming are not claimed.
+The automated second gate builds a consumer-owned browser provider, runs actual Chromium, then appends a comment to that owned Initialize browser body and requires exactly `Confectory.EditorHome.Browser::InitializeBody` compiled with zero contracts and stable target identity. Its final result is recorded in the worker handoff. Browser-only additions also retain Android body declarations/common desktop fallback; root owns final native/Android integration builds. Browser IME composition/mobile Safari/Android Chrome, external network hosting and AOT/release trimming are not claimed.
 
 ## Ownership and rebuild ledger
 

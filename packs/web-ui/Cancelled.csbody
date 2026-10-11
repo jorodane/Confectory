@@ -1,0 +1,1 @@
+var cancelled=AppDomain.CurrentDomain.GetData("Confectory.WebUI.Cancel."+cancellation) as Func<bool>;return cancelled is null||cancelled();

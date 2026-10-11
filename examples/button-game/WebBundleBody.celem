@@ -1,0 +1,3 @@
+implementation Example.ButtonGame::WebBundleBody for Example.ButtonGame::WebBundle () -> string {
+import Confectory.WebUI::Client as Client () -> string;
+body common "WebBundle.csbody"; }

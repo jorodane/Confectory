@@ -1,0 +1,1 @@
+function Confectory.WebUI::Cancelled (string cancellation) -> bool { provide Confectory.WebUI::Cancelled with Confectory.WebUI::CancelledBody; }

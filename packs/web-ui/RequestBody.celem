@@ -1,0 +1,3 @@
+implementation Confectory.WebUI::RequestBody for Confectory.WebUI::Request (string owner, string envelope) -> string {
+
+body common "Request.csbody"; }

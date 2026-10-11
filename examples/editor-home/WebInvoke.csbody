@@ -1,0 +1,16 @@
+if(calls.Cancelled.Invoke(cancellation))throw new OperationCanceledException();
+var before=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(context))!;var selected=before["selected"]??throw new InvalidOperationException("Project scope unavailable");
+var args=System.Text.Json.Nodes.JsonNode.Parse(input)!.AsObject();var request=new System.Text.Json.Nodes.JsonObject{["context"]=selected["context"]!.DeepClone()};
+switch(endpoint){
+ case "objects":request["action"]="filter";request["kind"]="object";request["query"]=args["query"]?.GetValue<string>()??"";break;
+ case "page":request["action"]="page";request["page"]=args["page"]!.GetValue<int>();break;
+ case "select":request["action"]="select";request["id"]=args["id"]!.GetValue<string>();break;
+ case "editDraft":
+  if(args["id"]?.ToString()!=before["workspace"]?["unit"]?["id"]?.ToString())throw new InvalidOperationException("Draft selection changed");
+  request["action"]="open";request["text"]=args["text"]!.GetValue<string>();request["expectedRevision"]=args["revision"]!.GetValue<long>();break;
+ case "saveDraft":request["action"]="save";break;
+ default:throw new ArgumentException("Endpoint not exposed by this consumer");
+}
+var after=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(context,"workspace",request.ToJsonString()))!;
+if(after["status"]?.ToString().StartsWith("Error:",StringComparison.Ordinal)==true)throw new InvalidOperationException("Consumer rejected the operation");
+return System.Text.Json.JsonSerializer.Serialize(new{accepted=true,operation=endpoint});

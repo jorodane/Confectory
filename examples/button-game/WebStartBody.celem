@@ -1,0 +1,9 @@
+implementation Example.ButtonGame::WebStartBody for Example.ButtonGame::WebStart () -> int {
+import Confectory.WebUI::Open as Open (string,string) -> string;
+import Confectory.WebUI::Close as Close (string) -> bool;
+import Confectory.BrowserHost::Serve as Serve (string) -> int;
+import Example.ButtonGame::WebBundle as Bundle () -> string;
+import Confectory.RuntimeBase::CreateOwner as CreateOwner (int) -> string[];
+import Confectory.RuntimeBase::CreateInstance as CreateInstance (string[],string) -> int;
+import Confectory.RuntimeBase::DisposeOwner as DisposeOwner (string[]) -> void;
+body common "WebStart.csbody"; }

@@ -1,0 +1,17 @@
+pack Confectory.WebUI version "0.1.0" {
+standalone false;
+dependency Confectory.RuntimeBase version "0.1.0";
+element Open function "Open.celem";
+element OpenBody implementation "OpenBody.celem";
+element State function "State.celem";
+element Invoke function "Invoke.celem";
+element Request function "Request.celem";
+element RequestBody implementation "RequestBody.celem";
+element Resource function "Resource.celem";
+element ResourceBody implementation "ResourceBody.celem";
+element Close function "Close.celem";
+element CloseBody implementation "CloseBody.celem";
+element Cancelled function "Cancelled.celem";
+element CancelledBody implementation "CancelledBody.celem";
+element Client function "Client.celem"; element ClientBody implementation "ClientBody.celem";
+}

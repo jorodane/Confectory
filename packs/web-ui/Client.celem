@@ -1,0 +1,1 @@
+function Confectory.WebUI::Client () -> string { provide Confectory.WebUI::Client with Confectory.WebUI::ClientBody; }

@@ -1,0 +1,1 @@
+function Confectory.EditorHome::WebStart () -> int { provide Confectory.EditorHome::WebStart with Confectory.EditorHome::WebStartBody; }

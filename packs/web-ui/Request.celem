@@ -1,0 +1,1 @@
+function Confectory.WebUI::Request (string owner, string envelope) -> string { provide Confectory.WebUI::Request with Confectory.WebUI::RequestBody; }

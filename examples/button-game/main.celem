@@ -1,4 +1,9 @@
-function Example.ButtonGame::Main () -> int { use object Example.ButtonGame::Score; provide Example.ButtonGame::Main with Example.ButtonGame::MainBody;
+function Example.ButtonGame::Main () -> int {
+provide Confectory.WebUI::State with Example.ButtonGame::WebStateBody;
+provide Confectory.WebUI::Invoke with Example.ButtonGame::WebInvokeBody;
+provide Confectory.RuntimeBase::Subscribe with Confectory.RuntimeBase::SubscribeBody;
+provide Confectory.RuntimeBase::Poll with Confectory.RuntimeBase::PollBody;
+provide Confectory.RuntimeBase::Unsubscribe with Confectory.RuntimeBase::UnsubscribeBody; use object Example.ButtonGame::Score; provide Example.ButtonGame::Main with Example.ButtonGame::MainBody;
 provide Confectory.BaseUI::CreateControls with Confectory.BaseUI::CreateControlsBody;
 provide Confectory.BaseUI::ControlState with Confectory.BaseUI::ControlStateBody;
 provide Confectory.BaseUI::ControlInput with Confectory.BaseUI::ControlInputBody;

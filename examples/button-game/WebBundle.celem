@@ -1,0 +1,1 @@
+function Example.ButtonGame::WebBundle () -> string { provide Example.ButtonGame::WebBundle with Example.ButtonGame::WebBundleBody; }

@@ -1,5 +1,8 @@
 # Local browser Entry/Home milestone
 
+2026-10-11 ownership update: this import-only demonstration now owns its editor adapter and assets under `examples/editor-home-browser` / `examples/editor-home-web`. Generic BrowserRuntime and BrowserHost use the separate [WebUI contract](../packs/web-ui/README.md). The demonstration target assets remain legacy consumer packaging, not the new generic resource mechanism. Historical evidence below predates this separation.
+
+
 **This is a runnable local .NET host with browser UI. It is not the requested independent browser/WASM runtime.** The earlier unlinked provider draft is superseded by the shared-model extraction and tested consumer described here. The remaining independent-runtime implementation is in [WEB_RUNTIME_ROADMAP.md](WEB_RUNTIME_ROADMAP.md).
 
 The ProjectPack `Confectory.EditorHome.Web` composes `Confectory.EditorHome.Model`, `Confectory.BrowserHost`, project/file/domain packs and the target pack `Confectory.Build.Web::Browser`. Target name `web` currently means this explicitly local host. No native Window/NativeUI or AI providers are reached. The engine entry is an ordinary linked ProjectPack function; core has no browser-specific host logic.
@@ -38,11 +41,11 @@ Exact commands used (SDK selected through `CONFECTORY_DOTNET`, .NET home under `
 dotnet build targets/web/Confectory.Build.Web.csproj -c Release
 dotnet src/Confectory.Cli/bin/Release/net8.0/Confectory.Cli.dll build examples/editor-home-web/project.cproj web > /tmp/confectory-web-build2.json
 python3 tests/web/browser_entry.py /workspace/Confectory-web-platform /tmp/confectory-web-build2.json
-node --check packs/browser-host/assets/app.js
+node --check examples/editor-home-web/assets/app.js
 git diff --check
 ```
 
-The linked consumer build had zero warnings and reached the shared model without native providers. The automated BrowserTests runner separately exercises a consumer-local BrowserHost provider change and asserts exactly `Confectory.BrowserHost::ServeBody` compiled with zero contracts; this gate remains separate from browser functionality. Native model/shell-domain and Android managed adapter regression commands/results are recorded in the final worker handoff, and root owns actual Linux native GUI checks after integration. No independent WASM build, static-site runtime, Windows browser execution, browser IME composition, Android browser execution, deployment or main merge is claimed.
+The linked consumer build had zero warnings and reached the shared model without native providers. The automated BrowserTests runner separately exercises a consumer-local BrowserHost provider change and asserts exactly `Confectory.EditorHome.Web::ServeBody` compiled with zero contracts; this gate remains separate from browser functionality. Native model/shell-domain and Android managed adapter regression commands/results are recorded in the final worker handoff, and root owns actual Linux native GUI checks after integration. No independent WASM build, static-site runtime, Windows browser execution, browser IME composition, Android browser execution, deployment or main merge is claimed.
 
 ## Locality/ownership ledger
 

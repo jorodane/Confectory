@@ -1,8 +1,5 @@
-implementation Confectory.BrowserRuntime::InitializeBody for Confectory.BrowserRuntime::Initialize () -> int {
-import Confectory.EditorHome.Model::CreateSession as CreateSession (string,string) -> string;
-import Confectory.EditorHome.Model::Command as Command (string,string,string) -> string;
-import Confectory.EditorHome.Model::Snapshot as Snapshot (string) -> string;
-import Confectory.EditorHome.Model::CloseSession as CloseSession (string) -> void;
-import Confectory.ProjectExecution::DescribeProject as DescribeProject (string) -> string[];
-import Confectory.BrowserRuntime::Render as Render (string) -> void;
+implementation Confectory.BrowserRuntime::InitializeBody for Confectory.BrowserRuntime::Initialize (string owner) -> int {
+import Confectory.WebUI::Request as Request (string,string) -> string;
+import Confectory.WebUI::Resource as Resource (string,string) -> string[];
+import Confectory.WebUI::Close as Close (string) -> bool;
 body browser "Initialize.browser.csbody"; }

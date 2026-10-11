@@ -1,0 +1,1 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.WebUI."+owner) as object[]??throw new ObjectDisposedException("WebUI");return ((Func<string,string[]>)state[1])(path);

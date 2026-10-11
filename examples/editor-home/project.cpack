@@ -45,4 +45,10 @@ target linux Confectory.Build.DotNet::Linux; target windows Confectory.Build.Dot
 element Main function "Main.celem"; element MainBody implementation "MainBody.celem";
 element Verify function "Verify.celem"; element VerifyBody implementation "VerifyBody.celem";
 element VerifyShell function "VerifyShell.celem"; element VerifyShellBody implementation "VerifyShellBody.celem";
+registry Confectory.WebUI "../../packs/web-ui/pack.cpack"; dependency Confectory.WebUI version "0.1.0";
+registry Confectory.BrowserHost "../../packs/browser-host/pack.cpack"; dependency Confectory.BrowserHost version "0.1.0";
+element WebStart function "WebStart.celem"; element WebStartBody implementation "WebStartBody.celem";
+element WebStateBody implementation "WebStateBody.celem";
+element WebInvokeBody implementation "WebInvokeBody.celem";
+element WebBundle function "WebBundle.celem"; element WebBundleBody implementation "WebBundleBody.celem";
 }

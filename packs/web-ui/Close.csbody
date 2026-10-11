@@ -1,0 +1,1 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.WebUI."+owner) as object[];return state is null||((Func<bool>)state[2])();
