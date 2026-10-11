@@ -84,6 +84,44 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
     page.goto(url);expect(page.locator('#status')).to_have_text('Ready',timeout=30000)
     if kind=='button':
      expect(page.locator('#score')).to_have_text('1');page.locator('#increase').click();expect(page.locator('#score')).to_have_text('2');page.locator('#reconnect').click();expect(page.locator('#status')).to_have_text('Reconnected');expect(page.locator('#score')).to_have_text('2');page.locator('#reset').click();expect(page.locator('#score')).to_have_text('0')
+    elif kind=='review-before':
+     page.locator('#nav').click();page.locator('.nav-menu button').filter(has_text='개념').first.click();expect(page.locator('#nav')).to_be_enabled();page.locator('#nav').click()
+     page.locator('[data-id="Example.ButtonGame::Score"]').click();expect(page.locator('[data-schema-field="initial"]')).to_be_visible(timeout=30000)
+     value=page.locator('[data-schema-field="initial"]');value.fill('1');value.locator('..').get_by_role('button',name='Apply field',exact=True).click();expect(page.locator('#status')).to_have_text('Shared field draft updated',timeout=30000)
+     page.locator('#semantic-review').click();expect(page.locator('#confirm')).to_be_enabled(timeout=30000)
+     review=page.locator('.window[data-key="review"]');expect(review.locator('[data-change]')).to_be_disabled()
+     review.locator('[data-review-advanced]').click();expect(review.locator('[data-source-after]')).to_be_visible()
+     review.locator('[data-review-advanced]').click();expect(review.locator('[data-source-after]')).to_be_visible()
+     review.locator('[data-close]').click();expect(review).to_have_count(0)
+     assert (project/'Score.celem').read_bytes()==original
+     print('REPRODUCED ordinary 1c3a68b: selection disabled; second advanced click does not collapse; window X closes without Confirm',flush=True)
+    elif kind=='review-presentation':
+     prefix='Example.ButtonGame::'
+     def presentation_browser():
+      page.locator('#nav').click();page.locator('.nav-menu button').filter(has_text='개념').first.click();expect(page.locator('#nav')).to_be_enabled();page.locator('#nav').click()
+     def action(selector):
+      page.locator('#browser-actions').click();page.locator(selector).click()
+     manifest=(project/'project.cpack').read_bytes()
+     presentation_browser();page.locator('[data-new]').click();page.locator('.context-menu button').filter(has_text='개념 생성').click();page.locator('#new-declaration-name').fill('ReviewPending');page.locator('#new-declaration').click()
+     expect(page.locator('.window[data-key="schema"] [data-schema-id]')).to_have_text(prefix+'ReviewPending',timeout=30000)
+     page.locator('#semantic-save').click();expect(page.locator('#status')).to_have_text('Draft saved; final sources unchanged',timeout=30000)
+     page.locator('.window[data-key="schema"] [data-close]').click();presentation_browser();page.locator('[data-id="'+prefix+'Score"]').click()
+     value=page.locator('[data-schema-field="initial"]');value.fill('1');value.locator('..').get_by_role('button',name='Apply field',exact=True).click();expect(page.locator('#status')).to_have_text('Shared field draft updated',timeout=30000)
+     page.locator('#semantic-save').click();expect(page.locator('#status')).to_have_text('Draft saved; final sources unchanged',timeout=30000)
+     page.locator('.window[data-key="schema"] [data-close]').click();presentation_browser();action('#advanced-source');page.locator('.browser-tools input[type="range"]').press('End')
+     for id in ('Score','ReviewPending','ProjectManifest'):page.locator('[data-review-id="'+prefix+id+'"]').check()
+     action('#review-group');review=page.locator('.window[data-key="review"]');expect(review.locator('[data-review-group]')).to_have_count(2,timeout=30000)
+     numeric=review.locator('[data-review-unit="'+prefix+'Score"] [data-semantic-change]');expect(numeric.locator('del')).to_have_text('0');expect(numeric.locator('[data-semantic-after]')).to_have_text('1');expect(numeric.locator('[data-review-group]')).to_be_checked()
+     boxes=[numeric.locator(selector).bounding_box() for selector in ('[data-review-group]','strong','del','[aria-hidden]','[data-semantic-after]')];assert max(b['y'] for b in boxes)-min(b['y'] for b in boxes)<8,boxes
+     page.screenshot(path='/tmp/confectory-review-numeric-inline.png',full_page=True)
+     state=mount();initial_token=state['state']['review']['token'];assert send(envelope(state,'dispose'))['ok']
+     review.get_by_role('checkbox',name='Score · 전체 변경',exact=True).uncheck();expect(page.locator('#confirm')).to_be_disabled();review.locator('[data-rereview]').click();expect(page.locator('#confirm')).to_be_enabled(timeout=30000)
+     state=mount();current=state['state']['review'];assert current['token']!=initial_token and prefix+'Score' not in [u['id'] for u in current['units']]
+     expect(review.locator('.caption strong')).to_have_text('변경 검토 · '+current['units'][0]['id'].split('::')[-1]);assert send(envelope(state,'dispose'))['ok']
+     page.screenshot(path='/tmp/confectory-review-subset-caption.png',full_page=True)
+     review.locator('[data-close]').click();expect(review).to_have_count(0)
+     assert (project/'Score.celem').read_bytes()==original and (project/'project.cpack').read_bytes()==manifest and not (project/'elements/ReviewPending.celem').exists()
+     print('PASS actual compact numeric row and fresh subset caption: complete creation group, exact new token, no source writes',flush=True)
     elif kind=='creation':
      def open_browser():
       page.locator('#nav').click();page.locator('.nav-menu button').filter(has_text='개념').first.click();expect(page.locator('#nav')).to_be_enabled();page.locator('#nav').click()

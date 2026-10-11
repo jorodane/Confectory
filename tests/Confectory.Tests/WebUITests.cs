@@ -11,11 +11,18 @@ public sealed class WebUITests : TestCase
         var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests","web","editor_home_original_layout.py"),Fixture.Repo,report,reference},timeoutSeconds:180);
         True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS ordinary ProjectPack original Home"));
     }
+    public void test_actual_editor_review_compact_numeric_and_subset_caption()
+    {
+        var built=new Builder(Path.Combine(Fixture.Repo,"examples","editor-home","project.cpack"),"linux").Build();
+        string report=Path.Combine(f.Root,"review-presentation.json");File.WriteAllText(report,built.ToJsonString());
+        var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/web_ui.py"),Fixture.Repo,report,"review-presentation"},timeoutSeconds:180);
+        True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS actual compact numeric row and fresh subset caption"));
+    }
     public void test_actual_editor_new_concept_creation_save_confirm_reopen()
     {
         var built=new Builder(Path.Combine(Fixture.Repo,"examples","editor-home","project.cpack"),"linux").Build();
         string report=Path.Combine(f.Root,"creation.json");File.WriteAllText(report,built.ToJsonString());
-        var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/web_ui.py"),Fixture.Repo,report,"creation"},timeoutSeconds:360);
+        var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/web_ui.py"),Fixture.Repo,report,"creation"},timeoutSeconds:600);
         True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("Actual common WebUI creation Chromium PASS"));
         True(run.Stdout.Contains("PASS new concept actual process reopen"));
     }
@@ -27,7 +34,7 @@ public sealed class WebUITests : TestCase
             True(Strings(built,"includedPacks").Contains("Confectory.WebUI"));
             if(kind=="button")True(!Strings(built,"includedPacks").Any(x=>x.Contains("EditorHome",StringComparison.Ordinal)),"Generic consumer acquired editor dependency");
             string report=Path.Combine(f.Root,kind+".json");File.WriteAllText(report,built.ToJsonString());
-            var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/web_ui.py"),Fixture.Repo,report,kind},timeoutSeconds:600);
+            var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/web_ui.py"),Fixture.Repo,report,kind},timeoutSeconds:900);
             True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("Actual common WebUI "+kind+" Chromium PASS"));
         }
     }

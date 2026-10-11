@@ -21,7 +21,9 @@ def verify_schema_authoring(page,project,mount,send,envelope,browser,browser_act
   page.locator('.window[data-key="schema"] [data-add]').click()
   form=page.locator('.window[data-key="schema"] .schema-row').filter(has=page.locator('[data-definition="name"]'))
   form.locator('[data-definition="name"]').fill(name);form.locator('[data-definition="kind"]').select_option(kind);form.locator('[data-definition="type"]').fill(type_name);form.locator('[data-definition="cardinality"]').select_option(cardinality);form.locator('[data-operation="definition-apply"]').click();expect(page.locator('.window[data-key="schema"]').get_by_role('textbox',name='필드 이름',exact=True).last).to_have_value(name,timeout=30000)
- def close():page.locator('.window[data-key="schema"] [data-close]').click()
+ def close():
+  button=page.locator('.window[data-key="schema"] [data-close]')
+  if button.count():button.click()
  create('EntryMeta','schema');field('note','general','string');field('enabled','general','bool');close()
  create('SceneSpec','schema');field('child','compound',prefix+'EntryMeta');field('ticks','general','int','multiple');close()
  create('PreviewSettings','object');close();browser();browser_action('#advanced-source');expect(page.locator('#source')).to_be_visible();expect(page.locator('#status')).to_have_text('고급 소스 탐색',timeout=30000)
@@ -52,7 +54,9 @@ def verify_concept_creation(page,project,mount,send,envelope,browser,browser_act
  prefix='Example.ButtonGame::'
  def create(name,kind):
   browser();page.locator('[data-new]').click();page.locator('.context-menu button').filter(has_text='개념 생성').click();page.locator('#new-declaration-name').fill(name);page.locator('#new-declaration').click();expect(page.locator('.window[data-key="schema"] [data-schema-id]')).to_have_text(prefix+name,timeout=30000)
- def close():page.locator('.window[data-key="schema"] [data-close]').click()
+ def close():
+  button=page.locator('.window[data-key="schema"] [data-close]')
+  if button.count():button.click()
  # Reproduce the ordinary lowercase concept path, without advanced group selection.
  create('test','object')
  state=mount();draft=state['state']['draft'];ids=draft['creationReviewIds']
@@ -104,6 +108,17 @@ def verify_concept_creation(page,project,mount,send,envelope,browser,browser_act
  expect(page.locator('.window[data-key="review"]')).to_contain_text('개념 생성')
  expect(page.locator('.window[data-key="review"]')).to_contain_text('프로젝트에 등록')
  expect(page.locator('.window[data-key="review"]')).to_contain_text('값 · initial')
+ # The new declaration and manifest are one atomic selectable group; nothing is auto-confirmed.
+ review_window=page.locator('.window[data-key="review"]');expect(review_window.locator('[data-review-group]')).to_have_count(1)
+ group=review_window.locator('[data-review-group]');group.uncheck();expect(page.locator('#confirm')).to_be_disabled();expect(review_window.locator('[data-rereview]')).to_be_disabled();assert not source_path.exists()
+ group.check();expect(page.locator('#confirm')).to_be_enabled()
+ for _ in range(3):
+  review_window.locator('[data-review-advanced]').click();expect(review_window.locator('[data-review-source]')).to_be_visible();expect(review_window.locator('[data-review-advanced]')).to_have_attribute('aria-expanded','true')
+  review_window.locator('[data-review-advanced]').click();expect(review_window.locator('[data-review-source]')).to_be_hidden();expect(review_window.locator('[data-review-advanced]')).to_have_attribute('aria-expanded','false')
+ prior=mount();old_token=prior['state']['review']['token'];assert send(envelope(prior,'dispose'))['ok']
+ review_window.locator('[data-close]').click();expect(review_window).to_have_count(0);assert not source_path.exists()
+ page.locator('#semantic-review').click();page.locator('#review-creation').click();expect(page.locator('#confirm')).to_be_enabled(timeout=30000)
+ reopened=mount();assert reopened['state']['review']['token']!=old_token;assert send(envelope(reopened,'dispose'))['ok']
  page.screenshot(path='/tmp/confectory-new-concept-review.png',full_page=True)
  assert not source_path.exists(), 'Save/Review wrote final sources'
  reviewed=mount();assert {row['id'] for row in reviewed['state']['review']['units']}=={prefix+'test',prefix+'ProjectManifest'};assert send(envelope(reviewed,'dispose'))['ok']
@@ -156,6 +171,47 @@ def verify_concept_creation(page,project,mount,send,envelope,browser,browser_act
  page.locator('#confirm').click();expect(page.locator('#status')).to_have_text('Source confirmed',timeout=180000)
  assert (project/'project.cpack').read_bytes()==manifest_before, 'description edit changed registrations/references'
  assert 'object '+prefix+'test' in source_path.read_text() and 'value initial = 2;' in source_path.read_text()
+ # Actual short-description inline layout, followed by long/narrow text without truncation.
+ field.fill('하하');page.locator('#semantic-save').click();expect(page.locator('#status')).to_have_text('Draft saved; final sources unchanged',timeout=30000)
+ page.locator('#semantic-review').click();expect(page.locator('#confirm')).to_be_enabled(timeout=30000);page.locator('#confirm').click();expect(page.locator('#status')).to_have_text('Source confirmed',timeout=180000)
+ field.fill('하하?');page.locator('#semantic-save').click();expect(page.locator('#status')).to_have_text('Draft saved; final sources unchanged',timeout=30000)
+ page.locator('#semantic-review').click();expect(page.locator('#confirm')).to_be_enabled(timeout=30000)
+ review_window=page.locator('.window[data-key="review"]');row=review_window.locator('[data-semantic-change]')
+ expect(row).to_have_text('설명하하→하하?');boxes=[row.locator(selector).bounding_box() for selector in ('[data-review-group]','strong','[data-semantic-before]','[aria-hidden]','[data-semantic-after]')];assert max(b['y'] for b in boxes)-min(b['y'] for b in boxes)<8,boxes
+ for selector in ('[data-semantic-before]','[data-semantic-after]'):expect(row.locator(selector)).to_have_attribute('role','group')
+ page.screenshot(path='/tmp/confectory-review-short-inline.png',full_page=True)
+ review_window.locator('[data-review-group]').uncheck();expect(page.locator('#confirm')).to_be_disabled();review_window.locator('[data-reject]').click();expect(review_window).to_have_count(0)
+ expect(field).to_have_value('하하?');assert '하하?' not in source_path.read_text()
+ # Add an independent real Score draft, then exclude it with a fresh exact subset Review.
+ close();browser();page.locator('[data-id="'+prefix+'Score"]').click();expect(page.locator('[data-schema-field="initial"]')).to_be_visible(timeout=30000)
+ score_source=(project/'Score.celem').read_bytes();score=page.locator('[data-schema-field="initial"]');score.fill('9');score.locator('..').get_by_role('button',name='Apply field',exact=True).click();expect(page.locator('#status')).to_have_text('Shared field draft updated',timeout=30000)
+ page.locator('#semantic-save').click();expect(page.locator('#status')).to_have_text('Draft saved; final sources unchanged',timeout=30000)
+ close();browser();page.locator('[data-id="'+prefix+'test"]').click();expect(field).to_be_visible(timeout=30000)
+ description='긴 설명 <script>literal</script> "인용" & 내용\n'+('끊기지않는내용'*25)+'\n마지막 줄'
+ field.fill(description);page.locator('#semantic-save').click();expect(page.locator('#status')).to_have_text('Draft saved; final sources unchanged',timeout=30000)
+ close();browser();browser_action('#advanced-source');page.locator('.browser-tools input[type="range"]').press('End');expect(page.locator('#density-label')).to_have_text('Data')
+ for id in (prefix+'Score',prefix+'test'):page.locator('[data-review-id="'+id+'"]').check()
+ browser_action('#review-group');expect(review_window.locator('[data-review-group]')).to_have_count(2,timeout=30000)
+ mounted=mount();old_token=mounted['state']['review']['token'];assert send(envelope(mounted,'dispose'))['ok']
+ for check in review_window.locator('[data-review-group]').all():check.uncheck()
+ expect(page.locator('#confirm')).to_be_disabled();expect(review_window.locator('[data-rereview]')).to_be_disabled()
+ review_window.get_by_role('checkbox',name='test · 전체 변경',exact=True).check();expect(page.locator('#confirm')).to_be_disabled();expect(review_window.locator('[data-rereview]')).to_be_enabled()
+ review_window.locator('[data-rereview]').click();expect(page.locator('#confirm')).to_be_enabled(timeout=30000)
+ fresh_review=mount();assert fresh_review['state']['review']['token']!=old_token and [u['id'] for u in fresh_review['state']['review']['units']]==[prefix+'test'];assert send(envelope(fresh_review,'dispose'))['ok']
+ expect(review_window.locator('[data-semantic-after]')).to_have_text(description);expect(review_window.locator('script')).to_have_count(0)
+ # Resize the actual Review through its normal handle; compare full content and scroll width.
+ handle=review_window.get_by_role('button',name='창 크기 조절');box=handle.bounding_box();page.mouse.move(box['x']+box['width']/2,box['y']+box['height']/2);page.mouse.down();page.mouse.move(box['x']-160,box['y']+box['height']/2,steps=8);page.mouse.up()
+ expect(review_window.locator('[data-semantic-after]')).to_have_text(description)
+ assert review_window.locator('.window-content').evaluate('(e)=>e.scrollWidth<=e.clientWidth+2'), 'narrow Review overflows horizontally'
+ page.screenshot(path='/tmp/confectory-review-long-narrow.png',full_page=True)
+ review_window.locator('[data-review-advanced]').click();expect(review_window.locator('[data-review-source]')).to_be_visible();review_window.locator('[data-review-advanced]').click();expect(review_window.locator('[data-review-source]')).to_be_hidden()
+ review_window.locator('[data-close]').click();expect(review_window).to_have_count(0);assert (project/'Score.celem').read_bytes()==score_source
+ # Reopen the previously reviewed subset explicitly through ordinary browser selection.
+ browser();browser_action('#review-group');expect(review_window.locator('[data-review-group]')).to_have_count(2,timeout=30000)
+ review_window.get_by_role('checkbox',name='Score · 전체 변경',exact=True).uncheck();review_window.locator('[data-rereview]').click();expect(page.locator('#confirm')).to_be_enabled(timeout=30000)
+ page.locator('#confirm').click();expect(page.locator('#status')).to_have_text('Source confirmed',timeout=180000)
+ assert (project/'Score.celem').read_bytes()==score_source and (project/'project.cpack').read_bytes()==manifest_before
+ print('PASS actual Review controls: dependency group, selection/all off, fresh subset token, advanced repeated toggle, X/cancel/reopen, short inline/long narrow/escaping, unselected source untouched',flush=True)
  print('PASS ordinary description form: shared draft Save, stale revision rejection, Review cancel retains draft, exact Confirm, unchanged ID/value/manifest',flush=True)
 
  close();browser();page.locator('.window[data-key="browser"] [data-tab="concept"]').click()

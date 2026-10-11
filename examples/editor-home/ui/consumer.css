@@ -25,3 +25,5 @@
 .helper-profile-workers .helper-worker-dot{padding:0;border:0}
 .schema-row{grid-template-columns:1.2fr 1fr .7fr 1fr 48px}
 #dock{z-index:150}
+
+.semantic-change{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 10px;padding:8px 0;min-width:0}.semantic-change>strong{flex:0 0 auto}.semantic-value{flex:0 1 auto;min-width:0;max-width:100%;white-space:pre-wrap;overflow-wrap:anywhere}.semantic-change>[aria-hidden]{flex:0 0 auto}
