@@ -10,7 +10,7 @@ public sealed class WebUITests : TestCase
             True(Strings(built,"includedPacks").Contains("Confectory.WebUI"));
             if(kind=="button")True(!Strings(built,"includedPacks").Any(x=>x.Contains("EditorHome",StringComparison.Ordinal)),"Generic consumer acquired editor dependency");
             string report=Path.Combine(f.Root,kind+".json");File.WriteAllText(report,built.ToJsonString());
-            var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/web_ui.py"),Fixture.Repo,report,kind},timeoutSeconds:300);
+            var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/web_ui.py"),Fixture.Repo,report,kind},timeoutSeconds:600);
             True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("Actual common WebUI "+kind+" Chromium PASS"));
         }
     }

@@ -16,6 +16,8 @@ if(endpoint=="host.close"){
   Command("open-request",new(){["path"]=path});Command("workspace",new(){["action"]="open"});Command("workspace",new(){["action"]="save"});var closing=Command("close-project",new());if(closing["closeRequest"] is not null)Command("close-project",new(){["confirmed"]=true});
  }return "{\"accepted\":true}";
 }
+if(endpoint=="globalHelpers"){Command("helper-list",new());return "{\"accepted\":true}";}
+if(endpoint=="recruitGlobalHelper"){if(before["selected"] is not null)throw new InvalidOperationException("Global recruitment uses Home");Command("helper-recruit",new(){["kind"]="global"});return "{\"accepted\":true}";}
 if(endpoint=="connectionCatalog"){Command("connections",new());return "{\"accepted\":true}";}
 if(endpoint=="openConnectionSettings"){
  if(before["selected"] is not null)throw new InvalidOperationException("Hide current project before settings");
@@ -27,10 +29,12 @@ if(endpoint=="host.create-project"){
 }
 var selected=before["selected"]??throw new InvalidOperationException("Project scope unavailable");
 if(endpoint=="leaveProject"){Command("leave",new(){["context"]=selected["context"]!.DeepClone()});return "{\"accepted\":true}";}
-if(endpoint is "runProject" or "stopProject"){Command(endpoint=="runProject"?"run":"stop",new(){["context"]=selected["context"]!.DeepClone(),["target"]=OperatingSystem.IsWindows()?"windows":"linux"});return "{\"accepted\":true}";}
+string Target(){string target=args["target"]?.GetValue<string>()??(OperatingSystem.IsWindows()?"windows":"linux");if(args["target"] is not null&&selected["targets"]?.AsArray().Count>0&&!System.Linq.Enumerable.Any(selected["targets"]!.AsArray(),item=>item?.ToString()==target))throw new ArgumentException("Target must be declared by the selected project");return target;}
+if(endpoint=="yogiImage"){var snapshot=Command("yogi",new(){["context"]=selected["context"]!.DeepClone(),["action"]="show"});var item=System.Linq.Enumerable.Single(snapshot["yogi"]!["items"]!.AsArray(),row=>row!["item"]!.ToString()==args["item"]!.ToString()&&row["kind"]?.ToString()=="image");return item!["capture"]!.ToJsonString();}
+if(endpoint is "runProject" or "stopProject"){Command(endpoint=="runProject"?"run":"stop",new(){["context"]=selected["context"]!.DeepClone(),["target"]=endpoint=="runProject"?Target():""});return "{\"accepted\":true}";}
 // Explicit consumer operations preserve the model approval, scope and lifecycle contracts.
 var localActions=new System.Collections.Generic.Dictionary<string,string[]>{
- ["yogi"]=new[]{"yogi","action","id","text","sealed","item"},["helperList"]=new[]{"helper-list"},["helperRecruit"]=new[]{"helper-recruit","kind"},["helperConnect"]=new[]{"helper-connect","helper","allowCommon"},["helperCommon"]=new[]{"helper-common","enabled"},["helperRemember"]=new[]{"helper-remember","scope","text"},
+ ["yogi"]=new[]{"yogi","action","id","text","sealed","item","view","image"},["helperList"]=new[]{"helper-list"},["helperRecruit"]=new[]{"helper-recruit","kind"},["helperConnect"]=new[]{"helper-connect","helper","allowCommon"},["helperCommon"]=new[]{"helper-common","enabled"},["helperRemember"]=new[]{"helper-remember","scope","text"},
  ["connections"]=new[]{"ai-connections"},["bindConnection"]=new[]{"ai-bind","connection"},["prepareAI"]=new[]{"ai-prepare","kind","target","message"},["permission"]=new[]{"ai-permission","token","id","approved"},["startAI"]=new[]{"ai-start","token"},["cancelPreview"]=new[]{"ai-cancel-preview"},["augmentShow"]=new[]{"augment-show"},["selectCard"]=new[]{"augment-select","card"},["selectWorker"]=new[]{"worker-select","task"},["stopWorker"]=new[]{"worker-stop"},["prepareWorker"]=new[]{"worker-prepare"},["recoverWorker"]=new[]{"worker-recovery-prepare"},["inspectAdoption"]=new[]{"worker-adoption-prepare"},["adoptWorker"]=new[]{"worker-adopt","token","ids","goalEvidence"},["stopAI"]=new[]{"ai-stop"},["chatDraft"]=new[]{"shell","action","value"}};
 if(localActions.TryGetValue(endpoint,out var action)){
  if(endpoint is "stopWorker" or "prepareWorker" or "recoverWorker" or "inspectAdoption" or "adoptWorker")if(args["task"]?.ToString()!=before["selectedTask"]?.ToString()||before["selectedTaskContext"]?.ToString()!=selected["context"]!.ToString())throw new InvalidOperationException("Worker selection changed");
@@ -40,26 +44,30 @@ if(localActions.TryGetValue(endpoint,out var action)){
  if(endpoint=="chatDraft")payload["action"]="draft";
  Command(action[0],payload);return "{\"accepted\":true}";
 }
-if(endpoint is "openEditorView" or "closeEditorView" or "editEditorView" or "saveEditorView" or "editViewField" or "editViewMetadata"){
- var payload=new System.Text.Json.Nodes.JsonObject{["context"]=selected["context"]!.DeepClone(),["view"]=args["view"]!.DeepClone(),["id"]=args["id"]!.DeepClone(),["action"]=endpoint switch{"openEditorView"=>"open-view","closeEditorView"=>"close-view","saveEditorView"=>"save","editViewField"=>"data-path","editViewMetadata"=>"value",_=>"open"}};
+if(endpoint is "openEditorView" or "closeEditorView" or "editEditorView" or "saveEditorView" or "editViewField" or "editViewMetadata" or "editViewDefinition"){
+ var payload=new System.Text.Json.Nodes.JsonObject{["context"]=selected["context"]!.DeepClone(),["view"]=args["view"]!.DeepClone(),["id"]=args["id"]!.DeepClone(),["action"]=endpoint switch{"openEditorView"=>"open-view","closeEditorView"=>"close-view","saveEditorView"=>"save","editViewField"=>"data-path","editViewMetadata"=>"value","editViewDefinition"=>"field",_=>"open"}};
  foreach(string field in new[]{"viewMode","text","path","value","field"})if(args[field] is not null)payload[field]=args[field]!.DeepClone();
  if(args["revision"] is not null)payload["expectedRevision"]=args["revision"]!.DeepClone();
  Command("workspace",payload);return "{\"accepted\":true}";
 }
 var request=new System.Text.Json.Nodes.JsonObject{["context"]=selected["context"]!.DeepClone()};
 switch(endpoint){
+ case "createDeclaration":request["action"]="create";request["id"]=args["id"]!.DeepClone();string createKind=args["kind"]!.GetValue<string>();if(createKind is not ("object" or "schema"))throw new ArgumentException("Object or schema creation required");request["kind"]=createKind;break;
+ case "reviewGroup":request["action"]="review";request["target"]=Target();request["ids"]=args["ids"]!.DeepClone();break;
+ case "confirmGroup":request["action"]="confirm";request["token"]=args["token"]!.DeepClone();request["ids"]=args["ids"]!.DeepClone();break;
  case "schema":if(args["id"]?.ToString()!=before["workspace"]?["unit"]?["id"]?.ToString())throw new InvalidOperationException("Schema selection changed");request["action"]="schema-view";break;
+ case "editDefinition":if(args["id"]?.ToString()!=before["workspace"]?["unit"]?["id"]?.ToString())throw new InvalidOperationException("Schema declaration selection changed");request["action"]="field";request["id"]=args["id"]!.DeepClone();request["field"]=args["field"]!.DeepClone();request["value"]=args["value"]!.DeepClone();request["expectedRevision"]=args["revision"]!.DeepClone();break;
  case "editMetadata":if(args["id"]?.ToString()!=before["workspace"]?["unit"]?["id"]?.ToString())throw new InvalidOperationException("Object selection changed");request["action"]="value";request["field"]=args["field"]!.DeepClone();request["value"]=args["value"]!.DeepClone();request["expectedRevision"]=args["revision"]!.DeepClone();break;
  case "editField":if(args["id"]?.ToString()!=before["workspace"]?["unit"]?["id"]?.ToString())throw new InvalidOperationException("Schema selection changed");request["action"]="data-path";request["id"]=args["id"]!.DeepClone();request["path"]=args["path"]!.DeepClone();request["value"]=args["value"]!.DeepClone();request["expectedRevision"]=args["revision"]!.DeepClone();break;
  case "sourceUnits":request["action"]="filter";request["kind"]="";request["query"]=args["query"]?.GetValue<string>()??"";break;
- case "reviewWorker":if(args["task"]?.ToString()!=before["selectedTask"]?.ToString()||before["selectedTaskContext"]?.ToString()!=selected["context"]!.ToString())throw new InvalidOperationException("Worker selection changed");request["action"]="review";request["target"]=OperatingSystem.IsWindows()?"windows":"linux";request["ids"]=args["ids"]!.DeepClone();break;
+ case "reviewWorker":if(args["task"]?.ToString()!=before["selectedTask"]?.ToString()||before["selectedTaskContext"]?.ToString()!=selected["context"]!.ToString())throw new InvalidOperationException("Worker selection changed");request["action"]="review";request["target"]=Target();request["ids"]=args["ids"]!.DeepClone();break;
  case "objects":request["action"]="filter";request["kind"]=args["kind"]?.GetValue<string>()??"object";request["query"]=args["query"]?.GetValue<string>()??"";break;
  case "page":request["action"]="page";request["page"]=args["page"]!.GetValue<int>();break;
  case "select":request["action"]="select";request["id"]=args["id"]!.GetValue<string>();break;
  case "editDraft":
   if(args["id"]?.ToString()!=before["workspace"]?["unit"]?["id"]?.ToString())throw new InvalidOperationException("Draft selection changed");
   request["action"]="open";request["text"]=args["text"]!.GetValue<string>();request["expectedRevision"]=args["revision"]!.GetValue<long>();break;
- case "reviewDraft":request["action"]="review";request["target"]=OperatingSystem.IsWindows()?"windows":"linux";request["ids"]=new System.Text.Json.Nodes.JsonArray(args["id"]!.GetValue<string>());break;
+ case "reviewDraft":request["action"]="review";request["target"]=Target();request["ids"]=new System.Text.Json.Nodes.JsonArray(args["id"]!.GetValue<string>());break;
  case "confirmDraft":request["action"]="confirm";request["token"]=args["token"]!.GetValue<string>();request["ids"]=new System.Text.Json.Nodes.JsonArray(args["id"]!.GetValue<string>());break;
  case "saveDraft":request["action"]="save";break;
  default:throw new ArgumentException("Endpoint not exposed by this consumer");

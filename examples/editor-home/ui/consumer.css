@@ -8,3 +8,7 @@
 .window[hidden]{display:none!important}.consumer-worker{display:inline-flex;align-items:center;padding:4px;border:0;background:transparent}.consumer-worker .helper-worker-dot{display:inline-block;position:relative}.consumer-worker:focus-within .worker-status-tooltip{display:block}
 
 .chatbar [hidden]{display:none!important}.chatbar #chat-form{display:flex;gap:6px}.chatbar #chat-input{flex:1;min-width:0}.chatbar .consumer-output{margin:0;max-height:none}.consumer-tools select{max-width:180px}
+
+.consumer-definition{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}.consumer-definition label{display:grid;gap:5px;flex:1;min-width:130px}.consumer-definition input,.consumer-definition select{width:100%}
+
+.consumer-object-row{display:flex;align-items:center;gap:8px}.consumer-object-row button{flex:1}

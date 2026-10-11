@@ -2,6 +2,8 @@ function Confectory.EditorHome::VerifyShell () -> int {
 provide Confectory.SchemaEditing::BeginScope with Confectory.SchemaEditing::BeginScopeBody;
 provide Confectory.SchemaEditing::EndScope with Confectory.SchemaEditing::EndScopeBody;
 provide Confectory.SchemaEditing::Cancel with Confectory.SchemaEditing::CancelBody;
+provide Confectory.YogiBox::ReserveCapture with Confectory.YogiBox::ReserveCaptureBody;
+provide Confectory.YogiBox::CompleteCapture with Confectory.YogiBox::CompleteCaptureBody;
 provide Confectory.YogiBox::Create with Confectory.YogiBox::CreateBody;
 provide Confectory.YogiBox::Text with Confectory.YogiBox::TextBody;
 provide Confectory.YogiBox::Seal with Confectory.YogiBox::SealBody;

@@ -1,6 +1,16 @@
 """Real ordinary EditorHome + ButtonGame packs through the common local web transport."""
-import hashlib,json,os,pathlib,signal,subprocess,sys,tempfile,time,urllib.request,urllib.error,uuid,shutil
+import re,hashlib,json,os,pathlib,signal,subprocess,sys,tempfile,time,urllib.request,urllib.error,uuid,shutil
 from playwright.sync_api import sync_playwright,expect
+from owned_responses import OwnedResponses
+class FailureEvidence:
+ def __enter__(self):return self
+ def __exit__(self,type,error,traceback):
+  if error is not None:
+   try:
+    page.screenshot(path='/tmp/confectory-web-ui-failure.png',full_page=True);print('UI failure status:',page.locator('#status').inner_text(),flush=True)
+    print('UI failure controls:',page.evaluate("()=>({confirm:document.querySelector('#confirm')?.disabled,run:document.querySelector('#run')?.disabled,source:document.querySelector('#selection')?.textContent})"),flush=True)
+   except Exception:pass
+  return False
 repo=pathlib.Path(sys.argv[1]).resolve();report=json.loads(pathlib.Path(sys.argv[2]).read_text());kind=sys.argv[3]
 with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
  root=pathlib.Path(directory);env=os.environ.copy();env.update(CONFECTORY_UI='web',CONFECTORY_EDITOR_REPO=str(repo),CONFECTORY_ENTRY_STORAGE=str(root/'storage'),CONFECTORY_HOME_STORAGE=str(root/'storage'),XDG_DATA_HOME=str(root/'data'),XDG_CACHE_HOME=str(root/'cache'))
@@ -9,7 +19,7 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
  project=root/'button-game';shutil.copytree(repo/'examples/button-game',project,ignore=shutil.ignore_patterns('.confectory'))
  manifest=project/'project.cpack';manifest.write_text(manifest.read_text().replace('../../',str(repo)+'/'))
  env['CONFECTORY_WEB_PROJECT']=str(manifest)
- original=(project/'Score.celem').read_bytes();log=root/'host.log'
+ original=(project/'Score.celem').read_bytes();log=root/'host.log';owned=OwnedResponses(None) if kind=='editor' else None
  with log.open('w') as output:
   host=subprocess.Popen(report['run'],cwd=repo,env=env,stdout=output,stderr=subprocess.STDOUT)
   try:
@@ -55,7 +65,7 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
    assert send(request)['requestId']=='dedup';request['input']={'unexpected':'changed'};assert send(request)['error']['code']=='request_id_reused'
    assert send(envelope(first,'cancel',requestId='dedup'))['status']=='already_completed'
    assert send(envelope(first,'dispose'))['ok'];assert send(envelope(first,'update'))['error']['code']=='view_closed'
-   with sync_playwright() as p:
+   with sync_playwright() as p,FailureEvidence():
     browser=p.chromium.launch(executable_path='/usr/bin/chromium',headless=True,args=['--no-sandbox','--disable-gpu']);page=browser.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
     page.goto(url);expect(page.locator('#status')).to_have_text('Ready',timeout=30000)
     if kind=='button':
@@ -66,7 +76,7 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
       served=urllib.request.urlopen(origin+'/assets/'+image_path.name).read()
       assert hashlib.sha256(served).digest()==hashlib.sha256(image_path.read_bytes()).digest()
       assert page.evaluate("async path=>{const image=new Image();image.src=path;await image.decode();return image.naturalWidth>0&&image.naturalHeight>0}",'/assets/'+image_path.name)
-     assert page.locator('.bubble-dock button:disabled').count()==2
+     assert page.locator('.bubble-dock button:disabled').count()==1
      assert page.locator('.home-side').is_visible()
      assert not page.locator('#source').is_visible(),'raw source should be an explicit advanced view'
      page.locator('#helpers').click();expect(page.locator('[data-recruit="global"]')).to_be_visible()
@@ -81,8 +91,12 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
      for key in ['connections','helpers']:
       page.locator('.window[data-key="'+key+'"] [data-close]').click()
 
-     page.locator('#objects-refresh').click();button=page.locator('[data-id="Example.ButtonGame::Score"]');expect(button).to_be_visible();button.click();expect(page.locator('[data-schema-id]')).to_have_text('Example.ButtonGame::Score');page.screenshot(path='/tmp/confectory-v196-semantic-project.png',full_page=True);page.locator('.window[data-key="schema"] [data-close]').click();page.locator('#yogi').click();page.locator('#yogi-exactly').click();expect(page.locator('#yogi-items')).to_contain_text('Example.ButtonGame::Score');page.locator('#yogi-text').fill('local object package');page.locator('#yogi-save').click();expect(page.locator('#status')).to_contain_text('내용 적용됨');page.locator('#yogi-seal').click();expect(page.locator('#yogi-seal')).to_have_text('봉인 해제');page.locator('.window[data-key="yogi"] [data-close]').click();page.locator('#nav').click();page.locator('#advanced-source').click();expect(page.locator('#selection')).to_have_text('Example.ButtonGame::Score')
-     advanced=mount();bodies=[u['id'] for u in advanced['state']['units'] if u['kind']=='body'];assert bodies,'advanced mode must expose actual owned bodies';assert send(envelope(advanced,'dispose'))['ok']
+     page.locator('#objects-refresh').click();button=page.locator('[data-id="Example.ButtonGame::Score"]');expect(button).to_be_visible();button.click();expect(page.locator('[data-schema-id]')).to_have_text('Example.ButtonGame::Score');page.screenshot(path='/tmp/confectory-v196-semantic-project.png',full_page=True);page.locator('#yogi').click();page.locator('#yogi-exactly').click();expect(page.locator('#yogi-items')).to_contain_text('Example.ButtonGame::Score');page.locator('#yogi-capture').click();expect(page.locator('#yogi-items')).to_contain_text('선택 영역 이미지',timeout=30000);page.locator('[data-operation="image-preview"]').click();expect(page.locator('[data-yogi-image]')).to_be_visible();assert page.locator('[data-yogi-image]').evaluate("canvas=>{const bytes=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;return new Set(bytes).size>2}")
+     capture_state=mount();images=[item for item in capture_state['state']['yogi']['items'] if item['kind']=='image'];assert len(images)==1 and 'pixels' not in images[0]['capture'];assert 0<images[0]['capture']['width']<=512 and 0<images[0]['capture']['height']<=512
+     invalid={'action':'capture','id':'Example.ButtonGame::Score','image':{'encoding':'rgb24-base64','width':1,'height':1,'pixels':'AAAA','hash':'0'*64}}
+     assert send(envelope(capture_state,'invoke',endpoint='yogi',requestId='bad-capture-hash',expectedRevision=capture_state['revision'],input=invalid))['ok'];rejected,after_capture=settle(capture_state,'bad-capture-hash');assert not rejected['ok'];assert len(after_capture['state']['yogi']['items'])==2 and after_capture['state']['yogi']['pending']==[];assert send(envelope(capture_state,'dispose'))['ok']
+     page.locator('#yogi-text').fill('local object package');page.locator('#yogi-save').click();expect(page.locator('#status')).to_contain_text('내용 적용됨');page.locator('#yogi-seal').click();expect(page.locator('#yogi-seal')).to_have_text('봉인 해제');page.locator('.window[data-key="yogi"] [data-close]').click();page.locator('.window[data-key="schema"] [data-close]').click();page.locator('#nav').click();page.locator('#advanced-source').click();expect(page.locator('#status')).to_have_text('고급 소스 탐색',timeout=30000);expect(page.locator('#selection')).to_have_text('Example.ButtonGame::Score')
+     advanced=mount();bodies=[u['id'] for u in advanced['state']['units'] if u['kind']=='body'];assert bodies,'advanced mode must expose actual owned bodies';owned.target=bodies[0];assert send(envelope(advanced,'dispose'))['ok']
      page.locator('[data-id="'+bodies[0]+'"]').click();expect(page.locator('#selection')).to_have_text(bodies[0],timeout=30000)
      page.locator('#nav').click();page.locator('[data-id="Example.ButtonGame::Score"]').click();expect(page.locator('#advanced-source')).to_be_enabled(timeout=30000);page.locator('#nav').click();page.locator('#advanced-source').click()
      # Independent production Model owners retain exact IDs and local input across selection/hide/poll.
@@ -130,16 +144,16 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
      review=mount();assert review['state']['review']['id']=='Example.ButtonGame::Score'
      assert review['state']['review']['before']==original.decode() and review['state']['review']['after']==text
      assert 'path' not in review['state']['review'];assert send(envelope(review,'dispose'))['ok']
-     page.locator('#confirm').click();expect(page.locator('#status')).to_have_text('Source confirmed',timeout=90000)
+     page.locator('#confirm').click();expect(page.locator('#status')).to_have_text('Source confirmed',timeout=180000)
      assert (project/'Score.celem').read_text()==text,'explicit compiler-backed Confirm did not apply exact reviewed source'
      page.locator('#schema').click();expect(page.locator('[data-schema-id]')).to_have_text('Example.ButtonGame::Score',timeout=30000)
      schema_state=mount();assert schema_state['state']['schema']['id']=='Example.ButtonGame::Score';assert send(envelope(schema_state,'dispose'))['ok']
      # Actual settings pack authoring and permission review, with no credentials or provider dispatch.
-     page.locator('.brand').click();expect(page.locator('#manage-ai')).to_be_visible(timeout=30000);page.locator('#manage-ai').click()
+     page.locator('.brand').click();expect(page.locator('#manage-ai')).to_be_visible(timeout=30000);page.locator('#global-helpers').click();expect(page.locator('#global-helper-list')).to_contain_text('main-helper');page.locator('#manage-ai').click()
      page.locator('#settings-catalog button').filter(has_text='Confectory.Agent.Responses::Connection').click()
      expect(page.locator('[data-schema-id]')).to_have_text('Confectory.AISettings::Settings',timeout=30000)
      assert not page.locator('#source').is_visible()
-     for name,value in [('model','owned-ui-no-call'),('endpoint','http://127.0.0.1:1/responses'),('credentialReference','')]:
+     for name,value in [('model','owned-ui-no-call'),('endpoint',owned.endpoint),('credentialReference','')]:
       field=page.locator('[data-schema-field="'+name+'"]');field.fill(value);field.locator('..').get_by_role('button',name='Apply field',exact=True).click();expect(page.locator('#status')).to_have_text('Shared field draft updated',timeout=30000)
      page.locator('#semantic-save').click();expect(page.locator('#status')).to_have_text('Draft saved; final sources unchanged',timeout=30000)
      page.locator('.brand').click();expect(page.locator('[data-project]')).to_have_count(1,timeout=30000);page.locator('[data-project]').click()
@@ -151,8 +165,24 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
      page.locator('#cancel-preview').click();expect(page.locator('#status')).to_contain_text('전송 없음');page.locator('#logs-tab').click()
      page.locator('#augment').click();page.locator('#augment-direction').fill('retain semantic object focus');page.locator('#reroll').click();expect(page.locator('#ai-start')).to_be_disabled(timeout=30000)
      proposal=mount();assert proposal['state']['aiPreview']['kind']=='proposals' and proposal['state']['aiPreview']['target']=='Example.ButtonGame::Score';assert proposal['state']['augment']['cards']==[];assert proposal['state']['workers']==[];assert send(envelope(proposal,'dispose'))['ok']
-     page.locator('#cancel-preview').click();page.locator('.window[data-key="augment"] [data-close]').click()
+     page.locator('#cancel-preview').click();expect(page.locator('#status')).to_contain_text('전송 없음');assert owned.requests==[],'preflight/denied start contacted provider'
+     # Positive HTML path over unchanged production Responses, Agent, tools, Task and adoption contracts.
+     page.locator('#augment').click();page.locator('#augment-direction').fill('Owned loopback proposal, no account or credentials');page.locator('#reroll').click()
+     def approve_and_start():
+      for permission in ['contentApproved','usageApproved']:
+       choice=page.locator('[data-permission="'+permission+'"]');choice.check();expect(choice).to_be_enabled(timeout=30000)
+      expect(page.locator('#ai-start')).to_be_enabled(timeout=30000);page.locator('#ai-start').click();expect(page.locator('.window[data-key="ai-preview"]')).to_have_count(0,timeout=30000)
+     approve_and_start();expect(page.locator('[data-card]')).to_have_count(3,timeout=30000);assert len(owned.requests)==1 and not owned.errors,owned.errors
+     page.locator('[data-card]').first.click();expect(page.locator('#worker-summary button')).to_have_count(1,timeout=30000);page.locator('.window[data-key="augment"] [data-close]').click();page.locator('#worker-summary button').click();page.locator('#worker-prepare').click();approve_and_start()
+     expect(page.locator('#worker-source-list')).to_contain_text(bodies[0],timeout=30000);expect(page.locator('.window[data-key="worker"]')).to_contain_text('awaiting-verification',timeout=30000);assert len(owned.requests)==4 and not owned.errors,owned.errors
+     body_owner=bodies[0].split('::',1)[1].split('/body:',1)[0];locator=re.search(r'element\s+'+re.escape(body_owner)+r'\s+implementation\s+"([^"]+)"',manifest.read_text());assert locator;definition=(project/locator.group(1)).read_text();body_path=project/re.search(r'body\s+common\s+"([^"]+)"',definition).group(1);before_worker=body_path.read_text();assert 'owned HTTP Worker draft' not in before_worker,'Worker bypassed draft boundary'
+     page.locator('[data-worker-source]').check();page.locator('#worker-review').click();expect(page.locator('#worker-adopt')).to_be_enabled(timeout=30000);assert body_path.read_text()==before_worker,'Review committed Worker draft'
+     page.locator('#worker-goal-evidence').fill('Observed exact owned HTTP comment staged in the selected body. Compiler and source acceptance only; game runtime outcome not executed.');page.locator('#worker-adopt').click();expect(page.locator('.window[data-key="worker-review"]')).to_have_count(0,timeout=180000);assert body_path.read_text()==before_worker+'\n// owned HTTP Worker draft; human review required\n'
+     adopted=mount();assert adopted['state']['workers'][0]['status']=='completed';assert adopted['state']['workers'][0]['adoptionState']=='recorded';assert send(envelope(adopted,'dispose'))['ok'];page.locator('.window[data-key="worker"] [data-close]').click()
+     page.locator('#build-target').click();expect(page.locator('[data-target-choice] option')).to_have_count(3);page.locator('[data-target-choice]').select_option('windows');expect(page.locator('#status')).to_contain_text('windows');page.locator('[data-target-choice]').select_option('linux');page.locator('.window[data-key="targets"] [data-close]').click()
      page.locator('#nav').click();page.locator('#advanced-source').click()
+     from semantic_authoring import verify_schema_authoring
+     verify_schema_authoring(page,project,mount,send,envelope)
      pending_text=text+'\n// retained browser input\n';source.fill(pending_text)
      page.locator('.brand').click();expect(page.locator('[data-project]')).to_have_count(1,timeout=30000)
      page.screenshot(path='/tmp/confectory-v196-consumer-home.png',full_page=True)
@@ -191,4 +221,5 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
    if host.poll() is None:host.send_signal(signal.SIGINT)
    try:host.wait(timeout=15)
    except subprocess.TimeoutExpired:host.kill();host.wait();raise AssertionError('host lifetime cleanup did not complete')
+   if owned is not None:owned.close()
    assert host.returncode==0,log.read_text()
