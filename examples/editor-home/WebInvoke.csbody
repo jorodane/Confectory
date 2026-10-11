@@ -4,6 +4,11 @@ System.Text.Json.Nodes.JsonNode Command(string operation,System.Text.Json.Nodes.
 var before=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(context))!;
 void OpenSemantic(){var opened=Command("workspace",new(){["action"]="open"});if(opened["workspace"]?["unit"]?["kind"]?.ToString() is "body" or "pack" or "project"){var filtered=Command("workspace",new(){["action"]="filter",["kind"]="object",["query"]=""});var first=System.Linq.Enumerable.FirstOrDefault(filtered["workspace"]?["units"]?.AsArray()??new System.Text.Json.Nodes.JsonArray());if(first is null)return;Command("workspace",new(){["action"]="select",["id"]=first["id"]!.DeepClone()});}Command("workspace",new(){["action"]="schema-view"});}
 
+if(endpoint is "favoriteProject" or "removeListing"){
+ if(before["selected"] is not null)throw new InvalidOperationException("Hide current project before changing Home listing");
+ var card=System.Linq.Enumerable.Single(before["cards"]!.AsArray(),row=>Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(row!["path"]!.ToString())))[..32]==args["id"]!.ToString())!;
+ Command(endpoint=="favoriteProject"?"home-favorite":"remove",endpoint=="favoriteProject"?new(){["id"]=args["id"]!.DeepClone(),["favorite"]=args["favorite"]!.DeepClone()}:new(){["path"]=card["path"]!.DeepClone()});return "{\"accepted\":true}";
+}
 if(endpoint is "openProject" or "host.open-file"){
  string path=endpoint=="host.open-file"?args["path"]!.GetValue<string>():System.Linq.Enumerable.First(before["cards"]!.AsArray(),card=>Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(card!["path"]!.ToString())))[..32]==args["id"]!.ToString())!["path"]!.ToString();
  Command("open-request",new(){["path"]=path});OpenSemantic();return "{\"accepted\":true}";

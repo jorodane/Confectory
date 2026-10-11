@@ -22,7 +22,7 @@ try:
   def open_browser():
    selected=page.locator('.window[data-key="browser"] [data-tab].selected');group=selected.get_attribute('data-tab') if selected.count() else 'concept'
    page.locator('#nav').click();page.locator('.nav-menu button').filter(has_text={'concept':'개념','feature':'기능','module':'모듈'}[group]).first.click();expect(page.locator('#nav')).to_be_enabled();page.locator('#nav').click()
-  page.locator('.brand').click();page.locator('.home-grid').wait_for();page.wait_for_timeout(3600);page.screenshot(path=str(root/'consumer-home.png'));assert page.locator('.home-side').count()==1;assert page.locator('.project-add #new-project').count()==1;assert page.locator('.project-card-stats').count()==1;assert page.locator('.project-add small').first.evaluate('(n)=>getComputedStyle(n).display')=='block';assert page.locator('#reconnect').count()==0
+  page.locator('.brand').click();page.locator('.home-grid').wait_for();page.wait_for_timeout(3600);page.screenshot(path=str(root/'consumer-home.png'));assert page.locator('.home-side').count()==1;assert page.locator('.home-project-actions #new-project').count()==1;assert page.locator('.project-card-stats').count()==1;assert page.locator('#reconnect').count()==0
   page.locator('#new-project').click();page.locator('#project-name').fill('Original Flow');page.screenshot(path=str(root/'consumer-create.png'));expect(page.locator('.modal')).to_be_visible();expect(page.locator('#main-helper')).to_be_disabled();page.locator('[data-close]').click()
   page.locator('.app-settings-button').click();page.locator('#settings-sidebar-width').fill('270');assert page.locator('.home-grid').evaluate('(n)=>n.style.getPropertyValue("--participant-width")')=='270px';page.locator('[data-close]').click()
   page.locator('[data-enter]').click();page.locator('.work-body').wait_for();open_browser();expect(page.locator('[data-id="Example.ButtonGame::Score"]')).to_be_visible();page.locator('[data-id="Example.ButtonGame::Score"]').click();expect(page.locator('[data-schema-id]')).to_have_text('Example.ButtonGame::Score');page.screenshot(path=str(root/'consumer-schema.png'))
@@ -30,7 +30,8 @@ try:
   ref=b.new_page(viewport={'width':1440,'height':1000});ref.goto('http://127.0.0.1:'+str(server.server_port));ref.evaluate('showHome()');ref.evaluate('document.fonts.ready');ref.screenshot(path=str(root/'original-home.png'));
   shape='n=>[n.tagName,n.className,[...n.children].map(c=>[c.tagName,c.className,[...c.children].map(x=>[x.tagName,x.className])])]'
   page.locator('.brand').click();page.locator('.home-grid').wait_for();
-  for region in ['.home-heading','.project-add','.project-card-main','.project-card-stats']:
+  # Home heading/actions migrated to v318; only unchanged card interiors retain v196 characterization.
+  for region in ['.project-card-main','.project-card-stats']:
    assert page.locator(region).first.evaluate(shape)==ref.locator(region).first.evaluate(shape),region
   page.locator('#add-agent').click();page.locator('#connection-choice').select_option('Confectory.Agent.Responses::Connection');page.locator('#connection-edit').click();expect(page.locator('[data-schema-id]')).to_have_text('Confectory.AISettings::Settings',timeout=60000);page.screenshot(path=str(root/'consumer-settings.png'));
   ref.evaluate("enterProject('demo')");ref.screenshot(path=str(root/'original-project.png'));ref.evaluate('showHome();createProject()');ref.screenshot(path=str(root/'original-create.png'))

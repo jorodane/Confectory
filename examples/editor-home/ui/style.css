@@ -330,3 +330,47 @@ body:has(.augment-overlay) .coworker-hover-card:not(.participant-expanded-card),
 .coworker-chat-modal:not(.participant-expanded-card){position:relative}.coworker-card-actions{position:absolute;top:12px;right:56px;z-index:4;display:flex;gap:3px}.coworker-card-actions button{display:grid;place-items:center;width:36px;height:36px;padding:7px;border-radius:8px;color:var(--muted)}.coworker-card-actions svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.coworker-card-actions .coworker-notify[aria-pressed="true"]{color:var(--accent)}.coworker-card-actions .coworker-block:hover{color:#ffb5a6}.coworker-chat-modal .coworker-chat-profile{padding-right:160px}.participant-expanded-card.coworker-chat-modal>.coworker-hover-head{padding-right:125px}
 @media(max-height:850px){.helper-create-modal{margin-top:0;max-height:calc(100svh - 40px);overflow:auto!important}.helper-create-modal .helper-create-artwork{position:static;display:flex;align-items:flex-end;margin:0 0 18px}.helper-create-modal .helper-create-artwork .helper-image-preview{width:120px;height:130px}.helper-create-modal .helper-create-artwork .helper-create-image-slot+div .helper-image-preview{width:105px;height:120px}.helper-create-artwork .helper-image-history{position:static}}
 @media(max-height:850px){.augment-overlay{display:block;overflow-y:auto;overscroll-behavior:contain}.augment-overlay .augment-panel{margin:0 auto;min-height:0}.augment-overlay .augment-footer{padding-bottom:8px}}
+/* Frozen v318 Home frame and actual project list. */
+.home-tabs{display:flex;gap:22px;margin-top:24px;border-bottom:1px solid var(--line)}.home-tabs button{padding:10px 2px 12px;border:0;border-bottom:2px solid transparent;border-radius:0;color:var(--muted);font-weight:600}.home-tabs button[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}.home-section-title{margin-top:22px}.home-section-title h1{margin:0}.home-tab-panel[hidden]{display:none!important}
+/* Let the workshop occupy the space beside its participant sidebar. */
+.home-grid > .home-main{max-width:none;min-width:0;width:100%}
+
+/* Project home: compact actions above a readable single-column list. */
+.home-main:not(.is-pack-view) .home-heading,.home-main:not(.is-pack-view) #home-projects{max-width:none;width:100%}
+.home-project-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.home-project-actions button{min-height:42px;white-space:nowrap}
+#home-projects.project-grid{display:flex;flex-direction:column;gap:12px}
+#home-projects .project-card[data-project]{display:grid;grid-template-columns:minmax(0,1fr) minmax(250px,min(34%,420px));align-items:center;min-height:104px;border-radius:10px}
+#home-projects .project-card[data-project]{cursor:pointer}
+#home-projects .project-card-main{align-items:center;min-width:0;min-height:102px;padding:18px 22px}
+#home-projects .project-card-main:hover{background:transparent;border-color:transparent}
+#home-projects .project-card-copy h2{font-size:18px;margin:0 0 5px}
+#home-projects .project-card-copy p{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#home-projects .project-card-stats{border:0;border-left:1px solid var(--line);padding:12px 48px 12px 14px;gap:4px;grid-template-columns:1.4fr .7fr .7fr}
+#home-projects .card-menu{right:12px;top:50%;transform:translateY(-50%);z-index:1}
+@media(max-width:900px){#home-projects .project-card[data-project]{grid-template-columns:1fr}#home-projects .project-card-main{min-height:0;padding-bottom:10px}#home-projects .project-card-stats{border-left:0;border-top:1px solid var(--line);padding:10px 52px 12px 20px}#home-projects .card-menu{top:25px;transform:none}}
+@media(max-width:650px){.home-section-title{align-items:flex-start;gap:14px;flex-direction:column}.home-project-actions{width:100%;justify-content:flex-start}.home-project-actions button{white-space:normal}#home-projects .project-card-copy p{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}#home-projects .project-card-stats{grid-template-columns:1.4fr .7fr .7fr}}
+.home-main .home-tabs{margin-top:0}
+
+/* Search and reorder projects without changing the pack browser. */
+.home-project-controls{display:flex;align-items:center;justify-content:flex-end;gap:12px;flex:1;min-width:0}
+#home-project-search{width:clamp(190px,30vw,420px);max-width:100%;height:42px}
+.home-project-actions{flex-wrap:nowrap}
+#home-projects.project-grid{gap:0}
+.project-section{display:flex;flex-direction:column;gap:12px;margin-bottom:24px;min-width:0}
+.project-section>h2{font-size:14px;font-weight:600;color:var(--muted);margin:0 0 2px;padding:0 2px}
+.project-section>h2 small{font-size:12px;margin-left:5px}
+.project-empty{margin:0;padding:20px 18px;border:1px dashed var(--line);border-radius:10px;color:var(--muted);font-size:13px}
+#home-projects .project-card[data-project]{grid-template-columns:48px minmax(0,1fr) minmax(250px,min(34%,420px));overflow:visible}
+#home-projects .project-favorite{grid-column:1;grid-row:1;align-self:stretch;width:48px;padding:0;border-radius:0;background:transparent;color:#8f8f8f;font-size:23px;z-index:1}
+#home-projects .project-favorite:hover,#home-projects .project-favorite[aria-pressed="true"]{color:var(--accent);background:transparent}
+#home-projects .project-card-main{grid-column:2;grid-row:1;padding-left:8px}
+#home-projects .project-card-stats{grid-column:3;grid-row:1}
+#home-projects .is-favorite{cursor:grab}
+#home-projects .is-favorite:active{cursor:grabbing}
+#home-projects .is-dragging{opacity:.45}
+#home-projects .drop-before::before,#home-projects .drop-after::after{content:"";position:absolute;left:0;right:0;height:3px;border-radius:3px;background:var(--accent);box-shadow:0 0 0 3px #ffdbA32b;pointer-events:none;z-index:5}
+#home-projects .drop-before::before{top:-8px}
+#home-projects .drop-after::after{bottom:-8px}
+@media(max-width:900px){#home-projects .project-card[data-project]{grid-template-columns:48px minmax(0,1fr)}#home-projects .project-card-stats{grid-column:2;grid-row:2}}
+@media(max-width:650px){.home-project-controls{width:100%;justify-content:flex-start;flex-wrap:wrap}#home-project-search{flex:1;width:100%;min-width:160px}.home-project-actions{gap:6px}.home-project-actions button{min-height:42px}#home-projects .project-card-main{padding-left:4px}}
