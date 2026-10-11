@@ -74,4 +74,8 @@ switch(endpoint){
 }
 var after=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(context,"workspace",request.ToJsonString()))!;
 if(after["status"]?.ToString().StartsWith("Error:",StringComparison.Ordinal)==true)throw new InvalidOperationException("Consumer rejected the operation");
+if(endpoint is "confirmGroup" or "confirmDraft"){
+ string? outcome=after["workspace"]?["confirmation"]?[0]?.ToString();
+ return System.Text.Json.JsonSerializer.Serialize(new{accepted=true,operation=endpoint,sourceConfirmed=outcome is "confirmed" or "confirmed-with-warning"});
+}
 return System.Text.Json.JsonSerializer.Serialize(new{accepted=true,operation=endpoint});

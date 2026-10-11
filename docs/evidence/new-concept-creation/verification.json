@@ -166,6 +166,20 @@
       "actual concept browser listing"
     ]
   },
-  "fullWebRegression": "pending rerun after explicit stale-rejected Stop click retry",
-  "crlfCheckout": "pending"
+  "fullWebRegression": "pending final rerun",
+  "crlfCheckout": "pending",
+  "focusedCreationAndActualReopen": {
+    "result": "PASS",
+    "seconds": 121.995,
+    "case": "test_actual_editor_new_concept_creation_save_confirm_reopen",
+    "checks": [
+      "compiler rejection reports no final write",
+      "draft retained after rejected compiler acceptance",
+      "repair and actual source Confirm",
+      "actual process shutdown/restart",
+      "source+manifest rediscovered from disk",
+      "saved value 2 and real description",
+      "clean reopened draft"
+    ]
+  }
 }

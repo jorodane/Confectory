@@ -30,6 +30,20 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
     if url:break
     assert host.poll() is None,log.read_text();time.sleep(.1)
    assert url,log.read_text();origin,token=url.split('/#')
+   def restart_actual_host():
+    global host,origin,token,url
+    host.send_signal(signal.SIGINT);host.wait(timeout=15);assert host.returncode==0,log.read_text()
+    offset=log.stat().st_size
+    host=subprocess.Popen(report['run'],cwd=repo,env=env,stdout=output,stderr=subprocess.STDOUT)
+    url=None;deadline=time.monotonic()+45
+    while time.monotonic()<deadline:
+     with log.open() as stream:stream.seek(offset);lines=stream.read().splitlines()
+     for line in lines:
+      if line.startswith('CONFECTORY_WEB_UI '):url=line.split(' ',1)[1]
+     if url:break
+     assert host.poll() is None,log.read_text();time.sleep(.1)
+    assert url,log.read_text();origin,token=url.split('/#')
+    page.goto(url);expect(page.locator('#status')).to_have_text('Ready',timeout=30000)
    def send(data):
     req=urllib.request.Request(origin+'/api/request',data=json.dumps(data).encode(),headers={'Content-Type':'application/json','X-Confectory-Session':token})
     return json.load(urllib.request.urlopen(req,timeout=20))
@@ -70,6 +84,12 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
     page.goto(url);expect(page.locator('#status')).to_have_text('Ready',timeout=30000)
     if kind=='button':
      expect(page.locator('#score')).to_have_text('1');page.locator('#increase').click();expect(page.locator('#score')).to_have_text('2');page.locator('#reconnect').click();expect(page.locator('#status')).to_have_text('Reconnected');expect(page.locator('#score')).to_have_text('2');page.locator('#reset').click();expect(page.locator('#score')).to_have_text('0')
+    elif kind=='creation':
+     def open_browser():
+      page.locator('#nav').click();page.locator('.nav-menu button').filter(has_text='개념').first.click();expect(page.locator('#nav')).to_be_enabled();page.locator('#nav').click()
+     def browser_action(selector):page.locator('#browser-actions').click();page.locator(selector).click()
+     from semantic_authoring import verify_concept_creation
+     verify_concept_creation(page,project,mount,send,envelope,open_browser,browser_action,restart_actual_host)
     else:
      def open_browser():
       selected=page.locator('.window[data-key="browser"] [data-tab].selected');group=selected.get_attribute('data-tab') if selected.count() else 'concept'
@@ -221,6 +241,12 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
      expect(page.locator('#source-notice')).to_contain_text('입력을 유지했습니다',timeout=30000);expect(source).to_have_value(pending_text);expect(page.locator('#selection')).to_have_text('Example.ButtonGame::Score')
      open_browser();page.locator('[data-id="Example.ButtonGame::Score"]').click();expect(page.locator('#source-notice')).to_have_text('',timeout=30000);expect(source).to_have_value(pending_text)
      assert send(envelope(changed_view,'dispose'))['ok']
+     # The preceding regression deliberately retained unapplied Score input. Explicitly revert it
+     # to the already confirmed file through the ordinary Apply control before starting another edit.
+     open_browser();browser_action('#advanced-source');source.fill((project/'Score.celem').read_text());page.locator('#apply').click();expect(page.locator('#status')).to_have_text('Shared draft updated',timeout=30000)
+     from semantic_authoring import verify_concept_creation
+     verify_concept_creation(page,project,mount,send,envelope,open_browser,browser_action,restart_actual_host)
+
 
 
 
