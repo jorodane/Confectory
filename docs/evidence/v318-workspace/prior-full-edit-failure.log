@@ -1,0 +1,49 @@
+FAIL WebUITests.test_actual_editor_and_button_game_common_web_transport_chromium
+System.Exception: UI failure status: 선택한 변경을 다시 검토했습니다. 아직 확정하지 않았습니다.
+UI failure controls: {'confirm': False, 'run': False, 'source': 'Example.ButtonGame::test'}
+Traceback (most recent call last):
+  File "/workspace/Confectory-web-ui/tests/web/web_ui.py", line 289, in <module>
+    verify_concept_creation(page,project,mount,send,envelope,open_browser,browser_action,restart_actual_host)
+  File "/workspace/Confectory-web-ui/tests/web/semantic_authoring.py", line 203, in verify_concept_creation
+    handle=review_window.get_by_role('button',name='창 크기 조절');box=handle.bounding_box();page.mouse.move(box['x']+box['width']/2,box['y']+box['height']/2);page.mouse.down();page.mouse.move(box['x']-160,box['y']+box['height']/2,steps=8);page.mouse.up()
+                                                                       ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/sync_api/_generated.py", line 17711, in bounding_box
+    self._sync(self._impl_obj.bounding_box(timeout=to_milliseconds(timeout)))
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_sync_base.py", line 115, in _sync
+    return task.result()
+           ^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_locator.py", line 133, in bounding_box
+    return await self._with_element(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_locator.py", line 114, in _with_element
+    handle = await self.element_handle(timeout=timeout)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_locator.py", line 325, in element_handle
+    handle = await self._frame.wait_for_selector(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_frame.py", line 394, in wait_for_selector
+    await self._channel.send(
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_connection.py", line 76, in send
+    return await self._connection.wrap_api_call(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_connection.py", line 632, in wrap_api_call
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+playwright._impl._errors.Error: Locator.bounding_box: Error: strict mode violation: locator(".window[data-key=\"review\"]").get_by_role("button", name="창 크기 조절") resolved to 8 elements:
+    1) <div tabindex="0" role="button" data-resize="n" aria-label="n 방향으로 창 크기 조절" class="window-resize-handle resize-n"></div> aka get_by_role("region", name="변경 검토 · test").get_by_label("n 방향으로 창 크기 조절")
+    2) <div tabindex="0" role="button" data-resize="ne" aria-label="ne 방향으로 창 크기 조절" class="window-resize-handle resize-ne"></div> aka get_by_role("region", name="변경 검토 · test").get_by_label("ne 방향으로 창 크기 조절")
+    3) <div tabindex="0" role="button" data-resize="e" aria-label="e 방향으로 창 크기 조절" class="window-resize-handle resize-e"></div> aka get_by_role("region", name="변경 검토 · test").get_by_label("e 방향으로 창 크기 조절", exact=True)
+    4) <div tabindex="0" role="button" data-resize="se" aria-label="se 방향으로 창 크기 조절" class="window-resize-handle resize-se"></div> aka get_by_role("region", name="변경 검토 · test").get_by_label("se 방향으로 창 크기 조절")
+    5) <div tabindex="0" role="button" data-resize="s" aria-label="s 방향으로 창 크기 조절" class="window-resize-handle resize-s"></div> aka get_by_role("region", name="변경 검토 · test").get_by_label("s 방향으로 창 크기 조절")
+    6) <div tabindex="0" role="button" data-resize="sw" aria-label="sw 방향으로 창 크기 조절" class="window-resize-handle resize-sw"></div> aka get_by_role("region", name="변경 검토 · test").get_by_label("sw 방향으로 창 크기 조절")
+    7) <div tabindex="0" role="button" data-resize="w" aria-label="w 방향으로 창 크기 조절" class="window-resize-handle resize-w"></div> aka get_by_role("region", name="변경 검토 · test").get_by_label("w 방향으로 창 크기 조절", exact=True)
+    8) <div tabindex="0" role="button" data-resize="nw" aria-label="nw 방향으로 창 크기 조절" class="window-resize-handle resize-nw"></div> aka get_by_role("region", name="변경 검토 · test").get_by_label("nw 방향으로 창 크기 조절")
+
+Call log:
+  - waiting for locator(".window[data-key=\"review\"]").get_by_role("button", name="창 크기 조절")
+
+
+   at Confectory.Tests.TestCase.True(Boolean condition, String message) in /workspace/Confectory-web-ui/tests/Confectory.Tests/Support.cs:line 127
+   at Confectory.Tests.WebUITests.test_actual_editor_and_button_game_common_web_transport_chromium() in /workspace/Confectory-web-ui/tests/Confectory.Tests/WebUITests.cs:line 61
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+0 passed, 1 failed, 0 skipped; 535.642s

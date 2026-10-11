@@ -263,7 +263,8 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
      assert mount()['state']['draft']['text']==text,'HTML input became domain draft without Apply'
      source_window=page.locator('.window[data-key="source"]');source_window.locator('[data-fold]').click();expect(source).not_to_be_visible()
      assert source.input_value()==pending_text;source_window.locator('[data-fold]').click();expect(source).to_have_value(pending_text)
-     area=page.locator('#workspace').bounding_box();bounds=source_window.bounding_box();assert bounds['y']+bounds['height']<=area['y']+area['height']-94+1,'editor overlaps reserved dock area'
+     # v318 uses a panning world; fixed Dock controls must remain usable above it.
+     assert page.locator('#dock').evaluate("dock=>[...dock.querySelectorAll('.bubble')].every(button=>{const r=button.getBoundingClientRect();return document.elementFromPoint(r.x+r.width/2,r.y+r.height/2)?.closest('button')===button;})"),'world windows occlude fixed Dock controls'
      page.set_viewport_size({'width':960,'height':700});expect(source).to_have_value(pending_text);page.set_viewport_size({'width':1280,'height':720})
      page.locator('#run').click();expect(page.locator('#run')).to_contain_text('중지',timeout=30000)
      execution=mount();assert execution['state']['executionState'] in ['building','running'];assert send(envelope(execution,'dispose'))['ok']

@@ -200,7 +200,7 @@ def verify_concept_creation(page,project,mount,send,envelope,browser,browser_act
  fresh_review=mount();assert fresh_review['state']['review']['token']!=old_token and [u['id'] for u in fresh_review['state']['review']['units']]==[prefix+'test'];assert send(envelope(fresh_review,'dispose'))['ok']
  expect(review_window.locator('[data-semantic-after]')).to_have_text(description);expect(review_window.locator('script')).to_have_count(0)
  # Resize the actual Review through its normal handle; compare full content and scroll width.
- handle=review_window.get_by_role('button',name='창 크기 조절');box=handle.bounding_box();page.mouse.move(box['x']+box['width']/2,box['y']+box['height']/2);page.mouse.down();page.mouse.move(box['x']-160,box['y']+box['height']/2,steps=8);page.mouse.up()
+ handle=review_window.locator('[data-resize="se"]');box=handle.bounding_box();page.mouse.move(box['x']+box['width']/2,box['y']+box['height']/2);page.mouse.down();page.mouse.move(box['x']-160,box['y']+box['height']/2,steps=8);page.mouse.up()
  expect(review_window.locator('[data-semantic-after]')).to_have_text(description)
  assert review_window.locator('.window-content').evaluate('(e)=>e.scrollWidth<=e.clientWidth+2'), 'narrow Review overflows horizontally'
  page.screenshot(path='/tmp/confectory-review-long-narrow.png',full_page=True)

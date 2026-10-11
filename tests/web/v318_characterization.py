@@ -16,10 +16,10 @@ def snapshot(page):
 def run(browser,url,label):
  context=browser.new_context(viewport={'width':1440,'height':900});page=context.new_page();page.clock.set_fixed_time(datetime.datetime(2026,10,11,tzinfo=datetime.timezone.utc));page.set_default_timeout(12000);errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
  page.route('https://fonts.googleapis.com/**',lambda route:route.abort());page.route('https://fonts.gstatic.com/**',lambda route:route.abort())
- def settle_visuals():page.add_style_tag(content='*,*::before,*::after{animation:none!important;transition:none!important;caret-color:transparent!important}')
- page.goto(url,wait_until='domcontentloaded');settle_visuals();page.locator('#later').click();shots=[];states=[]
+ def settle_visuals():page.add_style_tag(content='*,*::before,*::after{animation:none!important;transition:none!important;caret-color:transparent!important}img{image-rendering:pixelated!important}')
+ page.goto(url,wait_until='domcontentloaded');settle_visuals();page.locator('#later').click();shots=[];states=[];image_frames=[]
  def capture(name):
-  page.wait_for_timeout(350);page.evaluate('async()=>{await Promise.all([...document.images].map(i=>i.decode().catch(()=>{})));await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)))}');file=out/(label+'-'+name+'.png');page.screenshot(path=str(file),full_page=True);shots.append(file);states.append(snapshot(page))
+  page.wait_for_timeout(350);page.evaluate('async()=>{await Promise.all([...document.images].map(i=>i.decode().catch(()=>{})));await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)))}');file=out/(label+'-'+name+'.png');page.screenshot(path=str(file),full_page=True);shots.append(file);states.append(snapshot(page));image_frames.append(page.evaluate("()=>[...document.images].map(i=>({src:i.getAttribute('src'),x:i.getBoundingClientRect().x,y:i.getBoundingClientRect().y,width:i.getBoundingClientRect().width,height:i.getBoundingClientRect().height,naturalWidth:i.naturalWidth,naturalHeight:i.naturalHeight,fit:getComputedStyle(i).objectFit,position:getComputedStyle(i).objectPosition,filter:getComputedStyle(i).filter,opacity:getComputedStyle(i).opacity}))"))
  capture('home');page.locator('[data-favorite="demo"]').click();expect(page.locator('[data-favorite="demo"]')).to_have_attribute('aria-pressed','true')
  page.locator('#home-project-search').fill('not-found');expect(page.locator('[data-enter="demo"]')).to_have_count(0);page.locator('#home-project-search').fill('')
  page.locator('#home-tab-packs').click();capture('packs');page.locator('#home-tab-projects').click();page.locator('[data-enter="demo"]').click();capture('workspace')
@@ -53,7 +53,7 @@ def run(browser,url,label):
  expect(page.locator('.workspace-decoration')).to_have_count(0);expect(page.locator('.window')).to_have_count(0);expect(page.locator('#workspace-tabs button')).to_have_count(1)
  page.locator('#nav').click();expect(page.locator('.window[data-key="browser"]')).to_be_visible();expect(page.locator('[data-tree-id="world"]')).not_to_have_count(0)
  states.append(snapshot(page))
- assert not errors,errors;context.close();return shots,states
+ assert not errors,errors;context.close();(out/(label+'-image-frames.json')).write_text(json.dumps(image_frames,indent=2));return shots,states
 with server(original) as source,server(repo) as workbench,sync_playwright() as p:
  browser=p.chromium.launch(executable_path='/usr/bin/chromium',headless=True,args=['--no-sandbox','--disable-gpu','--disable-lcd-text','--disable-font-subpixel-positioning','--font-render-hinting=none']);baseline,old=run(browser,source+'/','original');changed,new=run(browser,workbench+'/workbench/v318/','refactor');assert old==new,'behavior snapshots diverged'
  comparisons=[]

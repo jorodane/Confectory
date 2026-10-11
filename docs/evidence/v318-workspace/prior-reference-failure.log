@@ -1,0 +1,13 @@
+PASS WebUITests.test_actual_editor_v318_workspace_lifecycle_presentation_restart
+FAIL WebUITests.test_v318_original_and_refactor_shared_workspace_characterization
+System.Exception: Traceback (most recent call last):
+  File "/workspace/Confectory-web-ui/tests/web/v318_characterization.py", line 62, in <module>
+    assert first.size==second.size;diff=ImageChops.difference(first.convert('RGB'),second.convert('RGB'));box=diff.getbbox();hist=diff.histogram();nonzero_channels=sum(hist)-sum(hist[0::256]);maximum=max(i%256 for i,v in enumerate(hist) if v);comparisons.append({'original':a.name,'refactor':b.name,'differentPixelsBoundingBox':box,'nonzeroChannels':nonzero_channels,'maximumChannelDelta':maximum});assert maximum<=8 and nonzero_channels<=768,(a.name,box,nonzero_channels,maximum)
+                                                                                                                                                                                                                                                                                                                                                                                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ('original-reload.png', (81, 177, 973, 515), 1980, 36)
+
+   at Confectory.Tests.TestCase.True(Boolean condition, String message) in /workspace/Confectory-web-ui/tests/Confectory.Tests/Support.cs:line 127
+   at Confectory.Tests.WebUITests.test_v318_original_and_refactor_shared_workspace_characterization() in /workspace/Confectory-web-ui/tests/Confectory.Tests/WebUITests.cs:line 35
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+1 passed, 1 failed, 0 skipped; 60.620s

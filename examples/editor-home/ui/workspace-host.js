@@ -1,0 +1,118 @@
+import {createWorkspaceRuntime} from './workspace.js';
+
+// The runtime owns nodes/selection/geometry. This adapter retains domain window
+// DOM while it is detached, and persists only private presentation data.
+export function createActualWorkspace(api) {
+  let project=null,scope='',loading=false,scheduled=null,saving=null,changed=0,saved=0;
+  const projects=new Map(),detached=new Map();
+  const host={
+    get isRestoring(){return loading},canNavigate:()=>!loading,preserveLifecycle:true,$:api.$,$$:api.$$,esc:api.esc,
+    get project(){return project},get page(){return api.page},
+    groups:{concept:'개념',feature:'기능',module:'모듈'},
+    uid:()=>crypto.randomUUID(),toast:api.toast,modal:api.modal,contextMenu:api.contextMenu,
+    persist:()=>schedule(),get running(){return false},closeRun:()=>{},
+    takeDetachedWindow:key=>{const w=detached.get(scope+'|'+key);detached.delete(scope+'|'+key);return w},
+    detachWindow:w=>{if(w.overlay)return;detached.set(scope+'|'+w.key,w);capture()},
+    foregroundZ:node=>node.key==='ai-preview'&&api.$('.augment-overlay')?271:undefined,
+    hideWindowOnClose:key=>key==='source'||key.startsWith('editor-'),
+    layoutMetadata:w=>Object.fromEntries(['id','view','mode','group','density','query','sort','mainWorkspace'].filter(key=>w.meta[key]!==undefined).map(key=>[key,w.meta[key]])),
+    restoreActualWindow:layout=>restore(layout),
+    afterSwitchWorkspace:()=>{api.render();schedule()},
+    beforeDeleteWorkspaces:ids=>{
+      // Closing a child presentation must never release the domain editor view.
+      const parent=runtime.workspaceRecord();
+      for(const child of project.workspaces.filter(child=>ids.has(child.id)))
+        for(const layout of child.layout||[])
+          if(layout.key==='source'||layout.key.startsWith('editor-')){
+            if(!parent.layout.some(row=>row.key===layout.key))parent.layout.push({...layout,hidden:true});
+            if(!runtime.state.windows.has(layout.key)){
+              const cached=detached.get(scope+'|'+layout.key);
+              const w=runtime.openWindow(layout.key,cached?.title||'보존된 편집 입력',layout.width,layout.height,{refresh:true,meta:layout.meta});
+              if(!cached)w.body.innerHTML='<div class="window-content">닫힌 편집창의 입력을 보존했습니다. 실제 객체를 다시 열어 복원하세요.</div>';
+              w.el.hidden=true;runtime.unregisterWorkspaceNode(w.key);
+            }
+          }
+    },
+    browserCanEnter:()=>false,browserHierarchyParent:()=>null,
+    selectObject:id=>api.select(id),openEditor:id=>{api.select(id);return null},
+    openBrowser:group=>api.browser(group),renderBrowser:()=>api.renderObjects(),
+    browserTreeCreateMenu:()=>api.unsupported('분류 편집','실제 계층 편집 계약은 아직 연결되지 않았습니다.'),
+    browserCreateMenu:()=>api.unsupported('생성','실제 브라우저의 + 버튼에서 기존 선언 생성 계약을 사용하세요.'),
+    duplicateChildBrowser:()=>api.unsupported('브라우저','독립 브라우저 인스턴스는 아직 연결되지 않았습니다.'),
+    objectContext:(event,object)=>api.objectContext(object.id,event),
+  };
+  const runtime=createWorkspaceRuntime(host);
+  function capture(){if(project){if(!loading&&!project.recoveryFailed){project.selectedObjectId=api.current.draft?.id;project.editorBindings=api.current.editorViews.map(({view,id,mode})=>({view,id,mode}));}project.inputs=api.captureInputs(detached.get(scope+'|source'));const owner=runtime.workspaceRecord();if(owner){if(runtime.state.activeWorkspaceId==='root')project.rootWorkspaceView={...project.workspaceView};else owner.view={...project.workspaceView};}if(owner)for(const w of runtime.state.windows.values()){if(w.overlay)continue;const row=owner.layout.find(row=>row.key===w.key);if(row)Object.assign(row,runtime.windowLayout(w));}}}
+  function schedule(){
+    if(!project||loading)return;
+    capture();project.activeWorkspaceId=runtime.state.activeWorkspaceId;
+    project.visitedWorkspaceTabs=[...runtime.state.visitedWorkspaceTabs];project.selectedNodeKeys=[...runtime.state.selectedWorkspaceNodeKeys];changed++;
+    clearTimeout(scheduled);const attempt=()=>{if(api.isBusy){scheduled=setTimeout(attempt,250);return;}flush().catch(error=>api.toast('작업 공간 저장 실패 · '+error.message+' · 입력과 배치는 유지됩니다.'));};scheduled=setTimeout(attempt,250);
+  }
+  async function flush(){
+    clearTimeout(scheduled);if(!project||loading)return;const before=JSON.stringify(project);capture();if(JSON.stringify(project)!==before)changed++;if(saved===changed)return;
+    if(saving){await saving;if(saved!==changed)return flush();return;}
+    capture();const owner=scope,version=changed,snapshot=JSON.parse(JSON.stringify(project));
+    saving=(async()=>{
+      await api.save(snapshot,owner);if(scope===owner)saved=version;
+    })();
+    try{await saving;}finally{saving=null;}
+    if(scope===owner&&saved!==changed)return flush();
+  }
+  function findOwner(key){
+    if(!project)return null;
+    if(project.layout.some(row=>row.key===key))return 'root';
+    return project.workspaces.find(child=>child.layout.some(row=>row.key===key))?.id??null;
+  }
+  function shouldRender(key){const owner=findOwner(key);return !owner||owner===runtime.state.activeWorkspaceId;}
+  function restore(layout){
+    const cached=detached.get(scope+'|'+layout.key);
+    if(cached)return runtime.openWindow(layout.key,cached.title,cached.width,cached.height,{refresh:true});
+    if(layout.key==='source'){api.editor();return runtime.state.windows.get('source');}
+    if(layout.key==='browser'){const w=api.browser(layout.meta?.group||'concept');Object.assign(w.meta,layout.meta);return w;}
+    if(layout.key==='schema'){api.schema();return runtime.state.windows.get('schema');}
+    if(layout.key==='targets'){api.targets();return runtime.state.windows.get('targets');}
+    if(layout.key.startsWith('editor-')){api.renderViews();return runtime.state.windows.get(layout.key);}
+    // Unsupported/restale views are retained as presentation records, never
+    // represented as successful domain editors or discarded silently.
+    const w=runtime.openWindow(layout.key,'편집창 복원',420,220,{refresh:true,meta:layout.meta});
+    w.body.innerHTML='<div class="window-content"><p>이 창의 실제 기능을 다시 연결해야 합니다. 저장된 입력은 유지됩니다.</p></div>';
+    return w;
+  }
+  function attach(state){
+    loading=true;
+    if(project){capture();projects.set(scope,project);}
+    scope=state.projectId;
+    project=projects.get(scope)||state.presentation||{version:1,layout:[],workspaces:[],workspaceItems:[],workspaceView:{x:0,y:0,scale:1},rootWorkspaceView:{x:0,y:0,scale:1},activeWorkspaceId:'root',visitedWorkspaceTabs:['root'],inputs:{}};
+    Object.defineProperty(project,'objects',{configurable:true,enumerable:false,get:()=>api.current.units.map(unit=>({id:unit.id,name:unit.id.split('::').at(-1),kind:unit.kind,group:unit.kind==='function'?'feature':unit.kind==='module'?'module':'concept'}))});
+    project.workspaceView??={x:0,y:0,scale:1};project.rootWorkspaceView??={...project.workspaceView};
+    runtime.state.windows.clear();runtime.state.workspaceNodes.clear();runtime.state.selectedWorkspaceNodeKeys.clear();
+    runtime.state.activeWorkspaceId=runtime.workspaceRecord(project.activeWorkspaceId)?project.activeWorkspaceId:'root';
+    runtime.state.visitedWorkspaceTabs=(project.visitedWorkspaceTabs||['root']).filter(id=>runtime.workspaceRecord(id));
+    Object.assign(project.workspaceView,runtime.state.activeWorkspaceId==='root'?project.rootWorkspaceView:runtime.workspaceRecord().view);
+    api.restoreInputs(project.inputs||{});
+    runtime.setupWorkspaceNavigation();runtime.setupWindowSelection();runtime.renderWorkspaceTabs();runtime.renderWorkspaceDecorations();
+    const layouts=runtime.workspaceRecord().layout.map(row=>structuredClone(row));
+    for(const layout of layouts)runtime.restoreWindow(layout);
+    runtime.setWorkspaceNodeSelection((project.selectedNodeKeys||[]).map(key=>runtime.state.workspaceNodes.get(key)).filter(Boolean));
+    loading=false;changed=0;saved=0;
+    api.$('#workspace').addEventListener('input',()=>schedule());
+    const bindings=project.editorBindings||[],selected=project.selectedObjectId;
+    const missing=bindings.filter(binding=>!state.editorViews.some(row=>row.view===binding.view&&row.id===binding.id&&row.mode===binding.mode));
+    if(missing.length||(selected&&selected!==state.draft?.id)){
+      loading=true;api.setWorkspaceStatus('편집창 복원 중');const owner=scope;
+      (async()=>{
+        while(api.isBusy&&scope===owner)await new Promise(resolve=>setTimeout(resolve,50));
+        if(scope!==owner)return;
+        try{await api.restoreBindings(missing,selected);if(scope!==owner)return;project.recoveryFailed=false;api.setWorkspaceStatus('편집창 복원됨');
+          const layouts=runtime.workspaceRecord().layout.map(row=>structuredClone(row));
+          for(const row of layouts)runtime.restoreWindow(row);runtime.setWorkspaceNodeSelection((project.selectedNodeKeys||[]).map(key=>runtime.state.workspaceNodes.get(key)).filter(Boolean));
+        }catch(error){if(scope===owner){project.recoveryFailed=true;api.setWorkspaceStatus('편집창 복원 실패');api.toast('실제 편집창 복원 실패 · 입력과 원래 배치는 유지됩니다.');}}
+        finally{if(scope===owner){loading=false;if(!project.recoveryFailed)runtime.saveLayouts();}}
+      })();
+    }
+  }
+  function detach(){if(!project)return;capture();loading=true;clearTimeout(scheduled);runtime.saveLayouts();capture();for(const w of runtime.state.windows.values())host.detachWindow(w);projects.set(scope,project);project=null;scope='';loading=false;changed=0;saved=0;}
+  function reveal(key){const owner=findOwner(key);if(owner&&owner!==runtime.state.activeWorkspaceId)runtime.switchWorkspace(owner);let w=runtime.state.windows.get(key);if(!w){const layout=runtime.workspaceRecord()?.layout.find(row=>row.key===key);if(layout)w=runtime.restoreWindow(layout);}if(w){w.el.hidden=false;runtime.registerWorkspaceNode(w);runtime.focusWindow(w);runtime.saveLayouts();}return w;}
+  return {runtime,attach,detach,flush,schedule,shouldRender,reveal,get project(){return project},get loading(){return loading}};
+}

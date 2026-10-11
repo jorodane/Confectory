@@ -1,3 +1,7 @@
+# v318 common Workspace increment
+
+[Actual Workspace runtime and private persistence](EDITOR_V318_WORKSPACE.md) connects ordinary windows, notes/groups/children, shared gestures, actual editor ownership recovery and pending inputs. Full editing/Confirm/restart, focused UI and managed profile results are recorded separately from initial failures and normalized reference characterization.
+
 # v318 actual Home increment
 
 [Actual Home connection](EDITOR_V318_HOME.md) adds project search, durable private listing favorites and real listing-only removal to the ordinary ProjectPack, with frozen v318 Home structure comparisons and process restart verification. Common Workspace integration and pack catalogue remain unfinished.

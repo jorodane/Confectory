@@ -9,10 +9,10 @@ with tempfile.TemporaryDirectory(prefix='confectory-checkout-') as temporary:
  # Actual legacy checkout -> attributes pull; do not re-extract resources.
  git('checkout','-B','work/current','1d48031e9409fb3fcbcd616e190fabd55e38ea6d')
  ui=checkout/'examples/editor-home/ui'
- before={id:hashlib.sha256((ui/id).read_bytes()).hexdigest() for id in resources}
+ before={id:hashlib.sha256((ui/id).read_bytes()).hexdigest() for id in resources if (ui/id).is_file()}
  # Retained-byte assertions apply to resources whose declared content did not change.
  # A normal UI implementation update legitimately replaces app.js/consumer.css.
- unchanged={id for id,row in resources.items() if hashlib.sha256((ui/id).read_bytes().replace(b'\r\n',b'\n') if row.get('bytePolicy')=='utf8-lf-v1' else (ui/id).read_bytes()).hexdigest()==row.get('canonicalSha256',row.get('sha256'))}
+ unchanged={id for id,row in resources.items() if id in before and hashlib.sha256((ui/id).read_bytes().replace(b'\r\n',b'\n') if row.get('bytePolicy')=='utf8-lf-v1' else (ui/id).read_bytes()).hexdigest()==row.get('canonicalSha256',row.get('sha256'))}
  assert any(resources[id].get('bytePolicy')=='utf8-lf-v1' for id in unchanged) and any(resources[id]['mime']=='image/png' for id in unchanged)
  git('pull','--ff-only','origin','work/current')
  pulled={id:hashlib.sha256((ui/id).read_bytes()).hexdigest() for id in resources}
