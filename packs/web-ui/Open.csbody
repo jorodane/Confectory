@@ -1,7 +1,7 @@
 // Descriptor and context come only from the compiled consumer, never a browser request.
 if(descriptor.Length>4194304)throw new ArgumentException("Descriptor budget exceeded");
 var bundle=System.Text.Json.Nodes.JsonNode.Parse(descriptor)!.AsObject();
-long resourceBytes=0;
+long resourceBytes=0,rawResourceBytes=0;
 string? resourceRoot=bundle["resourceDirectory"]?.GetValue<string>();
 if(resourceRoot is not null){resourceRoot=System.IO.Path.GetFullPath(resourceRoot);if(!System.IO.Directory.Exists(resourceRoot)||(System.IO.File.GetAttributes(resourceRoot)&System.IO.FileAttributes.ReparsePoint)!=0)throw new ArgumentException("Trusted resource directory required");}
 if(bundle["resources"]!.AsObject().Count>256)throw new ArgumentException("Resource count budget exceeded");
@@ -11,18 +11,31 @@ foreach(var item in bundle["resources"]!.AsObject()){
  string path=item.Key,mime=item.Value!["mime"]!.ToString();
  if(!System.Text.RegularExpressions.Regex.IsMatch(path,@"^[A-Za-z0-9_-]+(?:[./][A-Za-z0-9_-]+)*$")||path.Contains("..",StringComparison.Ordinal))throw new ArgumentException("Bundle-relative resource ID required");
  if(mime is not ("text/html" or "text/css" or "text/javascript" or "image/png" or "image/jpeg" or "image/svg+xml" or "image/webp" or "application/json"))throw new ArgumentException("Unsupported resource MIME");
+ string policy=item.Value["bytePolicy"]?.GetValue<string>()??"exact";bool canonical=policy=="utf8-lf-v1";
+ if(policy is not ("exact" or "utf8-lf-v1"))throw new ArgumentException($"Resource '{path}': unknown byte policy");
+ if(canonical&&(item.Value["file"] is null||mime is not ("text/html" or "text/css" or "text/javascript" or "application/json" or "image/svg+xml")))throw new ArgumentException($"Resource '{path}': UTF-8 LF policy requires a declared text file");
+ if(canonical&&(item.Value["size"] is not null||item.Value["sha256"] is not null)||!canonical&&(item.Value["canonicalSize"] is not null||item.Value["canonicalSha256"] is not null))throw new ArgumentException($"Resource '{path}': mixed raw and canonical identity declarations");
  byte[] bytes;
  if(item.Value["file"] is not null){
   if(resourceRoot is null||item.Value["file"]!.GetValue<string>()!=path)throw new ArgumentException("Declared relative file required");
   string file=resourceRoot;foreach(string segment in path.Split('/')){file=System.IO.Path.Combine(file,segment);if((System.IO.File.GetAttributes(file)&System.IO.FileAttributes.ReparsePoint)!=0)throw new ArgumentException("Resource links denied");}
-  long size=item.Value["size"]!.GetValue<long>(),actualSize=new System.IO.FileInfo(file).Length;
-  if(size<0||size>4194304)throw new ArgumentException($"Resource '{path}': per-resource byte budget exceeded; declared={size}, actual={actualSize}, limit=4194304");
+  long size=item.Value[canonical?"canonicalSize":"size"]!.GetValue<long>(),actualSize=new System.IO.FileInfo(file).Length;
+  if(size<0||size>4194304||actualSize<0||actualSize>4194304)throw new ArgumentException($"Resource '{path}': per-resource byte budget exceeded; declared={size}, actual={actualSize}, limit=4194304");
   if(resourceBytes+size>33554432)throw new ArgumentException($"Resource '{path}': aggregate byte budget exceeded; loaded={resourceBytes}, declared={size}, actual={actualSize}, limit=33554432");
-  if(actualSize!=size)throw new ArgumentException($"Resource '{path}': size mismatch; expected={size}, actual={actualSize}");
-  bytes=new byte[(int)size];using(var stream=new System.IO.FileStream(file,System.IO.FileMode.Open,System.IO.FileAccess.Read,System.IO.FileShare.Read)){try{stream.ReadExactly(bytes);}catch(System.IO.EndOfStreamException){throw new ArgumentException($"Resource '{path}': size changed while loading; expected={size}, actual={stream.Length}");}if(stream.ReadByte()!=-1)throw new ArgumentException($"Resource '{path}': size changed while loading; expected={size}, actual={stream.Length}");}
-  if(bytes.LongLength!=size||!Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes)).Equals(item.Value["sha256"]!.GetValue<string>(),StringComparison.OrdinalIgnoreCase))throw new ArgumentException($"Resource '{path}': SHA-256 mismatch for loaded bytes");
- }else {string encoded=item.Value["base64"]!.GetValue<string>();if(encoded.Length>5592408)throw new ArgumentException($"Resource '{path}': base64 character budget exceeded; actual={encoded.Length}, limit=5592408");bytes=Convert.FromBase64String(encoded);}
- resourceBytes+=bytes.LongLength;if(bytes.LongLength>4194304)throw new ArgumentException($"Resource '{path}': per-resource byte budget exceeded; actual={bytes.LongLength}, limit=4194304");if(resourceBytes>33554432)throw new ArgumentException($"Resource '{path}': aggregate byte budget exceeded; actual={resourceBytes}, limit=33554432");
+  if(rawResourceBytes+actualSize>33554432)throw new ArgumentException($"Resource '{path}': raw aggregate byte budget exceeded; loaded={rawResourceBytes}, actual={actualSize}, limit=33554432");
+  if(!canonical&&actualSize!=size)throw new ArgumentException($"Resource '{path}': size mismatch; expected={size}, actual={actualSize}");
+  bytes=new byte[(int)actualSize];using(var stream=new System.IO.FileStream(file,System.IO.FileMode.Open,System.IO.FileAccess.Read,System.IO.FileShare.Read)){try{stream.ReadExactly(bytes);}catch(System.IO.EndOfStreamException){throw new ArgumentException($"Resource '{path}': size changed while loading; expected={actualSize}, actual={stream.Length}");}if(stream.ReadByte()!=-1)throw new ArgumentException($"Resource '{path}': size changed while loading; expected={actualSize}, actual={stream.Length}");}
+  rawResourceBytes+=bytes.LongLength;
+  if(canonical){
+   if(bytes.Length>=3&&bytes[0]==239&&bytes[1]==187&&bytes[2]==191)throw new ArgumentException($"Resource '{path}': UTF-8 LF policy forbids BOM");
+   string text;try{text=new System.Text.UTF8Encoding(false,true).GetString(bytes);}catch(System.Text.DecoderFallbackException){throw new ArgumentException($"Resource '{path}': invalid UTF-8 encoding");}
+   text=text.Replace("\r\n","\n",StringComparison.Ordinal);if(text.Contains('\r')||text.Contains('\0'))throw new ArgumentException($"Resource '{path}': UTF-8 LF policy forbids bare CR and NUL");
+   bytes=System.Text.Encoding.UTF8.GetBytes(text);
+   if(bytes.LongLength!=size)throw new ArgumentException($"Resource '{path}': canonical size mismatch; expected={size}, actual={bytes.LongLength}, raw={actualSize}");
+  }
+  if(!Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes)).Equals(item.Value[canonical?"canonicalSha256":"sha256"]!.GetValue<string>(),StringComparison.OrdinalIgnoreCase))throw new ArgumentException($"Resource '{path}': SHA-256 mismatch for {(canonical?"canonical UTF-8 LF":"loaded")} bytes");
+ }else {string encoded=item.Value["base64"]!.GetValue<string>();if(encoded.Length>5592408)throw new ArgumentException($"Resource '{path}': base64 character budget exceeded; actual={encoded.Length}, limit=5592408");bytes=Convert.FromBase64String(encoded);rawResourceBytes+=bytes.LongLength;}
+ resourceBytes+=bytes.LongLength;if(bytes.LongLength>4194304)throw new ArgumentException($"Resource '{path}': per-resource byte budget exceeded; actual={bytes.LongLength}, limit=4194304");if(resourceBytes>33554432)throw new ArgumentException($"Resource '{path}': aggregate byte budget exceeded; actual={resourceBytes}, limit=33554432");if(rawResourceBytes>33554432)throw new ArgumentException($"Resource '{path}': raw aggregate byte budget exceeded; actual={rawResourceBytes}, limit=33554432");
  string data=Convert.ToBase64String(bytes);
  assets.Add(path,new[]{mime,data,Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes))});
 }

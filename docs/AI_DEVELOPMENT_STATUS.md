@@ -1,6 +1,16 @@
 # AI development implementation and verification boundary
 
-## 2026-10-11 Windows CRLF pinned-resource startup fix
+## 2026-10-11 portable canonical text snapshots without user repair
+
+Normal users only update code and run Confectory.bat. Manual re-checkout/global Git settings/source rewriting/cache deletion are not prerequisites. The old command could skip clean CRLF files after attributes were pulled; that investigation tested a directly modified file and missed the retained clean state. The manual recovery procedure is withdrawn as a normal requirement.
+
+Common WebUI now provides opt-in `utf8-lf-v1` for declared text files, with unambiguous `canonicalSize`/`canonicalSha256`; absent/`exact` retains original `size`/`sha256`. Strict UTF-8 CRLF→LF conversion occurs only in memory. Original files remain unchanged. Unknown/mixed/binary/inline policy misuse, invalid UTF-8/UTF-16, BOM, bare CR and NUL are rejected. Both physical raw reads and canonical snapshots retain 4 MiB per-resource / 32 MiB aggregate budgets; meaningful content and binary changes still fail pinned hashes. EditorHome explicitly opts its text resources in; PNGs remain exact. No filename exception, relaxed cap or current-file self-approved hash exists.
+
+Original root Linux/Windows managed builds passed with 37 included packs each. Common scope/revision/cancellation/disposal/locality and new exact/canonical/encoding/content/policy/raw-expanded-budget regressions: **1 passed, 0 failed, 0 skipped (22.256s)**. Test assembly build: 0 warnings/errors (6.54s). The initial production checkout probe verified retained CRLF and fresh LF startup but failed because its expected BOM diagnostic omitted the policy prefix; only that assertion was corrected. No product failure was hidden or replayed. Final registered same-pack retained CRLF/fresh LF startup and content/UTF-8/UTF-16/BOM/bare-CR/binary/raw-budget refusal: **1 passed, 0 failed, 0 skipped (167.311s)** (`/tmp/confectory-canonical-checkout-registered.log`). All 16 snapshots match canonical/exact identities, and the retained original working-tree hashes are unchanged. Final ordinary root Linux, Windows and Android builds all report `tool.ok=true`, 37 included packs each (`/tmp/confectory-canonical-linux.json`, `/tmp/confectory-canonical-windows.json`, `/tmp/confectory-canonical-android.json`). Static launcher 4 passed; JS/Python syntax and diff checks passed.
+
+[Common policy and corrected normal retry](WEB_RESOURCE_WINDOWS_CHECKOUT.md) replaces the old manual instructions. Actual Windows/WebView2 execution still awaits user retry; no Windows machine has been accessed. main, version/user settings, ZIP and paused original work remain preserved.
+
+## Historical 2026-10-11 attributes-only Windows CRLF attempt
 
 The user's actual Windows launcher reported `Resource size mismatch or budget exceeded`. No access to that Windows machine was performed. A real Git `core.autocrlf=true` checkout reproduces an icon mismatch (expected 1373 bytes, actual 1382); five other pinned text resources also change. The repository lacked `.gitattributes`, so hardcoded manifest identities described repository LF bytes while checkout produced CRLF. Aggregate 16,711,095 bytes and largest resource 2,175,342 bytes are below unchanged 32/4 MiB limits. Stale cache is not needed to reproduce this condition; the user's old generic log cannot rule out separately stale output.
 

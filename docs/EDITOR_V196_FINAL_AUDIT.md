@@ -1,6 +1,6 @@
 # v196 consumer final verification
 
-Windows startup follow-up: see [pinned-resource CRLF checkout fix and retry](WEB_RESOURCE_WINDOWS_CHECKOUT.md). This fixes a reproduced Git conversion mismatch; actual Windows runtime acceptance still awaits user retry.
+Windows startup follow-up: see [pinned-resource CRLF checkout fix and retry](WEB_RESOURCE_WINDOWS_CHECKOUT.md). Common opt-in canonical UTF-8 LF snapshots now accept retained CRLF checkouts without source repair; exact binary/content identities and budgets remain enforced. Actual Windows runtime acceptance still awaits user retry.
 
 This closes the currently approved connection work; it does not claim full visual or platform acceptance. Reference is the frozen original `reference/site-ui/Confectory-Editor-Prototype-v196.zip` (SHA-256 `02d4824e92ed0edbb43113659982b37a99a614117652bde4d8ac92367e334e34`). Original pages were rendered in an isolated local browser from the extracted ZIP, with no Sites edit/deployment. Their demo values/counts are illustrative. The actual consumer uses the original ProjectPack and real owned IDs, rather than Monster/schema/Worker mock values.
 

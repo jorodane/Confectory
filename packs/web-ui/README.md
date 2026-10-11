@@ -118,3 +118,7 @@ Save, and reconnects/reloads the same draft. Separate contract tests inject a
 cancellable waiting function to exercise races deterministically; this unit fixture
 does not replace either product acceptance test. See `docs/WEB_UI_FOUNDATION.md`
 for the dated validation results and remaining platform limits.
+
+### Explicit portable text identity
+
+File rows default to exact `size`/`sha256` bytes. A trusted consumer may instead declare `bytePolicy:"utf8-lf-v1"` with **`canonicalSize`/`canonicalSha256`** for HTML/CSS/JS/JSON/SVG. These pin strict UTF-8, no BOM/NUL/bare CR, with CRLF converted to LF in memory; served snapshots contain these canonical bytes. Mixed raw/canonical fields, unknown policy and canonical binary/inline rows are rejected. Raw physical reads and canonical snapshots independently retain 4 MiB per-resource and 32 MiB aggregate budgets. This never modifies the original file or accepts meaningful content changes. See [Windows checkout evidence](../../docs/WEB_RESOURCE_WINDOWS_CHECKOUT.md).
