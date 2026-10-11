@@ -15,11 +15,14 @@ foreach(var item in bundle["resources"]!.AsObject()){
  if(item.Value["file"] is not null){
   if(resourceRoot is null||item.Value["file"]!.GetValue<string>()!=path)throw new ArgumentException("Declared relative file required");
   string file=resourceRoot;foreach(string segment in path.Split('/')){file=System.IO.Path.Combine(file,segment);if((System.IO.File.GetAttributes(file)&System.IO.FileAttributes.ReparsePoint)!=0)throw new ArgumentException("Resource links denied");}
-  long size=item.Value["size"]!.GetValue<long>();if(size<0||size>4194304||resourceBytes+size>33554432||new System.IO.FileInfo(file).Length!=size)throw new ArgumentException("Resource size mismatch or budget exceeded");
-  bytes=new byte[(int)size];using(var stream=new System.IO.FileStream(file,System.IO.FileMode.Open,System.IO.FileAccess.Read,System.IO.FileShare.Read)){stream.ReadExactly(bytes);if(stream.ReadByte()!=-1)throw new ArgumentException("Resource grew beyond declared size");}
-  if(bytes.LongLength!=size||!Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes)).Equals(item.Value["sha256"]!.GetValue<string>(),StringComparison.OrdinalIgnoreCase))throw new ArgumentException("Resource identity mismatch");
- }else {string encoded=item.Value["base64"]!.GetValue<string>();if(encoded.Length>5592408)throw new ArgumentException("Resource budget exceeded");bytes=Convert.FromBase64String(encoded);}
- resourceBytes+=bytes.LongLength;if(bytes.LongLength>4194304||resourceBytes>33554432)throw new ArgumentException("Resource budget exceeded");
+  long size=item.Value["size"]!.GetValue<long>(),actualSize=new System.IO.FileInfo(file).Length;
+  if(size<0||size>4194304)throw new ArgumentException($"Resource '{path}': per-resource byte budget exceeded; declared={size}, actual={actualSize}, limit=4194304");
+  if(resourceBytes+size>33554432)throw new ArgumentException($"Resource '{path}': aggregate byte budget exceeded; loaded={resourceBytes}, declared={size}, actual={actualSize}, limit=33554432");
+  if(actualSize!=size)throw new ArgumentException($"Resource '{path}': size mismatch; expected={size}, actual={actualSize}");
+  bytes=new byte[(int)size];using(var stream=new System.IO.FileStream(file,System.IO.FileMode.Open,System.IO.FileAccess.Read,System.IO.FileShare.Read)){try{stream.ReadExactly(bytes);}catch(System.IO.EndOfStreamException){throw new ArgumentException($"Resource '{path}': size changed while loading; expected={size}, actual={stream.Length}");}if(stream.ReadByte()!=-1)throw new ArgumentException($"Resource '{path}': size changed while loading; expected={size}, actual={stream.Length}");}
+  if(bytes.LongLength!=size||!Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes)).Equals(item.Value["sha256"]!.GetValue<string>(),StringComparison.OrdinalIgnoreCase))throw new ArgumentException($"Resource '{path}': SHA-256 mismatch for loaded bytes");
+ }else {string encoded=item.Value["base64"]!.GetValue<string>();if(encoded.Length>5592408)throw new ArgumentException($"Resource '{path}': base64 character budget exceeded; actual={encoded.Length}, limit=5592408");bytes=Convert.FromBase64String(encoded);}
+ resourceBytes+=bytes.LongLength;if(bytes.LongLength>4194304)throw new ArgumentException($"Resource '{path}': per-resource byte budget exceeded; actual={bytes.LongLength}, limit=4194304");if(resourceBytes>33554432)throw new ArgumentException($"Resource '{path}': aggregate byte budget exceeded; actual={resourceBytes}, limit=33554432");
  string data=Convert.ToBase64String(bytes);
  assets.Add(path,new[]{mime,data,Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes))});
 }

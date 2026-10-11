@@ -14,6 +14,13 @@ public sealed class WebUITests : TestCase
             True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("Actual common WebUI "+kind+" Chromium PASS"));
         }
     }
+    public void test_editor_web_resources_windows_git_checkout_and_actual_startup()
+    {
+        var built=new Builder(Path.Combine(Fixture.Repo,"examples","editor-home","project.cpack"),"linux").Build();
+        string report=Path.Combine(f.Root,"resource-checkout.json");File.WriteAllText(report,built.ToJsonString());
+        var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests","probes","web_resource_checkout.py"),Fixture.Repo,report},timeoutSeconds:180);
+        True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS actual EditorHome legacy CRLF rejection, LF Windows checkout"));
+    }
     public void test_web_ui_scope_revision_cancellation_disposal_and_pack_locality()
     {
         foreach(var (ns,path) in new[]{("Confectory.WebUI","web-ui"),("Confectory.RuntimeBase","runtime-base")})
@@ -58,9 +65,11 @@ public sealed class WebUITests : TestCase
          var declared=System.Text.Json.Nodes.JsonNode.Parse(descriptor)!.AsObject();declared["resourceDirectory"]=assetRoot;
          declared["resources"]!["portrait.png"]=new System.Text.Json.Nodes.JsonObject{["file"]="portrait.png",["mime"]="image/png",["size"]=image.Length,["sha256"]=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(image))};
          string fileOwner=calls.Open.Invoke(context,declared.ToJsonString());Check(Convert.FromBase64String(calls.Resource.Invoke(fileOwner,"portrait.png")[1]).Length==image.Length,"normal common manifest exceeds old 1MiB limit");Check(calls.Close.Invoke(fileOwner),"manifest owner close");
-         void Rejected(string name){try{string unexpected=calls.Open.Invoke(context,declared.ToJsonString());calls.Close.Invoke(unexpected);throw new Exception(name+" accepted");}catch(ArgumentException){}}
-         declared["resources"]!["portrait.png"]!["sha256"]=new string('0',64);Rejected("changed resource identity");
-         declared["resources"]!["portrait.png"]!["size"]=4194305;Rejected("oversized resource");
+         void Rejected(string name,string diagnostic=""){try{string unexpected=calls.Open.Invoke(context,declared.ToJsonString());calls.Close.Invoke(unexpected);throw new Exception(name+" accepted");}catch(ArgumentException error){Check(error.Message.Contains(diagnostic,StringComparison.Ordinal),name+" diagnostic: "+error.Message);Check(!error.Message.Contains(assetRoot,StringComparison.Ordinal),"diagnostic exposes local path");}}
+         declared["resources"]!["portrait.png"]!["sha256"]=new string('0',64);Rejected("changed resource identity","Resource 'portrait.png': SHA-256 mismatch");
+         declared["resources"]!["portrait.png"]!["size"]=4194305;Rejected("oversized resource","per-resource byte budget exceeded; declared=4194305, actual=2097152, limit=4194304");
+         declared["resources"]!["portrait.png"]!["size"]=2097153;Rejected("changed resource size","Resource 'portrait.png': size mismatch; expected=2097153, actual=2097152");
+         declared["resources"]!.AsObject().Remove("portrait.png");byte[] maximum=new byte[4194304];for(int n=0;n<8;n++){string id="budget"+n+".png";System.IO.File.WriteAllBytes(System.IO.Path.Combine(assetRoot,id),maximum);declared["resources"]![id]=new System.Text.Json.Nodes.JsonObject{["file"]=id,["mime"]="image/png",["size"]=maximum.Length,["sha256"]=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(maximum))};}Rejected("aggregate exhaustion","Resource 'budget7.png': aggregate byte budget exceeded");for(int n=0;n<8;n++)declared["resources"]!.AsObject().Remove("budget"+n+".png");
          declared["resources"]!.AsObject().Remove("portrait.png");declared["resources"]!["../escape.png"]=new System.Text.Json.Nodes.JsonObject{["file"]="../escape.png",["mime"]="image/png",["size"]=0,["sha256"]=""};Rejected("manifest traversal");
          declared["resources"]!.AsObject().Remove("../escape.png");for(int n=0;n<256;n++)declared["resources"]!["r"+n+".png"]=new System.Text.Json.Nodes.JsonObject{["mime"]="image/png",["base64"]=""};Rejected("resource count exhaustion");
         }finally{System.IO.Directory.Delete(assetRoot,true);}

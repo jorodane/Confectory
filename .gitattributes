@@ -1,0 +1,7 @@
+# WebUI manifests pin exact bytes. Keep textual resources LF even on Windows.
+examples/editor-home/ui/**/*.html text eol=lf
+examples/editor-home/ui/**/*.css text eol=lf
+examples/editor-home/ui/**/*.js text eol=lf
+examples/editor-home/ui/**/*.json text eol=lf
+examples/editor-home/ui/**/*.svg text eol=lf
+examples/editor-home/ui/**/*.png binary
