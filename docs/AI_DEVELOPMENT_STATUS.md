@@ -1,6 +1,6 @@
 # Semantic change review
 
-[Ordinary semantic review](SEMANTIC_CHANGE_REVIEW.md) displays actual description/value/creation/registration changes by default. Exact source comparisons require explicit advanced viewing; unrecognized additional changes require full advanced review acknowledgment. Existing ordered IDs, revisions, token, validation, Confirm and draft retention remain authoritative.
+[Ordinary semantic review](SEMANTIC_CHANGE_REVIEW.md) displays actual description/value/creation/registration changes by default. Exact source comparisons require explicit advanced viewing; unrecognized additional changes require full advanced review acknowledgment. Existing ordered IDs, revisions, token, validation, Confirm and draft retention remain authoritative. Final actual focused/reopen (222.954s), full web regression (539.104s), parser/compiler/locality (68.384s), CRLF actual checkout/startup (18.202s), and same-pack Linux/Windows/Android managed builds (37 packs each) pass. Library reference download failed; own actual consumer captures are linked in the review document.
 
 # Declaration description form follow-up
 

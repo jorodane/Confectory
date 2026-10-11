@@ -1,0 +1,57 @@
+{
+  "base": "5034d3e3623405e6d7924b457355847fcd29be98",
+  "codeCommit": "be552c30fc22b2def2706ce082e0980da223d130",
+  "ordinaryProjectPack": "examples/editor-home/project.cpack",
+  "focusedSemanticReviewAndReopen": {
+    "result": "PASS",
+    "seconds": 222.954
+  },
+  "fullCommonWebRegression": {
+    "result": "PASS",
+    "seconds": 539.104
+  },
+  "parserPreservationCompilerAndLocality": {
+    "result": "PASS",
+    "seconds": 68.384
+  },
+  "crlfActualCheckoutAndStartup": {
+    "result": "PASS",
+    "seconds": 18.202
+  },
+  "checks": [
+    "exact description before/after values, no source in basic Review DOM",
+    "creation/value/registration semantic rows",
+    "unknown relations require explicit advanced acknowledgment",
+    "numeric representation/order/comment/body changes not omitted",
+    "exact source diff only on explicit advanced click",
+    "cancel and failed compiler acceptance preserve draft",
+    "actual compiler-backed Confirm and process reopen"
+  ],
+  "targets": {
+    "linux": {
+      "toolOk": true,
+      "sdk": "10.0.401",
+      "includedPackCount": 37
+    },
+    "windows": {
+      "toolOk": true,
+      "sdk": "10.0.401",
+      "includedPackCount": 37
+    },
+    "android": {
+      "toolOk": true,
+      "sdk": "10.0.401",
+      "includedPackCount": 37
+    }
+  },
+  "referenceImage": {
+    "libraryFileId": "libfile_251d388d1ccc81918f10e9b5be1793f4",
+    "materialization": "download failed",
+    "pixelsInspected": false
+  },
+  "userWindowsConfirmation": "User confirmed value edit/Confirm/reopen and full process restart persistence before this presentation fix; not generalized to other fields or targets.",
+  "pausedWorkPreservation": {
+    "head": "f182ea34f6441abc87f14d8fce01ed263a8a0dda",
+    "unchangedRecordedFileHashes": 18
+  }
+}
