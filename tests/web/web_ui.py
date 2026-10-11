@@ -170,7 +170,9 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
      request=envelope(second,'invoke',endpoint='select',requestId='foreign-object',expectedRevision=current['revision'],input={'id':'Unowned.Project::Object'})
      assert send(request)['ok'];assert not settle(second,'foreign-object')[0]['ok']
      assert send(envelope(second,'dispose'))['ok']
-     page.locator('#review').click();expect(page.locator('#confirm')).to_be_enabled(timeout=30000)
+     page.locator('#review').click();expect(page.locator('[data-review-advanced]')).to_be_visible(timeout=30000)
+     from semantic_authoring import inspect_advanced_review
+     inspect_advanced_review(page)
      assert (project/'Score.celem').read_bytes()==original,'Review performed source Confirm'
      review=mount();assert review['state']['review']['id']=='Example.ButtonGame::Score'
      assert review['state']['review']['before']==original.decode() and review['state']['review']['after']==text

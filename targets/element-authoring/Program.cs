@@ -62,6 +62,7 @@ try
             reply=EffectiveMetadata.Query(S("project"),S("manifest"),S("id"),S("text"),FormatManifest,path=>{if(new FileInfo(path).Length>1048576)throw new IOException("Manifest budget");return File.ReadAllText(path);},request["drafts"]?.AsArray(),request["schemaView"]?.GetValue<bool>()==true);break;
         case "locate":
             reply=RelationLocators.Query(S("manifest"),Path.GetDirectoryName(Path.GetFullPath(S("project")))!,request["ids"]!.AsArray().Select(x=>x!.GetValue<string>()).ToArray(),path=>{var file=new FileInfo(path);if(!file.Exists||file.Length>1048576||file.LinkTarget is not null)throw new IOException("Manifest unavailable");return File.ReadAllText(path);});break;
+        case "reviewSummary":reply=ReviewSummary(S("kind"),S("before"),S("after"));break;
         case "inspect":
         {
             var element=new Parser(S("text"),"<draft>").ParseElement();
@@ -184,4 +185,33 @@ static string FormatManifest(Manifest manifest)
     foreach(var value in manifest.Always)text.AppendLine("always "+value.Id+";");
     foreach(var (id,value) in manifest.Elements)text.AppendLine("element "+id+" "+value.Kind+" "+Quote(value.Path)+";");
     return text.AppendLine("}").ToString();
+}
+
+static JsonObject ReviewSummary(string kind,string before,string after)
+{
+ var changes=new JsonArray();bool additional=false;
+ void Add(string label,JsonNode? oldValue,JsonNode? newValue,bool beforeDefined=true,bool afterDefined=true)=>changes.Add(new JsonObject{["label"]=label,["before"]=oldValue,["after"]=newValue,["beforeDefined"]=beforeDefined,["afterDefined"]=afterDefined});
+ string Comments(string text)=>string.Join("\n",System.Text.RegularExpressions.Regex.Matches(text,@"""(?:[^""\\]|\\.)*""|(?<comment>//[^\n]*)").Cast<System.Text.RegularExpressions.Match>().Where(m=>m.Groups["comment"].Success).Select(m=>m.Value));
+ JsonNode? Datum(SchemaDatum value)=>value.Kind=="reference"?new JsonObject{["참조 대상"]=value.Reference}:value.Items is not null?new JsonArray(value.Items.Select(Datum).ToArray()):value.Members is not null?new JsonObject(value.Members.Select(x=>new KeyValuePair<string,JsonNode?>(x.Key,Datum(x.Value)))):value.Scalar is not null?JsonNode.Parse(value.Scalar.Value.GetRawText()):null;
+ try{
+  if(kind is "project" or "pack"){
+   var old=new Parser(before,"<review>").ParseManifest();var next=new Parser(after,"<review>").ParseManifest();
+   foreach(var item in next.Elements)if(!old.Elements.ContainsKey(item.Key))Add("프로젝트에 등록",null,JsonValue.Create(item.Key+" · "+item.Value.Kind),false,true);
+   foreach(var item in old.Elements)if(!next.Elements.ContainsKey(item.Key))Add("프로젝트 등록 해제",JsonValue.Create(item.Key+" · "+item.Value.Kind),null,true,false);
+   foreach(var item in next.Elements)if(old.Elements.TryGetValue(item.Key,out var prior)&&(prior.Path!=item.Value.Path||prior.Kind!=item.Value.Kind))additional=true;
+   string formatted=FormatManifest(next);next.Elements=old.Elements;additional|=FormatManifest(next)!=FormatManifest(old)||Comments(before)!=Comments(after);
+  }else if(kind=="body")additional=true;
+  else{
+   bool created=before.Length==0;var next=new Parser(after,"<review>").ParseElement();var old=created?new Element{Kind=next.Kind,Id=next.Id}:new Parser(before,"<review>").ParseElement();
+   if(created)Add(kind=="object"?"개념 생성":kind=="schema"?"스키마 생성":"선언 생성",null,JsonValue.Create(next.Id.Split("::").Last()),false,true);
+   if(old.Description!=next.Description||old.DescriptionPresent!=next.DescriptionPresent)Add("설명",old.DescriptionPresent?JsonValue.Create(old.Description):null,next.DescriptionPresent?JsonValue.Create(next.Description):null,old.DescriptionPresent,next.DescriptionPresent);
+   foreach(string name in old.Values.Keys.Union(next.Values.Keys)){var a=old.Values.TryGetValue(name,out var av)?JsonNode.Parse(av.Value.GetRawText()):null;var b=next.Values.TryGetValue(name,out var bv)?JsonNode.Parse(bv.Value.GetRawText()):null;if(old.Values.ContainsKey(name)!=next.Values.ContainsKey(name)||!JsonNode.DeepEquals(a,b))Add("값 · "+name,a,b,old.Values.ContainsKey(name),next.Values.ContainsKey(name));}
+   foreach(string name in old.Data.Keys.Union(next.Data.Keys)){var a=old.Data.TryGetValue(name,out var av)?Datum(av):null;var b=next.Data.TryGetValue(name,out var bv)?Datum(bv):null;if(old.Data.ContainsKey(name)!=next.Data.ContainsKey(name)||!JsonNode.DeepEquals(a,b))Add("필드 값 · "+name,a,b,old.Data.ContainsKey(name),next.Data.ContainsKey(name));}
+   foreach(string name in old.Fields.Keys.Union(next.Fields.Keys)){JsonNode? Field(SchemaField? f)=>f is null?null:JsonValue.Create(f.Type+" · "+f.Kind+" · "+f.Cardinality);var a=Field(old.Fields.GetValueOrDefault(name));var b=Field(next.Fields.GetValueOrDefault(name));if(!JsonNode.DeepEquals(a,b))Add("필드 정의 · "+name,a,b,old.Fields.ContainsKey(name),next.Fields.ContainsKey(name));}
+   string formatted=Format(next);next.Description=old.Description;next.DescriptionPresent=old.DescriptionPresent;next.Values=old.Values;next.Data=old.Data;next.Fields=old.Fields;
+   additional=Format(next)!=Format(old)||Comments(before)!=Comments(after);
+  }
+ }catch{additional=true;}
+ if(changes.Count==0&&before!=after)additional=true;
+ return new JsonObject{["changes"]=changes,["additionalChanges"]=additional};
 }

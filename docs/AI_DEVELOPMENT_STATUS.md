@@ -1,3 +1,7 @@
+# Semantic change review
+
+[Ordinary semantic review](SEMANTIC_CHANGE_REVIEW.md) displays actual description/value/creation/registration changes by default. Exact source comparisons require explicit advanced viewing; unrecognized additional changes require full advanced review acknowledgment. Existing ordered IDs, revisions, token, validation, Confirm and draft retention remain authoritative.
+
 # Declaration description form follow-up
 
 [Description form and name decision](DECLARATION_DESCRIPTION_FORM.md) connects the original data textarea to shared declaration drafts with revision checks and existing Save/Review/Confirm. Final focused form/reopen (247.459s), full common web regression (618.628s), declaration preservation/compiler/locality (115.246s), actual CRLF checkout/startup (34.675s), and same-pack Linux/Windows/Android managed builds (37 packs each) pass. [Stable identity/display-name design](DECLARATION_IDENTITY_PLAN.md) follows the user’s direction while preserving current namespace contracts; no name rename or bulk migration is implemented.
