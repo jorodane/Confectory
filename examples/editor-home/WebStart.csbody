@@ -8,6 +8,11 @@ try{
  if(opened["selected"] is null||opened["status"]?.ToString().StartsWith("Error:",StringComparison.Ordinal)==true)throw new InvalidOperationException("Project could not be opened");
  var shown=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(session,"workspace","{\"action\":\"open\"}"))!;
  if(shown["workspace"] is null)throw new InvalidOperationException("Project workspace unavailable");
+ if(shown["workspace"]?["unit"]?["kind"]?.ToString() is "body" or "project" or "pack"){
+ var objects=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(session,"workspace","{\"action\":\"filter\",\"kind\":\"object\",\"query\":\"\"}"))!;
+ var first=System.Linq.Enumerable.FirstOrDefault(objects["workspace"]?["units"]?.AsArray()??new System.Text.Json.Nodes.JsonArray());if(first is not null){calls.Command.Invoke(session,"workspace",new System.Text.Json.Nodes.JsonObject{["action"]="select",["id"]=first["id"]!.DeepClone()}.ToJsonString());calls.Command.Invoke(session,"workspace","{\"action\":\"schema-view\"}");}
+ }else calls.Command.Invoke(session,"workspace","{\"action\":\"schema-view\"}");
+
  }
  if(Environment.GetEnvironmentVariable("CONFECTORY_UI")=="embedded"){entry=calls.EntryRequest.Invoke(Environment.GetEnvironmentVariable("CONFECTORY_ENTRY_SCOPE")??root,"listen","{}");AppDomain.CurrentDomain.SetData("Confectory.EditorHome.WebEntry."+session,new object[]{entry,Environment.CurrentManagedThreadId});}
  owner=calls.Open.Invoke(session,calls.Bundle.Invoke());return Environment.GetEnvironmentVariable("CONFECTORY_UI")=="embedded"?calls.EmbeddedServe.Invoke(owner):calls.Serve.Invoke(owner);

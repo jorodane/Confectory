@@ -2,6 +2,12 @@ function Confectory.EditorHome::Verify () -> int {
 provide Confectory.SchemaEditing::BeginScope with Confectory.SchemaEditing::BeginScopeBody;
 provide Confectory.SchemaEditing::EndScope with Confectory.SchemaEditing::EndScopeBody;
 provide Confectory.SchemaEditing::Cancel with Confectory.SchemaEditing::CancelBody;
+provide Confectory.YogiBox::Create with Confectory.YogiBox::CreateBody;
+provide Confectory.YogiBox::Text with Confectory.YogiBox::TextBody;
+provide Confectory.YogiBox::Seal with Confectory.YogiBox::SealBody;
+provide Confectory.YogiBox::Remove with Confectory.YogiBox::RemoveBody;
+provide Confectory.YogiBox::Snapshot with Confectory.YogiBox::SnapshotBody;
+provide Confectory.YogiBox::Discard with Confectory.YogiBox::DiscardBody;
 provide Confectory.YogiBox::Exactly with Confectory.YogiBox::ExactlyBody;
 provide Confectory.WorkerTasks::VerifyCompletion with Confectory.ProjectAI::VerifyCompletion;
 provide Confectory.WorkerTasks::Finish with Confectory.WorkerTasks::FinishBody;

@@ -41,7 +41,7 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
    request=envelope(first,'invoke',endpoint=op,requestId='wrong-scope',expectedRevision=first['revision'],input={});request['scope']={'projectId':'other','helperId':'other'}
    assert send(request)['error']['code']=='scope_mismatch'
    request['scope']=dict(first['scope'],helperId='forged-helper');assert send(request)['error']['code']=='scope_mismatch'
-   for denied in ['shell','readFile','Confectory.EditorHome.Model::Command','confirm','ai-start','host.open-file','host.close']:
+   for denied in ['shell','readFile','Confectory.EditorHome.Model::Command','confirm','ai-start','host.open-file','host.create-project','host.close']:
     assert send(envelope(first,'invoke',endpoint=denied,requestId=denied,expectedRevision=first['revision'],input={}))['error']['code']=='endpoint_denied'
    stale=send(envelope(first,'invoke',endpoint=op,requestId='stale',expectedRevision=first['revision']-1,input={}));assert stale['ok'];assert settle(first,'stale')[0]['error']['code']=='stale_revision'
    request=envelope(first,'invoke',endpoint=op,requestId='dedup',expectedRevision=first['revision'],input={});assert send(request)['ok'];row,new=settle(first,'dedup');assert row['ok'],row
@@ -59,13 +59,26 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
       served=urllib.request.urlopen(origin+'/assets/'+image_path.name).read()
       assert hashlib.sha256(served).digest()==hashlib.sha256(image_path.read_bytes()).digest()
       assert page.evaluate("async path=>{const image=new Image();image.src=path;await image.decode();return image.naturalWidth>0&&image.naturalHeight>0}",'/assets/'+image_path.name)
-     assert page.locator('.bubble-dock button:disabled').count()==4
+     assert page.locator('.bubble-dock button:disabled').count()==2
      assert page.locator('.home-side').is_visible()
-     page.locator('#objects-refresh').click();button=page.locator('[data-id="Example.ButtonGame::Score"]');expect(button).to_be_visible();button.click();expect(page.locator('#selection')).to_have_text('Example.ButtonGame::Score')
+     assert not page.locator('#source').is_visible(),'raw source should be an explicit advanced view'
+     page.locator('#helpers').click();expect(page.locator('[data-recruit="global"]')).to_be_visible()
+     page.locator('[data-recruit="global"]').click();expect(page.locator('#helper-list')).to_contain_text('main-helper')
+     page.locator('#helper-list button').click();expect(page.locator('#helper-summary')).to_contain_text('main-helper',timeout=30000)
+     # Common memory excluded by default. No provider or account is opened.
+     expect(page.locator('#allow-common')).not_to_be_checked()
+     page.locator('#helper-memory').fill('local explicitly scoped note');page.locator('#remember').click();expect(page.locator('#status')).to_contain_text('로컬에 저장됨')
+     page.locator('#chat').click();page.locator('#chat-input').fill('local project message');page.locator('#chat-save').click();expect(page.locator('#status')).to_contain_text('전송 없음')
+     page.locator('#connections').click();expect(page.locator('#connection-list button')).not_to_have_count(0)
+     local_state=send({'op':'mount'});assert local_state['scope']['helperId']=='main-helper';assert not local_state['scope']['allowCommon'];assert local_state['state']['chatDraft']=='local project message';assert local_state['state']['aiState']=='idle';assert 'memory' not in local_state['state']['helperProfile'];assert 'config' not in local_state['state'];assert send(envelope(local_state,'dispose'))['ok']
+     for key in ['connections','chat','helpers']:
+      page.locator('.window[data-key="'+key+'"] [data-close]').click()
+
+     page.locator('#objects-refresh').click();button=page.locator('[data-id="Example.ButtonGame::Score"]');expect(button).to_be_visible();button.click();expect(page.locator('[data-schema-id]')).to_have_text('Example.ButtonGame::Score');page.screenshot(path='/tmp/confectory-v196-semantic-project.png',full_page=True);page.locator('.window[data-key="schema"] [data-close]').click();page.locator('#yogi').click();page.locator('#yogi-exactly').click();expect(page.locator('#yogi-items')).to_contain_text('Example.ButtonGame::Score');page.locator('#yogi-text').fill('local object package');page.locator('#yogi-save').click();expect(page.locator('#status')).to_contain_text('내용 적용됨');page.locator('#yogi-seal').click();expect(page.locator('#yogi-seal')).to_have_text('봉인 해제');page.locator('.window[data-key="yogi"] [data-close]').click();page.locator('#nav').click();page.locator('#advanced-source').click();expect(page.locator('#selection')).to_have_text('Example.ButtonGame::Score')
      source=page.locator('#source');text=source.input_value()+'\n// common-web-ui-draft\n';source.fill(text);page.locator('#save').click();expect(page.locator('#status')).to_have_text('Draft saved; final sources unchanged',timeout=30000)
      assert (project/'Score.celem').read_bytes()==original,'Save performed source Confirm'
      page.locator('#reconnect').click();expect(page.locator('#status')).to_contain_text('Reconnected');expect(source).to_have_value(text)
-     page.reload();expect(page.locator('#status')).to_have_text('Ready');expect(source).to_have_value(text)
+     page.reload();expect(page.locator('#status')).to_have_text('Ready');page.locator('#nav').click();page.locator('#advanced-source').click();expect(source).to_have_value(text)
      # Another independent mount reads the same domain draft, without a UI-only storage copy.
      second=send({'op':'mount'});assert second['state']['draft']['text']==text and second['state']['draft']['dirty'];assert 'context' not in second['state'] and 'path' not in second['state']['draft']
      # Consumer CAS also rejects an outdated draft revision under a fresh transport revision.
@@ -84,6 +97,25 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
      assert (project/'Score.celem').read_text()==text,'explicit compiler-backed Confirm did not apply exact reviewed source'
      page.locator('#schema').click();expect(page.locator('[data-schema-id]')).to_have_text('Example.ButtonGame::Score',timeout=30000)
      schema_state=send({'op':'mount'});assert schema_state['state']['schema']['id']=='Example.ButtonGame::Score';assert send(envelope(schema_state,'dispose'))['ok']
+     # Actual settings pack authoring and permission review, with no credentials or provider dispatch.
+     page.locator('.brand').click();expect(page.locator('#manage-ai')).to_be_visible(timeout=30000);page.locator('#manage-ai').click()
+     page.locator('#settings-catalog button').filter(has_text='Confectory.Agent.Responses::Connection').click()
+     expect(page.locator('[data-schema-id]')).to_have_text('Confectory.AISettings::Settings',timeout=30000)
+     assert not page.locator('#source').is_visible()
+     for name,value in [('model','owned-ui-no-call'),('endpoint','http://127.0.0.1:1/responses'),('credentialReference','')]:
+      field=page.locator('[data-schema-field="'+name+'"]');field.fill(value);field.locator('..').get_by_role('button',name='Apply field',exact=True).click();expect(page.locator('#status')).to_have_text('Shared field draft updated',timeout=30000)
+     page.locator('#semantic-save').click();expect(page.locator('#status')).to_have_text('Draft saved; final sources unchanged',timeout=30000)
+     page.locator('.brand').click();expect(page.locator('[data-project]')).to_have_count(1,timeout=30000);page.locator('[data-project]').click()
+     page.locator('#connections').click();page.locator('#connection-list button').filter(has_text='Confectory.Agent.Responses::Connection').click();expect(page.locator('#status')).to_contain_text('전송 없음')
+     page.locator('.window[data-key="connections"] [data-close]').click();page.locator('#chat').click();page.locator('#chat-input').fill('review without sending');page.locator('#chat-prepare').click();expect(page.locator('#ai-start')).to_be_disabled(timeout=30000)
+     preview=send({'op':'mount'});assert preview['state']['aiPreview']['message']=='review without sending';assert 'config' not in preview['state']['aiPreview'];assert len(preview['state']['aiPreview']['requirements'])==2
+     assert send(envelope(preview,'invoke',endpoint='startAI',requestId='unapproved-start',expectedRevision=preview['revision'],input={'token':preview['state']['aiPreview']['token']}))['ok'];refused,after=settle(preview,'unapproved-start');assert not refused['ok'] and after['state']['aiOutput'] in [None,''];assert send(envelope(preview,'dispose'))['ok']
+     page.locator('[data-permission="contentApproved"]').check();expect(page.locator('#status')).to_contain_text('아직 전송 없음');expect(page.locator('#ai-start')).to_be_disabled()
+     page.locator('#cancel-preview').click();expect(page.locator('#status')).to_contain_text('전송 없음');page.locator('.window[data-key="chat"] [data-close]').click()
+     page.locator('#augment').click();page.locator('#augment-direction').fill('retain semantic object focus');page.locator('#reroll').click();expect(page.locator('#ai-start')).to_be_disabled(timeout=30000)
+     proposal=send({'op':'mount'});assert proposal['state']['aiPreview']['kind']=='proposals' and proposal['state']['aiPreview']['target']=='Example.ButtonGame::Score';assert proposal['state']['augment']['cards']==[];assert proposal['state']['workers']==[];assert send(envelope(proposal,'dispose'))['ok']
+     page.locator('#cancel-preview').click();page.locator('.window[data-key="augment"] [data-close]').click()
+     page.locator('#nav').click();page.locator('#advanced-source').click()
      pending_text=text+'\n// retained browser input\n';source.fill(pending_text)
      page.locator('.brand').click();expect(page.locator('[data-project]')).to_have_count(1,timeout=30000)
      page.screenshot(path='/tmp/confectory-v196-consumer-home.png',full_page=True)
@@ -104,7 +136,7 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
      changed_view=send({'op':'mount'});assert send(envelope(changed_view,'invoke',endpoint='select',requestId='other-editor-selection',expectedRevision=changed_view['revision'],input={'id':'Example.ButtonGame::Main'}))['ok']
      changed_row,changed_state=settle(changed_view,'other-editor-selection');assert changed_row['ok'];assert changed_state['state']['draft']['id']=='Example.ButtonGame::Main'
      expect(page.locator('#source-notice')).to_contain_text('입력을 유지했습니다',timeout=30000);expect(source).to_have_value(pending_text);expect(page.locator('#selection')).to_have_text('Example.ButtonGame::Score')
-     page.locator('.window[data-key="browser"] .window-title strong').click();page.locator('[data-id="Example.ButtonGame::Score"]').click();expect(page.locator('#source-notice')).to_have_text('',timeout=30000);expect(source).to_have_value(pending_text)
+     page.locator('#nav').click();page.locator('[data-id="Example.ButtonGame::Score"]').click();expect(page.locator('#source-notice')).to_have_text('',timeout=30000);expect(source).to_have_value(pending_text)
      assert send(envelope(changed_view,'dispose'))['ok']
 
 

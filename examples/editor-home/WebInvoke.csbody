@@ -2,9 +2,11 @@ if(calls.Cancelled.Invoke(cancellation))throw new OperationCanceledException();
 var args=System.Text.Json.Nodes.JsonNode.Parse(input)!.AsObject();
 System.Text.Json.Nodes.JsonNode Command(string operation,System.Text.Json.Nodes.JsonObject payload){var result=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(context,operation,payload.ToJsonString()))!;if(result["status"]?.ToString().StartsWith("Error:",StringComparison.Ordinal)==true)throw new InvalidOperationException("Consumer rejected operation");return result;}
 var before=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(context))!;
+void OpenSemantic(){var opened=Command("workspace",new(){["action"]="open"});if(opened["workspace"]?["unit"]?["kind"]?.ToString() is "body" or "pack" or "project"){var filtered=Command("workspace",new(){["action"]="filter",["kind"]="object",["query"]=""});var first=System.Linq.Enumerable.FirstOrDefault(filtered["workspace"]?["units"]?.AsArray()??new System.Text.Json.Nodes.JsonArray());if(first is null)return;Command("workspace",new(){["action"]="select",["id"]=first["id"]!.DeepClone()});}Command("workspace",new(){["action"]="schema-view"});}
+
 if(endpoint is "openProject" or "host.open-file"){
  string path=endpoint=="host.open-file"?args["path"]!.GetValue<string>():System.Linq.Enumerable.First(before["cards"]!.AsArray(),card=>Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(card!["path"]!.ToString())))[..32]==args["id"]!.ToString())!["path"]!.ToString();
- Command("open-request",new(){["path"]=path});Command("workspace",new(){["action"]="open"});return "{\"accepted\":true}";
+ Command("open-request",new(){["path"]=path});OpenSemantic();return "{\"accepted\":true}";
 }
 if(endpoint=="host.close"){
  if(args["confirmed"]?.GetValue<bool>()!=true)throw new ArgumentException("Explicit close confirmation required");
@@ -14,12 +16,34 @@ if(endpoint=="host.close"){
   Command("open-request",new(){["path"]=path});Command("workspace",new(){["action"]="open"});Command("workspace",new(){["action"]="save"});var closing=Command("close-project",new());if(closing["closeRequest"] is not null)Command("close-project",new(){["confirmed"]=true});
  }return "{\"accepted\":true}";
 }
+if(endpoint=="connectionCatalog"){Command("connections",new());return "{\"accepted\":true}";}
+if(endpoint=="openConnectionSettings"){
+ if(before["selected"] is not null)throw new InvalidOperationException("Hide current project before settings");
+ Command("connection-settings",new(){["connection"]=args["connection"]!.DeepClone()});return "{\"accepted\":true}";
+}
+if(endpoint=="host.create-project"){
+ if(before["selected"] is not null)throw new InvalidOperationException("Hide current project before creation");
+ Command("create",new(){["directory"]=args["directory"]!.DeepClone(),["title"]=args["title"]!.DeepClone(),["description"]=args["description"]?.DeepClone()??System.Text.Json.Nodes.JsonValue.Create("")});OpenSemantic();return "{\"accepted\":true}";
+}
 var selected=before["selected"]??throw new InvalidOperationException("Project scope unavailable");
 if(endpoint=="leaveProject"){Command("leave",new(){["context"]=selected["context"]!.DeepClone()});return "{\"accepted\":true}";}
 if(endpoint is "runProject" or "stopProject"){Command(endpoint=="runProject"?"run":"stop",new(){["context"]=selected["context"]!.DeepClone(),["target"]=OperatingSystem.IsWindows()?"windows":"linux"});return "{\"accepted\":true}";}
+// Explicit local-only consumer operations. Provider dispatch is deliberately absent.
+var localActions=new System.Collections.Generic.Dictionary<string,string[]>{
+ ["yogi"]=new[]{"yogi","action","id","text","sealed","item"},["helperList"]=new[]{"helper-list"},["helperRecruit"]=new[]{"helper-recruit","kind"},["helperConnect"]=new[]{"helper-connect","helper","allowCommon"},["helperCommon"]=new[]{"helper-common","enabled"},["helperRemember"]=new[]{"helper-remember","scope","text"},
+ ["connections"]=new[]{"ai-connections"},["bindConnection"]=new[]{"ai-bind","connection"},["prepareAI"]=new[]{"ai-prepare","kind","target","message"},["permission"]=new[]{"ai-permission","token","id","approved"},["startAI"]=new[]{"ai-start","token"},["cancelPreview"]=new[]{"ai-cancel-preview"},["augmentShow"]=new[]{"augment-show"},["selectCard"]=new[]{"augment-select","card"},["selectWorker"]=new[]{"worker-select","task"},["stopWorker"]=new[]{"worker-stop"},["prepareWorker"]=new[]{"worker-prepare"},["stopAI"]=new[]{"ai-stop"},["chatDraft"]=new[]{"shell","action","value"}};
+if(localActions.TryGetValue(endpoint,out var action)){
+ if(endpoint is "stopWorker" or "prepareWorker")if(args["task"]?.ToString()!=before["selectedTask"]?.ToString()||before["selectedTaskContext"]?.ToString()!=selected["context"]!.ToString())throw new InvalidOperationException("Worker selection changed");
+ if(endpoint=="helperRemember"&&args["helper"]?.ToString()!=before["helperSelections"]?[selected["projectId"]!.ToString()]?["helper"]?.ToString())throw new InvalidOperationException("Helper selection changed");
+ var payload=new System.Text.Json.Nodes.JsonObject{["context"]=selected["context"]!.DeepClone()};
+ foreach(string field in System.Linq.Enumerable.Skip(action,1))if(args[field] is not null)payload[field]=args[field]!.DeepClone();
+ if(endpoint=="chatDraft")payload["action"]="draft";
+ Command(action[0],payload);return "{\"accepted\":true}";
+}
 var request=new System.Text.Json.Nodes.JsonObject{["context"]=selected["context"]!.DeepClone()};
 switch(endpoint){
  case "schema":if(args["id"]?.ToString()!=before["workspace"]?["unit"]?["id"]?.ToString())throw new InvalidOperationException("Schema selection changed");request["action"]="schema-view";break;
+ case "editMetadata":if(args["id"]?.ToString()!=before["workspace"]?["unit"]?["id"]?.ToString())throw new InvalidOperationException("Object selection changed");request["action"]="value";request["field"]=args["field"]!.DeepClone();request["value"]=args["value"]!.DeepClone();request["expectedRevision"]=args["revision"]!.DeepClone();break;
  case "editField":if(args["id"]?.ToString()!=before["workspace"]?["unit"]?["id"]?.ToString())throw new InvalidOperationException("Schema selection changed");request["action"]="data-path";request["id"]=args["id"]!.DeepClone();request["path"]=args["path"]!.DeepClone();request["value"]=args["value"]!.DeepClone();request["expectedRevision"]=args["revision"]!.DeepClone();break;
  case "objects":request["action"]="filter";request["kind"]="object";request["query"]=args["query"]?.GetValue<string>()??"";break;
  case "page":request["action"]="page";request["page"]=args["page"]!.GetValue<int>();break;

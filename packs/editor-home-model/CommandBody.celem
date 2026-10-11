@@ -56,4 +56,11 @@ import Confectory.ProjectAI::Work as WorkTask (string,string,string,string) -> s
 import Confectory.ProjectAI::Adopt as AdoptTask (string,string,string,string,string[],string) -> string;
 import Confectory.ProjectAI::PrepareRecovery as PrepareRecovery (string,string,string) -> string;
 import Confectory.ProjectAI::AdoptionStatus as AdoptionStatus (string,string) -> string; import Confectory.ProjectAI::ReconcileAdoption as ReconcileAdoption (string,string,string,string) -> string;
+import Confectory.YogiBox::Create as YogiCreate () -> string;
+import Confectory.YogiBox::Exactly as YogiExactly (string,string,string[],string[]) -> void;
+import Confectory.YogiBox::Text as YogiText (string,string) -> void;
+import Confectory.YogiBox::Seal as YogiSeal (string,bool) -> void;
+import Confectory.YogiBox::Remove as YogiRemove (string,string) -> bool;
+import Confectory.YogiBox::Snapshot as YogiSnapshot (string) -> string;
+import Confectory.YogiBox::Discard as YogiDiscard (string) -> void;
 body common "Command.csbody"; }

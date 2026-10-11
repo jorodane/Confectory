@@ -1,6 +1,6 @@
 # Windows 시작 파일: Confectory.bat
 
-최신: Git에 추가된 v196 원본의 해시와 실제 화면을 확인했습니다. 기본 시작은 내장 HTML EditorHome입니다. 홈·기존 프로젝트·객체·초안·Save/Review/Confirm·객체 ID 기반 스키마를 연결했으며 나머지 기능은 [지원 범위](EMBEDDED_WEB_UI.md)에 구분했습니다. Windows OS 실행 검증은 보류입니다.
+최신: Git에 추가된 v196 원본의 해시와 실제 화면을 확인했습니다. 기본 시작은 내장 HTML EditorHome입니다. 홈·프로젝트 생성·기존 프로젝트·의미 객체 속성·초안·Save/Review/Confirm·Helper·AI 설정/권한 검토·증강/Worker·로컬 YogiBox를 연결했으며 나머지 기능은 [지원 범위](EMBEDDED_WEB_UI.md)에 구분했습니다. Windows OS 실행 검증은 보류입니다.
 
 저장소 루트의 **Confectory.bat 하나**를 엽니다. 기존 .NET 10 SDK와 Windows에
 있는 Windows PowerShell을 사용하며, 도구를 설치하거나 전역 환경변수/setx를

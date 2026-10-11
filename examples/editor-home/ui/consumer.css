@@ -2,3 +2,7 @@
 .window-body{overflow:auto}.consumer-source{height:clamp(110px,25vh,250px)}.window-content .actions{flex-wrap:wrap;gap:6px}.window-content .actions button{white-space:normal}
 
 .consumer-logs{max-height:85px;overflow:auto;margin:0 12px;white-space:pre-wrap;font:12px monospace;color:var(--muted)}
+
+.consumer-card-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.consumer-output{white-space:pre-wrap;overflow-wrap:anywhere;max-height:180px;overflow:auto}.window-content textarea{width:100%}#helper-summary,#worker-summary{padding:12px;font-size:12px;overflow-wrap:anywhere}
+
+.window[hidden]{display:none!important}.consumer-worker{display:inline-flex;align-items:center;padding:4px;border:0;background:transparent}.consumer-worker .helper-worker-dot{display:inline-block;position:relative}.consumer-worker:focus-within .worker-status-tooltip{display:block}
