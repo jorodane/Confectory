@@ -1,5 +1,13 @@
 # AI development implementation and verification boundary
 
+## 2026-10-11 Embedded host infrastructure; v196 source blocked
+
+Official consumer-local ZIP materialization and one retry both failed with `download failed`. No source bytes or pixels were obtained; v196 porting is not complete. Independent generic Windows WebView2/WinForms host and the same EditorHome pack opt-in transport are implemented. Default startup stays native; no old page/browser demo replaces the requested editor. See [support matrix, blocker and evidence](EMBEDDED_WEB_UI.md).
+
+## 2026-10-11 Windows stderr presentation fix
+
+User confirmed actual EditorHome starts. Normal CLI stderr progress is now converted to text before host display/logging to avoid Windows PowerShell NativeCommandError decoration. Native exit codes and synchronous execution remain intact. Windows PowerShell regression added but not executable in this Linux environment; see [launcher evidence](WINDOWS_LAUNCHER.md).
+
 ## 2026-10-11 Unified Windows entry
 
 Root `Confectory.bat` now directly starts current native EditorHome; a file argument uses existing DesktopEntry open semantics. Explicit developer tools are under `scripts/windows/developer-tools.bat`. The `$home` / read-only `$HOME` startup collision is fixed with `$confectoryEditorProject`; the previous static checks missed it. Build/export and association-file generation remain existing developer tools, not new editor UI. Embedded HTML editor is not implemented. External-browser WebUI is a developer diagnostic only; legacy launchers moved out of the root. See [launcher/migration and WebView investigation](WINDOWS_LAUNCHER.md). Latest user main merge 7a008bc was fast-forwarded on work/current; the paused native 18-file work and backup remain untouched. No SDK/WebView installation, signing, registry import, Android version change or Sites change was performed. Windows CMD execution is explicitly unverified here.

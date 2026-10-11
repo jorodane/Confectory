@@ -1,5 +1,6 @@
 return """
 export function connectLocal() {
+ if(globalThis.confectoryWebUI?.send)return envelope=>globalThis.confectoryWebUI.send(envelope);
  const key='confectory.webui.session',token=location.hash.slice(1)||sessionStorage.getItem(key)||'';
  if(location.hash){sessionStorage.setItem(key,token);history.replaceState(null,'',location.pathname);}
  return localTransport(token);

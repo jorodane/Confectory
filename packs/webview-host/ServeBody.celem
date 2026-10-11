@@ -1,0 +1,5 @@
+implementation Confectory.WebViewHost::ServeBody for Confectory.WebViewHost::Serve (string owner) -> int {
+import Confectory.WebUI::Request as Request (string,string) -> string;
+import Confectory.WebUI::Resource as Resource (string,string) -> string[];
+import Confectory.WebUI::Close as Close (string) -> bool;
+body common "Serve.csbody"; }

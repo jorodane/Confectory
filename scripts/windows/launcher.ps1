@@ -10,7 +10,7 @@ if ($Action -eq 'menu') {
     while ($true) {
         Write-Host "`nConfectory"
         Write-Host '1  Editor - current EditorHome (build tools, then run/open selected file)'
-        Write-Host '2  Embedded HTML editor - NOT IMPLEMENTED (information only)'
+        Write-Host '2  Embedded v196 HTML editor - NOT AVAILABLE (information only)'
         Write-Host '3  Build tools only - no project execution'
         Write-Host '4  Export unsigned Android package - existing Android SDK/JDK required'
         Write-Host '5  Generate file association .reg - review/import manually, no registry changes'
@@ -22,8 +22,8 @@ if ($Action -eq 'menu') {
         if ($chosen -eq 'exit') { exit 0 }
         if (!$chosen) { Write-Host 'Choose 0 through 6. Nothing was started.'; continue }
         if ($chosen -eq 'unavailable') {
-            Write-Host 'HTML inside the editor window needs a native rendering provider and message/resource bridge.'
-            Write-Host 'Not implemented. No browser/server/build/install was started.'
+            Write-Host 'The generic Windows rendering host exists, but the v196 source port and editor workflows are not available yet.'
+            Write-Host 'Not implemented as the default editor. No browser/server/build/install was started.'
             [void](Read-Choice 'Press Enter to return to the menu'); continue
         }
         if ($chosen -eq 'diagnostics') {
@@ -57,16 +57,11 @@ $dotnet = 'dotnet'
 if ($env:CONFECTORY_DOTNET) { $dotnet = $env:CONFECTORY_DOTNET }
 $log = $null
 $failureCode = 1
+. (Join-Path $PSScriptRoot 'internal\native-tool.ps1')
 function Run-Tool {
     param([string[]]$ToolArguments, [string]$Executable = $dotnet)
     if (!(Get-Command $Executable -CommandType Application -ErrorAction SilentlyContinue)) { throw "Executable not found: $Executable" }
-    $savedPreference = $ErrorActionPreference
-    try {
-        $ErrorActionPreference = 'Continue'
-        $global:LASTEXITCODE = -1
-        & $Executable @ToolArguments 2>&1 | Tee-Object -FilePath $log -Append | Out-Host
-        $toolExit = $LASTEXITCODE
-    } finally { $ErrorActionPreference = $savedPreference }
+    $toolExit = Invoke-ConfectoryNativeTool -Executable $Executable -ToolArguments $ToolArguments -LogPath $log
     if ($toolExit -ne 0) { $script:failureCode = $toolExit; throw "Tool failed with exit $toolExit. Log: $log" }
 }
 function Choose-Project {

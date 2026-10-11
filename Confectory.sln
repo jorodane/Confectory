@@ -28,6 +28,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Confectory.Build.Web", "tar
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Confectory.Build.BrowserWasm", "targets\browser-wasm\Confectory.Build.BrowserWasm.csproj", "{DD5C3B48-1E14-4F68-A4C0-2D81D7CA3E6C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Confectory.WebView.Windows", "targets\webview-windows\Confectory.WebView.Windows.csproj", "{26C7475A-4CD0-458D-BB34-B7AF8C06C65B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -77,6 +79,10 @@ Global
 		{DD5C3B48-1E14-4F68-A4C0-2D81D7CA3E6C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DD5C3B48-1E14-4F68-A4C0-2D81D7CA3E6C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DD5C3B48-1E14-4F68-A4C0-2D81D7CA3E6C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{26C7475A-4CD0-458D-BB34-B7AF8C06C65B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{26C7475A-4CD0-458D-BB34-B7AF8C06C65B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{26C7475A-4CD0-458D-BB34-B7AF8C06C65B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{26C7475A-4CD0-458D-BB34-B7AF8C06C65B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{45070A74-222B-447A-B314-759CB61BD6DF} = {FFB9DECD-9217-4394-9731-E710FB8214C6}
@@ -89,5 +95,6 @@ Global
 		{19D68FCE-E56C-4A0A-8351-F1880754ABA9} = {2AA2EFB5-9071-48D9-B7DC-E1765BFF7D9B}
 		{AFFDD826-6F81-481F-BF38-A4D0EC4D4AD0} = {2AA2EFB5-9071-48D9-B7DC-E1765BFF7D9B}
 		{DD5C3B48-1E14-4F68-A4C0-2D81D7CA3E6C} = {2AA2EFB5-9071-48D9-B7DC-E1765BFF7D9B}
+		{26C7475A-4CD0-458D-BB34-B7AF8C06C65B} = {2AA2EFB5-9071-48D9-B7DC-E1765BFF7D9B}
 	EndGlobalSection
 EndGlobal

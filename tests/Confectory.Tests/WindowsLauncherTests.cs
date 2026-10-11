@@ -73,4 +73,44 @@ public sealed class WindowsLauncherTests : TestCase
         string text=output.GetAwaiter().GetResult()+error.GetAwaiter().GetResult();True(process.ExitCode==0,text);
     }
 
+    public void test_windows_powershell_native_stderr_progress_and_exit_code()
+    {
+        if(!OperatingSystem.IsWindows())Skip("Requires Windows PowerShell 5.1 native stderr semantics");
+        string probe=Path.Combine(f.Root,"native probe 한글.ps1"),child=Path.Combine(f.Root,"child progress.ps1"),log=Path.Combine(f.Root,"native.log");
+        File.WriteAllText(child,"""
+            param([string]$Value, [int]$Result)
+            [Console]::Error.WriteLine("progress: " + $Value)
+            [Console]::Out.WriteLine('stdout before wait')
+            Start-Sleep -Seconds 2
+            for ($index = 0; $index -lt 2000; $index++) {
+                [Console]::Out.WriteLine("out-$index")
+                [Console]::Error.WriteLine("err-$index")
+            }
+            [Console]::Out.WriteLine('child completed')
+            exit $Result
+            """);
+        File.WriteAllText(probe,"""
+            param([string]$Helper, [string]$Child, [string]$Log)
+            $ErrorActionPreference = 'Stop'
+            . $Helper
+            foreach ($result in @(0,23)) {
+                $watch = [Diagnostics.Stopwatch]::StartNew()
+                $code = Invoke-ConfectoryNativeTool -Executable (Join-Path $PSHOME 'powershell.exe') -ToolArguments @('-NoProfile','-File',$Child,'-Value','C:\space & bang!\project.cproj','-Result',"$result") -LogPath $Log
+                if ($code -ne $result) { throw "Exit mismatch: $code / $result" }
+                if ($watch.Elapsed.TotalSeconds -lt 2) { throw 'Returned before child completion' }
+                if ($ErrorActionPreference -ne 'Stop') { throw 'Preference leaked' }
+            }
+            exit $code
+            """);
+        var start=new ProcessStartInfo("powershell.exe"){UseShellExecute=false,RedirectStandardOutput=true,RedirectStandardError=true};
+        foreach(string arg in new[]{"-NoProfile","-ExecutionPolicy","Bypass","-File",probe,"-Helper",Path.Combine(Fixture.Repo,"scripts","windows","internal","native-tool.ps1"),"-Child",child,"-Log",log})start.ArgumentList.Add(arg);
+        using var process=Process.Start(start)!;var output=process.StandardOutput.ReadToEndAsync();var error=process.StandardError.ReadToEndAsync();
+        if(!process.WaitForExit(60000)){process.Kill(true);throw new TimeoutException("Native streaming/exit regression");}
+        string text=output.GetAwaiter().GetResult()+error.GetAwaiter().GetResult();Equal(23,process.ExitCode);
+        string logged=File.ReadAllText(log);
+        foreach(string content in new[]{"progress: C:\\space & bang!\\project.cproj","stdout before wait","out-1999","err-1999","child completed"})
+        {True(text.Contains(content),text);True(logged.Contains(content),logged);}
+        True(!text.Contains("NativeCommandError")&&!text.Contains("CategoryInfo"),text);
+    }
+
 }
