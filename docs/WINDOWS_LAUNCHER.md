@@ -5,7 +5,14 @@
 설정하지 않습니다. `CONFECTORY_DOTNET`을 이미 지정했다면 해당 실행 파일을
 사용하고, 아니면 PATH의 `dotnet`을 사용합니다.
 
-| 선택 | 실제 동작 |
+루트 실행은 메뉴 없이 솔루션을 빌드하고 현재 네이티브 EditorHome을 엽니다.
+`Confectory.bat "C:\path with spaces\project.cproj"`는 기존 DesktopEntry의
+같은 인스턴스 전달/metadata-only 열기를 사용하며 해당 프로젝트 코드를 실행하지 않습니다.
+
+개발 도구 메뉴는 **`scripts/windows/developer-tools.bat`를 명시적으로 열 때만** 나타납니다.
+아래 빌드/내보내기는 기존 도구이며 새 에디터 내부 UI가 아닙니다.
+
+| 개발 도구 선택 | 실제 동작 |
 | --- | --- |
 | 1 | 솔루션을 빌드하고 실제 `examples/editor-home/project.cpack`의 현재 네이티브 에디터 실행. 파일 인수가 있으면 기존 DesktopEntry의 같은 인스턴스 전달/metadata-only 열기 사용. |
 | 2 | 창 내부 HTML 에디터가 아직 미구현임을 안내. 빌드·브라우저·서버·설치 작업 없음. |
@@ -18,10 +25,10 @@
 기본 에디터는 현재 네이티브 UI입니다. 개발 진단의 HTML 화면은 객체 조회와
 공유 초안 편집/Save까지의 기반이며, Sites 전체 에디터나 창 내부 WebView가
 아닙니다. 출력된 localhost URL을 브라우저로 열고 호스트를 유지해야 합니다.
-Ctrl+C로 호스트를 종료할 때 메뉴까지 종료된다면 Confectory.bat를 다시 엽니다.
+Ctrl+C로 호스트를 종료할 때 메뉴까지 종료된다면 scripts/windows/developer-tools.bat를 다시 엽니다.
 Windows 콘솔에서 이 동작은 아직 직접 검증되지 않았습니다.
 
-작업이 끝나거나 실패하면 진단을 읽고 Enter로 메뉴로 돌아갑니다. 각 작업은
+개발 도구 메뉴에서는 작업이 끝나거나 실패하면 Enter로 메뉴로 돌아갑니다. 각 작업은
 별도 PowerShell 프로세스에서 실행하며 웹/구형 데모 모드 변수를 초기화합니다.
 SDK 경로, 프로젝트 경로는 명령 문자열로 조립하거나 Invoke-Expression으로
 평가하지 않습니다. 명시적 인수 배열/리터럴 경로를 사용합니다. Web 프로젝트
@@ -36,17 +43,17 @@ SDK 경로, 프로젝트 경로는 명령 문자열로 조립하거나 Invoke-Ex
 - `scripts/windows/legacy`: 구형 Editor, Engine/authoring, 프로젝트 브라우저,
   구형 import-only 웹 데모. 사용자 기본 메뉴의 에디터가 아닙니다.
 - `scripts/windows/verification`: 도구 산출물 검사와 windowless 실험.
-- `scripts/windows/launcher.ps1`: 새 메뉴와 작업 실행.
+- `scripts/windows/launcher.ps1`: 기본 editor 작업 실행과 명시적 개발 메뉴.
+- `scripts/windows/developer-tools.bat`: 개발 메뉴 진입점.
 
 모든 이동은 Git rename으로 추적하며 원본 팩과 사용자 데이터는 삭제하지 않습니다.
 내부 배치는 위치에서 `../../..`를 계산하고 호출/문서/테스트 참조도 갱신했습니다.
 기존 체크포인트 문서의 직접 실행 경로는 역사적/진단용입니다. 일반 사용자는
 루트 Confectory.bat를 사용합니다.
 
-새 파일 연결 등록 파일은 `Confectory.bat "%1"`을 가리킵니다. 파일을 눌러도
-메뉴 선택 전에는 빌드나 실행이 없습니다. **이미 Windows 레지스트리에 저장된
+새 파일 연결 등록 파일은 `Confectory.bat "%1"`을 가리킵니다. 파일을 누르면 빌드 후 기존 열기 경로로 바로 연결됩니다. 이미 이 루트 파일을 가리키는 연결은 재등록할 필요가 없습니다. **이미 Windows 레지스트리에 저장된
 옛 `open-project-windows.bat` 경로는 자동 변경할 수 없습니다.** 기존 설치는
-새 메뉴 5로 등록 파일을 생성·검토하고 직접 적용해야 합니다. 이전에 저장한
+개발 도구 메뉴 5로 등록 파일을 생성·검토하고 직접 적용해야 합니다. 이전에 저장한
 바로 가기도 새 루트 진입점으로 변경합니다. 사용자 PC/레지스트리는 건드리지
 않았고, 제거한 루트 경로에 두 번째 사용자용 호환 런처를 남기지는 않았습니다.
 
@@ -75,7 +82,22 @@ Windows 후보인 [WebView2](https://learn.microsoft.com/en-us/microsoft-edge/we
 이는 구현 계획의 조사이며 SDK/runtime 설치, 제공자 확정, UI 이식 완료를 의미하지
 않습니다. 같은 팩 HTML을 창 내부에서 쓰는 목표와 향후 서버 활용을 구분합니다.
 
-## 검증 기록
+## 직접 실행 수정 및 검증 (2026-10-11)
+
+5d1bfc4의 `$home` 대입은 PowerShell의 대소문자 무시 규칙 때문에 읽기 전용
+`$HOME`과 충돌했습니다. `$confectoryEditorProject`로 바꾸고 관련 Windows
+스크립트의 예약 변수 대입도 검사했습니다. 이전 정적 검사는 이 오류를 놓쳤습니다.
+기본 Action과 루트 배치는 이제 editor를 직접 실행합니다. 개발 메뉴는 별도 명시적 진입점입니다.
+
+Python 회귀 검사는 원래 `$home` 오류를 탐지하고 전체 Windows 스크립트를 검사합니다.
+Windows 전용 테스트에는 실제 PowerShell 구문/AST 검사와 CMD 직접 실행의
+메뉴 부재·SDK 누락 오류 전파·공백/한글/기호 경로 검사를 추가했습니다.
+이번 검증: .NET 10.0.401 솔루션 빌드 경고/오류 0, Python 정적 회귀 4개 통과,
+CLI 공백 경로/종료 코드·DesktopEntry 인용/전달 실패·cproj 호환 회귀 3개 통과,
+Windows 전용 3개 skip (14.167초). 현재 Linux에는 CMD, Windows PowerShell, PSScriptAnalyzer가 없으므로 Windows
+실행 성공을 주장하지 않습니다. 아래 이전 검증 기록과 이번 결과를 구분합니다.
+
+## 이전 검증 기록 (5d1bfc4)
 
 최신 사용자 머지 `7a008bc70939918f465c6830baec6bffde86530d`를 work/current에 fast-forward 반영했습니다. main에는
 push/merge하지 않습니다. 원래 18파일과 `/workspace/confectory-paused-ui-backup`

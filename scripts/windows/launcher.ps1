@@ -1,4 +1,4 @@
-param([ValidateSet('menu','editor','web','build','android','association')][string]$Action = 'menu')
+param([ValidateSet('menu','editor','web','build','android','association')][string]$Action = 'editor')
 $ErrorActionPreference = 'Stop'
 $repo = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
 function Read-Choice([string]$Prompt) {
@@ -117,20 +117,20 @@ try {
     if ($Action -eq 'build') { exit 0 }
     $cli = Join-Path $repo 'src\Confectory.Cli\bin\Release\net10.0\Confectory.Cli.dll'
     $entry = Join-Path $repo 'targets\desktop-entry\bin\Release\net10.0\Confectory.DesktopEntry.dll'
-    $home = Join-Path $repo 'examples\editor-home\project.cpack'
+    $confectoryEditorProject = Join-Path $repo 'examples\editor-home\project.cpack'
     if ($Action -eq 'association') {
         $registration = Join-Path $repo '.confectory\Confectory.cproj.reg'
         Run-Tool -ToolArguments @($entry, 'registration-file', $registration, '--repository', $repo)
         Write-Host "Created only: $registration. Review it before manually importing. Existing old associations need this explicit migration."
     } elseif ($Action -eq 'editor') {
         if ($env:CONFECTORY_LAUNCH_PROJECT) { Run-Tool -ToolArguments @($entry, 'open', $env:CONFECTORY_LAUNCH_PROJECT, '--repository', $repo) }
-        else { Run-Tool -ToolArguments @($cli, 'run', $home, 'windows') }
+        else { Run-Tool -ToolArguments @($cli, 'run', $confectoryEditorProject, 'windows') }
     } elseif ($Action -eq 'web') {
         $env:CONFECTORY_UI = 'web'
         $env:CONFECTORY_WEB_PROJECT = $project
         Write-Host 'Open the printed http://127.0.0.1 URL in your browser. Keep this host window open.'
-        Write-Host 'Close the host with Ctrl+C. If the menu exits too, reopen Confectory.bat.'
-        Run-Tool -ToolArguments @($cli, 'run', $home, 'windows')
+        Write-Host 'Close the host with Ctrl+C. If the menu exits too, reopen scripts/windows/developer-tools.bat.'
+        Run-Tool -ToolArguments @($cli, 'run', $confectoryEditorProject, 'windows')
     }
     exit 0
 } catch {

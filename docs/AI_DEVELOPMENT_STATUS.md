@@ -2,7 +2,7 @@
 
 ## 2026-10-11 Unified Windows entry
 
-Use root `Confectory.bat`; current native EditorHome, build/export and explicit association-file generation are separate choices. Embedded HTML editor is not implemented. External-browser WebUI is a developer diagnostic only; legacy launchers moved out of the root. See [launcher/migration and WebView investigation](WINDOWS_LAUNCHER.md). Latest user main merge 7a008bc was fast-forwarded on work/current; the paused native 18-file work and backup remain untouched. No SDK/WebView installation, signing, registry import, Android version change or Sites change was performed. Windows CMD execution is explicitly unverified here.
+Root `Confectory.bat` now directly starts current native EditorHome; a file argument uses existing DesktopEntry open semantics. Explicit developer tools are under `scripts/windows/developer-tools.bat`. The `$home` / read-only `$HOME` startup collision is fixed with `$confectoryEditorProject`; the previous static checks missed it. Build/export and association-file generation remain existing developer tools, not new editor UI. Embedded HTML editor is not implemented. External-browser WebUI is a developer diagnostic only; legacy launchers moved out of the root. See [launcher/migration and WebView investigation](WINDOWS_LAUNCHER.md). Latest user main merge 7a008bc was fast-forwarded on work/current; the paused native 18-file work and backup remain untouched. No SDK/WebView installation, signing, registry import, Android version change or Sites change was performed. Windows CMD execution is explicitly unverified here.
 
 
 ## 2026-10-11 Generic web UI foundation

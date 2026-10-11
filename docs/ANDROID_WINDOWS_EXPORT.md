@@ -1,6 +1,6 @@
 # Repeatable local Windows APK/AAB export
 
-Windows 사용자 진입점은 루트 `Confectory.bat`의 **4 — unsigned Android export**입니다. 아래 직접 실행/서명 설명은 내부 고급 도구 사용에 해당하며, 통합 메뉴는 서명이나 키 생성을 시작하지 않습니다. [통합 메뉴 안내](WINDOWS_LAUNCHER.md).
+Windows 사용자 진입점은 `scripts/windows/developer-tools.bat`의 **4 — unsigned Android export**입니다. 아래 직접 실행/서명 설명은 내부 고급 도구 사용에 해당하며, 통합 메뉴는 서명이나 키 생성을 시작하지 않습니다. [통합 메뉴 안내](WINDOWS_LAUNCHER.md).
 
 
 Entry point: double-click `scripts/windows/internal/export-android-windows.bat`, select an engine ProjectPack, and follow the local prompts. There is currently no Android export menu in Home. The script builds the trusted exporter, creates a new timestamped output under `%LOCALAPPDATA%\Confectory\exports`, and packages the format in the selected project's AndroidExport object. It does not install development tools, create keys, install the app, or contact Play. The wrapper permits its own PowerShell script for that process only; it does not persist an execution-policy change.
