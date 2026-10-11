@@ -28,7 +28,9 @@ Evidence: [Review capture](evidence/new-concept-creation/review.png), [fresh pro
 - Windows WebView managed host: PASS, zero warnings/errors.
 - Actual original HTML versus ordinary consumer Home/project/create layout: PASS (102.989s).
 - Actual X11 full owned-pack source acceptance: PASS, including Save, Review/cancel, external source conflict, invalid compile, restart retention, exact Confirm, confirmed-source child editor Run/Stop/cleanup and native semantic authoring.
-- Focused ordinary lowercase `test` creation and actual process reopen: PASS (121.995s), including rejected compiler acceptance with retained draft/no final files, correction, exact Confirm, actual browser listing, process restart and rediscovered saved value/description/clean draft. The full surrounding web regression is being rerun after a later Run/Stop check encountered an explicitly rejected stale revision from live execution updates. The harness retries only that rejected UI Stop click; no source operation or production policy is replayed.
-- Retained CRLF/LF checkout and declared-resource gate: PASS on 93d061e (48.355s); the subsequent Confirm outcome guard awaits the same gate on its local commit.
+- Focused ordinary lowercase `test` creation and actual process reopen: PASS (121.995s), including rejected compiler acceptance with retained draft/no final files, correction, exact Confirm, actual browser listing, process restart and rediscovered saved value/description/clean draft.
+- Full actual EditorHome and ButtonGame common Chromium transport regression: PASS (794.488s), including Worker, schema editing, retained input, Run/Stop and fresh process reopen.
+- Retained CRLF/LF checkout and declared-resource gate: PASS on final production commit 1681e35 (15.094s).
+- Paused original work: HEAD and all 18 recorded file hashes unchanged; main and Android version settings preserved.
 
  Actual Windows WebView and Android device execution are not available in this Linux environment. Managed builds alone do not establish those device UI results. The previous browser WASM publish blocker is outside this fix and remains unresolved.

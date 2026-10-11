@@ -166,8 +166,17 @@
       "actual concept browser listing"
     ]
   },
-  "fullWebRegression": "pending final rerun",
-  "crlfCheckout": "pending",
+  "fullWebRegression": {
+    "result": "PASS",
+    "seconds": 794.488,
+    "case": "test_actual_editor_and_button_game_common_web_transport_chromium"
+  },
+  "crlfCheckout": {
+    "result": "PASS",
+    "seconds": 15.094,
+    "codeCommit": "1681e35",
+    "case": "test_editor_web_resources_windows_git_checkout_and_actual_startup"
+  },
   "focusedCreationAndActualReopen": {
     "result": "PASS",
     "seconds": 121.995,
@@ -181,5 +190,9 @@
       "saved value 2 and real description",
       "clean reopened draft"
     ]
+  },
+  "pausedWorkPreservation": {
+    "head": "f182ea34f6441abc87f14d8fce01ed263a8a0dda",
+    "unchangedTrackedFileHashes": 18
   }
 }
