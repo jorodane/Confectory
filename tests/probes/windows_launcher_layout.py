@@ -17,6 +17,8 @@ class LauncherLayout(unittest.TestCase):
   self.assertIn("if ($chosen -eq 'unavailable')",menu);self.assertIn("-File $PSCommandPath -Action $chosen",menu)
   self.assertIn("'examples\\editor-home\\project.cpack'",menu)
   self.assertNotIn('editor-home-web',menu);self.assertNotIn('project-browser',menu)
+  editor=menu.split("} elseif ($Action -eq 'editor') {",1)[1].split("} elseif ($Action -eq 'web')",1)[0]
+  self.assertIn("$env:CONFECTORY_UI = 'embedded'",editor);self.assertIn('$env:CONFECTORY_WEBVIEW_HOST',editor);self.assertNotIn("$env:CONFECTORY_UI = 'web'",editor)
   self.assertIn("$env:CONFECTORY_UI = 'web'",menu);self.assertIn('$env:CONFECTORY_WEB_PROJECT = $project',menu)
   self.assertIn("if (!$project) { exit 2 }",menu);self.assertIn('exit $failureCode',menu)
  def test_moved_batch_references(self):

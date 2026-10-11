@@ -14,4 +14,5 @@ element CloseBody implementation "CloseBody.celem";
 element Cancelled function "Cancelled.celem";
 element CancelledBody implementation "CancelledBody.celem";
 element Client function "Client.celem"; element ClientBody implementation "ClientBody.celem";
+element NativeRequest function "NativeRequest.celem"; element NativeRequestBody implementation "NativeRequestBody.celem";
 }

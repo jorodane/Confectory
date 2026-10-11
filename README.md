@@ -1,6 +1,6 @@
 # Confectory C# build core
 
-Windows entry: **[Confectory.bat](Confectory.bat)**. See [direct startup and developer tools](docs/WINDOWS_LAUNCHER.md). The embedded HTML editor is not implemented; the external-browser contract probe is developer diagnostics, not the default editor.
+Windows entry: **[Confectory.bat](Confectory.bat)**. See [direct startup and developer tools](docs/WINDOWS_LAUNCHER.md). Windows defaults to the embedded HTML editor. The v196 integration is partial; see [verified and remaining features](docs/EMBEDDED_WEB_UI.md). External-browser use remains developer diagnostics.
 
 
 A .NET 10 build core for **ProjectPack + target**. It resolves namespace-qualified pack elements, generates C# contracts, compiles owned implementations locally, and links actual providers through a build-target pack. The core, CLI, target tool and tests are implemented in C#; Python is not required. Runtime and UI are assembled from ordinary packs, including the current small draft-authoring slice. Full editor, physics and mod loading are later packs.
@@ -15,13 +15,13 @@ The first runtime sample is [Confectory.Window](packs/window/README.md): a reusa
 
 ## Run from the repository root
 
-Requirements: the .NET 10 **SDK**. Core/CLI and pack compilation use the .NET standard library. The Windows embedded-rendering host additionally restores the official WebView2 package and WindowsDesktop reference pack from NuGet.org; its source is scoped to that project. See [the embedded host boundary and source blocker](docs/EMBEDDED_WEB_UI.md). The target pack discovers `dotnet` on PATH; alternatively set `CONFECTORY_DOTNET` to the actual executable (`dotnet.exe` on Windows).
+Requirements: the .NET 10 **SDK**. Core/CLI and pack compilation use the .NET standard library. The Windows embedded-rendering host additionally restores the official WebView2 package and WindowsDesktop reference pack from NuGet.org; its source is scoped to that project. See [the embedded host boundary](docs/EMBEDDED_WEB_UI.md). The target pack discovers `dotnet` on PATH; alternatively set `CONFECTORY_DOTNET` to the actual executable (`dotnet.exe` on Windows).
 
 The repository's `global.json` selects the newest installed stable **10.0 SDK** (10.0.100 or later). All managed hosts, generated pack assemblies and the browser WASM runtime target .NET 10. The authoring tool uses SDK 10 Roslyn 5.x and rejects older SDK/Roslyn pairs. Run `dotnet --version` from this checkout and check `10.0.*`; scripts do not install tools automatically. SDK 8 may remain installed for older checkouts. Historical SDK 8 evidence remains in the documentation.
 
 Building the core/CLI/tool/tests or compiling a ProjectPack requires the SDK. Running an already generated application requires only the .NET 10 `Microsoft.NETCore.App` runtime and its `dotnet` host. The CLI starts on that runtime, but build/check/validate use the SDK-dependent target tool. Generated packages are framework-dependent; there is no self-contained distribution. Linux execution with an isolated runtime-only installation is verified in the evidence report.
 
-On Windows, `Confectory.bat` directly opens the current native EditorHome. For a build-only action, explicitly open **`scripts/windows/developer-tools.bat`** and choose **3 — Build tools** to build the entire solution in Release. The internal build script is `scripts/windows/internal/build-windows.bat`. It uses the script's directory, so it can be called from another working directory. It performs only the build and returns the .NET build exit code; it does not install tools or run tests. Outputs are in each project's `bin/Release/net10.0/` directory. The .NET 10 SDK must already be installed.
+On Windows, `Confectory.bat` directly opens the embedded HTML EditorHome. For a build-only action, explicitly open **`scripts/windows/developer-tools.bat`** and choose **3 — Build tools** to build the entire solution in Release. The internal build script is `scripts/windows/internal/build-windows.bat`. It uses the script's directory, so it can be called from another working directory. It performs only the build and returns the .NET build exit code; it does not install tools or run tests. Outputs are in each project's `bin/Release/net10.0/` directory. The .NET 10 SDK must already be installed.
 
 ```sh
 dotnet build Confectory.sln -c Release

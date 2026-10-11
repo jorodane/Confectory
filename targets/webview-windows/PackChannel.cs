@@ -30,7 +30,7 @@ internal sealed class PackChannel : IDisposable
         {
             while (await reader.ReadLineAsync() is string line)
             {
-                if (line.Length > 4194304) throw new IOException("Oversized pack reply");
+                if (line.Length > 6291456) throw new IOException("Oversized pack reply");
                 var reply = JsonNode.Parse(line)!;
                 if (pending.TryRemove(reply["id"]!.GetValue<string>(), out var task))
                     if (reply["error"] is null) task.TrySetResult(reply["result"]?.DeepClone());

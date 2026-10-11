@@ -9,8 +9,8 @@ if ($Action -eq 'menu') {
     # Every selected action runs in a child process. Mode flags cannot leak between selections.
     while ($true) {
         Write-Host "`nConfectory"
-        Write-Host '1  Editor - current EditorHome (build tools, then run/open selected file)'
-        Write-Host '2  Embedded v196 HTML editor - NOT AVAILABLE (information only)'
+        Write-Host '1  Editor - embedded HTML EditorHome (build tools, then run/open selected file)'
+        Write-Host '2  v196 integration status (information only)'
         Write-Host '3  Build tools only - no project execution'
         Write-Host '4  Export unsigned Android package - existing Android SDK/JDK required'
         Write-Host '5  Generate file association .reg - review/import manually, no registry changes'
@@ -22,12 +22,12 @@ if ($Action -eq 'menu') {
         if ($chosen -eq 'exit') { exit 0 }
         if (!$chosen) { Write-Host 'Choose 0 through 6. Nothing was started.'; continue }
         if ($chosen -eq 'unavailable') {
-            Write-Host 'The generic Windows rendering host exists, but the v196 source port and editor workflows are not available yet.'
-            Write-Host 'Not implemented as the default editor. No browser/server/build/install was started.'
+            Write-Host 'Home, existing project/object, shared draft Save/Review/Confirm are connected to the embedded host.'
+            Write-Host 'Not implemented: Helper/Worker, augment, direction and complex schema interactions. No action was started.'
             [void](Read-Choice 'Press Enter to return to the menu'); continue
         }
         if ($chosen -eq 'diagnostics') {
-            Write-Host '1  External browser WebUI contract probe: object browsing and draft Save only.'
+            Write-Host '1  External browser diagnostic: original layout and real draft Save/Review/Confirm.'
             Write-Host '   Starts a local HTTP host, NOT the embedded HTML editor or full Sites UI.'
             Write-Host '0  Back (no work)'
             if ((Read-Choice 'Diagnostic choice') -ne '1') { continue }
@@ -118,6 +118,9 @@ try {
         Run-Tool -ToolArguments @($entry, 'registration-file', $registration, '--repository', $repo)
         Write-Host "Created only: $registration. Review it before manually importing. Existing old associations need this explicit migration."
     } elseif ($Action -eq 'editor') {
+        $env:CONFECTORY_UI = 'embedded'
+        $env:CONFECTORY_EDITOR_REPO = $repo
+        $env:CONFECTORY_WEBVIEW_HOST = Join-Path $repo 'targets\webview-windows\bin\Release\net10.0-windows\Confectory.WebView.Windows.dll'
         if ($env:CONFECTORY_LAUNCH_PROJECT) { Run-Tool -ToolArguments @($entry, 'open', $env:CONFECTORY_LAUNCH_PROJECT, '--repository', $repo) }
         else { Run-Tool -ToolArguments @($cli, 'run', $confectoryEditorProject, 'windows') }
     } elseif ($Action -eq 'web') {

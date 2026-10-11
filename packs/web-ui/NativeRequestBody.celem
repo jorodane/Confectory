@@ -1,0 +1,1 @@
+implementation Confectory.WebUI::NativeRequestBody for Confectory.WebUI::NativeRequest (string owner,string action,string input) -> string { body common "NativeRequest.csbody"; }

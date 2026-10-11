@@ -19,8 +19,19 @@ internal static class Program
         int result = 0;
         string origin = "https://" + Guid.NewGuid().ToString("N") + ".confectory.invalid";
         string profile = Path.Combine(Path.GetTempPath(), "Confectory", "webview", Guid.NewGuid().ToString("N"));
-        bool closing = false;
-        form.FormClosing += (_, _) => { closing = true; rpc.Dispose(); };
+        bool closing = false,nativePickerOpen=false;
+        bool closeApproved=false,closePending=false,ready=false;
+        form.FormClosing += async (_, e) => {
+            if(ready&&!closeApproved&&!rpc.IsClosed){
+                e.Cancel=true;if(closePending)return;
+                if(MessageBox.Show(form,"Close this workspace completely? Background work will stop. Unsaved browser input will be lost.","Confectory",MessageBoxButtons.OKCancel,MessageBoxIcon.Question)!=DialogResult.OK)return;
+                closePending=true;
+                try{var reply=await rpc.Call("native",new JsonObject{["action"]="close",["payload"]=new JsonObject{["confirmed"]=true}});if(reply?["ok"]?.GetValue<bool>()!=true&&reply?["error"]?["code"]?.GetValue<string>()!="host_action_denied"){MessageBox.Show(form,"Workspace could not close. Save the draft and try again.");return;}closeApproved=true;form.Close();}
+                catch{result=2;closeApproved=true;form.Close();}finally{closePending=false;}
+                return;
+            }
+            closing=true;rpc.Dispose();
+        };
         form.Shown += async (_, _) =>
         {
             try
@@ -68,7 +79,15 @@ internal static class Program
                         var message = JsonNode.Parse(e.WebMessageAsJson)!;
                         id = message["id"]!.GetValue<string>();
                         if (id.Length is < 1 or > 128) return;
-                        var response = await rpc.Call("request", message["envelope"]?.DeepClone());
+                        JsonNode? response;
+                        if(message["native"]?.GetValue<string>()=="open-file"){
+                            if(nativePickerOpen)throw new InvalidOperationException("Picker busy");nativePickerOpen=true;
+                            try{using var picker=new OpenFileDialog { CheckFileExists=true, Multiselect=false, Title="Open local project" };
+                            response=picker.ShowDialog(form)==DialogResult.OK
+                                ? await rpc.Call("native",new JsonObject{["action"]="open-file",["payload"]=new JsonObject{["path"]=picker.FileName}})
+                                : new JsonObject{["ok"]=true,["cancelled"]=true};}finally{nativePickerOpen=false;}
+                        }else if(message["native"] is not null)response=new JsonObject{["ok"]=false,["error"]=new JsonObject{["code"]="host_action_denied"}};
+                        else response = await rpc.Call("request", message["envelope"]?.DeepClone());
                         if (!closing && core.Source == e.Source) core.PostWebMessageAsJson(new JsonObject { ["id"] = id, ["reply"] = response }.ToJsonString());
                     }
                     catch { if (!closing && id.Length is > 0 and <= 128) core.PostWebMessageAsJson(new JsonObject { ["id"] = id, ["error"] = "transport_closed" }.ToJsonString()); }
@@ -82,16 +101,16 @@ internal static class Program
                         const p=pending.get(event.data.id);if(!p)return;pending.delete(event.data.id);
                         clearTimeout(p.timer);event.data.error?p.reject(Error(event.data.error)):p.resolve(event.data.reply);
                       });
-                      Object.defineProperty(window,'confectoryWebUI',{value:Object.freeze({send(envelope){
+                      Object.defineProperty(window,'confectoryWebUI',{value:Object.freeze({pickFile(){return this.send(null,'open-file');},send(envelope,native){
                         if(pending.size>=64)return Promise.reject(Error('transport_busy'));
                         const id=String(++serial);return new Promise((resolve,reject)=>{
                           const timer=setTimeout(()=>{pending.delete(id);reject(Error('transport_timeout'));},30000);
-                          pending.set(id,{resolve,reject,timer});chrome.webview.postMessage({id,envelope});
+                          pending.set(id,{resolve,reject,timer});chrome.webview.postMessage({id,envelope,native});
                         });
                       }})});
                     })();
                     """);
-                core.Navigate(origin + "/");
+                ready=true;core.Navigate(origin + "/");
             }
             catch (Exception e)
             {

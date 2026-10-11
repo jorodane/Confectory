@@ -2,4 +2,5 @@ implementation Confectory.WebViewHost::ServeBody for Confectory.WebViewHost::Ser
 import Confectory.WebUI::Request as Request (string,string) -> string;
 import Confectory.WebUI::Resource as Resource (string,string) -> string[];
 import Confectory.WebUI::Close as Close (string) -> bool;
+import Confectory.WebUI::NativeRequest as NativeRequest (string,string,string) -> string;
 body common "Serve.csbody"; }

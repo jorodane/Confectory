@@ -1,5 +1,7 @@
 # Retained EditorHome window state
 
+The later [v196 embedded consumer](EMBEDDED_WEB_UI.md) reuses the original web window gestures and existing domain commands; its verified input/draft behavior and remaining UI bindings are recorded separately. The native contract behavior below remains preserved.
+
 The later [layout batch](EDITOR_LAYOUT_BATCH.md) bounds working panels above chat and adds responsive proposal columns/paging; older overlap/layout limitations below describe the earlier increment.
 
 The later [multiple-view connection](EDITOR_MULTIPLE_VIEWS.md) extends this foundation with three additional owned source/selected-field windows. The single-workspace limitation below describes the original increment.

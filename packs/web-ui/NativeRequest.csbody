@@ -1,0 +1,1 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.WebUI."+owner) as object[];return state is null?"{\"ok\":false,\"error\":{\"code\":\"owner_closed\"}}":((Func<string,string,string>)state[3])(action,input);

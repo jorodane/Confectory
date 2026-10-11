@@ -1,3 +1,5 @@
 implementation Confectory.EditorHome::WebStateBody for Confectory.WebUI::State (string context) -> string {
 import Confectory.EditorHome.Model::Snapshot as Snapshot (string) -> string;
+import Confectory.ProjectEntry::Request as EntryRequest (string,string,string) -> string;
+import Confectory.EditorHome.Model::Command as Command (string,string,string) -> string;
 body common "WebState.csbody"; }

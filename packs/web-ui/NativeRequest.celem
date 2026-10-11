@@ -1,0 +1,1 @@
+function Confectory.WebUI::NativeRequest (string owner,string action,string input) -> string { provide Confectory.WebUI::NativeRequest with Confectory.WebUI::NativeRequestBody; }

@@ -1,13 +1,34 @@
 if(calls.Cancelled.Invoke(cancellation))throw new OperationCanceledException();
-var before=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(context))!;var selected=before["selected"]??throw new InvalidOperationException("Project scope unavailable");
-var args=System.Text.Json.Nodes.JsonNode.Parse(input)!.AsObject();var request=new System.Text.Json.Nodes.JsonObject{["context"]=selected["context"]!.DeepClone()};
+var args=System.Text.Json.Nodes.JsonNode.Parse(input)!.AsObject();
+System.Text.Json.Nodes.JsonNode Command(string operation,System.Text.Json.Nodes.JsonObject payload){var result=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(context,operation,payload.ToJsonString()))!;if(result["status"]?.ToString().StartsWith("Error:",StringComparison.Ordinal)==true)throw new InvalidOperationException("Consumer rejected operation");return result;}
+var before=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(context))!;
+if(endpoint is "openProject" or "host.open-file"){
+ string path=endpoint=="host.open-file"?args["path"]!.GetValue<string>():System.Linq.Enumerable.First(before["cards"]!.AsArray(),card=>Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(card!["path"]!.ToString())))[..32]==args["id"]!.ToString())!["path"]!.ToString();
+ Command("open-request",new(){["path"]=path});Command("workspace",new(){["action"]="open"});return "{\"accepted\":true}";
+}
+if(endpoint=="host.close"){
+ if(args["confirmed"]?.GetValue<bool>()!=true)throw new ArgumentException("Explicit close confirmation required");
+ var paths=new System.Collections.Generic.List<string>();if(before["selected"]?["path"] is not null)paths.Add(before["selected"]!["path"]!.ToString());
+ foreach(var row in before["backgroundProjects"]?.AsArray()??new System.Text.Json.Nodes.JsonArray())paths.Add(row!["project"]!["path"]!.ToString());
+ foreach(string path in System.Linq.Enumerable.Distinct(paths,StringComparer.Ordinal)){
+  Command("open-request",new(){["path"]=path});Command("workspace",new(){["action"]="open"});Command("workspace",new(){["action"]="save"});var closing=Command("close-project",new());if(closing["closeRequest"] is not null)Command("close-project",new(){["confirmed"]=true});
+ }return "{\"accepted\":true}";
+}
+var selected=before["selected"]??throw new InvalidOperationException("Project scope unavailable");
+if(endpoint=="leaveProject"){Command("leave",new(){["context"]=selected["context"]!.DeepClone()});return "{\"accepted\":true}";}
+if(endpoint is "runProject" or "stopProject"){Command(endpoint=="runProject"?"run":"stop",new(){["context"]=selected["context"]!.DeepClone(),["target"]=OperatingSystem.IsWindows()?"windows":"linux"});return "{\"accepted\":true}";}
+var request=new System.Text.Json.Nodes.JsonObject{["context"]=selected["context"]!.DeepClone()};
 switch(endpoint){
+ case "schema":if(args["id"]?.ToString()!=before["workspace"]?["unit"]?["id"]?.ToString())throw new InvalidOperationException("Schema selection changed");request["action"]="schema-view";break;
+ case "editField":if(args["id"]?.ToString()!=before["workspace"]?["unit"]?["id"]?.ToString())throw new InvalidOperationException("Schema selection changed");request["action"]="data-path";request["id"]=args["id"]!.DeepClone();request["path"]=args["path"]!.DeepClone();request["value"]=args["value"]!.DeepClone();request["expectedRevision"]=args["revision"]!.DeepClone();break;
  case "objects":request["action"]="filter";request["kind"]="object";request["query"]=args["query"]?.GetValue<string>()??"";break;
  case "page":request["action"]="page";request["page"]=args["page"]!.GetValue<int>();break;
  case "select":request["action"]="select";request["id"]=args["id"]!.GetValue<string>();break;
  case "editDraft":
   if(args["id"]?.ToString()!=before["workspace"]?["unit"]?["id"]?.ToString())throw new InvalidOperationException("Draft selection changed");
   request["action"]="open";request["text"]=args["text"]!.GetValue<string>();request["expectedRevision"]=args["revision"]!.GetValue<long>();break;
+ case "reviewDraft":request["action"]="review";request["target"]=OperatingSystem.IsWindows()?"windows":"linux";request["ids"]=new System.Text.Json.Nodes.JsonArray(args["id"]!.GetValue<string>());break;
+ case "confirmDraft":request["action"]="confirm";request["token"]=args["token"]!.GetValue<string>();request["ids"]=new System.Text.Json.Nodes.JsonArray(args["id"]!.GetValue<string>());break;
  case "saveDraft":request["action"]="save";break;
  default:throw new ArgumentException("Endpoint not exposed by this consumer");
 }

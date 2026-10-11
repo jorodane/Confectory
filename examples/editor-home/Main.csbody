@@ -1,3 +1,4 @@
+if(OperatingSystem.IsWindows()&&Environment.GetEnvironmentVariable("CONFECTORY_UI") is null)Environment.SetEnvironmentVariable("CONFECTORY_UI","embedded");
 if(Environment.GetEnvironmentVariable("CONFECTORY_UI")is "web" or "embedded")return calls.WebStart.Invoke();
 // All acquired product resources remain owned until their individual release succeeds.
 var resources=new System.Collections.Generic.List<(string Name,Action Release)>();

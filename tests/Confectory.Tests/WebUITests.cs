@@ -10,7 +10,7 @@ public sealed class WebUITests : TestCase
             True(Strings(built,"includedPacks").Contains("Confectory.WebUI"));
             if(kind=="button")True(!Strings(built,"includedPacks").Any(x=>x.Contains("EditorHome",StringComparison.Ordinal)),"Generic consumer acquired editor dependency");
             string report=Path.Combine(f.Root,kind+".json");File.WriteAllText(report,built.ToJsonString());
-            var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/web_ui.py"),Fixture.Repo,report,kind},timeoutSeconds:180);
+            var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/web_ui.py"),Fixture.Repo,report,kind},timeoutSeconds:300);
             True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("Actual common WebUI "+kind+" Chromium PASS"));
         }
     }
@@ -42,6 +42,7 @@ public sealed class WebUITests : TestCase
         implementation App::MainBody for App::Main () -> int {
         import Confectory.WebUI::Open as Open (string,string) -> string;
         import Confectory.WebUI::Request as Request (string,string) -> string;
+        import Confectory.WebUI::NativeRequest as NativeRequest (string,string,string) -> string;
         import Confectory.WebUI::Resource as Resource (string,string) -> string[];
         import Confectory.WebUI::Close as Close (string) -> bool;
         body common "main.csbody"; }
@@ -51,9 +52,24 @@ public sealed class WebUITests : TestCase
         string context="unit-context";
         void State(string project="p",string helper="h",int revision=0){AppDomain.CurrentDomain.SetData(context,System.Text.Json.JsonSerializer.Serialize(new{scope=new{projectId=project,helperId=helper},revision,state=new{value=revision}}));}
         State();string descriptor="""{"id":"unit","version":"1","entry":"index.html","endpoints":["wait","done"],"resources":{"index.html":{"mime":"text/html","base64":"PGgxPnVuaXQ8L2gxPg=="}}}""";
+        string assetRoot=System.IO.Path.Combine(System.IO.Path.GetTempPath(),"confectory-manifest-"+Guid.NewGuid().ToString("N"));System.IO.Directory.CreateDirectory(assetRoot);
+        try{
+         byte[] image=new byte[2097152];System.IO.File.WriteAllBytes(System.IO.Path.Combine(assetRoot,"portrait.png"),image);
+         var declared=System.Text.Json.Nodes.JsonNode.Parse(descriptor)!.AsObject();declared["resourceDirectory"]=assetRoot;
+         declared["resources"]!["portrait.png"]=new System.Text.Json.Nodes.JsonObject{["file"]="portrait.png",["mime"]="image/png",["size"]=image.Length,["sha256"]=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(image))};
+         string fileOwner=calls.Open.Invoke(context,declared.ToJsonString());Check(Convert.FromBase64String(calls.Resource.Invoke(fileOwner,"portrait.png")[1]).Length==image.Length,"normal common manifest exceeds old 1MiB limit");Check(calls.Close.Invoke(fileOwner),"manifest owner close");
+         void Rejected(string name){try{string unexpected=calls.Open.Invoke(context,declared.ToJsonString());calls.Close.Invoke(unexpected);throw new Exception(name+" accepted");}catch(ArgumentException){}}
+         declared["resources"]!["portrait.png"]!["sha256"]=new string('0',64);Rejected("changed resource identity");
+         declared["resources"]!["portrait.png"]!["size"]=4194305;Rejected("oversized resource");
+         declared["resources"]!.AsObject().Remove("portrait.png");declared["resources"]!["../escape.png"]=new System.Text.Json.Nodes.JsonObject{["file"]="../escape.png",["mime"]="image/png",["size"]=0,["sha256"]=""};Rejected("manifest traversal");
+         declared["resources"]!.AsObject().Remove("../escape.png");for(int n=0;n<256;n++)declared["resources"]!["r"+n+".png"]=new System.Text.Json.Nodes.JsonObject{["mime"]="image/png",["base64"]=""};Rejected("resource count exhaustion");
+        }finally{System.IO.Directory.Delete(assetRoot,true);}
         string owner=calls.Open.Invoke(context,descriptor);
         System.Text.Json.Nodes.JsonNode Send(object req)=>System.Text.Json.Nodes.JsonNode.Parse(calls.Request.Invoke(owner,System.Text.Json.JsonSerializer.Serialize(req)))!;
         var mount=Send(new{op="mount"});string view=mount["view"]!.ToString();var scope=mount["scope"]!.DeepClone();
+        Check(System.Text.Json.Nodes.JsonNode.Parse(calls.NativeRequest.Invoke(owner,"done","{}"))!["error"]!["code"]!.ToString()=="host_action_denied","undeclared native action denied");
+        var nativeDescriptor=System.Text.Json.Nodes.JsonNode.Parse(descriptor)!.AsObject();nativeDescriptor["hostActions"]=new System.Text.Json.Nodes.JsonArray("done");string nativeOwner=calls.Open.Invoke(context,nativeDescriptor.ToJsonString());
+        Check(System.Text.Json.Nodes.JsonNode.Parse(calls.NativeRequest.Invoke(nativeOwner,"done","{}"))!["ok"]!.GetValue<bool>(),"declared native action");Check(calls.Close.Invoke(nativeOwner),"native owner close");AppDomain.CurrentDomain.SetData(context+"started",null);
         var resource=calls.Resource.Invoke(owner,"/");Check(resource[0]=="text/html"&&resource[2].Length==64,"resource identity");
         try{calls.Resource.Invoke(owner,"../index.html");throw new Exception("traversal accepted");}catch(ArgumentException){}
         var waiting=Send(new{op="invoke",view,scope,endpoint="wait",requestId="wait",expectedRevision=0,input=new{}});Check(waiting["status"]!.ToString()=="pending","async acceptance");

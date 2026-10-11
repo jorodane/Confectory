@@ -1,17 +1,32 @@
 // Descriptor and context come only from the compiled consumer, never a browser request.
+if(descriptor.Length>4194304)throw new ArgumentException("Descriptor budget exceeded");
 var bundle=System.Text.Json.Nodes.JsonNode.Parse(descriptor)!.AsObject();
+long resourceBytes=0;
+string? resourceRoot=bundle["resourceDirectory"]?.GetValue<string>();
+if(resourceRoot is not null){resourceRoot=System.IO.Path.GetFullPath(resourceRoot);if(!System.IO.Directory.Exists(resourceRoot)||(System.IO.File.GetAttributes(resourceRoot)&System.IO.FileAttributes.ReparsePoint)!=0)throw new ArgumentException("Trusted resource directory required");}
+if(bundle["resources"]!.AsObject().Count>256)throw new ArgumentException("Resource count budget exceeded");
 if(descriptor.Length>4194304||bundle["id"] is null||bundle["version"] is null)throw new ArgumentException("Bounded, identified bundle required");
 var assets=new System.Collections.Generic.Dictionary<string,string[]>(StringComparer.Ordinal);
 foreach(var item in bundle["resources"]!.AsObject()){
- string path=item.Key,mime=item.Value!["mime"]!.ToString(),data=item.Value["base64"]!.ToString();
+ string path=item.Key,mime=item.Value!["mime"]!.ToString();
  if(!System.Text.RegularExpressions.Regex.IsMatch(path,@"^[A-Za-z0-9_-]+(?:[./][A-Za-z0-9_-]+)*$")||path.Contains("..",StringComparison.Ordinal))throw new ArgumentException("Bundle-relative resource ID required");
- if(mime is not ("text/html" or "text/css" or "text/javascript" or "image/png" or "image/jpeg" or "image/svg+xml" or "image/webp"))throw new ArgumentException("Unsupported resource MIME");
- byte[] bytes=Convert.FromBase64String(data);if(bytes.Length>1048576)throw new ArgumentException("Resource budget exceeded");
+ if(mime is not ("text/html" or "text/css" or "text/javascript" or "image/png" or "image/jpeg" or "image/svg+xml" or "image/webp" or "application/json"))throw new ArgumentException("Unsupported resource MIME");
+ byte[] bytes;
+ if(item.Value["file"] is not null){
+  if(resourceRoot is null||item.Value["file"]!.GetValue<string>()!=path)throw new ArgumentException("Declared relative file required");
+  string file=resourceRoot;foreach(string segment in path.Split('/')){file=System.IO.Path.Combine(file,segment);if((System.IO.File.GetAttributes(file)&System.IO.FileAttributes.ReparsePoint)!=0)throw new ArgumentException("Resource links denied");}
+  long size=item.Value["size"]!.GetValue<long>();if(size<0||size>4194304||resourceBytes+size>33554432||new System.IO.FileInfo(file).Length!=size)throw new ArgumentException("Resource size mismatch or budget exceeded");
+  bytes=new byte[(int)size];using(var stream=new System.IO.FileStream(file,System.IO.FileMode.Open,System.IO.FileAccess.Read,System.IO.FileShare.Read)){stream.ReadExactly(bytes);if(stream.ReadByte()!=-1)throw new ArgumentException("Resource grew beyond declared size");}
+  if(bytes.LongLength!=size||!Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes)).Equals(item.Value["sha256"]!.GetValue<string>(),StringComparison.OrdinalIgnoreCase))throw new ArgumentException("Resource identity mismatch");
+ }else {string encoded=item.Value["base64"]!.GetValue<string>();if(encoded.Length>5592408)throw new ArgumentException("Resource budget exceeded");bytes=Convert.FromBase64String(encoded);}
+ resourceBytes+=bytes.LongLength;if(bytes.LongLength>4194304||resourceBytes>33554432)throw new ArgumentException("Resource budget exceeded");
+ string data=Convert.ToBase64String(bytes);
  assets.Add(path,new[]{mime,data,Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes))});
 }
 string entry=bundle["entry"]!.ToString();if(!assets.ContainsKey(entry)||assets[entry][0]!="text/html")throw new ArgumentException("Declared HTML entry required");
 var endpoints=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
-foreach(var e in bundle["endpoints"]!.AsArray())if(!endpoints.Add(e!.GetValue<string>()))throw new ArgumentException("Duplicate endpoint");
+foreach(var e in bundle["endpoints"]!.AsArray())if(e!.GetValue<string>().StartsWith("host.",StringComparison.Ordinal)||!endpoints.Add(e.GetValue<string>()))throw new ArgumentException("Duplicate endpoint");
+var hostActions=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);foreach(var action in bundle["hostActions"]?.AsArray()??new System.Text.Json.Nodes.JsonArray()){string name=action!.GetValue<string>();if(hostActions.Count>=32||!System.Text.RegularExpressions.Regex.IsMatch(name,@"^[a-z][a-z0-9-]{0,63}$")||!hostActions.Add(name))throw new ArgumentException("Bounded distinct native actions required");}
 string token=Guid.NewGuid().ToString("N");object gate=new(),execution=new();bool closing=false,closed=false;
 var retiredViews=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
 var owner=calls.CreateOwner.Invoke(1);int revisionInstance=calls.CreateInstance.Invoke(owner,"Confectory.WebUI::Revision");
@@ -77,5 +92,6 @@ string Dispatch(string text){
  }
 }
 bool Close(){lock(gate){if(closed)return true;closing=true;foreach(var v in views.Values)calls.Unsubscribe.Invoke(v.Subscription);views.Clear();foreach(var row in requests.Values)row.Cancel.Cancel();foreach(var row in requests.Values)if(row.Row["status"]!.ToString()=="pending")return false;calls.DisposeOwner.Invoke(owner);foreach(var row in requests.Values)row.Cancel.Dispose();closed=true;AppDomain.CurrentDomain.SetData("Confectory.WebUI."+token,null);return true;}}
-AppDomain.CurrentDomain.SetData("Confectory.WebUI."+token,new object[]{(Func<string,string>)Dispatch,(Func<string,string[]>)(path=>{lock(gate){if(closing)throw new ObjectDisposedException("WebUI");return (string[])(assets.TryGetValue(path=="/"?entry:path.TrimStart('/'),out var asset)?asset.Clone():throw new ArgumentException("Unknown resource"));}}),(Func<bool>)Close});
+string Native(string action,string payload){if(payload.Length>16384||!hostActions.Contains(action))return Error("host_action_denied").ToJsonString();lock(execution){lock(gate){if(closing)return Error("owner_closed").ToJsonString();}string cancellation=Guid.NewGuid().ToString("N");AppDomain.CurrentDomain.SetData("Confectory.WebUI.Cancel."+cancellation,(Func<bool>)(()=>closing));try{return new System.Text.Json.Nodes.JsonObject{["ok"]=true,["result"]=System.Text.Json.Nodes.JsonNode.Parse(calls.Invoke.Invoke(context,"host."+action,payload,cancellation))}.ToJsonString();}catch(Exception){return Error("consumer_error").ToJsonString();}finally{AppDomain.CurrentDomain.SetData("Confectory.WebUI.Cancel."+cancellation,null);}}}
+AppDomain.CurrentDomain.SetData("Confectory.WebUI."+token,new object[]{(Func<string,string>)Dispatch,(Func<string,string[]>)(path=>{lock(gate){if(closing)throw new ObjectDisposedException("WebUI");return (string[])(assets.TryGetValue(path=="/"?entry:path.TrimStart('/'),out var asset)?asset.Clone():throw new ArgumentException("Unknown resource"));}}),(Func<bool>)Close,(Func<string,string,string>)Native});
 return token;

@@ -1,130 +1,41 @@
-# Windows embedded WebUI boundary — 2026-10-11
+# Embedded v196 EditorHome integration — 2026-10-11
 
-This is **partial infrastructure**, not the requested v196 editor port. Root
-`Confectory.bat` still opens the existing actual native EditorHome directly.
-No external browser or old diagnostic page is substituted as the new default UI.
+Windows `Confectory.bat` now defaults to the embedded HTML EditorHome, using the ordinary `examples/editor-home/project.cpack`. The former external-browser page is not the default. This is a partial functional integration; it is not full v196 acceptance.
 
-## Source blocker
+## Source and presentation
 
-The authorized input is Library `libfile_591bd5f16e688191bb52d26fe8054729`, version 0,
-`Confectory-Editor-Prototype-HTML-CSS-JS(1).zip` (15,892,643 bytes), expected SHA256
-`02d4824e92ed0edbb43113659982b37a99a614117652bde4d8ac92367e334e34`.
-The official resolved-reference materialization and transfer helper failed with
-`library file transfer failed: download failed`. One fresh preparation and
-consumer-local retry produced the same error. `/workspace/confectory-v196-input`
-contains no ZIP. No transfer URL was guessed, alternate authentication used, or
-403 bypass attempted. The helper did not expose an HTTP status; 403 is not claimed.
-No source bytes, hash, source pixel inspection or visual comparison is available.
-The parent's file inventory is context, not independently verified source content.
+User commit `1ded375` supplied `reference/site-ui/Confectory-Editor-Prototype-v196.zip`; main merge `f64e329` was fast-forwarded on work/current. The archive is exactly 15,892,643 bytes, SHA-256 `02d4824e92ed0edbb43113659982b37a99a614117652bde4d8ac92367e334e34`. This resolves the earlier Library transfer blocker. No more Library retries or URL guesses were used.
 
-## Implemented independently
+The archive was extracted locally and its welcome/home/project screens inspected in Chromium. The consumer reuses the original stylesheet, SVG icon, nine PNG portraits and floating-window presentation functions. External Google Fonts import is removed in the consumer; system fallback fonts are used. Original demo objects, connected-account claims, Worker states and generated chat replies are not executed as application state. The unchanged ZIP retains the full original JS reference.
 
-- `Confectory.WebViewHost::Serve` is a generic pack adapter over the existing
-  `WebUI::Resource`, `Request`, and `Close` interfaces. It has no EditorHome imports
-  or hard-coded editor paths. It owns an explicitly configured rendering child and
-  retires the WebUI owner after the child exits/cancels. Domain context stays in
-  the ordinary running ProjectPack process.
-- `targets/webview-windows` owns WinForms/WebView2 and renders declared resources
-  inside a native Windows window. Official `Microsoft.Web.WebView2` 1.0.4258.31 is
-  pinned; NuGet.org restore is scoped to this project. The solution includes its
-  normal managed cross-build. The package adds both WPF and WinForms references;
-  this WinForms-only host excludes the unused WPF wrapper before resolving them.
-- A private stdin/stdout channel carries resource IDs and existing JSON envelopes.
-  Resource bytes come from the compiled consumer bundle. There is no HTTP listener,
-  folder mapping, file URL, arbitrary engine dispatcher or JavaScript host object.
-  The injected client only transports requests. Scope, revision, CAS, cancellation,
-  deduplication and endpoint permissions remain in WebUI and the consumer.
-- Declared resource paths are served beneath a per-window synthetic HTTPS origin;
-  relative assets such as `assets/image.png` keep their folder structure. Current
-  descriptors use a root HTML entry. The existing 4 Mi-character descriptor and
-  1 MiB resource limits have NOT been changed: larger ZIP assets need inspection
-  and an ordinary resource packaging enhancement before the actual port.
-- Origin checks, resource interception, CSP, denied permissions/downloads/popups
-  and navigation checks restrict the renderer. External Google Fonts are not
-  fetched; an approved local font decision remains with the source port.
-- The existing JS client selects the injected transport when present. Explicit
-  `CONFECTORY_UI=embedded` connects the **same actual EditorHome ProjectPack** and
-  its existing object browsing/shared-draft editing/Save endpoints. This is an
-  opt-in integration boundary using the existing small page, not v196 acceptance.
-  The normal launcher deliberately does not enable it while the source port is blocked.
+The working layout retains the sidebar, central floating browser/source/schema/review windows, bottom area and lower-right dock. Moving, resizing, snapping, folding and presentation placement persistence use the source JS behavior. Unapplied input is retained in memory per project when a panel is hidden; applied drafts remain owned by PackWorkspace. A second view changing the selected object keeps typed source pinned to its original ID until the user selects that object again. Calls read current state before invocation; out-of-order older state responses cannot rewind the client revision. Placement is local presentation state, keyed by durable project ID. It is not a new domain model or replacement for the existing UIOrder contracts in native consumers.
 
-[Microsoft's local-content guidance](https://learn.microsoft.com/en-us/microsoft-edge/webview2/concepts/working-with-local-content)
-documents resource interception; [WebView2 security guidance](https://learn.microsoft.com/en-us/microsoft-edge/webview2/concepts/security)
-informs origin checks, JSON messages and disabled host objects.
+## Functional boundary
 
-## Runtime and development invocation
-
-A Windows .NET 10 **Desktop** runtime and an existing WebView2 runtime are needed.
-Missing .NET Desktop is diagnosed by the standard dotnet host; missing WebView2
-produces a message and exit 2. No runtime installer, registry, global setting,
-credential, account or user-PC operation is invoked. Linux/Android do not have an
-embedded renderer in this change. Cross-compilation is not OS runtime evidence.
-The host uses a private temporary WebView2 profile; profile reclamation after the
-browser process exits remains unfinished (no unsafe deletion while it is active).
-
-For a Windows developer with those prerequisites already present, build the normal
-solution and explicitly run the ordinary pack, with an owned existing ProjectPack:
-
-```powershell
-$env:CONFECTORY_UI = 'embedded'
-$env:CONFECTORY_EDITOR_REPO = (Get-Location).Path
-$env:CONFECTORY_WEBVIEW_HOST = Join-Path $env:CONFECTORY_EDITOR_REPO 'targets/webview-windows/bin/Release/net10.0-windows/Confectory.WebView.Windows.dll'
-$env:CONFECTORY_WEB_PROJECT = 'C:\path\to\existing\project.cproj'
-$env:CONFECTORY_ENTRY_STORAGE = 'C:\path\to\owned\editor-storage'
-dotnet src/Confectory.Cli/bin/Release/net10.0/Confectory.Cli.dll run examples/editor-home/project.cpack windows
-```
-
-These are developer diagnostics, not new user launch instructions. Child stdin EOF
-closes the renderer; Ctrl+C closes the channel and cleanup waits then terminates
-only the owned rendering child if needed. Cooperative WebUI calls are retired before
-the domain session is released. Native Windows close/IME/resize/cancellation and
-missing-runtime dialogs still require actual Windows acceptance.
-
-## Supported versus remaining
-
-| Area | Current evidence/boundary |
+| Feature | Connected behavior |
 | --- | --- |
-| Host and bounded message/resource transport | Implemented; managed build and channel regression below |
-| Existing object browsing / shared draft edit / Save | Same domain endpoints; browser regression below; Windows rendering unverified |
-| v196 HTML/CSS/JS/images and pixel comparison | Blocked on original ZIP bytes; no source screenshots claimed |
-| v196 home → project → real object editor | Not ported; existing diagnostic requires host-selected project |
-| Helper, Worker status, AI, augment, direction, Review/Confirm | Existing native contracts preserved; v196 consumer bindings not implemented |
-| Hide versus complete close, multiple windows, close confirmation | Existing native behavior preserved; embedded product lifecycle integration not implemented |
-| Mock replacement / disabled controls / storage-failure TDZ | Requires source inspection; no mock is represented as a real provider |
-| Browser/Android embedded support | Not implemented; Windows-first host only |
+| Windows entry | Root launcher builds the normal solution and selects the generic embedded host; no browser URL or legacy menu is the default. OS association/open arguments retain the existing DesktopEntry inbox. |
+| Home / existing project | Safe catalog IDs open existing trusted model cards. Windows native file dialog selects a file through private host IPC; HTML receives no filesystem path. New project creation is visibly disabled. |
+| Hide and return | Existing Model `leave` hides the panel while work and drafts stay owned. Unapplied HTML input is retained per project and is not silently saved or confirmed. |
+| Object browser | Actual owned IDs, kinds and pagination through existing Model/PackWorkspace. Imported/unowned selections are rejected. |
+| Source draft | Actual shared draft, consumer CAS, Apply and Save. Save leaves final source files unchanged. |
+| Review / Confirm | Real Review token and before/after source preview. Explicit Confirm calls existing compiler-backed contract; stale selection/revision/token remains rejected. |
+| Schema | Current object ID queries the effective schema. Scalar/reference fields use existing `data-path` CAS with the inspected source revision into the shared draft. Pending field input survives schema redisplay; it is not silently rebased. Compound/function/list editing is disabled pending consumer binding. No fixed Monster lookup. |
+| Complete close | Native window asks for confirmation, then consumer saves and closes selected/background projects through existing commands; runtime owners retire before the session. Unsaved HTML input requires Apply/Save before close and is explicitly mentioned by the confirmation. Actual Windows dialog behavior remains unverified. |
+| Run / Stop / Logs | Existing Model run/stop commands and actual execution polling/logs, with project/repository roots redacted. Start/stop of an ordinary ButtonGame project is tested; this is not a claim of a full successful game run. Hidden active projects keep polling. |
+| Helper / Worker / chat / augmentation / directions / YogiBox / build target selection | Consumer bindings remain unfinished and controls are disabled. Portraits are marked as reference artwork; no fake account, Worker, proposal or chat success. No per-Worker chat was added. |
+| Multiple independent object edit windows | Existing native model/view contracts preserved, but this HTML consumer currently has one source view plus schema/review windows. |
 
-The original 18-file paused work and backup are not copied into this increment.
-Main, Android version settings and Sites are unchanged.
+Live AI accounts/model calls, user-PC installation, signing, registry imports and Sites edits are deferred. No new conflict/payment/transmission policy is introduced. Linux keeps the existing native UI; browser diagnostics use the same HTML consumer and common transport. Android managed compilation retains its existing UI and version settings.
 
-## Verification evidence
+## Common resources and host
 
-- SDK 10.0.401, normal solution Release build (including the new Windows host):
-  success, zero warnings/errors; `/tmp/confectory-embedded-solution.log`.
-- Production `PackChannel` source linked into the normal test runner: out-of-order
-  reply correlation, rejected resources, pending-call retirement on EOF, and
-  rejection after close: **1 passed, 0 failed** (0.265s).
-- Same ordinary EditorHome and ButtonGame packs in Chromium plus WebUI
-  scope/revision/cancellation/disposal and locality: passed. Windows/Android
-  managed EditorHome profiles: passed. Combined batch **3 passed, 0 failed,
-  1 skipped** (607.150s); `/tmp/confectory-embedded-gates.log`. The skip was the
-  initial native test without DISPLAY; the explicit Xorg run is recorded below.
-- Final actual `examples/editor-home/project.cpack windows` normal CLI build after
-  the cancellation change: `tool.ok=true`, `Confectory.WebViewHost` linked;
-  `/tmp/confectory-embedded-final-windows.json`. No alternate test page or
-  per-editor compiler/timeout exception was used.
-- Windows launcher layout checks: **4 passed**. Original paused HEAD and all
-  18 file hashes still match the preserved manifest. Main ref unchanged.
-- Windows OS execution, source ZIP verification, original visual inspection and
-  v196 screenshot comparison: **not performed / blocked**, not covered by any of
-  the above managed or browser checks.
+The common WebUI accepts a compiled trusted resource manifest with file ID, MIME, exact size and SHA-256. Each file is read into a size-bounded buffer and snapshotted before exposure; path traversal and reparse-point components are refused. Budgets are 4 MiB per resource, 32 MiB aggregate, 256 resources and 4 Mi characters for the descriptor. Inline bundles continue to work. All nine original PNGs fit this ordinary contract; no EditorHome exception or unbounded file serving is used. Consumer identities are pinned in `WebBundle.csbody` and must be updated when assets change.
 
-The first Linux GUI batch passed the GUI assertions but failed its later rebuild
-locality assertion because this work changed WebViewHost while the test was running
-(expected only EditorHome rebuilt; observed EditorHome and WebViewHost). This was
-not hidden or relaxed. The final source was frozen for a fresh full rerun.
+Windows host renders declared resources beneath a private synthetic HTTPS origin using WebResourceRequested. There is no HTTP listener, arbitrary folder mapping, file URL or JS host object. PackChannel replies are bounded to 6 Mi characters so a 4 MiB base64 resource fits. Request/revision/scope/cancellation checks remain in WebUI. Native actions have a separate compiled allowlist, 16 Ki-character payload bound and private parent IPC. Browser endpoints cannot invoke `host.open-file` or `host.close`.
 
-Final actual Linux GUI and rebuild locality rerun with the installed Xorg dummy
-server: **1 passed, 0 failed, 0 skipped** (211.953s),
-`/tmp/confectory-embedded-linux-final.log`. The native test uses the ordinary
-EditorHome ProjectPack and exercises menus/tabs/run/logs/resize/context/lifetime.
-It verifies preservation of the existing native UI, not embedded Linux support.
+The host needs existing .NET 10 Desktop and WebView2 runtimes. Missing WebView2 is diagnosed with exit 2; nothing is installed. Popups, downloads, permissions, host objects and external navigation are disabled. Its temporary profile is not deleted while the browser may still own it; profile reclamation is unfinished.
+
+## Validation
+
+Final outcomes are recorded in [AI_DEVELOPMENT_STATUS.md](AI_DEVELOPMENT_STATUS.md). The final browser/Windows/Android managed run passed both gates (312.651s). Common boundaries, embedded channel and actual Linux Xorg UI also passed. See [original](evidence/v196/original-project.png), [consumer](evidence/v196/consumer-project.png) and [home](evidence/v196/consumer-home.png) captures. Solution managed compilation, ordinary EditorHome Windows/Android profiles, generic transport/channel boundaries, actual Chromium images/drafts/Review/Confirm/hide-return/schema and actual Linux native UI are distinct checks. Managed cross-builds do not prove Windows OS execution. Windows CMD/PowerShell/file-dialog/WebView2 close/IME/resize and Android device/APK execution remain unverified.

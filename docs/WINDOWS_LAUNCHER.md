@@ -1,13 +1,13 @@
 # Windows 시작 파일: Confectory.bat
 
-최신: 범용 Windows 내장 호스트는 추가됐지만 v196 원본 다운로드가 막혀 에디터 이식은 미완료입니다. 기본 시작은 계속 네이티브 EditorHome입니다. [진행 범위와 차단](EMBEDDED_WEB_UI.md)을 참고하세요.
+최신: Git에 추가된 v196 원본의 해시와 실제 화면을 확인했습니다. 기본 시작은 내장 HTML EditorHome입니다. 홈·기존 프로젝트·객체·초안·Save/Review/Confirm·객체 ID 기반 스키마를 연결했으며 나머지 기능은 [지원 범위](EMBEDDED_WEB_UI.md)에 구분했습니다. Windows OS 실행 검증은 보류입니다.
 
 저장소 루트의 **Confectory.bat 하나**를 엽니다. 기존 .NET 10 SDK와 Windows에
 있는 Windows PowerShell을 사용하며, 도구를 설치하거나 전역 환경변수/setx를
 설정하지 않습니다. `CONFECTORY_DOTNET`을 이미 지정했다면 해당 실행 파일을
 사용하고, 아니면 PATH의 `dotnet`을 사용합니다.
 
-루트 실행은 메뉴 없이 솔루션을 빌드하고 현재 네이티브 EditorHome을 엽니다.
+루트 실행은 메뉴 없이 솔루션을 빌드하고 내장 HTML EditorHome을 엽니다.
 `Confectory.bat "C:\path with spaces\project.cproj"`는 기존 DesktopEntry의
 같은 인스턴스 전달/metadata-only 열기를 사용하며 해당 프로젝트 코드를 실행하지 않습니다.
 
@@ -16,19 +16,15 @@
 
 | 개발 도구 선택 | 실제 동작 |
 | --- | --- |
-| 1 | 솔루션을 빌드하고 실제 `examples/editor-home/project.cpack`의 현재 네이티브 에디터 실행. 파일 인수가 있으면 기존 DesktopEntry의 같은 인스턴스 전달/metadata-only 열기 사용. |
-| 2 | 창 내부 HTML 에디터가 아직 미구현임을 안내. 빌드·브라우저·서버·설치 작업 없음. |
+| 1 | 솔루션을 빌드하고 실제 `examples/editor-home/project.cpack`의 내장 HTML 에디터 실행. 파일 인수가 있으면 기존 DesktopEntry의 같은 인스턴스 전달/metadata-only 열기 사용. |
+| 2 | 미연결 Helper/Worker/증강 등 남은 기능을 안내. 빌드·브라우저·서버·설치 작업 없음. |
 | 3 | 솔루션/도구 빌드만 실행. 사용자 프로젝트 실행 없음. |
 | 4 | 기존 Android exporter로 **unsigned** 내보내기. 기존 JDK/Android SDK/workload가 필요하며, 없으면 실패 진단. 설치·키 생성·서명 없음. 파일 선택 취소 가능. |
 | 5 | `.confectory/Confectory.cproj.reg` 생성만 수행. 내용을 검토한 뒤 사용자가 직접 import해야 하며, 런처는 레지스트리를 변경하지 않음. |
 | 6 → 1 | 개발 진단: 선택한 프로젝트에 대해 **외부 브라우저** WebUI 기반 화면 실행. `CONFECTORY_UI=web`, `CONFECTORY_WEB_PROJECT`를 자식 프로세스에 설정해 실제 EditorHome 팩 실행. 구웹데모를 실행하지 않음. |
 | 0 | 종료. 잘못된 선택, 진단 메뉴에서 뒤로 가기, 입력 종료는 빌드를 시작하지 않음. |
 
-기본 에디터는 현재 네이티브 UI입니다. 개발 진단의 HTML 화면은 객체 조회와
-공유 초안 편집/Save까지의 기반이며, Sites 전체 에디터나 창 내부 WebView가
-아닙니다. 출력된 localhost URL을 브라우저로 열고 호스트를 유지해야 합니다.
-Ctrl+C로 호스트를 종료할 때 메뉴까지 종료된다면 scripts/windows/developer-tools.bat를 다시 엽니다.
-Windows 콘솔에서 이 동작은 아직 직접 검증되지 않았습니다.
+기본 에디터는 Windows 창 내부 WebView2입니다. 실제 EditorHome 팩이 모델과 초안의 소유권을 유지하고, 별도 범용 호스트는 HTML 렌더링만 맡습니다. 기존 .NET 10 Desktop 및 WebView2 Runtime이 필요합니다. 없으면 실패를 진단하며 자동 설치하지 않습니다. 외부 브라우저는 개발 진단에서만 사용합니다. CMD·PowerShell·WebView2 창의 실제 Windows 실행은 이 Linux 환경에서 검증하지 못했습니다.
 
 개발 도구 메뉴에서는 작업이 끝나거나 실패하면 Enter로 메뉴로 돌아갑니다. 각 작업은
 별도 PowerShell 프로세스에서 실행하며 웹/구형 데모 모드 변수를 초기화합니다.

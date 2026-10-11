@@ -18,7 +18,7 @@ export class WebView {
  async mount(){const generation=++this.generation;const reply=this.check(await this.transport({op:'mount'}));if(generation!==this.generation){await this.transport({op:'dispose',view:reply.view});return;}
   this.view=reply.view;this.scope=reply.scope;this.active=true;globalThis.addEventListener?.('pagehide',this.onPageHide,{once:true});this.revision=undefined;this.receive(reply);return reply;
  }
- receive(reply){const changed=this.revision!==reply.revision;this.revision=reply.revision;this.state=reply.state;if(changed)this.onState?.(reply.state,reply.revision);}
+ receive(reply){if(this.revision!==undefined&&reply.revision<this.revision)return;const changed=this.revision!==reply.revision;this.revision=reply.revision;this.state=reply.state;if(changed)this.onState?.(reply.state,reply.revision);}
  async update(){if(!this.active)return;const generation=this.generation;const reply=this.check(await this.transport({op:'update',view:this.view,scope:this.scope}));if(!this.active||generation!==this.generation||reply.busy)return;
   this.receive(reply);for(const row of reply.results||[]){const pending=this.pending.get(row.requestId);if(pending){this.pending.delete(row.requestId);row.ok?pending.resolve(row.result):pending.reject(new Error(row.error?.code||'request_failed'));}}
  }

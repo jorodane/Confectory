@@ -18,6 +18,7 @@ try{
   var reply=new System.Text.Json.Nodes.JsonObject{["id"]=id};
   try{
    switch(request["operation"]!.GetValue<string>()){
+    case "native":reply["result"]=System.Text.Json.Nodes.JsonNode.Parse(calls.NativeRequest.Invoke(owner,request["input"]!["action"]!.GetValue<string>(),request["input"]!["payload"]!.ToJsonString()));break;
     case "resource":reply["result"]=System.Text.Json.JsonSerializer.SerializeToNode(calls.Resource.Invoke(owner,request["input"]!.GetValue<string>()));break;
     case "request":reply["result"]=System.Text.Json.Nodes.JsonNode.Parse(calls.Request.Invoke(owner,request["input"]!.ToJsonString()));break;
     default:throw new ArgumentException("Unknown rendering operation");

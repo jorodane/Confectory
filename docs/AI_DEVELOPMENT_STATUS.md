@@ -1,5 +1,22 @@
 # AI development implementation and verification boundary
 
+## 2026-10-11 v196 source obtained and embedded consumer connected
+
+User main merge f64e329 / source commit 1ded375 was fast-forwarded on work/current. ZIP size and SHA-256 match the supplied original; Chromium welcome/home/project pixels were inspected. The previous Library source blocker is resolved. Windows defaults to the ordinary EditorHome pack through the generic embedded host. Original styling/images/window gestures are connected to safe project catalog, object IDs, shared source drafts, Save, separate Review/Confirm, hide/return input retention and effective schema lookup/editing, actual Run/Stop and project Logs. Other-view selection changes retain typed input under its original object ID. Native file selection and complete-close confirmation use bounded host actions; existing DesktopEntry inbox is reused. Common manifest resources validate size/hash/paths under finite budgets. No domain pack was replaced.
+
+This is partial integration: new project creation, full Helper/Worker/chat/augment/direction/YogiBox/build target selection and multiple source-window bindings remain visibly disabled or unfinished. Windows OS dialogs/rendering and Android device execution are unverified. Main, Android versions, paused native 18 files and backup are preserved. See [feature/evidence boundary](EMBEDDED_WEB_UI.md).
+
+Validation for this increment:
+
+- Solution Release build: zero warnings/errors; .NET 10.0.401. Final browser + Windows/Android ordinary managed profile gates: **2 passed, 0 failed, 0 skipped (312.651s)**.
+- Common resource/scope/revision/CAS/cancellation/disposal/locality gate passed with bounded manifest PNG >1MiB, hash/size/traversal/count rejection and private native-action allowlisting. Embedded channel correlation/error/EOF gate passed. Static Windows entry checks: **4 passed**.
+- Actual Linux Xorg ordinary EditorHome menu/tabs/run/logs/resize/context/lifetime gate passed; combined run: **5 passed, 0 failed, 0 skipped (564.397s)**. Native Main behavior was unchanged after this check; later work was in the HTML consumer.
+- Chromium same-pack regression loads/decodes all original PNG9 and checks their hashes, safe scope/endpoint rules, shared drafts and CAS, Save versus Review/Confirm, hide/return, source input retained across other-view object selection, folding/resizing/Dock clearance, real execution start/stop and actual Logs. Source field writes are connected with inspected revisions; full compound/function/list schema authoring remains disabled.
+- Repeated validation exposed stale UI revision, clicks during pending refresh and capability flags being re-enabled. Fresh reads, monotonic client state, busy controls and explicit capability checks fix those cases. No mutation retry or conflict merge policy was added.
+- ZIP exact SHA, original PNG9 bytes and paused checkout HEAD / all 18 file hashes rechecked unchanged. Main/Android version files unchanged. Windows OS UI/dialog/IME and Android device/APK checks remain unperformed.
+
+Screenshots: [original reference](evidence/v196/original-project.png), [actual consumer](evidence/v196/consumer-project.png), [actual home](evidence/v196/consumer-home.png). These show layout intent and real pack state; they are not a pixel-perfect or Windows OS acceptance claim.
+
 ## 2026-10-11 Embedded host infrastructure; v196 source blocked
 
 Official consumer-local ZIP materialization and one retry both failed with `download failed`. No source bytes or pixels were obtained; v196 porting is not complete. Independent generic Windows WebView2/WinForms host and the same EditorHome pack opt-in transport are implemented. Default startup stays native; no old page/browser demo replaces the requested editor. See [support matrix, blocker and evidence](EMBEDDED_WEB_UI.md).

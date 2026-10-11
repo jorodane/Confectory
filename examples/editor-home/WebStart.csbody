@@ -1,11 +1,14 @@
 string root=Environment.GetEnvironmentVariable("CONFECTORY_EDITOR_REPO")??Environment.CurrentDirectory;
-string project=Environment.GetEnvironmentVariable("CONFECTORY_WEB_PROJECT")??throw new ArgumentException("Choose a local ProjectPack with CONFECTORY_WEB_PROJECT before hosting");
-string storage=Environment.GetEnvironmentVariable("CONFECTORY_ENTRY_STORAGE")??System.IO.Path.Combine(System.IO.Path.GetTempPath(),"confectory-web-ui-"+Guid.NewGuid().ToString("N"));
-string session=calls.CreateSession.Invoke(root,storage),owner="";
+if(OperatingSystem.IsWindows()&&Environment.GetEnvironmentVariable("CONFECTORY_WEBVIEW_HOST") is null)Environment.SetEnvironmentVariable("CONFECTORY_WEBVIEW_HOST",System.IO.Path.Combine(root,"targets","webview-windows","bin","Release","net10.0-windows","Confectory.WebView.Windows.dll"));
+string? project=Environment.GetEnvironmentVariable("CONFECTORY_WEB_PROJECT");
+string storage=Environment.GetEnvironmentVariable("CONFECTORY_HOME_STORAGE")??Environment.GetEnvironmentVariable("CONFECTORY_ENTRY_STORAGE")??System.IO.Path.Combine(root,".confectory","editor-home");
+string session=calls.CreateSession.Invoke(root,storage),owner="",entry="";
 try{
- var opened=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(session,"open-request",System.Text.Json.JsonSerializer.Serialize(new{path=System.IO.Path.GetFullPath(project)})))!;
+ if(project is not null){var opened=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(session,"open-request",System.Text.Json.JsonSerializer.Serialize(new{path=System.IO.Path.GetFullPath(project)})))!;
  if(opened["selected"] is null||opened["status"]?.ToString().StartsWith("Error:",StringComparison.Ordinal)==true)throw new InvalidOperationException("Project could not be opened");
  var shown=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(session,"workspace","{\"action\":\"open\"}"))!;
  if(shown["workspace"] is null)throw new InvalidOperationException("Project workspace unavailable");
+ }
+ if(Environment.GetEnvironmentVariable("CONFECTORY_UI")=="embedded"){entry=calls.EntryRequest.Invoke(Environment.GetEnvironmentVariable("CONFECTORY_ENTRY_SCOPE")??root,"listen","{}");AppDomain.CurrentDomain.SetData("Confectory.EditorHome.WebEntry."+session,new object[]{entry,Environment.CurrentManagedThreadId});}
  owner=calls.Open.Invoke(session,calls.Bundle.Invoke());return Environment.GetEnvironmentVariable("CONFECTORY_UI")=="embedded"?calls.EmbeddedServe.Invoke(owner):calls.Serve.Invoke(owner);
-}finally{if(owner.Length>0)while(!calls.Close.Invoke(owner))System.Threading.Thread.Sleep(2);calls.CloseSession.Invoke(session);}
+}finally{AppDomain.CurrentDomain.SetData("Confectory.EditorHome.WebPoll."+session,null);AppDomain.CurrentDomain.SetData("Confectory.EditorHome.WebEntry."+session,null);if(entry.Length>0)calls.EntryRequest.Invoke(entry,"close","{}");if(owner.Length>0)while(!calls.Close.Invoke(owner))System.Threading.Thread.Sleep(2);calls.CloseSession.Invoke(session);}

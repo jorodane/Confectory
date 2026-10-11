@@ -1,7 +1,6 @@
 # WebUI: resources, views and bounded consumer calls
 
-The JavaScript `WebView` class is a state/request client, not an OS WebView control. The v196 embedded HTML editor is not ported. A generic opt-in Windows host is now implemented; see [its source blocker and verification boundary](../../docs/EMBEDDED_WEB_UI.md). Windows users enter through `Confectory.bat`; the current external-browser foundation is explicitly under `scripts/windows/developer-tools.bat` developer diagnostics. See [launcher and embedding investigation](../../docs/WINDOWS_LAUNCHER.md).
-
+The JavaScript `WebView` class is a state/request client, not an OS WebView control. Windows EditorHome now defaults to the generic embedded host. The v196 integration uses the original stylesheet, images and presentation functions with real project/draft endpoints; feature completeness and OS verification are separate. See [the support matrix](../../docs/EMBEDDED_WEB_UI.md).
 
 WebUI is presentation infrastructure. It imports only RuntimeBase and its two
 explicit consumer interfaces, `State` and `Invoke`. It has no editor, project
@@ -25,14 +24,9 @@ The final ProjectPack binds those interfaces using ordinary typed `provide` / `i
   resource IDs are served. The HTML entry differs from `ProjectPack.entry`.
   Resource replies include MIME, bytes encoded as base64, and SHA-256.
 
-Bundles are currently ordinary pack function data: a consumer's `WebBundle`
-implementation contains HTML, CSS, JavaScript and SVG literals and returns the
-explicit resource map. The common `Client()` function provides the transport-neutral
-JS view client. Thus all resource content participates in the normal owning-pack
-body fingerprint and requires no Core grammar change or runtime source-tree path.
-This is a minimal compiled-bundle format, not a new general asset manifest or
-frontend build system. PNG/JPEG/WebP bytes are also accepted. Bundles are trusted
-application code; their declarations do not grant backend authority.
+Bundles are ordinary compiled consumer data. Inline `{mime,base64}` resources remain supported. Larger applications may supply a trusted `resourceDirectory` and `{file:resourceID,mime,size,sha256}` rows. `Open` verifies finite file size and pinned SHA-256, rejects relative traversal and reparse-point paths, and snapshots bytes before serving. This is not a renderer folder mapping: a page receives only declared IDs and can never choose the trusted directory. JSON, PNG/JPEG/WebP, HTML, CSS, JS and SVG are supported. Consumer resource identities are pinned in its body fingerprint; changing assets requires updating its manifest.
+
+An optional compiled `hostActions` allowlist (32 distinct names, 64 characters per name) exposes `NativeRequest(owner,action,input)` to a platform adapter, separately from browser envelopes. Native file selection is private host IPC; the renderer supplies no path. Actions use the same serialized consumer execution and cooperative cancellation binding. They are neither shell operations nor arbitrary function dispatch. A consumer's ordinary `Invoke` switch explicitly handles `host.<action>`; it must not declare those names as browser endpoints.
 
 ## Transport-neutral protocol
 
@@ -46,7 +40,7 @@ application code; their declarations do not grant backend authority.
 | `cancel` | View + scope + requestId; acknowledges `cancellation_requested`, `already_completed`, or an unknown-request error. |
 | `dispose` | Retires only the view, idempotently; unsubscribes and requests cancellation of its pending calls. |
 
-The owner serializes consumer execution. It compares the bound scope against
+The owner serializes consumer execution. The JS client ignores older out-of-order state revisions within its mounted scope. It compares the bound scope against
 current host state before execution and again before exposing a result. Expected
 revision is checked immediately before calling the consumer; domain CAS still
 runs independently. Reusing a request ID with changed view/endpoint/input/revision
@@ -62,7 +56,7 @@ returns false until all calls have retired; callers must retain/retry ownership.
 RuntimeBase owns revision instances and subscriptions. BrowserHost uses HostLoop's
 normal asynchronous cleanup convention before the consumer releases its domain owner.
 
-Bounds: descriptor 4 Mi characters, individual resource 1 MiB, request and consumer
+Bounds: descriptor 4 Mi characters, individual resource 4 MiB, aggregate resource bytes 32 MiB, 256 resources, native-action payload 16 Ki characters, request and consumer
 state/result 2 Mi characters, 32 live views / pending calls, 1024 requests and total
 view identities per owner. Exhaustion returns a structured error; records are not
 evicted in a way that would silently permit mutation replay. Consumers should close
