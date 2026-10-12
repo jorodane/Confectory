@@ -55,6 +55,13 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
       if row['requestId']==request_id:return row,reply
      time.sleep(.01)
     raise AssertionError('request remained pending')
+   def update(view):
+    for _ in range(400):
+     reply=send(envelope(view,'update'));assert reply.get('ok'),reply
+     if reply.get('busy'):time.sleep(.01);continue
+     assert 'revision' in reply and 'state' in reply,reply
+     return reply
+    raise AssertionError('read-only update stayed busy')
    def mount():
     for _ in range(400):
      reply=send({'op':'mount'})
@@ -193,7 +200,7 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
      page.locator('[data-tab="concept"]').click();expect(page.locator('#objects [data-id="Example.ButtonGame::Main"]')).to_have_count(0);expect(page.locator('#objects [data-id="Example.ButtonGame::Score"]')).to_be_visible();page.locator('[data-id="Example.ButtonGame::Score"]').click();expect(page.locator('#browser-actions')).to_be_enabled();open_browser();browser_action('#advanced-source');expect(page.locator('#source')).to_be_visible(timeout=30000)
      no_task=mount()
      for endpoint in ['prepareWorker','stopWorker','recoverWorker','inspectAdoption','reviewWorker','adoptWorker']:
-      no_task_state=send(envelope(no_task,'update'));request_id='foreign-'+endpoint;assert send(envelope(no_task,'invoke',endpoint=endpoint,requestId=request_id,expectedRevision=no_task_state['revision'],input={'task':'unowned-task','ids':['Unowned::Source'],'token':'forged','goalEvidence':'must not write'}))['ok'];failed,no_task_state=settle(no_task,request_id);assert not failed['ok'],endpoint
+      no_task_state=update(no_task);request_id='foreign-'+endpoint;assert send(envelope(no_task,'invoke',endpoint=endpoint,requestId=request_id,expectedRevision=no_task_state['revision'],input={'task':'unowned-task','ids':['Unowned::Source'],'token':'forged','goalEvidence':'must not write'}))['ok'];failed,no_task_state=settle(no_task,request_id);assert not failed['ok'],endpoint
      assert send(envelope(no_task,'dispose'))['ok']
      source=page.locator('#source');text=source.input_value()+'\n// common-web-ui-draft\n';source.fill(text);page.locator('#save').click();expect(page.locator('#status')).to_have_text('Draft saved; final sources unchanged',timeout=30000)
      assert (project/'Score.celem').read_bytes()==original,'Save performed source Confirm'
