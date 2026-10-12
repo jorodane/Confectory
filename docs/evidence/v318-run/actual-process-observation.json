@@ -1,0 +1,14 @@
+{
+  "ownedHostPid": 522691,
+  "observedChildPids": [
+    523500,
+    523548
+  ],
+  "liveAfterHostCrash": [
+    523500,
+    523548
+  ],
+  "coldHostChildPids": [],
+  "coldState": "idle",
+  "coldOwnerAvailable": false
+}

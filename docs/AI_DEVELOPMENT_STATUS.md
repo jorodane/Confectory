@@ -1,3 +1,7 @@
+# v318 actual Run observation increment
+
+[Run controls, state/logs and presentation restoration](EDITOR_V318_RUN.md) records the ordinary build-and-run/owned-stop connection and missing render/build-only/durable-process contracts. It also orders concrete Yogi and Augment follow-up boundaries.
+
 # v318 participant recovery increment
 
 [Actual Helper inputs/presentations and Worker journal recovery](EDITOR_V318_PARTICIPANTS.md) records the scoped implementation, no-replay boundary, verification and remaining v318 gaps.

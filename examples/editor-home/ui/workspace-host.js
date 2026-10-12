@@ -74,6 +74,7 @@ export function createActualWorkspace(api) {
     if(layout.key==='worker')return api.worker(layout.meta?.workerId);
     if(layout.key==='connections'){api.connections();return runtime.state.windows.get('connections');}
     if(layout.key==='packs')return api.packs();
+    if(layout.key==='run')return api.run();
     if(layout.key==='targets'){api.targets();return runtime.state.windows.get('targets');}
     if(layout.key.startsWith('editor-')){api.renderViews();return runtime.state.windows.get(layout.key);}
     // Unsupported/restale views are retained as presentation records, never

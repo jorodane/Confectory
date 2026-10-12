@@ -34,6 +34,11 @@ if(endpoint=="host.create-project"){
  Command("create",new(){["directory"]=args["directory"]!.DeepClone(),["title"]=args["title"]!.DeepClone(),["description"]=args["description"]?.DeepClone()??System.Text.Json.Nodes.JsonValue.Create("")});OpenSemantic();return "{\"accepted\":true}";
 }
 var selected=before["selected"]??throw new InvalidOperationException("Project scope unavailable");
+if(endpoint=="closeProject"){
+ if(args["confirmed"]?.GetValue<bool>()!=true)throw new ArgumentException("Explicit complete project close confirmation required");
+ var closing=Command("close-project",new(){["context"]=selected["context"]!.DeepClone()});
+ if(closing["closeRequest"] is not null)Command("close-project",new(){["context"]=selected["context"]!.DeepClone(),["confirmed"]=true});return "{\"accepted\":true}";
+}
 if(endpoint=="inspectPanels"){Command("inspect-panels",new(){["context"]=selected["context"]!.DeepClone()});return "{\"accepted\":true}";}
 if(endpoint=="savePresentation"){Command("presentation-save",new(){["context"]=selected["context"]!.DeepClone(),["presentation"]=args["presentation"]!.DeepClone()});return "{\"accepted\":true}";}
 if(endpoint=="leaveProject"){Command("leave",new(){["context"]=selected["context"]!.DeepClone()});return "{\"accepted\":true}";}

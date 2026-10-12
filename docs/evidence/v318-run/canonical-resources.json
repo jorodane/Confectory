@@ -1,0 +1,97 @@
+{
+  "ConfectoryIcon.svg": {
+    "size": 1373,
+    "sha256": "6fbd2054764098b340cc104ccbb2e42b9568cec53b063d7f3aa78aa222ef6b20",
+    "policy": "utf8-lf-v1"
+  },
+  "workspace.js": {
+    "size": 61368,
+    "sha256": "5c6309269bbf413246f72b196ec13b791ceb761c8e087199bb0575f8b5f5df90",
+    "policy": "utf8-lf-v1"
+  },
+  "workspace-host.js": {
+    "size": 11184,
+    "sha256": "48064dbb9c5a5a622a53ed7426a719ca697fe8eeead5c3400a4feee9a66fb869",
+    "policy": "utf8-lf-v1"
+  },
+  "app.js": {
+    "size": 145432,
+    "sha256": "7b15793818148f1dd074393a704a4119e62514da9320580e411b1e5d67c11533",
+    "policy": "utf8-lf-v1"
+  },
+  "assets/html2canvas.min.js": {
+    "size": 198689,
+    "sha256": "e87e550794322e574a1fda0c1549a3c70dae5a93d9113417a429016838eab8cb",
+    "policy": "utf8-lf-v1"
+  },
+  "assets/lumi-bust.png": {
+    "size": 1968968,
+    "sha256": "74aa3662f35d0455754c9ee9e93535e43d945dfae638d648a16fe2e474388233",
+    "policy": "raw-existing-contract"
+  },
+  "assets/lumi-sd.png": {
+    "size": 1285114,
+    "sha256": "04d53eeba74b45a6faa6d31de2f2f1a807af8a166434e57cb2a4fa6335fab0a1",
+    "policy": "raw-existing-contract"
+  },
+  "assets/lumi.png": {
+    "size": 1875833,
+    "sha256": "d20087b6f4737492f32fb79593a2110ecf83e48503e44f7f6bfa4aab9529787f",
+    "policy": "raw-existing-contract"
+  },
+  "assets/portraits.json": {
+    "size": 2619,
+    "sha256": "989099ef0fb43da17de863669d578df89dafe0f928e8cdb022a816c3e0cbec11",
+    "policy": "utf8-lf-v1"
+  },
+  "assets/tori-bust.png": {
+    "size": 2175342,
+    "sha256": "d63a937754e949129a3d13de90b0e5b04fc8818c11b9e41de71509ed45373e74",
+    "policy": "raw-existing-contract"
+  },
+  "assets/tori-sd.png": {
+    "size": 2125027,
+    "sha256": "197434d69d1321c34e34562936f68c31ebe694aa87ebc2bfd41dae9c0f01bf1a",
+    "policy": "raw-existing-contract"
+  },
+  "assets/tori.png": {
+    "size": 1764738,
+    "sha256": "544a698250fe6f912aca43bd424a59ab1407bea84842b7d52da9b28438810ba9",
+    "policy": "raw-existing-contract"
+  },
+  "assets/vex-bust.png": {
+    "size": 1956060,
+    "sha256": "1406e9e878c0975414f11d49ded729c4c58f943710965c97fe7358cc2f3785f7",
+    "policy": "raw-existing-contract"
+  },
+  "assets/vex-sd.png": {
+    "size": 1281859,
+    "sha256": "df1fc134b85974e6f5b2ec793805131c2099114979eeeabcb64533daf6338674",
+    "policy": "raw-existing-contract"
+  },
+  "assets/vex.png": {
+    "size": 1912443,
+    "sha256": "3599a2f4c6a6f3ad10758a39e242478fe16cd113c98c97db740f63ba1d6330de",
+    "policy": "raw-existing-contract"
+  },
+  "consumer.css": {
+    "size": 3837,
+    "sha256": "e591f17196051d6cd87dd1b6c665337478570d46dd31e4796f2c222ebdec67ad",
+    "policy": "utf8-lf-v1"
+  },
+  "index.html": {
+    "size": 475,
+    "sha256": "1e4e8cedcb113c6f6c67eeafbaff0c663374d2809ac600a41360638917eb650f",
+    "policy": "utf8-lf-v1"
+  },
+  "style.css": {
+    "size": 122205,
+    "sha256": "abf72f1077b8024e254bcce886456eca5248b02abd7e3cff0f3a7c0a6233495e",
+    "policy": "utf8-lf-v1"
+  },
+  "inventory.js": {
+    "size": 10736,
+    "sha256": "72198c216e947f030c033bb941951655d130ca39329bca28c02d944d42d43407",
+    "policy": "utf8-lf-v1"
+  }
+}

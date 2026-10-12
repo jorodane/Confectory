@@ -1,0 +1,14 @@
+  Confectory.Core -> /workspace/Confectory-web-ui/src/Confectory.Core/bin/Release/net10.0/Confectory.Core.dll
+  Confectory.AndroidExport -> /workspace/Confectory-web-ui/targets/android-export/bin/Release/net10.0/Confectory.AndroidExport.dll
+  Confectory.DesktopEntry -> /workspace/Confectory-web-ui/targets/desktop-entry/bin/Release/net10.0/Confectory.DesktopEntry.dll
+  Confectory.Build.Web -> /workspace/Confectory-web-ui/targets/web/bin/Release/net10.0/Confectory.Build.Web.dll
+  Confectory.Build.DotNet -> /workspace/Confectory-web-ui/targets/dotnet/bin/Release/net10.0/Confectory.Build.DotNet.dll
+  Confectory.Cli -> /workspace/Confectory-web-ui/src/Confectory.Cli/bin/Release/net10.0/Confectory.Cli.dll
+  Confectory.Build.BrowserWasm -> /workspace/Confectory-web-ui/targets/browser-wasm/bin/Release/net10.0/Confectory.Build.BrowserWasm.dll
+  Confectory.Tests -> /workspace/Confectory-web-ui/tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:36.48

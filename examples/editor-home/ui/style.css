@@ -463,3 +463,6 @@ body:has(.augment-overlay) .coworker-hover-card:not(.participant-expanded-card),
 @media(max-width:720px){.home-pack-layout{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) minmax(0,1fr)}.home-pack-list,.home-pack-detail{overflow:auto}}@media(max-width:650px){.home-main.is-pack-view{height:calc(100% - 52px)}}
 
 .home-project-controls[hidden]{display:none}
+
+/* Actual Run observation occupies the original v318 frame; no simulated scene. */
+.run-screen:has(.run-observation){background:#101719;display:block;overflow:auto}.run-observation{padding:14px;display:grid;gap:8px;color:var(--text)}.run-observation p{margin:0;font-size:12px}.run-observation label{font-size:12px}.run-observation select{max-width:130px}.run-observation small{font-size:11px;color:var(--muted)}.run-log-view pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px;max-height:160px;overflow:auto}.run-controls button:disabled{opacity:.45;cursor:not-allowed}.run-controls [data-run-build]{width:auto;font-size:11px}.run-status{overflow-wrap:anywhere}
