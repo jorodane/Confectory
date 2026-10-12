@@ -1,0 +1,22 @@
+FAIL WebUITests.test_actual_editor_v318_inventory_and_browser_instances_restart
+System.Exception: Traceback (most recent call last):
+  File "/workspace/Confectory-web-ui/tests/web/editor_inventory_v318.py", line 42, in <module>
+    page.locator('.brand').click();expect(page.locator('.home-grid')).to_be_visible();page.locator('#home-tab-packs').click();expect(page.locator('.home-pack-row').first).to_be_visible();home=public_state(url)['inventory'];assert home['namespace']=='Confectory.EditorHome';assert len(home['packs'])>20;assert next(d for d in home['declarations'] if d['id']=='Confectory.EditorHome::AndroidExport')['parent']=='Confectory.AndroidExport.Settings::Defaults';page.locator('#home-pack-search').fill('Confectory.WorkerTasks');page.locator('#home-pack-search-form').get_by_role('button',name='검색 확인').click();expect(page.locator('.home-pack-row')).to_have_count(1);expect(page.locator('#home-pack-detail')).to_contain_text('Confectory.WorkerTasks');page.locator('[data-pack-group="explore"]').click();expect(page.locator('#home-pack-list')).to_contain_text('계약은 연결되지');expect(page.locator('.home-pack-row')).to_have_count(0);page.screenshot(path=str(root/'actual-local-packs.png'));page.locator('#home-tab-projects').click();page.locator('[data-enter]').first.click();expect(page.locator('.work-body')).to_be_visible();assert any(row['meta'].get('namespace')=='Confectory.BaseUI' for row in saved()['layout'])
+                                                                                                                                                                                                                                                                                                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+KeyError: 'parent'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/workspace/Confectory-web-ui/tests/web/editor_inventory_v318.py", line 48, in <module>
+    page.screenshot(path=str(root/f'failure-{n}.png'));raise AssertionError(str(e)+'\nEvidence: '+str(root)+'\nErrors: '+str(errors)) from e
+                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'parent'
+Evidence: /tmp/confectory-inventory-v318-_44shknr
+Errors: []
+
+   at Confectory.Tests.TestCase.True(Boolean condition, String message) in /workspace/Confectory-web-ui/tests/Confectory.Tests/Support.cs:line 127
+   at Confectory.Tests.WebUITests.test_actual_editor_v318_inventory_and_browser_instances_restart() in /workspace/Confectory-web-ui/tests/Confectory.Tests/WebUITests.cs:line 19
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+0 passed, 1 failed, 0 skipped; 28.713s

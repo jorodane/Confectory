@@ -1,0 +1,49 @@
+FAIL WebUITests.test_actual_editor_and_button_game_common_web_transport_chromium
+System.Exception: PASS actual Review controls: dependency group, selection/all off, fresh subset token, advanced repeated toggle, X/cancel/reopen, short inline/long narrow/escaping, unselected source untouched
+PASS ordinary description form: shared draft Save, stale revision rejection, Review cancel retains draft, exact Confirm, unchanged ID/value/manifest
+PASS normal lowercase test creation: dirty declaration+registration, Save, editable values, explicit Review, compiler Confirm, actual browser
+UI failure status: Failed to fetch
+UI failure controls: {'confirm': None, 'run': True, 'source': 'Example.ButtonGame::test'}
+Traceback (most recent call last):
+  File "/workspace/Confectory-web-ui/tests/web/web_ui.py", line 289, in <module>
+    verify_concept_creation(page,project,mount,send,envelope,open_browser,browser_action,restart_actual_host)
+  File "/workspace/Confectory-web-ui/tests/web/semantic_authoring.py", line 221, in verify_concept_creation
+    restart()
+  File "/workspace/Confectory-web-ui/tests/web/web_ui.py", line 44, in restart_actual_host
+    assert host.poll() is None,log.read_text();time.sleep(.1)
+           ^^^^^^^^^^^^^^^^^^^
+AssertionError: CONFECTORY_WEB_UI http://127.0.0.1:45397/#89843e8c602a41e2ac9b9aa14ab33f1d
+Unhandled exception. System.ArgumentException: Resource 'app.js': canonical size mismatch; expected=135310, actual=135505, raw=135505
+   at Confectory.Implementations.Ef9126e8172c41475adf45a64.Eefc2869779b2a65bf3df1ce2.Invoke(String context, String descriptor)
+   at Bcfdbaffb10c99cf8d732736b.Invoke(String context, String descriptor)
+   at Confectory.Implementations.Ea620445369633f57f16dee9a.E141c7f6633186a6ac1644211.Invoke()
+   at B43af26f050257fefd467eb99.Invoke()
+   at Confectory.Implementations.Ea620445369633f57f16dee9a.E9cd48a090b534f0132826411.Invoke()
+   at Bc84cc9ca7306eb44f5f191db.Invoke()
+   at Program.Main()
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workspace/Confectory-web-ui/tests/web/web_ui.py", line 308, in <module>
+    assert host.returncode==0,log.read_text()
+           ^^^^^^^^^^^^^^^^^^
+AssertionError: CONFECTORY_WEB_UI http://127.0.0.1:45397/#89843e8c602a41e2ac9b9aa14ab33f1d
+Unhandled exception. System.ArgumentException: Resource 'app.js': canonical size mismatch; expected=135310, actual=135505, raw=135505
+   at Confectory.Implementations.Ef9126e8172c41475adf45a64.Eefc2869779b2a65bf3df1ce2.Invoke(String context, String descriptor)
+   at Bcfdbaffb10c99cf8d732736b.Invoke(String context, String descriptor)
+   at Confectory.Implementations.Ea620445369633f57f16dee9a.E141c7f6633186a6ac1644211.Invoke()
+   at B43af26f050257fefd467eb99.Invoke()
+   at Confectory.Implementations.Ea620445369633f57f16dee9a.E9cd48a090b534f0132826411.Invoke()
+   at Bc84cc9ca7306eb44f5f191db.Invoke()
+   at Program.Main()
+
+
+   at Confectory.Tests.TestCase.True(Boolean condition, String message) in /workspace/Confectory-web-ui/tests/Confectory.Tests/Support.cs:line 127
+   at Confectory.Tests.WebUITests.test_actual_editor_and_button_game_common_web_transport_chromium() in /workspace/Confectory-web-ui/tests/Confectory.Tests/WebUITests.cs:line 68
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+SKIP EntryHomeTests.test_entry_home_actual_linux_startup_navigation_create_folder_cards_resize_and_lifetime: native entry/home: no actual DISPLAY
+PASS EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only
+1 passed, 1 failed, 1 skipped; 1000.469s

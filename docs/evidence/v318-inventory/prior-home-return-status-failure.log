@@ -1,0 +1,243 @@
+FAIL WebUITests.test_actual_editor_v318_inventory_and_browser_instances_restart
+System.Exception: Traceback (most recent call last):
+  File "/workspace/Confectory-web-ui/tests/web/editor_inventory_v318.py", line 42, in <module>
+    page.locator('.brand').click();expect(page.locator('.home-grid')).to_be_visible();page.locator('#home-tab-packs').click();expect(page.locator('.home-pack-row').first).to_be_visible();home=public_state(url)['inventory'];assert home['namespace']=='Confectory.EditorHome';assert len(home['packs'])>20;page.locator('#home-pack-search').fill('Confectory.WorkerTasks');page.locator('#home-pack-search-form').get_by_role('button',name='검색 확인').click();expect(page.locator('.home-pack-row')).to_have_count(1);expect(page.locator('#home-pack-detail')).to_contain_text('Confectory.WorkerTasks');page.locator('[data-pack-group="explore"]').click();expect(page.locator('#home-pack-list')).to_contain_text('계약은 연결되지');expect(page.locator('.home-pack-row')).to_have_count(0);page.screenshot(path=str(root/'actual-local-packs.png'));page.locator('#home-tab-projects').click();page.locator('[data-enter]').first.click();expect(page.locator('.work-body')).to_be_visible();expect(page.locator('#workspace-save-state')).to_have_text('배치 저장됨')
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/sync_api/_generated.py", line 22839, in to_have_text
+    self._sync(
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_sync_base.py", line 115, in _sync
+    return task.result()
+           ^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_assertions.py", line 648, in to_have_text
+    await self._expect_impl(
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_assertions.py", line 128, in _expect_impl
+    _record_soft_or_raise(
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_assertions.py", line 60, in _record_soft_or_raise
+    raise error
+AssertionError: Locator expected to have text '배치 저장됨'
+Actual value:  
+Call log:
+  - Expect "to_have_text" with timeout 30000ms
+  - waiting for locator("#workspace-save-state")
+    58 × locator resolved to <output aria-live="polite" id="workspace-save-state" class="workspace-save-status"></output>
+       - unexpected value ""
+
+Aria snapshot:
+- banner:
+  - button "Confectory 홈으로": Confectory
+  - text: /
+  - button "Example.ButtonGame ▾"
+  - button "설정 열기": 설정
+- complementary:
+  - button "AGENT (0)" [expanded]
+  - button "Agent 추가": ++추가
+  - button "HELPER (0)" [expanded]
+  - button "Helper 추가": ++추가
+  - heading "소속 미지정 (0)" [level=4]
+  - button "Helper 추가": + ＋
+  - button "User(0/0)": User (0/0)
+  - separator "사이드바 너비 조절, 클릭하여 최소화 또는 복원"
+- main:
+  - tablist "작업 공간":
+    - tab "Workspace" [selected]
+  - status
+  - button "YogiBox"
+  - button "증강"
+  - button "신문고": 📫
+  - button "빌드 대상 선택": 🛠️
+  - button "프로젝트 실행": ▶
+  - button "프로젝트 브라우저": ≡
+  - region "프로젝트 브라우저":
+    - text: ◈
+    - strong: 프로젝트 브라우저
+    - button "창 접기": −
+    - button "창 닫기": ×
+    - button "개념"
+    - button "기능"
+    - button "모듈"
+    - textbox "의미 객체 검색":
+      - /placeholder: 개념 검색…
+    - button "검색 확정": 검색
+    - button "정렬 방법"
+    - button "새 의미 객체": ＋
+    - text: Preview
+    - slider "객체 표시 밀도 Compact Preview Data": "50"
+    - button "ProjectPack"
+    - text: ›
+    - button "Example"
+    - text: ›
+    - button "ButtonGame"
+    - navigation "폴더 계층":
+      - button "ProjectPack"
+      - button "namespace 목록 불러오기"
+    - text: 실제 registry 목록을 먼저 불러오세요. 0 객체 · Preview 클릭 선택 · 더블클릭 편집 · 우클릭 기능
+    - button "n 방향으로 창 크기 조절"
+    - button "ne 방향으로 창 크기 조절"
+    - button "e 방향으로 창 크기 조절"
+    - button "se 방향으로 창 크기 조절"
+    - button "s 방향으로 창 크기 조절"
+    - button "sw 방향으로 창 크기 조절"
+    - button "w 방향으로 창 크기 조절"
+    - button "nw 방향으로 창 크기 조절"
+  - region "프로젝트 브라우저":
+    - text: ◈
+    - strong: 프로젝트 브라우저
+    - button "창 접기": −
+    - button "창 닫기": ×
+    - button "개념"
+    - button "기능"
+    - button "모듈"
+    - textbox "의미 객체 검색":
+      - /placeholder: 기능 검색…
+      - text: nonexistent namespace declaration
+    - button "검색 확정": 검색
+    - button "정렬 방법"
+    - button "새 의미 객체": ＋
+    - text: Data
+    - slider "객체 표시 밀도 Compact Preview Data": "100"
+    - button "ProjectPack"
+    - text: ›
+    - button "Confectory"
+    - text: ›
+    - button "BaseUI"
+    - navigation "폴더 계층":
+      - button "ProjectPack"
+      - button "namespace 목록 불러오기"
+    - text: 실제 registry 목록을 먼저 불러오세요. 0 객체 · Data 클릭 선택 · 더블클릭 편집 · 우클릭 기능
+    - button "n 방향으로 창 크기 조절"
+    - button "ne 방향으로 창 크기 조절"
+    - button "e 방향으로 창 크기 조절"
+    - button "se 방향으로 창 크기 조절"
+    - button "s 방향으로 창 크기 조절"
+    - button "sw 방향으로 창 크기 조절"
+    - button "w 방향으로 창 크기 조절"
+    - button "nw 방향으로 창 크기 조절"
+- separator "채팅바 높이 조절"
+- button "프로젝트 채팅"
+- button "Logs"
+- strong
+- textbox "프로젝트 채팅 입력":
+  - /placeholder: 함께 만들 내용을 남겨보세요…
+- button "메시지 보내기": 보내기
+- status: Ready
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/workspace/Confectory-web-ui/tests/web/editor_inventory_v318.py", line 48, in <module>
+    page.screenshot(path=str(root/f'failure-{n}.png'));raise AssertionError(str(e)+'\nEvidence: '+str(root)+'\nErrors: '+str(errors)) from e
+                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Locator expected to have text '배치 저장됨'
+Actual value:  
+Call log:
+  - Expect "to_have_text" with timeout 30000ms
+  - waiting for locator("#workspace-save-state")
+    58 × locator resolved to <output aria-live="polite" id="workspace-save-state" class="workspace-save-status"></output>
+       - unexpected value ""
+
+Aria snapshot:
+- banner:
+  - button "Confectory 홈으로": Confectory
+  - text: /
+  - button "Example.ButtonGame ▾"
+  - button "설정 열기": 설정
+- complementary:
+  - button "AGENT (0)" [expanded]
+  - button "Agent 추가": ++추가
+  - button "HELPER (0)" [expanded]
+  - button "Helper 추가": ++추가
+  - heading "소속 미지정 (0)" [level=4]
+  - button "Helper 추가": + ＋
+  - button "User(0/0)": User (0/0)
+  - separator "사이드바 너비 조절, 클릭하여 최소화 또는 복원"
+- main:
+  - tablist "작업 공간":
+    - tab "Workspace" [selected]
+  - status
+  - button "YogiBox"
+  - button "증강"
+  - button "신문고": 📫
+  - button "빌드 대상 선택": 🛠️
+  - button "프로젝트 실행": ▶
+  - button "프로젝트 브라우저": ≡
+  - region "프로젝트 브라우저":
+    - text: ◈
+    - strong: 프로젝트 브라우저
+    - button "창 접기": −
+    - button "창 닫기": ×
+    - button "개념"
+    - button "기능"
+    - button "모듈"
+    - textbox "의미 객체 검색":
+      - /placeholder: 개념 검색…
+    - button "검색 확정": 검색
+    - button "정렬 방법"
+    - button "새 의미 객체": ＋
+    - text: Preview
+    - slider "객체 표시 밀도 Compact Preview Data": "50"
+    - button "ProjectPack"
+    - text: ›
+    - button "Example"
+    - text: ›
+    - button "ButtonGame"
+    - navigation "폴더 계층":
+      - button "ProjectPack"
+      - button "namespace 목록 불러오기"
+    - text: 실제 registry 목록을 먼저 불러오세요. 0 객체 · Preview 클릭 선택 · 더블클릭 편집 · 우클릭 기능
+    - button "n 방향으로 창 크기 조절"
+    - button "ne 방향으로 창 크기 조절"
+    - button "e 방향으로 창 크기 조절"
+    - button "se 방향으로 창 크기 조절"
+    - button "s 방향으로 창 크기 조절"
+    - button "sw 방향으로 창 크기 조절"
+    - button "w 방향으로 창 크기 조절"
+    - button "nw 방향으로 창 크기 조절"
+  - region "프로젝트 브라우저":
+    - text: ◈
+    - strong: 프로젝트 브라우저
+    - button "창 접기": −
+    - button "창 닫기": ×
+    - button "개념"
+    - button "기능"
+    - button "모듈"
+    - textbox "의미 객체 검색":
+      - /placeholder: 기능 검색…
+      - text: nonexistent namespace declaration
+    - button "검색 확정": 검색
+    - button "정렬 방법"
+    - button "새 의미 객체": ＋
+    - text: Data
+    - slider "객체 표시 밀도 Compact Preview Data": "100"
+    - button "ProjectPack"
+    - text: ›
+    - button "Confectory"
+    - text: ›
+    - button "BaseUI"
+    - navigation "폴더 계층":
+      - button "ProjectPack"
+      - button "namespace 목록 불러오기"
+    - text: 실제 registry 목록을 먼저 불러오세요. 0 객체 · Data 클릭 선택 · 더블클릭 편집 · 우클릭 기능
+    - button "n 방향으로 창 크기 조절"
+    - button "ne 방향으로 창 크기 조절"
+    - button "e 방향으로 창 크기 조절"
+    - button "se 방향으로 창 크기 조절"
+    - button "s 방향으로 창 크기 조절"
+    - button "sw 방향으로 창 크기 조절"
+    - button "w 방향으로 창 크기 조절"
+    - button "nw 방향으로 창 크기 조절"
+- separator "채팅바 높이 조절"
+- button "프로젝트 채팅"
+- button "Logs"
+- strong
+- textbox "프로젝트 채팅 입력":
+  - /placeholder: 함께 만들 내용을 남겨보세요…
+- button "메시지 보내기": 보내기
+- status: Ready
+Evidence: /tmp/confectory-inventory-v318-_kzlt2lm
+Errors: []
+
+   at Confectory.Tests.TestCase.True(Boolean condition, String message) in /workspace/Confectory-web-ui/tests/Confectory.Tests/Support.cs:line 127
+   at Confectory.Tests.WebUITests.test_actual_editor_v318_inventory_and_browser_instances_restart() in /workspace/Confectory-web-ui/tests/Confectory.Tests/WebUITests.cs:line 19
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+0 passed, 1 failed, 0 skipped; 56.514s

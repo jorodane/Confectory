@@ -15,7 +15,7 @@ export function createActualWorkspace(api) {
     detachWindow:w=>{if(w.overlay)return;detached.set(scope+'|'+w.key,w);capture()},
     foregroundZ:node=>node.key==='ai-preview'&&api.$('.augment-overlay')?271:undefined,
     hideWindowOnClose:key=>key==='source'||key.startsWith('editor-'),
-    layoutMetadata:w=>Object.fromEntries(['id','view','mode','group','density','query','sort','mainWorkspace'].filter(key=>w.meta[key]!==undefined).map(key=>[key,w.meta[key]])),
+    layoutMetadata:w=>Object.fromEntries(['id','view','mode','group','density','query','sort','mainWorkspace','namespace','catalogue','kind','parent','queryInput','closedNamespaces'].filter(key=>w.meta[key]!==undefined).map(key=>[key,w.meta[key]])),
     restoreActualWindow:layout=>restore(layout),
     afterSwitchWorkspace:()=>{api.render();schedule()},
     beforeDeleteWorkspaces:ids=>{
@@ -38,7 +38,7 @@ export function createActualWorkspace(api) {
     openBrowser:group=>api.browser(group),renderBrowser:()=>api.renderObjects(),
     browserTreeCreateMenu:()=>api.unsupported('분류 편집','실제 계층 편집 계약은 아직 연결되지 않았습니다.'),
     browserCreateMenu:()=>api.unsupported('생성','실제 브라우저의 + 버튼에서 기존 선언 생성 계약을 사용하세요.'),
-    duplicateChildBrowser:()=>api.unsupported('브라우저','독립 브라우저 인스턴스는 아직 연결되지 않았습니다.'),
+    duplicateChildBrowser:w=>api.duplicateBrowser(w),
     objectContext:(event,object)=>api.objectContext(object.id,event),
   };
   const runtime=createWorkspaceRuntime(host);
@@ -69,8 +69,9 @@ export function createActualWorkspace(api) {
     const cached=detached.get(scope+'|'+layout.key);
     if(cached)return runtime.openWindow(layout.key,cached.title,cached.width,cached.height,{refresh:true});
     if(layout.key==='source'){api.editor();return runtime.state.windows.get('source');}
-    if(layout.key==='browser'){const w=api.browser(layout.meta?.group||'concept');Object.assign(w.meta,layout.meta);return w;}
+    if(layout.key==='browser'||layout.key.startsWith('browser:')||layout.key.startsWith('browser-tree:')){const w=api.browser(layout.meta?.group||'concept',layout.key);Object.assign(w.meta,layout.meta);return api.browser(w.meta.group,layout.key);}
     if(layout.key==='schema'){api.schema();return runtime.state.windows.get('schema');}
+    if(layout.key==='packs')return api.packs();
     if(layout.key==='targets'){api.targets();return runtime.state.windows.get('targets');}
     if(layout.key.startsWith('editor-')){api.renderViews();return runtime.state.windows.get(layout.key);}
     // Unsupported/restale views are retained as presentation records, never

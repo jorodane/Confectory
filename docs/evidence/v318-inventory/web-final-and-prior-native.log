@@ -1,0 +1,31 @@
+PASS WebUITests.test_actual_editor_and_button_game_common_web_transport_chromium
+PASS WebUITests.test_actual_editor_original_v196_home_project_and_create_flow
+PASS WebUITests.test_actual_editor_review_compact_numeric_and_subset_caption
+PASS WebUITests.test_actual_editor_v318_home_search_favorite_restart_remove
+PASS WebUITests.test_actual_editor_v318_inventory_and_browser_instances_restart
+PASS WebUITests.test_actual_editor_v318_workspace_lifecycle_presentation_restart
+FAIL EntryHomeTests.test_entry_home_actual_linux_startup_navigation_create_folder_cards_resize_and_lifetime
+System.Exception: Traceback (most recent call last):
+  File "/workspace/Confectory-web-ui/tests/gui/entry_home_x11.py", line 194, in <module>
+    a=launch();wait(lambda t:t['screen']=='intro' and 1 in t['hits'][::5],'optional startup');screenshot(a,'intro')
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/Confectory-web-ui/tests/gui/entry_home_x11.py", line 124, in wait
+    if app.poll() is not None:raise AssertionError('Entry/home exited: '+open(log_path).read()[-3000:])
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Entry/home exited: Entry/home jobs, controls, buffers, Owner, project contexts and native surface disposed
+Unhandled exception. System.IO.IOException: Read-only file system : '/home/agent/.local/share/Confectory'
+   at System.IO.FileSystem.CreateParentsAndDirectory(String fullPath, UnixFileMode unixCreateMode)
+   at System.IO.FileSystem.CreateDirectory(String fullPath, UnixFileMode unixCreateMode)
+   at System.IO.Directory.CreateDirectory(String path)
+   at Confectory.Implementations.E700d0e7b1905c24290e6a8cd.E40b20f1625caacd896a1c1f4.Invoke(String handle, String operation, String payload)
+   at B22733096c038855e7a02bcff.Invoke(String handle, String operation, String payload)
+   at Confectory.Implementations.Ea620445369633f57f16dee9a.E9cd48a090b534f0132826411.Invoke()
+   at Bc84cc9ca7306eb44f5f191db.Invoke()
+   at Program.Main()
+
+
+   at Confectory.Tests.TestCase.True(Boolean condition, String message) in /workspace/Confectory-web-ui/tests/Confectory.Tests/Support.cs:line 127
+   at Confectory.Tests.EntryHomeTests.test_entry_home_actual_linux_startup_navigation_create_folder_cards_resize_and_lifetime() in /workspace/Confectory-web-ui/tests/Confectory.Tests/EntryHomeTests.cs:line 38
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+6 passed, 1 failed, 0 skipped; 1057.874s

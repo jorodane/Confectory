@@ -10,7 +10,25 @@ internal static class SemanticCatalogService
    string action=request["action"]?.GetValue<string>()??"list",query=request["query"]?.GetValue<string>()??"",kind=request["kind"]?.GetValue<string>()??"";
    if(query.Length>256||kind.Length>64)throw new ArgumentException("Catalog filter budget exceeded.");
    var result=new System.Text.Json.Nodes.JsonObject{["status"]="available",["scope"]="owned-declarations",["sourceScope"]="confirmed-files",["namespace"]=manifest.Namespace,["version"]=manifest.Version,["metadataVersion"]=Confectory.Core.JsonData.Digest(manifest)};
-   if(action=="list"){
+   if(action=="inventory"){
+    // Reuse the ordinary registry validator. No declaration bodies or provider
+    // implementation are loaded, and no install/ownership is inferred.
+    foreach(var registration in manifest.Registry.Values)scope(Confectory.Core.PackPaths.Resolve(System.IO.Path.Combine(root,registration.Path)));
+    var registry=new Confectory.Core.Registry(project,documents,statistics);
+    if(registry.Packs.Count>256)throw new ArgumentException("Registry inventory budget exceeded.");
+    var packs=new System.Text.Json.Nodes.JsonArray();var declarations=new System.Text.Json.Nodes.JsonArray();
+    foreach(var entry in registry.Packs){var pack=entry.Value;
+     packs.Add(new System.Text.Json.Nodes.JsonObject{["namespace"]=pack.Namespace,["kind"]=pack.Kind,["version"]=pack.Version,["description"]=pack.Description,["owned"]=pack.Namespace==manifest.Namespace,["count"]=pack.Elements.Count,["dependencies"]=System.Text.Json.JsonSerializer.SerializeToNode(pack.Dependencies.ToDictionary(d=>d.Key,d=>d.Value.Version))});
+     foreach(var declaration in pack.Elements){if(declarations.Count>=16384)throw new ArgumentException("Declaration inventory budget exceeded.");string id=pack.Namespace+"::"+declaration.Key;bool owned=pack.Namespace==manifest.Namespace;string? parent=null;
+      if(owned&&declaration.Value.Kind is "object" or "schema" or "module" or "function"){
+       var element=documents.Element(scope(Confectory.Core.PackPaths.Owned(root,declaration.Value.Path)));
+       if(element.Id!=id||element.Kind!=declaration.Value.Kind)throw new ArgumentException("Declaration inventory identity mismatch.");parent=element.Parent;
+      }
+      declarations.Add(new System.Text.Json.Nodes.JsonObject{["id"]=id,["namespace"]=pack.Namespace,["kind"]=declaration.Value.Kind,["owned"]=owned,["parent"]=parent});}
+    }
+    result["scope"]="registered-local-manifests";result["packs"]=packs;result["declarations"]=declarations;
+    result["warnings"]=System.Text.Json.JsonSerializer.SerializeToNode(registry.Warnings.Select(w=>new{code=w.Code}));
+   }else if(action=="list"){
     int page=request["page"]?.GetValue<int>()??0;if(page<0)throw new ArgumentOutOfRangeException("page");
     var rows=manifest.Elements.Where(e=>(manifest.Namespace+"::"+e.Key).Contains(query,StringComparison.OrdinalIgnoreCase)&&(kind.Length==0||e.Value.Kind==kind)).OrderBy(e=>e.Key,StringComparer.Ordinal).ToArray();
     page=Math.Min(page,Math.Max(0,(rows.Length-1)/32));var units=new System.Text.Json.Nodes.JsonArray();foreach(var row in rows.Skip(page*32).Take(32))units.Add(new System.Text.Json.Nodes.JsonObject{["id"]=manifest.Namespace+"::"+row.Key,["kind"]=row.Value.Kind});

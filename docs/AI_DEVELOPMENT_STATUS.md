@@ -1,3 +1,7 @@
+# v318 actual local inventory and browser increment
+
+[Actual registry catalogue and independent browsers](EDITOR_V318_INVENTORY.md) connects confirmed manifest/declaration metadata, namespace and inheritance navigation, independent search/sort/display state and cold recovery. Marketplace and installation policies remain unsupported; Worker/AI/Yogi recovery and Run viewport follow later. Validation and source preservation evidence are recorded with the increment.
+
 # v318 common Workspace increment
 
 [Actual Workspace runtime and private persistence](EDITOR_V318_WORKSPACE.md) connects ordinary windows, notes/groups/children, shared gestures, actual editor ownership recovery and pending inputs. Full editing/Confirm/restart, focused UI and managed profile results are recorded separately from initial failures and normalized reference characterization.

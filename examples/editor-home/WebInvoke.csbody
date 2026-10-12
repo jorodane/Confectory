@@ -23,6 +23,7 @@ if(endpoint=="host.close"){
 }
 if(endpoint=="globalHelpers"){Command("helper-list",new());return "{\"accepted\":true}";}
 if(endpoint=="recruitGlobalHelper"){if(before["selected"] is not null)throw new InvalidOperationException("Global recruitment uses Home");Command("helper-recruit",new(){["kind"]="global"});return "{\"accepted\":true}";}
+if(endpoint=="localInventory"){Command("local-inventory",new());return "{\"accepted\":true}";}
 if(endpoint=="connectionCatalog"){Command("connections",new());return "{\"accepted\":true}";}
 if(endpoint=="openConnectionSettings"){
  if(before["selected"] is not null)throw new InvalidOperationException("Hide current project before settings");
