@@ -1,0 +1,193 @@
+FAIL WebUITests.test_actual_editor_v318_helper_inputs_and_panels_cold_restart
+System.Exception: Traceback (most recent call last):
+  File "/workspace/Confectory-web-ui/tests/web/editor_participants_v318.py", line 41, in <module>
+    page.locator('#add-helper').click();page.locator('[data-recruit="global"]').click();expect(page.locator('#helper-list')).to_contain_text('main-helper');page.locator('#helper-list button').click();expect(page.locator('#helper-summary')).to_contain_text('main-helper');page.locator('#helper-memory').fill('UNSAVED participant memory');expect(page.locator('#workspace-save-state')).to_have_text('배치 저장됨');page.locator('.modal [data-close]').click()
+                                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/sync_api/_generated.py", line 22016, in to_contain_text
+    self._sync(
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_sync_base.py", line 115, in _sync
+    return task.result()
+           ^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_assertions.py", line 303, in to_contain_text
+    await self._expect_impl(
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_assertions.py", line 128, in _expect_impl
+    _record_soft_or_raise(
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_assertions.py", line 60, in _record_soft_or_raise
+    raise error
+AssertionError: Locator expected to contain text 'main-helper'
+Actual value:  
+Call log:
+  - Expect "to_contain_text" with timeout 30000ms
+  - waiting for locator("#helper-list")
+    61 × locator resolved to <div id="helper-list"></div>
+       - unexpected value ""
+
+Aria snapshot:
+- banner:
+  - button "Confectory 홈으로": Confectory
+  - text: /
+  - button "Example.ButtonGame ▾"
+  - button "설정 열기": 설정
+- complementary:
+  - button "AGENT (0)" [expanded]
+  - button "Agent 추가": ++추가
+  - button "HELPER (0)" [expanded]
+  - button "Helper 추가": ++추가
+  - heading "소속 미지정 (0)" [level=4]
+  - button "Helper 추가": + ＋
+  - button "User(0/0)": User (0/0)
+  - separator "사이드바 너비 조절, 클릭하여 최소화 또는 복원"
+- main:
+  - tablist "작업 공간":
+    - tab "Workspace" [selected]
+  - status: 배치 저장 대기
+  - button "YogiBox"
+  - button "증강"
+  - button "신문고": 📫
+  - button "빌드 대상 선택": 🛠️
+  - button "프로젝트 실행": ▶
+  - button "프로젝트 브라우저": ≡
+  - region "고급 소스 작업 사본":
+    - text: ◈
+    - strong: 고급 소스 작업 사본
+    - button "창 접기": −
+    - button "창 닫기": ×
+    - button "n 방향으로 창 크기 조절"
+    - button "ne 방향으로 창 크기 조절"
+    - button "e 방향으로 창 크기 조절"
+    - button "se 방향으로 창 크기 조절"
+    - button "s 방향으로 창 크기 조절"
+    - button "sw 방향으로 창 크기 조절"
+    - button "w 방향으로 창 크기 조절"
+    - button "nw 방향으로 창 크기 조절"
+- separator "채팅바 높이 조절"
+- button "프로젝트 채팅"
+- button "Logs"
+- strong
+- textbox "프로젝트 채팅 입력":
+  - /placeholder: 함께 만들 내용을 남겨보세요…
+- button "메시지 보내기": 보내기
+- dialog "Helper 추가":
+  - heading "Helper 추가" [level=2]
+  - group: Agent 소유 정보 없음 ⌄
+  - text: 랜덤 생성
+  - button "전체" [disabled]
+  - button "설정" [disabled]
+  - button "이미지" [disabled]
+  - button "닫기": ×
+  - text: 상반신 이미지 없음
+  - button "상반신 생성" [disabled]
+  - text: 고정 시 이미지 없음
+  - button "고정 이미지 생성" [disabled]
+  - text: 도우미 아이콘 없음
+  - button "아이콘 생성" [disabled]
+  - text: 이름
+  - button "랜덤 생성" [disabled]
+  - textbox "이름":
+    - /placeholder: Helper 이름 · 사용자 설정 연결 미지원
+  - text: 간단 설명
+  - textbox "간단 설명"
+  - text: 설명
+  - button "랜덤 생성" [disabled]
+  - textbox "설명"
+  - button "기존 공통 Helper 모집"
+  - button "기존 프로젝트 Helper 모집"
+  - paragraph: 새 이름·Agent 소유·이미지 생성 설정은 연결되지 않았습니다. 기존 로컬 Helper의 모집과 기억만 사용할 수 있습니다.
+  - group: 기존 Helper 선택과 기억 범위
+- status: Cannot access 'yogiText' before initialization
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/workspace/Confectory-web-ui/tests/web/editor_participants_v318.py", line 57, in <module>
+    page.screenshot(path=str(root/f'failure-{n}.png'));raise AssertionError(str(e)+'\nEvidence: '+str(root)+'\nErrors: '+str(errors)) from e
+                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Locator expected to contain text 'main-helper'
+Actual value:  
+Call log:
+  - Expect "to_contain_text" with timeout 30000ms
+  - waiting for locator("#helper-list")
+    61 × locator resolved to <div id="helper-list"></div>
+       - unexpected value ""
+
+Aria snapshot:
+- banner:
+  - button "Confectory 홈으로": Confectory
+  - text: /
+  - button "Example.ButtonGame ▾"
+  - button "설정 열기": 설정
+- complementary:
+  - button "AGENT (0)" [expanded]
+  - button "Agent 추가": ++추가
+  - button "HELPER (0)" [expanded]
+  - button "Helper 추가": ++추가
+  - heading "소속 미지정 (0)" [level=4]
+  - button "Helper 추가": + ＋
+  - button "User(0/0)": User (0/0)
+  - separator "사이드바 너비 조절, 클릭하여 최소화 또는 복원"
+- main:
+  - tablist "작업 공간":
+    - tab "Workspace" [selected]
+  - status: 배치 저장 대기
+  - button "YogiBox"
+  - button "증강"
+  - button "신문고": 📫
+  - button "빌드 대상 선택": 🛠️
+  - button "프로젝트 실행": ▶
+  - button "프로젝트 브라우저": ≡
+  - region "고급 소스 작업 사본":
+    - text: ◈
+    - strong: 고급 소스 작업 사본
+    - button "창 접기": −
+    - button "창 닫기": ×
+    - button "n 방향으로 창 크기 조절"
+    - button "ne 방향으로 창 크기 조절"
+    - button "e 방향으로 창 크기 조절"
+    - button "se 방향으로 창 크기 조절"
+    - button "s 방향으로 창 크기 조절"
+    - button "sw 방향으로 창 크기 조절"
+    - button "w 방향으로 창 크기 조절"
+    - button "nw 방향으로 창 크기 조절"
+- separator "채팅바 높이 조절"
+- button "프로젝트 채팅"
+- button "Logs"
+- strong
+- textbox "프로젝트 채팅 입력":
+  - /placeholder: 함께 만들 내용을 남겨보세요…
+- button "메시지 보내기": 보내기
+- dialog "Helper 추가":
+  - heading "Helper 추가" [level=2]
+  - group: Agent 소유 정보 없음 ⌄
+  - text: 랜덤 생성
+  - button "전체" [disabled]
+  - button "설정" [disabled]
+  - button "이미지" [disabled]
+  - button "닫기": ×
+  - text: 상반신 이미지 없음
+  - button "상반신 생성" [disabled]
+  - text: 고정 시 이미지 없음
+  - button "고정 이미지 생성" [disabled]
+  - text: 도우미 아이콘 없음
+  - button "아이콘 생성" [disabled]
+  - text: 이름
+  - button "랜덤 생성" [disabled]
+  - textbox "이름":
+    - /placeholder: Helper 이름 · 사용자 설정 연결 미지원
+  - text: 간단 설명
+  - textbox "간단 설명"
+  - text: 설명
+  - button "랜덤 생성" [disabled]
+  - textbox "설명"
+  - button "기존 공통 Helper 모집"
+  - button "기존 프로젝트 Helper 모집"
+  - paragraph: 새 이름·Agent 소유·이미지 생성 설정은 연결되지 않았습니다. 기존 로컬 Helper의 모집과 기억만 사용할 수 있습니다.
+  - group: 기존 Helper 선택과 기억 범위
+- status: Cannot access 'yogiText' before initialization
+Evidence: /tmp/confectory-participants-v318-peqm0wvy
+Errors: ["Cannot access 'yogiText' before initialization"]
+
+   at Confectory.Tests.TestCase.True(Boolean condition, String message) in /workspace/Confectory-web-ui/tests/Confectory.Tests/Support.cs:line 127
+   at Confectory.Tests.WebUITests.test_actual_editor_v318_helper_inputs_and_panels_cold_restart() in /workspace/Confectory-web-ui/tests/Confectory.Tests/WebUITests.cs:line 19
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+0 passed, 1 failed, 0 skipped; 56.686s

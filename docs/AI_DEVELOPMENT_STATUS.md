@@ -1,3 +1,7 @@
+# v318 participant recovery increment
+
+[Actual Helper inputs/presentations and Worker journal recovery](EDITOR_V318_PARTICIPANTS.md) records the scoped implementation, no-replay boundary, verification and remaining v318 gaps.
+
 # v318 actual local inventory and browser increment
 
 [Actual registry catalogue and independent browsers](EDITOR_V318_INVENTORY.md) connects confirmed manifest/declaration metadata, namespace and inheritance navigation, independent search/sort/display state and cold recovery. Marketplace and installation policies remain unsupported; Worker/AI/Yogi recovery and Run viewport follow later. Validation and source preservation evidence are recorded with the increment.

@@ -65,4 +65,8 @@ import Confectory.YogiBox::Snapshot as YogiSnapshot (string) -> string;
 import Confectory.YogiBox::Discard as YogiDiscard (string) -> void;
 import Confectory.YogiBox::ReserveCapture as YogiReserve (string,string,int,int,int,int,int) -> string;
 import Confectory.YogiBox::CompleteCapture as YogiComplete (string,string,string) -> bool;
+import Confectory.WorkerTasks::Open as RecoveryTasksOpen (string,string,string,string,string) -> string;
+import Confectory.WorkerTasks::List as RecoveryTasksList (string) -> string;
+import Confectory.WorkerTasks::Inspect as RecoveryTasksInspect (string,string) -> string;
+import Confectory.WorkerTasks::Close as RecoveryTasksClose (string) -> void;
 body common "Command.csbody"; }

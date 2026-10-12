@@ -1,0 +1,77 @@
+FAIL WebUITests.test_actual_editor_v318_helper_inputs_and_panels_cold_restart
+System.Exception: Traceback (most recent call last):
+  File "/workspace/Confectory-web-ui/tests/web/editor_participants_v318.py", line 52, in <module>
+    expect(page.locator('.window[data-key="worker"]')).to_contain_text('실행 소유자가 복원되지');expect(page.locator('#worker-prepare')).to_be_disabled();expect(page.locator('#worker-stop')).to_be_disabled();state=public_state(url);assert len(state['workers'])==1;assert state['workers'][0]['status']=='ready';assert state['workers'][0]['id']==worker_id;assert not state['aiOwnerAvailable'];assert len(owned.requests)==1
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/sync_api/_generated.py", line 22016, in to_contain_text
+    self._sync(
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_sync_base.py", line 115, in _sync
+    return task.result()
+           ^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_assertions.py", line 303, in to_contain_text
+    await self._expect_impl(
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_assertions.py", line 128, in _expect_impl
+    _record_soft_or_raise(
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_assertions.py", line 60, in _record_soft_or_raise
+    raise error
+AssertionError: Locator expected to contain text '실행 소유자가 복원되지'
+Actual value: ◈Worker 기록 조회−×실제 프로젝트 Worker 기록을 조회하고 있습니다. 승인과 실행은 재생하지 않습니다. 
+Call log:
+  - Expect "to_contain_text" with timeout 30000ms
+  - waiting for locator(".window[data-key=\"worker\"]")
+    62 × locator resolved to <section tabindex="-1" data-key="worker" aria-label="Worker 기록 조회" class="window multi-selected active">…</section>
+       - unexpected value "◈Worker 기록 조회−×실제 프로젝트 Worker 기록을 조회하고 있습니다. 승인과 실행은 재생하지 않습니다."
+
+Aria snapshot:
+- region "Worker 기록 조회":
+  - text: ◈
+  - strong: Worker 기록 조회
+  - button "창 접기": −
+  - button "창 닫기": ×
+  - text: 실제 프로젝트 Worker 기록을 조회하고 있습니다. 승인과 실행은 재생하지 않습니다.
+  - button "n 방향으로 창 크기 조절"
+  - button "ne 방향으로 창 크기 조절"
+  - button "e 방향으로 창 크기 조절"
+  - button "se 방향으로 창 크기 조절"
+  - button "s 방향으로 창 크기 조절"
+  - button "sw 방향으로 창 크기 조절"
+  - button "w 방향으로 창 크기 조절"
+  - button "nw 방향으로 창 크기 조절"
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/workspace/Confectory-web-ui/tests/web/editor_participants_v318.py", line 57, in <module>
+    page.screenshot(path=str(root/f'failure-{n}.png'));raise AssertionError(str(e)+'\nEvidence: '+str(root)+'\nErrors: '+str(errors)) from e
+                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Locator expected to contain text '실행 소유자가 복원되지'
+Actual value: ◈Worker 기록 조회−×실제 프로젝트 Worker 기록을 조회하고 있습니다. 승인과 실행은 재생하지 않습니다. 
+Call log:
+  - Expect "to_contain_text" with timeout 30000ms
+  - waiting for locator(".window[data-key=\"worker\"]")
+    62 × locator resolved to <section tabindex="-1" data-key="worker" aria-label="Worker 기록 조회" class="window multi-selected active">…</section>
+       - unexpected value "◈Worker 기록 조회−×실제 프로젝트 Worker 기록을 조회하고 있습니다. 승인과 실행은 재생하지 않습니다."
+
+Aria snapshot:
+- region "Worker 기록 조회":
+  - text: ◈
+  - strong: Worker 기록 조회
+  - button "창 접기": −
+  - button "창 닫기": ×
+  - text: 실제 프로젝트 Worker 기록을 조회하고 있습니다. 승인과 실행은 재생하지 않습니다.
+  - button "n 방향으로 창 크기 조절"
+  - button "ne 방향으로 창 크기 조절"
+  - button "e 방향으로 창 크기 조절"
+  - button "se 방향으로 창 크기 조절"
+  - button "s 방향으로 창 크기 조절"
+  - button "sw 방향으로 창 크기 조절"
+  - button "w 방향으로 창 크기 조절"
+  - button "nw 방향으로 창 크기 조절"
+Evidence: /tmp/confectory-participants-v318-i7wlgrqf
+Errors: ["Cannot access 'panelInspection' before initialization"]
+
+   at Confectory.Tests.TestCase.True(Boolean condition, String message) in /workspace/Confectory-web-ui/tests/Confectory.Tests/Support.cs:line 127
+   at Confectory.Tests.WebUITests.test_actual_editor_v318_helper_inputs_and_panels_cold_restart() in /workspace/Confectory-web-ui/tests/Confectory.Tests/WebUITests.cs:line 19
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+0 passed, 1 failed, 0 skipped; 77.988s

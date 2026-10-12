@@ -4,7 +4,7 @@ import {createWorkspaceRuntime} from './workspace.js';
 // DOM while it is detached, and persists only private presentation data.
 export function createActualWorkspace(api) {
   let project=null,scope='',loading=false,scheduled=null,saving=null,changed=0,saved=0;
-  const projects=new Map(),detached=new Map();
+  const projects=new Map(),detached=new Map();let panelWorkspace='root';
   const host={
     get isRestoring(){return loading},canNavigate:()=>!loading,preserveLifecycle:true,$:api.$,$$:api.$$,esc:api.esc,
     get project(){return project},get page(){return api.page},
@@ -15,9 +15,9 @@ export function createActualWorkspace(api) {
     detachWindow:w=>{if(w.overlay)return;detached.set(scope+'|'+w.key,w);capture()},
     foregroundZ:node=>node.key==='ai-preview'&&api.$('.augment-overlay')?271:undefined,
     hideWindowOnClose:key=>key==='source'||key.startsWith('editor-'),
-    layoutMetadata:w=>Object.fromEntries(['id','view','mode','group','density','query','sort','mainWorkspace','namespace','catalogue','kind','parent','queryInput','closedNamespaces'].filter(key=>w.meta[key]!==undefined).map(key=>[key,w.meta[key]])),
+    layoutMetadata:w=>Object.fromEntries(['id','view','mode','group','density','query','sort','mainWorkspace','namespace','catalogue','kind','parent','queryInput','closedNamespaces','workerId'].filter(key=>w.meta[key]!==undefined).map(key=>[key,w.meta[key]])),
     restoreActualWindow:layout=>restore(layout),
-    afterSwitchWorkspace:()=>{api.render();schedule()},
+    afterSwitchWorkspace:()=>{const panels=structuredClone(runtime.workspaceRecord().participants||[]);api.clearPanels();panelWorkspace=runtime.state.activeWorkspaceId;api.restorePanels(panels);api.render();schedule()},
     beforeDeleteWorkspaces:ids=>{
       // Closing a child presentation must never release the domain editor view.
       const parent=runtime.workspaceRecord();
@@ -42,10 +42,10 @@ export function createActualWorkspace(api) {
     objectContext:(event,object)=>api.objectContext(object.id,event),
   };
   const runtime=createWorkspaceRuntime(host);
-  function capture(){if(project){if(!loading&&!project.recoveryFailed){project.selectedObjectId=api.current.draft?.id;project.editorBindings=api.current.editorViews.map(({view,id,mode})=>({view,id,mode}));}project.inputs=api.captureInputs(detached.get(scope+'|source'));const owner=runtime.workspaceRecord();if(owner){if(runtime.state.activeWorkspaceId==='root')project.rootWorkspaceView={...project.workspaceView};else owner.view={...project.workspaceView};}if(owner)for(const w of runtime.state.windows.values()){if(w.overlay)continue;const row=owner.layout.find(row=>row.key===w.key);if(row)Object.assign(row,runtime.windowLayout(w));}}}
+  function capture(){if(project){if(!loading&&!project.recoveryFailed){project.selectedObjectId=api.current.draft?.id;project.editorBindings=api.current.editorViews.map(({view,id,mode})=>({view,id,mode}));}project.inputs=api.captureInputs(detached.get(scope+'|source'));const owner=runtime.workspaceRecord();if(owner&&!loading&&panelWorkspace===runtime.state.activeWorkspaceId)owner.participants=api.capturePanels();if(owner){if(runtime.state.activeWorkspaceId==='root')project.rootWorkspaceView={...project.workspaceView};else owner.view={...project.workspaceView};}if(owner)for(const w of runtime.state.windows.values()){if(w.overlay)continue;const row=owner.layout.find(row=>row.key===w.key);if(row)Object.assign(row,runtime.windowLayout(w));}}}
   function schedule(){
     if(!project||loading)return;
-    capture();project.activeWorkspaceId=runtime.state.activeWorkspaceId;
+    api.setWorkspaceStatus('배치 저장 대기');capture();project.activeWorkspaceId=runtime.state.activeWorkspaceId;
     project.visitedWorkspaceTabs=[...runtime.state.visitedWorkspaceTabs];project.selectedNodeKeys=[...runtime.state.selectedWorkspaceNodeKeys];changed++;
     clearTimeout(scheduled);const attempt=()=>{if(api.isBusy){scheduled=setTimeout(attempt,250);return;}flush().catch(error=>api.toast('작업 공간 저장 실패 · '+error.message+' · 입력과 배치는 유지됩니다.'));};scheduled=setTimeout(attempt,250);
   }
@@ -71,6 +71,8 @@ export function createActualWorkspace(api) {
     if(layout.key==='source'){api.editor();return runtime.state.windows.get('source');}
     if(layout.key==='browser'||layout.key.startsWith('browser:')||layout.key.startsWith('browser-tree:')){const w=api.browser(layout.meta?.group||'concept',layout.key);Object.assign(w.meta,layout.meta);return api.browser(w.meta.group,layout.key);}
     if(layout.key==='schema'){api.schema();return runtime.state.windows.get('schema');}
+    if(layout.key==='worker')return api.worker(layout.meta?.workerId);
+    if(layout.key==='connections'){api.connections();return runtime.state.windows.get('connections');}
     if(layout.key==='packs')return api.packs();
     if(layout.key==='targets'){api.targets();return runtime.state.windows.get('targets');}
     if(layout.key.startsWith('editor-')){api.renderViews();return runtime.state.windows.get(layout.key);}
@@ -96,7 +98,7 @@ export function createActualWorkspace(api) {
     const layouts=runtime.workspaceRecord().layout.map(row=>structuredClone(row));
     for(const layout of layouts)runtime.restoreWindow(layout);
     runtime.setWorkspaceNodeSelection((project.selectedNodeKeys||[]).map(key=>runtime.state.workspaceNodes.get(key)).filter(Boolean));
-    loading=false;changed=0;saved=0;
+    loading=false;changed=0;saved=0;panelWorkspace=runtime.state.activeWorkspaceId;api.restorePanels(runtime.workspaceRecord().participants||[]);
     api.$('#workspace').addEventListener('input',()=>schedule());
     const bindings=project.editorBindings||[],selected=project.selectedObjectId;
     const missing=bindings.filter(binding=>!state.editorViews.some(row=>row.view===binding.view&&row.id===binding.id&&row.mode===binding.mode));
@@ -113,7 +115,7 @@ export function createActualWorkspace(api) {
       })();
     }
   }
-  function detach(){if(!project)return;capture();loading=true;clearTimeout(scheduled);runtime.saveLayouts();capture();for(const w of runtime.state.windows.values())host.detachWindow(w);projects.set(scope,project);project=null;scope='';loading=false;changed=0;saved=0;}
+  function detach(){if(!project)return;capture();loading=true;api.clearPanels();clearTimeout(scheduled);runtime.saveLayouts();capture();for(const w of runtime.state.windows.values())host.detachWindow(w);projects.set(scope,project);project=null;scope='';loading=false;changed=0;saved=0;}
   function reveal(key){const owner=findOwner(key);if(owner&&owner!==runtime.state.activeWorkspaceId)runtime.switchWorkspace(owner);let w=runtime.state.windows.get(key);if(!w){const layout=runtime.workspaceRecord()?.layout.find(row=>row.key===key);if(layout)w=runtime.restoreWindow(layout);}if(w){w.el.hidden=false;runtime.registerWorkspaceNode(w);runtime.focusWindow(w);runtime.saveLayouts();}return w;}
   return {runtime,attach,detach,flush,schedule,shouldRender,reveal,get project(){return project},get loading(){return loading}};
 }

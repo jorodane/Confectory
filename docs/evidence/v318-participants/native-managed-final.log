@@ -1,0 +1,3 @@
+PASS EntryHomeTests.test_entry_home_actual_linux_startup_navigation_create_folder_cards_resize_and_lifetime
+PASS EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only
+2 passed, 0 failed, 0 skipped; 546.770s

@@ -1,0 +1,47 @@
+FAIL WebUITests.test_actual_editor_v318_helper_inputs_and_panels_cold_restart
+System.Exception: Traceback (most recent call last):
+  File "/workspace/Confectory-web-ui/tests/web/editor_participants_v318.py", line 43, in <module>
+    card=page.locator('.participant-expanded-card');expect(card).to_have_count(1);expect(card).to_have_attribute('data-helper-id','main-helper');expect(card).to_have_class(__import__('re').compile('is-pinned'));card.locator('.sd-character').click();expect(card.locator('textarea').last).to_have_value('UNSENT helper conversation');card.locator('.sd-close').click();page.locator('#add-helper').click();expect(page.locator('#helper-memory')).to_have_value('UNSAVED participant memory');page.locator('.modal [data-close]').click();state=public_state(url);assert state['aiState']=='idle';assert state['aiPreview'] is None;assert not state['workers'];assert not state['draft']['dirty'];page.screenshot(path=str(root/'actual-after-restart.png'))
+                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/sync_api/_generated.py", line 22365, in to_have_count
+    self._sync(
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_sync_base.py", line 115, in _sync
+    return task.result()
+           ^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_assertions.py", line 465, in to_have_count
+    await self._expect_impl(
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_assertions.py", line 128, in _expect_impl
+    _record_soft_or_raise(
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_assertions.py", line 60, in _record_soft_or_raise
+    raise error
+AssertionError: Locator expected to have count '1'
+Actual value: 0 
+Call log:
+  - Expect "to_have_count" with timeout 30000ms
+  - waiting for locator(".participant-expanded-card")
+    60 × locator resolved to 0 elements
+       - unexpected value "0"
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/workspace/Confectory-web-ui/tests/web/editor_participants_v318.py", line 47, in <module>
+    page.screenshot(path=str(root/f'failure-{n}.png'));raise AssertionError(str(e)+'\nEvidence: '+str(root)+'\nErrors: '+str(errors)) from e
+                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Locator expected to have count '1'
+Actual value: 0 
+Call log:
+  - Expect "to_have_count" with timeout 30000ms
+  - waiting for locator(".participant-expanded-card")
+    60 × locator resolved to 0 elements
+       - unexpected value "0"
+
+Evidence: /tmp/confectory-participants-v318-yxina6l2
+Errors: []
+
+   at Confectory.Tests.TestCase.True(Boolean condition, String message) in /workspace/Confectory-web-ui/tests/Confectory.Tests/Support.cs:line 127
+   at Confectory.Tests.WebUITests.test_actual_editor_v318_helper_inputs_and_panels_cold_restart() in /workspace/Confectory-web-ui/tests/Confectory.Tests/WebUITests.cs:line 19
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+0 passed, 1 failed, 0 skipped; 57.155s

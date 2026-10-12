@@ -34,6 +34,7 @@ if(endpoint=="host.create-project"){
  Command("create",new(){["directory"]=args["directory"]!.DeepClone(),["title"]=args["title"]!.DeepClone(),["description"]=args["description"]?.DeepClone()??System.Text.Json.Nodes.JsonValue.Create("")});OpenSemantic();return "{\"accepted\":true}";
 }
 var selected=before["selected"]??throw new InvalidOperationException("Project scope unavailable");
+if(endpoint=="inspectPanels"){Command("inspect-panels",new(){["context"]=selected["context"]!.DeepClone()});return "{\"accepted\":true}";}
 if(endpoint=="savePresentation"){Command("presentation-save",new(){["context"]=selected["context"]!.DeepClone(),["presentation"]=args["presentation"]!.DeepClone()});return "{\"accepted\":true}";}
 if(endpoint=="leaveProject"){Command("leave",new(){["context"]=selected["context"]!.DeepClone()});return "{\"accepted\":true}";}
 string Target(){string target=args["target"]?.GetValue<string>()??(OperatingSystem.IsWindows()?"windows":"linux");if(args["target"] is not null&&selected["targets"]?.AsArray().Count>0&&!System.Linq.Enumerable.Any(selected["targets"]!.AsArray(),item=>item?.ToString()==target))throw new ArgumentException("Target must be declared by the selected project");return target;}

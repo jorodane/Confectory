@@ -1,0 +1,22 @@
+FAIL WebUITests.test_actual_editor_v318_helper_inputs_and_panels_cold_restart
+System.Exception: Traceback (most recent call last):
+  File "/workspace/Confectory-web-ui/tests/web/editor_participants_v318.py", line 40, in <module>
+    page.locator('.home-side [data-helper="main-helper"]').first.click();card=page.locator('.participant-expanded-card');card.locator('textarea').fill('UNSENT helper conversation');card.locator('.helper-window-pin').click();expect(card).to_have_class(__import__('re').compile('is-pinned'));card.locator('.sd-character').click();expect(card.locator('.sd-compose')).to_be_visible();expect(card.locator('textarea[aria-label="Helper 대화 입력"]').last).to_have_value('UNSENT helper conversation');expect(page.locator('#workspace-save-state')).to_have_text('배치 저장됨');state=public_state(url);assert state['aiState']=='idle';assert state['aiPreview'] is None;assert not state['workers'];assert not state['draft']['dirty'];assert 'memory' not in state['helperProfile'];snapshot=saved();assert snapshot['participants'][0]['helper']=='main-helper';assert snapshot['participants'][0]['pinned'];assert snapshot['inputs']['memory'][0][1]=='UNSAVED participant memory';page.screenshot(path=str(root/'actual-before-restart.png'))
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+AssertionError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/workspace/Confectory-web-ui/tests/web/editor_participants_v318.py", line 47, in <module>
+    page.screenshot(path=str(root/f'failure-{n}.png'));raise AssertionError(str(e)+'\nEvidence: '+str(root)+'\nErrors: '+str(errors)) from e
+                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 
+Evidence: /tmp/confectory-participants-v318-c7smb6lo
+Errors: []
+
+   at Confectory.Tests.TestCase.True(Boolean condition, String message) in /workspace/Confectory-web-ui/tests/Confectory.Tests/Support.cs:line 127
+   at Confectory.Tests.WebUITests.test_actual_editor_v318_helper_inputs_and_panels_cold_restart() in /workspace/Confectory-web-ui/tests/Confectory.Tests/WebUITests.cs:line 19
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+0 passed, 1 failed, 0 skipped; 17.793s
