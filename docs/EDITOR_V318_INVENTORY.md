@@ -22,4 +22,4 @@ Earlier [resource/build timing failure](evidence/v318-inventory/prior-resource-b
 
 [Actual local catalogue](evidence/v318-inventory/actual-local-catalogue.png), [independent browsers](evidence/v318-inventory/actual-browser-instances.png), [actual restart](evidence/v318-inventory/actual-browser-restart.png), [confirmed inheritance](evidence/v318-inventory/actual-declaration-inheritance.png), [project registry window](evidence/v318-inventory/actual-project-packs.png).
 
-The actual Git checkout/resource/startup gate follows the local implementation commit so the ordinary pull includes the new module. Push follows its result.
+The actual Git checkout/resource/startup gate passed **1/0/0, 17.085s** after implementation commit `1d6a2a2`, [result](evidence/v318-inventory/checkout-final.log). The ordinary pull includes the new pinned module; canonical resources and actual startup were verified. The frozen v318 ZIP and all 18 paused-original files remain byte unchanged. `main` and Android version settings were not changed.
