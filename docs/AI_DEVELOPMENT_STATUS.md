@@ -1,3 +1,7 @@
+# v318 Helper connection and turn ownership
+
+The existing Helper UI now uses actual request ownership and state, pack settings navigation, explicit review and preserved hidden work. Responses desktop transport is verified with an owned loopback fixture; real account/model use and Codex execution remain held. See [scope, contracts and verification](EDITOR_V318_HELPER_AI.md).
+
 # Measured Workspace checkpoint policy
 
 [Periodic placement checkpoints and input/exit flush](WORKSPACE_CHECKPOINT_POLICY.md) separates measured calls, actual writes and notifications, preserving Yogi domain storage and pending input.
