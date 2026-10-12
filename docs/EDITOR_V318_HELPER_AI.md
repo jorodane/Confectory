@@ -14,6 +14,8 @@ Each Helper composer retains its own unsubmitted input, keyed by durable project
 
 The public projection adds the actual ProjectAI Helper ID, request ID and sanitized error code. Replies are attributed to the request owner, rather than whichever Helper is currently selected. Empty/new/error output clears a prior reply; no persistent conversation history is invented. Completed means the actual Agent response completed, not that a Worker task or source adoption succeeded. Existing Worker IDs/statuses remain authoritative.
 
+All Helper Worker controls use one owner/project-checked presentation route. Opening a Worker dismisses an unpinned profile so it cannot cover the Worker controls; pinned presentations retain their existing behavior. Updating the status no longer installs a different click path.
+
 While an actual permission review is open, Helper presentations are temporarily hidden and kept alive so they cannot cover approval controls. Cancel/start restores the same presentation and input. The common controls refresh owns form enablement; cancelled idle turns do not need another model revision to re-enable Send.
 
 Project hiding retains work. Navigation retries are bounded to three attempts and only cover an explicit transport `stale_revision` rejection before the leave operation executed, under the same project ID. Message/source/AI/approval commands are not replayed. Complete project close uses the existing close contract. Active AI/Worker/project execution shows a confirmation; Keep working sends no close request.
@@ -31,6 +33,8 @@ The focused ordinary EditorHome/ordinary ButtonGame test passed **1 passed, 0 fa
 The gate verifies settings navigation, zero requests before approval/cancel, exact current-project memory with common memory excluded, the actual request owner/output, a different project Helper with an empty independent input, background work and close cancellation, sanitized HTTP failure with old output cleared, complete-close cleanup and unchanged project source bytes. Exactly three owned HTTP requests occur. No real model/account, credential read/write, Codex process or paid service is involved. Chromium execution is on Linux; Windows device execution is a separate user check.
 
 Initial failures remain in consumer-local logs, separately from the final pass: fixture completion waits around repeated memory notifications/recruitment; the actual Helper panel covering review; hidden-panel dismissal and disabled Send after cancellation; Add reopening the selected profile; and transport revision rejection during active-work navigation. No source, ownership, permission, memory or request-count assertion was waived.
+
+The first frozen affected batch was **3 passed, 1 failed, 0 skipped, 196.203s**: the new Helper gate, cold recovery and checkout/startup passed; the broad gate exposed a refreshed Worker click handler leaving the unpinned profile over its controls. Its common route was corrected before the next frozen regression. This mixed batch is not reported as all-pass.
 
 Reproduce with SDK 10.0.401 and Release tools:
 
