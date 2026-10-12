@@ -1,0 +1,15 @@
+FAIL WebUITests.test_actual_editor_v318_yogi_owned_content_and_validation_restart
+System.Exception: Traceback (most recent call last):
+  File "/workspace/Confectory-web-ui/tests/web/editor_yogi_v318.py", line 78, in <module>
+    page.locator('.yogi-package').click();expect(page.locator('#yogi-text')).to_have_value('saved local description');page.locator('#yogi-text').fill('UNAPPLIED local description');page.locator('.yogi-clipboard [data-close]').click();expect(page.locator('.yogi-clipboard')).to_have_count(0);assert public_state(url)['yogi']['text']=='saved local description';open_yogi(page);expect(page.locator('#yogi-text')).to_have_value('UNAPPLIED local description');head=page.locator('.yogi-clipboard-head');box=head.bounding_box();page.mouse.move(box['x']+40,box['y']+18);page.mouse.down();page.mouse.move(690,320,steps=12);page.mouse.up();expect(page.locator('#workspace-save-state')).to_have_text('배치 저장됨');position=saved()['yogiPresentation'];assert position['open'];page.locator('.brand').click();expect(page.locator('.home-grid')).to_be_visible();expect(page.locator('.yogi-clipboard')).to_have_count(0);page.locator('[data-enter]').first.click();expect(page.locator('#yogi-text')).to_have_value('UNAPPLIED local description');assert public_state(url)['yogi']['text']=='saved local description';expect(page.locator('#workspace-save-state')).to_have_text('배치 저장됨');golden=json.loads(store().read_text());golden_bytes=store().read_bytes();page.screenshot(path=str(root/'actual-pending-description.png'))
+                                                                                                                                                                                                                                                                                                          ^^^^^^^^^^^^^^^^^
+  File "/workspace/Confectory-web-ui/tests/web/editor_yogi_v318.py", line 30, in public_state
+    mounted=send({'op':'mount'});assert mounted['ok'],mounted
+                                        ~~~~~~~^^^^^^
+AssertionError: {'ok': False, 'requestId': '', 'error': {'code': 'busy'}}
+
+   at Confectory.Tests.TestCase.True(Boolean condition, String message) in /workspace/Confectory-web-ui/tests/Confectory.Tests/Support.cs:line 127
+   at Confectory.Tests.WebUITests.test_actual_editor_v318_yogi_owned_content_and_validation_restart() in /workspace/Confectory-web-ui/tests/Confectory.Tests/WebUITests.cs:line 19
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+0 passed, 1 failed, 0 skipped; 241.498s

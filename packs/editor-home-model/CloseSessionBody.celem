@@ -5,5 +5,5 @@ import Confectory.ProjectShell::Close as ShellClose (string) -> void;
 import Confectory.PackWorkspace::Close as PackClose (string) -> void;
 import Confectory.Helper::Close as HelperClose (string) -> void;
 import Confectory.ProjectAI::Close as AIClose (string) -> void;
-import Confectory.YogiBox::Discard as YogiDiscard (string) -> void;
+import Confectory.YogiBox::Close as YogiClose (string) -> void;
 body common "CloseSession.csbody"; }

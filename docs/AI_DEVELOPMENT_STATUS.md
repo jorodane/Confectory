@@ -1,3 +1,11 @@
+# Measured Workspace checkpoint policy
+
+[Periodic placement checkpoints and input/exit flush](WORKSPACE_CHECKPOINT_POLICY.md) separates measured calls, actual writes and notifications, preserving Yogi domain storage and pending input.
+
+# YogiBox domain-owned persistence increment
+
+[Bounded storage, actual reference recovery and presentation lifecycle](EDITOR_V318_YOGI.md) records the domain contracts and no-replay boundary, with concrete Augment custom/skip follow-up limits.
+
 # v318 actual Run observation increment
 
 [Run controls, state/logs and presentation restoration](EDITOR_V318_RUN.md) records the ordinary build-and-run/owned-stop connection and missing render/build-only/durable-process contracts. It also orders concrete Yogi and Augment follow-up boundaries.

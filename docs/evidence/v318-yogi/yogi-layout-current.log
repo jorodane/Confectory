@@ -1,0 +1,13 @@
+FAIL WebUITests.test_actual_editor_layout_periodic_checkpoints_and_flush
+System.Exception: Traceback (most recent call last):
+  File "/workspace/Confectory-web-ui/tests/web/editor_layout_saves.py", line 99, in <module>
+    assert results['zoom_burst_300ms']['actualFileReplacements']<=1,results
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: {'idle_poll': {'actionSeconds': 1.7949932953342795e-06, 'requests': 0, 'actualFileReplacements': 0, 'statusTransitions': []}, 'right_click_menus': {'actionSeconds': 5.951592427009018, 'requests': 0, 'actualFileReplacements': 0, 'statusTransitions': []}, 'same_origin_repeat': {'actionSeconds': 3.048515550006414, 'requests': 0, 'actualFileReplacements': 0, 'statusTransitions': ['배치 변경 있음']}, 'pan': {'actionSeconds': 1.4268836120027117, 'requests': 0, 'actualFileReplacements': 0, 'statusTransitions': ['배치 변경 있음']}, 'zoom_burst_300ms': {'actionSeconds': 4.4135143689927645, 'requests': 3, 'actualFileReplacements': 3, 'statusTransitions': ['배치 변경 있음', '']}, 'selection_focus': {'actionSeconds': 4.503333600005135, 'requests': 0, 'actualFileReplacements': 0, 'statusTransitions': []}, 'window_move': {'actionSeconds': 2.3921470990026137, 'requests': 0, 'actualFileReplacements': 0, 'statusTransitions': ['배치 변경 있음']}, 'continuous_input_300ms': {'actionSeconds': 5.3021200980001595, 'requests': 2, 'actualFileReplacements': 2, 'statusTransitions': ['배치 변경 있음', '', '배치 변경 있음', '']}, 'identical_snapshot': {'actionSeconds': 1.5713599720038474, 'requests': 1, 'actualFileReplacements': 0, 'statusTransitions': []}}
+
+   at Confectory.Tests.TestCase.True(Boolean condition, String message) in /workspace/Confectory-web-ui/tests/Confectory.Tests/Support.cs:line 127
+   at Confectory.Tests.WebUITests.test_actual_editor_layout_periodic_checkpoints_and_flush() in /workspace/Confectory-web-ui/tests/Confectory.Tests/WebUITests.cs:line 19
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+PASS WebUITests.test_actual_editor_v318_yogi_owned_content_and_validation_restart
+1 passed, 1 failed, 0 skipped; 782.879s

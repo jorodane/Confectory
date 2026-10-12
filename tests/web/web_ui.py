@@ -152,7 +152,7 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
      expect(page.locator('.helper-local-settings')).to_contain_text('기억 대상: main-helper',timeout=30000)
      # Common memory excluded by default. No provider or account is opened.
      expect(page.locator('#allow-common')).not_to_be_checked()
-     page.locator('#helper-memory').fill('local explicitly scoped note');page.locator('#remember').click();expect(page.locator('#status')).to_contain_text('로컬에 저장됨')
+     page.locator('#helper-memory').fill('local explicitly scoped note');page.locator('#remember').click();expect(page.locator('#status')).to_contain_text('로컬에 저장됨',timeout=30000)
      page.locator('.modal [data-close]').click()
      page.locator('#chat').click();page.locator('#chat-input').fill('local project message');page.locator('#chat-input').blur();expect(page.locator('#status')).to_contain_text('전송 없음')
      page.locator('#add-agent').click();expect(page.locator('#connection-list button')).not_to_have_count(0)

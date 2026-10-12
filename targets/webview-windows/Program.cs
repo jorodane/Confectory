@@ -20,14 +20,19 @@ internal static class Program
         string origin = "https://" + Guid.NewGuid().ToString("N") + ".confectory.invalid";
         string profile = Path.Combine(Path.GetTempPath(), "Confectory", "webview", Guid.NewGuid().ToString("N"));
         bool closing = false,nativePickerOpen=false;
-        bool closeApproved=false,closePending=false,ready=false;
+        bool closeApproved=false,closePending=false,ready=false;TaskCompletionSource<bool>? presentationFlush=null;string? presentationFlushKey=null;
         form.FormClosing += async (_, e) => {
             if(ready&&!closeApproved&&!rpc.IsClosed){
                 e.Cancel=true;if(closePending)return;
-                if(MessageBox.Show(form,"Close this workspace completely? Background work will stop. Unsaved browser input will be lost.","Confectory",MessageBoxButtons.OKCancel,MessageBoxIcon.Question)!=DialogResult.OK)return;
+                if(MessageBox.Show(form,"Close this workspace completely? Background work will stop. Pending input and placement will be checked before closing.","Confectory",MessageBoxButtons.OKCancel,MessageBoxIcon.Question)!=DialogResult.OK)return;
                 closePending=true;
-                try{var reply=await rpc.Call("native",new JsonObject{["action"]="close",["payload"]=new JsonObject{["confirmed"]=true}});if(reply?["ok"]?.GetValue<bool>()!=true&&reply?["error"]?["code"]?.GetValue<string>()!="host_action_denied"){MessageBox.Show(form,"Workspace could not close. Save the draft and try again.");return;}closeApproved=true;form.Close();}
-                catch{result=2;closeApproved=true;form.Close();}finally{closePending=false;}
+                try{
+                    presentationFlushKey=Guid.NewGuid().ToString("N");presentationFlush=new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                    string flushKey=System.Text.Json.JsonSerializer.Serialize(presentationFlushKey);
+                    await view.CoreWebView2.ExecuteScriptAsync("(()=>{const key="+flushKey+";Promise.resolve().then(()=>globalThis.confectoryFlushPresentation?.()).then(()=>chrome.webview.postMessage({presentationFlush:key,ok:true}),()=>chrome.webview.postMessage({presentationFlush:key,ok:false}));})()");
+                    if(!await presentationFlush.Task.WaitAsync(TimeSpan.FromSeconds(15))){MessageBox.Show(form,"Input or placement could not be saved. The workspace remains open; retry after resolving the save failure.");return;}
+                    var reply=await rpc.Call("native",new JsonObject{["action"]="close",["payload"]=new JsonObject{["confirmed"]=true}});if(reply?["ok"]?.GetValue<bool>()!=true&&reply?["error"]?["code"]?.GetValue<string>()!="host_action_denied"){MessageBox.Show(form,"Workspace could not close. Save the draft and try again.");return;}closeApproved=true;form.Close();}
+                catch{MessageBox.Show(form,"Close could not be acknowledged. The workspace remains open; input and placement are retained for retry.");}finally{closePending=false;presentationFlushKey=null;presentationFlush=null;}
                 return;
             }
             closing=true;rpc.Dispose();
@@ -78,6 +83,7 @@ internal static class Program
                     {
                         if (!Owned(e.Source) || e.WebMessageAsJson.Length > 2097152) return;
                         var message = JsonNode.Parse(e.WebMessageAsJson)!;
+                        if(closePending&&presentationFlushKey is not null&&message["presentationFlush"]?.GetValue<string>()==presentationFlushKey){presentationFlush?.TrySetResult(message["ok"]?.GetValue<bool>()==true);return;}
                         id = message["id"]!.GetValue<string>();
                         if (id.Length is < 1 or > 128) return;
                         JsonNode? response;

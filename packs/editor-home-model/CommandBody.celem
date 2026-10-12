@@ -56,6 +56,11 @@ import Confectory.ProjectAI::Work as WorkTask (string,string,string,string) -> s
 import Confectory.ProjectAI::Adopt as AdoptTask (string,string,string,string,string[],string) -> string;
 import Confectory.ProjectAI::PrepareRecovery as PrepareRecovery (string,string,string) -> string;
 import Confectory.ProjectAI::AdoptionStatus as AdoptionStatus (string,string) -> string; import Confectory.ProjectAI::ReconcileAdoption as ReconcileAdoption (string,string,string,string) -> string;
+import Confectory.YogiBox::Clear as YogiClear (string) -> void;
+import Confectory.YogiBox::Open as YogiOpen (string,string,string,string) -> string;
+import Confectory.YogiBox::Save as YogiSave (string) -> void;
+import Confectory.YogiBox::Close as YogiClose (string) -> void;
+import Confectory.YogiBox::Revalidate as YogiRevalidate (string,string) -> string;
 import Confectory.YogiBox::Create as YogiCreate () -> string;
 import Confectory.YogiBox::Exactly as YogiExactly (string,string,string[],string[]) -> void;
 import Confectory.YogiBox::Text as YogiText (string,string) -> void;

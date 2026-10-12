@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/workspace/Confectory-web-ui/tests/web/editor_layout_saves.py", line 45, in <module>
+    browser=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox']);host,stream,url=start(0);page=browser.new_page(viewport={'width':1440,'height':1000});page.goto(url);page.locator('.work-body').wait_for();page.wait_for_timeout(1200)
+                                                                                                         ^^^^^^^^
+  File "/workspace/Confectory-web-ui/tests/web/editor_layout_saves.py", line 14, in start
+    if host.poll() is not None:raise AssertionError(log.read_text())
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: /workspace/Confectory-web-ui/examples/editor-home/.confectory/outputs/linux/103a1feb1cf72600141983f23dd2c3ba15e51708169467bd51b07d2dfb3df2bd-3fd4b5016327/run: 2: exec: dotnet: not found

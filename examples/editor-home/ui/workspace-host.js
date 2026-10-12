@@ -4,20 +4,20 @@ import {createWorkspaceRuntime} from './workspace.js';
 // DOM while it is detached, and persists only private presentation data.
 export function createActualWorkspace(api) {
   let project=null,scope='',loading=false,scheduled=null,saving=null,changed=0,saved=0;
-  const projects=new Map(),detached=new Map();let panelWorkspace='root';
+  const projects=new Map(),detached=new Map(),checkpoints=new Map();let inputStarted=0;let panelWorkspace='root';
   const host={
     get isRestoring(){return loading},canNavigate:()=>!loading,preserveLifecycle:true,$:api.$,$$:api.$$,esc:api.esc,
     get project(){return project},get page(){return api.page},
     groups:{concept:'개념',feature:'기능',module:'모듈'},
     uid:()=>crypto.randomUUID(),toast:api.toast,modal:api.modal,contextMenu:api.contextMenu,
-    persist:()=>schedule(),get running(){return false},closeRun:()=>{},
+    persist:()=>schedule('layout'),get running(){return false},closeRun:()=>{},
     takeDetachedWindow:key=>{const w=detached.get(scope+'|'+key);detached.delete(scope+'|'+key);return w},
     detachWindow:w=>{if(w.overlay)return;detached.set(scope+'|'+w.key,w);capture()},
     foregroundZ:node=>node.key==='ai-preview'&&api.$('.augment-overlay')?271:undefined,
     hideWindowOnClose:key=>key==='source'||key.startsWith('editor-'),
     layoutMetadata:w=>Object.fromEntries(['id','view','mode','group','density','query','sort','mainWorkspace','namespace','catalogue','kind','parent','queryInput','closedNamespaces','workerId'].filter(key=>w.meta[key]!==undefined).map(key=>[key,w.meta[key]])),
     restoreActualWindow:layout=>restore(layout),
-    afterSwitchWorkspace:()=>{const panels=structuredClone(runtime.workspaceRecord().participants||[]);api.clearPanels();panelWorkspace=runtime.state.activeWorkspaceId;api.restorePanels(panels);api.render();schedule()},
+    afterSwitchWorkspace:()=>{const panels=structuredClone(runtime.workspaceRecord().participants||[]);api.clearPanels();api.clearYogi();panelWorkspace=runtime.state.activeWorkspaceId;api.restorePanels(panels);api.restoreYogi(runtime.workspaceRecord().yogiPresentation);api.render();schedule()},
     beforeDeleteWorkspaces:ids=>{
       // Closing a child presentation must never release the domain editor view.
       const parent=runtime.workspaceRecord();
@@ -42,23 +42,33 @@ export function createActualWorkspace(api) {
     objectContext:(event,object)=>api.objectContext(object.id,event),
   };
   const runtime=createWorkspaceRuntime(host);
-  function capture(){if(project){if(!loading&&!project.recoveryFailed){project.selectedObjectId=api.current.draft?.id;project.editorBindings=api.current.editorViews.map(({view,id,mode})=>({view,id,mode}));}project.inputs=api.captureInputs(detached.get(scope+'|source'));const owner=runtime.workspaceRecord();if(owner&&!loading&&panelWorkspace===runtime.state.activeWorkspaceId)owner.participants=api.capturePanels();if(owner){if(runtime.state.activeWorkspaceId==='root')project.rootWorkspaceView={...project.workspaceView};else owner.view={...project.workspaceView};}if(owner)for(const w of runtime.state.windows.values()){if(w.overlay)continue;const row=owner.layout.find(row=>row.key===w.key);if(row)Object.assign(row,runtime.windowLayout(w));}}}
-  function schedule(){
-    if(!project||loading)return;
-    api.setWorkspaceStatus('배치 저장 대기');capture();project.activeWorkspaceId=runtime.state.activeWorkspaceId;
-    project.visitedWorkspaceTabs=[...runtime.state.visitedWorkspaceTabs];project.selectedNodeKeys=[...runtime.state.selectedWorkspaceNodeKeys];changed++;
-    clearTimeout(scheduled);const attempt=()=>{if(api.isBusy){scheduled=setTimeout(attempt,250);return;}flush().catch(error=>api.toast('작업 공간 저장 실패 · '+error.message+' · 입력과 배치는 유지됩니다.'));};scheduled=setTimeout(attempt,250);
+  function capture(){if(project){if(!loading&&!project.recoveryFailed){project.selectedObjectId=api.current.draft?.id;project.editorBindings=api.current.editorViews.map(({view,id,mode})=>({view,id,mode}));}project.inputs=api.captureInputs(detached.get(scope+'|source'));const owner=runtime.workspaceRecord();if(owner&&!loading&&panelWorkspace===runtime.state.activeWorkspaceId){owner.participants=api.capturePanels();owner.yogiPresentation=api.captureYogi();}if(owner){if(runtime.state.activeWorkspaceId==='root')project.rootWorkspaceView={...project.workspaceView};else owner.view={...project.workspaceView};}if(owner)for(const w of runtime.state.windows.values()){if(w.overlay)continue;const row=owner.layout.find(row=>row.key===w.key);if(row)Object.assign(row,runtime.windowLayout(w));}}}
+  function snapshot(){capture();project.activeWorkspaceId=runtime.state.activeWorkspaceId;project.visitedWorkspaceTabs=[...runtime.state.visitedWorkspaceTabs];const value=JSON.parse(JSON.stringify(project));delete value.selectedNodeKeys;return value;}
+  function inputKey(value){const notes=[];for(const item of value.workspaceItems||[])if(item.kind==='note')notes.push([item.id,item.text]);for(const child of value.workspaces||[])for(const item of child.items||[])if(item.kind==='note')notes.push([item.id,item.text]);return JSON.stringify([value.inputs,value.selectedObjectId,value.editorBindings,notes]);}
+  function same(left,right){return JSON.stringify(left)===JSON.stringify(right);}
+  function pending(){if(!project||loading)return false;return !same(snapshot(),checkpoints.get(scope));}
+  function failure(error){api.setWorkspaceStatus('배치 저장 실패');api.toast('작업 공간 저장 실패 · '+error.message+' · 입력과 배치는 유지됩니다.');}
+  function schedule(hint='input'){
+    if(!project||loading)return;const value=snapshot(),checkpoint=checkpoints.get(scope);if(same(value,checkpoint))return;
+    changed++;api.setWorkspaceStatus('배치 변경 있음');
+    if(hint==='input'&&inputKey(value)!==inputKey(checkpoint||{})){
+      if(!inputStarted)inputStarted=Date.now();clearTimeout(scheduled);
+      const attempt=()=>{if(api.isBusy){scheduled=setTimeout(attempt,100);return;}flushInputs().catch(failure);};
+      scheduled=setTimeout(attempt,Math.max(0,Math.min(750,2000-(Date.now()-inputStarted))));
+    }
   }
-  async function flush(){
-    clearTimeout(scheduled);if(!project||loading)return;const before=JSON.stringify(project);capture();if(JSON.stringify(project)!==before)changed++;if(saved===changed)return;
-    if(saving){await saving;if(saved!==changed)return flush();return;}
-    capture();const owner=scope,version=changed,snapshot=JSON.parse(JSON.stringify(project));
-    saving=(async()=>{
-      await api.save(snapshot,owner);if(scope===owner)saved=version;
-    })();
+  async function persist(all){
+    if(!project||loading)return;if(saving){await saving;return persist(all);}
+    const value=snapshot(),checkpoint=checkpoints.get(scope);if(same(value,checkpoint))return;
+    if(!all&&inputKey(value)===inputKey(checkpoint||{}))return;
+    const owner=scope;
+    saving=(async()=>{await api.save(value,owner);checkpoints.set(owner,value);if(scope===owner){saved=changed;inputStarted=0;api.setWorkspaceStatus(pending()?'배치 변경 있음':'');}})();
     try{await saving;}finally{saving=null;}
-    if(scope===owner&&saved!==changed)return flush();
   }
+  async function flush(){clearTimeout(scheduled);await persist(true);if(pending())return flush();if(project&&!loading)api.setWorkspaceStatus('');}
+  async function flushInputs(){clearTimeout(scheduled);await persist(false);if(project&&!loading&&inputKey(snapshot())!==inputKey(checkpoints.get(scope)||{}))schedule();}
+  // Durable placement/camera changes are dirty in memory until the next periodic checkpoint.
+  setInterval(()=>{if(project&&!loading&&!api.isBusy&&pending()&&inputKey(snapshot())===inputKey(checkpoints.get(scope)||{}))flush().catch(failure);},15000);
   function findOwner(key){
     if(!project)return null;
     if(project.layout.some(row=>row.key===key))return 'root';
@@ -86,7 +96,7 @@ export function createActualWorkspace(api) {
   function attach(state){
     loading=true;
     if(project){capture();projects.set(scope,project);}
-    scope=state.projectId;
+    scope=state.projectId;inputStarted=0;
     project=projects.get(scope)||state.presentation||{version:1,layout:[],workspaces:[],workspaceItems:[],workspaceView:{x:0,y:0,scale:1},rootWorkspaceView:{x:0,y:0,scale:1},activeWorkspaceId:'root',visitedWorkspaceTabs:['root'],inputs:{}};
     Object.defineProperty(project,'objects',{configurable:true,enumerable:false,get:()=>api.current.units.map(unit=>({id:unit.id,name:unit.id.split('::').at(-1),kind:unit.kind,group:unit.kind==='function'?'feature':unit.kind==='module'?'module':'concept'}))});
     project.workspaceView??={x:0,y:0,scale:1};project.rootWorkspaceView??={...project.workspaceView};
@@ -94,12 +104,12 @@ export function createActualWorkspace(api) {
     runtime.state.activeWorkspaceId=runtime.workspaceRecord(project.activeWorkspaceId)?project.activeWorkspaceId:'root';
     runtime.state.visitedWorkspaceTabs=(project.visitedWorkspaceTabs||['root']).filter(id=>runtime.workspaceRecord(id));
     Object.assign(project.workspaceView,runtime.state.activeWorkspaceId==='root'?project.rootWorkspaceView:runtime.workspaceRecord().view);
-    api.restoreInputs(project.inputs||{});
+    if(!checkpoints.has(scope)){const baseline=JSON.parse(JSON.stringify(project));delete baseline.selectedNodeKeys;checkpoints.set(scope,baseline);}project.selectedNodeKeys=[];api.restoreInputs(project.inputs||{});
     runtime.setupWorkspaceNavigation();runtime.setupWindowSelection();runtime.renderWorkspaceTabs();runtime.renderWorkspaceDecorations();
     const layouts=runtime.workspaceRecord().layout.map(row=>structuredClone(row));
     for(const layout of layouts)runtime.restoreWindow(layout);
     runtime.setWorkspaceNodeSelection((project.selectedNodeKeys||[]).map(key=>runtime.state.workspaceNodes.get(key)).filter(Boolean));
-    loading=false;changed=0;saved=0;panelWorkspace=runtime.state.activeWorkspaceId;api.restorePanels(runtime.workspaceRecord().participants||[]);
+    loading=false;changed=0;saved=0;panelWorkspace=runtime.state.activeWorkspaceId;api.restorePanels(runtime.workspaceRecord().participants||[]);api.restoreYogi(runtime.workspaceRecord().yogiPresentation);
     api.$('#workspace').addEventListener('input',()=>schedule());
     const bindings=project.editorBindings||[],selected=project.selectedObjectId;
     const missing=bindings.filter(binding=>!state.editorViews.some(row=>row.view===binding.view&&row.id===binding.id&&row.mode===binding.mode));
@@ -116,7 +126,7 @@ export function createActualWorkspace(api) {
       })();
     }
   }
-  function detach(){if(!project)return;capture();loading=true;api.clearPanels();clearTimeout(scheduled);runtime.saveLayouts();capture();for(const w of runtime.state.windows.values())host.detachWindow(w);projects.set(scope,project);project=null;scope='';loading=false;changed=0;saved=0;}
+  function detach(){if(!project)return;capture();loading=true;api.clearPanels();api.clearYogi();clearTimeout(scheduled);runtime.saveLayouts();capture();for(const w of runtime.state.windows.values())host.detachWindow(w);projects.set(scope,project);project=null;scope='';loading=false;changed=0;saved=0;}
   function reveal(key){const owner=findOwner(key);if(owner&&owner!==runtime.state.activeWorkspaceId)runtime.switchWorkspace(owner);let w=runtime.state.windows.get(key);if(!w){const layout=runtime.workspaceRecord()?.layout.find(row=>row.key===key);if(layout)w=runtime.restoreWindow(layout);}if(w){w.el.hidden=false;runtime.registerWorkspaceNode(w);runtime.focusWindow(w);runtime.saveLayouts();}return w;}
-  return {runtime,attach,detach,flush,schedule,shouldRender,reveal,get project(){return project},get loading(){return loading}};
+  return {runtime,attach,detach,flush,flushInputs,schedule,shouldRender,reveal,get project(){return project},get loading(){return loading}};
 }

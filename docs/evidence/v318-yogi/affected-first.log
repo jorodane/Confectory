@@ -1,0 +1,173 @@
+FAIL WebUITests.test_actual_editor_and_button_game_common_web_transport_chromium
+System.Exception: UI failure status: Source confirmed
+UI failure controls: {'confirm': None, 'run': True, 'source': 'Example.ButtonGame::Score'}
+Traceback (most recent call last):
+  File "/workspace/Confectory-web-ui/tests/web/web_ui.py", line 220, in <module>
+    page.locator('#schema').click();expect(page.locator('[data-schema-id]')).to_have_text('Example.ButtonGame::Score',timeout=30000)
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/sync_api/_generated.py", line 22839, in to_have_text
+    self._sync(
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_sync_base.py", line 115, in _sync
+    return task.result()
+           ^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_assertions.py", line 648, in to_have_text
+    await self._expect_impl(
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_assertions.py", line 128, in _expect_impl
+    _record_soft_or_raise(
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_assertions.py", line 60, in _record_soft_or_raise
+    raise error
+AssertionError: Locator expected to have text 'Example.ButtonGame::Score'
+Actual value: None
+Error: element(s) not found
+Call log:
+  - Expect "to_have_text" with timeout 30000ms
+  - waiting for locator("[data-schema-id]")
+
+Aria snapshot:
+- banner:
+  - button "Confectory 홈으로" [disabled]: Confectory
+  - text: /
+  - button "Example.ButtonGame ▾" [disabled]
+  - button "설정 열기" [disabled]: 설정
+- complementary:
+  - button "AGENT (2)" [expanded]
+  - button "Agent 추가" [disabled]: ++추가
+  - button ">_ 실제 호출 보류 Confectory.Agent.Codex::Connection 연결 설정" [disabled]:
+    - text: ">_"
+    - strong: Confectory.Agent.Codex::Connection
+    - text: 연결 설정
+  - button ">_ 실제 호출 보류 Confectory.Agent.Responses::Connection 연결 설정" [disabled]:
+    - text: ">_"
+    - strong: Confectory.Agent.Responses::Connection
+    - text: 연결 설정
+  - button "HELPER (1)" [expanded]
+  - button "Helper 추가" [disabled]: ++추가
+  - heading "소속 미지정 (1)" [level=4]
+  - button "Helper 추가" [disabled]: + ＋
+  - button "m main-helper Confectory pack development" [disabled]:
+    - text: m
+    - strong: main-helper
+    - text: Confectory pack development
+  - button "User(0/0)": User (0/0)
+  - separator "사이드바 너비 조절, 클릭하여 최소화 또는 복원"
+- main:
+  - tablist "작업 공간":
+    - tab "Workspace" [selected]
+  - status: 배치 변경 있음
+  - button "YogiBox" [disabled]
+  - button "증강" [disabled]
+  - button "신문고" [disabled]: 📫
+  - button "빌드 대상 선택" [disabled]: 🛠️
+  - button "실행 화면 열기" [disabled]: ▶
+  - button "프로젝트 브라우저" [disabled]: ≡
+  - region "고급 소스 작업 사본":
+    - text: ◈
+    - strong: 고급 소스 작업 사본
+    - button "창 접기": −
+    - button "창 닫기": ×
+    - heading "Example.ButtonGame::Score" [level=2]
+    - paragraph
+    - textbox "Source draft" [disabled]: "object Example.ButtonGame::Score { description \"Game-owned score; buttons contain no editor/model semantics.\"; value initial = 0; } // common-web-ui-draft"
+    - button "스키마" [disabled]
+    - button "Apply to shared draft" [disabled]
+    - button "Save" [disabled]
+    - button "Review" [disabled]
+    - text: Save는 작업 사본 저장입니다. 최종 소스 반영은 별도 Review / Confirm이 필요합니다.
+    - button "n 방향으로 창 크기 조절"
+    - button "ne 방향으로 창 크기 조절"
+    - button "e 방향으로 창 크기 조절"
+    - button "se 방향으로 창 크기 조절"
+    - button "s 방향으로 창 크기 조절"
+    - button "sw 방향으로 창 크기 조절"
+    - button "w 방향으로 창 크기 조절"
+    - button "nw 방향으로 창 크기 조절"
+  - region "프로젝트 브라우저":
+    - text: ◈
+    - strong: 프로젝트 브라우저
+    - button "창 접기": −
+    - button "창 닫기": ×
+    - button "개념" [disabled]
+    - button "기능" [disabled]
+    - button "모듈" [disabled]
+    - textbox "의미 객체 검색":
+      - /placeholder: 개념 검색…
+    - button "검색 확정" [disabled]: 검색
+    - button "정렬 방법" [disabled]
+    - button "새 의미 객체" [disabled]: ＋
+    - text: Preview
+    - slider "객체 표시 밀도 Compact Preview Data": "50"
+    - button "ProjectPack"
+    - navigation "폴더 계층":
+      - button "ProjectPack" [disabled]
+      - button "namespace 목록 불러오기"
+    - text: ◇ ChangeScore function ◇ ChangeScoreBody implementation ◇ ChangeScoreBody/body:common body ◇ Main function ◇ MainBody implementation ◇ MainBody/body:common body ◇ ProjectManifest project ◇ Score object ◇ WebBundle function ◇ WebBundleBody implementation ◇ WebBundleBody/body:common body ◇ WebInvokeBody implementation ◇ WebInvokeBody/body:common body ◇ WebStart function ◇ WebStartBody implementation ◇ WebStartBody/body:common body ◇ WebStateBody implementation ◇ WebStateBody/body:common body 18 객체 · Preview 클릭 선택 · 더블클릭 편집 · 우클릭 기능
+    - button "n 방향으로 창 크기 조절"
+    - button "ne 방향으로 창 크기 조절"
+    - button "e 방향으로 창 크기 조절"
+    - button "se 방향으로 창 크기 조절"
+    - button "s 방향으로 창 크기 조절"
+    - button "sw 방향으로 창 크기 조절"
+    - button "w 방향으로 창 크기 조절"
+    - button "nw 방향으로 창 크기 조절"
+- separator "채팅바 높이 조절"
+- button "프로젝트 채팅"
+- button "Logs"
+- strong: main-helper
+- textbox "프로젝트 채팅 입력":
+  - /placeholder: 함께 만들 내용을 남겨보세요…
+  - text: local project message
+- button "메시지 보내기" [disabled]: 보내기
+- status: Source confirmed
+
+   at Confectory.Tests.TestCase.True(Boolean condition, String message) in /workspace/Confectory-web-ui/tests/Confectory.Tests/Support.cs:line 127
+   at Confectory.Tests.WebUITests.test_actual_editor_and_button_game_common_web_transport_chromium() in /workspace/Confectory-web-ui/tests/Confectory.Tests/WebUITests.cs:line 96
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+PASS WebUITests.test_actual_editor_v318_helper_inputs_and_panels_cold_restart
+PASS WebUITests.test_actual_editor_v318_home_search_favorite_restart_remove
+PASS WebUITests.test_actual_editor_v318_inventory_and_browser_instances_restart
+PASS WebUITests.test_actual_editor_v318_run_process_and_presentation_restart
+FAIL WebUITests.test_actual_editor_v318_workspace_lifecycle_presentation_restart
+System.Exception: Traceback (most recent call last):
+  File "/workspace/Confectory-web-ui/tests/web/editor_workspace_v318.py", line 65, in <module>
+    page.evaluate('()=>globalThis.confectoryFlushPresentation()');expect(page.locator('#workspace-save-state')).to_have_text('')
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/sync_api/_generated.py", line 9385, in evaluate
+    self._sync(
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_sync_base.py", line 115, in _sync
+    return task.result()
+           ^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_page.py", line 472, in evaluate
+    return await self._main_frame.evaluate(expression, arg)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_frame.py", line 345, in evaluate
+    await self._channel.send(
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_connection.py", line 76, in send
+    return await self._connection.wrap_api_call(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_connection.py", line 632, in wrap_api_call
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+playwright._impl._errors.Error: Page.evaluate: TypeError: globalThis.confectoryFlushPresentation is not a function
+    at eval (eval at evaluate (:311:30), <anonymous>:1:16)
+    at UtilityScript.evaluate (<anonymous>:318:18)
+    at UtilityScript.<anonymous> (<anonymous>:1:44)
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/workspace/Confectory-web-ui/tests/web/editor_workspace_v318.py", line 69, in <module>
+    page.screenshot(path=str(root/f'failure-{n}.png'));(root/f'failure-{n}.html').write_text(page.content());raise AssertionError(str(error)+'\nPage errors: '+str(errors)+'\nStatus: '+str(page.locator('#toast').text_content())+'\nEvidence: '+str(root)) from error
+                                                                                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Page.evaluate: TypeError: globalThis.confectoryFlushPresentation is not a function
+    at eval (eval at evaluate (:311:30), <anonymous>:1:16)
+    at UtilityScript.evaluate (<anonymous>:318:18)
+    at UtilityScript.<anonymous> (<anonymous>:1:44)
+Page errors: []
+Status:
+Evidence: /tmp/confectory-workspace-v318-3032tozg
+
+   at Confectory.Tests.TestCase.True(Boolean condition, String message) in /workspace/Confectory-web-ui/tests/Confectory.Tests/Support.cs:line 127
+   at Confectory.Tests.WebUITests.test_actual_editor_v318_workspace_lifecycle_presentation_restart() in /workspace/Confectory-web-ui/tests/Confectory.Tests/WebUITests.cs:line 54
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+4 passed, 2 failed, 0 skipped; 572.280s

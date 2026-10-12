@@ -1,0 +1,153 @@
+{
+  "profile": "before",
+  "platform": "Linux ordinary EditorHome/Chromium; does not measure user Windows",
+  "phases": {
+    "idle_poll": {
+      "requests": 0,
+      "actualFileReplacements": 0,
+      "statusTransitions": []
+    },
+    "right_click_menus": {
+      "requests": 5,
+      "actualFileReplacements": 5,
+      "statusTransitions": [
+        "배치 저장 대기",
+        "배치 저장 중",
+        "배치 저장됨",
+        "배치 저장 대기",
+        "배치 저장 중",
+        "배치 저장됨",
+        "배치 저장 대기",
+        "배치 저장 중",
+        "배치 저장됨",
+        "배치 저장 대기",
+        "배치 저장 중",
+        "배치 저장됨",
+        "배치 저장 대기",
+        "배치 저장 중",
+        "배치 저장됨"
+      ]
+    },
+    "same_origin_repeat": {
+      "requests": 5,
+      "actualFileReplacements": 5,
+      "statusTransitions": [
+        "배치 저장 대기",
+        "배치 저장 중",
+        "배치 저장됨",
+        "배치 저장 대기",
+        "배치 저장 중",
+        "배치 저장됨",
+        "배치 저장 대기",
+        "배치 저장 중",
+        "배치 저장됨",
+        "배치 저장 대기",
+        "배치 저장 중",
+        "배치 저장됨",
+        "배치 저장 대기",
+        "배치 저장 중",
+        "배치 저장됨"
+      ]
+    },
+    "pan": {
+      "requests": 1,
+      "actualFileReplacements": 1,
+      "statusTransitions": [
+        "배치 저장 대기",
+        "배치 저장 중",
+        "배치 저장됨"
+      ]
+    },
+    "zoom_burst_300ms": {
+      "requests": 8,
+      "actualFileReplacements": 8,
+      "statusTransitions": [
+        "배치 저장 대기",
+        "배치 저장 중",
+        "배치 저장됨",
+        "배치 저장 대기",
+        "배치 저장 중",
+        "배치 저장 대기",
+        "배치 저장됨",
+        "배치 저장 중",
+        "배치 저장됨",
+        "배치 저장 대기",
+        "배치 저장 중",
+        "배치 저장됨",
+        "배치 저장 대기",
+        "배치 저장 중",
+        "배치 저장됨",
+        "배치 저장 대기",
+        "배치 저장 중",
+        "배치 저장됨",
+        "배치 저장 대기",
+        "배치 저장 중",
+        "배치 저장 대기",
+        "배치 저장됨",
+        "배치 저장 중",
+        "배치 저장됨"
+      ]
+    },
+    "selection_focus": {
+      "requests": 0,
+      "actualFileReplacements": 0,
+      "statusTransitions": []
+    },
+    "window_move": {
+      "requests": 1,
+      "actualFileReplacements": 1,
+      "statusTransitions": [
+        "배치 저장 대기",
+        "배치 저장 중",
+        "배치 저장됨"
+      ]
+    },
+    "continuous_input_300ms": {
+      "requests": 9,
+      "actualFileReplacements": 9,
+      "statusTransitions": [
+        "배치 저장 대기",
+        "배치 저장 대기",
+        "배치 저장 중",
+        "배치 저장 대기",
+        "배치 저장 대기",
+        "배치 저장됨",
+        "배치 저장 중",
+        "배치 저장됨",
+        "배치 저장 대기",
+        "배치 저장 대기",
+        "배치 저장 중",
+        "배치 저장됨",
+        "배치 저장 대기",
+        "배치 저장 대기",
+        "배치 저장 중",
+        "배치 저장 대기",
+        "배치 저장 대기",
+        "배치 저장됨",
+        "배치 저장 중",
+        "배치 저장됨",
+        "배치 저장 대기",
+        "배치 저장 대기",
+        "배치 저장 중",
+        "배치 저장 대기",
+        "배치 저장 대기",
+        "배치 저장됨",
+        "배치 저장 중",
+        "배치 저장됨",
+        "배치 저장 대기",
+        "배치 저장 대기",
+        "배치 저장 중",
+        "배치 저장됨",
+        "배치 저장 대기",
+        "배치 저장 대기",
+        "배치 저장 중",
+        "배치 저장됨"
+      ]
+    },
+    "identical_snapshot": {
+      "requests": 1,
+      "actualFileReplacements": 1,
+      "statusTransitions": []
+    }
+  }
+}

@@ -1,0 +1,4 @@
+PASS FileStreamTests.test_local_io_transactions_and_provider_locality
+PASS Checkpoint7Tests.test_context_tools_real_workspace_capture_projection_confirm_and_locality
+PASS EntryHomeTests.test_entry_home_actual_linux_startup_navigation_create_folder_cards_resize_and_lifetime
+3 passed, 0 failed, 0 skipped; 1713.571s

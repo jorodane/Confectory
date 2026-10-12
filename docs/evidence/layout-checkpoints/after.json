@@ -1,0 +1,74 @@
+{
+  "profile": "after",
+  "platform": "Linux ordinary EditorHome/Chromium; does not measure user Windows",
+  "phases": {
+    "idle_poll": {
+      "actionSeconds": 8.80012521520257e-07,
+      "requests": 0,
+      "actualFileReplacements": 0,
+      "statusTransitions": []
+    },
+    "right_click_menus": {
+      "actionSeconds": 2.435415751009714,
+      "requests": 0,
+      "actualFileReplacements": 0,
+      "statusTransitions": []
+    },
+    "same_origin_repeat": {
+      "actionSeconds": 2.274357197995414,
+      "requests": 0,
+      "actualFileReplacements": 0,
+      "statusTransitions": [
+        "배치 변경 있음"
+      ]
+    },
+    "pan": {
+      "actionSeconds": 0.9348658280068776,
+      "requests": 1,
+      "actualFileReplacements": 1,
+      "statusTransitions": [
+        "배치 변경 있음",
+        ""
+      ]
+    },
+    "zoom_burst_300ms": {
+      "actionSeconds": 2.718584206988453,
+      "requests": 0,
+      "actualFileReplacements": 0,
+      "statusTransitions": [
+        "배치 변경 있음"
+      ]
+    },
+    "selection_focus": {
+      "actionSeconds": 1.8346088830003282,
+      "requests": 0,
+      "actualFileReplacements": 0,
+      "statusTransitions": []
+    },
+    "window_move": {
+      "actionSeconds": 1.075640866998583,
+      "requests": 0,
+      "actualFileReplacements": 0,
+      "statusTransitions": [
+        "배치 변경 있음"
+      ]
+    },
+    "continuous_input_300ms": {
+      "actionSeconds": 3.0987917279999238,
+      "requests": 2,
+      "actualFileReplacements": 2,
+      "statusTransitions": [
+        "배치 변경 있음",
+        "",
+        "배치 변경 있음",
+        ""
+      ]
+    },
+    "identical_snapshot": {
+      "actionSeconds": 0.06154903399874456,
+      "requests": 1,
+      "actualFileReplacements": 0,
+      "statusTransitions": []
+    }
+  }
+}

@@ -1,0 +1,2 @@
+PASS EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only
+1 passed, 0 failed, 0 skipped; 1774.416s

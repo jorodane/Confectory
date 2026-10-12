@@ -1,0 +1,141 @@
+{
+  "profile": "after",
+  "platform": "Linux ordinary EditorHome/Chromium; does not measure user Windows",
+  "phases": {
+    "idle_poll": {
+      "actionSeconds": 9.34989657253027e-07,
+      "baselineInputHash": "688d76d6e8c7",
+      "requests": 0,
+      "requestDetails": [],
+      "actualFileReplacements": 0,
+      "statusTransitions": []
+    },
+    "right_click_menus": {
+      "actionSeconds": 2.2640469889884116,
+      "baselineInputHash": "688d76d6e8c7",
+      "requests": 0,
+      "requestDetails": [],
+      "actualFileReplacements": 0,
+      "statusTransitions": []
+    },
+    "same_origin_repeat": {
+      "actionSeconds": 2.0541575210081646,
+      "baselineInputHash": "688d76d6e8c7",
+      "requests": 0,
+      "requestDetails": [],
+      "actualFileReplacements": 0,
+      "statusTransitions": [
+        "배치 변경 있음"
+      ]
+    },
+    "pan": {
+      "actionSeconds": 0.911122338991845,
+      "baselineInputHash": "688d76d6e8c7",
+      "requests": 1,
+      "requestDetails": [
+        {
+          "afterStartSeconds": 2.366,
+          "inputHash": "688d76d6e8c7",
+          "camera": {
+            "x": -342,
+            "y": 59,
+            "scale": 1
+          }
+        }
+      ],
+      "actualFileReplacements": 1,
+      "statusTransitions": [
+        "배치 변경 있음",
+        ""
+      ]
+    },
+    "zoom_burst_300ms": {
+      "actionSeconds": 2.6906191089947242,
+      "baselineInputHash": "688d76d6e8c7",
+      "requests": 0,
+      "requestDetails": [],
+      "actualFileReplacements": 0,
+      "statusTransitions": [
+        "배치 변경 있음"
+      ]
+    },
+    "slow_zoom_550ms": {
+      "actionSeconds": 4.669064561006962,
+      "baselineInputHash": "688d76d6e8c7",
+      "requests": 0,
+      "requestDetails": [],
+      "actualFileReplacements": 0,
+      "statusTransitions": [
+        "배치 변경 있음"
+      ]
+    },
+    "selection_focus": {
+      "actionSeconds": 1.8425071490055416,
+      "baselineInputHash": "688d76d6e8c7",
+      "requests": 0,
+      "requestDetails": [],
+      "actualFileReplacements": 0,
+      "statusTransitions": []
+    },
+    "window_move": {
+      "actionSeconds": 1.0921195199916838,
+      "baselineInputHash": "688d76d6e8c7",
+      "requests": 0,
+      "requestDetails": [],
+      "actualFileReplacements": 0,
+      "statusTransitions": [
+        "배치 변경 있음"
+      ]
+    },
+    "continuous_input_300ms": {
+      "actionSeconds": 3.0230198920035036,
+      "baselineInputHash": "688d76d6e8c7",
+      "requests": 2,
+      "requestDetails": [
+        {
+          "afterStartSeconds": 2.049,
+          "inputHash": "688d76d6e8c7",
+          "camera": {
+            "x": -341.9999999999998,
+            "y": 59.000000000000114,
+            "scale": 0.9999999999999999
+          }
+        },
+        {
+          "afterStartSeconds": 3.47,
+          "inputHash": "688d76d6e8c7",
+          "camera": {
+            "x": -341.9999999999998,
+            "y": 59.000000000000114,
+            "scale": 0.9999999999999999
+          }
+        }
+      ],
+      "actualFileReplacements": 2,
+      "statusTransitions": [
+        "배치 변경 있음",
+        "",
+        "배치 변경 있음",
+        ""
+      ]
+    },
+    "identical_snapshot": {
+      "actionSeconds": 0.047792012002901174,
+      "baselineInputHash": "688d76d6e8c7",
+      "requests": 1,
+      "requestDetails": [
+        {
+          "afterStartSeconds": 0.036,
+          "inputHash": "688d76d6e8c7",
+          "camera": {
+            "x": -341.9999999999998,
+            "y": 59.000000000000114,
+            "scale": 0.9999999999999999
+          }
+        }
+      ],
+      "actualFileReplacements": 0,
+      "statusTransitions": []
+    }
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "ConfectoryIcon.svg": {
+    "bytes": 1373,
+    "sha256": "6fbd2054764098b340cc104ccbb2e42b9568cec53b063d7f3aa78aa222ef6b20"
+  },
+  "workspace.js": {
+    "bytes": 61368,
+    "sha256": "5c6309269bbf413246f72b196ec13b791ceb761c8e087199bb0575f8b5f5df90"
+  },
+  "workspace-host.js": {
+    "bytes": 13111,
+    "sha256": "185c875520652556b72dc666f8ab7444597c86b12f1b3296a4c35a293a8ac843"
+  },
+  "app.js": {
+    "bytes": 151116,
+    "sha256": "f211616d6f1f5a6267dd99cbcfee292c64af1a464a75968f7d3d61161c6bb9ab"
+  },
+  "assets/html2canvas.min.js": {
+    "bytes": 198689,
+    "sha256": "e87e550794322e574a1fda0c1549a3c70dae5a93d9113417a429016838eab8cb"
+  },
+  "assets/lumi-bust.png": {
+    "bytes": 1968968,
+    "sha256": "74aa3662f35d0455754c9ee9e93535e43d945dfae638d648a16fe2e474388233"
+  },
+  "assets/lumi-sd.png": {
+    "bytes": 1285114,
+    "sha256": "04d53eeba74b45a6faa6d31de2f2f1a807af8a166434e57cb2a4fa6335fab0a1"
+  },
+  "assets/lumi.png": {
+    "bytes": 1875833,
+    "sha256": "d20087b6f4737492f32fb79593a2110ecf83e48503e44f7f6bfa4aab9529787f"
+  },
+  "assets/portraits.json": {
+    "bytes": 2619,
+    "sha256": "989099ef0fb43da17de863669d578df89dafe0f928e8cdb022a816c3e0cbec11"
+  },
+  "assets/tori-bust.png": {
+    "bytes": 2175342,
+    "sha256": "d63a937754e949129a3d13de90b0e5b04fc8818c11b9e41de71509ed45373e74"
+  },
+  "assets/tori-sd.png": {
+    "bytes": 2125027,
+    "sha256": "197434d69d1321c34e34562936f68c31ebe694aa87ebc2bfd41dae9c0f01bf1a"
+  },
+  "assets/tori.png": {
+    "bytes": 1764738,
+    "sha256": "544a698250fe6f912aca43bd424a59ab1407bea84842b7d52da9b28438810ba9"
+  },
+  "assets/vex-bust.png": {
+    "bytes": 1956060,
+    "sha256": "1406e9e878c0975414f11d49ded729c4c58f943710965c97fe7358cc2f3785f7"
+  },
+  "assets/vex-sd.png": {
+    "bytes": 1281859,
+    "sha256": "df1fc134b85974e6f5b2ec793805131c2099114979eeeabcb64533daf6338674"
+  },
+  "assets/vex.png": {
+    "bytes": 1912443,
+    "sha256": "3599a2f4c6a6f3ad10758a39e242478fe16cd113c98c97db740f63ba1d6330de"
+  },
+  "consumer.css": {
+    "bytes": 3837,
+    "sha256": "e591f17196051d6cd87dd1b6c665337478570d46dd31e4796f2c222ebdec67ad"
+  },
+  "index.html": {
+    "bytes": 475,
+    "sha256": "1e4e8cedcb113c6f6c67eeafbaff0c663374d2809ac600a41360638917eb650f"
+  },
+  "style.css": {
+    "bytes": 122494,
+    "sha256": "10ddf5b83898474829e7d70e503313c35ebd153dc172b98c0947cc28c9c55f95"
+  },
+  "inventory.js": {
+    "bytes": 10736,
+    "sha256": "72198c216e947f030c033bb941951655d130ca39329bca28c02d944d42d43407"
+  }
+}
