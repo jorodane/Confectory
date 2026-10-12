@@ -36,6 +36,8 @@ Initial failures remain in consumer-local logs, separately from the final pass: 
 
 The first frozen affected batch was **3 passed, 1 failed, 0 skipped, 196.203s**: the new Helper gate, cold recovery and checkout/startup passed; the broad gate exposed a refreshed Worker click handler leaving the unpinned profile over its controls. Its common route was corrected before the next frozen regression. This mixed batch is not reported as all-pass.
 
+The next frozen batch was **3 passed, 1 failed, 0 skipped, 372.904s**: broad editing/Worker, cold recovery and checkout/startup passed. The added pinned case completed its approval, actual HTTP error and input-preservation assertions, then tried a presentation close button hidden while composing. The fixture now uses the existing first-Escape composer close and second-Escape presentation close. Product behavior and the verified contracts are unchanged by that fixture correction.
+
 Reproduce with SDK 10.0.401 and Release tools:
 
 ```sh

@@ -177,7 +177,8 @@ try:
    expect(other_card.locator('.messages')).not_to_contain_text('WAIT owned helper request')
    expect(other_card.locator('.sd-answer p')).to_contain_text('요청 실패')
    expect(other_card.locator('.sd-compose textarea')).to_have_value('FAIL owned helper request')
-   other_card.locator('.sd-close').click(); page.locator('#title').click(); page.get_by_role('button', name='프로젝트 완전 종료', exact=True).click()
+   other_card.locator('.sd-compose textarea').press('Escape'); other_card.locator('.sd-character').press('Escape'); expect(other_card).to_have_count(0)
+   page.locator('#title').click(); page.get_by_role('button', name='프로젝트 완전 종료', exact=True).click()
    expect(page.locator('.home-grid')).to_be_visible(); assert state()['projectId'] == '' and all(row['projectId'] != project_id for row in state()['background'])
    assert len(requests) == 3 and not fixture_errors and not errors
    assert all((project / name).read_bytes() == data for name, data in before.items()), 'Helper flow modified project source'
