@@ -1,0 +1,17 @@
+var identity=calls.Identity.Invoke(workspace);if(string.IsNullOrWhiteSpace(project)||project.Length>128||owner!=identity[1]||string.IsNullOrWhiteSpace(owner)||owner.Length>128)throw new ArgumentException("Yogi project/participant authority required");
+directory=System.IO.Path.GetFullPath(directory);string expected=System.IO.Path.GetFullPath(System.IO.Path.Combine(identity[3],".confectory","yogi"));
+if(!string.Equals(directory,expected,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal))throw new ArgumentException("Yogi storage must belong to actual workspace project");
+for(string? path=directory;path is not null;path=System.IO.Path.GetDirectoryName(path))if((System.IO.Directory.Exists(path)||System.IO.File.Exists(path))&&(System.IO.File.GetAttributes(path)&System.IO.FileAttributes.ReparsePoint)!=0)throw new ArgumentException("Yogi storage links are not owned");
+var ids=calls.List.Invoke(workspace);string semanticNamespace=System.Linq.Enumerable.First(ids).Split("::",StringSplitOptions.None)[0];
+string name="package-"+Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(System.Text.Json.JsonSerializer.Serialize(new[]{project,owner,identity[0]})))).ToLowerInvariant()+".json",file=System.IO.Path.Combine(directory,name);
+if(System.IO.File.Exists(file)&&(System.IO.File.GetAttributes(file)&System.IO.FileAttributes.ReparsePoint)!=0)throw new ArgumentException("Yogi storage links are not owned");
+var snapshot=calls.StoredSnapshot.Invoke(file,5242880);System.Text.Json.Nodes.JsonObject? package=null;
+if(snapshot[0]=="exists")package=System.Text.Json.Nodes.JsonNode.Parse(calls.Validate.Invoke(snapshot[1],project,owner,identity[0],semanticNamespace))!.AsObject();
+string box=calls.Create.Invoke();var state=(object[])AppDomain.CurrentDomain.GetData("Confectory.YogiBox."+box)!;
+try{lock(state[0]){
+ state[6]=new object[]{directory,project,owner,identity[0],semanticNamespace,snapshot[2],false,name};
+ if(package is not null){state[1]=package["items"]!.DeepClone();state[2]=package["sealed"]!.GetValue<bool>();state[3]=package["text"]!.GetValue<string>();state[7]=package["interrupted"]?.DeepClone()??new System.Text.Json.Nodes.JsonArray();
+  foreach(var capture in package["pending"]!.AsArray()){var interrupted=capture!.DeepClone().AsObject();interrupted["status"]="interrupted";((System.Text.Json.Nodes.JsonArray)state[7]).Add(interrupted);((object[])state[6])[6]=true;}
+ }
+}calls.Revalidate.Invoke(box,workspace);return box;}
+catch{AppDomain.CurrentDomain.SetData("Confectory.YogiBox."+box,null);throw;}

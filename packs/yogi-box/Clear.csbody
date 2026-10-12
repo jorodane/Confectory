@@ -1,0 +1,8 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.YogiBox."+box) as object[];if(state is null)throw new ObjectDisposedException("YogiBox");lock(state[0]){
+ if((bool)state[5])throw new ObjectDisposedException("YogiBox");
+ if(state[6] is not object[] storage)throw new InvalidOperationException("Bound local Yogi storage required");{var priorItems=state[1];var priorPending=state[4];var priorInterrupted=state[7];var priorText=state[3];var priorSeal=state[2];bool priorDirty=(bool)storage[6];
+  state[1]=new System.Text.Json.Nodes.JsonArray();state[4]=new System.Collections.Generic.Dictionary<string,System.Text.Json.Nodes.JsonObject>(StringComparer.Ordinal);state[7]=new System.Text.Json.Nodes.JsonArray();state[3]="";state[2]=false;storage[6]=true;
+  try{calls.Save.Invoke(box);}catch{state[1]=priorItems;state[4]=priorPending;state[7]=priorInterrupted;state[3]=priorText;state[2]=priorSeal;storage[6]=priorDirty;throw;}
+ }
+
+}

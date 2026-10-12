@@ -1,0 +1,10 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.YogiBox."+box) as object[]??throw new ObjectDisposedException("YogiBox");lock(state[0]){
+ if((bool)state[5]||state[6] is not object[] storage)throw new InvalidOperationException("Live bound Yogi storage required");
+ var pending=new System.Text.Json.Nodes.JsonArray();foreach(var entry in ((System.Collections.Generic.Dictionary<string,System.Text.Json.Nodes.JsonObject>)state[4]).Values)pending.Add(entry.DeepClone());
+ var package=new System.Text.Json.Nodes.JsonObject{["schema"]=1,["sealed"]=(bool)state[2],["text"]=(string)state[3],["items"]=((System.Text.Json.Nodes.JsonArray)state[1]).DeepClone(),["pending"]=pending,["interrupted"]=((System.Text.Json.Nodes.JsonArray)state[7]).DeepClone()};
+ var document=new System.Text.Json.Nodes.JsonObject{["schema"]=1,["project"]=(string)storage[1],["owner"]=(string)storage[2],["manifest"]=(string)storage[3],["namespace"]=(string)storage[4],["package"]=package};string text=document.ToJsonString();
+ calls.Validate.Invoke(text,(string)storage[1],(string)storage[2],(string)storage[3],(string)storage[4]);
+ for(string? path=(string)storage[0];path is not null;path=System.IO.Path.GetDirectoryName(path))if((System.IO.Directory.Exists(path)||System.IO.File.Exists(path))&&(System.IO.File.GetAttributes(path)&System.IO.FileAttributes.ReparsePoint)!=0)throw new ArgumentException("Yogi storage links are not owned");System.IO.Directory.CreateDirectory((string)storage[0]);var result=calls.Commit.Invoke((string)storage[0],new[]{(string)storage[7]},new[]{(string)storage[5]},new[]{text});
+ if(result[0]!="applied"){storage[6]=true;throw new InvalidOperationException("Yogi storage changed; live package retained, explicit resolution required");}
+ storage[5]=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(text))).ToLowerInvariant();storage[6]=false;
+}

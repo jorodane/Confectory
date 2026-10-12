@@ -1,0 +1,1 @@
+function Confectory.YogiBox::Revalidate (string box, string workspace) -> string {description "Re-read actual owned semantic IDs/revisions/content to label current/stale/deleted without replacing recorded metadata or invoking capture/seal/receiver.";}

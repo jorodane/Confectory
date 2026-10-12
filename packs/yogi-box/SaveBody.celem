@@ -1,0 +1,5 @@
+implementation Confectory.YogiBox::SaveBody for Confectory.YogiBox::Save (string box) -> void {
+import Confectory.YogiBox::ValidateStorage as Validate (string,string,string,string,string) -> string;
+import Confectory.FileStream::Commit as Commit (string,string[],string[],string[]) -> string[];
+body common "Save.csbody";
+}

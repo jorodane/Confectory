@@ -1,0 +1,7 @@
+implementation Confectory.YogiBox::RevalidateBody for Confectory.YogiBox::Revalidate (string box, string workspace) -> string {
+import Confectory.EditWorkspace::Identity as Identity (string) -> string[];
+import Confectory.EditWorkspace::Read as Read (string,string) -> string[];
+import Confectory.YogiBox::Snapshot as Snapshot (string) -> string;
+import Confectory.SchemaEditing::Inspect as Inspect (string) -> string;
+body common "Revalidate.csbody";
+}

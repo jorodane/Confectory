@@ -1,0 +1,7 @@
+if(string.IsNullOrWhiteSpace(path)||limit<1||limit>16777216)throw new ArgumentException("Explicit bounded snapshot required");
+if(!System.IO.File.Exists(path))return new[]{"missing","","missing"};
+using var file=new System.IO.FileStream(path,System.IO.FileMode.Open,System.IO.FileAccess.Read,System.IO.FileShare.Read);
+using var data=new System.IO.MemoryStream();var buffer=new byte[Math.Min(65536,limit+1)];
+while(true){int count=file.Read(buffer,0,Math.Min(buffer.Length,limit+1-(int)data.Length));if(count==0)break;data.Write(buffer,0,count);if(data.Length>limit)throw new ArgumentException("Snapshot exceeds explicit byte bound");}
+byte[] bytes=data.ToArray();string text;using(var reader=new System.IO.StreamReader(new System.IO.MemoryStream(bytes),new System.Text.UTF8Encoding(false,true),true))text=reader.ReadToEnd();
+return new[]{"exists",text,Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes)).ToLowerInvariant()};

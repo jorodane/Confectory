@@ -1,0 +1,1 @@
+function Confectory.YogiBox::Clear (string box) -> void {description "Explicitly clear a bound local package using CAS; failed persistence rolls live content back and retains ownership.";}

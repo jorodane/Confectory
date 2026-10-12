@@ -1,0 +1,10 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.YogiBox."+box) as object[]??throw new ObjectDisposedException("YogiBox");lock(state[0]){
+ if((bool)state[5])throw new ObjectDisposedException("YogiBox");var identity=calls.Identity.Invoke(workspace);
+ if(state[6] is object[] storage&&(identity[0]!=(string)storage[3]||identity[1]!=(string)storage[2]))throw new ArgumentException("Yogi revalidation workspace authority mismatch");
+ var observations=(System.Collections.Generic.Dictionary<string,System.Text.Json.Nodes.JsonObject>)state[8];observations.Clear();
+ foreach(var item in ((System.Text.Json.Nodes.JsonArray)state[1])){if(item!["kind"]!.ToString()!="semantic")continue;string key=item["item"]!.ToString();
+  try{var actual=calls.Read.Invoke(workspace,item["id"]!.ToString());string hash=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(actual[3]))).ToLowerInvariant();bool metadataCurrent=true;if(actual[1]!="body"){var inspected=System.Text.Json.Nodes.JsonNode.Parse(calls.Inspect.Invoke(actual[3]))!;foreach(var field in item["metadata"]!.AsObject()){var value=field.Key=="description"?inspected["description"]:field.Key=="signature"?inspected["signature"]:inspected["values"]?[field.Key];if(!System.Text.Json.Nodes.JsonNode.DeepEquals(value,field.Value))metadataCurrent=false;}}bool current=metadataCurrent&&actual[5]==item["baseline"]?.ToString()&&actual[1]==item["elementKind"]!.ToString()&&actual[4]==item["revision"]!.ToString()&&hash==item["contentHash"]?.ToString();observations[key]=new(){["state"]=current?"current":"stale",["observedRevision"]=long.Parse(actual[4],System.Globalization.CultureInfo.InvariantCulture)};}
+  catch(ArgumentException error) when(error.Message=="Unknown owned unit."){observations[key]=new(){["state"]="deleted"};}catch(System.IO.FileNotFoundException){observations[key]=new(){["state"]="deleted"};}
+ }
+ return calls.Snapshot.Invoke(box);
+}

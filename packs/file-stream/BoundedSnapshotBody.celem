@@ -1,0 +1,1 @@
+implementation Confectory.FileStream::BoundedSnapshotBody for Confectory.FileStream::BoundedSnapshot (string path, int limit) -> string[] {body common "BoundedSnapshot.csbody";}

@@ -1,0 +1,1 @@
+implementation Confectory.YogiBox::ClearBody for Confectory.YogiBox::Clear (string box) -> void {import Confectory.YogiBox::Save as Save (string) -> void;body common "Clear.csbody";}

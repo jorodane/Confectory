@@ -1,5 +1,18 @@
 pack Confectory.YogiBox version "0.1.0" {
 standalone false;
+dependency Confectory.FileStream version "0.1.0";
+element Clear function "Clear.celem";
+element ClearBody implementation "ClearBody.celem";
+element Open function "Open.celem";
+element OpenBody implementation "OpenBody.celem";
+element Save function "Save.celem";
+element SaveBody implementation "SaveBody.celem";
+element Close function "Close.celem";
+element CloseBody implementation "CloseBody.celem";
+element Revalidate function "Revalidate.celem";
+element RevalidateBody implementation "RevalidateBody.celem";
+element ValidateStorage function "ValidateStorage.celem";
+element ValidateStorageBody implementation "ValidateStorageBody.celem";
 dependency Confectory.EditWorkspace version "0.1.0";
 dependency Confectory.SchemaEditing version "0.1.0";
 element Create function "Create.celem";

@@ -1,0 +1,1 @@
+function Confectory.YogiBox::ValidateStorage (string text, string project, string owner, string manifest, string semanticNamespace) -> string {description "Pure bounded storage-envelope/schema/item/image validation against explicit authority; returns validated package, never loads or executes it.";}

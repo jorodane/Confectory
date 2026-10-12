@@ -1,0 +1,9 @@
+implementation Confectory.YogiBox::OpenBody for Confectory.YogiBox::Open (string directory, string project, string owner, string workspace) -> string {
+import Confectory.EditWorkspace::Identity as Identity (string) -> string[];
+import Confectory.EditWorkspace::List as List (string) -> string[];
+import Confectory.FileStream::BoundedSnapshot as StoredSnapshot (string,int) -> string[];
+import Confectory.YogiBox::ValidateStorage as Validate (string,string,string,string,string) -> string;
+import Confectory.YogiBox::Create as Create () -> string;
+import Confectory.YogiBox::Revalidate as Revalidate (string,string) -> string;
+body common "Open.csbody";
+}

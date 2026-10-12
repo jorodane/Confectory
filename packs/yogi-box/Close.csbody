@@ -1,0 +1,1 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.YogiBox."+box) as object[];if(state is null)return;lock(state[0]){if((bool)state[5])return;if(state[6] is object[] storage&&(bool)storage[6])calls.Save.Invoke(box);state[5]=true;AppDomain.CurrentDomain.SetData("Confectory.YogiBox."+box,null);}

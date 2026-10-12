@@ -1,0 +1,1 @@
+function Confectory.YogiBox::Save (string box) -> void {description "Validate and persist the bound live package with exact-hash CAS; conflict retains live contents and disk. No replay or receiver.";}

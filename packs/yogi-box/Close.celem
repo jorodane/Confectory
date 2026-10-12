@@ -1,0 +1,1 @@
+function Confectory.YogiBox::Close (string box) -> void {description "Save a dirty bound package and release live ownership; persistent contents remain. Failure retains the live owner for retry.";}

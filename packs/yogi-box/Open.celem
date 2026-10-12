@@ -1,0 +1,1 @@
+function Confectory.YogiBox::Open (string directory, string project, string owner, string workspace) -> string {description "Load a bounded CAS-backed package in the actual workspace project storage, bound to project and workspace participant; no semantic capture, seal or handoff replay.";}

@@ -1,0 +1,1 @@
+function Confectory.FileStream::BoundedSnapshot (string path, int limit) -> string[] {description "Read one exact-byte snapshot with a caller bound up to 16 MiB; reject excess before allocating it. Same existence,text,hash result as Snapshot.";}

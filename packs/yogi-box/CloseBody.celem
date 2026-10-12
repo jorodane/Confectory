@@ -1,0 +1,1 @@
+implementation Confectory.YogiBox::CloseBody for Confectory.YogiBox::Close (string box) -> void {import Confectory.YogiBox::Save as Save (string) -> void;body common "Close.csbody";}

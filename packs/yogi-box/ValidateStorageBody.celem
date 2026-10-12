@@ -1,0 +1,1 @@
+implementation Confectory.YogiBox::ValidateStorageBody for Confectory.YogiBox::ValidateStorage (string text, string project, string owner, string manifest, string semanticNamespace) -> string {body common "ValidateStorage.csbody";}
