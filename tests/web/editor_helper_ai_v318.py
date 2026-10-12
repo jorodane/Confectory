@@ -118,7 +118,11 @@ try:
     page.locator('.home-side [data-helper="' + helper + '"]').first.click()
     return page.locator('.participant-expanded-card[data-helper-id="' + helper + '"]')
    def prepare(card, message):
-    card.locator('textarea').first.fill(message); card.locator('form').first.locator('button[type="submit"]').click()
+    if card.locator('.sd-character').count():
+     if not card.locator('.sd-compose').is_visible(): card.locator('.sd-character').click()
+     form = card.locator('.sd-compose')
+    else: form = card.locator('form').first
+    form.locator('textarea').fill(message); form.locator('button[type="submit"]').click()
     expect(page.locator('#ai-start')).to_be_disabled()
    def approve():
     for permission in ('contentApproved', 'usageApproved'):
@@ -166,11 +170,14 @@ try:
    release.set(); actual = wait_for('completed'); assert actual['aiHelperId'] == other
    assert requests[-1]['projectId'] == project_id and requests[-1]['context']['helper'] == other and requests[-1]['context']['memory'] == []
    other_card = open_helper(other); expect(other_card.locator('.messages')).to_contain_text('WAIT owned helper request')
+   other_card.locator('.helper-window-pin').click()
    prepare(other_card, 'FAIL owned helper request'); approve(); actual = wait_for('error')
    assert actual['aiErrorCode'] and actual['aiOutput'] == '' and len(requests) == 3
    expect(other_card.locator('[data-helper-ai-status]')).to_contain_text('요청 실패')
    expect(other_card.locator('.messages')).not_to_contain_text('WAIT owned helper request')
-   other_card.locator('[data-close]').click(); page.locator('#title').click(); page.get_by_role('button', name='프로젝트 완전 종료', exact=True).click()
+   expect(other_card.locator('.sd-answer p')).to_contain_text('요청 실패')
+   expect(other_card.locator('.sd-compose textarea')).to_have_value('FAIL owned helper request')
+   other_card.locator('.sd-close').click(); page.locator('#title').click(); page.get_by_role('button', name='프로젝트 완전 종료', exact=True).click()
    expect(page.locator('.home-grid')).to_be_visible(); assert state()['projectId'] == '' and all(row['projectId'] != project_id for row in state()['background'])
    assert len(requests) == 3 and not fixture_errors and not errors
    assert all((project / name).read_bytes() == data for name, data in before.items()), 'Helper flow modified project source'
