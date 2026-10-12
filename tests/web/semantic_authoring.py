@@ -222,10 +222,11 @@ def verify_concept_creation(page,project,mount,send,envelope,browser,browser_act
  browser();page.locator('.window[data-key="browser"] [data-tab="concept"]').click()
  expect(page.locator('#browser-actions')).to_be_enabled(timeout=30000)
  expect(page.locator('[data-id="'+prefix+'test"]')).to_be_visible(timeout=30000)
- # Restored floating windows keep their placement. Close the restored Run
- # presentation through its ordinary control before selecting the covered row.
+ # Restored floating windows keep their placement. Close the restored Run and
+ # property presentations through their ordinary controls before selecting the row.
  run_close=page.locator('.window[data-key="run"] [data-close]')
  if run_close.count():run_close.click()
+ close()
  page.locator('[data-id="'+prefix+'test"]').click()
  expect(page.locator('.window[data-key="schema"] [data-schema-id]')).to_have_text(prefix+'test',timeout=30000)
  expect(page.locator('[data-schema-field="initial"]')).to_have_value('2',timeout=30000)
