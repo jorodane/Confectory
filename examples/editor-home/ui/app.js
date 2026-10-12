@@ -99,7 +99,7 @@ function avatar(h){return '<span class="avatar">'+esc(h.initial)+'</span>';}
 function helperTurn(helper){
  const owned=current.aiHelperId===helper,preview=current.aiPreview?.helperContext?.helper===helper;
  const workers=(current.workers||[]).filter(row=>row.ownerHelper===helper),active=workers.filter(row=>['running','dispatching'].includes(row.status)).length;
- const states={idle:'대기',prepared:'전송 전 검토',running:'응답 처리 중',completed:'응답 완료',error:'요청 실패',cancelled:'요청 취소됨','needs-review':'작업 검토 필요'};
+ const states={idle:'대기',prepared:'전송 전 검토',running:'AI 작업 중',completed:'응답 완료',error:'요청 실패',cancelled:'요청 취소됨','needs-review':'작업 검토 필요'};
  let status=preview?'전송 전 검토':owned?(states[current.aiState]||current.aiState):(!current.projectId?'전역 대화 미지원':current.helperProfile?.helper!==helper?'프로젝트 Helper를 선택하세요.':current.connection?'대화 준비':'AI 연결 팩을 선택하세요.');
  if(owned&&current.aiErrorCode)status+=' · '+current.aiErrorCode;
  if(active)status+=' · 실행 중인 Worker '+active+'개';

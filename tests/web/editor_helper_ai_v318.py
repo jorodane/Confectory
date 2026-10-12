@@ -159,7 +159,7 @@ try:
    assert state()['aiHelperId'] == 'main-helper'
    prepare(other_card, 'WAIT owned helper request'); approve(); assert blocked.wait(10)
    actual = state(); assert actual['aiState'] == 'running' and actual['aiHelperId'] == other and actual['aiOutput'] == ''
-   expect(other_card.locator('[data-helper-ai-status]')).to_contain_text('응답 처리 중'); other_card.locator('[data-close]').click()
+   expect(other_card.locator('[data-helper-ai-status]')).to_contain_text('AI 작업 중'); other_card.locator('[data-close]').click()
    page.locator('#title').click(); page.get_by_role('button', name='프로젝트 완전 종료', exact=True).click()
    expect(page.get_by_role('dialog', name='작업 중인 프로젝트 종료')).to_be_visible(); page.locator('[data-keep-project]').click()
    assert state()['aiState'] == 'running'
