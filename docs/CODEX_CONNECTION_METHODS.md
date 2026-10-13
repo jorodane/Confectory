@@ -1,5 +1,7 @@
 # Codex connection methods in the ordinary editor
 
+Current execution uses [session verification and separate request grants](CODEX_VERIFIED_EXECUTION.md). The older unverified-adapter checkpoint below is superseded by that flow for the supported owned CLI profile.
+
 The Home entry and settings navigation have since been corrected to stay inside
 the connection dialog: [entry-flow fix](AI_AGENT_CONNECTION_ENTRY_FIX.md).
 

@@ -1,0 +1,1 @@
+function Confectory.Agent.Codex::Verification (string config,string operation,string payload) -> string {provide Confectory.Agent.Codex::Verification with Confectory.Agent.Codex::VerificationBody;}

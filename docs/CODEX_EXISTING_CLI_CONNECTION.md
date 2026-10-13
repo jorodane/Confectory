@@ -1,3 +1,5 @@
+Current product verification/grant implementation: [supported owned CLI profile and remaining boundaries](CODEX_VERIFIED_EXECUTION.md). This document records the preceding preparation checkpoint.
+
 # Existing Codex CLI connection preparation
 
 The user subsequently requested all three selectable methods. The current UI and

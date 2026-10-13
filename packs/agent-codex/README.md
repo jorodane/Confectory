@@ -1,3 +1,9 @@
+# Verified owned Codex execution
+
+The ordinary Home connection dialog now creates session verification evidence through separately approved installation/account/configuration preflight. Helper requests generate per-request grants from that evidence, and the provider rechecks it before sending context. See [current flow and limits](../../docs/CODEX_VERIFIED_EXECUTION.md).
+
+The notes below describe the earlier low-level transport preparation. The permanent unsupported gate has been replaced for the supported owned CLI profile. Shared sockets remain blocked for the explicit unpinned-policy reason; existing user login reuse through an owned CLI process is supported.
+
 # Codex stdio connection
 
 Connection/Settings inherit the common AI declaration. ValidateConfig(config)->JSON is inert local validation. ProviderBody implements the existing Agent::Provider contract with a real child-process stdio adapter. This is implemented transport code with an owned protocol fixture, **not live-model verification**; opt-in installed unauthenticated startup coverage is recorded separately. Desktop/browser/Android support flags remain false until installed-version protocol and sandbox enforcement are verified; selecting settings never launches a process.

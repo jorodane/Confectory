@@ -101,7 +101,7 @@ try:
    expect(card.locator('textarea')).to_have_value('UNSENT selected helper input'); card.locator('[data-close]').click()
    responses = page.locator('[data-connection-row="Confectory.Agent.Responses::Connection"]')
    codex = page.locator('[data-connection-row="Confectory.Agent.Codex::Connection"]')
-   expect(codex.locator('[data-connection-status]')).to_contain_text('실행 미지원')
+   expect(codex.locator('[data-connection-status]')).to_contain_text('설정 선택 가능')
    responses.locator('[data-connection-settings]').click()
    setup = page.get_by_role('dialog', name='AI Agent 연결', exact=True)
    expect(setup.locator('[data-connection-field="model"]')).to_be_visible()
@@ -195,7 +195,7 @@ try:
     assert not launched.exists() and len(requests) == 3
    for name, value in [('model','owned-not-called'),('executable',str(sentinel)),('managedHome',str(managed)),('credentialReference','codex:managed')]:
     setup.locator('[data-connection-field="' + name + '"]').fill(value)
-   setup.locator('[data-connection-attempt]').click(); expect(setup.locator('[data-connection-result]')).to_have_attribute('data-connection-outcome','blocked')
+   setup.locator('[data-connection-attempt]').click(); expect(setup.locator('[data-connection-result]')).to_have_attribute('data-connection-outcome','preflight-required')
    assert state()['projectId'] == project_id and not launched.exists()
    setup.locator('[data-connection-cancel]').click()
    page.locator('#add-agent').click(); setup = page.get_by_role('dialog', name='AI Agent 연결', exact=True)

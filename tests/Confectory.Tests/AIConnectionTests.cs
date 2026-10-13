@@ -14,6 +14,8 @@ public sealed class AIConnectionTests : TestCase
  import Confectory.Agent.Codex::ValidateConfig as Validate (string) -> string;
  import Confectory.Agent.Codex::Provider as Provider (string,string,string,string) -> string;
  import Confectory.Agent.Codex::Permission as Permission (string) -> string;
+ import Confectory.Agent.Codex::Verification as Verification (string,string,string) -> string;
+ import Confectory.AIConnection::Authorize as Authorize (string,string,string) -> string;
  import Confectory.Agent::Open as AgentOpen (string) -> string;
  import Confectory.Agent::Start as AgentStart (string,string,string) -> string;
  import Confectory.Agent::Poll as AgentPoll (string) -> string;
@@ -28,79 +30,7 @@ public sealed class AIConnectionTests : TestCase
  """);
  File.WriteAllText(Path.Combine(sample,"main.csbody"),"""""
  string project=Environment.GetEnvironmentVariable("CONFECTORY_TEST_CONNECTION_PROJECT")!,root=System.IO.Path.GetDirectoryName(project)!,fixture=System.IO.Path.Combine(root,"owned-codex-protocol.py");
- System.IO.File.WriteAllText(fixture,""""
-#!/usr/bin/python3
-import json,sys,time,os
-thread="owned-thread-"+str(os.getpid());turn="owned-turn-"+str(os.getpid())
-assert sys.argv[1:5]==['app-server','--stdio','--strict-config','-c']
-assert sys.argv[5]=='web_search="disabled"'
-assert sys.argv[6::2]==['--disable']*14
-assert set(sys.argv[7::2])=={'shell_tool','shell_snapshot','apps','browser_use','in_app_browser','browser_use_external','code_mode','code_mode_host','multi_agent','multi_agent_v2','hooks','remote_plugin','tool_suggest','request_permissions_tool'}
-open(os.path.join(os.path.dirname(__file__),'owned-launch.json'),'w').write(json.dumps(sys.argv[1:]))
-assert os.environ.get("CODEX_HOME") and "OPENAI_API_KEY" not in os.environ and "HOME" not in os.environ
-def read():
- x=json.loads(sys.stdin.readline())
- with open(os.path.join(os.path.dirname(__file__),'owned-requests.jsonl'),'a') as f:f.write(json.dumps(x)+'\n')
- return x
-def send(x):print(json.dumps(x),flush=True)
-a=read();assert a['method']=='initialize' and a['params']['capabilities']['experimentalApi'];send({'id':a['id'],'result':{'userAgent':'owned-fixture'}})
-assert read()['method']=='initialized'
-a=read();assert a['method']=='account/read' and a['params']=={'refreshToken':False}
-account=None if 'no-account' in __file__ else {'type':'apiKey'} if 'api-account' in __file__ else {'type':'chatgpt','email':'OWNED FIXTURE, NOT A REAL ACCOUNT','planType':'unknown'}
-send({'id':a['id'],'result':{'account':account,'requiresOpenaiAuth':True}})
-if not account or account['type']!='chatgpt':read();sys.exit(0)
-a=read();assert a['method']=='config/read' and a['params']=={'includeLayers':False};send({'id':a['id'],'result':{'config':{'model_providers':{'owned-unreviewed':{}} if 'custom-provider' in __file__ else {},'plugins':{'owned-fixture-plugin':{'enabled':True}},'mcp_servers':{'owned-fixture-server':{'enabled':True}}}}})
-a=read();assert a['method']=='thread/start' and a['params']['ephemeral'] and a['params']['sandbox']=='read-only' and a['params']['approvalPolicy']=='never'
-assert a['params']['environments']==[]
-assert a['params']['config']=={'plugins."owned-fixture-plugin".enabled':False,'mcp_servers."owned-fixture-server".enabled':False}
-assert all(t['type']=='function' and 'inputSchema' in t for t in a['params']['dynamicTools'])
-assert os.getcwd()==a['params']['cwd'];send({'id':a['id'],'result':{'thread':{'id':thread,'environments':['unexpected'] if 'retained-environment' in __file__ else []},'instructionSources':[{'path':'owned-unreviewed-instruction'}] if 'instruction-source' in __file__ else []}})
-a=read();assert a['method']=='turn/start' and a['params']['sandboxPolicy']=={'type':'readOnly','networkAccess':False}
-assert a['params']['environments']==[]
-open(os.path.join(os.path.dirname(__file__),'turn-start-'+os.path.basename(__file__)),'w').write('started')
-text=a['params']['input'][0]['text'];assert 'authorization' not in text and 'toolCapability' not in text and 'credentialReference' not in text
-mode=json.loads(text)['message'];send({'method':'turn/started','params':{'threadId':thread,'turn':{'id':turn,'status':'inProgress'}}});send({'id':a['id'],'result':{'turn':{'id':turn,'status':'inProgress'}}})
-if mode in ('hold-a','hold-b'):
- assert json.loads(text)['context']['profile']['helper']==mode
- open(os.path.join(os.path.dirname(__file__),mode+'-ready'),'w').write(turn)
- if mode=='hold-a':
-  b=read();assert b['method']=='turn/interrupt' and b['params']=={'threadId':thread,'turnId':turn}
-  open(os.path.join(os.path.dirname(__file__),'hold-a-interrupted'),'w').write(turn);sys.exit(0)
- deadline=time.monotonic()+5
- while not os.path.exists(os.path.join(os.path.dirname(__file__),'release-helper-b')):
-  assert time.monotonic()<deadline;time.sleep(.01)
- send({'method':'item/completed','params':{'threadId':thread,'turnId':turn,'item':{'id':'answer','type':'agentMessage','text':'OWNED LOOPBACK FIXTURE: helper B kept running.'}}})
- send({'method':'turn/completed','params':{'threadId':thread,'turn':{'id':turn,'status':'completed'}}})
- read();sys.exit(0)
-if mode=='missing-turn':
- send({'method':'item/agentMessage/delta','params':{'threadId':thread,'itemId':'answer','delta':'UNOWNED OUTPUT'}});read();sys.exit(0)
-if mode=='conflicting-message':
- send({'method':'item/agentMessage/delta','params':{'threadId':thread,'turnId':turn,'itemId':'answer','delta':'OWNED PREFIX'}})
- send({'method':'item/completed','params':{'threadId':thread,'turnId':turn,'item':{'id':'answer','type':'agentMessage','text':'DIFFERENT MESSAGE'}}});read();sys.exit(0)
-if mode in ('usage-error','foreign-error'):
- send({'method':'error','params':{'threadId':thread if mode=='usage-error' else 'foreign-thread','turnId':turn,'willRetry':True,'error':{'message':'SECRET FIXTURE DETAIL MUST NOT BE DISPLAYED','codexErrorInfo':'usageLimitExceeded'}}})
- read();sys.exit(0)
-if mode=='interrupted':
- send({'method':'turn/completed','params':{'threadId':thread,'turn':{'id':turn,'status':'interrupted'}}});read();sys.exit(0)
-if mode=='cancel':
- b=read();assert b['method']=='turn/interrupt' and b['params']=={'threadId':thread,'turnId':turn};open(os.path.join(os.path.dirname(__file__),'owned-interrupt-marker'),'w').write(turn);sys.exit(0)
-if mode=='foreign':
- send({'id':'foreign-request','method':'item/tool/call','params':{'threadId':'another-project','turnId':turn,'callId':'foreign','tool':'workspace_stage','arguments':{}}});time.sleep(1);sys.exit(0)
-if mode=='namespace':
- send({'id':'outside-namespace','method':'item/tool/call','params':{'threadId':thread,'turnId':turn,'callId':'outside-namespace','tool':'workspace_read','arguments':{'projectId':'A','id':'Other.Project::Secret'}}});time.sleep(1);sys.exit(0)
-if mode=='approval':
- send({'id':'native-request','method':'item/fileChange/requestApproval','params':{'threadId':thread,'turnId':turn}});b=read();assert b['id']=='native-request' and 'error' in b;sys.exit(0)
-for n in range(2):
- send({'id':'rpc-'+str(n),'method':'item/tool/call','params':{'threadId':thread,'turnId':turn,'callId':'same-call','tool':'workspace_stage','arguments':{'projectId':'A','id':'Example.EditWorkspace::Counter','expectedRevision':0,'text':'object Example.EditWorkspace::Counter {value count = 3;}'}}})
- b=read();assert b['id']=='rpc-'+str(n) and b['result']['success'] and b['result']['contentItems'][0]['type']=='inputText'
- if n==0:first=b['result']
- else:assert b['result']==first
-send({'method':'item/agentMessage/delta','params':{'threadId':thread,'turnId':turn,'itemId':'answer','delta':'Owned fixture staged '}})
-for _ in range(2):
- send({'method':'item/completed','params':{'threadId':thread,'turnId':turn,'item':{'id':'answer','type':'agentMessage','text':'Owned fixture staged draft; review required.'}}})
-send({'method':'turn/completed','params':{'threadId':thread,'turn':{'id':turn,'status':'completed'}}})
-read()
-"""");
+ System.IO.File.Copy(Environment.GetEnvironmentVariable("CONFECTORY_CODEX_STDIO_FIXTURE")!,fixture);
  System.IO.File.SetUnixFileMode(fixture,System.IO.UnixFileMode.UserRead|System.IO.UnixFileMode.UserWrite|System.IO.UnixFileMode.UserExecute);
  string managedHome=System.IO.Path.Combine(root,"owned-managed-home");System.IO.Directory.CreateDirectory(managedHome);string config=new System.Text.Json.Nodes.JsonObject{["managedHome"]=managedHome,["provider"]="codex",["protocol"]="app-server-stdio",["executable"]=fixture,["model"]="owned-protocol-fixture",["credentialReference"]="codex:managed"}.ToJsonString();
  var checkedConfig=System.Text.Json.Nodes.JsonNode.Parse(calls.Validate.Invoke(config))!;if(checkedConfig["processStarted"]!.GetValue<bool>()||checkedConfig["credentialRead"]!.GetValue<bool>())throw new Exception("Validation started process or read credentials");
@@ -108,12 +38,13 @@ read()
  var networkPath=System.Text.Json.Nodes.JsonNode.Parse(config)!;networkPath["executable"]="//owned-do-not-probe/codex";networkPath["managedHome"]="//owned-do-not-probe/home";var networkDiagnostic=System.Text.Json.Nodes.JsonNode.Parse(calls.Permission.Invoke(networkPath.ToJsonString()))!;if(!networkDiagnostic["diagnostics"]!["checks"]![0]!["status"]!.ToString().Contains("자동 확인 미지원")||!networkDiagnostic["diagnostics"]!["checks"]![1]!["status"]!.ToString().Contains("자동 확인 미지원"))throw new Exception("Network/device path metadata was automatically probed");
  string rejected=Guid.NewGuid().ToString("N");try{bool denied=false;try{calls.Provider.Invoke(config,rejected,"open","{}");}catch(UnauthorizedAccessException){denied=true;}if(!denied)throw new Exception("Missing grant accepted");}finally{calls.Provider.Invoke(config,rejected,"close","");}
  string capability=calls.ToolsOpen.Invoke(project,"A","Example.EditWorkspace","alice","editor"),original=System.IO.File.ReadAllText(System.IO.Path.Combine(root,"Counter.celem"));
- string Request(string mode,string helper="alice")=>new System.Text.Json.Nodes.JsonObject{["message"]=mode,["toolCapability"]=capability,["context"]=new System.Text.Json.Nodes.JsonObject{["projectId"]="A",["profile"]=new System.Text.Json.Nodes.JsonObject{["helper"]=helper}},["authorization"]=new System.Text.Json.Nodes.JsonObject{["projectId"]="A",["executable"]=fixture,["model"]="owned-protocol-fixture",["contentApproved"]=true,["usageApproved"]=true,["processApproved"]=true,["managedCredentialApproved"]=true,["managedConfigurationApproved"]=true,["managedStorageApproved"]=true,["managedHome"]=managedHome,["protocolVerified"]=true}}.ToJsonString();
+ string CheckConfig(string input){calls.Verification.Invoke(input,"start","{\"checkProcessApproved\":true,\"checkAccountApproved\":true,\"checkConfigurationApproved\":true,\"checkStorageApproved\":true}");for(int n=0;n<1000;n++){var status=System.Text.Json.Nodes.JsonNode.Parse(calls.Verification.Invoke(input,"status","{}"))!;if(status["state"]!.ToString()!="checking")return status.ToJsonString();System.Threading.Thread.Sleep(5);}throw new Exception("Preflight did not finish");}
+ if(System.Text.Json.Nodes.JsonNode.Parse(CheckConfig(config))!["state"]!.ToString()!="verified")throw new Exception("Owned fixture preflight failed");
+ string Request(string mode,string helper="alice")=>new System.Text.Json.Nodes.JsonObject{["message"]=mode,["toolCapability"]=capability,["context"]=new System.Text.Json.Nodes.JsonObject{["projectId"]="A",["profile"]=new System.Text.Json.Nodes.JsonObject{["helper"]=helper}},["authorization"]=System.Text.Json.Nodes.JsonNode.Parse(calls.Authorize.Invoke(calls.Permission.Invoke(config),"A","{\"contentApproved\":true,\"usageApproved\":true,\"processApproved\":true,\"managedCredentialApproved\":true,\"managedConfigurationApproved\":true,\"managedStorageApproved\":true}"))}.ToJsonString();
  try{
- string retained=System.IO.Path.Combine(root,"retained-environment.py");System.IO.File.Copy(fixture,retained);System.IO.File.SetUnixFileMode(retained,System.IO.UnixFileMode.UserRead|System.IO.UnixFileMode.UserWrite|System.IO.UnixFileMode.UserExecute);var retainedConfig=System.Text.Json.Nodes.JsonNode.Parse(config)!;retainedConfig["executable"]=retained;var retainedRequest=System.Text.Json.Nodes.JsonNode.Parse(Request("must-not-start"))!;retainedRequest["authorization"]!["executable"]=retained;string retainedExecution=Guid.NewGuid().ToString("N");try{calls.Provider.Invoke(retainedConfig.ToJsonString(),retainedExecution,"open",retainedRequest.ToJsonString());bool terminalError=false;for(int n=0;n<1000;n++){var next=System.Text.Json.Nodes.JsonNode.Parse(calls.Provider.Invoke(config,retainedExecution,"next",""))!;if(next["kind"]!.ToString()=="error"){terminalError=true;break;}System.Threading.Thread.Sleep(5);}if(!terminalError||System.IO.File.Exists(System.IO.Path.Combine(root,"turn-start-retained-environment.py")))throw new Exception("Returned environment access must fence turn/start");}finally{calls.Provider.Invoke(config,retainedExecution,"close","");}
- foreach(string variant in new[]{"no-account","api-account","custom-provider","instruction-source"}){
- string path=System.IO.Path.Combine(root,variant+".py");System.IO.File.Copy(fixture,path);System.IO.File.SetUnixFileMode(path,System.IO.UnixFileMode.UserRead|System.IO.UnixFileMode.UserWrite|System.IO.UnixFileMode.UserExecute);var variantConfig=System.Text.Json.Nodes.JsonNode.Parse(config)!;variantConfig["executable"]=path;var variantRequest=System.Text.Json.Nodes.JsonNode.Parse(Request("must-not-start"))!;variantRequest["authorization"]!["executable"]=path;string run=Guid.NewGuid().ToString("N");try{calls.Provider.Invoke(variantConfig.ToJsonString(),run,"open",variantRequest.ToJsonString());string error="";for(int n=0;n<1000;n++){var next=System.Text.Json.Nodes.JsonNode.Parse(calls.Provider.Invoke(config,run,"next",""))!;if(next["kind"]!.ToString()=="error"){error=next["errorCode"]?.ToString()??"";break;}System.Threading.Thread.Sleep(5);}string expected=variant switch{"no-account"=>"provider-auth-required","api-account"=>"provider-auth-mode-unsupported","custom-provider"=>"provider-configuration-unsupported",_=>"provider-error"};if(error!=expected||System.IO.File.Exists(System.IO.Path.Combine(root,"turn-start-"+variant+".py")))throw new Exception("Codex pre-turn fence failed "+variant+" "+error);}finally{calls.Provider.Invoke(config,run,"close","");}
- }
+ foreach(string variant in new[]{"retained-environment","no-account","api-account","custom-provider","instruction-source"}){
+ string path=System.IO.Path.Combine(root,variant+".py");System.IO.File.Copy(fixture,path);System.IO.File.SetUnixFileMode(path,System.IO.UnixFileMode.UserRead|System.IO.UnixFileMode.UserWrite|System.IO.UnixFileMode.UserExecute);var variantConfig=System.Text.Json.Nodes.JsonNode.Parse(config)!;variantConfig["executable"]=path;var outcome=System.Text.Json.Nodes.JsonNode.Parse(CheckConfig(variantConfig.ToJsonString()))!;string expected=variant switch{"no-account"=>"provider-auth-required","api-account"=>"provider-auth-mode-unsupported","custom-provider"=>"provider-configuration-unsupported",_=>"provider-tool-policy-unsupported"};if(outcome["code"]!.ToString()!=expected||System.IO.File.Exists(System.IO.Path.Combine(root,"turn-start-"+variant+".py")))throw new Exception("Preflight fence failed "+variant+" "+outcome);
+ calls.Verification.Invoke(variantConfig.ToJsonString(),"close","{}");}
  foreach(string mode in new[]{"normal","foreign","namespace","approval","cancel","usage-error","foreign-error","interrupted","missing-turn","conflicting-message"}){
  string execution=Guid.NewGuid().ToString("N");try{calls.Provider.Invoke(config,execution,"open",Request(mode));if(mode=="cancel"){System.Threading.Thread.Sleep(150);calls.Provider.Invoke(config,execution,"cancel","");}string terminal="",text="";for(int n=0;n<1000;n++){var item=System.Text.Json.Nodes.JsonNode.Parse(calls.Provider.Invoke(config,execution,"next",""))!;string kind=item["kind"]!.ToString();if(kind=="delta")text+=item["text"]!.ToString();if(kind is "error" or "completed"){terminal=kind;string error=item["errorCode"]?.ToString()??"";if(mode=="usage-error"&&error!="provider-usage-limit"||mode=="foreign-error"&&error!="provider-error"||mode=="interrupted"&&error!="provider-cancelled")throw new Exception("Incorrect safe Codex error "+mode);break;}System.Threading.Thread.Sleep(5);}if(mode=="missing-turn"&&text.Length>0||mode=="conflicting-message"&&text!="OWNED PREFIX")throw new Exception("Unowned/conflicting message displayed");if(terminal!=(mode=="normal"?"completed":"error")||mode=="normal"&&text!="Owned fixture staged draft; review required.")throw new Exception("Unexpected protocol outcome "+mode+" "+terminal);}finally{calls.Provider.Invoke(config,execution,"close","");calls.Provider.Invoke(config,execution,"close","");}if(mode=="cancel"&&!System.IO.File.Exists(System.IO.Path.Combine(root,"owned-interrupt-marker")))throw new Exception("Cancellation did not send scoped turn interrupt");}
  // Agent request IDs prevent reconnect/repeated Start from dispatching a second turn.
@@ -124,13 +55,17 @@ read()
  if(!System.IO.File.Exists(System.IO.Path.Combine(root,"hold-a-ready"))||!System.IO.File.Exists(System.IO.Path.Combine(root,"hold-b-ready")))throw new Exception("Concurrent owned turns did not start");if(System.IO.File.ReadAllText(System.IO.Path.Combine(root,"hold-a-ready"))==System.IO.File.ReadAllText(System.IO.Path.Combine(root,"hold-b-ready")))throw new Exception("Concurrent Helpers shared a turn");
  calls.Provider.Invoke(config,ownerA,"cancel","");calls.Provider.Invoke(config,ownerA,"close","");if(!System.IO.File.Exists(System.IO.Path.Combine(root,"hold-a-interrupted"))||System.Text.Json.Nodes.JsonNode.Parse(calls.Provider.Invoke(config,ownerB,"next",""))!["kind"]!.ToString()!="wait")throw new Exception("Stopping Helper A interrupted Helper B");System.IO.File.WriteAllText(System.IO.Path.Combine(root,"release-helper-b"),"release");string reply="",terminal="";for(int n=0;n<1000;n++){var item=System.Text.Json.Nodes.JsonNode.Parse(calls.Provider.Invoke(config,ownerB,"next",""))!;if(item["kind"]!.ToString()=="delta")reply+=item["text"]!.ToString();if(item["kind"]!.ToString() is "completed" or "error"){terminal=item["kind"]!.ToString();break;}System.Threading.Thread.Sleep(5);}if(terminal!="completed"||reply!="OWNED LOOPBACK FIXTURE: helper B kept running.")throw new Exception("Helper B ownership/reply lost");
  }finally{calls.Provider.Invoke(config,ownerA,"close","");calls.Provider.Invoke(config,ownerB,"close","");}
+ string staleRequest=Request("normal");calls.Verification.Invoke(config,"invalidate","{}");
+ void RefuseStale(string request){string run=Guid.NewGuid().ToString("N");bool refused=false;try{calls.Provider.Invoke(config,run,"open",request);}catch(UnauthorizedAccessException){refused=true;}finally{calls.Provider.Invoke(config,run,"close","");}if(!refused)throw new Exception("Stale verification grant was accepted");}
+ RefuseStale(staleRequest);if(System.Text.Json.Nodes.JsonNode.Parse(CheckConfig(config))!["state"]!.ToString()!="verified")throw new Exception("Cancelled verification did not recover");RefuseStale(staleRequest);
+ string installationGrant=Request("normal");System.IO.File.AppendAllText(fixture,"\n# owned installation changed\n");if(System.Text.Json.Nodes.JsonNode.Parse(calls.Permission.Invoke(config))!["supported"]!.GetValue<bool>())throw new Exception("Changed installation retained verification");RefuseStale(installationGrant);calls.Verification.Invoke(config,"close","{}");
  var requests=System.Linq.Enumerable.Select(System.IO.File.ReadAllLines(System.IO.Path.Combine(root,"owned-requests.jsonl")),line=>System.Text.Json.Nodes.JsonNode.Parse(line)!);if(System.Linq.Enumerable.Any(requests,row=>row["method"]?.ToString() is "thread/resume" or "account/login/start"||row["method"]?.ToString()=="account/read"&&row["params"]?["refreshToken"]?.GetValue<bool>()!=false))throw new Exception("Implicit resume/login/refresh");
  if(System.IO.File.ReadAllText(System.IO.Path.Combine(root,"Counter.celem"))!=original||System.Text.Json.Nodes.JsonNode.Parse(calls.ToolsSnapshot.Invoke(capability))!["staged"]!["Example.EditWorkspace::Counter"] is null)throw new Exception("Codex fixture bypassed draft boundary");
  string view=calls.ViewOpen.Invoke(project,"alice","editor");try{calls.ViewCommand.Invoke(view,"select","{\"id\":\"Example.EditWorkspace::Counter\"}");var reviewed=System.Text.Json.Nodes.JsonNode.Parse(calls.ViewCommand.Invoke(view,"review","{\"target\":\"portable\"}"))!["review"]!;if(reviewed["status"]!.ToString()!="ready"||System.IO.File.ReadAllText(System.IO.Path.Combine(root,"Counter.celem"))!=original)throw new Exception("Review changed final source");var applied=System.Text.Json.Nodes.JsonNode.Parse(calls.ViewCommand.Invoke(view,"confirm",new System.Text.Json.Nodes.JsonObject{["token"]=reviewed["token"]!.DeepClone()}.ToJsonString()))!;if(applied["confirmation"]![0]!.ToString()!="confirmed"||!System.IO.File.ReadAllText(System.IO.Path.Combine(root,"Counter.celem")).Contains("count = 3"))throw new Exception("Explicit consumer Confirm/build feedback failed");}finally{calls.ViewClose.Invoke(view);}
  }finally{calls.ToolsClose.Invoke(capability);}
  Console.WriteLine("Owned Codex stdio handshake / tool dedup / foreign scope / native approval refusal / cancellation PASS");return 0;
 """"");
- string? oldProject=Environment.GetEnvironmentVariable("CONFECTORY_TEST_CONNECTION_PROJECT"),oldHost=Environment.GetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST");try{Environment.SetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST",Path.Combine(Fixture.Repo,"targets","element-authoring","bin","Release","net10.0","Confectory.ElementAuthoring.dll"));Environment.SetEnvironmentVariable("CONFECTORY_TEST_CONNECTION_PROJECT",project);var first=new Builder(project,"portable").Build();var actual=Processes.Run(Strings(first,"run"),timeoutSeconds:120);Equal(0,actual.ExitCode);True(actual.Stdout.Contains("Owned Codex stdio handshake / tool dedup / foreign scope / native approval refusal / cancellation PASS"),actual.Stderr);if(Environment.GetEnvironmentVariable("CONFECTORY_CODEX_SCHEMA_DIRECTORY") is string schemaDirectory){var schemaCheck=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests","protocol","codex_installed_schema.py"),schemaDirectory,Path.Combine(sample,"owned-requests.jsonl")},timeoutSeconds:30);Equal(0,schemaCheck.ExitCode);True(schemaCheck.Stdout.Contains("Installed schema actual request capture PASS"),schemaCheck.Stdout+schemaCheck.Stderr);if(Environment.GetEnvironmentVariable("CONFECTORY_CODEX_OFFLINE_EXECUTABLE") is string installedCodex){var offline=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests","protocol","codex_offline_preflight.py"),installedCodex,Path.Combine(sample,"owned-requests.jsonl")},timeoutSeconds:60);True(offline.ExitCode==0,offline.Stdout+offline.Stderr);True(offline.Stdout.Contains("Installed no-inference preflight PASS"),offline.Stdout+offline.Stderr);Console.WriteLine(offline.Stdout.Trim());}}new Builder(project,"windows").Build();new Builder(project,"android").Build();File.AppendAllText(Path.Combine(f.Root,"packs","agent-codex","Provider.csbody"),"\n// owning Codex transport locality\n");var changed=new Builder(project,"portable").Build();PackRebuilt(changed,new[]{"Confectory.Agent.Codex::AdapterBody","Confectory.Agent.Codex::ProviderBody"});Equal(0,Strings(changed,"statistics","compiledContracts").Length);}finally{Environment.SetEnvironmentVariable("CONFECTORY_TEST_CONNECTION_PROJECT",oldProject);Environment.SetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST",oldHost);}
+ string? oldStdio=Environment.GetEnvironmentVariable("CONFECTORY_CODEX_STDIO_FIXTURE");Environment.SetEnvironmentVariable("CONFECTORY_CODEX_STDIO_FIXTURE",Path.Combine(Fixture.Repo,"tests","protocol","codex_owned_stdio.py"));string? oldProject=Environment.GetEnvironmentVariable("CONFECTORY_TEST_CONNECTION_PROJECT"),oldHost=Environment.GetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST");try{Environment.SetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST",Path.Combine(Fixture.Repo,"targets","element-authoring","bin","Release","net10.0","Confectory.ElementAuthoring.dll"));Environment.SetEnvironmentVariable("CONFECTORY_TEST_CONNECTION_PROJECT",project);var first=new Builder(project,"portable").Build();var actual=Processes.Run(Strings(first,"run"),timeoutSeconds:120);True(actual.ExitCode==0,actual.Stdout+actual.Stderr);True(actual.Stdout.Contains("Owned Codex stdio handshake / tool dedup / foreign scope / native approval refusal / cancellation PASS"),actual.Stderr);if(Environment.GetEnvironmentVariable("CONFECTORY_CODEX_SCHEMA_DIRECTORY") is string schemaDirectory){var schemaCheck=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests","protocol","codex_installed_schema.py"),schemaDirectory,Path.Combine(sample,"owned-requests.jsonl")},timeoutSeconds:30);Equal(0,schemaCheck.ExitCode);True(schemaCheck.Stdout.Contains("Installed schema actual request capture PASS"),schemaCheck.Stdout+schemaCheck.Stderr);if(Environment.GetEnvironmentVariable("CONFECTORY_CODEX_OFFLINE_EXECUTABLE") is string installedCodex){var offline=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests","protocol","codex_offline_preflight.py"),installedCodex,Path.Combine(sample,"owned-requests.jsonl")},timeoutSeconds:60);True(offline.ExitCode==0,offline.Stdout+offline.Stderr);True(offline.Stdout.Contains("Installed no-inference preflight PASS"),offline.Stdout+offline.Stderr);Console.WriteLine(offline.Stdout.Trim());}}new Builder(project,"windows").Build();new Builder(project,"android").Build();File.AppendAllText(Path.Combine(f.Root,"packs","agent-codex","Provider.csbody"),"\n// owning Codex transport locality\n");var changed=new Builder(project,"portable").Build();PackRebuilt(changed,new[]{"Confectory.Agent.Codex::AdapterBody","Confectory.Agent.Codex::ProviderBody"});Equal(0,Strings(changed,"statistics","compiledContracts").Length);}finally{Environment.SetEnvironmentVariable("CONFECTORY_CODEX_STDIO_FIXTURE",oldStdio);Environment.SetEnvironmentVariable("CONFECTORY_TEST_CONNECTION_PROJECT",oldProject);Environment.SetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST",oldHost);}
  }
  public void test_owned_codex_control_socket_and_workspace_api_receipts_without_real_accounts()
  {
@@ -141,6 +76,7 @@ read()
   File.WriteAllText(Path.Combine(sample,"main_body.celem"),"""
   implementation Example.EditWorkspace::MainBody for Example.EditWorkspace::Main () -> int {
   import Confectory.Agent.Codex::Provider as Provider (string,string,string,string) -> string;
+  import Confectory.Agent.Codex::Verification as Verification (string,string,string) -> string;
   import Confectory.Agent.Codex::WorkspaceRequest as Workspace (string,string,string,string) -> string;
   body common "main.csbody";}
   """);File.Copy(Path.Combine(Fixture.Repo,"tests","protocol","codex_methods_consumer.csbody"),Path.Combine(sample,"main.csbody"),true);

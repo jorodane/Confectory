@@ -53,6 +53,13 @@ public sealed class WebUITests : TestCase
         var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/editor_helper_ai_v318.py"),Fixture.Repo,report},timeoutSeconds:360);
         True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS ordinary ProjectPack helper connection settings"));
     }
+    public void test_actual_editor_v318_codex_verification_and_helper_grants()
+    {
+        var built=new Builder(Path.Combine(Fixture.Repo,"examples","editor-home","project.cpack"),"linux").Build();
+        string report=Path.Combine(f.Root,"v318-codex-verification.json");File.WriteAllText(report,built.ToJsonString());
+        var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/editor_codex_verification_v318.py"),Fixture.Repo,report},timeoutSeconds:480);
+        True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS actual Home Codex verification and Helper grants"));
+    }
     public void test_actual_editor_v318_inventory_and_browser_instances_restart()
     {
         var built=new Builder(Path.Combine(Fixture.Repo,"examples","editor-home","project.cpack"),"linux").Build();

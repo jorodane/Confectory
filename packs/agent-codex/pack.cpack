@@ -7,4 +7,5 @@ element ProviderBody implementation "ProviderBody.celem"; element Provider funct
 element Configuration function "Configuration.celem"; element ConfigurationBody implementation "ConfigurationBody.celem";
 element WorkspaceRequest function "WorkspaceRequest.celem"; element WorkspaceRequestBody implementation "WorkspaceRequestBody.celem";
 element Permission function "Permission.celem"; element PermissionBody implementation "PermissionBody.celem";
+element Verification function "Verification.celem"; element VerificationBody implementation "VerificationBody.celem";
 }

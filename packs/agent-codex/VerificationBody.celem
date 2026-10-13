@@ -1,0 +1,4 @@
+implementation Confectory.Agent.Codex::VerificationBody for Confectory.Agent.Codex::Verification (string config,string operation,string payload) -> string {
+import Confectory.Agent.Codex::ValidateConfig as Validate (string) -> string;
+import Confectory.Agent.Codex::Provider as Provider (string,string,string,string) -> string;
+body common "Verification.csbody";}
