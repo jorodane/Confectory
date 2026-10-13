@@ -1,0 +1,1 @@
+implementation Confectory.Agent.Codex::WorkspaceRequestBody for Confectory.Agent.Codex::WorkspaceRequest (string config,string execution,string operation,string payload) -> string {import Confectory.Agent.Codex::ValidateConfig as Validate (string) -> string; body common "WorkspaceRequest.csbody";}

@@ -192,7 +192,14 @@ try:
     field = page.locator('[data-schema-field="' + name + '"]'); field.fill(value); field.locator('..').get_by_role('button', name='Apply field', exact=True).click(); expect(page.locator('#status')).to_have_text('Shared field draft updated')
    page.locator('#semantic-save').click(); expect(page.locator('#status')).to_have_text('Draft saved; final sources unchanged')
    page.locator('.brand').click(); page.locator('[data-enter]').first.click(); expect(page.locator('.work-body')).to_be_visible()
-   page.locator('#add-agent').click(); page.locator('#connection-list button').filter(has_text='Confectory.Agent.Codex::Connection').click()
+   page.locator('.agent-home[data-agent="Confectory.Agent.Codex::Connection"]').click()
+   methods = page.locator('[data-connection-methods="Confectory.Agent.Codex::Connection"]'); expect(methods).to_be_visible(); expect(methods.locator('[data-method-choice]')).to_have_count(3)
+   for method in ('desktop-ide','chatgpt-work','local-cli'):
+    methods.locator('[data-method-choice="' + method + '"]').click(); expect(methods.locator('[data-method-choice="' + method + '"]')).to_have_attribute('aria-pressed','true')
+    expect(methods.locator('[data-method-details="' + method + '"]')).to_be_visible(); assert state()['connectionSelection']['method'] == method
+    assert not launched.exists() and len(requests) == 3
+   expect(methods.locator('[data-connection-method="chatgpt-work"] [data-method-status]')).to_contain_text('응답 본문·원격 중지 API 없음')
+   methods.locator('[data-method-bind="local-cli"]').click(); expect(page.locator('[data-connection-row="Confectory.Agent.Codex::Connection"] [data-connection-status]')).to_contain_text('설정 선택됨'); assert state()['connectionMethod'] == 'local-cli'
    page.locator('.window[data-key="connections"] [data-close]').click()
    codex_card = open_helper(other); prepare(codex_card, 'DO NOT CALL real Codex')
    diagnostic = page.locator('[data-connection-diagnostics]'); expect(diagnostic).to_contain_text('경로에 파일 있음'); expect(diagnostic).to_contain_text('계정 미확인'); expect(diagnostic).to_contain_text('실제 호출 차단 중')
@@ -205,7 +212,7 @@ try:
    assert state()['projectId'] == '' and all(row['projectId'] != project_id for row in state()['background'])
    assert len(requests) == 3 and not fixture_errors and not errors
    assert all((project / name).read_bytes() == data for name, data in before.items()), 'Helper flow modified project source'
-   (root / 'verification.json').write_text(json.dumps({'projectId':project_id, 'mainHelper':'main-helper', 'projectHelper':other, 'ownedHttpRequests':len(requests), 'sourceUnchanged':True, 'errorCode':actual['aiErrorCode'], 'realAccountCalled':False, 'codexPassiveDiagnostics':True, 'codexProcessStarted':launched.exists()}, indent=2) + '\n')
+   (root / 'verification.json').write_text(json.dumps({'projectId':project_id, 'mainHelper':'main-helper', 'projectHelper':other, 'ownedHttpRequests':len(requests), 'sourceUnchanged':True, 'errorCode':actual['aiErrorCode'], 'realAccountCalled':False, 'codexPassiveDiagnostics':True, 'codexMethodChoices':['local-cli','desktop-ide','chatgpt-work'], 'codexProcessStarted':launched.exists()}, indent=2) + '\n')
   except Exception:
    print('Evidence:', root, flush=True); print('Current public state:', json.dumps(state()), flush=True); raise
   finally: browser.close()

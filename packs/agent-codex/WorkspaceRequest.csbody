@@ -1,0 +1,46 @@
+// Separate public request/receipt contract. Workspace status is never an Agent reply
+// or Worker completion, and the documented API has no remote-cancel operation.
+var settings=System.Text.Json.Nodes.JsonNode.Parse(calls.Validate.Invoke(config))!;
+if(settings["connectionMethod"]?.ToString()!="chatgpt-work"||OperatingSystem.IsBrowser()||OperatingSystem.IsAndroid())throw new PlatformNotSupportedException("Approved desktop Workspace Agent request boundary required");
+if(execution.Length is <1 or >128||payload.Length>65536)throw new ArgumentException("Bounded owned execution and input required");
+string key="Confectory.Agent.Codex.WorkspaceRequest."+execution;object[] state;lock(AppDomain.CurrentDomain){state=AppDomain.CurrentDomain.GetData(key) as object[]??new object[]{new object(),"","",false,false,new System.Text.Json.Nodes.JsonObject{["kind"]="receipt",["status"]="not-submitted",["replyAvailable"]=false,["remoteCancelSupported"]=false}};AppDomain.CurrentDomain.SetData(key,state);}
+lock(state[0]){
+ string snapshot()=>((System.Text.Json.Nodes.JsonObject)state[5]).ToJsonString();
+ if(operation is "close" or "stop"){state[4]=true;((System.Text.Json.Nodes.JsonObject)state[5])["pollingStopped"]=true;return snapshot();}
+ if(operation=="inspect")return snapshot();
+ if(operation is not ("open" or "poll"))throw new ArgumentException("Workspace request operation");
+ if((bool)state[4])return snapshot();
+ string endpoint=settings["workspaceEndpoint"]!.ToString(),trigger=settings["workspaceTriggerId"]!.ToString();var target=new Uri(endpoint);
+ if(operation=="open"){
+  var request=System.Text.Json.Nodes.JsonNode.Parse(payload)!.AsObject();var grant=request["authorization"]?.AsObject()??throw new UnauthorizedAccessException("Explicit exact Workspace request grant required");string project=grant["projectId"]?.ToString()??"",helper=request["context"]?["helper"]?.ToString()??request["context"]?["profile"]?["helper"]?.ToString()??"";
+  if(project.Length==0||helper.Length==0||request["context"]?["projectId"]?.ToString()!=project||grant["contentApproved"]?.GetValue<bool>()!=true||grant["usageApproved"]?.GetValue<bool>()!=true||grant["workspaceCredentialApproved"]?.GetValue<bool>()!=true||grant["protocolVerified"]?.GetValue<bool>()!=true||grant["workspaceTriggerId"]?.ToString()!=trigger||grant["workspaceEndpoint"]?.ToString()!=endpoint)throw new UnauthorizedAccessException("Pin project/Helper, published API channel, endpoint, verified request contract and separately approved credential/usage");
+  if(request["kind"]?.ToString() is "worker-task" or "proposals")throw new PlatformNotSupportedException("Workspace API receipts cannot provide drafts, proposal cards or Worker completion");
+  string content=new System.Text.Json.Nodes.JsonObject{["projectId"]=project,["message"]=request["message"]?.DeepClone(),["context"]=request["context"]!.DeepClone()}.ToJsonString();
+  if(content.Length>32768||string.IsNullOrWhiteSpace(request["message"]?.ToString()))throw new ArgumentException("Reviewed Workspace input required within budget");
+  string identity=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(settings.ToJsonString()+"\n"+content)));
+  if((bool)state[3]){if((string)state[2]!=identity)throw new InvalidOperationException("Owned Workspace request identity cannot change or replay");return snapshot();}
+  state[1]=settings.ToJsonString();state[2]=identity;state[3]=true;
+  var receipt=(System.Text.Json.Nodes.JsonObject)state[5];receipt["status"]="submission-outcome-unknown";receipt["projectId"]=project;receipt["helperId"]=helper;
+  string conversation="confectory-"+Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(project+"\n"+helper))).ToLowerInvariant();
+  state[5]=Send(System.Net.Http.HttpMethod.Post,endpoint+"/"+Uri.EscapeDataString(trigger)+"/trigger",new System.Text.Json.Nodes.JsonObject{["input"]=content,["conversation_key"]=conversation},receipt);
+  return snapshot();
+ }
+ if(!(bool)state[3]||state[1] as string!=settings.ToJsonString())throw new InvalidOperationException("Poll only the unchanged owned Workspace request");
+ var current=(System.Text.Json.Nodes.JsonObject)state[5];string run=current["remoteRunId"]?.ToString()??"";
+ if(run.Length==0||current["status"]?.ToString() is "completed" or "failed")return snapshot();
+ state[5]=Send(System.Net.Http.HttpMethod.Get,endpoint+"/"+Uri.EscapeDataString(trigger)+"/runs/"+Uri.EscapeDataString(run),null,current);return snapshot();
+ System.Text.Json.Nodes.JsonObject Send(System.Net.Http.HttpMethod verb,string url,System.Text.Json.Nodes.JsonObject? body,System.Text.Json.Nodes.JsonObject previous){
+  var result=previous.DeepClone().AsObject();try{
+   // No credential is touched before the exact owned request grant above.
+   string reference=settings["workspaceCredentialReference"]?.ToString()??"",token=reference.Length==0?"":Environment.GetEnvironmentVariable(reference[4..])??"";
+   if(!target.IsLoopback&&token.Length==0){result["status"]="not-submitted";result["errorCode"]="provider-auth-required";return result;}
+   using var handler=new System.Net.Http.HttpClientHandler{AllowAutoRedirect=false,UseProxy=false};using var client=new System.Net.Http.HttpClient(handler){Timeout=TimeSpan.FromSeconds(10)};using var message=new System.Net.Http.HttpRequestMessage(verb,url);
+   if(token.Length>0)message.Headers.Authorization=new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer",token);
+   if(body is not null){message.Headers.TryAddWithoutValidation("OpenAI-Beta","workspace_agent_runs=v1");message.Headers.TryAddWithoutValidation("Idempotency-Key","confectory-"+execution);message.Content=new System.Net.Http.StringContent(body.ToJsonString(),System.Text.Encoding.UTF8,"application/json");}
+   using var response=client.Send(message,System.Net.Http.HttpCompletionOption.ResponseHeadersRead);if(!response.IsSuccessStatusCode){result["errorCode"]=(int)response.StatusCode==401?"provider-auth-required":(int)response.StatusCode==429?"provider-usage-limit":"provider-http-error";return result;}
+   using var stream=response.Content.ReadAsStream();using var bytes=new System.IO.MemoryStream();var buffer=new byte[4096];int count;while((count=stream.Read(buffer,0,buffer.Length))>0){if(bytes.Length+count>65536)throw new InvalidOperationException("Bounded Workspace response required");bytes.Write(buffer,0,count);}var value=System.Text.Json.Nodes.JsonNode.Parse(new System.Text.UTF8Encoding(false,true).GetString(bytes.ToArray()))!;
+   if(body is not null){if((int)response.StatusCode!=202)throw new InvalidOperationException("Workspace trigger must be accepted");string run=value["agent_trigger_run_id"]?.ToString()??"",link=value["conversation_url"]?.ToString()??"";if(!System.Text.RegularExpressions.Regex.IsMatch(run,@"^apirun_[A-Za-z0-9_-]{1,128}$")||!Uri.TryCreate(link,UriKind.Absolute,out var page)||page.Scheme!="https"||page.Host!="chatgpt.com"||page.UserInfo.Length>0||!page.AbsolutePath.StartsWith("/c/",StringComparison.Ordinal))throw new InvalidOperationException("Bounded public Workspace receipt required");result["remoteRunId"]=run;result["conversationUrl"]=link;result["status"]="queued";}
+   else{if(value["id"]?.ToString()!=result["remoteRunId"]?.ToString()||value["api_trigger_id"]?.ToString()!=trigger)throw new UnauthorizedAccessException("Foreign Workspace run status");string status=value["status"]?.ToString()??"";if(status is not ("queued" or "in_progress" or "suspended" or "completed" or "failed"))throw new InvalidOperationException("Unknown Workspace run state");result["status"]=status;if(status=="failed")result["errorCode"]="provider-error";}
+  }catch(Exception){result["errorCode"]="provider-error";}return result;
+ }
+}

@@ -25,3 +25,5 @@ Installed CLI preflight and current unsupported read boundary: [protocol report]
 No-environment implementation and bounded installed startup evidence: [offline gate](../../docs/CODEX_NO_ENVIRONMENT_OFFLINE_GATE.md). Native tool inventory, inference-driven dynamic calls and managed live authentication remain unverified.
 
 Existing CLI preparation and current live boundary: [connection report](../../docs/CODEX_EXISTING_CLI_CONNECTION.md). Public account preflight, passive preview diagnosis, streamed suffix handling, fixed error codes and concurrent owned stop are locally checked; live capability metadata remains unsupported.
+
+Selectable CLI/Desktop-IDE/Work method UI and public control-socket/Workspace receipt contracts: [current methods report](../../docs/CODEX_CONNECTION_METHODS.md). Product live support is still gated; selecting methods never authenticates or submits a request.

@@ -1,5 +1,10 @@
 # Existing Codex CLI connection preparation
 
+The user subsequently requested all three selectable methods. The current UI and
+additional socket/Workspace receipt boundary are recorded in
+[Codex connection methods](CODEX_CONNECTION_METHODS.md). The evidence below records
+the preceding CLI preparation stage.
+
 The selected integration is the official Codex app-server over owned stdio, with an
 existing user-owned ChatGPT sign-in. This change prepares the transport and exposes
 passive diagnosis in the ordinary Helper approval view. It does **not** enable real
@@ -103,7 +108,8 @@ conflicting final text, synthetic account fences and distinct concurrent owned t
 The affected editor/Agent/project batch initially passed 4 and failed 1 in 384.969s:
 the Git checkout cloned the committed old app.js while the current build used the
 uncommitted new resource identity. Its startup rejection was expected from that
-mismatch; checkout must be rerun after the resource commit. The broad editor and
+mismatch. After the resource commit 47f39a338a1f2a8b33d3dee7124505db28ede6e6,
+the ordinary committed checkout/startup gate passed 1/0/0 in 8.085s. The broad editor and
 ButtonGame, Helper, Agent and project scope/lifetime methods all passed in that batch.
 Two earlier owned-gate builds failed on a missing explicit BrowseDirectory provider
 in the test consumer and an unavailable extension method in generated source; both
