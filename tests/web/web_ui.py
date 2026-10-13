@@ -162,10 +162,9 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
      page.locator('#helper-memory').fill('local explicitly scoped note');page.locator('#remember').click();expect(page.locator('#status')).to_contain_text('로컬에 저장됨',timeout=30000)
      page.locator('.modal [data-close]').click()
      page.locator('#chat').click();page.locator('#chat-input').fill('local project message');page.locator('#chat-input').blur();expect(page.locator('#status')).to_contain_text('전송 없음')
-     page.locator('#add-agent').click();expect(page.locator('#connection-list button')).not_to_have_count(0)
+     page.locator('#add-agent').click();expect(page.locator('[data-connection-choice]')).to_have_count(2)
      local_state=mount();assert local_state['scope']['helperId']=='main-helper';assert not local_state['scope']['allowCommon'];assert local_state['state']['chatDraft']=='local project message';assert local_state['state']['aiState']=='idle';assert 'memory' not in local_state['state']['helperProfile'];assert 'config' not in local_state['state'];assert send(envelope(local_state,'dispose'))['ok']
-     for key in ['connections']:
-      page.locator('.window[data-key="'+key+'"] [data-close]').click()
+     page.locator('[data-connection-cancel]').click()
 
      open_browser();button=page.locator('[data-id="Example.ButtonGame::Score"]');expect(button).to_be_visible();button.click();expect(page.locator('[data-schema-id]')).to_have_text('Example.ButtonGame::Score');page.screenshot(path='/tmp/confectory-v196-semantic-project.png',full_page=True);page.locator('#yogi').click();expect(page.locator('#nav')).to_be_enabled();page.locator('[data-schema-field="initial"]').click();page.locator('[data-type="ey"]').click();expect(page.locator('#yogi-items')).to_contain_text('Example.ButtonGame::Score');page.locator('[data-type="lay"]').click();page.locator('#yogi-capture').click();expect(page.locator('#yogi-items')).to_contain_text('선택 영역 이미지',timeout=30000);page.locator('[data-operation="image-preview"]').click();expect(page.locator('[data-yogi-image]')).to_be_visible();assert page.locator('[data-yogi-image]').evaluate("canvas=>{const bytes=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;return new Set(bytes).size>2}")
      capture_state=mount();images=[item for item in capture_state['state']['yogi']['items'] if item['kind']=='image'];assert len(images)==1 and 'pixels' not in images[0]['capture'];assert 0<images[0]['capture']['width']<=512 and 0<images[0]['capture']['height']<=512
@@ -228,15 +227,16 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
      schema_state=mount();assert schema_state['state']['schema']['id']=='Example.ButtonGame::Score';assert send(envelope(schema_state,'dispose'))['ok']
      # Actual settings pack authoring and permission review, with no credentials or provider dispatch.
      page.locator('.brand').click();expect(page.locator('.home-grid')).to_be_visible(timeout=30000);page.locator('#add-helper').click();expect(page.locator('#global-helper-list')).to_contain_text('main-helper');page.locator('.modal [data-close]').click();page.locator('#add-agent').click()
-     page.locator('#connection-choice').select_option('Confectory.Agent.Responses::Connection');page.locator('#connection-edit').click()
-     expect(page.locator('[data-schema-id]')).to_have_text('Confectory.AISettings::Settings',timeout=30000)
-     assert not page.locator('#source').is_visible()
+     setup=page.get_by_role('dialog',name='AI Agent 연결',exact=True);setup.get_by_role('button',name='OpenAI Responses',exact=True).click()
+     expect(setup.locator('[data-connection-field="model"]')).to_be_visible(timeout=30000)
+     assert page.locator('.home-grid').is_visible()
      for name,value in [('model','owned-ui-no-call'),('endpoint',owned.endpoint),('credentialReference','')]:
-      field=page.locator('[data-schema-field="'+name+'"]');field.fill(value);field.locator('..').get_by_role('button',name='Apply field',exact=True).click();expect(page.locator('#status')).to_have_text('Shared field draft updated',timeout=30000)
-     page.locator('#semantic-save').click();expect(page.locator('#status')).to_have_text('Draft saved; final sources unchanged',timeout=30000)
-     page.locator('.brand').click();expect(page.locator('[data-project]')).to_have_count(1,timeout=30000);page.locator('[data-enter]').click()
-     page.locator('#add-agent').click();page.locator('#connection-list button').filter(has_text='Confectory.Agent.Responses::Connection').click();expect(page.locator('#status')).to_contain_text('전송 없음',timeout=30000)
-     page.locator('.window[data-key="connections"] [data-close]').click();page.locator('#chat').click();page.locator('#chat-input').fill('review without sending');page.locator('#chat-prepare').click();expect(page.locator('#ai-start')).to_be_disabled(timeout=30000)
+      setup.locator('[data-connection-field="'+name+'"]').fill(value)
+     setup.locator('[data-connection-save]').click();expect(setup.locator('[data-connection-result]')).to_contain_text('설정 초안을 저장',timeout=30000)
+     setup.locator('[data-connection-cancel]').click();expect(page.locator('[data-project]')).to_have_count(1,timeout=30000);page.locator('[data-enter]').click()
+     page.locator('#add-agent').click();setup=page.get_by_role('dialog',name='AI Agent 연결',exact=True);setup.get_by_role('button',name='OpenAI Responses',exact=True).click();expect(setup.locator('[data-connection-field="model"]')).to_have_value('owned-ui-no-call')
+     setup.locator('[data-connection-use]').click();expect(page.locator('#status')).to_contain_text('설정 선택됨',timeout=30000)
+     setup.locator('[data-connection-cancel]').click();page.locator('#chat').click();page.locator('#chat-input').fill('review without sending');page.locator('#chat-prepare').click();expect(page.locator('#ai-start')).to_be_disabled(timeout=30000)
      preview=mount();assert preview['state']['aiPreview']['message']=='review without sending';assert 'config' not in preview['state']['aiPreview'];assert len(preview['state']['aiPreview']['requirements'])==2
      assert send(envelope(preview,'invoke',endpoint='startAI',requestId='unapproved-start',expectedRevision=preview['revision'],input={'token':preview['state']['aiPreview']['token']}))['ok'];refused,after=settle(preview,'unapproved-start');assert not refused['ok'] and after['state']['aiOutput'] in [None,''];assert send(envelope(preview,'dispose'))['ok']
      page.locator('[data-permission="contentApproved"]').check();expect(page.locator('#status')).to_contain_text('아직 전송 없음');expect(page.locator('#ai-start')).to_be_disabled()

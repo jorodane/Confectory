@@ -1,14 +1,17 @@
 # Codex connection methods in the ordinary editor
 
-Click the Codex connection pack in the existing Agent connection window. Three
-method cards appear immediately below that pack: local CLI, Desktop/IDE and ChatGPT
-Work. Choosing a card stages its method in the existing settings draft without
-launching, authenticating, sending content or starting a provider. The chosen card
-expands its required fields, official documentation, setup steps and support limits.
-Settings open through the ordinary inherited Properties view; existing values for
-other methods remain in the same settings object. Bind the saved configuration
-explicitly after editing. An active owned AI request fences method selection and
-rebinding, so a setting change cannot retarget its running owner.
+The Home entry and settings navigation have since been corrected to stay inside
+the connection dialog: [entry-flow fix](AI_AGENT_CONNECTION_ENTRY_FIX.md).
+
+Open AI Agent connection from Home or the project sidebar, then choose Codex.
+The same dialog shows local CLI, Desktop/IDE and ChatGPT Work method choices and
+their declared required settings and setup steps. Choosing a method saves its
+ordinary settings draft; settings for other methods remain in the same object.
+The form uses the inherited schema and the same primitive inputs and workspace
+revision operations as Properties. Save settings or explicitly check connection
+readiness there, without moving into a settings project. The result states the
+actual validation or verification boundary. Selecting the saved configuration for
+an open project remains an explicit action, fenced while its owned AI request runs.
 
 The method definitions and method-setting field are declared by the connection pack.
 The common catalogue validates their IDs/count/size and references to inherited

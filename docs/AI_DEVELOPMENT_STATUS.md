@@ -1,5 +1,7 @@
 # v318 Helper connection and turn ownership
 
+Home AI Agent entry correction: [in-place settings, readiness results and saved-state regression](AI_AGENT_CONNECTION_ENTRY_FIX.md).
+
 Codex selectable connection methods: [current UI, socket and Workspace API boundaries](CODEX_CONNECTION_METHODS.md).
 
 Existing Codex CLI connection preparation: [current diagnosis, owned transport and live boundary](CODEX_EXISTING_CLI_CONNECTION.md).
