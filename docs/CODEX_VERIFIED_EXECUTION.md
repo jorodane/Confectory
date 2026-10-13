@@ -99,3 +99,36 @@ protected tracked hashes and all seven object editing function bodies match the
 baseline. The earlier broad restart failure was caused by editing the resource while
 its test host was running; the frozen run passed. No original ZIP, Android setting,
 Core, inbox or main change is included in this increment.
+
+
+## Receipt invalidation before first request dispatch
+
+Open-time approval is not a reservation that survives a revoked receipt. The
+provider rechecks the currently registered receipt after serializing each fresh
+thread/turn start and immediately before handing the message to its transport.
+The check and handoff use the same per-configuration gate as cancellation,
+settings invalidation and receipt replacement. That gate survives replacement;
+lookup under it reads the current record rather than the open-time copy. An
+expired, cancelled, changed or replaced receipt causes
+`provider-verification-stale` before the first `turn/start` context is sent.
+
+The handoff is the dispatch commit point. Invalidation confirmed before that point
+blocks the pending request. Invalidation after handoff prevents future starts;
+it does not retroactively stop an already approved dispatched turn. The ordinary
+Helper request-stop action remains the explicit way to stop that owned turn.
+No gate is held while waiting for an RPC response, and receipt invalidation closes
+only its owned check process, leaving other active Helper owners running.
+
+The owned fixture holds account/read and thread/start responses, then applies
+cancellation, the ordinary settings-invalidation operation, receipt replacement
+or a deterministic expiry on its own emitted in-memory receipt. All eight cases
+require zero additional turn/start messages and no output from the blocked
+request. A separate already-dispatched Helper must continue and complete, and a
+blocked old generation must retain the newer valid receipt.
+
+Boundary validation: the owned stdio suite passed 1/0/0 in 108.762s with all eight
+pre-request invalidation cases and an unaffected continuing Helper. The actual
+Home/Helper grant flow, Responses Helper ownership flow and project scope/
+background/close regressions passed together 3/0/0 in 229.007s. Release test build
+had zero warnings/errors. app.js and all 18 protected tracked hashes remained
+unchanged at this follow-up; no UI, Core or unrelated editing behavior was changed.

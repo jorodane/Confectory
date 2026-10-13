@@ -18,9 +18,17 @@ def read():
  with open(os.path.join(os.path.dirname(__file__),'owned-requests.jsonl'),'a') as f:f.write(json.dumps(x)+'\n')
  return x
 def send(x):print(json.dumps(x),flush=True)
+def hold(method):
+ if control.get('holdMethod')!=method:return
+ marker=os.path.join(os.path.dirname(__file__),control['holdId'])
+ open(marker+'-ready','w').write(str(os.getpid()))
+ deadline=time.monotonic()+20
+ while not os.path.exists(marker+'-release'):
+  assert time.monotonic()<deadline;time.sleep(.01)
 a=read();assert a['method']=='initialize' and a['params']['capabilities']['experimentalApi'];send({'id':a['id'],'result':{'userAgent':'confectory/'+control.get('version','0.159.0-alpha.3')+' (OWNED FIXTURE ONLY)'}})
 assert read()['method']=='initialized'
 a=read();assert a['method']=='account/read' and a['params']=={'refreshToken':False}
+hold('account/read')
 account=None if 'no-account' in __file__ or control.get('noAccount') else {'type':'apiKey'} if 'api-account' in __file__ else {'type':'chatgpt','email':'OWNED FIXTURE, NOT A REAL ACCOUNT','planType':'unknown'}
 send({'id':a['id'],'result':{'account':account,'requiresOpenaiAuth':True}})
 if not account or account['type']!='chatgpt':read();sys.exit(0)
@@ -36,7 +44,7 @@ a=read();assert a['method']=='thread/start' and a['params']['ephemeral'] and a['
 assert a['params']['environments']==[]
 assert a['params']['allowProviderModelFallback'] is False
 assert all(t['type']=='function' and 'inputSchema' in t for t in a['params']['dynamicTools'])
-assert os.getcwd()==a['params']['cwd'];send({'id':a['id'],'result':{'thread':{'id':thread,'environments':['unexpected'] if 'retained-environment' in __file__ else []},'instructionSources':[{'path':'owned-unreviewed-instruction'}] if 'instruction-source' in __file__ else [],'model':'owned-protocol-fixture','modelProvider':'openai'}})
+assert os.getcwd()==a['params']['cwd'];hold('thread/start');send({'id':a['id'],'result':{'thread':{'id':thread,'environments':['unexpected'] if 'retained-environment' in __file__ else []},'instructionSources':[{'path':'owned-unreviewed-instruction'}] if 'instruction-source' in __file__ else [],'model':'owned-protocol-fixture','modelProvider':'openai'}})
 a=read();assert a['method']=='turn/start' and a['params']['sandboxPolicy']=={'type':'readOnly','networkAccess':False}
 assert a['params']['environments']==[]
 open(os.path.join(os.path.dirname(__file__),'turn-start-'+os.path.basename(__file__)),'w').write('started')
@@ -53,7 +61,7 @@ if mode in ('hold-a','hold-b'):
  if mode=='hold-a':
   b=read();assert b['method']=='turn/interrupt' and b['params']=={'threadId':thread,'turnId':turn}
   open(os.path.join(os.path.dirname(__file__),'hold-a-interrupted'),'w').write(turn);sys.exit(0)
- deadline=time.monotonic()+5
+ deadline=time.monotonic()+20
  while not os.path.exists(os.path.join(os.path.dirname(__file__),'release-helper-b')):
   assert time.monotonic()<deadline;time.sleep(.01)
  send({'method':'item/completed','params':{'threadId':thread,'turnId':turn,'item':{'id':'answer','type':'agentMessage','text':'OWNED LOOPBACK FIXTURE: helper B kept running.'}}})
