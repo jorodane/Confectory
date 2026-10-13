@@ -180,9 +180,32 @@ try:
    other_card.locator('.sd-compose textarea').press('Escape'); other_card.locator('.sd-character').press('Escape'); expect(other_card).to_have_count(0)
    page.locator('#title').click(); page.get_by_role('button', name='프로젝트 완전 종료', exact=True).click()
    expect(page.locator('.home-grid')).to_be_visible(); assert state()['projectId'] == '' and all(row['projectId'] != project_id for row in state()['background'])
+   # Actual Codex settings and passive diagnostics use the same ordinary editor.
+   # The owned executable sentinel must stay unlaunched even after every consent box.
+   sentinel = root / 'owned-codex-sentinel.py'; launched = root / 'codex-sentinel-launched'
+   sentinel.write_text('#!/usr/bin/python3\nfrom pathlib import Path\nPath(' + repr(str(launched)) + ').write_text("UNEXPECTED LAUNCH")\n')
+   sentinel.chmod(0o700); managed = root / 'owned-empty-codex-home'; managed.mkdir()
+   page.locator('[data-enter]').first.click(); expect(page.locator('.work-body')).to_be_visible(); assert state()['projectId'] == project_id
+   page.locator('#add-agent').click(); page.locator('[data-connection-settings="Confectory.Agent.Codex::Connection"]').click()
+   expect(page.locator('[data-schema-id]')).to_have_text('Confectory.AISettings::Settings')
+   for name, value in [('model','owned-not-called'),('executable',str(sentinel)),('managedHome',str(managed)),('credentialReference','codex:managed')]:
+    field = page.locator('[data-schema-field="' + name + '"]'); field.fill(value); field.locator('..').get_by_role('button', name='Apply field', exact=True).click(); expect(page.locator('#status')).to_have_text('Shared field draft updated')
+   page.locator('#semantic-save').click(); expect(page.locator('#status')).to_have_text('Draft saved; final sources unchanged')
+   page.locator('.brand').click(); page.locator('[data-enter]').first.click(); expect(page.locator('.work-body')).to_be_visible()
+   page.locator('#add-agent').click(); page.locator('#connection-list button').filter(has_text='Confectory.Agent.Codex::Connection').click()
+   page.locator('.window[data-key="connections"] [data-close]').click()
+   codex_card = open_helper(other); prepare(codex_card, 'DO NOT CALL real Codex')
+   diagnostic = page.locator('[data-connection-diagnostics]'); expect(diagnostic).to_contain_text('경로에 파일 있음'); expect(diagnostic).to_contain_text('계정 미확인'); expect(diagnostic).to_contain_text('실제 호출 차단 중')
+   preview = state()['aiPreview']; assert preview['canStart'] is False and preview['pins']['protocolVerified'] is False
+   assert preview['diagnostics']['processStarted'] is False and preview['diagnostics']['credentialRead'] is False and preview['diagnostics']['accountVerified'] is False
+   for requirement in preview['requirements']: page.locator('[data-permission="' + requirement['id'] + '"]').check()
+   expect(page.locator('#ai-start')).to_be_disabled(); assert len(requests) == 3 and not launched.exists() and not list(managed.iterdir())
+   page.locator('#cancel-preview').click(); page.keyboard.press('Escape'); page.keyboard.press('Escape')
+   page.locator('#title').click(); page.get_by_role('button', name='프로젝트 완전 종료', exact=True).click(); expect(page.locator('.home-grid')).to_be_visible()
+   assert state()['projectId'] == '' and all(row['projectId'] != project_id for row in state()['background'])
    assert len(requests) == 3 and not fixture_errors and not errors
    assert all((project / name).read_bytes() == data for name, data in before.items()), 'Helper flow modified project source'
-   (root / 'verification.json').write_text(json.dumps({'projectId':project_id, 'mainHelper':'main-helper', 'projectHelper':other, 'ownedHttpRequests':len(requests), 'sourceUnchanged':True, 'errorCode':actual['aiErrorCode'], 'realAccountCalled':False}, indent=2) + '\n')
+   (root / 'verification.json').write_text(json.dumps({'projectId':project_id, 'mainHelper':'main-helper', 'projectHelper':other, 'ownedHttpRequests':len(requests), 'sourceUnchanged':True, 'errorCode':actual['aiErrorCode'], 'realAccountCalled':False, 'codexPassiveDiagnostics':True, 'codexProcessStarted':launched.exists()}, indent=2) + '\n')
   except Exception:
    print('Evidence:', root, flush=True); print('Current public state:', json.dumps(state()), flush=True); raise
   finally: browser.close()

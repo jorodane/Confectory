@@ -23,3 +23,5 @@ Final local gate: provider fixtures, Linux entry/settings GUI, Android source ex
 Installed CLI preflight and current unsupported read boundary: [protocol report](../../docs/CODEX_INSTALLED_PROTOCOL_PREFLIGHT.md). The local generated-schema gate checks captured real adapter requests; it is not a live model or OS isolation test.
 
 No-environment implementation and bounded installed startup evidence: [offline gate](../../docs/CODEX_NO_ENVIRONMENT_OFFLINE_GATE.md). Native tool inventory, inference-driven dynamic calls and managed live authentication remain unverified.
+
+Existing CLI preparation and current live boundary: [connection report](../../docs/CODEX_EXISTING_CLI_CONNECTION.md). Public account preflight, passive preview diagnosis, streamed suffix handling, fixed error codes and concurrent owned stop are locally checked; live capability metadata remains unsupported.

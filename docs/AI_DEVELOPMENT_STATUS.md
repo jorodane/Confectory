@@ -1,5 +1,7 @@
 # v318 Helper connection and turn ownership
 
+Existing Codex CLI connection preparation: [current diagnosis, owned transport and live boundary](CODEX_EXISTING_CLI_CONNECTION.md).
+
 The existing Helper UI now uses actual request ownership and state, pack settings navigation, explicit review and preserved hidden work. Responses desktop transport is verified with an owned loopback fixture; real account/model use and Codex execution remain held. See [scope, contracts and verification](EDITOR_V318_HELPER_AI.md).
 
 # Measured Workspace checkpoint policy

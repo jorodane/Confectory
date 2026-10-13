@@ -13,6 +13,7 @@ import jsonschema
 root, capture = map(pathlib.Path, sys.argv[1:])
 types = {
     "initialize": "InitializeParams",
+    "account/read": "GetAccountParams",
     "config/read": "ConfigReadParams",
     "thread/start": "ThreadStartParams",
     "turn/start": "TurnStartParams",
@@ -31,6 +32,8 @@ for line in capture.read_text().splitlines():
     # Serde schemas can allow unknown fields. Do not let that hide drift.
     assert not (params.keys() - schema["properties"].keys()), method
     jsonschema.validators.validator_for(schema)(schema).validate(params)
+    if method == "account/read":
+        assert params == {"refreshToken": False}
     if method == "thread/start":
         assert params["sandbox"] == "read-only" and params["ephemeral"]
         assert params["environments"] == []
@@ -46,4 +49,4 @@ for line in capture.read_text().splitlines():
 assert seen == set(types), seen
 thread_schema = json.loads(next(root.rglob("ThreadStartParams.json")).read_text())
 assert "readOnly" not in thread_schema["definitions"]["SandboxMode"]["enum"]
-print("Installed schema actual request capture PASS: initialize/config/read/thread/start/turn/start/turn/interrupt; no read isolation claim")
+print("Installed schema actual request capture PASS: initialize/account/read/config/read/thread/start/turn/start/turn/interrupt; no read isolation claim")
