@@ -132,3 +132,68 @@ Home/Helper grant flow, Responses Helper ownership flow and project scope/
 background/close regressions passed together 3/0/0 in 229.007s. Release test build
 had zero warnings/errors. app.js and all 18 protected tracked hashes remained
 unchanged at this follow-up; no UI, Core or unrelated editing behavior was changed.
+
+## Home installation discovery and model selection
+
+Home → AI Agent → Codex → local CLI now offers **설치 후보 자동 찾기 · 이 호스트**.
+It inspects absolute local entries in the host's normal PATH, bounded standard
+installation prefixes, the explicit npm prefix, CODEX_HOME and the user profile's
+`.codex` directory. This identifies candidates on the host running Confectory,
+which can differ from the machine displaying a browser. It never traverses the
+disk recursively, opens credential/configuration contents, executes a candidate,
+installs Codex, copies account files or changes settings during discovery.
+Discovery has limits of 64 PATH entries, 512 executable probes, 64 executable
+candidates and 16 directory candidates. Relative, UNC/device and malformed
+locations are excluded. Browser and Android runtimes report the unsupported host.
+
+Candidates show their paths and discovery sources, with a separate explicit
+selection action. Version and account status remain unverified at this stage.
+Executable links are resolved using metadata. The official npm platform package's
+`vendor/<target>/bin/codex` and older `vendor/<target>/codex/codex` layouts are
+checked at known adjacent locations, including a resolved `codex.js` launcher.
+JS/CMD/PowerShell launchers are displayed as disabled wrappers rather than executed.
+Linked/root managed directories are diagnosed consistently with the provider's
+existing storage restriction. Missing candidates retain manual entry. Rediscovery
+does not replace saved or pending inputs, and a previously selected missing path
+stays visible for an explicit correction.
+
+**버전·공식 모델 목록 확인 준비** accepts an empty model name. After the same four
+explicit preflight consents, the selected CLI performs the existing restricted
+startup, version/account metadata/configuration checks and paged official
+`model/list` request. Unsupported versions report the observed version and stop
+before account lookup. Catalogue responses are bounded to eight pages of at most
+100 unique entries. Empty/unavailable catalogues produce a diagnostic. The picker
+contains only returned model identifiers; it chooses no guessed/default model and
+preserves an existing selection when that identifier is returned.
+
+Catalogue lookup stops before thread/start or turn/start and creates no execution
+receipt. Applying a returned model saves through the ordinary settings path and
+invalidates previous evidence. The model-bound preflight and separate Helper
+request approvals are still required. Cancellation/settings changes fence late
+results using the existing per-configuration gate; host restart retains saved
+settings but retains neither verification evidence nor a model catalogue.
+Closing the form drops pending consent and catalogue selections. A late start
+requires the currently open form and its current token; replaying a cancelled
+form's token cannot start the CLI even with all former consent flags supplied.
+
+The actual Home test uses owned empty directories and labelled Python protocol
+fixtures exclusively. It exercises multiple native candidates, an official npm
+layout and disabled JS wrapper, a linked directory diagnostic, empty-model paged
+lookup, consent refusal, unsupported-version refusal before account/read,
+cancellation, disappearance/rediscovery, modal reentry and cold saved-settings
+restart, including rejection of a cancelled form's consent-token replay. Fixture
+request capture requires zero thread/start or turn/start during
+catalogue discovery, and all owned credential directories remain empty. It does
+not validate a real user account, paid request or native Windows runtime.
+
+Discovery sources: [official npm launcher layout](https://github.com/openai/codex/blob/main/codex-cli/bin/codex.js),
+[official configuration locations](https://learn.chatgpt.com/docs/config-file/config-basic),
+and [official app-server model/list contract](https://learn.chatgpt.com/docs/app-server).
+
+Validation for this increment: the frozen editing, Home/Helper, discovery and
+owned stdio suites passed 9/0/0 in 926.265s, including all eight receipt dispatch
+fences and generated Windows/Android compilation. After tightening closed-form
+consent, the actual discovery, Codex/Helper grants and fresh/saved Home suites
+passed 3/0/0 in 262.069s. The Release test build had zero warnings/errors. All 18
+protected file hashes and seven object editing function bodies match the baseline;
+Core, inbox, original ZIPs, Android settings and local/remote main are unchanged.

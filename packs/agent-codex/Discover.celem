@@ -1,0 +1,1 @@
+function Confectory.Agent.Codex::Discover () -> string {provide Confectory.Agent.Codex::Discover with Confectory.Agent.Codex::DiscoverBody;}

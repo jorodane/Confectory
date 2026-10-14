@@ -1,1 +1,1 @@
-implementation Confectory.Agent.Codex::ValidateConfigBody for Confectory.Agent.Codex::ValidateConfig (string config) -> string {body common "ValidateConfig.csbody";}
+implementation Confectory.Agent.Codex::ValidateConfigBody for Confectory.Agent.Codex::ValidateConfig (string config) -> string {import Confectory.Agent.Codex::ValidateSelection as Selection (string,bool) -> string; body common "ValidateConfig.csbody";}

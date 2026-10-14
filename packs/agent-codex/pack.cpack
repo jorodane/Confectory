@@ -8,4 +8,7 @@ element Configuration function "Configuration.celem"; element ConfigurationBody 
 element WorkspaceRequest function "WorkspaceRequest.celem"; element WorkspaceRequestBody implementation "WorkspaceRequestBody.celem";
 element Permission function "Permission.celem"; element PermissionBody implementation "PermissionBody.celem";
 element Verification function "Verification.celem"; element VerificationBody implementation "VerificationBody.celem";
+element Discover function "Discover.celem"; element DiscoverBody implementation "DiscoverBody.celem";
+element ValidateSelection function "ValidateSelection.celem"; element ValidateSelectionBody implementation "ValidateSelectionBody.celem";
+element CandidateConfiguration function "CandidateConfiguration.celem"; element CandidateConfigurationBody implementation "CandidateConfigurationBody.celem";
 }

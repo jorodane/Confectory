@@ -39,7 +39,11 @@ while control.get('holdCheck'):
 send({'id':a['id'],'result':{'config':{'model_provider':'openai','model_providers':{'owned-unreviewed':{}} if 'custom-provider' in __file__ else {},'features':{name:bool(control.get('unsafeTools') and name=='shell_tool') for name in sorted(denied,reverse=bool(os.getpid()%2))},'web_search':'disabled','plugins':{},'mcp_servers':{},'ownedRevision':control.get('configRevision',0)}}})
 a=read();assert a['method']=='experimentalFeature/list';send({'id':a['id'],'result':{'data':[{'name':name,'enabled':bool(control.get('runtimeUnsafe') and name=='apps'),'stage':'stable'} for name in sorted(denied-{'connectors','imagegenext','codex_hooks','memory_tool'})],'nextCursor':None}})
 a=read();assert a['method']=='configRequirements/read';send({'id':a['id'],'result':{'requirements':None}})
-a=read();assert a['method']=='model/list';send({'id':a['id'],'result':{'data':[{'id':'owned','model':'owned-protocol-fixture','displayName':'OWNED FIXTURE ONLY','inputModalities':['text']}],'nextCursor':None}})
+pages=control.get('modelPages',[['owned-protocol-fixture']])
+for index,models in enumerate(pages):
+ a=read();assert a['method']=='model/list'
+ assert a['params'].get('cursor')==(str(index) if index else None)
+ send({'id':a['id'],'result':{'data':[{'id':model,'model':model,'displayName':'OWNED FIXTURE ONLY '+model,'inputModalities':['text']} for model in models],'nextCursor':str(index+1) if index+1<len(pages) else None}})
 a=read();assert a['method']=='thread/start' and a['params']['ephemeral'] and a['params']['sandbox']=='read-only' and a['params']['approvalPolicy']=='never'
 assert a['params']['environments']==[]
 assert a['params']['allowProviderModelFallback'] is False

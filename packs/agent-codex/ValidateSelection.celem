@@ -1,0 +1,1 @@
+function Confectory.Agent.Codex::ValidateSelection (string config,bool requireModel) -> string {provide Confectory.Agent.Codex::ValidateSelection with Confectory.Agent.Codex::ValidateSelectionBody;}

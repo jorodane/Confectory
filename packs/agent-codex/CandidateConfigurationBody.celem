@@ -1,0 +1,1 @@
+implementation Confectory.Agent.Codex::CandidateConfigurationBody for Confectory.Agent.Codex::CandidateConfiguration (string settings) -> string {import Confectory.Agent.Codex::ValidateSelection as Selection (string,bool) -> string; body common "CandidateConfiguration.csbody";}
