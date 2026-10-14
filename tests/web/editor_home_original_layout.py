@@ -33,7 +33,7 @@ try:
   # Home heading/actions migrated to v318; only unchanged card interiors retain v196 characterization.
   for region in ['.project-card-main','.project-card-stats']:
    assert page.locator(region).first.evaluate(shape)==ref.locator(region).first.evaluate(shape),region
-  page.locator('#add-agent').click();page.get_by_role('dialog',name='AI Agent 연결',exact=True).get_by_role('button',name='OpenAI Responses',exact=True).click();expect(page.locator('[data-connection-field="model"]')).to_be_visible(timeout=60000);page.screenshot(path=str(root/'consumer-settings.png'));page.locator('[data-connection-cancel]').click();
+  page.locator('#add-agent').click();page.get_by_role('dialog',name='사용할 AI',exact=True).get_by_role('button',name='OpenAI Responses',exact=True).click();expect(page.locator('[data-connection-field="model"]')).to_be_visible(timeout=60000);page.screenshot(path=str(root/'consumer-settings.png'));page.locator('[data-connection-cancel]').click();
   ref.evaluate("enterProject('demo')");ref.screenshot(path=str(root/'original-project.png'));ref.evaluate('showHome();createProject()');ref.screenshot(path=str(root/'original-create.png'))
   ref.locator('.modal [data-close]').click();ref.evaluate("enterProject('demo');toggleNav()");ref.screenshot(path=str(root/'original-navigation.png'));ref.evaluate('toggleNav()')
   for group in ['concept','feature','module']:

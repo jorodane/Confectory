@@ -42,6 +42,7 @@ import Confectory.Helper::Recruit as HelperRecruit (string,string,string) -> str
 import Confectory.Helper::ProjectContext as HelperContext (string,string,string,string,bool) -> string;
 import Confectory.Helper::RememberScoped as HelperRemember (string,string,string,string,string,string,string) -> void;
 import Confectory.Agent.Codex::Discover as CodexDiscover () -> string;
+import Confectory.Agent.Codex::InstallationGuide as CodexInstallationGuide () -> string;
 import Confectory.Agent.Codex::CandidateConfiguration as CodexCandidate (string) -> string;
 import Confectory.Agent.Codex::Verification as CodexVerification (string,string,string) -> string;
 import Confectory.ProjectAI::Permission as AIPermission (string,string) -> string;

@@ -11,4 +11,5 @@ element Verification function "Verification.celem"; element VerificationBody imp
 element Discover function "Discover.celem"; element DiscoverBody implementation "DiscoverBody.celem";
 element ValidateSelection function "ValidateSelection.celem"; element ValidateSelectionBody implementation "ValidateSelectionBody.celem";
 element CandidateConfiguration function "CandidateConfiguration.celem"; element CandidateConfigurationBody implementation "CandidateConfigurationBody.celem";
+element InstallationGuide function "InstallationGuide.celem"; element InstallationGuideBody implementation "InstallationGuideBody.celem";
 }

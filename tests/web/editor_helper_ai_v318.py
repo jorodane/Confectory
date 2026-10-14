@@ -103,7 +103,7 @@ try:
    codex = page.locator('[data-connection-row="Confectory.Agent.Codex::Connection"]')
    expect(codex.locator('[data-connection-status]')).to_contain_text('설정 선택 가능')
    responses.locator('[data-connection-settings]').click()
-   setup = page.get_by_role('dialog', name='AI Agent 연결', exact=True)
+   setup = page.get_by_role('dialog', name='사용할 AI', exact=True)
    expect(setup.locator('[data-connection-field="model"]')).to_be_visible()
    assert state()['projectId'] == project_id and not requests
    for name, value in [('model', 'owned-helper-http-fixture'), ('endpoint', endpoint), ('credentialReference', '')]:
@@ -187,8 +187,8 @@ try:
    sentinel.chmod(0o700); managed = root / 'owned-empty-codex-home'; managed.mkdir()
    page.locator('[data-enter]').first.click(); expect(page.locator('.work-body')).to_be_visible(); assert state()['projectId'] == project_id
    page.locator('.agent-home[data-agent="Confectory.Agent.Codex::Connection"]').click()
-   setup = page.get_by_role('dialog', name='AI Agent 연결', exact=True)
-   expect(setup.locator('[data-method-choice]')).to_have_count(3)
+   setup = page.get_by_role('dialog', name='사용할 AI', exact=True)
+   setup.locator('[data-connection-advanced] > summary').click();expect(setup.locator('[data-method-choice]')).to_have_count(3)
    assert state()['projectId'] == project_id
    for method in ('desktop-ide','chatgpt-work','local-cli'):
     setup.locator('[data-method-choice="' + method + '"]').click(); expect(setup.locator('[data-method-choice="' + method + '"]')).to_have_attribute('aria-pressed','true')
@@ -198,8 +198,8 @@ try:
    setup.locator('[data-connection-attempt]').click(); expect(setup.locator('[data-connection-result]')).to_have_attribute('data-connection-outcome','preflight-required')
    assert state()['projectId'] == project_id and not launched.exists()
    setup.locator('[data-connection-cancel]').click()
-   page.locator('#add-agent').click(); setup = page.get_by_role('dialog', name='AI Agent 연결', exact=True)
-   setup.get_by_role('button', name='Codex', exact=True).click(); expect(setup.locator('[data-connection-field="model"]')).to_have_value('owned-not-called'); setup.locator('[data-connection-cancel]').click()
+   page.locator('#add-agent').click(); setup = page.get_by_role('dialog', name='사용할 AI', exact=True)
+   setup.get_by_role('button', name='Codex', exact=True).click(); setup.locator('[data-connection-advanced] > summary').click(); expect(setup.locator('[data-connection-field="model"]')).to_have_value('owned-not-called'); setup.locator('[data-connection-cancel]').click()
    # Existing project binding remains a local configuration choice; no account call.
    codex_card = open_helper(other); codex_card.locator('[data-close]').click()
    page.locator('#title').click(); page.get_by_role('button', name='프로젝트 완전 종료', exact=True).click(); expect(page.locator('.home-grid')).to_be_visible()

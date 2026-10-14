@@ -140,8 +140,9 @@ It inspects absolute local entries in the host's normal PATH, bounded standard
 installation prefixes, the explicit npm prefix, CODEX_HOME and the user profile's
 `.codex` directory. This identifies candidates on the host running Confectory,
 which can differ from the machine displaying a browser. It never traverses the
-disk recursively, opens credential/configuration contents, executes a candidate,
+disk recursively, opens credential or Codex configuration contents, executes a candidate,
 installs Codex, copies account files or changes settings during discovery.
+Bounded legacy executable path hints are the named exception described below.
 Discovery has limits of 64 PATH entries, 512 executable probes, 64 executable
 candidates and 16 directory candidates. Relative, UNC/device and malformed
 locations are excluded. Browser and Android runtimes report the unsupported host.
@@ -197,3 +198,66 @@ consent, the actual discovery, Codex/Helper grants and fresh/saved Home suites
 passed 3/0/0 in 262.069s. The Release test build had zero warnings/errors. All 18
 protected file hashes and seven object editing function bodies match the baseline;
 Core, inbox, original ZIPs, Android settings and local/remote main are unchanged.
+
+## Existing managed installations and preparation guidance
+
+The Home flow first searches existing preparation. Discovery now includes the
+named LOCALAPPDATA/Confectory/Codex and LOCALAPPDATA/PackEngine/Codex npm prefixes,
+CONFECTORY_CODEX/PACKENGINE_CODEX executable hints and each brand's codex-path.txt.
+Only the two named non-credential path files are read, as bounded strict UTF-8
+with at most 8192 bytes. Linked hint files/directories are excluded. Invalid hints
+are not echoed, executed or changed. Known native npm package layouts replace the
+old installer's recursive search. CODEX_HOME and the profile .codex remain separate
+login-directory candidates; an install prefix is never treated as a login home.
+
+The earlier managed installation pinned 0.159.2. Official npm metadata and GitHub
+release pages confirm 0.159.2 and 0.159.0-alpha.3 exist. The two tags have identical
+tool spec_plan.rs, npm launcher and v2 protocol module index bytes. This is partial
+compatibility evidence, not validation of the entire runtime/API/startup policy.
+The exact supported profile therefore remains 0.159.0-alpha.3. After explicit
+preflight consent, an observed 0.159.2 reports provider-version-unverified before
+account/read. The message says compatibility is unvalidated rather than claiming
+proven incompatibility. No version gate, receipt or dispatch control is bypassed.
+
+Home presents AI choice, existing preparation, plain readiness explanations and
+the same explicit consents. Native file paths, protocol/method trials, detailed
+versions/reasons and manual settings are folded into advanced controls. Friendly
+status wording describes missing preparation and the next button without calling
+a saved setting, model catalogue or installation guide a successful connection.
+Advanced and ordinary views use the same settings, discovery, verification and
+request-approval contracts; there is no second novice execution policy.
+
+Preparation guidance links only to checked official documentation, the exact
+supported release and six verified Windows/macOS/Linux x64/arm64 assets. It keeps
+OS/architecture and version detail optional while choosing the host's matching
+asset by default. The supported version is explicitly a prerelease in details.
+Users are told to retain old installation/login/settings, prepare a separate
+empty version folder, and rediscover or explicitly select their file. Named
+Confectory/Codex-0.159.0-alpha.3 parallel folders are included in discovery. The
+guide has no installer, login, download-execution or account-import action.
+
+The actual Home fixture covers both legacy prefix layouts, both environment hints,
+path-file reuse/deduplication, multiple observed versions, 0.159.2 rejection before
+account lookup, advanced detail opt-in, missing-vs-unvalidated preparation,
+official Windows asset selection, simulated preparation/rediscovery, cancellation
+and cold saved-setting retention. Existing files are compared byte-for-byte and
+an owned installer sentinel must never run. The user's Windows PC file presence
+and native Windows runtime remain unobserved; all accounts/processes are labelled
+owned protocol fixtures and no real authentication or paid model call is tested.
+
+Sources: [previous installation resolver](https://github.com/jorodane/The-Golemancer-s-Factory/blob/7f208573b2ffe3babfcb04753d16fb4fedbf9654/ConfectoryEngine/editor/Shared/CodexInstallation.cs),
+[previous preparation flow](https://github.com/jorodane/The-Golemancer-s-Factory/blob/7f208573b2ffe3babfcb04753d16fb4fedbf9654/ConfectoryEngine/editor/Shared/CodexBootstrap.cs),
+[official supported release and assets](https://github.com/openai/codex/releases/tag/rust-v0.159.0-alpha.3),
+[official 0.159.2 release](https://github.com/openai/codex/releases/tag/rust-v0.159.2),
+and [verified npm version metadata](https://registry.npmjs.org/@openai/codex/0.159.0-alpha.3).
+
+Validation: common Editor/ButtonGame editing, original Home, Codex/Helper grants,
+Responses Helper ownership, v318 characterization and owned stdio dispatch fences
+passed. A successful rediscovery initially collapsed the open preparation guide;
+the dialog now retains the guide and optional target/detail choices while using
+one shared preparation action for ordinary and advanced controls. After this fix,
+discovery/model selection, Codex/Helper grants, fresh/saved Home and the novice
+legacy-installation flow passed together 4/0/0 in 332.849s. Release build had zero
+warnings/errors. All 18 protected tracked hashes and seven object editing function
+bodies match the baseline. No real user account, token, paid request or installer
+was used; actual Windows runtime/PC file presence is not claimed.

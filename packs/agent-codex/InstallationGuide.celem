@@ -1,0 +1,1 @@
+function Confectory.Agent.Codex::InstallationGuide () -> string {provide Confectory.Agent.Codex::InstallationGuide with Confectory.Agent.Codex::InstallationGuideBody;}

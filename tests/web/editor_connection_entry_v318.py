@@ -41,7 +41,7 @@ with sync_playwright() as p:
      # Keep existing layout data; it must not select/hide a provider or be cleared.
      page.evaluate("localStorage.setItem('confectory-participant-layout',JSON.stringify({participantSidebarWidth:211,homeSidebarCollapsed:false,legacyAgent:'Confectory.Agent.Responses::Connection'}))")
      page.reload();expect(page.locator('.home-grid')).to_be_visible()
-    page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='AI Agent 연결',exact=True);expect(dialog).to_be_visible()
+    page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='사용할 AI',exact=True);expect(dialog).to_be_visible()
     expect(dialog.get_by_role('button',name='OpenAI Responses',exact=True)).to_be_visible();expect(dialog.get_by_role('button',name='Codex',exact=True)).to_be_visible()
     assert public_state(url)['projectId']==''
     dialog.get_by_role('button',name='OpenAI Responses',exact=True).click();expect(dialog.locator('[data-connection-field="model"]')).to_be_visible()
@@ -51,7 +51,7 @@ with sync_playwright() as p:
     dialog.locator('[data-connection-attempt]').click();expect(dialog.locator('[data-connection-result]')).to_have_attribute('data-connection-outcome','approval-required')
     state=public_state(url);assert state['projectId']=='' and state['cards']==[] and state['connectionSetup']['outcome']['authenticated'] is False and state['connectionSetup']['outcome']['networkContacted'] is False
     dialog.locator('[data-connection-back]').click();expect(dialog.locator('[data-connection-form]')).to_be_empty()
-    dialog.get_by_role('button',name='Codex',exact=True).click();expect(dialog.locator('[data-method-choice]')).to_have_count(3)
+    dialog.get_by_role('button',name='Codex',exact=True).click();dialog.locator('[data-connection-advanced] > summary').click();expect(dialog.locator('[data-method-choice]')).to_have_count(3)
     for method in ('local-cli','desktop-ide','chatgpt-work'):
      dialog.locator('[data-method-choice="'+method+'"]').click();expect(dialog.locator('[data-method-choice="'+method+'"]').first).to_have_attribute('aria-pressed','true')
      values={'local-cli':{'model':'owned-not-called-codex-model','executable':'/usr/bin/python3','managedHome':str(managed),'credentialReference':'codex:managed'},'desktop-ide':{'sessionSocket':str(root/'owned-not-started.sock')},'chatgpt-work':{'workspaceTriggerId':'agtch_owned_entry','workspaceCredentialReference':'env:CONFECTORY_AI_ENTRY_WORK_BINDING'}}[method]
@@ -60,7 +60,7 @@ with sync_playwright() as p:
      state=public_state(url);assert state['projectId']=='' and state['cards']==[];outcome=state['connectionSetup']['outcome'];assert outcome['authenticated'] is False and outcome['networkContacted'] is False
      expect(dialog.locator('[data-connection-result]')).to_contain_text({'chatgpt-work':'실계정 연결은 차단','desktop-ide':'공유 앱·IDE 소켓','local-cli':'사전 확인'}[method])
     dialog.locator('[data-connection-cancel]').click();expect(dialog).to_have_count(0);expect(page.locator('.home-grid')).to_be_visible()
-    page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='AI Agent 연결',exact=True);dialog.get_by_role('button',name='Codex',exact=True).click()
+    page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='사용할 AI',exact=True);dialog.get_by_role('button',name='Codex',exact=True).click();dialog.locator('[data-connection-advanced] > summary').click()
     expect(dialog.locator('[data-method-choice="chatgpt-work"]')).to_have_attribute('aria-pressed','true');expect(dialog.locator('[data-connection-field="workspaceTriggerId"]')).to_have_value('agtch_owned_entry')
     dialog.locator('[data-connection-back]').click();dialog.get_by_role('button',name='OpenAI Responses',exact=True).click();expect(dialog.locator('[data-connection-field="model"]')).to_have_value('owned-not-called-response-model')
     dialog.locator('[data-connection-cancel]').click();expect(page.locator('.home-grid')).to_be_visible()

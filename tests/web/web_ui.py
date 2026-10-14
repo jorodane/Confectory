@@ -227,14 +227,14 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
      schema_state=mount();assert schema_state['state']['schema']['id']=='Example.ButtonGame::Score';assert send(envelope(schema_state,'dispose'))['ok']
      # Actual settings pack authoring and permission review, with no credentials or provider dispatch.
      page.locator('.brand').click();expect(page.locator('.home-grid')).to_be_visible(timeout=30000);page.locator('#add-helper').click();expect(page.locator('#global-helper-list')).to_contain_text('main-helper');page.locator('.modal [data-close]').click();page.locator('#add-agent').click()
-     setup=page.get_by_role('dialog',name='AI Agent 연결',exact=True);setup.get_by_role('button',name='OpenAI Responses',exact=True).click()
+     setup=page.get_by_role('dialog',name='사용할 AI',exact=True);setup.get_by_role('button',name='OpenAI Responses',exact=True).click()
      expect(setup.locator('[data-connection-field="model"]')).to_be_visible(timeout=30000)
      assert page.locator('.home-grid').is_visible()
      for name,value in [('model','owned-ui-no-call'),('endpoint',owned.endpoint),('credentialReference','')]:
       setup.locator('[data-connection-field="'+name+'"]').fill(value)
      setup.locator('[data-connection-save]').click();expect(setup.locator('[data-connection-result]')).to_contain_text('설정 초안을 저장',timeout=30000)
      setup.locator('[data-connection-cancel]').click();expect(page.locator('[data-project]')).to_have_count(1,timeout=30000);page.locator('[data-enter]').click()
-     page.locator('#add-agent').click();setup=page.get_by_role('dialog',name='AI Agent 연결',exact=True);setup.get_by_role('button',name='OpenAI Responses',exact=True).click();expect(setup.locator('[data-connection-field="model"]')).to_have_value('owned-ui-no-call')
+     page.locator('#add-agent').click();setup=page.get_by_role('dialog',name='사용할 AI',exact=True);setup.get_by_role('button',name='OpenAI Responses',exact=True).click();expect(setup.locator('[data-connection-field="model"]')).to_have_value('owned-ui-no-call')
      setup.locator('[data-connection-use]').click();expect(page.locator('#status')).to_contain_text('설정 선택됨',timeout=30000)
      setup.locator('[data-connection-cancel]').click();page.locator('#chat').click();page.locator('#chat-input').fill('review without sending');page.locator('#chat-prepare').click();expect(page.locator('#ai-start')).to_be_disabled(timeout=30000)
      preview=mount();assert preview['state']['aiPreview']['message']=='review without sending';assert 'config' not in preview['state']['aiPreview'];assert len(preview['state']['aiPreview']['requirements'])==2
