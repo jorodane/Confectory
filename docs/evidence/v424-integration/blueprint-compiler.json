@@ -154,6 +154,17 @@
         "FeatureBlueprintTests.test_blueprint_node_diagnostics_static_isolation_and_failed_build_retains_receipt"
       ],
       "logSha256": "aa942ca5666474500812658796a98ef27af447fd246942caec7dde09da82a010"
+    },
+    "native-metadata-final": {
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 7.135,
+      "methods": [
+        "PackWorkspaceTests.test_target_metadata_owned_sources_no_registry_execution"
+      ],
+      "coverage": "desktop-equivalent BodyUnitMetadata in both native templates; blueprint/node kinds, graph draft locator, owned JSON validation, no false compiler claim; existing read-only metadata/locality guard",
+      "logSha256": "72c911094e0a96a5893810dbfcdffd3830afd620ae95cb1c85717e62f3abe010"
     }
   },
   "counting": "Runs overlap and are not summed. Broad89 and final6 cover their stated stages; final diagnostics-only rerun and implementation checkout recorded after completion.",
@@ -179,5 +190,17 @@
     "remaining v424 map/table/runtime/service rows"
   ],
   "realAccountTokenPaidModelOrOnlineDeployment": false,
-  "checkout": "pending on implementation commit"
+  "checkout": {
+    "commit": "d326d57df4ed43dcbc1e41e126d17a5ecacf565f",
+    "method": "WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup",
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "seconds": 95.007,
+    "resources": 20,
+    "coverage": "ordinary clone/pull retaining CRLF, fresh LF checkout, actual startup, canonical identities, tamper refusal",
+    "logSha256": "577430a44a7c8b7b1899b33bf0199fad15edca21a4ee5be79ebaefe71cd70aa6"
+  },
+  "implementationCommit": "d326d57df4ed43dcbc1e41e126d17a5ecacf565f",
+  "followup": "Native metadata discovery helper synchronized after implementation checkout; no UI resource or compiler source changed in that followup."
 }

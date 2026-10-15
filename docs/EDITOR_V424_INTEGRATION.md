@@ -132,3 +132,5 @@ Codex 준비·공식 기기 코드 로그인 단계는 `114e00ffb35f6c3f4e5cdfd3
 일반 Builder에 명시적 blueprint target 원본, 별도 노드 파일, 결정적 조립·typed 기존 기능 호출·compiler 검증을 연결했다. graph/정의/계약/노드 파일 입력 해시와 compiler identity를 고정하며 실패/원본 변경 시 이전 성공 결과를 유지한다. graph/node 초안과 Save/복원/Confirm, 한 노드 전용 DevelopmentTools capability를 실제 소비자로 검증했다. 별도 작업 경로의 동일 DLL 재현성과 컴파일 도중 원본 변경 거부도 확인했다. [상세 경계](FEATURE_BLUEPRINT_ARCHITECTURE.md), [실행 예제](../examples/feature-blueprint/README.md), [검증 기록](evidence/v424-integration/blueprint-compiler.json).
 
 이 단계의 profile은 sync-acyclic-v1이며 새 기능 화면·graph 전환 UI와 Task/Agent 통합, 지도 나머지 UI를 완료로 표시하지 않는다. 외부 계정·유료 호출·장치 실행은 수행하지 않았다.
+
+Blueprint 구현 커밋 `d326d57df4ed43dcbc1e41e126d17a5ecacf565f`의 일반 Git checkout/20개 리소스 시작·변조 거부는 **1/0/0, 95.007초**로 통과했다. 그 후 native 메타데이터의 중복 BodyUnitMetadata 도우미도 desktop과 동기화하고, graph/node 종류·작업 사본 locator·검증 결과가 C# body나 compiler 완료로 바뀌지 않음을 별도 adapter gate에서 확인했다. UI 리소스와 compiler 코드는 후속 수정에서 바뀌지 않았다.

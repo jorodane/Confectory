@@ -97,6 +97,18 @@ public sealed class PackWorkspaceTests : TestCase
  var lazyDescription=JsonNode.Parse(MetadataAuthoring.Call(root,"describe",lazyPayload))!;if(lazyDescription["units"]!.AsArray().Count!=4)throw new Exception("Locator description reads deferred declarations or body bytes");
  var bodyMetadata=JsonNode.Parse(MetadataAuthoring.Call(root,"bodyUnits",System.Text.Json.JsonSerializer.Serialize(new{project=Path.Combine(root,"project.cpack"),id="Any.Renamed::MainBody",path="body.celem",text=File.ReadAllText(Path.Combine(root,"body.celem"))})))!;
  if(bodyMetadata["units"]![0]!["id"]!.ToString()!="Any.Renamed::MainBody/body:common")throw new Exception("Draft implementation body navigation");
+ string graphSource="implementation Any.Renamed::MainBody for Any.Renamed::Main () -> int { blueprint common \"graph.json\"; }";
+ var graph=new JsonObject{["schema"]=1,["profile"]="sync-acyclic-v1",["feature"]="Any.Renamed::Main",["contractHash"]=new string('0',64),["entry"]="exit:done",["exits"]=new JsonObject{["done"]=new JsonObject{["constant"]=0}},["edges"]=new JsonArray(),["nodes"]=new JsonArray(new JsonObject{["id"]="unwired",["kind"]="code",["implementation"]="unwired.node.json"})};
+ File.WriteAllText(Path.Combine(root,"graph.json"),graph.ToJsonString());
+ var graphMetadata=JsonNode.Parse(MetadataAuthoring.Call(root,"bodyUnits",System.Text.Json.JsonSerializer.Serialize(new{project=Path.Combine(root,"project.cpack"),id="Any.Renamed::MainBody",path="body.celem",text=graphSource})))!;
+ if(graphMetadata["units"]!.AsArray().Count!=2||graphMetadata["units"]![0]!["kind"]!.ToString()!="blueprint"||graphMetadata["units"]![1]!["kind"]!.ToString()!="blueprint-node"||graphMetadata["units"]![1]!["id"]!.ToString()!="Any.Renamed::MainBody/body:common/node:unwired")throw new Exception("Native Blueprint/node ownership must never become raw C# body");
+ graph["nodes"]![0]!["implementation"]="changed.node.json";
+ var draftGraphMetadata=JsonNode.Parse(MetadataAuthoring.Call(root,"bodyUnits",System.Text.Json.JsonSerializer.Serialize(new{project=Path.Combine(root,"project.cpack"),id="Any.Renamed::MainBody",path="body.celem",text=graphSource,blueprintDrafts=new System.Collections.Generic.Dictionary<string,string>{{"Any.Renamed::MainBody/body:common",graph.ToJsonString()}}})))!;
+ if(draftGraphMetadata["units"]![1]!["path"]!.ToString()!="changed.node.json")throw new Exception("Native discovery must use owned graph draft locators");
+ string record=new JsonObject{["schema"]=1,["node"]="unwired",["definitionHash"]=new string('0',64),["source"]="return 0;"}.ToJsonString();
+ var nodeValidation=JsonNode.Parse(MetadataAuthoring.Call(root,"blueprintSourceValidate",System.Text.Json.JsonSerializer.Serialize(new{id="Any.Renamed::MainBody/body:common/node:unwired",kind="blueprint-node",text=record})))!;
+ if(!nodeValidation["validSourceDocument"]!.GetValue<bool>()||nodeValidation["compiled"]!.GetValue<bool>())throw new Exception("Native owned source validation must not claim compiler authority");
+
  File.WriteAllText(Path.Combine(root,"main.celem"),"function Any.Renamed::Main () -> int { }");File.WriteAllText(Path.Combine(root,"main.csbody"),"throw new Exception(\"never execute\");");
  string payload=System.Text.Json.JsonSerializer.Serialize(new{project=Path.Combine(root,"project.cpack")});var metadata=JsonNode.Parse(MetadataAuthoring.Call(root,"describe",payload))!;
  if(metadata["units"]!.AsArray().Count!=4)throw new Exception("Owned unit description");
