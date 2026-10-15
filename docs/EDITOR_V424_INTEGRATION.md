@@ -140,3 +140,5 @@ Blueprint 구현 커밋 `d326d57df4ed43dcbc1e41e126d17a5ecacf565f`의 일반 Git
 [검증 기록](evidence/v424-integration/declared-relations-map.json), [실제 화면](evidence/v424-integration/declared-relations-map.png). 개념 맵은 현재 소유 공유 초안의 category/concept/function/module/object/schema/implementation 선언을 읽고, 실제 DeclaredRelations 간선과 소스 리비전·해시를 고정한 읽기 전용 snapshot을 표시한다. 초안 수정이 반영되고 반복 조회는 원본·선택·기존 Review token을 변경하지 않는다. 소유 목록 밖 참조는 존재 여부를 추정하거나 편집 가능으로 표시하지 않는다. 구문을 해석할 수 없는 선언도 오류 노드로 보존한다.
 
 실제 선언 열기, 역할/검색/집중/전체 보기, 이동/팬/줌과 private 배치·필터·카메라의 프로세스 재시작 복원을 연결했다. 집중 배치는 기본 배치를 보존하는 별도 presentation이다. 저장하는 것은 배치이며 관계 snapshot은 현재 초안에서 다시 읽는다. 이 맵은 정적 선언 관계이며, 새 Blueprint의 실행 원본 graph 또는 실행 증거로 취급하지 않는다. 읽기 전용 외부 정의 탐색·이름/참조 정리·즉석 테이블 등 나머지 지도는 계속 구현한다.
+
+관계 맵 구현 `3d432c6bed35eacd41ee10619632d15865fb055a`의 일반 Git checkout/21개 리소스 시작·변조 거부는 **1/0/0, 65.262초**로 통과했다. 기존 전체 편집·선언 View/재시작·PackWorkspace 영향 회귀는 5/0/0, 408.815초이며, 집중 배치의 최종 UI/실제 재시작 표적 검사는 1/0/0, 13.651초로 통과했다. 이 수는 서로 중복되어 합산하지 않는다.

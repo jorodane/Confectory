@@ -62,5 +62,16 @@
     "instant tables",
     "new Blueprint feature screen and Task/Agent flow"
   ],
-  "checkout": "pending on implementation commit"
+  "checkout": {
+    "commit": "3d432c6bed35eacd41ee10619632d15865fb055a",
+    "method": "WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup",
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "seconds": 65.262,
+    "resourceCount": 21,
+    "coverage": "ordinary Git clone/pull, retained CRLF and fresh LF, actual EditorHome startup, canonical identities and tamper refusal",
+    "logSha256": "5fe45fa4c11608b757e4d572e7cc25d9c4a5bf84639c46fc000dd1d7f60b3ef1"
+  },
+  "implementationCommit": "3d432c6bed35eacd41ee10619632d15865fb055a"
 }
