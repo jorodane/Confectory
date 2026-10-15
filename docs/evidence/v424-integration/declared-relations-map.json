@@ -1,0 +1,66 @@
+{
+  "phase": "owned declared-relation map",
+  "base": "fe0cf4f11dde7759b2ec8e00d282659e96c80412",
+  "scope": "owned shared workspace declaration texts; direct declared edges; stable source revisions/hashes; no registry traversal, runtime execution or source edits",
+  "runs": {
+    "map-final-regression": {
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 25.33,
+      "methods": [
+        "RelationsMapTests.test_owned_declared_map_drafts_external_references_partial_sources_and_read_only_review",
+        "WebUITests.test_actual_editor_v424_declared_relations_map_and_cold_restart",
+        "PackWorkspaceTests.test_target_metadata_owned_sources_no_registry_execution"
+      ],
+      "logSha256": "ea08153d92cc69a57502e785d99ce060ca6076db4b7cd8cf79c48762be00d8e6"
+    },
+    "map-affected-regression": {
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 408.815,
+      "methods": [
+        "WebUITests.test_actual_editor_and_button_game_common_web_transport_chromium",
+        "WebUITests.test_actual_editor_v424_typed_declaration_views_cas_confirm_and_restart",
+        "PackWorkspaceTests.test_development_tools_owned_scope_shared_draft_no_confirm_and_locality",
+        "PackWorkspaceTests.test_target_metadata_owned_sources_no_registry_execution",
+        "PackWorkspaceTests.test_two_contexts_revision_save_reopen_and_locality"
+      ],
+      "logSha256": "c0d87f72ba865e8058d28c35603b3e6cc3d7cbabf2a00e5ae87b48f15eee88af"
+    },
+    "map-focus-final": {
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 13.651,
+      "methods": [
+        "WebUITests.test_actual_editor_v424_declared_relations_map_and_cold_restart"
+      ],
+      "logSha256": "8cfdf3920b14d0bb7d595c4d26c3c1c40d36380e508ff78c4444f57fc88e8dea"
+    }
+  },
+  "counting": "Overlapping runs are not summed. Last focus-only presentation change passed the actual UI/cold-restart gate; other rows retained prior affected coverage.",
+  "coverage": [
+    "actual parent/use/data/require/default/import/provider edges",
+    "pending shared drafts reflected across independent Views",
+    "outside-owned-view references are not mislabeled missing or editable",
+    "malformed declared sources explicitly retained as partial nodes",
+    "same captured source gives same projection version; version fences on read",
+    "source selection and existing ready Review token preserved",
+    "actual source navigation; role/query/focus/full view; independent focused positions; pan/zoom/move",
+    "private layout/query/roles/camera positions survive real host restart; map data rebuilt from drafts",
+    "Main/Score/project original bytes unchanged"
+  ],
+  "resources": 21,
+  "realAccountTokenPaidModelOrExternalPublication": false,
+  "screenshotSha256": "3eff640877d174a8b40b1618040fac8596e3150964c607e876083124ffa6cc5a",
+  "notComplete": [
+    "whole v424 matrix",
+    "read-only imported definition navigation",
+    "semantic reference deletion/rename/ref repair",
+    "instant tables",
+    "new Blueprint feature screen and Task/Agent flow"
+  ],
+  "checkout": "pending on implementation commit"
+}

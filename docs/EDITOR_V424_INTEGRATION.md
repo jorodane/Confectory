@@ -41,7 +41,7 @@ Codex 준비·공식 기기 코드 로그인 단계는 `114e00ffb35f6c3f4e5cdfd3
 | D03 | Data 테이블: 열/행·검색·정렬·열 너비·Fill | 부분 | 동일한 실제 schema/data path와 다중 편집 CAS |
 | D04 | 비교/즉석 테이블 구성·대상 추가/제거·창 분리 | 부분/bridge | InstantTable의 실제 borrowed EditWorkspace/64행·16열 메타데이터 View·구독·CAS가 있다. 공개 UI·표시 리비전 CAS·schema path 확장·구성 영속화 필요 |
 | D05 | 참조 드래그·원본 정의 이동·상속 출처·읽기 전용 팩 | 부분 | 실제 locator/registry/namespace와 명시적 읽기 경계 |
-| D06 | 개념 맵: 실제 노드·간선·선택·집중·전체 보기 | bridge | Inspect의 DeclaredRelations와 현재 context, 하드코딩 노드 제외 |
+| D06 | 개념 맵: 실제 노드·간선·선택·집중·전체 보기 | 소유 초안 연결/검증 | 실제 선언·관계·버전/해시, 선택·검색·역할·집중·배치·재시작. 소유 View 밖 참조와 해석 오류 표시. 외부 정의 읽기 전용 이동은 후속 |
 | E01 | 스키마/정보 필드 추가·수정·제거·타입·개수·순서 | 부분 | Parser/SchemaContracts 실제 지원 형태와 원본 출처 |
 | E02 | enum 정의·이름·값·아이콘·참조·선택 메뉴 | 부분 | 실제 enum schema/data contract와 리뷰 가능한 변경 |
 | E03 | 객체 함수/동작 목록·상속·연결/해제·순서 | 계약 | 실제 function datum, module/feature 관계, 임의 데모 methods 제외 |
@@ -134,3 +134,9 @@ Codex 준비·공식 기기 코드 로그인 단계는 `114e00ffb35f6c3f4e5cdfd3
 이 단계의 profile은 sync-acyclic-v1이며 새 기능 화면·graph 전환 UI와 Task/Agent 통합, 지도 나머지 UI를 완료로 표시하지 않는다. 외부 계정·유료 호출·장치 실행은 수행하지 않았다.
 
 Blueprint 구현 커밋 `d326d57df4ed43dcbc1e41e126d17a5ecacf565f`의 일반 Git checkout/20개 리소스 시작·변조 거부는 **1/0/0, 95.007초**로 통과했다. 그 후 native 메타데이터의 중복 BodyUnitMetadata 도우미도 desktop과 동기화하고, graph/node 종류·작업 사본 locator·검증 결과가 C# body나 compiler 완료로 바뀌지 않음을 별도 adapter gate에서 확인했다. UI 리소스와 compiler 코드는 후속 수정에서 바뀌지 않았다.
+
+## 실제 선언 관계 맵
+
+[검증 기록](evidence/v424-integration/declared-relations-map.json), [실제 화면](evidence/v424-integration/declared-relations-map.png). 개념 맵은 현재 소유 공유 초안의 category/concept/function/module/object/schema/implementation 선언을 읽고, 실제 DeclaredRelations 간선과 소스 리비전·해시를 고정한 읽기 전용 snapshot을 표시한다. 초안 수정이 반영되고 반복 조회는 원본·선택·기존 Review token을 변경하지 않는다. 소유 목록 밖 참조는 존재 여부를 추정하거나 편집 가능으로 표시하지 않는다. 구문을 해석할 수 없는 선언도 오류 노드로 보존한다.
+
+실제 선언 열기, 역할/검색/집중/전체 보기, 이동/팬/줌과 private 배치·필터·카메라의 프로세스 재시작 복원을 연결했다. 집중 배치는 기본 배치를 보존하는 별도 presentation이다. 저장하는 것은 배치이며 관계 snapshot은 현재 초안에서 다시 읽는다. 이 맵은 정적 선언 관계이며, 새 Blueprint의 실행 원본 graph 또는 실행 증거로 취급하지 않는다. 읽기 전용 외부 정의 탐색·이름/참조 정리·즉석 테이블 등 나머지 지도는 계속 구현한다.

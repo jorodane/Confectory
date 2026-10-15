@@ -108,6 +108,9 @@ public sealed class PackWorkspaceTests : TestCase
  string record=new JsonObject{["schema"]=1,["node"]="unwired",["definitionHash"]=new string('0',64),["source"]="return 0;"}.ToJsonString();
  var nodeValidation=JsonNode.Parse(MetadataAuthoring.Call(root,"blueprintSourceValidate",System.Text.Json.JsonSerializer.Serialize(new{id="Any.Renamed::MainBody/body:common/node:unwired",kind="blueprint-node",text=record})))!;
  if(!nodeValidation["validSourceDocument"]!.GetValue<bool>()||nodeValidation["compiled"]!.GetValue<bool>())throw new Exception("Native owned source validation must not claim compiler authority");
+ var mapBatch=JsonNode.Parse(MetadataAuthoring.Call(root,"relationsMap",System.Text.Json.JsonSerializer.Serialize(new{units=new[]{new{id="Any.Renamed::Main",kind="function",text="function Any.Renamed::Main () -> int {use object Missing::Target;}",revision=4,textHash=new string('0',64),dirty=true}}})))!;
+ if(mapBatch["nodes"]![0]!["id"]!.ToString()!="Any.Renamed::Main"||!mapBatch["nodes"]![0]!["valid"]!.GetValue<bool>()||mapBatch["edges"]![0]!["target"]!.ToString()!="Missing::Target"||mapBatch["sourceWritten"]!.GetValue<bool>()||mapBatch["executed"]!.GetValue<bool>())throw new Exception("Native relation map must remain pure declared source metadata");
+
 
  File.WriteAllText(Path.Combine(root,"main.celem"),"function Any.Renamed::Main () -> int { }");File.WriteAllText(Path.Combine(root,"main.csbody"),"throw new Exception(\"never execute\");");
  string payload=System.Text.Json.JsonSerializer.Serialize(new{project=Path.Combine(root,"project.cpack")});var metadata=JsonNode.Parse(MetadataAuthoring.Call(root,"describe",payload))!;

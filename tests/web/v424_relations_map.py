@@ -1,0 +1,28 @@
+"""Actual owned declaration map: source snapshots, navigation, presentation, lifecycle and zero source writes."""
+import uuid,json
+from playwright.sync_api import expect
+
+def verify_relations_map(page,project,mount,send,envelope,settle,restart):
+ prefix='Example.ButtonGame::';main=prefix+'Main';score=prefix+'Score';originals={name:(project/name).read_bytes() for name in ['main.celem','Score.celem','project.cpack']}
+ def state():
+  v=mount();result=v['state'];assert send(envelope(v,'dispose'))['ok'];return result
+ def invoke(endpoint,args):
+  v=mount();request='map-'+uuid.uuid4().hex;accepted=send(envelope(v,'invoke',endpoint=endpoint,requestId=request,expectedRevision=v['revision'],input=args));assert accepted['ok'],accepted;result,_=settle(v,request);assert result['ok'],result;assert send(envelope(v,'dispose'))['ok'];return result
+ def open_map():
+  page.locator('#nav').click();page.locator('.nav-menu').get_by_role('button',name='개념 맵',exact=True).click();w=page.locator('.window[data-key="map"]');expect(w.locator('[data-map-scene]')).to_be_visible(timeout=30000);expect(page.locator('#nav')).to_be_enabled(timeout=30000);return w
+ w=open_map();expect(w.locator('[data-relation-node="'+score+'"]')).to_be_visible();first=state();data=first['relationsMap'];assert data['scope']=='owned-workspace-declarations' and any(e['source']==main and e['role']=='use' and e['target']==score for e in data['edges']);assert first['draft']['id']==score
+ # A real source selection opens the ordinary semantic editor, without changing any source.
+ w.locator('[data-relation-node="'+score+'"]').dblclick();expect(page.locator('[data-schema-field="initial"]')).to_be_visible(timeout=30000);page.locator('.window[data-key="schema"] [data-close]').click()
+ # Pending shared declarations, rather than final files or prototype data, drive refresh.
+ invoke('select',{'id':main});invoke('inspectDeclaration',{'id':main});info=state()['declaration'];invoke('editDeclaration',{'id':main,'revision':info['revision'],'hash':info['textHash'],'edit':{'action':'relations','role':'use','entries':[{'kind':'object','id':score},{'kind':'object','id':prefix+'OutsideOwnedView'}]}});invoke('saveDraft',{})
+ w.locator('[data-map-reload]').click();expect(w.locator('[data-relation-node="'+prefix+'OutsideOwnedView"]')).to_be_attached(timeout=30000);expect(page.locator('#nav')).to_be_enabled(timeout=30000);fresh=state()['relationsMap'];assert fresh['version']!=data['version'];assert any(n['id']==main and n['dirty'] for n in fresh['nodes']);outside=next(n for n in fresh['nodes'] if n['id']==prefix+'OutsideOwnedView');assert outside['owned'] is False and outside['availability']=='outside-owned-view'
+ w.locator('[data-map-query]').fill('OutsideOwnedView');expect(w.locator('[data-relation-node]')).to_have_count(1);w.locator('[data-relation-node]').click();expect(w.locator('[data-map-open-source]')).to_be_disabled();w.locator('[data-map-fit]').click();expect(w.locator('[data-map-open-source]')).to_be_disabled();w.locator('[data-map-all]').click();expect(w.locator('[data-relation-node]')).to_have_count(len(fresh['nodes']))
+ # Role filters and focus act on the real edge set; they never edit source relationships.
+ roles=w.locator('[data-map-role]');[_role.uncheck() for _role in roles.all()];expect(w.locator('[data-relation-edge]')).to_have_count(0);w.locator('[data-map-role="use"]').check();w.locator('[data-map-query]').fill('Main');main_node=w.locator('[data-relation-node="'+main+'"]');expect(main_node).to_be_visible();main_node.click();w.locator('[data-map-query]').fill('');w.locator('[data-map-focus]').click();w.locator('[data-map-fit]').click();page.screenshot(path='/tmp/confectory-v424-relations-map.png',full_page=True);assert w.locator('[data-relation-node]').count()<=1+2*len([e for e in fresh['edges'] if e['role']=='use' and (e['source']==main or e['target']==main)])
+ w.locator('[data-map-all]').click();w.locator('[data-map-query]').fill('Main');w.locator('[data-map-fit]').click();w.locator('[data-map-zoom]').evaluate("e=>{e.value='0.8';e.dispatchEvent(new Event('input',{bubbles:true}));}");main_node=w.locator('[data-relation-node="'+main+'"]');before=main_node.bounding_box();page.mouse.move(before['x']+50,before['y']+20);page.mouse.down();page.mouse.move(before['x']+95,before['y']+55,steps=8);page.mouse.up();expect(w.locator('[data-map-query]')).to_have_value('Main');after=main_node.bounding_box();assert abs(after['x']-before['x'])>10 or abs(after['y']-before['y'])>10
+ page.wait_for_function('()=>typeof globalThis.confectoryFlushPresentation==="function"');page.evaluate('()=>globalThis.confectoryFlushPresentation()');page.screenshot(path='/tmp/confectory-v424-relations-map-layout.png',full_page=True)
+ for name,content in originals.items():assert (project/name).read_bytes()==content,name
+ restart();w=page.locator('.window[data-key="map"]');expect(w.locator('[data-map-query]')).to_have_value('Main',timeout=30000);expect(w.locator('[data-map-scene]')).to_be_visible(timeout=30000);expect(w.locator('[data-map-role="use"]')).to_be_checked();expect(w.locator('[data-map-role="provide"]')).not_to_be_checked();expect(w.locator('[data-map-zoom]')).to_have_value('0.8');node=w.locator('[data-relation-node="'+main+'"]');expect(node).to_be_visible();position=node.bounding_box();assert abs(position['x']-after['x'])<3 and abs(position['y']-after['y'])<3,(position,after)
+ assert any(e['target']==prefix+'OutsideOwnedView' for e in state()['relationsMap']['edges'])
+ for name,content in originals.items():assert (project/name).read_bytes()==content,name
+ print('PASS actual declaration map: owned edges/draft refresh/outside references/navigation/filter/focus/move/zoom/cold restart; original sources unchanged',flush=True)

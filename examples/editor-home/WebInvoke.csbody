@@ -67,6 +67,7 @@ if(endpoint is "openEditorView" or "closeEditorView" or "editEditorView" or "sav
 }
 var request=new System.Text.Json.Nodes.JsonObject{["context"]=selected["context"]!.DeepClone()};
 switch(endpoint){
+ case "relationsMap":request["action"]="relations-map";break;
  case "inspectDeclaration":if(args["id"]?.ToString()!=before["workspace"]?["unit"]?["id"]?.ToString())throw new InvalidOperationException("Declaration selection changed");request["action"]="inspect";break;
  case "editDeclaration":if(args["id"]?.ToString()!=before["workspace"]?["unit"]?["id"]?.ToString())throw new InvalidOperationException("Declaration selection changed");request["action"]="declaration";request["id"]=args["id"]!.DeepClone();request["edit"]=args["edit"]!.DeepClone();request["expectedHash"]=args["hash"]!.DeepClone();request["expectedRevision"]=args["revision"]!.DeepClone();break;
  case "createDeclaration":request["action"]="create";request["id"]=args["id"]!.DeepClone();string createKind=args["kind"]!.GetValue<string>();if(createKind is not ("object" or "schema" or "category" or "concept" or "function" or "module"))throw new ArgumentException("Supported declaration kind required");request["kind"]=createKind;break;
