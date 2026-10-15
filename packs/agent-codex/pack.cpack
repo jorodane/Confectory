@@ -12,4 +12,8 @@ element Discover function "Discover.celem"; element DiscoverBody implementation 
 element ValidateSelection function "ValidateSelection.celem"; element ValidateSelectionBody implementation "ValidateSelectionBody.celem";
 element CandidateConfiguration function "CandidateConfiguration.celem"; element CandidateConfigurationBody implementation "CandidateConfigurationBody.celem";
 element InstallationGuide function "InstallationGuide.celem"; element InstallationGuideBody implementation "InstallationGuideBody.celem";
+element PreparationInfo function "PreparationInfo.celem"; element PreparationInfoBody implementation "PreparationInfoBody.celem";
+element PreparationStorage function "PreparationStorage.celem"; element PreparationStorageBody implementation "PreparationStorageBody.celem";
+element Preparation function "Preparation.celem"; element PreparationBody implementation "PreparationBody.celem";
+element AccountLogin function "AccountLogin.celem"; element AccountLoginBody implementation "AccountLoginBody.celem";
 }

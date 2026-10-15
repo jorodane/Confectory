@@ -74,6 +74,25 @@ public sealed class WebUITests : TestCase
         var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/editor_codex_install_guide_v318.py"),Fixture.Repo,report},timeoutSeconds:480);
         True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS actual Home legacy Codex discovery and novice preparation guide"));
     }
+    public void test_actual_editor_click_preparation_and_device_login_owned_fixtures()
+    {
+        string home=Path.Combine(f.Root,"home"),agent=Path.Combine(f.Root,"agent"),descriptor=Path.Combine(f.Root,"preparation.json");
+        Fixture.CopyTree(Path.Combine(Fixture.Repo,"examples/editor-home"),home);Fixture.CopyTree(Path.Combine(Fixture.Repo,"packs/agent-codex"),agent);
+        string manifest=Path.Combine(home,"project.cpack");
+        File.WriteAllText(manifest,System.Text.RegularExpressions.Regex.Replace(File.ReadAllText(manifest),"(registry [A-Za-z0-9_.]+ )\"([^\"]+)\"",match=>match.Groups[1].Value+System.Text.Json.JsonSerializer.Serialize(Path.GetFullPath(Path.Combine(Fixture.Repo,"examples/editor-home",match.Groups[2].Value)))));
+        File.WriteAllText(manifest,File.ReadAllText(manifest).Replace(System.Text.Json.JsonSerializer.Serialize(Path.Combine(Fixture.Repo,"packs/agent-codex/pack.cpack")),System.Text.Json.JsonSerializer.Serialize(Path.Combine(agent,"pack.cpack")),StringComparison.Ordinal));
+        // A normal copied-pack provider supplies ONLY this owned fixture's immutable authority; production has no test environment switch.
+        File.WriteAllText(Path.Combine(agent,"PreparationInfo.csbody"),"return System.IO.File.ReadAllText("+System.Text.Json.JsonSerializer.Serialize(descriptor)+");\n");
+        string storageBody=Path.Combine(agent,"PreparationStorage.csbody"),hold=Path.Combine(f.Root,"owned-hold-account"),ready=Path.Combine(f.Root,"owned-account-ready");
+        string barrier="if(operation==\"allocate-account\"&&System.IO.File.Exists("+System.Text.Json.JsonSerializer.Serialize(hold)+")){System.IO.File.WriteAllText("+System.Text.Json.JsonSerializer.Serialize(ready)+",\"owned\");var deadline=DateTime.UtcNow.AddSeconds(20);while(System.IO.File.Exists("+System.Text.Json.JsonSerializer.Serialize(hold)+")){if(DateTime.UtcNow>deadline)throw new TimeoutException(\"Owned fixture allocation hold\");System.Threading.Thread.Sleep(5);}}";
+        File.WriteAllText(storageBody,File.ReadAllText(storageBody).Replace("return new System.Text.Json.Nodes.JsonObject{[\"path\"]=directory",barrier+"return new System.Text.Json.Nodes.JsonObject{[\"path\"]=directory",StringComparison.Ordinal));
+        string trace=Path.Combine(f.Root,"owned-model-status.txt"),webState=Path.Combine(home,"WebState.csbody");
+        File.AppendAllText(webState,"\n");File.WriteAllText(webState,File.ReadAllText(webState).Replace("var selected=model[\"selected\"];","if(model[\"status\"]?.ToString().StartsWith(\"Error:\",StringComparison.Ordinal)==true)System.IO.File.AppendAllText("+System.Text.Json.JsonSerializer.Serialize(trace)+",model[\"status\"]!.ToString()+Environment.NewLine);var selected=model[\"selected\"];",StringComparison.Ordinal));
+        var built=new Builder(manifest,"linux").Build();string report=Path.Combine(f.Root,"click-preparation-report.json");File.WriteAllText(report,built.ToJsonString());
+        var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/editor_codex_click_preparation.py"),Fixture.Repo,report,descriptor},timeoutSeconds:600);
+        True(run.ExitCode==0,run.Stdout+run.Stderr+(File.Exists(trace)?File.ReadAllText(trace):""));True(run.Stdout.Contains("PASS actual Home click preparation and device login"),run.Stdout+run.Stderr);
+    }
+
     public void test_actual_editor_v318_inventory_and_browser_instances_restart()
     {
         var built=new Builder(Path.Combine(Fixture.Repo,"examples","editor-home","project.cpack"),"linux").Build();

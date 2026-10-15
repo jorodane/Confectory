@@ -1,0 +1,1 @@
+implementation Confectory.Agent.Codex::PreparationInfoBody for Confectory.Agent.Codex::PreparationInfo () -> string {import Confectory.Agent.Codex::InstallationGuide as Guide () -> string; body common "PreparationInfo.csbody";}

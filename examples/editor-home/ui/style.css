@@ -468,3 +468,29 @@ body:has(.augment-overlay) .coworker-hover-card:not(.participant-expanded-card),
 .run-screen:has(.run-observation){background:#101719;display:block;overflow:auto}.run-observation{padding:14px;display:grid;gap:8px;color:var(--text)}.run-observation p{margin:0;font-size:12px}.run-observation label{font-size:12px}.run-observation select{max-width:130px}.run-observation small{font-size:11px;color:var(--muted)}.run-log-view pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px;max-height:160px;overflow:auto}.run-controls button:disabled{opacity:.45;cursor:not-allowed}.run-controls [data-run-build]{width:auto;font-size:11px}.run-status{overflow-wrap:anywhere}
 
 .yogi-storage-state{font-size:11px;color:var(--muted)}.yogi-package-close{position:absolute;right:0;top:0;width:24px;height:24px;padding:0}.yogi-package{position:relative}.yogi-content-list [data-availability="stale"],.yogi-content-list [data-availability="deleted"]{color:var(--accent)}
+
+/* v424 Agent chooser presentation, bound to real declared connections and owned preparation jobs. */
+.agent-connect-modal{width:min(820px,calc(100vw - 32px))}
+.agent-connect-modal .agent-provider-list{display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;margin:18px 0}
+.agent-connect-modal .agent-provider{flex:1 0 135px;min-height:96px;padding:15px 12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;border:1px solid #6c6c6c;border-radius:8px}
+.agent-connect-modal .agent-provider>span{font-size:26px;color:var(--accent);line-height:1}
+.agent-connect-modal .agent-provider strong{font-size:13px;white-space:nowrap}
+.agent-connect-modal .agent-provider[aria-pressed=true]{border-color:var(--accent);background:#ffdba315}
+.agent-connect-modal [data-connection-discovery]>.actions{justify-content:flex-start;gap:8px;flex-wrap:wrap}
+.agent-connect-modal [data-installation-candidates],.agent-connect-modal [data-home-candidates]{max-height:240px;overflow:auto}
+.agent-connect-modal [data-candidate-details]{font-size:12px;color:var(--muted)}
+.agent-connect-modal [data-connection-advanced],.agent-connect-modal [data-install-guide]{margin-top:14px;font-size:13px;color:var(--muted)}
+.agent-connect-modal [data-connection-jobs]>section{margin:14px 0;padding:14px;border:1px solid var(--line);border-radius:7px;background:#191919}
+.agent-connect-modal [data-connection-jobs] h4{margin:0 0 10px}.agent-connect-modal [data-connection-jobs] p{line-height:1.7}
+.agent-connect-modal [data-job-consent]{margin:8px}.agent-connect-modal progress{width:100%;accent-color:var(--accent)}
+.agent-connect-modal [data-login-code]{display:inline-block;padding:8px 12px;font-size:20px;letter-spacing:2px;background:#111;border:1px solid var(--line);border-radius:6px}
+.agent-connect-modal [data-job-details]{margin-top:12px;font-size:12px;color:var(--muted)}
+@media(max-width:600px){.agent-connect-modal [data-connection-discovery]>.actions button{flex:1 1 auto}}
+
+.agent-connect-modal [data-installation-candidates] .field,.agent-connect-modal [data-home-candidates] .field{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:7px;margin:8px 0}
+.agent-connect-modal [data-installation-candidates] .field>p,.agent-connect-modal [data-home-candidates] .field>p{margin:0}
+.agent-connect-modal [data-installation-candidates] .field>p.small,.agent-connect-modal [data-home-candidates] .field>p.small{display:none}
+.agent-connect-modal [data-candidate-details]{grid-column:1/-1}.agent-connect-modal [data-installation-candidates]>h4,.agent-connect-modal [data-home-candidates]>h4{margin:14px 0 8px;font-size:14px}
+
+.agent-connect-modal label.check{display:flex;align-items:flex-start;gap:9px;margin:10px 0;line-height:1.6}
+.agent-connect-modal [data-job-consent]{flex:none;width:auto;margin:5px 0 0}

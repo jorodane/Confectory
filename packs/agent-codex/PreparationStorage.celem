@@ -1,0 +1,1 @@
+function Confectory.Agent.Codex::PreparationStorage (string operation,string payload) -> string {provide Confectory.Agent.Codex::PreparationStorage with Confectory.Agent.Codex::PreparationStorageBody;}

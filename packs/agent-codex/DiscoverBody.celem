@@ -1,1 +1,1 @@
-implementation Confectory.Agent.Codex::DiscoverBody for Confectory.Agent.Codex::Discover () -> string {body common "Discover.csbody";}
+implementation Confectory.Agent.Codex::DiscoverBody for Confectory.Agent.Codex::Discover () -> string {import Confectory.Agent.Codex::PreparationStorage as Storage (string,string) -> string; body common "Discover.csbody";}

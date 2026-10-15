@@ -1,0 +1,1 @@
+function Confectory.Agent.Codex::PreparationInfo () -> string {provide Confectory.Agent.Codex::PreparationInfo with Confectory.Agent.Codex::PreparationInfoBody;}

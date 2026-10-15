@@ -1,0 +1,41 @@
+// Private preparation storage. Only fixed, bounded descendants; existing installations and accounts are never overwritten.
+var spec=System.Text.Json.Nodes.JsonNode.Parse(calls.Info.Invoke())!;if(spec["supported"]?.GetValue<bool>()!=true)return spec.ToJsonString();
+var args=System.Text.Json.Nodes.JsonNode.Parse(payload)!.AsObject();foreach(var field in args)if(field.Key is not ("root" or "nonce"))throw new ArgumentException("Undeclared storage field");
+if(!System.IO.Path.IsPathFullyQualified(spec["rootBase"]!.ToString()))throw new ArgumentException("Absolute managed root required");string rootBase=System.IO.Path.GetFullPath(spec["rootBase"]!.ToString()),version=spec["version"]!.ToString(),target=spec["target"]!.ToString();
+if(rootBase==System.IO.Path.GetPathRoot(rootBase)||rootBase.StartsWith("//",StringComparison.Ordinal)||rootBase.StartsWith(@"\\",StringComparison.Ordinal)||rootBase.Contains('\0')||rootBase.Contains('\n')||rootBase.Contains('\r'))throw new ArgumentException("Private local preparation root required");
+bool LocalPart(string value)=>System.Text.RegularExpressions.Regex.IsMatch(value,@"^[A-Za-z0-9._-]{1,80}$")&&value is not ("." or "..");if(!LocalPart(version)||!LocalPart(target))throw new ArgumentException("Release storage identifier");
+void NoLinks(string path){for(string? part=System.IO.Path.GetFullPath(path);part is not null;part=System.IO.Path.GetDirectoryName(part)){var info=System.IO.Directory.Exists(part)?(System.IO.FileSystemInfo)new System.IO.DirectoryInfo(part):new System.IO.FileInfo(part);if(info.LinkTarget is not null||(info.Exists&&(info.Attributes&System.IO.FileAttributes.ReparsePoint)!=0))throw new InvalidOperationException("storage_link_blocked");}}
+string[] roots={rootBase,rootBase+"-separate",rootBase+"-separate-2",rootBase+"-separate-3"};const string marker="Confectory.Codex.Prepared.v1";
+bool Owned(string root){NoLinks(root);string file=System.IO.Path.Combine(root,".confectory-preparation");if(!System.IO.File.Exists(file))return false;NoLinks(file);var info=new System.IO.FileInfo(file);return info.Length==marker.Length&&System.IO.File.ReadAllText(file,System.Text.Encoding.UTF8)==marker;}
+void PrivateDirectory(string path){NoLinks(path);if(!System.IO.Directory.Exists(path)){System.IO.Directory.CreateDirectory(path);if(!OperatingSystem.IsWindows())System.IO.File.SetUnixFileMode(path,System.IO.UnixFileMode.UserRead|System.IO.UnixFileMode.UserWrite|System.IO.UnixFileMode.UserExecute);}NoLinks(path);}
+string Chosen(){foreach(string root in roots){NoLinks(root);if(!System.IO.Directory.Exists(root)&&!System.IO.File.Exists(root)||System.IO.Directory.Exists(root)&&Owned(root))return root;}throw new InvalidOperationException("storage_conflict");}
+if(operation=="plan")return new System.Text.Json.Nodes.JsonObject{["root"]=Chosen(),["version"]=version,["target"]=target}.ToJsonString();
+if(operation=="scan"){
+ var installations=new System.Text.Json.Nodes.JsonArray();var homes=new System.Text.Json.Nodes.JsonArray();foreach(string root in roots){if(!System.IO.Directory.Exists(root)||!Owned(root))continue;foreach(var pair in new[]{("installations",System.IO.Path.Combine(root,"installations",version,target)),("accounts",System.IO.Path.Combine(root,"accounts"))}){if(!System.IO.Directory.Exists(pair.Item2))continue;NoLinks(pair.Item2);int count=0;foreach(string directory in System.Linq.Enumerable.OrderByDescending(System.Linq.Enumerable.Take(System.IO.Directory.EnumerateDirectories(pair.Item2),32),x=>System.IO.Directory.GetLastWriteTimeUtc(x))){if(++count>32)break;NoLinks(directory);string name=System.IO.Path.GetFileName(directory);if(!System.Text.RegularExpressions.Regex.IsMatch(name,pair.Item1=="accounts"?@"^account-[a-f0-9]{32}$":@"^install-[a-f0-9]{32}$"))continue;if(pair.Item1=="accounts"){if(System.IO.File.Exists(System.IO.Path.Combine(directory,".confectory-account-ready")))homes.Add(directory);}else{string executable=System.IO.Path.Combine(directory,spec["binaryName"]!.ToString());if(System.IO.File.Exists(executable)&&System.IO.File.Exists(System.IO.Path.Combine(directory,".confectory-receipt")))installations.Add(executable);}}}}
+ return new System.Text.Json.Nodes.JsonObject{["installations"]=installations,["homes"]=homes}.ToJsonString();
+}
+string selected=args["root"]?.ToString()??throw new ArgumentException("Owned root selection required");if(!System.Linq.Enumerable.Contains(roots,selected,StringComparerFromComparison()))throw new ArgumentException("Foreign preparation root");
+StringComparer StringComparerFromComparison()=>OperatingSystem.IsWindows()?StringComparer.OrdinalIgnoreCase:StringComparer.Ordinal;
+object gate;string gateKey="Confectory.Codex.Storage."+Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(selected.ToUpperInvariant())));lock(AppDomain.CurrentDomain){gate=AppDomain.CurrentDomain.GetData(gateKey)??new object();AppDomain.CurrentDomain.SetData(gateKey,gate);}
+lock(gate){
+ NoLinks(selected);
+ if(operation=="ensure"){
+  if(System.IO.Directory.Exists(selected)){if(!Owned(selected))throw new InvalidOperationException("storage_conflict");}
+  else{PrivateDirectory(selected);using var stream=new System.IO.FileStream(System.IO.Path.Combine(selected,".confectory-preparation"),System.IO.FileMode.CreateNew,System.IO.FileAccess.Write,System.IO.FileShare.None);byte[] bytes=System.Text.Encoding.UTF8.GetBytes(marker);stream.Write(bytes);stream.Flush(true);}
+  return new System.Text.Json.Nodes.JsonObject{["root"]=selected}.ToJsonString();
+ }
+ if(!Owned(selected))throw new InvalidOperationException("storage_conflict");string nonce=args["nonce"]?.ToString()??"";if(!System.Text.RegularExpressions.Regex.IsMatch(nonce,@"^[a-f0-9]{32}$"))throw new ArgumentException("Owned storage nonce");
+ bool account=operation.Contains("account",StringComparison.Ordinal);string parent=account?System.IO.Path.Combine(selected,"accounts"):System.IO.Path.Combine(selected,"installations",version,target),directory=System.IO.Path.Combine(parent,(account?"account-":".pending-")+nonce),ownership=System.IO.Path.Combine(directory,account?".confectory-account":".confectory-stage");
+ if(operation is "allocate-install" or "allocate-account"){
+  PrivateDirectory(parent);if(System.IO.Directory.Exists(directory)||System.IO.File.Exists(directory))throw new InvalidOperationException("storage_nonce_exists");PrivateDirectory(directory);using var stream=new System.IO.FileStream(ownership,System.IO.FileMode.CreateNew,System.IO.FileAccess.Write,System.IO.FileShare.None);stream.Write(System.Text.Encoding.ASCII.GetBytes(nonce));stream.Flush(true);return new System.Text.Json.Nodes.JsonObject{["path"]=directory,["destination"]=account?directory:System.IO.Path.Combine(parent,"install-"+nonce)}.ToJsonString();
+ }
+ if(operation=="complete-account"){
+  NoLinks(ownership);if(!System.IO.File.Exists(ownership)||new System.IO.FileInfo(ownership).Length!=32||System.IO.File.ReadAllText(ownership)!=nonce)throw new InvalidOperationException("account_ownership_lost");using var ready=new System.IO.FileStream(System.IO.Path.Combine(directory,".confectory-account-ready"),System.IO.FileMode.CreateNew,System.IO.FileAccess.Write,System.IO.FileShare.None);ready.Write(System.Text.Encoding.ASCII.GetBytes(nonce));ready.Flush(true);return "{}";
+ }
+ if(operation is "delete-install" or "delete-account"){
+  NoLinks(directory);if(!System.IO.Directory.Exists(directory))return "{}";NoLinks(ownership);if(!System.IO.File.Exists(ownership)||new System.IO.FileInfo(ownership).Length!=32||System.IO.File.ReadAllText(ownership)!=nonce)throw new InvalidOperationException("cleanup_ownership_lost");
+  void Remove(string path){NoLinks(path);foreach(string child in System.IO.Directory.EnumerateFileSystemEntries(path)){var attributes=System.IO.File.GetAttributes(child);if((attributes&System.IO.FileAttributes.Directory)!=0){if((attributes&System.IO.FileAttributes.ReparsePoint)!=0)System.IO.Directory.Delete(child);else Remove(child);}else System.IO.File.Delete(child);}NoLinks(path);System.IO.Directory.Delete(path);}
+  Remove(directory);return "{}";
+ }
+ throw new ArgumentException("Preparation storage operation");
+}

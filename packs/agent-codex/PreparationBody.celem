@@ -1,0 +1,1 @@
+implementation Confectory.Agent.Codex::PreparationBody for Confectory.Agent.Codex::Preparation (string owner,string operation,string payload) -> string {import Confectory.Agent.Codex::PreparationInfo as Info () -> string; import Confectory.Agent.Codex::PreparationStorage as Storage (string,string) -> string; body common "Preparation.csbody";}

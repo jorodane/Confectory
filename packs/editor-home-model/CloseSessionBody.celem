@@ -7,4 +7,6 @@ import Confectory.Helper::Close as HelperClose (string) -> void;
 import Confectory.ProjectAI::Close as AIClose (string) -> void;
 import Confectory.YogiBox::Close as YogiClose (string) -> void;
 import Confectory.Agent.Codex::Verification as CodexVerification (string,string,string) -> string;
+import Confectory.Agent.Codex::Preparation as CodexPreparation (string,string,string) -> string;
+import Confectory.Agent.Codex::AccountLogin as CodexLogin (string,string,string) -> string;
 body common "CloseSession.csbody"; }

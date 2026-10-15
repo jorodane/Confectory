@@ -78,4 +78,6 @@ import Confectory.WorkerTasks::Open as RecoveryTasksOpen (string,string,string,s
 import Confectory.WorkerTasks::List as RecoveryTasksList (string) -> string;
 import Confectory.WorkerTasks::Inspect as RecoveryTasksInspect (string,string) -> string;
 import Confectory.WorkerTasks::Close as RecoveryTasksClose (string) -> void;
+import Confectory.Agent.Codex::Preparation as CodexPreparation (string,string,string) -> string;
+import Confectory.Agent.Codex::AccountLogin as CodexLogin (string,string,string) -> string;
 body common "Command.csbody"; }
