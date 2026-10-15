@@ -172,3 +172,5 @@ Table 구현 커밋 `d03774a6a3688482ac8b8442b52f8e59de73a535`의 일반 Git che
 일반 속성 변경의 영향 회귀는 **9/0/0, 818.791초**로 통과했다. 전체 Home/ButtonGame 편집·기존 연결 설정, 새 개념 생성/최종 반영/재열기, Workspace 입력 수명, Table, 선언 View, PackWorkspace와 Windows/Android 관리 프로필 컴파일을 포함한다. 마지막 후속 수정은 schema 정의 행의 버튼 열 폭이며 해당 UI 배치와 동작을 별도로 검사한다.
 
 [스키마 검증 기록](evidence/v424-integration/schema-fields.json)과 [실제 필드 편집 화면](evidence/v424-integration/schema-fields.png). 마지막 consumer CSS의 버튼 열 덮어쓰기를 정리하고, 표시된 다섯 동작이 한 줄에 있으며 이동 버튼이 창 안에 있는지를 검사했다. 최종 표적 UI/실제 compiler Confirm은 **1/0/0, 42.707초**로 통과했다. 위 회귀는 일부 중복되므로 합산하지 않는다. 일반 Git checkout 검사는 구현 커밋을 고정한 뒤 수행한다.
+
+스키마 구현 커밋 `946d5e511e4f5eaf8a0033f4cf4265de70c9b437`의 일반 Git checkout/22개 리소스 실제 시작·변조 거부는 **1/0/0, 63.514초**로 통과했다. 이후 변경은 검증 기록뿐이다.

@@ -101,8 +101,15 @@
     }
   ],
   "ordinaryCheckout": {
-    "status": "pending after implementation commit",
-    "resources": 22
+    "status": "passed",
+    "commit": "946d5e511e4f5eaf8a0033f4cf4265de70c9b437",
+    "case": "WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup",
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "seconds": 63.514,
+    "resources": 22,
+    "boundary": "Actual startup and canonical resource identities in retained CRLF after ordinary attribute pull and fresh LF checkouts; tampering refused. No production source changed after this gate."
   },
   "screenshot": "schema-fields.png",
   "limits": [
