@@ -20,6 +20,7 @@ element ReconcileAdoption function "ReconcileAdoption.celem"; element ReconcileA
 element PrepareRecovery function "PrepareRecovery.celem"; element PrepareRecoveryBody implementation "PrepareRecoveryBody.celem";
 element EnableTasks function "EnableTasks.celem"; element EnableTasksBody implementation "EnableTasksBody.celem";
 element Propose function "Propose.celem"; element ProposeBody implementation "ProposeBody.celem";
+element CancelPlanned function "CancelPlanned.celem"; element CancelPlannedBody implementation "CancelPlannedBody.celem";
 element Select function "Select.celem"; element SelectBody implementation "SelectBody.celem";
 element Work function "Work.celem"; element WorkBody implementation "WorkBody.celem";
 element AugmentProvider implementation "AugmentProvider.celem";

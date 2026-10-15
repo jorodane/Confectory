@@ -29,6 +29,7 @@ element Checkpoint function "Checkpoint.celem";
 element CheckpointBody implementation "CheckpointBody.celem";
 element Pump function "Pump.celem";
 element PumpBody implementation "PumpBody.celem";
+element CancelReady function "CancelReady.celem"; element CancelReadyBody implementation "CancelReadyBody.celem";
 element Cancel function "Cancel.celem";
 element CancelBody implementation "CancelBody.celem";
 element Close function "Close.celem";

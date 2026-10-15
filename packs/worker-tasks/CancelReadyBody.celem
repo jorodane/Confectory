@@ -1,0 +1,3 @@
+implementation Confectory.WorkerTasks::CancelReadyBody for Confectory.WorkerTasks::CancelReady (string session,string controller,long epoch,string commandID,string task) -> void {
+import Confectory.WorkerTasks::Command as Command (string,string,string,string) -> string;
+body common "CancelReady.csbody";}

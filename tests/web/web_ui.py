@@ -132,6 +132,12 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
     elif kind=='local-augment':
      from v424_local_augment import verify_local_augment
      verify_local_augment(page,project,mount,send,envelope,settle,restart_actual_host)
+    elif kind=='declaration-forms':
+     def open_browser():
+      page.locator('#nav').click();page.locator('.nav-menu button').filter(has_text='개념').first.click();expect(page.locator('#nav')).to_be_enabled();page.locator('#nav').click();page.locator('.window[data-key="browser"] [data-tab="concept"]').click();expect(page.locator('#nav')).to_be_enabled()
+     def browser_action(selector):page.locator('#browser-actions').click();page.locator(selector).click()
+     from v424_declaration_forms import verify_declaration_forms
+     verify_declaration_forms(page,project,mount,send,envelope,settle,open_browser,browser_action,restart_actual_host)
     elif kind=='declarations':
      def open_browser():
       page.locator('#nav').click();page.locator('.nav-menu button').filter(has_text='개념').first.click();expect(page.locator('#nav')).to_be_enabled();page.locator('#nav').click()

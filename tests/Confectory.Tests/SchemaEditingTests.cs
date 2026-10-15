@@ -2,6 +2,11 @@ using Confectory.Core;
 namespace Confectory.Tests;
 public sealed class SchemaEditingTests : TestCase
 {
+ public void test_v424_declaration_mutation_types_relations_local_reset_and_array_order()
+ {
+  var result=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/v424_declaration_mutations.py"),Processes.DotNet(),Path.Combine(Fixture.Repo,"targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll")},timeoutSeconds:90);
+  True(result.ExitCode==0,result.Stdout+result.Stderr);True(result.Stdout.Contains("PASS declaration mutation host"),result.Stdout+result.Stderr);
+ }
  public void test_v424_contract_module_semantic_review_retains_uncovered_source_acknowledgement()
  {
   var result=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/v424_authoring_summary.py"),Processes.DotNet(),Path.Combine(Fixture.Repo,"targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll")},timeoutSeconds:90);

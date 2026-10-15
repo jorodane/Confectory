@@ -15,3 +15,5 @@ First local limits: 1024 tasks, 4096 commands/task events/chief events, 65536 pr
 Context(session) returns a fresh project/owner/chief string array for a live borrowed session. Optional consumers can verify project/chief scope before performing any Task side effect; the query neither assigns a Task nor reads private Helper memory. Context is unavailable while the owning Task session is closing.
 
 List(session) returns task IDs in stored assignment order without dispatch or journal mutation. Error summaries persist an allowlisted errorCode; cancellation retains progress and drafts and never restarts execution. Interrupted tasks remain historical summaries requiring explicit reconciliation.
+
+`CancelReady(session, controller, epoch, commandID, task)` atomically accepts only a ready task with no live execution. It persists cancelled status and the exact cancelledBeforeStart command proof under the existing lease, replay and journal CAS. No Agent operation occurs. Running/terminal/stale-lease requests are refused. Legacy Cancel also marks never-started ready tasks cancelled; active cancellation remains owned Agent cancellation and observation.

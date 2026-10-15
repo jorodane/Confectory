@@ -20,10 +20,11 @@ internal static class MetadataAuthoring
  return RelationLocators.Query(S("manifest"),Path.GetDirectoryName(selected)!,request["ids"]!.AsArray().Select(x=>x!.GetValue<string>()).ToArray(),path=>Read(PackPaths.Owned(ownerRoot,Path.GetRelativePath(ownerRoot,path)))).ToJsonString();
  }
  if(operation=="bodyUnits"){request["project"]=PackPaths.Owned(ownerRoot,Path.GetRelativePath(ownerRoot,Path.GetFullPath(S("project"))));return BodyUnitMetadata.Query(request).ToJsonString();}
- if(operation=="inspect"){string text=S("text");if(text.Length>1048576)throw new ArgumentException("Declaration budget");var e=new Parser(text,"<draft>").ParseElement();return new JsonObject{["id"]=e.Id,["kind"]=e.Kind,["parent"]=e.Parent,["relations"]=DeclaredRelations.Describe(e),["description"]=e.Description,["signature"]=JsonSerializer.SerializeToNode(e.Signature),["fields"]=JsonSerializer.SerializeToNode(e.Fields),["data"]=JsonSerializer.SerializeToNode(e.Data),["values"]=JsonSerializer.SerializeToNode(e.Values.ToDictionary(x=>x.Key,x=>x.Value.Value))}.ToJsonString();}
+ if(operation=="inspect"){string text=S("text");if(text.Length>1048576)throw new ArgumentException("Declaration budget");var e=new Parser(text,"<draft>").ParseElement();return new JsonObject{["id"]=e.Id,["kind"]=e.Kind,["parent"]=e.Parent,["function"]=e.Function,["descriptionDefined"]=e.DescriptionPresent,["relations"]=DeclaredRelations.Describe(e),["description"]=e.Description,["signature"]=JsonSerializer.SerializeToNode(e.Signature),["fields"]=JsonSerializer.SerializeToNode(e.Fields),["data"]=JsonSerializer.SerializeToNode(e.Data),["values"]=JsonSerializer.SerializeToNode(e.Values.ToDictionary(x=>x.Key,x=>x.Value.Value))}.ToJsonString();}
 
  if(operation=="create"){string kind=S("kind"),id=S("id");if(kind is not ("category" or "concept" or "function" or "module" or "object" or "schema"))throw new ArgumentException("Unsupported authored kind");string text=kind+" "+id+(kind=="function"?" () -> int":"")+" { }\n";new Parser(text,"<new>").ParseElement();return JsonSerializer.Serialize(text);}
  if(operation is "setDataPath" or "setField" or "setData"){var element=new Parser(S("text"),"<draft>").ParseElement();if(operation=="setDataPath")SchemaContracts.SetDataPath(element,JsonSerializer.SerializeToElement(request["path"]),JsonSerializer.SerializeToElement(request["value"]));else if(operation=="setField")SchemaContracts.SetField(element,S("field"),JsonSerializer.SerializeToElement(request["value"]));else SchemaContracts.SetData(element,S("field"),JsonSerializer.SerializeToElement(request["value"]));string text=Format(element);new Parser(text,"<draft>").ParseElement();return JsonSerializer.Serialize(text);}
+ if(operation=="editDeclaration"){var element=new Parser(S("text"),"<draft>").ParseElement();string id=element.Id,kind=element.Kind;if(kind is not ("category" or "concept" or "function" or "module" or "object" or "schema" or "implementation"))throw new ArgumentException("Authored declaration required");DeclarationAuthoring.Apply(element,request["edit"]?.AsObject()??throw new ArgumentException("Declaration edit required"));string formatted=Format(element);var parsed=new Parser(formatted,"<draft>").ParseElement();if(parsed.Id!=id||parsed.Kind!=kind)throw new ArgumentException("Stable declaration ID and kind required");return JsonSerializer.Serialize(formatted);}
  if(operation=="reviewSummary")return ReviewSummary(S("kind"),S("before"),S("after")).ToJsonString();
  if(operation=="setDescription"){var element=new Parser(S("text"),"<draft>").ParseElement();element.Description=request["value"]?.GetValue<string>()??throw new ArgumentException("Description string required");element.DescriptionPresent=true;string text=Format(element);new Parser(text,"<draft>").ParseElement();return JsonSerializer.Serialize(text);}
  if(operation=="setValue"){var element=new Parser(S("text"),"<draft>").ParseElement();var value=JsonSerializer.SerializeToElement(request["value"]);if(value.ValueKind is not (JsonValueKind.String or JsonValueKind.Number or JsonValueKind.True or JsonValueKind.False))throw new ArgumentException("Scalar metadata required");element.Values[S("field")]=new(value,element.Id,new());string text=Format(element);new Parser(text,"<draft>").ParseElement();return JsonSerializer.Serialize(text);}
@@ -75,6 +76,46 @@ static string FormatManifest(Manifest manifest)
     foreach(var value in manifest.Always)text.AppendLine("always "+value.Id+";");
     foreach(var (id,value) in manifest.Elements)text.AppendLine("element "+id+" "+value.Kind+" "+Quote(value.Path)+";");
     return text.AppendLine("}").ToString();
+}
+
+static JsonObject ReviewSummary(string kind,string before,string after)
+{
+ var changes=new JsonArray();bool additional=false;
+ void Add(string label,JsonNode? oldValue,JsonNode? newValue,bool beforeDefined=true,bool afterDefined=true)=>changes.Add(new JsonObject{["label"]=label,["before"]=oldValue,["after"]=newValue,["beforeDefined"]=beforeDefined,["afterDefined"]=afterDefined});
+ string Comments(string text)=>string.Join("\n",System.Text.RegularExpressions.Regex.Matches(text,@"""(?:[^""\\]|\\.)*""|(?<comment>//[^\n]*)").Cast<System.Text.RegularExpressions.Match>().Where(m=>m.Groups["comment"].Success).Select(m=>m.Value));
+ JsonNode? Datum(SchemaDatum value)=>value.Kind=="reference"?new JsonObject{["참조 대상"]=value.Reference}:value.Items is not null?new JsonArray(value.Items.Select(Datum).ToArray()):value.Members is not null?new JsonObject(value.Members.Select(x=>new KeyValuePair<string,JsonNode?>(x.Key,Datum(x.Value)))):value.Scalar is not null?JsonNode.Parse(value.Scalar.Value.GetRawText()):null;
+ try{
+  if(kind is "project" or "pack"){
+   var old=new Parser(before,"<review>").ParseManifest();var next=new Parser(after,"<review>").ParseManifest();
+   foreach(var item in next.Elements)if(!old.Elements.ContainsKey(item.Key))Add("프로젝트에 등록",null,JsonValue.Create(item.Key+" · "+item.Value.Kind),false,true);
+   foreach(var item in old.Elements)if(!next.Elements.ContainsKey(item.Key))Add("프로젝트 등록 해제",JsonValue.Create(item.Key+" · "+item.Value.Kind),null,true,false);
+   foreach(var item in next.Elements)if(old.Elements.TryGetValue(item.Key,out var prior)&&(prior.Path!=item.Value.Path||prior.Kind!=item.Value.Kind))additional=true;
+   additional|=!old.Elements.Keys.Where(k=>next.Elements.ContainsKey(k)).SequenceEqual(next.Elements.Keys.Where(k=>old.Elements.ContainsKey(k)));next.Elements=old.Elements;additional|=FormatManifest(next)!=FormatManifest(old)||Comments(before)!=Comments(after);
+  }else if(kind=="body")additional=true;
+  else{
+   bool created=before.Length==0;var next=new Parser(after,"<review>").ParseElement();var old=created?new Element{Kind=next.Kind,Id=next.Id}:new Parser(before,"<review>").ParseElement();
+   if(created)Add(kind=="object"?"개념 생성":kind=="schema"?"스키마 생성":"선언 생성",null,JsonValue.Create(next.Id.Split("::").Last()),false,true);
+   // Explain declaration contracts without hiding changes to bodies, tools, identity or comments.
+   void Contract(string label,JsonNode? prior,JsonNode? current){if(!JsonNode.DeepEquals(prior,current))Add(label,prior,current,prior is not null,current is not null);}
+   JsonNode? Sig(FunctionSignature? signature)=>signature is null?null:JsonValue.Create(Signature(signature,true));
+   JsonArray Refs(IEnumerable<ElementReference> refs)=>new(refs.Select(r=>(JsonNode)new JsonObject{["대상"]=r.Id,["종류"]=r.Kind}).ToArray());
+   JsonArray Bindings(Dictionary<string,ElementReference> refs)=>new(refs.Select(r=>(JsonNode)new JsonObject{["기능"]=r.Key,["구현"]=r.Value.Id}).ToArray());
+   JsonArray Requirements(Dictionary<string,RequiredFunction> refs)=>new(refs.Select(r=>(JsonNode)new JsonObject{["기능"]=r.Key,["계약"]=Sig(r.Value.Signature)}).ToArray());
+   JsonArray Imports(Dictionary<string,Import> refs)=>new(refs.Select(r=>(JsonNode)new JsonObject{["별칭"]=r.Key,["기능"]=r.Value.Id,["계약"]=Sig(r.Value.Signature),["범위"]=r.Value.Scope}).ToArray());
+   Contract("기능 계약",Sig(old.Signature),Sig(next.Signature));Contract("부모",JsonValue.Create(old.Parent),JsonValue.Create(next.Parent));
+   Contract("모듈",Refs(old.Modules),Refs(next.Modules));Contract("포함",Refs(old.Includes),Refs(next.Includes));Contract("필요 기능",Requirements(old.Requires),Requirements(next.Requires));
+   Contract("기본 구현",Bindings(old.Defaults),Bindings(next.Defaults));Contract("제공 구현",Bindings(old.Provides),Bindings(next.Provides));Contract("사용 관계",Refs(old.Uses),Refs(next.Uses));Contract("소속 관계",Refs(old.Contains),Refs(next.Contains));Contract("외부 기능",Imports(old.Imports),Imports(next.Imports));
+   next.Signature=old.Signature;next.Parent=old.Parent;next.Modules=old.Modules;next.Includes=old.Includes;next.Requires=old.Requires;next.Defaults=old.Defaults;next.Provides=old.Provides;next.Uses=old.Uses;next.Contains=old.Contains;next.Imports=old.Imports;
+   if(old.Description!=next.Description||old.DescriptionPresent!=next.DescriptionPresent)Add("설명",old.DescriptionPresent?JsonValue.Create(old.Description):null,next.DescriptionPresent?JsonValue.Create(next.Description):null,old.DescriptionPresent,next.DescriptionPresent);
+   foreach(string name in old.Values.Keys.Union(next.Values.Keys)){var a=old.Values.TryGetValue(name,out var av)?JsonNode.Parse(av.Value.GetRawText()):null;var b=next.Values.TryGetValue(name,out var bv)?JsonNode.Parse(bv.Value.GetRawText()):null;if(a is not null&&b is not null&&JsonNode.DeepEquals(a,b)&&a.ToJsonString()!=b.ToJsonString())additional=true;if(old.Values.ContainsKey(name)!=next.Values.ContainsKey(name)||!JsonNode.DeepEquals(a,b))Add("값 · "+name,a,b,old.Values.ContainsKey(name),next.Values.ContainsKey(name));}
+   foreach(string name in old.Data.Keys.Union(next.Data.Keys)){var a=old.Data.TryGetValue(name,out var av)?Datum(av):null;var b=next.Data.TryGetValue(name,out var bv)?Datum(bv):null;if(a is not null&&b is not null&&JsonNode.DeepEquals(a,b)&&a.ToJsonString()!=b.ToJsonString())additional=true;if(old.Data.ContainsKey(name)!=next.Data.ContainsKey(name)||!JsonNode.DeepEquals(a,b))Add("필드 값 · "+name,a,b,old.Data.ContainsKey(name),next.Data.ContainsKey(name));}
+   foreach(string name in old.Fields.Keys.Union(next.Fields.Keys)){JsonNode? Field(SchemaField? f)=>f is null?null:JsonValue.Create(f.Type+" · "+f.Kind+" · "+f.Cardinality);var a=Field(old.Fields.GetValueOrDefault(name));var b=Field(next.Fields.GetValueOrDefault(name));if(!JsonNode.DeepEquals(a,b))Add("필드 정의 · "+name,a,b,old.Fields.ContainsKey(name),next.Fields.ContainsKey(name));}
+   additional|=!old.Values.Keys.Where(k=>next.Values.ContainsKey(k)).SequenceEqual(next.Values.Keys.Where(k=>old.Values.ContainsKey(k)))||!old.Data.Keys.Where(k=>next.Data.ContainsKey(k)).SequenceEqual(next.Data.Keys.Where(k=>old.Data.ContainsKey(k)))||!old.Fields.Keys.Where(k=>next.Fields.ContainsKey(k)).SequenceEqual(next.Fields.Keys.Where(k=>old.Fields.ContainsKey(k)));next.Description=old.Description;next.DescriptionPresent=old.DescriptionPresent;next.Values=old.Values;next.Data=old.Data;next.Fields=old.Fields;
+   additional|=Format(next)!=Format(old)||Comments(before)!=Comments(after);
+  }
+ }catch{additional=true;}
+ if(changes.Count==0&&before!=after)additional=true;
+ return new JsonObject{["changes"]=changes,["additionalChanges"]=additional};
 }
 
 }
@@ -300,33 +341,86 @@ internal static class ConnectionDeclarations
  var manifest=docs.Manifest(project);manifest.Namespace="Confectory.AISettings";manifest.Kind="project";manifest.Standalone=false;manifest.Entry=null;manifest.Targets.Clear();manifest.Always.Clear();manifest.Elements.Clear();foreach(string ns in manifest.Registry.Keys.ToArray()){var registration=manifest.Registry[ns];manifest.Registry[ns]=registration with{Path=System.IO.Path.GetFullPath(System.IO.Path.Combine(root,registration.Path))};}manifest.Elements.Add("Settings",new Confectory.Core.Locator("object","Settings.celem",new()));
  return new System.Text.Json.Nodes.JsonObject{["manifest"]=format(manifest),["source"]="object Confectory.AISettings::Settings extends "+selected+" {}\n",["connection"]=selected,["credentialRead"]=false,["executionPerformed"]=false};
  }
-static JsonObject ReviewSummary(string kind,string before,string after)
-{
- var changes=new JsonArray();bool additional=false;
- void Add(string label,JsonNode? oldValue,JsonNode? newValue,bool beforeDefined=true,bool afterDefined=true)=>changes.Add(new JsonObject{["label"]=label,["before"]=oldValue,["after"]=newValue,["beforeDefined"]=beforeDefined,["afterDefined"]=afterDefined});
- string Comments(string text)=>string.Join("\n",System.Text.RegularExpressions.Regex.Matches(text,@"""(?:[^""\\]|\\.)*""|(?<comment>//[^\n]*)").Cast<System.Text.RegularExpressions.Match>().Where(m=>m.Groups["comment"].Success).Select(m=>m.Value));
- JsonNode? Datum(SchemaDatum value)=>value.Kind=="reference"?new JsonObject{["참조 대상"]=value.Reference}:value.Items is not null?new JsonArray(value.Items.Select(Datum).ToArray()):value.Members is not null?new JsonObject(value.Members.Select(x=>new KeyValuePair<string,JsonNode?>(x.Key,Datum(x.Value)))):value.Scalar is not null?JsonNode.Parse(value.Scalar.Value.GetRawText()):null;
- try{
-  if(kind is "project" or "pack"){
-   var old=new Parser(before,"<review>").ParseManifest();var next=new Parser(after,"<review>").ParseManifest();
-   foreach(var item in next.Elements)if(!old.Elements.ContainsKey(item.Key))Add("프로젝트에 등록",null,JsonValue.Create(item.Key+" · "+item.Value.Kind),false,true);
-   foreach(var item in old.Elements)if(!next.Elements.ContainsKey(item.Key))Add("프로젝트 등록 해제",JsonValue.Create(item.Key+" · "+item.Value.Kind),null,true,false);
-   foreach(var item in next.Elements)if(old.Elements.TryGetValue(item.Key,out var prior)&&(prior.Path!=item.Value.Path||prior.Kind!=item.Value.Kind))additional=true;
-   additional|=!old.Elements.Keys.Where(k=>next.Elements.ContainsKey(k)).SequenceEqual(next.Elements.Keys.Where(k=>old.Elements.ContainsKey(k)));next.Elements=old.Elements;additional|=FormatManifest(next)!=FormatManifest(old)||Comments(before)!=Comments(after);
-  }else if(kind=="body")additional=true;
-  else{
-   bool created=before.Length==0;var next=new Parser(after,"<review>").ParseElement();var old=created?new Element{Kind=next.Kind,Id=next.Id}:new Parser(before,"<review>").ParseElement();
-   if(created)Add(kind=="object"?"개념 생성":kind=="schema"?"스키마 생성":"선언 생성",null,JsonValue.Create(next.Id.Split("::").Last()),false,true);
-   if(old.Description!=next.Description||old.DescriptionPresent!=next.DescriptionPresent)Add("설명",old.DescriptionPresent?JsonValue.Create(old.Description):null,next.DescriptionPresent?JsonValue.Create(next.Description):null,old.DescriptionPresent,next.DescriptionPresent);
-   foreach(string name in old.Values.Keys.Union(next.Values.Keys)){var a=old.Values.TryGetValue(name,out var av)?JsonNode.Parse(av.Value.GetRawText()):null;var b=next.Values.TryGetValue(name,out var bv)?JsonNode.Parse(bv.Value.GetRawText()):null;if(a is not null&&b is not null&&JsonNode.DeepEquals(a,b)&&a.ToJsonString()!=b.ToJsonString())additional=true;if(old.Values.ContainsKey(name)!=next.Values.ContainsKey(name)||!JsonNode.DeepEquals(a,b))Add("값 · "+name,a,b,old.Values.ContainsKey(name),next.Values.ContainsKey(name));}
-   foreach(string name in old.Data.Keys.Union(next.Data.Keys)){var a=old.Data.TryGetValue(name,out var av)?Datum(av):null;var b=next.Data.TryGetValue(name,out var bv)?Datum(bv):null;if(a is not null&&b is not null&&JsonNode.DeepEquals(a,b)&&a.ToJsonString()!=b.ToJsonString())additional=true;if(old.Data.ContainsKey(name)!=next.Data.ContainsKey(name)||!JsonNode.DeepEquals(a,b))Add("필드 값 · "+name,a,b,old.Data.ContainsKey(name),next.Data.ContainsKey(name));}
-   foreach(string name in old.Fields.Keys.Union(next.Fields.Keys)){JsonNode? Field(SchemaField? f)=>f is null?null:JsonValue.Create(f.Type+" · "+f.Kind+" · "+f.Cardinality);var a=Field(old.Fields.GetValueOrDefault(name));var b=Field(next.Fields.GetValueOrDefault(name));if(!JsonNode.DeepEquals(a,b))Add("필드 정의 · "+name,a,b,old.Fields.ContainsKey(name),next.Fields.ContainsKey(name));}
-   additional|=!old.Values.Keys.Where(k=>next.Values.ContainsKey(k)).SequenceEqual(next.Values.Keys.Where(k=>old.Values.ContainsKey(k)))||!old.Data.Keys.Where(k=>next.Data.ContainsKey(k)).SequenceEqual(next.Data.Keys.Where(k=>old.Data.ContainsKey(k)))||!old.Fields.Keys.Where(k=>next.Fields.ContainsKey(k)).SequenceEqual(next.Fields.Keys.Where(k=>old.Fields.ContainsKey(k)));next.Description=old.Description;next.DescriptionPresent=old.DescriptionPresent;next.Values=old.Values;next.Data=old.Data;next.Fields=old.Fields;
-   additional|=Format(next)!=Format(old)||Comments(before)!=Comments(after);
-  }
- }catch{additional=true;}
- if(changes.Count==0&&before!=after)additional=true;
- return new JsonObject{["changes"]=changes,["additionalChanges"]=additional};
 }
 
+// Ordinary declaration syntax transformations. The caller owns draft CAS and source publication.
+internal static class DeclarationAuthoring
+{
+ public static void Apply(Element element, JsonObject edit)
+ {
+  if(edit.ToJsonString().Length>65536)throw new ArgumentException("Declaration edit budget");
+  string Text(JsonNode node,string key)=>node[key]?.GetValue<string>()??throw new ArgumentException("Explicit "+key+" required");
+  string action=Text(edit,"action");
+  string Id(JsonNode node,string key){string id=Text(node,key);if(id.Length>256||!System.Text.RegularExpressions.Regex.IsMatch(id,@"\A[A-Za-z_][A-Za-z_0-9]*(?:\.[A-Za-z_][A-Za-z_0-9]*)*::[A-Za-z_][A-Za-z_0-9]*\z",System.Text.RegularExpressions.RegexOptions.CultureInvariant))throw new ArgumentException("Qualified declaration ID required");return id;}
+  FunctionSignature Signature(JsonNode node,bool named)
+  {
+   var args=node["args"]?.AsArray()??throw new ArgumentException("Signature arguments required");if(args.Count>64)throw new ArgumentException("Signature argument budget");
+   return new(args.Select((arg,index)=>new Parameter(Text(arg!,"type"),named?Text(arg!,"name"):"arg"+index)).ToList(),Text(node,"return"));
+  }
+  List<JsonNode> Entries(){var rows=edit["entries"]?.AsArray()??throw new ArgumentException("Relation entries required");if(rows.Count>128)throw new ArgumentException("Relation budget");return rows.Select(row=>row??throw new ArgumentException("Relation entry required")).ToList();}
+  ElementReference Reference(JsonNode row,bool typed=false)=>new(Id(row,"id"),new(),element.Id,typed?Text(row,"kind"):null);
+  Dictionary<string,T> Unique<T>(IEnumerable<(string Id,T Value)> rows){var result=new Dictionary<string,T>(StringComparer.Ordinal);foreach(var row in rows)if(!result.TryAdd(row.Id,row.Value))throw new ArgumentException("Duplicate declaration edit entry");return result;}
+  (Dictionary<string,SchemaDatum>? Members,List<SchemaDatum>? Items,JsonNode Segment) Parent(JsonArray path)
+  {
+   if(element.Kind!="object"||path.Count<1||path.Count>64)throw new ArgumentException("Bounded local object data path required");
+   Dictionary<string,SchemaDatum>? members=element.Data;List<SchemaDatum>? items=null;
+   for(int i=0;i<path.Count-1;i++){
+    SchemaDatum datum;if(members is not null&&path[i] is JsonValue member&&member.TryGetValue<string>(out var key)&&members.TryGetValue(key,out var found))datum=found;
+    else if(items is not null&&path[i] is JsonValue index&&index.TryGetValue<int>(out int n)&&n>=0&&n<items.Count)datum=items[n];
+    else throw new ArgumentException("Path has no local override; inherited data is not copied");
+    members=datum.Members;items=datum.Items;
+   }
+   return(members,items,path[^1]??throw new ArgumentException("Path segment required"));
+  }
+  switch(action){
+   case "properties":{
+    var values=edit["values"]?.AsObject()??throw new ArgumentException("Explicit declaration properties required");if(values.Count<1||values.Count>4)throw new ArgumentException("Properties budget");
+    foreach(var pair in values){
+     if(pair.Key=="parent"){element.Parent=pair.Value is null?null:Id(values,"parent");continue;}
+     string value=pair.Value?.GetValue<string>()??throw new ArgumentException("Property string required");
+     if(pair.Key=="description"){if(value.Length>16384)throw new ArgumentException("Description budget");element.Description=value;element.DescriptionPresent=true;}
+     else if(pair.Key is "displayName" or "icon"){if(value.Length>(pair.Key=="displayName"?256:64))throw new ArgumentException("Display metadata budget");element.Values[pair.Key=="displayName"?"editorName":"editorIcon"]=new(System.Text.Json.JsonSerializer.SerializeToElement(value),element.Id,new());}
+     else throw new ArgumentException("Supported declaration property required");
+    }break;
+   }
+   case "signature":if(element.Kind is not ("function" or "implementation"))throw new ArgumentException("Public function signature required");element.Signature=Signature(edit["value"]??throw new ArgumentException("Signature required"),true);break;
+   case "parent":if(!edit.ContainsKey("value"))throw new ArgumentException("Explicit parent value required");element.Parent=edit["value"] is null?null:Id(edit,"value");break;
+   case "relations":{
+    string role=Text(edit,"role");var rows=Entries();
+    switch(role){
+     case "module":element.Modules=rows.Select(r=>Reference(r)).ToList();break;
+     case "include":element.Includes=rows.Select(r=>Reference(r)).ToList();break;
+     case "use":element.Uses=rows.Select(r=>Reference(r,true)).ToList();break;
+     case "contain":element.Contains=rows.Select(r=>Reference(r,true)).ToList();break;
+     case "require":element.Requires=Unique(rows.Select(r=>(Id(r,"id"),new RequiredFunction(Signature(r["signature"]??throw new ArgumentException("Required signature required"),false),new(),element.Id))));break;
+     case "default":element.Defaults=Unique(rows.Select(r=>(Id(r,"function"),Reference(r))));break;
+     case "provide":element.Provides=Unique(rows.Select(r=>(Id(r,"function"),Reference(r))));break;
+     case "import":element.Imports=Unique(rows.Select(r=>(Text(r,"alias"),new Import(Id(r,"id"),Signature(r["signature"]??throw new ArgumentException("Import signature required"),false),r["scope"] is null?null:Id(r,"scope"),new(),element.Id))));break;
+     default:throw new ArgumentException("Declared relation role required");
+    }break;
+   }
+   case "unset-description":element.Description="";element.DescriptionPresent=false;break;
+   case "unset-value":if(!element.Values.Remove(Text(edit,"field")))throw new ArgumentException("No local metadata override");break;
+   case "remove-field":if(element.Kind!="schema"||!element.Fields.Remove(Text(edit,"field")))throw new ArgumentException("No local schema field");break;
+   case "field-order":{
+    var order=edit["order"]?.AsArray().Select(v=>v!.GetValue<string>()).ToArray()??throw new ArgumentException("Field order required");
+    if(element.Kind!="schema"||order.Length!=element.Fields.Count||order.Distinct(StringComparer.Ordinal).Count()!=order.Length||order.Any(k=>!element.Fields.ContainsKey(k)))throw new ArgumentException("Exact local field order required");element.Fields=order.ToDictionary(k=>k,k=>element.Fields[k],StringComparer.Ordinal);break;
+   }
+   case "unset-data":{
+    var p=Parent(edit["path"]?.AsArray()??throw new ArgumentException("Data path required"));
+    if(p.Members is not null&&p.Segment is JsonValue member&&member.TryGetValue<string>(out var key)&&p.Members.Remove(key))break;
+    if(p.Items is not null&&p.Segment is JsonValue index&&index.TryGetValue<int>(out int n)&&n>=0&&n<p.Items.Count){p.Items.RemoveAt(n);break;}
+    throw new ArgumentException("Path has no local override");
+   }
+   case "move-data":{
+    var path=edit["path"]?.AsArray()??throw new ArgumentException("Array path required");var p=Parent(path);SchemaDatum datum;
+    if(p.Members is not null&&p.Segment is JsonValue member&&member.TryGetValue<string>(out var key)&&p.Members.TryGetValue(key,out var found))datum=found;
+    else if(p.Items is not null&&p.Segment is JsonValue index&&index.TryGetValue<int>(out int n)&&n>=0&&n<p.Items.Count)datum=p.Items[n];
+    else throw new ArgumentException("Array has no local override");
+    int from=edit["from"]?.GetValue<int>()??-1,to=edit["to"]?.GetValue<int>()??-1;
+    if(datum.Items is null||from<0||to<0||from>=datum.Items.Count||to>=datum.Items.Count)throw new ArgumentException("Existing local array positions required");var item=datum.Items[from];datum.Items.RemoveAt(from);datum.Items.Insert(to,item);break;
+   }
+   default:throw new ArgumentException("Supported declaration edit required");
+  }
+ }
 }

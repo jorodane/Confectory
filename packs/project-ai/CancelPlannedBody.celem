@@ -1,0 +1,4 @@
+implementation Confectory.ProjectAI::CancelPlannedBody for Confectory.ProjectAI::CancelPlanned (string session,string commandID,string task,string reason) -> void {
+import Confectory.Augment::Snapshot as Snapshot (string) -> string;
+import Confectory.Augment::Command as Command (string,string,string,string) -> string;
+body common "CancelPlanned.csbody";}

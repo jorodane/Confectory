@@ -45,10 +45,10 @@ Codex 준비·공식 기기 코드 로그인 단계는 `114e00ffb35f6c3f4e5cdfd3
 | E01 | 스키마/정보 필드 추가·수정·제거·타입·개수·순서 | 부분 | Parser/SchemaContracts 실제 지원 형태와 원본 출처 |
 | E02 | enum 정의·이름·값·아이콘·참조·선택 메뉴 | 부분 | 실제 enum schema/data contract와 리뷰 가능한 변경 |
 | E03 | 객체 함수/동작 목록·상속·연결/해제·순서 | 계약 | 실제 function datum, module/feature 관계, 임의 데모 methods 제외 |
-| E04 | 함수 입력·출력·이름·설명·타입·시그니처 편집 | 계약 | 실제 FunctionSignature/Parser, 지원 타입만 노출 |
+| E04 | 함수 입력·출력·이름·설명·타입·시그니처 편집 | 연결/검증 | 실제 FunctionSignature/Parser의 타입·이름·순서와 메타데이터, 독립 View·입력 보존·리비전+내용 해시 CAS·compiler Confirm 검증. graph 연결 후 계약 영향 표시는 후속 |
 | E05 | 모듈 require/default/provide/import·구현 선택·호환성 | 계약 | 실제 요구/제공 관계와 compiler-backed 검증 |
 | E06 | 함수 노드·입출력 pin·연결·접기·설명·직접 작성 | 계약 | 실제 소스/관계와 별도 배치. graph 장식과 실행 의미 분리 |
-| E07 | Blueprint 노드 추가/삭제/링크/저장/확대·맞춤 | 부분/계약 | AlgorithmProjection은 실제 function/provider/body의 Roslyn 설명·리비전·유지보수 구독을 제공한다. 공개 UI와 편집 연산 필요. 화면 JSON을 코드 실행으로 간주하지 않음 |
+| E07 | Blueprint 노드 추가/삭제/링크/저장/확대·맞춤 | 설계 확정/구현 중 | [확정 구조](FEATURE_BLUEPRINT_ARCHITECTURE.md): graph+노드 파일이 원본, 시스템이 최종 C# 조립. 기존 AlgorithmProjection은 레거시 설명용. 원본·노드 Worker·파생 산출물의 별도 소유/버전/빌드 경계를 단계적으로 연결 |
 | E08 | 계약 검토·모듈 검토·컨셉/밸런스/테스트 요청 | 부분 | 실제 검사 또는 Helper 요청 미리보기/동의/도구 범위 |
 | C01 | Apply/Save/버리기/공유 초안/재시작 | 기존 | PackWorkspace/EditWorkspace, 최종 파일과 작업 사본 구분 |
 | C02 | 묶음/부분 Review·Before/After·타깃·Confirm·취소 | 기존 | source hash/revision/token/CAS, 생성 등록부 필수, 실제 컴파일 |
@@ -60,7 +60,7 @@ Codex 준비·공식 기기 코드 로그인 단계는 `114e00ffb35f6c3f4e5cdfd3
 | Y02 | 프로젝트/Helper/사용자 recipient 선택·첨부/해제·전달 | bridge/계약 | YogiBox.Handoff/Receive의 불변 sealed snapshot 경계가 있다. 소비자 recipient 소유·영속·중복/취소/실패 계약 연결 필요 |
 | Y03 | 재수신·기록·오래된/삭제된 의미 항목·수신 권한 | 부분 | 기존 Revalidate 유지, 전달이 기억/실행/승인으로 확대되지 않음 |
 | A01 | 증강 실제 생성·리롤·방향·닫기·선택·Task | 기존 | ProjectAI/Augment/WorkerTasks, 별도 내용/사용량 승인 |
-| A02 | 로컬 Custom·제안 제출·Skip/증강 삭제·이력 | bridge | Augment.Custom/Skip의 chief/scope/CAS/idempotency. 유료 바인딩 없는 지역 수명 |
+| A02 | 로컬 Custom·제안 제출·Skip/증강 삭제·이력 | 연결/검증 | 실제 chief/scope/CAS/idempotency와 로컬 owner, 생성 묶음 고정 비우기·보관·최신32개씩 페이지 조회. 35개 이력/재시작/읽기 전용과 별도 모델 승인 경계 검증 |
 | A03 | 선택된 작업 취소·진행 중 중지·구현/채택·복구 | 부분 | 실제 task owner/state. Skip·선택 취소·실행 중단 구분 |
 | A04 | Worker 진행/범위·기여·검증·Review/Adopt·재시작 | 기존 | 실제 journal, 비밀/권한/실행 owner 재생 금지 |
 | R01 | Play/Stop·빌드/실행/실패/종료·출력·대상 | 기존 | ProjectExecution의 실제 소유 프로세스. 원본 소스로 실행 |
@@ -110,3 +110,17 @@ Codex 준비·공식 기기 코드 로그인 단계는 `114e00ffb35f6c3f4e5cdfd3
 [내 제안 실제 화면](evidence/v424-integration/local-custom.png)과 [6종 선언 재열기 화면](evidence/v424-integration/six-kinds.png)은 일반 Home 소비자의 소유 샘플에서 촬영했다. 720px 높이에서 로컬 카드와 하단 동작이 보이는 것을 확인했다. 새 로컬 소유자가 기록된 작업을 자동 실행하지 않는다. 준비 상태 작업 취소, 모든 과거 제안의 페이지 구성과 전체 지도 나머지 행은 별도의 미완료 범위다. **이 체크포인트는 전체 v424 완료가 아니다.**
 
 일반 Git 체크아웃 검증은 구현 커밋 `0c46fbb6ab7d5de87e54a2579eeb423a63f83816`에서 통과했다(64.598초). 이전 CRLF 파일을 유지한 정상 pull과 새 LF 체크아웃에서 19개 리소스의 실제 시작·해시 일치 및 변조 거부를 확인했다. main·원본 ZIP·Android 설정 변경은 없다.
+
+## 확정된 기능 내부 구조 반영
+
+2026-10-15 08:47:48 UTC 기능 구조 개편이 확정되었다. [Blueprint 원본·노드 파일·시스템 조립 설계](FEATURE_BLUEPRINT_ARCHITECTURE.md)를 전체 연결 기준으로 삼는다. 기존 외부 계약과 일반 소스 경로는 보존한다. 현재 v424 비충돌 UI 연결을 계속하며, 새 기능 화면은 사용자의 다음 명시적 전달에 맞춘다. live Site를 임의로 새 기준본으로 바꾸지 않는다. 새 경로에서 Worker가 최종 C#을 직접 편집하거나 영역 패치하는 동작을 제공하지 않는다. 루프·비동기·예외 등 미정 graph 실행 의미는 기존 계약을 확인하고 필요한 결정만 보고한다.
+
+## 선언 View·준비 작업 취소의 추가 체크포인트
+
+[검증 기록](evidence/v424-integration/declaration-views-ready-cancel.json). 함수·구현의 입출력/순서, 모듈 require/default/provide/include, 실제 implementation import와 선언 속성을 기존 파서·초안에 연결했다. `declaration` 독립 View는 기존 3개 슬롯과 수명을 공유한다. 편집은 표시한 리비전과 UTF-8 내용 해시를 함께 확인하며, 외부 변경·재시작·충돌 시 미적용 입력을 유지한다. 표시 이름은 ID 변경이 아니다. Save와 묶음 Review/Confirm은 유지한다. schema field/data의 로컬 초기화·순서 API는 파서로 검증했지만 해당 기존 테이블의 모든 UI 연결 완료를 뜻하지 않는다.
+
+준비 작업 취소는 실제 WorkerTasks의 잠금·lease·명령 재생·저널 CAS에서 처리하며 Agent를 시작하거나 취소하지 않는다. 실행 중·완료 작업은 ready-only 취소가 거부한다. 기존 Cancel도 시작 전 작업의 취소 상태를 기록한다. Task 기록 후 Augment 기록이 실패한 경우에는 그 취소 명령의 실제 증거로만 연결 상태를 복구한다. 35개 로컬 제안은 보존하고 최신 32개씩 조회하며 페이지 이동은 저널을 쓰지 않는다.
+
+영향 회귀는 전체 실행의 12개 통과와 수정 후 두 메타데이터 표적 회귀 통과로 14개 서로 다른 gate를 확인했다. 별도의 Worker 소유자 회귀도 통과했다. Android/browser 메타데이터 템플릿의 잘못된 ReviewSummary 클래스 위치를 수정하고 동일한 선언 변환·검토 코드를 연결했다. 이는 SDK·서명·Android 설정 변경이 아니다. 실제 계정·유료 모델·장치 실행 검증으로 해석하지 않는다.
+
+전체 v424와 새 Blueprint 경로는 계속 구현 중이다. 특히 graph/node 원본 저장·노드 Worker 범위·시스템 조립·빌드·오류 매핑은 확정 문서에 따라 별도 단계로 진행한다.

@@ -76,6 +76,21 @@ def verify_local_augment(page,project,mount,send,envelope,settle,restart):
    time.sleep(.05)
   assert len(generated['augment']['cards'])==3 and len(owned.requests)==1 and not owned.errors
   invoke('selectCard',{'card':generated['augment']['cards'][0]['id']});assert len(state()['workers'])==2;assert all(w['status']=='ready' for w in state()['workers']);assert (project/'Score.celem').read_bytes()==initial and (project/'project.cpack').read_bytes()==manifest
+  selected=state();new_task=selected['selectedWorkerId'];assert new_task!=worker
+  overlay=page.locator('.augment-overlay [data-close]')
+  if overlay.count():overlay.click()
+  if not page.locator('.participant-expanded-card[data-helper-id="main-helper"]').count():page.locator('.home-side [data-helper="main-helper"]').first.click()
+  page.locator('.participant-expanded-card [data-worker="'+new_task+'"]').click();expect(page.locator('#worker-cancel-ready')).to_be_enabled(timeout=30000)
+  import json
+  before_commands=set(json.loads(persisted.read_text())['commands']);page.locator('#worker-cancel-ready').click();expect(page.locator('.window[data-key="worker"]')).to_contain_text('cancelled',timeout=30000)
+  assert {w['id']:w['status'] for w in state()['workers']}=={worker:'ready',new_task:'cancelled'};assert len(owned.requests)==1
+  command=(set(json.loads(persisted.read_text())['commands'])-before_commands).pop();task_journal=project/'.confectory/ai-development/tasks.json';saved_cancel=(persisted.read_bytes(),task_journal.read_bytes());invoke('cancelReadyWorker',{'task':new_task,'commandID':command,'reason':'Explicitly cancelled before execution'});assert (persisted.read_bytes(),task_journal.read_bytes())==saved_cancel
+  page.locator('.window[data-key="worker"] [data-close]').click()
+  # The public projection stays bounded while all persisted proposals remain pageable.
+  for index in range(33):invoke('customProposal',{'target':'Example.ButtonGame::Score','commandID':'owned-page-'+str(index),'text':'Preserved page proposal '+str(index)})
+  latest=state()['augment'];assert latest['customCount']==35 and latest['customPage']==0 and len(latest['customCards'])==32;assert latest['customCards'][-1]['summary']=='Preserved page proposal 32'
+  saved_page=persisted.read_bytes();invoke('customProposalPage',{'page':1});older=state()['augment'];assert older['customPage']==1 and len(older['customCards'])==3 and any(card['summary']=='Second explicit local direction' for card in older['customCards']);assert persisted.read_bytes()==saved_page;invoke('customProposalPage',{'page':8},False);assert persisted.read_bytes()==saved_page
+  restart();select_score();page.locator('#augment').click();expect(page.locator('[data-custom-proposals]')).to_contain_text('35',timeout=30000);restored=state();assert {w['id']:w['status'] for w in restored['workers']}=={worker:'ready',new_task:'cancelled'};assert not restored['aiOwnerAvailable'];assert len(owned.requests)==1;assert (project/'Score.celem').read_bytes()==initial and (project/'project.cpack').read_bytes()==manifest
   page.screenshot(path='/tmp/confectory-v424-local-augment.png',full_page=True)
   print('PASS v424 local custom proposal: actual chief/scope/idempotency/CAS journal; archive/task/restart/stale fences; no real account/model or source writes; explicit fresh-policy owned provider fixture',flush=True)
  finally:owned.close()

@@ -66,7 +66,16 @@ try
         case "inspect":
         {
             var element=new Parser(S("text"),"<draft>").ParseElement();
-            reply=new JsonObject{["id"]=element.Id,["kind"]=element.Kind,["parent"]=element.Parent,["relations"]=DeclaredRelations.Describe(element),["description"]=element.Description,["signature"]=JsonSerializer.SerializeToNode(element.Signature),["editor"]=AlgorithmProjectionOperations.Editor(element),["fields"]=JsonSerializer.SerializeToNode(element.Fields),["data"]=JsonSerializer.SerializeToNode(element.Data),["values"]=JsonSerializer.SerializeToNode(element.Values.ToDictionary(x=>x.Key,x=>x.Value.Value))};break;
+            reply=new JsonObject{["id"]=element.Id,["kind"]=element.Kind,["parent"]=element.Parent,["function"]=element.Function,["descriptionDefined"]=element.DescriptionPresent,["relations"]=DeclaredRelations.Describe(element),["description"]=element.Description,["signature"]=JsonSerializer.SerializeToNode(element.Signature),["editor"]=AlgorithmProjectionOperations.Editor(element),["fields"]=JsonSerializer.SerializeToNode(element.Fields),["data"]=JsonSerializer.SerializeToNode(element.Data),["values"]=JsonSerializer.SerializeToNode(element.Values.ToDictionary(x=>x.Key,x=>x.Value.Value))};break;
+        }
+        case "editDeclaration":
+        {
+            var element=new Parser(S("text"),"<draft>").ParseElement();string id=element.Id,kind=element.Kind;
+            if(kind is not ("category" or "concept" or "function" or "module" or "object" or "schema" or "implementation"))throw new ArgumentException("Authored declaration required");
+            DeclarationAuthoring.Apply(element,request["edit"]?.AsObject()??throw new ArgumentException("Declaration edit required"));
+            string formatted=Format(element);var parsed=new Parser(formatted,"<draft>").ParseElement();
+            if(parsed.Id!=id||parsed.Kind!=kind)throw new ArgumentException("Stable declaration ID and kind required");
+            reply=JsonValue.Create(formatted);break;
         }
         case "setDataPath": case "setField": case "setData":
         {

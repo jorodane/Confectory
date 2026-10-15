@@ -81,6 +81,7 @@ export function createActualWorkspace(api) {
     if(layout.key==='source'){api.editor();return runtime.state.windows.get('source');}
     if(layout.key==='browser'||layout.key.startsWith('browser:')||layout.key.startsWith('browser-tree:')){const w=api.browser(layout.meta?.group||'concept',layout.key);Object.assign(w.meta,layout.meta);return api.browser(w.meta.group,layout.key);}
     if(layout.key==='schema'){api.schema();return runtime.state.windows.get('schema');}
+    if(layout.key==='declaration'){api.declaration();return runtime.state.windows.get('declaration');}
     if(layout.key==='worker')return api.worker(layout.meta?.workerId);
     if(layout.key==='connections'){api.connections();return runtime.state.windows.get('connections');}
     if(layout.key==='packs')return api.packs();

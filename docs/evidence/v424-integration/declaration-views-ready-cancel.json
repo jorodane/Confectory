@@ -1,0 +1,35 @@
+{
+  "phase": "declaration views, ready cancellation and bounded proposal history; approved Blueprint direction documented",
+  "base": "072e661b8bd202264e64ddab8be6bf75c597d0f7",
+  "validation": "14 distinct regression gates passed cumulatively; broad run12pass2fail, both affected metadata gates passed after fixes. Worker supervision gate also passed separately. Not full v424 completion.",
+  "gates": [
+    "EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only",
+    "PackWorkspaceTests.test_development_tools_owned_scope_shared_draft_no_confirm_and_locality",
+    "PackWorkspaceTests.test_target_metadata_owned_sources_no_registry_execution",
+    "PackWorkspaceTests.test_two_contexts_revision_save_reopen_and_locality",
+    "SchemaEditingTests.test_authoring_preservation_validation_and_locality",
+    "SchemaEditingTests.test_signature_inputs_arrays_bounds_and_call_preflight_locality",
+    "SchemaEditingTests.test_v424_contract_module_semantic_review_retains_uncovered_source_acknowledgement",
+    "SchemaEditingTests.test_v424_declaration_mutation_types_relations_local_reset_and_array_order",
+    "WebUITests.test_actual_editor_and_button_game_common_web_transport_chromium",
+    "WebUITests.test_actual_editor_new_concept_creation_save_confirm_reopen",
+    "WebUITests.test_actual_editor_v318_helper_inputs_and_panels_cold_restart",
+    "WebUITests.test_actual_editor_v424_local_augment_without_account_or_model",
+    "WebUITests.test_actual_editor_v424_six_declaration_kinds_and_registration_review",
+    "WebUITests.test_actual_editor_v424_typed_declaration_views_cas_confirm_and_restart"
+  ],
+  "workerSupervision": {
+    "method": "WorkerTasksTests.test_durable_supervision_recovery_live_worker_and_process_restart_without_replay",
+    "status": "passed",
+    "seconds": 29.163,
+    "coverage": "ready/lease/running/completed fences, zero provider side effects, idempotency/legacy cancel, persistence, original supervision/locality/crash restart and managed profiles"
+  },
+  "resourceCount": 20,
+  "blueprint": "Architecture approved and documented. No source-of-truth graph assembler/activation claim in this checkpoint. Legacy sources preserved; next explicit feature UI reference pending.",
+  "liveServiceAccountOrPaidCall": false,
+  "checkout": "To run on the implementation commit before publication",
+  "screenshots": {
+    "typed-declaration-views.png": "e0c598ff42d1447cff3518933098ec75f20bba0f75eaff6caf7a291624b8ae58",
+    "paged-planning.png": "fa6ebd02a32435c2e321064c4b3d11b82d29628dc30cc156cbb0b079e575e662"
+  }
+}

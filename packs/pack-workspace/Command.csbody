@@ -40,6 +40,13 @@ case "effective": case "schema-view": case "call-check":{
  }
  return inspectedReply.ToJsonString();
 }
+case "declaration":{
+ string selectedDeclaration=state["selected"]!.GetValue<string>();if(selectedDeclaration==""||request["id"]?.GetValue<string>()!=selectedDeclaration)throw new InvalidOperationException("Explicit declaration must match this View");
+ var unit=calls.Read.Invoke(draft,selectedDeclaration);if(unit[1] is not ("category" or "concept" or "function" or "module" or "object" or "schema" or "implementation"))throw new ArgumentException("Authored declaration required");
+ long declarationExpectedRevision=request["expectedRevision"]!.GetValue<long>();if(declarationExpectedRevision<0)throw new ArgumentOutOfRangeException("expectedRevision");string expectedHash=request["expectedHash"]?.GetValue<string>()??throw new ArgumentException("Displayed declaration hash required");if(!System.Text.RegularExpressions.Regex.IsMatch(expectedHash,"\\A[0-9a-f]{64}\\z",System.Text.RegularExpressions.RegexOptions.CultureInvariant))throw new ArgumentException("Declaration hash format");string textHash=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(unit[3]))).ToLowerInvariant();if(long.Parse(unit[4],System.Globalization.CultureInfo.InvariantCulture)!=declarationExpectedRevision||textHash!=expectedHash){conflict=true;state["review"]=null;break;}
+ string formatted=System.Text.Json.JsonSerializer.Deserialize<string>(calls.Locate.Invoke("editDeclaration",new System.Text.Json.Nodes.JsonObject{["text"]=unit[3],["edit"]=request["edit"]?.DeepClone()??throw new ArgumentException("Declaration edit required")}.ToJsonString()))!;
+ if(formatted.Length>1048576)throw new ArgumentException("Draft exceeds one million characters");conflict=!calls.Edit.Invoke(draft,selectedDeclaration,formatted,declarationExpectedRevision);if(conflict||calls.Read.Invoke(draft,selectedDeclaration)[4]!=unit[4])state["review"]=null;break;
+}
 case "description": case "value": case "data": case "data-path": case "field":{
  string selectedValue=state["selected"]!.GetValue<string>();if(selectedValue=="")throw new InvalidOperationException("Select an owned declaration first.");
  if((operation is "description" or "data-path")&&request["id"]?.GetValue<string>()!=selectedValue)throw new InvalidOperationException("Explicit path-edit source ID differs from the selected View.");

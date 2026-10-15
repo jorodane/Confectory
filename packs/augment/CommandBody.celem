@@ -4,6 +4,7 @@ import Confectory.WorkerTasks::Authorize as Authorize (string, string, string) -
 import Confectory.WorkerTasks::Assign as Assign (string, string, long, string, string, string, string) -> string;
 import Confectory.WorkerTasks::Inspect as TaskInspect (string, string) -> string;
 import Confectory.WorkerTasks::Lease as TaskLease (string, string) -> string;
+import Confectory.WorkerTasks::CancelReady as TaskCancelReady (string,string,long,string,string) -> void;
 import Confectory.WorkerTasks::Cancel as TaskCancel (string, string, long, string, string) -> void;
 import Confectory.EditWorkspace::Identity as Identity (string) -> string[];
 import Confectory.EditWorkspace::Read as Read (string, string) -> string[];
