@@ -1,0 +1,7582 @@
+{
+  "referenceVersion": 424,
+  "sourceCommit": "21da0b48256439a530c3e2097b2cb354c43e3956",
+  "zipSha256": "b7969cd109ea2dad38bde9c9ab13967c20162c920a45a8cd51a8f82df6041874",
+  "files": {
+    "app.js": "1f2256f65579593394d47e182e85adee032b1c3b249eff31b7a26621e585499d",
+    "blueprint.js": "4fe71b141dd01ddcb9e4c6a949041b782b72e1068c34ef93088a0dadd4556f26"
+  },
+  "warning": "Structural inventory only. Functions and data markers are not feature completion or test evidence; see the action matrix. Dynamic menu entries and ordinary inputs also require review.",
+  "functions": [
+    {
+      "source": "app.js",
+      "name": "projectEditState",
+      "line": 9,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "initializeProjectHistory",
+      "line": 10,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "recordProjectEdit",
+      "line": 11,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "applyProjectEdit",
+      "line": 16,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "undoProjectEdit",
+      "line": 29,
+      "markers": [
+        "enum-name",
+        "inline-name",
+        "obj",
+        "property-name",
+        "property-value",
+        "signature-name"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "placeNamespaceObject",
+      "line": 82,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "setContentHostFocus",
+      "line": 106,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "persist",
+      "line": 117,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "toast",
+      "line": 118,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "button",
+      "line": 119,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "avatar",
+      "line": 120,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "brand",
+      "line": 121,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "announceLog",
+      "line": 122,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "modal",
+      "line": 124,
+      "markers": [
+        "close"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "showStart",
+      "line": 126,
+      "markers": [
+        "startup-logo",
+        "startup-name"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "transitionStartupHome",
+      "line": 138,
+      "markers": [
+        "startup-logo",
+        "startup-name"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "showAgentConnect",
+      "line": 159,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "projectHelperTitle",
+      "line": 160,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "homeHelper",
+      "line": 161,
+      "markers": [
+        "favorite-helper",
+        "helper"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "packBrowserMarkup",
+      "line": 169,
+      "markers": [
+        "pack-browser-prefix",
+        "pack-group",
+        "pack-search-submit",
+        "pack-sort"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "bindHomePackBrowser",
+      "line": 170,
+      "markers": [
+        "cancel",
+        "close-confirm",
+        "confirm-remove",
+        "pack",
+        "pack-browser-prefix",
+        "pack-delete",
+        "pack-download",
+        "pack-draft-toggle",
+        "pack-edit",
+        "pack-favorite",
+        "pack-publish-outside",
+        "pack-remove-mine",
+        "pack-search-submit",
+        "pack-sort",
+        "pack-uninstall",
+        "pack-update"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "openMyPackProject",
+      "line": 199,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "editMyPackInfo",
+      "line": 204,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "renderHomeProjectList",
+      "line": 211,
+      "markers": [
+        "enter",
+        "favorite",
+        "manage",
+        "project"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "showHome",
+      "line": 230,
+      "markers": [
+        "pack-group"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "folderPicker",
+      "line": 231,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "createRandomProjectHelper",
+      "line": 239,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "createProject",
+      "line": 243,
+      "markers": [
+        "helper-drop-index",
+        "project-cancel",
+        "project-helper",
+        "project-tab",
+        "remove-helper",
+        "selected"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "projectMenu",
+      "line": 295,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "helperProfile",
+      "line": 296,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "setupChatResize",
+      "line": 297,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "clampWorkspaceView",
+      "line": 298,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "setupWorkspaceNavigation",
+      "line": 312,
+      "markers": [
+        "object",
+        "object-source-menu",
+        "table-definition",
+        "table-object",
+        "workspace-zoom",
+        "zoom-preset",
+        "zoom-slider",
+        "zoom-value"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "enterProject",
+      "line": 409,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "openPackExport",
+      "line": 410,
+      "markers": [
+        "cancel",
+        "confirm-publish",
+        "pack-publish",
+        "pack-save"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "openRunViewport",
+      "line": 419,
+      "markers": [
+        "run-export",
+        "run-pause",
+        "run-play",
+        "run-step"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "openBuildResult",
+      "line": 420,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "openRunExportMenu",
+      "line": 421,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "toggleNav",
+      "line": 423,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "updateNav",
+      "line": 424,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "refreshIssueCount",
+      "line": 425,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "setChat",
+      "line": 426,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "renderProjectYogiAttachments",
+      "line": 427,
+      "markers": [
+        "cancel-yogi"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "freezeYogi",
+      "line": 428,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "yogiTargetReference",
+      "line": 430,
+      "markers": [
+        "agent",
+        "enter",
+        "helper",
+        "key",
+        "node",
+        "obj",
+        "object",
+        "participant-toggle"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "executeYogiTarget",
+      "line": 431,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "captureYogiRegion",
+      "line": 432,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "viewSentYogi",
+      "line": 433,
+      "markers": [
+        "execute-yogi"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "refreshMinimizedChat",
+      "line": 434,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "refreshChat",
+      "line": 435,
+      "markers": [
+        "yogi"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "setupDropTargets",
+      "line": 436,
+      "markers": [
+        "drop-helper",
+        "drop-player"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "helperChat",
+      "line": 438,
+      "markers": [
+        "unattach",
+        "yogi"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "renderWorkspaceHelper",
+      "line": 439,
+      "markers": [
+        "unattach"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "openWindow",
+      "line": 472,
+      "markers": [
+        "close",
+        "fold",
+        "resize"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "placeWindow",
+      "line": 473,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "positionHelperBubbles",
+      "line": 474,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "placeWorkspaceChatBubbles",
+      "line": 488,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "observeWorkspaceFrames",
+      "line": 494,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "workspaceLinks",
+      "line": 499,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "linkedWorkspaceDescendants",
+      "line": 500,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "connectWorkspaceNodes",
+      "line": 501,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "removeWorkspaceLinks",
+      "line": 506,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "disconnectWorkspaceLink",
+      "line": 507,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "workspaceLinkMenu",
+      "line": 508,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "startWorkspaceLink",
+      "line": 513,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "scheduleWorkspaceLinks",
+      "line": 528,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "renderWorkspaceLinks",
+      "line": 529,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "registerWorkspaceNode",
+      "line": 546,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "bindWorkspaceNodeInteraction",
+      "line": 547,
+      "markers": [
+        "decoration-resize",
+        "resize"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "unregisterWorkspaceNode",
+      "line": 576,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "isWorkspaceNodeSelected",
+      "line": 577,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "selectedWorkspaceNodes",
+      "line": 578,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "selectedWorkspaceWindows",
+      "line": 579,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "renderWorkspaceNodeSelection",
+      "line": 580,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "setWorkspaceNodeSelection",
+      "line": 589,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "toggleWorkspaceNodeSelection",
+      "line": 590,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "raiseWorkspaceNode",
+      "line": 591,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "focusWorkspaceNode",
+      "line": 598,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "setWindowSelection",
+      "line": 599,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "toggleWindowSelection",
+      "line": 600,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "focusWindow",
+      "line": 601,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "cleanupWindowExtras",
+      "line": 602,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "closeWindow",
+      "line": 603,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "toggleWindow",
+      "line": 604,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "clampFloatingPosition",
+      "line": 605,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "clampWindow",
+      "line": 611,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "clampWindows",
+      "line": 617,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "trackWorkspaceDrag",
+      "line": 618,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "workspaceTabDropAt",
+      "line": 642,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "beginWorkspaceNodeDrag",
+      "line": 643,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "windowContextMenu",
+      "line": 699,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "openObjectTab",
+      "line": 708,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "setupWindowDrag",
+      "line": 712,
+      "markers": [
+        "resize"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "selectionRectsOverlap",
+      "line": 718,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "selectionHitsWorkspaceNode",
+      "line": 719,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "setupWindowSelection",
+      "line": 732,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "snapWindow",
+      "line": 769,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "workspaceRecord",
+      "line": 770,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "workspaceItems",
+      "line": 771,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "decorationNodeKey",
+      "line": 772,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "windowLayout",
+      "line": 773,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "saveLayouts",
+      "line": 774,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "workspaceDropTargetAt",
+      "line": 775,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "updateWorkspaceDropPreview",
+      "line": 776,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "moveWindowsToWorkspace",
+      "line": 786,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "contentViews",
+      "line": 788,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "activeDocumentTab",
+      "line": 789,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "objectEditorId",
+      "line": 790,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "objectEditorKey",
+      "line": 791,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "documentIdentity",
+      "line": 792,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "createTabDocument",
+      "line": 793,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "openDocumentShell",
+      "line": 802,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "openContentTab",
+      "line": 810,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "activateWorkspaceTab",
+      "line": 819,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "openWorkspaceWindowTab",
+      "line": 829,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "moveDocumentTabToWorkspace",
+      "line": 834,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "documentTabContext",
+      "line": 841,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "openWorkspaceNoteTab",
+      "line": 843,
+      "markers": [
+        "workspace-item"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "selectWorkspaceTab",
+      "line": 853,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "closeWorkspaceTab",
+      "line": 857,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "endDocumentTabDrag",
+      "line": 864,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "previewDocumentTabPlacement",
+      "line": 866,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "setupWorkspaceTabReorder",
+      "line": 871,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "renderWorkspaceTabs",
+      "line": 895,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "switchWorkspace",
+      "line": 896,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "returnToParentWorkspace",
+      "line": 897,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "positionWorkspaceDecorations",
+      "line": 904,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "selectWorkspaceDecoration",
+      "line": 905,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "decorationName",
+      "line": 906,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "renameWorkspaceDecoration",
+      "line": 907,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "deleteWorkspaceNodes",
+      "line": 924,
+      "markers": [
+        "cancel",
+        "confirm"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "removeWorkspaceDecoration",
+      "line": 954,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "confirmRemoveChildWorkspace",
+      "line": 955,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "fullyInsideDecoration",
+      "line": 956,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "renderWorkspaceDecorations",
+      "line": 960,
+      "markers": [
+        "decoration-resize",
+        "remove"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "createWorkspaceDecoration",
+      "line": 1028,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "showWorkspaceContextMenu",
+      "line": 1037,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "restoreWindow",
+      "line": 1053,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "browserDensityIndex",
+      "line": 1056,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "isBrowserWindowKey",
+      "line": 1058,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "isProjectBrowserKey",
+      "line": 1059,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "browserInstanceKey",
+      "line": 1060,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "browserInitialSize",
+      "line": 1061,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "browserPlacementSize",
+      "line": 1062,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "startWorkspaceDrag",
+      "line": 1064,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "clearWorkspacePlacementPreviews",
+      "line": 1065,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "endWorkspaceDrag",
+      "line": 1066,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "startObjectEditorDrag",
+      "line": 1067,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "workspaceObjectDropPlan",
+      "line": 1072,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "windowPlacementTitleHeight",
+      "line": 1073,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "workspaceDragSize",
+      "line": 1074,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "workspaceTitleDropSpot",
+      "line": 1075,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "workspaceDropSpot",
+      "line": 1076,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "setupHelperWorkspaceDrags",
+      "line": 1077,
+      "markers": [
+        "helper"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "openPlacementTab",
+      "line": 1078,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "setupBrowserDockDrag",
+      "line": 1084,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "workspaceSnapStart",
+      "line": 1121,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "workspaceSnapEnd",
+      "line": 1122,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "workspaceSpot",
+      "line": 1123,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "workspaceWorldPoint",
+      "line": 1124,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "workspaceWindowHeight",
+      "line": 1125,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "workspaceSnapFloor",
+      "line": 1126,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "workspaceSnapCeil",
+      "line": 1127,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "workspacePointerBlocked",
+      "line": 1128,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "workspaceVacant",
+      "line": 1129,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "workspaceResolveDrag",
+      "line": 1130,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "workspaceShowPlacement",
+      "line": 1165,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "workspaceFreeSpot",
+      "line": 1172,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "workspaceMenuSpot",
+      "line": 1173,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "workspaceFindSpot",
+      "line": 1174,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "focusWorkspaceWindow",
+      "line": 1186,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "workspaceCenterOn",
+      "line": 1187,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "workspaceOrigin",
+      "line": 1188,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "setMainWorkspaceWindow",
+      "line": 1189,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "createWorkspaceObject",
+      "line": 1197,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "showWorkspaceSearchMenu",
+      "line": 1205,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "switchBrowserGroup",
+      "line": 1242,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "objectSelectionIds",
+      "line": 1248,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "objectSelectionRows",
+      "line": 1249,
+      "markers": [
+        "object",
+        "table-object"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "objectRowId",
+      "line": 1250,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "paintObjectSelection",
+      "line": 1251,
+      "markers": [
+        "object",
+        "table-object",
+        "tree-id"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "selectObject",
+      "line": 1255,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "selectedObjectsFor",
+      "line": 1261,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "objectSelectionKeydown",
+      "line": 1262,
+      "markers": [
+        "table-drag"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "deleteSelectedObjects",
+      "line": 1270,
+      "markers": [
+        "delete-selection"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "objectSelectionContext",
+      "line": 1274,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "renameTable",
+      "line": 1279,
+      "markers": [
+        "tab-id",
+        "table-name"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "fitFloatingTableViewport",
+      "line": 1285,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "openTableInNewWindow",
+      "line": 1286,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "openObjectTable",
+      "line": 1287,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "tablePropertySources",
+      "line": 1299,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "tableEffectiveValue",
+      "line": 1300,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "tableEffectiveField",
+      "line": 1306,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "propertyDefinitionLocation",
+      "line": 1307,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "tableDefinitionLocations",
+      "line": 1317,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "navigatePropertyDefinition",
+      "line": 1320,
+      "markers": [
+        "property-id",
+        "property-path"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "tableDefinitionContext",
+      "line": 1330,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "bindObjectReferenceDrag",
+      "line": 1333,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "bindObjectSourceMenus",
+      "line": 1340,
+      "markers": [
+        "object-source-menu"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "openObjectParentPicker",
+      "line": 1343,
+      "markers": [
+        "parent-choice"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "appWindowIcon",
+      "line": 1350,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "syncAppWindowSize",
+      "line": 1355,
+      "markers": [
+        "app-maximize"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "setupAppWindowControls",
+      "line": 1359,
+      "markers": [
+        "app-close",
+        "app-maximize",
+        "app-minimize"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "updateObjectParentReference",
+      "line": 1367,
+      "markers": [
+        "object-source-menu"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "tableEffectiveSchema",
+      "line": 1375,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "vectorValueMarkup",
+      "line": 1376,
+      "markers": [
+        "obj",
+        "obj-path"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "enumValueLabel",
+      "line": 1380,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "openEnumDropdown",
+      "line": 1382,
+      "markers": [
+        "enum-choice"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "bindEnumButton",
+      "line": 1392,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "enumSelectMarkup",
+      "line": 1395,
+      "markers": [
+        "enum-dropdown",
+        "enum-field",
+        "enum-object",
+        "enum-path"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "bindEnumDropdowns",
+      "line": 1396,
+      "markers": [
+        "enum-dropdown"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "syncEnumDropdownValues",
+      "line": 1397,
+      "markers": [
+        "enum-dropdown"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "tableResetOrigin",
+      "line": 1398,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "tableCanReset",
+      "line": 1402,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "resetTableCell",
+      "line": 1403,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "tableCellUnchanged",
+      "line": 1408,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "tableSetObjectValue",
+      "line": 1409,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "setupTableColumnResize",
+      "line": 1413,
+      "markers": [
+        "table-column-resize"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "tableFillHandleMarkup",
+      "line": 1428,
+      "markers": [
+        "table-fill"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "renderObjectTable",
+      "line": 1429,
+      "markers": [
+        "obj",
+        "obj-path",
+        "table-add",
+        "table-add-panel",
+        "table-add-results",
+        "table-add-search",
+        "table-add-toggle",
+        "table-column-resize",
+        "table-definition",
+        "table-drag",
+        "table-fill",
+        "table-object",
+        "table-object-menu",
+        "table-open",
+        "table-path",
+        "table-remove",
+        "table-reset",
+        "table-schema",
+        "table-search",
+        "table-sort"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "openBrowser",
+      "line": 1479,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "placeCategoryBrowser",
+      "line": 1480,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "duplicateChildBrowser",
+      "line": 1485,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "mountCollectionCommitActions",
+      "line": 1486,
+      "markers": [
+        "browser-save",
+        "close",
+        "fold"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "refreshCollectionViews",
+      "line": 1492,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "discardCollectionChanges",
+      "line": 1495,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "browserContentSnapshot",
+      "line": 1501,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "browserObjectInScope",
+      "line": 1502,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "browserPendingChanges",
+      "line": 1509,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "updateBrowserHeaderWorkers",
+      "line": 1518,
+      "markers": [
+        "browser-workers"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "updateBrowserActions",
+      "line": 1524,
+      "markers": [
+        "browser-confirm",
+        "browser-discard",
+        "browser-save"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "refreshBrowserActions",
+      "line": 1531,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "saveBrowserChanges",
+      "line": 1532,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "browserChangeDetails",
+      "line": 1537,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "confirmBrowserChanges",
+      "line": 1546,
+      "markers": [
+        "browser-apply",
+        "browser-discard",
+        "browser-later"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "updateChildBrowserDetail",
+      "line": 1562,
+      "markers": [
+        "browser-detail"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "browserRootLabel",
+      "line": 1568,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "mountBrowserTitlePath",
+      "line": 1569,
+      "markers": [
+        "category-edit"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "renderBrowser",
+      "line": 1588,
+      "markers": [
+        "density",
+        "new",
+        "parent",
+        "root",
+        "tab"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "browserHierarchyParent",
+      "line": 1589,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "browserHasVariations",
+      "line": 1590,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "browserCanEnter",
+      "line": 1591,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "visibleObjects",
+      "line": 1592,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "renderBrowserItems",
+      "line": 1599,
+      "markers": [
+        "enter-concept",
+        "identity",
+        "inline-name",
+        "object",
+        "ref-for"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "objectTable",
+      "line": 1600,
+      "markers": [
+        "complex",
+        "edit",
+        "obj",
+        "object",
+        "prop",
+        "table"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "bindDataInputs",
+      "line": 1601,
+      "markers": [
+        "complex",
+        "edit",
+        "obj",
+        "property-detail",
+        "property-name"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "isolateInputDrag",
+      "line": 1624,
+      "markers": [
+        "fields"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "syncObjectInputs",
+      "line": 1647,
+      "markers": [
+        "dirty",
+        "obj",
+        "table-reset"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "refreshHoveredReference",
+      "line": 1658,
+      "markers": [
+        "object"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "updateReference",
+      "line": 1659,
+      "markers": [
+        "object"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "newObject",
+      "line": 1661,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "commitObjectName",
+      "line": 1662,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "beginBrowserInlineRename",
+      "line": 1671,
+      "markers": [
+        "inline-name",
+        "name-input",
+        "object",
+        "tree-id"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "renameObject",
+      "line": 1677,
+      "markers": [
+        "inline-name",
+        "tree-id"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "deleteObject",
+      "line": 1681,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "contextMenu",
+      "line": 1682,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "objectTableMembers",
+      "line": 1683,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "openObjectInNewWindow",
+      "line": 1684,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "objectContext",
+      "line": 1685,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "functionForm",
+      "line": 1686,
+      "markers": [
+        "result"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "bindObjectInfo",
+      "line": 1687,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "setupObjectTitleRename",
+      "line": 1700,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "renameObjectTitle",
+      "line": 1708,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "syncObjectTitles",
+      "line": 1715,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "editObjectIcon",
+      "line": 1720,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "editIconValue",
+      "line": 1721,
+      "markers": [
+        "cancel",
+        "icon-choice"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "objectUndoSnapshot",
+      "line": 1745,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "updateObjectHeaderControls",
+      "line": 1746,
+      "markers": [
+        "confirm",
+        "discard",
+        "object-workers",
+        "save"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "useObjectHeaderAsTitle",
+      "line": 1756,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "closeObjectEditors",
+      "line": 1771,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "objectEditorInitialSize",
+      "line": 1775,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "objectEditorHeightBounds",
+      "line": 1780,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "fitNewObjectEditor",
+      "line": 1785,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "observeObjectEditor",
+      "line": 1792,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "measureObjectEditorPlacement",
+      "line": 1797,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "effectiveObjectMethods",
+      "line": 1800,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "objectMethodProperties",
+      "line": 1810,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "objectBehaviorChanged",
+      "line": 1815,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "formatObjectMethods",
+      "line": 1816,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "editObjectMethod",
+      "line": 1817,
+      "markers": [
+        "cancel",
+        "method-body",
+        "method-description",
+        "method-name",
+        "method-parameters",
+        "method-property",
+        "method-returns"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "linkObjectBehavior",
+      "line": 1839,
+      "markers": [
+        "link-id",
+        "link-search"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "methodSignatureField",
+      "line": 1853,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "updateMethodSignature",
+      "line": 1862,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "inheritedObjectMethods",
+      "line": 1868,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "moduleFunctionImplementation",
+      "line": 1874,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "moduleFunctionDefinition",
+      "line": 1875,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "ensureModuleFunctionImplementation",
+      "line": 1883,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "moduleFeatureSignatureKnown",
+      "line": 1887,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "moduleFeatureCompatibility",
+      "line": 1888,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "openModuleFunctionImport",
+      "line": 1893,
+      "markers": [
+        "feature-import",
+        "feature-import-search"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "openObjectFunctionDetail",
+      "line": 1901,
+      "markers": [
+        "function-cancel",
+        "function-description"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "ownFunctionSummary",
+      "line": 1912,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "openOwnFunctionPopover",
+      "line": 1922,
+      "markers": [
+        "detail-cancel",
+        "detail-close",
+        "detail-description"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "functionGearIcon",
+      "line": 1938,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "functionIconMarkup",
+      "line": 1939,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "receivedFunctionName",
+      "line": 1940,
+      "markers": [
+        "function-description"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "functionPinContourMarkup",
+      "line": 1941,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "functionPinsMarkup",
+      "line": 1942,
+      "markers": [
+        "function-pin-name",
+        "function-pin-type",
+        "function-pin-unit",
+        "pin-pending",
+        "pin-side"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "bindFunctionOutputPins",
+      "line": 1946,
+      "markers": [
+        "function-pin-unit",
+        "pin-side"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "bindFunctionPinHints",
+      "line": 1965,
+      "markers": [
+        "function-pin-unit"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "functionFlowMarkup",
+      "line": 1976,
+      "markers": [
+        "inline-description",
+        "obj",
+        "prop"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "functionWritingActionsMarkup",
+      "line": 1980,
+      "markers": [
+        "function-import",
+        "function-write-description",
+        "function-write-direct"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "functionCollapseToggleMarkup",
+      "line": 1981,
+      "markers": [
+        "function-toggle"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "functionNodeMarkup",
+      "line": 1982,
+      "markers": [
+        "function-delete",
+        "function-drag",
+        "function-icon",
+        "imported-feature-open",
+        "inline-name"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "bindOwnFunctionReorder",
+      "line": 1986,
+      "markers": [
+        "function-drag",
+        "inline-method"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "bindFunctionNodeCollapse",
+      "line": 2007,
+      "markers": [
+        "function-collapse-key",
+        "function-toggle"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "bindFunctionDescriptionHints",
+      "line": 2015,
+      "markers": [
+        "function-description",
+        "inline-description",
+        "inline-method",
+        "inline-name",
+        "module-method"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "setupFunctionNodeDescriptions",
+      "line": 2030,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "functionPinColor",
+      "line": 2036,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "renderObjectFunctions",
+      "line": 2037,
+      "markers": [
+        "behavior-source",
+        "behavior-toggle",
+        "behavior-unlink",
+        "feature-open",
+        "function-add",
+        "function-collapse-key",
+        "function-delete",
+        "function-icon",
+        "function-import",
+        "function-write-description",
+        "function-write-direct",
+        "functions-collapse",
+        "imported-feature-open",
+        "inherited-function-source",
+        "inherited-function-toggle",
+        "inline-description",
+        "inline-method",
+        "inline-name",
+        "method-id",
+        "module-link",
+        "module-method",
+        "module-source",
+        "object-source-menu",
+        "own-functions-toggle"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "propertyTypeLabel",
+      "line": 2089,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "propertyTypeSummary",
+      "line": 2093,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "applyPropertyMultiplicity",
+      "line": 2094,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "propertyTypeChoiceObjects",
+      "line": 2098,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "choosePropertyType",
+      "line": 2103,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "ensureDemoInformation",
+      "line": 2128,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "propertyKey",
+      "line": 2142,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "informationSource",
+      "line": 2143,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "informationFields",
+      "line": 2144,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "informationDefaults",
+      "line": 2145,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "chooseInformation",
+      "line": 2146,
+      "markers": [
+        "close"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "migratePropertyTypeNames",
+      "line": 2154,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "propertyTypeOf",
+      "line": 2168,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "propertyReferenceChoices",
+      "line": 2169,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "choosePropertyReference",
+      "line": 2178,
+      "markers": [
+        "close"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "migrateObjectProperties",
+      "line": 2185,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "ensureObjectProperties",
+      "line": 2202,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "propertyDefault",
+      "line": 2205,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "propertyContext",
+      "line": 2209,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "propertyValueAt",
+      "line": 2218,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "setPropertyValue",
+      "line": 2219,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "convertPropertyValue",
+      "line": 2220,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "propertyChanged",
+      "line": 2253,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "inheritedPropertySources",
+      "line": 2256,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "setupPropertyReorder",
+      "line": 2262,
+      "markers": [
+        "property-name",
+        "reorder-scope"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "visibleEditingInputs",
+      "line": 2277,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "focusEditingInput",
+      "line": 2278,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "focusNextEditingInput",
+      "line": 2286,
+      "markers": [
+        "enum-name",
+        "inline-name",
+        "property-name",
+        "reorder-scope",
+        "signature-kind",
+        "signature-name"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "movePropertyItem",
+      "line": 2305,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "signatureTypeField",
+      "line": 2306,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "featureSignatureFields",
+      "line": 2311,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "functionSignatureFields",
+      "line": 2317,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "serializeFunctionSignature",
+      "line": 2323,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "renderFunctionSignatureEditor",
+      "line": 2327,
+      "markers": [
+        "feature-author",
+        "signature-add",
+        "signature-id",
+        "signature-kind",
+        "signature-name",
+        "signature-remove",
+        "signature-type"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "renderFeatureDefinition",
+      "line": 2343,
+      "markers": [
+        "function-write-description",
+        "function-write-direct",
+        "inline-description"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "renderObjectSchema",
+      "line": 2357,
+      "markers": [
+        "inherited-key",
+        "own-properties-toggle",
+        "property-icon",
+        "property-id",
+        "property-name",
+        "property-type",
+        "schema-add",
+        "schema-collapse",
+        "schema-remove"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "objectSchemaChanged",
+      "line": 2464,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "renderEnumDefinition",
+      "line": 2465,
+      "markers": [
+        "enum-add",
+        "enum-icon",
+        "enum-name",
+        "enum-remove",
+        "enum-value"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "renderEditorSections",
+      "line": 2473,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "openEditor",
+      "line": 2480,
+      "markers": [
+        "close",
+        "confirm",
+        "discard",
+        "fold",
+        "obj",
+        "prop",
+        "save"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "changeObjectSection",
+      "line": 2481,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "bindVariationsCollapse",
+      "line": 2485,
+      "markers": [
+        "variations-collapse"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "renderObjectVariations",
+      "line": 2490,
+      "markers": [
+        "create-variation"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "saveObject",
+      "line": 2513,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "discardObjectChanges",
+      "line": 2514,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "openComplex",
+      "line": 2521,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "openIssues",
+      "line": 2522,
+      "markers": [
+        "attach",
+        "issue",
+        "yogi"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "openConflict",
+      "line": 2523,
+      "markers": [
+        "value"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "readablePropertyValue",
+      "line": 2524,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "formatSchemaFields",
+      "line": 2529,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "openReview",
+      "line": 2530,
+      "markers": [
+        "apply",
+        "change",
+        "reject"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "openSchema",
+      "line": 2531,
+      "markers": [
+        "add",
+        "field",
+        "index",
+        "remove",
+        "save"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "openMap",
+      "line": 2532,
+      "markers": [
+        "edge",
+        "node",
+        "reset"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "openCustom",
+      "line": 2533,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "augmentRemaining",
+      "line": 2535,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "refreshAugmentCount",
+      "line": 2536,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "augmentSelectionHistory",
+      "line": 2539,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "augmentSelectionSummary",
+      "line": 2543,
+      "markers": [
+        "grade"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "openAugment",
+      "line": 2547,
+      "markers": [
+        "cancel",
+        "defer",
+        "grade",
+        "proposal-cancel",
+        "propose",
+        "reroll",
+        "select-augment",
+        "submit-proposal"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "packManagerMarkup",
+      "line": 2560,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "ensurePackManagerPanel",
+      "line": 2561,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "openPacks",
+      "line": 2562,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "startYogiCapture",
+      "line": 2564,
+      "markers": [
+        "node",
+        "obj",
+        "object",
+        "yogi-id"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "showYogiContents",
+      "line": 2566,
+      "markers": [
+        "confirm",
+        "remove",
+        "run-reference"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "yogiOpenIcon",
+      "line": 2567,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "syncYogiState",
+      "line": 2568,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "openYogi",
+      "line": 2569,
+      "markers": [
+        "confirm",
+        "delete",
+        "type",
+        "yogi-close"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "yogiDropHelper",
+      "line": 2570,
+      "markers": [
+        "helper",
+        "role-helper",
+        "yogi-helper"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "addYogiObject",
+      "line": 2576,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "deliverYogi",
+      "line": 2577,
+      "markers": [
+        "helper",
+        "yogi-helper"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "registerTools",
+      "line": 2580,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "agentHomeTiles",
+      "line": 2594,
+      "markers": [
+        "agent"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "openAgentConnection",
+      "line": 2595,
+      "markers": [
+        "agent-cancel",
+        "agent-install-cancel",
+        "agent-install-confirm",
+        "agent-install-open",
+        "agent-install-status",
+        "provider"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "addParticipant",
+      "line": 2607,
+      "markers": [
+        "cancel",
+        "confirm",
+        "delete",
+        "image-create",
+        "image-preview",
+        "random-category",
+        "select-agent"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "agentProfile",
+      "line": 2630,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "coworkerTiles",
+      "line": 2633,
+      "markers": [
+        "coworker"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "participantSectionStart",
+      "line": 2635,
+      "markers": [
+        "participant-toggle"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "participantSection",
+      "line": 2636,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "coworkerChat",
+      "line": 2638,
+      "markers": [
+        "close",
+        "coworker"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "coworkerHover",
+      "line": 2640,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "participantHover",
+      "line": 2642,
+      "markers": [
+        "owned-helper"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "dismissParticipantCard",
+      "line": 2644,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "collapseParticipantCard",
+      "line": 2645,
+      "markers": [
+        "close"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "participantHeadingIcon",
+      "line": 2649,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "participantHasNews",
+      "line": 2650,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "participantNewsKey",
+      "line": 2651,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "attachParticipantNews",
+      "line": 2652,
+      "markers": [
+        "agent",
+        "coworker",
+        "helper"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "readParticipantNews",
+      "line": 2653,
+      "markers": [
+        "participant-toggle"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "confirmAgentDisconnect",
+      "line": 2655,
+      "markers": [
+        "cancel-disconnect",
+        "confirm-disconnect"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "agentTileContext",
+      "line": 2659,
+      "markers": [
+        "agent-pause"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "toggleUserNotifications",
+      "line": 2663,
+      "markers": [
+        "coworker"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "userTileContext",
+      "line": 2666,
+      "markers": [
+        "agent",
+        "blocked-coworker",
+        "cancel",
+        "coworker",
+        "remove"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "agentDetails",
+      "line": 2671,
+      "markers": [
+        "agent-disconnect",
+        "agent-pause",
+        "owned-helper"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "ownedHelperHover",
+      "line": 2673,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "expandOwnedHelper",
+      "line": 2675,
+      "markers": [
+        "close"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "projectHelperOrder",
+      "line": 2677,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "helperAgentGroups",
+      "line": 2678,
+      "markers": [
+        "add-helper-agent",
+        "helper-agent"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "refreshHelperProjectIdentity",
+      "line": 2679,
+      "markers": [
+        "helper",
+        "role-helper"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "changeHelperProjectRole",
+      "line": 2683,
+      "markers": [
+        "helper-role"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "removeHelper",
+      "line": 2684,
+      "markers": [
+        "helper",
+        "owned-helper",
+        "participant-toggle"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "confirmHelperRemoval",
+      "line": 2691,
+      "markers": [
+        "cancel",
+        "remove"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "userIsListed",
+      "line": 2692,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "removeUser",
+      "line": 2693,
+      "markers": [
+        "coworker"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "helperTileContext",
+      "line": 2694,
+      "markers": [
+        "favorite-helper",
+        "helper"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "toggleHelperFavorite",
+      "line": 2699,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "helperProfileMarkup",
+      "line": 2701,
+      "markers": [
+        "role-helper"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "setupHelperWindowControls",
+      "line": 2705,
+      "markers": [
+        "cancel",
+        "close",
+        "confirm",
+        "helper",
+        "role-helper"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "clampHelperCompanion",
+      "line": 2706,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "pinHelperCompanion",
+      "line": 2719,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "focusHelperSidebar",
+      "line": 2722,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "findPinnedHelper",
+      "line": 2723,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "focusPinnedHelper",
+      "line": 2724,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "raiseParticipantWindow",
+      "line": 2726,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "updateCoworkerCount",
+      "line": 2731,
+      "markers": [
+        "participant-toggle"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "unblockCoworker",
+      "line": 2732,
+      "markers": [
+        "coworker"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "openAddFriend",
+      "line": 2733,
+      "markers": [
+        "blocked-coworker",
+        "unblock"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "participantSidebarMarkup",
+      "line": 2734,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "bindParticipantSidebar",
+      "line": 2735,
+      "markers": [
+        "add-helper-agent",
+        "agent",
+        "coworker",
+        "favorite-helper",
+        "helper",
+        "participant-toggle"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "setupParticipantResize",
+      "line": 2737,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "openMyInfo",
+      "line": 2739,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "openAppSettings",
+      "line": 2740,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "browserDropDestination",
+      "line": 2742,
+      "markers": [
+        "directory-id",
+        "object",
+        "tree-id"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "canMoveBrowserObject",
+      "line": 2747,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "moveBrowserObject",
+      "line": 2754,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "setupBrowserObjectDrop",
+      "line": 2763,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "setupBrowserTreeResize",
+      "line": 2777,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "bindWorkerCount",
+      "line": 2796,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "setupBrowserTree",
+      "line": 2815,
+      "markers": [
+        "object",
+        "tree-id"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "updateBrowserTreeSelection",
+      "line": 2816,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "browserTreeCreateMenu",
+      "line": 2817,
+      "markers": [
+        "tree-id"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "browserCompare",
+      "line": 2830,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "browserCreateMenu",
+      "line": 2831,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "setupBrowserActions",
+      "line": 2832,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "uniqueObjectName",
+      "line": 2833,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "beginBrowserCreate",
+      "line": 2839,
+      "markers": [
+        "list",
+        "row"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "openHelperSidebarChat",
+      "line": 2841,
+      "markers": [
+        "helper"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "browserWorker",
+      "line": 2847,
+      "markers": [
+        "helper-chat"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "hideWorkerIdentity",
+      "line": 2849,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "showWorkerIdentity",
+      "line": 2850,
+      "markers": [
+        "helper-chat"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "browserFolderWorkers",
+      "line": 2857,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "browserExpand",
+      "line": 2858,
+      "markers": [
+        "enter-concept"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "app.js",
+      "name": "browserDataItems",
+      "line": 2859,
+      "markers": [
+        "detail-path",
+        "edit",
+        "field",
+        "fields",
+        "identity",
+        "inline-name",
+        "list",
+        "name",
+        "obj",
+        "obj-path",
+        "object",
+        "property-detail",
+        "row"
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "source": "blueprint.js",
+      "name": "emptyFunctionBlueprint",
+      "line": 1,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "blueprint.js",
+      "name": "functionBlueprintFromDescription",
+      "line": 4,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "blueprint.js",
+      "name": "functionBlueprintTarget",
+      "line": 13,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "blueprint.js",
+      "name": "createFeatureAuthoringView",
+      "line": 19,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "blueprint.js",
+      "name": "openFeatureAuthoring",
+      "line": 24,
+      "markers": [],
+      "status": "inventory-only"
+    },
+    {
+      "source": "blueprint.js",
+      "name": "renderFunctionBlueprint",
+      "line": 31,
+      "markers": [
+        "bp-add",
+        "bp-delete",
+        "bp-fit",
+        "bp-link",
+        "bp-node",
+        "bp-percent",
+        "bp-remove",
+        "bp-save",
+        "bp-zoom",
+        "field",
+        "node",
+        "port",
+        "side"
+      ],
+      "status": "inventory-only"
+    }
+  ],
+  "dataMarkers": [
+    {
+      "name": "add",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "openSchema",
+          "line": 2531
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "add-helper-agent",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "helperAgentGroups",
+          "line": 2678
+        },
+        {
+          "source": "app.js",
+          "function": "bindParticipantSidebar",
+          "line": 2735
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "agent",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "yogiTargetReference",
+          "line": 430
+        },
+        {
+          "source": "app.js",
+          "function": "agentHomeTiles",
+          "line": 2594
+        },
+        {
+          "source": "app.js",
+          "function": "attachParticipantNews",
+          "line": 2652
+        },
+        {
+          "source": "app.js",
+          "function": "userTileContext",
+          "line": 2666
+        },
+        {
+          "source": "app.js",
+          "function": "bindParticipantSidebar",
+          "line": 2735
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "agent-cancel",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "openAgentConnection",
+          "line": 2595
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "agent-disconnect",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "agentDetails",
+          "line": 2671
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "agent-install-cancel",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "openAgentConnection",
+          "line": 2595
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "agent-install-confirm",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "openAgentConnection",
+          "line": 2595
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "agent-install-open",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "openAgentConnection",
+          "line": 2595
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "agent-install-status",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "openAgentConnection",
+          "line": 2595
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "agent-pause",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "agentTileContext",
+          "line": 2659
+        },
+        {
+          "source": "app.js",
+          "function": "agentDetails",
+          "line": 2671
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "app-close",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "setupAppWindowControls",
+          "line": 1359
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "app-maximize",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "syncAppWindowSize",
+          "line": 1355
+        },
+        {
+          "source": "app.js",
+          "function": "setupAppWindowControls",
+          "line": 1359
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "app-minimize",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "setupAppWindowControls",
+          "line": 1359
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "apply",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "openReview",
+          "line": 2530
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "attach",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "openIssues",
+          "line": 2522
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "behavior-source",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderObjectFunctions",
+          "line": 2037
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "behavior-toggle",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderObjectFunctions",
+          "line": 2037
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "behavior-unlink",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderObjectFunctions",
+          "line": 2037
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "blocked-coworker",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "userTileContext",
+          "line": 2666
+        },
+        {
+          "source": "app.js",
+          "function": "openAddFriend",
+          "line": 2733
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "bp-add",
+      "sourceOwners": [
+        {
+          "source": "blueprint.js",
+          "function": "renderFunctionBlueprint",
+          "line": 31
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "bp-delete",
+      "sourceOwners": [
+        {
+          "source": "blueprint.js",
+          "function": "renderFunctionBlueprint",
+          "line": 31
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "bp-fit",
+      "sourceOwners": [
+        {
+          "source": "blueprint.js",
+          "function": "renderFunctionBlueprint",
+          "line": 31
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "bp-link",
+      "sourceOwners": [
+        {
+          "source": "blueprint.js",
+          "function": "renderFunctionBlueprint",
+          "line": 31
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "bp-node",
+      "sourceOwners": [
+        {
+          "source": "blueprint.js",
+          "function": "renderFunctionBlueprint",
+          "line": 31
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "bp-percent",
+      "sourceOwners": [
+        {
+          "source": "blueprint.js",
+          "function": "renderFunctionBlueprint",
+          "line": 31
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "bp-remove",
+      "sourceOwners": [
+        {
+          "source": "blueprint.js",
+          "function": "renderFunctionBlueprint",
+          "line": 31
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "bp-save",
+      "sourceOwners": [
+        {
+          "source": "blueprint.js",
+          "function": "renderFunctionBlueprint",
+          "line": 31
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "bp-zoom",
+      "sourceOwners": [
+        {
+          "source": "blueprint.js",
+          "function": "renderFunctionBlueprint",
+          "line": 31
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "browser-apply",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "confirmBrowserChanges",
+          "line": 1546
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "browser-confirm",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "updateBrowserActions",
+          "line": 1524
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "browser-detail",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "updateChildBrowserDetail",
+          "line": 1562
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "browser-discard",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "updateBrowserActions",
+          "line": 1524
+        },
+        {
+          "source": "app.js",
+          "function": "confirmBrowserChanges",
+          "line": 1546
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "browser-later",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "confirmBrowserChanges",
+          "line": 1546
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "browser-save",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "mountCollectionCommitActions",
+          "line": 1486
+        },
+        {
+          "source": "app.js",
+          "function": "updateBrowserActions",
+          "line": 1524
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "browser-workers",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "updateBrowserHeaderWorkers",
+          "line": 1518
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "cancel",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "bindHomePackBrowser",
+          "line": 170
+        },
+        {
+          "source": "app.js",
+          "function": "openPackExport",
+          "line": 410
+        },
+        {
+          "source": "app.js",
+          "function": "deleteWorkspaceNodes",
+          "line": 924
+        },
+        {
+          "source": "app.js",
+          "function": "editIconValue",
+          "line": 1721
+        },
+        {
+          "source": "app.js",
+          "function": "editObjectMethod",
+          "line": 1817
+        },
+        {
+          "source": "app.js",
+          "function": "openAugment",
+          "line": 2547
+        },
+        {
+          "source": "app.js",
+          "function": "addParticipant",
+          "line": 2607
+        },
+        {
+          "source": "app.js",
+          "function": "userTileContext",
+          "line": 2666
+        },
+        {
+          "source": "app.js",
+          "function": "confirmHelperRemoval",
+          "line": 2691
+        },
+        {
+          "source": "app.js",
+          "function": "setupHelperWindowControls",
+          "line": 2705
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "cancel-disconnect",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "confirmAgentDisconnect",
+          "line": 2655
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "cancel-yogi",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderProjectYogiAttachments",
+          "line": 427
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "category-edit",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "mountBrowserTitlePath",
+          "line": 1569
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "change",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "openReview",
+          "line": 2530
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "close",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "modal",
+          "line": 124
+        },
+        {
+          "source": "app.js",
+          "function": "openWindow",
+          "line": 472
+        },
+        {
+          "source": "app.js",
+          "function": "mountCollectionCommitActions",
+          "line": 1486
+        },
+        {
+          "source": "app.js",
+          "function": "chooseInformation",
+          "line": 2146
+        },
+        {
+          "source": "app.js",
+          "function": "choosePropertyReference",
+          "line": 2178
+        },
+        {
+          "source": "app.js",
+          "function": "openEditor",
+          "line": 2480
+        },
+        {
+          "source": "app.js",
+          "function": "coworkerChat",
+          "line": 2638
+        },
+        {
+          "source": "app.js",
+          "function": "collapseParticipantCard",
+          "line": 2645
+        },
+        {
+          "source": "app.js",
+          "function": "expandOwnedHelper",
+          "line": 2675
+        },
+        {
+          "source": "app.js",
+          "function": "setupHelperWindowControls",
+          "line": 2705
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "close-confirm",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "bindHomePackBrowser",
+          "line": 170
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "complex",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "objectTable",
+          "line": 1600
+        },
+        {
+          "source": "app.js",
+          "function": "bindDataInputs",
+          "line": 1601
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "confirm",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "deleteWorkspaceNodes",
+          "line": 924
+        },
+        {
+          "source": "app.js",
+          "function": "updateObjectHeaderControls",
+          "line": 1746
+        },
+        {
+          "source": "app.js",
+          "function": "openEditor",
+          "line": 2480
+        },
+        {
+          "source": "app.js",
+          "function": "showYogiContents",
+          "line": 2566
+        },
+        {
+          "source": "app.js",
+          "function": "openYogi",
+          "line": 2569
+        },
+        {
+          "source": "app.js",
+          "function": "addParticipant",
+          "line": 2607
+        },
+        {
+          "source": "app.js",
+          "function": "setupHelperWindowControls",
+          "line": 2705
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "confirm-disconnect",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "confirmAgentDisconnect",
+          "line": 2655
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "confirm-publish",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "openPackExport",
+          "line": 410
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "confirm-remove",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "bindHomePackBrowser",
+          "line": 170
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "coworker",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "coworkerTiles",
+          "line": 2633
+        },
+        {
+          "source": "app.js",
+          "function": "coworkerChat",
+          "line": 2638
+        },
+        {
+          "source": "app.js",
+          "function": "attachParticipantNews",
+          "line": 2652
+        },
+        {
+          "source": "app.js",
+          "function": "toggleUserNotifications",
+          "line": 2663
+        },
+        {
+          "source": "app.js",
+          "function": "userTileContext",
+          "line": 2666
+        },
+        {
+          "source": "app.js",
+          "function": "removeUser",
+          "line": 2693
+        },
+        {
+          "source": "app.js",
+          "function": "unblockCoworker",
+          "line": 2732
+        },
+        {
+          "source": "app.js",
+          "function": "bindParticipantSidebar",
+          "line": 2735
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "create-variation",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderObjectVariations",
+          "line": 2490
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "decoration-resize",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "bindWorkspaceNodeInteraction",
+          "line": 547
+        },
+        {
+          "source": "app.js",
+          "function": "renderWorkspaceDecorations",
+          "line": 960
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "defer",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "openAugment",
+          "line": 2547
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "delete",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "openYogi",
+          "line": 2569
+        },
+        {
+          "source": "app.js",
+          "function": "addParticipant",
+          "line": 2607
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "delete-selection",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "deleteSelectedObjects",
+          "line": 1270
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "density",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderBrowser",
+          "line": 1588
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "detail-cancel",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "openOwnFunctionPopover",
+          "line": 1922
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "detail-close",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "openOwnFunctionPopover",
+          "line": 1922
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "detail-description",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "openOwnFunctionPopover",
+          "line": 1922
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "detail-path",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "browserDataItems",
+          "line": 2859
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "directory-id",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "browserDropDestination",
+          "line": 2742
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "dirty",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "syncObjectInputs",
+          "line": 1647
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "discard",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "updateObjectHeaderControls",
+          "line": 1746
+        },
+        {
+          "source": "app.js",
+          "function": "openEditor",
+          "line": 2480
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "drop-helper",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "setupDropTargets",
+          "line": 436
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "drop-player",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "setupDropTargets",
+          "line": 436
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "edge",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "openMap",
+          "line": 2532
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "edit",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "objectTable",
+          "line": 1600
+        },
+        {
+          "source": "app.js",
+          "function": "bindDataInputs",
+          "line": 1601
+        },
+        {
+          "source": "app.js",
+          "function": "browserDataItems",
+          "line": 2859
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "enter",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderHomeProjectList",
+          "line": 211
+        },
+        {
+          "source": "app.js",
+          "function": "yogiTargetReference",
+          "line": 430
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "enter-concept",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderBrowserItems",
+          "line": 1599
+        },
+        {
+          "source": "app.js",
+          "function": "browserExpand",
+          "line": 2858
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "enum-add",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderEnumDefinition",
+          "line": 2465
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "enum-choice",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "openEnumDropdown",
+          "line": 1382
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "enum-dropdown",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "enumSelectMarkup",
+          "line": 1395
+        },
+        {
+          "source": "app.js",
+          "function": "bindEnumDropdowns",
+          "line": 1396
+        },
+        {
+          "source": "app.js",
+          "function": "syncEnumDropdownValues",
+          "line": 1397
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "enum-field",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "enumSelectMarkup",
+          "line": 1395
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "enum-icon",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderEnumDefinition",
+          "line": 2465
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "enum-name",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "undoProjectEdit",
+          "line": 29
+        },
+        {
+          "source": "app.js",
+          "function": "focusNextEditingInput",
+          "line": 2286
+        },
+        {
+          "source": "app.js",
+          "function": "renderEnumDefinition",
+          "line": 2465
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "enum-object",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "enumSelectMarkup",
+          "line": 1395
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "enum-path",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "enumSelectMarkup",
+          "line": 1395
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "enum-remove",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderEnumDefinition",
+          "line": 2465
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "enum-value",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderEnumDefinition",
+          "line": 2465
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "execute-yogi",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "viewSentYogi",
+          "line": 433
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "favorite",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderHomeProjectList",
+          "line": 211
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "favorite-helper",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "homeHelper",
+          "line": 161
+        },
+        {
+          "source": "app.js",
+          "function": "helperTileContext",
+          "line": 2694
+        },
+        {
+          "source": "app.js",
+          "function": "bindParticipantSidebar",
+          "line": 2735
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "feature-author",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderFunctionSignatureEditor",
+          "line": 2327
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "feature-import",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "openModuleFunctionImport",
+          "line": 1893
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "feature-import-search",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "openModuleFunctionImport",
+          "line": 1893
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "feature-open",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderObjectFunctions",
+          "line": 2037
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "field",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "openSchema",
+          "line": 2531
+        },
+        {
+          "source": "app.js",
+          "function": "browserDataItems",
+          "line": 2859
+        },
+        {
+          "source": "blueprint.js",
+          "function": "renderFunctionBlueprint",
+          "line": 31
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "fields",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "isolateInputDrag",
+          "line": 1624
+        },
+        {
+          "source": "app.js",
+          "function": "browserDataItems",
+          "line": 2859
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "fold",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "openWindow",
+          "line": 472
+        },
+        {
+          "source": "app.js",
+          "function": "mountCollectionCommitActions",
+          "line": 1486
+        },
+        {
+          "source": "app.js",
+          "function": "openEditor",
+          "line": 2480
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "function-add",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderObjectFunctions",
+          "line": 2037
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "function-cancel",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "openObjectFunctionDetail",
+          "line": 1901
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "function-collapse-key",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "bindFunctionNodeCollapse",
+          "line": 2007
+        },
+        {
+          "source": "app.js",
+          "function": "renderObjectFunctions",
+          "line": 2037
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "function-delete",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "functionNodeMarkup",
+          "line": 1982
+        },
+        {
+          "source": "app.js",
+          "function": "renderObjectFunctions",
+          "line": 2037
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "function-description",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "openObjectFunctionDetail",
+          "line": 1901
+        },
+        {
+          "source": "app.js",
+          "function": "receivedFunctionName",
+          "line": 1940
+        },
+        {
+          "source": "app.js",
+          "function": "bindFunctionDescriptionHints",
+          "line": 2015
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "function-drag",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "functionNodeMarkup",
+          "line": 1982
+        },
+        {
+          "source": "app.js",
+          "function": "bindOwnFunctionReorder",
+          "line": 1986
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "function-icon",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "functionNodeMarkup",
+          "line": 1982
+        },
+        {
+          "source": "app.js",
+          "function": "renderObjectFunctions",
+          "line": 2037
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "function-import",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "functionWritingActionsMarkup",
+          "line": 1980
+        },
+        {
+          "source": "app.js",
+          "function": "renderObjectFunctions",
+          "line": 2037
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "function-pin-name",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "functionPinsMarkup",
+          "line": 1942
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "function-pin-type",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "functionPinsMarkup",
+          "line": 1942
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "function-pin-unit",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "functionPinsMarkup",
+          "line": 1942
+        },
+        {
+          "source": "app.js",
+          "function": "bindFunctionOutputPins",
+          "line": 1946
+        },
+        {
+          "source": "app.js",
+          "function": "bindFunctionPinHints",
+          "line": 1965
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "function-toggle",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "functionCollapseToggleMarkup",
+          "line": 1981
+        },
+        {
+          "source": "app.js",
+          "function": "bindFunctionNodeCollapse",
+          "line": 2007
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "function-write-description",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "functionWritingActionsMarkup",
+          "line": 1980
+        },
+        {
+          "source": "app.js",
+          "function": "renderObjectFunctions",
+          "line": 2037
+        },
+        {
+          "source": "app.js",
+          "function": "renderFeatureDefinition",
+          "line": 2343
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "function-write-direct",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "functionWritingActionsMarkup",
+          "line": 1980
+        },
+        {
+          "source": "app.js",
+          "function": "renderObjectFunctions",
+          "line": 2037
+        },
+        {
+          "source": "app.js",
+          "function": "renderFeatureDefinition",
+          "line": 2343
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "functions-collapse",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderObjectFunctions",
+          "line": 2037
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "grade",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "augmentSelectionSummary",
+          "line": 2543
+        },
+        {
+          "source": "app.js",
+          "function": "openAugment",
+          "line": 2547
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "helper",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "homeHelper",
+          "line": 161
+        },
+        {
+          "source": "app.js",
+          "function": "yogiTargetReference",
+          "line": 430
+        },
+        {
+          "source": "app.js",
+          "function": "setupHelperWorkspaceDrags",
+          "line": 1077
+        },
+        {
+          "source": "app.js",
+          "function": "yogiDropHelper",
+          "line": 2570
+        },
+        {
+          "source": "app.js",
+          "function": "deliverYogi",
+          "line": 2577
+        },
+        {
+          "source": "app.js",
+          "function": "attachParticipantNews",
+          "line": 2652
+        },
+        {
+          "source": "app.js",
+          "function": "refreshHelperProjectIdentity",
+          "line": 2679
+        },
+        {
+          "source": "app.js",
+          "function": "removeHelper",
+          "line": 2684
+        },
+        {
+          "source": "app.js",
+          "function": "helperTileContext",
+          "line": 2694
+        },
+        {
+          "source": "app.js",
+          "function": "setupHelperWindowControls",
+          "line": 2705
+        },
+        {
+          "source": "app.js",
+          "function": "bindParticipantSidebar",
+          "line": 2735
+        },
+        {
+          "source": "app.js",
+          "function": "openHelperSidebarChat",
+          "line": 2841
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "helper-agent",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "helperAgentGroups",
+          "line": 2678
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "helper-chat",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "browserWorker",
+          "line": 2847
+        },
+        {
+          "source": "app.js",
+          "function": "showWorkerIdentity",
+          "line": 2850
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "helper-drop-index",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "createProject",
+          "line": 243
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "helper-role",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "changeHelperProjectRole",
+          "line": 2683
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "icon-choice",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "editIconValue",
+          "line": 1721
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "identity",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderBrowserItems",
+          "line": 1599
+        },
+        {
+          "source": "app.js",
+          "function": "browserDataItems",
+          "line": 2859
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "image-create",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "addParticipant",
+          "line": 2607
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "image-preview",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "addParticipant",
+          "line": 2607
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "imported-feature-open",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "functionNodeMarkup",
+          "line": 1982
+        },
+        {
+          "source": "app.js",
+          "function": "renderObjectFunctions",
+          "line": 2037
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "index",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "openSchema",
+          "line": 2531
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "inherited-function-source",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderObjectFunctions",
+          "line": 2037
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "inherited-function-toggle",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderObjectFunctions",
+          "line": 2037
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "inherited-key",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderObjectSchema",
+          "line": 2357
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "inline-description",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "functionFlowMarkup",
+          "line": 1976
+        },
+        {
+          "source": "app.js",
+          "function": "bindFunctionDescriptionHints",
+          "line": 2015
+        },
+        {
+          "source": "app.js",
+          "function": "renderObjectFunctions",
+          "line": 2037
+        },
+        {
+          "source": "app.js",
+          "function": "renderFeatureDefinition",
+          "line": 2343
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "inline-method",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "bindOwnFunctionReorder",
+          "line": 1986
+        },
+        {
+          "source": "app.js",
+          "function": "bindFunctionDescriptionHints",
+          "line": 2015
+        },
+        {
+          "source": "app.js",
+          "function": "renderObjectFunctions",
+          "line": 2037
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "inline-name",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "undoProjectEdit",
+          "line": 29
+        },
+        {
+          "source": "app.js",
+          "function": "renderBrowserItems",
+          "line": 1599
+        },
+        {
+          "source": "app.js",
+          "function": "beginBrowserInlineRename",
+          "line": 1671
+        },
+        {
+          "source": "app.js",
+          "function": "renameObject",
+          "line": 1677
+        },
+        {
+          "source": "app.js",
+          "function": "functionNodeMarkup",
+          "line": 1982
+        },
+        {
+          "source": "app.js",
+          "function": "bindFunctionDescriptionHints",
+          "line": 2015
+        },
+        {
+          "source": "app.js",
+          "function": "renderObjectFunctions",
+          "line": 2037
+        },
+        {
+          "source": "app.js",
+          "function": "focusNextEditingInput",
+          "line": 2286
+        },
+        {
+          "source": "app.js",
+          "function": "browserDataItems",
+          "line": 2859
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "issue",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "openIssues",
+          "line": 2522
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "key",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "yogiTargetReference",
+          "line": 430
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "link-id",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "linkObjectBehavior",
+          "line": 1839
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "link-search",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "linkObjectBehavior",
+          "line": 1839
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "list",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "beginBrowserCreate",
+          "line": 2839
+        },
+        {
+          "source": "app.js",
+          "function": "browserDataItems",
+          "line": 2859
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "manage",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderHomeProjectList",
+          "line": 211
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "method-body",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "editObjectMethod",
+          "line": 1817
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "method-description",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "editObjectMethod",
+          "line": 1817
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "method-id",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderObjectFunctions",
+          "line": 2037
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "method-name",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "editObjectMethod",
+          "line": 1817
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "method-parameters",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "editObjectMethod",
+          "line": 1817
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "method-property",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "editObjectMethod",
+          "line": 1817
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "method-returns",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "editObjectMethod",
+          "line": 1817
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "module-link",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderObjectFunctions",
+          "line": 2037
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "module-method",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "bindFunctionDescriptionHints",
+          "line": 2015
+        },
+        {
+          "source": "app.js",
+          "function": "renderObjectFunctions",
+          "line": 2037
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "module-source",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderObjectFunctions",
+          "line": 2037
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "name",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "browserDataItems",
+          "line": 2859
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "name-input",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "beginBrowserInlineRename",
+          "line": 1671
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "new",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderBrowser",
+          "line": 1588
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "node",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "yogiTargetReference",
+          "line": 430
+        },
+        {
+          "source": "app.js",
+          "function": "openMap",
+          "line": 2532
+        },
+        {
+          "source": "app.js",
+          "function": "startYogiCapture",
+          "line": 2564
+        },
+        {
+          "source": "blueprint.js",
+          "function": "renderFunctionBlueprint",
+          "line": 31
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "obj",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "undoProjectEdit",
+          "line": 29
+        },
+        {
+          "source": "app.js",
+          "function": "yogiTargetReference",
+          "line": 430
+        },
+        {
+          "source": "app.js",
+          "function": "vectorValueMarkup",
+          "line": 1376
+        },
+        {
+          "source": "app.js",
+          "function": "renderObjectTable",
+          "line": 1429
+        },
+        {
+          "source": "app.js",
+          "function": "objectTable",
+          "line": 1600
+        },
+        {
+          "source": "app.js",
+          "function": "bindDataInputs",
+          "line": 1601
+        },
+        {
+          "source": "app.js",
+          "function": "syncObjectInputs",
+          "line": 1647
+        },
+        {
+          "source": "app.js",
+          "function": "functionFlowMarkup",
+          "line": 1976
+        },
+        {
+          "source": "app.js",
+          "function": "openEditor",
+          "line": 2480
+        },
+        {
+          "source": "app.js",
+          "function": "startYogiCapture",
+          "line": 2564
+        },
+        {
+          "source": "app.js",
+          "function": "browserDataItems",
+          "line": 2859
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "obj-path",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "vectorValueMarkup",
+          "line": 1376
+        },
+        {
+          "source": "app.js",
+          "function": "renderObjectTable",
+          "line": 1429
+        },
+        {
+          "source": "app.js",
+          "function": "browserDataItems",
+          "line": 2859
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "object",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "setupWorkspaceNavigation",
+          "line": 312
+        },
+        {
+          "source": "app.js",
+          "function": "yogiTargetReference",
+          "line": 430
+        },
+        {
+          "source": "app.js",
+          "function": "objectSelectionRows",
+          "line": 1249
+        },
+        {
+          "source": "app.js",
+          "function": "paintObjectSelection",
+          "line": 1251
+        },
+        {
+          "source": "app.js",
+          "function": "renderBrowserItems",
+          "line": 1599
+        },
+        {
+          "source": "app.js",
+          "function": "objectTable",
+          "line": 1600
+        },
+        {
+          "source": "app.js",
+          "function": "refreshHoveredReference",
+          "line": 1658
+        },
+        {
+          "source": "app.js",
+          "function": "updateReference",
+          "line": 1659
+        },
+        {
+          "source": "app.js",
+          "function": "beginBrowserInlineRename",
+          "line": 1671
+        },
+        {
+          "source": "app.js",
+          "function": "startYogiCapture",
+          "line": 2564
+        },
+        {
+          "source": "app.js",
+          "function": "browserDropDestination",
+          "line": 2742
+        },
+        {
+          "source": "app.js",
+          "function": "setupBrowserTree",
+          "line": 2815
+        },
+        {
+          "source": "app.js",
+          "function": "browserDataItems",
+          "line": 2859
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "object-source-menu",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "setupWorkspaceNavigation",
+          "line": 312
+        },
+        {
+          "source": "app.js",
+          "function": "bindObjectSourceMenus",
+          "line": 1340
+        },
+        {
+          "source": "app.js",
+          "function": "updateObjectParentReference",
+          "line": 1367
+        },
+        {
+          "source": "app.js",
+          "function": "renderObjectFunctions",
+          "line": 2037
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "object-workers",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "updateObjectHeaderControls",
+          "line": 1746
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "own-functions-toggle",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderObjectFunctions",
+          "line": 2037
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "own-properties-toggle",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderObjectSchema",
+          "line": 2357
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "owned-helper",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "participantHover",
+          "line": 2642
+        },
+        {
+          "source": "app.js",
+          "function": "agentDetails",
+          "line": 2671
+        },
+        {
+          "source": "app.js",
+          "function": "removeHelper",
+          "line": 2684
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "pack",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "bindHomePackBrowser",
+          "line": 170
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "pack-browser-prefix",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "packBrowserMarkup",
+          "line": 169
+        },
+        {
+          "source": "app.js",
+          "function": "bindHomePackBrowser",
+          "line": 170
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "pack-delete",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "bindHomePackBrowser",
+          "line": 170
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "pack-download",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "bindHomePackBrowser",
+          "line": 170
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "pack-draft-toggle",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "bindHomePackBrowser",
+          "line": 170
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "pack-edit",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "bindHomePackBrowser",
+          "line": 170
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "pack-favorite",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "bindHomePackBrowser",
+          "line": 170
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "pack-group",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "packBrowserMarkup",
+          "line": 169
+        },
+        {
+          "source": "app.js",
+          "function": "showHome",
+          "line": 230
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "pack-publish",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "openPackExport",
+          "line": 410
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "pack-publish-outside",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "bindHomePackBrowser",
+          "line": 170
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "pack-remove-mine",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "bindHomePackBrowser",
+          "line": 170
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "pack-save",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "openPackExport",
+          "line": 410
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "pack-search-submit",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "packBrowserMarkup",
+          "line": 169
+        },
+        {
+          "source": "app.js",
+          "function": "bindHomePackBrowser",
+          "line": 170
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "pack-sort",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "packBrowserMarkup",
+          "line": 169
+        },
+        {
+          "source": "app.js",
+          "function": "bindHomePackBrowser",
+          "line": 170
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "pack-uninstall",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "bindHomePackBrowser",
+          "line": 170
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "pack-update",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "bindHomePackBrowser",
+          "line": 170
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "parent",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderBrowser",
+          "line": 1588
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "parent-choice",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "openObjectParentPicker",
+          "line": 1343
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "participant-toggle",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "yogiTargetReference",
+          "line": 430
+        },
+        {
+          "source": "app.js",
+          "function": "participantSectionStart",
+          "line": 2635
+        },
+        {
+          "source": "app.js",
+          "function": "readParticipantNews",
+          "line": 2653
+        },
+        {
+          "source": "app.js",
+          "function": "removeHelper",
+          "line": 2684
+        },
+        {
+          "source": "app.js",
+          "function": "updateCoworkerCount",
+          "line": 2731
+        },
+        {
+          "source": "app.js",
+          "function": "bindParticipantSidebar",
+          "line": 2735
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "pin-pending",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "functionPinsMarkup",
+          "line": 1942
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "pin-side",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "functionPinsMarkup",
+          "line": 1942
+        },
+        {
+          "source": "app.js",
+          "function": "bindFunctionOutputPins",
+          "line": 1946
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "port",
+      "sourceOwners": [
+        {
+          "source": "blueprint.js",
+          "function": "renderFunctionBlueprint",
+          "line": 31
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "project",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderHomeProjectList",
+          "line": 211
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "project-cancel",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "createProject",
+          "line": 243
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "project-helper",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "createProject",
+          "line": 243
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "project-tab",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "createProject",
+          "line": 243
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "prop",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "objectTable",
+          "line": 1600
+        },
+        {
+          "source": "app.js",
+          "function": "functionFlowMarkup",
+          "line": 1976
+        },
+        {
+          "source": "app.js",
+          "function": "openEditor",
+          "line": 2480
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "property-detail",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "bindDataInputs",
+          "line": 1601
+        },
+        {
+          "source": "app.js",
+          "function": "browserDataItems",
+          "line": 2859
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "property-icon",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderObjectSchema",
+          "line": 2357
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "property-id",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "navigatePropertyDefinition",
+          "line": 1320
+        },
+        {
+          "source": "app.js",
+          "function": "renderObjectSchema",
+          "line": 2357
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "property-name",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "undoProjectEdit",
+          "line": 29
+        },
+        {
+          "source": "app.js",
+          "function": "bindDataInputs",
+          "line": 1601
+        },
+        {
+          "source": "app.js",
+          "function": "setupPropertyReorder",
+          "line": 2262
+        },
+        {
+          "source": "app.js",
+          "function": "focusNextEditingInput",
+          "line": 2286
+        },
+        {
+          "source": "app.js",
+          "function": "renderObjectSchema",
+          "line": 2357
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "property-path",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "navigatePropertyDefinition",
+          "line": 1320
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "property-type",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderObjectSchema",
+          "line": 2357
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "property-value",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "undoProjectEdit",
+          "line": 29
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "proposal-cancel",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "openAugment",
+          "line": 2547
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "propose",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "openAugment",
+          "line": 2547
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "provider",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "openAgentConnection",
+          "line": 2595
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "random-category",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "addParticipant",
+          "line": 2607
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "ref-for",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderBrowserItems",
+          "line": 1599
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "reject",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "openReview",
+          "line": 2530
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "remove",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderWorkspaceDecorations",
+          "line": 960
+        },
+        {
+          "source": "app.js",
+          "function": "openSchema",
+          "line": 2531
+        },
+        {
+          "source": "app.js",
+          "function": "showYogiContents",
+          "line": 2566
+        },
+        {
+          "source": "app.js",
+          "function": "userTileContext",
+          "line": 2666
+        },
+        {
+          "source": "app.js",
+          "function": "confirmHelperRemoval",
+          "line": 2691
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "remove-helper",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "createProject",
+          "line": 243
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "reorder-scope",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "setupPropertyReorder",
+          "line": 2262
+        },
+        {
+          "source": "app.js",
+          "function": "focusNextEditingInput",
+          "line": 2286
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "reroll",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "openAugment",
+          "line": 2547
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "reset",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "openMap",
+          "line": 2532
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "resize",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "openWindow",
+          "line": 472
+        },
+        {
+          "source": "app.js",
+          "function": "bindWorkspaceNodeInteraction",
+          "line": 547
+        },
+        {
+          "source": "app.js",
+          "function": "setupWindowDrag",
+          "line": 712
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "result",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "functionForm",
+          "line": 1686
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "role-helper",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "yogiDropHelper",
+          "line": 2570
+        },
+        {
+          "source": "app.js",
+          "function": "refreshHelperProjectIdentity",
+          "line": 2679
+        },
+        {
+          "source": "app.js",
+          "function": "helperProfileMarkup",
+          "line": 2701
+        },
+        {
+          "source": "app.js",
+          "function": "setupHelperWindowControls",
+          "line": 2705
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "root",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderBrowser",
+          "line": 1588
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "row",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "beginBrowserCreate",
+          "line": 2839
+        },
+        {
+          "source": "app.js",
+          "function": "browserDataItems",
+          "line": 2859
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "run-export",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "openRunViewport",
+          "line": 419
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "run-pause",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "openRunViewport",
+          "line": 419
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "run-play",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "openRunViewport",
+          "line": 419
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "run-reference",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "showYogiContents",
+          "line": 2566
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "run-step",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "openRunViewport",
+          "line": 419
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "save",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "updateObjectHeaderControls",
+          "line": 1746
+        },
+        {
+          "source": "app.js",
+          "function": "openEditor",
+          "line": 2480
+        },
+        {
+          "source": "app.js",
+          "function": "openSchema",
+          "line": 2531
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "schema-add",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderObjectSchema",
+          "line": 2357
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "schema-collapse",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderObjectSchema",
+          "line": 2357
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "schema-remove",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderObjectSchema",
+          "line": 2357
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "select-agent",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "addParticipant",
+          "line": 2607
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "select-augment",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "openAugment",
+          "line": 2547
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "selected",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "createProject",
+          "line": 243
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "side",
+      "sourceOwners": [
+        {
+          "source": "blueprint.js",
+          "function": "renderFunctionBlueprint",
+          "line": 31
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "signature-add",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderFunctionSignatureEditor",
+          "line": 2327
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "signature-id",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderFunctionSignatureEditor",
+          "line": 2327
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "signature-kind",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "focusNextEditingInput",
+          "line": 2286
+        },
+        {
+          "source": "app.js",
+          "function": "renderFunctionSignatureEditor",
+          "line": 2327
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "signature-name",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "undoProjectEdit",
+          "line": 29
+        },
+        {
+          "source": "app.js",
+          "function": "focusNextEditingInput",
+          "line": 2286
+        },
+        {
+          "source": "app.js",
+          "function": "renderFunctionSignatureEditor",
+          "line": 2327
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "signature-remove",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderFunctionSignatureEditor",
+          "line": 2327
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "signature-type",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderFunctionSignatureEditor",
+          "line": 2327
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "startup-logo",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "showStart",
+          "line": 126
+        },
+        {
+          "source": "app.js",
+          "function": "transitionStartupHome",
+          "line": 138
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "startup-name",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "showStart",
+          "line": 126
+        },
+        {
+          "source": "app.js",
+          "function": "transitionStartupHome",
+          "line": 138
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "submit-proposal",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "openAugment",
+          "line": 2547
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "tab",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderBrowser",
+          "line": 1588
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "tab-id",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renameTable",
+          "line": 1279
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "table",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "objectTable",
+          "line": 1600
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "table-add",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderObjectTable",
+          "line": 1429
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "table-add-panel",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderObjectTable",
+          "line": 1429
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "table-add-results",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderObjectTable",
+          "line": 1429
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "table-add-search",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderObjectTable",
+          "line": 1429
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "table-add-toggle",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderObjectTable",
+          "line": 1429
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "table-column-resize",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "setupTableColumnResize",
+          "line": 1413
+        },
+        {
+          "source": "app.js",
+          "function": "renderObjectTable",
+          "line": 1429
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "table-definition",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "setupWorkspaceNavigation",
+          "line": 312
+        },
+        {
+          "source": "app.js",
+          "function": "renderObjectTable",
+          "line": 1429
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "table-drag",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "objectSelectionKeydown",
+          "line": 1262
+        },
+        {
+          "source": "app.js",
+          "function": "renderObjectTable",
+          "line": 1429
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "table-fill",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "tableFillHandleMarkup",
+          "line": 1428
+        },
+        {
+          "source": "app.js",
+          "function": "renderObjectTable",
+          "line": 1429
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "table-name",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renameTable",
+          "line": 1279
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "table-object",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "setupWorkspaceNavigation",
+          "line": 312
+        },
+        {
+          "source": "app.js",
+          "function": "objectSelectionRows",
+          "line": 1249
+        },
+        {
+          "source": "app.js",
+          "function": "paintObjectSelection",
+          "line": 1251
+        },
+        {
+          "source": "app.js",
+          "function": "renderObjectTable",
+          "line": 1429
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "table-object-menu",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderObjectTable",
+          "line": 1429
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "table-open",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderObjectTable",
+          "line": 1429
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "table-path",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderObjectTable",
+          "line": 1429
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "table-remove",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderObjectTable",
+          "line": 1429
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "table-reset",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderObjectTable",
+          "line": 1429
+        },
+        {
+          "source": "app.js",
+          "function": "syncObjectInputs",
+          "line": 1647
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "table-schema",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderObjectTable",
+          "line": 1429
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "table-search",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderObjectTable",
+          "line": 1429
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "table-sort",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "renderObjectTable",
+          "line": 1429
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "tree-id",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "paintObjectSelection",
+          "line": 1251
+        },
+        {
+          "source": "app.js",
+          "function": "beginBrowserInlineRename",
+          "line": 1671
+        },
+        {
+          "source": "app.js",
+          "function": "renameObject",
+          "line": 1677
+        },
+        {
+          "source": "app.js",
+          "function": "browserDropDestination",
+          "line": 2742
+        },
+        {
+          "source": "app.js",
+          "function": "setupBrowserTree",
+          "line": 2815
+        },
+        {
+          "source": "app.js",
+          "function": "browserTreeCreateMenu",
+          "line": 2817
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "type",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "openYogi",
+          "line": 2569
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "unattach",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "helperChat",
+          "line": 438
+        },
+        {
+          "source": "app.js",
+          "function": "renderWorkspaceHelper",
+          "line": 439
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "unblock",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "openAddFriend",
+          "line": 2733
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "value",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "openConflict",
+          "line": 2523
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "variations-collapse",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "bindVariationsCollapse",
+          "line": 2485
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "workspace-item",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "openWorkspaceNoteTab",
+          "line": 843
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "workspace-zoom",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "setupWorkspaceNavigation",
+          "line": 312
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "yogi",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "refreshChat",
+          "line": 435
+        },
+        {
+          "source": "app.js",
+          "function": "helperChat",
+          "line": 438
+        },
+        {
+          "source": "app.js",
+          "function": "openIssues",
+          "line": 2522
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "yogi-close",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "openYogi",
+          "line": 2569
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "yogi-helper",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "yogiDropHelper",
+          "line": 2570
+        },
+        {
+          "source": "app.js",
+          "function": "deliverYogi",
+          "line": 2577
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "yogi-id",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "startYogiCapture",
+          "line": 2564
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "zoom-preset",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "setupWorkspaceNavigation",
+          "line": 312
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "zoom-slider",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "setupWorkspaceNavigation",
+          "line": 312
+        }
+      ],
+      "status": "inventory-only"
+    },
+    {
+      "name": "zoom-value",
+      "sourceOwners": [
+        {
+          "source": "app.js",
+          "function": "setupWorkspaceNavigation",
+          "line": 312
+        }
+      ],
+      "status": "inventory-only"
+    }
+  ]
+}

@@ -494,3 +494,12 @@ body:has(.augment-overlay) .coworker-hover-card:not(.participant-expanded-card),
 
 .agent-connect-modal label.check{display:flex;align-items:flex-start;gap:9px;margin:10px 0;line-height:1.6}
 .agent-connect-modal [data-job-consent]{flex:none;width:auto;margin:5px 0 0}
+
+/* Actual custom proposals share the overlay without generated-card height or entrance animation. */
+.augment-overlay [data-custom-proposals]{margin-top:18px}
+.augment-overlay [data-custom-proposals] .augment-card{height:auto;min-height:0;max-height:none;animation:none;padding:14px 16px;margin:10px 0;gap:10px}
+.augment-overlay [data-custom-proposals] .augment-card h4{margin:0;max-height:7em;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.5}
+.augment-overlay [data-custom-proposals] .actions{display:flex;flex-wrap:wrap;gap:8px;margin:0}
+.augment-overlay [data-custom-proposals] .actions button{width:auto;margin:0}
+.augment-overlay:has([data-custom-proposals] article) .augment-empty{padding:12px 0}
+.augment-overlay .augment-footer-actions{flex-wrap:wrap;gap:8px}

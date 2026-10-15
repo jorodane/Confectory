@@ -2,6 +2,11 @@ using Confectory.Core;
 namespace Confectory.Tests;
 public sealed class SchemaEditingTests : TestCase
 {
+ public void test_v424_contract_module_semantic_review_retains_uncovered_source_acknowledgement()
+ {
+  var result=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/v424_authoring_summary.py"),Processes.DotNet(),Path.Combine(Fixture.Repo,"targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll")},timeoutSeconds:90);
+  True(result.ExitCode==0,result.Stdout+result.Stderr);True(result.Stdout.Contains("PASS authoring contract/module summaries"),result.Stdout+result.Stderr);
+ }
  public void test_signature_inputs_arrays_bounds_and_call_preflight_locality()
  {
   string sample=Path.Combine(f.Root,"schema-contract-consumer"),pack=Path.Combine(f.Root,"packs","schema-editing");Fixture.CopyTree(Path.Combine(Fixture.Repo,"examples","schema-editing"),sample);Fixture.CopyTree(Path.Combine(Fixture.Repo,"packs","schema-editing"),pack);

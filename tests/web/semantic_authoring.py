@@ -44,7 +44,11 @@ def verify_schema_authoring(page,project,mount,send,envelope,browser,browser_act
  state=mount();manifest_ids=[row['id'] for row in state['state']['units'] if row['kind']=='project'];assert len(manifest_ids)==1,state['state']['units'];assert send(envelope(state,'dispose'))['ok']
  page.locator('.browser-tools input[type="range"]').press('End');expect(page.locator('#density-label')).to_have_text('Data')
  for id in [prefix+'EntryMeta',prefix+'SceneSpec',prefix+'PreviewSettings',manifest_ids[0]]:page.locator('[data-review-id="'+id+'"]').check()
- browser_action('#review-group');expect(page.locator('[data-review-advanced]')).to_be_visible(timeout=30000);inspect_advanced_review(page)
+ browser_action('#review-group');expect(page.locator('[data-review-advanced]')).to_be_visible(timeout=30000)
+ # Applied schema relations now have a complete semantic explanation alongside data/field changes.
+ review=page.locator('.window[data-key="review"]');expect(review.locator('[data-additional-changes]')).to_have_count(0);expect(review.get_by_role('group',name='사용 관계',exact=True)).to_contain_text(prefix+'SceneSpec');expect(page.locator('#confirm')).to_be_enabled(timeout=30000)
+ review.locator('[data-review-advanced]').click();expect(review.locator('[data-source-after]')).to_have_count(4);expect(review.locator('[data-advanced-reviewed]')).to_have_count(0)
+
  reviewed=mount();registration=next(row['after'] for row in reviewed['state']['review']['units'] if row['kind']=='project');locator=re.search(r'element\s+PreviewSettings\s+object\s+"([^"]+)"',registration);assert locator;source_path=project/locator.group(1);assert send(envelope(reviewed,'dispose'))['ok'];assert not source_path.exists(),'creation or Review bypassed final Confirm'
  page.locator('#confirm').click();expect(page.locator('#status')).to_have_text('Source confirmed',timeout=180000)
  assert 'real nested value' in source_path.read_text();assert 'data ticks = [0, 5];' in source_path.read_text();assert 'enabled = true;' in source_path.read_text();assert 'element PreviewSettings object' in (project/'project.cpack').read_text()
@@ -85,7 +89,7 @@ def verify_concept_creation(page,project,mount,send,envelope,browser,browser_act
  page.locator('#source').fill('object '+prefix+'test { use schema '+prefix+'MissingCreationSchema; }\n')
  page.locator('#apply').click();expect(page.locator('#status')).to_have_text('Shared draft updated',timeout=30000)
  page.locator('#review').click();expect(page.locator('#review-creation')).to_be_visible(timeout=30000)
- page.locator('#review-creation').click();expect(page.locator('[data-review-advanced]')).to_be_visible(timeout=30000);inspect_advanced_review(page)
+ page.locator('#review-creation').click();expect(page.locator('[data-review-advanced]')).to_be_visible(timeout=30000);expect(page.locator('[data-additional-changes]')).to_have_count(0);expect(page.locator('.window[data-key="review"]').get_by_role('group',name='사용 관계',exact=True)).to_contain_text(prefix+'MissingCreationSchema');expect(page.locator('#confirm')).to_be_enabled(timeout=30000)
  page.locator('#confirm').click();expect(page.locator('#status')).to_have_text('최종 소스에 반영되지 않았습니다. 컴파일 검증·충돌 상태를 확인하고 초안을 수정한 뒤 다시 Review하세요.',timeout=180000)
  expect(page.locator('#confirm')).to_be_disabled();assert not source_path.exists()
  assert 'element test object' not in (project/'project.cpack').read_text()

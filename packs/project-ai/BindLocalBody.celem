@@ -1,0 +1,3 @@
+implementation Confectory.ProjectAI::BindLocalBody for Confectory.ProjectAI::BindLocal (string session,string config) -> void {
+import Confectory.Augment::BindProvider as Bind (string,string,string) -> void;
+body common "BindLocal.csbody";}

@@ -129,6 +129,15 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
      review.locator('[data-close]').click();expect(review).to_have_count(0)
      assert (project/'Score.celem').read_bytes()==original and (project/'project.cpack').read_bytes()==manifest and not (project/'elements/ReviewPending.celem').exists()
      print('PASS actual compact numeric row and fresh subset caption: complete creation group, exact new token, no source writes',flush=True)
+    elif kind=='local-augment':
+     from v424_local_augment import verify_local_augment
+     verify_local_augment(page,project,mount,send,envelope,settle,restart_actual_host)
+    elif kind=='declarations':
+     def open_browser():
+      page.locator('#nav').click();page.locator('.nav-menu button').filter(has_text='개념').first.click();expect(page.locator('#nav')).to_be_enabled();page.locator('#nav').click()
+     def browser_action(selector):page.locator('#browser-actions').click();page.locator(selector).click()
+     from v424_authoring import verify_declaration_kinds
+     verify_declaration_kinds(page,project,mount,send,envelope,settle,open_browser,browser_action,restart_actual_host)
     elif kind=='creation':
      def open_browser():
       page.locator('#nav').click();page.locator('.nav-menu button').filter(has_text='개념').first.click();expect(page.locator('#nav')).to_be_enabled();page.locator('#nav').click()

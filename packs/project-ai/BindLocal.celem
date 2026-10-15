@@ -1,0 +1,1 @@
+function Confectory.ProjectAI::BindLocal (string session,string config) -> void {provide Confectory.ProjectAI::BindLocal with Confectory.ProjectAI::BindLocalBody;}

@@ -1,0 +1,59 @@
+{
+  "phase": "v424 six authored kinds and local planning checkpoint; full v424 remains in progress",
+  "base": "114e00ffb35f6c3f4e5cdfd361ff37b535b1e2cf",
+  "validation": "Cumulative stage gates plus affected reruns; not a single final all-v424 suite",
+  "gates": [
+    {
+      "method": "WebUITests.test_actual_editor_v424_six_declaration_kinds_and_registration_review",
+      "run": "71972",
+      "status": "passed"
+    },
+    {
+      "method": "SchemaEditingTests.test_v424_contract_module_semantic_review_retains_uncovered_source_acknowledgement",
+      "run": "71972",
+      "status": "passed"
+    },
+    {
+      "method": "AugmentTests.test_chief_only_proposals_drafts_verification_history_and_locality",
+      "run": "40639",
+      "status": "passed"
+    },
+    {
+      "method": "WebUITests.test_actual_editor_and_button_game_common_web_transport_chromium",
+      "run": "18128",
+      "status": "passed"
+    },
+    {
+      "method": "WebUITests.test_actual_editor_new_concept_creation_save_confirm_reopen",
+      "run": "18128",
+      "status": "passed"
+    },
+    {
+      "method": "WebUITests.test_actual_editor_v318_helper_inputs_and_panels_cold_restart",
+      "run": "18128",
+      "status": "passed"
+    },
+    {
+      "method": "EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only",
+      "run": "18128",
+      "status": "passed"
+    },
+    {
+      "method": "WebUITests.test_actual_editor_v424_local_augment_without_account_or_model",
+      "run": "71300",
+      "status": "passed"
+    }
+  ],
+  "lastLocalGateSeconds": 56.638,
+  "providerEvidence": {
+    "beforeFreshPermission": "0 HTTP requests; no configured AI initially; explicit Worker binding/denied start/cancel dispatch nothing",
+    "afterFreshHelperPolicyAndApproval": "1 request to owned loopback Responses fixture returning 3 cards; new selected ordinary task remains ready",
+    "realAccountOrPaidCall": false
+  },
+  "pinCount": 19,
+  "screenshots": {
+    "local-custom.png": "3fa6016e210688b44990e75d6741c872df689981baceace74f7dd68f82c4520a",
+    "six-kinds.png": "3ec19eb73f4193f5a8d4d2b7c981aaef5b53206e2f6008120e3336250ea5e008"
+  },
+  "remaining": "Full action matrix, ready-task cancellation, paged history, structured declaration/graph/table/issue/recipient/runtime/participant/service work; ordinary checkout check follows commit"
+}

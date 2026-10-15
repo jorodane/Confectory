@@ -1,4 +1,3 @@
-implementation Confectory.ProjectAI::OpenBody for Confectory.ProjectAI::Open (string project, string projectId, string namespaceId, string helperContext, string config) -> string {
-import Confectory.DevelopmentTools::Open as ToolsOpen (string,string,string,string,string) -> string;
-import Confectory.PackWorkspace::Open as ViewOpen (string,string,string) -> string; import Confectory.DevelopmentTools::Close as ToolsClose (string) -> void;
+implementation Confectory.ProjectAI::OpenBody for Confectory.ProjectAI::Open (string project,string projectId,string namespaceId,string helperContext,string config) -> string {
+import Confectory.ProjectAI::OpenLocal as OpenLocal (string,string,string,string) -> string;
 body common "Open.csbody";}

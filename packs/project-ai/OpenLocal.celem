@@ -1,0 +1,1 @@
+function Confectory.ProjectAI::OpenLocal (string project,string projectId,string namespaceId,string helperContext) -> string {provide Confectory.ProjectAI::OpenLocal with Confectory.ProjectAI::OpenLocalBody;}

@@ -1,0 +1,3 @@
+implementation Confectory.ProjectAI::LocalProposalBody for Confectory.ProjectAI::LocalProposal (string session,string operation,string commandID,string expectedBatch,string text) -> string {
+import Confectory.Augment::Command as Command (string,string,string,string) -> string;
+body common "LocalProposal.csbody";}

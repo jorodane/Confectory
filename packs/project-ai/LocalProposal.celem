@@ -1,0 +1,1 @@
+function Confectory.ProjectAI::LocalProposal (string session,string operation,string commandID,string expectedBatch,string text) -> string {provide Confectory.ProjectAI::LocalProposal with Confectory.ProjectAI::LocalProposalBody;}

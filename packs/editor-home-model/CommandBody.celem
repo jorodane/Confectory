@@ -48,6 +48,9 @@ import Confectory.Agent.Codex::Verification as CodexVerification (string,string,
 import Confectory.ProjectAI::Permission as AIPermission (string,string) -> string;
 import Confectory.AIConnection::Authorize as Authorize (string,string,string) -> string;
 import Confectory.ProjectAI::Configuration as AIConfig (string,string) -> string;
+import Confectory.ProjectAI::BindLocal as AIBindLocal (string,string) -> void;
+import Confectory.ProjectAI::OpenLocal as AIOpenLocal (string,string,string,string) -> string;
+import Confectory.ProjectAI::LocalProposal as LocalProposal (string,string,string,string,string) -> string;
 import Confectory.ProjectAI::Open as AIOpen (string,string,string,string,string) -> string;
 import Confectory.ProjectAI::Start as AIStart (string,string,string,string) -> string;
 import Confectory.ProjectAI::Poll as AIPoll (string) -> string;
