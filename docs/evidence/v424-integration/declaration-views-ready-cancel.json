@@ -27,9 +27,16 @@
   "resourceCount": 20,
   "blueprint": "Architecture approved and documented. No source-of-truth graph assembler/activation claim in this checkpoint. Legacy sources preserved; next explicit feature UI reference pending.",
   "liveServiceAccountOrPaidCall": false,
-  "checkout": "To run on the implementation commit before publication",
+  "checkout": {
+    "method": "WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup",
+    "status": "passed",
+    "seconds": 59.373,
+    "commit": "ca9a78a2d7ca95d9abdb2b14a64cc4cd711012da",
+    "coverage": "ordinary Git clone and pull, CRLF retained checkout and fresh LF checkout, all 20 resources, actual EditorHome startup and tamper refusal"
+  },
   "screenshots": {
     "typed-declaration-views.png": "e0c598ff42d1447cff3518933098ec75f20bba0f75eaff6caf7a291624b8ae58",
     "paged-planning.png": "fa6ebd02a32435c2e321064c4b3d11b82d29628dc30cc156cbb0b079e575e662"
-  }
+  },
+  "implementationCommit": "ca9a78a2d7ca95d9abdb2b14a64cc4cd711012da"
 }
