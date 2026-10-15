@@ -1,0 +1,127 @@
+{
+  "scope": "v424 general schema properties exact values and local declaration actions",
+  "status": "passed; remaining v424 map and Blueprint UI/Task integration in progress",
+  "baseCommit": "ee3c964e40ab73162f0de0aaec0a55667059bd0a",
+  "gates": [
+    {
+      "name": "first exact scalar path and cold restart",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 66.146,
+      "cases": [
+        "WebUITests.test_actual_editor_v424_schema_exact_numeric_hash_and_cold_restart"
+      ],
+      "boundary": "Before local compound/reset/order UI extension. Exact scalar gate passed again after that extension in the later focused batch."
+    },
+    {
+      "name": "local actions and ordinary compiler Confirm",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 55.455,
+      "cases": [
+        "WebUITests.test_actual_editor_v424_schema_local_actions_and_compound_array_order"
+      ],
+      "boundary": "Before the final CSS action layout correction."
+    },
+    {
+      "name": "affected existing editor and ownership regression",
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 818.791,
+      "cases": [
+        "WebUITests.test_actual_editor_and_button_game_common_web_transport_chromium",
+        "WebUITests.test_actual_editor_new_concept_creation_save_confirm_reopen",
+        "WebUITests.test_actual_editor_v318_workspace_lifecycle_presentation_restart",
+        "WebUITests.test_actual_editor_v424_instant_table_typed_fill_cas_and_cold_restart",
+        "WebUITests.test_actual_editor_v424_typed_declaration_views_cas_confirm_and_restart",
+        "PackWorkspaceTests.test_development_tools_owned_scope_shared_draft_no_confirm_and_locality",
+        "PackWorkspaceTests.test_target_metadata_owned_sources_no_registry_execution",
+        "PackWorkspaceTests.test_two_contexts_revision_save_reopen_and_locality",
+        "EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only"
+      ],
+      "boundary": "Before the isolated final CSS action layout correction."
+    },
+    {
+      "name": "final horizontal action layout and actual local actions",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 42.707,
+      "cases": [
+        "WebUITests.test_actual_editor_v424_schema_local_actions_and_compound_array_order"
+      ],
+      "boundary": "Final implementation. Checks visible action group width, horizontal placement, in-window arrows and ordinary compiler Confirm."
+    }
+  ],
+  "overlap": "Cases repeat across stages; do not sum these counts. Final CSS-only change was followed by the affected UI gate rather than repeating unrelated tests.",
+  "verifiedBehavior": [
+    "scalar, metadata, array children and whole compound Int64 values preserved as raw JSON strings",
+    "displayed source hash and revision checked by exact edit requests",
+    "legacy value/revision callers remain supported",
+    "stale and cold-restored unapplied inputs preserve original hash; explicit read does not rebase input",
+    "effective metadata and data origins, inherited nested write boundaries and explicit root override",
+    "local description/metadata/data override removal reveals inherited values",
+    "array value order and local schema declaration field order/add/remove",
+    "syntax errors and stale structural commands preserve input and draft",
+    "independent schema View edits retain the primary selection",
+    "final sources untouched until ordinary group Review and compiler Confirm",
+    "actual horizontal action layout with all visible arrows within the owned window"
+  ],
+  "sourceFiles": [
+    {
+      "path": "examples/editor-home/WebBundle.csbody",
+      "sha256": "f71b8af1898d0a848c820b6c2f9c7f0f095773f6446f09f1fde5e18ff6a5ac7c"
+    },
+    {
+      "path": "examples/editor-home/WebInvoke.csbody",
+      "sha256": "44b46cb6beaec18ad555ea29769d3d8a0a77859689ff107f886a725f44aa99a9"
+    },
+    {
+      "path": "examples/editor-home/WebState.csbody",
+      "sha256": "ae24f749c320142bb1c9bfdc41e5aded7ecbd90a04748cf467323c04bec6f7d9"
+    },
+    {
+      "path": "examples/editor-home/ui/app.js",
+      "sha256": "4a72f12835ed3298c2f27e11fcbcf61d690c1affe411b965877e5b6df23197ec"
+    },
+    {
+      "path": "examples/editor-home/ui/consumer.css",
+      "sha256": "4766b6c5b6fb4e3787a24b6bb6fd9ae7ebf5a28f873713208611dcb4be23938f"
+    },
+    {
+      "path": "packs/editor-home-model/Command.csbody",
+      "sha256": "59d45f4173a3a780c29226fc73492245bebeacffa93fe1dd15a744af88333257"
+    },
+    {
+      "path": "packs/pack-workspace/Command.csbody",
+      "sha256": "fa924e97aed3ff30dd542f80193ab5e38a7094d4f4d3cc13c20882da97796010"
+    }
+  ],
+  "ordinaryCheckout": {
+    "status": "pending after implementation commit",
+    "resources": 22
+  },
+  "screenshot": "schema-fields.png",
+  "limits": [
+    "No new runtime types or automatic data migration.",
+    "Registered imported dirty overlays require the owning workspace.",
+    "Semantic-invalid drafts use existing schema/compiler validation.",
+    "No real accounts, paid provider calls or physical device runs.",
+    "Whole v424 map and Blueprint UI/Task work remain in progress."
+  ],
+  "environment": {
+    "repository": "/workspace/Confectory",
+    "branch": "work/current",
+    "sdk": "10.0.401",
+    "browser": "/usr/bin/chromium",
+    "managedProfiles": "Windows/Android compilation only"
+  },
+  "protected": {
+    "main": "unchanged",
+    "originalReferenceArchives": "unchanged",
+    "androidSettings": "unchanged"
+  }
+}

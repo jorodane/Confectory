@@ -18,12 +18,20 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
  # A regular existing user project copy, with actual object source and normal draft storage.
  project=root/'button-game';shutil.copytree(repo/'examples/button-game',project,ignore=shutil.ignore_patterns('.confectory'))
  manifest=project/'project.cpack';manifest.write_text(manifest.read_text().replace('../../',str(repo)+'/'))
- if kind=='instant-table':
+ if kind in ['instant-table','schema-exact','schema-actions']:
   (project/'ZBroken.celem').write_text('object Example.ButtonGame::ZBroken {}')
   (project/'TableStats.celem').write_text('schema Example.ButtonGame::TableStats {field amount single general long;field tags multiple general int;}')
   (project/'TableTwin.celem').write_text('object Example.ButtonGame::TableTwin extends Example.ButtonGame::Score {data amount = 9223372036854775806;}')
   score_source=project/'Score.celem';score_source.write_text(score_source.read_text().replace('{','{ value description = "Separate metadata";use schema Example.ButtonGame::TableStats;data amount = 9223372036854775807;data tags = [1,2];',1))
   source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+'element TableStats schema "TableStats.celem";element TableTwin object "TableTwin.celem";element ZBroken object "ZBroken.celem";'+source[index:])
+ if kind in ['schema-exact','schema-actions']:
+  stats=project/'TableStats.celem';stats.write_text(stats.read_text().replace('tags multiple general int','tags multiple general long'))
+  score_source=project/'Score.celem';score_source.write_text(score_source.read_text().replace('{','{ value huge = 9223372036854775807;',1).replace('data tags = [1,2]','data tags = [9223372036854775807,9223372036854775806]'))
+ if kind=='schema-actions':
+  (project/'TableLeaf.celem').write_text('schema Example.ButtonGame::TableLeaf {field n single general long;field flag single general bool;}')
+  stats=project/'TableStats.celem';source=stats.read_text();stats.write_text(source[:-1]+'field profile single compound Example.ButtonGame::TableLeaf;}')
+  score_source=project/'Score.celem';score_source.write_text(score_source.read_text().replace('{','{ data profile = { n = 9223372036854775807;flag = true; };',1))
+  source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+'element TableLeaf schema "TableLeaf.celem";'+source[index:])
  env['CONFECTORY_WEB_PROJECT']=str(manifest)
  original=(project/'Score.celem').read_bytes();log=root/'host.log';owned=OwnedResponses(None) if kind=='editor' else None
  with log.open('w') as output:
@@ -138,6 +146,12 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
     elif kind=='local-augment':
      from v424_local_augment import verify_local_augment
      verify_local_augment(page,project,mount,send,envelope,settle,restart_actual_host)
+    elif kind=='schema-actions':
+     from v424_schema_actions import verify_schema_actions
+     verify_schema_actions(page,project,mount,send,envelope,settle,restart_actual_host)
+    elif kind=='schema-exact':
+     from v424_schema_exact import verify_schema_exact
+     verify_schema_exact(page,project,mount,send,envelope,settle,restart_actual_host)
     elif kind=='instant-table':
      from v424_instant_table import verify_instant_table
      verify_instant_table(page,project,mount,send,envelope,settle,restart_actual_host)

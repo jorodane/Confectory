@@ -23,7 +23,7 @@
 .sd-portrait-empty{display:grid;place-items:center;width:150px;height:175px;border:1px dashed var(--line);border-radius:12px;color:var(--muted);font-size:44px;background:#242424}.schema-row-actions{min-width:44px}
 #yogi.is-yogi-open{background:#494949;border-color:var(--accent);box-shadow:inset 0 0 0 2px var(--accent)}
 .helper-profile-workers .helper-worker-dot{padding:0;border:0}
-.schema-row{grid-template-columns:1.2fr 1fr .7fr 1fr 48px}
+.schema-row{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) minmax(0,.7fr) minmax(0,1fr) 128px;width:100%;min-width:0}.schema-row>*{min-width:0;max-width:100%}.schema-row input,.schema-row select{min-width:0}.schema-row-actions{display:flex;align-items:center;gap:2px;flex-wrap:nowrap;width:128px;min-width:0}.schema-row-actions button{min-width:24px;padding:4px;line-height:1.2}
 #dock{z-index:150}
 
 .semantic-change{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 10px;padding:8px 0;min-width:0}.semantic-change>strong{flex:0 0 auto}.semantic-value{flex:0 1 auto;min-width:0;max-width:100%;white-space:pre-wrap;overflow-wrap:anywhere}.semantic-change>[aria-hidden]{flex:0 0 auto}

@@ -37,7 +37,7 @@ Codex 준비·공식 기기 코드 로그인 단계는 `114e00ffb35f6c3f4e5cdfd3
 | B05 | 이름·아이콘·설명 변경·F2·헤더 사용 | 부분 | 표시 이름과 qualified ID 구분. 실제 메타데이터/초안 CAS |
 | B06 | 삭제·다중 삭제·참조 조사·대체/정리·취소 | 계약 | 등록/참조 변경의 소유 초안과 묶음 Review/Confirm. 임의 파일 삭제 금지 |
 | D01 | 실제 필드·참조·enum·벡터·복합 값 편집 | 기존 | SchemaEditing, 경로/리비전과 inherited origin 유지 |
-| D02 | 필드 초기화·상속으로 되돌리기·배열/복합 항목 이동 | 부분 | 명시적 unset/reorder 계약. 기본값을 임의 복사하지 않음 |
+| D02 | 필드 초기화·상속으로 되돌리기·배열/복합 항목 이동 | 소유 초안 연결/검증 | 로컬 unset, 명시적 부모 값 재정의, 배열 항목 이동·복합 JSON 편집과 로컬 schema 필드 순서/제거를 소스 SHA·리비전에 연결. 원본은 별도 Review/Confirm |
 | D03 | Data 테이블: 열/행·검색·정렬·열 너비·Fill | 부분 | InstantTable에서 실제 schema/data path·정밀 정수 정렬·열 순서/너비·다중 편집 CAS 연결. 브라우저 Data 모드의 전체 속성 열은 후속 |
 | D04 | 비교/즉석 테이블 구성·대상 추가/제거·창 분리 | 소유 초안 연결/검증 | 공개 객체/필드 구성·구성 해시 CAS·borrowed 공유 초안·표시 리비전/소스/스키마 해시·64행/16열·정밀 JSON·private 구성/입력/열 배치 재시작 연결. 요청 문구는 설명이며 임의 계산/AI 표 생성은 후속 |
 | D05 | 참조 드래그·원본 정의 이동·상속 출처·읽기 전용 팩 | 부분 | 실제 locator/registry/namespace와 명시적 읽기 경계 |
@@ -158,3 +158,17 @@ Blueprint 구현 커밋 `d326d57df4ed43dcbc1e41e126d17a5ecacf565f`의 일반 Git
 [Table 검증 기록](evidence/v424-integration/instant-table.json)과 [실제 화면](evidence/v424-integration/instant-table.png). 검증 단계와 추가 수정의 범위·중복은 기록에서 구분한다.
 
 Table 구현 커밋 `d03774a6a3688482ac8b8442b52f8e59de73a535`의 일반 Git checkout/22개 리소스 실제 시작·변조 거부는 **1/0/0, 64.513초**로 통과했다. 이후 수정은 이 검증 기록뿐이다. main·원본 ZIP·Android 설정은 변경하지 않았다.
+
+## 일반 스키마 속성창의 정밀 값과 로컬 편집
+
+속성창도 scalar/data path/메타데이터의 `valueJson`을 표시하고 원시 JSON으로 편집을 요청한다. 효과값의 origin과 로컬 재정의 여부를 유지하며 큰 정수·배열 원소·복합 값이 JavaScript Number를 거쳐 저장되지 않는다. 새 정밀 요청에는 표시한 소스 해시가 필요하고, 기존 value/revision 호출은 호환 경로로 유지한다. 미적용 입력은 처음 편집한 해시와 리비전을 보존한다. 현재 값 다시 읽기는 입력을 자동으로 새 버전에 맞추지 않으며, 기존 입력 취소와 실제 로컬 재정의 제거는 별도 동작이다.
+
+공통 선언 API의 unset-description/unset-value/unset-data/move-data/remove-field/field-order를 UI에 연결했다. 상속된 복합/배열의 자식 경로는 부모 값을 명시적으로 재정의하기 전까지 편집하지 않는다. 새 로컬 필드 순서는 실제 선언 순서이며, 값·필드 제거도 최종 원본 변경 전에 같은 Review/Confirm을 사용한다. 이 UI는 새 runtime 타입이나 자동 데이터 마이그레이션을 추가하지 않는다.
+
+정밀 scalar/메타데이터/배열 원소·상속값·해시 충돌·기존 호출·미적용 입력 재시작·독립 View·compiler Confirm 첫 검사는 **1/0/0, 66.146초**로 통과했다. 확장한 로컬 편집과 영향 회귀/일반 checkout은 현재 검증 중이다. 전체 지도와 Blueprint UI/Task는 계속 미완료 범위다.
+
+로컬 동작의 실제 UI·compiler Confirm 검사는 **1/0/0, 55.455초**로 통과했다. 구문이 잘못된 JSON과 오래된 구조 변경은 초안/입력을 보존하며, 로컬 정의 순서 변경도 전체 소스 검토 대상으로 남는다. compiler Confirm 시험은 동일 요청의 결과를 제한된 시간 동안 기다리며 재전송하지 않는다. 이 묶음의 기존 전체 편집/생성/연결·독립 View·Table·Workspace와 관리 프로필 영향 회귀는 별도 진행 중이다.
+
+일반 속성 변경의 영향 회귀는 **9/0/0, 818.791초**로 통과했다. 전체 Home/ButtonGame 편집·기존 연결 설정, 새 개념 생성/최종 반영/재열기, Workspace 입력 수명, Table, 선언 View, PackWorkspace와 Windows/Android 관리 프로필 컴파일을 포함한다. 마지막 후속 수정은 schema 정의 행의 버튼 열 폭이며 해당 UI 배치와 동작을 별도로 검사한다.
+
+[스키마 검증 기록](evidence/v424-integration/schema-fields.json)과 [실제 필드 편집 화면](evidence/v424-integration/schema-fields.png). 마지막 consumer CSS의 버튼 열 덮어쓰기를 정리하고, 표시된 다섯 동작이 한 줄에 있으며 이동 버튼이 창 안에 있는지를 검사했다. 최종 표적 UI/실제 compiler Confirm은 **1/0/0, 42.707초**로 통과했다. 위 회귀는 일부 중복되므로 합산하지 않는다. 일반 Git checkout 검사는 구현 커밋을 고정한 뒤 수행한다.
