@@ -1,0 +1,21 @@
+string capability=calls.Open.Invoke(project,projectId,namespaceId,owner,context);
+try{
+ var state=(object[])AppDomain.CurrentDomain.GetData("Confectory.DevelopmentTools."+capability)!;
+ lock(state[0]){
+  string draft=(string)state[2];var model=(System.Text.Json.Nodes.JsonObject)state[3];
+  if(!node.StartsWith(namespaceId+"::",StringComparison.Ordinal))throw new UnauthorizedAccessException("Node belongs to the assigned project namespace");
+  var source=calls.Read.Invoke(draft,node);if(source[1]!="blueprint-node")throw new ArgumentException("Explicit Blueprint node source required");
+  int nodeMarker=node.LastIndexOf("/node:",StringComparison.Ordinal),bodyMarker=node.IndexOf("/body:",StringComparison.Ordinal);if(nodeMarker<=bodyMarker||bodyMarker<0)throw new ArgumentException("Owned node source identity required");
+  string graphId=node[..nodeMarker],implementationId=node[..bodyMarker],nodeId=node[(nodeMarker+6)..];
+  var graph=calls.Read.Invoke(draft,graphId);var implementation=calls.Read.Invoke(draft,implementationId);if(graph[1]!="blueprint"||implementation[1]!="implementation")throw new ArgumentException("Owned graph and implementation required");
+  var contracts=new System.Text.Json.Nodes.JsonObject();foreach(string id in calls.List.Invoke(draft)){if(calls.Status.Invoke(draft,id)[1]=="function")contracts[id]=calls.Read.Invoke(draft,id)[3];}
+  var described=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("blueprintDescribeOwned",new System.Text.Json.Nodes.JsonObject{["project"]=project,["definitionsOnly"]=true,["id"]=implementationId,["text"]=implementation[3],["graph"]=System.Text.Json.Nodes.JsonNode.Parse(graph[3]),["draftContracts"]=contracts}.ToJsonString()))!;
+  if(described["state"]!.ToString()=="invalid")throw new InvalidOperationException(described.ToJsonString());
+  var definition=System.Linq.Enumerable.SingleOrDefault(described["nodes"]!.AsArray(),n=>n!["id"]!.ToString()==nodeId)??throw new InvalidOperationException("Assigned node definition is unavailable");
+  string Hash(string text)=>Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(text))).ToLowerInvariant();
+  var observations=new System.Text.Json.Nodes.JsonObject{[graphId]=Hash(graph[3]),[implementationId]=Hash(implementation[3])};foreach(var entry in contracts)if(described["contractVersions"]![entry.Key] is not null)observations[entry.Key]=Hash(entry.Value!.ToString());
+  model["nodeScope"]=new System.Text.Json.Nodes.JsonObject{["id"]=node,["definitionHash"]=definition["definitionHash"]!.DeepClone(),["definition"]=definition["definition"]!.DeepClone(),["imports"]=new System.Text.Json.Nodes.JsonArray(System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(System.Linq.Enumerable.Where(described["imports"]!.AsArray(),i=>definition["definition"]!["featureContracts"]![i!["feature"]!.ToString()] is not null),i=>i!.DeepClone()))),["observations"]=observations};
+  model["rights"]=new System.Text.Json.Nodes.JsonArray("workspace_list","workspace_read","workspace_stage","workspace_changes");
+  return capability;
+ }
+}catch{calls.Close.Invoke(capability);throw;}

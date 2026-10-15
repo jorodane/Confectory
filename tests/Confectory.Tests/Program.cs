@@ -6,12 +6,24 @@ using Confectory.Tests;
 string fakeReply = Path.Combine(AppContext.BaseDirectory, "fake-reply.txt");
 if (File.Exists(fakeReply)) { Console.Write(File.ReadAllText(fakeReply)); return 0; }
 
+// Owned fixture compiler proxy: mutate one observed input immediately before delegating real compilation.
+string blueprintProbe = Path.Combine(AppContext.BaseDirectory, "blueprint-mutate-probe.json");
+if (File.Exists(blueprintProbe))
+{
+    var probe = System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(blueprintProbe))!;
+    string input = Console.In.ReadToEnd();
+    var request = System.Text.Json.Nodes.JsonNode.Parse(input)!;
+    if (request["operation"]!.ToString() == "compile-pack") File.AppendAllText(probe["node"]!.ToString(), " ");
+    var result = Processes.Run(new[] { Processes.DotNet(), probe["target"]!.ToString() }, input, timeoutSeconds: 120);
+    Console.Write(result.Stdout); Console.Error.Write(result.Stderr); return result.ExitCode;
+}
+
 Environment.SetEnvironmentVariable("CONFECTORY_DOTNET", Processes.DotNet());
 var watch = Stopwatch.StartNew(); int passed = 0, failed = 0, skipped = 0;
 bool requireRuntime = args.Contains("--require-runtime", StringComparer.Ordinal);
 if(args.Any(arg => arg.StartsWith("--", StringComparison.Ordinal) && arg != "--require-runtime")){Console.Error.WriteLine("Unknown test option");return 2;}
 string[] filters = args.Where(arg => arg != "--require-runtime").ToArray();
-foreach (var type in new[] { typeof(RunnerTests), typeof(CoreTests), typeof(BrowserTests), typeof(EmbeddedChannelTests), typeof(WebUITests), typeof(BrowserWasmTests), typeof(EntryTests), typeof(WindowsLauncherTests), typeof(IntegrationTests), typeof(VerificationTests), typeof(WindowTests), typeof(Win32ContractTests), typeof(RuntimeBaseTests), typeof(RealTimeUpdateTests), typeof(BaseUITests), typeof(EngineTests), typeof(AndroidPreparationTests), typeof(AndroidSigningTests), typeof(ProjectExecutionTests), typeof(ProjectManagerTests), typeof(FileStreamTests), typeof(SchemaEditingTests), typeof(EditWorkspaceTests), typeof(PackWorkspaceTests), typeof(ElementViewTests), typeof(PackManagerTests), typeof(SourceEditorTests), typeof(BuildParticipationTests), typeof(CollaborationTests), typeof(AgentTests), typeof(AIConnectionTests), typeof(HelperTests), typeof(WorkerTasksTests), typeof(Checkpoint7Tests), typeof(AugmentTests), typeof(CompilerTransportTests), typeof(ProjectionDeliveryTests), typeof(StageTests), typeof(Physics2DTests), typeof(ToolchainSelectionTests), typeof(RigMotionTests), typeof(UINavigationTests), typeof(EditorTests), typeof(ButtonTests), typeof(FieldTests), typeof(EntryHomeTests), typeof(EditorLifetimeTests), typeof(EntryHomeResizeTests), typeof(ProjectShellTests), typeof(ProjectNavigationTests), typeof(NativeUITests) })
+foreach (var type in new[] { typeof(RunnerTests), typeof(FeatureBlueprintTests), typeof(CoreTests), typeof(BrowserTests), typeof(EmbeddedChannelTests), typeof(WebUITests), typeof(BrowserWasmTests), typeof(EntryTests), typeof(WindowsLauncherTests), typeof(IntegrationTests), typeof(VerificationTests), typeof(WindowTests), typeof(Win32ContractTests), typeof(RuntimeBaseTests), typeof(RealTimeUpdateTests), typeof(BaseUITests), typeof(EngineTests), typeof(AndroidPreparationTests), typeof(AndroidSigningTests), typeof(ProjectExecutionTests), typeof(ProjectManagerTests), typeof(FileStreamTests), typeof(SchemaEditingTests), typeof(EditWorkspaceTests), typeof(PackWorkspaceTests), typeof(ElementViewTests), typeof(PackManagerTests), typeof(SourceEditorTests), typeof(BuildParticipationTests), typeof(CollaborationTests), typeof(AgentTests), typeof(AIConnectionTests), typeof(HelperTests), typeof(WorkerTasksTests), typeof(Checkpoint7Tests), typeof(AugmentTests), typeof(CompilerTransportTests), typeof(ProjectionDeliveryTests), typeof(StageTests), typeof(Physics2DTests), typeof(ToolchainSelectionTests), typeof(RigMotionTests), typeof(UINavigationTests), typeof(EditorTests), typeof(ButtonTests), typeof(FieldTests), typeof(EntryHomeTests), typeof(EditorLifetimeTests), typeof(EntryHomeResizeTests), typeof(ProjectShellTests), typeof(ProjectNavigationTests), typeof(NativeUITests) })
 foreach (var method in type.GetMethods().Where(x => x.Name.StartsWith("test_", StringComparison.Ordinal)).OrderBy(x => x.Name, StringComparer.Ordinal))
 {
     string name = type.Name + "." + method.Name;

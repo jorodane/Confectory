@@ -135,6 +135,7 @@ public sealed class Builder
     { File.WriteAllText(path, text, new UTF8Encoding(false)); return path; }
     // Physical artifacts are pack-owned. Element IDs remain logical catalog entries.
     public const string ArtifactLayout = "pack-assemblies-v2";
+    private BlueprintCompilation? blueprint;
     private readonly Dictionary<string, string[]> contractGroups = new(StringComparer.Ordinal);
     private void PrepareContracts(IEnumerable<string> ids)
     {
@@ -180,7 +181,8 @@ public sealed class Builder
             Registry.Implementation(e.Function!, e.Id, e.Id, e.Loc);
             if (!e.Bodies.TryGetValue(Target, out var body) && !e.Bodies.TryGetValue("common", out body)) throw new BuildError("MISSING_TARGET_IMPLEMENTATION", $"No {Target}/common body for {e.Id}", e.Loc);
             string path = PackPaths.Owned(Path.GetDirectoryName(Registry.Paths[PackPaths.Namespace(body.Origin)])!, body.Path, body.Loc);
-            sources.Add((e.Id, Generation.ImplementationSource(e, Documents.Body(path), path)));
+            string source = body.SourceKind == "blueprint" ? (blueprint ??= new BlueprintCompilation(Registry, Target, Tool)).Assemble(e, body, path) : Documents.Body(path);
+            sources.Add((e.Id, Generation.ImplementationSource(e, source, body.SourceKind == "blueprint" ? "graph:" + e.Function : path)));
             foreach (string fn in new[] { e.Function! }.Concat(e.Imports.Values.Select(x => x.Id))) refs[fn] = Contract(fn);
         }
         string key = JsonData.Digest(new object[] { ArtifactLayout, Generation.Abi, Tool.Identity, "implementations", ns,
@@ -192,12 +194,15 @@ public sealed class Builder
         {
             artifact = cache.Produce(key, work => Tool.Invoke("compile-pack", new { output = work, name = "Pack_" + Generation.Symbol(ns),
                 sources = sources.Select(x => WriteSource(Path.Combine(work, Generation.Symbol(x.Id) + ".cs"), x.Code)).ToArray(),
+                blueprintNodes = blueprint?.Nodes,
                 references = refs.Values.Select(x => x["reference"]!.GetValue<string>()).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray()
             })["artifacts"]!.AsObject());
             Statistics.CompiledPacks.Add(ns); Statistics.CompiledImplementations.AddRange(selected.Select(x => x.Id));
         }
+        blueprint?.EnsureUnchanged(verifyCompiler: true);
         if (!artifact.ContainsKey("assembly")) throw new BuildError("TOOL_PROTOCOL", "Pack compilation must return an assembly");
         var item = JsonData.Object(artifact); item["key"] = key;
+        if (blueprint is not null) foreach (var implementation in selected) if (blueprint.Receipts[implementation.Id] is JsonObject receipt) { receipt["compilerValidated"] = true; receipt["implementationArtifactKey"] = key; }
         var result = item.DeepClone().AsObject();
         result["implementations"] = JsonSerializer.SerializeToNode(selected.Select(x => x.Id).ToArray());
         result["assemblies"] = new JsonArray(artifact["assembly"]);
@@ -216,7 +221,9 @@ public sealed class Builder
         }
         if (implementations.Count == 0) throw new BuildError("LOCAL_INPUT", $"No implementation declarations in {ns}", pack.Loc);
         PrepareContracts(implementations.SelectMany(e => new[] { e.Function! }.Concat(e.Imports.Values.Select(x => x.Id))));
-        return JsonData.Object(new { mode = "contract-only", artifactLayout = ArtifactLayout, pack = ns, target = Target, artifact = CompilePack(ns, implementations), warnings = Registry.Warnings, statistics = Statistics });
+        var checkedArtifact = CompilePack(ns, implementations);
+        blueprint?.EnsureUnchanged(verifyCompiler: true);
+        return JsonData.Object(new { blueprints = blueprint?.Receipts, mode = "contract-only", artifactLayout = ArtifactLayout, pack = ns, target = Target, artifact = checkedArtifact, warnings = Registry.Warnings, statistics = Statistics });
     }
     public JsonObject Build()
     {
@@ -243,6 +250,7 @@ public sealed class Builder
                 if (!File.Exists(PackPaths.Owned(work, path))) throw new BuildError("TOOL_PROTOCOL", $"Missing final artifact {path}");
             }
             if (artifacts["publicCatalog"] is null || JsonData.HashBytes(File.ReadAllBytes(PackPaths.Owned(work, artifacts["publicCatalog"]!.GetValue<string>()))) != JsonData.HashBytes(File.ReadAllBytes(catalog))) throw new BuildError("TOOL_PROTOCOL", "Target must preserve the public linkage catalog");
+            blueprint?.EnsureUnchanged(verifyCompiler: true);
             string dest = Path.Combine(outputRoot, key + "-" + Guid.NewGuid().ToString("N")[..12]); Directory.Move(work, dest);
             var reached = plan.Reached.Select(PackPaths.Namespace).ToHashSet(StringComparer.Ordinal);
             var report = JsonData.Object(new
@@ -250,7 +258,7 @@ public sealed class Builder
                 mode = "final", artifactLayout = ArtifactLayout, project = Registry.Project.Namespace, target = Target, entry = Registry.Project.Entry, key, output = dest,
                 run = runArray.Select(x => x!.GetValue<string>().Replace(work, dest, StringComparison.Ordinal)).ToArray(), publicCatalog = artifacts["publicCatalog"]!.GetValue<string>().Replace(work, dest, StringComparison.Ordinal),
                 registeredPacks = Registry.Packs.Keys.Order(StringComparer.Ordinal).ToArray(), includedPacks = reached.Order(StringComparer.Ordinal).ToArray(), excludedPacks = Registry.Packs.Keys.Except(reached).Order(StringComparer.Ordinal).ToArray(),
-                implementationArtifacts = packs, contractArtifacts = Contracts, bindings = plan.Bindings.Values.ToArray(), warnings = Registry.Warnings, statistics = Statistics, tool = Tool.Info
+                blueprints = blueprint?.Receipts, implementationArtifacts = packs, contractArtifacts = Contracts, bindings = plan.Bindings.Values.ToArray(), warnings = Registry.Warnings, statistics = Statistics, tool = Tool.Info
             });
             JsonData.AtomicWrite(Path.Combine(dest, "build-report.json"), report);
             JsonData.AtomicWrite(Path.Combine(outputRoot, "latest.json"), report); return report;

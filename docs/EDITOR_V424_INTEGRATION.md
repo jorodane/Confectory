@@ -123,6 +123,12 @@ Codex 준비·공식 기기 코드 로그인 단계는 `114e00ffb35f6c3f4e5cdfd3
 
 영향 회귀는 전체 실행의 12개 통과와 수정 후 두 메타데이터 표적 회귀 통과로 14개 서로 다른 gate를 확인했다. 별도의 Worker 소유자 회귀도 통과했다. Android/browser 메타데이터 템플릿의 잘못된 ReviewSummary 클래스 위치를 수정하고 동일한 선언 변환·검토 코드를 연결했다. 이는 SDK·서명·Android 설정 변경이 아니다. 실제 계정·유료 모델·장치 실행 검증으로 해석하지 않는다.
 
-전체 v424와 새 Blueprint 경로는 계속 구현 중이다. 특히 graph/node 원본 저장·노드 Worker 범위·시스템 조립·빌드·오류 매핑은 확정 문서에 따라 별도 단계로 진행한다.
+전체 v424와 새 Blueprint 경로는 계속 구현 중이다. 아래 첫 compiler 경로는 연결했으며, 새 기능 UI/명시적 신규 graph 생성·전환과 Node Task/Agent 공개 흐름 등은 후속 범위다.
 
 일반 Git 체크아웃·시작 검증은 선언 View 구현 커밋 `ca9a78a2d7ca95d9abdb2b14a64cc4cd711012da`에서 **1 통과/0 실패/0 건너뜀, 59.373초**로 통과했다. 정상 clone/pull의 기존 CRLF와 새 LF 체크아웃에서 20개 리소스의 실제 Home 시작과 변조 거부를 확인했다. 이 증거는 전체 v424 및 Blueprint 완료를 뜻하지 않는다.
+
+## Blueprint 원본과 첫 compiler 경로
+
+일반 Builder에 명시적 blueprint target 원본, 별도 노드 파일, 결정적 조립·typed 기존 기능 호출·compiler 검증을 연결했다. graph/정의/계약/노드 파일 입력 해시와 compiler identity를 고정하며 실패/원본 변경 시 이전 성공 결과를 유지한다. graph/node 초안과 Save/복원/Confirm, 한 노드 전용 DevelopmentTools capability를 실제 소비자로 검증했다. 별도 작업 경로의 동일 DLL 재현성과 컴파일 도중 원본 변경 거부도 확인했다. [상세 경계](FEATURE_BLUEPRINT_ARCHITECTURE.md), [실행 예제](../examples/feature-blueprint/README.md), [검증 기록](evidence/v424-integration/blueprint-compiler.json).
+
+이 단계의 profile은 sync-acyclic-v1이며 새 기능 화면·graph 전환 UI와 Task/Agent 통합, 지도 나머지 UI를 완료로 표시하지 않는다. 외부 계정·유료 호출·장치 실행은 수행하지 않았다.

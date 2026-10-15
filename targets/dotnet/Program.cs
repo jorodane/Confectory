@@ -1,4 +1,7 @@
 using System.Diagnostics;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -66,13 +69,26 @@ internal static class Target
                 options = request["options"], flags = "C#12/deterministic/nullable/warnings-as-errors", host = mode == "linux" ? Environment.OSVersion.Platform.ToString() : "portable"
             };
             string fingerprint = Convert.ToHexString(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(identity))).ToLowerInvariant();
-            return JsonSerializer.SerializeToNode(new { protocol = 1, ok = true, fingerprint, sdk = Path.GetFileName(Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(sdk.Compiler)))), framework = "net10.0", compiler = sdk.Compiler, mode })!.AsObject();
+            return JsonSerializer.SerializeToNode(new { protocol = 1, ok = true, fingerprint, sdk = Path.GetFileName(Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(sdk.Compiler)))), framework = "net10.0", blueprintProfile = "sync-acyclic-v1", compiler = sdk.Compiler, mode })!.AsObject();
         }
         if (operation is not ("compile-contract" or "compile-pack" or "link")) throw new InvalidOperationException($"Unknown tool operation {operation}");
         return Compile(request, sdk, mode);
     }
     private static JsonObject Compile(JsonObject request, Sdk sdk, string mode)
     {
+        if(request["blueprintNodes"] is JsonArray nodes)
+        foreach(var node in nodes)
+        {
+            string id=node!["id"]!.GetValue<string>(), body=node["source"]!.GetValue<string>(), subject=node["marker"]?.GetValue<string>()??"node:"+id;
+            var block=SyntaxFactory.ParseStatement("{\n"+body+"\n}", options:new CSharpParseOptions(LanguageVersion.CSharp12), consumeFullText:true);
+            if(block is not BlockSyntax || block.ContainsDiagnostics)
+            {
+                string details=string.Join("\n",block.GetDiagnostics().Select(d=>{var at=d.Location.GetLineSpan().StartLinePosition;return subject+"("+Math.Max(1,at.Line)+","+(at.Character+1)+"): "+d.Id+": "+d.GetMessage();}));
+                throw new InvalidOperationException(subject+": NODE_SYNTAX: one complete node function body required\n"+details);
+            }
+            if(block.DescendantTokens().Any(t=>t.IsKind(SyntaxKind.IdentifierToken)&&t.ValueText.StartsWith("__fg_",StringComparison.Ordinal))) throw new InvalidOperationException(subject+": NODE_RESERVED_NAME");
+            if(block.DescendantTrivia(descendIntoTrivia:true).Any(t=>t.IsDirective&&(t.IsKind(SyntaxKind.LineDirectiveTrivia)||t.IsKind(SyntaxKind.PragmaChecksumDirectiveTrivia)))) throw new InvalidOperationException(subject+": NODE_MAPPING_DIRECTIVE");
+        }
         string output = Path.GetFullPath(Required(request, "output")); Directory.CreateDirectory(output);
         string name = Required(request, "name"), assembly = Path.Combine(output, name + ".dll"), reference = Path.Combine(output, name + ".ref.dll");
         bool final = Required(request, "operation") == "link";

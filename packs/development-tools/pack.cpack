@@ -1,5 +1,6 @@
 pack Confectory.DevelopmentTools version "0.1.0" {
 standalone false;
+element OpenNode function "OpenNode.celem"; element OpenNodeBody implementation "OpenNodeBody.celem";
 dependency Confectory.FileStream version "0.1.0";
 element BindOrigin function "BindOrigin.celem"; element BindOriginBody implementation "BindOriginBody.celem";
 dependency Confectory.PackWorkspace version "0.1.0";

@@ -26,7 +26,7 @@ public sealed record PackRegistration(string Path, SourceLocation Loc);
 public sealed record ElementReference(string Id, SourceLocation Loc, string? Origin = null, string? Kind = null);
 public sealed record RequiredFunction(FunctionSignature Signature, SourceLocation Loc, string Origin);
 public sealed record Import(string Id, FunctionSignature Signature, string? Scope, SourceLocation Loc, string Origin);
-public sealed record Body(string Path, SourceLocation Loc, string Origin);
+public sealed record Body(string Path, SourceLocation Loc, string Origin, string SourceKind = "csharp");
 public sealed record MetadataValue(JsonElement Value, string Origin, SourceLocation Loc);
 
 public sealed record SchemaField(string Cardinality, string Kind, string Type, string Origin, SourceLocation Loc);
@@ -292,6 +292,7 @@ public sealed class Parser
                     catch (JsonException ex) { throw new BuildError("VALUE", $"Invalid metadata value: {ex.Message}", value.Loc); }
                     Unique(e.Values, name, new(data, e.Id, token.Loc), token.Loc); break;
                 case "body" when e.Kind == "implementation": Unique(e.Bodies, Name(), new(QuotedString(), token.Loc, e.Id), token.Loc); break;
+                case "blueprint" when e.Kind == "implementation": Unique(e.Bodies, Name(), new(QuotedString(), token.Loc, e.Id, "blueprint"), token.Loc); break;
                 case "import" when e.Kind == "implementation":
                     string imported = Name(true); Expect("as"); string alias = Name(csharp: true);
                     var sig = Signature(false); string? scope = Eat("in") ? Name(true) : null;

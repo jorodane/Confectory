@@ -19,6 +19,8 @@ internal static class MetadataAuthoring
  string selected=PackPaths.Owned(ownerRoot,Path.GetRelativePath(ownerRoot,Path.GetFullPath(S("project"))));
  return RelationLocators.Query(S("manifest"),Path.GetDirectoryName(selected)!,request["ids"]!.AsArray().Select(x=>x!.GetValue<string>()).ToArray(),path=>Read(PackPaths.Owned(ownerRoot,Path.GetRelativePath(ownerRoot,path)))).ToJsonString();
  }
+ if(operation=="blueprintDescribeOwned"){request["project"]=PackPaths.Owned(ownerRoot,Path.GetRelativePath(ownerRoot,Path.GetFullPath(S("project"))));return BlueprintDocuments.DescribeOwned(request).ToJsonString();}
+ if(operation=="blueprintSourceValidate")return BlueprintDocuments.Validate(S("id"),S("kind"),S("text")).ToJsonString();
  if(operation=="bodyUnits"){request["project"]=PackPaths.Owned(ownerRoot,Path.GetRelativePath(ownerRoot,Path.GetFullPath(S("project"))));return BodyUnitMetadata.Query(request).ToJsonString();}
  if(operation=="inspect"){string text=S("text");if(text.Length>1048576)throw new ArgumentException("Declaration budget");var e=new Parser(text,"<draft>").ParseElement();return new JsonObject{["id"]=e.Id,["kind"]=e.Kind,["parent"]=e.Parent,["function"]=e.Function,["descriptionDefined"]=e.DescriptionPresent,["relations"]=DeclaredRelations.Describe(e),["description"]=e.Description,["signature"]=JsonSerializer.SerializeToNode(e.Signature),["fields"]=JsonSerializer.SerializeToNode(e.Fields),["data"]=JsonSerializer.SerializeToNode(e.Data),["values"]=JsonSerializer.SerializeToNode(e.Values.ToDictionary(x=>x.Key,x=>x.Value.Value))}.ToJsonString();}
 
@@ -35,7 +37,7 @@ internal static class MetadataAuthoring
  foreach(var item in m.Elements.OrderBy(x=>x.Key,StringComparer.Ordinal)){
  if(units.Count>=256)throw new ArgumentException("Owned source unit budget exceeded");string file=PackPaths.Owned(root,item.Value.Path);if(request["metadataOnly"]?.GetValue<bool>()==true&&item.Value.Kind!="implementation"){units.Add(new JsonObject{["id"]=m.Namespace+"::"+item.Key,["kind"]=item.Value.Kind,["path"]=Path.GetRelativePath(root,file)});continue;}var e=new Parser(Read(file),file).ParseElement();if(e.Id!=m.Namespace+"::"+item.Key||e.Kind!=item.Value.Kind)throw new ArgumentException("Owned declaration identity mismatch");
  units.Add(new JsonObject{["id"]=e.Id,["kind"]=e.Kind,["path"]=Path.GetRelativePath(root,file)});
- foreach(var b in e.Bodies.OrderBy(x=>x.Key,StringComparer.Ordinal)){if(units.Count>=256)throw new ArgumentException("Owned source unit budget exceeded");string body=PackPaths.Owned(Path.GetDirectoryName(file)!,b.Value.Path);if(request["metadataOnly"]?.GetValue<bool>()!=true)Read(body);units.Add(new JsonObject{["id"]=e.Id+"/body:"+b.Key,["kind"]= "body",["path"]=Path.GetRelativePath(root,body)});}}
+ foreach(var b in e.Bodies.OrderBy(x=>x.Key,StringComparer.Ordinal)){if(units.Count>=256)throw new ArgumentException("Owned source unit budget exceeded");string body=PackPaths.Owned(Path.GetDirectoryName(file)!,b.Value.Path);if(request["metadataOnly"]?.GetValue<bool>()!=true)Read(body);units.Add(new JsonObject{["id"]=e.Id+"/body:"+b.Key,["kind"]=b.Value.SourceKind=="blueprint"?"blueprint":"body",["path"]=Path.GetRelativePath(root,body)});if(b.Value.SourceKind=="blueprint")foreach(var node in BlueprintDocuments.NodeUnits(root,body,e.Id+"/body:"+b.Key))units.Add(node!.DeepClone());}}
  return new JsonObject{["project"]=project,["namespace"]=m.Namespace,["kind"]=m.Kind,["supportsStandalone"]=m.SupportsStandalone,["units"]=units}.ToJsonString();
  }
  static string Read(string file){var info=new FileInfo(file);if(info.Length>1048576)throw new ArgumentException("Owned source file budget exceeded");return File.ReadAllText(file);}
@@ -59,7 +61,7 @@ static string Format(Element element)
     text.Append(SchemaContracts.FormatDeclarations(element));
     foreach(var (name,value) in element.Values)text.AppendLine("value "+name+" = "+value.Value.GetRawText()+";");
     foreach(var (alias,value) in element.Imports)text.AppendLine("import "+value.Id+" as "+alias+" "+Signature(value.Signature,false)+(value.Scope is null?"":" in "+value.Scope)+";");
-    foreach(var (target,value) in element.Bodies)text.AppendLine("body "+target+" "+Quote(value.Path)+";");
+    foreach(var (target,value) in element.Bodies)text.AppendLine((value.SourceKind=="blueprint"?"blueprint":"body")+" "+target+" "+Quote(value.Path)+";");
     if(element.Tool is not null)text.AppendLine("tool "+Quote(element.Tool)+";");
     foreach(var (name,value) in element.Options)text.AppendLine("option "+name+" "+Quote(value)+";");
     return text.AppendLine("}").ToString();
@@ -91,7 +93,7 @@ static JsonObject ReviewSummary(string kind,string before,string after)
    foreach(var item in old.Elements)if(!next.Elements.ContainsKey(item.Key))Add("프로젝트 등록 해제",JsonValue.Create(item.Key+" · "+item.Value.Kind),null,true,false);
    foreach(var item in next.Elements)if(old.Elements.TryGetValue(item.Key,out var prior)&&(prior.Path!=item.Value.Path||prior.Kind!=item.Value.Kind))additional=true;
    additional|=!old.Elements.Keys.Where(k=>next.Elements.ContainsKey(k)).SequenceEqual(next.Elements.Keys.Where(k=>old.Elements.ContainsKey(k)));next.Elements=old.Elements;additional|=FormatManifest(next)!=FormatManifest(old)||Comments(before)!=Comments(after);
-  }else if(kind=="body")additional=true;
+  }else if(kind is "body" or "blueprint" or "blueprint-node")additional=true;
   else{
    bool created=before.Length==0;var next=new Parser(after,"<review>").ParseElement();var old=created?new Element{Kind=next.Kind,Id=next.Id}:new Parser(before,"<review>").ParseElement();
    if(created)Add(kind=="object"?"개념 생성":kind=="schema"?"스키마 생성":"선언 생성",null,JsonValue.Create(next.Id.Split("::").Last()),false,true);

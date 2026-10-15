@@ -1,0 +1,4 @@
+implementation Example.FeatureBlueprint::MainBody for Example.FeatureBlueprint::Main () -> int {
+import Example.FeatureBlueprint::Add as fg_call_61a4e89cee295b27d23b8123 (int,int) -> int;
+blueprint common "main.graph.json";
+}

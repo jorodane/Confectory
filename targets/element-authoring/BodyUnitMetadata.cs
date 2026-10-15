@@ -11,7 +11,8 @@ internal static class BodyUnitMetadata
  if(element.Bodies.Count>256)throw new ArgumentException("Body locator budget");
  var units=new JsonArray();foreach(var item in element.Bodies.OrderBy(x=>x.Key,StringComparer.Ordinal)){
  string body=PackPaths.Owned(root,Path.GetRelativePath(root,Path.Combine(Path.GetDirectoryName(declaration)!,item.Value.Path)));
- units.Add(new JsonObject{["id"]=element.Id+"/body:"+item.Key,["kind"]="body",["target"]=item.Key,["path"]=Path.GetRelativePath(root,body)});}
+ units.Add(new JsonObject{["id"]=element.Id+"/body:"+item.Key,["kind"]=item.Value.SourceKind=="blueprint"?"blueprint":"body",["target"]=item.Key,["path"]=Path.GetRelativePath(root,body)});
+ if(item.Value.SourceKind=="blueprint")foreach(var node in BlueprintDocuments.NodeUnits(root,body,element.Id+"/body:"+item.Key,request["blueprintDrafts"]?[element.Id+"/body:"+item.Key]?.GetValue<string>()))units.Add(node!.DeepClone());}
  return new JsonObject{["implementation"]=element.Id,["units"]=units};
  }
 }

@@ -1,0 +1,1 @@
+function Example.FeatureBlueprint::Main () -> int {provide Example.FeatureBlueprint::Main with Example.FeatureBlueprint::MainBody;provide Example.FeatureBlueprint::Add with Example.FeatureBlueprint::AddBody;}

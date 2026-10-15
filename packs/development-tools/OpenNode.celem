@@ -1,0 +1,1 @@
+function Confectory.DevelopmentTools::OpenNode (string project,string projectId,string namespaceId,string owner,string context,string node) -> string {provide Confectory.DevelopmentTools::OpenNode with Confectory.DevelopmentTools::OpenNodeBody;}

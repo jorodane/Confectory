@@ -1,5 +1,6 @@
 implementation Confectory.EditWorkspace::SetTextIfRevisionBody for Confectory.EditWorkspace::SetTextIfRevision (string handle, string id, string text, long expected) -> bool {
 import Confectory.SchemaEditing::Inspect as Inspect (string) -> string;
 import Confectory.EditWorkspace::Read as Read (string, string) -> string[];
+import Confectory.SchemaEditing::Call as Metadata (string,string) -> string;
 body common "SetTextIfRevision.csbody";
 }

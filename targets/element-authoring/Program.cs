@@ -14,6 +14,9 @@ try
             reply=BuildParticipationOperations.Execute(S("operation"),request);break;
         case "packSource": case "packManifest": case "packUsage":
             reply=PackOperations.Execute(S("operation"),request,FormatManifest);break;
+        case "featureBlueprintNodes": case "featureBlueprintDescribe": case "featureBlueprintAssemble":reply=FeatureBlueprint.Execute(request);break;
+        case "blueprintDescribeOwned":reply=BlueprintDocuments.DescribeOwned(request);break;
+        case "blueprintSourceValidate":reply=BlueprintDocuments.Validate(S("id"),S("kind"),S("text"));break;
         case "bodyUnits":reply=BodyUnitMetadata.Query(request);break;
         case "describe":
         {
@@ -33,7 +36,8 @@ try
                     foreach(var (target,body) in element.Bodies)
                     {
                         string bodyPath=Owned(root,Path.GetRelativePath(root,Path.Combine(Path.GetDirectoryName(path)!,body.Path)));
-                        units.Add(new JsonObject{["id"]=element.Id+"/body:"+target,["kind"]="body",["path"]=Path.GetRelativePath(root,bodyPath)});
+                        units.Add(new JsonObject{["id"]=element.Id+"/body:"+target,["kind"]=body.SourceKind=="blueprint"?"blueprint":"body",["path"]=Path.GetRelativePath(root,bodyPath)});
+                        if(body.SourceKind=="blueprint")foreach(var node in BlueprintDocuments.NodeUnits(root,bodyPath,element.Id+"/body:"+target))units.Add(node!.DeepClone());
                     }
                 }
             }
@@ -177,7 +181,7 @@ static string Format(Element element)
     text.Append(SchemaContracts.FormatDeclarations(element));
     foreach(var (name,value) in element.Values)text.AppendLine("value "+name+" = "+value.Value.GetRawText()+";");
     foreach(var (alias,value) in element.Imports)text.AppendLine("import "+value.Id+" as "+alias+" "+Signature(value.Signature,false)+(value.Scope is null?"":" in "+value.Scope)+";");
-    foreach(var (target,value) in element.Bodies)text.AppendLine("body "+target+" "+Quote(value.Path)+";");
+    foreach(var (target,value) in element.Bodies)text.AppendLine((value.SourceKind=="blueprint"?"blueprint":"body")+" "+target+" "+Quote(value.Path)+";");
     if(element.Tool is not null)text.AppendLine("tool "+Quote(element.Tool)+";");
     foreach(var (name,value) in element.Options)text.AppendLine("option "+name+" "+Quote(value)+";");
     return text.AppendLine("}").ToString();
@@ -209,7 +213,7 @@ static JsonObject ReviewSummary(string kind,string before,string after)
    foreach(var item in old.Elements)if(!next.Elements.ContainsKey(item.Key))Add("프로젝트 등록 해제",JsonValue.Create(item.Key+" · "+item.Value.Kind),null,true,false);
    foreach(var item in next.Elements)if(old.Elements.TryGetValue(item.Key,out var prior)&&(prior.Path!=item.Value.Path||prior.Kind!=item.Value.Kind))additional=true;
    additional|=!old.Elements.Keys.Where(k=>next.Elements.ContainsKey(k)).SequenceEqual(next.Elements.Keys.Where(k=>old.Elements.ContainsKey(k)));next.Elements=old.Elements;additional|=FormatManifest(next)!=FormatManifest(old)||Comments(before)!=Comments(after);
-  }else if(kind=="body")additional=true;
+  }else if(kind is "body" or "blueprint" or "blueprint-node")additional=true;
   else{
    bool created=before.Length==0;var next=new Parser(after,"<review>").ParseElement();var old=created?new Element{Kind=next.Kind,Id=next.Id}:new Parser(before,"<review>").ParseElement();
    if(created)Add(kind=="object"?"개념 생성":kind=="schema"?"스키마 생성":"선언 생성",null,JsonValue.Create(next.Id.Split("::").Last()),false,true);

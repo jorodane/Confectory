@@ -59,3 +59,17 @@ AI는 미구현 또는 변경된 노드의 구현을 담당한다. 일반 compil
 현재 AlgorithmProjection은 기존 C#의 설명용 projection이다. 이를 실행 원본 graph로 승격하거나 그 화면의 JSON을 새 프로그램 원본으로 취급하지 않는다. 새 graph/node 원본·조립 계약을 명시적으로 추가한다.
 
 다음 체크포인트는 현재 선언·View/취소·이력 연결의 검증 결과와, graph/node/파생 산출물의 소유·버전 및 기존 소스 호환 경계다. 이후 고정된 입력으로 조립·컴파일·오류 매핑과 변경 없는 노드 재사용을 소유 fixture로 검증한다. 실제 사용자 계정·토큰·유료 AI 호출이나 외부 배포는 별도 권한이며 fixture 결과와 구분한다.
+
+## 첫 실제 compiler 경로
+
+`sync-acyclic-v1` 프로필을 일반 Builder에 연결했다. 구현이 `blueprint <target> "graph.json";`을 명시적으로 선택하며, 기존 `body`와 같은 target/common 선택·중복 검사를 사용한다. graph의 코드 노드는 `{schema:1,node,definitionHash,source}` 형태의 별도 파일을 참조한다. source는 노드의 완전한 독립 함수 본문이다. 최종 C#은 기존 생성 artifact 저장소에 조립하고 원본 경로에 쓰지 않는다. [일반 ProjectPack 예제](../examples/feature-blueprint/README.md)는 기존 typed Add 기능을 호출하고 결과 5를 출력한다.
+
+실제 구현은 graph·정의·계약·본문 해시, 순차 실행/bool 분기와 합류의 값 가용성, 누락·오래된 노드, 정적 독립 함수와 명시적 typed imports를 검사한다. 기존 Registry/Planner/provider/일반 compiler를 거쳐 빌드한다. .NET compiler가 노드 본문 구문·경계·진단 지시문을 검사하며, 외부 변수 캡처와 잘못된 반환/타입은 실제 C# 컴파일에서 거부한다. graph 루프·비동기 scheduling·예외 라우팅은 이 버전에 포함하지 않는다. 노드 내부 일반 C# 루프/예외를 노드 크기 정책으로 제한하지 않는다.
+
+빌드 보고서는 graph/node/계약 입력의 원시 해시, compiler identity·target과 노드 ID/본문 해시/JSON `/source` 위치를 기록한다. 조립과 compiler 반환 후, 최종 결과 게시 직전에 관찰한 입력을 재확인한다. 일반 소스 lease에 참여하지 않는 외부 파일 쓰기까지 단일 원자적 파일시스템 snapshot이라고 주장하지 않는다. 입력 변경 검출 시 현재 결과를 게시하지 않고 이전 성공 결과를 유지한다. 서로 다른 작업 경로에서 생성 DLL의 바이트 재현성도 소유 fixture로 확인했다.
+
+graph/node는 `blueprint`/`blueprint-node` 원본 종류로 기존 공유 초안·Save·복원·compiler Confirm을 사용한다. `DevelopmentTools.OpenNode`는 한 노드와 실제 정의·관찰한 graph/계약에 한정된 새 capability다. 해당 도구의 list/read/stage/changes는 다른 노드·graph·선언·생성 C#·Confirm·실행을 허용하지 않으며 표시한 내용 해시와 리비전을 확인한다. Worker에 지정 노드의 의도·시그니처·사용 가능한 계약만 제공한다. 기존 넓은 도구는 graph/node 파일을 자동으로 받지 않는다.
+
+이 단계는 일반 compiler·원본·초안·한정 도구 경계의 구현과 실행 증거다. 새 기능 화면, graph 신규 생성/전환 UI, node 전용 Task 계획/실제 Agent dispatch/adoption 공개 연결은 계속 구현 중이다. 실제 계정·유료 모델·native device 검증으로 확대하지 않는다. [검증 기록](evidence/v424-integration/blueprint-compiler.json).
+
+노드 정의 조회는 topology 연결 완료와 분리한다. 연결 전 노드도 자신의 의도·입출력·계약으로 준비할 수 있으며, 실행 시에는 entry에서 도달하는 노드와 값 경로를 검증한다. compiler 진단 marker는 기능 ID·노드 ID·본문/정의 해시를 포함하고 원본 경로·JSON 위치·본문 줄/열로 대응한다. 일반 `check` 결과에도 컴파일된 Blueprint 증거가 포함된다.

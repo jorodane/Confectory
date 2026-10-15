@@ -1,0 +1,9 @@
+implementation Confectory.DevelopmentTools::OpenNodeBody for Confectory.DevelopmentTools::OpenNode (string project,string projectId,string namespaceId,string owner,string context,string node) -> string {
+import Confectory.DevelopmentTools::Open as Open (string,string,string,string,string) -> string;
+import Confectory.DevelopmentTools::Close as Close (string) -> void;
+import Confectory.EditWorkspace::Read as Read (string,string) -> string[];
+import Confectory.EditWorkspace::List as List (string) -> string[];
+import Confectory.EditWorkspace::Status as Status (string,string) -> string[];
+import Confectory.SchemaEditing::Call as Metadata (string,string) -> string;
+body common "OpenNode.csbody";
+}

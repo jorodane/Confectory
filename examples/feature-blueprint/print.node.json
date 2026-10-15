@@ -1,0 +1,6 @@
+{
+  "schema": 1,
+  "node": "print",
+  "definitionHash": "c6db44e739d454ac3ea88e860e501401bc4dadba5ea87283269b6583089c55ef",
+  "source": "Console.WriteLine(value);\nreturn 0;"
+}

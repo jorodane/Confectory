@@ -1,0 +1,1 @@
+implementation Example.FeatureBlueprint::AddBody for Example.FeatureBlueprint::Add (int left, int right) -> int {body common "add.csbody";}

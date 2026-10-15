@@ -1,0 +1,75 @@
+{
+  "schema": 1,
+  "profile": "sync-acyclic-v1",
+  "feature": "Example.FeatureBlueprint::Main",
+  "contractHash": "b7a1720883f646c88d68f552ea6e56a3487a39392609373ca2c4c5f17c6814bb",
+  "entry": "add",
+  "nodes": [
+    {
+      "id": "add",
+      "kind": "call",
+      "control": "next",
+      "intent": "Reuse the existing Add feature",
+      "signature": {
+        "args": [
+          {
+            "type": "int",
+            "name": "left"
+          },
+          {
+            "type": "int",
+            "name": "right"
+          }
+        ],
+        "return": "int"
+      },
+      "feature": "Example.FeatureBlueprint::Add",
+      "arguments": {
+        "left": {
+          "constant": 2
+        },
+        "right": {
+          "constant": 3
+        }
+      }
+    },
+    {
+      "id": "print",
+      "kind": "code",
+      "control": "next",
+      "intent": "Print the calculated value and exit successfully",
+      "signature": {
+        "args": [
+          {
+            "type": "int",
+            "name": "value"
+          }
+        ],
+        "return": "int"
+      },
+      "arguments": {
+        "value": {
+          "node": "add"
+        }
+      },
+      "implementation": "print.node.json"
+    }
+  ],
+  "edges": [
+    {
+      "from": "add",
+      "port": "next",
+      "to": "print"
+    },
+    {
+      "from": "print",
+      "port": "next",
+      "to": "exit:done"
+    }
+  ],
+  "exits": {
+    "done": {
+      "node": "print"
+    }
+  }
+}

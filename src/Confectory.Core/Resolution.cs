@@ -7,6 +7,7 @@ public sealed class Registry
     public string ProjectPath { get; }
     public Manifest Project { get; }
     public Dictionary<string, Manifest> Packs { get; } = new(StringComparer.Ordinal);
+    internal Dictionary<string, string> ManifestDigests { get; } = new(StringComparer.Ordinal);
     public Dictionary<string, string> Paths { get; } = new(StringComparer.Ordinal);
     public Dictionary<string, Element> Elements { get; } = new(StringComparer.Ordinal);
     private readonly Dictionary<string, Element> effectiveCache = new(StringComparer.Ordinal);
@@ -39,7 +40,7 @@ public sealed class Registry
         if (Packs.ContainsKey(ns)) throw new BuildError("DUPLICATE_NAMESPACE", $"Duplicate namespace {ns}", manifest.Loc);
         if (ns != expected) throw new BuildError("REGISTRY_ID", $"Registry {expected} points to namespace {ns}", manifest.Loc);
         if (manifest.Kind == "project" && Packs.Count > 0) throw new BuildError("PROJECT_INPUT", "Nested ProjectPacks are not pack registry entries", manifest.Loc);
-        Packs.Add(ns, manifest); Paths.Add(ns, path);
+        Packs.Add(ns, manifest); Paths.Add(ns, path); ManifestDigests.Add(path, JsonData.Digest(manifest));
         foreach (var locator in manifest.Elements.Values) PackPaths.Owned(Path.GetDirectoryName(path)!, locator.Path, locator.Loc);
     }
     public Element Get(string id, string? expected = null, string? source = null, SourceLocation? loc = null)
