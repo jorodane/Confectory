@@ -288,8 +288,15 @@
     }
   ],
   "ordinaryCheckout": {
-    "status": "pending",
-    "requiresCommittedSnapshot": true
+    "status": "passed",
+    "commit": "d03774a6a3688482ac8b8442b52f8e59de73a535",
+    "case": "WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup",
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "seconds": 64.513,
+    "resources": 22,
+    "boundary": "Actual startup and canonical identities in retained CRLF after normal attribute pull and fresh LF checkouts; tampered resource refused. No production files changed after this test."
   },
   "verifiedBehavior": [
     "displayed source revision, SHA-256 and effective view hash fences",

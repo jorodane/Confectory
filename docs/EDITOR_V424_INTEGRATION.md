@@ -156,3 +156,5 @@ Blueprint 구현 커밋 `d326d57df4ed43dcbc1e41e126d17a5ecacf565f`의 일반 Git
 추가 경계 검증에서 예약 메타데이터 이름(`value:"description"`)과 선언 설명을 분리하고, 잘못된 객체의 필드 조회가 실패해도 실제 객체 선택기를 유지하도록 보완했다. Table의 자식 Workspace 이동·제거·재열기에서도 미적용 입력과 초안 소유자를 보존한다. 변경 검토의 숫자/복합 값도 원시 JSON을 표시해 큰 정수의 전후 차이를 반올림하지 않는다. 기존 영향 회귀 **11/0/0, 565.006초** 후 엔진·Workspace 경계와 최종 Table/compact Review 표적을 추가 확인했다. 최종 UI 두 검사는 **2/0/0, 88.768초**이며, 각 실행은 일부 중복되어 합산하지 않는다. 관리 프로필은 컴파일 검증이며 실제 기기·계정·유료 호출 검증이 아니다.
 
 [Table 검증 기록](evidence/v424-integration/instant-table.json)과 [실제 화면](evidence/v424-integration/instant-table.png). 검증 단계와 추가 수정의 범위·중복은 기록에서 구분한다.
+
+Table 구현 커밋 `d03774a6a3688482ac8b8442b52f8e59de73a535`의 일반 Git checkout/22개 리소스 실제 시작·변조 거부는 **1/0/0, 64.513초**로 통과했다. 이후 수정은 이 검증 기록뿐이다. main·원본 ZIP·Android 설정은 변경하지 않았다.
