@@ -15,7 +15,7 @@ export function createActualWorkspace(api) {
     detachWindow:w=>{if(w.overlay)return;detached.set(scope+'|'+w.key,w);capture()},
     foregroundZ:node=>node.key==='ai-preview'&&api.$('.augment-overlay')?271:undefined,
     hideWindowOnClose:key=>key==='source'||key.startsWith('editor-')||key.startsWith('table:'),
-    layoutMetadata:w=>Object.fromEntries(['id','view','mode','group','density','query','sort','mainWorkspace','namespace','catalogue','kind','parent','queryInput','closedNamespaces','workerId','mapQuery','mapRoles','mapFocus','mapSelected','mapPositions','mapCamera','mapDidFit','mapFocusId','mapFocusPositions','tableDefinition','tableName','tableQuery','tableSort','tableSelected','tableInputs','tableFill','tableBuilder','tableColumnOrder','tableWidths','tableValueSort'].filter(key=>w.meta[key]!==undefined).map(key=>[key,w.meta[key]])),
+    layoutMetadata:w=>Object.fromEntries(['id','view','mode','group','density','query','sort','mainWorkspace','namespace','catalogue','kind','parent','queryInput','closedNamespaces','workerId','referenceRequest','mapQuery','mapRoles','mapFocus','mapSelected','mapPositions','mapCamera','mapDidFit','mapFocusId','mapFocusPositions','tableDefinition','tableName','tableQuery','tableSort','tableSelected','tableInputs','tableFill','tableBuilder','tableColumnOrder','tableWidths','tableValueSort'].filter(key=>w.meta[key]!==undefined).map(key=>[key,w.meta[key]])),
     restoreActualWindow:layout=>restore(layout),
     afterSwitchWorkspace:()=>{const panels=structuredClone(runtime.workspaceRecord().participants||[]);api.clearPanels();api.clearYogi();panelWorkspace=runtime.state.activeWorkspaceId;api.restorePanels(panels);api.restoreYogi(runtime.workspaceRecord().yogiPresentation);api.render();schedule()},
     beforeDeleteWorkspaces:ids=>{
@@ -80,6 +80,7 @@ export function createActualWorkspace(api) {
     if(cached)return runtime.openWindow(layout.key,cached.title,cached.width,cached.height,{refresh:true});
     if(layout.key==='source'){api.editor();return runtime.state.windows.get('source');}
     if(layout.key==='browser'||layout.key.startsWith('browser:')||layout.key.startsWith('browser-tree:')){const w=api.browser(layout.meta?.group||'concept',layout.key);Object.assign(w.meta,layout.meta);return api.browser(w.meta.group,layout.key);}
+    if(layout.key==='definition')return api.definition(layout.meta||{});
     if(layout.key==='map')return api.map(layout.meta||{});
     if(layout.key.startsWith('table:')&&layout.meta?.tableDefinition)return api.table(layout.meta.tableDefinition,layout.meta||{});
     if(layout.key==='custom')return api.custom(layout.meta||{});

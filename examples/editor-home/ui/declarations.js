@@ -63,6 +63,9 @@ export function createDeclarationEditors(api){
    }
   }
   renderSignature();renderRelations();notice();
+  const references=[...new Set((info.relations?.edges||[]).flatMap(edge=>[edge.target,edge.function,edge.scope]).filter(Boolean))];
+  if(references.length){const list=document.createElement('details');list.dataset.declarationReferences='';list.innerHTML='<summary>참조한 선언의 정의 · '+references.length+'</summary>';for(const id of references){const button=document.createElement('button');button.dataset.operation='reference-definition';button.dataset.referenceTarget=id;button.textContent=id;button.onclick=()=>api.reference(info,id);list.append(button);}w.body.querySelector('.window-content').append(list);}
+
   $('[data-declaration-current]',w.body).onclick=()=>api.work(async()=>{if(api.current.projectId!==scope)throw Error('프로젝트가 바뀌었습니다.');const saved=JSON.stringify(inputs.get(cacheKey));if(row)await api.view.call('openEditorView',{view:row.view,id:info.id,viewMode:'declaration'});else await api.view.call('inspectDeclaration',{id:info.id});if(fresh(info.id,row)&&JSON.stringify(inputs.get(cacheKey))===saved)inputs.delete(cacheKey);show(fresh(info.id,row),row,true);persist();},'현재 선언 초안 다시 읽음');
   $('[data-declaration-save]',w.body).onclick=()=>api.work(()=>api.view.call(row?'saveEditorView':'saveDraft',row?{view:row.view,id:info.id}:{}),'Draft saved; final sources unchanged');
   $('[data-declaration-review]',w.body).onclick=()=>{if(Object.keys(inputs.get(cacheKey)||{}).length){api.toast('미적용 입력을 먼저 적용하세요.');return;}api.review(info.id);};

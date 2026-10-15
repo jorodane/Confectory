@@ -1,0 +1,155 @@
+{
+  "scope": "v424 directly declared registered definition read-only consumer",
+  "status": "passed; whole v424 map and Blueprint UI/Task work remain in progress",
+  "baseCommit": "489cc19c806964b6150b01ee5bd6a20bfa0942e0",
+  "gates": [
+    {
+      "name": "first actual UI and cold restart",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 13.592,
+      "cases": [
+        "WebUITests.test_actual_editor_v424_registered_reference_definition_read_only_and_cold_restart"
+      ],
+      "boundary": "After reference request metadata persistence was connected, before isolated window layout changes."
+    },
+    {
+      "name": "affected existing ownership and editor regression",
+      "passed": 7,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 317.457,
+      "cases": [
+        "RelationsMapTests.test_owned_declared_map_drafts_external_references_partial_sources_and_read_only_review",
+        "RelationsMapTests.test_registered_reference_definition_direct_scope_identity_and_no_body_reads",
+        "WebUITests.test_actual_editor_v318_workspace_lifecycle_presentation_restart",
+        "WebUITests.test_actual_editor_v424_declared_relations_map_and_cold_restart",
+        "WebUITests.test_actual_editor_v424_schema_local_actions_and_compound_array_order",
+        "WebUITests.test_actual_editor_v424_typed_declaration_views_cas_confirm_and_restart",
+        "EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only"
+      ],
+      "boundary": "Final metadata/helper/owner logic, before the isolated compact source-window layout adjustment."
+    },
+    {
+      "name": "final window layout, actual UI and cold restart",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 24.7,
+      "cases": [
+        "WebUITests.test_actual_editor_v424_registered_reference_definition_read_only_and_cold_restart"
+      ],
+      "boundary": "Final source; header/footer inside window and Workspace, restored empty view then explicit re-read, declaration and map entry paths."
+    }
+  ],
+  "additionalIndividualPasses": {
+    "cases": [
+      "PackWorkspaceTests.test_target_metadata_owned_sources_no_registry_execution"
+    ],
+    "boundary": "The shared final ReferenceDefinition helper was compiled in both identical native adapter sources and tested for in-root success and outside-provider-root refusal. This passed in the first batch; that batch also exposed an unrelated local-name collision in the new public wrapper, corrected before actual UI gates above."
+  },
+  "overlap": "Repeated cases across stages are not additive. Managed Windows/Android is compilation only, not device execution.",
+  "verifiedBehavior": [
+    "explicit owned source ID/kind, revision and UTF-8 content hash",
+    "only actual direct declared references with direct dependency and selected registry locator",
+    "target pack namespace/kind, element ID/kind, pack-root containment and 1MiB file bounds",
+    "unrelated malformed registry is not traversed",
+    "missing implementation body does not prevent reading its declaration; body is never read",
+    "root source and manifest rechecked after query; registered manifest and text rechecked before reply",
+    "public data has no injected host paths or editable imported workspace handle",
+    "read preserves selected source, shared draft and exact Review token including refused stale query",
+    "read-only actual source/version/hash in map and declaration consumers",
+    "changed external bytes detected despite restored timestamp",
+    "only reference identity and read basis in private presentation; no imported source text",
+    "cold restart shows empty restored view and requires explicit read",
+    "native reads remain constrained to configured provider root"
+  ],
+  "sourceFiles": [
+    {
+      "path": "examples/editor-home/WebBundle.csbody",
+      "sha256": "1823a811cd6c3cd6657c3ea7e9411ff7838f8b67e8b7d0846e6092452aabcb71"
+    },
+    {
+      "path": "examples/editor-home/WebInvoke.csbody",
+      "sha256": "53c3b3f5a1cda90f4928bf72402bc03572bbc7093b361205eb882cc16cabd04c"
+    },
+    {
+      "path": "examples/editor-home/WebState.csbody",
+      "sha256": "853a45ac68c01a1a0187ddb7947d065fe67d6420a94454032b04eb1805bb51ab"
+    },
+    {
+      "path": "examples/editor-home/ui/app.js",
+      "sha256": "a93278beef1f6a7cb97779883c157892df985e20ed4b6c72b0282a2a9685f8c1"
+    },
+    {
+      "path": "examples/editor-home/ui/consumer.css",
+      "sha256": "a767586727c6c8f79c39acedce320ec5632727a591879d344962c1eeecdc8a19"
+    },
+    {
+      "path": "examples/editor-home/ui/declarations.js",
+      "sha256": "91da90e36c04b5f4674020141181ff3f8a07e66ae539b4d6d6b4cee19b272536"
+    },
+    {
+      "path": "examples/editor-home/ui/relations.js",
+      "sha256": "ab15571de6969f042a95e82143a08830969c706048a09111f08d4a85403a6032"
+    },
+    {
+      "path": "examples/editor-home/ui/workspace-host.js",
+      "sha256": "54e0290b2cc8249708e318591b2e6154cd439c8c21d1ba51c00d78e3a5b369b3"
+    },
+    {
+      "path": "packs/editor-home-model/Command.csbody",
+      "sha256": "903d7a500f41f3768d2d323a3473db533e8aa8ca28de18a3cc9f5bc82588cd6d"
+    },
+    {
+      "path": "packs/pack-workspace/Command.csbody",
+      "sha256": "93004cd8d3ed23a6b5c4c8a7c92adb53c405269035e7bb6d877add8ac5e166ab"
+    },
+    {
+      "path": "packs/pack-workspace/README.md",
+      "sha256": "20980ee7023dc3fb9262b761e767f4369fcdb8d9eec7b21f6fbd79db2a9a019a"
+    },
+    {
+      "path": "targets/android-export/templates/MetadataAuthoring.cs",
+      "sha256": "9c309ba5545973382ae3c8838c0d12d02d43117cc8ab566f0b4ea4dc353cb9b6"
+    },
+    {
+      "path": "targets/browser-wasm/templates/MetadataAuthoring.cs",
+      "sha256": "9c309ba5545973382ae3c8838c0d12d02d43117cc8ab566f0b4ea4dc353cb9b6"
+    },
+    {
+      "path": "targets/element-authoring/Program.cs",
+      "sha256": "bad95628f9e44f8ddfabb47c6a66878b46446e73467b39176cf762e7cff84afb"
+    },
+    {
+      "path": "targets/element-authoring/ReferenceDefinition.cs",
+      "sha256": "3da444a6aafd98fef51831f41fea5e3d2e16e2afaf3a965812df9bf7a31cffdd"
+    }
+  ],
+  "ordinaryCheckout": {
+    "status": "pending after implementation commit",
+    "resources": 22
+  },
+  "screenshot": "reference-definition.png",
+  "limits": [
+    "Direct references from root-owned declarations only; transitive definition browsing and reference drag remain pending.",
+    "Owned targets use the existing draft View.",
+    "Actual selected version is displayed; compatibility and provider selection are not performed.",
+    "Native external resources may be unavailable under the configured provider root.",
+    "Source text is a read snapshot and is not an external filesystem transaction.",
+    "No real accounts, paid provider calls, device runs or online deployment.",
+    "Remaining v424 map and approved Blueprint UI/Task integration continue."
+  ],
+  "environment": {
+    "repository": "/workspace/Confectory",
+    "branch": "work/current",
+    "sdk": "10.0.401",
+    "browser": "/usr/bin/chromium"
+  },
+  "protected": {
+    "main": "unchanged",
+    "originalReferenceArchives": "unchanged",
+    "androidSettings": "unchanged; native metadata source helpers only"
+  }
+}

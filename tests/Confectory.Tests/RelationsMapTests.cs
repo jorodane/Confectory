@@ -2,6 +2,11 @@ using Confectory.Core;
 namespace Confectory.Tests;
 public sealed class RelationsMapTests : TestCase
 {
+    public void test_registered_reference_definition_direct_scope_identity_and_no_body_reads()
+    {
+        var result=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/v424_reference_definition.py"),Processes.DotNet(),Path.Combine(Fixture.Repo,"targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll")},timeoutSeconds:90);
+        True(result.ExitCode==0,result.Stdout+result.Stderr);True(result.Stdout.Contains("PASS registered reference definition"),result.Stdout+result.Stderr);
+    }
     public void test_owned_declared_map_drafts_external_references_partial_sources_and_read_only_review()
     {
         f.Add("App", "object", "Parent", "object App::Parent { value count = 3; }");

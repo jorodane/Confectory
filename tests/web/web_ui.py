@@ -32,6 +32,12 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
   stats=project/'TableStats.celem';source=stats.read_text();stats.write_text(source[:-1]+'field profile single compound Example.ButtonGame::TableLeaf;}')
   score_source=project/'Score.celem';score_source.write_text(score_source.read_text().replace('{','{ data profile = { n = 9223372036854775807;flag = true; };',1))
   source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+'element TableLeaf schema "TableLeaf.celem";'+source[index:])
+ if kind=='reference-definition':
+  ref=root/'reference-api';ref.mkdir();(ref/'pack.cpack').write_text('pack ReferenceApi version "1" {element Work function "Work.celem";element Body implementation "Body.celem";}')
+  (ref/'Work.celem').write_text('function ReferenceApi::Work (long input) -> long {description "Registered definition A";}')
+  (ref/'Body.celem').write_text('implementation ReferenceApi::Body for ReferenceApi::Work (long input) -> long {body common "missing-never-read.csbody";}')
+  main=project/'main.celem';main.write_text(main.read_text().replace('{','{ use function ReferenceApi::Work;use implementation ReferenceApi::Body;',1))
+  source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+'registry ReferenceApi '+json.dumps(str(ref/'pack.cpack'))+';dependency ReferenceApi version "1";'+source[index:])
  env['CONFECTORY_WEB_PROJECT']=str(manifest)
  original=(project/'Score.celem').read_bytes();log=root/'host.log';owned=OwnedResponses(None) if kind=='editor' else None
  with log.open('w') as output:
@@ -155,6 +161,9 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
     elif kind=='instant-table':
      from v424_instant_table import verify_instant_table
      verify_instant_table(page,project,mount,send,envelope,settle,restart_actual_host)
+    elif kind=='reference-definition':
+     from v424_reference_ui import verify_reference_definition
+     verify_reference_definition(page,project,mount,send,envelope,settle,restart_actual_host)
     elif kind=='relations-map':
      from v424_relations_map import verify_relations_map
      verify_relations_map(page,project,mount,send,envelope,settle,restart_actual_host)

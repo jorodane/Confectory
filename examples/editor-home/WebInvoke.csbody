@@ -43,6 +43,9 @@ if(endpoint=="closeProject"){
  var closing=Command("close-project",new(){["context"]=selected["context"]!.DeepClone()});
  if(closing["closeRequest"] is not null)Command("close-project",new(){["context"]=selected["context"]!.DeepClone(),["confirmed"]=true});return "{\"accepted\":true}";
 }
+if(endpoint=="readReferenceDefinition"){
+ var payload=new System.Text.Json.Nodes.JsonObject{["context"]=selected["context"]!.DeepClone(),["sourceId"]=args["sourceId"]!.DeepClone(),["id"]=args["id"]!.DeepClone(),["expectedRevision"]=args["revision"]!.DeepClone(),["expectedHash"]=args["hash"]!.DeepClone()};Command("reference-definition",payload);return "{\"accepted\":true}";
+}
 if(endpoint=="inspectPanels"){Command("inspect-panels",new(){["context"]=selected["context"]!.DeepClone()});return "{\"accepted\":true}";}
 if(endpoint=="savePresentation"){Command("presentation-save",new(){["context"]=selected["context"]!.DeepClone(),["presentation"]=args["presentation"]!.DeepClone()});return "{\"accepted\":true}";}
 if(endpoint=="leaveProject"){Command("leave",new(){["context"]=selected["context"]!.DeepClone()});return "{\"accepted\":true}";}

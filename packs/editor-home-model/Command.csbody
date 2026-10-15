@@ -173,6 +173,12 @@ try{model["status"]="";model["archive"]=null;
  string context=Active();string query=new System.Text.Json.Nodes.JsonObject{["action"]=Value("action","list"),["query"]=Value("query"),["kind"]=Value("kind"),["page"]=args["page"]?.DeepClone()??System.Text.Json.Nodes.JsonValue.Create(0),["id"]=Value("id")}.ToJsonString();
  model["catalog"]=new System.Text.Json.Nodes.JsonObject{["context"]=context,["result"]=System.Text.Json.Nodes.JsonNode.Parse(calls.Catalog.Invoke(calls.Context.Invoke(manager,context)[1],query))};
  }
+ else if(operation=="reference-definition"){
+ string context=Active();if(calls.Context.Invoke(manager,context)[2]=="Confectory.AISettings")throw new InvalidOperationException("Use connection settings for this owner");
+ var request=new System.Text.Json.Nodes.JsonObject();foreach(string key in new[]{"id","sourceId","expectedRevision","expectedHash"})request[key]=args[key]?.DeepClone()??throw new ArgumentException("Explicit reference source and version required");
+ var result=System.Text.Json.Nodes.JsonNode.Parse(calls.PackCommand.Invoke(Workspace(context),"reference-definition",request.ToJsonString()))!;
+ model["referenceDefinition"]=new System.Text.Json.Nodes.JsonObject{["context"]=context,["result"]=result["referenceDefinition"]!.DeepClone()};model["status"]="Declared reference definition read without opening an editable owner";
+ }
  else if(operation=="table"){string context=Active();calls.Tables.Invoke(session,context,Workspace(context),args.ToJsonString());model["workspace"]=System.Text.Json.Nodes.JsonNode.Parse(calls.PackSnapshot.Invoke(Workspace(context)));RefreshViews(context);}
  else if(operation=="workspace"){
  string context=Active(),view=Value("view"),action=Value("action","open");

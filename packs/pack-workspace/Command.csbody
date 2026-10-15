@@ -17,6 +17,18 @@ case "bodies":{
  string selectedBody=state["selected"]!.GetValue<string>();if(selectedBody=="")throw new InvalidOperationException("Select an owned implementation.");int separator=selectedBody.IndexOf("/body:",StringComparison.Ordinal);if(separator>=0)selectedBody=selectedBody[..separator];
  var bodies=calls.DiscoverBodies.Invoke(draft,selectedBody);var bodyReply=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(handle))!.AsObject();bodyReply["bodies"]=System.Text.Json.Nodes.JsonNode.Parse(bodies);return bodyReply.ToJsonString();
 }
+case "reference-definition":{
+ string sourceId=request["sourceId"]!.GetValue<string>();var source=calls.Read.Invoke(draft,sourceId);
+ if(source[1] is "body" or "blueprint" or "blueprint-node" or "project" or "pack")throw new ArgumentException("Declaration reference source required");
+ string expectedHash=request["expectedHash"]!.GetValue<string>();long expectedRevision=request["expectedRevision"]!.GetValue<long>();
+ if(expectedRevision<0||!System.Text.RegularExpressions.Regex.IsMatch(expectedHash,"\\A[0-9a-f]{64}\\z",System.Text.RegularExpressions.RegexOptions.CultureInvariant))throw new ArgumentException("Displayed reference version required");
+ string Hash(string text)=>Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(text))).ToLowerInvariant();
+ if(source[4]!=expectedRevision.ToString(System.Globalization.CultureInfo.InvariantCulture)||Hash(source[3])!=expectedHash)throw new InvalidOperationException("Reference source changed; read the declaration or map again");
+ var identity=calls.Identity.Invoke(draft);var ids=calls.List.Invoke(draft);string manifestId=System.Linq.Enumerable.FirstOrDefault(ids,id=>id.EndsWith("::ProjectManifest",StringComparison.Ordinal))??System.Linq.Enumerable.First(ids,id=>id.EndsWith("::PackManifest",StringComparison.Ordinal));var manifest=calls.Read.Invoke(draft,manifestId);
+ var definition=System.Text.Json.Nodes.JsonNode.Parse(calls.Locate.Invoke("referenceDefinition",System.Text.Json.JsonSerializer.Serialize(new{project=identity[0],manifest=manifest[3],sourceId,text=source[3],id=request["id"]!.GetValue<string>()})))!;
+ var latest=calls.Read.Invoke(draft,sourceId);var latestManifest=calls.Read.Invoke(draft,manifestId);if(latest[4]!=source[4]||latest[3]!=source[3]||latestManifest[4]!=manifest[4]||latestManifest[3]!=manifest[3])throw new InvalidOperationException("Reference source changed during read; refresh explicitly");
+ definition["sourceRevision"]=expectedRevision;var definitionReply=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(handle))!.AsObject();definitionReply["referenceDefinition"]=definition;return definitionReply.ToJsonString();
+}
 case "inspect":
 case "locate":
 case "effective": case "schema-view": case "call-check":{
