@@ -55,5 +55,12 @@
     "local-custom.png": "3fa6016e210688b44990e75d6741c872df689981baceace74f7dd68f82c4520a",
     "six-kinds.png": "3ec19eb73f4193f5a8d4d2b7c981aaef5b53206e2f6008120e3336250ea5e008"
   },
-  "remaining": "Full action matrix, ready-task cancellation, paged history, structured declaration/graph/table/issue/recipient/runtime/participant/service work; ordinary checkout check follows commit"
+  "remaining": "Full action matrix, ready-task cancellation, paged history, structured declaration/graph/table/issue/recipient/runtime/participant/service work",
+  "checkout": {
+    "testedCommit": "0c46fbb6ab7d5de87e54a2579eeb423a63f83816",
+    "method": "WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup",
+    "status": "passed",
+    "seconds": 64.598,
+    "coverage": "ordinary retained CRLF pull and fresh LF checkout; 19 canonical resources; actual startup and tamper rejection"
+  }
 }
