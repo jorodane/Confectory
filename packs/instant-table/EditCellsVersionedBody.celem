@@ -1,0 +1,8 @@
+implementation Confectory.InstantTable::EditCellsVersionedBody for Confectory.InstantTable::EditCellsVersioned (string view,string[] ids,string field,string value,string versions,string operation) -> bool {
+import Confectory.EditWorkspace::Read as Read (string,string) -> string[];
+import Confectory.EditWorkspace::DescribeSchema as Describe (string,string,string) -> string;
+import Confectory.EditWorkspace::EditBatch as EditBatch (string,string[],string[],long[],string[]) -> bool;
+import Confectory.SchemaEditing::Call as Metadata (string,string) -> string;
+import Confectory.SchemaEditing::SetValue as SetValue (string,string,string) -> string;
+body common "EditCellsVersioned.csbody";
+}

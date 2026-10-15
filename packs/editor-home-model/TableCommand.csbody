@@ -1,0 +1,52 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.EditorHome."+session) as object[]??throw new ObjectDisposedException("Entry/home session");
+lock(state){
+ if((bool)state[6])throw new ObjectDisposedException("Entry/home session");
+ var model=(System.Text.Json.Nodes.JsonObject)state[3];var selected=model["selected"]??throw new InvalidOperationException("Open a project explicitly");
+ if(selected["context"]!.ToString()!=context)throw new InvalidOperationException("Table belongs to another project");
+ if(selected["namespace"]!.ToString()=="Confectory.AISettings")throw new InvalidOperationException("Use the owned connection settings editor");
+ var args=System.Text.Json.Nodes.JsonNode.Parse(payload)!.AsObject();string action=args["action"]!.GetValue<string>();
+ var handles=(System.Collections.Generic.Dictionary<string,string>)state[13];string prefix=context+"/table/";
+ model["tableViews"]??=new System.Text.Json.Nodes.JsonObject();model["tableViews"]![context]??=new System.Text.Json.Nodes.JsonObject();var rows=model["tableViews"]![context]!.AsObject();
+ void Snapshot(string id){var row=rows[id]!;try{row["snapshot"]=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(handles[prefix+id]));row["error"]=null;}catch{row["error"]="TABLE_SNAPSHOT_UNAVAILABLE";throw;}}
+ if(action=="options"){
+  string draft=calls.Borrow.Invoke(workspace),ns=selected["namespace"]!.ToString()+"::";var objects=new System.Text.Json.Nodes.JsonArray();var objectIds=new System.Collections.Generic.List<string>();int page=args["page"]?.GetValue<int>()??0;if(page<0||page>4095)throw new ArgumentOutOfRangeException("page");
+  foreach(string id in calls.List.Invoke(draft))if(id.StartsWith(ns,StringComparison.Ordinal)&&calls.Status.Invoke(draft,id)[1]=="object")objectIds.Add(id);
+  objectIds.Sort(StringComparer.Ordinal);int count=objectIds.Count;page=Math.Min(page,Math.Max(0,(count-1)/64));foreach(string id in System.Linq.Enumerable.Take(System.Linq.Enumerable.Skip(objectIds,page*64),64)){var unit=calls.Status.Invoke(draft,id);objects.Add(new System.Text.Json.Nodes.JsonObject{["id"]=id,["dirty"]=unit[6]=="dirty"});}
+  string requested=args["id"]?.GetValue<string>()??"";if(requested.Length==0)requested=System.Linq.Enumerable.FirstOrDefault(objects)?["id"]?.ToString()??"";
+  string? fieldsError=null;var fields=new System.Text.Json.Nodes.JsonArray();if(requested.Length>0){if(!System.Linq.Enumerable.Any(objects,o=>o!["id"]!.ToString()==requested))throw new ArgumentException("Choose an owned object from this page");
+   try{var view=System.Text.Json.Nodes.JsonNode.Parse(calls.Describe.Invoke(draft,requested,""))!;
+   fields.Add(new System.Text.Json.Nodes.JsonObject{["id"]="description",["label"]="설명",["type"]="string",["inputKind"]="text"});
+   foreach(var field in view["values"]!.AsArray()){string name=field!["field"]!.ToString();bool alias=name=="description"||name.StartsWith("data:",StringComparison.Ordinal)||name.StartsWith("value:",StringComparison.Ordinal);fields.Add(new System.Text.Json.Nodes.JsonObject{["id"]=alias?"value:"+System.Text.Json.JsonSerializer.Serialize(name):name,["label"]=alias?name+" · 메타데이터":name,["type"]="metadata"});}
+   foreach(var field in view["schemaView"]!["rows"]!.AsArray())fields.Add(new System.Text.Json.Nodes.JsonObject{["id"]="data:"+field!["path"]!.ToJsonString(new System.Text.Json.JsonSerializerOptions{Encoder=System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping}),["label"]=string.Join(" / ",System.Linq.Enumerable.Select(field["path"]!.AsArray(),p=>p!.ToString())),["type"]=field["type"]!.DeepClone(),["inputKind"]=field["inputKind"]!.DeepClone(),["writable"]=field["pathWritable"]!.DeepClone()});
+   }catch{fields.Clear();fieldsError="TABLE_FIELDS_UNAVAILABLE";}
+  }
+  model["tableOptions"]=new System.Text.Json.Nodes.JsonObject{["projectId"]=selected["projectId"]!.DeepClone(),["objects"]=objects,["total"]=count,["page"]=page,["pageSize"]=64,["error"]=fieldsError,["id"]=requested,["fields"]=fields};return;
+ }
+ if(action is "refresh-all" or "poll"){
+  foreach(var pair in rows){if(action=="refresh-all"||calls.Poll.Invoke(handles[prefix+pair.Key]).Length>0)Snapshot(pair.Key);}return;
+ }
+ string table=args["table"]?.GetValue<string>()??throw new ArgumentException("Table identity required");
+ if(!System.Text.RegularExpressions.Regex.IsMatch(table,"\\A[a-zA-Z0-9_-]{1,64}\\z",System.Text.RegularExpressions.RegexOptions.CultureInvariant))throw new ArgumentException("Bounded table identity required");string key=prefix+table;
+ if(action is "open" or "configure"){
+  var ids=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(args["ids"]!.AsArray(),v=>v!.GetValue<string>()));var columns=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(args["columns"]!.AsArray(),v=>v!.GetValue<string>()));string request=args["request"]?.GetValue<string>()??"";
+  if(System.Linq.Enumerable.Any(ids,id=>!id.StartsWith(selected["namespace"]!.ToString()+"::",StringComparison.Ordinal)))throw new ArgumentException("Table rows require root-owned objects");
+  if(action=="configure"&&(rows[table] is null||args["definitionHash"]?.ToString()!=rows[table]!["definitionHash"]!.ToString()))throw new InvalidOperationException("Table definition changed; inspect the current definition before configuring");
+  if(action=="open"&&rows[table] is not null){if(!System.Text.Json.Nodes.JsonNode.DeepEquals(rows[table]!["ids"],args["ids"])||!System.Text.Json.Nodes.JsonNode.DeepEquals(rows[table]!["columns"],args["columns"])||rows[table]!["request"]!.ToString()!=request)throw new InvalidOperationException("Table definition changed; open a new table identity");Snapshot(table);return;}
+  if(rows[table] is null&&rows.Count>=8)throw new InvalidOperationException("Close an existing table before opening another");
+  string handle=calls.Create.Invoke(calls.Borrow.Invoke(workspace),ids,columns,request);try{
+   var snapshot=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(handle));
+   string definitionHash=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(new System.Text.Json.Nodes.JsonObject{["ids"]=args["ids"]!.DeepClone(),["columns"]=args["columns"]!.DeepClone(),["request"]=request}.ToJsonString()))).ToLowerInvariant();
+   if(handles.TryGetValue(key,out string? previous))calls.Close.Invoke(previous);
+   rows[table]=new System.Text.Json.Nodes.JsonObject{["table"]=table,["projectId"]=selected["projectId"]!.DeepClone(),["ids"]=args["ids"]!.DeepClone(),["columns"]=args["columns"]!.DeepClone(),["request"]=request,["definitionHash"]=definitionHash,["snapshot"]=snapshot};handles[key]=handle;
+  }catch{calls.Close.Invoke(handle);throw;}return;
+ }
+ if(rows[table] is null||!handles.TryGetValue(key,out string? owned))throw new InvalidOperationException("Reopen the actual table for this project");
+ if(action=="close"){calls.Close.Invoke(owned);handles.Remove(key);rows.Remove(table);return;}
+ if(action=="refresh"){Snapshot(table);return;}
+ if(action!="edit")throw new ArgumentException("Supported table action required");
+ var selectedIds=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(args["ids"]!.AsArray(),v=>v!.GetValue<string>()));
+ bool applied=calls.Edit.Invoke(owned,selectedIds,args["field"]!.GetValue<string>(),args["valueJson"]?.GetValue<string>()??"null",args["versions"]!.ToJsonString(),args["operation"]!.GetValue<string>());
+ if(!applied){model["status"]="Table version conflict; refresh explicitly; unapplied input retained";throw new InvalidOperationException("Table displayed source or schema version changed");}
+ calls.PackCommand.Invoke(workspace,"cancel-review","{}");
+ foreach(var pair in rows)Snapshot(pair.Key);model["status"]="Table drafts staged; Save and Review/Confirm remain explicit";
+}

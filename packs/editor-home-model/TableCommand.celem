@@ -1,0 +1,1 @@
+function Confectory.EditorHome.Model::TableCommand (string session,string context,string workspace,string payload) -> void {provide Confectory.EditorHome.Model::TableCommand with Confectory.EditorHome.Model::TableCommandBody;}

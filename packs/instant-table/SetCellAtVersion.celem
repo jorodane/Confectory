@@ -1,0 +1,1 @@
+function Confectory.InstantTable::SetCellAtVersion (string view,string id,string field,string value,long revision,string hash,string viewHash) -> bool {provide Confectory.InstantTable::SetCellAtVersion with Confectory.InstantTable::SetCellAtVersionBody;}

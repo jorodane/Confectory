@@ -1,0 +1,23 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.InstantTable."+view) as object[]??throw new ObjectDisposedException("InstantTable");lock(state[0]){
+if((bool)state[6])throw new ObjectDisposedException("InstantTable");string workspace=(string)state[1];var workspaceState=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+workspace) as System.Text.Json.Nodes.JsonObject??throw new ObjectDisposedException("EditWorkspace");lock(workspaceState){var rows=new System.Text.Json.Nodes.JsonArray();var observed=new System.Collections.Generic.Dictionary<string,string[]>(StringComparer.Ordinal);
+System.Text.Json.Nodes.JsonNode? Value(System.Text.Json.Nodes.JsonNode? datum){if(datum is null)return null;if(datum["kind"]?.ToString()=="reference")return new System.Text.Json.Nodes.JsonObject{["$ref"]=datum["reference"]!.DeepClone()};if(datum["items"] is System.Text.Json.Nodes.JsonArray items)return new System.Text.Json.Nodes.JsonArray(System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(items,Value)));if(datum["members"] is System.Text.Json.Nodes.JsonObject members){var obj=new System.Text.Json.Nodes.JsonObject();foreach(var entry in members)obj[entry.Key]=Value(entry.Value);return obj;}return datum["scalar"]?.DeepClone();}
+foreach(string id in (string[])state[2]){
+ var unit=calls.Read.Invoke(workspace,id);observed[id]=new[]{unit[4],unit[3]};var cells=new System.Text.Json.Nodes.JsonObject();var info=new System.Text.Json.Nodes.JsonObject();var row=new System.Text.Json.Nodes.JsonObject{["id"]=id,["revision"]=long.Parse(unit[4],System.Globalization.CultureInfo.InvariantCulture),["textHash"]=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(unit[3]))).ToLowerInvariant(),["dirty"]=unit[6]=="dirty",["cells"]=cells,["cellInfo"]=info};
+ try{
+ var described=System.Text.Json.Nodes.JsonNode.Parse(calls.Describe.Invoke(workspace,id,""))!;row["viewHash"]=described["viewHash"]!.DeepClone();row["schemaValidation"]=described["schemaView"]!["validation"]!.DeepClone();row["state"]="available";
+ foreach(string column in (string[])state[3]){
+  var cell=new System.Text.Json.Nodes.JsonObject{["column"]=column,["writable"]=true,["state"]="unset"};System.Text.Json.Nodes.JsonNode? value=null;
+  if(column=="description"){value=described["description"]?.DeepClone()??System.Text.Json.Nodes.JsonValue.Create("");cell["type"]="string";cell["inputKind"]="text";cell["origin"]=described["descriptionOrigin"]?.DeepClone();cell["state"]=described["descriptionOrigin"] is null?"unset":"present";}
+  else if(column.StartsWith("data:",StringComparison.Ordinal)){
+   var path=System.Text.Json.Nodes.JsonNode.Parse(column[5..])?.AsArray()??throw new ArgumentException("Explicit data path required");var field=System.Linq.Enumerable.FirstOrDefault(described["schemaView"]!["rows"]!.AsArray(),f=>System.Text.Json.Nodes.JsonNode.DeepEquals(f!["path"],path));
+   if(field is null){cell["writable"]=false;cell["state"]="field-unavailable";}else{foreach(string key in new[]{"type","kind","cardinality","inputKind","schemaOrigin","valueOrigin","state","path"})if(field[key] is not null)cell[key]=field[key]!.DeepClone();cell["writable"]=field["pathWritable"]!.DeepClone();value=Value(field["datum"]);}
+  }else{
+   string metadataField=column.StartsWith("value:",StringComparison.Ordinal)?System.Text.Json.Nodes.JsonNode.Parse(column[6..])!.GetValue<string>():column;var entry=System.Linq.Enumerable.FirstOrDefault(described["values"]!.AsArray(),v=>v!["field"]!.ToString()==metadataField);if(entry is not null){value=entry["value"]?.DeepClone();cell["origin"]=entry["origin"]!.DeepClone();cell["state"]="present";}cell["inputKind"]=value is null?"json":value.GetValueKind()==System.Text.Json.JsonValueKind.String?"text":value.GetValueKind() is System.Text.Json.JsonValueKind.True or System.Text.Json.JsonValueKind.False?"boolean":"number";cell["type"]="metadata";
+  }
+  cell["localOverride"]=(cell["valueOrigin"]??cell["origin"])?.ToString()==id;cells[column]=value;cell["valueJson"]=value?.ToJsonString()??"null";info[column]=cell;
+ }
+ }catch(Exception){row["state"]="schema-unavailable";foreach(string column in (string[])state[3])info[column]=new System.Text.Json.Nodes.JsonObject{["column"]=column,["writable"]=false,["state"]="schema-unavailable"};}
+ rows.Add(row);
+}
+foreach(var version in observed){var current=calls.Read.Invoke(workspace,version.Key);if(current[4]!=version.Value[0]||current[3]!=version.Value[1])throw new InvalidOperationException("Table sources changed during snapshot; read again");}
+return new System.Text.Json.Nodes.JsonObject{["schema"]=2,["rows"]=rows,["request"]=(string)state[4],["source"]="borrowed-edit-workspace",["sourceWritten"]=false,["executed"]=false}.ToJsonString();}}

@@ -73,3 +73,7 @@ graph/node는 `blueprint`/`blueprint-node` 원본 종류로 기존 공유 초안
 이 단계는 일반 compiler·원본·초안·한정 도구 경계의 구현과 실행 증거다. 새 기능 화면, graph 신규 생성/전환 UI, node 전용 Task 계획/실제 Agent dispatch/adoption 공개 연결은 계속 구현 중이다. 실제 계정·유료 모델·native device 검증으로 확대하지 않는다. [검증 기록](evidence/v424-integration/blueprint-compiler.json).
 
 노드 정의 조회는 topology 연결 완료와 분리한다. 연결 전 노드도 자신의 의도·입출력·계약으로 준비할 수 있으며, 실행 시에는 entry에서 도달하는 노드와 값 경로를 검증한다. compiler 진단 marker는 기능 ID·노드 ID·본문/정의 해시를 포함하고 원본 경로·JSON 위치·본문 줄/열로 대응한다. 일반 `check` 결과에도 컴파일된 Blueprint 증거가 포함된다.
+
+## 2026-10-15 추가 확정 경계
+
+사용자가 Site에서 확정한 내용(메시지 `01a13ef7-3990-70cc-96c1-ec950b4eaa45`, 부모 전달)을 반영한다. 완료된 부모 구현은 자식이 그대로 재사용하며 자식별 재구현을 요구하지 않는다. 기능 가져오기는 본문 복사 대신 해당 기능 참조 노드 하나를 입출력 노드에 연결한 graph로 표현한다. 최신 화면은 새 레퍼런스 인계 때 맞춘다. 실행 종료와 로컬 값 선택 설계가 조정 중이므로 완료 노드나 데이터 와이어를 모든 Blueprint의 필수 구조로 고정하지 않는다. 현재 `sync-acyclic-v1`의 유효성 검사는 그 명시적 profile 안에서만 적용하며 이후 형식의 전체 의미를 규정하지 않는다.

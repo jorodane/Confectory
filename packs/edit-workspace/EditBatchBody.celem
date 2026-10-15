@@ -1,0 +1,6 @@
+implementation Confectory.EditWorkspace::EditBatchBody for Confectory.EditWorkspace::EditBatch (string handle,string[] ids,string[] texts,long[] revisions,string[] hashes) -> bool {
+import Confectory.EditWorkspace::Read as Read (string,string) -> string[];
+import Confectory.SchemaEditing::Inspect as Inspect (string) -> string;
+import Confectory.SchemaEditing::Call as Metadata (string,string) -> string;
+body common "EditBatch.csbody";
+}

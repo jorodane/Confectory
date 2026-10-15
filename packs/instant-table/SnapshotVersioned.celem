@@ -1,0 +1,1 @@
+function Confectory.InstantTable::SnapshotVersioned (string view) -> string {provide Confectory.InstantTable::SnapshotVersioned with Confectory.InstantTable::SnapshotVersionedBody;}

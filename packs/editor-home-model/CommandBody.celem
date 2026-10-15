@@ -84,4 +84,6 @@ import Confectory.WorkerTasks::Inspect as RecoveryTasksInspect (string,string) -
 import Confectory.WorkerTasks::Close as RecoveryTasksClose (string) -> void;
 import Confectory.Agent.Codex::Preparation as CodexPreparation (string,string,string) -> string;
 import Confectory.Agent.Codex::AccountLogin as CodexLogin (string,string,string) -> string;
+import Confectory.EditorHome.Model::TableCommand as Tables (string,string,string,string) -> void;
+import Confectory.EditorHome.Model::TableClose as CloseTables (string,string) -> void;
 body common "Command.csbody"; }

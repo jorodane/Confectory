@@ -59,6 +59,11 @@ if(localActions.TryGetValue(endpoint,out var action)){
  if(endpoint=="chatDraft")payload["action"]="draft";
  Command(action[0],payload);return "{\"accepted\":true}";
 }
+if(endpoint is "tableOptions" or "openTable" or "refreshTable" or "configureTable" or "editTable" or "closeTable"){
+ var payload=new System.Text.Json.Nodes.JsonObject{["context"]=selected["context"]!.DeepClone(),["action"]=endpoint switch{"tableOptions"=>"options","openTable"=>"open","refreshTable"=>"refresh","configureTable"=>"configure","editTable"=>"edit",_=>"close"}};
+ foreach(string field in new[]{"table","id","ids","columns","request","field","valueJson","versions","operation","definitionHash","page"})if(args[field] is not null)payload[field]=args[field]!.DeepClone();
+ Command("table",payload);return "{\"accepted\":true}";
+}
 if(endpoint is "openEditorView" or "closeEditorView" or "editEditorView" or "saveEditorView" or "editViewField" or "editViewMetadata" or "editViewDescription" or "editViewDefinition" or "editViewDeclaration"){
  var payload=new System.Text.Json.Nodes.JsonObject{["context"]=selected["context"]!.DeepClone(),["view"]=args["view"]!.DeepClone(),["id"]=args["id"]!.DeepClone(),["action"]=endpoint switch{"openEditorView"=>"open-view","closeEditorView"=>"close-view","saveEditorView"=>"save","editViewField"=>"data-path","editViewMetadata"=>"value","editViewDescription"=>"description","editViewDefinition"=>"field","editViewDeclaration"=>"declaration",_=>"open"}};
  foreach(string field in new[]{"viewMode","text","path","value","field","edit"})if(args[field] is not null)payload[field]=args[field]!.DeepClone();

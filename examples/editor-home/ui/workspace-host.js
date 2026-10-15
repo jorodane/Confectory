@@ -14,8 +14,8 @@ export function createActualWorkspace(api) {
     takeDetachedWindow:key=>{const w=detached.get(scope+'|'+key);detached.delete(scope+'|'+key);return w},
     detachWindow:w=>{if(w.overlay)return;detached.set(scope+'|'+w.key,w);capture()},
     foregroundZ:node=>node.key==='ai-preview'&&api.$('.augment-overlay')?271:undefined,
-    hideWindowOnClose:key=>key==='source'||key.startsWith('editor-'),
-    layoutMetadata:w=>Object.fromEntries(['id','view','mode','group','density','query','sort','mainWorkspace','namespace','catalogue','kind','parent','queryInput','closedNamespaces','workerId','mapQuery','mapRoles','mapFocus','mapSelected','mapPositions','mapCamera','mapDidFit','mapFocusId','mapFocusPositions'].filter(key=>w.meta[key]!==undefined).map(key=>[key,w.meta[key]])),
+    hideWindowOnClose:key=>key==='source'||key.startsWith('editor-')||key.startsWith('table:'),
+    layoutMetadata:w=>Object.fromEntries(['id','view','mode','group','density','query','sort','mainWorkspace','namespace','catalogue','kind','parent','queryInput','closedNamespaces','workerId','mapQuery','mapRoles','mapFocus','mapSelected','mapPositions','mapCamera','mapDidFit','mapFocusId','mapFocusPositions','tableDefinition','tableName','tableQuery','tableSort','tableSelected','tableInputs','tableFill','tableBuilder','tableColumnOrder','tableWidths','tableValueSort'].filter(key=>w.meta[key]!==undefined).map(key=>[key,w.meta[key]])),
     restoreActualWindow:layout=>restore(layout),
     afterSwitchWorkspace:()=>{const panels=structuredClone(runtime.workspaceRecord().participants||[]);api.clearPanels();api.clearYogi();panelWorkspace=runtime.state.activeWorkspaceId;api.restorePanels(panels);api.restoreYogi(runtime.workspaceRecord().yogiPresentation);api.render();schedule()},
     beforeDeleteWorkspaces:ids=>{
@@ -23,7 +23,7 @@ export function createActualWorkspace(api) {
       const parent=runtime.workspaceRecord();
       for(const child of project.workspaces.filter(child=>ids.has(child.id)))
         for(const layout of child.layout||[])
-          if(layout.key==='source'||layout.key.startsWith('editor-')){
+          if(layout.key==='source'||layout.key.startsWith('editor-')||layout.key.startsWith('table:')){
             if(!parent.layout.some(row=>row.key===layout.key))parent.layout.push({...layout,hidden:true});
             if(!runtime.state.windows.has(layout.key)){
               const cached=detached.get(scope+'|'+layout.key);
@@ -81,6 +81,8 @@ export function createActualWorkspace(api) {
     if(layout.key==='source'){api.editor();return runtime.state.windows.get('source');}
     if(layout.key==='browser'||layout.key.startsWith('browser:')||layout.key.startsWith('browser-tree:')){const w=api.browser(layout.meta?.group||'concept',layout.key);Object.assign(w.meta,layout.meta);return api.browser(w.meta.group,layout.key);}
     if(layout.key==='map')return api.map(layout.meta||{});
+    if(layout.key.startsWith('table:')&&layout.meta?.tableDefinition)return api.table(layout.meta.tableDefinition,layout.meta||{});
+    if(layout.key==='custom')return api.custom(layout.meta||{});
     if(layout.key==='schema'){api.schema();return runtime.state.windows.get('schema');}
     if(layout.key==='declaration'){api.declaration();return runtime.state.windows.get('declaration');}
     if(layout.key==='worker')return api.worker(layout.meta?.workerId);

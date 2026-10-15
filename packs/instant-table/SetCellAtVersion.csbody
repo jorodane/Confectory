@@ -1,0 +1,1 @@
+return calls.Fill.Invoke(view,new[]{id},field,value,new System.Text.Json.Nodes.JsonObject{[id]=new System.Text.Json.Nodes.JsonObject{["revision"]=revision,["textHash"]=hash,["viewHash"]=viewHash}}.ToJsonString());

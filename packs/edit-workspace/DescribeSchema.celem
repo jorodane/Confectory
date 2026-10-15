@@ -1,0 +1,1 @@
+function Confectory.EditWorkspace::DescribeSchema (string handle,string id,string candidate) -> string {provide Confectory.EditWorkspace::DescribeSchema with Confectory.EditWorkspace::DescribeSchemaBody;}

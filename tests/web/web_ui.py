@@ -18,6 +18,12 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
  # A regular existing user project copy, with actual object source and normal draft storage.
  project=root/'button-game';shutil.copytree(repo/'examples/button-game',project,ignore=shutil.ignore_patterns('.confectory'))
  manifest=project/'project.cpack';manifest.write_text(manifest.read_text().replace('../../',str(repo)+'/'))
+ if kind=='instant-table':
+  (project/'ZBroken.celem').write_text('object Example.ButtonGame::ZBroken {}')
+  (project/'TableStats.celem').write_text('schema Example.ButtonGame::TableStats {field amount single general long;field tags multiple general int;}')
+  (project/'TableTwin.celem').write_text('object Example.ButtonGame::TableTwin extends Example.ButtonGame::Score {data amount = 9223372036854775806;}')
+  score_source=project/'Score.celem';score_source.write_text(score_source.read_text().replace('{','{ value description = "Separate metadata";use schema Example.ButtonGame::TableStats;data amount = 9223372036854775807;data tags = [1,2];',1))
+  source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+'element TableStats schema "TableStats.celem";element TableTwin object "TableTwin.celem";element ZBroken object "ZBroken.celem";'+source[index:])
  env['CONFECTORY_WEB_PROJECT']=str(manifest)
  original=(project/'Score.celem').read_bytes();log=root/'host.log';owned=OwnedResponses(None) if kind=='editor' else None
  with log.open('w') as output:
@@ -132,6 +138,9 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
     elif kind=='local-augment':
      from v424_local_augment import verify_local_augment
      verify_local_augment(page,project,mount,send,envelope,settle,restart_actual_host)
+    elif kind=='instant-table':
+     from v424_instant_table import verify_instant_table
+     verify_instant_table(page,project,mount,send,envelope,settle,restart_actual_host)
     elif kind=='relations-map':
      from v424_relations_map import verify_relations_map
      verify_relations_map(page,project,mount,send,envelope,settle,restart_actual_host)

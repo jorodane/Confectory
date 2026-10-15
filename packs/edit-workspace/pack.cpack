@@ -1,5 +1,7 @@
 pack Confectory.EditWorkspace version "0.1.0" {
 standalone false;
+element EditBatch function "EditBatch.celem";element EditBatchBody implementation "EditBatchBody.celem";
+element DescribeSchema function "DescribeSchema.celem";element DescribeSchemaBody implementation "DescribeSchemaBody.celem";
 dependency Confectory.SchemaEditing version "0.1.0";
 dependency Confectory.FileStream version "0.1.0";
 element Open function "Open.celem";

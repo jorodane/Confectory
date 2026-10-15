@@ -9,4 +9,5 @@ import Confectory.YogiBox::Close as YogiClose (string) -> void;
 import Confectory.Agent.Codex::Verification as CodexVerification (string,string,string) -> string;
 import Confectory.Agent.Codex::Preparation as CodexPreparation (string,string,string) -> string;
 import Confectory.Agent.Codex::AccountLogin as CodexLogin (string,string,string) -> string;
+import Confectory.EditorHome.Model::TableClose as CloseTables (string,string) -> void;
 body common "CloseSession.csbody"; }

@@ -1,4 +1,7 @@
 function Confectory.EditorHome::Main () -> int {
+provide Confectory.EditWorkspace::Subscribe with Confectory.EditWorkspace::SubscribeBody;
+provide Confectory.EditWorkspace::Unsubscribe with Confectory.EditWorkspace::UnsubscribeBody;
+provide Confectory.EditWorkspace::Poll with Confectory.EditWorkspace::PollBody;
 provide Confectory.WebUI::State with Confectory.EditorHome::WebStateBody;
 provide Confectory.WebUI::Invoke with Confectory.EditorHome::WebInvokeBody;
 provide Confectory.RuntimeBase::CreateInstance with Confectory.RuntimeBase::CreateInstanceBody;

@@ -1,0 +1,17 @@
+if(ids.Length<1||ids.Length>64||texts.Length!=ids.Length||revisions.Length!=ids.Length||hashes.Length!=ids.Length||new System.Collections.Generic.HashSet<string>(ids,StringComparer.Ordinal).Count!=ids.Length)throw new ArgumentException("Explicit unique batch units and corresponding versions required");
+string key="Confectory.EditWorkspace."+handle;var state=AppDomain.CurrentDomain.GetData(key) as System.Text.Json.Nodes.JsonObject??throw new ObjectDisposedException("EditWorkspace");
+string Hash(string text)=>Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(text))).ToLowerInvariant();
+var kinds=new string[ids.Length];var paths=new string[ids.Length];
+for(int i=0;i<ids.Length;i++){
+ if(revisions[i]<0||!System.Text.RegularExpressions.Regex.IsMatch(hashes[i],"\\A[0-9a-f]{64}\\z",System.Text.RegularExpressions.RegexOptions.CultureInvariant))throw new ArgumentException("Displayed revision and source hash required");
+ var unit=calls.Read.Invoke(handle,ids[i]);kinds[i]=unit[1];paths[i]=unit[2];if(kinds[i] is "project" or "pack")throw new ArgumentException("Registration edits require their owning workflow");
+ if(long.Parse(unit[4],System.Globalization.CultureInfo.InvariantCulture)!=revisions[i]||Hash(unit[3])!=hashes[i])return false;
+ if(kinds[i] is "blueprint" or "blueprint-node")calls.Metadata.Invoke("blueprintSourceValidate",System.Text.Json.JsonSerializer.Serialize(new{id=ids[i],kind=kinds[i],text=texts[i]}));
+ else if(kinds[i]!="body"){var parsed=System.Text.Json.Nodes.JsonNode.Parse(calls.Inspect.Invoke(texts[i]))!;if(parsed["id"]!.ToString()!=ids[i]||parsed["kind"]!.ToString()!=kinds[i])throw new ArgumentException("Stable batch declaration identity required");}
+}
+lock(state){
+ if(!ReferenceEquals(AppDomain.CurrentDomain.GetData(key),state))throw new ObjectDisposedException("EditWorkspace");
+ for(int i=0;i<ids.Length;i++){var unit=state["units"]![ids[i]];if(unit is null||unit["kind"]!.ToString()!=kinds[i]||unit["path"]!.ToString()!=paths[i]||unit["revision"]!.GetValue<long>()!=revisions[i]||Hash(unit["draft"]!.ToString())!=hashes[i])return false;}
+ for(int i=0;i<ids.Length;i++){var unit=state["units"]![ids[i]]!;if(unit["draft"]!.ToString()==texts[i])continue;unit["draft"]=texts[i];unit["revision"]=unit["revision"]!.GetValue<long>()+1;}
+}
+return true;

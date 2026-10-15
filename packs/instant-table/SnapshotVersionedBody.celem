@@ -1,0 +1,5 @@
+implementation Confectory.InstantTable::SnapshotVersionedBody for Confectory.InstantTable::SnapshotVersioned (string view) -> string {
+import Confectory.EditWorkspace::Read as Read (string,string) -> string[];
+import Confectory.EditWorkspace::DescribeSchema as Describe (string,string,string) -> string;
+body common "SnapshotVersioned.csbody";
+}

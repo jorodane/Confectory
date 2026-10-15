@@ -1,0 +1,1 @@
+function Confectory.InstantTable::FillVersioned (string view,string[] ids,string field,string value,string versions) -> bool {provide Confectory.InstantTable::FillVersioned with Confectory.InstantTable::FillVersionedBody;}

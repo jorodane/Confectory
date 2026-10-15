@@ -224,7 +224,8 @@ internal static class EffectiveMetadata
     if(!manifest.Elements.TryGetValue(ownedId[(manifest.Namespace.Length+2)..],out var ownedLocator))throw new ArgumentException("Draft overlay locator missing.");
     var owned=new Confectory.Core.Parser(source,Confectory.Core.PackPaths.Owned(root,ownedLocator.Path)).ParseElement();if(owned.Id!=ownedId||owned.Kind!=ownedLocator.Kind)throw new ArgumentException("Draft overlay identity/kind mismatch.");registry.Elements[ownedId]=owned;
    }
-   var effective=registry.Effective(id);var planner=new Confectory.Core.Planner(registry,"metadata");
+   var effective=registry.Effective(id);var descriptionSource=selected;while(!descriptionSource.DescriptionPresent&&descriptionSource.Parent is not null)descriptionSource=registry.Get(descriptionSource.Parent,descriptionSource.Kind,descriptionSource.Id,descriptionSource.Loc);
+var planner=new Confectory.Core.Planner(registry,"metadata");
    var module=effective.Kind=="module"?planner.Module(id):planner.ModulesFor(id);
    var values=new System.Text.Json.Nodes.JsonArray();foreach(var pair in effective.Values.OrderBy(p=>p.Key,StringComparer.Ordinal))values.Add(new System.Text.Json.Nodes.JsonObject{["field"]=pair.Key,["value"]=System.Text.Json.JsonSerializer.SerializeToNode(pair.Value.Value),["origin"]=pair.Value.Origin});
    var requirements=new System.Text.Json.Nodes.JsonArray();foreach(var pair in module.Required.OrderBy(p=>p.Key,StringComparer.Ordinal))
@@ -237,7 +238,7 @@ internal static class EffectiveMetadata
    var schemaFields=effective.Kind=="object"?Confectory.Core.SchemaContracts.Fields(registry,id):effective.Fields;
    var functionContracts=new System.Text.Json.Nodes.JsonObject();foreach(var pair in schemaFields.Where(p=>p.Value.Kind=="function")){var fn=registry.Get(pair.Value.Type,"function",pair.Value.Origin,pair.Value.Loc);functionContracts[pair.Key]=new System.Text.Json.Nodes.JsonObject{["id"]=fn.Id,["signature"]=System.Text.Json.JsonSerializer.SerializeToNode(fn.Signature)};}
    var schemaModel=schemaView?SchemaModel(registry,effective,schemaFields):null;
-   return new System.Text.Json.Nodes.JsonObject{["scope"]="effective-metadata",["status"]="available",["id"]=id,["sourceKind"]=sourceKind,["fields"]=System.Text.Json.JsonSerializer.SerializeToNode(schemaFields),["functionContracts"]=functionContracts,["schemaModel"]=schemaModel,["data"]=System.Text.Json.JsonSerializer.SerializeToNode(effective.Data),["values"]=values,["modules"]=modules,["requirements"]=requirements,["providers"]=providers,["providerSelection"]="not-performed",["declarationsLoaded"]=System.Text.Json.JsonSerializer.SerializeToNode(registry.Elements.Keys.Order(StringComparer.Ordinal).ToArray()),["registeredManifests"]=registry.Packs.Count,["bodyReads"]=statistics.ReadDocuments.Count(path=>registry.Elements.Values.Any(e=>e.Bodies.Values.Any(b=>Confectory.Core.PackPaths.Owned(System.IO.Path.GetDirectoryName(e.Loc.File)!,b.Path)==path))),["draftOverlayIDs"]=System.Text.Json.JsonSerializer.SerializeToNode(overlayIds.Order(StringComparer.Ordinal).ToArray()),["dependencySource"]="root-owned-drafts-and-confirmed-registered-files"};
+   return new System.Text.Json.Nodes.JsonObject{["scope"]="effective-metadata",["status"]="available",["id"]=id,["description"]=effective.Description,["descriptionOrigin"]=descriptionSource.DescriptionPresent?descriptionSource.Id:null,["sourceKind"]=sourceKind,["fields"]=System.Text.Json.JsonSerializer.SerializeToNode(schemaFields),["functionContracts"]=functionContracts,["schemaModel"]=schemaModel,["data"]=System.Text.Json.JsonSerializer.SerializeToNode(effective.Data),["values"]=values,["modules"]=modules,["requirements"]=requirements,["providers"]=providers,["providerSelection"]="not-performed",["declarationsLoaded"]=System.Text.Json.JsonSerializer.SerializeToNode(registry.Elements.Keys.Order(StringComparer.Ordinal).ToArray()),["registeredManifests"]=registry.Packs.Count,["bodyReads"]=statistics.ReadDocuments.Count(path=>registry.Elements.Values.Any(e=>e.Bodies.Values.Any(b=>Confectory.Core.PackPaths.Owned(System.IO.Path.GetDirectoryName(e.Loc.File)!,b.Path)==path))),["draftOverlayIDs"]=System.Text.Json.JsonSerializer.SerializeToNode(overlayIds.Order(StringComparer.Ordinal).ToArray()),["dependencySource"]="root-owned-drafts-and-confirmed-registered-files"};
   }
   catch(Confectory.Core.BuildError error){return new System.Text.Json.Nodes.JsonObject{["scope"]="effective-metadata",["status"]="unavailable",["id"]=id,["code"]=error.Diagnostic.Code,["message"]=error.Diagnostic.Message};}
   catch(Exception error){return new System.Text.Json.Nodes.JsonObject{["scope"]="effective-metadata",["status"]="unavailable",["id"]=id,["code"]="METADATA_UNAVAILABLE",["message"]=error.Message};}
@@ -278,7 +279,6 @@ internal static class EffectiveMetadata
  }
 
 }
-
 
 internal static class SemanticCatalogService
 {

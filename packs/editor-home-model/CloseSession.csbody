@@ -11,6 +11,8 @@ lock(state){
  if(errors.Count>0)throw new AggregateException("Project AI remains closing; retry CloseSession",errors);
  var boxes=(System.Collections.Generic.Dictionary<string,string>)state[12];foreach(var box in System.Linq.Enumerable.ToArray(boxes)){try{calls.YogiClose.Invoke(box.Value);boxes.Remove(box.Key);}catch(Exception error){errors.Add(error);}}
  if(errors.Count>0)throw new AggregateException("Yogi storage remains closing; live project resources retained for retry",errors);
+ try{calls.CloseTables.Invoke(session,"");}catch(Exception error){errors.Add(error);}
+ if(errors.Count>0)throw new AggregateException("Table views remain closing; borrowed project resources retained for retry",errors);
  var shells=(System.Collections.Generic.Dictionary<string,string>)state[7];
  foreach(var shell in System.Linq.Enumerable.ToArray(shells)){try{calls.ShellClose.Invoke(shell.Value);shells.Remove(shell.Key);}catch(Exception error){errors.Add(error);}}
  var packViews=(System.Collections.Generic.Dictionary<string,string>)state[9];

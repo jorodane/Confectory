@@ -130,6 +130,12 @@ public sealed class WebUITests : TestCase
         var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/web_ui.py"),Fixture.Repo,report,"review-presentation"},timeoutSeconds:180);
         True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS actual compact numeric row and fresh subset caption"));
     }
+    public void test_actual_editor_v424_instant_table_typed_fill_cas_and_cold_restart()
+    {
+        var built=new Builder(Path.Combine(Fixture.Repo,"examples/editor-home/project.cpack"),"linux").Build();string report=Path.Combine(f.Root,"v424-instant-table.json");File.WriteAllText(report,built.ToJsonString());
+        var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/web_ui.py"),Fixture.Repo,report,"instant-table"},timeoutSeconds:600);
+        True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS actual versioned table"),run.Stdout+run.Stderr);
+    }
     public void test_actual_editor_v424_declared_relations_map_and_cold_restart()
     {
         var built=new Builder(Path.Combine(Fixture.Repo,"examples/editor-home/project.cpack"),"linux").Build();string report=Path.Combine(f.Root,"v424-relations-map.json");File.WriteAllText(report,built.ToJsonString());

@@ -1,0 +1,1 @@
+function Confectory.EditWorkspace::EditBatch (string handle,string[] ids,string[] texts,long[] revisions,string[] hashes) -> bool {provide Confectory.EditWorkspace::EditBatch with Confectory.EditWorkspace::EditBatchBody;}

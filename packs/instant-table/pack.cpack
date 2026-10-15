@@ -1,5 +1,9 @@
 pack Confectory.InstantTable version "0.1.0" {
 standalone false;
+element EditCellsVersioned function "EditCellsVersioned.celem";element EditCellsVersionedBody implementation "EditCellsVersionedBody.celem";
+element SnapshotVersioned function "SnapshotVersioned.celem";element SnapshotVersionedBody implementation "SnapshotVersionedBody.celem";
+element FillVersioned function "FillVersioned.celem";element FillVersionedBody implementation "FillVersionedBody.celem";
+element SetCellAtVersion function "SetCellAtVersion.celem";element SetCellAtVersionBody implementation "SetCellAtVersionBody.celem";
 dependency Confectory.EditWorkspace version "0.1.0";
 dependency Confectory.SchemaEditing version "0.1.0";
 dependency Confectory.ChangeSet version "0.1.0";

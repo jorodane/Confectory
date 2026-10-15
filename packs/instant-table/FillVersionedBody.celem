@@ -1,0 +1,4 @@
+implementation Confectory.InstantTable::FillVersionedBody for Confectory.InstantTable::FillVersioned (string view,string[] ids,string field,string value,string versions) -> bool {
+import Confectory.InstantTable::EditCellsVersioned as Edit (string,string[],string,string,string,string) -> bool;
+body common "FillVersioned.csbody";
+}

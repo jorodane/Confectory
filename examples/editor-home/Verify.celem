@@ -1,4 +1,7 @@
 function Confectory.EditorHome::Verify () -> int {
+provide Confectory.EditWorkspace::Subscribe with Confectory.EditWorkspace::SubscribeBody;
+provide Confectory.EditWorkspace::Unsubscribe with Confectory.EditWorkspace::UnsubscribeBody;
+provide Confectory.EditWorkspace::Poll with Confectory.EditWorkspace::PollBody;
 provide Confectory.SchemaEditing::BeginScope with Confectory.SchemaEditing::BeginScopeBody;
 provide Confectory.SchemaEditing::EndScope with Confectory.SchemaEditing::EndScopeBody;
 provide Confectory.SchemaEditing::Cancel with Confectory.SchemaEditing::CancelBody;

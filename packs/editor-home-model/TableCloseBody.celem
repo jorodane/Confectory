@@ -1,0 +1,3 @@
+implementation Confectory.EditorHome.Model::TableCloseBody for Confectory.EditorHome.Model::TableClose (string session,string context) -> void {
+import Confectory.InstantTable::Close as Close (string) -> void;
+body common "TableClose.csbody";}

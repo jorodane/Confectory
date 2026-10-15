@@ -1,0 +1,4 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.EditorHome."+session) as object[];if(state is null)return;
+lock(state){var handles=(System.Collections.Generic.Dictionary<string,string>)state[13];var model=(System.Text.Json.Nodes.JsonObject)state[3];
+foreach(var item in System.Linq.Enumerable.ToArray(handles))if(context.Length==0||item.Key.StartsWith(context+"/table/",StringComparison.Ordinal)){calls.Close.Invoke(item.Value);handles.Remove(item.Key);}
+if(context.Length==0)model.Remove("tableViews");else model["tableViews"]?.AsObject().Remove(context);}

@@ -1,0 +1,12 @@
+implementation Confectory.EditorHome.Model::TableCommandBody for Confectory.EditorHome.Model::TableCommand (string session,string context,string workspace,string payload) -> void {
+import Confectory.PackWorkspace::Command as PackCommand (string,string,string) -> string;
+import Confectory.PackWorkspace::BorrowDraft as Borrow (string) -> string;
+import Confectory.EditWorkspace::List as List (string) -> string[];
+import Confectory.EditWorkspace::Status as Status (string,string) -> string[];
+import Confectory.EditWorkspace::DescribeSchema as Describe (string,string,string) -> string;
+import Confectory.InstantTable::Create as Create (string,string[],string[],string) -> string;
+import Confectory.InstantTable::SnapshotVersioned as Snapshot (string) -> string;
+import Confectory.InstantTable::EditCellsVersioned as Edit (string,string[],string,string,string,string) -> bool;
+import Confectory.InstantTable::Poll as Poll (string) -> string[];
+import Confectory.InstantTable::Close as Close (string) -> void;
+body common "TableCommand.csbody";}

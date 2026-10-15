@@ -1,0 +1,1 @@
+function Confectory.InstantTable::EditCellsVersioned (string view,string[] ids,string field,string value,string versions,string operation) -> bool {provide Confectory.InstantTable::EditCellsVersioned with Confectory.InstantTable::EditCellsVersionedBody;}

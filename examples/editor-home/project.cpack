@@ -1,5 +1,6 @@
 project Confectory.EditorHome version "0.1.0" {
 standalone true;
+registry Confectory.InstantTable "../../packs/instant-table/pack.cpack";dependency Confectory.InstantTable version "0.1.0";
 registry Confectory.WorkerTasks "../../packs/worker-tasks/pack.cpack"; dependency Confectory.WorkerTasks version "0.1.0";
 registry Confectory.Augment "../../packs/augment/pack.cpack"; dependency Confectory.Augment version "0.1.0";
 registry Confectory.YogiBox "../../packs/yogi-box/pack.cpack"; dependency Confectory.YogiBox version "0.1.0";

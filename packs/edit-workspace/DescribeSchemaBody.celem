@@ -1,0 +1,9 @@
+implementation Confectory.EditWorkspace::DescribeSchemaBody for Confectory.EditWorkspace::DescribeSchema (string handle,string id,string candidate) -> string {
+import Confectory.EditWorkspace::Identity as Identity (string) -> string[];
+import Confectory.EditWorkspace::List as List (string) -> string[];
+import Confectory.EditWorkspace::Read as Read (string,string) -> string[];
+import Confectory.EditWorkspace::Changes as Changes (string,string[]) -> string[];
+import Confectory.SchemaEditing::Call as Metadata (string,string) -> string;
+import Confectory.SchemaEditing::DescribeView as DescribeView (string) -> string;
+body common "DescribeSchema.csbody";
+}

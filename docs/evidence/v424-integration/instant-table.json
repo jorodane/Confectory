@@ -1,0 +1,331 @@
+{
+  "schema": 1,
+  "scope": "owned InstantTable integration checkpoint",
+  "fullV424Complete": false,
+  "createdUtc": "2026-10-15T12:20:50.560888+00:00",
+  "baseCommit": "5386c4c8254bf4f794bfe980f523621214e022a5",
+  "recoveryCommit": "3dce7ac6b32340e26cd78fe2946b3a0a10b043f1",
+  "reference": {
+    "file": "reference/site-ui/Confectory-Editor-Prototype-v424.zip",
+    "sha256": "b7969cd109ea2dad38bde9c9ab13967c20162c920a45a8cd51a8f82df6041874",
+    "exactBytesComparedWithMain": "18e27bc17c28cfb7925150bb3ded7c237edf6afb"
+  },
+  "gates": [
+    {
+      "name": "initial engine, native metadata and real table UI",
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 95.758,
+      "cases": [
+        "InstantTableVersionTests.test_versioned_table_atomic_fill_schema_fences_precision_and_borrowed_lifetime",
+        "WebUITests.test_actual_editor_v424_instant_table_typed_fill_cas_and_cold_restart",
+        "PackWorkspaceTests.test_target_metadata_owned_sources_no_registry_execution"
+      ],
+      "boundary": "Before the later metadata-alias, unavailable-probe, child workspace and semantic Review precision follow-ups."
+    },
+    {
+      "name": "existing affected ownership and editing regression",
+      "passed": 11,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 565.006,
+      "cases": [
+        "WebUITests.test_actual_editor_and_button_game_common_web_transport_chromium",
+        "WebUITests.test_actual_editor_v424_declared_relations_map_and_cold_restart",
+        "WebUITests.test_actual_editor_v424_typed_declaration_views_cas_confirm_and_restart",
+        "SchemaEditingTests.test_authoring_preservation_validation_and_locality",
+        "SchemaEditingTests.test_signature_inputs_arrays_bounds_and_call_preflight_locality",
+        "SchemaEditingTests.test_v424_contract_module_semantic_review_retains_uncovered_source_acknowledgement",
+        "SchemaEditingTests.test_v424_declaration_mutation_types_relations_local_reset_and_array_order",
+        "EditWorkspaceTests.test_shared_drafts_save_restore_preview_selective_confirm_conflict_and_locality",
+        "PackWorkspaceTests.test_development_tools_owned_scope_shared_draft_no_confirm_and_locality",
+        "PackWorkspaceTests.test_two_contexts_revision_save_reopen_and_locality",
+        "EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only"
+      ],
+      "boundary": "Before the additive table edge and Review representation follow-ups; full EditorHome/ButtonGame, typed views, map, source APIs and managed profile compilation."
+    },
+    {
+      "name": "final public Table and compact Review",
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 88.768,
+      "cases": [
+        "WebUITests.test_actual_editor_review_compact_numeric_and_subset_caption",
+        "WebUITests.test_actual_editor_v424_instant_table_typed_fill_cas_and_cold_restart"
+      ],
+      "boundary": "Final implementation source; public Review exact JSON, invalid draft repair, private input lifetime and actual compiler Confirm."
+    },
+    {
+      "name": "final Table and capture",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 92.012,
+      "cases": [
+        "WebUITests.test_actual_editor_v424_instant_table_typed_fill_cas_and_cold_restart"
+      ],
+      "boundary": "Same implementation source; adjusted test drag position to keep the title visible and captured the actual UI."
+    }
+  ],
+  "additionalIndividualPasses": {
+    "cases": [
+      "InstantTableVersionTests.test_versioned_table_atomic_fill_schema_fences_precision_and_borrowed_lifetime",
+      "WebUITests.test_actual_editor_v318_workspace_lifecycle_presentation_restart"
+    ],
+    "note": "Engine metadata aliases/reset and actual Workspace lifetime passed in the edge batch. The later UI fixture failure in that batch was corrected to exercise invalid draft repair; the final UI gates above pass."
+  },
+  "overlap": "Cases repeat across stages; do not sum these counts. Not every existing regression was rerun after the isolated Table and Review display fixes.",
+  "sourceFiles": [
+    {
+      "path": "examples/editor-home/Main.celem",
+      "sha256": "ad21011102592285a52c4ec6f20fc0310a8942581519b9276258c2533060deec"
+    },
+    {
+      "path": "examples/editor-home/Verify.celem",
+      "sha256": "ed1f53f2cd1b9cfb0ac6840cd1a1443a5fff654eb3b72a123282e2589f134998"
+    },
+    {
+      "path": "examples/editor-home/VerifyShell.celem",
+      "sha256": "4329b4d9426c886e182231e1729cd0e5409ac43795b65f15663ac42697a36e43"
+    },
+    {
+      "path": "examples/editor-home/WebBundle.csbody",
+      "sha256": "3ac8df5be0330a78436d9b1ea2096aff2619ecffe5e55b47fc0bdb6bc9a62e4f"
+    },
+    {
+      "path": "examples/editor-home/WebInvoke.csbody",
+      "sha256": "96979c5dc6388120ad6cc20841c6e25c593e10b8228bef14ab9d417289f4fccd"
+    },
+    {
+      "path": "examples/editor-home/WebState.csbody",
+      "sha256": "a97d15e87072e3e12b322e5d2b6d2ed37f38473c7f259cb5461b6d85925fef08"
+    },
+    {
+      "path": "examples/editor-home/project.cpack",
+      "sha256": "f60a66a4a617187d2389153aee9164799857ef1b9d831fdd151122a4aaa64f7f"
+    },
+    {
+      "path": "examples/editor-home/ui/app.js",
+      "sha256": "533ea48104c36801206973d7e7171b818a5b57e3d082368c13f1882da84ccb4a"
+    },
+    {
+      "path": "examples/editor-home/ui/style.css",
+      "sha256": "faffa6b4406e1a51c40b8a5dd2b4a95d829f4096cd712f624b5d47d58f7714b4"
+    },
+    {
+      "path": "examples/editor-home/ui/tables.js",
+      "sha256": "e7326d06148694ad9b655ae42a5f3d710764bff2611ec645e2aba80005639be8"
+    },
+    {
+      "path": "examples/editor-home/ui/workspace-host.js",
+      "sha256": "7110657ccb5f87f49ad662df8ac543b76c80074135c28619a7101134f865bc3b"
+    },
+    {
+      "path": "examples/editor-home/verify-shell.cpack",
+      "sha256": "68722f55addde6f9d14e900f10e2c02bcca326fb52a0f2b70d0cbb1aa23c85cf"
+    },
+    {
+      "path": "examples/editor-home/verify.cpack",
+      "sha256": "d688c42b5e1e5f13ed0e813622185ff7b452f01a11ad3259bc5db1a84003916d"
+    },
+    {
+      "path": "packs/edit-workspace/DescribeSchema.celem",
+      "sha256": "86ab54ef8ffe6462da04b3fd444343a792ed85a91094a2ce69ca541e058f5ba5"
+    },
+    {
+      "path": "packs/edit-workspace/DescribeSchema.csbody",
+      "sha256": "b074577046ece9144c94659085c0dbc388689d22e95eba8b7e7d85dde020e224"
+    },
+    {
+      "path": "packs/edit-workspace/DescribeSchemaBody.celem",
+      "sha256": "4bdeb15d781d70c0230308811a9ba2d64fc02ed41a5adfa20a7d923117127706"
+    },
+    {
+      "path": "packs/edit-workspace/EditBatch.celem",
+      "sha256": "36aec86ffaf2ce0229133e60d75b20e157624e49f9b9fdec22245905d8bd9466"
+    },
+    {
+      "path": "packs/edit-workspace/EditBatch.csbody",
+      "sha256": "2ef938dedd1cc7879397627198e406cd997f87fdc78e0e3f5445ec5763485c1a"
+    },
+    {
+      "path": "packs/edit-workspace/EditBatchBody.celem",
+      "sha256": "bc2f0bcb82645da74b74cc69ca53d0a12a8dec6ae1ad930fea23857c7d48117d"
+    },
+    {
+      "path": "packs/edit-workspace/pack.cpack",
+      "sha256": "7482f6dc157a8f3bdb5e6295f16365d55d95dfa6fa7992fceea75c28ce489051"
+    },
+    {
+      "path": "packs/editor-home-model/CloseSession.csbody",
+      "sha256": "707649e58a909d08cc8e1964ab8bee81140716f4dc6171f959d19834c06249c2"
+    },
+    {
+      "path": "packs/editor-home-model/CloseSessionBody.celem",
+      "sha256": "a724d42a2ed0488e57dd477e10cde2206c38c1c7f2e9f54b0a77e2ae2a3b9f0e"
+    },
+    {
+      "path": "packs/editor-home-model/Command.csbody",
+      "sha256": "9196d9be896afe58a74eb900eb9d3613dc356025c3f2b3ae55e9e43c3fc0d90f"
+    },
+    {
+      "path": "packs/editor-home-model/CommandBody.celem",
+      "sha256": "f692d7eaed91a6e3fd9d3500f59201eb2903fac11e78f9faa7efd7c8970578eb"
+    },
+    {
+      "path": "packs/editor-home-model/CreateSession.android.csbody",
+      "sha256": "5bc8af37f5d2f6394f7c69a1677efa3d522f4711de5c8554690bf7d43545b3a5"
+    },
+    {
+      "path": "packs/editor-home-model/CreateSession.browser.csbody",
+      "sha256": "5bc8af37f5d2f6394f7c69a1677efa3d522f4711de5c8554690bf7d43545b3a5"
+    },
+    {
+      "path": "packs/editor-home-model/CreateSession.csbody",
+      "sha256": "32068f726a008a17c19ffed2c3be626231da515edc435af783c20b0156e80928"
+    },
+    {
+      "path": "packs/editor-home-model/TableClose.celem",
+      "sha256": "655da3774362e200bdbcf0f17f95cd489b1d58e9b26406580723d7577a9dee46"
+    },
+    {
+      "path": "packs/editor-home-model/TableClose.csbody",
+      "sha256": "1430fb1cdb4307d1111edd9cf447caedb0e9b7aa2fc5162e2cd50d77cea7177b"
+    },
+    {
+      "path": "packs/editor-home-model/TableCloseBody.celem",
+      "sha256": "7bcbe27966ed8adbc0540f7c866448a8046acc7da61f9ea82797883c270d0170"
+    },
+    {
+      "path": "packs/editor-home-model/TableCommand.celem",
+      "sha256": "d01ec1ad3c6e4495c2ae07e9d44ddb3c266cc687de737363db821d753485941c"
+    },
+    {
+      "path": "packs/editor-home-model/TableCommand.csbody",
+      "sha256": "f775f6f06336de927e6ddd2022e1f4f8b22e03ad1aea8a6e0e257a90be235fb4"
+    },
+    {
+      "path": "packs/editor-home-model/TableCommandBody.celem",
+      "sha256": "6c5d331e5ead096a272950e350907cab10ae357f979161e0b5e77c7e86456c41"
+    },
+    {
+      "path": "packs/editor-home-model/pack.cpack",
+      "sha256": "03b177ff179cd720a9d4069a2d4130c4fa00c477e9affb01e133d0aac751f149"
+    },
+    {
+      "path": "packs/instant-table/Create.csbody",
+      "sha256": "a4a3df74507afa8ca04a6074564735757102529136ebea79439e914f8da91ac0"
+    },
+    {
+      "path": "packs/instant-table/EditCellsVersioned.celem",
+      "sha256": "25cf3c29a1189b3b6c396eb0e2e0c0c77ede2b747dc6491fc2f6185ba91bd2b7"
+    },
+    {
+      "path": "packs/instant-table/EditCellsVersioned.csbody",
+      "sha256": "a4cc9a790f72e3de086163a1131fd97f845d74ea7657118b71f6c1025e9b288e"
+    },
+    {
+      "path": "packs/instant-table/EditCellsVersionedBody.celem",
+      "sha256": "a848536d412763538c023264961bba69cb55fb82e4106bd9e7ede7b6931f9e4a"
+    },
+    {
+      "path": "packs/instant-table/FillVersioned.celem",
+      "sha256": "1b85d04b52ea900d59c6146c235ea64f9c57a8da96f502ec01344bb86465f277"
+    },
+    {
+      "path": "packs/instant-table/FillVersioned.csbody",
+      "sha256": "6066c92bacbd63f844e99ed5d729acae0b6cfd86c8c7676e4501c036ac1159f0"
+    },
+    {
+      "path": "packs/instant-table/FillVersionedBody.celem",
+      "sha256": "c8349056d34c53286a1bf120bf98412c8685af61d2bf070ada58be9f226e826f"
+    },
+    {
+      "path": "packs/instant-table/README.md",
+      "sha256": "072883cb282bef139baa2e1af111b78f947bd503188774b1b26e33a8898d757f"
+    },
+    {
+      "path": "packs/instant-table/SetCellAtVersion.celem",
+      "sha256": "ff96a9592ea622d830c162e1faae00b674dd924d0f9ca5e5d49b911cd3abe7c7"
+    },
+    {
+      "path": "packs/instant-table/SetCellAtVersion.csbody",
+      "sha256": "aa88fff39588adfd41e2d1d83a631fbb421c54ae5867c0ec305a4f025e00277e"
+    },
+    {
+      "path": "packs/instant-table/SetCellAtVersionBody.celem",
+      "sha256": "fcf639fea4616e2128e49dc509c98997f53ed4ed29e01166898fde1adca65263"
+    },
+    {
+      "path": "packs/instant-table/SnapshotVersioned.celem",
+      "sha256": "8ed28d8140af934711cc9c37161335b6c951212c27b385809bf0ce2775dac982"
+    },
+    {
+      "path": "packs/instant-table/SnapshotVersioned.csbody",
+      "sha256": "2a0a0a7034ef6caca1d0c97722d5120fe4d7da96a678fd994fdfd7fe3e35ca69"
+    },
+    {
+      "path": "packs/instant-table/SnapshotVersionedBody.celem",
+      "sha256": "41d51870909269e9f92de7350ff5aaa2480b299909c7f49321b4818f9269c45c"
+    },
+    {
+      "path": "packs/instant-table/pack.cpack",
+      "sha256": "512c1fc04b653dd8a89a9fc7e447b73fe8c965540045099f7b02e1ef24e5ff6b"
+    },
+    {
+      "path": "targets/android-export/templates/MetadataAuthoring.cs",
+      "sha256": "4e963b9cb87ff289e02d56e891df09bdaab3f50e902fd8f5f92e27505affc40c"
+    },
+    {
+      "path": "targets/browser-wasm/templates/MetadataAuthoring.cs",
+      "sha256": "4e963b9cb87ff289e02d56e891df09bdaab3f50e902fd8f5f92e27505affc40c"
+    },
+    {
+      "path": "targets/element-authoring/EffectiveMetadata.cs",
+      "sha256": "b2a0d4e381f6b7af20a2ed9e76304cf8029bd1aa017219b4f3adc4c8a0eb09fd"
+    }
+  ],
+  "ordinaryCheckout": {
+    "status": "pending",
+    "requiresCommittedSnapshot": true
+  },
+  "verifiedBehavior": [
+    "displayed source revision, SHA-256 and effective view hash fences",
+    "workspace-locked all-or-refuse multi-row draft staging",
+    "typed integer/array/reference validation and inherited override removal",
+    "exact Int64 JSON input, BigInt integer ordering and semantic Review before/after text",
+    "reserved metadata description alias independent of declaration description",
+    "real source picker survives unresolved probe and recovers after exact original draft repair",
+    "definition-hash reconfiguration, failed prepare keeps old view",
+    "column order/width, source navigation, selected rows and query/sort",
+    "unapplied input preserved after stale source, child Workspace deletion, reopening and cold restart",
+    "Save restoration and explicit ordinary compiler Confirm",
+    "table release leaves borrowed source owner alive"
+  ],
+  "limits": [
+    "64 rows, 16 columns, 8 live tables per project context; picker pages 64 real root-owned objects",
+    "effective root-owned draft overlays and confirmed registered metadata; imported dirty overlays require the owning workspace",
+    "schema data setters require a valid resulting effective object",
+    "presentation stores definitions and unapplied inputs; current source values are re-read",
+    "request text is a table description; arbitrary computed or AI-generated columns are not implemented",
+    "no claim of a filesystem-wide transaction against external writers",
+    "remaining map and Blueprint UI/Task integration continue"
+  ],
+  "screenshot": "instant-table.png",
+  "environment": {
+    "repository": "/workspace/Confectory",
+    "branch": "work/current",
+    "sdk": "10.0.401",
+    "browser": "/usr/bin/chromium",
+    "providerCalls": "No real accounts, models or paid calls. Existing full editor regression uses owned loopback fixtures.",
+    "native": "Managed Windows/Android compilation and native metadata adapter checks; no device execution."
+  },
+  "protected": {
+    "localMain": "b5ea38c3d7eec3eb20f170e68f0f4215b86b2aee",
+    "remoteMain": "18e27bc17c28cfb7925150bb3ded7c237edf6afb",
+    "originalReferenceArchives": "unchanged",
+    "androidSettings": "unchanged; only runtime source metadata/session code changed"
+  }
+}

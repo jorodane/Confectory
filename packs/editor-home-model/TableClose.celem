@@ -1,0 +1,1 @@
+function Confectory.EditorHome.Model::TableClose (string session,string context) -> void {provide Confectory.EditorHome.Model::TableClose with Confectory.EditorHome.Model::TableCloseBody;}

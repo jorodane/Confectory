@@ -1,0 +1,4 @@
+implementation Confectory.InstantTable::SetCellAtVersionBody for Confectory.InstantTable::SetCellAtVersion (string view,string id,string field,string value,long revision,string hash,string viewHash) -> bool {
+import Confectory.InstantTable::FillVersioned as Fill (string,string[],string,string,string) -> bool;
+body common "SetCellAtVersion.csbody";
+}

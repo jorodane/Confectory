@@ -1,6 +1,9 @@
 pack Confectory.EditorHome.Model version "0.1.0" {
 dependency Confectory.WorkerTasks version "0.1.0";
 standalone false;
+dependency Confectory.InstantTable version "0.1.0";
+element TableCommand function "TableCommand.celem";element TableCommandBody implementation "TableCommandBody.celem";
+element TableClose function "TableClose.celem";element TableCloseBody implementation "TableCloseBody.celem";
 dependency Confectory.Agent.Codex version "0.1.0";
 dependency Confectory.YogiBox version "0.1.0";
 dependency Confectory.ProjectAI version "0.1.0";

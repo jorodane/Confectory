@@ -1,0 +1,17 @@
+var selected=calls.Read.Invoke(handle,id);if(selected[1] is not ("object" or "schema"))throw new ArgumentException("Owned object or schema required");
+var identity=calls.Identity.Invoke(handle);var units=calls.List.Invoke(handle);string manifestId=System.Linq.Enumerable.FirstOrDefault(units,u=>u.EndsWith("::ProjectManifest",StringComparison.Ordinal))??System.Linq.Enumerable.First(units,u=>u.EndsWith("::PackManifest",StringComparison.Ordinal));
+var manifest=calls.Read.Invoke(handle,manifestId);string rootNamespace=manifestId[..manifestId.IndexOf("::",StringComparison.Ordinal)];
+if(!id.StartsWith(rootNamespace+"::",StringComparison.Ordinal))throw new InvalidOperationException("Schema projection requires its root-owned workspace; reopen the owning pack explicitly");
+var observations=new System.Collections.Generic.Dictionary<string,string[]>(StringComparer.Ordinal){{id,new[]{selected[4],selected[3]}},{manifestId,new[]{manifest[4],manifest[3]}}};
+var overlays=new System.Text.Json.Nodes.JsonArray();var changes=calls.Changes.Invoke(handle,units);
+for(int i=0;i<changes.Length;i+=4){string changed=changes[i];if(changed==id)continue;var unit=calls.Read.Invoke(handle,changed);if(unit[1] is "project" or "pack" or "body" or "blueprint" or "blueprint-node")continue;
+ if(!changed.StartsWith(rootNamespace+"::",StringComparison.Ordinal))throw new InvalidOperationException("Imported draft schema overlays require their owning workspace");overlays.Add(new System.Text.Json.Nodes.JsonObject{["id"]=changed,["text"]=unit[3]});observations[changed]=new[]{unit[4],unit[3]};}
+string text=candidate.Length==0?selected[3]:candidate;
+var effective=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("effective",System.Text.Json.JsonSerializer.Serialize(new{project=identity[0],manifest=manifest[3],id,text,drafts=overlays,schemaView=true})))!;
+if(effective["status"]!.ToString()!="available")throw new InvalidOperationException("Schema projection unavailable: "+effective["code"]!.ToString());
+var view=System.Text.Json.Nodes.JsonNode.Parse(calls.DescribeView.Invoke(effective["schemaModel"]!.ToJsonString()))!;
+foreach(var pair in observations){var unit=calls.Read.Invoke(handle,pair.Key);if(unit[4]!=pair.Value[0]||unit[3]!=pair.Value[1])throw new InvalidOperationException("Schema source changed during projection; read again");}
+string Hash(string source)=>Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(source))).ToLowerInvariant();
+var versions=new System.Text.Json.Nodes.JsonObject();foreach(var pair in System.Linq.Enumerable.OrderBy(observations,p=>p.Key,StringComparer.Ordinal))versions[pair.Key]=new System.Text.Json.Nodes.JsonObject{["revision"]=long.Parse(pair.Value[0],System.Globalization.CultureInfo.InvariantCulture),["hash"]=Hash(pair.Value[1])};
+var fingerprint=new System.Text.Json.Nodes.JsonObject{["view"]=view.DeepClone(),["values"]=effective["values"]!.DeepClone(),["versions"]=versions};
+return new System.Text.Json.Nodes.JsonObject{["id"]=id,["kind"]=selected[1],["revision"]=long.Parse(selected[4],System.Globalization.CultureInfo.InvariantCulture),["textHash"]=Hash(selected[3]),["projectedTextHash"]=Hash(text),["viewHash"]=Hash(fingerprint.ToJsonString()),["schemaView"]=view,["description"]=effective["description"]?.DeepClone(),["descriptionOrigin"]=effective["descriptionOrigin"]?.DeepClone(),["values"]=effective["values"]!.DeepClone(),["versions"]=versions.DeepClone(),["sourceWritten"]=false,["executed"]=false}.ToJsonString();
