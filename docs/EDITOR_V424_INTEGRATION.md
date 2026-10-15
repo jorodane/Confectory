@@ -182,3 +182,5 @@ Table 구현 커밋 `d03774a6a3688482ac8b8442b52f8e59de73a535`의 일반 Git che
 기존 선택과 Review token, 공유 초안 수명을 보존한다. 창 배치에는 참조 ID와 조회 기준만 저장하고 등록 팩의 소스 본문은 넣지 않는다. 프로세스 복원 후에는 빈 읽기 상태를 표시하고 명시적 다시 읽기로 조회한다. 참조 소스가 바뀌면 맵/선언을 새로 읽고 다시 열어야 한다. Native adapter는 기존 configured owner root의 읽기 범위를 유지하므로 외부 리소스가 제공되지 않으면 unavailable을 반환한다. 참조 드래그·임의 깊이 탐색은 후속 범위다.
 
 [검증 기록](evidence/v424-integration/reference-definition.json)과 [실제 읽기 전용 화면](evidence/v424-integration/reference-definition.png). 기존 맵/선언/스키마/Workspace/관리 프로필 영향 회귀는 **7/0/0, 317.457초**, compact 창 배치 후 실제 UI/재시작은 **1/0/0, 24.700초**로 통과했다. 헤더와 하단 동작이 창 및 Workspace 안에 함께 있는지도 검사했다. Native helper의 별도 범위 검사도 통과했으며 검증 단계의 중복과 관리 프로필의 한계는 기록에 구분했다. 일반 Git checkout 검사는 구현 커밋 고정 후 수행한다.
+
+참조 정의 구현 커밋 `b8f348d663ff6d8bf542a9367bb2b01829539d4f`의 일반 Git checkout/22개 리소스 실제 시작·변조 거부는 **1/0/0, 62.548초**로 통과했다. 이후 변경은 검증 기록뿐이다.

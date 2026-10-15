@@ -128,8 +128,15 @@
     }
   ],
   "ordinaryCheckout": {
-    "status": "pending after implementation commit",
-    "resources": 22
+    "status": "passed",
+    "commit": "b8f348d663ff6d8bf542a9367bb2b01829539d4f",
+    "case": "WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup",
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "seconds": 62.548,
+    "resources": 22,
+    "boundary": "Actual startup and canonical resource identities in retained CRLF after ordinary attribute pull and fresh LF checkouts; tampered resource refused. No production source changed after this gate."
   },
   "screenshot": "reference-definition.png",
   "limits": [
