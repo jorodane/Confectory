@@ -7,6 +7,7 @@ else if(kind!="body"){var parsed=System.Text.Json.Nodes.JsonNode.Parse(calls.Ins
 lock(state){var unit=state["units"]![id] as System.Text.Json.Nodes.JsonObject??throw new ArgumentException("Unknown owned unit.");
 
  if(expected>=0&&unit["revision"]!.GetValue<long>()!=expected)return false;
- if(unit["draft"]!.GetValue<string>()==text)return true;unit["draft"]=text;unit["revision"]=unit["revision"]!.GetValue<long>()+1;
+ if(unit["draft"]!.GetValue<string>()==text)return true;var before=new System.Text.Json.Nodes.JsonObject{[id]=unit["draft"]!.DeepClone()};unit["draft"]=text;unit["revision"]=unit["revision"]!.GetValue<long>()+1;
+ if(AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace.HistoryRecorder."+handle) is Action<System.Text.Json.Nodes.JsonObject,string> record)record(before,"source-edit");
 }
 return true;

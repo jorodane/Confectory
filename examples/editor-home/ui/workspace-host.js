@@ -80,6 +80,7 @@ export function createActualWorkspace(api) {
     if(cached)return runtime.openWindow(layout.key,cached.title,cached.width,cached.height,{refresh:true});
     if(layout.key==='source'){api.editor();return runtime.state.windows.get('source');}
     if(layout.key==='browser'||layout.key.startsWith('browser:')||layout.key.startsWith('browser-tree:')){const w=api.browser(layout.meta?.group||'concept',layout.key);Object.assign(w.meta,layout.meta);return api.browser(w.meta.group,layout.key);}
+    if(layout.key==='history')return api.history(layout.meta||{});
     if(layout.key==='conflict')return api.conflict(layout.meta||{});
     if(layout.key==='definition')return api.definition(layout.meta||{});
     if(layout.key==='map')return api.map(layout.meta||{});

@@ -152,6 +152,9 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
     elif kind=='local-augment':
      from v424_local_augment import verify_local_augment
      verify_local_augment(page,project,mount,send,envelope,settle,restart_actual_host)
+    elif kind=='draft-history':
+     from v424_draft_history import verify_draft_history
+     verify_draft_history(page,project,mount,send,envelope,settle,restart_actual_host)
     elif kind=='source-conflict':
      from v424_source_conflict import verify_source_conflict
      verify_source_conflict(page,project,mount,send,envelope,settle,restart_actual_host)

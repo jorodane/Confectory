@@ -1,5 +1,6 @@
 pack Confectory.PackWorkspace version "0.1.0" {
 standalone false;
+element History function "History.celem";element HistoryBody implementation "HistoryBody.celem";
 element Conflict function "Conflict.celem";element ConflictBody implementation "ConflictBody.celem";
 dependency Confectory.ChangeSet version "0.1.0";
 dependency Confectory.SchemaEditing version "0.1.0";

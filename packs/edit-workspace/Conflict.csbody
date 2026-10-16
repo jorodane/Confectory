@@ -33,7 +33,7 @@ lock(state){
  // A peer creation must not be lost while a manifest candidate is being checked.
  if(kind is "project" or "pack"){var currentMap=new System.Text.Json.Nodes.JsonObject();foreach(var pair in state["units"]!.AsObject())if(pair.Value!["kind"]!.ToString() is not ("body" or "blueprint" or "blueprint-node" or "project" or "pack"))currentMap[pair.Key]=new System.Text.Json.Nodes.JsonObject{["kind"]=pair.Value["kind"]!.DeepClone(),["path"]=pair.Value["path"]!.DeepClone()};if(!System.Text.Json.Nodes.JsonNode.DeepEquals(currentMap,locatorMap))return Unavailable("SOURCE_VERSION_CHANGED");}
  bool changed=baseline!=disk[2]||original!=disk[1]||candidate!=draftText;var unit=state["units"]![id]!;
- if(changed){unit["original"]=disk[1];unit["baseline"]=disk[2];unit["draft"]=candidate;unit["revision"]=revision+1;}
+ if(changed){unit["original"]=disk[1];unit["baseline"]=disk[2];unit["draft"]=candidate;unit["revision"]=revision+1;if(AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace.HistoryRecorder."+handle) is Action<System.Text.Json.Nodes.JsonObject,string> record)record(new(),"CONFLICT_REBASED");}
  reply["accepted"]=true;reply["changed"]=changed;reply["revision"]=unit["revision"]!.DeepClone();reply["draftHash"]=Hash(candidate);reply["baselineHash"]=disk[2];reply["status"]="resolved-draft";
  reply.Remove("baseText");reply.Remove("draftText");reply.Remove("fileText");return reply.ToJsonString();
 }

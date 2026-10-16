@@ -19,4 +19,5 @@ lock(state){
  if(current is null||current["revision"]!.GetValue<long>()!=revision||Hash(current["draft"]!.ToString())!=hash||manifest["revision"]!.GetValue<long>()!=manifestRevision||manifest["draft"]!.ToString()!=manifestText)throw new InvalidOperationException("Parent or registration changed during creation; retain input and read again");
  if(state["units"]![id] is not null||System.IO.File.Exists(System.IO.Path.Combine(state["root"]!.ToString(),path)))throw new ArgumentException("Creation destination already exists");
  state["units"]!.AsObject().Add(id,new System.Text.Json.Nodes.JsonObject{["id"]=id,["kind"]="object",["path"]=path,["baseline"]="missing",["original"]="",["draft"]=text,["revision"]=1L});manifest["draft"]=registered;manifest["revision"]=manifestRevision+1;
+ if(AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace.HistoryRecorder."+handle) is Action<System.Text.Json.Nodes.JsonObject,string> record)record(new(),"OWNERSHIP_CHANGED");
 }

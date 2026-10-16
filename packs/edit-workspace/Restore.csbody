@@ -22,5 +22,14 @@ lock(state)
   if(unit["kind"]!.GetValue<string>() is "blueprint" or "blueprint-node")calls.Metadata.Invoke("blueprintSourceValidate",System.Text.Json.JsonSerializer.Serialize(new{id,kind=unit["kind"]!.ToString(),text=unit["draft"]!.ToString()}));
   var restored=unit.DeepClone();restored["revision"]=(staged[id]?["revision"]?.GetValue<long>()??0)+1;staged[id]=restored;
  }
+ var history=data["history"]?.DeepClone() as System.Text.Json.Nodes.JsonObject??new System.Text.Json.Nodes.JsonObject{["revision"]=0L,["undo"]=new System.Text.Json.Nodes.JsonArray(),["redo"]=new System.Text.Json.Nodes.JsonArray()};
+ if(history.ToJsonString().Length>2098176||history["revision"]!.GetValue<long>()<0||history["undo"] is not System.Text.Json.Nodes.JsonArray undo||history["redo"] is not System.Text.Json.Nodes.JsonArray redo||undo.Count+redo.Count>32)throw new ArgumentException("Bounded saved history required");
+ var entryIds=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
+ foreach(var item in System.Linq.Enumerable.Concat(undo,redo)){
+  if(item is null||!Guid.TryParseExact(item["id"]!.ToString(),"N",out _)||!entryIds.Add(item["id"]!.ToString())||item["label"]!.ToString() is not ("source-edit" or "batch-edit")||item["units"] is not System.Text.Json.Nodes.JsonArray recorded||recorded.Count<1||recorded.Count>64||item.ToJsonString().Length>1048576)throw new ArgumentException("Saved history entry invalid");
+  var ids=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);foreach(var unit in recorded){string id=unit!["id"]!.ToString();var owned=staged[id];if(!ids.Add(id)||owned is null||owned["kind"]!.ToString() is "project" or "pack"||unit["kind"]!.ToString()!=owned["kind"]!.ToString()||unit["path"]!.ToString()!=owned["path"]!.ToString()||unit["before"] is not System.Text.Json.Nodes.JsonValue||unit["after"] is not System.Text.Json.Nodes.JsonValue)throw new ArgumentException("Saved history owner mismatch");unit["before"]!.GetValue<string>();unit["after"]!.GetValue<string>();}
+ }
+ if(history["boundary"] is not null&&history["boundary"]!.ToString() is not ("ENTRY_BUDGET" or "OWNERSHIP_CHANGED" or "CONFLICT_REBASED"))throw new ArgumentException("Saved history boundary invalid");
+ history["epoch"]=Guid.NewGuid().ToString("N");state["history"]=history;
  state["units"]=staged;
 }

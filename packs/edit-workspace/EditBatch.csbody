@@ -12,6 +12,8 @@ for(int i=0;i<ids.Length;i++){
 lock(state){
  if(!ReferenceEquals(AppDomain.CurrentDomain.GetData(key),state))throw new ObjectDisposedException("EditWorkspace");
  for(int i=0;i<ids.Length;i++){var unit=state["units"]![ids[i]];if(unit is null||unit["kind"]!.ToString()!=kinds[i]||unit["path"]!.ToString()!=paths[i]||unit["revision"]!.GetValue<long>()!=revisions[i]||Hash(unit["draft"]!.ToString())!=hashes[i])return false;}
+ var before=new System.Text.Json.Nodes.JsonObject();foreach(string id in ids)before[id]=state["units"]![id]!["draft"]!.DeepClone();
  for(int i=0;i<ids.Length;i++){var unit=state["units"]![ids[i]]!;if(unit["draft"]!.ToString()==texts[i])continue;unit["draft"]=texts[i];unit["revision"]=unit["revision"]!.GetValue<long>()+1;}
+ if(System.Linq.Enumerable.Any(ids,id=>before[id]!.ToString()!=state["units"]![id]!["draft"]!.ToString())&&AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace.HistoryRecorder."+handle) is Action<System.Text.Json.Nodes.JsonObject,string> record)record(before,"batch-edit");
 }
 return true;

@@ -136,6 +136,12 @@ public sealed class WebUITests : TestCase
         var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/web_ui.py"),Fixture.Repo,report,"startup-restore"},timeoutSeconds:180);
         True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS actual startup metadata delay"),run.Stdout+run.Stderr);
     }
+    public void test_actual_editor_v424_shared_draft_history_cas_and_cold_restart()
+    {
+        var built=new Builder(Path.Combine(Fixture.Repo,"examples/editor-home/project.cpack"),"linux").Build();string report=Path.Combine(f.Root,"draft-history.json");File.WriteAllText(report,built.ToJsonString());
+        var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/web_ui.py"),Fixture.Repo,report,"draft-history"},timeoutSeconds:600);
+        True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS actual draft history"),run.Stdout+run.Stderr);
+    }
     public void test_actual_editor_v424_source_conflict_real_files_cas_and_cold_restart()
     {
         var built=new Builder(Path.Combine(Fixture.Repo,"examples/editor-home/project.cpack"),"linux").Build();string report=Path.Combine(f.Root,"source-conflict.json");File.WriteAllText(report,built.ToJsonString());

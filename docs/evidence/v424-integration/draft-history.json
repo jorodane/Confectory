@@ -1,0 +1,267 @@
+{
+  "scope": "v424 shared draft source-edit transaction history and guarded inverse edits",
+  "status": "passed; remaining v424 map and approved Blueprint integration in progress",
+  "baseCommit": "c8bbc5b5eab9b3955d1ae1b4999a79391319c771",
+  "gates": [
+    {
+      "name": "first actual owner contract",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 9.192,
+      "cases": [
+        "DraftHistoryTests.test_shared_draft_history_atomic_inverse_cas_restart_branch_and_owner_boundaries"
+      ],
+      "boundary": "Final owner journal logic before public Home integration.",
+      "logSha256": "4928d98c169e22476baf58e4218a95569fcecf3ad52b1cf8ff32c4ac0d1b8692"
+    },
+    {
+      "name": "first actual Home consumer",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 85.841,
+      "cases": [
+        "WebUITests.test_actual_editor_v424_shared_draft_history_cas_and_cold_restart"
+      ],
+      "boundary": "Before moving the explanatory note above the list and extending the test to reject a pre-Confirm token after acceptance.",
+      "logSha256": "0f69fbfd38cb36b268a5f0bbc4bf02062a8508cc0e44f216b99cf72ce4b89b74"
+    },
+    {
+      "name": "final focused owner, conflict and actual history UI",
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 48.362,
+      "cases": [
+        "WebUITests.test_actual_editor_v424_shared_draft_history_cas_and_cold_restart",
+        "SourceConflictTests.test_owned_three_way_conflict_hashes_rebase_restore_manifest_scope_and_locality",
+        "DraftHistoryTests.test_shared_draft_history_atomic_inverse_cas_restart_branch_and_owner_boundaries"
+      ],
+      "boundary": "Final product code; owner atomic history, existing source conflict contract, and actual Home history/Save/cold restart/compiler Confirm.",
+      "logSha256": "37884afc7848e3528f2808954520a14393d59df6edd19e432a32ff510fabc757"
+    },
+    {
+      "name": "final affected regression",
+      "passed": 15,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 871.278,
+      "cases": [
+        "InstantTableVersionTests.test_versioned_table_atomic_fill_schema_fences_precision_and_borrowed_lifetime",
+        "WebUITests.test_actual_editor_and_button_game_common_web_transport_chromium",
+        "WebUITests.test_actual_editor_startup_serializes_owned_restore_before_helper_refresh",
+        "WebUITests.test_actual_editor_v318_workspace_lifecycle_presentation_restart",
+        "WebUITests.test_actual_editor_v424_instant_table_typed_fill_cas_and_cold_restart",
+        "WebUITests.test_actual_editor_v424_owned_object_variation_atomic_creation_and_cold_restart",
+        "WebUITests.test_actual_editor_v424_schema_exact_numeric_hash_and_cold_restart",
+        "WebUITests.test_actual_editor_v424_source_conflict_real_files_cas_and_cold_restart",
+        "WebUITests.test_actual_editor_v424_typed_declaration_views_cas_confirm_and_restart",
+        "EditWorkspaceTests.test_shared_drafts_save_restore_preview_selective_confirm_conflict_and_locality",
+        "DraftHistoryTests.test_shared_draft_history_atomic_inverse_cas_restart_branch_and_owner_boundaries",
+        "PackWorkspaceTests.test_development_tools_owned_scope_shared_draft_no_confirm_and_locality",
+        "PackWorkspaceTests.test_target_metadata_owned_sources_no_registry_execution",
+        "PackWorkspaceTests.test_two_contexts_revision_save_reopen_and_locality",
+        "EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only"
+      ],
+      "boundary": "Final source frozen throughout; managed Windows/Android is compilation only, not device execution.",
+      "logSha256": "934d641735e451459b179056465a9bad522884b0b536df7aaa258ff3b00f65a5"
+    },
+    {
+      "name": "expanded actual input and Review coverage",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 40.291,
+      "cases": [
+        "WebUITests.test_actual_editor_v424_shared_draft_history_cas_and_cold_restart"
+      ],
+      "boundary": "Only the UI test was expanded after the15-case regression: ready Review invalidation, schema/Table pending input retention and panel close/reopen. Production unchanged.",
+      "logSha256": "ef5e268294ffb8915a1e22fe59621d188209de52a351e1a7583dc95373f0bfb9"
+    }
+  ],
+  "overlap": "Repeated cases across stages must not be added. All final focused and affected cases passed on the same product source.",
+  "verifiedBehavior": [
+    "actual before/after captured by successful source writers under the shared owner gate",
+    "atomic EditBatch retained as one multi-source inverse transaction",
+    "no-op and refused source CAS add no history entry or change its displayed token",
+    "new edit clears Redo; bounded most recent32 transactions and2MiB serialized history",
+    "entry above1MiB explicitly unavailable while accepted draft remains intact",
+    "explicit metadata-only inspection preserves selection and Review; no source strings or host paths exposed",
+    "display token binds owner handle, restoration epoch, journal version, entry and all current source revisions/content/baselines",
+    "inverse candidates validated before all-or-refuse atomic stage; new source revisions and normal subscriptions",
+    "stale peer-edit, cold-owner and pre-Confirm tokens refuse without changing sources",
+    "creation/registration and changed conflict rebasing explicitly invalidate source-only history",
+    "optional version-1 Export/Restore history; all saved entry owners/kinds/paths/budgets checked before replacing drafts",
+    "distinct participant journals remain isolated",
+    "owner-local recorder released with the EditWorkspace; no new dependency on legacy writer or PackWorkspace.Command roles",
+    "Home uses dedicated PackWorkspace.History with View close fence and Review cancellation after accepted inverse",
+    "actual raw/schema/Table pending input blocks affected inverse and remains preserved",
+    "only window placement retained in presentation; cold panel requires explicit read",
+    "Save/cold actual UI history, real compiler Confirm and later Undo as a new unconfirmed draft",
+    "no final file writes by history; unchanged unrelated project files",
+    "24 canonical/exact web resources; main, original ZIP and Android settings preserved"
+  ],
+  "sourceFiles": [
+    {
+      "path": "examples/editor-home/Main.celem",
+      "sha256": "6e6a57223273e181394890a8882aa2bf9155b2d234e856bd49710b439d0de60c"
+    },
+    {
+      "path": "examples/editor-home/Verify.celem",
+      "sha256": "24c7470a90caf0cdef366d1544481437c720f0771d3db12917b1a474425b023f"
+    },
+    {
+      "path": "examples/editor-home/VerifyShell.celem",
+      "sha256": "de4d3763bbaf06ee9512d0f34b322845d02e32a954ccef31ec648e02b5044b4d"
+    },
+    {
+      "path": "examples/editor-home/WebBundle.csbody",
+      "sha256": "82a34a8dcbc4ff088d96088a15ea7e0a7d90a1d5e7a750bcd450b52e870cedbd"
+    },
+    {
+      "path": "examples/editor-home/WebInvoke.csbody",
+      "sha256": "d8f6e0ba1fd25e3d88e08d29e2a12fa7020f471f8fbf17a6e9b33b9c1bb70f80"
+    },
+    {
+      "path": "examples/editor-home/ui/app.js",
+      "sha256": "79409948cdea36cf685488b551cbef094d74b440c6b10d2df78b1dc5cc5a49bf"
+    },
+    {
+      "path": "examples/editor-home/ui/consumer.css",
+      "sha256": "fba7ed51de560c9b256c366a585fc91f31b91b48e2d9f844c30251e988c4652b"
+    },
+    {
+      "path": "examples/editor-home/ui/history.js",
+      "sha256": "f21d3c4fad09a2506198ee8c017fc398cf44599a24e901f64aa6ebd4107880ed"
+    },
+    {
+      "path": "examples/editor-home/ui/workspace-host.js",
+      "sha256": "cee0205404607ad19a0692d193aa5c98b2ef8dbe16622f623583512f2c756d01"
+    },
+    {
+      "path": "packs/edit-workspace/Close.csbody",
+      "sha256": "a74f0f09c994eeba894561818ebfac1c8764f043f713022dccbd12d31ea7485d"
+    },
+    {
+      "path": "packs/edit-workspace/Conflict.csbody",
+      "sha256": "d29c4c3db5f28b1aad568e391294ae2fce9c264b5e9ed07657374bb66a3a00df"
+    },
+    {
+      "path": "packs/edit-workspace/Create.csbody",
+      "sha256": "75f3e29a5ebc36ab7188d8e3ddb87091a89eb7a35f4fb0680b11ec7aa7be0424"
+    },
+    {
+      "path": "packs/edit-workspace/CreateVariation.csbody",
+      "sha256": "7ff89198846ecccefa773ddfd4c2835ece4c227d86a452ac9328cb8f1f03c486"
+    },
+    {
+      "path": "packs/edit-workspace/EditBatch.csbody",
+      "sha256": "d8cdba813977930cff81f352e5abd014c3defacc7722df34777c7384edff8109"
+    },
+    {
+      "path": "packs/edit-workspace/Export.csbody",
+      "sha256": "09ca3418f5e1a37a28ef3af3c798fe10720eb53454bc11ccdcbf3d1bede8f170"
+    },
+    {
+      "path": "packs/edit-workspace/History.celem",
+      "sha256": "f67f73aba5db308b9e5c62e6ee7fbe92629848ba257201a6f998b482dd295eae"
+    },
+    {
+      "path": "packs/edit-workspace/History.csbody",
+      "sha256": "698c1a841809134a194ee3796b9fdbe48eef8c7a174c54db78123e41be24dbc4"
+    },
+    {
+      "path": "packs/edit-workspace/HistoryBody.celem",
+      "sha256": "3b23bfee295b96ccf96ab5c7b6e3553327b4848222c5e647705278ce01bb36a4"
+    },
+    {
+      "path": "packs/edit-workspace/Open.csbody",
+      "sha256": "68b139f62a94938464846f4cea34f710a6608e4619705ef335b06168e47268e2"
+    },
+    {
+      "path": "packs/edit-workspace/README.md",
+      "sha256": "4e101888d5414957cb06d24163521adaf0c28c4501e54f2cbaf962d2efa62547"
+    },
+    {
+      "path": "packs/edit-workspace/Restore.csbody",
+      "sha256": "dea2f36fbd7ab5f19f63aff6a9724c742fc1061d1f52a1c675b5a24a9f38e2b3"
+    },
+    {
+      "path": "packs/edit-workspace/SetTextIfRevision.csbody",
+      "sha256": "d0aa1bb50d68171a56b56fdd261f636412eac2797c60091ff2a791e4dcec99b2"
+    },
+    {
+      "path": "packs/edit-workspace/pack.cpack",
+      "sha256": "b7fcb357f11735c963ba1d63f3456c220c176d5c6a2e0cc500cbecd8c45099c5"
+    },
+    {
+      "path": "packs/editor-home-model/Command.celem",
+      "sha256": "568f1b1f150f00271817f5b8b5d6ca08218febb79e5fc611bd400267ee496b40"
+    },
+    {
+      "path": "packs/editor-home-model/Command.csbody",
+      "sha256": "406e34dc63472a634e8de66d717968ca6dd11e8df574d1342fd5ed07cd2d806c"
+    },
+    {
+      "path": "packs/editor-home-model/CommandBody.celem",
+      "sha256": "e2622deff6fd0dfb8eddb853bd79681754f88ada2144a6ad6f06c5504b900216"
+    },
+    {
+      "path": "packs/pack-workspace/History.celem",
+      "sha256": "4bc657abc0ff02e4877995d8c458f3e9b399e48c2e016b83cce6f6f037801f24"
+    },
+    {
+      "path": "packs/pack-workspace/History.csbody",
+      "sha256": "e3cf7213baa7c907b2cc1134b3580c490fbad6475c2848540d3cf61b610ee7bf"
+    },
+    {
+      "path": "packs/pack-workspace/HistoryBody.celem",
+      "sha256": "3fba676ef44b4b4b7342df5a1d7942d3f2741df5f994a0c0ca976736bc4ea76b"
+    },
+    {
+      "path": "packs/pack-workspace/README.md",
+      "sha256": "c378ea8f4afd3e7426711a68b77a1be84e42dd70bee9184796b486a1db7e5352"
+    },
+    {
+      "path": "packs/pack-workspace/pack.cpack",
+      "sha256": "ee61bfcca7d72648b57beea80993263e528484911e36a6da5c0defc2d860ae38"
+    },
+    {
+      "path": "tests/Confectory.Tests/DraftHistoryTests.cs",
+      "sha256": "9b7a9477dc35c21071dfdde80651c07953bb749ba656977d75b4b8a2a3f03c7b"
+    },
+    {
+      "path": "tests/Confectory.Tests/Program.cs",
+      "sha256": "c5349744c263cbc4c18f3f1c38d8af936d764837f0fef537b7356b699ac4bcee"
+    },
+    {
+      "path": "tests/Confectory.Tests/WebUITests.cs",
+      "sha256": "0b50d5e787560759e4e40463bd375cd93974cec6d6ddb72011e131491173b7e1"
+    },
+    {
+      "path": "tests/web/v424_draft_history.py",
+      "sha256": "c8b3ce996862f0279298f4194e0b9fe2e47fce1619fcad4423d746ece6808f30"
+    },
+    {
+      "path": "tests/web/web_ui.py",
+      "sha256": "7cadb7d5e05b5ab1f7989b283a96fbb305a2d8bcef49e4f2bec41cb6b3b0af22"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "docs/evidence/v424-integration/draft-history.png",
+      "sha256": "2a6bd2b7741334e85d43412c3e06c3e5bdbb6377d06b8eca73c8682ee0b57f10",
+      "scope": "actual history after cold restore and explicit inverse; explanatory note and actions visible"
+    }
+  ],
+  "limitations": [
+    "This source-only journal does not undo creation/removal or locator ownership changes.",
+    "It is shared-owner source history, separate from unsent text input Undo and presentation changes.",
+    "No collaborative undo, automatic final publication, account/provider activation or task replay.",
+    "Whole v424 and Blueprint creation/Task UI remain in progress."
+  ],
+  "ordinaryGitCheckout": {
+    "status": "pending implementation commit"
+  }
+}

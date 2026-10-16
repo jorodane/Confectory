@@ -88,4 +88,5 @@ import Confectory.Agent.Codex::Preparation as CodexPreparation (string,string,st
 import Confectory.Agent.Codex::AccountLogin as CodexLogin (string,string,string) -> string;
 import Confectory.EditorHome.Model::TableCommand as Tables (string,string,string,string) -> void;
 import Confectory.EditorHome.Model::TableClose as CloseTables (string,string) -> void;
+import Confectory.PackWorkspace::History as PackHistory (string,string,string) -> string;
 body common "Command.csbody"; }

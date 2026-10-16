@@ -15,4 +15,5 @@ lock(state)
  if(System.IO.File.Exists(System.IO.Path.Combine(state["root"]!.GetValue<string>(),path)))throw new ArgumentException("Creation destination already exists.");
  state["units"]!.AsObject().Add(id,new System.Text.Json.Nodes.JsonObject{["id"]=id,["kind"]=kind,["path"]=path,["baseline"]="missing",["original"]="",["draft"]=text,["revision"]=1L});
  manifest["draft"]=registered;manifest["revision"]=manifest["revision"]!.GetValue<long>()+1;
+ if(AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace.HistoryRecorder."+handle) is Action<System.Text.Json.Nodes.JsonObject,string> record)record(new(),"OWNERSHIP_CHANGED");
 }

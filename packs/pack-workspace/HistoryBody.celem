@@ -1,0 +1,4 @@
+implementation Confectory.PackWorkspace::HistoryBody for Confectory.PackWorkspace::History (string handle,string operation,string payload) -> string {
+import Confectory.EditWorkspace::History as History (string,string,string) -> string;
+body common "History.csbody";
+}

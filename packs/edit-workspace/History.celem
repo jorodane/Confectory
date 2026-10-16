@@ -1,0 +1,1 @@
+function Confectory.EditWorkspace::History (string handle,string operation,string payload) -> string {provide Confectory.EditWorkspace::History with Confectory.EditWorkspace::HistoryBody;}

@@ -53,7 +53,7 @@ Codex 준비·공식 기기 코드 로그인 단계는 `114e00ffb35f6c3f4e5cdfd3
 | C01 | Apply/Save/버리기/공유 초안/재시작 | 기존 | PackWorkspace/EditWorkspace, 최종 파일과 작업 사본 구분 |
 | C02 | 묶음/부분 Review·Before/After·타깃·Confirm·취소 | 기존 | source hash/revision/token/CAS, 생성 등록부 필수, 실제 컴파일 |
 | C03 | 충돌 비교·로컬/상대 변경·선택·재검토 | 부분 | 실제 기준 파일/현재 파일/공유 초안 비교·리비전/내용 해시·명시적 합치기·새 Review 연결. 신규 생성·삭제 파일·등록 경로 집합 변경은 별도 소유 흐름 |
-| C04 | 의미 편집 Undo/Redo·이력·현재 리비전 충돌 | 계약 | 실제 소유 초안의 전/후 상태와 새 CAS 편집. 외부 변경을 덮어쓰지 않음 |
+| C04 | 의미 편집 Undo/Redo·이력·현재 리비전 충돌 | 부분/검증 | 실제 owner 전후 이력·묶음 역편집·버전 토큰·Save/cold 복원 연결. 생성/소유 집합 역변경은 별도 흐름, 입력창 자체 Undo와 구분 |
 | I01 | 신문고 목록·건수·긴급도·문제/요청/승인/충돌 | 계약 | 실제 source/build/AI/task 사건과 소유 inbox 기록 |
 | I02 | 재시도·승인 검토·충돌 이동·Yogi 첨부·처리 이력 | 계약 | 원 사건/현재 상태 검증. 표시상의 해결을 실제 해결로 취급하지 않음 |
 | Y01 | Exactly·텍스트·Seal·제거·이미지 캡처/미리보기·복구 | 기존 | YogiBox 실제 영속/CAS/프로젝트/소유 scope. 최신 기록 EDITOR_V318_YOGI.md |
@@ -209,3 +209,13 @@ Nav·고급 소스·충돌 Review에서 실제 기준 파일, 현재 물리 파�
 공용 소유 계약 검사는 **1/0/0, 9.235초**, 실제 UI·재시작·compiler Confirm은 첫 배치에서 **1/0/0, 34.329초**로 통과했다. 추가 Review 입력 보호 후 compact Review와 엔진은 같은 실행에서 통과했고, 시험의 열린 Nav 처리만 보완한 최종 동일 제품 코드의 충돌 UI는 **1/0/0, 36.104초**로 통과했다. native metadata adapter도 통과했다. 중복은 합산하지 않는다. 최종 영향 회귀는 **9/0/0, 550.509초**로 통과했다. 전체 Home/ButtonGame, Workspace·schema·독립 선언 View·즉석 테이블의 실제 재시작, PackWorkspace 3개 계약, Windows/Android 관리 프로필 컴파일을 포함한다. 관리 프로필은 기기 실행이 아니다. [충돌 검증 기록](evidence/v424-integration/source-conflict.json)과 [실제 비교 화면](evidence/v424-integration/source-conflict.png)에 단계별 실패와 수정 후 통과를 구분했다. 일반23리소스 checkout은 구현 커밋 고정 후 검사한다.
 
 충돌 편집 구현 커밋 `48641ed580c945a0c2abed9611e612a3690b85e9`의 일반 Git checkout/23개 리소스 실제 시작·변조 거부는 **1/0/0, 60.729초**로 통과했다. 기존 CRLF 파일을 유지한 정상 pull과 새 LF checkout을 모두 사용했다. 이후 변경은 검증 기록뿐이다.
+
+## 공유 초안의 실제 의미 편집 이력
+
+Nav의 의미 편집 이력은 기존 소스 writer와 atomic EditBatch가 공유 초안 gate 안에 기록한 전후 상태를 사용한다. 미적용 입력·presentation 이동·테이블 열 구성은 소스 이력으로 꾸미지 않는다. 이력 조회는 선택과 Review를 보존한다. Undo/Redo는 표시한 journal token과 모든 현재 source ID·종류·경로·리비전·내용을 재확인하고, 후보를 기존 parser로 검증한 뒤 묶음 전체를 새 리비전의 초안으로 적용한다. 오래된 토큰은 전체를 거부한다. 실제 원본 파일은 바뀌지 않는다.
+
+새 편집은 Redo 분기를 비운다. 생성/등록부 변경과 충돌 기준 재설정은 이 source-only 이력을 명시적으로 정리한다. 등록된 선언 제거를 단순 text Undo로 구현하지 않는다. compiler Confirm 뒤의 명시적 Undo도 별도 미확정 초안이며 새 Save/Review/Confirm이 필요하다. 해당 소스의 미적용 raw/schema/declaration/Table 입력이 있으면 UI 적용을 거부하고 입력을 유지한다. 미적용 입력창의 자체 텍스트 Undo를 공유 초안 Undo로 바꾸지 않는다.
+
+소유 세션의 기록기는 기존 writer 계약에 새 provider 의존성을 추가하지 않는다. 이력은 private draft Export/Save/Restore에 보존되고 cold owner epoch는 새로 발급한다. 현재 token이나 비교 원본을 presentation에 보존하지 않는다. 최근32개 transaction/전체2MiB, 한 transaction1MiB를 한도로 하며, 큰 편집은 초안을 유지하고 이력 미지원 경계를 명시한다. 새 public PackWorkspace.History 역할이 View 수명과 Review 해제를 맡는다.
+
+첫 실제 엔진 검사는 **1/0/0, 9.192초**, 일반 Home UI는 **1/0/0, 85.841초**로 통과했다. 적용 전 설명 배치와 Confirm 전 토큰 거부를 보강한 최종 집중 검사는 **3/0/0, 48.362초**로 통과했다(이력 엔진·기존 충돌 소유 계약·실제 이력 UI). 다른 participant 격리, 단일/묶음 Undo·Redo, 새 분기, 오래된 token, no-op, Save/cold 복원, 손상된 저장 이력 거부, 크기 경계, 실제 compiler Confirm 뒤 새 초안과 원본 보존을 확인했다. 중복은 합산하지 않는다. 최종 영향 회귀는 **15/0/0, 871.278초**로 통과했다. 전체 Home/ButtonGame, 시작 지연·Workspace·Table·바리에이션·정확한 숫자·충돌·선언 View UI, EditWorkspace/History/InstantTable 및 PackWorkspace 계약과 관리 프로필 컴파일을 포함한다. 제품 소스를 그대로 두고 시험만 확장한 후 **1/0/0, 40.291초**로 추가 통과했다. 준비된 Review가 실제 Undo로 해제됨, schema·Table의 미적용 입력 보존, 이력 창 닫기·재열기와 Table의 역편집 관찰을 추가 확인했다. 관리 프로필은 기기 실행이 아니다. 일반24리소스 checkout은 구현 커밋 고정 후 검사한다.

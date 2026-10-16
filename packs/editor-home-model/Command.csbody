@@ -173,6 +173,14 @@ try{model["status"]="";model["archive"]=null;
  string context=Active();string query=new System.Text.Json.Nodes.JsonObject{["action"]=Value("action","list"),["query"]=Value("query"),["kind"]=Value("kind"),["page"]=args["page"]?.DeepClone()??System.Text.Json.Nodes.JsonValue.Create(0),["id"]=Value("id")}.ToJsonString();
  model["catalog"]=new System.Text.Json.Nodes.JsonObject{["context"]=context,["result"]=System.Text.Json.Nodes.JsonNode.Parse(calls.Catalog.Invoke(calls.Context.Invoke(manager,context)[1],query))};
  }
+ else if(operation=="source-history"){
+ string context=Active();if(calls.Context.Invoke(manager,context)[2]=="Confectory.AISettings")throw new InvalidOperationException("Use ordinary connection settings editing");
+ string action=Value("action");if(action is not ("inspect" or "undo" or "redo"))throw new ArgumentException("Explicit history action required");
+ var request=new System.Text.Json.Nodes.JsonObject();if(args["token"] is not null)request["token"]=args["token"]!.DeepClone();
+ var result=System.Text.Json.Nodes.JsonNode.Parse(calls.PackHistory.Invoke(Workspace(context),action,request.ToJsonString()))!;model["sourceHistory"]=new System.Text.Json.Nodes.JsonObject{["context"]=context,["result"]=result};
+ if(result["accepted"]?.GetValue<bool>()==true){model["workspace"]=System.Text.Json.Nodes.JsonNode.Parse(calls.PackSnapshot.Invoke(Workspace(context)));RefreshViews(context);if(model["tableViews"]?[context]?.AsObject().Count>0)calls.Tables.Invoke(session,context,Workspace(context),"{\"action\":\"refresh-all\"}");}
+ model["status"]=result["accepted"]?.GetValue<bool>()==true?"History applied as a new shared draft edit; final sources unchanged":"Shared draft history inspected";
+ }
  else if(operation=="source-conflict"){
  string context=Active();if(calls.Context.Invoke(manager,context)[2]=="Confectory.AISettings")throw new InvalidOperationException("Use ordinary connection settings editing");
  string action=Value("action");if(action is not ("inspect" or "resolve"))throw new ArgumentException("Explicit conflict action required");

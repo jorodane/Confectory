@@ -14,6 +14,8 @@ provide Confectory.EditWorkspace::Create with Confectory.EditWorkspace::CreateBo
 provide Confectory.EditWorkspace::CreateVariation with Confectory.EditWorkspace::CreateVariationBody;
 provide Confectory.PackWorkspace::CreateVariation with Confectory.PackWorkspace::CreateVariationBody;
 provide Confectory.PackWorkspace::Conflict with Confectory.PackWorkspace::ConflictBody;
+provide Confectory.PackWorkspace::History with Confectory.PackWorkspace::HistoryBody;
+provide Confectory.EditWorkspace::History with Confectory.EditWorkspace::HistoryBody;
 provide Confectory.EditWorkspace::Conflict with Confectory.EditWorkspace::ConflictBody;
 provide Confectory.SchemaEditing::Create with Confectory.SchemaEditing::CreateBody;
 provide Confectory.SchemaEditing::Register with Confectory.SchemaEditing::RegisterBody;

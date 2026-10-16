@@ -42,3 +42,6 @@ BorrowDraft(handle) exposes the owned View's borrowed EditWorkspace token for re
 
 
 `Conflict(handle, operation, payload)` is a separate public role, so existing Command consumers gain no new provider dependency. It fences the View lifetime and explicit selected source, then borrows its existing EditWorkspace. Inspect and unchanged resolution preserve Review; only an accepted changed draft clears that View's old Review. It does not open an imported editing owner, auto Save or Confirm. The Home consumer returns full comparison text only in the explicit endpoint result and projects conflict metadata into state, respecting the shared2MiB state budget.
+
+
+`History(handle,operation,payload)` is a separate public role over the borrowed EditWorkspace journal, keeping legacy Command dependencies unchanged. It holds the View close fence. Inspection and refused stale tokens preserve selection and Review; an accepted inverse clears that View Review and leaves final publication to the ordinary compiler-backed flow. Closing a View never saves or replays history actions.

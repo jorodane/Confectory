@@ -14,5 +14,18 @@ lock(AppDomain.CurrentDomain)
   units.Add(id,unit);
  }
  string handle=Guid.NewGuid().ToString("N");var state=new System.Text.Json.Nodes.JsonObject{["project"]=project,["root"]=root,["participant"]=participant,["context"]=context,["namespace"]=description["namespace"]!.GetValue<string>(),["identity"]=identity,["units"]=units};
+ state["history"]=new System.Text.Json.Nodes.JsonObject{["epoch"]=Guid.NewGuid().ToString("N"),["revision"]=0L,["undo"]=new System.Text.Json.Nodes.JsonArray(),["redo"]=new System.Text.Json.Nodes.JsonArray()};
+ // One owner-local recorder is called by successful writers inside the same draft gate.
+ AppDomain.CurrentDomain.SetData("Confectory.EditWorkspace.HistoryRecorder."+handle,(Action<System.Text.Json.Nodes.JsonObject,string>)((before,label)=>{
+  lock(state){
+   var history=state["history"]!;history["revision"]=history["revision"]!.GetValue<long>()+1;history["redo"]=new System.Text.Json.Nodes.JsonArray();
+   if(before.Count==0){history["undo"]=new System.Text.Json.Nodes.JsonArray();history["boundary"]=label;return;}
+   var changed=new System.Text.Json.Nodes.JsonArray();foreach(var pair in before){var unit=state["units"]![pair.Key]!;if(unit["draft"]!.ToString()==pair.Value!.ToString())continue;changed.Add(new System.Text.Json.Nodes.JsonObject{["id"]=pair.Key,["kind"]=unit["kind"]!.DeepClone(),["path"]=unit["path"]!.DeepClone(),["before"]=pair.Value.DeepClone(),["after"]=unit["draft"]!.DeepClone()});}
+   if(changed.Count==0)return;
+   var entry=new System.Text.Json.Nodes.JsonObject{["id"]=Guid.NewGuid().ToString("N"),["label"]=label,["units"]=changed};
+   if(entry.ToJsonString().Length>1048576){history["undo"]=new System.Text.Json.Nodes.JsonArray();history["boundary"]="ENTRY_BUDGET";return;}
+   var undo=history["undo"]!.AsArray();undo.Add(entry);while(undo.Count>32||undo.ToJsonString().Length>2097152)undo.RemoveAt(0);history["boundary"]=null;
+  }
+ }));
  AppDomain.CurrentDomain.SetData("Confectory.EditWorkspace."+handle,state);AppDomain.CurrentDomain.SetData(key,handle);return handle;
 }
