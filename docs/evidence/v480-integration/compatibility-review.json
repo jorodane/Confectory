@@ -1,0 +1,687 @@
+{
+  "schema": 1,
+  "status": "compatibility-and-v480-scope-review-complete-no-conversion-policy-selected",
+  "reviewedWorkCommit": "e222acbf269ee201bd3e2a5532518287883439ef",
+  "referenceMain": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+  "referenceArchives": {
+    "424": {
+      "path": "reference/site-ui/Confectory-Editor-Prototype-v424.zip",
+      "sha256": "b7969cd109ea2dad38bde9c9ab13967c20162c920a45a8cd51a8f82df6041874",
+      "bytes": 16240596,
+      "sources": {
+        "app.js": {
+          "entry": "Confectory-v424/dist/app.js",
+          "sha256": "1f2256f65579593394d47e182e85adee032b1c3b249eff31b7a26621e585499d"
+        },
+        "blueprint.js": {
+          "entry": "Confectory-v424/dist/blueprint.js",
+          "sha256": "4fe71b141dd01ddcb9e4c6a949041b782b72e1068c34ef93088a0dadd4556f26"
+        }
+      }
+    },
+    "480": {
+      "path": "reference/site-ui/Confectory-Editor-Prototype-v480.zip",
+      "sha256": "0489844c8c6d90f7cdc8ea0e80628f487dcfb27f2c871b19367a635212d3c5bd",
+      "bytes": 16368185,
+      "sources": {
+        "app.js": {
+          "entry": "Confectory-v480/dist/app.js",
+          "sha256": "009d608418a6069896893ba9ca8f8788e40d877da0151369049783c57cc9d70f"
+        },
+        "blueprint.js": {
+          "entry": "Confectory-v480/dist/blueprint.js",
+          "sha256": "2b79e21da1ef4dfecc2ca7826a52989494e3382256ca0eeca3a2979926234319"
+        }
+      }
+    }
+  },
+  "staticReferenceDelta": {
+    "app.js": {
+      "addedFunctionNames": [
+        "applyWorkspaceDecorationTitle",
+        "bindWorkspaceNoteEditor",
+        "cleanWorkspaceNoteHtml",
+        "closeFunctionAuthoringDrafts",
+        "closePlacedTextFind",
+        "confirmFunctionImplementationDeletion",
+        "createWorkspaceVariation",
+        "deleteFunctionBody",
+        "editWorkspaceTitleStyle",
+        "localImplementationDraft",
+        "openPlacedTextFind",
+        "placeNewWorkspaceObject",
+        "placedNodeText",
+        "refreshWorkspaceNoteDocument",
+        "resolveModuleFunctionImplementation",
+        "syncWorkspaceNoteViews",
+        "workspaceNoteEditorMarkup",
+        "workspaceNoteHtml",
+        "workspaceTitleStyle"
+      ],
+      "removedFunctionNames": [],
+      "interpretation": "Static helper-name differences are not user actions or completion counts."
+    },
+    "blueprint.js": {
+      "addedFunctionNames": [
+        "acceptResource",
+        "actionPinField",
+        "beginBranchSpacing",
+        "bindActionPins",
+        "bindExecutionHeader",
+        "bindOwnedBranches",
+        "bindPorts",
+        "bindResourceNode",
+        "bindVariableToPin",
+        "blueprintBuildStamp",
+        "blueprintCSharpBody",
+        "blueprintCSharpContract",
+        "blueprintCSharpDefaultBody",
+        "blueprintCSharpIdentifier",
+        "blueprintCSharpList",
+        "blueprintCSharpRegionStamp",
+        "blueprintCSharpSections",
+        "blueprintCSharpSource",
+        "blueprintEditingMode",
+        "blueprintEvaluateExpression",
+        "blueprintExecutionOutputs",
+        "blueprintExecutionPlan",
+        "blueprintExecutionScope",
+        "blueprintExpressionField",
+        "blueprintExpressionText",
+        "blueprintExpressionValid",
+        "blueprintExpressionVariables",
+        "blueprintFieldsCompatible",
+        "blueprintForSignature",
+        "blueprintIsComplete",
+        "blueprintLocalField",
+        "blueprintLocalSource",
+        "blueprintLocalValueValid",
+        "blueprintParseCSharpRegions",
+        "blueprintPropertyNeedsTarget",
+        "blueprintResourceComplete",
+        "blueprintResourceDefinition",
+        "blueprintResourceField",
+        "blueprintResourceOwner",
+        "blueprintSetValid",
+        "blueprintSignatureFields",
+        "blueprintValueCompatible",
+        "blueprintValueOperators",
+        "blueprintValueType",
+        "blueprintVariableField",
+        "canvasZoomPercent",
+        "chooseActionPinType",
+        "clampCanvasZoom",
+        "closeExpressionEditor",
+        "closePinEditor",
+        "closePinMenu",
+        "closeResources",
+        "closeValidation",
+        "commitActionPins",
+        "copyActionPinType",
+        "createSteppedZoomWheel",
+        "executionRailMarkup",
+        "expressionAt",
+        "expressionForPin",
+        "expressionHeight",
+        "expressionWidth",
+        "fitBranchName",
+        "functionBlueprintCallingFeature",
+        "layoutOwnedBranches",
+        "mountBlueprintScriptEditor",
+        "mountPinMenu",
+        "openExpressionMenu",
+        "openInternal",
+        "openPinEditor",
+        "openResources",
+        "pinCanRemove",
+        "pinEditorWidth",
+        "pinRemoveButton",
+        "positionPinControl",
+        "positionPinEditor",
+        "positionPinMenu",
+        "renderExpressionInput",
+        "renderModuleInterface",
+        "renderOutputList",
+        "renderPinPlugs",
+        "requireModuleImplementations",
+        "requiredModuleImplementations",
+        "resourceNodeMarkup",
+        "setBranchRowOrder",
+        "setPinExpression",
+        "showConstantEditor",
+        "showValidation",
+        "syncBlueprintScripts",
+        "syncLocalVariables",
+        "uniqueVariableName",
+        "updatePinLabels",
+        "variableField"
+      ],
+      "removedFunctionNames": [],
+      "interpretation": "Static helper-name differences are not user actions or completion counts."
+    }
+  },
+  "probe": {
+    "schema": 1,
+    "kind": "owned-fixture-compatibility-investigation",
+    "checkedSourceHashes": {
+      "Directory.Build.props": "c6463edf64979923734fe600f27d808ff6436fda0b97736a7517d19aed6e34bb",
+      "src/Confectory.Core/BlueprintCompilation.cs": "56859059a5369aba20be839df877fd937b65b80c9c044cc2c2fa136f433578a6",
+      "src/Confectory.Core/BlueprintDocuments.cs": "999a7ae18a2d1f71c37c7e19e9abce89e93d6fb8b8cc8c07b0a7be562c993044",
+      "src/Confectory.Core/Build.cs": "d18914d55950a74a580598d64b47717185646fb754dcc962b67b5dda19be5b58",
+      "src/Confectory.Core/Confectory.Core.csproj": "8d654c44b7bebb6b31a9f2f606927f45b5072193adc4eef8cce3f3cf3b278df3",
+      "src/Confectory.Core/Declarations.cs": "20b3e3c020a337dc52f8401ded8f87ece9cfec1dd4c916af1c3d4d2b911d6f7e",
+      "src/Confectory.Core/FeatureBlueprint.cs": "3584a8cd733c563a80dc425a8ec574e823a4357c60382654c9a6ae32cbe3ce78",
+      "src/Confectory.Core/Generation.cs": "e1d4950e12d5d15fd5ec848479a5b79eebd27de10ea17dcc85bb1da9a6b34fd3",
+      "src/Confectory.Core/Infrastructure.cs": "848e8bc0ccf5b8ec4950b93a06bb3451ebffa0fb34015e038f9a6af66041d7d4",
+      "src/Confectory.Core/Resolution.cs": "e907f2501f5f35eeae3044221879aacc0e2cf9b0391903d4872cce1cf7c5b49e",
+      "src/Confectory.Core/SchemaContracts.cs": "36599497dc5c10e8798e2448bc4037c56ffebc924bd63f99a463c689e1a6ab96",
+      "src/Confectory.Core/VersionExpectation.cs": "570ec2d19fb9eac047d339d2aff841817bc0958b32359682b5b158401657c50b",
+      "tests/Confectory.Tests/Support.cs": "5223a74be1a96393518c94133c3a6f68d60668a578a94e12e0fc510b28dbb659",
+      "tests/probes/blueprint-compatibility/Program.cs": "3d46ceed1ee35efe02d1bff8ad502a1ba6c20c00eaef0c3385d00f95ed007410",
+      "tests/probes/blueprint-compatibility/blueprint-compatibility.csproj": "9f5194a76554a62476fff04e786e09f77b4692134ad407cb5ae647e5c967beaf"
+    },
+    "runtimeVersion": "10.0.12",
+    "profile": "sync-acyclic-v1",
+    "generator": "feature-blueprint-source-v2",
+    "cases": [
+      {
+        "name": "legacy-body-target-selection",
+        "passed": true,
+        "result": {
+          "portable": "5",
+          "linux": "32"
+        }
+      },
+      {
+        "name": "mixed-common-blueprint-linux-legacy",
+        "passed": true,
+        "result": {
+          "portable": "102",
+          "linux": "32"
+        }
+      },
+      {
+        "name": "same-target-body-blueprint-refused",
+        "passed": true,
+        "result": {
+          "code": "DUPLICATE_DECLARATION"
+        }
+      },
+      {
+        "name": "same-function-implementation-inheritance-keeps-target-origin",
+        "passed": true,
+        "result": {
+          "portable": "102",
+          "linux": "32"
+        }
+      },
+      {
+        "name": "mixed-and-inherited-probes-preserve-legacy-bytes",
+        "passed": true,
+        "result": {
+          "function": "3ed41505745d9e1165eb1986a703d47986b1393d9871193404a6b3a1ed7a0c5b",
+          "common": "a66240a28a6fc9581f6cf292af97bc57a2bd2f4349f0eebcc12a30d6a0caefb0",
+          "linux": "d61dc08f6142d549e6d5fe3da1a4c5109e2f4e793a0c2307001e325e4bcf80aa"
+        }
+      },
+      {
+        "name": "legacy-typed-import-explicit-scope",
+        "passed": true,
+        "result": {
+          "output": "4"
+        }
+      },
+      {
+        "name": "blind-legacy-calls-body-copy-is-not-compatible",
+        "passed": true,
+        "result": {
+          "code": "TARGET_FAILURE",
+          "compiler": "CS8422",
+          "reason": "A static node cannot capture the original implementation calls field."
+        }
+      },
+      {
+        "name": "explicit-node-import-rewrite-preserves-scope",
+        "passed": true,
+        "result": {
+          "output": "4"
+        }
+      },
+      {
+        "name": "dropping-existing-scope-changes-provider",
+        "passed": true,
+        "result": {
+          "output": "6",
+          "originalOutput": "4"
+        }
+      },
+      {
+        "name": "scoped-import-probes-preserve-legacy-source",
+        "passed": true,
+        "result": {
+          "sha256": "c54aef535ab5de6e23c554aa2e78b7f63ff9b7c177602dd466efef769cb7ce1c"
+        }
+      }
+    ],
+    "passed": 10,
+    "failed": 0,
+    "policySelected": false,
+    "productConversionImplemented": false,
+    "implicitEndProfileAdded": false
+  },
+  "stages": [
+    {
+      "log": "compatibility-review-probe-first-build.log",
+      "sha256": "45715997fa418d8519f518623c80bcb18fcaba926bfcba94b923d5d032a6c3b2",
+      "status": "probe-harness-build-error",
+      "productFailure": false,
+      "assertions": [],
+      "note": "CS1503 in temporary probe argument; fixed with ToArray before any compatibility assertions ran."
+    },
+    {
+      "log": "compatibility-review-probe.log",
+      "sha256": "2c82eef4f13357a15371bad752591b9e828f86c567b23c45518f4b653d16c087",
+      "status": "10-owned-fixture-assertions-passed",
+      "productFailure": false,
+      "assertions": [
+        "PASS legacy-body-target-selection",
+        "PASS mixed-common-blueprint-linux-legacy",
+        "PASS same-target-body-blueprint-refused",
+        "PASS same-function-implementation-inheritance-keeps-target-origin",
+        "PASS mixed-and-inherited-probes-preserve-legacy-bytes",
+        "PASS legacy-typed-import-explicit-scope",
+        "PASS blind-legacy-calls-body-copy-is-not-compatible",
+        "PASS explicit-node-import-rewrite-preserves-scope",
+        "PASS dropping-existing-scope-changes-provider",
+        "PASS scoped-import-probes-preserve-legacy-source"
+      ],
+      "note": "Stages overlap and are not summed."
+    },
+    {
+      "log": "compatibility-review-reproducible-probe.log",
+      "sha256": "2c82eef4f13357a15371bad752591b9e828f86c567b23c45518f4b653d16c087",
+      "status": "10-owned-fixture-assertions-passed",
+      "productFailure": false,
+      "assertions": [
+        "PASS legacy-body-target-selection",
+        "PASS mixed-common-blueprint-linux-legacy",
+        "PASS same-target-body-blueprint-refused",
+        "PASS same-function-implementation-inheritance-keeps-target-origin",
+        "PASS mixed-and-inherited-probes-preserve-legacy-bytes",
+        "PASS legacy-typed-import-explicit-scope",
+        "PASS blind-legacy-calls-body-copy-is-not-compatible",
+        "PASS explicit-node-import-rewrite-preserves-scope",
+        "PASS dropping-existing-scope-changes-provider",
+        "PASS scoped-import-probes-preserve-legacy-source"
+      ],
+      "note": "Stages overlap and are not summed."
+    },
+    {
+      "log": "compatibility-review-final-probe.log",
+      "sha256": "2c82eef4f13357a15371bad752591b9e828f86c567b23c45518f4b653d16c087",
+      "status": "10-owned-fixture-assertions-passed",
+      "productFailure": false,
+      "assertions": [
+        "PASS legacy-body-target-selection",
+        "PASS mixed-common-blueprint-linux-legacy",
+        "PASS same-target-body-blueprint-refused",
+        "PASS same-function-implementation-inheritance-keeps-target-origin",
+        "PASS mixed-and-inherited-probes-preserve-legacy-bytes",
+        "PASS legacy-typed-import-explicit-scope",
+        "PASS blind-legacy-calls-body-copy-is-not-compatible",
+        "PASS explicit-node-import-rewrite-preserves-scope",
+        "PASS dropping-existing-scope-changes-provider",
+        "PASS scoped-import-probes-preserve-legacy-source"
+      ],
+      "note": "Stages overlap and are not summed."
+    }
+  ],
+  "unchangedReviewedSourceCount": 190,
+  "unchangedReviewedSourceHashes": {
+    "examples/editor-home/ui/ConfectoryIcon.svg": "6fbd2054764098b340cc104ccbb2e42b9568cec53b063d7f3aa78aa222ef6b20",
+    "examples/editor-home/ui/app.js": "e02beba3dce7b19a041c77f50584e261116f14f8742a4bfd0895f8dfa8c22e6e",
+    "examples/editor-home/ui/assets/html2canvas.min.js": "e87e550794322e574a1fda0c1549a3c70dae5a93d9113417a429016838eab8cb",
+    "examples/editor-home/ui/assets/lumi-bust.png": "74aa3662f35d0455754c9ee9e93535e43d945dfae638d648a16fe2e474388233",
+    "examples/editor-home/ui/assets/lumi-sd.png": "04d53eeba74b45a6faa6d31de2f2f1a807af8a166434e57cb2a4fa6335fab0a1",
+    "examples/editor-home/ui/assets/lumi.png": "d20087b6f4737492f32fb79593a2110ecf83e48503e44f7f6bfa4aab9529787f",
+    "examples/editor-home/ui/assets/portraits.json": "989099ef0fb43da17de863669d578df89dafe0f928e8cdb022a816c3e0cbec11",
+    "examples/editor-home/ui/assets/tori-bust.png": "d63a937754e949129a3d13de90b0e5b04fc8818c11b9e41de71509ed45373e74",
+    "examples/editor-home/ui/assets/tori-sd.png": "197434d69d1321c34e34562936f68c31ebe694aa87ebc2bfd41dae9c0f01bf1a",
+    "examples/editor-home/ui/assets/tori.png": "544a698250fe6f912aca43bd424a59ab1407bea84842b7d52da9b28438810ba9",
+    "examples/editor-home/ui/assets/vex-bust.png": "1406e9e878c0975414f11d49ded729c4c58f943710965c97fe7358cc2f3785f7",
+    "examples/editor-home/ui/assets/vex-sd.png": "df1fc134b85974e6f5b2ec793805131c2099114979eeeabcb64533daf6338674",
+    "examples/editor-home/ui/assets/vex.png": "3599a2f4c6a6f3ad10758a39e242478fe16cd113c98c97db740f63ba1d6330de",
+    "examples/editor-home/ui/blueprint.js": "9acfb960c4674c2f43da0f1b3de205f8414e2040bf9d8cf6a0cf18f99ce12c3a",
+    "examples/editor-home/ui/builds.js": "81f73ea72d0d8f78c252f3784d0ee0cc67e28f164805daf5c7b2c9df77f7ca7f",
+    "examples/editor-home/ui/conflicts.js": "b3365f537c2b223caa90901362b9e11cdfccdcc15aefa85bba98e3cd8f32b896",
+    "examples/editor-home/ui/consumer.css": "c54ed200285c8e37356332d4ce094af2e9d0b54cd22d268e989d7e1e2c728bf3",
+    "examples/editor-home/ui/declarations.js": "94a720c9d1cf6a59876886113819a1141868b3f66bae8234f04634edf07ecfe0",
+    "examples/editor-home/ui/find.js": "8dfc179d20e10d80bf4e35cde8a9f1ab3959b5a2f0745dfd4d88894744759813",
+    "examples/editor-home/ui/history.js": "f21d3c4fad09a2506198ee8c017fc398cf44599a24e901f64aa6ebd4107880ed",
+    "examples/editor-home/ui/index.html": "1e4e8cedcb113c6f6c67eeafbaff0c663374d2809ac600a41360638917eb650f",
+    "examples/editor-home/ui/inventory.js": "72198c216e947f030c033bb941951655d130ca39329bca28c02d944d42d43407",
+    "examples/editor-home/ui/node-tasks.js": "415215f33bfc171630d7aeeaf9f00a1e68ca823a6c214e25591784aedcd33247",
+    "examples/editor-home/ui/note-documents.js": "b6954e19301f8932cc46c8579544d3e412d36009b92a241a284a92e512e2cce1",
+    "examples/editor-home/ui/notes.js": "4adab64b6fc755dc4dda65d80a5232c7fbe3a375d3d4c34b4ba8695bc43486fa",
+    "examples/editor-home/ui/relations.js": "ab15571de6969f042a95e82143a08830969c706048a09111f08d4a85403a6032",
+    "examples/editor-home/ui/style.css": "faffa6b4406e1a51c40b8a5dd2b4a95d829f4096cd712f624b5d47d58f7714b4",
+    "examples/editor-home/ui/tables.js": "e7326d06148694ad9b655ae42a5f3d710764bff2611ec645e2aba80005639be8",
+    "examples/editor-home/ui/window-documents.js": "9bb89f96e8f0b25287fb6362c29cfeae879084f51ac3009e923247bf3266e313",
+    "examples/editor-home/ui/workspace-host.js": "3974ebea631e0df54e74ad1c1f91ccd3650022a61505e55a5b7ffe970bec1562",
+    "examples/editor-home/ui/workspace.js": "40492b522c42f027aca4c1e9b4ae3f63d4a9aab0ad20a49ee5500bfc8fe513d3",
+    "packs/edit-workspace/Accept.celem": "a1bccbb71648af9c89100366009b892ec7e3cfb58a8cd9ffa4e509bd4ecb8ccc",
+    "packs/edit-workspace/Accept.csbody": "9ea4b1ae5c27b3c1bd9fa26df9b9ac429e589b720dfcdd5890c7f6b4f0b0d25d",
+    "packs/edit-workspace/AcceptBody.celem": "3e513fc03649b0edf01c78e006552a98e6af48a0131990cdf1f8dd094dbc25e5",
+    "packs/edit-workspace/BlueprintCall.celem": "986f4aa8e1d5a9c85e329b3321e03613583acedfa64dec6f95a6a7bbee16a377",
+    "packs/edit-workspace/BlueprintCall.csbody": "d83a45ca70f063a2d09cf01c4856c4960ef66bf6284e15b84c9c2b2046deb952",
+    "packs/edit-workspace/BlueprintCallBody.celem": "9dfeb4e8544348b98d13133d7d39116b82b6a048a259bb38a6267901f1e14ba6",
+    "packs/edit-workspace/BlueprintFeature.celem": "94b92a52527028f43f3ccc2fd585d42e5ac5a3330ee5c58810e1e264ce70b580",
+    "packs/edit-workspace/BlueprintFeature.csbody": "61c08ed6b6da97dc54ac622bc5f5eab087747e937e208e007e2ddb459be66a55",
+    "packs/edit-workspace/BlueprintFeatureBody.celem": "4755cf810a3fd5232ed2b1690fa1471afe568281f8b50d23f08f6c2336e295c6",
+    "packs/edit-workspace/BlueprintImplementation.celem": "6343f02180e80463160959852c96c3f9e33ae8dda25517c809b71f1853038546",
+    "packs/edit-workspace/BlueprintImplementation.csbody": "072d92eee9541261642abf2f2020898467dd032220f9226a513f95e2464e8a21",
+    "packs/edit-workspace/BlueprintImplementationBody.celem": "8685311b7388e6f0d0069a28f5cb81b60896001fe56ffa0dbb4c2bfab25dc856",
+    "packs/edit-workspace/BlueprintImplementationContract.celem": "ae2154915019940099ba1eb7aa39c40db2792dcf4d036a5bfe19aafaee97152c",
+    "packs/edit-workspace/BlueprintImplementationContract.csbody": "ef5613822dfd185d38f2fbd0b3beb7990b46579fba7d9e1c2c1c60f331cf9949",
+    "packs/edit-workspace/BlueprintImplementationContractBody.celem": "735ac3b47507b5e71fde3030250c42ec94b3b5f28a367ca06943e723c69f09ee",
+    "packs/edit-workspace/BlueprintNode.celem": "a25e2e24a1ae8bc43b712aa731945765f646300a9e65b5f762192a022e62dfce",
+    "packs/edit-workspace/BlueprintNode.csbody": "868fa56888b8d98f117fbd695e0da5a2a20e96d036581a738b1dd59c02119537",
+    "packs/edit-workspace/BlueprintNodeBody.celem": "f3a9c1b7f44ee1b70779ebee3c31b1b79f1083f73586f28af852ac4544eb68d5",
+    "packs/edit-workspace/Changes.celem": "cb0ae1c124ab9033164bbb9b48d2a252867fb60f67a97af0f681a4b5403477ce",
+    "packs/edit-workspace/Changes.csbody": "869aedc1c90dbff12e55eeff1433f66352497eb96c20e3a26570495bebceaf48",
+    "packs/edit-workspace/ChangesBody.celem": "d4098c95281bc1e14fcf7b3a4f62b1c125327b1c13aaf8f944c17fb76e9487a9",
+    "packs/edit-workspace/Close.celem": "ac0e3f6a92c9a27a1ac8934675115401522c61694313e156e3c30431dfcd54ca",
+    "packs/edit-workspace/Close.csbody": "a74f0f09c994eeba894561818ebfac1c8764f043f713022dccbd12d31ea7485d",
+    "packs/edit-workspace/CloseBody.celem": "b1db03cc63eeaf098198e8729938930ad982b4dd6d35943d289a97f5a5ce6b77",
+    "packs/edit-workspace/Conflict.celem": "22ef7bb68125f1e368a769df4c7735a66dded8b1a9fc6c9d2ef14543aa9f614d",
+    "packs/edit-workspace/Conflict.csbody": "d29c4c3db5f28b1aad568e391294ae2fce9c264b5e9ed07657374bb66a3a00df",
+    "packs/edit-workspace/ConflictBody.celem": "0e6ff695dd043a461c610ec9961b5440a157348120ab9b28b9699f0a244527dc",
+    "packs/edit-workspace/Create.celem": "e8d5e116460c89e94aa3060b57eff5e057b6798f8d80dd9bd6ace33b0e4ae32f",
+    "packs/edit-workspace/Create.csbody": "75f3e29a5ebc36ab7188d8e3ddb87091a89eb7a35f4fb0680b11ec7aa7be0424",
+    "packs/edit-workspace/CreateBody.celem": "f5752ab77aa85f21f5ca789fa8c69d03e146d0a7fc6816e16c59e3c7e236534a",
+    "packs/edit-workspace/CreateVariation.celem": "c1c59145763ef539b0245ef584328f8c79cb6508f5bddf68005c2004d2e15dd9",
+    "packs/edit-workspace/CreateVariation.csbody": "7ff89198846ecccefa773ddfd4c2835ece4c227d86a452ac9328cb8f1f03c486",
+    "packs/edit-workspace/CreateVariationBody.celem": "544d4a597959eed4547728c2c0ba5a4995d7c853811e70070e0fbc22ecb0e7f3",
+    "packs/edit-workspace/CreationGroup.celem": "cc1df9cedfaa9c17b8e6dbdb9708cc74f891a94d6cd30503401e344da5925fad",
+    "packs/edit-workspace/CreationGroup.csbody": "c4bf49d21c69df8f7f76cc9d3be6b7dcca2dd9ff765c92d65d18f1be5edcf0ae",
+    "packs/edit-workspace/CreationGroupBody.celem": "7c4a7142d65c6348409567cce101536c45326fbaa128ecf3393cd1edeb325995",
+    "packs/edit-workspace/CreationOwners.celem": "ad3f3d9a8a22382e98b863c15f80d85c7f27f370c357276836c7eede5af36b27",
+    "packs/edit-workspace/CreationOwners.csbody": "d3e6e31eac8bb3ae9da6d71fec239e8005c1889f783ff8f390391804d1fbdbb0",
+    "packs/edit-workspace/CreationOwnersBody.celem": "769a5f732dbb7594326723f7fe5730842572a6859f09a1080c0f4fe7c1fbf714",
+    "packs/edit-workspace/DescribeSchema.celem": "86ab54ef8ffe6462da04b3fd444343a792ed85a91094a2ce69ca541e058f5ba5",
+    "packs/edit-workspace/DescribeSchema.csbody": "b074577046ece9144c94659085c0dbc388689d22e95eba8b7e7d85dde020e224",
+    "packs/edit-workspace/DescribeSchemaBody.celem": "4bdeb15d781d70c0230308811a9ba2d64fc02ed41a5adfa20a7d923117127706",
+    "packs/edit-workspace/DiscoverBodies.celem": "3f187420ccea27bcc06bfe0e1533d39c4eba421e5a604243cb57091f33efb308",
+    "packs/edit-workspace/DiscoverBodies.csbody": "ec60512cc878cfe7589341aa55475f202f6ea6e37d736b56d237b7207cf41ea4",
+    "packs/edit-workspace/DiscoverBodiesBody.celem": "9a09754447b999e6a4d4040eb0918798698422fb8b52f18dc642aeefa538d544",
+    "packs/edit-workspace/EditBatch.celem": "36aec86ffaf2ce0229133e60d75b20e157624e49f9b9fdec22245905d8bd9466",
+    "packs/edit-workspace/EditBatch.csbody": "248f531866aa92bb3098c55194c3468879b2577a8a0ca56b5b610d4cd8593040",
+    "packs/edit-workspace/EditBatchBody.celem": "bc2f0bcb82645da74b74cc69ca53d0a12a8dec6ae1ad930fea23857c7d48117d",
+    "packs/edit-workspace/Export.celem": "fca122337f54ac220946731b9b020afeaf07facd7bb843847a4bce867efeac99",
+    "packs/edit-workspace/Export.csbody": "09ca3418f5e1a37a28ef3af3c798fe10720eb53454bc11ccdcbf3d1bede8f170",
+    "packs/edit-workspace/ExportBody.celem": "74376bae116a968ead547d25cea1e350dd19cb0dc748ee1298a9f99ad5fffb44",
+    "packs/edit-workspace/History.celem": "f67f73aba5db308b9e5c62e6ee7fbe92629848ba257201a6f998b482dd295eae",
+    "packs/edit-workspace/History.csbody": "698c1a841809134a194ee3796b9fdbe48eef8c7a174c54db78123e41be24dbc4",
+    "packs/edit-workspace/HistoryBody.celem": "3b23bfee295b96ccf96ab5c7b6e3553327b4848222c5e647705278ce01bb36a4",
+    "packs/edit-workspace/Identity.celem": "58507923d6c43cf201cfdd941319d9c5db502953e61991fc9b76238919193004",
+    "packs/edit-workspace/Identity.csbody": "cda34fc41565d477047d6e11686e5071096d9226c42eee091196706fec18b8cf",
+    "packs/edit-workspace/IdentityBody.celem": "f3b15868c98332e0aa4ffe3cc808e14e34bec3e95f1c84f3e83426efc6c772ca",
+    "packs/edit-workspace/List.celem": "9892642b77a20c7af0b609e31bb68694814c93dde019080f98b9cf80f867926d",
+    "packs/edit-workspace/List.csbody": "9d61af650865321831fe6214e3d95a087853f4d810248976aa90c4ff4d114b62",
+    "packs/edit-workspace/ListBody.celem": "67a8f7f3f033da1e268ea73c4fdb0694bcdf0b7bf95f9e74430e557dafe6cae4",
+    "packs/edit-workspace/Open.celem": "cb59754ef2e2a70c5a42eda74eb477e3c93692552e3fb4cf0e2023ae46be82d3",
+    "packs/edit-workspace/Open.csbody": "68b139f62a94938464846f4cea34f710a6608e4619705ef335b06168e47268e2",
+    "packs/edit-workspace/OpenBody.celem": "ccf9f75c2c71c4cf6cd82df1edf0cf2e6c2b2d03799ce76f0da53fab9f283c22",
+    "packs/edit-workspace/Poll.celem": "c9e47e515bcb6fe2c854cfe9370824379a9d4cfeb0cfacf572e873d2993c2b85",
+    "packs/edit-workspace/Poll.csbody": "f2039dd24fbadf5d913d553a28791bc448c703925d54c19b3e6a28ff7e593409",
+    "packs/edit-workspace/PollBody.celem": "aeaf2a24755c556df61d22a61f841de84e3b0949b984616ca6cae7e15ef8a0d3",
+    "packs/edit-workspace/README.md": "8b5eed4c710e9ff9c453c2cb9c44026d4098753e63d180858fb780418fc4acc5",
+    "packs/edit-workspace/Read.celem": "847193076c3db5ae501e9cb1f17357ea3543be743e6cf1c2fe41c2a4b5b8e5bf",
+    "packs/edit-workspace/Read.csbody": "2ce57384aae2404dae3ddf46717f06aa10f207724ead955152567c8ee3d928f9",
+    "packs/edit-workspace/ReadBody.celem": "a866c00dc9402cd956fc42d9101a4ecef0f4567018b62a437f503eb7cbd5ff00",
+    "packs/edit-workspace/RefreshClean.celem": "f63a21529967ed1b4ede96ce6e58e4fd10c5f86fc170307cf1d8d91685d6b45f",
+    "packs/edit-workspace/RefreshClean.csbody": "5b1eaea0ae2a214a06cfa47379abd8d7cb1b77fb66b898aa41a0357687688ecf",
+    "packs/edit-workspace/RefreshCleanBody.celem": "9a66367359b6c92241e397f7afad1c63935a39ca3c4bc59e1fd713444a882f3f",
+    "packs/edit-workspace/Restore.celem": "85155263904fab3743a0ebac8d47fe899656f0d8efc44f9cda653b855f595877",
+    "packs/edit-workspace/Restore.csbody": "3acc713899d6d55c3ee2200d434e6b60eda7ce0cab8e7776f5e7fb77fd8dde57",
+    "packs/edit-workspace/RestoreBody.celem": "43f5ebf9b176ccd8476bbdcc3834ba9f78f0451ffd5f67b37f1c78f739425724",
+    "packs/edit-workspace/SetText.celem": "4b3bb4317f34ac27e938ffa6a2c7c318af387ec43e512f479c18ee74596985f0",
+    "packs/edit-workspace/SetText.csbody": "a6d936f5d60be43dbd30e053899020c6ccf49543106bdb37a27b5a0de60854a5",
+    "packs/edit-workspace/SetTextBody.celem": "cf70fcf002ca2c2705407ccb95a43194173534b9015fd474ca341ee765a54e29",
+    "packs/edit-workspace/SetTextIfRevision.celem": "e569c0f2c73bd91eef5eb72299846ab160de22ff528067d519b84d93b1d4bc2a",
+    "packs/edit-workspace/SetTextIfRevision.csbody": "d0aa1bb50d68171a56b56fdd261f636412eac2797c60091ff2a791e4dcec99b2",
+    "packs/edit-workspace/SetTextIfRevisionBody.celem": "3072d08ecd1584d4ec033a8bc21b4170f8564586deb01465edf0150e35342c5f",
+    "packs/edit-workspace/SetValue.celem": "520ea2d7175bb8518f5691a28c14e3c2fb7335a5eac79fe219f2d428b01f510d",
+    "packs/edit-workspace/SetValue.csbody": "80d5e73e05affa3566ada806c2ee2a3ee1a1e6b163c920d41dc9968bb25bbe31",
+    "packs/edit-workspace/SetValueBody.celem": "7aa34d8693e4fc1852048712554df83d4d8c18516168c4518d46886f456d07cb",
+    "packs/edit-workspace/Status.celem": "6b767f0c2c284c00e100cdf317e2ef4155351c6847f89f0a7e0100ab43cc4cc6",
+    "packs/edit-workspace/Status.csbody": "7ef947a7a4bcb834a00c22ebf0661934ffc73572314094003c9b80cad5eb0eab",
+    "packs/edit-workspace/StatusBody.celem": "63262b6f2d7912e3d11e76838b342ccaa9063a1d4ad3bea0572d5a35c227592e",
+    "packs/edit-workspace/Subscribe.celem": "ccd99c34e266e3d91d784799366c5c6c1053bfbe42b1cf4f80b6d07fd28ca72f",
+    "packs/edit-workspace/Subscribe.csbody": "95597846448c2caeacee689c34e87807dad47944b4fc2a5b10179df3d4b96cc8",
+    "packs/edit-workspace/SubscribeBody.celem": "6e577811c3d54d219ab2c60ec680321fa7b3583b376aa7d295e061ca5929845e",
+    "packs/edit-workspace/Unsubscribe.celem": "2070ed0323815504da8c7bcc79ac78bed36ffed88fa539841d7274412a8c3598",
+    "packs/edit-workspace/Unsubscribe.csbody": "afe88721fcfb750f5c549c80c28870705f18132b1e249810c6f212b00e8c37dd",
+    "packs/edit-workspace/UnsubscribeBody.celem": "9f88159c303e573a19aa82485295ef4f2a8d08f85c01ba97b761c92793c08cb6",
+    "packs/edit-workspace/ValidateReviewSelection.celem": "33fda0dc497b4fbef18a9933087b27bc06bbb66ed882368a5b4bb34f4a8a3e5f",
+    "packs/edit-workspace/ValidateReviewSelection.csbody": "ed7569d5acba8df65a4b6778e3ae7d9afcd1d639ad6f1eb380cbf8312128e13c",
+    "packs/edit-workspace/ValidateReviewSelectionBody.celem": "4b5621b1e572d1ea9f9f5380634882bfd60e22431106c90ed15a9b9297fb3659",
+    "packs/edit-workspace/pack.cpack": "8c2cbe5d729ec3d06c350c54cfb521e71b949492f7b8dd6bbf4d73c1852bf9cb",
+    "packs/pack-workspace/Blueprint.celem": "f8ef5924876852b3b621ac95559b218cf1f7ccc36730605f264259daa329a5fd",
+    "packs/pack-workspace/Blueprint.csbody": "f80e9fbb7150aa0a967f9369aa7465d3874992e2fab82204b4b39a3e727ae136",
+    "packs/pack-workspace/BlueprintBody.celem": "982f49bf22119476759b9816c7b94b53de50a4242016cb8ae9a3208c57c9fb2b",
+    "packs/pack-workspace/BorrowDraft.celem": "1501ca565c34ea901b8a8033c5dde43f762fb65b3d7aad0d5cb60871273a4e7b",
+    "packs/pack-workspace/BorrowDraft.csbody": "f6f081ce3692e2251c02223d03dd641c73d7281fae76cb3a0fcb4dbbe2d31273",
+    "packs/pack-workspace/BorrowDraftBody.celem": "3d7ea3e2704a1144e2a1ad8229c307bbbafebed5767086817ec5ed3ac9f444a4",
+    "packs/pack-workspace/Close.celem": "a88208b72874ff171c5c56621a1f448648a0db20386e1f923a9a56069415baa9",
+    "packs/pack-workspace/Close.csbody": "2f85c5fa5e29e3aaf63c96a23f972cb96ed4d6c06b4d898eec4ded95d42f24d7",
+    "packs/pack-workspace/CloseBody.celem": "652b6e92e05e55b68ec12c748495e4215c6b25e47a6fa0280404b2dedf4d56c8",
+    "packs/pack-workspace/Command.celem": "3f672c9c58a900d9e1407f0e7331ca5c501b6a0fa7372a15c097c610076d2d8e",
+    "packs/pack-workspace/Command.csbody": "f41be5e299b15312843545c5b1d87a6b3876e97ddd5973fe7032b151d6d73c83",
+    "packs/pack-workspace/CommandBody.celem": "662cdc545c88af6c35a3dc8ba777ca797bf87d092b2dfd44c09ddcf6b052fc23",
+    "packs/pack-workspace/Conflict.celem": "7acabdbca2ed41b19b70cb7a79f20d618a211ca0bc5b7a645360f12a53df06d4",
+    "packs/pack-workspace/Conflict.csbody": "225343cd14dcaa9a2b9e57d5d346399236ffad5c85acc5de914fbddc03c0f01d",
+    "packs/pack-workspace/ConflictBody.celem": "98aea429845d380fdf6ad79504fd8fc68373af879ae2578967628ad08e42e48d",
+    "packs/pack-workspace/CreateVariation.celem": "7652c76f8aa1d26cb4d778e48d72f232f56e723fdd208fdd63e202ff56d99ac8",
+    "packs/pack-workspace/CreateVariation.csbody": "5aa75281569df122550298ee1fef8b051f03f6259645305426afc352129ebb14",
+    "packs/pack-workspace/CreateVariationBody.celem": "6de9b946a52c636c4ee9fdad6a8db14e50b29b944c1f469fe5e1ff45d685aea3",
+    "packs/pack-workspace/History.celem": "4bc657abc0ff02e4877995d8c458f3e9b399e48c2e016b83cce6f6f037801f24",
+    "packs/pack-workspace/History.csbody": "e3cf7213baa7c907b2cc1134b3580c490fbad6475c2848540d3cf61b610ee7bf",
+    "packs/pack-workspace/HistoryBody.celem": "3fba676ef44b4b4b7342df5a1d7942d3f2741df5f994a0c0ca976736bc4ea76b",
+    "packs/pack-workspace/Open.celem": "6d11c7ea1553d97353f265ab467347a385c1ee04c9711a3da0924f3f64c59352",
+    "packs/pack-workspace/Open.csbody": "4b32ac32d8c9469b7c976f5bf8911af0c1acedf1c480d769e6b2020382079e37",
+    "packs/pack-workspace/OpenBody.celem": "1cd5c197110909a7a9bf6703807a20704df629407ce744c998412959e2e93874",
+    "packs/pack-workspace/README.md": "f4fd70a830a46db5bf754296cf3afdcc96291ef6aba2ead0f2c3cbc8ed448f4e",
+    "packs/pack-workspace/Snapshot.celem": "317063597eb74a77c812ec8b490f52c4e19c1424aa35fcdd0e0b92f6d7668c13",
+    "packs/pack-workspace/Snapshot.csbody": "f819898b5084a042d66d183192bb3c8315c1bd5a2a21ff4e02b0b71ff443bae8",
+    "packs/pack-workspace/SnapshotBody.celem": "570f9e5511c743abe7ea1e034308e1e2ab1cba1c440227005e0eefded1e7a337",
+    "packs/pack-workspace/pack.cpack": "d6868546fa4290833361761256d77e5279ec7dabf03f6b1b285b0acf882b5ae1",
+    "src/Confectory.Core/BlueprintCompilation.cs": "56859059a5369aba20be839df877fd937b65b80c9c044cc2c2fa136f433578a6",
+    "src/Confectory.Core/BlueprintDocuments.cs": "999a7ae18a2d1f71c37c7e19e9abce89e93d6fb8b8cc8c07b0a7be562c993044",
+    "src/Confectory.Core/Build.cs": "d18914d55950a74a580598d64b47717185646fb754dcc962b67b5dda19be5b58",
+    "src/Confectory.Core/Confectory.Core.csproj": "8d654c44b7bebb6b31a9f2f606927f45b5072193adc4eef8cce3f3cf3b278df3",
+    "src/Confectory.Core/Declarations.cs": "20b3e3c020a337dc52f8401ded8f87ece9cfec1dd4c916af1c3d4d2b911d6f7e",
+    "src/Confectory.Core/FeatureBlueprint.cs": "3584a8cd733c563a80dc425a8ec574e823a4357c60382654c9a6ae32cbe3ce78",
+    "src/Confectory.Core/Generation.cs": "e1d4950e12d5d15fd5ec848479a5b79eebd27de10ea17dcc85bb1da9a6b34fd3",
+    "src/Confectory.Core/Infrastructure.cs": "848e8bc0ccf5b8ec4950b93a06bb3451ebffa0fb34015e038f9a6af66041d7d4",
+    "src/Confectory.Core/Resolution.cs": "e907f2501f5f35eeae3044221879aacc0e2cf9b0391903d4872cce1cf7c5b49e",
+    "src/Confectory.Core/SchemaContracts.cs": "36599497dc5c10e8798e2448bc4037c56ffebc924bd63f99a463c689e1a6ab96",
+    "src/Confectory.Core/VersionExpectation.cs": "570ec2d19fb9eac047d339d2aff841817bc0958b32359682b5b158401657c50b",
+    "targets/element-authoring/AlgorithmProjectionOperations.cs": "60593b1ce024d779c75502fdc0c33972f58eb1a224dc8cb0f2000dfeed74ee60",
+    "targets/element-authoring/BlueprintCall.cs": "6f658431d1321e18becb102aa1cd4a0ff8e0486728374897426db4989342b7cb",
+    "targets/element-authoring/BlueprintCallableContracts.cs": "b1ec6afdd6564858197b907f53747da0e1e027f11735032c9c2b38a054e4135e",
+    "targets/element-authoring/BlueprintCreation.cs": "bda759d2e7bb9b246d5426979f20207a8cfe487495a8ee0bc2b62ff9c7cb8415",
+    "targets/element-authoring/BodyUnitMetadata.cs": "7483a4334ef0c65e4e3e66c5c594209c4958c01d3f2e718d1a84a9cd20d65905",
+    "targets/element-authoring/BuildParticipationOperations.cs": "9a73a28b7195a87ca9c557c3fe745c41fe9ed6fbe4325024be1fa052211b4680",
+    "targets/element-authoring/Confectory.ElementAuthoring.csproj": "e3b89d12c1ee397c813b1cd7c1c026ce847dbd993f94cce00f91561d4c78790f",
+    "targets/element-authoring/ConnectionDeclarations.cs": "e5c0e0f2133af862a3311a6e7b5729a061d3d2ac352a082780c27d4efde4747d",
+    "targets/element-authoring/DeclarationAuthoring.cs": "32bbc14908c9f824bb795fde3b5cd11c03d139e77114098ff45872daf0bf45ae",
+    "targets/element-authoring/DeclaredRelations.cs": "58d8b9749838f6d15a6b21ebe85bd7483226875e9e6ea8d493d7ddfadc703428",
+    "targets/element-authoring/EffectiveMetadata.cs": "e22b2730c33fd8d38a1190b89aa96f0ceee7f02cb34e73320d12080dc13f147b",
+    "targets/element-authoring/ManifestMetadata.cs": "81e3e74239a5ac74435b4fd0d627aa565f8e90736517d63c81e397af16f2e320",
+    "targets/element-authoring/PackOperations.cs": "e038f585d0ebeda0f5761d82a7c8a78013b88921ce73789cb4cbbc4e6c0f6af6",
+    "targets/element-authoring/Program.cs": "0d09867f1c841fa996f5b0dfef1633a22e0866149c0dad9cb25cdaff46c66c67",
+    "targets/element-authoring/ProjectionArtifacts.cs": "69f2caa1e52e0c3bfb290d6abdc0eb7ae71fa0022fdd2185f82f81c42b5410df",
+    "targets/element-authoring/ProjectionDelivery.cs": "3e29dd6765a195ed5476ebb0728ac3d09eefcac55cac67012a40247bc61f20f9",
+    "targets/element-authoring/ReferenceDefinition.cs": "3da444a6aafd98fef51831f41fea5e3d2e16e2afaf3a965812df9bf7a31cffdd",
+    "targets/element-authoring/RelationLocators.cs": "0ba9ba2d1364d2d6882bb85e7a9649b933cca873632be7add7eaf0afdc9f224f",
+    "targets/element-authoring/RelationMapBatch.cs": "53b9ee5f7563f6d014a0c55e6c52c33f638b1dd9b24889dd5d59cbc05311de88",
+    "targets/element-authoring/SemanticCatalogService.cs": "52b36b871f0a4fa9e644c1e63287e47fab497a5abdd54d7ed58f0a0ee9c5bda5",
+    "tests/Confectory.Tests/FeatureBlueprintTests.cs": "80596fccd0571f9bad540d2f6ad3da33ea1810fc6aaaab41e9c2dd40c3b38e1e"
+  },
+  "publishedProbeSourceHashes": {
+    "tests/probes/blueprint-compatibility/Program.cs": "3d46ceed1ee35efe02d1bff8ad502a1ba6c20c00eaef0c3385d00f95ed007410",
+    "tests/probes/blueprint-compatibility/blueprint-compatibility.csproj": "9f5194a76554a62476fff04e786e09f77b4692134ad407cb5ae647e5c967beaf",
+    "tests/Confectory.Tests/Support.cs": "5223a74be1a96393518c94133c3a6f68d60668a578a94e12e0fc510b28dbb659"
+  },
+  "reviewedEvidence": {
+    "blueprint-editor": {
+      "path": "docs/evidence/v480-integration/blueprint-editor.json",
+      "sha256": "ee381860b13b1310db5b54eb49fad2aa106e5ad26b6392710833198ccea0865d",
+      "reportedStatus": "existing-owned-graph-editor-verified",
+      "boundary": "Prior checkpoint evidence, not a newly repeated full regression or complete v480 claim."
+    },
+    "node-task": {
+      "path": "docs/evidence/v480-integration/node-task.json",
+      "sha256": "2c70f0b7169e2dc6e48281553f2e03f603d69493156ac23903168d9d23bdc2b2",
+      "reportedStatus": "Focused node Task/common Web paths passed; native pixel capture unavailable; broader v480 integration in progress",
+      "boundary": "Prior checkpoint evidence, not a newly repeated full regression or complete v480 claim."
+    },
+    "independent-node-compiler": {
+      "path": "docs/evidence/v480-integration/independent-node-compiler.json",
+      "sha256": "f80467e56aa796f24585ed917cfecae2ebdc2253f773021ad7be8324cbe13917",
+      "reportedStatus": "independent-node-compiler-verified",
+      "boundary": "Prior checkpoint evidence, not a newly repeated full regression or complete v480 claim."
+    },
+    "node-creation": {
+      "path": "docs/evidence/v480-integration/node-creation.json",
+      "sha256": "9b1112e07e75e13560815a0336a4bcd263212b207436bdc40ef619c26c50d6f1",
+      "reportedStatus": "owned-existing-graph-node-creation-removal-verified",
+      "boundary": "Prior checkpoint evidence, not a newly repeated full regression or complete v480 claim."
+    },
+    "feature-registration": {
+      "path": "docs/evidence/v480-integration/feature-registration.json",
+      "sha256": "17ca1fd307a6db1561f0bec912a758217ab26a66d8ec1dbfcc389cd48747b2d8",
+      "reportedStatus": "new-owned-project-feature-registration-verified",
+      "boundary": "Prior checkpoint evidence, not a newly repeated full regression or complete v480 claim."
+    },
+    "call-wrapper": {
+      "path": "docs/evidence/v480-integration/call-wrapper.json",
+      "sha256": "7f0e382e049a54120eea61400ed7c0c6ccd434d20139e204f1d4a2c5d59f76f4",
+      "reportedStatus": "owned-existing-function-reference-call-verified",
+      "boundary": "Prior checkpoint evidence, not a newly repeated full regression or complete v480 claim."
+    },
+    "module-interface": {
+      "path": "docs/evidence/v480-integration/module-interface.json",
+      "sha256": "953c3781185938f7c397bea49f035d9a53f5fa6cd7f893a206d1a911620b98cd",
+      "reportedStatus": "owned-module-contract-default-interface-verified",
+      "boundary": "Prior checkpoint evidence, not a newly repeated full regression or complete v480 claim."
+    },
+    "object-module-provider": {
+      "path": "docs/evidence/v480-integration/object-module-provider.json",
+      "sha256": "6b686814fc41a1efcbbf59c102478d554a688a0153162a034afd0bda80195830",
+      "reportedStatus": "owned-object-module-existing-provider-verified",
+      "boundary": "Prior checkpoint evidence, not a newly repeated full regression or complete v480 claim."
+    },
+    "rich-notes": {
+      "path": "docs/evidence/v480-integration/rich-notes.json",
+      "sha256": "d82602f4b799269889301b5c4b3bdda6802f01862a67211b7167b8551d1f0dc9",
+      "reportedStatus": "owned-inline-rich-notes-title-format-verified",
+      "boundary": "Prior checkpoint evidence, not a newly repeated full regression or complete v480 claim."
+    },
+    "placed-find": {
+      "path": "docs/evidence/v480-integration/placed-find.json",
+      "sha256": "7d83d0c3f352a1484887a720a9cc83b9eeed827fe3af2980d4e2dcee0814d2b7",
+      "reportedStatus": "owned-placed-text-find-verified",
+      "boundary": "Prior checkpoint evidence, not a newly repeated full regression or complete v480 claim."
+    },
+    "note-documents": {
+      "path": "docs/evidence/v480-integration/note-documents.json",
+      "sha256": "1ee6e6d42723eda22f786b122f5de7c1e97bf494b28208bdcf7ae27e2e29efd6",
+      "reportedStatus": "private-note-document-canonical-views-verified",
+      "boundary": "Prior checkpoint evidence, not a newly repeated full regression or complete v480 claim."
+    },
+    "window-documents": {
+      "path": "docs/evidence/v480-integration/window-documents.json",
+      "sha256": "d745022313d1174b1f1f3447f9100c17215158c3b016f50b11dc6fb3c98ae4b2",
+      "reportedStatus": "typed-domain-window-document-input-lifetime-verified",
+      "boundary": "Prior checkpoint evidence, not a newly repeated full regression or complete v480 claim."
+    },
+    "tab-arrangement": {
+      "path": "docs/evidence/v480-integration/tab-arrangement.json",
+      "sha256": "6b36a3158a26686cc793d19a6ff7194b70f838b69b2032b519317f384d5f5a26",
+      "reportedStatus": "native-private-tab-reorder-and-exact-window-canvas-drop-verified",
+      "boundary": "Prior checkpoint evidence, not a newly repeated full regression or complete v480 claim."
+    },
+    "object-implementation": {
+      "path": "docs/evidence/v480-integration/object-implementation.json",
+      "sha256": "5a6017668f3f3449759fd71b46722c16b22a96cc55eaeadc87cfc23845d8316f",
+      "reportedStatus": "owned-object-alternative-implementation-graph-creation-verified",
+      "boundary": "Prior checkpoint evidence, not a newly repeated full regression or complete v480 claim."
+    },
+    "registered-call": {
+      "path": "docs/evidence/v480-integration/registered-call.json",
+      "sha256": "469cbcb51a2b41958bd60806097bfcc9b7f437b93a2787910350c2ebfa82f15a",
+      "reportedStatus": "registered-direct-dependency-function-reference-verified",
+      "boundary": "Prior checkpoint evidence, not a newly repeated full regression or complete v480 claim."
+    },
+    "registered-implementation": {
+      "path": "docs/evidence/v480-integration/registered-implementation.json",
+      "sha256": "435b9ab27446265111fcbcdd3203b1cc92e502127f47b25e36548541bf926d4f",
+      "reportedStatus": "registered-module-function-object-implementation-creation-verified",
+      "boundary": "Prior checkpoint evidence, not a newly repeated full regression or complete v480 claim."
+    },
+    "function-import": {
+      "path": "docs/evidence/v480-integration/function-import.json",
+      "sha256": "0d4aa5c9f20b6c37acf3eef84e63b896cbbcccf16864f3198ccaf7badd8dba21",
+      "reportedStatus": "module-function-import-whole-reference-implementation-verified",
+      "boundary": "Prior checkpoint evidence, not a newly repeated full regression or complete v480 claim."
+    }
+  },
+  "findings": {
+    "legacyTargetsRemainSupported": true,
+    "targetBlueprintAndLegacyBodyCanCoexist": true,
+    "sameFunctionImplementationInheritanceKeepsBodyOrigin": true,
+    "sameTargetDuplicateRefused": true,
+    "blindCallsBodyCopyCompilerError": "CS8422",
+    "scopePreservedOutput": "4",
+    "scopeDroppedOutput": "6",
+    "originalFixtureLegacyBytesRetained": true,
+    "newProductDefectReproduced": false,
+    "productSourcesChanged": false,
+    "newExecutionProfile": false,
+    "conversionPolicySelected": false,
+    "wholeV480Complete": false
+  },
+  "remaining": {
+    "userQuestionPending": "For the new implicit-end profile, refuse a non-void termination without an assigned output, or return the type default. Neither has been selected.",
+    "conversionPurposes": [
+      "Keep the existing C# function and reuse it by reference (already supported).",
+      "Explicitly author a new graph for a selected implementation and target, preserving old C# files (transition ownership and switching policy not selected).",
+      "Lift an existing body into one node only under a separately reviewed policy that preserves calls/import alias/scope/target context; blind copy is incompatible."
+    ],
+    "requiresContracts": [
+      "Nested node graphs and stable ownership/version identities.",
+      "Local values/property receivers/expressions/setters and value availability.",
+      "Multiple outputs/ref/out/internal enum or arbitrary execution port contracts.",
+      "Explicit physical deletion/registration cleanup or existing implementation conversion."
+    ],
+    "independentPresentationFollowup": [
+      "v480 free zoom range, stepped wheel and cursor-anchored camera.",
+      "Detailed header-rail/pin presentation and whole reference interaction/pixel parity."
+    ],
+    "notValidated": [
+      "Native/device execution.",
+      "Real accounts or paid models.",
+      "User PC installation.",
+      "All v424 service and runtime-control features."
+    ]
+  },
+  "boundaries": [
+    "The ten checks are assertions in an owned compiler/runtime investigation, not ten newly passed full regression tests.",
+    "All graph probes retain schema:1/sync-acyclic-v1 and explicit returns; prototype version:2/header-rail JSON is not imported.",
+    "Only temporary fixture declarations change during probes. User project source is not transformed.",
+    "Prior API23/UI10/managed1/checkout1 results remain prior checkpoint evidence; unchanged source hashes are checked rather than relabeling those results as new.",
+    "No main/original ZIP/Android settings changes, force push, accounts, paid models or user PC installation."
+  ]
+}

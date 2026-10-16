@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../../src/Confectory.Core/Confectory.Core.csproj" />
+    <Compile Include="../../Confectory.Tests/Support.cs" Link="Support.cs" />
+  </ItemGroup>
+</Project>

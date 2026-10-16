@@ -274,3 +274,7 @@ v480의 moduleFeatureCompatibility/openModuleFunctionImport와 functionBlueprint
 같은 최종 제품의 함수 가져오기·기존/등록 호출·빈 본문 객체 생성·Blueprint·모듈·공유 초안·이력·팩 문맥 회귀는 **23/0/0, 1146.229초**, 기존 실제 UI는 **10/0/0, 836.898초**, Windows/Android 관리 대상 컴파일은 **1/0/0, 199.589초**로 통과했다. 초기 공개 검사와 실제 UI 이후 제품은 유지했고 직접 경계 테스트만 확장했다. 모든 검사 뒤 최종 제품·테스트 원본 13개의 해시는 유지했다. 단계별 검사는 중복되므로 합산하지 않는다. 일반 Git 체크아웃·31개 리소스 시작은 별도 기록한다.
 
 기능 가져오기 구현 `47ced4dfb269eabf9f71edc0870f73de4fb50bff`의 일반 Git 체크아웃·기존 CRLF/새 LF·31개 정적 리소스·실제 Home 시작·변조 거부는 **1/0/0, 7.805초**로 통과했다. 모든 최종 검사 뒤 제품·테스트 원본 13개의 해시는 유지했다.
+
+## 기존 구현 전환과 남은 범위 재검토
+
+`e222acb` 이후 [전환 호환성과 범위 검토](EDITOR_V480_COMPATIBILITY_REVIEW.md)를 진행했다. 기존 C#과 타깃별 Blueprint의 공존·같은 함수 구현의 상속·정적 노드의 import 문맥을 소유 fixture에서 검사했다. 원문 `calls.*` 복사는 실제 compiler가 거부하고, import scope를 빼면 provider와 결과가 달라진다. 기존 기능 참조 재사용은 지원하지만 C# 본문 이관 정책은 선택하지 않았다. 새 implicit-end profile과 미설정 반환 질문도 미정으로 유지했다. 이 검토의 10개 assertion은 별도 호환성 probe이며 제품 수정·전체 UI 회귀 결과가 아니다.
