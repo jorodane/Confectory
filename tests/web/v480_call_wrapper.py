@@ -4,7 +4,10 @@ from playwright.sync_api import expect
 
 def verify_call_wrapper(page,project,mount,send,envelope,settle,restart):
  page.set_viewport_size({'width':1440,'height':1000});graph='Example.ButtonGame::NodeValueBody/body:common';feature='Example.ButtonGame::Double';before={p:p.read_bytes() for p in project.iterdir() if p.is_file()}
- def ready():expect(page.locator('#nav')).to_be_enabled(timeout=180000)
+ def ready():
+  expect(page.locator('#nav')).to_be_enabled(timeout=180000)
+  expect(page.locator('#workspace-save-state')).not_to_have_text('편집창 복원 중',timeout=180000)
+  expect(page.locator('#nav')).to_be_enabled(timeout=180000)
  def state():
   v=mount();s=v['state'];assert send(envelope(v,'dispose'))['ok'];return s
  def invoke(endpoint,args):
@@ -15,7 +18,14 @@ def verify_call_wrapper(page,project,mount,send,envelope,settle,restart):
    time.sleep(.02)
   assert result and result['ok'],result;assert send(envelope(v,'dispose'))['ok'];return result['result']
  def nav():
-  ready();page.locator('#nav').click();page.locator('.nav-menu').get_by_role('button',name='기능 Blueprint',exact=True).click();ready()
+  ready()
+  restored=page.locator('.window[data-key^="blueprint-code:"] [data-bp-open]')
+  if restored.is_visible():restored.click();ready();return
+  if panel().is_visible():
+   panel().locator('.window-title').click(position={'x':100,'y':12});panel().locator('[data-bp-read]').click();ready();return
+  menu=page.locator('.nav-menu')
+  if not menu.is_visible():page.locator('#nav').click()
+  menu.get_by_role('button',name='기능 Blueprint',exact=True).click();ready()
  def panel():return page.locator('.window[data-key="blueprint"]')
  def creator():return page.locator('.window').filter(has=page.locator('[data-call-id]'))
  def read():return invoke('blueprint',{'action':'read','id':graph})

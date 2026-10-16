@@ -149,3 +149,5 @@ PackWorkspace.Blueprint는 기존 소유 graph와 독립 노드 본문을 기능
 
 
 기존 소유 함수의 객체별 대체 구현은 함수 원문·기본 제공을 유지하고 객체의 로컬 provide와 새 구현/graph/독립 본문/등록만 생성한다. 객체의 생성 소유 metadata는 private 원본 묶음 정보이며 compiler 증거·실행·AI 권한이 아니다. 새 함수의 첫 graph와 기존 함수의 대체 graph를 구분해 복원하고, 변경된 소유 객체까지 필수 Review/Confirm에 포함한다. 기본 graph 의도가 필요한 설명 없는 함수도 원문은 변경하지 않는다. 명시적 함수 계약·기존 primitive/배열 단일 반환 ABI와 sync-acyclic-v1의 현재 경계를 따른다.
+
+graph별 카메라·확대·배치·선택도 private presentation이다. 헤더/핀 조작은 기존 entry/route/argument의 미확정 입력만 준비한다. UI 후보 선택이나 연결 미리보기가 source Apply·현재 계약/CAS·compiler Confirm을 대신하지 않는다. 새 실행 의미나 내부 타입·원본 전환 정책은 이 UI 연결로 확정하지 않는다.

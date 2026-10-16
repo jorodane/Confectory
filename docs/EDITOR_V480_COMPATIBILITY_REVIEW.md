@@ -64,3 +64,5 @@ dotnet run --project tests/probes/blueprint-compatibility -c Release -- /tmp/con
 첫 임시 probe 빌드는 검사 코드의 IEnumerable/IReadOnlyList 인수 불일치로 실패했다. 배열로 바로잡은 뒤 10개 호환성 assertion이 통과했으며, 저장소에 추가한 재실행 프로젝트도 같은 검사를 통과했다. 제품 오류 수정이나 일반 회귀 10건으로 계산하지 않는다. 최종 probe는 실제 읽은 compiler·지원 코드·probe 원본 해시를 결과에 기록한다. [최종 증거와 범위](evidence/v480-integration/compatibility-review.json)에 단계별 로그 해시·현재 원본 해시·대조 근거를 보존한다.
 
 기존 제품/테스트 원본 190개의 조사 전후 해시는 유지했다. 제품·리소스·compiler를 바꾸지 않았으므로 직전 체크포인트의 API 23건·UI 10건·관리 대상 컴파일 1건·일반 Git 체크아웃 1건을 새로운 전체 회귀 결과로 재계산하지 않는다. 전체 v480 완료 표시는 하지 않는다. 미설정 반환의 **컴파일 오류/타입 기본값** 선택과 기존 구현의 **참조 재사용/명시적 새 graph/본문 이관** 목적은 각각 별도 결정이다.
+
+후속 UI 작업에서 이 검토의 확대·휠·포인터 카메라 차이와 현재 계약의 헤더/핀 연결 조작을 연결했다. graph별 private 보기와 문서 탭·미확정 입력 보존 검증은 [카메라 연결 기록](EDITOR_V480_INTEGRATION.md)에 따로 남긴다. 이 후속 변경은 위 `e222acb` 기준 조사와 원본 해시를 소급해 바꾸지 않으며, 새 실행/타입·이관 정책도 정하지 않는다.

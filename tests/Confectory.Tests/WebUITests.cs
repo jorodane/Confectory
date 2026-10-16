@@ -137,6 +137,7 @@ public sealed class WebUITests : TestCase
         True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS actual startup metadata delay"),run.Stdout+run.Stderr);
     }
     public void test_actual_editor_v480_blueprint_owned_graph_node_edit_and_cold_input()=>RunOwnedBlueprint("blueprint");
+    public void test_actual_editor_v480_blueprint_camera_header_pins_tabs_and_cold_input()=>RunOwnedBlueprint("blueprint-camera");
     public void test_actual_editor_v480_blueprint_node_creation_removal_and_cold_source_groups()=>RunOwnedBlueprint("blueprint-create");
     public void test_actual_editor_v480_new_feature_contract_graph_group_and_cold_source()=>RunOwnedBlueprint("feature-create");
     public void test_actual_editor_v480_existing_feature_reference_call_and_cold_contract()=>RunOwnedBlueprint("call-wrapper");
@@ -208,9 +209,12 @@ public sealed class WebUITests : TestCase
         var built=new Builder(Path.Combine(Fixture.Repo,"examples/editor-home/project.cpack"),"linux").Build();
         built["nodeTaskFixture"]=new System.Text.Json.Nodes.JsonObject{["feature"]=feature,["graph"]=graph,["node"]=new System.Text.Json.Nodes.JsonObject{["schema"]=1,["node"]="calculate",["definitionHash"]=described["nodes"]![0]!["definitionHash"]!.DeepClone(),["source"]="return value + 4;"}};
         built["additionalNodeFixture"]=new System.Text.Json.Nodes.JsonObject{["schema"]=1,["node"]="condition",["definitionHash"]=described["nodes"]![1]!["definitionHash"]!.DeepClone(),["source"]="return value > 0;"};
+        if(mode=="blueprint-camera"){
+            string other="function Example.ButtonGame::OtherValue (long n) -> long {}";var otherGraph=graph.DeepClone();otherGraph["feature"]="Example.ButtonGame::OtherValue";otherGraph["contractHash"]=FeatureBlueprint.ContractHash(new Parser(other,"<second camera fixture>").ParseElement());otherGraph["nodes"]![0]!["implementation"]="other-condition.node.json";otherGraph["nodes"]![1]!["implementation"]="other-calculate.node.json";built["cameraSecondGraph"]=new System.Text.Json.Nodes.JsonObject{["feature"]=other,["graph"]=otherGraph};
+        }
         string report=Path.Combine(f.Root,"v480-blueprint.json");File.WriteAllText(report,built.ToJsonString());
         var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/web_ui.py"),Fixture.Repo,report,mode},timeoutSeconds:420);
-        True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains(mode=="blueprint"?"PASS actual v480 Blueprint":mode=="feature-create"?"PASS actual v480 feature creation":mode=="call-wrapper"?"PASS actual v480 reference call":mode=="registered-call"?"PASS actual v480 registered reference call":mode=="placed-find"?"PASS actual v480 placed text find":"PASS actual v480 node creation/removal"),run.Stdout+run.Stderr);
+        True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains(mode=="blueprint-camera"?"PASS actual v480 Blueprint camera":mode=="blueprint"?"PASS actual v480 Blueprint":mode=="feature-create"?"PASS actual v480 feature creation":mode=="call-wrapper"?"PASS actual v480 reference call":mode=="registered-call"?"PASS actual v480 registered reference call":mode=="placed-find"?"PASS actual v480 placed text find":"PASS actual v480 node creation/removal"),run.Stdout+run.Stderr);
     }
     public void test_actual_editor_v424_node_task_plan_cas_approval_and_cold_history()
     {

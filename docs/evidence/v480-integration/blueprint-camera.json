@@ -1,0 +1,346 @@
+{
+  "schema": 1,
+  "status": "blueprint-private-camera-and-existing-contract-pin-ui-verified",
+  "baseWorkCommit": "120d09b136ca073129c1a25e45dcebf5181cda7e",
+  "referenceMain": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+  "referenceFunctions": [
+    "clampCanvasZoom",
+    "createSteppedZoomWheel",
+    "zoomAt",
+    "bindExecutionHeader",
+    "bindPorts"
+  ],
+  "stages": [
+    {
+      "log": "blueprint-camera-first-ui.log",
+      "sha256": "afae34573591138fc65c6f956eb72776450de812ee23bf8a08912838aba92e8d",
+      "boundary": "TEST failed native-wheel pointer comparison: fractional requested point versus integer Chromium WheelEvent coordinates; no product camera arithmetic failure claimed.",
+      "tests": [
+        "FAIL WebUITests.test_actual_editor_v480_blueprint_camera_header_pins_tabs_and_cold_input"
+      ],
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 80.931
+    },
+    {
+      "log": "blueprint-camera-anchor-debug-ui.log",
+      "sha256": "77900322d7686dba364f13965afce635ab151e92d84e5c51ece31c6ae7c1063a",
+      "boundary": "TEST diagnosis retained local476.16/70.8 versus actual476/70 and camera59.5/8.75. Test moved to integer screen point, retaining the world-coordinate tolerance.",
+      "tests": [
+        "FAIL WebUITests.test_actual_editor_v480_blueprint_camera_header_pins_tabs_and_cold_input"
+      ],
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 8.529
+    },
+    {
+      "log": "blueprint-camera-second-ui.log",
+      "sha256": "b83b481bcb1e4ad517b31cae0473f5dcc98a530a181136498b09d3cd11437ed3",
+      "boundary": "Actual precise zoom/wheel anchor, pan/header cancel, graph-local views/pins/private inputs/cold/Home after port placement and exact wire geometry.",
+      "tests": [
+        "PASS WebUITests.test_actual_editor_v480_blueprint_camera_header_pins_tabs_and_cold_input"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 23.714
+    },
+    {
+      "log": "blueprint-camera-final-core-ui.log",
+      "sha256": "d185ba132fe0e7ca2cfd02be93d0fc57dd3feb835f26d2cfc697e1d70369c0b6",
+      "boundary": "Same pre-guard product with TEST-only domain document docking, same window DOM and popup lifetime extension; new UI plus existing Blueprint/compiler Confirm and placed find.",
+      "tests": [
+        "PASS WebUITests.test_actual_editor_v480_blueprint_camera_header_pins_tabs_and_cold_input",
+        "PASS WebUITests.test_actual_editor_v480_blueprint_owned_graph_node_edit_and_cold_input",
+        "PASS WebUITests.test_actual_editor_v480_placed_text_find_workspace_blueprint_and_cold_scope"
+      ],
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 96.952
+    },
+    {
+      "log": "blueprint-camera-ui-regression.log",
+      "sha256": "3bbd4e2195bc84b73cba71578334a323febdfb8f1bc227aae2836d5050f7f5a7",
+      "boundary": "BEFORE final invalid-port guard. Existing Home/node creation/function import/registered call/tab arrangement passed; owned call TEST cold navigation menu assumption failed after source/Confirm workflow.",
+      "tests": [
+        "PASS WebUITests.test_actual_editor_original_v196_home_project_and_create_flow",
+        "PASS WebUITests.test_actual_editor_v480_blueprint_node_creation_removal_and_cold_source_groups",
+        "FAIL WebUITests.test_actual_editor_v480_existing_feature_reference_call_and_cold_contract",
+        "PASS WebUITests.test_actual_editor_v480_module_function_import_reference_cold_and_group",
+        "PASS WebUITests.test_actual_editor_v480_registered_function_reference_and_cold_contract",
+        "PASS WebUITests.test_actual_editor_v480_tab_reorder_cancel_canvas_drop_and_cold_order"
+      ],
+      "passed": 5,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 341.89
+    },
+    {
+      "log": "blueprint-camera-managed-regression.log",
+      "sha256": "cd954a37397128df3fc4a0feca0d00a87dc10a09058a4fdc19bdd465df3dacbe",
+      "boundary": "BEFORE final JS invalid-port guard; Windows/Android managed compilation only, no native/device claim.",
+      "tests": [
+        "PASS EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 133.48
+    },
+    {
+      "log": "blueprint-camera-release-ui.log",
+      "sha256": "ca53d1a07ba93e9151f64ef90de62145720cea28ccd361cb894298b07fe27261",
+      "boundary": "Final guarded renderer; owned-call TEST cold helper was blocked by the restored companion window and is separately corrected/retested. Native outer Workspace zoom and screen/world header delta, no hidden DOM scroll, graph-local/document/cold/private input/source preservation; existing Blueprint/compiler Confirm/find and corrected owned-call cold source reread.",
+      "tests": [
+        "PASS WebUITests.test_actual_editor_v480_blueprint_camera_header_pins_tabs_and_cold_input",
+        "PASS WebUITests.test_actual_editor_v480_blueprint_owned_graph_node_edit_and_cold_input",
+        "FAIL WebUITests.test_actual_editor_v480_existing_feature_reference_call_and_cold_contract",
+        "PASS WebUITests.test_actual_editor_v480_placed_text_find_workspace_blueprint_and_cold_scope"
+      ],
+      "passed": 3,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 199.716
+    },
+    {
+      "log": "blueprint-camera-call-restore-readiness-ui.log",
+      "sha256": "b61fc9eff3e166788a3e1cdc57a285bb2e4096b1c289371d0491f4f490504c8e",
+      "boundary": "TEST still read before independent editor-binding recovery completed, so the recovered graph became empty again. This led to a readiness fix using the visible workspace recovery status.",
+      "tests": [
+        "FAIL WebUITests.test_actual_editor_v480_existing_feature_reference_call_and_cold_contract"
+      ],
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 41.362
+    },
+    {
+      "log": "blueprint-camera-call-title-hit-ui.log",
+      "sha256": "e3f4e597bb5cf3c62f4f2c26cd6e6898f8e2ab1d0534d35ed254f53f0561e03f",
+      "boundary": "Owned-call cold restore and real compiler Confirm passed; TEST focus point x10 hit the northwest resize handle. Use the ordinary title area x100.",
+      "tests": [
+        "FAIL WebUITests.test_actual_editor_v480_existing_feature_reference_call_and_cold_contract"
+      ],
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 69.77
+    },
+    {
+      "log": "blueprint-camera-final-call-ui.log",
+      "sha256": "58f8da6d0e008eb5fa838c7c971bdfcf621bf0db4c06cb05f25315c17d89e129",
+      "boundary": "TEST-only final owned-call navigation correction: use the restored companion window’s explicit open-graph button, or focus the existing graph title before reading. Product files unchanged after the final camera/editor/find/managed runs.",
+      "tests": [
+        "PASS WebUITests.test_actual_editor_v480_existing_feature_reference_call_and_cold_contract"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 54.024
+    },
+    {
+      "log": "blueprint-camera-release-managed.log",
+      "sha256": "963b5c2fb9003bb9f1906d08d7a0dd978e16a81cfbd4c0cfcd113ea0821f9811",
+      "boundary": "Final product Windows/Android managed compilation only.",
+      "tests": [
+        "PASS EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 200.63
+    }
+  ],
+  "invalidPortComponentProbe": {
+    "red": {
+      "sha256": "365b8aa8eb6ccb089adb1e9ecc232ea11f4fae7266206c6e41f8a3af3d8ff2e6",
+      "result": {
+        "kind": "owned-DOM-component-probe-not-full-editor",
+        "sourceSha256": "b51273aabffa68b05db5cbb84a99df055456e3a79ab2836f5202639a4c84500b",
+        "cases": [
+          {
+            "port": "next",
+            "opened": true,
+            "paths": 1
+          },
+          {
+            "port": "missing",
+            "opened": false,
+            "error": "TypeError: Cannot read properties of null (reading 'getBoundingClientRect')"
+          },
+          {
+            "port": "bad\"]port",
+            "opened": false,
+            "error": "SyntaxError: Failed to execute 'querySelector' on 'Element': '[data-bp-exec-out=\"source\"][data-exec-port=\"bad\"]port\"]' is not a valid selector."
+          }
+        ],
+        "allOpened": false,
+        "expectedPaths": [
+          1,
+          0,
+          0
+        ]
+      },
+      "boundary": "Owned DOM component using actual module bytes; distinct from the full editor UI and compiler tests."
+    },
+    "final": {
+      "sha256": "8f79bedaba1b7c797228d1f0d9810d6bb968ee4392019365d1bbe026360d2389",
+      "result": {
+        "kind": "owned-DOM-component-probe-not-full-editor",
+        "sourceSha256": "18d19b38872f4b04c3e7ac9a5b6dd77094c7d68c30125be350fe0f631ba5c6e3",
+        "cases": [
+          {
+            "port": "next",
+            "opened": true,
+            "paths": 1
+          },
+          {
+            "port": "missing",
+            "opened": true,
+            "paths": 0
+          },
+          {
+            "port": "bad\"]port",
+            "opened": true,
+            "paths": 0
+          }
+        ],
+        "allOpened": true,
+        "expectedPaths": [
+          1,
+          0,
+          0
+        ]
+      },
+      "boundary": "Owned DOM component using actual module bytes; distinct from the full editor UI and compiler tests."
+    }
+  },
+  "sourceHashes": {
+    "examples/editor-home/WebBundle.csbody": "5378567f22ee72410597ffaaf260b7591a7a270e2ccf2094ebac564128cc31a4",
+    "examples/editor-home/ui/blueprint.js": "651b28babb8ac27885101c42f00a17a63aa1bbe86fa7b6c2942056ccc4d72ae6",
+    "examples/editor-home/ui/consumer.css": "6e00b9458707689d80d89af8197ef62332e4deed5a8dc9884cf2c48b86cafee8",
+    "examples/editor-home/ui/workspace-host.js": "50bca1708e5fa0aa5df68fb3a4337aacf93dc68e9f1d25dd66a25b0535fffb8c",
+    "tests/Confectory.Tests/WebUITests.cs": "91864bf553e93c18dcbea8ef025e92e1785d2a8b6cf6b6005829520a9eb898e4",
+    "tests/web/v480_call_wrapper.py": "dfd52a2eb67edfcc0e112ce9a6bc8c1f6511f566eafae900c671c1cae324dd57",
+    "tests/web/web_ui.py": "87e90a83e622193cc974b307ad379e1c15ac4c1f0078bbca82468365f4d53018",
+    "examples/editor-home/ui/blueprint-pins.js": "53c37177f8ae0ba11592f15fa31ba7f4f581aa35c609487b57b71ded53e4520b",
+    "examples/editor-home/ui/blueprint-viewport.js": "18d19b38872f4b04c3e7ac9a5b6dd77094c7d68c30125be350fe0f631ba5c6e3",
+    "tests/probes/blueprint_camera_dom.py": "e15be2dff24a2e0fdb83c050358fd316adaf1873aa6fd6e5465bfeac5d50dbd7",
+    "tests/web/v480_blueprint_camera.py": "845062e0ce6f602916730ee03f99c481897549ba88b5716ae494b18d211a093e"
+  },
+  "sourceSnapshots": {
+    "blueprint-camera-anchor-debug-frozen-hashes.json": {
+      "examples/editor-home/WebBundle.csbody": "5183ee9df0869607068dcb896a170f7fbd959cc1f2d798213091debb1e63c02f",
+      "examples/editor-home/ui/blueprint.js": "7398ac06fdca71303170dab85e8ab5672ad0a0c1b8c0ad19bb7c6cbfcaf32799",
+      "examples/editor-home/ui/consumer.css": "f6a4ac56984da9ee3bcbba37f8f26b3cff16af69032585979dd2ed0b53321564",
+      "examples/editor-home/ui/workspace-host.js": "50bca1708e5fa0aa5df68fb3a4337aacf93dc68e9f1d25dd66a25b0535fffb8c",
+      "tests/Confectory.Tests/WebUITests.cs": "91864bf553e93c18dcbea8ef025e92e1785d2a8b6cf6b6005829520a9eb898e4",
+      "tests/web/web_ui.py": "87e90a83e622193cc974b307ad379e1c15ac4c1f0078bbca82468365f4d53018",
+      "examples/editor-home/ui/blueprint-pins.js": "53c37177f8ae0ba11592f15fa31ba7f4f581aa35c609487b57b71ded53e4520b",
+      "examples/editor-home/ui/blueprint-viewport.js": "1b7a930eb68d2fb3d32e91b13d656945c1f68bfc1cce987658049e0d94068370",
+      "tests/web/v480_blueprint_camera.py": "596c0697d22724fb566e29819c7297fc2f8659889a114da764905cc43bb6598d"
+    },
+    "blueprint-camera-final-frozen-hashes.json": {
+      "examples/editor-home/WebBundle.csbody": "ff7ba01b794dbf2d4bf72b23c9b19987203ca7be37f35d77c1a5c91a94f317b4",
+      "examples/editor-home/ui/blueprint.js": "651b28babb8ac27885101c42f00a17a63aa1bbe86fa7b6c2942056ccc4d72ae6",
+      "examples/editor-home/ui/consumer.css": "6e00b9458707689d80d89af8197ef62332e4deed5a8dc9884cf2c48b86cafee8",
+      "examples/editor-home/ui/workspace-host.js": "50bca1708e5fa0aa5df68fb3a4337aacf93dc68e9f1d25dd66a25b0535fffb8c",
+      "tests/Confectory.Tests/WebUITests.cs": "91864bf553e93c18dcbea8ef025e92e1785d2a8b6cf6b6005829520a9eb898e4",
+      "tests/web/web_ui.py": "87e90a83e622193cc974b307ad379e1c15ac4c1f0078bbca82468365f4d53018",
+      "examples/editor-home/ui/blueprint-pins.js": "53c37177f8ae0ba11592f15fa31ba7f4f581aa35c609487b57b71ded53e4520b",
+      "examples/editor-home/ui/blueprint-viewport.js": "b51273aabffa68b05db5cbb84a99df055456e3a79ab2836f5202639a4c84500b",
+      "tests/web/v480_blueprint_camera.py": "248e112be29d97deca9c0ac0a4100fe69910543a1f7fbd71cbf1e22fb2213602"
+    },
+    "blueprint-camera-first-frozen-hashes.json": {
+      "examples/editor-home/WebBundle.csbody": "5183ee9df0869607068dcb896a170f7fbd959cc1f2d798213091debb1e63c02f",
+      "examples/editor-home/ui/blueprint.js": "7398ac06fdca71303170dab85e8ab5672ad0a0c1b8c0ad19bb7c6cbfcaf32799",
+      "examples/editor-home/ui/consumer.css": "f6a4ac56984da9ee3bcbba37f8f26b3cff16af69032585979dd2ed0b53321564",
+      "examples/editor-home/ui/workspace-host.js": "50bca1708e5fa0aa5df68fb3a4337aacf93dc68e9f1d25dd66a25b0535fffb8c",
+      "tests/Confectory.Tests/WebUITests.cs": "91864bf553e93c18dcbea8ef025e92e1785d2a8b6cf6b6005829520a9eb898e4",
+      "tests/web/web_ui.py": "87e90a83e622193cc974b307ad379e1c15ac4c1f0078bbca82468365f4d53018",
+      "examples/editor-home/ui/blueprint-pins.js": "53c37177f8ae0ba11592f15fa31ba7f4f581aa35c609487b57b71ded53e4520b",
+      "examples/editor-home/ui/blueprint-viewport.js": "1b7a930eb68d2fb3d32e91b13d656945c1f68bfc1cce987658049e0d94068370",
+      "tests/web/v480_blueprint_camera.py": "d6a2b100e70458cf9eaef852a83eaea849b5d5ea2f8c92bcecda3cf2dc025357"
+    },
+    "blueprint-camera-published-frozen-hashes.json": {
+      "examples/editor-home/WebBundle.csbody": "5378567f22ee72410597ffaaf260b7591a7a270e2ccf2094ebac564128cc31a4",
+      "examples/editor-home/ui/blueprint.js": "651b28babb8ac27885101c42f00a17a63aa1bbe86fa7b6c2942056ccc4d72ae6",
+      "examples/editor-home/ui/consumer.css": "6e00b9458707689d80d89af8197ef62332e4deed5a8dc9884cf2c48b86cafee8",
+      "examples/editor-home/ui/workspace-host.js": "50bca1708e5fa0aa5df68fb3a4337aacf93dc68e9f1d25dd66a25b0535fffb8c",
+      "tests/Confectory.Tests/WebUITests.cs": "91864bf553e93c18dcbea8ef025e92e1785d2a8b6cf6b6005829520a9eb898e4",
+      "tests/web/v480_call_wrapper.py": "dfd52a2eb67edfcc0e112ce9a6bc8c1f6511f566eafae900c671c1cae324dd57",
+      "tests/web/web_ui.py": "87e90a83e622193cc974b307ad379e1c15ac4c1f0078bbca82468365f4d53018",
+      "examples/editor-home/ui/blueprint-pins.js": "53c37177f8ae0ba11592f15fa31ba7f4f581aa35c609487b57b71ded53e4520b",
+      "examples/editor-home/ui/blueprint-viewport.js": "18d19b38872f4b04c3e7ac9a5b6dd77094c7d68c30125be350fe0f631ba5c6e3",
+      "tests/probes/blueprint_camera_dom.py": "e15be2dff24a2e0fdb83c050358fd316adaf1873aa6fd6e5465bfeac5d50dbd7",
+      "tests/web/v480_blueprint_camera.py": "845062e0ce6f602916730ee03f99c481897549ba88b5716ae494b18d211a093e"
+    },
+    "blueprint-camera-release-frozen-hashes.json": {
+      "examples/editor-home/WebBundle.csbody": "5378567f22ee72410597ffaaf260b7591a7a270e2ccf2094ebac564128cc31a4",
+      "examples/editor-home/ui/blueprint.js": "651b28babb8ac27885101c42f00a17a63aa1bbe86fa7b6c2942056ccc4d72ae6",
+      "examples/editor-home/ui/consumer.css": "6e00b9458707689d80d89af8197ef62332e4deed5a8dc9884cf2c48b86cafee8",
+      "examples/editor-home/ui/workspace-host.js": "50bca1708e5fa0aa5df68fb3a4337aacf93dc68e9f1d25dd66a25b0535fffb8c",
+      "tests/Confectory.Tests/WebUITests.cs": "91864bf553e93c18dcbea8ef025e92e1785d2a8b6cf6b6005829520a9eb898e4",
+      "tests/web/v480_call_wrapper.py": "be6683add07dbc1ac482746d2b65d4eea7ea122567d6a51c2f850403afc2e8f0",
+      "tests/web/web_ui.py": "87e90a83e622193cc974b307ad379e1c15ac4c1f0078bbca82468365f4d53018",
+      "examples/editor-home/ui/blueprint-pins.js": "53c37177f8ae0ba11592f15fa31ba7f4f581aa35c609487b57b71ded53e4520b",
+      "examples/editor-home/ui/blueprint-viewport.js": "18d19b38872f4b04c3e7ac9a5b6dd77094c7d68c30125be350fe0f631ba5c6e3",
+      "tests/probes/blueprint_camera_dom.py": "e15be2dff24a2e0fdb83c050358fd316adaf1873aa6fd6e5465bfeac5d50dbd7",
+      "tests/web/v480_blueprint_camera.py": "845062e0ce6f602916730ee03f99c481897549ba88b5716ae494b18d211a093e"
+    },
+    "blueprint-camera-second-frozen-hashes.json": {
+      "examples/editor-home/WebBundle.csbody": "ff7ba01b794dbf2d4bf72b23c9b19987203ca7be37f35d77c1a5c91a94f317b4",
+      "examples/editor-home/ui/blueprint.js": "651b28babb8ac27885101c42f00a17a63aa1bbe86fa7b6c2942056ccc4d72ae6",
+      "examples/editor-home/ui/consumer.css": "6e00b9458707689d80d89af8197ef62332e4deed5a8dc9884cf2c48b86cafee8",
+      "examples/editor-home/ui/workspace-host.js": "50bca1708e5fa0aa5df68fb3a4337aacf93dc68e9f1d25dd66a25b0535fffb8c",
+      "tests/Confectory.Tests/WebUITests.cs": "91864bf553e93c18dcbea8ef025e92e1785d2a8b6cf6b6005829520a9eb898e4",
+      "tests/web/web_ui.py": "87e90a83e622193cc974b307ad379e1c15ac4c1f0078bbca82468365f4d53018",
+      "examples/editor-home/ui/blueprint-pins.js": "53c37177f8ae0ba11592f15fa31ba7f4f581aa35c609487b57b71ded53e4520b",
+      "examples/editor-home/ui/blueprint-viewport.js": "b51273aabffa68b05db5cbb84a99df055456e3a79ab2836f5202639a4c84500b",
+      "tests/web/v480_blueprint_camera.py": "fd4b399a1a72d0d66d9726672bbe72326c7b85199adc1e98030c7c8d73abbf35"
+    }
+  },
+  "images": {
+    "blueprint-camera.png": "03c19a4e530ca7872169673ccab593753abbdcb31a0acd35f1157ccf1f5d9ee8",
+    "blueprint-camera-cold.png": "69dce7d730a4ae39b6db486200028fbb0e0f8f5f8c4690bb2f45fccac87dfa07"
+  },
+  "staticResourceCount": 33,
+  "claims": {
+    "freeZoomRangePercent": [
+      3.125,
+      300
+    ],
+    "nativeWheelStopsAndPointerAnchor": true,
+    "directZoomAtViewportCenter": true,
+    "middleRightPanAndHeaderScreenWorldScale": true,
+    "escapeAndPointerCancelRestoreGesture": true,
+    "graphIdentityScopedPrivateViewsMaximum": 64,
+    "sameNodeIdsInDifferentGraphsKeepViewsSeparate": true,
+    "privateOnlyCameraLayoutSelectionAndUnsentValues": true,
+    "exactDomainWindowDomDuringDocumentDock": true,
+    "hiddenHomeGraphChangeClearsTransientMenusAndWires": true,
+    "headerClickAndPointerDragStageExistingEntryRouteInput": true,
+    "typedPinPickerStagesExistingArgumentJson": true,
+    "longIntegerJsonPreservedOnPickerCancel": true,
+    "noAutomaticSourceApplyOrCompilerSuccessClaim": true,
+    "coldSourceBasisStillRequiresExplicitRebase": true,
+    "invalidEdgePortsDoNotCrashViewport": true,
+    "existingDiagnosticsAndSourcesNotRewrittenByRenderer": true,
+    "sourceProfileOrAbiOrConversionPolicyChanged": false,
+    "implicitMissingReturnPolicySelected": false,
+    "nativeDeviceRealAccountPaidModelPcInstall": false
+  },
+  "boundaries": [
+    "Stages overlap and are not summed. Earlier broad results are explicitly before the final renderer guard.",
+    "The final guard escapes port names and omits only lines with no visible endpoint; graph source and diagnostics remain intact. It does not supply a missing route or implicit return.",
+    "Only existing single-return primitive/array contracts, next/bool branches and explicit exits are exposed. Arbitrary enum/ref/out/multiple execution output editing and nested graphs are not introduced.",
+    "Input picker candidates have matching declared types. Actual value availability and type/compiler acceptance remain existing source/Confirm checks.",
+    "Pin gestures prepare private input forms and preserve the existing explicit Apply/CAS/Save/Review/Confirm lifecycle. They do not create code-node Task capabilities or donor body copies.",
+    "The new full editor test preserves owned source hashes/revisions and fixture bytes while exercising native pointer/wheel events, two graphs with identical node IDs, document DOM identity and cold/Home private inputs.",
+    "Existing renderer source is transformed only by UI camera and private layout; graph/node/compiler files remain the authoritative source.",
+    "The unanswered implicit-end missing-return choice and conversion policy remain separate pending decisions. main/original ZIP/Android settings and account/user-PC boundaries remain preserved."
+  ]
+}
