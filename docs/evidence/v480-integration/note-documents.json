@@ -107,6 +107,18 @@
       "failed": 0,
       "skipped": 0,
       "seconds": 48.068
+    },
+    {
+      "log": "note-documents-checkout.log",
+      "boundary": "Ordinary implementation Git checkout, retained CRLF/fresh LF and 30 resource startup and tamper refusal.",
+      "sha256": "6655dfe8223426b500a9d116c80af68392c33b8f7cd0fbe753ead97574ae535f",
+      "tests": [
+        "PASS WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 7.594
     }
   ],
   "boundaries": [
@@ -133,5 +145,6 @@
   "images": {
     "note-document.png": "c11ec73b5078c89da0a6a06f5da2c2e1a5ddbf1f6534cacc76e261a4fbc8ecda",
     "note-document-cold.png": "a453f84cb5cfc1b2145d7a565f8ce4024cbab469e1c24cff79c1f60876079add"
-  }
+  },
+  "implementationCommit": "c7526d1faff23c92fffd4ec077be8b20ba4be0dc"
 }
