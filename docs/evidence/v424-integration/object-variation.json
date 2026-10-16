@@ -1,6 +1,6 @@
 {
   "scope": "v424 owned object variation and serialized consumer startup",
-  "status": "passed; ordinary checkout pending; remaining v424 and Blueprint work in progress",
+  "status": "passed; remaining v424 map and approved Blueprint integration in progress",
   "baseCommit": "693180b7306cc7f66b88302166e5e394ae1e841f",
   "gates": [
     {
@@ -182,8 +182,15 @@
     }
   ],
   "ordinaryCheckout": {
-    "status": "pending after implementation commit",
-    "resources": 22
+    "status": "passed",
+    "commit": "d1933818c7de2cdb682704b4bc3a17bdad52288b",
+    "case": "WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup",
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "seconds": 95.972,
+    "resources": 22,
+    "boundary": "Actual startup with canonical identities in retained CRLF after ordinary attribute pull and fresh LF checkouts; tampered resources refused. No product source changed after this gate."
   },
   "limits": [
     "Only root-owned object parents in this creation UI.",

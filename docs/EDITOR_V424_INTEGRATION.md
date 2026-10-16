@@ -194,3 +194,5 @@ PackWorkspace의 전용 공개 생성 역할이 View 선택과 수명을 맡는�
 추가 영향 회귀에서는 6종 선언의 생성·Confirm은 끝났지만 cold startup이 편집창 복원과 초기 Helper 조회의 동시 요청으로 stale_revision을 내는 경우를 찾았다. 해당 묶음은 **6 통과/1 실패, 648.345초**이며 전체 성공으로 합산하지 않는다. 실제 browser fetch의 Helper 초기 조회만 300ms 지연시키는 별도 검사로 수정 전의 `objects → select → inspectDeclaration → helperList` 순서를 재현했다. 응답이나 모델 상태를 가짜로 만들지 않는다. mount 이전부터 초기화 상태를 유지하도록 순서를 바꿨으며, 일반 소스 CAS의 자동 재시도는 추가하지 않았다. 수정 후 전체 Home과 재시작 관련 UI 검사는 진행 중이다.
 
 [바리에이션·시작 검증 기록](evidence/v424-integration/object-variation.json). 연결이 끊긴 뒤 미커밋 코드와 로그를 보존하고 마지막 묶음을 회수했다. 초기화 지연·Helper/Workspace/Yogi·바리에이션·6종 생성·독립 View의 수정 후 7개 통과는 재실행하지 않았다. 전체 Home/ButtonGame의 실패는 복원된 Run 창 뒤쪽의 닫기 버튼을 누르던 시험 동작이었다. Dock/Nav로 창을 앞으로 선택한 뒤 닫도록 시험만 보완했으며, 같은 제품 코드의 전체 검사는 **1/0/0, 337.147초**로 통과했다. [일반 개념 Confirm 후 실제 재열기 화면](evidence/v424-integration/ordinary-reopen.png)은 이 최종 실행에서 촬영했다. 수정 후 8개 UI gate를 확인한 것이며 앞선 단계의 반복 실행 수를 합산하지 않는다. 일반 Git checkout은 구현 커밋 고정 후 검사한다.
+
+바리에이션·초기화 구현 커밋 `d1933818c7de2cdb682704b4bc3a17bdad52288b`의 일반 Git checkout/22개 리소스 실제 시작·변조 거부는 **1/0/0, 95.972초**로 통과했다. 이후 변경은 이 검증 기록뿐이다.
