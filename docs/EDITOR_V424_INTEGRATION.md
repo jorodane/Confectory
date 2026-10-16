@@ -27,7 +27,7 @@ Codex 준비·공식 기기 코드 로그인 단계는 `114e00ffb35f6c3f4e5cdfd3
 | W01 | 팬·줌·슬라이더·프리셋·원점·메인 창 | 기존 | 공통 Workspace runtime + 소유 presentation 저장 |
 | W02 | 창 이동·리사이즈·접기·스냅·다중 선택·키보드 | 기존 | 공통 노드/선택/드래그 소유. v424 추가 차이 검토 |
 | W03 | 탭 생성·이동·재정렬·분리·닫기·재열기 | 부분 | 실제 공유 초안/독립 View 수명, 입력 보존 |
-| W04 | 노트·그룹·자식 Workspace·포털·제거 취소 | 기존 | 공통 presentation. 의미 객체 삭제와 구분 |
+| W04 | 노트·그룹·자식 Workspace·포털·제거 취소 | 기존 + 메모 서식 연결/검증 | [v480 메모](EDITOR_V480_INTEGRATION.md): 기존 일반 메모의 명시적 서식 전환, 글자·제목/private 원문/plain mirror, 붙여넣기·복원 처리, 하위 공간/cold 보존. 의미 객체 삭제·메모 문서 탭·장식 포털 전송은 별도 |
 | W05 | Workspace 링크 연결·해제·관계 메뉴·검색 배치 | 부분 | 실제 presentation 링크와 엔진 의미 관계 분리. [v480 배치된 노드 찾기](EDITOR_V480_INTEGRATION.md)는 현재 Workspace/Blueprint 글자·입력·결과 이동과 cold 검색어 제거를 검증. 링크 편집은 별도 범위 |
 | W06 | 창/노드 혼합 선택·이동·부모/자식 공간 전환 | 기존 | 공통 runtime. v424 상호작용 대조 |
 | B01 | 개념/기능/모듈 브라우저·트리·범위·밀도·정렬·검색 | 부분 | 실제 LocalInventory/SemanticCatalog/PackWorkspace |

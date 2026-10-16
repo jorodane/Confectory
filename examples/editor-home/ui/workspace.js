@@ -1,3 +1,5 @@
+import {noteHtml,noteMarkup,bindNoteEditor,applyNoteTitle} from './notes.js';
+
 // Common v318 presentation runtime. Window and decoration records share selection and drag ownership.
 // Domain actions are explicit host callbacks; no prototype database or AI implementation lives here.
 export function createWorkspaceRuntime(host){
@@ -142,7 +144,7 @@ function trackWorkspaceDrag(e,handle,onMove,onEnd){
 }
 
 function beginWorkspaceNodeDrag(e,node,{edge='',onClick}={}){
- if((!edge&&e.target.closest('button,input,textarea'))||e.button!==0)return;
+ if((!edge&&e.target.closest('button,input,textarea,select,[contenteditable=true]'))||e.button!==0)return;
  e.preventDefault();e.stopPropagation();
  if(!edge&&(e.ctrlKey||e.metaKey||e.shiftKey)){toggleWorkspaceNodeSelection(node);return}
  const wasSelected=isWorkspaceNodeSelected(node.key);
@@ -160,7 +162,7 @@ function beginWorkspaceNodeDrag(e,node,{edge='',onClick}={}){
  trackWorkspaceDrag(e,handle,(ev,sx,sy)=>{
   const scale=node.placed?(host.project.workspaceView?.scale||1):1,dx=(ev.clientX-sx)/scale,dy=(ev.clientY-sy)/scale;
   if(edge){
-   const minWidth=node.kind==='window'?260:node.item.kind==='note'?160:180,minHeight=node.kind==='window'?(node.placed?172:160):node.item.kind==='note'?100:130;
+   const minWidth=node.kind==='window'?260:node.item.kind==='note'?(typeof node.item.richText==='string'?240:160):180,minHeight=node.kind==='window'?(node.placed?172:160):node.item.kind==='note'?(typeof node.item.richText==='string'?180:100):130;
    let left=start.x,top=start.y,right=start.x+start.width,bottom=start.y+start.height;
    if(edge.includes('w'))left=Math.min(right-minWidth,start.x+dx);
    if(edge.includes('e'))right=Math.max(left+minWidth,start.x+start.width+dx);
@@ -343,7 +345,7 @@ function renderWorkspaceDecorations(){
 
   const title=host.esc(decorationName(item));
   const resizeHandles=['n','ne','e','se','s','sw','w','nw'].map(edge=>'<span class="window-resize-handle resize-'+edge+'" data-decoration-resize="'+edge+'" role="button" tabindex="0" aria-label="'+edge+' 방향으로 '+(item.kind==='note'?'메모':'그룹')+' 크기 조절"></span>').join('');
-  if(item.kind==='note')el.innerHTML='<header class="workspace-item-handle"><strong class="workspace-item-name">'+title+'</strong><button type="button" data-remove aria-label="메모 삭제">×</button></header><textarea aria-label="메모 내용" placeholder="메모를 남겨보세요…">'+host.esc(item.text||'')+'</textarea>'+resizeHandles;
+  if(item.kind==='note')el.innerHTML='<header class="workspace-item-handle"><strong class="workspace-item-name">'+title+'</strong>'+(host.preserveLifecycle?'<button type="button" data-note-format aria-label="메모 서식 편집" title="메모 서식 편집">Aa</button>':'')+'<button type="button" data-remove aria-label="메모 삭제">×</button></header>'+(host.preserveLifecycle&&typeof item.richText==='string'?noteMarkup(item):'<textarea aria-label="메모 내용" placeholder="메모를 남겨보세요…">'+host.esc(item.text||'')+'</textarea>')+resizeHandles;
   else if(item.kind==='group')el.innerHTML='<header class="workspace-item-handle"><strong class="workspace-item-name">'+title+'</strong><button type="button" data-remove aria-label="그룹 삭제">×</button></header>'+resizeHandles;
   else if(item.kind==='portal')el.innerHTML='<header class="workspace-item-handle"><strong class="workspace-item-name">'+title+'</strong><button type="button" data-remove aria-label="하위 Workspace 삭제">×</button></header><span class="workspace-drop-hint" aria-live="polite"></span>';
   layer.append(el);
@@ -373,9 +375,13 @@ function renderWorkspaceDecorations(){
    }});
   };
   host.$('.workspace-multi-drag-surface',el)?.addEventListener('pointerdown',e=>beginWorkspaceNodeDrag(e,node));
-  if(item.kind==='note')host.$('textarea',el).oninput=e=>{item.text=e.target.value;host.persist()};
+  if(host.preserveLifecycle)applyNoteTitle(el,item);
+  if(item.kind==='note'){
+   if(host.preserveLifecycle&&typeof item.richText==='string')bindNoteEditor(el,item,()=>host.persist());else host.$('textarea',el).oninput=e=>{item.text=e.target.value;host.persist()};
+   host.$('[data-note-format]',el)?.addEventListener('click',event=>{event.stopPropagation();editWorkspaceNote(item);});
+  }
   if(item.kind==='group'||item.kind==='note'){
-   const minWidth=item.kind==='note'?160:180,minHeight=item.kind==='note'?100:130;
+   const minWidth=item.kind==='note'?(typeof item.richText==='string'?240:160):180,minHeight=item.kind==='note'?(typeof item.richText==='string'?180:100):130;
    host.$$('[data-decoration-resize]',el).forEach(resize=>{
     const edge=resize.dataset.decorationResize;
     resize.onpointerdown=e=>beginWorkspaceNodeDrag(e,node,{edge});
@@ -408,6 +414,22 @@ function createWorkspaceDecoration(kind,x,y){
  return item;
 }
 
+function editWorkspaceNote(item){
+ if(!workspaceItems().includes(item)||item.kind!=='note')return;
+ if(typeof item.richText!=='string'){item.richText=noteHtml(item);item.width=Math.max(item.width,330);item.height=Math.max(item.height,260);renderWorkspaceDecorations();saveLayouts();}
+ host.$$('.workspace-note').find(el=>el.dataset.workspaceItem===item.id)?.querySelector('[data-note-editor]')?.focus();
+}
+function editWorkspaceTitle(item){
+ const scope=host.project,workspace=state.activeWorkspaceId,current=item.titleStyle,size=Number.isFinite(current?.size)?Math.min(72,Math.max(8,current.size)):13,color=/^#[0-9a-f]{6}$/i.test(current?.color||'')?current.color:'#e9d9b9';
+ host.modal('제목 서식','<form class="stack" data-note-title-form><label>제목 크기<input type="number" min="8" max="72" step="1" data-title-size value="'+size+'"></label><label>제목 색상<input type="color" data-title-color value="'+color+'"></label><strong data-title-preview></strong><div class="actions"><button type="submit" data-title-apply>적용</button><button type="button" data-title-clear>직접 서식 지우기</button></div><p>Workspace 배치의 제목에만 적용합니다.</p></form>',(root,close)=>{
+  const sizeInput=root.querySelector('[data-title-size]'),colorInput=root.querySelector('[data-title-color]'),preview=root.querySelector('[data-title-preview]');preview.textContent=decorationName(item);
+  const draw=()=>{preview.style.fontSize=Math.min(72,Math.max(8,Number(sizeInput.value)||13))+'px';preview.style.color=colorInput.value;};sizeInput.oninput=colorInput.oninput=draw;draw();
+  const valid=()=>host.project===scope&&state.activeWorkspaceId===workspace&&workspaceItems().includes(item);
+  root.querySelector('[data-title-clear]').onclick=()=>{if(!valid()){host.toast('제목의 작업 공간이 바뀌었습니다.');return;}delete item.titleStyle;host.$$('.workspace-decoration').filter(el=>el.dataset.workspaceItem===item.id).forEach(el=>applyNoteTitle(el,item));host.persist();close();};
+  root.querySelector('form').onsubmit=event=>{event.preventDefault();if(!valid()){host.toast('제목의 작업 공간이 바뀌었습니다.');return;}const next=Number(sizeInput.value);if(!Number.isFinite(next)||next<8||next>72)return;item.titleStyle={size:next,color:colorInput.value};item.height=Math.max(item.height,next*1.25+(item.kind==='note'?150:50));host.$$('.workspace-decoration').filter(el=>el.dataset.workspaceItem===item.id).forEach(el=>applyNoteTitle(el,item));positionWorkspaceDecorations();host.persist();close();};
+ });
+}
+
 function showWorkspaceContextMenu(x,y,target){
  const itemEl=target?.closest?.('.workspace-decoration');
  if(itemEl){
@@ -416,7 +438,8 @@ function showWorkspaceContextMenu(x,y,target){
    selectWorkspaceDecoration(item.id);
    const options=[];
    if(item.kind==='portal')options.push(['작업 공간 열기',()=>switchWorkspace(item.id)]);
-   if(item.kind==='note')options.push(['메모 편집',()=>itemEl.querySelector('textarea')?.focus()]);
+   if(item.kind==='note'){options.push(['메모 편집',()=>itemEl.querySelector('[data-note-editor],textarea')?.focus()]);if(host.preserveLifecycle)options.push(['메모 서식 편집',()=>editWorkspaceNote(item)]);}
+   if(host.preserveLifecycle)options.push(['제목 서식',()=>editWorkspaceTitle(item)]);
    options.push(['이름 변경',()=>renameWorkspaceDecoration(item)]);
    options.push([item.kind==='portal'?'하위 Workspace 삭제':item.kind==='group'?'그룹 삭제':'메모 삭제',()=>itemEl.querySelector('[data-remove]')?.click()]);
    host.contextMenu(x,y,options);return;

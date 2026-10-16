@@ -176,6 +176,9 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
     elif kind=='local-augment':
      from v424_local_augment import verify_local_augment
      verify_local_augment(page,project,mount,send,envelope,settle,restart_actual_host)
+    elif kind=='rich-notes':
+     from v480_rich_notes import verify_rich_notes
+     verify_rich_notes(page,project,mount,send,envelope,settle,restart_actual_host)
     elif kind=='placed-find':
      from v480_placed_find import verify_placed_find
      verify_placed_find(page,project,mount,send,envelope,settle,restart_actual_host)

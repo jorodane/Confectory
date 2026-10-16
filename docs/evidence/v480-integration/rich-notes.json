@@ -1,0 +1,159 @@
+{
+  "schema": 1,
+  "status": "owned-inline-rich-notes-title-format-verified",
+  "baseWorkCommit": "5572ab6917b4bf43cfb3979f2abb24c0d84d6bdc",
+  "referenceMain": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+  "stages": [
+    {
+      "log": "rich-notes-first-ui.log",
+      "boundary": "TEST clicked the north-west resize handle instead of the note title context area; ordinary header coordinates corrected. Native formatting/list/paste already reached.",
+      "sha256": "11f54a2ac6ef245ae0fb9103f2b7b29322de1fd004a3c3c666be2375d534026d",
+      "tests": [
+        "FAIL WebUITests.test_actual_editor_v480_rich_notes_title_format_paste_and_cold_source_preservation"
+      ],
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 91.744
+    },
+    {
+      "log": "rich-notes-second-ui.log",
+      "boundary": "TEST assumed notes could be transferred through a portal. Existing runtime transfers windows only. No fake DOM move or new transfer semantics; test now edits independent root/child notes and checks navigation/cold preservation.",
+      "sha256": "b8f8853f5f26ab11a6d8b961dc2d30b2458d20f032eb7c73cb3b184c3cade752",
+      "tests": [
+        "FAIL WebUITests.test_actual_editor_v480_rich_notes_title_format_paste_and_cold_source_preservation"
+      ],
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 12.469
+    },
+    {
+      "log": "rich-notes-third-ui.log",
+      "boundary": "TEST required one exact unformatted HTML spelling after replacing text in a bold note; native editing legitimately retained bold markup. Test now checks plain mirror and removal of old raw content/URLs/scripts.",
+      "sha256": "b71fe3964699a50fadf7c375d2bb2ceb2bd214caeaffc489dda6df29dffbae44",
+      "tests": [
+        "FAIL WebUITests.test_actual_editor_v480_rich_notes_title_format_paste_and_cold_source_preservation"
+      ],
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 12.458
+    },
+    {
+      "log": "rich-notes-final-ui.log",
+      "boundary": "Actual inline rich note/title, native formatting/list/paste, independent child scope/current Find/cold, raw restored HTML safe display without migrating saved source, explicit edit cleanup, legacy/plain/source preservation. Before final toolbar state fix and strict undo/redo assertions.",
+      "sha256": "43496fe6f20cb4aaafacf63a2e90a617577c4d6a1642d2085e5728a5c99e2d51",
+      "tests": [
+        "PASS WebUITests.test_actual_editor_v480_rich_notes_title_format_paste_and_cold_source_preservation"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 17.085
+    },
+    {
+      "log": "rich-notes-workspace-regression.log",
+      "boundary": "Existing Workspace/layout/Find and frozen v318 behavior/pixel comparison4 gates. Before final narrow toolbar state fix; new controls are enabled only in actual lifecycle adapter.",
+      "sha256": "a134e5141b99693bd42a708a01f7bac10cb792a39a34bf42f442d5d1ea2e2873",
+      "tests": [
+        "PASS WebUITests.test_actual_editor_layout_periodic_checkpoints_and_flush",
+        "PASS WebUITests.test_actual_editor_v318_workspace_lifecycle_presentation_restart",
+        "PASS WebUITests.test_actual_editor_v480_placed_text_find_workspace_blueprint_and_cold_scope",
+        "PASS WebUITests.test_v318_original_and_refactor_shared_workspace_characterization"
+      ],
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 138.533
+    },
+    {
+      "log": "rich-notes-home-regression.log",
+      "boundary": "Ordinary Home gate before final narrow toolbar state fix.",
+      "sha256": "e14159de4289b7a5723c0b6a65743bea34702547746f3f409527077d919e053a",
+      "tests": [
+        "PASS WebUITests.test_actual_editor_original_v196_home_project_and_create_flow"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 44.29
+    },
+    {
+      "log": "rich-notes-toolbar-final-ui.log",
+      "boundary": "Final toolbar state from current selection or first text, current24px/color after genuine cold, no read-time source changes; before strict native undo/redo DOM assertions.",
+      "sha256": "bcfd06d30c9a032d22d75ce48b93ca64fc6da4871cdb7b6d058e8a07440dff8e",
+      "tests": [
+        "PASS WebUITests.test_actual_editor_v480_rich_notes_title_format_paste_and_cold_source_preservation"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 16.86
+    },
+    {
+      "log": "rich-notes-verified-undo-final-ui.log",
+      "boundary": "Final actual UI, adding strict native undo body change and exact redo restoration alongside cold toolbar24px/color and all previous rich note/paste/read-only restore/explicit edit/source-preservation gates.",
+      "sha256": "c9bfd8ba0f633a2b3cb453c2f3ead2973fe96f4256b22fbf93a48f082075789b",
+      "tests": [
+        "PASS WebUITests.test_actual_editor_v480_rich_notes_title_format_paste_and_cold_source_preservation"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 11.742
+    },
+    {
+      "log": "rich-notes-checkout.log",
+      "boundary": "Implementation ordinary Git checkout retained CRLF/fresh LF,29 static resources, actual Home start and tamper refusal.",
+      "sha256": null,
+      "tests": []
+    }
+  ],
+  "claims": {
+    "legacyPlainNoteNotConvertedOnReadOrRestore": true,
+    "explicitInlineFormattingTransition": true,
+    "privateRichTextAndPlainMirror": true,
+    "formatOnlyInputCheckpoint": true,
+    "nativeSelectionAndUndoRedoPreserved": true,
+    "boldItalicUnderlineStrikeListsSizeColorAndClearControls": true,
+    "titleSizeColorPreviewApplyClear": true,
+    "inertAllowlistedHtmlAndStyleCopy": true,
+    "resourceScriptEventUrlMarkupNotActivated": true,
+    "actualBrowserLocalHtmlClipboardPaste": true,
+    "rawRestoredPrivateHtmlSanitizedForDisplayWithoutMigration": true,
+    "explicitEditWritesCleanNewPrivateSource": true,
+    "rootAndChildNotesKeptInOwnWorkspace": true,
+    "currentFindUsesRichText": true,
+    "coldBodyAndToolbarSizeColorRetained": true,
+    "unchangedLegacyNoteAndProjectSourceBytes": true,
+    "frozenV318WorkbenchBehaviorRetained": true,
+    "staticResourceCount": 29,
+    "nativeOsColorPickerExecution": false,
+    "realAccountPaidModelOrUserPcInstall": false,
+    "nativePixelOrDeviceExecution": false
+  },
+  "boundaries": [
+    "Stages overlap and are not summed. Failed attempts and final fixes remain visible.",
+    "Existing plain notes require explicit formatting transition; reading/restore does not migrate their text or mode. Rich HTML is private presentation with a plain text mirror, not a CELEM/graph/C# source.",
+    "Only supported text/list styles are copied from inert HTML; pasted/restored resource/script/event/URL elements are excluded. Browser-local clipboard and restored private data are owned guard fixtures with no actual credentials.",
+    "Native editor formatting/list/undo/redo and clipboard paste execute in Chromium. Color controls use their input event; no native OS color picker is claimed. Title UI is generic for notes/groups/portals; actual title acceptance gate uses a note.",
+    "Current runtime transfers windows through portals, not decorations. Tests navigate independent root/child notes; note transfer and note document tabs remain pending.",
+    "Broad Workspace/Find/v318/Home gates preceded final narrow toolbar synchronization; final focused UI exercises updated behavior. No compiler ABI/execution semantics changed.",
+    "Object-specific module implementation selection UI, arbitrary foreign function selection, legacy conversion/parent reuse and extended graph/type profiles remain unfinished. Main/original ZIPs/Android settings preserved."
+  ],
+  "sourceHashes": {
+    "examples/editor-home/WebBundle.csbody": "31a86f45992583bb84330c60107e647fe2213e2d0e6c81da7fb8e0bdf0a87280",
+    "examples/editor-home/ui/consumer.css": "3d11886913c9d09af74fa71f2c4077bd3386ee7e294a125152da693f053c1d72",
+    "examples/editor-home/ui/notes.js": "e33f47d24c05a15b1cca6855d2220792cfdd52b796f2d756062a588b9a59c0f5",
+    "examples/editor-home/ui/workspace-host.js": "91f8fc2ace2df76df2f515dfc5e5a2f08ca364643e26465aeeff1246e103c1ff",
+    "examples/editor-home/ui/workspace.js": "693dd2d712554d0da3a159e7eb74a6eb99e757ea253402b4c3ccf0cd7c05cfd7",
+    "tests/Confectory.Tests/WebUITests.cs": "d085e0913622f5b582683336e45b0383c41bfd9716dd2d369c27ee88c8e46ad7",
+    "tests/web/v480_rich_notes.py": "64c5a7676e6ee66df7f5230f604525351e6b0ad8a2eb0db2ec7c6f275a886941",
+    "tests/web/web_ui.py": "edf55ac5ed8bc337d5c7e7c781b42963f11cff3ec462ebfe4efa32bcbb0df281"
+  },
+  "images": {
+    "rich-note.png": "cdf0c74851da8d07b54c4b1119b3867aa0887aefb2ffd01411834794d794bac0",
+    "rich-note-cold.png": "adc9610465a73277f34a6865fdbe9b55b861a6f140498b02d65df9840702dd0b"
+  }
+}
