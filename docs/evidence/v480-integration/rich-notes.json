@@ -106,8 +106,14 @@
     {
       "log": "rich-notes-checkout.log",
       "boundary": "Implementation ordinary Git checkout retained CRLF/fresh LF,29 static resources, actual Home start and tamper refusal.",
-      "sha256": null,
-      "tests": []
+      "sha256": "52c50d90b93746646a668798debef6c41a9591caa3ca4c9adf2e354474e05392",
+      "tests": [
+        "PASS WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 5.814
     }
   ],
   "claims": {
@@ -155,5 +161,6 @@
   "images": {
     "rich-note.png": "cdf0c74851da8d07b54c4b1119b3867aa0887aefb2ffd01411834794d794bac0",
     "rich-note-cold.png": "adc9610465a73277f34a6865fdbe9b55b861a6f140498b02d65df9840702dd0b"
-  }
+  },
+  "implementationCommit": "9dab22583ef7bc58ff78c8c3f8770a2b5325d135"
 }
