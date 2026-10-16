@@ -70,6 +70,7 @@ try
         case "locate":
             reply=RelationLocators.Query(S("manifest"),Path.GetDirectoryName(Path.GetFullPath(S("project")))!,request["ids"]!.AsArray().Select(x=>x!.GetValue<string>()).ToArray(),path=>{var file=new FileInfo(path);if(!file.Exists||file.Length>1048576||file.LinkTarget is not null)throw new IOException("Manifest unavailable");return File.ReadAllText(path);});break;
         case "reviewSummary":reply=ReviewSummary(S("kind"),S("before"),S("after"));break;
+        case "inspectManifest":reply=ManifestMetadata.Inspect(S("text"));break;
         case "inspect":
         {
             var element=new Parser(S("text"),"<draft>").ParseElement();

@@ -52,7 +52,7 @@ Codex 준비·공식 기기 코드 로그인 단계는 `114e00ffb35f6c3f4e5cdfd3
 | E08 | 계약 검토·모듈 검토·컨셉/밸런스/테스트 요청 | 부분 | 실제 검사 또는 Helper 요청 미리보기/동의/도구 범위 |
 | C01 | Apply/Save/버리기/공유 초안/재시작 | 기존 | PackWorkspace/EditWorkspace, 최종 파일과 작업 사본 구분 |
 | C02 | 묶음/부분 Review·Before/After·타깃·Confirm·취소 | 기존 | source hash/revision/token/CAS, 생성 등록부 필수, 실제 컴파일 |
-| C03 | 충돌 비교·로컬/상대 변경·선택·재검토 | 계약 | 실제 충돌 스냅샷과 새 리비전. 예시 HP 값/처리됨 표시 제외 |
+| C03 | 충돌 비교·로컬/상대 변경·선택·재검토 | 부분 | 실제 기준 파일/현재 파일/공유 초안 비교·리비전/내용 해시·명시적 합치기·새 Review 연결. 신규 생성·삭제 파일·등록 경로 집합 변경은 별도 소유 흐름 |
 | C04 | 의미 편집 Undo/Redo·이력·현재 리비전 충돌 | 계약 | 실제 소유 초안의 전/후 상태와 새 CAS 편집. 외부 변경을 덮어쓰지 않음 |
 | I01 | 신문고 목록·건수·긴급도·문제/요청/승인/충돌 | 계약 | 실제 source/build/AI/task 사건과 소유 inbox 기록 |
 | I02 | 재시도·승인 검토·충돌 이동·Yogi 첨부·처리 이력 | 계약 | 원 사건/현재 상태 검증. 표시상의 해결을 실제 해결로 취급하지 않음 |
@@ -196,3 +196,14 @@ PackWorkspace의 전용 공개 생성 역할이 View 선택과 수명을 맡는�
 [바리에이션·시작 검증 기록](evidence/v424-integration/object-variation.json). 연결이 끊긴 뒤 미커밋 코드와 로그를 보존하고 마지막 묶음을 회수했다. 초기화 지연·Helper/Workspace/Yogi·바리에이션·6종 생성·독립 View의 수정 후 7개 통과는 재실행하지 않았다. 전체 Home/ButtonGame의 실패는 복원된 Run 창 뒤쪽의 닫기 버튼을 누르던 시험 동작이었다. Dock/Nav로 창을 앞으로 선택한 뒤 닫도록 시험만 보완했으며, 같은 제품 코드의 전체 검사는 **1/0/0, 337.147초**로 통과했다. [일반 개념 Confirm 후 실제 재열기 화면](evidence/v424-integration/ordinary-reopen.png)은 이 최종 실행에서 촬영했다. 수정 후 8개 UI gate를 확인한 것이며 앞선 단계의 반복 실행 수를 합산하지 않는다. 일반 Git checkout은 구현 커밋 고정 후 검사한다.
 
 바리에이션·초기화 구현 커밋 `d1933818c7de2cdb682704b4bc3a17bdad52288b`의 일반 Git checkout/22개 리소스 실제 시작·변조 거부는 **1/0/0, 95.972초**로 통과했다. 이후 변경은 이 검증 기록뿐이다.
+
+
+## 실제 원본 충돌 비교와 명시적 초안 합치기
+
+Nav·고급 소스·충돌 Review에서 실제 기준 파일, 현재 물리 파일, 공유 초안을 비교한다. 현재 파일의 timestamp를 복원해도 byte hash로 변경을 확인한다. 현재 선택 소스의 조회는 기존 Review와 선택을 보존한다. 다른 소스로 명시 이동하면 일반 선택 규칙을 따른다. 해결은 표시한 소스 리비전·초안 내용 해시·현재 파일 해시를 확인한 뒤 기준과 공유 초안만 갱신한다. 현재 파일은 바꾸지 않으며, 별도 Save/새 Review/compiler Confirm을 거쳐 최종 반영한다. 같은 내용의 no-op은 리비전과 유효한 Review를 유지한다.
+
+새 비교 값을 읽어도 미적용 후보의 기준은 자동으로 바꾸지 않는다. 사용자가 현재 비교 기준을 명시적으로 선택해야 합칠 수 있다. 후보와 그 입력 기준은 private presentation에 보존하며, 세 원본 전체는 저장하지 않는다. 프로세스 복원 후에는 비교를 다시 읽어야 한다. 합치기 중 고급 소스창에 더 새로운 입력이 생겼다면 해당 입력은 남겨 두며, 검토에 묵시적으로 포함하지 않는다. 미적용 합치기 후보가 있을 때 해당 소스의 다른 Review 경로도 막는다. 오래된 Review나 conflict 상태의 Confirm은 비활성화한다.
+
+등록부는 현재 편집 소유권의 ID·종류·경로 집합을 유지한 후보만 허용한다. 새 선언의 충돌, 삭제된 파일과 등록 집합 추가/제거/경로 변경은 별도의 소유 흐름으로 남긴다. 큰 비교는 전체 표시 예산을 넘으면 거부하며 일부 내용을 잘라 합치지 않는다. 기존 Blueprint 원본 validator/profile을 그대로 사용하고 전역 완료 노드나 data wire 조건을 추가하지 않는다. native metadata의 추가 inspectManifest는 Parser의 순수 구조 조회이며 원본·registry·body 파일을 읽지 않는다. Android 설정 변경은 없다.
+
+공용 소유 계약 검사는 **1/0/0, 9.235초**, 실제 UI·재시작·compiler Confirm은 첫 배치에서 **1/0/0, 34.329초**로 통과했다. 추가 Review 입력 보호 후 compact Review와 엔진은 같은 실행에서 통과했고, 시험의 열린 Nav 처리만 보완한 최종 동일 제품 코드의 충돌 UI는 **1/0/0, 36.104초**로 통과했다. native metadata adapter도 통과했다. 중복은 합산하지 않는다. 최종 영향 회귀는 **9/0/0, 550.509초**로 통과했다. 전체 Home/ButtonGame, Workspace·schema·독립 선언 View·즉석 테이블의 실제 재시작, PackWorkspace 3개 계약, Windows/Android 관리 프로필 컴파일을 포함한다. 관리 프로필은 기기 실행이 아니다. [충돌 검증 기록](evidence/v424-integration/source-conflict.json)과 [실제 비교 화면](evidence/v424-integration/source-conflict.png)에 단계별 실패와 수정 후 통과를 구분했다. 일반23리소스 checkout은 구현 커밋 고정 후 검사한다.

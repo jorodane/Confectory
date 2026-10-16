@@ -1,5 +1,6 @@
 pack Confectory.EditWorkspace version "0.1.0" {
 standalone false;
+element Conflict function "Conflict.celem";element ConflictBody implementation "ConflictBody.celem";
 element EditBatch function "EditBatch.celem";element EditBatchBody implementation "EditBatchBody.celem";
 element DescribeSchema function "DescribeSchema.celem";element DescribeSchemaBody implementation "DescribeSchemaBody.celem";
 dependency Confectory.SchemaEditing version "0.1.0";

@@ -27,6 +27,7 @@ internal static class MetadataAuthoring
  if(operation=="blueprintSourceValidate")return BlueprintDocuments.Validate(S("id"),S("kind"),S("text")).ToJsonString();
  if(operation=="relationsMap")return RelationMapBatch.Query(request).ToJsonString();
  if(operation=="bodyUnits"){request["project"]=PackPaths.Owned(ownerRoot,Path.GetRelativePath(ownerRoot,Path.GetFullPath(S("project"))));return BodyUnitMetadata.Query(request).ToJsonString();}
+ if(operation=="inspectManifest")return ManifestMetadata.Inspect(S("text")).ToJsonString();
  if(operation=="inspect"){string text=S("text");if(text.Length>1048576)throw new ArgumentException("Declaration budget");var e=new Parser(text,"<draft>").ParseElement();return new JsonObject{["id"]=e.Id,["kind"]=e.Kind,["parent"]=e.Parent,["function"]=e.Function,["descriptionDefined"]=e.DescriptionPresent,["relations"]=DeclaredRelations.Describe(e),["description"]=e.Description,["signature"]=JsonSerializer.SerializeToNode(e.Signature),["fields"]=JsonSerializer.SerializeToNode(e.Fields),["data"]=JsonSerializer.SerializeToNode(e.Data),["values"]=JsonSerializer.SerializeToNode(e.Values.ToDictionary(x=>x.Key,x=>x.Value.Value))}.ToJsonString();}
 
  if(operation=="create"){string kind=S("kind"),id=S("id");if(kind is not ("category" or "concept" or "function" or "module" or "object" or "schema"))throw new ArgumentException("Unsupported authored kind");string text=kind+" "+id+(kind=="function"?" () -> int":"")+" { }\n";new Parser(text,"<new>").ParseElement();return JsonSerializer.Serialize(text);}
@@ -505,5 +506,16 @@ internal static class ReferenceDefinition
   }
   catch(BuildError error){return Unavailable(error.Diagnostic.Code);}
   catch{return Unavailable("DEFINITION_UNAVAILABLE");}
+ }
+}
+
+internal static class ManifestMetadata
+{
+ public static JsonObject Inspect(string text)
+ {
+  if(text.Length>1048576)throw new ArgumentException("Manifest budget");
+  var manifest=new Parser(text,"<draft-manifest>").ParseManifest();var elements=new JsonArray();
+  foreach(var pair in manifest.Elements.OrderBy(p=>p.Key,StringComparer.Ordinal))elements.Add(new JsonObject{["id"]=manifest.Namespace+"::"+pair.Key,["kind"]=pair.Value.Kind,["path"]=pair.Value.Path});
+  return new(){["namespace"]=manifest.Namespace,["kind"]=manifest.Kind,["elements"]=elements};
  }
 }

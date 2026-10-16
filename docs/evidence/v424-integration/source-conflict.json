@@ -1,0 +1,246 @@
+{
+  "scope": "v424 actual owned-source three-way comparison and explicit guarded draft resolution",
+  "status": "passed; remaining v424 map and approved Blueprint integration in progress",
+  "baseCommit": "39e7944920b3f374b296dc66f11b94bf0c5b4926",
+  "gates": [
+    {
+      "name": "initial public owned-source contract",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 9.235,
+      "passedCases": [
+        "SourceConflictTests.test_owned_three_way_conflict_hashes_rebase_restore_manifest_scope_and_locality"
+      ],
+      "boundary": "Before the later UI-only Review guards; final conflict owner logic.",
+      "logSha256": "c23e98cda4697a62d2c623f36ebcba48ba807d377185032325d9cb767f6c0bdd"
+    },
+    {
+      "name": "first actual UI layout correction",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 34.329,
+      "passedCases": [
+        "WebUITests.test_actual_editor_v424_source_conflict_real_files_cas_and_cold_restart"
+      ],
+      "boundary": "Dock overlap corrected with the conflict footer aligned left; actual Review-conflict entry, explicit basis choice, Save/cold restoration and compiler Confirm.",
+      "logSha256": "a1ce5f75a507d388677e18a03b139d3ac64b5e2c7915ef3bc084d520221d9070"
+    },
+    {
+      "name": "final focused engine and compact Review",
+      "passed": 2,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 57.646,
+      "passedCases": [
+        "WebUITests.test_actual_editor_review_compact_numeric_and_subset_caption",
+        "SourceConflictTests.test_owned_three_way_conflict_hashes_rebase_restore_manifest_scope_and_locality"
+      ],
+      "boundary": "Two cases passed. The UI case failed only because its test toggled an already open Nav closed. Not a whole-batch pass. The test helper was corrected without changing product source.",
+      "logSha256": "70ad433ef14c92b7b2b0cffa4f2601939c791e9e742093bcb9a7156c84439060"
+    },
+    {
+      "name": "final actual conflict UI",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 36.104,
+      "passedCases": [
+        "WebUITests.test_actual_editor_v424_source_conflict_real_files_cas_and_cold_restart"
+      ],
+      "boundary": "Same product code as the focused engine and compact Review passes; ordinary Nav selection in the test, no forced clicks.",
+      "logSha256": "88a489d2bc0aa7ab40734e56dc3092fdb9492f894273bab7d28d70b5568a2596"
+    },
+    {
+      "name": "final affected regression",
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 550.509,
+      "passedCases": [
+        "WebUITests.test_actual_editor_and_button_game_common_web_transport_chromium",
+        "WebUITests.test_actual_editor_v318_workspace_lifecycle_presentation_restart",
+        "WebUITests.test_actual_editor_v424_instant_table_typed_fill_cas_and_cold_restart",
+        "WebUITests.test_actual_editor_v424_schema_exact_numeric_hash_and_cold_restart",
+        "WebUITests.test_actual_editor_v424_typed_declaration_views_cas_confirm_and_restart",
+        "PackWorkspaceTests.test_development_tools_owned_scope_shared_draft_no_confirm_and_locality",
+        "PackWorkspaceTests.test_target_metadata_owned_sources_no_registry_execution",
+        "PackWorkspaceTests.test_two_contexts_revision_save_reopen_and_locality",
+        "EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only"
+      ],
+      "boundary": "Final production source frozen throughout. Windows/Android managed profiles compile only; no device execution or online provider calls.",
+      "logSha256": "ddeb45bbb862c4ee86692c282a35eeb5d4d627a8c02f20066a629d76109c8918"
+    }
+  ],
+  "overlap": "Stages repeat cases and must not be added. The final three focused cases passed across two runs on the same product code. Prior failed UI batches are retained as failures, not summed as passes.",
+  "verifiedBehavior": [
+    "actual saved baseline, current physical file and shared draft; mtime restoration cannot hide changed bytes",
+    "source ID/kind, revision, draft UTF-8 hash and raw file hash fenced",
+    "owned path and symbolic links checked after lazy materialization and before reading",
+    "source/disk rechecked under the owner gate before memory-only resolution; final bytes unchanged",
+    "no-op preserves revision and existing Review; accepted changed draft cancels only that View Review",
+    "manifest metadata-only merge retains exact owned ID/kind/path map, including pending registrations",
+    "peer creation or changed current locator map cannot be silently lost",
+    "Blueprint validation uses existing profile and validator",
+    "pending creations, missing files and oversized complete comparisons explicitly unavailable",
+    "Save and cold restore preserve the rebased baseline and draft; hash rejects a reused numeric revision",
+    "only candidate/binding/raw user-input origin retained in private presentation; comparison source strings transient",
+    "cold restored comparison requires explicit re-read; refreshed preview does not rebind pending input",
+    "later raw source input survives earlier merged candidate and remains outside Review",
+    "pending candidate blocks generic, group and Table Review paths; stale token/conflict Confirm disabled",
+    "actual compiler Confirm through ordinary source workflow",
+    "native pure manifest parser does not traverse registry, implementation bodies or project execution",
+    "23 canonical/exact web resource pins match; original ZIP and main unchanged"
+  ],
+  "sourceFiles": [
+    {
+      "path": "examples/editor-home/Main.celem",
+      "sha256": "b46de7c69dedf18c4dbd4470e4c11d1a202b3f8d044d60ddcbea7bbfba746d9e"
+    },
+    {
+      "path": "examples/editor-home/Verify.celem",
+      "sha256": "520b7f3111bcb046409e05e7eafac246f4f386561ea80012994686b1a010943d"
+    },
+    {
+      "path": "examples/editor-home/VerifyShell.celem",
+      "sha256": "a45563cad7d4e970812cc01f1a0102875d44b1b126084b503f8172ed49e23442"
+    },
+    {
+      "path": "examples/editor-home/WebBundle.csbody",
+      "sha256": "321c8acd3ae215efbde8b02ff59b6ef61eac45365abc8728c65adc3489cc4cdc"
+    },
+    {
+      "path": "examples/editor-home/WebInvoke.csbody",
+      "sha256": "6eed47df96ca21eb0983ac0a21b537300e85c36b4667dedc10640bd0743ec1ba"
+    },
+    {
+      "path": "examples/editor-home/WebState.csbody",
+      "sha256": "2dba01293354ef54a743fd1d0ca4906ff73317383ca12eff626aa9a6f26ab48e"
+    },
+    {
+      "path": "examples/editor-home/ui/app.js",
+      "sha256": "0eb6284e630860d9d118b6c759e5ded5ba6e66a6f89d7a2d5feab46e4a310cc2"
+    },
+    {
+      "path": "examples/editor-home/ui/conflicts.js",
+      "sha256": "b3365f537c2b223caa90901362b9e11cdfccdcc15aefa85bba98e3cd8f32b896"
+    },
+    {
+      "path": "examples/editor-home/ui/consumer.css",
+      "sha256": "1bfdeaabf8a4cb60bfc2de8e94bd5230c30470e5149a2fda56b0b7a5fe3322ba"
+    },
+    {
+      "path": "examples/editor-home/ui/workspace-host.js",
+      "sha256": "f0430a1624cf9da16f5623de130bb75563b40758f08df94be4917933c093e695"
+    },
+    {
+      "path": "packs/edit-workspace/Conflict.celem",
+      "sha256": "22ef7bb68125f1e368a769df4c7735a66dded8b1a9fc6c9d2ef14543aa9f614d"
+    },
+    {
+      "path": "packs/edit-workspace/Conflict.csbody",
+      "sha256": "f1eef1455a410c28265c02101e4f25503664511bafd7839a7ccf050175d2b08a"
+    },
+    {
+      "path": "packs/edit-workspace/ConflictBody.celem",
+      "sha256": "0e6ff695dd043a461c610ec9961b5440a157348120ab9b28b9699f0a244527dc"
+    },
+    {
+      "path": "packs/edit-workspace/README.md",
+      "sha256": "81d25a99c48743f3522598d33617bd5cad6bb915f8d63c33e80f01b58eb66f35"
+    },
+    {
+      "path": "packs/edit-workspace/pack.cpack",
+      "sha256": "1b99368612565e5e2ae1676c215b4e581f97be303dee7c316fe88f4d3507d80f"
+    },
+    {
+      "path": "packs/editor-home-model/Command.celem",
+      "sha256": "7592ed580fe9e98b30cbdbf1a4ce515fb6b5ae6051428b52eb30b130f0bf3ae1"
+    },
+    {
+      "path": "packs/editor-home-model/Command.csbody",
+      "sha256": "eb68bd680ff2a392b638fc53562c93aa739e6d42d3b9e4262c186374a47686c5"
+    },
+    {
+      "path": "packs/editor-home-model/CommandBody.celem",
+      "sha256": "a9cd6eefdf346e347eb1599f4bef4c566da94518007e9e72fab11cbefede60ec"
+    },
+    {
+      "path": "packs/pack-workspace/Conflict.celem",
+      "sha256": "7acabdbca2ed41b19b70cb7a79f20d618a211ca0bc5b7a645360f12a53df06d4"
+    },
+    {
+      "path": "packs/pack-workspace/Conflict.csbody",
+      "sha256": "225343cd14dcaa9a2b9e57d5d346399236ffad5c85acc5de914fbddc03c0f01d"
+    },
+    {
+      "path": "packs/pack-workspace/ConflictBody.celem",
+      "sha256": "98aea429845d380fdf6ad79504fd8fc68373af879ae2578967628ad08e42e48d"
+    },
+    {
+      "path": "packs/pack-workspace/README.md",
+      "sha256": "e2c2c38c6a8b3a1d50bad7bb30b78cd463d5fb352765ac271b327bc8e78ef3ad"
+    },
+    {
+      "path": "packs/pack-workspace/pack.cpack",
+      "sha256": "47a39a1afad1cd7528a9ab063e89d8f2ae6b982f4be2a25efa1523842f723444"
+    },
+    {
+      "path": "targets/android-export/templates/MetadataAuthoring.cs",
+      "sha256": "72e73e13532120bfc521eeade153f9958449dce63986f849e37e4c6c4c243dbc"
+    },
+    {
+      "path": "targets/browser-wasm/templates/MetadataAuthoring.cs",
+      "sha256": "72e73e13532120bfc521eeade153f9958449dce63986f849e37e4c6c4c243dbc"
+    },
+    {
+      "path": "targets/element-authoring/ManifestMetadata.cs",
+      "sha256": "81e3e74239a5ac74435b4fd0d627aa565f8e90736517d63c81e397af16f2e320"
+    },
+    {
+      "path": "targets/element-authoring/Program.cs",
+      "sha256": "d41b7b6d53085c5a8613221968d93f130ef0f2a71706e3a39c0f89784f5f656e"
+    },
+    {
+      "path": "tests/Confectory.Tests/PackWorkspaceTests.cs",
+      "sha256": "7a55070b5e64cdab296a23507af76b6b2ab3e7eaea5dff44cae675013b3a7e38"
+    },
+    {
+      "path": "tests/Confectory.Tests/Program.cs",
+      "sha256": "f056e217ce70aeef50b8ac837d2df226cf57397794583db76d409105eebe4967"
+    },
+    {
+      "path": "tests/Confectory.Tests/SourceConflictTests.cs",
+      "sha256": "27860bf8ac25f4a1ae2e4309c531a0df02e61d8d036123a61a9b9131fab51902"
+    },
+    {
+      "path": "tests/Confectory.Tests/WebUITests.cs",
+      "sha256": "a2800e607d9783b9fd67f319877387edb1b4f1dfbe7c8fa10941b6c4ce8a7fbe"
+    },
+    {
+      "path": "tests/web/v424_source_conflict.py",
+      "sha256": "0974f74f623342fada111a45bd3c6d4694699d769e5010b2a6ce622debd9d912"
+    },
+    {
+      "path": "tests/web/web_ui.py",
+      "sha256": "661560358d087cac8cb19f03fc831c9edab6e29fec42455eb10b6a8a207f55da"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "docs/evidence/v424-integration/source-conflict.png",
+      "sha256": "a622c5c9c6fe2021f082a92eab29fad0e19f0441f81bc5f77e7e484d00b5b6bb",
+      "scope": "actual source comparison after memory-only resolution and Save, before explicit compiler Confirm"
+    }
+  ],
+  "limitations": [
+    "No filesystem transaction against independent writers is claimed.",
+    "Manifest locator additions/removals/remapping, pending new sources and missing-file recovery require their owning workflows.",
+    "No imported editable owner, automatic Save/Confirm or provider/auth activation.",
+    "Whole v424 and Blueprint creation/Task UI work remain in progress."
+  ],
+  "ordinaryGitCheckout": {
+    "status": "pending implementation commit"
+  }
+}

@@ -1,0 +1,7 @@
+implementation Confectory.EditWorkspace::ConflictBody for Confectory.EditWorkspace::Conflict (string handle, string operation, string payload) -> string {
+import Confectory.EditWorkspace::Read as Read (string,string) -> string[];
+import Confectory.FileStream::Snapshot as Snapshot (string) -> string[];
+import Confectory.SchemaEditing::Inspect as Inspect (string) -> string;
+import Confectory.SchemaEditing::Call as Metadata (string,string) -> string;
+body common "Conflict.csbody";
+}

@@ -1,0 +1,1 @@
+function Confectory.EditWorkspace::Conflict (string handle, string operation, string payload) -> string {description "Compare the owned baseline, current file and shared draft; explicitly rebase a reviewed candidate with revision and content guards. Never write final files.";}

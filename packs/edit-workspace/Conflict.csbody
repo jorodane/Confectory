@@ -1,0 +1,39 @@
+if(operation is not ("inspect" or "resolve")||payload.Length>2097152)throw new ArgumentException("Bounded conflict operation required");
+var args=System.Text.Json.Nodes.JsonNode.Parse(payload)!.AsObject();string id=args["id"]!.GetValue<string>();
+string key="Confectory.EditWorkspace."+handle;var state=AppDomain.CurrentDomain.GetData(key) as System.Text.Json.Nodes.JsonObject??throw new ObjectDisposedException("EditWorkspace");
+string Hash(string text)=>Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(text))).ToLowerInvariant();
+var read=calls.Read.Invoke(handle,id);string kind=read[1],relative=read[2],draftText,original,baseline,root,ns;long revision;
+System.Text.Json.Nodes.JsonObject locatorMap;
+lock(state){var unit=state["units"]![id]!;draftText=unit["draft"]!.ToString();original=unit["original"]!.ToString();baseline=unit["baseline"]!.ToString();revision=unit["revision"]!.GetValue<long>();root=state["root"]!.ToString();ns=state["namespace"]!.ToString();locatorMap=new();foreach(var pair in state["units"]!.AsObject())if(pair.Value!["kind"]!.ToString() is not ("body" or "blueprint" or "blueprint-node" or "project" or "pack"))locatorMap[pair.Key]=new System.Text.Json.Nodes.JsonObject{["kind"]=pair.Value["kind"]!.DeepClone(),["path"]=pair.Value["path"]!.DeepClone()};}
+string path=System.IO.Path.GetFullPath(System.IO.Path.Combine(root,relative));var comparison=OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal;
+void Owned(){string fromRoot=System.IO.Path.GetRelativePath(root,path);if(System.IO.Path.IsPathRooted(relative)||System.IO.Path.IsPathRooted(fromRoot)||fromRoot==".."||fromRoot.StartsWith(".."+System.IO.Path.DirectorySeparatorChar,StringComparison.Ordinal))throw new ArgumentException("Conflict source escapes owner");for(System.IO.FileSystemInfo? entry=new System.IO.FileInfo(path);entry is not null;entry=entry is System.IO.FileInfo f?f.Directory:((System.IO.DirectoryInfo)entry).Parent){if(entry.LinkTarget is not null)throw new ArgumentException("Conflict source symbolic link");if(entry.FullName==root)break;}}
+string[] Disk(){Owned();if(new System.IO.FileInfo(path) is var info&&info.Exists&&info.Length>1048576)throw new ArgumentException("Conflict file budget");return calls.Snapshot.Invoke(path);}
+var disk=Disk();string draftHash=Hash(draftText);bool supported=kind is "body" or "blueprint" or "blueprint-node" or "project" or "pack" or "object" or "schema" or "category" or "concept" or "function" or "module" or "implementation";
+var reply=new System.Text.Json.Nodes.JsonObject{["scope"]="owned-source-conflict",["id"]=id,["kind"]=kind,["revision"]=revision,["draftHash"]=draftHash,["baselineHash"]=baseline,["fileHash"]=disk[2],["fileState"]=disk[0],["status"]=disk[2]==baseline?"current":"conflict",["canResolve"]=supported&&baseline!="missing"&&disk[0]=="exists",["changed"]=false,["accepted"]=false};
+string Unavailable(string code){reply["canResolve"]=false;reply["code"]=code;return reply.ToJsonString();}
+if(!supported)return Unavailable("SOURCE_KIND");if(baseline=="missing")return Unavailable("CREATION_WORKFLOW_REQUIRED");if(disk[0]!="exists")return Unavailable("FILE_MISSING");
+if(original.Length>262144||draftText.Length>262144||disk[1].Length>262144)return Unavailable("PREVIEW_BUDGET");
+reply["baseText"]=original;reply["draftText"]=draftText;reply["fileText"]=disk[1];
+if(reply.ToJsonString().Length>1048576){reply.Remove("baseText");reply.Remove("draftText");reply.Remove("fileText");return Unavailable("PREVIEW_BUDGET");}
+bool Current(){var unit=state["units"]?[id];return ReferenceEquals(AppDomain.CurrentDomain.GetData(key),state)&&unit is not null&&unit["kind"]!.ToString()==kind&&unit["path"]!.ToString()==relative&&unit["revision"]!.GetValue<long>()==revision&&unit["baseline"]!.ToString()==baseline&&unit["draft"]!.ToString()==draftText;}
+if(operation=="inspect"){lock(state){if(!Current())return Unavailable("DRAFT_CHANGED_DURING_READ");if(Disk()[2]!=disk[2])return Unavailable("FILE_CHANGED_DURING_READ");}return reply.ToJsonString();}
+string expectedDraft=args["draftHash"]!.GetValue<string>(),expectedFile=args["fileHash"]!.GetValue<string>(),candidate=args["text"]!.GetValue<string>();long expectedRevision=args["revision"]!.GetValue<long>();
+foreach(string hash in new[]{expectedDraft,expectedFile})if(!System.Text.RegularExpressions.Regex.IsMatch(hash,"\\A[0-9a-f]{64}\\z",System.Text.RegularExpressions.RegexOptions.CultureInvariant))throw new ArgumentException("Displayed conflict hashes required");
+if(expectedRevision<0||candidate.Length>262144)throw new ArgumentException("Bounded reviewed candidate required");
+if(expectedRevision!=revision||expectedDraft!=draftHash||expectedFile!=disk[2])return Unavailable("SOURCE_VERSION_CHANGED");
+if(kind is "project" or "pack"){
+ var manifest=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("inspectManifest",System.Text.Json.JsonSerializer.Serialize(new{text=candidate})))!;
+ if(manifest["namespace"]!.ToString()!=ns||manifest["kind"]!.ToString()!=kind)throw new ArgumentException("Stable manifest identity required");
+ var elements=manifest["elements"]!.AsArray();if(elements.Count!=locatorMap.Count)throw new ArgumentException("Manifest conflict resolution cannot add or remove owned locators");
+ foreach(var element in elements){var owned=locatorMap[element!["id"]!.ToString()];if(owned is null||owned["kind"]!.ToString()!=element["kind"]!.ToString()||!string.Equals(System.IO.Path.GetFullPath(System.IO.Path.Combine(root,owned["path"]!.ToString())),System.IO.Path.GetFullPath(System.IO.Path.Combine(root,element["path"]!.ToString())),comparison))throw new ArgumentException("Manifest conflict resolution cannot change owned locators");}
+}else if(kind is "blueprint" or "blueprint-node")calls.Metadata.Invoke("blueprintSourceValidate",System.Text.Json.JsonSerializer.Serialize(new{id,kind,text=candidate}));
+else if(kind!="body"){var parsed=System.Text.Json.Nodes.JsonNode.Parse(calls.Inspect.Invoke(candidate))!;if(parsed["id"]!.ToString()!=id||parsed["kind"]!.ToString()!=kind)throw new ArgumentException("Stable source identity required");}
+lock(state){
+ if(!Current()||Disk()[2]!=expectedFile)return Unavailable("SOURCE_VERSION_CHANGED");
+ // A peer creation must not be lost while a manifest candidate is being checked.
+ if(kind is "project" or "pack"){var currentMap=new System.Text.Json.Nodes.JsonObject();foreach(var pair in state["units"]!.AsObject())if(pair.Value!["kind"]!.ToString() is not ("body" or "blueprint" or "blueprint-node" or "project" or "pack"))currentMap[pair.Key]=new System.Text.Json.Nodes.JsonObject{["kind"]=pair.Value["kind"]!.DeepClone(),["path"]=pair.Value["path"]!.DeepClone()};if(!System.Text.Json.Nodes.JsonNode.DeepEquals(currentMap,locatorMap))return Unavailable("SOURCE_VERSION_CHANGED");}
+ bool changed=baseline!=disk[2]||original!=disk[1]||candidate!=draftText;var unit=state["units"]![id]!;
+ if(changed){unit["original"]=disk[1];unit["baseline"]=disk[2];unit["draft"]=candidate;unit["revision"]=revision+1;}
+ reply["accepted"]=true;reply["changed"]=changed;reply["revision"]=unit["revision"]!.DeepClone();reply["draftHash"]=Hash(candidate);reply["baselineHash"]=disk[2];reply["status"]="resolved-draft";
+ reply.Remove("baseText");reply.Remove("draftText");reply.Remove("fileText");return reply.ToJsonString();
+}

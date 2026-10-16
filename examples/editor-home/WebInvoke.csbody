@@ -43,6 +43,11 @@ if(endpoint=="closeProject"){
  var closing=Command("close-project",new(){["context"]=selected["context"]!.DeepClone()});
  if(closing["closeRequest"] is not null)Command("close-project",new(){["context"]=selected["context"]!.DeepClone(),["confirmed"]=true});return "{\"accepted\":true}";
 }
+if(endpoint is "inspectSourceConflict" or "resolveSourceConflict"){
+ if(args["id"]?.ToString()!=before["workspace"]?["unit"]?["id"]?.ToString())throw new InvalidOperationException("Conflict source selection changed");
+ var payload=new System.Text.Json.Nodes.JsonObject{["context"]=selected["context"]!.DeepClone(),["action"]=endpoint=="inspectSourceConflict"?"inspect":"resolve"};foreach(string key in new[]{"id","text","revision","draftHash","fileHash"})if(args[key] is not null)payload[key]=args[key]!.DeepClone();
+ var response=Command("source-conflict",payload)["sourceConflict"]!;if(response["context"]?.ToString()!=selected["context"]!.ToString())throw new InvalidOperationException("Conflict owner changed");return response["result"]!.ToJsonString();
+}
 if(endpoint=="readReferenceDefinition"){
  var payload=new System.Text.Json.Nodes.JsonObject{["context"]=selected["context"]!.DeepClone(),["sourceId"]=args["sourceId"]!.DeepClone(),["id"]=args["id"]!.DeepClone(),["expectedRevision"]=args["revision"]!.DeepClone(),["expectedHash"]=args["hash"]!.DeepClone()};Command("reference-definition",payload);return "{\"accepted\":true}";
 }

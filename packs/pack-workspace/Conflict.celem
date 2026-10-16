@@ -1,0 +1,1 @@
+function Confectory.PackWorkspace::Conflict (string handle, string operation, string payload) -> string {description "Inspect and explicitly resolve this View's selected owned source conflict without closing the shared draft or writing final files.";}
