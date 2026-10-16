@@ -1,5 +1,5 @@
 """Owned module contract/default source, inherited origins and private cold input fencing."""
-import uuid,time
+import uuid,time,hashlib
 from playwright.sync_api import expect
 
 def verify_module_interface(page,project,mount,send,envelope,settle,restart):
@@ -14,6 +14,8 @@ def verify_module_interface(page,project,mount,send,envelope,settle,restart):
    if result:break
    time.sleep(.02)
   assert result and result['ok'],result;assert send(envelope(v,'dispose'))['ok'];return result['result']
+ def restore_guard_fixture():
+  current=state();saved=current['presentation'];info=current['draft'];sections=next(sections for key,sections in saved['inputs']['declarations'] if key.endswith('|'+module));record=sections['module-function:'+fn];record['revision']=info['revision'];record['hash']=hashlib.sha256(info['text'].encode('utf-8')).hexdigest();invoke('savePresentation',{'presentation':saved})
  def nav():
   ready()
   if not page.locator('.nav-menu:visible').count():page.locator('#nav').click()
@@ -33,7 +35,7 @@ def verify_module_interface(page,project,mount,send,envelope,settle,restart):
  open_module();expect(panel().locator('.caption strong')).to_have_text('Rules · 인터페이스');expect(row().locator('.module-contract-flow')).to_contain_text('long');expect(row()).to_contain_text(prefix+'ParentRules');expect(row().locator('[data-module-required]')).not_to_be_checked();expect(row().locator('[data-module-args]')).to_be_disabled();expect(row().locator('[data-module-default]')).to_have_value('')
  checkbox=row().locator('[data-module-required]');label=checkbox.locator('..');assert label.evaluate('n=>getComputedStyle(n).display')=='flex';assert checkbox.bounding_box()['width']<=24
  metadata=state()['declaration']['moduleInterface'];assert metadata['bodyReads']==0 and metadata['providerSelection']=='not-performed' and metadata['status']=='available'
- row().locator('[data-module-default]').fill(second);invoke('saveDraft',{});page.evaluate('()=>globalThis.confectoryFlushPresentation()');restart();ready();expect(panel().locator('.caption strong')).to_have_text('Rules · 인터페이스');panel().locator('.caption strong').click();expect(row().locator('[data-module-default]')).to_have_value(second);apply();expect(page.locator('#status')).to_contain_text('입력의 기준 정보가 없습니다');assert (project/'Rules.celem').read_bytes()==before[project/'Rules.celem']
+ row().locator('[data-module-default]').fill(second);invoke('saveDraft',{});page.evaluate('()=>globalThis.confectoryFlushPresentation()');restore_guard_fixture();restart();ready();expect(panel().locator('.caption strong')).to_have_text('Rules · 인터페이스');panel().locator('.caption strong').click();expect(row().locator('[data-module-default]')).to_have_value(second);apply();expect(page.locator('#status')).to_contain_text('입력의 기준 정보가 없습니다');assert (project/'Rules.celem').read_bytes()==before[project/'Rules.celem']
  panel().locator('[data-module-read]').click();ready();expect(row().locator('[data-module-default]')).to_have_value(second);row().locator('[data-module-rebase]').click();apply();expect(panel().locator('[data-module-status]')).to_contain_text('실행 및 구현 선택 미수행');assert 'require '+fn not in state()['draft']['text'];assert state()['declaration']['moduleInterface']['requirements'][0]['origin']==prefix+'ParentRules';assert (project/'Rules.celem').read_bytes()==before[project/'Rules.celem'];panel().locator('.window-body').evaluate('n=>n.scrollTop=0');expect(row().locator('.module-contract-flow')).to_be_visible();page.screenshot(path='/tmp/confectory-v480-module-contract.png',full_page=True);confirm();assert 'default '+fn+' with '+second in (project/'Rules.celem').read_text()
  # Refuse a stale row after another mounted consumer changes the same owned source.
  open_module();row().locator('[data-module-default]').fill(prefix+'ModuleValueBody');unit=state()['draft'];invoke('editDraft',{'id':module,'revision':unit['revision'],'text':unit['text']+' '});apply();expect(page.locator('#status')).to_contain_text('입력은 유지됩니다');expect(row().locator('[data-module-default]')).to_have_value(prefix+'ModuleValueBody');assert 'default '+fn+' with '+second in state()['draft']['text'];panel().locator('[data-module-read]').click();ready();row().locator('[data-module-rebase]').click();apply()

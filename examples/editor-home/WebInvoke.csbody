@@ -66,6 +66,11 @@ if(endpoint is "inspectSourceConflict" or "resolveSourceConflict"){
 if(endpoint=="readReferenceDefinition"){
  var payload=new System.Text.Json.Nodes.JsonObject{["context"]=selected["context"]!.DeepClone(),["sourceId"]=args["sourceId"]!.DeepClone(),["id"]=args["id"]!.DeepClone(),["expectedRevision"]=args["revision"]!.DeepClone(),["expectedHash"]=args["hash"]!.DeepClone()};Command("reference-definition",payload);return "{\"accepted\":true}";
 }
+if(endpoint=="readAppliedModules"){
+ string objectView=args["view"]?.GetValue<string>()??"";var objectUnit=objectView.Length==0?before["workspace"]?["unit"]:before["workspaceViews"]?[selected["context"]!.ToString()]?[objectView]?["workspace"]?["unit"];
+ if(objectUnit?["id"]?.ToString()!=args["id"]?.ToString()||objectUnit?["kind"]?.ToString()!="object")throw new InvalidOperationException("Select this owned object before reading its applied modules");
+ Command("workspace",new(){["context"]=selected["context"]!.DeepClone(),["view"]=objectView,["id"]=args["id"]!.DeepClone(),["action"]="effective"});return "{\"accepted\":true}";
+}
 if(endpoint=="readModuleInterface"){
  string moduleView=args["view"]?.GetValue<string>()??"";var moduleUnit=moduleView.Length==0?before["workspace"]?["unit"]:before["workspaceViews"]?[selected["context"]!.ToString()]?[moduleView]?["workspace"]?["unit"];
  if(moduleUnit?["id"]?.ToString()!=args["id"]?.ToString()||moduleUnit?["kind"]?.ToString()!="module")throw new InvalidOperationException("Select this owned module before reading its interface");

@@ -1,0 +1,229 @@
+{
+  "schema": 1,
+  "status": "owned-object-module-existing-provider-verified",
+  "baseWorkCommit": "f69ed49f1277ba954a50133f17576832922a75e0",
+  "referenceMain": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+  "stages": [
+    {
+      "log": "object-module-host-first.log",
+      "boundary": "Desktop authoring/helper build with typed object provide and declaration-only provider contract annotations.",
+      "sha256": "1fc9e6b431edec013cf4be7d333738567a41b8b83d222872d4f9d1e38b312283",
+      "tests": [],
+      "buildSucceeded": true
+    },
+    {
+      "log": "object-module-engine-first.log",
+      "boundary": "Public actual object import scope5->102->5; parent/module/provider/function/Main/manifest source preservation, same-meaning peer CAS, atomic one-source history, true cold draft, wrong function contract diagnostic and compiler refusal.",
+      "sha256": "6ecc7740bb8ddb9f49959d78f8f6377712bc3623f675d4ee97dc976605c0228a",
+      "tests": [
+        "PASS ModuleInterfaceTests.test_owned_object_module_provider_contract_atomic_cas_cold_and_actual_scope"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 38.403
+    },
+    {
+      "log": "object-module-first-ui.log",
+      "boundary": "TEST expected one cold-refusal message, but current metadata was already available and missing basis was correctly refused. Test accepts either missing-current-metadata or missing-input-basis and still requires explicit read/rebase.",
+      "sha256": "b3006a5c3f1f56d3c30b2c6361a61b4a9d36d8fc8e75cc7a271d20e5d3c9ea48",
+      "tests": [
+        "FAIL WebUITests.test_actual_editor_v480_object_module_provider_cold_contract_and_own_view"
+      ],
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 82.207
+    },
+    {
+      "log": "object-module-second-ui.log",
+      "boundary": "Actual object UI passed contract/origin, cold input/rebase, peer CAS, wrong-provider compiler refusal, one-source Confirm/removal, detached own view and preserved sources. Before adapter synchronization/layout/cold-serialized-basis guard.",
+      "sha256": "99983d09e5378fdbd55ca4170502359813b7196f571bedde5c078d6df490451d",
+      "tests": [
+        "PASS WebUITests.test_actual_editor_v480_object_module_provider_cold_contract_and_own_view"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 87.558
+    },
+    {
+      "log": "object-module-owner-regression.log",
+      "boundary": "8 public module/object-provider, independent actual scopes, EditWorkspace/history and PackWorkspace gates. Before shared-adapter synchronization and final narrow client restoration guard.",
+      "sha256": "791fffe7d9aa64241dac2d113b4d2e423c14c905b1b9b486f1fe3467b71b4e56",
+      "tests": [
+        "PASS ModuleInterfaceTests.test_owned_module_interface_contract_default_atomic_cas_cold_and_actual_consumer",
+        "PASS ModuleInterfaceTests.test_owned_object_module_provider_contract_atomic_cas_cold_and_actual_scope",
+        "PASS IntegrationTests.test_independent_scopes_and_inherited_bindings_execute",
+        "PASS EditWorkspaceTests.test_shared_drafts_save_restore_preview_selective_confirm_conflict_and_locality",
+        "PASS DraftHistoryTests.test_shared_draft_history_atomic_inverse_cas_restart_branch_and_owner_boundaries",
+        "PASS PackWorkspaceTests.test_development_tools_owned_scope_shared_draft_no_confirm_and_locality",
+        "PASS PackWorkspaceTests.test_target_metadata_owned_sources_no_registry_execution",
+        "PASS PackWorkspaceTests.test_two_contexts_revision_save_reopen_and_locality"
+      ],
+      "passed": 8,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 241.124
+    },
+    {
+      "log": "object-module-ui-regression.log",
+      "boundary": "3 ordinary Home, typed independent declarations and module UI gates before shared-adapter/layout/final restoration changes.",
+      "sha256": "f70f8708eec66565c8ff677d4eacd4db9dcc9df909eeba07ed093c07380e76ed",
+      "tests": [
+        "PASS WebUITests.test_actual_editor_original_v196_home_project_and_create_flow",
+        "PASS WebUITests.test_actual_editor_v424_typed_declaration_views_cas_confirm_and_restart",
+        "PASS WebUITests.test_actual_editor_v480_module_interface_contract_default_and_cold_rebase"
+      ],
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 181.788
+    },
+    {
+      "log": "object-module-adapter-red.log",
+      "boundary": "Actual shared adapter contract failure: native/WASM copied declaration authoring rejected the new typed action. Both identical metadata templates now include typed object provide, module row edits and provider contract annotations.",
+      "sha256": "d8fa55402f37377aef794a100754ba7a59659fd1345aa0eab9d9c87fe1e35bc0",
+      "tests": [
+        "FAIL PackWorkspaceTests.test_target_metadata_owned_sources_no_registry_execution"
+      ],
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 3.803
+    },
+    {
+      "log": "object-module-final-test-build.log",
+      "boundary": "Final test/embedded-adapter build, no settings or toolchain configuration changes.",
+      "sha256": "e816a92ed87564e7583b0f2295d6faddb4b1af3fadbe4b79ac77b2f6ebbcd66c",
+      "tests": [],
+      "buildSucceeded": true
+    },
+    {
+      "log": "object-module-adapter-managed-final.log",
+      "boundary": "2 final expanded shared-target metadata and Windows/Android managed compile-only gates. Typed actions preserve siblings/reject wrong source kind; valid/invalid provider contracts checked without opening absent body; no provider selection. Before final narrow client restoration guard.",
+      "sha256": "33b6df6bc6ee897a2437611883d7e3524e9b8a085c83ffc19984f758f22a01d9",
+      "tests": [
+        "PASS PackWorkspaceTests.test_target_metadata_owned_sources_no_registry_execution",
+        "PASS EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only"
+      ],
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 144.831
+    },
+    {
+      "log": "object-module-final-ui.log",
+      "boundary": "Actual UI after wider object declaration layout, full contract capture and synchronized adapters. Before adversarial saved-basis guard.",
+      "sha256": "afcbe357b81afdc08fd991ba2249ec6ceddf73d4bcfc6f0b8b7043a305d2a094",
+      "tests": [
+        "PASS WebUITests.test_actual_editor_v480_object_module_provider_cold_contract_and_own_view"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 96.364
+    },
+    {
+      "log": "object-module-restore-guard-red.log",
+      "boundary": "Guard TEST fixture initially read declaration metadata after save had returned a raw workspace snapshot. Corrected fixture derives revision/hash from the actual current draft text.",
+      "sha256": "5c0d3646ff4c180c238f642e8f52cf2c2d1de9a1b7821f971518d6cf51445fa0",
+      "tests": [
+        "FAIL WebUITests.test_actual_editor_v480_object_module_provider_cold_contract_and_own_view"
+      ],
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 6.64
+    },
+    {
+      "log": "object-module-restore-guard-actual-red.log",
+      "boundary": "Actual client restoration failure: saved private input containing a current revision/hash could apply a shared draft after cold without explicit rebase. Final source still required separate Review/Confirm. Capture already stripped basis; restore now also strips new module/object input basis unconditionally.",
+      "sha256": "dab7610b8db12413f9919f2f3827c094d7c986804470e6cc011fb7f9b291900f",
+      "tests": [
+        "FAIL WebUITests.test_actual_editor_v480_object_module_provider_cold_contract_and_own_view"
+      ],
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 14.062
+    },
+    {
+      "log": "object-module-restore-guard-final-pair.log",
+      "boundary": "Final actual module+object UI with current revision/hash deliberately inserted in saved private inputs: values survive, fresh read/rebase required, peer CAS, wrong provider actual compiler refusal, explicit source Confirm/removal, detached own views and unchanged originals.",
+      "sha256": "da275bce4fa46fee07a3fd702ff9d44265a1859ef60558d81d85352672e9b546",
+      "tests": [
+        "PASS WebUITests.test_actual_editor_v480_module_interface_contract_default_and_cold_rebase",
+        "PASS WebUITests.test_actual_editor_v480_object_module_provider_cold_contract_and_own_view"
+      ],
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 113.149
+    },
+    {
+      "log": "object-module-checkout.log",
+      "boundary": "Implementation ordinary Git checkout retained CRLF/fresh LF,29 static resources, actual Home startup and tamper refusal.",
+      "sha256": null,
+      "tests": []
+    }
+  ],
+  "claims": {
+    "existingObjectProvideDeclarationOnly": true,
+    "removeLocalRevealsInheritedProvider": true,
+    "moduleAndProviderBodyOriginalsNotCopiedOrMutated": true,
+    "pureCurrentProviderDeclarationContractValidOrInvalid": true,
+    "metadataBodyReads": 0,
+    "providerSelection": "not-performed",
+    "metadataDoesNotClaimCompilerSuccess": true,
+    "singleOwnedSourceCasAndHistory": true,
+    "trueColdDraftRestoreBeforePublication": true,
+    "savedModuleAndObjectBasisRemovedOnCaptureAndRestore": true,
+    "restoredValuesRequireCurrentReadAndExplicitRebaseEvenWithInjectedSavedCas": true,
+    "ownedActualObjectScopeResults": [
+      5,
+      102,
+      5
+    ],
+    "wrongFunctionProviderActualCompilerConfirmRefused": true,
+    "detachedObjectViewOwnTargetWhilePrimaryChanges": true,
+    "sameDesktopAndroidWasmMetadataAdapterContract": true,
+    "sharedAdapterDoesNotOpenAbsentBody": true,
+    "androidAdapterSourceChanged": true,
+    "androidSettingsUnchanged": true,
+    "staticResourceCount": 29,
+    "nativePixelOrDeviceExecution": false,
+    "realAccountPaidModelOrUserPcInstall": false
+  },
+  "boundaries": [
+    "Stages overlap and are not added; failed attempts and exact fixes remain visible.",
+    "Object source provide refs use current CELEM consumer scope semantics. Existing implementations and original module/parent/function/provider/Main sources are preserved. New implementation/graph creation is separate.",
+    "Metadata checks implementation/function declarations and import contracts without choosing an effective runtime provider or reading/executing C# body. Actual compiler Confirm and owned5/102/5 separately prove consumption.",
+    "UI lists already read candidates and up to128 owned implementation IDs without claiming each is compatible. Direct qualified input remains explicit; selected declaration compatibility is shown after Apply and final compilation occurs at Review/Confirm.",
+    "Only new module/provider input sections discard saved revision/hash on both serialization and restoration; existing unrelated typed input behavior is retained. Deliberately inserted saved CAS data cannot skip current-basis rebase.",
+    "Broad owner/UI gates preceded later template/layout/client restoration changes; final shared-target/managed gates preceded only the client restore guard. Final focused module+object UI covers the restore fix.",
+    "Android/WASM changes are only templates/MetadataAuthoring.cs adapter code. No Android settings, manifests, signing, SDK/toolchain configuration, original ZIP or main branch changes. Managed target compilation is not a native/device run.",
+    "Alternative implementation creation, arbitrary registry selection, explicit legacy conversion/parent reuse, new graph/type profiles and remaining document/presentation flows are unfinished."
+  ],
+  "sourceHashes": {
+    "examples/editor-home/WebBundle.csbody": "6d49c34ed8ccfa700993338e2d4ce7c2d2432ac774d02e11421fb59374fe67b7",
+    "examples/editor-home/WebInvoke.csbody": "ca820c1fc3709d51e9db9fcd779e74e14442da982bafe47ea17ed5f32c3278bf",
+    "examples/editor-home/WebState.csbody": "75ff8a33d04c4d86e86d0f3da4a4021ba0df4f1ab7f81582313652856513bd4f",
+    "examples/editor-home/ui/app.js": "d2f5cac1b6d020cf28796cf4e29abf10fd286d6b8a2f0ca72ae2b1bf6510e895",
+    "examples/editor-home/ui/declarations.js": "cb455ca18dc575cc5debe2c6bbfea22d9266194772e0c8d499a3416c0dd02d22",
+    "targets/android-export/templates/MetadataAuthoring.cs": "9aaa97ed78f39b5efa806aeadbe9757c5fba29510fc1c2d8295f35327cbed394",
+    "targets/browser-wasm/templates/MetadataAuthoring.cs": "9aaa97ed78f39b5efa806aeadbe9757c5fba29510fc1c2d8295f35327cbed394",
+    "targets/element-authoring/DeclarationAuthoring.cs": "32bbc14908c9f824bb795fde3b5cd11c03d139e77114098ff45872daf0bf45ae",
+    "targets/element-authoring/EffectiveMetadata.cs": "e22b2730c33fd8d38a1190b89aa96f0ceee7f02cb34e73320d12080dc13f147b",
+    "tests/Confectory.Tests/ModuleInterfaceTests.cs": "456a9e95c51d1257903e80610412bef39d91901e77f64e63a37ae22c721d0982",
+    "tests/Confectory.Tests/PackWorkspaceTests.cs": "0ddb4c4a66d91bc72231fbc45e477ecc0983d5296e8996200b57b4a829862d07",
+    "tests/Confectory.Tests/WebUITests.cs": "df0fdfd9608217933bd80498fb2d08c9bb1055b43680d33043cc496827d1f723",
+    "tests/web/v480_module_interface.py": "6e75a44aa5c4e8a9d50f016aacf86b98addce050f8f8773c2bab9a04f13d1bd0",
+    "tests/web/v480_object_provide.py": "366cd0d5003dcdcaf4140fa580324198618d5290cf580e6033596cf35741d1f1",
+    "tests/web/web_ui.py": "08a040f756d562b4e3a5dad005d891e749b963ef85ceccec838c8f8f3cac210e"
+  },
+  "images": {
+    "object-provider-contract.png": "fc15133c217fceba9d173d01af56dddb40f9ce20d91709495f8c3fd74e56a1ce",
+    "object-provider.png": "75b28aac9b1ebaf76dac881c1e581878ec3ead04e880c35615a81cf780d70abf"
+  }
+}

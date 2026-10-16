@@ -39,7 +39,12 @@ var planner=new Confectory.Core.Planner(registry,"metadata");
     var defaults=new System.Text.Json.Nodes.JsonArray();if(module.Defaults.TryGetValue(pair.Key,out var choices))foreach(var choice in choices.OrderBy(p=>p.Key,StringComparer.Ordinal))defaults.Add(new System.Text.Json.Nodes.JsonObject{["implementation"]=choice.Key,["origin"]=choice.Value.Origin});
     requirements.Add(new System.Text.Json.Nodes.JsonObject{["function"]=pair.Key,["signature"]=System.Text.Json.JsonSerializer.SerializeToNode(pair.Value.Signature),["origin"]=pair.Value.Origin,["defaults"]=defaults});
    }
-   var providers=new System.Text.Json.Nodes.JsonArray();foreach(var pair in effective.Provides.OrderBy(p=>p.Key,StringComparer.Ordinal))providers.Add(new System.Text.Json.Nodes.JsonObject{["function"]=pair.Key,["implementation"]=pair.Value.Id,["origin"]=pair.Value.Origin});
+   var providers=new System.Text.Json.Nodes.JsonArray();foreach(var pair in effective.Provides.OrderBy(p=>p.Key,StringComparer.Ordinal)){
+    var provider=new System.Text.Json.Nodes.JsonObject{["function"]=pair.Key,["implementation"]=pair.Value.Id,["origin"]=pair.Value.Origin};
+    try{var body=registry.Implementation(pair.Key,pair.Value.Id,pair.Value.Origin??id,pair.Value.Loc);provider["contract"]=new System.Text.Json.Nodes.JsonObject{["status"]="valid",["signature"]=System.Text.Json.JsonSerializer.SerializeToNode(body.Signature),["targets"]=System.Text.Json.JsonSerializer.SerializeToNode(body.Bodies.Keys.Order(StringComparer.Ordinal).ToArray())};}
+    catch(Confectory.Core.BuildError error){provider["contract"]=new System.Text.Json.Nodes.JsonObject{["status"]="invalid",["code"]=error.Diagnostic.Code,["message"]=error.Diagnostic.Message};}
+    providers.Add(provider);
+   }
    var modules=new System.Text.Json.Nodes.JsonArray();foreach(var reference in effective.Modules)modules.Add(new System.Text.Json.Nodes.JsonObject{["id"]=reference.Id,["origin"]=reference.Origin});
    var schemaFields=effective.Kind=="object"?Confectory.Core.SchemaContracts.Fields(registry,id):effective.Fields;
    var functionContracts=new System.Text.Json.Nodes.JsonObject();foreach(var pair in schemaFields.Where(p=>p.Value.Kind=="function")){var fn=registry.Get(pair.Value.Type,"function",pair.Value.Origin,pair.Value.Loc);functionContracts[pair.Key]=new System.Text.Json.Nodes.JsonObject{["id"]=fn.Id,["signature"]=System.Text.Json.JsonSerializer.SerializeToNode(fn.Signature)};}

@@ -50,7 +50,7 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
   (project/'Double.celem').write_text('function Example.ButtonGame::Double (long value) -> long {description "Existing double feature";provide Example.ButtonGame::Double with Example.ButtonGame::DoubleBody;}')
   (project/'DoubleBody.celem').write_text('implementation Example.ButtonGame::DoubleBody for Example.ButtonGame::Double (long value) -> long {body common "double.csbody";}');(project/'double.csbody').write_text('return value * 2;')
   source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+'element Double function "Double.celem";element DoubleBody implementation "DoubleBody.celem";'+source[index:])
- if kind=='module-interface':
+ if kind in ['module-interface','object-provide']:
   fixtures={
    'ModuleValue':('function','function Example.ButtonGame::ModuleValue (long value) -> long {}'),
    'ModuleValueBody':('implementation','implementation Example.ButtonGame::ModuleValueBody for Example.ButtonGame::ModuleValue (long value) -> long {body common "module-value.csbody";}'),
@@ -60,6 +60,10 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
   for name,(_,source) in fixtures.items():(project/(name+'.celem')).write_text(source)
   (project/'module-value.csbody').write_text('return value + 3;');(project/'module-second.csbody').write_text('return value + 100;')
   source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+''.join('element '+name+' '+definition[0]+' "'+name+'.celem";' for name,definition in fixtures.items())+source[index:])
+ if kind=='object-provide':
+  (project/'ParentConsumer.celem').write_text('object Example.ButtonGame::ParentConsumer {provide Example.ButtonGame::ModuleValue with Example.ButtonGame::ModuleValueBody;}')
+  (project/'Consumer.celem').write_text('object Example.ButtonGame::Consumer extends Example.ButtonGame::ParentConsumer {module Example.ButtonGame::Rules;description "Object module scope";}')
+  source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+'element ParentConsumer object "ParentConsumer.celem";element Consumer object "Consumer.celem";'+source[index:])
  if kind=='build-jobs':
   env['CONFECTORY_BUILD_UI_SENTINEL']=str(root/'build-sentinel.txt')
   body=project/'main.csbody';body.write_text('System.IO.File.AppendAllText(Environment.GetEnvironmentVariable("CONFECTORY_BUILD_UI_SENTINEL")!,"run\\n");\n'+body.read_text())
@@ -176,6 +180,9 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
     elif kind=='local-augment':
      from v424_local_augment import verify_local_augment
      verify_local_augment(page,project,mount,send,envelope,settle,restart_actual_host)
+    elif kind=='object-provide':
+     from v480_object_provide import verify_object_provide
+     verify_object_provide(page,project,mount,send,envelope,settle,restart_actual_host)
     elif kind=='rich-notes':
      from v480_rich_notes import verify_rich_notes
      verify_rich_notes(page,project,mount,send,envelope,settle,restart_actual_host)

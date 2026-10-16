@@ -238,7 +238,12 @@ var planner=new Confectory.Core.Planner(registry,"metadata");
     var defaults=new System.Text.Json.Nodes.JsonArray();if(module.Defaults.TryGetValue(pair.Key,out var choices))foreach(var choice in choices.OrderBy(p=>p.Key,StringComparer.Ordinal))defaults.Add(new System.Text.Json.Nodes.JsonObject{["implementation"]=choice.Key,["origin"]=choice.Value.Origin});
     requirements.Add(new System.Text.Json.Nodes.JsonObject{["function"]=pair.Key,["signature"]=System.Text.Json.JsonSerializer.SerializeToNode(pair.Value.Signature),["origin"]=pair.Value.Origin,["defaults"]=defaults});
    }
-   var providers=new System.Text.Json.Nodes.JsonArray();foreach(var pair in effective.Provides.OrderBy(p=>p.Key,StringComparer.Ordinal))providers.Add(new System.Text.Json.Nodes.JsonObject{["function"]=pair.Key,["implementation"]=pair.Value.Id,["origin"]=pair.Value.Origin});
+   var providers=new System.Text.Json.Nodes.JsonArray();foreach(var pair in effective.Provides.OrderBy(p=>p.Key,StringComparer.Ordinal)){
+    var provider=new System.Text.Json.Nodes.JsonObject{["function"]=pair.Key,["implementation"]=pair.Value.Id,["origin"]=pair.Value.Origin};
+    try{var body=registry.Implementation(pair.Key,pair.Value.Id,pair.Value.Origin??id,pair.Value.Loc);provider["contract"]=new System.Text.Json.Nodes.JsonObject{["status"]="valid",["signature"]=System.Text.Json.JsonSerializer.SerializeToNode(body.Signature),["targets"]=System.Text.Json.JsonSerializer.SerializeToNode(body.Bodies.Keys.Order(StringComparer.Ordinal).ToArray())};}
+    catch(Confectory.Core.BuildError error){provider["contract"]=new System.Text.Json.Nodes.JsonObject{["status"]="invalid",["code"]=error.Diagnostic.Code,["message"]=error.Diagnostic.Message};}
+    providers.Add(provider);
+   }
    var modules=new System.Text.Json.Nodes.JsonArray();foreach(var reference in effective.Modules)modules.Add(new System.Text.Json.Nodes.JsonObject{["id"]=reference.Id,["origin"]=reference.Origin});
    var schemaFields=effective.Kind=="object"?Confectory.Core.SchemaContracts.Fields(registry,id):effective.Fields;
    var functionContracts=new System.Text.Json.Nodes.JsonObject();foreach(var pair in schemaFields.Where(p=>p.Value.Kind=="function")){var fn=registry.Get(pair.Value.Type,"function",pair.Value.Origin,pair.Value.Loc);functionContracts[pair.Key]=new System.Text.Json.Nodes.JsonObject{["id"]=fn.Id,["signature"]=System.Text.Json.JsonSerializer.SerializeToNode(fn.Signature)};}
@@ -393,6 +398,17 @@ internal static class DeclarationAuthoring
     }break;
    }
    case "signature":if(element.Kind is not ("function" or "implementation"))throw new ArgumentException("Public function signature required");element.Signature=Signature(edit["value"]??throw new ArgumentException("Signature required"),true);break;
+   case "provide-function":{
+    if(element.Kind!="object"||edit.Any(p=>p.Key is not ("action" or "function" or "implementation"))||!edit.ContainsKey("implementation"))throw new ArgumentException("Explicit object provider edit required");
+    string function=Id(edit,"function");if(edit["implementation"] is null)element.Provides.Remove(function);else element.Provides[function]=new ElementReference(Id(edit,"implementation"),new(),element.Id);break;
+   }
+   case "module-function":{
+    if(element.Kind!="module"||edit.Any(p=>p.Key is not ("action" or "function" or "signature" or "default"))||!edit.ContainsKey("signature")&&!edit.ContainsKey("default"))throw new ArgumentException("Explicit module contract/default edit required");
+    string function=Id(edit,"function");
+    if(edit.ContainsKey("signature")){if(edit["signature"] is null)element.Requires.Remove(function);else element.Requires[function]=new RequiredFunction(Signature(edit["signature"]!,false),new(),element.Id);}
+    if(edit.ContainsKey("default")){if(edit["default"] is null)element.Defaults.Remove(function);else element.Defaults[function]=new ElementReference(Id(edit,"default"),new(),element.Id);}
+    break;
+   }
    case "parent":if(!edit.ContainsKey("value"))throw new ArgumentException("Explicit parent value required");element.Parent=edit["value"] is null?null:Id(edit,"value");break;
    case "relations":{
     string role=Text(edit,"role");var rows=Entries();

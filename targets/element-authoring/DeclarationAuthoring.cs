@@ -42,6 +42,10 @@ internal static class DeclarationAuthoring
     }break;
    }
    case "signature":if(element.Kind is not ("function" or "implementation"))throw new ArgumentException("Public function signature required");element.Signature=Signature(edit["value"]??throw new ArgumentException("Signature required"),true);break;
+   case "provide-function":{
+    if(element.Kind!="object"||edit.Any(p=>p.Key is not ("action" or "function" or "implementation"))||!edit.ContainsKey("implementation"))throw new ArgumentException("Explicit object provider edit required");
+    string function=Id(edit,"function");if(edit["implementation"] is null)element.Provides.Remove(function);else element.Provides[function]=new ElementReference(Id(edit,"implementation"),new(),element.Id);break;
+   }
    case "module-function":{
     if(element.Kind!="module"||edit.Any(p=>p.Key is not ("action" or "function" or "signature" or "default"))||!edit.ContainsKey("signature")&&!edit.ContainsKey("default"))throw new ArgumentException("Explicit module contract/default edit required");
     string function=Id(edit,"function");
