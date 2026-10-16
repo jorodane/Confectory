@@ -105,6 +105,18 @@
       "failed": 0,
       "skipped": 0,
       "seconds": 147.866
+    },
+    {
+      "log": "registered-implementation-checkout.log",
+      "boundary": "Ordinary committed implementation Git checkout, retained CRLF/fresh LF,31 static resources, actual Home startup and tamper refusal.",
+      "sha256": "be97ae6ef36a84e09f0036825eff5af6ea650c3a25f917cd7b90db3183572516",
+      "tests": [
+        "PASS WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 8.681
     }
   ],
   "claims": {
@@ -246,5 +258,6 @@
   "images": {
     "registered-implementation-contract.png": "fb9d04c86881b13ff865a9008bc258b5da4fc7f1cfa4f1f283004213841cf42e",
     "registered-implementation-review.png": "b476fa07207fc5e57606480386d688d854294cdda32330fc69dfd853dc53f345"
-  }
+  },
+  "implementationCommit": "a07b11608abab5fccd091dfa92ac4651b7a0216d"
 }
