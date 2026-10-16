@@ -144,8 +144,14 @@
     {
       "log": "module-interface-checkout.log",
       "boundary": "Implementation commit ordinary Git checkout, retained CRLF/fresh LF,27 static resources, actual Home start and tamper refusal.",
-      "sha256": null,
-      "tests": []
+      "sha256": "2c27fa01d0a686ea97dd3800447047943f9b3fc29155c767e704b98ae195a82a",
+      "tests": [
+        "PASS WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 8.275
     }
   ],
   "claims": {
@@ -204,5 +210,6 @@
   "images": {
     "module-contract.png": "4146b56a69090e95fb32bc018629cdb3ea19b960e1bb35db4ee001a1c709a458",
     "module-interface.png": "5181ac25644f702b7109ded89e5e866ed4bca519da607e0bdd21ccee9d6192be"
-  }
+  },
+  "implementationCommit": "fe88032b312068385470e0f9eb4d86131a75911b"
 }
