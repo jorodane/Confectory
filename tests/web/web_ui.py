@@ -50,6 +50,9 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
   (project/'Double.celem').write_text('function Example.ButtonGame::Double (long value) -> long {description "Existing double feature";provide Example.ButtonGame::Double with Example.ButtonGame::DoubleBody;}')
   (project/'DoubleBody.celem').write_text('implementation Example.ButtonGame::DoubleBody for Example.ButtonGame::Double (long value) -> long {body common "double.csbody";}');(project/'double.csbody').write_text('return value * 2;')
   source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+'element Double function "Double.celem";element DoubleBody implementation "DoubleBody.celem";'+source[index:])
+ if kind=='window-documents':
+  (project/'DocOther.celem').write_text('object Example.ButtonGame::DocOther {description \"Independent document property source\";}')
+  source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+'element DocOther object \"DocOther.celem\";'+source[index:])
  if kind in ['module-interface','object-provide']:
   fixtures={
    'ModuleValue':('function','function Example.ButtonGame::ModuleValue (long value) -> long {}'),
@@ -183,6 +186,9 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
     elif kind=='object-provide':
      from v480_object_provide import verify_object_provide
      verify_object_provide(page,project,mount,send,envelope,settle,restart_actual_host)
+    elif kind=='window-documents':
+     from v480_window_documents import verify_window_documents
+     verify_window_documents(page,project,mount,send,envelope,settle,restart_actual_host)
     elif kind=='note-documents':
      from v480_note_documents import verify_note_documents
      verify_note_documents(page,project,mount,send,envelope,settle,restart_actual_host)

@@ -1,0 +1,138 @@
+{
+  "schema": 1,
+  "status": "typed-domain-window-document-input-lifetime-verified",
+  "baseWorkCommit": "b48a9f17f5d6a645151347b18484fcb579910b49",
+  "referenceMain": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+  "claims": {
+    "staticResourceCount": 31,
+    "sameLiveSourceDomRetained": true,
+    "nativeSourceInputUndoRedo": true,
+    "contextAndTitleDragDocumentTransition": true,
+    "globalDocumentsAcrossChildWorkspace": true,
+    "closeReturnsHiddenOriginalOwnerWithoutDomainRelease": true,
+    "explicitReturnUsesCurrentWorkspace": true,
+    "windowAndNoteMutualExclusion": true,
+    "documentWheelAndMiddleDragPreserveWorkspaceCamera": true,
+    "currentRuntimeWindowIdentityRequired": true,
+    "trueColdAndHomeKeepActiveDocumentAndPendingInputs": true,
+    "independentPropertyViewSlotAndPendingOtherObjectValuePreserved": true,
+    "ordinaryExplicitSaveReviewCompilerConfirm": true,
+    "unconfirmedOtherObjectAndAllOtherFixtureBytesUnchanged": true,
+    "nativeDeviceRealAccountsPaidModelsUserPcInstalls": false
+  },
+  "stages": [
+    {
+      "log": "window-documents-first-ui.log",
+      "boundary": "TEST scoped the blank Workspace search menu to .context-menu although it has its own search-menu container. Source exact DOM/native undo/context and title-drag docking already passed. Fixed only test selector.",
+      "sha256": "787c16830586fe43b7d2611bdc834c471d51689bdd2b6203e6ca48c2b72d25c4",
+      "tests": [
+        "FAIL WebUITests.test_actual_editor_v480_window_document_docking_cold_inputs_and_compiler_confirm"
+      ],
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 108.228
+    },
+    {
+      "log": "window-documents-second-ui.log",
+      "boundary": "Actual source lifetime, close-owner, notes, cold and Home passed; Review existed in the live owner but remained covered by active source document. Read-only authenticated mount confirmed reviewPresent=true, activeWindowDocument=source and visible review layout row. Test timed out waiting for the actually hidden Review control (0/1,195.946s). Added one actual-workspace hook to reveal the canvas whenever a new ordinary window is focused, with loading guard for cold restoration. Includes camera wheel/middle guard and stale-window identity refusal.",
+      "sha256": "94e5c6311c84fdb7cd6da54f6e12c454077802cf0c5c47d98beaaceeea9ac8e2",
+      "tests": [
+        "FAIL WebUITests.test_actual_editor_v480_window_document_docking_cold_inputs_and_compiler_confirm"
+      ],
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 195.946
+    },
+    {
+      "log": "window-documents-final-ui.log",
+      "boundary": "Final domain document acceptance with retained exact DOM, pending inputs and explicit compiler Confirm.",
+      "sha256": "c24c3c5781162beaab7c354ca87ff547632638611d8fa05cac117ce9e00f7337",
+      "tests": [
+        "PASS WebUITests.test_actual_editor_v480_window_document_docking_cold_inputs_and_compiler_confirm"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 36.286
+    },
+    {
+      "log": "window-documents-views-final-ui.log",
+      "boundary": "Same product files; TEST extended with a separate owned DocOther object and pending independent property view. Dock/cold/Home/close must preserve its exact existing domain View slot and pending value while Score uses explicit compiler Confirm.",
+      "sha256": "703a89a05d22a622dd9f6f9ae9432e94188b4c222b6f0ae9ff54d2d46315ffb2",
+      "tests": [
+        "PASS WebUITests.test_actual_editor_v480_window_document_docking_cold_inputs_and_compiler_confirm"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 41.302
+    },
+    {
+      "log": "window-documents-workspace-regression.log",
+      "boundary": "Layout checkpoints, Workspace lifecycle and frozen v318 characterization.",
+      "sha256": "8fcf28db543f35ea97f0fbd588413244e9e34a4b4c76f10d8657792e53931ee3",
+      "tests": [
+        "PASS WebUITests.test_actual_editor_layout_periodic_checkpoints_and_flush",
+        "PASS WebUITests.test_actual_editor_v318_workspace_lifecycle_presentation_restart",
+        "PASS WebUITests.test_v318_original_and_refactor_shared_workspace_characterization"
+      ],
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 116.701
+    },
+    {
+      "log": "window-documents-content-regression.log",
+      "boundary": "Note documents, rich notes, placed Find and existing Blueprint UI.",
+      "sha256": "9cf7c87bba6bfb9579e3d56b1436f66b42116c82f1c5b30cbae34733a72fbffa",
+      "tests": [
+        "PASS WebUITests.test_actual_editor_v480_blueprint_owned_graph_node_edit_and_cold_input",
+        "PASS WebUITests.test_actual_editor_v480_note_document_tabs_canonical_ownership_and_cold_source_input",
+        "PASS WebUITests.test_actual_editor_v480_placed_text_find_workspace_blueprint_and_cold_scope",
+        "PASS WebUITests.test_actual_editor_v480_rich_notes_title_format_paste_and_cold_source_preservation"
+      ],
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 87.937
+    },
+    {
+      "log": "window-documents-home-regression.log",
+      "boundary": "Ordinary Home project lifecycle.",
+      "sha256": "b6f5b4424b796754ab3635b64732fbae710e0d5e2696f967faf8093e58b3ea69",
+      "tests": [
+        "PASS WebUITests.test_actual_editor_original_v196_home_project_and_create_flow"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 39.38
+    }
+  ],
+  "boundaries": [
+    "Stages overlap and are not summed; failed attempts remain visible.",
+    "Supported editing windows move their exact original DOM and existing domain view into a private project document, with no reconstruction/release or source copying.",
+    "Global docked windows stay out of canvas node selection/layouts while preserving their private return geometry/owner. Explicit close restores a hidden retained window to its original Workspace; explicit Workspace return uses the current Workspace.",
+    "Domain document layout is private view state. Reading/restoring does not apply pending input or authorize runtime, Task, AI or external work. Ordinary Save/Review/compiler Confirm remains explicit.",
+    "Helper/run/AI/build/install/account overlays are outside this document conversion contract. Extended graph/type profiles, new object implementations, foreign function selection and legacy/parent reuse remain separate unfinished work.",
+    "Local Chromium and owned project fixtures only; no real accounts, paid models, user PC installs, native/device execution."
+  ],
+  "sourceHashes": {
+    "examples/editor-home/WebBundle.csbody": "5d239c8e3c4a4893358020cdc495065d912315001fa2ca73258460f54dbf0fc7",
+    "examples/editor-home/ui/app.js": "aad808be66d0b181132a1da03021ebf7f829b7d1d7e11fbf36aeee39367752d7",
+    "examples/editor-home/ui/consumer.css": "8aab7c8c59be0d477fa2e1da3039df7c269d576116e84fce9732abb4db5a259b",
+    "examples/editor-home/ui/note-documents.js": "b6954e19301f8932cc46c8579544d3e412d36009b92a241a284a92e512e2cce1",
+    "examples/editor-home/ui/window-documents.js": "4ef47785016017ea2d61def431282e9038cc6e33da2e315c276c674c56b2fd91",
+    "examples/editor-home/ui/workspace-host.js": "8ad4377fcf19562c705737b524a105a1f2fe0dbe3ae58e5ff8d2897456cb96ca",
+    "examples/editor-home/ui/workspace.js": "c099b303bd235d9c0fc655e6ce2477c098e19e554e532811839c1eec364d84cb",
+    "tests/Confectory.Tests/WebUITests.cs": "2849ef2eaf507d5ea82a14e6fb30d36401e698018ff6e169c2a672f5fe8c8105",
+    "tests/web/v480_window_documents.py": "22dcde1ca67eb7f1287fbef68e8979ebbb2112cf14f6863be767aa0c4a65abc0",
+    "tests/web/web_ui.py": "69e818ea467d2ee8efb136bd8c5f4bf1a2f7c6fac5d6dc466778dd59427aabd6"
+  },
+  "images": {
+    "window-document.png": "f8832200172b6b16e34ee92fe0e8abe9dfa982fdbd2bf9e535b075170667a42e",
+    "window-document-cold.png": "4f03ab7c00cf1ba821cb92f6fa2e0c14dbb942fc544acc463f53fc17f858883c"
+  }
+}

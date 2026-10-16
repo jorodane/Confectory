@@ -167,3 +167,16 @@ UI는 변경된 graph와 import를 함께 검토한다. 실제 파일에 필수 
 수정 후 실제 UI는 **1/0/0, 19.463초**로 통과했다. 읽기·닫기 원문 보존, native Undo/Redo, 인라인/문서 동기화, 독립 하위 공간 소유권, 제목/찾기, 숨은 선택 삭제 방지, 실제 cold 및 Home 왕복 뒤 활성 문서와 미적용 소스 입력, 명시적 원문 삭제 정리와 복원 HTML의 비활성 표시를 확인했다. 원래 프로젝트 파일의 바이트는 유지됐으며 소스·실행·AI 변경 요청이 없었다. [단계별 증거](evidence/v480-integration/note-documents.json), [실제 문서](evidence/v480-integration/note-document.png), [cold 뒤 유지한 소스 입력](evidence/v480-integration/note-document-cold.png). 기존 배치 checkpoint·Workspace 수명·frozen v318 동작/픽셀 비교는 **3/0/0, 117.792초**, 기존 메모 서식·배치 글자 찾기는 **2/0/0, 37.011초**, Home은 **1/0/0, 48.068초**로 통과했다. 마지막 UI 이후 제품·테스트 원본 11개의 해시는 유지했다. 일반 Git 체크아웃·30개 리소스 시작은 별도 기록한다. 각 검사는 중복되므로 합산하지 않는다.
 
 메모 문서 구현 `c7526d1faff23c92fffd4ec077be8b20ba4be0dc`의 일반 Git 체크아웃·CRLF/LF·30개 정적 리소스·실제 Home 시작·변조 거부는 **1/0/0, 7.594초**로 통과했다. 마지막 실제 UI 이후 제품·테스트 원본 11개는 유지했다.
+
+
+## 실제 편집창의 문서 전환
+
+소스·선언·독립 속성·브라우저·Blueprint·테이블 등 기존 편집창은 제목 문맥 메뉴 또는 Workspace 탭으로 제목을 드래그해 문서 보기로 옮긴다. 현재 창의 DOM과 기존 domain View를 그대로 유지한다. 문서를 새 domain View로 복제하지 않으며, 문서 상태의 창은 캔버스 노드·현재 Workspace layout에 넣지 않는다. 원래 배치·소유 공간과 현재 metadata를 프로젝트별 private windowDocuments에 따로 보관한다. 소유된 현재 창의 identity만 허용하고 최대 32개다. Helper·실행·AI·빌드·설치·계정 창의 전환은 이 지원 목록에 포함하지 않는다.
+
+문서는 하위 Workspace를 이동해도 전역 탭으로 유지한다. ‘Workspace로 이동’은 현재 공간의 실제 창으로 돌아가며, 탭 닫기는 원래 공간의 숨긴 창으로 돌려 입력·View를 보존한다. 원래 공간이 없으면 Root를 사용한다. 메모 문서와 일반 편집 문서는 하나만 활성화하며, 문서의 휠·중간 버튼은 숨긴 Workspace 카메라를 바꾸지 않는다. private 배치·입력 복원은 실행·Task·AI 권한이나 공유 초안 적용을 수행하지 않는다. 탭 재정렬·탭을 다시 캔버스로 드래그하는 동작과 지원 목록 밖 창의 전환은 남은 범위다.
+
+첫 시도는 빈 Workspace의 검색 메뉴를 일반 문맥 메뉴로 한정한 테스트 오류로 실패했다(**0/1/0, 108.228초**). 그 앞의 실제 소스 DOM·native 입력 Undo/Redo와 제목 드래그 전환은 통과했다. 테스트를 바로잡은 다음에는 실제 Review가 활성 소스 문서에 가려지는 문제를 재현했다(**0/1/0, 195.946초**). 읽기 전용 소유 상태 조회에서도 reviewPresent·활성 source 문서·표시 상태 Review layout을 확인했다. 일반 창을 포커스할 때 Workspace를 드러내는 어댑터 경로를 추가했고, cold 복원 중에는 저장된 활성 문서를 유지한다.
+
+수정 후 실제 소스 UI는 **1/0/0, 36.286초**로 통과했다. 같은 제품 원본에서 독립 속성 View까지 확대한 실제 UI는 **1/0/0, 41.302초**로 통과했다. 별도 객체의 미적용 속성 값과 동일한 domain View 슬롯을 탭 전환·cold·Home·닫기 뒤에도 보존했다. 다른 객체의 소스 문서는 Save·Review·명시적 compiler Confirm까지 수행했고, 그 확정 원본 외 모든 기존 fixture 파일은 유지했다. 소스의 live DOM 동일성·native Undo/Redo·원래 소유 공간으로 숨겨 닫기·현재 Workspace로 복귀·메모와의 전환도 확인했다.
+
+같은 제품 파일의 기존 배치 checkpoint·Workspace 수명·frozen v318 동작/픽셀 비교는 **3/0/0, 116.701초**, 메모 문서·메모 서식·찾기·기존 Blueprint/cold/compiler Confirm은 **4/0/0, 87.937초**, Home은 **1/0/0, 39.380초**로 통과했다. 영향 회귀 뒤에는 테스트 fixture만 확장했으며 최종 제품·테스트 원본 10개의 해시는 유지했다. 각 단계는 중복되므로 합산하지 않는다. [단계별 증거](evidence/v480-integration/window-documents.json), [실제 소스 문서](evidence/v480-integration/window-document.png), [독립 View와 함께 cold 복원한 소스](evidence/v480-integration/window-document-cold.png). 일반 Git 체크아웃의 31개 리소스 검사는 별도 기록한다.

@@ -1,3 +1,4 @@
+import {createWindowDocuments} from './window-documents.js';
 import {createNoteDocuments} from './note-documents.js';
 import {createWorkspaceRuntime} from './workspace.js';
 
@@ -12,7 +13,9 @@ export function createActualWorkspace(api) {
     groups:{concept:'개념',feature:'기능',module:'모듈'},
     uid:()=>crypto.randomUUID(),toast:api.toast,modal:api.modal,contextMenu:api.contextMenu,
     persist:()=>schedule('layout'),get running(){return false},closeRun:()=>{},
-    openNoteDocument:item=>noteDocuments.open(item),activateWorkspaceView:()=>noteDocuments.deactivate(),renderDocumentTabs:tabs=>noteDocuments.renderTabs(tabs),refreshNoteDocuments:()=>noteDocuments.render(),noteChanged:(item,source)=>noteDocuments.changed(item,source),pruneNoteDocuments:()=>noteDocuments.prune(),
+    openNoteDocument:item=>noteDocuments.open(item),activateWorkspaceView:()=>{const changed=noteDocuments.deactivate();return windowDocuments.deactivate()||changed;},renderDocumentTabs:tabs=>{noteDocuments.renderTabs(tabs);windowDocuments.renderTabs(tabs);},refreshNoteDocuments:()=>{noteDocuments.render();windowDocuments.render();},noteChanged:(item,source)=>noteDocuments.changed(item,source),pruneNoteDocuments:()=>noteDocuments.prune(),
+    revealWorkspaceForWindow:()=>{if(!loading){noteDocuments.deactivate();windowDocuments.deactivate();}},
+    openWindowDocument:(w,opts)=>windowDocuments.open(w,opts),openWindowDocuments:windows=>windowDocuments.openMany(windows),focusWindowDocument:w=>{if(!loading)windowDocuments.activate(w.key);},closeWindowDocument:key=>windowDocuments.close(key),windowDocumentDropAt:(x,y)=>windowDocuments.tabDropAt(x,y),
     takeDetachedWindow:key=>{const w=detached.get(scope+'|'+key);detached.delete(scope+'|'+key);return w},
     detachWindow:w=>{if(w.overlay)return;detached.set(scope+'|'+w.key,w);capture()},
     foregroundZ:node=>node.key==='ai-preview'&&api.$('.augment-overlay')?271:undefined,
@@ -44,8 +47,9 @@ export function createActualWorkspace(api) {
     objectContext:(event,object)=>api.objectContext(object.id,event),
   };
   const runtime=createWorkspaceRuntime(host);
-  const noteDocuments=createNoteDocuments({get project(){return project},get scope(){return scope},get loading(){return loading},canvas:()=>api.$('#workspace'),persist:()=>schedule('input'),toast:api.toast,renderTabs:()=>runtime.renderWorkspaceTabs(),renderDecorations:()=>runtime.renderWorkspaceDecorations(),editTitle:(item,owns)=>runtime.editWorkspaceTitle(item,owns,true)});
-  function capture(){if(project){if(!loading&&!project.recoveryFailed){project.selectedObjectId=api.current.draft?.id;project.editorBindings=api.current.editorViews.map(({view,id,mode})=>({view,id,mode}));}project.inputs=api.captureInputs(detached.get(scope+'|source'));const owner=runtime.workspaceRecord();if(owner&&!loading&&panelWorkspace===runtime.state.activeWorkspaceId){owner.participants=api.capturePanels();owner.yogiPresentation=api.captureYogi();}if(owner){if(runtime.state.activeWorkspaceId==='root')project.rootWorkspaceView={...project.workspaceView};else owner.view={...project.workspaceView};}if(owner)for(const w of runtime.state.windows.values()){if(w.overlay)continue;const row=owner.layout.find(row=>row.key===w.key);if(row)Object.assign(row,runtime.windowLayout(w));}}}
+  const noteDocuments=createNoteDocuments({get project(){return project},get scope(){return scope},get loading(){return loading},canvas:()=>api.$('#workspace'),persist:()=>schedule('input'),refreshWindows:()=>windowDocuments.render(),toast:api.toast,renderTabs:()=>runtime.renderWorkspaceTabs(),renderDecorations:()=>runtime.renderWorkspaceDecorations(),editTitle:(item,owns)=>runtime.editWorkspaceTitle(item,owns,true)});
+  const windowDocuments=createWindowDocuments({get project(){return project},get loading(){return loading},canvas:()=>api.$('#workspace'),runtime,persist:()=>schedule('layout'),toast:api.toast,contextMenu:api.contextMenu,renderTabs:()=>runtime.renderWorkspaceTabs(),refreshNotes:()=>noteDocuments.render(),retain:w=>host.detachWindow(w)});
+  function capture(){if(project){windowDocuments.capture();if(!loading&&!project.recoveryFailed){project.selectedObjectId=api.current.draft?.id;project.editorBindings=api.current.editorViews.map(({view,id,mode})=>({view,id,mode}));}project.inputs=api.captureInputs(detached.get(scope+'|source'));const owner=runtime.workspaceRecord();if(owner&&!loading&&panelWorkspace===runtime.state.activeWorkspaceId){owner.participants=api.capturePanels();owner.yogiPresentation=api.captureYogi();}if(owner){if(runtime.state.activeWorkspaceId==='root')project.rootWorkspaceView={...project.workspaceView};else owner.view={...project.workspaceView};}if(owner)for(const w of runtime.state.windows.values()){if(w.overlay)continue;const row=owner.layout.find(row=>row.key===w.key);if(row)Object.assign(row,runtime.windowLayout(w));}}}
   function snapshot(){capture();project.activeWorkspaceId=runtime.state.activeWorkspaceId;project.visitedWorkspaceTabs=[...runtime.state.visitedWorkspaceTabs];const value=JSON.parse(JSON.stringify(project));delete value.selectedNodeKeys;return value;}
   function inputKey(value){const notes=[];for(const item of value.workspaceItems||[])if(item.kind==='note')notes.push([item.id,item.text,item.richText,item.titleStyle]);for(const child of value.workspaces||[])for(const item of child.items||[])if(item.kind==='note')notes.push([item.id,item.text,item.richText,item.titleStyle]);return JSON.stringify([value.inputs,value.selectedObjectId,value.editorBindings,notes]);}
   function same(left,right){return JSON.stringify(left)===JSON.stringify(right);}
@@ -121,7 +125,7 @@ export function createActualWorkspace(api) {
     if(!checkpoints.has(scope)){const baseline=JSON.parse(JSON.stringify(project));delete baseline.selectedNodeKeys;checkpoints.set(scope,baseline);}project.selectedNodeKeys=[];api.restoreInputs(project.inputs||{});
     runtime.setupWorkspaceNavigation();runtime.setupWindowSelection();runtime.renderWorkspaceTabs();runtime.renderWorkspaceDecorations();
     const layouts=runtime.workspaceRecord().layout.map(row=>structuredClone(row));
-    for(const layout of layouts)runtime.restoreWindow(layout);
+    for(const layout of layouts)runtime.restoreWindow(layout);windowDocuments.restore();
     runtime.setWorkspaceNodeSelection((project.selectedNodeKeys||[]).map(key=>runtime.state.workspaceNodes.get(key)).filter(Boolean));
     loading=false;changed=0;saved=0;panelWorkspace=runtime.state.activeWorkspaceId;api.restorePanels(runtime.workspaceRecord().participants||[]);api.restoreYogi(runtime.workspaceRecord().yogiPresentation);
     api.$('#workspace').addEventListener('input',()=>schedule());
@@ -134,13 +138,13 @@ export function createActualWorkspace(api) {
         if(scope!==owner)return;
         try{await api.restoreBindings(missing,selected);if(scope!==owner)return;project.recoveryFailed=false;api.setWorkspaceStatus('편집창 복원됨');
           const layouts=runtime.workspaceRecord().layout.map(row=>structuredClone(row));
-          for(const row of layouts)runtime.restoreWindow(row);runtime.setWorkspaceNodeSelection((project.selectedNodeKeys||[]).map(key=>runtime.state.workspaceNodes.get(key)).filter(Boolean));
+          for(const row of layouts)runtime.restoreWindow(row);windowDocuments.restore();runtime.setWorkspaceNodeSelection((project.selectedNodeKeys||[]).map(key=>runtime.state.workspaceNodes.get(key)).filter(Boolean));
         }catch(error){if(scope===owner){project.recoveryFailed=true;api.setWorkspaceStatus('편집창 복원 실패');api.toast('실제 편집창 복원 실패 · 입력과 원래 배치는 유지됩니다.');}}
         finally{if(scope===owner){loading=false;if(!project.recoveryFailed)runtime.saveLayouts();}}
       })();
     }
   }
-  function detach(){if(!project)return;capture();loading=true;api.clearPanels();api.clearYogi();clearTimeout(scheduled);runtime.saveLayouts();capture();for(const w of runtime.state.windows.values())host.detachWindow(w);projects.set(scope,project);noteDocuments.detach();project=null;scope='';loading=false;changed=0;saved=0;}
+  function detach(){if(!project)return;capture();loading=true;api.clearPanels();api.clearYogi();clearTimeout(scheduled);runtime.saveLayouts();capture();for(const w of runtime.state.windows.values())host.detachWindow(w);projects.set(scope,project);noteDocuments.detach();windowDocuments.detach();project=null;scope='';loading=false;changed=0;saved=0;}
   function reveal(key){const owner=findOwner(key);if(owner&&owner!==runtime.state.activeWorkspaceId)runtime.switchWorkspace(owner);let w=runtime.state.windows.get(key);if(!w){const layout=runtime.workspaceRecord()?.layout.find(row=>row.key===key);if(layout)w=runtime.restoreWindow(layout);}if(w){w.el.hidden=false;runtime.registerWorkspaceNode(w);runtime.focusWindow(w);runtime.saveLayouts();}return w;}
-  return {runtime,noteDocuments,attach,detach,flush,flushInputs,schedule,shouldRender,reveal,get project(){return project},get loading(){return loading}};
+  return {runtime,noteDocuments,windowDocuments,attach,detach,flush,flushInputs,schedule,shouldRender,reveal,get project(){return project},get loading(){return loading}};
 }

@@ -136,3 +136,5 @@ PackWorkspace.Blueprint는 기존 소유 graph와 독립 노드 본문을 기능
 
 
 메모 문서 탭은 기존 canonical private 메모를 읽고 편집하는 presentation이며 graph·노드 원본·타깃 ABI·compiler 입력이 아니다. domain 창의 DOM과 editor binding은 보기 전환으로 해제하지 않는다. 원문 삭제 시 문서 보기를 정리하고, 프로젝트·고유 메모 identity가 달라진 오래된 편집기는 원문을 다시 만들 수 없다. 실제 UI/cold/Home·기존 회귀 및 리소스 검사의 경계는 [v480 연결 기록](EDITOR_V480_INTEGRATION.md)에 남긴다.
+
+일반 편집창의 문서 전환도 기존 domain window·editor View·미적용 입력의 수명을 보존한다. 문서 창은 캔버스 노드·현재 공간 layout에서 분리하되 프로젝트 전역 private 목록과 같은 실제 DOM으로 유지한다. 소스 문서의 적용/검토/확정은 일반 소유자·CAS·compiler 경로를 따르며 문서 배치는 원본 생성·실행 권한이 아니다.
