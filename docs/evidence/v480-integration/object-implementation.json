@@ -213,6 +213,18 @@
       "failed": 0,
       "skipped": 0,
       "seconds": 43.538
+    },
+    {
+      "log": "object-implementation-checkout.log",
+      "boundary": "Implementation ordinary Git checkout retained CRLF/fresh LF and31 resources, actual Home start and tamper refusal.",
+      "sha256": "718af97c2aa79550f258f8c0456db65b317e46332b5813ea907e9828c3c5fd73",
+      "tests": [
+        "PASS WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 7.328
     }
   ],
   "claims": {
@@ -336,5 +348,6 @@
   "images": {
     "object-implementation-contract.png": "08c8eba7d95aaaf15b9c7c357b5b1458d340d60aa294a16bc36313be7594b081",
     "object-implementation-review.png": "f8b5e328a3bf829b5fe9ecbf411b43048eaa076c916c017ac049219155171033"
-  }
+  },
+  "implementationCommit": "34115199fa1ba2473888d60507bcf008b4408d51"
 }
