@@ -193,3 +193,5 @@ UI는 변경된 graph와 import를 함께 검토한다. 실제 파일에 필수 
 첫 실제 UI는 **1/0/0, 94.794초**로 통과했다. 혼합 탭의 순서 변경·cold 순서 보존, native Escape 미리보기 취소와 실제 캔버스 드롭, 소스 DOM/입력·독립 속성 View 슬롯 보존, 메모 탭의 비변환과 기존 명시적 Save/Review/compiler Confirm을 확인했다. 이후 Python 테스트의 줄 끝 공백만 제거했고 제품 파일은 유지했다. 기존 배치·Workspace 수명·frozen v318 동작/픽셀 비교는 **3/0/0, 113.016초**, 일반 창/메모 문서·찾기·Blueprint 회귀는 **4/0/0, 114.342초**, Home은 **1/0/0, 37.825초**로 통과했다. 이 결과는 아래의 마지막 가로 스크롤 보정 전이며 서로 합산하지 않는다. [단계별 증거](evidence/v480-integration/tab-arrangement.json), [현재 탭 순서](evidence/v480-integration/tab-arrangement.png), [cold 순서 복원](evidence/v480-integration/tab-arrangement-cold.png).
 
 가로 스크롤을 사용하는 좁은 화면에서 활성 탭 전환 시 스크롤이 초기화되는 문제를 실제 재현했다(**0/1/0, 13.331초**). 현재 strip의 위치를 다시 그리기 전에 보관하고 프로젝트/캔버스가 바뀌면 초기화하도록 수정했다. native 가로 휠·탭 전환의 위치 보존과 앞선 전체 드래그/취소/원문/독립 View/cold/compiler 경계를 포함한 최종 UI는 **1/0/0, 38.305초**로 통과했다. 이후 제품·테스트 원본 8개의 해시는 유지했다. 일반 체크아웃·31개 리소스 시작은 별도 기록한다.
+
+탭 배치 구현 `392ee839bdd58161e28b58a2c1f125e46e7adfc6`의 일반 Git 체크아웃·CRLF/LF·31개 정적 리소스·실제 Home 시작·변조 거부는 **1/0/0, 6.029초**로 통과했다. 마지막 UI 이후 제품·테스트 원본 8개는 유지했다.

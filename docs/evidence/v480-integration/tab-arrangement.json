@@ -94,6 +94,18 @@
       "failed": 0,
       "skipped": 0,
       "seconds": 37.825
+    },
+    {
+      "log": "tab-arrangement-checkout.log",
+      "boundary": "Implementation ordinary Git checkout, CRLF/fresh LF and31 resource Home start and tamper refusal.",
+      "sha256": "af4cdc5f3cfe3eb7dc1a127e8b6484da1cccd7969c5b9667d34e0b81569b5fbe",
+      "tests": [
+        "PASS WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 6.029
     }
   ],
   "boundaries": [
@@ -116,5 +128,6 @@
   "images": {
     "tab-arrangement.png": "d4b52742439a0de720dd18805f956aa09d74e9ae0be0d1429c1bf5bf9e3428fa",
     "tab-arrangement-cold.png": "2cf379167f01569435977e5e439a681fce317e576d4ce8fd7d495cabd679d930"
-  }
+  },
+  "implementationCommit": "392ee839bdd58161e28b58a2c1f125e46e7adfc6"
 }
