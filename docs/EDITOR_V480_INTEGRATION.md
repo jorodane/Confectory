@@ -180,3 +180,5 @@ UI는 변경된 graph와 import를 함께 검토한다. 실제 파일에 필수 
 수정 후 실제 소스 UI는 **1/0/0, 36.286초**로 통과했다. 같은 제품 원본에서 독립 속성 View까지 확대한 실제 UI는 **1/0/0, 41.302초**로 통과했다. 별도 객체의 미적용 속성 값과 동일한 domain View 슬롯을 탭 전환·cold·Home·닫기 뒤에도 보존했다. 다른 객체의 소스 문서는 Save·Review·명시적 compiler Confirm까지 수행했고, 그 확정 원본 외 모든 기존 fixture 파일은 유지했다. 소스의 live DOM 동일성·native Undo/Redo·원래 소유 공간으로 숨겨 닫기·현재 Workspace로 복귀·메모와의 전환도 확인했다.
 
 같은 제품 파일의 기존 배치 checkpoint·Workspace 수명·frozen v318 동작/픽셀 비교는 **3/0/0, 116.701초**, 메모 문서·메모 서식·찾기·기존 Blueprint/cold/compiler Confirm은 **4/0/0, 87.937초**, Home은 **1/0/0, 39.380초**로 통과했다. 영향 회귀 뒤에는 테스트 fixture만 확장했으며 최종 제품·테스트 원본 10개의 해시는 유지했다. 각 단계는 중복되므로 합산하지 않는다. [단계별 증거](evidence/v480-integration/window-documents.json), [실제 소스 문서](evidence/v480-integration/window-document.png), [독립 View와 함께 cold 복원한 소스](evidence/v480-integration/window-document-cold.png). 일반 Git 체크아웃의 31개 리소스 검사는 별도 기록한다.
+
+편집창 문서 구현 `3ac2f6ae098a83471bd956ad703dfcbc87f726ba`의 일반 Git 체크아웃·CRLF/LF·31개 정적 리소스·실제 Home 시작·변조 거부는 **1/0/0, 9.353초**로 통과했다. 마지막 독립 View 확장 UI 이후 제품·테스트 원본 10개는 유지했다.
