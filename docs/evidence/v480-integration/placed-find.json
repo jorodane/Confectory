@@ -82,8 +82,14 @@
     {
       "log": "placed-find-checkout.log",
       "boundary": "Implementation ordinary Git checkout retained CRLF/fresh LF,28 static resources, actual Home startup and tamper refusal.",
-      "sha256": null,
-      "tests": []
+      "sha256": "9993da89e0f7501491b1e75ea93e74ef7c2840ed5d33dce3473908ea4e29fbba",
+      "tests": [
+        "PASS WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 6.451
     }
   ],
   "claims": {
@@ -127,5 +133,6 @@
   "images": {
     "blueprint-find.png": "8f3e116d8b10d9daa4e910ce382c3543ce765b200f8ed8f9919efb71a44af6d9",
     "workspace-find.png": "254d6d292cc1a788d249cdac2871747df850e86786ca616f1d41a56e53438fb6"
-  }
+  },
+  "implementationCommit": "743289061d94770f47169dac19e0d4554c04e4a4"
 }
