@@ -39,12 +39,12 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
   main=project/'main.celem';main.write_text(main.read_text().replace('{','{ use function ReferenceApi::Work;use implementation ReferenceApi::Body;',1))
   source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+'registry ReferenceApi '+json.dumps(str(ref/'pack.cpack'))+';dependency ReferenceApi version "1";'+source[index:])
  env['CONFECTORY_WEB_PROJECT']=str(manifest)
- if kind in ['node-tasks','blueprint','blueprint-create','call-wrapper']:
+ if kind in ['node-tasks','blueprint','blueprint-create','call-wrapper','placed-find']:
   fixture=report['nodeTaskFixture']
-  typename='long' if kind.startswith('blueprint') or kind=='call-wrapper' else 'int'
+  typename='long' if kind.startswith('blueprint') or kind in ['call-wrapper','placed-find'] else 'int'
   (project/'NodeValue.celem').write_text(fixture['feature']);(project/'NodeValueBody.celem').write_text('implementation Example.ButtonGame::NodeValueBody for Example.ButtonGame::NodeValue ('+typename+' n) -> '+typename+' {blueprint common "node-value.graph.json";}')
   (project/'node-value.graph.json').write_text(json.dumps(fixture['graph']));(project/'calculate.node.json').write_text(json.dumps(fixture['node']))
-  if kind.startswith('blueprint') or kind=='call-wrapper':(project/'condition.node.json').write_text(json.dumps(report['additionalNodeFixture']))
+  if kind.startswith('blueprint') or kind in ['call-wrapper','placed-find']:(project/'condition.node.json').write_text(json.dumps(report['additionalNodeFixture']))
   source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+'element NodeValue function "NodeValue.celem";element NodeValueBody implementation "NodeValueBody.celem";'+source[index:])
  if kind=='call-wrapper':
   (project/'Double.celem').write_text('function Example.ButtonGame::Double (long value) -> long {description "Existing double feature";provide Example.ButtonGame::Double with Example.ButtonGame::DoubleBody;}')
@@ -176,6 +176,9 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
     elif kind=='local-augment':
      from v424_local_augment import verify_local_augment
      verify_local_augment(page,project,mount,send,envelope,settle,restart_actual_host)
+    elif kind=='placed-find':
+     from v480_placed_find import verify_placed_find
+     verify_placed_find(page,project,mount,send,envelope,settle,restart_actual_host)
     elif kind=='module-interface':
      from v480_module_interface import verify_module_interface
      verify_module_interface(page,project,mount,send,envelope,settle,restart_actual_host)

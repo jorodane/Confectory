@@ -109,3 +109,14 @@ UI는 변경된 graph와 import를 함께 검토한다. 실제 파일에 필수 
 객체별 모듈 구현 선택, 임의 외부 registry 기능 선택, 레거시 전환·부모 재사용 전용 UI, 새 종료·로컬 값 실행 profile과 내부 enum/ref-out 타입 및 Workspace의 남은 서식·검색은 후속 범위다. 모듈 자체의 provide를 새로운 실행 scope로 해석하지 않는다. 현재 언어는 module import scope를 허용하지 않으며, 포함 기본 후보의 충돌은 기존 소비 문맥의 명시적 provide와 compiler 해석을 따른다.
 
 모듈 인터페이스 구현 `fe88032b312068385470e0f9eb4d86131a75911b`의 일반 Git 체크아웃·CRLF/LF·27개 정적 리소스·실제 Home 시작·변조 거부는 **1/0/0, 8.275초**로 통과했다. 마지막 UI 검사 후 제품·테스트 원본 16개는 바뀌지 않았다.
+
+
+## 배치된 노드에서 글자 찾기
+
+`Ctrl+F`, Workspace 탐색 메뉴와 Blueprint 도구 모음에서 현재 배치된 노드의 글자를 찾는다. Workspace는 현재 하위 공간의 배치된 창·메모·그룹을, 활성 Blueprint는 시작·내부 노드·반환 영역을 대상으로 삼는다. 현재 표시된 글자와 입력값을 대소문자 구분 없이 읽고, Enter/Shift+Enter로 결과를 순환한다. 숨긴 창·숨김 요소·비밀번호 및 식별 가능한 secret 입력은 제외한다. 별도의 원본 파일이나 registry를 검색하지 않는다.
+
+검색 결과로 이동할 때 Workspace의 private 카메라나 Blueprint의 스크롤만 바뀐다. 이미 읽은 graph를 다시 읽으면 새 DOM에서 결과를 갱신한다. graph 교체·창 닫기·Workspace/프로젝트 이동 시 해당 검색을 닫고, 검색어와 결과 권한은 cold 복원에 저장하지 않는다. 소스 적용·Review/Confirm·실행·AI 호출을 수행하지 않으며 graph/node 원본과 최종 C#의 기존 소유 관계를 유지한다.
+
+첫 실제 UI 검사는 팝업이 Blueprint의 닫기 버튼을 가려 실패했다(**0/1/0, 116.188초**). 팝업을 제목줄 아래로 옮겼으며 도구 모음·단축키가 같은 활성 Workspace 범위를 확인하도록 맞췄다. 다음 검사는 이동한 메모 위를 빈 배경으로 가정한 테스트의 우클릭 단계에서 실패했다(**0/1/0, 43.360초**). 실제 빈 지점을 찾아 일반 우클릭하도록 고쳤다. 확대된 Workspace에서 화면 밖 노드 찾기 검사를 추가하면서 좌표에 바깥 배율을 반영했다. 세 번째 검사는 스크롤 끝에서도 정확한 중앙 정렬을 요구한 테스트였다(**0/1/0, 9.739초**). 기존 graph 배치를 보존하며 스크롤 범위 안에서 결과 노드 전체가 보이는지를 검사하도록 고쳤다.
+
+최종 실제 UI는 **1/0/0, 9.775초**로 통과했다. 실제 바깥 배율에서 화면 밖 노드 찾기, 시작·반환과 새 graph DOM 재탐색, 메모의 현재 입력·결과 순환·literal HTML 표시, 비밀번호/숨김 DOM guard fixture 제외, 하위 Workspace 분리, 창·Home 이동과 실제 프로세스 cold 복원 시 검색어 제거를 확인했다. 모든 기존 fixture 원본 파일의 바이트가 유지되고 소스·실행·AI 변경 요청은 없었다. [단계별 증거](evidence/v480-integration/placed-find.json), [실제 Blueprint 찾기](evidence/v480-integration/blueprint-find.png), [실제 Workspace 찾기](evidence/v480-integration/workspace-find.png). 기존 배치 checkpoint/flush와 Workspace 수명·포털·미적용 입력 회귀는 **2/0/0, 99.654초**, Home·기존 Blueprint 편집/cold/compiler Confirm·모듈 인터페이스 회귀는 **3/0/0, 143.617초**로 통과했다. 마지막 실제 UI 이후 제품·테스트 원본 8개의 해시는 유지됐다. 실행 환경의 로그 조회 연결이 한 차례 끊겼으나 정상 재연결 뒤 파일 유지와 두 회귀의 완료 기록을 확인했다. 일반 Git 체크아웃의 28개 정적 리소스 시작은 별도 기록한다.

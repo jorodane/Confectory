@@ -1,0 +1,131 @@
+{
+  "schema": 1,
+  "status": "owned-placed-text-find-verified",
+  "baseWorkCommit": "54fe909dd13f21cedc999f085f2096221026944f",
+  "referenceMain": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+  "stages": [
+    {
+      "log": "placed-find-first-ui.log",
+      "boundary": "Actual product failure: popup intercepted the Blueprint window close button. Moved it below the title and unified toolbar/keyboard active Workspace fencing.",
+      "sha256": "489758cbef359ac5e7f0e59a3a9644702ad22b5c2fe705b630f4d697de0c4255",
+      "tests": [
+        "FAIL WebUITests.test_actual_editor_v480_placed_text_find_workspace_blueprint_and_cold_scope"
+      ],
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 116.188
+    },
+    {
+      "log": "placed-find-second-ui.log",
+      "boundary": "Graph/current DOM and notes passed, then TEST right-clicked a moved note instead of unoccupied Workspace. Test now finds an actual empty point and uses ordinary right click.",
+      "sha256": "814236bdc06138c49c0fa7d0c5cc77b34d8702c7c1278d83f690cd3c53df2568",
+      "tests": [
+        "FAIL WebUITests.test_actual_editor_v480_placed_text_find_workspace_blueprint_and_cold_scope"
+      ],
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 43.36
+    },
+    {
+      "log": "placed-find-third-ui.log",
+      "boundary": "TEST required exact centering beyond the graph scroll extent. Test now checks the found node is fully visible at actual outer zoom while preserving existing graph layout.",
+      "sha256": "862b9ee32d57a8218c318e9a0eeb72556af709f60eacb911638699fc52b01a19",
+      "tests": [
+        "FAIL WebUITests.test_actual_editor_v480_placed_text_find_workspace_blueprint_and_cold_scope"
+      ],
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 9.739
+    },
+    {
+      "log": "placed-find-fourth-ui.log",
+      "boundary": "Final actual UI: outer zoom/offscreen node reveal; start/return/current graph DOM search; live private note input, wrap, literal text, owned password/hidden DOM guard fixture, child scope, close/Home/cold no-query replay; original source bytes preserved and no source/runtime/AI actions.",
+      "sha256": "f0135cc5d8c64ee2594eb910dffdcb7b8364124f4f90f64becac7c9a8f5cd273",
+      "tests": [
+        "PASS WebUITests.test_actual_editor_v480_placed_text_find_workspace_blueprint_and_cold_scope"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 9.775
+    },
+    {
+      "log": "placed-find-workspace-regression.log",
+      "boundary": "Existing Workspace lifetime, private pending inputs, portal ownership/mixed selection and layout checkpoint/flush regressions.",
+      "sha256": "e13052dd858bda759936a4368e25ce2c7d5f1842be38ddcd10d6f443178fc0bc",
+      "tests": [
+        "PASS WebUITests.test_actual_editor_layout_periodic_checkpoints_and_flush",
+        "PASS WebUITests.test_actual_editor_v318_workspace_lifecycle_presentation_restart"
+      ],
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 99.654
+    },
+    {
+      "log": "placed-find-ui-regression.log",
+      "boundary": "Ordinary Home, existing Blueprint source edit/cold/compiler Confirm and module-interface/independent view regressions.",
+      "sha256": "106fd05330e3334a89dad52cd085f3d96936008850211a767cc63baae94eb3da",
+      "tests": [
+        "PASS WebUITests.test_actual_editor_original_v196_home_project_and_create_flow",
+        "PASS WebUITests.test_actual_editor_v480_blueprint_owned_graph_node_edit_and_cold_input",
+        "PASS WebUITests.test_actual_editor_v480_module_interface_contract_default_and_cold_rebase"
+      ],
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 143.617
+    },
+    {
+      "log": "placed-find-checkout.log",
+      "boundary": "Implementation ordinary Git checkout retained CRLF/fresh LF,28 static resources, actual Home startup and tamper refusal.",
+      "sha256": null,
+      "tests": []
+    }
+  ],
+  "claims": {
+    "alreadyRenderedPlacedDomOnly": true,
+    "currentWorkspaceAndActiveBlueprintScopes": true,
+    "currentVisibleInputValues": true,
+    "passwordNamedSecretAndHiddenControlsExcluded": true,
+    "caseInsensitiveWrapAndLiveRefresh": true,
+    "startCodeCallAndReturnAreas": true,
+    "outerZoomOffscreenGraphNodeRevealedWithinExistingScrollExtent": true,
+    "sourceDomReplacementDoesNotReuseDetachedResult": true,
+    "sameWorkspaceFenceForToolbarAndShortcut": true,
+    "plainLiteralSnippetWithoutHtmlExecution": true,
+    "coldQueryAndOverlayNotReplayed": true,
+    "workspaceProjectGraphAndHostClosure": true,
+    "privateCameraAndGraphScrollOnly": true,
+    "fixtureOriginalSourceBytesPreserved": true,
+    "sourceRuntimeAiMutatingRequestAbsent": true,
+    "staticResourceCount": 28,
+    "realAccountOrPaidModel": false,
+    "nativePixelOrDeviceExecution": false
+  },
+  "boundaries": [
+    "Stages overlap and are not summed; failed attempts and corrections remain recorded.",
+    "Search covers already rendered visible placed nodes and inputs in the current Workspace or Blueprint. It performs no new source, registry, C# body or filesystem search.",
+    "The owned password/hidden guard fixture adds temporary DOM controls to an ordinary test note; it uses no real credentials. Normal Home/graph/note/lifetime behavior is exercised through actual UI.",
+    "Query/results/overlay are transient. Result focus changes private camera/scroll; user private graph positions remain presentation. No source, Review/Confirm, execution or AI capabilities are created.",
+    "Existing sync-acyclic-v1 and primitive/array one-return external ABI are unchanged. No new compiler success or account/device/native execution is claimed.",
+    "Rich notes/title formatting, object-specific module implementation selection, arbitrary foreign function registry selection, legacy conversion/parent reuse UI and extended execution/type profiles remain unfinished."
+  ],
+  "sourceHashes": {
+    "examples/editor-home/WebBundle.csbody": "f66f4592729c8611467cbfbdf1075c150fd8b6cdf8ec188f988cf6c16f203142",
+    "examples/editor-home/ui/app.js": "8643c1effc42a2c5ef0e328d0d4b664ca3cb3fd8973063b354eaa2ef0b5a9308",
+    "examples/editor-home/ui/blueprint.js": "d36c66f7424189e72bac79f880f3c46fabbf406d9c8d926b4a6a64d6533ce584",
+    "examples/editor-home/ui/consumer.css": "4e5bfb429253837e85b48cf748c14aff75a286449adf38042db0748d83fde504",
+    "examples/editor-home/ui/find.js": "7b1341b04a24a027312571dc5958656d98c3d1f98567efef5a8aa559a2b25c4a",
+    "tests/Confectory.Tests/WebUITests.cs": "69151e5f626e3c9eed1b07f380b89c92e0c74005879bf31b918dccb9f981735a",
+    "tests/web/v480_placed_find.py": "19e69bb08d8aff285a2245bb991bca9488b1a4ae74d52944b949b534c7ea1f06",
+    "tests/web/web_ui.py": "30d34aca5b2b01d1b89be1b32e0f6be90ab0c3f4dc49808382e1c21c8a528978"
+  },
+  "images": {
+    "blueprint-find.png": "8f3e116d8b10d9daa4e910ce382c3543ce765b200f8ed8f9919efb71a44af6d9",
+    "workspace-find.png": "254d6d292cc1a788d249cdac2871747df850e86786ca616f1d41a56e53438fb6"
+  }
+}

@@ -147,6 +147,7 @@ public sealed class WebUITests : TestCase
         var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/web_ui.py"),Fixture.Repo,report,"module-interface"},timeoutSeconds:420);
         True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS actual v480 module interface"),run.Stdout+run.Stderr);
     }
+    public void test_actual_editor_v480_placed_text_find_workspace_blueprint_and_cold_scope()=>RunOwnedBlueprint("placed-find");
     private void RunOwnedBlueprint(string mode)
     {
         string feature="function Example.ButtonGame::NodeValue (long n) -> long {}";
@@ -160,7 +161,7 @@ public sealed class WebUITests : TestCase
         built["additionalNodeFixture"]=new System.Text.Json.Nodes.JsonObject{["schema"]=1,["node"]="condition",["definitionHash"]=described["nodes"]![1]!["definitionHash"]!.DeepClone(),["source"]="return value > 0;"};
         string report=Path.Combine(f.Root,"v480-blueprint.json");File.WriteAllText(report,built.ToJsonString());
         var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/web_ui.py"),Fixture.Repo,report,mode},timeoutSeconds:420);
-        True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains(mode=="blueprint"?"PASS actual v480 Blueprint":mode=="feature-create"?"PASS actual v480 feature creation":mode=="call-wrapper"?"PASS actual v480 reference call":"PASS actual v480 node creation/removal"),run.Stdout+run.Stderr);
+        True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains(mode=="blueprint"?"PASS actual v480 Blueprint":mode=="feature-create"?"PASS actual v480 feature creation":mode=="call-wrapper"?"PASS actual v480 reference call":mode=="placed-find"?"PASS actual v480 placed text find":"PASS actual v480 node creation/removal"),run.Stdout+run.Stderr);
     }
     public void test_actual_editor_v424_node_task_plan_cas_approval_and_cold_history()
     {
