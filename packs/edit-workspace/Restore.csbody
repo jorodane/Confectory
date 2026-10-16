@@ -20,7 +20,7 @@ lock(state)
   }else if(known&&!same)throw new ArgumentException("Saved unit identity mismatch.");
   else if(!known&&(unit["baseline"]!.GetValue<string>()!="missing"||!id.StartsWith(state["namespace"]!.GetValue<string>()+"::",StringComparison.Ordinal)))throw new ArgumentException("Unknown saved unit.");
   if(unit["kind"]!.GetValue<string>() is "blueprint" or "blueprint-node")calls.Metadata.Invoke("blueprintSourceValidate",System.Text.Json.JsonSerializer.Serialize(new{id,kind=unit["kind"]!.ToString(),text=unit["draft"]!.ToString()}));
-  var restored=unit.DeepClone();restored["revision"]=(staged[id]?["revision"]?.GetValue<long>()??0)+1;staged[id]=restored;
+  var restored=unit.DeepClone();long prior=staged[id]?["revision"]?.GetValue<long>()??0;if(unit["kind"]!.ToString()=="blueprint-node")prior=Math.Max(prior,state["retiredNodeRevision"]?.GetValue<long>()??0L);restored["revision"]=prior+1;staged[id]=restored;
  }
  var history=data["history"]?.DeepClone() as System.Text.Json.Nodes.JsonObject??new System.Text.Json.Nodes.JsonObject{["revision"]=0L,["undo"]=new System.Text.Json.Nodes.JsonArray(),["redo"]=new System.Text.Json.Nodes.JsonArray()};
  if(history.ToJsonString().Length>2098176||history["revision"]!.GetValue<long>()<0||history["undo"] is not System.Text.Json.Nodes.JsonArray undo||history["redo"] is not System.Text.Json.Nodes.JsonArray redo||undo.Count+redo.Count>32)throw new ArgumentException("Bounded saved history required");

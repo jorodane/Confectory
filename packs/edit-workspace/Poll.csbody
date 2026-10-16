@@ -1,1 +1,8 @@
-if(token.Length!=4||token[3]!="active"||AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+token[0]) is null)return Array.Empty<string>();var snapshot=calls.Read.Invoke(token[0],token[1]);if(snapshot[4]==token[2])return Array.Empty<string>();token[2]=snapshot[4];return snapshot;
+if(token.Length!=4||token[3]!="active")return Array.Empty<string>();
+string key="Confectory.EditWorkspace."+token[0];var state=AppDomain.CurrentDomain.GetData(key) as System.Text.Json.Nodes.JsonObject;if(state is null)return Array.Empty<string>();
+lock(state){
+ if(!ReferenceEquals(AppDomain.CurrentDomain.GetData(key),state))return Array.Empty<string>();
+ if(state["units"]![token[1]] is null){token[3]="retired";return Array.Empty<string>();}
+ string[] snapshot;try{snapshot=calls.Read.Invoke(token[0],token[1]);}catch(ObjectDisposedException){return Array.Empty<string>();}
+ if(snapshot[4]==token[2])return Array.Empty<string>();token[2]=snapshot[4];return snapshot;
+}

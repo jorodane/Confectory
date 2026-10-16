@@ -1,0 +1,254 @@
+{
+  "schema": 1,
+  "status": "owned-existing-graph-node-creation-removal-verified",
+  "baseWorkCommit": "d1de46f51c84bbe556938b255a5f9f1fae3ba877",
+  "referenceMain": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+  "profile": "sync-acyclic-v1",
+  "stages": [
+    {
+      "log": "node-creation-engine-first.log",
+      "boundary": "Initial public creation/removal/CAS/Save/cold/group/compiler fixture; before direct Confirm and existing identity retirement checks.",
+      "sha256": "45cf57111ec60fb26f983d0aadb608cef7d8f8b9b0d0b5a738bb1977bcea6519",
+      "tests": [
+        "PASS FeatureBlueprintTests.test_blueprint_owned_node_creation_removal_review_group_and_cold_restore"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 67.74
+    },
+    {
+      "log": "node-creation-engine-final.log",
+      "boundary": "Direct Confirm group refusal, peer selected source retirement, existing body preservation and cold root result5; before later explicit wiring/subscription coverage.",
+      "sha256": "1933f8eb1baa51dcaec85b5bd3ac29432a703ec9a0ffc7e564e62dcb8a21d8cd",
+      "tests": [
+        "PASS FeatureBlueprintTests.test_blueprint_owned_node_creation_removal_review_group_and_cold_restore"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 70.113
+    },
+    {
+      "log": "node-creation-ui-first.log",
+      "boundary": "Product failure: cold restore dropped a new creator flag and restored the creation pane as an absent ordinary code node. Private input remained retained.",
+      "sha256": "f4aae69e7bf1db6108ef737e2b7cc8b5deaf8315fe3d6b29d5d9ed00d76d1f43",
+      "tests": [
+        "FAIL WebUITests.test_actual_editor_v480_blueprint_node_creation_removal_and_cold_source_groups"
+      ],
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 101.077
+    },
+    {
+      "log": "node-creation-ui-second.log",
+      "boundary": "After creator restoration fix, test tried to click a covered window caption; replaced by actual Nav and source/create buttons, without forced clicks.",
+      "sha256": "9e4695f04c73406b89a8c2cdafcc199e04a9cc6e79d2035a749a1fe51916d690",
+      "tests": [
+        "FAIL WebUITests.test_actual_editor_v480_blueprint_node_creation_removal_and_cold_source_groups"
+      ],
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 44.457
+    },
+    {
+      "log": "node-creation-ui-third.log",
+      "boundary": "Actual UI creates/cancels pending node, preserves/rebinds cold input, fences peer changes and unsent body input, explicitly compiler Confirms graph/body group, removes graph node while preserving existing body file and survives cold restart.",
+      "sha256": "52e938588d816c7cc7b2e2eb42686a121719b42fb536f45ccffa96eac189519a",
+      "tests": [
+        "PASS WebUITests.test_actual_editor_v480_blueprint_node_creation_removal_and_cold_source_groups"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 87.981
+    },
+    {
+      "log": "node-creation-regression.log",
+      "boundary": "Broad21 before subscription/lifetime, final form layout and legacy message fixes.19 passes; one over-specified test expected immediate bad-type route refusal rather than unfinished-draft diagnostics/compiler refusal; one real legacy sourceError classification regression lost the original message final period.",
+      "sha256": "33ea3478e5adf5c1d6d5ec2382cf002514dce408a1163b543e2e4a659c946384",
+      "tests": [
+        "PASS FeatureBlueprintTests.test_blueprint_disconnected_current_node_body_is_compiled_without_execution",
+        "PASS FeatureBlueprintTests.test_blueprint_existing_feature_calls_use_typed_imports_and_contract_fences",
+        "PASS FeatureBlueprintTests.test_blueprint_fixed_inputs_branch_compiler_reuse_node_replacement_and_legacy_preservation",
+        "PASS FeatureBlueprintTests.test_blueprint_independent_probe_checks_an_unselected_body_without_running_or_publishing",
+        "PASS FeatureBlueprintTests.test_blueprint_invalid_graphs_stale_contracts_and_dominating_values",
+        "PASS FeatureBlueprintTests.test_blueprint_node_diagnostics_static_isolation_and_failed_build_retains_receipt",
+        "PASS FeatureBlueprintTests.test_blueprint_node_only_worker_draft_save_restore_and_compiler_confirm",
+        "PASS FeatureBlueprintTests.test_blueprint_node_task_assignment_scoped_dispatch_adoption_and_cold_no_replay",
+        "FAIL FeatureBlueprintTests.test_blueprint_owned_node_creation_removal_review_group_and_cold_restore",
+        "PASS FeatureBlueprintTests.test_blueprint_source_change_during_real_compile_is_not_published",
+        "FAIL WebUITests.test_actual_editor_and_button_game_common_web_transport_chromium",
+        "PASS WebUITests.test_actual_editor_v424_node_task_plan_cas_approval_and_cold_history",
+        "PASS WebUITests.test_actual_editor_v424_owned_object_variation_atomic_creation_and_cold_restart",
+        "PASS WebUITests.test_actual_editor_v480_blueprint_node_creation_removal_and_cold_source_groups",
+        "PASS WebUITests.test_actual_editor_v480_blueprint_owned_graph_node_edit_and_cold_input",
+        "PASS DraftHistoryTests.test_shared_draft_history_atomic_inverse_cas_restart_branch_and_owner_boundaries",
+        "PASS PackWorkspaceTests.test_development_tools_owned_scope_shared_draft_no_confirm_and_locality",
+        "PASS PackWorkspaceTests.test_target_metadata_owned_sources_no_registry_execution",
+        "PASS PackWorkspaceTests.test_two_contexts_revision_save_reopen_and_locality",
+        "PASS AugmentTests.test_chief_only_proposals_drafts_verification_history_and_locality",
+        "PASS EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only"
+      ],
+      "passed": 19,
+      "failed": 2,
+      "skipped": 0,
+      "seconds": 844.123
+    },
+    {
+      "log": "node-retirement-subscription-red.log",
+      "boundary": "Product RED through actual public source subscription: Poll throws Unknown owned unit after explicit node retirement.",
+      "sha256": "d0d0bfe19d19b7ab295b42fd9e0862336b0f8efaebcd764ad172f493b8b5d52e",
+      "tests": [
+        "FAIL FeatureBlueprintTests.test_blueprint_owned_node_creation_removal_review_group_and_cold_restore"
+      ],
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 22.032
+    },
+    {
+      "log": "node-creation-final-build.log",
+      "boundary": "Final test/engine build after retirement polling, per-owner revision floor/live restore, exact legacy message and compact form changes.",
+      "sha256": "42b55fa38224bb1947d5ee6463abcbf1ab472be6455a73c26e3474c88413e4c8",
+      "tests": [],
+      "buildSucceeded": true,
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "log": "node-creation-owner-final.log",
+      "boundary": "Public creation/retirement, preserved borrowed Card text/one-time retired state, live restore and same-ID monotonic revisions, bad typed draft/compiler refusal and owned run25/5, plus legacy EditWorkspace/ElementView. The first pending creation had a cold owner; the last removal reopen still had a peer owner, corrected to a genuine cold owner in the budget-final gate.",
+      "sha256": "1fec23643399d04753f9a48cd55f6e519d191dc775b5e1fd714e9b3f52abe923",
+      "tests": [
+        "PASS FeatureBlueprintTests.test_blueprint_owned_node_creation_removal_review_group_and_cold_restore",
+        "PASS EditWorkspaceTests.test_shared_drafts_save_restore_preview_selective_confirm_conflict_and_locality",
+        "PASS ElementViewTests.test_reusable_shared_card_table_view_lifetimes_and_locality"
+      ],
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 153.708
+    },
+    {
+      "log": "node-creation-ui-managed-final.log",
+      "boundary": "After retirement/message/form changes and before prospective budget guards: ordinary Home error compatibility, actual node UI with field/body/Dock bounds and cold Confirm, Windows/Android managed compile profiles.",
+      "sha256": "ec3512c1ea68454901049889d0acd7f22d1efc52505563ea28e9c3cf7a9e0850",
+      "tests": [
+        "PASS WebUITests.test_actual_editor_and_button_game_common_web_transport_chromium",
+        "PASS WebUITests.test_actual_editor_v480_blueprint_node_creation_removal_and_cold_source_groups",
+        "PASS EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only"
+      ],
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 446.536
+    },
+    {
+      "log": "node-creation-budget-red.log",
+      "boundary": "Public creation read-budget RED, if reproduced, before prospective source count/UTF8 byte guards.",
+      "sha256": "40af8245348e2a00a334386b4321cde58a48e4a98a8026a77fefd14979a8118a",
+      "tests": [
+        "FAIL FeatureBlueprintTests.test_blueprint_owned_node_creation_removal_review_group_and_cold_restore"
+      ],
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 94.522
+    },
+    {
+      "log": "node-creation-budget-final.log",
+      "boundary": "Final owner workflow after prospective count/combined UTF8 guards and normalized paths, live same-ID rediscovery revisions, genuine cold owner after removal, connected owned run25/finalrun5; ordinary oversized intent edit also refuses with unchanged source registration/hashes/revisions.",
+      "sha256": "fac297f2cb20f787c71b51ad3de9c5808483ba2475e1050231a6d0e03f171bb3",
+      "tests": [
+        "PASS FeatureBlueprintTests.test_blueprint_owned_node_creation_removal_review_group_and_cold_restore"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 95.381
+    },
+    {
+      "log": "node-creation-release-ui.log",
+      "boundary": "Actual Home UI after prospective scope count/UTF8 guards, normalized creation paths and rediscovery revision floor; production/test hashes are final.",
+      "sha256": "c466fe42728397ea99e694de305e72a9cebb29ea1eceb6451bca45e675103a45",
+      "tests": [
+        "PASS WebUITests.test_actual_editor_v480_blueprint_node_creation_removal_and_cold_source_groups"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 130.63
+    },
+    {
+      "log": "node-creation-checkout.log",
+      "boundary": "Implementation commit checked out through ordinary Git: retained CRLF/fresh LF,27 static resource identities, actual Home startup and tamper refusal.",
+      "sha256": null,
+      "tests": []
+    }
+  ],
+  "claims": {
+    "existingGraphCodeNodeCreation": true,
+    "atomicGraphAndMissingBaselineBody": true,
+    "newBodyInitiallyUnstampedAndNotCompiled": true,
+    "graphAndBodyExplicitReviewGroup": true,
+    "directConfirmCannotBypassGroup": true,
+    "observedSourceCASAndOwnedDestinations": true,
+    "sourceWritesOnlyThroughCompilerConfirm": true,
+    "existingBodyFilePreservedOnGraphRemoval": true,
+    "pendingBodyDraftRemovalExplicitlyAcknowledged": true,
+    "connectedReferencedOrDirtyExistingNodeRemovalRefused": true,
+    "sourceSubscriptionRetirementPreservesLastProjection": true,
+    "sameLiveOwnerRecreationAndRestoreRevisionsAdvance": true,
+    "coldInputsRequireExplicitSourceBasisRebind": true,
+    "ownedFixtureConnectedRunResult": 25,
+    "ownedFixtureAfterRemovalRunResult": 5,
+    "staticResourceCount": 27,
+    "externalAccountOrPaidModel": false,
+    "managedProfilesCompileOnly": true
+  },
+  "boundaries": [
+    "Stage counts overlap and must not be added; failed attempts and their causes remain recorded.",
+    "This increment adds/removes code nodes inside an existing owned graph. New feature/graph allocation, legacy conversion, reference-call wrapper import, module and expanded profile UI remain pending.",
+    "Existing authored body files are physically preserved on graph removal. Physical file deletion is not implemented. An explicitly reviewed unpublished creation can discard only its pending body draft.",
+    "Unfinished graph drafts may be invalid; diagnostics report this and actual compiler Confirm refuses publication. No immediate semantic-validity guarantee is claimed for every draft edit.",
+    "Source-only history is invalidated at ownership changes; it does not claim an automatic inverse of source registration.",
+    "Retirement revision floor is private to a live owner; cold owners do not reuse its handles or subscription grants.",
+    "Only owned test fixtures are executed. No actual account,paid model,user-PC installation or native pixel/device execution is claimed. DISPLAY is unavailable.",
+    "The supplied v480 ZIP and main/original ZIP/Android settings are preserved. Prototype demo results are not compiler evidence."
+  ],
+  "sourceHashes": {
+    "examples/editor-home/WebBundle.csbody": "16c57c0e154259df3fce84bfcec3e5c6a1584e21b62a4ffcde2281b024de1719",
+    "examples/editor-home/ui/blueprint.js": "d3332358b9f7e1d2f4efb27e4ecc5eb74c1eee6137250f4804613e5d8c6b62c4",
+    "examples/editor-home/ui/consumer.css": "208bf931401bf5686321882de5d6a6629f9f1e95e45732fb1ed4b8be4d7f3b40",
+    "packs/change-set/ConfirmReviewed.csbody": "1f62f8d7cb1a7fc6478e86858bf03c334f33617371de769954931260613736cf",
+    "packs/change-set/ConfirmReviewedBody.celem": "d2b14011d2ef061835681b67457a6fe23dde663b3197018868bd74f03f6ad301",
+    "packs/edit-workspace/BlueprintNode.celem": "a25e2e24a1ae8bc43b712aa731945765f646300a9e65b5f762192a022e62dfce",
+    "packs/edit-workspace/BlueprintNode.csbody": "868fa56888b8d98f117fbd695e0da5a2a20e96d036581a738b1dd59c02119537",
+    "packs/edit-workspace/BlueprintNodeBody.celem": "f3a9c1b7f44ee1b70779ebee3c31b1b79f1083f73586f28af852ac4544eb68d5",
+    "packs/edit-workspace/DiscoverBodies.csbody": "ec60512cc878cfe7589341aa55475f202f6ea6e37d736b56d237b7207cf41ea4",
+    "packs/edit-workspace/Poll.csbody": "f2039dd24fbadf5d913d553a28791bc448c703925d54c19b3e6a28ff7e593409",
+    "packs/edit-workspace/Restore.csbody": "3fd0875275bd389d9ef24838f8116eb04c91c5d2c9a19d701a969ce15af7874f",
+    "packs/edit-workspace/ValidateReviewSelection.celem": "33fda0dc497b4fbef18a9933087b27bc06bbb66ed882368a5b4bb34f4a8a3e5f",
+    "packs/edit-workspace/ValidateReviewSelection.csbody": "1a92d84097981be0db2a372a2cf9594d226985baf32981665d081a3421a28d8e",
+    "packs/edit-workspace/ValidateReviewSelectionBody.celem": "6e1088ff07b1a991d67722459d55ebb5dec71cc80f95a54eb125633464c60c9a",
+    "packs/edit-workspace/pack.cpack": "7080dbf2797dc840199b8cae119b6061e0198331fe0744bf53d12e1608ad2bc3",
+    "packs/element-view/Poll.csbody": "bf1c7920640ec828dbfc9b00a98e031c9d36dc68ae671283b64bdd714e2bc4d4",
+    "packs/pack-workspace/Blueprint.csbody": "c1419654a0202e7c3b3dc0da328462847b41a2b8956e39169d099450c76756a6",
+    "packs/pack-workspace/BlueprintBody.celem": "25abbe26c01394cc8cfe2564be516eae8e75dff2b666d8413df708aeba3b7692",
+    "packs/pack-workspace/Command.csbody": "640f823bd614d23e326be937f79bbcd4b1e9bd4a4d41de7ba41f8172b595c4ce",
+    "packs/pack-workspace/CommandBody.celem": "54e2cc8e169b1e142b69e1dc227e97ea8f9e06e33232b76e90479b9ef2342672",
+    "packs/pack-workspace/Snapshot.csbody": "efaf5d7b0746f0aec5c33eae73398b5a92376387ad47ca3d68051f70d2434d50",
+    "tests/Confectory.Tests/FeatureBlueprintTests.cs": "2efbde5d2432d282598548d77fce5a731cbacb93991937778ba3a0cdb7f090d2",
+    "tests/Confectory.Tests/WebUITests.cs": "845a52b62b2f28c20f47d192c4a1d4065226732223ab6cdb03c7c2d76abc4340",
+    "tests/web/v480_node_creation.py": "71952f51c84d2d4bf133d5f53a0013863017ce5492027759171ee23a5131b306",
+    "tests/web/web_ui.py": "b6162a999bb92e4a8e7401e30f826ca9165a479df47437b412103d5ac8f12be0"
+  },
+  "images": {
+    "node-creation.png": "4c1b11392cf84eec14097af970c677d845d8f68dc81f36fbe68e4cc30452c9d2",
+    "node-create-form.png": "d54b090b7488475bd04b43bd7d984fd5a5d79014c88292d5b45afff56b47d819",
+    "node-remove-review.png": "25ab2c12c4bff7cb4344a8882e2fb4a359b1a45b9924388ee5d98dbc494714f1"
+  }
+}

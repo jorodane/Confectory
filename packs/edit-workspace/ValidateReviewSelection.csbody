@@ -1,0 +1,14 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+handle) as System.Text.Json.Nodes.JsonObject??throw new ObjectDisposedException("EditWorkspace");
+lock(state){
+ var ids=new System.Collections.Generic.HashSet<string>(selected,StringComparer.Ordinal);var changes=calls.Changes.Invoke(handle,selected);var changed=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);for(int i=0;i<changes.Length;i+=4)changed.Add(changes[i]);
+ bool manifest=false;for(int i=0;i<changes.Length;i+=4)if(changes[i+1]==System.IO.Path.GetFileName(state["project"]!.ToString()))manifest=true;
+ for(int i=0;i<changes.Length;i+=4)if(changes[i+2]=="missing"&&state["units"]![changes[i]]!["kind"]!.ToString()!="blueprint-node"&&!manifest)throw new InvalidOperationException("New declaration review must explicitly include its manifest registration.");
+ foreach(var pair in state["units"]!.AsObject()){
+  var unit=pair.Value!;if(unit["kind"]!.ToString()!="blueprint-node"||unit["draft"] is null||unit["baseline"]?.ToString()!="missing")continue;
+  int marker=pair.Key.LastIndexOf("/node:",StringComparison.Ordinal);string graphId=pair.Key[..marker];if(!ids.Contains(pair.Key)&&!ids.Contains(graphId))continue;
+  if(!ids.Contains(pair.Key)||!changed.Contains(graphId))throw new InvalidOperationException("New node review requires its body and changed owning graph together");
+  var graph=calls.Read.Invoke(handle,graphId);int bodyMarker=graphId.IndexOf("/body:",StringComparison.Ordinal);string implementationId=graphId[..bodyMarker];var implementation=calls.Read.Invoke(handle,implementationId);
+  var located=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("bodyUnits",new System.Text.Json.Nodes.JsonObject{["project"]=state["project"]!.DeepClone(),["id"]=implementationId,["path"]=implementation[2],["text"]=implementation[3],["blueprintDrafts"]=new System.Text.Json.Nodes.JsonObject{[graphId]=graph[3]}}.ToJsonString()))!;
+  if(!System.Linq.Enumerable.Any(located["units"]!.AsArray(),row=>row!["id"]!.ToString()==graphId&&row["kind"]!.ToString()=="blueprint"&&row["path"]!.ToString()==graph[2])||!System.Linq.Enumerable.Any(located["units"]!.AsArray(),row=>row!["id"]!.ToString()==pair.Key&&row["kind"]!.ToString()=="blueprint-node"&&row["path"]!.ToString()==unit["path"]!.ToString()))throw new InvalidOperationException("New node source no longer belongs to the reviewed graph and implementation");
+ }
+}

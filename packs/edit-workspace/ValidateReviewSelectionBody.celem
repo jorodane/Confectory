@@ -1,0 +1,5 @@
+implementation Confectory.EditWorkspace::ValidateReviewSelectionBody for Confectory.EditWorkspace::ValidateReviewSelection (string handle,string[] selected) -> void {
+import Confectory.EditWorkspace::Changes as Changes (string,string[]) -> string[];
+import Confectory.EditWorkspace::Read as Read (string,string) -> string[];
+import Confectory.SchemaEditing::Call as Metadata (string,string) -> string;
+body common "ValidateReviewSelection.csbody";}

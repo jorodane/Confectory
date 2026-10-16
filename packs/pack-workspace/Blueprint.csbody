@@ -1,4 +1,4 @@
-if(payload.Length>2097152||operation is not ("list" or "read" or "intent" or "argument" or "route" or "entry" or "exit" or "source"))throw new ArgumentException("Bounded Blueprint operation required");
+if(payload.Length>2097152||operation is not ("list" or "read" or "intent" or "argument" or "route" or "entry" or "exit" or "source" or "createNode" or "removeNode"))throw new ArgumentException("Bounded Blueprint operation required");
 var state=AppDomain.CurrentDomain.GetData("Confectory.PackWorkspace."+handle) as System.Text.Json.Nodes.JsonObject??throw new ObjectDisposedException("PackWorkspace");
 var input=System.Text.Json.Nodes.JsonNode.Parse(payload)!.AsObject();
 string Hash(string text)=>Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(text))).ToLowerInvariant();
@@ -15,6 +15,12 @@ lock(state){
  if(operation!="read"){
   string token=input["basis"]!.GetValue<string>();var basis=state["blueprintBases"]?[token];if(basis is null||basis["id"]!.ToString()!=graphId)throw new InvalidOperationException("Read the current graph before editing; retained input is unchanged");
   var observed=basis["sources"]!.AsObject();string target=graphId;var candidate=System.Text.Json.Nodes.JsonNode.Parse(observed[graphId]!["text"]!.GetValue<string>())!.AsObject();
+  if(operation is "createNode" or "removeNode"){
+   var ownedIds=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(observed,p=>p.Key));
+   string result=calls.BlueprintNode.Invoke(draft,operation=="createNode"?"create":"remove",graphId,input["node"]!.GetValue<string>(),input["definition"]?.ToJsonString()??"{}",ownedIds,System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(ownedIds,id=>observed[id]!["revision"]!.GetValue<long>())),System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(ownedIds,id=>observed[id]!["hash"]!.ToString())));
+   if(operation=="removeNode"&&state["selected"]?.ToString()==graphId+"/node:"+input["node"]!.ToString())state["selected"]=graphId;
+   state["review"]=null;return result;
+  }
   var definition=basis["definitions"]!;System.Text.Json.Nodes.JsonNode Node()=>System.Linq.Enumerable.Single(candidate["nodes"]!.AsArray(),n=>n!["id"]!.ToString()==input["node"]!.ToString())!;
   if(operation=="intent"){string intent=input["text"]!.GetValue<string>();if(intent.Length>16384)throw new ArgumentException("Node intent budget");Node()["intent"]=intent;}
   else if(operation=="argument"){string name=input["name"]!.GetValue<string>();var node=Node();if(!System.Linq.Enumerable.Any(definition["nodes"]!.AsArray(),n=>n!["id"]!.ToString()==node["id"]!.ToString()&&System.Linq.Enumerable.Any(n["definition"]!["signature"]!["args"]!.AsArray(),a=>a!["name"]!.ToString()==name)))throw new ArgumentException("Declared node argument required");node["arguments"]??=new System.Text.Json.Nodes.JsonObject();node["arguments"]![name]=System.Text.Json.Nodes.JsonNode.Parse(input["valueJson"]!.GetValue<string>());}
@@ -23,7 +29,7 @@ lock(state){
    if(to.Length>0&&!System.Linq.Enumerable.Any(candidate["nodes"]!.AsArray(),n=>n!["id"]!.ToString()==to)&&!candidate["exits"]!.AsObject().ContainsKey(to.StartsWith("exit:",StringComparison.Ordinal)?to[5..]:""))throw new ArgumentException("Existing execution target required");
    var edges=candidate["edges"]!.AsArray();for(int index=edges.Count-1;index>=0;index--)if(edges[index]!["from"]!.ToString()==node["id"]!.ToString()&&edges[index]!["port"]!.ToString()==port)edges.RemoveAt(index);if(to.Length>0)edges.Add(new System.Text.Json.Nodes.JsonObject{["from"]=node["id"]!.DeepClone(),["port"]=port,["to"]=to});
   }
-  else if(operation=="entry"){string node=input["node"]!.GetValue<string>();if(!System.Linq.Enumerable.Any(candidate["nodes"]!.AsArray(),n=>n!["id"]!.ToString()==node))throw new ArgumentException("Existing start target required");candidate["entry"]=node;}
+  else if(operation=="entry"){string node=input["node"]!.GetValue<string>();if(!System.Linq.Enumerable.Any(candidate["nodes"]!.AsArray(),n=>n!["id"]!.ToString()==node)&&!(node.StartsWith("exit:",StringComparison.Ordinal)&&candidate["exits"]!.AsObject().ContainsKey(node[5..])))throw new ArgumentException("Existing start target required");candidate["entry"]=node;}
   else if(operation=="exit"){string name=input["name"]!.GetValue<string>();if(!candidate["exits"]!.AsObject().ContainsKey(name))throw new ArgumentException("Declared output required");candidate["exits"]![name]=System.Text.Json.Nodes.JsonNode.Parse(input["valueJson"]!.GetValue<string>());}
   else{
    var node=Node();target=graphId+"/node:"+node["id"]!.ToString();if(node["kind"]!.ToString()!="code"||observed[target] is null)throw new InvalidOperationException("Owned code-node source required");
@@ -31,6 +37,7 @@ lock(state){
   }
   if(target==graphId){var validation=(System.Text.Json.Nodes.JsonObject)basis["request"]!.DeepClone();validation["graph"]=candidate.DeepClone();var described=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("blueprintDescribeOwned",validation.ToJsonString()))!;if(described["state"]!.ToString()=="invalid")throw new InvalidOperationException(described.ToJsonString());}
   string[] ids=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(observed,p=>p.Key));string next=candidate.ToJsonString();var texts=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(ids,id=>id==target?next:observed[id]!["text"]!.GetValue<string>()));var revisions=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(ids,id=>observed[id]!["revision"]!.GetValue<long>()));var hashes=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(ids,id=>observed[id]!["hash"]!.ToString()));
+  int prospective=0;foreach(string text in texts)prospective=checked(prospective+System.Text.Encoding.UTF8.GetByteCount(text));if(prospective>2097152)throw new InvalidOperationException("Blueprint edit would exceed its source read budget; retained input is unchanged");
   if(!calls.EditBatch.Invoke(draft,ids,texts,revisions,hashes))throw new InvalidOperationException("Blueprint source or contract changed; read explicitly before reapplying retained input");
   if(next!=observed[target]!["text"]!.GetValue<string>())state["review"]=null;
   return new System.Text.Json.Nodes.JsonObject{["accepted"]=true,["id"]=target,["sourceWritten"]=false,["compiled"]=false}.ToJsonString();
@@ -53,7 +60,7 @@ lock(state){
    string id=graphId+"/node:"+nodeId;row["sourceId"]=id;row["sourceStatus"]="ownership-unavailable";
    if(owned.Contains(id)&&node["implementation"] is not null){var source=Read(id);string expected=System.IO.Path.GetFullPath(System.IO.Path.Combine(System.IO.Path.GetDirectoryName(System.IO.Path.Combine(identity[3],graphSource[2]))!,node["implementation"]!.GetValue<string>())),actual=System.IO.Path.GetFullPath(System.IO.Path.Combine(identity[3],source[2]));
     if(source[1]=="blueprint-node"&&string.Equals(expected,actual,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal)){
-     calls.Metadata.Invoke("blueprintSourceValidate",System.Text.Json.JsonSerializer.Serialize(new{id,kind="blueprint-node",text=source[3]}));var record=System.Text.Json.Nodes.JsonNode.Parse(source[3])!;records[nodeId]=record.DeepClone();row["source"]=record["source"]!.DeepClone();row["sourceStatus"]=record["definitionHash"]!.ToString()==definition["definitionHash"]!.ToString()?"available":"stale";
+     calls.Metadata.Invoke("blueprintSourceValidate",System.Text.Json.JsonSerializer.Serialize(new{id,kind="blueprint-node",text=source[3]}));var record=System.Text.Json.Nodes.JsonNode.Parse(source[3])!;records[nodeId]=record.DeepClone();row["source"]=record["source"]!.DeepClone();row["sourceStatus"]=record["definitionHash"]!.ToString()==definition["definitionHash"]!.ToString()?"available":"stale";row["pendingSource"]=source[5]=="missing";
     }else sources.Remove(id);
    }
   }else row["sourceStatus"]="feature-reference";

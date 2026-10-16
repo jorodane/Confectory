@@ -136,7 +136,9 @@ public sealed class WebUITests : TestCase
         var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/web_ui.py"),Fixture.Repo,report,"startup-restore"},timeoutSeconds:180);
         True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS actual startup metadata delay"),run.Stdout+run.Stderr);
     }
-    public void test_actual_editor_v480_blueprint_owned_graph_node_edit_and_cold_input()
+    public void test_actual_editor_v480_blueprint_owned_graph_node_edit_and_cold_input()=>RunOwnedBlueprint("blueprint");
+    public void test_actual_editor_v480_blueprint_node_creation_removal_and_cold_source_groups()=>RunOwnedBlueprint("blueprint-create");
+    private void RunOwnedBlueprint(string mode)
     {
         string feature="function Example.ButtonGame::NodeValue (long n) -> long {}";
         var graph=System.Text.Json.Nodes.JsonNode.Parse("""
@@ -148,8 +150,8 @@ public sealed class WebUITests : TestCase
         built["nodeTaskFixture"]=new System.Text.Json.Nodes.JsonObject{["feature"]=feature,["graph"]=graph,["node"]=new System.Text.Json.Nodes.JsonObject{["schema"]=1,["node"]="calculate",["definitionHash"]=described["nodes"]![0]!["definitionHash"]!.DeepClone(),["source"]="return value + 4;"}};
         built["additionalNodeFixture"]=new System.Text.Json.Nodes.JsonObject{["schema"]=1,["node"]="condition",["definitionHash"]=described["nodes"]![1]!["definitionHash"]!.DeepClone(),["source"]="return value > 0;"};
         string report=Path.Combine(f.Root,"v480-blueprint.json");File.WriteAllText(report,built.ToJsonString());
-        var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/web_ui.py"),Fixture.Repo,report,"blueprint"},timeoutSeconds:420);
-        True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS actual v480 Blueprint"),run.Stdout+run.Stderr);
+        var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/web_ui.py"),Fixture.Repo,report,mode},timeoutSeconds:420);
+        True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains(mode=="blueprint"?"PASS actual v480 Blueprint":"PASS actual v480 node creation/removal"),run.Stdout+run.Stderr);
     }
     public void test_actual_editor_v424_node_task_plan_cas_approval_and_cold_history()
     {

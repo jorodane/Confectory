@@ -1,0 +1,1 @@
+function Confectory.EditWorkspace::BlueprintNode (string handle,string operation,string graphId,string nodeId,string definition,string[] ids,long[] revisions,string[] hashes) -> string {provide Confectory.EditWorkspace::BlueprintNode with Confectory.EditWorkspace::BlueprintNodeBody;}

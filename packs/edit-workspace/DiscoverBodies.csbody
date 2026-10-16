@@ -4,7 +4,7 @@ var reply=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("bodyUnits
 var staged=(System.Text.Json.Nodes.JsonObject)state["units"]!.DeepClone();var active=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
 foreach(var item in reply["units"]!.AsArray()){string bodyId=item!["id"]!.GetValue<string>(),path=item["path"]!.GetValue<string>();active.Add(bodyId);
  if(staged[bodyId] is System.Text.Json.Nodes.JsonObject existing){if(existing["path"]!.GetValue<string>()!=path||existing["kind"]!.ToString()!=item["kind"]!.ToString()){if(existing["draft"] is not null)throw new InvalidOperationException("Loaded body locator changed; preserve draft and resolve explicitly.");existing["path"]=path;existing["kind"]=item["kind"]!.DeepClone();}}
- else staged[bodyId]=new System.Text.Json.Nodes.JsonObject{["id"]=bodyId,["kind"]=item["kind"]!.DeepClone(),["path"]=path,["revision"]=0L};
+ else staged[bodyId]=new System.Text.Json.Nodes.JsonObject{["id"]=bodyId,["kind"]=item["kind"]!.DeepClone(),["path"]=path,["revision"]=item["kind"]!.ToString()=="blueprint-node"&&state["retiredNodeRevision"] is not null?state["retiredNodeRevision"]!.GetValue<long>()+1L:0L};
  item["materialization"]=staged[bodyId]!["draft"] is null?"deferred":"loaded";
 }
 var retained=new System.Text.Json.Nodes.JsonArray();foreach(var item in staged){if(item.Key.StartsWith(id+"/body:",StringComparison.Ordinal)&&!active.Contains(item.Key))retained.Add(item.Key);}

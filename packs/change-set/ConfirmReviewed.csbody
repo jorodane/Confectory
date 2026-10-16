@@ -1,8 +1,7 @@
 if(selected.Length==0)return new[]{"empty"};
 selected=(string[])selected.Clone();reviewed=(string[])reviewed.Clone();
 var chosen=calls.Changes.Invoke(handle,selected);if(!System.Linq.Enumerable.SequenceEqual(reviewed,chosen))return new[]{"stale","Selected draft differs from the reviewed changes; review again."};
-var identityCheck=calls.Identity.Invoke(handle);bool manifestSelected=false;for(int i=0;i<chosen.Length;i+=4)if(chosen[i+1]==System.IO.Path.GetFileName(identityCheck[0]))manifestSelected=true;
-for(int i=0;i<chosen.Length;i+=4)if(chosen[i+2]=="missing"&&!manifestSelected)return new[]{"invalid","New declaration requires its manifest registration."};
+try{calls.ValidateSelection.Invoke(handle,selected);}catch(Exception error){return new[]{"invalid",error.Message};}
 var identity=calls.Identity.Invoke(handle);string root=identity[3];var changes=reviewed;
 string candidate=System.IO.Path.Combine(root,".confectory","candidates",Guid.NewGuid().ToString("N"));
 bool committed=false;

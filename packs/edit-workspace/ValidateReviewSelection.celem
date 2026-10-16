@@ -1,0 +1,1 @@
+function Confectory.EditWorkspace::ValidateReviewSelection (string handle,string[] selected) -> void {provide Confectory.EditWorkspace::ValidateReviewSelection with Confectory.EditWorkspace::ValidateReviewSelectionBody;}
