@@ -127,6 +127,18 @@
       "failed": 0,
       "skipped": 0,
       "seconds": 109.802
+    },
+    {
+      "log": "registered-call-checkout.log",
+      "boundary": "Ordinary committed implementation Git checkout, retained CRLF/fresh LF,31 static resources, actual Home startup and tamper refusal.",
+      "sha256": "4083d724073f9117beec594da80c1cf4ce083ee62b5c5cd7f2366a840296ac39",
+      "tests": [
+        "PASS WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 7.258
     }
   ],
   "claims": {
@@ -236,5 +248,6 @@
   "images": {
     "registered-call-contract.png": "61cdae9b721e3980e5ad3ed74e0e538bfe4514569c56b21db861124be95da12e",
     "registered-call.png": "98bb0e3510e0ed450b94a389ac398c0d543d05bea5242a25f0a4397f827092a5"
-  }
+  },
+  "implementationCommit": "ca2858791066eadf712e3f794c9684b1dc91e97a"
 }
