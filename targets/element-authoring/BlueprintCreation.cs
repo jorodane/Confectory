@@ -11,12 +11,28 @@ internal static class BlueprintCreation
    throw new ArgumentException("An owned object and the existing function's explicit contract are required");
   // Reuse only the contract generator. Its temporary default never replaces the real function.
   function.Provides.Clear();if(string.IsNullOrWhiteSpace(function.Description)){function.Description="Implement "+function.Id+" for "+owner.Id;function.DescriptionPresent=true;}var input=(JsonObject)request.DeepClone();input["text"]=format(function);
-  var result=Scaffold(function,input,format);result.Remove("function");
+  var slotSignature=function.Signature!;
+  var result=request["reference"] is null?Scaffold(function,input,format):ReferenceScaffold(function,input,format);result.Remove("function");
   string implementation=request["implementation"]!.GetValue<string>();
   owner.Provides[function.Id]=new ElementReference(implementation,new(),function.Id);
   result["owner"]=format(owner);result["feature"]=function.Id;
-  result["signature"]=result["graph"]!["nodes"]![0]!["signature"]!.DeepClone();
+  result["signature"]=SignatureNode(slotSignature);
   return result;
+ }
+ private static JsonObject SignatureNode(FunctionSignature signature)=>new(){["args"]=new JsonArray(signature.Args.Select(arg=>(JsonNode)new JsonObject{["type"]=arg.Type,["name"]=arg.Name}).ToArray()),["return"]=signature.Return};
+ private static JsonObject ReferenceScaffold(Element function,JsonObject request,Func<Element,string> format)
+ {
+  string reference=request["reference"]!.GetValue<string>(),referenceText=request["referenceText"]!.GetValue<string>();
+  var donor=new Parser(referenceText,"<referenced-function>").ParseElement();var signature=function.Signature??throw new ArgumentException("Explicit required function signature");
+  if(donor.Kind!="function"||donor.Id!=reference||donor.Id==function.Id||donor.Signature is null||!signature.Matches(donor.Signature))throw new ArgumentException("Select a different published function with identical input/output types and order");
+  string implementationId=request["implementation"]!.GetValue<string>(),graphPath=request["graphPath"]!.GetValue<string>();
+  string implementation=$"implementation {implementationId} for {function.Id} ("+string.Join(", ",signature.Args.Select(arg=>arg.Type+" "+arg.Name))+") -> "+signature.Return+" {blueprint common "+System.Text.Json.JsonSerializer.Serialize(graphPath)+";}\n";
+  var graph=new JsonObject{["schema"]=1,["profile"]=FeatureBlueprint.Profile,["feature"]=function.Id,["contractHash"]=FeatureBlueprint.ContractHash(function),["entry"]="imported",["nodes"]=new JsonArray(),["edges"]=new JsonArray(),["exits"]=new JsonObject{["return"]=signature.Return=="void"?null:new JsonObject{["node"]="imported"}}};
+  var prepared=BlueprintCall.Prepare(new JsonObject{["id"]=implementationId,["text"]=implementation,["targetText"]=referenceText,["graph"]=graph,["definition"]=new JsonObject{["id"]="imported",["feature"]=reference,["intent"]="Call "+reference+" for "+function.Id,["control"]="next"}},format);
+  graph=prepared["graph"]!.AsObject();var arguments=graph["nodes"]![0]!["arguments"]!.AsObject();for(int index=0;index<signature.Args.Count;index++)arguments[donor.Signature.Args[index].Name]=new JsonObject{["input"]=signature.Args[index].Name};
+  graph["edges"]!.AsArray().Add(new JsonObject{["from"]="imported",["port"]="next",["to"]="exit:return"});function.Provides.Add(function.Id,new ElementReference(implementationId,new(),function.Id));
+  string text=format(function);var checkedGraph=FeatureBlueprint.Execute(new JsonObject{["operation"]="featureBlueprintNodes",["featureSource"]=text,["featureContracts"]=new JsonObject{[reference]=referenceText},["graph"]=graph.DeepClone()});if(checkedGraph["state"]?.ToString()!="node-definitions")throw new ArgumentException(checkedGraph.ToJsonString());
+  return new JsonObject{["function"]=text,["implementation"]=prepared["implementation"]!.DeepClone(),["graph"]=graph.DeepClone(),["reference"]=reference,["referenceSignature"]=SignatureNode(donor.Signature),["scope"]=prepared["scope"]?.DeepClone()};
  }
  public static JsonObject Prepare(JsonObject request, Func<Element,string> format)
  {

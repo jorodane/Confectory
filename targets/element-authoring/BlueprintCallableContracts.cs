@@ -12,8 +12,8 @@ internal static class BlueprintCallableContracts
   if(Encoding.UTF8.GetByteCount(manifestText)>1048576||Encoding.UTF8.GetByteCount(sourceText)>1048576||Encoding.UTF8.GetByteCount(manifestText)+Encoding.UTF8.GetByteCount(sourceText)>2097152)throw new ArgumentException("Callable source budget exceeded");
   var owner=new Parser(manifestText,"<callable-project>").ParseManifest();var source=new Parser(sourceText,"<callable-caller>").ParseElement();
   if(owner.Kind!="project"||source.Kind is not ("implementation" or "object")||source.Id!=request["sourceId"]!.ToString()||PackPaths.Namespace(source.Id)!=owner.Namespace||!owner.Elements.TryGetValue(source.Id[(owner.Namespace.Length+2)..],out var sourceLocator)||sourceLocator.Kind!=source.Kind)throw new ArgumentException("Owned ProjectPack caller context required");
-  string action=request["action"]!.GetValue<string>(),query=request["query"]?.GetValue<string>()??"";int page=request["page"]?.GetValue<int>()??0;
-  if(action is not ("list" or "read")||query.Length>256||page<0||page>1000000)throw new ArgumentException("Bounded explicit callable query required");
+  string action=request["action"]!.GetValue<string>(),query=request["query"]?.GetValue<string>()??"",exclude=request["exclude"]?.GetValue<string>()??"";int page=request["page"]?.GetValue<int>()??0;
+  if(action is not ("list" or "read")||query.Length>256||exclude.Length>512||page<0||page>1000000)throw new ArgumentException("Bounded explicit callable query required");
   string Hash(string value)=>Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(value))).ToLowerInvariant();
   var reads=new Dictionary<string,string>(OperatingSystem.IsWindows()?StringComparer.OrdinalIgnoreCase:StringComparer.Ordinal);int bytes=Encoding.UTF8.GetByteCount(manifestText)+Encoding.UTF8.GetByteCount(sourceText);
   string Read(string path){
@@ -30,7 +30,7 @@ internal static class BlueprintCallableContracts
   JsonObject result;
   if(action=="list"){
    var dependencies=owner.Dependencies.Keys.Where(ns=>ns!=owner.Namespace&&owner.Registry.ContainsKey(ns)).Order(StringComparer.Ordinal).ToArray();if(dependencies.Length>128)throw new ArgumentException("At most128 registered direct callable packs may be listed");
-   var matches=new List<(string Id,string Version)>();foreach(string ns in dependencies){var registered=Pack(ns);foreach(var pair in registered.Pack.Elements)if(pair.Value.Kind=="function"&&(ns+"::"+pair.Key).Contains(query,StringComparison.OrdinalIgnoreCase))matches.Add((ns+"::"+pair.Key,registered.Pack.Version));}
+   var matches=new List<(string Id,string Version)>();foreach(string ns in dependencies){var registered=Pack(ns);foreach(var pair in registered.Pack.Elements)if(pair.Value.Kind=="function"&&ns+"::"+pair.Key!=exclude&&(ns+"::"+pair.Key).Contains(query,StringComparison.OrdinalIgnoreCase))matches.Add((ns+"::"+pair.Key,registered.Pack.Version));}
    matches.Sort((a,b)=>StringComparer.Ordinal.Compare(a.Id,b.Id));var rows=new JsonArray();foreach(var row in matches.Skip(checked(page*32)).Take(32))rows.Add(new JsonObject{["id"]=row.Id,["version"]=row.Version,["readOnly"]=true,["dirty"]=false});
    result=new(){["rows"]=rows,["total"]=matches.Count,["page"]=page,["pageSize"]=32};
   }else{
