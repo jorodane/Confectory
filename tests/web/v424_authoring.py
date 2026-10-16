@@ -4,6 +4,7 @@ import uuid
 from playwright.sync_api import expect
 
 def verify_declaration_kinds(page,project,mount,send,envelope,settle,browser,browser_action,restart):
+ page.set_viewport_size({'width':1440,'height':1000})
  prefix='Example.ButtonGame::';created=[];initial=(project/'Score.celem').read_bytes()
  choices=[('object','개념 생성','V424Object'),('schema','스키마 생성','V424Schema'),('category','카테고리 생성','V424Category'),('concept','개념 선언 생성','V424Concept'),('function','기능 생성','V424Function'),('module','모듈 생성','V424Module')]
  for kind,label,name in choices:

@@ -53,9 +53,9 @@ case "effective": case "schema-view": case "call-check":{
     var resolved=inspectedReply["effective"]!;if(resolved["status"]!.ToString()!="available")throw new InvalidOperationException("Schema description unavailable: "+resolved["code"]!.ToString());
     inspectedReply["schemaView"]=System.Text.Json.Nodes.JsonNode.Parse(calls.DescribeSchemaView.Invoke(resolved["schemaModel"]!.ToJsonString()));
     if(operation=="call-check")inspectedReply["callCheck"]=System.Text.Json.Nodes.JsonNode.Parse(calls.CheckCall.Invoke(inspectedReply["schemaView"]!.ToJsonString(),request["path"]!.ToJsonString(),request["arguments"]!.ToJsonString(),request["target"]!.GetValue<string>()));
-    foreach(var revision in revisions){var current=calls.Read.Invoke(draft,revision.Key);if(long.Parse(current[4],System.Globalization.CultureInfo.InvariantCulture)!=revision.Value!.GetValue<long>())throw new InvalidOperationException("Schema draft changed during description; refresh explicitly.");}
-    if(calls.Read.Invoke(draft,manifestId)[4]!=manifestUnit[4])throw new InvalidOperationException("Manifest changed during schema description; refresh explicitly.");
    }
+   foreach(var revision in revisions){var current=calls.Read.Invoke(draft,revision.Key);if(long.Parse(current[4],System.Globalization.CultureInfo.InvariantCulture)!=revision.Value!.GetValue<long>())throw new InvalidOperationException("Schema draft changed during description; refresh explicitly.");}
+   if(calls.Read.Invoke(draft,manifestId)[4]!=manifestUnit[4])throw new InvalidOperationException("Manifest changed during schema description; refresh explicitly.");
    return inspectedReply.ToJsonString();
   }
   var ids=new System.Collections.Generic.List<string>();foreach(var edge in inspectedReply["inspection"]!["relations"]!["edges"]!.AsArray()){ids.Add(edge!["target"]!.GetValue<string>());if(edge["function"] is not null)ids.Add(edge["function"]!.GetValue<string>());if(edge["scope"] is not null)ids.Add(edge["scope"]!.GetValue<string>());}

@@ -66,6 +66,11 @@ if(endpoint is "inspectSourceConflict" or "resolveSourceConflict"){
 if(endpoint=="readReferenceDefinition"){
  var payload=new System.Text.Json.Nodes.JsonObject{["context"]=selected["context"]!.DeepClone(),["sourceId"]=args["sourceId"]!.DeepClone(),["id"]=args["id"]!.DeepClone(),["expectedRevision"]=args["revision"]!.DeepClone(),["expectedHash"]=args["hash"]!.DeepClone()};Command("reference-definition",payload);return "{\"accepted\":true}";
 }
+if(endpoint=="readModuleInterface"){
+ string moduleView=args["view"]?.GetValue<string>()??"";var moduleUnit=moduleView.Length==0?before["workspace"]?["unit"]:before["workspaceViews"]?[selected["context"]!.ToString()]?[moduleView]?["workspace"]?["unit"];
+ if(moduleUnit?["id"]?.ToString()!=args["id"]?.ToString()||moduleUnit?["kind"]?.ToString()!="module")throw new InvalidOperationException("Select this owned module before reading its interface");
+ Command("workspace",new(){["context"]=selected["context"]!.DeepClone(),["view"]=moduleView,["id"]=args["id"]!.DeepClone(),["action"]="effective"});return "{\"accepted\":true}";
+}
 if(endpoint=="inspectPanels"){Command("inspect-panels",new(){["context"]=selected["context"]!.DeepClone()});return "{\"accepted\":true}";}
 if(endpoint=="savePresentation"){Command("presentation-save",new(){["context"]=selected["context"]!.DeepClone(),["presentation"]=args["presentation"]!.DeepClone()});return "{\"accepted\":true}";}
 if(endpoint=="leaveProject"){Command("leave",new(){["context"]=selected["context"]!.DeepClone()});return "{\"accepted\":true}";}
@@ -99,7 +104,7 @@ if(endpoint is "openEditorView" or "closeEditorView" or "editEditorView" or "sav
 var request=new System.Text.Json.Nodes.JsonObject{["context"]=selected["context"]!.DeepClone()};
 switch(endpoint){
  case "relationsMap":request["action"]="relations-map";break;
- case "inspectDeclaration":if(args["id"]?.ToString()!=before["workspace"]?["unit"]?["id"]?.ToString())throw new InvalidOperationException("Declaration selection changed");request["action"]="inspect";break;
+ case "inspectDeclaration":if(args["id"]?.ToString()!=before["workspace"]?["unit"]?["id"]?.ToString())throw new InvalidOperationException("Declaration selection changed");request["action"]=before["workspace"]?["unit"]?["kind"]?.ToString()=="module"?"effective":"inspect";break;
  case "editDeclaration":if(args["id"]?.ToString()!=before["workspace"]?["unit"]?["id"]?.ToString())throw new InvalidOperationException("Declaration selection changed");request["action"]="declaration";request["id"]=args["id"]!.DeepClone();request["edit"]=args["edit"]!.DeepClone();request["expectedHash"]=args["hash"]!.DeepClone();request["expectedRevision"]=args["revision"]!.DeepClone();break;
  case "createVariation":if(args["parent"]?.ToString()!=before["workspace"]?["unit"]?["id"]?.ToString())throw new InvalidOperationException("Parent selection changed");request["action"]="create-variation";request["id"]=args["id"]!.DeepClone();request["parent"]=args["parent"]!.DeepClone();request["expectedRevision"]=args["revision"]!.DeepClone();request["expectedHash"]=args["hash"]!.DeepClone();break;
  case "createDeclaration":request["action"]="create";request["id"]=args["id"]!.DeepClone();string createKind=args["kind"]!.GetValue<string>();if(createKind is not ("object" or "schema" or "category" or "concept" or "function" or "module"))throw new ArgumentException("Supported declaration kind required");request["kind"]=createKind;break;

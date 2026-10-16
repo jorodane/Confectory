@@ -1,0 +1,208 @@
+{
+  "schema": 1,
+  "status": "owned-module-contract-default-interface-verified",
+  "baseWorkCommit": "179eee9db78dab2d0dd8744a76aff9eed0d966ac",
+  "referenceMain": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+  "stages": [
+    {
+      "log": "module-interface-host-first.log",
+      "boundary": "Host build for existing typed declaration module-function action; no new execution graph or ABI.",
+      "sha256": "ccdd1ac0285991a0b7e25299047f25e18f8ba70de358253f54a4c4c03bb88d29",
+      "tests": [],
+      "buildSucceeded": true
+    },
+    {
+      "log": "module-interface-engine-first.log",
+      "boundary": "No tests ran: new class omitted from the explicit runner list. This is not a passing gate.",
+      "sha256": "e9cd8799c98b61b7df24a1085bafb01e260542b7368328a45a5a1abc334e46f2",
+      "tests": [],
+      "passed": 0,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 0.013
+    },
+    {
+      "log": "module-interface-engine-registered.log",
+      "boundary": "Registered public test failed because it requested Review after returning to the already confirmed source. No-changes refusal was correct; test now asserts exact confirmed text and actual Run102.",
+      "sha256": "9208f2f8e1c10d0f82326f868150a1eacf6c5ecb8ed7bd10782fb40b22323198",
+      "tests": [
+        "FAIL ModuleInterfaceTests.test_owned_module_interface_contract_default_atomic_cas_cold_and_actual_consumer"
+      ],
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 25.185
+    },
+    {
+      "log": "module-interface-first-pair.log",
+      "boundary": "Public module engine passed; actual UI failed at the unregistered readModuleInterface endpoint. Added this exact endpoint to the explicit transport descriptor; no broad endpoint exposure.",
+      "sha256": "bb9ba9092ce153803b525c97945cb0cc1605ae53f8e7b9411096bd0cb30e8021",
+      "tests": [
+        "PASS ModuleInterfaceTests.test_owned_module_interface_contract_default_atomic_cas_cold_and_actual_consumer",
+        "FAIL WebUITests.test_actual_editor_v480_module_interface_contract_default_and_cold_rebase"
+      ],
+      "passed": 1,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 115.282
+    },
+    {
+      "log": "module-interface-ui-second.log",
+      "boundary": "Actual UI passed inherited origins, cold private input without saved authority, explicit fresh read/rebase, peer CAS, mismatch status, remove-only-local, compiler Confirm and unchanged parent/provider/consumer sources. Before final checkbox layout/capture corrections.",
+      "sha256": "35dba69568cc7fd30757a44c3d99640c8a626704cc6dcb42ff7313db79f9f399",
+      "tests": [
+        "PASS WebUITests.test_actual_editor_v480_module_interface_contract_default_and_cold_rebase"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 91.058
+    },
+    {
+      "log": "module-interface-owner-regression.log",
+      "boundary": "Public module + distinct default ambiguity/missing target, EditWorkspace, DraftHistory and PackWorkspace:7 gates. Before final narrow display changes. Counts overlap with the focused public engine.",
+      "sha256": "b4c41a8947f88b129bac6c29ddca494c5f01461cf8679e8a9d4d8ca58a5a175f",
+      "tests": [
+        "PASS ModuleInterfaceTests.test_owned_module_interface_contract_default_atomic_cas_cold_and_actual_consumer",
+        "PASS IntegrationTests.test_distinct_module_defaults_and_missing_target_fail_before_execution",
+        "PASS EditWorkspaceTests.test_shared_drafts_save_restore_preview_selective_confirm_conflict_and_locality",
+        "PASS DraftHistoryTests.test_shared_draft_history_atomic_inverse_cas_restart_branch_and_owner_boundaries",
+        "PASS PackWorkspaceTests.test_development_tools_owned_scope_shared_draft_no_confirm_and_locality",
+        "PASS PackWorkspaceTests.test_target_metadata_owned_sources_no_registry_execution",
+        "PASS PackWorkspaceTests.test_two_contexts_revision_save_reopen_and_locality"
+      ],
+      "passed": 7,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 261.672
+    },
+    {
+      "log": "module-interface-managed-compile.log",
+      "boundary": "Windows/Android managed compile-only gate; no native pixel or device execution. Before final narrow display changes.",
+      "sha256": "f9fe585b8d936842547e17035e1a77dbcc38a600d41dca8cb3eccac2d7a24e8a",
+      "tests": [
+        "PASS EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 214.271
+    },
+    {
+      "log": "module-interface-ui-managed-regression.log",
+      "boundary": "Existing Home, history, six kinds, typed independent declarations and owned feature calls. Keep failures individually; no aggregate success claim.",
+      "sha256": "fb2153566c86c70e248583795703b5d201e004913bb194b6b2045d336817ffc3",
+      "tests": [
+        "FAIL WebUITests.test_actual_editor_original_v196_home_project_and_create_flow",
+        "PASS WebUITests.test_actual_editor_v424_shared_draft_history_cas_and_cold_restart",
+        "FAIL WebUITests.test_actual_editor_v424_six_declaration_kinds_and_registration_review",
+        "PASS WebUITests.test_actual_editor_v424_typed_declaration_views_cas_confirm_and_restart",
+        "PASS WebUITests.test_actual_editor_v480_existing_feature_reference_call_and_cold_contract"
+      ],
+      "passed": 3,
+      "failed": 2,
+      "skipped": 0,
+      "seconds": 383.391
+    },
+    {
+      "log": "module-interface-ui-rechecks.log",
+      "boundary": "Recheck Home after explicit ordinary navigation-response wait; six kinds uses the standard1440x1000 viewport to keep source Review clear of Dock. No forced clicks or z-index manipulation.",
+      "sha256": "5520aa0acae1f03fdaa199f5db3bb0f2536303d70d3d501729b80f20efce9a13",
+      "tests": [
+        "PASS WebUITests.test_actual_editor_original_v196_home_project_and_create_flow",
+        "PASS WebUITests.test_actual_editor_v424_six_declaration_kinds_and_registration_review"
+      ],
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 253.721
+    },
+    {
+      "log": "module-interface-final-ui.log",
+      "boundary": "Final display test attempt stopped at the navigation menu after cold restore (no menu item present). Test now focuses the actual restored module caption and opens the navigation menu conditionally; product source unchanged after this failure.",
+      "sha256": "ab17e7bfc6a607108bef2e5ca5e99077faa8ad37d29398dd1b1595903eb65ff1",
+      "tests": [
+        "FAIL WebUITests.test_actual_editor_v480_module_interface_contract_default_and_cold_rebase"
+      ],
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 40.573
+    },
+    {
+      "log": "module-interface-final-ui-second.log",
+      "boundary": "Final actual UI after checkbox layout/capture fixes, including detached module-view current read and contract/default Apply while primary selects another function; inherited module contracts, cold private input, peer CAS, mismatch, explicit compiler publication and unchanged originals.",
+      "sha256": "47ed7d1ea7d9c6b0b0bfce42bd42fe308302ff69d9916b0cee69dfb3f85400bc",
+      "tests": [
+        "PASS WebUITests.test_actual_editor_v480_module_interface_contract_default_and_cold_rebase"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 56.881
+    },
+    {
+      "log": "module-interface-checkout.log",
+      "boundary": "Implementation commit ordinary Git checkout, retained CRLF/fresh LF,27 static resources, actual Home start and tamper refusal.",
+      "sha256": null,
+      "tests": []
+    }
+  ],
+  "claims": {
+    "existingModuleRequireDefaultSource": true,
+    "noExecutableGraphOrBodyCreation": true,
+    "primitiveArrayOneReturnAbiUnchanged": true,
+    "inheritedContractAndDefaultOriginsPreserved": true,
+    "directDefaultOverrideDoesNotCopyInheritedRequirement": true,
+    "removeLocalRevealsOriginalInheritedSource": true,
+    "oneSourceAtomicContractAndDefaultHistory": true,
+    "sameMeaningPeerRevisionAndHashCAS": true,
+    "trueColdDraftRestoreBeforePublication": true,
+    "coldPrivateInputsDoNotRetainApplyAuthority": true,
+    "explicitCurrentReadAndInputRebase": true,
+    "metadataBodyReads": 0,
+    "metadataProviderSelection": "not-performed",
+    "invalidContractActualCompilerConfirmRefused": true,
+    "ownedActualConsumerResults": [
+      5,
+      102,
+      5
+    ],
+    "parentProviderConsumerOriginalsPreserved": true,
+    "actualCommonHomeUi": true,
+    "staticResourceCount": 27,
+    "accountOrPaidModel": false,
+    "nativePixelOrDeviceExecution": false
+  },
+  "boundaries": [
+    "Stages overlap and must not be added. Failed attempts and exact corrections remain visible.",
+    "Module interface edits require/default in existing owned declaration sources; it is a derivative contract display, not an executable graph.",
+    "Declaration metadata does not choose or execute a provider. Actual5/102/5 uses the owned consumer fixture and its existing root module context. Include defaults may remain ambiguous and require explicit consumer providers.",
+    "Module provide relations do not establish a new runtime import scope; current language forbids module import scope. Existing generic provide editing and compiler validation are unchanged.",
+    "Final source publication uses explicit Save/Review/Confirm and actual compiler validation; incomplete staged contracts are permitted and reported as unavailable.",
+    "Only owned fixtures execute. Main/original ZIPs/Android settings are preserved; DISPLAY unavailable, no native pixel/device/account/paid model/user-PC installs.",
+    "Arbitrary foreign registry import selection, explicit legacy conversion/parent reuse UI, per-object module implementation selection, new implicit-end/local-values profile, expanded internal enum/ref-out types and remaining v480 presentation are unfinished."
+  ],
+  "sourceHashes": {
+    "examples/editor-home/WebBundle.csbody": "bd700589ae8502ad07d4ab5809d59d388ac43fc3adcc1064ee5e1fd9e6b13cf4",
+    "examples/editor-home/WebInvoke.csbody": "f514f3aaba50d4dbae1696d9a526e19d7027e629f5a9dc3ceac21a032a49f0e3",
+    "examples/editor-home/WebState.csbody": "40d8c40bdd5eaa053c6820252ad7b1a94db8cbdfd1a806f98c08705eccbbeb05",
+    "examples/editor-home/ui/app.js": "7a10ac8ac925de92e5c4652d065521150811c111cf66cc3ed22d4f3a10fdbcb7",
+    "examples/editor-home/ui/consumer.css": "d3e99f601fc660daf396de5e0e64a4c7aab9c71a7380f289b6c30a25c06d5e08",
+    "examples/editor-home/ui/declarations.js": "f3ed0445959540ece45304577a9bbdfe74c01866a944db4f180ee9076a4391bb",
+    "packs/editor-home-model/Command.csbody": "86ec0a42722b2bb40121b9e2e3fc89fb9ac30e52c54e8d46882f24a5b7bc9c81",
+    "packs/pack-workspace/Command.csbody": "690f64510a02f3838f9923df0daa39e963457d0a7edcaef348575def372ae65f",
+    "targets/element-authoring/DeclarationAuthoring.cs": "be2b8d73e1e31a214e75b57949c6ffddc466895634660d904fa7a057a212bb28",
+    "tests/Confectory.Tests/ModuleInterfaceTests.cs": "25b366a54ef0037b933f8ccba2fe30ddd3644cbd42d990d53cf08866885ae2aa",
+    "tests/Confectory.Tests/Program.cs": "df15120cf225a08c10f9f4c46e9314e8b5551309a2016c57e27dd208a129b5fa",
+    "tests/Confectory.Tests/WebUITests.cs": "ca39a5036ff2fdaaa547e2b1686254a8f7124a7e88c2b0609ee65ca6f1776b15",
+    "tests/web/editor_home_original_layout.py": "a5107b6f64bef2c72860968cbf76e1d9b808271990b96cf2a7c5b24abd6791bd",
+    "tests/web/v424_authoring.py": "cbfa5795d3c1f650be62059ce95650104475e2151763c4446c6a9abf41d56e89",
+    "tests/web/v480_module_interface.py": "0ce09db1b049f904e6f8b2eaf8091f17479bbd402c0156c792d2a69ff09fe947",
+    "tests/web/web_ui.py": "87707497c5caad51493d9745a8f06ae5a211bed3fe062d2c2d5edec8cd930702"
+  },
+  "images": {
+    "module-contract.png": "4146b56a69090e95fb32bc018629cdb3ea19b960e1bb35db4ee001a1c709a458",
+    "module-interface.png": "5181ac25644f702b7109ded89e5e866ed4bca519da607e0bdd21ccee9d6192be"
+  }
+}

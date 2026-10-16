@@ -42,6 +42,13 @@ internal static class DeclarationAuthoring
     }break;
    }
    case "signature":if(element.Kind is not ("function" or "implementation"))throw new ArgumentException("Public function signature required");element.Signature=Signature(edit["value"]??throw new ArgumentException("Signature required"),true);break;
+   case "module-function":{
+    if(element.Kind!="module"||edit.Any(p=>p.Key is not ("action" or "function" or "signature" or "default"))||!edit.ContainsKey("signature")&&!edit.ContainsKey("default"))throw new ArgumentException("Explicit module contract/default edit required");
+    string function=Id(edit,"function");
+    if(edit.ContainsKey("signature")){if(edit["signature"] is null)element.Requires.Remove(function);else element.Requires[function]=new RequiredFunction(Signature(edit["signature"]!,false),new(),element.Id);}
+    if(edit.ContainsKey("default")){if(edit["default"] is null)element.Defaults.Remove(function);else element.Defaults[function]=new ElementReference(Id(edit,"default"),new(),element.Id);}
+    break;
+   }
    case "parent":if(!edit.ContainsKey("value"))throw new ArgumentException("Explicit parent value required");element.Parent=edit["value"] is null?null:Id(edit,"value");break;
    case "relations":{
     string role=Text(edit,"role");var rows=Entries();

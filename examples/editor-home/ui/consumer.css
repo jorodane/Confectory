@@ -46,3 +46,5 @@
 .window .bp-create{font-size:13px;gap:7px;padding:12px}.bp-create p{margin:0}.window .bp-create textarea{min-height:58px;height:58px;padding:7px;font-size:13px}.window .bp-create input,.window .bp-create select{font-size:13px;padding:7px}.bp-create-actions{padding:6px 0}
 
 .bp-create [data-call-preview]>label{display:flex;align-items:flex-start;gap:8px;margin:9px 0}.window .bp-create [data-call-preview] input[type=checkbox]{width:16px;height:16px;flex:0 0 16px;margin:0;padding:0}
+
+.module-contract{border:1px solid var(--line,#555);padding:12px;margin:10px 0;display:grid;gap:8px}.module-contract p{margin:0}.module-contract-flow{display:flex;justify-content:space-between;gap:24px;background:var(--workspace,#202830);padding:12px}.module-contract-flow>div{display:grid;gap:6px}.window .module-contract .module-local{display:flex;align-items:center;gap:8px}.module-contract .module-local input[type=checkbox]{width:16px;height:16px;flex:0 0 16px;padding:0;margin:0}

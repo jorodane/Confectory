@@ -46,7 +46,7 @@ Codex 준비·공식 기기 코드 로그인 단계는 `114e00ffb35f6c3f4e5cdfd3
 | E02 | enum 정의·이름·값·아이콘·참조·선택 메뉴 | 부분 | 실제 enum schema/data contract와 리뷰 가능한 변경 |
 | E03 | 객체 함수/동작 목록·상속·연결/해제·순서 | 계약 | 실제 function datum, module/feature 관계, 임의 데모 methods 제외 |
 | E04 | 함수 입력·출력·이름·설명·타입·시그니처 편집 | 연결/검증 | 실제 FunctionSignature/Parser의 타입·이름·순서와 메타데이터, 독립 View·입력 보존·리비전+내용 해시 CAS·compiler Confirm 검증. graph 연결 후 계약 영향 표시는 후속 |
-| E05 | 모듈 require/default/provide/import·구현 선택·호환성 | 계약 | 실제 요구/제공 관계와 compiler-backed 검증 |
+| E05 | 모듈 require/default/provide/import·구현 선택·호환성 | 요구 계약·기본 구현 인터페이스 연결/검증 | [v480 모듈](EDITOR_V480_INTEGRATION.md): 기존 소유 선언의 원자적 require/default 편집, 상속 출처·후보 보존, CAS·cold 입력·독립 View와 실제 소비자 5→102→5·compiler Confirm. 객체별 구현 선택 전용 UI는 후속 |
 | E06 | 함수 노드·입출력 pin·연결·접기·설명·직접 작성 | 기존 graph 연결/검증 | [v480 기존 graph 화면](EDITOR_V480_INTEGRATION.md): 실제 외부 계약, 설명·인수·실행 경로·독립 C# 본문, Node Task, 원자적 원본 CAS와 cold 입력 재검토. 접기·다이브·확장 ABI는 후속 |
 | E07 | Blueprint 노드 추가/삭제/링크/저장/확대·맞춤 | 기존 graph 노드 생성·제거 연결/검증 | [v480 검증](EDITOR_V480_INTEGRATION.md): 독립 코드 노드와 별도 원본의 원자적 생성, graph·본문 그룹 검토/확정, 연결·참조·미확정 본문 보호, 기존 파일을 보존하는 graph 제거, 구독 종료·복원·리비전·읽기 예산 검증. 기존 편집·저장·확대·맞춤을 유지한다. 신규 ProjectPack 기능은 편집한 외부 계약과 새 graph·독립 본문·등록부를 함께 검토/확정한다. 소유된 기존 기능의 현재 계약을 확인해 typed import와 참조 호출을 함께 적용하며 원본 본문을 보존한다. 기존 기능의 전환·물리 파일 삭제와 확장 profile은 후속 |
 | E08 | 계약 검토·모듈 검토·컨셉/밸런스/테스트 요청 | 부분 | 실제 검사 또는 Helper 요청 미리보기/동의/도구 범위 |

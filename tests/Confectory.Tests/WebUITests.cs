@@ -140,6 +140,13 @@ public sealed class WebUITests : TestCase
     public void test_actual_editor_v480_blueprint_node_creation_removal_and_cold_source_groups()=>RunOwnedBlueprint("blueprint-create");
     public void test_actual_editor_v480_new_feature_contract_graph_group_and_cold_source()=>RunOwnedBlueprint("feature-create");
     public void test_actual_editor_v480_existing_feature_reference_call_and_cold_contract()=>RunOwnedBlueprint("call-wrapper");
+    public void test_actual_editor_v480_module_interface_contract_default_and_cold_rebase()
+    {
+        var built=new Builder(Path.Combine(Fixture.Repo,"examples/editor-home/project.cpack"),"linux").Build();
+        string report=Path.Combine(f.Root,"v480-module-interface.json");File.WriteAllText(report,built.ToJsonString());
+        var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/web_ui.py"),Fixture.Repo,report,"module-interface"},timeoutSeconds:420);
+        True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS actual v480 module interface"),run.Stdout+run.Stderr);
+    }
     private void RunOwnedBlueprint(string mode)
     {
         string feature="function Example.ButtonGame::NodeValue (long n) -> long {}";

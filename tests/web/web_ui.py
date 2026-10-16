@@ -50,6 +50,16 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
   (project/'Double.celem').write_text('function Example.ButtonGame::Double (long value) -> long {description "Existing double feature";provide Example.ButtonGame::Double with Example.ButtonGame::DoubleBody;}')
   (project/'DoubleBody.celem').write_text('implementation Example.ButtonGame::DoubleBody for Example.ButtonGame::Double (long value) -> long {body common "double.csbody";}');(project/'double.csbody').write_text('return value * 2;')
   source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+'element Double function "Double.celem";element DoubleBody implementation "DoubleBody.celem";'+source[index:])
+ if kind=='module-interface':
+  fixtures={
+   'ModuleValue':('function','function Example.ButtonGame::ModuleValue (long value) -> long {}'),
+   'ModuleValueBody':('implementation','implementation Example.ButtonGame::ModuleValueBody for Example.ButtonGame::ModuleValue (long value) -> long {body common "module-value.csbody";}'),
+   'ModuleSecondBody':('implementation','implementation Example.ButtonGame::ModuleSecondBody for Example.ButtonGame::ModuleValue (long value) -> long {body common "module-second.csbody";}'),
+   'ParentRules':('module','module Example.ButtonGame::ParentRules {require Example.ButtonGame::ModuleValue (long) -> long;default Example.ButtonGame::ModuleValue with Example.ButtonGame::ModuleValueBody;}'),
+   'Rules':('module','module Example.ButtonGame::Rules extends Example.ButtonGame::ParentRules {description "Owned module interface";}')}
+  for name,(_,source) in fixtures.items():(project/(name+'.celem')).write_text(source)
+  (project/'module-value.csbody').write_text('return value + 3;');(project/'module-second.csbody').write_text('return value + 100;')
+  source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+''.join('element '+name+' '+definition[0]+' "'+name+'.celem";' for name,definition in fixtures.items())+source[index:])
  if kind=='build-jobs':
   env['CONFECTORY_BUILD_UI_SENTINEL']=str(root/'build-sentinel.txt')
   body=project/'main.csbody';body.write_text('System.IO.File.AppendAllText(Environment.GetEnvironmentVariable("CONFECTORY_BUILD_UI_SENTINEL")!,"run\\n");\n'+body.read_text())
@@ -166,6 +176,9 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
     elif kind=='local-augment':
      from v424_local_augment import verify_local_augment
      verify_local_augment(page,project,mount,send,envelope,settle,restart_actual_host)
+    elif kind=='module-interface':
+     from v480_module_interface import verify_module_interface
+     verify_module_interface(page,project,mount,send,envelope,settle,restart_actual_host)
     elif kind=='call-wrapper':
      from v480_call_wrapper import verify_call_wrapper
      verify_call_wrapper(page,project,mount,send,envelope,settle,restart_actual_host)
