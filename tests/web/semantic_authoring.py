@@ -229,7 +229,11 @@ def verify_concept_creation(page,project,mount,send,envelope,browser,browser_act
  # Restored floating windows keep their placement. Close the restored Run and
  # property presentations through their ordinary controls before selecting the row.
  run_close=page.locator('.window[data-key="run"] [data-close]')
- if run_close.count():run_close.click()
+ if run_close.count():
+  page.locator('#run').click();run_close.click()
+ if page.locator('.window[data-key="schema"] [data-close]').count():
+  page.locator('#nav').click();page.locator('.nav-menu').get_by_role('button',name='스키마',exact=True).click();expect(page.locator('#nav')).to_be_enabled()
+  if page.locator('.nav-menu').count():page.locator('#nav').click()
  close()
  page.locator('[data-id="'+prefix+'test"]').click()
  expect(page.locator('.window[data-key="schema"] [data-schema-id]')).to_have_text(prefix+'test',timeout=30000)

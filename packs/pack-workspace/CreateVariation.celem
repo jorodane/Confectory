@@ -1,0 +1,7 @@
+function Confectory.PackWorkspace::CreateVariation (string handle, string parent, string id, long revision, string hash) -> string {
+provide Confectory.PackWorkspace::CreateVariation with Confectory.PackWorkspace::CreateVariationBody;
+provide Confectory.EditWorkspace::CreateVariation with Confectory.EditWorkspace::CreateVariationBody;
+provide Confectory.PackWorkspace::Snapshot with Confectory.PackWorkspace::SnapshotBody;
+provide Confectory.EditWorkspace::List with Confectory.EditWorkspace::ListBody;
+provide Confectory.EditWorkspace::Status with Confectory.EditWorkspace::StatusBody;
+description "Create an object variation from the explicitly selected parent version and return its ordinary owned draft View.";}

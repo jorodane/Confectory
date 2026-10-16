@@ -130,6 +130,18 @@ public sealed class WebUITests : TestCase
         var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/web_ui.py"),Fixture.Repo,report,"review-presentation"},timeoutSeconds:180);
         True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS actual compact numeric row and fresh subset caption"));
     }
+    public void test_actual_editor_startup_serializes_owned_restore_before_helper_refresh()
+    {
+        var built=new Builder(Path.Combine(Fixture.Repo,"examples/editor-home/project.cpack"),"linux").Build();string report=Path.Combine(f.Root,"startup-restore.json");File.WriteAllText(report,built.ToJsonString());
+        var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/web_ui.py"),Fixture.Repo,report,"startup-restore"},timeoutSeconds:180);
+        True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS actual startup metadata delay"),run.Stdout+run.Stderr);
+    }
+    public void test_actual_editor_v424_owned_object_variation_atomic_creation_and_cold_restart()
+    {
+        var built=new Builder(Path.Combine(Fixture.Repo,"examples/editor-home/project.cpack"),"linux").Build();string report=Path.Combine(f.Root,"v424-object-variation.json");File.WriteAllText(report,built.ToJsonString());
+        var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/web_ui.py"),Fixture.Repo,report,"object-variation"},timeoutSeconds:600);
+        True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS actual owned object variation"),run.Stdout+run.Stderr);
+    }
     public void test_actual_editor_v424_schema_local_actions_and_compound_array_order()
     {
         var built=new Builder(Path.Combine(Fixture.Repo,"examples/editor-home/project.cpack"),"linux").Build();string report=Path.Combine(f.Root,"v424-schema-actions.json");File.WriteAllText(report,built.ToJsonString());

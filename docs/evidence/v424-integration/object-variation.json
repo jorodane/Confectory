@@ -1,0 +1,206 @@
+{
+  "scope": "v424 owned object variation and serialized consumer startup",
+  "status": "passed; ordinary checkout pending; remaining v424 and Blueprint work in progress",
+  "baseCommit": "693180b7306cc7f66b88302166e5e394ae1e841f",
+  "gates": [
+    {
+      "name": "initial actual variation UI, restart and compiler Confirm",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 96.115,
+      "boundary": "Before moving the public wrapper to a dedicated PackWorkspace role."
+    },
+    {
+      "name": "dedicated variation contract and existing PackWorkspace consumers",
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 79.983,
+      "cases": [
+        "WebUITests.test_actual_editor_v424_owned_object_variation_atomic_creation_and_cold_restart",
+        "PackWorkspaceTests.test_development_tools_owned_scope_shared_draft_no_confirm_and_locality",
+        "PackWorkspaceTests.test_target_metadata_owned_sources_no_registry_execution",
+        "PackWorkspaceTests.test_two_contexts_revision_save_reopen_and_locality"
+      ],
+      "boundary": "Final owner contracts; before the startup ordering correction."
+    },
+    {
+      "name": "pre-startup-correction affected regression",
+      "passed": 6,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 648.345,
+      "passedCases": [
+        "WebUITests.test_actual_editor_new_concept_creation_save_confirm_reopen",
+        "WebUITests.test_actual_editor_v424_instant_table_typed_fill_cas_and_cold_restart",
+        "WebUITests.test_actual_editor_v424_typed_declaration_views_cas_confirm_and_restart",
+        "SchemaEditingTests.test_v424_declaration_mutation_types_relations_local_reset_and_array_order",
+        "EditWorkspaceTests.test_shared_drafts_save_restore_preview_selective_confirm_conflict_and_locality",
+        "EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only"
+      ],
+      "failedCase": "WebUITests.test_actual_editor_v424_six_declaration_kinds_and_registration_review",
+      "boundary": "All six kinds were created and compiler-confirmed; cold initialization exposed concurrent metadata and restoration requests. Not a whole-batch pass."
+    },
+    {
+      "name": "delayed actual startup regression before correction",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 9.171,
+      "case": "WebUITests.test_actual_editor_startup_serializes_owned_restore_before_helper_refresh",
+      "observedRequests": [
+        "objects",
+        "select",
+        "inspectDeclaration",
+        "helperList"
+      ],
+      "boundary": "Only delays the real browser fetch; no synthetic model state or replies. Demonstrates incorrect request ordering even when Ready happens to arrive."
+    },
+    {
+      "name": "recovered post-startup-correction UI batch",
+      "passed": 7,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 596.75,
+      "passedCases": [
+        "WebUITests.test_actual_editor_startup_serializes_owned_restore_before_helper_refresh",
+        "WebUITests.test_actual_editor_v318_helper_inputs_and_panels_cold_restart",
+        "WebUITests.test_actual_editor_v318_workspace_lifecycle_presentation_restart",
+        "WebUITests.test_actual_editor_v318_yogi_owned_content_and_validation_restart",
+        "WebUITests.test_actual_editor_v424_owned_object_variation_atomic_creation_and_cold_restart",
+        "WebUITests.test_actual_editor_v424_six_declaration_kinds_and_registration_review",
+        "WebUITests.test_actual_editor_v424_typed_declaration_views_cas_confirm_and_restart"
+      ],
+      "failedCase": "WebUITests.test_actual_editor_and_button_game_common_web_transport_chromium",
+      "boundary": "Seven actual startup/restart gates passed. The full consumer reached final cold cleanup but attempted clicking a Run close button behind the foreground browser. Its test now focuses each restored window through ordinary Dock/Nav controls before closing; product source is unchanged by this test adjustment."
+    },
+    {
+      "name": "final full Home and ButtonGame consumer after ordinary window focus in test",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 337.147,
+      "cases": [
+        "WebUITests.test_actual_editor_and_button_game_common_web_transport_chromium"
+      ],
+      "boundary": "Same product code as the recovered seven passing startup/restart cases; only the test cleanup now selects restored windows through Dock/Nav before closing. No forced click."
+    }
+  ],
+  "overlap": "Stages repeat cases and must not be added. Managed Windows/Android compilation passed in the pre-startup batch; this is not physical device execution.",
+  "verifiedBehavior": [
+    "new owned object extends the explicitly displayed parent",
+    "parent source ID/kind, revision and UTF-8 content hash fenced",
+    "declaration and manifest candidates prepared before atomic shared draft staging",
+    "parent, manifest, destination and handle checked again before staging",
+    "no parent data, description or implementation copied into the child source",
+    "inherited values and explicit local override/reset",
+    "cancelled dialog and stale parent leave no partial creation or registration",
+    "ordinary Save and cold restoration preserve the new object and registration",
+    "creation Review includes the dependent manifest and real compiler Confirm",
+    "parent physical source unchanged",
+    "dedicated PackWorkspace creation role preserves legacy Command dependency set",
+    "initialization is active before mount; metadata bootstrap precedes selection restoration",
+    "no automatic source CAS retry or model execution added"
+  ],
+  "sourceFiles": [
+    {
+      "path": "examples/editor-home/Main.celem",
+      "sha256": "eb59433250424e1fcd0aee4ca7faa04a8d8246880c23fcba6196e0f489da31a2"
+    },
+    {
+      "path": "examples/editor-home/Verify.celem",
+      "sha256": "1bdc261e200afe0942c345a25685bcc41a72604bd0750448ff1de26f0bce43ad"
+    },
+    {
+      "path": "examples/editor-home/VerifyShell.celem",
+      "sha256": "ee0fccab00a4c7452638e41fc9e86b25e569d1926b643928d1539e9efeb02c06"
+    },
+    {
+      "path": "examples/editor-home/WebBundle.csbody",
+      "sha256": "f68536a4ae4cd2428c715acd1fc9061fc2a120f058fd7ff08aec30719d4d9a57"
+    },
+    {
+      "path": "examples/editor-home/WebInvoke.csbody",
+      "sha256": "b6255eb9851bff620fd12c3e8bee64e2133e3b93d3d796d7daa8ab383caf0168"
+    },
+    {
+      "path": "examples/editor-home/ui/app.js",
+      "sha256": "a0d35eddced42536a8ed2a035945d088bbea5d592b3fe77b5d440f265eca1951"
+    },
+    {
+      "path": "packs/edit-workspace/README.md",
+      "sha256": "ed54473dd6a9a4f8cf8a28e5910553327cf516ecece9664980f0136e3d61f658"
+    },
+    {
+      "path": "packs/edit-workspace/pack.cpack",
+      "sha256": "75e601df95a6064f6dcd09708056e05033fc617fd9919303520cb58ea6387276"
+    },
+    {
+      "path": "packs/editor-home-model/Command.celem",
+      "sha256": "31ff66d191dfc2cf126bd640797438034dcb35f3752b4ed323d9a1c1a3fa6da1"
+    },
+    {
+      "path": "packs/editor-home-model/Command.csbody",
+      "sha256": "542690771328d16c229994a9ba00dd799a5cad53d4d5a06b88c535de11e6d0e0"
+    },
+    {
+      "path": "packs/editor-home-model/CommandBody.celem",
+      "sha256": "697adc9f31c405a5368cccd4c8a620060d6d96669b4b0cbf7a74353477644b04"
+    },
+    {
+      "path": "packs/pack-workspace/README.md",
+      "sha256": "3de5e0a3c7b97e85c56d121c2329776efcb52a12b6e312114e8365e6a876cddc"
+    },
+    {
+      "path": "packs/pack-workspace/pack.cpack",
+      "sha256": "7068cb5903d3f1c39a409c2a4fcea71bebfc53d61fd7b0dd92091183760a0501"
+    },
+    {
+      "path": "packs/edit-workspace/CreateVariation.celem",
+      "sha256": "c1c59145763ef539b0245ef584328f8c79cb6508f5bddf68005c2004d2e15dd9"
+    },
+    {
+      "path": "packs/edit-workspace/CreateVariation.csbody",
+      "sha256": "d5ad3b462d5ce86e064e3c30c1f3da0c578f0b298ff8196a494931aa5b79628c"
+    },
+    {
+      "path": "packs/edit-workspace/CreateVariationBody.celem",
+      "sha256": "544d4a597959eed4547728c2c0ba5a4995d7c853811e70070e0fbc22ecb0e7f3"
+    },
+    {
+      "path": "packs/pack-workspace/CreateVariation.celem",
+      "sha256": "7652c76f8aa1d26cb4d778e48d72f232f56e723fdd208fdd63e202ff56d99ac8"
+    },
+    {
+      "path": "packs/pack-workspace/CreateVariation.csbody",
+      "sha256": "5aa75281569df122550298ee1fef8b051f03f6259645305426afc352129ebb14"
+    },
+    {
+      "path": "packs/pack-workspace/CreateVariationBody.celem",
+      "sha256": "6de9b946a52c636c4ee9fdad6a8db14e50b29b944c1f469fe5e1ff45d685aea3"
+    }
+  ],
+  "ordinaryCheckout": {
+    "status": "pending after implementation commit",
+    "resources": 22
+  },
+  "limits": [
+    "Only root-owned object parents in this creation UI.",
+    "Feature/Blueprint variation and newer feature reference UI remain separate work.",
+    "No new runtime types, forced child implementation, paid calls, real accounts or online deployment.",
+    "Whole v424 map and approved Blueprint UI/Task integration remain in progress.",
+    "The previous variant-specific temporary screenshot did not survive the environment restart; retained logs and test source support those results."
+  ],
+  "protected": {
+    "main": "unchanged",
+    "originalArchives": "unchanged",
+    "androidSettings": "unchanged"
+  },
+  "captures": [
+    {
+      "path": "ordinary-reopen.png",
+      "scope": "Actual ordinary source/manifest Confirm and cold reopen in the final full consumer; this is not a variant-specific capture."
+    }
+  ]
+}

@@ -20,6 +20,7 @@ element SetText function "SetText.celem";
 element SetTextBody implementation "SetTextBody.celem";
 element SetValue function "SetValue.celem";
 element SetValueBody implementation "SetValueBody.celem";
+element CreateVariation function "CreateVariation.celem";element CreateVariationBody implementation "CreateVariationBody.celem";
 element Create function "Create.celem";
 element CreateBody implementation "CreateBody.celem";
 element Changes function "Changes.celem";

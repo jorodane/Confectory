@@ -9,6 +9,7 @@ element Open function "Open.celem";
 element OpenBody implementation "OpenBody.celem";
 element Snapshot function "Snapshot.celem";
 element SnapshotBody implementation "SnapshotBody.celem";
+element CreateVariation function "CreateVariation.celem";element CreateVariationBody implementation "CreateVariationBody.celem";
 element Command function "Command.celem";
 element CommandBody implementation "CommandBody.celem";
 element Close function "Close.celem";

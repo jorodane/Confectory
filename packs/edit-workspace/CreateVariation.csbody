@@ -1,0 +1,22 @@
+if(revision<0||!System.Text.RegularExpressions.Regex.IsMatch(hash,"\\A[0-9a-f]{64}\\z",System.Text.RegularExpressions.RegexOptions.CultureInvariant)||id.Length>256)throw new ArgumentException("Displayed parent version and bounded new ID required");
+string key="Confectory.EditWorkspace."+handle;var state=AppDomain.CurrentDomain.GetData(key) as System.Text.Json.Nodes.JsonObject??throw new ObjectDisposedException("EditWorkspace");
+string Hash(string text)=>Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(text))).ToLowerInvariant();
+var observed=calls.Read.Invoke(handle,parent);if(observed[1]!="object")throw new ArgumentException("Owned object parent required");
+if(long.Parse(observed[4],System.Globalization.CultureInfo.InvariantCulture)!=revision||Hash(observed[3])!=hash)throw new InvalidOperationException("Parent source changed; read it again");
+var inspected=System.Text.Json.Nodes.JsonNode.Parse(calls.Inspect.Invoke(observed[3]))!;if(inspected["id"]!.ToString()!=parent||inspected["kind"]!.ToString()!="object")throw new ArgumentException("Parent identity changed");
+string manifestId,manifestText;long manifestRevision;
+lock(state){
+ string ns=state["namespace"]!.ToString();if(!parent.StartsWith(ns+"::",StringComparison.Ordinal)||!id.StartsWith(ns+"::",StringComparison.Ordinal))throw new ArgumentException("Parent and child belong to the owned namespace");
+ if(state["units"]![id] is not null)throw new ArgumentException("Element already exists");
+ manifestId=ns+(state["units"]![ns+"::ProjectManifest"] is null?"::PackManifest":"::ProjectManifest");manifestText=state["units"]![manifestId]!["draft"]!.ToString();manifestRevision=state["units"]![manifestId]!["revision"]!.GetValue<long>();
+}
+// Build and parse both candidates before touching the shared draft state.
+string empty=calls.Create.Invoke("object",id);string text=System.Text.Json.JsonSerializer.Deserialize<string>(calls.Metadata.Invoke("editDeclaration",System.Text.Json.JsonSerializer.Serialize(new{text=empty,edit=new{action="parent",value=parent}})))!;
+string local=id[(id.IndexOf("::",StringComparison.Ordinal)+2)..],path="elements/"+local+".celem",registered=calls.Register.Invoke(manifestText,id,"object",path);
+lock(state){
+ if(!ReferenceEquals(AppDomain.CurrentDomain.GetData(key),state))throw new ObjectDisposedException("EditWorkspace");
+ var current=state["units"]![parent];var manifest=state["units"]![manifestId]!;
+ if(current is null||current["revision"]!.GetValue<long>()!=revision||Hash(current["draft"]!.ToString())!=hash||manifest["revision"]!.GetValue<long>()!=manifestRevision||manifest["draft"]!.ToString()!=manifestText)throw new InvalidOperationException("Parent or registration changed during creation; retain input and read again");
+ if(state["units"]![id] is not null||System.IO.File.Exists(System.IO.Path.Combine(state["root"]!.ToString(),path)))throw new ArgumentException("Creation destination already exists");
+ state["units"]!.AsObject().Add(id,new System.Text.Json.Nodes.JsonObject{["id"]=id,["kind"]="object",["path"]=path,["baseline"]="missing",["original"]="",["draft"]=text,["revision"]=1L});manifest["draft"]=registered;manifest["revision"]=manifestRevision+1;
+}

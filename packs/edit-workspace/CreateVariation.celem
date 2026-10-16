@@ -1,0 +1,1 @@
+function Confectory.EditWorkspace::CreateVariation (string handle, string parent, string id, long revision, string hash) -> void {description "Atomically stage a new owned object and manifest registration extending the displayed parent version; no copied data or final source writes.";}

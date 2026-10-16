@@ -20,6 +20,7 @@ import Confectory.ProjectExecution::Stop as Stop (string[], string) -> void;
 import Confectory.ProjectManager::PlanCreation as PlanCreation (string, string) -> string[];
 import Confectory.PackWorkspace::Open as PackOpen (string,string,string) -> string;
 import Confectory.PackWorkspace::Command as PackCommand (string,string,string) -> string;
+import Confectory.PackWorkspace::CreateVariation as PackCreateVariation (string,string,string,long,string) -> string;
 import Confectory.PackWorkspace::Snapshot as PackSnapshot (string) -> string;
 import Confectory.PackWorkspace::BorrowDraft as ProposalDraft (string) -> string;
 import Confectory.EditWorkspace::Read as ProposalRead (string,string) -> string[];

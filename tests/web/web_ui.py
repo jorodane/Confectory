@@ -152,6 +152,12 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
     elif kind=='local-augment':
      from v424_local_augment import verify_local_augment
      verify_local_augment(page,project,mount,send,envelope,settle,restart_actual_host)
+    elif kind=='startup-restore':
+     from v424_startup_restore import verify_startup_restore
+     verify_startup_restore(page,project,restart_actual_host)
+    elif kind=='object-variation':
+     from v424_object_variation import verify_object_variation
+     verify_object_variation(page,project,mount,send,envelope,settle,restart_actual_host)
     elif kind=='schema-actions':
      from v424_schema_actions import verify_schema_actions
      verify_schema_actions(page,project,mount,send,envelope,settle,restart_actual_host)

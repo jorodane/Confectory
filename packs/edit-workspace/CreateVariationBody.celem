@@ -1,0 +1,8 @@
+implementation Confectory.EditWorkspace::CreateVariationBody for Confectory.EditWorkspace::CreateVariation (string handle, string parent, string id, long revision, string hash) -> void {
+import Confectory.EditWorkspace::Read as Read (string, string) -> string[];
+import Confectory.SchemaEditing::Create as Create (string, string) -> string;
+import Confectory.SchemaEditing::Register as Register (string, string, string, string) -> string;
+import Confectory.SchemaEditing::Inspect as Inspect (string) -> string;
+import Confectory.SchemaEditing::Call as Metadata (string, string) -> string;
+body common "CreateVariation.csbody";
+}

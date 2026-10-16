@@ -1,0 +1,9 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.PackWorkspace."+handle) as System.Text.Json.Nodes.JsonObject??throw new ObjectDisposedException("PackWorkspace");
+lock(state){
+ if(state["closing"]!.GetValue<bool>())throw new ObjectDisposedException("PackWorkspace");
+ if(state["selected"]!.ToString()!=parent)throw new InvalidOperationException("Displayed parent selection changed");
+ string draft=state["draft"]!.ToString();calls.CreateVariation.Invoke(draft,parent,id,revision,hash);
+ state["selected"]=id;state["review"]=null;state["query"]="";state["kind"]="object";
+ var ids=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Where(calls.List.Invoke(draft),candidate=>calls.Status.Invoke(draft,candidate)[1]=="object"));Array.Sort(ids,StringComparer.Ordinal);state["page"]=Array.IndexOf(ids,id)/32;
+ return calls.Snapshot.Invoke(handle);
+}

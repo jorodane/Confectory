@@ -1,0 +1,7 @@
+implementation Confectory.PackWorkspace::CreateVariationBody for Confectory.PackWorkspace::CreateVariation (string handle, string parent, string id, long revision, string hash) -> string {
+import Confectory.EditWorkspace::CreateVariation as CreateVariation (string,string,string,long,string) -> void;
+import Confectory.PackWorkspace::Snapshot as Snapshot (string) -> string;
+import Confectory.EditWorkspace::List as List (string) -> string[];
+import Confectory.EditWorkspace::Status as Status (string,string) -> string[];
+body common "CreateVariation.csbody";
+}

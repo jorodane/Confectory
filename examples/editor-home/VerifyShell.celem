@@ -128,6 +128,8 @@ provide Confectory.EditWorkspace::Open with Confectory.EditWorkspace::OpenBody;
 provide Confectory.SchemaEditing::Describe with Confectory.SchemaEditing::DescribeBody;
 provide Confectory.SchemaEditing::Call with Confectory.SchemaEditing::CallBody;
 provide Confectory.EditWorkspace::Create with Confectory.EditWorkspace::CreateBody;
+provide Confectory.EditWorkspace::CreateVariation with Confectory.EditWorkspace::CreateVariationBody;
+provide Confectory.PackWorkspace::CreateVariation with Confectory.PackWorkspace::CreateVariationBody;
 provide Confectory.SchemaEditing::Create with Confectory.SchemaEditing::CreateBody;
 provide Confectory.SchemaEditing::Register with Confectory.SchemaEditing::RegisterBody;
 provide Confectory.EditWorkspace::SetValue with Confectory.EditWorkspace::SetValueBody;

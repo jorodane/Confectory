@@ -11,6 +11,8 @@ provide Confectory.SchemaEditing::Describe with Confectory.SchemaEditing::Descri
 provide Confectory.SchemaEditing::Call with Confectory.SchemaEditing::CallBody;
 provide Confectory.FileStream::Snapshot with Confectory.FileStream::SnapshotBody;
 provide Confectory.EditWorkspace::Create with Confectory.EditWorkspace::CreateBody;
+provide Confectory.EditWorkspace::CreateVariation with Confectory.EditWorkspace::CreateVariationBody;
+provide Confectory.PackWorkspace::CreateVariation with Confectory.PackWorkspace::CreateVariationBody;
 provide Confectory.SchemaEditing::Create with Confectory.SchemaEditing::CreateBody;
 provide Confectory.SchemaEditing::Register with Confectory.SchemaEditing::RegisterBody;
 provide Confectory.EditWorkspace::SetValue with Confectory.EditWorkspace::SetValueBody;
