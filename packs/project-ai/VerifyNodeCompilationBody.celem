@@ -1,0 +1,6 @@
+implementation Confectory.ProjectAI::VerifyNodeCompilationBody for Confectory.ProjectAI::VerifyNodeCompilation (string project,string target,string reviewed,string requirement) -> string {
+import Confectory.FileStream::CopySources as CopySources (string,string) -> void;
+import Confectory.FileStream::WriteAtomic as WriteAtomic (string,string) -> void;
+import Confectory.SchemaEditing::Prepare as Prepare (string,string) -> string;
+import Confectory.SchemaEditing::Call as Metadata (string,string) -> string;
+body common "VerifyNodeCompilation.csbody";}

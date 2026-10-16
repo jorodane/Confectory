@@ -13,7 +13,9 @@ if (File.Exists(blueprintProbe))
     var probe = System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(blueprintProbe))!;
     string input = Console.In.ReadToEnd();
     var request = System.Text.Json.Nodes.JsonNode.Parse(input)!;
-    if (request["operation"]!.ToString() == "compile-pack") File.AppendAllText(probe["node"]!.ToString(), " ");
+    if (request["operation"]!.ToString() == "compile-pack" &&
+        (probe["onlyWithBlueprintNodes"]?.GetValue<bool>() != true || request["blueprintNodes"] is System.Text.Json.Nodes.JsonArray { Count: > 0 }))
+        File.AppendAllText(probe["node"]!.ToString(), " ");
     var result = Processes.Run(new[] { Processes.DotNet(), probe["target"]!.ToString() }, input, timeoutSeconds: 120);
     Console.Write(result.Stdout); Console.Error.Write(result.Stderr); return result.ExitCode;
 }

@@ -1,0 +1,1 @@
+function Confectory.ProjectAI::VerifyNodeCompilation (string project,string target,string reviewed,string requirement) -> string {provide Confectory.ProjectAI::VerifyNodeCompilation with Confectory.ProjectAI::VerifyNodeCompilationBody;}

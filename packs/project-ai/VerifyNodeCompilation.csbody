@@ -1,0 +1,22 @@
+if(reviewed.Length>4194304||requirement.Length>8192)throw new ArgumentException("Bounded reviewed node source required");
+var rows=System.Text.Json.Nodes.JsonNode.Parse(reviewed)!.AsArray();var expected=System.Text.Json.Nodes.JsonNode.Parse(requirement)!;
+if(rows.Count<1||rows.Count>64)throw new ArgumentException("Explicit node review required");
+string root=System.IO.Path.GetDirectoryName(System.IO.Path.GetFullPath(project))!,assigned=expected["id"]!.ToString();int bodyMarker=assigned.IndexOf("/body:",StringComparison.Ordinal),nodeMarker=assigned.LastIndexOf("/node:",StringComparison.Ordinal);if(bodyMarker<0||nodeMarker<=bodyMarker)throw new ArgumentException("Owned node source identity required");
+string implementation=assigned[..bodyMarker],bodyTarget=assigned[(bodyMarker+6)..nodeMarker],node=assigned[(nodeMarker+6)..];
+string Owned(string basePath,string relative){string full=System.IO.Path.GetFullPath(System.IO.Path.Combine(basePath,relative));if(System.IO.Path.IsPathRooted(relative)||!full.StartsWith(basePath+System.IO.Path.DirectorySeparatorChar,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal))throw new UnauthorizedAccessException("Node review path outside owner");return full;}
+var destinations=new System.Collections.Generic.HashSet<string>(OperatingSystem.IsWindows()?StringComparer.OrdinalIgnoreCase:StringComparer.Ordinal);
+foreach(var row in rows){if(!destinations.Add(Owned(root,row!["path"]!.ToString())))throw new ArgumentException("Duplicate node review destination");}
+var source=System.Linq.Enumerable.Single(rows,row=>row!["id"]!.ToString()==assigned)!;string sourcePath=Owned(root,source["path"]!.ToString());
+string Hash(string text)=>Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(text))).ToLowerInvariant();
+if(Hash(source["after"]!.ToString())!=expected["sourceHash"]!.ToString())throw new InvalidOperationException("Node review and inspected source differ");
+string candidate=System.IO.Path.Combine(root,".confectory","node-checks",Guid.NewGuid().ToString("N"));
+for(System.IO.DirectoryInfo? directory=new System.IO.DirectoryInfo(candidate);directory is not null;directory=directory.Parent){if(directory.LinkTarget is not null)throw new UnauthorizedAccessException("Node compiler cache must remain owned");if(directory.FullName==root)break;}
+try{
+ calls.CopySources.Invoke(root,candidate);foreach(var row in rows)calls.WriteAtomic.Invoke(Owned(candidate,row!["path"]!.ToString()),row["after"]!.ToString());
+ string candidateProject=System.IO.Path.Combine(candidate,System.IO.Path.GetFileName(project));calls.WriteAtomic.Invoke(candidateProject,calls.Prepare.Invoke(project,candidateProject));
+ var result=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("checkBlueprintNode",System.Text.Json.JsonSerializer.Serialize(new{project=candidateProject,target,implementation,bodyTarget,node})))!;
+ var map=System.Linq.Enumerable.Single(result["sourceMap"]!.AsArray(),entry=>entry!["node"]!.ToString()==node)!;
+ string actual=Owned(candidate,map["path"]!.ToString()),wanted=Owned(candidate,source["path"]!.ToString());
+ if(result["state"]?.ToString()!="node-compiled"||result["compiled"]?.GetValue<bool>()!=true||result["executed"]?.GetValue<bool>()!=false||result["definitionHash"]?.ToString()!=expected["definitionHash"]!.ToString()||map["sourceSha256"]?.ToString()!=expected["sourceHash"]!.ToString()||!string.Equals(actual,wanted,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal))throw new InvalidOperationException("Compiler did not verify the exact assigned node file and definition");
+ return new System.Text.Json.Nodes.JsonObject{["definitionHash"]=expected["definitionHash"]!.DeepClone(),["sourceHash"]=expected["sourceHash"]!.DeepClone(),["independentCompilerRequired"]=true,["compilerConfirmed"]=false,["compilerIdentity"]=result["compilerIdentity"]!.DeepClone(),["artifactKey"]=result["artifactKey"]!.DeepClone(),["assemblySha256"]=result["assemblySha256"]!.DeepClone(),["referenceSha256"]=result["referenceSha256"]!.DeepClone(),["bodyTarget"]=bodyTarget,["sourcePath"]=source["path"]!.DeepClone(),["mode"]="independent-node",["executed"]=false}.ToJsonString();
+}finally{if(System.IO.Directory.Exists(candidate))System.IO.Directory.Delete(candidate,true);}

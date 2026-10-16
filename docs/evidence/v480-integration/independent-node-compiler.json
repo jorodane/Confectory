@@ -1,0 +1,321 @@
+{
+  "schema": 1,
+  "status": "independent-node-compiler-verified",
+  "profile": "sync-acyclic-v1",
+  "generator": "feature-blueprint-source-v2",
+  "referenceMain": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+  "baseWorkCommit": "85bd3545fd7727b6a52bc7f4862fa4b4c998ebbc",
+  "recoveryCommit": "3dce7ac6b32340e26cd78fe2946b3a0a10b043f1",
+  "stages": [
+    {
+      "log": "disconnected-node-compile-red.log",
+      "boundary": "Product RED: current disconnected bad body was ignored by the compiler.",
+      "sha256": "7de5ab9035d1a802c9fbcb75832e69c170f0089ad725c5107697634aa7303c56",
+      "tests": [
+        "FAIL FeatureBlueprintTests.test_blueprint_disconnected_current_node_body_is_compiled_without_execution"
+      ],
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 5.132
+    },
+    {
+      "log": "disconnected-node-compile-first.log",
+      "boundary": "First patch regression: definition ordering was accidentally applied to dominators; corrected before later runs.",
+      "sha256": "26dca966fcd750e4b4c9d69c9cc53096947e01b99cba5919b723a6e713612364",
+      "tests": [
+        "FAIL FeatureBlueprintTests.test_blueprint_disconnected_current_node_body_is_compiled_without_execution"
+      ],
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 0.107
+    },
+    {
+      "log": "disconnected-node-compile-second.log",
+      "boundary": "First disconnected static helper compiler check and no invocation.",
+      "sha256": "27f531182d5cafdcf75d4b791f0f7f428a8ed2a0785797d5037d823a7e1f4814",
+      "tests": [
+        "PASS FeatureBlueprintTests.test_blueprint_disconnected_current_node_body_is_compiled_without_execution"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 6.675
+    },
+    {
+      "log": "disconnected-node-compile-final.log",
+      "boundary": "Extended test fixture created missing file in an earlier non-Blueprint pack; test proxy timing corrected.",
+      "sha256": "3ae3c0ff684159989477a8a865715ff5b28fd676f06cb6644eb88d6c7f6a5e6b",
+      "tests": [
+        "FAIL FeatureBlueprintTests.test_blueprint_disconnected_current_node_body_is_compiled_without_execution"
+      ],
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 14.07
+    },
+    {
+      "log": "disconnected-node-compile-absence-final.log",
+      "boundary": "Stale/missing unconnected work remains nonblocking; current invalid body, inner warning and mapping guard fail; valid throw body is never called; absence fence preserves prior output.",
+      "sha256": "66ddbdbdd49e1bd6b035a2af506c4f16d0b3a3957384e3c40fac5359d08a27b2",
+      "tests": [
+        "PASS FeatureBlueprintTests.test_blueprint_disconnected_current_node_body_is_compiled_without_execution"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 13.975
+    },
+    {
+      "log": "disconnected-node-adoption-red.log",
+      "boundary": "Product RED: changed node definition and disconnected route bypassed node completion compilation.",
+      "sha256": "3ca8d9ca382fe23287e621bfddf0520f95f927824e8064428fc9449a19a523eb",
+      "tests": [
+        "FAIL FeatureBlueprintTests.test_blueprint_node_task_assignment_scoped_dispatch_adoption_and_cold_no_replay"
+      ],
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 42.509
+    },
+    {
+      "log": "disconnected-node-host-build.log",
+      "boundary": "Authoring host build after compiler capability and current-definition adoption guard.",
+      "sha256": "cff81c9233c6ff83c0a7625c69c6f644fff1966d9d9990567506675334706e1a",
+      "tests": [],
+      "buildSucceeded": true,
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "log": "disconnected-node-adoption-final.log",
+      "boundary": "Pure compiler and public node Task current-definition refusal before later independent target probe.",
+      "sha256": "afbc36ee75295589e15cee5d85a6186ba39dfbefb1f639c4543bfbe08cc2ba8d",
+      "tests": [
+        "PASS FeatureBlueprintTests.test_blueprint_disconnected_current_node_body_is_compiled_without_execution",
+        "PASS FeatureBlueprintTests.test_blueprint_node_task_assignment_scoped_dispatch_adoption_and_cold_no_replay"
+      ],
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 50.724
+    },
+    {
+      "log": "disconnected-node-regression.log",
+      "boundary": "Earlier affected regression before final metadata split and target-variant independent probe; overlapping gates, not final acceptance for later changes.",
+      "sha256": "6b3ea80e29e207c4da7b8d0e020ebffcc5388b1787ba60b17988371d7bc460ab",
+      "tests": [
+        "PASS FeatureBlueprintTests.test_blueprint_disconnected_current_node_body_is_compiled_without_execution",
+        "PASS FeatureBlueprintTests.test_blueprint_existing_feature_calls_use_typed_imports_and_contract_fences",
+        "PASS FeatureBlueprintTests.test_blueprint_fixed_inputs_branch_compiler_reuse_node_replacement_and_legacy_preservation",
+        "PASS FeatureBlueprintTests.test_blueprint_invalid_graphs_stale_contracts_and_dominating_values",
+        "PASS FeatureBlueprintTests.test_blueprint_node_diagnostics_static_isolation_and_failed_build_retains_receipt",
+        "PASS FeatureBlueprintTests.test_blueprint_node_only_worker_draft_save_restore_and_compiler_confirm",
+        "PASS FeatureBlueprintTests.test_blueprint_node_task_assignment_scoped_dispatch_adoption_and_cold_no_replay",
+        "PASS FeatureBlueprintTests.test_blueprint_source_change_during_real_compile_is_not_published",
+        "PASS WebUITests.test_actual_editor_and_button_game_common_web_transport_chromium",
+        "PASS WebUITests.test_actual_editor_v424_node_task_plan_cas_approval_and_cold_history",
+        "PASS WebUITests.test_actual_editor_v480_blueprint_owned_graph_node_edit_and_cold_input",
+        "PASS AugmentTests.test_chief_only_proposals_drafts_verification_history_and_locality",
+        "PASS EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only"
+      ],
+      "passed": 13,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 794.63
+    },
+    {
+      "log": "node-pack-syntax-adoption-red.log",
+      "boundary": "Invalid test-only pack manifest retained project fields; this failure did not demonstrate a syntax-only product bypass. Corrected valid-pack test is included in later public consumer.",
+      "sha256": "e4673d4e24c66fbee4e9ae5dc24e42d67516ae4b99e6b593abb05daeeaa5718e",
+      "tests": [
+        "FAIL FeatureBlueprintTests.test_blueprint_node_task_assignment_scoped_dispatch_adoption_and_cold_no_replay"
+      ],
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 28.002
+    },
+    {
+      "log": "disconnected-node-host-final.log",
+      "boundary": "Authoring host build after additive metadata compatibility changes.",
+      "sha256": "2b07effdbb2a1ceda565fec9ca4d0d3042e72e76bd902e262d673e93a0ab85ca",
+      "tests": [],
+      "buildSucceeded": true,
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "log": "disconnected-node-metadata-final.log",
+      "boundary": "Final inputs/missingInputs metadata, pure description truthfulness, valid pack refusal, public consumer and both actual Blueprint/Task UIs before explicit independent target probe.",
+      "sha256": "3485dfbaecc8220734629869b380ef0e47db67e387d415b0e783f3999fe80d45",
+      "tests": [
+        "PASS FeatureBlueprintTests.test_blueprint_disconnected_current_node_body_is_compiled_without_execution",
+        "PASS FeatureBlueprintTests.test_blueprint_node_task_assignment_scoped_dispatch_adoption_and_cold_no_replay",
+        "PASS WebUITests.test_actual_editor_v424_node_task_plan_cas_approval_and_cold_history",
+        "PASS WebUITests.test_actual_editor_v480_blueprint_owned_graph_node_edit_and_cold_input"
+      ],
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 150.844
+    },
+    {
+      "log": "node-target-variant-adoption-red.log",
+      "boundary": "Product RED: portable legacy implementation allowed adoption of a common Blueprint node whose current body was invalid.",
+      "sha256": "7bf1e11d3805534582d1a5eeec82924fb06e63252cf16c117fad4a7d4467e616",
+      "tests": [
+        "FAIL FeatureBlueprintTests.test_blueprint_node_task_assignment_scoped_dispatch_adoption_and_cold_no_replay"
+      ],
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 33.629
+    },
+    {
+      "log": "node-probe-host-build.log",
+      "boundary": "Authoring host build with CheckBlueprintNode compiler operation.",
+      "sha256": "291b614ad4d13d51476d632cc5c77350edf9788b9e5b922dcabf0b65621c367a",
+      "tests": [],
+      "buildSucceeded": true,
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "log": "node-target-variant-adoption-first.log",
+      "boundary": "Public assigned-node adoption requires actual independent compilation for its explicit body target.",
+      "sha256": "d089ded82a4afdc1976aa43149ba564bdaf3475bc1a493a215c407b8934586df",
+      "tests": [
+        "PASS FeatureBlueprintTests.test_blueprint_node_task_assignment_scoped_dispatch_adoption_and_cold_no_replay"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 44.645
+    },
+    {
+      "log": "node-probe-focused-final.log",
+      "boundary": "Explicit unselected-body compiler probe, strict owned node record and public adoption; before final implementation-to-graph locator check.",
+      "sha256": "d66117950818cddb397a40ff42c5c27246113e1e236a431430796bb8abe824ca",
+      "tests": [
+        "PASS FeatureBlueprintTests.test_blueprint_independent_probe_checks_an_unselected_body_without_running_or_publishing",
+        "PASS FeatureBlueprintTests.test_blueprint_node_only_worker_draft_save_restore_and_compiler_confirm",
+        "PASS FeatureBlueprintTests.test_blueprint_node_task_assignment_scoped_dispatch_adoption_and_cold_no_replay"
+      ],
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 64.851
+    },
+    {
+      "log": "node-probe-regression.log",
+      "boundary": "Final source/compiler/locator broad14 before completion-verifier guard: 13 passes and one public consumer hit its old 15-second process budget. That consumer now has a compiler-appropriate 180-second test budget; unchanged global Output helper.",
+      "sha256": "0f1214125ec936a16eaa5edc432715d32aebef215625e63ab33721a323d020d2",
+      "tests": [
+        "PASS FeatureBlueprintTests.test_blueprint_disconnected_current_node_body_is_compiled_without_execution",
+        "PASS FeatureBlueprintTests.test_blueprint_existing_feature_calls_use_typed_imports_and_contract_fences",
+        "PASS FeatureBlueprintTests.test_blueprint_fixed_inputs_branch_compiler_reuse_node_replacement_and_legacy_preservation",
+        "PASS FeatureBlueprintTests.test_blueprint_independent_probe_checks_an_unselected_body_without_running_or_publishing",
+        "PASS FeatureBlueprintTests.test_blueprint_invalid_graphs_stale_contracts_and_dominating_values",
+        "PASS FeatureBlueprintTests.test_blueprint_node_diagnostics_static_isolation_and_failed_build_retains_receipt",
+        "PASS FeatureBlueprintTests.test_blueprint_node_only_worker_draft_save_restore_and_compiler_confirm",
+        "FAIL FeatureBlueprintTests.test_blueprint_node_task_assignment_scoped_dispatch_adoption_and_cold_no_replay",
+        "PASS FeatureBlueprintTests.test_blueprint_source_change_during_real_compile_is_not_published",
+        "PASS WebUITests.test_actual_editor_and_button_game_common_web_transport_chromium",
+        "PASS WebUITests.test_actual_editor_v424_node_task_plan_cas_approval_and_cold_history",
+        "PASS WebUITests.test_actual_editor_v480_blueprint_owned_graph_node_edit_and_cold_input",
+        "PASS AugmentTests.test_chief_only_proposals_drafts_verification_history_and_locality",
+        "PASS EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only"
+      ],
+      "passed": 13,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 760.508
+    },
+    {
+      "log": "node-retained-proof-red.log",
+      "boundary": "Product RED through actual public completion verifier: a retained node receipt lacking independent compiler mode was accepted. Test restores in-memory evidence in finally.",
+      "sha256": "209489f5e000ee9f31d612efe214211deb757d1b61e94a45d648198838f5f7f3",
+      "tests": [
+        "FAIL FeatureBlueprintTests.test_blueprint_node_task_assignment_scoped_dispatch_adoption_and_cold_no_replay"
+      ],
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 32.516
+    },
+    {
+      "log": "node-retained-proof-final.log",
+      "boundary": "Final node consumer with missing-field/mismatched-proof refusal, real adoption, cold/idempotent no replay; generic adoption interruption/reconciliation at five fault points.",
+      "sha256": "e889461ca93ac5a1b8b2589d1c49d5feab7af35b562827d5bd3de0764deba2db",
+      "tests": [
+        "PASS FeatureBlueprintTests.test_blueprint_node_task_assignment_scoped_dispatch_adoption_and_cold_no_replay",
+        "PASS ProjectShellTests.test_adoption_interruption_evidence_reopen_and_reference_integrity"
+      ],
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 155.042
+    },
+    {
+      "log": "node-compiler-ui-final.log",
+      "boundary": "After completion-verifier change: actual loopback node Task UI, v480 owned graph UI, and Windows/Android managed compile profiles.",
+      "sha256": "e0e0f7f5403a4ed9e3c4534eccdc3ca644924e1146b2b3f4e0341d264ef53fbb",
+      "tests": [
+        "PASS WebUITests.test_actual_editor_v424_node_task_plan_cas_approval_and_cold_history",
+        "PASS WebUITests.test_actual_editor_v480_blueprint_owned_graph_node_edit_and_cold_input",
+        "PASS EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only"
+      ],
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 211.27
+    },
+    {
+      "log": "independent-node-checkout.log",
+      "boundary": "After implementation commit: ordinary Git checkout with CRLF/fresh LF, 27 static resources, actual Home startup and resource tamper refusal.",
+      "sha256": null,
+      "tests": []
+    }
+  ],
+  "claims": {
+    "preparedDisconnectedBodiesCompile": true,
+    "staleOrMissingDisconnectedBodiesNotCompilerValidated": true,
+    "explicitUnselectedBodyTargetProbe": true,
+    "nodeProbeInvokesNode": false,
+    "nodeProbePublishesRun": false,
+    "sourceConfirmStillRequired": true,
+    "incompleteRetainedNodeCompilerProofRefused": true,
+    "nodeSourceAndImplementationGraphOwnershipRechecked": true,
+    "externalAccountOrPaidModel": false,
+    "managedProfilesCompileOnly": true,
+    "staticResourceCount": 27
+  },
+  "boundaries": [
+    "Stage counts overlap and must not be added; failed attempts remain recorded.",
+    "Ordinary feature execution keeps the existing profile and ABI. Available independent declarations are checked but never called unless reachable.",
+    "The independent probe checks a node declaration and used contracts; it does not prove graph wiring, domain behavior, or runtime success. Ordinary project compiler Confirm and explicit user goal acceptance remain required.",
+    "Generic adoption crash/reconciliation is tested at five existing fault points; no actual node-specific crash/reconciliation test is claimed. The central verifier is directly exercised with incomplete retained node receipts.",
+    "Existing completed history is retained without replay or retroactive compiler evidence. Incomplete legacy receipts do not satisfy new node completion.",
+    "No native device or scoped pixel capture is claimed in this environment without DISPLAY.",
+    "New source allocation/deletion, new function creation, legacy conversion, parent reuse UI, reference wrapper import and expanded v480 profile/ABI remain unfinished."
+  ],
+  "sourceHashes": {
+    "packs/development-tools/OpenNode.csbody": "c227b6c8f91c1b5dd52e0492f65c677df0e247ba244e04464711e56046e319f3",
+    "packs/pack-workspace/Blueprint.csbody": "e27c49cbef420788e4492ace5413533c1a44938a5cd46ef884a87a483a86d360",
+    "packs/project-ai/Adopt.csbody": "f1a53e2fd7da60e257852a1702c09c68a6d11f9cc38d867938fe939c04086dcc",
+    "packs/project-ai/AdoptBody.celem": "b47f3cf499838529abc5cd1bc46dc0721ea2ca787b1390366c30e8697c7a8fe6",
+    "packs/project-ai/VerifyCompletion.csbody": "01a56034573416d4cadadb323997dddb5ca43b8d428e89dbbc6dbed8981ab0c8",
+    "packs/project-ai/VerifyNodeCompilation.celem": "f2da53cd89de2bfc87829a7c821d76b634fdd6c809db328b780f2e257e88bd21",
+    "packs/project-ai/VerifyNodeCompilation.csbody": "2614a810735b88092a5d32ab4b370688f64e0c5ba5b179097aca2c2d7e8be965",
+    "packs/project-ai/VerifyNodeCompilationBody.celem": "21de722bb5fd49612ec4daf7efc1362b00955964971c21544c4d596ab23a5b13",
+    "packs/project-ai/pack.cpack": "507c26c692575b14768da164a5fe410cc2e650272c9ad16fdd8dbbc71e424f93",
+    "src/Confectory.Core/BlueprintCompilation.cs": "56859059a5369aba20be839df877fd937b65b80c9c044cc2c2fa136f433578a6",
+    "src/Confectory.Core/Build.cs": "d18914d55950a74a580598d64b47717185646fb754dcc962b67b5dda19be5b58",
+    "src/Confectory.Core/FeatureBlueprint.cs": "c217c05630bf1ada55c8e0c9ff1684f3b79f00d250854af9b1c3f582115b28b5",
+    "targets/element-authoring/Program.cs": "7901ba3f14ead3a8fc5e257223ed398ed511d3f8777d80cafdd6380db4e4a03f",
+    "tests/Confectory.Tests/FeatureBlueprintTests.cs": "102d467e532c7322205dbcd2a4a526d33d5d465cd897ff2cba3c53fcfd16ab1f",
+    "tests/Confectory.Tests/Program.cs": "b081f1bdebbe8e28d5b899f7632329d827ef44311d486e93a4d68aa5cd93ccfe"
+  }
+}

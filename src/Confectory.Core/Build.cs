@@ -202,13 +202,49 @@ public sealed class Builder
         blueprint?.EnsureUnchanged(verifyCompiler: true);
         if (!artifact.ContainsKey("assembly")) throw new BuildError("TOOL_PROTOCOL", "Pack compilation must return an assembly");
         var item = JsonData.Object(artifact); item["key"] = key;
-        if (blueprint is not null) foreach (var implementation in selected) if (blueprint.Receipts[implementation.Id] is JsonObject receipt) { receipt["compilerValidated"] = true; receipt["implementationArtifactKey"] = key; }
+        if (blueprint is not null) foreach (var implementation in selected) if (blueprint.Receipts[implementation.Id] is JsonObject receipt) {
+            receipt["compilerValidated"] = true; receipt["implementationArtifactKey"] = key;
+            foreach (var node in receipt["nodes"]!.AsArray()) node!["compilerValidated"] = node["includedInSource"]!.GetValue<bool>();
+        }
         var result = item.DeepClone().AsObject();
         result["implementations"] = JsonSerializer.SerializeToNode(selected.Select(x => x.Id).ToArray());
         result["assemblies"] = new JsonArray(artifact["assembly"]);
         result["implementationArtifacts"] = JsonSerializer.SerializeToNode(selected.ToDictionary(x => x.Id, _ => item), JsonData.Options);
         return result;
     }
+    // A node can be prepared before wiring, or belong to a non-selected body target.
+    // Compile its exact static declaration; never invoke it or publish a Run artifact.
+    public JsonObject CheckBlueprintNode(string implementationId, string bodyTarget, string nodeId)
+    {
+        var implementation = Registry.Effective(Registry.Get(implementationId, "implementation").Id);
+        new Planner(Registry, Target).Structural(implementationId);
+        Registry.Implementation(implementation.Function!, implementation.Id, implementation.Id, implementation.Loc);
+        if (!implementation.Bodies.TryGetValue(bodyTarget, out var body) || body.SourceKind != "blueprint")
+            throw new BuildError("BLUEPRINT_NODE_TARGET", "Explicit Blueprint body target required", implementation.Loc);
+        string path = PackPaths.Owned(Path.GetDirectoryName(Registry.Paths[PackPaths.Namespace(body.Origin)])!, body.Path, body.Loc);
+        var context = new BlueprintCompilation(Registry, Target, Tool);
+        string declaration = context.Assemble(implementation, body, path, nodeId);
+        string source = "using System;\ninternal static class __fg_probe_class { internal static void __fg_probe_check() {\n" + declaration + "\n} }\n";
+        PrepareContracts(new[] { implementation.Function! }.Concat(implementation.Imports.Values.Select(i => i.Id)));
+        foreach (string id in new[] { implementation.Function! }.Concat(implementation.Imports.Values.Select(i => i.Id)).Distinct(StringComparer.Ordinal)) Contract(id);
+        string key = JsonData.Digest(new object[] { ArtifactLayout, Generation.Abi, FeatureBlueprint.Generator, Tool.Identity, "independent-node-v1", implementationId, bodyTarget, nodeId, source, Contracts.OrderBy(p => p.Key, StringComparer.Ordinal).Select(p => new[] { p.Key, p.Value["key"]!.ToString() }).ToArray() });
+        var artifact = cache.Get(key) ?? cache.Produce(key, work => Tool.Invoke("compile-pack", new
+        {
+            output = work, name = "Node_" + Generation.Symbol(implementationId + "/" + bodyTarget + "/" + nodeId),
+            sources = new[] { WriteSource(Path.Combine(work, "node-probe.cs"), source) }, blueprintNodes = context.Nodes,
+            references = Contracts.Values.Select(p => p["reference"]!.ToString()).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray()
+        })["artifacts"]!.AsObject());
+        if (artifact["assembly"] is null || artifact["reference"] is null) throw new BuildError("TOOL_PROTOCOL", "Independent node compiler artifacts required");
+        context.EnsureUnchanged(verifyCompiler: true);
+        var result = (JsonObject)context.Receipts[implementationId]!.DeepClone();
+        result["state"] = "node-compiled"; result["compiled"] = true; result["executed"] = false;
+        result["implementation"] = implementationId; result["bodyTarget"] = bodyTarget; result["artifactKey"] = key;
+        result["assemblySha256"] = JsonData.HashBytes(File.ReadAllBytes(artifact["assembly"]!.ToString()));
+        result["referenceSha256"] = JsonData.HashBytes(File.ReadAllBytes(artifact["reference"]!.ToString()));
+        result["nodes"]![0]!["compilerValidated"] = true;
+        return result;
+    }
+
     public JsonObject Check(string ns)
     {
         if (!Registry.Packs.TryGetValue(ns, out var pack)) throw new BuildError("MISSING_NAMESPACE", $"Pack {ns} is not selected");

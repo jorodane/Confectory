@@ -97,3 +97,11 @@ ProjectAI.NodeTask는 현재 graph/node 원본의 실제 정의·시그니처·�
 PackWorkspace.Blueprint는 기존 소유 graph와 독립 노드 본문을 기능 화면에 연결한다. 현재 외부 계약을 읽고 시작/입력·실행 레일·분기·출력 경로를 표시한다. 설명·인수·실행 경로·노드 본문은 EditWorkspace.EditBatch로 모든 관련 소스의 리비전·내용 해시를 함께 확인한 뒤 적용한다. graph locator와 기존 소유 코드 노드 파일이 다르면 본문 편집과 노드 capability를 거부한다. 노드 본문 적용 시 사용자가 현재 정의를 명시적으로 수용하며 최종 C# 조립은 계속 시스템의 역할이다.
 
 배치·확대·입력은 private presentation이며, 원본 읽기 basis와 AI/실행 권한을 프로세스 복원에 저장하지 않는다. 읽기와 source-ready 표시는 C# 컴파일을 뜻하지 않는다. 실제 Review·전체 소스 확인·Confirm은 기존 compiler 경로를 사용한다. [v480 연결·검증과 남은 범위](EDITOR_V480_INTEGRATION.md). 새로운 노드 파일의 할당·삭제, 기능 생성/전환·참조 wrapper와 확장 profile은 별도의 소유·원본 트랜잭션으로 이어서 연결한다.
+
+## 독립 노드의 실제 컴파일 경계
+
+정의가 현재인 독립 노드 본문은 연결 전에도 정적 지역 함수로 컴파일한다. 실행 경로는 그대로 유지하며 독립 노드를 호출하지 않는다. 연결되지 않은 미작성·오래된 본문은 실행 빌드를 막지 않지만 compiler 검증된 노드로 기록하지 않는다. 순수 조회의 `compilationEligible`, 실제 조립의 `includedInSource`, 실제 컴파일 후 `compilerValidated`를 구분한다. 생성기는 `feature-blueprint-source-v2`이며 실행 profile과 외부 ABI는 `sync-acyclic-v1` 그대로다. 원본 해시 입력은 기존 `inputs`에 유지하고, 없는 노드 파일은 별도 `missingInputs`로 관찰한다. 컴파일 중 파일이 나타나면 새 결과를 게시하지 않는다.
+
+일반 빌드가 타깃별 다른 본문을 선택할 수 있으므로, 노드 Task 채택은 `Builder.CheckBlueprintNode`로 배정된 body target의 정확한 본문을 별도로 컴파일한다. 인수 연결이나 entry 실행 없이 노드 선언·사용 계약을 검사한다. 선택된 Review 원본만 임시 소유 후보에 덮어쓰며 원래 파일은 기존 Confirm에서만 반영한다. 완료 증거는 정의·원본 파일·compiler identity·artifact·assembly/reference 해시를 보존하고 `executed:false`로 한계를 표시한다. 현재 정의·본문 stamp와 보존된 독립 compiler 증거가 없는 미완료 Task는 일반 compiler 검사나 복구 동작으로 완료되지 않는다. 기존 완료 기록은 다시 실행하거나 새 증거로 바꾸지 않는다.
+
+노드 capability와 기존 graph 편집은 엄격한 독립 노드 JSON 형식 및 구현→graph→노드 파일의 현재 소유 관계도 확인한다. locator가 바뀐 초안은 예전 소스 capability를 재사용하지 않는다. [단계별 검증 기록](evidence/v480-integration/independent-node-compiler.json).

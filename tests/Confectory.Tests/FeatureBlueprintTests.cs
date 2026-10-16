@@ -91,6 +91,73 @@ public sealed class FeatureBlueprintTests : TestCase
         // A topology edit does not replace a node file or its definition stamp.
         Equal(record.ToJsonString() + "\n", File.ReadAllText(Path.Combine(f.Packs["Provider"].Root, "add.node.json")));
     }
+    public void test_blueprint_disconnected_current_node_body_is_compiled_without_execution()
+    {
+        var graph = Graph();
+        var loose = Node("loose", "next", "int", "Independent implementation before wiring");
+        loose.Remove("arguments"); graph["nodes"]!.AsArray().Add(loose);
+        var implementations = Prepare(graph);
+        var definition = FeatureBlueprint.Execute(Request(graph, "featureBlueprintNodes"))["nodes"]!.AsArray().Single(n => Text(n!, "id") == "loose")!;
+        var record = new JsonObject { ["schema"] = 1, ["node"] = "loose", ["definitionHash"] = new string('0', 64), ["source"] = "return missing;" };
+        f.Body("Provider", "loose.node.json", record.ToJsonString());
+        var prior = Build(); Output(prior, "5");
+        var stale = prior["blueprints"]!["Provider::ValueBody"]!["nodes"]!.AsArray().Single(n => Text(n!, "id") == "loose")!;
+        True(Text(stale, "status") == "stale" && !stale["includedInSource"]!.GetValue<bool>() && !stale["compilerValidated"]!.GetValue<bool>());
+        string latest = Path.Combine(Path.GetDirectoryName(Text(prior, "output"))!, "latest.json"), successful = File.ReadAllText(latest);
+        // A current body submitted for an independent node cannot receive a compiler receipt while ignored.
+        record["definitionHash"] = definition["definitionHash"]!.DeepClone();
+        implementations["loose"] = record.DeepClone();
+        var described = FeatureBlueprint.Execute(Request(graph, implementations: implementations));
+        var available = described["nodes"]!.AsArray().Single(n => Text(n!, "id") == "loose")!;
+        True(available["compilationEligible"]!.GetValue<bool>() && !available["includedInSource"]!.GetValue<bool>() && !available["compilerValidated"]!.GetValue<bool>() && described["sourceMap"] is null, "Description is availability, not assembly or compiler evidence");
+        foreach (string source in new[] { "return missing;", "int NotCalled() { return 1; } return value;", "#line 1 \"fake\"\nreturn value;" })
+        {
+            record["source"] = source; f.Body("Provider", "loose.node.json", record.ToJsonString());
+            var error = Error("TARGET_FAILURE", () => Build());
+            True(error.Message.Contains("node:Api::Value/loose", StringComparison.Ordinal), error.Message);
+            if (source.Contains("NotCalled", StringComparison.Ordinal)) True(error.Message.Contains("CS8321", StringComparison.Ordinal), error.Message);
+            Equal(successful, File.ReadAllText(latest));
+        }
+        record["source"] = "throw new System.Exception(\"Independent node must never execute\");";
+        f.Body("Provider", "loose.node.json", record.ToJsonString());
+        var compiled = Build(); Output(compiled, "5");
+        var node = compiled["blueprints"]!["Provider::ValueBody"]!["nodes"]!.AsArray().Single(n => Text(n!, "id") == "loose")!;
+        True(!node["reachable"]!.GetValue<bool>() && node["includedInSource"]!.GetValue<bool>() && node["compilerValidated"]!.GetValue<bool>());
+        True(compiled["blueprints"]!["Provider::ValueBody"]!["sourceMap"]!.AsArray().Any(n => Text(n!, "node") == "loose"));
+        string loosePath = Path.Combine(f.Packs["Provider"].Root, "loose.node.json"); File.Delete(loosePath);
+        var missing = Build(); Output(missing, "5");
+        var omitted = missing["blueprints"]!["Provider::ValueBody"]!["nodes"]!.AsArray().Single(n => Text(n!, "id") == "loose")!;
+        True(Text(omitted, "status") == "missing" && !omitted["compilerValidated"]!.GetValue<bool>());
+        True(missing["blueprints"]!["Provider::ValueBody"]!["inputs"]!.AsArray().All(n => n!["sha256"] is JsonValue), "Existing input path/hash shape is preserved");
+        True(missing["blueprints"]!["Provider::ValueBody"]!["missingInputs"]!.AsArray().Any(n => n!["status"]?.ToString() == "missing" && n["path"]!.ToString().EndsWith("loose.node.json", StringComparison.Ordinal)));
+        successful = File.ReadAllText(latest);
+        string tool = Path.Combine(f.Root, "target", "blueprint-absence-probe"); Directory.CreateDirectory(tool);
+        foreach (string file in Directory.GetFiles(AppContext.BaseDirectory)) File.Copy(file, Path.Combine(tool, Path.GetFileName(file)), true);
+        File.WriteAllText(Path.Combine(tool, "blueprint-mutate-probe.json"), new JsonObject { ["node"] = loosePath, ["target"] = f.ToolPath, ["onlyWithBlueprintNodes"] = true }.ToJsonString());
+        string target = Path.Combine(f.Root, "target", "portable.celem"); File.WriteAllText(target, File.ReadAllText(target).Replace("bin/Release/net10.0/Confectory.Build.DotNet.dll", "blueprint-absence-probe/Confectory.Tests.dll", StringComparison.Ordinal));
+        Error("BLUEPRINT_SOURCE_CHANGED", () => Build());
+        True(File.Exists(loosePath)); Equal(successful, File.ReadAllText(latest));
+    }
+    public void test_blueprint_independent_probe_checks_an_unselected_body_without_running_or_publishing()
+    {
+        var graph = Graph(); var records = Prepare(graph);
+        f.Add("Provider", "implementation", "ValueBody", "implementation Provider::ValueBody for Api::Value (int n) -> int {blueprint common \"value.graph.json\";body portable \"alternate.csbody\";}");
+        f.Body("Provider", "alternate.csbody", "return n + 100;"); f.Sync();
+        var record = records["add"]!.DeepClone().AsObject(); record["source"] = "return missing_in_unselected_body;";
+        f.Body("Provider", "add.node.json", record.ToJsonString());
+        var selected = Build(); Output(selected, "102");
+        string latest = Path.Combine(Path.GetDirectoryName(Text(selected, "output"))!, "latest.json"), prior = File.ReadAllText(latest);
+        var error = Error("TARGET_FAILURE", () => new Builder(f.Project, "portable").CheckBlueprintNode("Provider::ValueBody", "common", "add"));
+        True(error.Message.Contains("node:Api::Value/add", StringComparison.Ordinal), error.Message); Equal(prior, File.ReadAllText(latest));
+        record["source"] = "throw new System.Exception(\"Independent compilation must not call this body\");";
+        string path = f.Body("Provider", "add.node.json", record.ToJsonString());
+        var result = new Builder(f.Project, "portable").CheckBlueprintNode("Provider::ValueBody", "common", "add");
+        Equal("node-compiled", Text(result, "state")); Equal("common", Text(result, "bodyTarget"));
+        True(result["compiled"]!.GetValue<bool>() && !result["executed"]!.GetValue<bool>() && result["nodes"]![0]!["compilerValidated"]!.GetValue<bool>());
+        Equal(record["definitionHash"]!.ToString(), Text(result, "definitionHash")); Equal(JsonData.HashBytes(File.ReadAllBytes(path)), Text(result["sourceMap"]![0]!, "sourceSha256"));
+        Equal("/source", Text(result["sourceMap"]![0]!, "jsonPointer")); True(Text(result, "assemblySha256").Length == 64 && Text(result, "compilerIdentity").Length == 64);
+        Equal(prior, File.ReadAllText(latest)); Output(Build(), "102");
+    }
     public void test_blueprint_invalid_graphs_stale_contracts_and_dominating_values()
     {
         var graph = Graph(); graph["edges"]![0]!["to"] = "condition"; Refused(graph, "GRAPH_CYCLE_PROFILE_UNSUPPORTED");
@@ -186,7 +253,8 @@ public sealed class FeatureBlueprintTests : TestCase
         var request = Request(graph); request["featureSource"] = feature;
         var described = FeatureBlueprint.Execute(request);
         f.Add("App", "function", "Value", feature);
-        f.Add("App", "implementation", "ValueBody", "implementation App::ValueBody for App::Value (int n) -> int {blueprint common \"value.graph.json\";}");
+        f.Add("App", "implementation", "ValueBody", "implementation App::ValueBody for App::Value (int n) -> int {blueprint common \"value.graph.json\";body portable \"node-excluded.csbody\";}");
+        f.Body("App", "node-excluded.csbody", "return n + 100;");
         f.Main("provide App::Value with App::ValueBody;");
         f.Add("App", "implementation", "MainBody", "implementation App::MainBody for App::Main () -> int {import App::Value as Value (int) -> int;body common \"main.csbody\";}");
         f.Body("App", "main.csbody", "Console.WriteLine(calls.Value.Invoke(2));return 0;");
@@ -257,6 +325,7 @@ public sealed class FeatureBlueprintTests : TestCase
         import Confectory.ProjectAI::Poll as Poll (string) -> string;
         import Confectory.ProjectAI::Close as Close (string) -> void;
         import Confectory.ProjectAI::Adopt as Adopt (string,string,string,string,string[],string) -> string;
+        import Confectory.WorkerTasks::VerifyCompletion as VerifyCompletion (string,string,string) -> bool;
         import Confectory.PackWorkspace::Open as ViewOpen (string,string,string) -> string;
         import Confectory.PackWorkspace::Command as ViewCommand (string,string,string) -> string;
         import Confectory.PackWorkspace::Close as ViewClose (string) -> void;
@@ -302,9 +371,48 @@ public sealed class FeatureBlueprintTests : TestCase
          bool replay=false;try{calls.NodeTask.Invoke(owner,"work",Serialize(new{task,commandID="replay",authorization=Grant(plan["assignmentHash"]!.ToString())}));}catch(InvalidOperationException){replay=true;}Check(replay&&Starts()==1,"no completed execution replay");
          bool adoptOther=false;try{calls.Adopt.Invoke(owner,task,view,"unused",new[]{graphId},"Fixture user acceptance");}catch(UnauthorizedAccessException){adoptOther=true;}Check(adoptOther&&System.IO.File.ReadAllText(sourcePath)==original,"node adoption must include its assigned node");
          bool unrelated=false;try{calls.Adopt.Invoke(owner,task,view,"unused",new[]{node,"App::Main"},"Fixture acceptance");}catch(UnauthorizedAccessException){unrelated=true;}Check(unrelated&&System.IO.File.ReadAllText(sourcePath)==original,"node adoption cannot add unrelated declarations");
-         calls.ViewCommand.Invoke(view,"select",Serialize(new{id=node}));var review=Json(calls.ViewCommand.Invoke(view,"review","{\"target\":\"portable\"}"))["review"]!;Check(review["status"]!.ToString()=="ready","actual compiler-ready node review");
-         calls.Adopt.Invoke(owner,task,view,review["token"]!.ToString(),new[]{node},"Fixture accepts the implementation; runtime is independently tested below.");
+         var completedDraft=Json(calls.ViewCommand.Invoke(view,"select",Serialize(new{id=node})))["unit"]!;string workerDraft=completedDraft["text"]!.ToString(),projectManifest=System.IO.File.ReadAllText(project);
+         var packLines=System.Linq.Enumerable.Where(projectManifest.Replace("project App ","pack App ",StringComparison.Ordinal).Split('\n'),line=>!line.TrimStart().StartsWith("entry ",StringComparison.Ordinal)&&!line.TrimStart().StartsWith("registry ",StringComparison.Ordinal)&&!line.TrimStart().StartsWith("target ",StringComparison.Ordinal)&&!line.TrimStart().StartsWith("always ",StringComparison.Ordinal));
+         bool packDenied=false;
+         try{
+          System.IO.File.WriteAllText(project,string.Join("\n",packLines));
+          var invalidNode=Json(workerDraft);invalidNode["source"]="return missing_pack_compiler_verification;";calls.ViewCommand.Invoke(view,"edit",Serialize(new{text=invalidNode.ToJsonString(),expectedRevision=completedDraft["revision"]!.GetValue<long>()}));
+          var packReview=Json(calls.ViewCommand.Invoke(view,"review",Serialize(new{target="portable",ids=new[]{node}})))["review"]!;Check(packReview["status"]!.ToString()=="ready","owned pack source review is not C# compilation");
+          try{calls.Adopt.Invoke(owner,task,view,packReview["token"]!.ToString(),new[]{node},"Pack syntax-only validation must not complete a compiled node Task.");}catch(InvalidOperationException){packDenied=true;}
+         }finally{System.IO.File.WriteAllText(project,projectManifest);}
+         Check(packDenied&&System.IO.File.ReadAllText(sourcePath)==original&&Json(calls.Poll.Invoke(owner))["workers"]![task]!["status"]!.ToString()=="awaiting-verification","pack syntax-only validation cannot publish or complete node code");
+         completedDraft=Json(calls.ViewCommand.Invoke(view,"select",Serialize(new{id=node})))["unit"]!;calls.ViewCommand.Invoke(view,"edit",Serialize(new{text=workerDraft,expectedRevision=completedDraft["revision"]!.GetValue<long>()}));
+         completedDraft=Json(calls.ViewCommand.Invoke(view,"select",Serialize(new{id=node})))["unit"]!;var excludedNode=Json(workerDraft);excludedNode["source"]="return missing_in_an_unselected_target_body;";calls.ViewCommand.Invoke(view,"edit",Serialize(new{text=excludedNode.ToJsonString(),expectedRevision=completedDraft["revision"]!.GetValue<long>()}));
+         var excludedReview=Json(calls.ViewCommand.Invoke(view,"review",Serialize(new{target="portable",ids=new[]{node}})))["review"]!;bool excludedDenied=false;
+         try{calls.Adopt.Invoke(owner,task,view,excludedReview["token"]!.ToString(),new[]{node},"An alternate target implementation must not bypass the assigned node compiler check.");}catch(InvalidOperationException){excludedDenied=true;}
+         Check(excludedDenied&&System.IO.File.ReadAllText(sourcePath)==original&&Json(calls.Poll.Invoke(owner))["workers"]![task]!["status"]!.ToString()=="awaiting-verification","selected target cannot skip compilation of the assigned common node body");
+         completedDraft=Json(calls.ViewCommand.Invoke(view,"select",Serialize(new{id=node})))["unit"]!;calls.ViewCommand.Invoke(view,"edit",Serialize(new{text=workerDraft,expectedRevision=completedDraft["revision"]!.GetValue<long>()}));
+         var implementationUnit=Json(calls.ViewCommand.Invoke(view,"select",Serialize(new{id="App::ValueBody"})))["unit"]!;string commonImplementation=implementationUnit["text"]!.ToString().Replace("body portable \"node-excluded.csbody\";","",StringComparison.Ordinal);calls.ViewCommand.Invoke(view,"edit",Serialize(new{text=commonImplementation,expectedRevision=implementationUnit["revision"]!.GetValue<long>()}));
+         graphUnit=Json(calls.ViewCommand.Invoke(view,"select",Serialize(new{id=graphId})))["unit"]!;string beforeAdoptionGraph=graphUnit["text"]!.ToString();var staleGraph=Json(beforeAdoptionGraph);staleGraph["nodes"]![1]!["intent"]="A new independent definition after the assigned work";foreach(var edge in staleGraph["edges"]!.AsArray())if(edge!["from"]!.ToString()=="condition")edge["to"]="exit:negative";
+         calls.ViewCommand.Invoke(view,"edit",Serialize(new{text=staleGraph.ToJsonString(),expectedRevision=graphUnit["revision"]!.GetValue<long>()}));
+         var staleReview=Json(calls.ViewCommand.Invoke(view,"review",Serialize(new{target="portable",ids=new[]{graphId,node}})))["review"]!;Check(staleReview["status"]!.ToString()=="ready","independent stale node is still a user-reviewable source draft");
+         bool staleCompletion=false;try{calls.Adopt.Invoke(owner,task,view,staleReview["token"]!.ToString(),new[]{graphId,node},"The changed graph must not bypass assigned-node compiler verification.");}catch(InvalidOperationException){staleCompletion=true;}
+         Check(staleCompletion&&System.IO.File.ReadAllText(sourcePath)==original&&Json(calls.Poll.Invoke(owner))["workers"]![task]!["status"]!.ToString()=="awaiting-verification","stale independent node cannot be completed by a compiler which skips it");
+         graphUnit=Json(calls.ViewCommand.Invoke(view,"select",Serialize(new{id=graphId})))["unit"]!;calls.ViewCommand.Invoke(view,"edit",Serialize(new{text=beforeAdoptionGraph,expectedRevision=graphUnit["revision"]!.GetValue<long>()}));
+         calls.ViewCommand.Invoke(view,"select",Serialize(new{id=node}));var review=Json(calls.ViewCommand.Invoke(view,"review",Serialize(new{target="portable",ids=new[]{node,"App::ValueBody"}})))["review"]!;Check(review["status"]!.ToString()=="ready","actual compiler-ready node review");
+         string nodeProof=calls.Adopt.Invoke(owner,task,view,review["token"]!.ToString(),new[]{node,"App::ValueBody"},"Fixture accepts the implementation; runtime is independently tested below.");
          Check(Json(calls.Poll.Invoke(owner))["workers"]![task]!["status"]!.ToString()=="completed"&&Json(System.IO.File.ReadAllText(sourcePath))["source"]!.ToString()=="return value + 7;","compiler-backed node adoption");
+         var nodeVerification=Json(nodeProof)["nodeVerification"]!;Check(nodeVerification["compilerConfirmed"]!.GetValue<bool>()&&nodeVerification["independentCompilerRequired"]!.GetValue<bool>()&&nodeVerification["definitionHash"]!.ToString()==plan["assignment"]!["definitionHash"]!.ToString()&&nodeVerification["sourceHash"]!.ToString()==Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(System.IO.File.ReadAllText(sourcePath)))).ToLowerInvariant(),"completion pins actual compiled node definition and source");
+         Check(nodeVerification["mode"]!.ToString()=="independent-node"&&nodeVerification["bodyTarget"]!.ToString()=="common"&&nodeVerification["assemblySha256"]!.ToString().Length==64&&nodeVerification["compilerIdentity"]!.ToString().Length==64&&!nodeVerification["executed"]!.GetValue<bool>(),"actual independent node compiler evidence is retained");
+         var completedWorker=Json(calls.Poll.Invoke(owner))["workers"]![task]!;
+         string specification=completedWorker["specification"]!.ToJsonString(),progress=completedWorker["progress"]!.ToString();
+         Check(calls.VerifyCompletion.Invoke(specification,progress,nodeProof),"actual node compiler receipt satisfies the completion verifier");
+         var retainedReceipt=(System.Text.Json.Nodes.JsonObject)AppDomain.CurrentDomain.GetData("Confectory.ProjectAI.Receipt."+Json(nodeProof)["receipt"]!.ToString())!;
+         var retainedVerification=retainedReceipt["nodeVerification"]!.DeepClone();
+         try{
+          foreach(string required in new[]{"mode","independentCompilerRequired","compilerConfirmed","executed","compilerIdentity","artifactKey","assemblySha256","referenceSha256","sourceHash","definitionHash","bodyTarget","sourcePath"}){
+           var legacyProof=Json(nodeProof);legacyProof["nodeVerification"]!.AsObject().Remove(required);retainedReceipt["nodeVerification"]=legacyProof["nodeVerification"]!.DeepClone();
+           Check(!calls.VerifyCompletion.Invoke(specification,progress,legacyProof.ToJsonString()),"Incomplete retained node compiler evidence cannot satisfy completion: "+required);
+          }
+          retainedReceipt["nodeVerification"]=retainedVerification.DeepClone();var mismatched=Json(nodeProof);mismatched["nodeVerification"]!["sourceHash"]=new string('0',64);
+          Check(!calls.VerifyCompletion.Invoke(specification,progress,mismatched.ToJsonString()),"completion proof must match its retained compiler receipt");
+         }finally{retainedReceipt["nodeVerification"]=retainedVerification.DeepClone();}
+         var confirmedTime=System.IO.File.GetLastWriteTimeUtc(sourcePath);Check(calls.Adopt.Invoke(owner,task,view,"no-confirm-replay",new[]{node,"App::ValueBody"},"Retry only the retained receipt")==nodeProof&&System.IO.File.GetLastWriteTimeUtc(sourcePath)==confirmedTime&&Starts()==1,"same node completion proof without confirmation or Agent replay");
          calls.Close.Invoke(owner);owner=calls.OpenLocal.Invoke(project,"node-task-project","App",context);calls.EnableTasks.Invoke(owner,helpers,new[]{"App::Value"},new[]{"description"});
          Check(Json(calls.Poll.Invoke(owner))["workers"]![task]!["status"]!.ToString()=="completed"&&Starts()==1,"cold completion without Agent replay");
          var fresh=Json(Inspect());var readyTask=Json(calls.NodeTask.Invoke(owner,"assign",Serialize(new{node,assignmentHash=fresh["assignmentHash"]!.ToString(),commandID="assign-ready-cancel",rationale="Explicit ready cancellation fixture"})))["task"]!.ToString();
@@ -330,7 +438,9 @@ public sealed class FeatureBlueprintTests : TestCase
         try{
             Environment.SetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST",Path.Combine(Fixture.Repo,"targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll"));
             Environment.SetEnvironmentVariable("CONFECTORY_TEST_AUTHOR_PROJECT",f.Project);
-            var built=new Builder(project,"linux").Build();Output(built,"Blueprint node Task assignment/scoped dispatch/adoption/cold no-replay PASS");
+            var built=new Builder(project,"linux").Build();
+            // This consumer includes real compiler probes and source Confirm, including cold caches.
+            var run=Processes.Run(Strings(built,"run"),timeoutSeconds:180);True(run.ExitCode==0,run.Stdout+run.Stderr);Equal("Blueprint node Task assignment/scoped dispatch/adoption/cold no-replay PASS\n",run.Stdout.Replace("\r\n","\n",StringComparison.Ordinal));
             Output(Build(),"9");
         }finally{Environment.SetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST",host);Environment.SetEnvironmentVariable("CONFECTORY_TEST_AUTHOR_PROJECT",selected);}
     }
@@ -378,6 +488,16 @@ public sealed class FeatureBlueprintTests : TestCase
         string selected=calls.Command.Invoke(view,"select",System.Text.Json.JsonSerializer.Serialize(new{id}));
         var unit=System.Text.Json.Nodes.JsonNode.Parse(selected)!["unit"]!;string original=unit["text"]!.ToString();
         string path=System.IO.Path.Combine(System.IO.Path.GetDirectoryName(project)!,unit["path"]!.ToString());
+        System.IO.File.WriteAllText(path,"// A generated C# implementation is not an authored node record.\nreturn value;\n");string invalidCapability="";bool invalidSource=false;
+        try{invalidCapability=calls.OpenNode.Invoke(project,"fixture","App","owner","invalid-node-record",id);}catch(InvalidOperationException){invalidSource=true;}
+        finally{if(invalidCapability.Length>0)calls.CloseTool.Invoke(invalidCapability);System.IO.File.WriteAllText(path,original);}
+        Check(invalidSource,"raw or generated C# must not be exposed as an owned node record");
+        var locatorUnit=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(view,"select",System.Text.Json.JsonSerializer.Serialize(new{id="App::ValueBody"})))!["unit"]!;string originalLocator=locatorUnit["text"]!.ToString();
+        calls.Command.Invoke(view,"edit",System.Text.Json.JsonSerializer.Serialize(new{text=originalLocator.Replace("value.graph.json","elsewhere.graph.json",StringComparison.Ordinal),expectedRevision=locatorUnit["revision"]!.GetValue<long>()}));
+        string movedCapability="";bool graphLocatorDenied=false;
+        try{movedCapability=calls.OpenNode.Invoke(project,"fixture","App","owner","nodes",id);}catch(InvalidOperationException){graphLocatorDenied=true;}
+        finally{if(movedCapability.Length>0)calls.CloseTool.Invoke(movedCapability);locatorUnit=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(view,"select",System.Text.Json.JsonSerializer.Serialize(new{id="App::ValueBody"})))!["unit"]!;calls.Command.Invoke(view,"edit",System.Text.Json.JsonSerializer.Serialize(new{text=originalLocator,expectedRevision=locatorUnit["revision"]!.GetValue<long>()}));}
+        Check(graphLocatorDenied,"implementation must still own the displayed graph before lending a node capability");
         string capability=calls.OpenNode.Invoke(project,"fixture","App","owner","nodes",id);
         string Invoke(string op,string call,object args)=>calls.Tool.Invoke(capability,call,op,System.Text.Json.JsonSerializer.Serialize(args));
         string Hash(string text)=>Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(text))).ToLowerInvariant();

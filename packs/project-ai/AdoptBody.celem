@@ -3,4 +3,8 @@ import Confectory.PackWorkspace::Snapshot as ViewSnapshot (string) -> string; im
 import Confectory.WorkerTasks::Inspect as InspectTask (string,string) -> string; import Confectory.WorkerTasks::Lease as Lease (string,string) -> string; import Confectory.WorkerTasks::Finish as Finish (string,string,long,string,string,string) -> void;
 import Confectory.FileStream::Snapshot as FileSnapshot (string) -> string[]; import Confectory.FileStream::Commit as Commit (string,string[],string[],string[]) -> string[];
 import Confectory.ProjectAI::AdoptionStatus as AdoptionStatus (string,string) -> string; import Confectory.DevelopmentTools::Snapshot as ToolsSnapshot (string) -> string;
+import Confectory.DevelopmentTools::OpenNode as NodeOpen (string,string,string,string,string,string) -> string;
+import Confectory.DevelopmentTools::Invoke as NodeRead (string,string,string,string) -> string;
+import Confectory.DevelopmentTools::Close as NodeClose (string) -> void;
+import Confectory.ProjectAI::VerifyNodeCompilation as NodeCompiler (string,string,string,string) -> string;
 body common "Adopt.csbody";}

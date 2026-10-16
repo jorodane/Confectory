@@ -8,6 +8,7 @@ internal sealed class BlueprintCompilation(Registry registry, string target, Tar
 {
     private readonly Dictionary<string, string> nodeOwners = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> observations = new(StringComparer.Ordinal);
+    private readonly HashSet<string> missingSources = new(StringComparer.Ordinal);
     public JsonObject Receipts { get; } = new();
     public JsonArray Nodes { get; } = new();
 
@@ -37,7 +38,7 @@ internal sealed class BlueprintCompilation(Registry registry, string target, Tar
         return source;
     }
 
-    public string Assemble(Element implementation, Body body, string path)
+    public string Assemble(Element implementation, Body body, string path, string? nodeId = null)
     {
         if (tool.Info["blueprintProfile"]?.GetValue<string>() != FeatureBlueprint.Profile)
             throw new BuildError("BLUEPRINT_TARGET_UNSUPPORTED", "Selected compiler does not validate this Blueprint profile", body.Loc);
@@ -72,7 +73,7 @@ internal sealed class BlueprintCompilation(Registry registry, string target, Tar
             if (nodeOwners.TryGetValue(nodePath, out var owner) && owner != ownerKey) throw new BuildError("BLUEPRINT_NODE_OWNERSHIP", "Node source belongs to another feature node", new(nodePath));
             nodeOwners[nodePath] = ownerKey;
             if (!nodePaths.Add(nodePath)) throw new BuildError("BLUEPRINT_NODE_OWNERSHIP", "Each node owns a separate implementation file", new(nodePath));
-            if (!File.Exists(nodePath)) continue;
+            if (!File.Exists(nodePath)) { missingSources.Add(nodePath); continue; }
             var record = JsonNode.Parse(Read(nodePath))?.AsObject() ?? throw new BuildError("BLUEPRINT_NODE", "Node record object required", new(nodePath));
             if (record["schema"]?.GetValue<int>() != 1 || record["node"]?.ToString() != id)
                 throw new BuildError("BLUEPRINT_NODE_OWNERSHIP", "Node record schema and stable node ID must match", new(nodePath));
@@ -82,11 +83,11 @@ internal sealed class BlueprintCompilation(Registry registry, string target, Tar
         foreach (string id in implementation.Imports.Values.Select(i => i.Id).Distinct(StringComparer.Ordinal)) contracts[id] = Contract(id);
         var request = new JsonObject
         {
-            ["operation"] = "featureBlueprintAssemble", ["featureSource"] = Contract(implementation.Function!),
+            ["operation"] = nodeId is null ? "featureBlueprintAssemble" : "featureBlueprintNodeProbe", ["node"] = nodeId, ["featureSource"] = Contract(implementation.Function!),
             ["graph"] = graph, ["featureContracts"] = contracts, ["implementations"] = implementations
         };
         var result = FeatureBlueprint.Execute(request);
-        if (result["state"]?.ToString() != "source-assembled")
+        if (result["state"]?.ToString() != (nodeId is null ? "source-assembled" : "node-source-assembled"))
             throw new BuildError("BLUEPRINT_NOT_READY", result.ToJsonString(), new(path));
         foreach (var import in result["imports"]!.AsArray())
         {
@@ -97,13 +98,17 @@ internal sealed class BlueprintCompilation(Registry registry, string target, Tar
         foreach (var node in result["nodeSources"]!.AsArray()) Nodes.Add(node!.DeepClone());
         var receipt = result.DeepClone().AsObject();
         receipt.Remove("body"); receipt.Remove("nodeSources");
-        receipt["state"] = "source-assembled";
+        receipt["state"] = result["state"]!.DeepClone();
         receipt["target"] = target;
         receipt["graphMap"]!["path"] = Path.GetRelativePath(Path.GetDirectoryName(registry.ProjectPath)!, path).Replace('\\', '/');
         receipt["compilerIdentity"] = tool.Identity;
         receipt["inputs"] = new JsonArray(observations.OrderBy(p => p.Key, StringComparer.Ordinal).Select(p => (JsonNode)new JsonObject
         {
             ["path"] = Path.GetRelativePath(Path.GetDirectoryName(registry.ProjectPath)!, p.Key).Replace('\\', '/'), ["sha256"] = p.Value
+        }).ToArray());
+        receipt["missingInputs"] = new JsonArray(missingSources.Order(StringComparer.Ordinal).Select(path => (JsonNode)new JsonObject
+        {
+            ["path"] = Path.GetRelativePath(Path.GetDirectoryName(registry.ProjectPath)!, path).Replace('\\', '/'), ["status"] = "missing"
         }).ToArray());
         // Node markers include stable ID and implementation content hash; JSON source pointer is explicit.
         foreach (var map in receipt["sourceMap"]!.AsArray())
@@ -125,6 +130,8 @@ internal sealed class BlueprintCompilation(Registry registry, string target, Tar
     {
         if (verifyCompiler && new TargetTool(registry, target).Identity != tool.Identity)
             throw new BuildError("BLUEPRINT_COMPILER_CHANGED", "Compiler profile changed during this build; retain the prior artifact", tool.Element.Loc);
+        foreach (string path in missingSources)
+            if (File.Exists(path)) throw new BuildError("BLUEPRINT_SOURCE_CHANGED", "A previously missing node source appeared during this build", new(path));
         foreach (var (path, hash) in observations)
         {
             byte[] bytes;

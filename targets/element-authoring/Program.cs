@@ -142,6 +142,10 @@ try
             if(!process.WaitForExit(15000)){process.Kill(true);process.WaitForExit();throw new TimeoutException("Preview stopped after 15 seconds.");}
             reply=new JsonObject{["exit"]=process.ExitCode,["stdout"]=output.GetAwaiter().GetResult(),["stderr"]=errors.GetAwaiter().GetResult()};break;
         }
+        case "checkBlueprintNode":
+        {
+            reply = new Builder(S("project"), S("target")).CheckBlueprintNode(S("implementation"), S("bodyTarget"), S("node")); break;
+        }
         case "validate":
         {
             string candidate=S("project");var manifest=new Parser(File.ReadAllText(candidate),candidate).ParseManifest();

@@ -1,1 +1,21 @@
-try{var proof=System.Text.Json.Nodes.JsonNode.Parse(evidence)!;var receipt=AppDomain.CurrentDomain.GetData("Confectory.ProjectAI.Receipt."+proof["receipt"]!.ToString()) as System.Text.Json.Nodes.JsonObject;if(receipt is null||receipt["confirmed"]?.GetValue<bool>()!=true||string.IsNullOrWhiteSpace(receipt["goalEvidence"]?.ToString())||receipt["specification"]?.ToString()!=specification||receipt["progress"]?.ToString()!=progress||receipt["projectId"]?.ToString()!=proof["projectId"]?.ToString()||receipt["task"]?.ToString()!=proof["task"]?.ToString())return false;foreach(var file in receipt["files"]!.AsArray()){var current=calls.FileSnapshot.Invoke(file!["path"]!.ToString());if(current[0]!="exists"||current[2]!=file["sha256"]!.ToString())return false;}return true;}catch{return false;}
+try{
+ var proof=System.Text.Json.Nodes.JsonNode.Parse(evidence)!;
+ var receipt=AppDomain.CurrentDomain.GetData("Confectory.ProjectAI.Receipt."+proof["receipt"]!.ToString()) as System.Text.Json.Nodes.JsonObject;
+ if(receipt is null||receipt["confirmed"]?.GetValue<bool>()!=true||string.IsNullOrWhiteSpace(receipt["goalEvidence"]?.ToString())||receipt["specification"]?.ToString()!=specification||receipt["progress"]?.ToString()!=progress||receipt["projectId"]?.ToString()!=proof["projectId"]?.ToString()||receipt["task"]?.ToString()!=proof["task"]?.ToString())return false;
+ var specificationNode=System.Text.Json.Nodes.JsonNode.Parse(specification)!;
+ if(specificationNode["kind"]?.ToString()=="blueprint-node"){
+  var assignment=specificationNode["blueprintNode"]!["assignment"]!;
+  var verification=receipt["nodeVerification"];
+  if(verification is null||!System.Text.Json.Nodes.JsonNode.DeepEquals(verification,proof["nodeVerification"])||verification["mode"]?.ToString()!="independent-node"||verification["independentCompilerRequired"]?.GetValue<bool>()!=true||verification["compilerConfirmed"]?.GetValue<bool>()!=true||verification["executed"]?.GetValue<bool>()!=false)return false;
+  foreach(string field in new[]{"definitionHash","sourceHash","compilerIdentity","artifactKey","assemblySha256","referenceSha256"})if(!System.Text.RegularExpressions.Regex.IsMatch(verification[field]?.ToString()??"",@"^[a-f0-9]{64}$"))return false;
+  if(verification["definitionHash"]!.ToString()!=assignment["definitionHash"]!.ToString())return false;
+  string assigned=assignment["id"]!.ToString();int bodyMarker=assigned.IndexOf("/body:",StringComparison.Ordinal),nodeMarker=assigned.LastIndexOf("/node:",StringComparison.Ordinal);
+  if(bodyMarker<0||nodeMarker<=bodyMarker||verification["bodyTarget"]?.ToString()!=assigned[(bodyMarker+6)..nodeMarker])return false;
+  var nodeFile=System.Linq.Enumerable.SingleOrDefault(receipt["files"]!.AsArray(),file=>file!["id"]?.ToString()==assigned);
+  if(nodeFile is null||nodeFile["sha256"]?.ToString()!=verification["sourceHash"]!.ToString()||string.IsNullOrWhiteSpace(verification["sourcePath"]?.ToString())||nodeFile["relative"]!.ToString().Replace('\\','/')!=verification["sourcePath"]!.ToString().Replace('\\','/'))return false;
+ }
+ foreach(var file in receipt["files"]!.AsArray()){
+  var current=calls.FileSnapshot.Invoke(file!["path"]!.ToString());if(current[0]!="exists"||current[2]!=file["sha256"]!.ToString())return false;
+ }
+ return true;
+}catch{return false;}
