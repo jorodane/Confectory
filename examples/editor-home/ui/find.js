@@ -18,13 +18,13 @@ export function createPlacedTextFind(api){
   close();const panel=document.createElement('section');panel.className='placed-text-find';panel.setAttribute('role','dialog');panel.setAttribute('aria-label',context.title);
   panel.innerHTML='<header><strong></strong><button type="button" data-find-close aria-label="찾기 닫기">×</button></header><div class="placed-find-row"><input type="search" maxlength="256" aria-label="배치된 노드에서 찾기" placeholder="배치된 노드의 글자 찾기…"><span data-find-count role="status"></span><button type="button" data-find-prev aria-label="이전 결과">↑</button><button type="button" data-find-next aria-label="다음 결과">↓</button></div><p data-find-result></p>';
   panel.querySelector('strong').textContent=context.title;document.body.append(panel);
-  const input=panel.querySelector('input'),events=new AbortController();let results=[],index=-1,marked=null;
+  const input=panel.querySelector('input'),events=new AbortController();input.placeholder=context.placeholder||input.placeholder;let results=[],index=-1,marked=null;
   function valid(){return visible(context.host)&&context.isCurrent();}
   function clear(){marked?.classList.remove('is-placed-find-match');marked=null;}
   function position(){if(!valid()){dispose();return;}const rect=context.host.getBoundingClientRect();panel.style.left=Math.max(8,Math.min(innerWidth-panel.offsetWidth-8,rect.right-panel.offsetWidth-12))+'px';panel.style.top=Math.max(8,Math.min(innerHeight-panel.offsetHeight-8,rect.top+(context.host.matches('.window')?52:12)))+'px';}
   function show(focus=true){
    clear();const item=results[index],term=input.value.trim().toLocaleLowerCase();panel.querySelector('[data-find-count]').textContent=item?(index+1)+' / '+results.length:'0 / 0';
-   const start=item?Math.max(0,item.text.toLocaleLowerCase().indexOf(term)-20):0;panel.querySelector('[data-find-result]').textContent=!term?'현재 화면에 배치된 노드를 검색합니다.':item?item.text.slice(start,start+160):'일치하는 노드가 없습니다.';
+   const start=item?Math.max(0,item.text.toLocaleLowerCase().indexOf(term)-20):0;panel.querySelector('[data-find-result]').textContent=!term?(context.emptyMessage||'현재 화면에 배치된 노드를 검색합니다.'):item?item.text.slice(start,start+160):'일치하는 노드가 없습니다.';
    panel.querySelectorAll('[data-find-prev],[data-find-next]').forEach(b=>b.disabled=!item);
    if(item){if(focus)context.focus(item);marked=item.element;marked.classList.add('is-placed-find-match');}
   }
@@ -41,7 +41,7 @@ export function createPlacedTextFind(api){
   panel.onkeydown=event=>{event.stopPropagation();if(event.key==='Escape'){event.preventDefault();dispose();context.host.focus({preventScroll:true});}else if(event.key==='Enter'){event.preventDefault();step(event.shiftKey?-1:1);}else if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='f'){event.preventDefault();input.select();}};
   active={panel,input,context,close:dispose};position();search();input.focus();
  }
- function track(event){if(event.target.closest?.('.placed-text-find,.nav-menu'))return;lastHost=event.target.closest?.('.window')||null;}
+ function track(event){if(event.target.closest?.('.placed-text-find,.nav-menu'))return;lastHost=event.target.closest?.('.window,.tab-document')||null;}
  document.addEventListener('pointerdown',track,true);document.addEventListener('focusin',track,true);
  document.addEventListener('keydown',event=>{if(event.defaultPrevented||!(event.ctrlKey||event.metaKey)||event.key.toLowerCase()!=='f')return;const context=api.context(lastHost);if(!context)return;event.preventDefault();open(context);});
  return {open,close};

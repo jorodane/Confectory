@@ -133,3 +133,6 @@ PackWorkspace.Blueprint는 기존 소유 graph와 독립 노드 본문을 기능
 모듈 인터페이스는 기존 module 선언의 `require`와 `default`를 편집한다. 별도의 실행 graph나 구현 본문을 만들지 않는다. 입력·반환 표시는 현재 기본 타입/배열·단일 반환 계약의 파생 화면이다. 상속·포함으로 읽은 요구 계약과 기본 후보는 출처를 표시하며, 직접 재정의한 항목만 현재 모듈 원본에 기록한다. 직접 지정을 제거하면 기존 상속 구성이 다시 드러난다.
 
 계약과 기본 구현을 같은 소유 선언의 원자적 편집으로 적용하고 현재 리비전·원본 해시를 확인한다. 구성 조회는 선언만 읽으며 실제 실행과 소비 문맥의 구현 선택을 수행하지 않는다. 잘못된 조합은 구성 진단과 실제 compiler Confirm으로 구분한다. 미적용 입력은 private presentation에 남지만 cold 복원에는 적용 기준을 저장하지 않는다. 현재 원본 읽기와 사용자의 명시적 기준 재검토 뒤에 적용한다. 최종 파일은 일반 Save/Review/Confirm 수명을 따른다.
+
+
+메모 문서 탭은 기존 canonical private 메모를 읽고 편집하는 presentation이며 graph·노드 원본·타깃 ABI·compiler 입력이 아니다. domain 창의 DOM과 editor binding은 보기 전환으로 해제하지 않는다. 원문 삭제 시 문서 보기를 정리하고, 프로젝트·고유 메모 identity가 달라진 오래된 편집기는 원문을 다시 만들 수 없다. 실제 UI/cold/Home·기존 회귀 및 리소스 검사의 경계는 [v480 연결 기록](EDITOR_V480_INTEGRATION.md)에 남긴다.

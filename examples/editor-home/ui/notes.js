@@ -28,7 +28,7 @@ export function noteMarkup(item){
  const commands=[['bold','B','굵게'],['italic','I','기울임'],['underline','U','밑줄'],['strikeThrough','S','취소선'],['insertUnorderedList','•','글머리 목록'],['insertOrderedList','1.','번호 목록'],['removeFormat','T×','글자 서식 지우기']];
  return '<div class="workspace-note-composer"><div class="workspace-note-toolbar" role="toolbar" aria-label="메모 글자 서식">'+commands.map(([command,label,title])=>'<button type="button" data-note-command="'+command+'" aria-label="'+title+'" title="'+title+'"'+(['bold','italic','underline','strikeThrough'].includes(command)?' aria-pressed="false"':'')+'>'+label+'</button>').join('')+'<select data-note-size aria-label="메모 글자 크기">'+[10,13,16,18,24,32,48].map((size,i)=>'<option value="'+(i+1)+'"'+(size===13?' selected':'')+'>'+size+'px</option>').join('')+'</select><input type="color" data-note-color value="#e9d9b9" aria-label="메모 글자 색상"></div><div class="workspace-note-editor" contenteditable="true" role="textbox" aria-multiline="true" aria-label="메모 내용" data-note-editor="'+esc(item.id)+'" data-placeholder="메모를 남겨보세요…">'+noteHtml(item)+'</div></div>';
 }
-export function bindNoteEditor(root,item,persist){
+export function bindNoteEditor(root,item,persist,canEdit=()=>true){
  const editor=root.querySelector('[data-note-editor]'),toolbar=root.querySelector('.workspace-note-toolbar');let range=null;
  function capture(){
   const selection=getSelection(),inside=selection.rangeCount&&editor.contains(selection.anchorNode);if(inside)range=selection.getRangeAt(0).cloneRange();
@@ -41,15 +41,15 @@ export function bindNoteEditor(root,item,persist){
   const states={bold:Number(style.fontWeight)>=600||style.fontWeight==='bold',italic:style.fontStyle==='italic',underline:decorations.some(value=>value.includes('underline')),strikeThrough:decorations.some(value=>value.includes('line-through'))};
   for(const button of toolbar.querySelectorAll('[aria-pressed]'))button.setAttribute('aria-pressed',String(inside?document.queryCommandState(button.dataset.noteCommand):states[button.dataset.noteCommand]));
  }
- function save(){item.richText=cleanNoteHtml(editor.innerHTML);item.text=plainNote(item.richText);persist();capture();}
- function run(command,value=null){editor.focus({preventScroll:true});if(range&&editor.contains(range.commonAncestorContainer)){const selection=getSelection();selection.removeAllRanges();selection.addRange(range);}document.execCommand('styleWithCSS',false,true);document.execCommand(command,false,value);save();}
- editor.oninput=save;editor.onmouseup=editor.onkeyup=editor.onfocus=capture;
+ function save(){if(!canEdit()){editor.contentEditable='false';return;}item.richText=cleanNoteHtml(editor.innerHTML);item.text=plainNote(item.richText);persist();capture();}
+ function run(command,value=null){if(!canEdit()){editor.contentEditable='false';return;}editor.focus({preventScroll:true});if(range&&editor.contains(range.commonAncestorContainer)){const selection=getSelection();selection.removeAllRanges();selection.addRange(range);}document.execCommand('styleWithCSS',false,true);document.execCommand(command,false,value);save();}
+ editor.onbeforeinput=event=>{if(!canEdit()){event.preventDefault();editor.contentEditable='false';}};editor.oninput=save;editor.onmouseup=editor.onkeyup=editor.onfocus=capture;
  editor.onkeydown=event=>{if(!((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='f'))event.stopPropagation();};
  toolbar.onpointerdown=event=>{event.stopPropagation();if(event.target.closest('button'))event.preventDefault();};
  for(const button of toolbar.querySelectorAll('[data-note-command]'))button.onclick=event=>{event.stopPropagation();run(button.dataset.noteCommand);};
  toolbar.querySelector('[data-note-size]').onchange=event=>run('fontSize',event.target.value);toolbar.querySelector('[data-note-color]').oninput=event=>run('foreColor',event.target.value);
  editor.onpaste=event=>{event.preventDefault();const html=event.clipboardData.getData('text/html'),text=event.clipboardData.getData('text/plain');run('insertHTML',html?cleanNoteHtml(html):esc(text).replace(/\n/g,'<br>'));};
  editor.ondragover=event=>{event.preventDefault();event.stopPropagation();};editor.ondrop=event=>{event.preventDefault();event.stopPropagation();const html=event.dataTransfer.getData('text/html'),text=event.dataTransfer.getData('text/plain');if(html||text)run('insertHTML',html?cleanNoteHtml(html):esc(text).replace(/\n/g,'<br>'));};
- capture();
+ capture();return {capture};
 }
 export function applyNoteTitle(element,item){const label=element.querySelector('.workspace-item-name');if(!label)return;const style=item.titleStyle;label.style.fontSize=Number.isFinite(style?.size)&&style.size>=8&&style.size<=72?style.size+'px':'';label.style.color=/^#[0-9a-f]{6}$/i.test(style?.color||'')?style.color:'';}

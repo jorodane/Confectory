@@ -1,0 +1,137 @@
+{
+  "schema": 1,
+  "status": "private-note-document-canonical-views-verified",
+  "baseWorkCommit": "569ceb8de3e9a321a4dd91248cba7f216224bc17",
+  "referenceMain": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+  "claims": {
+    "staticResourceCount": 30,
+    "canonicalPrivateItemNotCopied": true,
+    "openAndCloseDoNotConvertPlainNote": true,
+    "explicitRichEditAndPlainMirror": true,
+    "nativeUndoRedoAndSelection": true,
+    "rootChildOwnershipPreserved": true,
+    "activeDocumentsAndPendingDomainInputColdAndHomeRetained": true,
+    "documentCurrentBodyFind": true,
+    "sourceDeletePrunesDocument": true,
+    "invalidRestoredIdsIgnored": true,
+    "rawHtmlDisplaySanitizedWithoutMigratingSource": true,
+    "projectSourceBytesUnchanged": true,
+    "sourceRuntimeAiMutationRequestsAbsent": true,
+    "nativeOrDeviceExecution": false,
+    "realAccountPaidModelUserPcInstall": false
+  },
+  "stages": [
+    {
+      "log": "note-documents-first-ui.log",
+      "boundary": "TEST used textContent to compare a multiline editor rendered with BR; switched to displayed innerText. No product change.",
+      "sha256": "5cc60f40005a6c2dceefe4705240349dda0bc9f3f03c5923f28c070e191ab65c",
+      "tests": [
+        "FAIL WebUITests.test_actual_editor_v480_note_document_tabs_canonical_ownership_and_cold_source_input"
+      ],
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 102.511
+    },
+    {
+      "log": "note-documents-second-ui.log",
+      "boundary": "Document/inline/native undo/child ownership/title/Find/cold passed; TEST deletion menu selector matched two source delete buttons too. Scoped to actual context menu.",
+      "sha256": "db46314d5d73ad8f810bcc1d0376d3b3f6b4d891f4a591bde5566333bf4a090f",
+      "tests": [
+        "FAIL WebUITests.test_actual_editor_v480_note_document_tabs_canonical_ownership_and_cold_source_input"
+      ],
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 16.804
+    },
+    {
+      "log": "note-documents-final-ui.log",
+      "boundary": "Actual repeat-open race: header double-click failed to cancel pending inline rename timer; hidden note acquired a name input. Fixed header timer cancellation and hidden-ancestor guard. Capture also exposed title covered by tab bar; moved layer below38px bar.",
+      "sha256": "8ee04310b3b80075ee224b84770600206002ec9da318ca1abd49c891964a2f96",
+      "tests": [
+        "FAIL WebUITests.test_actual_editor_v480_note_document_tabs_canonical_ownership_and_cold_source_input"
+      ],
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 38.636
+    },
+    {
+      "log": "note-documents-layout-final-ui.log",
+      "boundary": "Final actual document view below tabs, canonical ownership, native undo/redo, retained unapplied source on process cold and Home reentry, explicit deletion cleanup and guarded inert restored HTML; project original bytes preserved and no source/runtime/AI mutation requests.",
+      "sha256": "1c161031ae26633a892e3bb2394597b09dd3a8f442c1b81d7edf7cb86a00f84a",
+      "tests": [
+        "PASS WebUITests.test_actual_editor_v480_note_document_tabs_canonical_ownership_and_cold_source_input"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 19.463
+    },
+    {
+      "log": "note-documents-workspace-regression.log",
+      "boundary": "Existing layout checkpoints, Workspace lifecycle and frozen v318 characterization.",
+      "sha256": "08e6638c85154173baf6f0d4e056ed95c368d0f7897a40273405a13b62f4ced8",
+      "tests": [
+        "PASS WebUITests.test_actual_editor_layout_periodic_checkpoints_and_flush",
+        "PASS WebUITests.test_actual_editor_v318_workspace_lifecycle_presentation_restart",
+        "PASS WebUITests.test_v318_original_and_refactor_shared_workspace_characterization"
+      ],
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 117.792
+    },
+    {
+      "log": "note-documents-content-regression.log",
+      "boundary": "Existing rich notes and placed text Find.",
+      "sha256": "e4066b640254957938d823a2d9b9dea990ff0c62520c94f785d1cb4fff8038de",
+      "tests": [
+        "PASS WebUITests.test_actual_editor_v480_placed_text_find_workspace_blueprint_and_cold_scope",
+        "PASS WebUITests.test_actual_editor_v480_rich_notes_title_format_paste_and_cold_source_preservation"
+      ],
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 37.011
+    },
+    {
+      "log": "note-documents-home-regression.log",
+      "boundary": "Ordinary Home project lifecycle.",
+      "sha256": "81da5ff9f4a9875fe6766c9e9298f84b80399effdf64e65ab29cd0fb4e855e46",
+      "tests": [
+        "PASS WebUITests.test_actual_editor_original_v196_home_project_and_create_flow"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 48.068
+    }
+  ],
+  "boundaries": [
+    "Stages overlap and are not summed; failed attempts remain recorded.",
+    "Private note documents reference the existing canonical project note; open/close is view metadata, first edit explicitly changes its rich text and plain mirror.",
+    "Root/child notes retain their Workspace ownership. Only the current project canonical unique ID can be edited; closing the view never deletes its source.",
+    "Underlying domain windows and editor bindings remain alive with pending input. Notes are private presentation and never CELEM, generated C#, compiler source or AI authority.",
+    "Prototype portal transfers are windows only. Generic domain-window docking/document tabs, new object implementations/graphs, foreign registry function selection, legacy/parent reuse and extended graph/type profiles remain unfinished.",
+    "Actual tests use local Chromium and owned fixtures, with no real accounts, paid models, user PC installs or native/device execution."
+  ],
+  "sourceHashes": {
+    "examples/editor-home/WebBundle.csbody": "5d05c7a682421159137d358be8684571c74fbe69c771dd7942cea975427a3120",
+    "examples/editor-home/ui/app.js": "4039c6105b830cf1822a34d8c0c61098934fb3dd60cffcc07d5c300e58593bce",
+    "examples/editor-home/ui/consumer.css": "f783eb03e20de038d1bc1ac66e41f3d8a69bc45db1c91c1fd5e289a3e874ce57",
+    "examples/editor-home/ui/find.js": "8dfc179d20e10d80bf4e35cde8a9f1ab3959b5a2f0745dfd4d88894744759813",
+    "examples/editor-home/ui/note-documents.js": "cb53e631bf3bba8ef858e2deb61300ea7d7cee41265489c4587b1f63a0c08baf",
+    "examples/editor-home/ui/notes.js": "4adab64b6fc755dc4dda65d80a5232c7fbe3a375d3d4c34b4ba8695bc43486fa",
+    "examples/editor-home/ui/workspace-host.js": "1507c201f744f478427d981db74333fb042ce45a912f19afaa9317dc0cad7628",
+    "examples/editor-home/ui/workspace.js": "a47d232cdd6fd44dd01bda3096a67d90c1662c3193ad0cf3842d960e238993dc",
+    "tests/Confectory.Tests/WebUITests.cs": "146a9a6f5dc67d0758fd4d2ba123234d186654531748bc45cd232aad3508fbb2",
+    "tests/web/v480_note_documents.py": "546db9e21255b63e43185772ef2813cf5569637c781f5acfb8939855b4a245a3",
+    "tests/web/web_ui.py": "1055548aadd454477213f0724842cddc88e878e39e6a309a858f1f39d01e86b4"
+  },
+  "images": {
+    "note-document.png": "c11ec73b5078c89da0a6a06f5da2c2e1a5ddbf1f6534cacc76e261a4fbc8ecda",
+    "note-document-cold.png": "a453f84cb5cfc1b2145d7a565f8ce4024cbab469e1c24cff79c1f60876079add"
+  }
+}

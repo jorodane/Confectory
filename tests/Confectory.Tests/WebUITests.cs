@@ -153,6 +153,12 @@ public sealed class WebUITests : TestCase
         var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/web_ui.py"),Fixture.Repo,report,"object-provide"},timeoutSeconds:420);
         True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS actual v480 object module provider"),run.Stdout+run.Stderr);
     }
+    public void test_actual_editor_v480_note_document_tabs_canonical_ownership_and_cold_source_input()
+    {
+        var built=new Builder(Path.Combine(Fixture.Repo,"examples/editor-home/project.cpack"),"linux").Build();string report=Path.Combine(f.Root,"v480-note-documents.json");File.WriteAllText(report,built.ToJsonString());
+        var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/web_ui.py"),Fixture.Repo,report,"note-documents"},timeoutSeconds:420);
+        True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS actual v480 note documents"),run.Stdout+run.Stderr);
+    }
     public void test_actual_editor_v480_rich_notes_title_format_paste_and_cold_source_preservation()
     {
         var built=new Builder(Path.Combine(Fixture.Repo,"examples/editor-home/project.cpack"),"linux").Build();string report=Path.Combine(f.Root,"v480-rich-notes.json");File.WriteAllText(report,built.ToJsonString());

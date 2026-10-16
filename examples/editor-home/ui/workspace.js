@@ -31,7 +31,7 @@ function setupWorkspaceNavigation(){
  canvas.onpointerdown=e=>{
   if(![1,2].includes(e.button))return;
   if(e.button===2)ignoreContextUntil=0;
-  if(e.button===2&&e.target.closest?.('.bubble-dock,.workspace-tabs'))return;
+  if(e.button===2&&e.target.closest?.('.bubble-dock,.workspace-tabs,.tab-document'))return;
   ignoreContextUntil=0;e.preventDefault();
   drag={id:e.pointerId,x:e.clientX,y:e.clientY,startX:view.x,startY:view.y,button:e.button,moved:false,target:e.target};
   canvas.setPointerCapture(e.pointerId);canvas.classList.add('is-panning');
@@ -47,7 +47,7 @@ function setupWorkspaceNavigation(){
  canvas.onpointerup=finish;canvas.onpointercancel=finish;
  canvas.addEventListener('contextmenu',e=>{
   if(drag?.button===2||performance.now()<ignoreContextUntil){e.preventDefault();e.stopPropagation();return}
-  if(e.target.closest?.('.window,.bubble-dock,.workspace-tabs'))return;
+  if(e.target.closest?.('.window,.bubble-dock,.workspace-tabs,.tab-document'))return;
   e.preventDefault();e.stopPropagation();showWorkspaceContextMenu(e.clientX,e.clientY,e.target)
  },true);
  canvas.addEventListener('dblclick',e=>{
@@ -198,7 +198,7 @@ function setupWindowSelection(){
  const canvas=host.$('#workspace');canvas.tabIndex=0;
  canvas.addEventListener('selectstart',e=>{if(canvas.classList.contains('is-selecting-windows'))e.preventDefault()});
  canvas.addEventListener('pointerdown',e=>{
-  if(e.button!==0||e.target.closest('.window,.bubble-dock,.workspace-tabs,.augment-overlay,.workspace-decoration'))return;
+  if(e.button!==0||e.target.closest('.window,.bubble-dock,.workspace-tabs,.augment-overlay,.workspace-decoration,.tab-document'))return;
   e.preventDefault();
   canvas.classList.add('is-selecting-windows');
   globalThis.getSelection?.()?.removeAllRanges();
@@ -257,7 +257,7 @@ function updateWorkspaceDropPreview(target,members=[]){
 
 function moveWindowsToWorkspace(members,targetId){if(!members.length)return false;const target=workspaceRecord(targetId);if(!target||targetId===state.activeWorkspaceId)return false;target.layout??=[];if(members.some(w=>target.layout.some(item=>item.key===w.key))){host.toast(members.some(w=>w.key==='browser')?'이 작업 공간에는 이미 프로젝트 브라우저가 있어요.':'대상 작업 공간에 같은 창이 이미 있어요.');return false}const base=target.layout.length;const moved=members.map((w,i)=>({...windowLayout(w),x:70+(base+i)*34,y:90+(base+i)*30,placed:true}));members.forEach(w=>{host.detachWindow?.(w,'move');clearTimeout(w.helperBubbleTimer);w.el.remove();state.windows.delete(w.key);unregisterWorkspaceNode(w.key)});setWindowSelection([]);saveLayouts();target.layout.push(...moved);host.persist();renderWorkspaceDecorations();host.toast(members.length+'개 창을 '+target.name+'(으)로 옮겼어요.');return true}
 
-function renderWorkspaceTabs(){const tabs=host.$('#workspace-tabs');if(!tabs)return;tabs.replaceChildren();const add=(id,label)=>{const button=document.createElement('button');button.type='button';button.className='workspace-home-tab'+(id===state.activeWorkspaceId?' is-current':'');button.id=id==='root'?'workspace-home-tab':'workspace-tab-'+id;button.setAttribute('role','tab');button.setAttribute('aria-selected',String(id===state.activeWorkspaceId));button.textContent=label;button.onclick=()=>{if(id===state.activeWorkspaceId){host.$('#workspace').resetWorkspaceView?.();return}switchWorkspace(id)};tabs.append(button);if(id!=='root'&&host.preserveLifecycle){const close=document.createElement('button');close.type='button';close.className='workspace-tab-close';close.setAttribute('aria-label',label+' 탭 닫기');close.textContent='×';close.onclick=()=>{if(state.activeWorkspaceId===id)returnToParentWorkspace();state.visitedWorkspaceTabs=state.visitedWorkspaceTabs.filter(item=>item!==id);renderWorkspaceTabs();host.persist()};tabs.append(close)}};add('root','Workspace');state.visitedWorkspaceTabs.filter(id=>id!=='root').forEach(id=>{const space=workspaceRecord(id);if(space)add(id,space.name)})}
+function renderWorkspaceTabs(){const tabs=host.$('#workspace-tabs');if(!tabs)return;tabs.replaceChildren();const add=(id,label)=>{const button=document.createElement('button');button.type='button';button.className='workspace-home-tab'+(id===state.activeWorkspaceId?' is-current':'');button.id=id==='root'?'workspace-home-tab':'workspace-tab-'+id;button.setAttribute('role','tab');button.setAttribute('aria-selected',String(id===state.activeWorkspaceId));button.textContent=label;button.onclick=()=>{const documentWasOpen=host.activateWorkspaceView?.();if(id===state.activeWorkspaceId){if(!documentWasOpen)host.$('#workspace').resetWorkspaceView?.();return}switchWorkspace(id)};tabs.append(button);if(id!=='root'&&host.preserveLifecycle){const close=document.createElement('button');close.type='button';close.className='workspace-tab-close';close.setAttribute('aria-label',label+' 탭 닫기');close.textContent='×';close.onclick=()=>{if(state.activeWorkspaceId===id)returnToParentWorkspace();state.visitedWorkspaceTabs=state.visitedWorkspaceTabs.filter(item=>item!==id);renderWorkspaceTabs();host.persist()};tabs.append(close)}};add('root','Workspace');state.visitedWorkspaceTabs.filter(id=>id!=='root').forEach(id=>{const space=workspaceRecord(id);if(space)add(id,space.name)});host.renderDocumentTabs?.(tabs);}
 
 function switchWorkspace(id){if(host.canNavigate&&!host.canNavigate()){host.toast('편집창을 복원하고 있습니다. 잠시 후 이동하세요.');return;}const target=workspaceRecord(id);if(!target||id===state.activeWorkspaceId)return;saveLayouts();const saved=(target.layout||[]).map(item=>structuredClone(item));state.windows.forEach(w=>{host.detachWindow?.(w,'navigate');clearTimeout(w.helperBubbleTimer);w.el.remove()});state.windows.clear();state.workspaceNodes.clear();setWorkspaceNodeSelection([]);state.activeWorkspaceId=id;if(!state.visitedWorkspaceTabs.includes(id))state.visitedWorkspaceTabs.push(id);Object.assign(host.project.workspaceView,(id==='root'?host.project.rootWorkspaceView:target.view)||{x:0,y:0,scale:1});host.$('#workspace').updateWorkspaceView?.();renderWorkspaceDecorations();renderWorkspaceTabs();saved.forEach(restoreWindow);host.afterSwitchWorkspace?.(id);saveLayouts();requestAnimationFrame(()=>clampWindows())}
 
@@ -284,7 +284,7 @@ function renameWorkspaceDecoration(item){
  let done=false;
  const finish=save=>{
   if(done)return;done=true;
-  if(save){const name=input.value.trim();if(name){if(item.kind==='portal'){workspaceRecord(item.id).name=name;const tab=host.$('#workspace-tab-'+item.id);if(tab)tab.textContent=name}else item.name=name;host.persist()}}
+  if(save){const name=input.value.trim();if(name){if(item.kind==='portal'){workspaceRecord(item.id).name=name;const tab=host.$('#workspace-tab-'+item.id);if(tab)tab.textContent=name}else item.name=name;host.noteChanged?.(item,null);host.persist()}}
   label.textContent=decorationName(item);
   input.onblur=null;input.replaceWith(label);
  };
@@ -312,7 +312,7 @@ function deleteWorkspaceNodes(nodes){
   }
   setWorkspaceNodeSelection([]);
   current.filter(node=>node.kind==='window').forEach(node=>closeWindow(node.key));
-  renderWorkspaceDecorations();renderWorkspaceTabs();saveLayouts();
+  host.pruneNoteDocuments?.();renderWorkspaceDecorations();renderWorkspaceTabs();saveLayouts();
  };
  if(!portals.length){perform();return}
  const single=portals.length===1&&current.length===1,space=workspaceRecord(portals[0].item.id);
@@ -359,14 +359,16 @@ function renderWorkspaceDecorations(){
   const activateName=wasSelected=>{
    el.focus({preventScroll:true});
    if(!wasSelected){selectWorkspaceDecoration(item.id);return}
+   if(item.kind==='note'&&host.openNoteDocument){clearTimeout(renameTimer);renameTimer=setTimeout(()=>{if(el.isConnected&&!el.closest('[hidden]')&&isWorkspaceNodeSelected(node.key))renameWorkspaceDecoration(item)},260);return}
    if(item.kind!=='portal'){renameWorkspaceDecoration(item);return}
    clearTimeout(renameTimer);
    renameTimer=setTimeout(()=>{if(el.isConnected&&isWorkspaceNodeSelected(node.key))renameWorkspaceDecoration(item)},260);
   };
   name.onclick=e=>{e.stopPropagation();if(ignoreNameClick){ignoreNameClick=false;return}activateName(isWorkspaceNodeSelected(node.key))};
-  name.ondblclick=e=>{e.stopPropagation();clearTimeout(renameTimer);if(item.kind==='portal')switchWorkspace(item.id)};
+  name.ondblclick=e=>{e.stopPropagation();clearTimeout(renameTimer);if(item.kind==='portal')switchWorkspace(item.id);else if(item.kind==='note')host.openNoteDocument?.(item)};
   if(item.kind==='portal')el.ondblclick=e=>{if(e.target.closest('button,input'))return;clearTimeout(renameTimer);switchWorkspace(item.id)};
   const handle=host.$('.workspace-item-handle',el);
+  if(host.preserveLifecycle&&item.kind==='note')handle.ondblclick=event=>{if(!event.target.closest('button,input,.workspace-item-name')){clearTimeout(renameTimer);host.openNoteDocument?.(item);}};
   handle.onpointerdown=e=>{
    if(e.button!==0||e.target.closest('button,input'))return;
    const onName=!!e.target.closest('.workspace-item-name');
@@ -377,7 +379,7 @@ function renderWorkspaceDecorations(){
   host.$('.workspace-multi-drag-surface',el)?.addEventListener('pointerdown',e=>beginWorkspaceNodeDrag(e,node));
   if(host.preserveLifecycle)applyNoteTitle(el,item);
   if(item.kind==='note'){
-   if(host.preserveLifecycle&&typeof item.richText==='string')bindNoteEditor(el,item,()=>host.persist());else host.$('textarea',el).oninput=e=>{item.text=e.target.value;host.persist()};
+   if(host.preserveLifecycle&&typeof item.richText==='string'){el.noteCanonicalHtml=noteHtml(item);el.noteBinding=bindNoteEditor(el,item,()=>{el.noteCanonicalHtml=noteHtml(item);host.noteChanged?.(item,el.querySelector('[data-note-editor]'));host.persist();},()=>workspaceItems().includes(item));}else host.$('textarea',el).oninput=e=>{item.text=e.target.value;host.noteChanged?.(item,e.target);host.persist()};
    host.$('[data-note-format]',el)?.addEventListener('click',event=>{event.stopPropagation();editWorkspaceNote(item);});
   }
   if(item.kind==='group'||item.kind==='note'){
@@ -401,7 +403,7 @@ function renderWorkspaceDecorations(){
   node.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();returnToParentWorkspace()}};
   layer.append(node);
  }
- positionWorkspaceDecorations();renderWorkspaceNodeSelection();
+ positionWorkspaceDecorations();renderWorkspaceNodeSelection();host.refreshNoteDocuments?.();
 }
 
 function createWorkspaceDecoration(kind,x,y){
@@ -419,14 +421,14 @@ function editWorkspaceNote(item){
  if(typeof item.richText!=='string'){item.richText=noteHtml(item);item.width=Math.max(item.width,330);item.height=Math.max(item.height,260);renderWorkspaceDecorations();saveLayouts();}
  host.$$('.workspace-note').find(el=>el.dataset.workspaceItem===item.id)?.querySelector('[data-note-editor]')?.focus();
 }
-function editWorkspaceTitle(item){
+function editWorkspaceTitle(item,owns=()=>workspaceItems().includes(item),acrossWorkspaces=false){
  const scope=host.project,workspace=state.activeWorkspaceId,current=item.titleStyle,size=Number.isFinite(current?.size)?Math.min(72,Math.max(8,current.size)):13,color=/^#[0-9a-f]{6}$/i.test(current?.color||'')?current.color:'#e9d9b9';
  host.modal('제목 서식','<form class="stack" data-note-title-form><label>제목 크기<input type="number" min="8" max="72" step="1" data-title-size value="'+size+'"></label><label>제목 색상<input type="color" data-title-color value="'+color+'"></label><strong data-title-preview></strong><div class="actions"><button type="submit" data-title-apply>적용</button><button type="button" data-title-clear>직접 서식 지우기</button></div><p>Workspace 배치의 제목에만 적용합니다.</p></form>',(root,close)=>{
   const sizeInput=root.querySelector('[data-title-size]'),colorInput=root.querySelector('[data-title-color]'),preview=root.querySelector('[data-title-preview]');preview.textContent=decorationName(item);
   const draw=()=>{preview.style.fontSize=Math.min(72,Math.max(8,Number(sizeInput.value)||13))+'px';preview.style.color=colorInput.value;};sizeInput.oninput=colorInput.oninput=draw;draw();
-  const valid=()=>host.project===scope&&state.activeWorkspaceId===workspace&&workspaceItems().includes(item);
-  root.querySelector('[data-title-clear]').onclick=()=>{if(!valid()){host.toast('제목의 작업 공간이 바뀌었습니다.');return;}delete item.titleStyle;host.$$('.workspace-decoration').filter(el=>el.dataset.workspaceItem===item.id).forEach(el=>applyNoteTitle(el,item));host.persist();close();};
-  root.querySelector('form').onsubmit=event=>{event.preventDefault();if(!valid()){host.toast('제목의 작업 공간이 바뀌었습니다.');return;}const next=Number(sizeInput.value);if(!Number.isFinite(next)||next<8||next>72)return;item.titleStyle={size:next,color:colorInput.value};item.height=Math.max(item.height,next*1.25+(item.kind==='note'?150:50));host.$$('.workspace-decoration').filter(el=>el.dataset.workspaceItem===item.id).forEach(el=>applyNoteTitle(el,item));positionWorkspaceDecorations();host.persist();close();};
+  const valid=()=>host.project===scope&&(acrossWorkspaces||state.activeWorkspaceId===workspace)&&owns();
+  root.querySelector('[data-title-clear]').onclick=()=>{if(!valid()){host.toast('제목의 작업 공간이 바뀌었습니다.');return;}delete item.titleStyle;host.$$('.workspace-decoration').filter(el=>el.dataset.workspaceItem===item.id).forEach(el=>applyNoteTitle(el,item));host.noteChanged?.(item,null);host.persist();close();};
+  root.querySelector('form').onsubmit=event=>{event.preventDefault();if(!valid()){host.toast('제목의 작업 공간이 바뀌었습니다.');return;}const next=Number(sizeInput.value);if(!Number.isFinite(next)||next<8||next>72)return;item.titleStyle={size:next,color:colorInput.value};item.height=Math.max(item.height,next*1.25+(item.kind==='note'?150:50));host.$$('.workspace-decoration').filter(el=>el.dataset.workspaceItem===item.id).forEach(el=>applyNoteTitle(el,item));positionWorkspaceDecorations();host.noteChanged?.(item,null);host.persist();close();};
  });
 }
 
@@ -438,7 +440,7 @@ function showWorkspaceContextMenu(x,y,target){
    selectWorkspaceDecoration(item.id);
    const options=[];
    if(item.kind==='portal')options.push(['작업 공간 열기',()=>switchWorkspace(item.id)]);
-   if(item.kind==='note'){options.push(['메모 편집',()=>itemEl.querySelector('[data-note-editor],textarea')?.focus()]);if(host.preserveLifecycle)options.push(['메모 서식 편집',()=>editWorkspaceNote(item)]);}
+   if(item.kind==='note'){options.push(['메모 편집',()=>itemEl.querySelector('[data-note-editor],textarea')?.focus()]);if(host.preserveLifecycle)options.push(['탭으로 열기',()=>host.openNoteDocument?.(item)],['메모 서식 편집',()=>editWorkspaceNote(item)]);}
    if(host.preserveLifecycle)options.push(['제목 서식',()=>editWorkspaceTitle(item)]);
    options.push(['이름 변경',()=>renameWorkspaceDecoration(item)]);
    options.push([item.kind==='portal'?'하위 Workspace 삭제':item.kind==='group'?'그룹 삭제':'메모 삭제',()=>itemEl.querySelector('[data-remove]')?.click()]);
@@ -624,5 +626,5 @@ function showWorkspaceSearchMenu(x,y){
  search.oninput=render;document.addEventListener('pointerdown',dismiss,true);document.addEventListener('keydown',onKey);render();
  search.focus();
 }
- return {state,setupWorkspaceNavigation,openWindow,placeWindow,registerWorkspaceNode,unregisterWorkspaceNode,isWorkspaceNodeSelected,selectedWorkspaceNodes,selectedWorkspaceWindows,renderWorkspaceNodeSelection,setWorkspaceNodeSelection,toggleWorkspaceNodeSelection,focusWorkspaceNode,setWindowSelection,toggleWindowSelection,focusWindow,ensureWindowVisible,closeWindow,toggleWindow,clampWindow,clampWindows,trackWorkspaceDrag,beginWorkspaceNodeDrag,setupWindowDrag,setupWindowSelection,snapWindow,workspaceRecord,workspaceItems,decorationNodeKey,windowLayout,saveLayouts,workspaceDropTargetAt,updateWorkspaceDropPreview,moveWindowsToWorkspace,renderWorkspaceTabs,switchWorkspace,returnToParentWorkspace,positionWorkspaceDecorations,selectWorkspaceDecoration,decorationName,renameWorkspaceDecoration,deleteWorkspaceNodes,removeWorkspaceDecoration,confirmRemoveChildWorkspace,fullyInsideDecoration,renderWorkspaceDecorations,createWorkspaceDecoration,showWorkspaceContextMenu,restoreWindow,isBrowserWindowKey,isProjectBrowserKey,browserInstanceKey,browserInitialSize,browserPlacementSize,startWorkspaceDrag,endWorkspaceDrag,startObjectEditorDrag,workspaceDragSize,workspaceDropSpot,setupHelperWorkspaceDrags,setupBrowserDockDrag,workspaceSnapStart,workspaceSnapEnd,workspaceSpot,workspaceWorldPoint,workspaceWindowHeight,workspaceSnapFloor,workspaceSnapCeil,workspacePointerBlocked,workspaceVacant,workspaceResolveDrag,workspaceShowPlacement,workspaceFreeSpot,workspaceMenuSpot,workspaceFindSpot,focusWorkspaceWindow,workspaceCenterOn,workspaceOrigin,setMainWorkspaceWindow,showWorkspaceSearchMenu};
+ return {state,editWorkspaceTitle,setupWorkspaceNavigation,openWindow,placeWindow,registerWorkspaceNode,unregisterWorkspaceNode,isWorkspaceNodeSelected,selectedWorkspaceNodes,selectedWorkspaceWindows,renderWorkspaceNodeSelection,setWorkspaceNodeSelection,toggleWorkspaceNodeSelection,focusWorkspaceNode,setWindowSelection,toggleWindowSelection,focusWindow,ensureWindowVisible,closeWindow,toggleWindow,clampWindow,clampWindows,trackWorkspaceDrag,beginWorkspaceNodeDrag,setupWindowDrag,setupWindowSelection,snapWindow,workspaceRecord,workspaceItems,decorationNodeKey,windowLayout,saveLayouts,workspaceDropTargetAt,updateWorkspaceDropPreview,moveWindowsToWorkspace,renderWorkspaceTabs,switchWorkspace,returnToParentWorkspace,positionWorkspaceDecorations,selectWorkspaceDecoration,decorationName,renameWorkspaceDecoration,deleteWorkspaceNodes,removeWorkspaceDecoration,confirmRemoveChildWorkspace,fullyInsideDecoration,renderWorkspaceDecorations,createWorkspaceDecoration,showWorkspaceContextMenu,restoreWindow,isBrowserWindowKey,isProjectBrowserKey,browserInstanceKey,browserInitialSize,browserPlacementSize,startWorkspaceDrag,endWorkspaceDrag,startObjectEditorDrag,workspaceDragSize,workspaceDropSpot,setupHelperWorkspaceDrags,setupBrowserDockDrag,workspaceSnapStart,workspaceSnapEnd,workspaceSpot,workspaceWorldPoint,workspaceWindowHeight,workspaceSnapFloor,workspaceSnapCeil,workspacePointerBlocked,workspaceVacant,workspaceResolveDrag,workspaceShowPlacement,workspaceFreeSpot,workspaceMenuSpot,workspaceFindSpot,focusWorkspaceWindow,workspaceCenterOn,workspaceOrigin,setMainWorkspaceWindow,showWorkspaceSearchMenu};
 }

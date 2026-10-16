@@ -183,6 +183,9 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
     elif kind=='object-provide':
      from v480_object_provide import verify_object_provide
      verify_object_provide(page,project,mount,send,envelope,settle,restart_actual_host)
+    elif kind=='note-documents':
+     from v480_note_documents import verify_note_documents
+     verify_note_documents(page,project,mount,send,envelope,settle,restart_actual_host)
     elif kind=='rich-notes':
      from v480_rich_notes import verify_rich_notes
      verify_rich_notes(page,project,mount,send,envelope,settle,restart_actual_host)
