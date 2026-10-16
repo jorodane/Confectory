@@ -53,7 +53,7 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
  if kind in ['window-documents','tab-arrangement']:
   (project/'DocOther.celem').write_text('object Example.ButtonGame::DocOther {description \"Independent document property source\";}')
   source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+'element DocOther object \"DocOther.celem\";'+source[index:])
- if kind in ['module-interface','object-provide']:
+ if kind in ['module-interface','object-provide','object-implementation']:
   fixtures={
    'ModuleValue':('function','function Example.ButtonGame::ModuleValue (long value) -> long {}'),
    'ModuleValueBody':('implementation','implementation Example.ButtonGame::ModuleValueBody for Example.ButtonGame::ModuleValue (long value) -> long {body common "module-value.csbody";}'),
@@ -63,7 +63,7 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
   for name,(_,source) in fixtures.items():(project/(name+'.celem')).write_text(source)
   (project/'module-value.csbody').write_text('return value + 3;');(project/'module-second.csbody').write_text('return value + 100;')
   source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+''.join('element '+name+' '+definition[0]+' "'+name+'.celem";' for name,definition in fixtures.items())+source[index:])
- if kind=='object-provide':
+ if kind in ['object-provide','object-implementation']:
   (project/'ParentConsumer.celem').write_text('object Example.ButtonGame::ParentConsumer {provide Example.ButtonGame::ModuleValue with Example.ButtonGame::ModuleValueBody;}')
   (project/'Consumer.celem').write_text('object Example.ButtonGame::Consumer extends Example.ButtonGame::ParentConsumer {module Example.ButtonGame::Rules;description "Object module scope";}')
   source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+'element ParentConsumer object "ParentConsumer.celem";element Consumer object "Consumer.celem";'+source[index:])
@@ -183,6 +183,9 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
     elif kind=='local-augment':
      from v424_local_augment import verify_local_augment
      verify_local_augment(page,project,mount,send,envelope,settle,restart_actual_host)
+    elif kind=='object-implementation':
+     from v480_object_implementation import verify_object_implementation
+     verify_object_implementation(page,project,mount,send,envelope,settle,restart_actual_host)
     elif kind=='object-provide':
      from v480_object_provide import verify_object_provide
      verify_object_provide(page,project,mount,send,envelope,settle,restart_actual_host)

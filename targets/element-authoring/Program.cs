@@ -17,6 +17,7 @@ try
         case "featureBlueprintNodes": case "featureBlueprintDescribe": case "featureBlueprintAssemble":reply=FeatureBlueprint.Execute(request);break;
         case "blueprintDescribeOwned":reply=BlueprintDocuments.DescribeOwned(request);break;
         case "blueprintPrepareFeature":reply=BlueprintCreation.Prepare(request,Format);break;
+        case "blueprintPrepareImplementation":reply=BlueprintCreation.PrepareForOwner(request,Format);break;
         case "blueprintPrepareCall":reply=BlueprintCall.Prepare(request,Format);break;
         case "blueprintSourceValidate":reply=BlueprintDocuments.Validate(S("id"),S("kind"),S("text"));break;
         case "relationsMap":reply=RelationMapBatch.Query(request);break;

@@ -138,3 +138,6 @@ PackWorkspace.Blueprint는 기존 소유 graph와 독립 노드 본문을 기능
 메모 문서 탭은 기존 canonical private 메모를 읽고 편집하는 presentation이며 graph·노드 원본·타깃 ABI·compiler 입력이 아니다. domain 창의 DOM과 editor binding은 보기 전환으로 해제하지 않는다. 원문 삭제 시 문서 보기를 정리하고, 프로젝트·고유 메모 identity가 달라진 오래된 편집기는 원문을 다시 만들 수 없다. 실제 UI/cold/Home·기존 회귀 및 리소스 검사의 경계는 [v480 연결 기록](EDITOR_V480_INTEGRATION.md)에 남긴다.
 
 일반 편집창의 문서 전환도 기존 domain window·editor View·미적용 입력의 수명을 보존한다. 문서 창은 캔버스 노드·현재 공간 layout에서 분리하되 프로젝트 전역 private 목록과 같은 실제 DOM으로 유지한다. 소스 문서의 적용/검토/확정은 일반 소유자·CAS·compiler 경로를 따르며 문서 배치는 원본 생성·실행 권한이 아니다.
+
+
+기존 소유 함수의 객체별 대체 구현은 함수 원문·기본 제공을 유지하고 객체의 로컬 provide와 새 구현/graph/독립 본문/등록만 생성한다. 객체의 생성 소유 metadata는 private 원본 묶음 정보이며 compiler 증거·실행·AI 권한이 아니다. 새 함수의 첫 graph와 기존 함수의 대체 graph를 구분해 복원하고, 변경된 소유 객체까지 필수 Review/Confirm에 포함한다. 기본 graph 의도가 필요한 설명 없는 함수도 원문은 변경하지 않는다. 명시적 함수 계약·기존 primitive/배열 단일 반환 ABI와 sync-acyclic-v1의 현재 경계를 따른다.

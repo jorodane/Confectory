@@ -3,6 +3,21 @@ using System.Text.Json.Nodes;
 
 internal static class BlueprintCreation
 {
+ public static JsonObject PrepareForOwner(JsonObject request, Func<Element,string> format)
+ {
+  var function=new Parser(request["text"]!.GetValue<string>(),"<existing-function>").ParseElement();
+  var owner=new Parser(request["ownerText"]!.GetValue<string>(),"<implementation-owner>").ParseElement();
+  if(owner.Kind!="object"||owner.Id!=request["owner"]!.GetValue<string>()||function.Kind!="function"||function.Id!=request["id"]!.GetValue<string>()||function.Signature is null||function.Parent is not null)
+   throw new ArgumentException("An owned object and the existing function's explicit contract are required");
+  // Reuse only the contract generator. Its temporary default never replaces the real function.
+  function.Provides.Clear();if(string.IsNullOrWhiteSpace(function.Description)){function.Description="Implement "+function.Id+" for "+owner.Id;function.DescriptionPresent=true;}var input=(JsonObject)request.DeepClone();input["text"]=format(function);
+  var result=Prepare(input,format);result.Remove("function");
+  string implementation=request["implementation"]!.GetValue<string>();
+  owner.Provides[function.Id]=new ElementReference(implementation,new(),function.Id);
+  result["owner"]=format(owner);result["feature"]=function.Id;
+  result["signature"]=result["graph"]!["nodes"]![0]!["signature"]!.DeepClone();
+  return result;
+ }
  public static JsonObject Prepare(JsonObject request, Func<Element,string> format)
  {
   var function=new Parser(request["text"]!.GetValue<string>(),"<new-function>").ParseElement();

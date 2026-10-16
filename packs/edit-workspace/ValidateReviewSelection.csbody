@@ -11,6 +11,7 @@ lock(state){
   var required=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal){pair.Key,implementationId};
   if(state["units"]?[functionId]?["baseline"]?.ToString()=="missing")required.Add(functionId);
   foreach(var unit in state["units"]!.AsObject())if(unit.Value!["path"]!.ToString()==System.IO.Path.GetFileName(state["project"]!.ToString())||unit.Value["kind"]!.ToString()=="blueprint-node"&&unit.Value["baseline"]?.ToString()=="missing"&&unit.Key.StartsWith(pair.Key+"/node:",StringComparison.Ordinal))required.Add(unit.Key);
+  foreach(string owner in calls.CreationOwners.Invoke(handle,pair.Key)){var unit=state["units"]![owner]!;if(unit["draft"] is not null&&(unit["baseline"]?.ToString()=="missing"||unit["draft"]!.ToString()!=unit["original"]!.ToString()))required.Add(owner);}
   if(System.Linq.Enumerable.Any(required,ids.Contains)&&!System.Linq.Enumerable.All(required,changed.Contains))throw new InvalidOperationException("New feature review requires its function, implementation, graph, node sources and manifest registration together");
  }
  foreach(var pair in state["units"]!.AsObject()){

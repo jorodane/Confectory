@@ -1,0 +1,340 @@
+{
+  "schema": 1,
+  "status": "owned-object-alternative-implementation-graph-creation-verified",
+  "baseWorkCommit": "54c49c8dc3bab322de760c34173ef6affb15263b",
+  "referenceMain": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+  "stages": [
+    {
+      "log": "object-implementation-first-engine.log",
+      "boundary": "TEST consumer used an unavailable implicit LINQ extension; corrected to fully qualified static Enumerable.All.",
+      "sha256": "3dc2246712ae93709971579cc3cff3c998826a188cd1a81823f68e40dcbeaf7d",
+      "tests": [
+        "FAIL ObjectImplementationTests.test_owned_object_new_implementation_contract_group_cas_cold_and_actual_scope"
+      ],
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 16.148
+    },
+    {
+      "log": "object-implementation-second-engine.log",
+      "boundary": "TEST attempted a forbidden raw project registration edit; corrected to the actual peer Create role and included that extra registration source in the review group.",
+      "sha256": "22e7ebe41438a6b3de939c5f18f7f7752917bf18f058b1cadea7515bc86f2526",
+      "tests": [
+        "FAIL ObjectImplementationTests.test_owned_object_new_implementation_contract_group_cas_cold_and_actual_scope"
+      ],
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 17.269
+    },
+    {
+      "log": "object-implementation-third-engine.log",
+      "boundary": "TEST group Confirm omitted explicit reviewed unit IDs; corrected to return the actual review order.",
+      "sha256": "2c74b5931bc1e46155db90c7b683fab921d37e780f884c3c6070caee4bc8e331",
+      "tests": [
+        "FAIL ObjectImplementationTests.test_owned_object_new_implementation_contract_group_cas_cold_and_actual_scope"
+      ],
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 17.309
+    },
+    {
+      "log": "object-implementation-fourth-engine.log",
+      "boundary": "Actual owned scope Run5-102-5, immutable function/default/body, three-source raw CAS, collision/link refusal, mandatory object group, cold and forged missing owner-tag refusal. Before public requiredIds projection and empty-description fix.",
+      "sha256": "a9690bb0aafb6fafe95169725ee1d655265ccbca3a68b3916e39a1c8caf4736f",
+      "tests": [
+        "PASS ObjectImplementationTests.test_owned_object_new_implementation_contract_group_cas_cold_and_actual_scope"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 31.409
+    },
+    {
+      "log": "object-implementation-first-pair.log",
+      "boundary": "Public owner passed. Actual UI exposed NODE_INTENT for an existing function without a description. Pure metadata probe confirmed the same failure. Only a temporary scaffold description is now supplied, without changing or returning the original function source.",
+      "sha256": "6e2e8202748e115fb017faa54007442b702950da84940263a39bd6f46fcf647e",
+      "tests": [
+        "PASS ObjectImplementationTests.test_owned_object_new_implementation_contract_group_cas_cold_and_actual_scope",
+        "FAIL WebUITests.test_actual_editor_v480_object_new_implementation_graph_cold_group_and_compiler_confirm"
+      ],
+      "passed": 1,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 110.84
+    },
+    {
+      "log": "object-implementation-second-pair.log",
+      "boundary": "Public owner passed with an undescribed existing function. UI reached body/cold, then TEST clicked a covered Blueprint caption. The later strict recovery test separately verified the actual JSON restoration problem.",
+      "sha256": "6d322766ddc860bb4f44fadc71283e38679af71c911d8b22d990a9f1cd58a3b2",
+      "tests": [
+        "PASS ObjectImplementationTests.test_owned_object_new_implementation_contract_group_cas_cold_and_actual_scope",
+        "FAIL WebUITests.test_actual_editor_v480_object_new_implementation_graph_cold_group_and_compiler_confirm"
+      ],
+      "passed": 1,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 78.339
+    },
+    {
+      "log": "object-implementation-third-ui.log",
+      "boundary": "Actual UI through compiler Confirm after normal navigation; before strict recovery-failure assertions, and not claimed as clean restoration.",
+      "sha256": "2984dae47fe0dd4ca2905b8a0277e9edc5e779c351c12f78aabf00acb0eb4b6e",
+      "tests": [
+        "PASS WebUITests.test_actual_editor_v480_object_new_implementation_graph_cold_group_and_compiler_confirm"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 36.773
+    },
+    {
+      "log": "object-implementation-restore-red-ui.log",
+      "boundary": "Actual cold recoveryFailed flag reproduced. JSON graph/node sources were incorrectly inspected as CELEM declarations.",
+      "sha256": "fa146e2eb4e7df8c642431253e8985932ea66a83d336168ac112e8ca435b6a57",
+      "tests": [
+        "FAIL WebUITests.test_actual_editor_v480_object_new_implementation_graph_cold_group_and_compiler_confirm"
+      ],
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 20.266
+    },
+    {
+      "log": "object-implementation-final-ui.log",
+      "boundary": "Primary JSON selection recovery flag fixed; later automatic declaration restoration still used the wrong selected source and TEST close control was covered by the restored declaration window.",
+      "sha256": "68fe34c650441ce100d79d20836b300298c0d18acccb55b773ceae6ca7fe8223",
+      "tests": [
+        "FAIL WebUITests.test_actual_editor_v480_object_new_implementation_graph_cold_group_and_compiler_confirm"
+      ],
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 51.014
+    },
+    {
+      "log": "object-implementation-restored-final-ui.log",
+      "boundary": "Final actual UI: values-only cold restore, explicit new contract read, peer owner refusal, no body/function copy, independent graph body, clean cold recovery flag and sourceError, normal window navigation, required five-source object group and explicit compiler Confirm.",
+      "sha256": "f35c1cb6334c395d8f890383a1fe8b06c2fa724515a120f4e767599667e1a804",
+      "tests": [
+        "PASS WebUITests.test_actual_editor_v480_object_new_implementation_graph_cold_group_and_compiler_confirm"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 40.551
+    },
+    {
+      "log": "object-implementation-owner-regression.log",
+      "boundary": "Object/new function/graph/call/node/task, module provider, PackWorkspace/EditWorkspace and draft history public owner regressions.",
+      "sha256": "0e095df99f5dd3240d80e9dde2da7ef045c57354e22f9ac4f0164db63fa926e2",
+      "tests": [
+        "PASS ModuleInterfaceTests.test_owned_module_interface_contract_default_atomic_cas_cold_and_actual_consumer",
+        "PASS ModuleInterfaceTests.test_owned_object_module_provider_contract_atomic_cas_cold_and_actual_scope",
+        "PASS ObjectImplementationTests.test_owned_object_new_implementation_contract_group_cas_cold_and_actual_scope",
+        "PASS FeatureBlueprintTests.test_blueprint_disconnected_current_node_body_is_compiled_without_execution",
+        "PASS FeatureBlueprintTests.test_blueprint_existing_feature_calls_use_typed_imports_and_contract_fences",
+        "PASS FeatureBlueprintTests.test_blueprint_fixed_inputs_branch_compiler_reuse_node_replacement_and_legacy_preservation",
+        "PASS FeatureBlueprintTests.test_blueprint_independent_probe_checks_an_unselected_body_without_running_or_publishing",
+        "PASS FeatureBlueprintTests.test_blueprint_invalid_graphs_stale_contracts_and_dominating_values",
+        "PASS FeatureBlueprintTests.test_blueprint_new_feature_registration_contract_group_compiler_and_cold_restore",
+        "PASS FeatureBlueprintTests.test_blueprint_node_diagnostics_static_isolation_and_failed_build_retains_receipt",
+        "PASS FeatureBlueprintTests.test_blueprint_node_only_worker_draft_save_restore_and_compiler_confirm",
+        "PASS FeatureBlueprintTests.test_blueprint_node_task_assignment_scoped_dispatch_adoption_and_cold_no_replay",
+        "PASS FeatureBlueprintTests.test_blueprint_owned_function_reference_call_import_cas_history_and_execution",
+        "PASS FeatureBlueprintTests.test_blueprint_owned_node_creation_removal_review_group_and_cold_restore",
+        "PASS FeatureBlueprintTests.test_blueprint_source_change_during_real_compile_is_not_published",
+        "PASS EditWorkspaceTests.test_shared_drafts_save_restore_preview_selective_confirm_conflict_and_locality",
+        "PASS DraftHistoryTests.test_shared_draft_history_atomic_inverse_cas_restart_branch_and_owner_boundaries",
+        "PASS PackWorkspaceTests.test_development_tools_owned_scope_shared_draft_no_confirm_and_locality",
+        "PASS PackWorkspaceTests.test_target_metadata_owned_sources_no_registry_execution",
+        "PASS PackWorkspaceTests.test_two_contexts_revision_save_reopen_and_locality"
+      ],
+      "passed": 20,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 786.776
+    },
+    {
+      "log": "object-implementation-ui-regression.log",
+      "boundary": "Existing Home, numeric/subset Review, node creation, function reference calls, module interface, new function and object provider actual UI.",
+      "sha256": "59a52ca839ea653c24ca99161706158ef4acd6283b0dc3a518e73b8ebace74e0",
+      "tests": [
+        "PASS WebUITests.test_actual_editor_original_v196_home_project_and_create_flow",
+        "PASS WebUITests.test_actual_editor_review_compact_numeric_and_subset_caption",
+        "PASS WebUITests.test_actual_editor_v480_blueprint_node_creation_removal_and_cold_source_groups",
+        "PASS WebUITests.test_actual_editor_v480_existing_feature_reference_call_and_cold_contract",
+        "PASS WebUITests.test_actual_editor_v480_module_interface_contract_default_and_cold_rebase",
+        "PASS WebUITests.test_actual_editor_v480_new_feature_contract_graph_group_and_cold_source",
+        "PASS WebUITests.test_actual_editor_v480_object_module_provider_cold_contract_and_own_view"
+      ],
+      "passed": 7,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 570.617
+    },
+    {
+      "log": "object-implementation-managed-regression.log",
+      "boundary": "Windows/Android managed compile only; no native/device execution.",
+      "sha256": "f549f978fb63ffca933b0915ee0d6c63f10c05abfc514d4df6033b2bfd4ab99c",
+      "tests": [
+        "PASS EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 260.178
+    },
+    {
+      "log": "object-implementation-workspace-regression.log",
+      "boundary": "Existing Workspace lifecycle, source/independent-view document tabs, tab native reorder/drop and private note document restoration.",
+      "sha256": "49c6586751734ebbd07e4232cd7f54d17d33931c5d80fe20da825d94c61a564d",
+      "tests": [
+        "PASS WebUITests.test_actual_editor_v318_workspace_lifecycle_presentation_restart",
+        "PASS WebUITests.test_actual_editor_v480_note_document_tabs_canonical_ownership_and_cold_source_input",
+        "PASS WebUITests.test_actual_editor_v480_tab_reorder_cancel_canvas_drop_and_cold_order",
+        "PASS WebUITests.test_actual_editor_v480_window_document_docking_cold_inputs_and_compiler_confirm"
+      ],
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 125.196
+    },
+    {
+      "log": "object-implementation-boundary-final-engine.log",
+      "boundary": "After the broad same-product gates, the public owner test alone was extended: legitimate current raw preconditions with a 129-character local identity and prospective two MiB source budget refuse before adding any source. The complete public owned scope/CAS/cold/group/Run5-102-5 flow then passed again. Product files unchanged.",
+      "sha256": "b2b794e6e40c71d46b14e133b9c1d7f0e1b28de00b1137dd13239095065bd2ef",
+      "tests": [
+        "PASS ObjectImplementationTests.test_owned_object_new_implementation_contract_group_cas_cold_and_actual_scope"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 43.538
+    }
+  ],
+  "claims": {
+    "publishedOwnedExplicitFunctionContractOnly": true,
+    "existingFunctionSourceDefaultAndOriginalBodyNotRewrittenOrCopied": true,
+    "objectLocalProviderNewImplementationGraphBlankNodeAndRegistrationStagedTogether": true,
+    "readonlyFunctionPlusFiveSourceCreationGroup": true,
+    "rawObjectFunctionManifestCas": true,
+    "boundedImplementationIdentityAndProspectiveSourceBytes": true,
+    "foreignDestinationAndLinkRefusalBeforeMembershipMutation": true,
+    "opaqueOwnedObjectGroupRetainedAcrossCold": true,
+    "missingRestoredObjectGroupRejectedWithoutPartialRestore": true,
+    "partialPublicReviewAndDirectConfirmRefused": true,
+    "initialBodyUnimplementedAndNoAutomaticAi": true,
+    "actualOwnedScopeExecution5_102_5": true,
+    "privateNameRestoreValueOnlyWithoutBasisAuthority": true,
+    "explicitCurrentContractReadBeforeCreate": true,
+    "publicRequiredIdsProjectedAndSelectedTogether": true,
+    "jsonGraphNodePrimaryRestoreDoesNotUseCelemInspector": true,
+    "mismatchedSavedDeclarationTargetRequiresExplicitOpen": true,
+    "staticResourceCount": 31,
+    "externalFunctionOrInheritedFunctionContractCreation": false,
+    "nativeDeviceRealAccountPaidModelUserPcInstall": false
+  },
+  "boundaries": [
+    "Stages overlap and are not summed; all failed attempts and the limits of intermediate passes remain visible.",
+    "Creation changes the selected object and root registration plus three new owned sources. The existing function is a readonly sixth observed source; other pending new declarations sharing registration are explicitly included by the existing group rules.",
+    "An undescribed function receives a generic temporary scaffold intent. Its original description, identity, default provider and source bytes remain unchanged. Empty body and false compiled status do not claim an implementation.",
+    "Owner context is private source-creation metadata, persisted by Export/Restore and required for alternative graphs of existing functions. It supplies selection dependencies, not a compiler receipt, execution permission or AI authority.",
+    "Pure preview, scoped model refresh, source CAS and actual compiler Confirm remain separate. No filesystem-wide atomic snapshot is claimed.",
+    "This initial creator supports published functions with an explicit local contract and no function parent in the current owned ProjectPack. External/inherited function creation, function parent reuse/legacy conversion and extended graph/type profiles remain separate work.",
+    "All actual execution uses owned local fixtures. Managed Windows/Android gates only compile; no native/device, real accounts, paid models or user PC installs. Main, original ZIPs and Android settings remain unchanged."
+  ],
+  "hostBuilds": {
+    "object-implementation-host-first-build.log": {
+      "sha256": "af638b74de38fd9258a2efe4fc36f98dd63148d9a959558fafb2a26a484b3abf",
+      "tail": [
+        "  Confectory.ElementAuthoring -> /workspace/Confectory/targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll",
+        "",
+        "Build succeeded.",
+        "    0 Warning(s)",
+        "    0 Error(s)",
+        "",
+        "Time Elapsed 00:00:07.22"
+      ]
+    },
+    "object-implementation-host-intent-build.log": {
+      "sha256": "f50e6fa0c49cf197bef7233925fa95dc989027504beeb00b2a9597c3d9865e71",
+      "tail": [
+        "  Confectory.ElementAuthoring -> /workspace/Confectory/targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll",
+        "",
+        "Build succeeded.",
+        "    0 Warning(s)",
+        "    0 Error(s)",
+        "",
+        "Time Elapsed 00:00:01.21"
+      ]
+    },
+    "object-implementation-host-intent-final-build.log": {
+      "sha256": "47c949aff4659e297afa667367cda6ef598840fa6b052011863677922e9c27f3",
+      "tail": [
+        "  Confectory.ElementAuthoring -> /workspace/Confectory/targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll",
+        "",
+        "Build succeeded.",
+        "    0 Warning(s)",
+        "    0 Error(s)",
+        "",
+        "Time Elapsed 00:00:00.95"
+      ]
+    }
+  },
+  "emptyIntentProbe": {
+    "sha256": "61f5f6c8905956d4a2277ba61ac317d4183fac4afbdfbe188b8dd434918773b9",
+    "result": {
+      "before": {
+        "ok": false,
+        "code": "AUTHORING",
+        "diagnostic": "NODE_INTENT"
+      },
+      "beforeSource": "same pure metadata request in the preceding tool call, also reproduced by the first actual UI pair",
+      "after": {
+        "ok": true,
+        "intent": "Implement Example.ButtonGame::ModuleValue for Example.ButtonGame::Consumer",
+        "nodeSource": "",
+        "functionSourceReturned": false
+      }
+    }
+  },
+  "sourceHashes": {
+    "examples/editor-home/WebBundle.csbody": "b179b335e44e8ceafa5b7e7ca87d76c05000ad7b462b0e48ffe86f3896f2870a",
+    "examples/editor-home/WebState.csbody": "5d54a969e2dae95afdf6f07ccd842c2f0d6bcde4694909228788c7f1e3efe45d",
+    "examples/editor-home/ui/app.js": "31761eb8d7bd4b86d0bf985224f3f3d678dbc6356ef334af10a2bd0257afa291",
+    "examples/editor-home/ui/consumer.css": "c54ed200285c8e37356332d4ce094af2e9d0b54cd22d268e989d7e1e2c728bf3",
+    "examples/editor-home/ui/declarations.js": "d109bc8d54b5ddb7c6919e7605b6b1002770f88f63d22b15e61560f4b91beeb8",
+    "examples/editor-home/ui/workspace-host.js": "3974ebea631e0df54e74ad1c1f91ccd3650022a61505e55a5b7ffe970bec1562",
+    "packs/edit-workspace/BlueprintImplementation.celem": "6343f02180e80463160959852c96c3f9e33ae8dda25517c809b71f1853038546",
+    "packs/edit-workspace/BlueprintImplementation.csbody": "bbc85a30f41d8c79ea19ab8972ede3fcdbb590a4d0927ba8f0e0c48c08933d4a",
+    "packs/edit-workspace/BlueprintImplementationBody.celem": "46514b6f1f891d6e597184f39acf07c0720ccc76f3acfb2e96d14f7c36362fab",
+    "packs/edit-workspace/CreationGroup.csbody": "c4bf49d21c69df8f7f76cc9d3be6b7dcca2dd9ff765c92d65d18f1be5edcf0ae",
+    "packs/edit-workspace/CreationGroupBody.celem": "7c4a7142d65c6348409567cce101536c45326fbaa128ecf3393cd1edeb325995",
+    "packs/edit-workspace/CreationOwners.celem": "ad3f3d9a8a22382e98b863c15f80d85c7f27f370c357276836c7eede5af36b27",
+    "packs/edit-workspace/CreationOwners.csbody": "d3e6e31eac8bb3ae9da6d71fec239e8005c1889f783ff8f390391804d1fbdbb0",
+    "packs/edit-workspace/CreationOwnersBody.celem": "769a5f732dbb7594326723f7fe5730842572a6859f09a1080c0f4fe7c1fbf714",
+    "packs/edit-workspace/Restore.csbody": "3acc713899d6d55c3ee2200d434e6b60eda7ce0cab8e7776f5e7fb77fd8dde57",
+    "packs/edit-workspace/ValidateReviewSelection.csbody": "ed7569d5acba8df65a4b6778e3ae7d9afcd1d639ad6f1eb380cbf8312128e13c",
+    "packs/edit-workspace/ValidateReviewSelectionBody.celem": "4b5621b1e572d1ea9f9f5380634882bfd60e22431106c90ed15a9b9297fb3659",
+    "packs/edit-workspace/pack.cpack": "f6221ae16a33239dc92c7ca4595bcca1376dda15879c880813ea65947d75dad8",
+    "packs/editor-home-model/Blueprint.csbody": "64b86ad5c6aeb5a3d6122de14d9e917f690b3275978a923689346f19eaefe981",
+    "packs/pack-workspace/Blueprint.csbody": "0790d8e45c8b5d0d48f348a140039e074b7daba1f23ea67c5e5f626f722a8e3e",
+    "packs/pack-workspace/BlueprintBody.celem": "c4c214fd0b551b7052a67b23fa8caa6d57f5ac3af11ce7134dd253fea9b62cf7",
+    "packs/pack-workspace/Command.csbody": "f41be5e299b15312843545c5b1d87a6b3876e97ddd5973fe7032b151d6d73c83",
+    "packs/pack-workspace/CommandBody.celem": "662cdc545c88af6c35a3dc8ba777ca797bf87d092b2dfd44c09ddcf6b052fc23",
+    "targets/element-authoring/BlueprintCreation.cs": "4fbfdd81faddf435ef80083e286e6aa2a388ba2366fb49c3519e1f9e0cfa4cf3",
+    "targets/element-authoring/Program.cs": "5806d2ddc56e2d0a44a7664a2a55512d5061341be68f872bdd042ae8331b74e3",
+    "tests/Confectory.Tests/ObjectImplementationTests.cs": "cacadeada0b69a96d915f54e2ba4a334475a01668c6308eaec640d0d8c17f97b",
+    "tests/Confectory.Tests/Program.cs": "b4b54e0f005adb312ca8cf2ead5a4494ca187b6a365970629910236c5b944fae",
+    "tests/Confectory.Tests/WebUITests.cs": "87196525c81d298833f082dd32feca45e4bcfbdaf3c0a8f40203f2e7a9ed8998",
+    "tests/web/v480_object_implementation.py": "4cb8c902337ad3e456503c90b9f8b396606f06f7cbfd21932f1aacd7d9bf05ff",
+    "tests/web/web_ui.py": "a354c0dca3d2ed252ba2f51bf819cf4f80d48c7c2e50d0952188d6fb6efeb026"
+  },
+  "images": {
+    "object-implementation-contract.png": "08c8eba7d95aaaf15b9c7c357b5b1458d340d60aa294a16bc36313be7594b081",
+    "object-implementation-review.png": "f8b5e328a3bf829b5fe9ecbf411b43048eaa076c916c017ac049219155171033"
+  }
+}

@@ -22,6 +22,13 @@ lock(state)
   if(unit["kind"]!.GetValue<string>() is "blueprint" or "blueprint-node")calls.Metadata.Invoke("blueprintSourceValidate",System.Text.Json.JsonSerializer.Serialize(new{id,kind=unit["kind"]!.ToString(),text=unit["draft"]!.ToString()}));
   var restored=unit.DeepClone();long prior=staged[id]?["revision"]?.GetValue<long>()??0;if(unit["kind"]!.ToString()=="blueprint-node")prior=Math.Max(prior,state["retiredNodeRevision"]?.GetValue<long>()??0L);restored["revision"]=prior+1;staged[id]=restored;
  }
+ // A restored alternative graph for an existing function retains its original owned object group.
+ foreach(var pair in staged){
+  var unit=pair.Value!;if(unit["kind"]!.ToString()!="implementation"||unit["baseline"]?.ToString()!="missing"||unit["draft"] is null||!System.Linq.Enumerable.Any(staged,row=>row.Key.StartsWith(pair.Key+"/body:",StringComparison.Ordinal)&&row.Value!["kind"]!.ToString()=="blueprint"&&row.Value["baseline"]?.ToString()=="missing"))continue;
+  string function=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("inspect",System.Text.Json.JsonSerializer.Serialize(new{text=unit["draft"]!.ToString()})))!["function"]!.ToString();
+  if(unit["creationOwner"] is null&&staged[function]?["baseline"]?.ToString()=="missing")continue;
+  if(unit["creationOwner"] is not System.Text.Json.Nodes.JsonValue value||!value.TryGetValue<string>(out string? owner)||owner is null||staged[owner]?["kind"]?.ToString()!="object")throw new ArgumentException("Saved implementation object group missing or invalid");
+ }
  var history=data["history"]?.DeepClone() as System.Text.Json.Nodes.JsonObject??new System.Text.Json.Nodes.JsonObject{["revision"]=0L,["undo"]=new System.Text.Json.Nodes.JsonArray(),["redo"]=new System.Text.Json.Nodes.JsonArray()};
  if(history.ToJsonString().Length>2098176||history["revision"]!.GetValue<long>()<0||history["undo"] is not System.Text.Json.Nodes.JsonArray undo||history["redo"] is not System.Text.Json.Nodes.JsonArray redo||undo.Count+redo.Count>32)throw new ArgumentException("Bounded saved history required");
  var entryIds=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);

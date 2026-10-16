@@ -118,8 +118,9 @@ case "review":{
  var changes=calls.Changes.Invoke(draft,selectedReview);calls.ValidateSelection.Invoke(draft,selectedReview);
  foreach(var row in rows){try{row!["semantic"]=System.Text.Json.Nodes.JsonNode.Parse(calls.Locate.Invoke("reviewSummary",new System.Text.Json.Nodes.JsonObject{["kind"]=row["kind"]!.DeepClone(),["before"]=row["before"]!.DeepClone(),["after"]=row["after"]!.DeepClone()}.ToJsonString()));}catch{row!["semantic"]=new System.Text.Json.Nodes.JsonObject{["changes"]=new System.Text.Json.Nodes.JsonArray(),["additionalChanges"]=true};}}
  foreach(var row in rows){var current=calls.Read.Invoke(draft,row!["id"]!.GetValue<string>());if(current[4]!=row["revision"]!.GetValue<string>()||current[3]!=row["after"]!.GetValue<string>())throw new InvalidOperationException("Draft changed during review; retry.");}
+ var reviewRequired=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);foreach(string reviewedId in selectedReview)foreach(string dependency in calls.CreationGroup.Invoke(draft,reviewedId))if(Array.IndexOf(selectedReview,dependency)>=0)reviewRequired.Add(dependency);
  var checkedReview=calls.Review.Invoke(draft,selectedReview);calls.Save.Invoke(draft);
- var review=rows[0]!.DeepClone().AsObject();review["token"]=Guid.NewGuid().ToString("N");review["target"]=target;review["status"]=checkedReview[0];review["selection"]=state["selected"]!.GetValue<string>();review["units"]=rows;review["changes"]=System.Text.Json.JsonSerializer.SerializeToNode(changes);state["review"]=review;break;
+ var review=rows[0]!.DeepClone().AsObject();review["token"]=Guid.NewGuid().ToString("N");review["target"]=target;review["status"]=checkedReview[0];review["selection"]=state["selected"]!.GetValue<string>();review["units"]=rows;review["requiredIds"]=System.Text.Json.JsonSerializer.SerializeToNode(System.Linq.Enumerable.Where(selectedReview,reviewRequired.Contains));review["changes"]=System.Text.Json.JsonSerializer.SerializeToNode(changes);state["review"]=review;break;
 }
 case "confirm":{
  var reviewed=state["review"] as System.Text.Json.Nodes.JsonObject??throw new InvalidOperationException("Review sources before Confirm.");

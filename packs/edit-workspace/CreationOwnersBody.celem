@@ -1,0 +1,1 @@
+implementation Confectory.EditWorkspace::CreationOwnersBody for Confectory.EditWorkspace::CreationOwners (string handle,string id) -> string[] {body common "CreationOwners.csbody";}

@@ -12,6 +12,7 @@ import Confectory.ChangeSet::ConfirmReviewed as Confirm (string, string[], strin
 import Confectory.SchemaEditing::Inspect as Inspect (string) -> string;
 import Confectory.SchemaEditing::Call as Locate (string, string) -> string;
 import Confectory.EditWorkspace::Changes as Changes (string, string[]) -> string[];
+import Confectory.EditWorkspace::CreationGroup as CreationGroup (string,string) -> string[];
 import Confectory.EditWorkspace::ValidateReviewSelection as ValidateSelection (string,string[]) -> void;
 import Confectory.EditWorkspace::DiscoverBodies as DiscoverBodies (string, string) -> string;
 import Confectory.SchemaEditing::SetValue as SetValue (string, string, string) -> string;
