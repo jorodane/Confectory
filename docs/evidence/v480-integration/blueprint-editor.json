@@ -132,12 +132,14 @@
     {
       "log": "blueprint-ui-checkout.log",
       "boundary": "Implementation commit checked out through ordinary Git with retained CRLF and fresh LF resources, actual Home startup and tamper refusal",
-      "sha256": null,
-      "passed": null,
-      "failed": null,
-      "skipped": null,
-      "seconds": null,
-      "tests": []
+      "sha256": "746d8cc1d89b51a324e225b049d5652330fff273c5a053fda2f4956e6b79e9d8",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 74.714,
+      "tests": [
+        "PASS WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup"
+      ]
     }
   ],
   "claims": {
@@ -198,5 +200,14 @@
     "tests/Confectory.Tests/WebUITests.cs": "48a081b4988d1563d01277c1c26037b42c0520f3d61a1c11b600c1090c7a4e3d",
     "tests/web/web_ui.py": "377242a7e1024283861ff0d9bf771cf7920b47ef076ab2c700c17d49db46eba6"
   },
-  "staticResourceCount": 27
+  "staticResourceCount": 27,
+  "implementationCommit": "0687bee42c4a64b3b70e83f014ef29819552c941",
+  "ordinaryCheckout": {
+    "commit": "0687bee42c4a64b3b70e83f014ef29819552c941",
+    "staticResources": 27,
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "seconds": 74.714
+  }
 }
