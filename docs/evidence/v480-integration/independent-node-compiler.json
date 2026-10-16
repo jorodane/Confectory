@@ -275,8 +275,14 @@
     {
       "log": "independent-node-checkout.log",
       "boundary": "After implementation commit: ordinary Git checkout with CRLF/fresh LF, 27 static resources, actual Home startup and resource tamper refusal.",
-      "sha256": null,
-      "tests": []
+      "sha256": "3e16568396de7345deca646de62308d9f086e8a41af432655975cc534f1b5bde",
+      "tests": [
+        "PASS WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 7.338
     }
   ],
   "claims": {
@@ -317,5 +323,6 @@
     "targets/element-authoring/Program.cs": "7901ba3f14ead3a8fc5e257223ed398ed511d3f8777d80cafdd6380db4e4a03f",
     "tests/Confectory.Tests/FeatureBlueprintTests.cs": "102d467e532c7322205dbcd2a4a526d33d5d465cd897ff2cba3c53fcfd16ab1f",
     "tests/Confectory.Tests/Program.cs": "b081f1bdebbe8e28d5b899f7632329d827ef44311d486e93a4d68aa5cd93ccfe"
-  }
+  },
+  "implementationCommit": "b6290c79ab6e2251c31152823405bebb4b9b49f3"
 }
