@@ -1,0 +1,13 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+handle) as System.Text.Json.Nodes.JsonObject??throw new ObjectDisposedException("EditWorkspace");
+lock(state){
+ var units=state["units"]!.AsObject();var selected=units[id]??throw new ArgumentException("Owned source required");if(selected["baseline"]?.ToString()!="missing")return Array.Empty<string>();
+ bool IsNewGraphNode(string candidate){int marker=candidate.LastIndexOf("/node:",StringComparison.Ordinal);return marker>0&&units[candidate[..marker]]?["baseline"]?.ToString()=="missing";}
+ var group=new System.Collections.Generic.List<string>();
+ if(selected["kind"]!.ToString()=="blueprint-node"&&!IsNewGraphNode(id)){
+  string graphId=id[..id.LastIndexOf("/node:",StringComparison.Ordinal)];group.Add(graphId);foreach(var unit in units)if(unit.Value!["kind"]!.ToString()=="blueprint-node"&&unit.Value["baseline"]?.ToString()=="missing"&&unit.Key.StartsWith(graphId+"/node:",StringComparison.Ordinal))group.Add(unit.Key);
+ }else{
+  foreach(var unit in units)if(unit.Value!["baseline"]?.ToString()=="missing"&&(unit.Value["kind"]!.ToString()!="blueprint-node"||IsNewGraphNode(unit.Key)))group.Add(unit.Key);
+  foreach(var unit in units)if(unit.Value!["path"]!.ToString()==System.IO.Path.GetFileName(state["project"]!.ToString())){group.Add(unit.Key);break;}
+ }
+ return group.ToArray();
+}

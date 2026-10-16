@@ -162,6 +162,9 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
     elif kind=='local-augment':
      from v424_local_augment import verify_local_augment
      verify_local_augment(page,project,mount,send,envelope,settle,restart_actual_host)
+    elif kind=='feature-create':
+     from v480_feature_creation import verify_feature_creation
+     verify_feature_creation(page,project,mount,send,envelope,settle,restart_actual_host)
     elif kind=='blueprint-create':
      from v480_node_creation import verify_node_creation
      verify_node_creation(page,project,mount,send,envelope,settle,restart_actual_host)

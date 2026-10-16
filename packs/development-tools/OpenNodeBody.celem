@@ -5,6 +5,7 @@ import Confectory.EditWorkspace::Read as Read (string,string) -> string[];
 import Confectory.EditWorkspace::List as List (string) -> string[];
 import Confectory.EditWorkspace::Status as Status (string,string) -> string[];
 import Confectory.EditWorkspace::Identity as Identity (string) -> string[];
+import Confectory.EditWorkspace::CreationGroup as CreationGroup (string,string) -> string[];
 import Confectory.SchemaEditing::Call as Metadata (string,string) -> string;
 body common "OpenNode.csbody";
 }

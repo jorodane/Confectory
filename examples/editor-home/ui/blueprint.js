@@ -68,7 +68,7 @@ export function createBlueprint(api){
   $('[data-bp-read]',w.body).onclick=()=>open(null,w.meta.blueprintGraph);
   $('[data-bp-save]',w.body).dataset.supported=String(!!data);$('[data-bp-review]',w.body).dataset.supported=String(!!data);
   $('[data-bp-save]',w.body).onclick=()=>api.work(()=>api.view.call('saveDraft',{}),'적용된 공유 초안 저장 · 최종 원본은 별도 검토');
-  $('[data-bp-review]',w.body).onclick=()=>api.review(data.sources.filter(s=>s.dirty).map(s=>s.id));
+  $('[data-bp-review]',w.body).onclick=()=>api.review(data.reviewIds?.length?data.reviewIds:data.sources.filter(s=>s.dirty).map(s=>s.id));
   $('[data-bp-zoom]',w.body).oninput=e=>{w.meta.blueprintZoom=Number(e.target.value);layout();api.persist();};
   $('[data-bp-fit]',w.body).onclick=()=>{if(!data)return;layout();const canvas=$('.bp-canvas',w.body),scroll=$('.bp-scroll',w.body);w.meta.blueprintZoom=Math.max(1,Math.min(150,Math.floor(100*Math.min(scroll.clientWidth/canvas.offsetWidth,scroll.clientHeight/canvas.offsetHeight))));$('[data-bp-zoom]',w.body).value=w.meta.blueprintZoom;layout();scroll.scrollLeft=0;scroll.scrollTop=0;api.persist();};
   $('[data-bp-new-open]',w.body).dataset.supported=String(!!data);$('[data-bp-new-open]',w.body).onclick=()=>{if(data){const created=newNode(data);api.focus(created);api.persist();}};

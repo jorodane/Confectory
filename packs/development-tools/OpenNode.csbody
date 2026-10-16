@@ -22,6 +22,8 @@ try{
   var definition=System.Linq.Enumerable.SingleOrDefault(described["nodes"]!.AsArray(),n=>n!["id"]!.ToString()==nodeId)??throw new InvalidOperationException("Assigned node definition is unavailable");
   string Hash(string text)=>Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(text))).ToLowerInvariant();
   var observations=new System.Text.Json.Nodes.JsonObject{[graphId]=Hash(graph[3]),[implementationId]=Hash(implementation[3])};foreach(var entry in contracts)if(described["contractVersions"]![entry.Key] is not null)observations[entry.Key]=Hash(entry.Value!.ToString());
+  // Registration dependencies are human supporting sources, never additional Worker tools.
+  foreach(string related in calls.CreationGroup.Invoke(draft,node))if(related!=node)observations[related]=Hash(calls.Read.Invoke(draft,related)[3]);
   model["nodeScope"]=new System.Text.Json.Nodes.JsonObject{["id"]=node,["independentNodeCompilation"]=described["independentNodeCompilation"]?.DeepClone(),["sourceHash"]=Hash(source[3]),["definitionHash"]=definition["definitionHash"]!.DeepClone(),["definition"]=definition["definition"]!.DeepClone(),["imports"]=new System.Text.Json.Nodes.JsonArray(System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(System.Linq.Enumerable.Where(described["imports"]!.AsArray(),i=>definition["definition"]!["featureContracts"]![i!["feature"]!.ToString()] is not null),i=>i!.DeepClone()))),["observations"]=observations};
   model["rights"]=new System.Text.Json.Nodes.JsonArray("workspace_list","workspace_read","workspace_stage","workspace_changes");
   return capability;

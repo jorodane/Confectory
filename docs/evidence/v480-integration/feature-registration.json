@@ -1,0 +1,263 @@
+{
+  "schema": 1,
+  "status": "new-owned-project-feature-registration-verified",
+  "baseWorkCommit": "dfc788780da836c70300c583ac31848ae7fad8bf",
+  "referenceMain": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+  "profile": "sync-acyclic-v1",
+  "stages": [
+    {
+      "log": "feature-registration-engine-first.log",
+      "boundary": "Test setup failed before runtime: copied consumer project has portable, not linux, target mapping.",
+      "sha256": "1b3f1aa80e163ddd435485fd2cd43242fb9dcc5c9ea7f8820430147a8cd1f917",
+      "tests": [
+        "FAIL FeatureBlueprintTests.test_blueprint_new_feature_registration_contract_group_compiler_and_cold_restore"
+      ],
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 0.732
+    },
+    {
+      "log": "feature-registration-engine-second.log",
+      "boundary": "Product compilation failure: new nested bases/basisToken locals shadowed the existing graph branch; renamed featureBases/featureBasisToken.",
+      "sha256": "aac86c12060bfc55049f6df0b0ddc81eaab979b6d9fd93025cd3c4653cc98078",
+      "tests": [
+        "FAIL FeatureBlueprintTests.test_blueprint_new_feature_registration_contract_group_compiler_and_cold_restore"
+      ],
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 13.35
+    },
+    {
+      "log": "feature-registration-first-pair.log",
+      "boundary": "Engine test consumer omitted fully qualified LINQ API names. UI actually rejected stale function CAS but test incorrectly expected English error instead of the existing Korean generic message.",
+      "sha256": "dd904f7274a11f4c3add7dac7bb2c214bb0b462b45c96f9b8431a3171c11d12a",
+      "tests": [
+        "FAIL FeatureBlueprintTests.test_blueprint_new_feature_registration_contract_group_compiler_and_cold_restore",
+        "FAIL WebUITests.test_actual_editor_v480_new_feature_contract_graph_group_and_cold_source"
+      ],
+      "passed": 0,
+      "failed": 2,
+      "skipped": 0,
+      "seconds": 90.085
+    },
+    {
+      "log": "feature-registration-second-pair.log",
+      "boundary": "Actual compiler failure exposed declaration-directory vs owning-pack-root body locator mismatch for new implementations under elements/. UI separately reached graph opening but test clicked an already-covered declaration close control.",
+      "sha256": "77c033ba4cf9d4cb980a385f7e7c0abea42ba3d2225fcf7dbf0cb758d6701348",
+      "tests": [
+        "FAIL FeatureBlueprintTests.test_blueprint_new_feature_registration_contract_group_compiler_and_cold_restore",
+        "FAIL WebUITests.test_actual_editor_v480_new_feature_contract_graph_group_and_cold_source"
+      ],
+      "passed": 0,
+      "failed": 2,
+      "skipped": 0,
+      "seconds": 60.325
+    },
+    {
+      "log": "feature-registration-path-build.log",
+      "boundary": "Authoring host build after aligning owned source discovery, body metadata and syntax-only pack reads to the existing compiler owning-manifest root convention; graph nodes remain graph-relative.",
+      "sha256": "1c5ea7c3777ef81b33283268d3b8977849f3d81d54be241a50e6a6146f084057",
+      "tests": [],
+      "buildSucceeded": true,
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "log": "feature-registration-third-pair.log",
+      "boundary": "Engine test composition lacked FileStream.BrowseDirectory binding newly required by its DevelopmentTools.Snapshot consumer. UI successfully compiler Confirmed all five sources, then test attempted to close the automatically closed review pane.",
+      "sha256": "eabb0afa78960ab5bda4ea47df9acc42c73ba7eac6bf2086092090e8ecb6187e",
+      "tests": [
+        "FAIL FeatureBlueprintTests.test_blueprint_new_feature_registration_contract_group_compiler_and_cold_restore",
+        "FAIL WebUITests.test_actual_editor_v480_new_feature_contract_graph_group_and_cold_source"
+      ],
+      "passed": 0,
+      "failed": 2,
+      "skipped": 0,
+      "seconds": 71.379
+    },
+    {
+      "log": "feature-registration-final-host-build.log",
+      "boundary": "Final authoring host build; includes explicit refusal of standalone pack context before new graph mutation and the current local draft contract path.",
+      "sha256": "47c949aff4659e297afa667367cda6ef598840fa6b052011863677922e9c27f3",
+      "tests": [],
+      "buildSucceeded": true,
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "log": "feature-registration-final-pair.log",
+      "boundary": "Final public owner and actual Home UI. External contract, five-source atomic draft creation/registration, explicit group/direct Confirm, missing implementation compiler refusal, true cold restore, peer contract/manifest CAS, foreign destination/link/appearance refusal, unchanged-only manifest observations, four node-task rights and human registration observations, existing source preservation, owned fixture default-provided function Run11; actual UI typed contract, cold unsent body rebase and compiler group Confirm.",
+      "sha256": "ab055b22bef5a835fcf6e1e0f71c934487c9e97c47848774c6ff75978de05d8f",
+      "tests": [
+        "PASS FeatureBlueprintTests.test_blueprint_new_feature_registration_contract_group_compiler_and_cold_restore",
+        "PASS WebUITests.test_actual_editor_v480_new_feature_contract_graph_group_and_cold_source"
+      ],
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 73.901
+    },
+    {
+      "log": "feature-registration-owner-regression.log",
+      "boundary": "Before the final restored-identity guard: existing Blueprint compiler/call/ownership/creation/Task, PackWorkspace, EditWorkspace and shared draft history regression. Counts overlap with the focused pair.",
+      "sha256": "3f278395315422a914f4473166adfc7df918252dcf0d82064fcc8db867dd5edd",
+      "tests": [
+        "PASS FeatureBlueprintTests.test_blueprint_disconnected_current_node_body_is_compiled_without_execution",
+        "PASS FeatureBlueprintTests.test_blueprint_existing_feature_calls_use_typed_imports_and_contract_fences",
+        "PASS FeatureBlueprintTests.test_blueprint_fixed_inputs_branch_compiler_reuse_node_replacement_and_legacy_preservation",
+        "PASS FeatureBlueprintTests.test_blueprint_independent_probe_checks_an_unselected_body_without_running_or_publishing",
+        "PASS FeatureBlueprintTests.test_blueprint_invalid_graphs_stale_contracts_and_dominating_values",
+        "PASS FeatureBlueprintTests.test_blueprint_new_feature_registration_contract_group_compiler_and_cold_restore",
+        "PASS FeatureBlueprintTests.test_blueprint_node_diagnostics_static_isolation_and_failed_build_retains_receipt",
+        "PASS FeatureBlueprintTests.test_blueprint_node_only_worker_draft_save_restore_and_compiler_confirm",
+        "PASS FeatureBlueprintTests.test_blueprint_node_task_assignment_scoped_dispatch_adoption_and_cold_no_replay",
+        "PASS FeatureBlueprintTests.test_blueprint_owned_node_creation_removal_review_group_and_cold_restore",
+        "PASS FeatureBlueprintTests.test_blueprint_source_change_during_real_compile_is_not_published",
+        "PASS EditWorkspaceTests.test_shared_drafts_save_restore_preview_selective_confirm_conflict_and_locality",
+        "PASS DraftHistoryTests.test_shared_draft_history_atomic_inverse_cas_restart_branch_and_owner_boundaries",
+        "PASS PackWorkspaceTests.test_development_tools_owned_scope_shared_draft_no_confirm_and_locality",
+        "PASS PackWorkspaceTests.test_target_metadata_owned_sources_no_registry_execution",
+        "PASS PackWorkspaceTests.test_two_contexts_revision_save_reopen_and_locality"
+      ],
+      "passed": 16,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 470.874
+    },
+    {
+      "log": "feature-registration-ui-managed-regression.log",
+      "boundary": "Before the final restored-identity guard: ordinary Home, node Task, history, both existing graph editing/creation UI consumers and Windows/Android managed profile compilation. Compile-only, not native pixel/device execution.",
+      "sha256": "19a09cda2b73cc35b8029bc1b32185780cd15dfaaf7b4bbb948f58e67580560d",
+      "tests": [
+        "PASS WebUITests.test_actual_editor_original_v196_home_project_and_create_flow",
+        "PASS WebUITests.test_actual_editor_v424_node_task_plan_cas_approval_and_cold_history",
+        "PASS WebUITests.test_actual_editor_v424_shared_draft_history_cas_and_cold_restart",
+        "PASS WebUITests.test_actual_editor_v480_blueprint_node_creation_removal_and_cold_source_groups",
+        "PASS WebUITests.test_actual_editor_v480_blueprint_owned_graph_node_edit_and_cold_input",
+        "PASS EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only"
+      ],
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 513.462
+    },
+    {
+      "log": "feature-registration-declaration-regression.log",
+      "boundary": "Before the final restored-identity guard: existing typed declaration views and all six declaration kinds, registration review/compiler Confirm/cold restart.",
+      "sha256": "c99289730db9ec3c2af421124af7d70d824d6883a663ba31e6444274152b4443",
+      "tests": [
+        "PASS WebUITests.test_actual_editor_v424_six_declaration_kinds_and_registration_review",
+        "PASS WebUITests.test_actual_editor_v424_typed_declaration_views_cas_confirm_and_restart"
+      ],
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 311.976
+    },
+    {
+      "log": "feature-registration-identity-red.log",
+      "boundary": "Actual public Restore accepted an owned function whose source declared another ID; new feature preview failed to reject it. Reproduced before exact identity guards.",
+      "sha256": "59681d7a0157608b8b3b93d5cffd93ecd96fb8354fb413b5967108eeefd9fe05",
+      "tests": [
+        "FAIL FeatureBlueprintTests.test_blueprint_new_feature_registration_contract_group_compiler_and_cold_restore"
+      ],
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 14.811
+    },
+    {
+      "log": "feature-registration-identity-host-build.log",
+      "boundary": "Authoring host build after exact selected-function identity guards in preview and direct owner creation.",
+      "sha256": "dcff9fab972c5a414fcd0eec77470aa6615d45ad8d74de16671d5b452ab6cba7",
+      "tests": [],
+      "buildSucceeded": true,
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "log": "feature-registration-identity-final-pair.log",
+      "boundary": "Final owner/actual UI after exact restored identity guards; includes direct owner refusal with no partial membership and all focused workflow/cold/compiler/Run11 cases.",
+      "sha256": "83c5ee9f3df74082e70634a469662c693e4ccc66171c95e7a38bf653e02bcbca",
+      "tests": [
+        "PASS FeatureBlueprintTests.test_blueprint_new_feature_registration_contract_group_compiler_and_cold_restore",
+        "PASS WebUITests.test_actual_editor_v480_new_feature_contract_graph_group_and_cold_source"
+      ],
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 81.155
+    },
+    {
+      "log": "feature-registration-checkout.log",
+      "boundary": "Implementation commit through ordinary Git checkout, retained CRLF/fresh LF,27 static resources, actual Home start and resource tamper refusal.",
+      "sha256": null,
+      "tests": []
+    }
+  ],
+  "claims": {
+    "newOwnedProjectFunctionContractPreserved": true,
+    "atomicFunctionImplementationGraphNodeAndManifestDraft": true,
+    "sourceWritesOnlyThroughExplicitReviewConfirm": true,
+    "blankBodyIsUnimplementedAndUncompiled": true,
+    "groupRequiredByDirectConfirm": true,
+    "draftCASIncludesRegistration": true,
+    "manifestBatchObservationCannotEditRegistration": true,
+    "coldUnsentInputRequiresCurrentBasis": true,
+    "nodeTaskFourRightsUnchanged": true,
+    "registrationOnlyHumanSupportingSources": true,
+    "bodyLocatorsMatchCompilerPackRoot": true,
+    "graphNodePathsGraphRelative": true,
+    "existingPublishedFunctionsAndInheritedImplementationsNotConverted": true,
+    "unsupportedStandalonePackRejectedBeforeMutation": true,
+    "ownedFixtureRunResult": 11,
+    "staticResourceCount": 27,
+    "externalAccountOrPaidModel": false,
+    "nativePixelOrDeviceExecution": false
+  },
+  "boundaries": [
+    "Test stages overlap and must not be summed. Failed attempts and their causes remain recorded.",
+    "Only unpublished functions owned by a ProjectPack acquire a first graph here. No existing published function or inherited/provided implementation is converted; no existing C# is copied.",
+    "New source is the graph and independent node record. The final C# remains generated. Current primitive/array and one-return ABI and sync-acyclic-v1 semantics are preserved.",
+    "Standalone pack validation remains syntax-only; this new graph creation workflow refuses that unsupported compiler context before mutation.",
+    "Physical deletion, legacy conversion, reference-call wrapper/parent reuse UI, expanded execution profile/ABI, and module UI remain pending.",
+    "Only owned fixtures execute; no actual account,paid model,user-PC install,native pixel or device execution. DISPLAY is unavailable.",
+    "Main, original reference ZIP files and Android settings are preserved. Prototype demo state is not actual compiler evidence."
+  ],
+  "sourceHashes": {
+    "examples/editor-home/WebBundle.csbody": "b07033ad293648e9b2b4ff9ea6195522aa65e9dc95b1ceb2b2ca12e65f12c0bd",
+    "examples/editor-home/ui/app.js": "cfb3de331e4bd956f91342127dbbd95cab95dceb9ebcddb362b88f702b1a2533",
+    "examples/editor-home/ui/blueprint.js": "9f97efc09b91eaf8ce297d29de517b5b0e95dd357f7a648e8e4f5e051c5708e8",
+    "examples/editor-home/ui/declarations.js": "d03055cffa86a8dc944d1cfc17ab5cc43395a87e016ffa694a491eda5bd5833d",
+    "packs/development-tools/OpenNode.csbody": "7599dea2ac0ce5f9a1ac8994a83e77791fc82d23b5634b91e9d7eb38d23e63e1",
+    "packs/development-tools/OpenNodeBody.celem": "f6fc99446ba43843e6030c41a1811572f1a82dd24ec3ba4655645c613c3953d5",
+    "packs/edit-workspace/BlueprintFeature.celem": "94b92a52527028f43f3ccc2fd585d42e5ac5a3330ee5c58810e1e264ce70b580",
+    "packs/edit-workspace/BlueprintFeature.csbody": "61c08ed6b6da97dc54ac622bc5f5eab087747e937e208e007e2ddb459be66a55",
+    "packs/edit-workspace/BlueprintFeatureBody.celem": "4755cf810a3fd5232ed2b1690fa1471afe568281f8b50d23f08f6c2336e295c6",
+    "packs/edit-workspace/CreationGroup.celem": "cc1df9cedfaa9c17b8e6dbdb9708cc74f891a94d6cd30503401e344da5925fad",
+    "packs/edit-workspace/CreationGroup.csbody": "d49a96025b920ea97d24da620ab0810e05c70682c5a0ef46e35e21456ca3d568",
+    "packs/edit-workspace/CreationGroupBody.celem": "5b133dcf3b016d1657c10a26497f8aa83501207117b5dd2185d5c72bd2f306e2",
+    "packs/edit-workspace/EditBatch.csbody": "248f531866aa92bb3098c55194c3468879b2577a8a0ca56b5b610d4cd8593040",
+    "packs/edit-workspace/ValidateReviewSelection.csbody": "ddabfcffd64ffdab00879f3eb0a4f0099203bf7196b2c0da6bb015425b3f6b21",
+    "packs/edit-workspace/pack.cpack": "e1dc9d7846dcc1774e0c93f6dcea67e221435402fad419941a59c0cb9f0d8240",
+    "packs/editor-home-model/Blueprint.csbody": "2bf5922732f6d086944f4fbb5b2a92855d3edbbd6f36da8d66e206a8a1e87258",
+    "packs/pack-workspace/Blueprint.csbody": "e1d4d2c869706f63201fd6c2e2dcd1ab16be53f40c2b19f43fa629b99137956f",
+    "packs/pack-workspace/BlueprintBody.celem": "9a61abbda80628df0c5bd66ab59ca2eb7dfc99d6fd1bad2449b2da4af535d9b3",
+    "packs/pack-workspace/Snapshot.csbody": "f819898b5084a042d66d183192bb3c8315c1bd5a2a21ff4e02b0b71ff443bae8",
+    "packs/pack-workspace/SnapshotBody.celem": "570f9e5511c743abe7ea1e034308e1e2ab1cba1c440227005e0eefded1e7a337",
+    "src/Confectory.Core/BlueprintDocuments.cs": "999a7ae18a2d1f71c37c7e19e9abce89e93d6fb8b8cc8c07b0a7be562c993044",
+    "targets/element-authoring/BlueprintCreation.cs": "9e9b580c0515297a2629ed7b6cbf34306af6f9241b9d5ff2a0d3052d7090497f",
+    "targets/element-authoring/BodyUnitMetadata.cs": "7483a4334ef0c65e4e3e66c5c594209c4958c01d3f2e718d1a84a9cd20d65905",
+    "targets/element-authoring/Program.cs": "cb165871fdbdffea37e2ab5208ef9a02357a1caaf0c2994ee98cf1a46ea2326f",
+    "tests/Confectory.Tests/FeatureBlueprintTests.cs": "2efa22a1a5f5c4dc99163f2a14e57553569d50ad0e622191be85975c7131c7c2",
+    "tests/Confectory.Tests/WebUITests.cs": "2b3c8ea9911e04b691442f0fd01f909751d07a1cabecba940494c50b3e300363",
+    "tests/web/v480_feature_creation.py": "fa3d25a10975de51b8705fbe4429711ac3515908060887510f2c3328bfb29f9e",
+    "tests/web/web_ui.py": "f743cf2bb28e1c60023cba5ec2387ed3430823cb8aa71a87b02cde62427b533d"
+  },
+  "images": {
+    "feature-contract.png": "3a78f3864167d5a637cff974a63ace86b4c15d44cc95a8cc213ca8277ae3254b",
+    "feature-creation.png": "b862bdf374f5bd4fbaa90e5e7d0622d2903f6c6c326186c6cfa8e3ee12d40d5e"
+  }
+}

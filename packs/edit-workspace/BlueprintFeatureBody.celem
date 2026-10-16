@@ -1,0 +1,5 @@
+implementation Confectory.EditWorkspace::BlueprintFeatureBody for Confectory.EditWorkspace::BlueprintFeature (string handle,string id,string[] ids,long[] revisions,string[] hashes) -> string {
+import Confectory.EditWorkspace::Read as Read (string,string) -> string[];
+import Confectory.SchemaEditing::Call as Metadata (string,string) -> string;
+import Confectory.SchemaEditing::Register as Register (string,string,string,string) -> string;
+body common "BlueprintFeature.csbody";}

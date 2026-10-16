@@ -16,6 +16,7 @@ try
             reply=PackOperations.Execute(S("operation"),request,FormatManifest);break;
         case "featureBlueprintNodes": case "featureBlueprintDescribe": case "featureBlueprintAssemble":reply=FeatureBlueprint.Execute(request);break;
         case "blueprintDescribeOwned":reply=BlueprintDocuments.DescribeOwned(request);break;
+        case "blueprintPrepareFeature":reply=BlueprintCreation.Prepare(request,Format);break;
         case "blueprintSourceValidate":reply=BlueprintDocuments.Validate(S("id"),S("kind"),S("text"));break;
         case "relationsMap":reply=RelationMapBatch.Query(request);break;
         case "bodyUnits":reply=BodyUnitMetadata.Query(request);break;
@@ -36,7 +37,7 @@ try
                     units.Add(new JsonObject{["id"]=element.Id,["kind"]=element.Kind,["path"]=Path.GetRelativePath(root,path)});
                     foreach(var (target,body) in element.Bodies)
                     {
-                        string bodyPath=Owned(root,Path.GetRelativePath(root,Path.Combine(Path.GetDirectoryName(path)!,body.Path)));
+                        string bodyPath=Owned(root,Path.GetRelativePath(root,Path.Combine(Path.GetDirectoryName(manifestPath)!,body.Path)));
                         units.Add(new JsonObject{["id"]=element.Id+"/body:"+target,["kind"]=body.SourceKind=="blueprint"?"blueprint":"body",["path"]=Path.GetRelativePath(root,bodyPath)});
                         if(body.SourceKind=="blueprint")foreach(var node in BlueprintDocuments.NodeUnits(root,bodyPath,element.Id+"/body:"+target))units.Add(node!.DeepClone());
                     }
@@ -149,7 +150,7 @@ try
         case "validate":
         {
             string candidate=S("project");var manifest=new Parser(File.ReadAllText(candidate),candidate).ParseManifest();
-            if(manifest.Kind=="pack"){foreach(var (name,unit) in manifest.Elements){string path=PackPaths.Owned(Path.GetDirectoryName(candidate)!,unit.Path);var element=new Parser(File.ReadAllText(path),path).ParseElement();if(element.Id!=manifest.Namespace+"::"+name||element.Kind!=unit.Kind)throw new ArgumentException("Pack unit identity mismatch");foreach(var body in element.Bodies.Values)File.ReadAllText(PackPaths.Owned(Path.GetDirectoryName(path)!,body.Path));}reply=new JsonObject{["state"]="valid",["level"]="owned-syntax-only",["linkValidated"]=false};break;}
+            if(manifest.Kind=="pack"){foreach(var (name,unit) in manifest.Elements){string path=PackPaths.Owned(Path.GetDirectoryName(candidate)!,unit.Path);var element=new Parser(File.ReadAllText(path),path).ParseElement();if(element.Id!=manifest.Namespace+"::"+name||element.Kind!=unit.Kind)throw new ArgumentException("Pack unit identity mismatch");foreach(var body in element.Bodies.Values)File.ReadAllText(PackPaths.Owned(Path.GetDirectoryName(candidate)!,body.Path));}reply=new JsonObject{["state"]="valid",["level"]="owned-syntax-only",["linkValidated"]=false};break;}
             var builder=new Builder(candidate,S("target"));builder.Validate();builder.Check(builder.Registry.Project.Namespace);builder.Build();
             reply=new JsonObject{["state"]="valid"};break;
         }

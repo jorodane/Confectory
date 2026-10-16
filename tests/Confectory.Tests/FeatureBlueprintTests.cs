@@ -445,6 +445,83 @@ public sealed class FeatureBlueprintTests : TestCase
         }finally{Environment.SetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST",host);Environment.SetEnvironmentVariable("CONFECTORY_TEST_AUTHOR_PROJECT",selected);}
     }
 
+    public void test_blueprint_new_feature_registration_contract_group_compiler_and_cold_restore()
+    {
+        f.Sync();string sample=Path.Combine(f.Root,"feature-creation-consumer");Fixture.CopyTree(Path.Combine(Fixture.Repo,"examples/edit-workspace"),sample);
+        foreach(string name in new[]{"file-stream","schema-editing","edit-workspace","save","change-set","pack-workspace","development-tools"})Fixture.CopyTree(Path.Combine(Fixture.Repo,"packs",name),Path.Combine(f.Root,"packs",name));
+        string project=Path.Combine(sample,"project.cpack");File.WriteAllText(project,File.ReadAllText(project).Replace("../../packs/","../packs/").Replace("../../targets/dotnet/pack.cpack","../target/pack.cpack").Replace("element Main function","registry Confectory.PackWorkspace \"../packs/pack-workspace/pack.cpack\";dependency Confectory.PackWorkspace version \"0.1.0\";registry Confectory.DevelopmentTools \"../packs/development-tools/pack.cpack\";dependency Confectory.DevelopmentTools version \"0.1.0\";\nelement Main function"));
+        string composition=Path.Combine(sample,"main.celem"),compositionText=File.ReadAllText(composition);File.WriteAllText(composition,compositionText.Insert(compositionText.LastIndexOf('}'),"provide Confectory.FileStream::BrowseDirectory with Confectory.FileStream::BrowseDirectoryBody;"));
+        File.WriteAllText(Path.Combine(sample,"main_body.celem"),"""
+        implementation Example.EditWorkspace::MainBody for Example.EditWorkspace::Main () -> int {
+        import Confectory.PackWorkspace::Open as Open (string,string,string) -> string;
+        import Confectory.PackWorkspace::Command as Command (string,string,string) -> string;
+        import Confectory.PackWorkspace::Snapshot as Snapshot (string) -> string;
+        import Confectory.PackWorkspace::Blueprint as Blueprint (string,string,string) -> string;
+        import Confectory.PackWorkspace::Close as Close (string) -> void;
+        import Confectory.PackWorkspace::BorrowDraft as BorrowDraft (string) -> string;
+        import Confectory.EditWorkspace::Export as Export (string) -> string;
+        import Confectory.EditWorkspace::Restore as Restore (string,string) -> void;
+        import Confectory.EditWorkspace::BlueprintFeature as PrepareOwnedFeature (string,string,string[],long[],string[]) -> string;
+        import Confectory.EditWorkspace::Changes as Changes (string,string[]) -> string[];
+        import Confectory.EditWorkspace::EditBatch as EditBatch (string,string[],string[],long[],string[]) -> bool;
+        import Confectory.ChangeSet::ConfirmReviewed as ConfirmDirect (string,string[],string,string[]) -> string[];
+        import Confectory.DevelopmentTools::OpenNode as OpenNode (string,string,string,string,string,string) -> string;
+        import Confectory.DevelopmentTools::Snapshot as ToolSnapshot (string) -> string;
+        import Confectory.DevelopmentTools::Close as CloseTool (string) -> void;
+        import Confectory.SchemaEditing::Call as Metadata (string,string) -> string;
+        body common "main.csbody";}
+        """);
+        File.WriteAllText(Path.Combine(sample,"main.csbody"),"""
+        void Check(bool value,string why){if(!value)throw new Exception(why);}
+        System.Text.Json.Nodes.JsonNode Json(string value)=>System.Text.Json.Nodes.JsonNode.Parse(value)!;
+        string Serialize(object value)=>System.Text.Json.JsonSerializer.Serialize(value);
+        string Hash(string value)=>Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(value))).ToLowerInvariant();
+        string project=Environment.GetEnvironmentVariable("CONFECTORY_TEST_AUTHOR_PROJECT")!,root=System.IO.Path.GetDirectoryName(project)!,feature="App::Fresh";
+        string view=calls.Open.Invoke(project,"owner","create-feature"),peer=calls.Open.Invoke(project,"owner","create-feature");
+        System.Text.Json.Nodes.JsonNode Cmd(string op,object value)=>Json(calls.Command.Invoke(view,op,Serialize(value)));
+        System.Text.Json.Nodes.JsonNode Blueprint(string op,object value)=>Json(calls.Blueprint.Invoke(view,op,Serialize(value)));
+        System.Text.Json.Nodes.JsonNode Prepare(){var unit=Cmd("select",new{id=feature})["unit"]!;return Blueprint("readFeature",new{id=feature,revision=unit["revision"]!.GetValue<long>(),hash=Hash(unit["text"]!.ToString())});}
+        void Refused(Action action,string why){bool refused=false;try{action();}catch(InvalidOperationException){refused=true;}catch(ArgumentException){refused=true;}Check(refused,why);}
+        var originals=new System.Collections.Generic.Dictionary<string,byte[]>();foreach(string path in System.IO.Directory.GetFiles(root))originals[path]=System.IO.File.ReadAllBytes(path);
+        string[] Group(System.Text.Json.Nodes.JsonNode graph){var result=new System.Collections.Generic.List<string>();foreach(var item in graph["reviewIds"]!.AsArray())result.Add(item!.ToString());return result.ToArray();}
+        bool Missing(string[] paths){foreach(string path in paths)if(System.IO.File.Exists(path))return false;return true;}
+        try{
+         Refused(()=>Blueprint("readFeature",new{id="App::Main",revision=0,hash=new string('0',64)}),"published function cannot be implicitly converted");
+         var unit=Cmd("create",new{kind="function",id=feature})["unit"]!;string function="function App::Fresh (int n) -> int {description \"Add nine using the new feature contract\";value editorName = \"Fresh feature\";}";
+         Cmd("edit",new{text=function,expectedRevision=unit["revision"]!.GetValue<long>()});var stale=Prepare();unit=Cmd("select",new{id=feature})["unit"]!;Cmd("edit",new{text=function+" ",expectedRevision=unit["revision"]!.GetValue<long>()});
+         Refused(()=>Blueprint("createFeature",new{id=feature,basis=stale["basis"]!.ToString()}),"peer contract changes fence registration without partial sources");
+         unit=Cmd("select",new{id=feature})["unit"]!;Cmd("edit",new{text=function,expectedRevision=unit["revision"]!.GetValue<long>()});
+         int stableOwnedCount=Json(calls.Snapshot.Invoke(view))["ownedTotal"]!.GetValue<int>();string ownedHandle=calls.BorrowDraft.Invoke(view),validSaved=calls.Export.Invoke(ownedHandle);var damaged=Json(validSaved);foreach(var row in damaged["changes"]!.AsArray())if(row!["id"]!.ToString()==feature)row["draft"]="function App::WrongIdentity (int n) -> int {}";calls.Restore.Invoke(ownedHandle,damaged.ToJsonString());
+         Refused(()=>Prepare(),"restored declaration identity must match the selected owned function before preview");unit=Cmd("select",new{id=feature})["unit"]!;var registration=Cmd("select",new{id="App::ProjectManifest"})["unit"]!;Refused(()=>calls.PrepareOwnedFeature.Invoke(ownedHandle,feature,new[]{feature,"App::ProjectManifest"},new[]{unit["revision"]!.GetValue<long>(),registration["revision"]!.GetValue<long>()},new[]{Hash(unit["text"]!.ToString()),Hash(registration["text"]!.ToString())}),"direct owner creation must also reject a mismatched restored contract without adding graph membership");Check(Json(calls.Snapshot.Invoke(view))["ownedTotal"]!.GetValue<int>()==stableOwnedCount,"invalid restored identity adds no source units");calls.Restore.Invoke(ownedHandle,validSaved);
+         string collision=System.IO.Path.Combine(root,"elements/FreshBlueprintBody.celem");System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(collision)!);System.IO.File.WriteAllText(collision,"foreign destination");var before=Json(calls.Snapshot.Invoke(view));var ready=Prepare();
+         Refused(()=>Blueprint("createFeature",new{id=feature,basis=ready["basis"]!.ToString()}),"foreign destination refused");Check(System.IO.File.ReadAllText(collision)=="foreign destination"&&Json(calls.Snapshot.Invoke(view))["ownedTotal"]!.ToString()==before["ownedTotal"]!.ToString(),"foreign destination leaves drafts unchanged");System.IO.File.Delete(collision);
+         string linked=System.IO.Path.Combine(root,"blueprints"),outside=System.IO.Path.Combine(root,"link-target");System.IO.Directory.CreateDirectory(outside);System.IO.Directory.CreateSymbolicLink(linked,outside);ready=Prepare();try{Refused(()=>Blueprint("createFeature",new{id=feature,basis=ready["basis"]!.ToString()}),"linked graph destination refused atomically");}finally{System.IO.Directory.Delete(linked);}
+         ready=Prepare();var created=Blueprint("createFeature",new{id=feature,basis=ready["basis"]!.ToString()});string graphId=created["id"]!.ToString(),nodeId=created["node"]!.ToString();
+         System.Text.Json.Nodes.JsonNode Read()=>Blueprint("read",new{id=graphId});var graph=Read();Check(graph["nodes"]!.AsArray().Count==1&&graph["signature"]!["args"]![0]!["name"]!.ToString()=="n"&&graph["diagnostics"]!["state"]!.ToString()=="needs-implementation"&&!created["compiled"]!.GetValue<bool>(),"exact external contract maps to an unimplemented independent node");
+         string capability=calls.OpenNode.Invoke(project,"fixture","App","owner","create-feature",nodeId);try{var scope=Json(calls.ToolSnapshot.Invoke(capability));Check(scope["rights"]!.AsArray().Count==4&&scope["nodeScope"]!["observations"]!["App::ProjectManifest"] is not null&&scope["nodeScope"]!["observations"]![feature] is not null,"new node task keeps four rights and explicitly exposes related registration as human support");}finally{calls.CloseTool.Invoke(capability);}
+         var group=Group(graph);Check(group.Length==5&&Array.IndexOf(group,feature)>=0&&Array.IndexOf(group,"App::ProjectManifest")>=0&&graph["sources"]!.AsArray().Count==5,"all five owned sources and registration are explicit");
+         var pathList=new System.Collections.Generic.List<string>();foreach(var row in graph["sources"]!.AsArray())if(row!["id"]!.ToString()!="App::ProjectManifest")pathList.Add(System.IO.Path.Combine(root,row["path"]!.ToString()));var paths=pathList.ToArray();Check(Missing(paths),"creation writes no final sources");
+         foreach(string omitted in group){var subset=Array.FindAll(group,id=>id!=omitted);Refused(()=>Cmd("review",new{target="portable",ids=subset}),"partial registration group refused: "+omitted);string draft=calls.BorrowDraft.Invoke(view);Check(calls.ConfirmDirect.Invoke(draft,subset,"portable",calls.Changes.Invoke(draft,subset))[0]=="invalid","direct Confirm cannot bypass group: "+omitted);}
+         Cmd("save",new{});calls.Close.Invoke(peer);peer="";calls.Close.Invoke(view);view=calls.Open.Invoke(project,"owner","create-feature");graph=Read();Check(graph["reviewIds"]!.AsArray().Count==5&&Missing(paths),"genuine cold restore preserves missing source group without final writes");
+         var review=Cmd("review",new{target="portable",ids=group})["review"]!;var confirmed=Cmd("confirm",new{token=review["token"]!.ToString(),ids=group});Check(confirmed["confirmation"]![0]!.ToString()=="invalid"&&Missing(paths),"unimplemented reachable body cannot pass actual compiler Confirm");
+         graph=Read();string basis=graph["basis"]!.ToString();Cmd("create",new{kind="function",id="App::AnotherPending"});Refused(()=>Blueprint("source",new{id=graphId,basis,node="body",text="return n + 9;"}),"registration peer change fences node source edit");
+         graph=Read();Blueprint("source",new{id=graphId,basis=graph["basis"]!.ToString(),node="body",text="return n + 9;"});graph=Read();group=Group(graph);Check(Array.IndexOf(group,"App::AnotherPending")>=0,"all new declarations in shared registration are reviewed explicitly");
+         string draftHandle=calls.BorrowDraft.Invoke(view);var manifestUnit=Cmd("select",new{id="App::ProjectManifest"})["unit"]!;string manifestText=manifestUnit["text"]!.ToString();long manifestRevision=manifestUnit["revision"]!.GetValue<long>();Check(calls.EditBatch.Invoke(draftHandle,new[]{"App::ProjectManifest"},new[]{manifestText},new[]{manifestRevision},new[]{Hash(manifestText)}),"batch can observe unchanged registration");Refused(()=>calls.EditBatch.Invoke(draftHandle,new[]{"App::ProjectManifest"},new[]{manifestText+" "},new[]{manifestRevision},new[]{Hash(manifestText)}),"batch cannot edit registration");
+         string foreign=paths[0];System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(foreign)!);System.IO.File.WriteAllText(foreign,"preserve appeared file");review=Cmd("review",new{target="portable",ids=group})["review"]!;Check(review["status"]!.ToString()!="ready"&&System.IO.File.ReadAllText(foreign)=="preserve appeared file","appearance prevents ready publication without overwriting");System.IO.File.Delete(foreign);
+         review=Cmd("review",new{target="portable",ids=group})["review"]!;confirmed=Cmd("confirm",new{token=review["token"]!.ToString(),ids=group});Check(confirmed["confirmation"]![0]!.ToString()=="confirmed",confirmed.ToJsonString());foreach(string path in paths)Check(System.IO.File.Exists(path),"verified registration publishes all owned files");
+         foreach(var pair in originals)if(pair.Key!=project)Check(System.Linq.Enumerable.SequenceEqual(pair.Value,System.IO.File.ReadAllBytes(pair.Key)),"existing sources stay byte-identical");
+         string packRoot=System.IO.Path.Combine(root,"plain-pack");System.IO.Directory.CreateDirectory(packRoot);string packProject=System.IO.Path.Combine(packRoot,"pack.cpack");System.IO.File.WriteAllText(packProject,"pack Plain version \"1\" {}");string packView=calls.Open.Invoke(packProject,"owner","pack-creation");try{var createdContract=Json(calls.Command.Invoke(packView,"create",Serialize(new{kind="function",id="Plain::Pending"})))["unit"]!;Refused(()=>calls.Blueprint.Invoke(packView,"readFeature",Serialize(new{id="Plain::Pending",revision=createdContract["revision"]!.GetValue<long>(),hash=Hash(createdContract["text"]!.ToString())})),"standalone pack without ProjectPack compiler context cannot create an unreadable graph");Check(Json(calls.Snapshot.Invoke(packView))["ownedTotal"]!.GetValue<int>()==2,"unsupported context keeps its function and manifest drafts without partial graph");}finally{calls.Close.Invoke(packView);}
+         // Owned fixture integration: exercise the new function's own default provider without root binding copies.
+         System.IO.File.WriteAllText(System.IO.Path.Combine(root,"MainBody.celem"),"implementation App::MainBody for App::Main () -> int {import App::Fresh as Fresh (int) -> int;body common \"fresh-run.csbody\";}");System.IO.File.WriteAllText(System.IO.Path.Combine(root,"fresh-run.csbody"),"Console.WriteLine(calls.Fresh.Invoke(2));return 0;");
+         var run=Json(calls.Metadata.Invoke("run",Serialize(new{project,target="portable"})));Check(run["exit"]!.GetValue<int>()==0&&run["stdout"]!.ToString().Trim()=="11","new default-provided graph actually executes through existing CELEM contract");
+        }finally{if(peer.Length>0)calls.Close.Invoke(peer);calls.Close.Invoke(view);}
+        Console.WriteLine("Blueprint feature registration/contract/group/cold/compiler/Run11 PASS");return 0;
+        """);
+        string? host=Environment.GetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST"),selected=Environment.GetEnvironmentVariable("CONFECTORY_TEST_AUTHOR_PROJECT");
+        try{Environment.SetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST",Path.Combine(Fixture.Repo,"targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll"));Environment.SetEnvironmentVariable("CONFECTORY_TEST_AUTHOR_PROJECT",f.Project);var built=new Builder(project,"portable").Build();var run=Processes.Run(Strings(built,"run"),timeoutSeconds:240);True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("Blueprint feature registration/contract/group/cold/compiler/Run11 PASS"));}
+        finally{Environment.SetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST",host);Environment.SetEnvironmentVariable("CONFECTORY_TEST_AUTHOR_PROJECT",selected);}
+    }
+
     public void test_blueprint_owned_node_creation_removal_review_group_and_cold_restore()
     {
         string feature="function App::Value (int n) -> int {}";var graph=Graph();graph["feature"]="App::Value";graph["contractHash"]=FeatureBlueprint.ContractHash(new Parser(feature,"<node creation fixture>").ParseElement());

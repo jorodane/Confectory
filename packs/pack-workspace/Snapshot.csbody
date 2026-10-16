@@ -11,15 +11,6 @@ var units=new System.Text.Json.Nodes.JsonArray();for(int i=page*size;i<Math.Min(
 var creationReviewIds=new System.Text.Json.Nodes.JsonArray();
 string selected=state["selected"]!.GetValue<string>();System.Text.Json.Nodes.JsonObject? unit=null;
 if(selected!=""&&!ownedIds.Contains(selected)){selected="";state["selected"]="";state["review"]=null;}
-if(selected!=""&&calls.Status.Invoke(draft,selected)[5]=="missing"){
- var selectedStatus=calls.Status.Invoke(draft,selected);
- if(selectedStatus[1]=="blueprint-node"){
-  string graphId=selected[..selected.LastIndexOf("/node:",StringComparison.Ordinal)];creationReviewIds.Add(graphId);
-  foreach(string candidate in calls.List.Invoke(draft)){var status=calls.Status.Invoke(draft,candidate);if(status[1]=="blueprint-node"&&status[5]=="missing"&&candidate.StartsWith(graphId+"/node:",StringComparison.Ordinal))creationReviewIds.Add(candidate);}
- }else{
-  foreach(string candidate in calls.List.Invoke(draft)){var status=calls.Status.Invoke(draft,candidate);if(status[5]=="missing"&&status[1]!="blueprint-node")creationReviewIds.Add(candidate);}
-  foreach(string candidate in calls.List.Invoke(draft)){var status=calls.Status.Invoke(draft,candidate);if(status[2]==System.IO.Path.GetFileName(identity[0])){creationReviewIds.Add(candidate);break;}}
- }
-}
+if(selected!="")foreach(string candidate in calls.CreationGroup.Invoke(draft,selected))creationReviewIds.Add(candidate);
 if(selected!=""){var u=calls.Read.Invoke(draft,selected);unit=new System.Text.Json.Nodes.JsonObject{["id"]=u[0],["kind"]=u[1],["path"]=u[2],["text"]=u[3],["revision"]=long.Parse(u[4],System.Globalization.CultureInfo.InvariantCulture),["dirty"]=u[6]=="dirty"};}
 return new System.Text.Json.Nodes.JsonObject{["creationReviewIds"]=creationReviewIds,["review"]=state["review"]?.DeepClone(),["project"]=identity[0],["participant"]=identity[1],["context"]=identity[2],["selected"]=selected,["page"]=page,["pageSize"]=size,["total"]=ids.Length,["ownedTotal"]=ownedTotal,["query"]=query,["kind"]=kind,["units"]=units,["unit"]=unit}.ToJsonString();}

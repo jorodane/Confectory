@@ -3,6 +3,16 @@ lock(state){
  var ids=new System.Collections.Generic.HashSet<string>(selected,StringComparer.Ordinal);var changes=calls.Changes.Invoke(handle,selected);var changed=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);for(int i=0;i<changes.Length;i+=4)changed.Add(changes[i]);
  bool manifest=false;for(int i=0;i<changes.Length;i+=4)if(changes[i+1]==System.IO.Path.GetFileName(state["project"]!.ToString()))manifest=true;
  for(int i=0;i<changes.Length;i+=4)if(changes[i+2]=="missing"&&state["units"]![changes[i]]!["kind"]!.ToString()!="blueprint-node"&&!manifest)throw new InvalidOperationException("New declaration review must explicitly include its manifest registration.");
+ // A new graph is one registration transaction, including its external contract and stub.
+ foreach(var pair in state["units"]!.AsObject()){
+  if(pair.Value!["kind"]!.ToString()!="blueprint"||pair.Value["baseline"]?.ToString()!="missing")continue;
+  string implementationId=pair.Key[..pair.Key.IndexOf("/body:",StringComparison.Ordinal)];var implementation=calls.Read.Invoke(handle,implementationId);
+  string functionId=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("inspect",System.Text.Json.JsonSerializer.Serialize(new{text=implementation[3]})))!["function"]!.ToString();
+  var required=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal){pair.Key,implementationId};
+  if(state["units"]?[functionId]?["baseline"]?.ToString()=="missing")required.Add(functionId);
+  foreach(var unit in state["units"]!.AsObject())if(unit.Value!["path"]!.ToString()==System.IO.Path.GetFileName(state["project"]!.ToString())||unit.Value["kind"]!.ToString()=="blueprint-node"&&unit.Value["baseline"]?.ToString()=="missing"&&unit.Key.StartsWith(pair.Key+"/node:",StringComparison.Ordinal))required.Add(unit.Key);
+  if(System.Linq.Enumerable.Any(required,ids.Contains)&&!System.Linq.Enumerable.All(required,changed.Contains))throw new InvalidOperationException("New feature review requires its function, implementation, graph, node sources and manifest registration together");
+ }
  foreach(var pair in state["units"]!.AsObject()){
   var unit=pair.Value!;if(unit["kind"]!.ToString()!="blueprint-node"||unit["draft"] is null||unit["baseline"]?.ToString()!="missing")continue;
   int marker=pair.Key.LastIndexOf("/node:",StringComparison.Ordinal);string graphId=pair.Key[..marker];if(!ids.Contains(pair.Key)&&!ids.Contains(graphId))continue;

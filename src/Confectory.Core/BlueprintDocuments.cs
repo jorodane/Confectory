@@ -46,9 +46,17 @@ public static class BlueprintDocuments
         Require(implementation.Id == request["id"]!.ToString() && implementation.Kind == "implementation" && PackPaths.Namespace(implementation.Id) == registry.Project.Namespace, "Assigned project implementation required");
         string ReadContract(string id)
         {
-            var declaration = registry.Get(id, "function", implementation.Id);
-            string source = request["draftContracts"]?[id]?.GetValue<string>() ?? File.ReadAllText(declaration.Loc.File);
-            var parsed = new Parser(source, declaration.Loc.File).ParseElement();
+            string? draft = request["draftContracts"]?[id]?.GetValue<string>();
+            // A new owned function is not in the physical manifest until reviewed Confirm.
+            // Foreign contracts still require the registry's ordinary dependency checks.
+            string source;
+            if (draft is not null && PackPaths.Namespace(id) == registry.Project.Namespace) source = draft;
+            else
+            {
+                var declaration = registry.Get(id, "function", implementation.Id);
+                source = draft ?? File.ReadAllText(declaration.Loc.File);
+            }
+            var parsed = new Parser(source, "<owned-contract>").ParseElement();
             Require(parsed.Kind == "function" && parsed.Id == id, "Assigned contract identity required");
             return source;
         }

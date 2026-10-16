@@ -1,5 +1,7 @@
 pack Confectory.EditWorkspace version "0.1.0" {
 standalone false;
+element BlueprintFeature function "BlueprintFeature.celem";element BlueprintFeatureBody implementation "BlueprintFeatureBody.celem";
+element CreationGroup function "CreationGroup.celem";element CreationGroupBody implementation "CreationGroupBody.celem";
 element BlueprintNode function "BlueprintNode.celem";element BlueprintNodeBody implementation "BlueprintNodeBody.celem";
 element ValidateReviewSelection function "ValidateReviewSelection.celem";element ValidateReviewSelectionBody implementation "ValidateReviewSelectionBody.celem";
 element History function "History.celem";element HistoryBody implementation "HistoryBody.celem";

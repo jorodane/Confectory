@@ -1,0 +1,1 @@
+function Confectory.EditWorkspace::BlueprintFeature (string handle,string id,string[] ids,long[] revisions,string[] hashes) -> string {provide Confectory.EditWorkspace::BlueprintFeature with Confectory.EditWorkspace::BlueprintFeatureBody;}

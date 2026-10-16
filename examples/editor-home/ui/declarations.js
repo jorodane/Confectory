@@ -62,7 +62,17 @@ export function createDeclarationEditors(api){
     $('[data-add-relation]',group).dataset.supported=String(entries.length<128);$('[data-add-relation]',group).onclick=()=>{if(entries.length>=128)return;entries.push({id:'',...(role==='provide'||role==='default'?{function:info.kind==='function'?info.id:''}:{}),...(role==='use'||role==='contain'?{kind:'object'}:{}),...(role==='import'?{alias:'',scope:null}:{}),...(role==='require'||role==='import'?{signature:{args:[],return:'int'}}:{})});changed();rows();api.controls();};$('[data-apply-relations]',group).onclick=()=>stage({action:'relations',role,entries},section);
    }
   }
-  renderSignature();renderRelations();notice();
+   renderSignature();renderRelations();notice();
+   if(!row&&info.kind==='function'&&api.current.draft?.id===info.id&&api.current.draft.creationReviewIds?.includes(info.id)){
+    const section=document.createElement('section');section.dataset.featureCreation='';section.innerHTML='<h3>새 기능의 Blueprint</h3><p>입출력 계약을 먼저 적용한 뒤 현재 계약을 읽으세요. 그래프·독립 본문·등록은 공유 초안에 함께 만들며, 본문 작성과 실제 compiler Confirm은 별도입니다.</p><button data-operation data-feature-read>현재 계약과 등록 읽기</button><div data-feature-preview></div>';w.body.querySelector('[data-signature-editor]').after(section);
+    const check=()=>{if(api.current.projectId!==scope||api.current.draft?.id!==info.id||api.dirty||api.hasPending())throw Error('선택과 미적용 입력을 확인하세요. 입력은 유지됩니다.');};
+    $('[data-feature-read]',section).onclick=()=>api.work(async()=>{
+     check();const preview=await api.view.call('blueprint',{action:'readFeature',id:info.id,revision:info.revision,hash:info.textHash});check();
+     const target=$('[data-feature-preview]',section),contract=signature(preview.signature);target.innerHTML=`<p data-feature-contract>${esc(info.id)} (${contract.args.map(a=>esc(a.type+' '+a.name)).join(', ')}) → ${esc(contract.return)}</p><p>${esc(preview.description)}<br>${esc(preview.manifest)}와 함께 검토 · 본문 미작성 · 컴파일 미확인</p><button data-operation data-feature-create>미구현 그래프를 공유 초안에 만들기</button>`;
+     $('[data-feature-create]',target).onclick=()=>api.work(async()=>{check();const created=await api.view.call('blueprint',{action:'createFeature',id:info.id,basis:preview.basis});section.innerHTML='<p>새 기능 그래프와 독립 본문이 공유 초안에 있습니다. 본문 작성과 Save·Review·Confirm을 이어가세요.</p><button data-operation data-feature-open>기능 그래프 열기</button>';$('[data-feature-open]',section).onclick=()=>api.openGraph(info.id,created.id);api.controls();},'새 기능의 미구현 그래프 초안 생성 · 최종 파일 반영 전');
+     api.controls();
+    },'현재 기능 계약과 등록을 읽었습니다. 생성은 별도입니다.');
+   }
   const references=[...new Set((info.relations?.edges||[]).flatMap(edge=>[edge.target,edge.function,edge.scope]).filter(Boolean))];
   if(references.length){const list=document.createElement('details');list.dataset.declarationReferences='';list.innerHTML='<summary>참조한 선언의 정의 · '+references.length+'</summary>';for(const id of references){const button=document.createElement('button');button.dataset.operation='reference-definition';button.dataset.referenceTarget=id;button.textContent=id;button.onclick=()=>api.reference(info,id);list.append(button);}w.body.querySelector('.window-content').append(list);}
 

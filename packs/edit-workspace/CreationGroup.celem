@@ -1,0 +1,1 @@
+function Confectory.EditWorkspace::CreationGroup (string handle,string id) -> string[] {provide Confectory.EditWorkspace::CreationGroup with Confectory.EditWorkspace::CreationGroupBody;}

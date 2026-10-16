@@ -1,0 +1,1 @@
+implementation Confectory.EditWorkspace::CreationGroupBody for Confectory.EditWorkspace::CreationGroup (string handle,string id) -> string[] {body common "CreationGroup.csbody";}

@@ -1,0 +1,28 @@
+if(ids.Length!=2||revisions.Length!=2||hashes.Length!=2||ids[0]!=id||ids[0]==ids[1])throw new ArgumentException("Observe the new function and its manifest explicitly");
+string key="Confectory.EditWorkspace."+handle;var state=AppDomain.CurrentDomain.GetData(key) as System.Text.Json.Nodes.JsonObject??throw new ObjectDisposedException("EditWorkspace");
+string Hash(string text)=>Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(text))).ToLowerInvariant();
+var observed=new string[2][];for(int i=0;i<2;i++){observed[i]=calls.Read.Invoke(handle,ids[i]);if(revisions[i]<0||observed[i][4]!=revisions[i].ToString(System.Globalization.CultureInfo.InvariantCulture)||Hash(observed[i][3])!=hashes[i])throw new InvalidOperationException("Feature or registration changed; read the current source before creating its graph");}
+string root=state["root"]!.ToString(),project=state["project"]!.ToString(),ns=state["namespace"]!.ToString();
+if(observed[0][1]!="function"||observed[0][5]!="missing"||!id.StartsWith(ns+"::",StringComparison.Ordinal)||observed[1][1]!="project"||observed[1][2]!=System.IO.Path.GetFileName(project))throw new ArgumentException("Only an unpublished function owned by this ProjectPack can acquire a new Blueprint here; preserve existing implementations");
+string name=id[(ns.Length+2)..]+"BlueprintBody",implementationId=ns+"::"+name,implementationPath="elements/"+name+".celem",graphRelative="blueprints/"+Guid.NewGuid().ToString("N")+".graph.json",nodeRelative="nodes/"+Guid.NewGuid().ToString("N")+".node.json";
+string graphId=implementationId+"/body:common",nodeId=graphId+"/node:body";
+var prepared=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("blueprintPrepareFeature",System.Text.Json.JsonSerializer.Serialize(new{id,text=observed[0][3],implementation=implementationId,graphPath=graphRelative,nodePath=nodeRelative})))!;
+string registered=calls.Register.Invoke(observed[1][3],implementationId,"implementation",implementationPath);
+string graphPath=System.IO.Path.GetRelativePath(root,System.IO.Path.Combine(root,graphRelative)),nodePath=System.IO.Path.GetRelativePath(root,System.IO.Path.Combine(root,System.IO.Path.GetDirectoryName(graphRelative)!,nodeRelative));
+string[] newIds={implementationId,graphId,nodeId},kinds={"implementation","blueprint","blueprint-node"},paths={implementationPath,graphPath,nodePath},texts={prepared["implementation"]!.GetValue<string>(),prepared["graph"]!.ToJsonString(),prepared["node"]!.ToJsonString()};
+string function=prepared["function"]!.GetValue<string>();
+int budget=System.Text.Encoding.UTF8.GetByteCount(function)+System.Text.Encoding.UTF8.GetByteCount(registered);foreach(string text in texts)budget=checked(budget+System.Text.Encoding.UTF8.GetByteCount(text));if(budget>2097152)throw new InvalidOperationException("New feature exceeds the Blueprint source budget");
+lock(state){
+ if(!ReferenceEquals(AppDomain.CurrentDomain.GetData(key),state))throw new ObjectDisposedException("EditWorkspace");
+ for(int i=0;i<2;i++){var unit=state["units"]?[ids[i]];if(unit is null||unit["kind"]!.ToString()!=observed[i][1]||unit["path"]!.ToString()!=observed[i][2]||unit["baseline"]!.ToString()!=observed[i][5]||unit["revision"]!.GetValue<long>()!=revisions[i]||Hash(unit["draft"]!.ToString())!=hashes[i])throw new InvalidOperationException("Feature or registration changed; retain the current drafts and read again");}
+ var destinations=new System.Collections.Generic.HashSet<string>(OperatingSystem.IsWindows()?StringComparer.OrdinalIgnoreCase:StringComparer.Ordinal);
+ for(int i=0;i<3;i++){
+  string full=System.IO.Path.GetFullPath(System.IO.Path.Combine(root,paths[i]));if(!full.StartsWith(root+System.IO.Path.DirectorySeparatorChar,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal)||!destinations.Add(full))throw new ArgumentException("Distinct owned feature destinations required");
+  for(System.IO.FileSystemInfo? current=new System.IO.FileInfo(full);current is not null;current=current is System.IO.FileInfo file?file.Directory:((System.IO.DirectoryInfo)current).Parent){if(current.LinkTarget is not null)throw new ArgumentException("New feature destinations cannot traverse links");if(current.FullName==root)break;}
+  if(state["units"]![newIds[i]] is not null||System.IO.File.Exists(full)||System.IO.Directory.Exists(full)||System.Linq.Enumerable.Any(state["units"]!.AsObject(),unit=>string.Equals(System.IO.Path.GetFullPath(System.IO.Path.Combine(root,unit.Value!["path"]!.ToString())),full,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal)))throw new InvalidOperationException("New feature destination already exists; preserve it and choose another function identity");
+ }
+ for(int i=0;i<3;i++)state["units"]!.AsObject().Add(newIds[i],new System.Text.Json.Nodes.JsonObject{["id"]=newIds[i],["kind"]=kinds[i],["path"]=paths[i],["baseline"]="missing",["original"]="",["draft"]=texts[i],["revision"]=1L});
+ state["units"]![id]!["draft"]=function;state["units"]![id]!["revision"]=revisions[0]+1;state["units"]![ids[1]]!["draft"]=registered;state["units"]![ids[1]]!["revision"]=revisions[1]+1;
+ if(AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace.HistoryRecorder."+handle) is Action<System.Text.Json.Nodes.JsonObject,string> record)record(new(),"OWNERSHIP_CHANGED");
+}
+return new System.Text.Json.Nodes.JsonObject{["id"]=graphId,["feature"]=id,["node"]=nodeId,["sourceWritten"]=false,["compiled"]=false}.ToJsonString();
