@@ -1,0 +1,120 @@
+{
+  "schema": 1,
+  "status": "native-private-tab-reorder-and-exact-window-canvas-drop-verified",
+  "baseWorkCommit": "90c306d3be72be53499027e8a677a0a4edf5c2b4",
+  "referenceMain": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+  "claims": {
+    "staticResourceCount": 31,
+    "privateMixedTabOrderWithFixedRoot": true,
+    "nativeHtmlDragReorderAndCanvasDrop": true,
+    "transientPreviewWithoutPrivateActiveStateMutation": true,
+    "nativeEscapeCancellation": true,
+    "currentProjectAndCurrentWindowIdentityRequiredForDrop": true,
+    "exactSourceDomAndPendingInputsRetained": true,
+    "notesNotConvertedIntoWindows": true,
+    "coldOrderAndHomeSourceViewLifetime": true,
+    "horizontalWheelAndActiveTabScrollRetained": true,
+    "ordinaryExplicitCompilerConfirmAndOtherSourceBytesPreserved": true,
+    "nativeDeviceRealAccountsPaidModelsUserPcInstalls": false
+  },
+  "stages": [
+    {
+      "log": "tab-arrangement-first-ui.log",
+      "boundary": "Initial first-attempt actual native mixed tab reorder, preview cancel, canvas drop, cold order and existing source/View/compiler acceptance. Before the later overflow assertion/fix. Only Python trailing whitespace was removed before broad gates, with product unchanged through those gates.",
+      "sha256": "c6bb31e7c4a7ea78e5550d52be2351832237a30a7884cf9255b62c71ada97685",
+      "tests": [
+        "PASS WebUITests.test_actual_editor_v480_tab_reorder_cancel_canvas_drop_and_cold_order"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 94.794
+    },
+    {
+      "log": "tab-arrangement-scroll-red-ui.log",
+      "boundary": "Actual overflow-tab activation reset horizontal scroll;0/1,13.331s. Added a read-only pre-render scroll capture hook and project/canvas reset guard.",
+      "sha256": "d6b616bca571d624c024d2f97f84569fb2b42cfee0e2077c3aebc9ec8786ac38",
+      "tests": [
+        "FAIL WebUITests.test_actual_editor_v480_tab_reorder_cancel_canvas_drop_and_cold_order"
+      ],
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 13.331
+    },
+    {
+      "log": "tab-arrangement-final-ui.log",
+      "boundary": "Final actual native tab movement and source/View lifetime acceptance.",
+      "sha256": "a5c57992aa5262afb8b81c8f06fd97e098792b4a5fdcd2d96e5e440e8b6424cb",
+      "tests": [
+        "PASS WebUITests.test_actual_editor_v480_tab_reorder_cancel_canvas_drop_and_cold_order"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 38.305
+    },
+    {
+      "log": "tab-arrangement-workspace-regression.log",
+      "boundary": "Existing layout, Workspace lifecycle and frozen v318 characterization.",
+      "sha256": "d9fba5f7d888d0e2ac616aa95d1cb050e4ef6b297c12ec10414dfb09b0114309",
+      "tests": [
+        "PASS WebUITests.test_actual_editor_layout_periodic_checkpoints_and_flush",
+        "PASS WebUITests.test_actual_editor_v318_workspace_lifecycle_presentation_restart",
+        "PASS WebUITests.test_v318_original_and_refactor_shared_workspace_characterization"
+      ],
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 113.016
+    },
+    {
+      "log": "tab-arrangement-content-regression.log",
+      "boundary": "Existing window/note documents, placed Find and Blueprint.",
+      "sha256": "a6ebaff6e2913e0b0b0cd4f7b815e3f53472318dce434d5c61bea955c12e3395",
+      "tests": [
+        "PASS WebUITests.test_actual_editor_v480_blueprint_owned_graph_node_edit_and_cold_input",
+        "PASS WebUITests.test_actual_editor_v480_note_document_tabs_canonical_ownership_and_cold_source_input",
+        "PASS WebUITests.test_actual_editor_v480_placed_text_find_workspace_blueprint_and_cold_scope",
+        "PASS WebUITests.test_actual_editor_v480_window_document_docking_cold_inputs_and_compiler_confirm"
+      ],
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 114.342
+    },
+    {
+      "log": "tab-arrangement-home-regression.log",
+      "boundary": "Ordinary Home project lifecycle.",
+      "sha256": "8e5ad81242f0192021f62859d744b9045694e0528dd1eb952e3ca44941c0033e",
+      "tests": [
+        "PASS WebUITests.test_actual_editor_original_v196_home_project_and_create_flow"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 37.825
+    }
+  ],
+  "boundaries": [
+    "Stages overlap and are not summed; failed attempts remain visible. Broad Workspace/content/Home gates preceded the final narrow horizontal-scroll capture hook; final focused UI includes the full source/View/cold/Confirm pipeline plus the scroll assertion.",
+    "Mixed child Workspace/note/typed window tab order is private presentation; Root stays fixed. Display uses existing current identities and never creates source/runtime authority.",
+    "Only a locally initiated current-project typed window document can drop to the canvas. Preview changes CSS only, preserves active document IDs and pending inputs, and is cleared on cancellation/project detach.",
+    "Notes and Workspace tabs can reorder without being converted into windows. The underlying exact source DOM and existing editor View stay alive through movement/cold/Home/close; ordinary compiler Confirm remains explicit.",
+    "No external accounts, paid models, user PC installs or native/device execution. Extended compiler profiles and other v480 work remain separate."
+  ],
+  "sourceHashes": {
+    "examples/editor-home/WebBundle.csbody": "64a7a274f73f5f0fd869e0b127cc29c44283802ce1996fb64756c91465ed8290",
+    "examples/editor-home/ui/consumer.css": "45606d135ca02617dc77db7d4ec100872aab45acec6252f550266243853e0610",
+    "examples/editor-home/ui/window-documents.js": "9bb89f96e8f0b25287fb6362c29cfeae879084f51ac3009e923247bf3266e313",
+    "examples/editor-home/ui/workspace-host.js": "68dc0d262b5eb15373733e4140363e3d84862d839ee373df86af06a431770270",
+    "examples/editor-home/ui/workspace.js": "40492b522c42f027aca4c1e9b4ae3f63d4a9aab0ad20a49ee5500bfc8fe513d3",
+    "tests/Confectory.Tests/WebUITests.cs": "b6cc7e60e917214f22ab479eab3224baed8845b738f41c8c241a306a30370233",
+    "tests/web/v480_window_documents.py": "0251b9107158f1aa8b6fcd0f10eb49180bd944a77642e227b0b6ae0933a2831d",
+    "tests/web/web_ui.py": "d99b747dd6d00ecaf74958817baef939f20233a9c2afd12e5ae74cc76ec7d23e"
+  },
+  "images": {
+    "tab-arrangement.png": "d4b52742439a0de720dd18805f956aa09d74e9ae0be0d1429c1bf5bf9e3428fa",
+    "tab-arrangement-cold.png": "2cf379167f01569435977e5e439a681fce317e576d4ce8fd7d495cabd679d930"
+  }
+}

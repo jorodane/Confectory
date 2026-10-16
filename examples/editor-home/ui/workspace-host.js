@@ -13,7 +13,7 @@ export function createActualWorkspace(api) {
     groups:{concept:'개념',feature:'기능',module:'모듈'},
     uid:()=>crypto.randomUUID(),toast:api.toast,modal:api.modal,contextMenu:api.contextMenu,
     persist:()=>schedule('layout'),get running(){return false},closeRun:()=>{},
-    openNoteDocument:item=>noteDocuments.open(item),activateWorkspaceView:()=>{const changed=noteDocuments.deactivate();return windowDocuments.deactivate()||changed;},renderDocumentTabs:tabs=>{noteDocuments.renderTabs(tabs);windowDocuments.renderTabs(tabs);},refreshNoteDocuments:()=>{noteDocuments.render();windowDocuments.render();},noteChanged:(item,source)=>noteDocuments.changed(item,source),pruneNoteDocuments:()=>noteDocuments.prune(),
+    openNoteDocument:item=>noteDocuments.open(item),activateWorkspaceView:()=>{const changed=noteDocuments.deactivate();return windowDocuments.deactivate()||changed;},beforeRenderTabs:tabs=>windowDocuments.rememberTabs(tabs),renderDocumentTabs:tabs=>{noteDocuments.renderTabs(tabs);windowDocuments.renderTabs(tabs);windowDocuments.arrangeTabs(tabs);},refreshNoteDocuments:()=>{noteDocuments.render();windowDocuments.render();},noteChanged:(item,source)=>noteDocuments.changed(item,source),pruneNoteDocuments:()=>noteDocuments.prune(),
     revealWorkspaceForWindow:()=>{if(!loading){noteDocuments.deactivate();windowDocuments.deactivate();}},
     openWindowDocument:(w,opts)=>windowDocuments.open(w,opts),openWindowDocuments:windows=>windowDocuments.openMany(windows),focusWindowDocument:w=>{if(!loading)windowDocuments.activate(w.key);},closeWindowDocument:key=>windowDocuments.close(key),windowDocumentDropAt:(x,y)=>windowDocuments.tabDropAt(x,y),
     takeDetachedWindow:key=>{const w=detached.get(scope+'|'+key);detached.delete(scope+'|'+key);return w},

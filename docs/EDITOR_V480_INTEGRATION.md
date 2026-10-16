@@ -182,3 +182,14 @@ UI는 변경된 graph와 import를 함께 검토한다. 실제 파일에 필수 
 같은 제품 파일의 기존 배치 checkpoint·Workspace 수명·frozen v318 동작/픽셀 비교는 **3/0/0, 116.701초**, 메모 문서·메모 서식·찾기·기존 Blueprint/cold/compiler Confirm은 **4/0/0, 87.937초**, Home은 **1/0/0, 39.380초**로 통과했다. 영향 회귀 뒤에는 테스트 fixture만 확장했으며 최종 제품·테스트 원본 10개의 해시는 유지했다. 각 단계는 중복되므로 합산하지 않는다. [단계별 증거](evidence/v480-integration/window-documents.json), [실제 소스 문서](evidence/v480-integration/window-document.png), [독립 View와 함께 cold 복원한 소스](evidence/v480-integration/window-document-cold.png). 일반 Git 체크아웃의 31개 리소스 검사는 별도 기록한다.
 
 편집창 문서 구현 `3ac2f6ae098a83471bd956ad703dfcbc87f726ba`의 일반 Git 체크아웃·CRLF/LF·31개 정적 리소스·실제 Home 시작·변조 거부는 **1/0/0, 9.353초**로 통과했다. 마지막 독립 View 확장 UI 이후 제품·테스트 원본 10개는 유지했다.
+
+
+## 탭 순서와 캔버스 복귀 드래그
+
+고정 Root 버튼 옆의 하위 Workspace·메모·편집창 탭은 같은 이동 영역에서 순서를 바꾼다. 현재 보기 ID의 순서만 프로젝트 private tabOrder에 보관하고, 닫혔거나 없는 보기를 다시 만들지 않는다. 편집창 문서 탭을 캔버스로 끌면 실제 창의 DOM·View를 유지한 채 현재 Workspace의 해당 위치로 돌아간다. 메모·Workspace 탭은 창으로 변환하지 않는다.
+
+드래그 미리보기는 CSS와 임시 표시만 사용하며 활성 문서 ID·원문·배치를 바꾸지 않는다. Escape·dragend·프로젝트 분리에서 미리보기를 제거한다. 현재 프로젝트 안에서 시작한 드래그와 현재 존재하는 창 identity만 실제 드롭을 처리한다. 재정렬·미리보기·복귀는 소스 적용이나 실행·AI 권한을 만들지 않는다.
+
+첫 실제 UI는 **1/0/0, 94.794초**로 통과했다. 혼합 탭의 순서 변경·cold 순서 보존, native Escape 미리보기 취소와 실제 캔버스 드롭, 소스 DOM/입력·독립 속성 View 슬롯 보존, 메모 탭의 비변환과 기존 명시적 Save/Review/compiler Confirm을 확인했다. 이후 Python 테스트의 줄 끝 공백만 제거했고 제품 파일은 유지했다. 기존 배치·Workspace 수명·frozen v318 동작/픽셀 비교는 **3/0/0, 113.016초**, 일반 창/메모 문서·찾기·Blueprint 회귀는 **4/0/0, 114.342초**, Home은 **1/0/0, 37.825초**로 통과했다. 이 결과는 아래의 마지막 가로 스크롤 보정 전이며 서로 합산하지 않는다. [단계별 증거](evidence/v480-integration/tab-arrangement.json), [현재 탭 순서](evidence/v480-integration/tab-arrangement.png), [cold 순서 복원](evidence/v480-integration/tab-arrangement-cold.png).
+
+가로 스크롤을 사용하는 좁은 화면에서 활성 탭 전환 시 스크롤이 초기화되는 문제를 실제 재현했다(**0/1/0, 13.331초**). 현재 strip의 위치를 다시 그리기 전에 보관하고 프로젝트/캔버스가 바뀌면 초기화하도록 수정했다. native 가로 휠·탭 전환의 위치 보존과 앞선 전체 드래그/취소/원문/독립 View/cold/compiler 경계를 포함한 최종 UI는 **1/0/0, 38.305초**로 통과했다. 이후 제품·테스트 원본 8개의 해시는 유지했다. 일반 체크아웃·31개 리소스 시작은 별도 기록한다.
