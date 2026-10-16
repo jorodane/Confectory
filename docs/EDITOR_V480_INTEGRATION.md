@@ -60,3 +60,5 @@
 관리 프로필 결과는 컴파일 검사다. 예산 경계는 후속 공개 엔진 및 실제 UI 검사로 구분해 기록한다. 네이티브 화면·장치 실행, 실제 계정·유료 모델·사용자 PC 설치는 수행하지 않았다. 신규 기능/graph 자체의 등록·전환, 물리 파일 삭제, 참조 wrapper·부모 재사용 UI, 확장 profile·모듈 화면은 남은 범위다. [단계별 검증](evidence/v480-integration/node-creation.json), [생성 입력](evidence/v480-integration/node-create-form.png), [제거 검토](evidence/v480-integration/node-remove-review.png).
 
 예산·재발견 경계 보완 후 실제 Home 노드 생성·제거 UI 재검사는 **1/0/0, 130.630초**로 통과했다. 기본 생성 창의 여섯 입력/작업 컨트롤이 창 본문 안에 있고 Dock과 겹치지 않는 것도 확인했다. 최종 화면과 생성/제거 검토 캡처는 실제 공통 웹 UI 결과이며 네이티브 픽셀 캡처가 아니다.
+
+구현 커밋 `df0a2b59a40ad4562f014260956aea36bdcc53cd`의 일반 Git 체크아웃·CRLF/LF·27개 정적 리소스·실제 Home 시작·변조 거부는 **1/0/0, 5.927초**로 통과했다. 최종 UI 이후 제품·테스트 소스는 바뀌지 않았다.

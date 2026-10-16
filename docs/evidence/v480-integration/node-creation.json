@@ -185,8 +185,14 @@
     {
       "log": "node-creation-checkout.log",
       "boundary": "Implementation commit checked out through ordinary Git: retained CRLF/fresh LF,27 static resource identities, actual Home startup and tamper refusal.",
-      "sha256": null,
-      "tests": []
+      "sha256": "8075ff44d9f64054d405c481432dda00a397dae8e3e8a73d350a84d4196d4dc7",
+      "tests": [
+        "PASS WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 5.927
     }
   ],
   "claims": {
@@ -250,5 +256,6 @@
     "node-creation.png": "4c1b11392cf84eec14097af970c677d845d8f68dc81f36fbe68e4cc30452c9d2",
     "node-create-form.png": "d54b090b7488475bd04b43bd7d984fd5a5d79014c88292d5b45afff56b47d819",
     "node-remove-review.png": "25ab2c12c4bff7cb4344a8882e2fb4a359b1a45b9924388ee5d98dbc494714f1"
-  }
+  },
+  "implementationCommit": "df0a2b59a40ad4562f014260956aea36bdcc53cd"
 }
