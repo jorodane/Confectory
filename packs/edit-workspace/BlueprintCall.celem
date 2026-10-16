@@ -1,0 +1,1 @@
+function Confectory.EditWorkspace::BlueprintCall (string handle,string graphId,string definition,string versions,string[] ids,long[] revisions,string[] hashes) -> string {provide Confectory.EditWorkspace::BlueprintCall with Confectory.EditWorkspace::BlueprintCallBody;}

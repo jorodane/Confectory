@@ -12,6 +12,7 @@ public static class FeatureBlueprint
 {
     public const string Profile = "sync-acyclic-v1", Generator = "feature-blueprint-source-v2";
     public static string ContractHash(Element feature) => Hash(CanonicalText(new JsonObject { ["feature"] = feature.Id, ["signature"] = SignatureNode(feature.Signature!) }));
+    public static string ImportAlias(string featureId) => "fg_call_" + Hash(featureId)[..24];
     sealed class Refusal(string code, string subject) : Exception(code)
     {
         public string Code = code, Subject = subject;
@@ -105,7 +106,7 @@ public static class FeatureBlueprint
             var element = new Parser(source, "<called-feature>").ParseElement();
             Need(element.Id == id && element.Kind == "function" && element.Signature is not null, "GRAPH_CALLEE_CONTRACT", id);
             string hash = Hash(CanonicalText(new JsonObject { ["feature"] = id, ["signature"] = SignatureNode(element.Signature!) }));
-            var result = (element, "fg_call_" + Hash(id)[..24], hash);
+            var result = (element, ImportAlias(id), hash);
             imports.Add(id, result);
             return result;
         }

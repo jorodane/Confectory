@@ -1,0 +1,29 @@
+"""Actual owned feature reference UI, current-contract review and preserved callee sources."""
+import json,uuid,time
+from playwright.sync_api import expect
+
+def verify_call_wrapper(page,project,mount,send,envelope,settle,restart):
+ page.set_viewport_size({'width':1440,'height':1000});graph='Example.ButtonGame::NodeValueBody/body:common';feature='Example.ButtonGame::Double';before={p:p.read_bytes() for p in project.iterdir() if p.is_file()}
+ def ready():expect(page.locator('#nav')).to_be_enabled(timeout=180000)
+ def state():
+  v=mount();s=v['state'];assert send(envelope(v,'dispose'))['ok'];return s
+ def invoke(endpoint,args):
+  v=mount();request=uuid.uuid4().hex;assert send(envelope(v,'invoke',endpoint=endpoint,requestId=request,expectedRevision=v['revision'],input=args))['ok'];deadline=time.monotonic()+180;result=None
+  while time.monotonic()<deadline:
+   reply=send(envelope(v,'update'));assert reply['ok'],reply;result=next((r for r in reply.get('results',[]) if r['requestId']==request),None)
+   if result:break
+   time.sleep(.02)
+  assert result and result['ok'],result;assert send(envelope(v,'dispose'))['ok'];return result['result']
+ def nav():
+  ready();page.locator('#nav').click();page.locator('.nav-menu').get_by_role('button',name='기능 Blueprint',exact=True).click();ready()
+ def panel():return page.locator('.window[data-key="blueprint"]')
+ def creator():return page.locator('.window').filter(has=page.locator('[data-call-id]'))
+ def read():return invoke('blueprint',{'action':'read','id':graph})
+ nav();panel().locator('[data-bp-call-open]').click();creator().locator('[data-call-query]').fill('Double');creator().locator('[data-call-search]').click();ready();creator().locator('[data-call-feature]').select_option(feature);creator().locator('[data-call-id]').fill('double_ui');creator().locator('[data-call-intent]').fill('Call existing Double without copying its source');creator().locator('[data-call-read]').click();ready();expect(creator().locator('[data-call-contract]')).to_contain_text('(long value) → long');expect(creator().locator('[data-call-ack]')).not_to_be_checked()
+ invoke('select',{'id':feature});unit=state()['draft'];invoke('editDraft',{'id':feature,'revision':unit['revision'],'text':unit['text']+' '});creator().locator('[data-call-ack]').check();creator().locator('[data-call-submit]').click();ready();expect(page.locator('#status')).to_contain_text('입력은 유지됩니다');assert len(read()['nodes'])==2;expect(creator().locator('[data-call-id]')).to_have_value('double_ui')
+ unit=state()['draft'];assert unit['id']==feature;invoke('editDraft',{'id':feature,'revision':unit['revision'],'text':(project/'Double.celem').read_text()});creator().locator('[data-call-read]').click();ready();expect(creator().locator('[data-call-ack]')).not_to_be_checked();invoke('saveDraft',{});page.evaluate('()=>globalThis.confectoryFlushPresentation()');restart();ready();expect(creator().locator('[data-call-id]')).to_have_count(0)
+ nav();panel().locator('[data-bp-call-open]').click();expect(creator().locator('.caption strong')).to_have_text('기존 기능 참조 호출');expect(creator().locator('[data-call-id]')).to_have_value('double_ui');expect(creator().locator('[data-call-submit]')).to_have_count(0);creator().locator('[data-call-read]').click();ready();expect(creator().locator('[data-call-ack]')).not_to_be_checked();creator().locator('[data-call-submit]').click();ready();expect(page.locator('#status')).to_contain_text('기준을 먼저 재검토');assert len(read()['nodes'])==2;ack_box=creator().locator('[data-call-ack]').bounding_box();label_box=creator().locator('[data-call-ack]').locator('..').bounding_box();assert ack_box['width']<=24 and ack_box['x']<=label_box['x']+4,(ack_box,label_box);page.screenshot(path='/tmp/confectory-v480-call-contract.png',full_page=True);creator().locator('[data-call-ack]').check();creator().locator('[data-call-submit]').click();ready();expect(creator()).not_to_be_visible();expect(panel().locator('[data-bp-node]')).to_have_count(3)
+ created=read();call=next(n for n in created['nodes'] if n['id']=='double_ui');assert call['kind']=='call' and call['calledFeature']==feature and 'sourceId' not in call;expect(panel().locator('[data-bp-code-open="double_ui"]')).to_have_count(0);expect(panel().locator('[data-bp-task]')).to_have_count(0);assert (project/'NodeValueBody.celem').read_bytes()==before[project/'NodeValueBody.celem'];assert len(json.loads((project/'node-value.graph.json').read_text())['nodes'])==2
+ panel().locator('[data-bp-review]').click();ready();review=page.locator('.window[data-key="review"]');expect(review.locator('[data-review-advanced]')).to_be_visible(timeout=180000);selection=state()['review'];assert {row['id'] for row in selection['units']}=={graph,'Example.ButtonGame::NodeValueBody'};review.locator('[data-review-advanced]').click();review.locator('[data-advanced-reviewed]').check();page.locator('#confirm').click();ready();assert len(json.loads((project/'node-value.graph.json').read_text())['nodes'])==3;assert 'import '+feature+' as fg_call_' in (project/'NodeValueBody.celem').read_text();nav();panel().locator('[data-bp-fit]').click();page.screenshot(path='/tmp/confectory-v480-call-wrapper.png',full_page=True)
+ panel().locator('[data-bp-reference="double_ui"]').click();ready();assert state()['draft']['id']==feature and 'provide '+feature+' with Example.ButtonGame::DoubleBody' in state()['draft']['text'];nav();invoke('saveDraft',{});restart();ready();nav();assert len(read()['nodes'])==3 and not state()['aiOwnerAvailable'];assert all(p.read_bytes()==b for p,b in before.items() if p.name not in ['node-value.graph.json','NodeValueBody.celem'])
+ print('PASS actual v480 reference call: owned typed contract, peer CAS, cold input and fresh contract acknowledgment, graph/import compiler Confirm, no copied node body, existing feature navigation and callee preservation',flush=True)

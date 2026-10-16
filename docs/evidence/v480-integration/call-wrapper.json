@@ -1,0 +1,234 @@
+{
+  "schema": 1,
+  "status": "owned-existing-function-reference-call-verified",
+  "baseWorkCommit": "6fcacf912972c62bca8b41a0ab45ae937b9873c9",
+  "referenceMain": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+  "profile": "sync-acyclic-v1",
+  "stages": [
+    {
+      "log": "call-wrapper-host-first.log",
+      "boundary": "Initial host/helper build before PackWorkspace and UI integration.",
+      "sha256": "9f4452607384b849df0fe480a69fe4566e51eea45b1ae272f2dd39e4cfce3566",
+      "tests": [],
+      "buildSucceeded": true,
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "log": "call-wrapper-engine-first.log",
+      "boundary": "Initial public engine workflow: current typed contract, raw caller/target CAS, alias collision refusal, graph/import atomic history and cold restore, actual compiler confirmation and owned Run5-7-5, unchanged callee files.",
+      "sha256": "b61cf5997b61c1997b97d59e8991186c668cf425c4f41124b8b88c07ad74945e",
+      "tests": [
+        "PASS FeatureBlueprintTests.test_blueprint_owned_function_reference_call_import_cas_history_and_execution"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 74.1
+    },
+    {
+      "log": "call-wrapper-ui-host-build.log",
+      "boundary": "Host build after preserving/exposing typed import scope and readCall observed source IDs for precise private-input guards.",
+      "sha256": "356bb7b6ab48cdc9281df3ad4cc98ecf415288f28ea43b9f9382c68a6465f9fe",
+      "tests": [],
+      "buildSucceeded": true,
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "log": "call-wrapper-first-pair.log",
+      "boundary": "Public engine passed. UI test reached peer CAS and cold input restoration, then clicked a covered call pane behind the active Blueprint window; test changed to the actual existing-feature toolbar opener, without forced clicks or z-index changes.",
+      "sha256": "9bf3d4348524f629924826c3f339094f79533b5f393271f2f61ecede8163562c",
+      "tests": [
+        "PASS FeatureBlueprintTests.test_blueprint_owned_function_reference_call_import_cas_history_and_execution",
+        "FAIL WebUITests.test_actual_editor_v480_existing_feature_reference_call_and_cold_contract"
+      ],
+      "passed": 1,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 213.024
+    },
+    {
+      "log": "call-wrapper-ui-second.log",
+      "boundary": "UI contract re-read, fresh acknowledgment and call creation succeeded. Test incorrectly expected closed pane deletion; Workspace intentionally hides and preserves Blueprint panes. Changed test to actual visibility.",
+      "sha256": "ca34017a51853caed1d721b9ff46b4ced23b36bb49123cb088f0caad68d57179",
+      "tests": [
+        "FAIL WebUITests.test_actual_editor_v480_existing_feature_reference_call_and_cold_contract"
+      ],
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 23.304
+    },
+    {
+      "log": "call-wrapper-ui-third.log",
+      "boundary": "Actual UI typed contract, peer CAS, cold private input/new acknowledgment, graph/import compiler Confirm, no copied node body/Task, existing feature navigation and unchanged callee files; before final title/checkbox display fixes.",
+      "sha256": "c0be2e10fa9addc44f5bbf2fd267afeecbacc4baf58159b60cf05b1d9866b5b8",
+      "tests": [
+        "PASS WebUITests.test_actual_editor_v480_existing_feature_reference_call_and_cold_contract"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 46.847
+    },
+    {
+      "log": "call-wrapper-boundary-first.log",
+      "boundary": "Extended public API: malformed restored contract identity, self/duplicate/non-bool/pending target refusal, caller and target raw CAS, explicit existing scope actual Run23, source-count64/no65th-contract, near2MiB preview and direct owner refusal without partial graph/import. Before canonical-plus-legacy-alias positive case and last display fixes.",
+      "sha256": "8e2aba941b6beac2e4d5c6091d402a02263ee7c2fee922381bbb72a08a170f39",
+      "tests": [
+        "PASS FeatureBlueprintTests.test_blueprint_owned_function_reference_call_import_cas_history_and_execution"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 104.75
+    },
+    {
+      "log": "call-wrapper-owner-regression.log",
+      "boundary": "17 existing Blueprint compiler/creation/Task and new call, PackWorkspace, EditWorkspace and history gates. Before the final canonical-plus-legacy-alias and display fixes; counts overlap with focused tests.",
+      "sha256": "3d323b58be8579bdf0f727c4264ca9ba1a9eaff18e1a3415057b559484dceb76",
+      "tests": [
+        "PASS FeatureBlueprintTests.test_blueprint_disconnected_current_node_body_is_compiled_without_execution",
+        "PASS FeatureBlueprintTests.test_blueprint_existing_feature_calls_use_typed_imports_and_contract_fences",
+        "PASS FeatureBlueprintTests.test_blueprint_fixed_inputs_branch_compiler_reuse_node_replacement_and_legacy_preservation",
+        "PASS FeatureBlueprintTests.test_blueprint_independent_probe_checks_an_unselected_body_without_running_or_publishing",
+        "PASS FeatureBlueprintTests.test_blueprint_invalid_graphs_stale_contracts_and_dominating_values",
+        "PASS FeatureBlueprintTests.test_blueprint_new_feature_registration_contract_group_compiler_and_cold_restore",
+        "PASS FeatureBlueprintTests.test_blueprint_node_diagnostics_static_isolation_and_failed_build_retains_receipt",
+        "PASS FeatureBlueprintTests.test_blueprint_node_only_worker_draft_save_restore_and_compiler_confirm",
+        "PASS FeatureBlueprintTests.test_blueprint_node_task_assignment_scoped_dispatch_adoption_and_cold_no_replay",
+        "PASS FeatureBlueprintTests.test_blueprint_owned_function_reference_call_import_cas_history_and_execution",
+        "PASS FeatureBlueprintTests.test_blueprint_owned_node_creation_removal_review_group_and_cold_restore",
+        "PASS FeatureBlueprintTests.test_blueprint_source_change_during_real_compile_is_not_published",
+        "PASS EditWorkspaceTests.test_shared_drafts_save_restore_preview_selective_confirm_conflict_and_locality",
+        "PASS DraftHistoryTests.test_shared_draft_history_atomic_inverse_cas_restart_branch_and_owner_boundaries",
+        "PASS PackWorkspaceTests.test_development_tools_owned_scope_shared_draft_no_confirm_and_locality",
+        "PASS PackWorkspaceTests.test_target_metadata_owned_sources_no_registry_execution",
+        "PASS PackWorkspaceTests.test_two_contexts_revision_save_reopen_and_locality"
+      ],
+      "passed": 17,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 569.622
+    },
+    {
+      "log": "call-wrapper-ui-managed-regression.log",
+      "boundary": "7 ordinary Home, old/new graph UI, new feature creation, node Task, history and Windows/Android managed compile gates. Before the final narrow alias/display fixes. No native pixel/device execution.",
+      "sha256": "3537d2638f530d5499fbd97b6b238bcadf73f7ea0a50fe7c53016361730c3741",
+      "tests": [
+        "PASS WebUITests.test_actual_editor_original_v196_home_project_and_create_flow",
+        "PASS WebUITests.test_actual_editor_v424_node_task_plan_cas_approval_and_cold_history",
+        "PASS WebUITests.test_actual_editor_v424_shared_draft_history_cas_and_cold_restart",
+        "PASS WebUITests.test_actual_editor_v480_blueprint_node_creation_removal_and_cold_source_groups",
+        "PASS WebUITests.test_actual_editor_v480_blueprint_owned_graph_node_edit_and_cold_input",
+        "PASS WebUITests.test_actual_editor_v480_new_feature_contract_graph_group_and_cold_source",
+        "PASS EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only"
+      ],
+      "passed": 7,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 543.738
+    },
+    {
+      "log": "call-wrapper-final-review-red.log",
+      "boundary": "Actual failures: valid canonical typed import was rejected because another legacy alias coexisted; restored call pane retained the internal-node title. Strict checkbox bounds were added but not reached before the title assertion; the prior screenshot separately showed the wide checkbox layout.",
+      "sha256": "448547b0157866447ff9c030600e3541d146bcb9180b671cf5204ba96caa1486",
+      "tests": [
+        "FAIL FeatureBlueprintTests.test_blueprint_owned_function_reference_call_import_cas_history_and_execution",
+        "FAIL WebUITests.test_actual_editor_v480_existing_feature_reference_call_and_cold_contract"
+      ],
+      "passed": 0,
+      "failed": 2,
+      "skipped": 0,
+      "seconds": 91.717
+    },
+    {
+      "log": "call-wrapper-final-host-build.log",
+      "boundary": "Final host build: reuse valid canonical import and exact scope, preserve other aliases; refuse mismatched canonical identity/signature or ambiguous noncanonical-only input without silently renaming.",
+      "sha256": "caf4422d378990b97bb7911c178b19f933f1dc59b1eef9f04dd6b01fdb4715df",
+      "tests": [],
+      "buildSucceeded": true,
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "log": "call-wrapper-final-pair.log",
+      "boundary": "Final extended public engine and actual UI after all fixes, including canonical-plus-legacy alias preservation with actual Scope23, count/UTF8/direct-owner guards and actual Run5-7-5; cold correct title, inline checkbox bounds, fresh acknowledgment, source group compiler Confirm and callee preservation.",
+      "sha256": "9d36c44458e591735c3aa2d9264b74300899c3e9310890a03a0ce49d9ac104a5",
+      "tests": [
+        "PASS FeatureBlueprintTests.test_blueprint_owned_function_reference_call_import_cas_history_and_execution",
+        "PASS WebUITests.test_actual_editor_v480_existing_feature_reference_call_and_cold_contract"
+      ],
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 149.59
+    },
+    {
+      "log": "call-wrapper-checkout.log",
+      "boundary": "Implementation commit ordinary Git checkout, retained CRLF/fresh LF,27 static resources, actual Home start and tamper refusal.",
+      "sha256": null,
+      "tests": []
+    }
+  ],
+  "claims": {
+    "publishedOwnedProjectFunctionCatalogPaged32": true,
+    "currentTypedContractReadBeforeCreation": true,
+    "graphAndTypedImportAtomicDraftBatch": true,
+    "canonicalAliasSharedWithCompiler": true,
+    "validCanonicalScopeAndOtherAliasesPreserved": true,
+    "noncanonicalOnlyAliasNotSilentlyRenamed": true,
+    "noCalleeCodeCopyOrNewNodeBodyFile": true,
+    "calleeFunctionAndImplementationFilesPreserved": true,
+    "sameSignatureCallerAndTargetRawCAS": true,
+    "malformedRestoredContractIdentityRefused": true,
+    "prospectiveCountAndUtf8BudgetNoPartialMutation": true,
+    "directOwnerApiCannotBypassByteBudget": true,
+    "coldPrivateInputRequiresFreshContractReadAndAcknowledgment": true,
+    "twoSourceHistoryUndoRedoAndTrueColdRestore": true,
+    "explicitSourceReviewAndCompilerConfirm": true,
+    "ownedUnconnectedRun": 5,
+    "ownedConnectedDefaultRun": 7,
+    "ownedRemovedRun": 5,
+    "ownedPreservedExplicitScopeRun": 23,
+    "actualCommonHomeUi": true,
+    "staticResourceCount": 27,
+    "externalAccountOrPaidModel": false,
+    "nativePixelOrDeviceExecution": false
+  },
+  "boundaries": [
+    "Stages overlap; do not add their counts. Failed attempts and final fixes remain recorded.",
+    "Creation selects existing published functions owned by this ProjectPack. Arbitrary foreign registry selection, automatic legacy conversion and new parent-reuse UI remain pending. Existing graph references may open their explicit registered definition through the existing read-only route.",
+    "Call nodes reference existing functions and own no implementation body. Final C# remains generated; the external primitive/array one-return ABI and sync-acyclic-v1 semantics are unchanged.",
+    "A valid canonical typed import keeps its exact scope and all other aliases. Without that canonical import, an existing different alias is refused for explicit review rather than silently renamed or assigned another scope.",
+    "UI reviews dirty graph/import together. When the physical implementation lacks the required import, graph-only Confirm is refused by the actual compiler. This does not claim a mandatory new-file registration group for every ordinary source subset.",
+    "Owned source revisions/raw hashes are fenced; other already-used contracts compare semantic contract versions and compiler input guards. No atomic snapshot of unrelated external filesystem writers is claimed.",
+    "Physical deletion, arbitrary registry import selection, legacy conversion/parent reuse/module UI, expanded execution profile/ABI and remaining v480 presentation flows are unfinished.",
+    "Only owned fixtures execute. No actual account,paid model,user-PC installation,native pixel or device execution; DISPLAY is unavailable. Main/original ZIP files/Android settings are preserved."
+  ],
+  "sourceHashes": {
+    "examples/editor-home/WebBundle.csbody": "00686dd6a9b06d93d1cddee10b62aed8b7ace77fc0df2fd1bee74f2991d461cb",
+    "examples/editor-home/ui/app.js": "e8dc989a13e70c04130538cf76e301a20b8191d424fb66167f5a2ca9068e6115",
+    "examples/editor-home/ui/blueprint.js": "09a141eff9fb701802ec69fcd3d0e195dccbb29c7cf10c00a3f077bc25457261",
+    "examples/editor-home/ui/consumer.css": "44c188feb13dc48700db47c720402640e87d4dbc6399bb06cf8100e3fdf739c3",
+    "packs/edit-workspace/BlueprintCall.celem": "986f4aa8e1d5a9c85e329b3321e03613583acedfa64dec6f95a6a7bbee16a377",
+    "packs/edit-workspace/BlueprintCall.csbody": "69385905e15b45ebca35e2570d39141fedb8ffffbb24b083cd91cba1c1681f13",
+    "packs/edit-workspace/BlueprintCallBody.celem": "9dfeb4e8544348b98d13133d7d39116b82b6a048a259bb38a6267901f1e14ba6",
+    "packs/edit-workspace/pack.cpack": "77a94724ba1497576ca60c592a96b6c086c70a98cb8120fc48f3ccf291f56905",
+    "packs/editor-home-model/Blueprint.csbody": "8ffbd94679b0a6079bfcef06250e7ef07b4c4bc5c81634eb8e190a5c4e38c967",
+    "packs/pack-workspace/Blueprint.csbody": "783716c3a92d5f722c1ad6ccdc4fb47d03a49a865d041fe792826f2a76e850a8",
+    "packs/pack-workspace/BlueprintBody.celem": "86709595be62f05477d0b7784f5d1c13bb401eedcf9428dbc217357f6ccfd7e5",
+    "src/Confectory.Core/FeatureBlueprint.cs": "3584a8cd733c563a80dc425a8ec574e823a4357c60382654c9a6ae32cbe3ce78",
+    "targets/element-authoring/BlueprintCall.cs": "d6974c468e524efe0b8b0fd1bdac40530cf999b1b0e2a1ed77102df3caf42e8e",
+    "targets/element-authoring/Program.cs": "dd35a51eed27b3f04f59194998dfe9bdecbf4fe7466bfc6b1a7ef9ccb636243b",
+    "tests/Confectory.Tests/FeatureBlueprintTests.cs": "80596fccd0571f9bad540d2f6ad3da33ea1810fc6aaaab41e9c2dd40c3b38e1e",
+    "tests/Confectory.Tests/WebUITests.cs": "dc80326c742d9da591227a5de78aaa0cac5cb737a3f654df53fae1ca38427611",
+    "tests/web/v480_call_wrapper.py": "817c173c2d6a4d9b829af0dd6efcabf1f331af120fa7b55c279cbb99dcbe1e70",
+    "tests/web/web_ui.py": "32c77984b14774fd266e40b98b07595351acc1cad2703b02bf51eb5133fd3cb6"
+  },
+  "images": {
+    "call-contract.png": "ee743bfc6582c6848a9316b4b39039efe8bb41d15dd81070eac285d05776609d",
+    "call-wrapper.png": "b18aaf738f11875b5fafc87038c1b6356deb3d499bd4cbfdde918daa84e2b0d3"
+  }
+}

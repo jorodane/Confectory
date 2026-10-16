@@ -1,0 +1,5 @@
+implementation Confectory.EditWorkspace::BlueprintCallBody for Confectory.EditWorkspace::BlueprintCall (string handle,string graphId,string definition,string versions,string[] ids,long[] revisions,string[] hashes) -> string {
+import Confectory.EditWorkspace::Read as Read (string,string) -> string[];
+import Confectory.EditWorkspace::EditBatch as EditBatch (string,string[],string[],long[],string[]) -> bool;
+import Confectory.SchemaEditing::Call as Metadata (string,string) -> string;
+body common "BlueprintCall.csbody";}
