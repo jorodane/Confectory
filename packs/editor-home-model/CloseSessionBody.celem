@@ -10,4 +10,6 @@ import Confectory.Agent.Codex::Verification as CodexVerification (string,string,
 import Confectory.Agent.Codex::Preparation as CodexPreparation (string,string,string) -> string;
 import Confectory.Agent.Codex::AccountLogin as CodexLogin (string,string,string) -> string;
 import Confectory.EditorHome.Model::TableClose as CloseTables (string,string) -> void;
+import Confectory.ProjectManager::Executions as Executions (string[]) -> string[];
+import Confectory.ProjectExecution::StopBuilds as StopBuilds (string[]) -> void;
 body common "CloseSession.csbody"; }

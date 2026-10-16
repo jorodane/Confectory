@@ -1,0 +1,360 @@
+{
+  "scope": "v424 compiler-only build jobs, durable outcomes/artifacts and stable no-op runtime observation",
+  "status": "passed; remaining v424 and approved Blueprint integration in progress",
+  "baseCommit": "79a5b8214ccbe6252d505471624d5cfc0b00088f",
+  "gates": [
+    {
+      "name": "first real build owner consumer",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 11.095,
+      "passedCases": [
+        "BuildJobTests.test_build_only_real_compiler_owned_cancel_artifacts_failure_history_and_no_run"
+      ],
+      "boundary": "Before Home integration and native unavailable adapters. Prior two attempts failed only in the test consumer: missing direct FileStream dependency0.981s and missing LINQ extension namespace6.904s.",
+      "logSha256": "f83651e1d1099abf5ed1fc904bd7734a0723704a083640df20e59b5bbbb57bfe"
+    },
+    {
+      "name": "first UI composition build",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 38.08,
+      "passedCases": [],
+      "boundary": "Failed compiling the new WebInvoke local request name, which shadowed an enclosing declaration; corrected to buildRequest. Not a functional UI pass.",
+      "logSha256": "403f671786f5cab454356d6059b6a0ed9d5a90b30c020e7ea9f37c6ceb0ae296"
+    },
+    {
+      "name": "initial actual UI before observation fix",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 104.941,
+      "passedCases": [],
+      "boundary": "Build success/no run, cancel, failure and parallel runtime were reached; final Run Stop was refused stale_revision. Whole gate remains failed.",
+      "logSha256": "e65a926fa2cf27885fef37b5980515a0cae3cc42b2f53f8fcfd73927f7cde338"
+    },
+    {
+      "name": "deterministic actual no-op observation before correction",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 28.548,
+      "passedCases": [],
+      "boundary": "Identical full public state changed revision24 to26. Real reads with a350ms interval, no synthetic replies or model writes.",
+      "logSha256": "f2d3d0f4b0244ddddd5a42054125bdc2916094a8e2845bd65285d754fbbbf1d6"
+    },
+    {
+      "name": "final actual Home build/runtime/cold consumer",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 43.339,
+      "passedCases": [
+        "WebUITests.test_actual_editor_v424_build_only_jobs_artifacts_cancel_and_cold_history"
+      ],
+      "boundary": "Final product source: identical model polling leaves revision unchanged; source CAS/request checks retained, no automatic resubmission. Actual compile/no run, owned cancel, failed receipt, parallel real runtime and Stop, artifacts, close/reopen and cold unowned history.",
+      "logSha256": "59118e727389ced3508b08e785654a7975803c2e4c15cb6e8ccdd856c04e3f65"
+    },
+    {
+      "name": "existing execution and final build owner profiles batch",
+      "passed": 2,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 74.501,
+      "passedCases": [
+        "ProjectExecutionTests.test_execution_handles_and_provider_locality",
+        "BuildJobTests.test_build_only_real_compiler_owned_cancel_artifacts_failure_history_and_no_run"
+      ],
+      "boundary": "Two owner cases passed on final product source. Native case failed only because the test function provided FileStream without declaring its direct dependency; not a whole-batch pass.",
+      "logSha256": "92d4254b82b3752723bfba7fdfd551d25bedc74bd537da84d493e5baa7024756"
+    },
+    {
+      "name": "final selected native profiles and exact-body lifetime",
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 12.922,
+      "passedCases": [
+        "BuildJobTests.test_unavailable_build_profiles_never_invoke_desktop_provider",
+        "EditorLifetimeTests.test_editor_product_owned_startup_and_close_fault_retry"
+      ],
+      "boundary": "After test-only dependency and lifecycle probe alignment. Managed Android/browser selectors execute their unavailable providers; no native device/browser-WASM execution claim. Exact-body fault sweep verifies build retirement failure retains source owners, then retries source/manager cleanup and startup resources; not target UI acceptance.",
+      "logSha256": "20efb5b15ade3f178266cc939cad8027a59ab5243e563135e6b6861a60b16e17"
+    },
+    {
+      "name": "affected editor and managed regression",
+      "passed": 8,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 499.074,
+      "passedCases": [
+        "WebUITests.test_actual_editor_and_button_game_common_web_transport_chromium",
+        "WebUITests.test_actual_editor_startup_serializes_owned_restore_before_helper_refresh",
+        "WebUITests.test_actual_editor_v318_helper_connection_chat_state_and_ownership",
+        "WebUITests.test_actual_editor_v318_helper_inputs_and_panels_cold_restart",
+        "WebUITests.test_actual_editor_v318_run_process_and_presentation_restart",
+        "WebUITests.test_actual_editor_v318_workspace_lifecycle_presentation_restart",
+        "WebUITests.test_actual_editor_v424_shared_draft_history_cas_and_cold_restart",
+        "EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only"
+      ],
+      "boundary": "Product files frozen throughout. Eight actual Home/Run/Helper/startup/Workspace/history and managed-profile gates passed; Verify contracts/locality failed because its persistence bindings had fallen behind Main and VerifyShell. This batch remains failed.",
+      "logSha256": "3ae8f62984e9a3dd3550109829c3f0e39096b7446af63065687baa9a777f0550"
+    },
+    {
+      "name": "Verify persistence bindings retry",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 1.552,
+      "passedCases": [],
+      "boundary": "After adding the same six YogiBox persistence bindings already present in Main/VerifyShell, Verify compilation exposed its missing FileStream.BoundedSnapshot binding. This retry remains failed.",
+      "logSha256": "153cada398e34f7983a65ff5ce987a3d458630c8b2d62488bd88b7635c7e846c"
+    },
+    {
+      "name": "final Verify contracts and consumer locality",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 43.378,
+      "passedCases": [
+        "EntryHomeTests.test_fresh_entry_home_project_contracts_and_consumer_locality"
+      ],
+      "boundary": "Only Verify.celem changed after the affected regression: seven provider bindings aligned with Main/VerifyShell. Main and runtime implementation were unchanged; the eight passing affected gates were not repeated. Actual Verify consumer and provider locality passed.",
+      "logSha256": "4cdfa8daa406a61ba20501d632945a8ca93d31ae461fd3302a304a372bf20724"
+    }
+  ],
+  "overlap": "Repeated cases are not additive. Failed batches remain failures; individual passes and test-only corrections are identified. The final UI and final owner cases used the same runtime implementation as the affected regression. Afterwards only the Verify entry-point provider composition changed, with its previously failing gate rerun separately.",
+  "verifiedBehavior": [
+    "actual Builder under existing shared source lease; no linked application command executed by Build",
+    "separate job GUID, namespace/entry/target, real queued/waiting/compiling and terminal facts",
+    "owned worker-tree cancellation, once-only terminal Poll and legacy Run/Stop provider locality",
+    "actual public FileStream lease probe plus real filesystem lock; cancel while waiting without compiling",
+    "cross-session cancellation refusal and explicit foreign/cold owner-unavailable state",
+    "private owner nonce/project scope, job lock, atomic metadata replacement and first terminal outcome retained",
+    "new actual C# failure has no inherited success key or artifacts; prior success remains independently readable",
+    "safe final output receipt with relative file names/sizes/SHA and explicit recorded/verified/changed/missing/unavailable",
+    "artifact verification is read-only and performs no rebuild",
+    "public metadata omits ownership nonce and project/output locator fields; diagnostics identify compiler sources",
+    "artifact path/link/depth/count/byte/manifest bounds; oversized complete manifest explicitly unavailable",
+    "real runtime remains running while Build completes; Build never adds a second sentinel run",
+    "no-op actual observation preserves revision for identical state; real status/source changes still publish",
+    "Model polling cursor is ephemeral and released with its session; no revision/CAS/request fence relaxed",
+    "UI panel close/reopen preserves active job; explicit stop controls only that job",
+    "global build polling observes active background owners in bounded round-robin; private state keeps active plus recent64 terminal summaries",
+    "project/host close retires build owners before final source draft Save; failed release retains resources for retry",
+    "cold window requires explicit read and reconstructs historical facts without process authority or automatic execution",
+    "private presentation retains only window placement and selected job/page, no nonce/process capability/file snapshots",
+    "same temporary project source bytes retained after build/failure tests; explicit fixture runtime launch produces exactly one sentinel",
+    "selected unavailable Android/browser managed providers do not invoke desktop compiler at runtime",
+    "25 canonical/exact web resources; main, original ZIPs and Android settings preserved"
+  ],
+  "sourceFiles": [
+    {
+      "path": "examples/editor-home/Main.celem",
+      "sha256": "3c72f11b873a3c9fa35a924b2981538fd42f56451214ac45e7ae4096ce7e4a22"
+    },
+    {
+      "path": "examples/editor-home/Verify.celem",
+      "sha256": "2068ab772c19db34f2515cbc6c7e4321d090ba0bc8eb377e4cecd8b62db4a3de"
+    },
+    {
+      "path": "examples/editor-home/VerifyShell.celem",
+      "sha256": "4b2eb07b13f4d1a8a43e7f74b038b28faf07a5bf3353d2d7950864a391e0c150"
+    },
+    {
+      "path": "examples/editor-home/WebBundle.csbody",
+      "sha256": "b4e5a7a0ffa5c9ba32edaa159952728ee7e330ed003980a0a0bb1d5da3601e4f"
+    },
+    {
+      "path": "examples/editor-home/WebInvoke.csbody",
+      "sha256": "943bf8ec87fa67529ce9f8f97606cf5cb373b482ce9e7aa8f8b62d1481775bdf"
+    },
+    {
+      "path": "examples/editor-home/WebInvokeBody.celem",
+      "sha256": "e1c85d8d863d2bbaf146c6ace8804695eb6c7b7d1c258011669cb5dd90c4420a"
+    },
+    {
+      "path": "examples/editor-home/WebState.csbody",
+      "sha256": "0c3fceec7a1d4f89fc03e3e6d2291cab1ed1f22c4022981b0c3b5bc96605ad37"
+    },
+    {
+      "path": "examples/editor-home/ui/app.js",
+      "sha256": "1ca254cbc3e7e18cf13fc0b06c4ecd6b0c6c9c9dd48162c0f3aadff4c7089f45"
+    },
+    {
+      "path": "examples/editor-home/ui/builds.js",
+      "sha256": "81f73ea72d0d8f78c252f3784d0ee0cc67e28f164805daf5c7b2c9df77f7ca7f"
+    },
+    {
+      "path": "examples/editor-home/ui/consumer.css",
+      "sha256": "fb0c3f14d890c42ef5eeda33ffde71159160aaac98d49d85274dec3546dc8282"
+    },
+    {
+      "path": "examples/editor-home/ui/workspace-host.js",
+      "sha256": "9aa837b1daa9ca4fab6b90a2ae3aee9b396c1b2d9910328e77512e78e022a60e"
+    },
+    {
+      "path": "packs/editor-home-model/BuildJobs.celem",
+      "sha256": "9308c8001516ee6c6a703c9205e641dc729d8a4f32e82b855a7cb2eb790a3e9b"
+    },
+    {
+      "path": "packs/editor-home-model/BuildJobs.csbody",
+      "sha256": "bf5bfc10271545425090559b207a19f0d6c52108c2f4d8ad74dff8ba5a42334d"
+    },
+    {
+      "path": "packs/editor-home-model/BuildJobsBody.celem",
+      "sha256": "7a83e8db31e36f896d3b9cd258a04a119b568953e62d5b491c3f28c50a6dd6a3"
+    },
+    {
+      "path": "packs/editor-home-model/CloseSession.celem",
+      "sha256": "2e1c9514be1d1f5ac0f5e14452ce136ee4b0054243d3d769060a22f569dd9d40"
+    },
+    {
+      "path": "packs/editor-home-model/CloseSession.csbody",
+      "sha256": "7073a682ef6e8f86c0a8c44709d410398516233626c06dd211be82cd6238e20a"
+    },
+    {
+      "path": "packs/editor-home-model/CloseSessionBody.celem",
+      "sha256": "30fe83583464648a7e7cd82b160efe21cf76c59707abd52dcf3966cc6179d257"
+    },
+    {
+      "path": "packs/editor-home-model/Command.csbody",
+      "sha256": "58bda9eba9c82118f698eea08af7d2b038d11458b7f027320a445421024dc275"
+    },
+    {
+      "path": "packs/editor-home-model/pack.cpack",
+      "sha256": "e811189457cf1b6e7e169aa5c282bbe4de64b80b02039771c28ebb2f1b8837f1"
+    },
+    {
+      "path": "packs/project-execution/Build.celem",
+      "sha256": "5a751ea968b2fd1b8f82c3fb4ae1ba748fd108f22aafe5a052a162de3ed87fe1"
+    },
+    {
+      "path": "packs/project-execution/Build.csbody",
+      "sha256": "bdc225216ccf8ee4ab3f106c989aa6975f1596cce97d41b9553dcf5656b26b1b"
+    },
+    {
+      "path": "packs/project-execution/BuildBody.celem",
+      "sha256": "33a3ed3090b20dd7e30e7e756cb115a2db13d7faf326fb789ec7eb78e26a6c56"
+    },
+    {
+      "path": "packs/project-execution/BuildQuery.celem",
+      "sha256": "14af646699d9d686b11cdfd7be64b63c2b2e5c8b033ba501a639000569779383"
+    },
+    {
+      "path": "packs/project-execution/BuildQuery.csbody",
+      "sha256": "f1fc84b1a909b9c68b0f4121d98e8eb935d56d748abbf7d60637bf0c0f4edec7"
+    },
+    {
+      "path": "packs/project-execution/BuildQueryBody.celem",
+      "sha256": "ee9b89f1f0f8351d7de9d64c6cb4e15489db06c22d5d5c5e004acd6f2f598aef"
+    },
+    {
+      "path": "packs/project-execution/BuildQueryUnavailable.csbody",
+      "sha256": "984adf8ee7b6fa4066b2d290bab9ae0a198d73f1d3fab21b2cb08e51c6231a6b"
+    },
+    {
+      "path": "packs/project-execution/BuildUnavailable.csbody",
+      "sha256": "d601c530e07891c78907f9a6c573942bd386fc015d49d3d52cf4a407d94e8479"
+    },
+    {
+      "path": "packs/project-execution/Capabilities.csbody",
+      "sha256": "9902277c6f9c0365873176fe18cb2417de4d6611ddb3f6053c741a2faf454440"
+    },
+    {
+      "path": "packs/project-execution/Poll.csbody",
+      "sha256": "982af1305959f11c4a72f475ddf912ed5750fe38cf316d1de2cebfc929ac7867"
+    },
+    {
+      "path": "packs/project-execution/README.md",
+      "sha256": "30628e9b4eb5450362ec790c65734e26ed8e6bd6e39e0db3d151d368a4176b13"
+    },
+    {
+      "path": "packs/project-execution/Stop.csbody",
+      "sha256": "6318e2ebbf60f68ae9c0d4a0ef909e4c105386280f5974ca32d24301298e1d3d"
+    },
+    {
+      "path": "packs/project-execution/StopBuilds.celem",
+      "sha256": "627d324519c5e2561089bbe6b1ffb7a103b5e9a809f44dc00b369ba2df47e04b"
+    },
+    {
+      "path": "packs/project-execution/StopBuilds.csbody",
+      "sha256": "d8500e69d83bb486336b4fb424f715c3ff494e43bf53f470e93646061bd2fe0e"
+    },
+    {
+      "path": "packs/project-execution/StopBuildsBody.celem",
+      "sha256": "3401d5b37b0fbf9465944c68bd87b224a9aa18d68d9e9ac01950836cc406b214"
+    },
+    {
+      "path": "packs/project-execution/pack.cpack",
+      "sha256": "1a7bcd61960403e6edd8de6f314284180773d428b92061970c69d20c7fcc7323"
+    },
+    {
+      "path": "targets/project-execution-host/BuildJobs.cs",
+      "sha256": "5dfc5759f0eaeb882e11568c0da3c8c31ab0f2e5b1671d8aa9e70860b6307f2d"
+    },
+    {
+      "path": "targets/project-execution-host/Program.cs",
+      "sha256": "a816d83a47d5f436f8df4badf5a9bbba84016ff3b42deaaa3b5b5ac644e80dc1"
+    },
+    {
+      "path": "tests/Confectory.Tests/BuildJobTests.cs",
+      "sha256": "294418097a27939b2ad64d37f279c348a6e4a4f091e56a9dc6640427bf4d7fc4"
+    },
+    {
+      "path": "tests/Confectory.Tests/Program.cs",
+      "sha256": "eabbc6424c12e3f2e04d4091c59c12758c3066712c0570232da871a46e0799e1"
+    },
+    {
+      "path": "tests/Confectory.Tests/WebUITests.cs",
+      "sha256": "4dbb7681c099032630b29e3e85d58a455464964241431654ea5e5165b4ba37ff"
+    },
+    {
+      "path": "tests/probes/editor_lifetime_retry.py",
+      "sha256": "f28731ce0316ad164d94ddb82b38ca60fb9c3892e6cfde2d659ac041909dc018"
+    },
+    {
+      "path": "tests/web/editor_run_v318.py",
+      "sha256": "68d07a3cc8d96837fe28888d2b2e115296c7efb7bc0083571d4fe7ec41df10cd"
+    },
+    {
+      "path": "tests/web/v424_build_jobs.py",
+      "sha256": "89aa8cf702aa9f047da7d42d1ff8b059e110940c2f2c9972ac01e13d57bc3d6d"
+    },
+    {
+      "path": "tests/web/web_ui.py",
+      "sha256": "4d95ca9f62a98ecb827cc7f798ee284f4e25bb33ecaabbe5fbcbb9f78d09b6c2"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "docs/evidence/v424-integration/build-jobs.png",
+      "sha256": "700c652d3d282768d2352ca105602473352ad343f592f68e042480df6d8233ef",
+      "scope": "actual final compiler-only job complete alongside an already running ordinary runtime"
+    }
+  ],
+  "limits": {
+    "jobsPerProject": 1024,
+    "historyPageSize": 32,
+    "metadataChars": 2097152,
+    "artifactManifestChars": 1048576,
+    "artifactFiles": 4096,
+    "artifactEntries": 8192,
+    "artifactDepth": 32,
+    "artifactFileBytes": 536870912,
+    "artifactTotalBytes": 1073741824,
+    "errorChars": 4096
+  },
+  "limitations": [
+    "Current compiler host and explicit declared entry/target required.",
+    "Historical active rows do not recover ownership or assert process liveness; runtime reconnect remains R05.",
+    "Artifact download/export/native packaging remain separate R06 work; managed profiles are not physical devices.",
+    "No provider/account activation, model generation, external deployment, source overwrite or automatic replay.",
+    "Whole v424 and Blueprint creation/Task UI are still in progress."
+  ],
+  "ordinaryGitCheckout": {
+    "status": "pending implementation commit"
+  }
+}

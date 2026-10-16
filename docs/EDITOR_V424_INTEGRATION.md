@@ -64,7 +64,7 @@ Codex 준비·공식 기기 코드 로그인 단계는 `114e00ffb35f6c3f4e5cdfd3
 | A03 | 선택된 작업 취소·진행 중 중지·구현/채택·복구 | 부분 | 실제 task owner/state. Skip·선택 취소·실행 중단 구분 |
 | A04 | Worker 진행/범위·기여·검증·Review/Adopt·재시작 | 기존 | 실제 journal, 비밀/권한/실행 owner 재생 금지 |
 | R01 | Play/Stop·빌드/실행/실패/종료·출력·대상 | 기존 | ProjectExecution의 실제 소유 프로세스. 원본 소스로 실행 |
-| R02 | 단독 빌드 job·취소·진행·결과/산출물 | 계약 | 실행하지 않는 별도 job start/observe/output/stop |
+| R02 | 단독 빌드 job·취소·진행·결과/산출물 | 부분/검증 | 실제 compiler·별도 owner/취소·저장된 결과/산출물 해시 연결. 실제 Run과 분리, cold 소유권 재연결·다운로드는 별도 R05/R06 |
 | R03 | 실제 렌더 삽입·크기·입력·detach/close | 계약 | 자식 surface 획득/전달/수명. 예시 CSS 장면 제외 |
 | R04 | Pause/Resume/Step·실제 frame/ack | 계약 | 런타임 scheduler/control. OS 신호나 임의 카운터 대체 금지 |
 | R05 | 실행 owner 재연결·이전 프로세스 관찰/종료 | 계약 | durable launch identity/lease/시작 신원, 명시적 재연결. PID 추측 금지 |
@@ -221,3 +221,15 @@ Nav의 의미 편집 이력은 기존 소스 writer와 atomic EditBatch가 공�
 첫 실제 엔진 검사는 **1/0/0, 9.192초**, 일반 Home UI는 **1/0/0, 85.841초**로 통과했다. 적용 전 설명 배치와 Confirm 전 토큰 거부를 보강한 최종 집중 검사는 **3/0/0, 48.362초**로 통과했다(이력 엔진·기존 충돌 소유 계약·실제 이력 UI). 다른 participant 격리, 단일/묶음 Undo·Redo, 새 분기, 오래된 token, no-op, Save/cold 복원, 손상된 저장 이력 거부, 크기 경계, 실제 compiler Confirm 뒤 새 초안과 원본 보존을 확인했다. 중복은 합산하지 않는다. 최종 영향 회귀는 **15/0/0, 871.278초**로 통과했다. 전체 Home/ButtonGame, 시작 지연·Workspace·Table·바리에이션·정확한 숫자·충돌·선언 View UI, EditWorkspace/History/InstantTable 및 PackWorkspace 계약과 관리 프로필 컴파일을 포함한다. 제품 소스를 그대로 두고 시험만 확장한 후 **1/0/0, 40.291초**로 추가 통과했다. 준비된 Review가 실제 Undo로 해제됨, schema·Table의 미적용 입력 보존, 이력 창 닫기·재열기와 Table의 역편집 관찰을 추가 확인했다. 관리 프로필은 기기 실행이 아니다. 일반24리소스 checkout은 구현 커밋 고정 후 검사한다.
 
 [이력 검증 기록](evidence/v424-integration/draft-history.json)과 [실제 이력·Table 화면](evidence/v424-integration/draft-history.png). 구현 커밋 `8f99f15e5cc06f2c030a9af0d678b943e3b13345`의 일반 Git checkout/24개 리소스 실제 시작·변조 거부도 **1/0/0, 60.997초**로 통과했다. 기존 CRLF 파일을 유지한 정상 pull과 새 LF checkout을 사용했다. 이후 변경은 검증 기록뿐이다.
+
+## 실제 빌드 전용 작업과 실행 관찰 리비전
+
+Run의 빌드만과 Nav의 빌드 작업을 별도 ProjectExecution.Build owner에 연결했다. 확정된 물리 원본을 기존 Builder와 source lease로 컴파일하며 산출물의 run 명령을 실행하지 않는다. 작업별 GUID·진입점·대상·실제 단계·결과를 기록한다. 실행 중인 프로젝트와 빌드 작업의 핸들과 중지를 분리한다. 창 닫기/프로젝트 숨김은 빌드를 유지하며, 완전 종료는 compiler owner를 먼저 정리해 최종 초안 Save와 lease가 충돌하지 않게 한다.
+
+성공/실패/중지 기록과 실제 파일 이름·크기·SHA는 프로젝트 private journal에 보존한다. 새 실패가 이전 성공을 현재 결과로 표시하지 않는다. 저장된 결과를 새 세션에서 읽어도 중지 권한을 복원하거나 작업을 재실행하지 않는다. 파일 검증은 현재 기록된 파일의 일치/변경/유실/조회 불가를 구분한다. 파일 목록은 별도 endpoint 결과이며 공개 State에는 한정된 메타데이터만 둔다. presentation에는 창/선택한 작업 ID/페이지만 보존한다. APK·기기 실행·산출물 배포·이전 프로세스 재연결의 완료를 뜻하지 않는다.
+
+일반 compiler를 쓰는 실제 소비자 검사는 **1/0/0, 11.095초**로 통과했다. 앱 본문에 실행 시 파일을 쓰는 표식을 넣어 빌드만으로 실행되지 않음을 확인했고, public source lease 대기 중 취소, 다른 세션의 중지 거부, 실제 산출물 변경/삭제 검증, 실제 C# 실패와 이전 성공 보존, 새 세션의 이력 조회 및 원본 바이트 보존을 확인했다. 초기 두 실패는 시험 소비자의 direct dependency와 C# 확장 호출 문제였으며 별도 실패로 남긴다.
+
+첫 UI 빌드의 지역 변수 이름 충돌을 고친 뒤 빌드·취소·실패·실제 Run 병행은 진행했지만 마지막 Run 중지가 stale_revision으로 거부되었다. 실제 공개 상태가 동일한데 리비전이 **24→26**으로 변하는 별도 RED 검사를 추가했다(**0/1/0, 28.548초**). 모델의 관찰 결과가 캐시와 같으면 poll이 새 리비전을 발행하지 않도록 바꿨다. source CAS나 request 검증을 우회하거나 자동 재제출하지 않는다. 빌드 관찰의 round-robin 커서는 모델 밖의 세션 임시 상태에 두고 정상 종료 때 해제한다.
+
+수정 후 일반 Home/실제 compiler/Run 병행/Run 중지/빌드 실패/창 닫기·재열기/파일 검증/cold 이력·권한 미복원/원본 보존 UI는 **1/0/0, 43.339초**로 통과했다. 같은 제품 코드의 기존 ProjectExecution과 새 빌드 소비자도 별도 묶음에서 통과했고, native 부정 경로의 시험 의존성을 정리한 뒤 Android/browser 관리 프로필과 exact-body 종료 실패 재시도는 **2/0/0, 12.922초**로 통과했다. 후자는 플랫폼 UI 수용 검사가 아니다. 영향 회귀는 **8 통과/1 실패/0 건너뜀, 499.074초**였다. Verify 진입점의 기존 YogiBox 공급자 바인딩 누락으로 계약·지역성 검사가 실패했다. Main/VerifyShell과 같은 6개 바인딩을 추가한 첫 재검사도 FileStream.BoundedSnapshot 누락으로 실패했다(**0/1/0, 1.552초**). Verify의 해당 바인딩까지 맞춘 뒤 실패했던 실제 소비자·지역성 검사만 **1/0/0, 43.378초**로 통과했다. 이 과정에서 Main과 런타임 구현은 바뀌지 않았으며 앞선 8개를 다시 합산하지 않는다. 일반25리소스 checkout은 구현 커밋 후 검사한다.

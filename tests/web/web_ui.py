@@ -39,6 +39,9 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
   main=project/'main.celem';main.write_text(main.read_text().replace('{','{ use function ReferenceApi::Work;use implementation ReferenceApi::Body;',1))
   source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+'registry ReferenceApi '+json.dumps(str(ref/'pack.cpack'))+';dependency ReferenceApi version "1";'+source[index:])
  env['CONFECTORY_WEB_PROJECT']=str(manifest)
+ if kind=='build-jobs':
+  env['CONFECTORY_BUILD_UI_SENTINEL']=str(root/'build-sentinel.txt')
+  body=project/'main.csbody';body.write_text('System.IO.File.AppendAllText(Environment.GetEnvironmentVariable("CONFECTORY_BUILD_UI_SENTINEL")!,"run\\n");\n'+body.read_text())
  original=(project/'Score.celem').read_bytes();log=root/'host.log';owned=OwnedResponses(None) if kind=='editor' else None
  with log.open('w') as output:
   host=subprocess.Popen(report['run'],cwd=repo,env=env,stdout=output,stderr=subprocess.STDOUT)
@@ -152,6 +155,9 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
     elif kind=='local-augment':
      from v424_local_augment import verify_local_augment
      verify_local_augment(page,project,mount,send,envelope,settle,restart_actual_host)
+    elif kind=='build-jobs':
+     from v424_build_jobs import verify_build_jobs
+     verify_build_jobs(page,project,report,env,mount,send,envelope,settle,restart_actual_host)
     elif kind=='draft-history':
      from v424_draft_history import verify_draft_history
      verify_draft_history(page,project,mount,send,envelope,settle,restart_actual_host)

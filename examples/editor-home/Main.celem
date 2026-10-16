@@ -217,4 +217,9 @@ provide Confectory.ProjectExecution::Output with Confectory.ProjectExecution::Ou
 provide Confectory.ProjectShell::Close with Confectory.ProjectShell::CloseBody;
 provide Confectory.DevelopmentTools::BindOrigin with Confectory.DevelopmentTools::BindOriginBody;
 provide Confectory.ProjectAI::PrepareRecovery with Confectory.ProjectAI::PrepareRecoveryBody;
+
+provide Confectory.EditorHome.Model::BuildJobs with Confectory.EditorHome.Model::BuildJobsBody;
+provide Confectory.ProjectExecution::Build with Confectory.ProjectExecution::BuildBody;
+provide Confectory.ProjectExecution::BuildQuery with Confectory.ProjectExecution::BuildQueryBody;
+provide Confectory.ProjectExecution::StopBuilds with Confectory.ProjectExecution::StopBuildsBody;
 }

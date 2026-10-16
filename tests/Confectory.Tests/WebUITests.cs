@@ -136,6 +136,18 @@ public sealed class WebUITests : TestCase
         var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/web_ui.py"),Fixture.Repo,report,"startup-restore"},timeoutSeconds:180);
         True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS actual startup metadata delay"),run.Stdout+run.Stderr);
     }
+    public void test_actual_editor_v424_build_only_jobs_artifacts_cancel_and_cold_history()
+    {
+        string probe=Path.Combine(f.Root,"lease-probe");Directory.CreateDirectory(probe);
+        File.WriteAllText(Path.Combine(probe,"project.cpack"),"project Job.LeaseProbe version \"1\" {entry Job.LeaseProbe::Main;registry Confectory.FileStream "+System.Text.Json.JsonSerializer.Serialize(Path.Combine(Fixture.Repo,"packs/file-stream/pack.cpack"))+";dependency Confectory.FileStream version \"0.1.0\";registry Confectory.Build.DotNet "+System.Text.Json.JsonSerializer.Serialize(Path.Combine(Fixture.Repo,"targets/dotnet/pack.cpack"))+";dependency Confectory.Build.DotNet version \"0.1.0\";target portable Confectory.Build.DotNet::Portable;element Main function \"Main.celem\";element Body implementation \"Body.celem\";}");
+        File.WriteAllText(Path.Combine(probe,"Main.celem"),"function Job.LeaseProbe::Main () -> int {provide Job.LeaseProbe::Main with Job.LeaseProbe::Body;provide Confectory.FileStream::LeasePath with Confectory.FileStream::LeasePathBody;}");
+        File.WriteAllText(Path.Combine(probe,"Body.celem"),"implementation Job.LeaseProbe::Body for Job.LeaseProbe::Main () -> int {import Confectory.FileStream::LeasePath as Lease (string) -> string;body common \"Body.csbody\";}");
+        File.WriteAllText(Path.Combine(probe,"Body.csbody"),"Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(calls.Lease.Invoke(Environment.GetCommandLineArgs()[1])));return 0;");
+        var lease=new Builder(Path.Combine(probe,"project.cpack"),"portable").Build();
+        var built=new Builder(Path.Combine(Fixture.Repo,"examples/editor-home/project.cpack"),"linux").Build();built["leaseProbe"]=lease["run"]!.DeepClone();string report=Path.Combine(f.Root,"build-jobs.json");File.WriteAllText(report,built.ToJsonString());
+        var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/web_ui.py"),Fixture.Repo,report,"build-jobs"},timeoutSeconds:600);
+        True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS actual build-only jobs"),run.Stdout+run.Stderr);
+    }
     public void test_actual_editor_v424_shared_draft_history_cas_and_cold_restart()
     {
         var built=new Builder(Path.Combine(Fixture.Repo,"examples/editor-home/project.cpack"),"linux").Build();string report=Path.Combine(f.Root,"draft-history.json");File.WriteAllText(report,built.ToJsonString());

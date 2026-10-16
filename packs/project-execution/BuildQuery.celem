@@ -1,0 +1,1 @@
+function Confectory.ProjectExecution::BuildQuery (string[] session,string project,string operation,string payload) -> string {provide Confectory.ProjectExecution::BuildQuery with Confectory.ProjectExecution::BuildQueryBody;}

@@ -2,6 +2,7 @@ if(calls.Cancelled.Invoke(cancellation))throw new OperationCanceledException();
 var args=System.Text.Json.Nodes.JsonNode.Parse(input)!.AsObject();
 System.Text.Json.Nodes.JsonNode Command(string operation,System.Text.Json.Nodes.JsonObject payload){var result=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(context,operation,payload.ToJsonString()))!;if(result["status"]?.ToString().StartsWith("Error:",StringComparison.Ordinal)==true)throw new InvalidOperationException("Consumer rejected operation");return result;}
 var before=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(context))!;
+if(endpoint=="buildPoll")return calls.BuildJobs.Invoke(context,"poll","{}");
 System.Text.Json.Nodes.JsonNode? ExactFieldValue(){if(args["valueJson"] is null)return args["value"]?.DeepClone();if(args["hash"] is null)throw new ArgumentException("Exact field input requires its displayed source hash");string raw=args["valueJson"]!.GetValue<string>();if(raw.Length>1048576)throw new ArgumentException("Exact field input budget");return System.Text.Json.Nodes.JsonNode.Parse(raw);}
 
 void OpenSemantic(){var opened=Command("workspace",new(){["action"]="open"});if(opened["workspace"]?["unit"]?["kind"]?.ToString() is "body" or "blueprint" or "blueprint-node" or "pack" or "project"){var filtered=Command("workspace",new(){["action"]="filter",["kind"]="object",["query"]=""});var first=System.Linq.Enumerable.FirstOrDefault(filtered["workspace"]?["units"]?.AsArray()??new System.Text.Json.Nodes.JsonArray());if(first is null)return;Command("workspace",new(){["action"]="select",["id"]=first["id"]!.DeepClone()});}Command("workspace",new(){["action"]="schema-view"});}
@@ -17,6 +18,7 @@ if(endpoint is "openProject" or "host.open-file"){
 }
 if(endpoint=="host.close"){
  if(args["confirmed"]?.GetValue<bool>()!=true)throw new ArgumentException("Explicit close confirmation required");
+ calls.BuildJobs.Invoke(context,"close-all","{}");
  var paths=new System.Collections.Generic.List<string>();if(before["selected"]?["path"] is not null)paths.Add(before["selected"]!["path"]!.ToString());
  foreach(var row in before["backgroundProjects"]?.AsArray()??new System.Text.Json.Nodes.JsonArray())paths.Add(row!["project"]!["path"]!.ToString());
  foreach(string path in System.Linq.Enumerable.Distinct(paths,StringComparer.Ordinal)){
@@ -39,9 +41,14 @@ if(endpoint=="host.create-project"){
 }
 var selected=before["selected"]??throw new InvalidOperationException("Project scope unavailable");
 if(endpoint=="closeProject"){
+ calls.BuildJobs.Invoke(context,"close",new System.Text.Json.Nodes.JsonObject{["context"]=selected["context"]!.DeepClone()}.ToJsonString());
  if(args["confirmed"]?.GetValue<bool>()!=true)throw new ArgumentException("Explicit complete project close confirmation required");
  var closing=Command("close-project",new(){["context"]=selected["context"]!.DeepClone()});
  if(closing["closeRequest"] is not null)Command("close-project",new(){["context"]=selected["context"]!.DeepClone(),["confirmed"]=true});return "{\"accepted\":true}";
+}
+if(endpoint is "startBuild" or "stopBuild" or "buildInfo" or "buildHistory"){
+ var buildRequest=new System.Text.Json.Nodes.JsonObject{["context"]=selected["context"]!.DeepClone()};foreach(string field in new[]{"job","target","page","verify"})if(args[field] is not null)buildRequest[field]=args[field]!.DeepClone();
+ return calls.BuildJobs.Invoke(context,endpoint switch{"startBuild"=>"start","stopBuild"=>"stop","buildInfo"=>"info",_=>"history"},buildRequest.ToJsonString());
 }
 if(endpoint=="draftHistory"){
  var payload=new System.Text.Json.Nodes.JsonObject{["context"]=selected["context"]!.DeepClone(),["action"]=args["action"]!.DeepClone()};if(args["token"] is not null)payload["token"]=args["token"]!.DeepClone();

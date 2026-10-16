@@ -1,0 +1,7 @@
+if(session.Length!=2||session[1]!="active"||AppDomain.CurrentDomain.GetData(session[0]) is not System.Collections.Generic.Dictionary<string,object[]> records)throw new InvalidOperationException("Execution session is disposed");
+if(string.IsNullOrWhiteSpace(project)||project.Length>4096||operation is not ("info" or "history")||payload.Length>4096)throw new ArgumentException("Bounded build query required");
+project=System.IO.Path.GetFullPath(project);var args=System.Text.Json.Nodes.JsonNode.Parse(payload)!.AsObject();
+if(operation=="history")return "{\"scope\":\"project-build-history\",\"state\":\"unavailable\",\"providerAvailable\":false,\"total\":0,\"rows\":[]}";
+string job=args["job"]!.GetValue<string>();if(!Guid.TryParseExact(job,"N",out _))throw new ArgumentException("Explicit build job ID required");
+lock(records){if(records.TryGetValue(job,out var record)&&record.Length>4&&record[4] is System.Text.Json.Nodes.JsonObject meta&&meta["kind"]?.ToString()=="build-only"&&meta["project"]?.ToString()==project){var status=(string[])record[0];return new System.Text.Json.Nodes.JsonObject{["scope"]="project-build-job",["job"]=job,["kind"]="build-only",["state"]=status[1],["providerAvailable"]=false,["ownerAvailable"]=true,["canStop"]=false,["error"]=status[6]}.ToJsonString();}}
+return new System.Text.Json.Nodes.JsonObject{["scope"]="project-build-job",["job"]=job,["state"]="unavailable",["providerAvailable"]=false,["ownerAvailable"]=false,["canStop"]=false}.ToJsonString();

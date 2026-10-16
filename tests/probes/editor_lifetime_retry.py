@@ -10,6 +10,12 @@ for name,args,result in imports:
     types=[x.strip() for x in args.split(',') if x.strip()];result=result.strip()
     kind=('Action'+('<'+','.join(types)+'>' if types else '')) if result=='void' else 'Func<'+','.join(types+[result])+'>'
     fields.append('public '+kind+' '+name+' = null!;')
+closeimports=re.findall(r'import\s+\S+\s+as\s+(\w+)\s*\(([^)]*)\)\s*->\s*([^;]+);',(repo/'packs/editor-home-model/CloseSessionBody.celem').read_text())
+closefields=[]
+for name,args,result in closeimports:
+    types=[x.strip() for x in args.split(',') if x.strip()];result=result.strip()
+    kind=('Action'+('<'+','.join(types)+'>' if types else '')) if result=='void' else 'Func<'+','.join(types+[result])+'>'
+    closefields.append('public '+kind+' '+name+' = null!;')
 main=(repo/'examples/editor-home/Main.csbody').read_text()
 close=(repo/'packs/editor-home-model/CloseSession.csbody').read_text()
 loopclose=(repo/'packs/host-loop/Close.csbody').read_text()
@@ -19,15 +25,16 @@ using System.Text.RegularExpressions;
 RunModel();RunStartup();Console.WriteLine("Editor lifetime exact-body fault/retry gate PASS; not platform UI acceptance");
 static void Require(bool value,string message){if(!value)throw new Exception(message);}
 static void RunModel(){
- var counts=new Dictionary<string,int>();bool fail=true;void Release(string key){counts[key]=counts.GetValueOrDefault(key)+1;if(fail&&key is "shell-a" or "workspace-a" or "pack-a" or "manager")throw new IOException("injected "+key);}
- var calls=new CloseCalls();calls.ShellClose=Release;calls.WorkspaceClose=Release;calls.PackClose=Release;calls.Dispose=manager=>{Release("manager");manager[1]="disposed";};
- string token=Guid.NewGuid().ToString("N");var shells=new Dictionary<string,string>{{"a","shell-a"},{"b","shell-b"}};var workspaces=new List<string>{"workspace-a","workspace-b"};var packViews=new Dictionary<string,string>{{"a","pack-a"},{"b","pack-b"}};var state=new object[]{new string[]{"manager","active","","execution",""},"repo","storage",new JsonObject(),"{}",workspaces,false,shells,new Dictionary<string,string>(),packViews};AppDomain.CurrentDomain.SetData("Confectory.EditorHome."+token,state);
+ bool buildsRetired=false;var counts=new Dictionary<string,int>();bool fail=true;void Release(string key){Require(buildsRetired,"Draft/manager released before builds retired");counts[key]=counts.GetValueOrDefault(key)+1;if(fail&&key is "shell-a" or "workspace-a" or "pack-a" or "manager")throw new IOException("injected "+key);}
+ var calls=new CloseCalls();bool failBuild=true;int buildAttempts=0;calls.Executions=_=>new[]{"execution","active"};calls.StopBuilds=_=>{buildAttempts++;if(failBuild)throw new IOException("injected build retirement");buildsRetired=true;};calls.CodexPreparation=(_,_,_)=>"{}";calls.CodexLogin=(_,_,_)=>"{}";calls.CloseTables=(_,_)=>{};calls.ShellClose=Release;calls.WorkspaceClose=Release;calls.PackClose=Release;calls.Dispose=manager=>{Release("manager");manager[1]="disposed";};
+ string token=Guid.NewGuid().ToString("N");var shells=new Dictionary<string,string>{{"a","shell-a"},{"b","shell-b"}};var workspaces=new List<string>{"workspace-a","workspace-b"};var packViews=new Dictionary<string,string>{{"a","pack-a"},{"b","pack-b"}};var state=new object[]{new string[]{"manager","active","","execution",""},"repo","storage",new JsonObject(),"{}",workspaces,false,shells,new Dictionary<string,string>(),packViews,"",new Dictionary<string,string>(),new Dictionary<string,string>(),new Dictionary<string,string>()};AppDomain.CurrentDomain.SetData("Confectory.EditorHome."+token,state);
+ try{ProductClose(calls,token);throw new Exception("Build failure swallowed");}catch(AggregateException){Require(counts.Count==0&&shells.Count==2&&workspaces.Count==2&&packViews.Count==2&&AppDomain.CurrentDomain.GetData("Confectory.EditorHome."+token)!=null,"Failed build retirement released source owners");}failBuild=false;
  try{ProductClose(calls,token);throw new Exception("Failure swallowed");}catch(AggregateException error){Require(error.InnerExceptions.Count==4,"Not every failed resource reported");}
  Require((bool)state[6]&&AppDomain.CurrentDomain.GetData("Confectory.EditorHome."+token)!=null,"Closing session was discarded");Require(shells.Count==1&&workspaces.Count==1&&packViews.Count==1,"Successful releases retained or failed handles removed");Require(counts.Count==7,"A failing resource prevented other release attempts");
- fail=false;ProductClose(calls,token);Require(counts["manager"]==2&&((string[])state[0])[1]=="disposed","Manager close did not retry");Require(counts["shell-a"]==2&&counts["workspace-a"]==2&&counts["shell-b"]==1&&counts["workspace-b"]==1&&counts["pack-a"]==2&&counts["pack-b"]==1,"Release retry repeated successful resources");Require(AppDomain.CurrentDomain.GetData("Confectory.EditorHome."+token)==null,"Closed registry retained");ProductClose(calls,token);Require(counts["manager"]==2,"Closed call repeated release");Console.WriteLine("R1 retry: disposeAttempts=2; managerState=disposed; registryRetained=False; independent release PASS");
+ fail=false;ProductClose(calls,token);Require(counts["manager"]==2&&((string[])state[0])[1]=="disposed","Manager close did not retry");Require(counts["shell-a"]==2&&counts["workspace-a"]==2&&counts["shell-b"]==1&&counts["workspace-b"]==1&&counts["pack-a"]==2&&counts["pack-b"]==1,"Release retry repeated successful resources");Require(AppDomain.CurrentDomain.GetData("Confectory.EditorHome."+token)==null,"Closed registry retained");ProductClose(calls,token);Require(counts["manager"]==2&&buildAttempts==3,"Closed call repeated release");Console.WriteLine("R1 retry: disposeAttempts=2; managerState=disposed; registryRetained=False; independent release PASS");
 }
 static void RunStartup(){
- foreach(string point in new[]{"session","control-1","control-2","owner","surfaces","native-1","native-2","execution-capabilities","native-capabilities","text-1","text-2","text-3","text-4","snapshot","nav","listen","run",""})ProbeStartup(point,"");
+ foreach(string point in new[]{"session","control-1","control-2","control-3","owner","surfaces","native-1","native-2","execution-capabilities","native-capabilities","text-1","text-2","text-3","text-4","snapshot","nav","listen","run",""})ProbeStartup(point,"");
  ProbeStartup("listen","native-1");ProbeStartup("run","session");
 }
 static void ProbeStartup(string failAt,string releaseFail){
@@ -50,12 +57,14 @@ __CLOSE__
 static bool CloseLoop(string token){
 __LOOPCLOSE__
 }
-class CloseCalls {public Action<string> ShellClose=null!, WorkspaceClose=null!, PackClose=null!;public Action<string[]> Dispose=null!;}
+class CloseCalls {
+__CLOSEFIELDS__
+}
 class MainCalls {
 __FIELDS__
 }
 '''
-program=program.replace('__MAIN__',main).replace('__CLOSE__',close).replace('__LOOPCLOSE__',loopclose).replace('__FIELDS__','\n'.join(fields))
+program=program.replace('__MAIN__',main).replace('__CLOSE__',close).replace('__LOOPCLOSE__',loopclose).replace('__FIELDS__','\n'.join(fields)).replace('__CLOSEFIELDS__','\n'.join(closefields))
 (output/'Program.cs').write_text(program)
 (output/'Probe.csproj').write_text('<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup></Project>')
-subprocess.run([os.environ.get('CONFECTORY_DOTNET','dotnet'),'run','--project',str(output/'Probe.csproj'),'-c','Release'],check=True)
+subprocess.run([os.environ.get('CONFECTORY_DOTNET','dotnet'),'run','--project',str(output/'Probe.csproj'),'-c','Release'],check=True,env=dict(os.environ,CONFECTORY_UI='native-probe'))

@@ -1,0 +1,10 @@
+implementation Confectory.EditorHome.Model::BuildJobsBody for Confectory.EditorHome.Model::BuildJobs (string session,string operation,string payload) -> string {
+import Confectory.ProjectManager::Context as Context (string[],string) -> string[];
+import Confectory.ProjectManager::Executions as Executions (string[]) -> string[];
+import Confectory.ProjectExecution::Capabilities as Capabilities () -> string[];
+import Confectory.ProjectExecution::Build as Build (string[],string,string,string) -> string;
+import Confectory.ProjectExecution::BuildQuery as Query (string[],string,string,string) -> string;
+import Confectory.ProjectExecution::Stop as Stop (string[],string) -> void;
+import Confectory.ProjectExecution::StopBuilds as StopBuilds (string[]) -> void;
+body common "BuildJobs.csbody";
+}

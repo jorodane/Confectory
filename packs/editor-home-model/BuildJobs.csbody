@@ -1,0 +1,43 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.EditorHome."+session) as object[]??throw new ObjectDisposedException("Entry/home session");
+if(payload.Length>4096||operation is not ("start" or "stop" or "info" or "history" or "poll" or "close" or "close-all"))throw new ArgumentException("Bounded explicit build operation required");
+lock(state){
+ if((bool)state[6])throw new ObjectDisposedException("Entry/home session");var model=(System.Text.Json.Nodes.JsonObject)state[3];var args=System.Text.Json.Nodes.JsonNode.Parse(payload)!.AsObject();var manager=(string[])state[0];var execution=calls.Executions.Invoke(manager);
+ model["buildJobs"]??=new System.Text.Json.Nodes.JsonObject();var rows=model["buildJobs"]!.AsObject();string before=rows.ToJsonString();
+ bool Active(System.Text.Json.Nodes.JsonNode? row)=>row?["summary"]?["state"]?.ToString() is "queued" or "building" or "stopping";
+ System.Text.Json.Nodes.JsonObject Summary(System.Text.Json.Nodes.JsonNode source){var result=new System.Text.Json.Nodes.JsonObject();foreach(string field in new[]{"scope","job","kind","namespace","entry","target","state","phase","startedUtc","updatedUtc","finishedUtc","error","key","artifactState","artifactCount","artifactBytes","ownerAvailable","canStop","recordState"})if(source[field] is not null)result[field]=source[field]!.DeepClone();return result;}
+ System.Text.Json.Nodes.JsonNode Info(string path,string job,bool verify=false)=>System.Text.Json.Nodes.JsonNode.Parse(calls.Query.Invoke(execution,path,"info",System.Text.Json.JsonSerializer.Serialize(new{job,verify})))!;
+ void Refresh(System.Text.Json.Nodes.JsonObject row){row["summary"]=Summary(Info(row["path"]!.ToString(),row["job"]!.ToString()));}
+ string ActivePath(){var selected=model["selected"]??throw new InvalidOperationException("Select an explicitly open project");string context=selected["context"]!.ToString();if(args["context"] is not null&&args["context"]!.ToString()!=context)throw new InvalidOperationException("Build project context changed");var child=calls.Context.Invoke(manager,context);if(child[5]!="open")throw new InvalidOperationException("Build project context closed");return child[1];}
+ System.Text.Json.Nodes.JsonNode result;
+ try{
+  if(operation is "poll" or "close-all"){
+   if(operation=="close-all")calls.StopBuilds.Invoke(execution);
+   var pending=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Where(rows,pair=>Active(pair.Value)));
+   if(operation=="close-all"){foreach(var pair in pending)Refresh(pair.Value!.AsObject());}
+   else if(pending.Length>0){string cursorKey="Confectory.EditorHome.BuildCursor."+session;int cursor=(AppDomain.CurrentDomain.GetData(cursorKey) is int savedCursor?savedCursor:0)%pending.Length;for(int i=0;i<Math.Min(2,pending.Length);i++)Refresh(pending[(cursor+i)%pending.Length].Value!.AsObject());AppDomain.CurrentDomain.SetData(cursorKey,(cursor+2)%pending.Length);}
+   result=new System.Text.Json.Nodes.JsonObject{["activeCount"]=System.Linq.Enumerable.Count(rows,pair=>Active(pair.Value)),["changed"]=before!=rows.ToJsonString()};
+  }else{
+   string path=ActivePath(),context=model["selected"]!["context"]!.ToString();
+   if(operation=="start"){
+    if(!System.Linq.Enumerable.Contains(calls.Capabilities.Invoke(),"build-only",StringComparer.Ordinal))throw new PlatformNotSupportedException("This runtime has no build-only provider");
+    foreach(var pair in rows)if(pair.Value!["path"]!.ToString()==path&&Active(pair.Value))Refresh(pair.Value.AsObject());
+    if(System.Linq.Enumerable.Any(rows,pair=>pair.Value!["path"]!.ToString()==path&&Active(pair.Value)))throw new InvalidOperationException("This project already owns an active build job");
+    var selected=model["selected"]!;string target=args["target"]!.GetValue<string>(),entry=calls.Context.Invoke(manager,context)[3];if(string.IsNullOrWhiteSpace(entry)||!System.Linq.Enumerable.Any(selected["targets"]!.AsArray(),candidate=>candidate!.ToString()==target))throw new ArgumentException("Declared build entry and target required");
+    string job=calls.Build.Invoke(execution,path,entry,target);var row=new System.Text.Json.Nodes.JsonObject{["path"]=path,["projectId"]=selected["projectId"]!.DeepClone(),["context"]=context,["job"]=job};rows[job]=row;Refresh(row);result=row["summary"]!.DeepClone();
+   }else if(operation=="close"){
+    foreach(var pair in rows)if(pair.Value!["path"]!.ToString()==path&&Active(pair.Value)){try{calls.Stop.Invoke(execution,pair.Key);}finally{Refresh(pair.Value.AsObject());}}result=new System.Text.Json.Nodes.JsonObject{["accepted"]=true};
+   }else if(operation=="history"){
+    int page=args["page"]?.GetValue<int>()??0;result=System.Text.Json.Nodes.JsonNode.Parse(calls.Query.Invoke(execution,path,"history",System.Text.Json.JsonSerializer.Serialize(new{page})))!;
+   }else{
+    string job=args["job"]!.GetValue<string>();var info=Info(path,job,args["verify"]?.GetValue<bool>()==true);
+    if(operation=="stop"){if(info["ownerAvailable"]?.GetValue<bool>()!=true)throw new InvalidOperationException("This session does not own that build job");try{calls.Stop.Invoke(execution,job);}finally{info=Info(path,job);if(rows[job] is not null)rows[job]!["summary"]=Summary(info);}}
+    else if(rows[job] is not null)rows[job]!["summary"]=Summary(info);result=info;
+   }
+  }
+ }finally{
+  // Retain every active owner; historical terminal facts remain in the project journal.
+  var terminal=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Where(rows,pair=>!Active(pair.Value)));for(int i=0;i<terminal.Length-64;i++)rows.Remove(terminal[i].Key);
+  if(before!=rows.ToJsonString()){model["revision"]=model["revision"]!.GetValue<int>()+1;System.Threading.Volatile.Write(ref state[4],model.ToJsonString());}
+ }
+ return result.ToJsonString();
+}

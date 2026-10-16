@@ -1,0 +1,5 @@
+if(session.Length!=2||session[1]!="active"||AppDomain.CurrentDomain.GetData(session[0]) is not System.Collections.Generic.Dictionary<string,object[]> records)throw new InvalidOperationException("Execution session is disposed");
+if(string.IsNullOrWhiteSpace(project)||project.Length>4096||string.IsNullOrWhiteSpace(entry)||entry.Length>512||string.IsNullOrWhiteSpace(target)||target.Length>64)throw new ArgumentException("Explicit build scope required");
+project=System.IO.Path.GetFullPath(project);string job=Guid.NewGuid().ToString("N");
+lock(records)records.Add(job,new object[]{new[]{job,"failed",project,entry,target,"","Build-only provider unavailable on this runtime; no compiler or program invoked"},null!,false,new System.Collections.Generic.Queue<string>(),new System.Text.Json.Nodes.JsonObject{["kind"]="build-only",["project"]=project,["providerAvailable"]=false}});
+return job;

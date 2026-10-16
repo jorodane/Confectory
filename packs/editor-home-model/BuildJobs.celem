@@ -1,0 +1,1 @@
+function Confectory.EditorHome.Model::BuildJobs (string session,string operation,string payload) -> string {provide Confectory.EditorHome.Model::BuildJobs with Confectory.EditorHome.Model::BuildJobsBody;}

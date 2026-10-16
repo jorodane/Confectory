@@ -6,4 +6,6 @@ provide Confectory.ProjectExecution::Stop with Confectory.ProjectExecution::Stop
 provide Confectory.PackWorkspace::Close with Confectory.PackWorkspace::CloseBody;
 provide Confectory.EditorHome.Model::CloseSession with Confectory.EditorHome.Model::CloseSessionBody;
 provide Confectory.ProjectShell::Close with Confectory.ProjectShell::CloseBody;
+
+provide Confectory.ProjectExecution::StopBuilds with Confectory.ProjectExecution::StopBuildsBody;
 }

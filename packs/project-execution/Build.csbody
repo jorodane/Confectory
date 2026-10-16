@@ -1,0 +1,35 @@
+if(session.Length!=2||session[1]!="active"||AppDomain.CurrentDomain.GetData(session[0]) is not System.Collections.Generic.Dictionary<string,object[]> records)throw new InvalidOperationException("Execution session is disposed");
+if(string.IsNullOrWhiteSpace(project)||project.Length>4096||string.IsNullOrWhiteSpace(entry)||entry.Length>512||string.IsNullOrWhiteSpace(target)||target.Length>64)throw new ArgumentException("Explicit bounded build scope required");
+project=System.IO.Path.GetFullPath(project);string job=Guid.NewGuid().ToString("N"),owner=Guid.NewGuid().ToString("N");
+var metadata=new System.Text.Json.Nodes.JsonObject{["kind"]="build-only",["project"]=project,["job"]=job,["owner"]=owner,["terminalPersisted"]=false,["providerAvailable"]=true};
+var record=new object[]{new[]{job,"building",project,entry,target,"",""},null!,false,new System.Collections.Generic.Queue<string>(),metadata,null!};
+lock(records)records.Add(job,record);string? host=Environment.GetEnvironmentVariable("CONFECTORY_PROJECT_EXECUTION_HOST");
+System.Diagnostics.ProcessStartInfo Start(){if(string.IsNullOrWhiteSpace(host))throw new InvalidOperationException("Build host is not configured");var info=new System.Diagnostics.ProcessStartInfo(Environment.GetEnvironmentVariable("CONFECTORY_DOTNET")??"dotnet"){UseShellExecute=false,RedirectStandardInput=true,RedirectStandardOutput=true,RedirectStandardError=true};info.ArgumentList.Add(host);info.ArgumentList.Add("build-job");return info;}
+System.Text.Json.Nodes.JsonObject Request(string operation,string? error=null){var query=new System.Text.Json.Nodes.JsonObject{["operation"]=operation,["project"]=project,["job"]=job,["owner"]=owner,["entry"]=entry,["target"]=target};if(error is not null)query["error"]=error.Length>4096?error[..4096]:error;return query;}
+System.Text.Json.Nodes.JsonObject Ask(string operation,string? error=null){using var process=System.Diagnostics.Process.Start(Start())??throw new InvalidOperationException("Build metadata host did not start");process.StandardInput.Write(Request(operation,error).ToJsonString());process.StandardInput.Close();var output=process.StandardOutput.ReadToEndAsync();var errors=process.StandardError.ReadToEndAsync();if(!process.WaitForExit(10000)){process.Kill(true);throw new TimeoutException("Build metadata timed out");}string text=output.GetAwaiter().GetResult();if(process.ExitCode!=0)throw new InvalidOperationException(errors.GetAwaiter().GetResult());if(text.Length>2097152)throw new InvalidOperationException("Build metadata response budget");var result=System.Text.Json.Nodes.JsonNode.Parse(text)!.AsObject();if(result["job"]?.ToString()!=job)throw new InvalidOperationException("Build job identity changed");return result;}
+void Accept(System.Text.Json.Nodes.JsonObject result){string state=result["state"]!.ToString();if(state is not ("built" or "failed" or "stopped"))throw new InvalidOperationException("Terminal build receipt required");var status=(string[])record[0];status[1]=state;status[6]=result["error"]?.ToString()??"";metadata["terminalPersisted"]=true;}
+bool prepared=false;
+record[5]=(Action)(()=>{
+ lock(records){
+  if(metadata["terminalPersisted"]!.GetValue<bool>())return;
+  if(!prepared)return;var status=(string[])record[0];status[1]="stopping";
+  if(record[1] is System.Diagnostics.Process process){try{if(!process.HasExited){process.Kill(true);if(!process.WaitForExit(5000))throw new TimeoutException("Build worker did not retire");}}catch(InvalidOperationException){if(process.StartInfo is null)throw;}}
+  var actual=Ask("status");if(actual["state"]?.ToString() is "built" or "failed" or "stopped"){Accept(actual);return;}
+  Accept(Ask("cancel"));
+ }
+});
+try{
+ Ask("prepare");prepared=true;var start=Start();var process=new System.Diagnostics.Process{StartInfo=start};lock(records)record[1]=process;process.Start();
+ var request=Request("build");request["lease"]=calls.LeasePath.Invoke(System.IO.Path.GetDirectoryName(project)!);process.StandardInput.Write(request.ToJsonString());process.StandardInput.Close();
+ _=System.Threading.Tasks.Task.Run(async()=>{
+  var errors=System.Threading.Tasks.Task.Run(async()=>{string? line;while((line=await process.StandardError.ReadLineAsync())is not null)lock(records){var lines=(System.Collections.Generic.Queue<string>)record[3];if(lines.Count==256)lines.Dequeue();lines.Enqueue(line.Length>4096?line[..4096]:line);}});
+  try{
+   string? text=await process.StandardOutput.ReadLineAsync();await process.StandardOutput.ReadToEndAsync();await process.WaitForExitAsync();await errors;
+   lock(records){var status=(string[])record[0];if(status[1]!="building")return;status[5]=process.ExitCode.ToString(System.Globalization.CultureInfo.InvariantCulture);var result=text is not null&&text.Length<=2097152?System.Text.Json.Nodes.JsonNode.Parse(text)?.AsObject():null;
+    if(result?["job"]?.ToString()!=job||result?["state"]?.ToString() is not ("built" or "failed" or "stopped"))result=Ask("status");
+    if(result["state"]?.ToString() is not ("built" or "failed" or "stopped"))result=Ask("fail","Build worker exited without a terminal receipt");Accept(result);
+   }
+  }catch(Exception error){lock(records){var status=(string[])record[0];if(status[1]!="building")return;status[1]="failed";status[6]=error.Message.Length>4096?error.Message[..4096]:error.Message;try{Accept(Ask("fail",status[6]));}catch{metadata["recordUnavailable"]=true;}}}
+ });
+}catch(Exception error){lock(records){var status=(string[])record[0];status[1]="failed";status[6]=error.Message.Length>4096?error.Message[..4096]:error.Message;if(prepared)try{Accept(Ask("fail",status[6]));}catch{metadata["recordUnavailable"]=true;}else metadata["recordUnavailable"]=true;}}
+return job;

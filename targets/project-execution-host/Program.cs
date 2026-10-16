@@ -4,6 +4,7 @@ using Confectory.Core;
 
 try
 {
+ if(args.Length==1&&args[0]=="build-job"){var request=System.Text.Json.Nodes.JsonNode.Parse(Console.In.ReadToEnd())!.AsObject();var result=BuildJobs.Execute(request);Console.WriteLine(result.ToJsonString());return request["operation"]?.ToString()=="build"&&result["state"]?.ToString()=="failed"?1:0;}
  if(args.Length==2&&args[0]=="describe")
  {
   string path=Path.GetFullPath(args[1]);var manifest=new Parser(File.ReadAllText(path),path).ParseManifest();

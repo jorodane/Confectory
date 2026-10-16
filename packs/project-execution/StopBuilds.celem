@@ -1,0 +1,1 @@
+function Confectory.ProjectExecution::StopBuilds (string[] session) -> void {provide Confectory.ProjectExecution::StopBuilds with Confectory.ProjectExecution::StopBuildsBody;}

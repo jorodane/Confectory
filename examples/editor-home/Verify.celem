@@ -1,4 +1,11 @@
 function Confectory.EditorHome::Verify () -> int {
+provide Confectory.YogiBox::Open with Confectory.YogiBox::OpenBody;
+provide Confectory.YogiBox::Save with Confectory.YogiBox::SaveBody;
+provide Confectory.YogiBox::Close with Confectory.YogiBox::CloseBody;
+provide Confectory.YogiBox::Clear with Confectory.YogiBox::ClearBody;
+provide Confectory.YogiBox::Revalidate with Confectory.YogiBox::RevalidateBody;
+provide Confectory.YogiBox::ValidateStorage with Confectory.YogiBox::ValidateStorageBody;
+provide Confectory.FileStream::BoundedSnapshot with Confectory.FileStream::BoundedSnapshotBody;
 provide Confectory.EditWorkspace::Subscribe with Confectory.EditWorkspace::SubscribeBody;
 provide Confectory.EditWorkspace::Unsubscribe with Confectory.EditWorkspace::UnsubscribeBody;
 provide Confectory.EditWorkspace::Poll with Confectory.EditWorkspace::PollBody;
@@ -162,4 +169,9 @@ provide Confectory.ProjectExecution::Output with Confectory.ProjectExecution::Ou
 provide Confectory.ProjectShell::Close with Confectory.ProjectShell::CloseBody;
 provide Confectory.DevelopmentTools::BindOrigin with Confectory.DevelopmentTools::BindOriginBody;
 provide Confectory.ProjectAI::PrepareRecovery with Confectory.ProjectAI::PrepareRecoveryBody;
+
+provide Confectory.EditorHome.Model::BuildJobs with Confectory.EditorHome.Model::BuildJobsBody;
+provide Confectory.ProjectExecution::Build with Confectory.ProjectExecution::BuildBody;
+provide Confectory.ProjectExecution::BuildQuery with Confectory.ProjectExecution::BuildQueryBody;
+provide Confectory.ProjectExecution::StopBuilds with Confectory.ProjectExecution::StopBuildsBody;
 }

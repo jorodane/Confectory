@@ -1,0 +1,1 @@
+implementation Confectory.ProjectExecution::BuildQueryBody for Confectory.ProjectExecution::BuildQuery (string[] session,string project,string operation,string payload) -> string {body common "BuildQuery.csbody";body android "BuildQueryUnavailable.csbody";body browser "BuildQueryUnavailable.csbody";}
