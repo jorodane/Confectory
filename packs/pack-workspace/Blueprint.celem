@@ -1,0 +1,1 @@
+function Confectory.PackWorkspace::Blueprint (string handle,string operation,string payload) -> string {provide Confectory.PackWorkspace::Blueprint with Confectory.PackWorkspace::BlueprintBody;}

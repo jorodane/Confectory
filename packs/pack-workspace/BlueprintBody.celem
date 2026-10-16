@@ -1,0 +1,8 @@
+implementation Confectory.PackWorkspace::BlueprintBody for Confectory.PackWorkspace::Blueprint (string handle,string operation,string payload) -> string {
+import Confectory.EditWorkspace::Read as Read (string,string) -> string[];
+import Confectory.EditWorkspace::List as List (string) -> string[];
+import Confectory.EditWorkspace::Status as Status (string,string) -> string[];
+import Confectory.EditWorkspace::Identity as Identity (string) -> string[];
+import Confectory.EditWorkspace::EditBatch as EditBatch (string,string[],string[],long[],string[]) -> bool;
+import Confectory.SchemaEditing::Call as Metadata (string,string) -> string;
+body common "Blueprint.csbody";}

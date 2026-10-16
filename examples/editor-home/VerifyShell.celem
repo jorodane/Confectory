@@ -175,5 +175,8 @@ provide Confectory.ProjectExecution::Build with Confectory.ProjectExecution::Bui
 provide Confectory.ProjectExecution::BuildQuery with Confectory.ProjectExecution::BuildQueryBody;
 provide Confectory.ProjectExecution::StopBuilds with Confectory.ProjectExecution::StopBuildsBody;
 provide Confectory.EditorHome.Model::NodeTasks with Confectory.EditorHome.Model::NodeTasksBody;
+provide Confectory.EditorHome.Model::Blueprint with Confectory.EditorHome.Model::BlueprintBody;
+provide Confectory.PackWorkspace::Blueprint with Confectory.PackWorkspace::BlueprintBody;
+provide Confectory.EditWorkspace::EditBatch with Confectory.EditWorkspace::EditBatchBody;
 provide Confectory.ProjectAI::NodeTask with Confectory.ProjectAI::NodeTaskBody;
 }

@@ -39,10 +39,12 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
   main=project/'main.celem';main.write_text(main.read_text().replace('{','{ use function ReferenceApi::Work;use implementation ReferenceApi::Body;',1))
   source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+'registry ReferenceApi '+json.dumps(str(ref/'pack.cpack'))+';dependency ReferenceApi version "1";'+source[index:])
  env['CONFECTORY_WEB_PROJECT']=str(manifest)
- if kind=='node-tasks':
+ if kind in ['node-tasks','blueprint']:
   fixture=report['nodeTaskFixture']
-  (project/'NodeValue.celem').write_text(fixture['feature']);(project/'NodeValueBody.celem').write_text('implementation Example.ButtonGame::NodeValueBody for Example.ButtonGame::NodeValue (int n) -> int {blueprint common "node-value.graph.json";}')
+  typename='long' if kind=='blueprint' else 'int'
+  (project/'NodeValue.celem').write_text(fixture['feature']);(project/'NodeValueBody.celem').write_text('implementation Example.ButtonGame::NodeValueBody for Example.ButtonGame::NodeValue ('+typename+' n) -> '+typename+' {blueprint common "node-value.graph.json";}')
   (project/'node-value.graph.json').write_text(json.dumps(fixture['graph']));(project/'calculate.node.json').write_text(json.dumps(fixture['node']))
+  if kind=='blueprint':(project/'condition.node.json').write_text(json.dumps(report['additionalNodeFixture']))
   source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+'element NodeValue function "NodeValue.celem";element NodeValueBody implementation "NodeValueBody.celem";'+source[index:])
  if kind=='build-jobs':
   env['CONFECTORY_BUILD_UI_SENTINEL']=str(root/'build-sentinel.txt')
@@ -160,6 +162,9 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
     elif kind=='local-augment':
      from v424_local_augment import verify_local_augment
      verify_local_augment(page,project,mount,send,envelope,settle,restart_actual_host)
+    elif kind=='blueprint':
+     from v480_blueprint import verify_blueprint
+     verify_blueprint(page,project,mount,send,envelope,settle,restart_actual_host)
     elif kind=='node-tasks':
      from v424_node_tasks import verify_node_tasks
      verify_node_tasks(page,project,mount,send,envelope,settle,restart_actual_host)

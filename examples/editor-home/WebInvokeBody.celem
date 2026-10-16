@@ -4,4 +4,5 @@ import Confectory.EditorHome.Model::Command as Command (string,string,string) ->
 import Confectory.EditorHome.Model::Snapshot as Snapshot (string) -> string;
 import Confectory.EditorHome.Model::BuildJobs as BuildJobs (string,string,string) -> string;
 import Confectory.EditorHome.Model::NodeTasks as NodeTasks (string,string,string) -> string;
+import Confectory.EditorHome.Model::Blueprint as Blueprint (string,string,string) -> string;
 body common "WebInvoke.csbody"; }

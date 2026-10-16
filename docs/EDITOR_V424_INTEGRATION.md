@@ -47,8 +47,8 @@ Codex 준비·공식 기기 코드 로그인 단계는 `114e00ffb35f6c3f4e5cdfd3
 | E03 | 객체 함수/동작 목록·상속·연결/해제·순서 | 계약 | 실제 function datum, module/feature 관계, 임의 데모 methods 제외 |
 | E04 | 함수 입력·출력·이름·설명·타입·시그니처 편집 | 연결/검증 | 실제 FunctionSignature/Parser의 타입·이름·순서와 메타데이터, 독립 View·입력 보존·리비전+내용 해시 CAS·compiler Confirm 검증. graph 연결 후 계약 영향 표시는 후속 |
 | E05 | 모듈 require/default/provide/import·구현 선택·호환성 | 계약 | 실제 요구/제공 관계와 compiler-backed 검증 |
-| E06 | 함수 노드·입출력 pin·연결·접기·설명·직접 작성 | 계약 | 실제 소스/관계와 별도 배치. graph 장식과 실행 의미 분리 |
-| E07 | Blueprint 노드 추가/삭제/링크/저장/확대·맞춤 | 설계 확정/구현 중 | [확정 구조](FEATURE_BLUEPRINT_ARCHITECTURE.md): graph+노드 파일이 원본, 시스템이 최종 C# 조립. 기존 AlgorithmProjection은 레거시 설명용. 원본·노드 Worker·파생 산출물의 별도 소유/버전/빌드 경계를 단계적으로 연결 |
+| E06 | 함수 노드·입출력 pin·연결·접기·설명·직접 작성 | 기존 graph 연결/검증 | [v480 기존 graph 화면](EDITOR_V480_INTEGRATION.md): 실제 외부 계약, 설명·인수·실행 경로·독립 C# 본문, Node Task, 원자적 원본 CAS와 cold 입력 재검토. 접기·다이브·확장 ABI는 후속 |
+| E07 | Blueprint 노드 추가/삭제/링크/저장/확대·맞춤 | 설계 확정/구현 중 | [확정 구조](FEATURE_BLUEPRINT_ARCHITECTURE.md): graph+노드 파일이 원본, 시스템이 최종 C# 조립. 기존 AlgorithmProjection은 레거시 설명용. 원본·노드 Worker·파생 산출물의 별도 소유/버전/빌드 경계를 연결. 기존 graph 편집·저장·확대·맞춤은 v480 화면에서 검증하며 신규 노드 파일 생성·삭제/등록은 후속 |
 | E08 | 계약 검토·모듈 검토·컨셉/밸런스/테스트 요청 | 부분 | 실제 검사 또는 Helper 요청 미리보기/동의/도구 범위 |
 | C01 | Apply/Save/버리기/공유 초안/재시작 | 기존 | PackWorkspace/EditWorkspace, 최종 파일과 작업 사본 구분 |
 | C02 | 묶음/부분 Review·Before/After·타깃·Confirm·취소 | 기존 | source hash/revision/token/CAS, 생성 등록부 필수, 실제 컴파일 |

@@ -157,7 +157,7 @@ public static class FeatureBlueprint
             versions[feature.Id] = contractHash;
             return new JsonObject
             {
-                ["state"] = "node-definitions", ["feature"] = feature.Id, ["profile"] = Profile, ["contractHash"] = contractHash,
+                ["state"] = "node-definitions", ["feature"] = feature.Id, ["profile"] = Profile, ["contractHash"] = contractHash, ["signature"] = contract.DeepClone(),
                 ["nodes"] = new JsonArray(nodes.OrderBy(p => p.Key, StringComparer.Ordinal).Select(p => (JsonNode)new JsonObject { ["id"] = p.Key, ["definitionHash"] = p.Value.DefinitionHash, ["definition"] = p.Value.Definition.DeepClone() }).ToArray()),
                 ["contractVersions"] = versions,
                 ["imports"] = new JsonArray(imports.OrderBy(i => i.Key, StringComparer.Ordinal).Select(i => (JsonNode)new JsonObject { ["feature"] = i.Key, ["alias"] = i.Value.Alias, ["contractHash"] = i.Value.Hash, ["signature"] = SignatureNode(i.Value.Element.Signature!) }).ToArray()),
@@ -240,6 +240,7 @@ public static class FeatureBlueprint
         {
             ["state"] = missing.Count > 0 ? "needs-implementation" : "source-ready",
             ["feature"] = feature.Id,
+            ["signature"] = contract.DeepClone(),
             ["profile"] = Profile,
             ["generator"] = Generator,
             ["contractHash"] = contractHash,

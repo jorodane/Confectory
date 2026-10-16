@@ -14,8 +14,8 @@ export function createActualWorkspace(api) {
     takeDetachedWindow:key=>{const w=detached.get(scope+'|'+key);detached.delete(scope+'|'+key);return w},
     detachWindow:w=>{if(w.overlay)return;detached.set(scope+'|'+w.key,w);capture()},
     foregroundZ:node=>node.key==='ai-preview'&&api.$('.augment-overlay')?271:undefined,
-    hideWindowOnClose:key=>key==='source'||key.startsWith('editor-')||key.startsWith('table:'),
-    layoutMetadata:w=>Object.fromEntries(['id','view','mode','group','density','query','sort','mainWorkspace','namespace','catalogue','kind','parent','queryInput','closedNamespaces','workerId','nodeTaskNode','nodeTaskQuery','nodeTaskPage','nodeTaskReason','buildJob','buildPage','conflictSourceId','referenceRequest','mapQuery','mapRoles','mapFocus','mapSelected','mapPositions','mapCamera','mapDidFit','mapFocusId','mapFocusPositions','tableDefinition','tableName','tableQuery','tableSort','tableSelected','tableInputs','tableFill','tableBuilder','tableColumnOrder','tableWidths','tableValueSort'].filter(key=>w.meta[key]!==undefined).map(key=>[key,w.meta[key]])),
+    hideWindowOnClose:key=>key==='blueprint'||key.startsWith('blueprint-code:')||key==='source'||key.startsWith('editor-')||key.startsWith('table:'),
+    layoutMetadata:w=>Object.fromEntries(['id','view','mode','group','density','query','sort','mainWorkspace','namespace','catalogue','kind','parent','queryInput','closedNamespaces','workerId','blueprintGraph','blueprintNode','blueprintZoom','blueprintPositions','nodeTaskNode','nodeTaskQuery','nodeTaskPage','nodeTaskReason','buildJob','buildPage','conflictSourceId','referenceRequest','mapQuery','mapRoles','mapFocus','mapSelected','mapPositions','mapCamera','mapDidFit','mapFocusId','mapFocusPositions','tableDefinition','tableName','tableQuery','tableSort','tableSelected','tableInputs','tableFill','tableBuilder','tableColumnOrder','tableWidths','tableValueSort'].filter(key=>w.meta[key]!==undefined).map(key=>[key,w.meta[key]])),
     restoreActualWindow:layout=>restore(layout),
     afterSwitchWorkspace:()=>{const panels=structuredClone(runtime.workspaceRecord().participants||[]);api.clearPanels();api.clearYogi();panelWorkspace=runtime.state.activeWorkspaceId;api.restorePanels(panels);api.restoreYogi(runtime.workspaceRecord().yogiPresentation);api.render();schedule()},
     beforeDeleteWorkspaces:ids=>{
@@ -23,7 +23,7 @@ export function createActualWorkspace(api) {
       const parent=runtime.workspaceRecord();
       for(const child of project.workspaces.filter(child=>ids.has(child.id)))
         for(const layout of child.layout||[])
-          if(layout.key==='source'||layout.key.startsWith('editor-')||layout.key.startsWith('table:')){
+          if(layout.key==='blueprint'||layout.key.startsWith('blueprint-code:')||layout.key==='source'||layout.key.startsWith('editor-')||layout.key.startsWith('table:')){
             if(!parent.layout.some(row=>row.key===layout.key))parent.layout.push({...layout,hidden:true});
             if(!runtime.state.windows.has(layout.key)){
               const cached=detached.get(scope+'|'+layout.key);
@@ -80,6 +80,8 @@ export function createActualWorkspace(api) {
     if(cached)return runtime.openWindow(layout.key,cached.title,cached.width,cached.height,{refresh:true});
     if(layout.key==='source'){api.editor();return runtime.state.windows.get('source');}
     if(layout.key==='browser'||layout.key.startsWith('browser:')||layout.key.startsWith('browser-tree:')){const w=api.browser(layout.meta?.group||'concept',layout.key);Object.assign(w.meta,layout.meta);return api.browser(w.meta.group,layout.key);}
+    if(layout.key==='blueprint')return api.blueprint(layout.meta||{});
+    if(layout.key.startsWith('blueprint-code:'))return api.blueprintCode(layout.meta||{});
     if(layout.key==='node-tasks')return api.nodeTasks(layout.meta||{});
     if(layout.key==='builds')return api.builds(layout.meta||{});
     if(layout.key==='history')return api.history(layout.meta||{});

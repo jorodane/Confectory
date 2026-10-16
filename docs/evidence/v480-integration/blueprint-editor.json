@@ -1,0 +1,202 @@
+{
+  "referenceCommit": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+  "previousPublished": "98e697e7be74528c9108f1ef88b04d8d43e20a07",
+  "status": "existing-owned-graph-editor-verified",
+  "stages": [
+    {
+      "log": "node-ownership-red.log",
+      "sha256": "b282b6ed8f53c087560c9302a68d4e1ff5554bc53719a8c19858bf1b50e0b64a",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 16.605,
+      "boundary": "actual defect: stale graph locator still granted old node capability",
+      "tests": [
+        "FAIL FeatureBlueprintTests.test_blueprint_node_only_worker_draft_save_restore_and_compiler_confirm"
+      ]
+    },
+    {
+      "log": "node-ownership-final.log",
+      "sha256": "dd24dd1e090740ef3555a1a8cba82324d9f7fc09223dc03cd8f7b6516c0e379c",
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 48.581,
+      "boundary": "ownership fence before additive UI metadata changes",
+      "tests": [
+        "PASS FeatureBlueprintTests.test_blueprint_node_only_worker_draft_save_restore_and_compiler_confirm",
+        "PASS FeatureBlueprintTests.test_blueprint_node_task_assignment_scoped_dispatch_adoption_and_cold_no_replay"
+      ]
+    },
+    {
+      "log": "blueprint-ui-first.log",
+      "sha256": "e03ef0c6056fd4921bc66fafd3db23f837d0b952e0b401475fab563c8a5cc044",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 102.249,
+      "boundary": "test stopped at a covered cold-restored title; earlier edit assertions ran, no full pass",
+      "tests": [
+        "FAIL WebUITests.test_actual_editor_v480_blueprint_owned_graph_node_edit_and_cold_input"
+      ]
+    },
+    {
+      "log": "blueprint-ui-second.log",
+      "sha256": "a418e2af7d8b41f9da19b78547e61034f12131ebe220fa341ba34a172b22aa18",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 201.178,
+      "boundary": "test omitted the existing full-source Review acknowledgement",
+      "tests": [
+        "FAIL WebUITests.test_actual_editor_v480_blueprint_owned_graph_node_edit_and_cold_input"
+      ]
+    },
+    {
+      "log": "blueprint-ui-projection-red.log",
+      "sha256": "6cb4191cf615ef223e71b7b4bdf19db17e9201a6f12a1e377dbca84bd6b2381c",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 15.584,
+      "boundary": "actual defect: shared node body changed but primary source projection stayed stale",
+      "tests": [
+        "FAIL WebUITests.test_actual_editor_v480_blueprint_owned_graph_node_edit_and_cold_input"
+      ]
+    },
+    {
+      "log": "blueprint-ui-final-first.log",
+      "sha256": "4d339e9708739875c5ad342a6913db1c73748620997bd4b0a13ccba3606eb227",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 46.244,
+      "boundary": "full UI and compiler Confirm before fixed toolbar and mode-preserving refresh",
+      "tests": [
+        "PASS WebUITests.test_actual_editor_v480_blueprint_owned_graph_node_edit_and_cold_input"
+      ]
+    },
+    {
+      "log": "blueprint-ui-layout-final.log",
+      "sha256": "e11c31defcc24b6cf6ce6c880c6514f6b06d6e217d594e2e6f455cc783d9e784",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 50.922,
+      "boundary": "fixed toolbar and preserved unrelated schema plus source no-op versions",
+      "tests": [
+        "PASS WebUITests.test_actual_editor_v480_blueprint_owned_graph_node_edit_and_cold_input"
+      ]
+    },
+    {
+      "log": "blueprint-ui-regression.log",
+      "sha256": "322cc40f37a489c00d3a0136192a60e1c7dce43ea4467643fc33b78e7c955a69",
+      "passed": 18,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 732.036,
+      "boundary": "affected regression; retain pre-final presentation-fix qualification",
+      "tests": [
+        "PASS FeatureBlueprintTests.test_blueprint_existing_feature_calls_use_typed_imports_and_contract_fences",
+        "PASS FeatureBlueprintTests.test_blueprint_fixed_inputs_branch_compiler_reuse_node_replacement_and_legacy_preservation",
+        "PASS FeatureBlueprintTests.test_blueprint_invalid_graphs_stale_contracts_and_dominating_values",
+        "PASS FeatureBlueprintTests.test_blueprint_node_diagnostics_static_isolation_and_failed_build_retains_receipt",
+        "PASS FeatureBlueprintTests.test_blueprint_node_only_worker_draft_save_restore_and_compiler_confirm",
+        "PASS FeatureBlueprintTests.test_blueprint_node_task_assignment_scoped_dispatch_adoption_and_cold_no_replay",
+        "PASS FeatureBlueprintTests.test_blueprint_source_change_during_real_compile_is_not_published",
+        "PASS WebUITests.test_actual_editor_and_button_game_common_web_transport_chromium",
+        "PASS WebUITests.test_actual_editor_v318_workspace_lifecycle_presentation_restart",
+        "PASS WebUITests.test_actual_editor_v424_node_task_plan_cas_approval_and_cold_history",
+        "PASS WebUITests.test_actual_editor_v424_shared_draft_history_cas_and_cold_restart",
+        "PASS WebUITests.test_actual_editor_v424_typed_declaration_views_cas_confirm_and_restart",
+        "PASS DraftHistoryTests.test_shared_draft_history_atomic_inverse_cas_restart_branch_and_owner_boundaries",
+        "PASS PackWorkspaceTests.test_development_tools_owned_scope_shared_draft_no_confirm_and_locality",
+        "PASS PackWorkspaceTests.test_target_metadata_owned_sources_no_registry_execution",
+        "PASS PackWorkspaceTests.test_two_contexts_revision_save_reopen_and_locality",
+        "PASS EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only",
+        "PASS EntryHomeTests.test_fresh_entry_home_project_contracts_and_consumer_locality"
+      ]
+    },
+    {
+      "log": "blueprint-ui-presentation-final.log",
+      "boundary": "Final document tabs, actual fit without rearranging nodes, own-property layout lookup; production differs from broad only in Blueprint presentation",
+      "sha256": "86b7b749ff027c1f69c8136fa50287331f19a3d9e1819eab7987955ca7944d60",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 55.449,
+      "tests": [
+        "PASS WebUITests.test_actual_editor_v480_blueprint_owned_graph_node_edit_and_cold_input"
+      ]
+    },
+    {
+      "log": "blueprint-ui-checkout.log",
+      "boundary": "Implementation commit checked out through ordinary Git with retained CRLF and fresh LF resources, actual Home startup and tamper refusal",
+      "sha256": null,
+      "passed": null,
+      "failed": null,
+      "skipped": null,
+      "seconds": null,
+      "tests": []
+    }
+  ],
+  "claims": {
+    "existingOwnedGraphOnly": true,
+    "sourceWrittenBeforeConfirm": false,
+    "prototypeCompletionAcceptedAsEvidence": false,
+    "nativePixelCapture": false,
+    "expandedProfileOrABI": false,
+    "newSourceCreation": false,
+    "externalAccountOrPaidModel": false,
+    "newBlueprintUITestAIActivation": false,
+    "affectedNodeTaskUIUsesOwnedLoopback": true,
+    "managedProfilesCompileOnly": true
+  },
+  "contracts": [
+    "owned graph/node locator consistency",
+    "opaque View-local read basis: at most16,64 observed sources,2MiB observed UTF8",
+    "all graph/implementation/related contract/node revisions and hashes fenced by existing atomic EditBatch",
+    "arguments and outputs use exact JSON strings",
+    "source availability and CSharp compilation are distinct",
+    "private geometry and pending input; no usable basis restored",
+    "node source rebind explicitly stamps inspected definition",
+    "ordinary compiler Review/full-source acknowledgement/Confirm",
+    "main/original archives/Android settings preserved"
+  ],
+  "boundaries": [
+    "Stage counts overlap and must not be added. Failed attempts remain recorded.",
+    "The v480 reference ZIP is unchanged; prototype stamps supply no real compiler result.",
+    "Only existing owned sync-acyclic-v1 graphs are edited here. New graph/node source allocation, source deletion, legacy conversion, parent reuse UI and expanded v480 profile/ABI/module screen remain unfinished.",
+    "No DISPLAY/native scoped pixel capture is claimed.",
+    "Final ordinary checkout result is recorded only after the implementation commit exists."
+  ],
+  "sourceHashes": {
+    "examples/editor-home/ui/blueprint.js": "b85a0abddfb00013b29b62d7f382efdd76410dda7b25d5b49cfd9b4a1599dd91",
+    "packs/editor-home-model/Blueprint.celem": "756cba75aab9c720313bdb60448542703a09fde18e5121f934ecfc73351e3d3a",
+    "packs/editor-home-model/Blueprint.csbody": "2bb178cd40b2ad3802d7c3ce7bfdc16bd4b4d9c0d5984e9cf9d7f29a7676f6b6",
+    "packs/editor-home-model/BlueprintBody.celem": "601b1d9bbe802ef2203873438bc3b0149d37077797c3ae413cc7c12d3a31c811",
+    "packs/pack-workspace/Blueprint.celem": "f8ef5924876852b3b621ac95559b218cf1f7ccc36730605f264259daa329a5fd",
+    "packs/pack-workspace/Blueprint.csbody": "dd56edb80d581e1bd1bf06ecc1a8c2d2e62f3d6c2698c5f7f9105ba7a2124be5",
+    "packs/pack-workspace/BlueprintBody.celem": "836c7c863f65f1d1354dee932694f55210481ac38e02be0245bcf08c87494a92",
+    "tests/web/v480_blueprint.py": "a68adfd637e48c7a1858acf0904f6dfcff8206a43e81565de61076e2db1b7b39",
+    "examples/editor-home/Main.celem": "201be0cb65ff9f00f388d045baac6568f2e7aae269fbb21a333246b976af7cc5",
+    "examples/editor-home/Verify.celem": "7273d009c68f502db17bc89c7906a8ee4be9912256205483da345acc765cec76",
+    "examples/editor-home/VerifyShell.celem": "10ef4bd7f33ec0362532b7832b6198c9617ad9d4f40e0d157ea80c830382f364",
+    "examples/editor-home/WebBundle.csbody": "ede74c25a0d72dbc143a3632f3256b9655f2afb487d29cc67727fce8edf6ffdf",
+    "examples/editor-home/WebInvoke.csbody": "0140a89787334b064cf0409c2a7d2adb6384f45431ecf56b3c1d587ecebf9df4",
+    "examples/editor-home/WebInvokeBody.celem": "982c7716974345c5675d43eca9b26901addf800433bcc51cc739404eabb3c9b1",
+    "examples/editor-home/ui/app.js": "82d34bb58cd62fc68123fc92fff91bf3f320a7ee2ec8b60c7dffba821e9675c1",
+    "examples/editor-home/ui/consumer.css": "e29913a79e7c8179a12e518d22fc12b141eaf2d2dc9a0362fba5a7e68df9eece",
+    "examples/editor-home/ui/workspace-host.js": "50dadb93cf18a197d2af4a1a2c769fffdcfb854498a1127decfaee602b0d553b",
+    "packs/development-tools/OpenNode.csbody": "4f8df9df1ae59bc8597871b0c28dc7fd86c1b746c47e795d0e2c86d374b681ec",
+    "packs/development-tools/OpenNodeBody.celem": "01686e88e0430f083939768dc2fa14cbeeecd0a2f3d71fccf8ebcaef8e9e2141",
+    "packs/editor-home-model/pack.cpack": "82fee28945ff7e7df2e0e2fe5d74d536523a54c6c8f8d171a61f44644073b569",
+    "packs/pack-workspace/pack.cpack": "d6868546fa4290833361761256d77e5279ec7dabf03f6b1b285b0acf882b5ae1",
+    "src/Confectory.Core/BlueprintDocuments.cs": "3523543659a4a43c3ff0527ebecd07200120375198bfea5e654cd6284fe0c1ce",
+    "src/Confectory.Core/FeatureBlueprint.cs": "9a39274190dae0c705025b08cf193ec814942c6133215d6964c9453e4722e55b",
+    "tests/Confectory.Tests/FeatureBlueprintTests.cs": "f951774eac3d9e26608de2438377269f19565b719121c568cb180ecbbae3f199",
+    "tests/Confectory.Tests/WebUITests.cs": "48a081b4988d1563d01277c1c26037b42c0520f3d61a1c11b600c1090c7a4e3d",
+    "tests/web/web_ui.py": "377242a7e1024283861ff0d9bf771cf7920b47ef076ab2c700c17d49db46eba6"
+  },
+  "staticResourceCount": 27
+}

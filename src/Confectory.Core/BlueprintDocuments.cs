@@ -57,7 +57,8 @@ public static class BlueprintDocuments
         return FeatureBlueprint.Execute(new JsonObject
         {
             ["operation"] = request["definitionsOnly"]?.GetValue<bool>() == true ? "featureBlueprintNodes" : "featureBlueprintDescribe", ["featureSource"] = ReadContract(implementation.Function!),
-            ["featureContracts"] = contracts, ["graph"] = request["graph"]!.DeepClone()
+            ["featureContracts"] = contracts, ["graph"] = request["graph"]!.DeepClone(),
+            ["implementations"] = request["implementations"]?.DeepClone()
         });
     }
 

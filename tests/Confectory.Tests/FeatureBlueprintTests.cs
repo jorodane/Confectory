@@ -406,7 +406,16 @@ public sealed class FeatureBlueprintTests : TestCase
         denied=false;try{Invoke("workspace_stage","changed-definition",new{projectId="fixture",id,text=changed,expectedRevision=reopened["unit"]!["revision"]!.GetValue<long>(),expectedHash=Hash(changed)});}catch(InvalidOperationException){denied=true;}Check(denied,"changed graph revokes assigned node definition");
         var now=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(view,"select",System.Text.Json.JsonSerializer.Serialize(new{id=graphId})))!["unit"]!;
         calls.Command.Invoke(view,"edit",System.Text.Json.JsonSerializer.Serialize(new{text=graphOriginal,expectedRevision=now["revision"]!.GetValue<long>()}));
-        calls.CloseTool.Invoke(capability);calls.Command.Invoke(view,"select",System.Text.Json.JsonSerializer.Serialize(new{id}));
+        calls.CloseTool.Invoke(capability);
+        // A raw graph edit must not lend a previously discovered node source to a new locator.
+        now=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(view,"select",System.Text.Json.JsonSerializer.Serialize(new{id=graphId})))!["unit"]!;
+        graph=System.Text.Json.Nodes.JsonNode.Parse(graphOriginal)!.AsObject();graph["nodes"]![1]!["implementation"]="different.node.json";
+        calls.Command.Invoke(view,"edit",System.Text.Json.JsonSerializer.Serialize(new{text=graph.ToJsonString(),expectedRevision=now["revision"]!.GetValue<long>()}));
+        denied=false;string borrowed="";
+        try{borrowed=calls.OpenNode.Invoke(project,"fixture","App","owner","nodes",id);}catch(InvalidOperationException){denied=true;}
+        finally{if(borrowed.Length>0)calls.CloseTool.Invoke(borrowed);now=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(view,"select",System.Text.Json.JsonSerializer.Serialize(new{id=graphId})))!["unit"]!;calls.Command.Invoke(view,"edit",System.Text.Json.JsonSerializer.Serialize(new{text=graphOriginal,expectedRevision=now["revision"]!.GetValue<long>()}));}
+        Check(denied,"graph locator must still name this owned code-node source");
+        calls.Command.Invoke(view,"select",System.Text.Json.JsonSerializer.Serialize(new{id}));
         var review=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(view,"review","{\"target\":\"portable\"}"))!["review"]!;
         Check(review["status"]!.ToString()=="ready","node source Review");
         var confirmation=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(view,"confirm",System.Text.Json.JsonSerializer.Serialize(new{token=review["token"]!.ToString()})))!;

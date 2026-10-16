@@ -136,6 +136,21 @@ public sealed class WebUITests : TestCase
         var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/web_ui.py"),Fixture.Repo,report,"startup-restore"},timeoutSeconds:180);
         True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS actual startup metadata delay"),run.Stdout+run.Stderr);
     }
+    public void test_actual_editor_v480_blueprint_owned_graph_node_edit_and_cold_input()
+    {
+        string feature="function Example.ButtonGame::NodeValue (long n) -> long {}";
+        var graph=System.Text.Json.Nodes.JsonNode.Parse("""
+        {"schema":1,"profile":"sync-acyclic-v1","feature":"Example.ButtonGame::NodeValue","entry":"condition","nodes":[{"id":"condition","kind":"code","control":"branch","intent":"Choose positive input","signature":{"args":[{"type":"long","name":"value"}],"return":"bool"},"arguments":{"value":{"input":"n"}},"implementation":"condition.node.json"},{"id":"calculate","kind":"code","control":"next","intent":"Add four to the input","signature":{"args":[{"type":"long","name":"value"}],"return":"long"},"arguments":{"value":{"input":"n"}},"implementation":"calculate.node.json"}],"edges":[{"from":"condition","port":"true","to":"calculate"},{"from":"condition","port":"false","to":"exit:fallback"},{"from":"calculate","port":"next","to":"exit:done"}],"exits":{"done":{"node":"calculate"},"fallback":{"constant":9223372036854775807}}}
+        """)!;
+        graph["contractHash"]=FeatureBlueprint.ContractHash(new Parser(feature,"<owned v480 UI fixture>").ParseElement());
+        var described=FeatureBlueprint.Execute(new System.Text.Json.Nodes.JsonObject{["operation"]="featureBlueprintNodes",["featureSource"]=feature,["graph"]=graph.DeepClone()});
+        var built=new Builder(Path.Combine(Fixture.Repo,"examples/editor-home/project.cpack"),"linux").Build();
+        built["nodeTaskFixture"]=new System.Text.Json.Nodes.JsonObject{["feature"]=feature,["graph"]=graph,["node"]=new System.Text.Json.Nodes.JsonObject{["schema"]=1,["node"]="calculate",["definitionHash"]=described["nodes"]![0]!["definitionHash"]!.DeepClone(),["source"]="return value + 4;"}};
+        built["additionalNodeFixture"]=new System.Text.Json.Nodes.JsonObject{["schema"]=1,["node"]="condition",["definitionHash"]=described["nodes"]![1]!["definitionHash"]!.DeepClone(),["source"]="return value > 0;"};
+        string report=Path.Combine(f.Root,"v480-blueprint.json");File.WriteAllText(report,built.ToJsonString());
+        var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/web_ui.py"),Fixture.Repo,report,"blueprint"},timeoutSeconds:420);
+        True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS actual v480 Blueprint"),run.Stdout+run.Stderr);
+    }
     public void test_actual_editor_v424_node_task_plan_cas_approval_and_cold_history()
     {
         string feature="function Example.ButtonGame::NodeValue (int n) -> int {}";

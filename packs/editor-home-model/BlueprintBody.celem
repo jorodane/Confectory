@@ -1,0 +1,4 @@
+implementation Confectory.EditorHome.Model::BlueprintBody for Confectory.EditorHome.Model::Blueprint (string session,string operation,string payload) -> string {
+import Confectory.PackWorkspace::Blueprint as Blueprint (string,string,string) -> string;
+import Confectory.EditorHome.Model::Command as Command (string,string,string) -> string;
+body common "Blueprint.csbody";}
