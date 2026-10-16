@@ -39,17 +39,22 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
   main=project/'main.celem';main.write_text(main.read_text().replace('{','{ use function ReferenceApi::Work;use implementation ReferenceApi::Body;',1))
   source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+'registry ReferenceApi '+json.dumps(str(ref/'pack.cpack'))+';dependency ReferenceApi version "1";'+source[index:])
  env['CONFECTORY_WEB_PROJECT']=str(manifest)
- if kind in ['node-tasks','blueprint','blueprint-create','call-wrapper','placed-find']:
+ if kind in ['node-tasks','blueprint','blueprint-create','call-wrapper','registered-call','placed-find']:
   fixture=report['nodeTaskFixture']
-  typename='long' if kind.startswith('blueprint') or kind in ['call-wrapper','placed-find'] else 'int'
+  typename='long' if kind.startswith('blueprint') or kind in ['call-wrapper','registered-call','placed-find'] else 'int'
   (project/'NodeValue.celem').write_text(fixture['feature']);(project/'NodeValueBody.celem').write_text('implementation Example.ButtonGame::NodeValueBody for Example.ButtonGame::NodeValue ('+typename+' n) -> '+typename+' {blueprint common "node-value.graph.json";}')
   (project/'node-value.graph.json').write_text(json.dumps(fixture['graph']));(project/'calculate.node.json').write_text(json.dumps(fixture['node']))
-  if kind.startswith('blueprint') or kind in ['call-wrapper','placed-find']:(project/'condition.node.json').write_text(json.dumps(report['additionalNodeFixture']))
+  if kind.startswith('blueprint') or kind in ['call-wrapper','registered-call','placed-find']:(project/'condition.node.json').write_text(json.dumps(report['additionalNodeFixture']))
   source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+'element NodeValue function "NodeValue.celem";element NodeValueBody implementation "NodeValueBody.celem";'+source[index:])
  if kind=='call-wrapper':
   (project/'Double.celem').write_text('function Example.ButtonGame::Double (long value) -> long {description "Existing double feature";provide Example.ButtonGame::Double with Example.ButtonGame::DoubleBody;}')
   (project/'DoubleBody.celem').write_text('implementation Example.ButtonGame::DoubleBody for Example.ButtonGame::Double (long value) -> long {body common "double.csbody";}');(project/'double.csbody').write_text('return value * 2;')
   source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+'element Double function "Double.celem";element DoubleBody implementation "DoubleBody.celem";'+source[index:])
+ if kind=='registered-call':
+  registered=root/'registered-api';registered.mkdir();(registered/'pack.cpack').write_text('pack ReferenceApi version "1" {element Double function "Double.celem";element DoubleBody implementation "DoubleBody.celem";}')
+  (registered/'Double.celem').write_text('function ReferenceApi::Double (long value) -> long {description "Read only registered Double contract";provide ReferenceApi::Double with ReferenceApi::DoubleBody;}')
+  (registered/'DoubleBody.celem').write_text('implementation ReferenceApi::DoubleBody for ReferenceApi::Double (long value) -> long {body common "double.csbody";}');(registered/'double.csbody').write_text('return value * 7;')
+  source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+'registry ReferenceApi '+json.dumps(str(registered/'pack.cpack'))+';dependency ReferenceApi version "1";'+source[index:])
  if kind in ['window-documents','tab-arrangement']:
   (project/'DocOther.celem').write_text('object Example.ButtonGame::DocOther {description \"Independent document property source\";}')
   source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+'element DocOther object \"DocOther.celem\";'+source[index:])
@@ -207,6 +212,9 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
     elif kind=='module-interface':
      from v480_module_interface import verify_module_interface
      verify_module_interface(page,project,mount,send,envelope,settle,restart_actual_host)
+    elif kind=='registered-call':
+     from v480_registered_call import verify_registered_call
+     verify_registered_call(page,project,registered,mount,send,envelope,settle,restart_actual_host)
     elif kind=='call-wrapper':
      from v480_call_wrapper import verify_call_wrapper
      verify_call_wrapper(page,project,mount,send,envelope,settle,restart_actual_host)

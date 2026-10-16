@@ -82,6 +82,8 @@ graph/node는 `blueprint`/`blueprint-node` 원본 종류로 기존 공유 초안
 
 사용자가 main의 `32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f`로 새 화면을 전달했다. 레퍼런스 대기를 해제하고 [v480 비교·연결 기록](EDITOR_V480_INTEGRATION.md)을 기준으로 이어간다. 프로토타입의 시작/분기 레일, 암묵적 종료, 로컬 값/표현식, 노드별 C# 편집과 모듈 인터페이스를 확인했다. 원본 ZIP을 보존하며, 기존 graph/node 원본·부모 구현 재사용·기능 참조 호출·실제 compiler 및 권한 경계를 유지한다. 각 프로토타입 성공 표시는 실제 소유자와 compiler 결과에 연결한 뒤 검증한다.
 
+같은 함수 ID에 대한 부모 객체의 제공 구현 재사용은 실제 객체 scope의 `5 → 102 → 5` 검사에서 완료했다. 자식의 직접 제공 제거는 원래 부모 지정으로 돌아가며 부모 함수·본문을 복제하지 않는다. 서로 다른 함수 ID의 implementation 상속은 기존 IMPLEMENTATION_ID 진단을 유지한다. 이 계약을 별도 자식 함수 생성이나 새로운 상속 의미로 넓히지 않는다.
+
 ## 노드 Task 공개 연결 검증 중
 
 ProjectAI.NodeTask는 현재 graph/node 원본의 실제 정의·시그니처·사용 계약과 노드 소스 해시를 읽고, 표시한 assignment hash로 로컬 준비 작업을 기록한다. 모델 전송은 별도 연결과 정확한 Task·assignment·모델·endpoint·내용/사용량 승인 후에만 시작한다. 일반 Worker의 넓은 도구와 일반 복구 경로는 노드 Task를 거부한다. 실제 노드 capability의 list/read/stage/changes 네 역할만 전달하며 Helper 기억은 이 노드 요청에 보내지 않는다.

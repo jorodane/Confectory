@@ -1,0 +1,240 @@
+{
+  "schema": 1,
+  "status": "registered-direct-dependency-function-reference-verified",
+  "baseWorkCommit": "895ef9119b66ade4ab083548d38a41e6e9fbc8c7",
+  "referenceMain": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+  "stages": [
+    {
+      "log": "registered-call-first-engine.log",
+      "boundary": "TEST deliberately invalid unused registered function was left in the fixture for final Confirm. Catalog/selected invalid-contract refusal worked; the compiler correctly rejected the invalid pack. Restore its original valid declaration after the refusal test.",
+      "sha256": "5f7a71c3fde6e21421f8220a8f04343d486bcce2ec442c59fca400cb553468c4",
+      "tests": [
+        "FAIL RegisteredCallTests.test_registered_direct_function_call_raw_receipts_cold_and_actual_scope"
+      ],
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 23.351
+    },
+    {
+      "log": "registered-call-first-pair.log",
+      "boundary": "Public engine reached two-source compiler Confirm before TEST used entry.to instead of the actual entry.node argument. Actual UI passed external catalog, raw function/manifest CAS, cold fresh acknowledgment, compiler Confirm and readonly foreign reference definition, then TEST used a nonexistent .window-close selector. Correct entry.node and normal data-close.",
+      "sha256": "e7bb67d1693d529ac735b8d1a1781564931cfeccc5c9b49627be46f27bfc80b4",
+      "tests": [
+        "FAIL RegisteredCallTests.test_registered_direct_function_call_raw_receipts_cold_and_actual_scope",
+        "FAIL WebUITests.test_actual_editor_v480_registered_function_reference_and_cold_contract"
+      ],
+      "passed": 0,
+      "failed": 2,
+      "skipped": 0,
+      "seconds": 179.547
+    },
+    {
+      "log": "registered-call-second-pair.log",
+      "boundary": "Combined final product: direct and Pack preview reject raw foreign function/manifest changes and combined owned-plus-registered prospective two MiB; public Run5-17-5/history/cold/foreign ownership refusal; actual readonly catalog/current contract/peer guard/cold fresh acknowledgment/two-source compiler Confirm/readonly foreign definition and preservation.",
+      "sha256": "6402c03e29cf47e77ee155605c6e93257e62d43c1790c46926975f41c5df5bc3",
+      "tests": [
+        "PASS RegisteredCallTests.test_registered_direct_function_call_raw_receipts_cold_and_actual_scope",
+        "PASS WebUITests.test_actual_editor_v480_registered_function_reference_and_cold_contract"
+      ],
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 139.24
+    },
+    {
+      "log": "registered-call-boundary-final-engine.log",
+      "boundary": "Same product, test-only boundary extension for missing owned registration observations, linked selected declarations, oversized selected files and locator-kind changes, followed by the complete public owner workflow.",
+      "sha256": "3f149fe111fd023e395d0925e23dd6bcc97dfe3d744008e2991d322d38dd5c87",
+      "tests": [
+        "PASS RegisteredCallTests.test_registered_direct_function_call_raw_receipts_cold_and_actual_scope"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 99.343
+    },
+    {
+      "log": "registered-call-owner-regression.log",
+      "boundary": "Public registered and owned function calls, existing function/object/node creation, module composition, Pack/EditWorkspace and history.",
+      "sha256": "375708bd1cd53fd6c298b2c04aa4cc7190d34feacd4e2caa4bbb1076e91e3662",
+      "tests": [
+        "PASS ModuleInterfaceTests.test_owned_module_interface_contract_default_atomic_cas_cold_and_actual_consumer",
+        "PASS ModuleInterfaceTests.test_owned_object_module_provider_contract_atomic_cas_cold_and_actual_scope",
+        "PASS ObjectImplementationTests.test_owned_object_new_implementation_contract_group_cas_cold_and_actual_scope",
+        "PASS FeatureBlueprintTests.test_blueprint_disconnected_current_node_body_is_compiled_without_execution",
+        "PASS FeatureBlueprintTests.test_blueprint_existing_feature_calls_use_typed_imports_and_contract_fences",
+        "PASS FeatureBlueprintTests.test_blueprint_fixed_inputs_branch_compiler_reuse_node_replacement_and_legacy_preservation",
+        "PASS FeatureBlueprintTests.test_blueprint_independent_probe_checks_an_unselected_body_without_running_or_publishing",
+        "PASS FeatureBlueprintTests.test_blueprint_invalid_graphs_stale_contracts_and_dominating_values",
+        "PASS FeatureBlueprintTests.test_blueprint_new_feature_registration_contract_group_compiler_and_cold_restore",
+        "PASS FeatureBlueprintTests.test_blueprint_node_diagnostics_static_isolation_and_failed_build_retains_receipt",
+        "PASS FeatureBlueprintTests.test_blueprint_node_only_worker_draft_save_restore_and_compiler_confirm",
+        "PASS FeatureBlueprintTests.test_blueprint_node_task_assignment_scoped_dispatch_adoption_and_cold_no_replay",
+        "PASS FeatureBlueprintTests.test_blueprint_owned_function_reference_call_import_cas_history_and_execution",
+        "PASS FeatureBlueprintTests.test_blueprint_owned_node_creation_removal_review_group_and_cold_restore",
+        "PASS FeatureBlueprintTests.test_blueprint_source_change_during_real_compile_is_not_published",
+        "PASS EditWorkspaceTests.test_shared_drafts_save_restore_preview_selective_confirm_conflict_and_locality",
+        "PASS DraftHistoryTests.test_shared_draft_history_atomic_inverse_cas_restart_branch_and_owner_boundaries",
+        "PASS PackWorkspaceTests.test_development_tools_owned_scope_shared_draft_no_confirm_and_locality",
+        "PASS PackWorkspaceTests.test_target_metadata_owned_sources_no_registry_execution",
+        "PASS PackWorkspaceTests.test_two_contexts_revision_save_reopen_and_locality"
+      ],
+      "passed": 20,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 726.238
+    },
+    {
+      "log": "registered-call-ui-regression.log",
+      "boundary": "Existing Home, subset Review, node creation, owned function calls, module interface, new function and object provider UI.",
+      "sha256": "b044bdd1a602aaa9d08b5674297f7eec399644be33a1c94a7a221668be4571aa",
+      "tests": [
+        "PASS WebUITests.test_actual_editor_original_v196_home_project_and_create_flow",
+        "PASS WebUITests.test_actual_editor_review_compact_numeric_and_subset_caption",
+        "PASS WebUITests.test_actual_editor_v480_blueprint_node_creation_removal_and_cold_source_groups",
+        "PASS WebUITests.test_actual_editor_v480_existing_feature_reference_call_and_cold_contract",
+        "PASS WebUITests.test_actual_editor_v480_module_interface_contract_default_and_cold_rebase",
+        "PASS WebUITests.test_actual_editor_v480_new_feature_contract_graph_group_and_cold_source",
+        "PASS WebUITests.test_actual_editor_v480_object_module_provider_cold_contract_and_own_view"
+      ],
+      "passed": 7,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 521.907
+    },
+    {
+      "log": "registered-call-managed-regression.log",
+      "boundary": "Managed Windows/Android compilation only; no native/device execution.",
+      "sha256": "3600de135907287ee6ed87e667fc5091768c0d86154a19544cd4208324db4b5c",
+      "tests": [
+        "PASS EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 205.855
+    },
+    {
+      "log": "registered-call-final-pair.log",
+      "boundary": "After all broad gates, clarify only the public preview field contractBodyReads=0 with selected-function-declaration scope. The existing owned caller graph still reads its node sources. Full extended public direct boundary/Run5-17-5 plus actual UI passed again after that projection change.",
+      "sha256": "c7bd0ae04664c015f757b5acbf01cd286b3efdb0fa96eb563f0fc97a8a416f52",
+      "tests": [
+        "PASS RegisteredCallTests.test_registered_direct_function_call_raw_receipts_cold_and_actual_scope",
+        "PASS WebUITests.test_actual_editor_v480_registered_function_reference_and_cold_contract"
+      ],
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 109.802
+    }
+  ],
+  "claims": {
+    "explicitOwnedAndRegisteredCatalogScopes": true,
+    "onlyRegisteredDirectDependencies": true,
+    "manifestOnlyCatalogAndSelectedFunctionOnlyRead": true,
+    "noExternalImplementationOrProviderBodyReadDuringCatalogOrSelectedContractQuery": true,
+    "noProviderSelectionOrCompilerReceiptOnPreview": true,
+    "max128Packs32RowsPerPage1MiBFileAnd2MiBReadBudget": true,
+    "ownedSourceCasPlusSelectedForeignFunctionAndManifestRawReceipt": true,
+    "directOwnerAlsoEnforcesExternalReceiptAndProspectiveBudget": true,
+    "noForeignEditableSourceOwnership": true,
+    "graphAndTypedImportOneHistoryBatch": true,
+    "valueOnlyColdRestoreWithoutPreviewAuthority": true,
+    "actualExplicitCompilerConfirmAndRun5_17_5": true,
+    "readonlyForeignDefinitionNavigation": true,
+    "sameFunctionParentProviderReuseAlreadyVerified": true,
+    "differentFunctionInheritanceOrNewAbiProfile": false,
+    "staticResourceCount": 31,
+    "nativeDeviceRealAccountPaidModelUserPcInstall": false
+  },
+  "boundaries": [
+    "Stages overlap; do not sum. Failed test assumptions and intermediate proof boundaries are retained.",
+    "The existing owned ProjectPack catalog remains the default. Registered scope reads only explicitly registered direct dependency Pack manifests; transitive-only registrations do not confer callable selection access.",
+    "The dedicated external contract query reads no external implementation/provider body. The ordinary caller graph view still reads its already-owned node sources for preservation and diagnostics. The selected declaration and manifest are read again before owned draft mutation. This is an exact raw receipt fence for that selection, not a filesystem-wide atomic snapshot or final provider selection. Other referenced contracts retain the existing semantic contract-version fence and compiler validation.",
+    "The manifest-only catalog is bounded at128 packs,32 rows/page,1MiB/file and2MiB reads. Creation additionally accounts for owned observed source bytes plus selected external manifest/function bytes under the prospective2MiB guard. External declarations never become owned source units.",
+    "Pure metadata and private input restoration neither compile nor execute a provider. Explicit graph/import Review and compiler Confirm remain required. All execution uses owned local fixtures.",
+    "Same-function object-parent provider reuse is complete and does not require child reimplementation. Existing IMPLEMENTATION_ID refusal for different-function implementation inheritance remains.",
+    "No original ZIP, main branch, Android settings, external account, paid model or user PC installation changes. Managed targets only compile; no native/device claim."
+  ],
+  "sourceSnapshots": {
+    "registered-call-final-frozen-hashes.json": {
+      "examples/editor-home/WebBundle.csbody": "fb2597b75498e923ac359a6f27864b93fab2644f2b3df31b6f94e24e8c38c9c3",
+      "examples/editor-home/ui/blueprint.js": "9acfb960c4674c2f43da0f1b3de205f8414e2040bf9d8cf6a0cf18f99ce12c3a",
+      "packs/edit-workspace/BlueprintCall.csbody": "d83a45ca70f063a2d09cf01c4856c4960ef66bf6284e15b84c9c2b2046deb952",
+      "packs/pack-workspace/Blueprint.csbody": "d17f8b5db9b9438dbad4ecc960444993b3a1a148d7ddde519ecaa3333aa6f0e5",
+      "targets/element-authoring/BlueprintCall.cs": "6f658431d1321e18becb102aa1cd4a0ff8e0486728374897426db4989342b7cb",
+      "targets/element-authoring/Program.cs": "0d09867f1c841fa996f5b0dfef1633a22e0866149c0dad9cb25cdaff46c66c67",
+      "tests/Confectory.Tests/Program.cs": "cb17d66e432b5cbb390cf30c0569d96326fe308e6788afbb5185bedbce9a79f7",
+      "tests/Confectory.Tests/WebUITests.cs": "fbf50718007824b4b2064ef4475d03394b35d0022db6b807ba77451b6e435810",
+      "tests/web/web_ui.py": "2a43b9911f9dcf816e0691b8c207911c150e5f16543571f1ef283659b711eff2",
+      "targets/element-authoring/BlueprintCallableContracts.cs": "4efff7901f64210aaadc27965a7f14d1d6b9cc5dc9d551b73b0e38f3e71d2169",
+      "tests/Confectory.Tests/RegisteredCallTests.cs": "2b693fb6b4c566b792270afceef28efb0b048fbb0ec41633bd68e72e408fc4e0",
+      "tests/web/v480_registered_call.py": "b3de5ca28597e258cf462c2078925cb640debf0e76d65d0c97241ed377406b7d"
+    },
+    "registered-call-published-frozen-hashes.json": {
+      "examples/editor-home/WebBundle.csbody": "fb2597b75498e923ac359a6f27864b93fab2644f2b3df31b6f94e24e8c38c9c3",
+      "examples/editor-home/ui/blueprint.js": "9acfb960c4674c2f43da0f1b3de205f8414e2040bf9d8cf6a0cf18f99ce12c3a",
+      "packs/edit-workspace/BlueprintCall.csbody": "d83a45ca70f063a2d09cf01c4856c4960ef66bf6284e15b84c9c2b2046deb952",
+      "packs/pack-workspace/Blueprint.csbody": "34dc514c064cc288f647dfb8c9e4ab215d6c498283eb57281dac326ae8150b4a",
+      "targets/element-authoring/BlueprintCall.cs": "6f658431d1321e18becb102aa1cd4a0ff8e0486728374897426db4989342b7cb",
+      "targets/element-authoring/Program.cs": "0d09867f1c841fa996f5b0dfef1633a22e0866149c0dad9cb25cdaff46c66c67",
+      "tests/Confectory.Tests/Program.cs": "cb17d66e432b5cbb390cf30c0569d96326fe308e6788afbb5185bedbce9a79f7",
+      "tests/Confectory.Tests/WebUITests.cs": "fbf50718007824b4b2064ef4475d03394b35d0022db6b807ba77451b6e435810",
+      "tests/web/web_ui.py": "2a43b9911f9dcf816e0691b8c207911c150e5f16543571f1ef283659b711eff2",
+      "targets/element-authoring/BlueprintCallableContracts.cs": "4efff7901f64210aaadc27965a7f14d1d6b9cc5dc9d551b73b0e38f3e71d2169",
+      "tests/Confectory.Tests/RegisteredCallTests.cs": "d9910e4ec3aa32c75d6722f966c1c69f91632f36c004eae37661716f7608c875",
+      "tests/web/v480_registered_call.py": "b3de5ca28597e258cf462c2078925cb640debf0e76d65d0c97241ed377406b7d"
+    }
+  },
+  "hostBuilds": {
+    "registered-call-host-budget-build.log": {
+      "sha256": "8897534b8dbec176101b67bfe75267b69ac593c16396023a286c7df7007c4ea6",
+      "tail": [
+        "Build succeeded.",
+        "    0 Warning(s)",
+        "    0 Error(s)",
+        "",
+        "Time Elapsed 00:00:01.53"
+      ]
+    },
+    "registered-call-host-final-build.log": {
+      "sha256": "fe0a3400868a933fdc8d8ab1643ec6aeccd57c6c060779c05da098a3f39e6e14",
+      "tail": [
+        "Build succeeded.",
+        "    0 Warning(s)",
+        "    0 Error(s)",
+        "",
+        "Time Elapsed 00:00:01.36"
+      ]
+    },
+    "registered-call-host-first-build.log": {
+      "sha256": "3373c138da9957c6e84f0f6c1ad10c35eb5a5591b040f4d808332463014bec0e",
+      "tail": [
+        "Build succeeded.",
+        "    0 Warning(s)",
+        "    0 Error(s)",
+        "",
+        "Time Elapsed 00:00:02.60"
+      ]
+    }
+  },
+  "sourceHashes": {
+    "examples/editor-home/WebBundle.csbody": "fb2597b75498e923ac359a6f27864b93fab2644f2b3df31b6f94e24e8c38c9c3",
+    "examples/editor-home/ui/blueprint.js": "9acfb960c4674c2f43da0f1b3de205f8414e2040bf9d8cf6a0cf18f99ce12c3a",
+    "packs/edit-workspace/BlueprintCall.csbody": "d83a45ca70f063a2d09cf01c4856c4960ef66bf6284e15b84c9c2b2046deb952",
+    "packs/pack-workspace/Blueprint.csbody": "34dc514c064cc288f647dfb8c9e4ab215d6c498283eb57281dac326ae8150b4a",
+    "targets/element-authoring/BlueprintCall.cs": "6f658431d1321e18becb102aa1cd4a0ff8e0486728374897426db4989342b7cb",
+    "targets/element-authoring/BlueprintCallableContracts.cs": "4efff7901f64210aaadc27965a7f14d1d6b9cc5dc9d551b73b0e38f3e71d2169",
+    "targets/element-authoring/Program.cs": "0d09867f1c841fa996f5b0dfef1633a22e0866149c0dad9cb25cdaff46c66c67",
+    "tests/Confectory.Tests/Program.cs": "cb17d66e432b5cbb390cf30c0569d96326fe308e6788afbb5185bedbce9a79f7",
+    "tests/Confectory.Tests/RegisteredCallTests.cs": "d9910e4ec3aa32c75d6722f966c1c69f91632f36c004eae37661716f7608c875",
+    "tests/Confectory.Tests/WebUITests.cs": "fbf50718007824b4b2064ef4475d03394b35d0022db6b807ba77451b6e435810",
+    "tests/web/v480_registered_call.py": "b3de5ca28597e258cf462c2078925cb640debf0e76d65d0c97241ed377406b7d",
+    "tests/web/web_ui.py": "2a43b9911f9dcf816e0691b8c207911c150e5f16543571f1ef283659b711eff2"
+  },
+  "images": {
+    "registered-call-contract.png": "61cdae9b721e3980e5ad3ed74e0e538bfe4514569c56b21db861124be95da12e",
+    "registered-call.png": "98bb0e3510e0ed450b94a389ac398c0d543d05bea5242a25f0a4397f827092a5"
+  }
+}
