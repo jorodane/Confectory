@@ -46,6 +46,9 @@ if(endpoint=="closeProject"){
  var closing=Command("close-project",new(){["context"]=selected["context"]!.DeepClone()});
  if(closing["closeRequest"] is not null)Command("close-project",new(){["context"]=selected["context"]!.DeepClone(),["confirmed"]=true});return "{\"accepted\":true}";
 }
+if(endpoint=="nodeTask"){
+ var nodeRequest=args.DeepClone().AsObject();nodeRequest["context"]=selected["context"]!.DeepClone();string nodeAction=nodeRequest["action"]!.GetValue<string>();nodeRequest.Remove("action");return calls.NodeTasks.Invoke(context,nodeAction,nodeRequest.ToJsonString());
+}
 if(endpoint is "startBuild" or "stopBuild" or "buildInfo" or "buildHistory"){
  var buildRequest=new System.Text.Json.Nodes.JsonObject{["context"]=selected["context"]!.DeepClone()};foreach(string field in new[]{"job","target","page","verify"})if(args[field] is not null)buildRequest[field]=args[field]!.DeepClone();
  return calls.BuildJobs.Invoke(context,endpoint switch{"startBuild"=>"start","stopBuild"=>"stop","buildInfo"=>"info",_=>"history"},buildRequest.ToJsonString());

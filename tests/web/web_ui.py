@@ -39,6 +39,11 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
   main=project/'main.celem';main.write_text(main.read_text().replace('{','{ use function ReferenceApi::Work;use implementation ReferenceApi::Body;',1))
   source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+'registry ReferenceApi '+json.dumps(str(ref/'pack.cpack'))+';dependency ReferenceApi version "1";'+source[index:])
  env['CONFECTORY_WEB_PROJECT']=str(manifest)
+ if kind=='node-tasks':
+  fixture=report['nodeTaskFixture']
+  (project/'NodeValue.celem').write_text(fixture['feature']);(project/'NodeValueBody.celem').write_text('implementation Example.ButtonGame::NodeValueBody for Example.ButtonGame::NodeValue (int n) -> int {blueprint common "node-value.graph.json";}')
+  (project/'node-value.graph.json').write_text(json.dumps(fixture['graph']));(project/'calculate.node.json').write_text(json.dumps(fixture['node']))
+  source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+'element NodeValue function "NodeValue.celem";element NodeValueBody implementation "NodeValueBody.celem";'+source[index:])
  if kind=='build-jobs':
   env['CONFECTORY_BUILD_UI_SENTINEL']=str(root/'build-sentinel.txt')
   body=project/'main.csbody';body.write_text('System.IO.File.AppendAllText(Environment.GetEnvironmentVariable("CONFECTORY_BUILD_UI_SENTINEL")!,"run\\n");\n'+body.read_text())
@@ -155,6 +160,9 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
     elif kind=='local-augment':
      from v424_local_augment import verify_local_augment
      verify_local_augment(page,project,mount,send,envelope,settle,restart_actual_host)
+    elif kind=='node-tasks':
+     from v424_node_tasks import verify_node_tasks
+     verify_node_tasks(page,project,mount,send,envelope,settle,restart_actual_host)
     elif kind=='build-jobs':
      from v424_build_jobs import verify_build_jobs
      verify_build_jobs(page,project,report,env,mount,send,envelope,settle,restart_actual_host)

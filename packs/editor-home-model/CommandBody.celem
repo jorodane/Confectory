@@ -62,6 +62,7 @@ import Confectory.ProjectAI::Propose as Propose (string,string,string,string) ->
 import Confectory.ProjectAI::CancelPlanned as CancelPlanned (string,string,string,string) -> void;
 import Confectory.ProjectAI::Select as SelectCard (string,string,string) -> string;
 import Confectory.ProjectAI::CancelWork as CancelWork (string,string,string) -> void;
+import Confectory.ProjectAI::NodeTask as NodeTask (string,string,string) -> string;
 import Confectory.ProjectAI::Work as WorkTask (string,string,string,string) -> string;
 import Confectory.ProjectAI::Adopt as AdoptTask (string,string,string,string,string[],string) -> string;
 import Confectory.ProjectAI::PrepareRecovery as PrepareRecovery (string,string,string) -> string;

@@ -136,6 +136,20 @@ public sealed class WebUITests : TestCase
         var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/web_ui.py"),Fixture.Repo,report,"startup-restore"},timeoutSeconds:180);
         True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS actual startup metadata delay"),run.Stdout+run.Stderr);
     }
+    public void test_actual_editor_v424_node_task_plan_cas_approval_and_cold_history()
+    {
+        string feature="function Example.ButtonGame::NodeValue (int n) -> int {}";
+        var graph=System.Text.Json.Nodes.JsonNode.Parse("""
+        {"schema":1,"profile":"sync-acyclic-v1","feature":"Example.ButtonGame::NodeValue","entry":"calculate","nodes":[{"id":"calculate","kind":"code","control":"next","intent":"Add four to the input","signature":{"args":[{"type":"int","name":"value"}],"return":"int"},"arguments":{"value":{"input":"n"}},"implementation":"calculate.node.json"}],"edges":[{"from":"calculate","port":"next","to":"exit:done"}],"exits":{"done":{"node":"calculate"}}}
+        """)!;
+        graph["contractHash"]=FeatureBlueprint.ContractHash(new Parser(feature,"<owned UI fixture>").ParseElement());
+        var described=FeatureBlueprint.Execute(new System.Text.Json.Nodes.JsonObject{["operation"]="featureBlueprintDescribe",["featureSource"]=feature,["graph"]=graph.DeepClone()});
+        var built=new Builder(Path.Combine(Fixture.Repo,"examples/editor-home/project.cpack"),"linux").Build();
+        built["nodeTaskFixture"]=new System.Text.Json.Nodes.JsonObject{["feature"]=feature,["graph"]=graph,["node"]=new System.Text.Json.Nodes.JsonObject{["schema"]=1,["node"]="calculate",["definitionHash"]=described["nodes"]![0]!["definitionHash"]!.DeepClone(),["source"]="return value + 4;"}};
+        string report=Path.Combine(f.Root,"node-tasks.json");File.WriteAllText(report,built.ToJsonString());
+        var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/web_ui.py"),Fixture.Repo,report,"node-tasks"},timeoutSeconds:420);
+        True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS actual node Task plan"),run.Stdout+run.Stderr);
+    }
     public void test_actual_editor_v424_build_only_jobs_artifacts_cancel_and_cold_history()
     {
         string probe=Path.Combine(f.Root,"lease-probe");Directory.CreateDirectory(probe);

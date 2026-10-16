@@ -1,0 +1,13 @@
+implementation Confectory.ProjectAI::NodeTaskBody for Confectory.ProjectAI::NodeTask (string session,string operation,string payload) -> string {
+import Confectory.DevelopmentTools::OpenNode as OpenNode (string,string,string,string,string,string) -> string;
+import Confectory.DevelopmentTools::Snapshot as ToolsSnapshot (string) -> string;
+import Confectory.DevelopmentTools::BindOrigin as BindOrigin (string,string,string,string) -> void;
+import Confectory.DevelopmentTools::Close as ToolsClose (string) -> void;
+import Confectory.EditWorkspace::Read as Read (string,string) -> string[];
+import Confectory.WorkerTasks::Assign as Assign (string,string,long,string,string,string,string) -> string;
+import Confectory.WorkerTasks::Inspect as Inspect (string,string) -> string;
+import Confectory.WorkerTasks::Lease as Lease (string,string) -> string;
+import Confectory.WorkerTasks::Start as WorkerStart (string,string,long,string,string,string,string) -> string;
+import Confectory.Agent::Open as AgentOpen (string) -> string;
+import Confectory.WorkerTasks::CancelReady as CancelReady (string,string,long,string,string) -> void;
+body common "NodeTask.csbody";}

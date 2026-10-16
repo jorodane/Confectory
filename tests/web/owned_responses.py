@@ -15,7 +15,14 @@ class OwnedResponses:
      body=json.loads(self.rfile.read(size));fixture.requests.append(body)
      assert body['store'] is False and body['parallel_tool_calls'] is False
      serialized=json.dumps(body);assert 'toolCapability' not in serialized and 'credentialReference' not in serialized and 'authorization' not in serialized
-     request=json.loads(body['input'][0]['content']);project=request['projectId'];assert request['context']['projectId']==project
+     request=json.loads(body['input'][0]['content']);project=request['projectId'];node_task=(request.get('task') or {}).get('specification',{}).get('kind')=='blueprint-node'
+     if node_task:
+      assert request['context'] is None
+      assert request['task']['specification']['blueprintNode']['assignment']['id']==fixture.target
+      assert {tool['name'] for tool in body['tools']}=={'workspace_list','workspace_read','workspace_stage','workspace_changes'}
+      for tool in body['tools']:
+       if 'id' in tool['parameters']['properties']:assert tool['parameters']['properties']['id']['enum']==[fixture.target]
+     else:assert request['context']['projectId']==project
      tools={item['name'] for item in body['tools']};assert request['kind']!='worker-task' or 'workspace_stage' in tools
      def message(text):return {'type':'message','role':'assistant','content':[{'type':'output_text','text':text}]}
      def call(name,args):return {'type':'function_call','call_id':'owned-'+name,'name':name,'arguments':json.dumps(args)}
@@ -26,7 +33,11 @@ class OwnedResponses:
       output=message(json.dumps({'cards':cards}))
      elif not outputs:output=call('workspace_read',{'projectId':project,'id':fixture.target})
      elif len(outputs)==1:
-      unit=json.loads(outputs[0]['output']);output=call('workspace_stage',{'projectId':project,'id':fixture.target,'expectedRevision':unit['revision'],'text':unit['text']+'\n// owned HTTP Worker draft; human review required\n'})
+      unit=json.loads(outputs[0]['output'])
+      if node_task:
+       record=json.loads(unit['text']);record['definitionHash']=unit['assignment']['definitionHash'];record['source']='return value + 5;'
+       output=call('workspace_stage',{'projectId':project,'id':fixture.target,'expectedRevision':unit['revision'],'expectedHash':unit['textHash'],'text':json.dumps(record)})
+      else:output=call('workspace_stage',{'projectId':project,'id':fixture.target,'expectedRevision':unit['revision'],'text':unit['text']+'\n// owned HTTP Worker draft; human review required\n'})
      else:
       assert json.loads(outputs[-1]['output'])['applied'] is True
       output=message('Owned protocol Worker staged source. Human review and explicit outcome evidence required.')

@@ -1,0 +1,6 @@
+implementation Confectory.EditorHome.Model::NodeTasksBody for Confectory.EditorHome.Model::NodeTasks (string session,string operation,string payload) -> string {
+import Confectory.EditorHome.Model::Command as Command (string,string,string) -> string;
+import Confectory.PackWorkspace::BorrowDraft as Draft (string) -> string;
+import Confectory.EditWorkspace::List as List (string) -> string[];
+import Confectory.EditWorkspace::Status as Status (string,string) -> string[];
+body common "NodeTasks.csbody";}

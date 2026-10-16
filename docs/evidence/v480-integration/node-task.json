@@ -1,0 +1,386 @@
+{
+  "scope": "Existing Blueprint source node Task planning, exact approval, scoped production dispatch, source-pin concurrency, human compiler adoption and durable lifecycle after v480 handoff",
+  "status": "Focused node Task/common Web paths passed; native pixel capture unavailable; broader v480 integration in progress",
+  "baseCommit": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+  "referenceReceipt": "reference-receipt.json",
+  "gates": [
+    {
+      "name": "first public consumer compile",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 0.725,
+      "passedCases": [],
+      "skippedCases": [],
+      "boundary": "Failed only because the fixture imported Adopt with the wrong parameter order. No functional pass.",
+      "logSha256": "72f5f54a53d99fe0c139830e89cbf2ec8547b8828221d32e5edbef17350af0fe"
+    },
+    {
+      "name": "first public node Task consumer",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 39.518,
+      "passedCases": [
+        "FeatureBlueprintTests.test_blueprint_node_task_assignment_scoped_dispatch_adoption_and_cold_no_replay"
+      ],
+      "skippedCases": [],
+      "boundary": "Actual public owner, durable assignment, exact approval, narrow actual Agent tools, compiler adoption and cold facts. Before later source-pin and supporting-source refinements.",
+      "logSha256": "f76c8cce0977e5461716b21869623da7228d89d96c635f9521009a7bb2f789b3"
+    },
+    {
+      "name": "first common Home composition",
+      "passed": 1,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 56.683,
+      "passedCases": [
+        "FeatureBlueprintTests.test_blueprint_node_task_assignment_scoped_dispatch_adoption_and_cold_no_replay"
+      ],
+      "skippedCases": [],
+      "boundary": "Engine passed; Home failed compiling a new local action variable shadowing an outer variable. Product local renamed nodeAction.",
+      "logSha256": "0698ca540b94df8896066bf73cf111f8dc27b4a1eba665e550252e22160df4c6"
+    },
+    {
+      "name": "common Home first runtime attempt",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 63.405,
+      "passedCases": [],
+      "skippedCases": [],
+      "boundary": "Failed only expecting English refused text; the product showed its established Korean source error and retained input. Test expectation corrected.",
+      "logSha256": "55844f02b0b4f986e99c17f3cc0d1feb6549c22d343b618c503f31ad53050c40"
+    },
+    {
+      "name": "common Home ready cancellation",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 11.604,
+      "passedCases": [],
+      "skippedCases": [],
+      "boundary": "Reached plan/assignment/input/cold history; actual ready cancellation incorrectly used proposal-only CancelPlanned. Added the real node ready-only role and routed node Tasks separately.",
+      "logSha256": "e0c4e7f7782623a2951338ca40a4d2de8fa99b872defdae0e9c012326d163323"
+    },
+    {
+      "name": "node ready cancellation and first UI acceptance",
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 42.105,
+      "passedCases": [
+        "FeatureBlueprintTests.test_blueprint_node_task_assignment_scoped_dispatch_adoption_and_cold_no_replay",
+        "WebUITests.test_actual_editor_v424_node_task_plan_cas_approval_and_cold_history"
+      ],
+      "skippedCases": [],
+      "boundary": "Engine and actual Home passed; local idempotent ready cancellation starts no Agent. Before supporting graph adoption and source pin.",
+      "logSha256": "3bd5efd00359605288694eadb6e1275ed0e01085b4dd69b2f4f265e30cbb5427"
+    },
+    {
+      "name": "first production Responses loopback attempt",
+      "passed": 1,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 94.896,
+      "passedCases": [
+        "FeatureBlueprintTests.test_blueprint_node_task_assignment_scoped_dispatch_adoption_and_cold_no_replay"
+      ],
+      "skippedCases": [],
+      "boundary": "Engine passed. UI stopped before dispatch because an overlapping node panel covered the Worker controls. Explicitly focused the assigned Worker, retained focus and used the actual window workflow.",
+      "logSha256": "fc2d914b80a1734646f798763eec9d66250505118c180167bf4d602e4162bde3"
+    },
+    {
+      "name": "production Responses loopback and human graph adoption",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 59.984,
+      "passedCases": [
+        "WebUITests.test_actual_editor_v424_node_task_plan_cas_approval_and_cold_history"
+      ],
+      "skippedCases": [],
+      "boundary": "Actual common Home exact approval, production HTTP adapter and scoped tools, separately selected supporting graph, compiler adoption receipt and cold no replay. Before after-dispatch source pin.",
+      "logSha256": "2c236bc55081aaeed2ba7dfa55e9c69a0c72a6919c7e58ac5a47c6fc78b22a86"
+    },
+    {
+      "name": "affected Blueprint Worker Home and managed regression",
+      "passed": 14,
+      "failed": 2,
+      "skipped": 0,
+      "seconds": 509.261,
+      "passedCases": [
+        "FeatureBlueprintTests.test_blueprint_existing_feature_calls_use_typed_imports_and_contract_fences",
+        "FeatureBlueprintTests.test_blueprint_fixed_inputs_branch_compiler_reuse_node_replacement_and_legacy_preservation",
+        "FeatureBlueprintTests.test_blueprint_invalid_graphs_stale_contracts_and_dominating_values",
+        "FeatureBlueprintTests.test_blueprint_node_diagnostics_static_isolation_and_failed_build_retains_receipt",
+        "FeatureBlueprintTests.test_blueprint_node_only_worker_draft_save_restore_and_compiler_confirm",
+        "FeatureBlueprintTests.test_blueprint_node_task_assignment_scoped_dispatch_adoption_and_cold_no_replay",
+        "FeatureBlueprintTests.test_blueprint_source_change_during_real_compile_is_not_published",
+        "WebUITests.test_actual_editor_startup_serializes_owned_restore_before_helper_refresh",
+        "WebUITests.test_actual_editor_v318_workspace_lifecycle_presentation_restart",
+        "WorkerTasksTests.test_durable_supervision_recovery_live_worker_and_process_restart_without_replay",
+        "AugmentTests.test_chief_only_proposals_drafts_verification_history_and_locality",
+        "AugmentTests.test_registered_augment_is_inactive_without_public_contract_selection",
+        "EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only",
+        "EntryHomeTests.test_fresh_entry_home_project_contracts_and_consumer_locality"
+      ],
+      "skippedCases": [],
+      "boundary": "Product frozen: 14 passed, 2 failed. All seven Blueprint cases, Worker, Augment, startup, Workspace, managed profiles and Verify passed. Full Home and local Augment failed in the extended test server: non-worker task:null was treated as a dictionary. Before source pin.",
+      "logSha256": "7a6aa5dc23076cb1c6ac5c2bbfcad8c543e400ff4e31be09cc72050087e09f1c"
+    },
+    {
+      "name": "ordinary Home and local proposals after fixture correction",
+      "passed": 2,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 300.339,
+      "passedCases": [
+        "WebUITests.test_actual_editor_and_button_game_common_web_transport_chromium",
+        "WebUITests.test_actual_editor_v424_local_augment_without_account_or_model"
+      ],
+      "skippedCases": [],
+      "boundary": "Product unchanged; only the fixture null-task check and expanded UI coverage changed. Both formerly failing ordinary UI gates passed. New pending-input node UI case stopped at an overlapping Browser in its setup; batch remains failed.",
+      "logSha256": "7a35b2921ef80deb29f3b82ca9e9febffb3ef9345ae634ac1dbe24b14173bc66"
+    },
+    {
+      "name": "actual after-dispatch peer edit RED",
+      "passed": 0,
+      "failed": 2,
+      "skipped": 0,
+      "seconds": 62.395,
+      "passedCases": [],
+      "skippedCases": [],
+      "boundary": "Engine reproduced actual read AND changes returning peer body after the approved baseline: blocked=0, leak=True. Owned local fixture only. The UI pending-input guard passed but its subsequent test click was outside the caption span; changed the target to the actual header. Whole batch failed.",
+      "logSha256": "b71dbe5c2ae8c93dcfc99da17ec41e4864a221d8a1fa2fbc9f4a1de6e2423889"
+    },
+    {
+      "name": "final source pin focused web and managed paths",
+      "passed": 4,
+      "failed": 0,
+      "skipped": 1,
+      "seconds": 281.089,
+      "passedCases": [
+        "FeatureBlueprintTests.test_blueprint_node_only_worker_draft_save_restore_and_compiler_confirm",
+        "FeatureBlueprintTests.test_blueprint_node_task_assignment_scoped_dispatch_adoption_and_cold_no_replay",
+        "WebUITests.test_actual_editor_v424_node_task_plan_cas_approval_and_cold_history",
+        "EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only"
+      ],
+      "skippedCases": [
+        "Checkpoint7Tests.test_context_tools_real_workspace_capture_projection_confirm_and_locality: Native scoped pixel capture requires DISPLAY; semantic assertions ran only"
+      ],
+      "boundary": "Final product source: actual node engine/concurrency, legacy node capability, expanded real Home HTTP/approval/pending-input/adoption/cold UI and Windows/Android managed compilation passed. Native scoped pixel capture skipped without DISPLAY; its semantic assertions ran but locality/capture after Skip did not. This require-runtime batch is not reported as a full pass.",
+      "logSha256": "eee1e74a1395262e20effadbab45691a1a4dfaf1e1645ecf4ec86d42c8fe083f"
+    },
+    {
+      "name": "final peer-stage and general capability consumers",
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 59.115,
+      "passedCases": [
+        "FeatureBlueprintTests.test_blueprint_node_only_worker_draft_save_restore_and_compiler_confirm",
+        "FeatureBlueprintTests.test_blueprint_node_task_assignment_scoped_dispatch_adoption_and_cold_no_replay"
+      ],
+      "skippedCases": [],
+      "boundary": "After test-only expansion: peer read/changes/stage all refuse, including a stage supplied with the correct peer revision/hash; peer body retained. Own stage remains readable. A separate general capability actually reads/stages/returns changes/restores the owned function without a DISPLAY. Product source unchanged since final UI and managed paths.",
+      "logSha256": "45a49a928efd510d87c475c2a4430bed6c0b93e4a6fcc73bd274693a3d4761fa"
+    }
+  ],
+  "overlap": "Cases repeated across stages are not additive. Failed and skipped batches retain their outcomes. The broad regression predates source pin. Final source-pin coverage includes actual web, node and general tools plus managed profiles; only tests expanded afterwards. No full-v480 or native-device acceptance claim.",
+  "verifiedBehavior": [
+    "metadata-only exact definition/signature/used-import/current-source inspection without Agent dispatch",
+    "assignment hash binds stable node ID, definition hash and node text hash; durable idempotent ready Task under actual chief owner",
+    "local planning, cold task retention and ready cancellation do not activate a provider",
+    "exact project/task/assignment/model/endpoint and separate content/usage approval before dispatch",
+    "ordinary Work refuses typed node Tasks; node capability exposes exactly list/read/stage/changes for one ID",
+    "real Agent consumer refuses graph, other node, declaration, create and Confirm tools",
+    "real production Responses HTTP projection omits capability and authorization and sends no Helper memory/context for node requests",
+    "no HTTP request before required explicit UI choices; real scoped read/stage protocol and current definition receipt",
+    "definition change refuses before Agent; semantic edge ordering preserves assignment and permits actual dispatch without node reimplementation",
+    "actual after-dispatch peer edit refuses read, raw changes and stage even when correct peer CAS metadata is supplied",
+    "only successful own stage advances the private source pin; Worker reads its own accepted result",
+    "general capability actually reads/stages/returns changes/restores an owned function without node source pin",
+    "ordinary source revision/content CAS, source lease/ownership, no automatic resubmission or external request replay",
+    "unsent raw node input blocks assignment and remains intact; user reason/selection survive private cold presentation",
+    "explicit new-node-task review after cancellation reads current sources without assigning or dispatching automatically",
+    "compiler-backed user Review/Confirm may include exactly assigned node plus explicitly selected planned supporting graph/contracts",
+    "receipt separates taskSourceIDs and supportingSourceIDs; user graph changes are not Worker authorship",
+    "only awaiting verification progresses to completed after user goal acceptance and compiler/current-source verification",
+    "cold completion and setup retain facts without reconnecting process grants or replaying requests",
+    "normal actual fixture project execution yields9 after confirmed node implementation; UI gate does not launch the project",
+    "26 pinned canonical/exact web resources plus the generated common client",
+    "main local ref, original archives and Android settings preserved"
+  ],
+  "limits": {
+    "nodeTaskInputChars": 16384,
+    "consumerInputChars": 8192,
+    "planChars": 24576,
+    "reasonChars": 4096,
+    "nodeListPageSize": 32,
+    "existingTaskStoreCapacity": 1024
+  },
+  "sourceFiles": [
+    {
+      "path": "examples/editor-home/Main.celem",
+      "sha256": "d2a9a7c03a8191f6b9c3425452eae18d8560bdb71145357c439191681c8f27b9"
+    },
+    {
+      "path": "examples/editor-home/Verify.celem",
+      "sha256": "ab44f80e4a54b9e7f12db03230920d45c7c214ff4952525c6c1ab2cbcaf29062"
+    },
+    {
+      "path": "examples/editor-home/VerifyShell.celem",
+      "sha256": "7df70b3b5c1d7baa477c9e9eb6d6318592eb57f96be563af61abc3eecdb6c310"
+    },
+    {
+      "path": "examples/editor-home/WebBundle.csbody",
+      "sha256": "18b6252c8226dbeb73ee95be4cf3300625c24940fdce4b8f1931f1a14ae555f3"
+    },
+    {
+      "path": "examples/editor-home/WebInvoke.csbody",
+      "sha256": "3a6e1422ad373b78edfe4b868e7c0542ed9b3e88a52a28c1ae0c76522d4829a2"
+    },
+    {
+      "path": "examples/editor-home/WebInvokeBody.celem",
+      "sha256": "1e61bf18b0925317a362cedc1d2fcad697f798312d9547abd2f1c7b6af4404dd"
+    },
+    {
+      "path": "examples/editor-home/WebState.csbody",
+      "sha256": "fd0a02fbf7005982923b825a7ead49ca414650320ffc6517cce402130064eb4d"
+    },
+    {
+      "path": "examples/editor-home/ui/app.js",
+      "sha256": "9915211581ed33ada41d31d9de255b3f04ab5eb63b1afc311ed50906d9b73596"
+    },
+    {
+      "path": "examples/editor-home/ui/consumer.css",
+      "sha256": "15ed63ed66856bccab2ae05b4c65fb50b39a74b95433fc00323172bae21bd80d"
+    },
+    {
+      "path": "examples/editor-home/ui/node-tasks.js",
+      "sha256": "415215f33bfc171630d7aeeaf9f00a1e68ca823a6c214e25591784aedcd33247"
+    },
+    {
+      "path": "examples/editor-home/ui/workspace-host.js",
+      "sha256": "a36d35b80562153fd07970f53650faf15e1e14988ca9933360b29ef53afa7b16"
+    },
+    {
+      "path": "packs/development-tools/Invoke.csbody",
+      "sha256": "0bd08a833843202f3de97b7b0b43eba1c2d6790804600fe151f17deadfae42fd"
+    },
+    {
+      "path": "packs/development-tools/OpenNode.csbody",
+      "sha256": "82f7c45969c0eb26cbac1d219dca51e7e5bce0590a90fefa37eeeac35b82e3a7"
+    },
+    {
+      "path": "packs/development-tools/README.md",
+      "sha256": "ccc5efbbff7fc123d72b2dd83bdb3f423873d6aeec2349ec319d0f6037ffa360"
+    },
+    {
+      "path": "packs/editor-home-model/Command.csbody",
+      "sha256": "3f889e2cf29943367822aa4b46f208dbd838812d874ac3376dc063bf27ad5be9"
+    },
+    {
+      "path": "packs/editor-home-model/CommandBody.celem",
+      "sha256": "18acedcb91aee5f36dc8a8bceed1f7f3359d94a0aff93843ec9efff77a0da889"
+    },
+    {
+      "path": "packs/editor-home-model/NodeTasks.celem",
+      "sha256": "466fffa1e7a3654688cbd19fb1c58107b59baaa53f7980e51491360496e611a4"
+    },
+    {
+      "path": "packs/editor-home-model/NodeTasks.csbody",
+      "sha256": "67b035ce67346ceecd73a76931fff60170665611c0efe905877ede8131092e21"
+    },
+    {
+      "path": "packs/editor-home-model/NodeTasksBody.celem",
+      "sha256": "dcf906177c070d1b97a0138b96e534b4760e9546fe8159d946a2a7e0fa634cf7"
+    },
+    {
+      "path": "packs/editor-home-model/pack.cpack",
+      "sha256": "ebc9d24ffa214e14926028a08f97fe83c86d7cd69a6cc783f6a2fb3e2552a91d"
+    },
+    {
+      "path": "packs/project-ai/Adopt.csbody",
+      "sha256": "746b6845e3efeb199597606e58df87fe7c3886e04ab73278bb8171a23d063ae7"
+    },
+    {
+      "path": "packs/project-ai/NodeTask.celem",
+      "sha256": "6f2622138316669b93db3c859229e28e4d087dc18d2c13b0999aa1da87dceaf3"
+    },
+    {
+      "path": "packs/project-ai/NodeTask.csbody",
+      "sha256": "1ced4ec297477e62518ce10e6ae5060167a7f630ea8a15d2b20af0209e002afd"
+    },
+    {
+      "path": "packs/project-ai/NodeTaskBody.celem",
+      "sha256": "b22033bad343191cd982b86ca83d3b070688ad1dd65db13dd5e04fa25f673a4e"
+    },
+    {
+      "path": "packs/project-ai/PrepareRecovery.csbody",
+      "sha256": "36ded59a37361b2dad2c4c6b8058e91a826a9036b833285513289d8e97cf80c9"
+    },
+    {
+      "path": "packs/project-ai/README.md",
+      "sha256": "9fcd6815ee0eb02eedd2365079cfcef81924a6170739a8e38cf4b418edc2f659"
+    },
+    {
+      "path": "packs/project-ai/Work.csbody",
+      "sha256": "2357c29ce2ced3a3ee03b1f042cbc50d4cd98debca20e2d01bb2e0a847ae18e5"
+    },
+    {
+      "path": "packs/project-ai/pack.cpack",
+      "sha256": "f8d924e8f85c166744296fac3dfd77b738f2ce5a63693f719e157c1397e6da0d"
+    },
+    {
+      "path": "tests/Confectory.Tests/FeatureBlueprintTests.cs",
+      "sha256": "c5e4c48970ee3b1b32488c73fd4297c690b7949bec0fa33138ebcd867945102c"
+    },
+    {
+      "path": "tests/Confectory.Tests/WebUITests.cs",
+      "sha256": "a94875d5c4c38fbd02022e2ffcd10ce4430f1a6471c84b79d8878bf100d86985"
+    },
+    {
+      "path": "tests/web/owned_responses.py",
+      "sha256": "070a2cd47aaf361857ce54c4fa4f29f17df1c459f07920b6b6bb3e9d71a188dd"
+    },
+    {
+      "path": "tests/web/v424_node_tasks.py",
+      "sha256": "e0992bf67a4df156cca1eb19387f227cbfba15382cde93668fed85149ef5da12"
+    },
+    {
+      "path": "tests/web/web_ui.py",
+      "sha256": "4b4d1cf6cce568930a953ff5b82f00f386af734a403f5fd0febc84087c21699e"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "docs/evidence/v480-integration/node-task-plan.png",
+      "sha256": "5c2d4aaac977c22879fbb9e87bb87af7640de16e995d527c0fc54e96e5462424",
+      "scope": "Actual common Home metadata-only node plan, existing sync-acyclic-v1; not the new v480 feature canvas."
+    },
+    {
+      "path": "docs/evidence/v480-integration/node-task-adoption.png",
+      "sha256": "fcd1ad97a7b958458509ac8fb9e93a404c4e038025986ac3e4dc8a19bef993aa",
+      "scope": "Actual separately selected node and user graph Review after production loopback scoped work, before compiler adoption."
+    }
+  ],
+  "nativeCapture": {
+    "status": "not verified",
+    "reason": "DISPLAY unset; Xvfb/xvfb-run unavailable",
+    "semanticAssertions": "Executed before the existing test Skip; not counted as a full passing case",
+    "alternative": "Final general scoped source consumer ran actual public read/stage/changes/restore without GUI."
+  },
+  "limitations": [
+    "Existing owned graph/node sources only; new graph/feature creation and explicit migration UI remain in progress.",
+    "Current compiler profile sync-acyclic-v1; v480 prototype version2, ref/out/multiple outputs and new scheduling semantics are separate compiler work.",
+    "Selected Windows/Android managed compilation is not physical device/UI acceptance.",
+    "Production provider exercised only through an owned loopback Responses fixture; no real account, paid model call, online service activation or deployment.",
+    "Supporting source adoption does not create ownership or allow unrelated source IDs.",
+    "Whole v480 and the remaining integration map are unfinished."
+  ],
+  "ordinaryGitCheckout": {
+    "status": "pending implementation commit"
+  }
+}

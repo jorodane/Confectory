@@ -174,4 +174,6 @@ provide Confectory.EditorHome.Model::BuildJobs with Confectory.EditorHome.Model:
 provide Confectory.ProjectExecution::Build with Confectory.ProjectExecution::BuildBody;
 provide Confectory.ProjectExecution::BuildQuery with Confectory.ProjectExecution::BuildQueryBody;
 provide Confectory.ProjectExecution::StopBuilds with Confectory.ProjectExecution::StopBuildsBody;
+provide Confectory.EditorHome.Model::NodeTasks with Confectory.EditorHome.Model::NodeTasksBody;
+provide Confectory.ProjectAI::NodeTask with Confectory.ProjectAI::NodeTaskBody;
 }

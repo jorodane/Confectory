@@ -1,0 +1,1 @@
+function Confectory.ProjectAI::NodeTask (string session,string operation,string payload) -> string {provide Confectory.ProjectAI::NodeTask with Confectory.ProjectAI::NodeTaskBody;}

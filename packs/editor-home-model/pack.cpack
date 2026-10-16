@@ -25,4 +25,5 @@ element CreateSession function "CreateSession.celem"; element CreateSessionBody 
 element Command function "Command.celem"; element CommandBody implementation "CommandBody.celem";
 element Snapshot function "Snapshot.celem"; element SnapshotBody implementation "SnapshotBody.celem";
 element CloseSession function "CloseSession.celem"; element CloseSessionBody implementation "CloseSessionBody.celem";
+element NodeTasks function "NodeTasks.celem"; element NodeTasksBody implementation "NodeTasksBody.celem";
 }

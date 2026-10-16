@@ -1,0 +1,17 @@
+if(operation is not ("list" or "inspect" or "assign")||payload.Length>8192)throw new ArgumentException("Bounded node Task query required");
+var state=AppDomain.CurrentDomain.GetData("Confectory.EditorHome."+session) as object[]??throw new ObjectDisposedException("Entry/home session");
+lock(state){
+ if((bool)state[6])throw new ObjectDisposedException("Entry/home session");var model=(System.Text.Json.Nodes.JsonObject)state[3];var selected=model["selected"]??throw new InvalidOperationException("Open the owned project first");var input=System.Text.Json.Nodes.JsonNode.Parse(payload)!.AsObject();string context=selected["context"]!.ToString();
+ if(input["context"]?.ToString()!=context)throw new InvalidOperationException("Node Task project context changed");
+ if(operation!="list"){
+  var after=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(session,"node-task-"+operation,payload))!;
+  if(after["status"]?.ToString().StartsWith("Error:",StringComparison.Ordinal)==true)throw new InvalidOperationException("Node Task operation refused; inspect current source and Helper scope");
+  if(after["nodeTaskResult"]?["context"]?.ToString()!=context)throw new InvalidOperationException("Node Task result scope changed");
+  return after["nodeTaskResult"]!["result"]!.ToJsonString();
+ }
+ var views=(System.Collections.Generic.Dictionary<string,string>)state[9];if(!views.TryGetValue(context,out string? view))throw new InvalidOperationException("Open this project's source workspace first");string draft=calls.Draft.Invoke(view),prefix=selected["namespace"]!.ToString()+"::",query=input["query"]?.GetValue<string>()??"";int page=input["page"]?.GetValue<int>()??0;
+ if(page<0||query.Length>256)throw new ArgumentException("Bounded explicit node page required");var ids=new System.Collections.Generic.List<string>();
+ foreach(string id in calls.List.Invoke(draft))if(id.StartsWith(prefix,StringComparison.Ordinal)&&id.Contains(query,StringComparison.OrdinalIgnoreCase)&&calls.Status.Invoke(draft,id)[1]=="blueprint-node")ids.Add(id);
+ ids.Sort(StringComparer.Ordinal);var rows=new System.Text.Json.Nodes.JsonArray();foreach(string id in System.Linq.Enumerable.Take(System.Linq.Enumerable.Skip(ids,checked(page*32)),32)){var status=calls.Status.Invoke(draft,id);rows.Add(new System.Text.Json.Nodes.JsonObject{["id"]=id,["revision"]=status[4],["dirty"]=status[6]=="dirty"});}
+ return new System.Text.Json.Nodes.JsonObject{["rows"]=rows,["page"]=page,["pageSize"]=32,["total"]=ids.Count}.ToJsonString();
+}
