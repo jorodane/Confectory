@@ -164,8 +164,14 @@
     {
       "log": "object-module-checkout.log",
       "boundary": "Implementation ordinary Git checkout retained CRLF/fresh LF,29 static resources, actual Home startup and tamper refusal.",
-      "sha256": null,
-      "tests": []
+      "sha256": "11ca9a35eb2aea2fbf5f1aa51e2da454019a916d1c1b3718778218c175785713",
+      "tests": [
+        "PASS WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 7.877
     }
   ],
   "claims": {
@@ -225,5 +231,6 @@
   "images": {
     "object-provider-contract.png": "fc15133c217fceba9d173d01af56dddb40f9ce20d91709495f8c3fd74e56a1ce",
     "object-provider.png": "75b28aac9b1ebaf76dac881c1e581878ec3ead04e880c35615a81cf780d70abf"
-  }
+  },
+  "implementationCommit": "75f6ebc1a98881deade4100958e00cfceff50a14"
 }
