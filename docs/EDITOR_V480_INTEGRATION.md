@@ -95,3 +95,5 @@ compiler와 편집기가 같은 결정적 별칭을 사용한다. 유효한 기�
 마지막 검토에서 유효한 기본 import 옆의 기존 별칭을 불필요하게 거부하는 문제와 복원 호출 창의 잘못된 제목을 실제 재현했다(**0/2/0, 91.717초**). 유효한 기본 import를 먼저 확인해 모든 다른 별칭을 보존하도록 고쳤고, 호출 창 제목과 계약 확인 체크박스 배치도 바로잡았다. 기존 별칭이 공존하는 scope의 실제 `23`, 앞선 전체 엔진 경계 및 현재 제목·체크박스 크기·cold 확인·그룹 compiler Confirm·원본 보존을 포함한 최종 공개 엔진/실제 Home UI는 **2/0/0, 149.590초**로 통과했다. 각 단계는 중복 검사이며 합산하지 않는다. [단계별 증거](evidence/v480-integration/call-wrapper.json), [현재 계약 확인](evidence/v480-integration/call-contract.png), [실제 참조 호출](evidence/v480-integration/call-wrapper.png).
 
 UI는 변경된 graph와 import를 함께 검토한다. 실제 파일에 필수 import가 없으면 graph만의 Confirm은 compiler가 거부한다. 일반 원본 부분 선택 모두에 신규 파일 등록 그룹을 강제한다고 표시하지 않는다. 현재 범위는 소유 ProjectPack의 기존 기능이다. 임의 외부 registry 선택, 레거시 자동 전환, 별도 부모 재사용·모듈 화면과 새 실행 profile/ABI는 남은 범위다. main·원본 ZIP·Android 설정을 보존했으며 실제 계정·유료 모델·사용자 PC 설치·네이티브 픽셀/장치 실행은 수행하지 않았다.
+
+참조 호출 구현 `e3921396c1eea7877d02b35fff1c928ff4d11b14`의 일반 Git 체크아웃·CRLF/LF·27개 정적 리소스·실제 Home 시작·변조 거부는 **1/0/0, 7.470초**로 통과했다. 최종 공개 엔진/UI 검사 뒤 제품·테스트 원본 18개의 해시는 유지했다.

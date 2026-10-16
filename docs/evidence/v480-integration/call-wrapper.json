@@ -168,8 +168,14 @@
     {
       "log": "call-wrapper-checkout.log",
       "boundary": "Implementation commit ordinary Git checkout, retained CRLF/fresh LF,27 static resources, actual Home start and tamper refusal.",
-      "sha256": null,
-      "tests": []
+      "sha256": "9464a736bfc581ad931444d423b7abf200aef544c033edc9807837a5c09839c7",
+      "tests": [
+        "PASS WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 7.47
     }
   ],
   "claims": {
@@ -230,5 +236,6 @@
   "images": {
     "call-contract.png": "ee743bfc6582c6848a9316b4b39039efe8bb41d15dd81070eac285d05776609d",
     "call-wrapper.png": "b18aaf738f11875b5fafc87038c1b6356deb3d499bd4cbfdde918daa84e2b0d3"
-  }
+  },
+  "implementationCommit": "e3921396c1eea7877d02b35fff1c928ff4d11b14"
 }
