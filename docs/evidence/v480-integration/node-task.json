@@ -381,6 +381,20 @@
     "Whole v480 and the remaining integration map are unfinished."
   ],
   "ordinaryGitCheckout": {
-    "status": "pending implementation commit"
+    "status": "passed",
+    "implementationCommit": "82f806dc3a6f097a631540e18974958bbcec5c86",
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "seconds": 75.125,
+    "resourceCount": 26,
+    "coverage": [
+      "retained CRLF files after ordinary Git attribute pull",
+      "fresh LF ordinary Git checkout",
+      "actual Home host startup and canonical/exact resource response hashes",
+      "content, invalid UTF-8, BOM, UTF-16, bare CR, byte-budget and binary tamper refusal",
+      "original resource bytes unchanged by startup"
+    ],
+    "logSha256": "41985da0b26d790ba6adaee092f08cfffe52e1072f9385cd2f842997a385380b"
   }
 }
