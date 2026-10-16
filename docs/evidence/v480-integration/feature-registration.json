@@ -193,8 +193,14 @@
     {
       "log": "feature-registration-checkout.log",
       "boundary": "Implementation commit through ordinary Git checkout, retained CRLF/fresh LF,27 static resources, actual Home start and resource tamper refusal.",
-      "sha256": null,
-      "tests": []
+      "sha256": "a1f6b83e26a52efeb9eb12edfffbe092e9fb8ac018812a0ce50a5023dc1f7190",
+      "tests": [
+        "PASS WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 7.994
     }
   ],
   "claims": {
@@ -259,5 +265,6 @@
   "images": {
     "feature-contract.png": "3a78f3864167d5a637cff974a63ace86b4c15d44cc95a8cc213ca8277ae3254b",
     "feature-creation.png": "b862bdf374f5bd4fbaa90e5e7d0622d2903f6c6c326186c6cfa8e3ee12d40d5e"
-  }
+  },
+  "implementationCommit": "14f0d69e3b00083963825282805445ed0697c4f0"
 }
