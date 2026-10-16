@@ -1,0 +1,1 @@
+function Confectory.EditWorkspace::BlueprintImplementationContract (string handle,string owner,string feature,string implementationId,string contract,string[] ids,long[] revisions,string[] hashes) -> string {provide Confectory.EditWorkspace::BlueprintImplementationContract with Confectory.EditWorkspace::BlueprintImplementationContractBody;}

@@ -1,0 +1,5 @@
+implementation Confectory.EditWorkspace::BlueprintImplementationContractBody for Confectory.EditWorkspace::BlueprintImplementationContract (string handle,string owner,string feature,string implementationId,string contract,string[] ids,long[] revisions,string[] hashes) -> string {
+import Confectory.EditWorkspace::Read as Read (string,string) -> string[];
+import Confectory.SchemaEditing::Call as Metadata (string,string) -> string;
+import Confectory.SchemaEditing::Register as Register (string,string,string,string) -> string;
+body common "BlueprintImplementationContract.csbody";}

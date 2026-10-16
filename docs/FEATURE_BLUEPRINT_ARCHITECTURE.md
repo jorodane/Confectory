@@ -84,6 +84,8 @@ graph/node는 `blueprint`/`blueprint-node` 원본 종류로 기존 공유 초안
 
 같은 함수 ID에 대한 부모 객체의 제공 구현 재사용은 실제 객체 scope의 `5 → 102 → 5` 검사에서 완료했다. 자식의 직접 제공 제거는 원래 부모 지정으로 돌아가며 부모 함수·본문을 복제하지 않는다. 서로 다른 함수 ID의 implementation 상속은 기존 IMPLEMENTATION_ID 진단을 유지한다. 이 계약을 별도 자식 함수 생성이나 새로운 상속 의미로 넓히지 않는다.
 
+등록된 직접 의존 팩의 모듈 요구 함수에 대한 새 구현도 같은 함수 ID를 유지한다. 외부 함수는 읽기 전용이며 새 구현·graph·독립 빈 본문과 객체 지정·등록만 소유 초안에서 바뀐다. 소유 원본 CAS와 외부 계약 원문 해시를 생성 직전에 확인한다. 다섯 변경 원본은 소유 객체를 포함한 하나의 필수 Review/Confirm 묶음이다. 기존 소유 함수 생성 API는 공통 트랜잭션을 사용하며 원래 인자 서명을 유지한다.
+
 ## 노드 Task 공개 연결 검증 중
 
 ProjectAI.NodeTask는 현재 graph/node 원본의 실제 정의·시그니처·사용 계약과 노드 소스 해시를 읽고, 표시한 assignment hash로 로컬 준비 작업을 기록한다. 모델 전송은 별도 연결과 정확한 Task·assignment·모델·endpoint·내용/사용량 승인 후에만 시작한다. 일반 Worker의 넓은 도구와 일반 복구 경로는 노드 Task를 거부한다. 실제 노드 capability의 list/read/stage/changes 네 역할만 전달하며 Helper 기억은 이 노드 요청에 보내지 않는다.

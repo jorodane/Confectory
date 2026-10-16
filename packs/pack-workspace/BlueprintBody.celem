@@ -5,6 +5,7 @@ import Confectory.EditWorkspace::Status as Status (string,string) -> string[];
 import Confectory.EditWorkspace::Identity as Identity (string) -> string[];
 import Confectory.EditWorkspace::EditBatch as EditBatch (string,string[],string[],long[],string[]) -> bool;
 import Confectory.EditWorkspace::BlueprintNode as BlueprintNode (string,string,string,string,string,string[],long[],string[]) -> string;
+import Confectory.EditWorkspace::BlueprintImplementationContract as BlueprintImplementationContract (string,string,string,string,string,string[],long[],string[]) -> string;
 import Confectory.EditWorkspace::BlueprintImplementation as BlueprintImplementation (string,string,string,string,string[],long[],string[]) -> string;
 import Confectory.EditWorkspace::CreationOwners as CreationOwners (string,string) -> string[];
 import Confectory.EditWorkspace::BlueprintFeature as BlueprintFeature (string,string,string[],long[],string[]) -> string;

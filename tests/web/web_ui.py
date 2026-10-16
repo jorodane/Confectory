@@ -58,18 +58,22 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
  if kind in ['window-documents','tab-arrangement']:
   (project/'DocOther.celem').write_text('object Example.ButtonGame::DocOther {description \"Independent document property source\";}')
   source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+'element DocOther object \"DocOther.celem\";'+source[index:])
- if kind in ['module-interface','object-provide','object-implementation']:
+ if kind in ['module-interface','object-provide','object-implementation','registered-implementation']:
   fixtures={
    'ModuleValue':('function','function Example.ButtonGame::ModuleValue (long value) -> long {}'),
    'ModuleValueBody':('implementation','implementation Example.ButtonGame::ModuleValueBody for Example.ButtonGame::ModuleValue (long value) -> long {body common "module-value.csbody";}'),
    'ModuleSecondBody':('implementation','implementation Example.ButtonGame::ModuleSecondBody for Example.ButtonGame::ModuleValue (long value) -> long {body common "module-second.csbody";}'),
    'ParentRules':('module','module Example.ButtonGame::ParentRules {require Example.ButtonGame::ModuleValue (long) -> long;default Example.ButtonGame::ModuleValue with Example.ButtonGame::ModuleValueBody;}'),
    'Rules':('module','module Example.ButtonGame::Rules extends Example.ButtonGame::ParentRules {description "Owned module interface";}')}
+  if kind=='registered-implementation':
+   registered=root/'registered-api';registered.mkdir();(registered/'pack.cpack').write_text('pack ReferenceApi version "1" {element Value function "Value.celem";element DefaultBody implementation "DefaultBody.celem";}')
+   (registered/'Value.celem').write_text('function ReferenceApi::Value (long value) -> long {provide ReferenceApi::Value with ReferenceApi::DefaultBody;}');(registered/'DefaultBody.celem').write_text('implementation ReferenceApi::DefaultBody for ReferenceApi::Value (long value) -> long {body common "default.csbody";}');(registered/'default.csbody').write_text('return value + 7;')
+   source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+'registry ReferenceApi '+json.dumps(str(registered/'pack.cpack'))+';dependency ReferenceApi version "1";'+source[index:]);fixtures.pop('ModuleValue');fixtures={name:(kind,source.replace('Example.ButtonGame::ModuleValue ','ReferenceApi::Value ')) for name,(kind,source) in fixtures.items()}
   for name,(_,source) in fixtures.items():(project/(name+'.celem')).write_text(source)
   (project/'module-value.csbody').write_text('return value + 3;');(project/'module-second.csbody').write_text('return value + 100;')
   source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+''.join('element '+name+' '+definition[0]+' "'+name+'.celem";' for name,definition in fixtures.items())+source[index:])
- if kind in ['object-provide','object-implementation']:
-  (project/'ParentConsumer.celem').write_text('object Example.ButtonGame::ParentConsumer {provide Example.ButtonGame::ModuleValue with Example.ButtonGame::ModuleValueBody;}')
+ if kind in ['object-provide','object-implementation','registered-implementation']:
+  (project/'ParentConsumer.celem').write_text('object Example.ButtonGame::ParentConsumer {provide '+('ReferenceApi::Value' if kind=='registered-implementation' else 'Example.ButtonGame::ModuleValue')+' with Example.ButtonGame::ModuleValueBody;}')
   (project/'Consumer.celem').write_text('object Example.ButtonGame::Consumer extends Example.ButtonGame::ParentConsumer {module Example.ButtonGame::Rules;description "Object module scope";}')
   source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+'element ParentConsumer object "ParentConsumer.celem";element Consumer object "Consumer.celem";'+source[index:])
  if kind=='build-jobs':
@@ -188,6 +192,9 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
     elif kind=='local-augment':
      from v424_local_augment import verify_local_augment
      verify_local_augment(page,project,mount,send,envelope,settle,restart_actual_host)
+    elif kind=='registered-implementation':
+     from v480_registered_implementation import verify_registered_implementation
+     verify_registered_implementation(page,project,registered,mount,send,envelope,settle,restart_actual_host)
     elif kind=='object-implementation':
      from v480_object_implementation import verify_object_implementation
      verify_object_implementation(page,project,mount,send,envelope,settle,restart_actual_host)

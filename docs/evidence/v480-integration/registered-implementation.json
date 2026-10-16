@@ -1,0 +1,250 @@
+{
+  "schema": 1,
+  "status": "registered-module-function-object-implementation-creation-verified",
+  "baseWorkCommit": "a91650a38c37ce661e7d194464316493594faa29",
+  "referenceMain": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+  "stages": [
+    {
+      "log": "registered-implementation-first-engine.log",
+      "boundary": "Both existing owned-function API and registered module function creation through the shared transaction; actual scope5-102-5, exact raw CAS and prospective budget, no foreign ownership, partial Review/direct Confirm and invalid Restore refusal, cold and immutable foreign function/provider originals.",
+      "sha256": "fb257d3e3dc240065d2664990ad44b6f4992122df955dd3e610cf1143840ffc6",
+      "tests": [
+        "PASS ObjectImplementationTests.test_owned_object_new_implementation_contract_group_cas_cold_and_actual_scope",
+        "PASS RegisteredImplementationTests.test_registered_module_function_object_implementation_group_raw_contract_and_actual_scope"
+      ],
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 91.036
+    },
+    {
+      "log": "registered-implementation-first-ui.log",
+      "boundary": "Actual registered module requirement UI: values-only forged saved precondition restoration, fresh readonly foreign contract, raw function/manifest and owned peer CAS, independent blank-to-written node, clean cold restoration, mandatory five-source selection and explicit compiler Confirm.",
+      "sha256": "1dd7b179913ee57eee07eb6e64f778ecdd92b8e733efa7d38a248a1c701087ad",
+      "tests": [
+        "PASS WebUITests.test_actual_editor_v480_registered_module_function_new_object_implementation"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 148.039
+    },
+    {
+      "log": "registered-implementation-boundary-engine.log",
+      "boundary": "Same product, test-only extension: transitive-only dependency, forged receipt, valid preview followed by linked function replacement, direct linked declaration and missing owned manifest observations refuse without new source membership, then complete owned-scope workflow.",
+      "sha256": "4840894b9a5c183980cacc3cfc929cc4005ea22d3b60c08a79021713e4df980c",
+      "tests": [
+        "PASS RegisteredImplementationTests.test_registered_module_function_object_implementation_group_raw_contract_and_actual_scope"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 48.365
+    },
+    {
+      "log": "registered-implementation-owner-regression.log",
+      "boundary": "Registered/owned function calls and object creation, existing feature/node creation and task boundary, module composition, Pack/EditWorkspace and source history.",
+      "sha256": "86151a6244177552b1c276cdf65a9f1e2b5d80c61ea31a8d20a7af8579c7585e",
+      "tests": [
+        "PASS ModuleInterfaceTests.test_owned_module_interface_contract_default_atomic_cas_cold_and_actual_consumer",
+        "PASS ModuleInterfaceTests.test_owned_object_module_provider_contract_atomic_cas_cold_and_actual_scope",
+        "PASS ObjectImplementationTests.test_owned_object_new_implementation_contract_group_cas_cold_and_actual_scope",
+        "PASS RegisteredCallTests.test_registered_direct_function_call_raw_receipts_cold_and_actual_scope",
+        "PASS RegisteredImplementationTests.test_registered_module_function_object_implementation_group_raw_contract_and_actual_scope",
+        "PASS FeatureBlueprintTests.test_blueprint_disconnected_current_node_body_is_compiled_without_execution",
+        "PASS FeatureBlueprintTests.test_blueprint_existing_feature_calls_use_typed_imports_and_contract_fences",
+        "PASS FeatureBlueprintTests.test_blueprint_fixed_inputs_branch_compiler_reuse_node_replacement_and_legacy_preservation",
+        "PASS FeatureBlueprintTests.test_blueprint_independent_probe_checks_an_unselected_body_without_running_or_publishing",
+        "PASS FeatureBlueprintTests.test_blueprint_invalid_graphs_stale_contracts_and_dominating_values",
+        "PASS FeatureBlueprintTests.test_blueprint_new_feature_registration_contract_group_compiler_and_cold_restore",
+        "PASS FeatureBlueprintTests.test_blueprint_node_diagnostics_static_isolation_and_failed_build_retains_receipt",
+        "PASS FeatureBlueprintTests.test_blueprint_node_only_worker_draft_save_restore_and_compiler_confirm",
+        "PASS FeatureBlueprintTests.test_blueprint_node_task_assignment_scoped_dispatch_adoption_and_cold_no_replay",
+        "PASS FeatureBlueprintTests.test_blueprint_owned_function_reference_call_import_cas_history_and_execution",
+        "PASS FeatureBlueprintTests.test_blueprint_owned_node_creation_removal_review_group_and_cold_restore",
+        "PASS FeatureBlueprintTests.test_blueprint_source_change_during_real_compile_is_not_published",
+        "PASS EditWorkspaceTests.test_shared_drafts_save_restore_preview_selective_confirm_conflict_and_locality",
+        "PASS DraftHistoryTests.test_shared_draft_history_atomic_inverse_cas_restart_branch_and_owner_boundaries",
+        "PASS PackWorkspaceTests.test_development_tools_owned_scope_shared_draft_no_confirm_and_locality",
+        "PASS PackWorkspaceTests.test_target_metadata_owned_sources_no_registry_execution",
+        "PASS PackWorkspaceTests.test_two_contexts_revision_save_reopen_and_locality"
+      ],
+      "passed": 22,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 803.169
+    },
+    {
+      "log": "registered-implementation-ui-regression.log",
+      "boundary": "Existing Home, subset Review, node/feature creation, owned and registered calls, module/provider and owned object implementation UI.",
+      "sha256": "924c483dc0ae1b02578368a678996fc2d29da2390f8e72c7374e1a254241e400",
+      "tests": [
+        "PASS WebUITests.test_actual_editor_original_v196_home_project_and_create_flow",
+        "PASS WebUITests.test_actual_editor_review_compact_numeric_and_subset_caption",
+        "PASS WebUITests.test_actual_editor_v480_blueprint_node_creation_removal_and_cold_source_groups",
+        "PASS WebUITests.test_actual_editor_v480_existing_feature_reference_call_and_cold_contract",
+        "PASS WebUITests.test_actual_editor_v480_module_interface_contract_default_and_cold_rebase",
+        "PASS WebUITests.test_actual_editor_v480_new_feature_contract_graph_group_and_cold_source",
+        "PASS WebUITests.test_actual_editor_v480_object_module_provider_cold_contract_and_own_view",
+        "PASS WebUITests.test_actual_editor_v480_object_new_implementation_graph_cold_group_and_compiler_confirm",
+        "PASS WebUITests.test_actual_editor_v480_registered_function_reference_and_cold_contract"
+      ],
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 553.629
+    },
+    {
+      "log": "registered-implementation-managed-regression.log",
+      "boundary": "Managed Windows/Android compilation only; no native or device execution.",
+      "sha256": "b01498ce550fd94b5b1b0adae3abcfa09eb1b9269c7e57cc42339e30dee6e854",
+      "tests": [
+        "PASS EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 147.866
+    }
+  ],
+  "claims": {
+    "existingOwnedFunctionCreationApiSignaturePreserved": true,
+    "commonPrimitiveArraySingleReturnContractRole": true,
+    "explicitPublishedFunctionSignatureWithoutFunctionParent": true,
+    "registeredDirectDependencyFunctionOnly": true,
+    "externalContractOnlyReadNoProviderBodyOrProviderSelection": true,
+    "ownedObjectAndRootManifestCasPlusRawForeignFunctionManifestReceipt": true,
+    "rawReceiptCheckedAgainBeforeSourceMembershipMutation": true,
+    "combinedProspectiveOwnedAndSelectedExternalTwoMiBBudget": true,
+    "distinctOwnedDestinationsAndNoLinksOrCollisions": true,
+    "originalFunctionDescriptionDefaultAndProviderBodyNeverCopiedOrWritten": true,
+    "opaqueOwnedObjectCreationGroupAndColdRestore": true,
+    "threeNewOwnedSourcesAndFiveChangedSourceGroup": true,
+    "partialPublicReviewAndDirectConfirmRefused": true,
+    "initialBlankNodeUnimplementedAndNoAutomaticAi": true,
+    "actualConsumerScope5_102_5AndParentReuse": true,
+    "privateInputsRestoreValuesWithoutAuthority": true,
+    "readonlyRegisteredFunctionNeverEditableSource": true,
+    "publicRequiredReviewSelectionGroup": true,
+    "staticResourceCount": 31,
+    "differentFunctionInheritanceOrNewAbiTypesOrExecutionProfile": false,
+    "nativeDeviceRealAccountPaidModelUserPcInstall": false
+  },
+  "boundaries": [
+    "Stages overlap; do not sum. All build failures and corrected boundaries are retained.",
+    "The original owned BlueprintImplementation API retains its seven arguments and delegates to a shared creation transaction. A new additive primitive/string role accepts the selected registered contract receipt. This adds no external CELEM type or execution profile.",
+    "Owned function creation observes the object, published function and root manifest. Registered creation observes only the two owned sources and independently re-reads the selected external function/manifest receipt. The external function is never added to editable ownership.",
+    "The dedicated external contract reader loads only declaration files, with no provider body or final provider selection. The ordinary graph view later reads its owned node sources for preservation and diagnostics. A receipt fence is not a filesystem-wide atomic snapshot.",
+    "Creation changes an existing object and root registration plus three new owned sources. The five required sources are one review group; other pending declarations sharing registration are explicitly included by the existing rules. Compiler Confirm remains separate from staging and Save/cold restore.",
+    "Scaffold generation reuses only the function signature and a temporary intent. The real function, its default provider, parent objects/modules and original C# are preserved. The initial node source is empty with an unset definition stamp.",
+    "The creator requires a published explicit function signature with no function parent. Same-function object-parent provider reuse remains complete; different-function implementation inheritance still uses the existing IMPLEMENTATION_ID diagnostic. Function-import wrapper creation, legacy conversion and extended graph/internal type profiles remain separate work.",
+    "All execution uses owned local fixtures. Windows/Android managed gates compile only. No main/original ZIP/Android settings, real account, paid model or user PC installation changes."
+  ],
+  "hostBuilds": {
+    "registered-implementation-host-first-build.log": {
+      "sha256": "8f7c37a5cdb4e3f71a2e7c9313d5b70d2b30dfd7b6609a3f3148724b36a9284c",
+      "tail": [
+        "",
+        "Build FAILED.",
+        "",
+        "/workspace/Confectory/targets/element-authoring/BlueprintCreation.cs(31,41): error CS8602: Dereference of a possibly null reference. [/workspace/Confectory/targets/element-authoring/Confectory.ElementAuthoring.csproj]",
+        "    0 Warning(s)",
+        "    1 Error(s)",
+        "",
+        "Time Elapsed 00:00:03.54"
+      ]
+    },
+    "registered-implementation-host-second-build.log": {
+      "sha256": "526af311f09c271a82d930e3113085b65d5668c9751280b43301050d669bcc9b",
+      "tail": [
+        "  Confectory.Core -> /workspace/Confectory/src/Confectory.Core/bin/Release/net10.0/Confectory.Core.dll",
+        "  Confectory.ElementAuthoring -> /workspace/Confectory/targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll",
+        "",
+        "Build succeeded.",
+        "    0 Warning(s)",
+        "    0 Error(s)",
+        "",
+        "Time Elapsed 00:00:01.29"
+      ]
+    }
+  },
+  "sourceSnapshots": {
+    "registered-implementation-first-frozen-hashes.json": {
+      "examples/editor-home/WebBundle.csbody": "a9431d63346b30c6b7009659de997d7335a548a22f8686c8a1028b7d6be87785",
+      "examples/editor-home/ui/declarations.js": "8539ae0b6f8ccf29ab3c5131b31668b76a554892aa9360f96743b5cd696154f1",
+      "packs/edit-workspace/BlueprintImplementation.csbody": "072d92eee9541261642abf2f2020898467dd032220f9226a513f95e2464e8a21",
+      "packs/edit-workspace/BlueprintImplementationBody.celem": "8685311b7388e6f0d0069a28f5cb81b60896001fe56ffa0dbb4c2bfab25dc856",
+      "packs/edit-workspace/pack.cpack": "8c2cbe5d729ec3d06c350c54cfb521e71b949492f7b8dd6bbf4d73c1852bf9cb",
+      "packs/pack-workspace/Blueprint.csbody": "406e7414721164e4915961d881ca49e1c380060853f6b804bb7ef4ee93dc3c30",
+      "packs/pack-workspace/BlueprintBody.celem": "982f49bf22119476759b9816c7b94b53de50a4242016cb8ae9a3208c57c9fb2b",
+      "targets/element-authoring/BlueprintCallableContracts.cs": "e28d86bc47c5aa5c52f8a572d4909cd9a591b00402b9b1ea4a615c499401f53c",
+      "targets/element-authoring/BlueprintCreation.cs": "d2354c20252c17d884f49666ad6cef90066d74a38525625606a4fd37f4cdb2c5",
+      "tests/Confectory.Tests/Program.cs": "749f8c7aca85dd40e314f8c561654f2795b9a31809ad7e9fba7910619e353cdc",
+      "packs/edit-workspace/BlueprintImplementationContract.celem": "ae2154915019940099ba1eb7aa39c40db2792dcf4d036a5bfe19aafaee97152c",
+      "packs/edit-workspace/BlueprintImplementationContract.csbody": "489c298cc1dd85d56f6cdff14e0059d6f054be5e590dfc81bba6d9983ccba6c1",
+      "packs/edit-workspace/BlueprintImplementationContractBody.celem": "735ac3b47507b5e71fde3030250c42ec94b3b5f28a367ca06943e723c69f09ee",
+      "tests/Confectory.Tests/RegisteredImplementationTests.cs": "d6126d21ae0beb53b7fd8890130b19076caf139f476cefe5dbae37a2824cef14"
+    },
+    "registered-implementation-ui-frozen-hashes.json": {
+      "examples/editor-home/WebBundle.csbody": "a9431d63346b30c6b7009659de997d7335a548a22f8686c8a1028b7d6be87785",
+      "examples/editor-home/ui/declarations.js": "8539ae0b6f8ccf29ab3c5131b31668b76a554892aa9360f96743b5cd696154f1",
+      "packs/edit-workspace/BlueprintImplementation.csbody": "072d92eee9541261642abf2f2020898467dd032220f9226a513f95e2464e8a21",
+      "packs/edit-workspace/BlueprintImplementationBody.celem": "8685311b7388e6f0d0069a28f5cb81b60896001fe56ffa0dbb4c2bfab25dc856",
+      "packs/edit-workspace/pack.cpack": "8c2cbe5d729ec3d06c350c54cfb521e71b949492f7b8dd6bbf4d73c1852bf9cb",
+      "packs/pack-workspace/Blueprint.csbody": "406e7414721164e4915961d881ca49e1c380060853f6b804bb7ef4ee93dc3c30",
+      "packs/pack-workspace/BlueprintBody.celem": "982f49bf22119476759b9816c7b94b53de50a4242016cb8ae9a3208c57c9fb2b",
+      "targets/element-authoring/BlueprintCallableContracts.cs": "e28d86bc47c5aa5c52f8a572d4909cd9a591b00402b9b1ea4a615c499401f53c",
+      "targets/element-authoring/BlueprintCreation.cs": "d2354c20252c17d884f49666ad6cef90066d74a38525625606a4fd37f4cdb2c5",
+      "tests/Confectory.Tests/Program.cs": "749f8c7aca85dd40e314f8c561654f2795b9a31809ad7e9fba7910619e353cdc",
+      "tests/Confectory.Tests/WebUITests.cs": "5105b1ee2991b7915632909224fce674d395686bfb4362cf5ef0474aa2d3762c",
+      "tests/web/web_ui.py": "41e24c1fa6a4edd1ec4c5803fa20feb25d039ca7624f38b1f20dfe9ed6b47ea5",
+      "packs/edit-workspace/BlueprintImplementationContract.celem": "ae2154915019940099ba1eb7aa39c40db2792dcf4d036a5bfe19aafaee97152c",
+      "packs/edit-workspace/BlueprintImplementationContract.csbody": "489c298cc1dd85d56f6cdff14e0059d6f054be5e590dfc81bba6d9983ccba6c1",
+      "packs/edit-workspace/BlueprintImplementationContractBody.celem": "735ac3b47507b5e71fde3030250c42ec94b3b5f28a367ca06943e723c69f09ee",
+      "tests/Confectory.Tests/RegisteredImplementationTests.cs": "d6126d21ae0beb53b7fd8890130b19076caf139f476cefe5dbae37a2824cef14",
+      "tests/web/v480_registered_implementation.py": "a0712aeadbd9e5fc0d9caaa695b5d5a89f5f279a5748b4f28a11fd4b15a79188"
+    },
+    "registered-implementation-release-frozen-hashes.json": {
+      "examples/editor-home/WebBundle.csbody": "a9431d63346b30c6b7009659de997d7335a548a22f8686c8a1028b7d6be87785",
+      "examples/editor-home/ui/declarations.js": "8539ae0b6f8ccf29ab3c5131b31668b76a554892aa9360f96743b5cd696154f1",
+      "packs/edit-workspace/BlueprintImplementation.csbody": "072d92eee9541261642abf2f2020898467dd032220f9226a513f95e2464e8a21",
+      "packs/edit-workspace/BlueprintImplementationBody.celem": "8685311b7388e6f0d0069a28f5cb81b60896001fe56ffa0dbb4c2bfab25dc856",
+      "packs/edit-workspace/pack.cpack": "8c2cbe5d729ec3d06c350c54cfb521e71b949492f7b8dd6bbf4d73c1852bf9cb",
+      "packs/pack-workspace/Blueprint.csbody": "406e7414721164e4915961d881ca49e1c380060853f6b804bb7ef4ee93dc3c30",
+      "packs/pack-workspace/BlueprintBody.celem": "982f49bf22119476759b9816c7b94b53de50a4242016cb8ae9a3208c57c9fb2b",
+      "targets/element-authoring/BlueprintCallableContracts.cs": "e28d86bc47c5aa5c52f8a572d4909cd9a591b00402b9b1ea4a615c499401f53c",
+      "targets/element-authoring/BlueprintCreation.cs": "d2354c20252c17d884f49666ad6cef90066d74a38525625606a4fd37f4cdb2c5",
+      "tests/Confectory.Tests/Program.cs": "749f8c7aca85dd40e314f8c561654f2795b9a31809ad7e9fba7910619e353cdc",
+      "tests/Confectory.Tests/WebUITests.cs": "5105b1ee2991b7915632909224fce674d395686bfb4362cf5ef0474aa2d3762c",
+      "tests/web/web_ui.py": "41e24c1fa6a4edd1ec4c5803fa20feb25d039ca7624f38b1f20dfe9ed6b47ea5",
+      "packs/edit-workspace/BlueprintImplementationContract.celem": "ae2154915019940099ba1eb7aa39c40db2792dcf4d036a5bfe19aafaee97152c",
+      "packs/edit-workspace/BlueprintImplementationContract.csbody": "489c298cc1dd85d56f6cdff14e0059d6f054be5e590dfc81bba6d9983ccba6c1",
+      "packs/edit-workspace/BlueprintImplementationContractBody.celem": "735ac3b47507b5e71fde3030250c42ec94b3b5f28a367ca06943e723c69f09ee",
+      "tests/Confectory.Tests/RegisteredImplementationTests.cs": "1462b5a8aff7744dec871416363933f3a7ec6843980ff728339ec6191aea6957",
+      "tests/web/v480_registered_implementation.py": "a0712aeadbd9e5fc0d9caaa695b5d5a89f5f279a5748b4f28a11fd4b15a79188"
+    }
+  },
+  "sourceHashes": {
+    "examples/editor-home/WebBundle.csbody": "a9431d63346b30c6b7009659de997d7335a548a22f8686c8a1028b7d6be87785",
+    "examples/editor-home/ui/declarations.js": "8539ae0b6f8ccf29ab3c5131b31668b76a554892aa9360f96743b5cd696154f1",
+    "packs/edit-workspace/BlueprintImplementation.csbody": "072d92eee9541261642abf2f2020898467dd032220f9226a513f95e2464e8a21",
+    "packs/edit-workspace/BlueprintImplementationBody.celem": "8685311b7388e6f0d0069a28f5cb81b60896001fe56ffa0dbb4c2bfab25dc856",
+    "packs/edit-workspace/BlueprintImplementationContract.celem": "ae2154915019940099ba1eb7aa39c40db2792dcf4d036a5bfe19aafaee97152c",
+    "packs/edit-workspace/BlueprintImplementationContract.csbody": "489c298cc1dd85d56f6cdff14e0059d6f054be5e590dfc81bba6d9983ccba6c1",
+    "packs/edit-workspace/BlueprintImplementationContractBody.celem": "735ac3b47507b5e71fde3030250c42ec94b3b5f28a367ca06943e723c69f09ee",
+    "packs/edit-workspace/pack.cpack": "8c2cbe5d729ec3d06c350c54cfb521e71b949492f7b8dd6bbf4d73c1852bf9cb",
+    "packs/pack-workspace/Blueprint.csbody": "406e7414721164e4915961d881ca49e1c380060853f6b804bb7ef4ee93dc3c30",
+    "packs/pack-workspace/BlueprintBody.celem": "982f49bf22119476759b9816c7b94b53de50a4242016cb8ae9a3208c57c9fb2b",
+    "targets/element-authoring/BlueprintCallableContracts.cs": "e28d86bc47c5aa5c52f8a572d4909cd9a591b00402b9b1ea4a615c499401f53c",
+    "targets/element-authoring/BlueprintCreation.cs": "d2354c20252c17d884f49666ad6cef90066d74a38525625606a4fd37f4cdb2c5",
+    "tests/Confectory.Tests/Program.cs": "749f8c7aca85dd40e314f8c561654f2795b9a31809ad7e9fba7910619e353cdc",
+    "tests/Confectory.Tests/RegisteredImplementationTests.cs": "1462b5a8aff7744dec871416363933f3a7ec6843980ff728339ec6191aea6957",
+    "tests/Confectory.Tests/WebUITests.cs": "5105b1ee2991b7915632909224fce674d395686bfb4362cf5ef0474aa2d3762c",
+    "tests/web/v480_registered_implementation.py": "a0712aeadbd9e5fc0d9caaa695b5d5a89f5f279a5748b4f28a11fd4b15a79188",
+    "tests/web/web_ui.py": "41e24c1fa6a4edd1ec4c5803fa20feb25d039ca7624f38b1f20dfe9ed6b47ea5"
+  },
+  "images": {
+    "registered-implementation-contract.png": "fb9d04c86881b13ff865a9008bc258b5da4fc7f1cfa4f1f283004213841cf42e",
+    "registered-implementation-review.png": "b476fa07207fc5e57606480386d688d854294cdda32330fc69dfd853dc53f345"
+  }
+}
