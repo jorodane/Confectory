@@ -355,6 +355,20 @@
     "Whole v424 and Blueprint creation/Task UI are still in progress."
   ],
   "ordinaryGitCheckout": {
-    "status": "pending implementation commit"
+    "status": "passed",
+    "implementationCommit": "0fa004e2c3d40f139727d0076ab9d25ef5731d57",
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "seconds": 58.282,
+    "resourceCount": 25,
+    "coverage": [
+      "retained CRLF files after ordinary Git attribute pull",
+      "fresh LF ordinary Git checkout",
+      "actual Home host startup and canonical/exact resource response hashes",
+      "content, invalid UTF-8, BOM, UTF-16, bare CR, byte-budget and binary tamper refusal",
+      "original resource bytes unchanged by startup"
+    ],
+    "logSha256": "e42ba90066da9343a1e26e416b12d443d250e08fc0f36f95eda7648127ab85e8"
   }
 }
