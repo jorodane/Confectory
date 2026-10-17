@@ -72,3 +72,7 @@
 .bp-enum-plan{margin:12px 0;padding:10px;border:1px solid #454658;border-radius:6px}.bp-enum-row{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.bp-enum-row code{width:100%;font-size:10px;overflow-wrap:anywhere}.bp-enum-row input{min-width:90px;flex:1}.bp-enum-plan pre{white-space:pre-wrap;overflow-wrap:anywhere}
 
 .bp-switch>header{flex-wrap:wrap}.bp-switch>header .bp-exec-ports{flex:1 1 100%;min-width:0;max-width:100%;flex-wrap:wrap;justify-content:flex-start}.bp-switch .bp-exec-ports button{min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.bp-wires .bp-return-wire{stroke-dasharray:5 4;stroke:#9bbfe2}
+
+.bp-output{position:relative;min-width:0}.bp-output-resize{position:absolute;left:0;top:0;bottom:0;width:7px;z-index:3;cursor:ew-resize;touch-action:none}.bp-output-resize:hover,.bp-output-resize:focus-visible{background:#8ba4b455;outline:1px solid #ffda9b}.bp-output-toggle{position:absolute;right:4px;top:4px;z-index:4;padding:2px 7px;font-size:18px}.bp-output.is-collapsed{padding:4px}.bp-output.is-collapsed>:not(.bp-output-toggle){display:none}
+
+.bp-output{overflow:hidden;padding:0;display:flex;flex-direction:column}.bp-output-content{flex:1;min-width:0;min-height:0;overflow:auto;padding:12px}

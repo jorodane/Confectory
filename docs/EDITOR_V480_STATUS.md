@@ -4,6 +4,22 @@
 
 표의 **지원**은 적힌 범위의 구현·검증 완료, **부분**은 일부 계약/동작만 연결, **미구현·답변 대기**는 미완료를 뜻한다. 이 상태를 같은 행의 나머지 범위로 확대하지 않는다.
 
+## 미완료 원인과 다음 단계
+
+‘부분’만으로 사용자 답변 대기나 구현 부재를 판단하지 않는다. 이번 [실제 클릭 대조](V480_UI_CLICK_AUDIT.md)는 핀 드래그 취소·무효 대상 입력 보존·출력 사이드바 조작을 기존 계약 안에서 연결했다. 아래 구분은 기존 표의 남은 범위를 읽는 기준이다.
+
+| 구분 | 실제 항목 | 다음 단계·경계 |
+|---|---|---|
+| 기존 계약 안의 UI 누락 | 빈 곳 드롭 취소, 무효 case/시작 대상의 기존·미적용 입력 보존, 출력 sidebar 크기/접기 | 이번 수정과 실제 UI 검증. 새 실행 의미·새 권한 없이 연결 |
+| 조회/표시 구현 누락 | Home 카드 ‘마지막 편집·팩·객체’의 `—` | 기존 card/소유 조회의 실제 값·집계 범위를 먼저 대조. 없는 값을 mtime·현재 시각·추정 수로 채우지 않음 |
+| 대조·검사 범위가 남음 | Home 전환 조합, browser grouping/필드 열·참조 drag, 문서 링크 조작 | 이미 있는 모델/명령과 레퍼런스의 동작을 대응시킨 다음 확인한 누락을 수정. 미검사 전체를 정책 차단으로 표시하지 않음 |
+| 사용자 정책 답변 대기 | 계산식 int/long overflow: 오류 또는 wrap | 아직 미답변. enum 값 범위와 별개이며 다른 로컬 UI 수정의 차단 아님 |
+| 새 구조 계약이 미구현·현재 범위 밖 | 구조적 property field write/ref, compound/function live field, 일반 enum/Vector3 ABI, 소유 집합 생성/삭제 전체 Undo | 기존 read/primitive/일반 이력 지원과 구분. 이번 UI 대조에서 새 의미를 추가하지 않음 |
+| 서비스 계약이 미구현·현재 범위 밖 | actor/recipient/room/ack, 실제 market/publisher, Run frame/ack·durable 연결 | 소유 fixture나 화면 상태를 실재 서비스로 가장하지 않음 |
+| 환경상 미검증·현재 범위 밖 | 실계정·유료 모델·native OS 창·실기기·사용자 PC 설치 | 컴파일/공통 web 결과로 검증 완료를 주장하지 않음. main·ZIP·Android 설정 보존 |
+
+## 현재 구현과 검증 근거
+
 `e50da714c5b558e685a92d8229b8e193eede3559`에서는 고정한 제품/테스트 47개 파일에서 엔진/공개 편집/ABI 82건, 중복 없는 실제 Chromium 25건, Windows/Android 관리 프로필 컴파일 1건과 일반 Git checkout·33개 리소스 시작 1건이 통과했다. [원본 hash와 각 범위](evidence/blueprint-node-time-properties/properties.json)를 보존한다. 이번 C# 편집 후속에서 그 결과를 새 전체 엔진 회귀 수로 재계산하지 않는다. 후속에 실제 실행한 검사는 [별도 기록](evidence/v480-csharp-editor/editor.json)에 구분한다.
 
 | v480 요구 영역 | 현재 상태와 범위 | 실제 근거 / 남은 부분 |
@@ -31,7 +47,7 @@
 | 계산식 UI/실행·정수 overflow | 미구현·답변 대기 | 원본 연산 목록만 확인. int/long overflow 오류/wrap을 선택하지 않으며 기존 C# 연산은 보존 |
 | 확장 enum/Vector3/일반 사용자 타입 ABI | 부분: 기존 primitive/배열·object/object[] 실제 CLR 참조 지원 | prototype의 모든 csharpType·복합/enum 타입을 CELEM에 지원한 것으로 표시하지 않음 |
 | 노드 Task·Worker 권한·검토 | 지원: 독립 C# 원본·현재 definition·관련 source hash 관찰·제한 네 도구·Stage/Review/Confirm | 실제 권한 거부/원본 변경/콜드 재사용 거부. 구조 노드에 C# Task를 만들지 않음 |
-| 3.125–300% 자유 확대·포인터 camera·헤더/pin 조작 | 지원: private graph별 보기·실제 좌표·팬/취소·기존 연결 입력 준비 | [카메라 기록](EDITOR_V480_INTEGRATION.md). 연결은 별도 Apply/CAS/Confirm 유지 |
+| 3.125–300% 자유 확대·포인터 camera·헤더/pin 조작 | 지원: private graph별 보기·실제 좌표·팬/취소·연결 입력 준비·무효 대상 입력 보존 | [카메라 기록](EDITOR_V480_INTEGRATION.md), [핀·사이드바 대조](V480_UI_CLICK_AUDIT.md). 연결은 별도 Apply/CAS/Confirm 유지 |
 | Workspace 문서·메모·탭·제목·검색·도킹 | 지원한 행위의 실제 Chromium/cold 검증 있음 | 직전 25개 UI와 개별 기록. 전체 외부 OS/native 창 동작 완료 아님 |
 | 일반 Git checkout·리소스 시작 | 지원: pinned canonical LF/보존 CRLF·실제 Home·변조/인코딩/예산 거부 | 커밋 기준 실제 checkout. 후속 모듈 추가 시 리소스 수와 검사를 갱신 |
 | Linux/.NET 10·Windows/Android | Linux 실제 owned CLR/공통 web UI, Windows/Android는 관리 프로필 컴파일 | native/device·실제 계정·유료 모델·사용자 PC 설치는 미검증이며 이번 경계 밖 |
@@ -45,7 +61,7 @@ enum의 숫자 항목 범위 확인과 계산식 overflow는 다른 계약이다
 | 기존 ID | 요구 묶음 | 현재 판단과 남은 범위 |
 |---|---|---|
 | S01–S02 | 시작·Home·Agent 선택·앱 창 | [Entry/Home 소유 모델](ENTRY_HOME_MODEL_PACK.md)과 공통 web 시작은 있음. 각 native host의 창·입력·접근성 전체 완료 아님 |
-| H01–H06 | 프로젝트 목록·검색·정렬·즐겨찾기·생성·정보·닫기 | 실제 ProjectManager/생성·소유 수명 경계 있음. 팩 요구/유형·선택 Helper·프로필과 모든 v480 전환 조합은 부분 |
+| H01–H06 | 프로젝트 목록·검색·정렬·즐겨찾기·생성·정보·닫기 | 실제 ProjectManager/생성·소유 수명 경계 있음. 카드 통계 세 값은 조회/표시 미연결이며 정책 대기가 아님. 팩 요구/유형·선택 Helper·프로필과 모든 전환 조합은 부분 |
 | B01–B06 | 브라우저·트리·복제·하위 탐색·생성·상속·삭제 | 여섯 선언 종류 생성과 바리에이션 검증 있음. 전체 tree/category grouping·삭제/참조 대체는 부분/계약 필요 |
 | D01–D06 | 필드·Data/즉석 테이블·참조 원본·개념 맵 | [v424 실제 schema/표/관계/읽기 전용 정의 증거](EDITOR_V424_INTEGRATION.md) 있음. enum/벡터/전체 열/참조 드래그·임의 깊이 탐색 전체는 부분 |
 | E01–E08 | schema·enum·객체 동작·함수·모듈·계약 요청 | 일반 CELEM schema/typed 함수·모듈/graph는 위 표의 범위. prototype의 모든 enum/벡터/복합 ABI·원클릭 밸런스/테스트 실행은 완료 아님 |
@@ -70,3 +86,7 @@ enum의 숫자 항목 범위 확인과 계산식 overflow는 다른 계약이다
 <!-- switch-current-validation -->
 순차 enum switch 후속은 고정 원본 27개에서 엔진/공개 편집 94/0/0, 실제 Chromium 13/0/0으로 통과했다. 이후 switch 복귀선·여러 포트 배치의 UI 보완 뒤 최종 원본 28개에서 해당 UI 1건을 재통과했고 관리 프로필 컴파일 1건도 통과했다. 중복 UI를 새 고유 검사로 합산하지 않는다. [정확한 단계·소스·범위](BLUEPRINT_SWITCH_CONTINUATIONS.md#최종-검증과-소스-단계)와 [일반 checkout HEAD·36개 리소스 시작 검사](validation/v480-switch-continuations.json)를 따른다. 이 결과로 외부 서비스·전체 v480·native/device 경계를 완료한 것으로 표시하지 않는다.
 <!-- /switch-current-validation -->
+
+<!-- ui-click-current-validation -->
+클릭/입력 대조 후속은 고정 UI·테스트 원본 9개에서 실제 Chromium 4/0/0, 관리 프로필 컴파일 1/0/0으로 통과했다. 빈 곳 드롭 취소·무효 대상의 입력/연결 대기 보존·출력 sidebar 조절/접기/콜드를 확인했다. 엔진 원본은 변경하지 않았다. [범위와 미완료 원인](V480_UI_CLICK_AUDIT.md), [일반 checkout HEAD·36개 리소스 근거](validation/v480-ui-click-audit.json)를 따르며 과거 결과를 새 전체 회귀 수로 합산하지 않는다.
+<!-- /ui-click-current-validation -->

@@ -1,0 +1,167 @@
+{
+  "schema": 1,
+  "kind": "v480-ui-click-audit",
+  "baseline": {
+    "base": "d4dd123538fb177145bbae473329c25562ee9567",
+    "referenceZipSha256": "0489844c8c6d90f7cdc8ea0e80628f487dcfb27f2c871b19367a635212d3c5bd",
+    "referenceBlueprintSha256": "2b79e21da1ef4dfecc2ca7826a52989494e3382256ca0eeca3a2979926234319",
+    "localMain": "b5ea38c3d7eec3eb20f170e68f0f4215b86b2aee",
+    "policy": "Existing UI input/cancellation only; overflow unanswered; no structural property writes or new ABI",
+    "referenceLines": {
+      "connectPrevalidation": [
+        411,
+        415
+      ],
+      "beginWireCancel": [
+        532,
+        537
+      ],
+      "outputSidebar": [
+        328,
+        334
+      ]
+    }
+  },
+  "source": {
+    "examples/editor-home/WebBundle.csbody": {
+      "sha256": "f614f7630775dd48675c9f7a8b6640c1fbb4e46578a25426e52bed01812c2456",
+      "bytes": 9532
+    },
+    "examples/editor-home/ui/blueprint-pins.js": {
+      "sha256": "67a0a71962f2b728c277b82fab4120dfb0a63158dab5c9a596c4e97465db31df",
+      "bytes": 10002
+    },
+    "examples/editor-home/ui/blueprint-viewport.js": {
+      "sha256": "fbba87b41c7d654261cfdc68049bbcd1c2fe96242ed9ce6ed04fc00c49a1ea3a",
+      "bytes": 14524
+    },
+    "examples/editor-home/ui/blueprint.js": {
+      "sha256": "7c0caba3e05194b5347165512a5a9fcdb45ef9845afb6a233c723ca309a13a6e",
+      "bytes": 83334
+    },
+    "examples/editor-home/ui/consumer.css": {
+      "sha256": "333223fe1f2d0129e53b28e76b4c5c7b78b4f95a36bbe0a4ecc29be18888cb62",
+      "bytes": 21227
+    },
+    "examples/editor-home/ui/workspace-host.js": {
+      "sha256": "4b80913521b03c19a7230d98169023578243f8a840869db67ae4b6616a4e9153",
+      "bytes": 16821
+    },
+    "tests/web/v480_blueprint_camera.py": {
+      "sha256": "d4d937550ae79fde9ca2cfd60fd6ccc01aef8f33e3dad499793f0da12ff1a400",
+      "bytes": 13029
+    },
+    "tests/web/v480_pin_gestures.py": {
+      "sha256": "122931d3e1905290dca137b4003a9ffe40e98291c213f5ae1187f1ed71038e0e",
+      "bytes": 6447
+    },
+    "tests/web/v480_switch.py": {
+      "sha256": "da8726f7ef8fd96ecd6d47b84dc9905bc894cd5b55aec308d523e3b5f5d4cb57",
+      "bytes": 8292
+    }
+  },
+  "gates": {
+    "ui": {
+      "exit": 0,
+      "methods": [
+        "WebUITests.test_actual_editor_v480_blueprint_camera_header_pins_tabs_and_cold_input",
+        "WebUITests.test_actual_editor_v480_switch_enum_scoped_case_return_cold_and_confirm",
+        "WebUITests.test_actual_editor_v480_blueprint_owned_graph_node_edit_and_cold_input",
+        "WebUITests.test_actual_editor_v480_alias_locals_slots_set_cold_and_confirm"
+      ],
+      "head": "d4dd123538fb177145bbae473329c25562ee9567",
+      "elapsed": 256.8032075169999,
+      "sourceManifestSha256": "a98b2d255fed01c0ed85fa25fb600d1ec759204176c5580647ff56801d00a584",
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 256.762,
+      "logSha256": "5165508c966ea67017b2d20fad7deef1f3ddea47842fb58726396c078b62a9dd"
+    },
+    "managed": {
+      "exit": 0,
+      "methods": [
+        "EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only"
+      ],
+      "head": "d4dd123538fb177145bbae473329c25562ee9567",
+      "elapsed": 123.00501765000013,
+      "sourceManifestSha256": "a98b2d255fed01c0ed85fa25fb600d1ec759204176c5580647ff56801d00a584",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 122.966,
+      "logSha256": "e13cf031621ec09e686e76fb0477b0cad33201f5ba02bf78c26873859001f236"
+    }
+  },
+  "checkout": {
+    "state": "pending-implementation-HEAD"
+  },
+  "resourceCount": 36,
+  "compilerApiAndExecutionSemanticsUnchanged": true,
+  "findings": [
+    "blank drag left pending wire",
+    "invalid case/start targets replaced saved or retained input with empty value",
+    "output sidebar resize/collapse missing"
+  ],
+  "finalBehavior": [
+    "invalid target preserves input and pending wire for valid retry",
+    "blank drop cancels drag; click-to-connect still works",
+    "output sidebar pointer/keyboard bounds, outer zoom, Escape, graph-local width/collapse/cold restoration",
+    "hidden unsubmitted output input is preserved; no automatic source writes"
+  ],
+  "previousStages": [
+    {
+      "log": "before-fix.log",
+      "result": "0/1/0 67.210",
+      "productBase": "d4dd123538fb177145bbae473329c25562ee9567",
+      "note": "Four observed symptoms across two pin defects; shared source unchanged."
+    },
+    {
+      "log": "first-focused.log",
+      "result": "2/0/0 136.236",
+      "note": "Initial corrections and sidebar; repeated in final suite."
+    },
+    {
+      "log": "before-retry-ui.log",
+      "result": "4/0/0 255.111",
+      "note": "Before preserving pending wire for a direct valid retry; not added to final count."
+    },
+    {
+      "log": "before-retry-managed.log",
+      "result": "1/0/0 125.768",
+      "note": "Earlier source snapshot; not added to final count."
+    }
+  ],
+  "remainingCategories": {
+    "policyAwaiting": [
+      "int/long expression overflow error versus wrap, still unanswered"
+    ],
+    "existingContractAuditPending": [
+      "Home card projection and transitions",
+      "browser grouping/field columns/reference gestures",
+      "document link transitions"
+    ],
+    "newContractOutsideScope": [
+      "structural property write/ref",
+      "compound/function live property",
+      "general user enum/Vector3 ABI",
+      "full ownership-set undo",
+      "external actor/recipient/room/ack and frame/ack services"
+    ],
+    "environmentUnverified": [
+      "actual service accounts/paid models",
+      "native OS/device UI",
+      "user PC installation"
+    ]
+  },
+  "protected": {
+    "localMain": "b5ea38c3d7eec3eb20f170e68f0f4215b86b2aee",
+    "remoteMain": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+    "zips": {
+      "reference/site-ui/Confectory-Editor-Prototype-v196.zip": "02d4824e92ed0edbb43113659982b37a99a614117652bde4d8ac92367e334e34",
+      "reference/site-ui/Confectory-Editor-Prototype-v318.zip": "0a614fe2bf1ad3d8e10dfa8905bb6b61ea9f21b87b2492b2b87ca8566e9e6908",
+      "reference/site-ui/Confectory-Editor-Prototype-v424.zip": "b7969cd109ea2dad38bde9c9ab13967c20162c920a45a8cd51a8f82df6041874",
+      "reference/site-ui/Confectory-Editor-Prototype-v480.zip": "0489844c8c6d90f7cdc8ea0e80628f487dcfb27f2c871b19367a635212d3c5bd"
+    }
+  }
+}

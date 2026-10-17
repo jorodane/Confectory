@@ -6,6 +6,7 @@ export function activateBlueprintView(w,data){
  if(w.meta.blueprintGraph!==data.id){
   const saved=Object.hasOwn(w.meta.blueprintViews||{},data.id)?w.meta.blueprintViews[data.id]:null;
   w.meta.blueprintZoom=saved?.zoom??100;w.meta.blueprintCamera=saved?.camera??{x:0,y:0};w.meta.blueprintPositions=saved?.positions??{};w.meta.blueprintNode=saved?.node;
+  w.meta.blueprintOutputWidth=saved?.outputWidth??165;w.meta.blueprintOutputCollapsed=saved?.outputCollapsed===true;
  }
  w.meta.blueprintGraph=data.id;
 }
@@ -17,14 +18,18 @@ function wheelSteps(){
 export function mountBlueprintViewport({w,data,$,$$,persist,isCurrent,hasWire,cancelWire}){
  const viewport=$('.bp-scroll',w.body),canvas=$('.bp-canvas',w.body),events=new AbortController(),wheel=wheelSteps();
  let scale=clampBlueprintZoom(Number(w.meta.blueprintZoom)/100),camera={x:finite(w.meta.blueprintCamera?.x),y:finite(w.meta.blueprintCamera?.y)},gesture=null,menu=null,menuEvents=null,closed=false;
+ let outputWidth=finite(w.meta.blueprintOutputWidth,165),outputCollapsed=w.meta.blueprintOutputCollapsed===true;
+ const output=$('.bp-output',w.body),outputResize=$('[data-bp-output-resize]',w.body),outputToggle=$('[data-bp-output-toggle]',w.body),maxOutputWidth=()=>Math.max(120,Math.min(420,Math.floor(output.parentElement.clientWidth*.55))),clampOutputWidth=value=>Math.max(120,Math.min(maxOutputWidth(),value));
+ function applyOutputSidebar(){const width=clampOutputWidth(outputWidth);output.style.flexBasis=(outputCollapsed?36:width)+'px';output.classList.toggle('is-collapsed',outputCollapsed);outputResize.hidden=outputCollapsed;outputToggle.textContent=outputCollapsed?'‹':'›';outputToggle.setAttribute('aria-expanded',String(!outputCollapsed));outputToggle.setAttribute('aria-label',outputCollapsed?'출력 사이드바 펼치기':'출력 사이드바 접기');outputResize.setAttribute('aria-valuemin','120');outputResize.setAttribute('aria-valuemax',String(maxOutputWidth()));outputResize.setAttribute('aria-valuenow',String(width));}
  const positions=Object.create(null);for(const [i,node] of data.nodes.entries()){const saved=w.meta.blueprintPositions?.[node.id];positions[node.id]={x:Math.max(0,finite(saved?.x,40+i*290)),y:Math.max(0,finite(saved?.y,55+(i%2)*95))};}
  function save(){
-  if(!isCurrent())return;const view={zoom:scale*100,camera:{...camera},positions:structuredClone(positions),node:w.meta.blueprintNode};
-  Object.assign(w.meta,{blueprintZoom:view.zoom,blueprintCamera:view.camera,blueprintPositions:view.positions});
+  if(!isCurrent())return;const view={zoom:scale*100,camera:{...camera},positions:structuredClone(positions),node:w.meta.blueprintNode,outputWidth,outputCollapsed};
+  Object.assign(w.meta,{blueprintZoom:view.zoom,blueprintCamera:view.camera,blueprintPositions:view.positions,blueprintOutputWidth:outputWidth,blueprintOutputCollapsed:outputCollapsed});
   const views=Object.assign(Object.create(null),w.meta.blueprintViews||{});views[data.id]=view;while(Object.keys(views).length>64)delete views[Object.keys(views).find(id=>id!==data.id)];w.meta.blueprintViews=views;persist();
  }
  function geometry(){const rect=viewport.getBoundingClientRect();return {rect,x:rect.width/viewport.offsetWidth||1,y:rect.height/viewport.offsetHeight||1};}
  function draw(){
+  applyOutputSidebar();
   canvas.style.transform=`translate(${camera.x}px,${camera.y}px) scale(${scale})`;canvas.style.zoom='';
   for(const node of data.nodes){const el=$('[data-bp-node="'+CSS.escape(node.id)+'"]',w.body),p=positions[node.id];el.style.left=p.x+'px';el.style.top=p.y+'px';}
   const width=Math.max(700,...Object.values(positions).map(p=>p.x+300)),height=Math.max(390,...data.nodes.map(n=>positions[n.id].y+(n.control==='switch'?Math.max(280,$('[data-bp-node=\"'+CSS.escape(n.id)+'\"]',w.body).offsetHeight+30):280)));canvas.style.width=width+'px';canvas.style.height=height+'px';
@@ -54,6 +59,9 @@ export function mountBlueprintViewport({w,data,$,$$,persist,isCurrent,hasWire,ca
  $('[data-bp-zoom]',w.body).oninput=e=>setZoom(Number(e.target.value)/100);$('[data-bp-fit]',w.body).onclick=fit;
  function stopGesture(cancel=false){if(!gesture)return;const g=gesture;gesture=null;if(cancel)g.restore();g.owner.onpointermove=g.owner.onpointerup=g.owner.onpointercancel=null;if(g.owner.hasPointerCapture(g.id))g.owner.releasePointerCapture(g.id);viewport.classList.remove('is-panning');draw();save();}
  function startGesture(event,owner,move,restore){event.preventDefault();event.stopPropagation();stopGesture(true);owner.setPointerCapture(event.pointerId);gesture={id:event.pointerId,owner,restore};owner.onpointermove=e=>{if(e.pointerId===event.pointerId&&isCurrent()){move(e);draw();}};owner.onpointerup=e=>{if(e.pointerId===event.pointerId)stopGesture();};owner.onpointercancel=()=>stopGesture(true);}
+ outputResize.onpointerdown=event=>{if(event.button!==0||!isCurrent())return;cancelWire();const x=event.clientX,before=outputWidth,width=clampOutputWidth(outputWidth),outer=output.getBoundingClientRect().width/output.offsetWidth||1;startGesture(event,outputResize,e=>outputWidth=clampOutputWidth(width+(x-e.clientX)/outer),()=>outputWidth=before);};
+ outputResize.onkeydown=event=>{if(!isCurrent()||!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;event.preventDefault();event.stopPropagation();outputWidth=event.key==='Home'?120:event.key==='End'?maxOutputWidth():clampOutputWidth(clampOutputWidth(outputWidth)+(event.key==='ArrowLeft'?16:-16));draw();save();};
+ outputToggle.onclick=()=>{if(!isCurrent())return;stopGesture(true);cancelWire();outputCollapsed=!outputCollapsed;draw();save();};
  viewport.addEventListener('wheel',event=>{event.stopPropagation();const input=event.target.closest('textarea');if(input&&input.scrollHeight>input.clientHeight+1)return;event.preventDefault();if(!isCurrent())return;const next=wheel.step(scale,event);if(next===scale)return;const g=geometry();zoomAt(next,(event.clientX-g.rect.left)/g.x,(event.clientY-g.rect.top)/g.y);},{passive:false,signal:events.signal});
  viewport.addEventListener('pointerdown',event=>{if(![1,2].includes(event.button)||!isCurrent())return;cancelWire();const before={...camera},g=geometry(),start={x:event.clientX,y:event.clientY};startGesture(event,viewport,e=>{camera.x=before.x+(e.clientX-start.x)/g.x;camera.y=before.y+(e.clientY-start.y)/g.y;},()=>camera={...before});viewport.classList.add('is-panning');},{capture:true,signal:events.signal});
  viewport.addEventListener('contextmenu',e=>{e.preventDefault();e.stopPropagation();},{signal:events.signal});

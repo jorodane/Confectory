@@ -7,9 +7,11 @@ export function mountBlueprintPins({w,data,api,show,list}){
  function clear(){closeMenu();if(gesture){const g=gesture;gesture=null;g.owner.onpointermove=g.owner.onpointerup=g.owner.onpointercancel=null;if(g.owner.hasPointerCapture(g.id))g.owner.releasePointerCapture(g.id);}wire=null;preview?.remove();preview=null;for(const el of $$('[aria-pressed="true"][data-bp-exec-out],[aria-pressed="true"][data-bp-exec-start]',w.body))el.setAttribute('aria-pressed','false');}
  function selected(id,method,...args){if(!current())return;if(w.meta.blueprintNode!==id){w.meta.blueprintNode=id;show(data,w.meta,list);return w.blueprintPins[method](...args);}return false;}
  function stage(kind,node,name,value){
-  if(!current())return;if(node&&w.meta.blueprintNode!==node){selected(node,'stage',kind,node,name,value);return;}
+  if(!current())return false;if(node&&w.meta.blueprintNode!==node)return selected(node,'stage',kind,node,name,value);
   const selector=kind==='entry'?'[data-bp-entry]':kind==='route'?'[data-bp-route="'+CSS.escape(name)+'"]':'[data-bp-argument="'+CSS.escape(name)+'"]';
-  const input=$(selector,w.body);if(!input)return;input.value=value;input.oninput();input.focus({preventScroll:true});api.toast('연결 값을 입력에 준비했습니다. 적용과 검토는 별도입니다.');
+  const input=$(selector,w.body);if(!input)return false;
+  if(input instanceof HTMLSelectElement&&![...input.options].some(option=>option.value===value&&!option.disabled)){api.toast('이 실행 포트에서 선택할 수 없는 대상입니다. 기존 연결 입력은 유지됩니다.');return false;}
+  input.value=value;input.oninput();input.focus({preventScroll:true});api.toast('연결 값을 입력에 준비했습니다. 적용과 검토는 별도입니다.');return true;
  }
  function popup(anchor,title,rows){
   closeMenu();menu=document.createElement('section');menu.className='bp-pin-menu';menu.setAttribute('role','dialog');menu.setAttribute('aria-label',title);menu.innerHTML='<strong>'+esc(title)+'</strong><p>기존 계약의 값을 선택해 입력에 준비합니다. 적용·검토는 별도입니다.</p>'+rows.map((row,i)=>'<button type="button" data-pin-choice="'+i+'">'+esc(row.label)+'</button>').join('')+'<button type="button" data-pin-close>취소</button>';document.body.append(menu);const rect=anchor.getBoundingClientRect();Object.assign(menu.style,{left:Math.max(8,Math.min(rect.left,innerWidth-menu.offsetWidth-8))+'px',top:Math.max(8,Math.min(rect.bottom+6,innerHeight-menu.offsetHeight-8))+'px'});menuEvents=new AbortController();
@@ -27,12 +29,13 @@ export function mountBlueprintPins({w,data,api,show,list}){
   if(!current())return;if(from&&w.meta.blueprintNode!==from){selected(from,'start',from,port);return;}
   closeMenu();if(wire?.from===from&&wire?.port===port){clear();return;}clear();wire={from,port};const button=from?$('[data-bp-exec-out="'+CSS.escape(from)+'"][data-exec-port="'+port+'"]',w.body):$('[data-bp-exec-start]',w.body);button?.setAttribute('aria-pressed','true');api.toast('실행을 연결할 상단바 또는 기존 반환 경로를 선택하세요. Escape로 취소합니다.');
  }
- function connect(to){if(!wire||!current())return;if(wire.from===to){api.toast('현재 profile에서는 같은 노드로 되돌아가는 실행선을 만들 수 없습니다.');return;}const from=wire.from,port=wire.port;clear();if(from)stage('route',from,port,to);else stage('entry',null,'',to);}
+ function connect(to){if(!wire||!current())return;if(wire.from===to){api.toast('현재 profile에서는 같은 노드로 되돌아가는 실행선을 만들 수 없습니다.');return;}const from=wire.from,port=wire.port;if(from?stage('route',from,port,to):stage('entry',null,'',to))clear();}
  function begin(event,from,port){
   if(event.button!==0||!current())return;event.preventDefault();event.stopPropagation();
   if(from&&w.meta.blueprintNode!==from){selected(from,'begin',event,from,port);return;}
-  start(from,port);skipClick=true;const owner=from?$('[data-bp-exec-out="'+CSS.escape(from)+'"][data-exec-port="'+port+'"]',w.body):$('[data-bp-exec-start]',w.body);if(!wire){setTimeout(()=>skipClick=false,0);return;}owner.setPointerCapture(event.pointerId);gesture={owner,id:event.pointerId};
-  owner.onpointerup=e=>{if(e.pointerId!==event.pointerId)return;const target=document.elementFromPoint(e.clientX,e.clientY),exit=target?.closest('[data-bp-exec-exit]'),header=target?.closest('[data-bp-exec-target]'),g=gesture;gesture=null;owner.onpointerup=owner.onpointercancel=null;if(g&&owner.hasPointerCapture(g.id))owner.releasePointerCapture(g.id);if(exit&&w.body.contains(exit))connect('exit:'+exit.dataset.bpExecExit);else if(header&&w.body.contains(header)&&header.dataset.bpExecTarget!==from)connect(header.dataset.bpExecTarget);setTimeout(()=>skipClick=false,0);};
+  start(from,port);skipClick=true;const owner=from?$('[data-bp-exec-out="'+CSS.escape(from)+'"][data-exec-port="'+port+'"]',w.body):$('[data-bp-exec-start]',w.body);if(!wire){setTimeout(()=>skipClick=false,0);return;}owner.setPointerCapture(event.pointerId);gesture={owner,id:event.pointerId,moved:false};
+  owner.onpointermove=e=>{if(e.pointerId===event.pointerId&&gesture&&Math.hypot(e.clientX-event.clientX,e.clientY-event.clientY)>=4)gesture.moved=true;};
+  owner.onpointerup=e=>{if(e.pointerId!==event.pointerId)return;const target=document.elementFromPoint(e.clientX,e.clientY),exit=target?.closest('[data-bp-exec-exit]'),header=target?.closest('[data-bp-exec-target]'),g=gesture;gesture=null;owner.onpointermove=owner.onpointerup=owner.onpointercancel=null;if(g&&owner.hasPointerCapture(g.id))owner.releasePointerCapture(g.id);if(exit&&w.body.contains(exit))connect('exit:'+exit.dataset.bpExecExit);else if(header&&w.body.contains(header)&&header.dataset.bpExecTarget!==from)connect(header.dataset.bpExecTarget);else if(g?.moved)clear();setTimeout(()=>skipClick=false,0);};
   owner.onpointercancel=()=>{clear();skipClick=false;};
  }
  for(const button of $$('[data-bp-exec-out]',w.body)){button.onpointerdown=e=>begin(e,button.dataset.bpExecOut,button.dataset.execPort);button.onclick=e=>{e.stopPropagation();if(!skipClick)start(button.dataset.bpExecOut,button.dataset.execPort);};}
