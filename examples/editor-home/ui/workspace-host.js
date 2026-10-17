@@ -40,9 +40,9 @@ export function createActualWorkspace(api) {
             }
           }
     },
-    browserCanEnter:()=>false,browserHierarchyParent:()=>null,
-    selectObject:id=>api.select(id),openEditor:id=>{api.select(id);return null},
-    openBrowser:group=>api.browser(group),renderBrowser:()=>api.renderObjects(),
+    browserCanEnter:row=>api.projection.children(row.id).length>0,browserHierarchyParent:row=>api.projection.parent(row?.id),
+    selectObject:id=>api.openDeclaration(id),openEditor:id=>{api.openDeclaration(id);return null},
+    openBrowser:(...args)=>api.openBrowser(...args),renderBrowser:()=>api.renderObjects(),
     browserTreeCreateMenu:()=>api.unsupported('분류 편집','실제 계층 편집 계약은 아직 연결되지 않았습니다.'),
     browserCreateMenu:()=>api.unsupported('생성','실제 브라우저의 + 버튼에서 기존 선언 생성 계약을 사용하세요.'),
     duplicateChildBrowser:w=>api.duplicateBrowser(w),
@@ -118,7 +118,7 @@ export function createActualWorkspace(api) {
     if(project){capture();projects.set(scope,project);}
     scope=state.projectId;inputStarted=0;
     project=projects.get(scope)||state.presentation||{version:1,layout:[],workspaces:[],workspaceItems:[],workspaceView:{x:0,y:0,scale:1},rootWorkspaceView:{x:0,y:0,scale:1},activeWorkspaceId:'root',visitedWorkspaceTabs:['root'],inputs:{}};
-    Object.defineProperty(project,'objects',{configurable:true,enumerable:false,get:()=>api.current.units.map(unit=>({id:unit.id,name:unit.id.split('::').at(-1),kind:unit.kind,group:unit.kind==='function'?'feature':unit.kind==='module'?'module':'concept'}))});
+    Object.defineProperty(project,'objects',{configurable:true,enumerable:false,get:()=>api.projection.workspaceRows()});
     project.workspaceView??={x:0,y:0,scale:1};project.rootWorkspaceView??={...project.workspaceView};
     runtime.state.windows.clear();runtime.state.workspaceNodes.clear();runtime.state.selectedWorkspaceNodeKeys.clear();
     runtime.state.activeWorkspaceId=runtime.workspaceRecord(project.activeWorkspaceId)?project.activeWorkspaceId:'root';

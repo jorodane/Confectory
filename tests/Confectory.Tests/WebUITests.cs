@@ -301,6 +301,17 @@ public sealed class WebUITests : TestCase
         var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/web_ui.py"),Fixture.Repo,report,"schema-exact"},timeoutSeconds:600);
         True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS exact schema scalar"),run.Stdout+run.Stderr);
     }
+    public void test_actual_editor_v480_declaration_hierarchy_variation_fill_confirm_independent_cold()
+    {
+        var built=new Builder(Path.Combine(Fixture.Repo,"examples/editor-home/project.cpack"),"linux").Build();string report=Path.Combine(f.Root,"v480-declaration-navigation.json");File.WriteAllText(report,built.ToJsonString());
+        var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/web_ui.py"),Fixture.Repo,report,"declaration-navigation"},timeoutSeconds:600);
+        Console.WriteLine(run.Stdout.Trim());True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS actual v480 declaration hierarchy"),run.Stdout+run.Stderr);
+    }
+    public void test_browser_projection_declared_identity_parent_schema_and_reference_gates()
+    {
+        var run=Processes.Run(new[]{"node",Path.Combine(Fixture.Repo,"tests/web/browser_projection.mjs"),Fixture.Repo},timeoutSeconds:60);
+        True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS browser projection declared identity"),run.Stdout+run.Stderr);
+    }
     public void test_actual_editor_v480_browser_data_atomic_fill_selection_cas_and_cold()
     {
         var built=new Builder(Path.Combine(Fixture.Repo,"examples/editor-home/project.cpack"),"linux").Build();string report=Path.Combine(f.Root,"v480-browser-fill.json");File.WriteAllText(report,built.ToJsonString());

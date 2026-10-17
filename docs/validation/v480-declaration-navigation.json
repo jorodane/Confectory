@@ -1,0 +1,202 @@
+{
+  "schema": 1,
+  "kind": "v480-declaration-navigation",
+  "baseline": {
+    "base": "c8f29515ccba1ddeac8433c18506313e3abead06",
+    "referenceMain": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f"
+  },
+  "source": {
+    "examples/editor-home/WebBundle.csbody": {
+      "sha256": "55205d4d39ba2fa40763aec7871bcf9d166851b55d86fedd58263ea3bb88655e",
+      "bytes": 10192
+    },
+    "examples/editor-home/ui/app.js": {
+      "sha256": "2a4c0301ea557313752794e6e14c40dfb5541e8fa7fcbc6e4cf939f099f9ca5d",
+      "bytes": 233457
+    },
+    "examples/editor-home/ui/browser-projection.js": {
+      "sha256": "168efc9ab59c972542c4ca305c3103c79f76404ecab2ea328dbcb18012deb392",
+      "bytes": 3550
+    },
+    "examples/editor-home/ui/consumer.css": {
+      "sha256": "cc8aab378baa808d319016208dc05e971578f295e3303e387fcb585bcd0bed25",
+      "bytes": 22959
+    },
+    "examples/editor-home/ui/inventory.js": {
+      "sha256": "f13c294d9db81e79f374ceddd350b140843a37a07753ad72f1b49c6235932005",
+      "bytes": 12514
+    },
+    "examples/editor-home/ui/workspace-host.js": {
+      "sha256": "d0bc4dbc6b2724f5888749b82da4de9e1a1c14f4714cab7addf6cc15e7dcf296",
+      "bytes": 17026
+    },
+    "examples/editor-home/ui/workspace.js": {
+      "sha256": "9b3bf4bb316a99f57deca055d8bcb9380fd7a1601b3055d1ff5ae7eb58b52d6e",
+      "bytes": 67047
+    },
+    "tests/Confectory.Tests/WebUITests.cs": {
+      "sha256": "360a04f2e6ce0103b2a6dd4f66e3cd9c84fec9c31be90562abea39608cdd79ce",
+      "bytes": 57516
+    },
+    "tests/web/browser_projection.mjs": {
+      "sha256": "9fde664631fe2198c08aa3f5a0918371ab0b5aae1ebd6e572c81333f2cb29019",
+      "bytes": 2880
+    },
+    "tests/web/editor_inventory_v318.py": {
+      "sha256": "263d4b9d5f66919d638819c7d019c3a139d17d054ffdb82e9f38185b70c223b4",
+      "bytes": 10419
+    },
+    "tests/web/v480_declaration_navigation.py": {
+      "sha256": "61170703bfa13850fff83488f6f2d3eb7bba6c20c36866228a7cac38817980ff",
+      "bytes": 10617
+    },
+    "tests/web/web_ui.py": {
+      "sha256": "e7c6b8147686ca944e145a0a777d527dd2a07d61a0f26eefe4b8c5411bc4b072",
+      "bytes": 64744
+    }
+  },
+  "gates": {
+    "ui": {
+      "exit": 0,
+      "methods": [
+        "WebUITests.test_actual_editor_v480_declaration_hierarchy_variation_fill_confirm_independent_cold",
+        "WebUITests.test_actual_editor_v318_inventory_and_browser_instances_restart",
+        "WebUITests.test_actual_editor_v424_owned_object_variation_atomic_creation_and_cold_restart",
+        "WebUITests.test_actual_editor_v480_browser_data_atomic_fill_selection_cas_and_cold",
+        "WebUITests.test_actual_editor_v480_browser_data_fields_typed_cas_inputs_and_cold",
+        "WebUITests.test_actual_editor_v480_reference_gestures_columns_document_links_and_cold",
+        "WebUITests.test_actual_editor_v424_typed_declaration_views_cas_confirm_and_restart",
+        "WebUITests.test_actual_editor_v424_instant_table_typed_fill_cas_and_cold_restart",
+        "WebUITests.test_actual_editor_v424_registered_reference_definition_read_only_and_cold_restart",
+        "WebUITests.test_actual_editor_v424_declared_relations_map_and_cold_restart",
+        "WebUITests.test_actual_editor_v424_schema_local_actions_and_compound_array_order",
+        "WebUITests.test_actual_editor_v424_schema_exact_numeric_hash_and_cold_restart",
+        "WebUITests.test_actual_editor_v480_window_document_docking_cold_inputs_and_compiler_confirm",
+        "WebUITests.test_actual_editor_v480_home_browser_document_repeat_cancel_and_restore"
+      ],
+      "head": "c8f29515ccba1ddeac8433c18506313e3abead06",
+      "elapsed": 623.1663647149999,
+      "sourceManifestSha256": "59b1eede420b3443b392c3b0a378562234647b78983019b6db810e33bf24da4b",
+      "passed": 14,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 623.115,
+      "logSha256": "41fdf5c67d2a4d97c9cf87b35929824964b7bd2590b76fe47497907644347b5b"
+    },
+    "model": {
+      "exit": 0,
+      "methods": [
+        "WebUITests.test_browser_projection_declared_identity_parent_schema_and_reference_gates",
+        "RelationsMapTests.test_owned_declared_map_drafts_external_references_partial_sources_and_read_only_review",
+        "RelationsMapTests.test_registered_reference_definition_direct_scope_identity_and_no_body_reads",
+        "InstantTableVersionTests.test_versioned_table_atomic_fill_schema_fences_precision_and_borrowed_lifetime"
+      ],
+      "head": "c8f29515ccba1ddeac8433c18506313e3abead06",
+      "elapsed": 65.07346973899985,
+      "sourceManifestSha256": "59b1eede420b3443b392c3b0a378562234647b78983019b6db810e33bf24da4b",
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 65.037,
+      "logSha256": "3ed5b4dbe91131eb29ff5d8d6b71591a805a919d1aafe1c3a733fd047b3f10ba"
+    },
+    "managed": {
+      "exit": 0,
+      "methods": [
+        "EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only"
+      ],
+      "head": "c8f29515ccba1ddeac8433c18506313e3abead06",
+      "elapsed": 150.16722909999953,
+      "sourceManifestSha256": "59b1eede420b3443b392c3b0a378562234647b78983019b6db810e33bf24da4b",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 150.1,
+      "logSha256": "35b2482f8e7c4e0a649b1ad4c678d129bb2cd5071ff12d1dda27b50a7680095a"
+    }
+  },
+  "checkout": {
+    "state": "pending-implementation-HEAD"
+  },
+  "resourceCount": 39,
+  "screenshotSha256": "bc84b444cf7ac08218504d36df17341ef9ac4bc6aa26d3a1f11d8ea236b63320",
+  "build": {
+    "success": true,
+    "logSha256": "ef4abda67bdf2e81102da7f54423d80046b7ac04e4084786485ae1fc9e281b71"
+  },
+  "mapping": {
+    "identity": "Existing confirmed localInventory IDs/kind/namespace/ownership + versioned owned relationsMap nodes/edges. Runtime cache, not persisted authority.",
+    "hierarchy": "Only explicit parent edges between known identities; actual children drive browserCanEnter, confirmed parent identity drives browserHierarchyParent. category/concept/contain/use do not imply folders.",
+    "schema": "Direct use-schema links reuse the same owned/reference navigation; inherited field values stay in existing schema/table owners.",
+    "definitions": "Owned select/schema/declaration/raw-source and registered readReferenceDefinition with an owned direct source revision/hash; registry/dependency/identity/read-only gates unchanged.",
+    "independentWindows": "Workspace search preserves real group/key/parent/position; separate catalogue locations/queries/metadata restore and reread projection after cold",
+    "editing": "Existing Variation creation-group compiler Review/Confirm, explicit table definition and atomic versioned fill, independent ordinary Review/Confirm; no automatic registration/write-target expansion"
+  },
+  "validated": [
+    "pure declared projection: confirmed/live parent distinction, schema IDs, category/concept and contain not folders, direct reference source, cycles, retry and project isolation",
+    "real category parent branch and actual concept/schema definitions",
+    "gated registered parent read-only definition and wrong source hash refusal",
+    "owned Variation shares its parent schema and uses explicit creation registration Review/compiler Confirm",
+    "native Workspace qualified-ID search and an independent browser key with the actual parent location",
+    "owned comparison of newly registered Variation and existing child, atomic exact int64 fill and unrelated pending cell retention",
+    "explicit second compiler Review/Confirm writes the two selected source values",
+    "distinct main/independent parent and unsubmitted searches, private table inputs/fill and original CAS versions survive actual host restart",
+    "runtime projection objects and relation snapshot are not saved as project authority; original foreign/untargeted sources remain unchanged",
+    "prior independent inventory/cold and owned Variation lifecycles, typed fields/definitions/relations/document/source CAS and fill regression"
+  ],
+  "engineModelPublicEditingApiCompilerExecutionSemanticsUnchanged": true,
+  "earlierRuns": [
+    {
+      "log": "before-schema-retention-ui.log",
+      "result": "interrupted known failing source stage; no final count",
+      "scope": "legacy read helper busy handling and automatic relation reads clearing active schema/declaration projection"
+    },
+    {
+      "log": "schema-retention-focused.log",
+      "result": "4/0/0 180.478",
+      "scope": "inventory, Variation, exact schema and full P0 pass with read-only active projection restoration; repeated in final suite"
+    },
+    {
+      "log": "before-textarea-value.log",
+      "result": "1/1/0 66.465",
+      "scope": "projection passed; UI used DOM text assertion for textarea value"
+    },
+    {
+      "log": "before-schema-placement.log",
+      "result": "0/1/0 41.690",
+      "scope": "schema window covered the native browser right-click target"
+    },
+    {
+      "log": "focused.log",
+      "result": "1/0/0 62.993",
+      "scope": "full actual end-to-end scenario passed; repeated in final frozen-source suite, not added to count"
+    }
+  ],
+  "remaining": {
+    "scopeBoundary": [
+      "all prototype category product semantics",
+      "bulk reading arbitrary registered source hierarchies or widening inherited external reference rights",
+      "new category editing/deletion/reference replacement",
+      "automatic field union/computed columns/write-target selection",
+      "Workspace visual link lifetime"
+    ],
+    "separatePolicies": [
+      "int/long expression overflow error versus wrap"
+    ],
+    "nextBundles": "docs/V480_REMAINING_WORK.md",
+    "environmentUnverified": [
+      "native OS/devices/user PC installation",
+      "actual accounts and paid calls"
+    ]
+  },
+  "protected": {
+    "localMain": "b5ea38c3d7eec3eb20f170e68f0f4215b86b2aee",
+    "remoteMain": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+    "zips": {
+      "reference/site-ui/Confectory-Editor-Prototype-v196.zip": "02d4824e92ed0edbb43113659982b37a99a614117652bde4d8ac92367e334e34",
+      "reference/site-ui/Confectory-Editor-Prototype-v318.zip": "0a614fe2bf1ad3d8e10dfa8905bb6b61ea9f21b87b2492b2b87ca8566e9e6908",
+      "reference/site-ui/Confectory-Editor-Prototype-v424.zip": "b7969cd109ea2dad38bde9c9ab13967c20162c920a45a8cd51a8f82df6041874",
+      "reference/site-ui/Confectory-Editor-Prototype-v480.zip": "0489844c8c6d90f7cdc8ea0e80628f487dcfb27f2c871b19367a635212d3c5bd"
+    }
+  }
+}

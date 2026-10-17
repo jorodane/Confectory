@@ -18,15 +18,21 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
  # A regular existing user project copy, with actual object source and normal draft storage.
  project=root/'button-game';shutil.copytree(repo/'examples/button-game',project,ignore=shutil.ignore_patterns('.confectory'))
  manifest=project/'project.cpack';manifest.write_text(manifest.read_text().replace('../../',str(repo)+'/'))
- if kind in ['browser-data-fill','browser-data-fields','instant-table','schema-exact','schema-actions']:
+ if kind in ['declaration-navigation','browser-data-fill','browser-data-fields','instant-table','schema-exact','schema-actions']:
   (project/'ZBroken.celem').write_text('object Example.ButtonGame::ZBroken {}')
   (project/'TableStats.celem').write_text('schema Example.ButtonGame::TableStats {field amount single general long;field tags multiple general int;}')
   (project/'TableTwin.celem').write_text('object Example.ButtonGame::TableTwin extends Example.ButtonGame::Score {data amount = 9223372036854775806;}')
   score_source=project/'Score.celem';score_source.write_text(score_source.read_text().replace('{','{ value description = "Separate metadata";use schema Example.ButtonGame::TableStats;data amount = 9223372036854775807;data tags = [1,2];',1))
   source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+'element TableStats schema "TableStats.celem";element TableTwin object "TableTwin.celem";element ZBroken object "ZBroken.celem";'+source[index:])
- if kind in ['browser-data-fill','browser-data-fields']:
+ if kind in ['declaration-navigation','browser-data-fill','browser-data-fields']:
   ref=root/'browser-reference';ref.mkdir();(ref/'pack.cpack').write_text('pack BrowserReference version "1" {element External object "External.celem";}');(ref/'External.celem').write_text('object BrowserReference::External {value initial = 7;}')
   source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+'registry BrowserReference '+json.dumps(str(ref/'pack.cpack'))+';dependency BrowserReference version "1";'+source[index:])
+ if kind=='declaration-navigation':
+  ref=root/'browser-reference';(ref/'External.celem').write_text('object BrowserReference::External {description "Registered parent definition";value externalMeta = 7;}')
+  score=project/'Score.celem';score.write_text(score.read_text().replace('object Example.ButtonGame::Score {','object Example.ButtonGame::Score extends BrowserReference::External {',1))
+  definitions={'GameRoot':('category','category Example.ButtonGame::GameRoot {}'),'GameChild':('category','category Example.ButtonGame::GameChild extends Example.ButtonGame::GameRoot {contain object Example.ButtonGame::Score;}'),'Party':('concept','concept Example.ButtonGame::Party {use schema Example.ButtonGame::TableStats;}')}
+  for name,(_,text) in definitions.items():(project/(name+'.celem')).write_text(text)
+  source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+''.join('element '+name+' '+kind+' "'+name+'.celem";' for name,(kind,_) in definitions.items())+source[index:])
  if kind=='browser-data-fill':
   (project/'TableThird.celem').write_text('object Example.ButtonGame::TableThird extends Example.ButtonGame::Score {data amount = 9223372036854775804;}')
   source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+'element TableThird object "TableThird.celem";'+source[index:])
@@ -342,6 +348,9 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
     elif kind=='reference-gestures':
      from v480_reference_navigation import verify_reference_navigation
      verify_reference_navigation(page,project,mount,send,envelope,settle,restart_actual_host)
+    elif kind=='declaration-navigation':
+     from v480_declaration_navigation import verify_declaration_navigation
+     verify_declaration_navigation(page,project,mount,send,envelope,settle,restart_actual_host)
     elif kind=='browser-data-fill':
      from v480_browser_fill import verify_browser_fill
      verify_browser_fill(page,project,mount,send,envelope,settle,restart_actual_host)

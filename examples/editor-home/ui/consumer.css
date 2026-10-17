@@ -88,3 +88,14 @@
 [data-browser-data]>.instant-table-fill label{max-width:220px}
 [data-browser-data]>.instant-table-fill select{max-width:100%}
 .browser-data-table [data-browser-fill-selection]{min-width:80px;width:80px}
+
+[data-browser-row-tools]{display:flex;flex-wrap:wrap;gap:3px}
+[data-browser-row-tools] button{font-size:10px;padding:3px 5px}
+.browser-tools [data-browser-projection-refresh]{font-size:10px;padding:4px;max-width:75px}
+
+:is(.window[data-key^="browser:"],.window[data-key^="browser-tree:"])>.window-body{display:flex;flex-direction:column;min-height:0;overflow:hidden}
+:is(.window[data-key^="browser:"],.window[data-key^="browser-tree:"]) :is(.browser-tabs,.browser-tools,.crumbs,.browser-foot){flex-shrink:0}
+:is(.window[data-key^="browser:"],.window[data-key^="browser-tree:"]) .browser-file-pane{display:flex;flex:1;min-height:0;overflow:hidden}
+:is(.window[data-key^="browser:"],.window[data-key^="browser-tree:"]) .browser-items{flex:1;min-width:0;min-height:0;overflow:auto}
+:is(.window[data-key^="browser:"],.window[data-key^="browser-tree:"]) .browser-tools .search{width:0;min-width:60px}
+:is(.window[data-key^="browser:"],.window[data-key^="browser-tree:"]) .crumbs{overflow:auto;white-space:nowrap}

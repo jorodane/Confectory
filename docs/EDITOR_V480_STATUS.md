@@ -107,3 +107,5 @@ Home 전용 제한 설정 파일과 프로젝트별 확정 object 선언 수의 
 브라우저 Data 후속은 [정확한 매핑과 경계](V480_BROWSER_DATA_FIELDS.md), [고정 원본·실행·checkout 기록](validation/v480-browser-data.json)을 따른다. 이름/종류/작업 사본 옆에 명시적으로 선택한 소유 객체의 실제 필드를 표시하고, 같은 InstantTable 셀 편집기와 타입·source/schema CAS·Apply/Review/Confirm을 재사용한다. 검색/선택/구성 변경으로 숨긴 입력도 원래 버전과 함께 보존하며, 외부 팩은 읽기 전용으로 유지한다. 자동 필드 합집합이나 새 데이터 모델·실행 의미를 지원했다고 확대하지 않는다.
 
 브라우저 다중 행 채우기 후속은 [선택·버전·취소·원자성 범위](V480_BROWSER_ATOMIC_FILL.md), [고정 원본·최종 실행·checkout 기록](validation/v480-browser-fill.json)을 따른다. 다음 작업은 [v480 잔여 구현 묶음](V480_REMAINING_WORK.md)의 우선순위·근거·완료 기준으로 정한다. Data의 셀 Apply/선택 행 채우기는 완료한 범위이며 이를 새 계산 열이나 자동 선택 확장으로 확대하지 않는다.
+
+선언 계층 탐색 후속은 [실제 ID/parent/schema·소유/등록 정의·Variation·채우기·독립 콜드 복원](V480_DECLARATION_NAVIGATION.md), [고정 원본·최종 실행·checkout 기록](validation/v480-declaration-navigation.json)을 따른다. 기존 소유 관계 조회를 활용하며 category/concept를 폴더와 동일시하지 않는다. Workspace 링크 수명·새 category 편집/삭제/참조 치환·자동 쓰기 선택은 추가하지 않는다.
