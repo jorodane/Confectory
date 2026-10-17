@@ -20,6 +20,8 @@ try
         case "blueprintPrepareFeature":reply=BlueprintCreation.Prepare(request,Format);break;
         case "blueprintPrepareImplementation":reply=BlueprintCreation.PrepareForOwner(request,Format);break;
         case "blueprintPrepareCall":reply=BlueprintCall.Prepare(request,Format);break;
+        case "blueprintPropertyCatalog":reply=BlueprintProperty.Query(request);break;
+        case "blueprintPrepareProperty":reply=BlueprintProperty.Prepare(request,Format);break;
         case "blueprintCallableContracts":reply=BlueprintCallableContracts.Query(request);break;
         case "blueprintSourceValidate":reply=BlueprintDocuments.Validate(S("id"),S("kind"),S("text"));break;
         case "relationsMap":reply=RelationMapBatch.Query(request);break;

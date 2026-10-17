@@ -69,6 +69,8 @@ internal sealed class BlueprintCompilation(Registry registry, string target, Tar
         var implementations = new JsonObject();
         var nodePaths = new HashSet<string>(StringComparer.Ordinal);
         var tree = BlueprintTree.Nodes(graph).ToDictionary(e => e.Key, StringComparer.Ordinal);
+        foreach (string nestedProfile in tree.Values.Where(e => e.Node["kind"]?.ToString()=="graph").Select(e=>e.Node["graph"]!["profile"]!.ToString()).Distinct(StringComparer.Ordinal))
+            if(tool.Info["blueprintProfile"]?.ToString()!=nestedProfile&&!(tool.Info["blueprintProfiles"] is JsonArray nestedProfiles&&nestedProfiles.Any(p=>p?.ToString()==nestedProfile)))throw new BuildError("BLUEPRINT_TARGET_UNSUPPORTED","Selected compiler does not validate private graph profile "+nestedProfile,body.Loc);
         foreach (var entry in tree.Values)
         {
             var node = entry.Node;
@@ -76,7 +78,7 @@ internal sealed class BlueprintCompilation(Registry registry, string target, Tar
             string id = node["id"]?.GetValue<string>() ?? throw new BuildError("BLUEPRINT_GRAPH", "Node ID required", new(path));
             if (node["implementation"] is not JsonValue file) continue; // Missing stays explicit, never synthesized.
             string nodePath = PackPaths.Owned(Path.GetDirectoryName(path)!, file.GetValue<string>());
-            string ownerKey = implementation.Id + "/" + (graph["profile"]?.ToString()==FeatureBlueprint.NestedProfile ? path+"/" : "") + entry.Key;
+            string ownerKey = implementation.Id + "/" + (FeatureBlueprint.SupportsPrivateGraphs(graph["profile"]?.ToString()) ? path+"/" : "") + entry.Key;
             if (nodeOwners.TryGetValue(nodePath, out var owner) && owner != ownerKey) throw new BuildError("BLUEPRINT_NODE_OWNERSHIP", "Node source belongs to another feature node", new(nodePath));
             nodeOwners[nodePath] = ownerKey;
             if (!nodePaths.Add(nodePath)) throw new BuildError("BLUEPRINT_NODE_OWNERSHIP", "Each node owns a separate implementation file", new(nodePath));
@@ -88,10 +90,16 @@ internal sealed class BlueprintCompilation(Registry registry, string target, Tar
         }
         var contracts = new JsonObject();
         foreach (string id in implementation.Imports.Values.Select(i => i.Id).Distinct(StringComparer.Ordinal)) contracts[id] = Contract(id);
+        var propertyContracts = RuntimeObjectContracts.ForGraph(registry, implementation.Id, graph);
+        foreach(string id in propertyContracts.SelectMany(p=>p.Value!["dependencies"]!.AsArray().Select(n=>n!.ToString())).Distinct(StringComparer.Ordinal))
+        {
+            var known=registry.Get(id);var parsed=new Parser(Read(known.Loc.File),known.Loc.File).ParseElement();
+            if(JsonData.Digest(parsed)!=JsonData.Digest(known))throw new BuildError("BLUEPRINT_SOURCE_CHANGED","Property declaration changed after planning",known.Loc);
+        }
         var request = new JsonObject
         {
             ["operation"] = nodeId is null ? "featureBlueprintAssemble" : "featureBlueprintNodeProbe", ["node"] = nodeId, ["featureSource"] = Contract(implementation.Function!),
-            ["implementationContext"] = FeatureBlueprint.ImplementationContext(implementation), ["bodyTarget"] = implementation.Bodies.First(p=>p.Value==body).Key, ["graph"] = graph, ["featureContracts"] = contracts, ["implementations"] = implementations
+            ["implementationContext"] = FeatureBlueprint.ImplementationContext(implementation), ["bodyTarget"] = implementation.Bodies.First(p=>p.Value==body).Key, ["graph"] = graph, ["featureContracts"] = contracts, ["propertyContracts"] = propertyContracts, ["implementations"] = implementations
         };
         var result = FeatureBlueprint.Execute(request);
         if (result["state"]?.ToString() != (nodeId is null ? "source-assembled" : "node-source-assembled"))

@@ -55,7 +55,7 @@ internal static class BlueprintConversion
    nodes.Add(new JsonObject{["id"]="return",["kind"]="export",["intent"]="Assign the existing body's return",["control"]="next",["output"]="return",["signature"]=new JsonObject{["args"]=new JsonArray(new JsonObject{["name"]="value",["type"]=effective.Signature.Return}),["return"]="void"},["arguments"]=new JsonObject{["value"]=new JsonObject{["node"]="body"}}});
    edges.Add(new JsonObject{["from"]="body",["port"]="next",["to"]="return"});
   }
-  var graph=new JsonObject{["schema"]=1,["profile"]=callerStorage?FeatureBlueprint.ExternalRefsProfile:FeatureBlueprint.ImplicitProfile,["feature"]=function.Id,["contractHash"]=FeatureBlueprint.ContractHash(function),["entry"]="body",["nodes"]=nodes,["edges"]=edges,["exits"]=new JsonObject()};
+  var graph=new JsonObject{["schema"]=1,["profile"]=FeatureBlueprint.HasObjectSignature(function.Signature!)?FeatureBlueprint.PropertyProfile:callerStorage?FeatureBlueprint.ExternalRefsProfile:FeatureBlueprint.ImplicitProfile,["feature"]=function.Id,["contractHash"]=FeatureBlueprint.ContractHash(function),["entry"]="body",["nodes"]=nodes,["edges"]=edges,["exits"]=new JsonObject()};
   var definitions=FeatureBlueprint.Execute(new JsonObject{["operation"]="featureBlueprintNodes",["featureSource"]=featureText,["featureContracts"]=contracts,["implementationContext"]=context.DeepClone(),["graph"]=graph.DeepClone()});
   if(definitions["state"]?.ToString()!="node-definitions")throw new ArgumentException(definitions.ToJsonString());
   var record=new JsonObject{["schema"]=1,["node"]="body",["definitionHash"]=definitions["nodes"]!.AsArray().Single(n=>n!["id"]!.ToString()=="body")!["definitionHash"]!.DeepClone(),["source"]=source};

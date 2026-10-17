@@ -26,7 +26,7 @@ public static partial class FeatureBlueprint
             bool direct=target.StartsWith("exit:",StringComparison.Ordinal)&&exits[target[5..]] is not null&&feature.Signature!.Return!="void";
             var missing=new JsonArray();var paths=new JsonObject();var assignments=new JsonObject();
             foreach(var output in outputs){bool assigned=direct&&output.Name=="return"||from is not null&&must[from].Contains(output.Name),possible=direct&&output.Name=="return"||from is not null&&may[from].Contains(output.Name);assignments[output.Name]=new JsonObject{["must"]=assigned,["may"]=possible};if(assigned)continue;
-                string fallback=output.Type=="bool"?"false":output.Type=="string"||output.Type.EndsWith("[]",StringComparison.Ordinal)?"null":"0";
+                string fallback=output.Type=="bool"?"false":output.Type is "string" or "object"||output.Type.EndsWith("[]",StringComparison.Ordinal)?"null":"0";
                 var witness=from is null?new JsonArray():Witness(from,output.Name);witness.Add(new JsonObject{["from"]=from,["port"]=port,["to"]=target});paths[output.Name]=witness;
                 missing.Add(new JsonObject{["name"]=output.Name,["type"]=output.Type,["assignedOnSomePaths"]=possible,["defaultValue"]=fallback});
             }

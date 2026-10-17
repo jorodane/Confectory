@@ -1,0 +1,3 @@
+implementation Confectory.ObjectModel::CreateBody for Confectory.ObjectModel::Create (string contract,string[] fields,object[] values) -> object {
+import Confectory.ObjectModel::Access as Access (object,string,string,string,object,bool) -> object;
+body common "Create.csbody";}

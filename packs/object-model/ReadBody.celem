@@ -1,0 +1,3 @@
+implementation Confectory.ObjectModel::ReadBody for Confectory.ObjectModel::Read (object target,string owner,string field,string contractHash) -> object {
+import Confectory.ObjectModel::Access as Access (object,string,string,string,object,bool) -> object;
+body common "Read.csbody";}

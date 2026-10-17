@@ -33,6 +33,7 @@ public static partial class FeatureBlueprint
             var datum = JsonSerializer.SerializeToElement(value);
             return type switch
             {
+                "object" when datum.ValueKind==JsonValueKind.Null => "null!",
                 "string" when datum.ValueKind == JsonValueKind.String => JsonSerializer.Serialize(datum.GetString()),
                 "bool" when datum.ValueKind is JsonValueKind.True or JsonValueKind.False => datum.GetBoolean() ? "true" : "false",
                 "int" when datum.ValueKind == JsonValueKind.Number && datum.TryGetInt32(out int n) => n.ToString(CultureInfo.InvariantCulture),

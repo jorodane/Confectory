@@ -39,13 +39,21 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
   main=project/'main.celem';main.write_text(main.read_text().replace('{','{ use function ReferenceApi::Work;use implementation ReferenceApi::Body;',1))
   source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+'registry ReferenceApi '+json.dumps(str(ref/'pack.cpack'))+';dependency ReferenceApi version "1";'+source[index:])
  env['CONFECTORY_WEB_PROJECT']=str(manifest)
- if kind in ['node-tasks','blueprint','blueprint-implicit','blueprint-external-ref','blueprint-nested','blueprint-camera','blueprint-create','call-wrapper','registered-call','placed-find','locals','ref-nodes','alias-locals']:
+ if kind in ['node-tasks','blueprint','blueprint-implicit','blueprint-external-ref','blueprint-nested','blueprint-property','blueprint-camera','blueprint-create','call-wrapper','registered-call','placed-find','locals','ref-nodes','alias-locals']:
   fixture=report['nodeTaskFixture']
   typename='long' if kind.startswith('blueprint') or kind in ['call-wrapper','registered-call','placed-find','locals','ref-nodes','alias-locals'] else 'int'
   (project/'NodeValue.celem').write_text(fixture['feature']);(project/'NodeValueBody.celem').write_text('implementation Example.ButtonGame::NodeValueBody for Example.ButtonGame::NodeValue ('+typename+' n) -> '+typename+' {blueprint common "node-value.graph.json";}')
   (project/'node-value.graph.json').write_text(json.dumps(fixture['graph']));(project/'calculate.node.json').write_text(json.dumps(fixture['node']))
   if kind.startswith('blueprint') or kind in ['call-wrapper','registered-call','placed-find','locals','ref-nodes','alias-locals']:(project/'condition.node.json').write_text(json.dumps(report['additionalNodeFixture']))
   source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+'element NodeValue function "NodeValue.celem";element NodeValueBody implementation "NodeValueBody.celem";'+source[index:])
+ if kind=='blueprint-property':
+  (project/'PropertyVitals.celem').write_text('schema Example.ButtonGame::PropertyVitals {field health single general long;field enabled single general bool;}')
+  (project/'Monster.celem').write_text('object Example.ButtonGame::Monster {use schema Example.ButtonGame::PropertyVitals;data health = 999;}')
+  (project/'CreateMonster.celem').write_text('function Example.ButtonGame::CreateMonster (long value) -> object {provide Example.ButtonGame::CreateMonster with Example.ButtonGame::CreateMonsterBody;}')
+  (project/'CreateMonsterBody.celem').write_text('implementation Example.ButtonGame::CreateMonsterBody for Example.ButtonGame::CreateMonster (long value) -> object {body common "create-monster.csbody";}')
+  # The editor never executes user code while reading field contracts or confirming source.
+  (project/'create-monster.csbody').write_text('throw new InvalidOperationException("Contract reads and compiler Confirm never call the object producer");')
+  source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+'registry Confectory.ObjectModel '+json.dumps(str(repo/'packs/object-model/pack.cpack'))+';dependency Confectory.ObjectModel version "0.1.0";element PropertyVitals schema "PropertyVitals.celem";element Monster object "Monster.celem";element CreateMonster function "CreateMonster.celem";element CreateMonsterBody implementation "CreateMonsterBody.celem";'+source[index:])
  if kind in ['blueprint-implicit','blueprint-external-ref']:
   (project/'LiftValue.celem').write_text('function Example.ButtonGame::LiftValue (long n) -> long {}')
   (project/'LiftValueBody.celem').write_text('implementation Example.ButtonGame::LiftValueBody for Example.ButtonGame::LiftValue (long original) -> long {body common "lift.csbody";}')
@@ -253,6 +261,9 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
     elif kind=='ref-nodes':
      from v480_ref_nodes import verify_ref_nodes
      verify_ref_nodes(page,project,mount,send,envelope,settle,restart_actual_host)
+    elif kind=='blueprint-property':
+     from v480_property import verify_property
+     verify_property(page,project,mount,send,envelope,settle,restart_actual_host)
     elif kind=='blueprint-nested':
      from v480_nested import verify_nested
      verify_nested(page,project,mount,send,envelope,settle,restart_actual_host)

@@ -34,7 +34,7 @@ public static partial class FeatureBlueprint
             return path;
         }
         string type = feature.Signature!.Return;
-        string defaultValue = type == "bool" ? "false" : type == "string" || type.EndsWith("[]", StringComparison.Ordinal) ? "null" : "0";
+        string defaultValue = type == "bool" ? "false" : type is "string" or "object" || type.EndsWith("[]", StringComparison.Ordinal) ? "null" : "0";
         var ends = new JsonArray(); var warnings = new JsonArray();
         void End(string? from, string port, string target)
         {

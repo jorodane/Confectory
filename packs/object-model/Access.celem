@@ -1,0 +1,1 @@
+function Confectory.ObjectModel::Access (object target,string owner,string field,string contractHash,object value,bool write) -> object {provide Confectory.ObjectModel::Access with Confectory.ObjectModel::AccessBody;}

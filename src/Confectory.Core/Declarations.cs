@@ -90,7 +90,7 @@ public sealed class Parser
     private const string QualifiedPattern = NamePattern + @"::[A-Za-z_][A-Za-z_0-9]*";
     private static readonly Regex Tokens = new(@"\G(?:(?<space>\s+)|(?<comment>//[^\n]*)|(?<string>""(?:[^""\\]|\\.)*"")|(?<arrow>->)|(?<qid>" + QualifiedPattern + @")|(?<name>" + NamePattern + @")|(?<number>-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)|(?<punct>[{}();,=\[\]]))", RegexOptions.CultureInvariant);
     private static readonly HashSet<string> Kinds = ["function", "implementation", "module", "category", "concept", "schema", "object", "stage", "view", "buildtarget"];
-    private static readonly HashSet<string> Types = ["void", "bool", "int", "long", "float", "double", "string"];
+    private static readonly HashSet<string> Types = ["void", "bool", "int", "long", "float", "double", "string", "object"];
     private static readonly HashSet<string> Keywords = new(("abstract as base bool break byte case catch char checked class const continue decimal default delegate do double else enum event explicit extern false finally fixed float for foreach goto if implicit in int interface internal is lock long namespace new null object operator out override params private protected public readonly ref return sbyte sealed short sizeof stackalloc static string struct switch this throw true try typeof uint ulong unchecked unsafe ushort using virtual void volatile while").Split(' '));
     private readonly List<Token> tokens = [];
     private int index;
@@ -152,10 +152,10 @@ public sealed class Parser
         if (token.Quoted || !Kinds.Contains(token.Value)) throw new BuildError("KIND", $"Unknown element kind '{token.Value}'", token.Loc);
         return token.Value;
     }
-    private string Type(bool parameter = false)
+    private string Type(bool parameter = false, bool allowObject = true)
     {
         var token = Pop();
-        if (token.Quoted || !Types.Contains(token.Value) || (parameter && token.Value == "void"))
+        if (token.Quoted || !Types.Contains(token.Value) || (!allowObject && token.Value == "object") || (parameter && token.Value == "void"))
             throw new BuildError("TYPE", $"Unsupported contract type '{token.Value}'", token.Loc);
         string value = token.Value;
         if (Eat("["))
@@ -286,7 +286,7 @@ public sealed class Parser
                     if (cardinality is not ("single" or "multiple")) throw new BuildError("SCHEMA_CARDINALITY", "Expected single or multiple", token.Loc);
                     string fieldKind = Name(), fieldType;
                     if (fieldKind is "compound" or "reference" or "function") fieldType = Name(true);
-                    else { if (fieldKind != "general") throw new BuildError("SCHEMA_FIELD_KIND", "Expected general, compound, reference or function", token.Loc); fieldType = Type(true); if (fieldType.EndsWith("[]", StringComparison.Ordinal)) throw new BuildError("SCHEMA_CARDINALITY", "Use multiple instead of an array field type", token.Loc); }
+                    else { if (fieldKind != "general") throw new BuildError("SCHEMA_FIELD_KIND", "Expected general, compound, reference or function", token.Loc); fieldType = Type(true, false); if (fieldType.EndsWith("[]", StringComparison.Ordinal)) throw new BuildError("SCHEMA_CARDINALITY", "Use multiple instead of an array field type", token.Loc); }
                     Unique(e.Fields, fieldName, new(cardinality, fieldKind, fieldType, e.Id, token.Loc), token.Loc); break;
                 case "data" when e.Kind == "object":
                     string dataName = Name(); Expect("="); Unique(e.Data, dataName, Datum(e.Id), token.Loc); break;

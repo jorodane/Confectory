@@ -19,7 +19,7 @@ public static class BlueprintTree
             {
                 var node = value!.AsObject();
                 string id = node["id"]!.GetValue<string>();
-                if (++count > (root["profile"]?.ToString() == FeatureBlueprint.NestedProfile ? 256 : int.MaxValue) || id.Length > 128 || !Regex.IsMatch(id, @"\A[A-Za-z_][A-Za-z_0-9.-]*\z") || !ids.Add(id))
+                if (++count > (FeatureBlueprint.SupportsPrivateGraphs(root["profile"]?.ToString()) ? 256 : int.MaxValue) || id.Length > 128 || !Regex.IsMatch(id, @"\A[A-Za-z_][A-Za-z_0-9.-]*\z") || !ids.Add(id))
                     throw new ArgumentException("Bounded unique private node identity required");
                 string key = path.Length == 0 ? id : path + "/" + id;
                 if(key.Length>768)throw new ArgumentException("Qualified private node path budget exceeded");
@@ -27,7 +27,7 @@ public static class BlueprintTree
                 yield return new(key, node, at);
                 if (node["kind"]?.ToString() == "graph")
                 {
-                    if (root["profile"]?.ToString() != FeatureBlueprint.NestedProfile || node["graph"] is not JsonObject child || child["schema"]?.GetValue<int>() != 1 || child.ContainsKey("feature") || child.ContainsKey("contractHash") || child["profile"]?.ToString() != FeatureBlueprint.NestedProfile)
+                    if (!FeatureBlueprint.SupportsPrivateGraphs(root["profile"]?.ToString()) || node["graph"] is not JsonObject child || child["schema"]?.GetValue<int>() != 1 || child.ContainsKey("feature") || child.ContainsKey("contractHash") || !FeatureBlueprint.SupportsPrivateGraphs(child["profile"]?.ToString()))
                         throw new ArgumentException("Private graph contract is owned by its parent node signature");
                     foreach (var nested in Walk(child, key, at + "/graph", depth + 1)) yield return nested;
                 }

@@ -60,3 +60,5 @@ python3 tests/probes/v480_nested_property_contracts.py . --output /tmp/v480-nest
 Node가 필요하며 ZIP은 읽기만 한다. metadata 세 요청은 증거 JSON에 원문을 보존했다. Release element-authoring host에 각 request를 JSON stdin으로 보내 거부 코드와 무실행 상태를 확인할 수 있다. RuntimeBase 검사는 기존 .NET 테스트 실행기의 `test_lifecycle_and_provider_locality --require-runtime` 필터를 사용했다. 서로 다른 세 검사 범위의 개수를 전체 UI/중첩 실행 통과 수로 합산하지 않는다.
 
 후속 [private graph 구현](BLUEPRINT_PRIVATE_GRAPHS.md)은 이 조사에서 분리한 동기·비순환 typed 범위를 연결한다. 위 19개 레퍼런스 검사는 조사 당시의 독립 근거이며 새 실행 검사의 통과 수로 사용하지 않는다. property와 계산식 정책은 별도 답변 대기다.
+
+후속 [노드 도달 시 프로퍼티 읽기](BLUEPRINT_NODE_TIME_PROPERTIES.md)는 사용자 답변에 따라 호출자가 전달한 실제 객체를 해당 노드에서 한 번 읽고 결과를 전달한다. 위 property 미정·미구현 표시는 당시 단위의 기록이며 이 후속이 현재 의미를 정한다. 계산식 overflow 결정 대기는 유지한다.

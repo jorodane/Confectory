@@ -24,10 +24,10 @@ public static class BlueprintDocuments
         else if (kind == "blueprint")
         {
             Require(id.Contains("/body:", StringComparison.Ordinal), "Explicit implementation target source required");
-            Require(document["profile"]?.ToString() is FeatureBlueprint.Profile or FeatureBlueprint.ImplicitProfile or FeatureBlueprint.MultiOutputProfile or FeatureBlueprint.LocalsProfile or FeatureBlueprint.RefNodesProfile or FeatureBlueprint.ExternalRefsProfile or FeatureBlueprint.AliasLocalsProfile or FeatureBlueprint.NestedProfile, "Supported Blueprint profile required");
+            Require(document["profile"]?.ToString() is FeatureBlueprint.Profile or FeatureBlueprint.ImplicitProfile or FeatureBlueprint.MultiOutputProfile or FeatureBlueprint.LocalsProfile or FeatureBlueprint.RefNodesProfile or FeatureBlueprint.ExternalRefsProfile or FeatureBlueprint.AliasLocalsProfile or FeatureBlueprint.NestedProfile or FeatureBlueprint.PropertyProfile, "Supported Blueprint profile required");
             Require(Regex.IsMatch(document["feature"]?.ToString() ?? "", @"\A[A-Za-z_][A-Za-z_0-9]*(?:\.[A-Za-z_][A-Za-z_0-9]*)*::[A-Za-z_][A-Za-z_0-9]*\z", RegexOptions.CultureInvariant), "Qualified feature identity required");
             Require(document["nodes"] is JsonArray && document["edges"] is JsonArray && document["exits"] is JsonObject, "Graph source collections required");
-            if(document["profile"]?.ToString()==FeatureBlueprint.NestedProfile)BlueprintTree.Nodes(document).ToArray();
+            if(FeatureBlueprint.SupportsPrivateGraphs(document["profile"]?.ToString()))BlueprintTree.Nodes(document).ToArray();
             var ids = new HashSet<string>(StringComparer.Ordinal);
             foreach (var node in document["nodes"]!.AsArray())
             {
@@ -75,15 +75,17 @@ public static class BlueprintDocuments
             if(feature.Signature!.Args.Any(p=>p.IsRef)&&!FeatureBlueprint.SupportsExternalRefs(graph["profile"]?.ToString()))graph["profile"]=FeatureBlueprint.ExternalRefsProfile;
             else if(feature.Signature.Args.Any(p=>p.IsOut)&&graph["profile"]?.ToString() is FeatureBlueprint.Profile or FeatureBlueprint.ImplicitProfile)graph["profile"]=FeatureBlueprint.MultiOutputProfile;
         }
-        if(graph["profile"]?.ToString()==FeatureBlueprint.NestedProfile){
+        if(FeatureBlueprint.SupportsPrivateGraphs(graph["profile"]?.ToString())){
             string ownedTarget=request["bodyTarget"]?.GetValue<string>()??throw new ArgumentException("Explicit owned private graph body target required");
             Require(implementation.Bodies.TryGetValue(ownedTarget,out var ownedBody)&&ownedBody.SourceKind=="blueprint","Owned Blueprint body target required");
         }
+        RuntimeObjectContracts.ApplyOwnedDrafts(registry,request["draftPropertySources"] as JsonObject);
+        var propertyContracts=RuntimeObjectContracts.ForGraph(registry,implementation.Id,graph,request["definitionsOnly"]?.GetValue<bool>()==true);
         var result=FeatureBlueprint.Execute(new JsonObject
         {
             ["operation"] = request["definitionsOnly"]?.GetValue<bool>() == true ? "featureBlueprintNodes" : "featureBlueprintDescribe", ["featureSource"] = featureSource,
             ["implementationContext"] = FeatureBlueprint.ImplementationContext(implementation), ["bodyTarget"] = request["bodyTarget"]?.DeepClone(), ["featureContracts"] = contracts, ["graph"] = graph,
-            ["implementations"] = request["implementations"]?.DeepClone()
+            ["implementations"] = request["implementations"]?.DeepClone(), ["propertyContracts"] = propertyContracts
         });
         if(rebind)result["reboundGraph"]=graph.DeepClone();
         if(request["privatePath"] is JsonValue privatePath && privatePath.GetValue<string>().Length>0 && result["state"]?.ToString()!="invalid")
@@ -92,6 +94,7 @@ public static class BlueprintDocuments
             BlueprintTree.Select(graph,privatePath.GetValue<string>());
             result=BlueprintTree.SelectDescription(result,privatePath.GetValue<string>());
         }
+        result["propertyContracts"]=propertyContracts.DeepClone();
         return result;
     }
 

@@ -1,6 +1,6 @@
 // Human declaration editing over the consumer's scoped draft operations.
 export function createDeclarationEditors(api){
- const {$,$$,esc,inputs}=api,types=['bool','int','long','float','double','string'],returns=['void',...types,...types.map(t=>t+'[]')],argumentsTypes=returns.filter(t=>t!=='void');
+ const {$,$$,esc,inputs}=api,types=['bool','int','long','float','double','string','object'],returns=['void',...types,...types.map(t=>t+'[]')],argumentsTypes=returns.filter(t=>t!=='void');
  const roleNames={module:'적용 모듈',include:'포함 모듈',require:'필요 기능',default:'기본 구현',provide:'제공 구현',use:'사용 관계',contain:'소속 관계',import:'가져온 기능'};
  const signature=value=>({args:(value?.Args||value?.args||[]).map(p=>({type:p.Type??p.type,name:p.Name??p.name,...(['out','ref'].includes(p.mode??p.Mode)?{mode:p.mode??p.Mode}:{})})),return:value?.return||'int'});
  const typeToken=arg=>(arg.mode?arg.mode+' ':'')+arg.type;

@@ -48,3 +48,5 @@ ref 인수는 현재 입력·로컬·선행 결과의 실제 슬롯을 전달한
 수용 범위는 실제 중첩 ref/ref/out 호출자 별칭·호출별 로컬·부모 분기 복귀, 같은 local ID의 형제 소유권, 명시적 imports, 비연결 본문의 실제 compile·무실행 probe, 부모 캡처/순환/경로 공유 거부, compiler 중 원본 변경 보존, 실제 편집 CAS/cold/필수 그룹 Confirm과 브라우저 생성·탐색·복원이다. custom 실행 포트·enum/객체 ABI·graph 순환/async·property/계산식·v480 전체 편집 회귀는 후속 범위다.
 
 구현 커밋 `baff3ea31c0abfe01b67ff582b49d0224aa9edc9`의 일반 Git checkout·보존 CRLF/새 LF·33개 리소스·실제 Home 시작·변조 거부는 **1/0/0, 6.726초**로 통과했다. 경고 보완 뒤 추가 검사 이후 제품·테스트 소스는 바뀌지 않았다.
+
+후속 [노드 도달 시 프로퍼티 읽기](BLUEPRINT_NODE_TIME_PROPERTIES.md)는 사용자 답변에 따라 호출자가 전달한 실제 객체를 해당 노드에서 한 번 읽고 결과를 전달한다. 위 property 미정·미구현 표시는 당시 단위의 기록이며 이 후속이 현재 의미를 정한다. 계산식 overflow 결정 대기는 유지한다.

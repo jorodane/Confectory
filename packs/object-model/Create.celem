@@ -1,0 +1,1 @@
+function Confectory.ObjectModel::Create (string contract,string[] fields,object[] values) -> object {provide Confectory.ObjectModel::Create with Confectory.ObjectModel::CreateBody;}

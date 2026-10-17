@@ -23,7 +23,7 @@ public static partial class FeatureBlueprint
             ["operation"] = operation == "featureBlueprintNodeProbe" && !selected ? "featureBlueprintNodes" : operation,
             ["node"] = selected ? probe![(S(node, "id").Length + 1)..] : null,
             ["featureSource"] = source, ["graph"] = graph, ["sourcePath"] = key, ["sourceOwner"] = parent["sourceOwner"]!.DeepClone(),
-            ["featureContracts"] = parent["featureContracts"]?.DeepClone(),
+            ["featureContracts"] = parent["featureContracts"]?.DeepClone(), ["propertyContracts"] = parent["propertyContracts"]?.DeepClone(),
             ["implementations"] = parent["implementations"]?.DeepClone()
         };
     }
@@ -32,7 +32,7 @@ public static partial class FeatureBlueprint
     {
         var request = original.DeepClone().AsObject();
         request["privateChildren"] = new JsonObject();
-        if(request["graph"]?["profile"]?.ToString()==NestedProfile && request["sourceOwner"] is null){
+        if(SupportsPrivateGraphs(request["graph"]?["profile"]?.ToString()) && request["sourceOwner"] is null){
             string owner=request["implementationContext"]?["implementation"]?.ToString()??S(request["graph"],"feature");
             request["sourceOwner"]=owner+(request["bodyTarget"] is null?"":"/body:"+S(request,"bodyTarget"));
         }

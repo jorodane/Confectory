@@ -1,0 +1,2 @@
+implementation Confectory.ObjectModel::AccessBody for Confectory.ObjectModel::Access (object target,string owner,string field,string contractHash,object value,bool write) -> object {
+body common "Access.csbody";}

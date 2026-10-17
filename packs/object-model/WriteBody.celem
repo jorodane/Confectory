@@ -1,0 +1,3 @@
+implementation Confectory.ObjectModel::WriteBody for Confectory.ObjectModel::Write (object target,string field,object value) -> void {
+import Confectory.ObjectModel::Access as Access (object,string,string,string,object,bool) -> object;
+body common "Write.csbody";}

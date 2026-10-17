@@ -1,0 +1,1 @@
+function Confectory.ObjectModel::Read (object target,string owner,string field,string contractHash) -> object {provide Confectory.ObjectModel::Read with Confectory.ObjectModel::ReadBody;}

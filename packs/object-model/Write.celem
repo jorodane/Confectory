@@ -1,0 +1,1 @@
+function Confectory.ObjectModel::Write (object target,string field,object value) -> void {provide Confectory.ObjectModel::Write with Confectory.ObjectModel::WriteBody;}
