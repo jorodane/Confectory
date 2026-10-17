@@ -1,0 +1,518 @@
+{
+  "schema": 1,
+  "baseCommit": "daf0886968d874d0a0dfe6618278e4df0b08f9b3",
+  "referenceMain": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+  "profile": "sync-acyclic-methods-v1",
+  "generator": "feature-blueprint-source-v11",
+  "frozenSourceFiles": {
+    "examples/editor-home/WebBundle.csbody": {
+      "sha256": "4d44acaf754fcc71247ae52efa33773da124b6cf3c69dca0d228647e33252e6a",
+      "bytes": 9315
+    },
+    "examples/editor-home/ui/blueprint-code-editor.js": {
+      "sha256": "43f2f7ee2242d2b151a8139b392440e2dbdd61dd6c6aaf4123244132b77bd180",
+      "bytes": 6414
+    },
+    "examples/editor-home/ui/blueprint-parameters.js": {
+      "sha256": "78d64b853b57faaefa8cfcb006ec0ac1c441c3da3cc558f67718c28bd3c8a62e",
+      "bytes": 6547
+    },
+    "examples/editor-home/ui/blueprint-pins.js": {
+      "sha256": "503fa2b54e3d8f51d54cc03ad7a0b6f18778d16dbd9efb7afa26addce79ea669",
+      "bytes": 9500
+    },
+    "examples/editor-home/ui/blueprint.js": {
+      "sha256": "7fa5908d15d51e8b5b6f3bd24788492f45ee822a9835991bda36a9afd3716c25",
+      "bytes": 80364
+    },
+    "examples/editor-home/ui/consumer.css": {
+      "sha256": "155d0d111a9d5841479978df8e6e7a23b1c3a6f5602d86b5c92c34945f095263",
+      "bytes": 19975
+    },
+    "packs/edit-workspace/BlueprintNode.csbody": {
+      "sha256": "ad3be5a80fb5834271ac7a83ae9fd9aa2defc177581566a4c2712aa5b50f605e",
+      "bytes": 13429
+    },
+    "packs/pack-workspace/Blueprint.csbody": {
+      "sha256": "539bed3ba6d74eb227094c80c878efa1bd15af28a10fd580a5d663d43c029b24",
+      "bytes": 75622
+    },
+    "src/Confectory.Core/BlueprintCompilation.cs": {
+      "sha256": "9d0aae131804192778ef2d2c1a82be09610d4dc862048b4e1a3dd7be01124692",
+      "bytes": 12760
+    },
+    "src/Confectory.Core/BlueprintDocuments.cs": {
+      "sha256": "2d80ebb2ff6b78497c1b1a9ecb4e7ad5b01366372b2de6e5089af81e158e064d",
+      "bytes": 9159
+    },
+    "src/Confectory.Core/Build.cs": {
+      "sha256": "cbd7833a1a9e3973b48cb62fcf4c93cf9cf7a3135ed6df9a123722c45bd82215",
+      "bytes": 25336
+    },
+    "src/Confectory.Core/FeatureBlueprint.AliasLocals.cs": {
+      "sha256": "59273955517c2c82d950a6e40d6fcd393558295a10ba9f3ea1bc114de11d7ce6",
+      "bytes": 1215
+    },
+    "src/Confectory.Core/FeatureBlueprint.Methods.cs": {
+      "sha256": "59169ad4b8d85383cf5ad3ca7212c2a051bd6786612ce34817cf4402e65b7fb7",
+      "bytes": 1661
+    },
+    "src/Confectory.Core/FeatureBlueprint.Nested.cs": {
+      "sha256": "19f2f949d2a7c8f8651979c940a9dadd880e2e97dbbc16cf90ff35195da14725",
+      "bytes": 5316
+    },
+    "src/Confectory.Core/FeatureBlueprint.Properties.cs": {
+      "sha256": "cd9e4ce4308f751077d6db38f61ea9b50cc15e30cbc999cd81e8a236034e7ec8",
+      "bytes": 2053
+    },
+    "src/Confectory.Core/FeatureBlueprint.cs": {
+      "sha256": "220c3ced5ac72d4f7a87fed0eb3c4a9010f24bb52160d87186b3076b8fd5fcf0",
+      "bytes": 44804
+    },
+    "targets/dotnet/Program.cs": {
+      "sha256": "18a57f2086e54a6dd098618589509956900ec0a39c42ea11405febd738d41cda",
+      "bytes": 15094
+    },
+    "targets/element-authoring/BlueprintProperty.cs": {
+      "sha256": "9d4f01cfb3f2ec9fa18b9b493f143eb844b383c81cd4176a62dbb3725c368cab",
+      "bytes": 5797
+    },
+    "tests/Confectory.Tests/CodeBodyTests.cs": {
+      "sha256": "36b8f6fa1528abb45e4236684db2bb5a2123334479ebf5c5c81eebe84882d274",
+      "bytes": 8635
+    },
+    "tests/Confectory.Tests/NestedAuthoringTests.cs": {
+      "sha256": "4e0a3812d3254d9e408c6edf91a27e36013a1d8a734bddaa887d78ea0dcbfae9",
+      "bytes": 21711
+    },
+    "tests/Confectory.Tests/NestedBlueprintTests.cs": {
+      "sha256": "1adde01df5bd83f17f33e2198f38432ee7826c612667c36150e83aa92b7db648",
+      "bytes": 21886
+    },
+    "tests/Confectory.Tests/PropertyBlueprintTests.cs": {
+      "sha256": "77c6b366fa10b36e8bdb7c18056e2292cea2716aba7d7e67a772919a16f59a84",
+      "bytes": 24959
+    },
+    "tests/Confectory.Tests/WebUITests.cs": {
+      "sha256": "660d590421e4ffae6755b78160ece0a50b680cf33d19bc9398602edf423b21d8",
+      "bytes": 52717
+    },
+    "tests/web/v480_methods.py": {
+      "sha256": "2f011d1b9f409338653d4b91c2a6b2cbe1f7c6523f46ca3c74fa4f08677911e8",
+      "bytes": 7713
+    },
+    "tests/web/web_ui.py": {
+      "sha256": "b0aafdea2972e8d49f02650b5602132498ce38b55710bb6e6df7c6ab14ab24bc",
+      "bytes": 60579
+    }
+  },
+  "sourceArchiveSHA256": "1a7f4a4abbec969b7c306446fd72f0fd6b2a3380b6392492ae20fd1ec368a95c",
+  "finalGates": {
+    "final-engine-a": {
+      "log": "final-engine-a.log",
+      "sha256": "6a0b66ff6a6dbdd69e3b897c94f159311983aae4e75b76ddee996a53bb1b57ac",
+      "passed": 27,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 1094.203,
+      "methods": [
+        "FeatureBlueprintTests.test_blueprint_fixed_inputs_branch_compiler_reuse_node_replacement_and_legacy_preservation",
+        "FeatureBlueprintTests.test_blueprint_invalid_graphs_stale_contracts_and_dominating_values",
+        "FeatureBlueprintTests.test_blueprint_source_change_during_real_compile_is_not_published",
+        "CodeBodyTests.test_local_helpers_are_per_node_and_independent_probe_never_executes",
+        "CodeBodyTests.test_static_helpers_refuse_state_outer_escape_capture_and_reserved_names",
+        "ImplicitBlueprintTests.test_implicit_branch_terminations_warn_separately_and_real_errors_remain_errors",
+        "BlueprintConversionTests.test_whole_body_context_preserves_calls_scope_this_recursion_names_targets_and_crlf",
+        "BlueprintConversionTests.test_whole_out_body_conversion_preserves_original_member_scoped_import_and_other_target",
+        "MultiOutputBlueprintTests.test_join_has_separate_must_may_and_unassigned_witness_for_each_output",
+        "MultiOutputBlueprintTests.test_typed_call_named_outputs_use_selected_object_scope_and_dominate_consumers",
+        "MultiOutputAuthoringTests.test_object_blank_and_reference_factories_preserve_out_modes_and_positional_output_names",
+        "LocalBlueprintTests.test_local_array_is_shared_within_call_and_fresh_across_calls_and_invalid_locals_refuse",
+        "PropertyBlueprintTests.test_methods_profile_retains_actual_object_abi_and_node_time_property_reads",
+        "PropertyBlueprintTests.test_private_property_uses_explicit_receiver_and_unreached_node_does_not_read",
+        "PropertyBlueprintTests.test_property_declaration_inputs_are_rechecked_after_compiler_and_prior_artifact_is_retained",
+        "PropertyBlueprintTests.test_property_reads_at_node_once_from_actual_instance_and_reexecutes_on_next_call",
+        "NestedBlueprintTests.test_private_nested_ref_out_aliases_return_to_parent_and_locals_reset_per_call",
+        "NestedBlueprintTests.test_private_observations_are_rechecked_after_real_compiler_and_original_proof_is_retained",
+        "NestedBlueprintTests.test_static_helper_classes_from_private_siblings_are_emitted_with_unique_owners",
+        "NestedAuthoringTests.test_static_helpers_parameters_explicit_remap_task_cas_cold_and_compiler_confirm",
+        "AliasLocalTests.test_array_result_alias_ref_replacement_changes_the_actual_result_variable",
+        "AliasLocalAuthoringTests.test_alias_public_source_cas_cold_delete_producer_and_graph_only_compiler_confirm",
+        "ExternalRefTests.test_external_ref_array_replacement_keeps_managed_variable_alias_and_initial_value",
+        "ExternalRefTests.test_whole_ref_conversion_preserves_raw_context_recursion_target_and_same_caller_cells",
+        "ExternalRefAuthoringTests.test_public_external_ref_conversion_atomic_group_cas_origin_cold_and_real_aliases",
+        "RefNodeTests.test_ref_to_value_input_and_preceding_node_result_use_real_storage_without_caller_copyback",
+        "RefAuthoringTests.test_ref_public_typed_call_profile_cas_cold_alias_and_ref_conversion_preview"
+      ],
+      "failedMethods": [
+        "FeatureBlueprintTests.test_blueprint_owned_function_reference_call_import_cas_history_and_execution"
+      ]
+    },
+    "final-engine-b": {
+      "log": "final-engine-b.log",
+      "sha256": "5ab0d447cd44070b81bff91a3f6be3b55d9dbfc8ab103dea0093adb006de5f59",
+      "passed": 26,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 907.94,
+      "methods": [
+        "FeatureBlueprintTests.test_blueprint_disconnected_current_node_body_is_compiled_without_execution",
+        "FeatureBlueprintTests.test_blueprint_node_diagnostics_static_isolation_and_failed_build_retains_receipt",
+        "FeatureBlueprintTests.test_blueprint_node_task_assignment_scoped_dispatch_adoption_and_cold_no_replay",
+        "CodeBodyTests.test_body_cannot_escape_into_a_function_signature_or_outer_member",
+        "CodeBodyTests.test_static_helpers_receive_typed_imports_only_as_explicit_arguments",
+        "ImplicitBlueprintTests.test_implicit_join_tracks_must_may_and_a_specific_unassigned_branch_witness",
+        "BlueprintConversionTests.test_public_body_conversion_atomic_group_cas_origin_cold_and_compiler_confirm",
+        "MultiOutputBlueprintTests.test_android_and_browser_metadata_templates_round_trip_out_roles_in_managed_code",
+        "MultiOutputBlueprintTests.test_code_node_named_out_results_and_real_csharp_out_errors_remain_checked",
+        "MultiOutputBlueprintTests.test_out_contract_modes_and_legacy_hash_are_explicit_and_stable",
+        "LocalBlueprintTests.test_generated_unused_local_guard_does_not_assign_to_user_underscore_parameter",
+        "LocalBlueprintTests.test_local_set_branch_order_per_call_reset_and_per_end_out_warning",
+        "PropertyBlueprintTests.test_concept_reference_array_is_an_actual_shared_clr_value",
+        "PropertyBlueprintTests.test_live_property_refuses_wrong_instance_unset_null_wrong_cardinality_and_stale_contract",
+        "PropertyBlueprintTests.test_property_array_result_retains_original_reference_after_field_replacement",
+        "PropertyAuthoringTests.test_property_source_preview_schema_cas_cold_reader_group_and_explicit_rebind",
+        "NestedBlueprintTests.test_private_paths_separate_identical_local_definitions_and_reject_parent_capture_and_depth",
+        "NestedBlueprintTests.test_private_siblings_keep_same_local_ids_and_branch_return_boundary",
+        "NestedBlueprintTests.test_static_private_helpers_preserve_repeated_ref_out_caller_storage",
+        "AliasLocalTests.test_alias_contracts_and_all_use_paths_require_current_typed_storage",
+        "AliasLocalTests.test_result_alias_ref_and_set_mutate_original_slot_while_value_argument_keeps_snapshot",
+        "ExternalRefTests.test_external_ref_exception_keeps_alias_write_and_does_not_apply_end_defaults",
+        "ExternalRefTests.test_external_ref_forwarding_preserves_two_ref_out_aliases_and_distinct_caller_storage",
+        "ExternalRefTests.test_whole_out_only_conversion_preserves_two_out_arguments_using_one_caller_variable",
+        "RefNodeTests.test_ordinary_csharp_ref_calls_preserve_same_slot_aliases_including_ref_out_same_caller_cell",
+        "RefNodeTests.test_typed_ref_call_uses_selected_object_scope_and_real_aliases"
+      ],
+      "failedMethods": [
+        "FeatureBlueprintTests.test_blueprint_owned_node_creation_removal_review_group_and_cold_restore"
+      ]
+    },
+    "final-engine-c": {
+      "log": "final-engine-c.log",
+      "sha256": "c4a8487a45446a70ad782f167caef1b3cd7e03d224d945301ee8c9145ceab525",
+      "passed": 26,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 937.07,
+      "methods": [
+        "FeatureBlueprintTests.test_blueprint_existing_feature_calls_use_typed_imports_and_contract_fences",
+        "FeatureBlueprintTests.test_blueprint_independent_probe_checks_an_unselected_body_without_running_or_publishing",
+        "FeatureBlueprintTests.test_blueprint_new_feature_registration_contract_group_compiler_and_cold_restore",
+        "CodeBodyTests.test_methods_profile_keeps_execute_scope_when_helpers_are_cleared_or_comment_only",
+        "CodeBodyTests.test_static_helper_members_are_per_node_and_independent_probe_never_executes",
+        "ImplicitBlueprintTests.test_implicit_empty_start_has_typed_defaults_without_hiding_void_or_type_errors",
+        "BlueprintConversionTests.test_whole_void_body_conversion_runs_once_and_probe_does_not_execute",
+        "MultiOutputBlueprintTests.test_empty_multiple_outs_have_typed_reference_defaults_without_cpp_or_execution",
+        "MultiOutputBlueprintTests.test_named_outputs_warn_independently_at_each_branch_end_and_run_defaults",
+        "MultiOutputAuthoringTests.test_contract_append_out_is_explicit_cas_cold_body_preserving_and_compiler_confirmed",
+        "LocalBlueprintTests.test_local_set_reads_current_storage_while_node_result_retains_snapshot",
+        "LocalAuthoringTests.test_local_public_profile_cas_exact_initializers_cold_and_graph_only_compiler_confirm",
+        "PropertyBlueprintTests.test_object_contract_factories_and_whole_body_conversion_preserve_actual_ref_aliases",
+        "PropertyBlueprintTests.test_property_field_drift_is_visible_and_unsupported_kinds_and_old_profiles_are_refused",
+        "PropertyBlueprintTests.test_property_reference_result_preserves_identity_and_later_mutation_without_deep_copy",
+        "PropertyAuthoringTests.test_unpublished_object_owner_stays_editable_without_becoming_a_property_contract",
+        "NestedBlueprintTests.test_private_imports_are_explicit_and_unused_child_bodies_are_compiled_without_execution",
+        "NestedBlueprintTests.test_private_unassigned_outputs_reach_build_warnings_with_full_call_path",
+        "NestedAuthoringTests.test_private_nested_owned_sources_cold_peer_cas_and_atomic_compiler_confirm",
+        "AliasLocalTests.test_input_alias_uses_real_caller_refs_or_distinct_parameter_slots",
+        "AliasLocalTests.test_named_out_alias_mutates_node_snapshot_without_borrowing_external_caller_output",
+        "ExternalRefTests.test_external_ref_factories_and_typed_reference_forward_actual_caller_storage",
+        "ExternalRefTests.test_external_ref_join_defaults_only_unassigned_out_and_keeps_later_alias_writes",
+        "ExternalRefTests.test_out_only_typed_reference_factory_forwards_one_caller_out_variable_twice",
+        "RefNodeTests.test_code_ref_arguments_alias_same_local_immediately_and_out_warning_remains_per_end",
+        "RefNodeTests.test_ref_array_parameters_alias_the_reference_slot_when_replacing_the_array"
+      ],
+      "failedMethods": [
+        "FeatureBlueprintTests.test_blueprint_node_only_worker_draft_save_restore_and_compiler_confirm"
+      ]
+    },
+    "final-ui-a": {
+      "log": "final-ui-a.log",
+      "sha256": "390d9408a8a0f9d54eef3a72e05b3a127876de1c0d21bbcb2cde620b53ca2eeb",
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 1170.502,
+      "methods": [
+        "WebUITests.test_actual_editor_implicit_ends_whole_body_conversion_cold_and_confirm",
+        "WebUITests.test_actual_editor_v480_alias_locals_slots_set_cold_and_confirm",
+        "WebUITests.test_actual_editor_v480_blueprint_node_creation_removal_and_cold_source_groups",
+        "WebUITests.test_actual_editor_v480_node_time_property_contract_target_cold_and_confirm",
+        "WebUITests.test_actual_editor_v480_ref_node_storage_aliases_cold_and_compiler_confirm",
+        "WebUITests.test_actual_editor_v480_static_methods_parameters_cold_and_confirm"
+      ],
+      "failedMethods": []
+    },
+    "final-ui-b": {
+      "log": "final-ui-b.log",
+      "sha256": "3a183979f1505e073a60418330504e165c621c16108e7b4dd6c59cdde53ef420",
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 968.099,
+      "methods": [
+        "WebUITests.test_actual_editor_v480_blueprint_owned_graph_node_edit_and_cold_input",
+        "WebUITests.test_actual_editor_v480_external_ref_graph_body_conversion_cold_and_confirm",
+        "WebUITests.test_actual_editor_v480_local_values_sets_exact_initializer_cold_and_compiler_confirm",
+        "WebUITests.test_actual_editor_v480_private_nested_navigation_source_cold_and_confirm",
+        "WebUITests.test_actual_editor_v480_protected_csharp_body_helpers_history_cold_and_confirm"
+      ],
+      "failedMethods": []
+    },
+    "final-managed": {
+      "log": "final-managed.log",
+      "sha256": "951484ab40eb89e3650228a8741a863f85d31a581dbb4f9cfdb607e2775eef55",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 375.74,
+      "methods": [
+        "EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only"
+      ],
+      "failedMethods": []
+    }
+  },
+  "engineCoverage": {
+    "distinctVerified": 82,
+    "broadPassed": 79,
+    "broadFailed": 3,
+    "isolatedRetry": {
+      "log": "isolated-engine-retry.log",
+      "sha256": "1d87fd5497a1de9805dcbe354798cc004cfad9dbb6166d40392ae6bca44b01d0",
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 302.771,
+      "methods": [
+        "FeatureBlueprintTests.test_blueprint_node_only_worker_draft_save_restore_and_compiler_confirm",
+        "FeatureBlueprintTests.test_blueprint_owned_function_reference_call_import_cas_history_and_execution",
+        "FeatureBlueprintTests.test_blueprint_owned_node_creation_removal_review_group_and_cold_restore"
+      ],
+      "failedMethods": []
+    },
+    "unresolved": [],
+    "sourceEditedForRetry": false,
+    "timeoutIncreasedForRetry": false,
+    "loadContext": {
+      "concurrentJobs": 6,
+      "CPUQuotaCores": 4,
+      "note": "Broad-run process deadlines and isolated results are preserved; resource contention is an inference, not a performance guarantee"
+    }
+  },
+  "earlierStages": [
+    {
+      "log": "first-core.log",
+      "sha256": "23161426adba213dcb16cfaca2cbc1ee252016d51efdc915a2a8dab5987b2877",
+      "passed": 2,
+      "failed": 2,
+      "skipped": 0,
+      "seconds": 19.124,
+      "methods": [
+        "CodeBodyTests.test_body_cannot_escape_into_a_function_signature_or_outer_member",
+        "CodeBodyTests.test_static_helpers_refuse_state_outer_escape_capture_and_reserved_names"
+      ],
+      "failedMethods": [
+        "CodeBodyTests.test_local_helpers_are_per_node_and_independent_probe_never_executes",
+        "CodeBodyTests.test_static_helper_members_are_per_node_and_independent_probe_never_executes"
+      ],
+      "explanation": "Independent probe wrongly treated any members entry as original implementation context; fixed entry-signature lookup and empty members registration"
+    },
+    {
+      "log": "second-core.log",
+      "sha256": "805251a5d8b2bf7e5ff0a1cd63097dab655cef45e641e5a17168d0a3f8aad9cd",
+      "passed": 5,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 32.886,
+      "methods": [
+        "CodeBodyTests.test_body_cannot_escape_into_a_function_signature_or_outer_member",
+        "CodeBodyTests.test_local_helpers_are_per_node_and_independent_probe_never_executes",
+        "CodeBodyTests.test_static_helper_members_are_per_node_and_independent_probe_never_executes",
+        "CodeBodyTests.test_static_helpers_refuse_state_outer_escape_capture_and_reserved_names",
+        "NestedBlueprintTests.test_static_helper_classes_from_private_siblings_are_emitted_with_unique_owners"
+      ],
+      "failedMethods": [
+        "NestedAuthoringTests.test_static_helpers_parameters_explicit_remap_task_cas_cold_and_compiler_confirm"
+      ],
+      "explanation": "Core five passed; public pack compilation exposed variable shadowing and a read-only branch variable reference, both corrected"
+    },
+    {
+      "log": "third-focused.log",
+      "sha256": "3e005dbb640ee35ca642ad64674f4ec0db509d997cc1da34bf2d8b88221f822e",
+      "passed": 0,
+      "failed": 2,
+      "skipped": 0,
+      "seconds": 132.491,
+      "methods": [],
+      "failedMethods": [
+        "NestedAuthoringTests.test_static_helpers_parameters_explicit_remap_task_cas_cold_and_compiler_confirm",
+        "WebUITests.test_actual_editor_v480_static_methods_parameters_cold_and_confirm"
+      ],
+      "explanation": "Review test incorrectly expected an exception before Confirm; actual UI exposed overlapping parameter panel placed outside its content container"
+    },
+    {
+      "log": "fourth-focused.log",
+      "sha256": "c30f2f2e6976e88cfd7f8347b6901785e5d15863abb6464c49bf51f37482e68a",
+      "passed": 7,
+      "failed": 2,
+      "skipped": 0,
+      "seconds": 129.83,
+      "methods": [
+        "CodeBodyTests.test_body_cannot_escape_into_a_function_signature_or_outer_member",
+        "CodeBodyTests.test_local_helpers_are_per_node_and_independent_probe_never_executes",
+        "CodeBodyTests.test_static_helper_members_are_per_node_and_independent_probe_never_executes",
+        "CodeBodyTests.test_static_helpers_receive_typed_imports_only_as_explicit_arguments",
+        "CodeBodyTests.test_static_helpers_refuse_state_outer_escape_capture_and_reserved_names",
+        "NestedBlueprintTests.test_static_helper_classes_from_private_siblings_are_emitted_with_unique_owners",
+        "NestedBlueprintTests.test_static_private_helpers_preserve_repeated_ref_out_caller_storage"
+      ],
+      "failedMethods": [
+        "NestedAuthoringTests.test_static_helpers_parameters_explicit_remap_task_cas_cold_and_compiler_confirm",
+        "WebUITests.test_actual_editor_v480_static_methods_parameters_cold_and_confirm"
+      ],
+      "explanation": "Seven core methods passed; tests still assumed Review compiled and that closing a window preserved its protected-view metadata; corrected tests without changing compiler acceptance"
+    },
+    {
+      "log": "focused-core.log",
+      "sha256": "162406c7893abbaac65e2793fdc96d4102becaa16d38fdf9b010a2243a81efc4",
+      "passed": 8,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 112.782,
+      "methods": [
+        "CodeBodyTests.test_body_cannot_escape_into_a_function_signature_or_outer_member",
+        "CodeBodyTests.test_static_helper_members_are_per_node_and_independent_probe_never_executes",
+        "CodeBodyTests.test_static_helpers_receive_typed_imports_only_as_explicit_arguments",
+        "CodeBodyTests.test_static_helpers_refuse_state_outer_escape_capture_and_reserved_names",
+        "PropertyBlueprintTests.test_methods_profile_retains_actual_object_abi_and_node_time_property_reads",
+        "NestedBlueprintTests.test_static_helper_classes_from_private_siblings_are_emitted_with_unique_owners",
+        "NestedBlueprintTests.test_static_private_helpers_preserve_repeated_ref_out_caller_storage",
+        "NestedAuthoringTests.test_static_helpers_parameters_explicit_remap_task_cas_cold_and_compiler_confirm"
+      ],
+      "failedMethods": [
+        "CodeBodyTests.test_local_helpers_are_per_node_and_independent_probe_never_executes"
+      ],
+      "explanation": "Eight related core/public methods passed; helper-region assertion was attached to the legacy body-local test by mistake; moved to the static-member test"
+    },
+    {
+      "log": "focused-ui.log",
+      "sha256": "d0aaeeba2c12a061e012b139a241900cec40706dedebe301bafa05468070ff81",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 92.339,
+      "methods": [
+        "WebUITests.test_actual_editor_v480_static_methods_parameters_cold_and_confirm"
+      ],
+      "failedMethods": [],
+      "explanation": "Actual static methods/typed remap/cold/Confirm passed; later source changes constrain parameter modes by existing profile and place raw helpers after the raw method closing brace"
+    }
+  ],
+  "interruptedPreliminaryRegression": {
+    "reason": "Stopped owned process groups with SIGINT to keep a stable Execute class boundary even when helper methods are cleared; comments/whitespace-only helpers are valid empty regions",
+    "logs": {
+      "final-engine": {
+        "sha256": "f60984c3a48bcf3d2fea0c47c39680ae1226ccc6c315a75c6cdd65782a3f3d7d",
+        "completed": false,
+        "passLines": 9
+      },
+      "final-ui-a": {
+        "sha256": "c87daea0eb5c360185859ec2d72e377725d493d29d0d6f3c45b3b90337705cdc",
+        "completed": false,
+        "passLines": 3
+      },
+      "final-ui-b": {
+        "sha256": "d3580b096a54636fa4f5a182e6eb175552fd6ba81570028980778856b6ba4201",
+        "completed": false,
+        "passLines": 2
+      },
+      "final-managed": {
+        "sha256": "905f575fbbb49e113bd7bf7b596a8857c840946a0c548dcee1ad9fd4c62fee8b",
+        "completed": true,
+        "passLines": 1
+      }
+    },
+    "countedInFinalGates": false
+  },
+  "screenshots": {
+    "parameters.png": "d0cacb2656b12033003eb6bb42ca4fa1f34d9be85655c480ea1c249dafa1dcaa",
+    "code.png": "5e3b824625e7a018654a1595ac53021e5451449b1d57dd1303f28584b29b6f29"
+  },
+  "ordinaryCheckout": {
+    "state": "pending",
+    "resources": 35
+  },
+  "scope": [
+    "Node-owned static helper methods in ordinary code nodes; typed explicit argument/import forwarding; unique implementation/body/private-path classes",
+    "Real compiler rejects fields, initializers, constructors, properties, nested types, attributes, outer escape, parent/import capture and generated-name/mapping escapes",
+    "Helpers belong to the same node record, source CAS, implementation content hash, four node-only Task rights, cold source restoration and compiler Confirm",
+    "Typed parameter names/types/value-ref-out/order; exact explicit name remap and downstream named-out remap; no positional rename guessing",
+    "Changed node definitions retain original source and helpers, require explicit source reapplication, revoke prior source basis and Task definition; partial publication refused",
+    "Actual repeated ref/out caller aliases, nested sibling helpers, typed import arguments and object/node-time property ABI exercised",
+    "Existing whole-body conversion context, recursion/calls/this and literal CRLF compatibility exercised in related backend and actual UI",
+    "Protected body/helpers regions, native keys and history, private cold helper/parameter inputs without replaying server basis; separate shared Apply and compiler Confirm"
+  ],
+  "nestedHashFocused": {
+    "log": "nested-hash-focused.log",
+    "sha256": "ad74e563f06e018ec8a2fb27dbc5d2ec5f44d14b14064da85e81f69730484ef8",
+    "passed": 2,
+    "failed": 0,
+    "skipped": 0,
+    "seconds": 11.492,
+    "methods": [
+      "NestedBlueprintTests.test_static_helper_classes_from_private_siblings_are_emitted_with_unique_owners",
+      "NestedBlueprintTests.test_static_private_helpers_preserve_repeated_ref_out_caller_storage"
+    ],
+    "failedMethods": []
+  },
+  "emptyRegionFocused": {
+    "log": "empty-region-focused.log",
+    "sha256": "66575bfdf33da2b400ddf262e3f79dde6cff4d02fa5ff6475b4a0554998ab4f5",
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "seconds": 12.276,
+    "methods": [
+      "CodeBodyTests.test_methods_profile_keeps_execute_scope_when_helpers_are_cleared_or_comment_only"
+    ],
+    "failedMethods": []
+  },
+  "additionalInterruptedRegression": {
+    "reason": "Stopped owned groups to include private child members in the exact top-level body hash and graph implementation hash; all final tests are rerun at the corrected frozen source",
+    "logs": {
+      "final-engine": {
+        "sha256": "a951f7a97d9169d3915812dfce33afdc78c978d0fe4968cb6fe8a9866ae5b5a8",
+        "completed": false,
+        "passLines": 10
+      },
+      "final-ui-a": {
+        "sha256": "1bbbeb0168ddcc9479ec7890392ba44af9442be79bb861c4bd9d4ec88568b0d6",
+        "completed": false,
+        "passLines": 4
+      },
+      "final-ui-b": {
+        "sha256": "22198dc9fe8614878571ce7bafdb0b5f9c4aa9b74c4ef4acdece605998ac6681",
+        "completed": false,
+        "passLines": 4
+      },
+      "final-managed": {
+        "sha256": "3d81665533e6ec4768158b7c9b94a3ed776d687e69af5b6dab804b6abfb6ba7e",
+        "completed": true,
+        "passLines": 1
+      }
+    },
+    "countedInFinalGates": false
+  },
+  "remaining": [
+    "Whole-body implementation-context nodes keep their original Invoke boundary and body-local helpers; external helpers unsupported for those nodes",
+    "Caller-storage/whole-body parameter changes use external contract review; node return type and scaffold remain protected",
+    "Fields, initializers, shared state and parent capture extensions unsupported",
+    "Undefined enum execution value and integer expression overflow remain unanswered and unchanged"
+  ],
+  "proofLimits": [
+    "Selected related 82 engine/public methods in three disjoint shards (28/27/27) and 11 distinct actual Chromium methods; not a new whole-v480 or whole-service regression claim",
+    "Windows/Android managed compilation only; no user PC, native/device, account or paid-model work",
+    "Synthetic composition in retained protected-editor test validates DOM grouping, not an installed OS IME",
+    "Prior overlapping stages are retained separately and not added to final counts"
+  ]
+}

@@ -69,7 +69,7 @@ internal static class Target
                 options = request["options"], flags = "C#12/deterministic/nullable/warnings-as-errors", host = mode == "linux" ? Environment.OSVersion.Platform.ToString() : "portable"
             };
             string fingerprint = Convert.ToHexString(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(identity))).ToLowerInvariant();
-            return JsonSerializer.SerializeToNode(new { protocol = 1, ok = true, fingerprint, sdk = Path.GetFileName(Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(sdk.Compiler)))), framework = "net10.0", blueprintProfile = "sync-acyclic-v1", blueprintProfiles = new[]{"sync-acyclic-v1","sync-acyclic-implicit-v1","sync-acyclic-implicit-out-v1","sync-acyclic-locals-v1","sync-acyclic-ref-nodes-v1","sync-acyclic-ref-v1","sync-acyclic-alias-locals-v1","sync-acyclic-nested-v1","sync-acyclic-property-v1"}, compiler = sdk.Compiler, mode })!.AsObject();
+            return JsonSerializer.SerializeToNode(new { protocol = 1, ok = true, fingerprint, sdk = Path.GetFileName(Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(sdk.Compiler)))), framework = "net10.0", blueprintProfile = "sync-acyclic-v1", blueprintProfiles = new[]{"sync-acyclic-v1","sync-acyclic-implicit-v1","sync-acyclic-implicit-out-v1","sync-acyclic-locals-v1","sync-acyclic-ref-nodes-v1","sync-acyclic-ref-v1","sync-acyclic-alias-locals-v1","sync-acyclic-nested-v1","sync-acyclic-property-v1","sync-acyclic-methods-v1"}, compiler = sdk.Compiler, mode })!.AsObject();
         }
         if (operation is not ("compile-contract" or "compile-pack" or "link")) throw new InvalidOperationException($"Unknown tool operation {operation}");
         return Compile(request, sdk, mode);
@@ -88,6 +88,20 @@ internal static class Target
             }
             if(node["preserveImplementationContext"]?.GetValue<bool>()!=true && block.DescendantTokens().Any(t=>t.IsKind(SyntaxKind.IdentifierToken)&&t.ValueText.StartsWith("__fg_",StringComparison.Ordinal))) throw new InvalidOperationException(subject+": NODE_RESERVED_NAME");
             if(node["preserveImplementationContext"]?.GetValue<bool>()!=true && block.DescendantTrivia(descendIntoTrivia:true).Any(t=>t.IsDirective&&(t.IsKind(SyntaxKind.LineDirectiveTrivia)||t.IsKind(SyntaxKind.PragmaChecksumDirectiveTrivia)))) throw new InvalidOperationException(subject+": NODE_MAPPING_DIRECTIVE");
+            string helpers = node["helpers"]?.GetValue<string>() ?? "";
+            if(helpers.Length > 0)
+            {
+                var unit = SyntaxFactory.ParseCompilationUnit("class __Check {\n"+helpers+"\n}", options:new CSharpParseOptions(LanguageVersion.CSharp12));
+                if(unit.ContainsDiagnostics || unit.Members.Count!=1 || unit.Members[0] is not ClassDeclarationSyntax owner ||
+                    owner.Identifier.ValueText!="__Check" ||
+                    owner.Members.Any(member=>member is not MethodDeclarationSyntax method ||
+                        !method.Modifiers.Any(SyntaxKind.StaticKeyword) || method.AttributeLists.Count>0 ||
+                        method.Modifiers.Any(t=>!t.IsKind(SyntaxKind.StaticKeyword)&&!t.IsKind(SyntaxKind.PrivateKeyword)&&!t.IsKind(SyntaxKind.PublicKeyword)) ||
+                        method.Body is null && method.ExpressionBody is null))
+                    throw new InvalidOperationException(subject+"/helpers: NODE_HELPERS_STATIC_METHODS: only static method declarations with bodies are supported");
+                if(unit.DescendantTokens().Any(t=>t.IsKind(SyntaxKind.IdentifierToken)&&t.ValueText.StartsWith("__fg_",StringComparison.Ordinal))) throw new InvalidOperationException(subject+"/helpers: NODE_RESERVED_NAME");
+                if(unit.DescendantTrivia(descendIntoTrivia:true).Any(t=>t.IsDirective)) throw new InvalidOperationException(subject+"/helpers: NODE_MAPPING_DIRECTIVE");
+            }
         }
         string output = Path.GetFullPath(Required(request, "output")); Directory.CreateDirectory(output);
         string name = Required(request, "name"), assembly = Path.Combine(output, name + ".dll"), reference = Path.Combine(output, name + ".ref.dll");

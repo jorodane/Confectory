@@ -14,8 +14,8 @@
 | 모듈 인터페이스·제공 구현·가져오기 | 지원: 요구 signature·기본 제공·객체별 구현과 등록 함수 계약 | ModuleInterface/RegisteredImplementation 및 실제 UI |
 | C# 본문·함수 내부 보조 함수 | 지원: 본문 exact source, 함수별 local helper, 전체 body 구문 검사와 독립 compiler probe | [보호 편집 계약](BLUEPRINT_PROTECTED_CSHARP_EDITOR.md), actual CLR helper 실행·무실행 probe |
 | 고정된 함수 외곽과 전체 코드 보기 | 지원 범위: 현재 signature/괄호 보호, 본문 편집·Undo/Redo·Tab·private cold·기존 Apply/Confirm | 실제 Chromium 후속 기록. 전체 소스 표시가 새 C# 파일이 되지 않음 |
-| C# 매개변수 영역에서 pin 계약 변경 | 부분: 현재 signature를 표시·보호, 새 노드/외부 함수 계약의 typed 편집은 기존 경로 | 노드의 C# 매개변수 문자열을 직접 편집해 기존 이름 기반 binding/원본을 이관하는 기능은 미구현 |
-| Execute 밖 helpers 영역 | 미구현 | prototype 저장만 확인. static 메서드만/상태 있는 class member까지 허용할지 및 수명 경계 필요 |
+| C# 매개변수 영역에서 pin 계약 변경 | 지원 범위: 일반 정적 코드 노드의 typed 이름/타입/값·ref·out/순서, 명시적 remap·stale 본문 재적용·Review/Confirm | [계약](BLUEPRINT_STATIC_METHODS_AND_PARAMETERS.md). 자유 선언 편집·위치 추측·전체 본문/caller-storage 계약 변경은 제외 |
+| Execute 밖 helpers 영역 | 지원 범위: methods profile 일반 코드 노드의 node-owned static 메서드, 내부 graph·독립 probe·원본 해시·Task/CAS/cold/Confirm | [계약·증거](BLUEPRINT_STATIC_METHODS_AND_PARAMETERS.md). 필드·초기화자·공유 상태·상위 캡처·전체 본문 문맥 확장은 미지원 |
 | enum 실행 출력 | 미구현 | prototype 안정적인 포트 ID·서로 다른 int32 값·정렬/이름 변경 편집 확인. 현재 next/bool을 대체하지 않음. 신규 enum 실행 반환과 데이터 out 분리, 미정의 runtime 값 처리 결정 필요 |
 | 기존 C# 구현 전체 이관 | 지원: 선택 구현·타깃의 본문 전체를 한 노드에 보존, imports/scope/calls/this/Invoke·이름·CRLF·다른 타깃 유지 | [본문 전환](BLUEPRINT_IMPLICIT_END_AND_BODY_CONVERSION.md), 실제 전후 실행·원자적 그룹·원본 CAS·cold |
 | 줄 끝 종료·미할당 반환 | 지원: 새 명시적 profile에서 연결 없는 줄 종료, 타입 기본값·포트별 누락 경고/경로 | [줄 끝 반환](BLUEPRINT_IMPLICIT_END_AND_BODY_CONVERSION.md). 구 profile의 생성 의미 보존 |
@@ -60,3 +60,8 @@ enum의 숫자 항목 범위 확인과 계산식 overflow는 다른 계약이다
 | W01–W06 | Workspace 이동/선택·문서·메모·포털·링크 | 실제 web/cold로 검증한 행위는 위 표와 [통합 기록](EDITOR_V480_INTEGRATION.md). 링크 의미 편집·모든 창 포털 전송/native 플랫폼 동작 전체는 부분 |
 
 이 행들과 그래프 표를 합쳐도 모든 클릭·중단·실패·재시작·서비스 조합이 검증됐다는 뜻은 아니다. 근거가 없는 항목은 미완료/부분으로 유지한다.
+
+
+<!-- node-methods-current-validation -->
+정적 보조 메서드·매개변수 후속은 고정한 제품/테스트 25개 원본에서 서로 다른 엔진/공개 편집 82건(분할 회귀 27/1/0 + 26/1/0 + 26/1/0, 제한 초과 3건은 동일 소스에서 단독 재통과), 실제 Chromium 11건(6/0/0 + 5/0/0), 관리 프로필 컴파일 1건으로 검증했다. [정확한 범위·이력·소스 해시](BLUEPRINT_STATIC_METHODS_AND_PARAMETERS.md)를 따른다.
+<!-- /node-methods-current-validation -->

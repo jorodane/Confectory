@@ -68,10 +68,12 @@ public static partial class FeatureBlueprint
             foreach (var node in value["nestedNodes"]?.AsArray() ?? new JsonArray()) descendants.Add(node!.DeepClone());
             foreach (string collection in new[] { "sourceMap", "nodeSources" })
                 if (result[collection] is JsonArray target) foreach (var node in value[collection]?.AsArray() ?? new JsonArray()) target.Add(node!.DeepClone());
+            if (result["members"] is not null && value["members"] is not null) result["members"] = result["members"]!.GetValue<string>() + value["members"]!.GetValue<string>();
             var summary = value.DeepClone().AsObject();
             foreach (string field in new[] { "body", "members", "sourceMap", "nodeSources" }) summary.Remove(field);
             summaries[child.Key] = summary;
         }
+        if(result["body"] is not null && result["members"] is not null) result["bodyHash"] = Hash(result["body"]!.GetValue<string>() + result["members"]!.GetValue<string>());
         if (summaries.Count > 0) { result["children"] = summaries; result["nestedNodes"] = descendants; }
         if(nestedWarnings.Count>0)result["nestedWarnings"]=nestedWarnings;
         return result;

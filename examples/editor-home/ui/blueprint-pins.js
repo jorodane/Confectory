@@ -1,6 +1,6 @@
 // Pin gestures prepare existing form inputs; Apply retains the ordinary CAS path.
 export function mountBlueprintPins({w,data,api,show,list}){
- const multi=['sync-acyclic-implicit-out-v1','sync-acyclic-locals-v1','sync-acyclic-ref-nodes-v1','sync-acyclic-ref-v1','sync-acyclic-alias-locals-v1','sync-acyclic-nested-v1','sync-acyclic-property-v1'].includes(data.profile),results=n=>n.outputs||(n.signature.return==='void'?[]:[{name:'return',type:n.signature.return}]);
+ const multi=['sync-acyclic-implicit-out-v1','sync-acyclic-locals-v1','sync-acyclic-ref-nodes-v1','sync-acyclic-ref-v1','sync-acyclic-alias-locals-v1','sync-acyclic-nested-v1','sync-acyclic-property-v1','sync-acyclic-methods-v1'].includes(data.profile),results=n=>n.outputs||(n.signature.return==='void'?[]:[{name:'return',type:n.signature.return}]);
  const {$,$$,esc}=api,events=new AbortController();let wire=null,menu=null,menuEvents=null,preview=null,gesture=null,skipClick=false;
  const current=()=>api.current.projectId===w.blueprintScope&&w.blueprintData===data&&w.el.isConnected&&!w.el.hidden;
  function closeMenu(){menuEvents?.abort();menuEvents=null;menu?.remove();menu=null;}

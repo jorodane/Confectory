@@ -114,9 +114,9 @@ internal sealed class BlueprintCompilation(Registry registry, string target, Tar
         foreach (var node in result["nodeSources"]!.AsArray()) Nodes.Add(node!.DeepClone());
         var receipt = result.DeepClone().AsObject();
         receipt.Remove("body"); receipt.Remove("nodeSources"); receipt.Remove("members");
+        if (result["members"]?.GetValue<string>() is { Length: > 0 } members) Members[implementation.Id] = members;
         if (result["explicitEntry"]?.GetValue<bool>() == true)
         {
-            Members[implementation.Id] = result["members"]!.GetValue<string>();
             EntrySignatures[implementation.Id] = registry.Get(implementation.Function!, "function").Signature!;
         }
         receipt["state"] = result["state"]!.DeepClone();
@@ -142,6 +142,8 @@ internal sealed class BlueprintCompilation(Registry registry, string target, Tar
             map["path"] = Path.GetRelativePath(Path.GetDirectoryName(registry.ProjectPath)!, sourcePath).Replace('\\', '/');
             map["sourceSha256"] = observations[sourcePath];
             map["jsonPointer"] = code ? "/source" : entry.Pointer;
+            if(code && result["nodeSources"]!.AsArray().Single(n=>n!["id"]!.ToString()==id)?["helpers"]?.GetValue<string>() is { Length: > 0 })
+                map["helperRegion"]=new JsonObject { ["marker"]=map["marker"]!.ToString()+"/helpers", ["jsonPointer"]="/helpers" };
         }
         Receipts[implementation.Id] = receipt;
         EnsureUnchanged();

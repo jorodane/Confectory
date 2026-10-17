@@ -185,3 +185,6 @@ graph별 카메라·확대·배치·선택도 private presentation이다. 헤더
 후속 [노드 도달 시 프로퍼티 읽기](BLUEPRINT_NODE_TIME_PROPERTIES.md)는 사용자 답변에 따라 호출자가 전달한 실제 객체를 해당 노드에서 한 번 읽고 결과를 전달한다. 위 property 미정·미구현 표시는 당시 단위의 기록이며 이 후속이 현재 의미를 정한다. 계산식 overflow 결정 대기는 유지한다.
 
 최신 영역별 상태는 [v480 완료·미완료 표](EDITOR_V480_STATUS.md)를 따른다. [보호된 C# 편집 후속](BLUEPRINT_PROTECTED_CSHARP_EDITOR.md)은 현재 signature 외곽과 본문/로컬 helpers를 연결하며 enum 실행·매개변수 이관·외부 helper 수명을 완료로 표시하지 않는다.
+
+
+정적 보조 메서드와 typed 매개변수 후속은 [node-owned 메서드·명시적 remap 계약](BLUEPRINT_STATIC_METHODS_AND_PARAMETERS.md)을 따른다. methods profile은 기존 property/private/ref/out을 포함하며 필드·초기화자·공유 상태·상위 캡처를 허용하지 않는다. 전체 본문 문맥은 기존 경계를 유지한다.

@@ -19,12 +19,13 @@ public static class BlueprintDocuments
             Require(marker > 0 && document["node"]?.ToString() == id[(marker + 6)..], "Stable node identity required");
             Require(Regex.IsMatch(document["definitionHash"]?.ToString() ?? "", "\\A[0-9a-f]{64}\\z", RegexOptions.CultureInvariant), "Node definition hash required");
             Require(document["source"] is JsonValue value && value.TryGetValue<string>(out _), "Node source string required");
-            Require(document.All(p => p.Key is "schema" or "node" or "definitionHash" or "source"), "Only node source and its definition receipt belong in a node file");
+            if(document.ContainsKey("helpers")) Require(document["helpers"] is JsonValue helper && helper.TryGetValue<string>(out _), "Static helper method source string required");
+            Require(document.All(p => p.Key is "schema" or "node" or "definitionHash" or "source" or "helpers"), "Only node source, static helper methods and its definition receipt belong in a node file");
         }
         else if (kind == "blueprint")
         {
             Require(id.Contains("/body:", StringComparison.Ordinal), "Explicit implementation target source required");
-            Require(document["profile"]?.ToString() is FeatureBlueprint.Profile or FeatureBlueprint.ImplicitProfile or FeatureBlueprint.MultiOutputProfile or FeatureBlueprint.LocalsProfile or FeatureBlueprint.RefNodesProfile or FeatureBlueprint.ExternalRefsProfile or FeatureBlueprint.AliasLocalsProfile or FeatureBlueprint.NestedProfile or FeatureBlueprint.PropertyProfile, "Supported Blueprint profile required");
+            Require(document["profile"]?.ToString() is FeatureBlueprint.Profile or FeatureBlueprint.ImplicitProfile or FeatureBlueprint.MultiOutputProfile or FeatureBlueprint.LocalsProfile or FeatureBlueprint.RefNodesProfile or FeatureBlueprint.ExternalRefsProfile or FeatureBlueprint.AliasLocalsProfile or FeatureBlueprint.NestedProfile or FeatureBlueprint.PropertyProfile or FeatureBlueprint.MethodsProfile, "Supported Blueprint profile required");
             Require(Regex.IsMatch(document["feature"]?.ToString() ?? "", @"\A[A-Za-z_][A-Za-z_0-9]*(?:\.[A-Za-z_][A-Za-z_0-9]*)*::[A-Za-z_][A-Za-z_0-9]*\z", RegexOptions.CultureInvariant), "Qualified feature identity required");
             Require(document["nodes"] is JsonArray && document["edges"] is JsonArray && document["exits"] is JsonObject, "Graph source collections required");
             if(FeatureBlueprint.SupportsPrivateGraphs(document["profile"]?.ToString()))BlueprintTree.Nodes(document).ToArray();

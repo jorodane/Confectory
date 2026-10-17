@@ -106,4 +106,10 @@ public sealed class PropertyBlueprintTests : TestCase
         string implementation=Path.Combine(f.Packs["App"].Root,"EchoBody.celem");var prepared=Metadata(new(){["operation"]="blueprintConversion",["project"]=f.Project,["id"]="App::EchoBody",["text"]=File.ReadAllText(implementation),["target"]="common",["graphPath"]="echo.graph.json",["nodePath"]="echo.node.json"});Equal(FeatureBlueprint.PropertyProfile,Text(prepared["graph"]!,"profile"));File.WriteAllText(implementation,prepared["implementation"]!.ToString());f.Body("App","echo.graph.json",prepared["graph"]!.ToJsonString());f.Body("App","echo.node.json",prepared["node"]!.ToJsonString());Output(Build(),"True\nFalse");Sequence(original,File.ReadAllBytes(old));
     }
 
+    public void test_methods_profile_retains_actual_object_abi_and_node_time_property_reads()
+    {
+        var descriptor=Descriptor();const string feature="function Api::Value (object target) -> int {}";var graph=Graph(feature);graph["profile"]=FeatureBlueprint.MethodsProfile;graph["nodes"]=new JsonArray(Property("read",descriptor,"health",Bind("input","target")),Code("consume",Sig("int",new Parameter("int","value")),new(){["value"]=Bind("node","read")}));graph["edges"]=new JsonArray(Edge("read","consume"),Edge("consume","exit:done"));graph["exits"]=new JsonObject{["done"]=Bind("node","consume")};Write(graph,feature,descriptor,new(){["consume"]="return Helper(value);"});var record=JsonNode.Parse(File.ReadAllText(Path.Combine(f.Packs["Provider"].Root,"consume.node.json")))!.AsObject();record["helpers"]="private static int Helper(int value)=>value*3;";f.Body("Provider","consume.node.json",record.ToJsonString());string health=Field(descriptor,"health")["id"]!.ToString();
+        f.Body("App","main.csbody","object target=calls.Create.Invoke("+Quote(descriptor.ToJsonString())+",new[]{"+Quote(health)+"},new object[]{7});Console.WriteLine(calls.Value.Invoke(target));calls.Write.Invoke(target,"+Quote(health)+",9);Console.WriteLine(calls.Value.Invoke(target));return 0;");Output(Build(),"21\n27");
+    }
+
 }

@@ -41,8 +41,8 @@ internal static class BlueprintProperty
         var field=descriptor["fields"]!.AsArray().Single(f=>f!["name"]!.ToString()==name)!;
         if(field["supported"]?.GetValue<bool>()!=true)throw new ArgumentException("This field kind has no live property value contract");
         var graph=request["graph"]!.DeepClone().AsObject();string path=request["privatePath"]?.ToString()??"";
-        if(graph["profile"]?.ToString()!=FeatureBlueprint.PropertyProfile)throw new ArgumentException("Explicitly upgrade to the node-time property profile first");
-        var selected=BlueprintTree.Select(graph,path);if(selected["profile"]?.ToString()!=FeatureBlueprint.PropertyProfile)throw new ArgumentException("Private property profile required");
+        if(!FeatureBlueprint.SupportsProperties(graph["profile"]?.ToString()))throw new ArgumentException("Explicitly upgrade to the node-time property profile first");
+        var selected=BlueprintTree.Select(graph,path);if(!FeatureBlueprint.SupportsProperties(selected["profile"]?.ToString()))throw new ArgumentException("Private property profile required");
         bool rebind=request["rebind"]?.GetValue<bool>()==true;
         var prior=selected["nodes"]!.AsArray().SingleOrDefault(n=>n!["id"]!.ToString()==id);
         if(rebind?prior?["kind"]?.ToString()!="property":prior is not null)throw new ArgumentException("Explicit new property or existing property rebind required");

@@ -6,7 +6,7 @@ namespace Confectory.Core;
 public static partial class FeatureBlueprint
 {
     public const string PropertyProfile = "sync-acyclic-property-v1", PropertyGenerator = "feature-blueprint-source-v10", PropertyReader = "Confectory.ObjectModel::Read";
-    public static bool SupportsPrivateGraphs(string? profile) => profile is NestedProfile or PropertyProfile;
+    public static bool SupportsPrivateGraphs(string? profile) => profile is NestedProfile or PropertyProfile or MethodsProfile;
     public static bool IsObjectType(string type) => type is "object" or "object[]";
     public static bool HasObjectSignature(FunctionSignature signature) => IsObjectType(signature.Return) || signature.Args.Any(p => IsObjectType(p.Type));
 

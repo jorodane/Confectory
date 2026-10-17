@@ -225,7 +225,7 @@ public sealed class Builder
         var context = new BlueprintCompilation(Registry, Target, Tool);
         string declaration = context.Assemble(implementation, body, path, nodeId);
         string source = "using System;\ninternal static class __fg_probe_class { internal static void __fg_probe_check() {\n" + declaration + "\n} }\n";
-        if (context.Members.TryGetValue(implementationId, out string? contextMembers)) source = Generation.ImplementationSource(implementation, declaration, "node-probe:"+nodeId, contextMembers, context.EntrySignatures[implementationId]);
+        if (context.Members.TryGetValue(implementationId, out string? contextMembers)) source = Generation.ImplementationSource(implementation, declaration, "node-probe:"+nodeId, contextMembers, context.EntrySignatures.GetValueOrDefault(implementationId));
         PrepareContracts(new[] { implementation.Function! }.Concat(implementation.Imports.Values.Select(i => i.Id)));
         foreach (string id in new[] { implementation.Function! }.Concat(implementation.Imports.Values.Select(i => i.Id)).Distinct(StringComparer.Ordinal)) Contract(id);
         var probeReceipt=context.Receipts[implementationId]??throw new BuildError("BLUEPRINT_PROOF","Independent node source receipt required",implementation.Loc);

@@ -25,8 +25,9 @@ public sealed class NestedBlueprintTests : TestCase
     {
         ["operation"] = operation, ["featureSource"] = source, ["graph"] = graph.DeepClone(), ["implementations"] = records?.DeepClone(), ["bodyTarget"]="common", ["implementationContext"] = new JsonObject{["implementation"]="Provider::ValueBody"}, ["node"] = probe, ["featureContracts"] = contracts?.DeepClone()
     });
-    JsonObject Write(JsonObject graph, Dictionary<string, string> bodies, string source = Plain, JsonObject? contracts = null)
+    JsonObject Write(JsonObject graph, Dictionary<string, string> bodies, string source = Plain, JsonObject? contracts = null, Dictionary<string,string>? helpers = null)
     {
+        if(helpers is not null){void Upgrade(JsonObject g){g["profile"]=FeatureBlueprint.MethodsProfile;foreach(var n in g["nodes"]!.AsArray())if(n!["kind"]?.ToString()=="graph")Upgrade(n["graph"]!.AsObject());}Upgrade(graph);}
         // Every nested leaf deliberately retains its local ID; only its owner path differs.
         foreach (var entry in BlueprintTree.Nodes(graph).Where(e => e.Node["kind"]!.ToString() == "code")) entry.Node["implementation"] = entry.Key.Replace('/', '-') + ".node.json";
         var definitions = Query(graph, source, "featureBlueprintNodes", contracts: contracts); Equal("node-definitions", Text(definitions, "state"));
@@ -36,6 +37,7 @@ public sealed class NestedBlueprintTests : TestCase
         {
             var definition = all.Single(n => n!["id"]!.ToString() == body.Key)!;
             var record = new JsonObject { ["schema"] = 1, ["node"] = body.Key.Split('/')[^1], ["definitionHash"] = definition["definitionHash"]!.DeepClone(), ["source"] = body.Value };
+            if(helpers is not null && helpers.TryGetValue(body.Key,out var methods))record["helpers"]=methods;
             records[body.Key] = record; f.Body("Provider", body.Key.Replace('/', '-') + ".node.json", record.ToJsonString());
         }
         var sig = new Parser(source, "<nested>").ParseElement().Signature!;
@@ -121,6 +123,21 @@ public sealed class NestedBlueprintTests : TestCase
         outer["nodes"]=new JsonArray(Node("inner",Sig("int",new Parameter("int","value"),new Parameter("int","audit","out")),new(){["value"]=Input("value")},missing));outer["edges"]=new JsonArray(Edge("inner","exit:done"));outer["exits"]=new JsonObject{["done"]=Result("inner")};var root=Root();root["entry"]="outer";root["nodes"]=new JsonArray(Node("outer",Sig("int",new Parameter("int","value")),new(){["value"]=Input("n")},outer));root["edges"]=new JsonArray(Edge("outer","exit:done"));root["exits"]=new JsonObject{["done"]=Result("outer")};
         var described=Query(root);Equal("source-ready",Text(described,"state"));Equal(0,described["warnings"]!.AsArray().Count);Equal(1,described["nestedWarnings"]!.AsArray().Count);var warning=described["nestedWarnings"]![0]!;Equal("outer/inner",Text(warning,"privatePath"));Sequence(new[]{"return","audit"},warning["missingOutputs"]!.AsArray().Select(o=>o!["name"]!.ToString()));
         Write(root,new());var built=Build();Output(built,"0");var report=built["blueprintWarnings"]!.AsArray();Equal(1,report.Count);Equal("Provider::ValueBody",Text(report[0]!,"implementation"));Equal("outer/inner",Text(report[0]!,"privatePath"));True(Text(report[0]!,"graphPath").EndsWith("nested.graph.json",StringComparison.Ordinal));Equal("GRAPH_RETURN_UNASSIGNED",Text(report[0]!,"code"));
+    }
+
+    public void test_static_helper_classes_from_private_siblings_are_emitted_with_unique_owners()
+    {
+        JsonObject Child(){var g=Graph();g["entry"]="body";g["nodes"]=new JsonArray(Node("body",Sig("int",new Parameter("int","value")),new(){["value"]=Input("value")}));g["edges"]=new JsonArray(Edge("body","exit:done"));g["exits"]=new JsonObject{["done"]=Result("body")};return g;}
+        var root=Root();root["entry"]="left";root["nodes"]=new JsonArray(Node("left",Sig("int",new Parameter("int","value")),new(){["value"]=Input("n")},Child()),Node("right",Sig("int",new Parameter("int","value")),new(){["value"]=Result("left")},Child()));root["edges"]=new JsonArray(Edge("left","right"),Edge("right","exit:done"));root["exits"]=new JsonObject{["done"]=Result("right")};
+        var records=Write(root,new(){["left/body"]="return Helper(value);",["right/body"]="return Helper(value);"},helpers:new(){["left/body"]="private static int Helper(int candidate)=>candidate+3;",["right/body"]="private static int Helper(int candidate)=>candidate*2;"});
+        var assembled=Query(root,operation:"featureBlueprintAssemble",records:records);Equal("source-assembled",Text(assembled,"state"));string expected=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(assembled["body"]!.GetValue<string>()+assembled["members"]!.GetValue<string>()))).ToLowerInvariant();Equal(expected,Text(assembled,"bodyHash"));foreach(string id in new[]{"left","right"})Equal(Text(assembled["children"]![id]!,"bodyHash"),Text(assembled["nodes"]!.AsArray().Single(n=>n!["id"]!.ToString()==id)!,"implementationHash"));
+        f.Body("App","main.csbody","Console.WriteLine(calls.Value.Invoke(2));return 0;");Output(Build(),"10");var proof=new Builder(f.Project,"portable").CheckBlueprintNode("Provider::ValueBody","common","right/body");Equal("node-compiled",Text(proof,"state"));True(!proof["executed"]!.GetValue<bool>());
+    }
+
+    public void test_static_private_helpers_preserve_repeated_ref_out_caller_storage()
+    {
+        const string source="function Api::Value (ref int x,ref int y,out int audit) -> int {}";var sig=Sig("int",new Parameter("int","x","ref"),new Parameter("int","y","ref"),new Parameter("int","audit","out"));var child=Graph();var leaf=Node("body",sig.DeepClone().AsObject(),new(){["x"]=Input("x"),["y"]=Input("y")});leaf["forwardCallerStorage"]=true;child["entry"]="body";child["nodes"]=new JsonArray(leaf);child["edges"]=new JsonArray(Edge("body","exit:done"));child["exits"]=new JsonObject{["done"]=Result("body")};var root=Root(source);var owner=Node("private",sig,new(){["x"]=Input("x"),["y"]=Input("y")},child);owner["forwardCallerStorage"]=true;root["entry"]="private";root["nodes"]=new JsonArray(owner);root["edges"]=new JsonArray(Edge("private","exit:done"));root["exits"]=new JsonObject{["done"]=Result("private")};
+        Write(root,new(){["private/body"]="return Helper(ref x,ref y,out audit);"},source,helpers:new(){["private/body"]="private static int Helper(ref int a,ref int b,out int copied){a=10;b+=a;copied=a+b;return copied;}"});f.Body("App","main.csbody","int n=5;int same=calls.Value.Invoke(ref n,ref n,out n);Console.WriteLine(same+\",\"+n);int a=5,b=6;int distinct=calls.Value.Invoke(ref a,ref b,out int audit);Console.WriteLine(distinct+\",\"+a+\",\"+b+\",\"+audit);return 0;");Output(Build(),"40,40\n26,10,16,26");
     }
 
 }
