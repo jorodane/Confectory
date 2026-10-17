@@ -16,7 +16,8 @@
 | 고정된 함수 외곽과 전체 코드 보기 | 지원 범위: 현재 signature/괄호 보호, 본문 편집·Undo/Redo·Tab·private cold·기존 Apply/Confirm | 실제 Chromium 후속 기록. 전체 소스 표시가 새 C# 파일이 되지 않음 |
 | C# 매개변수 영역에서 pin 계약 변경 | 지원 범위: 일반 정적 코드 노드의 typed 이름/타입/값·ref·out/순서, 명시적 remap·stale 본문 재적용·Review/Confirm | [계약](BLUEPRINT_STATIC_METHODS_AND_PARAMETERS.md). 자유 선언 편집·위치 추측·전체 본문/caller-storage 계약 변경은 제외 |
 | Execute 밖 helpers 영역 | 지원 범위: methods profile 일반 코드 노드의 node-owned static 메서드, 내부 graph·독립 probe·원본 해시·Task/CAS/cold/Confirm | [계약·증거](BLUEPRINT_STATIC_METHODS_AND_PARAMETERS.md). 필드·초기화자·공유 상태·상위 캡처·전체 본문 문맥 확장은 미지원 |
-| enum 실행 출력 | 미구현 | prototype 안정적인 포트 ID·서로 다른 int32 값·정렬/이름 변경 편집 확인. 현재 next/bool을 대체하지 않음. 신규 enum 실행 반환과 데이터 out 분리, 미정의 runtime 값 처리 결정 필요 |
+| enum 계약·선언 소스 준비 | 지원: private 안정 ID/int32·현재 원본 hash 연결·선언 미리보기·명시적 공유 적용 | [개인 계획·호환성](BLUEPRINT_ENUM_CONTRACT_PREPARATION.md), 별도 profile 전환·stale 본문 재적용·CAS/Confirm |
+| enum 실행 출력 | 지원 범위: 명시적 switch profile, 선택 case/default 후 메인 계속·미일치 계속·중첩 복귀·실제 종료 out 경고 | [실행·이관 경계](BLUEPRINT_SWITCH_CONTINUATIONS.md). 기존 데이터 return/bool·whole-body 문맥은 자동 변환하지 않음 |
 | 기존 C# 구현 전체 이관 | 지원: 선택 구현·타깃의 본문 전체를 한 노드에 보존, imports/scope/calls/this/Invoke·이름·CRLF·다른 타깃 유지 | [본문 전환](BLUEPRINT_IMPLICIT_END_AND_BODY_CONVERSION.md), 실제 전후 실행·원자적 그룹·원본 CAS·cold |
 | 줄 끝 종료·미할당 반환 | 지원: 새 명시적 profile에서 연결 없는 줄 종료, 타입 기본값·포트별 누락 경고/경로 | [줄 끝 반환](BLUEPRINT_IMPLICIT_END_AND_BODY_CONVERSION.md). 구 profile의 생성 의미 보존 |
 | 이름 있는 out 데이터 출력 | 지원: out pin/결과 binding/export, 종료별 must/may·미할당 경고 | [out 출력](BLUEPRINT_NAMED_OUT_OUTPUTS.md), 실제 compiler·실행·UI |
@@ -35,7 +36,7 @@
 | 일반 Git checkout·리소스 시작 | 지원: pinned canonical LF/보존 CRLF·실제 Home·변조/인코딩/예산 거부 | 커밋 기준 실제 checkout. 후속 모듈 추가 시 리소스 수와 검사를 갱신 |
 | Linux/.NET 10·Windows/Android | Linux 실제 owned CLR/공통 web UI, Windows/Android는 관리 프로필 컴파일 | native/device·실제 계정·유료 모델·사용자 PC 설치는 미검증이며 이번 경계 밖 |
 
-enum의 숫자 항목 범위 확인과 계산식 overflow는 다른 계약이다. 편집 callback의 통과, 실제 C# compile의 통과, runtime 결과와 Chromium 편집/복원을 별도 근거로 취급한다. 원본 ZIP과 main을 편집하거나 과거 검사 수를 후속 새 결과에 합산하지 않는다.
+enum의 숫자 항목 범위 확인과 계산식 overflow는 다른 계약이다. 편집 callback의 통과, 실제 C# compile의 통과, runtime 결과와 Chromium 편집/복원을 별도 근거로 취급한다. 원본 ZIP과 main을 편집하거나 과거 검사 수를 후속 새 결과에 합산하지 않는다. bounded static helpers·ordinary caller-storage·whole-body Invoke의 정확한 지원 차이는 [비교 표](BLUEPRINT_ENUM_CONTRACT_PREPARATION.md#bounded-helpers와-원래-invoke-문맥)를 따른다.
 
 ## 그래프 밖의 서비스·편집 요구
 
@@ -65,3 +66,7 @@ enum의 숫자 항목 범위 확인과 계산식 overflow는 다른 계약이다
 <!-- node-methods-current-validation -->
 정적 보조 메서드·매개변수 후속은 고정한 제품/테스트 25개 원본에서 서로 다른 엔진/공개 편집 82건(분할 회귀 27/1/0 + 26/1/0 + 26/1/0, 제한 초과 3건은 동일 소스에서 단독 재통과), 실제 Chromium 11건(6/0/0 + 5/0/0), 관리 프로필 컴파일 1건으로 검증했다. [정확한 범위·이력·소스 해시](BLUEPRINT_STATIC_METHODS_AND_PARAMETERS.md)를 따른다. 일반 Git checkout·보존 CRLF/새 LF·35개 리소스·실제 Home 시작·변조 거부도 1건 통과했다.
 <!-- /node-methods-current-validation -->
+
+<!-- switch-current-validation -->
+순차 enum switch 후속은 고정 원본 27개에서 엔진/공개 편집 94/0/0, 실제 Chromium 13/0/0으로 통과했다. 이후 switch 복귀선·여러 포트 배치의 UI 보완 뒤 최종 원본 28개에서 해당 UI 1건을 재통과했고 관리 프로필 컴파일 1건도 통과했다. 중복 UI를 새 고유 검사로 합산하지 않는다. [정확한 단계·소스·범위](BLUEPRINT_SWITCH_CONTINUATIONS.md#최종-검증과-소스-단계)와 [일반 checkout HEAD·36개 리소스 시작 검사](validation/v480-switch-continuations.json)를 따른다. 이 결과로 외부 서비스·전체 v480·native/device 경계를 완료한 것으로 표시하지 않는다.
+<!-- /switch-current-validation -->

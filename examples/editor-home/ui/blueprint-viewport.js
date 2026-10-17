@@ -27,8 +27,16 @@ export function mountBlueprintViewport({w,data,$,$$,persist,isCurrent,hasWire,ca
  function draw(){
   canvas.style.transform=`translate(${camera.x}px,${camera.y}px) scale(${scale})`;canvas.style.zoom='';
   for(const node of data.nodes){const el=$('[data-bp-node="'+CSS.escape(node.id)+'"]',w.body),p=positions[node.id];el.style.left=p.x+'px';el.style.top=p.y+'px';}
-  const width=Math.max(700,...Object.values(positions).map(p=>p.x+300)),height=Math.max(390,...Object.values(positions).map(p=>p.y+280));canvas.style.width=width+'px';canvas.style.height=height+'px';
+  const width=Math.max(700,...Object.values(positions).map(p=>p.x+300)),height=Math.max(390,...data.nodes.map(n=>positions[n.id].y+(n.control==='switch'?Math.max(280,$('[data-bp-node=\"'+CSS.escape(n.id)+'\"]',w.body).offsetHeight+30):280)));canvas.style.width=width+'px';canvas.style.height=height+'px';
   const svg=$('.bp-wires',w.body);svg.setAttribute('width',width);svg.setAttribute('height',height);svg.innerHTML=data.edges.filter(edge=>positions[edge.from]&&positions[edge.to]).map(edge=>{const origin=geometry(),outElement=$('[data-bp-exec-out="'+CSS.escape(edge.from)+'"][data-exec-port="'+CSS.escape(String(edge.port))+'"]',w.body),inputElement=$('[data-bp-exec-in="'+CSS.escape(edge.to)+'"]',w.body);if(!outElement||!inputElement)return '';const out=outElement.getBoundingClientRect(),input=inputElement.getBoundingClientRect(),x=((out.right-origin.rect.left)/origin.x-camera.x)/scale,y=((out.top+out.height/2-origin.rect.top)/origin.y-camera.y)/scale,tx=((input.left-origin.rect.left)/origin.x-camera.x)/scale,ty=((input.top+input.height/2-origin.rect.top)/origin.y-camera.y)/scale;return `<path d="M${x} ${y} C${x+35} ${y},${tx-35} ${ty},${tx} ${ty}"/>`;}).join('');
+  if(data.profile==='sync-acyclic-switch-v1'){
+   const safe=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+   for(const edge of data.diagnostics?.branchReturns||[]){
+    const from=$('[data-bp-exec-out="'+CSS.escape(edge.from)+'"][data-exec-port="'+CSS.escape(edge.port)+'"]',w.body),to=$('[data-bp-exec-out="'+CSS.escape(edge.owner)+'"][data-exec-port="next"]',w.body);if(!from||!to)continue;
+    const origin=geometry(),a=from.getBoundingClientRect(),b=to.getBoundingClientRect(),x=((a.right-origin.rect.left)/origin.x-camera.x)/scale,y=((a.top+a.height/2-origin.rect.top)/origin.y-camera.y)/scale,tx=((b.right-origin.rect.left)/origin.x-camera.x)/scale,ty=((b.top+b.height/2-origin.rect.top)/origin.y-camera.y)/scale,bend=Math.max(x,tx)+45;
+    svg.insertAdjacentHTML('beforeend',`<path class="bp-return-wire" data-bp-return-wire="${safe(edge.from+'/'+edge.port)}" d="M${x} ${y} C${bend} ${y},${bend} ${ty},${tx} ${ty}"><title>${safe(edge.owner)} 메인 계속 포트로 복귀</title></path>`);
+   }
+  }
   const percent=Number((scale*100).toFixed(5));$('[data-bp-zoom]',w.body).value=percent;$('[data-bp-percent]',w.body).textContent=percent+'%';
   if(menu){$('[data-zoom-slider]',menu).value=percent;if(document.activeElement!==$('[data-zoom-value]',menu))$('[data-zoom-value]',menu).value=percent;for(const button of $$('[data-zoom-preset]',menu))button.setAttribute('aria-pressed',String(Number(button.dataset.zoomPreset)===percent));}
  }

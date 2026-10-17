@@ -16,6 +16,7 @@ try
             reply=PackOperations.Execute(S("operation"),request,FormatManifest);break;
         case "featureBlueprintNodes": case "featureBlueprintDescribe": case "featureBlueprintAssemble":reply=FeatureBlueprint.Execute(request);break;
         case "blueprintDescribeOwned":reply=BlueprintDocuments.DescribeOwned(request);break;
+        case "blueprintEnumPreview":reply=BlueprintEnumContract.Preview(request["contract"]!.AsObject(),request["binding"]!.AsObject());break;
         case "blueprintConversion":reply=BlueprintConversion.Query(request);break;
         case "blueprintPrepareFeature":reply=BlueprintCreation.Prepare(request,Format);break;
         case "blueprintPrepareImplementation":reply=BlueprintCreation.PrepareForOwner(request,Format);break;

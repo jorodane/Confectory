@@ -1,0 +1,462 @@
+{
+  "schema": 1,
+  "kind": "switch-continuation-validation",
+  "base": "076f20094673580bd9b289877b71b92e415e80b9",
+  "profile": "sync-acyclic-switch-v1",
+  "generator": "feature-blueprint-source-v12",
+  "policy": "selected case/default returns to next main; unmatched continues; only actual feature ends default missing outputs",
+  "overflow": "unanswered",
+  "sourceStages": {
+    "broad": {
+      "examples/editor-home/WebBundle.csbody": {
+        "sha256": "c0413b1a788d02d52479b1865c7d610910e470a34eef7b1e5c5bd9c4144503ef",
+        "bytes": 9531
+      },
+      "examples/editor-home/ui/blueprint-code-editor.js": {
+        "sha256": "eb7088037150403ac1819bcdb44d4366ae08ee63f2a656d820b6b083b3c49547",
+        "bytes": 6449
+      },
+      "examples/editor-home/ui/blueprint-enum-plan.js": {
+        "sha256": "e2295dfa4cadd132a455fc48fbc7e8d275fa039e3cf8345abeecb27921dbc013",
+        "bytes": 9018
+      },
+      "examples/editor-home/ui/blueprint-parameters.js": {
+        "sha256": "ae588c294e5dc6ab6a82744d82aef184bd655d313979f0a9f892d2b0e7a4bc2a",
+        "bytes": 6622
+      },
+      "examples/editor-home/ui/blueprint-pins.js": {
+        "sha256": "f7298b771aa762c6db7d6d415670ea38a92d9ccbf7e28ccdc3a8905248f98acd",
+        "bytes": 9525
+      },
+      "examples/editor-home/ui/blueprint.js": {
+        "sha256": "33550db9230a9f779566585eea342a7f5fda123585c1b25778c2ada19ba3ad19",
+        "bytes": 82815
+      },
+      "examples/editor-home/ui/consumer.css": {
+        "sha256": "f72f887e71106a817efc4a70de9f07bd2175a9b5264fb13adf5ef31c9e0b859c",
+        "bytes": 20293
+      },
+      "examples/editor-home/ui/workspace-host.js": {
+        "sha256": "d4b1afab63d244cf8701284554e4e25e194a33871f91dc5bba58a1328ea89b2a",
+        "bytes": 16771
+      },
+      "packs/edit-workspace/BlueprintNode.csbody": {
+        "sha256": "58313fd59d9b86f57a2d7c61cccbe18b7fbb39378760b2b7f957dfff58914dce",
+        "bytes": 14060
+      },
+      "packs/pack-workspace/Blueprint.csbody": {
+        "sha256": "d0a30ccfddeabf7cfbd4517cc0050db20a71d8f0c111e7593b9d9471f48792f5",
+        "bytes": 80332
+      },
+      "src/Confectory.Core/BlueprintDocuments.cs": {
+        "sha256": "a90c40f5918913ff8bc711201232bf7d4a76977b4722787cae804598a0228c89",
+        "bytes": 9193
+      },
+      "src/Confectory.Core/BlueprintEnumContract.cs": {
+        "sha256": "b2631625e9c2e7806cae8c6fdfa9147729c9998ac6cf238e57847c14a83bc99d",
+        "bytes": 5920
+      },
+      "src/Confectory.Core/FeatureBlueprint.AliasLocals.cs": {
+        "sha256": "028d6b6f824b7693477b34911c9e67d784a2d0c3ec2450cf6de30e657bc527a5",
+        "bytes": 1232
+      },
+      "src/Confectory.Core/FeatureBlueprint.Methods.cs": {
+        "sha256": "f6497f5d2128e2ceae04301d8bfbbd6227cb11179a37d22a9f4f8d18377c92d6",
+        "bytes": 1923
+      },
+      "src/Confectory.Core/FeatureBlueprint.Properties.cs": {
+        "sha256": "4db37ae7df2610e5b2082c82cf8ffd8e971ed525cc5c0502a5183c7f62281877",
+        "bytes": 2070
+      },
+      "src/Confectory.Core/FeatureBlueprint.Switches.cs": {
+        "sha256": "c476f34258d5e667620473921184f1721c828e187837035e216bb355f9b01c7a",
+        "bytes": 7601
+      },
+      "src/Confectory.Core/FeatureBlueprint.cs": {
+        "sha256": "0f44af4d5354865865b9ad8af70eff2c5d526bd58876a1878c7bc59e3d3a5e7c",
+        "bytes": 48067
+      },
+      "targets/dotnet/Program.cs": {
+        "sha256": "f3859de9ba79b0636ffd6bb2d2b38e50701425cc11ab892ebc6cf9417b25b7d5",
+        "bytes": 15119
+      },
+      "targets/element-authoring/Program.cs": {
+        "sha256": "50e9abeb374681eada3e92323711b7fa8980ed979f7f9febba309ca35db1c203",
+        "bytes": 26462
+      },
+      "tests/Confectory.Tests/EnumContractTests.cs": {
+        "sha256": "2eb26d77040f2a1ea866ca8466e28acef9464825a6d11e3f33f706619883e826",
+        "bytes": 4832
+      },
+      "tests/Confectory.Tests/NestedAuthoringTests.cs": {
+        "sha256": "ab9b635e839cb065a10f9db67d0445ac0b79a334827c313f26a489bced453215",
+        "bytes": 38274
+      },
+      "tests/Confectory.Tests/Program.cs": {
+        "sha256": "f175022eec3e19fed7b487b8fc2d2fb7d654298c6614ea925eb26d833c7a52be",
+        "bytes": 4843
+      },
+      "tests/Confectory.Tests/SwitchBlueprintTests.cs": {
+        "sha256": "3276cde1455af6d8ab42dda236ea2fe1a8919cb6d053d729c8c34b19f33c127c",
+        "bytes": 12715
+      },
+      "tests/Confectory.Tests/WebUITests.cs": {
+        "sha256": "43c12c932d536f054aeae9468b4017555b8f3406afed4c4e61a9b313c37b51b7",
+        "bytes": 53148
+      },
+      "tests/web/v480_enum_plan.py": {
+        "sha256": "181314f30bb7b787ba4201b8b433c8b873f4d39f9c46af194d5eb2b6558dfe92",
+        "bytes": 5794
+      },
+      "tests/web/v480_switch.py": {
+        "sha256": "9d9b0e11def6100650b3b7f53b3a8d6729f5facc409c19ef470dc8731fbe689b",
+        "bytes": 7184
+      },
+      "tests/web/web_ui.py": {
+        "sha256": "4e1d4a83b167f3c5c5bc779986f577b8a1a32021d683023b3a2ea8de45f07b45",
+        "bytes": 60948
+      }
+    },
+    "release": {
+      "examples/editor-home/WebBundle.csbody": {
+        "sha256": "4a80701da98e78c1bce698a209a03d7d7cfc82bf3ae18cce84ec6ba8536ecbfe",
+        "bytes": 9531
+      },
+      "examples/editor-home/ui/blueprint-code-editor.js": {
+        "sha256": "eb7088037150403ac1819bcdb44d4366ae08ee63f2a656d820b6b083b3c49547",
+        "bytes": 6449
+      },
+      "examples/editor-home/ui/blueprint-enum-plan.js": {
+        "sha256": "e2295dfa4cadd132a455fc48fbc7e8d275fa039e3cf8345abeecb27921dbc013",
+        "bytes": 9018
+      },
+      "examples/editor-home/ui/blueprint-parameters.js": {
+        "sha256": "ae588c294e5dc6ab6a82744d82aef184bd655d313979f0a9f892d2b0e7a4bc2a",
+        "bytes": 6622
+      },
+      "examples/editor-home/ui/blueprint-pins.js": {
+        "sha256": "f7298b771aa762c6db7d6d415670ea38a92d9ccbf7e28ccdc3a8905248f98acd",
+        "bytes": 9525
+      },
+      "examples/editor-home/ui/blueprint.js": {
+        "sha256": "c21c12fc814aab7749ec54599f19686fc7ef0a11cba928f949e3750fefa1285d",
+        "bytes": 82931
+      },
+      "examples/editor-home/ui/consumer.css": {
+        "sha256": "2ebca69d58f8226101619423f41139f680ecb4a8afee9feb61e438a3fe7e1434",
+        "bytes": 20624
+      },
+      "examples/editor-home/ui/workspace-host.js": {
+        "sha256": "d4b1afab63d244cf8701284554e4e25e194a33871f91dc5bba58a1328ea89b2a",
+        "bytes": 16771
+      },
+      "packs/edit-workspace/BlueprintNode.csbody": {
+        "sha256": "58313fd59d9b86f57a2d7c61cccbe18b7fbb39378760b2b7f957dfff58914dce",
+        "bytes": 14060
+      },
+      "packs/pack-workspace/Blueprint.csbody": {
+        "sha256": "d0a30ccfddeabf7cfbd4517cc0050db20a71d8f0c111e7593b9d9471f48792f5",
+        "bytes": 80332
+      },
+      "src/Confectory.Core/BlueprintDocuments.cs": {
+        "sha256": "a90c40f5918913ff8bc711201232bf7d4a76977b4722787cae804598a0228c89",
+        "bytes": 9193
+      },
+      "src/Confectory.Core/BlueprintEnumContract.cs": {
+        "sha256": "b2631625e9c2e7806cae8c6fdfa9147729c9998ac6cf238e57847c14a83bc99d",
+        "bytes": 5920
+      },
+      "src/Confectory.Core/FeatureBlueprint.AliasLocals.cs": {
+        "sha256": "028d6b6f824b7693477b34911c9e67d784a2d0c3ec2450cf6de30e657bc527a5",
+        "bytes": 1232
+      },
+      "src/Confectory.Core/FeatureBlueprint.Methods.cs": {
+        "sha256": "f6497f5d2128e2ceae04301d8bfbbd6227cb11179a37d22a9f4f8d18377c92d6",
+        "bytes": 1923
+      },
+      "src/Confectory.Core/FeatureBlueprint.Properties.cs": {
+        "sha256": "4db37ae7df2610e5b2082c82cf8ffd8e971ed525cc5c0502a5183c7f62281877",
+        "bytes": 2070
+      },
+      "src/Confectory.Core/FeatureBlueprint.Switches.cs": {
+        "sha256": "c476f34258d5e667620473921184f1721c828e187837035e216bb355f9b01c7a",
+        "bytes": 7601
+      },
+      "src/Confectory.Core/FeatureBlueprint.cs": {
+        "sha256": "0f44af4d5354865865b9ad8af70eff2c5d526bd58876a1878c7bc59e3d3a5e7c",
+        "bytes": 48067
+      },
+      "targets/dotnet/Program.cs": {
+        "sha256": "f3859de9ba79b0636ffd6bb2d2b38e50701425cc11ab892ebc6cf9417b25b7d5",
+        "bytes": 15119
+      },
+      "targets/element-authoring/Program.cs": {
+        "sha256": "50e9abeb374681eada3e92323711b7fa8980ed979f7f9febba309ca35db1c203",
+        "bytes": 26462
+      },
+      "tests/Confectory.Tests/EnumContractTests.cs": {
+        "sha256": "2eb26d77040f2a1ea866ca8466e28acef9464825a6d11e3f33f706619883e826",
+        "bytes": 4832
+      },
+      "tests/Confectory.Tests/NestedAuthoringTests.cs": {
+        "sha256": "ab9b635e839cb065a10f9db67d0445ac0b79a334827c313f26a489bced453215",
+        "bytes": 38274
+      },
+      "tests/Confectory.Tests/Program.cs": {
+        "sha256": "f175022eec3e19fed7b487b8fc2d2fb7d654298c6614ea925eb26d833c7a52be",
+        "bytes": 4843
+      },
+      "tests/Confectory.Tests/SwitchBlueprintTests.cs": {
+        "sha256": "3276cde1455af6d8ab42dda236ea2fe1a8919cb6d053d729c8c34b19f33c127c",
+        "bytes": 12715
+      },
+      "tests/Confectory.Tests/WebUITests.cs": {
+        "sha256": "43c12c932d536f054aeae9468b4017555b8f3406afed4c4e61a9b313c37b51b7",
+        "bytes": 53148
+      },
+      "tests/web/v480_enum_plan.py": {
+        "sha256": "181314f30bb7b787ba4201b8b433c8b873f4d39f9c46af194d5eb2b6558dfe92",
+        "bytes": 5794
+      },
+      "tests/web/v480_switch.py": {
+        "sha256": "f8d504ce4b36b1f0f9feefbcf896060700eaf4958d993b8b1b406f91bc362874",
+        "bytes": 8203
+      },
+      "tests/web/web_ui.py": {
+        "sha256": "4e1d4a83b167f3c5c5bc779986f577b8a1a32021d683023b3a2ea8de45f07b45",
+        "bytes": 60948
+      },
+      "examples/editor-home/ui/blueprint-viewport.js": {
+        "sha256": "60b232cac8f38775ae65f7b3bc7a04b4ead1f379d2b714acca3e5e69153ac562",
+        "bytes": 12418
+      }
+    },
+    "afterBroadChangedFiles": [
+      "examples/editor-home/WebBundle.csbody",
+      "examples/editor-home/ui/blueprint.js",
+      "examples/editor-home/ui/consumer.css",
+      "tests/web/v480_switch.py",
+      "examples/editor-home/ui/blueprint-viewport.js"
+    ],
+    "afterBroadScope": "switch-only return-wire rendering, wrapped switch ports, labels, resource pins and strengthened actual UI test; compiler/API/backend tests unchanged"
+  },
+  "gates": {
+    "engine": {
+      "kind": "engine",
+      "exit": 0,
+      "selected": 94,
+      "elapsed": 1277.2590792529954,
+      "frozenSourceSha256": "5dd65f2c5f033c5725453952e0e4d7f017fa28cad28b9f8255e859ce445af3d4",
+      "passed": 94,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 1277.209,
+      "logSha256": "051def49ecfd0a2c879acc6ebd5389d176a0fa931257fc4c7985541801e12bc1",
+      "methods": [
+        "FeatureBlueprintTests.test_blueprint_fixed_inputs_branch_compiler_reuse_node_replacement_and_legacy_preservation",
+        "FeatureBlueprintTests.test_blueprint_disconnected_current_node_body_is_compiled_without_execution",
+        "FeatureBlueprintTests.test_blueprint_independent_probe_checks_an_unselected_body_without_running_or_publishing",
+        "FeatureBlueprintTests.test_blueprint_invalid_graphs_stale_contracts_and_dominating_values",
+        "FeatureBlueprintTests.test_blueprint_node_diagnostics_static_isolation_and_failed_build_retains_receipt",
+        "FeatureBlueprintTests.test_blueprint_existing_feature_calls_use_typed_imports_and_contract_fences",
+        "FeatureBlueprintTests.test_blueprint_source_change_during_real_compile_is_not_published",
+        "FeatureBlueprintTests.test_blueprint_node_task_assignment_scoped_dispatch_adoption_and_cold_no_replay",
+        "FeatureBlueprintTests.test_blueprint_new_feature_registration_contract_group_compiler_and_cold_restore",
+        "FeatureBlueprintTests.test_blueprint_owned_function_reference_call_import_cas_history_and_execution",
+        "FeatureBlueprintTests.test_blueprint_owned_node_creation_removal_review_group_and_cold_restore",
+        "FeatureBlueprintTests.test_blueprint_node_only_worker_draft_save_restore_and_compiler_confirm",
+        "CodeBodyTests.test_local_helpers_are_per_node_and_independent_probe_never_executes",
+        "CodeBodyTests.test_body_cannot_escape_into_a_function_signature_or_outer_member",
+        "CodeBodyTests.test_static_helper_members_are_per_node_and_independent_probe_never_executes",
+        "CodeBodyTests.test_static_helpers_refuse_state_outer_escape_capture_and_reserved_names",
+        "CodeBodyTests.test_static_helpers_receive_typed_imports_only_as_explicit_arguments",
+        "CodeBodyTests.test_methods_profile_keeps_execute_scope_when_helpers_are_cleared_or_comment_only",
+        "ImplicitBlueprintTests.test_implicit_branch_terminations_warn_separately_and_real_errors_remain_errors",
+        "ImplicitBlueprintTests.test_implicit_join_tracks_must_may_and_a_specific_unassigned_branch_witness",
+        "ImplicitBlueprintTests.test_implicit_empty_start_has_typed_defaults_without_hiding_void_or_type_errors",
+        "BlueprintConversionTests.test_whole_body_context_preserves_calls_scope_this_recursion_names_targets_and_crlf",
+        "BlueprintConversionTests.test_public_body_conversion_atomic_group_cas_origin_cold_and_compiler_confirm",
+        "BlueprintConversionTests.test_whole_void_body_conversion_runs_once_and_probe_does_not_execute",
+        "BlueprintConversionTests.test_whole_out_body_conversion_preserves_original_member_scoped_import_and_other_target",
+        "MultiOutputBlueprintTests.test_out_contract_modes_and_legacy_hash_are_explicit_and_stable",
+        "MultiOutputBlueprintTests.test_named_outputs_warn_independently_at_each_branch_end_and_run_defaults",
+        "MultiOutputBlueprintTests.test_join_has_separate_must_may_and_unassigned_witness_for_each_output",
+        "MultiOutputBlueprintTests.test_code_node_named_out_results_and_real_csharp_out_errors_remain_checked",
+        "MultiOutputBlueprintTests.test_empty_multiple_outs_have_typed_reference_defaults_without_cpp_or_execution",
+        "MultiOutputBlueprintTests.test_typed_call_named_outputs_use_selected_object_scope_and_dominate_consumers",
+        "MultiOutputBlueprintTests.test_android_and_browser_metadata_templates_round_trip_out_roles_in_managed_code",
+        "MultiOutputAuthoringTests.test_contract_append_out_is_explicit_cas_cold_body_preserving_and_compiler_confirmed",
+        "MultiOutputAuthoringTests.test_object_blank_and_reference_factories_preserve_out_modes_and_positional_output_names",
+        "LocalBlueprintTests.test_local_set_branch_order_per_call_reset_and_per_end_out_warning",
+        "LocalBlueprintTests.test_local_set_reads_current_storage_while_node_result_retains_snapshot",
+        "LocalBlueprintTests.test_local_array_is_shared_within_call_and_fresh_across_calls_and_invalid_locals_refuse",
+        "LocalBlueprintTests.test_generated_unused_local_guard_does_not_assign_to_user_underscore_parameter",
+        "LocalAuthoringTests.test_local_public_profile_cas_exact_initializers_cold_and_graph_only_compiler_confirm",
+        "PropertyBlueprintTests.test_property_reads_at_node_once_from_actual_instance_and_reexecutes_on_next_call",
+        "PropertyBlueprintTests.test_property_array_result_retains_original_reference_after_field_replacement",
+        "PropertyBlueprintTests.test_property_reference_result_preserves_identity_and_later_mutation_without_deep_copy",
+        "PropertyBlueprintTests.test_private_property_uses_explicit_receiver_and_unreached_node_does_not_read",
+        "PropertyBlueprintTests.test_live_property_refuses_wrong_instance_unset_null_wrong_cardinality_and_stale_contract",
+        "PropertyBlueprintTests.test_property_field_drift_is_visible_and_unsupported_kinds_and_old_profiles_are_refused",
+        "PropertyBlueprintTests.test_property_declaration_inputs_are_rechecked_after_compiler_and_prior_artifact_is_retained",
+        "PropertyBlueprintTests.test_concept_reference_array_is_an_actual_shared_clr_value",
+        "PropertyBlueprintTests.test_object_contract_factories_and_whole_body_conversion_preserve_actual_ref_aliases",
+        "PropertyBlueprintTests.test_methods_profile_retains_actual_object_abi_and_node_time_property_reads",
+        "PropertyAuthoringTests.test_property_source_preview_schema_cas_cold_reader_group_and_explicit_rebind",
+        "PropertyAuthoringTests.test_unpublished_object_owner_stays_editable_without_becoming_a_property_contract",
+        "NestedBlueprintTests.test_private_nested_ref_out_aliases_return_to_parent_and_locals_reset_per_call",
+        "NestedBlueprintTests.test_private_siblings_keep_same_local_ids_and_branch_return_boundary",
+        "NestedBlueprintTests.test_private_imports_are_explicit_and_unused_child_bodies_are_compiled_without_execution",
+        "NestedBlueprintTests.test_private_observations_are_rechecked_after_real_compiler_and_original_proof_is_retained",
+        "NestedBlueprintTests.test_private_paths_separate_identical_local_definitions_and_reject_parent_capture_and_depth",
+        "NestedBlueprintTests.test_private_unassigned_outputs_reach_build_warnings_with_full_call_path",
+        "NestedBlueprintTests.test_static_helper_classes_from_private_siblings_are_emitted_with_unique_owners",
+        "NestedBlueprintTests.test_static_private_helpers_preserve_repeated_ref_out_caller_storage",
+        "NestedAuthoringTests.test_private_nested_owned_sources_cold_peer_cas_and_atomic_compiler_confirm",
+        "NestedAuthoringTests.test_static_helpers_parameters_explicit_remap_task_cas_cold_and_compiler_confirm",
+        "AliasLocalTests.test_result_alias_ref_and_set_mutate_original_slot_while_value_argument_keeps_snapshot",
+        "AliasLocalTests.test_input_alias_uses_real_caller_refs_or_distinct_parameter_slots",
+        "AliasLocalTests.test_array_result_alias_ref_replacement_changes_the_actual_result_variable",
+        "AliasLocalTests.test_alias_contracts_and_all_use_paths_require_current_typed_storage",
+        "AliasLocalTests.test_named_out_alias_mutates_node_snapshot_without_borrowing_external_caller_output",
+        "AliasLocalAuthoringTests.test_alias_public_source_cas_cold_delete_producer_and_graph_only_compiler_confirm",
+        "ExternalRefTests.test_external_ref_forwarding_preserves_two_ref_out_aliases_and_distinct_caller_storage",
+        "ExternalRefTests.test_external_ref_join_defaults_only_unassigned_out_and_keeps_later_alias_writes",
+        "ExternalRefTests.test_whole_ref_conversion_preserves_raw_context_recursion_target_and_same_caller_cells",
+        "ExternalRefTests.test_whole_out_only_conversion_preserves_two_out_arguments_using_one_caller_variable",
+        "ExternalRefTests.test_external_ref_factories_and_typed_reference_forward_actual_caller_storage",
+        "ExternalRefTests.test_external_ref_array_replacement_keeps_managed_variable_alias_and_initial_value",
+        "ExternalRefTests.test_external_ref_exception_keeps_alias_write_and_does_not_apply_end_defaults",
+        "ExternalRefTests.test_out_only_typed_reference_factory_forwards_one_caller_out_variable_twice",
+        "ExternalRefAuthoringTests.test_public_external_ref_conversion_atomic_group_cas_origin_cold_and_real_aliases",
+        "RefNodeTests.test_ordinary_csharp_ref_calls_preserve_same_slot_aliases_including_ref_out_same_caller_cell",
+        "RefNodeTests.test_code_ref_arguments_alias_same_local_immediately_and_out_warning_remains_per_end",
+        "RefNodeTests.test_ref_to_value_input_and_preceding_node_result_use_real_storage_without_caller_copyback",
+        "RefNodeTests.test_typed_ref_call_uses_selected_object_scope_and_real_aliases",
+        "RefNodeTests.test_ref_array_parameters_alias_the_reference_slot_when_replacing_the_array",
+        "RefAuthoringTests.test_ref_public_typed_call_profile_cas_cold_alias_and_ref_conversion_preview",
+        "EnumContractTests.test_enum_explicit_ids_values_order_and_source_binding_are_independent_of_runtime",
+        "EnumContractTests.test_enum_refuses_duplicates_range_coercion_identity_loss_and_runtime_policy_fields",
+        "EnumContractTests.test_enum_declaration_is_real_csharp_compile_only_and_cannot_create_an_enum_dispatcher",
+        "SwitchBlueprintTests.test_switch_cases_default_unmatched_and_main_calls_run_once_per_invocation",
+        "SwitchBlueprintTests.test_switch_no_default_and_explicit_empty_case_continue_without_termination",
+        "SwitchBlueprintTests.test_nested_switch_returns_to_inner_then_outer_main_and_keeps_real_out_warnings",
+        "SwitchBlueprintTests.test_branch_returns_join_assignment_paths_and_never_warn_at_the_return_itself",
+        "SwitchBlueprintTests.test_switch_ref_ref_out_aliases_preserve_caller_storage_through_case_and_main_return",
+        "SwitchBlueprintTests.test_legacy_bool_inside_case_returns_from_both_ports_and_does_not_repeat_main",
+        "SwitchBlueprintTests.test_old_profiles_keep_their_meaning_and_refuse_switch_fields_or_cross_region_routes",
+        "NestedAuthoringTests.test_switch_profile_enum_source_cas_cold_branch_creation_and_atomic_confirm",
+        "NestedAuthoringTests.test_enum_preview_is_read_only_source_fenced_cold_and_preserves_legacy_execution"
+      ]
+    },
+    "ui": {
+      "kind": "ui",
+      "exit": 0,
+      "selected": 13,
+      "elapsed": 999.5599237269926,
+      "frozenSourceSha256": "5dd65f2c5f033c5725453952e0e4d7f017fa28cad28b9f8255e859ce445af3d4",
+      "passed": 13,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 999.502,
+      "logSha256": "e9e98c89f4b17775a12f7c70945723841fc9efe92e9583e2c9ff5b27f8f77267",
+      "methods": [
+        "WebUITests.test_actual_editor_implicit_ends_whole_body_conversion_cold_and_confirm",
+        "WebUITests.test_actual_editor_v480_blueprint_node_creation_removal_and_cold_source_groups",
+        "WebUITests.test_actual_editor_v480_ref_node_storage_aliases_cold_and_compiler_confirm",
+        "WebUITests.test_actual_editor_v480_alias_locals_slots_set_cold_and_confirm",
+        "WebUITests.test_actual_editor_v480_node_time_property_contract_target_cold_and_confirm",
+        "WebUITests.test_actual_editor_v480_static_methods_parameters_cold_and_confirm",
+        "WebUITests.test_actual_editor_v480_blueprint_owned_graph_node_edit_and_cold_input",
+        "WebUITests.test_actual_editor_v480_local_values_sets_exact_initializer_cold_and_compiler_confirm",
+        "WebUITests.test_actual_editor_v480_external_ref_graph_body_conversion_cold_and_confirm",
+        "WebUITests.test_actual_editor_v480_private_nested_navigation_source_cold_and_confirm",
+        "WebUITests.test_actual_editor_v480_protected_csharp_body_helpers_history_cold_and_confirm",
+        "WebUITests.test_actual_editor_v480_enum_contract_private_source_preview_cold_and_rebind",
+        "WebUITests.test_actual_editor_v480_switch_enum_scoped_case_return_cold_and_confirm"
+      ]
+    },
+    "post-ui": {
+      "kind": "post-ui",
+      "exit": 0,
+      "selected": 1,
+      "methods": [
+        "WebUITests.test_actual_editor_v480_switch_enum_scoped_case_return_cold_and_confirm"
+      ],
+      "head": "076f20094673580bd9b289877b71b92e415e80b9",
+      "elapsed": 113.80161193599997,
+      "frozenSourceSha256": "efe8611a89afb44216f1237ad8e2fde00885cc18b61123826a8c9f2dc2d5f611",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 113.754,
+      "logSha256": "81a046da136cd090ebbda68ccd7f51d97e29b8c73274cfafaf16fa83abd6ac4c"
+    },
+    "managed": {
+      "kind": "managed",
+      "exit": 0,
+      "selected": 1,
+      "methods": [
+        "EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only"
+      ],
+      "head": "076f20094673580bd9b289877b71b92e415e80b9",
+      "elapsed": 130.07637107500003,
+      "frozenSourceSha256": "efe8611a89afb44216f1237ad8e2fde00885cc18b61123826a8c9f2dc2d5f611",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 130.015,
+      "logSha256": "9cf10c3ffc83f107beff5a86fdcf43b912387f8decb501a07cc06ef38fe33720"
+    }
+  },
+  "checkout": {
+    "state": "pending-after-implementation-commit"
+  },
+  "resources": 36,
+  "protected": {
+    "localMain": "b5ea38c3d7eec3eb20f170e68f0f4215b86b2aee",
+    "remoteMain": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+    "zips": {
+      "reference/site-ui/Confectory-Editor-Prototype-v196.zip": "02d4824e92ed0edbb43113659982b37a99a614117652bde4d8ac92367e334e34",
+      "reference/site-ui/Confectory-Editor-Prototype-v318.zip": "0a614fe2bf1ad3d8e10dfa8905bb6b61ea9f21b87b2492b2b87ca8566e9e6908",
+      "reference/site-ui/Confectory-Editor-Prototype-v424.zip": "b7969cd109ea2dad38bde9c9ab13967c20162c920a45a8cd51a8f82df6041874",
+      "reference/site-ui/Confectory-Editor-Prototype-v480.zip": "0489844c8c6d90f7cdc8ea0e80628f487dcfb27f2c871b19367a635212d3c5bd"
+    }
+  },
+  "previousStages": [
+    {
+      "log": "first-core.log",
+      "result": "6/2/0 16.049s",
+      "note": "Found logical-end display issue and test reading missingOutputs objects as strings; fixed, then reran."
+    },
+    {
+      "log": "second-focused.log",
+      "result": "9/0/0 59.115s",
+      "note": "Before additional alias/bool/connected-ID/enum-rename tests; not added to final distinct counts."
+    },
+    {
+      "log": "first-ui.log",
+      "result": "0/1/0 114.306s",
+      "note": "Test tried hidden raw body while retained protected mode was active; corrected test to use visible body mode."
+    },
+    {
+      "log": "second-ui.log",
+      "result": "1/0/0 77.692s",
+      "note": "Initial switch flow; repeated in broader suite and after scoped rendering fix."
+    }
+  ],
+  "resume": {
+    "shellAndRemoteVerified": true,
+    "allBroadSourceHashesMatched": true,
+    "workHead": "076f20094673580bd9b289877b71b92e415e80b9",
+    "systemBrowser": "/usr/bin/chromium",
+    "note": "After credit pause /tmp was absent. Build succeeded; unnecessary browser-cache download returned 403 Domain forbidden, was not retried; existing test already uses installed system Chromium."
+  },
+  "scopeLimits": [
+    "No all-v480 completion claim",
+    "No automatic data-return/bool/whole-body migration",
+    "No new user enum or Vector3 public ABI",
+    "No integer expression overflow choice",
+    "No account/paid-model/native/device/user-PC validation"
+  ]
+}

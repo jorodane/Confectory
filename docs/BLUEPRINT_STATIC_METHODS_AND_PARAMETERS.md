@@ -38,3 +38,6 @@ enum 실행의 미정의 반환값 처리와 정수 계산식 overflow는 답변
 
 구현 커밋 `41e90a07ea3e8c44406fe4be415fa7fc6262b31c`의 일반 Git checkout·보존 CRLF/새 LF·35개 리소스·실제 Home 시작·변조 거부는 **1/0/0, 8.256초**로 통과했다. 최종 회귀 뒤 제품·테스트 소스는 바뀌지 않았다.
 <!-- /node-methods-current-validation -->
+
+
+일반 code/caller-storage/whole-body Invoke의 지원 차이와 enum 이관 경계는 [후속 비교](BLUEPRINT_ENUM_CONTRACT_PREPARATION.md)를 따른다. [순차 switch 실행](BLUEPRINT_SWITCH_CONTINUATIONS.md)은 별도의 명시적 profile/노드 전환이며, 기존 profile이나 whole-body helpers 문맥을 자동 확장하지 않는다.

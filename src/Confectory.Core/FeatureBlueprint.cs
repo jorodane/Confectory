@@ -98,7 +98,7 @@ public static partial class FeatureBlueprint
         string contractHash = Hash(CanonicalText(new JsonObject { ["feature"] = feature.Id, ["signature"] = contract.DeepClone() }));
         var graph = request["graph"]!.AsObject();
         Need(graph["schema"]?.GetValue<int>() == 1, "GRAPH_SCHEMA", "schema");
-        string profile=S(graph,"profile");bool properties=SupportsProperties(profile),nested=SupportsPrivateGraphs(profile),aliasLocals=nested||profile==AliasLocalsProfile,externalRefs=SupportsExternalRefs(profile),refProfile=externalRefs||profile==RefNodesProfile,localProfile=profile==LocalsProfile||refProfile,multiOutput=profile==MultiOutputProfile||localProfile, implicitEnd=profile==ImplicitProfile||multiOutput;string generator=profile==MethodsProfile?MethodsGenerator:properties?PropertyGenerator:nested?NestedGenerator:aliasLocals?AliasLocalsGenerator:externalRefs?ExternalRefsGenerator:refProfile?RefNodesGenerator:localProfile?LocalsGenerator:multiOutput?MultiOutputGenerator:implicitEnd?ImplicitGenerator:Generator;
+        string profile=S(graph,"profile");bool switchFlow=profile==SwitchProfile,properties=SupportsProperties(profile),nested=SupportsPrivateGraphs(profile),aliasLocals=nested||profile==AliasLocalsProfile,externalRefs=SupportsExternalRefs(profile),refProfile=externalRefs||profile==RefNodesProfile,localProfile=profile==LocalsProfile||refProfile,multiOutput=profile==MultiOutputProfile||localProfile, implicitEnd=profile==ImplicitProfile||multiOutput;string generator=switchFlow?SwitchGenerator:profile==MethodsProfile?MethodsGenerator:properties?PropertyGenerator:nested?NestedGenerator:aliasLocals?AliasLocalsGenerator:externalRefs?ExternalRefsGenerator:refProfile?RefNodesGenerator:localProfile?LocalsGenerator:multiOutput?MultiOutputGenerator:implicitEnd?ImplicitGenerator:Generator;
         Need(profile==Profile||implicitEnd,"GRAPH_PROFILE_UNSUPPORTED",profile);
         Need(properties||!HasObjectSignature(feature.Signature!),"GRAPH_OBJECT_PROFILE",feature.Id);
         Need(externalRefs||!feature.Signature!.Args.Any(p=>p.IsRef),"GRAPH_REF_FEATURE_UNSUPPORTED",feature.Id);
@@ -131,7 +131,7 @@ public static partial class FeatureBlueprint
             string id = Id(value, "id"), kind = S(value, "kind"), control = S(value, "control"), intent = S(value, "intent");
             Need(!nodes.ContainsKey(id), "GRAPH_DUPLICATE_NODE", id);
             Need(kind is "code" or "call" || nested && kind=="graph" || properties && kind=="property" || implicitEnd && kind=="export" || localProfile && kind=="set", "GRAPH_NODE_KIND", id);
-            Need(control is "next" or "branch", "GRAPH_CONTROL", id);
+            Need(control is "next" or "branch" || switchFlow && control=="switch", "GRAPH_CONTROL", id);
             Need(!string.IsNullOrWhiteSpace(intent), "NODE_INTENT", id);
             var signature = Signature(value["signature"]!);
             Need(properties||!HasObjectSignature(signature),"GRAPH_OBJECT_PROFILE",id);
@@ -174,6 +174,12 @@ public static partial class FeatureBlueprint
                 definition["graph"]=value["graph"]!.DeepClone();
                 foreach(var imported in child["imports"]?.AsArray()??new JsonArray())references[S(imported,"feature")]=Import(S(imported,"feature")).Hash;
             }
+            Need(switchFlow||!value.ContainsKey("branchOwner")&&!value.ContainsKey("executionEnum"),"GRAPH_SWITCH_PROFILE",id);
+            if(value.ContainsKey("branchOwner"))definition["branchOwner"]=Id(value,"branchOwner");
+            if(control=="switch"){
+                Need(kind=="code"&&signature.Return=="void"&&!value.ContainsKey("implementationContext"),"GRAPH_SWITCH_CONTRACT",id);
+                definition["executionEnum"]=EnumContract(value["executionEnum"]??throw new Refusal("GRAPH_ENUM_REQUIRED",id));
+            }else Need(!value.ContainsKey("executionEnum"),"GRAPH_ENUM_CONTROL",id);
             if(kind=="property"){
                 Need(signature.Args.Count==1&&signature.Args[0].Type=="object"&&signature.Args[0].Name=="target"&&signature.Args[0].Mode is null&&signature.Return!="void","PROPERTY_SIGNATURE",id);
                 try{
@@ -238,7 +244,7 @@ public static partial class FeatureBlueprint
             marker = ContextMarker(node,marker);
             string members = HasContext(node) ? ContextMember(node, source, marker) : "";
             if (HasContext(node)) code = "throw new global::System.InvalidOperationException(\"Independent context probe must never execute\");";
-            if(profile == MethodsProfile && !HasContext(node)) {
+            if(SupportsMethods(profile) && !HasContext(node)) {
                 string declarations = string.Join(",", node.Signature.Args.Select(p=>p.Declaration()).Concat(used.Select(f=>Generation.Interface(f)+" "+Import(f).Alias)));
                 members = MethodsMember(MethodClass(request,id),node,declarations,source,helper,marker);
                 code = "throw new global::System.InvalidOperationException(\"Independent static method probe must never execute\");";
@@ -257,6 +263,19 @@ public static partial class FeatureBlueprint
             };
         }
 
+        if(switchFlow){
+            var rawEdges=new Dictionary<(string,string),string>();
+            foreach(var edge in graph["edges"]!.AsArray()){
+                string from=S(edge,"from"),port=S(edge,"port"),to=S(edge,"to");
+                Need(nodes.ContainsKey(from),"GRAPH_EDGE_SOURCE",from);
+                Need(nodes.ContainsKey(to)||to.StartsWith("return:",StringComparison.Ordinal)||to.StartsWith("exit:",StringComparison.Ordinal)&&graph["exits"]!.AsObject().ContainsKey(to[5..]),"GRAPH_TARGET",to);
+                Need(rawEdges.TryAdd((from,port),to),"GRAPH_DUPLICATE_PORT",from+"/"+port);
+            }
+            SwitchFlow(nodes,rawEdges);
+            string start=S(graph,"entry");
+            Need(!start.StartsWith("return:",StringComparison.Ordinal),"GRAPH_BRANCH_ENTRY",start);
+            if(nodes.TryGetValue(start,out var first))Need(Owner(first).Length==0,"GRAPH_BRANCH_ENTRY",start);
+        }
         if (operation == "featureBlueprintNodes")
         {
             var versions = new JsonObject(imports.OrderBy(p => p.Key, StringComparer.Ordinal).Select(p => new KeyValuePair<string, JsonNode?>(p.Key, JsonValue.Create(p.Value.Hash))));
@@ -275,7 +294,7 @@ public static partial class FeatureBlueprint
         var exits = graph["exits"]!.AsObject();
         var edges = new Dictionary<(string, string), string>();
         bool Exit(string target) => target.StartsWith("exit:", StringComparison.Ordinal) && exits.ContainsKey(target[5..]);
-        void Target(string target) => Need(nodes.ContainsKey(target) || Exit(target), "GRAPH_TARGET", target);
+        void Target(string target) => Need(nodes.ContainsKey(target) || Exit(target) || switchFlow && target.StartsWith("return:",StringComparison.Ordinal), "GRAPH_TARGET", target);
         bool Terminal(string target)=>implicitEnd&&target.StartsWith("end:",StringComparison.Ordinal);
         bool emptyEntry=implicitEnd&&entry.Length==0;
         if(emptyEntry)entry="end:$entry";else Target(entry);
@@ -287,6 +306,9 @@ public static partial class FeatureBlueprint
             Need(edges.TryAdd((from, port), to), "GRAPH_DUPLICATE_PORT", from + "/" + port);
         }
 
+        var switchRouting=switchFlow?SwitchFlow(nodes,edges):(new Dictionary<string,string>(StringComparer.Ordinal),new JsonArray(),new Dictionary<(string,string),(string,string)>());
+        var continuations=switchRouting.Item1;var branchReturns=switchRouting.Item2;
+        if(switchFlow&&nodes.TryGetValue(entry,out var firstNode))Need(Owner(firstNode).Length==0,"GRAPH_BRANCH_ENTRY",entry);
         var reachable = new HashSet<string>(StringComparer.Ordinal);
         var stack = new HashSet<string>(StringComparer.Ordinal);
         var order = new List<string>();
@@ -295,7 +317,7 @@ public static partial class FeatureBlueprint
             if (Exit(id) || Terminal(id) || reachable.Contains(id))
                 return;
             Need(stack.Add(id), "GRAPH_CYCLE_PROFILE_UNSUPPORTED", id);
-            if(implicitEnd){string[] expected=nodes[id].Control=="branch"?["true","false"]:["next"];Need(edges.Keys.Where(k=>k.Item1==id).All(k=>expected.Contains(k.Item2)),"GRAPH_PORTS",id);foreach(string port in expected)edges.TryAdd((id,port),"end:"+id+"/"+port);}
+            if(implicitEnd&&!switchFlow){string[] expected=nodes[id].Control=="branch"?["true","false"]:["next"];Need(edges.Keys.Where(k=>k.Item1==id).All(k=>expected.Contains(k.Item2)),"GRAPH_PORTS",id);foreach(string port in expected)edges.TryAdd((id,port),"end:"+id+"/"+port);}
             foreach (var target in edges.Where(p => p.Key.Item1 == id).OrderBy(p => p.Key.Item2, StringComparer.Ordinal))
                 Visit(target.Value);
             stack.Remove(id);
@@ -306,7 +328,7 @@ public static partial class FeatureBlueprint
         Visit(entry);
         foreach (var node in nodes.Values.Where(n => reachable.Contains(n.Id)))
         {
-            string[] ports = node.Control == "branch" ? ["true", "false"] : ["next"];
+            string[] ports = node.Control == "switch" ? edges.Keys.Where(k=>k.Item1==node.Id).Select(k=>k.Item2).ToArray() : node.Control == "branch" ? ["true", "false"] : ["next"];
             Need(edges.Keys.Where(k => k.Item1 == node.Id).Select(k => k.Item2).Order().SequenceEqual(ports.Order()), "GRAPH_PORTS", node.Id);
         }
 
@@ -432,7 +454,8 @@ public static partial class FeatureBlueprint
                 Binding(exit.Value, feature.Signature.Return, available, target);
         }
 
-        if(implicitEnd){var flow=multiOutput?DescribeMultiTerminations(entry,feature,nodes,edges,order,predecessors,exits,externalRefs?forwardedOutputs:null):DescribeImplicitTerminations(entry,feature,nodes,edges,order,predecessors,exits);reply["outputs"]=OutputDocument(feature.Signature!);reply["terminations"]=flow.Ends;reply["warnings"]=flow.Warnings;reply["unassignedReturnPolicy"]="csharp-type-default";}
+        if(implicitEnd){var flow=switchFlow?DescribeSwitchTerminations(entry,feature,nodes,edges,order,predecessors,exits,forwardedOutputs,switchRouting.Item3):multiOutput?DescribeMultiTerminations(entry,feature,nodes,edges,order,predecessors,exits,externalRefs?forwardedOutputs:null):DescribeImplicitTerminations(entry,feature,nodes,edges,order,predecessors,exits);reply["outputs"]=OutputDocument(feature.Signature!);reply["terminations"]=flow.Ends;reply["warnings"]=flow.Warnings;reply["unassignedReturnPolicy"]="csharp-type-default";}
+        if(switchFlow){reply["branchReturns"]=branchReturns;reply["continuations"]=new JsonObject(continuations.Select(p=>new KeyValuePair<string,JsonNode?>(p.Key,JsonValue.Create(p.Value))));reply["executionModel"]="sequential-switch-continuation";}
         reply["contractVersions"] = new JsonObject(imports.OrderBy(p => p.Key, StringComparer.Ordinal).Select(p => new KeyValuePair<string, JsonNode?>(p.Key, JsonValue.Create(p.Value.Hash))));
         reply["contractVersions"]![feature.Id] = contractHash;
         reply["imports"] = new JsonArray(imports.OrderBy(i => i.Key, StringComparer.Ordinal).Select(i => (JsonNode)new JsonObject { ["feature"] = i.Key, ["alias"] = i.Value.Alias, ["contractHash"] = i.Value.Hash, ["binding"] = canonicalImports.Contains(i.Key) ? "canonical" : "implementation-context", ["signature"] = SignatureNode(i.Value.Element.Signature!) }).ToArray());
@@ -452,6 +475,7 @@ public static partial class FeatureBlueprint
         if(localProfile)output.AppendLine("#pragma warning restore CS0219");
         foreach (string id in order)foreach(var result in FeatureOutputs(nodes[id].Signature))
             output.AppendLine(result.Type + " " + Value(id,result.Name) + ";");
+        if(switchFlow)foreach(string id in order.Where(id=>nodes[id].Control=="switch"))output.AppendLine("int "+Value(id)+";");
         foreach (string id in definitionOrder.Where(id => bodies.ContainsKey(id) || nodes[id].Kind == "call"))
         {
             var node = nodes[id];
@@ -466,16 +490,16 @@ public static partial class FeatureBlueprint
             // A prepared independent node is checked without calling it or allocating a delegate.
             // Suppress only the generated local function declaration's unused warning.
             if (!reachable.Contains(id)) output.AppendLine("#pragma warning disable CS8321");
-            output.AppendLine("static " + node.Signature.Return + " " + Symbol(id) + "(" + string.Join(",", node.Signature.Args.Select(p => p.Declaration()).Concat(NodeImports(node).Select(f => Generation.Interface(f) + " " + ImportParameter(f)))) + ") {");
+            output.AppendLine("static " + ExecutionType(node) + " " + Symbol(id) + "(" + string.Join(",", node.Signature.Args.Select(p => p.Declaration()).Concat(NodeImports(node).Select(f => Generation.Interface(f) + " " + ImportParameter(f)))) + ") {");
             if (!reachable.Contains(id)) output.AppendLine("#pragma warning restore CS8321");
             string marker = "node:" + feature.Id + "/" + id + "@" + manifestNodes.Single(n => n!["id"]!.ToString() == id)![node.Kind == "call" ? "definitionHash" : "implementationHash"]!.ToString();
             output.AppendLine("#line 1 " + JsonSerializer.Serialize(marker));
             if (node.Kind == "call")
                 output.AppendLine((node.Signature.Return == "void" ? "" : "return ") + ImportParameter(node.Feature!) + ".Invoke(" + string.Join(",", node.Signature.Args.Select(p => (p.Mode is "out" or "ref"?p.Mode+" ":"")+p.Name)) + ");");
-            else if (node.Kind == "code" && profile == MethodsProfile) {
+            else if (node.Kind == "code" && SupportsMethods(profile)) {
                 string type=MethodClass(request,id);
                 membersOutput.Append(MethodsMember(type,node,string.Join(",",node.Signature.Args.Select(p=>p.Declaration()).Concat(NodeImports(node).Select(f=>Generation.Interface(f)+" "+ImportParameter(f)))),bodies[id],helpers[id],marker));
-                output.AppendLine((node.Signature.Return=="void"?"":"return ")+type+".Execute("+string.Join(",",node.Signature.Args.Select(p=>(p.Mode is "ref" or "out"?p.Mode+" ":"")+p.Name).Concat(NodeImports(node).Select(ImportParameter)))+");");
+                output.AppendLine((ExecutionType(node)=="void"?"":"return ")+(node.Control=="switch"?"(int)":"")+type+".Execute("+string.Join(",",node.Signature.Args.Select(p=>(p.Mode is "ref" or "out"?p.Mode+" ":"")+p.Name).Concat(NodeImports(node).Select(ImportParameter)))+");");
             }
             else
                 output.AppendLine(bodies[id]);
@@ -502,9 +526,14 @@ public static partial class FeatureBlueprint
                 if(externalRefs&&exported!="return")output.AppendLine(Assigned(exported)+" = true;");
                 sourceMaps.Add(new JsonObject{["node"]=id,["definitionHash"]=node.DefinitionHash,["marker"]="graph:"+feature.Id+"@"+topologyHash});manifestNodes.Single(n=>n!["id"]!.ToString()==id)!["includedInSource"]=true;
             }
-            else output.AppendLine((node.Signature.Return == "void" ? "" : Value(id) + " = ") + (HasContext(node) ? "this.Invoke" : Symbol(id)) + "(" + string.Join(",", node.Signature.Args.Select(p => p.IsOut?"out "+(ForwardCaller(node)?CallerOut(node,p.Name):Value(id,p.Name)):ArgumentBinding(p,node.Arguments[p.Name],available,id+"/"+p.Name)).Concat(HasContext(node) ? Array.Empty<string>() : NodeImports(node).Select(f => (request["sourcePath"] is null ? "calls." : "") + Import(f).Alias))) + ");");
+            else output.AppendLine((ExecutionType(node) == "void" ? "" : Value(id) + " = ") + (HasContext(node) ? "this.Invoke" : Symbol(id)) + "(" + string.Join(",", node.Signature.Args.Select(p => p.IsOut?"out "+(ForwardCaller(node)?CallerOut(node,p.Name):Value(id,p.Name)):ArgumentBinding(p,node.Arguments[p.Name],available,id+"/"+p.Name)).Concat(HasContext(node) ? Array.Empty<string>() : NodeImports(node).Select(f => (request["sourcePath"] is null ? "calls." : "") + Import(f).Alias))) + ");");
             if(ForwardCaller(node))foreach(var parameter in node.Signature.Args.Where(p=>p.IsOut))output.AppendLine(Value(id,parameter.Name)+" = "+CallerOut(node,parameter.Name)+";\n"+Assigned(CallerOut(node,parameter.Name))+" = true;");
-            if (node.Control == "branch")
+            if(node.Control=="switch"){
+                output.AppendLine("switch ("+Value(id)+") {");
+                foreach(var member in node.Definition["executionEnum"]!["members"]!.AsArray())if(edges.TryGetValue((id,"case:"+S(member,"id")),out string? target))output.AppendLine("case "+member!["value"]!.ToJsonString()+": goto "+Label(target)+";");
+                output.AppendLine("default: goto "+Label(edges.TryGetValue((id,"default"),out string? fallback)?fallback:continuations[id])+";\n}");
+            }
+            else if (node.Control == "branch")
                 output.AppendLine("if (" + Value(id) + ") goto " + Label(edges[(id, "true")]) + "; else goto " + Label(edges[(id, "false")]) + ";");
             else
                 output.AppendLine("goto " + Label(edges[(id, "next")]) + ";");
