@@ -252,6 +252,9 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
     elif kind=='navigation-state':
      from v480_navigation import verify_navigation
      verify_navigation(page,project,mount,send,envelope,settle,restart_actual_host)
+    elif kind=='workspace-links':
+     from v480_workspace_links import verify_workspace_links
+     verify_workspace_links(page,project,mount,send,envelope,settle,restart_actual_host)
     elif kind=='window-documents':
      from v480_window_documents import verify_window_documents
      verify_window_documents(page,project,mount,send,envelope,settle,restart_actual_host)

@@ -28,7 +28,7 @@
 |---|---|
 | 브라우저 그룹 | 기존 object/function/module의 그룹별 적용 검색·입력·콜드 목록 복원. CELEM category/concept와 prototype Category/상속 트리의 전체 의미를 동일하게 매핑하거나 계층 이동을 추가하지 않는다. |
 | 브라우저 Data의 필드 열 | 브라우저 자체는 이름·종류·초안 상태 열이다. 실제 필드 비교/열 조작은 기존 즉석 테이블의 소유 객체·명시적 필드 선택 범위다. 모든 종류의 browser Data에 prototype 필드를 자동 생성했다고 주장하지 않는다. |
-| 문서 링크 | 기존 소유 source 선택과 읽기 전용 등록 정의 조회로 문서를 이동한다. Workspace 시각 링크 그래프와 연결된 창들의 묶음 이동/삭제 의미는 runtime 계약이 없으므로 추가하지 않는다. |
+| 문서 링크 | 기존 소유 source 선택과 읽기 전용 등록 정의 조회로 문서를 이동한다. 이 최초 후속에서는 Workspace 시각 링크 그래프를 추가하지 않았다. 이후 [비공개 링크·수명 후속](V480_WORKSPACE_LINKS_AND_LIFETIME.md)에서 실제 private ID·포털·삭제 역변경에 연결했다. |
 | Undo | 같은 부모/문서의 retained 입력은 native Undo를 검사한다. 다른 부모로 옮긴 TD/문서의 이동 **이전** native Undo 이력까지 보장하지 않는다. 기존 Chromium reparent 제한과 private pending 값 복원은 별개다. |
 | 데이터/실행 | 구조적 field 쓰기/ref/lvalue·compound/function live property·일반 사용자 enum/Vector3 ABI를 추가하지 않는다. 참조 텍스트 준비는 해당 실행 계약의 구현이 아니다. |
 | 별도 미결 | Home 포함 팩 수·마지막 편집 시각과 계산식 overflow 정책은 이 변경과 분리해 유지한다. |

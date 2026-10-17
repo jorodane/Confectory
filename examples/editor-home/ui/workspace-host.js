@@ -1,3 +1,4 @@
+import {createPrivateDeletionHistory} from './workspace-history.js';
 import {createWindowDocuments} from './window-documents.js';
 import {createNoteDocuments} from './note-documents.js';
 import {createWorkspaceRuntime} from './workspace.js';
@@ -25,6 +26,7 @@ export function createActualWorkspace(api) {
     layoutMetadata:w=>Object.fromEntries(['id','view','mode','group','density','query','sort','mainWorkspace','namespace','catalogue','kind','parent','queryInput','browserLocations','closedNamespaces','workerId','blueprintGraph','blueprintNode','blueprintCodeMode','blueprintEnumDraft','blueprintOutputWidth','blueprintOutputCollapsed','blueprintZoom','blueprintPositions','blueprintCamera','blueprintViews','nodeTaskNode','nodeTaskQuery','nodeTaskPage','nodeTaskReason','buildJob','buildPage','conflictSourceId','referenceRequest','mapQuery','mapRoles','mapFocus','mapSelected','mapPositions','mapCamera','mapDidFit','mapFocusId','mapFocusPositions','tableDefinition','tableName','tableQuery','tableSort','tableSelected','tableInputs','tableFill','tableBuilder','tableColumnOrder','tableWidths','tableValueSort'].filter(key=>w.meta[key]!==undefined).map(key=>[key,w.meta[key]])),
     restoreActualWindow:layout=>restore(layout),
     afterSwitchWorkspace:()=>{const panels=structuredClone(runtime.workspaceRecord().participants||[]);api.clearPanels();api.clearYogi();panelWorkspace=runtime.state.activeWorkspaceId;api.restorePanels(panels);api.restoreYogi(runtime.workspaceRecord().yogiPresentation);api.render();schedule()},
+    beforePrivateDelete:()=>deletionHistory.before(),recordPrivateDelete:before=>deletionHistory.record(before),privateHistoryMenu:()=>deletionHistory.menu(),
     beforeDeleteWorkspaces:ids=>{
       // Closing a child presentation must never release the domain editor view.
       const parent=runtime.workspaceRecord();
@@ -51,8 +53,27 @@ export function createActualWorkspace(api) {
   const runtime=createWorkspaceRuntime(host);
   const noteDocuments=createNoteDocuments({get project(){return project},get scope(){return scope},get loading(){return loading},canvas:()=>api.$('#workspace'),persist:()=>schedule('input'),refreshWindows:()=>windowDocuments.render(),toast:api.toast,renderTabs:()=>runtime.renderWorkspaceTabs(),renderDecorations:()=>runtime.renderWorkspaceDecorations(),editTitle:(item,owns)=>runtime.editWorkspaceTitle(item,owns,true)});
   const windowDocuments=createWindowDocuments({get project(){return project},get loading(){return loading},canvas:()=>api.$('#workspace'),runtime,persist:()=>schedule('layout'),toast:api.toast,contextMenu:api.contextMenu,renderTabs:()=>runtime.renderWorkspaceTabs(),refreshNotes:()=>noteDocuments.render(),retain:w=>host.detachWindow(w)});
+  const deletionHistory=createPrivateDeletionHistory({project:()=>project,ready:()=>!!project&&!loading&&!api.isBusy,capture:()=>{capture();runtime.saveLayouts();},restore:restorePrivate,toast:api.toast,persist:()=>schedule('layout')});
+  function restorePrivate(apply,reveal=[]){
+    capture();runtime.cancelInteractions();loading=true;
+    try{
+      for(const w of [...runtime.state.windows.values()]){if(w.documentDocked)continue;host.detachWindow(w);w.el.remove();runtime.state.windows.delete(w.key);}
+      runtime.state.workspaceNodes.clear();runtime.state.selectedWorkspaceNodeKeys.clear();apply();
+      if(!runtime.workspaceRecord())runtime.state.activeWorkspaceId='root';
+      runtime.state.visitedWorkspaceTabs=(project.visitedWorkspaceTabs||['root']).filter(id=>runtime.workspaceRecord(id));
+      runtime.renderWorkspaceDecorations();runtime.renderWorkspaceTabs();
+      for(const row of runtime.workspaceRecord().layout.map(row=>structuredClone(row)))runtime.restoreWindow(row);
+      windowDocuments.restore();noteDocuments.render();runtime.links.schedule();const restored=reveal.map(key=>runtime.state.windows.get(key)).filter(w=>w&&!w.el.hidden&&!w.documentDocked);if(restored.length){runtime.setWindowSelection(restored);runtime.focusWorkspaceNode(restored.at(-1));}
+    }finally{loading=false;api.controls?.();}
+    runtime.saveLayouts();schedule('layout');
+  }
+  document.addEventListener('keydown',event=>{if(!project||loading||api.page!=='work'||event.altKey||event.isComposing||!(event.ctrlKey||event.metaKey)||!['z','y'].includes(event.key.toLowerCase())||event.target.isContentEditable||event.target.closest?.('input,textarea,select,.modal,.tab-document,.note-document'))return;const undo=event.key.toLowerCase()==='z'&&!event.shiftKey;if((undo?project.privateHistory?.undo:project.privateHistory?.redo)?.length){event.preventDefault();event.stopImmediatePropagation();undo?deletionHistory.undo():deletionHistory.redo();}},true);
   function capture(){if(project){windowDocuments.capture();if(!loading&&!project.recoveryFailed){project.selectedObjectId=api.current.draft?.id;project.editorBindings=api.current.editorViews.map(({view,id,mode})=>({view,id,mode}));}project.inputs=api.captureInputs(detached.get(scope+'|source'));const owner=runtime.workspaceRecord();if(owner&&!loading&&panelWorkspace===runtime.state.activeWorkspaceId){owner.participants=api.capturePanels();owner.yogiPresentation=api.captureYogi();}if(owner){if(runtime.state.activeWorkspaceId==='root')project.rootWorkspaceView={...project.workspaceView};else owner.view={...project.workspaceView};}if(owner)for(const w of runtime.state.windows.values()){if(w.overlay)continue;const row=owner.layout.find(row=>row.key===w.key);if(row)Object.assign(row,runtime.windowLayout(w));}}}
-  function snapshot(){capture();project.activeWorkspaceId=runtime.state.activeWorkspaceId;project.visitedWorkspaceTabs=[...runtime.state.visitedWorkspaceTabs];const value=JSON.parse(JSON.stringify(project));delete value.selectedNodeKeys;return value;}
+  function snapshot(){capture();project.activeWorkspaceId=runtime.state.activeWorkspaceId;project.visitedWorkspaceTabs=[...runtime.state.visitedWorkspaceTabs];const value=JSON.parse(JSON.stringify(project));delete value.selectedNodeKeys;
+    // Persist fresh input while a pointer gesture is provisional, using its last
+    // committed geometry. A cancel can never leave an intermediate disk layout.
+    const gesture=runtime.state.gesture;if(gesture?.project===project){const owner=gesture.workspaceId==='root'?value:value.workspaces.find(space=>space.id===gesture.workspaceId);if(owner)for(const item of gesture.entries){const row=item.kind==='window'?owner.layout.find(row=>row.key===item.key):(gesture.workspaceId==='root'?owner.workspaceItems:owner.items).find(row=>row.id===item.itemId);if(row)Object.assign(row,item.geometry);}}
+    return value;}
   function inputKey(value){const notes=[];for(const item of value.workspaceItems||[])if(item.kind==='note')notes.push([item.id,item.text,item.richText,item.titleStyle]);for(const child of value.workspaces||[])for(const item of child.items||[])if(item.kind==='note')notes.push([item.id,item.text,item.richText,item.titleStyle]);return JSON.stringify([value.inputs,value.selectedObjectId,value.editorBindings,notes]);}
   function same(left,right){return JSON.stringify(left)===JSON.stringify(right);}
   function pending(){if(!project||loading)return false;return !same(snapshot(),checkpoints.get(scope));}
@@ -146,7 +167,7 @@ export function createActualWorkspace(api) {
       })();
     }
   }
-  function detach(){if(!project)return;capture();loading=true;api.clearPanels();api.clearYogi();clearTimeout(scheduled);runtime.saveLayouts();capture();for(const w of runtime.state.windows.values())host.detachWindow(w);projects.set(scope,project);noteDocuments.detach();windowDocuments.detach();project=null;scope='';loading=false;changed=0;saved=0;}
+  function detach(){if(!project)return;runtime.cancelInteractions();capture();loading=true;api.clearPanels();api.clearYogi();clearTimeout(scheduled);runtime.saveLayouts();capture();for(const w of runtime.state.windows.values())host.detachWindow(w);projects.set(scope,project);noteDocuments.detach();windowDocuments.detach();project=null;scope='';loading=false;changed=0;saved=0;}
   function reveal(key){const owner=findOwner(key);if(owner&&owner!==runtime.state.activeWorkspaceId)runtime.switchWorkspace(owner);let w=runtime.state.windows.get(key);if(!w){const layout=runtime.workspaceRecord()?.layout.find(row=>row.key===key);if(layout)w=runtime.restoreWindow(layout);}if(w){w.el.hidden=false;runtime.registerWorkspaceNode(w);runtime.focusWindow(w);runtime.saveLayouts();}return w;}
-  return {runtime,noteDocuments,windowDocuments,attach,detach,flush,flushInputs,schedule,shouldRender,reveal,get project(){return project},get loading(){return loading}};
+  return {runtime,noteDocuments,windowDocuments,deletionHistory,attach,detach,flush,flushInputs,schedule,shouldRender,reveal,get project(){return project},get loading(){return loading}};
 }

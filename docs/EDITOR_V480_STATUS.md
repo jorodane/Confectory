@@ -13,7 +13,7 @@
 | 기존 계약 안의 UI 누락 | 빈 곳 드롭 취소, 무효 case/시작 대상의 기존·미적용 입력 보존, 출력 sidebar 크기/접기 | 이번 수정과 실제 UI 검증. 새 실행 의미·새 권한 없이 연결 |
 | Home 저장/조회 후속 | Home 전용 검색/탭/정렬/선택 콜드 저장과 확정 root object 선언 수 | [Home 전용 저장·집계](V480_HOME_STORAGE_AND_COUNTS.md)에서 기존 호스트 원자 저장과 metadata list total을 연결. 프로젝트 presentation과 분리 |
 | 실제 조회·영속 기록 연결 | Home 포함 팩 수와 마지막 편집 정보 | [후속](V480_HOME_INCLUSION_AND_EDIT_EVENTS.md): 확정 entry/타깃별 도달 집합과 성공한 Save/Confirm의 원자적 receipt. 기록 없음·조회 불가 구분, 실제 콜드 복원. native adapter 포함 조회는 미지원 |
-| 대조/미지원 범위가 남음 | category/concept 계층 전체, browser Data의 자동 전체 필드 합집합, Workspace 링크 그래프·도킹 전 native Undo 이력 | 이미 있는 모델/명령과 레퍼런스의 동작을 대응시킨 다음 확인한 누락을 수정. 미검사 전체를 정책 차단으로 표시하지 않음 |
+| 대조/미지원 범위가 남음 | category/concept 계층 전체, browser Data의 자동 전체 필드 합집합, Workspace 삭제 외 일반 배치 Undo·도킹 전 native Undo 이력 | 이미 있는 모델/명령과 레퍼런스의 동작을 대응시킨 다음 확인한 누락을 수정. 미검사 전체를 정책 차단으로 표시하지 않음 |
 | 사용자 정책 답변 대기 | 계산식 int/long overflow: 오류 또는 wrap | 아직 미답변. enum 값 범위와 별개이며 다른 로컬 UI 수정의 차단 아님 |
 | 새 구조 계약이 미구현·현재 범위 밖 | 구조적 property field write/ref, compound/function live field, 일반 enum/Vector3 ABI, 소유 집합 생성/삭제 전체 Undo | 기존 read/primitive/일반 이력 지원과 구분. 이번 UI 대조에서 새 의미를 추가하지 않음 |
 | 서비스 계약이 미구현·현재 범위 밖 | actor/recipient/room/ack, 실제 market/publisher, Run frame/ack·durable 연결 | 소유 fixture나 화면 상태를 실재 서비스로 가장하지 않음 |
@@ -75,7 +75,7 @@ enum의 숫자 항목 범위 확인과 계산식 overflow는 다른 계약이다
 | G01–G03 | Agent 탐색·설치 준비·로그인·모델·사용량·연결 | [Codex 준비 기록](codex-preparation.md), 실제 지원 metadata/소유 설정 경계 있음. 다른 Agent와 실계정/유료 호출의 정상 작동을 이 개발 검증으로 주장하지 않음 |
 | U01–U03 | 내 정보·co-worker·요청/수락/차단·채팅/news | 로컬 profile/presentation 일부 있음. 실재 actor/membership/sender/recipient/room/ack 서비스 계약이 남음 |
 | M01–M04 | 내 팩·시장·설치/업데이트·공개 게시 | 로컬 pack registry/manifest·의존성 검토 일부 있음. 실제 시장 catalog·publisher·서비스 설치/배포 권한은 별도이며 온라인 시장을 가정하지 않음 |
-| W01–W06 | Workspace 이동/선택·문서·메모·포털·링크 | 실제 web/cold로 검증한 행위는 위 표와 [통합 기록](EDITOR_V480_INTEGRATION.md). 링크 의미 편집·모든 창 포털 전송/native 플랫폼 동작 전체는 부분 |
+| W01–W06 | Workspace 이동/선택·문서·메모·포털·링크 | 실제 web/cold로 검증한 행위는 위 표와 [통합 기록](EDITOR_V480_INTEGRATION.md). [비공개 링크·자손 이동·포털 전송·조건부 삭제 Undo/redo·콜드 복원](V480_WORKSPACE_LINKS_AND_LIFETIME.md)을 연결했다. 일반 배치 Undo와 native 플랫폼 동작 전체는 별도 |
 
 이 행들과 그래프 표를 합쳐도 모든 클릭·중단·실패·재시작·서비스 조합이 검증됐다는 뜻은 아니다. 근거가 없는 항목은 미완료/부분으로 유지한다.
 

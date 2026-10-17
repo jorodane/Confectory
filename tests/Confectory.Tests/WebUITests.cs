@@ -2,6 +2,16 @@ using Confectory.Core;
 namespace Confectory.Tests;
 public sealed class WebUITests : TestCase
 {
+    public void test_private_workspace_links_and_deletion_history_invariants()
+    {
+        var run=Processes.Run(new[]{"node",Path.Combine(Fixture.Repo,"tests/web/workspace_lifecycle.mjs")},directory:Fixture.Repo);True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS private links:"));
+    }
+    public void test_actual_editor_v480_private_workspace_links_bundle_portal_delete_undo_and_cold()
+    {
+        var built=new Builder(Path.Combine(Fixture.Repo,"examples/editor-home/project.cpack"),"linux").Build();string report=Path.Combine(f.Root,"v480-workspace-links.json");File.WriteAllText(report,built.ToJsonString());
+        var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/web_ui.py"),Fixture.Repo,report,"workspace-links"},timeoutSeconds:600);Console.WriteLine(run.Stdout.Trim());True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS actual v480 private Workspace links"));
+    }
+
     public void test_actual_editor_original_v196_home_project_and_create_flow()
     {
         var built=new Builder(Path.Combine(Fixture.Repo,"examples","editor-home","project.cpack"),"linux").Build();

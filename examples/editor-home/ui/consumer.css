@@ -101,3 +101,11 @@
 :is(.window[data-key^="browser:"],.window[data-key^="browser-tree:"]) .crumbs{overflow:auto;white-space:nowrap}
 
 .project-card-stats time{font-size:12px;color:#e3e3e3;overflow-wrap:anywhere}
+
+/* Private placement links share the camera; the overlay never blocks editors. */
+.workspace-links,.workspace-link-preview{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:7}
+.workspace-link-line{stroke:#d3af78;stroke-width:2;fill:none;pointer-events:stroke;cursor:context-menu}
+.workspace-link-line:hover{stroke:#45d8c1;stroke-width:4}
+.workspace-link-preview{z-index:260}.workspace-link-preview-line{stroke:#45d8c1;stroke-width:2;stroke-dasharray:6 4;fill:none}
+.workspace-link-prompt{position:absolute;top:48px;left:50%;transform:translateX(-50%);z-index:270;display:flex;gap:18px;align-items:center;padding:10px 14px;border:1px solid #45d8c1;border-radius:8px;background:#182923;color:#e8fff9}
+.window.link-source{outline:2px solid #d3af78}.window.link-target-preview{outline:3px solid #45d8c1}
