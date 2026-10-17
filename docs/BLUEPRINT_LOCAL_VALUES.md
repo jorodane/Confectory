@@ -50,3 +50,6 @@ v480 전체 완료가 아니다. ref의 실제 별칭·호출 의미, 중첩 gra
 
 
 후속 [ref 노드 저장 슬롯](BLUEPRINT_REF_NODE_STORAGE.md)은 로컬·값 입력·선행 결과에 실제 C# ref를 전달한다. 외부 ref graph/본문 전환, property/expression과 중첩 graph 등은 계속 별도 범위다.
+
+
+후속 [입력·노드 결과 슬롯의 별칭 로컬](BLUEPRINT_ALIAS_LOCALS.md)은 별도 v8 profile에서 이름 있는 실제 저장 슬롯 참조와 set/ref 쓰기를 지원한다. 초기값 로컬의 독립 저장과 구 profile·out 경고·외부 ref/out 보호는 유지하며 property/계산식·중첩 graph 완료로 확대하지 않는다.

@@ -96,7 +96,7 @@ public static partial class FeatureBlueprint
         string contractHash = Hash(CanonicalText(new JsonObject { ["feature"] = feature.Id, ["signature"] = contract.DeepClone() }));
         var graph = request["graph"]!.AsObject();
         Need(graph["schema"]?.GetValue<int>() == 1, "GRAPH_SCHEMA", "schema");
-        string profile=S(graph,"profile");bool externalRefs=profile==ExternalRefsProfile,refProfile=externalRefs||profile==RefNodesProfile,localProfile=profile==LocalsProfile||refProfile,multiOutput=profile==MultiOutputProfile||localProfile, implicitEnd=profile==ImplicitProfile||multiOutput;string generator=externalRefs?ExternalRefsGenerator:refProfile?RefNodesGenerator:localProfile?LocalsGenerator:multiOutput?MultiOutputGenerator:implicitEnd?ImplicitGenerator:Generator;
+        string profile=S(graph,"profile");bool aliasLocals=profile==AliasLocalsProfile,externalRefs=SupportsExternalRefs(profile),refProfile=externalRefs||profile==RefNodesProfile,localProfile=profile==LocalsProfile||refProfile,multiOutput=profile==MultiOutputProfile||localProfile, implicitEnd=profile==ImplicitProfile||multiOutput;string generator=aliasLocals?AliasLocalsGenerator:externalRefs?ExternalRefsGenerator:refProfile?RefNodesGenerator:localProfile?LocalsGenerator:multiOutput?MultiOutputGenerator:implicitEnd?ImplicitGenerator:Generator;
         Need(profile==Profile||implicitEnd,"GRAPH_PROFILE_UNSUPPORTED",profile);
         Need(externalRefs||!feature.Signature!.Args.Any(p=>p.IsRef),"GRAPH_REF_FEATURE_UNSUPPORTED",feature.Id);
         Need(multiOutput || !feature.Signature!.Args.Any(p=>p.IsOut), "GRAPH_PARAMETER_MODE_PROFILE", profile);
@@ -119,7 +119,7 @@ public static partial class FeatureBlueprint
         }
 
         if(multiOutput)Need(feature.Signature!.Args.Count<=64&&graph["nodes"]!.AsArray().Count<=256,"GRAPH_MULTI_OUTPUT_BUDGET",feature.Id);
-        var locals=ReadLocals(graph,localProfile);
+        var locals=ReadLocals(graph,localProfile,aliasLocals);
         var nodes = new Dictionary<string, Node>(StringComparer.Ordinal);
         foreach (var item in graph["nodes"]!.AsArray())
         {
@@ -194,6 +194,7 @@ public static partial class FeatureBlueprint
             nodes.Add(id, new(id, kind, control, signature, definition, value["arguments"]?.AsObject() ?? new JsonObject(), Hash(CanonicalText(definition)), called));
         }
 
+        ValidateAliasLocals(locals,feature,nodes);
         bool ForwardCaller(Node node)=>externalRefs&&(node.Definition["forwardCallerStorage"]?.GetValue<bool>()==true||HasContext(node)&&node.Signature.Args.Any(p=>p.Mode is "ref" or "out"));
         string CallerOut(Node node,string name)=>feature.Signature!.Args[node.Signature.Args.FindIndex(p=>p.Name==name)].Name;
         var forwardedOutputs=nodes.Values.Where(ForwardCaller).ToDictionary(n=>n.Id,n=>n.Signature.Args.Where(p=>p.IsOut).Select(p=>CallerOut(n,p.Name)).ToArray(),StringComparer.Ordinal);
@@ -361,7 +362,7 @@ public static partial class FeatureBlueprint
                 return Value(source,result);
             }
 
-            if(binding.ContainsKey("local")){string id=S(binding,"local");Need(localProfile&&locals.TryGetValue(id,out var local)&&S(local,"type")==type,"GRAPH_LOCAL_TYPE",subject);return LocalValue(id);}
+            if(binding.ContainsKey("local")){string id=S(binding,"local");Need(localProfile&&locals.ContainsKey(id)&&S(locals[id],"type")==type,"GRAPH_LOCAL_TYPE",subject);var local=locals[id];return local["source"] is JsonObject source?Binding(source,type,available,subject+"/alias:"+id):LocalValue(id);}
             if (binding.ContainsKey("constant"))
                 return Literal(binding["constant"], type);
             throw new Refusal("GRAPH_VALUE", subject);
@@ -381,6 +382,7 @@ public static partial class FeatureBlueprint
             Need(node.Arguments.Count == node.Signature.Args.Count(p=>!p.IsOut) && node.Signature.Args.Where(p=>!p.IsOut).All(p => node.Arguments.ContainsKey(p.Name)), "GRAPH_ARGUMENTS", id);
             foreach (var p in node.Signature.Args.Where(p=>!p.IsOut))
                 ArgumentBinding(p,node.Arguments[p.Name],available,id+"/"+p.Name);
+            if(node.Kind=="set"&&locals[S(node.Definition,"local")]["source"] is JsonObject source)Binding(source,S(locals[S(node.Definition,"local")],"type"),available,id+"/target");
         }
 
         foreach (var exit in exits)
@@ -412,7 +414,7 @@ public static partial class FeatureBlueprint
             if(externalRefs)output.AppendLine("global::System.Runtime.CompilerServices.Unsafe.SkipInit(out "+parameter.Name+");\nbool "+Assigned(parameter.Name)+" = false;");
             else output.AppendLine(parameter.Name+" = default("+parameter.Type+")!;");
         }
-        foreach(var local in locals)output.AppendLine(S(local.Value,"type")+" "+LocalValue(local.Key)+" = "+Literal(local.Value["initial"]!["constant"],S(local.Value,"type"))+";");
+        foreach(var local in locals.Where(p=>p.Value["source"] is null))output.AppendLine(S(local.Value,"type")+" "+LocalValue(local.Key)+" = "+Literal(local.Value["initial"]!["constant"],S(local.Value,"type"))+";");
         if(localProfile)output.AppendLine("#pragma warning restore CS0219");
         foreach (string id in order)foreach(var result in FeatureOutputs(nodes[id].Signature))
             output.AppendLine(result.Type + " " + Value(id,result.Name) + ";");
@@ -453,7 +455,7 @@ public static partial class FeatureBlueprint
             Need(node.Arguments.Count == node.Signature.Args.Count(p=>!p.IsOut) && node.Signature.Args.Where(p=>!p.IsOut).All(p => node.Arguments.ContainsKey(p.Name)), "GRAPH_ARGUMENTS", id);
             output.AppendLine(Label(id) + ": {");
             if(node.Kind=="set"){
-                string local=S(node.Definition,"local");output.AppendLine(LocalValue(local)+" = "+Binding(node.Arguments["value"],S(locals[local],"type"),available,id+"/value")+";");manifestNodes.Single(n=>n!["id"]!.ToString()==id)!["includedInSource"]=true;
+                string local=S(node.Definition,"local");output.AppendLine((locals[local]["source"] is JsonObject source?Binding(source,S(locals[local],"type"),available,id+"/target"):LocalValue(local))+" = "+Binding(node.Arguments["value"],S(locals[local],"type"),available,id+"/value")+";");manifestNodes.Single(n=>n!["id"]!.ToString()==id)!["includedInSource"]=true;
             }
             else if(node.Kind=="export"){
                 string exported=S(node.Definition,"output"),outputType=FeatureOutputs(feature.Signature!).Single(p=>p.Name==exported).Type;

@@ -25,7 +25,7 @@ if(operation=="create"){
  var selected=System.Linq.Enumerable.Single(nodes,node=>node!["id"]!.ToString()==nodeId)!;
  if(graph["entry"]?.ToString()==nodeId||System.Linq.Enumerable.Any(graph["edges"]!.AsArray(),edge=>edge!["from"]!.ToString()==nodeId||edge["to"]!.ToString()==nodeId))throw new InvalidOperationException("Disconnect the node's execution routes and start connection before removal");
  bool Uses(System.Text.Json.Nodes.JsonNode? value){if(value is System.Text.Json.Nodes.JsonObject obj){if(obj["node"]?.ToString()==nodeId)return true;foreach(var pair in obj)if(Uses(pair.Value))return true;}else if(value is System.Text.Json.Nodes.JsonArray array){foreach(var item in array)if(Uses(item))return true;}return false;}
- if(Uses(graph["exits"])||System.Linq.Enumerable.Any(nodes,node=>node!["id"]!.ToString()!=nodeId&&Uses(node["arguments"])))throw new InvalidOperationException("Remove the node's value references before removal");
+ if(Uses(graph["locals"])||Uses(graph["exits"])||System.Linq.Enumerable.Any(nodes,node=>node!["id"]!.ToString()!=nodeId&&Uses(node["arguments"])))throw new InvalidOperationException("Remove the node's value references before removal");
  if(selected["kind"]!.ToString()=="code"){
   if(!sources.TryGetValue(ownedId,out var source)||source[1]!="blueprint-node")throw new InvalidOperationException("Read the owned node body before removal");
   if(!System.Linq.Enumerable.Any(locators["units"]!.AsArray(),unit=>unit!["id"]!.ToString()==ownedId&&unit["kind"]!.ToString()=="blueprint-node"&&unit["path"]!.ToString()==source[2]))throw new InvalidOperationException("Node body locator changed; refresh owned source before removal");

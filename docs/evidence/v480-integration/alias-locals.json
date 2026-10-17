@@ -1,0 +1,361 @@
+{
+  "schema": 1,
+  "baseCommit": "bad33ce9271cb23529870621f44274dfc7282d48",
+  "referenceMainCommit": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+  "profile": "sync-acyclic-alias-locals-v1",
+  "generator": "feature-blueprint-source-v8",
+  "finalSourceHashes": {
+    "examples/editor-home/WebBundle.csbody": "5301e133a6752ba188cc0162dfe97fd883994e7f67898e635d58dd40a9880547",
+    "examples/editor-home/ui/blueprint-pins.js": "ca14f584277b45d1a3ae9d24e9c66e74b14955fcdc87a74a91565d2f9ecd87b7",
+    "examples/editor-home/ui/blueprint.js": "43cca04a12eb50ed364bde9b114dacc04c6a0f000cc5547bf372f5137fd66947",
+    "examples/editor-home/ui/style.css": "e3c3ab9aa52267c82802587bf9605346d33a7e87b7ddf7a3a0ffdfd261467cbe",
+    "packs/edit-workspace/BlueprintNode.csbody": "c140640f9e7357d9a60eacd541d92d2eccf57d34f61d5660bda135e588dd257f",
+    "packs/pack-workspace/Blueprint.csbody": "ce74d71b66255c03d23d9b1adcfe66e146057fe8e076aa5be1986eaec0bcb5a4",
+    "src/Confectory.Core/BlueprintDocuments.cs": "f2d2954c17be7943122a48875db1a93206a13e522d289c46fc654575fbbfd3ab",
+    "src/Confectory.Core/FeatureBlueprint.AliasLocals.cs": "4cb796c9fa3abb71140e34bc3a36dab4f2c47636c4efaea3ab2f5988a27fefbd",
+    "src/Confectory.Core/FeatureBlueprint.Locals.cs": "ed974816135aa8c17a00f3a6d534d52ab7d51e3fe9c3434abf2d8c879fd40511",
+    "src/Confectory.Core/FeatureBlueprint.cs": "ef6c95e18b5c076937ecb5c811c098e90ff492f5f4b40ff28bd464a45043be72",
+    "targets/dotnet/Program.cs": "f45cccb4efbc98f9129c71fb5123298e119ee339682f0601f7f0f7519627f3ed",
+    "tests/Confectory.Tests/AliasLocalAuthoringTests.cs": "9d3f4f56144050a46c7617d0c50177ea499632a54544a2cab12ff24bbe082d2f",
+    "tests/Confectory.Tests/AliasLocalTests.cs": "0ac97d3a59b53498f8e0e5e3bf1a9dd10343cc965845825b3f9082f6eb1d3538",
+    "tests/Confectory.Tests/Program.cs": "00a449a590f8a19f31206a60e50b04fe102fad855f5507108e99a45c58306ffc",
+    "tests/Confectory.Tests/WebUITests.cs": "978c335b35cbef9ee3f86faff0a05f4e0c4d4b965b60ff14dfe8dca776137495",
+    "tests/web/v480_alias_locals.py": "6e59c9ea95dd98f02cfd4ebe5e8caf575138e1b28e633cccc5201ec03fdc218a",
+    "tests/web/web_ui.py": "df9c76852c8cfeebd993b5e4ba698a2e119b020a89d4318ca441a02d6c7daa87"
+  },
+  "stages": [
+    {
+      "log": "first-core.log",
+      "sha256": "b5c48351aac16cd8dc5b325bfee3e1861d3e126b4a973aab607bdd070fca7b0f",
+      "scope": "four runtime alias cases and invalid typed/path contracts",
+      "completed": true,
+      "passedMethods": [
+        "AliasLocalTests.test_alias_contracts_and_all_use_paths_require_current_typed_storage",
+        "AliasLocalTests.test_array_result_alias_ref_replacement_changes_the_actual_result_variable",
+        "AliasLocalTests.test_input_alias_uses_real_caller_refs_or_distinct_parameter_slots",
+        "AliasLocalTests.test_result_alias_ref_and_set_mutate_original_slot_while_value_argument_keeps_snapshot"
+      ],
+      "failedMethods": [],
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 11.975,
+      "sourceSnapshot": {
+        "file": "first-source.json",
+        "sha256": "c6fb27333ef160024b44814df4bd3f1a0af8d0b3bb32a7bcd0200d370c8990b0"
+      }
+    },
+    {
+      "log": "second-focused.log",
+      "sha256": "af3a315ee94c6b4baa3b4ab1667db2e4265641706ee5f1b85eff62b8f16a92f8",
+      "scope": "four core cases plus public source/CAS/cold/producer deletion and actual Chromium editing",
+      "completed": true,
+      "passedMethods": [
+        "AliasLocalTests.test_alias_contracts_and_all_use_paths_require_current_typed_storage",
+        "AliasLocalTests.test_array_result_alias_ref_replacement_changes_the_actual_result_variable",
+        "AliasLocalTests.test_input_alias_uses_real_caller_refs_or_distinct_parameter_slots",
+        "AliasLocalTests.test_result_alias_ref_and_set_mutate_original_slot_while_value_argument_keeps_snapshot",
+        "AliasLocalAuthoringTests.test_alias_public_source_cas_cold_delete_producer_and_graph_only_compiler_confirm",
+        "WebUITests.test_actual_editor_v480_alias_locals_slots_set_cold_and_confirm"
+      ],
+      "failedMethods": [],
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 188.177,
+      "sourceSnapshot": {
+        "file": "second-source.json",
+        "sha256": "c8bf97bc6fa9ec01ceb55ab6fa27fa0729e980f8ebcd9dda5880fa95cc9317be"
+      }
+    },
+    {
+      "log": "final-engine.log",
+      "sha256": "b052cea59d315bd771085181755d5409a1dc50e468fba31fb9dc0e5fb441d0ce",
+      "scope": "legacy graph,implicit,conversion,out,locals,external ref,node ref,alias runtime/public editing",
+      "completed": true,
+      "passedMethods": [
+        "FeatureBlueprintTests.test_blueprint_disconnected_current_node_body_is_compiled_without_execution",
+        "FeatureBlueprintTests.test_blueprint_existing_feature_calls_use_typed_imports_and_contract_fences",
+        "FeatureBlueprintTests.test_blueprint_fixed_inputs_branch_compiler_reuse_node_replacement_and_legacy_preservation",
+        "FeatureBlueprintTests.test_blueprint_independent_probe_checks_an_unselected_body_without_running_or_publishing",
+        "FeatureBlueprintTests.test_blueprint_invalid_graphs_stale_contracts_and_dominating_values",
+        "FeatureBlueprintTests.test_blueprint_new_feature_registration_contract_group_compiler_and_cold_restore",
+        "FeatureBlueprintTests.test_blueprint_node_diagnostics_static_isolation_and_failed_build_retains_receipt",
+        "FeatureBlueprintTests.test_blueprint_node_only_worker_draft_save_restore_and_compiler_confirm",
+        "FeatureBlueprintTests.test_blueprint_node_task_assignment_scoped_dispatch_adoption_and_cold_no_replay",
+        "FeatureBlueprintTests.test_blueprint_owned_function_reference_call_import_cas_history_and_execution",
+        "FeatureBlueprintTests.test_blueprint_owned_node_creation_removal_review_group_and_cold_restore",
+        "FeatureBlueprintTests.test_blueprint_source_change_during_real_compile_is_not_published",
+        "ImplicitBlueprintTests.test_implicit_branch_terminations_warn_separately_and_real_errors_remain_errors",
+        "ImplicitBlueprintTests.test_implicit_empty_start_has_typed_defaults_without_hiding_void_or_type_errors",
+        "ImplicitBlueprintTests.test_implicit_join_tracks_must_may_and_a_specific_unassigned_branch_witness",
+        "BlueprintConversionTests.test_public_body_conversion_atomic_group_cas_origin_cold_and_compiler_confirm",
+        "BlueprintConversionTests.test_whole_body_context_preserves_calls_scope_this_recursion_names_targets_and_crlf",
+        "BlueprintConversionTests.test_whole_out_body_conversion_preserves_original_member_scoped_import_and_other_target",
+        "BlueprintConversionTests.test_whole_void_body_conversion_runs_once_and_probe_does_not_execute",
+        "MultiOutputBlueprintTests.test_android_and_browser_metadata_templates_round_trip_out_roles_in_managed_code",
+        "MultiOutputBlueprintTests.test_code_node_named_out_results_and_real_csharp_out_errors_remain_checked",
+        "MultiOutputBlueprintTests.test_empty_multiple_outs_have_typed_reference_defaults_without_cpp_or_execution",
+        "MultiOutputBlueprintTests.test_join_has_separate_must_may_and_unassigned_witness_for_each_output",
+        "MultiOutputBlueprintTests.test_named_outputs_warn_independently_at_each_branch_end_and_run_defaults",
+        "MultiOutputBlueprintTests.test_out_contract_modes_and_legacy_hash_are_explicit_and_stable",
+        "MultiOutputBlueprintTests.test_typed_call_named_outputs_use_selected_object_scope_and_dominate_consumers",
+        "MultiOutputAuthoringTests.test_contract_append_out_is_explicit_cas_cold_body_preserving_and_compiler_confirmed",
+        "MultiOutputAuthoringTests.test_object_blank_and_reference_factories_preserve_out_modes_and_positional_output_names",
+        "LocalBlueprintTests.test_generated_unused_local_guard_does_not_assign_to_user_underscore_parameter",
+        "LocalBlueprintTests.test_local_array_is_shared_within_call_and_fresh_across_calls_and_invalid_locals_refuse",
+        "LocalBlueprintTests.test_local_set_branch_order_per_call_reset_and_per_end_out_warning",
+        "LocalBlueprintTests.test_local_set_reads_current_storage_while_node_result_retains_snapshot",
+        "LocalAuthoringTests.test_local_public_profile_cas_exact_initializers_cold_and_graph_only_compiler_confirm",
+        "AliasLocalTests.test_alias_contracts_and_all_use_paths_require_current_typed_storage",
+        "AliasLocalTests.test_array_result_alias_ref_replacement_changes_the_actual_result_variable",
+        "AliasLocalTests.test_input_alias_uses_real_caller_refs_or_distinct_parameter_slots",
+        "AliasLocalTests.test_result_alias_ref_and_set_mutate_original_slot_while_value_argument_keeps_snapshot",
+        "AliasLocalAuthoringTests.test_alias_public_source_cas_cold_delete_producer_and_graph_only_compiler_confirm",
+        "ExternalRefTests.test_external_ref_array_replacement_keeps_managed_variable_alias_and_initial_value",
+        "ExternalRefTests.test_external_ref_exception_keeps_alias_write_and_does_not_apply_end_defaults",
+        "ExternalRefTests.test_external_ref_factories_and_typed_reference_forward_actual_caller_storage",
+        "ExternalRefTests.test_external_ref_forwarding_preserves_two_ref_out_aliases_and_distinct_caller_storage",
+        "ExternalRefTests.test_external_ref_join_defaults_only_unassigned_out_and_keeps_later_alias_writes",
+        "ExternalRefTests.test_out_only_typed_reference_factory_forwards_one_caller_out_variable_twice",
+        "ExternalRefTests.test_whole_out_only_conversion_preserves_two_out_arguments_using_one_caller_variable",
+        "ExternalRefTests.test_whole_ref_conversion_preserves_raw_context_recursion_target_and_same_caller_cells",
+        "ExternalRefAuthoringTests.test_public_external_ref_conversion_atomic_group_cas_origin_cold_and_real_aliases",
+        "RefNodeTests.test_code_ref_arguments_alias_same_local_immediately_and_out_warning_remains_per_end",
+        "RefNodeTests.test_ordinary_csharp_ref_calls_preserve_same_slot_aliases_including_ref_out_same_caller_cell",
+        "RefNodeTests.test_ref_array_parameters_alias_the_reference_slot_when_replacing_the_array",
+        "RefNodeTests.test_ref_to_value_input_and_preceding_node_result_use_real_storage_without_caller_copyback",
+        "RefNodeTests.test_typed_ref_call_uses_selected_object_scope_and_real_aliases",
+        "RefAuthoringTests.test_ref_public_typed_call_profile_cas_cold_alias_and_ref_conversion_preview"
+      ],
+      "failedMethods": [],
+      "passed": 53,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 862.12,
+      "sourceSnapshot": {
+        "file": "broad-source.json",
+        "sha256": "c8bf97bc6fa9ec01ceb55ab6fa27fa0729e980f8ebcd9dda5880fa95cc9317be"
+      }
+    },
+    {
+      "log": "final-ui.log",
+      "sha256": "fe67c4fef27381ab3b4329cc5e94bed9574f71ae6c421c2d6d2eae19a2349e7f",
+      "scope": "alias,external/node ref,locals,out,implicit,camera,declaration,module,existing/new feature",
+      "completed": true,
+      "passedMethods": [
+        "WebUITests.test_actual_editor_implicit_ends_whole_body_conversion_cold_and_confirm",
+        "WebUITests.test_actual_editor_v424_typed_declaration_views_cas_confirm_and_restart",
+        "WebUITests.test_actual_editor_v480_alias_locals_slots_set_cold_and_confirm",
+        "WebUITests.test_actual_editor_v480_blueprint_camera_header_pins_tabs_and_cold_input",
+        "WebUITests.test_actual_editor_v480_existing_feature_reference_call_and_cold_contract",
+        "WebUITests.test_actual_editor_v480_external_ref_graph_body_conversion_cold_and_confirm",
+        "actual v480 locals profile, exact initializer, typed picker, set order, cold input basis, delete guard and graph-only compiler Confirm",
+        "WebUITests.test_actual_editor_v480_local_values_sets_exact_initializer_cold_and_compiler_confirm",
+        "WebUITests.test_actual_editor_v480_module_interface_contract_default_and_cold_rebase",
+        "WebUITests.test_actual_editor_v480_named_out_contract_pins_ends_cold_and_compiler_confirm",
+        "WebUITests.test_actual_editor_v480_new_feature_contract_graph_group_and_cold_source",
+        "WebUITests.test_actual_editor_v480_ref_node_storage_aliases_cold_and_compiler_confirm"
+      ],
+      "failedMethods": [],
+      "passed": 11,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 809.751,
+      "sourceSnapshot": {
+        "file": "broad-source.json",
+        "sha256": "c8bf97bc6fa9ec01ceb55ab6fa27fa0729e980f8ebcd9dda5880fa95cc9317be"
+      }
+    },
+    {
+      "log": "final-managed.log",
+      "sha256": "c2161a8c15787a5082b63b8a2fab1abbae08f40d1cb66bd41bb95de95027c060",
+      "scope": "Windows/Android managed compilation only",
+      "completed": true,
+      "passedMethods": [
+        "EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only"
+      ],
+      "failedMethods": [],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 139.887,
+      "sourceSnapshot": {
+        "file": "broad-source.json",
+        "sha256": "c8bf97bc6fa9ec01ceb55ab6fa27fa0729e980f8ebcd9dda5880fa95cc9317be"
+      }
+    },
+    {
+      "log": "supplemental.log",
+      "sha256": "5c2945dbfd9c30a3ffca8bdac04c0394a8975280c6234814d70c6cff4ac97acb",
+      "scope": "named out result-snapshot alias runtime and actual UI bounds/hit/capture proof",
+      "completed": true,
+      "passedMethods": [
+        "AliasLocalTests.test_named_out_alias_mutates_node_snapshot_without_borrowing_external_caller_output",
+        "actual v480 alias locals, original slot picker, set order, exact initializer, invalid dominance, cold basis and graph-only compiler Confirm",
+        "WebUITests.test_actual_editor_v480_alias_locals_slots_set_cold_and_confirm"
+      ],
+      "failedMethods": [],
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 86.052,
+      "sourceSnapshot": {
+        "file": "final-source.json",
+        "sha256": "95466a0b0405ef6babc5b186afda35232a4ac2056e5d04a28517d42d7867cbc9"
+      }
+    }
+  ],
+  "overlappingStagesMustNotBeSummed": true,
+  "initialBuildCorrection": "CS0165 from a short-circuited out-var lookup used after custom validation; changed to validated dictionary lookup before first runtime suite",
+  "semantics": {
+    "localUnion": [
+      "old id/name/type/initial constant per-call storage",
+      "new id/name/type/source input or node/output storage alias"
+    ],
+    "aliasCreatesNoStorageAndDoesNotCopyValue": true,
+    "setAndRefUseOriginalStorageLvalue": true,
+    "ordinaryValueArgumentNodeResultKeepsSnapshot": true,
+    "arrayVariableReplacementChangesProducerResultSlot": true,
+    "inputValueSlotRemainsByValueAndInputRefSlotIsCallerStorage": true,
+    "aliasTargetsCheckedEvenWhenUnused": true,
+    "producerMustDominateEveryReadRefAndSetTarget": true,
+    "noAliasChainsOrConstantPropertyExpressionArrayElementSource": true,
+    "storageTypeAndKindFixedAfterCreation": true,
+    "producerRemovalRefusedEvenForUnusedAlias": true,
+    "usedAliasRemovalRefused": true,
+    "publishedOriginalCSharpRetainedAfterGraphRemoval": true,
+    "sourceJsonNewAliasRowsOnlyOldInitialJsonExact": true,
+    "explicitForwardProfileCASColdAndGraphOnlyCompilerConfirm": true,
+    "refContractRebindKeepsAliasProfile": true,
+    "noAutomaticTaskAIRun": true,
+    "oldProfilesPerEndOutWarningsAndExternalRefOutPolicyRetained": true
+  },
+  "proofValues": {
+    "resultAliasRefSetVersusCapturedValue": [
+      "32,20",
+      "32,20",
+      "32,20"
+    ],
+    "inputAliasesSameCallerRefs": "30,15",
+    "inputAliasesDistinctCallerRefs": "21,10,11",
+    "arrayResultVariableRefReplacement": [
+      "40,20",
+      "40,20"
+    ],
+    "publicBeforeConfirm": "5,5",
+    "publicAfterGraphOnlyConfirm": "32,5",
+    "UISetConstant": "37",
+    "exactOldInitializerJson": "9223372036854775807",
+    "namedOutSnapshotVsCallerStorage": [
+      "640,6",
+      "540,5,6"
+    ]
+  },
+  "refusals": [
+    "GRAPH_LOCAL_ALIAS_PROFILE",
+    "GRAPH_LOCAL_ALIAS_SOURCE",
+    "GRAPH_LOCAL_ALIAS_TYPE",
+    "GRAPH_VALUE_UNAVAILABLE for reads/ref/set before source dominance",
+    "storage-kind/type changes",
+    "deleting a producer retained by an otherwise unused alias",
+    "stale peer raw source and cold basis mutation"
+  ],
+  "limits": [
+    "no property/array-element/expression alias sources or alias chains",
+    "node named out alias denotes node result/snapshot slot, not caller out slot",
+    "owned Linux/.NET10/Chromium plus managed Windows/Android compilation; no native/device/account/paid-model/user-PC claim"
+  ],
+  "pendingSemanticQuestion": {
+    "topic": "integer expression overflow for int/long addition/subtraction/multiplication",
+    "choices": [
+      "error",
+      "C# unchecked wrap"
+    ],
+    "status": "awaiting explicit user answer; not implemented or inferred"
+  },
+  "remainingScope": [
+    "typed expressions pending integer-overflow policy",
+    "property reads and concept runtime identity",
+    "nested graph ownership/IDs/files/version/call/return",
+    "enum/compound types/arbitrary execution outputs",
+    "split C# regions/external helpers",
+    "loop/async",
+    "physical delete/bulk target migration/portals/pixel/fullv424services separately"
+  ],
+  "protected": {
+    "mainRemote": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+    "mainLocal": "b5ea38c3d7eec3eb20f170e68f0f4215b86b2aee",
+    "originalZIPsAndAndroidSettingsUnchanged": true,
+    "androidFilesChanged": []
+  },
+  "implementationCommit": null,
+  "ordinaryCheckout": null,
+  "screenshots": [
+    {
+      "path": "docs/evidence/v480-integration/alias-locals-form.png",
+      "sha256": "f6c80226a703b520df17c2903ca7923e62ae9160267b64ce13707b2e72f607d0",
+      "stage": "supplemental"
+    },
+    {
+      "path": "docs/evidence/v480-integration/alias-locals-published.png",
+      "sha256": "582471ffa2dbd7bf60671923a972c46a141c930f7d199931455cab1db22781ea",
+      "stage": "supplemental"
+    }
+  ],
+  "lateTestOnlyChanges": [
+    "tests/Confectory.Tests/AliasLocalTests.cs",
+    "tests/Confectory.Tests/WebUITests.cs",
+    "tests/web/v480_alias_locals.py"
+  ],
+  "productUnchangedThroughSupplement": true,
+  "extraWindowProbe": {
+    "bounds": {
+      "window": {
+        "left": 251,
+        "right": 1349,
+        "width": 1098,
+        "scroll": 1098,
+        "client": 1098
+      },
+      "editor": {
+        "left": 251,
+        "right": 1349,
+        "width": 1098,
+        "scroll": 1098,
+        "client": 1098
+      },
+      "body": {
+        "left": 251,
+        "right": 1349,
+        "width": 1098,
+        "scroll": 1098,
+        "client": 1098
+      },
+      "plane": {
+        "left": 416,
+        "right": 1184,
+        "width": 768,
+        "scroll": 920,
+        "client": 768
+      },
+      "outputs": {
+        "left": 1184,
+        "right": 1349,
+        "width": 165,
+        "scroll": 253,
+        "client": 164
+      },
+      "toolbar": {
+        "left": 251,
+        "right": 1349,
+        "width": 1098,
+        "scroll": 1098,
+        "client": 1098
+      }
+    },
+    "logSha256": "47e869d89115423b310c5ab5a6e3119a83730ffd9eacfe445dcf24693f8f38f9",
+    "outsideWindowNotReproduced": true,
+    "noProductCssFix": true
+  }
+}

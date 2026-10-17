@@ -7,14 +7,17 @@ namespace Confectory.Core;
 public static partial class FeatureBlueprint
 {
     public const string LocalsProfile="sync-acyclic-locals-v1",LocalsGenerator="feature-blueprint-source-v5";
-    static Dictionary<string,JsonObject> ReadLocals(JsonObject graph,bool enabled)
+    static Dictionary<string,JsonObject> ReadLocals(JsonObject graph,bool enabled,bool aliases=false)
     {
         var result=new Dictionary<string,JsonObject>(StringComparer.Ordinal);var rows=graph["locals"]?.AsArray()??new JsonArray();Need(enabled||rows.Count==0,"GRAPH_LOCALS_PROFILE","locals");Need(rows.Count<=64,"GRAPH_LOCALS_BUDGET","locals");
         foreach(var row in rows){
             var local=row!.AsObject();string id=S(local,"id"),name=S(local,"name"),type=S(local,"type");
-            Need(local.Count==4&&local.All(p=>p.Key is "id" or "name" or "type" or "initial")&&id.Length<=128&&Regex.IsMatch(id,@"\A[A-Za-z_][A-Za-z_0-9.-]*\z")&&!result.ContainsKey(id)&&name.Length<=256&&!string.IsNullOrWhiteSpace(name),"GRAPH_LOCAL_ID",id);
+            bool alias=local.ContainsKey("source");Need(!alias||aliases,"GRAPH_LOCAL_ALIAS_PROFILE",id);
+            Need(local.Count==4&&local.All(p=>p.Key is "id" or "name" or "type" || p.Key==(alias?"source":"initial"))&&id.Length<=128&&Regex.IsMatch(id,@"\A[A-Za-z_][A-Za-z_0-9.-]*\z")&&!result.ContainsKey(id)&&name.Length<=256&&!string.IsNullOrWhiteSpace(name),"GRAPH_LOCAL_ID",id);
             new Parser("function Blueprint.Validation::Local ("+type+" value) -> void {}","<local-contract>").ParseElement();
-            Need(local["initial"] is JsonObject initial&&initial.Count==1&&initial.ContainsKey("constant"),"GRAPH_LOCAL_INITIALIZER",id);ConstantLiteral(local["initial"]!["constant"],type);result.Add(id,local);
+            if(alias){var source=local["source"] as JsonObject;Need(source is not null&&(source.Count==1&&(source.ContainsKey("input")||source.ContainsKey("node"))||source.Count==2&&source.ContainsKey("node")&&source.ContainsKey("output")),"GRAPH_LOCAL_ALIAS_SOURCE",id);}
+            else{Need(local["initial"] is JsonObject initial&&initial.Count==1&&initial.ContainsKey("constant"),"GRAPH_LOCAL_INITIALIZER",id);ConstantLiteral(local["initial"]!["constant"],type);}
+            result.Add(id,local);
         }
         return result;
     }
