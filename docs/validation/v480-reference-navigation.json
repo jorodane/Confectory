@@ -104,10 +104,35 @@
       "skipped": 0,
       "reportedSeconds": 124.2,
       "logSha256": "ddb8348fdf0f66ec5fedc0fd5caf254aaf7282ab92b81c3336cf7721f663d04f"
+    },
+    "checkout": {
+      "exit": 0,
+      "methods": [
+        "WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup"
+      ],
+      "head": "fc12634f7a40df5a796b2c6b41ecb68d362193df",
+      "elapsed": 7.084241701999417,
+      "sourceManifestSha256": "92b850b77e84b6fd9b7507994b6b75d4bac22f517f2a27c4a12f8102a65f71dc",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 7.053,
+      "logSha256": "80718a0e6adf99f92ae97c140fcc32e4efd842c5b3bcbf3b17f3157091bf757d"
     }
   },
   "checkout": {
-    "state": "pending-implementation-HEAD"
+    "exit": 0,
+    "methods": [
+      "WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup"
+    ],
+    "head": "fc12634f7a40df5a796b2c6b41ecb68d362193df",
+    "elapsed": 7.084241701999417,
+    "sourceManifestSha256": "92b850b77e84b6fd9b7507994b6b75d4bac22f517f2a27c4a12f8102a65f71dc",
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "reportedSeconds": 7.053,
+    "logSha256": "80718a0e6adf99f92ae97c140fcc32e4efd842c5b3bcbf3b17f3157091bf757d"
   },
   "resourceCount": 38,
   "enginePublicEditingApiCompilerAndExecutionSemanticsUnchanged": true,
