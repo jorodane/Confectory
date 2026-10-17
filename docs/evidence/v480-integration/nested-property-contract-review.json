@@ -1,0 +1,317 @@
+{
+  "schema": 1,
+  "baselineCommit": "aec157e8a1cb6b78ac56b28562934abbb68a9615",
+  "referenceMainCommit": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+  "scope": "Contract research and reproducible probe only; no product source, compiler profile or runtime property/nested implementation added",
+  "sourceHashes": {
+    "src/Confectory.Core/BlueprintCompilation.cs": "f91031349d8bf8fdd253c52f7ca676f7196fdd4c0d590ad69e97f27c9056fd40",
+    "src/Confectory.Core/BlueprintDocuments.cs": "f2d2954c17be7943122a48875db1a93206a13e522d289c46fc654575fbbfd3ab",
+    "src/Confectory.Core/Declarations.cs": "9335d56097737f987f6901178aee54edfb96bccd2f8cad086b8bd0408577a74f",
+    "src/Confectory.Core/FeatureBlueprint.cs": "ef6c95e18b5c076937ecb5c811c098e90ff492f5f4b40ff28bd464a45043be72",
+    "src/Confectory.Core/Generation.cs": "634221c867fd573fe50b1ae68e419b1d072936893839b049c5aa960457d3eb5a",
+    "src/Confectory.Core/Resolution.cs": "e907f2501f5f35eeae3044221879aacc0e2cf9b0391903d4872cce1cf7c5b49e",
+    "targets/element-authoring/BodyUnitMetadata.cs": "7483a4334ef0c65e4e3e66c5c594209c4958c01d3f2e718d1a84a9cd20d65905",
+    "packs/runtime-base/README.md": "a0383a219b518efc2abd2cd8e9b31205c3244397b715191b69cdc450a84c5146",
+    "tests/Confectory.Tests/RuntimeBaseTests.cs": "c175202cdba784011093e2100868ee48a03ddb46d101c2aed82d8e2935247d6c",
+    "tests/probes/v480_nested_property_contracts.py": "47f0a1ff4baf572429f9306d93d0ed1aca5b14038fc0a17a961043a80d0c42d7"
+  },
+  "selectedReferenceProbe": {
+    "schema": 1,
+    "referenceZIP": "reference/site-ui/Confectory-Editor-Prototype-v480.zip",
+    "referenceZIPsha256": "0489844c8c6d90f7cdc8ea0e80628f487dcfb27f2c871b19367a635212d3c5bd",
+    "entry": "Confectory-v480/dist/blueprint.js",
+    "entrySha256": "2b79e21da1ef4dfecc2ca7826a52989494e3382256ca0eeca3a2979926234319",
+    "sourceRanges": {
+      "functionBlueprintTarget": [
+        36,
+        42
+      ],
+      "blueprintSignatureFields": [
+        66,
+        69
+      ],
+      "blueprintForSignature": [
+        70,
+        78
+      ],
+      "blueprintExecutionScope": [
+        104,
+        109
+      ],
+      "blueprintExecutionOutputs": [
+        110,
+        115
+      ],
+      "blueprintExecutionPlan": [
+        208,
+        215
+      ],
+      "blueprintBuildStamp": [
+        216,
+        220
+      ],
+      "blueprintPropertyNeedsTarget": [
+        245,
+        245
+      ],
+      "blueprintResourceField": [
+        236,
+        236
+      ],
+      "blueprintFieldsCompatible": [
+        246,
+        251
+      ],
+      "blueprintLocalField": [
+        80,
+        80
+      ],
+      "blueprintLocalValueValid": [
+        81,
+        86
+      ],
+      "blueprintExpressionVariables": [
+        89,
+        89
+      ],
+      "openInternal": [
+        606,
+        606
+      ],
+      "saveDefinition": [
+        920,
+        944
+      ]
+    },
+    "scope": "Selected actual reference editing/validation functions with declared fixture helpers; no prototype browser, graph runtime or C# execution",
+    "fixtureHelpers": [
+      "schema lookup",
+      "concept ancestry",
+      "signature fields/serialization",
+      "render/save callbacks"
+    ],
+    "passed": 19,
+    "checks": [
+      "private child keeps outer object owner",
+      "enter child clones parent draft",
+      "internal target uses child draft",
+      "save child returns to parent",
+      "save child changes only owned parent node",
+      "child and pin IDs remain stable",
+      "child save leaves root object definition unchanged",
+      "child edit invalidates parent semantic stamp",
+      "layout and completion marker do not change stamp",
+      "signature remap is positional and retains graph IDs",
+      "concept default property uses self",
+      "feature default property requires target",
+      "explicit target requires target even on concept",
+      "property field resolves stable field ID",
+      "derived target is compatible with base target",
+      "unrelated target type is incompatible",
+      "self property local accepts inherited owner",
+      "self property local rejects unrelated or feature owner",
+      "own graph termination is return"
+    ],
+    "editingCallbacks": {
+      "renders": 2,
+      "saves": 2
+    },
+    "observations": {
+      "explicitSelfFlagNeedsTargetOnFeature": false,
+      "planActionCarriesOnlyIdAndKind": [
+        "id",
+        "kind"
+      ],
+      "noRuntimeObjectReferenceOrCallFrameExecuted": true
+    }
+  },
+  "metadataRefusalProbe": {
+    "schema": 1,
+    "sourceCommit": "aec157e8a1cb6b78ac56b28562934abbb68a9615",
+    "scope": "actual read-only element-authoring metadata host; no C# body compile or execution",
+    "cases": [
+      {
+        "case": "graph",
+        "request": {
+          "operation": "featureBlueprintDescribe",
+          "featureSource": "function Review::Value (int n) -> int {}",
+          "graph": {
+            "schema": 1,
+            "profile": "sync-acyclic-alias-locals-v1",
+            "feature": "Review::Value",
+            "contractHash": "6ed4d8050bfbcdbdb1e33bc5bd3bf7058a9dad87cdd66d49ce3fa4333256a63f",
+            "entry": "child",
+            "nodes": [
+              {
+                "id": "child",
+                "kind": "graph",
+                "control": "next",
+                "intent": "Read-only unsupported-contract probe",
+                "signature": {
+                  "args": [
+                    {
+                      "type": "int",
+                      "name": "value"
+                    }
+                  ],
+                  "return": "int"
+                },
+                "arguments": {
+                  "value": {
+                    "input": "n"
+                  }
+                }
+              }
+            ],
+            "edges": [],
+            "exits": {}
+          }
+        },
+        "result": {
+          "state": "invalid",
+          "diagnostics": [
+            {
+              "code": "GRAPH_NODE_KIND",
+              "subject": "child"
+            }
+          ],
+          "sourceWritten": false,
+          "executed": false
+        },
+        "hostResponse": {
+          "ok": true,
+          "result": {
+            "state": "invalid",
+            "diagnostics": [
+              {
+                "code": "GRAPH_NODE_KIND",
+                "subject": "child"
+              }
+            ],
+            "sourceWritten": false,
+            "executed": false
+          }
+        }
+      },
+      {
+        "case": "property",
+        "request": {
+          "operation": "featureBlueprintDescribe",
+          "featureSource": "function Review::Value (int n) -> int {}",
+          "graph": {
+            "schema": 1,
+            "profile": "sync-acyclic-alias-locals-v1",
+            "feature": "Review::Value",
+            "contractHash": "6ed4d8050bfbcdbdb1e33bc5bd3bf7058a9dad87cdd66d49ce3fa4333256a63f",
+            "entry": "child",
+            "nodes": [
+              {
+                "id": "child",
+                "kind": "property",
+                "control": "next",
+                "intent": "Read-only unsupported-contract probe",
+                "signature": {
+                  "args": [
+                    {
+                      "type": "int",
+                      "name": "value"
+                    }
+                  ],
+                  "return": "int"
+                },
+                "arguments": {
+                  "value": {
+                    "input": "n"
+                  }
+                }
+              }
+            ],
+            "edges": [],
+            "exits": {}
+          }
+        },
+        "result": {
+          "state": "invalid",
+          "diagnostics": [
+            {
+              "code": "GRAPH_NODE_KIND",
+              "subject": "child"
+            }
+          ],
+          "sourceWritten": false,
+          "executed": false
+        },
+        "hostResponse": {
+          "ok": true,
+          "result": {
+            "state": "invalid",
+            "diagnostics": [
+              {
+                "code": "GRAPH_NODE_KIND",
+                "subject": "child"
+              }
+            ],
+            "sourceWritten": false,
+            "executed": false
+          }
+        }
+      },
+      {
+        "case": "object function parameter",
+        "request": {
+          "operation": "featureBlueprintDescribe",
+          "featureSource": "function Review::Value (object target) -> int {}",
+          "graph": {}
+        },
+        "result": {
+          "state": "invalid",
+          "diagnostics": [
+            {
+              "code": "TYPE",
+              "subject": "Unsupported contract type 'object'"
+            }
+          ],
+          "sourceWritten": false,
+          "executed": false
+        },
+        "hostResponse": {
+          "ok": true,
+          "result": {
+            "state": "invalid",
+            "diagnostics": [
+              {
+                "code": "TYPE",
+                "subject": "Unsupported contract type 'object'"
+              }
+            ],
+            "sourceWritten": false,
+            "executed": false
+          }
+        }
+      }
+    ],
+    "hostSha256": "52500ab06efb91bd20cf6e63c752951ddd9f54e4d4faef863a067a5ac05626d5",
+    "passed": 3,
+    "allResponsesReplayedAndMatched": true
+  },
+  "existingRuntimeBaseTest": {
+    "method": "RuntimeBaseTests.test_lifecycle_and_provider_locality",
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "seconds": 12.436,
+    "stdout": "PASS RuntimeBaseTests.test_lifecycle_and_provider_locality\n1 passed, 0 failed, 0 skipped; 12.436s\n",
+    "logSha256": "06977f0ed7c86dbd63fbd5b4210f4aaa7fb73cc1249000e9e9af20394ea3ba55",
+    "scope": "Existing scalar owner/instance/subscription/disposal model; not concept fields or nested runtime"
+  },
+  "remainingDecisions": {
+    "integerExpressionOverflow": "Await existing user reply: error versus unchecked wrap; no assumption or expression implementation",
+    "propertyRuntimeReceiver": "Caller-owned live instance versus declaration/project data, and current read versus per-call snapshot; proposed live/current, not selected"
+  },
+  "proofLimits": [
+    "Selected actual reference functions use explicit schema/ancestry/serialization/render fixtures; no browser run",
+    "Metadata refusals do not compile or execute a C# graph body",
+    "Existing RuntimeBase scalar lifecycle does not provide general concept property storage",
+    "No new nested/property execution or full v480 UI regression claimed"
+  ]
+}
