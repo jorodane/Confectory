@@ -3,10 +3,10 @@ lock(state){
  var units=state["units"]!.AsObject();
  foreach(var conversion in units){if(conversion.Value?["conversionOrigin"] is null||conversion.Value["baseline"]?.ToString()!="missing")continue;string implementationId=conversion.Value["conversionOrigin"]!["id"]!.ToString();if(id==implementationId||id==conversion.Key||id.StartsWith(conversion.Key+"/node:",StringComparison.Ordinal))return System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(new[]{implementationId,conversion.Key},System.Linq.Enumerable.Select(System.Linq.Enumerable.Where(units,p=>p.Key.StartsWith(conversion.Key+"/node:",StringComparison.Ordinal)&&p.Value!["baseline"]?.ToString()=="missing"),p=>p.Key)));}
 var selected=units[id]??throw new ArgumentException("Owned source required");bool ownsCreation=selected["kind"]!.ToString()=="object"&&System.Linq.Enumerable.Any(units,p=>p.Value!["kind"]!.ToString()=="implementation"&&p.Value["baseline"]?.ToString()=="missing"&&p.Value["creationOwner"]?.ToString()==id);if(selected["baseline"]?.ToString()!="missing"&&!ownsCreation)return Array.Empty<string>();
- bool IsNewGraphNode(string candidate){int marker=candidate.LastIndexOf("/node:",StringComparison.Ordinal);return marker>0&&units[candidate[..marker]]?["baseline"]?.ToString()=="missing";}
+ bool IsNewGraphNode(string candidate){int marker=candidate.IndexOf("/node:",StringComparison.Ordinal);return marker>0&&units[candidate[..marker]]?["baseline"]?.ToString()=="missing";}
  var group=new System.Collections.Generic.List<string>();
  if(selected["kind"]!.ToString()=="blueprint-node"&&!IsNewGraphNode(id)){
-  string graphId=id[..id.LastIndexOf("/node:",StringComparison.Ordinal)];group.Add(graphId);foreach(var unit in units)if(unit.Value!["kind"]!.ToString()=="blueprint-node"&&unit.Value["baseline"]?.ToString()=="missing"&&unit.Key.StartsWith(graphId+"/node:",StringComparison.Ordinal))group.Add(unit.Key);
+  string graphId=id[..id.IndexOf("/node:",StringComparison.Ordinal)];group.Add(graphId);foreach(var unit in units)if(unit.Value!["kind"]!.ToString()=="blueprint-node"&&unit.Value["baseline"]?.ToString()=="missing"&&unit.Key.StartsWith(graphId+"/node:",StringComparison.Ordinal))group.Add(unit.Key);
  }else{
   foreach(var unit in units)if(unit.Value!["baseline"]?.ToString()=="missing"&&(unit.Value["kind"]!.ToString()!="blueprint-node"||IsNewGraphNode(unit.Key)))group.Add(unit.Key);
   foreach(var unit in units)if(unit.Value!["path"]!.ToString()==System.IO.Path.GetFileName(state["project"]!.ToString())){group.Add(unit.Key);break;}

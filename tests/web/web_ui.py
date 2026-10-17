@@ -39,7 +39,7 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
   main=project/'main.celem';main.write_text(main.read_text().replace('{','{ use function ReferenceApi::Work;use implementation ReferenceApi::Body;',1))
   source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+'registry ReferenceApi '+json.dumps(str(ref/'pack.cpack'))+';dependency ReferenceApi version "1";'+source[index:])
  env['CONFECTORY_WEB_PROJECT']=str(manifest)
- if kind in ['node-tasks','blueprint','blueprint-implicit','blueprint-external-ref','blueprint-camera','blueprint-create','call-wrapper','registered-call','placed-find','locals','ref-nodes','alias-locals']:
+ if kind in ['node-tasks','blueprint','blueprint-implicit','blueprint-external-ref','blueprint-nested','blueprint-camera','blueprint-create','call-wrapper','registered-call','placed-find','locals','ref-nodes','alias-locals']:
   fixture=report['nodeTaskFixture']
   typename='long' if kind.startswith('blueprint') or kind in ['call-wrapper','registered-call','placed-find','locals','ref-nodes','alias-locals'] else 'int'
   (project/'NodeValue.celem').write_text(fixture['feature']);(project/'NodeValueBody.celem').write_text('implementation Example.ButtonGame::NodeValueBody for Example.ButtonGame::NodeValue ('+typename+' n) -> '+typename+' {blueprint common "node-value.graph.json";}')
@@ -253,6 +253,9 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
     elif kind=='ref-nodes':
      from v480_ref_nodes import verify_ref_nodes
      verify_ref_nodes(page,project,mount,send,envelope,settle,restart_actual_host)
+    elif kind=='blueprint-nested':
+     from v480_nested import verify_nested
+     verify_nested(page,project,mount,send,envelope,settle,restart_actual_host)
     elif kind=='alias-locals':
      from v480_alias_locals import verify_alias_locals
      verify_alias_locals(page,project,mount,send,envelope,settle,restart_actual_host)

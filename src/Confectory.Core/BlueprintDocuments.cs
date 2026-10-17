@@ -24,9 +24,10 @@ public static class BlueprintDocuments
         else if (kind == "blueprint")
         {
             Require(id.Contains("/body:", StringComparison.Ordinal), "Explicit implementation target source required");
-            Require(document["profile"]?.ToString() is FeatureBlueprint.Profile or FeatureBlueprint.ImplicitProfile or FeatureBlueprint.MultiOutputProfile or FeatureBlueprint.LocalsProfile or FeatureBlueprint.RefNodesProfile or FeatureBlueprint.ExternalRefsProfile or FeatureBlueprint.AliasLocalsProfile, "Supported Blueprint profile required");
+            Require(document["profile"]?.ToString() is FeatureBlueprint.Profile or FeatureBlueprint.ImplicitProfile or FeatureBlueprint.MultiOutputProfile or FeatureBlueprint.LocalsProfile or FeatureBlueprint.RefNodesProfile or FeatureBlueprint.ExternalRefsProfile or FeatureBlueprint.AliasLocalsProfile or FeatureBlueprint.NestedProfile, "Supported Blueprint profile required");
             Require(Regex.IsMatch(document["feature"]?.ToString() ?? "", @"\A[A-Za-z_][A-Za-z_0-9]*(?:\.[A-Za-z_][A-Za-z_0-9]*)*::[A-Za-z_][A-Za-z_0-9]*\z", RegexOptions.CultureInvariant), "Qualified feature identity required");
             Require(document["nodes"] is JsonArray && document["edges"] is JsonArray && document["exits"] is JsonObject, "Graph source collections required");
+            if(document["profile"]?.ToString()==FeatureBlueprint.NestedProfile)BlueprintTree.Nodes(document).ToArray();
             var ids = new HashSet<string>(StringComparer.Ordinal);
             foreach (var node in document["nodes"]!.AsArray())
             {
@@ -74,13 +75,23 @@ public static class BlueprintDocuments
             if(feature.Signature!.Args.Any(p=>p.IsRef)&&!FeatureBlueprint.SupportsExternalRefs(graph["profile"]?.ToString()))graph["profile"]=FeatureBlueprint.ExternalRefsProfile;
             else if(feature.Signature.Args.Any(p=>p.IsOut)&&graph["profile"]?.ToString() is FeatureBlueprint.Profile or FeatureBlueprint.ImplicitProfile)graph["profile"]=FeatureBlueprint.MultiOutputProfile;
         }
+        if(graph["profile"]?.ToString()==FeatureBlueprint.NestedProfile){
+            string ownedTarget=request["bodyTarget"]?.GetValue<string>()??throw new ArgumentException("Explicit owned private graph body target required");
+            Require(implementation.Bodies.TryGetValue(ownedTarget,out var ownedBody)&&ownedBody.SourceKind=="blueprint","Owned Blueprint body target required");
+        }
         var result=FeatureBlueprint.Execute(new JsonObject
         {
             ["operation"] = request["definitionsOnly"]?.GetValue<bool>() == true ? "featureBlueprintNodes" : "featureBlueprintDescribe", ["featureSource"] = featureSource,
-            ["implementationContext"] = FeatureBlueprint.ImplementationContext(implementation), ["featureContracts"] = contracts, ["graph"] = graph,
+            ["implementationContext"] = FeatureBlueprint.ImplementationContext(implementation), ["bodyTarget"] = request["bodyTarget"]?.DeepClone(), ["featureContracts"] = contracts, ["graph"] = graph,
             ["implementations"] = request["implementations"]?.DeepClone()
         });
         if(rebind)result["reboundGraph"]=graph.DeepClone();
+        if(request["privatePath"] is JsonValue privatePath && privatePath.GetValue<string>().Length>0 && result["state"]?.ToString()!="invalid")
+        {
+            Require(!rebind,"Private contract belongs to its parent node signature");
+            BlueprintTree.Select(graph,privatePath.GetValue<string>());
+            result=BlueprintTree.SelectDescription(result,privatePath.GetValue<string>());
+        }
         return result;
     }
 
@@ -91,15 +102,16 @@ public static class BlueprintDocuments
         var graph = JsonNode.Parse(draft ?? File.ReadAllText(graphPath))?.AsObject() ?? throw new ArgumentException("Graph source object required");
         Validate(bodyId, "blueprint", graph.ToJsonString());
         var paths = new HashSet<string>(OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
-        foreach (var node in graph["nodes"]!.AsArray())
+        foreach (var entry in BlueprintTree.Nodes(graph))
         {
+            var node = entry.Node;
             if (node!["kind"]?.ToString() != "code" || node["implementation"] is null) continue;
             string path = PackPaths.Owned(Path.GetDirectoryName(graphPath)!, node["implementation"]!.GetValue<string>());
             path = PackPaths.Owned(root, Path.GetRelativePath(root, path));
             Require(paths.Add(path), "Each node needs its own source file");
             units.Add(new JsonObject
             {
-                ["id"] = bodyId + "/node:" + node["id"]!.GetValue<string>(), ["kind"] = "blueprint-node", ["path"] = Path.GetRelativePath(root, path)
+                ["id"] = BlueprintTree.SourceId(bodyId, entry.Key), ["kind"] = "blueprint-node", ["path"] = Path.GetRelativePath(root, path)
             });
         }
         return units;

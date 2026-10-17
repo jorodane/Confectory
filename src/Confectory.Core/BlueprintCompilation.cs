@@ -14,7 +14,7 @@ internal sealed class BlueprintCompilation(Registry registry, string target, Tar
     public Dictionary<string, FunctionSignature> EntrySignatures { get; } = new(StringComparer.Ordinal);
     public JsonArray Nodes { get; } = new();
     public JsonArray Warnings {
-        get { var rows=new JsonArray();foreach(var pair in Receipts)foreach(var warning in pair.Value?["warnings"]?.AsArray()??new JsonArray()){var row=warning!.DeepClone().AsObject();row["implementation"]=pair.Key;row["graphPath"]=pair.Value!["graphMap"]?["path"]?.DeepClone();rows.Add(row);}return rows; }
+        get { var rows=new JsonArray();foreach(var pair in Receipts)foreach(var warning in (pair.Value?["warnings"]?.AsArray()??new JsonArray()).Concat(pair.Value?["nestedWarnings"]?.AsArray()??new JsonArray())){var row=warning!.DeepClone().AsObject();row["implementation"]=pair.Key;row["graphPath"]=pair.Value!["graphMap"]?["path"]?.DeepClone();rows.Add(row);}return rows; }
     }
 
     private string Read(string path)
@@ -68,13 +68,15 @@ internal sealed class BlueprintCompilation(Registry registry, string target, Tar
         if(tool.Info["blueprintProfile"]?.ToString()!=requestedProfile&&!(tool.Info["blueprintProfiles"] is JsonArray profiles&&profiles.Any(p=>p?.ToString()==requestedProfile)))throw new BuildError("BLUEPRINT_TARGET_UNSUPPORTED","Selected compiler does not validate this Blueprint profile",body.Loc);
         var implementations = new JsonObject();
         var nodePaths = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var node in graph["nodes"]?.AsArray() ?? throw new BuildError("BLUEPRINT_GRAPH", "Graph nodes required", new(path)))
+        var tree = BlueprintTree.Nodes(graph).ToDictionary(e => e.Key, StringComparer.Ordinal);
+        foreach (var entry in tree.Values)
         {
+            var node = entry.Node;
             if (node?["kind"]?.ToString() != "code") continue;
             string id = node["id"]?.GetValue<string>() ?? throw new BuildError("BLUEPRINT_GRAPH", "Node ID required", new(path));
             if (node["implementation"] is not JsonValue file) continue; // Missing stays explicit, never synthesized.
             string nodePath = PackPaths.Owned(Path.GetDirectoryName(path)!, file.GetValue<string>());
-            string ownerKey = implementation.Id + "/" + id;
+            string ownerKey = implementation.Id + "/" + (graph["profile"]?.ToString()==FeatureBlueprint.NestedProfile ? path+"/" : "") + entry.Key;
             if (nodeOwners.TryGetValue(nodePath, out var owner) && owner != ownerKey) throw new BuildError("BLUEPRINT_NODE_OWNERSHIP", "Node source belongs to another feature node", new(nodePath));
             nodeOwners[nodePath] = ownerKey;
             if (!nodePaths.Add(nodePath)) throw new BuildError("BLUEPRINT_NODE_OWNERSHIP", "Each node owns a separate implementation file", new(nodePath));
@@ -82,14 +84,14 @@ internal sealed class BlueprintCompilation(Registry registry, string target, Tar
             var record = JsonNode.Parse(Read(nodePath))?.AsObject() ?? throw new BuildError("BLUEPRINT_NODE", "Node record object required", new(nodePath));
             if (record["schema"]?.GetValue<int>() != 1 || record["node"]?.ToString() != id)
                 throw new BuildError("BLUEPRINT_NODE_OWNERSHIP", "Node record schema and stable node ID must match", new(nodePath));
-            implementations[id] = record;
+            implementations[entry.Key] = record;
         }
         var contracts = new JsonObject();
         foreach (string id in implementation.Imports.Values.Select(i => i.Id).Distinct(StringComparer.Ordinal)) contracts[id] = Contract(id);
         var request = new JsonObject
         {
             ["operation"] = nodeId is null ? "featureBlueprintAssemble" : "featureBlueprintNodeProbe", ["node"] = nodeId, ["featureSource"] = Contract(implementation.Function!),
-            ["implementationContext"] = FeatureBlueprint.ImplementationContext(implementation), ["graph"] = graph, ["featureContracts"] = contracts, ["implementations"] = implementations
+            ["implementationContext"] = FeatureBlueprint.ImplementationContext(implementation), ["bodyTarget"] = implementation.Bodies.First(p=>p.Value==body).Key, ["graph"] = graph, ["featureContracts"] = contracts, ["implementations"] = implementations
         };
         var result = FeatureBlueprint.Execute(request);
         if (result["state"]?.ToString() != (nodeId is null ? "source-assembled" : "node-source-assembled"))
@@ -125,12 +127,13 @@ internal sealed class BlueprintCompilation(Registry registry, string target, Tar
         foreach (var map in receipt["sourceMap"]!.AsArray())
         {
             string id = map!["node"]!.GetValue<string>();
-            var definition = graph["nodes"]!.AsArray().Single(n => n!["id"]!.ToString() == id)!;
+            var entry = tree[id];
+            var definition = entry.Node;
             bool code = definition["kind"]!.ToString() == "code";
             string sourcePath = code ? PackPaths.Owned(Path.GetDirectoryName(path)!, definition["implementation"]!.GetValue<string>()) : path;
             map["path"] = Path.GetRelativePath(Path.GetDirectoryName(registry.ProjectPath)!, sourcePath).Replace('\\', '/');
             map["sourceSha256"] = observations[sourcePath];
-            map["jsonPointer"] = code ? "/source" : "/nodes/" + graph["nodes"]!.AsArray().IndexOf(definition);
+            map["jsonPointer"] = code ? "/source" : entry.Pointer;
         }
         Receipts[implementation.Id] = receipt;
         EnsureUnchanged();

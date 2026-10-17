@@ -9,7 +9,7 @@ try{
   if(verification is null||!System.Text.Json.Nodes.JsonNode.DeepEquals(verification,proof["nodeVerification"])||verification["mode"]?.ToString()!="independent-node"||verification["independentCompilerRequired"]?.GetValue<bool>()!=true||verification["compilerConfirmed"]?.GetValue<bool>()!=true||verification["executed"]?.GetValue<bool>()!=false)return false;
   foreach(string field in new[]{"definitionHash","sourceHash","compilerIdentity","artifactKey","assemblySha256","referenceSha256"})if(!System.Text.RegularExpressions.Regex.IsMatch(verification[field]?.ToString()??"",@"^[a-f0-9]{64}$"))return false;
   if(verification["definitionHash"]!.ToString()!=assignment["definitionHash"]!.ToString())return false;
-  string assigned=assignment["id"]!.ToString();int bodyMarker=assigned.IndexOf("/body:",StringComparison.Ordinal),nodeMarker=assigned.LastIndexOf("/node:",StringComparison.Ordinal);
+  string assigned=assignment["id"]!.ToString();int bodyMarker=assigned.IndexOf("/body:",StringComparison.Ordinal),nodeMarker=assigned.IndexOf("/node:",StringComparison.Ordinal);
   if(bodyMarker<0||nodeMarker<=bodyMarker||verification["bodyTarget"]?.ToString()!=assigned[(bodyMarker+6)..nodeMarker])return false;
   var nodeFile=System.Linq.Enumerable.SingleOrDefault(receipt["files"]!.AsArray(),file=>file!["id"]?.ToString()==assigned);
   if(nodeFile is null||nodeFile["sha256"]?.ToString()!=verification["sourceHash"]!.ToString()||string.IsNullOrWhiteSpace(verification["sourcePath"]?.ToString())||nodeFile["relative"]!.ToString().Replace('\\','/')!=verification["sourcePath"]!.ToString().Replace('\\','/'))return false;

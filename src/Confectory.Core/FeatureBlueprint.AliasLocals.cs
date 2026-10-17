@@ -3,7 +3,7 @@ namespace Confectory.Core;
 public static partial class FeatureBlueprint
 {
     public const string AliasLocalsProfile="sync-acyclic-alias-locals-v1",AliasLocalsGenerator="feature-blueprint-source-v8";
-    public static bool SupportsExternalRefs(string? profile)=>profile is ExternalRefsProfile or AliasLocalsProfile;
+    public static bool SupportsExternalRefs(string? profile)=>profile is ExternalRefsProfile or AliasLocalsProfile or NestedProfile;
     static void ValidateAliasLocals(Dictionary<string,JsonObject> locals,Element feature,Dictionary<string,Node> nodes)
     {
         foreach(var local in locals.Where(p=>p.Value["source"] is JsonObject)){

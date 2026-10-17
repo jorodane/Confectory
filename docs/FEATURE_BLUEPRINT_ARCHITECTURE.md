@@ -179,3 +179,5 @@ graph별 카메라·확대·배치·선택도 private presentation이다. 헤더
 
 
 후속 [입력·노드 결과 슬롯의 별칭 로컬](BLUEPRINT_ALIAS_LOCALS.md)은 별도 v8 profile에서 이름 있는 실제 저장 슬롯 참조와 set/ref 쓰기를 지원한다. 초기값 로컬의 독립 저장과 구 profile·out 경고·외부 ref/out 보호는 유지하며 property/계산식·중첩 graph 완료로 확대하지 않는다.
+
+후속 [소유 private graph](BLUEPRINT_PRIVATE_GRAPHS.md)는 별도 v9 profile에서 구현/body target/전체 부모 경로에 자식을 소유시키고 기존 typed ABI로 호출·복귀한다. 호출별 로컬과 명시적 Review/Confirm을 유지하며 부모 캡처·새 receiver ABI는 추가하지 않는다.

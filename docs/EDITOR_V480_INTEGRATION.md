@@ -326,3 +326,5 @@ v480의 clampCanvasZoom/createSteppedZoomWheel/zoomAt과 실행 헤더·핀 동�
 후속 [입력·노드 결과 슬롯의 별칭 로컬](BLUEPRINT_ALIAS_LOCALS.md)은 별도 v8 profile에서 이름 있는 실제 저장 슬롯 참조와 set/ref 쓰기를 지원한다. 초기값 로컬의 독립 저장과 구 profile·out 경고·외부 ref/out 보호는 유지하며 property/계산식·중첩 graph 완료로 확대하지 않는다.
 
 후속 [중첩 graph·property 계약 조사](BLUEPRINT_NESTED_PROPERTY_CONTRACT_REVIEW.md)는 보존 v480 함수의 편집·검증 19건, 현재 metadata의 미지원 거부 3건과 기존 RuntimeBase 수명 검사를 구분해 기록한다. 동기·비순환 private 자식의 구현 가능 범위와 property의 live instance/읽기 시점 결정을 정리했으며 제품 구현·계산식 overflow 정책을 추가하지 않았다.
+
+후속 [소유 private graph](BLUEPRINT_PRIVATE_GRAPHS.md)는 별도 v9 profile의 기존 typed input/ref/out/output과 동기·비순환 자식 호출, 전체 부모 경로 원본·CAS·cold 복원을 연결한다. property/계산식 정책과 새 receiver ABI는 포함하지 않는다.

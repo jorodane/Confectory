@@ -29,7 +29,7 @@ lock(state){
  }
  foreach(var pair in state["units"]!.AsObject()){
   var unit=pair.Value!;if(unit["kind"]!.ToString()!="blueprint-node"||unit["draft"] is null||unit["baseline"]?.ToString()!="missing")continue;
-  int marker=pair.Key.LastIndexOf("/node:",StringComparison.Ordinal);string graphId=pair.Key[..marker];if(!ids.Contains(pair.Key)&&!ids.Contains(graphId))continue;
+  int marker=pair.Key.IndexOf("/node:",StringComparison.Ordinal);string graphId=pair.Key[..marker];if(!ids.Contains(pair.Key)&&!ids.Contains(graphId))continue;
   if(!ids.Contains(pair.Key)||!changed.Contains(graphId))throw new InvalidOperationException("New node review requires its body and changed owning graph together");
   var graph=calls.Read.Invoke(handle,graphId);int bodyMarker=graphId.IndexOf("/body:",StringComparison.Ordinal);string implementationId=graphId[..bodyMarker];var implementation=calls.Read.Invoke(handle,implementationId);
   var located=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("bodyUnits",new System.Text.Json.Nodes.JsonObject{["project"]=state["project"]!.DeepClone(),["id"]=implementationId,["path"]=implementation[2],["text"]=implementation[3],["blueprintDrafts"]=new System.Text.Json.Nodes.JsonObject{[graphId]=graph[3]}}.ToJsonString()))!;

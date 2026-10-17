@@ -1,28 +1,36 @@
 if(operation is not ("create" or "remove")||definition.Length>16384||ids.Length<2||ids.Length>64||ids.Length!=revisions.Length||ids.Length!=hashes.Length||new System.Collections.Generic.HashSet<string>(ids,StringComparer.Ordinal).Count!=ids.Length)throw new ArgumentException("Explicit bounded node operation and observed sources required");
-if(operation=="create"&&ids.Length==64)throw new InvalidOperationException("New node would exceed the source read budget; retain input and reduce the observed graph scope");
+var requested=System.Text.Json.Nodes.JsonNode.Parse(definition)!.AsObject();string privatePath=requested["privatePath"]?.GetValue<string>()??"";requested.Remove("privatePath");bool privateCreation=requested["kind"]?.ToString()=="graph";requested.Remove("kind");
+if(operation=="create"&&!privateCreation&&ids.Length==64)throw new InvalidOperationException("New node would exceed the source read budget; retain input and reduce the observed graph scope");
 if(nodeId.Length>128||!System.Text.RegularExpressions.Regex.IsMatch(nodeId,@"\A[A-Za-z_][A-Za-z_0-9.-]*\z"))throw new ArgumentException("Stable node ID required");
 string key="Confectory.EditWorkspace."+handle;var state=AppDomain.CurrentDomain.GetData(key) as System.Text.Json.Nodes.JsonObject??throw new ObjectDisposedException("EditWorkspace");
 string Hash(string text)=>Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(text))).ToLowerInvariant();
 var sources=new System.Collections.Generic.Dictionary<string,string[]>(StringComparer.Ordinal);
 int bytes=0;for(int i=0;i<ids.Length;i++){var source=calls.Read.Invoke(handle,ids[i]);bytes=checked(bytes+System.Text.Encoding.UTF8.GetByteCount(source[3]));if(bytes>2097152)throw new ArgumentException("Blueprint source budget exceeded");if(revisions[i]<0||source[4]!=revisions[i].ToString(System.Globalization.CultureInfo.InvariantCulture)||Hash(source[3])!=hashes[i])throw new InvalidOperationException("Blueprint changed; retain input and read the current source");sources.Add(ids[i],source);}
 int marker=graphId.IndexOf("/body:",StringComparison.Ordinal);if(marker<0||!sources.TryGetValue(graphId,out var graphSource)||graphSource[1]!="blueprint"||!sources.TryGetValue(graphId[..marker],out var implementation)||implementation[1]!="implementation")throw new ArgumentException("Observed owned graph and implementation required");
-string root=state["root"]!.ToString(),project=state["project"]!.ToString(),ownedId=graphId+"/node:"+nodeId;
-var graph=System.Text.Json.Nodes.JsonNode.Parse(graphSource[3])!.AsObject();var nodes=graph["nodes"]!.AsArray();
+string root=state["root"]!.ToString(),project=state["project"]!.ToString(),nodeOwnerId=graphId+(privatePath.Length==0?"":"/node:"+privatePath.Replace("/","/node:",StringComparison.Ordinal)),ownedId=nodeOwnerId+"/node:"+nodeId;
+var rootGraph=System.Text.Json.Nodes.JsonNode.Parse(graphSource[3])!.AsObject();var graph=rootGraph;
+if(privatePath.Length>0){var parts=privatePath.Split('/');if(parts.Length>8)throw new ArgumentException("Private depth budget");foreach(string part in parts){var child=System.Linq.Enumerable.Single(graph["nodes"]!.AsArray(),n=>n!["id"]!.ToString()==part)!;if(child["kind"]?.ToString()!="graph")throw new ArgumentException("Owned private graph required");graph=child["graph"]!.AsObject();}}
+var nodes=graph["nodes"]!.AsArray();
 string? newPath=null,newText=null;bool removePending=false;
 var locators=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("bodyUnits",new System.Text.Json.Nodes.JsonObject{["project"]=project,["id"]=implementation[0],["path"]=implementation[2],["text"]=implementation[3],["blueprintDrafts"]=new System.Text.Json.Nodes.JsonObject{[graphId]=graphSource[3]}}.ToJsonString()))!;
 var located=System.Linq.Enumerable.SingleOrDefault(locators["units"]!.AsArray(),unit=>unit!["id"]!.ToString()==graphId&&unit["kind"]!.ToString()=="blueprint");
 if(located is null||located["path"]!.ToString()!=graphSource[2])throw new InvalidOperationException("Implementation graph locator changed; refresh owned source first");
-foreach(var existing in nodes){if(existing!["kind"]!.ToString()!="code")continue;string existingId=graphId+"/node:"+existing["id"]!.ToString();if(!sources.TryGetValue(existingId,out var observed)||!System.Linq.Enumerable.Any(locators["units"]!.AsArray(),unit=>unit!["id"]!.ToString()==existingId&&unit["kind"]!.ToString()=="blueprint-node"&&unit["path"]!.ToString()==observed[2]))throw new InvalidOperationException("Observe the current owned node sources before changing graph membership");}
+foreach(var leaf in locators["units"]!.AsArray()){string existingId=leaf!["id"]!.ToString();if(leaf["kind"]?.ToString()!="blueprint-node"||!existingId.StartsWith(graphId+"/node:",StringComparison.Ordinal))continue;if(!sources.TryGetValue(existingId,out var observed)||leaf["path"]!.ToString()!=observed[2])throw new InvalidOperationException("Observe all owned node sources before changing graph membership");}
 if(operation=="create"){
  if(System.Linq.Enumerable.Any(nodes,node=>node!["id"]!.ToString()==nodeId))throw new ArgumentException("Node identity already exists");
- var requested=System.Text.Json.Nodes.JsonNode.Parse(definition)!.AsObject();if(System.Linq.Enumerable.Any(requested,p=>p.Key is not ("intent" or "control" or "signature")))throw new ArgumentException("Only a new node definition belongs in this operation");
+ if(System.Linq.Enumerable.Any(requested,p=>p.Key is not ("intent" or "control" or "signature")))throw new ArgumentException("Only a new node definition belongs in this operation");
+ if(privateCreation){
+  if(rootGraph["profile"]?.ToString()!="sync-acyclic-nested-v1")throw new InvalidOperationException("Explicitly upgrade to the private graph profile first");
+  nodes.Add(new System.Text.Json.Nodes.JsonObject{["id"]=nodeId,["kind"]="graph",["intent"]=requested["intent"]!.DeepClone(),["control"]=requested["control"]!.DeepClone(),["signature"]=requested["signature"]!.DeepClone(),["arguments"]=new System.Text.Json.Nodes.JsonObject(),["graph"]=new System.Text.Json.Nodes.JsonObject{["schema"]=1,["profile"]="sync-acyclic-nested-v1",["entry"]="",["nodes"]=new System.Text.Json.Nodes.JsonArray(),["edges"]=new System.Text.Json.Nodes.JsonArray(),["exits"]=new System.Text.Json.Nodes.JsonObject()}});
+ }else{
  string relative="nodes/"+Guid.NewGuid().ToString("N")+".node.json";newPath=System.IO.Path.GetRelativePath(root,System.IO.Path.GetFullPath(System.IO.Path.Combine(root,System.IO.Path.GetDirectoryName(graphSource[2])??"",relative)));
  nodes.Add(new System.Text.Json.Nodes.JsonObject{["id"]=nodeId,["kind"]="code",["intent"]=requested["intent"]!.DeepClone(),["control"]=requested["control"]!.DeepClone(),["signature"]=requested["signature"]!.DeepClone(),["implementation"]=relative});
  newText=new System.Text.Json.Nodes.JsonObject{["schema"]=1,["node"]=nodeId,["definitionHash"]=new string('0',64),["source"]=""}.ToJsonString();
  calls.Metadata.Invoke("blueprintSourceValidate",System.Text.Json.JsonSerializer.Serialize(new{id=ownedId,kind="blueprint-node",text=newText}));
+ }
 }else{
  if(state["units"]?[graphId]?["conversionOrigin"] is not null&&nodeId=="body")throw new InvalidOperationException("Confirm the whole body conversion before removing its original code node");
- var selected=System.Linq.Enumerable.Single(nodes,node=>node!["id"]!.ToString()==nodeId)!;
+ var selected=System.Linq.Enumerable.Single(nodes,node=>node!["id"]!.ToString()==nodeId)!;if(selected["kind"]?.ToString()=="graph"&&selected["graph"]!["nodes"]!.AsArray().Count>0)throw new InvalidOperationException("Remove internal nodes explicitly before removing their private graph");
  if(graph["entry"]?.ToString()==nodeId||System.Linq.Enumerable.Any(graph["edges"]!.AsArray(),edge=>edge!["from"]!.ToString()==nodeId||edge["to"]!.ToString()==nodeId))throw new InvalidOperationException("Disconnect the node's execution routes and start connection before removal");
  bool Uses(System.Text.Json.Nodes.JsonNode? value){if(value is System.Text.Json.Nodes.JsonObject obj){if(obj["node"]?.ToString()==nodeId)return true;foreach(var pair in obj)if(Uses(pair.Value))return true;}else if(value is System.Text.Json.Nodes.JsonArray array){foreach(var item in array)if(Uses(item))return true;}return false;}
  if(Uses(graph["locals"])||Uses(graph["exits"])||System.Linq.Enumerable.Any(nodes,node=>node!["id"]!.ToString()!=nodeId&&Uses(node["arguments"])))throw new InvalidOperationException("Remove the node's value references before removal");
@@ -35,16 +43,16 @@ if(operation=="create"){
  nodes.Remove(selected);
 }
 var contracts=new System.Text.Json.Nodes.JsonObject();foreach(var pair in sources)if(pair.Value[1]=="function")contracts[pair.Key]=pair.Value[3];
-var checkedGraph=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("blueprintDescribeOwned",new System.Text.Json.Nodes.JsonObject{["project"]=project,["definitionsOnly"]=true,["id"]=implementation[0],["text"]=implementation[3],["graph"]=graph.DeepClone(),["draftContracts"]=contracts}.ToJsonString()))!;
+var checkedGraph=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("blueprintDescribeOwned",new System.Text.Json.Nodes.JsonObject{["project"]=project,["definitionsOnly"]=true,["id"]=implementation[0],["text"]=implementation[3],["graph"]=rootGraph.DeepClone(),["bodyTarget"]=graphId[(marker+6)..],["draftContracts"]=contracts}.ToJsonString()))!;
 if(checkedGraph["state"]?.ToString()!="node-definitions")throw new InvalidOperationException(checkedGraph.ToJsonString());
-string text=graph.ToJsonString();calls.Metadata.Invoke("blueprintSourceValidate",System.Text.Json.JsonSerializer.Serialize(new{id=graphId,kind="blueprint",text}));
-int prospective=checked(bytes-System.Text.Encoding.UTF8.GetByteCount(graphSource[3])+System.Text.Encoding.UTF8.GetByteCount(text));if(operation=="create")prospective=checked(prospective+System.Text.Encoding.UTF8.GetByteCount(newText!));else if(sources.TryGetValue(ownedId,out var removed))prospective-=System.Text.Encoding.UTF8.GetByteCount(removed[3]);
+string text=rootGraph.ToJsonString();calls.Metadata.Invoke("blueprintSourceValidate",System.Text.Json.JsonSerializer.Serialize(new{id=graphId,kind="blueprint",text}));
+int prospective=checked(bytes-System.Text.Encoding.UTF8.GetByteCount(graphSource[3])+System.Text.Encoding.UTF8.GetByteCount(text));if(operation=="create"&&!privateCreation)prospective=checked(prospective+System.Text.Encoding.UTF8.GetByteCount(newText!));else if(sources.TryGetValue(ownedId,out var removed))prospective-=System.Text.Encoding.UTF8.GetByteCount(removed[3]);
 if(prospective>2097152)throw new InvalidOperationException("Blueprint would exceed its source read budget; retain input and reduce the candidate");
 lock(state){
  if(!ReferenceEquals(AppDomain.CurrentDomain.GetData(key),state))throw new ObjectDisposedException("EditWorkspace");
  for(int i=0;i<ids.Length;i++){var unit=state["units"]![ids[i]];var observed=sources[ids[i]];if(unit is null||unit["path"]!.ToString()!=observed[2]||unit["kind"]!.ToString()!=observed[1]||unit["revision"]!.GetValue<long>()!=revisions[i]||Hash(unit["draft"]!.ToString())!=hashes[i])throw new InvalidOperationException("Blueprint changed; retain input and read the current source");}
  foreach(var contract in checkedGraph["contractVersions"]!.AsObject())if(state["units"]?[contract.Key]?["kind"]?.ToString()=="function"&&!sources.ContainsKey(contract.Key))throw new InvalidOperationException("Observe owned feature contracts before changing graph membership");
- if(operation=="create"){
+ if(operation=="create"&&!privateCreation){
   string full=System.IO.Path.GetFullPath(System.IO.Path.Combine(root,newPath!));if(!full.StartsWith(root+System.IO.Path.DirectorySeparatorChar,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal))throw new ArgumentException("Owned node path required");
   for(System.IO.FileSystemInfo? current=new System.IO.FileInfo(full);current is not null;current=current is System.IO.FileInfo file?file.Directory:((System.IO.DirectoryInfo)current).Parent){if(current.LinkTarget is not null)throw new ArgumentException("Node destination must remain owned without links");if(current.FullName==root)break;}
   if(state["units"]![ownedId] is not null||System.IO.File.Exists(full)||System.IO.Directory.Exists(full)||System.Linq.Enumerable.Any(state["units"]!.AsObject(),unit=>string.Equals(System.IO.Path.GetFullPath(System.IO.Path.Combine(root,unit.Value!["path"]!.ToString())),full,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal)))throw new InvalidOperationException("New node destination already belongs to another source");

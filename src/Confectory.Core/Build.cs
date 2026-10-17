@@ -204,7 +204,7 @@ public sealed class Builder
         var item = JsonData.Object(artifact); item["key"] = key;
         if (blueprint is not null) foreach (var implementation in selected) if (blueprint.Receipts[implementation.Id] is JsonObject receipt) {
             receipt["compilerValidated"] = true; receipt["implementationArtifactKey"] = key;
-            foreach (var node in receipt["nodes"]!.AsArray()) node!["compilerValidated"] = node["includedInSource"]!.GetValue<bool>();
+            foreach (var node in receipt["nodes"]!.AsArray().Concat(receipt["nestedNodes"]?.AsArray() ?? new JsonArray())) node!["compilerValidated"] = node["includedInSource"]!.GetValue<bool>();
         }
         var result = item.DeepClone().AsObject();
         result["implementations"] = JsonSerializer.SerializeToNode(selected.Select(x => x.Id).ToArray());

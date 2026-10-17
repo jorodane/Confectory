@@ -1,0 +1,567 @@
+{
+  "schema": 1,
+  "baseCommit": "23367e6106b83911ebf35a5e472911eb9b47ddb0",
+  "referenceMainCommit": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+  "profile": "sync-acyclic-nested-v1",
+  "generator": "feature-blueprint-source-v9",
+  "finalSourceHashes": {
+    "examples/editor-home/WebBundle.csbody": "8a8053dfec3cddd5f4bb89ef191f02657093f366d3aa934d0ec89657ce6af851",
+    "examples/editor-home/ui/app.js": "30675156e43a5f1fec9c893500f6bb75fbbabc9919711e3bebb9d126f6e2ac5f",
+    "examples/editor-home/ui/blueprint-pins.js": "8a2737496a9753af101e9fcbe0b19ca2ccb90b6d49aaf32d577768814190f633",
+    "examples/editor-home/ui/blueprint.js": "2c34f31c442316799568033f95b296a38c039d5c4c75af38a1d3c7c36e2b4b0b",
+    "packs/development-tools/OpenNode.csbody": "e1d250ff6f988019f297929b3375ca7b3463e68ac8d11c52fc35201b1609656f",
+    "packs/edit-workspace/BlueprintCall.csbody": "fd9dd098763ecbdeddf04901bc7c497526b6fb2839de383898cdcd5949b2665e",
+    "packs/edit-workspace/BlueprintNode.csbody": "e409781cb26666d70daae5441b94962d2b02fdee91b8c3aa28160a3a5b78f2c9",
+    "packs/edit-workspace/CreationGroup.csbody": "385f6e4116fd8100dce201f99c431214e754ef70ff3e3d5c1c89972e56bb7abf",
+    "packs/edit-workspace/ValidateReviewSelection.csbody": "487a84e98f44fd3b246e6f2cea0644b5ca15af3288ddc896524ac77491453c29",
+    "packs/pack-workspace/Blueprint.csbody": "a6ef5cf45d36315bcc6676579dcae9281e9ff6de5c6ff5592ec791a0a868f1e7",
+    "packs/project-ai/VerifyCompletion.csbody": "02afddad4ee35307a695337eea713d71ca04dc7dcd622ae677ca930aa2fd892e",
+    "packs/project-ai/VerifyNodeCompilation.csbody": "ed0de5c81fa2d88513a3427e2f501e45cabdaabc27b880e6677314d19d3b05e7",
+    "src/Confectory.Core/BlueprintCompilation.cs": "c32528b7442aa68c26c6800bfd64bfa705287ed604cec15fb79d7fce07e02086",
+    "src/Confectory.Core/BlueprintDocuments.cs": "c64d0b9dcd55b32dc93576a99e00a988558650ae2ab0e3184aa7e6e45bac562c",
+    "src/Confectory.Core/BlueprintTree.cs": "d1c83c7f947b5f5d273e22761e07dda28913a712f1df2fc72cfb4de040a8a808",
+    "src/Confectory.Core/Build.cs": "54b59022027d6b0f7132951d783254adfb585526b5260490cb0819d309d6cb09",
+    "src/Confectory.Core/FeatureBlueprint.AliasLocals.cs": "05599d2848b2f0b5dd02890509f6cb63413c666f14baeea37a955db077a9f6d8",
+    "src/Confectory.Core/FeatureBlueprint.Nested.cs": "6f287fc30f90cf25506d69514c0bb6d61d6f9f6ba2176549a75635f1cbb3a59d",
+    "src/Confectory.Core/FeatureBlueprint.cs": "15d4b6d4f2d29510af98da89eb7419c825be95ebeafbceae76e43739984e1538",
+    "targets/dotnet/Program.cs": "fdc1504c3427145b1aeb80a9c7ad6e7da55bd4e6e860a1d4a5ce344a8177e386",
+    "tests/Confectory.Tests/NestedAuthoringTests.cs": "dd12ce8b89453a8b86cfa095257b3e7e0810ac377928c3da0bc61e9c77cfcfb7",
+    "tests/Confectory.Tests/NestedBlueprintTests.cs": "03409f6fe077b8be9e134c4c9df72f15468286dc037b4dfa24a12c12d938e7d3",
+    "tests/Confectory.Tests/Program.cs": "df9681a184623277819a306bf39ad21d61fb049eecb13c173e9042d10d16c154",
+    "tests/Confectory.Tests/WebUITests.cs": "c3348b73610fb8baef41cf0bb142e30104a4f75758f316fbc121be696e3d9355",
+    "tests/web/v480_nested.py": "e395de513c331ee3eef66102d5c07850bb9ddb590cf755cbf78059e4f1356791",
+    "tests/web/web_ui.py": "e4c30ad23fc1e69aa607ffe5fab65ca79d3b31d8605d9fd9b8a32c3459392801"
+  },
+  "stages": [
+    {
+      "log": "confectory-nested-property-review/nested-second-core.log",
+      "sha256": "fc7a63517e4c325baed2c97815e2aa8c83e7c41e54b8b68028b48c269f71bc23",
+      "scope": "Generated child wrapper was incorrectly audited as a user body: NODE_RESERVED_NAME",
+      "sourceQualification": "earlier product/test revision; not final regression proof",
+      "passedMethods": [],
+      "failedMethods": [
+        "NestedBlueprintTests.test_private_nested_ref_out_aliases_return_to_parent_and_locals_reset_per_call",
+        "NestedBlueprintTests.test_private_siblings_keep_same_local_ids_and_branch_return_boundary"
+      ],
+      "completed": true,
+      "passed": 0,
+      "failed": 2,
+      "skipped": 0,
+      "seconds": 4.878
+    },
+    {
+      "log": "confectory-nested-property-review/nested-first-author.log",
+      "sha256": "f9097221959217af2460df9d420751e87a1f18560c291b90501bee5b2c518195",
+      "scope": "Test consumer omitted fully qualified LINQ methods",
+      "sourceQualification": "earlier product/test revision; not final regression proof",
+      "passedMethods": [],
+      "failedMethods": [
+        "NestedAuthoringTests.test_private_nested_owned_sources_cold_peer_cas_and_atomic_compiler_confirm"
+      ],
+      "completed": true,
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 9.885
+    },
+    {
+      "log": "confectory-nested-property-review/nested-third-core.log",
+      "sha256": "211ad46d7c2fb6c1912a9e0bfceeeab90e6cb8045198149012251b5ff022388e",
+      "scope": "Real CS0158 label collision between nested generated scopes",
+      "sourceQualification": "earlier product/test revision; not final regression proof",
+      "passedMethods": [],
+      "failedMethods": [
+        "NestedBlueprintTests.test_private_nested_ref_out_aliases_return_to_parent_and_locals_reset_per_call",
+        "NestedBlueprintTests.test_private_siblings_keep_same_local_ids_and_branch_return_boundary"
+      ],
+      "completed": true,
+      "passed": 0,
+      "failed": 2,
+      "skipped": 0,
+      "seconds": 5.407
+    },
+    {
+      "log": "confectory-nested-property-review/nested-fourth-focused.log",
+      "sha256": "dafd6a90cfbc44471deac233726f9523322df06223a32cfca0db318bc3e0e702",
+      "scope": "Two actual runtime cases plus owned source/CAS/cold/group Confirm",
+      "sourceQualification": "earlier product/test revision; not final regression proof",
+      "passedMethods": [
+        "NestedBlueprintTests.test_private_nested_ref_out_aliases_return_to_parent_and_locals_reset_per_call",
+        "NestedBlueprintTests.test_private_siblings_keep_same_local_ids_and_branch_return_boundary",
+        "NestedAuthoringTests.test_private_nested_owned_sources_cold_peer_cas_and_atomic_compiler_confirm"
+      ],
+      "failedMethods": [],
+      "completed": true,
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 36.275
+    },
+    {
+      "log": "confectory-nested-property-review/nested-expanded-core.log",
+      "sha256": "4de7b841f94f0222bd82f67b082145b14104695578c6cd3035eb8d008f039df6",
+      "scope": "Three passes; imported function test fixture declared cross-pack provider without dependency",
+      "sourceQualification": "earlier product/test revision; not final regression proof",
+      "passedMethods": [
+        "NestedBlueprintTests.test_private_nested_ref_out_aliases_return_to_parent_and_locals_reset_per_call",
+        "NestedBlueprintTests.test_private_observations_are_rechecked_after_real_compiler_and_original_proof_is_retained",
+        "NestedBlueprintTests.test_private_siblings_keep_same_local_ids_and_branch_return_boundary"
+      ],
+      "failedMethods": [
+        "NestedBlueprintTests.test_private_imports_are_explicit_and_unused_child_bodies_are_compiled_without_execution"
+      ],
+      "completed": true,
+      "passed": 3,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 16.071
+    },
+    {
+      "log": "confectory-nested-property-review/nested-first-ui.log",
+      "sha256": "f28579a45ae9f0a3130f50594457ea351eff2b48c9a85098367e452dfde9af9e",
+      "scope": "Actual Chromium graph/code creation, navigation, retained input and compiler Confirm",
+      "sourceQualification": "earlier product/test revision; not final regression proof",
+      "passedMethods": [
+        "WebUITests.test_actual_editor_v480_private_nested_navigation_source_cold_and_confirm"
+      ],
+      "failedMethods": [],
+      "completed": true,
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 133.998
+    },
+    {
+      "log": "confectory-nested-property-review/nested-fifth-focused.log",
+      "sha256": "078ba155452442d7591f889125987211d21ef5dc9ce39f0725f311566deaed89",
+      "scope": "Fixture omitted existing Value provider; new root owner stamp also staled legacy root bodies on explicit profile upgrade",
+      "sourceQualification": "earlier product/test revision; not final regression proof",
+      "passedMethods": [
+        "NestedBlueprintTests.test_private_nested_ref_out_aliases_return_to_parent_and_locals_reset_per_call",
+        "NestedBlueprintTests.test_private_observations_are_rechecked_after_real_compiler_and_original_proof_is_retained",
+        "NestedBlueprintTests.test_private_paths_separate_identical_local_definitions_and_reject_parent_capture_and_depth",
+        "NestedBlueprintTests.test_private_siblings_keep_same_local_ids_and_branch_return_boundary",
+        "NestedAuthoringTests.test_private_nested_owned_sources_cold_peer_cas_and_atomic_compiler_confirm"
+      ],
+      "failedMethods": [
+        "NestedBlueprintTests.test_private_imports_are_explicit_and_unused_child_bodies_are_compiled_without_execution",
+        "WebUITests.test_actual_editor_v480_private_nested_navigation_source_cold_and_confirm"
+      ],
+      "completed": true,
+      "passed": 5,
+      "failed": 2,
+      "skipped": 0,
+      "seconds": 97.155
+    },
+    {
+      "log": "confectory-nested-property-review/nested-sixth-focused.log",
+      "sha256": "b723c0c25ce6f5c4a57382c08044bbceb1d239f14ff505488970157b3a104bbe",
+      "scope": "Five core runtime/ownership/budget cases, public editing and actual Chromium",
+      "sourceQualification": "same runtime generator before scoped-warning reporting and two expanded ownership/capability test assertions",
+      "passedMethods": [
+        "NestedBlueprintTests.test_private_imports_are_explicit_and_unused_child_bodies_are_compiled_without_execution",
+        "NestedBlueprintTests.test_private_nested_ref_out_aliases_return_to_parent_and_locals_reset_per_call",
+        "NestedBlueprintTests.test_private_observations_are_rechecked_after_real_compiler_and_original_proof_is_retained",
+        "NestedBlueprintTests.test_private_paths_separate_identical_local_definitions_and_reject_parent_capture_and_depth",
+        "NestedBlueprintTests.test_private_siblings_keep_same_local_ids_and_branch_return_boundary",
+        "NestedAuthoringTests.test_private_nested_owned_sources_cold_peer_cas_and_atomic_compiler_confirm",
+        "WebUITests.test_actual_editor_v480_private_nested_navigation_source_cold_and_confirm"
+      ],
+      "failedMethods": [],
+      "completed": true,
+      "passed": 7,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 126.492
+    },
+    {
+      "log": "confectory-private-graphs/supplemental.log",
+      "sha256": "742e8b70840f258aefd184b96c0f82b45546bf0a499c05e499e11cce8bfeda4e",
+      "scope": "Owner/body target assertions pass; capability test fixture lacked BrowseDirectory provider",
+      "sourceQualification": "same broad product before scoped-warning reporting; fixture composition incomplete",
+      "passedMethods": [
+        "NestedBlueprintTests.test_private_paths_separate_identical_local_definitions_and_reject_parent_capture_and_depth"
+      ],
+      "failedMethods": [
+        "NestedAuthoringTests.test_private_nested_owned_sources_cold_peer_cas_and_atomic_compiler_confirm"
+      ],
+      "completed": true,
+      "passed": 1,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 0.545
+    },
+    {
+      "log": "confectory-private-graphs/second-supplemental.log",
+      "sha256": "dcd2296939581db5ec2888d4e91265fabed519358e8cdb2b555f240527b9658b",
+      "scope": "Exact nested capability grants four tools, refuses parent graph, invalidates stage after ancestor change; owner/body target/forged context checks",
+      "sourceQualification": "broad-source.json before scoped-warning reporting; final capability assertions present",
+      "passedMethods": [
+        "NestedBlueprintTests.test_private_paths_separate_identical_local_definitions_and_reject_parent_capture_and_depth",
+        "NestedAuthoringTests.test_private_nested_owned_sources_cold_peer_cas_and_atomic_compiler_confirm"
+      ],
+      "failedMethods": [],
+      "completed": true,
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 31.272
+    },
+    {
+      "log": "confectory-private-graphs/final-engine.log",
+      "sha256": "f0071f584dd3019d92d72df0ed0ecfa8bd598ff949b13bba269f3698ff7b0f9a",
+      "scope": "Legacy and v3-v9 graph, conversion, typed out/ref/locals, nested runtime, public CAS/cold/Confirm and compiler source race",
+      "sourceQualification": "broad-source.json: before the three-file nested warning reporting correction",
+      "passedMethods": [
+        "FeatureBlueprintTests.test_blueprint_disconnected_current_node_body_is_compiled_without_execution",
+        "FeatureBlueprintTests.test_blueprint_existing_feature_calls_use_typed_imports_and_contract_fences",
+        "FeatureBlueprintTests.test_blueprint_fixed_inputs_branch_compiler_reuse_node_replacement_and_legacy_preservation",
+        "FeatureBlueprintTests.test_blueprint_independent_probe_checks_an_unselected_body_without_running_or_publishing",
+        "FeatureBlueprintTests.test_blueprint_invalid_graphs_stale_contracts_and_dominating_values",
+        "FeatureBlueprintTests.test_blueprint_new_feature_registration_contract_group_compiler_and_cold_restore",
+        "FeatureBlueprintTests.test_blueprint_node_diagnostics_static_isolation_and_failed_build_retains_receipt",
+        "FeatureBlueprintTests.test_blueprint_node_only_worker_draft_save_restore_and_compiler_confirm",
+        "FeatureBlueprintTests.test_blueprint_node_task_assignment_scoped_dispatch_adoption_and_cold_no_replay",
+        "FeatureBlueprintTests.test_blueprint_owned_function_reference_call_import_cas_history_and_execution",
+        "FeatureBlueprintTests.test_blueprint_owned_node_creation_removal_review_group_and_cold_restore",
+        "FeatureBlueprintTests.test_blueprint_source_change_during_real_compile_is_not_published",
+        "ImplicitBlueprintTests.test_implicit_branch_terminations_warn_separately_and_real_errors_remain_errors",
+        "ImplicitBlueprintTests.test_implicit_empty_start_has_typed_defaults_without_hiding_void_or_type_errors",
+        "ImplicitBlueprintTests.test_implicit_join_tracks_must_may_and_a_specific_unassigned_branch_witness",
+        "BlueprintConversionTests.test_public_body_conversion_atomic_group_cas_origin_cold_and_compiler_confirm",
+        "BlueprintConversionTests.test_whole_body_context_preserves_calls_scope_this_recursion_names_targets_and_crlf",
+        "BlueprintConversionTests.test_whole_out_body_conversion_preserves_original_member_scoped_import_and_other_target",
+        "BlueprintConversionTests.test_whole_void_body_conversion_runs_once_and_probe_does_not_execute",
+        "MultiOutputBlueprintTests.test_android_and_browser_metadata_templates_round_trip_out_roles_in_managed_code",
+        "MultiOutputBlueprintTests.test_code_node_named_out_results_and_real_csharp_out_errors_remain_checked",
+        "MultiOutputBlueprintTests.test_empty_multiple_outs_have_typed_reference_defaults_without_cpp_or_execution",
+        "MultiOutputBlueprintTests.test_join_has_separate_must_may_and_unassigned_witness_for_each_output",
+        "MultiOutputBlueprintTests.test_named_outputs_warn_independently_at_each_branch_end_and_run_defaults",
+        "MultiOutputBlueprintTests.test_out_contract_modes_and_legacy_hash_are_explicit_and_stable",
+        "MultiOutputBlueprintTests.test_typed_call_named_outputs_use_selected_object_scope_and_dominate_consumers",
+        "MultiOutputAuthoringTests.test_contract_append_out_is_explicit_cas_cold_body_preserving_and_compiler_confirmed",
+        "MultiOutputAuthoringTests.test_object_blank_and_reference_factories_preserve_out_modes_and_positional_output_names",
+        "LocalBlueprintTests.test_generated_unused_local_guard_does_not_assign_to_user_underscore_parameter",
+        "LocalBlueprintTests.test_local_array_is_shared_within_call_and_fresh_across_calls_and_invalid_locals_refuse",
+        "LocalBlueprintTests.test_local_set_branch_order_per_call_reset_and_per_end_out_warning",
+        "LocalBlueprintTests.test_local_set_reads_current_storage_while_node_result_retains_snapshot",
+        "LocalAuthoringTests.test_local_public_profile_cas_exact_initializers_cold_and_graph_only_compiler_confirm",
+        "NestedBlueprintTests.test_private_imports_are_explicit_and_unused_child_bodies_are_compiled_without_execution",
+        "NestedBlueprintTests.test_private_nested_ref_out_aliases_return_to_parent_and_locals_reset_per_call",
+        "NestedBlueprintTests.test_private_observations_are_rechecked_after_real_compiler_and_original_proof_is_retained",
+        "NestedBlueprintTests.test_private_paths_separate_identical_local_definitions_and_reject_parent_capture_and_depth",
+        "NestedBlueprintTests.test_private_siblings_keep_same_local_ids_and_branch_return_boundary",
+        "NestedAuthoringTests.test_private_nested_owned_sources_cold_peer_cas_and_atomic_compiler_confirm",
+        "AliasLocalTests.test_alias_contracts_and_all_use_paths_require_current_typed_storage",
+        "AliasLocalTests.test_array_result_alias_ref_replacement_changes_the_actual_result_variable",
+        "AliasLocalTests.test_input_alias_uses_real_caller_refs_or_distinct_parameter_slots",
+        "AliasLocalTests.test_named_out_alias_mutates_node_snapshot_without_borrowing_external_caller_output",
+        "AliasLocalTests.test_result_alias_ref_and_set_mutate_original_slot_while_value_argument_keeps_snapshot",
+        "AliasLocalAuthoringTests.test_alias_public_source_cas_cold_delete_producer_and_graph_only_compiler_confirm",
+        "ExternalRefTests.test_external_ref_array_replacement_keeps_managed_variable_alias_and_initial_value",
+        "ExternalRefTests.test_external_ref_exception_keeps_alias_write_and_does_not_apply_end_defaults",
+        "ExternalRefTests.test_external_ref_factories_and_typed_reference_forward_actual_caller_storage",
+        "ExternalRefTests.test_external_ref_forwarding_preserves_two_ref_out_aliases_and_distinct_caller_storage",
+        "ExternalRefTests.test_external_ref_join_defaults_only_unassigned_out_and_keeps_later_alias_writes",
+        "ExternalRefTests.test_out_only_typed_reference_factory_forwards_one_caller_out_variable_twice",
+        "ExternalRefTests.test_whole_out_only_conversion_preserves_two_out_arguments_using_one_caller_variable",
+        "ExternalRefTests.test_whole_ref_conversion_preserves_raw_context_recursion_target_and_same_caller_cells",
+        "ExternalRefAuthoringTests.test_public_external_ref_conversion_atomic_group_cas_origin_cold_and_real_aliases",
+        "RefNodeTests.test_code_ref_arguments_alias_same_local_immediately_and_out_warning_remains_per_end",
+        "RefNodeTests.test_ordinary_csharp_ref_calls_preserve_same_slot_aliases_including_ref_out_same_caller_cell",
+        "RefNodeTests.test_ref_array_parameters_alias_the_reference_slot_when_replacing_the_array",
+        "RefNodeTests.test_ref_to_value_input_and_preceding_node_result_use_real_storage_without_caller_copyback",
+        "RefNodeTests.test_typed_ref_call_uses_selected_object_scope_and_real_aliases",
+        "RefAuthoringTests.test_ref_public_typed_call_profile_cas_cold_alias_and_ref_conversion_preview"
+      ],
+      "failedMethods": [],
+      "completed": true,
+      "passed": 60,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 980.464
+    },
+    {
+      "log": "confectory-private-graphs/final-ui.log",
+      "sha256": "38db00111a96ce1251e0391e905fc7639c56f13a1adbda91c25a5b430820b798",
+      "scope": "Actual Chromium old/new graph, declaration, module, imports, aliases and nested creation/navigation/input restore/Confirm",
+      "sourceQualification": "broad-source.json: before the three-file nested warning reporting correction",
+      "passedMethods": [
+        "WebUITests.test_actual_editor_implicit_ends_whole_body_conversion_cold_and_confirm",
+        "WebUITests.test_actual_editor_v424_typed_declaration_views_cas_confirm_and_restart",
+        "WebUITests.test_actual_editor_v480_alias_locals_slots_set_cold_and_confirm",
+        "WebUITests.test_actual_editor_v480_blueprint_camera_header_pins_tabs_and_cold_input",
+        "WebUITests.test_actual_editor_v480_existing_feature_reference_call_and_cold_contract",
+        "WebUITests.test_actual_editor_v480_external_ref_graph_body_conversion_cold_and_confirm",
+        "WebUITests.test_actual_editor_v480_local_values_sets_exact_initializer_cold_and_compiler_confirm",
+        "WebUITests.test_actual_editor_v480_module_interface_contract_default_and_cold_rebase",
+        "WebUITests.test_actual_editor_v480_named_out_contract_pins_ends_cold_and_compiler_confirm",
+        "WebUITests.test_actual_editor_v480_new_feature_contract_graph_group_and_cold_source",
+        "WebUITests.test_actual_editor_v480_private_nested_navigation_source_cold_and_confirm",
+        "WebUITests.test_actual_editor_v480_ref_node_storage_aliases_cold_and_compiler_confirm"
+      ],
+      "failedMethods": [],
+      "completed": true,
+      "passed": 12,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 921.526
+    },
+    {
+      "log": "confectory-private-graphs/final-managed.log",
+      "sha256": "effc88ffae36cddb76bfc2405cc852ed22d8351388d7f1653a3b2916f706e60c",
+      "scope": "Windows/Android managed compile only",
+      "sourceQualification": "broad-source.json: before the three-file nested warning reporting correction",
+      "passedMethods": [
+        "EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only"
+      ],
+      "failedMethods": [],
+      "completed": true,
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 140.497
+    },
+    {
+      "log": "confectory-private-graphs/post-warning-focused.log",
+      "sha256": "fbca03f8ef3df42a6f5acad2174a4121556cd1a9f6448693ba5a03b8b0ee1fe4",
+      "scope": "Six nested runtime/ownership/reporting cases plus exact four-tool capability/public CAS/cold/Confirm and actual Chromium",
+      "sourceQualification": "exact final 26 product/test source hashes",
+      "passedMethods": [
+        "NestedBlueprintTests.test_private_imports_are_explicit_and_unused_child_bodies_are_compiled_without_execution",
+        "NestedBlueprintTests.test_private_nested_ref_out_aliases_return_to_parent_and_locals_reset_per_call",
+        "NestedBlueprintTests.test_private_observations_are_rechecked_after_real_compiler_and_original_proof_is_retained",
+        "NestedBlueprintTests.test_private_paths_separate_identical_local_definitions_and_reject_parent_capture_and_depth",
+        "NestedBlueprintTests.test_private_siblings_keep_same_local_ids_and_branch_return_boundary",
+        "NestedBlueprintTests.test_private_unassigned_outputs_reach_build_warnings_with_full_call_path",
+        "NestedAuthoringTests.test_private_nested_owned_sources_cold_peer_cas_and_atomic_compiler_confirm",
+        "WebUITests.test_actual_editor_v480_private_nested_navigation_source_cold_and_confirm"
+      ],
+      "failedMethods": [],
+      "completed": true,
+      "passed": 8,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 132.504
+    }
+  ],
+  "proofLimits": [
+    "Private graph supports existing typed synchronous acyclic ABI only; no parent local capture or new receiver",
+    "Property instance/freshness and integer expression overflow await user answers; neither policy selected",
+    "Original C# operators, whole body calls/this/recursion context and previous profiles retained",
+    "Actual Chromium is the common web UI; managed profiles are compile-only, no native/device/account/paid model/user PC claim",
+    "Reference-source 19 checks from 23367e6 research are separate and not counted as runtime regression tests",
+    "Broad 60/12/1 gates precede the scoped-warning reporting correction; final supplemental 8 gates overlap, and are not summed. Only two reporting files and one test changed; all 23 other product/test files from that cohort retain their hashes."
+  ],
+  "failureCorrections": [
+    "Audit actual leaf C# bodies individually; generated wrappers remain part of real compilation",
+    "Qualify generated function/local/exit label prefixes by full scope",
+    "Qualify private definition ownership by implementation/body target/full parent path; preserve existing root code hashes during explicit profile upgrade",
+    "Supply explicit providers and qualified LINQ methods in owned test consumers"
+  ],
+  "runtimeObservations": {
+    "nestedCallerAliasedRefRefOut": [
+      "41,40",
+      "41,40"
+    ],
+    "nestedDistinctRefRefOut": "27,10,16,26",
+    "siblingLocalIDsAndBranchReturn": [
+      "11",
+      "-1",
+      "12"
+    ],
+    "publicBeforeAndAfterAtomicConfirm": [
+      "5",
+      "9"
+    ],
+    "privateSourceChangedDuringCompiler": "BLUEPRINT_SOURCE_CHANGED; previous latest retained",
+    "nestedUnassignedOutputs": {
+      "actualExecutableOutput": "0",
+      "privatePath": "outer/inner",
+      "outputs": [
+        "return",
+        "audit"
+      ],
+      "buildWarningCount": 1
+    }
+  },
+  "remainingScope": [
+    "property receiver/freshness",
+    "integer expression overflow",
+    "enum/compound ABI/custom execution ports",
+    "loops/async",
+    "whole v480 editing regression/native pixels"
+  ],
+  "broadSourceHashes": {
+    "examples/editor-home/WebBundle.csbody": "8a8053dfec3cddd5f4bb89ef191f02657093f366d3aa934d0ec89657ce6af851",
+    "examples/editor-home/ui/app.js": "30675156e43a5f1fec9c893500f6bb75fbbabc9919711e3bebb9d126f6e2ac5f",
+    "examples/editor-home/ui/blueprint-pins.js": "8a2737496a9753af101e9fcbe0b19ca2ccb90b6d49aaf32d577768814190f633",
+    "examples/editor-home/ui/blueprint.js": "2c34f31c442316799568033f95b296a38c039d5c4c75af38a1d3c7c36e2b4b0b",
+    "packs/development-tools/OpenNode.csbody": "e1d250ff6f988019f297929b3375ca7b3463e68ac8d11c52fc35201b1609656f",
+    "packs/edit-workspace/BlueprintCall.csbody": "fd9dd098763ecbdeddf04901bc7c497526b6fb2839de383898cdcd5949b2665e",
+    "packs/edit-workspace/BlueprintNode.csbody": "e409781cb26666d70daae5441b94962d2b02fdee91b8c3aa28160a3a5b78f2c9",
+    "packs/edit-workspace/CreationGroup.csbody": "385f6e4116fd8100dce201f99c431214e754ef70ff3e3d5c1c89972e56bb7abf",
+    "packs/edit-workspace/ValidateReviewSelection.csbody": "487a84e98f44fd3b246e6f2cea0644b5ca15af3288ddc896524ac77491453c29",
+    "packs/pack-workspace/Blueprint.csbody": "a6ef5cf45d36315bcc6676579dcae9281e9ff6de5c6ff5592ec791a0a868f1e7",
+    "packs/project-ai/VerifyCompletion.csbody": "02afddad4ee35307a695337eea713d71ca04dc7dcd622ae677ca930aa2fd892e",
+    "packs/project-ai/VerifyNodeCompilation.csbody": "ed0de5c81fa2d88513a3427e2f501e45cabdaabc27b880e6677314d19d3b05e7",
+    "src/Confectory.Core/BlueprintCompilation.cs": "1a5a533985bae7813bac10f55786daaf6f4f8f81403845da916fc5c10dc20d5e",
+    "src/Confectory.Core/BlueprintDocuments.cs": "c64d0b9dcd55b32dc93576a99e00a988558650ae2ab0e3184aa7e6e45bac562c",
+    "src/Confectory.Core/BlueprintTree.cs": "d1c83c7f947b5f5d273e22761e07dda28913a712f1df2fc72cfb4de040a8a808",
+    "src/Confectory.Core/Build.cs": "54b59022027d6b0f7132951d783254adfb585526b5260490cb0819d309d6cb09",
+    "src/Confectory.Core/FeatureBlueprint.AliasLocals.cs": "05599d2848b2f0b5dd02890509f6cb63413c666f14baeea37a955db077a9f6d8",
+    "src/Confectory.Core/FeatureBlueprint.Nested.cs": "1150e9c1532d6893a0eafabf5abe076c0e0924766b3e33fcf16c1181edc26cd7",
+    "src/Confectory.Core/FeatureBlueprint.cs": "15d4b6d4f2d29510af98da89eb7419c825be95ebeafbceae76e43739984e1538",
+    "targets/dotnet/Program.cs": "fdc1504c3427145b1aeb80a9c7ad6e7da55bd4e6e860a1d4a5ce344a8177e386",
+    "tests/Confectory.Tests/NestedAuthoringTests.cs": "dd12ce8b89453a8b86cfa095257b3e7e0810ac377928c3da0bc61e9c77cfcfb7",
+    "tests/Confectory.Tests/NestedBlueprintTests.cs": "6785e2cc1ef2375a4d14f9602925ed3edf45bddd277274fa86c1e5e2d33d67d4",
+    "tests/Confectory.Tests/Program.cs": "df9681a184623277819a306bf39ad21d61fb049eecb13c173e9042d10d16c154",
+    "tests/Confectory.Tests/WebUITests.cs": "c3348b73610fb8baef41cf0bb142e30104a4f75758f316fbc121be696e3d9355",
+    "tests/web/v480_nested.py": "e395de513c331ee3eef66102d5c07850bb9ddb590cf755cbf78059e4f1356791",
+    "tests/web/web_ui.py": "e4c30ad23fc1e69aa607ffe5fab65ca79d3b31d8605d9fd9b8a32c3459392801"
+  },
+  "changedAfterBroad": {
+    "src/Confectory.Core/BlueprintCompilation.cs": {
+      "before": "1a5a533985bae7813bac10f55786daaf6f4f8f81403845da916fc5c10dc20d5e",
+      "after": "c32528b7442aa68c26c6800bfd64bfa705287ed604cec15fb79d7fce07e02086"
+    },
+    "src/Confectory.Core/FeatureBlueprint.Nested.cs": {
+      "before": "1150e9c1532d6893a0eafabf5abe076c0e0924766b3e33fcf16c1181edc26cd7",
+      "after": "6f287fc30f90cf25506d69514c0bb6d61d6f9f6ba2176549a75635f1cbb3a59d"
+    },
+    "tests/Confectory.Tests/NestedBlueprintTests.cs": {
+      "before": "6785e2cc1ef2375a4d14f9602925ed3edf45bddd277274fa86c1e5e2d33d67d4",
+      "after": "03409f6fe077b8be9e134c4c9df72f15468286dc037b4dfa24a12c12d938e7d3"
+    }
+  },
+  "nestedWarningCorrectionProbe": {
+    "scope": "Selected actual metadata host request; same generated C# bytes before/after reporting correction, no C# body execution in this probe",
+    "request": {
+      "operation": "featureBlueprintAssemble",
+      "featureSource": "function Review::Value (int n) -> int {}",
+      "graph": {
+        "schema": 1,
+        "profile": "sync-acyclic-nested-v1",
+        "feature": "Review::Value",
+        "contractHash": "6ed4d8050bfbcdbdb1e33bc5bd3bf7058a9dad87cdd66d49ce3fa4333256a63f",
+        "entry": "child",
+        "nodes": [
+          {
+            "id": "child",
+            "kind": "graph",
+            "control": "next",
+            "intent": "Review child missing return warning",
+            "signature": {
+              "args": [
+                {
+                  "type": "int",
+                  "name": "n"
+                }
+              ],
+              "return": "int"
+            },
+            "arguments": {
+              "n": {
+                "input": "n"
+              }
+            },
+            "graph": {
+              "schema": 1,
+              "profile": "sync-acyclic-nested-v1",
+              "entry": "",
+              "nodes": [],
+              "edges": [],
+              "exits": {}
+            }
+          }
+        ],
+        "edges": [
+          {
+            "from": "child",
+            "port": "next",
+            "to": "exit:done"
+          }
+        ],
+        "exits": {
+          "done": {
+            "node": "child"
+          }
+        }
+      },
+      "implementationContext": {
+        "implementation": "Review::Body"
+      },
+      "bodyTarget": "common"
+    },
+    "bodyHashBefore": "7157cc3dd129da54e95318f367fe5fa9acefd05395dce742909160c0d970cb1d",
+    "bodyHashAfter": "7157cc3dd129da54e95318f367fe5fa9acefd05395dce742909160c0d970cb1d",
+    "generatedCSharpUnchanged": true,
+    "nestedWarningsBefore": null,
+    "nestedWarningsAfter": [
+      {
+        "severity": "warning",
+        "code": "GRAPH_RETURN_UNASSIGNED",
+        "subject": "$entry/entry",
+        "termination": {
+          "from": null,
+          "port": "entry",
+          "target": "end:$entry",
+          "missingOutputs": [
+            {
+              "name": "return",
+              "type": "int",
+              "assignedOnSomePaths": false,
+              "defaultValue": "0"
+            }
+          ],
+          "definitelyAssigned": false,
+          "assignedOnSomePaths": false,
+          "assignments": {
+            "return": {
+              "must": false,
+              "may": false
+            }
+          }
+        },
+        "missingOutputs": [
+          {
+            "name": "return",
+            "type": "int",
+            "assignedOnSomePaths": false,
+            "defaultValue": "0"
+          }
+        ],
+        "exampleUnassignedPath": [
+          {
+            "from": null,
+            "port": "entry",
+            "to": "end:$entry"
+          }
+        ],
+        "outputPaths": {
+          "return": [
+            {
+              "from": null,
+              "port": "entry",
+              "to": "end:$entry"
+            }
+          ]
+        },
+        "runtimePolicy": "csharp-type-default",
+        "privatePath": "child"
+      }
+    ]
+  },
+  "screenshots": [
+    {
+      "path": "docs/evidence/v480-integration/nested-child.png",
+      "sha256": "982eb2a0a5ecde4c873156f72d1749c7efa209e7e2c27d60ca0cf6adef2be091",
+      "scope": "actual Chromium, same final product"
+    },
+    {
+      "path": "docs/evidence/v480-integration/nested-published.png",
+      "sha256": "268d6d2269f261eeec2bdc61ec0b593dfe45870f3d183249bcb8447110569ed3",
+      "scope": "actual Chromium, same final product"
+    }
+  ]
+}
