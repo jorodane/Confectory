@@ -76,3 +76,6 @@
 .bp-output{position:relative;min-width:0}.bp-output-resize{position:absolute;left:0;top:0;bottom:0;width:7px;z-index:3;cursor:ew-resize;touch-action:none}.bp-output-resize:hover,.bp-output-resize:focus-visible{background:#8ba4b455;outline:1px solid #ffda9b}.bp-output-toggle{position:absolute;right:4px;top:4px;z-index:4;padding:2px 7px;font-size:18px}.bp-output.is-collapsed{padding:4px}.bp-output.is-collapsed>:not(.bp-output-toggle){display:none}
 
 .bp-output{overflow:hidden;padding:0;display:flex;flex-direction:column}.bp-output-content{flex:1;min-width:0;min-height:0;overflow:auto;padding:12px}
+
+/* Honor the existing busy state for non-button browser rows as well. */
+.browser-items [data-object][aria-disabled="true"]{pointer-events:none}

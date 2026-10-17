@@ -38,6 +38,12 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
   (ref/'Body.celem').write_text('implementation ReferenceApi::Body for ReferenceApi::Work (long input) -> long {body common "missing-never-read.csbody";}')
   main=project/'main.celem';main.write_text(main.read_text().replace('{','{ use function ReferenceApi::Work;use implementation ReferenceApi::Body;',1))
   source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+'registry ReferenceApi '+json.dumps(str(ref/'pack.cpack'))+';dependency ReferenceApi version "1";'+source[index:])
+ if kind=='reference-gestures':
+  (project/'RefStats.celem').write_text('schema Example.ButtonGame::RefStats {field peer single reference Example.ButtonGame::RefStats;field amount single general long;}')
+  for name,n in [('Peer',2),('OtherPeer',3)]: (project/(name+'.celem')).write_text('object Example.ButtonGame::'+name+' {use schema Example.ButtonGame::RefStats;data amount = '+str(n)+';}')
+  score=project/'Score.celem';score.write_text(score.read_text().replace('{','{use schema Example.ButtonGame::RefStats;data peer = Example.ButtonGame::Peer;data amount = 1;',1))
+  (project/'RefModule.celem').write_text('module Example.ButtonGame::RefModule {}')
+  raw=manifest.read_text();i=raw.rfind('}');manifest.write_text(raw[:i]+'element RefStats schema "RefStats.celem";element Peer object "Peer.celem";element OtherPeer object "OtherPeer.celem";element RefModule module "RefModule.celem";'+raw[i:])
  env['CONFECTORY_WEB_PROJECT']=str(manifest)
  if kind in ['node-tasks','blueprint','blueprint-implicit','blueprint-external-ref','blueprint-nested','blueprint-property','blueprint-code-regions','blueprint-methods','blueprint-enum-plan','blueprint-switch','blueprint-camera','blueprint-create','call-wrapper','registered-call','placed-find','locals','ref-nodes','alias-locals']:
   fixture=report['nodeTaskFixture']
@@ -327,6 +333,9 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
     elif kind=='schema-exact':
      from v424_schema_exact import verify_schema_exact
      verify_schema_exact(page,project,mount,send,envelope,settle,restart_actual_host)
+    elif kind=='reference-gestures':
+     from v480_reference_navigation import verify_reference_navigation
+     verify_reference_navigation(page,project,mount,send,envelope,settle,restart_actual_host)
     elif kind=='instant-table':
      from v424_instant_table import verify_instant_table
      verify_instant_table(page,project,mount,send,envelope,settle,restart_actual_host)

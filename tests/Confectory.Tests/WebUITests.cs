@@ -301,6 +301,12 @@ public sealed class WebUITests : TestCase
         var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/web_ui.py"),Fixture.Repo,report,"schema-exact"},timeoutSeconds:600);
         True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS exact schema scalar"),run.Stdout+run.Stderr);
     }
+    public void test_actual_editor_v480_reference_gestures_columns_document_links_and_cold()
+    {
+        var built=new Builder(Path.Combine(Fixture.Repo,"examples/editor-home/project.cpack"),"linux").Build();string report=Path.Combine(f.Root,"v480-reference-navigation.json");File.WriteAllText(report,built.ToJsonString());
+        var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/web_ui.py"),Fixture.Repo,report,"reference-gestures"},timeoutSeconds:420);
+        Console.WriteLine(run.Stdout.Trim());True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS actual v480 reference navigation"),run.Stdout+run.Stderr);
+    }
     public void test_actual_editor_v424_instant_table_typed_fill_cas_and_cold_restart()
     {
         var built=new Builder(Path.Combine(Fixture.Repo,"examples/editor-home/project.cpack"),"linux").Build();string report=Path.Combine(f.Root,"v424-instant-table.json");File.WriteAllText(report,built.ToJsonString());

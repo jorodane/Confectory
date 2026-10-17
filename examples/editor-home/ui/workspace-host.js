@@ -86,7 +86,7 @@ export function createActualWorkspace(api) {
     const cached=detached.get(scope+'|'+layout.key);
     if(cached)return runtime.openWindow(layout.key,cached.title,cached.width,cached.height,{refresh:true});
     if(layout.key==='source'){api.editor();return runtime.state.windows.get('source');}
-    if(layout.key==='browser'||layout.key.startsWith('browser:')||layout.key.startsWith('browser-tree:')){const w=api.browser(layout.meta?.group||'concept',layout.key);Object.assign(w.meta,layout.meta);return api.browser(w.meta.group,layout.key);}
+    if(layout.key==='browser'||layout.key.startsWith('browser:')||layout.key.startsWith('browser-tree:')){const w=api.browser(layout.meta?.group||'concept',layout.key);Object.assign(w.meta,layout.meta);w.browserFilterRestored=false;w.browserFilterError=false;return api.browser(w.meta.group,layout.key);}
     if(layout.key==='blueprint')return api.blueprint(layout.meta||{});
     if(layout.key.startsWith('blueprint-code:'))return api.blueprintCode(layout.meta||{});
     if(layout.key==='node-tasks')return api.nodeTasks(layout.meta||{});
@@ -140,7 +140,7 @@ export function createActualWorkspace(api) {
           const layouts=runtime.workspaceRecord().layout.map(row=>structuredClone(row));
           for(const row of layouts)runtime.restoreWindow(row);windowDocuments.restore();runtime.setWorkspaceNodeSelection((project.selectedNodeKeys||[]).map(key=>runtime.state.workspaceNodes.get(key)).filter(Boolean));
         }catch(error){if(scope===owner){project.recoveryFailed=true;api.setWorkspaceStatus('편집창 복원 실패');api.toast('실제 편집창 복원 실패 · 입력과 원래 배치는 유지됩니다.');}}
-        finally{if(scope===owner){loading=false;if(!project.recoveryFailed)runtime.saveLayouts();}}
+        finally{if(scope===owner){loading=false;api.controls?.();if(!project.recoveryFailed)runtime.saveLayouts();}}
       })();
     }
   }

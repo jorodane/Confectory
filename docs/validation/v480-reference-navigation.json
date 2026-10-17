@@ -1,0 +1,238 @@
+{
+  "schema": 1,
+  "kind": "v480-reference-navigation",
+  "baseline": {
+    "base": "e509783d79d26a34bc2afea3bbc00932b6fb740c",
+    "referenceMain": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+    "referenceZipSha256": "0489844c8c6d90f7cdc8ea0e80628f487dcfb27f2c871b19367a635212d3c5bd",
+    "referenceAppSha256": "009d608418a6069896893ba9ca8f8788e40d877da0151369049783c57cc9d70f",
+    "referenceFunctions": [
+      "bindObjectReferenceDrag",
+      "setupTableColumnResize",
+      "switchBrowserGroup",
+      "openBrowser",
+      "workspaceLinks"
+    ],
+    "newPolicyNotIntroduced": [
+      "Home pack count",
+      "last edit timestamp",
+      "integer expression overflow",
+      "field lvalue/ref",
+      "expanded ABI",
+      "workspace link graph movement semantics"
+    ]
+  },
+  "source": {
+    "examples/editor-home/ui/references.js": {
+      "sha256": "644d24245b311ae2b60850e26029f85b44aa84e3f4c0f3f433c2952c5d74930c",
+      "bytes": 2357
+    },
+    "tests/web/v480_reference_navigation.py": {
+      "sha256": "d9184446c561e0ce5ad1642606464b25fd8d96dc8ae005c973d1083f9176dad6",
+      "bytes": 12121
+    },
+    "examples/editor-home/WebBundle.csbody": {
+      "sha256": "bfea51fef6c98bfca37590d8947a83bea1e72117f7f01d322d12705473279b49",
+      "bytes": 9978
+    },
+    "examples/editor-home/ui/app.js": {
+      "sha256": "8c164b63d9b1f8b1fb937a28bcb3359f9ee36e8090325a3e9b0d5d3178b1f28d",
+      "bytes": 229259
+    },
+    "examples/editor-home/ui/consumer.css": {
+      "sha256": "937ed8d934ca144d6194c53fda72ae2e6bdda8bc6a5fefef1d00838a427e49de",
+      "bytes": 21373
+    },
+    "examples/editor-home/ui/tables.js": {
+      "sha256": "7fb838a363ae9ad0a291ff1eae49a74c536d61336ec9fe35c32ce989ea7b6aef",
+      "bytes": 21197
+    },
+    "examples/editor-home/ui/workspace-host.js": {
+      "sha256": "bf5c83ea2fdae1b986a930a060162a5dbfc44f95964f928b47aed0bf15384dae",
+      "bytes": 16914
+    },
+    "tests/Confectory.Tests/WebUITests.cs": {
+      "sha256": "6bcb6d1876326e922ece84336abdbd81ed12e8fd06ddd59f806bd6be6053bda9",
+      "bytes": 55126
+    },
+    "tests/web/v424_instant_table.py": {
+      "sha256": "4abe2b2340de61790dfaf6bd8fa3d6068e25764316ea0e756c7836800d27f820",
+      "bytes": 12951
+    },
+    "tests/web/v424_schema_exact.py": {
+      "sha256": "7935025f1e42026fc2f66b15316cb049e1379120b964448e6195d69de1331e5b",
+      "bytes": 6212
+    },
+    "tests/web/web_ui.py": {
+      "sha256": "7fbd97641eab1de9e043e5a2d9562725135a4ae6db1725cb11b27ec7b5986b8c",
+      "bytes": 62220
+    }
+  },
+  "gates": {
+    "ui": {
+      "exit": 0,
+      "methods": [
+        "WebUITests.test_actual_editor_v480_reference_gestures_columns_document_links_and_cold",
+        "WebUITests.test_actual_editor_v424_typed_declaration_views_cas_confirm_and_restart",
+        "WebUITests.test_actual_editor_v424_instant_table_typed_fill_cas_and_cold_restart",
+        "WebUITests.test_actual_editor_v424_registered_reference_definition_read_only_and_cold_restart",
+        "WebUITests.test_actual_editor_v424_declared_relations_map_and_cold_restart",
+        "WebUITests.test_actual_editor_v424_schema_local_actions_and_compound_array_order",
+        "WebUITests.test_actual_editor_v424_schema_exact_numeric_hash_and_cold_restart",
+        "WebUITests.test_actual_editor_v480_window_document_docking_cold_inputs_and_compiler_confirm",
+        "WebUITests.test_actual_editor_v480_home_browser_document_repeat_cancel_and_restore"
+      ],
+      "head": "e509783d79d26a34bc2afea3bbc00932b6fb740c",
+      "elapsed": 298.726976979,
+      "sourceManifestSha256": "92b850b77e84b6fd9b7507994b6b75d4bac22f517f2a27c4a12f8102a65f71dc",
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 298.684,
+      "logSha256": "b3bad8d40eb3f0692065e9e40513f0b52d0e395c5d6ab5a648febbeb2c866447"
+    },
+    "managed": {
+      "exit": 0,
+      "methods": [
+        "EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only"
+      ],
+      "head": "e509783d79d26a34bc2afea3bbc00932b6fb740c",
+      "elapsed": 124.25244135599951,
+      "sourceManifestSha256": "92b850b77e84b6fd9b7507994b6b75d4bac22f517f2a27c4a12f8102a65f71dc",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 124.2,
+      "logSha256": "ddb8348fdf0f66ec5fedc0fd5caf254aaf7282ab92b81c3336cf7721f663d04f"
+    }
+  },
+  "checkout": {
+    "state": "pending-implementation-HEAD"
+  },
+  "resourceCount": 38,
+  "enginePublicEditingApiCompilerAndExecutionSemanticsUnchanged": true,
+  "findings": [
+    "applied reference fields lack source navigation",
+    "browser declarations lack scoped reference drag",
+    "moving columns reconstructs pending cell and query DOM",
+    "reopening same table reconstructs pending DOM",
+    "repeating same schema document replaces input and native undo history",
+    "cold browser restored module tab/input but displayed object results",
+    "queued cold reads exposed a brief enabled-control gap where a click could be lost",
+    "busy non-button browser rows remained clickable",
+    "background read completion replaced explicit Save status"
+  ],
+  "behavior": [
+    "same-project qualified-ID drops prepare existing pending input only",
+    "invalid/scope-mismatched/native-cancelled drops preserve prior input",
+    "current applied reference link remains distinct from pending reference text",
+    "owned selection and registered direct-reference read-only gates reused",
+    "existing typed Apply rejects wrong kind and preserves input; valid reference updates shared draft only",
+    "move just the affected column and retain current menus, other cell/query DOM and fill selection",
+    "same source/schema/table snapshot reuses input DOM; actual changes keep prior CAS bases",
+    "cold applied group/query read is deferred until initial busy and binding restore complete",
+    "dirty source guard preserved; pending/error notice replaces mismatched result listing",
+    "controls remain waiting for queued restoration reads and bindings, then are explicitly refreshed on completion",
+    "busy browser rows reject pointer hits until ready",
+    "automatic restoration reads preserve explicit Save and Confirm success status"
+  ],
+  "validationStages": {
+    "final": "All final UI and managed gates use the same eleven frozen source/test files. Initial failing suite and targeted retries are kept separately; none is added to final count.",
+    "earlierRuns": [
+      {
+        "log": "reproduce.log",
+        "result": "0/1/0 70.314",
+        "scope": "five initial missing/DOM symptoms"
+      },
+      {
+        "log": "before-native-placement.log",
+        "result": "0/1/0 44.259",
+        "scope": "overlapping test windows; subsequent test uses native title placement"
+      },
+      {
+        "log": "before-schema-repeat.log",
+        "result": "0/1/0 23.200",
+        "scope": "same schema source reopens and loses native undo"
+      },
+      {
+        "log": "before-group-results.log",
+        "result": "1/0/0 45.973",
+        "scope": "before asserting actual module rows after cold"
+      },
+      {
+        "log": "group-reproduce.log",
+        "result": "0/1/0 49.608",
+        "scope": "saved module tab/input with wrong object result listing after cold"
+      },
+      {
+        "log": "focused-final.log",
+        "result": "1/0/0 40.948",
+        "scope": "focused pass before closing readiness gap"
+      },
+      {
+        "log": "before-readiness-ui.log",
+        "result": "6/2/0 250.802",
+        "scope": "legacy table test assumed menu auto-close; cold navigation exposed enabled-control readiness gap"
+      },
+      {
+        "log": "before-readiness-managed.log",
+        "result": "1/0/0 137.441",
+        "scope": "earlier source snapshot; not final count"
+      },
+      {
+        "log": "readiness-focused.log",
+        "result": "2/0/0 67.675",
+        "scope": "table fixture and readiness corrections, before explicit binding-completion controls callback"
+      },
+      {
+        "log": "before-silent-ui.log",
+        "result": "7/2/0 350.661",
+        "scope": "typed declaration exposed busy non-button row click; window document exposed background success status replacing Save"
+      },
+      {
+        "log": "silent-focused.log",
+        "result": "2/0/0 108.374",
+        "scope": "busy row pointer guard and silent restoration preserve typed declaration and source document Save/Confirm; repeated in final suite"
+      },
+      {
+        "log": "before-configure-ui.log",
+        "result": "8/1/0 307.229",
+        "scope": "independent-view test advanced before external creation reached the UI; wait for the actual retained window before navigating"
+      },
+      {
+        "log": "before-configure-managed.log",
+        "result": "1/0/0 122.971",
+        "scope": "earlier source snapshot, not final count"
+      }
+    ]
+  },
+  "remaining": {
+    "unsupportedOrPartial": [
+      "browser category/concept hierarchy semantics",
+      "all field columns inside browser Data; owned field comparison remains in InstantTable",
+      "Workspace visual link graph and linked-window movement/deletion semantics",
+      "native undo predating reparenting of a moved TD/window",
+      "structural field lvalue/ref and expanded user ABI"
+    ],
+    "separateUnresolved": [
+      "Home included pack count",
+      "Home last edit event timestamp",
+      "integer expression overflow policy"
+    ],
+    "environmentUnverified": [
+      "native OS and devices",
+      "actual service accounts/paid calls",
+      "user PC installation"
+    ]
+  },
+  "protected": {
+    "localMain": "b5ea38c3d7eec3eb20f170e68f0f4215b86b2aee",
+    "remoteMain": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+    "zips": {
+      "reference/site-ui/Confectory-Editor-Prototype-v196.zip": "02d4824e92ed0edbb43113659982b37a99a614117652bde4d8ac92367e334e34",
+      "reference/site-ui/Confectory-Editor-Prototype-v318.zip": "0a614fe2bf1ad3d8e10dfa8905bb6b61ea9f21b87b2492b2b87ca8566e9e6908",
+      "reference/site-ui/Confectory-Editor-Prototype-v424.zip": "b7969cd109ea2dad38bde9c9ab13967c20162c920a45a8cd51a8f82df6041874",
+      "reference/site-ui/Confectory-Editor-Prototype-v480.zip": "0489844c8c6d90f7cdc8ea0e80628f487dcfb27f2c871b19367a635212d3c5bd"
+    }
+  }
+}
