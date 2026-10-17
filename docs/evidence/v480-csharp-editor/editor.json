@@ -287,6 +287,20 @@
     "productChanged": false,
     "failedMethod": "WebUITests.test_actual_editor_v480_blueprint_owned_graph_node_edit_and_cold_input"
   },
+  "ordinaryCheckout": {
+    "log": "confectory-csharp-editor/ordinary-checkout.log",
+    "sha256": "f7b0a2a54ca2b993995b42886a14185af9eedb1248d564fe2d9e4ac326a66737",
+    "scope": "Committed implementation: retained CRLF/fresh LF, 34 resource bytes, actual Home startup and tamper rejection",
+    "completed": true,
+    "passedMethods": [
+      "WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup"
+    ],
+    "failedMethods": [],
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "seconds": 6.413
+  },
   "screenshots": [
     {
       "path": "docs/evidence/v480-csharp-editor/code-protected.png",
@@ -298,5 +312,6 @@
       "sha256": "8a4b64c599b51899499d6618230512ecb3a75738f08c8418df6f5c6c00b3a5b3",
       "scope": "actual Chromium, agent visually inspected"
     }
-  ]
+  ],
+  "implementationCommit": "ce3b4696f6d41d5a1993743980c5ce1f629d0a94"
 }
