@@ -90,10 +90,35 @@
       "skipped": 0,
       "reportedSeconds": 139.209,
       "logSha256": "086aa6728b15f7381890019933f276ba7c20e742790e6a32c83ef3b12049e5df"
+    },
+    "checkout": {
+      "exit": 0,
+      "methods": [
+        "WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup"
+      ],
+      "head": "1dc4eb79e842ef642d660e467a69542c92301f6d",
+      "elapsed": 7.0542552170009,
+      "sourceManifestSha256": "145360bc432ecba75382e0d67d5dc843287c7d361686d018588b65e86454d848",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 7.02,
+      "logSha256": "849c438335cc3d9b5e49063147d29ea751a4e08b9ff8905b460c236daa04f049"
     }
   },
   "checkout": {
-    "state": "pending-implementation-HEAD"
+    "exit": 0,
+    "methods": [
+      "WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup"
+    ],
+    "head": "1dc4eb79e842ef642d660e467a69542c92301f6d",
+    "elapsed": 7.0542552170009,
+    "sourceManifestSha256": "145360bc432ecba75382e0d67d5dc843287c7d361686d018588b65e86454d848",
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "reportedSeconds": 7.02,
+    "logSha256": "849c438335cc3d9b5e49063147d29ea751a4e08b9ff8905b460c236daa04f049"
   },
   "resourceCount": 38,
   "screenshotSha256": "d2925b749cb1a35abfd901436de250038de6d2ca326ac0f24d895c5bc7b3d117",
