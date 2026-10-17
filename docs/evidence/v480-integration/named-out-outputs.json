@@ -267,6 +267,21 @@
       "failed": 0,
       "skipped": 0,
       "seconds": 178.381
+    },
+    {
+      "log": "ordinary-checkout.log",
+      "sha256": "3d33bbb17bb1cead60fe6baaec01b996fcc6618aff4d723da751711af5556ed7",
+      "scope": "retained CRLF and fresh LF normal Git checkouts, actual Home and all33resources/tampering",
+      "afterFinalCorrections": true,
+      "completed": true,
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 6.921,
+      "passedMethods": [
+        "WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup"
+      ],
+      "failedMethods": []
     }
   ],
   "interruptedStages": {
@@ -390,8 +405,20 @@
     },
     "androidSettingsChanged": false
   },
-  "implementationCommit": null,
-  "ordinaryCheckout": null,
+  "implementationCommit": "8739fb0bc15ee40245e84c7a690b153e03b38823",
+  "ordinaryCheckout": {
+    "commit": "8739fb0bc15ee40245e84c7a690b153e03b38823",
+    "resourceCount": 33,
+    "retainedCRLF": true,
+    "freshLF": true,
+    "actualHomeStart": true,
+    "tamperRefusal": true,
+    "sourceBytesUnchanged": true,
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "seconds": 6.921
+  },
   "finalCorrectionPaths": [
     "examples/editor-home/WebBundle.csbody",
     "examples/editor-home/ui/blueprint.js",
@@ -406,5 +433,6 @@
     "named-out-published.png": "8d8c0acbaaae593e7b77b1e95b990e78f084cd1537f2b5aab2a5d1f852599dac"
   },
   "finalFrozenSourcesVerified": true,
-  "resourceCount": 33
+  "resourceCount": 33,
+  "finalCoreAndApiEqualToFocusedSnapshot": true
 }
