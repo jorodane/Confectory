@@ -252,6 +252,17 @@
         "skipped": 0,
         "seconds": 121.123
       }
+    },
+    {
+      "log": "whole-body-checkout.log",
+      "sha256": "2b275fa6e1061fa60447778b4356b0ab71246511bfcfd72c43993b8bde29d989",
+      "meaning": "Committed implementation ordinary retained-CRLF/fresh-LF Git checkout, 33 pinned resources, actual Home startup and tamper refusal.",
+      "summary": {
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "seconds": 7.317
+      }
     }
   ],
   "boundaries": [
@@ -262,5 +273,7 @@
     "Ordinary code nodes remain statically isolated. Context-bound nodes retain original implementation imports, typed contracts and independent compiler proof.",
     "Forged saved node origins, pending body relocation/baseline, writes to original observed paths and oversized escaped node files are refused before source mutation.",
     "No actual account, paid model, user-PC installation, native/device or complete-v480 claim. main/original ZIP/Android settings remain preserved."
-  ]
+  ],
+  "implementationCommit": "759e4310fe581ac68c889a64867aef1644dd2de9",
+  "publicationNote": "Implementation commit is recorded here; a following evidence commit contains this final checkout record."
 }
