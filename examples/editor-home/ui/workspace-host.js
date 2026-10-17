@@ -7,6 +7,8 @@ import {createWorkspaceRuntime} from './workspace.js';
 export function createActualWorkspace(api) {
   let project=null,scope='',loading=false,scheduled=null,saving=null,changed=0,saved=0;
   const projects=new Map(),detached=new Map(),checkpoints=new Map();let inputStarted=0;let panelWorkspace='root';
+  // Browser Data borrows an editor owner once it has an explicit field definition.
+  const keepsEditing=(key,meta)=>key==='blueprint'||key.startsWith('blueprint-code:')||key==='source'||key.startsWith('editor-')||key.startsWith('table:')||((key==='browser'||key.startsWith('browser:')||key.startsWith('browser-tree:'))&&!!meta?.tableDefinition);
   const host={
     get isRestoring(){return loading},canNavigate:()=>!loading,preserveLifecycle:true,$:api.$,$$:api.$$,esc:api.esc,
     get project(){return project},get page(){return api.page},
@@ -19,7 +21,7 @@ export function createActualWorkspace(api) {
     takeDetachedWindow:key=>{const w=detached.get(scope+'|'+key);detached.delete(scope+'|'+key);return w},
     detachWindow:w=>{if(w.overlay)return;detached.set(scope+'|'+w.key,w);capture()},
     foregroundZ:node=>node.key==='ai-preview'&&api.$('.augment-overlay')?271:undefined,
-    hideWindowOnClose:key=>key==='blueprint'||key.startsWith('blueprint-code:')||key==='source'||key.startsWith('editor-')||key.startsWith('table:'),
+    hideWindowOnClose:key=>keepsEditing(key,runtime.state.windows.get(key)?.meta),
     layoutMetadata:w=>Object.fromEntries(['id','view','mode','group','density','query','sort','mainWorkspace','namespace','catalogue','kind','parent','queryInput','browserLocations','closedNamespaces','workerId','blueprintGraph','blueprintNode','blueprintCodeMode','blueprintEnumDraft','blueprintOutputWidth','blueprintOutputCollapsed','blueprintZoom','blueprintPositions','blueprintCamera','blueprintViews','nodeTaskNode','nodeTaskQuery','nodeTaskPage','nodeTaskReason','buildJob','buildPage','conflictSourceId','referenceRequest','mapQuery','mapRoles','mapFocus','mapSelected','mapPositions','mapCamera','mapDidFit','mapFocusId','mapFocusPositions','tableDefinition','tableName','tableQuery','tableSort','tableSelected','tableInputs','tableFill','tableBuilder','tableColumnOrder','tableWidths','tableValueSort'].filter(key=>w.meta[key]!==undefined).map(key=>[key,w.meta[key]])),
     restoreActualWindow:layout=>restore(layout),
     afterSwitchWorkspace:()=>{const panels=structuredClone(runtime.workspaceRecord().participants||[]);api.clearPanels();api.clearYogi();panelWorkspace=runtime.state.activeWorkspaceId;api.restorePanels(panels);api.restoreYogi(runtime.workspaceRecord().yogiPresentation);api.render();schedule()},
@@ -28,7 +30,7 @@ export function createActualWorkspace(api) {
       const parent=runtime.workspaceRecord();
       for(const child of project.workspaces.filter(child=>ids.has(child.id)))
         for(const layout of child.layout||[])
-          if(layout.key==='blueprint'||layout.key.startsWith('blueprint-code:')||layout.key==='source'||layout.key.startsWith('editor-')||layout.key.startsWith('table:')){
+          if(keepsEditing(layout.key,layout.meta)){
             if(!parent.layout.some(row=>row.key===layout.key))parent.layout.push({...layout,hidden:true});
             if(!runtime.state.windows.has(layout.key)){
               const cached=detached.get(scope+'|'+layout.key);

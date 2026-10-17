@@ -1,0 +1,180 @@
+{
+  "schema": 1,
+  "kind": "v480-browser-data-fields",
+  "baseline": {
+    "base": "3748ac82d6ae1c541f01e112beca14447840792c",
+    "referenceMain": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f"
+  },
+  "source": {
+    "examples/editor-home/WebBundle.csbody": {
+      "sha256": "6d1f5993534c94ea59f543d0ec7987023ab71412c860ed75d27a78c9f9ccf731",
+      "bytes": 9978
+    },
+    "examples/editor-home/ui/app.js": {
+      "sha256": "5921740fdbe4dcaa9b8eb79cdcd0ca11ad76ba06d7c86ebd290be5e352b8cc25",
+      "bytes": 229304
+    },
+    "examples/editor-home/ui/consumer.css": {
+      "sha256": "2277e26e824763452bb1f44aa43eb720973b4d1ace50397433083d6171c1fd0e",
+      "bytes": 21676
+    },
+    "examples/editor-home/ui/tables.js": {
+      "sha256": "1e05be043c1d8a4f3d0ee575e7b5eee6c1ab925e89fdaf9728a13447bf2a6585",
+      "bytes": 28370
+    },
+    "examples/editor-home/ui/workspace-host.js": {
+      "sha256": "91285f5544cf65b009e38e2b8a68cd955f2f02b64862daee0321cfb862cd21d7",
+      "bytes": 17074
+    },
+    "tests/Confectory.Tests/WebUITests.cs": {
+      "sha256": "c2e9a428b06892afb291a4fdd52797b9f9a7638ad74eb96747f93c865fff0f9f",
+      "bytes": 55782
+    },
+    "tests/web/v480_browser_data.py": {
+      "sha256": "af14e001a3dccc99472486c88c5f04feafe64a6af5e77ff1d678547de22c149f",
+      "bytes": 12459
+    },
+    "tests/web/web_ui.py": {
+      "sha256": "b31a8825dd27dd9e4dbb3a954ad464e2c98f881921dff137b082efc7fa8025b8",
+      "bytes": 62912
+    }
+  },
+  "gates": {
+    "ui": {
+      "exit": 0,
+      "methods": [
+        "WebUITests.test_actual_editor_v480_browser_data_fields_typed_cas_inputs_and_cold",
+        "WebUITests.test_actual_editor_v480_reference_gestures_columns_document_links_and_cold",
+        "WebUITests.test_actual_editor_v424_typed_declaration_views_cas_confirm_and_restart",
+        "WebUITests.test_actual_editor_v424_instant_table_typed_fill_cas_and_cold_restart",
+        "WebUITests.test_actual_editor_v424_registered_reference_definition_read_only_and_cold_restart",
+        "WebUITests.test_actual_editor_v424_declared_relations_map_and_cold_restart",
+        "WebUITests.test_actual_editor_v424_schema_local_actions_and_compound_array_order",
+        "WebUITests.test_actual_editor_v424_schema_exact_numeric_hash_and_cold_restart",
+        "WebUITests.test_actual_editor_v480_window_document_docking_cold_inputs_and_compiler_confirm",
+        "WebUITests.test_actual_editor_v480_home_browser_document_repeat_cancel_and_restore"
+      ],
+      "head": "3748ac82d6ae1c541f01e112beca14447840792c",
+      "elapsed": 369.6148203089997,
+      "sourceManifestSha256": "145360bc432ecba75382e0d67d5dc843287c7d361686d018588b65e86454d848",
+      "passed": 10,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 369.577,
+      "logSha256": "6367d0dba6e27beeae948e560a3296f460235e657f22cd6959b46a68e568daca"
+    },
+    "model": {
+      "exit": 0,
+      "methods": [
+        "InstantTableVersionTests.test_versioned_table_atomic_fill_schema_fences_precision_and_borrowed_lifetime"
+      ],
+      "head": "3748ac82d6ae1c541f01e112beca14447840792c",
+      "elapsed": 46.58515159000126,
+      "sourceManifestSha256": "145360bc432ecba75382e0d67d5dc843287c7d361686d018588b65e86454d848",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 46.526,
+      "logSha256": "f0afd17b3c3ff1cefd8c5ea0cd03a77b159c7363d1aaad1174e519ff68659948"
+    },
+    "managed": {
+      "exit": 0,
+      "methods": [
+        "EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only"
+      ],
+      "head": "3748ac82d6ae1c541f01e112beca14447840792c",
+      "elapsed": 139.24189368299994,
+      "sourceManifestSha256": "145360bc432ecba75382e0d67d5dc843287c7d361686d018588b65e86454d848",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 139.209,
+      "logSha256": "086aa6728b15f7381890019933f276ba7c20e742790e6a32c83ef3b12049e5df"
+    }
+  },
+  "checkout": {
+    "state": "pending-implementation-HEAD"
+  },
+  "resourceCount": 38,
+  "screenshotSha256": "d2925b749cb1a35abfd901436de250038de6d2ca326ac0f24d895c5bc7b3d117",
+  "build": {
+    "success": true,
+    "logSha256": "c2c1f9387ce1a7f4b3b99cdae12fd097b2d00019e0898b1b1e45c8304023bc3e"
+  },
+  "mapping": {
+    "definition": "Existing tableOptions/openTable/configureTable, root-owned 1..64 object IDs and 1..16 exact field IDs",
+    "display": "Current browser listing intersected with the explicit table definition. Source values are cellInfo.valueJson; no JavaScript Number re-encoding.",
+    "editing": "Same cell renderer as detached InstantTable, existing editTable type/source revision/hash/resolved-view hash gates; original basis retained",
+    "lifecycle": "Existing table metadata and private pending map. Browser Data with a definition keeps the existing editing-window lifecycle across close and Workspace deletion.",
+    "publish": "Existing Save and compiler-backed Review/Confirm; no source write shortcut"
+  },
+  "validated": [
+    "exact int64 metadata/schema values and separate description alias",
+    "malformed typed array refusal leaves row revision and source unchanged",
+    "cancelled configuration has no model effect",
+    "same browser input DOM retained and native editing keys do not select a source",
+    "close/reopen and density changes preserve pending values",
+    "empty result and filtered hidden-row pending retention",
+    "ordinary row selection opens its original schema document",
+    "comparison reconfiguration hides then restores original pending input/basis",
+    "hidden inputs block comparison Review and release",
+    "source and schema CAS refusal preserves typed input",
+    "external registry rows remain read-only and root ownership rejects external IDs",
+    "repeated field movement/width and native window resize preserve inputs",
+    "actual host restart restores definition/order/width/query draft/unapplied values/shared saved drafts",
+    "explicit compiler Review/Confirm shows exact numeric before/after and writes only intended final source",
+    "comparison release closes its borrowed view while keeping browser and source draft owner"
+  ],
+  "enginePublicEditingApiCompilerExecutionSemanticsUnchanged": true,
+  "earlierRuns": [
+    {
+      "log": "before-open-browser.log",
+      "result": "0/1/0 101.546",
+      "scope": "fixture attempted density before opening the browser"
+    },
+    {
+      "log": "before-selection-order.log",
+      "result": "0/1/0 29.193",
+      "scope": "test assumed object picker click order was fixed"
+    },
+    {
+      "log": "before-field-order.log",
+      "result": "0/1/0 30.522",
+      "scope": "test assumed field picker insertion order was reset by prior checks"
+    },
+    {
+      "log": "focused.log",
+      "result": "1/0/0 52.708",
+      "scope": "focused functional pass before adding native resize screenshot coverage; repeated in final source suite"
+    }
+  ],
+  "remaining": {
+    "unsupportedOrPartial": [
+      "automatic union of every prototype field across all browser objects",
+      "computed columns and field comparisons on nonobject or foreign rows",
+      "browser category/concept hierarchy semantics",
+      "Workspace visual link graph movement/deletion semantics",
+      "structural field lvalue/ref and expanded enum/Vector3 ABI"
+    ],
+    "separateUnresolved": [
+      "Home included pack count",
+      "Home last edit event timestamp",
+      "integer expression overflow policy"
+    ],
+    "environmentUnverified": [
+      "native OS and physical devices",
+      "actual accounts and paid calls",
+      "user PC installation"
+    ]
+  },
+  "protected": {
+    "localMain": "b5ea38c3d7eec3eb20f170e68f0f4215b86b2aee",
+    "remoteMain": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+    "zips": {
+      "reference/site-ui/Confectory-Editor-Prototype-v196.zip": "02d4824e92ed0edbb43113659982b37a99a614117652bde4d8ac92367e334e34",
+      "reference/site-ui/Confectory-Editor-Prototype-v318.zip": "0a614fe2bf1ad3d8e10dfa8905bb6b61ea9f21b87b2492b2b87ca8566e9e6908",
+      "reference/site-ui/Confectory-Editor-Prototype-v424.zip": "b7969cd109ea2dad38bde9c9ab13967c20162c920a45a8cd51a8f82df6041874",
+      "reference/site-ui/Confectory-Editor-Prototype-v480.zip": "0489844c8c6d90f7cdc8ea0e80628f487dcfb27f2c871b19367a635212d3c5bd"
+    }
+  }
+}

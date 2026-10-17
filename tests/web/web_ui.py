@@ -18,12 +18,15 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
  # A regular existing user project copy, with actual object source and normal draft storage.
  project=root/'button-game';shutil.copytree(repo/'examples/button-game',project,ignore=shutil.ignore_patterns('.confectory'))
  manifest=project/'project.cpack';manifest.write_text(manifest.read_text().replace('../../',str(repo)+'/'))
- if kind in ['instant-table','schema-exact','schema-actions']:
+ if kind in ['browser-data-fields','instant-table','schema-exact','schema-actions']:
   (project/'ZBroken.celem').write_text('object Example.ButtonGame::ZBroken {}')
   (project/'TableStats.celem').write_text('schema Example.ButtonGame::TableStats {field amount single general long;field tags multiple general int;}')
   (project/'TableTwin.celem').write_text('object Example.ButtonGame::TableTwin extends Example.ButtonGame::Score {data amount = 9223372036854775806;}')
   score_source=project/'Score.celem';score_source.write_text(score_source.read_text().replace('{','{ value description = "Separate metadata";use schema Example.ButtonGame::TableStats;data amount = 9223372036854775807;data tags = [1,2];',1))
   source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+'element TableStats schema "TableStats.celem";element TableTwin object "TableTwin.celem";element ZBroken object "ZBroken.celem";'+source[index:])
+ if kind=='browser-data-fields':
+  ref=root/'browser-reference';ref.mkdir();(ref/'pack.cpack').write_text('pack BrowserReference version "1" {element External object "External.celem";}');(ref/'External.celem').write_text('object BrowserReference::External {value initial = 7;}')
+  source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+'registry BrowserReference '+json.dumps(str(ref/'pack.cpack'))+';dependency BrowserReference version "1";'+source[index:])
  if kind in ['schema-exact','schema-actions']:
   stats=project/'TableStats.celem';stats.write_text(stats.read_text().replace('tags multiple general int','tags multiple general long'))
   score_source=project/'Score.celem';score_source.write_text(score_source.read_text().replace('{','{ value huge = 9223372036854775807;',1).replace('data tags = [1,2]','data tags = [9223372036854775807,9223372036854775806]'))
@@ -336,6 +339,9 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
     elif kind=='reference-gestures':
      from v480_reference_navigation import verify_reference_navigation
      verify_reference_navigation(page,project,mount,send,envelope,settle,restart_actual_host)
+    elif kind=='browser-data-fields':
+     from v480_browser_data import verify_browser_data
+     verify_browser_data(page,project,mount,send,envelope,settle,restart_actual_host)
     elif kind=='instant-table':
      from v424_instant_table import verify_instant_table
      verify_instant_table(page,project,mount,send,envelope,settle,restart_actual_host)
