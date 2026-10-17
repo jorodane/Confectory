@@ -1,0 +1,347 @@
+{
+  "schema": 1,
+  "kind": "v480-workspace-links-lifetime",
+  "createdUtc": "2026-10-17T23:45:44.975631+00:00",
+  "baseline": {
+    "base": "5e4beafe81b7d37615d341d534642453bc968b88",
+    "referenceMain": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f"
+  },
+  "implementationCommit": "02fa6689c711a1f41176a3fea4002d6be36ecdfb",
+  "finalImplementationCommit": "c4ea7088355d3fd0d781f22f5268a208ef452998",
+  "source": {
+    "examples/editor-home/WebBundle.csbody": {
+      "sha256": "e76b71631049669ddd2b880d0561b7bcc80aa18899c5129afca13ce24f50bb90",
+      "bytes": 10612
+    },
+    "examples/editor-home/ui/consumer.css": {
+      "sha256": "079878d96e7bb9bc17763151cdc9bd09347f2fc71b4dda0c9822163fb39587e1",
+      "bytes": 23883
+    },
+    "examples/editor-home/ui/window-documents.js": {
+      "sha256": "ddbb3b45a6e094a9d1ad906629fcbebcb7e13be384635b75c440d77cc340cd12",
+      "bytes": 12766
+    },
+    "examples/editor-home/ui/workspace-history.js": {
+      "sha256": "b58b925fd1e59b79eb60bfbda48cdad36c5a7f9fa9411570b044c60815b437bc",
+      "bytes": 6796
+    },
+    "examples/editor-home/ui/workspace-host.js": {
+      "sha256": "20f5a063d8acc4a1baf95bb7b074ca989a81116c097008b058158482c3b470f9",
+      "bytes": 19860
+    },
+    "examples/editor-home/ui/workspace-links.js": {
+      "sha256": "03375ddf3bd528ce0e4165ba9d0ae73e86cc1531c13486989874a7afa22d0374",
+      "bytes": 7242
+    },
+    "examples/editor-home/ui/workspace.js": {
+      "sha256": "dd72f60206470ee0a6e253e70df07e770305bb139742c73c23359a415caba077",
+      "bytes": 70173
+    },
+    "packs/editor-home-model/Command.csbody": {
+      "sha256": "b394db73e6e79a3baea837fe42dc0bf06fcc4f0144d4924538b656b345d4b535",
+      "bytes": 107701
+    },
+    "tests/Confectory.Tests/WebUITests.cs": {
+      "sha256": "88035af2f1c1f9e7bc6b64f40e57984018ee4f3b1be3763083a0c0b0e5162655",
+      "bytes": 58474
+    },
+    "tests/web/editor_workspace_v318.py": {
+      "sha256": "4e34538e1cef4725ce075f9eaa20d2fa1d712f9e28f664aa873a020ab1057e1c",
+      "bytes": 11353
+    },
+    "tests/web/v480_workspace_links.py": {
+      "sha256": "02b07d334c846ad315a67897f1415abd307612f8094ba9e89401e68a75d2d86a",
+      "bytes": 13856
+    },
+    "tests/web/web_ui.py": {
+      "sha256": "04da9101e6b4312f56051d8c7ad0975e0cc15c370da88b43a9a0cef2039279f0",
+      "bytes": 64928
+    },
+    "tests/web/workspace_lifecycle.mjs": {
+      "sha256": "3917a5bb23bf80398c2d6dd55c514231f3e650299fbca70592fd5e026aa53d92",
+      "bytes": 3270
+    }
+  },
+  "sourceManifestSha256": "bccfa4536a3dc381325b03691f196282c393c41112204ffebb1f9022fe594b52",
+  "sourceAtInitialPhases": {
+    "examples/editor-home/WebBundle.csbody": {
+      "sha256": "e76b71631049669ddd2b880d0561b7bcc80aa18899c5129afca13ce24f50bb90",
+      "bytes": 10612
+    },
+    "examples/editor-home/ui/consumer.css": {
+      "sha256": "079878d96e7bb9bc17763151cdc9bd09347f2fc71b4dda0c9822163fb39587e1",
+      "bytes": 23883
+    },
+    "examples/editor-home/ui/window-documents.js": {
+      "sha256": "ddbb3b45a6e094a9d1ad906629fcbebcb7e13be384635b75c440d77cc340cd12",
+      "bytes": 12766
+    },
+    "examples/editor-home/ui/workspace-history.js": {
+      "sha256": "b58b925fd1e59b79eb60bfbda48cdad36c5a7f9fa9411570b044c60815b437bc",
+      "bytes": 6796
+    },
+    "examples/editor-home/ui/workspace-host.js": {
+      "sha256": "20f5a063d8acc4a1baf95bb7b074ca989a81116c097008b058158482c3b470f9",
+      "bytes": 19860
+    },
+    "examples/editor-home/ui/workspace-links.js": {
+      "sha256": "03375ddf3bd528ce0e4165ba9d0ae73e86cc1531c13486989874a7afa22d0374",
+      "bytes": 7242
+    },
+    "examples/editor-home/ui/workspace.js": {
+      "sha256": "dd72f60206470ee0a6e253e70df07e770305bb139742c73c23359a415caba077",
+      "bytes": 70173
+    },
+    "packs/editor-home-model/Command.csbody": {
+      "sha256": "b394db73e6e79a3baea837fe42dc0bf06fcc4f0144d4924538b656b345d4b535",
+      "bytes": 107701
+    },
+    "tests/Confectory.Tests/WebUITests.cs": {
+      "sha256": "88035af2f1c1f9e7bc6b64f40e57984018ee4f3b1be3763083a0c0b0e5162655",
+      "bytes": 58474
+    },
+    "tests/web/v480_workspace_links.py": {
+      "sha256": "02b07d334c846ad315a67897f1415abd307612f8094ba9e89401e68a75d2d86a",
+      "bytes": 13856
+    },
+    "tests/web/web_ui.py": {
+      "sha256": "04da9101e6b4312f56051d8c7ad0975e0cc15c370da88b43a9a0cef2039279f0",
+      "bytes": 64928
+    },
+    "tests/web/workspace_lifecycle.mjs": {
+      "sha256": "3917a5bb23bf80398c2d6dd55c514231f3e650299fbca70592fd5e026aa53d92",
+      "bytes": 3270
+    }
+  },
+  "initialPhaseSourceManifestSha256": "7f2dac76c14abdaabc366554191a9d1607ef0ef4ddef4edac995aa859dfaae19",
+  "gates": {
+    "model": {
+      "exit": 0,
+      "filters": [
+        "WebUITests.test_private_workspace_links_and_deletion_history_invariants",
+        "EntryHomeTests.test_fresh_entry_home_project_contracts_and_consumer_locality"
+      ],
+      "methods": [
+        "WebUITests.test_private_workspace_links_and_deletion_history_invariants",
+        "EntryHomeTests.test_fresh_entry_home_project_contracts_and_consumer_locality"
+      ],
+      "head": "02fa6689c711a1f41176a3fea4002d6be36ecdfb",
+      "elapsed": 50.6378357980002,
+      "sourceManifestSha256": "7f2dac76c14abdaabc366554191a9d1607ef0ef4ddef4edac995aa859dfaae19",
+      "logSha256": "7d7ed19eca87311b2f96010563917391a4fceeb430560aba6a9daef3ead9a309",
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 50.605
+    },
+    "ui_new": {
+      "exit": 0,
+      "filters": [
+        "WebUITests.test_actual_editor_v480_private_workspace_links_bundle_portal_delete_undo_and_cold"
+      ],
+      "methods": [
+        "WebUITests.test_actual_editor_v480_private_workspace_links_bundle_portal_delete_undo_and_cold"
+      ],
+      "head": "02fa6689c711a1f41176a3fea4002d6be36ecdfb",
+      "elapsed": 39.47524070600048,
+      "sourceManifestSha256": "7f2dac76c14abdaabc366554191a9d1607ef0ef4ddef4edac995aa859dfaae19",
+      "logSha256": "462baa4c38b309805a9ec55c3062be2966a12b26ac2fce0785e9a1ef206c2900",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 39.443
+    },
+    "managed": {
+      "exit": 0,
+      "filters": [
+        "EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only"
+      ],
+      "methods": [
+        "EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only"
+      ],
+      "head": "02fa6689c711a1f41176a3fea4002d6be36ecdfb",
+      "elapsed": 129.1941225820001,
+      "sourceManifestSha256": "7f2dac76c14abdaabc366554191a9d1607ef0ef4ddef4edac995aa859dfaae19",
+      "logSha256": "a4bd4999f6e408d5cbdf558ab0e441649921f9e4f29b570a6446bcdb1e1d3028",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 129.157
+    },
+    "ui": {
+      "exit": 1,
+      "filters": [
+        "WebUITests.test_actual_editor_v318_workspace_lifecycle_presentation_restart",
+        "WebUITests.test_actual_editor_v480_window_document_docking_cold_inputs_and_compiler_confirm",
+        "WebUITests.test_actual_editor_v480_tab_reorder_cancel_canvas_drop_and_cold_order",
+        "WebUITests.test_actual_editor_v480_note_document_tabs_canonical_ownership_and_cold_source_input",
+        "WebUITests.test_actual_editor_v480_reference_gestures_columns_document_links_and_cold",
+        "WebUITests.test_actual_editor_v480_browser_data_atomic_fill_selection_cas_and_cold",
+        "WebUITests.test_actual_editor_v480_declaration_hierarchy_variation_fill_confirm_independent_cold"
+      ],
+      "methods": [
+        "WebUITests.test_actual_editor_v480_browser_data_atomic_fill_selection_cas_and_cold",
+        "WebUITests.test_actual_editor_v480_declaration_hierarchy_variation_fill_confirm_independent_cold",
+        "WebUITests.test_actual_editor_v480_note_document_tabs_canonical_ownership_and_cold_source_input",
+        "WebUITests.test_actual_editor_v480_reference_gestures_columns_document_links_and_cold",
+        "WebUITests.test_actual_editor_v480_tab_reorder_cancel_canvas_drop_and_cold_order",
+        "WebUITests.test_actual_editor_v480_window_document_docking_cold_inputs_and_compiler_confirm"
+      ],
+      "head": "c4ea7088355d3fd0d781f22f5268a208ef452998",
+      "elapsed": 366.5680715059998,
+      "sourceManifestSha256": "7f2dac76c14abdaabc366554191a9d1607ef0ef4ddef4edac995aa859dfaae19",
+      "logSha256": "3d56cfb2fa23863ad8bb45f239b43df4b1b2a1b451e5e8d2f8ce3e8060681cc2",
+      "passed": 6,
+      "failed": 1,
+      "skipped": 0,
+      "reportedSeconds": 366.531
+    }
+  },
+  "correctedLegacyGate": {
+    "exit": 0,
+    "methods": [
+      "WebUITests.test_actual_editor_v318_workspace_lifecycle_presentation_restart"
+    ],
+    "head": "c4ea7088355d3fd0d781f22f5268a208ef452998",
+    "elapsed": 18.756134204999398,
+    "sourceManifestSha256": "bccfa4536a3dc381325b03691f196282c393c41112204ffebb1f9022fe594b52",
+    "logSha256": "3825d23a4b6d82b94d9cbfa59eaa8abcd5ea5eb11338628e4a434dbaaf0bfb8a",
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "reportedSeconds": 18.722
+  },
+  "uiFinalUnique": {
+    "passed": 8,
+    "failed": 0,
+    "skipped": 0,
+    "methods": [
+      "WebUITests.test_actual_editor_v480_private_workspace_links_bundle_portal_delete_undo_and_cold",
+      "WebUITests.test_actual_editor_v480_browser_data_atomic_fill_selection_cas_and_cold",
+      "WebUITests.test_actual_editor_v480_declaration_hierarchy_variation_fill_confirm_independent_cold",
+      "WebUITests.test_actual_editor_v480_note_document_tabs_canonical_ownership_and_cold_source_input",
+      "WebUITests.test_actual_editor_v480_reference_gestures_columns_document_links_and_cold",
+      "WebUITests.test_actual_editor_v480_tab_reorder_cancel_canvas_drop_and_cold_order",
+      "WebUITests.test_actual_editor_v480_window_document_docking_cold_inputs_and_compiler_confirm",
+      "WebUITests.test_actual_editor_v318_workspace_lifecycle_presentation_restart"
+    ],
+    "scopeNote": "The original legacy fixture expected browser rows while raw source input was pending. app.js and its existing guard are byte-identical to the base. Only that fixture was corrected to assert the guard, persisted primary input and the actual retained independent editor; its isolated rerun passes. The other seven passing UI methods and all product files remain byte-identical. The original failed method is not counted as a pass."
+  },
+  "checkout": {
+    "status": "passed",
+    "exit": 0,
+    "method": "WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup",
+    "implementationCommit": "c4ea7088355d3fd0d781f22f5268a208ef452998",
+    "elapsed": 6.540251941999486,
+    "sourceManifestSha256": "bccfa4536a3dc381325b03691f196282c393c41112204ffebb1f9022fe594b52",
+    "logSha256": "528888445754fb9c9eb20662b7f4b5dd0102eb32e2d834e09a97196caddb089d",
+    "resourceCount": 41,
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "reportedSeconds": 6.51,
+    "retainedCrLfAndFreshLf": true,
+    "actualHomeStart": true,
+    "tamperEncodingAndBudgetRejection": true
+  },
+  "build": {
+    "command": "dotnet build Confectory.sln -c Release --no-restore",
+    "exit": 0,
+    "warnings": 0,
+    "errors": 0,
+    "logSha256": "d710fd5d0d4379c6d38ca509e883a7276d82e82f21fa51312c5f6abbc5150cba"
+  },
+  "protected": {
+    "localMain": "b5ea38c3d7eec3eb20f170e68f0f4215b86b2aee",
+    "remoteMain": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+    "zips": {
+      "reference/site-ui/Confectory-Editor-Prototype-v196.zip": "02d4824e92ed0edbb43113659982b37a99a614117652bde4d8ac92367e334e34",
+      "reference/site-ui/Confectory-Editor-Prototype-v318.zip": "0a614fe2bf1ad3d8e10dfa8905bb6b61ea9f21b87b2492b2b87ca8566e9e6908",
+      "reference/site-ui/Confectory-Editor-Prototype-v424.zip": "b7969cd109ea2dad38bde9c9ab13967c20162c920a45a8cd51a8f82df6041874",
+      "reference/site-ui/Confectory-Editor-Prototype-v480.zip": "0489844c8c6d90f7cdc8ea0e80628f487dcfb27f2c871b19367a635212d3c5bd"
+    },
+    "androidFilesChanged": []
+  },
+  "scope": {
+    "links": "workspace-local directed private-view forest; one parent, cycles/stale handle rejected",
+    "groupMove": "descendants plus contained group members; relative offsets and internal edges preserved on portal moves; boundary edges removed",
+    "delete": "selected placement and selected portal hierarchy only; source and unselected link descendants never deleted",
+    "history": "conditional inverse of private deletion only; v1, recent 16 entries, total UTF8 256KiB; global inputs/source selection/editor bindings are not rolled back; latest retained window metadata wins",
+    "provisionalGesture": "input checkpoints serialize latest input and last committed geometry, never provisional drag/resize coordinates",
+    "ownership": "same existing project/private view keys and existing source CAS; no new project/registry/provider authority",
+    "privateStateAtomicStore": "existing presentation JSON and atomic write/checkpoint/flush contract",
+    "userSourceFilesUnchangedByPrivateOperations": true,
+    "realExternalSourceCasRefusal": true,
+    "coldHostAndSameDom": true
+  },
+  "artifacts": {
+    "docs/validation/v480-workspace-links-lifetime.png": {
+      "sha256": "03a2870bee6c8de017a12f0b4d945b9c72b4259b3fa1c8421da1157119f27d5d",
+      "bytes": 110365
+    },
+    "docs/validation/v480-workspace-links-lifetime-conflict.png": {
+      "sha256": "b90aeddb2c0dc1e8cb60fa3806e99b6d30234405ac2254bb9a83e2236e915190",
+      "bytes": 108478
+    }
+  },
+  "earlierFocusStagesExcludedFromFinalCounts": [
+    {
+      "name": "focus",
+      "passed": 1,
+      "failed": 1,
+      "skipped": 0,
+      "reportedSeconds": 65.814,
+      "logSha256": "35da60be9748f7333be50053e76dc80dbb99a99f7b5c5c4113039666297ec7bd"
+    },
+    {
+      "name": "focus2",
+      "passed": 1,
+      "failed": 1,
+      "skipped": 0,
+      "reportedSeconds": 41.201,
+      "logSha256": "235895c05a04e860775a74840fa8baca922cdbcf78f7ddc4b22dfd519d95aec7"
+    },
+    {
+      "name": "focus3",
+      "passed": 1,
+      "failed": 1,
+      "skipped": 0,
+      "reportedSeconds": 47.668,
+      "logSha256": "e2e6739eb4a54308f83182f3cdb4da0a8b7ac20baeba794f95479f8453f425d4"
+    },
+    {
+      "name": "focus4",
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 27.348,
+      "logSha256": "6be43f0f1df2f2999b6320ac1506703314bd307c600a079a2ca78f6dc6b2a1f9"
+    },
+    {
+      "name": "focus5",
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 37.497,
+      "logSha256": "1d42b3fb847d69391c7eda97dda7170e7e16342c4b653beb8bfb9e6f6d6a6798"
+    }
+  ],
+  "environment": {
+    "cwd": "/workspace/Confectory",
+    "branch": "work/current",
+    "sdk": "10.0.401",
+    "agentModelOrSelectedEnvironmentChanged": false,
+    "externalAccountsOrPaidCalls": false
+  },
+  "limits": [
+    "General link/move Undo and source deletion/Undo are outside this private deletion history.",
+    "Native input Undo is not replaced; the full pre-reparent native browser history is not guaranteed.",
+    "Managed Windows/Android compilation is not OS/device execution or user PC installation.",
+    "Integer expression overflow policy remains unchanged and out of scope."
+  ],
+  "unchangedExistingSourceInputGuard": {
+    "path": "examples/editor-home/ui/app.js",
+    "sha256": "36fd8863ef65e7f0187759d2a1e7b6eabedf01d0daee476e0d95f753221e98fc",
+    "byteIdenticalToBase": true
+  }
+}
