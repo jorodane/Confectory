@@ -167,6 +167,20 @@
       "failed": 0,
       "skipped": 0,
       "seconds": 155.168
+    },
+    {
+      "log": "ordinary-checkout.log",
+      "sha256": "34cc8db42129b5c42fda9b6def222c26ce0360f8b7ff4dfbbce28f44afb0150a",
+      "scope": "normal retained CRLF/fresh LF checkout,33resources,actualHome,tamper",
+      "completed": true,
+      "passedMethods": [
+        "WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup"
+      ],
+      "failedMethods": [],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 6.266
     }
   ],
   "overlappingStagesMustNotBeSummed": true,
@@ -231,8 +245,21 @@
     "originalZIPsAndAndroidSettingsUnchanged": true,
     "androidChanges": "metadata declaration mode parser code only"
   },
-  "implementationCommit": null,
-  "ordinaryCheckout": null,
+  "implementationCommit": "714ad2957a4bbc55ba3afbe14a82b3703dc9f84b",
+  "ordinaryCheckout": {
+    "commit": "714ad2957a4bbc55ba3afbe14a82b3703dc9f84b",
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "seconds": 6.266,
+    "resourceCount": 33,
+    "legacyAutocrlfCheckoutThenOrdinaryFastForwardPull": true,
+    "retainedCrlfAndFreshLf": true,
+    "actualEditorHomeStartup": true,
+    "contentEncodingBomBinaryBudgetRejection": true,
+    "originalBytesUnchanged": true,
+    "managedAndNativeBoundary": "owned Linux runtime with ordinary Git autocrlf checkout, no native Windows/device claim"
+  },
   "screenshots": {
     "ref-node-bindings.png": "604337a69a398a507599290bd3d2fd60be49da7b2b430b05a8fa664171dba49f",
     "ref-node-published.png": "1d082bef06f8f6bc136654bd648b87de683bf8cd682cbc53b39886807737dca3"
