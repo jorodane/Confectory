@@ -151,3 +151,8 @@ PackWorkspace.Blueprint는 기존 소유 graph와 독립 노드 본문을 기능
 기존 소유 함수의 객체별 대체 구현은 함수 원문·기본 제공을 유지하고 객체의 로컬 provide와 새 구현/graph/독립 본문/등록만 생성한다. 객체의 생성 소유 metadata는 private 원본 묶음 정보이며 compiler 증거·실행·AI 권한이 아니다. 새 함수의 첫 graph와 기존 함수의 대체 graph를 구분해 복원하고, 변경된 소유 객체까지 필수 Review/Confirm에 포함한다. 기본 graph 의도가 필요한 설명 없는 함수도 원문은 변경하지 않는다. 명시적 함수 계약·기존 primitive/배열 단일 반환 ABI와 sync-acyclic-v1의 현재 경계를 따른다.
 
 graph별 카메라·확대·배치·선택도 private presentation이다. 헤더/핀 조작은 기존 entry/route/argument의 미확정 입력만 준비한다. UI 후보 선택이나 연결 미리보기가 source Apply·현재 계약/CAS·compiler Confirm을 대신하지 않는다. 새 실행 의미나 내부 타입·원본 전환 정책은 이 UI 연결로 확정하지 않는다.
+
+
+## 줄 끝 반환과 단일 본문 전환 · 2026-10-17 후속
+
+사용자 결정에 따라 `sync-acyclic-implicit-v1`과 명시적인 기존 본문 전체 전환을 추가했다. 기존 profile은 자동 변경하지 않는다. 실행 포트별 미할당 반환 경고·합류 경로 분석·타입 기본값과 단일 반환 할당 노드를 제공한다. 기존 본문은 독립 코드 노드 하나로 복사하고 원래 구현 메서드의 `calls`·별칭/범위·`this`·인수 이름·CRLF 문맥을 유지한다. 선택한 구현·타깃의 3개 소스 그룹, 원본 관찰 CAS, cold 복원과 실제 compiler Confirm을 따른다. 일반 정적 노드의 격리는 유지한다. 이전 단계의 전환 미구현·정책 대기는 이 후속에서 위 범위만 해소했다. [계약·검증·남은 범위](BLUEPRINT_IMPLICIT_END_AND_BODY_CONVERSION.md).

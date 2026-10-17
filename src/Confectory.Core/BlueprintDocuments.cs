@@ -24,7 +24,7 @@ public static class BlueprintDocuments
         else if (kind == "blueprint")
         {
             Require(id.Contains("/body:", StringComparison.Ordinal), "Explicit implementation target source required");
-            Require(document["profile"]?.ToString() == FeatureBlueprint.Profile, "Supported Blueprint profile required");
+            Require(document["profile"]?.ToString() is FeatureBlueprint.Profile or FeatureBlueprint.ImplicitProfile, "Supported Blueprint profile required");
             Require(Regex.IsMatch(document["feature"]?.ToString() ?? "", @"\A[A-Za-z_][A-Za-z_0-9]*(?:\.[A-Za-z_][A-Za-z_0-9]*)*::[A-Za-z_][A-Za-z_0-9]*\z", RegexOptions.CultureInvariant), "Qualified feature identity required");
             Require(document["nodes"] is JsonArray && document["edges"] is JsonArray && document["exits"] is JsonObject, "Graph source collections required");
             var ids = new HashSet<string>(StringComparer.Ordinal);
@@ -44,6 +44,11 @@ public static class BlueprintDocuments
         var registry = new Registry(project, new Documents(Path.Combine(Path.GetDirectoryName(project)!, ".confectory", "document-cache"), new BuildStatistics()), new BuildStatistics());
         var implementation = new Parser(request["text"]!.GetValue<string>(), "<assigned-implementation>").ParseElement();
         Require(implementation.Id == request["id"]!.ToString() && implementation.Kind == "implementation" && PackPaths.Namespace(implementation.Id) == registry.Project.Namespace, "Assigned project implementation required");
+        if (implementation.Parent is not null)
+        {
+            registry.Elements[implementation.Id] = implementation;
+            implementation = registry.Effective(implementation.Id);
+        }
         string ReadContract(string id)
         {
             string? draft = request["draftContracts"]?[id]?.GetValue<string>();
@@ -65,7 +70,7 @@ public static class BlueprintDocuments
         return FeatureBlueprint.Execute(new JsonObject
         {
             ["operation"] = request["definitionsOnly"]?.GetValue<bool>() == true ? "featureBlueprintNodes" : "featureBlueprintDescribe", ["featureSource"] = ReadContract(implementation.Function!),
-            ["featureContracts"] = contracts, ["graph"] = request["graph"]!.DeepClone(),
+            ["implementationContext"] = FeatureBlueprint.ImplementationContext(implementation), ["featureContracts"] = contracts, ["graph"] = request["graph"]!.DeepClone(),
             ["implementations"] = request["implementations"]?.DeepClone()
         });
     }

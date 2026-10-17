@@ -1,5 +1,6 @@
 pack Confectory.EditWorkspace version "0.1.0" {
 standalone false;
+element BlueprintConvert function "BlueprintConvert.celem";element BlueprintConvertBody implementation "BlueprintConvertBody.celem";
 element BlueprintCall function "BlueprintCall.celem";element BlueprintCallBody implementation "BlueprintCallBody.celem";
 element BlueprintImplementationContract function "BlueprintImplementationContract.celem";element BlueprintImplementationContractBody implementation "BlueprintImplementationContractBody.celem";
 element BlueprintImplementation function "BlueprintImplementation.celem";element BlueprintImplementationBody implementation "BlueprintImplementationBody.celem";

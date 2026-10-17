@@ -23,7 +23,7 @@ public static class Generation
         }
         """ + "\n";
 
-    public static string ImplementationSource(Element e, string body, string path)
+    public static string ImplementationSource(Element e, string body, string path, string members = "", FunctionSignature? entry = null)
     {
         string imports = string.Join("\n", e.Imports.OrderBy(x => x.Key, StringComparer.Ordinal).Select(x => $"        {Interface(x.Value.Id)} {x.Key} {{ get; }}"));
         string quotedPath = JsonSerializer.Serialize(path, JsonData.Options);
@@ -40,12 +40,13 @@ public static class Generation
                     }
                     private readonly IImports calls;
                     public {{Symbol(e.Id)}}(IImports calls) { this.calls = calls; }
-                    public {{e.Signature!.Return}} Invoke({{Parameters(e.Signature)}})
+                    {{(entry is null ? "public " : "")}}{{e.Signature!.Return}} {{(entry is null ? "" : Interface(e.Function!) + ".")}}Invoke({{Parameters(entry ?? e.Signature)}})
                     {
             #line 1 {{quotedPath}}
             {{body}}
             #line default
                     }
+            {{members}}
                 }
             }
             """ + "\n";
@@ -60,7 +61,7 @@ public static class Generation
             string name = BindingSymbol(key), impl = Implementation(node.Implementation), prefix = sig.Return == "void" ? "" : "return ";
             lines.AppendLine($"internal sealed class {name} : {Interface(fn.Id)}"); lines.AppendLine("{");
             lines.AppendLine($"    public {sig.Return} Invoke({Parameters(sig)})"); lines.AppendLine("    {");
-            lines.AppendLine($"        {prefix}new {impl}(new {name}Imports()).Invoke({Arguments(sig)});");
+            lines.AppendLine($"        {prefix}(({Interface(fn.Id)})new {impl}(new {name}Imports())).Invoke({Arguments(sig)});");
             lines.AppendLine("    }"); lines.AppendLine("}");
             lines.AppendLine($"internal sealed class {name}Imports : {impl}.IImports"); lines.AppendLine("{");
             foreach (var (alias, imported) in node.Imports.OrderBy(x => x.Key, StringComparer.Ordinal))

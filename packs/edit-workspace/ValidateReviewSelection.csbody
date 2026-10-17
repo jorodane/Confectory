@@ -1,11 +1,24 @@
 var state=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+handle) as System.Text.Json.Nodes.JsonObject??throw new ObjectDisposedException("EditWorkspace");
 lock(state){
+ var conversionChanges=calls.Changes.Invoke(handle,selected);
+ foreach(var conversion in state["units"]!.AsObject()){
+  if(conversion.Value?["conversionOrigin"] is null||conversion.Value["baseline"]?.ToString()!="missing")continue;
+  var conversionOrigin=conversion.Value["conversionOrigin"]!;
+  for(int index=0;index<conversionChanges.Length;index+=4){
+   if(conversionChanges[index]==conversionOrigin["id"]!.ToString())continue;
+   string destination=System.IO.Path.GetFullPath(System.IO.Path.Combine(state["root"]!.ToString(),conversionChanges[index+1]));
+   if(System.Linq.Enumerable.Any(conversionOrigin["observations"]!.AsArray(),input=>string.Equals(input!["path"]!.ToString(),destination,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal)))throw new InvalidOperationException("Confirm the conversion before changing its original source files");
+  }
+  var required=calls.CreationGroup.Invoke(handle,conversion.Key);if(!System.Linq.Enumerable.Any(required,id=>Array.IndexOf(selected,id)>=0))continue;
+  if(!System.Linq.Enumerable.All(required,id=>Array.IndexOf(selected,id)>=0))throw new InvalidOperationException("Body conversion requires the implementation, graph and independent body together");
+  calls.Metadata.Invoke("blueprintConversion",new System.Text.Json.Nodes.JsonObject{["action"]="verify",["project"]=state["project"]!.DeepClone(),["origin"]=conversion.Value["conversionOrigin"]!.DeepClone()}.ToJsonString());
+ }
  var ids=new System.Collections.Generic.HashSet<string>(selected,StringComparer.Ordinal);var changes=calls.Changes.Invoke(handle,selected);var changed=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);for(int i=0;i<changes.Length;i+=4)changed.Add(changes[i]);
  bool manifest=false;for(int i=0;i<changes.Length;i+=4)if(changes[i+1]==System.IO.Path.GetFileName(state["project"]!.ToString()))manifest=true;
- for(int i=0;i<changes.Length;i+=4)if(changes[i+2]=="missing"&&state["units"]![changes[i]]!["kind"]!.ToString()!="blueprint-node"&&!manifest)throw new InvalidOperationException("New declaration review must explicitly include its manifest registration.");
+ for(int i=0;i<changes.Length;i+=4)if(changes[i+2]=="missing"&&state["units"]![changes[i]]?["conversionOrigin"] is null&&state["units"]![changes[i]]!["kind"]!.ToString()!="blueprint-node"&&!manifest)throw new InvalidOperationException("New declaration review must explicitly include its manifest registration.");
  // A new graph is one registration transaction, including its external contract and stub.
  foreach(var pair in state["units"]!.AsObject()){
-  if(pair.Value!["kind"]!.ToString()!="blueprint"||pair.Value["baseline"]?.ToString()!="missing")continue;
+  if(pair.Value!["kind"]!.ToString()!="blueprint"||pair.Value["baseline"]?.ToString()!="missing"||pair.Value["conversionOrigin"] is not null)continue;
   string implementationId=pair.Key[..pair.Key.IndexOf("/body:",StringComparison.Ordinal)];var implementation=calls.Read.Invoke(handle,implementationId);
   string functionId=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("inspect",System.Text.Json.JsonSerializer.Serialize(new{text=implementation[3]})))!["function"]!.ToString();
   var required=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal){pair.Key,implementationId};

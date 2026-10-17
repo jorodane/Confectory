@@ -521,3 +521,7 @@ body:has(.augment-overlay) .coworker-hover-card:not(.participant-expanded-card),
 .instant-table-content{gap:6px;padding:10px}.instant-table-toolbar button,.instant-table-fill button{font-size:12px;padding:5px 8px}.instant-table-content .small{margin:0;font-size:11px}.instant-table th{background:var(--panel,#272727);font-size:11px}.instant-table td,.instant-table th{padding:5px}.instant-table .actions button{font-size:10px;padding:2px 5px}.instant-table td small{line-height:1.2;margin:3px 0}.instant-table-content footer{font-size:10px}
 
 .instant-table th details{font-size:10px;font-weight:400}.instant-table th summary{cursor:pointer}.instant-table th input[type=range]{width:140px;padding:0}.instant-table th details button{font-size:10px;padding:2px 5px}
+
+.bp-end-warning{display:block;color:#a95700;font-size:11px;white-space:normal;max-width:240px}.bp-termination{padding:8px 0;border-top:1px solid #aaa5}.bp-termination p{margin:4px 0}.bp-termination small{overflow-wrap:anywhere}.bp-exec-ports .bp-end-warning{max-width:140px}
+
+.bp-node-end{color:#f2b95b;font-size:11px;line-height:1.4;padding:5px 10px;border-bottom:1px solid #ffffff18;overflow-wrap:anywhere}.bp-exec-ports .bp-end-warning{display:inline;max-width:16px}.bp-output .bp-end-warning{color:#f2b95b}

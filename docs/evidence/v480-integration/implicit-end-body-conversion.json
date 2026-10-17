@@ -1,0 +1,266 @@
+{
+  "schema": 1,
+  "baseCommit": "88e753618c0d82477e5e3dbb40ca454c533865dc",
+  "referenceMainCommit": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+  "authority": {
+    "date": "2026-10-17 00:32 UTC",
+    "message": "Sentinel_f1218e96e0f08191a59cce582f3825ae",
+    "unassignedReturnWarningAtEachEnd": true,
+    "existingWholeBodyOneCodeNode": true,
+    "specificTypeDefaultsChosenByImplementation": true
+  },
+  "profile": "sync-acyclic-implicit-v1",
+  "generator": "feature-blueprint-source-v3",
+  "defaults": {
+    "numeric": "0",
+    "bool": "false",
+    "string/array": "null"
+  },
+  "checkedSourceHashes": {
+    "packs/edit-workspace/BlueprintConvert.celem": "69c6a15f350b3cc7c1c9e9fa1d8f3e9f32aed7e0ff99aff71bf43255e0aa29e8",
+    "packs/edit-workspace/BlueprintConvert.csbody": "043756589ff627aa0733ed4a96e6dadb9abf30d7da2bc089545d071d4462e1e6",
+    "packs/edit-workspace/BlueprintConvertBody.celem": "013d6c617df6c25c4b7d4c392297dad0c72a67276d18a3ed1687c6806c5fbd79",
+    "src/Confectory.Core/FeatureBlueprint.Context.cs": "43722798bd9ac635864d564bc4799de51c5c4acae4fa578467676e0b6fae7152",
+    "src/Confectory.Core/FeatureBlueprint.Implicit.cs": "100b95fe2064a56af6e2af7d1ef3c8e6d49f06401652477558042060e4ef9fc0",
+    "targets/element-authoring/BlueprintConversion.cs": "ab5c8eec334da6b1c81075ed9b529d5155e76d1412e4f8da67f00f9b09286160",
+    "tests/Confectory.Tests/BlueprintConversionTests.cs": "816fc308abf78dfe9ee58f972fac177a5a520547e93c9dc6b15e9511826a8a3e",
+    "tests/Confectory.Tests/ImplicitBlueprintTests.cs": "77a9680b194e5a01d085a67d8634bd744bf172883e169820e8d5d9f60045af7b",
+    "tests/web/v480_implicit_conversion.py": "e110a8f8e7473882eafcd1da78627e0d60031eee4e8e5adfa04af721b308fa52",
+    "examples/editor-home/WebBundle.csbody": "adad6eeebcbfd750afb646ccb07b77d680198d6ffc766ec7b611f14257204ea4",
+    "examples/editor-home/ui/blueprint.js": "403c46dc0fbc4dca098995f56f343ea03a4b22c454a8edd156f3b773a5ed099e",
+    "examples/editor-home/ui/style.css": "3cb2bf6b4b1514e7c9ef9195e3213e4a0f954feb40601f74364ed9dbe0340a26",
+    "packs/change-set/ConfirmReviewed.csbody": "623f4a48d0504db3755754864f497d4185a5bc0e61b3c54f7439b2c50bb832c2",
+    "packs/edit-workspace/Accept.csbody": "568824a84acbdb77798b5e9d491830f7814d43805bb6e0a581a14cde9d2ef430",
+    "packs/edit-workspace/BlueprintNode.csbody": "5656476c366bfd573ebaad67b6a18fb2c26603276ab5cbc038fdac7634fc559a",
+    "packs/edit-workspace/CreationGroup.csbody": "a11a8aae02981b00f96f24bd3896d01ddc9946e36088da4d479a560328f3a59a",
+    "packs/edit-workspace/Restore.csbody": "0baee88f4f06d4d8a89fb46614dba42469475ef1eeb5f91e7558aa7250b90f7a",
+    "packs/edit-workspace/ValidateReviewSelection.csbody": "44759d4814dea69ef186bb6fcbc616ff6f4a704d7432f32a0c07dafd745b1aad",
+    "packs/edit-workspace/ValidateReviewSelectionBody.celem": "c272c01f1b3994fee73ad30ed7ffcbc97a8e80e07e23f96d8f6c2c9bd3aecd22",
+    "packs/edit-workspace/pack.cpack": "01829336072b8c2de70129cd37003f96d5ea5b5aa1e06a9321363f84c03ba0e5",
+    "packs/editor-home-model/Blueprint.csbody": "f6a628e3a8b19c79ebe38b9dcc49874376b375f27108ea289d2db915e63fab43",
+    "packs/pack-workspace/Blueprint.csbody": "7615f976572e4c3abb3a5b5d5a74ad4cec28ec59595698091ba2377e7cba7776",
+    "packs/pack-workspace/BlueprintBody.celem": "d3d04510b8f0df22efc61bd89fcebc9512d2f8e3d47c8717dd7f29550f6305d5",
+    "src/Confectory.Core/BlueprintCompilation.cs": "f91031349d8bf8fdd253c52f7ca676f7196fdd4c0d590ad69e97f27c9056fd40",
+    "src/Confectory.Core/BlueprintDocuments.cs": "a443c23a002c8f4c95d28c12f3c310caa066e93943923f4231700989ded12592",
+    "src/Confectory.Core/Build.cs": "6d2c8804afecd0c04df8bcc3f6be422a7af72fac72f986311c2d657127b05e9f",
+    "src/Confectory.Core/FeatureBlueprint.cs": "f045a37d5b48f7320e326b3c4040afcc98689c922d8b8a9f011065cd8af9d101",
+    "src/Confectory.Core/Generation.cs": "b22d51e8d579477a0c3291fa249325f93d7ed9f865eefa2d834af8fbbe84e273",
+    "targets/dotnet/Program.cs": "c7c6748ace1768d906cb6ab3a63cea16976a91a32a07ecb5df1cd6c39b4da207",
+    "targets/element-authoring/Program.cs": "c20c834149321dc0a55a4988fac9670c960579ad4eeaa5560968907a53782868",
+    "tests/Confectory.Tests/Program.cs": "7e0f42ed0a293257f6eab3f803e6ef5822e5b9f36a251fe4653927a7b88190c0",
+    "tests/Confectory.Tests/WebUITests.cs": "8a1dfa042d710f1baa28c86fc729ea379ea76d4a0e99801647e5cd42a5985ab1",
+    "tests/web/web_ui.py": "a2641c00e4053531a790666bfe8a4c62d63c1eadbb756681e71be01ff355e509"
+  },
+  "beforeFinalGuardSourceHashes": {
+    "packs/edit-workspace/BlueprintConvert.celem": "69c6a15f350b3cc7c1c9e9fa1d8f3e9f32aed7e0ff99aff71bf43255e0aa29e8",
+    "packs/edit-workspace/BlueprintConvert.csbody": "f38574f1c66ae905f4198789ca7a0e1ffe513c6f2a77d62b08db8e975844f4a3",
+    "packs/edit-workspace/BlueprintConvertBody.celem": "013d6c617df6c25c4b7d4c392297dad0c72a67276d18a3ed1687c6806c5fbd79",
+    "src/Confectory.Core/FeatureBlueprint.Context.cs": "b56074ce7b8bfbd04c8ff4cae11b8d774cee2130429bae95d754709f0e68196b",
+    "src/Confectory.Core/FeatureBlueprint.Implicit.cs": "100b95fe2064a56af6e2af7d1ef3c8e6d49f06401652477558042060e4ef9fc0",
+    "targets/element-authoring/BlueprintConversion.cs": "ab5c8eec334da6b1c81075ed9b529d5155e76d1412e4f8da67f00f9b09286160",
+    "tests/Confectory.Tests/BlueprintConversionTests.cs": "0968df7d74de3da197232b3374deb0697893f6e8aead1539a03439007fef3292",
+    "tests/Confectory.Tests/ImplicitBlueprintTests.cs": "77a9680b194e5a01d085a67d8634bd744bf172883e169820e8d5d9f60045af7b",
+    "tests/web/v480_implicit_conversion.py": "e110a8f8e7473882eafcd1da78627e0d60031eee4e8e5adfa04af721b308fa52",
+    "examples/editor-home/WebBundle.csbody": "5e19300a478badeec5219b583e8acf35b650c12c4612eeb352294155ea473a13",
+    "examples/editor-home/ui/blueprint.js": "b6af7b9ca5b403a60509aabf3427d8ab03555fa305879000796671b102c9aebe",
+    "examples/editor-home/ui/style.css": "3cb2bf6b4b1514e7c9ef9195e3213e4a0f954feb40601f74364ed9dbe0340a26",
+    "packs/change-set/ConfirmReviewed.csbody": "623f4a48d0504db3755754864f497d4185a5bc0e61b3c54f7439b2c50bb832c2",
+    "packs/edit-workspace/Accept.csbody": "568824a84acbdb77798b5e9d491830f7814d43805bb6e0a581a14cde9d2ef430",
+    "packs/edit-workspace/BlueprintNode.csbody": "5656476c366bfd573ebaad67b6a18fb2c26603276ab5cbc038fdac7634fc559a",
+    "packs/edit-workspace/CreationGroup.csbody": "a11a8aae02981b00f96f24bd3896d01ddc9946e36088da4d479a560328f3a59a",
+    "packs/edit-workspace/Restore.csbody": "8a093e220b6751d35e2a245a8ed7ea928d4a30300e68f4e2264a6a2fa82597c1",
+    "packs/edit-workspace/ValidateReviewSelection.csbody": "2a29688347e9d259935fba1e283e275ed0fa211a38cc33a215baee439fe9aa86",
+    "packs/edit-workspace/ValidateReviewSelectionBody.celem": "c272c01f1b3994fee73ad30ed7ffcbc97a8e80e07e23f96d8f6c2c9bd3aecd22",
+    "packs/edit-workspace/pack.cpack": "01829336072b8c2de70129cd37003f96d5ea5b5aa1e06a9321363f84c03ba0e5",
+    "packs/editor-home-model/Blueprint.csbody": "f6a628e3a8b19c79ebe38b9dcc49874376b375f27108ea289d2db915e63fab43",
+    "packs/pack-workspace/Blueprint.csbody": "7615f976572e4c3abb3a5b5d5a74ad4cec28ec59595698091ba2377e7cba7776",
+    "packs/pack-workspace/BlueprintBody.celem": "d3d04510b8f0df22efc61bd89fcebc9512d2f8e3d47c8717dd7f29550f6305d5",
+    "src/Confectory.Core/BlueprintCompilation.cs": "f91031349d8bf8fdd253c52f7ca676f7196fdd4c0d590ad69e97f27c9056fd40",
+    "src/Confectory.Core/BlueprintDocuments.cs": "a443c23a002c8f4c95d28c12f3c310caa066e93943923f4231700989ded12592",
+    "src/Confectory.Core/Build.cs": "6d2c8804afecd0c04df8bcc3f6be422a7af72fac72f986311c2d657127b05e9f",
+    "src/Confectory.Core/FeatureBlueprint.cs": "f045a37d5b48f7320e326b3c4040afcc98689c922d8b8a9f011065cd8af9d101",
+    "src/Confectory.Core/Generation.cs": "b22d51e8d579477a0c3291fa249325f93d7ed9f865eefa2d834af8fbbe84e273",
+    "targets/dotnet/Program.cs": "c7c6748ace1768d906cb6ab3a63cea16976a91a32a07ecb5df1cd6c39b4da207",
+    "targets/element-authoring/Program.cs": "c20c834149321dc0a55a4988fac9670c960579ad4eeaa5560968907a53782868",
+    "tests/Confectory.Tests/Program.cs": "7e0f42ed0a293257f6eab3f803e6ef5822e5b9f36a251fe4653927a7b88190c0",
+    "tests/Confectory.Tests/WebUITests.cs": "8a1dfa042d710f1baa28c86fc729ea379ea76d4a0e99801647e5cd42a5985ab1",
+    "tests/web/web_ui.py": "a2641c00e4053531a790666bfe8a4c62d63c1eadbb756681e71be01ff355e509"
+  },
+  "resourceCount": 33,
+  "images": {
+    "implicit-end.png": {
+      "sha256": "9d98c0dcd79262c9c33c9a98fc7b12a5ea5ed47fb0e4901412536fc98bc666a1",
+      "source": "Final focused actual Chromium run; image inspected."
+    },
+    "whole-body-conversion.png": {
+      "sha256": "04cac5847dabcc0ca81b6d409160464b9b40649f9583c12e6cd20747fa4fab9a",
+      "source": "Final focused actual Chromium run; image inspected."
+    }
+  },
+  "stages": [
+    {
+      "log": "implicit-end-first-engine.log",
+      "sha256": "44cbd943113a2ce9b6d1112b234b9237bb955bec0a5c0f66bccb3403e0c7d362",
+      "meaning": "Compiler nullable cache-key error; no tests ran.",
+      "summary": null
+    },
+    {
+      "log": "implicit-end-second-engine.log",
+      "sha256": "bc1954dbeda7d1c1b499baa32b7ce0996934a7dc1243304f1427c6e5a0749ba6",
+      "meaning": "Initial implicit policy, three actual compiler/runtime tests; superseded by later source.",
+      "summary": {
+        "passed": 3,
+        "failed": 0,
+        "skipped": 0,
+        "seconds": 46.182
+      }
+    },
+    {
+      "log": "whole-body-first-engine.log",
+      "sha256": "1be6a09301c04cb8646924a9f7d367b75e98d484f6df6a7d31bfe62963e78523",
+      "meaning": "Test harness referenced non-existent Fixture.Pack.Manifest; no tests ran.",
+      "summary": null
+    },
+    {
+      "log": "whole-body-second-engine.log",
+      "sha256": "872c3b2b521c9d0a98d207aced399141f5941a85d5a4168919a5cfd6af4ccd28",
+      "meaning": "Implicit3 and public conversion passed; original Linux fixture used old n after its signature renamed to input.",
+      "summary": {
+        "passed": 4,
+        "failed": 1,
+        "skipped": 0,
+        "seconds": 59.907
+      }
+    },
+    {
+      "log": "whole-body-third-engine-ui.log",
+      "sha256": "4f1c2b3e4ef1a0d7354754ff1dcaece198a3ed58269bb002df71eb9652e50b57",
+      "meaning": "Public API passed. Test expected32 for -2+30 and tried closing an already removed Review after successful profile compiler Confirm.",
+      "summary": {
+        "passed": 1,
+        "failed": 2,
+        "skipped": 0,
+        "seconds": 154.766
+      }
+    },
+    {
+      "log": "whole-body-fourth-engine-ui.log",
+      "sha256": "85dfd0025f75a1533868a559706e0c7b6b9793888703316800fb1f86140f936f",
+      "meaning": "Implicit3 and public API passed. Test project used illegal target = syntax; actual conversion UI nested api.work failed to open its newly created graph.",
+      "summary": {
+        "passed": 4,
+        "failed": 2,
+        "skipped": 0,
+        "seconds": 159.349
+      }
+    },
+    {
+      "log": "whole-body-fifth-engine-ui.log",
+      "sha256": "d51921ea781006aa88b8fbb53e1ebca2bdfa9362cf544de2bfa7cc678623984a",
+      "meaning": "Fixed nested work; context2 and actual conversion/cold/no-op CRLF UI passed,3/0/0. Before final origin guard.",
+      "summary": {
+        "passed": 3,
+        "failed": 0,
+        "skipped": 0,
+        "seconds": 153.601
+      }
+    },
+    {
+      "log": "whole-body-origin-guard-red.log",
+      "sha256": "182b2b86eeb46c54b4f9f38f8ee736f1f8ea009c8543c4ee157a23ffd0d9bb9e",
+      "meaning": "Isolated ignored probe failed raw-string indentation; no product mutation.",
+      "summary": null
+    },
+    {
+      "log": "whole-body-origin-guard-red-runtime.log",
+      "sha256": "0e4164f927c7f6d1119f0e05cee20b7a6c9ef5efeafa16d0ce15b8f855a92370",
+      "meaning": "The isolated probe ran the attack, then its outer harness expected the ordinary PASS marker instead of printing the red result.",
+      "summary": null
+    },
+    {
+      "log": "whole-body-origin-guard-red-confirmed.log",
+      "sha256": "f606531a7ab02e29a4e719fb8efa06b17d9394455e96cd88db1c9bd1b815f3dc",
+      "meaning": "Actual owned-fixture reproduction: forged saved node targeting original C# in graph directory could Confirm and overwrite that backup before the final guard.",
+      "summary": null
+    }
+  ],
+  "beforeFinalGuardBroad": [
+    {
+      "log": "whole-body-broad-engine.log",
+      "sha256": "145019826a7d497403404c35070b6b26f2595f5c538470d8f2e113593a97f7d9",
+      "meaning": "Existing compiler/ownership/Task/reference/cold/edit/history and implicit policy. Before the final restored-origin-path guard, per-file limit, Unicode line mapping and termination label.",
+      "summary": {
+        "passed": 21,
+        "failed": 0,
+        "skipped": 0,
+        "seconds": 881.283
+      }
+    },
+    {
+      "log": "whole-body-broad-ui.log",
+      "sha256": "54a7f694bc6596d3a469ce6815f41bd919b7e130382d0a354426ca008e657a09",
+      "meaning": "Existing Blueprint/camera/node/new-feature/reference/import/Find/tab UI before final narrow origin guard, Unicode source mapping and count label.",
+      "summary": {
+        "passed": 9,
+        "failed": 0,
+        "skipped": 0,
+        "seconds": 606.514
+      }
+    },
+    {
+      "log": "whole-body-home-workspace.log",
+      "sha256": "fd5dd53fee408bc498242a4912ccd19cc6fb453b68c263c940fb4a4bb16ac206",
+      "meaning": "Actual Home/layout/lifecycle/frozen-v318 characterization before final narrow guard/Unicode mapping/label.",
+      "summary": {
+        "passed": 4,
+        "failed": 0,
+        "skipped": 0,
+        "seconds": 186.298
+      }
+    },
+    {
+      "log": "whole-body-managed.log",
+      "sha256": "83c7827ca99b0e8b9e209d0237c4eb19ee9cbd0e22fdaba9a3232167d8ed0848",
+      "meaning": "Windows/Android managed compiler profiles before final narrow guard/label; no native/device execution.",
+      "summary": {
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "seconds": 211.765
+      }
+    }
+  ],
+  "final": [
+    {
+      "log": "whole-body-final-focused.log",
+      "sha256": "67dfb2f5b1ce92551631151e05a53641bc60c884248c5f99f9e3d9031f8d5417",
+      "meaning": "Final source: implicit3, whole-body context/void/public hostile restore+per-file budget3, legacy edit/history2 and actual new Chromium/cold/compiler Confirm1.",
+      "summary": {
+        "passed": 9,
+        "failed": 0,
+        "skipped": 0,
+        "seconds": 220.804
+      }
+    },
+    {
+      "log": "whole-body-final-managed.log",
+      "sha256": "4cae05191c33c74fb87afc4f450350aea8d795f7f49e394a806c9ca317c08bd2",
+      "meaning": "Final source Windows/Android managed compilation only.",
+      "summary": {
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "seconds": 121.123
+      }
+    }
+  ],
+  "boundaries": [
+    "Stages overlap and are not summed. Earlier broad results are explicitly qualified before the final narrow guard and display label.",
+    "Only current primitive/array single return ABI and synchronous acyclic next/bool control are supported. No arbitrary multireturn/refout/enum/nested graph/locals/async/loop implementation claim.",
+    "Conversion is explicitly selected published current ProjectPack implementation and C# body target; inherited same-function body becomes a local target override. Original C# and other targets remain.",
+    "Original aliases/scopes/this/IImports/Invoke/implementation names/CRLF/CallerFilePath are covered by actual runtime comparisons; no arbitrary reflective class-introspection equivalence claim.",
+    "Ordinary code nodes remain statically isolated. Context-bound nodes retain original implementation imports, typed contracts and independent compiler proof.",
+    "Forged saved node origins, pending body relocation/baseline, writes to original observed paths and oversized escaped node files are refused before source mutation.",
+    "No actual account, paid model, user-PC installation, native/device or complete-v480 claim. main/original ZIP/Android settings remain preserved."
+  ]
+}

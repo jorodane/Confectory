@@ -1,0 +1,1 @@
+function Confectory.EditWorkspace::BlueprintConvert (string handle,string origin,string[] ids,long[] revisions,string[] hashes) -> string {provide Confectory.EditWorkspace::BlueprintConvert with Confectory.EditWorkspace::BlueprintConvertBody;}

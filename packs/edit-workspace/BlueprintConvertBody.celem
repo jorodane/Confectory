@@ -1,0 +1,4 @@
+implementation Confectory.EditWorkspace::BlueprintConvertBody for Confectory.EditWorkspace::BlueprintConvert (string handle,string origin,string[] ids,long[] revisions,string[] hashes) -> string {
+import Confectory.EditWorkspace::Read as Read (string,string) -> string[];
+import Confectory.SchemaEditing::Call as Metadata (string,string) -> string;
+body common "BlueprintConvert.csbody";}

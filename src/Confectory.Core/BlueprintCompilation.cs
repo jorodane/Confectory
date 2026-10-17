@@ -10,7 +10,12 @@ internal sealed class BlueprintCompilation(Registry registry, string target, Tar
     private readonly Dictionary<string, string> observations = new(StringComparer.Ordinal);
     private readonly HashSet<string> missingSources = new(StringComparer.Ordinal);
     public JsonObject Receipts { get; } = new();
+    public Dictionary<string, string> Members { get; } = new(StringComparer.Ordinal);
+    public Dictionary<string, FunctionSignature> EntrySignatures { get; } = new(StringComparer.Ordinal);
     public JsonArray Nodes { get; } = new();
+    public JsonArray Warnings {
+        get { var rows=new JsonArray();foreach(var pair in Receipts)foreach(var warning in pair.Value?["warnings"]?.AsArray()??new JsonArray()){var row=warning!.DeepClone().AsObject();row["implementation"]=pair.Key;row["graphPath"]=pair.Value!["graphMap"]?["path"]?.DeepClone();rows.Add(row);}return rows; }
+    }
 
     private string Read(string path)
     {
@@ -40,8 +45,6 @@ internal sealed class BlueprintCompilation(Registry registry, string target, Tar
 
     public string Assemble(Element implementation, Body body, string path, string? nodeId = null)
     {
-        if (tool.Info["blueprintProfile"]?.GetValue<string>() != FeatureBlueprint.Profile)
-            throw new BuildError("BLUEPRINT_TARGET_UNSUPPORTED", "Selected compiler does not validate this Blueprint profile", body.Loc);
         // The implementation selection and imports belong to normal declaration review/planning.
         for (Element? owner = registry.Get(implementation.Id); owner is not null; owner = owner.Parent is null ? null : registry.Get(owner.Parent))
         {
@@ -61,6 +64,8 @@ internal sealed class BlueprintCompilation(Registry registry, string target, Tar
             if (JsonData.Digest(current) != JsonData.Digest(owner)) throw new BuildError("BLUEPRINT_SOURCE_CHANGED", "Target declaration changed after selection", owner.Loc);
         }
         var graph = JsonNode.Parse(Read(path))?.AsObject() ?? throw new BuildError("BLUEPRINT_GRAPH", "Graph object required", new(path));
+        string requestedProfile=graph["profile"]?.GetValue<string>()??"";
+        if(tool.Info["blueprintProfile"]?.ToString()!=requestedProfile&&!(tool.Info["blueprintProfiles"] is JsonArray profiles&&profiles.Any(p=>p?.ToString()==requestedProfile)))throw new BuildError("BLUEPRINT_TARGET_UNSUPPORTED","Selected compiler does not validate this Blueprint profile",body.Loc);
         var implementations = new JsonObject();
         var nodePaths = new HashSet<string>(StringComparer.Ordinal);
         foreach (var node in graph["nodes"]?.AsArray() ?? throw new BuildError("BLUEPRINT_GRAPH", "Graph nodes required", new(path)))
@@ -84,7 +89,7 @@ internal sealed class BlueprintCompilation(Registry registry, string target, Tar
         var request = new JsonObject
         {
             ["operation"] = nodeId is null ? "featureBlueprintAssemble" : "featureBlueprintNodeProbe", ["node"] = nodeId, ["featureSource"] = Contract(implementation.Function!),
-            ["graph"] = graph, ["featureContracts"] = contracts, ["implementations"] = implementations
+            ["implementationContext"] = FeatureBlueprint.ImplementationContext(implementation), ["graph"] = graph, ["featureContracts"] = contracts, ["implementations"] = implementations
         };
         var result = FeatureBlueprint.Execute(request);
         if (result["state"]?.ToString() != (nodeId is null ? "source-assembled" : "node-source-assembled"))
@@ -92,12 +97,18 @@ internal sealed class BlueprintCompilation(Registry registry, string target, Tar
         foreach (var import in result["imports"]!.AsArray())
         {
             string alias = import!["alias"]!.GetValue<string>(), feature = import["feature"]!.GetValue<string>();
+            if (import["binding"]?.ToString() == "implementation-context") continue; // Exact aliases/scopes are fenced by the context definition above.
             if (!implementation.Imports.TryGetValue(alias, out var declared) || declared.Id != feature)
                 throw new BuildError("BLUEPRINT_IMPORT", "Declare typed import " + feature + " as " + alias + " before building", implementation.Loc);
         }
         foreach (var node in result["nodeSources"]!.AsArray()) Nodes.Add(node!.DeepClone());
         var receipt = result.DeepClone().AsObject();
-        receipt.Remove("body"); receipt.Remove("nodeSources");
+        receipt.Remove("body"); receipt.Remove("nodeSources"); receipt.Remove("members");
+        if (result["explicitEntry"]?.GetValue<bool>() == true)
+        {
+            Members[implementation.Id] = result["members"]!.GetValue<string>();
+            EntrySignatures[implementation.Id] = registry.Get(implementation.Function!, "function").Signature!;
+        }
         receipt["state"] = result["state"]!.DeepClone();
         receipt["target"] = target;
         receipt["graphMap"]!["path"] = Path.GetRelativePath(Path.GetDirectoryName(registry.ProjectPath)!, path).Replace('\\', '/');

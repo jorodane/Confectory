@@ -39,13 +39,18 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
   main=project/'main.celem';main.write_text(main.read_text().replace('{','{ use function ReferenceApi::Work;use implementation ReferenceApi::Body;',1))
   source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+'registry ReferenceApi '+json.dumps(str(ref/'pack.cpack'))+';dependency ReferenceApi version "1";'+source[index:])
  env['CONFECTORY_WEB_PROJECT']=str(manifest)
- if kind in ['node-tasks','blueprint','blueprint-camera','blueprint-create','call-wrapper','registered-call','placed-find']:
+ if kind in ['node-tasks','blueprint','blueprint-implicit','blueprint-camera','blueprint-create','call-wrapper','registered-call','placed-find']:
   fixture=report['nodeTaskFixture']
   typename='long' if kind.startswith('blueprint') or kind in ['call-wrapper','registered-call','placed-find'] else 'int'
   (project/'NodeValue.celem').write_text(fixture['feature']);(project/'NodeValueBody.celem').write_text('implementation Example.ButtonGame::NodeValueBody for Example.ButtonGame::NodeValue ('+typename+' n) -> '+typename+' {blueprint common "node-value.graph.json";}')
   (project/'node-value.graph.json').write_text(json.dumps(fixture['graph']));(project/'calculate.node.json').write_text(json.dumps(fixture['node']))
   if kind.startswith('blueprint') or kind in ['call-wrapper','registered-call','placed-find']:(project/'condition.node.json').write_text(json.dumps(report['additionalNodeFixture']))
   source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+'element NodeValue function "NodeValue.celem";element NodeValueBody implementation "NodeValueBody.celem";'+source[index:])
+ if kind=='blueprint-implicit':
+  (project/'LiftValue.celem').write_text('function Example.ButtonGame::LiftValue (long n) -> long {}')
+  (project/'LiftValueBody.celem').write_text('implementation Example.ButtonGame::LiftValueBody for Example.ButtonGame::LiftValue (long original) -> long {body common "lift.csbody";}')
+  (project/'lift.csbody').write_bytes(b'if (original < 0) return this.Invoke(-original);\r\nreturn original + 3;\r\n')
+  source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+'element LiftValue function "LiftValue.celem";element LiftValueBody implementation "LiftValueBody.celem";'+source[index:])
  if kind=='blueprint-camera':
   other=report['cameraSecondGraph'];(project/'OtherValue.celem').write_text(other['feature']);(project/'OtherValueBody.celem').write_text('implementation Example.ButtonGame::OtherValueBody for Example.ButtonGame::OtherValue (long n) -> long {blueprint common "other-value.graph.json";}');(project/'other-value.graph.json').write_text(json.dumps(other['graph']));(project/'other-condition.node.json').write_text(json.dumps(report['additionalNodeFixture']));(project/'other-calculate.node.json').write_text(json.dumps(report['nodeTaskFixture']['node']));source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+'element OtherValue function "OtherValue.celem";element OtherValueBody implementation "OtherValueBody.celem";'+source[index:])
  if kind=='call-wrapper':
@@ -241,6 +246,9 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
     elif kind=='blueprint-create':
      from v480_node_creation import verify_node_creation
      verify_node_creation(page,project,mount,send,envelope,settle,restart_actual_host)
+    elif kind=='blueprint-implicit':
+     from v480_implicit_conversion import verify_implicit_conversion
+     verify_implicit_conversion(page,project,mount,send,envelope,settle,restart_actual_host)
     elif kind=='blueprint-camera':
      from v480_blueprint_camera import verify_blueprint_camera
      verify_blueprint_camera(page,project,mount,send,envelope,settle,restart_actual_host)

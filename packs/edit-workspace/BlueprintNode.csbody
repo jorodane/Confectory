@@ -21,6 +21,7 @@ if(operation=="create"){
  newText=new System.Text.Json.Nodes.JsonObject{["schema"]=1,["node"]=nodeId,["definitionHash"]=new string('0',64),["source"]=""}.ToJsonString();
  calls.Metadata.Invoke("blueprintSourceValidate",System.Text.Json.JsonSerializer.Serialize(new{id=ownedId,kind="blueprint-node",text=newText}));
 }else{
+ if(state["units"]?[graphId]?["conversionOrigin"] is not null&&nodeId=="body")throw new InvalidOperationException("Confirm the whole body conversion before removing its original code node");
  var selected=System.Linq.Enumerable.Single(nodes,node=>node!["id"]!.ToString()==nodeId)!;
  if(graph["entry"]?.ToString()==nodeId||System.Linq.Enumerable.Any(graph["edges"]!.AsArray(),edge=>edge!["from"]!.ToString()==nodeId||edge["to"]!.ToString()==nodeId))throw new InvalidOperationException("Disconnect the node's execution routes and start connection before removal");
  bool Uses(System.Text.Json.Nodes.JsonNode? value){if(value is System.Text.Json.Nodes.JsonObject obj){if(obj["node"]?.ToString()==nodeId)return true;foreach(var pair in obj)if(Uses(pair.Value))return true;}else if(value is System.Text.Json.Nodes.JsonArray array){foreach(var item in array)if(Uses(item))return true;}return false;}
