@@ -369,7 +369,7 @@ internal static class DeclarationAuthoring
   FunctionSignature Signature(JsonNode node,bool named)
   {
    var args=node["args"]?.AsArray()??throw new ArgumentException("Signature arguments required");if(args.Count>64)throw new ArgumentException("Signature argument budget");
-   if(args.Any(arg=>arg?["mode"] is not null && arg["mode"]!.ToString()!="out"))throw new ArgumentException("Only value inputs and named out outputs are supported");
+   if(args.Any(arg=>arg?["mode"] is not null && arg["mode"]!.ToString() is not ("out" or "ref")))throw new ArgumentException("Only value/ref inputs and named out outputs are supported");
    return new(args.Select((arg,index)=>new Parameter(Text(arg!,"type"),named?Text(arg!,"name"):"arg"+index,arg?["mode"]?.GetValue<string>())).ToList(),Text(node,"return"));
   }
   List<JsonNode> Entries(){var rows=edit["entries"]?.AsArray()??throw new ArgumentException("Relation entries required");if(rows.Count>128)throw new ArgumentException("Relation budget");return rows.Select(row=>row??throw new ArgumentException("Relation entry required")).ToList();}

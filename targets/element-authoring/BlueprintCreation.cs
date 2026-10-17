@@ -12,6 +12,7 @@ internal static class BlueprintCreation
   // Reuse only the contract generator. Its temporary default never replaces the real function.
   function.Provides.Clear();if(string.IsNullOrWhiteSpace(function.Description)){function.Description="Implement "+function.Id+" for "+owner.Id;function.DescriptionPresent=true;}var input=(JsonObject)request.DeepClone();input["text"]=format(function);
   var slotSignature=function.Signature!;
+  if(slotSignature.Args.Any(p=>p.IsRef))throw new ArgumentException("External ref Blueprint interfaces are not supported; preserve the original C# implementation");
   var result=request["reference"] is null?Scaffold(function,input,format):ReferenceScaffold(function,input,format);result.Remove("function");
   string implementation=request["implementation"]!.GetValue<string>();
   owner.Provides[function.Id]=new ElementReference(implementation,new(),function.Id);
@@ -55,6 +56,7 @@ internal static class BlueprintCreation
  {
   string implementationId=request["implementation"]!.GetValue<string>(),graphPath=request["graphPath"]!.GetValue<string>(),nodePath=request["nodePath"]!.GetValue<string>();
   var functionSignature=function.Signature??throw new ArgumentException("Explicit function signature required");
+  if(functionSignature.Args.Any(p=>p.IsRef))throw new ArgumentException("External ref Blueprint interfaces are not supported; preserve the original C# implementation");
   string signature=functionSignature.Format();
   string implementation=$"implementation {implementationId} for {function.Id} {signature} {{blueprint common {System.Text.Json.JsonSerializer.Serialize(graphPath)};}}\n";
   new Parser(implementation,"<new-implementation>").ParseElement();

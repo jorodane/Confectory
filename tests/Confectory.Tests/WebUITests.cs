@@ -206,6 +206,7 @@ public sealed class WebUITests : TestCase
         True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS actual v480 named out"),run.Stdout+run.Stderr);
     }
     public void test_actual_editor_v480_local_values_sets_exact_initializer_cold_and_compiler_confirm()=>RunOwnedBlueprint("locals");
+    public void test_actual_editor_v480_ref_node_storage_aliases_cold_and_compiler_confirm()=>RunOwnedBlueprint("ref-nodes");
     private void RunOwnedBlueprint(string mode)
     {
         string feature="function Example.ButtonGame::NodeValue (long n) -> long {}";
@@ -222,7 +223,7 @@ public sealed class WebUITests : TestCase
         }
         string report=Path.Combine(f.Root,"v480-blueprint.json");File.WriteAllText(report,built.ToJsonString());
         var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/web_ui.py"),Fixture.Repo,report,mode},timeoutSeconds:420);
-        if(mode=="locals")Console.WriteLine(run.Stdout.Trim());True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains(mode=="locals"?"PASS actual v480 locals":mode=="blueprint-implicit"?"PASS actual implicit ends":mode=="blueprint-camera"?"PASS actual v480 Blueprint camera":mode=="blueprint"?"PASS actual v480 Blueprint":mode=="feature-create"?"PASS actual v480 feature creation":mode=="call-wrapper"?"PASS actual v480 reference call":mode=="registered-call"?"PASS actual v480 registered reference call":mode=="placed-find"?"PASS actual v480 placed text find":"PASS actual v480 node creation/removal"),run.Stdout+run.Stderr);
+        if(mode=="locals")Console.WriteLine(run.Stdout.Trim());True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains(mode=="ref-nodes"?"PASS actual v480 ref node":mode=="locals"?"PASS actual v480 locals":mode=="blueprint-implicit"?"PASS actual implicit ends":mode=="blueprint-camera"?"PASS actual v480 Blueprint camera":mode=="blueprint"?"PASS actual v480 Blueprint":mode=="feature-create"?"PASS actual v480 feature creation":mode=="call-wrapper"?"PASS actual v480 reference call":mode=="registered-call"?"PASS actual v480 registered reference call":mode=="placed-find"?"PASS actual v480 placed text find":"PASS actual v480 node creation/removal"),run.Stdout+run.Stderr);
     }
     public void test_actual_editor_v424_node_task_plan_cas_approval_and_cold_history()
     {

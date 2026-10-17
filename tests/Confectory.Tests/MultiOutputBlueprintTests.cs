@@ -29,7 +29,7 @@ public sealed class MultiOutputBlueprintTests : TestCase
         var plain=new Parser("function Api::Value (int n) -> int {}","<old>").ParseElement();Equal("dd2273f44a9886ae6f9c48906a3e7942c14d1674f21b867b44446919187f21e0",FeatureBlueprint.ContractHash(plain));
         var json=System.Text.Json.JsonSerializer.SerializeToNode(new Parameter("int","n"),JsonData.Options)!.AsObject();True(!json.ContainsKey("Mode")&&!json.ContainsKey("IsOut"));
         var sig=new Parser(Feature,"<out>").ParseElement().Signature!;True(sig.Args[1].IsOut);True(!sig.Matches(Sig("int",Input("int","n"),Input("int","count"),Input("bool","ready"))));Equal("(int n, out int count, out bool ready) -> int",sig.Format());
-        Error("TYPE",()=>new Parser("function Api::Bad (ref int n) -> void {}","<unsupported-ref>").ParseElement());
+        Error("TYPE",()=>new Parser("function Api::Bad (in int n) -> void {}","<unsupported-in>").ParseElement());
         var graph=Graph();graph["profile"]=FeatureBlueprint.ImplicitProfile;Equal("GRAPH_PARAMETER_MODE_PROFILE",Text(Query(graph)["diagnostics"]![0]!,"code"));
     }
     public void test_named_outputs_warn_independently_at_each_branch_end_and_run_defaults()
@@ -91,7 +91,8 @@ public sealed class MultiOutputBlueprintTests : TestCase
             source=Edit(source,new JsonObject{["action"]="properties",["values"]=new JsonObject{["description"]="Changed description"}});if(!new Parser(source,"<embedded>").ParseElement().Signature!.Args[1].IsOut)throw new Exception("Properties lost out mode");
             string module=Edit("module App::Rules {}",new JsonObject{["action"]="module-function",["function"]="App::Value",["signature"]=contract.DeepClone()});if(!new Parser(module,"<embedded>").ParseElement().Requires["App::Value"].Signature.Args[1].IsOut)throw new Exception("Module out mode lost");
             string impl=Edit("implementation App::Body for App::Value (int n,out int count) -> int {}",new JsonObject{["action"]="relations",["role"]="import",["entries"]=new JsonArray(new JsonObject{["id"]="App::Value",["alias"]="Value",["scope"]=null,["signature"]=contract.DeepClone()})});var body=new Parser(impl,"<embedded>").ParseElement();if(!body.Signature!.Args[1].IsOut||!body.Imports["Value"].Signature.Args[1].IsOut)throw new Exception("Implementation/import out mode lost");
-            contract["args"]![1]!["mode"]="ref";bool refused=false;try{Edit(source,new JsonObject{["action"]="signature",["value"]=contract.DeepClone()});}catch(ArgumentException){refused=true;}if(!refused)throw new Exception("Unsupported ref silently accepted");
+            contract["args"]![0]!["mode"]="ref";source=Edit(source,new JsonObject{["action"]="signature",["value"]=contract.DeepClone()});if(!new Parser(source,"<embedded-ref>").ParseElement().Signature!.Args[0].IsRef)throw new Exception("Embedded ref mode lost");
+            contract["args"]![1]!["mode"]="in";bool refused=false;try{Edit(source,new JsonObject{["action"]="signature",["value"]=contract.DeepClone()});}catch(ArgumentException){refused=true;}if(!refused)throw new Exception("Unsupported in silently accepted");
             Console.WriteLine("Embedded metadata out mode PASS");
             """");
             var run=Processes.Run(new[]{Processes.DotNet(),"run","--project",Path.Combine(root,"probe.csproj"),"-c","Release"},timeoutSeconds:90);True(run.ExitCode==0,platform+": "+run.Stdout+run.Stderr);True(run.Stdout.Contains("Embedded metadata out mode PASS"),run.Stdout+run.Stderr);

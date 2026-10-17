@@ -46,6 +46,7 @@ internal static class BlueprintConversion
   var function=registry.Get(effective.Function!,"function",id);string featureText=Read(function.Loc.File);
   var contracts=new JsonObject();foreach(string feature in effective.Imports.Values.Select(i=>i.Id).Distinct(StringComparer.Ordinal)){var fn=registry.Get(feature,"function",id);contracts[feature]=Read(fn.Loc.File);}
   var context=FeatureBlueprint.ImplementationContext(effective);
+  if(effective.Signature!.Args.Any(p=>p.IsRef))throw new ArgumentException("External ref body conversion requires caller alias preservation; retain the original C# source");
   var signature=context["signature"]!.DeepClone();var arguments=new JsonObject();
   for(int i=0;i<effective.Signature!.Args.Count;i++)if(!effective.Signature.Args[i].IsOut)arguments[effective.Signature.Args[i].Name]=new JsonObject{["input"]=function.Signature!.Args[i].Name};
   var nodes=new JsonArray(new JsonObject{["id"]="body",["kind"]="code",["intent"]="Whole existing body of "+id+" / "+target,["control"]="next",["signature"]=signature,["arguments"]=arguments,["implementation"]=nodePath,["implementationContext"]=context.DeepClone(),["sourceIdentity"]=oldPath});

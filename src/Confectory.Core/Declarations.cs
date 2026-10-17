@@ -19,7 +19,8 @@ public sealed record Parameter(string Type, string Name,
     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? Mode = null)
 {
     [JsonIgnore] public bool IsOut => Mode == "out";
-    public string Declaration(bool named = true) => (IsOut ? "out " : "") + Type + (named ? " " + Name : "");
+    [JsonIgnore] public bool IsRef => Mode == "ref";
+    public string Declaration(bool named = true) => (Mode is "out" or "ref" ? Mode+" " : "") + Type + (named ? " " + Name : "");
 }
 public sealed record FunctionSignature(List<Parameter> Args, [property: JsonPropertyName("return")] string Return)
 {
@@ -171,7 +172,7 @@ public sealed class Parser
         List<Parameter> args = [];
         while (!Eat(")"))
         {
-            string? mode = Eat("out") ? "out" : null;
+            string? mode = Eat("out") ? "out" : Eat("ref") ? "ref" : null;
             string type = Type(true), name = named ? Name(csharp: true) : $"arg{args.Count}";
             if (name == "calls" || args.Any(a => a.Name == name)) throw new BuildError("DUPLICATE_PARAMETER", $"Duplicate/reserved parameter {name}", Current.Loc);
             args.Add(new(type, name, mode));

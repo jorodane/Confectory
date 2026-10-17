@@ -38,7 +38,7 @@ public static partial class FeatureBlueprint
     static string CanonicalText(JsonNode? node) => Canonical(node)?.ToJsonString() ?? "null";
     public static JsonObject SignatureDocument(FunctionSignature signature) => new()
     {
-        ["args"] = new JsonArray(signature.Args.Select(p => { var row=new JsonObject { ["type"] = p.Type, ["name"] = p.Name }; if(p.IsOut)row["mode"]="out"; return (JsonNode)row; }).ToArray()),
+        ["args"] = new JsonArray(signature.Args.Select(p => { var row=new JsonObject { ["type"] = p.Type, ["name"] = p.Name }; if(p.Mode is not null)row["mode"]=p.Mode; return (JsonNode)row; }).ToArray()),
         ["return"] = signature.Return
     };
     static JsonObject SignatureNode(FunctionSignature signature) => SignatureDocument(signature);
@@ -47,7 +47,7 @@ public static partial class FeatureBlueprint
     {
         var args = value["args"]!.AsArray();
         var signature = new FunctionSignature(args.Select(p => new Parameter(S(p, "type"), S(p, "name"), p?["mode"]?.GetValue<string>())).ToList(), S(value, "return"));
-        Need(signature.Args.All(p => p.Mode is null or "out"), "GRAPH_PARAMETER_MODE", "signature");
+        Need(signature.Args.All(p => p.Mode is null or "out" or "ref"), "GRAPH_PARAMETER_MODE", "signature");
         var parsed = new Parser("function Blueprint.Validation::Node " + SignatureText(signature, true) + " {}", "<node-contract>").ParseElement();
         Need(parsed.Signature is not null, "NODE_CONTRACT", "signature");
         return parsed.Signature!;
@@ -96,8 +96,9 @@ public static partial class FeatureBlueprint
         string contractHash = Hash(CanonicalText(new JsonObject { ["feature"] = feature.Id, ["signature"] = contract.DeepClone() }));
         var graph = request["graph"]!.AsObject();
         Need(graph["schema"]?.GetValue<int>() == 1, "GRAPH_SCHEMA", "schema");
-        string profile=S(graph,"profile");bool localProfile=profile==LocalsProfile,multiOutput=profile==MultiOutputProfile||localProfile, implicitEnd=profile==ImplicitProfile||multiOutput;string generator=localProfile?LocalsGenerator:multiOutput?MultiOutputGenerator:implicitEnd?ImplicitGenerator:Generator;
+        string profile=S(graph,"profile");bool refProfile=profile==RefNodesProfile,localProfile=profile==LocalsProfile||refProfile,multiOutput=profile==MultiOutputProfile||localProfile, implicitEnd=profile==ImplicitProfile||multiOutput;string generator=refProfile?RefNodesGenerator:localProfile?LocalsGenerator:multiOutput?MultiOutputGenerator:implicitEnd?ImplicitGenerator:Generator;
         Need(profile==Profile||implicitEnd,"GRAPH_PROFILE_UNSUPPORTED",profile);
+        Need(!feature.Signature!.Args.Any(p=>p.IsRef),"GRAPH_REF_FEATURE_UNSUPPORTED",feature.Id);
         Need(multiOutput || !feature.Signature!.Args.Any(p=>p.IsOut), "GRAPH_PARAMETER_MODE_PROFILE", profile);
         Need(S(graph, "feature") == feature.Id, "GRAPH_FEATURE_MISMATCH", "feature");
         Need(S(graph, "contractHash") == contractHash, "GRAPH_CONTRACT_STALE", feature.Id);
@@ -129,11 +130,12 @@ public static partial class FeatureBlueprint
             Need(control is "next" or "branch", "GRAPH_CONTROL", id);
             Need(!string.IsNullOrWhiteSpace(intent), "NODE_INTENT", id);
             var signature = Signature(value["signature"]!);
+            Need(refProfile || !signature.Args.Any(p=>p.IsRef),"GRAPH_REF_PROFILE",id);
             Need(multiOutput || !signature.Args.Any(p=>p.IsOut), "GRAPH_PARAMETER_MODE_PROFILE", id);
             Need(value["implementationContext"] is JsonObject || !signature.Args.Any(p => (p.Name.StartsWith("__fg_", StringComparison.Ordinal) || p.Name.StartsWith("fg_call_", StringComparison.Ordinal))), "NODE_RESERVED_NAME", id);
             Need(control != "branch" || signature.Return == "bool", "GRAPH_BRANCH_TYPE", id);
-            if(kind=="export")Need(signature.Args.Count==1&&!signature.Args[0].IsOut&&signature.Args[0].Name=="value"&&FeatureOutputs(feature.Signature!).Any(p=>p.Name==S(value,"output")&&p.Type==signature.Args[0].Type)&&control=="next"&&signature.Return=="void","GRAPH_OUTPUT_CONTRACT",id);
-            if(kind=="set")Need(signature.Args.Count==1&&!signature.Args[0].IsOut&&signature.Args[0].Name=="value"&&signature.Return=="void"&&control=="next"&&locals.TryGetValue(S(value,"local"),out var storage)&&S(storage,"type")==signature.Args[0].Type,"GRAPH_LOCAL_CONTRACT",id);
+            if(kind=="export")Need(signature.Args.Count==1&&signature.Args[0].Mode is null&&signature.Args[0].Name=="value"&&FeatureOutputs(feature.Signature!).Any(p=>p.Name==S(value,"output")&&p.Type==signature.Args[0].Type)&&control=="next"&&signature.Return=="void","GRAPH_OUTPUT_CONTRACT",id);
+            if(kind=="set")Need(signature.Args.Count==1&&signature.Args[0].Mode is null&&signature.Args[0].Name=="value"&&signature.Return=="void"&&control=="next"&&locals.TryGetValue(S(value,"local"),out var storage)&&S(storage,"type")==signature.Args[0].Type,"GRAPH_LOCAL_CONTRACT",id);
             var references = new JsonObject();
             string? called = null;
             if (kind == "call")
@@ -353,6 +355,12 @@ public static partial class FeatureBlueprint
             throw new Refusal("GRAPH_VALUE", subject);
         }
 
+        string ArgumentBinding(Parameter parameter,JsonNode? value,HashSet<string> available,string subject)
+        {
+            string expression=Binding(value,parameter.Type,available,subject);if(!parameter.IsRef)return expression;
+            var binding=value!.AsObject();Need(refProfile&&!binding.ContainsKey("constant")&&(binding.ContainsKey("input")||binding.ContainsKey("local")||binding.ContainsKey("node")),"GRAPH_REF_STORAGE",subject);return "ref "+expression;
+        }
+
         foreach (string id in order)
         {
             var node = nodes[id];
@@ -360,7 +368,7 @@ public static partial class FeatureBlueprint
             available.Remove(id);
             Need(node.Arguments.Count == node.Signature.Args.Count(p=>!p.IsOut) && node.Signature.Args.Where(p=>!p.IsOut).All(p => node.Arguments.ContainsKey(p.Name)), "GRAPH_ARGUMENTS", id);
             foreach (var p in node.Signature.Args.Where(p=>!p.IsOut))
-                Binding(node.Arguments[p.Name], p.Type, available, id + "/" + p.Name);
+                ArgumentBinding(p,node.Arguments[p.Name],available,id+"/"+p.Name);
         }
 
         foreach (var exit in exits)
@@ -410,7 +418,7 @@ public static partial class FeatureBlueprint
             string marker = "node:" + feature.Id + "/" + id + "@" + manifestNodes.Single(n => n!["id"]!.ToString() == id)![node.Kind == "call" ? "definitionHash" : "implementationHash"]!.ToString();
             output.AppendLine("#line 1 " + JsonSerializer.Serialize(marker));
             if (node.Kind == "call")
-                output.AppendLine((node.Signature.Return == "void" ? "" : "return ") + ImportParameter(node.Feature!) + ".Invoke(" + string.Join(",", node.Signature.Args.Select(p => (p.IsOut?"out ":"")+p.Name)) + ");");
+                output.AppendLine((node.Signature.Return == "void" ? "" : "return ") + ImportParameter(node.Feature!) + ".Invoke(" + string.Join(",", node.Signature.Args.Select(p => (p.Mode is "out" or "ref"?p.Mode+" ":"")+p.Name)) + ");");
             else
                 output.AppendLine(bodies[id]);
             output.AppendLine("#line default\n}");
@@ -435,7 +443,7 @@ public static partial class FeatureBlueprint
                 output.AppendLine(FeatureValue(exported)+" = "+Binding(node.Arguments["value"],outputType,available,id+"/value")+";");
                 sourceMaps.Add(new JsonObject{["node"]=id,["definitionHash"]=node.DefinitionHash,["marker"]="graph:"+feature.Id+"@"+topologyHash});manifestNodes.Single(n=>n!["id"]!.ToString()==id)!["includedInSource"]=true;
             }
-            else output.AppendLine((node.Signature.Return == "void" ? "" : Value(id) + " = ") + (HasContext(node) ? "this.Invoke" : Symbol(id)) + "(" + string.Join(",", node.Signature.Args.Select(p => p.IsOut?"out "+Value(id,p.Name):Binding(node.Arguments[p.Name], p.Type, available, id + "/" + p.Name)).Concat(HasContext(node) ? Array.Empty<string>() : NodeImports(node).Select(f => "calls." + Import(f).Alias))) + ");");
+            else output.AppendLine((node.Signature.Return == "void" ? "" : Value(id) + " = ") + (HasContext(node) ? "this.Invoke" : Symbol(id)) + "(" + string.Join(",", node.Signature.Args.Select(p => p.IsOut?"out "+Value(id,p.Name):ArgumentBinding(p,node.Arguments[p.Name],available,id+"/"+p.Name)).Concat(HasContext(node) ? Array.Empty<string>() : NodeImports(node).Select(f => "calls." + Import(f).Alias))) + ");");
             if (node.Control == "branch")
                 output.AppendLine("if (" + Value(id) + ") goto " + Label(edges[(id, "true")]) + "; else goto " + Label(edges[(id, "false")]) + ";");
             else

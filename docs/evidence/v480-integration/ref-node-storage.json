@@ -1,0 +1,240 @@
+{
+  "schema": 1,
+  "baseCommit": "fb60b7ea9588f265f87af3ef1c29dd8b30b2d18f",
+  "referenceMainCommit": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+  "profile": "sync-acyclic-ref-nodes-v1",
+  "generator": "feature-blueprint-source-v6",
+  "checkedSourceHashes": {
+    "examples/editor-home/WebBundle.csbody": "3875716a7e74d504983353823628e0ec02a3c0b1c94dfede9c82aaaa281a5fb1",
+    "examples/editor-home/ui/blueprint-pins.js": "7e04f9f6daf6fb7b6ff0cd4cfeeca5fbe99508fb15edaa2da51402f079093d11",
+    "examples/editor-home/ui/blueprint.js": "d94155eeca8276dd9fc67cdb36851d3a3998c02b067f2e629791b24575bb454b",
+    "examples/editor-home/ui/declarations.js": "60fa6a6da920b990fd12be575065fabd130ba211db77b6dac73c805842d8993c",
+    "packs/pack-workspace/Blueprint.csbody": "9d4471bd34e9d1315259f67ae168efdb412f9d6c62f586d6abaa76ac347fdf0d",
+    "src/Confectory.Core/BlueprintDocuments.cs": "c8fdb52d33ac9ab929a5227fe9a386071f66a2fb42683e810febd402573312f8",
+    "src/Confectory.Core/Declarations.cs": "9335d56097737f987f6901178aee54edfb96bccd2f8cad086b8bd0408577a74f",
+    "src/Confectory.Core/FeatureBlueprint.RefNodes.cs": "86a53680b22d4c1b9f6752c897439fac67f8da8b0f841daab11dc05956db4c8e",
+    "src/Confectory.Core/FeatureBlueprint.cs": "2bafd2efd327b21d1ae85ee684bfcd9fd438963fbb0a4b3a85c0049692910f5f",
+    "src/Confectory.Core/Generation.cs": "634221c867fd573fe50b1ae68e419b1d072936893839b049c5aa960457d3eb5a",
+    "targets/android-export/templates/MetadataAuthoring.cs": "7a6bb94ea97593e039aa8e3dcc03abf32e529abebcddf61b12dd915061950a6c",
+    "targets/browser-wasm/templates/MetadataAuthoring.cs": "7a6bb94ea97593e039aa8e3dcc03abf32e529abebcddf61b12dd915061950a6c",
+    "targets/dotnet/Program.cs": "970cb34aafb0b70e50dd7a2e59bc7c74aae117668bb4b99c0a537d98b44e506b",
+    "targets/element-authoring/BlueprintConversion.cs": "f9242f54972f548a8f53747ac54883f9395b58e74b07766f959e17587426476b",
+    "targets/element-authoring/BlueprintCreation.cs": "2325c94595ca89c1fd6e4e0c7699e27355bfd6ce0af0764b4007b557646a9238",
+    "targets/element-authoring/DeclarationAuthoring.cs": "ca61cc74d5c8e68205d974d45f99cf30e3b8d39fc01f1148620f8d19968f10dc",
+    "tests/Confectory.Tests/MultiOutputBlueprintTests.cs": "031ac8247cb0298b6f4e75d2d1bbed837f7ee0608c433122e763b1a9e0fe5d3f",
+    "tests/Confectory.Tests/Program.cs": "74555d9712b16ebeda57741711e15ac020127fee9f082ff7b5a3c533bd1b5594",
+    "tests/Confectory.Tests/RefAuthoringTests.cs": "cc9b1222512bf26bfa0fc4a1106920a7b9f34969c812d701f7e6193c9428eb37",
+    "tests/Confectory.Tests/RefNodeTests.cs": "2f8aec8ea61dd0879cc1e93e796195b9708c6ceefb3d5249331bbfef5eb4b509",
+    "tests/Confectory.Tests/WebUITests.cs": "f29ced5124e24398303e2796430980ebcff9e884e9b8ea6cc290115f8301bc7d",
+    "tests/web/v480_ref_nodes.py": "2037e20589841d579d89e4c85f9b56aaeb96b40ad9329d1fd02156f7dfac6d32",
+    "tests/web/web_ui.py": "a382b8794ec6ca8fe75aca5a71263bafbd1e77615512e11e31baa6729e068aca"
+  },
+  "stages": [
+    {
+      "log": "first-engine.log",
+      "sha256": "ced5fe4d9245200136610fd0e0888762e9fe4f1b8b10f2b8a752198a1947f016",
+      "scope": "initial four real ref/ordinary-C# alias cases",
+      "completed": true,
+      "passedMethods": [
+        "RefNodeTests.test_code_ref_arguments_alias_same_local_immediately_and_out_warning_remains_per_end",
+        "RefNodeTests.test_ordinary_csharp_ref_calls_preserve_same_slot_aliases_including_ref_out_same_caller_cell",
+        "RefNodeTests.test_ref_to_value_input_and_preceding_node_result_use_real_storage_without_caller_copyback",
+        "RefNodeTests.test_typed_ref_call_uses_selected_object_scope_and_real_aliases"
+      ],
+      "failedMethods": [],
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 17.12
+    },
+    {
+      "log": "second-engine-api.log",
+      "sha256": "ad6a1eb5240b014060a7d3e45b778adf09b7979973e17e0b1d1d441e175301b2",
+      "scope": "five runtime alias cases and public call/CAS/cold/conversion refusal",
+      "completed": true,
+      "passedMethods": [
+        "RefNodeTests.test_code_ref_arguments_alias_same_local_immediately_and_out_warning_remains_per_end",
+        "RefNodeTests.test_ordinary_csharp_ref_calls_preserve_same_slot_aliases_including_ref_out_same_caller_cell",
+        "RefNodeTests.test_ref_array_parameters_alias_the_reference_slot_when_replacing_the_array",
+        "RefNodeTests.test_ref_to_value_input_and_preceding_node_result_use_real_storage_without_caller_copyback",
+        "RefNodeTests.test_typed_ref_call_uses_selected_object_scope_and_real_aliases",
+        "RefAuthoringTests.test_ref_public_typed_call_profile_cas_cold_alias_and_ref_conversion_refusal"
+      ],
+      "failedMethods": [],
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 54.529
+    },
+    {
+      "log": "third-focused.log",
+      "sha256": "b09b0d357551783f55fe77e1c39f5004f25926118d66bfb78551add0795ca51f",
+      "scope": "five core/public/embedded template/actual UI",
+      "completed": true,
+      "passedMethods": [
+        "MultiOutputBlueprintTests.test_android_and_browser_metadata_templates_round_trip_out_roles_in_managed_code",
+        "RefNodeTests.test_code_ref_arguments_alias_same_local_immediately_and_out_warning_remains_per_end",
+        "RefNodeTests.test_ordinary_csharp_ref_calls_preserve_same_slot_aliases_including_ref_out_same_caller_cell",
+        "RefNodeTests.test_ref_array_parameters_alias_the_reference_slot_when_replacing_the_array",
+        "RefNodeTests.test_ref_to_value_input_and_preceding_node_result_use_real_storage_without_caller_copyback",
+        "RefNodeTests.test_typed_ref_call_uses_selected_object_scope_and_real_aliases",
+        "RefAuthoringTests.test_ref_public_typed_call_profile_cas_cold_alias_and_ref_conversion_refusal",
+        "WebUITests.test_actual_editor_v480_ref_node_storage_aliases_cold_and_compiler_confirm"
+      ],
+      "failedMethods": [],
+      "passed": 8,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 214.157
+    },
+    {
+      "log": "final-engine.log",
+      "sha256": "2a3be63c752b6bdf084d3087844fd054cd216e64d734a77d6286e615273c9ff3",
+      "scope": "ref,locals,out,implicit,whole-body conversion and legacy graph regression",
+      "completed": true,
+      "passedMethods": [
+        "FeatureBlueprintTests.test_blueprint_disconnected_current_node_body_is_compiled_without_execution",
+        "FeatureBlueprintTests.test_blueprint_existing_feature_calls_use_typed_imports_and_contract_fences",
+        "FeatureBlueprintTests.test_blueprint_fixed_inputs_branch_compiler_reuse_node_replacement_and_legacy_preservation",
+        "FeatureBlueprintTests.test_blueprint_invalid_graphs_stale_contracts_and_dominating_values",
+        "ImplicitBlueprintTests.test_implicit_branch_terminations_warn_separately_and_real_errors_remain_errors",
+        "ImplicitBlueprintTests.test_implicit_empty_start_has_typed_defaults_without_hiding_void_or_type_errors",
+        "ImplicitBlueprintTests.test_implicit_join_tracks_must_may_and_a_specific_unassigned_branch_witness",
+        "BlueprintConversionTests.test_public_body_conversion_atomic_group_cas_origin_cold_and_compiler_confirm",
+        "BlueprintConversionTests.test_whole_body_context_preserves_calls_scope_this_recursion_names_targets_and_crlf",
+        "BlueprintConversionTests.test_whole_out_body_conversion_preserves_original_member_scoped_import_and_other_target",
+        "BlueprintConversionTests.test_whole_void_body_conversion_runs_once_and_probe_does_not_execute",
+        "MultiOutputBlueprintTests.test_android_and_browser_metadata_templates_round_trip_out_roles_in_managed_code",
+        "MultiOutputBlueprintTests.test_code_node_named_out_results_and_real_csharp_out_errors_remain_checked",
+        "MultiOutputBlueprintTests.test_empty_multiple_outs_have_typed_reference_defaults_without_cpp_or_execution",
+        "MultiOutputBlueprintTests.test_join_has_separate_must_may_and_unassigned_witness_for_each_output",
+        "MultiOutputBlueprintTests.test_named_outputs_warn_independently_at_each_branch_end_and_run_defaults",
+        "MultiOutputBlueprintTests.test_out_contract_modes_and_legacy_hash_are_explicit_and_stable",
+        "MultiOutputBlueprintTests.test_typed_call_named_outputs_use_selected_object_scope_and_dominate_consumers",
+        "MultiOutputAuthoringTests.test_contract_append_out_is_explicit_cas_cold_body_preserving_and_compiler_confirmed",
+        "MultiOutputAuthoringTests.test_object_blank_and_reference_factories_preserve_out_modes_and_positional_output_names",
+        "LocalBlueprintTests.test_generated_unused_local_guard_does_not_assign_to_user_underscore_parameter",
+        "LocalBlueprintTests.test_local_array_is_shared_within_call_and_fresh_across_calls_and_invalid_locals_refuse",
+        "LocalBlueprintTests.test_local_set_branch_order_per_call_reset_and_per_end_out_warning",
+        "LocalBlueprintTests.test_local_set_reads_current_storage_while_node_result_retains_snapshot",
+        "LocalAuthoringTests.test_local_public_profile_cas_exact_initializers_cold_and_graph_only_compiler_confirm",
+        "RefNodeTests.test_code_ref_arguments_alias_same_local_immediately_and_out_warning_remains_per_end",
+        "RefNodeTests.test_ordinary_csharp_ref_calls_preserve_same_slot_aliases_including_ref_out_same_caller_cell",
+        "RefNodeTests.test_ref_array_parameters_alias_the_reference_slot_when_replacing_the_array",
+        "RefNodeTests.test_ref_to_value_input_and_preceding_node_result_use_real_storage_without_caller_copyback",
+        "RefNodeTests.test_typed_ref_call_uses_selected_object_scope_and_real_aliases",
+        "RefAuthoringTests.test_ref_public_typed_call_profile_cas_cold_alias_and_ref_conversion_refusal"
+      ],
+      "failedMethods": [],
+      "passed": 31,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 439.59
+    },
+    {
+      "log": "final-ui.log",
+      "sha256": "90994a74400abaa0362384eeb8074950561bdf52da75c4f241d200396201288f",
+      "scope": "ref,locals,out,implicit,camera,declaration,module,existing/new feature UI",
+      "completed": true,
+      "passedMethods": [
+        "WebUITests.test_actual_editor_implicit_ends_whole_body_conversion_cold_and_confirm",
+        "WebUITests.test_actual_editor_v424_typed_declaration_views_cas_confirm_and_restart",
+        "WebUITests.test_actual_editor_v480_blueprint_camera_header_pins_tabs_and_cold_input",
+        "WebUITests.test_actual_editor_v480_existing_feature_reference_call_and_cold_contract",
+        "actual v480 locals profile, exact initializer, typed picker, set order, cold input basis, delete guard and graph-only compiler Confirm",
+        "WebUITests.test_actual_editor_v480_local_values_sets_exact_initializer_cold_and_compiler_confirm",
+        "WebUITests.test_actual_editor_v480_module_interface_contract_default_and_cold_rebase",
+        "WebUITests.test_actual_editor_v480_named_out_contract_pins_ends_cold_and_compiler_confirm",
+        "WebUITests.test_actual_editor_v480_new_feature_contract_graph_group_and_cold_source",
+        "WebUITests.test_actual_editor_v480_ref_node_storage_aliases_cold_and_compiler_confirm"
+      ],
+      "failedMethods": [],
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 695.213
+    },
+    {
+      "log": "final-managed.log",
+      "sha256": "2a5b9d62049b962d2f18d6555ff5fec1fbaf3c97844c225573aae27f41a9b1b5",
+      "scope": "Windows and Android managed compile only",
+      "completed": true,
+      "passedMethods": [
+        "EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only"
+      ],
+      "failedMethods": [],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 155.168
+    }
+  ],
+  "overlappingStagesMustNotBeSummed": true,
+  "actualSemantics": {
+    "ordinaryCSharpFunctionRef": true,
+    "graphCodeAndTypedCallNodeRef": true,
+    "directCSharpRefSameLvalueNoCopybackAdapter": true,
+    "bindingStores": [
+      "current function value parameter slot",
+      "initialized per-invocation local",
+      "dominating prior node primary/named result slot"
+    ],
+    "constantRefRejected": "GRAPH_REF_STORAGE",
+    "oldNodeProfileRefRejected": "GRAPH_REF_PROFILE",
+    "externalRootRefGraphRejected": "GRAPH_REF_FEATURE_UNSUPPORTED",
+    "externalRefBodyConversionRefusesAndPreservesOriginal": true,
+    "originalRefCSharpRemainsCallable": true,
+    "refIsInputNotNewOutput": true,
+    "existingOutDefaultsAndPerEndWarningsRetained": true,
+    "exactModesInSignatureHashMatchingAndMetadata": true,
+    "oldValueAndOutContractBytesRetained": true,
+    "explicitProfileCASColdAndCompilerConfirm": true
+  },
+  "proofValues": {
+    "ordinaryTwoRefAliasesAndSeparateOut": "80,20,40",
+    "ordinaryRefOutAllSameCallerCell": "120,40",
+    "nodeSameLocalAndReset": [
+      "80,20",
+      "0,0",
+      "80,20"
+    ],
+    "refToValueInputDoesNotCopyBackToCaller": "80,20,5",
+    "refToPrecedingResultSlot": "20,40",
+    "refArraySlotReplacementAcrossCalls": [
+      "40,20",
+      "40,20"
+    ],
+    "selectedObjectScope": "80,20",
+    "publicBeforeConfirm": "0,0",
+    "publicAfterImportGraphConfirm": "80,20"
+  },
+  "limits": [
+    "root graph ref interfaces and ref body conversion not supported yet",
+    "no arbitrary expressions/properties/array elements as ref targets",
+    "ordinary C# alias results not inferred from value-array object sharing",
+    "no new loop/async/shared-state lifetime rules",
+    "owned Linux/.NET10/Chromium, Windows/Android managed compile; no native/device/account/paidmodel/userPC claim"
+  ],
+  "remainingWholeScope": [
+    "external ref graph/body conversion caller ref/out alias preservation",
+    "nested graph ownership/identity/files/version/call/return",
+    "property/expression/output-alias locals",
+    "enum/compound types/arbitrary execution ports",
+    "split C# regions/external helpers",
+    "loop/async",
+    "physical delete/bulk target migration",
+    "prototype portals/pixel matching/fullv424services separately tracked"
+  ],
+  "protected": {
+    "mainRemote": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+    "mainLocal": "b5ea38c3d7eec3eb20f170e68f0f4215b86b2aee",
+    "originalZIPsAndAndroidSettingsUnchanged": true,
+    "androidChanges": "metadata declaration mode parser code only"
+  },
+  "implementationCommit": null,
+  "ordinaryCheckout": null,
+  "screenshots": {
+    "ref-node-bindings.png": "604337a69a398a507599290bd3d2fd60be49da7b2b430b05a8fa664171dba49f",
+    "ref-node-published.png": "1d082bef06f8f6bc136654bd648b87de683bf8cd682cbc53b39886807737dca3"
+  }
+}
