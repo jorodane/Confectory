@@ -210,6 +210,16 @@
       "failed": 0,
       "skipped": 0,
       "seconds": 65.682
+    },
+    {
+      "log": "ordinary-checkout.log",
+      "sha256": "c85ede0a9c2d2c9736264c02d6df91983387ef38cce54008353121869d480381",
+      "scope": "ordinary Git retained CRLF and fresh LF,33resources, actual Home, tamper refusal",
+      "completed": true,
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 6.294
     }
   ],
   "overlappingStagesMustNotBeSummed": true,
@@ -277,8 +287,20 @@
     "remoteMain": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
     "originalZipsAndAndroidSettingsUnchanged": true
   },
-  "implementationCommit": null,
-  "ordinaryCheckout": null,
+  "implementationCommit": "f81a0a84c7f653bdbe5a0741aba0603bae13c44b",
+  "ordinaryCheckout": {
+    "commit": "f81a0a84c7f653bdbe5a0741aba0603bae13c44b",
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "seconds": 6.294,
+    "resourceCount": 33,
+    "retainedCRLF": true,
+    "freshLF": true,
+    "actualHomeStart": true,
+    "tamperRefusal": true,
+    "originalBytesUnchanged": true
+  },
   "beforeBoundsTestsHashes": {
     "examples/editor-home/WebBundle.csbody": "5fb677596a95dd22fd7f95dd476f0a5a268016736451ae90d9d705c426e9acd7",
     "examples/editor-home/ui/blueprint-pins.js": "ad9e6d3548e665ec6563e7994c1e9dee8128dee418d8f92279487c271221bc49",
