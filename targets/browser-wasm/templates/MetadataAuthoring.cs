@@ -48,7 +48,7 @@ internal static class MetadataAuthoring
  }
  static string Read(string file){var info=new FileInfo(file);if(info.Length>1048576)throw new ArgumentException("Owned source file budget exceeded");return File.ReadAllText(file);}
 static string Quote(string text)=>JsonSerializer.Serialize(text);
-static string Signature(FunctionSignature signature,bool named)=>"("+string.Join(", ",signature.Args.Select(x=>x.Type+(named?" "+x.Name:"")))+") -> "+signature.Return;
+static string Signature(FunctionSignature signature,bool named)=>signature.Format(named);
 static string Format(Element element)
 {
     var text=new StringBuilder(element.Kind+" "+element.Id);
@@ -369,7 +369,8 @@ internal static class DeclarationAuthoring
   FunctionSignature Signature(JsonNode node,bool named)
   {
    var args=node["args"]?.AsArray()??throw new ArgumentException("Signature arguments required");if(args.Count>64)throw new ArgumentException("Signature argument budget");
-   return new(args.Select((arg,index)=>new Parameter(Text(arg!,"type"),named?Text(arg!,"name"):"arg"+index)).ToList(),Text(node,"return"));
+   if(args.Any(arg=>arg?["mode"] is not null && arg["mode"]!.ToString()!="out"))throw new ArgumentException("Only value inputs and named out outputs are supported");
+   return new(args.Select((arg,index)=>new Parameter(Text(arg!,"type"),named?Text(arg!,"name"):"arg"+index,arg?["mode"]?.GetValue<string>())).ToList(),Text(node,"return"));
   }
   List<JsonNode> Entries(){var rows=edit["entries"]?.AsArray()??throw new ArgumentException("Relation entries required");if(rows.Count>128)throw new ArgumentException("Relation budget");return rows.Select(row=>row??throw new ArgumentException("Relation entry required")).ToList();}
   ElementReference Reference(JsonNode row,bool typed=false)=>new(Id(row,"id"),new(),element.Id,typed?Text(row,"kind"):null);

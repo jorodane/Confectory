@@ -24,7 +24,7 @@ public static class BlueprintDocuments
         else if (kind == "blueprint")
         {
             Require(id.Contains("/body:", StringComparison.Ordinal), "Explicit implementation target source required");
-            Require(document["profile"]?.ToString() is FeatureBlueprint.Profile or FeatureBlueprint.ImplicitProfile, "Supported Blueprint profile required");
+            Require(document["profile"]?.ToString() is FeatureBlueprint.Profile or FeatureBlueprint.ImplicitProfile or FeatureBlueprint.MultiOutputProfile, "Supported Blueprint profile required");
             Require(Regex.IsMatch(document["feature"]?.ToString() ?? "", @"\A[A-Za-z_][A-Za-z_0-9]*(?:\.[A-Za-z_][A-Za-z_0-9]*)*::[A-Za-z_][A-Za-z_0-9]*\z", RegexOptions.CultureInvariant), "Qualified feature identity required");
             Require(document["nodes"] is JsonArray && document["edges"] is JsonArray && document["exits"] is JsonObject, "Graph source collections required");
             var ids = new HashSet<string>(StringComparer.Ordinal);
@@ -67,12 +67,20 @@ public static class BlueprintDocuments
         }
         var contracts = new JsonObject();
         foreach (string id in implementation.Imports.Values.Select(i => i.Id).Distinct(StringComparer.Ordinal)) contracts[id] = ReadContract(id);
-        return FeatureBlueprint.Execute(new JsonObject
+        string featureSource=ReadContract(implementation.Function!);var graph=request["graph"]!.DeepClone().AsObject();
+        bool rebind=request["rebindContract"]?.GetValue<bool>()==true;
+        if(rebind){
+            var feature=new Parser(featureSource,"<current-owned-feature>").ParseElement();graph["contractHash"]=FeatureBlueprint.ContractHash(feature);
+            if(feature.Signature!.Args.Any(p=>p.IsOut)&&graph["profile"]?.ToString() is FeatureBlueprint.Profile or FeatureBlueprint.ImplicitProfile)graph["profile"]=FeatureBlueprint.MultiOutputProfile;
+        }
+        var result=FeatureBlueprint.Execute(new JsonObject
         {
-            ["operation"] = request["definitionsOnly"]?.GetValue<bool>() == true ? "featureBlueprintNodes" : "featureBlueprintDescribe", ["featureSource"] = ReadContract(implementation.Function!),
-            ["implementationContext"] = FeatureBlueprint.ImplementationContext(implementation), ["featureContracts"] = contracts, ["graph"] = request["graph"]!.DeepClone(),
+            ["operation"] = request["definitionsOnly"]?.GetValue<bool>() == true ? "featureBlueprintNodes" : "featureBlueprintDescribe", ["featureSource"] = featureSource,
+            ["implementationContext"] = FeatureBlueprint.ImplementationContext(implementation), ["featureContracts"] = contracts, ["graph"] = graph,
             ["implementations"] = request["implementations"]?.DeepClone()
         });
+        if(rebind)result["reboundGraph"]=graph.DeepClone();
+        return result;
     }
 
     public static JsonArray NodeUnits(string root, string graphPath, string bodyId, string? draft = null)

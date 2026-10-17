@@ -199,6 +199,12 @@ public sealed class WebUITests : TestCase
         True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS actual v480 rich notes"),run.Stdout+run.Stderr);
     }
     public void test_actual_editor_v480_placed_text_find_workspace_blueprint_and_cold_scope()=>RunOwnedBlueprint("placed-find");
+    public void test_actual_editor_v480_named_out_contract_pins_ends_cold_and_compiler_confirm()
+    {
+        var built=new Builder(Path.Combine(Fixture.Repo,"examples/editor-home/project.cpack"),"linux").Build();string report=Path.Combine(f.Root,"v480-multiout.json");File.WriteAllText(report,built.ToJsonString());
+        var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/web_ui.py"),Fixture.Repo,report,"multiout"},timeoutSeconds:600);
+        True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS actual v480 named out"),run.Stdout+run.Stderr);
+    }
     private void RunOwnedBlueprint(string mode)
     {
         string feature="function Example.ButtonGame::NodeValue (long n) -> long {}";

@@ -1,0 +1,410 @@
+{
+  "schema": 1,
+  "baseCommit": "8f0c10dfbf7cbf5aed176deb2289db37fb634173",
+  "referenceMainCommit": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+  "profile": "sync-acyclic-implicit-out-v1",
+  "generator": "feature-blueprint-source-v4",
+  "outSemantics": "typed fresh node result slots plus explicit named exports; ref aliasing not implemented",
+  "runtimeDefaults": {
+    "numeric": "0",
+    "bool": "false",
+    "string/array": "null"
+  },
+  "checkedSourceHashes": {
+    "examples/editor-home/WebBundle.csbody": "75cf6fec988b41600481977ad3c9cab555f9d05fcd9d6bed2c1dc5d83ef53874",
+    "examples/editor-home/ui/blueprint-pins.js": "7fa63f522a1221d77e84f744f9cb58b515d067674804e55e787da1d64b9caa63",
+    "examples/editor-home/ui/blueprint.js": "46b148b9e0ea1f28c5f0cc2e48532edb4da465a1c8e4b569f60bb4e82c4f494e",
+    "examples/editor-home/ui/declarations.js": "c09c792df543320244047d42ac6a2822d7ea625db38f162bef81ded54a174a02",
+    "examples/editor-home/ui/style.css": "9816267a70fc3ad5bc4d7da06b474d2f639b769f8d6fdc53143aea14e0fc847d",
+    "packs/editor-home-model/Blueprint.csbody": "392099dec1290e55ffe6a664287bf6969ed9e5fbf9758d6f5fd9f15f52cc6dcd",
+    "packs/pack-workspace/Blueprint.csbody": "3dc8ba95763dce53b5b377d515de69b6a6eb7062c561428a34029f1e22a7fedd",
+    "src/Confectory.Core/BlueprintDocuments.cs": "7cccecbb468c46b4caa37c1e42be4b249af8f09da79da3ec40a9af3c79cc3478",
+    "src/Confectory.Core/Declarations.cs": "d0b0eee80f0b5202a948f6ae6b2af32a35ad642b64c7e87d17ecd95114f83a38",
+    "src/Confectory.Core/FeatureBlueprint.Context.cs": "da4a20f2ada129bd2874ba323b2bbe6f349f0d0429e6cdb577cf390d930c81dd",
+    "src/Confectory.Core/FeatureBlueprint.MultiOutput.cs": "bf83167da0452d4a8b8b56dbbabf71931a91f6222621eb1911100cd5e5b319a7",
+    "src/Confectory.Core/FeatureBlueprint.cs": "bb7d05e7072d494adccb4e5f71227aebf9e85c70587d8c563fcdfae8f637a8d3",
+    "src/Confectory.Core/Generation.cs": "1ab7be1eec8ab5897c59b6c0b373dd3e70fa89386d46575d7d8c6a6e49216c12",
+    "targets/android-export/templates/MetadataAuthoring.cs": "084955c4ab44d7db5fb1ab8aba9d3e317afab1b3e9d922216d6266ebf927334d",
+    "targets/browser-wasm/templates/MetadataAuthoring.cs": "084955c4ab44d7db5fb1ab8aba9d3e317afab1b3e9d922216d6266ebf927334d",
+    "targets/dotnet/Program.cs": "43f0df5d16c2a701a1ec79759bfedc21c646a19ea03d7d8398052ff537e34539",
+    "targets/element-authoring/BlueprintCall.cs": "8c9005f4e9ca8b8c2478f8f116ce5c4ab3c588ec925e0ac69b02be2059dd67c3",
+    "targets/element-authoring/BlueprintConversion.cs": "e82beb71291d4a0c079141efc53f8d5a3ca1b60e400d10e86ae5af47819c341f",
+    "targets/element-authoring/BlueprintCreation.cs": "e18e87c00315ad7ad485f035346b0ecde7da871b190e3f8bc094da727a32aa71",
+    "targets/element-authoring/DeclarationAuthoring.cs": "74886582f5b4a04e19406ed3df98329f8ccf6402ab0cf27d9461a9d8c9af4286",
+    "targets/element-authoring/Program.cs": "8a17ab7894cff4395bddccd000e9042d17c9cbae21b1f5f257a7ee1937136933",
+    "tests/Confectory.Tests/BlueprintConversionTests.cs": "fddcb5711cce0fbc816e18bb9351222445513fe40741243d341232151889a31b",
+    "tests/Confectory.Tests/MultiOutputAuthoringTests.cs": "d8c6078e148f56048c6fad6cafcf5316068ead7155d831689029f4e0490f2f7b",
+    "tests/Confectory.Tests/MultiOutputBlueprintTests.cs": "ee913b4be6459ac71371d33ff612576d1a95e0b2452e95fb1b8f92227c482b38",
+    "tests/Confectory.Tests/Program.cs": "7149ac8b0d99198e0e7eeeddc833433dea5ff3c1e02f15daf2f90e18c9ea2991",
+    "tests/Confectory.Tests/WebUITests.cs": "566ab5afb506a692785f52221b362243ed80562ba60d2bcf805e73524823a356",
+    "tests/web/v480_multiout.py": "09a7f55edf9ad2524c95972f5a37efdb36b77a52edd85f8f7ee6ea4d97f89dd2",
+    "tests/web/web_ui.py": "c6331156b1a9485b66d2b54681ee7dbd354c14cef4cf2c27820fc8bc2a37ea21"
+  },
+  "beforeFinalCorrectionsSourceHashes": {
+    "examples/editor-home/WebBundle.csbody": "3a40b487a30ce789e19c6d7b8199dc35a861b2e16f490408982a1e5734be798e",
+    "examples/editor-home/ui/blueprint-pins.js": "7fa63f522a1221d77e84f744f9cb58b515d067674804e55e787da1d64b9caa63",
+    "examples/editor-home/ui/blueprint.js": "79f90df81fd23115c53bd1814b42620cca3cafda6023317b0409b71e50d5ddbf",
+    "examples/editor-home/ui/declarations.js": "848fe714685d210117be3e86e3f2683c0b584507a56a721722133eebff8ee095",
+    "examples/editor-home/ui/style.css": "9816267a70fc3ad5bc4d7da06b474d2f639b769f8d6fdc53143aea14e0fc847d",
+    "packs/editor-home-model/Blueprint.csbody": "392099dec1290e55ffe6a664287bf6969ed9e5fbf9758d6f5fd9f15f52cc6dcd",
+    "packs/pack-workspace/Blueprint.csbody": "3dc8ba95763dce53b5b377d515de69b6a6eb7062c561428a34029f1e22a7fedd",
+    "src/Confectory.Core/BlueprintDocuments.cs": "7cccecbb468c46b4caa37c1e42be4b249af8f09da79da3ec40a9af3c79cc3478",
+    "src/Confectory.Core/Declarations.cs": "d0b0eee80f0b5202a948f6ae6b2af32a35ad642b64c7e87d17ecd95114f83a38",
+    "src/Confectory.Core/FeatureBlueprint.Context.cs": "da4a20f2ada129bd2874ba323b2bbe6f349f0d0429e6cdb577cf390d930c81dd",
+    "src/Confectory.Core/FeatureBlueprint.MultiOutput.cs": "bf83167da0452d4a8b8b56dbbabf71931a91f6222621eb1911100cd5e5b319a7",
+    "src/Confectory.Core/FeatureBlueprint.cs": "bb7d05e7072d494adccb4e5f71227aebf9e85c70587d8c563fcdfae8f637a8d3",
+    "src/Confectory.Core/Generation.cs": "1ab7be1eec8ab5897c59b6c0b373dd3e70fa89386d46575d7d8c6a6e49216c12",
+    "targets/android-export/templates/MetadataAuthoring.cs": "d8d8d0baa5def9f83f491d2776b947b4dc038eefceab34d6e9a27c9210b4caa1",
+    "targets/browser-wasm/templates/MetadataAuthoring.cs": "d8d8d0baa5def9f83f491d2776b947b4dc038eefceab34d6e9a27c9210b4caa1",
+    "targets/dotnet/Program.cs": "43f0df5d16c2a701a1ec79759bfedc21c646a19ea03d7d8398052ff537e34539",
+    "targets/element-authoring/BlueprintCall.cs": "8c9005f4e9ca8b8c2478f8f116ce5c4ab3c588ec925e0ac69b02be2059dd67c3",
+    "targets/element-authoring/BlueprintConversion.cs": "e82beb71291d4a0c079141efc53f8d5a3ca1b60e400d10e86ae5af47819c341f",
+    "targets/element-authoring/BlueprintCreation.cs": "e18e87c00315ad7ad485f035346b0ecde7da871b190e3f8bc094da727a32aa71",
+    "targets/element-authoring/DeclarationAuthoring.cs": "74886582f5b4a04e19406ed3df98329f8ccf6402ab0cf27d9461a9d8c9af4286",
+    "targets/element-authoring/Program.cs": "8a17ab7894cff4395bddccd000e9042d17c9cbae21b1f5f257a7ee1937136933",
+    "tests/Confectory.Tests/BlueprintConversionTests.cs": "fddcb5711cce0fbc816e18bb9351222445513fe40741243d341232151889a31b",
+    "tests/Confectory.Tests/MultiOutputAuthoringTests.cs": "d8c6078e148f56048c6fad6cafcf5316068ead7155d831689029f4e0490f2f7b",
+    "tests/Confectory.Tests/MultiOutputBlueprintTests.cs": "fde550ff98739f10d1107787be85aa88f2e56445fef4d478514687a18d0a7119",
+    "tests/Confectory.Tests/Program.cs": "7149ac8b0d99198e0e7eeeddc833433dea5ff3c1e02f15daf2f90e18c9ea2991",
+    "tests/Confectory.Tests/WebUITests.cs": "566ab5afb506a692785f52221b362243ed80562ba60d2bcf805e73524823a356",
+    "tests/web/v480_multiout.py": "987250f5d171d22882fe130e10e490d1b8591ae6b7b53e49c78e27596271b49c",
+    "tests/web/web_ui.py": "c6331156b1a9485b66d2b54681ee7dbd354c14cef4cf2c27820fc8bc2a37ea21"
+  },
+  "stages": [
+    {
+      "log": "first-engine.log",
+      "sha256": "8f9ca4c613ccd5f8d35d67cd862105896c927625e7f2a05955ebb035f531d402",
+      "scope": "initial five core out cases",
+      "afterFinalCorrections": false,
+      "completed": true,
+      "passedMethods": [
+        "MultiOutputBlueprintTests.test_code_node_named_out_results_and_real_csharp_out_errors_remain_checked",
+        "MultiOutputBlueprintTests.test_empty_multiple_outs_have_typed_reference_defaults_without_cpp_or_execution",
+        "MultiOutputBlueprintTests.test_join_has_separate_must_may_and_unassigned_witness_for_each_output",
+        "MultiOutputBlueprintTests.test_named_outputs_warn_independently_at_each_branch_end_and_run_defaults",
+        "MultiOutputBlueprintTests.test_out_contract_modes_and_legacy_hash_are_explicit_and_stable"
+      ],
+      "failedMethods": [],
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 15.805
+    },
+    {
+      "log": "second-engine-author.log",
+      "sha256": "795e0faa371a8b2b3f42f74d882a509aa14dbe24e361a09e90bca3e50e3b3dbe",
+      "scope": "expected diagnostic and nullable anonymous test fixes needed",
+      "afterFinalCorrections": false,
+      "completed": true,
+      "passedMethods": [
+        "MultiOutputBlueprintTests.test_code_node_named_out_results_and_real_csharp_out_errors_remain_checked",
+        "MultiOutputBlueprintTests.test_empty_multiple_outs_have_typed_reference_defaults_without_cpp_or_execution",
+        "MultiOutputBlueprintTests.test_join_has_separate_must_may_and_unassigned_witness_for_each_output",
+        "MultiOutputBlueprintTests.test_named_outputs_warn_independently_at_each_branch_end_and_run_defaults",
+        "MultiOutputBlueprintTests.test_out_contract_modes_and_legacy_hash_are_explicit_and_stable"
+      ],
+      "failedMethods": [
+        "MultiOutputBlueprintTests.test_typed_call_named_outputs_use_selected_object_scope_and_dominate_consumers",
+        "MultiOutputAuthoringTests.test_contract_append_out_is_explicit_cas_cold_body_preserving_and_compiler_confirmed"
+      ],
+      "passed": 5,
+      "failed": 2,
+      "skipped": 0,
+      "seconds": 29.857
+    },
+    {
+      "log": "third-engine-author.log",
+      "sha256": "6b846728877f8853426077ba0bb8dfa3334bbae1bff1c07523b6aa0910cf7290",
+      "scope": "metadata exception wrapper catch in test needed",
+      "afterFinalCorrections": false,
+      "completed": true,
+      "passedMethods": [
+        "MultiOutputBlueprintTests.test_code_node_named_out_results_and_real_csharp_out_errors_remain_checked",
+        "MultiOutputBlueprintTests.test_empty_multiple_outs_have_typed_reference_defaults_without_cpp_or_execution",
+        "MultiOutputBlueprintTests.test_join_has_separate_must_may_and_unassigned_witness_for_each_output",
+        "MultiOutputBlueprintTests.test_named_outputs_warn_independently_at_each_branch_end_and_run_defaults",
+        "MultiOutputBlueprintTests.test_out_contract_modes_and_legacy_hash_are_explicit_and_stable",
+        "MultiOutputBlueprintTests.test_typed_call_named_outputs_use_selected_object_scope_and_dominate_consumers",
+        "MultiOutputAuthoringTests.test_contract_append_out_is_explicit_cas_cold_body_preserving_and_compiler_confirmed"
+      ],
+      "failedMethods": [
+        "MultiOutputAuthoringTests.test_object_blank_and_reference_factories_preserve_out_modes_and_positional_output_names"
+      ],
+      "passed": 7,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 74.334
+    },
+    {
+      "log": "first-ui.log",
+      "sha256": "2ec4751029b94df41e4f2ae941bb6be52ccc2b7c9a07f43c290c74d954c5640d",
+      "scope": "real empty-description NODE_INTENT new-feature factory bug",
+      "afterFinalCorrections": false,
+      "completed": true,
+      "passedMethods": [],
+      "failedMethods": [
+        "WebUITests.test_actual_editor_v480_named_out_contract_pins_ends_cold_and_compiler_confirm"
+      ],
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 96.286
+    },
+    {
+      "log": "fourth-focused.log",
+      "sha256": "893079f7851c53cd439eaa3dcb7f3945a4e35be2b1f4b28b75d45ff8146ded07",
+      "scope": "core six, public two, whole-out conversion, initial real browser",
+      "afterFinalCorrections": false,
+      "completed": true,
+      "passedMethods": [
+        "BlueprintConversionTests.test_whole_out_body_conversion_preserves_original_member_scoped_import_and_other_target",
+        "MultiOutputBlueprintTests.test_code_node_named_out_results_and_real_csharp_out_errors_remain_checked",
+        "MultiOutputBlueprintTests.test_empty_multiple_outs_have_typed_reference_defaults_without_cpp_or_execution",
+        "MultiOutputBlueprintTests.test_join_has_separate_must_may_and_unassigned_witness_for_each_output",
+        "MultiOutputBlueprintTests.test_named_outputs_warn_independently_at_each_branch_end_and_run_defaults",
+        "MultiOutputBlueprintTests.test_out_contract_modes_and_legacy_hash_are_explicit_and_stable",
+        "MultiOutputBlueprintTests.test_typed_call_named_outputs_use_selected_object_scope_and_dominate_consumers",
+        "MultiOutputAuthoringTests.test_contract_append_out_is_explicit_cas_cold_body_preserving_and_compiler_confirmed",
+        "MultiOutputAuthoringTests.test_object_blank_and_reference_factories_preserve_out_modes_and_positional_output_names",
+        "WebUITests.test_actual_editor_v480_named_out_contract_pins_ends_cold_and_compiler_confirm"
+      ],
+      "failedMethods": [],
+      "passed": 10,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 153.486
+    },
+    {
+      "log": "broad-managed-before-module-display.log",
+      "sha256": "f5ecea63671a89cef8ba093d15dfae71735db35f1fa71eb0437ad693c9f1d980",
+      "scope": "managed profiles before final embedded mode/camera/module corrections",
+      "afterFinalCorrections": false,
+      "completed": true,
+      "passedMethods": [
+        "EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only"
+      ],
+      "failedMethods": [],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 140.476
+    },
+    {
+      "log": "final-corrected-focused.log",
+      "sha256": "1a17b4dffe090b1ccfddc0492fcb0180ac5a3c69d48ac379548abdcc6dfd9eca",
+      "scope": "embedded metadata roundtrip, old declaration forms, camera, module, extended out UI",
+      "afterFinalCorrections": true,
+      "completed": true,
+      "passedMethods": [
+        "MultiOutputBlueprintTests.test_android_and_browser_metadata_templates_round_trip_out_roles_in_managed_code",
+        "WebUITests.test_actual_editor_v424_typed_declaration_views_cas_confirm_and_restart",
+        "WebUITests.test_actual_editor_v480_blueprint_camera_header_pins_tabs_and_cold_input",
+        "WebUITests.test_actual_editor_v480_module_interface_contract_default_and_cold_rebase",
+        "WebUITests.test_actual_editor_v480_named_out_contract_pins_ends_cold_and_compiler_confirm"
+      ],
+      "failedMethods": [],
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 352.614
+    },
+    {
+      "log": "final-remaining-engine.log",
+      "sha256": "17d7112ac34ec2af251902add4a0f9f775fe6f7d04f4a8107c5c2b9ca0c0d69a",
+      "scope": "remaining legacy/profile/conversion/history source regression methods",
+      "afterFinalCorrections": true,
+      "completed": true,
+      "passedMethods": [
+        "FeatureBlueprintTests.test_blueprint_owned_node_creation_removal_review_group_and_cold_restore",
+        "FeatureBlueprintTests.test_blueprint_source_change_during_real_compile_is_not_published",
+        "ImplicitBlueprintTests.test_implicit_branch_terminations_warn_separately_and_real_errors_remain_errors",
+        "ImplicitBlueprintTests.test_implicit_empty_start_has_typed_defaults_without_hiding_void_or_type_errors",
+        "ImplicitBlueprintTests.test_implicit_join_tracks_must_may_and_a_specific_unassigned_branch_witness",
+        "BlueprintConversionTests.test_public_body_conversion_atomic_group_cas_origin_cold_and_compiler_confirm",
+        "BlueprintConversionTests.test_whole_body_context_preserves_calls_scope_this_recursion_names_targets_and_crlf",
+        "BlueprintConversionTests.test_whole_out_body_conversion_preserves_original_member_scoped_import_and_other_target",
+        "BlueprintConversionTests.test_whole_void_body_conversion_runs_once_and_probe_does_not_execute",
+        "EditWorkspaceTests.test_shared_drafts_save_restore_preview_selective_confirm_conflict_and_locality",
+        "DraftHistoryTests.test_shared_draft_history_atomic_inverse_cas_restart_branch_and_owner_boundaries"
+      ],
+      "failedMethods": [],
+      "passed": 11,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 357.884
+    },
+    {
+      "log": "final-remaining-ui.log",
+      "sha256": "303a14461ba59c7f7b1a4143efb6c23e81f4d9d4e8cf1ba049a4802f61b4afda",
+      "scope": "remaining function/reference/object/registered factory browser flows",
+      "afterFinalCorrections": true,
+      "completed": true,
+      "passedMethods": [
+        "WebUITests.test_actual_editor_v480_existing_feature_reference_call_and_cold_contract",
+        "WebUITests.test_actual_editor_v480_module_function_import_reference_cold_and_group",
+        "WebUITests.test_actual_editor_v480_new_feature_contract_graph_group_and_cold_source",
+        "WebUITests.test_actual_editor_v480_object_new_implementation_graph_cold_group_and_compiler_confirm",
+        "WebUITests.test_actual_editor_v480_registered_function_reference_and_cold_contract",
+        "WebUITests.test_actual_editor_v480_registered_module_function_new_object_implementation"
+      ],
+      "failedMethods": [],
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 366.924
+    },
+    {
+      "log": "final-managed.log",
+      "sha256": "b85c52fa78a188a0c92cdda15637464fcff51159568706240c7c32ba41f2390a",
+      "scope": "Windows and Android managed compile only",
+      "afterFinalCorrections": true,
+      "completed": true,
+      "passedMethods": [
+        "EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only"
+      ],
+      "failedMethods": [],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 178.381
+    }
+  ],
+  "interruptedStages": {
+    "final-engine-regression": {
+      "completedPasses": [
+        "ModuleInterfaceTests.test_owned_module_interface_contract_default_atomic_cas_cold_and_actual_consumer",
+        "ModuleInterfaceTests.test_owned_object_module_provider_contract_atomic_cas_cold_and_actual_scope",
+        "ObjectImplementationTests.test_owned_object_new_implementation_contract_group_cas_cold_and_actual_scope",
+        "RegisteredCallTests.test_registered_direct_function_call_raw_receipts_cold_and_actual_scope",
+        "RegisteredImplementationTests.test_registered_module_function_object_implementation_group_raw_contract_and_actual_scope",
+        "FunctionImportTests.test_module_function_reference_implementation_positional_contract_group_cold_and_no_copy",
+        "FeatureBlueprintTests.test_blueprint_disconnected_current_node_body_is_compiled_without_execution",
+        "FeatureBlueprintTests.test_blueprint_existing_feature_calls_use_typed_imports_and_contract_fences",
+        "FeatureBlueprintTests.test_blueprint_fixed_inputs_branch_compiler_reuse_node_replacement_and_legacy_preservation",
+        "FeatureBlueprintTests.test_blueprint_independent_probe_checks_an_unselected_body_without_running_or_publishing",
+        "FeatureBlueprintTests.test_blueprint_invalid_graphs_stale_contracts_and_dominating_values",
+        "FeatureBlueprintTests.test_blueprint_new_feature_registration_contract_group_compiler_and_cold_restore",
+        "FeatureBlueprintTests.test_blueprint_node_diagnostics_static_isolation_and_failed_build_retains_receipt",
+        "FeatureBlueprintTests.test_blueprint_node_only_worker_draft_save_restore_and_compiler_confirm",
+        "FeatureBlueprintTests.test_blueprint_node_task_assignment_scoped_dispatch_adoption_and_cold_no_replay",
+        "FeatureBlueprintTests.test_blueprint_owned_function_reference_call_import_cas_history_and_execution"
+      ],
+      "failures": [],
+      "status": "interrupted for confirmed fixes; not a completed suite"
+    },
+    "broad-ui-before-module-display": {
+      "completedPasses": [
+        "WebUITests.test_actual_editor_implicit_ends_whole_body_conversion_cold_and_confirm",
+        "WebUITests.test_actual_editor_v424_typed_declaration_views_cas_confirm_and_restart",
+        "WebUITests.test_actual_editor_v480_blueprint_node_creation_removal_and_cold_source_groups",
+        "WebUITests.test_actual_editor_v480_blueprint_owned_graph_node_edit_and_cold_input"
+      ],
+      "failures": [
+        "WebUITests.test_actual_editor_v480_blueprint_camera_header_pins_tabs_and_cold_input"
+      ],
+      "status": "interrupted for confirmed fixes; not a completed suite"
+    }
+  },
+  "overlappingStagesMustNotBeSummed": true,
+  "corrections": [
+    {
+      "finding": "Blank new feature description created a body node with no intent and rejected graph creation",
+      "reproduction": "empty-description-probe.json",
+      "reproductionSha256": "9e4cc9bafaeb2397d59a802c5b48934955601ba7307145aefe7a20797455d235",
+      "fix": "Only the generated node intent falls back to Implement + feature ID; original function description stays unchanged"
+    },
+    {
+      "finding": "open() wrote the new graph ID before activateBlueprintView, inheriting the preceding graph camera",
+      "reproduction": "broad-ui-before-module-display.log",
+      "fix": "Valid data preserves prior view metadata for graph view activation; failed-read shell alone receives selected graph ID"
+    },
+    {
+      "finding": "Embedded browser and Android declaration editors silently dropped out mode",
+      "reproduction": "template-mode-red.log",
+      "reproductionSha256": "fc924d5742abbef7c255ff4d206079be795b9330bd92d29009a6955b2f38029b",
+      "fix": "Both embedded argument mode parsers match host; actual regular .NET template Fn/properties/module/import roundtrip and unsupported ref refusal"
+    },
+    {
+      "finding": "Module interface placed out declarations in input column",
+      "fix": "Value inputs and out output fields render in their respective columns; actual UI mode text roundtrip/compiler checked"
+    }
+  ],
+  "testHarnessCorrections": [
+    "wrong expected GRAPH_CONTRACT_STALE instead of GRAPH_CALLEE_SIGNATURE",
+    "nullable anonymous array mode cast",
+    "metadata wrapper throws InvalidOperationException",
+    "initial isolated top-level probe variable args conflicted with generated args; renamed contract"
+  ],
+  "compatibility": {
+    "oldProfileAndGeneratorRetained": true,
+    "plainParameterModeOmitted": true,
+    "pinnedOldContractHash": "dd2273f44a9886ae6f9c48906a3e7942c14d1674f21b867b44446919187f21e0",
+    "readOrColdRestoreDoesNotMigrate": true,
+    "contractRebindExplicitOwnedCAS": true,
+    "oldMemberSignatureAndRawWholeBodyPreserved": true,
+    "interfaceSignatureChangesRequireFreshBodyProof": true,
+    "referenceOutputNamesMappedByPosition": true
+  },
+  "proofValues": {
+    "branchEnds": [
+      "2,7,False",
+      "0,0,True"
+    ],
+    "join": [
+      "2,7,False",
+      "-2,0,True"
+    ],
+    "typedScopedCall": "5,4,True",
+    "emptyOutDefaults": "0,null,null",
+    "wholeOutContextCommon": "4,20",
+    "wholeOutOtherTarget": "28,-2",
+    "appendOutBeforeExport": "5,0",
+    "appendOutAfterExport": "5,5",
+    "blankObject": "12,6,True",
+    "referenceObject": "22,4,True"
+  },
+  "remainingWholeScope": [
+    "ref alias/shared lvalue contract",
+    "nested graph ownership/call/return/version",
+    "localVariables/set/property/expression lifetime/type/availability",
+    "enum/compound types and arbitrary execution outputs",
+    "split C# regions and external helpers",
+    "loop/async",
+    "physical file deletion and bulk target conversion",
+    "prototype portals and pixel matching",
+    "full v424 service/execution regression separately tracked"
+  ],
+  "executionLimits": [
+    "Linux/.NET10/Chromium actual owned fixtures",
+    "Windows/Android managed compile and both embedded template metadata regular .NET proof",
+    "no native/device/WASM runtime/account/paid model/user PC installation claim"
+  ],
+  "protected": {
+    "localMain": "b5ea38c3d7eec3eb20f170e68f0f4215b86b2aee",
+    "remoteMain": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+    "originalZipHashes": {
+      "reference/site-ui/Confectory-Editor-Prototype-v196.zip": "02d4824e92ed0edbb43113659982b37a99a614117652bde4d8ac92367e334e34",
+      "reference/site-ui/Confectory-Editor-Prototype-v318.zip": "0a614fe2bf1ad3d8e10dfa8905bb6b61ea9f21b87b2492b2b87ca8566e9e6908",
+      "reference/site-ui/Confectory-Editor-Prototype-v424.zip": "b7969cd109ea2dad38bde9c9ab13967c20162c920a45a8cd51a8f82df6041874",
+      "reference/site-ui/Confectory-Editor-Prototype-v480.zip": "0489844c8c6d90f7cdc8ea0e80628f487dcfb27f2c871b19367a635212d3c5bd"
+    },
+    "androidSettingsChanged": false
+  },
+  "implementationCommit": null,
+  "ordinaryCheckout": null,
+  "finalCorrectionPaths": [
+    "examples/editor-home/WebBundle.csbody",
+    "examples/editor-home/ui/blueprint.js",
+    "examples/editor-home/ui/declarations.js",
+    "targets/android-export/templates/MetadataAuthoring.cs",
+    "targets/browser-wasm/templates/MetadataAuthoring.cs",
+    "tests/Confectory.Tests/MultiOutputBlueprintTests.cs",
+    "tests/web/v480_multiout.py"
+  ],
+  "screenshots": {
+    "named-out-warnings.png": "06ef48aacc602dbd05a11635b6482d9e70659c63a4b1478d94aa9538b805b778",
+    "named-out-published.png": "8d8c0acbaaae593e7b77b1e95b990e78f084cd1537f2b5aab2a5d1f852599dac"
+  },
+  "finalFrozenSourcesVerified": true,
+  "resourceCount": 33
+}

@@ -525,3 +525,5 @@ body:has(.augment-overlay) .coworker-hover-card:not(.participant-expanded-card),
 .bp-end-warning{display:block;color:#a95700;font-size:11px;white-space:normal;max-width:240px}.bp-termination{padding:8px 0;border-top:1px solid #aaa5}.bp-termination p{margin:4px 0}.bp-termination small{overflow-wrap:anywhere}.bp-exec-ports .bp-end-warning{max-width:140px}
 
 .bp-node-end{color:#f2b95b;font-size:11px;line-height:1.4;padding:5px 10px;border-bottom:1px solid #ffffff18;overflow-wrap:anywhere}.bp-exec-ports .bp-end-warning{display:inline;max-width:16px}.bp-output .bp-end-warning{color:#f2b95b}
+
+.bp-declared-output{display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-bottom:1px solid #ffffff18}.bp-termination small{display:block;margin-top:4px}.bp-contract-preview{padding:12px;max-height:230px;overflow:auto;border-top:1px solid #ffffff20}.bp-contract-preview label{display:block}

@@ -246,6 +246,9 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
     elif kind=='blueprint-create':
      from v480_node_creation import verify_node_creation
      verify_node_creation(page,project,mount,send,envelope,settle,restart_actual_host)
+    elif kind=='multiout':
+     from v480_multiout import verify_multiout
+     verify_multiout(page,project,mount,send,envelope,settle,restart_actual_host)
     elif kind=='blueprint-implicit':
      from v480_implicit_conversion import verify_implicit_conversion
      verify_implicit_conversion(page,project,mount,send,envelope,settle,restart_actual_host)

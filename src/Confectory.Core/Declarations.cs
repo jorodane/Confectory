@@ -15,10 +15,16 @@ public sealed class BuildError : Exception
     public override string ToString() => $"{Diagnostic.Location.File}({Diagnostic.Location.Line},{Diagnostic.Location.Column}): {Diagnostic.Code}: {Message}";
 }
 
-public sealed record Parameter(string Type, string Name);
+public sealed record Parameter(string Type, string Name,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? Mode = null)
+{
+    [JsonIgnore] public bool IsOut => Mode == "out";
+    public string Declaration(bool named = true) => (IsOut ? "out " : "") + Type + (named ? " " + Name : "");
+}
 public sealed record FunctionSignature(List<Parameter> Args, [property: JsonPropertyName("return")] string Return)
 {
-    public bool Matches(FunctionSignature? other) => other is not null && Return == other.Return && Args.Select(a => a.Type).SequenceEqual(other.Args.Select(a => a.Type));
+    public bool Matches(FunctionSignature? other) => other is not null && Return == other.Return && Args.Select(a => (a.Type, a.Mode)).SequenceEqual(other.Args.Select(a => (a.Type, a.Mode)));
+    public string Format(bool named = true) => "(" + string.Join(", ", Args.Select(a => a.Declaration(named))) + ") -> " + Return;
 }
 public sealed record Locator(string Kind, string Path, SourceLocation Loc);
 public sealed record Dependency(string Version, SourceLocation Loc);
@@ -165,9 +171,10 @@ public sealed class Parser
         List<Parameter> args = [];
         while (!Eat(")"))
         {
+            string? mode = Eat("out") ? "out" : null;
             string type = Type(true), name = named ? Name(csharp: true) : $"arg{args.Count}";
             if (name == "calls" || args.Any(a => a.Name == name)) throw new BuildError("DUPLICATE_PARAMETER", $"Duplicate/reserved parameter {name}", Current.Loc);
-            args.Add(new(type, name));
+            args.Add(new(type, name, mode));
             if (Eat(")")) break;
             Expect(",");
         }

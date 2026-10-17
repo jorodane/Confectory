@@ -10,8 +10,8 @@ public static class Generation
     public static string Symbol(string id) => "E" + JsonData.Digest(id)[..24];
     public static string Interface(string id) => $"global::Confectory.Contracts.{Symbol(id)}.IInvoke";
     public static string Implementation(string id) => $"global::Confectory.Implementations.{Symbol(PackPaths.Namespace(id))}.{Symbol(id)}";
-    private static string Parameters(FunctionSignature signature) => string.Join(", ", signature.Args.Select(a => $"{a.Type} {a.Name}"));
-    private static string Arguments(FunctionSignature signature) => string.Join(", ", signature.Args.Select(a => a.Name));
+    private static string Parameters(FunctionSignature signature) => string.Join(", ", signature.Args.Select(a => a.Declaration()));
+    private static string Arguments(FunctionSignature signature) => string.Join(", ", signature.Args.Select(a => (a.IsOut ? "out " : "") + a.Name));
     public static string ContractSource(Element fn) => $$"""
         // Generated public function contract for {{fn.Id}}; {{Abi}}
         namespace Confectory.Contracts.{{Symbol(fn.Id)}}

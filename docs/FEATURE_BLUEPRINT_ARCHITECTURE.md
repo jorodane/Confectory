@@ -156,3 +156,8 @@ graph별 카메라·확대·배치·선택도 private presentation이다. 헤더
 ## 줄 끝 반환과 단일 본문 전환 · 2026-10-17 후속
 
 사용자 결정에 따라 `sync-acyclic-implicit-v1`과 명시적인 기존 본문 전체 전환을 추가했다. 기존 profile은 자동 변경하지 않는다. 실행 포트별 미할당 반환 경고·합류 경로 분석·타입 기본값과 단일 반환 할당 노드를 제공한다. 기존 본문은 독립 코드 노드 하나로 복사하고 원래 구현 메서드의 `calls`·별칭/범위·`this`·인수 이름·CRLF 문맥을 유지한다. 선택한 구현·타깃의 3개 소스 그룹, 원본 관찰 CAS, cold 복원과 실제 compiler Confirm을 따른다. 일반 정적 노드의 격리는 유지한다. 이전 단계의 전환 미구현·정책 대기는 이 후속에서 위 범위만 해소했다. [계약·검증·남은 범위](BLUEPRINT_IMPLICIT_END_AND_BODY_CONVERSION.md).
+
+
+## 이름 있는 out 출력 · 후속
+
+`sync-acyclic-implicit-out-v1`/생성기 v4에서 외부 계약과 노드의 이름 있는 out 결과, 출력별 export·종료 분석과 명시적 계약 갱신을 지원한다. 기존 두 profile의 의미와 mode 없는 계약 해시는 유지한다. 전체 본문의 원래 멤버와 현재 인터페이스를 구분해 원본과 호출 문맥을 보존한다. [계약·편집·검증·남은 전체 범위](BLUEPRINT_NAMED_OUT_OUTPUTS.md). ref, 중첩 graph, 로컬 값과 확장 실행 포트는 후속 범위다.

@@ -175,7 +175,7 @@ static string Owned(string root,string relative)
     return full;
 }
 static string Quote(string text)=>JsonSerializer.Serialize(text);
-static string Signature(FunctionSignature signature,bool named)=>"("+string.Join(", ",signature.Args.Select(x=>x.Type+(named?" "+x.Name:"")))+") -> "+signature.Return;
+static string Signature(FunctionSignature signature,bool named)=>signature.Format(named);
 static string Format(Element element)
 {
     var text=new StringBuilder(element.Kind+" "+element.Id);

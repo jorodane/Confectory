@@ -19,8 +19,7 @@ internal static class BlueprintCall
    foreach(var pair in implementation.Imports)if(pair.Value.Id==feature)throw new ArgumentException("The function already has another import alias; preserve it and review the implementation's typed imports explicitly");
    implementation.Imports.Add(alias,new Import(feature,target.Signature,null,new(),implementation.Id));
   }
-  var args=new JsonArray();foreach(var arg in target.Signature.Args)args.Add(new JsonObject{["type"]=arg.Type,["name"]=arg.Name});
-  var signature=new JsonObject{["args"]=args,["return"]=target.Signature.Return};
+  var signature=FeatureBlueprint.SignatureDocument(target.Signature);
   graph["nodes"]!.AsArray().Add(new JsonObject{["id"]=id,["kind"]="call",["feature"]=feature,["intent"]=intent,["control"]=control,["signature"]=signature.DeepClone(),["arguments"]=new JsonObject()});
   return new JsonObject{["implementation"]=format(implementation),["graph"]=graph,["feature"]=feature,["alias"]=alias,["scope"]=implementation.Imports[alias].Scope,["signature"]=signature,["description"]=target.Description,["contractHash"]=FeatureBlueprint.ContractHash(target),["sourceWritten"]=false,["compiled"]=false};
  }
