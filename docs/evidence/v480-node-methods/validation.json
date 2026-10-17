@@ -439,8 +439,19 @@
     "code.png": "5e3b824625e7a018654a1595ac53021e5451449b1d57dd1303f28584b29b6f29"
   },
   "ordinaryCheckout": {
-    "state": "pending",
-    "resources": 35
+    "log": "ordinary-checkout.log",
+    "sha256": "5201063c3d934dfee89662940734ff2786cbc695983d603cb2291bc4a5e7e39d",
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "seconds": 8.256,
+    "methods": [
+      "WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup"
+    ],
+    "failedMethods": [],
+    "state": "passed",
+    "resources": 35,
+    "scope": "Ordinary committed HEAD checkout, retained CRLF and fresh LF, actual Home startup and resource tamper refusal"
   },
   "scope": [
     "Node-owned static helper methods in ordinary code nodes; typed explicit argument/import forwarding; unique implementation/body/private-path classes",
@@ -514,5 +525,6 @@
     "Windows/Android managed compilation only; no user PC, native/device, account or paid-model work",
     "Synthetic composition in retained protected-editor test validates DOM grouping, not an installed OS IME",
     "Prior overlapping stages are retained separately and not added to final counts"
-  ]
+  ],
+  "implementationCommit": "41e90a07ea3e8c44406fe4be415fa7fc6262b31c"
 }

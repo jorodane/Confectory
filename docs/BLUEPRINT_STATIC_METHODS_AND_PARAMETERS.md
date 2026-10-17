@@ -36,5 +36,5 @@ enum 실행의 미정의 반환값 처리와 정수 계산식 overflow는 답변
 
 실제 [정적 메서드 편집](evidence/v480-node-methods/code.png), [typed 계약·명시적 대응 검토](evidence/v480-node-methods/parameters.png), [고정 원본·단계별 로그·전체 결과](evidence/v480-node-methods/validation.json)를 보존한다. 전체 v480 완료나 실제 Windows/Android 장치 실행을 주장하지 않는다.
 
-일반 Git checkout·리소스 시작 검사는 구현 커밋 고정 후 별도로 기록한다.
+구현 커밋 `41e90a07ea3e8c44406fe4be415fa7fc6262b31c`의 일반 Git checkout·보존 CRLF/새 LF·35개 리소스·실제 Home 시작·변조 거부는 **1/0/0, 8.256초**로 통과했다. 최종 회귀 뒤 제품·테스트 소스는 바뀌지 않았다.
 <!-- /node-methods-current-validation -->

@@ -63,5 +63,5 @@ enum의 숫자 항목 범위 확인과 계산식 overflow는 다른 계약이다
 
 
 <!-- node-methods-current-validation -->
-정적 보조 메서드·매개변수 후속은 고정한 제품/테스트 25개 원본에서 서로 다른 엔진/공개 편집 82건(분할 회귀 27/1/0 + 26/1/0 + 26/1/0, 제한 초과 3건은 동일 소스에서 단독 재통과), 실제 Chromium 11건(6/0/0 + 5/0/0), 관리 프로필 컴파일 1건으로 검증했다. [정확한 범위·이력·소스 해시](BLUEPRINT_STATIC_METHODS_AND_PARAMETERS.md)를 따른다.
+정적 보조 메서드·매개변수 후속은 고정한 제품/테스트 25개 원본에서 서로 다른 엔진/공개 편집 82건(분할 회귀 27/1/0 + 26/1/0 + 26/1/0, 제한 초과 3건은 동일 소스에서 단독 재통과), 실제 Chromium 11건(6/0/0 + 5/0/0), 관리 프로필 컴파일 1건으로 검증했다. [정확한 범위·이력·소스 해시](BLUEPRINT_STATIC_METHODS_AND_PARAMETERS.md)를 따른다. 일반 Git checkout·보존 CRLF/새 LF·35개 리소스·실제 Home 시작·변조 거부도 1건 통과했다.
 <!-- /node-methods-current-validation -->
