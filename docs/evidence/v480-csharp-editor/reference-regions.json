@@ -1,0 +1,74 @@
+{
+  "schema": 1,
+  "referenceZIP": "reference/site-ui/Confectory-Editor-Prototype-v480.zip",
+  "referenceZIPsha256": "0489844c8c6d90f7cdc8ea0e80628f487dcfb27f2c871b19367a635212d3c5bd",
+  "entry": "Confectory-v480/dist/blueprint.js",
+  "entrySha256": "2b79e21da1ef4dfecc2ca7826a52989494e3382256ca0eeca3a2979926234319",
+  "sourceRanges": {
+    "blueprintExecutionOutputs": [
+      110,
+      115
+    ],
+    "blueprintCSharpIdentifier": [
+      116,
+      120
+    ],
+    "blueprintCSharpContract": [
+      121,
+      131
+    ],
+    "blueprintCSharpDefaultBody": [
+      132,
+      134
+    ],
+    "blueprintCSharpRegionStamp": [
+      135,
+      135
+    ],
+    "blueprintCSharpSections": [
+      136,
+      143
+    ],
+    "blueprintCSharpSource": [
+      144,
+      144
+    ],
+    "blueprintCSharpBody": [
+      145,
+      145
+    ],
+    "blueprintCSharpList": [
+      146,
+      150
+    ],
+    "blueprintParseCSharpRegions": [
+      151,
+      174
+    ]
+  },
+  "scope": "Selected actual reference C# contract/region parsing functions; fixture signature serialization/field lookup and ID allocation; no prototype browser, compiler or runtime execution",
+  "passed": 14,
+  "checks": [
+    "execution enum maps stable port IDs to explicit int32 values",
+    "data outputs are out parameters; Result is execution return",
+    "visual enum order preserves IDs and numeric values",
+    "scaffolding is fixed and four regions are editable",
+    "helpers follow the closing Execute brace",
+    "enum rename/reorder retains stable IDs by value",
+    "parameter reorder retains IDs by names and ref/out roles",
+    "helper region is retained as source, not executed",
+    "body indentation is separated from source",
+    "duplicate enum values rejected",
+    "out of int32 enum rejected",
+    "removing primary execution port rejected",
+    "duplicate enum names rejected",
+    "unassigned enum numeric identity follows port ID, not visual order"
+  ],
+  "observations": {
+    "referenceEditorExplicitlySaysCompilerNotConnected": true,
+    "generatedExecutionReturn": "Result",
+    "dataReturnRepresentation": "out parameters",
+    "unknownEnumValueRuntimePolicyNotDefinedByTheseFunctions": true,
+    "externalHelperRuntimeScopeNotExecuted": true
+  }
+}

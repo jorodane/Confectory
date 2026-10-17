@@ -328,3 +328,5 @@ v480의 clampCanvasZoom/createSteppedZoomWheel/zoomAt과 실행 헤더·핀 동�
 후속 [중첩 graph·property 계약 조사](BLUEPRINT_NESTED_PROPERTY_CONTRACT_REVIEW.md)는 보존 v480 함수의 편집·검증 19건, 현재 metadata의 미지원 거부 3건과 기존 RuntimeBase 수명 검사를 구분해 기록한다. 동기·비순환 private 자식의 구현 가능 범위와 property의 live instance/읽기 시점 결정을 정리했으며 제품 구현·계산식 overflow 정책을 추가하지 않았다.
 
 후속 [소유 private graph](BLUEPRINT_PRIVATE_GRAPHS.md)는 별도 v9 profile의 기존 typed input/ref/out/output과 동기·비순환 자식 호출, 전체 부모 경로 원본·CAS·cold 복원을 연결한다. property/계산식 정책과 새 receiver ABI는 포함하지 않는다.
+
+최신 영역별 상태는 [v480 완료·미완료 표](EDITOR_V480_STATUS.md)를 따른다. [보호된 C# 편집 후속](BLUEPRINT_PROTECTED_CSHARP_EDITOR.md)은 현재 signature 외곽과 본문/로컬 helpers를 연결하며 enum 실행·매개변수 이관·외부 helper 수명을 완료로 표시하지 않는다.

@@ -183,3 +183,5 @@ graph별 카메라·확대·배치·선택도 private presentation이다. 헤더
 후속 [소유 private graph](BLUEPRINT_PRIVATE_GRAPHS.md)는 별도 v9 profile에서 구현/body target/전체 부모 경로에 자식을 소유시키고 기존 typed ABI로 호출·복귀한다. 호출별 로컬과 명시적 Review/Confirm을 유지하며 부모 캡처·새 receiver ABI는 추가하지 않는다.
 
 후속 [노드 도달 시 프로퍼티 읽기](BLUEPRINT_NODE_TIME_PROPERTIES.md)는 사용자 답변에 따라 호출자가 전달한 실제 객체를 해당 노드에서 한 번 읽고 결과를 전달한다. 위 property 미정·미구현 표시는 당시 단위의 기록이며 이 후속이 현재 의미를 정한다. 계산식 overflow 결정 대기는 유지한다.
+
+최신 영역별 상태는 [v480 완료·미완료 표](EDITOR_V480_STATUS.md)를 따른다. [보호된 C# 편집 후속](BLUEPRINT_PROTECTED_CSHARP_EDITOR.md)은 현재 signature 외곽과 본문/로컬 helpers를 연결하며 enum 실행·매개변수 이관·외부 helper 수명을 완료로 표시하지 않는다.

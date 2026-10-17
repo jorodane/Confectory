@@ -70,3 +70,5 @@ dotnet run --project tests/probes/blueprint-compatibility -c Release -- /tmp/con
 후속 UI 작업에서 이 검토의 확대·휠·포인터 카메라 차이와 현재 계약의 헤더/핀 연결 조작을 연결했다. graph별 private 보기와 문서 탭·미확정 입력 보존 검증은 [카메라 연결 기록](EDITOR_V480_INTEGRATION.md)에 따로 남긴다. 이 후속 변경은 위 `e222acb` 기준 조사와 원본 해시를 소급해 바꾸지 않으며, 새 실행/타입·이관 정책도 정하지 않는다.
 
 후속 [노드 도달 시 프로퍼티 읽기](BLUEPRINT_NODE_TIME_PROPERTIES.md)는 사용자 답변에 따라 호출자가 전달한 실제 객체를 해당 노드에서 한 번 읽고 결과를 전달한다. 위 property 미정·미구현 표시는 당시 단위의 기록이며 이 후속이 현재 의미를 정한다. 계산식 overflow 결정 대기는 유지한다.
+
+최신 영역별 상태는 [v480 완료·미완료 표](EDITOR_V480_STATUS.md)를 따른다. [보호된 C# 편집 후속](BLUEPRINT_PROTECTED_CSHARP_EDITOR.md)은 현재 signature 외곽과 본문/로컬 helpers를 연결하며 enum 실행·매개변수 이관·외부 helper 수명을 완료로 표시하지 않는다.

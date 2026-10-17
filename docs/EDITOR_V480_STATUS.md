@@ -1,0 +1,62 @@
+# v480 현재 구현 범위와 남은 요구
+
+이 표는 `main@32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f`의 v480 레퍼런스와 `work/current`의 실제 원본·compiler·실행·편집 증거를 비교한다. 과거 문서의 미구현 표시는 해당 체크포인트의 기록이며 이 표가 현재 범위를 정리한다. 행 개수·함수 개수로 완료율을 계산하지 않는다. **전체 v480 완료를 주장하지 않는다.**
+
+표의 **지원**은 적힌 범위의 구현·검증 완료, **부분**은 일부 계약/동작만 연결, **미구현·답변 대기**는 미완료를 뜻한다. 이 상태를 같은 행의 나머지 범위로 확대하지 않는다.
+
+`e50da714c5b558e685a92d8229b8e193eede3559`에서는 고정한 제품/테스트 47개 파일에서 엔진/공개 편집/ABI 82건, 중복 없는 실제 Chromium 25건, Windows/Android 관리 프로필 컴파일 1건과 일반 Git checkout·33개 리소스 시작 1건이 통과했다. [원본 hash와 각 범위](evidence/blueprint-node-time-properties/properties.json)를 보존한다. 이번 C# 편집 후속에서 그 결과를 새 전체 엔진 회귀 수로 재계산하지 않는다. 후속에 실제 실행한 검사는 [별도 기록](evidence/v480-csharp-editor/editor.json)에 구분한다.
+
+| v480 요구 영역 | 현재 상태와 범위 | 실제 근거 / 남은 부분 |
+|---|---|---|
+| 기능 화면·입출력·문서 탭·배치 | 지원: 소유 graph, private 보기, typed 입력/결과, 원본 CAS와 cold 입력 | [통합 기록](EDITOR_V480_INTEGRATION.md), 실제 UI. 전체 prototype 픽셀 일치 아님 |
+| 새 기능·객체 구현·노드 생성/제거 | 지원: 원본 등록 그룹·독립 C# leaf·노드 ID/전체 소유 경로·파일 보존 | 엔진/공개 편집·UI. 미게시 객체의 구현 아래 code/call 생성 회귀도 실제 검사 |
+| 기존/등록 기능 참조·부모 재사용 | 지원: 원래 함수 ID·typed 계약·scope·본문 보존, 같은 함수 provider fallback | [호환성](EDITOR_V480_COMPATIBILITY_REVIEW.md), FunctionImport/RegisteredCall/ObjectImplementation 실제 실행 |
+| 모듈 인터페이스·제공 구현·가져오기 | 지원: 요구 signature·기본 제공·객체별 구현과 등록 함수 계약 | ModuleInterface/RegisteredImplementation 및 실제 UI |
+| C# 본문·함수 내부 보조 함수 | 지원: 본문 exact source, 함수별 local helper, 전체 body 구문 검사와 독립 compiler probe | [보호 편집 계약](BLUEPRINT_PROTECTED_CSHARP_EDITOR.md), actual CLR helper 실행·무실행 probe |
+| 고정된 함수 외곽과 전체 코드 보기 | 지원 범위: 현재 signature/괄호 보호, 본문 편집·Undo/Redo·Tab·private cold·기존 Apply/Confirm | 실제 Chromium 후속 기록. 전체 소스 표시가 새 C# 파일이 되지 않음 |
+| C# 매개변수 영역에서 pin 계약 변경 | 부분: 현재 signature를 표시·보호, 새 노드/외부 함수 계약의 typed 편집은 기존 경로 | 노드의 C# 매개변수 문자열을 직접 편집해 기존 이름 기반 binding/원본을 이관하는 기능은 미구현 |
+| Execute 밖 helpers 영역 | 미구현 | prototype 저장만 확인. static 메서드만/상태 있는 class member까지 허용할지 및 수명 경계 필요 |
+| enum 실행 출력 | 미구현 | prototype 안정적인 포트 ID·서로 다른 int32 값·정렬/이름 변경 편집 확인. 현재 next/bool을 대체하지 않음. 신규 enum 실행 반환과 데이터 out 분리, 미정의 runtime 값 처리 결정 필요 |
+| 기존 C# 구현 전체 이관 | 지원: 선택 구현·타깃의 본문 전체를 한 노드에 보존, imports/scope/calls/this/Invoke·이름·CRLF·다른 타깃 유지 | [본문 전환](BLUEPRINT_IMPLICIT_END_AND_BODY_CONVERSION.md), 실제 전후 실행·원자적 그룹·원본 CAS·cold |
+| 줄 끝 종료·미할당 반환 | 지원: 새 명시적 profile에서 연결 없는 줄 종료, 타입 기본값·포트별 누락 경고/경로 | [줄 끝 반환](BLUEPRINT_IMPLICIT_END_AND_BODY_CONVERSION.md). 구 profile의 생성 의미 보존 |
+| 이름 있는 out 데이터 출력 | 지원: out pin/결과 binding/export, 종료별 must/may·미할당 경고 | [out 출력](BLUEPRINT_NAMED_OUT_OUTPUTS.md), 실제 compiler·실행·UI |
+| ref 입력·같은 호출자 저장소 별칭 | 지원: input/local/선행 결과 슬롯, 배열 참조 슬롯, 동일 ref/ref/out 전달 | [ref 노드](BLUEPRINT_REF_NODE_STORAGE.md), [외부 ref](BLUEPRINT_EXTERNAL_REF_STORAGE.md), 실제 CLR 별칭 |
+| 호출별 로컬과 set | 지원: 명시적 타입·상수 초기값과 구조적 set | [로컬 값](BLUEPRINT_LOCAL_VALUES.md). 이전 함수 호출의 로컬을 공유하지 않음 |
+| 입력·노드 결과 별칭 로컬 | 지원: 원래 슬롯을 참조하며 set/ref가 같은 저장소에 작용 | [별칭 로컬](BLUEPRINT_ALIAS_LOCALS.md), 실제 값 인수 스냅샷·별칭 변경 검사 |
+| 소유 private 내부 graph | 지원: typed 입력/ref/out·동기 비순환 호출/복귀·호출별 로컬·전체 경로 원본·자식 경고 | [private graph](BLUEPRINT_PRIVATE_GRAPHS.md). 부모 로컬/receiver 암묵 캡처·loops/async 아님 |
+| 실제 객체 property 값 읽기 | 지원: 사용자 확정대로 실행이 해당 노드에 도달할 때 한 번 읽고 typed 결과 전달 | [node-time property](BLUEPRINT_NODE_TIME_PROPERTIES.md), actual 인스턴스/배열/참조·mutation·재호출·스키마 CAS |
+| property field 쓰기·ref/lvalue | 부분: 명시적 ObjectModel.Write 함수는 있음, 구조적 property read의 결과는 일반 슬롯 | field 자체를 set/ref 대상으로 하는 graph 계약은 추가하지 않음 |
+| compound/function live property | 미구현 | 목록에 현재 field kind를 표시하고 지원 전으로 거부. general/reference single/multiple만 실행 지원 |
+| 계산식 UI/실행·정수 overflow | 미구현·답변 대기 | 원본 연산 목록만 확인. int/long overflow 오류/wrap을 선택하지 않으며 기존 C# 연산은 보존 |
+| 확장 enum/Vector3/일반 사용자 타입 ABI | 부분: 기존 primitive/배열·object/object[] 실제 CLR 참조 지원 | prototype의 모든 csharpType·복합/enum 타입을 CELEM에 지원한 것으로 표시하지 않음 |
+| 노드 Task·Worker 권한·검토 | 지원: 독립 C# 원본·현재 definition·관련 source hash 관찰·제한 네 도구·Stage/Review/Confirm | 실제 권한 거부/원본 변경/콜드 재사용 거부. 구조 노드에 C# Task를 만들지 않음 |
+| 3.125–300% 자유 확대·포인터 camera·헤더/pin 조작 | 지원: private graph별 보기·실제 좌표·팬/취소·기존 연결 입력 준비 | [카메라 기록](EDITOR_V480_INTEGRATION.md). 연결은 별도 Apply/CAS/Confirm 유지 |
+| Workspace 문서·메모·탭·제목·검색·도킹 | 지원한 행위의 실제 Chromium/cold 검증 있음 | 직전 25개 UI와 개별 기록. 전체 외부 OS/native 창 동작 완료 아님 |
+| 일반 Git checkout·리소스 시작 | 지원: pinned canonical LF/보존 CRLF·실제 Home·변조/인코딩/예산 거부 | 커밋 기준 실제 checkout. 후속 모듈 추가 시 리소스 수와 검사를 갱신 |
+| Linux/.NET 10·Windows/Android | Linux 실제 owned CLR/공통 web UI, Windows/Android는 관리 프로필 컴파일 | native/device·실제 계정·유료 모델·사용자 PC 설치는 미검증이며 이번 경계 밖 |
+
+enum의 숫자 항목 범위 확인과 계산식 overflow는 다른 계약이다. 편집 callback의 통과, 실제 C# compile의 통과, runtime 결과와 Chromium 편집/복원을 별도 근거로 취급한다. 원본 ZIP과 main을 편집하거나 과거 검사 수를 후속 새 결과에 합산하지 않는다.
+
+## 그래프 밖의 서비스·편집 요구
+
+아래는 v480 app.js의 Home/Pack/Helper/Worker/Yogi/Run/설정 흐름을 기존 [v424 동작 지도](EDITOR_V424_INTEGRATION.md)의 안정적인 항목 ID와 함께 확인한 범위다. 기존 소유 계약/fixture 결과가 있는 것과 실제 외부 서비스·전체 UI 완료를 구분한다. 이번 C# 후속에서 이 행들의 전체 회귀를 새로 수행했다고 표시하지 않는다.
+
+| 기존 ID | 요구 묶음 | 현재 판단과 남은 범위 |
+|---|---|---|
+| S01–S02 | 시작·Home·Agent 선택·앱 창 | [Entry/Home 소유 모델](ENTRY_HOME_MODEL_PACK.md)과 공통 web 시작은 있음. 각 native host의 창·입력·접근성 전체 완료 아님 |
+| H01–H06 | 프로젝트 목록·검색·정렬·즐겨찾기·생성·정보·닫기 | 실제 ProjectManager/생성·소유 수명 경계 있음. 팩 요구/유형·선택 Helper·프로필과 모든 v480 전환 조합은 부분 |
+| B01–B06 | 브라우저·트리·복제·하위 탐색·생성·상속·삭제 | 여섯 선언 종류 생성과 바리에이션 검증 있음. 전체 tree/category grouping·삭제/참조 대체는 부분/계약 필요 |
+| D01–D06 | 필드·Data/즉석 테이블·참조 원본·개념 맵 | [v424 실제 schema/표/관계/읽기 전용 정의 증거](EDITOR_V424_INTEGRATION.md) 있음. enum/벡터/전체 열/참조 드래그·임의 깊이 탐색 전체는 부분 |
+| E01–E08 | schema·enum·객체 동작·함수·모듈·계약 요청 | 일반 CELEM schema/typed 함수·모듈/graph는 위 표의 범위. prototype의 모든 enum/벡터/복합 ABI·원클릭 밸런스/테스트 실행은 완료 아님 |
+| C01–C04 | Apply/Save·공유 초안·묶음 검토·충돌·이력 | 실제 source hash/revision/token/CAS·compiler Confirm과 일반 편집 이력 있음. 생성/삭제·소유 집합 역변경 전체 Undo는 별도 |
+| I01–I02 | 신문고·승인/요청/충돌·처리 이력 | 실제 사건과 owner inbox를 연결할 계약이 남음. 화면의 해결 표시를 실제 사건 해결로 취급하지 않음 |
+| Y01–Y03 | Yogi Exactly/Seal·첨부·수신/전달·복구 | [기존 Yogi 기록](EDITOR_V318_YOGI.md)의 소유 snapshot/재검증 있음. recipient·room·ack·중복/실패·수신 권한은 부분/후속 |
+| A01–A04 | Augment·로컬 Custom·Worker·검토/채택/중지 | [v424 로컬·이력·노드 Task 증거](EDITOR_V424_INTEGRATION.md)와 소유 journal/권한 경계 있음. 외부 모델 실제 생성과 모든 task 상태 조합은 완료 아님 |
+| R01–R06 | Run/Stop·빌드 job·렌더 삽입·Pause/Step·재연결·내보내기 | 실제 소유 프로세스와 compiler job은 있음. frame/ack 기반 pause/step·자식 surface·durable launch 재연결·기기/서명 배포는 부분/계약 필요 |
+| P01–P05 | Helper 소속·프로필·이미지·pin·대화·기억 | [Helper scope](HELPER_PRODUCT_SCOPES.md)와 membership/private UI는 있음. 실제 이미지 provider·사용량 승인·대화/전송의 전체 영속/서비스는 부분 |
+| G01–G03 | Agent 탐색·설치 준비·로그인·모델·사용량·연결 | [Codex 준비 기록](codex-preparation.md), 실제 지원 metadata/소유 설정 경계 있음. 다른 Agent와 실계정/유료 호출의 정상 작동을 이 개발 검증으로 주장하지 않음 |
+| U01–U03 | 내 정보·co-worker·요청/수락/차단·채팅/news | 로컬 profile/presentation 일부 있음. 실재 actor/membership/sender/recipient/room/ack 서비스 계약이 남음 |
+| M01–M04 | 내 팩·시장·설치/업데이트·공개 게시 | 로컬 pack registry/manifest·의존성 검토 일부 있음. 실제 시장 catalog·publisher·서비스 설치/배포 권한은 별도이며 온라인 시장을 가정하지 않음 |
+| W01–W06 | Workspace 이동/선택·문서·메모·포털·링크 | 실제 web/cold로 검증한 행위는 위 표와 [통합 기록](EDITOR_V480_INTEGRATION.md). 링크 의미 편집·모든 창 포털 전송/native 플랫폼 동작 전체는 부분 |
+
+이 행들과 그래프 표를 합쳐도 모든 클릭·중단·실패·재시작·서비스 조합이 검증됐다는 뜻은 아니다. 근거가 없는 항목은 미완료/부분으로 유지한다.

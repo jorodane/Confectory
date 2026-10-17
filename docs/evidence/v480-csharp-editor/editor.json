@@ -1,0 +1,302 @@
+{
+  "schema": 1,
+  "baseCommit": "e50da714c5b558e685a92d8229b8e193eede3559",
+  "referenceMain": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+  "finalSourceHashes": {
+    "examples/editor-home/WebBundle.csbody": "6f9ce317cc17465bed912984358a4617234e051ec72d4ef2464e0c6e330a424c",
+    "examples/editor-home/ui/blueprint-code-editor.js": "d52f75d2a3d3a6fb7dd475b41f27647bb91e5101572519c70be5a72c1525989e",
+    "examples/editor-home/ui/blueprint.js": "ae449593625ca8b52ecdd20063dbeef61be797916cae4326c1322069499cd46f",
+    "examples/editor-home/ui/consumer.css": "cd7def51b8e0ffdb6a2e42098b8120774dd4f84b437d0cbb168e2d65fffd5f50",
+    "examples/editor-home/ui/workspace-host.js": "351ff7454c7ef72a860c86c7ae063fb6442d9ed2cf309180315f69bae83bbd6b",
+    "tests/Confectory.Tests/CodeBodyTests.cs": "b85176d1265f14b7da47b44c54d0dd93a3062fdf97e5eda5796fed6188581242",
+    "tests/Confectory.Tests/Program.cs": "acdbbb685352a4127a301857ca95daff57b251b374de54b4c23f14d99d524659",
+    "tests/Confectory.Tests/WebUITests.cs": "037263014e742768c9d8ff3e7383b1956f095ee9901d566c35b626e6da0bd92a",
+    "tests/probes/v480_csharp_regions.py": "15965a7fb7ebc8d2efa07e5d869dc7d9786001db2073025b5c8337df13175c00",
+    "tests/web/v480_blueprint.py": "3a02c6af4398c507c1b1dde7f8782a0c181e9df61f3b30fdc227512ae6926f1b",
+    "tests/web/v480_code_regions.py": "f4c439f03d895ffc0e2723f702296e1a3c9cdbdf2e22f3a2954dac304c34f7ef",
+    "tests/web/v480_implicit_conversion.py": "a008dc53feefa362ce81e9c3fa96f5d985f040f01ee2aab9c676014ee7a60650",
+    "tests/web/web_ui.py": "73f8b628264d4d8c9683f96c8818e83ac88e502e0a4d05ef524dd4a0b18002ed"
+  },
+  "unchangedBackendTreeSHA256": "4bb855b31ab7b4c49dce5e9a5263ca9414fdd5ad2a39dfd782fed59a7a224031",
+  "backendScope": "All tracked src/packs/targets content unchanged from the published base; previous 82 methods are historical evidence, not counted as new regression passes",
+  "referenceEditingProbe": {
+    "path": "docs/evidence/v480-csharp-editor/reference-regions.json",
+    "sha256": "c7ee246720d4aa1db8f03a79805b39b1a0ece6146827991ccd7744a75ea54fc1",
+    "passedAssertions": 14,
+    "scope": "Selected actual reference C# contract/region parsing functions; fixture signature serialization/field lookup and ID allocation; no prototype browser, compiler or runtime execution"
+  },
+  "earlierStages": [
+    {
+      "log": "confectory-csharp-editor/first-core.log",
+      "sha256": "85a2d0108da716a44f8d1767984746e310691c2e5c26f7b2bf16c700d8a5e1c6",
+      "scope": "Two actual CLR local-helper isolation/independent probe/body escape guards",
+      "completed": true,
+      "passedMethods": [
+        "CodeBodyTests.test_body_cannot_escape_into_a_function_signature_or_outer_member",
+        "CodeBodyTests.test_local_helpers_are_per_node_and_independent_probe_never_executes"
+      ],
+      "failedMethods": [],
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 8.816
+    },
+    {
+      "log": "confectory-csharp-editor/first-ui.log",
+      "sha256": "20b0165ea59c49a05329d1ee48ba027d7104720976920f69b4c8e7cdde91caa6",
+      "scope": "Native protection/history passed; test incorrectly read textarea textContent for synthetic composition",
+      "completed": true,
+      "passedMethods": [],
+      "failedMethods": [
+        "WebUITests.test_actual_editor_v480_protected_csharp_body_helpers_history_cold_and_confirm"
+      ],
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 67.391
+    },
+    {
+      "log": "confectory-csharp-editor/second-ui.log",
+      "sha256": "7a0d8152afe6c2647e2a8f0227285c8bee18aab501a835b7ef14d283cfa9346d",
+      "scope": "Protection/edits/Ctrl+S passed; real cold view mode missing from private layout allowlist",
+      "completed": true,
+      "passedMethods": [],
+      "failedMethods": [
+        "WebUITests.test_actual_editor_v480_protected_csharp_body_helpers_history_cold_and_confirm"
+      ],
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 21.543
+    },
+    {
+      "log": "confectory-csharp-editor/third-ui.log",
+      "sha256": "e1f2e1c82b346e0828b5d177c4bf37825032a9fe16c7fe2c0691cfbfe9f0c8f0",
+      "scope": "Private mode allowlist fixed and fresh window enlarged; actual body/local helpers/cold/Confirm pass",
+      "completed": true,
+      "passedMethods": [
+        "WebUITests.test_actual_editor_v480_protected_csharp_body_helpers_history_cold_and_confirm"
+      ],
+      "failedMethods": [],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 55.504
+    },
+    {
+      "log": "confectory-csharp-editor/context-ui.log",
+      "sha256": "06be50c2f614f6a73ba9ada433690ef104af4bafc2ee3e267ac9cb6b0db8cded",
+      "scope": "Existing whole body context: protected Invoke view/edit-undo/no-op Apply retains literal CRLF and all source revisions",
+      "completed": true,
+      "passedMethods": [
+        "WebUITests.test_actual_editor_implicit_ends_whole_body_conversion_cold_and_confirm"
+      ],
+      "failedMethods": [],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 77.135
+    }
+  ],
+  "finalGates": {
+    "engine": {
+      "log": "confectory-csharp-editor/final-engine.log",
+      "sha256": "499ac22933ab98b6f68210b7ddb33ebaed554cc3ca118da125d454a25a10241f",
+      "scope": "Final engine selected regression, exact frozen source",
+      "completed": true,
+      "passedMethods": [
+        "CodeBodyTests.test_body_cannot_escape_into_a_function_signature_or_outer_member",
+        "CodeBodyTests.test_local_helpers_are_per_node_and_independent_probe_never_executes",
+        "BlueprintConversionTests.test_public_body_conversion_atomic_group_cas_origin_cold_and_compiler_confirm",
+        "BlueprintConversionTests.test_whole_body_context_preserves_calls_scope_this_recursion_names_targets_and_crlf",
+        "BlueprintConversionTests.test_whole_out_body_conversion_preserves_original_member_scoped_import_and_other_target",
+        "BlueprintConversionTests.test_whole_void_body_conversion_runs_once_and_probe_does_not_execute",
+        "NestedBlueprintTests.test_private_imports_are_explicit_and_unused_child_bodies_are_compiled_without_execution",
+        "NestedBlueprintTests.test_private_nested_ref_out_aliases_return_to_parent_and_locals_reset_per_call",
+        "NestedBlueprintTests.test_private_observations_are_rechecked_after_real_compiler_and_original_proof_is_retained",
+        "NestedBlueprintTests.test_private_paths_separate_identical_local_definitions_and_reject_parent_capture_and_depth",
+        "NestedBlueprintTests.test_private_siblings_keep_same_local_ids_and_branch_return_boundary",
+        "NestedBlueprintTests.test_private_unassigned_outputs_reach_build_warnings_with_full_call_path"
+      ],
+      "failedMethods": [],
+      "passed": 12,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 150.845
+    },
+    "ui": {
+      "shards": {
+        "a": {
+          "log": "confectory-csharp-editor/final-ui-a.log",
+          "sha256": "a439fe534bbbdb4bb53250e6ffc7c1d3e9db65365f16e8f08b28d763f7ba03f4",
+          "scope": "Broad actual Chromium shard a",
+          "completed": true,
+          "passedMethods": [
+            "WebUITests.test_actual_editor_implicit_ends_whole_body_conversion_cold_and_confirm",
+            "WebUITests.test_actual_editor_v480_alias_locals_slots_set_cold_and_confirm",
+            "WebUITests.test_actual_editor_v480_blueprint_node_creation_removal_and_cold_source_groups",
+            "WebUITests.test_actual_editor_v480_existing_feature_reference_call_and_cold_contract",
+            "WebUITests.test_actual_editor_v480_local_values_sets_exact_initializer_cold_and_compiler_confirm",
+            "WebUITests.test_actual_editor_v480_module_interface_contract_default_and_cold_rebase",
+            "WebUITests.test_actual_editor_v480_new_feature_contract_graph_group_and_cold_source",
+            "WebUITests.test_actual_editor_v480_note_document_tabs_canonical_ownership_and_cold_source_input",
+            "WebUITests.test_actual_editor_v480_object_new_implementation_graph_cold_group_and_compiler_confirm",
+            "WebUITests.test_actual_editor_v480_private_nested_navigation_source_cold_and_confirm",
+            "WebUITests.test_actual_editor_v480_ref_node_storage_aliases_cold_and_compiler_confirm",
+            "WebUITests.test_actual_editor_v480_registered_module_function_new_object_implementation",
+            "WebUITests.test_actual_editor_v480_tab_reorder_cancel_canvas_drop_and_cold_order"
+          ],
+          "failedMethods": [],
+          "passed": 13,
+          "failed": 0,
+          "skipped": 0,
+          "seconds": 929.492
+        },
+        "b": {
+          "log": "confectory-csharp-editor/final-ui-b.log",
+          "sha256": "fdb7de16af158fbb64ccc8b52821b9bbeb08099e623d8f5d1b5025e78fb0a47c",
+          "scope": "Broad actual Chromium shard b",
+          "completed": true,
+          "passedMethods": [
+            "WebUITests.test_actual_editor_v424_typed_declaration_views_cas_confirm_and_restart",
+            "WebUITests.test_actual_editor_v480_blueprint_camera_header_pins_tabs_and_cold_input",
+            "WebUITests.test_actual_editor_v480_external_ref_graph_body_conversion_cold_and_confirm",
+            "WebUITests.test_actual_editor_v480_module_function_import_reference_cold_and_group",
+            "WebUITests.test_actual_editor_v480_named_out_contract_pins_ends_cold_and_compiler_confirm",
+            "WebUITests.test_actual_editor_v480_node_time_property_contract_target_cold_and_confirm",
+            "WebUITests.test_actual_editor_v480_object_module_provider_cold_contract_and_own_view",
+            "WebUITests.test_actual_editor_v480_placed_text_find_workspace_blueprint_and_cold_scope",
+            "WebUITests.test_actual_editor_v480_protected_csharp_body_helpers_history_cold_and_confirm",
+            "WebUITests.test_actual_editor_v480_registered_function_reference_and_cold_contract",
+            "WebUITests.test_actual_editor_v480_rich_notes_title_format_paste_and_cold_source_preservation",
+            "WebUITests.test_actual_editor_v480_window_document_docking_cold_inputs_and_compiler_confirm"
+          ],
+          "failedMethods": [
+            "WebUITests.test_actual_editor_v480_blueprint_owned_graph_node_edit_and_cold_input"
+          ],
+          "passed": 12,
+          "failed": 1,
+          "skipped": 0,
+          "seconds": 799.45
+        }
+      },
+      "correctedTestRerun": {
+        "log": "confectory-csharp-editor/corrected-blueprint-ui.log",
+        "sha256": "1661feed072ac0327b4133ca5caba71cb5560b6ad032f31bb68ced524b8ec0a3",
+        "scope": "Only corrected test rerun; exact same product and all original assertions retained",
+        "completed": true,
+        "passedMethods": [
+          "WebUITests.test_actual_editor_v480_blueprint_owned_graph_node_edit_and_cold_input"
+        ],
+        "failedMethods": [],
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "seconds": 55.301
+      },
+      "completed": true,
+      "successfulDistinctMethods": 26,
+      "priorFailedAttempts": 1,
+      "unresolvedFailures": 0,
+      "seconds": 929.492,
+      "secondsMeaning": "maximum broad shard elapsed; correction is a separate invocation",
+      "passedMethods": [
+        "WebUITests.test_actual_editor_implicit_ends_whole_body_conversion_cold_and_confirm",
+        "WebUITests.test_actual_editor_v480_alias_locals_slots_set_cold_and_confirm",
+        "WebUITests.test_actual_editor_v480_blueprint_node_creation_removal_and_cold_source_groups",
+        "WebUITests.test_actual_editor_v480_existing_feature_reference_call_and_cold_contract",
+        "WebUITests.test_actual_editor_v480_local_values_sets_exact_initializer_cold_and_compiler_confirm",
+        "WebUITests.test_actual_editor_v480_module_interface_contract_default_and_cold_rebase",
+        "WebUITests.test_actual_editor_v480_new_feature_contract_graph_group_and_cold_source",
+        "WebUITests.test_actual_editor_v480_note_document_tabs_canonical_ownership_and_cold_source_input",
+        "WebUITests.test_actual_editor_v480_object_new_implementation_graph_cold_group_and_compiler_confirm",
+        "WebUITests.test_actual_editor_v480_private_nested_navigation_source_cold_and_confirm",
+        "WebUITests.test_actual_editor_v480_ref_node_storage_aliases_cold_and_compiler_confirm",
+        "WebUITests.test_actual_editor_v480_registered_module_function_new_object_implementation",
+        "WebUITests.test_actual_editor_v480_tab_reorder_cancel_canvas_drop_and_cold_order",
+        "WebUITests.test_actual_editor_v424_typed_declaration_views_cas_confirm_and_restart",
+        "WebUITests.test_actual_editor_v480_blueprint_camera_header_pins_tabs_and_cold_input",
+        "WebUITests.test_actual_editor_v480_external_ref_graph_body_conversion_cold_and_confirm",
+        "WebUITests.test_actual_editor_v480_module_function_import_reference_cold_and_group",
+        "WebUITests.test_actual_editor_v480_named_out_contract_pins_ends_cold_and_compiler_confirm",
+        "WebUITests.test_actual_editor_v480_node_time_property_contract_target_cold_and_confirm",
+        "WebUITests.test_actual_editor_v480_object_module_provider_cold_contract_and_own_view",
+        "WebUITests.test_actual_editor_v480_placed_text_find_workspace_blueprint_and_cold_scope",
+        "WebUITests.test_actual_editor_v480_protected_csharp_body_helpers_history_cold_and_confirm",
+        "WebUITests.test_actual_editor_v480_registered_function_reference_and_cold_contract",
+        "WebUITests.test_actual_editor_v480_rich_notes_title_format_paste_and_cold_source_preservation",
+        "WebUITests.test_actual_editor_v480_window_document_docking_cold_inputs_and_compiler_confirm",
+        "WebUITests.test_actual_editor_v480_blueprint_owned_graph_node_edit_and_cold_input"
+      ],
+      "qualification": "Broad 13/0 and 12/1; one isolated test-only restoration interaction correction and 1/0 rerun. All 12 prior frozen files, including all product code, remain identical. This is not a single 26/0 invocation."
+    },
+    "managed": {
+      "log": "confectory-csharp-editor/final-managed.log",
+      "sha256": "931980b3f467eb75c3e8b8b355e4d115d13f607a503087a90a9805a352e3f639",
+      "scope": "Final managed selected regression, exact frozen source",
+      "completed": true,
+      "passedMethods": [
+        "EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only"
+      ],
+      "failedMethods": [],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 173.851
+    }
+  },
+  "remainingDecisions": {
+    "integerExpressions": "Overflow error versus wrap remains unanswered and unchanged",
+    "enumExecution": "Reference stores stable port ID/int32 values and execution Result plus data out; unknown enum runtime value needs explicit error versus termination policy",
+    "externalHelpers": "Only existing body-local helpers execute; external static methods versus stateful class members needs scope/lifetime contract",
+    "directParameterRegion": "Current signature remains protected; typed per-node pin/binding migration not implemented"
+  },
+  "proofLimits": [
+    "Selected reference functions run with declared fixture callbacks; not full prototype browser or C# execution",
+    "Protected scaffolding is a view; only existing node source body is submitted; no new node file format/profile/ABI",
+    "Actual user operations and local-helper source remain C#; no expression evaluator, enum dispatcher, class-helper lifetime, captures or privileges added",
+    "Synthetic composition events validate DOM grouping, not real OS IME or native/device behavior",
+    "Actual Chromium covers current code editing, cold basis refusal and compiler Confirm; user code is not run by editor reads",
+    "Managed profiles are compile-only; no accounts, paid models or user PC/native/device installation",
+    "Earlier overlapping stages and base checkpoints are not added to the final gate counts; whole v480 remains incomplete"
+  ],
+  "referenceCompilerNotice": {
+    "line": 689,
+    "notice": "C# 컴파일러는 아직 연결되지 않았습니다.",
+    "source": "retained ZIP static source; not a runtime test"
+  },
+  "broadSourceHashes": {
+    "examples/editor-home/WebBundle.csbody": "6f9ce317cc17465bed912984358a4617234e051ec72d4ef2464e0c6e330a424c",
+    "examples/editor-home/ui/blueprint-code-editor.js": "d52f75d2a3d3a6fb7dd475b41f27647bb91e5101572519c70be5a72c1525989e",
+    "examples/editor-home/ui/blueprint.js": "ae449593625ca8b52ecdd20063dbeef61be797916cae4326c1322069499cd46f",
+    "examples/editor-home/ui/consumer.css": "cd7def51b8e0ffdb6a2e42098b8120774dd4f84b437d0cbb168e2d65fffd5f50",
+    "examples/editor-home/ui/workspace-host.js": "351ff7454c7ef72a860c86c7ae063fb6442d9ed2cf309180315f69bae83bbd6b",
+    "tests/Confectory.Tests/CodeBodyTests.cs": "b85176d1265f14b7da47b44c54d0dd93a3062fdf97e5eda5796fed6188581242",
+    "tests/Confectory.Tests/Program.cs": "acdbbb685352a4127a301857ca95daff57b251b374de54b4c23f14d99d524659",
+    "tests/Confectory.Tests/WebUITests.cs": "037263014e742768c9d8ff3e7383b1956f095ee9901d566c35b626e6da0bd92a",
+    "tests/probes/v480_csharp_regions.py": "15965a7fb7ebc8d2efa07e5d869dc7d9786001db2073025b5c8337df13175c00",
+    "tests/web/v480_code_regions.py": "f4c439f03d895ffc0e2723f702296e1a3c9cdbdf2e22f3a2954dac304c34f7ef",
+    "tests/web/v480_implicit_conversion.py": "a008dc53feefa362ce81e9c3fa96f5d985f040f01ee2aab9c676014ee7a60650",
+    "tests/web/web_ui.py": "73f8b628264d4d8c9683f96c8818e83ac88e502e0a4d05ef524dd4a0b18002ed"
+  },
+  "testOnlyCorrection": {
+    "path": "tests/web/v480_blueprint.py",
+    "beforeSHA256": "a68adfd637e48c7a1858acf0904f6dfcff8206a43e81565de61076e2db1b7b39",
+    "afterSHA256": "3a02c6af4398c507c1b1dde7f8782a0c181e9df61f3b30fdc227512ae6926f1b",
+    "reason": "Restored CSharp window resize handle covers old fixed title point; use visible recovery prompt and an actually exposed title area, preserving all assertions",
+    "productChanged": false,
+    "failedMethod": "WebUITests.test_actual_editor_v480_blueprint_owned_graph_node_edit_and_cold_input"
+  },
+  "screenshots": [
+    {
+      "path": "docs/evidence/v480-csharp-editor/code-protected.png",
+      "sha256": "c54f08c9435d629c96990988f9a83540b9dfa29e679dfd59021b10cc3924713c",
+      "scope": "actual Chromium, agent visually inspected"
+    },
+    {
+      "path": "docs/evidence/v480-csharp-editor/code-published.png",
+      "sha256": "8a4b64c599b51899499d6618230512ecb3a75738f08c8418df6f5c6c00b3a5b3",
+      "scope": "actual Chromium, agent visually inspected"
+    }
+  ]
+}
