@@ -46,3 +46,5 @@ ref 인수는 현재 입력·로컬·선행 결과의 실제 슬롯을 전달한
 경고 전달 보완 전 고정한 제품·테스트 소스에서 엔진 **60/0/0, 980.464초**, 실제 Chromium **12/0/0, 921.526초**, Windows/Android 관리 프로필 **1/0/0, 140.497초**로 통과했다. 이후 경고 전달용 제품 2개 파일과 테스트 1개 파일만 바꿨다. 같은 graph의 생성 C# 본문 해시가 유지되는 것을 확인했고, 최종 소스의 중첩 실행·소유·경고·도구 권한·CAS/cold/Confirm·실제 Chromium 추가 검사는 **8/0/0, 132.504초**로 통과했다. 중복 검사는 합산하지 않는다. [단계별 로그·소스 해시](evidence/v480-integration/private-graphs.json), [내부 편집](evidence/v480-integration/nested-child.png), [확정 후 복원](evidence/v480-integration/nested-published.png). 초기 실패와 수정 전 통과를 최종 소스의 회귀 수로 합산하지 않는다. 관리 프로필은 컴파일 검사이며 native 픽셀·장치 실행 증거가 아니다.
 
 수용 범위는 실제 중첩 ref/ref/out 호출자 별칭·호출별 로컬·부모 분기 복귀, 같은 local ID의 형제 소유권, 명시적 imports, 비연결 본문의 실제 compile·무실행 probe, 부모 캡처/순환/경로 공유 거부, compiler 중 원본 변경 보존, 실제 편집 CAS/cold/필수 그룹 Confirm과 브라우저 생성·탐색·복원이다. custom 실행 포트·enum/객체 ABI·graph 순환/async·property/계산식·v480 전체 편집 회귀는 후속 범위다.
+
+구현 커밋 `baff3ea31c0abfe01b67ff582b49d0224aa9edc9`의 일반 Git checkout·보존 CRLF/새 LF·33개 리소스·실제 Home 시작·변조 거부는 **1/0/0, 6.726초**로 통과했다. 경고 보완 뒤 추가 검사 이후 제품·테스트 소스는 바뀌지 않았다.

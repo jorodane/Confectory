@@ -563,5 +563,21 @@
       "sha256": "268d6d2269f261eeec2bdc61ec0b593dfe45870f3d183249bcb8447110569ed3",
       "scope": "actual Chromium, same final product"
     }
-  ]
+  ],
+  "ordinaryCheckout": {
+    "log": "confectory-private-graphs/ordinary-checkout.log",
+    "sha256": "baf213c25f9a84b1b8329d6c5d4c5cced8f845dfec4c97acc24c1d39b2b6fc55",
+    "scope": "Committed implementation, retained CRLF/fresh LF, pinned resources, actual Home startup and tamper refusal",
+    "sourceQualification": "exact committed product; documentation-only proof follow-up",
+    "passedMethods": [
+      "WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup"
+    ],
+    "failedMethods": [],
+    "completed": true,
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "seconds": 6.726
+  },
+  "implementationCommit": "baff3ea31c0abfe01b67ff582b49d0224aa9edc9"
 }
