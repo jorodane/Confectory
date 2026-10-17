@@ -99,3 +99,5 @@
 :is(.window[data-key^="browser:"],.window[data-key^="browser-tree:"]) .browser-items{flex:1;min-width:0;min-height:0;overflow:auto}
 :is(.window[data-key^="browser:"],.window[data-key^="browser-tree:"]) .browser-tools .search{width:0;min-width:60px}
 :is(.window[data-key^="browser:"],.window[data-key^="browser-tree:"]) .crumbs{overflow:auto;white-space:nowrap}
+
+.project-card-stats time{font-size:12px;color:#e3e3e3;overflow-wrap:anywhere}

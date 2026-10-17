@@ -1,0 +1,22 @@
+if(operation is not ("read" or "save" or "confirm"))throw new ArgumentException("Activity operation");
+project=System.IO.Path.GetFullPath(project);if(OperatingSystem.IsWindows())project=project.ToUpperInvariant();
+string root=System.IO.Path.GetDirectoryName(project)!,key=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(project))).ToLowerInvariant();
+string relative=".confectory/project-activity/"+key+".json",path=System.IO.Path.Combine(root,relative),identityPath=System.IO.Path.Combine(root,".confectory/project-identity.json");
+string[] Snapshot(string file){
+ if(!OperatingSystem.IsBrowser())for(System.IO.FileSystemInfo? node=new System.IO.FileInfo(file);node is not null;node=node is System.IO.FileInfo f?f.Directory:((System.IO.DirectoryInfo)node).Parent){if(node.LinkTarget is not null)throw new System.IO.IOException("Activity storage must remain owned");if(node.FullName==root)break;}
+ try{using var stream=new System.IO.FileStream(file,System.IO.FileMode.Open,System.IO.FileAccess.Read,System.IO.FileShare.ReadWrite|System.IO.FileShare.Delete);byte[] buffer=new byte[4097];int count=0,read;while(count<buffer.Length&&(read=stream.Read(buffer,count,buffer.Length-count))>0)count+=read;if(count>4096)throw new System.IO.IOException("Activity storage budget");byte[] bytes=buffer[..count];return new[]{"exists",new System.Text.UTF8Encoding(false,true).GetString(bytes),Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes)).ToLowerInvariant()};}
+ catch(System.IO.FileNotFoundException){return new[]{"missing","","missing"};}catch(System.IO.DirectoryNotFoundException){return new[]{"missing","","missing"};}
+}
+string projectId="";var identity=Snapshot(identityPath);
+if(identity[0]=="exists"){var savedIdentity=System.Text.Json.Nodes.JsonNode.Parse(identity[1])!.AsObject();string manifest=savedIdentity["manifest"]!.ToString();if(OperatingSystem.IsWindows())manifest=manifest.ToUpperInvariant();projectId=savedIdentity["projectId"]!.ToString();if(savedIdentity["version"]?.GetValue<int>()!=1||manifest!=project||!Guid.TryParseExact(projectId,"N",out _))throw new InvalidOperationException("Activity project identity mismatch");}
+var snapshot=Snapshot(path);long sequence=0;
+if(snapshot[0]=="exists"){
+ var record=System.Text.Json.Nodes.JsonNode.Parse(snapshot[1])!.AsObject();string owner=record["projectId"]?.GetValue<string>()??throw new InvalidOperationException("Activity project ID missing");
+ if(record.Count!=7||record["scope"]?.ToString()!="persisted-source-edit"||record["version"]?.GetValue<int>()!=1||record["manifest"]?.ToString()!=project||(owner.Length>0&&(owner!=projectId||!Guid.TryParseExact(owner,"N",out _)))||record["kind"]?.ToString() is not ("save" or "confirm")||!DateTimeOffset.TryParseExact(record["at"]?.ToString(),"O",System.Globalization.CultureInfo.InvariantCulture,System.Globalization.DateTimeStyles.None,out var at)||at.Offset!=TimeSpan.Zero||(sequence=record["sequence"]!.GetValue<long>())<1)throw new InvalidOperationException("Invalid activity receipt; existing bytes preserved");
+ if(operation=="read")return new[]{"available",record.ToJsonString()};
+}
+else if(operation=="read")return new[]{"none"};
+var next=new System.Text.Json.Nodes.JsonObject{["version"]=1,["manifest"]=project,["projectId"]=projectId,["sequence"]=checked(sequence+1),["kind"]=operation,["at"]=DateTimeOffset.UtcNow.ToString("O",System.Globalization.CultureInfo.InvariantCulture)};
+// Seven fixed fields include a format marker, never arbitrary event payloads.
+next["scope"]="persisted-source-edit";
+string content=next.ToJsonString();if(System.Text.Encoding.UTF8.GetByteCount(content)>4096)throw new InvalidOperationException("Activity storage budget");return new[]{relative,snapshot[2],content};

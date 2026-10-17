@@ -1,0 +1,3 @@
+implementation Confectory.Save::ActivityBody for Confectory.Save::Activity (string project, string operation) -> string[] {
+body common "Activity.csbody";
+}

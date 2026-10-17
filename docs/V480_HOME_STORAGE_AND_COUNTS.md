@@ -14,6 +14,8 @@ Home 상태를 저장하기 위해 프로젝트를 열거나, 프로젝트의 �
 
 ## 카드 통계의 근거와 범위
 
+포함 팩·마지막 편집의 미지원 상태는 아래 최초 구현 시점의 기록이다. 이후 [실제 포함 집합·성공 편집 사건 후속](V480_HOME_INCLUSION_AND_EDIT_EVENTS.md)에서 desktop Home의 두 조회를 연결했다.
+
 | 항목 | 구현/판단 | 근거와 제외 범위 |
 |---|---|---|
 | 객체 | 확정 ProjectPack manifest의 `object` 선언 수 | 기존 `SemanticCatalog list(kind=object)`의 `total`이다. 32개 페이지의 표시 행 수로 계산하지 않는다. 의존 팩·schema·등록되지 않은 파일·미확정 초안·실행 인스턴스는 제외한다. UI tooltip에 이 범위를 표시한다. |

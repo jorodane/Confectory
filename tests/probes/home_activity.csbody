@@ -1,0 +1,45 @@
+void Check(bool ok,string message){if(!ok)throw new Exception(message);}
+string project=Environment.GetEnvironmentVariable("CONFECTORY_TEST_AUTHOR_PROJECT")!,root=System.IO.Path.GetDirectoryName(project)!;
+string source=System.IO.Path.Combine(root,"Thing.celem"),unit="App::Thing";
+string Receipt()=>calls.Activity.Invoke(project,"read")[1];
+if(Environment.GetEnvironmentVariable("CONFECTORY_ACTIVITY_COLD")=="yes"){
+ var restored=System.Text.Json.Nodes.JsonNode.Parse(Receipt())!;
+ Check(restored["sequence"]!.GetValue<long>()==2&&restored["kind"]!.ToString()=="confirm","actual process restart retained confirmed receipt");
+ string cold=calls.EditWorkspaceOpen.Invoke(project,"local-user","editor");try{calls.SaveRestore.Invoke(cold);Check(calls.EditWorkspaceRead.Invoke(cold,unit)[6]=="clean","Confirm acknowledgment restored no dirty source");Check(Receipt()==restored.ToJsonString(),"opening/restore never invents edit time");}finally{calls.EditWorkspaceClose.Invoke(cold);}
+ Console.WriteLine("Home activity actual cold PASS");return 0;
+}
+Check(calls.Activity.Invoke(project,"read")[0]=="none","pre-record history remains unknown");
+string original=System.IO.File.ReadAllText(source),handle=calls.EditWorkspaceOpen.Invoke(project,"local-user","editor");
+try{
+ calls.EditWorkspaceRead.Invoke(handle,unit);calls.SaveWrite.Invoke(handle);
+ Check(calls.Activity.Invoke(project,"read")[0]=="none","read and clean Save do not record an edit");
+ calls.EditWorkspaceSetText.Invoke(handle,unit,"object App::Thing { value note = \"cancelled\"; }");
+ calls.EditWorkspaceClose.Invoke(handle);handle=calls.EditWorkspaceOpen.Invoke(project,"local-user","editor");calls.SaveRestore.Invoke(handle);
+ Check(calls.EditWorkspaceRead.Invoke(handle,unit)[3]==original&&calls.Activity.Invoke(project,"read")[0]=="none","unsaved cancellation does not record or persist source edits");
+ calls.EditWorkspaceSetText.Invoke(handle,unit,"object App::Thing { value note = \"saved\"; }");calls.SaveWrite.Invoke(handle);
+ string saved=Receipt(),draftPath=calls.SaveLocation.Invoke(handle),draftBytes=System.IO.File.ReadAllText(draftPath);var first=System.Text.Json.Nodes.JsonNode.Parse(saved)!;
+ Check(first["sequence"]!.GetValue<long>()==1&&first["kind"]!.ToString()=="save"&&first["projectId"]!.ToString()=="11111111111111111111111111111111"&&System.IO.File.ReadAllText(source)==original,"Save atomically records the actual draft, identity and UTC event without confirming source");
+ calls.SaveWrite.Invoke(handle);Check(Receipt()==saved,"same content Save never advances time or sequence");
+ string[] changes=calls.EditWorkspaceChanges.Invoke(handle,new[]{unit});System.IO.File.WriteAllText(source,"object App::Thing { value note = \"external\"; }");string external=System.IO.File.ReadAllText(source);
+ var conflict=calls.ReviewedConfirm.Invoke(handle,new[]{unit},"portable",changes);Check(conflict[0]=="conflict"&&Receipt()==saved&&System.IO.File.ReadAllText(source)==external,"external Confirm conflict does not publish an event");
+ calls.EditWorkspaceClose.Invoke(handle);handle=calls.EditWorkspaceOpen.Invoke(project,"local-user","editor");calls.SaveRestore.Invoke(handle);
+ Check(Receipt()==saved&&calls.EditWorkspaceRead.Invoke(handle,unit)[3].Contains("saved"),"reopening preserves saved baseline and event");
+ changes=calls.EditWorkspaceChanges.Invoke(handle,new[]{unit});Check(calls.ReviewedConfirm.Invoke(handle,new[]{unit},"portable",changes)[0]=="conflict"&&Receipt()==saved,"restore cannot rebase away external conflict");
+ System.IO.File.WriteAllText(source,original);changes=calls.EditWorkspaceChanges.Invoke(handle,new[]{unit});
+ var confirmed=calls.ReviewedConfirm.Invoke(handle,new[]{unit},"portable",changes);Check(confirmed[0]=="confirmed",string.Join(" / ",confirmed));
+ string committed=Receipt();var second=System.Text.Json.Nodes.JsonNode.Parse(committed)!;Check(second["sequence"]!.GetValue<long>()==2&&second["kind"]!.ToString()=="confirm"&&System.IO.File.ReadAllText(source).Contains("saved"),"successful compiler/CAS Confirm records source and event together");
+ Check(DateTimeOffset.Parse(second["at"]!.ToString()).Offset==TimeSpan.Zero,"UTC receipt");
+ string activityPath=System.IO.Path.Combine(root,calls.Activity.Invoke(project,"save")[0]),confirmedSource=System.IO.File.ReadAllText(source);draftBytes=System.IO.File.ReadAllText(draftPath);
+ calls.EditWorkspaceSetText.Invoke(handle,unit,"object App::Thing { value note = \"failed\"; }");
+ string identityPath=System.IO.Path.Combine(root,".confectory/project-identity.json"),identityBytes=System.IO.File.ReadAllText(identityPath);System.IO.File.WriteAllText(identityPath,identityBytes.Replace("11111111111111111111111111111111","22222222222222222222222222222222"));
+ try{bool mismatch=false;try{calls.SaveWrite.Invoke(handle);}catch{mismatch=true;}Check(mismatch&&System.IO.File.ReadAllText(activityPath)==committed&&System.IO.File.ReadAllText(draftPath)==draftBytes,"a different durable project ID cannot inherit or replace the receipt");}finally{System.IO.File.WriteAllText(identityPath,identityBytes);}
+ string bodyId="App::MainBody/body:common",bodyText=calls.EditWorkspaceRead.Invoke(handle,bodyId)[3];calls.EditWorkspaceSetText.Invoke(handle,bodyId,"not valid C# compiler input");var invalid=calls.ChangeSetConfirm.Invoke(handle,new[]{bodyId},"portable");Check(invalid[0]=="invalid"&&Receipt()==committed,"compiler rejection never records a successful Confirm");calls.EditWorkspaceSetText.Invoke(handle,bodyId,bodyText);
+ System.IO.File.SetAttributes(activityPath,System.IO.FileAttributes.ReadOnly);
+ try{bool failed=false;try{calls.SaveWrite.Invoke(handle);}catch{failed=true;}Check(failed&&Receipt()==committed&&System.IO.File.ReadAllText(draftPath)==draftBytes,"receipt write failure prevents draft persistence");changes=calls.EditWorkspaceChanges.Invoke(handle,new[]{unit});var failedConfirm=calls.ReviewedConfirm.Invoke(handle,new[]{unit},"portable",changes);Check(failedConfirm[0]=="invalid"&&Receipt()==committed&&System.IO.File.ReadAllText(source)==confirmedSource,"receipt failure prevents final source mutation");}
+ finally{System.IO.File.SetAttributes(activityPath,System.IO.FileAttributes.Normal);}
+ System.IO.File.WriteAllText(activityPath,"broken{");bool corrupt=false;try{calls.SaveWrite.Invoke(handle);}catch{corrupt=true;}Check(corrupt&&System.IO.File.ReadAllText(activityPath)=="broken{"&&System.IO.File.ReadAllText(draftPath)==draftBytes,"corrupt receipt is preserved and cannot be silently overwritten");System.IO.File.WriteAllText(activityPath,committed);
+ System.IO.File.WriteAllText(activityPath,new string('x',4097));bool oversized=false;try{calls.SaveWrite.Invoke(handle);}catch(System.IO.IOException error){oversized=error.Message.Contains("Activity storage budget");}Check(oversized&&new System.IO.FileInfo(activityPath).Length==4097&&System.IO.File.ReadAllText(draftPath)==draftBytes,"bounded receipt read rejects oversized bytes before JSON parsing without overwriting them");System.IO.File.WriteAllText(activityPath,committed);
+ // Discard only the unpersisted test edit; the next process restores confirmed state.
+ Console.WriteLine("Home activity Save Confirm cancel conflict failure PASS");
+}finally{calls.EditWorkspaceClose.Invoke(handle);}
+return 0;

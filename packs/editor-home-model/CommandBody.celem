@@ -10,6 +10,7 @@ import Confectory.EditWorkspace::Open as WorkspaceOpen (string, string, string) 
 import Confectory.EditWorkspace::Create as Create (string, string, string) -> void;
 import Confectory.EditWorkspace::SetValue as SetValue (string, string, string, string) -> void;
 import Confectory.Save::Write as Save (string) -> string;
+import Confectory.Save::Activity as Activity (string,string) -> string[];
 import Confectory.ProjectShell::Create as ShellCreate (string) -> string;
 import Confectory.ProjectShell::Command as ShellCommand (string, string, string) -> string;
 import Confectory.ProjectShell::Snapshot as ShellSnapshot (string) -> string;

@@ -5,6 +5,7 @@ internal static class SemanticCatalogService
  {
   try{
    project=scope(System.IO.Path.GetFullPath(project));string root=System.IO.Path.GetDirectoryName(project)!;
+   if(request["action"]?.GetValue<string>()=="inclusion")return HomeInclusion.Query(project);
    var statistics=new Confectory.Core.BuildStatistics();string cache=System.IO.Path.Combine(System.IO.Path.GetTempPath(),"confectory-semantic-catalog-v1",Confectory.Core.JsonData.Digest(project));
    var documents=new Confectory.Core.Documents(cache,statistics);var manifest=documents.Manifest(project);
    string action=request["action"]?.GetValue<string>()??"list",query=request["query"]?.GetValue<string>()??"",kind=request["kind"]?.GetValue<string>()??"";

@@ -12,7 +12,7 @@
 |---|---|---|
 | 기존 계약 안의 UI 누락 | 빈 곳 드롭 취소, 무효 case/시작 대상의 기존·미적용 입력 보존, 출력 sidebar 크기/접기 | 이번 수정과 실제 UI 검증. 새 실행 의미·새 권한 없이 연결 |
 | Home 저장/조회 후속 | Home 전용 검색/탭/정렬/선택 콜드 저장과 확정 root object 선언 수 | [Home 전용 저장·집계](V480_HOME_STORAGE_AND_COUNTS.md)에서 기존 호스트 원자 저장과 metadata list total을 연결. 프로젝트 presentation과 분리 |
-| 조회 계약 미연결 | Home 포함 팩 수와 마지막 편집 시각 | registry/의존성 수나 파일 mtime으로 대체하지 않음. 포함 집계 범위와 영속 편집 이벤트 시각의 계약 필요 |
+| 실제 조회·영속 기록 연결 | Home 포함 팩 수와 마지막 편집 정보 | [후속](V480_HOME_INCLUSION_AND_EDIT_EVENTS.md): 확정 entry/타깃별 도달 집합과 성공한 Save/Confirm의 원자적 receipt. 기록 없음·조회 불가 구분, 실제 콜드 복원. native adapter 포함 조회는 미지원 |
 | 대조/미지원 범위가 남음 | category/concept 계층 전체, browser Data의 자동 전체 필드 합집합, Workspace 링크 그래프·도킹 전 native Undo 이력 | 이미 있는 모델/명령과 레퍼런스의 동작을 대응시킨 다음 확인한 누락을 수정. 미검사 전체를 정책 차단으로 표시하지 않음 |
 | 사용자 정책 답변 대기 | 계산식 int/long overflow: 오류 또는 wrap | 아직 미답변. enum 값 범위와 별개이며 다른 로컬 UI 수정의 차단 아님 |
 | 새 구조 계약이 미구현·현재 범위 밖 | 구조적 property field write/ref, compound/function live field, 일반 enum/Vector3 ABI, 소유 집합 생성/삭제 전체 Undo | 기존 read/primitive/일반 이력 지원과 구분. 이번 UI 대조에서 새 의미를 추가하지 않음 |
@@ -62,7 +62,7 @@ enum의 숫자 항목 범위 확인과 계산식 overflow는 다른 계약이다
 | 기존 ID | 요구 묶음 | 현재 판단과 남은 범위 |
 |---|---|---|
 | S01–S02 | 시작·Home·Agent 선택·앱 창 | [Entry/Home 소유 모델](ENTRY_HOME_MODEL_PACK.md)과 공통 web 시작은 있음. 각 native host의 창·입력·접근성 전체 완료 아님 |
-| H01–H06 | 프로젝트 목록·검색·정렬·즐겨찾기·생성·정보·닫기 | 실제 ProjectManager/생성·소유 수명 경계 있음. Home 반복·검색·정렬 취소/복귀를 실제 검사했다. Home 전용 콜드 저장과 확정 root object 선언 집계를 연결했다. 포함 팩 수와 마지막 편집 시각은 계약 미연결이며 overflow 정책 대기가 아님. 팩 요구/유형·선택 Helper·프로필과 모든 전환 조합은 부분 |
+| H01–H06 | 프로젝트 목록·검색·정렬·즐겨찾기·생성·정보·닫기 | 실제 ProjectManager/생성·소유 수명 경계 있음. Home 반복·검색·정렬 취소/복귀를 실제 검사했다. Home 전용 콜드 저장과 확정 root object 선언 집계를 연결했다. 포함 팩 수와 마지막 편집 정보는 [후속](V480_HOME_INCLUSION_AND_EDIT_EVENTS.md)에서 연결했으며 overflow 정책과 독립적이다. 팩 요구/유형·선택 Helper·프로필과 모든 전환 조합은 부분 |
 | B01–B06 | 브라우저·트리·복제·하위 탐색·생성·상속·삭제 | 그룹별 검색/위치·미적용 입력과 콜드 실제 목록, 독립 브라우저·문서 복원 검사 있음. 참조 드래그는 scoped 입력 준비이며 source 변경은 기존 Apply를 유지. 여섯 선언 종류 생성과 바리에이션 검증 있음. 전체 tree/category grouping·삭제/참조 대체는 부분/계약 필요 |
 | D01–D06 | 필드·Data/즉석 테이블·참조 원본·개념 맵 | [v424 실제 schema/표/관계/읽기 전용 정의 증거](EDITOR_V424_INTEGRATION.md) 있음. 즉석 테이블의 열 반복 이동/너비·retained 입력과 scoped 참조 드래그/현재 참조 문서 이동을 검사. [브라우저 Data 필드 비교](V480_BROWSER_DATA_FIELDS.md)는 명시적 소유 객체/필드 선택을 기존 versioned table 셀 편집기에 연결. enum/벡터·자동 전체 필드 합집합·임의 깊이 탐색 전체는 부분 |
 | E01–E08 | schema·enum·객체 동작·함수·모듈·계약 요청 | 일반 CELEM schema/typed 함수·모듈/graph는 위 표의 범위. prototype의 모든 enum/벡터/복합 ABI·원클릭 밸런스/테스트 실행은 완료 아님 |

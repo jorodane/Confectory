@@ -137,12 +137,23 @@ internal static class ChangeStamp
     }
 }
 
-public sealed class Documents(string cache, BuildStatistics statistics)
+public sealed class Documents(string cache, BuildStatistics statistics, Func<string, byte[]>? sourceReader)
 {
+    public Documents(string cache, BuildStatistics statistics) : this(cache, statistics, null) { }
     private const string Format = "csharp-declarations-v3-blueprint";
     private T Read<T>(string input, string role, Func<string, string, T> parse)
     {
         string path = PackPaths.Resolve(input);
+        // Read-only projections can impose an exact byte/read budget and retain
+        // those snapshots. They must not reuse stamp-based persistent caches.
+        if (sourceReader is not null)
+        {
+            byte[] bytes = sourceReader(path);
+            statistics.ReadDocuments.Add(path);
+            var value = parse(new UTF8Encoding(false, true).GetString(bytes), path);
+            if (role != "body") statistics.ParsedDocuments.Add(path);
+            return value;
+        }
         string? stamp = ChangeStamp.Read(path);
         string cacheFile = Path.Combine(cache, JsonData.Digest(new[] { Format, path, role }) + ".json");
         try

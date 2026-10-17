@@ -1,0 +1,1 @@
+function Confectory.Save::Activity (string project, string operation) -> string[] {provide Confectory.Save::Activity with Confectory.Save::ActivityBody;description "Read a bounded manifest-owned edit receipt, or prepare its CAS tuple for an atomic Save/Confirm transaction. Never writes by itself.";}
