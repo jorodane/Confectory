@@ -1,0 +1,167 @@
+{
+  "schema": 1,
+  "kind": "v480-browser-atomic-fill",
+  "baseline": {
+    "base": "9784761afe1a9d4fc6b845244439e3be01da19fb",
+    "referenceMain": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f"
+  },
+  "source": {
+    "examples/editor-home/WebBundle.csbody": {
+      "sha256": "a7606e3af287da91ce4e82805cffe374ebfb438be1408f9ab9c8e7685115756f",
+      "bytes": 9978
+    },
+    "examples/editor-home/ui/consumer.css": {
+      "sha256": "37005b873bf5cfdb4260ea79ef059fcf2cce60eb502146cb6f4fdea90671065b",
+      "bytes": 21950
+    },
+    "examples/editor-home/ui/tables.js": {
+      "sha256": "d32b4564c4d5b4ca49a2875777ada48473745b6ba7d2f76f41f98765cc4dabcb",
+      "bytes": 30938
+    },
+    "tests/Confectory.Tests/WebUITests.cs": {
+      "sha256": "97ad3c779e2220197041c6cb47074129571792fd717fa66a782612d292c28264",
+      "bytes": 56438
+    },
+    "tests/web/v480_browser_data.py": {
+      "sha256": "38fe15ef9236b81abf28bd76a9b93e49c034a363978da0ef6e7b92ea97b882b7",
+      "bytes": 12459
+    },
+    "tests/web/v480_browser_fill.py": {
+      "sha256": "4a5c0decadcb5c802fe7947da36b2bc14807fcac7f0568332466b6aa6189ee74",
+      "bytes": 11407
+    },
+    "tests/web/web_ui.py": {
+      "sha256": "1caff7bbaf808d50e8249292b17d90bf2d2928f569a560841f9dc094bc226445",
+      "bytes": 63471
+    }
+  },
+  "gates": {
+    "ui": {
+      "exit": 0,
+      "methods": [
+        "WebUITests.test_actual_editor_v480_browser_data_atomic_fill_selection_cas_and_cold",
+        "WebUITests.test_actual_editor_v480_browser_data_fields_typed_cas_inputs_and_cold",
+        "WebUITests.test_actual_editor_v480_reference_gestures_columns_document_links_and_cold",
+        "WebUITests.test_actual_editor_v424_typed_declaration_views_cas_confirm_and_restart",
+        "WebUITests.test_actual_editor_v424_instant_table_typed_fill_cas_and_cold_restart",
+        "WebUITests.test_actual_editor_v424_registered_reference_definition_read_only_and_cold_restart",
+        "WebUITests.test_actual_editor_v424_declared_relations_map_and_cold_restart",
+        "WebUITests.test_actual_editor_v424_schema_local_actions_and_compound_array_order",
+        "WebUITests.test_actual_editor_v424_schema_exact_numeric_hash_and_cold_restart",
+        "WebUITests.test_actual_editor_v480_window_document_docking_cold_inputs_and_compiler_confirm",
+        "WebUITests.test_actual_editor_v480_home_browser_document_repeat_cancel_and_restore"
+      ],
+      "head": "9784761afe1a9d4fc6b845244439e3be01da19fb",
+      "elapsed": 457.61324281699854,
+      "sourceManifestSha256": "de73b935673783471a8215d0be4d4371c9060d8fc6246307199d0e6a4e4306be",
+      "passed": 11,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 457.566,
+      "logSha256": "337a696319540c4b4d888107101ddf272c95a090c4b84552810669404001bfe7"
+    },
+    "model": {
+      "exit": 0,
+      "methods": [
+        "ElementViewTests.test_reusable_shared_card_table_view_lifetimes_and_locality",
+        "InstantTableVersionTests.test_versioned_table_atomic_fill_schema_fences_precision_and_borrowed_lifetime"
+      ],
+      "head": "9784761afe1a9d4fc6b845244439e3be01da19fb",
+      "elapsed": 54.0603555760008,
+      "sourceManifestSha256": "de73b935673783471a8215d0be4d4371c9060d8fc6246307199d0e6a4e4306be",
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 54.028,
+      "logSha256": "dc7e2792d4e8076b4eee009e22eafcd1873539b7bcfb9d9760bf9bc3e30b8ec2"
+    },
+    "managed": {
+      "exit": 0,
+      "methods": [
+        "EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only"
+      ],
+      "head": "9784761afe1a9d4fc6b845244439e3be01da19fb",
+      "elapsed": 131.54295528799958,
+      "sourceManifestSha256": "de73b935673783471a8215d0be4d4371c9060d8fc6246307199d0e6a4e4306be",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 131.499,
+      "logSha256": "d004dd706c0786e777e8f2ad0a216fce3c1546f3cd3cef2d348b734b4bfabb03"
+    }
+  },
+  "checkout": {
+    "state": "pending-implementation-HEAD"
+  },
+  "resourceCount": 38,
+  "screenshotSha256": "7bc88083c93b2743d35f4e0ca969098e931f4356fb7fb922951f8bd31e0d5692",
+  "build": {
+    "success": true,
+    "logSha256": "343bc018c2e2835c86a20ef7d86da36fc1c1b0afe82ccd7e9846e305d723036e"
+  },
+  "mapping": {
+    "selection": "Existing private tableSelected IDs. A distinct fill checkbox column only on configured root-owned rows; Review selection is separate. No defaults or filter expansion.",
+    "form": "Browser and detached InstantTable share fillMarkup/bindFill, existing tableFill and versions map",
+    "mutation": "One existing editTable request with explicit unique IDs, exact JSON and original displayed revision/source hash/resolved view hash; existing atomic EditCellsVersioned/EditBatch remains authoritative",
+    "preservation": "Selecting/clearing/filtering/refreshing/reopening/cold never recaptures a pending fill basis. Field/configuration change is refused until explicit Apply/Cancel. Other cell inputs remain intact.",
+    "lifecycle": "Existing private presentation and borrowed source owner; Save/Review/compiler Confirm stay explicit"
+  },
+  "validated": [
+    "no selected rows refuses without choosing targets or mutating any row",
+    "checked sources alone receive exact int64 JSON; unselected source stays clean",
+    "malformed array fill refuses every row and preserves independent cell input, selection and original versions",
+    "changing pending field/configuration and Review/release refuse without losing the draft",
+    "filtered hidden selection is counted; clearing/rechecking is explicit and preserves the fill basis",
+    "only the second selected source changes: stale fill leaves the first and all row revisions unchanged",
+    "resolved schema change refuses entire fill at its old view hash",
+    "foreign registry rows have no writable field controls or fill checkbox; filtering cannot retarget selection",
+    "JSON text encoding of quotes and backslash; inherited projections distinguished from writes to unselected source",
+    "same document, close/reopen, density changes and actual host restart preserve all fill versions and separate cell drafts",
+    "cold stale refusal preserves saved versions; fill Cancel discards only fill, keeps checked rows and separate cell input",
+    "Save and compiler Review/Confirm publish the two explicit sources and exact semantic numbers",
+    "borrowed comparison release resets its selection and preserves source owner"
+  ],
+  "engineModelPublicEditingApiCompilerExecutionSemanticsUnchanged": true,
+  "earlierRuns": [
+    {
+      "log": "before-native-placement.log",
+      "result": "0/1/0 98.077",
+      "scope": "test enlarged browser before closing the covered configuration window"
+    },
+    {
+      "log": "focused.log",
+      "result": "1/0/0 56.671",
+      "scope": "focused real UI pass; repeated in final frozen-source suite, not added to final count"
+    }
+  ],
+  "remaining": {
+    "roadmap": "docs/V480_REMAINING_WORK.md",
+    "nextRecommended": "P0 browser declaration identity/hierarchy/field navigation end to end",
+    "bundles": [
+      "P1 actual Home summaries and durable edit events",
+      "P1 Workspace document links/lifecycle/history",
+      "P2 structural property editing and type ABI",
+      "P2 Run frame/ack/durable session protocol",
+      "P3 actor/Helper/Yogi/market service contracts",
+      "P3 native accessibility/device/install matrix"
+    ],
+    "policyPending": [
+      "int/long expression overflow error versus wrap"
+    ],
+    "notAdded": [
+      "computed columns",
+      "automatic selection expansion",
+      "automatic whole-browser field union"
+    ]
+  },
+  "protected": {
+    "localMain": "b5ea38c3d7eec3eb20f170e68f0f4215b86b2aee",
+    "remoteMain": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+    "zips": {
+      "reference/site-ui/Confectory-Editor-Prototype-v196.zip": "02d4824e92ed0edbb43113659982b37a99a614117652bde4d8ac92367e334e34",
+      "reference/site-ui/Confectory-Editor-Prototype-v318.zip": "0a614fe2bf1ad3d8e10dfa8905bb6b61ea9f21b87b2492b2b87ca8566e9e6908",
+      "reference/site-ui/Confectory-Editor-Prototype-v424.zip": "b7969cd109ea2dad38bde9c9ab13967c20162c920a45a8cd51a8f82df6041874",
+      "reference/site-ui/Confectory-Editor-Prototype-v480.zip": "0489844c8c6d90f7cdc8ea0e80628f487dcfb27f2c871b19367a635212d3c5bd"
+    }
+  }
+}

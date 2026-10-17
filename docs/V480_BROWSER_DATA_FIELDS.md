@@ -25,7 +25,7 @@
 
 ## 남은 차이
 
-이 변경은 명시적 소유 객체/필드 비교다. prototype의 모든 객체에서 자동으로 필드를 합치기, 사용자 정의 계산 열, browser category/concept 계층의 전체 의미, 외부 dirty overlay, Workspace 시각 링크 그래프는 추가하지 않는다. 브라우저에서는 셀별 Apply를 제공하며 다중 행 fill은 기존 독립 InstantTable에 있다. 구조적 field lvalue/ref·일반 enum/Vector3 ABI·새 overflow 정책을 정하지 않는다.
+이 변경은 명시적 소유 객체/필드 비교다. prototype의 모든 객체에서 자동으로 필드를 합치기, 사용자 정의 계산 열, browser category/concept 계층의 전체 의미, 외부 dirty overlay, Workspace 시각 링크 그래프는 추가하지 않는다. 이 체크포인트는 셀별 Apply를 제공한다. 후속 [브라우저 원자적 채우기](V480_BROWSER_ATOMIC_FILL.md)에서 기존 독립 InstantTable의 다중 행 fill을 같은 폼/핸들러로 연결했다. 구조적 field lvalue/ref·일반 enum/Vector3 ABI·새 overflow 정책을 정하지 않는다.
 
 Home 포함 팩 수·마지막 편집 이벤트 시각은 별도 미결이다. native OS/실기기·사용자 PC 설치·실계정·유료 호출은 검증 범위 밖이다. main·원본 ZIP·Android 설정은 보존한다.
 

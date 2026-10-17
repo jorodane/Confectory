@@ -28,7 +28,7 @@ def verify_browser_data(page,project,mount,send,envelope,settle,restart):
  def density(value):w.locator('input[type=range][aria-label="객체 표시 밀도 Compact Preview Data"]').evaluate('(e,n)=>{e.value=String(n);e.dispatchEvent(new Event("input",{bubbles:true}));}',value)
  ready();page.locator('#nav').click();page.locator('.nav-menu').get_by_role('button',name='개념',exact=True).click();ready();page.locator('#nav').click()
  density(100);expect(w.locator('[data-browser-fields]')).to_be_visible();expect(w.locator('thead th')).to_have_count(3)
- configure([score,twin],fields);expect(cell(score,amount)).to_have_value('9223372036854775807');expect(cell(twin,amount)).to_have_value('9223372036854775806');expect(cell(score,meta)).to_have_value('Separate metadata');expect(w.locator('thead th')).to_have_count(8)
+ configure([score,twin],fields);expect(cell(score,amount)).to_have_value('9223372036854775807');expect(cell(twin,amount)).to_have_value('9223372036854775806');expect(cell(score,meta)).to_have_value('Separate metadata');expect(w.locator('thead th')).to_have_count(9)
  first=record();invoke('configureTable',{**{k:first[k] for k in ['table','ids','columns','request']},'definitionHash':'0'*64},False);assert record()['definitionHash']==first['definitionHash']
  # Cancelling configuration has no effect on the actual selected columns/rows.
  configure([twin],[amount],False);assert set(record()['ids'])=={score,twin} and record()['columns']==fields
