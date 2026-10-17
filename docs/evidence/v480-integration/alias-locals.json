@@ -204,6 +204,24 @@
         "file": "final-source.json",
         "sha256": "95466a0b0405ef6babc5b186afda35232a4ac2056e5d04a28517d42d7867cbc9"
       }
+    },
+    {
+      "log": "ordinary-checkout.log",
+      "sha256": "69561f2850865751371b8af9fa644e65440560b6ba75e9048abbda77435ac905",
+      "scope": "ordinary autocrlf/pull/fresh LF,33 resources,actual Home and tamper rejection",
+      "completed": true,
+      "passedMethods": [
+        "WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup"
+      ],
+      "failedMethods": [],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 6.744,
+      "sourceSnapshot": {
+        "file": "final-source.json",
+        "sha256": "95466a0b0405ef6babc5b186afda35232a4ac2056e5d04a28517d42d7867cbc9"
+      }
     }
   ],
   "overlappingStagesMustNotBeSummed": true,
@@ -289,8 +307,20 @@
     "originalZIPsAndAndroidSettingsUnchanged": true,
     "androidFilesChanged": []
   },
-  "implementationCommit": null,
-  "ordinaryCheckout": null,
+  "implementationCommit": "0a9ad7b7185c0c64570f0a5dca43b62e552372e5",
+  "ordinaryCheckout": {
+    "commit": "0a9ad7b7185c0c64570f0a5dca43b62e552372e5",
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "seconds": 6.744,
+    "resourceCount": 33,
+    "legacyAutocrlfCheckoutThenOrdinaryFastForwardPull": true,
+    "retainedCrlfAndFreshLf": true,
+    "actualHomeStartup": true,
+    "contentEncodingBomBinaryBudgetRejection": true,
+    "originalBytesUnchanged": true
+  },
   "screenshots": [
     {
       "path": "docs/evidence/v480-integration/alias-locals-form.png",
