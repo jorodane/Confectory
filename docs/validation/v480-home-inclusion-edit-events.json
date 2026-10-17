@@ -1,0 +1,383 @@
+{
+  "schema": 1,
+  "kind": "v480-home-inclusion-edit-events",
+  "createdUtc": "2026-10-17T23:04:07.244522+00:00",
+  "baseline": {
+    "base": "943629c1b390206913b37979f581f15e0616eba6",
+    "referenceMain": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f"
+  },
+  "source": {
+    "examples/editor-home/WebBundle.csbody": {
+      "sha256": "00eeb3ab79c0eb711b312765d3fd069e52361c5800a97321469d612a11c0b64a",
+      "bytes": 10192
+    },
+    "examples/editor-home/ui/app.js": {
+      "sha256": "36fd8863ef65e7f0187759d2a1e7b6eabedf01d0daee476e0d95f753221e98fc",
+      "bytes": 234709
+    },
+    "examples/editor-home/ui/consumer.css": {
+      "sha256": "adbb80f4ad336bc33d33afbc9f035c2109c8b9c72fc192d0e5daf1ec86d4657d",
+      "bytes": 23038
+    },
+    "packs/change-set/ConfirmReviewed.csbody": {
+      "sha256": "978f3e4157af64409c69c0829acb16005d42ce3031a8ec95c8617e07e2cf4fa5",
+      "bytes": 2277
+    },
+    "packs/change-set/ConfirmReviewedBody.celem": {
+      "sha256": "229647b31ebd3c32dce43c7c3fdb7747f4a329474c2f184dbd5593c07fc9c6d1",
+      "bytes": 1145
+    },
+    "packs/editor-home-model/Command.csbody": {
+      "sha256": "161c81507b1aeb12a0591dac347adbb437209d92036c30aaea8b56731d5545d4",
+      "bytes": 103435
+    },
+    "packs/editor-home-model/CommandBody.celem": {
+      "sha256": "7f30da4a13dcf959a47d1050cbe759a74220d22892c217fb1ae2370e8fff290b",
+      "bytes": 8294
+    },
+    "packs/save/Activity.celem": {
+      "sha256": "f861bb2ab99b40615aae8428cd9717c6c2be63849828de485ef24ba0aefd9c48",
+      "bytes": 301
+    },
+    "packs/save/Activity.csbody": {
+      "sha256": "13c3eed9786653399382927579040067b5c844fd03593f71301e4ec4ef16b9c5",
+      "bytes": 3786
+    },
+    "packs/save/ActivityBody.celem": {
+      "sha256": "fbabfa7ec3915c798bbb3f09caf9b7599b47b81ed95cfe0ed68870a5166a3914",
+      "bytes": 157
+    },
+    "packs/save/Write.csbody": {
+      "sha256": "37306d651e239e3a9bfc8cb73ce034ad02572493d8a219a8628271d9ff85c953",
+      "bytes": 1394
+    },
+    "packs/save/WriteBody.celem": {
+      "sha256": "370f4f1882353b3886135acd3da604eb2a1c5d2da3700aec04b8ee80a2eb9485",
+      "bytes": 584
+    },
+    "packs/save/pack.cpack": {
+      "sha256": "558d34e7d3092dc16d606877942338cae587b60b076f8ed8ad3ac75f3d175742",
+      "bytes": 754
+    },
+    "src/Confectory.Core/Infrastructure.cs": {
+      "sha256": "4ec0e77c4ca436509cb30ae1b03bd2960cf4c9cd799a1884d0ff2239bf3aea5b",
+      "bytes": 11792
+    },
+    "targets/element-authoring/HomeInclusion.cs": {
+      "sha256": "3438a406c046608d5e52e24ff6b8dc5ee38e02c00fd57c79f83a707baed761e3",
+      "bytes": 4467
+    },
+    "targets/element-authoring/SemanticCatalogService.cs": {
+      "sha256": "10125956e784a6970fd58002663cfeae9723a961d9341cb3f7646ed466de0419",
+      "bytes": 6092
+    },
+    "tests/Confectory.Tests/BuildParticipationTests.cs": {
+      "sha256": "8c5a4ad9bd60bc574f31929030055c96d74b7311d04f1d4799cdce0b07c79c92",
+      "bytes": 5184
+    },
+    "tests/Confectory.Tests/EditWorkspaceTests.cs": {
+      "sha256": "38cebf3b4611b2fa363a835624633768c009fe0867972996bc25727c7c6b6feb",
+      "bytes": 5971
+    },
+    "tests/probes/home_activity.csbody": {
+      "sha256": "9b824020d309747e8a0e66f9388fd3546d6ca05157e7debc7c5d6aa13883452f",
+      "bytes": 7251
+    },
+    "tests/web/v480_home_state.py": {
+      "sha256": "11239151f731f8e1a771f28ab65f70afabf587c7d267de97fee8c6fc645dd9be",
+      "bytes": 14844
+    }
+  },
+  "sourceManifestSha256": "7d2850d4ef376d866cb63b343c69cd71abc3d45443b8c0baf75f62b1dfe18e5d",
+  "gates": {
+    "model": {
+      "exit": 0,
+      "filters": [
+        "EditWorkspaceTests",
+        "SourceConflictTests",
+        "DraftHistoryTests",
+        "FileStreamTests",
+        "PackWorkspaceTests.test_two_contexts_revision_save_reopen_and_locality",
+        "EntryHomeTests.test_fresh_entry_home_project_contracts_and_consumer_locality",
+        "BuildParticipationTests",
+        "CoreTests.test_unused_documents_are_not_read",
+        "CoreTests.test_corrupted_document_cache_is_reparsed"
+      ],
+      "methods": [
+        "CoreTests.test_corrupted_document_cache_is_reparsed",
+        "CoreTests.test_unused_documents_are_not_read",
+        "FileStreamTests.test_local_io_transactions_and_provider_locality",
+        "EditWorkspaceTests.test_home_edit_receipts_atomic_save_confirm_conflict_cancel_and_actual_process_restart",
+        "EditWorkspaceTests.test_shared_drafts_save_restore_preview_selective_confirm_conflict_and_locality",
+        "SourceConflictTests.test_owned_three_way_conflict_hashes_rebase_restore_manifest_scope_and_locality",
+        "DraftHistoryTests.test_shared_draft_history_atomic_inverse_cas_restart_branch_and_owner_boundaries",
+        "PackWorkspaceTests.test_two_contexts_revision_save_reopen_and_locality",
+        "BuildParticipationTests.test_generic_outputs_pure_discovery_usage_closure_and_retention",
+        "BuildParticipationTests.test_home_confirmed_inclusion_matches_build_without_registry_count_body_reads_or_execution",
+        "EntryHomeTests.test_fresh_entry_home_project_contracts_and_consumer_locality"
+      ],
+      "head": "943629c1b390206913b37979f581f15e0616eba6",
+      "elapsed": 202.9156780200001,
+      "sourceManifestSha256": "07ea6185a935825df0fd49ac9d59ae04a281c23447f12c8ce6950e69f8423b38",
+      "logSha256": "d57c6e65a4e93f1d5e74c7886e8432cf3727bdc78d617961de287ee4464ba110",
+      "passed": 11,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 202.884
+    },
+    "ui": {
+      "exit": 0,
+      "filters": [
+        "test_actual_editor_v480_home_preferences_cold_failure_and_confirmed_counts",
+        "test_actual_editor_v480_home_browser_document_repeat_cancel_and_restore",
+        "test_actual_editor_v480_declaration_hierarchy_variation_fill_confirm_independent_cold",
+        "test_actual_editor_v424_typed_declaration_views_cas_confirm_and_restart",
+        "test_actual_editor_v424_instant_table_typed_fill_cas_and_cold_restart",
+        "test_actual_editor_v480_browser_data_atomic_fill_selection_cas_and_cold"
+      ],
+      "methods": [
+        "WebUITests.test_actual_editor_v424_instant_table_typed_fill_cas_and_cold_restart",
+        "WebUITests.test_actual_editor_v424_typed_declaration_views_cas_confirm_and_restart",
+        "WebUITests.test_actual_editor_v480_browser_data_atomic_fill_selection_cas_and_cold",
+        "WebUITests.test_actual_editor_v480_declaration_hierarchy_variation_fill_confirm_independent_cold",
+        "WebUITests.test_actual_editor_v480_home_browser_document_repeat_cancel_and_restore",
+        "WebUITests.test_actual_editor_v480_home_preferences_cold_failure_and_confirmed_counts"
+      ],
+      "head": "943629c1b390206913b37979f581f15e0616eba6",
+      "elapsed": 334.9798146710002,
+      "sourceManifestSha256": "7d2850d4ef376d866cb63b343c69cd71abc3d45443b8c0baf75f62b1dfe18e5d",
+      "logSha256": "0ee9ddb5d7df8e084b421ff7df1eb9389305a1d5441a9a7e92d615dcdaeed454",
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 334.947
+    },
+    "managed": {
+      "exit": 0,
+      "filters": [
+        "EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only"
+      ],
+      "methods": [
+        "EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only"
+      ],
+      "head": "444923bc5a915cf4edefe163b75ce51ace380eca",
+      "elapsed": 123.43870429700019,
+      "sourceManifestSha256": "7d2850d4ef376d866cb63b343c69cd71abc3d45443b8c0baf75f62b1dfe18e5d",
+      "logSha256": "77da6dc827662b81f81df0b8413e32b5c0561ebf7ff0ef7260f43fd79a589911",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 123.407
+    }
+  },
+  "build": {
+    "command": "dotnet build Confectory.sln -c Release --no-restore",
+    "exit": 0,
+    "warnings": 0,
+    "errors": 0,
+    "logSha256": "0c415aa4d515af23abcfc7c8a222a5ab826051a0f7ac0adb92403738a9871759"
+  },
+  "environment": {
+    "cwd": "/workspace/Confectory",
+    "branch": "work/current",
+    "sdk": "10.0.401",
+    "agentModelOrEnvironmentChanged": false,
+    "externalServiceOrPaidCalls": false
+  },
+  "protected": {
+    "localMain": "b5ea38c3d7eec3eb20f170e68f0f4215b86b2aee",
+    "remoteMain": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+    "zips": {
+      "reference/site-ui/Confectory-Editor-Prototype-v196.zip": "02d4824e92ed0edbb43113659982b37a99a614117652bde4d8ac92367e334e34",
+      "reference/site-ui/Confectory-Editor-Prototype-v318.zip": "0a614fe2bf1ad3d8e10dfa8905bb6b61ea9f21b87b2492b2b87ca8566e9e6908",
+      "reference/site-ui/Confectory-Editor-Prototype-v424.zip": "b7969cd109ea2dad38bde9c9ab13967c20162c920a45a8cd51a8f82df6041874",
+      "reference/site-ui/Confectory-Editor-Prototype-v480.zip": "0489844c8c6d90f7cdc8ea0e80628f487dcfb27f2c871b19367a635212d3c5bd"
+    },
+    "androidFilesChanged": []
+  },
+  "scope": {
+    "packs": "confirmed entry / each declared target / Planner.Reached namespaces, identical to Builder.Build includedPacks",
+    "packsIncludeRootWhenReached": true,
+    "registryOrDependencyCountUsed": false,
+    "bodyProviderCompilerExecutionDuringSummary": false,
+    "lastEdit": "changed source-draft Save or source Confirm successfully committed together with its receipt",
+    "timestampSource": "host UTC wall clock at transaction preparation; sequence orders persisted events",
+    "mtimeOrCurrentReadTimeUsed": false,
+    "receiptPath": ".confectory/project-activity/<sha256(normalized absolute manifest path)>.json",
+    "receiptVersion": 1,
+    "receiptMaxBytes": 4096,
+    "noRecordDistinctFromUnavailable": true,
+    "sourceCasAndOwnershipPreserved": true,
+    "coldProcessAndFreshBrowserContext": true,
+    "initialReadPagehide": "Expected view_closed cancellation is handled only after the initial view is retired; active-view errors still propagate. Real Chromium holds the initial request and dispatches pagehide."
+  },
+  "limits": [
+    "Desktop authoring inclusion query is implemented; Android/browser owned metadata adapters do not provide registry inclusion discovery. Managed compilation is not native device or OS execution.",
+    "Earlier unrecorded edits have no timestamp; no mtime or current-time backfill. No-op Save, unsaved input, cancellation and rejected operations do not advance the event.",
+    "Project info pack requirement/type editing and Helper/profile combinations remain separate. Integer expression overflow policy is unchanged and out of scope."
+  ],
+  "artifacts": {
+    "docs/validation/v480-home-inclusion-edit-events.png": {
+      "sha256": "505ce64123c80c419224b41a27ebea885f2def374cfd148ad13044079e27e2b0",
+      "bytes": 71837
+    }
+  },
+  "earlierStagesExcludedFromFinalCounts": [
+    {
+      "kind": "focused model before final review",
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 29.297
+    },
+    {
+      "kind": "UI before waiting for asynchronous Confirm summary",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "reportedSeconds": 113.038
+    },
+    {
+      "kind": "model before compatibility and bounded-reader review completed",
+      "passed": 11,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 202.742,
+      "finalSourceFenceRejectedChangedSource": true
+    },
+    {
+      "kind": "UI before initial pagehide cancellation fix",
+      "passed": 5,
+      "failed": 1,
+      "skipped": 0,
+      "reportedSeconds": 339.756
+    },
+    {
+      "kind": "focused Home repeat with error stack capture before deterministic cancellation probe",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 55.147
+    },
+    {
+      "kind": "deterministic pending-initial-read pagehide regression before fix",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "reportedSeconds": 4.277
+    },
+    {
+      "kind": "focused Home and deterministic cancellation after fix",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 58.895
+    }
+  ],
+  "checkout": {
+    "status": "passed",
+    "exit": 0,
+    "method": "WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup",
+    "implementationCommit": "444923bc5a915cf4edefe163b75ce51ace380eca",
+    "elapsed": 6.385612718000175,
+    "sourceManifestSha256": "7d2850d4ef376d866cb63b343c69cd71abc3d45443b8c0baf75f62b1dfe18e5d",
+    "logSha256": "b76615b1d5545ed75ebf2a1692550a41783a4b017d562a0b011c521b5e717df2",
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "reportedSeconds": 6.354,
+    "resourceCount": 39,
+    "retainedCrLfAndFreshLf": true,
+    "actualHomeStart": true,
+    "tamperAndEncodingBudgetRejection": true
+  },
+  "sourceAtModel": {
+    "examples/editor-home/WebBundle.csbody": {
+      "sha256": "ebe8599715e6e9751758238ddac8341d91a5949bd7657bcc92f5533de6c85df0",
+      "bytes": 10192
+    },
+    "examples/editor-home/ui/app.js": {
+      "sha256": "cd32d9bf7add84a8db88ebece57af5122140148345e5019e308099b0e771675f",
+      "bytes": 234541
+    },
+    "examples/editor-home/ui/consumer.css": {
+      "sha256": "adbb80f4ad336bc33d33afbc9f035c2109c8b9c72fc192d0e5daf1ec86d4657d",
+      "bytes": 23038
+    },
+    "packs/change-set/ConfirmReviewed.csbody": {
+      "sha256": "978f3e4157af64409c69c0829acb16005d42ce3031a8ec95c8617e07e2cf4fa5",
+      "bytes": 2277
+    },
+    "packs/change-set/ConfirmReviewedBody.celem": {
+      "sha256": "229647b31ebd3c32dce43c7c3fdb7747f4a329474c2f184dbd5593c07fc9c6d1",
+      "bytes": 1145
+    },
+    "packs/editor-home-model/Command.csbody": {
+      "sha256": "161c81507b1aeb12a0591dac347adbb437209d92036c30aaea8b56731d5545d4",
+      "bytes": 103435
+    },
+    "packs/editor-home-model/CommandBody.celem": {
+      "sha256": "7f30da4a13dcf959a47d1050cbe759a74220d22892c217fb1ae2370e8fff290b",
+      "bytes": 8294
+    },
+    "packs/save/Activity.celem": {
+      "sha256": "f861bb2ab99b40615aae8428cd9717c6c2be63849828de485ef24ba0aefd9c48",
+      "bytes": 301
+    },
+    "packs/save/Activity.csbody": {
+      "sha256": "13c3eed9786653399382927579040067b5c844fd03593f71301e4ec4ef16b9c5",
+      "bytes": 3786
+    },
+    "packs/save/ActivityBody.celem": {
+      "sha256": "fbabfa7ec3915c798bbb3f09caf9b7599b47b81ed95cfe0ed68870a5166a3914",
+      "bytes": 157
+    },
+    "packs/save/Write.csbody": {
+      "sha256": "37306d651e239e3a9bfc8cb73ce034ad02572493d8a219a8628271d9ff85c953",
+      "bytes": 1394
+    },
+    "packs/save/WriteBody.celem": {
+      "sha256": "370f4f1882353b3886135acd3da604eb2a1c5d2da3700aec04b8ee80a2eb9485",
+      "bytes": 584
+    },
+    "packs/save/pack.cpack": {
+      "sha256": "558d34e7d3092dc16d606877942338cae587b60b076f8ed8ad3ac75f3d175742",
+      "bytes": 754
+    },
+    "src/Confectory.Core/Infrastructure.cs": {
+      "sha256": "4ec0e77c4ca436509cb30ae1b03bd2960cf4c9cd799a1884d0ff2239bf3aea5b",
+      "bytes": 11792
+    },
+    "targets/element-authoring/HomeInclusion.cs": {
+      "sha256": "3438a406c046608d5e52e24ff6b8dc5ee38e02c00fd57c79f83a707baed761e3",
+      "bytes": 4467
+    },
+    "targets/element-authoring/SemanticCatalogService.cs": {
+      "sha256": "10125956e784a6970fd58002663cfeae9723a961d9341cb3f7646ed466de0419",
+      "bytes": 6092
+    },
+    "tests/Confectory.Tests/BuildParticipationTests.cs": {
+      "sha256": "8c5a4ad9bd60bc574f31929030055c96d74b7311d04f1d4799cdce0b07c79c92",
+      "bytes": 5184
+    },
+    "tests/Confectory.Tests/EditWorkspaceTests.cs": {
+      "sha256": "38cebf3b4611b2fa363a835624633768c009fe0867972996bc25727c7c6b6feb",
+      "bytes": 5971
+    },
+    "tests/probes/home_activity.csbody": {
+      "sha256": "9b824020d309747e8a0e66f9388fd3546d6ca05157e7debc7c5d6aa13883452f",
+      "bytes": 7251
+    },
+    "tests/web/v480_home_state.py": {
+      "sha256": "1746b415003036acb946a0b843280b3de08c4667684248c4677693f722abe382",
+      "bytes": 13875
+    }
+  },
+  "changesAfterModel": [
+    "examples/editor-home/WebBundle.csbody",
+    "examples/editor-home/ui/app.js",
+    "tests/web/v480_home_state.py"
+  ],
+  "modelScopeNote": "After the passing model gate, only app.js, its WebBundle resource identity, and the Home UI test changed for initial-pagehide cancellation. Save/Confirm/inclusion domain source and model tests are byte-identical. UI and managed gates use the final source manifest.",
+  "implementationCommit": "444923bc5a915cf4edefe163b75ce51ace380eca"
+}

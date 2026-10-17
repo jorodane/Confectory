@@ -109,3 +109,5 @@ Home 전용 제한 설정 파일과 프로젝트별 확정 object 선언 수의 
 브라우저 다중 행 채우기 후속은 [선택·버전·취소·원자성 범위](V480_BROWSER_ATOMIC_FILL.md), [고정 원본·최종 실행·checkout 기록](validation/v480-browser-fill.json)을 따른다. 다음 작업은 [v480 잔여 구현 묶음](V480_REMAINING_WORK.md)의 우선순위·근거·완료 기준으로 정한다. Data의 셀 Apply/선택 행 채우기는 완료한 범위이며 이를 새 계산 열이나 자동 선택 확장으로 확대하지 않는다.
 
 선언 계층 탐색 후속은 [실제 ID/parent/schema·소유/등록 정의·Variation·채우기·독립 콜드 복원](V480_DECLARATION_NAVIGATION.md), [고정 원본·최종 실행·checkout 기록](validation/v480-declaration-navigation.json)을 따른다. 기존 소유 관계 조회를 활용하며 category/concept를 폴더와 동일시하지 않는다. Workspace 링크 수명·새 category 편집/삭제/참조 치환·자동 쓰기 선택은 추가하지 않는다.
+
+Home 포함 팩·저장된 편집 기록 후속은 [범위와 의미](V480_HOME_INCLUSION_AND_EDIT_EVENTS.md), [고정 원본·단계별 검증](validation/v480-home-inclusion-edit-events.json)에 기록한다. 모델 11/0/0, 실제 Chromium 6/0/0, 관리 프로필 컴파일 1/0/0, 구현 커밋의 일반 checkout·리소스·Home 시작 1/0/0이다. 초기 페이지 종료 취소 경계도 실제 브라우저에서 재현해 보정했다.
