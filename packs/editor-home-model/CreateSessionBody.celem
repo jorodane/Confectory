@@ -1,4 +1,5 @@
 implementation Confectory.EditorHome.Model::CreateSessionBody for Confectory.EditorHome.Model::CreateSession (string repository, string storage) -> string {
+import Confectory.EditorHome.Model::HomePreferences as HomePreferences (string,string,string) -> string;
 import Confectory.ProjectManager::CreateManager as CreateManager (int) -> string[];
 import Confectory.FileStream::Snapshot as FileSnapshot (string) -> string[];
 import Confectory.FileStream::WriteAtomic as WriteAtomic (string, string) -> void;

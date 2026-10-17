@@ -1,0 +1,524 @@
+{
+  "schema": 1,
+  "kind": "v480-home-storage-counts",
+  "baseline": {
+    "base": "928ff64e4d91c50f201fd2bfd48563c3cf9b01fb",
+    "referenceMain": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+    "referenceZipSha256": "0489844c8c6d90f7cdc8ea0e80628f487dcfb27f2c871b19367a635212d3c5bd",
+    "policyPending": [
+      "integer expression overflow"
+    ],
+    "scope": [
+      "host-owned bounded Home preferences",
+      "confirmed root manifest object declaration count",
+      "pack count and last edit unsupported without supporting contract"
+    ]
+  },
+  "source": {
+    "examples/editor-home/ui/home-preferences.js": {
+      "sha256": "bcfbcea8d1694ffaf07e257472d6db8d90d54705d6d999f5d2c5c33039fbbeee",
+      "bytes": 1548
+    },
+    "packs/editor-home-model/HomePreferences.celem": {
+      "sha256": "9083109ff09dc81a4d14e66d434a3cd44320df18cdbff21195c196e4b32a6e4f",
+      "bytes": 315
+    },
+    "packs/editor-home-model/HomePreferences.csbody": {
+      "sha256": "a43fdb58e82325bb1a84afb9f706ea78e7aa2ae2cf573d598ac21db268ce3109",
+      "bytes": 3232
+    },
+    "packs/editor-home-model/HomePreferencesBody.celem": {
+      "sha256": "c42f95f4e12c89ff30936de3335691d66dda05555bb5449cd3c2aada7b561d75",
+      "bytes": 298
+    },
+    "tests/web/v480_home_state.py": {
+      "sha256": "6bc6948dea7323f314004eae6698c0881371f85c2fc65e5b411a93e809ea24ca",
+      "bytes": 9804
+    },
+    "examples/editor-home/Verify.csbody": {
+      "sha256": "872d8ebf31a2b198826f9509d153ea2f5fc054762dd51fa4117b814ee675e5cb",
+      "bytes": 12589
+    },
+    "examples/editor-home/WebBundle.csbody": {
+      "sha256": "3fd682731b3d85c3ba025718ff0ef29e4bc4c23d9282069a403a22d8da709e15",
+      "bytes": 9780
+    },
+    "examples/editor-home/WebInvoke.csbody": {
+      "sha256": "7c29f474d5bd4763683ddc9178e4f3e0ec8bbaaa510a294f201bb4c7ff8bad2d",
+      "bytes": 23108
+    },
+    "examples/editor-home/WebState.csbody": {
+      "sha256": "8453f4f706e483d498d760a75756f326b9929b467f3bf6e7963067c11c43d639",
+      "bytes": 27894
+    },
+    "examples/editor-home/ui/app.js": {
+      "sha256": "501b7d13c4ae3dc781e3948041fc72031a8368b2592bf9a3bddf80718921fc7a",
+      "bytes": 226665
+    },
+    "examples/editor-home/ui/inventory.js": {
+      "sha256": "67b5de3d43af0616d9cd3bf8dbe7711112fe1e7e08887f199299306de0332198",
+      "bytes": 12080
+    },
+    "packs/editor-home-model/Command.celem": {
+      "sha256": "696a3a6bedccc80cb9d5199c184dc3230407634960c18605503d80ed35a50552",
+      "bytes": 5855
+    },
+    "packs/editor-home-model/Command.csbody": {
+      "sha256": "50607b9799c8d654c2186fdc699da9a0beb4958a91e58748dde8d6d003db0d9a",
+      "bytes": 102324
+    },
+    "packs/editor-home-model/CommandBody.celem": {
+      "sha256": "ce3a9ead17d97f79900134fb6cd1adb7b39f2a23475d8766d5a1bf5a1c7cb666",
+      "bytes": 8220
+    },
+    "packs/editor-home-model/CreateSession.android.csbody": {
+      "sha256": "1e8cf2d451ea29a7a6adc32ed91da2ba76f098530156a3f6ea41867a42b39947",
+      "bytes": 2291
+    },
+    "packs/editor-home-model/CreateSession.browser.csbody": {
+      "sha256": "1e8cf2d451ea29a7a6adc32ed91da2ba76f098530156a3f6ea41867a42b39947",
+      "bytes": 2291
+    },
+    "packs/editor-home-model/CreateSession.celem": {
+      "sha256": "d3c7e329b0b5ef5f4efadd64723e1069e263d2598955317bea7d5bed43806519",
+      "bytes": 688
+    },
+    "packs/editor-home-model/CreateSession.csbody": {
+      "sha256": "ee1b4b184157a86e34c27ae4ff88ad1acefd57da8d4c147f9203b4aae329eb08",
+      "bytes": 2810
+    },
+    "packs/editor-home-model/CreateSessionBody.celem": {
+      "sha256": "4f139bef9adc19ccd5016f8d8e038abce73b9bbb1f80a860fc7955069eea285d",
+      "bytes": 634
+    },
+    "packs/editor-home-model/pack.cpack": {
+      "sha256": "35a4ca616bfd1071842f7d7a4a94be786e94ae6bda11f0ad103140f48ce11929",
+      "bytes": 2050
+    },
+    "tests/Confectory.Tests/WebUITests.cs": {
+      "sha256": "c494abd0737a1ac43f0349c46a4ced550d4551a98add655a988088b50c3788a6",
+      "bytes": 54457
+    }
+  },
+  "gates": {
+    "ui": {
+      "exit": 0,
+      "methods": [
+        "WebUITests.test_actual_editor_v480_home_preferences_cold_failure_and_confirmed_counts",
+        "WebUITests.test_actual_editor_v480_home_browser_document_repeat_cancel_and_restore",
+        "WebUITests.test_actual_editor_v318_home_search_favorite_restart_remove",
+        "WebUITests.test_actual_editor_v318_inventory_and_browser_instances_restart",
+        "WebUITests.test_actual_editor_v318_workspace_lifecycle_presentation_restart",
+        "WebUITests.test_actual_editor_v480_window_document_docking_cold_inputs_and_compiler_confirm"
+      ],
+      "head": "928ff64e4d91c50f201fd2bfd48563c3cf9b01fb",
+      "elapsed": 120.58540125800027,
+      "sourceManifestSha256": "a552744220ef350f6a14f2a5bf1f744b6187a4439b3512d551d91384eb0ccbd6",
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 120.529,
+      "logSha256": "c7ba9fb8639e51d27e8c3bd4ede604f0d1a8f8a467fb0515f6cfb0e4c4c1f516",
+      "sourceSnapshot": {
+        "examples/editor-home/ui/home-preferences.js": {
+          "sha256": "bcfbcea8d1694ffaf07e257472d6db8d90d54705d6d999f5d2c5c33039fbbeee",
+          "bytes": 1548
+        },
+        "packs/editor-home-model/HomePreferences.celem": {
+          "sha256": "9083109ff09dc81a4d14e66d434a3cd44320df18cdbff21195c196e4b32a6e4f",
+          "bytes": 315
+        },
+        "packs/editor-home-model/HomePreferences.csbody": {
+          "sha256": "a43fdb58e82325bb1a84afb9f706ea78e7aa2ae2cf573d598ac21db268ce3109",
+          "bytes": 3232
+        },
+        "packs/editor-home-model/HomePreferencesBody.celem": {
+          "sha256": "c42f95f4e12c89ff30936de3335691d66dda05555bb5449cd3c2aada7b561d75",
+          "bytes": 298
+        },
+        "tests/web/v480_home_state.py": {
+          "sha256": "6bc6948dea7323f314004eae6698c0881371f85c2fc65e5b411a93e809ea24ca",
+          "bytes": 9804
+        },
+        "examples/editor-home/Verify.csbody": {
+          "sha256": "eee43ede027bd04439c7385a7dcb81398331e4bfbb6ec44f7743c4fa6293d1e6",
+          "bytes": 12433
+        },
+        "examples/editor-home/WebBundle.csbody": {
+          "sha256": "3fd682731b3d85c3ba025718ff0ef29e4bc4c23d9282069a403a22d8da709e15",
+          "bytes": 9780
+        },
+        "examples/editor-home/WebInvoke.csbody": {
+          "sha256": "7c29f474d5bd4763683ddc9178e4f3e0ec8bbaaa510a294f201bb4c7ff8bad2d",
+          "bytes": 23108
+        },
+        "examples/editor-home/WebState.csbody": {
+          "sha256": "8453f4f706e483d498d760a75756f326b9929b467f3bf6e7963067c11c43d639",
+          "bytes": 27894
+        },
+        "examples/editor-home/ui/app.js": {
+          "sha256": "501b7d13c4ae3dc781e3948041fc72031a8368b2592bf9a3bddf80718921fc7a",
+          "bytes": 226665
+        },
+        "examples/editor-home/ui/inventory.js": {
+          "sha256": "67b5de3d43af0616d9cd3bf8dbe7711112fe1e7e08887f199299306de0332198",
+          "bytes": 12080
+        },
+        "packs/editor-home-model/Command.celem": {
+          "sha256": "696a3a6bedccc80cb9d5199c184dc3230407634960c18605503d80ed35a50552",
+          "bytes": 5855
+        },
+        "packs/editor-home-model/Command.csbody": {
+          "sha256": "50607b9799c8d654c2186fdc699da9a0beb4958a91e58748dde8d6d003db0d9a",
+          "bytes": 102324
+        },
+        "packs/editor-home-model/CommandBody.celem": {
+          "sha256": "ce3a9ead17d97f79900134fb6cd1adb7b39f2a23475d8766d5a1bf5a1c7cb666",
+          "bytes": 8220
+        },
+        "packs/editor-home-model/CreateSession.android.csbody": {
+          "sha256": "1e8cf2d451ea29a7a6adc32ed91da2ba76f098530156a3f6ea41867a42b39947",
+          "bytes": 2291
+        },
+        "packs/editor-home-model/CreateSession.browser.csbody": {
+          "sha256": "1e8cf2d451ea29a7a6adc32ed91da2ba76f098530156a3f6ea41867a42b39947",
+          "bytes": 2291
+        },
+        "packs/editor-home-model/CreateSession.celem": {
+          "sha256": "d3c7e329b0b5ef5f4efadd64723e1069e263d2598955317bea7d5bed43806519",
+          "bytes": 688
+        },
+        "packs/editor-home-model/CreateSession.csbody": {
+          "sha256": "ee1b4b184157a86e34c27ae4ff88ad1acefd57da8d4c147f9203b4aae329eb08",
+          "bytes": 2810
+        },
+        "packs/editor-home-model/CreateSessionBody.celem": {
+          "sha256": "4f139bef9adc19ccd5016f8d8e038abce73b9bbb1f80a860fc7955069eea285d",
+          "bytes": 634
+        },
+        "packs/editor-home-model/pack.cpack": {
+          "sha256": "35a4ca616bfd1071842f7d7a4a94be786e94ae6bda11f0ad103140f48ce11929",
+          "bytes": 2050
+        },
+        "tests/Confectory.Tests/WebUITests.cs": {
+          "sha256": "c494abd0737a1ac43f0349c46a4ced550d4551a98add655a988088b50c3788a6",
+          "bytes": 54457
+        }
+      },
+      "changesSinceRun": [
+        "examples/editor-home/Verify.csbody"
+      ]
+    },
+    "model": {
+      "exit": 0,
+      "methods": [
+        "EntryHomeTests.test_fresh_entry_home_project_contracts_and_consumer_locality",
+        "ProjectShellTests.test_project_shell_domain_isolated_execution_no_null_chat_open_and_context_cleanup"
+      ],
+      "head": "928ff64e4d91c50f201fd2bfd48563c3cf9b01fb",
+      "elapsed": 135.78274579400022,
+      "sourceManifestSha256": "92d923d5ecc99ee63db93d99fe66bd8abb9945125d47039c53689e4e24720fdb",
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 135.747,
+      "logSha256": "0793df3c0d8ec38954a809bb301ae98c01dc35ac590fae02db17906940acf8c7",
+      "sourceSnapshot": {
+        "examples/editor-home/ui/home-preferences.js": {
+          "sha256": "bcfbcea8d1694ffaf07e257472d6db8d90d54705d6d999f5d2c5c33039fbbeee",
+          "bytes": 1548
+        },
+        "packs/editor-home-model/HomePreferences.celem": {
+          "sha256": "9083109ff09dc81a4d14e66d434a3cd44320df18cdbff21195c196e4b32a6e4f",
+          "bytes": 315
+        },
+        "packs/editor-home-model/HomePreferences.csbody": {
+          "sha256": "a43fdb58e82325bb1a84afb9f706ea78e7aa2ae2cf573d598ac21db268ce3109",
+          "bytes": 3232
+        },
+        "packs/editor-home-model/HomePreferencesBody.celem": {
+          "sha256": "c42f95f4e12c89ff30936de3335691d66dda05555bb5449cd3c2aada7b561d75",
+          "bytes": 298
+        },
+        "tests/web/v480_home_state.py": {
+          "sha256": "6bc6948dea7323f314004eae6698c0881371f85c2fc65e5b411a93e809ea24ca",
+          "bytes": 9804
+        },
+        "examples/editor-home/Verify.csbody": {
+          "sha256": "872d8ebf31a2b198826f9509d153ea2f5fc054762dd51fa4117b814ee675e5cb",
+          "bytes": 12589
+        },
+        "examples/editor-home/WebBundle.csbody": {
+          "sha256": "3fd682731b3d85c3ba025718ff0ef29e4bc4c23d9282069a403a22d8da709e15",
+          "bytes": 9780
+        },
+        "examples/editor-home/WebInvoke.csbody": {
+          "sha256": "7c29f474d5bd4763683ddc9178e4f3e0ec8bbaaa510a294f201bb4c7ff8bad2d",
+          "bytes": 23108
+        },
+        "examples/editor-home/WebState.csbody": {
+          "sha256": "8453f4f706e483d498d760a75756f326b9929b467f3bf6e7963067c11c43d639",
+          "bytes": 27894
+        },
+        "examples/editor-home/ui/app.js": {
+          "sha256": "501b7d13c4ae3dc781e3948041fc72031a8368b2592bf9a3bddf80718921fc7a",
+          "bytes": 226665
+        },
+        "examples/editor-home/ui/inventory.js": {
+          "sha256": "67b5de3d43af0616d9cd3bf8dbe7711112fe1e7e08887f199299306de0332198",
+          "bytes": 12080
+        },
+        "packs/editor-home-model/Command.celem": {
+          "sha256": "696a3a6bedccc80cb9d5199c184dc3230407634960c18605503d80ed35a50552",
+          "bytes": 5855
+        },
+        "packs/editor-home-model/Command.csbody": {
+          "sha256": "50607b9799c8d654c2186fdc699da9a0beb4958a91e58748dde8d6d003db0d9a",
+          "bytes": 102324
+        },
+        "packs/editor-home-model/CommandBody.celem": {
+          "sha256": "ce3a9ead17d97f79900134fb6cd1adb7b39f2a23475d8766d5a1bf5a1c7cb666",
+          "bytes": 8220
+        },
+        "packs/editor-home-model/CreateSession.android.csbody": {
+          "sha256": "1e8cf2d451ea29a7a6adc32ed91da2ba76f098530156a3f6ea41867a42b39947",
+          "bytes": 2291
+        },
+        "packs/editor-home-model/CreateSession.browser.csbody": {
+          "sha256": "1e8cf2d451ea29a7a6adc32ed91da2ba76f098530156a3f6ea41867a42b39947",
+          "bytes": 2291
+        },
+        "packs/editor-home-model/CreateSession.celem": {
+          "sha256": "d3c7e329b0b5ef5f4efadd64723e1069e263d2598955317bea7d5bed43806519",
+          "bytes": 688
+        },
+        "packs/editor-home-model/CreateSession.csbody": {
+          "sha256": "ee1b4b184157a86e34c27ae4ff88ad1acefd57da8d4c147f9203b4aae329eb08",
+          "bytes": 2810
+        },
+        "packs/editor-home-model/CreateSessionBody.celem": {
+          "sha256": "4f139bef9adc19ccd5016f8d8e038abce73b9bbb1f80a860fc7955069eea285d",
+          "bytes": 634
+        },
+        "packs/editor-home-model/pack.cpack": {
+          "sha256": "35a4ca616bfd1071842f7d7a4a94be786e94ae6bda11f0ad103140f48ce11929",
+          "bytes": 2050
+        },
+        "tests/Confectory.Tests/WebUITests.cs": {
+          "sha256": "c494abd0737a1ac43f0349c46a4ced550d4551a98add655a988088b50c3788a6",
+          "bytes": 54457
+        }
+      },
+      "changesSinceRun": []
+    },
+    "managed": {
+      "exit": 0,
+      "methods": [
+        "EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only"
+      ],
+      "head": "928ff64e4d91c50f201fd2bfd48563c3cf9b01fb",
+      "elapsed": 135.18787274600072,
+      "sourceManifestSha256": "92d923d5ecc99ee63db93d99fe66bd8abb9945125d47039c53689e4e24720fdb",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 135.143,
+      "logSha256": "e8d0538c71cd910a428649de279d4420d965948a4f630ce354f70a12a9c398f6",
+      "sourceSnapshot": {
+        "examples/editor-home/ui/home-preferences.js": {
+          "sha256": "bcfbcea8d1694ffaf07e257472d6db8d90d54705d6d999f5d2c5c33039fbbeee",
+          "bytes": 1548
+        },
+        "packs/editor-home-model/HomePreferences.celem": {
+          "sha256": "9083109ff09dc81a4d14e66d434a3cd44320df18cdbff21195c196e4b32a6e4f",
+          "bytes": 315
+        },
+        "packs/editor-home-model/HomePreferences.csbody": {
+          "sha256": "a43fdb58e82325bb1a84afb9f706ea78e7aa2ae2cf573d598ac21db268ce3109",
+          "bytes": 3232
+        },
+        "packs/editor-home-model/HomePreferencesBody.celem": {
+          "sha256": "c42f95f4e12c89ff30936de3335691d66dda05555bb5449cd3c2aada7b561d75",
+          "bytes": 298
+        },
+        "tests/web/v480_home_state.py": {
+          "sha256": "6bc6948dea7323f314004eae6698c0881371f85c2fc65e5b411a93e809ea24ca",
+          "bytes": 9804
+        },
+        "examples/editor-home/Verify.csbody": {
+          "sha256": "872d8ebf31a2b198826f9509d153ea2f5fc054762dd51fa4117b814ee675e5cb",
+          "bytes": 12589
+        },
+        "examples/editor-home/WebBundle.csbody": {
+          "sha256": "3fd682731b3d85c3ba025718ff0ef29e4bc4c23d9282069a403a22d8da709e15",
+          "bytes": 9780
+        },
+        "examples/editor-home/WebInvoke.csbody": {
+          "sha256": "7c29f474d5bd4763683ddc9178e4f3e0ec8bbaaa510a294f201bb4c7ff8bad2d",
+          "bytes": 23108
+        },
+        "examples/editor-home/WebState.csbody": {
+          "sha256": "8453f4f706e483d498d760a75756f326b9929b467f3bf6e7963067c11c43d639",
+          "bytes": 27894
+        },
+        "examples/editor-home/ui/app.js": {
+          "sha256": "501b7d13c4ae3dc781e3948041fc72031a8368b2592bf9a3bddf80718921fc7a",
+          "bytes": 226665
+        },
+        "examples/editor-home/ui/inventory.js": {
+          "sha256": "67b5de3d43af0616d9cd3bf8dbe7711112fe1e7e08887f199299306de0332198",
+          "bytes": 12080
+        },
+        "packs/editor-home-model/Command.celem": {
+          "sha256": "696a3a6bedccc80cb9d5199c184dc3230407634960c18605503d80ed35a50552",
+          "bytes": 5855
+        },
+        "packs/editor-home-model/Command.csbody": {
+          "sha256": "50607b9799c8d654c2186fdc699da9a0beb4958a91e58748dde8d6d003db0d9a",
+          "bytes": 102324
+        },
+        "packs/editor-home-model/CommandBody.celem": {
+          "sha256": "ce3a9ead17d97f79900134fb6cd1adb7b39f2a23475d8766d5a1bf5a1c7cb666",
+          "bytes": 8220
+        },
+        "packs/editor-home-model/CreateSession.android.csbody": {
+          "sha256": "1e8cf2d451ea29a7a6adc32ed91da2ba76f098530156a3f6ea41867a42b39947",
+          "bytes": 2291
+        },
+        "packs/editor-home-model/CreateSession.browser.csbody": {
+          "sha256": "1e8cf2d451ea29a7a6adc32ed91da2ba76f098530156a3f6ea41867a42b39947",
+          "bytes": 2291
+        },
+        "packs/editor-home-model/CreateSession.celem": {
+          "sha256": "d3c7e329b0b5ef5f4efadd64723e1069e263d2598955317bea7d5bed43806519",
+          "bytes": 688
+        },
+        "packs/editor-home-model/CreateSession.csbody": {
+          "sha256": "ee1b4b184157a86e34c27ae4ff88ad1acefd57da8d4c147f9203b4aae329eb08",
+          "bytes": 2810
+        },
+        "packs/editor-home-model/CreateSessionBody.celem": {
+          "sha256": "4f139bef9adc19ccd5016f8d8e038abce73b9bbb1f80a860fc7955069eea285d",
+          "bytes": 634
+        },
+        "packs/editor-home-model/pack.cpack": {
+          "sha256": "35a4ca616bfd1071842f7d7a4a94be786e94ae6bda11f0ad103140f48ce11929",
+          "bytes": 2050
+        },
+        "tests/Confectory.Tests/WebUITests.cs": {
+          "sha256": "c494abd0737a1ac43f0349c46a4ced550d4551a98add655a988088b50c3788a6",
+          "bytes": 54457
+        }
+      },
+      "changesSinceRun": []
+    }
+  },
+  "checkout": {
+    "state": "pending-implementation-HEAD"
+  },
+  "resourceCount": 37,
+  "engineAndExecutionSemanticsUnchanged": true,
+  "newOwnedContract": "Confectory.EditorHome.Model::HomePreferences",
+  "homeState": {
+    "path": "host storage / home-preferences.json",
+    "schemaVersion": 1,
+    "utf8ByteBudget": 16384,
+    "textCharacterBudget": 256,
+    "groups": [
+      "local",
+      "explore",
+      "favorite",
+      "mine"
+    ],
+    "onlyFields": [
+      "tab",
+      "projectQuery",
+      "packGroup",
+      "group draft/query/sort/selected"
+    ],
+    "persistence": "existing FileStream.WriteAtomic; update model and UI saved revision only after success",
+    "failure": "retain pending UI input and prior file/model; explicit retry after readonly failure or existing corrupt storage repair",
+    "staleRevision": "at most three attempts, only after a rejected stale_revision with fresh view update",
+    "notProjectPresentation": true
+  },
+  "cardMetrics": {
+    "objects": {
+      "supported": true,
+      "scope": "confirmed root manifest object declaration locators; list total, not page size",
+      "excluded": [
+        "dependency declarations",
+        "schema declarations",
+        "unconfirmed drafts",
+        "unregistered files",
+        "runtime instances"
+      ],
+      "verifiedCounts": [
+        0,
+        1,
+        41
+      ],
+      "unavailableIsNotZero": true
+    },
+    "packs": {
+      "supported": false,
+      "requiredContract": "defined installed/included pack scope and actual per-project query; registry/dependency counts are not substituted"
+    },
+    "lastEdit": {
+      "supported": false,
+      "requiredContract": "defined edit events and durable event timestamp; mtime/open/current time not substituted"
+    }
+  },
+  "validationStages": {
+    "ui": "All UI/runtime source and UI tests match final source. Later correction only changes the uninvoked Verify.csbody model self-test fixture to close a project without a nonexistent confirmation request. Model suite reruns on the final fixture; UI result is not relabeled as a new run.",
+    "earlierFailures": [
+      "Initial model fixture shared project identity root; isolated into a separate project folder.",
+      "Initial Home save hit stale_revision during rapid tabs; only safe rejected requests now retry.",
+      "Cold pack tab inventory request was dropped during initial busy mount; deferred scope-bound load now restores it.",
+      "Model missing-file assertion ran with project still selected because fixture supplied an invalid close confirmation; fixture uses the ordinary idle close operation."
+    ],
+    "countsAreNotAggregatedAcrossRepeats": true
+  },
+  "extraCapture": {
+    "kind": "extra cold card count capture",
+    "scriptSha256": "b31073b93bc7d78f5f765ddf9eac951eeff072bcf4680d226ff5687c570feb19",
+    "scriptDerivedFrom": "tests/web/v480_home_state.py",
+    "difference": "wait for both confirmed counts after final true cold restart before capture",
+    "reportedAsAdditionalUniqueTest": false,
+    "logSha256": "0b62dde67042499f3be3b9b85ee03e78dc302df0ed64a99cd8e5fe6e3c2df628",
+    "imageSha256": "bfcc0992797a554cbd99c519ca0589a38dcdc811e0c6918dd091da14ff40f681"
+  },
+  "remainingCategories": {
+    "lookupContractsMissing": [
+      "included/installed pack count",
+      "last edit event timestamp"
+    ],
+    "policyAwaiting": [
+      "integer expression overflow error versus wrap, still unanswered"
+    ],
+    "existingContractAuditPending": [
+      "browser grouping and field columns/reference gestures",
+      "document link transitions",
+      "native undo history predating DOM reparenting"
+    ],
+    "newContractOutsideScope": [
+      "structural property field write/ref",
+      "expanded user enum/Vector3 ABI",
+      "service actor/recipient/room/ack and frame/ack"
+    ],
+    "environmentUnverified": [
+      "native OS and devices",
+      "actual service accounts and paid calls",
+      "user PC installation"
+    ]
+  },
+  "protected": {
+    "localMain": "b5ea38c3d7eec3eb20f170e68f0f4215b86b2aee",
+    "remoteMain": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+    "zips": {
+      "reference/site-ui/Confectory-Editor-Prototype-v196.zip": "02d4824e92ed0edbb43113659982b37a99a614117652bde4d8ac92367e334e34",
+      "reference/site-ui/Confectory-Editor-Prototype-v318.zip": "0a614fe2bf1ad3d8e10dfa8905bb6b61ea9f21b87b2492b2b87ca8566e9e6908",
+      "reference/site-ui/Confectory-Editor-Prototype-v424.zip": "b7969cd109ea2dad38bde9c9ab13967c20162c920a45a8cd51a8f82df6041874",
+      "reference/site-ui/Confectory-Editor-Prototype-v480.zip": "0489844c8c6d90f7cdc8ea0e80628f487dcfb27f2c871b19367a635212d3c5bd"
+    }
+  }
+}

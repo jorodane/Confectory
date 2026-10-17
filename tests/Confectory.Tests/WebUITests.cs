@@ -180,6 +180,12 @@ public sealed class WebUITests : TestCase
         var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/web_ui.py"),Fixture.Repo,report,"tab-arrangement"},timeoutSeconds:420);
         True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS actual v480 tab arrangement"),run.Stdout+run.Stderr);
     }
+    public void test_actual_editor_v480_home_preferences_cold_failure_and_confirmed_counts()
+    {
+        var built=new Builder(Path.Combine(Fixture.Repo,"examples/editor-home/project.cpack"),"linux").Build();string report=Path.Combine(f.Root,"v480-home-state.json");File.WriteAllText(report,built.ToJsonString());
+        var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/v480_home_state.py"),Fixture.Repo,report},timeoutSeconds:420);
+        Console.WriteLine(run.Stdout.Trim());True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS actual v480 Home preferences"),run.Stdout+run.Stderr);
+    }
     public void test_actual_editor_v480_home_browser_document_repeat_cancel_and_restore()
     {
         var built=new Builder(Path.Combine(Fixture.Repo,"examples/editor-home/project.cpack"),"linux").Build();string report=Path.Combine(f.Root,"v480-navigation.json");File.WriteAllText(report,built.ToJsonString());

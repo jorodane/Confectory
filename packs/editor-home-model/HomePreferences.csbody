@@ -1,0 +1,20 @@
+// Host-owned display preferences only. No project identity, path, handle or executable is accepted in the value.
+string path=System.IO.Path.Combine(System.IO.Path.GetFullPath(storage),"home-preferences.json");
+string[] groups={"local","explore","favorite","mine"};
+System.Text.Json.Nodes.JsonObject Defaults(){var packs=new System.Text.Json.Nodes.JsonObject();foreach(string group in groups)packs[group]=new System.Text.Json.Nodes.JsonObject{["draft"]="",["query"]="",["sort"]="default",["selected"]=null};return new(){["version"]=1,["tab"]="projects",["projectQuery"]="",["packGroup"]="local",["packs"]=packs};}
+void Keys(System.Text.Json.Nodes.JsonObject node,string[] names){if(node.Count!=names.Length||System.Linq.Enumerable.Any(node,pair=>!System.Linq.Enumerable.Contains(names,pair.Key)))throw new ArgumentException("Home preference fields");}
+string Text(System.Text.Json.Nodes.JsonNode? node){string value=node?.GetValue<string>()??throw new ArgumentException("Home preference text");if(value.Length>256)throw new ArgumentException("Home preference text budget");return value;}
+System.Text.Json.Nodes.JsonObject Validate(string raw){
+ if(System.Text.Encoding.UTF8.GetByteCount(raw)>16384)throw new ArgumentException("Home preference byte budget");var value=System.Text.Json.Nodes.JsonNode.Parse(raw)!.AsObject();Keys(value,new[]{"version","tab","projectQuery","packGroup","packs"});
+ if(value["version"]?.GetValue<int>()!=1||value["tab"]?.GetValue<string>() is not ("projects" or "packs")||!System.Linq.Enumerable.Contains(groups,value["packGroup"]?.GetValue<string>()))throw new ArgumentException("Home preference version or group");Text(value["projectQuery"]);var packs=value["packs"]!.AsObject();Keys(packs,groups);
+ foreach(string group in groups){var row=packs[group]!.AsObject();Keys(row,new[]{"draft","query","sort","selected"});Text(row["draft"]);Text(row["query"]);if(row["selected"] is not null)Text(row["selected"]);if(row["sort"]?.GetValue<string>() is not ("default" or "name" or "version"))throw new ArgumentException("Home preference sort");}return value;
+}
+System.Text.Json.Nodes.JsonObject? saved=null;
+try{
+ if(System.IO.Directory.Exists(path))throw new System.IO.IOException("Home preference file unavailable");
+ if(System.IO.File.Exists(path)){if(new System.IO.FileInfo(path).Length>16384)throw new ArgumentException("Home preference byte budget");saved=Validate(System.IO.File.ReadAllText(path,new System.Text.UTF8Encoding(false,true)));}
+}catch{if(operation=="load")return new System.Text.Json.Nodes.JsonObject{["status"]="unavailable",["code"]="home_preferences_unavailable",["value"]=Defaults()}.ToJsonString();throw new InvalidOperationException("Home preference storage unavailable; existing file retained");}
+if(operation=="load")return new System.Text.Json.Nodes.JsonObject{["status"]="ready",["value"]=saved??Defaults()}.ToJsonString();
+if(operation!="save")throw new ArgumentException("Unknown Home preference operation");var candidate=Validate(payload);
+if(saved is null||!System.Text.Json.Nodes.JsonNode.DeepEquals(saved,candidate))calls.WriteAtomic.Invoke(path,candidate.ToJsonString());
+return new System.Text.Json.Nodes.JsonObject{["status"]="ready",["value"]=candidate}.ToJsonString();

@@ -1,4 +1,5 @@
 function Confectory.EditorHome.Model::CreateSession (string repository, string storage) -> string {
+provide Confectory.EditorHome.Model::HomePreferences with Confectory.EditorHome.Model::HomePreferencesBody;
 provide Confectory.ProjectManager::CreateManager with Confectory.ProjectManager::CreateManagerBody;
 provide Confectory.ProjectExecution::CreateSession with Confectory.ProjectExecution::CreateSessionBody;
 provide Confectory.FileStream::Snapshot with Confectory.FileStream::SnapshotBody;

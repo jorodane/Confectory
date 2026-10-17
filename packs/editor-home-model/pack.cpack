@@ -27,4 +27,5 @@ element Command function "Command.celem"; element CommandBody implementation "Co
 element Snapshot function "Snapshot.celem"; element SnapshotBody implementation "SnapshotBody.celem";
 element CloseSession function "CloseSession.celem"; element CloseSessionBody implementation "CloseSessionBody.celem";
 element NodeTasks function "NodeTasks.celem"; element NodeTasksBody implementation "NodeTasksBody.celem";
+element HomePreferences function "HomePreferences.celem";element HomePreferencesBody implementation "HomePreferencesBody.celem";
 }

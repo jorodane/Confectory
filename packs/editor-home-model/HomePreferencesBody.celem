@@ -1,0 +1,4 @@
+implementation Confectory.EditorHome.Model::HomePreferencesBody for Confectory.EditorHome.Model::HomePreferences (string storage, string operation, string payload) -> string {
+import Confectory.FileStream::WriteAtomic as WriteAtomic (string,string) -> void;
+body common "HomePreferences.csbody";
+}

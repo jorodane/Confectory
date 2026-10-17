@@ -1,0 +1,4 @@
+function Confectory.EditorHome.Model::HomePreferences (string storage, string operation, string payload) -> string {
+provide Confectory.FileStream::WriteAtomic with Confectory.FileStream::WriteAtomicBody;
+provide Confectory.EditorHome.Model::HomePreferences with Confectory.EditorHome.Model::HomePreferencesBody;
+}
