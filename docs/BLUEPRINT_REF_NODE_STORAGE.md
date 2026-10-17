@@ -46,3 +46,6 @@ ref 입력은 기존 값 binding에서 다음 저장 슬롯만 선택한다.
 최종 고정 소스에서 엔진·공개 편집 회귀 **31/0/0 (439.590초)**, 실제 Chromium UI **9/0/0 (695.213초)**, Windows/Android 관리 대상 컴파일 **1/0/0 (155.168초)**을 확인했다. 이전 집중 검사 **8/0/0 (214.157초)** 등은 별도 중복 단계이며 합산하지 않는다. [같은 저장 슬롯의 ref 입력](evidence/v480-integration/ref-node-bindings.png)과 [명시적 compiler 확정 후 화면](evidence/v480-integration/ref-node-published.png)을 보존한다. 구현 커밋 `714ad29`의 일반 Git 체크아웃 검사도 **1/0/0 (6.266초)**으로 통과했다. 이전 autocrlf 체크아웃에서 일반 fast-forward pull 후 유지된 CRLF와 새 LF 체크아웃의 33개 리소스, 실제 Home 시작, 변조·인코딩·BOM·바이너리·크기 거부와 원본 바이트 보존을 확인했다.
 
 남은 범위는 외부 ref graph 인터페이스/본문 전환의 caller alias 보존, 중첩 graph 소유 ID·파일·버전·호출/복귀, property/expression/출력 별칭 로컬, enum/복합 타입·임의 실행 출력, 분리된 C# 영역·외부 helper, loop/async, 물리 삭제·일괄 타깃 이관·포털/픽셀 일치·별도 전체 v424 서비스 회귀다. 검사 경계는 소유 Linux/.NET 10/Chromium 및 관리 대상 컴파일이며 native/device·실제 계정·유료 모델·사용자 PC 설치 검증이 아니다. main·원본 ZIP·Android 설정은 보존한다.
+
+
+후속 [외부 ref graph·본문 별칭 보존](BLUEPRINT_EXTERNAL_REF_STORAGE.md)은 별도 v7 profile에서 caller의 ref/out 저장소를 직접 전달하고 미할당 out 기본값을 종료로 미룬다. 위 구 profile의 진입 초기화·외부 ref graph 미지원 표시는 해당 단계 시점의 계약이다. 구 graph는 자동 전환하지 않는다.

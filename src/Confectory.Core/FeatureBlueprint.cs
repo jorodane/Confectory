@@ -96,9 +96,9 @@ public static partial class FeatureBlueprint
         string contractHash = Hash(CanonicalText(new JsonObject { ["feature"] = feature.Id, ["signature"] = contract.DeepClone() }));
         var graph = request["graph"]!.AsObject();
         Need(graph["schema"]?.GetValue<int>() == 1, "GRAPH_SCHEMA", "schema");
-        string profile=S(graph,"profile");bool refProfile=profile==RefNodesProfile,localProfile=profile==LocalsProfile||refProfile,multiOutput=profile==MultiOutputProfile||localProfile, implicitEnd=profile==ImplicitProfile||multiOutput;string generator=refProfile?RefNodesGenerator:localProfile?LocalsGenerator:multiOutput?MultiOutputGenerator:implicitEnd?ImplicitGenerator:Generator;
+        string profile=S(graph,"profile");bool externalRefs=profile==ExternalRefsProfile,refProfile=externalRefs||profile==RefNodesProfile,localProfile=profile==LocalsProfile||refProfile,multiOutput=profile==MultiOutputProfile||localProfile, implicitEnd=profile==ImplicitProfile||multiOutput;string generator=externalRefs?ExternalRefsGenerator:refProfile?RefNodesGenerator:localProfile?LocalsGenerator:multiOutput?MultiOutputGenerator:implicitEnd?ImplicitGenerator:Generator;
         Need(profile==Profile||implicitEnd,"GRAPH_PROFILE_UNSUPPORTED",profile);
-        Need(!feature.Signature!.Args.Any(p=>p.IsRef),"GRAPH_REF_FEATURE_UNSUPPORTED",feature.Id);
+        Need(externalRefs||!feature.Signature!.Args.Any(p=>p.IsRef),"GRAPH_REF_FEATURE_UNSUPPORTED",feature.Id);
         Need(multiOutput || !feature.Signature!.Args.Any(p=>p.IsOut), "GRAPH_PARAMETER_MODE_PROFILE", profile);
         Need(S(graph, "feature") == feature.Id, "GRAPH_FEATURE_MISMATCH", "feature");
         Need(S(graph, "contractHash") == contractHash, "GRAPH_CONTRACT_STALE", feature.Id);
@@ -184,8 +184,19 @@ public static partial class FeatureBlueprint
                     definition["sourceIdentity"] = identity;
                 }
             }
+            bool forwarding=value.ContainsKey("forwardCallerStorage");
+            if(forwarding){Need(externalRefs&&value["forwardCallerStorage"]?.GetValue<bool>()==true&&kind is "code" or "call","GRAPH_CALLER_STORAGE_PROFILE",id);definition["forwardCallerStorage"]=true;}
+            if(externalRefs&&(forwarding||value["implementationContext"] is JsonObject&&(signature.Args.Any(p=>p.Mode is "ref" or "out")||feature.Signature!.Args.Any(p=>p.Mode is "ref" or "out")))){
+                Need(signature.Matches(feature.Signature),"GRAPH_CALLER_STORAGE_CONTRACT",id);
+                var arguments=value["arguments"] as JsonObject;
+                Need(arguments is not null&&arguments.Count==signature.Args.Count(p=>!p.IsOut)&&signature.Args.Select((p,index)=>(p,index)).Where(x=>!x.p.IsOut).All(x=>arguments[x.p.Name] is JsonObject binding&&binding.Count==1&&binding["input"]?.ToString()==feature.Signature!.Args[x.index].Name),"GRAPH_CALLER_STORAGE_BINDING",id);
+            }
             nodes.Add(id, new(id, kind, control, signature, definition, value["arguments"]?.AsObject() ?? new JsonObject(), Hash(CanonicalText(definition)), called));
         }
+
+        bool ForwardCaller(Node node)=>externalRefs&&(node.Definition["forwardCallerStorage"]?.GetValue<bool>()==true||HasContext(node)&&node.Signature.Args.Any(p=>p.Mode is "ref" or "out"));
+        string CallerOut(Node node,string name)=>feature.Signature!.Args[node.Signature.Args.FindIndex(p=>p.Name==name)].Name;
+        var forwardedOutputs=nodes.Values.Where(ForwardCaller).ToDictionary(n=>n.Id,n=>n.Signature.Args.Where(p=>p.IsOut).Select(p=>CallerOut(n,p.Name)).ToArray(),StringComparer.Ordinal);
 
         if (operation == "featureBlueprintNodeProbe")
         {
@@ -325,6 +336,7 @@ public static partial class FeatureBlueprint
         string prefix="__fg_";if(multiOutput)while(feature.Signature!.Args.Any(p=>p.Name.StartsWith(prefix,StringComparison.Ordinal)))prefix="_"+prefix;
         string Symbol(string id) => prefix + Hash(id)[..32];
         string Value(string id,string result="return") => Symbol(id) + (result=="return"?"_value":"_out_"+Hash(result)[..16]);
+        string Assigned(string name)=>prefix+"assigned_"+Hash(name)[..16];
         string FeatureValue(string name)=>name=="return"?prefix+"output_return":name;
         string Label(string target) => Exit(target)||Terminal(target) ? "__fg_exit_" + Hash(target)[..32] : Symbol(target) + "_run";
         string Literal(JsonNode? value,string type)=>ConstantLiteral(value,type);
@@ -384,7 +396,7 @@ public static partial class FeatureBlueprint
                 Binding(exit.Value, feature.Signature.Return, available, target);
         }
 
-        if(implicitEnd){var flow=multiOutput?DescribeMultiTerminations(entry,feature,nodes,edges,order,predecessors,exits):DescribeImplicitTerminations(entry,feature,nodes,edges,order,predecessors,exits);reply["outputs"]=OutputDocument(feature.Signature!);reply["terminations"]=flow.Ends;reply["warnings"]=flow.Warnings;reply["unassignedReturnPolicy"]="csharp-type-default";}
+        if(implicitEnd){var flow=multiOutput?DescribeMultiTerminations(entry,feature,nodes,edges,order,predecessors,exits,externalRefs?forwardedOutputs:null):DescribeImplicitTerminations(entry,feature,nodes,edges,order,predecessors,exits);reply["outputs"]=OutputDocument(feature.Signature!);reply["terminations"]=flow.Ends;reply["warnings"]=flow.Warnings;reply["unassignedReturnPolicy"]="csharp-type-default";}
         reply["contractVersions"] = new JsonObject(imports.OrderBy(p => p.Key, StringComparer.Ordinal).Select(p => new KeyValuePair<string, JsonNode?>(p.Key, JsonValue.Create(p.Value.Hash))));
         reply["contractVersions"]![feature.Id] = contractHash;
         reply["imports"] = new JsonArray(imports.OrderBy(i => i.Key, StringComparer.Ordinal).Select(i => (JsonNode)new JsonObject { ["feature"] = i.Key, ["alias"] = i.Value.Alias, ["contractHash"] = i.Value.Hash, ["binding"] = canonicalImports.Contains(i.Key) ? "canonical" : "implementation-context", ["signature"] = SignatureNode(i.Value.Element.Signature!) }).ToArray());
@@ -394,7 +406,12 @@ public static partial class FeatureBlueprint
         var membersOutput = new StringBuilder();
         if(localProfile)output.AppendLine("#pragma warning disable CS0219");
         if(implicitEnd&&feature.Signature!.Return!="void")output.AppendLine(feature.Signature.Return+" "+FeatureValue("return")+" = default("+feature.Signature.Return+")!;"+(localProfile?"":"\n_ = "+FeatureValue("return")+";"));
-        if(multiOutput)foreach(var parameter in feature.Signature!.Args.Where(p=>p.IsOut))output.AppendLine(parameter.Name+" = default("+parameter.Type+")!;");
+        if(multiOutput)foreach(var parameter in feature.Signature!.Args.Where(p=>p.IsOut)){
+            // Definite-assignment marker only: SkipInit does not write caller storage.
+            // A missing graph out gets its default at termination, after all alias-visible work.
+            if(externalRefs)output.AppendLine("global::System.Runtime.CompilerServices.Unsafe.SkipInit(out "+parameter.Name+");\nbool "+Assigned(parameter.Name)+" = false;");
+            else output.AppendLine(parameter.Name+" = default("+parameter.Type+")!;");
+        }
         foreach(var local in locals)output.AppendLine(S(local.Value,"type")+" "+LocalValue(local.Key)+" = "+Literal(local.Value["initial"]!["constant"],S(local.Value,"type"))+";");
         if(localProfile)output.AppendLine("#pragma warning restore CS0219");
         foreach (string id in order)foreach(var result in FeatureOutputs(nodes[id].Signature))
@@ -441,9 +458,11 @@ public static partial class FeatureBlueprint
             else if(node.Kind=="export"){
                 string exported=S(node.Definition,"output"),outputType=FeatureOutputs(feature.Signature!).Single(p=>p.Name==exported).Type;
                 output.AppendLine(FeatureValue(exported)+" = "+Binding(node.Arguments["value"],outputType,available,id+"/value")+";");
+                if(externalRefs&&exported!="return")output.AppendLine(Assigned(exported)+" = true;");
                 sourceMaps.Add(new JsonObject{["node"]=id,["definitionHash"]=node.DefinitionHash,["marker"]="graph:"+feature.Id+"@"+topologyHash});manifestNodes.Single(n=>n!["id"]!.ToString()==id)!["includedInSource"]=true;
             }
-            else output.AppendLine((node.Signature.Return == "void" ? "" : Value(id) + " = ") + (HasContext(node) ? "this.Invoke" : Symbol(id)) + "(" + string.Join(",", node.Signature.Args.Select(p => p.IsOut?"out "+Value(id,p.Name):ArgumentBinding(p,node.Arguments[p.Name],available,id+"/"+p.Name)).Concat(HasContext(node) ? Array.Empty<string>() : NodeImports(node).Select(f => "calls." + Import(f).Alias))) + ");");
+            else output.AppendLine((node.Signature.Return == "void" ? "" : Value(id) + " = ") + (HasContext(node) ? "this.Invoke" : Symbol(id)) + "(" + string.Join(",", node.Signature.Args.Select(p => p.IsOut?"out "+(ForwardCaller(node)?CallerOut(node,p.Name):Value(id,p.Name)):ArgumentBinding(p,node.Arguments[p.Name],available,id+"/"+p.Name)).Concat(HasContext(node) ? Array.Empty<string>() : NodeImports(node).Select(f => "calls." + Import(f).Alias))) + ");");
+            if(ForwardCaller(node))foreach(var parameter in node.Signature.Args.Where(p=>p.IsOut))output.AppendLine(Value(id,parameter.Name)+" = "+CallerOut(node,parameter.Name)+";\n"+Assigned(CallerOut(node,parameter.Name))+" = true;");
             if (node.Control == "branch")
                 output.AppendLine("if (" + Value(id) + ") goto " + Label(edges[(id, "true")]) + "; else goto " + Label(edges[(id, "false")]) + ";");
             else
@@ -451,6 +470,7 @@ public static partial class FeatureBlueprint
             output.AppendLine("}");
         }
 
+        string CompleteOuts()=>externalRefs?string.Join(" ",feature.Signature!.Args.Where(p=>p.IsOut).Select(p=>"if (!"+Assigned(p.Name)+") "+p.Name+" = default("+p.Type+")!; ")):"";
         foreach (var exit in exits.OrderBy(e => e.Key, StringComparer.Ordinal))
         {
             string target = "exit:" + exit.Key;
@@ -460,10 +480,10 @@ public static partial class FeatureBlueprint
             var available = incoming.Length == 0 ? new HashSet<string>(StringComparer.Ordinal) : new HashSet<string>(dominators[incoming[0]], StringComparer.Ordinal);
             foreach (string p in incoming.Skip(1))
                 available.IntersectWith(dominators[p]);
-            output.AppendLine(Label(target) + ": { return" + (feature.Signature!.Return == "void" ? "" : " " + (implicitEnd&&exit.Value is null?FeatureValue("return"):Binding(exit.Value, feature.Signature.Return, available, target))) + "; }");
+            output.AppendLine(Label(target) + ": { "+CompleteOuts()+"return" + (feature.Signature!.Return == "void" ? "" : " " + (implicitEnd&&exit.Value is null?FeatureValue("return"):Binding(exit.Value, feature.Signature.Return, available, target))) + "; }");
         }
 
-        if(implicitEnd)foreach(string target in edges.Values.Append(entry).Where(Terminal).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal))output.AppendLine(Label(target)+": { return"+(feature.Signature!.Return=="void"?"":" "+FeatureValue("return"))+"; }");
+        if(implicitEnd)foreach(string target in edges.Values.Append(entry).Where(Terminal).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal))output.AppendLine(Label(target)+": { "+CompleteOuts()+"return"+(feature.Signature!.Return=="void"?"":" "+FeatureValue("return"))+"; }");
         output.AppendLine("#line default");
         reply["state"] = "source-assembled";
         reply["body"] = output.ToString().Replace("\r\n", "\n");

@@ -9,7 +9,7 @@ public static partial class FeatureBlueprint
         (signature.Return=="void"?Array.Empty<Parameter>():new[]{new Parameter(signature.Return,"return")}).Concat(signature.Args.Where(p=>p.IsOut));
     public static JsonArray OutputDocument(FunctionSignature signature) => new(FeatureOutputs(signature).Select(p=>(JsonNode)new JsonObject{["name"]=p.Name,["type"]=p.Type}).ToArray());
 
-    private static (JsonArray Ends,JsonArray Warnings) DescribeMultiTerminations(string entry,Element feature,Dictionary<string,Node> nodes,Dictionary<(string,string),string> edges,List<string> order,Dictionary<string,string[]> predecessors,JsonObject exits)
+    private static (JsonArray Ends,JsonArray Warnings) DescribeMultiTerminations(string entry,Element feature,Dictionary<string,Node> nodes,Dictionary<(string,string),string> edges,List<string> order,Dictionary<string,string[]> predecessors,JsonObject exits,Dictionary<string,string[]>? forwardedOutputs=null)
     {
         var outputs=FeatureOutputs(feature.Signature!).ToArray();
         var must=new Dictionary<string,HashSet<string>>(StringComparer.Ordinal);var may=new Dictionary<string,HashSet<string>>(StringComparer.Ordinal);
@@ -17,6 +17,7 @@ public static partial class FeatureBlueprint
             var before=predecessors[id];var definite=before.Length==0?new HashSet<string>(StringComparer.Ordinal):new HashSet<string>(must[before[0]],StringComparer.Ordinal);foreach(string p in before.Skip(1))definite.IntersectWith(must[p]);
             var possible=new HashSet<string>(before.SelectMany(p=>may[p]),StringComparer.Ordinal);
             if(nodes[id].Kind=="export"){string name=S(nodes[id].Definition,"output");definite.Add(name);possible.Add(name);}
+            if(forwardedOutputs is not null&&forwardedOutputs.TryGetValue(id,out var assigned))foreach(string name in assigned){definite.Add(name);possible.Add(name);}
             must[id]=definite;may[id]=possible;
         }
         JsonArray Witness(string id,string output){var path=new JsonArray();var before=predecessors[id].Where(p=>!must[p].Contains(output)).Order(StringComparer.Ordinal).ToArray();if(before.Length==0)path.Add(new JsonObject{["from"]=null,["port"]="entry",["to"]=id});else{string previous=before[0];foreach(var step in Witness(previous,output))path.Add(step?.DeepClone());string port=edges.Where(e=>e.Key.Item1==previous&&e.Value==id).OrderBy(e=>e.Key.Item2,StringComparer.Ordinal).First().Key.Item2;path.Add(new JsonObject{["from"]=previous,["port"]=port,["to"]=id});}return path;}

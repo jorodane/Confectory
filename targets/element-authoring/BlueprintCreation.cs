@@ -12,7 +12,6 @@ internal static class BlueprintCreation
   // Reuse only the contract generator. Its temporary default never replaces the real function.
   function.Provides.Clear();if(string.IsNullOrWhiteSpace(function.Description)){function.Description="Implement "+function.Id+" for "+owner.Id;function.DescriptionPresent=true;}var input=(JsonObject)request.DeepClone();input["text"]=format(function);
   var slotSignature=function.Signature!;
-  if(slotSignature.Args.Any(p=>p.IsRef))throw new ArgumentException("External ref Blueprint interfaces are not supported; preserve the original C# implementation");
   var result=request["reference"] is null?Scaffold(function,input,format):ReferenceScaffold(function,input,format);result.Remove("function");
   string implementation=request["implementation"]!.GetValue<string>();
   owner.Provides[function.Id]=new ElementReference(implementation,new(),function.Id);
@@ -38,10 +37,11 @@ internal static class BlueprintCreation
   if(donor.Kind!="function"||donor.Id!=reference||donor.Id==function.Id||donor.Signature is null||!signature.Matches(donor.Signature))throw new ArgumentException("Select a different published function with identical input/output types and order");
   string implementationId=request["implementation"]!.GetValue<string>(),graphPath=request["graphPath"]!.GetValue<string>();
   string implementation=$"implementation {implementationId} for {function.Id} {signature.Format()} {{blueprint common {System.Text.Json.JsonSerializer.Serialize(graphPath)};}}\n";
-  var graph=new JsonObject{["schema"]=1,["profile"]=signature.Args.Any(p=>p.IsOut)?FeatureBlueprint.MultiOutputProfile:FeatureBlueprint.Profile,["feature"]=function.Id,["contractHash"]=FeatureBlueprint.ContractHash(function),["entry"]="imported",["nodes"]=new JsonArray(),["edges"]=new JsonArray(),["exits"]=new JsonObject{["return"]=signature.Return=="void"?null:new JsonObject{["node"]="imported"}}};
+  var graph=new JsonObject{["schema"]=1,["profile"]=signature.Args.Any(p=>p.Mode is "ref" or "out")?FeatureBlueprint.ExternalRefsProfile:FeatureBlueprint.Profile,["feature"]=function.Id,["contractHash"]=FeatureBlueprint.ContractHash(function),["entry"]="imported",["nodes"]=new JsonArray(),["edges"]=new JsonArray(),["exits"]=new JsonObject{["return"]=signature.Return=="void"?null:new JsonObject{["node"]="imported"}}};
   var prepared=BlueprintCall.Prepare(new JsonObject{["id"]=implementationId,["text"]=implementation,["targetText"]=referenceText,["graph"]=graph,["definition"]=new JsonObject{["id"]="imported",["feature"]=reference,["intent"]="Call "+reference+" for "+function.Id,["control"]="next"}},format);
   graph=prepared["graph"]!.AsObject();var arguments=graph["nodes"]![0]!["arguments"]!.AsObject();for(int index=0;index<signature.Args.Count;index++)if(!signature.Args[index].IsOut)arguments[donor.Signature.Args[index].Name]=new JsonObject{["input"]=signature.Args[index].Name};
-  if(signature.Args.Any(p=>p.IsOut)){graph["exits"]=new JsonObject();WireOutputs(graph,"imported",donor.Signature,signature);}else graph["edges"]!.AsArray().Add(new JsonObject{["from"]="imported",["port"]="next",["to"]="exit:return"});function.Provides.Add(function.Id,new ElementReference(implementationId,new(),function.Id));
+  if(signature.Args.Any(p=>p.Mode is "ref" or "out")){graph["nodes"]![0]!["forwardCallerStorage"]=true;graph["edges"]!.AsArray().Add(new JsonObject{["from"]="imported",["port"]="next",["to"]="exit:return"});}
+  else graph["edges"]!.AsArray().Add(new JsonObject{["from"]="imported",["port"]="next",["to"]="exit:return"});function.Provides.Add(function.Id,new ElementReference(implementationId,new(),function.Id));
   string text=format(function);var checkedGraph=FeatureBlueprint.Execute(new JsonObject{["operation"]="featureBlueprintNodes",["featureSource"]=text,["featureContracts"]=new JsonObject{[reference]=referenceText},["graph"]=graph.DeepClone()});if(checkedGraph["state"]?.ToString()!="node-definitions")throw new ArgumentException(checkedGraph.ToJsonString());
   return new JsonObject{["function"]=text,["implementation"]=prepared["implementation"]!.DeepClone(),["graph"]=graph.DeepClone(),["reference"]=reference,["referenceSignature"]=SignatureNode(donor.Signature),["scope"]=prepared["scope"]?.DeepClone()};
  }
@@ -56,19 +56,19 @@ internal static class BlueprintCreation
  {
   string implementationId=request["implementation"]!.GetValue<string>(),graphPath=request["graphPath"]!.GetValue<string>(),nodePath=request["nodePath"]!.GetValue<string>();
   var functionSignature=function.Signature??throw new ArgumentException("Explicit function signature required");
-  if(functionSignature.Args.Any(p=>p.IsRef))throw new ArgumentException("External ref Blueprint interfaces are not supported; preserve the original C# implementation");
   string signature=functionSignature.Format();
   string implementation=$"implementation {implementationId} for {function.Id} {signature} {{blueprint common {System.Text.Json.JsonSerializer.Serialize(graphPath)};}}\n";
   new Parser(implementation,"<new-implementation>").ParseElement();
   function.Provides.Add(function.Id,new ElementReference(implementationId,new(),function.Id));
   var args=SignatureNode(functionSignature)["args"]!.DeepClone();var arguments=new JsonObject();foreach(var arg in functionSignature.Args.Where(p=>!p.IsOut))arguments[arg.Name]=new JsonObject{["input"]=arg.Name};
   var graph=new JsonObject{
-   ["schema"]=1,["profile"]=FeatureBlueprint.Profile,["feature"]=function.Id,["contractHash"]=FeatureBlueprint.ContractHash(function),["entry"]="body",
+   ["schema"]=1,["profile"]=functionSignature.Args.Any(p=>p.IsRef)?FeatureBlueprint.ExternalRefsProfile:FeatureBlueprint.Profile,["feature"]=function.Id,["contractHash"]=FeatureBlueprint.ContractHash(function),["entry"]="body",
    ["nodes"]=new JsonArray(new JsonObject{["id"]="body",["kind"]="code",["control"]="next",["intent"]=string.IsNullOrWhiteSpace(function.Description)?"Implement "+function.Id:function.Description,["signature"]=new JsonObject{["args"]=args,["return"]=functionSignature.Return},["arguments"]=arguments,["implementation"]=nodePath}),
    ["edges"]=new JsonArray(new JsonObject{["from"]="body",["port"]="next",["to"]="exit:return"}),
    ["exits"]=new JsonObject{["return"]=functionSignature.Return=="void"?null:new JsonObject{["node"]="body"}}
   };
-  if(functionSignature.Args.Any(p=>p.IsOut)){graph["profile"]=FeatureBlueprint.MultiOutputProfile;graph["exits"]=new JsonObject();graph["edges"]=new JsonArray();WireOutputs(graph,"body",functionSignature,functionSignature);}
+  if(functionSignature.Args.Any(p=>p.IsRef))graph["nodes"]![0]!["forwardCallerStorage"]=true;
+  else if(functionSignature.Args.Any(p=>p.IsOut)){graph["profile"]=FeatureBlueprint.MultiOutputProfile;graph["exits"]=new JsonObject();graph["edges"]=new JsonArray();WireOutputs(graph,"body",functionSignature,functionSignature);}
   string text=format(function);var checkedGraph=FeatureBlueprint.Execute(new JsonObject{["operation"]="featureBlueprintNodes",["featureSource"]=text,["graph"]=graph.DeepClone()});
   if(checkedGraph["state"]?.ToString()!="node-definitions")throw new ArgumentException(checkedGraph.ToJsonString());
   return new JsonObject{["function"]=text,["implementation"]=implementation,["graph"]=graph,["node"]=new JsonObject{["schema"]=1,["node"]="body",["definitionHash"]=new string('0',64),["source"]=""}};

@@ -46,18 +46,16 @@ internal static class BlueprintConversion
   var function=registry.Get(effective.Function!,"function",id);string featureText=Read(function.Loc.File);
   var contracts=new JsonObject();foreach(string feature in effective.Imports.Values.Select(i=>i.Id).Distinct(StringComparer.Ordinal)){var fn=registry.Get(feature,"function",id);contracts[feature]=Read(fn.Loc.File);}
   var context=FeatureBlueprint.ImplementationContext(effective);
-  if(effective.Signature!.Args.Any(p=>p.IsRef))throw new ArgumentException("External ref body conversion requires caller alias preservation; retain the original C# source");
   var signature=context["signature"]!.DeepClone();var arguments=new JsonObject();
   for(int i=0;i<effective.Signature!.Args.Count;i++)if(!effective.Signature.Args[i].IsOut)arguments[effective.Signature.Args[i].Name]=new JsonObject{["input"]=function.Signature!.Args[i].Name};
   var nodes=new JsonArray(new JsonObject{["id"]="body",["kind"]="code",["intent"]="Whole existing body of "+id+" / "+target,["control"]="next",["signature"]=signature,["arguments"]=arguments,["implementation"]=nodePath,["implementationContext"]=context.DeepClone(),["sourceIdentity"]=oldPath});
   var edges=new JsonArray();
-  bool multi=effective.Signature.Args.Any(p=>p.IsOut);
-  if(!multi&&effective.Signature.Return!="void"){
+  bool callerStorage=effective.Signature!.Args.Any(p=>p.Mode is "ref" or "out");
+  if(effective.Signature.Return!="void"){
    nodes.Add(new JsonObject{["id"]="return",["kind"]="export",["intent"]="Assign the existing body's return",["control"]="next",["output"]="return",["signature"]=new JsonObject{["args"]=new JsonArray(new JsonObject{["name"]="value",["type"]=effective.Signature.Return}),["return"]="void"},["arguments"]=new JsonObject{["value"]=new JsonObject{["node"]="body"}}});
    edges.Add(new JsonObject{["from"]="body",["port"]="next",["to"]="return"});
   }
-  var graph=new JsonObject{["schema"]=1,["profile"]=multi?FeatureBlueprint.MultiOutputProfile:FeatureBlueprint.ImplicitProfile,["feature"]=function.Id,["contractHash"]=FeatureBlueprint.ContractHash(function),["entry"]="body",["nodes"]=nodes,["edges"]=edges,["exits"]=new JsonObject()};
-  if(multi)BlueprintCreation.WireOutputs(graph,"body",effective.Signature,function.Signature!);
+  var graph=new JsonObject{["schema"]=1,["profile"]=callerStorage?FeatureBlueprint.ExternalRefsProfile:FeatureBlueprint.ImplicitProfile,["feature"]=function.Id,["contractHash"]=FeatureBlueprint.ContractHash(function),["entry"]="body",["nodes"]=nodes,["edges"]=edges,["exits"]=new JsonObject()};
   var definitions=FeatureBlueprint.Execute(new JsonObject{["operation"]="featureBlueprintNodes",["featureSource"]=featureText,["featureContracts"]=contracts,["implementationContext"]=context.DeepClone(),["graph"]=graph.DeepClone()});
   if(definitions["state"]?.ToString()!="node-definitions")throw new ArgumentException(definitions.ToJsonString());
   var record=new JsonObject{["schema"]=1,["node"]="body",["definitionHash"]=definitions["nodes"]!.AsArray().Single(n=>n!["id"]!.ToString()=="body")!["definitionHash"]!.DeepClone(),["source"]=source};

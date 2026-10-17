@@ -1,0 +1,97 @@
+using Confectory.Core;
+using System.Text.Json.Nodes;
+namespace Confectory.Tests;
+public sealed class ExternalRefTests : TestCase
+{
+    static string Host=>Path.Combine(Fixture.Repo,"targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll");
+    static JsonNode Metadata(JsonObject q){var run=Processes.Run(new[]{Processes.DotNet(),Host},q.ToJsonString(),timeoutSeconds:60);True(run.ExitCode==0,run.Stderr);var reply=JsonNode.Parse(run.Stdout)!;True(reply["ok"]!.GetValue<bool>(),reply.ToJsonString());return reply["result"]!;}
+    static JsonObject Sig(string result,params Parameter[] args)=>FeatureBlueprint.SignatureDocument(new(args.ToList(),result));
+    static JsonObject Input(string name)=>new(){["input"]=name};
+    static JsonObject Edge(string from,string to,string port="next")=>new(){["from"]=from,["port"]=port,["to"]=to};
+    static JsonObject Code(string id,JsonObject sig,JsonObject args)=>new(){["id"]=id,["kind"]="code",["control"]="next",["intent"]="Compute "+id,["signature"]=sig,["arguments"]=args,["implementation"]=id+".node.json"};
+    static JsonObject Graph(string feature,string entry,JsonArray nodes,JsonArray edges,JsonObject exits)=>new(){["schema"]=1,["profile"]=FeatureBlueprint.ExternalRefsProfile,["feature"]="Api::Value",["contractHash"]=FeatureBlueprint.ContractHash(new Parser(feature,"<contract>").ParseElement()),["entry"]=entry,["nodes"]=nodes,["edges"]=edges,["exits"]=exits};
+    JsonObject Write(string feature,JsonObject graph,Dictionary<string,string> bodies)
+    {
+        f.Add("Api","function","Value",feature);var signature=new Parser(feature,"<contract>").ParseElement().Signature!;
+        f.Add("Provider","implementation","ValueBody","implementation Provider::ValueBody for Api::Value "+signature.Format()+" {blueprint common \"external.graph.json\";}");
+        var defs=FeatureBlueprint.Execute(new JsonObject{["operation"]="featureBlueprintNodes",["featureSource"]=feature,["graph"]=graph.DeepClone()});Equal("node-definitions",Text(defs,"state"));var records=new JsonObject();
+        foreach(var item in bodies){var row=defs["nodes"]!.AsArray().Single(n=>n!["id"]!.ToString()==item.Key)!;records[item.Key]=new JsonObject{["schema"]=1,["node"]=item.Key,["definitionHash"]=row["definitionHash"]!.DeepClone(),["source"]=item.Value};f.Body("Provider",item.Key+".node.json",records[item.Key]!.ToJsonString());}
+        f.Body("Provider","external.graph.json",graph.ToJsonString());f.Add("App","implementation","MainBody","implementation App::MainBody for App::Main () -> int {import Api::Value as Value "+signature.Format(false)+";body common \"main.csbody\";}");f.Sync();return records;
+    }
+    public void test_external_ref_forwarding_preserves_two_ref_out_aliases_and_distinct_caller_storage()
+    {
+        const string feature="function Api::Value (ref int x,ref int y,out int audit) -> int {}";
+        var node=Code("body",Sig("int",new Parameter("int","a","ref"),new Parameter("int","b","ref"),new Parameter("int","copied","out")),new(){["a"]=Input("x"),["b"]=Input("y")});node["forwardCallerStorage"]=true;
+        var graph=Graph(feature,"body",new(node),new(Edge("body","exit:done")),new(){["done"]=new JsonObject{["node"]="body"}});var records=Write(feature,graph,new(){{"body","a=10;b+=a;copied=a+b;return a+b+copied;"}});
+        f.Body("App","main.csbody","int n=5;int value=calls.Value.Invoke(ref n,ref n,out int audit);Console.WriteLine(value+\",\"+n+\",\"+audit);n=5;value=calls.Value.Invoke(ref n,ref n,out n);Console.WriteLine(value+\",\"+n);n=5;int m=6;value=calls.Value.Invoke(ref n,ref m,out audit);Console.WriteLine(value+\",\"+n+\",\"+m+\",\"+audit);return 0;");Output(Build(),"80,20,40\n120,40\n52,10,16,26");
+        JsonObject Query(JsonObject g,string operation)=>FeatureBlueprint.Execute(new JsonObject{["operation"]=operation,["featureSource"]=feature,["graph"]=g.DeepClone(),["implementations"]=records.DeepClone()});
+        var assembled=Query(graph,"featureBlueprintAssemble");Equal(0,assembled["warnings"]!.AsArray().Count);True(assembled["body"]!.ToString().Contains("out audit"));
+        var bad=graph.DeepClone().AsObject();bad["nodes"]![0]!["arguments"]!["a"]=new JsonObject{["constant"]=5};Equal("GRAPH_CALLER_STORAGE_BINDING",Text(Query(bad,"featureBlueprintNodes")["diagnostics"]![0]!,"code"));
+        bad=graph.DeepClone().AsObject();bad["nodes"]![0]!["signature"]!["args"]![0]!["mode"]=null;Equal("GRAPH_CALLER_STORAGE_CONTRACT",Text(Query(bad,"featureBlueprintNodes")["diagnostics"]![0]!,"code"));
+        bad=graph.DeepClone().AsObject();bad["profile"]=FeatureBlueprint.RefNodesProfile;Equal("GRAPH_REF_FEATURE_UNSUPPORTED",Text(Query(bad,"featureBlueprintNodes")["diagnostics"]![0]!,"code"));
+        var proof=new Builder(f.Project,"portable").CheckBlueprintNode("Provider::ValueBody","common","body");True(proof["compiled"]!.GetValue<bool>()&&!proof["executed"]!.GetValue<bool>());
+        records["body"]!["source"]="a=10;return a;";f.Body("Provider","body.node.json",records["body"]!.ToJsonString());Error("TARGET_FAILURE",()=>Build());
+    }
+    public void test_external_ref_join_defaults_only_unassigned_out_and_keeps_later_alias_writes()
+    {
+        const string feature="function Api::Value (ref int x,bool chosen,out int result) -> int {}";
+        var inc=Code("inc",Sig("int",new Parameter("int","n","ref")),new(){["n"]=Input("x")});var second=(JsonObject)inc.DeepClone();second["id"]="second";second["implementation"]="second.node.json";
+        var choose=Code("choose",Sig("bool",new Parameter("bool","n")),new(){["n"]=Input("chosen")});choose["control"]="branch";
+        var publish=new JsonObject{["id"]="publish",["kind"]="export",["control"]="next",["intent"]="Assign out before later alias write",["output"]="result",["signature"]=Sig("void",new Parameter("int","value")),["arguments"]=new JsonObject{["value"]=new JsonObject{["constant"]=10}}};
+        var read=Code("read",Sig("int",new Parameter("int","n")),new(){["n"]=Input("x")});
+        var g=Graph(feature,"inc",new(inc,choose,publish,second,read),new(Edge("inc","choose"),Edge("choose","publish","true"),Edge("choose","read","false"),Edge("publish","second"),Edge("second","read"),Edge("read","exit:done")),new(){["done"]=new JsonObject{["node"]="read"}});
+        var records=Write(feature,g,new(){{"inc","return ++n;"},{"second","return ++n;"},{"choose","return n;"},{"read","return n;"}});
+        f.Body("App","main.csbody","foreach(bool chosen in new[]{true,false,true}){int n=5;int value=calls.Value.Invoke(ref n,chosen,out n);Console.WriteLine(value+\",\"+n);}foreach(bool chosen in new[]{true,false}){int n=5;int value=calls.Value.Invoke(ref n,chosen,out int other);Console.WriteLine(value+\",\"+n+\",\"+other);}return 0;");Output(Build(),"11,11\n6,0\n11,11\n7,7,10\n6,6,0");
+        var described=FeatureBlueprint.Execute(new JsonObject{["operation"]="featureBlueprintDescribe",["featureSource"]=feature,["graph"]=g,["implementations"]=records});Equal(1,described["warnings"]!.AsArray().Count);var missing=described["warnings"]![0]!["missingOutputs"]![0]!;Equal("result",Text(missing,"name"));True(missing["assignedOnSomePaths"]!.GetValue<bool>());
+    }
+    public void test_whole_ref_conversion_preserves_raw_context_recursion_target_and_same_caller_cells()
+    {
+        f.Add("Api","function","Value","function Api::Value (ref int x,ref int y,out int audit) -> int {}");f.Add("Api","function","Double","function Api::Double (int n) -> int {}");f.Add("Provider","implementation","DoubleBody","implementation Provider::DoubleBody for Api::Double (int n) -> int {body common \"double.csbody\";}");f.Body("Provider","double.csbody","return n*2;");f.Add("Provider","implementation","WrongBody","implementation Provider::WrongBody for Api::Double (int n) -> int {body common \"wrong.csbody\";}");f.Body("Provider","wrong.csbody","return n*9;");f.Add("Provider","object","Selected","object Provider::Selected {provide Api::Double with Provider::DoubleBody;}");f.Main("provide Api::Value with Provider::ValueBody;provide Api::Double with Provider::WrongBody;");
+        string body="if(a<0){a=-a;return this.Invoke(ref a,ref b,out copied);}\r\nIImports same=this.calls;\r\nstring literal=@\"a\r\nb\";\r\nstring File([global::System.Runtime.CompilerServices.CallerFilePath] string path=\"\")=>global::System.IO.Path.GetFileName(path);\r\na=10;b+=same.Double.Invoke(a)/2;copied=a+b;return a+b+copied+(File()==\"별칭.csbody\"&&literal.Contains(\"\\r\\n\")?0:1000);";
+        f.Add("Provider","implementation","ParentBody","implementation Provider::ParentBody for Api::Value (ref int a,ref int b,out int copied) -> int {import Api::Double as Double (int) -> int in Provider::Selected;body common \"별칭.csbody\";body linux \"other.csbody\";}");f.Body("Provider","별칭.csbody",body);f.Body("Provider","other.csbody","a=3;b+=a;copied=a+b;return copied;");f.Add("Provider","implementation","ValueBody","implementation Provider::ValueBody for Api::Value (ref int a,ref int b,out int copied) -> int extends Provider::ParentBody {description \"keep target and inherited context\";}");
+        f.Add("App","implementation","MainBody","implementation App::MainBody for App::Main () -> int {import Api::Value as Value (ref int,ref int,out int) -> int;body common \"main.csbody\";}");f.Body("App","main.csbody","int n=-5;int value=calls.Value.Invoke(ref n,ref n,out n);Console.WriteLine(value+\",\"+n);n=5;value=calls.Value.Invoke(ref n,ref n,out int audit);Console.WriteLine(value+\",\"+n+\",\"+audit);return 0;");f.Sync();Output(Build(),"120,40\n80,20,40");Output(Build("linux"),"12,12\n12,6,12");
+        string root=f.Packs["Provider"].Root,project=Path.Combine(root,"convert.cpack"),manifest=File.ReadAllText(Path.Combine(root,"pack.cpack")).Replace("pack Provider","project Provider");int end=manifest.LastIndexOf('}');manifest=manifest[..end]+"registry Api "+System.Text.Json.JsonSerializer.Serialize(Path.GetRelativePath(root,Path.Combine(f.Packs["Api"].Root,"pack.cpack")).Replace('\\','/'))+";registry Confectory.Build.DotNet "+System.Text.Json.JsonSerializer.Serialize(Path.GetRelativePath(root,Path.Combine(f.Root,"target/pack.cpack")).Replace('\\','/'))+";target portable Confectory.Build.DotNet::Portable;"+manifest[end..];File.WriteAllText(project,manifest);
+        string path=Path.Combine(root,"ValueBody.celem");byte[] original=File.ReadAllBytes(Path.Combine(root,"별칭.csbody")),other=File.ReadAllBytes(Path.Combine(root,"other.csbody"));var prepared=Metadata(new(){["operation"]="blueprintConversion",["project"]=project,["id"]="Provider::ValueBody",["text"]=File.ReadAllText(path),["target"]="common",["graphPath"]="ref.graph.json",["nodePath"]="ref.node.json"});Equal(FeatureBlueprint.ExternalRefsProfile,prepared["graph"]!["profile"]!.ToString());Equal(body+"\n",prepared["node"]!["source"]!.ToString());
+        File.WriteAllText(path,prepared["implementation"]!.ToString());File.WriteAllText(Path.Combine(root,"ref.graph.json"),prepared["graph"]!.ToJsonString());File.WriteAllText(Path.Combine(root,"ref.node.json"),prepared["node"]!.ToJsonString());Output(Build(),"120,40\n80,20,40");Output(Build("linux"),"12,12\n12,6,12");var probe=new Builder(f.Project,"portable").CheckBlueprintNode("Provider::ValueBody","common","body");True(probe["compiled"]!.GetValue<bool>()&&!probe["executed"]!.GetValue<bool>());Sequence(original,File.ReadAllBytes(Path.Combine(root,"별칭.csbody")));Sequence(other,File.ReadAllBytes(Path.Combine(root,"other.csbody")));
+        prepared["node"]!["source"]="a=10;b=20;return a+b;";File.WriteAllText(Path.Combine(root,"ref.node.json"),prepared["node"]!.ToJsonString());Error("TARGET_FAILURE",()=>Build());
+    }
+    public void test_whole_out_only_conversion_preserves_two_out_arguments_using_one_caller_variable()
+    {
+        f.Add("App","function","Value","function App::Value (out int left,out int right) -> int {provide App::Value with App::ValueBody;}");f.Add("App","implementation","ValueBody","implementation App::ValueBody for App::Value (out int a,out int b) -> int {body common \"value.csbody\";}");f.Body("App","value.csbody","a=10;b=20;return a;");f.Add("App","implementation","MainBody","implementation App::MainBody for App::Main () -> int {import App::Value as Value (out int,out int) -> int;body common \"main.csbody\";}");f.Body("App","main.csbody","int value=calls.Value.Invoke(out int n,out n);Console.WriteLine(value+\",\"+n);value=calls.Value.Invoke(out int a,out int b);Console.WriteLine(value+\",\"+a+\",\"+b);return 0;");f.Main();f.Sync();Output(Build(),"20,20\n10,10,20");string root=f.Packs["App"].Root,path=Path.Combine(root,"ValueBody.celem");var p=Metadata(new(){["operation"]="blueprintConversion",["project"]=f.Project,["id"]="App::ValueBody",["text"]=File.ReadAllText(path),["target"]="common",["graphPath"]="out.graph.json",["nodePath"]="out.node.json"});File.WriteAllText(path,p["implementation"]!.ToString());File.WriteAllText(Path.Combine(root,"out.graph.json"),p["graph"]!.ToJsonString());File.WriteAllText(Path.Combine(root,"out.node.json"),p["node"]!.ToJsonString());Output(Build(),"20,20\n10,10,20");
+    }
+    public void test_external_ref_factories_and_typed_reference_forward_actual_caller_storage()
+    {
+        const string feature="function Api::Value (ref int x,ref int y,out int audit) -> int {}";
+        var made=Metadata(new(){["operation"]="blueprintPrepareFeature",["id"]="Api::Value",["text"]=feature,["implementation"]="Api::ValueBody",["graphPath"]="made.graph.json",["nodePath"]="made.node.json"});
+        Equal(FeatureBlueprint.ExternalRefsProfile,made["graph"]!["profile"]!.ToString());True(made["graph"]!["nodes"]![0]!["forwardCallerStorage"]!.GetValue<bool>());
+        f.Add("Api","function","Value",made["function"]!.ToString());f.Add("Api","implementation","ValueBody",made["implementation"]!.ToString());f.Body("Api","made.graph.json",made["graph"]!.ToJsonString());
+        var defs=FeatureBlueprint.Execute(new JsonObject{["operation"]="featureBlueprintNodes",["featureSource"]=made["function"]!.DeepClone(),["graph"]=made["graph"]!.DeepClone()});made["node"]!["definitionHash"]=defs["nodes"]![0]!["definitionHash"]!.DeepClone();made["node"]!["source"]="x=10;y+=x;audit=x+y;return x+y+audit;";f.Body("Api","made.node.json",made["node"]!.ToJsonString());
+        f.Add("App","implementation","MainBody","implementation App::MainBody for App::Main () -> int {import Api::Value as Value (ref int,ref int,out int) -> int;body common \"main.csbody\";}");f.Body("App","main.csbody","int cell=5;int value=calls.Value.Invoke(ref cell,ref cell,out cell);Console.WriteLine(value+\",\"+cell);return 0;");f.Main();f.Sync();Output(Build(),"120,40");
+        // A reference implementation is a typed call; its out arguments must be forwarded too.
+        var referenced=Metadata(new(){["operation"]="blueprintPrepareImplementation",["id"]="Api::Value",["text"]=feature,["owner"]="Provider::Selected",["ownerText"]="object Provider::Selected {}",["implementation"]="Provider::ValueBody",["graphPath"]="reference.graph.json",["nodePath"]="unused.node.json",["reference"]="Api::Donor",["referenceText"]="function Api::Donor (ref int first,ref int second,out int copied) -> int {}"});
+        True(referenced["graph"]!["nodes"]![0]!["forwardCallerStorage"]!.GetValue<bool>());Equal(1,referenced["graph"]!["nodes"]!.AsArray().Count);
+        f.Add("Api","function","Donor","function Api::Donor (ref int first,ref int second,out int copied) -> int {}");f.Add("Provider","implementation","DonorBody","implementation Provider::DonorBody for Api::Donor (ref int a,ref int b,out int c) -> int {body common \"donor.csbody\";}");f.Body("Provider","donor.csbody","a=10;b+=a;c=a+b;return a+b+c;");f.Add("Provider","implementation","ValueBody",referenced["implementation"]!.ToString());f.Body("Provider","reference.graph.json",referenced["graph"]!.ToJsonString());f.Main("provide Api::Value with Provider::ValueBody;provide Api::Donor with Provider::DonorBody;");f.Sync();Output(Build(),"120,40");
+    }
+
+    public void test_external_ref_array_replacement_keeps_managed_variable_alias_and_initial_value()
+    {
+        const string feature="function Api::Value (ref int[] x,ref int[] y,out int[] audit) -> int {}";
+        var body=Code("body",Sig("int",new Parameter("int[]","a","ref"),new Parameter("int[]","b","ref"),new Parameter("int[]","copied","out")),new(){["a"]=Input("x"),["b"]=Input("y")});body["forwardCallerStorage"]=true;
+        var graph=Graph(feature,"body",new(body),new(Edge("body","exit:done")),new(){["done"]=new JsonObject{["node"]="body"}});Write(feature,graph,new(){{"body","a=new[]{a[0]+1};b[0]+=a[0];copied=b;return a[0]+b[0];"}});
+        f.Body("App","main.csbody","for(int i=0;i<2;i++){int[] cell=new[]{5};int value=calls.Value.Invoke(ref cell,ref cell,out cell);Console.WriteLine(value+\",\"+cell[0]);}return 0;");Output(Build(),"24,12\n24,12");
+    }
+    public void test_external_ref_exception_keeps_alias_write_and_does_not_apply_end_defaults()
+    {
+        const string feature="function Api::Value (ref int x,out int audit) -> int {}";
+        var body=Code("body",Sig("int",new Parameter("int","a","ref"),new Parameter("int","copied","out")),new(){["a"]=Input("x")});body["forwardCallerStorage"]=true;
+        var graph=Graph(feature,"body",new(body),new(Edge("body","exit:done")),new(){["done"]=new JsonObject{["node"]="body"}});Write(feature,graph,new(){{"body","a+=2;throw new global::System.InvalidOperationException(\"expected\");"}});
+        f.Body("App","main.csbody","int cell=5;try{calls.Value.Invoke(ref cell,out cell);}catch(InvalidOperationException error){Console.WriteLine(error.Message+\",\"+cell);}return 0;");Output(Build(),"expected,7");
+    }
+    public void test_out_only_typed_reference_factory_forwards_one_caller_out_variable_twice()
+    {
+        const string feature="function Api::Value (out int left,out int right) -> int {}";
+        var made=Metadata(new(){["operation"]="blueprintPrepareImplementation",["id"]="Api::Value",["text"]=feature,["owner"]="Provider::Selected",["ownerText"]="object Provider::Selected {}",["implementation"]="Provider::ValueBody",["graphPath"]="reference.graph.json",["nodePath"]="unused.node.json",["reference"]="Api::Donor",["referenceText"]="function Api::Donor (out int first,out int second) -> int {}"});
+        Equal(FeatureBlueprint.ExternalRefsProfile,made["graph"]!["profile"]!.ToString());f.Add("Api","function","Value",feature);f.Add("Api","function","Donor","function Api::Donor (out int first,out int second) -> int {}");f.Add("Provider","implementation","ValueBody",made["implementation"]!.ToString());f.Body("Provider","reference.graph.json",made["graph"]!.ToJsonString());f.Add("Provider","implementation","DonorBody","implementation Provider::DonorBody for Api::Donor (out int a,out int b) -> int {body common \"donor.csbody\";}");f.Body("Provider","donor.csbody","a=10;b=20;return a;");f.Main("provide Api::Value with Provider::ValueBody;provide Api::Donor with Provider::DonorBody;");f.Add("App","implementation","MainBody","implementation App::MainBody for App::Main () -> int {import Api::Value as Value (out int,out int) -> int;body common \"main.csbody\";}");f.Body("App","main.csbody","int value=calls.Value.Invoke(out int n,out n);Console.WriteLine(value+\",\"+n);value=calls.Value.Invoke(out int a,out int b);Console.WriteLine(value+\",\"+a+\",\"+b);return 0;");f.Sync();Output(Build(),"20,20\n10,10,20");
+    }
+
+}

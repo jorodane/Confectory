@@ -50,3 +50,6 @@ v480 전체가 완료된 상태는 아니다. 남은 범위는 ref의 공유 참
 
 
 후속으로 [명시적 로컬 값·set](BLUEPRINT_LOCAL_VALUES.md)을 별도 profile에 연결했다. 위 로컬 미구현 표시는 out 단위 시점의 기록이며, property/expression·별칭 로컬과 ref·중첩 graph 등 나머지 전체 범위는 여전히 남아 있다.
+
+
+후속 [외부 ref graph·본문 별칭 보존](BLUEPRINT_EXTERNAL_REF_STORAGE.md)은 별도 v7 profile에서 caller의 ref/out 저장소를 직접 전달하고 미할당 out 기본값을 종료로 미룬다. 위 구 profile의 진입 초기화·외부 ref graph 미지원 표시는 해당 단계 시점의 계약이다. 구 graph는 자동 전환하지 않는다.

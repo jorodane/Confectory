@@ -171,3 +171,8 @@ graph별 카메라·확대·배치·선택도 private presentation이다. 헤더
 ## 실제 ref 노드 저장 슬롯 · 후속
 
 `sync-acyclic-ref-nodes-v1`/생성기 v6에서 일반 CELEM C# ref와 기존 입력·로컬·선행 노드 결과 슬롯의 코드/typed 호출 ref 입력을 연결한다. 동일 슬롯을 두 ref에 전달하는 실제 별칭, 배열 참조 슬롯 교체와 C#의 ref/out 동일 호출자 변수도 검사한다. 외부 ref graph/본문 전환은 caller alias 보존 전까지 명시적으로 거부한다. [계약·검증·남은 전체 범위](BLUEPRINT_REF_NODE_STORAGE.md).
+
+
+## 외부 ref graph와 본문 별칭 보존 후속
+
+새 `sync-acyclic-ref-v1`/생성기 v7에서 외부 ref 입력과 caller의 ref/out 동일 저장소 전달을 지원한다. out 초기값은 미할당 정상 종료에서만 적용하고, 원본 전체 본문·typed 전달 노드는 정확한 전체 계약과 인수 연결을 검사해 caller 저장소를 직접 전달한다. 원본 문맥·타깃·cold/CAS·3개 소스 그룹·명시적 Review/Confirm을 유지한다. 구 profile의 생성 의미는 보존한다. [계약·검증·남은 범위](BLUEPRINT_EXTERNAL_REF_STORAGE.md). 이전 ref graph 미지원 표시는 v6 단위 시점의 기록이다.
