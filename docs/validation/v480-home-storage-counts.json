@@ -411,10 +411,209 @@
         }
       },
       "changesSinceRun": []
+    },
+    "checkout": {
+      "exit": 0,
+      "methods": [
+        "WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup"
+      ],
+      "head": "fa268ce55c92c591fc8e8674e16034c761cb0d90",
+      "elapsed": 7.254935404999742,
+      "sourceManifestSha256": "92d923d5ecc99ee63db93d99fe66bd8abb9945125d47039c53689e4e24720fdb",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 7.224,
+      "logSha256": "0e1d20e2448a358af5d933643713c817f860e5985db79569e8643fe0f7d3c04a",
+      "sourceSnapshot": {
+        "examples/editor-home/ui/home-preferences.js": {
+          "sha256": "bcfbcea8d1694ffaf07e257472d6db8d90d54705d6d999f5d2c5c33039fbbeee",
+          "bytes": 1548
+        },
+        "packs/editor-home-model/HomePreferences.celem": {
+          "sha256": "9083109ff09dc81a4d14e66d434a3cd44320df18cdbff21195c196e4b32a6e4f",
+          "bytes": 315
+        },
+        "packs/editor-home-model/HomePreferences.csbody": {
+          "sha256": "a43fdb58e82325bb1a84afb9f706ea78e7aa2ae2cf573d598ac21db268ce3109",
+          "bytes": 3232
+        },
+        "packs/editor-home-model/HomePreferencesBody.celem": {
+          "sha256": "c42f95f4e12c89ff30936de3335691d66dda05555bb5449cd3c2aada7b561d75",
+          "bytes": 298
+        },
+        "tests/web/v480_home_state.py": {
+          "sha256": "6bc6948dea7323f314004eae6698c0881371f85c2fc65e5b411a93e809ea24ca",
+          "bytes": 9804
+        },
+        "examples/editor-home/Verify.csbody": {
+          "sha256": "872d8ebf31a2b198826f9509d153ea2f5fc054762dd51fa4117b814ee675e5cb",
+          "bytes": 12589
+        },
+        "examples/editor-home/WebBundle.csbody": {
+          "sha256": "3fd682731b3d85c3ba025718ff0ef29e4bc4c23d9282069a403a22d8da709e15",
+          "bytes": 9780
+        },
+        "examples/editor-home/WebInvoke.csbody": {
+          "sha256": "7c29f474d5bd4763683ddc9178e4f3e0ec8bbaaa510a294f201bb4c7ff8bad2d",
+          "bytes": 23108
+        },
+        "examples/editor-home/WebState.csbody": {
+          "sha256": "8453f4f706e483d498d760a75756f326b9929b467f3bf6e7963067c11c43d639",
+          "bytes": 27894
+        },
+        "examples/editor-home/ui/app.js": {
+          "sha256": "501b7d13c4ae3dc781e3948041fc72031a8368b2592bf9a3bddf80718921fc7a",
+          "bytes": 226665
+        },
+        "examples/editor-home/ui/inventory.js": {
+          "sha256": "67b5de3d43af0616d9cd3bf8dbe7711112fe1e7e08887f199299306de0332198",
+          "bytes": 12080
+        },
+        "packs/editor-home-model/Command.celem": {
+          "sha256": "696a3a6bedccc80cb9d5199c184dc3230407634960c18605503d80ed35a50552",
+          "bytes": 5855
+        },
+        "packs/editor-home-model/Command.csbody": {
+          "sha256": "50607b9799c8d654c2186fdc699da9a0beb4958a91e58748dde8d6d003db0d9a",
+          "bytes": 102324
+        },
+        "packs/editor-home-model/CommandBody.celem": {
+          "sha256": "ce3a9ead17d97f79900134fb6cd1adb7b39f2a23475d8766d5a1bf5a1c7cb666",
+          "bytes": 8220
+        },
+        "packs/editor-home-model/CreateSession.android.csbody": {
+          "sha256": "1e8cf2d451ea29a7a6adc32ed91da2ba76f098530156a3f6ea41867a42b39947",
+          "bytes": 2291
+        },
+        "packs/editor-home-model/CreateSession.browser.csbody": {
+          "sha256": "1e8cf2d451ea29a7a6adc32ed91da2ba76f098530156a3f6ea41867a42b39947",
+          "bytes": 2291
+        },
+        "packs/editor-home-model/CreateSession.celem": {
+          "sha256": "d3c7e329b0b5ef5f4efadd64723e1069e263d2598955317bea7d5bed43806519",
+          "bytes": 688
+        },
+        "packs/editor-home-model/CreateSession.csbody": {
+          "sha256": "ee1b4b184157a86e34c27ae4ff88ad1acefd57da8d4c147f9203b4aae329eb08",
+          "bytes": 2810
+        },
+        "packs/editor-home-model/CreateSessionBody.celem": {
+          "sha256": "4f139bef9adc19ccd5016f8d8e038abce73b9bbb1f80a860fc7955069eea285d",
+          "bytes": 634
+        },
+        "packs/editor-home-model/pack.cpack": {
+          "sha256": "35a4ca616bfd1071842f7d7a4a94be786e94ae6bda11f0ad103140f48ce11929",
+          "bytes": 2050
+        },
+        "tests/Confectory.Tests/WebUITests.cs": {
+          "sha256": "c494abd0737a1ac43f0349c46a4ced550d4551a98add655a988088b50c3788a6",
+          "bytes": 54457
+        }
+      },
+      "changesSinceRun": []
     }
   },
   "checkout": {
-    "state": "pending-implementation-HEAD"
+    "exit": 0,
+    "methods": [
+      "WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup"
+    ],
+    "head": "fa268ce55c92c591fc8e8674e16034c761cb0d90",
+    "elapsed": 7.254935404999742,
+    "sourceManifestSha256": "92d923d5ecc99ee63db93d99fe66bd8abb9945125d47039c53689e4e24720fdb",
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "reportedSeconds": 7.224,
+    "logSha256": "0e1d20e2448a358af5d933643713c817f860e5985db79569e8643fe0f7d3c04a",
+    "sourceSnapshot": {
+      "examples/editor-home/ui/home-preferences.js": {
+        "sha256": "bcfbcea8d1694ffaf07e257472d6db8d90d54705d6d999f5d2c5c33039fbbeee",
+        "bytes": 1548
+      },
+      "packs/editor-home-model/HomePreferences.celem": {
+        "sha256": "9083109ff09dc81a4d14e66d434a3cd44320df18cdbff21195c196e4b32a6e4f",
+        "bytes": 315
+      },
+      "packs/editor-home-model/HomePreferences.csbody": {
+        "sha256": "a43fdb58e82325bb1a84afb9f706ea78e7aa2ae2cf573d598ac21db268ce3109",
+        "bytes": 3232
+      },
+      "packs/editor-home-model/HomePreferencesBody.celem": {
+        "sha256": "c42f95f4e12c89ff30936de3335691d66dda05555bb5449cd3c2aada7b561d75",
+        "bytes": 298
+      },
+      "tests/web/v480_home_state.py": {
+        "sha256": "6bc6948dea7323f314004eae6698c0881371f85c2fc65e5b411a93e809ea24ca",
+        "bytes": 9804
+      },
+      "examples/editor-home/Verify.csbody": {
+        "sha256": "872d8ebf31a2b198826f9509d153ea2f5fc054762dd51fa4117b814ee675e5cb",
+        "bytes": 12589
+      },
+      "examples/editor-home/WebBundle.csbody": {
+        "sha256": "3fd682731b3d85c3ba025718ff0ef29e4bc4c23d9282069a403a22d8da709e15",
+        "bytes": 9780
+      },
+      "examples/editor-home/WebInvoke.csbody": {
+        "sha256": "7c29f474d5bd4763683ddc9178e4f3e0ec8bbaaa510a294f201bb4c7ff8bad2d",
+        "bytes": 23108
+      },
+      "examples/editor-home/WebState.csbody": {
+        "sha256": "8453f4f706e483d498d760a75756f326b9929b467f3bf6e7963067c11c43d639",
+        "bytes": 27894
+      },
+      "examples/editor-home/ui/app.js": {
+        "sha256": "501b7d13c4ae3dc781e3948041fc72031a8368b2592bf9a3bddf80718921fc7a",
+        "bytes": 226665
+      },
+      "examples/editor-home/ui/inventory.js": {
+        "sha256": "67b5de3d43af0616d9cd3bf8dbe7711112fe1e7e08887f199299306de0332198",
+        "bytes": 12080
+      },
+      "packs/editor-home-model/Command.celem": {
+        "sha256": "696a3a6bedccc80cb9d5199c184dc3230407634960c18605503d80ed35a50552",
+        "bytes": 5855
+      },
+      "packs/editor-home-model/Command.csbody": {
+        "sha256": "50607b9799c8d654c2186fdc699da9a0beb4958a91e58748dde8d6d003db0d9a",
+        "bytes": 102324
+      },
+      "packs/editor-home-model/CommandBody.celem": {
+        "sha256": "ce3a9ead17d97f79900134fb6cd1adb7b39f2a23475d8766d5a1bf5a1c7cb666",
+        "bytes": 8220
+      },
+      "packs/editor-home-model/CreateSession.android.csbody": {
+        "sha256": "1e8cf2d451ea29a7a6adc32ed91da2ba76f098530156a3f6ea41867a42b39947",
+        "bytes": 2291
+      },
+      "packs/editor-home-model/CreateSession.browser.csbody": {
+        "sha256": "1e8cf2d451ea29a7a6adc32ed91da2ba76f098530156a3f6ea41867a42b39947",
+        "bytes": 2291
+      },
+      "packs/editor-home-model/CreateSession.celem": {
+        "sha256": "d3c7e329b0b5ef5f4efadd64723e1069e263d2598955317bea7d5bed43806519",
+        "bytes": 688
+      },
+      "packs/editor-home-model/CreateSession.csbody": {
+        "sha256": "ee1b4b184157a86e34c27ae4ff88ad1acefd57da8d4c147f9203b4aae329eb08",
+        "bytes": 2810
+      },
+      "packs/editor-home-model/CreateSessionBody.celem": {
+        "sha256": "4f139bef9adc19ccd5016f8d8e038abce73b9bbb1f80a860fc7955069eea285d",
+        "bytes": 634
+      },
+      "packs/editor-home-model/pack.cpack": {
+        "sha256": "35a4ca616bfd1071842f7d7a4a94be786e94ae6bda11f0ad103140f48ce11929",
+        "bytes": 2050
+      },
+      "tests/Confectory.Tests/WebUITests.cs": {
+        "sha256": "c494abd0737a1ac43f0349c46a4ced550d4551a98add655a988088b50c3788a6",
+        "bytes": 54457
+      }
+    },
+    "changesSinceRun": []
   },
   "resourceCount": 37,
   "engineAndExecutionSemanticsUnchanged": true,
