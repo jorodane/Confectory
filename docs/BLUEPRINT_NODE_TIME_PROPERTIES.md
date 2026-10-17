@@ -46,3 +46,5 @@ Save/cold 복원은 미적용 입력을 유지하고 preview/basis를 재사용�
 main·원본 ZIP·Android 설정을 변경하지 않는다. 실제 계정·유료 모델·사용자 PC 설치·native/device 실행은 검증 범위에 넣지 않는다. v480 전체 구현 완료를 뜻하지 않는다.
 
 고정한 제품·테스트 47개 파일에서 최종 엔진/공개 편집/ABI **82/0/0, 1576.979초**, 실제 Chromium 편집은 서로 다른 테스트를 맡은 두 프로세스에서 **25/0/0**(개별 프로세스 최대 908.750초), Windows/Android 관리 프로필 **1/0/0, 171.496초**로 통과했다. 이전 중복 검사는 합산하지 않는다. [현재 계약 미리보기](evidence/blueprint-node-time-properties/property-preview.png)와 [확정 후 복원](evidence/blueprint-node-time-properties/property-published.png)은 실제 실행한 브라우저 캡처다.
+
+구현 커밋 `2536d714675b56edf69ce45c1f502d4d6351bbdb`의 일반 Git checkout·보존 CRLF/새 LF·33개 리소스·실제 Home 시작·변조 거부는 **1/0/0, 6.600초**로 통과했다. 최종 회귀 뒤 제품·테스트 소스는 바뀌지 않았다.

@@ -581,6 +581,21 @@
     "packs/edit-workspace/BlueprintNode.csbody",
     "tests/Confectory.Tests/PropertyAuthoringTests.cs"
   ],
+  "ordinaryCheckout": {
+    "log": "confectory-properties/ordinary-checkout.log",
+    "sha256": "8c2abae36554e76a0866176c53d63d6c8f1ae8da0e905402975adc1468c08366",
+    "scope": "Committed implementation, retained CRLF/fresh LF, pinned resources, actual Home startup and tamper refusal",
+    "sourceQualification": "exact committed product",
+    "completed": true,
+    "passedMethods": [
+      "WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup"
+    ],
+    "failedMethods": [],
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "seconds": 6.6
+  },
   "screenshots": [
     {
       "path": "docs/evidence/blueprint-node-time-properties/property-preview.png",
@@ -592,5 +607,6 @@
       "sha256": "378110d54c214dcee9551a1a26eca0c567d5619aab061ed2f68eb78cca65d1ba",
       "scope": "Actual Chromium editing; viewed by agent"
     }
-  ]
+  ],
+  "implementationCommit": "2536d714675b56edf69ce45c1f502d4d6351bbdb"
 }
