@@ -26,6 +26,6 @@
 
 ## 실행 검증
 
-고정한 최종 소스의 엔진·공개 편집 **48/0/0 (817.034초)**, Chromium UI **10/0/0 (755.403초)**, Windows/Android 관리 대상 컴파일 **1/0/0 (180.433초)**를 확인했다. 집중 검사 11/0/0 (168.474초)와 초기 실패 단계는 [단계별 근거](evidence/v480-integration/external-ref-storage.json)에 별도로 보존하며 중복 합산하지 않는다. 일반 Git 체크아웃·리소스 시작은 구현 커밋 후 별도로 확인한다.
+고정한 최종 소스의 엔진·공개 편집 **48/0/0 (817.034초)**, Chromium UI **10/0/0 (755.403초)**, Windows/Android 관리 대상 컴파일 **1/0/0 (180.433초)**를 확인했다. 집중 검사 11/0/0 (168.474초)와 초기 실패 단계는 [단계별 근거](evidence/v480-integration/external-ref-storage.json)에 별도로 보존하며 중복 합산하지 않는다. 구현 커밋 `9be246d`의 일반 Git 체크아웃·리소스 시작도 **1/0/0 (7.062초)**으로 통과했다. 기존 CRLF 체크아웃에서 fast-forward pull 후 유지된 원본 바이트와 fresh LF, 33개 리소스, 실제 Home 시작, 변조·인코딩·BOM·바이너리·크기 거부를 확인했다.
 
 실제 실행은 ref/ref/out 같은 caller 변수 `120,40`, 별도 out `80,20,40`, 서로 다른 ref `52,10,16,26`, 합류 뒤 조건부 out/후속 별칭 쓰기 `11,11` 대 `6,0`, 배열 변수 교체 `24,12` 반복, 예외 종료 `expected,7`, out/out 동일 caller `20,20` 대 서로 다른 caller `10,10,20`을 포함한다. 원본과 변환 후의 재귀·scope·다른 타깃 결과, 실제 C# out 미할당 오류 거부도 검사했다. [종료 경고](evidence/v480-integration/external-ref-ends.png)와 [외부 ref 전체 본문·cold 복원](evidence/v480-integration/external-ref-conversion.png)을 보존한다.

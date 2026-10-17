@@ -233,6 +233,24 @@
         "file": "final-source.json",
         "sha256": "1cd748e8ba33830c80ae39581c4207ed168952280d315fa714b4763b14043bc8"
       }
+    },
+    {
+      "log": "ordinary-checkout.log",
+      "sha256": "e018e239b25738d870cb352ff90e4a2aea1fcbbffc7cc7b1b87066fcdfa11ac0",
+      "scope": "ordinary autocrlf/pull/fresh LF 33 resources and actual Home startup",
+      "completed": true,
+      "passedMethods": [
+        "WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup"
+      ],
+      "failedMethods": [],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 7.062,
+      "sourceSnapshot": {
+        "file": "final-source.json",
+        "sha256": "1cd748e8ba33830c80ae39581c4207ed168952280d315fa714b4763b14043bc8"
+      }
     }
   ],
   "overlappingStagesMustNotBeSummed": true,
@@ -325,8 +343,20 @@
     "originalZIPsAndAndroidSettingsUnchanged": true,
     "androidFilesChanged": []
   },
-  "implementationCommit": null,
-  "ordinaryCheckout": null,
+  "implementationCommit": "9be246d81b7d4e6e647fd57803b6c9233522ed1a",
+  "ordinaryCheckout": {
+    "commit": "9be246d81b7d4e6e647fd57803b6c9233522ed1a",
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "seconds": 7.062,
+    "resourceCount": 33,
+    "legacyAutocrlfCheckoutThenOrdinaryFastForwardPull": true,
+    "retainedCrlfAndFreshLf": true,
+    "actualHomeStartup": true,
+    "contentEncodingBomBinaryBudgetRejection": true,
+    "originalBytesUnchanged": true
+  },
   "screenshots": [
     {
       "path": "docs/evidence/v480-integration/external-ref-ends.png",
