@@ -1,21 +1,27 @@
 // Confirmed local metadata only; domain edits remain in the existing consumer.
 export function createInventoryUI(api){
- const {$,$$,esc}=api;let group='local',query='',sort='default',selected=null;
+ const {$,$$,esc}=api;let group='local',events=null;const searches=Object.create(null);
+ const searchState=()=>searches[group]??=( {draft:'',query:'',sort:'default',selected:null} );
  const markup='<section class="home-tab-panel" id="home-packs" role="tabpanel" aria-labelledby="home-tab-packs" hidden><div class="home-pack-browser"><div class="home-pack-filter" role="tablist" aria-label="팩 목록"><button type="button" role="tab" data-pack-group="local" aria-selected="true">로컬</button><button type="button" role="tab" data-pack-group="explore" aria-selected="false" tabindex="-1">탐색</button><button type="button" role="tab" data-pack-group="favorite" aria-selected="false" tabindex="-1">즐겨찾기</button><button type="button" role="tab" data-pack-group="mine" aria-selected="false" tabindex="-1">나의 팩</button></div><form id="home-pack-search-form" class="home-pack-toolbar"><input id="home-pack-search" type="search" aria-label="팩 검색" placeholder="이름이나 설명으로 검색" autocomplete="off"><button class="secondary" type="submit" aria-label="검색 확인">🔍 검색</button><div class="home-pack-sort-wrap"><button class="secondary" type="button" id="home-pack-sort" aria-haspopup="true" aria-expanded="false">↕ 정렬</button><div id="home-pack-sort-menu" class="home-pack-sort-menu" hidden><button type="button" data-pack-sort="default">기본순</button><button type="button" data-pack-sort="name">이름순</button><button type="button" data-pack-sort="version">버전순</button></div></div><button class="secondary" type="button" id="home-pack-create" hidden>＋ 새로 만들기</button><button class="secondary" type="button" id="home-pack-refresh" aria-label="탐색 목록 새로고침" title="새로고침" hidden>⟳ 새로고침</button></form><div class="home-pack-layout"><div id="home-pack-list" class="home-pack-list" aria-label="팩 목록"></div><section id="home-pack-detail" class="home-pack-detail" aria-label="팩 설명"></section></div></div></section>';
  function home(){return markup}
  function bindHome(){
   const panel=$('#home-packs');if(!panel)return;
-  const choose=packs=>{if(!panel.isConnected)return;$('.home-grid').classList.toggle('is-project-view',!packs);$('.home-main').classList.toggle('is-pack-view',packs);$('#home-projects').hidden=packs;panel.hidden=!packs;$('.home-section-title h1').textContent=packs?'팩':'프로젝트';$('.home-project-controls').hidden=packs;for(const key of ['projects','packs']){const b=$('#home-tab-'+key);b.setAttribute('aria-selected',String((key==='packs')===packs));b.tabIndex=((key==='packs')===packs)?0:-1;}};
+  events?.abort();events=new AbortController();const closeSort=()=>{$('#home-pack-sort-menu').hidden=true;$('#home-pack-sort').setAttribute('aria-expanded','false');};
+  const choose=packs=>{if(!panel.isConnected)return;closeSort();$('.home-grid').classList.toggle('is-project-view',!packs);$('.home-main').classList.toggle('is-pack-view',packs);$('#home-projects').hidden=packs;panel.hidden=!packs;$('.home-section-title h1').textContent=packs?'팩':'프로젝트';$('.home-project-controls').hidden=packs;for(const key of ['projects','packs']){const b=$('#home-tab-'+key);b.setAttribute('aria-selected',String((key==='packs')===packs));b.tabIndex=((key==='packs')===packs)?0:-1;}};
   $('#home-tab-projects').onclick=()=>choose(false);
-  $('#home-tab-packs').onclick=()=>{choose(true);api.load();renderHome()};
-  for(const b of $$('.home-pack-filter button'))b.onclick=()=>{group=b.dataset.packGroup;selected=null;renderHome()};
-  $('#home-pack-search-form').onsubmit=e=>{e.preventDefault();query=$('#home-pack-search').value.trim();renderHome()};
-  $('#home-pack-sort').onclick=()=>{const menu=$('#home-pack-sort-menu');menu.hidden=!menu.hidden;$('#home-pack-sort').setAttribute('aria-expanded',String(!menu.hidden))};
-  for(const b of $$('[data-pack-sort]'))b.onclick=()=>{sort=b.dataset.packSort;$('#home-pack-sort-menu').hidden=true;renderHome()};
+  $('#home-tab-packs').onclick=()=>{if(!panel.hidden)return;choose(true);api.load();renderHome()};
+  for(const b of $$('.home-pack-filter button'))b.onclick=()=>{if(group===b.dataset.packGroup)return;closeSort();group=b.dataset.packGroup;renderHome()};
+  $('#home-pack-search').value=searchState().draft;$('#home-pack-search').oninput=()=>searchState().draft=$('#home-pack-search').value;
+  $('#home-pack-search-form').onsubmit=e=>{e.preventDefault();searchState().query=searchState().draft.trim();renderHome()};
+  $('#home-pack-sort').onclick=()=>{const menu=$('#home-pack-sort-menu');menu.hidden=!menu.hidden;$('#home-pack-sort').setAttribute('aria-expanded',String(!menu.hidden));if(!menu.hidden)menu.querySelector('button').focus()};
+  for(const b of $$('[data-pack-sort]'))b.onclick=()=>{searchState().sort=b.dataset.packSort;closeSort();renderHome()};
+  document.addEventListener('pointerdown',e=>{if(panel.isConnected&&!e.target.closest('#home-pack-sort,#home-pack-sort-menu'))closeSort();},{signal:events.signal});
+  $('#home-pack-sort-menu').onkeydown=e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();closeSort();$('#home-pack-sort').focus();}};
   $('#home-pack-refresh').disabled=true;$('#home-pack-refresh').title='원격 탐색 목록 갱신 계약 미연결';
   $('#home-pack-create').disabled=true;$('#home-pack-create').title='팩 생성 계약 미연결';renderHome();
  }
  function renderHome(){const list=$('#home-pack-list'),detail=$('#home-pack-detail');if(!list)return;
+  const state=searchState(),{query,sort}=state,search=$('#home-pack-search');if(search.value!==state.draft)search.value=state.draft;
   for(const b of $$('.home-pack-filter button')){b.setAttribute('aria-selected',String(b.dataset.packGroup===group));b.tabIndex=b.dataset.packGroup===group?0:-1}
   $('#home-pack-create').hidden=group!=='mine';$('#home-pack-refresh').hidden=group!=='explore';
   const catalog=api.current.inventory;
@@ -23,10 +29,10 @@ export function createInventoryUI(api){
   if(catalog?.status!=='available'){list.innerHTML='<p class="small home-pack-empty">'+(catalog?'실제 로컬 팩 목록을 읽지 못했습니다.':'실제 로컬 팩 목록을 불러오는 중입니다.')+'</p>';detail.replaceChildren();return}
   const rows=catalog.packs.filter(p=>(p.namespace+' '+p.description).toLocaleLowerCase().includes(query.toLocaleLowerCase()));
   if(sort!=='default')rows.sort((a,b)=>sort==='version'?b.version.localeCompare(a.version,undefined,{numeric:true}):a.namespace.localeCompare(b.namespace));
-  if(!rows.some(p=>p.namespace===selected))selected=rows[0]?.namespace;
-  list.innerHTML=rows.map(p=>`<button type="button" class="home-pack-row" data-pack="${esc(p.namespace)}" aria-pressed="${p.namespace===selected}"><span class="home-pack-row-icon">▣</span><span><strong>${esc(p.namespace)}</strong><small>${esc(p.description)}</small></span><span class="tag">${esc(p.version)}</span></button>`).join('')||'<p class="small home-pack-empty">검색 결과가 없습니다.</p>';
-  for(const b of $$('[data-pack]',list))b.onclick=()=>{selected=b.dataset.pack;renderHome()};
-  const p=rows.find(p=>p.namespace===selected);detail.innerHTML=p?`<header class="home-pack-detail-head"><div class="project-icon">▣</div><div class="home-pack-title"><h2>${esc(p.namespace)}</h2><div class="home-pack-detail-meta"><span class="tag">${esc(p.version)}</span><span class="tag">${p.owned?'현재 ProjectPack':'로컬 등록 팩'}</span></div></div></header><p>${esc(p.description)}</p><p>${p.count} 선언 · ${esc(p.kind)}</p><div class="home-pack-actions"><button class="secondary" disabled>업데이트</button><button class="secondary" disabled>삭제</button></div><small>현재 호스트 ProjectPack의 실제 registry입니다. 설치 목록과 사용자 소유권을 뜻하지 않습니다. 업데이트·삭제·구매 계약은 연결되지 않았습니다.</small><p>의존성</p>${Object.entries(p.dependencies).map(([id,version])=>`<div data-dependency="${esc(id)}">${esc(id)} · ${esc(version)}</div>`).join('')||'<p class="small">선언된 의존성이 없습니다.</p>'}`:'';
+  if(!rows.some(p=>p.namespace===state.selected))state.selected=rows[0]?.namespace;
+  list.innerHTML=rows.map(p=>`<button type="button" class="home-pack-row" data-pack="${esc(p.namespace)}" aria-pressed="${p.namespace===state.selected}"><span class="home-pack-row-icon">▣</span><span><strong>${esc(p.namespace)}</strong><small>${esc(p.description)}</small></span><span class="tag">${esc(p.version)}</span></button>`).join('')||'<p class="small home-pack-empty">검색 결과가 없습니다.</p>';
+  for(const b of $$('[data-pack]',list))b.onclick=()=>{state.selected=b.dataset.pack;renderHome()};
+  const p=rows.find(p=>p.namespace===state.selected);detail.innerHTML=p?`<header class="home-pack-detail-head"><div class="project-icon">▣</div><div class="home-pack-title"><h2>${esc(p.namespace)}</h2><div class="home-pack-detail-meta"><span class="tag">${esc(p.version)}</span><span class="tag">${p.owned?'현재 ProjectPack':'로컬 등록 팩'}</span></div></div></header><p>${esc(p.description)}</p><p>${p.count} 선언 · ${esc(p.kind)}</p><div class="home-pack-actions"><button class="secondary" disabled>업데이트</button><button class="secondary" disabled>삭제</button></div><small>현재 호스트 ProjectPack의 실제 registry입니다. 설치 목록과 사용자 소유권을 뜻하지 않습니다. 업데이트·삭제·구매 계약은 연결되지 않았습니다.</small><p>의존성</p>${Object.entries(p.dependencies).map(([id,version])=>`<div data-dependency="${esc(id)}">${esc(id)} · ${esc(version)}</div>`).join('')||'<p class="small">선언된 의존성이 없습니다.</p>'}`:'';
  }
  function items(w){if(!w.meta.catalogue)return null;const inventory=api.current.inventory;if(inventory?.status!=='available')return [];
   const kind=w.meta.kind??{concept:'object',feature:'function',module:'module'}[w.meta.group],q=(w.meta.query||'').toLocaleLowerCase(),owner=w.meta.namespace||'';

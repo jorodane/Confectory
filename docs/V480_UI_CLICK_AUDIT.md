@@ -34,3 +34,5 @@
 고정한 UI/테스트 원본 **9개**에서 실제 Chromium 영향 회귀는 **4/0/0, 256.762초**, Windows/Android 관리 프로필 컴파일은 **1/0/0, 122.966초**로 통과했다. 카메라·도킹·graph별 sidebar·콜드, 기존 소유 graph 편집, 이름 있는 로컬/출력의 원본 보존, switch compiler Confirm을 포함한다. 엔진/API/compiler 코드는 바꾸지 않았으며 이전 엔진 94건 결과를 이번 새 실행 수에 더하지 않는다.
 
 앞선 초기 검사와 연결 대기 보존 보완 전의 UI 4/0/0, 관리 1/0/0은 별도 이력이다. 최종 수에 합산하지 않는다. 일반 Git checkout·보존 CRLF/새 LF·36개 리소스·실제 Home 시작·변조 거부는 구현 커밋 HEAD로 검사하고 [검증 JSON](validation/v480-ui-click-audit.json)의 `checkout`에 정확한 HEAD와 결과를 기록한다.
+
+Home 카드 투영과 브라우저·문서 전환의 후속 대조는 [별도 기록](V480_HOME_BROWSER_NAVIGATION.md)에 있다. 그룹별 검색/입력과 반복 열기 누락은 수정했고, 카드 통계 세 값은 실제 투영에 없음을 확인해 계약 미연결로 남겼다. 필드/참조 드래그·문서 링크 전체 대조는 계속 남는다.

@@ -1,0 +1,170 @@
+{
+  "schema": 1,
+  "kind": "v480-home-browser-navigation",
+  "baseline": {
+    "base": "8c5a12ac2fffa0eacf4f7f3b88e16c1d24390c0d",
+    "referenceZipSha256": "0489844c8c6d90f7cdc8ea0e80628f487dcfb27f2c871b19367a635212d3c5bd",
+    "referenceAppSha256": "009d608418a6069896893ba9ca8f8788e40d877da0151369049783c57cc9d70f",
+    "referenceFunctions": [
+      "renderHomeProjectList",
+      "bindHomePackBrowser",
+      "switchBrowserGroup",
+      "openBrowser"
+    ],
+    "policyPending": [
+      "integer expression overflow"
+    ],
+    "noNewSemantics": [
+      "property field writes/ref",
+      "new user ABI",
+      "service accounts"
+    ]
+  },
+  "source": {
+    "tests/web/v480_navigation.py": {
+      "sha256": "1a3fc321b1245f1a3dcab412df8c4458f04fa78b1ded3dd773ad8d1c5ff10aa3",
+      "bytes": 9760
+    },
+    "examples/editor-home/WebBundle.csbody": {
+      "sha256": "5aded19ded58855b8575e54136e8aadf2898b542f6b7f32eb3a01b44da1bed82",
+      "bytes": 9532
+    },
+    "examples/editor-home/ui/app.js": {
+      "sha256": "4fdd04bf4e76bf722e649d39546bcf9b25994a473464fc6f8f83a32c0fac540f",
+      "bytes": 224304
+    },
+    "examples/editor-home/ui/inventory.js": {
+      "sha256": "87e8aeec6778f40dce995cdcad91a932709ed044dd9484e5d8c4f47525e74cff",
+      "bytes": 11737
+    },
+    "examples/editor-home/ui/workspace-host.js": {
+      "sha256": "dde2e3fe5eef7d07ffb30a2da4f94ea480f74bab59e659aa34baa539fcf514ab",
+      "bytes": 16840
+    },
+    "tests/Confectory.Tests/WebUITests.cs": {
+      "sha256": "d46fee02cbb721bbea1b18755985442ac8c4d2dd209ab864ed43768c33fdd48d",
+      "bytes": 53814
+    },
+    "tests/web/web_ui.py": {
+      "sha256": "0767effd582aca296dd9cdffa4e024bb8b0c5648ae043db4c41d67778d00c59e",
+      "bytes": 61118
+    }
+  },
+  "gates": {
+    "ui": {
+      "exit": 0,
+      "methods": [
+        "WebUITests.test_actual_editor_v480_home_browser_document_repeat_cancel_and_restore",
+        "WebUITests.test_actual_editor_v318_home_search_favorite_restart_remove",
+        "WebUITests.test_actual_editor_v318_inventory_and_browser_instances_restart",
+        "WebUITests.test_actual_editor_v480_window_document_docking_cold_inputs_and_compiler_confirm",
+        "WebUITests.test_actual_editor_v480_tab_reorder_cancel_canvas_drop_and_cold_order",
+        "WebUITests.test_actual_editor_v480_note_document_tabs_canonical_ownership_and_cold_source_input"
+      ],
+      "head": "8c5a12ac2fffa0eacf4f7f3b88e16c1d24390c0d",
+      "elapsed": 139.8439842329999,
+      "sourceManifestSha256": "6508baa7358b94ccf4910d3651d554f838ad8469ba58ab751846a383863b2a04",
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 139.805,
+      "logSha256": "31ff0bcfcbfa714bb5f6b462ff325428d2b1a660e814f34976a8e7b68d28cbd7"
+    },
+    "managed": {
+      "exit": 0,
+      "methods": [
+        "EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only"
+      ],
+      "head": "8c5a12ac2fffa0eacf4f7f3b88e16c1d24390c0d",
+      "elapsed": 130.46201565,
+      "sourceManifestSha256": "6508baa7358b94ccf4910d3651d554f838ad8469ba58ab751846a383863b2a04",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 130.406,
+      "logSha256": "06fb646bc81b43cf17d09f5fbf45118901959990cf5a6dce5c1806fe8c157b77"
+    }
+  },
+  "checkout": {
+    "state": "pending-implementation-HEAD"
+  },
+  "resourceCount": 36,
+  "compilerApiAndExecutionSemanticsUnchanged": true,
+  "findings": [
+    "repeat active pack tab lost selection",
+    "pack group switch lost unsubmitted query",
+    "sort menu aria-expanded retained after close",
+    "Home redraw lost query input but retained filtering",
+    "repeat active browser group cleared query",
+    "repeat browser open replaced live search DOM",
+    "browser group round trip lost location/query"
+  ],
+  "finalBehavior": [
+    "per-group Home applied/draft query, sort and selection retained for the same host",
+    "Escape/outside sort cancellation restores aria state",
+    "repeat browser navigation preserves live input DOM and native undo/redo edited after docking",
+    "per-window/group location and applied/draft query restored through document docking and actual host restart",
+    "dirty source blocks working-copy selection/query transitions before metadata changes",
+    "original project files unchanged in navigation regression"
+  ],
+  "previousStages": [
+    {
+      "log": "before-fix.log",
+      "result": "0/1/0 72.015",
+      "note": "Test cardinality assumption corrected: actual registry search matches both namespace and subnamespace."
+    },
+    {
+      "log": "reproduce.log",
+      "result": "0/1/0 10.687",
+      "productBase": "8c5a12ac2fffa0eacf4f7f3b88e16c1d24390c0d",
+      "note": "Seven product symptoms reproduced; original files unchanged."
+    },
+    {
+      "log": "before-test-sequence-correction.log",
+      "result": "0/1/0 18.155",
+      "note": "Docking retains the input DOM/value but Chromium native undo predating reparenting is not retained; isolated append/moveBefore reproducer also fails. Test scopes native undo to later input edits."
+    },
+    {
+      "log": "focused.log",
+      "result": "1/0/0 12.274",
+      "note": "Focused pass repeated in final suite; not added to final count."
+    }
+  ],
+  "remainingCategories": {
+    "lookupOrStorageContractMissing": [
+      "Home card edit time/pack count/object count: public card projection contains only id/title/description/favorite",
+      "Home search cold preference: app-wide store absent; project-only presentation is not misused"
+    ],
+    "policyAwaiting": [
+      "int/long expression overflow error versus wrap, still unanswered"
+    ],
+    "existingContractAuditPending": [
+      "browser tree/category grouping and field columns/reference gestures",
+      "document link transitions",
+      "native undo history predating reparenting; value/DOM preservation and post-docking undo are separately verified"
+    ],
+    "newContractOutsideScope": [
+      "structural property write/ref",
+      "compound/function live property",
+      "general user enum/Vector3 ABI",
+      "full ownership-set undo",
+      "external actor/recipient/room/ack and frame/ack services",
+      "remote pack market/install/publisher services"
+    ],
+    "environmentUnverified": [
+      "actual service accounts/paid models",
+      "native OS/device UI",
+      "user PC installation"
+    ]
+  },
+  "protected": {
+    "localMain": "b5ea38c3d7eec3eb20f170e68f0f4215b86b2aee",
+    "remoteMain": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+    "zips": {
+      "reference/site-ui/Confectory-Editor-Prototype-v196.zip": "02d4824e92ed0edbb43113659982b37a99a614117652bde4d8ac92367e334e34",
+      "reference/site-ui/Confectory-Editor-Prototype-v318.zip": "0a614fe2bf1ad3d8e10dfa8905bb6b61ea9f21b87b2492b2b87ca8566e9e6908",
+      "reference/site-ui/Confectory-Editor-Prototype-v424.zip": "b7969cd109ea2dad38bde9c9ab13967c20162c920a45a8cd51a8f82df6041874",
+      "reference/site-ui/Confectory-Editor-Prototype-v480.zip": "0489844c8c6d90f7cdc8ea0e80628f487dcfb27f2c871b19367a635212d3c5bd"
+    }
+  }
+}
