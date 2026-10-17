@@ -407,10 +407,39 @@
       "skipped": 0,
       "reportedSeconds": 130.015,
       "logSha256": "9cf10c3ffc83f107beff5a86fdcf43b912387f8decb501a07cc06ef38fe33720"
+    },
+    "checkout": {
+      "kind": "checkout",
+      "exit": 0,
+      "selected": 1,
+      "methods": [
+        "WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup"
+      ],
+      "head": "b42c1cc1df4a144cd7755e1f17cad4905447ed69",
+      "elapsed": 6.99419745199998,
+      "frozenSourceSha256": "efe8611a89afb44216f1237ad8e2fde00885cc18b61123826a8c9f2dc2d5f611",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 6.96,
+      "logSha256": "dd986e696aaa05a334fa8cfef50ed9227419bfdbd2dbcedbbfa290e48dd851b4"
     }
   },
   "checkout": {
-    "state": "pending-after-implementation-commit"
+    "kind": "checkout",
+    "exit": 0,
+    "selected": 1,
+    "methods": [
+      "WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup"
+    ],
+    "head": "b42c1cc1df4a144cd7755e1f17cad4905447ed69",
+    "elapsed": 6.99419745199998,
+    "frozenSourceSha256": "efe8611a89afb44216f1237ad8e2fde00885cc18b61123826a8c9f2dc2d5f611",
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "reportedSeconds": 6.96,
+    "logSha256": "dd986e696aaa05a334fa8cfef50ed9227419bfdbd2dbcedbbfa290e48dd851b4"
   },
   "resources": 36,
   "protected": {
