@@ -161,3 +161,8 @@ graph별 카메라·확대·배치·선택도 private presentation이다. 헤더
 ## 이름 있는 out 출력 · 후속
 
 `sync-acyclic-implicit-out-v1`/생성기 v4에서 외부 계약과 노드의 이름 있는 out 결과, 출력별 export·종료 분석과 명시적 계약 갱신을 지원한다. 기존 두 profile의 의미와 mode 없는 계약 해시는 유지한다. 전체 본문의 원래 멤버와 현재 인터페이스를 구분해 원본과 호출 문맥을 보존한다. [계약·편집·검증·남은 전체 범위](BLUEPRINT_NAMED_OUT_OUTPUTS.md). ref, 중첩 graph, 로컬 값과 확장 실행 포트는 후속 범위다.
+
+
+## 명시적 로컬 값 · 후속
+
+새 `sync-acyclic-locals-v1`/생성기 v5에서 타입·상수 초기값이 명시된 호출별 로컬 저장 공간과 구조적 set 노드를 지원한다. 기존 profile·out 종료별 경고·본문 전환을 유지하고 CAS/cold/별도 compiler Confirm을 따른다. [정확한 계약·검증·남은 전체 범위](BLUEPRINT_LOCAL_VALUES.md). ref·중첩 graph·property/expression 로컬과 확장 실행 의미는 별도 후속이다.

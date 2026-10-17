@@ -96,7 +96,7 @@ public static partial class FeatureBlueprint
         string contractHash = Hash(CanonicalText(new JsonObject { ["feature"] = feature.Id, ["signature"] = contract.DeepClone() }));
         var graph = request["graph"]!.AsObject();
         Need(graph["schema"]?.GetValue<int>() == 1, "GRAPH_SCHEMA", "schema");
-        string profile=S(graph,"profile");bool multiOutput=profile==MultiOutputProfile, implicitEnd=profile==ImplicitProfile||multiOutput;string generator=multiOutput?MultiOutputGenerator:implicitEnd?ImplicitGenerator:Generator;
+        string profile=S(graph,"profile");bool localProfile=profile==LocalsProfile,multiOutput=profile==MultiOutputProfile||localProfile, implicitEnd=profile==ImplicitProfile||multiOutput;string generator=localProfile?LocalsGenerator:multiOutput?MultiOutputGenerator:implicitEnd?ImplicitGenerator:Generator;
         Need(profile==Profile||implicitEnd,"GRAPH_PROFILE_UNSUPPORTED",profile);
         Need(multiOutput || !feature.Signature!.Args.Any(p=>p.IsOut), "GRAPH_PARAMETER_MODE_PROFILE", profile);
         Need(S(graph, "feature") == feature.Id, "GRAPH_FEATURE_MISMATCH", "feature");
@@ -118,13 +118,14 @@ public static partial class FeatureBlueprint
         }
 
         if(multiOutput)Need(feature.Signature!.Args.Count<=64&&graph["nodes"]!.AsArray().Count<=256,"GRAPH_MULTI_OUTPUT_BUDGET",feature.Id);
+        var locals=ReadLocals(graph,localProfile);
         var nodes = new Dictionary<string, Node>(StringComparer.Ordinal);
         foreach (var item in graph["nodes"]!.AsArray())
         {
             var value = item!.AsObject();
             string id = Id(value, "id"), kind = S(value, "kind"), control = S(value, "control"), intent = S(value, "intent");
             Need(!nodes.ContainsKey(id), "GRAPH_DUPLICATE_NODE", id);
-            Need(kind is "code" or "call" || implicitEnd && kind=="export", "GRAPH_NODE_KIND", id);
+            Need(kind is "code" or "call" || implicitEnd && kind=="export" || localProfile && kind=="set", "GRAPH_NODE_KIND", id);
             Need(control is "next" or "branch", "GRAPH_CONTROL", id);
             Need(!string.IsNullOrWhiteSpace(intent), "NODE_INTENT", id);
             var signature = Signature(value["signature"]!);
@@ -132,6 +133,7 @@ public static partial class FeatureBlueprint
             Need(value["implementationContext"] is JsonObject || !signature.Args.Any(p => (p.Name.StartsWith("__fg_", StringComparison.Ordinal) || p.Name.StartsWith("fg_call_", StringComparison.Ordinal))), "NODE_RESERVED_NAME", id);
             Need(control != "branch" || signature.Return == "bool", "GRAPH_BRANCH_TYPE", id);
             if(kind=="export")Need(signature.Args.Count==1&&!signature.Args[0].IsOut&&signature.Args[0].Name=="value"&&FeatureOutputs(feature.Signature!).Any(p=>p.Name==S(value,"output")&&p.Type==signature.Args[0].Type)&&control=="next"&&signature.Return=="void","GRAPH_OUTPUT_CONTRACT",id);
+            if(kind=="set")Need(signature.Args.Count==1&&!signature.Args[0].IsOut&&signature.Args[0].Name=="value"&&signature.Return=="void"&&control=="next"&&locals.TryGetValue(S(value,"local"),out var storage)&&S(storage,"type")==signature.Args[0].Type,"GRAPH_LOCAL_CONTRACT",id);
             var references = new JsonObject();
             string? called = null;
             if (kind == "call")
@@ -159,6 +161,7 @@ public static partial class FeatureBlueprint
                 ["featureContracts"] = references
             };
             if(kind=="export")definition["output"]=S(value,"output");
+            if(kind=="set")definition["local"]=S(value,"local");
             if (value["implementationContext"] is JsonObject context)
             {
                 var actualContext = request["implementationContext"] as JsonObject;
@@ -217,7 +220,7 @@ public static partial class FeatureBlueprint
             {
                 ["state"] = "node-definitions", ["feature"] = feature.Id, ["profile"] = profile, ["contractHash"] = contractHash, ["signature"] = contract.DeepClone(),
                 ["nodes"] = new JsonArray(nodes.OrderBy(p => p.Key, StringComparer.Ordinal).Select(p => (JsonNode)new JsonObject { ["id"] = p.Key, ["definitionHash"] = p.Value.DefinitionHash, ["definition"] = p.Value.Definition.DeepClone(), ["outputs"] = OutputDocument(p.Value.Signature) }).ToArray()),
-                ["outputs"] = OutputDocument(feature.Signature!), ["contractVersions"] = versions,
+                ["locals"] = LocalDocument(locals), ["outputs"] = OutputDocument(feature.Signature!), ["contractVersions"] = versions,
                 ["imports"] = new JsonArray(imports.OrderBy(i => i.Key, StringComparer.Ordinal).Select(i => (JsonNode)new JsonObject { ["feature"] = i.Key, ["alias"] = i.Value.Alias, ["contractHash"] = i.Value.Hash, ["binding"] = canonicalImports.Contains(i.Key) ? "canonical" : "implementation-context", ["signature"] = SignatureNode(i.Value.Element.Signature!) }).ToArray()),
                 ["independentNodeCompilation"] = true, ["sourceWritten"] = false, ["compiled"] = false, ["executed"] = false
             };
@@ -286,8 +289,8 @@ public static partial class FeatureBlueprint
             JsonNode? record = request["implementations"]?[id];
             string? body = node.Kind == "call" ? null : record?["source"]?.GetValue<string>();
             string? codeHash = body is null ? null : Hash(HasContext(node) ? body : body.Replace("\r\n", "\n"));
-            string status = node.Kind == "export" ? "output-assignment" : node.Kind == "call" ? "feature-reference" : body is null ? "missing" : record?["definitionHash"]?.ToString() != node.DefinitionHash ? "stale" : "available";
-            manifestNodes.Add(new JsonObject { ["id"] = id, ["definitionHash"] = node.DefinitionHash, ["definition"] = node.Definition.DeepClone(), ["implementationHash"] = codeHash, ["status"] = status, ["reachable"] = reachable.Contains(id), ["compilationEligible"] = status is "available" or "feature-reference" or "output-assignment", ["includedInSource"] = false, ["compilerValidated"] = false });
+            string status = node.Kind == "export" ? "output-assignment" : node.Kind == "set" ? "local-assignment" : node.Kind == "call" ? "feature-reference" : body is null ? "missing" : record?["definitionHash"]?.ToString() != node.DefinitionHash ? "stale" : "available";
+            manifestNodes.Add(new JsonObject { ["id"] = id, ["definitionHash"] = node.DefinitionHash, ["definition"] = node.Definition.DeepClone(), ["implementationHash"] = codeHash, ["status"] = status, ["reachable"] = reachable.Contains(id), ["compilationEligible"] = status is "available" or "feature-reference" or "output-assignment" or "local-assignment", ["includedInSource"] = false, ["compilerValidated"] = false });
             if (status is "missing" or "stale")
             { if (reachable.Contains(id)) missing.Add(id); }
             else if (body is not null)
@@ -297,7 +300,8 @@ public static partial class FeatureBlueprint
         }
 
         var sortedEdges = new JsonArray(edges.OrderBy(e => e.Key.Item1, StringComparer.Ordinal).ThenBy(e => e.Key.Item2, StringComparer.Ordinal).Select(e => (JsonNode)new JsonObject { ["from"] = e.Key.Item1, ["port"] = e.Key.Item2, ["to"] = e.Value }).ToArray());
-        string topologyHash = Hash(CanonicalText(new JsonObject { ["entry"] = entry, ["edges"] = sortedEdges, ["exits"] = exits.DeepClone(), ["arguments"] = new JsonObject(nodes.OrderBy(n => n.Key, StringComparer.Ordinal).Select(n => new KeyValuePair<string, JsonNode?>(n.Key, n.Value.Arguments.DeepClone()))) }));
+        var topology=new JsonObject { ["entry"] = entry, ["edges"] = sortedEdges, ["exits"] = exits.DeepClone(), ["arguments"] = new JsonObject(nodes.OrderBy(n => n.Key, StringComparer.Ordinal).Select(n => new KeyValuePair<string, JsonNode?>(n.Key, n.Value.Arguments.DeepClone()))) };if(localProfile)topology["locals"]=LocalDocument(locals);
+        string topologyHash = Hash(CanonicalText(topology));
         var reply = new JsonObject
         {
             ["state"] = missing.Count > 0 ? "needs-implementation" : "source-ready",
@@ -308,6 +312,7 @@ public static partial class FeatureBlueprint
             ["contractHash"] = contractHash,
             ["topologyHash"] = topologyHash,
             ["nodes"] = manifestNodes,
+            ["locals"] = LocalDocument(locals),
             ["disconnected"] = new JsonArray(nodes.Keys.Where(id => !reachable.Contains(id)).Order(StringComparer.Ordinal).Select(id => (JsonNode)JsonValue.Create(id)!).ToArray()),
             ["sourceWritten"] = false,
             ["compiled"] = false,
@@ -320,26 +325,8 @@ public static partial class FeatureBlueprint
         string Value(string id,string result="return") => Symbol(id) + (result=="return"?"_value":"_out_"+Hash(result)[..16]);
         string FeatureValue(string name)=>name=="return"?prefix+"output_return":name;
         string Label(string target) => Exit(target)||Terminal(target) ? "__fg_exit_" + Hash(target)[..32] : Symbol(target) + "_run";
-        string Literal(JsonNode? value, string type)
-        {
-            if (type.EndsWith("[]", StringComparison.Ordinal))
-            {
-                Need(value is JsonArray, "GRAPH_CONSTANT_TYPE", type);
-                return "new " + type[..^2] + "[]{" + string.Join(",", value!.AsArray().Select(v => Literal(v, type[..^2]))) + "}";
-            }
-
-            var datum = JsonSerializer.SerializeToElement(value);
-            return type switch
-            {
-                "string" when datum.ValueKind == JsonValueKind.String => JsonSerializer.Serialize(datum.GetString()),
-                "bool" when datum.ValueKind is JsonValueKind.True or JsonValueKind.False => datum.GetBoolean() ? "true" : "false",
-                "int" when datum.ValueKind == JsonValueKind.Number && datum.TryGetInt32(out int n) => n.ToString(CultureInfo.InvariantCulture),
-                "long" when datum.ValueKind == JsonValueKind.Number && datum.TryGetInt64(out long n) => n == long.MinValue ? "long.MinValue" : n.ToString(CultureInfo.InvariantCulture) + "L",
-                "float" when datum.ValueKind == JsonValueKind.Number && datum.TryGetSingle(out float n) && float.IsFinite(n) => n.ToString("R", CultureInfo.InvariantCulture) + "F",
-                "double" when datum.ValueKind == JsonValueKind.Number && datum.TryGetDouble(out double n) && double.IsFinite(n) => n.ToString("R", CultureInfo.InvariantCulture) + "D",
-                _ => throw new Refusal("GRAPH_CONSTANT_TYPE", type)};
-        }
-
+        string Literal(JsonNode? value,string type)=>ConstantLiteral(value,type);
+        string LocalValue(string id)=>prefix+"local_"+Hash(id)[..24];
         string Binding(JsonNode? data, string type, HashSet<string> available, string subject)
         {
             var binding = data?.AsObject() ?? throw new Refusal("GRAPH_VALUE", subject);
@@ -360,6 +347,7 @@ public static partial class FeatureBlueprint
                 return Value(source,result);
             }
 
+            if(binding.ContainsKey("local")){string id=S(binding,"local");Need(localProfile&&locals.TryGetValue(id,out var local)&&S(local,"type")==type,"GRAPH_LOCAL_TYPE",subject);return LocalValue(id);}
             if (binding.ContainsKey("constant"))
                 return Literal(binding["constant"], type);
             throw new Refusal("GRAPH_VALUE", subject);
@@ -396,8 +384,11 @@ public static partial class FeatureBlueprint
             return reply;
         var output = new StringBuilder();
         var membersOutput = new StringBuilder();
-        if(implicitEnd&&feature.Signature!.Return!="void")output.AppendLine(feature.Signature.Return+" "+FeatureValue("return")+" = default("+feature.Signature.Return+")!;\n_ = "+FeatureValue("return")+";");
+        if(localProfile)output.AppendLine("#pragma warning disable CS0219");
+        if(implicitEnd&&feature.Signature!.Return!="void")output.AppendLine(feature.Signature.Return+" "+FeatureValue("return")+" = default("+feature.Signature.Return+")!;"+(localProfile?"":"\n_ = "+FeatureValue("return")+";"));
         if(multiOutput)foreach(var parameter in feature.Signature!.Args.Where(p=>p.IsOut))output.AppendLine(parameter.Name+" = default("+parameter.Type+")!;");
+        foreach(var local in locals)output.AppendLine(S(local.Value,"type")+" "+LocalValue(local.Key)+" = "+Literal(local.Value["initial"]!["constant"],S(local.Value,"type"))+";");
+        if(localProfile)output.AppendLine("#pragma warning restore CS0219");
         foreach (string id in order)foreach(var result in FeatureOutputs(nodes[id].Signature))
             output.AppendLine(result.Type + " " + Value(id,result.Name) + ";");
         foreach (string id in definitionOrder.Where(id => bodies.ContainsKey(id) || nodes[id].Kind == "call"))
@@ -436,7 +427,10 @@ public static partial class FeatureBlueprint
             available.Remove(id);
             Need(node.Arguments.Count == node.Signature.Args.Count(p=>!p.IsOut) && node.Signature.Args.Where(p=>!p.IsOut).All(p => node.Arguments.ContainsKey(p.Name)), "GRAPH_ARGUMENTS", id);
             output.AppendLine(Label(id) + ": {");
-            if(node.Kind=="export"){
+            if(node.Kind=="set"){
+                string local=S(node.Definition,"local");output.AppendLine(LocalValue(local)+" = "+Binding(node.Arguments["value"],S(locals[local],"type"),available,id+"/value")+";");manifestNodes.Single(n=>n!["id"]!.ToString()==id)!["includedInSource"]=true;
+            }
+            else if(node.Kind=="export"){
                 string exported=S(node.Definition,"output"),outputType=FeatureOutputs(feature.Signature!).Single(p=>p.Name==exported).Type;
                 output.AppendLine(FeatureValue(exported)+" = "+Binding(node.Arguments["value"],outputType,available,id+"/value")+";");
                 sourceMaps.Add(new JsonObject{["node"]=id,["definitionHash"]=node.DefinitionHash,["marker"]="graph:"+feature.Id+"@"+topologyHash});manifestNodes.Single(n=>n!["id"]!.ToString()==id)!["includedInSource"]=true;

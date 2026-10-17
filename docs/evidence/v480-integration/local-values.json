@@ -1,0 +1,352 @@
+{
+  "schema": 1,
+  "baseCommit": "8dec29728b8443a0c4a335e8b863611adf133111",
+  "referenceMainCommit": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+  "profile": "sync-acyclic-locals-v1",
+  "generator": "feature-blueprint-source-v5",
+  "checkedSourceHashes": {
+    "examples/editor-home/WebBundle.csbody": "5fb677596a95dd22fd7f95dd476f0a5a268016736451ae90d9d705c426e9acd7",
+    "examples/editor-home/ui/blueprint-pins.js": "ad9e6d3548e665ec6563e7994c1e9dee8128dee418d8f92279487c271221bc49",
+    "examples/editor-home/ui/blueprint.js": "1169237e10ff4c8804b6989caff1a550f18174df5268e3630827d1dd7e485200",
+    "examples/editor-home/ui/style.css": "59f119d499f5af7cf08f5fab62543d02ac526c0acd63f7b1e327cb73f7a81567",
+    "packs/pack-workspace/Blueprint.csbody": "45f7946b703636a68415173b4432e2e8ab56a05b4cf1c8b326369785613eb33b",
+    "src/Confectory.Core/BlueprintDocuments.cs": "2432560aa6945f6a05bee2f67badeb27491ffd3fcd3d47923554fe86b615b5b5",
+    "src/Confectory.Core/FeatureBlueprint.Locals.cs": "5523b054bd643d8da05274aa86f5ec113d599aaeed04bc9a40d1df6d28617c78",
+    "src/Confectory.Core/FeatureBlueprint.cs": "8e2dc989b6001f071bd3627717aac212f925c55f93c1829e07881f356d728e5b",
+    "targets/dotnet/Program.cs": "f2a3bb0c61f1c2786a5a3cfe27121fbcb71108f18f9358d193981eda36832b40",
+    "tests/Confectory.Tests/LocalAuthoringTests.cs": "48606b54163ec7334188940c2fa0e52659c394415f92781ab1df07fc1fc4041f",
+    "tests/Confectory.Tests/LocalBlueprintTests.cs": "cb28ec43f14824c1e89fe016e5d458eb8b8f11cc8b4c863bb0484fa3f4febfea",
+    "tests/Confectory.Tests/Program.cs": "6fc21309ebf82a9f9f6de699ab827b8a1051242edaaa1aed455bd949e4318477",
+    "tests/Confectory.Tests/WebUITests.cs": "021fd9533fb2a2a6e8dda2134c2b07fa2857b48e269219f08dae39d6a8c56c85",
+    "tests/web/v480_locals.py": "8171f4b3cbad59b834dac4da11edda221ddd03608e93a9ea8ef9d7db62d1ae0e",
+    "tests/web/web_ui.py": "9ef94718f9fdd5fd804ebcc6694cd83696b6e20ae08f18d5a63921255055f378"
+  },
+  "beforeRestoredTitleRefinementHashes": {
+    "examples/editor-home/WebBundle.csbody": "d2554a750f208a1b1ba6bb022c1361eb5f84bbf1112cd7ceab01aaef093df4f8",
+    "examples/editor-home/ui/blueprint-pins.js": "ad9e6d3548e665ec6563e7994c1e9dee8128dee418d8f92279487c271221bc49",
+    "examples/editor-home/ui/blueprint.js": "9a43cbc2aed5a87bbb17b7788063c395ab1e0d1989b967ae25b15bb9cc9697f7",
+    "examples/editor-home/ui/style.css": "59f119d499f5af7cf08f5fab62543d02ac526c0acd63f7b1e327cb73f7a81567",
+    "packs/pack-workspace/Blueprint.csbody": "45f7946b703636a68415173b4432e2e8ab56a05b4cf1c8b326369785613eb33b",
+    "src/Confectory.Core/BlueprintDocuments.cs": "2432560aa6945f6a05bee2f67badeb27491ffd3fcd3d47923554fe86b615b5b5",
+    "src/Confectory.Core/FeatureBlueprint.Locals.cs": "5523b054bd643d8da05274aa86f5ec113d599aaeed04bc9a40d1df6d28617c78",
+    "src/Confectory.Core/FeatureBlueprint.cs": "8e2dc989b6001f071bd3627717aac212f925c55f93c1829e07881f356d728e5b",
+    "targets/dotnet/Program.cs": "f2a3bb0c61f1c2786a5a3cfe27121fbcb71108f18f9358d193981eda36832b40",
+    "tests/Confectory.Tests/LocalAuthoringTests.cs": "48606b54163ec7334188940c2fa0e52659c394415f92781ab1df07fc1fc4041f",
+    "tests/Confectory.Tests/LocalBlueprintTests.cs": "cb28ec43f14824c1e89fe016e5d458eb8b8f11cc8b4c863bb0484fa3f4febfea",
+    "tests/Confectory.Tests/Program.cs": "6fc21309ebf82a9f9f6de699ab827b8a1051242edaaa1aed455bd949e4318477",
+    "tests/Confectory.Tests/WebUITests.cs": "2798b7976b43265ae3a0dfdc3c53e39f2f9e24bcf6ad72f85e591fde69882466",
+    "tests/web/v480_locals.py": "7d19343daa9183c45fc32baf1d9e600f988d457ccb1ac8fd70f0e6d0029d8013",
+    "tests/web/web_ui.py": "9ef94718f9fdd5fd804ebcc6694cd83696b6e20ae08f18d5a63921255055f378"
+  },
+  "finalRefinementPaths": [
+    "examples/editor-home/WebBundle.csbody",
+    "examples/editor-home/ui/blueprint.js",
+    "tests/Confectory.Tests/WebUITests.cs",
+    "tests/web/v480_locals.py"
+  ],
+  "stages": [
+    {
+      "log": "first-engine.log",
+      "sha256": "0e5133655017b65062dea769cba95a245523d62d0c15b3d3f4041a4f4474b7d3",
+      "scope": "test compilation failed: var multiple declarators",
+      "completed": false,
+      "passedMethods": [],
+      "failedMethods": []
+    },
+    {
+      "log": "second-engine.log",
+      "sha256": "f00b3e153eb82f5fbaafabf5e2c803387d1564cc3c74d4d17599772c3c8216ef",
+      "scope": "initial three runtime locals cases",
+      "completed": true,
+      "passedMethods": [
+        "LocalBlueprintTests.test_local_array_is_shared_within_call_and_fresh_across_calls_and_invalid_locals_refuse",
+        "LocalBlueprintTests.test_local_set_branch_order_per_call_reset_and_per_end_out_warning",
+        "LocalBlueprintTests.test_local_set_reads_current_storage_while_node_result_retains_snapshot"
+      ],
+      "failedMethods": [],
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 13.359
+    },
+    {
+      "log": "third-engine-api.log",
+      "sha256": "2aa0d7e7248b4fbe0caee8c344d6705f86ac9418c2e02fa337cb4e0906212a99",
+      "scope": "initial core and public authoring proof",
+      "completed": true,
+      "passedMethods": [
+        "LocalBlueprintTests.test_local_array_is_shared_within_call_and_fresh_across_calls_and_invalid_locals_refuse",
+        "LocalBlueprintTests.test_local_set_branch_order_per_call_reset_and_per_end_out_warning",
+        "LocalBlueprintTests.test_local_set_reads_current_storage_while_node_result_retains_snapshot",
+        "LocalAuthoringTests.test_local_public_profile_cas_exact_initializers_cold_and_graph_only_compiler_confirm"
+      ],
+      "failedMethods": [],
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 49.297
+    },
+    {
+      "log": "underscore-red.log",
+      "sha256": "4319fa2e1599b96da1b36fa54799a38bf05260b11e8f3e55bae6230ea36cc1ef",
+      "scope": "real generated discard captured caller underscore string parameter",
+      "completed": true,
+      "passedMethods": [],
+      "failedMethods": [
+        "LocalBlueprintTests.test_generated_unused_local_guard_does_not_assign_to_user_underscore_parameter"
+      ],
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 2.564
+    },
+    {
+      "log": "fourth-focused.log",
+      "sha256": "98af8a1daa009cfaa18f809f49481f22a3c5111b15ada052077305f8e1c42f15",
+      "scope": "core four/public one/real browser one before restored-title refinement",
+      "completed": true,
+      "passedMethods": [
+        "LocalBlueprintTests.test_generated_unused_local_guard_does_not_assign_to_user_underscore_parameter",
+        "LocalBlueprintTests.test_local_array_is_shared_within_call_and_fresh_across_calls_and_invalid_locals_refuse",
+        "LocalBlueprintTests.test_local_set_branch_order_per_call_reset_and_per_end_out_warning",
+        "LocalBlueprintTests.test_local_set_reads_current_storage_while_node_result_retains_snapshot",
+        "LocalAuthoringTests.test_local_public_profile_cas_exact_initializers_cold_and_graph_only_compiler_confirm",
+        "WebUITests.test_actual_editor_v480_local_values_sets_exact_initializer_cold_and_compiler_confirm"
+      ],
+      "failedMethods": [],
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 188.445
+    },
+    {
+      "log": "final-engine.log",
+      "sha256": "69c95444dabfb821ba108c9cec6369877d6e034ba87acf916fc9e9b86824d2b6",
+      "scope": "local/out/implicit/body-conversion/legacy graph regression",
+      "completed": true,
+      "passedMethods": [
+        "FeatureBlueprintTests.test_blueprint_disconnected_current_node_body_is_compiled_without_execution",
+        "FeatureBlueprintTests.test_blueprint_existing_feature_calls_use_typed_imports_and_contract_fences",
+        "FeatureBlueprintTests.test_blueprint_fixed_inputs_branch_compiler_reuse_node_replacement_and_legacy_preservation",
+        "FeatureBlueprintTests.test_blueprint_invalid_graphs_stale_contracts_and_dominating_values",
+        "ImplicitBlueprintTests.test_implicit_branch_terminations_warn_separately_and_real_errors_remain_errors",
+        "ImplicitBlueprintTests.test_implicit_empty_start_has_typed_defaults_without_hiding_void_or_type_errors",
+        "ImplicitBlueprintTests.test_implicit_join_tracks_must_may_and_a_specific_unassigned_branch_witness",
+        "BlueprintConversionTests.test_public_body_conversion_atomic_group_cas_origin_cold_and_compiler_confirm",
+        "BlueprintConversionTests.test_whole_body_context_preserves_calls_scope_this_recursion_names_targets_and_crlf",
+        "BlueprintConversionTests.test_whole_out_body_conversion_preserves_original_member_scoped_import_and_other_target",
+        "BlueprintConversionTests.test_whole_void_body_conversion_runs_once_and_probe_does_not_execute",
+        "MultiOutputBlueprintTests.test_android_and_browser_metadata_templates_round_trip_out_roles_in_managed_code",
+        "MultiOutputBlueprintTests.test_code_node_named_out_results_and_real_csharp_out_errors_remain_checked",
+        "MultiOutputBlueprintTests.test_empty_multiple_outs_have_typed_reference_defaults_without_cpp_or_execution",
+        "MultiOutputBlueprintTests.test_join_has_separate_must_may_and_unassigned_witness_for_each_output",
+        "MultiOutputBlueprintTests.test_named_outputs_warn_independently_at_each_branch_end_and_run_defaults",
+        "MultiOutputBlueprintTests.test_out_contract_modes_and_legacy_hash_are_explicit_and_stable",
+        "MultiOutputBlueprintTests.test_typed_call_named_outputs_use_selected_object_scope_and_dominate_consumers",
+        "MultiOutputAuthoringTests.test_contract_append_out_is_explicit_cas_cold_body_preserving_and_compiler_confirmed",
+        "MultiOutputAuthoringTests.test_object_blank_and_reference_factories_preserve_out_modes_and_positional_output_names",
+        "LocalBlueprintTests.test_generated_unused_local_guard_does_not_assign_to_user_underscore_parameter",
+        "LocalBlueprintTests.test_local_array_is_shared_within_call_and_fresh_across_calls_and_invalid_locals_refuse",
+        "LocalBlueprintTests.test_local_set_branch_order_per_call_reset_and_per_end_out_warning",
+        "LocalBlueprintTests.test_local_set_reads_current_storage_while_node_result_retains_snapshot",
+        "LocalAuthoringTests.test_local_public_profile_cas_exact_initializers_cold_and_graph_only_compiler_confirm"
+      ],
+      "failedMethods": [],
+      "passed": 25,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 302.587
+    },
+    {
+      "log": "final-ui.log",
+      "sha256": "7e568ea019110c52bd866307955e6c549616d457051643c169a584edbd524d1a",
+      "scope": "locals/old camera/node creation/graph/new feature/named outs/implicit conversion",
+      "completed": true,
+      "passedMethods": [
+        "WebUITests.test_actual_editor_implicit_ends_whole_body_conversion_cold_and_confirm",
+        "WebUITests.test_actual_editor_v480_blueprint_camera_header_pins_tabs_and_cold_input",
+        "WebUITests.test_actual_editor_v480_blueprint_node_creation_removal_and_cold_source_groups",
+        "WebUITests.test_actual_editor_v480_blueprint_owned_graph_node_edit_and_cold_input",
+        "WebUITests.test_actual_editor_v480_local_values_sets_exact_initializer_cold_and_compiler_confirm",
+        "WebUITests.test_actual_editor_v480_named_out_contract_pins_ends_cold_and_compiler_confirm",
+        "WebUITests.test_actual_editor_v480_new_feature_contract_graph_group_and_cold_source"
+      ],
+      "failedMethods": [],
+      "passed": 7,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 475.919
+    },
+    {
+      "log": "final-managed.log",
+      "sha256": "faeff347daf5fab9bc49282ef7b9213c7955fac84aef5be22002dbb017aa7a44",
+      "scope": "Windows and Android managed compile only",
+      "completed": true,
+      "passedMethods": [
+        "EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only"
+      ],
+      "failedMethods": [],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 138.695
+    },
+    {
+      "log": "output-bounds-red.log",
+      "sha256": "108037f628717ec6066b0377ef7b5352d80fad085e57696d10d8ac40fe72d858",
+      "scope": "first output-to-editor measurement passed; insufficient to diagnose window clipping",
+      "completed": true,
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 67.279
+    },
+    {
+      "log": "window-output-bounds-red.log",
+      "sha256": "6bf008000c0177e9c913f203db0c2df74a5a30179a63928e53787ff64232bea6",
+      "scope": "actual output/window/toolbar bounds normal, including captured dimensions",
+      "completed": true,
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 65.682
+    }
+  ],
+  "overlappingStagesMustNotBeSummed": true,
+  "contract": {
+    "explicitConstantInitializerRequired": true,
+    "initializedPerInvocation": true,
+    "arraysSharedWithinCallAndAllocatedPerInvocation": true,
+    "normalManagedReferenceLifetimeIfEscaped": true,
+    "setStructuralNoCSharpFileOrTask": true,
+    "localBindingExactTypeAtReadTime": true,
+    "nodeScalarResultKeepsSnapshot": true,
+    "localSetDoesNotAssignFunctionOut": true,
+    "existingPerEndMissingOutWarningsPreserved": true,
+    "exactInitialJsonStringAtUIBoundary": true,
+    "sourceGroupCASAndColdBasisFence": true,
+    "localDeleteRequiresNoUses": true,
+    "typeFixedInAuthoringForm": true,
+    "localBudget": 64,
+    "nodeBudget": 256,
+    "oldProfilesAndABIHashesRetained": true,
+    "readOrRestoreDoesNotMigrate": true
+  },
+  "proofValues": {
+    "branchAndReset": [
+      "2,2",
+      "5,0",
+      "3,3",
+      "5,0"
+    ],
+    "snapshotThenSet": "1,2",
+    "arrayAcrossCalls": [
+      "2,1",
+      "2,1"
+    ],
+    "largeInitializer": "9223372036854775807",
+    "publicSet": "2,2",
+    "publicInitializerAfterBypassingSet": "5,5",
+    "underscoreArgumentEmptyGraph": "0"
+  },
+  "findings": [
+    {
+      "problem": "Generated _ = return-slot statement assigned int to existing string parameter _",
+      "actualFailure": "CS0029",
+      "log": "underscore-red.log",
+      "fix": "Only new locals profile suppresses CS0219 at generated variable declarations and omits that discard; ordinary C# node warnings and old generated bodies retained"
+    }
+  ],
+  "remainingWholeScope": [
+    "ref actual aliasing incl ref/out same caller cell",
+    "nested graph identity/ownership/version/call/return",
+    "property/expression/output-alias locals",
+    "enum/compound types/arbitrary execution outputs",
+    "split C# regions/external helpers",
+    "loop/async",
+    "physical file deletion/bulk target migration",
+    "prototype portals/pixel matching/full v424 services separately tracked"
+  ],
+  "limits": [
+    "owned Linux/.NET10/Chromium actual fixtures",
+    "Windows/Android managed compile only",
+    "no native/device/WASM runtime/account/paid model/user PC installation claim"
+  ],
+  "protected": {
+    "localMain": "b5ea38c3d7eec3eb20f170e68f0f4215b86b2aee",
+    "remoteMain": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+    "originalZipsAndAndroidSettingsUnchanged": true
+  },
+  "implementationCommit": null,
+  "ordinaryCheckout": null,
+  "beforeBoundsTestsHashes": {
+    "examples/editor-home/WebBundle.csbody": "5fb677596a95dd22fd7f95dd476f0a5a268016736451ae90d9d705c426e9acd7",
+    "examples/editor-home/ui/blueprint-pins.js": "ad9e6d3548e665ec6563e7994c1e9dee8128dee418d8f92279487c271221bc49",
+    "examples/editor-home/ui/blueprint.js": "1169237e10ff4c8804b6989caff1a550f18174df5268e3630827d1dd7e485200",
+    "examples/editor-home/ui/style.css": "59f119d499f5af7cf08f5fab62543d02ac526c0acd63f7b1e327cb73f7a81567",
+    "packs/pack-workspace/Blueprint.csbody": "45f7946b703636a68415173b4432e2e8ab56a05b4cf1c8b326369785613eb33b",
+    "src/Confectory.Core/BlueprintDocuments.cs": "2432560aa6945f6a05bee2f67badeb27491ffd3fcd3d47923554fe86b615b5b5",
+    "src/Confectory.Core/FeatureBlueprint.Locals.cs": "5523b054bd643d8da05274aa86f5ec113d599aaeed04bc9a40d1df6d28617c78",
+    "src/Confectory.Core/FeatureBlueprint.cs": "8e2dc989b6001f071bd3627717aac212f925c55f93c1829e07881f356d728e5b",
+    "targets/dotnet/Program.cs": "f2a3bb0c61f1c2786a5a3cfe27121fbcb71108f18f9358d193981eda36832b40",
+    "tests/Confectory.Tests/LocalAuthoringTests.cs": "48606b54163ec7334188940c2fa0e52659c394415f92781ab1df07fc1fc4041f",
+    "tests/Confectory.Tests/LocalBlueprintTests.cs": "cb28ec43f14824c1e89fe016e5d458eb8b8f11cc8b4c863bb0484fa3f4febfea",
+    "tests/Confectory.Tests/Program.cs": "6fc21309ebf82a9f9f6de699ab827b8a1051242edaaa1aed455bd949e4318477",
+    "tests/Confectory.Tests/WebUITests.cs": "2798b7976b43265ae3a0dfdc3c53e39f2f9e24bcf6ad72f85e591fde69882466",
+    "tests/web/v480_locals.py": "6b442e84d8648473a939fa8daa8ae7eb43316fac6411a81e5b590979e829a819",
+    "tests/web/web_ui.py": "9ef94718f9fdd5fd804ebcc6694cd83696b6e20ae08f18d5a63921255055f378"
+  },
+  "boundsTestOnlyChangedPaths": [
+    "tests/Confectory.Tests/WebUITests.cs",
+    "tests/web/v480_locals.py"
+  ],
+  "actualOutputBounds": {
+    "window": {
+      "left": 251,
+      "right": 1349,
+      "width": 1098,
+      "scroll": 1098,
+      "client": 1098
+    },
+    "editor": {
+      "left": 251,
+      "right": 1349,
+      "width": 1098,
+      "scroll": 1098,
+      "client": 1098
+    },
+    "body": {
+      "left": 251,
+      "right": 1349,
+      "width": 1098,
+      "scroll": 1098,
+      "client": 1098
+    },
+    "plane": {
+      "left": 416,
+      "right": 1184,
+      "width": 768,
+      "scroll": 920,
+      "client": 768
+    },
+    "outputs": {
+      "left": 1184,
+      "right": 1349,
+      "width": 165,
+      "scroll": 164,
+      "client": 164
+    },
+    "toolbar": {
+      "left": 251,
+      "right": 1349,
+      "width": 1098,
+      "scroll": 1098,
+      "client": 1098
+    }
+  },
+  "suspectedOutputClippingReproduced": false,
+  "screenshots": {
+    "local-values-form.png": "b8fd3c8e1a46552a0fc7585cc39eedaca5bcfa363fe2ac2a6760d95449fb2e7b",
+    "local-values-published.png": "390ea4f4efb0b5cf970566b7d717fae5405add9ca6ac9670320085eaf128b3f3"
+  }
+}

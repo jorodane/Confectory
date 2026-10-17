@@ -306,3 +306,8 @@ v480의 clampCanvasZoom/createSteppedZoomWheel/zoomAt과 실행 헤더·핀 동�
 ## 이름 있는 out 출력 · 후속
 
 기능·노드의 out 계약, 입력과 출력 핀 구분, named 결과 binding, 출력별 export와 종료의 must/may·누락 경로를 새 명시적 profile에 연결했다. 새 기능·객체 구현·참조 구현과 전체 본문 전환에서도 타입·역할·순서와 원본 이름/문맥을 유지한다. 기존 graph는 읽기만으로 바꾸지 않으며 계약 갱신은 현재 미리보기와 소유 원본 CAS 뒤 별도 적용한다. [정확한 계약과 남은 전체 범위](BLUEPRINT_NAMED_OUT_OUTPUTS.md), [검증 기록](evidence/v480-integration/named-out-outputs.json). ref·중첩 graph와 나머지 v480 전체 편집 회귀를 완료한 것으로 표시하지 않는다.
+
+
+## 명시적 로컬 값 · 후속
+
+새 `sync-acyclic-locals-v1`/생성기 v5에서 타입·상수 초기값이 명시된 호출별 로컬 저장 공간과 구조적 set 노드를 지원한다. 기존 profile·out 종료별 경고·본문 전환을 유지하고 CAS/cold/별도 compiler Confirm을 따른다. [정확한 계약·검증·남은 전체 범위](BLUEPRINT_LOCAL_VALUES.md). ref·중첩 graph·property/expression 로컬과 확장 실행 의미는 별도 후속이다.

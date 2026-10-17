@@ -39,12 +39,12 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
   main=project/'main.celem';main.write_text(main.read_text().replace('{','{ use function ReferenceApi::Work;use implementation ReferenceApi::Body;',1))
   source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+'registry ReferenceApi '+json.dumps(str(ref/'pack.cpack'))+';dependency ReferenceApi version "1";'+source[index:])
  env['CONFECTORY_WEB_PROJECT']=str(manifest)
- if kind in ['node-tasks','blueprint','blueprint-implicit','blueprint-camera','blueprint-create','call-wrapper','registered-call','placed-find']:
+ if kind in ['node-tasks','blueprint','blueprint-implicit','blueprint-camera','blueprint-create','call-wrapper','registered-call','placed-find','locals']:
   fixture=report['nodeTaskFixture']
-  typename='long' if kind.startswith('blueprint') or kind in ['call-wrapper','registered-call','placed-find'] else 'int'
+  typename='long' if kind.startswith('blueprint') or kind in ['call-wrapper','registered-call','placed-find','locals'] else 'int'
   (project/'NodeValue.celem').write_text(fixture['feature']);(project/'NodeValueBody.celem').write_text('implementation Example.ButtonGame::NodeValueBody for Example.ButtonGame::NodeValue ('+typename+' n) -> '+typename+' {blueprint common "node-value.graph.json";}')
   (project/'node-value.graph.json').write_text(json.dumps(fixture['graph']));(project/'calculate.node.json').write_text(json.dumps(fixture['node']))
-  if kind.startswith('blueprint') or kind in ['call-wrapper','registered-call','placed-find']:(project/'condition.node.json').write_text(json.dumps(report['additionalNodeFixture']))
+  if kind.startswith('blueprint') or kind in ['call-wrapper','registered-call','placed-find','locals']:(project/'condition.node.json').write_text(json.dumps(report['additionalNodeFixture']))
   source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+'element NodeValue function "NodeValue.celem";element NodeValueBody implementation "NodeValueBody.celem";'+source[index:])
  if kind=='blueprint-implicit':
   (project/'LiftValue.celem').write_text('function Example.ButtonGame::LiftValue (long n) -> long {}')
@@ -246,6 +246,9 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
     elif kind=='blueprint-create':
      from v480_node_creation import verify_node_creation
      verify_node_creation(page,project,mount,send,envelope,settle,restart_actual_host)
+    elif kind=='locals':
+     from v480_locals import verify_locals
+     verify_locals(page,project,mount,send,envelope,settle,restart_actual_host)
     elif kind=='multiout':
      from v480_multiout import verify_multiout
      verify_multiout(page,project,mount,send,envelope,settle,restart_actual_host)
