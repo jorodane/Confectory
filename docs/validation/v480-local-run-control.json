@@ -1,0 +1,830 @@
+{
+  "version": 1,
+  "verifiedUtc": "2026-10-18T00:13:52.049694+00:00",
+  "baseCommit": "801621ae3e60d4b3d611acca76039ffa892b5bfc",
+  "implementationCommit": "d950e86c5352af10b655f10a186ec0422a31da5d",
+  "sourceManifestSha256": "3257096aa42a2ad6025cc683012182e20acd84101057d6aba7c91146d53d2d1e",
+  "sources": {
+    "examples/button-game/main.csbody": {
+      "size": 9901,
+      "sha256": "850da4a48e17a621345db3b246f96c09b3fa6c7d0c2d7d5ac307c349a10e3fb6"
+    },
+    "examples/button-game/main_body.celem": {
+      "size": 2212,
+      "sha256": "38e1b9c2e08c19265ed535c56f00f59992fc50938fd70c391b57cce2de3c53f5"
+    },
+    "examples/button-game/project.cpack": {
+      "size": 2101,
+      "sha256": "76d8b5d01b59879e47989c9fc9f49d4c84f1188b235c2c73ca85c87882f5bc99"
+    },
+    "examples/editor-home/WebBundle.csbody": {
+      "size": 10625,
+      "sha256": "53f5f6b6d6d7a18355b5368f8623bdd94f9729588ec2c455ac9ba7b5b7d1669b"
+    },
+    "examples/editor-home/WebInvoke.csbody": {
+      "size": 23504,
+      "sha256": "1e14d3f86138567c3eedb91fab5a95b1bfba3893ff080f9e049df37c8fcbcb00"
+    },
+    "examples/editor-home/WebState.csbody": {
+      "size": 28022,
+      "sha256": "8ad8e6fd2f95b2a912fc6778c7a1430f1fa502e53fe9ed0cc7b25aefde7c9cfc"
+    },
+    "examples/editor-home/ui/app.js": {
+      "size": 237040,
+      "sha256": "61cb23c09d163afc133ae49b3937b577cbb99939bd0090b3081953a7c85db6f1"
+    },
+    "examples/engine/main.csbody": {
+      "size": 29654,
+      "sha256": "c5127a39f1348c20b45c593d696a2a9144fedc9e2ca03346bbccabb855a7b31b"
+    },
+    "examples/engine/main_body.celem": {
+      "size": 10457,
+      "sha256": "0e41e200ca169cf1eb688b8cf09add2b87ddc4b3f06bb20462455c0742e3b5c6"
+    },
+    "examples/engine/project.cpack": {
+      "size": 3033,
+      "sha256": "66d32fbdb9f219ae9809936615cf6725cfe848c157fb7d9666fc1e95c5dcb890"
+    },
+    "examples/frame-loop/Main.celem": {
+      "size": 198,
+      "sha256": "e6be2cfc8da6be421ccef6fbf767dafee4e5e3f87b43487a68e954fa7f2eeec7"
+    },
+    "examples/frame-loop/Main.csbody": {
+      "size": 940,
+      "sha256": "b661bb35e981ef312db08d86251fd1404e0f341cd1426578ba5b3f635f4a4450"
+    },
+    "examples/frame-loop/MainBody.celem": {
+      "size": 531,
+      "sha256": "dde8d47f49dcdb70e79e8678ef1f7d864faad06c555a764069bc0ee078f43a15"
+    },
+    "examples/frame-loop/Protocol.csbody": {
+      "size": 6052,
+      "sha256": "393752ec8389e1911e99a4ff7c072f90659b87c5e1e593fb66d57c13c8b1a3a3"
+    },
+    "examples/frame-loop/ProtocolBody.celem": {
+      "size": 535,
+      "sha256": "63c867864e8efa27f011bab18b57bc3eddbb6ced4876ac8f71c26cfed3fbd05d"
+    },
+    "examples/frame-loop/Tick.celem": {
+      "size": 124,
+      "sha256": "4af92778a4a8ee82b7db7d4d7a705a89522cfa32d695293e7466a36d7c6f2890"
+    },
+    "examples/frame-loop/Tick.csbody": {
+      "size": 116,
+      "sha256": "a1030188c8e8c84027c381d026333b49b83fd929342b752bff5ae1e31a5b32f0"
+    },
+    "examples/frame-loop/TickBody.celem": {
+      "size": 123,
+      "sha256": "24136521b3b7c2251905ed5866e7ec2830fef7ea96449098102ad65132ec1176"
+    },
+    "examples/frame-loop/project.cpack": {
+      "size": 778,
+      "sha256": "517de4210ad23f72a590019d7e7ce51f5564cd58b1471088f788002b301eaabd"
+    },
+    "examples/frame-loop/protocol-verify.cpack": {
+      "size": 782,
+      "sha256": "1989131c458327928ab31ad82f0d3494f3ae087c9f3f35a6f6b102372749856b"
+    },
+    "examples/project-execution/frame-verify-body.celem": {
+      "size": 1190,
+      "sha256": "a97cec22119c1071cdf6795889562e1480c31b1bad95bded5ea156b7ae492ec7"
+    },
+    "examples/project-execution/frame-verify.cpack": {
+      "size": 680,
+      "sha256": "aaca131e160557852d99d892a909b7ca47beb59ca89330824736c93554d605e9"
+    },
+    "examples/project-execution/frame-verify.csbody": {
+      "size": 5742,
+      "sha256": "1582c59ab16f8d57043a5bd29cdcc537aead3c11da8f13c604a61ef035d5184e"
+    },
+    "examples/project-execution/main_body.celem": {
+      "size": 1182,
+      "sha256": "c54119d86e7ae6908c6edb97bfe0a1168bc2fb349ea43ae7c3550c46a898452a"
+    },
+    "packs/editor-home-model/Command.csbody": {
+      "size": 108879,
+      "sha256": "5ae1299d639957c4d7109fdc8a5a507bf3bf35758a6a1eef3145f0ccc44dba27"
+    },
+    "packs/editor-home-model/CommandBody.celem": {
+      "size": 8390,
+      "sha256": "6d69ef10643ee75e74bfe15c07e477c2229e48005aff23bd16238195158251a7"
+    },
+    "packs/frame-control/Begin.celem": {
+      "size": 329,
+      "sha256": "e2bd2c426863e11d224428a5e0688dae534f08b85a09142dfe6f1d9fb514110b"
+    },
+    "packs/frame-control/Begin.csbody": {
+      "size": 161,
+      "sha256": "19972ca9fafa8ada6a2e9cf3cc62da01a8fe0f3ecc77fb66cde161e8bc69e4ac"
+    },
+    "packs/frame-control/BeginBody.celem": {
+      "size": 139,
+      "sha256": "54700ccc3a98d55d05196731531fbf47709174967432e4719060e063247af79f"
+    },
+    "packs/frame-control/Close.celem": {
+      "size": 231,
+      "sha256": "166a84acca9c1452ff8eb3bd45f2292e77977d6dbea3db7773908cee69d8c4e1"
+    },
+    "packs/frame-control/Close.csbody": {
+      "size": 153,
+      "sha256": "4c64868179f539dd02be026c14ff46b90da7cede04d4245a3809b1678b504090"
+    },
+    "packs/frame-control/CloseBody.celem": {
+      "size": 140,
+      "sha256": "3d035c063524ffbe962f565fcd18ac29038d06176e72750357042dad2e1a7e9e"
+    },
+    "packs/frame-control/Complete.celem": {
+      "size": 244,
+      "sha256": "0b884b0b2f2b798e37df02dd642675d04d6b5c38007d6f2da3dbb5ddacf9f31b"
+    },
+    "packs/frame-control/Complete.csbody": {
+      "size": 151,
+      "sha256": "de5f0e0a938467a1e3e198c6f21b2e0422f0bdf29eabba364e02b171c600eeca"
+    },
+    "packs/frame-control/CompleteBody.celem": {
+      "size": 149,
+      "sha256": "92da0e12a58394c7cd28815adbdcd50b76f4c0b37e747d678f452642f024d561"
+    },
+    "packs/frame-control/Open.celem": {
+      "size": 256,
+      "sha256": "5ab6671c76c32c875ecc4fd056b977a467a789e959139451e3e8ddd19c044946"
+    },
+    "packs/frame-control/Open.csbody": {
+      "size": 6554,
+      "sha256": "9faaafbb575156f35c21a761e8bc4c0dbce8bf0b1b73f159b1fd8999794bca3a"
+    },
+    "packs/frame-control/OpenBody.celem": {
+      "size": 127,
+      "sha256": "352250458b29b2912b4dfa67b70ae7f1d2fb9819d82b5a8886ff8333c630d398"
+    },
+    "packs/frame-control/pack.cpack": {
+      "size": 435,
+      "sha256": "d04c40dc62d489beb5e7d341d0745278912a583239f45714386054121f0cc67b"
+    },
+    "packs/project-execution/Capabilities.csbody": {
+      "size": 241,
+      "sha256": "fbfe6efbb0bffe01634e8d40e6a245f3d5acca41eff621b0841820597eb968e3"
+    },
+    "packs/project-execution/Control.celem": {
+      "size": 342,
+      "sha256": "670c02793fd766a17310bd63f3303347010c320c4b894c544ab75b7d47ce5e21"
+    },
+    "packs/project-execution/Control.csbody": {
+      "size": 659,
+      "sha256": "904be83aefdeecc0ee3ff90af34a0c79e30cc065e51460ae7ba37e9d787a4671"
+    },
+    "packs/project-execution/ControlBody.celem": {
+      "size": 189,
+      "sha256": "f6c0160daacdef9fc0ca95af53321be8d3bc5d4a6cb78981720280b41ee158fe"
+    },
+    "packs/project-execution/LaunchConfigured.csbody": {
+      "size": 9137,
+      "sha256": "fd1fcc6eec1b8f0f4ff44acc867607d6bdab8a43c358f3bca3d1ceb968e8ba71"
+    },
+    "packs/project-execution/pack.cpack": {
+      "size": 1605,
+      "sha256": "aff22b6a0ea891ffad83a27968b4bc1621bc5ae35b5014a9c009b903d509be46"
+    },
+    "tests/Confectory.Tests/EngineTests.cs": {
+      "size": 4344,
+      "sha256": "77abf9d8f462e2d27c30727d14580a6a04628a7316269fc206aac9eedb8423f7"
+    },
+    "tests/Confectory.Tests/ProjectExecutionTests.cs": {
+      "size": 16652,
+      "sha256": "0e92e77af37f0cd3495f5bac68f75b086f982bf36f0dcc80d05507e0fdb4bf65"
+    },
+    "tests/Confectory.Tests/WebUITests.cs": {
+      "size": 59107,
+      "sha256": "e85d2b20c609e9cc4c2924b29ec67baa1e9172d58209fcc8e955b98f694ec09e"
+    },
+    "tests/gui/button_game_x11.py": {
+      "size": 7269,
+      "sha256": "a30caf9f28f2720d8aeee7919c1814d4144a448ba845038875abdb7d32203d23"
+    },
+    "tests/web/editor_run_control_v480.py": {
+      "size": 12954,
+      "sha256": "3c5a77100be0087618ad92aa512e92c67b51c1d9d2af288648df0a1d8b420efb"
+    }
+  },
+  "build": {
+    "exit": 0,
+    "warnings": 0,
+    "errors": 0,
+    "logSha256": "cb4fbc585f6b19773a8864cba440e052e410233599f3e7e49eb67fa46c6fc579"
+  },
+  "gates": {
+    "ui": {
+      "exit": 0,
+      "filters": [
+        "WebUITests.test_actual_editor_v480_local_run_frame_ack",
+        "WebUITests.test_actual_editor_v318_run_process_and_presentation_restart",
+        "WebUITests.test_actual_editor_v480_private_workspace_links_bundle_portal_delete_undo_and_cold"
+      ],
+      "methods": [
+        "WebUITests.test_actual_editor_v318_run_process_and_presentation_restart",
+        "WebUITests.test_actual_editor_v480_local_run_frame_ack_pause_step_reconnect_and_stop",
+        "WebUITests.test_actual_editor_v480_private_workspace_links_bundle_portal_delete_undo_and_cold"
+      ],
+      "elapsed": 133.22295075000056,
+      "sourceManifestSha256": "3257096aa42a2ad6025cc683012182e20acd84101057d6aba7c91146d53d2d1e",
+      "logSha256": "e053726f0305dad3fef43d150b01b679e3dcce802d76c0f41c4ec97935b20b57",
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 133.187
+    },
+    "managed": {
+      "exit": 0,
+      "filters": [
+        "EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only"
+      ],
+      "methods": [
+        "EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only"
+      ],
+      "elapsed": 141.03458085200054,
+      "sourceManifestSha256": "3257096aa42a2ad6025cc683012182e20acd84101057d6aba7c91146d53d2d1e",
+      "logSha256": "034b4ade1f0e41d97ce2fe160274c156e66d1cf69457012b51d7895d87ebe398",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 140.999
+    },
+    "model_runtime": {
+      "exit": 0,
+      "filters": [
+        "ProjectExecutionTests.",
+        "RealTimeUpdateTests.",
+        "EngineTests.test_role_composition_two_windows_and_cleanup",
+        "ButtonTests.test_shared_button_game",
+        "EntryHomeTests.test_fresh_entry_home_project_contracts_and_consumer_locality"
+      ],
+      "methods": [
+        "RealTimeUpdateTests.test_lifecycle_and_provider_locality",
+        "EngineTests.test_role_composition_two_windows_and_cleanup",
+        "ProjectExecutionTests.test_actual_native_button_game_pause_single_draw_step_and_stop",
+        "ProjectExecutionTests.test_actual_native_engine_cooperative_frame_callbacks",
+        "ProjectExecutionTests.test_actual_owned_cooperative_frames_pause_step_reconnect_and_stop",
+        "ProjectExecutionTests.test_execution_handles_and_provider_locality",
+        "ProjectExecutionTests.test_frame_ack_foreign_stale_future_replies_cannot_overwrite_owner",
+        "ProjectExecutionTests.test_frame_control_actual_boundary_order_repeat_thread_and_close",
+        "ButtonTests.test_shared_button_game_without_editor_state_input_navigation_native_targets_and_locality",
+        "EntryHomeTests.test_fresh_entry_home_project_contracts_and_consumer_locality"
+      ],
+      "elapsed": 258.19862924300014,
+      "sourceManifestSha256": "3257096aa42a2ad6025cc683012182e20acd84101057d6aba7c91146d53d2d1e",
+      "logSha256": "c7dcb7d5b0fcb8fee75fdc1935d1ea52729a6ec62e3db11c1e8ef304007ccbab",
+      "passed": 10,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 258.166
+    }
+  },
+  "ordinaryCheckout": {
+    "exit": 0,
+    "method": "WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup",
+    "implementationCommit": "d950e86c5352af10b655f10a186ec0422a31da5d",
+    "elapsed": 6.413989073999801,
+    "sourceManifestSha256": "3257096aa42a2ad6025cc683012182e20acd84101057d6aba7c91146d53d2d1e",
+    "logSha256": "3e3e4e5176c5fdf20b6a1a0a12adce5eb34d567aab4b4a24616177f86559326b",
+    "resourceCount": 41,
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "reportedSeconds": 6.383
+  },
+  "finalUniqueMethodCount": 15,
+  "phasesExcludedFromFinalCounts": [
+    {
+      "log": "baseline-button-build.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "includedInFinalCounts": false
+    },
+    {
+      "log": "baseline-button-corrected-focus.log",
+      "sha256": "e42396f356aac39676377add530bb97e10f5b9a85e35fe0eeb421ac20901aa66",
+      "includedInFinalCounts": false
+    },
+    {
+      "log": "baseline-button-gui.log",
+      "sha256": "a43c01b7ec443cf3e98a2a385bea1cc813fab408e1017a94ae9f69e01705bb20",
+      "includedInFinalCounts": false
+    },
+    {
+      "log": "build-after-input-fix.log",
+      "sha256": "b694f9370df70c416423d72c0582cf14926691b6efc83005e367c1782c1f0dd5",
+      "includedInFinalCounts": false
+    },
+    {
+      "log": "build-final-candidate.log",
+      "sha256": "33d4473af540172de4f5d98f463d053461bbbaed09a327a35489aba42d1c76f6",
+      "includedInFinalCounts": false
+    },
+    {
+      "log": "build-initial-fixed-env.log",
+      "sha256": "b0f8996d41d19c6aadefa401237a68ca3665bc95078fc17cce7c32529cb31bb9",
+      "includedInFinalCounts": false
+    },
+    {
+      "log": "build-initial.log",
+      "sha256": "e6b4fe4bbc8756af2b281804af6dd31981931c33d7f7b821422f70762930df4f",
+      "includedInFinalCounts": false
+    },
+    {
+      "log": "build-probe.log",
+      "sha256": "e6b4fe4bbc8756af2b281804af6dd31981931c33d7f7b821422f70762930df4f",
+      "includedInFinalCounts": false
+    },
+    {
+      "log": "build-protocol-fix.log",
+      "sha256": "c123dfc770763e9d57d282b1afddeea6e3ac192fb20aaf584f84355ce5d73384",
+      "includedInFinalCounts": false
+    },
+    {
+      "log": "build-protocol-tests.log",
+      "sha256": "f140b470d2005ee7321c3725b9b82b01b5bcdc6f25afb313243e5122ca9885f3",
+      "includedInFinalCounts": false
+    },
+    {
+      "log": "build-ui.log",
+      "sha256": "abd37de4a948e83b4d3ac61f447f04435d1b5ea0c0105d039d03fa7f5882abc5",
+      "includedInFinalCounts": false
+    },
+    {
+      "log": "focus-adversarial-1.log",
+      "sha256": "8075a001bf68c6d5d46cb068f81221afe557e907af06666bbe8c11d3dcfbd184",
+      "includedInFinalCounts": false,
+      "passed": 0,
+      "failed": 2,
+      "skipped": 0,
+      "reportedSeconds": 100.508
+    },
+    {
+      "log": "focus-adversarial-native-2.log",
+      "sha256": "9a440cf20fbaac26497a9f4bd0de33c3b8c195e0658209df8687a84ca70b066f",
+      "includedInFinalCounts": false,
+      "passed": 2,
+      "failed": 1,
+      "skipped": 0,
+      "reportedSeconds": 17.294
+    },
+    {
+      "log": "focus-input-malformed-1.log",
+      "sha256": "9568c15ce631e3cf084aa429cef8073c3547581fa5fce83879749297b63ff8e9",
+      "includedInFinalCounts": false,
+      "passed": 2,
+      "failed": 1,
+      "skipped": 0,
+      "reportedSeconds": 35.687
+    },
+    {
+      "log": "focus-input-malformed-2.log",
+      "sha256": "bdcabedd2473dd13401a86c3acff5b125f57ff3be561111e25ef8ae5d7f1d373",
+      "includedInFinalCounts": false,
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 67.248
+    },
+    {
+      "log": "focus-native-3.log",
+      "sha256": "1cbf2c3ad731ea517c538719e1aadcb721066bdfdf24a0f856f549a02587c157",
+      "includedInFinalCounts": false,
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 42.083
+    },
+    {
+      "log": "focus-protocol-1.log",
+      "sha256": "46cb8d63398f6378e1c67e43d3f9cf77c853efeeb640a6728dd59e2fbe23e8ba",
+      "includedInFinalCounts": false,
+      "passed": 0,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 0.011
+    },
+    {
+      "log": "focus-protocol-2.log",
+      "sha256": "49e7a420fa028c0f9dead15a1e3d35bacf4fb02a26533bd4af5549f06616a8b7",
+      "includedInFinalCounts": false,
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "reportedSeconds": 4.746
+    },
+    {
+      "log": "focus-protocol-3.log",
+      "sha256": "4fa61259657230e33bfd42e054732a2deb65b019b5ddf03c7044d0c1ce2cb72f",
+      "includedInFinalCounts": false,
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "reportedSeconds": 5.993
+    },
+    {
+      "log": "focus-protocol-4.log",
+      "sha256": "95d8bfc777a871246f5522ad03d136abf2f225dd52d8683280e3a96fbe1df4ba",
+      "includedInFinalCounts": false,
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "reportedSeconds": 6.137
+    },
+    {
+      "log": "focus-protocol-5.log",
+      "sha256": "07115eef7cead376d5fd41f8d24e5d4275046062cdaccb8fdc7a77520f92d22a",
+      "includedInFinalCounts": false,
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 17.406
+    },
+    {
+      "log": "focus-ui-1.log",
+      "sha256": "5e933d9dd5dccc933ab720adf419032bf102bfea2c573e5eec0a835296fb9b60",
+      "includedInFinalCounts": false,
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "reportedSeconds": 78.327
+    },
+    {
+      "log": "focus-ui-2.log",
+      "sha256": "16d331db140ebeef4e720ce6cc2c365648af12a22f2e4abb689baaa4028dbcf9",
+      "includedInFinalCounts": false,
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "reportedSeconds": 31.091
+    },
+    {
+      "log": "focus-ui-3.log",
+      "sha256": "ef46575b2c662a7cf194be9e1315bb71a718246b15313fe1170f3215a1e390ad",
+      "includedInFinalCounts": false,
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 27.897
+    },
+    {
+      "log": "phase-before-input-fix-final-model_runtime.log",
+      "sha256": "27f4cfa080db08584e04d0b3783285a5b6f74438cbea7ad2b98ebdfc43150b57",
+      "includedInFinalCounts": false,
+      "passed": 9,
+      "failed": 1,
+      "skipped": 0,
+      "reportedSeconds": 227.569
+    }
+  ],
+  "earlierFrozenPhase": {
+    "sources": {
+      "examples/button-game/main.csbody": {
+        "size": 9899,
+        "sha256": "c67e0c59ce677fc13aae59e94aaffc21f0f0476cd18979251ef0732444b18c2e"
+      },
+      "examples/button-game/main_body.celem": {
+        "size": 2212,
+        "sha256": "38e1b9c2e08c19265ed535c56f00f59992fc50938fd70c391b57cce2de3c53f5"
+      },
+      "examples/button-game/project.cpack": {
+        "size": 2101,
+        "sha256": "76d8b5d01b59879e47989c9fc9f49d4c84f1188b235c2c73ca85c87882f5bc99"
+      },
+      "examples/editor-home/WebBundle.csbody": {
+        "size": 10625,
+        "sha256": "53f5f6b6d6d7a18355b5368f8623bdd94f9729588ec2c455ac9ba7b5b7d1669b"
+      },
+      "examples/editor-home/WebInvoke.csbody": {
+        "size": 23504,
+        "sha256": "1e14d3f86138567c3eedb91fab5a95b1bfba3893ff080f9e049df37c8fcbcb00"
+      },
+      "examples/editor-home/WebState.csbody": {
+        "size": 28022,
+        "sha256": "8ad8e6fd2f95b2a912fc6778c7a1430f1fa502e53fe9ed0cc7b25aefde7c9cfc"
+      },
+      "examples/editor-home/ui/app.js": {
+        "size": 237040,
+        "sha256": "61cb23c09d163afc133ae49b3937b577cbb99939bd0090b3081953a7c85db6f1"
+      },
+      "examples/engine/main.csbody": {
+        "size": 29654,
+        "sha256": "c5127a39f1348c20b45c593d696a2a9144fedc9e2ca03346bbccabb855a7b31b"
+      },
+      "examples/engine/main_body.celem": {
+        "size": 10457,
+        "sha256": "0e41e200ca169cf1eb688b8cf09add2b87ddc4b3f06bb20462455c0742e3b5c6"
+      },
+      "examples/engine/project.cpack": {
+        "size": 3033,
+        "sha256": "66d32fbdb9f219ae9809936615cf6725cfe848c157fb7d9666fc1e95c5dcb890"
+      },
+      "examples/frame-loop/Main.celem": {
+        "size": 198,
+        "sha256": "e6be2cfc8da6be421ccef6fbf767dafee4e5e3f87b43487a68e954fa7f2eeec7"
+      },
+      "examples/frame-loop/Main.csbody": {
+        "size": 940,
+        "sha256": "b661bb35e981ef312db08d86251fd1404e0f341cd1426578ba5b3f635f4a4450"
+      },
+      "examples/frame-loop/MainBody.celem": {
+        "size": 531,
+        "sha256": "dde8d47f49dcdb70e79e8678ef1f7d864faad06c555a764069bc0ee078f43a15"
+      },
+      "examples/frame-loop/Protocol.csbody": {
+        "size": 5025,
+        "sha256": "4e4569a5f611eba1b3c47291e5b5036f46614d6d10498730517fa05164dfc680"
+      },
+      "examples/frame-loop/ProtocolBody.celem": {
+        "size": 535,
+        "sha256": "63c867864e8efa27f011bab18b57bc3eddbb6ced4876ac8f71c26cfed3fbd05d"
+      },
+      "examples/frame-loop/Tick.celem": {
+        "size": 124,
+        "sha256": "4af92778a4a8ee82b7db7d4d7a705a89522cfa32d695293e7466a36d7c6f2890"
+      },
+      "examples/frame-loop/Tick.csbody": {
+        "size": 116,
+        "sha256": "a1030188c8e8c84027c381d026333b49b83fd929342b752bff5ae1e31a5b32f0"
+      },
+      "examples/frame-loop/TickBody.celem": {
+        "size": 123,
+        "sha256": "24136521b3b7c2251905ed5866e7ec2830fef7ea96449098102ad65132ec1176"
+      },
+      "examples/frame-loop/project.cpack": {
+        "size": 778,
+        "sha256": "517de4210ad23f72a590019d7e7ce51f5564cd58b1471088f788002b301eaabd"
+      },
+      "examples/frame-loop/protocol-verify.cpack": {
+        "size": 782,
+        "sha256": "1989131c458327928ab31ad82f0d3494f3ae087c9f3f35a6f6b102372749856b"
+      },
+      "examples/project-execution/frame-verify-body.celem": {
+        "size": 1190,
+        "sha256": "a97cec22119c1071cdf6795889562e1480c31b1bad95bded5ea156b7ae492ec7"
+      },
+      "examples/project-execution/frame-verify.cpack": {
+        "size": 680,
+        "sha256": "aaca131e160557852d99d892a909b7ca47beb59ca89330824736c93554d605e9"
+      },
+      "examples/project-execution/frame-verify.csbody": {
+        "size": 5742,
+        "sha256": "1582c59ab16f8d57043a5bd29cdcc537aead3c11da8f13c604a61ef035d5184e"
+      },
+      "examples/project-execution/main_body.celem": {
+        "size": 1182,
+        "sha256": "c54119d86e7ae6908c6edb97bfe0a1168bc2fb349ea43ae7c3550c46a898452a"
+      },
+      "packs/editor-home-model/Command.csbody": {
+        "size": 108879,
+        "sha256": "5ae1299d639957c4d7109fdc8a5a507bf3bf35758a6a1eef3145f0ccc44dba27"
+      },
+      "packs/editor-home-model/CommandBody.celem": {
+        "size": 8390,
+        "sha256": "6d69ef10643ee75e74bfe15c07e477c2229e48005aff23bd16238195158251a7"
+      },
+      "packs/frame-control/Begin.celem": {
+        "size": 329,
+        "sha256": "e2bd2c426863e11d224428a5e0688dae534f08b85a09142dfe6f1d9fb514110b"
+      },
+      "packs/frame-control/Begin.csbody": {
+        "size": 161,
+        "sha256": "19972ca9fafa8ada6a2e9cf3cc62da01a8fe0f3ecc77fb66cde161e8bc69e4ac"
+      },
+      "packs/frame-control/BeginBody.celem": {
+        "size": 139,
+        "sha256": "54700ccc3a98d55d05196731531fbf47709174967432e4719060e063247af79f"
+      },
+      "packs/frame-control/Close.celem": {
+        "size": 231,
+        "sha256": "166a84acca9c1452ff8eb3bd45f2292e77977d6dbea3db7773908cee69d8c4e1"
+      },
+      "packs/frame-control/Close.csbody": {
+        "size": 153,
+        "sha256": "4c64868179f539dd02be026c14ff46b90da7cede04d4245a3809b1678b504090"
+      },
+      "packs/frame-control/CloseBody.celem": {
+        "size": 140,
+        "sha256": "3d035c063524ffbe962f565fcd18ac29038d06176e72750357042dad2e1a7e9e"
+      },
+      "packs/frame-control/Complete.celem": {
+        "size": 244,
+        "sha256": "0b884b0b2f2b798e37df02dd642675d04d6b5c38007d6f2da3dbb5ddacf9f31b"
+      },
+      "packs/frame-control/Complete.csbody": {
+        "size": 151,
+        "sha256": "de5f0e0a938467a1e3e198c6f21b2e0422f0bdf29eabba364e02b171c600eeca"
+      },
+      "packs/frame-control/CompleteBody.celem": {
+        "size": 149,
+        "sha256": "92da0e12a58394c7cd28815adbdcd50b76f4c0b37e747d678f452642f024d561"
+      },
+      "packs/frame-control/Open.celem": {
+        "size": 256,
+        "sha256": "5ab6671c76c32c875ecc4fd056b977a467a789e959139451e3e8ddd19c044946"
+      },
+      "packs/frame-control/Open.csbody": {
+        "size": 6337,
+        "sha256": "d113a525a0ef1517dab3760579cf8fe0e31589717372b84b484d51bf8ec30ada"
+      },
+      "packs/frame-control/OpenBody.celem": {
+        "size": 127,
+        "sha256": "352250458b29b2912b4dfa67b70ae7f1d2fb9819d82b5a8886ff8333c630d398"
+      },
+      "packs/frame-control/pack.cpack": {
+        "size": 435,
+        "sha256": "d04c40dc62d489beb5e7d341d0745278912a583239f45714386054121f0cc67b"
+      },
+      "packs/project-execution/Capabilities.csbody": {
+        "size": 241,
+        "sha256": "fbfe6efbb0bffe01634e8d40e6a245f3d5acca41eff621b0841820597eb968e3"
+      },
+      "packs/project-execution/Control.celem": {
+        "size": 342,
+        "sha256": "670c02793fd766a17310bd63f3303347010c320c4b894c544ab75b7d47ce5e21"
+      },
+      "packs/project-execution/Control.csbody": {
+        "size": 659,
+        "sha256": "904be83aefdeecc0ee3ff90af34a0c79e30cc065e51460ae7ba37e9d787a4671"
+      },
+      "packs/project-execution/ControlBody.celem": {
+        "size": 189,
+        "sha256": "f6c0160daacdef9fc0ca95af53321be8d3bc5d4a6cb78981720280b41ee158fe"
+      },
+      "packs/project-execution/LaunchConfigured.csbody": {
+        "size": 8824,
+        "sha256": "abdc3625d8906bacf16c5344a3c4955ab203e6c432ccca5932d8bac9e6432bda"
+      },
+      "packs/project-execution/pack.cpack": {
+        "size": 1605,
+        "sha256": "aff22b6a0ea891ffad83a27968b4bc1621bc5ae35b5014a9c009b903d509be46"
+      },
+      "tests/Confectory.Tests/EngineTests.cs": {
+        "size": 4344,
+        "sha256": "77abf9d8f462e2d27c30727d14580a6a04628a7316269fc206aac9eedb8423f7"
+      },
+      "tests/Confectory.Tests/ProjectExecutionTests.cs": {
+        "size": 16465,
+        "sha256": "f4d2aa73aa9ba5264908dc82bbdd2347d890c6932efd0b2bdd3086ccbe120b98"
+      },
+      "tests/Confectory.Tests/WebUITests.cs": {
+        "size": 59107,
+        "sha256": "e85d2b20c609e9cc4c2924b29ec67baa1e9172d58209fcc8e955b98f694ec09e"
+      },
+      "tests/web/editor_run_control_v480.py": {
+        "size": 12954,
+        "sha256": "3c5a77100be0087618ad92aa512e92c67b51c1d9d2af288648df0a1d8b420efb"
+      }
+    },
+    "gates": {
+      "model_runtime": {
+        "exit": 1,
+        "filters": [
+          "ProjectExecutionTests.",
+          "RealTimeUpdateTests.",
+          "EngineTests.test_role_composition_two_windows_and_cleanup",
+          "ButtonTests.test_shared_button_game",
+          "EntryHomeTests.test_fresh_entry_home_project_contracts_and_consumer_locality"
+        ],
+        "methods": [
+          "RealTimeUpdateTests.test_lifecycle_and_provider_locality",
+          "EngineTests.test_role_composition_two_windows_and_cleanup",
+          "ProjectExecutionTests.test_actual_native_button_game_pause_single_draw_step_and_stop",
+          "ProjectExecutionTests.test_actual_native_engine_cooperative_frame_callbacks",
+          "ProjectExecutionTests.test_actual_owned_cooperative_frames_pause_step_reconnect_and_stop",
+          "ProjectExecutionTests.test_execution_handles_and_provider_locality",
+          "ProjectExecutionTests.test_frame_ack_foreign_stale_future_replies_cannot_overwrite_owner",
+          "ProjectExecutionTests.test_frame_control_actual_boundary_order_repeat_thread_and_close",
+          "EntryHomeTests.test_fresh_entry_home_project_contracts_and_consumer_locality"
+        ],
+        "elapsed": 227.60349665600006,
+        "sourceManifestSha256": "0b924581b99faef00ffa7e6da3645196e9bc7b739ba804282eb404de367ad3c2",
+        "logSha256": "27f4cfa080db08584e04d0b3783285a5b6f74438cbea7ad2b98ebdfc43150b57",
+        "passed": 9,
+        "failed": 1,
+        "skipped": 0,
+        "reportedSeconds": 227.569
+      }
+    },
+    "includedInFinalCounts": false,
+    "reason": "Original synthetic X11 FocusOut fixture failed and was reproduced on unchanged published code. Final source adds real focus transition, malformed-envelope bounds and retains ordinary input cadence."
+  },
+  "actualUiObservation": {
+    "initial": {
+      "version": 1,
+      "handle": "d9849e21bdfb4c57a69eca6e56c63e40",
+      "runtime": "a95d6808a6f343348353f2ede099881b",
+      "connected": true,
+      "mode": "running",
+      "frame": "16",
+      "ack": 0,
+      "pending": 0,
+      "action": "",
+      "outcome": "",
+      "available": true,
+      "sequence": 0,
+      "reason": ""
+    },
+    "paused": {
+      "version": 1,
+      "handle": "d9849e21bdfb4c57a69eca6e56c63e40",
+      "runtime": "a95d6808a6f343348353f2ede099881b",
+      "connected": true,
+      "mode": "paused",
+      "frame": "24",
+      "ack": 1,
+      "pending": 0,
+      "action": "pause",
+      "outcome": "applied",
+      "available": true,
+      "sequence": 1,
+      "reason": ""
+    },
+    "stepped": {
+      "version": 1,
+      "handle": "d9849e21bdfb4c57a69eca6e56c63e40",
+      "runtime": "a95d6808a6f343348353f2ede099881b",
+      "connected": true,
+      "mode": "paused",
+      "frame": "157",
+      "ack": 4,
+      "pending": 0,
+      "action": "step",
+      "outcome": "applied",
+      "available": true,
+      "sequence": 4,
+      "reason": ""
+    },
+    "afterReconnect": {
+      "version": 1,
+      "handle": "d9849e21bdfb4c57a69eca6e56c63e40",
+      "runtime": "a95d6808a6f343348353f2ede099881b",
+      "connected": true,
+      "mode": "paused",
+      "frame": "156",
+      "ack": 3,
+      "pending": 0,
+      "action": "resume",
+      "outcome": "applied",
+      "available": true,
+      "sequence": 3,
+      "reason": ""
+    },
+    "freshRun": {
+      "version": 1,
+      "handle": "283a24d4b08d46e2b0e62e696fb11a64",
+      "runtime": "9b11b5bb693344c281fca55881db0885",
+      "connected": true,
+      "mode": "running",
+      "frame": "0",
+      "ack": 0,
+      "pending": 0,
+      "action": "",
+      "outcome": "",
+      "available": true,
+      "sequence": 0,
+      "reason": ""
+    },
+    "coldState": "idle"
+  },
+  "protected": {
+    "localHead": "801621ae3e60d4b3d611acca76039ffa892b5bfc",
+    "localMain": "b5ea38c3d7eec3eb20f170e68f0f4215b86b2aee",
+    "zips": {
+      "reference/site-ui/Confectory-Editor-Prototype-v196.zip": "02d4824e92ed0edbb43113659982b37a99a614117652bde4d8ac92367e334e34",
+      "reference/site-ui/Confectory-Editor-Prototype-v424.zip": "b7969cd109ea2dad38bde9c9ab13967c20162c920a45a8cd51a8f82df6041874",
+      "reference/site-ui/Confectory-Editor-Prototype-v318.zip": "0a614fe2bf1ad3d8e10dfa8905bb6b61ea9f21b87b2492b2b87ca8566e9e6908",
+      "reference/site-ui/Confectory-Editor-Prototype-v480.zip": "0489844c8c6d90f7cdc8ea0e80628f487dcfb27f2c871b19367a635212d3c5bd"
+    },
+    "androidFilesChanged": []
+  },
+  "scope": {
+    "localOnly": true,
+    "selectedEnvironment": "Linux /workspace/Confectory, existing dotnet 10.0.401 and local Xorg dummy display :97; no new installation",
+    "nativeLinuxRuntime": true,
+    "cooperativeConsumers": [
+      "Engine desktop loop",
+      "ButtonGame native GUI draw loop",
+      "ordinary FrameLoop headless .NET simulation"
+    ],
+    "windowsAndAndroidHomeManagedCompileOnly": true,
+    "frameAckAfterActualCompletion": true,
+    "durableHostAdoption": false,
+    "embeddedSurface": false,
+    "remoteServiceOrAccountOrPaidCall": false,
+    "propertySetRefExtendedAbiAndGeneralOverflow": "separate unresolved scope"
+  },
+  "fixtureCorrection": {
+    "originalFailure": "Old X11 fixture sent FocusOut while the actual focused window was unchanged; production Window::Pump correctly ignored it.",
+    "unchangedPublishedProductReproduced": {
+      "commit": "801621ae3e60d4b3d611acca76039ffa892b5bfc",
+      "originalFixtureFailed": true,
+      "correctedActualFocusFixturePassed": true,
+      "logs": [
+        "baseline-button-gui.log",
+        "baseline-button-corrected-focus.log"
+      ]
+    },
+    "finalFixture": "Actual XSetInputFocus/XGetInputFocus and real pressed-state/cancellation receipt; score/hidden/lifetime checks retained.",
+    "productInputCadence": "Original 2ms native input pumping preserved; only actual Draw boundary enters cooperative frame completion."
+  }
+}
