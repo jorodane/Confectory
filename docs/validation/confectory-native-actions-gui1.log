@@ -1,0 +1,20 @@
+
+FAIL EntryHomeNativeDetailsTests.test_linux_native_context_actions_typed_proposal_cancel_stale_and_input_lifetimes
+System.Exception: Traceback (most recent call last):
+  File "/workspace/Confectory/tests/gui/entry_home_actions_x11.py", line 213, in <module>
+    prepare(a);old=current()['token'];n=count();invoke(a);assert count()==n+1 and 'value initial = 23;' in text(433) and 'data amount = 9;' in text(433);assert latest()['model']['workspace']['unit']['text']==draft
+    ^^^^^^^^^^
+  File "/workspace/Confectory/tests/gui/entry_home_actions_x11.py", line 184, in prepare
+    choose_action(window);native_fill(window,431,'initial');native_fill(window,432,value)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/Confectory/tests/gui/entry_home_actions_x11.py", line 171, in native_fill
+    wait(lambda t:json.loads(t['fields'][str(id)])['text']==value,'native typed '+str(id))
+  File "/workspace/Confectory/tests/gui/entry_home_actions_x11.py", line 110, in wait
+    raise AssertionError(message+' '+str({k:(latest() or {}).get(k) for k in ['screen','operation','job','focus','nativeAction','message']}))
+AssertionError: native typed 431 {'screen': 'actions', 'operation': 'native-actions-list', 'job': False, 'focus': 501, 'nativeAction': {'status': 'Enter field and raw JSON explicitly, then Invoke.', 'object': 'Example.ButtonGame::Score', 'selection': 'Example.ButtonGame::Score', 'token': '78a68443f7124a14ae3b4c638f1532e4', 'actions': [{'id': 'Example.ActionPack::Menu', 'title': '팩의 변경안', 'available': True, 'reason': '', 'function': 'Confectory.SchemaEditing::SetValue', 'implementation': 'Confectory.SchemaEditing::SetValueBody', 'signature': {'args': [{'type': 'string', 'name': 'text'}, {'type': 'string', 'name': 'field'}, {'type': 'string', 'name': 'value'}], 'return': 'string'}}, {'id': 'Example.ButtonGame::Menu', 'title': '메타데이터 변경안', 'available': True, 'reason': '', 'function': 'Confectory.SchemaEditing::SetValue', 'implementation': 'Confectory.SchemaEditing::SetValueBody', 'signature': {'args': [{'type': 'string', 'name': 'text'}, {'type': 'string', 'name': 'field'}, {'type': 'string', 'name': 'value'}], 'return': 'string'}}, {'id': 'Example.ButtonGame::UnboundMenu', 'title': '등록만 된 기능', 'available': False, 'reason': 'Function is declared but has no bound editor route', 'function': 'Example.ButtonGame::Main', 'implementation': 'Example.ButtonGame::MainBody', 'signature': {'args': [], 'return': 'int'}}], 'chosen': 'Example.ButtonGame::Menu', 'generation': 1}, 'message': ''}
+
+   at Confectory.Tests.TestCase.True(Boolean condition, String message) in /workspace/Confectory/tests/Confectory.Tests/Support.cs:line 127
+   at Confectory.Tests.EntryHomeNativeDetailsTests.test_linux_native_context_actions_typed_proposal_cancel_stale_and_input_lifetimes() in /workspace/Confectory/tests/Confectory.Tests/EntryHomeNativeDetailsTests.cs:line 26
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+0 passed, 1 failed, 0 skipped; 115.727s

@@ -1,0 +1,13 @@
+
+FAIL EntryHomeNativeDetailsTests.test_linux_native_context_actions_typed_proposal_cancel_stale_and_input_lifetimes
+System.Exception: Traceback (most recent call last):
+  File "/workspace/Confectory/tests/gui/entry_home_actions_x11.py", line 216, in <module>
+    prepare(a);canceled=current()['token'];click(a,436);idle('actions');assert text(431)==text(432)==text(433)=='' and not current()['token'];prepare(a,refresh=True);replay_old(a,canceled,project_id);press(a,0xFF1B);idle('project');pending();prepare(a);native_fill(a,432,'null');invoke(a,'failed');assert 'Scalar metadata required' in text(433) and text(432)=='null';back(a);pending()
+                                                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+
+   at Confectory.Tests.TestCase.True(Boolean condition, String message) in /workspace/Confectory/tests/Confectory.Tests/Support.cs:line 127
+   at Confectory.Tests.EntryHomeNativeDetailsTests.test_linux_native_context_actions_typed_proposal_cancel_stale_and_input_lifetimes() in /workspace/Confectory/tests/Confectory.Tests/EntryHomeNativeDetailsTests.cs:line 26
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+0 passed, 1 failed, 0 skipped; 92.202s

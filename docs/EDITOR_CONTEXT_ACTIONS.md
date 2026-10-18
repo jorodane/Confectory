@@ -31,7 +31,7 @@
 
 [검증 JSON](validation/editor-context-actions.json)에 같은 최종 source/fixture의 정확한 메서드와 로그를 기록한다. 실제 Chromium은 프로젝트 및 등록 팩의 발견, 미지원 구분, 명시 입력, 실제 SetValue 반환/실패, 반복·취소·stale·삭제·외부 변경·본문 교체·target·A/B/A·cold token 폐기와 미적용 source DOM/CAS를 검사한다. 별도 JS 검사는 내장 메뉴 동작과 닫힘/선택/조회 경합을 검사한다. [실제 결과 화면](validation/editor-context-actions.png)을 보관한다.
 
-Linux common WebUI의 실제 실행과 Windows/Android managed compile을 구분한다. native 컨텍스트 메뉴, 실제 Windows OS/Android 기기, browser WASM target의 새 메뉴 호출은 이번 실행 범위가 아니다. ProjectExecution의 일반 runtime-call 미지원은 그대로다. main·원본 ZIP·Android 설정·CSP·실계정·유료 호출·설치·지속 권한은 변경하지 않는다.
+Linux common WebUI의 실제 실행과 Windows/Android managed compile을 구분한다. 이 단계 당시 native 메뉴는 미포함이며 [native 후속 구현](V480_NATIVE_CONTEXT_ACTIONS.md)을 별도로 따른다. 실제 Windows OS/Android 기기, browser WASM target의 새 메뉴 호출은 이번 실행 범위가 아니다. ProjectExecution의 일반 runtime-call 미지원은 그대로다. main·원본 ZIP·Android 설정·CSP·실계정·유료 호출·설치·지속 권한은 변경하지 않는다.
 
 ## 남은 최소 범위
 

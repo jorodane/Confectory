@@ -1,0 +1,206 @@
+{
+  "version": 1,
+  "baseWorkCurrent": "41099958e6c640973707991b1d4f12f6bf2c6038",
+  "sourceCommit": "12ff0638f90c5b58efa4dde933a58ab55942db50",
+  "productionCommit": "671e99a0cb748b20fd33eba4fcbecde65d75dbf6",
+  "measuredAtUtc": "2026-10-18T15:51:12.031546+00:00",
+  "scope": "Native selected-object Actions menu, same ContextActions discovery and single statically bound SetValue route; explicit field/raw JSON and readonly proposal/failure; never Apply/Save/Confirm or generic function/provider execution.",
+  "distinctMethods": 12,
+  "passed": 12,
+  "failed": 0,
+  "skipped": 0,
+  "countingRule": "Only the final three groups on this final source/fixture are counted; earlier runs excluded. Documentation/evidence-only commit follows. No full suite or unexecuted OS/device claim.",
+  "gateConcurrencyLimit": 2,
+  "cpuQuota": 4,
+  "memoryLimitBytes": 17179869184,
+  "groups": [
+    {
+      "name": "native-actions",
+      "log": "confectory-native-actions-gui5.log",
+      "methods": [
+        "EntryHomeNativeDetailsTests.test_linux_native_context_actions_typed_proposal_cancel_stale_and_input_lifetimes"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 148.697
+    },
+    {
+      "name": "native-related",
+      "log": "confectory-native-actions-final-native.log",
+      "methods": [
+        "NativeFieldViewTests.test_linux_native_field_union_explicit_input_cancel_lifetime_cas_and_latest_cold",
+        "EntryHomeNativeDetailsTests.test_linux_native_tree_input_reopen_latest_state_and_pending_source_chat"
+      ],
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 348.514
+    },
+    {
+      "name": "web-model-managed-checkout",
+      "log": "confectory-native-actions-final-related.log",
+      "methods": [
+        "WebUITests.test_actual_editor_declared_context_actions_typed_call_scope_cancel_stale_and_failure",
+        "WebUITests.test_actual_editor_imp7_workspace_move_link_history_inputs_cold_and_branch",
+        "WebUITests.test_actual_editor_v424_six_declaration_kinds_and_registration_review",
+        "WebUITests.test_context_action_menu_lifecycle_builtin_dismiss_scope_and_unbound",
+        "WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup",
+        "WebUITests.test_web_ui_scope_revision_cancellation_disposal_and_pack_locality",
+        "SchemaEditingTests.test_signature_inputs_arrays_bounds_and_call_preflight_locality",
+        "EntryHomeTests.test_android_home_export_selects_activity_and_metadata_parser_without_engine_surface_sample",
+        "EntryHomeNativeDetailsTests.test_windows_native_information_and_profile_composition_builds"
+      ],
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 445.995
+    }
+  ],
+  "sourceSha256": {
+    "examples/editor-home/Main.csbody": "73e3541b2604c150e167cd6acc5847d3cb239dc24af50d87b4eca677b4b81e8d",
+    "examples/editor-home/MainBody.celem": "8d627d755fb6cbfef637bb0b70d05f8f8f34bce2b76034570a9dea49a0734cb7",
+    "packs/editor-home-model/ContextActions.csbody": "8f2081a743b1eb267e2aca950724c060b346e2a78f323971eeb0fdcec4a40f08",
+    "tests/gui/entry_home_actions_x11.py": "a3b6055490eb5a4af465e0f85bf043fdf35d342f86b59b274e04f74232478e3d",
+    "tests/Confectory.Tests/EntryHomeNativeDetailsTests.cs": "26350232256df5c5262f5c94c7ce0cb7b7adf38c215f4009688b2e7b1fbf9492"
+  },
+  "nativeJourney": {
+    "privateEvidence": "/tmp/confectory-native-actions-reo4ivzm",
+    "actualFunctionCalls": 5,
+    "sourceBytesPreserved": true,
+    "oldInputCasPreserved": true,
+    "cooperativeCancel": true,
+    "lateSuccessSuppressed": true,
+    "selectionReturnRejected": true,
+    "projectReturnRejected": true,
+    "staleBodyAndSignatureRejected": true,
+    "duplicateCallCached": true,
+    "staleContractFixture": "Owned comment additions to canonical SetValue.celem contract source and SetValue.csbody; no changed signature ABI is executed."
+  },
+  "platforms": {
+    "linuxNative": "Actual GTK3/X11 menu/input/proposal/failure, prior native field/tree lifetimes and CAS",
+    "web": "Actual Chromium common WebUI and ordinary Git retained CRLF/fresh LF host startup",
+    "windows": "Managed native composition compilation only; no Windows OS/device execution",
+    "android": "Existing export/metadata fixture only; no native menu or device execution",
+    "browserWasm": "No new native menu target/device run"
+  },
+  "resources": {
+    "entries": 44,
+    "canonicalUtf8Lf": 35,
+    "exact": 9
+  },
+  "protectedBaseline": {
+    "localMain": "b5ea38c3d7eec3eb20f170e68f0f4215b86b2aee",
+    "remoteMain": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+    "baseWorkCurrent": "41099958e6c640973707991b1d4f12f6bf2c6038",
+    "zipSha256": {
+      "reference/site-ui/Confectory-Editor-Prototype-v196.zip": "02d4824e92ed0edbb43113659982b37a99a614117652bde4d8ac92367e334e34",
+      "reference/site-ui/Confectory-Editor-Prototype-v318.zip": "0a614fe2bf1ad3d8e10dfa8905bb6b61ea9f21b87b2492b2b87ca8566e9e6908",
+      "reference/site-ui/Confectory-Editor-Prototype-v424.zip": "b7969cd109ea2dad38bde9c9ab13967c20162c920a45a8cd51a8f82df6041874",
+      "reference/site-ui/Confectory-Editor-Prototype-v480.zip": "0489844c8c6d90f7cdc8ea0e80628f487dcfb27f2c871b19367a635212d3c5bd"
+    }
+  },
+  "remaining": [
+    "Additional functions/input-output/provider bindings remain IMP4",
+    "Actual Windows OS, Android device and browser/embedded combinations remain ENV",
+    "No new semantics, authority, external service, install, CSP or overflow decision"
+  ],
+  "priorAttempts": [
+    {
+      "log": "confectory-native-actions-tests-build1.log",
+      "rawScratchSha256": "e6b4fe4bbc8756af2b281804af6dd31981931c33d7f7b821422f70762930df4f",
+      "gitCopySha256": "e6b4fe4bbc8756af2b281804af6dd31981931c33d7f7b821422f70762930df4f",
+      "counted": false
+    },
+    {
+      "log": "confectory-native-actions-tests-build2.log",
+      "rawScratchSha256": "e6b4fe4bbc8756af2b281804af6dd31981931c33d7f7b821422f70762930df4f",
+      "gitCopySha256": "e6b4fe4bbc8756af2b281804af6dd31981931c33d7f7b821422f70762930df4f",
+      "counted": false
+    },
+    {
+      "log": "confectory-native-actions-tests-build3.log",
+      "rawScratchSha256": "6566542c7d1d5a28ef7bfc4834f4a7ce56a493157c6b6a6f32e8b406e053bd4f",
+      "gitCopySha256": "6566542c7d1d5a28ef7bfc4834f4a7ce56a493157c6b6a6f32e8b406e053bd4f",
+      "counted": false
+    },
+    {
+      "log": "confectory-native-actions-compile1.log",
+      "rawScratchSha256": "e87528d4ae90d45b01a2f95ea01d6ad77147bae9ddfb8092a1cfd1cc87cf5177",
+      "gitCopySha256": "e87528d4ae90d45b01a2f95ea01d6ad77147bae9ddfb8092a1cfd1cc87cf5177",
+      "counted": false
+    },
+    {
+      "log": "confectory-native-actions-related1.log",
+      "rawScratchSha256": "9a69b5bbbdc68112b0b7ccfd0574daf6e0465fd75092ffd7555b03000fbde441",
+      "gitCopySha256": "9a69b5bbbdc68112b0b7ccfd0574daf6e0465fd75092ffd7555b03000fbde441",
+      "counted": false
+    },
+    {
+      "log": "confectory-native-actions-related2.log",
+      "rawScratchSha256": "eb86d215cff7402c601dcb9795eebac629929ebf1fffe371ffda0be47767f549",
+      "gitCopySha256": "eb86d215cff7402c601dcb9795eebac629929ebf1fffe371ffda0be47767f549",
+      "counted": false
+    },
+    {
+      "log": "confectory-native-actions-gui1.log",
+      "rawScratchSha256": "5da973390d3dc972097d705cc244a1c8be4e061171f3aeab39aabab7133800da",
+      "gitCopySha256": "5da973390d3dc972097d705cc244a1c8be4e061171f3aeab39aabab7133800da",
+      "counted": false
+    },
+    {
+      "log": "confectory-native-actions-gui2.log",
+      "rawScratchSha256": "8e4143e46afb56b2172ebb2489a86c169f57ce0520cc25d2b792dfbd3543cfb7",
+      "gitCopySha256": "8e4143e46afb56b2172ebb2489a86c169f57ce0520cc25d2b792dfbd3543cfb7",
+      "counted": false
+    },
+    {
+      "log": "confectory-native-actions-gui3.log",
+      "rawScratchSha256": "a6705bd576498913bb7a64950150eb417f9263211fbf57cbea91867524010f68",
+      "gitCopySha256": "a6705bd576498913bb7a64950150eb417f9263211fbf57cbea91867524010f68",
+      "counted": false
+    },
+    {
+      "log": "confectory-native-actions-gui4.log",
+      "rawScratchSha256": "54a1ef2b002494c6041ed0a255bf4a0bf7050fdee4b06c0ccab0dcea7109454e",
+      "gitCopySha256": "54a1ef2b002494c6041ed0a255bf4a0bf7050fdee4b06c0ccab0dcea7109454e",
+      "counted": false
+    }
+  ],
+  "priorFindings": [
+    "Initial dotnet builds lacked an owned DOTNET_CLI_HOME; retried with the existing SDK and owned path, no install or permission change",
+    "gui1 native single-line test input required actual widget pointer focus",
+    "gui2 exposed stale widget poll overwriting an asynchronous menu result; final production retires only the replaced menu widget before the next poll",
+    "gui3 test compared newly created object buffers as if they must not exist; final test compares original retained buffer keys and versions",
+    "gui4 test read an older idle trace before cancel acknowledgement; final test waits for retired token and canceled state",
+    "Competing writer is verified through stale invocation refusal, newly returned source metadata and the original native write CAS, not the cached EditorHome projection"
+  ],
+  "logs": [
+    {
+      "file": "confectory-native-actions-gui5.log",
+      "rawScratchSha256": "05bd432d714d97b096ea5f2857667cfb80150dbd178df180ff03a49a15e22fd2",
+      "gitCopySha256": "05bd432d714d97b096ea5f2857667cfb80150dbd178df180ff03a49a15e22fd2"
+    },
+    {
+      "file": "confectory-native-actions-final-native.log",
+      "rawScratchSha256": "e0e66e20ae45b0129698460366b8542b9ed9da45ffe6edacd662bcc792f53476",
+      "gitCopySha256": "e0e66e20ae45b0129698460366b8542b9ed9da45ffe6edacd662bcc792f53476"
+    },
+    {
+      "file": "confectory-native-actions-final-related.log",
+      "rawScratchSha256": "5937a1840e00eabc642b03814ca6e7cfa084cd06ddff125f5448b505ddf9d5a7",
+      "gitCopySha256": "5937a1840e00eabc642b03814ca6e7cfa084cd06ddff125f5448b505ddf9d5a7"
+    }
+  ],
+  "screenshot": {
+    "file": "native-context-actions.png",
+    "sha256": "fc023aa711673b0a3bd2d8ab90df129836b0382d03147daa18d7cb7bf01ba6e5"
+  },
+  "ownedXorgRetirement": {
+    "pid": 1594461,
+    "command": "/usr/lib/xorg/Xorg :97 -noreset -nolisten tcp -config /workspace/scratch/confectory-run-control/xorg.conf -logfile /workspace/scratch/confectory-native-actions-xorg.log ",
+    "ownedDisplay": ":97",
+    "socketRemoved": true,
+    "otherProcessesSignalled": false
+  }
+}

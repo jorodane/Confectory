@@ -1,0 +1,6 @@
+PASS native field union actual GTK input: explicit owned targets and readonly exact JSON/missing/null/default/unknown, bounded native pages/filter, settings CAS/corruption, pending source/chat/cell binding and original write CAS, cooperative cancel/late response/view close/project A/B/A/WM disposal/latest cold schema; no source writes or AI; private evidence /tmp/confectory-native-fields-4ujth9oi
+PASS NativeFieldViewTests.test_linux_native_field_union_explicit_input_cancel_lifetime_cas_and_latest_cold
+PASS native declaration tree input: GTK expand/search/select/page, explicit parent/contain/schema and direct-reference gate, unresolved/cycle/depth64, explicit saved state/CAS/corruption, two-project isolation, same pending source/chat bindings, reopen and cold latest metadata; unchanged widget budgets
+Native tree evidence: /tmp/confectory-native-tree-alurlhew
+PASS EntryHomeNativeDetailsTests.test_linux_native_tree_input_reopen_latest_state_and_pending_source_chat
+2 passed, 0 failed, 0 skipped; 348.514s

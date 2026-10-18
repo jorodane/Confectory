@@ -1,0 +1,13 @@
+
+FAIL EntryHomeNativeDetailsTests.test_linux_native_context_actions_typed_proposal_cancel_stale_and_input_lifetimes
+System.Exception: Traceback (most recent call last):
+  File "/workspace/Confectory/tests/gui/entry_home_actions_x11.py", line 213, in <module>
+    prepare(a);old=current()['token'];n=count();invoke(a);assert count()==n+1 and 'value initial = 23;' in text(433) and 'data amount = 9;' in text(433);assert latest()['model']['workspace']['unit']['text']==draft
+                                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+
+   at Confectory.Tests.TestCase.True(Boolean condition, String message) in /workspace/Confectory/tests/Confectory.Tests/Support.cs:line 127
+   at Confectory.Tests.EntryHomeNativeDetailsTests.test_linux_native_context_actions_typed_proposal_cancel_stale_and_input_lifetimes() in /workspace/Confectory/tests/Confectory.Tests/EntryHomeNativeDetailsTests.cs:line 26
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+0 passed, 1 failed, 0 skipped; 88.059s
