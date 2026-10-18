@@ -17,7 +17,7 @@ export function createContextActions(api){
  }
  function form(data,action,owns){
   if(!owns())return api.toast('메뉴를 연 객체나 프로젝트가 바뀌었습니다. 다시 여세요.');
-  api.modal(action.title,'<p data-action-context></p><p class="small">현재 공유 초안의 선언을 사용합니다. 반환값은 변경안이며 적용·저장하지 않습니다.</p><p data-action-function></p><form><label>필드<input data-action-field maxlength="128" required></label><label>JSON 값<input data-action-value maxlength="8192" required></label><div class="actions"><button type="submit" data-action-invoke>함수 호출</button><button type="button" data-action-cancel>취소</button></div></form><pre data-action-result></pre>',(root,close)=>{
+  api.modal(action.title,'<p data-action-context></p><p class="small">현재 공유 초안의 선언을 사용합니다. 반환값은 변경안이며 적용·저장하지 않습니다.</p><p data-action-function></p><form><label>필드<input data-action-field maxlength="128" required></label><label>JSON 값<input data-action-value maxlength="8192" required></label><div class="actions"><button type="submit" data-action-invoke>함수 호출</button><button type="button" data-action-cancel>취소</button></div></form><pre class="consumer-output" data-action-result></pre>',(root,close)=>{
    root.querySelector('[data-action-context]').textContent=data.object+' · revision '+data.revision;
    root.querySelector('[data-action-function]').textContent=action.function+' → '+action.implementation;
    const button=root.querySelector('[data-action-invoke]'),output=root.querySelector('[data-action-result]');let pending=null,retired=false,finished=false;
