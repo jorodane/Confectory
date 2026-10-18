@@ -1,0 +1,2 @@
+if(session.Length!=2||session[1]!="active"||AppDomain.CurrentDomain.GetData(session[0]) is not System.Collections.Generic.Dictionary<string,object[]>)throw new InvalidOperationException("Execution session is disposed");
+return "{\"scope\":\"recorded-project-executions\",\"state\":\"unavailable\",\"reason\":\"provider-unavailable\",\"providerAvailable\":false,\"rows\":[],\"ownerAvailable\":false,\"canControl\":false,\"canStop\":false}";

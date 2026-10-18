@@ -17,6 +17,7 @@ import Confectory.ProjectShell::Snapshot as ShellSnapshot (string) -> string;
 import Confectory.ProjectManager::Launch as Launch (string[], string, string, string) -> string;
 import Confectory.ProjectManager::Executions as Executions (string[]) -> string[];
 import Confectory.ProjectExecution::Control as FrameControl (string[],string,string) -> string;
+import Confectory.ProjectExecution::RunHistory as RunHistory (string[],string,string,string) -> string;
 import Confectory.ProjectExecution::Observe as Observe (string[], string) -> string[];
 import Confectory.ProjectExecution::Output as Output (string[], string) -> string[];
 import Confectory.ProjectExecution::Stop as Stop (string[], string) -> void;

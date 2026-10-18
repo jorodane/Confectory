@@ -117,3 +117,5 @@ Workspace private 창 링크·수명은 [규칙과 저장 경계](V480_WORKSPACE
 로컬 Run 프레임 제어 후속은 [세션·frame/ack·Pause/Step·단절/재연결 명세](V480_LOCAL_RUN_FRAME_CONTROL.md)를 따른다. 프로세스 상태와 협력적 런타임의 실제 완료 프레임을 구분한다. 기존 Engine, ButtonGame GUI와 ordinary FrameLoop에 연결하며 비참여 프로젝트는 일반 Run/Stop을 유지한다. 새 호스트의 이전 실행 채택·surface embedding·원격 서비스·기기/PC 설치와 property set/ref·확장 ABI·overflow는 별도 범위다. 최종 고정 원본과 검사 근거는 [검증 기록](validation/v480-local-run-control.json)에 남긴다.
 
 로컬 Run 후속의 최종 고정 원본 50개에서 실행/모델 10/0/0, 실제 Chromium 3/0/0, 관리 프로필 컴파일 1/0/0, 일반 checkout·41개 리소스·Home 시작 1/0/0이 통과했다. 서로 다른 메서드 15개이며, 이전 9/1/0 단계와 실제 포커스 fixture 보정 근거는 최종 합계에 섞지 않았다. 네이티브 Engine은 Step마다 실제 fixed tick 하나, ButtonGame은 실제 두 View Draw 완료를 확인했다. Windows/Android 실기 실행·설치는 검증하지 않았다.
+
+비밀정보 없는 실행 이력과 콜드 상태 표시는 [범위·저장 형식·권한 경계](V480_RECORDED_RUN_HISTORY.md)를 따른다. 기존 실행 ID와 마지막 확인 상태/frame/ack/종료 결과를 제한된 원자적 기록으로 남긴다. 새 호스트는 owner-unavailable로 표시하며 기록을 실행 레지스트리에 가져오거나 이전 권한·명령을 복원하지 않는다. 손상·충돌·저장 실패는 실제 Run/Stop과 분리한다. [고정 원본·최종 검증](validation/v480-recorded-run-history.json)에 단계별 결과를 남긴다.

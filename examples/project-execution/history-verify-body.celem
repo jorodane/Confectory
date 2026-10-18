@@ -1,0 +1,16 @@
+implementation Example.ProjectExecution::MainBody for Example.ProjectExecution::Main () -> int {
+import Confectory.ProjectExecution::CreateSession as CreateSession () -> string[];
+import Confectory.ProjectExecution::Capabilities as Capabilities () -> string[];
+import Confectory.ProjectExecution::Launch as Launch (string[], string, string, string) -> string;
+import Confectory.ProjectExecution::Observe as Observe (string[], string) -> string[];
+import Confectory.ProjectExecution::Stop as Stop (string[], string) -> void;
+import Confectory.ProjectExecution::Poll as Poll (string[]) -> string[];
+import Confectory.ProjectExecution::Dispose as Dispose (string[]) -> void;
+import Confectory.ProjectExecution::DescribeProject as DescribeProject (string) -> string[];
+import Confectory.FileStream::LeasePath as LeasePath (string) -> string;
+import Confectory.ProjectExecution::LaunchConfigured as LaunchConfigured (string[], string, string, string, string[], string[]) -> string;
+import Confectory.ProjectExecution::Output as Output (string[], string) -> string[];
+import Confectory.ProjectExecution::Control as Control (string[],string,string) -> string;
+import Confectory.ProjectExecution::RunHistory as History (string[],string,string,string) -> string;
+body common "history-verify.csbody";
+}

@@ -35,6 +35,14 @@ public sealed class WebUITests : TestCase
         var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/editor_yogi_v318.py"),Fixture.Repo,report},timeoutSeconds:600);
         True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS ordinary ProjectPack durable Yogi"));
     }
+    public void test_run_history_command_admission_preserves_published_revision_and_rejects_stale_step()
+    {
+        var built=new Builder(Path.Combine(Fixture.Repo,"examples/editor-home/project.cpack"),"linux").Build();string report=Path.Combine(f.Root,"v480-run-admission.json");File.WriteAllText(report,built.ToJsonString());var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/editor_run_admission_v480.py"),Fixture.Repo,report},timeoutSeconds:300);True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS command admission reads published state",StringComparison.Ordinal),run.Stdout+run.Stderr);
+    }
+    public void test_actual_editor_v480_run_history_cold_unavailable_corruption_and_no_adoption()
+    {
+        var built=new Builder(Path.Combine(Fixture.Repo,"examples/editor-home/project.cpack"),"linux").Build();string report=Path.Combine(f.Root,"v480-run-history.json");File.WriteAllText(report,built.ToJsonString());var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/editor_run_history_v480.py"),Fixture.Repo,report},timeoutSeconds:600);True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS actual Run history:",StringComparison.Ordinal),run.Stdout+run.Stderr);
+    }
     public void test_actual_editor_v480_local_run_frame_ack_pause_step_reconnect_and_stop()
     {
         var built=new Builder(Path.Combine(Fixture.Repo,"examples/editor-home/project.cpack"),"linux").Build();string report=Path.Combine(f.Root,"v480-run-control.json");File.WriteAllText(report,built.ToJsonString());

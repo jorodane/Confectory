@@ -1,0 +1,1 @@
+implementation Confectory.ProjectExecution::RunHistoryBody for Confectory.ProjectExecution::RunHistory (string[] session,string project,string operation,string payload) -> string {body common "RunHistory.csbody";body android "RunHistoryUnavailable.csbody";body browser "RunHistoryUnavailable.csbody";}

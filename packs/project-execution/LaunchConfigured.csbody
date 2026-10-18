@@ -8,8 +8,10 @@ project=System.IO.Path.GetFullPath(project);string handle=Guid.NewGuid().ToStrin
 string pipe="confectory-frame-"+Guid.NewGuid().ToString("N"),secret=Convert.ToHexString(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32));
 object controlGate=new();string runtime="";int sent=0;long observedFrame=0;int observedAck=0;string sentAction="";long requestedFrame=0;bool attached=true;System.Text.Json.Nodes.JsonObject? latest=null;
 
-var record=new object[]{new string[]{handle,"building",project,entry,target,"",""},null!,false,new System.Collections.Generic.Queue<string>(),null!};
+var record=new object[]{new string[]{handle,"building",project,entry,target,"",""},null!,false,new System.Collections.Generic.Queue<string>(),null!,new object[]{"run-history-v1",new object(),new System.Text.Json.Nodes.JsonObject()}};
 lock(records)records.Add(handle,record);
+void Checkpoint(){try{calls.RunHistory.Invoke(session,project,"checkpoint",new System.Text.Json.Nodes.JsonObject{["execution"]=handle}.ToJsonString());}catch{}}
+Checkpoint();
 Func<string,string> control=operation=>{lock(controlGate){
  if(operation is not ("observe" or "pause" or "resume" or "step" or "disconnect" or "reconnect"))throw new ArgumentException("Unknown frame control operation");
  if(operation=="disconnect")attached=false;else if(operation=="reconnect")attached=true;
@@ -35,7 +37,7 @@ Func<string,string> control=operation=>{lock(controlGate){
   if(reply["connected"] is null||pending!=0&&reply["action"]?.ToString()!=sentAction||ack>observedAck&&(reply["action"]?.ToString()!=sentAction||reply["outcome"]?.ToString() is not ("applied" or "interrupted"))||ack>observedAck&&sentAction=="step"&&reply["outcome"]?.ToString()=="applied"&&(frame!=requestedFrame+1||reply["mode"]?.ToString()!="paused"))throw new System.IO.InvalidDataException("Frame acknowledgement does not match the pending command");
   _=reply["connected"]!.GetValue<bool>();
   if(!command&&pending==0&&ack<sent){sent=ack;reply["outcome"]="not-accepted";}
-  runtime=epoch;observedFrame=frame;observedAck=ack;reply.Remove("request");reply["available"]=true;reply["sequence"]=sent;reply["reason"]="";latest=reply;return reply.ToJsonString();
+  runtime=epoch;observedFrame=frame;observedAck=ack;reply.Remove("request");reply["available"]=true;reply["sequence"]=sent;reply["reason"]="";latest=reply;lock(((object[])record[5])[1]){lock(records){if(((string[])record[0])[1]=="running"){var history=(System.Text.Json.Nodes.JsonObject)((object[])record[5])[2];history["frame"]=reply["frame"]!.DeepClone();history["ack"]=reply["ack"]!.DeepClone();history["frameState"]=reply["mode"]!.DeepClone();}}}Checkpoint();return reply.ToJsonString();
  }catch(Exception error) when(error is System.IO.InvalidDataException or System.IO.IOException or System.OperationCanceledException or System.Text.Json.JsonException or System.FormatException or System.OverflowException or System.InvalidOperationException or System.ArgumentException){return Unavailable("Frame connection unavailable; no command replay: "+error.GetType().Name).ToJsonString();}
 }};
 record[4]=control;
@@ -56,12 +58,12 @@ if(error.Length<4096){string addition=line+"\n";error+=addition.Substring(0,Math
   try
   {
    string? first=await process.StandardOutput.ReadLineAsync();
-   if(first is not null){using var reply=System.Text.Json.JsonDocument.Parse(first);if(reply.RootElement.GetProperty("state").GetString()=="running")lock(records){var status=(string[])record[0];if(status[1]=="building")status[1]="running";}}
+   if(first is not null){using var reply=System.Text.Json.JsonDocument.Parse(first);if(reply.RootElement.GetProperty("state").GetString()=="running")lock(records){var status=(string[])record[0];if(status[1]=="building")status[1]="running";}Checkpoint();}
    await process.StandardOutput.ReadToEndAsync();await process.WaitForExitAsync();await errors;
-   lock(records){var status=(string[])record[0];if(status[1]!="stopped"){status[1]=process.ExitCode==0?"exited":"failed";status[5]=process.ExitCode.ToString(System.Globalization.CultureInfo.InvariantCulture);status[6]=error;}}
+   lock(records){var status=(string[])record[0];if(status[1]!="stopped"){status[1]=process.ExitCode==0?"exited":"failed";status[5]=process.ExitCode.ToString(System.Globalization.CultureInfo.InvariantCulture);status[6]=error;}}Checkpoint();
   }
-  catch(Exception ex){lock(records){var status=(string[])record[0];if(status[1]!="stopped"){status[1]="failed";status[6]=ex.Message;}}}
+  catch(Exception ex){lock(records){var status=(string[])record[0];if(status[1]!="stopped"){status[1]="failed";status[6]=ex.Message;}}Checkpoint();}
  });
 }
 catch(Exception ex){lock(records){var status=(string[])record[0];status[1]="failed";status[6]=ex.Message;}}
-return handle;
+Checkpoint();return handle;
