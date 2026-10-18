@@ -1,0 +1,23 @@
+UI page errors: []
+UI failure status: 실제 기능 원본 · AI 전송과 프로젝트 실행 없음
+UI failure controls: {'confirm': None, 'run': False, 'source': 'Example.ButtonGame::Score'}
+FAIL WebUITests.test_actual_editor_v508_blueprint_overview_camera_scope_cancel_and_cold
+System.Exception: UI page errors: []
+UI failure status: 실제 기능 원본 · AI 전송과 프로젝트 실행 없음
+UI failure controls: {'confirm': None, 'run': False, 'source': 'Example.ButtonGame::Score'}
+Traceback (most recent call last):
+  File "/workspace/Confectory/tests/web/web_ui.py", line 357, in <module>
+    verify_overview(page,project,mount,send,envelope,settle,restart_actual_host)
+  File "/workspace/Confectory/tests/web/v508_blueprint_overview.py", line 55, in verify_overview
+    panel().locator('[data-bp-fit]').click();before=copy.deepcopy(meta()['blueprintPositions']);header=panel().locator('[data-bp-drag="calculate"] span').first;h=header.bounding_box();page.mouse.move(h['x']+h['width']/2,h['y']+h['height']/2);page.mouse.down();page.mouse.move(h['x']+h['width']/2+35,h['y']+h['height']/2+12,steps=6);page.mouse.up();assert meta()['blueprintPositions']['calculate']!=before['calculate'];expect(overview().locator('[data-bp-overview-node="calculate"]')).to_have_count(1)
+                                                                                                                                                                                                                                                                                                                                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+
+   at Confectory.Tests.TestCase.True(Boolean condition, String message) in /workspace/Confectory/tests/Confectory.Tests/Support.cs:line 127
+   at Confectory.Tests.WebUITests.RunOwnedBlueprint(String mode) in /workspace/Confectory/tests/Confectory.Tests/WebUITests.cs:line 300
+   at Confectory.Tests.WebUITests.test_actual_editor_v508_blueprint_overview_camera_scope_cancel_and_cold() in /workspace/Confectory/tests/Confectory.Tests/WebUITests.cs:line 183
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+PASS overview actual DOM {"kind": "actual Chromium mounted production viewport component", "sourceSha256": "caaad9cf9fe3efb6a5a36afef4bed9ffbcf66df3add08a276a4bae18fdde9c4a", "metadataNodes": 256, "initialMountedGlyphs": 255, "missingDomNodesIgnored": true, "oldSavedIdsIgnored": true, "prototypeIdSafe": true, "invalidPositionsFinite": true, "worldExtent": 10000000, "endCamera": {"x": -9999982, "y": -2072}, "homeCamera": {"x": 350, "y": 200}, "cancel": ["Escape", "pointercancel", "lostpointercapture"], "modelUnchanged": true, "emptySceneDisabled": true, "retiredHandlersIgnored": true}
+PASS WebUITests.test_blueprint_overview_actual_dom_bounds_stale_nodes_and_disposal
+1 passed, 1 failed, 0 skipped; 20.401s
