@@ -1,17 +1,20 @@
-using Confectory.Core;
 using System.Text.Json.Nodes;
+
+namespace Confectory.Core;
 
 // The same target-specific reachability as Builder.Build(). No TargetTool,
 // compiler, implementation body, provider or project process is executed.
-internal static class HomeInclusion
+public static class HomeInclusion
 {
-    internal static JsonObject Query(string project)
+    public static JsonObject Query(string project, Func<string, string>? scope = null)
     {
         const int maxDocuments = 16384, maxBytes = 32 * 1024 * 1024;
         var snapshots = new Dictionary<string, byte[]>(StringComparer.Ordinal);
         int total = 0;
         byte[] Read(string path)
         {
+            path = System.IO.Path.GetFullPath(path);
+            if (scope is not null) path = scope(path);
             if (snapshots.TryGetValue(path, out var prior)) return prior;
             if (snapshots.Count >= maxDocuments) throw new IOException("Inclusion document budget");
             for (FileSystemInfo? node = new FileInfo(path); node is not null; node = node is FileInfo file ? file.Directory : ((DirectoryInfo)node).Parent)

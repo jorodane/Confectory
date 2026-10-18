@@ -33,6 +33,7 @@ if(endpoint=="host.close"){
   Command("open-request",new(){["path"]=path});Command("workspace",new(){["action"]="open"});Command("workspace",new(){["action"]="save"});var closing=Command("close-project",new());if(closing["closeRequest"] is not null)Command("close-project",new(){["confirmed"]=true});
  }return "{\"accepted\":true}";
 }
+if(endpoint=="helperProfiles"){Command("helper-display-list",new());return "{\"accepted\":true}";}
 if(endpoint=="globalHelpers"){Command("helper-list",new());return "{\"accepted\":true}";}
 if(endpoint=="recruitGlobalHelper"){if(before["selected"] is not null)throw new InvalidOperationException("Global recruitment uses Home");Command("helper-recruit",new(){["kind"]="global"});return "{\"accepted\":true}";}
 if(endpoint=="localInventory"){Command("local-inventory",new());return "{\"accepted\":true}";}

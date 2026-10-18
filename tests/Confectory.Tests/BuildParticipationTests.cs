@@ -15,6 +15,29 @@ public sealed class BuildParticipationTests : TestCase
   f.Add("Provider","implementation","ValueBody","implementation Provider::ValueBody for Api::Value (int n) -> int { body common \"value.csbody\"; }");f.Add("Unused","object","Dormant","object Unused::Dormant {}");f.Packs["App"].Dependencies["Unused"]="1";f.Main("provide Api::Value with Provider::ValueBody; use object Unused::Dormant;");f.Sync();
   Equal(4,Query()["packs"]!.GetValue<int>());f.Entry=null;f.Sync();Equal("unsupported",Query()["packsStatus"]!.ToString());
  }
+ public void test_native_metadata_inclusion_matches_desktop_owned_scope_and_no_body_execution()
+ {
+  string desktop=HomeInclusion.Query(f.Project).ToJsonString();
+  foreach(string platform in new[]{"android-export","browser-wasm"}){
+   string folder=Path.Combine(f.Root,"metadata-"+platform);Directory.CreateDirectory(folder);File.Copy(Path.Combine(Fixture.Repo,"targets",platform,"templates","MetadataAuthoring.cs"),Path.Combine(folder,"MetadataAuthoring.cs"));
+   File.WriteAllText(Path.Combine(folder,"check.csproj"),"<Project Sdk=\"Microsoft.NET.Sdk\"><PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup><ItemGroup><Reference Include=\"Confectory.Core\"><HintPath>"+System.Security.SecurityElement.Escape(typeof(Builder).Assembly.Location)+"</HintPath></Reference></ItemGroup></Project>");
+   File.WriteAllText(Path.Combine(folder,"Program.cs"),"""
+   using System.Text.Json.Nodes;
+   string Query(string root,string project)=>MetadataAuthoring.Call(root,"catalog",System.Text.Json.JsonSerializer.Serialize(new{project,request=new{action="inclusion"}}));
+   var actual=JsonNode.Parse(Query(args[0],args[1]))!;var expected=JsonNode.Parse(File.ReadAllText(args[2]))!;
+   if(!JsonNode.DeepEquals(actual,expected))throw new Exception("Adapter reply differs: "+actual);
+   string body=Path.Combine(Path.GetDirectoryName(args[1])!,"main.csbody");File.WriteAllText(body,"invalid C#; metadata must not read or execute this");
+   if(!JsonNode.DeepEquals(JsonNode.Parse(Query(args[0],args[1])),expected))throw new Exception("Body was observed or invoked");
+   var denied=JsonNode.Parse(Query(Path.GetDirectoryName(args[1])!,args[1]))!;if(denied["status"]?.ToString()!="unavailable")throw new Exception("Registry read escaped the supplied owner root");
+   string library=Path.Combine(args[0],"library.cpack");File.WriteAllText(library,"pack Library version \"1\" {element Unreadable object \"never-read.celem\";}");
+   var unsupported=JsonNode.Parse(Query(args[0],library))!;if(unsupported["status"]?.ToString()!="available"||unsupported["kind"]?.ToString()!="pack"||unsupported["packsStatus"]?.ToString()!="unsupported")throw new Exception("Unsupported library reachability conflated with unavailable files");
+   string missing=Query(args[0],Path.Combine(args[0],"missing.cpack"));if(JsonNode.Parse(missing)!["status"]!.ToString()!="unavailable")throw new Exception("Missing source counted as empty");
+   Console.WriteLine("PASS adapter inclusion parity, scoped registry reads, unsupported/unavailable and no body execution");
+   """);
+   string expected=Path.Combine(folder,"expected.json");File.WriteAllText(expected,desktop);var build=Processes.Run(new[]{Processes.DotNet(),"build",Path.Combine(folder,"check.csproj"),"-c","Release","--nologo"},timeoutSeconds:120);True(build.ExitCode==0,build.Stdout+build.Stderr);
+   var run=Processes.Run(new[]{Processes.DotNet(),Path.Combine(folder,"bin/Release/net10.0/check.dll"),f.Root,f.Project,expected},timeoutSeconds:90);True(run.ExitCode==0,platform+run.Stdout+run.Stderr);Console.WriteLine(platform+": "+run.Stdout.Trim());
+  }
+ }
  public void test_generic_outputs_pure_discovery_usage_closure_and_retention()
  {
   f.NewPack("UI");f.Add("UI","function","Paint","function UI::Paint () -> string { provide UI::Paint with UI::PaintBody; }");f.Add("UI","implementation","PaintBody","implementation UI::PaintBody for UI::Paint () -> string { body common \"paint.csbody\"; }");f.Body("UI","paint.csbody","return \"client UI\";");f.Packs["App"].Dependencies["UI"]="1";
