@@ -142,7 +142,7 @@ with sync_playwright() as p:
   dialog.locator('[data-catalogue-model]').select_option('owned-protocol-fixture');dialog.locator('[data-catalogue-select]').click();expect(dialog.locator('[data-check-consent]')).to_have_count(4);assert all(not box.is_checked() for box in dialog.locator('[data-check-consent]').all());page.screenshot(path=str(root/'actual-home-prepared.png'));assert not errors and not external,(errors,external);assert (old/'keep.txt').read_bytes()==before
   (root/'evidence.json').write_text(json.dumps({'normalHomeEntry':True,'ownedDownloadAndDigestAndSafeExtraction':True,'archiveRejections':len(cases),'cancelDownloadAndVersionAndLoginAndClose':True,'cancelBeforeProcessZeroLaunch':True,'unownedRootAndLinksPreserved':True,'crossProcessPreparationLock':True,'separateManagedInstallAndAccount':True,'staleConsentAndDuplicateStart':True,'versionGateUnchanged':True,'modelPreflightAndRequestApprovalRemainSeparate':True,'realInstallationAccountTokenOrModelCalls':False},indent=2));print('PASS actual Home click preparation and device login; OWNED fixtures only',root,flush=True)
  except Exception:
-  print('Evidence',root,flush=True);page.screenshot(path=str(root/'failure.png'));print('State',json.dumps({key:setup().get(key) for key in ['preparation','login','outcome']},ensure_ascii=False),flush=True);raise
+  print('Evidence',root,flush=True);page.screenshot(path=str(root/'failure.png'));print('State',json.dumps({key:(setup() or {}).get(key) for key in ['preparation','login','outcome']},ensure_ascii=False),flush=True);raise
  finally:
   browser.close();slow.clear();http.shutdown()
   if host.poll() is None:os.killpg(host.pid,signal.SIGTERM)

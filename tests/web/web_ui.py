@@ -448,7 +448,7 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
      open_browser();page.locator('[data-id="Example.ButtonGame::Score"]').click();expect(page.locator('#browser-actions')).to_be_enabled(timeout=30000)
      # A primary selection does not retarget either independent source window.
      expect(one.locator('[data-editor-source]')).to_have_value(first_text+'\n// retained independently\n');expect(two.locator('[data-editor-source]')).to_have_value(other_text+'\n// second independent input\n')
-     page.locator('.brand').click();expect(page.locator('[data-project]')).not_to_have_count(0);page.locator('[data-project]').filter(has_text='ButtonGame').first.click()
+     page.locator('.brand').click();expect(page.locator('[data-project]')).not_to_have_count(0);page.locator('[data-project]').filter(has_text='ButtonGame').first.locator('[data-enter]').click()
      one=page.locator('.window[data-key="editor-1"]');two=page.locator('.window[data-key="editor-2"]');expect(one.locator('[data-editor-source]')).to_have_value(first_text+'\n// retained independently\n');expect(two.locator('[data-editor-source]')).to_have_value(other_text+'\n// second independent input\n')
      open_browser();retained_window();one.locator('[data-close]').click();open_browser();retained_window();expect(one.locator('[data-editor-source]')).to_have_value(first_text+'\n// retained independently\n')
      one.locator('[data-editor-apply]').click();expect(page.locator('#status')).to_have_text('Shared draft updated',timeout=30000)
