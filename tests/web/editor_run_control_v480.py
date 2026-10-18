@@ -1,7 +1,9 @@
 import json,os,pathlib,subprocess,tempfile,time,shutil,sys,signal,urllib.request
 from playwright.sync_api import sync_playwright,expect
 expect.set_options(timeout=30000)
-repo=pathlib.Path(sys.argv[1]).resolve();report=json.load(open(sys.argv[2]));root=pathlib.Path(tempfile.mkdtemp(prefix='confectory-run-control-v480-'))
+repo=pathlib.Path(sys.argv[1]).resolve();sys.path.insert(0,str(repo/'tests/diagnostics'))
+from env4_processes import event as env4_event,tree_event as env4_tree
+report=json.load(open(sys.argv[2]));root=pathlib.Path(tempfile.mkdtemp(prefix='confectory-run-control-v480-'))
 project=root/'ordinary-frame-loop';shutil.copytree(repo/'examples/frame-loop',project,ignore=shutil.ignore_patterns('.confectory'));manifest=project/'project.cpack';manifest.write_text(manifest.read_text().replace('../../',str(repo)+'/'))
 before={str(p.relative_to(project)):p.read_bytes() for p in project.rglob('*') if p.is_file()}
 env=os.environ.copy();env.update(CONFECTORY_UI='web',CONFECTORY_EDITOR_REPO=str(repo),CONFECTORY_HOME_STORAGE=str(root/'storage'),CONFECTORY_ENTRY_STORAGE=str(root/'storage'),CONFECTORY_WEB_PROJECT=str(manifest),PATH=str(pathlib.Path(env.get('CONFECTORY_DOTNET','dotnet')).parent)+os.pathsep+env['PATH'])
@@ -62,7 +64,7 @@ def child_ids(pid):
   result=[]
   for child in parents.get(parent,[]):result.append(child);result.extend(walk(child))
   return result
- return walk(pid)
+ result=walk(pid);env4_event('child-count-assert-observation',{'hostPid':pid,'childIds':result,'processes':env4_tree(pid,'child-count-tree')});return result
 def live(pid):
  try:return pathlib.Path('/proc/'+str(pid)+'/stat').read_text().split(') ',1)[1].split()[0]!='Z'
  except FileNotFoundError:return False
@@ -70,7 +72,17 @@ old_group=None
 with sync_playwright() as p:
  browser=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox']);errors=[]
  try:
-  host,stream,url=start(0);old_group=host.pid;page=browser.new_page(viewport={'width':1440,'height':1000});page.on('pageerror',lambda e:errors.append(str(e)));page.goto(url);page.locator('.work-body').wait_for();page.locator('#run').click();run=page.locator('.window[data-key="run"]');expect(run).to_be_visible();expect(run.locator('[data-run-pause]')).to_be_disabled();expect(run.locator('[data-run-step]')).to_be_disabled()
+  host,stream,url=start(0);old_group=host.pid;page=browser.new_page(viewport={'width':1440,'height':1000});page.on('pageerror',lambda e:errors.append(str(e)));
+  env4_requests={}
+  def env4_response(response):
+   if not os.environ.get('CONFECTORY_ENV4_TRACE') or not response.url.endswith('/api/request'):return
+   request=response.request.post_data_json or {}
+   if request.get('op')=='invoke':
+    env4_requests[request['requestId']]=request.get('endpoint');env4_event('ui-invoke',{'endpoint':request.get('endpoint'),'requestId':request['requestId']})
+   reply=response.json()
+   for result in reply.get('results',[]):
+    env4_event('ui-invoke-result',{'endpoint':env4_requests.get(result['requestId']),'requestId':result['requestId'],'ok':result['ok'],'code':result.get('error',{}).get('code')})
+  page.on('response',env4_response);env4_tree(host.pid,'initial-host-tree');page.goto(url);page.locator('.work-body').wait_for();page.locator('#run').click();run=page.locator('.window[data-key="run"]');expect(run).to_be_visible();expect(run.locator('[data-run-pause]')).to_be_disabled();expect(run.locator('[data-run-step]')).to_be_disabled()
   # Actual ordinary source compiler failure, without a control handshake or fake frame.
   source=project/'Main.celem';original=source.read_bytes();source.write_text('invalid owned declaration')
   run.locator('[data-run-play]').click();expect(run.locator('.run-status')).to_contain_text('failed',timeout=180000);expect(run.locator('[data-run-frame]')).to_have_text('');source.write_bytes(original)
@@ -82,7 +94,8 @@ with sync_playwright() as p:
    end=time.monotonic()+15
    while time.monotonic()<end:
     value=control()
-    if condition(value):return value
+    if condition(value):
+     env4_event('control-condition-met',{'control':{k:value.get(k) for k in ['available','connected','mode','frame','ack','pending']}});env4_tree(host.pid,'control-owner-tree');return value
     time.sleep(.025)
    raise AssertionError(value)
   def payload(snapshot,action):return {'handle':public_state(url)['executionHandle'],'action':action,'runtime':snapshot.get('runtime',''),'ack':str(snapshot.get('ack',0)),'sequence':str(snapshot.get('sequence',0))}
@@ -111,13 +124,14 @@ with sync_playwright() as p:
   stopped,stopped_state=rpc(url,'stopProject',{'handle':fresh_handle});assert stopped['ok'] and stopped_state['executionState']=='stopped' and stopped_state['executionControl']['ack']==1;time.sleep(1.1);assert control()['ack']==1,'Stop must not fabricate an unfinished Step acknowledgement';tick.write_bytes(original_tick)
   # A real callback exception ends the child without acknowledging its incomplete Step.
   marker=root/'fail-next-frame';tick.write_text('if(System.IO.File.Exists('+json.dumps(str(marker))+'))throw new InvalidOperationException("owned frame callback failure");\n'+original_tick.decode());run.locator('[data-run-play]').click();expect(run.locator('[data-run-pause]')).to_be_enabled(timeout=180000);run.locator('[data-run-pause]').click();fault_ready=wait_control(lambda s:s.get('ack')==1 and s.get('mode')=='paused');marker.write_text('fail');run.locator('[data-run-step]').click();expect(run.locator('.run-status')).to_contain_text('failed',timeout=30000);assert control()['ack']==1 and not control()['connected'];expect(run.locator('[data-run-logs]')).to_contain_text('owned frame callback failure');tick.write_bytes(original_tick);marker.unlink()
-  run.locator('[data-run-play]').click();expect(run.locator('[data-run-pause]')).to_be_enabled(timeout=180000);run.locator('[data-run-pause]').click();wait_control(lambda s:s.get('ack')==1 and s.get('mode')=='paused');run.locator('[data-run-close-project]').click();page.locator('.modal [data-complete-close]').click();expect(page.locator('.home-grid')).to_be_visible();assert not child_ids(host.pid)
+  run.locator('[data-run-play]').click();expect(run.locator('[data-run-pause]')).to_be_enabled(timeout=180000);run.locator('[data-run-pause]').click();wait_control(lambda s:s.get('ack')==1 and s.get('mode')=='paused');env4_tree(host.pid,'before-confirmed-close');run.locator('[data-run-close-project]').click();page.locator('.modal [data-complete-close]').click();expect(page.locator('.home-grid')).to_be_visible();env4_event('home-visible-after-close',{});assert not child_ids(host.pid)
   enter_home();expect(run.locator('.run-status')).to_have_text('idle');expect(run.locator('[data-run-step]')).to_be_disabled();assert not child_ids(host.pid)
   # Cold host has no borrowed control identity and launches nothing automatically.
   page.evaluate('()=>globalThis.confectoryFlushPresentation()');stop(host,stream);page.close();host,stream,url=start(1);page=browser.new_page(viewport={'width':1440,'height':1000});page.goto(url);run=page.locator('.window[data-key="run"]');expect(run.locator('.run-status')).to_have_text('idle');assert not child_ids(host.pid);assert not public_state(url).get('executionHandle');expect(run.locator('[data-run-step]')).to_be_disabled();assert not errors,errors
   assert all((project/name).read_bytes()==data for name,data in before.items())
   (root/'actual-frame-observation.json').write_text(json.dumps({'initial':initial,'paused':paused,'stepped':stepped,'afterReconnect':reconnected,'freshRun':fresh,'coldState':public_state(url)['executionState']},indent=2));page.screenshot(path=str(root/'actual-cold-frame-owner.png'));print('PASS actual v480 local Run frame/ack pause/Step, disconnect/lease/reconnect, same-owner reload, stale/foreign/repeated commands, close cancel/confirm, Stop and cold no replay '+str(root),flush=True)
  except Exception:
+  if os.environ.get('CONFECTORY_ENV4_TRACE') and 'page' in locals() and not page.is_closed():env4_event('ui-failure',{'status':page.locator('#status').inner_text()});env4_tree(host.pid,'ui-failure-tree')
   if 'page' in locals() and not page.is_closed():page.screenshot(path=str(root/'failure.png'))
   raise
  finally:

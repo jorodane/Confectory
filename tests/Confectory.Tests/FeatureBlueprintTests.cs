@@ -592,8 +592,9 @@ public sealed class FeatureBlueprintTests : TestCase
         }finally{if(peer.Length>0)calls.Close.Invoke(peer);calls.Close.Invoke(view);}
         Console.WriteLine("Blueprint owned feature reference/import/CAS/history/cold/compiler/Run5-7-5 PASS");return 0;
         """);
+        Env4Diagnostics.Graph(Path.Combine(sample,"main.csbody"));
         string? host=Environment.GetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST"),selected=Environment.GetEnvironmentVariable("CONFECTORY_TEST_AUTHOR_PROJECT");
-        try{Environment.SetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST",Path.Combine(Fixture.Repo,"targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll"));Environment.SetEnvironmentVariable("CONFECTORY_TEST_AUTHOR_PROJECT",f.Project);var built=new Builder(project,"portable").Build();var run=Processes.Run(Strings(built,"run"),timeoutSeconds:240);True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("Blueprint owned feature reference/import/CAS/history/cold/compiler/Run5-7-5 PASS"));}
+        try{Environment.SetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST",Path.Combine(Fixture.Repo,"targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll"));Environment.SetEnvironmentVariable("CONFECTORY_TEST_AUTHOR_PROJECT",f.Project);var built=Env4Diagnostics.Measure("graph-call-build",()=>new Builder(project,"portable").Build());var run=Env4Diagnostics.Run(Strings(built,"run"),240,"graph-call-driver");True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("Blueprint owned feature reference/import/CAS/history/cold/compiler/Run5-7-5 PASS"));}
         finally{Environment.SetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST",host);Environment.SetEnvironmentVariable("CONFECTORY_TEST_AUTHOR_PROJECT",selected);}
     }
 
@@ -693,8 +694,9 @@ public sealed class FeatureBlueprintTests : TestCase
         }finally{if(card.Length>0)calls.CloseCard.Invoke(card);if(peer.Length>0)calls.Close.Invoke(peer);calls.Close.Invoke(view);}
         Console.WriteLine("Blueprint owned create/remove/group/CAS/cold/compiler PASS");return 0;
         """);
+        Env4Diagnostics.Graph(Path.Combine(sample,"main.csbody"));
         string? host=Environment.GetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST"),selected=Environment.GetEnvironmentVariable("CONFECTORY_TEST_AUTHOR_PROJECT");
-        try{Environment.SetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST",Path.Combine(Fixture.Repo,"targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll"));Environment.SetEnvironmentVariable("CONFECTORY_TEST_AUTHOR_PROJECT",f.Project);var built=new Builder(project,"portable").Build();var run=Processes.Run(Strings(built,"run"),timeoutSeconds:180);True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("Blueprint owned create/remove/group/CAS/cold/compiler PASS"));Output(Build(),"5");}
+        try{Environment.SetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST",Path.Combine(Fixture.Repo,"targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll"));Environment.SetEnvironmentVariable("CONFECTORY_TEST_AUTHOR_PROJECT",f.Project);var built=Env4Diagnostics.Measure("graph-create-build",()=>new Builder(project,"portable").Build());var run=Env4Diagnostics.Run(Strings(built,"run"),180,"graph-create-driver");True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("Blueprint owned create/remove/group/CAS/cold/compiler PASS"));Output(Build(),"5");}
         finally{Environment.SetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST",host);Environment.SetEnvironmentVariable("CONFECTORY_TEST_AUTHOR_PROJECT",selected);}
     }
     public void test_blueprint_node_only_worker_draft_save_restore_and_compiler_confirm()
