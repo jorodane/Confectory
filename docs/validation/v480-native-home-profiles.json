@@ -1,0 +1,214 @@
+{
+  "version": 1,
+  "sourceCommit": "1a527c2887ad9c9c39f6af191b3bcf7d47fd02c4",
+  "parentCommit": "5961900e5e3fabf22440359c157a2fac8c915e70",
+  "measuredAtUtc": "2026-10-18T09:09:51.471049+00:00",
+  "scope": "IMP1 native local information/display profiles and shared scoped metadata inclusion; not all v480 or device execution",
+  "distinctMethods": 8,
+  "passed": 8,
+  "failed": 0,
+  "skipped": 0,
+  "gateConcurrencyLimit": 2,
+  "cpuQuota": 4,
+  "memoryLimitBytes": 17179869184,
+  "groups": [
+    {
+      "group": "native",
+      "methods": [
+        "EntryHomeTests.test_fresh_entry_home_project_contracts_and_consumer_locality",
+        "EntryHomeResizeTests.test_entry_home_tiny_and_zero_client_suspend_restore_preserve_input_lifetimes",
+        "EntryHomeNativeDetailsTests.test_linux_native_home_information_profile_cas_cancel_and_project_input_lifetimes"
+      ],
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 257.104
+    },
+    {
+      "group": "contracts",
+      "methods": [
+        "WebUITests.test_actual_editor_v480_project_information_and_helper_profile_context_drafts_and_cold",
+        "PackWorkspaceTests.test_target_metadata_owned_sources_no_registry_execution",
+        "BuildParticipationTests.test_home_confirmed_inclusion_matches_build_without_registry_count_body_reads_or_execution",
+        "BuildParticipationTests.test_native_metadata_inclusion_matches_desktop_owned_scope_and_no_body_execution",
+        "EntryHomeNativeDetailsTests.test_windows_native_information_and_profile_composition_builds"
+      ],
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 45.835
+    }
+  ],
+  "sourceSha256": {
+    "examples/editor-home/Main.csbody": "cdb1537d070d7e60baade3e7c7a6be5a2291d6fa2011fced0d011cae4390a7cc",
+    "examples/editor-home/WebBundle.csbody": "648f042f449956f41dffec55bbb16c25eabaac7e51cea46bd059211869fb5d50",
+    "examples/editor-home/WebInvoke.csbody": "03e31b819cd1fbb4ff0154a41e2024d48bfaaead0f61ec80a83e658496d279ca",
+    "examples/editor-home/ui/app.js": "dea0e402753536c5cf52b86f93d1d479050121bf9eb763ab4de835e653d9c0f8",
+    "packs/editor-home-model/Command.csbody": "66313d5cb5cbc0ef06e22577f7b2f2e41afa932a1fa6b4b83d3b24137d4001cb",
+    "packs/semantic-catalog/README.md": "7d73196f9b724124a664cba80f090a360e9202ffda375078b5e993eebacd1cc8",
+    "src/Confectory.Core/HomeInclusion.cs": "3f7bb80609d1fd370cf04ab241ef5dca28484ebfc45e4e600e6c46ceeaa99021",
+    "targets/android-export/templates/MetadataAuthoring.cs": "ff9a86dcabf9153eee8ef71dd1cfc577e290ac0370c06f4a5c7ac8a37091f313",
+    "targets/browser-wasm/templates/MetadataAuthoring.cs": "ff9a86dcabf9153eee8ef71dd1cfc577e290ac0370c06f4a5c7ac8a37091f313",
+    "targets/element-authoring/SemanticCatalogService.cs": "5b4be45e2398d47e6dd1e31c7e2cf8cd2bbda5754fc41e4f382b25caa8d92efd",
+    "tests/Confectory.Tests/BuildParticipationTests.cs": "4750b51a700684debd3beba1d013cd540c51103258781c1313512d0887b16bee",
+    "tests/Confectory.Tests/EntryHomeNativeDetailsTests.cs": "a855839f792e3df56169ea13b3624aefae322e25c8074fb999ffb090932ffacd",
+    "tests/Confectory.Tests/Program.cs": "20bf3f0b2e12e98b24364eb84be9d3935d96c6685a0cffa8b856bc7d7edc499a",
+    "tests/gui/entry_home_details_x11.py": "18f45da6bd1fc5a748b37db69cde95d1700f7aed5fb908d7201c60baa07878f9"
+  },
+  "deletedSourcePaths": [
+    "targets/element-authoring/HomeInclusion.cs"
+  ],
+  "nativeJourney": {
+    "projectId": "b6b78b77ee574c8883b0fdaf80f1f9da",
+    "cards": 3,
+    "projectManifests": 2,
+    "unchangedSources": 38,
+    "provider": "gtk3-x11",
+    "profileSaved": true,
+    "sourceAndChatBindingPreserved": true,
+    "casRefusals": 2,
+    "coldExplicitSave": true,
+    "eligibleProfilesBrowsed": 31,
+    "nativeFieldBudgetUnchanged": 128,
+    "distinctContexts": 2,
+    "processContextHandlesPublished": false
+  },
+  "platformEvidence": {
+    "linux": "actual GTK3/GtkSourceView4 on owned Xorg dummy :97 with toolkit input; native Home/resize/details/31 profiles",
+    "windows": "managed native composition compile only; no Win32 UI run",
+    "android": "MetadataAuthoring C# template compiled and executed under desktop CLR fixture; no Android device/APK",
+    "browser": "MetadataAuthoring C# template compiled and executed under desktop CLR fixture; no browser-wasm execution",
+    "webui": "actual Chromium Home/profile transition and cold regression on Linux"
+  },
+  "attempts": [
+    {
+      "log": "confectory-native-imp1-first-contracts.log",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 1.953
+    },
+    {
+      "log": "confectory-native-imp1-gui1.log",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 34.833
+    },
+    {
+      "log": "confectory-native-imp1-contracts2.log",
+      "passed": 1,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 38.589
+    },
+    {
+      "log": "confectory-native-imp1-gui2.log",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 53.01
+    },
+    {
+      "log": "confectory-native-imp1-gui3.log",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 24.815
+    },
+    {
+      "log": "confectory-native-imp1-contracts3.log",
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 43.084
+    },
+    {
+      "log": "confectory-native-imp1-gui4.log",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 41.957
+    },
+    {
+      "log": "confectory-native-imp1-final-contracts.log",
+      "passed": 4,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 76.182
+    },
+    {
+      "log": "confectory-native-imp1-final-native.log",
+      "passed": 2,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 162.738
+    },
+    {
+      "log": "confectory-native-imp1-final2-contracts.log",
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 47.134
+    },
+    {
+      "log": "confectory-native-imp1-final2-native.log",
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 238.513
+    },
+    {
+      "log": "confectory-native-imp1-final3-contracts.log",
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 45.835
+    },
+    {
+      "log": "confectory-native-imp1-final3-native.log",
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 257.104
+    }
+  ],
+  "diagnostics": [
+    "initial invalid pack-with-registry fixture changed to a valid unreadable-element library",
+    "new test class registered explicitly in harness; final observed selection is eight exact methods",
+    "fully qualified LINQ call and moved Core inclusion reference fixed",
+    "GTK discard/reload hides old widgets before managed text changes to avoid poll restoring stale values",
+    "null-loading fixture predicate fixed without assertion/timeout relaxation",
+    "WebUI profile opening now refreshes readonly projection and disables known-unavailable storage",
+    "native resize rerun with writable task-owned XDG data/cache, no HOME override",
+    "inactive native detail widgets retired while managed input buffers remain; 31 profiles traversed within unchanged native field budget128"
+  ],
+  "preservation": {
+    "localMain": "b5ea38c3d7eec3eb20f170e68f0f4215b86b2aee",
+    "remoteMain": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+    "baseWorkCurrent": "1e642df7d97949ca2bf69b0f418520d4f5cb54f3",
+    "zipSha256": {
+      "reference/site-ui/Confectory-Editor-Prototype-v196.zip": "02d4824e92ed0edbb43113659982b37a99a614117652bde4d8ac92367e334e34",
+      "reference/site-ui/Confectory-Editor-Prototype-v318.zip": "0a614fe2bf1ad3d8e10dfa8905bb6b61ea9f21b87b2492b2b87ca8566e9e6908",
+      "reference/site-ui/Confectory-Editor-Prototype-v424.zip": "b7969cd109ea2dad38bde9c9ab13967c20162c920a45a8cd51a8f82df6041874",
+      "reference/site-ui/Confectory-Editor-Prototype-v480.zip": "0489844c8c6d90f7cdc8ea0e80628f487dcfb27f2c871b19367a635212d3c5bd"
+    }
+  },
+  "androidChanges": [
+    "targets/android-export/templates/MetadataAuthoring.cs: one readonly inclusion routing branch; configuration unchanged"
+  ],
+  "webResources": {
+    "count": 41,
+    "changedPins": [
+      "app.js"
+    ],
+    "cspChanged": false
+  },
+  "limits": [
+    "unsaved native detail inputs have session lifetime; only explicit saves cold restore",
+    "unsaved native project source/chat retained across live contexts, no source cold restoration claim",
+    "no Windows UI, Android device, actual WASM/browser, IME or full accessibility validation",
+    "no AI/account/install/authority/category/overflow changes",
+    "ENV4 ButtonGame/Pause/zombie uncertainty unchanged"
+  ]
+}

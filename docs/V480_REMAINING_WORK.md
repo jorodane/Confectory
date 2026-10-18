@@ -2,11 +2,12 @@
 
 현재 구현은 [화면/행동 지도](EDITOR_V480_STATUS.md), 최종 실행 근거는 [통합 검증](V480_INTEGRATED_VALIDATION.md)을 따른다. 아래가 **현재 남은 항목의 단일 목록**이다. 완료한 Data 비교/원자적 채우기, 명시적 선언 탐색, Home 저장/팩 수/편집 receipt, private Workspace 링크/삭제 Undo, 로컬 frame 제어/비권한 실행 기록, typed Set, 제한된 실제 field ref는 이 목록에 다시 넣지 않는다. 행 순서는 후속 작업의 기본 순서이며 P2/P3를 이번 작업의 승인 요청이나 구현 지시로 해석하지 않는다.
 
+IMP1의 로컬 WebUI 및 native 정보/표시 프로필 연결은 [후속 검증](V480_NATIVE_HOME_PROFILES.md) 범위로 완료했다. Linux GTK/X11 실제 입력 결과, Windows managed compile, Android/browser metadata fixture를 구분하며 미실행 장치·전체 OS 조합은 기존 ENV 항목에 남긴다.
+
 분류는 **구현 누락**, **설계 결정**, **권한 승인**, **환경 미검증**이다. 하나의 항목에 다른 원인이 섞이면 행을 나눈다. 예를 들어 협업 서비스 자체의 부재는 구현 누락이고, 나중에 실제 계정으로 검증하는 허용 여부는 권한 승인이다. 내부 파일 형식이나 저장소 구현 선택은 사용자 답변 대기로 돌리지 않는다.
 
 | 순서 · ID | 분류 | 실제 남은 범위 | 후속 완료 기준 · 현재 의존성 |
 |---|---|---|---|
-| P1 · IMP1 | 구현 누락 | native adapter의 도달 pack 조회와 WebUI 외 동일 정보/프로필 표면 연결 | [로컬 WebUI 정보·프로필 묶음](V480_HOME_PROFILES.md)은 확인된 요구/유형·Helper 선택 조회, 표시 정보 CAS 편집, 전역 미전송 입력 분리, 취소/두 프로젝트 전환/cold를 연결함. 남은 native 조회도 실제 소유 값·실패를 투영하고 실행·권한을 생성하지 않는 검사 필요 |
 | P1 · IMP2 | 구현 누락 | 브라우저 전체 tree/category grouping UI, 현재 명시적 parent/schema 탐색 밖의 분류·임의 깊이 탐색 | 실제 선언 ID·소유/등록 경계를 유지한 조회/탐색·독립 창·검색/cold 검사. prototype Category를 CELEM category/concept와 동일시하는 부분은 DEC1을 먼저 결정 |
 | P1 · IMP3 | 구현 누락 | 자동 전체 필드 합집합/표시, 사용자 계산 열, 일반 선택 범위 확장 | 기존 명시적 쓰기 대상·field/source/schema CAS를 보존하고 조회·정확한 값·선택/cold/오류를 검사. 계산 실행 의미가 필요하면 DEC3/DEC4 선행; 현재 Data/채우기 완료와 분리 |
 | P1 · IMP4 | 구현 누락 | 객체/함수 화면의 원클릭 밸런스·테스트 실행 등 prototype 보조 행동 | 실제 실행/결과/실패와 소유 범위를 연결하고 UI 및 compiler/runtime 근거 마련. 화면의 성공 표시로 대체하지 않음 |

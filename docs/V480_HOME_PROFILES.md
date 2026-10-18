@@ -31,3 +31,5 @@
 로컬 `main@b5ea38c`, 원본 ZIP 4개의 hash, Android 관련 파일을 보존했다. 41개 WebUI 리소스의 파일/hash/크기를 검사했고 `app.js`의 pin만 갱신했다. 바이너리 이미지·CSP·런타임 lease·권한 계약은 변경하지 않았다. 로컬 관련 AGENTS.md 및 `.agents/skills`/`.codex/skills`는 발견되지 않았다.
 
 IMP1의 다음 누락은 native adapter의 도달 팩 조회와 같은 정보/프로필 표면이다. 전역 AI 전송·이미지/사용량·Agent 소유 서비스는 IMP5/AUTH 범위다. 브라우저의 전체 tree/category grouping은 다음 독립 구현 묶음 IMP2다. ENV4의 ButtonGame/Pause/zombie 불확실성은 기존 진단의 재발 시 계측 한계로 유지한다. [단일 남은 목록](V480_REMAINING_WORK.md)을 따른다.
+
+후속: 이 문서의 기준 소스 이후 native 정보/표시 프로필과 metadata adapter 도달 조회는 [native IMP1 검증](V480_NATIVE_HOME_PROFILES.md)에 연결했다. 현재 남은 범위는 단일 목록을 따른다.

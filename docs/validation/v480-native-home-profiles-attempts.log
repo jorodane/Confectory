@@ -1,0 +1,276 @@
+=== confectory-native-imp1-build.log ===
+  Confectory.Core -> /workspace/Confectory/src/Confectory.Core/bin/Release/net10.0/Confectory.Core.dll
+  Confectory.DesktopEntry -> /workspace/Confectory/targets/desktop-entry/bin/Release/net10.0/Confectory.DesktopEntry.dll
+  Confectory.AndroidExport -> /workspace/Confectory/targets/android-export/bin/Release/net10.0/Confectory.AndroidExport.dll
+  Confectory.Build.Web -> /workspace/Confectory/targets/web/bin/Release/net10.0/Confectory.Build.Web.dll
+  Confectory.Cli -> /workspace/Confectory/src/Confectory.Cli/bin/Release/net10.0/Confectory.Cli.dll
+  Confectory.Build.DotNet -> /workspace/Confectory/targets/dotnet/bin/Release/net10.0/Confectory.Build.DotNet.dll
+  Confectory.Build.BrowserWasm -> /workspace/Confectory/targets/browser-wasm/bin/Release/net10.0/Confectory.Build.BrowserWasm.dll
+  Confectory.Tests -> /workspace/Confectory/tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:08.01
+
+=== confectory-native-imp1-build2.log ===
+  Confectory.Core -> /workspace/Confectory/src/Confectory.Core/bin/Release/net10.0/Confectory.Core.dll
+  Confectory.DesktopEntry -> /workspace/Confectory/targets/desktop-entry/bin/Release/net10.0/Confectory.DesktopEntry.dll
+  Confectory.AndroidExport -> /workspace/Confectory/targets/android-export/bin/Release/net10.0/Confectory.AndroidExport.dll
+  Confectory.Build.DotNet -> /workspace/Confectory/targets/dotnet/bin/Release/net10.0/Confectory.Build.DotNet.dll
+  Confectory.Cli -> /workspace/Confectory/src/Confectory.Cli/bin/Release/net10.0/Confectory.Cli.dll
+  Confectory.Build.Web -> /workspace/Confectory/targets/web/bin/Release/net10.0/Confectory.Build.Web.dll
+  Confectory.Build.BrowserWasm -> /workspace/Confectory/targets/browser-wasm/bin/Release/net10.0/Confectory.Build.BrowserWasm.dll
+  Confectory.Tests -> /workspace/Confectory/tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:02.79
+
+=== confectory-native-imp1-first-contracts.log ===
+FAIL BuildParticipationTests.test_native_metadata_inclusion_matches_desktop_owned_scope_and_no_body_execution
+System.Exception: android-exportUnhandled exception. System.Exception: Unsupported library reachability conflated with unavailable files
+   at Program.<Main>$(String[] args) in /tmp/confectory-test-93eb164e30764a4481b02d58064ce4fe/metadata-android-export/Program.cs:line 9
+
+   at Confectory.Tests.TestCase.True(Boolean condition, String message) in /workspace/Confectory/tests/Confectory.Tests/Support.cs:line 127
+   at Confectory.Tests.BuildParticipationTests.test_native_metadata_inclusion_matches_desktop_owned_scope_and_no_body_execution() in /workspace/Confectory/tests/Confectory.Tests/BuildParticipationTests.cs:line 38
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+0 passed, 1 failed, 0 skipped; 1.953s
+
+=== confectory-native-imp1-build3.log ===
+  Confectory.Core -> /workspace/Confectory/src/Confectory.Core/bin/Release/net10.0/Confectory.Core.dll
+  Confectory.DesktopEntry -> /workspace/Confectory/targets/desktop-entry/bin/Release/net10.0/Confectory.DesktopEntry.dll
+  Confectory.AndroidExport -> /workspace/Confectory/targets/android-export/bin/Release/net10.0/Confectory.AndroidExport.dll
+  Confectory.Build.Web -> /workspace/Confectory/targets/web/bin/Release/net10.0/Confectory.Build.Web.dll
+  Confectory.Cli -> /workspace/Confectory/src/Confectory.Cli/bin/Release/net10.0/Confectory.Cli.dll
+  Confectory.Build.DotNet -> /workspace/Confectory/targets/dotnet/bin/Release/net10.0/Confectory.Build.DotNet.dll
+  Confectory.Build.BrowserWasm -> /workspace/Confectory/targets/browser-wasm/bin/Release/net10.0/Confectory.Build.BrowserWasm.dll
+  Confectory.Tests -> /workspace/Confectory/tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:02.00
+
+=== confectory-native-imp1-gui1.log ===
+FAIL EntryHomeNativeDetailsTests.test_linux_native_home_information_profile_cas_cancel_and_project_input_lifetimes
+/workspace/Confectory/targets/dotnet/linux.celem(1,1): TARGET_FAILURE: /workspace/Confectory/examples/editor-home/Main.csbody(52,364): error CS1061: 'IEnumerable<int>' does not contain a definition for 'ToArray' and no accessible extension method 'ToArray' accepting a first argument of type 'IEnumerable<int>' could be found (are you missing a using directive or an assembly reference?)
+
+0 passed, 1 failed, 0 skipped; 34.833s
+
+=== confectory-native-imp1-contracts2.log ===
+android-export: PASS adapter inclusion parity, scoped registry reads, unsupported/unavailable and no body execution
+browser-wasm: PASS adapter inclusion parity, scoped registry reads, unsupported/unavailable and no body execution
+PASS BuildParticipationTests.test_native_metadata_inclusion_matches_desktop_owned_scope_and_no_body_execution
+FAIL EntryHomeNativeDetailsTests.test_windows_native_information_and_profile_composition_builds
+/workspace/Confectory/targets/dotnet/portable.celem(1,1): TARGET_FAILURE: /workspace/Confectory/examples/editor-home/Main.csbody(52,364): error CS1061: 'IEnumerable<int>' does not contain a definition for 'ToArray' and no accessible extension method 'ToArray' accepting a first argument of type 'IEnumerable<int>' could be found (are you missing a using directive or an assembly reference?)
+
+1 passed, 1 failed, 0 skipped; 38.589s
+
+=== confectory-native-imp1-author-build.log ===
+  Confectory.Core -> /workspace/Confectory/src/Confectory.Core/bin/Release/net10.0/Confectory.Core.dll
+/workspace/Confectory/targets/element-authoring/SemanticCatalogService.cs(8,65): error CS0103: The name 'HomeInclusion' does not exist in the current context [/workspace/Confectory/targets/element-authoring/Confectory.ElementAuthoring.csproj]
+
+Build FAILED.
+
+/workspace/Confectory/targets/element-authoring/SemanticCatalogService.cs(8,65): error CS0103: The name 'HomeInclusion' does not exist in the current context [/workspace/Confectory/targets/element-authoring/Confectory.ElementAuthoring.csproj]
+    0 Warning(s)
+    1 Error(s)
+
+Time Elapsed 00:00:01.12
+
+=== confectory-native-imp1-gui2.log ===
+Native evidence: /tmp/confectory-native-details-i5qd385m
+FAIL EntryHomeNativeDetailsTests.test_linux_native_home_information_profile_cas_cancel_and_project_input_lifetimes
+System.Exception: Native evidence: /tmp/confectory-native-details-i5qd385m
+Traceback (most recent call last):
+  File "/workspace/Confectory/tests/gui/entry_home_details_x11.py", line 187, in <module>
+    fill(a,435,'Native conflict retained');external=json.loads(profile_file.read_text());external['description']='External native display';profile_file.write_text(json.dumps(external));click(a,434);wait(lambda t:t['model']['status'].startswith('Error:') and not t['job'],'profile CAS refused');assert field(435)['text']=='Native conflict retained' and json.loads(profile_file.read_text())['description']=='External native display';click(a,440);assert field(437)['text']=='External native display';click(a,430);idle('home')
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+
+   at Confectory.Tests.TestCase.True(Boolean condition, String message) in /workspace/Confectory/tests/Confectory.Tests/Support.cs:line 127
+   at Confectory.Tests.EntryHomeNativeDetailsTests.test_linux_native_home_information_profile_cas_cancel_and_project_input_lifetimes() in /workspace/Confectory/tests/Confectory.Tests/EntryHomeNativeDetailsTests.cs:line 9
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+0 passed, 1 failed, 0 skipped; 53.010s
+
+=== confectory-native-imp1-author-build2.log ===
+  Confectory.Core -> /workspace/Confectory/src/Confectory.Core/bin/Release/net10.0/Confectory.Core.dll
+  Confectory.ElementAuthoring -> /workspace/Confectory/targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:01.10
+
+=== confectory-native-imp1-gui3.log ===
+Native evidence: /tmp/confectory-native-details-74nj55aq
+FAIL EntryHomeNativeDetailsTests.test_linux_native_home_information_profile_cas_cancel_and_project_input_lifetimes
+System.Exception: Native evidence: /tmp/confectory-native-details-74nj55aq
+Traceback (most recent call last):
+  File "/workspace/Confectory/tests/gui/entry_home_details_x11.py", line 188, in <module>
+    click(a,100);idle('project');context=latest()['model']['selected']['context'];project_id=latest()['model']['selected']['projectId'];click(a,8);wait(lambda t:t['model'].get('helperPanel',{}).get('mode')=='helpers' and not t['job'],'project helper chooser');click(a,20);wait(lambda t:t['model'].get('helperContext',{}).get('helper')=='main-helper' and not t['job'],'selected helper');click(a,42)
+                                                                                                                                                                                                                                                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/Confectory/tests/gui/entry_home_details_x11.py", line 120, in wait
+    if state and predicate(state):return state
+                 ^^^^^^^^^^^^^^^^
+  File "/workspace/Confectory/tests/gui/entry_home_details_x11.py", line 188, in <lambda>
+    click(a,100);idle('project');context=latest()['model']['selected']['context'];project_id=latest()['model']['selected']['projectId'];click(a,8);wait(lambda t:t['model'].get('helperPanel',{}).get('mode')=='helpers' and not t['job'],'project helper chooser');click(a,20);wait(lambda t:t['model'].get('helperContext',{}).get('helper')=='main-helper' and not t['job'],'selected helper');click(a,42)
+                                                                                                                                                                                                                                                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'get'
+
+   at Confectory.Tests.TestCase.True(Boolean condition, String message) in /workspace/Confectory/tests/Confectory.Tests/Support.cs:line 127
+   at Confectory.Tests.EntryHomeNativeDetailsTests.test_linux_native_home_information_profile_cas_cancel_and_project_input_lifetimes() in /workspace/Confectory/tests/Confectory.Tests/EntryHomeNativeDetailsTests.cs:line 9
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+0 passed, 1 failed, 0 skipped; 24.815s
+
+=== confectory-native-imp1-contracts3.log ===
+PASS BuildParticipationTests.test_home_confirmed_inclusion_matches_build_without_registry_count_body_reads_or_execution
+android-export: PASS adapter inclusion parity, scoped registry reads, unsupported/unavailable and no body execution
+browser-wasm: PASS adapter inclusion parity, scoped registry reads, unsupported/unavailable and no body execution
+PASS BuildParticipationTests.test_native_metadata_inclusion_matches_desktop_owned_scope_and_no_body_execution
+PASS Windows managed native composition compile only; no Windows device run
+PASS EntryHomeNativeDetailsTests.test_windows_native_information_and_profile_composition_builds
+3 passed, 0 failed, 0 skipped; 43.084s
+
+=== confectory-native-imp1-gui4.log ===
+PASS native Home information/profile: GTK widgets, reachability, explicit save/CAS/cancel, same project source/chat buffers, two contexts and cold; no AI/project creation /tmp/confectory-native-details-3bml7253
+PASS EntryHomeNativeDetailsTests.test_linux_native_home_information_profile_cas_cancel_and_project_input_lifetimes
+1 passed, 0 failed, 0 skipped; 41.957s
+
+=== confectory-native-imp1-build-final.log ===
+  Confectory.Core -> /workspace/Confectory/src/Confectory.Core/bin/Release/net10.0/Confectory.Core.dll
+  Confectory.DesktopEntry -> /workspace/Confectory/targets/desktop-entry/bin/Release/net10.0/Confectory.DesktopEntry.dll
+  Confectory.AndroidExport -> /workspace/Confectory/targets/android-export/bin/Release/net10.0/Confectory.AndroidExport.dll
+  Confectory.Build.DotNet -> /workspace/Confectory/targets/dotnet/bin/Release/net10.0/Confectory.Build.DotNet.dll
+  Confectory.Build.Web -> /workspace/Confectory/targets/web/bin/Release/net10.0/Confectory.Build.Web.dll
+  Confectory.Build.BrowserWasm -> /workspace/Confectory/targets/browser-wasm/bin/Release/net10.0/Confectory.Build.BrowserWasm.dll
+  Confectory.Cli -> /workspace/Confectory/src/Confectory.Cli/bin/Release/net10.0/Confectory.Cli.dll
+  Confectory.Tests -> /workspace/Confectory/tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:01.25
+
+=== confectory-native-imp1-final-contracts.log ===
+status: 전역 입력이 로컬에 보관됨 · 전송 없음
+Evidence: /tmp/confectory-home-profiles-8arjzz8k errors: []
+FAIL WebUITests.test_actual_editor_v480_project_information_and_helper_profile_context_drafts_and_cold
+System.Exception: status: 전역 입력이 로컬에 보관됨 · 전송 없음
+Evidence: /tmp/confectory-home-profiles-8arjzz8k errors: []
+Traceback (most recent call last):
+  File "/workspace/Confectory/tests/web/v480_home_profiles.py", line 98, in <module>
+    profile_path.write_text('{corrupt retained');invoke('globalHelpers',{});assert state()['helpers'][0]['presentation']['unavailable'];r=settings();expect(r.locator('[data-profile-save]')).to_be_disabled();close();assert profile_path.read_text()=='{corrupt retained';profile_path.write_bytes(profile_bytes);invoke('globalHelpers',{})
+                                                                                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/sync_api/_generated.py", line 23046, in to_be_disabled
+    self._sync(self._impl_obj.to_be_disabled(timeout=to_milliseconds(timeout)))
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_sync_base.py", line 115, in _sync
+    return task.result()
+           ^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_assertions.py", line 738, in to_be_disabled
+    await self._expect_impl(
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_assertions.py", line 128, in _expect_impl
+    _record_soft_or_raise(
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_assertions.py", line 60, in _record_soft_or_raise
+    raise error
+AssertionError: Locator expected to be disabled
+Actual value: enabled 
+Call log:
+  - Expect "to_be_disabled" with timeout 45000ms
+  - waiting for locator("[data-helper-settings]").locator("[data-profile-save]")
+    93 × locator resolved to <button type="submit" class="primary" data-operation="" data-profile-save="" data-supported="true">표시 프로필 저장</button>
+       - unexpected value "enabled"
+
+Aria snapshot:
+- button "표시 프로필 저장"
+
+   at Confectory.Tests.TestCase.True(Boolean condition, String message) in /workspace/Confectory/tests/Confectory.Tests/Support.cs:line 127
+   at Confectory.Tests.WebUITests.test_actual_editor_v480_project_information_and_helper_profile_context_drafts_and_cold() in /workspace/Confectory/tests/Confectory.Tests/WebUITests.cs:line 209
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+PASS PackWorkspaceTests.test_target_metadata_owned_sources_no_registry_execution
+PASS BuildParticipationTests.test_home_confirmed_inclusion_matches_build_without_registry_count_body_reads_or_execution
+android-export: PASS adapter inclusion parity, scoped registry reads, unsupported/unavailable and no body execution
+browser-wasm: PASS adapter inclusion parity, scoped registry reads, unsupported/unavailable and no body execution
+PASS BuildParticipationTests.test_native_metadata_inclusion_matches_desktop_owned_scope_and_no_body_execution
+PASS Windows managed native composition compile only; no Windows device run
+PASS EntryHomeNativeDetailsTests.test_windows_native_information_and_profile_composition_builds
+4 passed, 1 failed, 0 skipped; 76.182s
+
+=== confectory-native-imp1-final-native.log ===
+PASS EntryHomeTests.test_fresh_entry_home_project_contracts_and_consumer_locality
+FAIL EntryHomeResizeTests.test_entry_home_tiny_and_zero_client_suspend_restore_preserve_input_lifetimes
+System.Exception: Traceback (most recent call last):
+  File "/workspace/Confectory/tests/gui/entry_home_resize_x11.py", line 169, in <module>
+    a=launch();wait(lambda t:t['screen']=='intro' and 1 in t['hits'][::5],'intro');click(a,1);wait(lambda t:t['screen']=='home','home');click(a,2);wait(lambda t:t['screen']=='create','create');click(a,10);type_text(a,'Retained resize');state=wait(lambda t:json.loads(t['fields']['10'])['text']=='Retained resize','typed name');token=state['buffers']['10'];controls=state['controls']
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/Confectory/tests/gui/entry_home_resize_x11.py", line 122, in wait
+    if app.poll() is not None:raise AssertionError('Entry/home exited: '+open(log_path).read()[-3000:])
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Entry/home exited: Entry/home jobs, controls, buffers, Owner, project contexts and native surface disposed
+Unhandled exception. System.IO.IOException: Read-only file system : '/home/agent/.local/share/Confectory'
+   at System.IO.FileSystem.CreateParentsAndDirectory(String fullPath, UnixFileMode unixCreateMode)
+   at System.IO.FileSystem.CreateDirectory(String fullPath, UnixFileMode unixCreateMode)
+   at System.IO.Directory.CreateDirectory(String path)
+   at Confectory.Implementations.E700d0e7b1905c24290e6a8cd.E40b20f1625caacd896a1c1f4.Invoke(String handle, String operation, String payload)
+   at B22733096c038855e7a02bcff.Invoke(String handle, String operation, String payload)
+   at Confectory.Implementations.Ea620445369633f57f16dee9a.E9cd48a090b534f0132826411.Invoke()
+   at Bc84cc9ca7306eb44f5f191db.Invoke()
+   at Program.Main()
+
+
+   at Confectory.Tests.TestCase.True(Boolean condition, String message) in /workspace/Confectory/tests/Confectory.Tests/Support.cs:line 127
+   at Confectory.Tests.EntryHomeResizeTests.test_entry_home_tiny_and_zero_client_suspend_restore_preserve_input_lifetimes() in /workspace/Confectory/tests/Confectory.Tests/EntryHomeResizeTests.cs:line 11
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+PASS native Home information/profile: GTK widgets, reachability, explicit save/CAS/cancel, same project source/chat buffers, two contexts and cold; no AI/project creation /tmp/confectory-native-details-f_jd7e_q
+PASS EntryHomeNativeDetailsTests.test_linux_native_home_information_profile_cas_cancel_and_project_input_lifetimes
+2 passed, 1 failed, 0 skipped; 162.738s
+
+=== confectory-native-imp1-final2-contracts.log ===
+PASS actual v480 project information and Helper profiles; context/drafts/CAS/cold/no project creation /tmp/confectory-home-profiles-u9e3fzzv
+PASS WebUITests.test_actual_editor_v480_project_information_and_helper_profile_context_drafts_and_cold
+PASS PackWorkspaceTests.test_target_metadata_owned_sources_no_registry_execution
+PASS BuildParticipationTests.test_home_confirmed_inclusion_matches_build_without_registry_count_body_reads_or_execution
+android-export: PASS adapter inclusion parity, scoped registry reads, unsupported/unavailable and no body execution
+browser-wasm: PASS adapter inclusion parity, scoped registry reads, unsupported/unavailable and no body execution
+PASS BuildParticipationTests.test_native_metadata_inclusion_matches_desktop_owned_scope_and_no_body_execution
+PASS Windows managed native composition compile only; no Windows device run
+PASS EntryHomeNativeDetailsTests.test_windows_native_information_and_profile_composition_builds
+5 passed, 0 failed, 0 skipped; 47.134s
+
+=== confectory-native-imp1-final2-native.log ===
+PASS EntryHomeTests.test_fresh_entry_home_project_contracts_and_consumer_locality
+PASS EntryHomeResizeTests.test_entry_home_tiny_and_zero_client_suspend_restore_preserve_input_lifetimes
+PASS native Home information/profile: GTK widgets, reachability, explicit save/CAS/cancel, same project source/chat buffers, two contexts and cold; no AI/project creation /tmp/confectory-native-details-7qrymjve
+PASS EntryHomeNativeDetailsTests.test_linux_native_home_information_profile_cas_cancel_and_project_input_lifetimes
+3 passed, 0 failed, 0 skipped; 238.513s
+
+=== confectory-native-imp1-final3-contracts.log ===
+PASS actual v480 project information and Helper profiles; context/drafts/CAS/cold/no project creation /tmp/confectory-home-profiles-h68513do
+PASS WebUITests.test_actual_editor_v480_project_information_and_helper_profile_context_drafts_and_cold
+PASS PackWorkspaceTests.test_target_metadata_owned_sources_no_registry_execution
+PASS BuildParticipationTests.test_home_confirmed_inclusion_matches_build_without_registry_count_body_reads_or_execution
+android-export: PASS adapter inclusion parity, scoped registry reads, unsupported/unavailable and no body execution
+browser-wasm: PASS adapter inclusion parity, scoped registry reads, unsupported/unavailable and no body execution
+PASS BuildParticipationTests.test_native_metadata_inclusion_matches_desktop_owned_scope_and_no_body_execution
+PASS Windows managed native composition compile only; no Windows device run
+PASS EntryHomeNativeDetailsTests.test_windows_native_information_and_profile_composition_builds
+5 passed, 0 failed, 0 skipped; 45.835s
+
+=== confectory-native-imp1-final3-native.log ===
+PASS EntryHomeTests.test_fresh_entry_home_project_contracts_and_consumer_locality
+PASS EntryHomeResizeTests.test_entry_home_tiny_and_zero_client_suspend_restore_preserve_input_lifetimes
+PASS native Home information/profile: GTK widgets, reachability, explicit save/CAS/cancel, same project source/chat buffers, two contexts and cold; no AI/project creation /tmp/confectory-native-details-axh9zivm
+PASS EntryHomeNativeDetailsTests.test_linux_native_home_information_profile_cas_cancel_and_project_input_lifetimes
+3 passed, 0 failed, 0 skipped; 257.104s

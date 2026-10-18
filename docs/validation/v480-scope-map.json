@@ -48,12 +48,15 @@
         "examples/editor-home/ui/app.js",
         "examples/editor-home/ui/home-preferences.js",
         "packs/project-manager/pack.cpack",
-        "packs/editor-home-model/HelperPresentation.csbody"
+        "packs/editor-home-model/HelperPresentation.csbody",
+        "examples/editor-home/Main.csbody",
+        "src/Confectory.Core/HomeInclusion.cs"
       ],
-      "supported": "검색/정렬/즐겨찾기/목록·생성·소유 열기/닫기, Home 전용 cold 설정; 확인된 유형/요구 팩/타깃·저장된 Helper 선택 조회, 목록 표시 제목/설명 CAS 편집",
-      "limits": "native 정보 표면 미지원; 모집 템플릿과 소스는 표시 편집 대상 아님",
+      "supported": "검색/정렬/즐겨찾기/목록·생성·소유 열기/닫기, Home 전용 cold 설정; 확인된 유형/요구 팩/타깃·저장된 Helper 선택 조회, 목록 표시 제목/설명 CAS 편집; native 정보 조회/CAS/취소/저장본 cold, 같은 프로젝트 입력 보존",
+      "limits": "native 정보·표시 프로필은 Linux GTK/X11 실제 검사, Windows managed compile 범위. 미실행 장치·모든 전환 조합 보장 없음",
       "remaining": [
-        "IMP1"
+        "ENV1",
+        "ENV2"
       ],
       "finalMethods": [
         "ProjectManagerTests.test_offline_creation_template_is_owned_and_desktop_buildable",
@@ -62,10 +65,12 @@
         "WebUITests.test_actual_editor_v318_home_search_favorite_restart_remove",
         "WebUITests.test_actual_editor_v480_home_browser_document_repeat_cancel_and_restore",
         "WebUITests.test_actual_editor_v480_home_preferences_cold_failure_and_confirmed_counts",
-        "WebUITests.test_actual_editor_v480_project_information_and_helper_profile_context_drafts_and_cold"
+        "WebUITests.test_actual_editor_v480_project_information_and_helper_profile_context_drafts_and_cold",
+        "EntryHomeNativeDetailsTests.test_linux_native_home_information_profile_cas_cancel_and_project_input_lifetimes"
       ],
       "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)",
-      "followupEvidence": "v480-home-profiles.json"
+      "followupEvidence": "v480-home-profiles.json",
+      "nativeFollowupEvidence": "v480-native-home-profiles.json"
     },
     {
       "id": "H07",
@@ -80,19 +85,25 @@
       "implementation": [
         "examples/editor-home/ui/app.js",
         "packs/editor-home-model/HomePreferences.csbody",
-        "packs/edit-workspace/pack.cpack"
+        "packs/edit-workspace/pack.cpack",
+        "examples/editor-home/Main.csbody",
+        "src/Confectory.Core/HomeInclusion.cs"
       ],
-      "supported": "확정 root object 수, 타깃별 도달 pack 수, 성공 Save/Confirm receipt; 없음/실패 구분",
-      "limits": "native adapter의 pack 도달 조회는 미지원",
+      "supported": "확정 root object 수, 타깃별 도달 pack 수, 성공 Save/Confirm receipt; 없음/실패 구분; native 정보 화면 및 동일 Core의 metadata adapter 조회",
+      "limits": "Android/browser 실제 장치·Windows raw native UI는 미실행; metadata adapter fixture/Windows managed compile과 구분",
       "remaining": [
-        "IMP1"
+        "ENV1",
+        "ENV2"
       ],
       "finalMethods": [
         "EditWorkspaceTests.test_home_edit_receipts_atomic_save_confirm_conflict_cancel_and_actual_process_restart",
         "WebUITests.test_actual_editor_v480_home_preferences_cold_failure_and_confirmed_counts",
-        "WebUITests.test_actual_editor_v480_integrated_home_data_graph_set_ref_run_workspace_and_restart"
+        "WebUITests.test_actual_editor_v480_integrated_home_data_graph_set_ref_run_workspace_and_restart",
+        "EntryHomeNativeDetailsTests.test_linux_native_home_information_profile_cas_cancel_and_project_input_lifetimes",
+        "BuildParticipationTests.test_native_metadata_inclusion_matches_desktop_owned_scope_and_no_body_execution"
       ],
-      "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)"
+      "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)",
+      "nativeFollowupEvidence": "v480-native-home-profiles.json"
     },
     {
       "id": "B01–B06",
@@ -1015,23 +1026,29 @@
       "implementation": [
         "examples/editor-home/ui/app.js",
         "packs/helper/pack.cpack",
-        "packs/editor-home-model/HelperPresentation.csbody"
+        "packs/editor-home-model/HelperPresentation.csbody",
+        "examples/editor-home/Main.csbody",
+        "src/Confectory.Core/HomeInclusion.cs"
       ],
-      "supported": "명시 membership/private UI·메모리/소유 refs·로컬 대화 연결 fixture; 로컬 표시 프로필 CAS 편집, 전역 미전송 입력과 프로젝트 대화 분리, 취소/전환/cold",
-      "limits": "모집 템플릿 불변; 전역 AI 전송·이미지 provider·사용량 서비스 미지원",
+      "supported": "명시 membership/private UI·메모리/소유 refs·로컬 대화 연결 fixture; 로컬 표시 프로필 CAS 편집, 전역 미전송 입력과 프로젝트 대화 분리, 취소/전환/cold; native 표시 프로필·로컬 미전송 입력 CAS/취소와 참여자 표시 이름",
+      "limits": "모집 템플릿 불변; 전역 AI 전송·이미지 provider·사용량 서비스 미지원; native 미저장 표시 입력은 세션 수명, cold는 명시 저장본만 복원",
       "remaining": [
         "IMP5",
-        "AUTH1"
+        "AUTH1",
+        "ENV1",
+        "ENV2"
       ],
       "finalMethods": [
         "HelperTests.test_explicit_membership_and_project_memory_legacy_quarantine",
         "HelperTests.test_persistent_memory_templates_owner_refs_conflict_and_optional_agent_locality",
         "WebUITests.test_actual_editor_v318_helper_connection_chat_state_and_ownership",
         "WebUITests.test_actual_editor_v318_helper_inputs_and_panels_cold_restart",
-        "WebUITests.test_actual_editor_v480_project_information_and_helper_profile_context_drafts_and_cold"
+        "WebUITests.test_actual_editor_v480_project_information_and_helper_profile_context_drafts_and_cold",
+        "EntryHomeNativeDetailsTests.test_linux_native_home_information_profile_cas_cancel_and_project_input_lifetimes"
       ],
       "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)",
-      "followupEvidence": "v480-home-profiles.json"
+      "followupEvidence": "v480-home-profiles.json",
+      "nativeFollowupEvidence": "v480-native-home-profiles.json"
     },
     {
       "id": "G01–G03",
