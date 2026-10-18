@@ -1,0 +1,1 @@
+implementation Confectory.FrameControl::BeginBody for Confectory.FrameControl::Begin (string owner) -> int { body common "Begin.csbody"; }

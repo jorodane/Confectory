@@ -1,0 +1,7 @@
+string owner=calls.Open.Invoke();var model=new long[1];var clock=new double[3];var watch=System.Diagnostics.Stopwatch.StartNew();double previous=0;long frames=0;
+try{while(true){double now=watch.Elapsed.TotalSeconds;if(now-previous<1.0/60){System.Threading.Thread.Sleep(2);continue;}int permit=calls.Begin.Invoke(owner);double elapsed=now-previous;previous=now;if(permit==0){Array.Clear(clock);continue;}
+ var timing=permit==2?new double[]{1,1,1,0,0,1.0/60,1.0/60,1.0/60}:calls.Advance.Invoke(clock,elapsed,0,0,1.0/60,4);
+ for(int i=0;i<(int)timing[2];i++)calls.Tick.Invoke(model);if(permit==2)Array.Clear(clock);
+ // This is actual simulation output; it is neither a control channel nor an embedded render surface.
+ frames++;Console.WriteLine("LOCAL_FRAME "+new System.Text.Json.Nodes.JsonObject{["frame"]=frames.ToString(),["ticks"]=model[0].ToString()}.ToJsonString());calls.Complete.Invoke(owner);
+}}finally{calls.Close.Invoke(owner);}

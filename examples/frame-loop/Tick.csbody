@@ -1,0 +1,1 @@
+if(model.Length!=1)throw new ArgumentException("One owned simulation model required");model[0]=checked(model[0]+1);

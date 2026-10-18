@@ -3,15 +3,50 @@ if(string.IsNullOrWhiteSpace(project)||string.IsNullOrWhiteSpace(entry)||string.
 if(names.Length!=values.Length)throw new ArgumentException("Configuration names and values must pair.");
 var configuration=new System.Collections.Generic.Dictionary<string,string>(StringComparer.Ordinal);
 for(int i=0;i<names.Length;i++){if(string.IsNullOrWhiteSpace(names[i])||names[i].Contains('=')||names[i].Contains('\0')||values[i].Contains('\0')||!configuration.TryAdd(names[i],values[i]))throw new ArgumentException("Invalid or duplicate child environment setting.");}
+foreach(string name in configuration.Keys)if(name.StartsWith("CONFECTORY_FRAME_",StringComparison.Ordinal))throw new ArgumentException("Frame ownership settings are reserved");
 project=System.IO.Path.GetFullPath(project);string handle=Guid.NewGuid().ToString("N");
-var record=new object[]{new string[]{handle,"building",project,entry,target,"",""},null!,false,new System.Collections.Generic.Queue<string>()};
+string pipe="confectory-frame-"+Guid.NewGuid().ToString("N"),secret=Convert.ToHexString(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32));
+object controlGate=new();string runtime="";int sent=0;long observedFrame=0;int observedAck=0;string sentAction="";long requestedFrame=0;bool attached=true;System.Text.Json.Nodes.JsonObject? latest=null;
+
+var record=new object[]{new string[]{handle,"building",project,entry,target,"",""},null!,false,new System.Collections.Generic.Queue<string>(),null!};
 lock(records)records.Add(handle,record);
+Func<string,string> control=operation=>{lock(controlGate){
+ if(operation is not ("observe" or "pause" or "resume" or "step" or "disconnect" or "reconnect"))throw new ArgumentException("Unknown frame control operation");
+ if(operation=="disconnect")attached=false;else if(operation=="reconnect")attached=true;
+ string state;lock(records)state=((string[])record[0])[1];
+ System.Text.Json.Nodes.JsonObject Unavailable(string reason){var value=latest?.DeepClone().AsObject()??new System.Text.Json.Nodes.JsonObject{["handle"]=handle,["available"]=false};value["connected"]=false;value["sequence"]=sent;value["reason"]=reason;return value;}
+ if(state!="running")return Unavailable("Execution is "+state).ToJsonString();
+ if(!attached)return Unavailable("Control detached; runtime pauses at its next boundary after the two-second heartbeat lease").ToJsonString();
+ bool command=operation is "pause" or "resume" or "step";
+ if(command&&(runtime.Length==0||latest?["connected"]?.GetValue<bool>()!=true))throw new InvalidOperationException("Observe or reconnect the actual frame owner first");
+ if(command&&sent!=observedAck)throw new InvalidOperationException("A frame command is pending; observe its acknowledgement before another command");
+ if(command&&operation=="step"&&latest?["mode"]?.ToString()!="paused")throw new InvalidOperationException("Pause before stepping");
+ int sequence=command?checked(sent+1):0;string request=Guid.NewGuid().ToString("N");
+ try{
+  using var deadline=new System.Threading.CancellationTokenSource(300);using var client=new System.IO.Pipes.NamedPipeClientStream(".",pipe,System.IO.Pipes.PipeDirection.InOut,System.IO.Pipes.PipeOptions.Asynchronous|System.IO.Pipes.PipeOptions.CurrentUserOnly);
+  client.ConnectAsync(deadline.Token).GetAwaiter().GetResult();
+  var body=new System.Text.Json.Nodes.JsonObject{["version"]=1,["handle"]=handle,["secret"]=secret,["runtime"]=runtime,["request"]=request,["sequence"]=sequence,["operation"]=command?operation:"observe"};byte[] bytes=System.Text.Encoding.UTF8.GetBytes(body.ToJsonString()),header=new byte[4];System.Buffers.Binary.BinaryPrimitives.WriteInt32LittleEndian(header,bytes.Length);
+  // Reserve before writing: a lost reply leaves an uncertain pending command, never an automatic replay.
+  if(command){sent=sequence;sentAction=operation;requestedFrame=observedFrame;}
+  client.WriteAsync(header,deadline.Token).AsTask().GetAwaiter().GetResult();client.WriteAsync(bytes,deadline.Token).AsTask().GetAwaiter().GetResult();client.FlushAsync(deadline.Token).GetAwaiter().GetResult();
+  client.ReadExactlyAsync(header,deadline.Token).AsTask().GetAwaiter().GetResult();int length=System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(header);if(length<1||length>4096)throw new System.IO.InvalidDataException("Frame reply bound");bytes=new byte[length];client.ReadExactlyAsync(bytes,deadline.Token).AsTask().GetAwaiter().GetResult();var reply=System.Text.Json.Nodes.JsonNode.Parse(new System.Text.UTF8Encoding(false,true).GetString(bytes)) as System.Text.Json.Nodes.JsonObject??throw new System.IO.InvalidDataException("Object frame reply required");
+  string epoch=reply["runtime"]?.ToString()??"";int ack=reply["ack"]?.GetValue<int>()??throw new System.IO.InvalidDataException("Missing acknowledgement"),pending=reply["pending"]?.GetValue<int>()??throw new System.IO.InvalidDataException("Missing pending sequence");long frame=long.Parse(reply["frame"]?.GetValue<string>()??throw new System.IO.InvalidDataException("Missing frame identity"),System.Globalization.CultureInfo.InvariantCulture);
+  if(reply["version"]?.GetValue<int>()!=1||reply["request"]?.ToString()!=request||reply["handle"]?.ToString()!=handle||epoch.Length!=32||runtime.Length!=0&&epoch!=runtime||ack<observedAck||ack>sent||frame<observedFrame||pending!=0&&pending!=sent||reply["mode"]?.ToString() is not ("running" or "paused"))throw new System.IO.InvalidDataException("Stale or foreign frame acknowledgement");
+  if(reply["connected"] is null||pending!=0&&reply["action"]?.ToString()!=sentAction||ack>observedAck&&(reply["action"]?.ToString()!=sentAction||reply["outcome"]?.ToString() is not ("applied" or "interrupted"))||ack>observedAck&&sentAction=="step"&&reply["outcome"]?.ToString()=="applied"&&(frame!=requestedFrame+1||reply["mode"]?.ToString()!="paused"))throw new System.IO.InvalidDataException("Frame acknowledgement does not match the pending command");
+  _=reply["connected"]!.GetValue<bool>();
+  if(!command&&pending==0&&ack<sent){sent=ack;reply["outcome"]="not-accepted";}
+  runtime=epoch;observedFrame=frame;observedAck=ack;reply.Remove("request");reply["available"]=true;reply["sequence"]=sent;reply["reason"]="";latest=reply;return reply.ToJsonString();
+ }catch(Exception error) when(error is System.IO.InvalidDataException or System.IO.IOException or System.OperationCanceledException or System.Text.Json.JsonException or System.FormatException or System.OverflowException or System.InvalidOperationException or System.ArgumentException){return Unavailable("Frame connection unavailable; no command replay: "+error.GetType().Name).ToJsonString();}
+}};
+record[4]=control;
+
 try
 {
  string tool=Environment.GetEnvironmentVariable("CONFECTORY_PROJECT_EXECUTION_HOST")??throw new InvalidOperationException("Set CONFECTORY_PROJECT_EXECUTION_HOST to the owned host DLL.");
  var start=new System.Diagnostics.ProcessStartInfo(Environment.GetEnvironmentVariable("CONFECTORY_DOTNET")??"dotnet"){UseShellExecute=false,RedirectStandardOutput=true,RedirectStandardError=true};
  foreach(string arg in new[]{tool,"run",project,entry,target,calls.LeasePath.Invoke(System.IO.Path.GetDirectoryName(project)!)})start.ArgumentList.Add(arg);
  foreach(var setting in configuration)start.Environment[setting.Key]=setting.Value;
+ start.Environment["CONFECTORY_FRAME_PIPE"]=pipe;start.Environment["CONFECTORY_FRAME_SECRET"]=secret;start.Environment["CONFECTORY_FRAME_HANDLE"]=handle;
  var process=new System.Diagnostics.Process{StartInfo=start};lock(records)record[1]=process;
  process.Start();
  _=System.Threading.Tasks.Task.Run(async()=>

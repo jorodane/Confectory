@@ -10,5 +10,6 @@ import Confectory.ProjectExecution::DescribeProject as DescribeProject (string) 
 import Confectory.FileStream::LeasePath as LeasePath (string) -> string;
 import Confectory.ProjectExecution::LaunchConfigured as LaunchConfigured (string[], string, string, string, string[], string[]) -> string;
 import Confectory.ProjectExecution::Output as Output (string[], string) -> string[];
+import Confectory.ProjectExecution::Control as Control (string[],string,string) -> string;
 body common "main.csbody";
 }

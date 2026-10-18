@@ -1,0 +1,1 @@
+implementation Confectory.FrameControl::OpenBody for Confectory.FrameControl::Open () -> string { body common "Open.csbody"; }

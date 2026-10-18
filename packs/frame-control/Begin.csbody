@@ -1,0 +1,1 @@
+var state=AppDomain.CurrentDomain.GetData(owner) as object[];if(state is null){throw new ObjectDisposedException("Frame owner");}return ((Func<int>)state[0])();

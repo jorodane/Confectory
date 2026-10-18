@@ -1,0 +1,1 @@
+function Example.FrameLoop::Main () -> int {provide Confectory.RealTimeUpdate::Advance with Confectory.RealTimeUpdate::AdvanceBody;provide Example.FrameLoop::Main with Example.FrameLoop::MainBody;}

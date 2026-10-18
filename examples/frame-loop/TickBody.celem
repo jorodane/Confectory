@@ -1,0 +1,1 @@
+implementation Example.FrameLoop::TickBody for Example.FrameLoop::Tick (long[] model) -> void {body common "Tick.csbody";}

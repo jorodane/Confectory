@@ -1,0 +1,1 @@
+implementation Confectory.FrameControl::CompleteBody for Confectory.FrameControl::Complete (string owner) -> void { body common "Complete.csbody"; }

@@ -16,7 +16,7 @@
 | 대조/미지원 범위가 남음 | category/concept 계층 전체, browser Data의 자동 전체 필드 합집합, Workspace 삭제 외 일반 배치 Undo·도킹 전 native Undo 이력 | 이미 있는 모델/명령과 레퍼런스의 동작을 대응시킨 다음 확인한 누락을 수정. 미검사 전체를 정책 차단으로 표시하지 않음 |
 | 사용자 정책 답변 대기 | 계산식 int/long overflow: 오류 또는 wrap | 아직 미답변. enum 값 범위와 별개이며 다른 로컬 UI 수정의 차단 아님 |
 | 새 구조 계약이 미구현·현재 범위 밖 | 구조적 property field write/ref, compound/function live field, 일반 enum/Vector3 ABI, 소유 집합 생성/삭제 전체 Undo | 기존 read/primitive/일반 이력 지원과 구분. 이번 UI 대조에서 새 의미를 추가하지 않음 |
-| 서비스 계약이 미구현·현재 범위 밖 | actor/recipient/room/ack, 실제 market/publisher, Run frame/ack·durable 연결 | 소유 fixture나 화면 상태를 실재 서비스로 가장하지 않음 |
+| 서비스 계약이 미구현·현재 범위 밖 | actor/recipient/room/ack, 실제 market/publisher, Run 새 호스트의 durable 연결·surface embedding | 소유 fixture나 화면 상태를 실재 서비스로 가장하지 않음 |
 | 환경상 미검증·현재 범위 밖 | 실계정·유료 모델·native OS 창·실기기·사용자 PC 설치 | 컴파일/공통 web 결과로 검증 완료를 주장하지 않음. main·ZIP·Android 설정 보존 |
 
 ## 현재 구현과 검증 근거
@@ -70,7 +70,7 @@ enum의 숫자 항목 범위 확인과 계산식 overflow는 다른 계약이다
 | I01–I02 | 신문고·승인/요청/충돌·처리 이력 | 실제 사건과 owner inbox를 연결할 계약이 남음. 화면의 해결 표시를 실제 사건 해결로 취급하지 않음 |
 | Y01–Y03 | Yogi Exactly/Seal·첨부·수신/전달·복구 | [기존 Yogi 기록](EDITOR_V318_YOGI.md)의 소유 snapshot/재검증 있음. recipient·room·ack·중복/실패·수신 권한은 부분/후속 |
 | A01–A04 | Augment·로컬 Custom·Worker·검토/채택/중지 | [v424 로컬·이력·노드 Task 증거](EDITOR_V424_INTEGRATION.md)와 소유 journal/권한 경계 있음. 외부 모델 실제 생성과 모든 task 상태 조합은 완료 아님 |
-| R01–R06 | Run/Stop·빌드 job·렌더 삽입·Pause/Step·재연결·내보내기 | 실제 소유 프로세스와 compiler job은 있음. frame/ack 기반 pause/step·자식 surface·durable launch 재연결·기기/서명 배포는 부분/계약 필요 |
+| R01–R06 | Run/Stop·빌드 job·렌더 삽입·Pause/Step·재연결·내보내기 | 실제 소유 프로세스·compiler job과 [로컬 협력적 frame/ack·Pause/Step·같은 호스트 재연결](V480_LOCAL_RUN_FRAME_CONTROL.md)을 연결했다. 비참여 프로젝트·자식 surface·새 호스트의 durable launch 채택·기기/서명 배포는 별도다 |
 | P01–P05 | Helper 소속·프로필·이미지·pin·대화·기억 | [Helper scope](HELPER_PRODUCT_SCOPES.md)와 membership/private UI는 있음. 실제 이미지 provider·사용량 승인·대화/전송의 전체 영속/서비스는 부분 |
 | G01–G03 | Agent 탐색·설치 준비·로그인·모델·사용량·연결 | [Codex 준비 기록](codex-preparation.md), 실제 지원 metadata/소유 설정 경계 있음. 다른 Agent와 실계정/유료 호출의 정상 작동을 이 개발 검증으로 주장하지 않음 |
 | U01–U03 | 내 정보·co-worker·요청/수락/차단·채팅/news | 로컬 profile/presentation 일부 있음. 실재 actor/membership/sender/recipient/room/ack 서비스 계약이 남음 |
@@ -113,3 +113,5 @@ Home 전용 제한 설정 파일과 프로젝트별 확정 object 선언 수의 
 Home 포함 팩·저장된 편집 기록 후속은 [범위와 의미](V480_HOME_INCLUSION_AND_EDIT_EVENTS.md), [고정 원본·단계별 검증](validation/v480-home-inclusion-edit-events.json)에 기록한다. 모델 11/0/0, 실제 Chromium 6/0/0, 관리 프로필 컴파일 1/0/0, 구현 커밋의 일반 checkout·리소스·Home 시작 1/0/0이다. 초기 페이지 종료 취소 경계도 실제 브라우저에서 재현해 보정했다.
 
 Workspace private 창 링크·수명은 [규칙과 저장 경계](V480_WORKSPACE_LINKS_AND_LIFETIME.md), [고정 원본·단계별 검증](validation/v480-workspace-links-lifetime.json)을 따른다. 모델 2개·서로 다른 UI 8개·관리 프로필 1개·일반 checkout 1개가 통과했다. 구형 UI fixture 1개 보정과 단계별 hash·원래 실패는 검증 기록에 분리한다. 소스 삭제와 일반 이동/연결 Undo는 이 비공개 삭제 이력에 포함하지 않는다.
+
+로컬 Run 프레임 제어 후속은 [세션·frame/ack·Pause/Step·단절/재연결 명세](V480_LOCAL_RUN_FRAME_CONTROL.md)를 따른다. 프로세스 상태와 협력적 런타임의 실제 완료 프레임을 구분한다. 기존 Engine, ButtonGame GUI와 ordinary FrameLoop에 연결하며 비참여 프로젝트는 일반 Run/Stop을 유지한다. 새 호스트의 이전 실행 채택·surface embedding·원격 서비스·기기/PC 설치와 property set/ref·확장 ABI·overflow는 별도 범위다. 최종 고정 원본과 검사 근거는 [검증 기록](validation/v480-local-run-control.json)에 남긴다.

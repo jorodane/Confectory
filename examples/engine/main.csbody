@@ -1,3 +1,4 @@
+string frameOwner="";
 string entrySession="";
 int timeout=0;
 string? timeoutText=Environment.GetEnvironmentVariable("CONFECTORY_BASEUI_CLOSE_AFTER_MS");
@@ -210,14 +211,15 @@ try
   try{foreach(string token in calls.DispatchTokens.Invoke(schedule,phase)){var registration=calls.ResolveDispatch.Invoke(schedule,token,phase);if(registration.Length==0)continue;string id=registration[0];try{invoke(id);}catch(Exception ex){throw new InvalidOperationException("Phase "+phase+", function "+id+", priority "+registration[1]+" failed.",ex);}}}
   finally{dispatching=false;}
  }
- bool scriptedOnce=false;
+ long completedFrames=0;bool scriptedOnce=false;frameOwner=calls.FrameOpen.Invoke();
  while(!interrupted&&(IsOpen(0)||IsOpen(1)))
  {
   if(entrySession.Length>0){var request=System.Text.Json.Nodes.JsonNode.Parse(calls.EntryRequest.Invoke(entrySession,"poll","{}"))!;if(request["id"] is not null){string id=request["id"]!.ToString(),path=request["path"]!.ToString(),status="opened",notice="";try{bool active=projectContexts[0]!=""&&calls.ProjectContext.Invoke(projectManagers[0],projectContexts[0])[5]=="open";bool same=active&&string.Equals(calls.ProjectContext.Invoke(projectManagers[0],projectContexts[0])[1],path,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal);if(same)status="already-open";else if(authorJob is not null||workspaces[0]!=""||active){status="busy";notice="Existing project/drafts retained; open this file after closing the current context";}else{projectPaths[0]=path;ProjectAction(0,1);if(projectErrors[0].Length>0)throw new InvalidOperationException(projectErrors[0]);}}catch(Exception error){status="failed";notice=error.Message;}calls.EntryRequest.Invoke(entrySession,"reply",System.Text.Json.JsonSerializer.Serialize(new{id,status,message=notice}));}}
   PollAuthorJob();for(int v=0;v<2;v++)if(authorJob is null&&elementViews[v]!=""&&calls.ElementViewPoll.Invoke(elementViews[v])){calls.Invalidate.Invoke(views[v]);var info=calls.ElementViewInfo.Invoke(elementViews[v]);Console.WriteLine("element projection view="+v+" unit="+info[1]+" revision="+calls.EditWorkspaceRead.Invoke(info[0],info[1])[4]);}
   double now=watch.Elapsed.TotalSeconds,elapsed=now-previous;previous=now;
-  var timing=calls.Advance.Invoke(clock,elapsed,1.0/120,1.0/60,1.0/50,4);dropped+=timing[4];
-  Dispatch("input",id=>{var events=calls.Pump.Invoke(surfaces);for(int i=0;i<events.Length;i+=6)Input(events[i],events[i+1],events[i+2],events[i+3],events[i+4],events[i+5]);});
+  int framePermit=calls.FrameBegin.Invoke(frameOwner);
+  var timing=framePermit==2?new double[]{1,1,1,0,0,1.0/50,1.0/50,1.0/50}:framePermit==1?calls.Advance.Invoke(clock,elapsed,1.0/120,1.0/60,1.0/50,4):new double[8];if(framePermit!=1)Array.Clear(clock);dropped+=timing[4];
+  Dispatch("input",id=>{var events=calls.Pump.Invoke(surfaces);for(int i=0;i<events.Length;i+=6){if(framePermit!=0||events[i+1] is 8 or 9)Input(events[i],events[i+1],events[i+2],events[i+3],events[i+4],events[i+5]);}});
   // Fixed simulation catch-up is distinct from display interpolation timing[3].
   for(int step=0;step<(int)timing[2];step++)Dispatch("fixed",id=>calls.FixedUpdate.Invoke(simulation,timing[7]));
   if(timing[0]!=0)Dispatch("state",id=>
@@ -234,7 +236,7 @@ try
     calls.QueueCameraIntent.Invoke(queues[v],((held[v,1]?1:0)-(held[v,0]?1:0))*100*timing[5],((held[v,3]?1:0)-(held[v,2]?1:0))*100*timing[5],1);
    }
   });
-  if(scripted&&!scriptedOnce&&now>0.1)
+  if(framePermit!=0&&scripted&&!scriptedOnce&&now>0.1)
   {
    scriptedOnce=true;var rect=calls.Layout.Invoke(views[0]);int x=rect[10]+5,y=rect[11]+5;Input(0,1,x,y,0,0);Input(0,2,x,y,0,0);
    if(calls.Read.Invoke(owners[0],models[0][0])[0]!=1||calls.Read.Invoke(owners[1],models[1][0])[0]!=0)throw new Exception("Intended View assertion failed.");
@@ -242,7 +244,7 @@ try
    if(calls.SurfaceInfo.Invoke(surfaces)[3]!=unchanged||calls.Read.Invoke(owners[0],models[0][0])[0]!=1)throw new Exception("Local reopen assertion failed.");
    Console.WriteLine("two-window isolation/reopen PASS");
   }
-  Dispatch("presentation",id=>
+  if(framePermit!=0)Dispatch("presentation",id=>
   {
    for(int v=0;v<2;v++)if(IsOpen(v))
    {
@@ -251,12 +253,13 @@ try
      var frame=calls.PresentCamera.Invoke(cameras[v],queues[v]);
      if(frame[0]!=displayed[v][0]||frame[1]!=displayed[v][1]||frame[2]!=displayed[v][2])calls.Invalidate.Invoke(views[v]);
     }
-    else if(timing[1]!=0&&(calls.ViewStatus.Invoke(views[v])[2]!=0||now<0.1))
+    else if(timing[1]!=0&&(framePermit==2||calls.ViewStatus.Invoke(views[v])[2]!=0||now<0.1))
     {
      RenderView(v,true);
     }
    }
   });
+  if(framePermit!=0){completedFrames++;if(Environment.GetEnvironmentVariable("CONFECTORY_ENGINE_TRACE_FRAME")=="1")Console.WriteLine("ENGINE_FRAME "+new System.Text.Json.Nodes.JsonObject{["frame"]=completedFrames.ToString(),["fixedTicks"]=simulation[0].ToString()}.ToJsonString());calls.FrameComplete.Invoke(frameOwner);}
   if(timeout>0&&watch.ElapsedMilliseconds>=timeout)break;
   System.Threading.Thread.Sleep(1);
  }
@@ -265,6 +268,7 @@ try
 catch(Exception ex){Console.Error.WriteLine(ex);return 1;}
 finally
 {
+ if(frameOwner.Length>0)calls.FrameClose.Invoke(frameOwner);
  if(entrySession.Length>0)calls.EntryRequest.Invoke(entrySession,"close","{}");
  Console.CancelKeyPress-=cancelHandler;
  void Cleanup(Action release){try{release();}catch(Exception ex){Console.Error.WriteLine("Cleanup failed: "+ex.Message);}}

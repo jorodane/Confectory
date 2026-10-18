@@ -1,4 +1,8 @@
 implementation Confectory.Engine::MainBody for Confectory.Engine::Main () -> int {
+import Confectory.FrameControl::Open as FrameOpen () -> string;
+import Confectory.FrameControl::Begin as FrameBegin (string) -> int;
+import Confectory.FrameControl::Complete as FrameComplete (string) -> void;
+import Confectory.FrameControl::Close as FrameClose (string) -> void;
 import Confectory.RuntimeBase::CreateOwner as CreateOwner (int) -> string[];
 import Confectory.RuntimeBase::CreateInstance as CreateInstance (string[], string) -> int;
 import Confectory.RuntimeBase::Read as Read (string[], int) -> long[];

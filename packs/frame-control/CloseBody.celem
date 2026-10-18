@@ -1,0 +1,1 @@
+implementation Confectory.FrameControl::CloseBody for Confectory.FrameControl::Close (string owner) -> void { body common "Close.csbody"; }

@@ -1,0 +1,43 @@
+string key="Confectory.FrameControl."+Guid.NewGuid().ToString("N");
+string? pipe=Environment.GetEnvironmentVariable("CONFECTORY_FRAME_PIPE"),secret=Environment.GetEnvironmentVariable("CONFECTORY_FRAME_SECRET"),handle=Environment.GetEnvironmentVariable("CONFECTORY_FRAME_HANDLE");
+int thread=Environment.CurrentManagedThreadId;object gate=new();bool resourcesClosed=false,closed=false,inFrame=false,connected=false,stepping=false,leaseLost=false;string mode="running",runtime=Guid.NewGuid().ToString("N"),lastAction="",outcome="";long frame=0;int ack=0,pending=0;string action="";var clock=System.Diagnostics.Stopwatch.StartNew();long heartbeat=0;
+bool enabled=!string.IsNullOrEmpty(pipe);if(enabled&&(OperatingSystem.IsBrowser()||OperatingSystem.IsAndroid()||pipe!.Length>100||secret?.Length!=64||handle?.Length!=32))throw new PlatformNotSupportedException("Local owned frame control requires a desktop execution capability");
+var cancel=new System.Threading.CancellationTokenSource();System.IO.Pipes.NamedPipeServerStream? server=null;System.Threading.Tasks.Task? worker=null;
+void ThreadCheck(){if(Environment.CurrentManagedThreadId!=thread)throw new InvalidOperationException("Frame callbacks belong to their creating loop thread");if(closed)throw new ObjectDisposedException("Frame owner");}
+void Ack(string result){ack=pending;pending=0;lastAction=action;action="";outcome=result;}
+string Snapshot(string request)=>new System.Text.Json.Nodes.JsonObject{["version"]=1,["handle"]=handle,["runtime"]=runtime,["request"]=request,["connected"]=connected,["mode"]=mode,["frame"]=frame.ToString(System.Globalization.CultureInfo.InvariantCulture),["ack"]=ack,["pending"]=pending,["action"]=pending>0?action:lastAction,["outcome"]=outcome}.ToJsonString();
+async System.Threading.Tasks.Task<byte[]> Read(System.IO.Stream stream,int count,System.Threading.CancellationToken token){var bytes=new byte[count];await stream.ReadExactlyAsync(bytes,token);return bytes;}
+if(enabled){
+ server=new System.IO.Pipes.NamedPipeServerStream(pipe!,System.IO.Pipes.PipeDirection.InOut,1,System.IO.Pipes.PipeTransmissionMode.Byte,System.IO.Pipes.PipeOptions.Asynchronous|System.IO.Pipes.PipeOptions.CurrentUserOnly);
+ worker=System.Threading.Tasks.Task.Run(async()=>{while(!cancel.IsCancellationRequested){try{
+  await server.WaitForConnectionAsync(cancel.Token);using var timeout=System.Threading.CancellationTokenSource.CreateLinkedTokenSource(cancel.Token);timeout.CancelAfter(750);
+  var size=await Read(server,4,timeout.Token);int length=System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(size);if(length<1||length>4096)throw new System.IO.InvalidDataException("Frame request bound");
+  var raw=await Read(server,length,timeout.Token);var request=System.Text.Json.Nodes.JsonNode.Parse(new System.Text.UTF8Encoding(false,true).GetString(raw)) as System.Text.Json.Nodes.JsonObject??throw new System.IO.InvalidDataException("Object frame envelope required");string id=request["request"]?.ToString()??"";
+  string response;lock(gate){
+   if(closed)break;
+   if(request["version"]?.GetValue<int>()!=1||request["secret"]?.ToString()!=secret||request["handle"]?.ToString()!=handle||id.Length!=32)throw new System.IO.InvalidDataException("Unknown frame owner");
+   string epoch=request["runtime"]?.ToString()??"";if(epoch!=""&&epoch!=runtime)throw new System.IO.InvalidDataException("Stale runtime identity");
+   string op=request["operation"]?.ToString()??"";int seq=request["sequence"]?.GetValue<int>()??0;
+   if(op=="observe"){if(seq!=0)throw new System.IO.InvalidDataException("Observation sequence");if(connected&&clock.ElapsedMilliseconds-heartbeat>2000)leaseLost=true;connected=true;heartbeat=clock.ElapsedMilliseconds;}
+   else{
+    if(epoch!=runtime||op is not ("pause" or "resume" or "step")||seq<=0)throw new System.IO.InvalidDataException("Frame command identity");
+    if(seq==pending&&op==action){}else if(seq==ack&&op==lastAction){}else{
+     if(pending!=0||ack==int.MaxValue||seq!=ack+1)throw new System.IO.InvalidDataException("Out of order frame command");
+     if(!connected||clock.ElapsedMilliseconds-heartbeat>2000)throw new System.IO.InvalidDataException("Frame owner disconnected; observe first");
+     if(op=="step"&&mode!="paused")throw new System.IO.InvalidDataException("Pause before stepping");pending=seq;action=op;outcome="pending";
+    }heartbeat=clock.ElapsedMilliseconds;
+   }
+   response=Snapshot(id);
+  }
+  byte[] bytes=System.Text.Encoding.UTF8.GetBytes(response),header=new byte[4];System.Buffers.Binary.BinaryPrimitives.WriteInt32LittleEndian(header,bytes.Length);await server.WriteAsync(header,timeout.Token);await server.WriteAsync(bytes,timeout.Token);await server.FlushAsync(timeout.Token);
+ }catch(Exception error) when(error is System.IO.InvalidDataException or System.IO.IOException or System.OperationCanceledException or System.Text.Json.JsonException or System.ArgumentException or System.FormatException or System.OverflowException or System.InvalidOperationException or System.Text.DecoderFallbackException) {if(cancel.IsCancellationRequested)break;}
+ finally{try{if(server.IsConnected)server.Disconnect();}catch(System.ObjectDisposedException){}catch(System.IO.IOException){}}
+ }});
+}
+Func<int> begin=()=>{ThreadCheck();lock(gate){if(inFrame)throw new InvalidOperationException("Previous frame has not completed");if(!enabled){inFrame=true;return 1;}
+ if(leaseLost||connected&&clock.ElapsedMilliseconds-heartbeat>2000){if(clock.ElapsedMilliseconds-heartbeat>2000)connected=false;mode="paused";leaseLost=false;}
+ if(pending!=0&&!stepping){if(action=="pause"){mode="paused";Ack("applied");}else if(!connected){mode="paused";Ack("interrupted");}else if(action=="resume"){mode="running";Ack("applied");}else{stepping=true;mode="paused";}}
+ if(!connected||mode=="paused"&&!stepping)return 0;inFrame=true;return stepping?2:1;}};
+Action complete=()=>{ThreadCheck();lock(gate){if(!inFrame)throw new InvalidOperationException("No actual frame to complete");inFrame=false;if(enabled){frame=checked(frame+1);if(stepping){stepping=false;mode="paused";Ack("applied");}}}};
+Action close=()=>{if(Environment.CurrentManagedThreadId!=thread)throw new InvalidOperationException("Frame owner thread");lock(gate){if(resourcesClosed)return;closed=true;connected=false;}cancel.Cancel();server?.Dispose();if(worker is not null)try{worker.GetAwaiter().GetResult();}catch(System.OperationCanceledException){}cancel.Dispose();lock(gate)resourcesClosed=true;};
+AppDomain.CurrentDomain.SetData(key,new object[]{begin,complete,close});return key;

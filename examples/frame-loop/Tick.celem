@@ -1,0 +1,1 @@
+function Example.FrameLoop::Tick (long[] model) -> void {provide Example.FrameLoop::Tick with Example.FrameLoop::TickBody;}

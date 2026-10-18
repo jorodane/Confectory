@@ -1,0 +1,1 @@
+function Confectory.FrameControl::Open () -> string { provide Confectory.FrameControl::Open with Confectory.FrameControl::OpenBody; description "Create one cooperative local frame owner; no channel when not launched with an owned execution capability."; }

@@ -1,0 +1,1 @@
+function Confectory.FrameControl::Begin (string owner) -> int { provide Confectory.FrameControl::Begin with Confectory.FrameControl::BeginBody; description "At the creating loop thread return 0 paused, 1 ordinary frame, 2 exactly one requested fixed frame. Call Complete only after actual callbacks and presentation succeed."; }

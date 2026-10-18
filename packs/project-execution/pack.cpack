@@ -1,5 +1,6 @@
 pack Confectory.ProjectExecution version "0.1.0" {
 standalone false;
+element Control function "Control.celem";element ControlBody implementation "ControlBody.celem";
 element StopBuilds function "StopBuilds.celem";element StopBuildsBody implementation "StopBuildsBody.celem";
 element Build function "Build.celem";element BuildBody implementation "BuildBody.celem";
 element BuildQuery function "BuildQuery.celem";element BuildQueryBody implementation "BuildQueryBody.celem";

@@ -1,0 +1,6 @@
+pack Confectory.FrameControl version "0.1.0" { standalone false;
+element Open function "Open.celem"; element OpenBody implementation "OpenBody.celem";
+element Begin function "Begin.celem"; element BeginBody implementation "BeginBody.celem";
+element Complete function "Complete.celem"; element CompleteBody implementation "CompleteBody.celem";
+element Close function "Close.celem"; element CloseBody implementation "CloseBody.celem";
+}

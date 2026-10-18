@@ -1,0 +1,1 @@
+function Confectory.FrameControl::Close (string owner) -> void { provide Confectory.FrameControl::Close with Confectory.FrameControl::CloseBody; description "Retire this local frame channel without inventing a completed frame."; }

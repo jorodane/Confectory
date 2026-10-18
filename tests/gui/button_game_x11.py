@@ -20,6 +20,11 @@ keycode=native('XKeysymToKeycode',c.c_ubyte,P,U)
 image=native('XGetImage',P,P,U,c.c_int,c.c_int,c.c_uint,c.c_uint,U,c.c_int)
 pixel=native('XGetPixel',U,P,c.c_int,c.c_int);destroy=native('XDestroyImage',c.c_int,P)
 atom=native('XInternAtom',U,P,c.c_char_p,c.c_int)
+set_focus=native('XSetInputFocus',c.c_int,P,U,c.c_int,U)
+get_focus=native('XGetInputFocus',c.c_int,P,c.POINTER(U),c.POINTER(c.c_int))
+sync=native('XSync',c.c_int,P,c.c_int)
+def focus(window):
+    set_focus(display,window,1,0);sync(display,0);current,revert=U(),c.c_int();get_focus(display,c.byref(current),c.byref(revert));assert current.value==window,'Actual focus did not change'
 class Event(c.Structure):
     _fields_=[('type',c.c_int),('serial',U),('send',c.c_int),('display',P),('window',U),('root',U),('subwindow',U),('time',U),('x',c.c_int),('y',c.c_int),('xr',c.c_int),('yr',c.c_int),('state',c.c_uint),('detail',c.c_uint),('same',c.c_int)]
 display=open_display(None);assert display,'Live X11 DISPLAY required'
@@ -115,7 +120,7 @@ try:
     wait_pixel(a,0x28465D);mouse(a,4,30,80);wait_pixel(a,0x1A3447);mouse(a,5,30,80);wait(lambda t:t['score']==1,'shared pointer activation');assert latest(1)['score']==0,'game state leaked to B'
     press(a,0xFF09);wait(lambda t:t['focus']==2,'shared button navigation');press(a,0xFF0D);wait(lambda t:t['score']==0,'shared keyboard reset')
     mouse(b,4,30,80);mouse(b,5,30,80);wait(lambda t:t['score']==1,'B independent activation',1);assert latest(0)['score']==0
-    mouse(a,4,30,80);event=Event(10,0,1,display,a,root,0,200,0,0,0,0,0,0,1);buffer=c.create_string_buffer(192);c.memmove(buffer,c.byref(event),c.sizeof(event));assert send(display,a,0,0,buffer);flush(display);time.sleep(.05);mouse(a,5,30,80);time.sleep(.15);assert latest(0)['score']==0,'focus loss did not cancel shared press'
+    mouse(a,4,30,80);wait_pixel(a,0x1A3447);focus(b);time.sleep(.05);mouse(a,5,30,80);before=latest(0)['frames'];wait(lambda t:t['frames']>before and t['score']==0,'real focus loss did not cancel shared press');focus(a)
     press(a,0xFFC3);wait(lambda t:t['group']=='menu','configured game menu');mouse(a,4,30,80);mouse(a,5,30,80);time.sleep(.15);assert latest(0)['score']==0,'hidden button activated'
     screenshot=tempfile.mktemp(prefix='confectory-button-game-',suffix='.png');subprocess.run(['import','-window',str(b),screenshot],check=True)
     close(a);before=latest(1)['frames'];wait(lambda t:t['frames']>before+5,'one window close keeps other View',1);close(b);assert app.wait(timeout=15)==0;log.close();assert 'control/owner/native cleanup complete' in open(log_path).read()

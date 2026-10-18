@@ -1,0 +1,1 @@
+implementation Confectory.ProjectExecution::ControlBody for Confectory.ProjectExecution::Control (string[] session,string handle,string operation) -> string {body common "Control.csbody";}

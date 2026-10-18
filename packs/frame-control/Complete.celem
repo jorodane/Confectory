@@ -1,0 +1,1 @@
+function Confectory.FrameControl::Complete (string owner) -> void { provide Confectory.FrameControl::Complete with Confectory.FrameControl::CompleteBody; description "Acknowledge one actually completed frame. A Step acknowledges only here."; }

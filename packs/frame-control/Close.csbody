@@ -1,0 +1,1 @@
+var state=AppDomain.CurrentDomain.GetData(owner) as object[];if(state is null){return;}((Action)state[2])();AppDomain.CurrentDomain.SetData(owner,null);

@@ -1,0 +1,6 @@
+project Example.FrameLoop version "0.1.0" { standalone true;
+registry Confectory.FrameControl "../../packs/frame-control/pack.cpack";dependency Confectory.FrameControl version "0.1.0";
+registry Confectory.RealTimeUpdate "../../packs/realtime-update/pack.cpack";dependency Confectory.RealTimeUpdate version "0.1.0";
+registry Confectory.Build.DotNet "../../targets/dotnet/pack.cpack";dependency Confectory.Build.DotNet version "0.1.0";
+target portable Confectory.Build.DotNet::Portable;target linux Confectory.Build.DotNet::Linux;target windows Confectory.Build.DotNet::Portable;
+entry Example.FrameLoop::Main;element Main function "Main.celem";element MainBody implementation "MainBody.celem";element Tick function "Tick.celem";element TickBody implementation "TickBody.celem";}

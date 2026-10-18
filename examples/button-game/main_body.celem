@@ -1,4 +1,8 @@
 implementation Example.ButtonGame::MainBody for Example.ButtonGame::Main () -> int {
+import Confectory.FrameControl::Open as FrameOpen () -> string;
+import Confectory.FrameControl::Begin as FrameBegin (string) -> int;
+import Confectory.FrameControl::Complete as FrameComplete (string) -> void;
+import Confectory.FrameControl::Close as FrameClose (string) -> void;
 import Example.ButtonGame::ChangeScore as ChangeScore (string[],int,string) -> long;
 import Example.ButtonGame::WebStart as WebStart () -> int;
 import Confectory.BaseUI::CreateControls as CreateControls (int[]) -> string;

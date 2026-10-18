@@ -35,6 +35,11 @@ public sealed class WebUITests : TestCase
         var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/editor_yogi_v318.py"),Fixture.Repo,report},timeoutSeconds:600);
         True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS ordinary ProjectPack durable Yogi"));
     }
+    public void test_actual_editor_v480_local_run_frame_ack_pause_step_reconnect_and_stop()
+    {
+        var built=new Builder(Path.Combine(Fixture.Repo,"examples/editor-home/project.cpack"),"linux").Build();string report=Path.Combine(f.Root,"v480-run-control.json");File.WriteAllText(report,built.ToJsonString());
+        var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/editor_run_control_v480.py"),Fixture.Repo,report},timeoutSeconds:600);True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS actual v480 local Run frame/ack",StringComparison.Ordinal),run.Stdout+run.Stderr);
+    }
     public void test_actual_editor_v318_run_process_and_presentation_restart()
     {
         var built=new Builder(Path.Combine(Fixture.Repo,"examples","editor-home","project.cpack"),"linux").Build();

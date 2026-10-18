@@ -1,0 +1,1 @@
+function Confectory.ProjectExecution::Control (string[] session,string handle,string operation) -> string { provide Confectory.ProjectExecution::Control with Confectory.ProjectExecution::ControlBody; description "Observe or control the cooperative frames of exactly this session-owned execution; disconnected commands are never replayed."; }
