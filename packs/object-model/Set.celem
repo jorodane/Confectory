@@ -1,0 +1,1 @@
+function Confectory.ObjectModel::Set (object target,string owner,string field,string contractHash,object value) -> void {provide Confectory.ObjectModel::Set with Confectory.ObjectModel::SetBody;}

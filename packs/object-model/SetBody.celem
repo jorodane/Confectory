@@ -1,0 +1,3 @@
+implementation Confectory.ObjectModel::SetBody for Confectory.ObjectModel::Set (object target,string owner,string field,string contractHash,object value) -> void {
+import Confectory.ObjectModel::Access as Access (object,string,string,string,object,bool) -> object;
+body common "Set.csbody";}

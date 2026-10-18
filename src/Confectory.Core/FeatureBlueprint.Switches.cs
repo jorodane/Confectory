@@ -5,7 +5,7 @@ namespace Confectory.Core;
 public static partial class FeatureBlueprint
 {
     public const string SwitchProfile = "sync-acyclic-switch-v1", SwitchGenerator = "feature-blueprint-source-v12";
-    public static bool SupportsMethods(string? profile) => profile is MethodsProfile or SwitchProfile;
+    public static bool SupportsMethods(string? profile) => profile is MethodsProfile or SwitchProfile or PropertySetProfile;
     static string Owner(Node node) => node.Definition["branchOwner"]?.GetValue<string>() ?? "";
     static string ExecutionType(Node node) => node.Control == "switch" ? "int" : node.Signature.Return;
     static JsonObject EnumContract(JsonNode value)

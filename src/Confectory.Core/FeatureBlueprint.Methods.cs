@@ -6,7 +6,7 @@ namespace Confectory.Core;
 public static partial class FeatureBlueprint
 {
     public const string MethodsProfile = "sync-acyclic-methods-v1", MethodsGenerator = "feature-blueprint-source-v11";
-    public static bool SupportsProperties(string? profile) => profile is PropertyProfile or MethodsProfile or SwitchProfile;
+    public static bool SupportsProperties(string? profile) => profile is PropertyProfile or MethodsProfile or SwitchProfile or PropertySetProfile;
     static string Helpers(JsonNode? record, string profile, Node node)
     {
         string helpers = record?["helpers"]?.GetValue<string>() ?? "";

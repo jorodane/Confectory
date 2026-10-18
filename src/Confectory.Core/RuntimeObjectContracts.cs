@@ -89,7 +89,7 @@ public static class RuntimeObjectContracts
     public static JsonObject ForGraph(Registry registry, string implementation, JsonObject graph, bool tolerate = false)
     {
         var contracts = new JsonObject();
-        foreach (string owner in BlueprintTree.Nodes(graph).Where(e => e.Node["kind"]?.ToString() == "property").Select(e => e.Node["propertyOwner"]!.GetValue<string>()).Distinct(StringComparer.Ordinal))
+        foreach (string owner in BlueprintTree.Nodes(graph).Where(e => FeatureBlueprint.IsPropertyNode(e.Node["kind"]?.ToString())).Select(e => e.Node["propertyOwner"]!.GetValue<string>()).Distinct(StringComparer.Ordinal))
         {
             try { contracts[owner] = Describe(registry, owner, implementation); }
             catch (BuildError error) when (tolerate)

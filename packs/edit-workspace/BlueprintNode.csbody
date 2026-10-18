@@ -20,7 +20,7 @@ if(operation=="create"){
  if(System.Linq.Enumerable.Any(nodes,node=>node!["id"]!.ToString()==nodeId))throw new ArgumentException("Node identity already exists");
  if(System.Linq.Enumerable.Any(requested,p=>p.Key is not ("intent" or "control" or "signature" or "branchOwner")))throw new ArgumentException("Only a new node definition belongs in this operation");
  if(privateCreation){
-  if(rootGraph["profile"]?.ToString() is not ("sync-acyclic-nested-v1" or "sync-acyclic-property-v1" or "sync-acyclic-methods-v1" or "sync-acyclic-switch-v1"))throw new InvalidOperationException("Explicitly upgrade to the private graph profile first");
+  if(rootGraph["profile"]?.ToString() is not ("sync-acyclic-nested-v1" or "sync-acyclic-property-v1" or "sync-acyclic-methods-v1" or "sync-acyclic-switch-v1" or "sync-acyclic-property-set-v1"))throw new InvalidOperationException("Explicitly upgrade to the private graph profile first");
   nodes.Add(new System.Text.Json.Nodes.JsonObject{["id"]=nodeId,["kind"]="graph",["intent"]=requested["intent"]!.DeepClone(),["control"]=requested["control"]!.DeepClone(),["signature"]=requested["signature"]!.DeepClone(),["arguments"]=new System.Text.Json.Nodes.JsonObject(),["graph"]=new System.Text.Json.Nodes.JsonObject{["schema"]=1,["profile"]=rootGraph["profile"]!.DeepClone(),["entry"]="",["nodes"]=new System.Text.Json.Nodes.JsonArray(),["edges"]=new System.Text.Json.Nodes.JsonArray(),["exits"]=new System.Text.Json.Nodes.JsonObject()}});
  }else{
  string relative="nodes/"+Guid.NewGuid().ToString("N")+".node.json";newPath=System.IO.Path.GetRelativePath(root,System.IO.Path.GetFullPath(System.IO.Path.Combine(root,System.IO.Path.GetDirectoryName(graphSource[2])??"",relative)));
@@ -29,7 +29,7 @@ if(operation=="create"){
  calls.Metadata.Invoke("blueprintSourceValidate",System.Text.Json.JsonSerializer.Serialize(new{id=ownedId,kind="blueprint-node",text=newText}));
  }
  if(requested["branchOwner"] is not null){
-  string branchOwner=requested["branchOwner"]!.GetValue<string>();if(graph["profile"]?.ToString()!="sync-acyclic-switch-v1"||!System.Linq.Enumerable.Any(nodes,n=>n!["id"]!.ToString()==branchOwner&&n["control"]?.ToString()=="switch"))throw new InvalidOperationException("Existing switch branch owner required");nodes[nodes.Count-1]!["branchOwner"]=branchOwner;
+  string branchOwner=requested["branchOwner"]!.GetValue<string>();if(graph["profile"]?.ToString() is not ("sync-acyclic-switch-v1" or "sync-acyclic-property-set-v1")||!System.Linq.Enumerable.Any(nodes,n=>n!["id"]!.ToString()==branchOwner&&n["control"]?.ToString()=="switch"))throw new InvalidOperationException("Existing switch branch owner required");nodes[nodes.Count-1]!["branchOwner"]=branchOwner;
  }
 }else{
  if(state["units"]?[graphId]?["conversionOrigin"] is not null&&nodeId=="body")throw new InvalidOperationException("Confirm the whole body conversion before removing its original code node");

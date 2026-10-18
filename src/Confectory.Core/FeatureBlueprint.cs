@@ -98,7 +98,7 @@ public static partial class FeatureBlueprint
         string contractHash = Hash(CanonicalText(new JsonObject { ["feature"] = feature.Id, ["signature"] = contract.DeepClone() }));
         var graph = request["graph"]!.AsObject();
         Need(graph["schema"]?.GetValue<int>() == 1, "GRAPH_SCHEMA", "schema");
-        string profile=S(graph,"profile");bool switchFlow=profile==SwitchProfile,properties=SupportsProperties(profile),nested=SupportsPrivateGraphs(profile),aliasLocals=nested||profile==AliasLocalsProfile,externalRefs=SupportsExternalRefs(profile),refProfile=externalRefs||profile==RefNodesProfile,localProfile=profile==LocalsProfile||refProfile,multiOutput=profile==MultiOutputProfile||localProfile, implicitEnd=profile==ImplicitProfile||multiOutput;string generator=switchFlow?SwitchGenerator:profile==MethodsProfile?MethodsGenerator:properties?PropertyGenerator:nested?NestedGenerator:aliasLocals?AliasLocalsGenerator:externalRefs?ExternalRefsGenerator:refProfile?RefNodesGenerator:localProfile?LocalsGenerator:multiOutput?MultiOutputGenerator:implicitEnd?ImplicitGenerator:Generator;
+        string profile=S(graph,"profile");bool switchFlow=SupportsSwitches(profile),properties=SupportsProperties(profile),nested=SupportsPrivateGraphs(profile),aliasLocals=nested||profile==AliasLocalsProfile,externalRefs=SupportsExternalRefs(profile),refProfile=externalRefs||profile==RefNodesProfile,localProfile=profile==LocalsProfile||refProfile,multiOutput=profile==MultiOutputProfile||localProfile, implicitEnd=profile==ImplicitProfile||multiOutput;string generator=profile==PropertySetProfile?PropertySetGenerator:switchFlow?SwitchGenerator:profile==MethodsProfile?MethodsGenerator:properties?PropertyGenerator:nested?NestedGenerator:aliasLocals?AliasLocalsGenerator:externalRefs?ExternalRefsGenerator:refProfile?RefNodesGenerator:localProfile?LocalsGenerator:multiOutput?MultiOutputGenerator:implicitEnd?ImplicitGenerator:Generator;
         Need(profile==Profile||implicitEnd,"GRAPH_PROFILE_UNSUPPORTED",profile);
         Need(properties||!HasObjectSignature(feature.Signature!),"GRAPH_OBJECT_PROFILE",feature.Id);
         Need(externalRefs||!feature.Signature!.Args.Any(p=>p.IsRef),"GRAPH_REF_FEATURE_UNSUPPORTED",feature.Id);
@@ -130,7 +130,7 @@ public static partial class FeatureBlueprint
             var value = item!.AsObject();
             string id = Id(value, "id"), kind = S(value, "kind"), control = S(value, "control"), intent = S(value, "intent");
             Need(!nodes.ContainsKey(id), "GRAPH_DUPLICATE_NODE", id);
-            Need(kind is "code" or "call" || nested && kind=="graph" || properties && kind=="property" || implicitEnd && kind=="export" || localProfile && kind=="set", "GRAPH_NODE_KIND", id);
+            Need(kind is "code" or "call" || nested && kind=="graph" || properties && kind=="property" || profile==PropertySetProfile && kind=="property-set" || implicitEnd && kind=="export" || localProfile && kind=="set", "GRAPH_NODE_KIND", id);
             Need(control is "next" or "branch" || switchFlow && control=="switch", "GRAPH_CONTROL", id);
             Need(!string.IsNullOrWhiteSpace(intent), "NODE_INTENT", id);
             var signature = Signature(value["signature"]!);
@@ -180,11 +180,15 @@ public static partial class FeatureBlueprint
                 Need(kind=="code"&&signature.Return=="void"&&!value.ContainsKey("implementationContext"),"GRAPH_SWITCH_CONTRACT",id);
                 definition["executionEnum"]=EnumContract(value["executionEnum"]??throw new Refusal("GRAPH_ENUM_REQUIRED",id));
             }else Need(!value.ContainsKey("executionEnum"),"GRAPH_ENUM_CONTROL",id);
-            if(kind=="property"){
-                Need(signature.Args.Count==1&&signature.Args[0].Type=="object"&&signature.Args[0].Name=="target"&&signature.Args[0].Mode is null&&signature.Return!="void","PROPERTY_SIGNATURE",id);
+            if(IsPropertyNode(kind)){
+                bool writing=kind=="property-set";
+                Need(signature.Args.Count==(writing?2:1)&&signature.Args[0].Type=="object"&&signature.Args[0].Name=="target"&&signature.Args.All(p=>p.Mode is null)&&(writing?signature.Return=="void"&&control=="next"&&signature.Args[1].Name=="value":signature.Return!="void"),"PROPERTY_SIGNATURE",id);
                 try{
-                    var property=PropertyContract(request,value);Need(signature.Return==S(property,"clrType"),"PROPERTY_SIGNATURE_STALE",id);
-                    definition["property"]=property;var reader=Import(PropertyReader);Need(reader.Element.Signature!.Matches(new FunctionSignature(new(){new("object","target"),new("string","owner"),new("string","field"),new("string","contractHash")},"object")),"PROPERTY_READER_CONTRACT",id);references[PropertyReader]=reader.Hash;
+                    var property=PropertyContract(request,value);Need((writing?signature.Args[1].Type:signature.Return)==S(property,"clrType"),"PROPERTY_SIGNATURE_STALE",id);
+                    definition["property"]=property;
+                    string accessor=writing?PropertySetter:PropertyReader;var imported=Import(accessor);
+                    var args=new List<Parameter>{new("object","target"),new("string","owner"),new("string","field"),new("string","contractHash")};if(writing)args.Add(new("object","value"));
+                    Need(imported.Element.Signature!.Matches(new FunctionSignature(args,writing?"void":"object")),writing?"PROPERTY_SETTER_CONTRACT":"PROPERTY_READER_CONTRACT",id);references[accessor]=imported.Hash;
                 }catch(Refusal error)when(operation is "featureBlueprintNodes" or "featureBlueprintNodeProbe"){
                     definition["propertyError"]=error.Code;definition["propertySubject"]=error.Subject;
                 }
@@ -222,6 +226,7 @@ public static partial class FeatureBlueprint
         }
 
         ValidateAliasLocals(locals,feature,nodes);
+        foreach(var node in nodes.Values.Where(n=>n.Kind=="property-set"))CheckPropertySetBindings(node,feature.Signature!,nodes,locals);
         bool ForwardCaller(Node node)=>externalRefs&&(node.Definition["forwardCallerStorage"]?.GetValue<bool>()==true||HasContext(node)&&node.Signature.Args.Any(p=>p.Mode is "ref" or "out"));
         string CallerOut(Node node,string name)=>feature.Signature!.Args[node.Signature.Args.FindIndex(p=>p.Name==name)].Name;
         var forwardedOutputs=nodes.Values.Where(ForwardCaller).ToDictionary(n=>n.Id,n=>n.Signature.Args.Where(p=>p.IsOut).Select(p=>CallerOut(n,p.Name)).ToArray(),StringComparer.Ordinal);
@@ -355,12 +360,12 @@ public static partial class FeatureBlueprint
         {
             var node = nodes[id];
             JsonNode? record = request["implementations"]?[RecordKey(request,id)];
-            string? body = node.Kind=="property" ? PropertyBody(node) : node.Kind == "graph" ? request["privateChildren"]![id]?["body"]?.GetValue<string>() : node.Kind == "call" ? null : record?["source"]?.GetValue<string>();
+            string? body = IsPropertyNode(node.Kind) ? PropertyBody(node) : node.Kind == "graph" ? request["privateChildren"]![id]?["body"]?.GetValue<string>() : node.Kind == "call" ? null : record?["source"]?.GetValue<string>();
             string helper = node.Kind == "code" ? Helpers(record, profile, node) : "";
             helpers[id] = helper;
             string? codeHash = body is null ? null : node.Kind == "graph" ? request["privateChildren"]![id]!["bodyHash"]!.GetValue<string>() : NodeCodeHash(node, body, helper);
-            string status = node.Kind=="property" ? "property-read" : node.Kind=="graph" ? (request["privateChildren"]![id]?["state"]?.ToString() is "source-ready" or "source-assembled" ? "private-graph" : "missing") : node.Kind == "export" ? "output-assignment" : node.Kind == "set" ? "local-assignment" : node.Kind == "call" ? "feature-reference" : body is null ? "missing" : record?["definitionHash"]?.ToString() != node.DefinitionHash ? "stale" : "available";
-            manifestNodes.Add(new JsonObject { ["id"] = id, ["definitionHash"] = node.DefinitionHash, ["definition"] = node.Definition.DeepClone(), ["implementationHash"] = codeHash, ["status"] = status, ["reachable"] = reachable.Contains(id), ["compilationEligible"] = status is "available" or "feature-reference" or "output-assignment" or "local-assignment" or "private-graph" or "property-read", ["includedInSource"] = false, ["compilerValidated"] = false });
+            string status = node.Kind=="property-set" ? "property-write" : node.Kind=="property" ? "property-read" : node.Kind=="graph" ? (request["privateChildren"]![id]?["state"]?.ToString() is "source-ready" or "source-assembled" ? "private-graph" : "missing") : node.Kind == "export" ? "output-assignment" : node.Kind == "set" ? "local-assignment" : node.Kind == "call" ? "feature-reference" : body is null ? "missing" : record?["definitionHash"]?.ToString() != node.DefinitionHash ? "stale" : "available";
+            manifestNodes.Add(new JsonObject { ["id"] = id, ["definitionHash"] = node.DefinitionHash, ["definition"] = node.Definition.DeepClone(), ["implementationHash"] = codeHash, ["status"] = status, ["reachable"] = reachable.Contains(id), ["compilationEligible"] = status is "available" or "feature-reference" or "output-assignment" or "local-assignment" or "private-graph" or "property-read" or "property-write", ["includedInSource"] = false, ["compilerValidated"] = false });
             if (status is "missing" or "stale")
             { if (reachable.Contains(id)) missing.Add(id); }
             else if (body is not null)

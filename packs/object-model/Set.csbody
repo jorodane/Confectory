@@ -1,0 +1,2 @@
+if(string.IsNullOrEmpty(owner)||string.IsNullOrEmpty(field)||contractHash is null||!System.Text.RegularExpressions.Regex.IsMatch(contractHash,"\\A[a-f0-9]{64}\\z"))throw new ArgumentException("Set requires an explicit owner, field identity and exact field contract hash");
+_ = calls.Access.Invoke(target,owner,field,contractHash,value,true);
