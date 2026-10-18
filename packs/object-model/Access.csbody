@@ -1,14 +1,26 @@
-const string tag="Confectory.ObjectModel.Instance/v1";
-if(target is not object[] state||state.Length!=3||state[0] is not string format||format!=tag||state[1] is not System.Text.Json.Nodes.JsonObject metadata||state[2] is not System.Collections.Generic.Dictionary<string,object> data)throw new ArgumentException("A live caller-provided Confectory object instance is required");
+if(target is not object[] state||state.Length!=3||state[0] is not string format||format is not ("Confectory.ObjectModel.Instance/v1" or "Confectory.ObjectModel.Instance/v2")||state[1] is not System.Text.Json.Nodes.JsonObject metadata||state[2] is not System.Collections.Generic.Dictionary<string,object> data)throw new ArgumentException("A live caller-provided Confectory object instance is required");
 if(owner.Length>0&&!System.Linq.Enumerable.Any(metadata["lineage"]!.AsArray(),id=>id!.ToString()==owner))throw new InvalidOperationException("Property target type does not match its declared owner");
 var declared=System.Linq.Enumerable.SingleOrDefault(metadata["fields"]!.AsArray(),item=>item!["id"]!.ToString()==field)??throw new InvalidOperationException("Property field is not declared by the actual instance");
 if(contractHash.Length>0&&declared["hash"]!.ToString()!=contractHash)throw new InvalidOperationException("Property field contract changed; preserve the actual instance and bind a compatible contract");
 string kind=declared["kind"]!.ToString(),type=declared["type"]!.ToString();bool multiple=declared["cardinality"]!.ToString()=="multiple";
 if(kind is not ("general" or "reference"))throw new NotSupportedException("This object field kind has no live value contract yet");
-bool Reference(object? item)=>item is object[] reference&&reference.Length==3&&reference[0] is string version&&version==tag&&reference[1] is System.Text.Json.Nodes.JsonObject contract&&reference[2] is System.Collections.Generic.Dictionary<string,object>&&System.Linq.Enumerable.Any(contract["schemas"]!.AsArray(),schema=>schema!.ToString()==type);
+bool Reference(object? item)=>item is object[] reference&&reference.Length==3&&reference[0] is string version&&version is "Confectory.ObjectModel.Instance/v1" or "Confectory.ObjectModel.Instance/v2"&&reference[1] is System.Text.Json.Nodes.JsonObject contract&&reference[2] is System.Collections.Generic.Dictionary<string,object>&&System.Linq.Enumerable.Any(contract["schemas"]!.AsArray(),schema=>schema!.ToString()==type);
 bool Atom(object? item)=>kind=="reference"?Reference(item):type switch{"bool"=>item is bool,"int"=>item is int,"long"=>item is long,"float"=>item is float f&&float.IsFinite(f),"double"=>item is double d&&double.IsFinite(d),"string"=>item is string,_=>false};
 bool Valid(object? item){if(!multiple)return Atom(item);if(kind=="reference")return item is object[] refs&&System.Linq.Enumerable.All(refs,x=>Reference(x));return type switch{"bool"=>item is bool[],"int"=>item is int[],"long"=>item is long[],"float"=>item is float[] fs&&System.Linq.Enumerable.All(fs,x=>float.IsFinite(x)),"double"=>item is double[] ds&&System.Linq.Enumerable.All(ds,x=>double.IsFinite(x)),"string"=>item is string[] ss&&System.Linq.Enumerable.All(ss,x=>x is not null),_=>false};}
-if(write){if(!Valid(value))throw new ArgumentException("Object field value does not match its exact type/cardinality");data[field]=value;return value;}
+bool typedCell=format=="Confectory.ObjectModel.Instance/v2"&&kind=="general"&&!multiple&&type is "bool" or "int" or "long";
+if(write){
+ if(!Valid(value))throw new ArgumentException("Object field value does not match its exact type/cardinality");
+ if(typedCell){
+  if(data.TryGetValue(field,out var cell)){
+   if(type=="bool"&&cell is System.Runtime.CompilerServices.StrongBox<bool> b)b.Value=(bool)value;
+   else if(type=="int"&&cell is System.Runtime.CompilerServices.StrongBox<int> i)i.Value=(int)value;
+   else if(type=="long"&&cell is System.Runtime.CompilerServices.StrongBox<long> l)l.Value=(long)value;
+   else throw new InvalidOperationException("The actual typed field storage is incompatible; preserve its identity");
+  }else data[field]=type switch{"bool"=>new System.Runtime.CompilerServices.StrongBox<bool>((bool)value),"int"=>new System.Runtime.CompilerServices.StrongBox<int>((int)value),_=>new System.Runtime.CompilerServices.StrongBox<long>((long)value)};
+ }else data[field]=value;
+ return value;
+}
 if(!data.TryGetValue(field,out var current))throw new InvalidOperationException("Property field is unset on the actual instance; no default is invented");
+if(typedCell)current=type switch{"bool" when current is System.Runtime.CompilerServices.StrongBox<bool> b=>b.Value,"int" when current is System.Runtime.CompilerServices.StrongBox<int> i=>i.Value,"long" when current is System.Runtime.CompilerServices.StrongBox<long> l=>l.Value,_=>throw new InvalidOperationException("The actual typed field storage is incompatible")};
 if(!Valid(current))throw new InvalidOperationException("Actual property value no longer matches its declared contract");
 return current;

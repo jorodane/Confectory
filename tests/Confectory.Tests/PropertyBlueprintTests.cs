@@ -4,7 +4,7 @@ using System.Text.Json.Nodes;
 
 namespace Confectory.Tests;
 
-public sealed class PropertyBlueprintTests : TestCase
+public sealed partial class PropertyBlueprintTests : TestCase
 {
     const string Model="Confectory.ObjectModel", Owner="Api::Monster";
     static JsonObject Sig(string result, params Parameter[] args)=>FeatureBlueprint.SignatureDocument(new(args.ToList(),result));
@@ -24,16 +24,16 @@ public sealed class PropertyBlueprintTests : TestCase
     static JsonObject Code(string id,JsonObject sig,JsonObject args,params string[] imports)=>new(){["id"]=id,["kind"]="code",["control"]="next",["intent"]="Execute "+id,["signature"]=sig,["arguments"]=args,["implementation"]=id+".node.json",["imports"]=new JsonArray(imports.Select(x=>(JsonNode)JsonValue.Create(Model+"::"+x)!).ToArray())};
     static JsonObject Property(string id,JsonObject descriptor,string field,JsonObject target)=>new(){["id"]=id,["kind"]="property",["control"]="next",["intent"]="Read "+field+" at this node",["propertyOwner"]=descriptor["id"]!.DeepClone(),["field"]=field,["fieldContractHash"]=Field(descriptor,field)["hash"]!.DeepClone(),["signature"]=Sig(Field(descriptor,field)["clrType"]!.ToString(),new Parameter("object","target")),["arguments"]=new JsonObject{["target"]=target}};
     static JsonObject Graph(string feature)=>new(){["schema"]=1,["profile"]=FeatureBlueprint.PropertyProfile,["feature"]="Api::Value",["contractHash"]=FeatureBlueprint.ContractHash(new Parser(feature,"<property>").ParseElement()),["entry"]="read",["nodes"]=new JsonArray(),["edges"]=new JsonArray(),["exits"]=new JsonObject()};
-    static JsonObject Contracts()=>new(new[]{"Read","Set","Write","Create","Access"}.Select(name=>new KeyValuePair<string,JsonNode?>(Model+"::"+name,JsonValue.Create(File.ReadAllText(Path.Combine(Fixture.Repo,"packs/object-model",name+".celem"))))));
+    static JsonObject Contracts()=>new(new[]{"Read","Set","RefCell","Write","Create","Access"}.Select(name=>new KeyValuePair<string,JsonNode?>(Model+"::"+name,JsonValue.Create(File.ReadAllText(Path.Combine(Fixture.Repo,"packs/object-model",name+".celem"))))));
     static JsonObject Query(JsonObject graph,string feature,JsonObject descriptor,string operation="featureBlueprintDescribe",JsonObject? records=null)=>FeatureBlueprint.Execute(new(){["operation"]=operation,["featureSource"]=feature,["graph"]=graph.DeepClone(),["propertyContracts"]=new JsonObject{[descriptor["id"]!.ToString()]=descriptor.DeepClone()},["featureContracts"]=Contracts(),["implementations"]=records?.DeepClone(),["implementationContext"]=new JsonObject{["implementation"]="Provider::ValueBody"},["bodyTarget"]="common"});
     void Write(JsonObject graph,string feature,JsonObject descriptor,Dictionary<string,string> bodies)
     {
         var defs=Query(graph,feature,descriptor,"featureBlueprintNodes");Equal("node-definitions",Text(defs,"state"));
-        foreach(var pair in bodies){var definition=defs["nodes"]!.AsArray().Single(n=>n!["id"]!.ToString()==pair.Key)!;f.Body("Provider",pair.Key+".node.json",new JsonObject{["schema"]=1,["node"]=pair.Key,["definitionHash"]=definition["definitionHash"]!.DeepClone(),["source"]=pair.Value}.ToJsonString());}
+        foreach(var pair in bodies){var definition=defs["nodes"]!.AsArray().Concat(defs["nestedNodes"]?.AsArray()??new JsonArray()).Single(n=>n!["id"]!.ToString()==pair.Key)!;var leaf=BlueprintTree.Nodes(graph).Single(n=>n.Key==pair.Key).Node;f.Body("Provider",leaf["implementation"]!.ToString(),new JsonObject{["schema"]=1,["node"]=leaf["id"]!.DeepClone(),["definitionHash"]=definition["definitionHash"]!.DeepClone(),["source"]=pair.Value}.ToJsonString());}
         var sig=new Parser(feature,"<property>").ParseElement().Signature!;f.Add("Api","function","Value",feature);
         string Import(string name)=>"import "+Model+"::"+name+" as "+Alias(name)+" "+new Parser(Contracts()[Model+"::"+name]!.ToString(),"<model>").ParseElement().Signature!.Format(false)+";";
-        f.Add("Provider","implementation","ValueBody","implementation Provider::ValueBody for Api::Value "+sig.Format()+" {"+Import("Read")+Import("Set")+Import("Write")+"blueprint common \"property.graph.json\";}");
-        f.Add("App","implementation","MainBody","implementation App::MainBody for App::Main () -> int {import Api::Value as Value "+sig.Format(false)+";import "+Model+"::Create as Create (string,string[],object[]) -> object;import "+Model+"::Read as Read (object,string,string,string) -> object;import "+Model+"::Set as Set (object,string,string,string,object) -> void;import "+Model+"::Write as Write (object,string,object) -> void;import "+Model+"::Access as Access (object,string,string,string,object,bool) -> object;body common \"main.csbody\";}");
+        f.Add("Provider","implementation","ValueBody","implementation Provider::ValueBody for Api::Value "+sig.Format()+" {"+Import("Read")+Import("Set")+Import("RefCell")+Import("Write")+"blueprint common \"property.graph.json\";}");
+        f.Add("App","implementation","MainBody","implementation App::MainBody for App::Main () -> int {import Api::Value as Value "+sig.Format(false)+";import "+Model+"::Create as Create (string,string[],object[]) -> object;import "+Model+"::Read as Read (object,string,string,string) -> object;import "+Model+"::RefCell as RefCell (object,string,string,string) -> object;import "+Model+"::Set as Set (object,string,string,string,object) -> void;import "+Model+"::Write as Write (object,string,object) -> void;import "+Model+"::Access as Access (object,string,string,string,object,bool) -> object;body common \"main.csbody\";}");
         f.Body("Provider","property.graph.json",graph.ToJsonString());f.Sync();
     }
     static string Quote(string value)=>JsonSerializer.Serialize(value);

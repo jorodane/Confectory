@@ -1,0 +1,1 @@
+implementation Confectory.ObjectModel::RefCellBody for Confectory.ObjectModel::RefCell (object target,string owner,string field,string contractHash) -> object {body common "RefCell.csbody";}

@@ -1,0 +1,10 @@
+if(string.IsNullOrEmpty(owner)||string.IsNullOrEmpty(field)||contractHash is null||!System.Text.RegularExpressions.Regex.IsMatch(contractHash,"\\A[a-f0-9]{64}\\z"))throw new ArgumentException("Field ref requires an explicit owner, field identity and exact contract hash");
+if(target is not object[] state||state.Length!=3||state[0] is not string format||format!="Confectory.ObjectModel.Instance/v2"||state[1] is not System.Text.Json.Nodes.JsonObject metadata||state[2] is not System.Collections.Generic.Dictionary<string,object> data)throw new ArgumentException("Field ref requires a caller-owned instance with stable v2 typed storage; legacy instances are not migrated");
+if(!System.Linq.Enumerable.Any(metadata["lineage"]!.AsArray(),id=>id!.ToString()==owner))throw new InvalidOperationException("Property target type does not match its declared owner");
+var declared=System.Linq.Enumerable.SingleOrDefault(metadata["fields"]!.AsArray(),item=>item!["id"]!.ToString()==field)??throw new InvalidOperationException("Property field is not declared by the actual instance");
+if(declared["hash"]!.ToString()!=contractHash)throw new InvalidOperationException("Property field contract changed; preserve the instance and bind a compatible contract");
+string type=declared["type"]!.ToString();
+if(declared["kind"]!.ToString()!="general"||declared["cardinality"]!.ToString()!="single"||type is not ("bool" or "int" or "long"))throw new NotSupportedException("Mutable field ref supports only general single bool/int/long; constrained primitives, arrays and schema references retain checked Read/Set");
+if(!data.TryGetValue(field,out var cell))throw new InvalidOperationException("Field ref requires initialized storage; unset fields are not initialized implicitly");
+if(type=="bool"&&cell is System.Runtime.CompilerServices.StrongBox<bool>||type=="int"&&cell is System.Runtime.CompilerServices.StrongBox<int>||type=="long"&&cell is System.Runtime.CompilerServices.StrongBox<long>)return cell;
+throw new InvalidOperationException("Actual typed field storage is incompatible; no copy-in/out or replacement is performed");

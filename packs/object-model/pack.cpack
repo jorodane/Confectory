@@ -5,4 +5,5 @@ element Create function "Create.celem";element CreateBody implementation "Create
 element Read function "Read.celem";element ReadBody implementation "ReadBody.celem";
 element Write function "Write.celem";element WriteBody implementation "WriteBody.celem";
 element Set function "Set.celem";element SetBody implementation "SetBody.celem";
+element RefCell function "RefCell.celem";element RefCellBody implementation "RefCellBody.celem";
 }

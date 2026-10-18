@@ -1,0 +1,1 @@
+function Confectory.ObjectModel::RefCell (object target,string owner,string field,string contractHash) -> object {provide Confectory.ObjectModel::RefCell with Confectory.ObjectModel::RefCellBody;}
