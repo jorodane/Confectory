@@ -1,0 +1,154 @@
+{
+  "version": 1,
+  "sourceCommit": "9eb3cddc83a9be99d29d8f15fc3c317ba5cf1975",
+  "baseWorkCurrent": "04f9d3257924b9865ce28039217b18bf68f7cf16",
+  "measuredAtUtc": "2026-10-18T13:43:54.322785+00:00",
+  "scope": "IMP7 completed private Workspace movement/portal/links conditional Undo/redo. Preserve current document IDs, input, canonical notes and CAS. No source deletion/rewrite, docking/resize/camera Undo, full native Undo or device completion.",
+  "distinctMethods": 11,
+  "passed": 11,
+  "failed": 0,
+  "skipped": 0,
+  "executedPassingResultsIncludingRecheck": 12,
+  "countingRule": "Last passing result per distinct method. Actual IMP7 repeats once to add containing-group/current-note coverage; the first smaller fixture is not an additional method. All production and final fixture files match sourceCommit. No full-suite/v480 completion claim.",
+  "gateConcurrencyLimit": 2,
+  "cpuQuota": 4,
+  "memoryLimitBytes": 17179869184,
+  "groups": [
+    {
+      "group": "new-and-pure",
+      "log": "confectory-imp7-new-gate.log",
+      "methods": [
+        "WebUITests.test_actual_editor_imp7_workspace_move_link_history_inputs_cold_and_branch",
+        "WebUITests.test_private_workspace_links_and_deletion_history_invariants",
+        "WebUITests.test_private_workspace_move_link_history_atomic_inputs_cold_and_branch_invariants"
+      ],
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 102.44
+    },
+    {
+      "group": "group-and-note-final",
+      "log": "confectory-imp7-group-gate.log",
+      "methods": [
+        "WebUITests.test_actual_editor_imp7_workspace_move_link_history_inputs_cold_and_branch"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 39.388
+    },
+    {
+      "group": "existing-links-deletion",
+      "log": "confectory-imp7-links-gate.log",
+      "methods": [
+        "WebUITests.test_actual_editor_v480_private_workspace_links_bundle_portal_delete_undo_and_cold"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 109.365
+    },
+    {
+      "group": "current-input-regressions",
+      "log": "confectory-imp7-regressions.log",
+      "methods": [
+        "FieldDiscoveryTests.test_actual_editor_imp3_automatic_field_union_limits_cancel_selection_and_cold",
+        "WebUITests.test_actual_editor_v318_workspace_lifecycle_presentation_restart",
+        "WebUITests.test_actual_editor_v480_browser_data_atomic_fill_selection_cas_and_cold",
+        "WebUITests.test_actual_editor_v480_browser_data_fields_typed_cas_inputs_and_cold"
+      ],
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 299.931
+    },
+    {
+      "group": "managed-targets",
+      "log": "confectory-imp7-managed-gates.log",
+      "methods": [
+        "EntryHomeTests.test_android_home_export_selects_activity_and_metadata_parser_without_engine_surface_sample",
+        "EntryHomeNativeDetailsTests.test_windows_native_information_and_profile_composition_builds"
+      ],
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 136.167
+    },
+    {
+      "group": "ordinary-git-checkout",
+      "log": "confectory-imp7-checkout.log",
+      "methods": [
+        "WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 6.566
+    }
+  ],
+  "lastPassingGroupByMethod": {
+    "WebUITests.test_actual_editor_imp7_workspace_move_link_history_inputs_cold_and_branch": "group-and-note-final",
+    "WebUITests.test_private_workspace_links_and_deletion_history_invariants": "new-and-pure",
+    "WebUITests.test_private_workspace_move_link_history_atomic_inputs_cold_and_branch_invariants": "new-and-pure",
+    "WebUITests.test_actual_editor_v480_private_workspace_links_bundle_portal_delete_undo_and_cold": "existing-links-deletion",
+    "FieldDiscoveryTests.test_actual_editor_imp3_automatic_field_union_limits_cancel_selection_and_cold": "current-input-regressions",
+    "WebUITests.test_actual_editor_v318_workspace_lifecycle_presentation_restart": "current-input-regressions",
+    "WebUITests.test_actual_editor_v480_browser_data_atomic_fill_selection_cas_and_cold": "current-input-regressions",
+    "WebUITests.test_actual_editor_v480_browser_data_fields_typed_cas_inputs_and_cold": "current-input-regressions",
+    "EntryHomeTests.test_android_home_export_selects_activity_and_metadata_parser_without_engine_surface_sample": "managed-targets",
+    "EntryHomeNativeDetailsTests.test_windows_native_information_and_profile_composition_builds": "managed-targets",
+    "WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup": "ordinary-git-checkout"
+  },
+  "sourceFilesSha256": {
+    "examples/editor-home/WebBundle.csbody": "51fcb5a999cd44faa4ca2f5134a18c6d8c3267f6373fda067ef55be664f675e8",
+    "examples/editor-home/ui/workspace-history.js": "f0bd9fe34ebd3c0d8395adbc57b9c4fae0abd64fe91aa3c99da7471f679e77ce",
+    "examples/editor-home/ui/workspace-host.js": "3de14f2d4d5cf1cb7374f444299e75617b7cc625c2a7d939e56f7c67901d8ee0",
+    "examples/editor-home/ui/workspace-links.js": "182ec947d0020f134510251ac41b3ab8d1714a091127a8afba5d26c2d66ececb",
+    "examples/editor-home/ui/workspace.js": "5140d0a85cf5b55c73db44d9d81b8442dbfa3eac661138c091286ea08cb2a920",
+    "packs/editor-home-model/Command.csbody": "7c0d0ea65139761122490a7a2978f9aec913889cb6da1aace5725157eacfa0ba",
+    "tests/Confectory.Tests/WebUITests.cs": "bcc4f138b3fb32103c54776284df52cc831f2711b033bd183fa2ae89d354aef3",
+    "tests/web/v480_workspace_history.py": "ebcfb827622586527e08d0b376d0cd2bdabbd1e65abc0517e12bbe5f9231b48a",
+    "tests/web/web_ui.py": "5c1c71183de05efcbd86862a658b2eec72be040c383c03623109ebddb31b8178",
+    "tests/web/workspace_layout_history.mjs": "85f904789e517d8046664114118bad3e7a4122cf8c69c00baf9227cab6263366"
+  },
+  "resources": {
+    "total": 43,
+    "canonicalUtf8Lf": 34,
+    "binaryOrExact": 9,
+    "ordinaryCheckout": "sourceCommit ordinary Git autocrlf checkout, retained CRLF after attributes pull, fresh LF, actual host and served snapshots; content/encoding/BOM/binary/budget rejection"
+  },
+  "preserved": {
+    "localMain": "b5ea38c3d7eec3eb20f170e68f0f4215b86b2aee",
+    "remoteMain": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+    "baseWorkCurrent": "04f9d3257924b9865ce28039217b18bf68f7cf16",
+    "zipSha256": {
+      "reference/site-ui/Confectory-Editor-Prototype-v196.zip": "02d4824e92ed0edbb43113659982b37a99a614117652bde4d8ac92367e334e34",
+      "reference/site-ui/Confectory-Editor-Prototype-v318.zip": "0a614fe2bf1ad3d8e10dfa8905bb6b61ea9f21b87b2492b2b87ca8566e9e6908",
+      "reference/site-ui/Confectory-Editor-Prototype-v424.zip": "b7969cd109ea2dad38bde9c9ab13967c20162c920a45a8cd51a8f82df6041874",
+      "reference/site-ui/Confectory-Editor-Prototype-v480.zip": "0489844c8c6d90f7cdc8ea0e80628f487dcfb27f2c871b19367a635212d3c5bd"
+    }
+  },
+  "build": {
+    "configuration": "Release",
+    "warnings": 0,
+    "errors": 0,
+    "log": "confectory-imp7-build.log"
+  },
+  "environment": {
+    "cwd": "/workspace/Confectory",
+    "branch": "work/current",
+    "execution": "available; real Chromium and managed Windows/Android compile; no native OS or device runtime claim",
+    "network": "ordinary authenticated Git read/write; no escalation/bypass",
+    "blockers": []
+  },
+  "remaining": [
+    "IMP7 full document/native Undo history before DOM reparent",
+    "DEC2 source deletion/reference rewrite/new owned source sets",
+    "ENV1/ENV2 actual unexecuted OS/devices; existing ENV4 uncertainty unchanged"
+  ],
+  "screenshots": [
+    "v480-workspace-layout-history.png",
+    "v480-workspace-layout-history-conflict.png"
+  ]
+}

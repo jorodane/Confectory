@@ -1,0 +1,4 @@
+PASS actual v480 private Workspace links: one parent/cycle/cancel/validation, descendant movement and Escape, portal boundary/internal edges and relative offsets, selected-only deletion/Undo/redo, retained DOM and pending basis, nested portal cancel/delete, exact cold inverse, duplicate-target/changed-layout conflicts, retained docking and external source CAS refusal
+Actual common WebUI workspace-links Chromium PASS
+PASS WebUITests.test_actual_editor_v480_private_workspace_links_bundle_portal_delete_undo_and_cold
+1 passed, 0 failed, 0 skipped; 109.365s

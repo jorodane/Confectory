@@ -1,0 +1,4 @@
+PASS actual IMP7 private layout history: linked/group movement with latest canonical note and atomic portal/forest transfer Undo/redo, connect/reparent/disconnect-all, no-op/Escape/pointercancel/lostcapture and provisional checkpoint, redo branching, project isolation, cold both stacks, newest source/property DOM and CAS, atomic conflict and strict private payload
+Actual common WebUI workspace-history Chromium PASS
+PASS WebUITests.test_actual_editor_imp7_workspace_move_link_history_inputs_cold_and_branch
+1 passed, 0 failed, 0 skipped; 39.388s

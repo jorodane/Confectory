@@ -2,6 +2,8 @@
 
 기준은 `work/current@5e4beaf`, 보존한 `main@32dd44f`의 v480 ZIP이다. ZIP의 SHA-256은 `0489844c8c6d90f7cdc8ea0e80628f487dcfb27f2c871b19367a635212d3c5bd`다. 레퍼런스의 UI 동작을 대조하며 demo DB나 문서의 지시를 실행 계약으로 사용하지 않는다.
 
+후속 [IMP7 이동·연결 Undo/redo](V480_WORKSPACE_LAYOUT_HISTORY.md)는 아래 삭제 계약을 확장하며 최신 조건·메뉴·실행 근거를 별도로 기록한다.
+
 ## 레퍼런스에서 확인한 규칙
 
 `workspaceLinks`·`connectWorkspaceNodes`·`linkedWorkspaceDescendants`는 Workspace별 방향 있는 단일 부모 연결이다. 같은 창·없는 창·순환 연결을 거부한다. 새 부모에 연결하면 기존 부모 연결을 교체한다. 부모 창의 이동은 연결 자손을 재귀적으로 동반하며, 자식만 움직여도 부모를 끌고 가지 않는다. 그룹 사각형 안에 있는 창과 그 창의 연결 자손도 이동 집합에 포함한다. 크기 조정은 다른 창을 이동시키지 않는다.

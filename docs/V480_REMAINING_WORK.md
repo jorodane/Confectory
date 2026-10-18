@@ -1,6 +1,6 @@
 # v480 남은 범위: 단일 우선순위 목록
 
-현재 구현은 [화면/행동 지도](EDITOR_V480_STATUS.md), 최종 실행 근거는 [통합 검증](V480_INTEGRATED_VALIDATION.md)을 따른다. 아래가 **현재 남은 항목의 단일 목록**이다. 완료한 Data 비교/원자적 채우기, 명시적 선언 탐색, Home 저장/팩 수/편집 receipt, private Workspace 링크/삭제 Undo, 로컬 frame 제어/비권한 실행 기록, typed Set, 제한된 실제 field ref는 이 목록에 다시 넣지 않는다. 행 순서는 후속 작업의 기본 순서이며 P2/P3를 이번 작업의 승인 요청이나 구현 지시로 해석하지 않는다.
+현재 구현은 [화면/행동 지도](EDITOR_V480_STATUS.md), 최종 실행 근거는 [통합 검증](V480_INTEGRATED_VALIDATION.md)을 따른다. 아래가 **현재 남은 항목의 단일 목록**이다. 완료한 Data 비교/원자적 채우기, 명시적 선언 탐색, Home 저장/팩 수/편집 receipt, private Workspace 링크/삭제·이동·연결 Undo, 로컬 frame 제어/비권한 실행 기록, typed Set, 제한된 실제 field ref는 이 목록에 다시 넣지 않는다. 행 순서는 후속 작업의 기본 순서이며 P2/P3를 이번 작업의 승인 요청이나 구현 지시로 해석하지 않는다.
 
 IMP1의 로컬 WebUI 및 native 정보/표시 프로필 연결은 [후속 검증](V480_NATIVE_HOME_PROFILES.md) 범위로 완료했다. Linux GTK/X11 실제 입력 결과, Windows managed compile, Android/browser metadata fixture를 구분하며 미실행 장치·전체 OS 조합은 기존 ENV 항목에 남긴다.
 
@@ -12,7 +12,7 @@ IMP2의 WebUI와 [native 대응 트리](V480_NATIVE_DECLARATION_TREE.md)는 확�
 |---|---|---|---|
 | P1 · IMP3 | 구현 누락 | 사용자 계산 열, 일반 선택 범위 확장 | 명시 소유 대상·기존 스키마의 읽기 전용 WebUI/native 합집합과 기존 쓰기 선택·field/source/schema CAS를 유지. 새 범위의 정확한 값·선택/cold/오류를 검사. 계산 실행 의미가 필요하면 DEC3/DEC4 선행; 현재 Data/채우기·제한된 합집합과 분리 |
 | P1 · IMP4 | 구현 누락 | 객체/함수 화면의 원클릭 밸런스·테스트 실행 등 prototype 보조 행동 | 실제 실행/결과/실패와 소유 범위를 연결하고 UI 및 compiler/runtime 근거 마련. 화면의 성공 표시로 대체하지 않음 |
-| P1 · IMP7 | 구현 누락 | Workspace의 일반 이동/연결 Undo, native reparent 이전의 전체 문서 Undo 이력 | private 문서/보기 정체성·미적용 입력을 보존한 역변경 명세와 cold/redo/분기 검사. 이미 지원하는 private 삭제 Undo와 구분. 소스 집합 변경은 DEC2 밖에서 추가하지 않음 |
+| P1 · IMP7 | 구현 누락 | native reparent 이전의 전체 문서 Undo 이력 | private 삭제 및 [완료한 이동/연결의 조건부 Undo/redo](V480_WORKSPACE_LAYOUT_HISTORY.md)는 구현 범위다. 전체 문서 이력의 수명·cold·충돌 명세를 별도로 확정. 소스 집합 변경은 DEC2 밖에서 추가하지 않음 |
 | P1 · ENV4 | 환경 미검증 | [측정된 부하/검사 한계와 잔여 불확실성](V480_ENV4_DIAGNOSIS.md) | 두 graph timeout은 4 CPU/6 gate에서 작업 진행 중 재현됐고 같은 source의 2 gate에서 원래 deadline 내 통과. native Engine의 미관측 lease 순서와 Home 조회 PID 오판은 검사 보정 후 같은 부하 통과. 최초 native ButtonGame wait phase는 재현하지 못했으며, 추가 Pause 1회·cache/시작 이력·PID 1의 zombie 잔류 영향은 미확정. 환경 원인으로 일괄 단정하지 않음. 새 사용자 결정 불필요 |
 | P2 · IMP6 | 구현 누락 | Run 창의 실제 render surface embedding, 비참여 runtime/Android/browser의 frame 제어 연결 | surface/수명/입력·협력적 frame 프로토콜을 구현한 뒤 실제 플랫폼으로 검사. 현재 Linux 별도 프로세스 Run/Stop과 managed compile로 완료 처리하지 않음. 영속 권한 인계는 DEC5 별도 |
 | P2 · IMP5 | 구현 누락 | 실제 inbox 사건/actor/membership/co-worker 요청·수락·차단·채팅/news·room/recipient/ack, Yogi 수신/중복/실패, Helper 이미지/사용량·전송, 온라인 market/catalog/publisher/install 서비스 | 각 서비스 소유/식별·권한·멱등성·실패/단절·ack·복구를 실제 구현하고 먼저 owned fixture로 검증. 기존 로컬 scope/journal/snapshot은 전체 서비스 구현이 아님. 실계정 검증은 AUTH1/2 별도 |

@@ -1,0 +1,11 @@
+PASS actual IMP3 automatic field union: exact JSON and missing/null/default/type variants, bounded pages/partial failures, independent write selections and original CAS, unchanged pending source/cell/fill DOM, cancel/late response/filter/selection, current cold schema and A/B/A isolation; no source writes or AI
+Actual common WebUI field-discovery Chromium PASS
+PASS FieldDiscoveryTests.test_actual_editor_imp3_automatic_field_union_limits_cancel_selection_and_cold
+PASS WebUITests.test_actual_editor_v318_workspace_lifecycle_presentation_restart
+PASS actual v480 browser atomic fill: explicit IDs/no expansion/exact JSON/atomic type+second-row+schema refusal/original bases/cancel/private cell retention/read-only/cold/Save/compiler Confirm
+Actual common WebUI browser-data-fill Chromium PASS
+PASS WebUITests.test_actual_editor_v480_browser_data_atomic_fill_selection_cas_and_cold
+PASS actual v480 browser Data fields: shared versioned cells/exact int64/typed refusal/cancel/selection/reconfigure/readonly/source+schema CAS/cold/Save/compiler Confirm
+Actual common WebUI browser-data-fields Chromium PASS
+PASS WebUITests.test_actual_editor_v480_browser_data_fields_typed_cas_inputs_and_cold
+4 passed, 0 failed, 0 skipped; 299.931s
