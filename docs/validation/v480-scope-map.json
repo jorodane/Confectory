@@ -1,0 +1,1188 @@
+{
+  "version": 1,
+  "referenceCommit": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+  "archiveSha256": "0489844c8c6d90f7cdc8ea0e80628f487dcfb27f2c871b19367a635212d3c5bd",
+  "scope": "Major screen/action mapping; not a complete click/path census or completion percentage. Result per method must be read from final regression evidence.",
+  "prioritySource": "../V480_REMAINING_WORK.md",
+  "rows": [
+    {
+      "id": "S01–S02",
+      "screenAction": "시작 · Home · 연결 진입",
+      "reference": {
+        "script": "app.js",
+        "functions": [
+          "transitionStartupHome",
+          "showAgentConnect",
+          "showHome"
+        ]
+      },
+      "implementation": [
+        "examples/editor-home/ui/app.js",
+        "packs/editor-home-model/Command.csbody"
+      ],
+      "supported": "공통 web 시작, 소유 Home/연결 진입",
+      "limits": "모든 OS의 native 창/접근성은 별도",
+      "remaining": [
+        "ENV1"
+      ],
+      "finalMethods": [
+        "WebUITests.test_actual_editor_original_v196_home_project_and_create_flow",
+        "WebUITests.test_actual_editor_v318_home_agent_connection_entry_and_saved_settings"
+      ],
+      "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)"
+    },
+    {
+      "id": "H01–H06",
+      "screenAction": "프로젝트 목록 · 생성 · 정보 · 수명",
+      "reference": {
+        "script": "app.js",
+        "functions": [
+          "renderHomeProjectList",
+          "createProject",
+          "enterProject",
+          "showHome"
+        ]
+      },
+      "implementation": [
+        "examples/editor-home/ui/app.js",
+        "examples/editor-home/ui/home-preferences.js",
+        "packs/project-manager/pack.cpack"
+      ],
+      "supported": "검색/정렬/즐겨찾기/목록·생성·소유 열기/닫기, Home 전용 cold 설정",
+      "limits": "팩 요구/유형·선택 Helper/프로필의 전체 전환 조합 미완료",
+      "remaining": [
+        "IMP1"
+      ],
+      "finalMethods": [
+        "ProjectManagerTests.test_offline_creation_template_is_owned_and_desktop_buildable",
+        "ProjectManagerTests.test_project_contexts_and_provider_locality",
+        "WebUITests.test_actual_editor_original_v196_home_project_and_create_flow",
+        "WebUITests.test_actual_editor_v318_home_search_favorite_restart_remove",
+        "WebUITests.test_actual_editor_v480_home_browser_document_repeat_cancel_and_restore",
+        "WebUITests.test_actual_editor_v480_home_preferences_cold_failure_and_confirmed_counts"
+      ],
+      "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)"
+    },
+    {
+      "id": "H07",
+      "screenAction": "확정 수와 편집 기록",
+      "reference": {
+        "script": "app.js",
+        "functions": [
+          "renderHomeProjectList",
+          "editMyPackInfo"
+        ]
+      },
+      "implementation": [
+        "examples/editor-home/ui/app.js",
+        "packs/editor-home-model/HomePreferences.csbody",
+        "packs/edit-workspace/pack.cpack"
+      ],
+      "supported": "확정 root object 수, 타깃별 도달 pack 수, 성공 Save/Confirm receipt; 없음/실패 구분",
+      "limits": "native adapter의 pack 도달 조회는 미지원",
+      "remaining": [
+        "IMP1"
+      ],
+      "finalMethods": [
+        "EditWorkspaceTests.test_home_edit_receipts_atomic_save_confirm_conflict_cancel_and_actual_process_restart",
+        "WebUITests.test_actual_editor_v480_home_preferences_cold_failure_and_confirmed_counts",
+        "WebUITests.test_actual_editor_v480_integrated_home_data_graph_set_ref_run_workspace_and_restart"
+      ],
+      "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)"
+    },
+    {
+      "id": "B01–B06",
+      "screenAction": "브라우저 선언 · 계층 · 바리에이션",
+      "reference": {
+        "script": "app.js",
+        "functions": [
+          "openBrowser",
+          "renderBrowser",
+          "renderBrowserItems",
+          "duplicateChildBrowser",
+          "createWorkspaceVariation"
+        ]
+      },
+      "implementation": [
+        "examples/editor-home/ui/app.js",
+        "examples/editor-home/ui/browser-projection.js",
+        "examples/editor-home/ui/declarations.js",
+        "examples/editor-home/ui/workspace-host.js"
+      ],
+      "supported": "namespace/명시적 CELEM parent·schema·소유/등록 정의, 여섯 선언 종류 생성, 독립 browser·variation",
+      "limits": "전체 category grouping과 소스 삭제/참조 치환 제외",
+      "remaining": [
+        "IMP2",
+        "DEC1",
+        "DEC2"
+      ],
+      "finalMethods": [
+        "WebUITests.test_actual_editor_v424_owned_object_variation_atomic_creation_and_cold_restart",
+        "WebUITests.test_actual_editor_v424_six_declaration_kinds_and_registration_review",
+        "WebUITests.test_actual_editor_v424_typed_declaration_views_cas_confirm_and_restart",
+        "WebUITests.test_actual_editor_v480_declaration_hierarchy_variation_fill_confirm_independent_cold",
+        "WebUITests.test_browser_projection_declared_identity_parent_schema_and_reference_gates"
+      ],
+      "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)"
+    },
+    {
+      "id": "D01–D02",
+      "screenAction": "Data 필드 비교 · 즉석 표 · 채우기",
+      "reference": {
+        "script": "app.js",
+        "functions": [
+          "openObjectTable",
+          "tableEffectiveSchema",
+          "renderObjectTable",
+          "setupTableColumnResize"
+        ]
+      },
+      "implementation": [
+        "examples/editor-home/ui/tables.js",
+        "examples/editor-home/ui/app.js",
+        "packs/instant-table/pack.cpack"
+      ],
+      "supported": "명시적 객체/필드 선택, 정확한 JSON·typed 셀·원자적 fill, 열 이동/너비, source/schema CAS와 cold",
+      "limits": "자동 전체 필드 합집합/계산 열/임의 선택 확장 제외",
+      "remaining": [
+        "IMP3"
+      ],
+      "finalMethods": [
+        "InstantTableVersionTests.test_versioned_table_atomic_fill_schema_fences_precision_and_borrowed_lifetime",
+        "WebUITests.test_actual_editor_v424_instant_table_typed_fill_cas_and_cold_restart",
+        "WebUITests.test_actual_editor_v480_browser_data_atomic_fill_selection_cas_and_cold",
+        "WebUITests.test_actual_editor_v480_browser_data_fields_typed_cas_inputs_and_cold",
+        "WebUITests.test_actual_editor_v480_integrated_home_data_graph_set_ref_run_workspace_and_restart"
+      ],
+      "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)"
+    },
+    {
+      "id": "D03–D06",
+      "screenAction": "참조 원본 · 드래그 · 관계 지도",
+      "reference": {
+        "script": "app.js",
+        "functions": [
+          "renderBrowserItems",
+          "openSchema"
+        ]
+      },
+      "implementation": [
+        "examples/editor-home/ui/references.js",
+        "examples/editor-home/ui/relations.js",
+        "examples/editor-home/ui/tables.js",
+        "packs/pack-workspace/pack.cpack"
+      ],
+      "supported": "등록 원본 읽기 전용, scoped 참조 입력 준비·현재 값 이동, 선언 관계만 투영",
+      "limits": "source 치환·쓰기 자동 선택·임의 깊이 탐색 제외",
+      "remaining": [
+        "DEC2",
+        "IMP2"
+      ],
+      "finalMethods": [
+        "RelationsMapTests.test_owned_declared_map_drafts_external_references_partial_sources_and_read_only_review",
+        "RelationsMapTests.test_registered_reference_definition_direct_scope_identity_and_no_body_reads",
+        "WebUITests.test_actual_editor_v424_declared_relations_map_and_cold_restart",
+        "WebUITests.test_actual_editor_v424_registered_reference_definition_read_only_and_cold_restart",
+        "WebUITests.test_actual_editor_v480_reference_gestures_columns_document_links_and_cold"
+      ],
+      "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)"
+    },
+    {
+      "id": "E01–E08",
+      "screenAction": "schema · 선언 계약 · 객체/모듈",
+      "reference": {
+        "script": "app.js",
+        "functions": [
+          "renderFeatureDefinition",
+          "renderObjectSchema",
+          "objectSchemaChanged",
+          "openSchema"
+        ]
+      },
+      "implementation": [
+        "examples/editor-home/ui/declarations.js",
+        "examples/editor-home/ui/app.js",
+        "src/Confectory.Core/SchemaContracts.cs",
+        "targets/element-authoring/Program.cs"
+      ],
+      "supported": "현재 CELEM schema·metadata·순서·typed 함수/모듈·Apply/Review/Confirm, 연속 Apply의 기준 revision/hash 갱신",
+      "limits": "전체 enum/Vector3/compound ABI·원클릭 밸런스/테스트 실행 제외",
+      "remaining": [
+        "DEC3",
+        "IMP4"
+      ],
+      "finalMethods": [
+        "SchemaEditingTests.test_authoring_preservation_validation_and_locality",
+        "SchemaEditingTests.test_signature_inputs_arrays_bounds_and_call_preflight_locality",
+        "SchemaEditingTests.test_v424_contract_module_semantic_review_retains_uncovered_source_acknowledgement",
+        "SchemaEditingTests.test_v424_declaration_mutation_types_relations_local_reset_and_array_order",
+        "WebUITests.test_actual_editor_and_button_game_common_web_transport_chromium",
+        "WebUITests.test_actual_editor_v424_schema_exact_numeric_hash_and_cold_restart",
+        "WebUITests.test_actual_editor_v424_schema_local_actions_and_compound_array_order",
+        "WebUITests.test_actual_editor_v424_typed_declaration_views_cas_confirm_and_restart"
+      ],
+      "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)"
+    },
+    {
+      "id": "C01–C04",
+      "screenAction": "Apply/Save · Review/Confirm · 충돌/이력",
+      "reference": {
+        "script": "app.js",
+        "functions": [
+          "saveBrowserChanges",
+          "confirmBrowserChanges"
+        ]
+      },
+      "implementation": [
+        "examples/editor-home/ui/app.js",
+        "examples/editor-home/ui/conflicts.js",
+        "examples/editor-home/ui/history.js",
+        "packs/edit-workspace/pack.cpack",
+        "packs/pack-workspace/pack.cpack"
+      ],
+      "supported": "공유 초안·원자적 그룹·revision/source CAS·compiler Confirm·충돌·일반 편집 이력",
+      "limits": "새 소유 집합 생성/삭제 전체 역변경 제외",
+      "remaining": [
+        "DEC2"
+      ],
+      "finalMethods": [
+        "DraftHistoryTests.test_shared_draft_history_atomic_inverse_cas_restart_branch_and_owner_boundaries",
+        "EditWorkspaceTests.test_home_edit_receipts_atomic_save_confirm_conflict_cancel_and_actual_process_restart",
+        "EditWorkspaceTests.test_shared_drafts_save_restore_preview_selective_confirm_conflict_and_locality",
+        "SourceConflictTests.test_owned_three_way_conflict_hashes_rebase_restore_manifest_scope_and_locality",
+        "WebUITests.test_actual_editor_v424_shared_draft_history_cas_and_cold_restart",
+        "WebUITests.test_actual_editor_v424_source_conflict_real_files_cas_and_cold_restart",
+        "WebUITests.test_actual_editor_v480_integrated_home_data_graph_set_ref_run_workspace_and_restart"
+      ],
+      "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)"
+    },
+    {
+      "id": "F01",
+      "screenAction": "graph 문서 · camera · pin · sidebar",
+      "reference": {
+        "script": "blueprint.js",
+        "functions": [
+          "renderFunctionBlueprint",
+          "renderOutputList",
+          "bindExecutionHeader"
+        ]
+      },
+      "implementation": [
+        "examples/editor-home/ui/blueprint.js",
+        "examples/editor-home/ui/blueprint-viewport.js",
+        "examples/editor-home/ui/blueprint-pins.js",
+        "examples/editor-home/ui/window-documents.js"
+      ],
+      "supported": "typed pin·탭·private graph별 camera·팬/확대·무효 입력/취소 보존",
+      "limits": "prototype 픽셀/모든 입력 조합 일치 주장 없음",
+      "remaining": [],
+      "finalMethods": [
+        "WebUITests.test_actual_editor_v480_blueprint_camera_header_pins_tabs_and_cold_input",
+        "WebUITests.test_actual_editor_v480_blueprint_owned_graph_node_edit_and_cold_input",
+        "WebUITests.test_actual_editor_v480_tab_reorder_cancel_canvas_drop_and_cold_order"
+      ],
+      "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)"
+    },
+    {
+      "id": "F02",
+      "screenAction": "새 기능/노드 · 원본 그룹 · 제거",
+      "reference": {
+        "script": "blueprint.js",
+        "functions": [
+          "emptyFunctionBlueprint",
+          "openFeatureAuthoring"
+        ]
+      },
+      "implementation": [
+        "examples/editor-home/ui/blueprint.js",
+        "packs/pack-workspace/Blueprint.csbody",
+        "src/Confectory.Core/BlueprintDocuments.cs"
+      ],
+      "supported": "새 함수·객체 구현·독립 leaf·소유 경로, graph 내 노드 제거 및 원본 보존",
+      "limits": "선언 소스 삭제·참조 치환과 다름",
+      "remaining": [
+        "DEC2"
+      ],
+      "finalMethods": [
+        "FeatureBlueprintTests.test_blueprint_disconnected_current_node_body_is_compiled_without_execution",
+        "FeatureBlueprintTests.test_blueprint_existing_feature_calls_use_typed_imports_and_contract_fences",
+        "FeatureBlueprintTests.test_blueprint_fixed_inputs_branch_compiler_reuse_node_replacement_and_legacy_preservation",
+        "FeatureBlueprintTests.test_blueprint_independent_probe_checks_an_unselected_body_without_running_or_publishing",
+        "FeatureBlueprintTests.test_blueprint_invalid_graphs_stale_contracts_and_dominating_values",
+        "FeatureBlueprintTests.test_blueprint_new_feature_registration_contract_group_compiler_and_cold_restore",
+        "FeatureBlueprintTests.test_blueprint_node_diagnostics_static_isolation_and_failed_build_retains_receipt",
+        "FeatureBlueprintTests.test_blueprint_node_only_worker_draft_save_restore_and_compiler_confirm",
+        "FeatureBlueprintTests.test_blueprint_node_task_assignment_scoped_dispatch_adoption_and_cold_no_replay",
+        "FeatureBlueprintTests.test_blueprint_owned_function_reference_call_import_cas_history_and_execution",
+        "FeatureBlueprintTests.test_blueprint_owned_node_creation_removal_review_group_and_cold_restore",
+        "FeatureBlueprintTests.test_blueprint_source_change_during_real_compile_is_not_published",
+        "ObjectImplementationTests.test_owned_object_new_implementation_contract_group_cas_cold_and_actual_scope",
+        "WebUITests.test_actual_editor_v480_blueprint_node_creation_removal_and_cold_source_groups",
+        "WebUITests.test_actual_editor_v480_new_feature_contract_graph_group_and_cold_source",
+        "WebUITests.test_actual_editor_v480_object_new_implementation_graph_cold_group_and_compiler_confirm"
+      ],
+      "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)"
+    },
+    {
+      "id": "F03",
+      "screenAction": "기존/등록 기능 · 모듈/객체 제공",
+      "reference": {
+        "script": "blueprint.js",
+        "functions": [
+          "functionBlueprintCallingFeature",
+          "createFeatureAuthoringView"
+        ]
+      },
+      "implementation": [
+        "examples/editor-home/ui/blueprint.js",
+        "src/Confectory.Core/FeatureBlueprint.cs",
+        "targets/element-authoring/Program.cs"
+      ],
+      "supported": "원래 ID/typed signature·scope·default/provider·소유 객체 구현·명시적 import",
+      "limits": "자동 caller/ABI 확장 없음",
+      "remaining": [
+        "DEC3"
+      ],
+      "finalMethods": [
+        "FunctionImportTests.test_module_function_reference_implementation_positional_contract_group_cold_and_no_copy",
+        "ModuleInterfaceTests.test_owned_module_interface_contract_default_atomic_cas_cold_and_actual_consumer",
+        "ModuleInterfaceTests.test_owned_object_module_provider_contract_atomic_cas_cold_and_actual_scope",
+        "ObjectImplementationTests.test_owned_object_new_implementation_contract_group_cas_cold_and_actual_scope",
+        "RegisteredCallTests.test_registered_direct_function_call_raw_receipts_cold_and_actual_scope",
+        "RegisteredImplementationTests.test_registered_module_function_object_implementation_group_raw_contract_and_actual_scope",
+        "WebUITests.test_actual_editor_v480_existing_feature_reference_call_and_cold_contract",
+        "WebUITests.test_actual_editor_v480_module_function_import_reference_cold_and_group",
+        "WebUITests.test_actual_editor_v480_module_interface_contract_default_and_cold_rebase",
+        "WebUITests.test_actual_editor_v480_object_module_provider_cold_contract_and_own_view",
+        "WebUITests.test_actual_editor_v480_registered_function_reference_and_cold_contract",
+        "WebUITests.test_actual_editor_v480_registered_module_function_new_object_implementation"
+      ],
+      "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)"
+    },
+    {
+      "id": "F04",
+      "screenAction": "보호 C# · 본문 · 함수별 helper",
+      "reference": {
+        "script": "blueprint.js",
+        "functions": [
+          "blueprintCSharpContract",
+          "blueprintCSharpDefaultBody",
+          "blueprintCSharpSections",
+          "blueprintParseCSharpRegions"
+        ]
+      },
+      "implementation": [
+        "examples/editor-home/ui/blueprint-code-editor.js",
+        "examples/editor-home/ui/blueprint.js",
+        "src/Confectory.Core/FeatureBlueprint.Methods.cs"
+      ],
+      "supported": "외곽 보호·본문 exact 편집·Undo/Redo/Tab·private cold, 무실행 compiler probe",
+      "limits": "전체 source 임의 외곽 편집·공유 상태·상위 캡처 제외",
+      "remaining": [],
+      "finalMethods": [
+        "CodeBodyTests.test_body_cannot_escape_into_a_function_signature_or_outer_member",
+        "CodeBodyTests.test_local_helpers_are_per_node_and_independent_probe_never_executes",
+        "CodeBodyTests.test_methods_profile_keeps_execute_scope_when_helpers_are_cleared_or_comment_only",
+        "CodeBodyTests.test_static_helper_members_are_per_node_and_independent_probe_never_executes",
+        "CodeBodyTests.test_static_helpers_receive_typed_imports_only_as_explicit_arguments",
+        "CodeBodyTests.test_static_helpers_refuse_state_outer_escape_capture_and_reserved_names",
+        "WebUITests.test_actual_editor_v480_protected_csharp_body_helpers_history_cold_and_confirm"
+      ],
+      "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)"
+    },
+    {
+      "id": "F05",
+      "screenAction": "매개변수 · static methods · 명시 remap",
+      "reference": {
+        "script": "blueprint.js",
+        "functions": [
+          "blueprintCSharpSections",
+          "blueprintParseCSharpRegions"
+        ]
+      },
+      "implementation": [
+        "examples/editor-home/ui/blueprint-parameters.js",
+        "examples/editor-home/ui/blueprint.js",
+        "src/Confectory.Core/FeatureBlueprint.Methods.cs"
+      ],
+      "supported": "일반 코드 노드 이름/타입/value/ref/out/순서·명시 remap·stale 본문 재적용, node-owned static helper",
+      "limits": "fields/initializer/shared state·전체 caller-storage 계약 임의 편집 제외",
+      "remaining": [],
+      "finalMethods": [
+        "CodeBodyTests.test_body_cannot_escape_into_a_function_signature_or_outer_member",
+        "CodeBodyTests.test_local_helpers_are_per_node_and_independent_probe_never_executes",
+        "CodeBodyTests.test_methods_profile_keeps_execute_scope_when_helpers_are_cleared_or_comment_only",
+        "CodeBodyTests.test_static_helper_members_are_per_node_and_independent_probe_never_executes",
+        "CodeBodyTests.test_static_helpers_receive_typed_imports_only_as_explicit_arguments",
+        "CodeBodyTests.test_static_helpers_refuse_state_outer_escape_capture_and_reserved_names",
+        "WebUITests.test_actual_editor_v480_integrated_home_data_graph_set_ref_run_workspace_and_restart",
+        "WebUITests.test_actual_editor_v480_static_methods_parameters_cold_and_confirm"
+      ],
+      "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)"
+    },
+    {
+      "id": "F06",
+      "screenAction": "enum 계획 · 순차 switch",
+      "reference": {
+        "script": "blueprint.js",
+        "functions": [
+          "blueprintExecutionScope",
+          "blueprintExecutionPlan"
+        ]
+      },
+      "implementation": [
+        "examples/editor-home/ui/blueprint-enum-plan.js",
+        "examples/editor-home/ui/blueprint.js",
+        "src/Confectory.Core/BlueprintEnumContract.cs",
+        "src/Confectory.Core/FeatureBlueprint.Switches.cs"
+      ],
+      "supported": "private 안정 ID/int32 계획과 명시적 source 적용, switch case/default 후 계속·중첩 복귀",
+      "limits": "일반 enum ABI/계산식 overflow 계약과 별개",
+      "remaining": [
+        "DEC3",
+        "DEC4"
+      ],
+      "finalMethods": [
+        "EnumContractTests.test_enum_declaration_is_real_csharp_compile_only_and_cannot_create_an_enum_dispatcher",
+        "EnumContractTests.test_enum_explicit_ids_values_order_and_source_binding_are_independent_of_runtime",
+        "EnumContractTests.test_enum_refuses_duplicates_range_coercion_identity_loss_and_runtime_policy_fields",
+        "SwitchBlueprintTests.test_branch_returns_join_assignment_paths_and_never_warn_at_the_return_itself",
+        "SwitchBlueprintTests.test_legacy_bool_inside_case_returns_from_both_ports_and_does_not_repeat_main",
+        "SwitchBlueprintTests.test_nested_switch_returns_to_inner_then_outer_main_and_keeps_real_out_warnings",
+        "SwitchBlueprintTests.test_old_profiles_keep_their_meaning_and_refuse_switch_fields_or_cross_region_routes",
+        "SwitchBlueprintTests.test_switch_cases_default_unmatched_and_main_calls_run_once_per_invocation",
+        "SwitchBlueprintTests.test_switch_no_default_and_explicit_empty_case_continue_without_termination",
+        "SwitchBlueprintTests.test_switch_ref_ref_out_aliases_preserve_caller_storage_through_case_and_main_return",
+        "WebUITests.test_actual_editor_v480_enum_contract_private_source_preview_cold_and_rebind",
+        "WebUITests.test_actual_editor_v480_switch_enum_scoped_case_return_cold_and_confirm"
+      ],
+      "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)"
+    },
+    {
+      "id": "F07",
+      "screenAction": "전체 본문 이관 · 줄 끝 · out",
+      "reference": {
+        "script": "blueprint.js",
+        "functions": [
+          "functionBlueprintFromDescription",
+          "blueprintExecutionOutputs"
+        ]
+      },
+      "implementation": [
+        "examples/editor-home/ui/blueprint.js",
+        "src/Confectory.Core/FeatureBlueprint.Implicit.cs",
+        "src/Confectory.Core/FeatureBlueprint.MultiOutput.cs"
+      ],
+      "supported": "선택 본문/imports/Invoke/CRLF 보존, 명시 profile의 줄 끝·기본값·포트별 경고, named out",
+      "limits": "구 profile 자동 전환 없음",
+      "remaining": [],
+      "finalMethods": [
+        "BlueprintConversionTests.test_public_body_conversion_atomic_group_cas_origin_cold_and_compiler_confirm",
+        "BlueprintConversionTests.test_whole_body_context_preserves_calls_scope_this_recursion_names_targets_and_crlf",
+        "BlueprintConversionTests.test_whole_out_body_conversion_preserves_original_member_scoped_import_and_other_target",
+        "BlueprintConversionTests.test_whole_void_body_conversion_runs_once_and_probe_does_not_execute",
+        "ImplicitBlueprintTests.test_implicit_branch_terminations_warn_separately_and_real_errors_remain_errors",
+        "ImplicitBlueprintTests.test_implicit_empty_start_has_typed_defaults_without_hiding_void_or_type_errors",
+        "ImplicitBlueprintTests.test_implicit_join_tracks_must_may_and_a_specific_unassigned_branch_witness",
+        "MultiOutputAuthoringTests.test_contract_append_out_is_explicit_cas_cold_body_preserving_and_compiler_confirmed",
+        "MultiOutputAuthoringTests.test_object_blank_and_reference_factories_preserve_out_modes_and_positional_output_names",
+        "MultiOutputBlueprintTests.test_android_and_browser_metadata_templates_round_trip_out_roles_in_managed_code",
+        "MultiOutputBlueprintTests.test_code_node_named_out_results_and_real_csharp_out_errors_remain_checked",
+        "MultiOutputBlueprintTests.test_empty_multiple_outs_have_typed_reference_defaults_without_cpp_or_execution",
+        "MultiOutputBlueprintTests.test_join_has_separate_must_may_and_unassigned_witness_for_each_output",
+        "MultiOutputBlueprintTests.test_named_outputs_warn_independently_at_each_branch_end_and_run_defaults",
+        "MultiOutputBlueprintTests.test_out_contract_modes_and_legacy_hash_are_explicit_and_stable",
+        "MultiOutputBlueprintTests.test_typed_call_named_outputs_use_selected_object_scope_and_dominate_consumers",
+        "WebUITests.test_actual_editor_implicit_ends_whole_body_conversion_cold_and_confirm",
+        "WebUITests.test_actual_editor_v480_named_out_contract_pins_ends_cold_and_compiler_confirm"
+      ],
+      "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)"
+    },
+    {
+      "id": "F08",
+      "screenAction": "호출별 local · alias · ref/out",
+      "reference": {
+        "script": "blueprint.js",
+        "functions": [
+          "blueprintLocalSource",
+          "blueprintLocalField",
+          "blueprintLocalValueValid",
+          "blueprintSetValid",
+          "syncLocalVariables"
+        ]
+      },
+      "implementation": [
+        "examples/editor-home/ui/blueprint.js",
+        "src/Confectory.Core/FeatureBlueprint.Locals.cs",
+        "src/Confectory.Core/FeatureBlueprint.AliasLocals.cs",
+        "src/Confectory.Core/FeatureBlueprint.RefNodes.cs",
+        "src/Confectory.Core/FeatureBlueprint.ExternalRefs.cs"
+      ],
+      "supported": "로컬·원 슬롯 별칭·ref/ref/out 실제 CLR storage, 값 인수 snapshot",
+      "limits": "이전 호출의 local 공유·새 ABI 없음",
+      "remaining": [],
+      "finalMethods": [
+        "AliasLocalAuthoringTests.test_alias_public_source_cas_cold_delete_producer_and_graph_only_compiler_confirm",
+        "AliasLocalTests.test_alias_contracts_and_all_use_paths_require_current_typed_storage",
+        "AliasLocalTests.test_array_result_alias_ref_replacement_changes_the_actual_result_variable",
+        "AliasLocalTests.test_input_alias_uses_real_caller_refs_or_distinct_parameter_slots",
+        "AliasLocalTests.test_named_out_alias_mutates_node_snapshot_without_borrowing_external_caller_output",
+        "AliasLocalTests.test_result_alias_ref_and_set_mutate_original_slot_while_value_argument_keeps_snapshot",
+        "ExternalRefAuthoringTests.test_public_external_ref_conversion_atomic_group_cas_origin_cold_and_real_aliases",
+        "ExternalRefTests.test_external_ref_array_replacement_keeps_managed_variable_alias_and_initial_value",
+        "ExternalRefTests.test_external_ref_exception_keeps_alias_write_and_does_not_apply_end_defaults",
+        "ExternalRefTests.test_external_ref_factories_and_typed_reference_forward_actual_caller_storage",
+        "ExternalRefTests.test_external_ref_forwarding_preserves_two_ref_out_aliases_and_distinct_caller_storage",
+        "ExternalRefTests.test_external_ref_join_defaults_only_unassigned_out_and_keeps_later_alias_writes",
+        "ExternalRefTests.test_out_only_typed_reference_factory_forwards_one_caller_out_variable_twice",
+        "ExternalRefTests.test_whole_out_only_conversion_preserves_two_out_arguments_using_one_caller_variable",
+        "ExternalRefTests.test_whole_ref_conversion_preserves_raw_context_recursion_target_and_same_caller_cells",
+        "LocalAuthoringTests.test_local_public_profile_cas_exact_initializers_cold_and_graph_only_compiler_confirm",
+        "LocalBlueprintTests.test_generated_unused_local_guard_does_not_assign_to_user_underscore_parameter",
+        "LocalBlueprintTests.test_local_array_is_shared_within_call_and_fresh_across_calls_and_invalid_locals_refuse",
+        "LocalBlueprintTests.test_local_set_branch_order_per_call_reset_and_per_end_out_warning",
+        "LocalBlueprintTests.test_local_set_reads_current_storage_while_node_result_retains_snapshot",
+        "RefAuthoringTests.test_ref_public_typed_call_profile_cas_cold_alias_and_ref_conversion_preview",
+        "RefNodeTests.test_code_ref_arguments_alias_same_local_immediately_and_out_warning_remains_per_end",
+        "RefNodeTests.test_ordinary_csharp_ref_calls_preserve_same_slot_aliases_including_ref_out_same_caller_cell",
+        "RefNodeTests.test_ref_array_parameters_alias_the_reference_slot_when_replacing_the_array",
+        "RefNodeTests.test_ref_to_value_input_and_preceding_node_result_use_real_storage_without_caller_copyback",
+        "RefNodeTests.test_typed_ref_call_uses_selected_object_scope_and_real_aliases",
+        "WebUITests.test_actual_editor_v480_alias_locals_slots_set_cold_and_confirm",
+        "WebUITests.test_actual_editor_v480_external_ref_graph_body_conversion_cold_and_confirm",
+        "WebUITests.test_actual_editor_v480_local_values_sets_exact_initializer_cold_and_compiler_confirm",
+        "WebUITests.test_actual_editor_v480_ref_node_storage_aliases_cold_and_compiler_confirm"
+      ],
+      "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)"
+    },
+    {
+      "id": "F09",
+      "screenAction": "소유 private 내부 graph",
+      "reference": {
+        "script": "blueprint.js",
+        "functions": [
+          "openInternal",
+          "blueprintExecutionPlan"
+        ]
+      },
+      "implementation": [
+        "examples/editor-home/ui/blueprint.js",
+        "src/Confectory.Core/FeatureBlueprint.Nested.cs"
+      ],
+      "supported": "typed 입력/ref/out·동기 비순환 호출/복귀·호출별 local·전체 경로 source CAS",
+      "limits": "부모 local/receiver 암묵 캡처·loop/async 제외",
+      "remaining": [],
+      "finalMethods": [
+        "NestedAuthoringTests.test_enum_preview_is_read_only_source_fenced_cold_and_preserves_legacy_execution",
+        "NestedAuthoringTests.test_private_nested_owned_sources_cold_peer_cas_and_atomic_compiler_confirm",
+        "NestedAuthoringTests.test_static_helpers_parameters_explicit_remap_task_cas_cold_and_compiler_confirm",
+        "NestedAuthoringTests.test_switch_profile_enum_source_cas_cold_branch_creation_and_atomic_confirm",
+        "NestedBlueprintTests.test_private_imports_are_explicit_and_unused_child_bodies_are_compiled_without_execution",
+        "NestedBlueprintTests.test_private_nested_ref_out_aliases_return_to_parent_and_locals_reset_per_call",
+        "NestedBlueprintTests.test_private_observations_are_rechecked_after_real_compiler_and_original_proof_is_retained",
+        "NestedBlueprintTests.test_private_paths_separate_identical_local_definitions_and_reject_parent_capture_and_depth",
+        "NestedBlueprintTests.test_private_siblings_keep_same_local_ids_and_branch_return_boundary",
+        "NestedBlueprintTests.test_private_unassigned_outputs_reach_build_warnings_with_full_call_path",
+        "NestedBlueprintTests.test_static_helper_classes_from_private_siblings_are_emitted_with_unique_owners",
+        "NestedBlueprintTests.test_static_private_helpers_preserve_repeated_ref_out_caller_storage",
+        "WebUITests.test_actual_editor_v480_private_nested_navigation_source_cold_and_confirm"
+      ],
+      "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)"
+    },
+    {
+      "id": "F10",
+      "screenAction": "node-time property Read",
+      "reference": {
+        "script": "blueprint.js",
+        "functions": [
+          "blueprintPropertyNeedsTarget",
+          "blueprintExecutionPlan"
+        ]
+      },
+      "implementation": [
+        "examples/editor-home/ui/blueprint.js",
+        "src/Confectory.Core/FeatureBlueprint.Properties.cs",
+        "src/Confectory.Core/RuntimeObjectContracts.cs"
+      ],
+      "supported": "명시 receiver, 해당 노드 도달 시 한 번 읽는 typed 값/array/reference snapshot",
+      "limits": "compound/function live property 제외",
+      "remaining": [
+        "DEC3"
+      ],
+      "finalMethods": [
+        "PropertyAuthoringTests.test_field_ref_preview_typed_aliases_source_cas_cold_confirm_actual_clr_and_schema_rejection",
+        "PropertyAuthoringTests.test_property_set_field_preview_explicit_profile_save_cold_confirm_actual_clr_and_schema_drift",
+        "PropertyAuthoringTests.test_property_source_preview_schema_cas_cold_reader_group_and_explicit_rebind",
+        "PropertyAuthoringTests.test_unpublished_object_owner_stays_editable_without_becoming_a_property_contract",
+        "PropertyBlueprintTests.test_checked_set_refuses_wrong_owner_value_cardinality_hash_and_unsupported_without_mutation",
+        "PropertyBlueprintTests.test_concept_reference_array_is_an_actual_shared_clr_value",
+        "PropertyBlueprintTests.test_field_ref_alias_local_set_updates_live_field_while_property_read_retains_snapshot",
+        "PropertyBlueprintTests.test_field_ref_binds_receiver_at_node_and_survives_receiver_variable_replacement",
+        "PropertyBlueprintTests.test_field_ref_bool_and_long_clr_cells_keep_full_existing_value_domain",
+        "PropertyBlueprintTests.test_field_ref_exception_keeps_mutation_and_preexisting_alias_without_copy_out",
+        "PropertyBlueprintTests.test_field_ref_old_profiles_stale_contract_unsafe_fields_and_unavailable_sources_refuse",
+        "PropertyBlueprintTests.test_field_ref_passes_actual_same_cell_through_private_ref_call_and_structural_set",
+        "PropertyBlueprintTests.test_field_ref_repeated_acquisition_set_and_immediate_aliases_are_actual_same_storage",
+        "PropertyBlueprintTests.test_field_ref_runtime_rejects_unsafe_unset_stale_and_legacy_without_weakening_checked_set",
+        "PropertyBlueprintTests.test_field_ref_unreached_null_receiver_does_not_acquire_or_create_storage",
+        "PropertyBlueprintTests.test_live_property_refuses_wrong_instance_unset_null_wrong_cardinality_and_stale_contract",
+        "PropertyBlueprintTests.test_methods_profile_retains_actual_object_abi_and_node_time_property_reads",
+        "PropertyBlueprintTests.test_object_contract_factories_and_whole_body_conversion_preserve_actual_ref_aliases",
+        "PropertyBlueprintTests.test_private_property_uses_explicit_receiver_and_unreached_node_does_not_read",
+        "PropertyBlueprintTests.test_private_set_uses_explicit_receiver_and_unreached_set_does_not_write",
+        "PropertyBlueprintTests.test_property_array_result_retains_original_reference_after_field_replacement",
+        "PropertyBlueprintTests.test_property_declaration_inputs_are_rechecked_after_compiler_and_prior_artifact_is_retained",
+        "PropertyBlueprintTests.test_property_field_drift_is_visible_and_unsupported_kinds_and_old_profiles_are_refused",
+        "PropertyBlueprintTests.test_property_reads_at_node_once_from_actual_instance_and_reexecutes_on_next_call",
+        "PropertyBlueprintTests.test_property_reference_result_preserves_identity_and_later_mutation_without_deep_copy",
+        "PropertyBlueprintTests.test_set_all_general_primitive_and_array_clr_contracts_without_conversion_or_copy",
+        "PropertyBlueprintTests.test_set_profile_is_explicit_and_stale_schema_value_ref_and_unsupported_are_rejected",
+        "PropertyBlueprintTests.test_structural_property_set_executes_between_reads_on_actual_independent_instances",
+        "PropertyBlueprintTests.test_structural_set_preserves_general_array_and_single_multiple_reference_identity",
+        "WebUITests.test_actual_editor_v480_node_time_property_contract_target_cold_and_confirm"
+      ],
+      "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)"
+    },
+    {
+      "id": "F11",
+      "screenAction": "checked property Set",
+      "reference": {
+        "script": "blueprint.js",
+        "functions": [
+          "blueprintPropertyNeedsTarget",
+          "blueprintExecutionPlan"
+        ]
+      },
+      "implementation": [
+        "examples/editor-home/ui/blueprint.js",
+        "src/Confectory.Core/FeatureBlueprint.Properties.cs",
+        "src/Confectory.Core/RuntimeObjectContracts.cs"
+      ],
+      "supported": "명시 receiver/value·owner/field/hash, general/reference 단일·배열, 기존 cell/객체 identity 보존",
+      "limits": "compound/function 및 새 ABI 제외; legacy Write로 우회하지 않음",
+      "remaining": [
+        "DEC3"
+      ],
+      "finalMethods": [
+        "PropertyAuthoringTests.test_field_ref_preview_typed_aliases_source_cas_cold_confirm_actual_clr_and_schema_rejection",
+        "PropertyAuthoringTests.test_property_set_field_preview_explicit_profile_save_cold_confirm_actual_clr_and_schema_drift",
+        "PropertyAuthoringTests.test_property_source_preview_schema_cas_cold_reader_group_and_explicit_rebind",
+        "PropertyAuthoringTests.test_unpublished_object_owner_stays_editable_without_becoming_a_property_contract",
+        "PropertyBlueprintTests.test_checked_set_refuses_wrong_owner_value_cardinality_hash_and_unsupported_without_mutation",
+        "PropertyBlueprintTests.test_concept_reference_array_is_an_actual_shared_clr_value",
+        "PropertyBlueprintTests.test_field_ref_alias_local_set_updates_live_field_while_property_read_retains_snapshot",
+        "PropertyBlueprintTests.test_field_ref_binds_receiver_at_node_and_survives_receiver_variable_replacement",
+        "PropertyBlueprintTests.test_field_ref_bool_and_long_clr_cells_keep_full_existing_value_domain",
+        "PropertyBlueprintTests.test_field_ref_exception_keeps_mutation_and_preexisting_alias_without_copy_out",
+        "PropertyBlueprintTests.test_field_ref_old_profiles_stale_contract_unsafe_fields_and_unavailable_sources_refuse",
+        "PropertyBlueprintTests.test_field_ref_passes_actual_same_cell_through_private_ref_call_and_structural_set",
+        "PropertyBlueprintTests.test_field_ref_repeated_acquisition_set_and_immediate_aliases_are_actual_same_storage",
+        "PropertyBlueprintTests.test_field_ref_runtime_rejects_unsafe_unset_stale_and_legacy_without_weakening_checked_set",
+        "PropertyBlueprintTests.test_field_ref_unreached_null_receiver_does_not_acquire_or_create_storage",
+        "PropertyBlueprintTests.test_live_property_refuses_wrong_instance_unset_null_wrong_cardinality_and_stale_contract",
+        "PropertyBlueprintTests.test_methods_profile_retains_actual_object_abi_and_node_time_property_reads",
+        "PropertyBlueprintTests.test_object_contract_factories_and_whole_body_conversion_preserve_actual_ref_aliases",
+        "PropertyBlueprintTests.test_private_property_uses_explicit_receiver_and_unreached_node_does_not_read",
+        "PropertyBlueprintTests.test_private_set_uses_explicit_receiver_and_unreached_set_does_not_write",
+        "PropertyBlueprintTests.test_property_array_result_retains_original_reference_after_field_replacement",
+        "PropertyBlueprintTests.test_property_declaration_inputs_are_rechecked_after_compiler_and_prior_artifact_is_retained",
+        "PropertyBlueprintTests.test_property_field_drift_is_visible_and_unsupported_kinds_and_old_profiles_are_refused",
+        "PropertyBlueprintTests.test_property_reads_at_node_once_from_actual_instance_and_reexecutes_on_next_call",
+        "PropertyBlueprintTests.test_property_reference_result_preserves_identity_and_later_mutation_without_deep_copy",
+        "PropertyBlueprintTests.test_set_all_general_primitive_and_array_clr_contracts_without_conversion_or_copy",
+        "PropertyBlueprintTests.test_set_profile_is_explicit_and_stale_schema_value_ref_and_unsupported_are_rejected",
+        "PropertyBlueprintTests.test_structural_property_set_executes_between_reads_on_actual_independent_instances",
+        "PropertyBlueprintTests.test_structural_set_preserves_general_array_and_single_multiple_reference_identity",
+        "WebUITests.test_actual_editor_v480_integrated_home_data_graph_set_ref_run_workspace_and_restart",
+        "WebUITests.test_actual_editor_v480_property_set_explicit_receiver_value_cold_and_confirm"
+      ],
+      "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)"
+    },
+    {
+      "id": "F12",
+      "screenAction": "실제 field ref",
+      "reference": {
+        "script": "blueprint.js",
+        "functions": [
+          "blueprintPropertyNeedsTarget",
+          "blueprintExecutionPlan"
+        ]
+      },
+      "implementation": [
+        "examples/editor-home/ui/blueprint.js",
+        "src/Confectory.Core/FeatureBlueprint.FieldRefs.cs",
+        "src/Confectory.Core/RuntimeObjectContracts.cs"
+      ],
+      "supported": "명시 profile upgrade, general 단일 bool/int/long의 stable typed cell과 실제 CLR ref/alias/Set/예외 연결",
+      "limits": "제약 타입/array/reference mutable ref·v1 migration·unset/stale ref 거부",
+      "remaining": [
+        "DEC3"
+      ],
+      "finalMethods": [
+        "PropertyAuthoringTests.test_field_ref_preview_typed_aliases_source_cas_cold_confirm_actual_clr_and_schema_rejection",
+        "PropertyAuthoringTests.test_property_set_field_preview_explicit_profile_save_cold_confirm_actual_clr_and_schema_drift",
+        "PropertyAuthoringTests.test_property_source_preview_schema_cas_cold_reader_group_and_explicit_rebind",
+        "PropertyAuthoringTests.test_unpublished_object_owner_stays_editable_without_becoming_a_property_contract",
+        "PropertyBlueprintTests.test_checked_set_refuses_wrong_owner_value_cardinality_hash_and_unsupported_without_mutation",
+        "PropertyBlueprintTests.test_concept_reference_array_is_an_actual_shared_clr_value",
+        "PropertyBlueprintTests.test_field_ref_alias_local_set_updates_live_field_while_property_read_retains_snapshot",
+        "PropertyBlueprintTests.test_field_ref_binds_receiver_at_node_and_survives_receiver_variable_replacement",
+        "PropertyBlueprintTests.test_field_ref_bool_and_long_clr_cells_keep_full_existing_value_domain",
+        "PropertyBlueprintTests.test_field_ref_exception_keeps_mutation_and_preexisting_alias_without_copy_out",
+        "PropertyBlueprintTests.test_field_ref_old_profiles_stale_contract_unsafe_fields_and_unavailable_sources_refuse",
+        "PropertyBlueprintTests.test_field_ref_passes_actual_same_cell_through_private_ref_call_and_structural_set",
+        "PropertyBlueprintTests.test_field_ref_repeated_acquisition_set_and_immediate_aliases_are_actual_same_storage",
+        "PropertyBlueprintTests.test_field_ref_runtime_rejects_unsafe_unset_stale_and_legacy_without_weakening_checked_set",
+        "PropertyBlueprintTests.test_field_ref_unreached_null_receiver_does_not_acquire_or_create_storage",
+        "PropertyBlueprintTests.test_live_property_refuses_wrong_instance_unset_null_wrong_cardinality_and_stale_contract",
+        "PropertyBlueprintTests.test_methods_profile_retains_actual_object_abi_and_node_time_property_reads",
+        "PropertyBlueprintTests.test_object_contract_factories_and_whole_body_conversion_preserve_actual_ref_aliases",
+        "PropertyBlueprintTests.test_private_property_uses_explicit_receiver_and_unreached_node_does_not_read",
+        "PropertyBlueprintTests.test_private_set_uses_explicit_receiver_and_unreached_set_does_not_write",
+        "PropertyBlueprintTests.test_property_array_result_retains_original_reference_after_field_replacement",
+        "PropertyBlueprintTests.test_property_declaration_inputs_are_rechecked_after_compiler_and_prior_artifact_is_retained",
+        "PropertyBlueprintTests.test_property_field_drift_is_visible_and_unsupported_kinds_and_old_profiles_are_refused",
+        "PropertyBlueprintTests.test_property_reads_at_node_once_from_actual_instance_and_reexecutes_on_next_call",
+        "PropertyBlueprintTests.test_property_reference_result_preserves_identity_and_later_mutation_without_deep_copy",
+        "PropertyBlueprintTests.test_set_all_general_primitive_and_array_clr_contracts_without_conversion_or_copy",
+        "PropertyBlueprintTests.test_set_profile_is_explicit_and_stale_schema_value_ref_and_unsupported_are_rejected",
+        "PropertyBlueprintTests.test_structural_property_set_executes_between_reads_on_actual_independent_instances",
+        "PropertyBlueprintTests.test_structural_set_preserves_general_array_and_single_multiple_reference_identity",
+        "WebUITests.test_actual_editor_v480_integrated_home_data_graph_set_ref_run_workspace_and_restart"
+      ],
+      "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)"
+    },
+    {
+      "id": "A01–A04",
+      "screenAction": "로컬 Augment · Worker · node Task",
+      "reference": {
+        "script": "app.js",
+        "functions": [
+          "openAugment",
+          "browserWorker"
+        ]
+      },
+      "implementation": [
+        "examples/editor-home/ui/app.js",
+        "examples/editor-home/ui/node-tasks.js",
+        "packs/augment/pack.cpack",
+        "packs/development-tools/pack.cpack"
+      ],
+      "supported": "로컬 Custom·소유 journal·권한·네 도구·Stage/Review/Confirm·cold 재사용 거부",
+      "limits": "외부 실제 모델 생성/모든 task 상태·서비스 확장 제외",
+      "remaining": [
+        "IMP5",
+        "AUTH1"
+      ],
+      "finalMethods": [
+        "AugmentTests.test_chief_only_proposals_drafts_verification_history_and_locality",
+        "AugmentTests.test_registered_augment_is_inactive_without_public_contract_selection",
+        "WebUITests.test_actual_editor_v424_local_augment_without_account_or_model",
+        "WebUITests.test_actual_editor_v424_node_task_plan_cas_approval_and_cold_history",
+        "WorkerTasksTests.test_durable_supervision_recovery_live_worker_and_process_restart_without_replay"
+      ],
+      "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)"
+    },
+    {
+      "id": "R01–R03",
+      "screenAction": "Build job · 실제 Run/Stop",
+      "reference": {
+        "script": "app.js",
+        "functions": [
+          "openRunViewport",
+          "openRunExportMenu"
+        ]
+      },
+      "implementation": [
+        "examples/editor-home/ui/app.js",
+        "examples/editor-home/ui/builds.js",
+        "packs/project-execution/pack.cpack",
+        "targets/project-execution-host/Program.cs"
+      ],
+      "supported": "최종 소스 compiler build job·취소/artifact/history, 세션 소유 Linux 프로세스 실행/Stop",
+      "limits": "렌더 surface embedding·기기 설치 결과 아님",
+      "remaining": [
+        "IMP6",
+        "ENV2"
+      ],
+      "finalMethods": [
+        "BuildJobTests.test_build_only_real_compiler_owned_cancel_artifacts_failure_history_and_no_run",
+        "BuildJobTests.test_unavailable_build_profiles_never_invoke_desktop_provider",
+        "ProjectExecutionTests.test_execution_handles_and_provider_locality",
+        "WebUITests.test_actual_editor_v318_run_process_and_presentation_restart",
+        "WebUITests.test_actual_editor_v424_build_only_jobs_artifacts_cancel_and_cold_history",
+        "WebUITests.test_actual_editor_v480_integrated_home_data_graph_set_ref_run_workspace_and_restart"
+      ],
+      "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)"
+    },
+    {
+      "id": "R04–R05",
+      "screenAction": "실제 frame · Pause/Step · 재연결",
+      "reference": {
+        "script": "app.js",
+        "functions": [
+          "openRunViewport"
+        ]
+      },
+      "implementation": [
+        "examples/editor-home/ui/app.js",
+        "packs/frame-control/pack.cpack",
+        "packs/project-execution/pack.cpack"
+      ],
+      "supported": "협력적 callback 완료 frame/ack·한 Step·heartbeat 단절·같은 호스트 재연결, native Linux owned fixture",
+      "limits": "비참여 프로젝트 frame 제어·새 호스트 권한 인계 제외",
+      "remaining": [
+        "DEC5",
+        "ENV1",
+        "ENV4"
+      ],
+      "finalMethods": [
+        "ProjectExecutionTests.test_actual_native_button_game_pause_single_draw_step_and_stop",
+        "ProjectExecutionTests.test_actual_native_engine_cooperative_frame_callbacks",
+        "ProjectExecutionTests.test_actual_owned_cooperative_frames_pause_step_reconnect_and_stop",
+        "ProjectExecutionTests.test_execution_handles_and_provider_locality",
+        "ProjectExecutionTests.test_frame_ack_foreign_stale_future_replies_cannot_overwrite_owner",
+        "ProjectExecutionTests.test_frame_control_actual_boundary_order_repeat_thread_and_close",
+        "ProjectExecutionTests.test_run_history_actual_owned_facts_cold_corruption_conflict_and_no_authority",
+        "ProjectExecutionTests.test_run_history_unavailable_profiles_do_not_read_or_write_storage",
+        "WebUITests.test_actual_editor_v480_integrated_home_data_graph_set_ref_run_workspace_and_restart",
+        "WebUITests.test_actual_editor_v480_local_run_frame_ack_pause_step_reconnect_and_stop"
+      ],
+      "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)"
+    },
+    {
+      "id": "R06",
+      "screenAction": "실행 기록 · cold 소유권",
+      "reference": {
+        "script": "app.js",
+        "functions": [
+          "openRunViewport"
+        ]
+      },
+      "implementation": [
+        "examples/editor-home/ui/app.js",
+        "packs/project-execution/pack.cpack"
+      ],
+      "supported": "제한된 비밀정보 없는 마지막 관측 기록·손상/저장실패 구분·cold owner-unavailable",
+      "limits": "프로세스 생존 추정/권한·명령 재실행/adoption 없음",
+      "remaining": [
+        "DEC5"
+      ],
+      "finalMethods": [
+        "ProjectExecutionTests.test_run_history_actual_owned_facts_cold_corruption_conflict_and_no_authority",
+        "ProjectExecutionTests.test_run_history_unavailable_profiles_do_not_read_or_write_storage",
+        "WebUITests.test_actual_editor_v480_integrated_home_data_graph_set_ref_run_workspace_and_restart",
+        "WebUITests.test_actual_editor_v480_run_history_cold_unavailable_corruption_and_no_adoption",
+        "WebUITests.test_run_history_command_admission_preserves_published_revision_and_rejects_stale_step"
+      ],
+      "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)"
+    },
+    {
+      "id": "W01–W02",
+      "screenAction": "문서 · 탭 · dock · 반복 열기",
+      "reference": {
+        "script": "app.js",
+        "functions": [
+          "openWorkspaceWindowTab",
+          "moveDocumentTabToWorkspace",
+          "setupWorkspaceTabReorder"
+        ]
+      },
+      "implementation": [
+        "examples/editor-home/ui/workspace.js",
+        "examples/editor-home/ui/window-documents.js",
+        "examples/editor-home/ui/workspace-host.js"
+      ],
+      "supported": "canonical 문서/private view 정체성·미적용 입력·탭 순서/취소·cold 복원",
+      "limits": "모든 native reparent와 이전 Undo 이력 미검증",
+      "remaining": [
+        "IMP7",
+        "ENV1"
+      ],
+      "finalMethods": [
+        "WebUITests.test_actual_editor_v480_home_browser_document_repeat_cancel_and_restore",
+        "WebUITests.test_actual_editor_v480_note_document_tabs_canonical_ownership_and_cold_source_input",
+        "WebUITests.test_actual_editor_v480_tab_reorder_cancel_canvas_drop_and_cold_order",
+        "WebUITests.test_actual_editor_v480_window_document_docking_cold_inputs_and_compiler_confirm"
+      ],
+      "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)"
+    },
+    {
+      "id": "W03–W04",
+      "screenAction": "메모 · 제목 · rich text · 찾기",
+      "reference": {
+        "script": "app.js",
+        "functions": [
+          "bindWorkspaceNoteEditor",
+          "openWorkspaceNoteTab",
+          "editWorkspaceTitleStyle"
+        ]
+      },
+      "implementation": [
+        "examples/editor-home/ui/notes.js",
+        "examples/editor-home/ui/note-documents.js",
+        "examples/editor-home/ui/find.js"
+      ],
+      "supported": "private 메모/문서·정제 paste·제목·placed text 검색, 소스와 저장 분리",
+      "limits": "전체 OS 접근성·서식 조합 보장 아님",
+      "remaining": [
+        "ENV1"
+      ],
+      "finalMethods": [
+        "WebUITests.test_actual_editor_v480_integrated_home_data_graph_set_ref_run_workspace_and_restart",
+        "WebUITests.test_actual_editor_v480_note_document_tabs_canonical_ownership_and_cold_source_input",
+        "WebUITests.test_actual_editor_v480_placed_text_find_workspace_blueprint_and_cold_scope",
+        "WebUITests.test_actual_editor_v480_rich_notes_title_format_paste_and_cold_source_preservation"
+      ],
+      "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)"
+    },
+    {
+      "id": "W05–W06",
+      "screenAction": "private 링크 · 포털 · 삭제 Undo",
+      "reference": {
+        "script": "app.js",
+        "functions": [
+          "connectWorkspaceNodes",
+          "disconnectWorkspaceLink",
+          "moveWindowsToWorkspace",
+          "deleteWorkspaceNodes",
+          "switchWorkspace"
+        ]
+      },
+      "implementation": [
+        "examples/editor-home/ui/workspace-links.js",
+        "examples/editor-home/ui/workspace-history.js",
+        "examples/editor-home/ui/workspace-host.js"
+      ],
+      "supported": "단일 부모 링크·자손 묶음 이동·포털 경계 연결·private 삭제/Undo/redo·cold",
+      "limits": "소스 삭제·일반 이동/연결 Undo는 별도",
+      "remaining": [
+        "IMP7",
+        "DEC2"
+      ],
+      "finalMethods": [
+        "WebUITests.test_actual_editor_v318_workspace_lifecycle_presentation_restart",
+        "WebUITests.test_actual_editor_v480_private_workspace_links_bundle_portal_delete_undo_and_cold",
+        "WebUITests.test_private_workspace_links_and_deletion_history_invariants"
+      ],
+      "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)"
+    },
+    {
+      "id": "Y01–Y03",
+      "screenAction": "Yogi snapshot · 전달",
+      "reference": {
+        "script": "app.js",
+        "functions": [
+          "openYogi",
+          "freezeYogi",
+          "deliverYogi",
+          "viewSentYogi"
+        ]
+      },
+      "implementation": [
+        "examples/editor-home/ui/app.js",
+        "packs/yogi-box/pack.cpack"
+      ],
+      "supported": "owned snapshot·Exactly/Seal·첨부·재검증/cold의 기존 범위",
+      "limits": "실제 recipient/room/ack·수신 권한·중복/단절 서비스 미완료",
+      "remaining": [
+        "IMP5",
+        "AUTH1"
+      ],
+      "finalMethods": [
+        "WebUITests.test_actual_editor_v318_yogi_owned_content_and_validation_restart"
+      ],
+      "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)"
+    },
+    {
+      "id": "P01–P05",
+      "screenAction": "Helper 소속 · 프로필 · 대화",
+      "reference": {
+        "script": "app.js",
+        "functions": [
+          "renderWorkspaceHelper",
+          "removeHelper",
+          "toggleHelperFavorite",
+          "pinHelperCompanion"
+        ]
+      },
+      "implementation": [
+        "examples/editor-home/ui/app.js",
+        "packs/helper/pack.cpack"
+      ],
+      "supported": "명시 membership/private UI·메모리/소유 refs·로컬 대화 연결 fixture",
+      "limits": "이미지 provider·사용량·실제 전송/전체 영속 서비스 미완료",
+      "remaining": [
+        "IMP1",
+        "IMP5",
+        "AUTH1"
+      ],
+      "finalMethods": [
+        "HelperTests.test_explicit_membership_and_project_memory_legacy_quarantine",
+        "HelperTests.test_persistent_memory_templates_owner_refs_conflict_and_optional_agent_locality",
+        "WebUITests.test_actual_editor_v318_helper_connection_chat_state_and_ownership",
+        "WebUITests.test_actual_editor_v318_helper_inputs_and_panels_cold_restart"
+      ],
+      "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)"
+    },
+    {
+      "id": "G01–G03",
+      "screenAction": "Agent 준비 · 연결 · 모델",
+      "reference": {
+        "script": "app.js",
+        "functions": [
+          "openAgentConnection"
+        ]
+      },
+      "implementation": [
+        "examples/editor-home/ui/app.js",
+        "packs/agent/pack.cpack",
+        "packs/ai-connection/pack.cpack"
+      ],
+      "supported": "공식 metadata·설정·로그인/설치 안내, owned simulated/stdio/control fixtures",
+      "limits": "실계정 로그인·모델 호출·사용자 PC 설치 성공 아님",
+      "remaining": [
+        "AUTH1",
+        "AUTH2",
+        "ENV3"
+      ],
+      "finalMethods": [
+        "AIConnectionTests.test_codex_owned_stdio_protocol_fixture_without_installed_codex_authentication_or_external_network",
+        "AIConnectionTests.test_declared_connection_settings_and_responses_approval_guards_without_external_network_or_credentials",
+        "AIConnectionTests.test_owned_codex_control_socket_and_workspace_api_receipts_without_real_accounts",
+        "AgentTests.test_configured_simulated_stream_cancel_errors_bounds_cleanup_and_locality",
+        "AgentTests.test_optional_agent_exclusion",
+        "WebUITests.test_actual_editor_click_preparation_and_device_login_owned_fixtures",
+        "WebUITests.test_actual_editor_v318_codex_discovery_and_official_model_selection",
+        "WebUITests.test_actual_editor_v318_codex_verification_and_helper_grants",
+        "WebUITests.test_actual_editor_v318_legacy_codex_and_novice_installation_guide"
+      ],
+      "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)"
+    },
+    {
+      "id": "I01–I02 / U01–U03",
+      "screenAction": "신문고 · 내 정보 · co-worker",
+      "reference": {
+        "script": "app.js",
+        "functions": [
+          "toggleUserNotifications",
+          "removeUser"
+        ]
+      },
+      "implementation": [
+        "examples/editor-home/ui/app.js"
+      ],
+      "supported": "로컬 profile/presentation·알림 화면 일부만 존재",
+      "limits": "실제 actor/member/inbox 사건·요청/수락/차단·room/ack 서비스 미구현",
+      "remaining": [
+        "IMP5",
+        "AUTH1"
+      ],
+      "finalMethods": [],
+      "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)"
+    },
+    {
+      "id": "M01–M04",
+      "screenAction": "내 팩 · 시장 · 내보내기",
+      "reference": {
+        "script": "app.js",
+        "functions": [
+          "bindHomePackBrowser",
+          "openMyPackProject",
+          "openPacks",
+          "openPackExport"
+        ]
+      },
+      "implementation": [
+        "examples/editor-home/ui/app.js",
+        "examples/editor-home/ui/inventory.js",
+        "packs/pack-manager/pack.cpack"
+      ],
+      "supported": "로컬 registry/manifest·pin/update/dependency review와 export 진입 경계",
+      "limits": "온라인 catalog/publisher 미구현; export 진입 UI는 있으나 이번 gate의 실제 내보내기/설치 미검증",
+      "remaining": [
+        "IMP5",
+        "AUTH2",
+        "ENV2"
+      ],
+      "finalMethods": [
+        "PackManagerTests.test_local_pins_hooks_retry_updates_and_provider_locality",
+        "WebUITests.test_actual_editor_v318_inventory_and_browser_instances_restart"
+      ],
+      "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)"
+    },
+    {
+      "id": "X01",
+      "screenAction": "일반 Git checkout · pinned 리소스",
+      "reference": {
+        "script": "app.js",
+        "functions": [
+          "showHome"
+        ]
+      },
+      "implementation": [
+        "examples/editor-home/WebBundle.csbody",
+        "tests/Confectory.Tests/WebUITests.cs"
+      ],
+      "supported": "커밋 HEAD의 일반 checkout LF/CRLF·41개 pinned 리소스·실제 Home 시작/변조 거부",
+      "limits": "직접 파일 복사만으로 대체하지 않음",
+      "remaining": [],
+      "finalMethods": [
+        "WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup"
+      ],
+      "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)"
+    },
+    {
+      "id": "X02",
+      "screenAction": "플랫폼 프로필 · Linux native",
+      "reference": {
+        "script": "app.js",
+        "functions": [
+          "openRunViewport"
+        ]
+      },
+      "implementation": [
+        "examples/editor-home/project.cpack",
+        "tests/Confectory.Tests/EntryHomeTests.cs",
+        "tests/Confectory.Tests/EngineTests.cs",
+        "tests/Confectory.Tests/ButtonTests.cs"
+      ],
+      "supported": "Windows/Android 관리 프로필 compile-only, Linux X11 dummy의 소유 Engine/Button callback·입력 경계",
+      "limits": "Windows native·Android device/sign/install·사용자 PC 미검증",
+      "remaining": [
+        "ENV1",
+        "ENV2",
+        "AUTH2"
+      ],
+      "finalMethods": [
+        "ButtonTests.test_shared_button_game_without_editor_state_input_navigation_native_targets_and_locality",
+        "EngineTests.test_role_composition_two_windows_and_cleanup",
+        "EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only"
+      ],
+      "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)"
+    },
+    {
+      "id": "X03",
+      "screenAction": "동시 빌드 · 캐시 무결성 게시",
+      "reference": {
+        "script": "app.js",
+        "functions": [
+          "openRunViewport"
+        ]
+      },
+      "implementation": [
+        "src/Confectory.Core/Build.cs",
+        "tests/Confectory.Tests/CoreTests.cs"
+      ],
+      "supported": "컴파일은 병렬, 키별 게시/손상 복구는 배타 lease; 완료된 hash 검증 산출물만 재사용",
+      "limits": "생성 ABI·캐시 내용 계약 변경 없음; Windows 실제 파일 잠금은 별도",
+      "remaining": [
+        "ENV1"
+      ],
+      "finalMethods": [
+        "CoreTests.test_artifact_parallel_publication_and_corrupt_entry_repair"
+      ],
+      "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)"
+    }
+  ]
+}

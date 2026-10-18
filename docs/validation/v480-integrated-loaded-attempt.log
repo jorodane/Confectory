@@ -1,0 +1,157 @@
+Excluded initial loaded gate attempts; final successful gates are in v480-integrated-tests.log.
+
+=== graph3 ===
+PASS ModuleInterfaceTests.test_owned_object_module_provider_contract_atomic_cas_cold_and_actual_scope
+PASS FeatureBlueprintTests.test_blueprint_existing_feature_calls_use_typed_imports_and_contract_fences
+PASS FeatureBlueprintTests.test_blueprint_invalid_graphs_stale_contracts_and_dominating_values
+PASS FeatureBlueprintTests.test_blueprint_node_only_worker_draft_save_restore_and_compiler_confirm
+FAIL FeatureBlueprintTests.test_blueprint_owned_node_creation_removal_review_group_and_cold_restore
+System.TimeoutException: Process exceeded 180s: /workspace/toolchains/dotnet-10.0.401/dotnet
+   at Confectory.Core.Processes.RunAsync(IReadOnlyList`1 command, String input, String directory, Int32 timeoutSeconds) in /workspace/Confectory/src/Confectory.Core/Infrastructure.cs:line 221
+   at Confectory.Core.Processes.Run(IReadOnlyList`1 command, String input, String directory, Int32 timeoutSeconds) in /workspace/Confectory/src/Confectory.Core/Infrastructure.cs:line 198
+   at Confectory.Tests.FeatureBlueprintTests.test_blueprint_owned_node_creation_removal_review_group_and_cold_restore() in /workspace/Confectory/tests/Confectory.Tests/FeatureBlueprintTests.cs:line 697
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+PASS CodeBodyTests.test_local_helpers_are_per_node_and_independent_probe_never_executes
+PASS CodeBodyTests.test_static_helpers_receive_typed_imports_only_as_explicit_arguments
+PASS EnumContractTests.test_enum_explicit_ids_values_order_and_source_binding_are_independent_of_runtime
+PASS SwitchBlueprintTests.test_branch_returns_join_assignment_paths_and_never_warn_at_the_return_itself
+PASS SwitchBlueprintTests.test_old_profiles_keep_their_meaning_and_refuse_switch_fields_or_cross_region_routes
+PASS SwitchBlueprintTests.test_switch_ref_ref_out_aliases_preserve_caller_storage_through_case_and_main_return
+PASS ImplicitBlueprintTests.test_implicit_branch_terminations_warn_separately_and_real_errors_remain_errors
+PASS BlueprintConversionTests.test_whole_out_body_conversion_preserves_original_member_scoped_import_and_other_target
+PASS MultiOutputBlueprintTests.test_android_and_browser_metadata_templates_round_trip_out_roles_in_managed_code
+PASS MultiOutputBlueprintTests.test_join_has_separate_must_may_and_unassigned_witness_for_each_output
+PASS MultiOutputBlueprintTests.test_typed_call_named_outputs_use_selected_object_scope_and_dominate_consumers
+PASS LocalBlueprintTests.test_local_set_branch_order_per_call_reset_and_per_end_out_warning
+PASS LocalAuthoringTests.test_local_public_profile_cas_exact_initializers_cold_and_graph_only_compiler_confirm
+PASS PropertyBlueprintTests.test_checked_set_refuses_wrong_owner_value_cardinality_hash_and_unsupported_without_mutation
+PASS PropertyBlueprintTests.test_field_ref_binds_receiver_at_node_and_survives_receiver_variable_replacement
+PASS PropertyBlueprintTests.test_field_ref_old_profiles_stale_contract_unsafe_fields_and_unavailable_sources_refuse
+PASS PropertyBlueprintTests.test_field_ref_runtime_rejects_unsafe_unset_stale_and_legacy_without_weakening_checked_set
+PASS PropertyBlueprintTests.test_methods_profile_retains_actual_object_abi_and_node_time_property_reads
+PASS PropertyBlueprintTests.test_private_set_uses_explicit_receiver_and_unreached_set_does_not_write
+PASS PropertyBlueprintTests.test_property_field_drift_is_visible_and_unsupported_kinds_and_old_profiles_are_refused
+PASS PropertyBlueprintTests.test_set_all_general_primitive_and_array_clr_contracts_without_conversion_or_copy
+PASS PropertyBlueprintTests.test_structural_set_preserves_general_array_and_single_multiple_reference_identity
+PASS PropertyAuthoringTests.test_property_set_field_preview_explicit_profile_save_cold_confirm_actual_clr_and_schema_drift
+PASS NestedBlueprintTests.test_private_nested_ref_out_aliases_return_to_parent_and_locals_reset_per_call
+PASS NestedBlueprintTests.test_private_siblings_keep_same_local_ids_and_branch_return_boundary
+PASS NestedBlueprintTests.test_static_private_helpers_preserve_repeated_ref_out_caller_storage
+PASS NestedAuthoringTests.test_static_helpers_parameters_explicit_remap_task_cas_cold_and_compiler_confirm
+PASS AliasLocalTests.test_array_result_alias_ref_replacement_changes_the_actual_result_variable
+PASS AliasLocalTests.test_result_alias_ref_and_set_mutate_original_slot_while_value_argument_keeps_snapshot
+PASS ExternalRefTests.test_external_ref_array_replacement_keeps_managed_variable_alias_and_initial_value
+PASS ExternalRefTests.test_external_ref_forwarding_preserves_two_ref_out_aliases_and_distinct_caller_storage
+PASS ExternalRefTests.test_whole_out_only_conversion_preserves_two_out_arguments_using_one_caller_variable
+PASS RefNodeTests.test_ordinary_csharp_ref_calls_preserve_same_slot_aliases_including_ref_out_same_caller_cell
+PASS RefNodeTests.test_typed_ref_call_uses_selected_object_scope_and_real_aliases
+38 passed, 1 failed, 0 skipped; 897.956s
+
+=== ui3 ===
+PASS WebUITests.test_actual_editor_review_compact_numeric_and_subset_caption
+PASS WebUITests.test_actual_editor_v318_home_search_favorite_restart_remove
+PASS WebUITests.test_actual_editor_v424_build_only_jobs_artifacts_cancel_and_cold_history
+PASS WebUITests.test_actual_editor_v424_schema_exact_numeric_hash_and_cold_restart
+Actual alias output/window/hit bounds {"window": {"left": 251, "right": 1349, "width": 1098, "scroll": 1098, "client": 1098}, "editor": {"left": 251, "right": 1349, "width": 1098, "scroll": 1098, "client": 1098}, "body": {"left": 251, "right": 1349, "width": 1098, "scroll": 1098, "client": 1098}, "plane": {"left": 416, "right": 1184, "width": 768, "scroll": 920, "client": 768}, "outputs": {"left": 1184, "right": 1349, "width": 165, "scroll": 164, "client": 164}, "toolbar": {"left": 251, "right": 1349, "width": 1098, "scroll": 1098, "client": 1098}, "outputHit": true, "hit": "bp-output-content"}
+PASS actual v480 alias locals, original slot picker, set order, exact initializer, invalid dominance, cold basis and graph-only compiler Confirm
+Actual common WebUI alias-locals Chromium PASS
+PASS WebUITests.test_actual_editor_v480_alias_locals_slots_set_cold_and_confirm
+PASS actual v480 declaration hierarchy: exact declared parent/category/concept/schema, owned and gated registered definitions, Variation/compiler registration, independent Workspace browser/typed atomic fill/Confirm, distinct cold contexts and original pending bases; sources preserved
+Actual common WebUI declaration-navigation Chromium PASS
+PASS WebUITests.test_actual_editor_v480_declaration_hierarchy_variation_fill_confirm_independent_cold
+FAIL WebUITests.test_actual_editor_v480_local_run_frame_ack_pause_step_reconnect_and_stop
+System.Exception: Traceback (most recent call last):
+  File "/workspace/Confectory/tests/web/editor_run_control_v480.py", line 114, in <module>
+    run.locator('[data-run-play]').click();expect(run.locator('[data-run-pause]')).to_be_enabled(timeout=180000);run.locator('[data-run-pause]').click();wait_control(lambda s:s.get('ack')==1 and s.get('mode')=='paused');run.locator('[data-run-close-project]').click();page.locator('.modal [data-complete-close]').click();expect(page.locator('.home-grid')).to_be_visible();assert not child_ids(host.pid)
+                                                                                                                                                                                                                                                                                                                                                                                           ^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+
+   at Confectory.Tests.TestCase.True(Boolean condition, String message) in /workspace/Confectory/tests/Confectory.Tests/Support.cs:line 127
+   at Confectory.Tests.WebUITests.test_actual_editor_v480_local_run_frame_ack_pause_step_reconnect_and_stop() in /workspace/Confectory/tests/Confectory.Tests/WebUITests.cs:line 49
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+PASS actual v480 property explicit receiver, field catalog, node-time contract, cold preview fence, rebind and grouped compiler Confirm
+Actual common WebUI blueprint-property Chromium PASS
+PASS WebUITests.test_actual_editor_v480_node_time_property_contract_target_cold_and_confirm
+PASS actual v480 private Workspace links: one parent/cycle/cancel/validation, descendant movement and Escape, portal boundary/internal edges and relative offsets, selected-only deletion/Undo/redo, retained DOM and pending basis, nested portal cancel/delete, exact cold inverse, duplicate-target/changed-layout conflicts, retained docking and external source CAS refusal
+Actual common WebUI workspace-links Chromium PASS
+PASS WebUITests.test_actual_editor_v480_private_workspace_links_bundle_portal_delete_undo_and_cold
+PASS WebUITests.test_actual_editor_v480_registered_module_function_new_object_implementation
+PASS WebUITests.test_actual_editor_v480_window_document_docking_cold_inputs_and_compiler_confirm
+10 passed, 1 failed, 0 skipped; 987.801s
+
+=== graph2 ===
+PASS ModuleInterfaceTests.test_owned_module_interface_contract_default_atomic_cas_cold_and_actual_consumer
+PASS RegisteredImplementationTests.test_registered_module_function_object_implementation_group_raw_contract_and_actual_scope
+PASS FunctionImportTests.test_module_function_reference_implementation_positional_contract_group_cold_and_no_copy
+PASS FeatureBlueprintTests.test_blueprint_disconnected_current_node_body_is_compiled_without_execution
+PASS FeatureBlueprintTests.test_blueprint_independent_probe_checks_an_unselected_body_without_running_or_publishing
+PASS FeatureBlueprintTests.test_blueprint_node_diagnostics_static_isolation_and_failed_build_retains_receipt
+FAIL FeatureBlueprintTests.test_blueprint_owned_function_reference_call_import_cas_history_and_execution
+System.TimeoutException: Process exceeded 240s: /workspace/toolchains/dotnet-10.0.401/dotnet
+   at Confectory.Core.Processes.RunAsync(IReadOnlyList`1 command, String input, String directory, Int32 timeoutSeconds) in /workspace/Confectory/src/Confectory.Core/Infrastructure.cs:line 221
+   at Confectory.Core.Processes.Run(IReadOnlyList`1 command, String input, String directory, Int32 timeoutSeconds) in /workspace/Confectory/src/Confectory.Core/Infrastructure.cs:line 198
+   at Confectory.Tests.FeatureBlueprintTests.test_blueprint_owned_function_reference_call_import_cas_history_and_execution() in /workspace/Confectory/tests/Confectory.Tests/FeatureBlueprintTests.cs:line 596
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+PASS CodeBodyTests.test_body_cannot_escape_into_a_function_signature_or_outer_member
+PASS CodeBodyTests.test_static_helper_members_are_per_node_and_independent_probe_never_executes
+PASS EnumContractTests.test_enum_declaration_is_real_csharp_compile_only_and_cannot_create_an_enum_dispatcher
+PASS SwitchBlueprintTests.test_nested_switch_returns_to_inner_then_outer_main_and_keeps_real_out_warnings
+PASS SwitchBlueprintTests.test_switch_no_default_and_explicit_empty_case_continue_without_termination
+PASS ImplicitBlueprintTests.test_implicit_join_tracks_must_may_and_a_specific_unassigned_branch_witness
+PASS BlueprintConversionTests.test_whole_body_context_preserves_calls_scope_this_recursion_names_targets_and_crlf
+PASS MultiOutputBlueprintTests.test_empty_multiple_outs_have_typed_reference_defaults_without_cpp_or_execution
+PASS MultiOutputBlueprintTests.test_out_contract_modes_and_legacy_hash_are_explicit_and_stable
+PASS MultiOutputAuthoringTests.test_object_blank_and_reference_factories_preserve_out_modes_and_positional_output_names
+PASS LocalBlueprintTests.test_local_array_is_shared_within_call_and_fresh_across_calls_and_invalid_locals_refuse
+PASS PropertyBlueprintTests.test_field_ref_alias_local_set_updates_live_field_while_property_read_retains_snapshot
+PASS PropertyBlueprintTests.test_field_ref_exception_keeps_mutation_and_preexisting_alias_without_copy_out
+PASS PropertyBlueprintTests.test_field_ref_repeated_acquisition_set_and_immediate_aliases_are_actual_same_storage
+PASS PropertyBlueprintTests.test_live_property_refuses_wrong_instance_unset_null_wrong_cardinality_and_stale_contract
+PASS PropertyBlueprintTests.test_private_property_uses_explicit_receiver_and_unreached_node_does_not_read
+PASS PropertyBlueprintTests.test_property_declaration_inputs_are_rechecked_after_compiler_and_prior_artifact_is_retained
+PASS PropertyBlueprintTests.test_property_reference_result_preserves_identity_and_later_mutation_without_deep_copy
+PASS PropertyBlueprintTests.test_structural_property_set_executes_between_reads_on_actual_independent_instances
+PASS PropertyAuthoringTests.test_field_ref_preview_typed_aliases_source_cas_cold_confirm_actual_clr_and_schema_rejection
+PASS PropertyAuthoringTests.test_unpublished_object_owner_stays_editable_without_becoming_a_property_contract
+PASS NestedBlueprintTests.test_private_imports_are_explicit_and_unused_child_bodies_are_compiled_without_execution
+PASS NestedBlueprintTests.test_private_paths_separate_identical_local_definitions_and_reject_parent_capture_and_depth
+PASS NestedBlueprintTests.test_static_helper_classes_from_private_siblings_are_emitted_with_unique_owners
+PASS NestedAuthoringTests.test_private_nested_owned_sources_cold_peer_cas_and_atomic_compiler_confirm
+PASS AliasLocalTests.test_alias_contracts_and_all_use_paths_require_current_typed_storage
+PASS AliasLocalTests.test_named_out_alias_mutates_node_snapshot_without_borrowing_external_caller_output
+PASS ExternalRefTests.test_external_ref_factories_and_typed_reference_forward_actual_caller_storage
+PASS ExternalRefTests.test_out_only_typed_reference_factory_forwards_one_caller_out_variable_twice
+PASS ExternalRefAuthoringTests.test_public_external_ref_conversion_atomic_group_cas_origin_cold_and_real_aliases
+PASS RefNodeTests.test_code_ref_arguments_alias_same_local_immediately_and_out_warning_remains_per_end
+PASS RefNodeTests.test_ref_to_value_input_and_preceding_node_result_use_real_storage_without_caller_copyback
+38 passed, 1 failed, 0 skipped; 1387.501s
+
+=== native ===
+PASS EngineTests.test_role_composition_two_windows_and_cleanup
+FAIL ProjectExecutionTests.test_actual_native_button_game_pause_single_draw_step_and_stop
+System.Exception: Unhandled exception. System.Exception: Native game frame timeout
+   at Confectory.Implementations.Ed4b725b7f44f30bdbdda2c0e.E33271bb239f335e3cbea813d.<Invoke>g__Wait|3_1(Func`2 condition, <>c__DisplayClass3_0&, <>c__DisplayClass3_1&)
+   at Confectory.Implementations.Ed4b725b7f44f30bdbdda2c0e.E33271bb239f335e3cbea813d.Invoke()
+   at B26675b04f4a2f4ff567f480d.Invoke()
+   at Program.Main()
+
+   at Confectory.Tests.TestCase.True(Boolean condition, String message) in /workspace/Confectory/tests/Confectory.Tests/Support.cs:line 127
+   at Confectory.Tests.ProjectExecutionTests.test_actual_native_button_game_pause_single_draw_step_and_stop() in /workspace/Confectory/tests/Confectory.Tests/ProjectExecutionTests.cs:line 29
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+FAIL ProjectExecutionTests.test_actual_native_engine_cooperative_frame_callbacks
+System.Exception: Unhandled exception. System.Exception: Actual frame timeout
+   at Confectory.Implementations.Ed4b725b7f44f30bdbdda2c0e.E33271bb239f335e3cbea813d.<>c__DisplayClass3_0.<Invoke>g__Until|2(String handle, Func`2 condition)
+   at Confectory.Implementations.Ed4b725b7f44f30bdbdda2c0e.E33271bb239f335e3cbea813d.Invoke()
+   at B26675b04f4a2f4ff567f480d.Invoke()
+   at Program.Main()
+
+   at Confectory.Tests.TestCase.True(Boolean condition, String message) in /workspace/Confectory/tests/Confectory.Tests/Support.cs:line 127
+   at Confectory.Tests.ProjectExecutionTests.test_actual_native_engine_cooperative_frame_callbacks() in /workspace/Confectory/tests/Confectory.Tests/ProjectExecutionTests.cs:line 37
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+PASS ButtonTests.test_shared_button_game_without_editor_state_input_navigation_native_targets_and_locality
+2 passed, 2 failed, 0 skipped; 395.526s

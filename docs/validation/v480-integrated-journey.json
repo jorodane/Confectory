@@ -1,0 +1,69 @@
+{
+  "version": 1,
+  "singleProject": true,
+  "stages": [
+    "Home owned project/search/open",
+    "declaration metadata + Data amount 7 -> shared draft -> compiler Confirm",
+    "field ref explicit upgrade/typed parameter/CAS rejection/cold/group Confirm",
+    "same graph Set -> actual ref -> CSharp write -> compiler Confirm",
+    "actual Run reads compiled Data 7 / Set31 / field-ref42, Pause/one Step/owned Stop",
+    "private Workspace note/source separation -> fresh host -> same project/Data/graph -> no run authority adoption -> Home receipt"
+  ],
+  "project": {
+    "listingId": "F2887F8A0C1C5886DD30FD5A413A8B43",
+    "projectId": "4782ce87c09b4755aa582d52c089fe5a"
+  },
+  "run": {
+    "actual": {
+      "seed": 7,
+      "result": 42,
+      "field": 42
+    },
+    "frameBeforeStep": "34",
+    "frameAfterStep": "35",
+    "ack": 2
+  },
+  "cold": {
+    "projectMatches": true,
+    "executionState": "idle",
+    "executionOwnerAdopted": false,
+    "lastEditSequence": 7
+  },
+  "sourceSha256": {
+    "calculate.node.json": "9bdfe20b4ba4f355458f22d1ed063e00eeffa8a9596d8f437ceb811d91e2b66e",
+    "NodeValueBody.celem": "8d54799e772d9035de6ca884f2e6440c06c1b1c6b086b96deac0a6e479bb3ed9",
+    "node-value.graph.json": "017902a73424641fa1d8cb251dd71df501d99c4c3fc7d8e2d0d117065c6cf19c",
+    "Score.celem": "b05d716ccf86e4688fa60e2fa7477ddd6543a508426f81d9192f4949522daa66",
+    "integration-tick.csbody": "4f3d51bb875fd38dae476fb06c700c9cb94ba99f634f3a47af8ac72628ce8250",
+    "IntegrationTickBody.celem": "29cf88d4d55de18369388ef6ca4b3e5f52064866d7d0e34a83bc68e872e95063",
+    "IntegrationTick.celem": "a49ff614507737ebf4a67e8cf40dd58864b42a67e02583493a679a59202508a7",
+    "create-monster.csbody": "01d2f3414dcd3406c6c7fead2ffe5480d8fde11879b59a42bf1d50e767814291",
+    "CreateMonsterBody.celem": "cf379bcadac7253806577e3cc0a5c5f8a76c12ecfd1d8bdc26ed343974c0e527",
+    "CreateMonster.celem": "dff48861fffe242fcba2f02a9817e31599f3e12d0bb15ba5b3054d1b7475bff9",
+    "Monster.celem": "fafd792b0812c8b583c42b34440d87756e72abac114dfa92d297371c9f12107a",
+    "PropertyVitals.celem": "f932ab7ed66dbc05b5403f319f728defd6cae1a00d7d8a81536289e3c23cf72e",
+    "condition.node.json": "5c945f8e360747fa7c5b9f7742fe882c2a25c91942b1b816dc1268ea1356d3ed",
+    "NodeValue.celem": "2121bb90c46b70d8731716fecd38d9edb0221fc3cef26fcca68c9aeb4c94d6e9",
+    "TableTwin.celem": "b26179898e0233dba180f1fbb4e6f7e2c03642e29ba84b6b060af2c374873078",
+    "TableStats.celem": "4b5a0b8c2455ee1129c412b6498b65d01bfa5de0d97cfd7689e5bb3d40c5fa24",
+    "ZBroken.celem": "92444020c95f31d19055606facebfc9498f28dbc35802bef9fd82de273b56304",
+    "main.csbody": "102ccdd534ff298bd3e3ae72928c8cb0bdb11a28f9a8124df2dff6567970fb36",
+    "main_body.celem": "ddcf8b204464ea8fb4ffe48d8a5e3bb658fcf6c874e49211020dab7a0ff0df68",
+    "WebBundleBody.celem": "1e1b4127676f9cd4b2eabb646299e2ce7cdc481c50c9cfd6603ddda2dfc9f8e6",
+    "WebStateBody.celem": "ac1b8e1becd5db6e61a65050ead0ca1b73cd82d48d960f4cb2df819ea70ca7c0",
+    "ChangeScore.celem": "4bd0af2ea0f022b24e59a29d4a9e41a70bd1dfbddc5bf841ab4840678ba74b84",
+    "main.celem": "287d08a3303604530fee3d332112d0e55f34a16f02b36add1f31cbe6bb97cd96",
+    "WebInvoke.csbody": "e61770d338665c9067a7914fb7b5bbaa92d71e740eac2660021e9cbb2d152997",
+    "README.md": "2185163e510dc8b9a43f7f28010d43bf40fc0ce136cb18861e40b1c4f4c503d6",
+    "ChangeScoreBody.celem": "97eb4d60567caadab0d67994c7450241b552a3f5fa8e7a1f91c95e4ba74985c8",
+    "project.cpack": "8cd157bf0a4c81e0741f63d910f95d9fbe8fda03b1935294561f5b00e942ed61",
+    "WebBundle.csbody": "d7dd210c2ba4550ecb8a70d2a53311b576501a4ccdcf242fc1db322ca50165a0",
+    "WebStartBody.celem": "8fda8d7ad5618b92b511c1d5f34f7957fb0c1207d41c30c598f1d3c85132fb2d",
+    "WebState.csbody": "1c03b59898fc90079f291fa50c09c2e917990fd5c985aaf5eeed85a8f1359ff4",
+    "WebStart.celem": "5f897920150e3ff5020d17737835a834bd4c7a9f8a75e5dbfd8e4b46306962e1",
+    "WebStart.csbody": "24b3b06db521715415f9df522699947841d4bc748bf5d905ce5823e942d231d7",
+    "ChangeScore.csbody": "790e8a27b750c14cc3ad2d6ed924d178b9d27dc334e050ba92b1fa7f433826cf",
+    "WebInvokeBody.celem": "c7936d54be5d018fae5432b78b6bf0bc66d8b009a84efa15953643b84c3041fb",
+    "WebBundle.celem": "e4d8a28f4b07e26de34a0aec8c188626c3bd9ba2185b91b7ce1247476dcad2e4"
+  }
+}
