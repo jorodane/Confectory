@@ -401,9 +401,15 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
      from semantic_authoring import verify_concept_creation
      verify_concept_creation(page,project,mount,send,envelope,open_browser,browser_action,restart_actual_host)
     else:
+     def nav_menu(visible):
+      # Navigation is local UI state: never leave a blind toggle over the next source action.
+      for _ in range(3):
+       if bool(page.locator('.nav-menu').count())==visible:return
+       page.locator('#nav').click()
+      expect(page.locator('.nav-menu')).to_have_count(1 if visible else 0)
      def open_browser():
       selected=page.locator('.window[data-key="browser"] [data-tab].selected');group=selected.get_attribute('data-tab') if selected.count() else 'concept'
-      page.locator('#nav').click();page.locator('.nav-menu button').filter(has_text={'concept':'개념','feature':'기능','module':'모듈'}[group]).first.click();expect(page.locator('#nav')).to_be_enabled();page.locator('#nav').click()
+      nav_menu(True);page.locator('.nav-menu').get_by_role('button',name={'concept':'개념','feature':'기능','module':'모듈'}[group],exact=True).click();expect(page.locator('#nav')).to_be_enabled();nav_menu(False)
      def browser_action(selector):
       page.locator('#browser-actions').click();page.locator(selector).click()
      def retained_window(index=0):
