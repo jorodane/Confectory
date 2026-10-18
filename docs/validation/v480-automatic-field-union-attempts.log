@@ -1,0 +1,494 @@
+===== confectory-imp3-build.log =====
+  Confectory.Core -> /workspace/Confectory/src/Confectory.Core/bin/Release/net10.0/Confectory.Core.dll
+  Confectory.AndroidExport -> /workspace/Confectory/targets/android-export/bin/Release/net10.0/Confectory.AndroidExport.dll
+  Confectory.DesktopEntry -> /workspace/Confectory/targets/desktop-entry/bin/Release/net10.0/Confectory.DesktopEntry.dll
+  Confectory.Cli -> /workspace/Confectory/src/Confectory.Cli/bin/Release/net10.0/Confectory.Cli.dll
+  Confectory.Build.Web -> /workspace/Confectory/targets/web/bin/Release/net10.0/Confectory.Build.Web.dll
+  Confectory.Build.DotNet -> /workspace/Confectory/targets/dotnet/bin/Release/net10.0/Confectory.Build.DotNet.dll
+  Confectory.Build.BrowserWasm -> /workspace/Confectory/targets/browser-wasm/bin/Release/net10.0/Confectory.Build.BrowserWasm.dll
+  Confectory.Tests -> /workspace/Confectory/tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:08.99
+
+===== confectory-imp3-build2.log =====
+  Confectory.Core -> /workspace/Confectory/src/Confectory.Core/bin/Release/net10.0/Confectory.Core.dll
+  Confectory.AndroidExport -> /workspace/Confectory/targets/android-export/bin/Release/net10.0/Confectory.AndroidExport.dll
+  Confectory.DesktopEntry -> /workspace/Confectory/targets/desktop-entry/bin/Release/net10.0/Confectory.DesktopEntry.dll
+  Confectory.Build.Web -> /workspace/Confectory/targets/web/bin/Release/net10.0/Confectory.Build.Web.dll
+  Confectory.Cli -> /workspace/Confectory/src/Confectory.Cli/bin/Release/net10.0/Confectory.Cli.dll
+  Confectory.Build.DotNet -> /workspace/Confectory/targets/dotnet/bin/Release/net10.0/Confectory.Build.DotNet.dll
+  Confectory.Build.BrowserWasm -> /workspace/Confectory/targets/browser-wasm/bin/Release/net10.0/Confectory.Build.BrowserWasm.dll
+  Confectory.Tests -> /workspace/Confectory/tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:03.67
+
+===== confectory-imp3-contract1.log =====
+FAIL FieldDiscoveryTests.test_owned_field_discovery_union_precision_missing_limits_cancel_and_no_write_authority
+/workspace/Confectory/targets/dotnet/linux.celem(1,1): TARGET_FAILURE: /tmp/confectory-test-6443fe445c6940129d05b14c66aef021/field workspace/DescribeSchema.csbody(20,273): error CS0136: A local or parameter named 'text' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+
+0 passed, 1 failed, 0 skipped; 17.578s
+
+===== confectory-imp3-build3.log =====
+  Confectory.Core -> /workspace/Confectory/src/Confectory.Core/bin/Release/net10.0/Confectory.Core.dll
+  Confectory.DesktopEntry -> /workspace/Confectory/targets/desktop-entry/bin/Release/net10.0/Confectory.DesktopEntry.dll
+  Confectory.AndroidExport -> /workspace/Confectory/targets/android-export/bin/Release/net10.0/Confectory.AndroidExport.dll
+  Confectory.Build.Web -> /workspace/Confectory/targets/web/bin/Release/net10.0/Confectory.Build.Web.dll
+  Confectory.Cli -> /workspace/Confectory/src/Confectory.Cli/bin/Release/net10.0/Confectory.Cli.dll
+  Confectory.Build.DotNet -> /workspace/Confectory/targets/dotnet/bin/Release/net10.0/Confectory.Build.DotNet.dll
+  Confectory.Build.BrowserWasm -> /workspace/Confectory/targets/browser-wasm/bin/Release/net10.0/Confectory.Build.BrowserWasm.dll
+  Confectory.Tests -> /workspace/Confectory/tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:02.29
+
+===== confectory-imp3-contract2.log =====
+FAIL FieldDiscoveryTests.test_owned_field_discovery_union_precision_missing_limits_cancel_and_no_write_authority
+System.Exception: Unhandled exception. System.Exception: partial read isolated
+   at Confectory.Implementations.Ea620445369633f57f16dee9a.E9cd48a090b534f0132826411.<Invoke>g__Check|3_0(Boolean ok, String message)
+   at Confectory.Implementations.Ea620445369633f57f16dee9a.E9cd48a090b534f0132826411.Invoke()
+   at Bc84cc9ca7306eb44f5f191db.Invoke()
+   at Program.Main()
+
+   at Confectory.Tests.TestCase.True(Boolean condition, String message) in /workspace/Confectory/tests/Confectory.Tests/Support.cs:line 127
+   at Confectory.Tests.TestCase.Output(JsonObject report, String expected) in /workspace/Confectory/tests/Confectory.Tests/Support.cs:line 166
+   at Confectory.Tests.FieldDiscoveryTests.test_owned_field_discovery_union_precision_missing_limits_cancel_and_no_write_authority() in /workspace/Confectory/tests/Confectory.Tests/FieldDiscoveryTests.cs:line 24
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+0 passed, 1 failed, 0 skipped; 43.559s
+
+===== confectory-imp3-ui1.log =====
+UI page errors: []
+UI failure status: 실제 필드를 읽었습니다.
+UI failure controls: {'confirm': None, 'run': False, 'source': 'Example.ButtonGame::Score'}
+FAIL FieldDiscoveryTests.test_actual_editor_imp3_automatic_field_union_limits_cancel_selection_and_cold
+System.Exception: UI page errors: []
+UI failure status: 실제 필드를 읽었습니다.
+UI failure controls: {'confirm': None, 'run': False, 'source': 'Example.ButtonGame::Score'}
+Traceback (most recent call last):
+  File "/workspace/Confectory/tests/web/web_ui.py", line 375, in <module>
+    verify_discovery(page,project,mount,send,envelope,settle,restart_actual_host)
+  File "/workspace/Confectory/tests/web/v480_field_discovery.py", line 62, in verify_discovery
+    b.locator('[data-table-field=\''+amount+'\']').check();b.locator('[data-table-create]').click();ready();b.locator('[data-close]').click();expect(write_cell()).to_have_value('9223372036854775807');write_cell().fill('5');write_cell().evaluate('e=>globalThis.__imp3Cell=e');w.locator('[data-table-select="'+score+'"]').check()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/sync_api/_generated.py", line 17773, in check
+    self._sync(
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_sync_base.py", line 115, in _sync
+    return task.result()
+           ^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_locator.py", line 148, in check
+    return await self._frame.check(self._selector, strict=True, **params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_frame.py", line 908, in check
+    await self._channel.send("check", self._timeout, locals_to_params(locals()))
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_connection.py", line 76, in send
+    return await self._connection.wrap_api_call(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_connection.py", line 632, in wrap_api_call
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+playwright._impl._errors.TimeoutError: Locator.check: Timeout 30000ms exceeded.
+Call log:
+  - waiting for locator(".window[data-key=\"custom\"]").locator("[data-table-field='data:[\"amount\"]']")
+
+
+   at Confectory.Tests.TestCase.True(Boolean condition, String message) in /workspace/Confectory/tests/Confectory.Tests/Support.cs:line 127
+   at Confectory.Tests.FieldDiscoveryTests.test_actual_editor_imp3_automatic_field_union_limits_cancel_selection_and_cold() in /workspace/Confectory/tests/Confectory.Tests/FieldDiscoveryTests.cs:line 29
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+0 passed, 1 failed, 0 skipped; 101.876s
+
+===== confectory-imp3-build4.log =====
+  Confectory.Core -> /workspace/Confectory/src/Confectory.Core/bin/Release/net10.0/Confectory.Core.dll
+  Confectory.DesktopEntry -> /workspace/Confectory/targets/desktop-entry/bin/Release/net10.0/Confectory.DesktopEntry.dll
+  Confectory.AndroidExport -> /workspace/Confectory/targets/android-export/bin/Release/net10.0/Confectory.AndroidExport.dll
+  Confectory.Build.Web -> /workspace/Confectory/targets/web/bin/Release/net10.0/Confectory.Build.Web.dll
+  Confectory.Build.DotNet -> /workspace/Confectory/targets/dotnet/bin/Release/net10.0/Confectory.Build.DotNet.dll
+  Confectory.Cli -> /workspace/Confectory/src/Confectory.Cli/bin/Release/net10.0/Confectory.Cli.dll
+  Confectory.Build.BrowserWasm -> /workspace/Confectory/targets/browser-wasm/bin/Release/net10.0/Confectory.Build.BrowserWasm.dll
+  Confectory.Tests -> /workspace/Confectory/tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:01.99
+
+===== confectory-imp3-contract3.log =====
+PASS FieldDiscoveryTests.test_owned_field_discovery_union_precision_missing_limits_cancel_and_no_write_authority
+1 passed, 0 failed, 0 skipped; 46.400s
+
+===== confectory-imp3-ui2.log =====
+UI page errors: []
+UI failure status: 실제 Table을 열었습니다.
+UI failure controls: {'confirm': None, 'run': False, 'source': 'Example.ButtonGame::Score'}
+FAIL FieldDiscoveryTests.test_actual_editor_imp3_automatic_field_union_limits_cancel_selection_and_cold
+System.Exception: UI page errors: []
+UI failure status: 실제 Table을 열었습니다.
+UI failure controls: {'confirm': None, 'run': False, 'source': 'Example.ButtonGame::Score'}
+Traceback (most recent call last):
+  File "/workspace/Confectory/tests/web/web_ui.py", line 375, in <module>
+    verify_discovery(page,project,mount,send,envelope,settle,restart_actual_host)
+  File "/workspace/Confectory/tests/web/v480_field_discovery.py", line 63, in verify_discovery
+    w.locator('[data-table-fill-value]').fill('7');before=private_meta()['browser'];write_hash=table()['definitionHash'];w.locator('[data-browser-discover]').click();d=window('field-discovery');expect(d.locator('[data-discovery-root]')).to_be_visible();result();move(d,1200,20);pending_invariant();choose([score,other,bare,broken]);expect(d.locator('[data-discovery-summary]')).to_contain_text('조회 실패 1개');expect(dcell(score,amount).locator('[data-discovery-json]')).to_have_text('9223372036854775807');expect(dcell(other,amount).locator('[data-discovery-json]')).to_have_text('"variant"');expect(dcell(bare,amount)).to_have_attribute('data-value-state','missing');expect(dcell(broken,amount)).to_have_attribute('data-defined','unknown');expect(dcell(score,unset)).to_have_attribute('data-value-state','unset');expect(dcell(score,zero).locator('code')).to_have_text('0');expect(dcell(score,'nullish').locator('code')).to_have_text('null');expect(dcell(other,'nullish').locator('code')).to_have_text('0');expect(dcell(score,'falsey').locator('code')).to_have_text('false');expect(dcell(score,'empty').locator('code')).to_have_text('""');assert not d.locator('[data-table-cell],[data-table-select],[data-table-apply]').count();pending_invariant();sources()
+                                                                                                                                                                                                                                                                                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/Confectory/tests/web/v480_field_discovery.py", line 42, in choose
+    d=window('field-discovery');d.locator('[data-discovery-choose]').click();expect(d.locator('[data-discovery-object]')).not_to_have_count(0,timeout=120000);d.locator('[data-discovery-clear-choices]').click()
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/sync_api/_generated.py", line 17876, in click
+    self._sync(
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_sync_base.py", line 115, in _sync
+    return task.result()
+           ^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_locator.py", line 165, in click
+    return await self._frame._click(self._selector, strict=True, **params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_frame.py", line 593, in _click
+    await self._channel.send("click", self._timeout, locals_to_params(locals()))
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_connection.py", line 76, in send
+    return await self._connection.wrap_api_call(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_connection.py", line 632, in wrap_api_call
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+playwright._impl._errors.TimeoutError: Locator.click: Timeout 30000ms exceeded.
+Call log:
+  - waiting for locator(".window[data-key=\"field-discovery\"]").locator("[data-discovery-choose]")
+    - locator resolved to <button data-discovery-choose="">비교 객체 선택</button>
+  - attempting click action
+    2 × waiting for element to be visible, enabled and stable
+      - element is visible, enabled and stable
+      - scrolling into view if needed
+      - done scrolling
+      - <div role="tablist" aria-label="작업 공간" id="workspace-tabs" class="workspace-tabs">…</div> intercepts pointer events
+    - retrying click action
+    - waiting 20ms
+    2 × waiting for element to be visible, enabled and stable
+      - element is visible, enabled and stable
+      - scrolling into view if needed
+      - done scrolling
+      - <div role="tablist" aria-label="작업 공간" id="workspace-tabs" class="workspace-tabs">…</div> intercepts pointer events
+    - retrying click action
+      - waiting 100ms
+    58 × waiting for element to be visible, enabled and stable
+       - element is visible, enabled and stable
+       - scrolling into view if needed
+       - done scrolling
+       - <div role="tablist" aria-label="작업 공간" id="workspace-tabs" class="workspace-tabs">…</div> intercepts pointer events
+     - retrying click action
+       - waiting 500ms
+
+
+   at Confectory.Tests.TestCase.True(Boolean condition, String message) in /workspace/Confectory/tests/Confectory.Tests/Support.cs:line 127
+   at Confectory.Tests.FieldDiscoveryTests.test_actual_editor_imp3_automatic_field_union_limits_cancel_selection_and_cold() in /workspace/Confectory/tests/Confectory.Tests/FieldDiscoveryTests.cs:line 30
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+0 passed, 1 failed, 0 skipped; 104.932s
+
+===== confectory-imp3-ui3.log =====
+UI page errors: []
+UI failure status: 고급 소스 탐색
+UI failure controls: {'confirm': None, 'run': False, 'source': 'Example.ButtonGame::Score'}
+FAIL FieldDiscoveryTests.test_actual_editor_imp3_automatic_field_union_limits_cancel_selection_and_cold
+System.Exception: UI page errors: []
+UI failure status: 고급 소스 탐색
+UI failure controls: {'confirm': None, 'run': False, 'source': 'Example.ButtonGame::Score'}
+Traceback (most recent call last):
+  File "/workspace/Confectory/tests/web/web_ui.py", line 375, in <module>
+    verify_discovery(page,project,mount,send,envelope,settle,restart_actual_host)
+  File "/workspace/Confectory/tests/web/v480_field_discovery.py", line 72, in verify_discovery
+    invoke('select',{'id':score});ready();w.locator('[data-browser-control="browser-actions"]').click();page.locator('#advanced-source').click();source=page.locator('#source');expect(source).to_be_visible();pending_source=source.input_value()+'\n// IMP3_PENDING_SOURCE';source.fill(pending_source);source.evaluate('e=>globalThis.__imp3Source=e');move(window('source'),650,800);source_text=state()['draft']['text'];pending_invariant()
+                                                                                                                                                                                                                                                                                                                                                                                                                              ^^^^^^^^^^^^^^^^^^^
+  File "/workspace/Confectory/tests/web/v480_field_discovery.py", line 48, in pending_invariant
+    if binding:assert write_cell().evaluate('e=>e===globalThis.__imp3Cell')
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+
+   at Confectory.Tests.TestCase.True(Boolean condition, String message) in /workspace/Confectory/tests/Confectory.Tests/Support.cs:line 127
+   at Confectory.Tests.FieldDiscoveryTests.test_actual_editor_imp3_automatic_field_union_limits_cancel_selection_and_cold() in /workspace/Confectory/tests/Confectory.Tests/FieldDiscoveryTests.cs:line 30
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+0 passed, 1 failed, 0 skipped; 80.484s
+
+===== confectory-imp3-ui4.log =====
+UI page errors: []
+UI failure status: Ready
+UI failure controls: {'confirm': None, 'run': False, 'source': 'Example.ButtonGame::Score'}
+FAIL FieldDiscoveryTests.test_actual_editor_imp3_automatic_field_union_limits_cancel_selection_and_cold
+System.Exception: UI page errors: []
+UI failure status: Ready
+UI failure controls: {'confirm': None, 'run': False, 'source': 'Example.ButtonGame::Score'}
+Traceback (most recent call last):
+  File "/workspace/Confectory/tests/web/web_ui.py", line 375, in <module>
+    verify_discovery(page,project,mount,send,envelope,settle,restart_actual_host)
+  File "/workspace/Confectory/tests/web/v480_field_discovery.py", line 94, in verify_discovery
+    text=schema.read_text();schema.write_text(text[:text.rfind('}')]+'field coldAmount single general long;}');originals[schema]=schema.read_bytes();restart();ready();d=window('field-discovery');result();expect(d.locator('[data-discovery-filter]')).to_have_value('unapplied filter input');expect(d.locator('[data-discovery-column=\'data:["coldAmount"]\']')).to_be_visible();pending_invariant(False);source_pending(False);restored=private_meta();assert restored['browser']['tableInputs']==saved['browser']['tableInputs'] and restored['browser']['tableFill']==saved['browser']['tableFill'];assert restored['field-discovery']['fieldDiscovery']['ids']==[score,other];sources();page.screenshot(path='/tmp/confectory-imp3-after-cold.png',full_page=True)
+                                                                                                                                                                                                                                                                                                                                                                                      ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/Confectory/tests/web/v480_field_discovery.py", line 47, in pending_invariant
+    expect(write_cell()).to_have_value('5');expect(window('browser').locator('[data-table-fill-value]')).to_have_value('7');expect(window('browser').locator('[data-table-select="'+score+'"]')).to_be_checked();assert table()['ids']==[score] and table()['columns']==[amount]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/sync_api/_generated.py", line 22638, in to_have_value
+    self._sync(
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_sync_base.py", line 115, in _sync
+    return task.result()
+           ^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_assertions.py", line 568, in to_have_value
+    await self._expect_impl(
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_assertions.py", line 128, in _expect_impl
+    _record_soft_or_raise(
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_assertions.py", line 60, in _record_soft_or_raise
+    raise error
+AssertionError: Locator expected to have Value '5'
+Actual value: None
+Error: element(s) not found
+Call log:
+  - Expect "to_have_value" with timeout 5000ms
+  - waiting for locator(".window[data-key=\"browser\"]").locator("[data-table-cell=\"Example.ButtonGame::Score\"][data-column='data:[\"amount\"]']")
+
+Aria snapshot:
+- banner:
+  - button "Confectory 홈으로": Confectory
+  - text: /
+  - button "Union project A ▾"
+  - button "설정 열기": 설정
+- complementary:
+  - button "AGENT (0)" [expanded]
+  - button "Agent 추가": ++추가
+  - button "HELPER (0)" [expanded]
+  - button "Helper 추가": ++추가
+  - heading "소속 미지정 (0)" [level=4]
+  - button "Helper 추가": + ＋
+  - button "User(0/0)": User (0/0)
+  - separator "사이드바 너비 조절, 클릭하여 최소화 또는 복원"
+- main:
+  - img "창 부모 자식 연결"
+  - tablist "작업 공간":
+    - tab "Workspace" [selected]
+  - status
+  - button "YogiBox"
+  - button "증강"
+  - button "신문고": 📫
+  - button "빌드 대상 선택": 🛠️
+  - button "실행 화면 열기": ▶
+  - button "프로젝트 브라우저": ≡
+  - region "고급 소스 작업 사본":
+    - text: ◈
+    - strong: 고급 소스 작업 사본
+    - button "창 접기": −
+    - button "창 닫기": ×
+    - heading "Example.ButtonGame::Score" [level=2]
+    - paragraph
+    - textbox "Source draft": "object Example.ButtonGame::Score {value nullish = 1;value empty = \"\";value falsey = false;data zero = 0; value description = \"Separate metadata\";use schema Example.ButtonGame::TableStats;data amount = 9223372036854775807;data tags = [1,2]; value initial = 0; description \"Game-owned score; buttons contain no editor/model semantics.\"; } // IMP3_PENDING_SOURCE"
+    - button "스키마"
+    - button "Apply to shared draft"
+    - button "충돌 비교"
+    - button "Save"
+    - button "Review"
+    - text: Save는 작업 사본 저장입니다. 최종 소스 반영은 별도 Review / Confirm이 필요합니다.
+    - button "n 방향으로 창 크기 조절"
+    - button "ne 방향으로 창 크기 조절"
+    - button "e 방향으로 창 크기 조절"
+    - button "se 방향으로 창 크기 조절"
+    - button "s 방향으로 창 크기 조절"
+    - button "sw 방향으로 창 크기 조절"
+    - button "w 방향으로 창 크기 조절"
+    - button "nw 방향으로 창 크기 조절"
+  - region "프로젝트 브라우저":
+    - text: ◈
+    - strong: 프로젝트 브라우저
+    - button "창 접기": −
+    - button "창 닫기": ×
+    - button "개념"
+    - button "기능"
+    - button "모듈"
+    - textbox "의미 객체 검색":
+      - /placeholder: 개념 검색…
+    - button "검색 확정": 검색
+    - button "정렬 방법"
+    - button "새 의미 객체": ＋
+    - button "선언 관계 다시 읽기"
+    - text: Data
+    - slider "객체 표시 밀도 Compact Preview Data": "100"
+    - button "ProjectPack"
+    - navigation "명시 선언 계층":
+      - text: 트리 검색
+      - searchbox "선언 트리 검색"
+      - paragraph: 현재 namespace 목록을 읽지 못했습니다. 다시 읽기를 사용하세요.
+      - tree "namespace와 명시 parent 트리":
+        - treeitem "ProjectPack 펼침 ProjectPack root" [expanded] [level=1] [selected]:
+          - button "ProjectPack 펼침" [expanded]: ▾
+          - button "ProjectPack root"
+        - treeitem "Example 펼침 Example namespace 경로" [expanded] [level=2]:
+          - button "Example 펼침" [expanded]: ▾
+          - button "Example namespace 경로"
+        - treeitem "ButtonGame 펼침 ButtonGame namespace 경로" [expanded] [level=3]:
+          - button "ButtonGame 펼침" [expanded]: ▾
+          - button "ButtonGame namespace 경로"
+        - treeitem "Score 펼침 Score object · parent 없음 · 소유 · 소속/schema 1" [level=4]:
+          - button "Score 펼침": ▸
+          - button "Score object · parent 없음 · 소유 · 소속/schema 1"
+        - treeitem "TableStats schema · parent 없음 · 소유" [level=4]:
+          - button "TableStats schema · parent 없음 · 소유"
+        - treeitem "UnionBare object · parent 없음 · 소유" [level=4]:
+          - button "UnionBare object · parent 없음 · 소유"
+        - treeitem "UnionBroken object · 선언 오류 · 소유" [level=4]:
+          - button "UnionBroken object · 선언 오류 · 소유"
+        - treeitem "UnionMany object · parent 없음 · 소유" [level=4]:
+          - button "UnionMany object · parent 없음 · 소유"
+        - treeitem "UnionOther object · parent 없음 · 소유 · 소속/schema 1" [level=4]:
+          - button "UnionOther object · parent 없음 · 소유 · 소속/schema 1"
+        - treeitem "UnionOtherSchema schema · parent 없음 · 소유" [level=4]:
+          - button "UnionOtherSchema schema · parent 없음 · 소유"
+        - treeitem "UnionRow00 object · parent 없음 · 소유" [level=4]:
+          - button "UnionRow00 object · parent 없음 · 소유"
+        - treeitem "UnionRow01 object · parent 없음 · 소유" [level=4]:
+          - button "UnionRow01 object · parent 없음 · 소유"
+        - treeitem "UnionRow02 object · parent 없음 · 소유" [level=4]:
+          - button "UnionRow02 object · parent 없음 · 소유"
+        - treeitem "UnionRow03 object · parent 없음 · 소유" [level=4]:
+          - button "UnionRow03 object · parent 없음 · 소유"
+        - treeitem "UnionRow04 object · parent 없음 · 소유" [level=4]:
+          - button "UnionRow04 object · parent 없음 · 소유"
+        - treeitem "UnionRow05 object · parent 없음 · 소유" [level=4]:
+          - button "UnionRow05 object · parent 없음 · 소유"
+        - treeitem "UnionRow06 object · parent 없음 · 소유" [level=4]:
+          - button "UnionRow06 object · parent 없음 · 소유"
+        - treeitem "UnionRow07 object · parent 없음 · 소유" [level=4]:
+          - button "UnionRow07 object · parent 없음 · 소유"
+        - treeitem "UnionRow08 object · parent 없음 · 소유" [level=4]:
+          - button "UnionRow08 object · parent 없음 · 소유"
+        - treeitem "UnionRow09 object · parent 없음 · 소유" [level=4]:
+          - button "UnionRow09 object · parent 없음 · 소유"
+        - treeitem "UnionRow10 object · parent 없음 · 소유" [level=4]:
+          - button "UnionRow10 object · parent 없음 · 소유"
+        - treeitem "UnionRow11 object · parent 없음 · 소유" [level=4]:
+          - button "UnionRow11 object · parent 없음 · 소유"
+        - treeitem "UnionRow12 object · parent 없음 · 소유" [level=4]:
+          - button "UnionRow12 object · parent 없음 · 소유"
+        - treeitem "UnionRow13 object · parent 없음 · 소유" [level=4]:
+          - button "UnionRow13 object · parent 없음 · 소유"
+        - treeitem "UnionRow14 object · parent 없음 · 소유" [level=4]:
+          - button "UnionRow14 object · parent 없음 · 소유"
+        - treeitem "UnionRow15 object · parent 없음 · 소유" [level=4]:
+          - button "UnionRow15 object · parent 없음 · 소유"
+        - treeitem "UnionRow16 object · parent 없음 · 소유" [level=4]:
+          - button "UnionRow16 object · parent 없음 · 소유"
+        - treeitem "UnionRow17 object · parent 없음 · 소유" [level=4]:
+          - button "UnionRow17 object · parent 없음 · 소유"
+        - treeitem "ZBroken object · parent 없음 · 소유" [level=4]:
+          - button "ZBroken object · parent 없음 · 소유"
+    - region "선택한 트리 항목":
+      - paragraph: contain/schema는 폴더 소속으로 바꾸지 않습니다. 등록 선언의 parent는 자동으로 읽지 않습니다.
+    - text: 미적용 소스 입력을 먼저 적용하세요. 그룹·검색 입력은 유지됩니다. 25 객체 · Data 클릭 선택 · 더블클릭 편집 · 우클릭 기능
+    - button "n 방향으로 창 크기 조절"
+    - button "ne 방향으로 창 크기 조절"
+    - button "e 방향으로 창 크기 조절"
+    - button "se 방향으로 창 크기 조절"
+    - button "s 방향으로 창 크기 조절"
+    - button "sw 방향으로 창 크기 조절"
+    - button "w 방향으로 창 크기 조절"
+    - button "nw 방향으로 창 크기 조절"
+  - region "자동 필드 합집합 · 읽기 전용":
+    - text: ◈
+    - strong: 자동 필드 합집합 · 읽기 전용
+    - button "창 접기": −
+    - button "창 닫기": ×
+    - button "비교 객체 선택"
+    - text: 필드 필터
+    - textbox "자동 필드 필터": unapplied filter input
+    - button "필터 적용"
+    - button "필터 입력 취소"
+    - button "현재 필드 다시 조회"
+    - button "조회 취소" [disabled]
+    - paragraph: Example.ButtonGame::Score · Example.ButtonGame::UnionOther
+    - status: 행별 관측값 · 11:50:41 AM · 현재 값은 명시적으로 다시 조회하세요.
+    - text: 현재 페이지 객체 필터
+    - textbox "자동 비교 객체 필터"
+    - button "이전 행" [disabled]
+    - button "다음 행" [disabled]
+    - button "이전 필드" [disabled]
+    - button "다음 필드" [disabled]
+    - paragraph: available · 명시 대상 2개 · 관측 필드 13개 · 일치 2개 · 현재 2행/2열
+    - table:
+      - rowgroup:
+        - row "소유 객체 · 읽기 전용 amount 관측 정의 2/2개 · general · long · single / general · string · single coldAmount 관측 정의 1/2개 · general · long · single":
+          - columnheader "소유 객체 · 읽기 전용"
+          - columnheader "amount 관측 정의 2/2개 · general · long · single / general · string · single"
+          - columnheader "coldAmount 관측 정의 1/2개 · general · long · single"
+      - rowgroup:
+        - row "Example.ButtonGame::Score available · schema valid 9223372036854775807 명시 값 · 값 원본 Example.ButtonGame::Score · schema Example.ButtonGame::TableStats — 선언됨 · 미설정 · schema Example.ButtonGame::TableStats":
+          - rowheader "Example.ButtonGame::Score available · schema valid"
+          - cell "9223372036854775807 명시 값 · 값 원본 Example.ButtonGame::Score · schema Example.ButtonGame::TableStats":
+            - code: "9223372036854775807"
+            - text: 명시 값 · 값 원본 Example.ButtonGame::Score · schema Example.ButtonGame::TableStats
+          - cell "— 선언됨 · 미설정 · schema Example.ButtonGame::TableStats":
+            - code: —
+            - text: 선언됨 · 미설정 · schema Example.ButtonGame::TableStats
+        - row "Example.ButtonGame::UnionOther available · schema valid \"variant\" 명시 값 · 값 원본 Example.ButtonGame::UnionOther · schema Example.ButtonGame::UnionOtherSchema — 필드 없음":
+          - rowheader "Example.ButtonGame::UnionOther available · schema valid"
+          - cell "\"variant\" 명시 값 · 값 원본 Example.ButtonGame::UnionOther · schema Example.ButtonGame::UnionOtherSchema":
+            - code: "\"variant\""
+            - text: 명시 값 · 값 원본 Example.ButtonGame::UnionOther · schema Example.ButtonGame::UnionOtherSchema
+          - cell "— 필드 없음":
+            - code: —
+            - text: 필드 없음
+    - paragraph: 필드 없음·미설정은 JSON null이나 0으로 채우지 않습니다. 자동 필드는 읽기 전용이며 기존 쓰기 선택과 입력 버전을 바꾸지 않습니다.
+    - button "n 방향으로 창 크기 조절"
+    - button "ne 방향으로 창 크기 조절"
+    - button "e 방향으로 창 크기 조절"
+    - button "se 방향으로 창 크기 조절"
+    - button "s 방향으로 창 크기 조절"
+    - button "sw 방향으로 창 크기 조절"
+    - button "w 방향으로 창 크기 조절"
+    - button "nw 방향으로 창 크기 조절"
+- separator "채팅바 높이 조절"
+- button "프로젝트 채팅"
+- button "Logs"
+- strong
+- textbox "프로젝트 채팅 입력":
+  - /placeholder: 함께 만들 내용을 남겨보세요…
+- button "메시지 보내기": 보내기
+- status
+
+   at Confectory.Tests.TestCase.True(Boolean condition, String message) in /workspace/Confectory/tests/Confectory.Tests/Support.cs:line 127
+   at Confectory.Tests.FieldDiscoveryTests.test_actual_editor_imp3_automatic_field_union_limits_cancel_selection_and_cold() in /workspace/Confectory/tests/Confectory.Tests/FieldDiscoveryTests.cs:line 30
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+0 passed, 1 failed, 0 skipped; 130.744s
+
+===== confectory-imp3-final-contracts1.log =====
+PASS InstantTableVersionTests.test_versioned_table_atomic_fill_schema_fences_precision_and_borrowed_lifetime
+PASS FieldDiscoveryTests.test_owned_field_discovery_union_precision_missing_limits_cancel_and_no_write_authority
+PASS EntryHomeTests.test_android_home_export_selects_activity_and_metadata_parser_without_engine_surface_sample
+PASS Windows managed native composition compile only; no Windows device run
+PASS EntryHomeNativeDetailsTests.test_windows_native_information_and_profile_composition_builds
+4 passed, 0 failed, 0 skipped; 214.531s
+
+===== confectory-imp3-ui5.log =====
+PASS actual IMP3 automatic field union: exact JSON and missing/null/default/type variants, bounded pages/partial failures, independent write selections and original CAS, unchanged pending source/cell/fill DOM, cancel/late response/filter/selection, current cold schema and A/B/A isolation; no source writes or AI
+Actual common WebUI field-discovery Chromium PASS
+PASS FieldDiscoveryTests.test_actual_editor_imp3_automatic_field_union_limits_cancel_selection_and_cold
+1 passed, 0 failed, 0 skipped; 138.054s
+
+===== confectory-imp3-final-checkout1.log =====
+PASS WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup
+1 passed, 0 failed, 0 skipped; 36.545s
+
+===== confectory-imp3-final-ui-regression1.log =====
+PASS WebUITests.test_actual_editor_v424_instant_table_typed_fill_cas_and_cold_restart
+PASS actual v480 browser atomic fill: explicit IDs/no expansion/exact JSON/atomic type+second-row+schema refusal/original bases/cancel/private cell retention/read-only/cold/Save/compiler Confirm
+Actual common WebUI browser-data-fill Chromium PASS
+PASS WebUITests.test_actual_editor_v480_browser_data_atomic_fill_selection_cas_and_cold
+PASS actual v480 browser Data fields: shared versioned cells/exact int64/typed refusal/cancel/selection/reconfigure/readonly/source+schema CAS/cold/Save/compiler Confirm
+Actual common WebUI browser-data-fields Chromium PASS
+PASS WebUITests.test_actual_editor_v480_browser_data_fields_typed_cas_inputs_and_cold
+3 passed, 0 failed, 0 skipped; 256.566s
+

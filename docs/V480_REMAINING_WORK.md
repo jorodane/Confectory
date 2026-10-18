@@ -4,13 +4,13 @@
 
 IMP1의 로컬 WebUI 및 native 정보/표시 프로필 연결은 [후속 검증](V480_NATIVE_HOME_PROFILES.md) 범위로 완료했다. Linux GTK/X11 실제 입력 결과, Windows managed compile, Android/browser metadata fixture를 구분하며 미실행 장치·전체 OS 조합은 기존 ENV 항목에 남긴다.
 
-IMP2의 WebUI와 [native 대응 트리](V480_NATIVE_DECLARATION_TREE.md)는 확정 namespace·명시 parent의 제한된 범위로 구현했다. 깊이/표시 한도, 등록 parent 미조회, 명시 저장본과 미저장 입력의 수명을 구분한다. Linux 실제 입력과 관리 컴파일을 나누며 미실행 OS/기기는 ENV1/ENV2에 남긴다. 다음 P1 구현 항목은 IMP3이다.
+IMP2의 WebUI와 [native 대응 트리](V480_NATIVE_DECLARATION_TREE.md)는 확정 namespace·명시 parent의 제한된 범위로 구현했다. 깊이/표시 한도, 등록 parent 미조회, 명시 저장본과 미저장 입력의 수명을 구분한다. Linux 실제 입력과 관리 컴파일을 나누며 미실행 OS/기기는 ENV1/ENV2에 남긴다. IMP3의 [명시 소유 대상·기존 스키마 기반 자동 필드 합집합](V480_AUTOMATIC_FIELD_UNION.md)은 읽기 전용 WebUI 비교 범위로 구현했다. 계산 열·일반 선택 확장·native 합집합 화면은 아래에 남긴다.
 
 분류는 **구현 누락**, **설계 결정**, **권한 승인**, **환경 미검증**이다. 하나의 항목에 다른 원인이 섞이면 행을 나눈다. 예를 들어 협업 서비스 자체의 부재는 구현 누락이고, 나중에 실제 계정으로 검증하는 허용 여부는 권한 승인이다. 내부 파일 형식이나 저장소 구현 선택은 사용자 답변 대기로 돌리지 않는다.
 
 | 순서 · ID | 분류 | 실제 남은 범위 | 후속 완료 기준 · 현재 의존성 |
 |---|---|---|---|
-| P1 · IMP3 | 구현 누락 | 자동 전체 필드 합집합/표시, 사용자 계산 열, 일반 선택 범위 확장 | 기존 명시적 쓰기 대상·field/source/schema CAS를 보존하고 조회·정확한 값·선택/cold/오류를 검사. 계산 실행 의미가 필요하면 DEC3/DEC4 선행; 현재 Data/채우기 완료와 분리 |
+| P1 · IMP3 | 구현 누락 | 사용자 계산 열, 일반 선택 범위 확장, native 자동 필드 합집합 화면 | 명시 소유 대상·기존 스키마의 읽기 전용 WebUI 합집합과 기존 쓰기 선택·field/source/schema CAS를 유지. 새 범위의 정확한 값·선택/cold/오류를 검사. 계산 실행 의미가 필요하면 DEC3/DEC4 선행; 현재 Data/채우기·제한된 합집합과 분리 |
 | P1 · IMP4 | 구현 누락 | 객체/함수 화면의 원클릭 밸런스·테스트 실행 등 prototype 보조 행동 | 실제 실행/결과/실패와 소유 범위를 연결하고 UI 및 compiler/runtime 근거 마련. 화면의 성공 표시로 대체하지 않음 |
 | P1 · IMP7 | 구현 누락 | Workspace의 일반 이동/연결 Undo, native reparent 이전의 전체 문서 Undo 이력 | private 문서/보기 정체성·미적용 입력을 보존한 역변경 명세와 cold/redo/분기 검사. 이미 지원하는 private 삭제 Undo와 구분. 소스 집합 변경은 DEC2 밖에서 추가하지 않음 |
 | P1 · ENV4 | 환경 미검증 | [측정된 부하/검사 한계와 잔여 불확실성](V480_ENV4_DIAGNOSIS.md) | 두 graph timeout은 4 CPU/6 gate에서 작업 진행 중 재현됐고 같은 source의 2 gate에서 원래 deadline 내 통과. native Engine의 미관측 lease 순서와 Home 조회 PID 오판은 검사 보정 후 같은 부하 통과. 최초 native ButtonGame wait phase는 재현하지 못했으며, 추가 Pause 1회·cache/시작 이력·PID 1의 zombie 잔류 영향은 미확정. 환경 원인으로 일괄 단정하지 않음. 새 사용자 결정 불필요 |

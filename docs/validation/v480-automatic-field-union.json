@@ -1,0 +1,321 @@
+{
+  "version": 1,
+  "sourceCommit": "9ce77d225cc0d64928087574e872c076c3cb4a88",
+  "parentCommit": "2880a238f0bd6f0c424e2c8249cde5df5b638123",
+  "measuredAtUtc": "2026-10-18T11:59:05.607653+00:00",
+  "scope": "IMP3 read-only automatic field union for explicit root-owned objects and existing permitted schema metadata; no calculation, write scope expansion, native union UI or full v480 completion",
+  "distinctMethods": 9,
+  "passed": 9,
+  "failed": 0,
+  "skipped": 0,
+  "gateConcurrencyLimit": 2,
+  "cpuQuota": 4,
+  "memoryLimitBytes": 17179869184,
+  "groups": [
+    {
+      "group": "contracts-and-managed-compile",
+      "log": "confectory-imp3-final-contracts1.log",
+      "methods": [
+        "InstantTableVersionTests.test_versioned_table_atomic_fill_schema_fences_precision_and_borrowed_lifetime",
+        "FieldDiscoveryTests.test_owned_field_discovery_union_precision_missing_limits_cancel_and_no_write_authority",
+        "EntryHomeTests.test_android_home_export_selects_activity_and_metadata_parser_without_engine_surface_sample",
+        "EntryHomeNativeDetailsTests.test_windows_native_information_and_profile_composition_builds"
+      ],
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 214.531
+    },
+    {
+      "group": "actual-automatic-union-ui",
+      "log": "confectory-imp3-ui5.log",
+      "methods": [
+        "FieldDiscoveryTests.test_actual_editor_imp3_automatic_field_union_limits_cancel_selection_and_cold"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 138.054
+    },
+    {
+      "group": "existing-data-and-fill-ui",
+      "log": "confectory-imp3-final-ui-regression1.log",
+      "methods": [
+        "WebUITests.test_actual_editor_v424_instant_table_typed_fill_cas_and_cold_restart",
+        "WebUITests.test_actual_editor_v480_browser_data_atomic_fill_selection_cas_and_cold",
+        "WebUITests.test_actual_editor_v480_browser_data_fields_typed_cas_inputs_and_cold"
+      ],
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 256.566
+    },
+    {
+      "group": "ordinary-git-checkout",
+      "log": "confectory-imp3-final-checkout1.log",
+      "methods": [
+        "WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 36.545
+    }
+  ],
+  "sourceSha256": {
+    "examples/editor-home/Main.celem": "c2ca7b1f73ed83a0543d4b67fa1ece8db1b04724207680a3f00e1f081a7e0e9f",
+    "examples/editor-home/Verify.celem": "f100b44011973d934aa714e011d22d3bd3628d9e8635c48af77f633e1f14b265",
+    "examples/editor-home/VerifyShell.celem": "38e207ea60771522c09c0b2793271c4a63d2153015529b7a4768b79b04ce2dc9",
+    "examples/editor-home/WebBundle.csbody": "8ef5b848cf4f81982c37ed3e7e4c9dfce04db925395f3b6fac1be21f47cdd517",
+    "examples/editor-home/WebInvoke.csbody": "461435fdf0ba53fb7df3d34678d03e5f59f6483aa4e0b85a6e072945774dc609",
+    "examples/editor-home/WebInvokeBody.celem": "04fe3e08b1d773e5a253489223c07d34de6a89ac4d69a5a4d29ee48ff43cba40",
+    "examples/editor-home/ui/app.js": "5bfc87369f072f73e269623521e94c63c909ed1734efac73a5c469f4aa529d30",
+    "examples/editor-home/ui/consumer.css": "6cdff9e636426a714d0f1c862106c83a45e7632187e52d1b3a09bbdc095bfcef",
+    "examples/editor-home/ui/field-discovery.js": "e44121ad7618ba47f503af2752a699dab690a6e697782f52f68d643870b00b11",
+    "examples/editor-home/ui/tables.js": "6afa14b03f1bc85e86ba928afb3a0c8d48e59b99259818bea0ca29033df20020",
+    "examples/editor-home/ui/workspace-host.js": "2b5a50c78da3b32ebb76a1dacd0554540188f585fb9145f4b23304d51bd3b01a",
+    "packs/editor-home-model/FieldDiscovery.celem": "57dcaba304a8e663a563e8b21bce4c2f1124bc977d71c1c7a8e63d3d68856c50",
+    "packs/editor-home-model/FieldDiscovery.csbody": "0205014bb9acaef5640e5aebd3a82752fabcc57466d45271d9441e3a8340abb1",
+    "packs/editor-home-model/FieldDiscoveryBody.celem": "9837e0c036a106e5cedc36c3e24a559f0a929a5d8eee87b1087905adc70a4222",
+    "packs/editor-home-model/pack.cpack": "b966290b2030fa51874721fb6039fb90bfdd7ae35a7b6787fb5bb16ffe05a49a",
+    "tests/Confectory.Tests/FieldDiscoveryTests.cs": "7420d3fbcfc36eae92b450aa48fc4a8204c23ea2a176c4bc168a72ea3066d06a",
+    "tests/Confectory.Tests/Program.cs": "b2108a1e317c32176d0f28681939308636ef6002480895cd9556a7dffe5d751c",
+    "tests/probes/field_discovery_contract.csbody": "d0f5868c9f937c816979a2d270aa023acdd17148f1deccc2517db0d6b5c86a23",
+    "tests/web/v480_field_discovery.py": "fda77af81279c831b6f318637ea7c1d5b5d0857ca048a10e83ba73a3cf006097",
+    "tests/web/web_ui.py": "3ee4119f2df5c3b3725bdb737f82fc3ab477956b0c0ad6bff66ac72a11c2a4a7",
+    "examples/editor-home/Main.csbody": "3d8962a8a5c23c5bf6db52c71216a7e4e0e341f24e84118e1c9e322998db1c33",
+    "packs/editor-home-model/TableCommand.csbody": "f775f6f06336de927e6ddd2022e1f4f8b22e03ad1aea8a6e0e257a90be235fb4",
+    "packs/edit-workspace/DescribeSchema.csbody": "b074577046ece9144c94659085c0dbc388689d22e95eba8b7e7d85dde020e224"
+  },
+  "finalLogs": [
+    "confectory-imp3-final-contracts1.log",
+    "confectory-imp3-ui5.log",
+    "confectory-imp3-final-ui-regression1.log",
+    "confectory-imp3-final-checkout1.log"
+  ],
+  "attempts": [
+    {
+      "log": "confectory-imp3-build.log",
+      "kind": "tests-managed-build",
+      "success": true
+    },
+    {
+      "log": "confectory-imp3-build2.log",
+      "kind": "tests-managed-build",
+      "success": true
+    },
+    {
+      "log": "confectory-imp3-contract1.log",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 17.578,
+      "final": false
+    },
+    {
+      "log": "confectory-imp3-build3.log",
+      "kind": "tests-managed-build",
+      "success": true
+    },
+    {
+      "log": "confectory-imp3-contract2.log",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 43.559,
+      "final": false
+    },
+    {
+      "log": "confectory-imp3-ui1.log",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 101.876,
+      "final": false
+    },
+    {
+      "log": "confectory-imp3-build4.log",
+      "kind": "tests-managed-build",
+      "success": true
+    },
+    {
+      "log": "confectory-imp3-contract3.log",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 46.4,
+      "final": false
+    },
+    {
+      "log": "confectory-imp3-ui2.log",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 104.932,
+      "final": false
+    },
+    {
+      "log": "confectory-imp3-ui3.log",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 80.484,
+      "final": false
+    },
+    {
+      "log": "confectory-imp3-ui4.log",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 130.744,
+      "final": false
+    },
+    {
+      "log": "confectory-imp3-final-contracts1.log",
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 214.531,
+      "final": true
+    },
+    {
+      "log": "confectory-imp3-ui5.log",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 138.054,
+      "final": true
+    },
+    {
+      "log": "confectory-imp3-final-checkout1.log",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 36.545,
+      "final": true
+    },
+    {
+      "log": "confectory-imp3-final-ui-regression1.log",
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 256.566,
+      "final": true
+    }
+  ],
+  "publicLogNormalization": "Trailing whitespace removed only; original scratch logs retained.",
+  "diagnostics": [
+    "fixture variable named text conflicted with existing DescribeSchema body; renamed driftText",
+    "CELEM metadata null literal is unsupported; fixture source retains scalar 1 and an owned copied DescribeSchema read adapter supplies actual null response without parser or writer changes",
+    "fixture drag at global y20 overlapped workspace tabs; moved owned test window to y120",
+    "explicit source selection precedes live input binding capture; ordinary existing source selection redraw was not a field-discovery redraw",
+    "cold Browser source-dirty guard intentionally defers list/write-table restoration; verify exact retained private inputs and original CAS rather than require hidden controls; standalone readonly union still reads fresh cold schema",
+    "private autosave drained before deterministic owned metadata hold; production reader has no test hold or retry",
+    "restored component retains its spec object for live handlers and reads fresh results even for an existing placeholder window",
+    "field comparison flex container preserves toolbar and scroll layout"
+  ],
+  "journey": {
+    "explicitObjectSelection": true,
+    "objectChoicesDoNotDescribeUnselectedObjects": true,
+    "rootObjectScopeValidatedBeforeMetadata": true,
+    "allDiscoveredCellsReadonly": true,
+    "actualInt64MaxJsonPreserved": true,
+    "missingUnsetDefaultZeroFalseEmptyDistinct": true,
+    "actualNullReadResponseViaOwnedAdapter": true,
+    "celemNullLiteralSupported": false,
+    "typeVariantsAndPartialFailures": true,
+    "failedOrLimitedDefinitionsUnknown": true,
+    "valueAndResponseBudgets": true,
+    "cooperativeCancelAfterMetadata": true,
+    "lateResultIgnored": true,
+    "selectionDialogCancelAndFieldFilterChange": true,
+    "sourceAndCellLiveDomBindingsPreserved": true,
+    "pendingFillAndWriteDefinitionAndOriginalCasPreserved": true,
+    "validCurrentDiscoveryVersionsCannotWidenWritableRowsOrFields": true,
+    "schemaDriftMidReadRefused": true,
+    "staleWritableCasAfterDiscoveryRefused": true,
+    "processColdFreshSchema": true,
+    "processColdPendingSourceAndPrivateTableInputs": true,
+    "coldBrowserSourceDirtyGuardRetained": true,
+    "projectContexts": 2,
+    "privateSpecKeys": [
+      "projectId",
+      "ids",
+      "query",
+      "queryInput",
+      "rowOffset",
+      "fieldPage",
+      "rowFilter"
+    ],
+    "persistedResultsOrHandles": false,
+    "ownedSourcesUnchangedExceptIntentionalExternalFixtureSchemaEdits": true,
+    "noAiOrProjectCreation": true
+  },
+  "limits": {
+    "selectedObjects": 64,
+    "objectIdCharacters": 512,
+    "requestCharacters": 65536,
+    "queryCharacters": 256,
+    "objectPageSize": 64,
+    "perObjectObservedFields": 1024,
+    "existingSchemaRows": 512,
+    "existingSchemaDepth": 64,
+    "matchedUnionFields": 512,
+    "rowPageSize": 16,
+    "fieldPageSize": 16,
+    "typeVariants": 4,
+    "valueBytes": 65536,
+    "pageValueBytes": 262144,
+    "responseBytes": 1048576,
+    "metadataCallsPerAvailableSelectedObject": 2,
+    "registeredObjectRead": "refused; existing schema dependency access unchanged",
+    "calculatedColumns": "remaining IMP3; DEC3/DEC4 unchanged",
+    "nativeUnionUi": "not added; existing native controls and providers unchanged",
+    "env4": "prior ButtonGame/Pause/zombie uncertainty unchanged"
+  },
+  "platformEvidence": {
+    "webui": "actual Chromium against owned consumer fixture and existing actual data/fill UIs; ordinary committed Git checkout starts actual unmodified provider with all 43 canonical/exact resources",
+    "windows": "managed native composition compile only; no Windows UI",
+    "android": "actual EditorHome managed export only; managedCompiled=true, androidAppCompiled=false, apkProduced=false; no settings changes or device",
+    "wasm": "not executed",
+    "nativeAutomaticUnion": "not implemented"
+  },
+  "webResources": {
+    "count": 43,
+    "added": [
+      "field-discovery.js"
+    ],
+    "changedPins": [
+      "workspace-host.js",
+      "app.js",
+      "consumer.css",
+      "tables.js"
+    ],
+    "cspChanged": false,
+    "originalBinaryChanged": false,
+    "ordinaryGitLfAndRetainedCrlfCheckout": true,
+    "actualHomeStartup": true,
+    "contentEncodingBomBinaryBudgetRejection": true
+  },
+  "preservation": {
+    "localMain": "b5ea38c3d7eec3eb20f170e68f0f4215b86b2aee",
+    "remoteMain": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+    "baseWorkCurrent": "2880a238f0bd6f0c424e2c8249cde5df5b638123",
+    "zipSha256": {
+      "reference/site-ui/Confectory-Editor-Prototype-v196.zip": "02d4824e92ed0edbb43113659982b37a99a614117652bde4d8ac92367e334e34",
+      "reference/site-ui/Confectory-Editor-Prototype-v318.zip": "0a614fe2bf1ad3d8e10dfa8905bb6b61ea9f21b87b2492b2b87ca8566e9e6908",
+      "reference/site-ui/Confectory-Editor-Prototype-v424.zip": "b7969cd109ea2dad38bde9c9ab13967c20162c920a45a8cd51a8f82df6041874",
+      "reference/site-ui/Confectory-Editor-Prototype-v480.zip": "0489844c8c6d90f7cdc8ea0e80628f487dcfb27f2c871b19367a635212d3c5bd"
+    }
+  },
+  "screenshots": [
+    {
+      "file": "v480-automatic-field-union-before-cold.png",
+      "sha256": "c3fb37ca851ec0629c5f3d0a1596152c346821b7dc1c6537fe03e30d85b9868c"
+    },
+    {
+      "file": "v480-automatic-field-union-after-cold.png",
+      "sha256": "c7da64d3298df1671316e6a468a6ff1292559d29c99ca5a1ee5057aea88b100d"
+    }
+  ]
+}
