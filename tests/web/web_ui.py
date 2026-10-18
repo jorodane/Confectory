@@ -58,7 +58,7 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
   (project/'RefModule.celem').write_text('module Example.ButtonGame::RefModule {}')
   raw=manifest.read_text();i=raw.rfind('}');manifest.write_text(raw[:i]+'element RefStats schema "RefStats.celem";element Peer object "Peer.celem";element OtherPeer object "OtherPeer.celem";element RefModule module "RefModule.celem";'+raw[i:])
  env['CONFECTORY_WEB_PROJECT']=str(manifest)
- if kind in ['node-tasks','blueprint','blueprint-implicit','blueprint-external-ref','blueprint-nested','blueprint-property','blueprint-property-set','blueprint-property-ref','blueprint-integrated','blueprint-code-regions','blueprint-methods','blueprint-enum-plan','blueprint-switch','blueprint-camera','blueprint-create','call-wrapper','registered-call','placed-find','locals','ref-nodes','alias-locals']:
+ if kind in ['node-tasks','blueprint','blueprint-implicit','blueprint-external-ref','blueprint-nested','blueprint-property','blueprint-property-set','blueprint-property-ref','blueprint-integrated','blueprint-code-regions','blueprint-methods','blueprint-enum-plan','blueprint-switch','blueprint-camera','blueprint-overview','blueprint-create','call-wrapper','registered-call','placed-find','locals','ref-nodes','alias-locals']:
   fixture=report['nodeTaskFixture']
   typename='long' if kind.startswith('blueprint') or kind in ['call-wrapper','registered-call','placed-find','locals','ref-nodes','alias-locals'] else 'int'
   (project/'NodeValue.celem').write_text(fixture['feature']);(project/'NodeValueBody.celem').write_text('implementation Example.ButtonGame::NodeValueBody for Example.ButtonGame::NodeValue ('+typename+' n) -> '+typename+' {blueprint common "node-value.graph.json";}')
@@ -82,7 +82,7 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
   (project/'LiftValue.celem').write_text('function Example.ButtonGame::LiftValue (ref long left,ref long right,out long audit) -> long {}')
   (project/'LiftValueBody.celem').write_text('implementation Example.ButtonGame::LiftValueBody for Example.ButtonGame::LiftValue (ref long a,ref long b,out long copied) -> long {body common "lift.csbody";}')
   (project/'lift.csbody').write_bytes(b'if (a < 0) { a = -a; return this.Invoke(ref a,ref b,out copied); }\r\na = 10; b += a; copied = a + b; return a + b + copied;\r\n')
- if kind=='blueprint-camera':
+ if kind in ['blueprint-camera','blueprint-overview']:
   other=report['cameraSecondGraph'];(project/'OtherValue.celem').write_text(other['feature']);(project/'OtherValueBody.celem').write_text('implementation Example.ButtonGame::OtherValueBody for Example.ButtonGame::OtherValue (long n) -> long {blueprint common "other-value.graph.json";}');(project/'other-value.graph.json').write_text(json.dumps(other['graph']));(project/'other-condition.node.json').write_text(json.dumps(report['additionalNodeFixture']));(project/'other-calculate.node.json').write_text(json.dumps(report['nodeTaskFixture']['node']));source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+'element OtherValue function "OtherValue.celem";element OtherValueBody implementation "OtherValueBody.celem";'+source[index:])
  if kind=='call-wrapper':
   (project/'Double.celem').write_text('function Example.ButtonGame::Double (long value) -> long {description "Existing double feature";provide Example.ButtonGame::Double with Example.ButtonGame::DoubleBody;}')
@@ -137,6 +137,9 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
  if kind=='context-actions':
   from editor_context_actions import prepare_context_actions
   prepare_context_actions(project,root,repo)
+ if kind=='blueprint-overview':
+  from v508_blueprint_overview import prepare_overview
+  prepare_overview(project,root)
  original=(project/'Score.celem').read_bytes();log=root/'host.log';owned=OwnedResponses(None) if kind=='editor' else None
  with log.open('w') as output:
   host=subprocess.Popen(report['run'],cwd=repo,env=env,stdout=output,stderr=subprocess.STDOUT)
@@ -349,6 +352,9 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
     elif kind=='blueprint-implicit':
      from v480_implicit_conversion import verify_implicit_conversion
      verify_implicit_conversion(page,project,mount,send,envelope,settle,restart_actual_host)
+    elif kind=='blueprint-overview':
+     from v508_blueprint_overview import verify_overview
+     verify_overview(page,project,mount,send,envelope,settle,restart_actual_host)
     elif kind=='blueprint-camera':
      from v480_blueprint_camera import verify_blueprint_camera
      verify_blueprint_camera(page,project,mount,send,envelope,settle,restart_actual_host)

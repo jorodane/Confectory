@@ -1,6 +1,8 @@
 // Presentation only: coordinates, zoom and gestures never carry a source basis.
 export const clampBlueprintZoom=value=>Math.max(.03125,Math.min(3,Number.isFinite(value)?value:1));
 const finite=(value,fallback=0)=>Number.isFinite(value)&&Math.abs(value)<=1e7?value:fallback;
+// A world position up to 1e7 at 300% zoom needs a larger private camera range.
+const finiteCamera=value=>Number.isFinite(value)&&Math.abs(value)<=4e7?value:0;
 export function activateBlueprintView(w,data){
  if(!data)return;
  if(w.meta.blueprintGraph!==data.id){
@@ -17,22 +19,48 @@ function wheelSteps(){
 }
 export function mountBlueprintViewport({w,data,$,$$,persist,isCurrent,hasWire,cancelWire}){
  const viewport=$('.bp-scroll',w.body),canvas=$('.bp-canvas',w.body),events=new AbortController(),wheel=wheelSteps();
- let scale=clampBlueprintZoom(Number(w.meta.blueprintZoom)/100),camera={x:finite(w.meta.blueprintCamera?.x),y:finite(w.meta.blueprintCamera?.y)},gesture=null,menu=null,menuEvents=null,closed=false;
+ let scale=clampBlueprintZoom(Number(w.meta.blueprintZoom)/100),camera={x:finiteCamera(w.meta.blueprintCamera?.x),y:finiteCamera(w.meta.blueprintCamera?.y)},gesture=null,menu=null,menuEvents=null,closed=false;
  let outputWidth=finite(w.meta.blueprintOutputWidth,165),outputCollapsed=w.meta.blueprintOutputCollapsed===true;
  const output=$('.bp-output',w.body),outputResize=$('[data-bp-output-resize]',w.body),outputToggle=$('[data-bp-output-toggle]',w.body),maxOutputWidth=()=>Math.max(120,Math.min(420,Math.floor(output.parentElement.clientWidth*.55))),clampOutputWidth=value=>Math.max(120,Math.min(maxOutputWidth(),value));
  function applyOutputSidebar(){const width=clampOutputWidth(outputWidth);output.style.flexBasis=(outputCollapsed?36:width)+'px';output.classList.toggle('is-collapsed',outputCollapsed);outputResize.hidden=outputCollapsed;outputToggle.textContent=outputCollapsed?'‹':'›';outputToggle.setAttribute('aria-expanded',String(!outputCollapsed));outputToggle.setAttribute('aria-label',outputCollapsed?'출력 사이드바 펼치기':'출력 사이드바 접기');outputResize.setAttribute('aria-valuemin','120');outputResize.setAttribute('aria-valuemax',String(maxOutputWidth()));outputResize.setAttribute('aria-valuenow',String(width));}
- const positions=Object.create(null);for(const [i,node] of data.nodes.entries()){const saved=w.meta.blueprintPositions?.[node.id];positions[node.id]={x:Math.max(0,finite(saved?.x,40+i*290)),y:Math.max(0,finite(saved?.y,55+(i%2)*95))};}
+ const overview=$('[data-bp-overview]',w.body),overviewSvg=overview?.querySelector('svg'),overviewStatus=$('[data-bp-overview-status]',w.body);let overviewMap=null;
+ const elementFor=id=>typeof id==='string'?$('[data-bp-node="'+CSS.escape(id)+'"]',w.body):null;
+ const active=()=>!closed&&isCurrent()&&w.el.isConnected&&!w.el.hidden&&viewport.isConnected;
+ const positions=Object.create(null);for(const [i,node] of data.nodes.entries()){if(typeof node.id!=='string'||!node.id.length||node.id.length>512||Object.hasOwn(positions,node.id))continue;const saved=w.meta.blueprintPositions?.[node.id];positions[node.id]={x:Math.max(0,finite(saved?.x,40+i*290)),y:Math.max(0,finite(saved?.y,55+(i%2)*95))};}
  function save(){
   if(!isCurrent())return;const view={zoom:scale*100,camera:{...camera},positions:structuredClone(positions),node:w.meta.blueprintNode,outputWidth,outputCollapsed};
   Object.assign(w.meta,{blueprintZoom:view.zoom,blueprintCamera:view.camera,blueprintPositions:view.positions,blueprintOutputWidth:outputWidth,blueprintOutputCollapsed:outputCollapsed});
   const views=Object.assign(Object.create(null),w.meta.blueprintViews||{});views[data.id]=view;while(Object.keys(views).length>64)delete views[Object.keys(views).find(id=>id!==data.id)];w.meta.blueprintViews=views;persist();
  }
  function geometry(){const rect=viewport.getBoundingClientRect();return {rect,x:rect.width/viewport.offsetWidth||1,y:rect.height/viewport.offsetHeight||1};}
+ // Read actual, currently mounted nodes. Old saved IDs and missing DOM never
+ // create glyphs or authority; source order and stable IDs are left untouched.
+ function sceneBounds(){
+  const boxes=[],seen=new Set();let right=700,bottom=390;
+  for(const node of data.nodes){const p=positions[node.id],el=elementFor(node.id);if(!p||!el||!el.isConnected||seen.has(node.id))continue;seen.add(node.id);const width=el.offsetWidth,height=el.offsetHeight;if(!(width>0&&height>0&&width<=1e7&&height<=1e7))continue;const box={id:node.id,x:p.x,y:p.y,width,height};boxes.push(box);right=Math.max(right,p.x+Math.max(300,width)+32);bottom=Math.max(bottom,p.y+Math.max(280,height)+32);}
+  return {boxes,right,bottom};
+ }
+ function drawOverview(scene){
+  if(!overviewSvg)return;const width=overview.clientWidth,height=overview.clientHeight;overviewSvg.replaceChildren();overviewMap=null;
+  overview.setAttribute('aria-disabled',String(!scene.boxes.length));if(width<8||height<8||!scene.boxes.length){overviewStatus.textContent='표시할 노드 없음';return;}
+  const pad=4,ratio=Math.min((width-2*pad)/scene.right,(height-2*pad)/scene.bottom),ox=(width-scene.right*ratio)/2,oy=(height-scene.bottom*ratio)/2;
+  if(!(ratio>0&&Number.isFinite(ratio)))return;overviewMap={...scene,ratio,ox,oy};overviewSvg.setAttribute('viewBox',`0 0 ${width} ${height}`);
+  const make=(tag,attributes,title)=>{const el=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const [name,value]of Object.entries(attributes))el.setAttribute(name,String(value));if(title){const text=document.createElementNS(el.namespaceURI,'title');text.textContent=title;el.append(text);}overviewSvg.append(el);return el;},byId=new Map(scene.boxes.map(b=>[b.id,b]));
+  const line=(from,to,cls,title)=>{const a=byId.get(from),b=byId.get(to);if(!a||!b)return;make('line',{x1:ox+(a.x+a.width/2)*ratio,y1:oy+(a.y+a.height/2)*ratio,x2:ox+(b.x+b.width/2)*ratio,y2:oy+(b.y+b.height/2)*ratio,class:cls},title);};
+  for(const edge of data.edges)line(edge.from,edge.to,'bp-map-edge',`${edge.from} ${edge.port} → ${edge.to}`);
+  for(const edge of data.diagnostics?.branchReturns||[])line(edge.from,edge.owner,'bp-map-edge bp-map-return',`${edge.from} → ${edge.owner} 메인 계속 복귀`);
+  for(const b of scene.boxes)make('rect',{x:ox+b.x*ratio,y:oy+b.y*ratio,width:Math.max(2,b.width*ratio),height:Math.max(2,b.height*ratio),class:'bp-map-node'+(w.meta.blueprintNode===b.id?' is-selected':''),'data-bp-overview-node':b.id},b.id);
+  make('rect',{x:ox-camera.x/scale*ratio,y:oy-camera.y/scale*ratio,width:viewport.clientWidth/scale*ratio,height:viewport.clientHeight/scale*ratio,class:'bp-map-visible','data-bp-overview-visible':''});
+  overviewStatus.textContent=`노드 ${scene.boxes.length}개 · 방향키로 이동 · Shift: 크게 · Home/End · Escape: 드래그 취소`;
+ }
+ function centerOverview(x,y){if(!overviewMap)return;const cx=Math.max(0,Math.min(overviewMap.right,x)),cy=Math.max(0,Math.min(overviewMap.bottom,y));camera={x:viewport.clientWidth/2-cx*scale,y:viewport.clientHeight/2-cy*scale};}
+
+ function resetDOMScroll(){if(viewport.scrollLeft||viewport.scrollTop){viewport.scrollLeft=0;viewport.scrollTop=0;}}
  function draw(){
-  applyOutputSidebar();
+  resetDOMScroll();applyOutputSidebar();
   canvas.style.transform=`translate(${camera.x}px,${camera.y}px) scale(${scale})`;canvas.style.zoom='';
-  for(const node of data.nodes){const el=$('[data-bp-node="'+CSS.escape(node.id)+'"]',w.body),p=positions[node.id];el.style.left=p.x+'px';el.style.top=p.y+'px';}
-  const width=Math.max(700,...Object.values(positions).map(p=>p.x+300)),height=Math.max(390,...data.nodes.map(n=>positions[n.id].y+(n.control==='switch'?Math.max(280,$('[data-bp-node=\"'+CSS.escape(n.id)+'\"]',w.body).offsetHeight+30):280)));canvas.style.width=width+'px';canvas.style.height=height+'px';
+  for(const node of data.nodes){const el=elementFor(node.id),p=positions[node.id];if(!el||!p)continue;el.style.left=p.x+'px';el.style.top=p.y+'px';}
+  const scene=sceneBounds(),width=scene.right,height=scene.bottom;canvas.style.width=width+'px';canvas.style.height=height+'px';
   const svg=$('.bp-wires',w.body);svg.setAttribute('width',width);svg.setAttribute('height',height);svg.innerHTML=data.edges.filter(edge=>positions[edge.from]&&positions[edge.to]).map(edge=>{const origin=geometry(),outElement=$('[data-bp-exec-out="'+CSS.escape(edge.from)+'"][data-exec-port="'+CSS.escape(String(edge.port))+'"]',w.body),inputElement=$('[data-bp-exec-in="'+CSS.escape(edge.to)+'"]',w.body);if(!outElement||!inputElement)return '';const out=outElement.getBoundingClientRect(),input=inputElement.getBoundingClientRect(),x=((out.right-origin.rect.left)/origin.x-camera.x)/scale,y=((out.top+out.height/2-origin.rect.top)/origin.y-camera.y)/scale,tx=((input.left-origin.rect.left)/origin.x-camera.x)/scale,ty=((input.top+input.height/2-origin.rect.top)/origin.y-camera.y)/scale;return `<path d="M${x} ${y} C${x+35} ${y},${tx-35} ${ty},${tx} ${ty}"/>`;}).join('');
   if(['sync-acyclic-switch-v1','sync-acyclic-property-set-v1','sync-acyclic-property-ref-v1'].includes(data.profile)){
    const safe=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -42,12 +70,13 @@ export function mountBlueprintViewport({w,data,$,$$,persist,isCurrent,hasWire,ca
     svg.insertAdjacentHTML('beforeend',`<path class="bp-return-wire" data-bp-return-wire="${safe(edge.from+'/'+edge.port)}" d="M${x} ${y} C${bend} ${y},${bend} ${ty},${tx} ${ty}"><title>${safe(edge.owner)} 메인 계속 포트로 복귀</title></path>`);
    }
   }
+  drawOverview(scene);
   const percent=Number((scale*100).toFixed(5));$('[data-bp-zoom]',w.body).value=percent;$('[data-bp-percent]',w.body).textContent=percent+'%';
   if(menu){$('[data-zoom-slider]',menu).value=percent;if(document.activeElement!==$('[data-zoom-value]',menu))$('[data-zoom-value]',menu).value=percent;for(const button of $$('[data-zoom-preset]',menu))button.setAttribute('aria-pressed',String(Number(button.dataset.zoomPreset)===percent));}
  }
  function zoomAt(next,x,y){const ratio=next/scale;camera.x=x-(x-camera.x)*ratio;camera.y=y-(y-camera.y)*ratio;scale=next;draw();save();}
  function setZoom(next){wheel.reset();zoomAt(clampBlueprintZoom(next),viewport.clientWidth/2,viewport.clientHeight/2);}
- function fit(){if(!data.nodes.length)return;wheel.reset();const left=Math.min(...Object.values(positions).map(p=>p.x)),top=Math.min(...Object.values(positions).map(p=>p.y)),right=Math.max(...data.nodes.map(n=>positions[n.id].x+$('[data-bp-node="'+CSS.escape(n.id)+'"]',w.body).offsetWidth)),bottom=Math.max(...data.nodes.map(n=>positions[n.id].y+$('[data-bp-node="'+CSS.escape(n.id)+'"]',w.body).offsetHeight));scale=Math.max(.05,Math.min(1,(viewport.clientWidth-40)/(right-left+40),(viewport.clientHeight-40)/(bottom-top+40)));camera={x:(viewport.clientWidth-(right-left)*scale)/2-left*scale,y:(viewport.clientHeight-(bottom-top)*scale)/2-top*scale};draw();save();}
+ function fit(){const boxes=sceneBounds().boxes;if(!boxes.length)return;wheel.reset();const left=Math.min(...boxes.map(b=>b.x)),top=Math.min(...boxes.map(b=>b.y)),right=Math.max(...boxes.map(b=>b.x+b.width)),bottom=Math.max(...boxes.map(b=>b.y+b.height));scale=Math.max(.05,Math.min(1,(viewport.clientWidth-40)/(right-left+40),(viewport.clientHeight-40)/(bottom-top+40)));camera={x:(viewport.clientWidth-(right-left)*scale)/2-left*scale,y:(viewport.clientHeight-(bottom-top)*scale)/2-top*scale};draw();save();}
  function closeMenu(commit=true){if(!menu)return;const old=menu;menu=null;$('[data-zoom-value]',old).onblur=null;if(commit){const input=$('[data-zoom-value]',old),raw=input.value.trim(),value=Number(raw);if(raw&&Number.isFinite(value))setZoom(value/100);}menuEvents?.abort();menuEvents=null;old.remove();$('[data-bp-percent]',w.body)?.setAttribute('aria-expanded','false');}
  $('[data-bp-percent]',w.body).onclick=()=>{
   if(menu){closeMenu();return;}menu=document.createElement('section');menu.className='bp-zoom-menu';menu.setAttribute('role','dialog');menu.setAttribute('aria-label','노드 화면 배율');menu.innerHTML='<label>배율 <input data-zoom-value type="text" inputmode="decimal" aria-label="화면 배율 직접 입력"> %</label><input data-zoom-slider type="range" min="3.125" max="300" step="any" aria-label="화면 배율 조절"><div>'+[3.125,6.25,12.5,25,50,75,100,150,200,300].map(value=>`<button data-zoom-preset="${value}">${value}%</button>`).join('')+'</div><button data-zoom-fit>전체 보기</button>';document.body.append(menu);menuEvents=new AbortController();
@@ -57,18 +86,27 @@ export function mountBlueprintViewport({w,data,$,$$,persist,isCurrent,hasWire,ca
   document.addEventListener('pointerdown',e=>{if(menu&&!menu.contains(e.target)&&!button.contains(e.target))closeMenu();},{capture:true,signal:menuEvents.signal});menu.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();closeMenu(false);button.focus({preventScroll:true});}});input.focus({preventScroll:true});input.select();
  };
  $('[data-bp-zoom]',w.body).oninput=e=>setZoom(Number(e.target.value)/100);$('[data-bp-fit]',w.body).onclick=fit;
- function stopGesture(cancel=false){if(!gesture)return;const g=gesture;gesture=null;if(cancel)g.restore();g.owner.onpointermove=g.owner.onpointerup=g.owner.onpointercancel=null;if(g.owner.hasPointerCapture(g.id))g.owner.releasePointerCapture(g.id);viewport.classList.remove('is-panning');draw();save();}
- function startGesture(event,owner,move,restore){event.preventDefault();event.stopPropagation();stopGesture(true);owner.setPointerCapture(event.pointerId);gesture={id:event.pointerId,owner,restore};owner.onpointermove=e=>{if(e.pointerId===event.pointerId&&isCurrent()){move(e);draw();}};owner.onpointerup=e=>{if(e.pointerId===event.pointerId)stopGesture();};owner.onpointercancel=()=>stopGesture(true);}
+ function stopGesture(cancel=false){if(!gesture)return;const g=gesture;gesture=null;if(cancel)g.restore();g.owner.onpointermove=g.owner.onpointerup=g.owner.onpointercancel=g.owner.onlostpointercapture=null;if(g.owner.hasPointerCapture(g.id))g.owner.releasePointerCapture(g.id);viewport.classList.remove('is-panning');overview?.classList.remove('is-dragging');draw();save();}
+ function startGesture(event,owner,move,restore){event.preventDefault();event.stopPropagation();stopGesture(true);owner.setPointerCapture(event.pointerId);gesture={id:event.pointerId,owner,restore};owner.onpointermove=e=>{if(e.pointerId===event.pointerId){if(!active()){stopGesture(true);return;}move(e);draw();}};owner.onpointerup=e=>{if(e.pointerId===event.pointerId)stopGesture(!active());};owner.onpointercancel=owner.onlostpointercapture=()=>stopGesture(true);}
+ if(overview){
+  overview.onpointerdown=event=>{if(event.button!==0||!active()||!overviewMap)return;overview.focus({preventScroll:true});cancelWire();const before={...camera},map={...overviewMap};const move=e=>{const r=overview.getBoundingClientRect(),x=(e.clientX-r.left)/(r.width/overview.clientWidth||1),y=(e.clientY-r.top)/(r.height/overview.clientHeight||1);centerOverview((x-map.ox)/map.ratio,(y-map.oy)/map.ratio);};startGesture(event,overview,move,()=>camera={...before});overview.classList.add('is-dragging');move(event);draw();};
+  overview.onkeydown=event=>{if(!active()||!overviewMap||!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End','PageUp','PageDown'].includes(event.key))return;event.preventDefault();event.stopPropagation();stopGesture(true);cancelWire();const x=(viewport.clientWidth/2-camera.x)/scale,y=(viewport.clientHeight/2-camera.y)/scale,k=event.shiftKey?.5:.1,dx=viewport.clientWidth/scale*k,dy=viewport.clientHeight/scale*k;
+   if(event.key==='Home')centerOverview(0,0);else if(event.key==='End')centerOverview(overviewMap.right,overviewMap.bottom);else centerOverview(x+(event.key==='ArrowLeft'?-dx:event.key==='ArrowRight'?dx:0),y+(event.key==='ArrowUp'?-dy:event.key==='ArrowDown'?dy:event.key==='PageUp'?-viewport.clientHeight/scale*.9:event.key==='PageDown'?viewport.clientHeight/scale*.9:0));draw();save();};
+ }
+
  outputResize.onpointerdown=event=>{if(event.button!==0||!isCurrent())return;cancelWire();const x=event.clientX,before=outputWidth,width=clampOutputWidth(outputWidth),outer=output.getBoundingClientRect().width/output.offsetWidth||1;startGesture(event,outputResize,e=>outputWidth=clampOutputWidth(width+(x-e.clientX)/outer),()=>outputWidth=before);};
  outputResize.onkeydown=event=>{if(!isCurrent()||!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;event.preventDefault();event.stopPropagation();outputWidth=event.key==='Home'?120:event.key==='End'?maxOutputWidth():clampOutputWidth(clampOutputWidth(outputWidth)+(event.key==='ArrowLeft'?16:-16));draw();save();};
  outputToggle.onclick=()=>{if(!isCurrent())return;stopGesture(true);cancelWire();outputCollapsed=!outputCollapsed;draw();save();};
+ viewport.addEventListener('scroll',()=>{if(active())resetDOMScroll();},{passive:true,signal:events.signal});
  viewport.addEventListener('wheel',event=>{event.stopPropagation();const input=event.target.closest('textarea');if(input&&input.scrollHeight>input.clientHeight+1)return;event.preventDefault();if(!isCurrent())return;const next=wheel.step(scale,event);if(next===scale)return;const g=geometry();zoomAt(next,(event.clientX-g.rect.left)/g.x,(event.clientY-g.rect.top)/g.y);},{passive:false,signal:events.signal});
  viewport.addEventListener('pointerdown',event=>{if(![1,2].includes(event.button)||!isCurrent())return;cancelWire();const before={...camera},g=geometry(),start={x:event.clientX,y:event.clientY};startGesture(event,viewport,e=>{camera.x=before.x+(e.clientX-start.x)/g.x;camera.y=before.y+(e.clientY-start.y)/g.y;},()=>camera={...before});viewport.classList.add('is-panning');},{capture:true,signal:events.signal});
  viewport.addEventListener('contextmenu',e=>{e.preventDefault();e.stopPropagation();},{signal:events.signal});
- for(const header of $$('[data-bp-drag]',w.body))header.onpointerdown=event=>{if(event.button!==0||event.target.closest('button,input,textarea,select')||hasWire())return;const id=header.dataset.bpDrag,before={...positions[id]},g=geometry(),start={x:event.clientX,y:event.clientY};startGesture(event,header,e=>{positions[id]={x:Math.max(0,before.x+(e.clientX-start.x)/g.x/scale),y:Math.max(0,before.y+(e.clientY-start.y)/g.y/scale)};},()=>positions[id]={...before});};
+ for(const header of $$('[data-bp-drag]',w.body))header.onpointerdown=event=>{if(event.button!==0||!active()||event.target.closest('button,input,textarea,select')||hasWire())return;const id=header.dataset.bpDrag;if(!positions[id]||!elementFor(id))return;const before={...positions[id]},g=geometry(),start={x:event.clientX,y:event.clientY};startGesture(event,header,e=>{positions[id]={x:Math.max(0,before.x+(e.clientX-start.x)/g.x/scale),y:Math.max(0,before.y+(e.clientY-start.y)/g.y/scale)};},()=>positions[id]={...before});};
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&(gesture||hasWire())){e.preventDefault();e.stopPropagation();stopGesture(true);cancelWire();}},{capture:true,signal:events.signal});
- const resize=new ResizeObserver(()=>{if(!closed&&isCurrent())draw();});resize.observe(viewport);
+ const resize=new ResizeObserver(()=>{if(active())draw();});resize.observe(viewport);if(overview)resize.observe(overview);for(const node of data.nodes){const el=elementFor(node.id);if(el)resize.observe(el);}
+ const sceneChanges=new MutationObserver(()=>{if(active())draw();});sceneChanges.observe(canvas,{childList:true});
+ window.addEventListener('blur',()=>stopGesture(true),{signal:events.signal});
  const visibility=new MutationObserver(()=>{if(!isCurrent()){cancelWire();dispose();}else if(!w.el.isConnected||w.el.hidden){stopGesture(true);closeMenu(false);cancelWire();}});visibility.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['hidden']});
- function dispose(){if(closed)return;stopGesture(true);closeMenu(false);save();closed=true;events.abort();resize.disconnect();visibility.disconnect();}
- draw();save();return {dispose,focusNode(id){if(!positions[id])return;const node=$('[data-bp-node="'+CSS.escape(id)+'"]',w.body);camera={x:viewport.clientWidth/2-(positions[id].x+node.offsetWidth/2)*scale,y:viewport.clientHeight/2-(positions[id].y+node.offsetHeight/2)*scale};draw();save();}};
+ function dispose(){if(closed)return;stopGesture(true);closeMenu(false);save();closed=true;events.abort();resize.disconnect();visibility.disconnect();sceneChanges.disconnect();}
+ draw();save();return {dispose,focusNode(id){if(!active()||!Object.hasOwn(positions,id))return;const node=elementFor(id);if(!node)return;camera={x:viewport.clientWidth/2-(positions[id].x+node.offsetWidth/2)*scale,y:viewport.clientHeight/2-(positions[id].y+node.offsetHeight/2)*scale};draw();save();}};
 }
