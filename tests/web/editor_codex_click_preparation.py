@@ -67,7 +67,12 @@ def state(endpoint=None,payload=None):
   raise AssertionError('Command remained pending')
  finally:assert send({'op':'dispose','view':view['view']})['ok']
 connection={'connection':'Confectory.Agent.Codex::Connection'}
-def invoke(endpoint,**args):return state(endpoint,dict(connection,**args))
+def invoke(endpoint,**args):
+ # Admission stale_revision guarantees that the command did not execute.
+ # Preserve the same explicit consent token; never replay consumer/source CAS failures.
+ for attempt in range(3):
+  result=state(endpoint,dict(connection,**args))
+  if result.get('error',{}).get('code')!='stale_revision' or attempt==2:return result
 def setup():return state()['connectionSetup']
 def field(name):return next(row['value'] for row in setup()['schema']['rows'] if row['name']==name)
 def wait_job(key,states):
@@ -80,7 +85,12 @@ def wait_job(key,states):
 def requests():return [json.loads(row) for row in (root/'requests.jsonl').read_text().splitlines()] if (root/'requests.jsonl').exists() else []
 def approvals(login=False):return {k:True for k in (['loginProcessApproved','accountInteractionApproved','accountStorageApproved'] if login else ['downloadApproved','storageApproved','versionCheckApproved'])}
 def plan_start(login=False):
- invoke('prepareLogin' if login else 'prepareInstallation');value=setup()['login' if login else 'preparation'];assert value['state']=='approval-required',value;invoke('startLogin' if login else 'startInstallation',token=value['token'],approvals=approvals(login));return value
+ result=invoke('prepareLogin' if login else 'prepareInstallation');assert result['ok'],result;value=setup()['login' if login else 'preparation'];assert value['state']=='approval-required',value;started=invoke('startLogin' if login else 'startInstallation',token=value['token'],approvals=approvals(login));assert started['ok'],started;return value
+def fresh_ui_plan(selector,login=False):
+ key='login' if login else 'preparation';prior=(setup().get(key) or {}).get('token')
+ dialog.locator(selector).click();box=dialog.locator('[data-job="'+key+'"]')
+ page.wait_for_function("arg=>{const box=document.querySelector('[data-job=\"'+arg.key+'\"]');if(!box||box.dataset.jobState!=='approval-required')return false;const state=JSON.parse(box.dataset.snapshot||'{}');return Boolean(state.token)&&state.token!==arg.prior}",arg={'key':key,'prior':prior})
+ expect(page.locator('#add-agent')).to_be_enabled();return box
 errors=[];external=[]
 with sync_playwright() as p:
  browser=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox','--disable-gpu']);page=browser.new_page(viewport={'width':1440,'height':1000});page.on('pageerror',lambda e:errors.append(str(e)));page.route('https://**/*',lambda route:(external.append(route.request.url),route.abort()))
@@ -114,7 +124,7 @@ with sync_playwright() as p:
   invoke('cancelInstallation');wait_job('preparation',['cancelled']);assert field('executable') in ['', 'codex'];(root/'control.json').write_text('{}')
   # An unvalidated installation cannot become a prepared or logged-in result.
   (root/'control.json').write_text(json.dumps({'version':'0.159.2'}));plan_start();assert wait_job('preparation',['failed'])['code']=='preparation_version_mismatch';assert not requests();(root/'control.json').write_text('{}')
-  configure(kind='tar.gz');dialog.locator('[data-install-prepare]').click();box=dialog.locator('[data-job="preparation"]');expect(box.locator('[data-job-consent]')).to_have_count(3)
+  configure(kind='tar.gz');box=fresh_ui_plan('[data-install-prepare]');expect(box.locator('[data-job-consent]')).to_have_count(3)
   for checkbox in box.locator('[data-job-consent]').all():checkbox.check()
   box.locator('[data-job-start]').click();expect(box).to_have_attribute('data-job-state','prepared');prepared=pathlib.Path(field('executable'));assert prepared.exists() and prepared.parent.name.startswith('install-');assert not field('managedHome') and not requests();assert not list(managed.glob('installations/*/*/.pending-*'))
   # Login always uses a fresh home. Cancellation removes it, code and consent; saved installations remain.
@@ -124,7 +134,7 @@ with sync_playwright() as p:
   login.locator('[data-job-start]').click();deadline=time.monotonic()+10
   while not ready.exists():assert time.monotonic()<deadline;time.sleep(.02)
   login.locator('[data-job-cancel]').click();wait_job('login',['cancelling','cancelled']);hold.unlink();wait_job('login',['cancelled']);assert ((root/'process-starts').read_text() if (root/'process-starts').exists() else '')==launches;assert not list(managed.glob('accounts/account-*'))
-  dialog.locator('[data-login-prepare]').click();expect(login.locator('[data-job-consent]')).to_have_count(3)
+  login=fresh_ui_plan('[data-login-prepare]',True);expect(login.locator('[data-job-consent]')).to_have_count(3)
   for checkbox in login.locator('[data-job-consent]').all():checkbox.check()
   login.locator('[data-job-start]').click();expect(login).to_have_attribute('data-job-state','waiting-user');expect(login.locator('[data-login-code]')).to_have_text('TEST-4240');expect(login.locator('[data-login-page]')).to_have_attribute('href','https://auth.openai.com/codex/device');assert not field('managedHome');assert not any(r['method'] in ['thread/start','turn/start','model/list'] for r in requests())
   login.locator('[data-job-cancel]').click();expect(login).to_have_attribute('data-job-state','cancelled');expect(login.locator('[data-login-code]')).to_have_count(0);assert not list(managed.glob('accounts/account-*')) and prepared.exists()
@@ -133,7 +143,7 @@ with sync_playwright() as p:
   # A redirected login page is never exposed or opened.
   (root/'control.json').write_text(json.dumps({'invalidUrl':True}));plan_start(True);assert wait_job('login',['failed'])['code']=='login_service_unavailable';assert not list(managed.glob('accounts/account-*'));(root/'control.json').write_text('{}')
   plan_start(True);wait_job('login',['waiting-user']);dialog.locator('[data-connection-cancel]').click();expect(dialog).not_to_be_visible();(root/'complete-login').write_text('late');time.sleep(.3);assert not list(managed.glob('accounts/account-*'));(root/'complete-login').unlink();dialog=open_dialog();assert not field('managedHome') and field('executable')==str(prepared)
-  dialog.locator('[data-login-prepare]').click();login=dialog.locator('[data-job="login"]');expect(login.locator('[data-job-consent]')).to_have_count(3)
+  login=fresh_ui_plan('[data-login-prepare]',True);expect(login.locator('[data-job-consent]')).to_have_count(3)
   for checkbox in login.locator('[data-job-consent]').all():checkbox.check()
   login.locator('[data-job-start]').click();expect(login).to_have_attribute('data-job-state','waiting-user');(root/'complete-login').write_text('complete');expect(login).to_have_attribute('data-job-state','login-complete');account=pathlib.Path(field('managedHome'));assert (account/'.owned-signed-in').exists() and (account/'.confectory-account-ready').exists();assert account!=prepared.parent and field('credentialReference')=='codex:managed'
   login.locator('[data-job-continue]').click();expect(dialog.locator('[data-check-consent]')).to_have_count(4);assert all(not checkbox.is_checked() for checkbox in dialog.locator('[data-check-consent]').all())

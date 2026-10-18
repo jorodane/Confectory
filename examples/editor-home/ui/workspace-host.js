@@ -98,7 +98,8 @@ export function createActualWorkspace(api) {
   async function flush(){clearTimeout(scheduled);await persist(true);if(pending())return flush();if(project&&!loading)api.setWorkspaceStatus('');}
   async function flushInputs(){clearTimeout(scheduled);await persist(false);if(project&&!loading&&inputKey(snapshot())!==inputKey(checkpoints.get(scope)||{}))schedule();}
   // Durable placement/camera changes are dirty in memory until the next periodic checkpoint.
-  setInterval(()=>{if(project&&!loading&&!api.isBusy&&pending()&&inputKey(snapshot())===inputKey(checkpoints.get(scope)||{}))flush().catch(failure);},15000);
+  // One periodic capture; an explicit flush still drains edits made while a save is awaiting acknowledgement.
+  setInterval(()=>{if(project&&!loading&&!api.isBusy&&pending()&&inputKey(snapshot())===inputKey(checkpoints.get(scope)||{}))persist(true).catch(failure);},15000);
   function findOwner(key){
     if(!project)return null;
     if(project.layout.some(row=>row.key===key))return 'root';

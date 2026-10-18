@@ -68,12 +68,17 @@ def verify_concept_creation(page,project,mount,send,envelope,browser,browser_act
  assert any(row['id']==prefix+'test' for row in state['state']['units']), 'new concept hidden by filter/page'
  # Exercise the old single-unit Review path: safe diagnosis, retained dirty drafts.
  import time
- request_id='creation-without-registration'
- assert send(envelope(state,'invoke',endpoint='reviewDraft',requestId=request_id,expectedRevision=state['revision'],input={'id':prefix+'test'}))['ok']
- for _ in range(400):
-  updated=send(envelope(state,'update'));matches=[row for row in updated.get('results',[]) if row['requestId']==request_id]
-  if matches:break
-  time.sleep(.01)
+ # Only a transport rejection that guarantees no execution may reacquire the view.
+ # Consumer/source CAS failures are never replayed or accepted as the intended diagnostic.
+ for attempt in range(3):
+  request_id='creation-without-registration-'+str(attempt)
+  assert send(envelope(state,'invoke',endpoint='reviewDraft',requestId=request_id,expectedRevision=state['revision'],input={'id':prefix+'test'}))['ok']
+  for _ in range(400):
+   updated=send(envelope(state,'update'));matches=[row for row in updated.get('results',[]) if row['requestId']==request_id]
+   if matches:break
+   time.sleep(.01)
+  if not matches or matches[0].get('error',{}).get('code')!='stale_revision' or attempt==2:break
+  assert send(envelope(state,'dispose'))['ok'];state=mount()
  assert matches and not matches[0]['ok'] and matches[0]['error']['code']=='consumer_error', matches
  assert updated['state']['sourceError']=='creation_registration_required', updated['state']['sourceError']
  assert updated['state']['draft']['dirty'] and updated['state']['draft']['creationReviewIds']==ids
