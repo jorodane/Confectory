@@ -125,3 +125,7 @@ Workspace private 창 링크·수명은 [규칙과 저장 경계](V480_WORKSPACE
 타입 지정 property Set 후속은 [실제 receiver/value·owner/field hash·참조 보존·편집/콜드/Confirm 범위](BLUEPRINT_PROPERTY_SET.md), [고정 원본과 단계별 검사](validation/blueprint-property-set.json)를 따른다. 이전 문서의 property set/ref 미결 범위 중 general/reference 단일·배열 구조 Set을 완료한다. true field ref/lvalue와 compound/function·enum/Vector3 ABI·overflow는 별도로 남긴다. 기존 profile을 자동 전환하지 않는다.
 
 property Set의 최종 검사는 고정 제품·테스트 원본 27개에서 CLR/공개 편집 등 39개·기존 graph/편집 16개·실제 Chromium 5개·관리 프로필 컴파일 1개·일반 checkout/리소스/Home 시작 1개, 총 **62/0/0**이다. [단계·원본·초기 보정 근거](validation/blueprint-property-set.json)를 따른다. 전체 v480 완료나 기기 실행으로 확대하지 않는다.
+
+실제 필드 ref 후속은 [지원 타입·stable typed cell·alias와 Set/예외·소스 계약 경계](BLUEPRINT_FIELD_REFS.md)를 따른다. general 단일 bool/int/long만 실제 C# ref로 연결하고, 유한값/null/schema 조건을 우회하는 타입은 거부한다. 기존 profile과 v1 인스턴스는 자동 변환하지 않는다. 확장 ABI·compound/function·overflow는 계속 별도다.
+
+field ref의 최종 검사는 고정 제품·테스트 원본 29개에서 CLR/공개 편집 등 49개·기존 graph/편집 16개·Chromium 6개·관리 프로필 컴파일 1개·일반 checkout/리소스/Home 시작 1개, 총 **73/0/0**이다. [단계·원본·제약 타입 거부·초기 fixture 보정 근거](validation/blueprint-field-refs.json)를 따른다. 일반 bool/int/long 단일 필드 외의 mutable ref를 지원했다고 확대하지 않는다.
