@@ -3,6 +3,7 @@ import Confectory.WebUI::Cancelled as Cancelled (string) -> bool;
 import Confectory.EditorHome.Model::Command as Command (string,string,string) -> string;
 import Confectory.EditorHome.Model::Snapshot as Snapshot (string) -> string;
 import Confectory.EditorHome.Model::FieldDiscovery as FieldDiscovery (string,string,string,string) -> string;
+import Confectory.EditorHome.Model::ContextActions as ContextActions (string,string,string,string) -> string;
 import Confectory.EditorHome.Model::BuildJobs as BuildJobs (string,string,string) -> string;
 import Confectory.EditorHome.Model::NodeTasks as NodeTasks (string,string,string) -> string;
 import Confectory.EditorHome.Model::Blueprint as Blueprint (string,string,string) -> string;

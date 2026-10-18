@@ -25,5 +25,6 @@ lock(state){
  try{calls.Dispose.Invoke((string[])state[0]);}catch(Exception error){errors.Add(error);}
  if(errors.Count>0)throw new AggregateException("Entry/home resources remain closing; retry CloseSession",errors);
  AppDomain.CurrentDomain.SetData("Confectory.EditorHome.BuildCursor."+session,null);
+ AppDomain.CurrentDomain.SetData("Confectory.EditorHome.ContextActions."+session,null);
  AppDomain.CurrentDomain.SetData("Confectory.EditorHome."+session,null);
 }

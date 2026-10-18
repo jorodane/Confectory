@@ -1,0 +1,6 @@
+object Example.EditorContextActions::MetadataProposal {
+value editorContextMenu = true;
+value editorName = "메타데이터 변경안";
+provide Confectory.SchemaEditing::SetValue with Confectory.SchemaEditing::SetValueBody;
+provide Confectory.SchemaEditing::Call with Confectory.SchemaEditing::CallBody;
+}

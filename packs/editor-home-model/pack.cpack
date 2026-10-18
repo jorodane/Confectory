@@ -1,6 +1,7 @@
 pack Confectory.EditorHome.Model version "0.1.0" {
 dependency Confectory.WorkerTasks version "0.1.0";
 standalone false;
+element ContextActions function "ContextActions.celem";element ContextActionsBody implementation "ContextActionsBody.celem";
 element Blueprint function "Blueprint.celem";element BlueprintBody implementation "BlueprintBody.celem";
 element FieldDiscovery function "FieldDiscovery.celem";element FieldDiscoveryBody implementation "FieldDiscoveryBody.celem";
 element BuildJobs function "BuildJobs.celem";element BuildJobsBody implementation "BuildJobsBody.celem";

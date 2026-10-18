@@ -2,6 +2,15 @@ using Confectory.Core;
 namespace Confectory.Tests;
 public sealed class WebUITests : TestCase
 {
+    public void test_context_action_menu_lifecycle_builtin_dismiss_scope_and_unbound()
+    {
+        var run=Processes.Run(new[]{"node",Path.Combine(Fixture.Repo,"tests/web/context_actions.mjs")},directory:Fixture.Repo);True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS context action menu lifecycle:"));
+    }
+    public void test_actual_editor_declared_context_actions_typed_call_scope_cancel_stale_and_failure()
+    {
+        var built=new Builder(Path.Combine(Fixture.Repo,"examples/editor-home/project.cpack"),"linux").Build();string report=Path.Combine(f.Root,"context-actions.json");File.WriteAllText(report,built.ToJsonString());
+        var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/web_ui.py"),Fixture.Repo,report,"context-actions"},timeoutSeconds:600);Console.WriteLine(run.Stdout.Trim());True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS actual declared context actions:"));
+    }
     public void test_private_workspace_move_link_history_atomic_inputs_cold_and_branch_invariants()
     {
         var run=Processes.Run(new[]{"node",Path.Combine(Fixture.Repo,"tests/web/workspace_layout_history.mjs")},directory:Fixture.Repo);True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS private layout history:"));

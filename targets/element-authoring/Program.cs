@@ -10,6 +10,7 @@ try
     JsonNode? reply;
     switch(S("operation"))
     {
+        case "editorMenuDeclarations":reply=EditorMenuDeclarations.Query(request);break;
         case "outputsDescribe": case "outputsValidate": case "outputsBuild": case "outputsLast":
             reply=BuildParticipationOperations.Execute(S("operation"),request);break;
         case "packSource": case "packManifest": case "packUsage":

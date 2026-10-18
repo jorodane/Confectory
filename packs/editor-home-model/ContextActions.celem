@@ -1,0 +1,4 @@
+function Confectory.EditorHome.Model::ContextActions (string session,string context,string payload,string cancellation) -> string {
+description "Bounded declared menu discovery and one statically bound authoring function. Registration grants no generic execution capability.";
+provide Confectory.EditorHome.Model::ContextActions with Confectory.EditorHome.Model::ContextActionsBody;
+}

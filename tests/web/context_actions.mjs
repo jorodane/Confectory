@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const {createContextActions}=await import('data:text/javascript;base64,'+Buffer.from(readFileSync('examples/editor-home/ui/context-actions.js')).toString('base64'));
+let current={projectId:'A',draft:{id:'A::Selected'}},element=null;const menus=[],pending=[],messages=[];
+globalThis.document={querySelector:()=>element};
+const api={get current(){return current},target:()=> 'linux',view:{call:()=>new Promise(resolve=>pending.push(resolve))},contextMenu:(x,y,items)=>{if(element)element.isConnected=false;element={isConnected:true};menus.push(items);},toast:m=>messages.push(m),work:()=>{throw Error('Discovery must not block built-in actions');},modal:()=>{throw Error('Unavailable declaration must not open an invocation');}};
+const ui=createContextActions(api),event={clientX:1,clientY:2},unit={id:'A::Selected'};
+let selected=0;const first=ui.open(event,unit,[['built-in',()=>selected++]]);menus[0][0][1]();element.isConnected=false;pending.shift()({actions:[]});await first;assert.equal(selected,1);assert.equal(menus.length,1);
+const second=ui.open(event,unit,[]);current={projectId:'B',draft:{id:'B::Other'}};pending.shift()({actions:[]});await second;assert.equal(menus.length,2);
+current={projectId:'A',draft:{id:'A::Selected'}};const old=ui.open(event,unit,[]),fresh=ui.open(event,unit,[]);pending.shift()({actions:[]});await old;assert.equal(menus.length,4);pending.shift()({actions:[{id:'Unbound',title:'declared only',available:false,reason:'no host route'}]});await fresh;assert.equal(menus.length,5);assert.equal(menus.at(-1)[0][0],'등록 기능 · declared only · 미지원');menus.at(-1)[0][1]();assert.deepEqual(messages,['no host route']);
+console.log('PASS context action menu lifecycle: built-ins remain usable, dismissed and old-scope/racing results cannot reopen a menu, unbound declarations never invoke');

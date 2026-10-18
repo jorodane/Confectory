@@ -134,6 +134,9 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
  if kind=='workspace-history':
   from v480_workspace_history import prepare_history
   prepare_history(project,root)
+ if kind=='context-actions':
+  from editor_context_actions import prepare_context_actions
+  prepare_context_actions(project,root,repo)
  original=(project/'Score.celem').read_bytes();log=root/'host.log';owned=OwnedResponses(None) if kind=='editor' else None
  with log.open('w') as output:
   host=subprocess.Popen(report['run'],cwd=repo,env=env,stdout=output,stderr=subprocess.STDOUT)
@@ -271,6 +274,9 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
     elif kind=='workspace-history':
      from v480_workspace_history import verify_history
      verify_history(page,project,mount,send,envelope,settle,restart_actual_host)
+    elif kind=='context-actions':
+     from editor_context_actions import verify_context_actions
+     verify_context_actions(page,project,mount,send,envelope,settle,restart_actual_host)
     elif kind=='window-documents':
      from v480_window_documents import verify_window_documents
      verify_window_documents(page,project,mount,send,envelope,settle,restart_actual_host)

@@ -1,0 +1,4 @@
+object Example.EditorContextActions::Selected {
+description "Owned context for the declared editor action example.";
+value initial = 7;
+}

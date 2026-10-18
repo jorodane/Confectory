@@ -1,0 +1,13 @@
+implementation Confectory.EditorHome.Model::ContextActionsBody for Confectory.EditorHome.Model::ContextActions (string session,string context,string payload,string cancellation) -> string {
+import Confectory.ProjectManager::Context as Context (string[],string) -> string[];
+import Confectory.PackWorkspace::Open as Open (string,string,string) -> string;
+import Confectory.PackWorkspace::BorrowDraft as Borrow (string) -> string;
+import Confectory.PackWorkspace::Snapshot as Snapshot (string) -> string;
+import Confectory.EditWorkspace::List as List (string) -> string[];
+import Confectory.EditWorkspace::Read as Read (string,string) -> string[];
+import Confectory.FileStream::Snapshot as File (string) -> string[];
+import Confectory.SchemaEditing::Call as Metadata (string,string) -> string;
+import Confectory.SchemaEditing::SetValue as Propose (string,string,string) -> string;
+import Confectory.SchemaEditing::ValidateArguments as Arguments (string,string) -> string;
+body common "ContextActions.csbody";
+}

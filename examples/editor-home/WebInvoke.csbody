@@ -56,6 +56,10 @@ if(endpoint=="closeProject"){
  if(closing["closeRequest"] is not null)Command("close-project",new(){["context"]=selected["context"]!.DeepClone(),["confirmed"]=true});return "{\"accepted\":true}";
 }
 if(endpoint=="discoverFields")return calls.FieldDiscovery.Invoke(context,selected["context"]!.ToString(),args.ToJsonString(),cancellation);
+if(endpoint=="contextActions"){
+ try{return calls.ContextActions.Invoke(context,selected["context"]!.ToString(),args.ToJsonString(),cancellation);}
+ catch(Exception error) when(args["operation"]?.ToString()=="list"&&error is not OperationCanceledException){return new System.Text.Json.Nodes.JsonObject{["status"]="failed",["executed"]=false,["message"]=error.Message[..Math.Min(error.Message.Length,2048)]}.ToJsonString();}
+}
 if(endpoint=="blueprint"){var blueprintRequest=args.DeepClone().AsObject();blueprintRequest["context"]=selected["context"]!.DeepClone();string blueprintAction=blueprintRequest["action"]!.GetValue<string>();blueprintRequest.Remove("action");return calls.Blueprint.Invoke(context,blueprintAction,blueprintRequest.ToJsonString());}
 if(endpoint=="nodeTask"){
  var nodeRequest=args.DeepClone().AsObject();nodeRequest["context"]=selected["context"]!.DeepClone();string nodeAction=nodeRequest["action"]!.GetValue<string>();nodeRequest.Remove("action");return calls.NodeTasks.Invoke(context,nodeAction,nodeRequest.ToJsonString());
