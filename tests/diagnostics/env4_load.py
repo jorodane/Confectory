@@ -14,6 +14,7 @@ GROUPS={
  'native':['EngineTests.test_role_composition_two_windows_and_cleanup','ProjectExecutionTests.test_actual_native_button_game_pause_single_draw_step_and_stop','ProjectExecutionTests.test_actual_native_engine_cooperative_frame_callbacks','ButtonTests.test_shared_button_game_without_editor_state_input_navigation_native_targets_and_locality'],
  'related-ref':['PropertyAuthoringTests.test_field_ref_preview_typed_aliases_source_cas_cold_confirm_actual_clr_and_schema_rejection'],
  'related-set':['PropertyAuthoringTests.test_property_set_field_preview_explicit_profile_save_cold_confirm_actual_clr_and_schema_drift'],
+ 'lease-gap':['ProjectExecutionTests.test_actual_native_engine_cooperative_frame_callbacks'],
 }
 
 def cgroup():
@@ -24,7 +25,7 @@ def cgroup():
  return result
 
 def main():
- parser=argparse.ArgumentParser();parser.add_argument('output',type=pathlib.Path);parser.add_argument('--workers',type=int,choices=[1,2,3,6],default=6);parser.add_argument('--groups',nargs='+',choices=GROUPS,default=list(GROUPS));parser.add_argument('--extended-load',action='store_true');parser.add_argument('--sample-seconds',type=float,choices=[.2,.5,1.0],default=.5);parser.add_argument('--xorg-config',type=pathlib.Path,required=True);args=parser.parse_args()
+ parser=argparse.ArgumentParser();parser.add_argument('output',type=pathlib.Path);parser.add_argument('--workers',type=int,choices=[1,2,3,6],default=6);parser.add_argument('--groups',nargs='+',choices=GROUPS,default=[k for k in GROUPS if k!='lease-gap']);parser.add_argument('--extended-load',action='store_true');parser.add_argument('--sample-seconds',type=float,choices=[.2,.5,1.0],default=.5);parser.add_argument('--xorg-config',type=pathlib.Path,required=True);args=parser.parse_args()
  if args.extended_load:
   GROUPS['related-ref'].append('WebUITests.test_actual_editor_v480_field_ref_restricted_catalog_true_parameter_cold_and_confirm')
   GROUPS['related-set'].append('WebUITests.test_actual_editor_v480_property_set_explicit_receiver_value_cold_and_confirm')
@@ -33,7 +34,7 @@ def main():
  source={name:hashlib.sha256((REPO/name).read_bytes()).hexdigest() for name in sorted(set(names)) if name and name.split('/')[0] not in ['docs','reference'] and (REPO/name).is_file()}
  def intact():
   for name,digest in source.items():assert hashlib.sha256((REPO/name).read_bytes()).hexdigest()==digest,name
- metadata={'head':subprocess.check_output(['git','rev-parse','HEAD'],cwd=REPO,text=True).strip(),'workers':args.workers,'selectedGroups':args.groups,'methods':{k:GROUPS[k] for k in args.groups},'cpu.max':pathlib.Path('/sys/fs/cgroup/cpu.max').read_text().strip(),'memory.max':pathlib.Path('/sys/fs/cgroup/memory.max').read_text().strip(),'source':source,'sourceManifestSha256':hashlib.sha256(json.dumps(source,sort_keys=True,separators=(',',':')).encode()).hexdigest(),'xorgConfigSha256':hashlib.sha256(args.xorg_config.read_bytes()).hexdigest(),'samplingSeconds':args.sample_seconds,'resourceSampleSeconds':1,'before':cgroup(),'instrumentation':'Opt-in test fixture timing/wait snapshots + owned /proc observer. Assertions and original timeout values unchanged. Limited workload mix, not a replay of all 235 methods or their original launch timestamps.'}
+ metadata={'head':subprocess.check_output(['git','rev-parse','HEAD'],cwd=REPO,text=True).strip(),'workers':args.workers,'selectedGroups':args.groups,'methods':{k:GROUPS[k] for k in args.groups},'cpu.max':pathlib.Path('/sys/fs/cgroup/cpu.max').read_text().strip(),'memory.max':pathlib.Path('/sys/fs/cgroup/memory.max').read_text().strip(),'source':source,'sourceManifestSha256':hashlib.sha256(json.dumps(source,sort_keys=True,separators=(',',':')).encode()).hexdigest(),'startupGapMs':os.environ.get('CONFECTORY_ENV4_STARTUP_GAP_MS'),'xorgConfigSha256':hashlib.sha256(args.xorg_config.read_bytes()).hexdigest(),'samplingSeconds':args.sample_seconds,'resourceSampleSeconds':1,'before':cgroup(),'instrumentation':'Opt-in test fixture timing/wait snapshots + owned /proc observer. Assertions and original timeout values unchanged. Limited workload mix, not a replay of all 235 methods or their original launch timestamps.'}
  (out/'metadata.json').write_text(json.dumps(metadata,indent=2)+'\n')
  def observer():
   last=0
@@ -47,7 +48,7 @@ def main():
     for key,(label,row) in list(identities.items()):
      if key not in current and row['pid'] in rows and rows[row['pid']]['startTicks']==row['startTicks']:current[key]=(label,dict(rows[row['pid']],role=row['role']))
     births=[dict(group=label,**row) for key,(label,row) in current.items() if key not in identities]
-    exits=[{'group':label,'pid':row['pid'],'startTicks':row['startTicks']} for key,(label,row) in identities.items() if key not in current]
+    exits=[{'group':label,'pid':row['pid'],'startTicks':row['startTicks'],'lastObserved':row} for key,(label,row) in identities.items() if key not in current]
     if births or exits:output.write(json.dumps({'monotonicNs':now,'births':births,'exits':exits},separators=(',',':'))+'\n')
     if now-last>=1_000_000_000:
      output.write(json.dumps({'monotonicNs':now,'cgroup':cgroup(),'processes':[dict(group=label,**row) for label,row in current.values()]},separators=(',',':'))+'\n');output.flush();last=now
@@ -57,7 +58,7 @@ def main():
   intact();env=os.environ.copy();env['CONFECTORY_ENV4_TRACE']=str(trace);display=None;display_stream=None;begin=time.monotonic_ns()
   print('START',name,flush=True)
   try:
-   if name=='native':
+   if name in ['native','lease-gap']:
     assert not pathlib.Path('/tmp/.X11-unix/X97').exists(),'Owned display97 is already in use'
     display_stream=(out/'xorg-console.log').open('w');display=subprocess.Popen(['/usr/bin/Xorg',':97','-noreset','-nolisten','tcp','-ac','-config',str(args.xorg_config),'-logfile',str(out/'xorg.log')],stdout=display_stream,stderr=subprocess.STDOUT,start_new_session=True)
     for _ in range(150):

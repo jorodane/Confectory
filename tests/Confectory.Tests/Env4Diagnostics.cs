@@ -63,7 +63,11 @@ internal static class Env4Diagnostics
         if (button)
             text = text.Replace("var node=Read();if(condition(node))return node;", "var node=Read();Env4Sample(env4Wait,timer.ElapsedMilliseconds,calls.Observe.Invoke(session,h)[1],node);if(condition(node)){Env4Mark(\"native-wait:done\",new{wait=env4Wait,elapsedMs=timer.ElapsedMilliseconds,control=Env4Control(node)});return node;}", StringComparison.Ordinal);
         else
+        {
+            // Controlled regression of the measured unobserved-owner gap, with the original 90s deadline.
+            text = text.Replace("var second=Until(b,", "if(int.TryParse(Environment.GetEnvironmentVariable(\"CONFECTORY_ENV4_STARTUP_GAP_MS\"),out int env4Gap)&&env4Gap>0&&env4Gap<=10000){Env4Mark(\"startup-gap:begin\",new{milliseconds=env4Gap});System.Threading.Thread.Sleep(env4Gap);Env4Mark(\"startup-gap:end\",new{milliseconds=env4Gap});}var second=Until(b,", StringComparison.Ordinal);
             text = text.Replace("var status=Control(handle,\"observe\");if(condition(status))return status;", "var status=Control(handle,\"observe\");Env4Sample(env4Wait,timer.ElapsedMilliseconds,calls.Observe.Invoke(session,handle)[1],status);if(condition(status)){Env4Mark(\"native-wait:done\",new{wait=env4Wait,elapsedMs=timer.ElapsedMilliseconds,control=Env4Control(status)});return status;}", StringComparison.Ordinal);
+        }
         File.WriteAllText(path, Prefix + "\n" + sample + "\n" + text);
     }
 }

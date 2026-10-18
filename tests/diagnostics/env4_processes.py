@@ -23,7 +23,7 @@ def scan():
    elif args and args[0].endswith('python3'):role='python-fixture'
    elif dll:role='generated-driver'
    rows[int(path.name)]={'pid':int(path.name),'ppid':int(fields[1]),'startTicks':int(fields[19]),'state':fields[0],
-    'cpuMs':(int(fields[11])+int(fields[12]))*1000/HZ,'rss':max(0,int(fields[21]))*PAGE,'threads':int(fields[17]),
+    'cpuMs':(int(fields[11])+int(fields[12]))*1000/HZ,'waitedChildCpuMs':(int(fields[13])+int(fields[14]))*1000/HZ,'rss':max(0,int(fields[21]))*PAGE,'threads':int(fields[17]),
     'executable':pathlib.Path(args[0]).name if args else '', 'assembly':dll,'role':role}
   except (OSError,ValueError,IndexError):continue
  return rows
@@ -49,3 +49,19 @@ def event(phase, data):
 def tree_event(pid, phase):
  if not os.environ.get('CONFECTORY_ENV4_TRACE'):return []
  rows=owned_tree(pid);event(phase,{'hostPid':pid,'processes':rows});return rows
+
+def remember_runs(host_pid, known):
+ """Retain birth identities, so a live runtime reparented after worker exit is still checked."""
+ for row in owned_tree(host_pid):
+  if row['role'] in ['run-worker','run-runtime']:known[(row['pid'],row['startTicks'])]=row['role']
+
+def assert_runs_retired(host_pid, known):
+ rows=scan()
+ live_known=[dict(rows[pid],role=role) for (pid,birth),role in known.items()
+             if pid in rows and rows[pid]['startTicks']==birth and rows[pid]['state']!='Z']
+ descendants=owned_tree(host_pid,rows)
+ live_new=[row for row in descendants if row['role'] in ['run-worker','run-runtime'] and row['state']!='Z']
+ zombies=[pid for pid,birth in known if pid in rows and rows[pid]['startTicks']==birth and rows[pid]['state']=='Z']
+ event('run-retirement-check',{'hostPid':host_pid,'knownRunBirths':[{'pid':p,'startTicks':b,'role':r} for (p,b),r in known.items()],
+       'liveKnown':live_known,'liveNew':live_new,'exitedZombies':zombies,'otherDescendants':descendants})
+ assert not live_known and not live_new,{'liveKnownRun':live_known,'newRunDescendants':live_new}
