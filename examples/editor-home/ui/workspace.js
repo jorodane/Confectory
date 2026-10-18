@@ -5,7 +5,7 @@ import {noteHtml,noteMarkup,bindNoteEditor,applyNoteTitle} from './notes.js';
 // Domain actions are explicit host callbacks; no prototype database or AI implementation lives here.
 export function createWorkspaceRuntime(host){
  const state={windows:new Map(),z:10,shiftHeld:false,activeWorkspaceId:'root',visitedWorkspaceTabs:['root'],workspaceContextGuard:null,workspaceNodes:new Map(),selectedWorkspaceNodeKeys:new Set(),workspaceGrid:22,workspaceDot:11,workspaceInset:2,workspaceDragPayload:null,workspaceDragGhost:null,workspaceDragPlacement:null};
-const linkRuntime=createWorkspaceLinks({state,owner:()=>workspaceRecord(),project:()=>host.project,canvas:()=>host.$('#workspace'),ready:()=>!host.isRestoring&&(!host.canNavigate||host.canNavigate()),save:()=>saveLayouts(),toast:host.toast,contextMenu:host.contextMenu});
+const linkRuntime=createWorkspaceLinks({state,owner:()=>workspaceRecord(),project:()=>host.project,canvas:()=>host.$('#workspace'),ready:()=>!host.isRestoring&&!state.gesture&&(!host.canNavigate||host.canNavigate()),before:host.beforePrivateLayout?()=>host.beforePrivateLayout():undefined,record:before=>host.recordPrivateLayout?.(before),save:()=>saveLayouts(),toast:host.toast,contextMenu:host.contextMenu});
 function cancelInteractions(){linkRuntime.cancel();state.cancelDrag?.();}
 function setupWorkspaceNavigation(){
  const canvas=host.$('#workspace');if(!canvas||!host.project)return;if(host.preserveLifecycle&&!canvas.querySelector('.workspace-world-layer')){const world=document.createElement('div');world.className='workspace-world-layer';canvas.append(world);}
@@ -165,6 +165,7 @@ function beginWorkspaceNodeDrag(e,node,{edge='',onClick}={}){
  if(!edge){const moving=new Set(members);let changed=true;while(changed){changed=false;for(const group of [...moving].filter(item=>item.kind==='decoration'&&item.item.kind==='group'))for(const other of state.workspaceNodes.values())if(other.placed&&other!==group&&!moving.has(other)&&fullyInsideDecoration(other,group.item)){moving.add(other);changed=true;}for(const child of linkRuntime.descendants([...moving]))if(!moving.has(child)){moving.add(child);changed=true;}}for(const item of moving)if(!members.includes(item))companions.push(item);}
  const traveling=[...members,...companions];
  const companionStarts=new Map(companions.map(item=>[item,{x:item.x,y:item.y}]));
+ const historyBefore=!edge?host.beforePrivateLayout?.():null;if(!edge&&host.beforePrivateLayout&&!historyBefore)return;
  const start=starts.get(node),handle=e.currentTarget;
  state.gesture={project:host.project,workspaceId:state.activeWorkspaceId,entries:traveling.map(item=>({key:item.key,itemId:item.item?.id,kind:item.kind,geometry:{...(starts.get(item)||companionStarts.get(item))}}))};
  trackWorkspaceDrag(e,handle,(ev,sx,sy)=>{
@@ -193,7 +194,7 @@ function beginWorkspaceNodeDrag(e,node,{edge='',onClick}={}){
   }
   members.forEach(item=>{item.el.classList.remove('is-workspace-dragging');item.position()});
   companions.forEach(item=>item.position());
-  if(moved&&ev.type==='pointerup'){if(toTabs){host.openWindowDocuments?.(members);saveLayouts();}else if(target){if(!moveWindowsToWorkspace(traveling,target.dataset.workspaceId)){members.forEach(item=>Object.assign(item,starts.get(item)));companions.forEach(item=>Object.assign(item,companionStarts.get(item)));traveling.forEach(item=>item.position());}}else saveLayouts()}
+  if(moved&&ev.type==='pointerup'){if(toTabs){host.openWindowDocuments?.(members);saveLayouts();}else if(target){if(!moveWindowsToWorkspace(traveling,target.dataset.workspaceId,historyBefore)){members.forEach(item=>Object.assign(item,starts.get(item)));companions.forEach(item=>Object.assign(item,companionStarts.get(item)));traveling.forEach(item=>item.position());}}else{saveLayouts();if(!edge)host.recordPrivateLayout?.(historyBefore);}}
   else if(!moved&&ev.type==='pointerup')onClick?.(wasSelected);
  });
 }
@@ -265,14 +266,15 @@ function updateWorkspaceDropPreview(target,members=[]){
  members.forEach(w=>w.el.classList.add('is-drop-preview'));
 }
 
-function moveWindowsToWorkspace(members,targetId){
+function moveWindowsToWorkspace(members,targetId,historyBefore=null){
  members=linkRuntime.descendants(members);if(!members.length||members.some(w=>w.kind!=='window'||w.documentDocked||w.overlay||state.windows.get(w.key)!==w))return false;
  const target=workspaceRecord(targetId);if(!target||targetId===state.activeWorkspaceId)return false;target.layout??=[];
  if(members.some(w=>target.layout.some(item=>item.key===w.key))){host.toast('대상 작업 공간에 같은 private 창이 있어 이동하지 않았습니다.');return false;}
  const keys=new Set(members.map(w=>w.key)),edges=linkRuntime.rows().filter(edge=>keys.has(edge.parent)&&keys.has(edge.child));if((target.links?.length||0)+edges.length>255){host.toast('대상 Workspace의 연결 한도를 넘어 이동하지 않았습니다.');return false;}
+ const before=historyBefore||host.beforePrivateLayout?.();if(host.beforePrivateLayout&&!before)return false;
  const base=target.layout.length,left=Math.min(...members.map(w=>w.x)),top=Math.min(...members.map(w=>w.y)),moved=members.map(w=>({...windowLayout(w),x:70+base*34+w.x-left,y:90+base*30+w.y-top,placed:true}));
  linkRuntime.remove([...keys]);target.links??=[];target.links.push(...edges);
- members.forEach(w=>{host.detachWindow?.(w,'move');clearTimeout(w.helperBubbleTimer);w.el.remove();state.windows.delete(w.key);unregisterWorkspaceNode(w.key);});setWindowSelection([]);saveLayouts();target.layout.push(...moved);host.persist();renderWorkspaceDecorations();renderWorkspaceTabs();host.toast(members.length+'개 창을 '+target.name+'(으)로 옮겼어요.');return true;
+ members.forEach(w=>{host.detachWindow?.(w,'move');clearTimeout(w.helperBubbleTimer);w.el.remove();state.windows.delete(w.key);unregisterWorkspaceNode(w.key);});setWindowSelection([]);saveLayouts();target.layout.push(...moved);host.persist();host.recordPrivateLayout?.(before);renderWorkspaceDecorations();renderWorkspaceTabs();host.toast(members.length+'개 창을 '+target.name+'(으)로 옮겼어요.');return true;
 }
 
 function renderWorkspaceTabs(){const tabs=host.$('#workspace-tabs');if(!tabs)return;host.beforeRenderTabs?.(tabs);tabs.replaceChildren();const add=(id,label)=>{const button=document.createElement('button');button.type='button';button.className='workspace-home-tab'+(id===state.activeWorkspaceId?' is-current':'');button.id=id==='root'?'workspace-home-tab':'workspace-tab-'+id;button.setAttribute('role','tab');button.setAttribute('aria-selected',String(id===state.activeWorkspaceId));button.textContent=label;button.onclick=()=>{const documentWasOpen=host.activateWorkspaceView?.();if(id===state.activeWorkspaceId){if(!documentWasOpen)host.$('#workspace').resetWorkspaceView?.();return}switchWorkspace(id)};tabs.append(button);if(id!=='root'&&host.preserveLifecycle){const close=document.createElement('button');close.type='button';close.className='workspace-tab-close';close.setAttribute('aria-label',label+' 탭 닫기');close.textContent='×';close.onclick=()=>{if(state.activeWorkspaceId===id)returnToParentWorkspace();state.visitedWorkspaceTabs=state.visitedWorkspaceTabs.filter(item=>item!==id);renderWorkspaceTabs();host.persist()};tabs.append(close)}};add('root','Workspace');state.visitedWorkspaceTabs.filter(id=>id!=='root').forEach(id=>{const space=workspaceRecord(id);if(space)add(id,space.name)});host.renderDocumentTabs?.(tabs);}

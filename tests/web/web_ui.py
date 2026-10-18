@@ -131,6 +131,9 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
  if kind=='declaration-tree':
   from v480_declaration_tree import prepare_tree
   prepare_tree(project,root,repo)
+ if kind=='workspace-history':
+  from v480_workspace_history import prepare_history
+  prepare_history(project,root)
  original=(project/'Score.celem').read_bytes();log=root/'host.log';owned=OwnedResponses(None) if kind=='editor' else None
  with log.open('w') as output:
   host=subprocess.Popen(report['run'],cwd=repo,env=env,stdout=output,stderr=subprocess.STDOUT)
@@ -265,6 +268,9 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
     elif kind=='workspace-links':
      from v480_workspace_links import verify_workspace_links
      verify_workspace_links(page,project,mount,send,envelope,settle,restart_actual_host)
+    elif kind=='workspace-history':
+     from v480_workspace_history import verify_history
+     verify_history(page,project,mount,send,envelope,settle,restart_actual_host)
     elif kind=='window-documents':
      from v480_window_documents import verify_window_documents
      verify_window_documents(page,project,mount,send,envelope,settle,restart_actual_host)

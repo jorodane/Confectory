@@ -1,4 +1,4 @@
-import {createPrivateDeletionHistory} from './workspace-history.js';
+import {createPrivateLayoutHistory} from './workspace-history.js';
 import {createWindowDocuments} from './window-documents.js';
 import {createNoteDocuments} from './note-documents.js';
 import {createWorkspaceRuntime} from './workspace.js';
@@ -26,7 +26,7 @@ export function createActualWorkspace(api) {
     layoutMetadata:w=>Object.fromEntries(['id','view','mode','group','density','query','sort','mainWorkspace','namespace','catalogue','kind','parent','queryInput','browserLocations','closedNamespaces','treeExpanded','treeSelection','treeQuery','workerId','blueprintGraph','blueprintNode','blueprintPropertyAccess','blueprintPropertyNode','blueprintCodeMode','blueprintEnumDraft','blueprintOutputWidth','blueprintOutputCollapsed','blueprintZoom','blueprintPositions','blueprintCamera','blueprintViews','nodeTaskNode','nodeTaskQuery','nodeTaskPage','nodeTaskReason','buildJob','buildPage','conflictSourceId','referenceRequest','mapQuery','mapRoles','mapFocus','mapSelected','mapPositions','mapCamera','mapDidFit','mapFocusId','mapFocusPositions','fieldDiscovery','tableDefinition','tableName','tableQuery','tableSort','tableSelected','tableInputs','tableFill','tableBuilder','tableColumnOrder','tableWidths','tableValueSort'].filter(key=>w.meta[key]!==undefined).map(key=>[key,w.meta[key]])),
     restoreActualWindow:layout=>restore(layout),
     afterSwitchWorkspace:()=>{const panels=structuredClone(runtime.workspaceRecord().participants||[]);api.clearPanels();api.clearYogi();panelWorkspace=runtime.state.activeWorkspaceId;api.restorePanels(panels);api.restoreYogi(runtime.workspaceRecord().yogiPresentation);api.render();schedule()},
-    beforePrivateDelete:()=>deletionHistory.before(),recordPrivateDelete:before=>deletionHistory.record(before),privateHistoryMenu:()=>deletionHistory.menu(),
+    beforePrivateLayout:()=>deletionHistory.before('layout'),recordPrivateLayout:before=>deletionHistory.record(before),beforePrivateDelete:()=>deletionHistory.before(),recordPrivateDelete:before=>deletionHistory.record(before),privateHistoryMenu:()=>deletionHistory.menu(),
     beforeDeleteWorkspaces:ids=>{
       // Closing a child presentation must never release the domain editor view.
       const parent=runtime.workspaceRecord();
@@ -53,17 +53,24 @@ export function createActualWorkspace(api) {
   const runtime=createWorkspaceRuntime(host);
   const noteDocuments=createNoteDocuments({get project(){return project},get scope(){return scope},get loading(){return loading},canvas:()=>api.$('#workspace'),persist:()=>schedule('input'),refreshWindows:()=>windowDocuments.render(),toast:api.toast,renderTabs:()=>runtime.renderWorkspaceTabs(),renderDecorations:()=>runtime.renderWorkspaceDecorations(),editTitle:(item,owns)=>runtime.editWorkspaceTitle(item,owns,true)});
   const windowDocuments=createWindowDocuments({get project(){return project},get loading(){return loading},canvas:()=>api.$('#workspace'),runtime,persist:()=>schedule('layout'),toast:api.toast,contextMenu:api.contextMenu,renderTabs:()=>runtime.renderWorkspaceTabs(),refreshNotes:()=>noteDocuments.render(),retain:w=>host.detachWindow(w)});
-  const deletionHistory=createPrivateDeletionHistory({project:()=>project,ready:()=>!!project&&!loading&&!api.isBusy,capture:()=>{capture();runtime.saveLayouts();},restore:restorePrivate,toast:api.toast,persist:()=>schedule('layout')});
-  function restorePrivate(apply,reveal=[]){
+  const deletionHistory=createPrivateLayoutHistory({project:()=>project,ready:()=>!!project&&!loading&&!api.isBusy&&!runtime.state.gesture&&!runtime.state.cancelDrag,capture:()=>{capture();runtime.saveLayouts();},restore:restorePrivate,toast:api.toast,persist:()=>schedule('layout')});
+  function restorePrivate(apply,reveal=[],placement=null){
     capture();runtime.cancelInteractions();loading=true;
     try{
+      if(placement){
+        for(const w of [...runtime.state.windows.values()])if(!w.documentDocked&&placement.owners.get(w.key)!==runtime.state.activeWorkspaceId){host.detachWindow(w);w.el.remove();runtime.state.windows.delete(w.key);runtime.unregisterWorkspaceNode(w.key);}
+        apply();
+        for(const row of runtime.workspaceRecord().layout){const w=runtime.state.windows.get(row.key);if(w&&!w.documentDocked){Object.assign(w,{x:row.x,y:row.y,width:row.width,height:row.height,folded:!!row.folded,placed:!!row.placed});w.el.hidden=!!row.hidden;w.el.classList.toggle('folded',w.folded);if(w.el.hidden)runtime.unregisterWorkspaceNode(w.key);else runtime.registerWorkspaceNode(w);runtime.placeWindow(w);}else if(!w)runtime.restoreWindow(structuredClone(row));}
+        runtime.positionWorkspaceDecorations();runtime.links.schedule();
+      }else{
       for(const w of [...runtime.state.windows.values()]){if(w.documentDocked)continue;host.detachWindow(w);w.el.remove();runtime.state.windows.delete(w.key);}
       runtime.state.workspaceNodes.clear();runtime.state.selectedWorkspaceNodeKeys.clear();apply();
       if(!runtime.workspaceRecord())runtime.state.activeWorkspaceId='root';
       runtime.state.visitedWorkspaceTabs=(project.visitedWorkspaceTabs||['root']).filter(id=>runtime.workspaceRecord(id));
       runtime.renderWorkspaceDecorations();runtime.renderWorkspaceTabs();
       for(const row of runtime.workspaceRecord().layout.map(row=>structuredClone(row)))runtime.restoreWindow(row);
-      windowDocuments.restore();noteDocuments.render();runtime.links.schedule();const restored=reveal.map(key=>runtime.state.windows.get(key)).filter(w=>w&&!w.el.hidden&&!w.documentDocked);if(restored.length){runtime.setWindowSelection(restored);runtime.focusWorkspaceNode(restored.at(-1));}
+      windowDocuments.restore();noteDocuments.render();runtime.links.schedule();
+      }const restored=reveal.map(key=>runtime.state.windows.get(key)).filter(w=>w&&!w.el.hidden&&!w.documentDocked);if(restored.length){runtime.setWindowSelection(restored);runtime.focusWorkspaceNode(restored.at(-1));}
     }finally{loading=false;api.controls?.();}
     runtime.saveLayouts();schedule('layout');
   }
