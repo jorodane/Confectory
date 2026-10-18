@@ -1,0 +1,5 @@
+implementation Confectory.EditorHome.Model::NativeTreeBody for Confectory.EditorHome.Model::NativeTree (string storage, string project, string operation, string payload) -> string {
+import Confectory.FileStream::Commit as Commit (string,string[],string[],string[]) -> string[];
+import Confectory.FileStream::Snapshot as Snapshot (string) -> string[];
+body common "NativeTree.csbody";
+}

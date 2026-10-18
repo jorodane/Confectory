@@ -1,0 +1,8 @@
+function Confectory.EditorHome.Model::NativeTree (string storage, string project, string operation, string payload) -> string {
+description "Bounded private native tree state and pure projection over the same confirmed inventory and explicit parent map as WebUI. No source reads in projection.";
+provide Confectory.EditorHome.Model::NativeTree with Confectory.EditorHome.Model::NativeTreeBody;
+provide Confectory.FileStream::Commit with Confectory.FileStream::CommitBody;
+provide Confectory.FileStream::Snapshot with Confectory.FileStream::SnapshotBody;
+provide Confectory.FileStream::WriteAtomic with Confectory.FileStream::WriteAtomicBody;
+provide Confectory.FileStream::LeasePath with Confectory.FileStream::LeasePathBody;
+}

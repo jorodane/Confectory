@@ -227,6 +227,19 @@ try{model["status"]="";model["archive"]=null;
  }
  model["status"]="Actual participant/task records inspected; no approval, provider or dispatch replayed";
  }
+ else if(operation=="native-tree"){
+ string context=Active(),id=model["selected"]!["projectId"]!.ToString(),storageRoot=System.IO.Path.GetDirectoryName((string)state[2])!;model["nativeTrees"]??=new System.Text.Json.Nodes.JsonObject();
+ if(Value("action")=="save"){
+  if(model["nativeTrees"]![id] is null)throw new InvalidOperationException("Read native tree before saving");
+  var saved=System.Text.Json.Nodes.JsonNode.Parse(calls.NativeTree.Invoke(storageRoot,id,"save",new System.Text.Json.Nodes.JsonObject{["revision"]=args["revision"]?.DeepClone(),["value"]=args["value"]?.DeepClone()}.ToJsonString()));
+  model["nativeTrees"]![id]!["storage"]=saved;model["status"]="Native tree view explicitly saved; source/chat inputs unchanged";
+ }else{
+  var inventory=System.Text.Json.Nodes.JsonNode.Parse(calls.Catalog.Invoke(model["selected"]!["path"]!.ToString(),"{\"action\":\"inventory\"}"));
+  var map=System.Text.Json.Nodes.JsonNode.Parse(calls.PackCommand.Invoke(Workspace(context),"relations-map","{}"))!["relationsMap"]!.DeepClone();
+  System.Text.Json.Nodes.JsonNode saved;try{saved=System.Text.Json.Nodes.JsonNode.Parse(calls.NativeTree.Invoke(storageRoot,id,"load","{}"))!;}catch{saved=new System.Text.Json.Nodes.JsonObject{["status"]="unavailable"};}
+  model["nativeTrees"]![id]=new System.Text.Json.Nodes.JsonObject{["context"]=context,["projectId"]=id,["inventory"]=inventory,["relationsMap"]=map,["storage"]=saved};model["status"]="Native tree metadata freshly read; registered bodies remain gated";
+ }
+ }
  else if(operation=="local-inventory"){
  string project=model["selected"]?["path"]?.ToString()??ConnectionProject();
  model["localInventory"]=new System.Text.Json.Nodes.JsonObject{["projectId"]=model["selected"]?["projectId"]?.DeepClone(),["result"]=System.Text.Json.Nodes.JsonNode.Parse(calls.Catalog.Invoke(project,"{\"action\":\"inventory\"}"))};
