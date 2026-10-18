@@ -1,0 +1,174 @@
+UI page errors: []
+UI failure status: Ready
+UI failure controls: {'confirm': None, 'run': False, 'source': 'Example.ButtonGame::Score'}
+FAIL WebUITests.test_actual_editor_declared_context_actions_typed_call_scope_cancel_stale_and_failure
+System.Exception: UI page errors: []
+UI failure status: Ready
+UI failure controls: {'confirm': None, 'run': False, 'source': 'Example.ButtonGame::Score'}
+Traceback (most recent call last):
+  File "/workspace/Confectory/tests/web/web_ui.py", line 279, in <module>
+    verify_context_actions(page,project,mount,send,envelope,settle,restart_actual_host)
+  File "/workspace/Confectory/tests/web/editor_context_actions.py", line 32, in verify_context_actions
+    nav();page.locator('[data-id="'+id+'"]').click();ready();page.locator('.window[data-key="schema"] [data-close]').click();before=state()['draft'];menu();expect(page.get_by_role('button',name='예시 · 전투 테스트 · 미지원',exact=True)).to_be_visible();expect(page.get_by_role('button',name='등록 기능 · 등록만 된 기능 · 미지원',exact=True)).to_be_visible();page.keyboard.press('Escape');page.locator('#workspace').click(position={'x':1700,'y':800});assert state()['draft']==before
+                                                                                                                                                     ^^^^^^
+  File "/workspace/Confectory/tests/web/editor_context_actions.py", line 30, in menu
+    ready();page.locator('[data-id="'+id+'"]').click(button='right');expect(page.get_by_role('button',name='등록 기능 · 메타데이터 변경안',exact=True)).to_be_visible(timeout=120000)
+                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/sync_api/_generated.py", line 23332, in to_be_visible
+    self._sync(
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_sync_base.py", line 115, in _sync
+    return task.result()
+           ^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_assertions.py", line 852, in to_be_visible
+    await self._expect_impl(
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_assertions.py", line 128, in _expect_impl
+    _record_soft_or_raise(
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_assertions.py", line 60, in _record_soft_or_raise
+    raise error
+AssertionError: Locator expected to be visible
+Actual value: None
+Error: element(s) not found
+Call log:
+  - Expect "to_be_visible" with timeout 120000ms
+  - waiting for get_by_role("button", name="등록 기능 · 메타데이터 변경안", exact=True)
+
+Aria snapshot:
+- banner:
+  - button "Confectory 홈으로": Confectory
+  - text: /
+  - button "Actions A ▾"
+  - button "설정 열기": 설정
+- complementary:
+  - button "AGENT (0)" [expanded]
+  - button "Agent 추가": ++추가
+  - button "HELPER (0)" [expanded]
+  - button "Helper 추가": ++추가
+  - heading "소속 미지정 (0)" [level=4]
+  - button "Helper 추가": + ＋
+  - button "User(0/0)": User (0/0)
+  - separator "사이드바 너비 조절, 클릭하여 최소화 또는 복원"
+- main:
+  - img "창 부모 자식 연결"
+  - tablist "작업 공간":
+    - tab "Workspace" [selected]
+  - status
+  - button "YogiBox"
+  - button "증강"
+  - button "신문고": 📫
+  - button "빌드 대상 선택": 🛠️
+  - button "실행 화면 열기": ▶
+  - button "프로젝트 브라우저": ≡
+  - region "프로젝트 브라우저":
+    - text: ◈
+    - strong: 프로젝트 브라우저
+    - button "창 접기": −
+    - button "창 닫기": ×
+    - button "개념"
+    - button "기능"
+    - button "모듈"
+    - textbox "의미 객체 검색":
+      - /placeholder: 개념 검색…
+    - button "검색 확정": 검색
+    - button "정렬 방법"
+    - button "새 의미 객체": ＋
+    - button "선언 관계 다시 읽기"
+    - text: Preview
+    - slider "객체 표시 밀도 Compact Preview Data": "50"
+    - button "ProjectPack"
+    - navigation "명시 선언 계층":
+      - text: 트리 검색
+      - searchbox "선언 트리 검색"
+      - paragraph: namespace 경로 · 선언 parent만 계층으로 표시합니다.
+      - tree "namespace와 명시 parent 트리":
+        - treeitem "ProjectPack 펼침 ProjectPack root" [expanded] [level=1] [selected]:
+          - button "ProjectPack 펼침" [expanded]: ▾
+          - button "ProjectPack root"
+        - treeitem "Confectory 펼침 Confectory namespace 경로" [expanded] [level=2]:
+          - button "Confectory 펼침" [expanded]: ▾
+          - button "Confectory namespace 경로"
+        - treeitem "BaseUI 펼침 BaseUI namespace · 선언 86" [level=3]:
+          - button "BaseUI 펼침": ▸
+          - button "BaseUI namespace · 선언 86"
+        - treeitem "BrowserHost namespace · 선언 2" [level=3]:
+          - button "BrowserHost namespace · 선언 2"
+        - treeitem "Build 펼침 Build namespace 경로" [expanded] [level=3]:
+          - button "Build 펼침" [expanded]: ▾
+          - button "Build namespace 경로"
+        - treeitem "DotNet 펼침 DotNet namespace · 선언 2" [level=4]:
+          - button "DotNet 펼침": ▸
+          - button "DotNet namespace · 선언 2"
+        - treeitem "FrameControl namespace · 선언 8" [level=3]:
+          - button "FrameControl namespace · 선언 8"
+        - treeitem "HostLoop namespace · 선언 6" [level=3]:
+          - button "HostLoop namespace · 선언 6"
+        - treeitem "RealTimeUpdate namespace · 선언 22" [level=3]:
+          - button "RealTimeUpdate namespace · 선언 22"
+        - treeitem "RenderInput namespace · 선언 4" [level=3]:
+          - button "RenderInput namespace · 선언 4"
+        - treeitem "RuntimeBase namespace · 선언 17" [level=3]:
+          - button "RuntimeBase namespace · 선언 17"
+        - treeitem "SchemaEditing namespace · 선언 32" [level=3]:
+          - button "SchemaEditing namespace · 선언 32"
+        - treeitem "UINavigation namespace · 선언 6" [level=3]:
+          - button "UINavigation namespace · 선언 6"
+        - treeitem "WebUI namespace · 선언 16" [level=3]:
+          - button "WebUI namespace · 선언 16"
+        - treeitem "Window namespace · 선언 52" [level=3]:
+          - button "Window namespace · 선언 52"
+        - treeitem "Example 펼침 Example namespace 경로" [expanded] [level=2]:
+          - button "Example 펼침" [expanded]: ▾
+          - button "Example namespace 경로"
+        - treeitem "ActionPack 펼침 ActionPack namespace · 선언 1" [level=3]:
+          - button "ActionPack 펼침": ▸
+          - button "ActionPack namespace · 선언 1"
+        - treeitem "ButtonGame 펼침 ButtonGame namespace · 선언 13" [expanded] [level=3]:
+          - button "ButtonGame 펼침" [expanded]: ▾
+          - button "ButtonGame namespace · 선언 13"
+        - treeitem "Menu object · parent 없음 · 소유" [level=4]:
+          - button "Menu object · parent 없음 · 소유"
+        - treeitem "Score object · parent 없음 · 소유" [level=4]:
+          - button "Score object · parent 없음 · 소유"
+        - treeitem "UnboundMenu object · parent 없음 · 소유" [level=4]:
+          - button "UnboundMenu object · parent 없음 · 소유"
+    - region "선택한 트리 항목":
+      - paragraph: contain/schema는 폴더 소속으로 바꾸지 않습니다. 등록 선언의 parent는 자동으로 읽지 않습니다.
+    - text: ◇ Menu object
+    - button "정의 열기"
+    - text: ◇ Score object
+    - button "정의 열기"
+    - text: ◇ UnboundMenu object
+    - button "정의 열기"
+    - text: 3 객체 · Preview 클릭 선택 · 더블클릭 편집 · 우클릭 기능
+    - button "n 방향으로 창 크기 조절"
+    - button "ne 방향으로 창 크기 조절"
+    - button "e 방향으로 창 크기 조절"
+    - button "se 방향으로 창 크기 조절"
+    - button "s 방향으로 창 크기 조절"
+    - button "sw 방향으로 창 크기 조절"
+    - button "w 방향으로 창 크기 조절"
+    - button "nw 방향으로 창 크기 조절"
+- separator "채팅바 높이 조절"
+- button "프로젝트 채팅"
+- button "Logs"
+- strong
+- textbox "프로젝트 채팅 입력":
+  - /placeholder: 함께 만들 내용을 남겨보세요…
+- button "메시지 보내기": 보내기
+- status: Ready
+- button "바리에이션 생성"
+- button "예시 · 미리보기 · 미지원"
+- button "예시 · 전투 테스트 · 미지원"
+- button "예시 · 컨셉 아트 생성 · 미지원"
+- button "예시 · 밸런스 검토 · 미지원"
+- button "상세 편집"
+- button "스키마 열기"
+- button "EY로 담기"
+- button "표시 이름·부모·설명 편집 · F2"
+- button "삭제 · Delete · 미지원"
+- button "등록 기능 조회 실패 · 다시 여세요"
+
+   at Confectory.Tests.TestCase.True(Boolean condition, String message) in /workspace/Confectory/tests/Confectory.Tests/Support.cs:line 127
+   at Confectory.Tests.WebUITests.test_actual_editor_declared_context_actions_typed_call_scope_cancel_stale_and_failure() in /workspace/Confectory/tests/Confectory.Tests/WebUITests.cs:line 8
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+0 passed, 1 failed, 0 skipped; 130.544s

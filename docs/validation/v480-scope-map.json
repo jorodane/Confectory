@@ -251,7 +251,7 @@
         "targets/element-authoring/Program.cs"
       ],
       "supported": "현재 CELEM schema·metadata·순서·typed 함수/모듈·Apply/Review/Confirm, 연속 Apply의 기준 revision/hash 갱신",
-      "limits": "전체 enum/Vector3/compound ABI·원클릭 밸런스/테스트 실행 제외",
+      "limits": "전체 enum/Vector3/compound ABI·추가 선언형 컨텍스트 기능 제외",
       "remaining": [
         "DEC3",
         "IMP4"
@@ -1184,7 +1184,7 @@
         "examples/editor-home/WebBundle.csbody",
         "tests/Confectory.Tests/WebUITests.cs"
       ],
-      "supported": "커밋 HEAD의 일반 checkout LF/CRLF·43개 pinned 리소스·실제 Home 시작/변조 거부",
+      "supported": "커밋 HEAD의 일반 checkout LF/CRLF·44개 pinned 리소스·실제 Home 시작/변조 거부",
       "limits": "직접 파일 복사만으로 대체하지 않음",
       "remaining": [],
       "finalMethods": [
@@ -1249,6 +1249,32 @@
         "CoreTests.test_artifact_parallel_publication_and_corrupt_entry_repair"
       ],
       "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)"
+    },
+    {
+      "id": "E09",
+      "screenAction": "선언형 컨텍스트 기능",
+      "reference": {
+        "script": "app.js",
+        "functions": [
+          "contextMenu"
+        ],
+        "note": "전투 테스트·밸런스 예시는 필수 도메인 기능에서 제외한다는 사용자 정정"
+      },
+      "implementation": [
+        "examples/editor-home/ui/context-actions.js",
+        "packs/editor-home-model/ContextActions.csbody",
+        "targets/element-authoring/EditorMenuDeclarations.cs"
+      ],
+      "supported": "선언 발견·현재 선택 객체·명시 입력·기존 정적 SetValue 호출·결과/실패·stale/cancel/duplicate/session 경계",
+      "limits": "이 한정 route 외의 등록 함수는 실행 불가; 일반 executor·native 메뉴·새 권한·도메인 테스트 정책 미포함",
+      "remaining": [
+        "IMP4"
+      ],
+      "finalMethods": [
+        "WebUITests.test_actual_editor_declared_context_actions_typed_call_scope_cancel_stale_and_failure",
+        "WebUITests.test_context_action_menu_lifecycle_builtin_dismiss_scope_and_unbound"
+      ],
+      "evidence": "editor-context-actions.json"
     }
   ]
 }

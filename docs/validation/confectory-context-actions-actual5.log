@@ -1,0 +1,20 @@
+UI page errors: []
+UI failure status: AUTHORING: Scalar metadata required.
+UI failure controls: {'confirm': None, 'run': True, 'source': 'Example.ButtonGame::Score'}
+FAIL WebUITests.test_actual_editor_declared_context_actions_typed_call_scope_cancel_stale_and_failure
+System.Exception: UI page errors: []
+UI failure status: AUTHORING: Scalar metadata required.
+UI failure controls: {'confirm': None, 'run': True, 'source': 'Example.ButtonGame::Score'}
+Traceback (most recent call last):
+  File "/workspace/Confectory/tests/web/web_ui.py", line 279, in <module>
+    verify_context_actions(page,project,mount,send,envelope,settle,restart_actual_host)
+  File "/workspace/Confectory/tests/web/editor_context_actions.py", line 47, in verify_context_actions
+    fresh=listing();result=call(fresh);assert result['status']=='completed' and 'CURRENT_ACTION_DRAFT' in result['output'];assert state()['draft']==current
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+
+   at Confectory.Tests.TestCase.True(Boolean condition, String message) in /workspace/Confectory/tests/Confectory.Tests/Support.cs:line 127
+   at Confectory.Tests.WebUITests.test_actual_editor_declared_context_actions_typed_call_scope_cancel_stale_and_failure() in /workspace/Confectory/tests/Confectory.Tests/WebUITests.cs:line 8
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+0 passed, 1 failed, 0 skipped; 21.264s

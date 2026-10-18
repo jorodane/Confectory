@@ -11,7 +11,7 @@ IMP2의 WebUI와 [native 대응 트리](V480_NATIVE_DECLARATION_TREE.md)는 확�
 | 순서 · ID | 분류 | 실제 남은 범위 | 후속 완료 기준 · 현재 의존성 |
 |---|---|---|---|
 | P1 · IMP3 | 구현 누락 | 사용자 계산 열, 일반 선택 범위 확장 | 명시 소유 대상·기존 스키마의 읽기 전용 WebUI/native 합집합과 기존 쓰기 선택·field/source/schema CAS를 유지. 새 범위의 정확한 값·선택/cold/오류를 검사. 계산 실행 의미가 필요하면 DEC3/DEC4 선행; 현재 Data/채우기·제한된 합집합과 분리 |
-| P1 · IMP4 | 구현 누락 | 객체/함수 화면의 원클릭 밸런스·테스트 실행 등 prototype 보조 행동 | 실제 실행/결과/실패와 소유 범위를 연결하고 UI 및 compiler/runtime 근거 마련. 화면의 성공 표시로 대체하지 않음 |
+| P1 · IMP4 | 구현 누락 | 선언형 컨텍스트 기능의 추가 함수·입출력·provider 및 native 메뉴 연결 | [명시적으로 연결한 기존 SetValue 한 개의 관통 구현](EDITOR_CONTEXT_ACTIONS.md)은 지원 범위다. 추가 기능은 효과·소유권·target·취소/결과를 명시적으로 연결. 사용자 정정에 따라 전투 테스트·밸런스 검토 예시 자체는 필수 도메인 기능이 아님. 일반 executor나 새 권한을 등록만으로 부여하지 않음 |
 | P1 · IMP7 | 구현 누락 | native reparent 이전의 전체 문서 Undo 이력 | private 삭제 및 [완료한 이동/연결의 조건부 Undo/redo](V480_WORKSPACE_LAYOUT_HISTORY.md)는 구현 범위다. 전체 문서 이력의 수명·cold·충돌 명세를 별도로 확정. 소스 집합 변경은 DEC2 밖에서 추가하지 않음 |
 | P1 · ENV4 | 환경 미검증 | [측정된 부하/검사 한계와 잔여 불확실성](V480_ENV4_DIAGNOSIS.md) | 두 graph timeout은 4 CPU/6 gate에서 작업 진행 중 재현됐고 같은 source의 2 gate에서 원래 deadline 내 통과. native Engine의 미관측 lease 순서와 Home 조회 PID 오판은 검사 보정 후 같은 부하 통과. 최초 native ButtonGame wait phase는 재현하지 못했으며, 추가 Pause 1회·cache/시작 이력·PID 1의 zombie 잔류 영향은 미확정. 환경 원인으로 일괄 단정하지 않음. 새 사용자 결정 불필요 |
 | P2 · IMP6 | 구현 누락 | Run 창의 실제 render surface embedding, 비참여 runtime/Android/browser의 frame 제어 연결 | surface/수명/입력·협력적 frame 프로토콜을 구현한 뒤 실제 플랫폼으로 검사. 현재 Linux 별도 프로세스 Run/Stop과 managed compile로 완료 처리하지 않음. 영속 권한 인계는 DEC5 별도 |

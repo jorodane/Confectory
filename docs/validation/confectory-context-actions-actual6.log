@@ -1,0 +1,26 @@
+UI page errors: []
+UI failure status: Ready
+UI failure controls: {'confirm': None, 'run': False, 'source': 'Example.ButtonGame::Score'}
+FAIL WebUITests.test_actual_editor_declared_context_actions_typed_call_scope_cancel_stale_and_failure
+System.Exception: UI page errors: []
+UI failure status: Ready
+UI failure controls: {'confirm': None, 'run': False, 'source': 'Example.ButtonGame::Score'}
+Traceback (most recent call last):
+  File "/workspace/Confectory/tests/web/web_ui.py", line 279, in <module>
+    verify_context_actions(page,project,mount,send,envelope,settle,restart_actual_host)
+  File "/workspace/Confectory/tests/web/editor_context_actions.py", line 55, in verify_context_actions
+    old=listing();page.evaluate('()=>globalThis.confectoryFlushPresentation()');private=state()['presentation']['inputs']['source'];assert private['text']==pending and private['draft']['revision']==before['revision'];restart();ready();expect(source).to_have_value(pending);invoke(request(operation='invoke',token=old['token'],actionId=aid,field='initial',value='23'),False)
+                                                                                                                                                                                                                                           ^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/sync_api/__init__.py", line 137, in __call__
+    return self._dispatch(actual, message, is_soft=False)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/sync_api/__init__.py", line 200, in _dispatch
+    raise ValueError(f"Unsupported type: {type(actual)}")
+ValueError: Unsupported type: <class 'pathlib.PosixPath'>
+
+   at Confectory.Tests.TestCase.True(Boolean condition, String message) in /workspace/Confectory/tests/Confectory.Tests/Support.cs:line 127
+   at Confectory.Tests.WebUITests.test_actual_editor_declared_context_actions_typed_call_scope_cancel_stale_and_failure() in /workspace/Confectory/tests/Confectory.Tests/WebUITests.cs:line 12
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+PASS WebUITests.test_context_action_menu_lifecycle_builtin_dismiss_scope_and_unbound
+1 passed, 1 failed, 0 skipped; 25.715s

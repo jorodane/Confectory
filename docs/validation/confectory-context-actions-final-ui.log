@@ -1,0 +1,7 @@
+PASS actual declared context actions: discovery vs unbound/example, explicit input and real SetValue output, no draft/source write, cancel and duplicate token, changed selection/revision/deletion/registration/body/target/project, cold token retirement and failed function result
+Actual common WebUI context-actions Chromium PASS
+PASS WebUITests.test_actual_editor_declared_context_actions_typed_call_scope_cancel_stale_and_failure
+PASS WebUITests.test_context_action_menu_lifecycle_builtin_dismiss_scope_and_unbound
+PASS WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup
+PASS WebUITests.test_web_ui_scope_revision_cancellation_disposal_and_pack_locality
+4 passed, 0 failed, 0 skipped; 44.134s

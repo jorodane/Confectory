@@ -1,0 +1,194 @@
+{
+  "version": 1,
+  "sourceCommit": "d73f8c20b45a2e754a2918eda4382465c3a0e786",
+  "implementationCommit": "af3237d0828fa90d550c061b62e1fe219a722a7b",
+  "baseWorkCurrent": "b3d78e27d6b74c5f05fab37b4047eae512185aec",
+  "measuredAtUtc": "2026-10-18T15:17:51.310445+00:00",
+  "scope": "Declared editor context action minimum: existing SetValue through one statically bound typed route, explicit selected owned declaration and field/JSON inputs, proposal string and function failure. No automatic Apply/Save/Confirm, arbitrary project/Blueprint execution, battle/balance semantics, generic OS/network/file bridge or persistent grants.",
+  "distinctMethods": 9,
+  "passed": 9,
+  "failed": 0,
+  "skipped": 0,
+  "countingRule": "Only the two final groups on the exact sourceCommit count. Earlier failures and pre-layout passes are not current results. No complete-v480/full-suite or unexecuted OS/device claim.",
+  "gateConcurrencyLimit": 2,
+  "cpuQuota": 4,
+  "memoryLimitBytes": 17179869184,
+  "groups": [
+    {
+      "name": "actual-ui-menu-transport-checkout",
+      "log": "confectory-context-actions-final-ui.log",
+      "methods": [
+        "WebUITests.test_actual_editor_declared_context_actions_typed_call_scope_cancel_stale_and_failure",
+        "WebUITests.test_context_action_menu_lifecycle_builtin_dismiss_scope_and_unbound",
+        "WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup",
+        "WebUITests.test_web_ui_scope_revision_cancellation_disposal_and_pack_locality"
+      ],
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 44.134
+    },
+    {
+      "name": "existing-authoring-layout-managed",
+      "log": "confectory-context-actions-final-regressions.log",
+      "methods": [
+        "WebUITests.test_actual_editor_imp7_workspace_move_link_history_inputs_cold_and_branch",
+        "WebUITests.test_actual_editor_v424_six_declaration_kinds_and_registration_review",
+        "SchemaEditingTests.test_signature_inputs_arrays_bounds_and_call_preflight_locality",
+        "EntryHomeTests.test_android_home_export_selects_activity_and_metadata_parser_without_engine_surface_sample",
+        "EntryHomeNativeDetailsTests.test_windows_native_information_and_profile_composition_builds"
+      ],
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 279.405
+    }
+  ],
+  "supersededFailedExecutions": [
+    {
+      "log": "confectory-context-actions-actual1.log",
+      "reason": "Initial new pack body local-function syntax error; corrected before actual UI",
+      "supersededBy": "confectory-context-actions-final-ui.log"
+    },
+    {
+      "log": "confectory-context-actions-actual2.log",
+      "reason": "Fixture schema window intercepted the browser context click; closed through its existing control",
+      "supersededBy": "confectory-context-actions-final-ui.log"
+    },
+    {
+      "log": "confectory-context-actions-actual3.log",
+      "reason": "New endpoint was missing from the bundle allowlist; added the one bounded endpoint",
+      "supersededBy": "confectory-context-actions-final-ui.log"
+    },
+    {
+      "log": "confectory-context-actions-actual4.log",
+      "reason": "Same allowlist failure exposed by the bounded discovery error UI; no boundary relaxed",
+      "supersededBy": "confectory-context-actions-final-ui.log"
+    },
+    {
+      "log": "confectory-context-actions-actual5.log",
+      "reason": "Fixture incorrectly expected comments in the existing SetValue formatter output; now verifies preserved metadata plus unchanged original draft/comments",
+      "supersededBy": "confectory-context-actions-final-ui.log"
+    },
+    {
+      "log": "confectory-context-actions-actual6.log",
+      "reason": "Fixture reused its source Locator name as a filesystem Path; renamed the path",
+      "supersededBy": "confectory-context-actions-final-ui.log"
+    }
+  ],
+  "sourceFilesSha256": {
+    "examples/editor-context-actions/MetadataProposal.celem": "2c1977db2bafa357cfbc5ed78267f6b8891cfee13c02d6e15c291124fee40aa5",
+    "examples/editor-context-actions/README.md": "4245d02b0d51d1dd5e3f3f83a4598ccef29a24ce6e720962face24c0dc1d3a83",
+    "examples/editor-context-actions/Selected.celem": "f26efacbeac955be7fbef7580f212115946c34e46ace84e1b16828cce8895c45",
+    "examples/editor-context-actions/project.cpack": "43ba50becfbdd3c40159d77e0d317c2a95f098859f9a29640fa2b82a7d98a702",
+    "examples/editor-home/WebBundle.csbody": "3ebd4f97add3c14001470a1cdfc8bd1a3fda9aadd4a1e6b4455c5ea1a5da85ae",
+    "examples/editor-home/WebInvoke.csbody": "308b6e68777c9b2a826c5cd2b22c2756b6572adbd93e59f1e8a3aafb95d3fad0",
+    "examples/editor-home/WebInvokeBody.celem": "e2cb76966bc90a5876eafdc0aa9c9629ce27b4e74c04d015ca9d5d7f859d9465",
+    "examples/editor-home/ui/app.js": "cc14f02758c54d4b4ed1044ef7437c287c6539ee3dd0e4e7e2da5fae72686b06",
+    "examples/editor-home/ui/context-actions.js": "cd921374c23fe5ea58b5de2904d5c8f2fdf9e860e79c7c5654979462a8ee1d47",
+    "packs/editor-home-model/CloseSession.csbody": "5bc1b2c2e2f7dcbdc046d80a524e0555ae52cb564f953cb85ce61925427dee17",
+    "packs/editor-home-model/Command.csbody": "298934cfca2f228bce52dce0ccf2d85fd942fbb0d0aea7b3d91e69a99b883427",
+    "packs/editor-home-model/ContextActions.celem": "8c080991fc8473c23576ace99c35b2908e0c5578015fb594eb5736ff00c6d76d",
+    "packs/editor-home-model/ContextActions.csbody": "8f2081a743b1eb267e2aca950724c060b346e2a78f323971eeb0fdcec4a40f08",
+    "packs/editor-home-model/ContextActionsBody.celem": "194672b73197d08f3072e96b2fc26688b5f49752a25090b102aae520f13c0026",
+    "packs/editor-home-model/pack.cpack": "1b06bfd61aadddd830fae34cd9c65cd3a43b0c9b9088dc640551e961595a5c7c",
+    "targets/element-authoring/EditorMenuDeclarations.cs": "abaaa995acc9669e444a1f07cadfe0b02986f058fe7e89a2ad74fecc486557df",
+    "targets/element-authoring/Program.cs": "c405847a9b301b72b4f5d512576b81347b018a3f55079223f7c1de14b0170772",
+    "tests/Confectory.Tests/WebUITests.cs": "83959c1cdb8eb140f7a8fd3b0e0e84d7e642c02541c2167377c2db7cc1f63a75",
+    "tests/web/context_actions.mjs": "bfe5f205780563b15dfb5ee06ea5f6fe1f71e21d1d31f70f80839c8e6c7e3df7",
+    "tests/web/editor_context_actions.py": "318720196d7ba3a1cff9cb12dcd3d66d1bcfcaa3e4356fb810c8bc830bbcc5d4",
+    "tests/web/web_ui.py": "56c3e3a636242eab05cf22aff646bfa6803efc9f6e29730dfe45b8925eb5305e"
+  },
+  "resources": {
+    "total": 44,
+    "canonicalUtf8Lf": 35,
+    "exactOrBinary": 9,
+    "checkout": "sourceCommit ordinary Git retained CRLF after attributes pull and fresh LF; actual host, all served bytes, corruption/encoding/BOM/binary/budget refusal"
+  },
+  "platforms": {
+    "linuxCommonWebUI": "Actual Chromium on the ordinary EditorHome; selected existing function called through its typed port",
+    "windows": "Managed composition compile only; actual Windows OS/menu unexecuted",
+    "android": "Managed profile composition only; new menu dispatch unavailable; actual device unexecuted",
+    "browserWasmTarget": "New menu invocation unexecuted/unavailable; common Chromium UI is a separate result",
+    "nativeMenus": "Not implemented by this increment"
+  },
+  "preserved": {
+    "localMain": "b5ea38c3d7eec3eb20f170e68f0f4215b86b2aee",
+    "remoteMain": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+    "baseWorkCurrent": "b3d78e27d6b74c5f05fab37b4047eae512185aec",
+    "zipSha256": {
+      "reference/site-ui/Confectory-Editor-Prototype-v196.zip": "02d4824e92ed0edbb43113659982b37a99a614117652bde4d8ac92367e334e34",
+      "reference/site-ui/Confectory-Editor-Prototype-v318.zip": "0a614fe2bf1ad3d8e10dfa8905bb6b61ea9f21b87b2492b2b87ca8566e9e6908",
+      "reference/site-ui/Confectory-Editor-Prototype-v424.zip": "b7969cd109ea2dad38bde9c9ab13967c20162c920a45a8cd51a8f82df6041874",
+      "reference/site-ui/Confectory-Editor-Prototype-v480.zip": "0489844c8c6d90f7cdc8ea0e80628f487dcfb27f2c871b19367a635212d3c5bd"
+    }
+  },
+  "noPermissionExpansion": [
+    "No arbitrary function-ID dispatch, reflection or project implementation loading",
+    "Only the known SetValue and Call source closure can be available; discovery is nonexecuting",
+    "No client process/path/network/environment forwarder",
+    "Selection/project commands and session close retire menu tokens; no durable execution authority",
+    "No source, shared draft, original pending input or CAS replacement by returned proposals"
+  ],
+  "remaining": [
+    "Additional explicitly bound function/input/provider routes and their effect/ownership/result contracts",
+    "Native menu integration and actual unexecuted OS/devices",
+    "General project/Blueprint executor and new permission policy remain outside scope; domain example menus are not mandatory features"
+  ],
+  "screenshots": [
+    "editor-context-actions.png"
+  ],
+  "blockers": [],
+  "logCopies": {
+    "confectory-context-actions-final-ui.log": {
+      "rawSha256": "4f88aa3245142d58ab5441a40f5356f837e3aeb76e02dd2e799af00ae63bca2f",
+      "trackedSha256": "4f88aa3245142d58ab5441a40f5356f837e3aeb76e02dd2e799af00ae63bca2f",
+      "policy": "Trailing whitespace only normalized in Git copy; original scratch log unchanged"
+    },
+    "confectory-context-actions-final-regressions.log": {
+      "rawSha256": "0ba708241b25d2893c422e6649473e94e38ae3c426dcd714df770f0d4af42afd",
+      "trackedSha256": "0ba708241b25d2893c422e6649473e94e38ae3c426dcd714df770f0d4af42afd",
+      "policy": "Trailing whitespace only normalized in Git copy; original scratch log unchanged"
+    },
+    "confectory-context-actions-actual1.log": {
+      "rawSha256": "3fd2c82cecefcfd86f9ec8547004fc74b06e6c215c8b87ce65f1022e2d81c660",
+      "trackedSha256": "3fd2c82cecefcfd86f9ec8547004fc74b06e6c215c8b87ce65f1022e2d81c660",
+      "policy": "Trailing whitespace only normalized in Git copy; original scratch log unchanged"
+    },
+    "confectory-context-actions-actual2.log": {
+      "rawSha256": "12e8775ea9f2752b3d8478bed20564b9802afcdfb40bd0cb383956b512f7a777",
+      "trackedSha256": "12e8775ea9f2752b3d8478bed20564b9802afcdfb40bd0cb383956b512f7a777",
+      "policy": "Trailing whitespace only normalized in Git copy; original scratch log unchanged"
+    },
+    "confectory-context-actions-actual3.log": {
+      "rawSha256": "0d96eb5478b38557e2ee92f89094a9b8533cfcbcbed3f05e09d47989d2dd8d16",
+      "trackedSha256": "2afa833168e9e98c8221bdb5705803dd74dcfc2fa68eeeb37bd32286e57bf9d1",
+      "policy": "Trailing whitespace only normalized in Git copy; original scratch log unchanged"
+    },
+    "confectory-context-actions-actual4.log": {
+      "rawSha256": "2de6472ff54581a32c2a294d004846aae672ab7182670f9f7f7cc152cb7589a8",
+      "trackedSha256": "2de6472ff54581a32c2a294d004846aae672ab7182670f9f7f7cc152cb7589a8",
+      "policy": "Trailing whitespace only normalized in Git copy; original scratch log unchanged"
+    },
+    "confectory-context-actions-actual5.log": {
+      "rawSha256": "f0da97318b5d45fa91528b25bd0276204276ffe0d7561fbb392ae87c41eef1c2",
+      "trackedSha256": "f0da97318b5d45fa91528b25bd0276204276ffe0d7561fbb392ae87c41eef1c2",
+      "policy": "Trailing whitespace only normalized in Git copy; original scratch log unchanged"
+    },
+    "confectory-context-actions-actual6.log": {
+      "rawSha256": "6b999c8600779ecc4dba266e1bc43c1289a80a3cfaa175ee3905cc0e02e041d6",
+      "trackedSha256": "6b999c8600779ecc4dba266e1bc43c1289a80a3cfaa175ee3905cc0e02e041d6",
+      "policy": "Trailing whitespace only normalized in Git copy; original scratch log unchanged"
+    },
+    "confectory-context-actions-build-final.log": {
+      "rawSha256": "0f8f9429e19aa5ed7c546548bfff2b843d1275b5c59e32c728b344f6351ddaee",
+      "trackedSha256": "0f8f9429e19aa5ed7c546548bfff2b843d1275b5c59e32c728b344f6351ddaee",
+      "policy": "Trailing whitespace only normalized in Git copy; original scratch log unchanged"
+    },
+    "confectory-context-actions-author-build.log": {
+      "rawSha256": "583720d1563942002dff4b229812797617922189b4c289fa0b01b83e8b73bdb6",
+      "trackedSha256": "583720d1563942002dff4b229812797617922189b4c289fa0b01b83e8b73bdb6",
+      "policy": "Trailing whitespace only normalized in Git copy; original scratch log unchanged"
+    }
+  }
+}
