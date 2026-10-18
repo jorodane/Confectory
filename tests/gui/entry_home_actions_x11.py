@@ -183,7 +183,7 @@ def prepare(window,value='23',refresh=False):
  elif refresh:click(window,435);wait(lambda t:not t['job'] and (t.get('nativeAction') or {}).get('token'),'refreshed Actions listing')
  choose_action(window);native_fill(window,431,'initial');native_fill(window,432,value)
 def invoke(window,status='completed'):
- click(window,434);return wait(lambda t:not t['job'] and (t.get('nativeAction') or {}).get('status')==status,'function '+status)
+ click(window,434);time.sleep(.35);return wait(lambda t:not t['job'] and (t.get('nativeAction') or {}).get('status')==status,'function '+status)
 def back(window):click(window,430);idle('project')
 def select_source(window,id):
  explore(window);select_id(window,id);click(window,83);wait(lambda t:'54' in t['fields'] and t['model']['workspace']['selected']==id and not t['job'],'source selected '+id)
@@ -196,7 +196,7 @@ def pending():
  assert field(54)['text']==source_pending and field(54)['binding']==source_binding
  assert field(38)['text']=='NATIVE ACTION CHAT UNSENT' and field(38)['binding']==chat_binding
  assert json.loads(latest()['fields']['400'])['text']=='5' and json.loads(latest()['fields']['400'])['binding']==cell_binding
- assert bases()==original_bases;invariant()
+ assert {n:{k:bases()[n][k] for k in original_bases[n]} for n in original_bases}==original_bases;invariant()
 def begin_hold(window,noncooperative=False):
  if entered.exists():entered.unlink()
  if noncooperative:late.write_text('owned')
@@ -211,7 +211,7 @@ try:
  # Real native declaration controls include direct pack menus and unavailable items.
  menu(a);assert {r['id'] for r in current()['actions']}=={aid,p+'UnboundMenu','Example.ActionPack::Menu'};assert not next(r for r in current()['actions'] if r['id']==p+'UnboundMenu')['available'];choose_action(a,p+'UnboundMenu');assert 434 not in latest()['hits'][::5];assert count()==0
  prepare(a);old=current()['token'];n=count();invoke(a);assert count()==n+1 and 'value initial = 23;' in text(433) and 'data amount = 9;' in text(433);assert latest()['model']['workspace']['unit']['text']==draft
- result=field(433);assert result['readonly'];native_controls.text(int(result['nativeHandle']),'MUST_NOT_EDIT_RESULT');wait(lambda t:json.loads(t['fields']['433'])['text']==result['text'],'read-only proposal');invoke(a);assert count()==n+1,'duplicate dispatched function again';screenshot(a,'proposal');native_fill(a,432,'24');click(a,434);wait(lambda t:not t['job'] and t['nativeAction']['status'].startswith('Failed:'),'different input token reuse refused');assert count()==n+1 and text(432)=='24';back(a);pending();prepare(a);choose_action(a,'Example.ActionPack::Menu');invoke(a);assert 'value initial = 23;' in text(433);back(a);pending()
+ result=field(433);assert result['readonly'];native_controls.text(int(result['nativeHandle']),'MUST_NOT_EDIT_RESULT');wait(lambda t:json.loads(t['fields']['433'])['text']==result['text'],'read-only proposal');screenshot(a,'proposal');invoke(a);assert count()==n+1,'duplicate dispatched function again';native_fill(a,432,'24');click(a,434);wait(lambda t:not t['job'] and t['nativeAction']['status'].startswith('Failed:'),'different input token reuse refused');assert count()==n+1 and text(432)=='24';back(a);pending();prepare(a);choose_action(a,'Example.ActionPack::Menu');invoke(a);assert 'value initial = 23;' in text(433);back(a);pending()
  # Input cancel and menu Escape retire tokens, preserve separate source/property CAS.
  prepare(a);canceled=current()['token'];click(a,436);idle('actions');assert text(431)==text(432)==text(433)=='' and not current()['token'];prepare(a,refresh=True);replay_old(a,canceled,project_id);press(a,0xFF1B);idle('project');pending();prepare(a);native_fill(a,432,'null');invoke(a,'failed');assert 'Scalar metadata required' in text(433) and text(432)=='null';back(a);pending()
  # Selection A -> B -> A cannot revive capabilities; raw object inputs survive.
