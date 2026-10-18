@@ -122,10 +122,12 @@
         "examples/editor-home/ui/app.js",
         "examples/editor-home/ui/browser-projection.js",
         "examples/editor-home/ui/declarations.js",
-        "examples/editor-home/ui/workspace-host.js"
+        "examples/editor-home/ui/workspace-host.js",
+        "examples/editor-home/ui/browser-tree.js",
+        "examples/editor-home/ui/inventory.js"
       ],
-      "supported": "namespace/명시적 CELEM parent·schema·소유/등록 정의, 여섯 선언 종류 생성, 독립 browser·variation",
-      "limits": "전체 category grouping과 소스 삭제/참조 치환 제외",
+      "supported": "WebUI namespace/명시 parent 다단계 펼침·검색·키보드, 창별 선택/펼침·프로젝트 격리·미적용 입력 보존·cold 최신 조회, contain/schema 분리, 소유/등록 정의 gate, 여섯 선언 종류·variation",
+      "limits": "관계 조상64/표시2048행; 등록 parent 자동 본문 조회 없음; native 동일 트리·DEC1 Category 의미·DEC2 소스 삭제/치환 별도",
       "remaining": [
         "IMP2",
         "DEC1",
@@ -136,9 +138,11 @@
         "WebUITests.test_actual_editor_v424_six_declaration_kinds_and_registration_review",
         "WebUITests.test_actual_editor_v424_typed_declaration_views_cas_confirm_and_restart",
         "WebUITests.test_actual_editor_v480_declaration_hierarchy_variation_fill_confirm_independent_cold",
-        "WebUITests.test_browser_projection_declared_identity_parent_schema_and_reference_gates"
+        "WebUITests.test_browser_projection_declared_identity_parent_schema_and_reference_gates",
+        "WebUITests.test_actual_editor_imp2_multilevel_tree_windows_project_isolation_and_latest_cold"
       ],
-      "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)"
+      "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)",
+      "treeFollowupEvidence": "v480-declaration-tree.json"
     },
     {
       "id": "D01–D02",
@@ -185,22 +189,24 @@
         "examples/editor-home/ui/references.js",
         "examples/editor-home/ui/relations.js",
         "examples/editor-home/ui/tables.js",
-        "packs/pack-workspace/pack.cpack"
+        "packs/pack-workspace/pack.cpack",
+        "examples/editor-home/ui/browser-tree.js"
       ],
-      "supported": "등록 원본 읽기 전용, scoped 참조 입력 준비·현재 값 이동, 선언 관계만 투영",
-      "limits": "source 치환·쓰기 자동 선택·임의 깊이 탐색 제외",
+      "supported": "등록 원본 읽기 전용·소유 직접 참조/revision/hash gate, scoped 입력 준비·현재 값 이동, 명시 parent와 별도 contain/schema 관계",
+      "limits": "source 치환·쓰기 자동 선택 없음; 등록 본문/parent 자동 읽기 없음",
       "remaining": [
-        "DEC2",
-        "IMP2"
+        "DEC2"
       ],
       "finalMethods": [
         "RelationsMapTests.test_owned_declared_map_drafts_external_references_partial_sources_and_read_only_review",
         "RelationsMapTests.test_registered_reference_definition_direct_scope_identity_and_no_body_reads",
         "WebUITests.test_actual_editor_v424_declared_relations_map_and_cold_restart",
         "WebUITests.test_actual_editor_v424_registered_reference_definition_read_only_and_cold_restart",
-        "WebUITests.test_actual_editor_v480_reference_gestures_columns_document_links_and_cold"
+        "WebUITests.test_actual_editor_v480_reference_gestures_columns_document_links_and_cold",
+        "WebUITests.test_actual_editor_imp2_multilevel_tree_windows_project_isolation_and_latest_cold"
       ],
-      "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)"
+      "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)",
+      "treeFollowupEvidence": "v480-declaration-tree.json"
     },
     {
       "id": "E01–E08",
@@ -1149,13 +1155,14 @@
         "examples/editor-home/WebBundle.csbody",
         "tests/Confectory.Tests/WebUITests.cs"
       ],
-      "supported": "커밋 HEAD의 일반 checkout LF/CRLF·41개 pinned 리소스·실제 Home 시작/변조 거부",
+      "supported": "커밋 HEAD의 일반 checkout LF/CRLF·42개 pinned 리소스·실제 Home 시작/변조 거부",
       "limits": "직접 파일 복사만으로 대체하지 않음",
       "remaining": [],
       "finalMethods": [
         "WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup"
       ],
-      "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)"
+      "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)",
+      "treeFollowupEvidence": "v480-declaration-tree.json"
     },
     {
       "id": "X02",

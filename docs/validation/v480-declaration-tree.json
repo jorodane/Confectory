@@ -1,0 +1,214 @@
+{
+  "version": 1,
+  "sourceCommit": "c63d4ea0e2ff7582f89e7a7113d48db7eb9c441a",
+  "parentCommit": "c8fe98fcb157bd500e46bdaca38912a22e224e4a",
+  "measuredAtUtc": "2026-10-18T09:54:06.693967+00:00",
+  "scope": "IMP2 bounded WebUI namespace/explicit-parent expandable tree, window/project/cold/input and direct-reference fences; not all v480 or native tree implementation",
+  "distinctMethods": 6,
+  "passed": 6,
+  "failed": 0,
+  "skipped": 0,
+  "gateConcurrencyLimit": 2,
+  "cpuQuota": 4,
+  "memoryLimitBytes": 17179869184,
+  "groups": [
+    {
+      "group": "tree",
+      "methods": [
+        "WebUITests.test_actual_editor_imp2_multilevel_tree_windows_project_isolation_and_latest_cold",
+        "WebUITests.test_actual_editor_v480_home_browser_document_repeat_cancel_and_restore",
+        "WebUITests.test_browser_projection_declared_identity_parent_schema_and_reference_gates"
+      ],
+      "seconds": 41.984,
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "group": "reference-and-editing",
+      "methods": [
+        "RelationsMapTests.test_registered_reference_definition_direct_scope_identity_and_no_body_reads",
+        "WebUITests.test_actual_editor_v480_declaration_hierarchy_variation_fill_confirm_independent_cold"
+      ],
+      "seconds": 81.631,
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "group": "git-checkout",
+      "methods": [
+        "WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup"
+      ],
+      "seconds": 6.665,
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0
+    }
+  ],
+  "sourceSha256": {
+    "examples/editor-home/WebBundle.csbody": "9c7847ffbcd0d3baf4cef2a2f6c7d4cc3f763d224e5709e66635ad3167ab7071",
+    "examples/editor-home/ui/app.js": "887088160dbb7566fde946ff600b8f6af192c00d9ebdce4c7a3b4a7784cff8b7",
+    "examples/editor-home/ui/browser-projection.js": "ec830c9903bef3c56fc695c6e250a5d0965aef90167138dbf36ca77505653665",
+    "examples/editor-home/ui/browser-tree.js": "c98b9cdd6b77baf3aeb6e0aea896254ba9d2a8f79abedbb40711092b8d67741e",
+    "examples/editor-home/ui/consumer.css": "a18c75d75b4430e9c7641c8e8244fa167941570e0b62f6ee4ff03350ec5786e5",
+    "examples/editor-home/ui/inventory.js": "dd911d33118d15160a961c23813961427c4d45077e40053b52953ee75048edaa",
+    "examples/editor-home/ui/workspace-host.js": "db0ee90916b5ebd20f64e476be31f7b5693c6c83f46caa14ace9fb7eace38766",
+    "tests/Confectory.Tests/WebUITests.cs": "9a928de072a247f38d943136d20b04142bca1812afff51d68cd5c7ddd99e0509",
+    "tests/web/browser_projection.mjs": "2ca63731ac1cbb5004a3bbc0dbc7423009a4f0b6b1776a672d9d8ceb70732db0",
+    "tests/web/v480_declaration_navigation.py": "f9b3e55a5fc18c5f2ec3787582c4a0e1c28d72789561755c24c0aef2f2a63671",
+    "tests/web/v480_declaration_tree.py": "b1ceae0b02fac0d366554ccca6df88ed30f9e39d9113527d750c2888611af534",
+    "tests/web/web_ui.py": "c40289907cf2099476fec6af09edcae45aa8bcf321b62e295622ad49ffcd7d46"
+  },
+  "finalLogs": [
+    "confectory-imp2-final2-tree.log",
+    "confectory-imp2-final2-gates.log",
+    "confectory-imp2-checkout.log"
+  ],
+  "attempts": [
+    {
+      "log": "confectory-imp2-initial-navigation.log",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 45.996
+    },
+    {
+      "log": "confectory-imp2-navigation2.log",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 20.506
+    },
+    {
+      "log": "confectory-imp2-tree1.log",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 65.009
+    },
+    {
+      "log": "confectory-imp2-tree2.log",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 11.341
+    },
+    {
+      "log": "confectory-imp2-hierarchy1.log",
+      "passed": 1,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 68.978
+    },
+    {
+      "log": "confectory-imp2-tree3.log",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 28.67
+    },
+    {
+      "log": "confectory-imp2-hierarchy2.log",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 79.372
+    },
+    {
+      "log": "confectory-imp2-tree4.log",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 18.08
+    },
+    {
+      "log": "confectory-imp2-final-tree.log",
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 42.368
+    },
+    {
+      "log": "confectory-imp2-final-gates.log",
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 80.237
+    },
+    {
+      "log": "confectory-imp2-final2-tree.log",
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 41.984
+    },
+    {
+      "log": "confectory-imp2-final2-gates.log",
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 81.631
+    },
+    {
+      "log": "confectory-imp2-checkout.log",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 6.665
+    }
+  ],
+  "publicLogNormalization": "Trailing whitespace removed from public text log; all original scratch logs retained.",
+  "diagnostics": [
+    "initial expansion saved before inventory/map readiness; corrected initialization",
+    "source resource edited during an in-flight build; canonical workspace-host size guard correctly rejected it; final runs froze source and pins",
+    "undeclared reference is a completed unavailable/NOT_DECLARED_REFERENCE domain projection; test now verifies exact denial and absence of text, stale hash failure retained",
+    "existing hierarchy test searches collapsed Score via actual tree before clicking",
+    "registered textarea fresh definition checked by exact live value"
+  ],
+  "webResources": {
+    "count": 42,
+    "newPins": [
+      "browser-tree.js"
+    ],
+    "changedExistingPins": [
+      "workspace-host.js",
+      "app.js",
+      "consumer.css",
+      "inventory.js",
+      "browser-projection.js"
+    ],
+    "ordinaryGitCheckout": true,
+    "retainedCrlfAndFreshLfStartup": true,
+    "mutationRejection": true,
+    "cspChanged": false,
+    "binaryChanged": false
+  },
+  "limits": {
+    "maxObservedAncestorDepth": 64,
+    "maxVisibleRows": 2048,
+    "registeredParents": "unobserved unless separately supported; no implicit body reads",
+    "containAndSchema": "separate relationship labels, never inferred parent/membership",
+    "categoryMapping": "DEC1 excluded",
+    "sourceDeletionRewrite": "DEC2 excluded",
+    "nativeTree": "not implemented by this WebUI change; separate implementation work",
+    "platforms": "actual Chromium on Linux; no Windows UI, Android device, or browser-wasm validation",
+    "overflow": "DEC4 unchanged",
+    "env4": "previous ButtonGame/Pause/zombie uncertainty unchanged"
+  },
+  "preservation": {
+    "localMain": "b5ea38c3d7eec3eb20f170e68f0f4215b86b2aee",
+    "remoteMain": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+    "zipSha256": {
+      "reference/site-ui/Confectory-Editor-Prototype-v196.zip": "02d4824e92ed0edbb43113659982b37a99a614117652bde4d8ac92367e334e34",
+      "reference/site-ui/Confectory-Editor-Prototype-v318.zip": "0a614fe2bf1ad3d8e10dfa8905bb6b61ea9f21b87b2492b2b87ca8566e9e6908",
+      "reference/site-ui/Confectory-Editor-Prototype-v424.zip": "b7969cd109ea2dad38bde9c9ab13967c20162c920a45a8cd51a8f82df6041874",
+      "reference/site-ui/Confectory-Editor-Prototype-v480.zip": "0489844c8c6d90f7cdc8ea0e80628f487dcfb27f2c871b19367a635212d3c5bd"
+    },
+    "baseWorkCurrent": "c8fe98fcb157bd500e46bdaca38912a22e224e4a"
+  },
+  "screenshots": [
+    "v480-declaration-tree-before-cold.png",
+    "v480-declaration-tree-after-cold.png"
+  ]
+}

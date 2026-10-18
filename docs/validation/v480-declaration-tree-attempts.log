@@ -1,0 +1,245 @@
+=== confectory-imp2-initial-navigation.log ===
+UI page errors: []
+UI failure status: Ready
+UI failure controls: {'confirm': None, 'run': False, 'source': 'Example.ButtonGame::Score'}
+FAIL WebUITests.test_actual_editor_v480_home_browser_document_repeat_cancel_and_restore
+System.Exception: UI page errors: []
+UI failure status: Ready
+UI failure controls: {'confirm': None, 'run': False, 'source': 'Example.ButtonGame::Score'}
+Traceback (most recent call last):
+  File "/workspace/Confectory/tests/web/web_ui.py", line 258, in <module>
+    verify_navigation(page,project,mount,send,envelope,settle,restart_actual_host)
+  File "/workspace/Confectory/tests/web/v480_navigation.py", line 38, in verify_navigation
+    browser.locator('[data-namespace="Example.ButtonGame"]').click();query().fill('Score');browser.locator('[data-browser-control="object-search"]').click();query().fill('CONCEPT_PENDING');browser.locator('[data-tab="feature"]').click();query().fill('FEATURE_PENDING');browser.locator('[data-tab="concept"]').click()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/sync_api/_generated.py", line 17876, in click
+    self._sync(
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_sync_base.py", line 115, in _sync
+    return task.result()
+           ^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_locator.py", line 165, in click
+    return await self._frame._click(self._selector, strict=True, **params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_frame.py", line 593, in _click
+    await self._channel.send("click", self._timeout, locals_to_params(locals()))
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_connection.py", line 76, in send
+    return await self._connection.wrap_api_call(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_connection.py", line 632, in wrap_api_call
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+playwright._impl._errors.TimeoutError: Locator.click: Timeout 30000ms exceeded.
+Call log:
+  - waiting for locator(".window[data-key=\"browser\"]").locator("[data-namespace=\"Example.ButtonGame\"]")
+
+
+   at Confectory.Tests.TestCase.True(Boolean condition, String message) in /workspace/Confectory/tests/Confectory.Tests/Support.cs:line 127
+   at Confectory.Tests.WebUITests.test_actual_editor_v480_home_browser_document_repeat_cancel_and_restore() in /workspace/Confectory/tests/Confectory.Tests/WebUITests.cs:line 221
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+0 passed, 1 failed, 0 skipped; 45.996s
+=== confectory-imp2-navigation2.log ===
+PASS actual v480 Home/browser/document navigation: cancel/repeat, applied/draft queries, group location, exact DOM/undo, dock and cold restore; source unchanged
+Actual common WebUI navigation-state Chromium PASS
+PASS WebUITests.test_actual_editor_v480_home_browser_document_repeat_cancel_and_restore
+1 passed, 0 failed, 0 skipped; 20.506s
+=== confectory-imp2-build.log ===
+  Confectory.Core -> /workspace/Confectory/src/Confectory.Core/bin/Release/net10.0/Confectory.Core.dll
+  Confectory.AndroidExport -> /workspace/Confectory/targets/android-export/bin/Release/net10.0/Confectory.AndroidExport.dll
+  Confectory.DesktopEntry -> /workspace/Confectory/targets/desktop-entry/bin/Release/net10.0/Confectory.DesktopEntry.dll
+  Confectory.Cli -> /workspace/Confectory/src/Confectory.Cli/bin/Release/net10.0/Confectory.Cli.dll
+  Confectory.Build.Web -> /workspace/Confectory/targets/web/bin/Release/net10.0/Confectory.Build.Web.dll
+  Confectory.Build.DotNet -> /workspace/Confectory/targets/dotnet/bin/Release/net10.0/Confectory.Build.DotNet.dll
+  Confectory.Build.BrowserWasm -> /workspace/Confectory/targets/browser-wasm/bin/Release/net10.0/Confectory.Build.BrowserWasm.dll
+  Confectory.Tests -> /workspace/Confectory/tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:09.24
+=== confectory-imp2-tree1.log ===
+
+FAIL WebUITests.test_actual_editor_imp2_multilevel_tree_windows_project_isolation_and_latest_cold
+System.Exception: Traceback (most recent call last):
+  File "/workspace/Confectory/tests/web/web_ui.py", line 140, in <module>
+    assert host.poll() is None,log.read_text();time.sleep(.1)
+           ^^^^^^^^^^^^^^^^^^^
+AssertionError: Unhandled exception. System.ArgumentException: Resource 'workspace-host.js': canonical size mismatch; expected=20070, actual=20094, raw=20094
+   at Confectory.Implementations.Ef9126e8172c41475adf45a64.Eefc2869779b2a65bf3df1ce2.Invoke(String context, String descriptor)
+   at Bcfdbaffb10c99cf8d732736b.Invoke(String context, String descriptor)
+   at Confectory.Implementations.Ea620445369633f57f16dee9a.E141c7f6633186a6ac1644211.Invoke()
+   at B43af26f050257fefd467eb99.Invoke()
+   at Confectory.Implementations.Ea620445369633f57f16dee9a.E9cd48a090b534f0132826411.Invoke()
+   at Bc84cc9ca7306eb44f5f191db.Invoke()
+   at Program.Main()
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workspace/Confectory/tests/web/web_ui.py", line 592, in <module>
+    assert host.returncode==0,log.read_text()
+           ^^^^^^^^^^^^^^^^^^
+AssertionError: Unhandled exception. System.ArgumentException: Resource 'workspace-host.js': canonical size mismatch; expected=20070, actual=20094, raw=20094
+   at Confectory.Implementations.Ef9126e8172c41475adf45a64.Eefc2869779b2a65bf3df1ce2.Invoke(String context, String descriptor)
+   at Bcfdbaffb10c99cf8d732736b.Invoke(String context, String descriptor)
+   at Confectory.Implementations.Ea620445369633f57f16dee9a.E141c7f6633186a6ac1644211.Invoke()
+   at B43af26f050257fefd467eb99.Invoke()
+   at Confectory.Implementations.Ea620445369633f57f16dee9a.E9cd48a090b534f0132826411.Invoke()
+   at Bc84cc9ca7306eb44f5f191db.Invoke()
+   at Program.Main()
+
+
+   at Confectory.Tests.TestCase.True(Boolean condition, String message) in /workspace/Confectory/tests/Confectory.Tests/Support.cs:line 127
+   at Confectory.Tests.WebUITests.test_actual_editor_imp2_multilevel_tree_windows_project_isolation_and_latest_cold() in /workspace/Confectory/tests/Confectory.Tests/WebUITests.cs:line 344
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+0 passed, 1 failed, 0 skipped; 65.009s
+=== confectory-imp2-tree2.log ===
+UI page errors: []
+UI failure status: 참조 정의 확인
+UI failure controls: {'confirm': None, 'run': False, 'source': 'Example.ButtonGame::Depth00'}
+FAIL WebUITests.test_actual_editor_imp2_multilevel_tree_windows_project_isolation_and_latest_cold
+System.Exception: UI page errors: []
+UI failure status: 참조 정의 확인
+UI failure controls: {'confirm': None, 'run': False, 'source': 'Example.ButtonGame::Depth00'}
+Traceback (most recent call last):
+  File "/workspace/Confectory/tests/web/web_ui.py", line 372, in <module>
+    verify_tree(page,project,mount,send,envelope,settle,restart_actual_host)
+  File "/workspace/Confectory/tests/web/v480_declaration_tree.py", line 43, in verify_tree
+    search(main,unused);pick(main,unused);expect(main.locator('[data-tree-definition]')).to_be_disabled();source=next(n for n in state()['relationsMap']['nodes'] if n['id']==cross);invoke('readReferenceDefinition',{'sourceId':cross,'id':unused,'revision':source['revision'],'hash':source['textHash']},False);invoke('readReferenceDefinition',{'sourceId':cross,'id':foreign,'revision':source['revision'],'hash':'0'*64},False)
+                                                                                                                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/Confectory/tests/web/v480_declaration_tree.py", line 20, in invoke
+    v=mount();rid=uuid.uuid4().hex;assert send(envelope(v,'invoke',endpoint=endpoint,input=args,requestId=rid,expectedRevision=v['revision']))['ok'];result,_=settle(v,rid);assert result['ok']==ok,result;assert send(envelope(v,'dispose'))['ok'];return result
+                                                                                                                                                                                   ^^^^^^^^^^^^^^^^
+AssertionError: {'ok': True, 'requestId': 'ad6c90430fd64463bd29c16271b00da0', 'status': 'completed', 'result': {'accepted': True}}
+
+   at Confectory.Tests.TestCase.True(Boolean condition, String message) in /workspace/Confectory/tests/Confectory.Tests/Support.cs:line 127
+   at Confectory.Tests.WebUITests.test_actual_editor_imp2_multilevel_tree_windows_project_isolation_and_latest_cold() in /workspace/Confectory/tests/Confectory.Tests/WebUITests.cs:line 344
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+0 passed, 1 failed, 0 skipped; 11.341s
+=== confectory-imp2-hierarchy1.log ===
+UI page errors: []
+UI failure status: Source confirmed
+UI failure controls: {'confirm': None, 'run': False, 'source': 'Example.ButtonGame::HierarchyVariant'}
+FAIL WebUITests.test_actual_editor_v480_declaration_hierarchy_variation_fill_confirm_independent_cold
+System.Exception: UI page errors: []
+UI failure status: Source confirmed
+UI failure controls: {'confirm': None, 'run': False, 'source': 'Example.ButtonGame::HierarchyVariant'}
+Traceback (most recent call last):
+  File "/workspace/Confectory/tests/web/web_ui.py", line 375, in <module>
+    verify_declaration_navigation(page,project,mount,send,envelope,settle,restart_actual_host)
+  File "/workspace/Confectory/tests/web/v480_declaration_navigation.py", line 39, in verify_declaration_navigation
+    other.locator('[data-parent="'+score+'"]').click();expect(other.locator('[data-id="'+variant+'"]')).to_be_visible();expect(other.locator('[data-id="'+twin+'"]')).to_be_visible();other.locator('[aria-label="객체 표시 밀도 Compact Preview Data"]').evaluate('e=>{e.value="100";e.dispatchEvent(new Event("input",{bubbles:true}));}')
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/sync_api/_generated.py", line 17876, in click
+    self._sync(
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_sync_base.py", line 115, in _sync
+    return task.result()
+           ^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_locator.py", line 165, in click
+    return await self._frame._click(self._selector, strict=True, **params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_frame.py", line 593, in _click
+    await self._channel.send("click", self._timeout, locals_to_params(locals()))
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_connection.py", line 76, in send
+    return await self._connection.wrap_api_call(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_connection.py", line 632, in wrap_api_call
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+playwright._impl._errors.TimeoutError: Locator.click: Timeout 30000ms exceeded.
+Call log:
+  - waiting for locator(".window[data-key^=\"browser-tree:\"]").locator("[data-parent=\"Example.ButtonGame::Score\"]")
+
+
+   at Confectory.Tests.TestCase.True(Boolean condition, String message) in /workspace/Confectory/tests/Confectory.Tests/Support.cs:line 127
+   at Confectory.Tests.WebUITests.test_actual_editor_v480_declaration_hierarchy_variation_fill_confirm_independent_cold() in /workspace/Confectory/tests/Confectory.Tests/WebUITests.cs:line 339
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+PASS WebUITests.test_browser_projection_declared_identity_parent_schema_and_reference_gates
+1 passed, 1 failed, 0 skipped; 68.978s
+=== confectory-imp2-tree3.log ===
+UI page errors: []
+UI failure status: 참조 정의 확인
+UI failure controls: {'confirm': None, 'run': False, 'source': 'Example.ButtonGame::Score'}
+FAIL WebUITests.test_actual_editor_imp2_multilevel_tree_windows_project_isolation_and_latest_cold
+System.Exception: UI page errors: []
+UI failure status: 참조 정의 확인
+UI failure controls: {'confirm': None, 'run': False, 'source': 'Example.ButtonGame::Score'}
+Traceback (most recent call last):
+  File "/workspace/Confectory/tests/web/web_ui.py", line 372, in <module>
+    verify_tree(page,project,mount,send,envelope,settle,restart_actual_host)
+  File "/workspace/Confectory/tests/web/v480_declaration_tree.py", line 51, in verify_tree
+    changed=project/'TreeLeaf.celem';changed.write_text(changed.read_text().replace(p+'TreeMiddle',p+'TreeRoot'));fresh=project/'TreeFresh.celem';fresh.write_text('object '+p+'TreeFresh extends '+middle+' {}');manifest=project/'project.cpack';text=manifest.read_text();at=text.rfind('}');manifest.write_text(text[:at]+'element TreeFresh object "TreeFresh.celem";'+text[at:]);registered.write_text('object TreeRegistered.Api::Parent {description "Fresh registered definition after restart";}');after={f:f.read_bytes() for f in originals};restart();ready();main=window('browser');other=window(key);expect(main.locator('[data-tree-query]')).to_have_value('TreeLeaf');expect(row(main,leaf)).to_have_attribute('aria-level','5',timeout=180000);expect(other.locator('[data-tree-query]')).to_have_value('TreeMiddle');expect(page.locator('#source')).to_have_value(pending);restored={r['key']:r['meta'] for r in saved()['layout'] if r['key'] in ['browser',key]};assert restored['browser']['treeSelection']==meta['browser']['treeSelection'] and restored[key]['treeExpanded']==meta[key]['treeExpanded'];search(main,'TreeFresh');expect(row(main,p+'TreeFresh')).to_be_visible();pick(main,p+'TreeFresh');expect(main.locator('[data-tree-details]')).to_contain_text(middle);search(main,foreign);pick(main,foreign);main.locator('[data-tree-definition]').click();ready();expect(window('definition').locator('[data-reference-text]')).to_contain_text('Fresh registered definition after restart');assert state()['projectId']==first_id
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/sync_api/_generated.py", line 22016, in to_contain_text
+    self._sync(
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_sync_base.py", line 115, in _sync
+    return task.result()
+           ^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_assertions.py", line 303, in to_contain_text
+    await self._expect_impl(
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_assertions.py", line 128, in _expect_impl
+    _record_soft_or_raise(
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_assertions.py", line 60, in _record_soft_or_raise
+    raise error
+AssertionError: Locator expected to contain text 'Fresh registered definition after restart'
+Actual value:
+Call log:
+  - Expect "to_contain_text" with timeout 5000ms
+  - waiting for locator(".window[data-key=\"definition\"]").locator("[data-reference-text]")
+    14 × locator resolved to <textarea readonly rows="13" spellcheck="false" data-reference-text="" aria-label="읽기 전용 참조 소스"></textarea>
+       - unexpected value ""
+
+Aria snapshot:
+- textbox "읽기 전용 참조 소스": "object TreeRegistered.Api::Parent {description \"Fresh registered definition after restart\";}"
+
+   at Confectory.Tests.TestCase.True(Boolean condition, String message) in /workspace/Confectory/tests/Confectory.Tests/Support.cs:line 127
+   at Confectory.Tests.WebUITests.test_actual_editor_imp2_multilevel_tree_windows_project_isolation_and_latest_cold() in /workspace/Confectory/tests/Confectory.Tests/WebUITests.cs:line 344
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+0 passed, 1 failed, 0 skipped; 28.670s
+=== confectory-imp2-hierarchy2.log ===
+PASS actual v480 declaration hierarchy: exact declared parent/category/concept/schema, owned and gated registered definitions, Variation/compiler registration, independent Workspace browser/typed atomic fill/Confirm, distinct cold contexts and original pending bases; sources preserved
+Actual common WebUI declaration-navigation Chromium PASS
+PASS WebUITests.test_actual_editor_v480_declaration_hierarchy_variation_fill_confirm_independent_cold
+1 passed, 0 failed, 0 skipped; 79.372s
+=== confectory-imp2-tree4.log ===
+PASS actual IMP2 declaration tree: multi-level expand/search/keyboard, explicit parent/contain/schema fences, unresolved/cycle/depth64, gated registered definitions, independent windows, two-project isolation, unchanged pending source DOM, cold latest metadata and definitions
+Actual common WebUI declaration-tree Chromium PASS
+PASS WebUITests.test_actual_editor_imp2_multilevel_tree_windows_project_isolation_and_latest_cold
+1 passed, 0 failed, 0 skipped; 18.080s
+=== confectory-imp2-final-tree.log ===
+PASS actual IMP2 declaration tree: multi-level expand/search/keyboard, explicit parent/contain/schema fences, unresolved/cycle/depth64, gated registered definitions, independent windows, two-project isolation, unchanged pending source DOM, cold latest metadata and definitions
+Actual common WebUI declaration-tree Chromium PASS
+PASS WebUITests.test_actual_editor_imp2_multilevel_tree_windows_project_isolation_and_latest_cold
+PASS actual v480 Home/browser/document navigation: cancel/repeat, applied/draft queries, group location, exact DOM/undo, dock and cold restore; source unchanged
+Actual common WebUI navigation-state Chromium PASS
+PASS WebUITests.test_actual_editor_v480_home_browser_document_repeat_cancel_and_restore
+PASS WebUITests.test_browser_projection_declared_identity_parent_schema_and_reference_gates
+3 passed, 0 failed, 0 skipped; 42.368s
+=== confectory-imp2-final-gates.log ===
+PASS RelationsMapTests.test_registered_reference_definition_direct_scope_identity_and_no_body_reads
+PASS actual v480 declaration hierarchy: exact declared parent/category/concept/schema, owned and gated registered definitions, Variation/compiler registration, independent Workspace browser/typed atomic fill/Confirm, distinct cold contexts and original pending bases; sources preserved
+Actual common WebUI declaration-navigation Chromium PASS
+PASS WebUITests.test_actual_editor_v480_declaration_hierarchy_variation_fill_confirm_independent_cold
+2 passed, 0 failed, 0 skipped; 80.237s
+=== confectory-imp2-final2-tree.log ===
+PASS actual IMP2 declaration tree: multi-level expand/search/keyboard, explicit parent/contain/schema fences, unresolved/cycle/depth64, gated registered definitions, independent windows, two-project isolation, unchanged pending source DOM, cold latest metadata and definitions
+Actual common WebUI declaration-tree Chromium PASS
+PASS WebUITests.test_actual_editor_imp2_multilevel_tree_windows_project_isolation_and_latest_cold
+PASS actual v480 Home/browser/document navigation: cancel/repeat, applied/draft queries, group location, exact DOM/undo, dock and cold restore; source unchanged
+Actual common WebUI navigation-state Chromium PASS
+PASS WebUITests.test_actual_editor_v480_home_browser_document_repeat_cancel_and_restore
+PASS WebUITests.test_browser_projection_declared_identity_parent_schema_and_reference_gates
+3 passed, 0 failed, 0 skipped; 41.984s
+=== confectory-imp2-final2-gates.log ===
+PASS RelationsMapTests.test_registered_reference_definition_direct_scope_identity_and_no_body_reads
+PASS actual v480 declaration hierarchy: exact declared parent/category/concept/schema, owned and gated registered definitions, Variation/compiler registration, independent Workspace browser/typed atomic fill/Confirm, distinct cold contexts and original pending bases; sources preserved
+Actual common WebUI declaration-navigation Chromium PASS
+PASS WebUITests.test_actual_editor_v480_declaration_hierarchy_variation_fill_confirm_independent_cold
+2 passed, 0 failed, 0 skipped; 81.631s
+=== confectory-imp2-checkout.log ===
+PASS WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup
+1 passed, 0 failed, 0 skipped; 6.665s
