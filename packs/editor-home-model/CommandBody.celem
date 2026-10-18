@@ -1,5 +1,7 @@
 implementation Confectory.EditorHome.Model::CommandBody for Confectory.EditorHome.Model::Command (string session, string operation, string payload) -> string {
 import Confectory.EditorHome.Model::HomePreferences as HomePreferences (string,string,string) -> string;
+import Confectory.EditorHome.Model::HelperPresentation as HelperPresentation (string,string,string,string) -> string;
+import Confectory.FileStream::Commit as CommitHome (string,string[],string[],string[]) -> string[];
 import Confectory.ProjectManager::Identity as Identity (string[],string) -> string;
 import Confectory.ProjectManager::Open as Open (string[], string) -> string;
 import Confectory.ProjectManager::CreateProject as CreateProject (string[], string, string, string) -> string;

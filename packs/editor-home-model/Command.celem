@@ -1,5 +1,6 @@
 function Confectory.EditorHome.Model::Command (string session, string operation, string payload) -> string {
 provide Confectory.EditorHome.Model::HomePreferences with Confectory.EditorHome.Model::HomePreferencesBody;
+provide Confectory.EditorHome.Model::HelperPresentation with Confectory.EditorHome.Model::HelperPresentationBody;
 provide Confectory.ProjectManager::Close with Confectory.ProjectManager::CloseBody;
 provide Confectory.ProjectManager::Open with Confectory.ProjectManager::OpenBody;
 provide Confectory.ProjectExecution::DescribeProject with Confectory.ProjectExecution::DescribeProjectBody;

@@ -26,7 +26,10 @@ internal static class HomeInclusion
         var statistics = new BuildStatistics();
         var documents = new Documents("", statistics, Read);
         var manifest = documents.Manifest(project);
-        var result = new JsonObject { ["status"] = "available", ["scope"] = "confirmed-entry-target-reachability", ["sourceScope"] = "confirmed-files" };
+        if (manifest.Dependencies.Count > 256 || manifest.Namespace.Length > 256 || manifest.Dependencies.Any(pair => pair.Key.Length > 256 || pair.Value.Version.Length > 256)) throw new IOException("Inclusion manifest metadata budget");
+        var result = new JsonObject { ["status"] = "available", ["scope"] = "confirmed-entry-target-reachability", ["sourceScope"] = "confirmed-files",
+            ["namespace"] = manifest.Namespace, ["kind"] = manifest.Kind, ["standalone"] = manifest.SupportsStandalone,
+            ["requirements"] = new JsonArray(manifest.Dependencies.OrderBy(pair => pair.Key, StringComparer.Ordinal).Select(pair => (JsonNode)new JsonObject { ["namespace"] = pair.Key, ["version"] = pair.Value.Version }).ToArray()) };
         if (manifest.Kind != "project" || manifest.Entry is null || manifest.Targets.Count == 0)
         { result["packsStatus"] = "unsupported"; return result; }
         if (manifest.Registry.Count >= 256 || manifest.Targets.Count > 16) throw new IOException("Inclusion registry/target budget");

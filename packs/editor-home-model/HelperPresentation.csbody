@@ -1,0 +1,20 @@
+if(string.IsNullOrWhiteSpace(helper)||helper.Length>256)throw new ArgumentException("Helper identity budget");
+storage=System.IO.Path.GetFullPath(storage);
+string relative="helper-presentations/"+Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(helper))).ToLowerInvariant()+".json";
+string path=System.IO.Path.Combine(storage,relative);
+System.Text.Json.Nodes.JsonObject Validate(System.Text.Json.Nodes.JsonObject value){
+ if(value.Count!=6||value["version"]?.GetValue<int>()!=1||value["helper"]?.GetValue<string>()!=helper)throw new ArgumentException("Helper display identity or fields");
+ foreach(var field in new[]{("name",80),("shortDescription",160),("description",2048),("globalDraft",8192)}){
+  string text=value[field.Item1]?.GetValue<string>()??throw new ArgumentException("Helper display text required");if(text.Length>field.Item2||text.Contains('\0'))throw new ArgumentException("Helper display text budget");
+ }return value;
+}
+if(System.IO.File.Exists(path)&&new System.IO.FileInfo(path).Length>65536)throw new ArgumentException("Helper display byte budget");
+var saved=calls.Snapshot.Invoke(path);var value=saved[0]=="exists"?Validate(System.Text.Json.Nodes.JsonNode.Parse(saved[1])!.AsObject()):new System.Text.Json.Nodes.JsonObject{["version"]=1,["helper"]=helper,["name"]="",["shortDescription"]="",["description"]="",["globalDraft"]=""};
+if(saved[1].Length>65536)throw new ArgumentException("Helper display byte budget");
+if(operation=="save"){
+ var args=System.Text.Json.Nodes.JsonNode.Parse(payload)!.AsObject();if(args.Count!=2||args["revision"]?.GetValue<string>()!=saved[2])throw new InvalidOperationException("Helper display changed; reopen without discarding inputs");
+ var candidate=Validate(args["value"]!.DeepClone().AsObject());if(System.Text.Encoding.UTF8.GetByteCount(candidate.ToJsonString())>65536)throw new ArgumentException("Helper display byte budget");
+ if(calls.Commit.Invoke(storage,new[]{relative},new[]{saved[2]},new[]{candidate.ToJsonString()})[0]!="applied")throw new InvalidOperationException("Helper display changed; inputs retained");
+ saved=calls.Snapshot.Invoke(path);value=candidate;
+}else if(operation!="load")throw new ArgumentException("Unknown Helper display operation");
+return new System.Text.Json.Nodes.JsonObject{["revision"]=saved[2],["value"]=value}.ToJsonString();

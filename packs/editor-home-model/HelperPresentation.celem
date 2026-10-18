@@ -1,0 +1,8 @@
+function Confectory.EditorHome.Model::HelperPresentation (string storage, string helper, string operation, string payload) -> string {
+description "Owner UI display metadata and unsent global draft; immutable Helper behavior and project memory stay separate. Caller validates membership.";
+provide Confectory.EditorHome.Model::HelperPresentation with Confectory.EditorHome.Model::HelperPresentationBody;
+provide Confectory.FileStream::Commit with Confectory.FileStream::CommitBody;
+provide Confectory.FileStream::WriteAtomic with Confectory.FileStream::WriteAtomicBody;
+provide Confectory.FileStream::LeasePath with Confectory.FileStream::LeasePathBody;
+provide Confectory.FileStream::Snapshot with Confectory.FileStream::SnapshotBody;
+}

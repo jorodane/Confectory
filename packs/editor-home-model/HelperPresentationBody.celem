@@ -1,0 +1,5 @@
+implementation Confectory.EditorHome.Model::HelperPresentationBody for Confectory.EditorHome.Model::HelperPresentation (string storage, string helper, string operation, string payload) -> string {
+import Confectory.FileStream::Commit as Commit (string,string[],string[],string[]) -> string[];
+import Confectory.FileStream::Snapshot as Snapshot (string) -> string[];
+body common "HelperPresentation.csbody";
+}
