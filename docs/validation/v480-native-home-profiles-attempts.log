@@ -184,7 +184,7 @@ Traceback (most recent call last):
   File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_assertions.py", line 60, in _record_soft_or_raise
     raise error
 AssertionError: Locator expected to be disabled
-Actual value: enabled 
+Actual value: enabled
 Call log:
   - Expect "to_be_disabled" with timeout 45000ms
   - waiting for locator("[data-helper-settings]").locator("[data-profile-save]")

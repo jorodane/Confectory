@@ -28,7 +28,7 @@ native Home 카드 제목의 Info, 현재 프로젝트 메뉴의 Project informa
 
 기존 native Home의 생성·picker·열기/닫기·리소스 정리/locality와 작은/0 client 크기 변경 검사를 포함한다. Windows native 구성은 managed compile, Android/browser adapter는 동일 reply·owner-root 거부·본문 미읽기·unsupported/unavailable fixture로 분리한다. 기존 metadata authoring과 WebUI 전환/cold 회귀도 검사한다. 실제 계정·로그인·설치·유료/외부 AI 호출은 하지 않았다. 4 CPU/16 GiB에서 gate를 최대 2개로 제한했다.
 
-개발 중 잘못된 library fixture 문법, 새 메서드의 harness 등록 누락, native C# LINQ 호출과 이동한 Core 이름 참조 누락을 수정했다. 실제 GTK Discard/poll 순서 문제, 로딩 중 null을 허용하지 않은 fixture 조건, 외부 파일 손상 직후의 WebUI 캐시/저장 버튼 문제도 수정했다. 기존 native 크기 변경 검사의 기본 사용자 데이터 경로는 읽기 전용이라 전용 writable XDG 경로로 재실행했다. 실패를 숨기거나 timeout/assertion을 완화하지 않았다.
+개발 중 잘못된 library fixture 문법, 새 메서드의 harness 등록 누락, native C# LINQ 호출과 이동한 Core 이름 참조 누락을 수정했다. 실제 GTK Discard/poll 순서 문제, 로딩 중 null을 허용하지 않은 fixture 조건, 외부 파일 손상 직후의 WebUI 캐시/저장 버튼 문제도 수정했다. 기존 native 크기 변경 검사의 기본 사용자 데이터 경로는 읽기 전용이라 전용 writable XDG 경로로 재실행했다. 실패를 숨기거나 timeout/assertion을 완화하지 않았다. 저장소용 텍스트 로그는 행 끝 공백만 정리했으며 원본 scratch 로그는 유지했다.
 
 [native 표시 프로필](validation/v480-native-profile-saved.png), [프로젝트 미적용 소스/대화](validation/v480-native-project-input-retained.png), [cold 저장본](validation/v480-native-cold-profile.png)은 최종 실행의 실제 화면이다.
 

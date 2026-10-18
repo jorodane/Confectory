@@ -210,5 +210,6 @@
     "no Windows UI, Android device, actual WASM/browser, IME or full accessibility validation",
     "no AI/account/install/authority/category/overflow changes",
     "ENV4 ButtonGame/Pause/zombie uncertainty unchanged"
-  ]
+  ],
+  "publicLogNormalization": "Trailing whitespace removed from repository text log; original scratch logs unchanged."
 }
