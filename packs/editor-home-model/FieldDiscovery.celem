@@ -1,0 +1,4 @@
+function Confectory.EditorHome.Model::FieldDiscovery (string session,string context,string payload,string cancellation) -> string {
+description "Read-only bounded field union for explicitly selected root-owned objects. No table definition, edit, source selection or runtime execution.";
+provide Confectory.EditorHome.Model::FieldDiscovery with Confectory.EditorHome.Model::FieldDiscoveryBody;
+}

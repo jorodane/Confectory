@@ -2,6 +2,7 @@ pack Confectory.EditorHome.Model version "0.1.0" {
 dependency Confectory.WorkerTasks version "0.1.0";
 standalone false;
 element Blueprint function "Blueprint.celem";element BlueprintBody implementation "BlueprintBody.celem";
+element FieldDiscovery function "FieldDiscovery.celem";element FieldDiscoveryBody implementation "FieldDiscoveryBody.celem";
 element BuildJobs function "BuildJobs.celem";element BuildJobsBody implementation "BuildJobsBody.celem";
 dependency Confectory.InstantTable version "0.1.0";
 element TableCommand function "TableCommand.celem";element TableCommandBody implementation "TableCommandBody.celem";

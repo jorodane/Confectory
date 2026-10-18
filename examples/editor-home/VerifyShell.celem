@@ -170,6 +170,7 @@ provide Confectory.ProjectShell::Close with Confectory.ProjectShell::CloseBody;
 provide Confectory.DevelopmentTools::BindOrigin with Confectory.DevelopmentTools::BindOriginBody;
 provide Confectory.ProjectAI::PrepareRecovery with Confectory.ProjectAI::PrepareRecoveryBody;
 
+provide Confectory.EditorHome.Model::FieldDiscovery with Confectory.EditorHome.Model::FieldDiscoveryBody;
 provide Confectory.EditorHome.Model::BuildJobs with Confectory.EditorHome.Model::BuildJobsBody;
 provide Confectory.ProjectExecution::Build with Confectory.ProjectExecution::BuildBody;
 provide Confectory.ProjectExecution::BuildQuery with Confectory.ProjectExecution::BuildQueryBody;
