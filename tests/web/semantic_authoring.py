@@ -152,6 +152,8 @@ def verify_concept_creation(page,project,mount,send,envelope,browser,browser_act
  field.fill(description)
  page.locator('#semantic-save').click();expect(page.locator('#status')).to_have_text('Draft saved; final sources unchanged',timeout=30000)
  assert source_path.read_text().find('created through ordinary editor')>=0, 'description Save bypassed Confirm'
+ # Save completes after its follow-up schema projection and private checkpoint.
+ expect(page.locator('#semantic-save')).to_be_enabled(timeout=30000)
  saved_description=mount();assert saved_description['state']['draft']['dirty'];revision=saved_description['state']['schema']['revision']
  # Reject a stale description edit through the actual consumer, retaining the saved description draft.
  request_id='stale-description'

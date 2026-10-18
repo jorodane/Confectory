@@ -1,5 +1,5 @@
 """Owned ordinary Home consumer: persisted custom plans without a configured AI."""
-import uuid,time
+import uuid,time,json
 from playwright.sync_api import expect
 
 def verify_local_augment(page,project,mount,send,envelope,settle,restart):
@@ -56,8 +56,21 @@ def verify_local_augment(page,project,mount,send,envelope,settle,restart):
   pending=state();assert pending['aiPreview']['kind']=='worker' and pending['aiPreview']['approvals']=={};assert pending['aiOwnerAvailable'];assert pending['workers'][0]['id']==worker;assert owned.requests==[]
   invoke('startAI',{'token':pending['aiPreview']['token']},False);assert owned.requests==[]
   page.locator('#cancel-preview').click();assert owned.requests==[] and not owned.errors;assert state()['workers'][0]['status']=='ready';page.locator('.window[data-key="worker"] [data-close]').click();page.locator('#augment').click()
+  expect(page.locator('.augment-overlay')).to_be_visible();expect(page.locator('#augment')).to_be_enabled(timeout=30000)
   # A later draft revision invalidates selection; restoring equal text does not restore its revision.
-  page.locator('.augment-overlay [data-close]').click();invoke('schema',{'id':'Example.ButtonGame::Score'});fresh=state();invoke('editDescription',{'id':'Example.ButtonGame::Score','revision':fresh['draft']['revision'],'value':'changed after custom capture'});page.locator('#augment').click();expect(page.locator('[data-custom-proposals]')).to_contain_text('stale-proposal',timeout=30000)
+  page.locator('.augment-overlay [data-close]').click();expect(page.locator('.augment-overlay')).to_have_count(0);invoke('schema',{'id':'Example.ButtonGame::Score'});fresh=state();invoke('editDescription',{'id':'Example.ButtonGame::Score','revision':fresh['draft']['revision'],'value':'changed after custom capture'})
+  # Reproduce a rejected private checkpoint before the readonly Augment action.
+  # The transport guarantees stale_revision has executed nothing; source CAS is untouched.
+  rejected_checkpoints=[]
+  def reject_checkpoint_once(route):
+   request=route.request.post_data_json
+   if request.get('op')=='invoke' and request.get('endpoint')=='savePresentation' and not rejected_checkpoints:
+    rejected_checkpoints.append(request['requestId']);request['expectedRevision']=-1;route.continue_(post_data=json.dumps(request))
+   else:route.continue_()
+  page.route('**/api/request',reject_checkpoint_once)
+  page.locator('#augment').click();expect(page.locator('[data-custom-proposals]')).to_contain_text('stale-proposal',timeout=30000)
+  page.unroute('**/api/request',reject_checkpoint_once);assert len(rejected_checkpoints)==1,'No private checkpoint admission was exercised'
+
   stale=state()['augment']['customCards'][0];invoke('selectCard',{'card':stale['id']},False);assert len(state()['workers'])==1
   # A changed Helper/common-memory scope cannot select or append through the retained chief owner.
   invoke('customProposal',{'target':'Example.ButtonGame::Score','commandID':'fresh-before-scope-change','text':'Fresh revision, old Helper scope'})
@@ -81,7 +94,6 @@ def verify_local_augment(page,project,mount,send,envelope,settle,restart):
   if overlay.count():overlay.click()
   if not page.locator('.participant-expanded-card[data-helper-id="main-helper"]').count():page.locator('.home-side [data-helper="main-helper"]').first.click()
   page.locator('.participant-expanded-card [data-worker="'+new_task+'"]').click();expect(page.locator('#worker-cancel-ready')).to_be_enabled(timeout=30000)
-  import json
   before_commands=set(json.loads(persisted.read_text())['commands']);page.locator('#worker-cancel-ready').click();expect(page.locator('.window[data-key="worker"]')).to_contain_text('cancelled',timeout=30000)
   assert {w['id']:w['status'] for w in state()['workers']}=={worker:'ready',new_task:'cancelled'};assert len(owned.requests)==1
   command=(set(json.loads(persisted.read_text())['commands'])-before_commands).pop();task_journal=project/'.confectory/ai-development/tasks.json';saved_cancel=(persisted.read_bytes(),task_journal.read_bytes());invoke('cancelReadyWorker',{'task':new_task,'commandID':command,'reason':'Explicitly cancelled before execution'});assert (persisted.read_bytes(),task_journal.read_bytes())==saved_cancel
