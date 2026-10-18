@@ -198,4 +198,32 @@ public sealed class CoreTests : TestCase
         string link = Path.Combine(f.Packs["Api"].Root, "linked.celem"); File.CreateSymbolicLink(link, outside);
         f.Packs["Api"].Elements["Value"] = ("function", "linked.celem"); f.Sync(); Error("OWNERSHIP", () => f.Registry());
     }
+    public void test_artifact_parallel_publication_and_corrupt_entry_repair()
+    {
+        string root=Path.Combine(f.Root,"parallel-artifacts"),payload=new string('v',65536);Directory.CreateDirectory(root);
+        for(int round=0;round<16;round++)
+        {
+            string key="publication-"+round,folder=Path.Combine(root,key);
+            if(round%2==1)
+            {
+                Directory.CreateDirectory(folder);File.WriteAllText(Path.Combine(folder,"stale.bin"),new string('x',524288));
+                File.WriteAllText(Path.Combine(folder,"artifact.json"),new System.Text.Json.Nodes.JsonObject{["key"]=key,["files"]=new System.Text.Json.Nodes.JsonObject{["data"]=new System.Text.Json.Nodes.JsonObject{["path"]="stale.bin",["hash"]=new string('0',64)}}}.ToJsonString());
+            }
+            using var start=new System.Threading.Barrier(2);
+            var producers=Enumerable.Range(0,2).Select(_=>Task.Factory.StartNew(()=>
+            {
+                if(!start.SignalAndWait(TimeSpan.FromSeconds(30)))throw new Exception("Concurrent artifact fixture did not start");
+                return new Artifacts(root).Produce(key,work=>
+                {
+                    File.WriteAllText(Path.Combine(work,"payload.txt"),payload);System.Threading.Thread.Sleep(10);
+                    return new System.Text.Json.Nodes.JsonObject{["data"]="payload.txt"};
+                });
+            },System.Threading.CancellationToken.None,TaskCreationOptions.LongRunning,TaskScheduler.Default)).ToArray();
+            Task.WaitAll(producers);var verified=new Artifacts(root).Get(key);True(verified is not null);
+            Equal(verified!["data"],producers[0].Result["data"]);Equal(verified["data"],producers[1].Result["data"]);
+            Equal(Path.Combine(folder,"payload.txt"),verified["data"]);Equal(payload,File.ReadAllText(verified["data"]));
+            True(!File.Exists(Path.Combine(folder,"stale.bin")),"Corrupt cache was not replaced");
+        }
+        Equal(0,Directory.GetDirectories(root,"*.pending").Length);
+    }
 }

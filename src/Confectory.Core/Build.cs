@@ -82,6 +82,15 @@ public sealed class Artifacts(string root)
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException or InvalidOperationException or KeyNotFoundException or BuildError or FormatException or NullReferenceException) { return null; }
     }
+    private FileStream PublicationLock(string key)
+    {
+        var elapsed = System.Diagnostics.Stopwatch.StartNew();
+        while (true)
+        {
+            try { return new FileStream(Path.Combine(root, key + ".publish.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None); }
+            catch (IOException) when (elapsed.Elapsed < TimeSpan.FromSeconds(30)) { System.Threading.Thread.Sleep(10); }
+        }
+    }
     public Dictionary<string, string> Produce(string key, Func<string, JsonObject> callback)
     {
         string work = Path.Combine(root, $"{key}.{Guid.NewGuid():N}.pending"); Directory.CreateDirectory(work);
@@ -98,13 +107,13 @@ public sealed class Artifacts(string root)
                 files[name] = JsonData.Object(new { path = Path.GetRelativePath(work, path), hash = JsonData.HashBytes(File.ReadAllBytes(path)) });
             }
             JsonData.AtomicWrite(Path.Combine(work, "artifact.json"), new { key, files });
+            // Compilation can overlap; publication and corrupt-entry repair share one per-key lease.
+            // Keep the lock file: unlinking it would let another process lock a different inode.
+            using var publication = PublicationLock(key);
             string dest = Path.Combine(root, key);
-            if (Directory.Exists(dest))
-            {
-                var existing = Get(key);
-                if (existing is not null) { Directory.Delete(work, true); return existing; }
-                Directory.Delete(dest, true);
-            }
+            var existing = Get(key);
+            if (existing is not null) return existing;
+            if (Directory.Exists(dest)) Directory.Delete(dest, true);
             Directory.Move(work, dest);
             return Get(key) ?? throw new BuildError("TOOL_PROTOCOL", "Produced artifacts could not be verified");
         }
