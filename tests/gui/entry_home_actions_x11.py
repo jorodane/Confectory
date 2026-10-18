@@ -177,10 +177,11 @@ def menu(window):
 def choose_action(window,action=aid):
  state=idle('actions');rows=state['nativeAction']['actions'];index=next(n for n,r in enumerate(rows) if r['id']==action)
  while 500+index not in latest()['hits'][::5]:click(window,444);index-=4
- click(window,500+index);wait(lambda t:t['nativeAction']['chosen']==action,'native declared action chosen')
+ click(window,500+index);wait(lambda t:t['nativeAction']['chosen']==action and t['nativeAction']['status'].startswith(('Enter field','Unavailable:')),'native declared action chosen')
 def prepare(window,value='23',refresh=False):
  if latest()['screen']!='actions':menu(window)
- elif refresh:click(window,435);wait(lambda t:not t['job'] and (t.get('nativeAction') or {}).get('token'),'refreshed Actions listing')
+ elif refresh:
+  previous=current()['token'];click(window,435);wait(lambda t:not t['job'] and (t.get('nativeAction') or {}).get('token') not in [None,previous],'refreshed Actions listing')
  choose_action(window);native_fill(window,431,'initial');native_fill(window,432,value)
 def invoke(window,status='completed'):
  click(window,434);time.sleep(.35);return wait(lambda t:not t['job'] and (t.get('nativeAction') or {}).get('status')==status,'function '+status)
@@ -213,11 +214,11 @@ try:
  prepare(a);old=current()['token'];n=count();invoke(a);assert count()==n+1 and 'value initial = 23;' in text(433) and 'data amount = 9;' in text(433);assert latest()['model']['workspace']['unit']['text']==draft
  result=field(433);assert result['readonly'];native_controls.text(int(result['nativeHandle']),'MUST_NOT_EDIT_RESULT');wait(lambda t:json.loads(t['fields']['433'])['text']==result['text'],'read-only proposal');screenshot(a,'proposal');invoke(a);assert count()==n+1,'duplicate dispatched function again';native_fill(a,432,'24');click(a,434);wait(lambda t:not t['job'] and t['nativeAction']['status'].startswith('Failed:'),'different input token reuse refused');assert count()==n+1 and text(432)=='24';back(a);pending();prepare(a);choose_action(a,'Example.ActionPack::Menu');invoke(a);assert 'value initial = 23;' in text(433);back(a);pending()
  # Input cancel and menu Escape retire tokens, preserve separate source/property CAS.
- prepare(a);canceled=current()['token'];click(a,436);idle('actions');assert text(431)==text(432)==text(433)=='' and not current()['token'];prepare(a,refresh=True);replay_old(a,canceled,project_id);press(a,0xFF1B);idle('project');pending();prepare(a);native_fill(a,432,'null');invoke(a,'failed');assert 'Scalar metadata required' in text(433) and text(432)=='null';back(a);pending()
+ prepare(a);canceled=current()['token'];click(a,436);wait(lambda t:not t['job'] and not (t.get('nativeAction') or {}).get('token') and (t.get('nativeAction') or {}).get('status','').startswith('Input canceled'),'input canceled');assert text(431)==text(432)==text(433)=='' and not current()['token'];prepare(a,refresh=True);replay_old(a,canceled,project_id);press(a,0xFF1B);idle('project');pending();prepare(a);native_fill(a,432,'null');invoke(a,'failed');assert 'Scalar metadata required' in text(433) and text(432)=='null';back(a);pending()
  # Selection A -> B -> A cannot revive capabilities; raw object inputs survive.
  prepare(a);selection_token=current()['token'];back(a);select_source(a,other);select_source(a,score);prepare(a);replay_old(a,selection_token,project_id);back(a);pending()
  # Same selected object but competing draft revision rejects invocation and preserves old CAS.
- prepare(a);mutate.write_text('owned');n=count();invoke(a,'failed');assert count()==n and not mutate.exists();assert 'CURRENT_NATIVE_ACTION_DRAFT' in latest()['model']['workspace']['unit']['text'];back(a);pending();prepare(a,refresh=False);invoke(a);assert 'value initial = 23;' in text(433);back(a);pending()
+ prepare(a);mutate.write_text('owned');n=count();invoke(a,'failed');assert count()==n and not mutate.exists();back(a);pending();prepare(a,refresh=False);invoke(a);assert 'value initial = 23;' in text(433) and 'value concurrent = 91;' in text(433);back(a);pending()
  # Fresh discovery rejects changed canonical body/signature, old prepared menu never executes.
  for relative in ['SetValue.csbody','SetValue.celem']:
   prepare(a);target=root_path/'schema-editing'/relative;raw=target.read_bytes();target.write_bytes(raw+b'\n// STALE_NATIVE_ACTION_CONTRACT');n=count();invoke(a,'failed');assert count()==n;click(a,435);wait(lambda t:not t['job'] and t['nativeAction'].get('token'),'changed contract discovery');assert not next(r for r in current()['actions'] if r['id']==aid)['available'];target.write_bytes(raw);back(a);pending()

@@ -14,7 +14,7 @@ bool fixtureLate=fixtureRoot is not null&&System.IO.File.Exists(System.IO.Path.C
 if(fixtureRoot is not null&&System.IO.File.Exists(System.IO.Path.Combine(fixtureRoot,"replay"))){payload=System.IO.File.ReadAllText(System.IO.Path.Combine(fixtureRoot,"replay"));System.IO.File.Delete(System.IO.Path.Combine(fixtureRoot,"replay"));}
 """+"\n"+text;
   text=text.Replace("string key=\"Confectory.EditorHome.ContextActions.\"+session;", """
-if(fixtureRoot is not null&&operation=="invoke"&&System.IO.File.Exists(System.IO.Path.Combine(fixtureRoot,"mutate"))){System.IO.File.Delete(System.IO.Path.Combine(fixtureRoot,"mutate"));var unit=calls.Read.Invoke(draft,"Example.ButtonGame::Score");if(!calls.FixtureSet.Invoke(draft,unit[0],unit[3].Replace("value initial = 0;","value initial = 7;")+"\n// CURRENT_NATIVE_ACTION_DRAFT",long.Parse(unit[4])))throw new Exception("Fixture competing writer conflict");}
+if(fixtureRoot is not null&&operation=="invoke"&&System.IO.File.Exists(System.IO.Path.Combine(fixtureRoot,"mutate"))){System.IO.File.Delete(System.IO.Path.Combine(fixtureRoot,"mutate"));var unit=calls.Read.Invoke(draft,"Example.ButtonGame::Score");if(!calls.FixtureSet.Invoke(draft,unit[0],unit[3].Replace("value initial = 0;","value initial = 7; value concurrent = 91;")+"\n// CURRENT_NATIVE_ACTION_DRAFT",long.Parse(unit[4])))throw new Exception("Fixture competing writer conflict");}
 string key="Confectory.EditorHome.ContextActions."+session;
 """);
   text=text.Replace("string output=calls.Propose.Invoke(row[3],field,value);", """
