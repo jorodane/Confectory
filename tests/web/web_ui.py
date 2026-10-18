@@ -19,13 +19,13 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
  # A regular existing user project copy, with actual object source and normal draft storage.
  project=root/'button-game';shutil.copytree(repo/'examples/button-game',project,ignore=shutil.ignore_patterns('.confectory'))
  manifest=project/'project.cpack';manifest.write_text(manifest.read_text().replace('../../',str(repo)+'/'))
- if kind in ['declaration-navigation','browser-data-fill','browser-data-fields','instant-table','schema-exact','schema-actions']:
+ if kind in ['blueprint-integrated','declaration-navigation','browser-data-fill','browser-data-fields','instant-table','schema-exact','schema-actions']:
   (project/'ZBroken.celem').write_text('object Example.ButtonGame::ZBroken {}')
   (project/'TableStats.celem').write_text('schema Example.ButtonGame::TableStats {field amount single general long;field tags multiple general int;}')
   (project/'TableTwin.celem').write_text('object Example.ButtonGame::TableTwin extends Example.ButtonGame::Score {data amount = 9223372036854775806;}')
   score_source=project/'Score.celem';score_source.write_text(score_source.read_text().replace('{','{ value description = "Separate metadata";use schema Example.ButtonGame::TableStats;data amount = 9223372036854775807;data tags = [1,2];',1))
   source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+'element TableStats schema "TableStats.celem";element TableTwin object "TableTwin.celem";element ZBroken object "ZBroken.celem";'+source[index:])
- if kind in ['declaration-navigation','browser-data-fill','browser-data-fields']:
+ if kind in ['blueprint-integrated','declaration-navigation','browser-data-fill','browser-data-fields']:
   ref=root/'browser-reference';ref.mkdir();(ref/'pack.cpack').write_text('pack BrowserReference version "1" {element External object "External.celem";}');(ref/'External.celem').write_text('object BrowserReference::External {value initial = 7;}')
   source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+'registry BrowserReference '+json.dumps(str(ref/'pack.cpack'))+';dependency BrowserReference version "1";'+source[index:])
  if kind=='declaration-navigation':
@@ -58,14 +58,14 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
   (project/'RefModule.celem').write_text('module Example.ButtonGame::RefModule {}')
   raw=manifest.read_text();i=raw.rfind('}');manifest.write_text(raw[:i]+'element RefStats schema "RefStats.celem";element Peer object "Peer.celem";element OtherPeer object "OtherPeer.celem";element RefModule module "RefModule.celem";'+raw[i:])
  env['CONFECTORY_WEB_PROJECT']=str(manifest)
- if kind in ['node-tasks','blueprint','blueprint-implicit','blueprint-external-ref','blueprint-nested','blueprint-property','blueprint-property-set','blueprint-property-ref','blueprint-code-regions','blueprint-methods','blueprint-enum-plan','blueprint-switch','blueprint-camera','blueprint-create','call-wrapper','registered-call','placed-find','locals','ref-nodes','alias-locals']:
+ if kind in ['node-tasks','blueprint','blueprint-implicit','blueprint-external-ref','blueprint-nested','blueprint-property','blueprint-property-set','blueprint-property-ref','blueprint-integrated','blueprint-code-regions','blueprint-methods','blueprint-enum-plan','blueprint-switch','blueprint-camera','blueprint-create','call-wrapper','registered-call','placed-find','locals','ref-nodes','alias-locals']:
   fixture=report['nodeTaskFixture']
   typename='long' if kind.startswith('blueprint') or kind in ['call-wrapper','registered-call','placed-find','locals','ref-nodes','alias-locals'] else 'int'
   (project/'NodeValue.celem').write_text(fixture['feature']);(project/'NodeValueBody.celem').write_text('implementation Example.ButtonGame::NodeValueBody for Example.ButtonGame::NodeValue ('+typename+' n) -> '+typename+' {blueprint common "node-value.graph.json";}')
   (project/'node-value.graph.json').write_text(json.dumps(fixture['graph']));(project/'calculate.node.json').write_text(json.dumps(fixture['node']))
   if kind.startswith('blueprint') or kind in ['call-wrapper','registered-call','placed-find','locals','ref-nodes','alias-locals']:(project/'condition.node.json').write_text(json.dumps(report['additionalNodeFixture']))
   source=manifest.read_text();index=source.rfind('}');manifest.write_text(source[:index]+'element NodeValue function "NodeValue.celem";element NodeValueBody implementation "NodeValueBody.celem";'+source[index:])
- if kind in ['blueprint-property','blueprint-property-set','blueprint-property-ref']:
+ if kind in ['blueprint-property','blueprint-property-set','blueprint-property-ref','blueprint-integrated']:
   (project/'PropertyVitals.celem').write_text('schema Example.ButtonGame::PropertyVitals {field health single general long;field enabled single general bool;field f single general float;field samples multiple general long;field peer single reference Example.ButtonGame::PropertyVitals;}')
   (project/'Monster.celem').write_text('object Example.ButtonGame::Monster {use schema Example.ButtonGame::PropertyVitals;data health = 999;}')
   (project/'CreateMonster.celem').write_text('function Example.ButtonGame::CreateMonster (long value) -> object {provide Example.ButtonGame::CreateMonster with Example.ButtonGame::CreateMonsterBody;}')
@@ -122,6 +122,9 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
  if kind=='build-jobs':
   env['CONFECTORY_BUILD_UI_SENTINEL']=str(root/'build-sentinel.txt')
   body=project/'main.csbody';body.write_text('System.IO.File.AppendAllText(Environment.GetEnvironmentVariable("CONFECTORY_BUILD_UI_SENTINEL")!,"run\\n");\n'+body.read_text())
+ if kind=='blueprint-integrated':
+  from v480_integrated_workflow import prepare
+  prepare(repo,project,env)
  original=(project/'Score.celem').read_bytes();log=root/'host.log';owned=OwnedResponses(None) if kind=='editor' else None
  with log.open('w') as output:
   host=subprocess.Popen(report['run'],cwd=repo,env=env,stdout=output,stderr=subprocess.STDOUT)
@@ -298,6 +301,9 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
     elif kind=='blueprint-code-regions':
      from v480_code_regions import verify_code_regions
      verify_code_regions(page,project,mount,send,envelope,settle,restart_actual_host)
+    elif kind=='blueprint-integrated':
+     from v480_integrated_workflow import verify_integrated
+     verify_integrated(page,project,mount,send,envelope,settle,restart_actual_host)
     elif kind=='blueprint-property-ref':
      from v480_property_ref import verify_property_ref
      verify_property_ref(page,project,mount,send,envelope,settle,restart_actual_host)
