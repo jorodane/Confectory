@@ -1,4 +1,6 @@
 implementation Confectory.EditorHome::MainBody for Confectory.EditorHome::Main () -> int {
+import Confectory.EditorHome.Model::FieldDiscovery as FieldDiscovery (string,string,string,string) -> string;
+import Confectory.EditorHome.Model::NativeFieldView as NativeFieldView (string,string,string,string) -> string;
 import Confectory.EditorHome.Model::NativeTree as NativeTree (string,string,string,string) -> string;
 import Confectory.EditorHome::WebStart as WebStart () -> int;
 import Confectory.Window::Capabilities as Capabilities () -> int[];

@@ -31,4 +31,6 @@ element NodeTasks function "NodeTasks.celem"; element NodeTasksBody implementati
 element HomePreferences function "HomePreferences.celem";element HomePreferencesBody implementation "HomePreferencesBody.celem";
 element NativeTree function "NativeTree.celem";element NativeTreeBody implementation "NativeTreeBody.celem";
 element HelperPresentation function "HelperPresentation.celem";element HelperPresentationBody implementation "HelperPresentationBody.celem";
+element NativeFieldView function "NativeFieldView.celem";
+element NativeFieldViewBody implementation "NativeFieldViewBody.celem";
 }

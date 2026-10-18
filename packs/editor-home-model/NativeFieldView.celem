@@ -1,0 +1,4 @@
+function Confectory.EditorHome.Model::NativeFieldView (string storage,string project,string operation,string payload) -> string {
+description "Native readonly FieldDiscovery rendering and explicit project-local view settings CAS. No source, table or execution authority.";
+provide Confectory.EditorHome.Model::NativeFieldView with Confectory.EditorHome.Model::NativeFieldViewBody;
+}
