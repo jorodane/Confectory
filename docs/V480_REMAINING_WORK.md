@@ -6,7 +6,7 @@
 
 | 순서 · ID | 분류 | 실제 남은 범위 | 후속 완료 기준 · 현재 의존성 |
 |---|---|---|---|
-| P1 · IMP1 | 구현 누락 | Home 프로젝트 정보의 팩 요구/유형·선택 Helper/프로필 전체 연결과 전환 조합; native adapter의 도달 pack 조회 | 실제 소유 값과 표기 근거 연결, 프로젝트 전환/취소/Save/Confirm/충돌/cold를 같은 프로젝트에서 확인. 기존 Home 집계/receipt를 추측값으로 대체하지 않음. 새 실행 의미 승인 없이 진행 가능한 내부 후속 |
+| P1 · IMP1 | 구현 누락 | native adapter의 도달 pack 조회와 WebUI 외 동일 정보/프로필 표면 연결 | [로컬 WebUI 정보·프로필 묶음](V480_HOME_PROFILES.md)은 확인된 요구/유형·Helper 선택 조회, 표시 정보 CAS 편집, 전역 미전송 입력 분리, 취소/두 프로젝트 전환/cold를 연결함. 남은 native 조회도 실제 소유 값·실패를 투영하고 실행·권한을 생성하지 않는 검사 필요 |
 | P1 · IMP2 | 구현 누락 | 브라우저 전체 tree/category grouping UI, 현재 명시적 parent/schema 탐색 밖의 분류·임의 깊이 탐색 | 실제 선언 ID·소유/등록 경계를 유지한 조회/탐색·독립 창·검색/cold 검사. prototype Category를 CELEM category/concept와 동일시하는 부분은 DEC1을 먼저 결정 |
 | P1 · IMP3 | 구현 누락 | 자동 전체 필드 합집합/표시, 사용자 계산 열, 일반 선택 범위 확장 | 기존 명시적 쓰기 대상·field/source/schema CAS를 보존하고 조회·정확한 값·선택/cold/오류를 검사. 계산 실행 의미가 필요하면 DEC3/DEC4 선행; 현재 Data/채우기 완료와 분리 |
 | P1 · IMP4 | 구현 누락 | 객체/함수 화면의 원클릭 밸런스·테스트 실행 등 prototype 보조 행동 | 실제 실행/결과/실패와 소유 범위를 연결하고 UI 및 compiler/runtime 근거 마련. 화면의 성공 표시로 대체하지 않음 |

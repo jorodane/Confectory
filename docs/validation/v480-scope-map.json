@@ -40,16 +40,18 @@
           "renderHomeProjectList",
           "createProject",
           "enterProject",
-          "showHome"
+          "showHome",
+          "projectMenu"
         ]
       },
       "implementation": [
         "examples/editor-home/ui/app.js",
         "examples/editor-home/ui/home-preferences.js",
-        "packs/project-manager/pack.cpack"
+        "packs/project-manager/pack.cpack",
+        "packs/editor-home-model/HelperPresentation.csbody"
       ],
-      "supported": "검색/정렬/즐겨찾기/목록·생성·소유 열기/닫기, Home 전용 cold 설정",
-      "limits": "팩 요구/유형·선택 Helper/프로필의 전체 전환 조합 미완료",
+      "supported": "검색/정렬/즐겨찾기/목록·생성·소유 열기/닫기, Home 전용 cold 설정; 확인된 유형/요구 팩/타깃·저장된 Helper 선택 조회, 목록 표시 제목/설명 CAS 편집",
+      "limits": "native 정보 표면 미지원; 모집 템플릿과 소스는 표시 편집 대상 아님",
       "remaining": [
         "IMP1"
       ],
@@ -59,9 +61,11 @@
         "WebUITests.test_actual_editor_original_v196_home_project_and_create_flow",
         "WebUITests.test_actual_editor_v318_home_search_favorite_restart_remove",
         "WebUITests.test_actual_editor_v480_home_browser_document_repeat_cancel_and_restore",
-        "WebUITests.test_actual_editor_v480_home_preferences_cold_failure_and_confirmed_counts"
+        "WebUITests.test_actual_editor_v480_home_preferences_cold_failure_and_confirmed_counts",
+        "WebUITests.test_actual_editor_v480_project_information_and_helper_profile_context_drafts_and_cold"
       ],
-      "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)"
+      "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)",
+      "followupEvidence": "v480-home-profiles.json"
     },
     {
       "id": "H07",
@@ -1003,17 +1007,19 @@
           "renderWorkspaceHelper",
           "removeHelper",
           "toggleHelperFavorite",
-          "pinHelperCompanion"
+          "pinHelperCompanion",
+          "helperProfileMarkup",
+          "helperChat"
         ]
       },
       "implementation": [
         "examples/editor-home/ui/app.js",
-        "packs/helper/pack.cpack"
+        "packs/helper/pack.cpack",
+        "packs/editor-home-model/HelperPresentation.csbody"
       ],
-      "supported": "명시 membership/private UI·메모리/소유 refs·로컬 대화 연결 fixture",
-      "limits": "이미지 provider·사용량·실제 전송/전체 영속 서비스 미완료",
+      "supported": "명시 membership/private UI·메모리/소유 refs·로컬 대화 연결 fixture; 로컬 표시 프로필 CAS 편집, 전역 미전송 입력과 프로젝트 대화 분리, 취소/전환/cold",
+      "limits": "모집 템플릿 불변; 전역 AI 전송·이미지 provider·사용량 서비스 미지원",
       "remaining": [
-        "IMP1",
         "IMP5",
         "AUTH1"
       ],
@@ -1021,9 +1027,11 @@
         "HelperTests.test_explicit_membership_and_project_memory_legacy_quarantine",
         "HelperTests.test_persistent_memory_templates_owner_refs_conflict_and_optional_agent_locality",
         "WebUITests.test_actual_editor_v318_helper_connection_chat_state_and_ownership",
-        "WebUITests.test_actual_editor_v318_helper_inputs_and_panels_cold_restart"
+        "WebUITests.test_actual_editor_v318_helper_inputs_and_panels_cold_restart",
+        "WebUITests.test_actual_editor_v480_project_information_and_helper_profile_context_drafts_and_cold"
       ],
-      "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)"
+      "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)",
+      "followupEvidence": "v480-home-profiles.json"
     },
     {
       "id": "G01–G03",

@@ -1,0 +1,157 @@
+{
+  "version": 1,
+  "sourceCommit": "41ff2c59b2619876c648df06541499afd1e62126",
+  "parentCommit": "c9c2c0d3900421fef40be3a8c97a9f37697b3976",
+  "measuredAtUtc": "2026-10-18T08:30:11.243082+00:00",
+  "scope": "IMP1 local WebUI Home project information and Helper display/profile transitions; not full v480 regression",
+  "gateConcurrency": 2,
+  "cpuQuota": 4,
+  "memoryLimitBytes": 17179869184,
+  "distinctMethods": 8,
+  "passed": 8,
+  "failed": 0,
+  "skipped": 0,
+  "groups": [
+    {
+      "group": "ui",
+      "methods": [
+        "WebUITests.test_actual_editor_v480_home_browser_document_repeat_cancel_and_restore",
+        "WebUITests.test_actual_editor_v480_home_preferences_cold_failure_and_confirmed_counts",
+        "WebUITests.test_actual_editor_v480_project_information_and_helper_profile_context_drafts_and_cold"
+      ],
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 108.251
+    },
+    {
+      "group": "contracts",
+      "methods": [
+        "WebUITests.test_actual_editor_v318_helper_connection_chat_state_and_ownership",
+        "WebUITests.test_actual_editor_v318_helper_inputs_and_panels_cold_restart",
+        "BuildParticipationTests.test_home_confirmed_inclusion_matches_build_without_registry_count_body_reads_or_execution",
+        "HelperTests.test_explicit_membership_and_project_memory_legacy_quarantine",
+        "HelperTests.test_persistent_memory_templates_owner_refs_conflict_and_optional_agent_locality"
+      ],
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 93.221
+    }
+  ],
+  "sourceSha256": {
+    "examples/editor-home/WebBundle.csbody": "5577b0fa0ef9d821faad03b736123c6fd5e6f157bc81aee28cc9c9363d428fb6",
+    "examples/editor-home/WebInvoke.csbody": "b54f8dd26528932db7393899f56f0a06a8cf12b4848eb1ccce630fc40f85afbe",
+    "examples/editor-home/WebState.csbody": "8071a69416d73d5668e6de9b95df6b26e84bda9b142df99e0ae6bedbf499e8a8",
+    "examples/editor-home/ui/app.js": "5a0002507bbbfdd7b5b07518760e04fb38c695c3dd405d11f88599a7d9555405",
+    "packs/editor-home-model/Command.celem": "bc998b4b00c2013cb5cdf376fe7f2dcbd463d6466e21ad10991a56c919cdf75b",
+    "packs/editor-home-model/Command.csbody": "c83e5abefc7a906d3a164ac5d6e92bc65b71185bb05438745571c21f1f9f286e",
+    "packs/editor-home-model/CommandBody.celem": "2be3b7fb3c5a9da71209e03023a6498d0b41689c7a78fecbb2d20f394d868c01",
+    "packs/editor-home-model/HelperPresentation.celem": "f6623b3cca8f9ac4a98ca8ee68cf793beca1e5bb10fa19332d7e45365984ce5c",
+    "packs/editor-home-model/HelperPresentation.csbody": "afb94992de6568fb47224887d3dae0abc821d05a86e377d07e06294582b31a39",
+    "packs/editor-home-model/HelperPresentationBody.celem": "bb3fa79eff81b6b9398a79c78360ca603b96232252217dedbf5ca4824db318b4",
+    "packs/editor-home-model/pack.cpack": "6c9f5172814db1335c1c3d1a97cc453353a3c48cb773d1eff60585481e694519",
+    "targets/element-authoring/HomeInclusion.cs": "c0bdc1a8720804ceaa77fd293a16d3503f2d930cb5364162d60e9da8622aefbb",
+    "tests/Confectory.Tests/BuildParticipationTests.cs": "dd86cd48d73b68b817b7b007ed387de6c3c94d8516ba7643c817691a476e4c37",
+    "tests/Confectory.Tests/WebUITests.cs": "7671ccbd5924913026ea6ca3fe27a977d1c6a64f90ee4d304ff4bf1e821ec85e",
+    "tests/web/v480_home_profiles.py": "b37a375a36fd16867726bcf28450711c0a45a08e1f41221a6fa3221c0a150528"
+  },
+  "journey": {
+    "projectIds": [
+      "b14114eb7bac4aaaa99cfa30566b00a0",
+      "637db418b6424af29d96d230a5d730f7"
+    ],
+    "cards": 3,
+    "endpoints": [
+      "globalHelpers",
+      "homeSummaries",
+      "projectInformation",
+      "projectInformation",
+      "saveProjectInformation",
+      "projectInformation",
+      "saveProjectInformation",
+      "projectInformation",
+      "globalHelpers",
+      "recruitGlobalHelper",
+      "saveHelperPresentation",
+      "saveHelperPresentation",
+      "saveHelperPresentation",
+      "openProject",
+      "savePresentation",
+      "helperRecruit",
+      "helperConnect",
+      "localInventory",
+      "relationsMap",
+      "schema",
+      "select",
+      "schema",
+      "savePresentation",
+      "projectInformation",
+      "savePresentation",
+      "chatDraft",
+      "projectInformation",
+      "saveHelperPresentation",
+      "savePresentation",
+      "chatDraft",
+      "leaveProject",
+      "openProject",
+      "savePresentation",
+      "helperRecruit",
+      "chatDraft",
+      "leaveProject",
+      "homeSummaries",
+      "openProject",
+      "projectInformation",
+      "globalHelpers",
+      "homeSummaries",
+      "openProject",
+      "localInventory",
+      "relationsMap",
+      "schema",
+      "objects"
+    ],
+    "errors": [],
+    "sourceFilesUnchanged": 38
+  },
+  "reference": {
+    "commit": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+    "zip": "reference/site-ui/Confectory-Editor-Prototype-v480.zip",
+    "sha256": "0489844c8c6d90f7cdc8ea0e80628f487dcfb27f2c871b19367a635212d3c5bd",
+    "entriesRead": [
+      "Confectory-v480/dist/app.js"
+    ],
+    "functions": [
+      "projectMenu",
+      "helperProfileMarkup",
+      "helperChat"
+    ]
+  },
+  "diagnosticAttempts": {
+    "failed": 3,
+    "preFinalPassed": 1,
+    "classification": [
+      "C# request local name collision; no runtime started",
+      "clean global-draft cache retained pre-profile-save revision; strict CAS rejected save",
+      "test selector became ambiguous after explicit discard button; narrowed to submit type"
+    ],
+    "note": "Attempts 1–3 are development failures before source freeze. Attempt 4 is a prior same scenario pass before the extra final negative cases, not a ninth distinct method."
+  },
+  "preservation": {
+    "localMain": "b5ea38c3d7eec3eb20f170e68f0f4215b86b2aee",
+    "remoteMain": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+    "baseWorkCurrent": "1e642df7d97949ca2bf69b0f418520d4f5cb54f3",
+    "zipSha256": {
+      "reference/site-ui/Confectory-Editor-Prototype-v196.zip": "02d4824e92ed0edbb43113659982b37a99a614117652bde4d8ac92367e334e34",
+      "reference/site-ui/Confectory-Editor-Prototype-v318.zip": "0a614fe2bf1ad3d8e10dfa8905bb6b61ea9f21b87b2492b2b87ca8566e9e6908",
+      "reference/site-ui/Confectory-Editor-Prototype-v424.zip": "b7969cd109ea2dad38bde9c9ab13967c20162c920a45a8cd51a8f82df6041874",
+      "reference/site-ui/Confectory-Editor-Prototype-v480.zip": "0489844c8c6d90f7cdc8ea0e80628f487dcfb27f2c871b19367a635212d3c5bd"
+    }
+  },
+  "remaining": [
+    "native adapter inclusion/info/profile surface",
+    "global AI conversation sending/history service",
+    "Helper immutable recruitment template behavior editing, owner/image/usage services",
+    "unsaved information/profile/global-input caches survive same page transitions; only explicit saves for these values are cold durable",
+    "full v480 regression and every view/state permutation not run"
+  ]
+}

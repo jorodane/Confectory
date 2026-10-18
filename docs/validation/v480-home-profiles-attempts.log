@@ -1,0 +1,199 @@
+=== test-first ===
+FAIL WebUITests.test_actual_editor_v480_project_information_and_helper_profile_context_drafts_and_cold
+/workspace/Confectory/targets/dotnet/linux.celem(1,1): TARGET_FAILURE: /workspace/Confectory/examples/editor-home/WebInvoke.csbody(8,6): error CS0136: A local or parameter named 'request' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+
+0 passed, 1 failed, 0 skipped; 32.999s
+
+=== test-second ===
+status: 소스 작업을 완료하지 못했습니다. 작업 사본과 입력은 유지됩니다. 선택과 변경 검토를 다시 확인하세요.
+Evidence: /tmp/confectory-home-profiles-iri4ydq6 errors: []
+FAIL WebUITests.test_actual_editor_v480_project_information_and_helper_profile_context_drafts_and_cold
+System.Exception: status: 소스 작업을 완료하지 못했습니다. 작업 사본과 입력은 유지됩니다. 선택과 변경 검토를 다시 확인하세요.
+Evidence: /tmp/confectory-home-profiles-iri4ydq6 errors: []
+Traceback (most recent call last):
+  File "/workspace/Confectory/tests/web/v480_home_profiles.py", line 94, in <module>
+    c=helper_card();expect(c.locator('.helper-profile-identity>strong')).to_have_text('Local Chief');c.locator('[aria-label="전역 Helper 대화 입력"]').fill('GLOBAL ONLY unsent draft');c.locator('form[data-global-draft] button').click();expect(page.locator('#status')).to_have_text('전역 입력이 로컬에 보관됨 · 전송 없음');c.locator('[data-close]').click();invariant('')
+                                                                                                                                                                                                                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/sync_api/_generated.py", line 22839, in to_have_text
+    self._sync(
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_sync_base.py", line 115, in _sync
+    return task.result()
+           ^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_assertions.py", line 648, in to_have_text
+    await self._expect_impl(
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_assertions.py", line 128, in _expect_impl
+    _record_soft_or_raise(
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_assertions.py", line 60, in _record_soft_or_raise
+    raise error
+AssertionError: Locator expected to have text '전역 입력이 로컬에 보관됨 · 전송 없음'
+Actual value: 소스 작업을 완료하지 못했습니다. 작업 사본과 입력은 유지됩니다. 선택과 변경 검토를 다시 확인하세요. 
+Call log:
+  - Expect "to_have_text" with timeout 45000ms
+  - waiting for locator("#status")
+    2 × locator resolved to <output hidden="" id="status" role="status">로컬 표시 프로필 저장됨</output>
+      - unexpected value "로컬 표시 프로필 저장됨"
+    91 × locator resolved to <output hidden="" id="status" role="status">소스 작업을 완료하지 못했습니다. 작업 사본과 입력은 유지됩니다. 선택과 변경 검토를 다…</output>
+       - unexpected value "소스 작업을 완료하지 못했습니다. 작업 사본과 입력은 유지됩니다. 선택과 변경 검토를 다시 확인하세요."
+
+Aria snapshot:
+- banner:
+  - button "Confectory 홈으로": Confectory
+  - button "설정 열기": 설정
+- complementary:
+  - button "AGENT (0)" [expanded]
+  - button "Agent 추가": ++추가
+  - button "HELPER (1)" [expanded]
+  - button "Helper 추가": ++추가
+  - heading "소속 미지정 (1)" [level=4]
+  - button "Helper 추가": + ＋
+  - button "L Local Chief Display role":
+    - text: L
+    - strong: Local Chief
+    - text: Display role
+  - button "User(0/0)": User (0/0)
+  - separator "사이드바 너비 조절, 클릭하여 최소화 또는 복원"
+- main:
+  - tablist "작업실 보기":
+    - tab "프로젝트" [selected]
+    - tab "팩"
+  - heading "프로젝트" [level=1]
+  - searchbox "프로젝트 검색"
+  - button "열기"
+  - button "＋ 만들기"
+  - status: Home 보기 저장됨
+  - tabpanel "프로젝트":
+    - heading "프로젝트 3" [level=2]
+    - article:
+      - button "Edited local title 즐겨찾기": ☆
+      - button "Edited local title 관리": ···
+      - button "◈ Edited local title Unapplied listing description":
+        - text: ◈
+        - heading "Edited local title" [level=2]
+        - paragraph: Unapplied listing description
+      - text: 마지막 편집 기록 없음 팩 11 객체 1
+    - article:
+      - button "Profile Project 2 즐겨찾기": ☆
+      - button "Profile Project 2 관리": ···
+      - button "◈ Profile Project 2 Local listing 2":
+        - text: ◈
+        - heading "Profile Project 2" [level=2]
+        - paragraph: Local listing 2
+      - text: 마지막 편집 기록 없음 팩 11 객체 1
+    - article:
+      - button "Missing 즐겨찾기": ☆
+      - button "Missing 관리": ···
+      - button "◈ Missing Retained unavailable listing":
+        - text: ◈
+        - heading "Missing" [level=2]
+        - paragraph: Retained unavailable listing
+      - text: 마지막 편집 — 팩 — 객체 —
+- status: 소스 작업을 완료하지 못했습니다. 작업 사본과 입력은 유지됩니다. 선택과 변경 검토를 다시 확인하세요.
+- dialog "Local Chief 프로필과 대화":
+  - img "Local Chief · 프로필 이미지 없음": L
+  - strong: Local Chief
+  - text: "- Display role"
+  - button "도우미 설정": ⋯
+  - button "고정"
+  - paragraph: Display biography
+  - paragraph: 전역 대화 미지원
+  - button "닫기": ×
+  - button "전역 대화 입력"
+  - button "현재 프로젝트 대화" [disabled]
+  - heading "전역 대화 입력" [level=3]
+  - paragraph: 프로젝트를 넘어 보관하는 로컬 초안입니다. 현재 프로젝트의 참조·기억과 분리되며 AI 전송은 지원되지 않습니다.
+  - textbox "전역 Helper 대화 입력": GLOBAL ONLY unsent draft
+  - button "전역 입력 보관"
+
+   at Confectory.Tests.TestCase.True(Boolean condition, String message) in /workspace/Confectory/tests/Confectory.Tests/Support.cs:line 127
+   at Confectory.Tests.WebUITests.test_actual_editor_v480_project_information_and_helper_profile_context_drafts_and_cold() in /workspace/Confectory/tests/Confectory.Tests/WebUITests.cs:line 209
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+0 passed, 1 failed, 0 skipped; 86.999s
+
+=== test-third ===
+status: 로컬 표시 프로필 저장됨
+Evidence: /tmp/confectory-home-profiles-9fk7i_6d errors: []
+FAIL WebUITests.test_actual_editor_v480_project_information_and_helper_profile_context_drafts_and_cold
+System.Exception: status: 로컬 표시 프로필 저장됨
+Evidence: /tmp/confectory-home-profiles-9fk7i_6d errors: []
+Traceback (most recent call last):
+  File "/workspace/Confectory/tests/web/v480_home_profiles.py", line 94, in <module>
+    c=helper_card();expect(c.locator('.helper-profile-identity>strong')).to_have_text('Local Chief');c.locator('[aria-label="전역 Helper 대화 입력"]').fill('GLOBAL ONLY unsent draft');c.locator('form[data-global-draft] button[type=submit]').click();expect(page.locator('#status')).to_have_text('전역 입력이 로컬에 보관됨 · 전송 없음');c.locator('[data-close]').click();invariant('')
+                                                                                                                                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/sync_api/_generated.py", line 17876, in click
+    self._sync(
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_sync_base.py", line 115, in _sync
+    return task.result()
+           ^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_locator.py", line 165, in click
+    return await self._frame._click(self._selector, strict=True, **params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_frame.py", line 593, in _click
+    await self._channel.send("click", self._timeout, locals_to_params(locals()))
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_connection.py", line 76, in send
+    return await self._connection.wrap_api_call(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_connection.py", line 632, in wrap_api_call
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+playwright._impl._errors.Error: Locator.click: Error: strict mode violation: locator(".participant-expanded-card[data-helper-id=\"main-helper\"]").locator("form[data-global-draft] button") resolved to 2 elements:
+    1) <button type="submit" data-operation="" data-supported="true">전역 입력 보관</button> aka get_by_role("button", name="전역 입력 보관")
+    2) <button type="button" data-global-discard="">입력 버리기 · 저장본 다시 읽기</button> aka get_by_role("button", name="입력 버리기 · 저장본 다시 읽기")
+
+Call log:
+  - waiting for locator(".participant-expanded-card[data-helper-id=\"main-helper\"]").locator("form[data-global-draft] button")
+
+
+   at Confectory.Tests.TestCase.True(Boolean condition, String message) in /workspace/Confectory/tests/Confectory.Tests/Support.cs:line 127
+   at Confectory.Tests.WebUITests.test_actual_editor_v480_project_information_and_helper_profile_context_drafts_and_cold() in /workspace/Confectory/tests/Confectory.Tests/WebUITests.cs:line 209
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+0 passed, 1 failed, 0 skipped; 14.367s
+
+=== test-fourth ===
+PASS actual v480 project information and Helper profiles; context/drafts/CAS/cold/no project creation /tmp/confectory-home-profiles-hv2i316f
+PASS WebUITests.test_actual_editor_v480_project_information_and_helper_profile_context_drafts_and_cold
+1 passed, 0 failed, 0 skipped; 23.210s
+
+=== final-ui ===
+PASS actual v480 Home/browser/document navigation: cancel/repeat, applied/draft queries, group location, exact DOM/undo, dock and cold restore; source unchanged
+Actual common WebUI navigation-state Chromium PASS
+PASS WebUITests.test_actual_editor_v480_home_browser_document_repeat_cancel_and_restore
+PASS actual v480 Home preferences: pending initial-read pagehide cancellation, actual cold process/fresh context, separate applied/draft groups and selection, repeated tabs and project return, readonly failure/retry, corrupt-file preservation/recovery, per-project confirmed totals 1/41 and unavailable distinction, actual entry/target inclusion (11, includes FrameControl and excludes registered build tool), source Save and compiler Confirm event, review cancellation, exact process/fresh-context event restore, no incidental source/catalog writes
+PASS WebUITests.test_actual_editor_v480_home_preferences_cold_failure_and_confirmed_counts
+PASS actual v480 project information and Helper profiles; context/drafts/CAS/cold/no project creation /tmp/confectory-home-profiles-1j3u_g_c
+PASS WebUITests.test_actual_editor_v480_project_information_and_helper_profile_context_drafts_and_cold
+3 passed, 0 failed, 0 skipped; 108.251s
+
+=== final-contracts ===
+PASS WebUITests.test_actual_editor_v318_helper_connection_chat_state_and_ownership
+PASS WebUITests.test_actual_editor_v318_helper_inputs_and_panels_cold_restart
+PASS BuildParticipationTests.test_home_confirmed_inclusion_matches_build_without_registry_count_body_reads_or_execution
+PASS HelperTests.test_explicit_membership_and_project_memory_legacy_quarantine
+PASS HelperTests.test_persistent_memory_templates_owner_refs_conflict_and_optional_agent_locality
+5 passed, 0 failed, 0 skipped; 93.221s
+
+=== build-final ===
+  Confectory.Core -> /workspace/Confectory/src/Confectory.Core/bin/Release/net10.0/Confectory.Core.dll
+  Confectory.AndroidExport -> /workspace/Confectory/targets/android-export/bin/Release/net10.0/Confectory.AndroidExport.dll
+  Confectory.DesktopEntry -> /workspace/Confectory/targets/desktop-entry/bin/Release/net10.0/Confectory.DesktopEntry.dll
+  Confectory.Build.Web -> /workspace/Confectory/targets/web/bin/Release/net10.0/Confectory.Build.Web.dll
+  Confectory.Build.DotNet -> /workspace/Confectory/targets/dotnet/bin/Release/net10.0/Confectory.Build.DotNet.dll
+  Confectory.Cli -> /workspace/Confectory/src/Confectory.Cli/bin/Release/net10.0/Confectory.Cli.dll
+  Confectory.Build.BrowserWasm -> /workspace/Confectory/targets/browser-wasm/bin/Release/net10.0/Confectory.Build.BrowserWasm.dll
+  Confectory.Tests -> /workspace/Confectory/tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:02.39
+
+=== author-build ===
+  Confectory.Core -> /workspace/Confectory/src/Confectory.Core/bin/Release/net10.0/Confectory.Core.dll
+  Confectory.ElementAuthoring -> /workspace/Confectory/targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:01.48
