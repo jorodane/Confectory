@@ -1,0 +1,195 @@
+
+=== parallel-6 ===
+
+--- graph-call.log ---
+PASS FeatureBlueprintTests.test_blueprint_owned_function_reference_call_import_cas_history_and_execution
+1 passed, 0 failed, 0 skipped; 240.194s
+
+--- graph-create.log ---
+PASS FeatureBlueprintTests.test_blueprint_owned_node_creation_removal_review_group_and_cold_restore
+1 passed, 0 failed, 0 skipped; 190.958s
+
+--- native.log ---
+PASS EngineTests.test_role_composition_two_windows_and_cleanup
+PASS ProjectExecutionTests.test_actual_native_button_game_pause_single_draw_step_and_stop
+PASS ProjectExecutionTests.test_actual_native_engine_cooperative_frame_callbacks
+PASS ButtonTests.test_shared_button_game_without_editor_state_input_navigation_native_targets_and_locality
+4 passed, 0 failed, 0 skipped; 225.154s
+
+--- related-ref.log ---
+PASS PropertyAuthoringTests.test_field_ref_preview_typed_aliases_source_cas_cold_confirm_actual_clr_and_schema_rejection
+1 passed, 0 failed, 0 skipped; 143.550s
+
+--- related-set.log ---
+PASS PropertyAuthoringTests.test_property_set_field_preview_explicit_profile_save_cold_confirm_actual_clr_and_schema_drift
+1 passed, 0 failed, 0 skipped; 112.244s
+
+--- ui-close.log ---
+FAIL WebUITests.test_actual_editor_v480_local_run_frame_ack_pause_step_reconnect_and_stop
+System.Exception: Traceback (most recent call last):
+  File "/workspace/Confectory/tests/web/editor_run_control_v480.py", line 98, in <module>
+    run.locator('[data-run-pause]').click();paused=wait_control(lambda s:s.get('mode')=='paused' and s.get('ack')==1);frame=int(paused['frame']);time.sleep(.15);assert int(control()['frame'])==frame
+                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/Confectory/tests/web/editor_run_control_v480.py", line 95, in wait_control
+    raise AssertionError(value)
+AssertionError: {'version': 1, 'handle': '98f089228e4c47eeb4ee7df3e82dafda', 'runtime': '1d918f271f074e31bc3a52b918594377', 'connected': True, 'mode': 'running', 'frame': '865', 'ack': 0, 'pending': 0, 'action': '', 'outcome': '', 'available': True, 'sequence': 0, 'reason': ''}
+
+   at Confectory.Tests.TestCase.True(Boolean condition, String message) in /workspace/Confectory/tests/Confectory.Tests/Support.cs:line 127
+   at Confectory.Tests.WebUITests.test_actual_editor_v480_local_run_frame_ack_pause_step_reconnect_and_stop() in /workspace/Confectory/tests/Confectory.Tests/WebUITests.cs:line 49
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+0 passed, 1 failed, 0 skipped; 155.123s
+
+=== parallel-6-sustained ===
+
+--- graph-call.log ---
+PASS FeatureBlueprintTests.test_blueprint_owned_function_reference_call_import_cas_history_and_execution
+1 passed, 0 failed, 0 skipped; 241.471s
+
+--- graph-create.log ---
+PASS FeatureBlueprintTests.test_blueprint_owned_node_creation_removal_review_group_and_cold_restore
+1 passed, 0 failed, 0 skipped; 188.666s
+
+--- native.log ---
+PASS EngineTests.test_role_composition_two_windows_and_cleanup
+PASS ProjectExecutionTests.test_actual_native_button_game_pause_single_draw_step_and_stop
+FAIL ProjectExecutionTests.test_actual_native_engine_cooperative_frame_callbacks
+System.Exception: Unhandled exception. System.Exception: Actual frame timeout
+   at Confectory.Implementations.Ed4b725b7f44f30bdbdda2c0e.E33271bb239f335e3cbea813d.<>c__DisplayClass3_0.<Invoke>g__Until|5(String handle, Func`2 condition)
+   at Confectory.Implementations.Ed4b725b7f44f30bdbdda2c0e.E33271bb239f335e3cbea813d.Invoke()
+   at B26675b04f4a2f4ff567f480d.Invoke()
+   at Program.Main()
+
+   at Confectory.Tests.TestCase.True(Boolean condition, String message) in /workspace/Confectory/tests/Confectory.Tests/Support.cs:line 127
+   at Confectory.Tests.ProjectExecutionTests.test_actual_native_engine_cooperative_frame_callbacks() in /workspace/Confectory/tests/Confectory.Tests/ProjectExecutionTests.cs:line 39
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+PASS ButtonTests.test_shared_button_game_without_editor_state_input_navigation_native_targets_and_locality
+3 passed, 1 failed, 0 skipped; 282.358s
+
+--- related-ref.log ---
+PASS PropertyAuthoringTests.test_field_ref_preview_typed_aliases_source_cas_cold_confirm_actual_clr_and_schema_rejection
+PASS actual v480 field ref restricted catalog, explicit receiver, true ref parameter, cold preview, rebind and grouped compiler Confirm
+Actual common WebUI blueprint-property-ref Chromium PASS
+PASS WebUITests.test_actual_editor_v480_field_ref_restricted_catalog_true_parameter_cold_and_confirm
+2 passed, 0 failed, 0 skipped; 251.295s
+
+--- related-set.log ---
+PASS PropertyAuthoringTests.test_property_set_field_preview_explicit_profile_save_cold_confirm_actual_clr_and_schema_drift
+PASS actual v480 property Set explicit receiver/value, typed field, cold preview, Set/Read order, rebind and grouped compiler Confirm
+Actual common WebUI blueprint-property-set Chromium PASS
+PASS WebUITests.test_actual_editor_v480_property_set_explicit_receiver_value_cold_and_confirm
+2 passed, 0 failed, 0 skipped; 230.597s
+
+--- ui-close.log ---
+FAIL WebUITests.test_actual_editor_v480_local_run_frame_ack_pause_step_reconnect_and_stop
+System.Exception: Traceback (most recent call last):
+  File "/workspace/Confectory/tests/web/editor_run_control_v480.py", line 127, in <module>
+    run.locator('[data-run-play]').click();expect(run.locator('[data-run-pause]')).to_be_enabled(timeout=180000);run.locator('[data-run-pause]').click();wait_control(lambda s:s.get('ack')==1 and s.get('mode')=='paused');env4_tree(host.pid,'before-confirmed-close');run.locator('[data-run-close-project]').click();page.locator('.modal [data-complete-close]').click();expect(page.locator('.home-grid')).to_be_visible();env4_event('home-visible-after-close',{});assert not child_ids(host.pid)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  ^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+
+   at Confectory.Tests.TestCase.True(Boolean condition, String message) in /workspace/Confectory/tests/Confectory.Tests/Support.cs:line 127
+   at Confectory.Tests.WebUITests.test_actual_editor_v480_local_run_frame_ack_pause_step_reconnect_and_stop() in /workspace/Confectory/tests/Confectory.Tests/WebUITests.cs:line 49
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+0 passed, 1 failed, 0 skipped; 51.025s
+
+=== final-parallel-6 ===
+
+--- graph-call.log ---
+FAIL FeatureBlueprintTests.test_blueprint_owned_function_reference_call_import_cas_history_and_execution
+System.TimeoutException: Process exceeded 240s: /workspace/toolchains/dotnet-10.0.401/dotnet
+   at Confectory.Core.Processes.RunAsync(IReadOnlyList`1 command, String input, String directory, Int32 timeoutSeconds) in /workspace/Confectory/src/Confectory.Core/Infrastructure.cs:line 221
+   at Confectory.Core.Processes.Run(IReadOnlyList`1 command, String input, String directory, Int32 timeoutSeconds) in /workspace/Confectory/src/Confectory.Core/Infrastructure.cs:line 198
+   at Confectory.Tests.Env4Diagnostics.Run(IReadOnlyList`1 command, Int32 timeoutSeconds, String phase) in /workspace/Confectory/tests/Confectory.Tests/Env4Diagnostics.cs:line 32
+   at Confectory.Tests.FeatureBlueprintTests.test_blueprint_owned_function_reference_call_import_cas_history_and_execution() in /workspace/Confectory/tests/Confectory.Tests/FeatureBlueprintTests.cs:line 597
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+0 passed, 1 failed, 0 skipped; 266.836s
+
+--- graph-create.log ---
+FAIL FeatureBlueprintTests.test_blueprint_owned_node_creation_removal_review_group_and_cold_restore
+System.TimeoutException: Process exceeded 180s: /workspace/toolchains/dotnet-10.0.401/dotnet
+   at Confectory.Core.Processes.RunAsync(IReadOnlyList`1 command, String input, String directory, Int32 timeoutSeconds) in /workspace/Confectory/src/Confectory.Core/Infrastructure.cs:line 221
+   at Confectory.Core.Processes.Run(IReadOnlyList`1 command, String input, String directory, Int32 timeoutSeconds) in /workspace/Confectory/src/Confectory.Core/Infrastructure.cs:line 198
+   at Confectory.Tests.Env4Diagnostics.Run(IReadOnlyList`1 command, Int32 timeoutSeconds, String phase) in /workspace/Confectory/tests/Confectory.Tests/Env4Diagnostics.cs:line 32
+   at Confectory.Tests.FeatureBlueprintTests.test_blueprint_owned_node_creation_removal_review_group_and_cold_restore() in /workspace/Confectory/tests/Confectory.Tests/FeatureBlueprintTests.cs:line 699
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+0 passed, 1 failed, 0 skipped; 209.806s
+
+--- native.log ---
+PASS EngineTests.test_role_composition_two_windows_and_cleanup
+PASS ProjectExecutionTests.test_actual_native_button_game_pause_single_draw_step_and_stop
+PASS ProjectExecutionTests.test_actual_native_engine_cooperative_frame_callbacks
+PASS ButtonTests.test_shared_button_game_without_editor_state_input_navigation_native_targets_and_locality
+4 passed, 0 failed, 0 skipped; 254.994s
+
+--- related-ref.log ---
+PASS PropertyAuthoringTests.test_field_ref_preview_typed_aliases_source_cas_cold_confirm_actual_clr_and_schema_rejection
+PASS actual v480 field ref restricted catalog, explicit receiver, true ref parameter, cold preview, rebind and grouped compiler Confirm
+Actual common WebUI blueprint-property-ref Chromium PASS
+PASS WebUITests.test_actual_editor_v480_field_ref_restricted_catalog_true_parameter_cold_and_confirm
+2 passed, 0 failed, 0 skipped; 283.010s
+
+--- related-set.log ---
+PASS PropertyAuthoringTests.test_property_set_field_preview_explicit_profile_save_cold_confirm_actual_clr_and_schema_drift
+PASS actual v480 property Set explicit receiver/value, typed field, cold preview, Set/Read order, rebind and grouped compiler Confirm
+Actual common WebUI blueprint-property-set Chromium PASS
+PASS WebUITests.test_actual_editor_v480_property_set_explicit_receiver_value_cold_and_confirm
+2 passed, 0 failed, 0 skipped; 265.120s
+
+--- ui-close.log ---
+PASS WebUITests.test_actual_editor_v480_local_run_frame_ack_pause_step_reconnect_and_stop
+1 passed, 0 failed, 0 skipped; 173.758s
+
+=== control-2 ===
+
+--- graph-call.log ---
+PASS FeatureBlueprintTests.test_blueprint_owned_function_reference_call_import_cas_history_and_execution
+1 passed, 0 failed, 0 skipped; 169.636s
+
+--- graph-create.log ---
+PASS FeatureBlueprintTests.test_blueprint_owned_node_creation_removal_review_group_and_cold_restore
+1 passed, 0 failed, 0 skipped; 120.643s
+
+--- native.log ---
+PASS EngineTests.test_role_composition_two_windows_and_cleanup
+PASS ProjectExecutionTests.test_actual_native_button_game_pause_single_draw_step_and_stop
+PASS ProjectExecutionTests.test_actual_native_engine_cooperative_frame_callbacks
+PASS ButtonTests.test_shared_button_game_without_editor_state_input_navigation_native_targets_and_locality
+4 passed, 0 failed, 0 skipped; 145.252s
+
+--- related-ref.log ---
+PASS PropertyAuthoringTests.test_field_ref_preview_typed_aliases_source_cas_cold_confirm_actual_clr_and_schema_rejection
+PASS actual v480 field ref restricted catalog, explicit receiver, true ref parameter, cold preview, rebind and grouped compiler Confirm
+Actual common WebUI blueprint-property-ref Chromium PASS
+PASS WebUITests.test_actual_editor_v480_field_ref_restricted_catalog_true_parameter_cold_and_confirm
+2 passed, 0 failed, 0 skipped; 183.510s
+
+--- related-set.log ---
+PASS PropertyAuthoringTests.test_property_set_field_preview_explicit_profile_save_cold_confirm_actual_clr_and_schema_drift
+PASS actual v480 property Set explicit receiver/value, typed field, cold preview, Set/Read order, rebind and grouped compiler Confirm
+Actual common WebUI blueprint-property-set Chromium PASS
+PASS WebUITests.test_actual_editor_v480_property_set_explicit_receiver_value_cold_and_confirm
+2 passed, 0 failed, 0 skipped; 160.905s
+
+--- ui-close.log ---
+PASS WebUITests.test_actual_editor_v480_local_run_frame_ack_pause_step_reconnect_and_stop
+1 passed, 0 failed, 0 skipped; 32.156s
+
+=== lease-gap ===
+
+--- lease-gap.log ---
+PASS ProjectExecutionTests.test_actual_native_engine_cooperative_frame_callbacks
+1 passed, 0 failed, 0 skipped; 42.563s
+
+=== untraced related verification ===
+PASS CoreTests.test_artifact_parallel_publication_and_corrupt_entry_repair
+PASS WebUITests.test_actual_editor_v480_local_run_frame_ack_pause_step_reconnect_and_stop
+PASS WebUITests.test_run_history_command_admission_preserves_published_revision_and_rejects_stale_step
+PASS ProjectExecutionTests.test_actual_native_button_game_pause_single_draw_step_and_stop
+PASS ProjectExecutionTests.test_actual_native_engine_cooperative_frame_callbacks
+PASS ProjectExecutionTests.test_actual_owned_cooperative_frames_pause_step_reconnect_and_stop
+6 passed, 0 failed, 0 skipped; 104.716s

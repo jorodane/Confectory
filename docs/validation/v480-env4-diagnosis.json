@@ -1,0 +1,4773 @@
+{
+  "version": 1,
+  "recordedUtc": "2026-10-18T08:01:12.919987+00:00",
+  "basePublicationCommit": "8ea1471eae0ea71e060cc0d8219401921e8f3d77",
+  "measurementSourceCommit": "e73350ee85a399a77d902db287bafa8e9fc2c57e",
+  "verifiedFixtureSourceCommit": "fd8fabcecdcf60347454f87200d26a2fbfc60b27",
+  "verifiedSourceFileCount": 2754,
+  "sourceManifestSha256": "d2c3fc3b61013dada50792a755aa4386bca187c67e87e24fc6219982fdc325e9",
+  "sixAndTwoGateSourceBytesIdentical": true,
+  "noRuntimePackCoreABIOrPermissionPolicyChange": true,
+  "exampleClientCorrection": "same owner observe before explicit Pause after another runtime startup can exceed 2s lease",
+  "ownershipCorrection": "direct PID+birth checks of known live Run workers/runtimes including reparented ones; reject new Run descendants; negative control with real live paused Run; zombies separately observed; metadata is not execution",
+  "originalFailureMapping": {
+    "graph-create": "reproduced cumulative 180s wall deadline while child tools progressed; passes unchanged at 2 gates",
+    "graph-call": "reproduced cumulative 240s wall deadline while RPC/child tools progressed; passes unchanged at 2 gates",
+    "native-engine": "reproduced expired-owner Pause not accepted; wait #3 paused ACK0; fresh observation fixes client sequencing, same strict ACK/frame checks pass at 6 gates and controlled 3s gap",
+    "child-count": "reproduced Home metadata child PID mistaken for live Run; captured Run worker/runtime birth identities and metadata PID distinct",
+    "native-button": "not reproduced; original predicate/wait phase unknown; do not infer Engine cause"
+  },
+  "attempts": [
+    {
+      "id": "parallel-6",
+      "headAtLaunch": "8ea1471eae0ea71e060cc0d8219401921e8f3d77",
+      "sourceManifestSha256": "f0f832a379dfd442a22e01d910fcb25e43c80a823d41a237723c8a5106a0734f",
+      "sourceFileCount": 2754,
+      "workers": 6,
+      "selectedMethods": {
+        "graph-call": [
+          "FeatureBlueprintTests.test_blueprint_owned_function_reference_call_import_cas_history_and_execution"
+        ],
+        "graph-create": [
+          "FeatureBlueprintTests.test_blueprint_owned_node_creation_removal_review_group_and_cold_restore"
+        ],
+        "ui-close": [
+          "WebUITests.test_actual_editor_v480_local_run_frame_ack_pause_step_reconnect_and_stop"
+        ],
+        "native": [
+          "EngineTests.test_role_composition_two_windows_and_cleanup",
+          "ProjectExecutionTests.test_actual_native_button_game_pause_single_draw_step_and_stop",
+          "ProjectExecutionTests.test_actual_native_engine_cooperative_frame_callbacks",
+          "ButtonTests.test_shared_button_game_without_editor_state_input_navigation_native_targets_and_locality"
+        ],
+        "related-ref": [
+          "PropertyAuthoringTests.test_field_ref_preview_typed_aliases_source_cas_cold_confirm_actual_clr_and_schema_rejection"
+        ],
+        "related-set": [
+          "PropertyAuthoringTests.test_property_set_field_preview_explicit_profile_save_cold_confirm_actual_clr_and_schema_drift"
+        ]
+      },
+      "methodOutcomes": [
+        {
+          "method": "PropertyAuthoringTests.test_property_set_field_preview_explicit_profile_save_cold_confirm_actual_clr_and_schema_drift",
+          "outcome": "PASS"
+        },
+        {
+          "method": "PropertyAuthoringTests.test_field_ref_preview_typed_aliases_source_cas_cold_confirm_actual_clr_and_schema_rejection",
+          "outcome": "PASS"
+        },
+        {
+          "method": "WebUITests.test_actual_editor_v480_local_run_frame_ack_pause_step_reconnect_and_stop",
+          "outcome": "FAIL"
+        },
+        {
+          "method": "FeatureBlueprintTests.test_blueprint_owned_node_creation_removal_review_group_and_cold_restore",
+          "outcome": "PASS"
+        },
+        {
+          "method": "EngineTests.test_role_composition_two_windows_and_cleanup",
+          "outcome": "PASS"
+        },
+        {
+          "method": "ProjectExecutionTests.test_actual_native_button_game_pause_single_draw_step_and_stop",
+          "outcome": "PASS"
+        },
+        {
+          "method": "ProjectExecutionTests.test_actual_native_engine_cooperative_frame_callbacks",
+          "outcome": "PASS"
+        },
+        {
+          "method": "ButtonTests.test_shared_button_game_without_editor_state_input_navigation_native_targets_and_locality",
+          "outcome": "PASS"
+        },
+        {
+          "method": "FeatureBlueprintTests.test_blueprint_owned_function_reference_call_import_cas_history_and_execution",
+          "outcome": "PASS"
+        }
+      ],
+      "elapsedSeconds": 242.703973166,
+      "resources": {
+        "cpuQuota": "400000 100000",
+        "memoryLimitBytes": 17179869184,
+        "cpuUsedSeconds": 839.98285,
+        "averageCores": 3.4609357195215122,
+        "cpuThrottledPeriodCount": 1519,
+        "cpuPeriodCount": 2426,
+        "cpuThrottledCounterSeconds": 107.147869,
+        "observerCpuSeconds": 48.889174884,
+        "observerAverageCores": 0.20143541222772535,
+        "maximumSampledMemoryCurrentBytes": 6029901824,
+        "maximumSampledOwnedProcesses": 37,
+        "maximumSampledLiveGateProcesses": 36,
+        "maximumSampledGateZombies": 8,
+        "observerCpuScope": "Whole Python runner process, including sampling/gzip/source checks/orchestration; not child CPU",
+        "maximumCgroupPidsCurrent": 1945,
+        "oomKillDelta": 0
+      },
+      "driverBudgets": [
+        {
+          "utc": "2026-10-18T07:15:31.0799243+00:00",
+          "monotonicMs": 29761.5156,
+          "pid": 1175384,
+          "phase": "graph-create-driver:begin",
+          "cpuMs": 2501.532,
+          "rss": 98734080,
+          "data": {
+            "timeoutSeconds": 180
+          },
+          "traceFile": "managed-1175384.jsonl"
+        },
+        {
+          "utc": "2026-10-18T07:18:09.7057901+00:00",
+          "monotonicMs": 188387.3821,
+          "pid": 1175384,
+          "phase": "graph-create-driver:exit",
+          "cpuMs": 2756.854,
+          "rss": 99774464,
+          "data": {
+            "ExitCode": 0,
+            "elapsedMs": 158625.8246
+          },
+          "traceFile": "managed-1175384.jsonl"
+        },
+        {
+          "utc": "2026-10-18T07:16:18.6125152+00:00",
+          "monotonicMs": 0.0069,
+          "pid": 1175406,
+          "phase": "native-button-driver:begin",
+          "cpuMs": 3835.762,
+          "rss": 106242048,
+          "data": {
+            "timeoutSeconds": 180
+          },
+          "traceFile": "managed-1175406.jsonl"
+        },
+        {
+          "utc": "2026-10-18T07:16:53.0761274+00:00",
+          "monotonicMs": 34463.5679,
+          "pid": 1175406,
+          "phase": "native-button-driver:exit",
+          "cpuMs": 3878.337,
+          "rss": 106364928,
+          "data": {
+            "ExitCode": 0,
+            "elapsedMs": 34463.851
+          },
+          "traceFile": "managed-1175406.jsonl"
+        },
+        {
+          "utc": "2026-10-18T07:17:00.9219103+00:00",
+          "monotonicMs": 42309.352,
+          "pid": 1175406,
+          "phase": "native-engine-driver:begin",
+          "cpuMs": 4080.283,
+          "rss": 111554560,
+          "data": {
+            "timeoutSeconds": 240
+          },
+          "traceFile": "managed-1175406.jsonl"
+        },
+        {
+          "utc": "2026-10-18T07:17:48.717593+00:00",
+          "monotonicMs": 90105.0336,
+          "pid": 1175406,
+          "phase": "native-engine-driver:exit",
+          "cpuMs": 4106.642,
+          "rss": 111734784,
+          "data": {
+            "ExitCode": 0,
+            "elapsedMs": 47795.6679
+          },
+          "traceFile": "managed-1175406.jsonl"
+        },
+        {
+          "utc": "2026-10-18T07:15:28.0589237+00:00",
+          "monotonicMs": 27036.7759,
+          "pid": 1175375,
+          "phase": "graph-call-driver:begin",
+          "cpuMs": 2390.391,
+          "rss": 100098048,
+          "data": {
+            "timeoutSeconds": 240
+          },
+          "traceFile": "managed-1175375.jsonl"
+        },
+        {
+          "utc": "2026-10-18T07:19:01.0408102+00:00",
+          "monotonicMs": 240018.6627,
+          "pid": 1175375,
+          "phase": "graph-call-driver:exit",
+          "cpuMs": 2642.7,
+          "rss": 101240832,
+          "data": {
+            "ExitCode": 0,
+            "elapsedMs": 212981.8165
+          },
+          "traceFile": "managed-1175375.jsonl"
+        }
+      ],
+      "graphProgress": [
+        {
+          "pid": 1178329,
+          "group": "graph-call",
+          "completedCalls": 224,
+          "maxCompletedCallMs": 11835.2825,
+          "lastCall": {
+            "utc": "2026-10-18T07:19:01.0264283+00:00",
+            "monotonicMs": 212907.4338,
+            "pid": 1178329,
+            "phase": "command:end",
+            "cpuMs": 4301.092,
+            "rss": 201834496,
+            "data": {
+              "elapsedMs": 0.1989
+            }
+          }
+        },
+        {
+          "pid": 1178671,
+          "group": "graph-create",
+          "completedCalls": 102,
+          "maxCompletedCallMs": 12291.2112,
+          "lastCall": {
+            "utc": "2026-10-18T07:18:09.6812742+00:00",
+            "monotonicMs": 158560.323,
+            "pid": 1178671,
+            "phase": "command:end",
+            "cpuMs": 3777.66,
+            "rss": 310599680,
+            "data": {
+              "elapsedMs": 101.6624
+            }
+          }
+        }
+      ],
+      "nativeWaits": [
+        {
+          "pid": 1186291,
+          "wait": 1,
+          "samples": 35,
+          "first": {
+            "utc": "2026-10-18T07:16:18.7399966+00:00",
+            "monotonicMs": 82.9207,
+            "pid": 1186291,
+            "phase": "native-wait:sample",
+            "cpuMs": 86.538,
+            "rss": 44634112,
+            "data": {
+              "wait": 1,
+              "elapsedMs": 2,
+              "state": "building",
+              "control": {
+                "available": false,
+                "connected": false,
+                "sequence": 0,
+                "reason": "Execution is building"
+              }
+            },
+            "traceFile": "driver-1186291.jsonl"
+          },
+          "last": {
+            "utc": "2026-10-18T07:16:52.613825+00:00",
+            "monotonicMs": 33956.7479,
+            "pid": 1186291,
+            "phase": "native-wait:done",
+            "cpuMs": 2132.869,
+            "rss": 64905216,
+            "data": {
+              "wait": 1,
+              "elapsedMs": 33879,
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "running",
+                "frame": "2",
+                "ack": 0,
+                "pending": 0,
+                "sequence": 0,
+                "reason": "",
+                "outcome": ""
+              }
+            },
+            "traceFile": "driver-1186291.jsonl"
+          },
+          "completed": true,
+          "driverKind": "native-button"
+        },
+        {
+          "pid": 1186291,
+          "wait": 2,
+          "samples": 2,
+          "first": {
+            "utc": "2026-10-18T07:16:52.6300097+00:00",
+            "monotonicMs": 33972.9324,
+            "pid": 1186291,
+            "phase": "native-wait:sample",
+            "cpuMs": 2139.018,
+            "rss": 64978944,
+            "data": {
+              "wait": 2,
+              "elapsedMs": 2,
+              "state": "running",
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "running",
+                "frame": "4",
+                "ack": 0,
+                "pending": 1,
+                "sequence": 1,
+                "reason": "",
+                "outcome": "pending"
+              }
+            },
+            "traceFile": "driver-1186291.jsonl"
+          },
+          "last": {
+            "utc": "2026-10-18T07:16:52.6670103+00:00",
+            "monotonicMs": 34009.9329,
+            "pid": 1186291,
+            "phase": "native-wait:done",
+            "cpuMs": 2142.426,
+            "rss": 64970752,
+            "data": {
+              "wait": 2,
+              "elapsedMs": 39,
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "4",
+                "ack": 1,
+                "pending": 0,
+                "sequence": 1,
+                "reason": "",
+                "outcome": "applied"
+              }
+            },
+            "traceFile": "driver-1186291.jsonl"
+          },
+          "completed": true,
+          "driverKind": "native-button"
+        },
+        {
+          "pid": 1186291,
+          "wait": 3,
+          "samples": 2,
+          "first": {
+            "utc": "2026-10-18T07:16:52.8144474+00:00",
+            "monotonicMs": 34157.37,
+            "pid": 1186291,
+            "phase": "native-wait:sample",
+            "cpuMs": 2147.428,
+            "rss": 64995328,
+            "data": {
+              "wait": 3,
+              "elapsedMs": 3,
+              "state": "running",
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "5",
+                "ack": 2,
+                "pending": 0,
+                "sequence": 2,
+                "reason": "",
+                "outcome": "applied"
+              }
+            },
+            "traceFile": "driver-1186291.jsonl"
+          },
+          "last": {
+            "utc": "2026-10-18T07:16:52.8148892+00:00",
+            "monotonicMs": 34157.8116,
+            "pid": 1186291,
+            "phase": "native-wait:done",
+            "cpuMs": 2147.866,
+            "rss": 64995328,
+            "data": {
+              "wait": 3,
+              "elapsedMs": 3,
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "5",
+                "ack": 2,
+                "pending": 0,
+                "sequence": 2,
+                "reason": "",
+                "outcome": "applied"
+              }
+            },
+            "traceFile": "driver-1186291.jsonl"
+          },
+          "completed": true,
+          "driverKind": "native-button"
+        },
+        {
+          "pid": 1192834,
+          "wait": 1,
+          "samples": 42,
+          "first": {
+            "utc": "2026-10-18T07:17:01.0675114+00:00",
+            "monotonicMs": 114.7429,
+            "pid": 1192834,
+            "phase": "native-wait:sample",
+            "cpuMs": 95.656,
+            "rss": 47108096,
+            "data": {
+              "wait": 1,
+              "elapsedMs": 2,
+              "state": "building",
+              "control": {
+                "available": false,
+                "connected": false,
+                "sequence": 0,
+                "reason": "Execution is building"
+              }
+            },
+            "traceFile": "driver-1192834.jsonl"
+          },
+          "last": {
+            "utc": "2026-10-18T07:17:41.4947267+00:00",
+            "monotonicMs": 40541.9576,
+            "pid": 1192834,
+            "phase": "native-wait:done",
+            "cpuMs": 2159.746,
+            "rss": 61591552,
+            "data": {
+              "wait": 1,
+              "elapsedMs": 40448,
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "running",
+                "frame": "8",
+                "ack": 0,
+                "pending": 0,
+                "sequence": 0,
+                "reason": "",
+                "outcome": ""
+              }
+            },
+            "traceFile": "driver-1192834.jsonl"
+          },
+          "completed": true,
+          "driverKind": "native-engine"
+        },
+        {
+          "pid": 1192834,
+          "wait": 2,
+          "samples": 3,
+          "first": {
+            "utc": "2026-10-18T07:17:41.4985049+00:00",
+            "monotonicMs": 40545.7353,
+            "pid": 1192834,
+            "phase": "native-wait:sample",
+            "cpuMs": 2163.227,
+            "rss": 61620224,
+            "data": {
+              "wait": 2,
+              "elapsedMs": 0,
+              "state": "building",
+              "control": {
+                "available": false,
+                "connected": false,
+                "sequence": 0,
+                "reason": "Execution is building"
+              }
+            },
+            "traceFile": "driver-1192834.jsonl"
+          },
+          "last": {
+            "utc": "2026-10-18T07:17:43.2275046+00:00",
+            "monotonicMs": 42274.7351,
+            "pid": 1192834,
+            "phase": "native-wait:done",
+            "cpuMs": 2598.17,
+            "rss": 63029248,
+            "data": {
+              "wait": 2,
+              "elapsedMs": 1729,
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "running",
+                "frame": "14",
+                "ack": 0,
+                "pending": 0,
+                "sequence": 0,
+                "reason": "",
+                "outcome": ""
+              }
+            },
+            "traceFile": "driver-1192834.jsonl"
+          },
+          "completed": true,
+          "driverKind": "native-engine"
+        },
+        {
+          "pid": 1192834,
+          "wait": 3,
+          "samples": 2,
+          "first": {
+            "utc": "2026-10-18T07:17:43.2380647+00:00",
+            "monotonicMs": 42285.2952,
+            "pid": 1192834,
+            "phase": "native-wait:sample",
+            "cpuMs": 2602.533,
+            "rss": 63012864,
+            "data": {
+              "wait": 3,
+              "elapsedMs": 7,
+              "state": "running",
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "1107",
+                "ack": 1,
+                "pending": 0,
+                "sequence": 1,
+                "reason": "",
+                "outcome": "applied"
+              }
+            },
+            "traceFile": "driver-1192834.jsonl"
+          },
+          "last": {
+            "utc": "2026-10-18T07:17:43.2384621+00:00",
+            "monotonicMs": 42285.6925,
+            "pid": 1192834,
+            "phase": "native-wait:done",
+            "cpuMs": 2602.927,
+            "rss": 63012864,
+            "data": {
+              "wait": 3,
+              "elapsedMs": 8,
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "1107",
+                "ack": 1,
+                "pending": 0,
+                "sequence": 1,
+                "reason": "",
+                "outcome": "applied"
+              }
+            },
+            "traceFile": "driver-1192834.jsonl"
+          },
+          "completed": true,
+          "driverKind": "native-engine"
+        },
+        {
+          "pid": 1192834,
+          "wait": 4,
+          "samples": 2,
+          "first": {
+            "utc": "2026-10-18T07:17:43.5057143+00:00",
+            "monotonicMs": 42552.9449,
+            "pid": 1192834,
+            "phase": "native-wait:sample",
+            "cpuMs": 2655.234,
+            "rss": 63397888,
+            "data": {
+              "wait": 4,
+              "elapsedMs": 1,
+              "state": "running",
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "1107",
+                "ack": 1,
+                "pending": 2,
+                "sequence": 2,
+                "reason": "",
+                "outcome": "pending"
+              }
+            },
+            "traceFile": "driver-1192834.jsonl"
+          },
+          "last": {
+            "utc": "2026-10-18T07:17:43.5278126+00:00",
+            "monotonicMs": 42575.043,
+            "pid": 1192834,
+            "phase": "native-wait:done",
+            "cpuMs": 2660.321,
+            "rss": 63397888,
+            "data": {
+              "wait": 4,
+              "elapsedMs": 24,
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "1108",
+                "ack": 2,
+                "pending": 0,
+                "sequence": 2,
+                "reason": "",
+                "outcome": "applied"
+              }
+            },
+            "traceFile": "driver-1192834.jsonl"
+          },
+          "completed": true,
+          "driverKind": "native-engine"
+        },
+        {
+          "pid": 1192834,
+          "wait": 5,
+          "samples": 2,
+          "first": {
+            "utc": "2026-10-18T07:17:43.5323986+00:00",
+            "monotonicMs": 42579.6292,
+            "pid": 1192834,
+            "phase": "native-wait:sample",
+            "cpuMs": 2663.085,
+            "rss": 63401984,
+            "data": {
+              "wait": 5,
+              "elapsedMs": 0,
+              "state": "running",
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "1108",
+                "ack": 2,
+                "pending": 3,
+                "sequence": 3,
+                "reason": "",
+                "outcome": "pending"
+              }
+            },
+            "traceFile": "driver-1192834.jsonl"
+          },
+          "last": {
+            "utc": "2026-10-18T07:17:43.5488984+00:00",
+            "monotonicMs": 42596.1287,
+            "pid": 1192834,
+            "phase": "native-wait:done",
+            "cpuMs": 2666.697,
+            "rss": 63418368,
+            "data": {
+              "wait": 5,
+              "elapsedMs": 17,
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "1109",
+                "ack": 3,
+                "pending": 0,
+                "sequence": 3,
+                "reason": "",
+                "outcome": "applied"
+              }
+            },
+            "traceFile": "driver-1192834.jsonl"
+          },
+          "completed": true,
+          "driverKind": "native-engine"
+        },
+        {
+          "pid": 1192834,
+          "wait": 6,
+          "samples": 2,
+          "first": {
+            "utc": "2026-10-18T07:17:43.5520609+00:00",
+            "monotonicMs": 42599.2913,
+            "pid": 1192834,
+            "phase": "native-wait:sample",
+            "cpuMs": 2669.25,
+            "rss": 63401984,
+            "data": {
+              "wait": 6,
+              "elapsedMs": 1,
+              "state": "running",
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "1109",
+                "ack": 3,
+                "pending": 4,
+                "sequence": 4,
+                "reason": "",
+                "outcome": "pending"
+              }
+            },
+            "traceFile": "driver-1192834.jsonl"
+          },
+          "last": {
+            "utc": "2026-10-18T07:17:43.5684677+00:00",
+            "monotonicMs": 42615.6983,
+            "pid": 1192834,
+            "phase": "native-wait:done",
+            "cpuMs": 2672.954,
+            "rss": 63418368,
+            "data": {
+              "wait": 6,
+              "elapsedMs": 17,
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "1110",
+                "ack": 4,
+                "pending": 0,
+                "sequence": 4,
+                "reason": "",
+                "outcome": "applied"
+              }
+            },
+            "traceFile": "driver-1192834.jsonl"
+          },
+          "completed": true,
+          "driverKind": "native-engine"
+        },
+        {
+          "pid": 1192834,
+          "wait": 7,
+          "samples": 2,
+          "first": {
+            "utc": "2026-10-18T07:17:45.8805132+00:00",
+            "monotonicMs": 44927.7439,
+            "pid": 1192834,
+            "phase": "native-wait:sample",
+            "cpuMs": 2888.016,
+            "rss": 63528960,
+            "data": {
+              "wait": 7,
+              "elapsedMs": 0,
+              "state": "running",
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "running",
+                "frame": "1112",
+                "ack": 5,
+                "pending": 0,
+                "sequence": 5,
+                "reason": "",
+                "outcome": "applied"
+              }
+            },
+            "traceFile": "driver-1192834.jsonl"
+          },
+          "last": {
+            "utc": "2026-10-18T07:17:45.8811596+00:00",
+            "monotonicMs": 44928.3899,
+            "pid": 1192834,
+            "phase": "native-wait:done",
+            "cpuMs": 2888.656,
+            "rss": 63528960,
+            "data": {
+              "wait": 7,
+              "elapsedMs": 1,
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "running",
+                "frame": "1112",
+                "ack": 5,
+                "pending": 0,
+                "sequence": 5,
+                "reason": "",
+                "outcome": "applied"
+              }
+            },
+            "traceFile": "driver-1192834.jsonl"
+          },
+          "completed": true,
+          "driverKind": "native-engine"
+        },
+        {
+          "pid": 1192834,
+          "wait": 8,
+          "samples": 2,
+          "first": {
+            "utc": "2026-10-18T07:17:48.2977235+00:00",
+            "monotonicMs": 47344.9546,
+            "pid": 1192834,
+            "phase": "native-wait:sample",
+            "cpuMs": 3153.378,
+            "rss": 64401408,
+            "data": {
+              "wait": 8,
+              "elapsedMs": 2,
+              "state": "running",
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "2780",
+                "ack": 5,
+                "pending": 6,
+                "sequence": 6,
+                "reason": "",
+                "outcome": "pending"
+              }
+            },
+            "traceFile": "driver-1192834.jsonl"
+          },
+          "last": {
+            "utc": "2026-10-18T07:17:48.314123+00:00",
+            "monotonicMs": 47361.3534,
+            "pid": 1192834,
+            "phase": "native-wait:done",
+            "cpuMs": 3154.841,
+            "rss": 64417792,
+            "data": {
+              "wait": 8,
+              "elapsedMs": 19,
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "2781",
+                "ack": 6,
+                "pending": 0,
+                "sequence": 6,
+                "reason": "",
+                "outcome": "applied"
+              }
+            },
+            "traceFile": "driver-1192834.jsonl"
+          },
+          "completed": true,
+          "driverKind": "native-engine"
+        }
+      ],
+      "ownershipEvents": [],
+      "uiRejectedResults": [],
+      "measurementLimits": [
+        "Owned process sampling is periodic; short-lived processes may be missed. PID birth identities retained; zombies distinguished from live execution.",
+        "Cgroup CPU includes shared services and observer. Throttled counter delta is not a per-operation lost-wall-time estimate.",
+        "Peak memory uses sampled memory.current; lifetime memory.peak not attributed to this phase.",
+        "Limited workload mix preserves 4 CPU, 17GiB and worker cap, not the complete original 235-method launch/cache history."
+      ]
+    },
+    {
+      "id": "parallel-6-sustained",
+      "headAtLaunch": "8ea1471eae0ea71e060cc0d8219401921e8f3d77",
+      "sourceManifestSha256": "b6990af7e20728a77c9e7e722f6c770650d58cf2717f8b77ffe642a0f4719b35",
+      "sourceFileCount": 2754,
+      "workers": 6,
+      "selectedMethods": {
+        "graph-call": [
+          "FeatureBlueprintTests.test_blueprint_owned_function_reference_call_import_cas_history_and_execution"
+        ],
+        "graph-create": [
+          "FeatureBlueprintTests.test_blueprint_owned_node_creation_removal_review_group_and_cold_restore"
+        ],
+        "ui-close": [
+          "WebUITests.test_actual_editor_v480_local_run_frame_ack_pause_step_reconnect_and_stop"
+        ],
+        "native": [
+          "EngineTests.test_role_composition_two_windows_and_cleanup",
+          "ProjectExecutionTests.test_actual_native_button_game_pause_single_draw_step_and_stop",
+          "ProjectExecutionTests.test_actual_native_engine_cooperative_frame_callbacks",
+          "ButtonTests.test_shared_button_game_without_editor_state_input_navigation_native_targets_and_locality"
+        ],
+        "related-ref": [
+          "PropertyAuthoringTests.test_field_ref_preview_typed_aliases_source_cas_cold_confirm_actual_clr_and_schema_rejection",
+          "WebUITests.test_actual_editor_v480_field_ref_restricted_catalog_true_parameter_cold_and_confirm"
+        ],
+        "related-set": [
+          "PropertyAuthoringTests.test_property_set_field_preview_explicit_profile_save_cold_confirm_actual_clr_and_schema_drift",
+          "WebUITests.test_actual_editor_v480_property_set_explicit_receiver_value_cold_and_confirm"
+        ]
+      },
+      "methodOutcomes": [
+        {
+          "method": "WebUITests.test_actual_editor_v480_local_run_frame_ack_pause_step_reconnect_and_stop",
+          "outcome": "FAIL"
+        },
+        {
+          "method": "FeatureBlueprintTests.test_blueprint_owned_node_creation_removal_review_group_and_cold_restore",
+          "outcome": "PASS"
+        },
+        {
+          "method": "PropertyAuthoringTests.test_property_set_field_preview_explicit_profile_save_cold_confirm_actual_clr_and_schema_drift",
+          "outcome": "PASS"
+        },
+        {
+          "method": "WebUITests.test_actual_editor_v480_property_set_explicit_receiver_value_cold_and_confirm",
+          "outcome": "PASS"
+        },
+        {
+          "method": "FeatureBlueprintTests.test_blueprint_owned_function_reference_call_import_cas_history_and_execution",
+          "outcome": "PASS"
+        },
+        {
+          "method": "PropertyAuthoringTests.test_field_ref_preview_typed_aliases_source_cas_cold_confirm_actual_clr_and_schema_rejection",
+          "outcome": "PASS"
+        },
+        {
+          "method": "WebUITests.test_actual_editor_v480_field_ref_restricted_catalog_true_parameter_cold_and_confirm",
+          "outcome": "PASS"
+        },
+        {
+          "method": "EngineTests.test_role_composition_two_windows_and_cleanup",
+          "outcome": "PASS"
+        },
+        {
+          "method": "ProjectExecutionTests.test_actual_native_button_game_pause_single_draw_step_and_stop",
+          "outcome": "PASS"
+        },
+        {
+          "method": "ProjectExecutionTests.test_actual_native_engine_cooperative_frame_callbacks",
+          "outcome": "FAIL"
+        },
+        {
+          "method": "ButtonTests.test_shared_button_game_without_editor_state_input_navigation_native_targets_and_locality",
+          "outcome": "PASS"
+        }
+      ],
+      "elapsedSeconds": 284.907743507,
+      "resources": {
+        "cpuQuota": "400000 100000",
+        "memoryLimitBytes": 17179869184,
+        "cpuUsedSeconds": 1001.835801,
+        "averageCores": 3.5163516044462493,
+        "cpuThrottledPeriodCount": 1817,
+        "cpuPeriodCount": 2848,
+        "cpuThrottledCounterSeconds": 107.399926,
+        "observerCpuSeconds": 31.535974519,
+        "observerAverageCores": 0.11068837277223804,
+        "maximumSampledMemoryCurrentBytes": 6701420544,
+        "maximumSampledOwnedProcesses": 47,
+        "maximumSampledLiveGateProcesses": 41,
+        "maximumSampledGateZombies": 13,
+        "observerCpuScope": "Whole Python runner process, including sampling/gzip/source checks/orchestration; not child CPU",
+        "maximumCgroupPidsCurrent": 1997,
+        "oomKillDelta": 0
+      },
+      "driverBudgets": [
+        {
+          "utc": "2026-10-18T07:24:44.9831906+00:00",
+          "monotonicMs": 0.0068,
+          "pid": 1209541,
+          "phase": "native-button-driver:begin",
+          "cpuMs": 3721.295,
+          "rss": 105361408,
+          "data": {
+            "timeoutSeconds": 180
+          },
+          "traceFile": "managed-1209541.jsonl"
+        },
+        {
+          "utc": "2026-10-18T07:24:48.375444+00:00",
+          "monotonicMs": 3392.2057,
+          "pid": 1209541,
+          "phase": "native-button-driver:exit",
+          "cpuMs": 3761.986,
+          "rss": 105549824,
+          "data": {
+            "ExitCode": 0,
+            "elapsedMs": 3392.4731
+          },
+          "traceFile": "managed-1209541.jsonl"
+        },
+        {
+          "utc": "2026-10-18T07:24:56.5179256+00:00",
+          "monotonicMs": 11534.6891,
+          "pid": 1209541,
+          "phase": "native-engine-driver:begin",
+          "cpuMs": 3945.749,
+          "rss": 107782144,
+          "data": {
+            "timeoutSeconds": 240
+          },
+          "traceFile": "managed-1209541.jsonl"
+        },
+        {
+          "utc": "2026-10-18T07:27:14.7476296+00:00",
+          "monotonicMs": 149764.3914,
+          "pid": 1209541,
+          "phase": "native-engine-driver:exit",
+          "cpuMs": 3975.092,
+          "rss": 107950080,
+          "data": {
+            "ExitCode": 134,
+            "elapsedMs": 138229.7009
+          },
+          "traceFile": "managed-1209541.jsonl"
+        },
+        {
+          "utc": "2026-10-18T07:23:58.4217445+00:00",
+          "monotonicMs": 27281.536,
+          "pid": 1209516,
+          "phase": "graph-call-driver:begin",
+          "cpuMs": 2308.689,
+          "rss": 97910784,
+          "data": {
+            "timeoutSeconds": 240
+          },
+          "traceFile": "managed-1209516.jsonl"
+        },
+        {
+          "utc": "2026-10-18T07:27:32.2922046+00:00",
+          "monotonicMs": 241151.9963,
+          "pid": 1209516,
+          "phase": "graph-call-driver:exit",
+          "cpuMs": 2568.378,
+          "rss": 101322752,
+          "data": {
+            "ExitCode": 0,
+            "elapsedMs": 213870.4127
+          },
+          "traceFile": "managed-1209516.jsonl"
+        },
+        {
+          "utc": "2026-10-18T07:24:00.6479899+00:00",
+          "monotonicMs": 29762.4071,
+          "pid": 1209502,
+          "phase": "graph-create-driver:begin",
+          "cpuMs": 2317.605,
+          "rss": 99225600,
+          "data": {
+            "timeoutSeconds": 180
+          },
+          "traceFile": "managed-1209502.jsonl"
+        },
+        {
+          "utc": "2026-10-18T07:26:36.8741226+00:00",
+          "monotonicMs": 185988.5401,
+          "pid": 1209502,
+          "phase": "graph-create-driver:exit",
+          "cpuMs": 2606.866,
+          "rss": 101945344,
+          "data": {
+            "ExitCode": 0,
+            "elapsedMs": 156224.137
+          },
+          "traceFile": "managed-1209502.jsonl"
+        }
+      ],
+      "graphProgress": [
+        {
+          "pid": 1212480,
+          "group": "graph-call",
+          "completedCalls": 224,
+          "maxCompletedCallMs": 13808.8424,
+          "lastCall": {
+            "utc": "2026-10-18T07:27:32.269488+00:00",
+            "monotonicMs": 213801.7804,
+            "pid": 1212480,
+            "phase": "command:end",
+            "cpuMs": 4443.672,
+            "rss": 272560128,
+            "data": {
+              "elapsedMs": 0.235
+            }
+          }
+        },
+        {
+          "pid": 1212738,
+          "group": "graph-create",
+          "completedCalls": 102,
+          "maxCompletedCallMs": 14025.4136,
+          "lastCall": {
+            "utc": "2026-10-18T07:26:36.8581356+00:00",
+            "monotonicMs": 156175.6721,
+            "pid": 1212738,
+            "phase": "command:end",
+            "cpuMs": 3859.646,
+            "rss": 209043456,
+            "data": {
+              "elapsedMs": 115.0053
+            }
+          }
+        }
+      ],
+      "nativeWaits": [
+        {
+          "pid": 1219999,
+          "wait": 1,
+          "samples": 4,
+          "first": {
+            "utc": "2026-10-18T07:24:45.1006601+00:00",
+            "monotonicMs": 70.3934,
+            "pid": 1219999,
+            "phase": "native-wait:sample",
+            "cpuMs": 80.488,
+            "rss": 43167744,
+            "data": {
+              "wait": 1,
+              "elapsedMs": 2,
+              "state": "building",
+              "control": {
+                "available": false,
+                "connected": false,
+                "sequence": 0,
+                "reason": "Execution is building"
+              }
+            },
+            "traceFile": "driver-1219999.jsonl"
+          },
+          "last": {
+            "utc": "2026-10-18T07:24:47.8112379+00:00",
+            "monotonicMs": 2780.9701,
+            "pid": 1219999,
+            "phase": "native-wait:done",
+            "cpuMs": 475.768,
+            "rss": 54378496,
+            "data": {
+              "wait": 1,
+              "elapsedMs": 2715,
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "running",
+                "frame": "2",
+                "ack": 0,
+                "pending": 0,
+                "sequence": 0,
+                "reason": "",
+                "outcome": ""
+              }
+            },
+            "traceFile": "driver-1219999.jsonl"
+          },
+          "completed": true,
+          "driverKind": "native-button"
+        },
+        {
+          "pid": 1219999,
+          "wait": 2,
+          "samples": 2,
+          "first": {
+            "utc": "2026-10-18T07:24:47.829138+00:00",
+            "monotonicMs": 2798.8701,
+            "pid": 1219999,
+            "phase": "native-wait:sample",
+            "cpuMs": 481.525,
+            "rss": 54431744,
+            "data": {
+              "wait": 2,
+              "elapsedMs": 1,
+              "state": "running",
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "running",
+                "frame": "4",
+                "ack": 0,
+                "pending": 1,
+                "sequence": 1,
+                "reason": "",
+                "outcome": "pending"
+              }
+            },
+            "traceFile": "driver-1219999.jsonl"
+          },
+          "last": {
+            "utc": "2026-10-18T07:24:47.8533235+00:00",
+            "monotonicMs": 2823.0557,
+            "pid": 1219999,
+            "phase": "native-wait:done",
+            "cpuMs": 484.842,
+            "rss": 54419456,
+            "data": {
+              "wait": 2,
+              "elapsedMs": 26,
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "4",
+                "ack": 1,
+                "pending": 0,
+                "sequence": 1,
+                "reason": "",
+                "outcome": "applied"
+              }
+            },
+            "traceFile": "driver-1219999.jsonl"
+          },
+          "completed": true,
+          "driverKind": "native-button"
+        },
+        {
+          "pid": 1219999,
+          "wait": 3,
+          "samples": 2,
+          "first": {
+            "utc": "2026-10-18T07:24:47.9779617+00:00",
+            "monotonicMs": 2947.6938,
+            "pid": 1219999,
+            "phase": "native-wait:sample",
+            "cpuMs": 488.724,
+            "rss": 54435840,
+            "data": {
+              "wait": 3,
+              "elapsedMs": 7,
+              "state": "running",
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "4",
+                "ack": 1,
+                "pending": 2,
+                "sequence": 2,
+                "reason": "",
+                "outcome": "pending"
+              }
+            },
+            "traceFile": "driver-1219999.jsonl"
+          },
+          "last": {
+            "utc": "2026-10-18T07:24:48.0226534+00:00",
+            "monotonicMs": 2992.3858,
+            "pid": 1219999,
+            "phase": "native-wait:done",
+            "cpuMs": 491.47,
+            "rss": 54452224,
+            "data": {
+              "wait": 3,
+              "elapsedMs": 52,
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "5",
+                "ack": 2,
+                "pending": 0,
+                "sequence": 2,
+                "reason": "",
+                "outcome": "applied"
+              }
+            },
+            "traceFile": "driver-1219999.jsonl"
+          },
+          "completed": true,
+          "driverKind": "native-button"
+        },
+        {
+          "pid": 1221971,
+          "wait": 1,
+          "samples": 46,
+          "first": {
+            "utc": "2026-10-18T07:24:56.6873295+00:00",
+            "monotonicMs": 103.0934,
+            "pid": 1221971,
+            "phase": "native-wait:sample",
+            "cpuMs": 99.218,
+            "rss": 47538176,
+            "data": {
+              "wait": 1,
+              "elapsedMs": 2,
+              "state": "building",
+              "control": {
+                "available": false,
+                "connected": false,
+                "sequence": 0,
+                "reason": "Execution is building"
+              }
+            },
+            "traceFile": "driver-1221971.jsonl"
+          },
+          "last": {
+            "utc": "2026-10-18T07:25:41.9189563+00:00",
+            "monotonicMs": 45334.7187,
+            "pid": 1221971,
+            "phase": "native-wait:done",
+            "cpuMs": 2257.029,
+            "rss": 65384448,
+            "data": {
+              "wait": 1,
+              "elapsedMs": 45241,
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "running",
+                "frame": "3",
+                "ack": 0,
+                "pending": 0,
+                "sequence": 0,
+                "reason": "",
+                "outcome": ""
+              }
+            },
+            "traceFile": "driver-1221971.jsonl"
+          },
+          "completed": true,
+          "driverKind": "native-engine"
+        },
+        {
+          "pid": 1221971,
+          "wait": 2,
+          "samples": 4,
+          "first": {
+            "utc": "2026-10-18T07:25:41.9313943+00:00",
+            "monotonicMs": 45347.1565,
+            "pid": 1221971,
+            "phase": "native-wait:sample",
+            "cpuMs": 2261.517,
+            "rss": 65454080,
+            "data": {
+              "wait": 2,
+              "elapsedMs": 0,
+              "state": "building",
+              "control": {
+                "available": false,
+                "connected": false,
+                "sequence": 0,
+                "reason": "Execution is building"
+              }
+            },
+            "traceFile": "driver-1221971.jsonl"
+          },
+          "last": {
+            "utc": "2026-10-18T07:25:44.2487536+00:00",
+            "monotonicMs": 47664.5159,
+            "pid": 1221971,
+            "phase": "native-wait:done",
+            "cpuMs": 2643.272,
+            "rss": 66719744,
+            "data": {
+              "wait": 2,
+              "elapsedMs": 2317,
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "running",
+                "frame": "5",
+                "ack": 0,
+                "pending": 0,
+                "sequence": 0,
+                "reason": "",
+                "outcome": ""
+              }
+            },
+            "traceFile": "driver-1221971.jsonl"
+          },
+          "completed": true,
+          "driverKind": "native-engine"
+        },
+        {
+          "pid": 1221971,
+          "wait": 3,
+          "samples": 90,
+          "first": {
+            "utc": "2026-10-18T07:25:44.2747815+00:00",
+            "monotonicMs": 47690.5437,
+            "pid": 1221971,
+            "phase": "native-wait:sample",
+            "cpuMs": 2648.361,
+            "rss": 66727936,
+            "data": {
+              "wait": 3,
+              "elapsedMs": 12,
+              "state": "running",
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "923",
+                "ack": 0,
+                "pending": 0,
+                "sequence": 0,
+                "reason": "",
+                "outcome": "not-accepted"
+              }
+            },
+            "traceFile": "driver-1221971.jsonl"
+          },
+          "last": {
+            "utc": "2026-10-18T07:27:13.975391+00:00",
+            "monotonicMs": 137391.1532,
+            "pid": 1221971,
+            "phase": "native-wait:sample",
+            "cpuMs": 8358.875,
+            "rss": 67452928,
+            "data": {
+              "wait": 3,
+              "elapsedMs": 89713,
+              "state": "running",
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "923",
+                "ack": 0,
+                "pending": 0,
+                "sequence": 0,
+                "reason": "",
+                "outcome": ""
+              }
+            },
+            "traceFile": "driver-1221971.jsonl"
+          },
+          "completed": false,
+          "driverKind": "native-engine"
+        }
+      ],
+      "ownershipEvents": [
+        {
+          "utc": 1792308260.1340075,
+          "monotonicNs": 32464032603759,
+          "pid": 1209997,
+          "phase": "before-confirmed-close",
+          "data": {
+            "hostPid": 1210366,
+            "processes": [
+              {
+                "pid": 1210366,
+                "ppid": 1209997,
+                "startTicks": 3242109,
+                "state": "S",
+                "cpuMs": 4740.0,
+                "rss": 176406528,
+                "threads": 18,
+                "executable": "dotnet",
+                "assembly": "Confectory.App.dll",
+                "role": "generated-driver"
+              },
+              {
+                "pid": 1215043,
+                "ppid": 1210366,
+                "startTicks": 3246114,
+                "state": "S",
+                "cpuMs": 920.0,
+                "rss": 63270912,
+                "threads": 15,
+                "executable": "dotnet",
+                "assembly": "Confectory.ProjectExecutionHost.dll",
+                "role": "run-worker"
+              },
+              {
+                "pid": 1215376,
+                "ppid": 1215043,
+                "startTicks": 3246314,
+                "state": "S",
+                "cpuMs": 130.0,
+                "rss": 39636992,
+                "threads": 13,
+                "executable": "dotnet",
+                "assembly": "Confectory.App.dll",
+                "role": "run-runtime"
+              }
+            ]
+          },
+          "traceFile": "python-1209997.jsonl"
+        },
+        {
+          "utc": 1792308261.3299332,
+          "monotonicNs": 32465228528362,
+          "pid": 1209997,
+          "phase": "child-count-assert-observation",
+          "data": {
+            "hostPid": 1210366,
+            "childIds": [
+              1215662
+            ],
+            "processes": [
+              {
+                "pid": 1210366,
+                "ppid": 1209997,
+                "startTicks": 3242109,
+                "state": "S",
+                "cpuMs": 5030.0,
+                "rss": 180994048,
+                "threads": 18,
+                "executable": "dotnet",
+                "assembly": "Confectory.App.dll",
+                "role": "generated-driver"
+              },
+              {
+                "pid": 1215662,
+                "ppid": 1210366,
+                "startTicks": 3246514,
+                "state": "R",
+                "cpuMs": 50.0,
+                "rss": 37482496,
+                "threads": 8,
+                "executable": "dotnet",
+                "assembly": "Confectory.ElementAuthoring.dll",
+                "role": "element-authoring-host"
+              }
+            ]
+          },
+          "traceFile": "python-1209997.jsonl"
+        },
+        {
+          "utc": 1792308261.3351192,
+          "monotonicNs": 32465233714880,
+          "pid": 1209997,
+          "phase": "ui-failure",
+          "data": {
+            "status": "Ready"
+          },
+          "traceFile": "python-1209997.jsonl"
+        }
+      ],
+      "uiRejectedResults": [],
+      "measurementLimits": [
+        "Owned process sampling is periodic; short-lived processes may be missed. PID birth identities retained; zombies distinguished from live execution.",
+        "Cgroup CPU includes shared services and observer. Throttled counter delta is not a per-operation lost-wall-time estimate.",
+        "Peak memory uses sampled memory.current; lifetime memory.peak not attributed to this phase.",
+        "Limited workload mix preserves 4 CPU, 17GiB and worker cap, not the complete original 235-method launch/cache history."
+      ]
+    },
+    {
+      "id": "final-parallel-6",
+      "headAtLaunch": "e73350ee85a399a77d902db287bafa8e9fc2c57e",
+      "sourceManifestSha256": "d2c3fc3b61013dada50792a755aa4386bca187c67e87e24fc6219982fdc325e9",
+      "sourceFileCount": 2754,
+      "workers": 6,
+      "selectedMethods": {
+        "graph-call": [
+          "FeatureBlueprintTests.test_blueprint_owned_function_reference_call_import_cas_history_and_execution"
+        ],
+        "graph-create": [
+          "FeatureBlueprintTests.test_blueprint_owned_node_creation_removal_review_group_and_cold_restore"
+        ],
+        "ui-close": [
+          "WebUITests.test_actual_editor_v480_local_run_frame_ack_pause_step_reconnect_and_stop"
+        ],
+        "native": [
+          "EngineTests.test_role_composition_two_windows_and_cleanup",
+          "ProjectExecutionTests.test_actual_native_button_game_pause_single_draw_step_and_stop",
+          "ProjectExecutionTests.test_actual_native_engine_cooperative_frame_callbacks",
+          "ButtonTests.test_shared_button_game_without_editor_state_input_navigation_native_targets_and_locality"
+        ],
+        "related-ref": [
+          "PropertyAuthoringTests.test_field_ref_preview_typed_aliases_source_cas_cold_confirm_actual_clr_and_schema_rejection",
+          "WebUITests.test_actual_editor_v480_field_ref_restricted_catalog_true_parameter_cold_and_confirm"
+        ],
+        "related-set": [
+          "PropertyAuthoringTests.test_property_set_field_preview_explicit_profile_save_cold_confirm_actual_clr_and_schema_drift",
+          "WebUITests.test_actual_editor_v480_property_set_explicit_receiver_value_cold_and_confirm"
+        ]
+      },
+      "methodOutcomes": [
+        {
+          "method": "WebUITests.test_actual_editor_v480_local_run_frame_ack_pause_step_reconnect_and_stop",
+          "outcome": "PASS"
+        },
+        {
+          "method": "FeatureBlueprintTests.test_blueprint_owned_node_creation_removal_review_group_and_cold_restore",
+          "outcome": "FAIL"
+        },
+        {
+          "method": "EngineTests.test_role_composition_two_windows_and_cleanup",
+          "outcome": "PASS"
+        },
+        {
+          "method": "ProjectExecutionTests.test_actual_native_button_game_pause_single_draw_step_and_stop",
+          "outcome": "PASS"
+        },
+        {
+          "method": "ProjectExecutionTests.test_actual_native_engine_cooperative_frame_callbacks",
+          "outcome": "PASS"
+        },
+        {
+          "method": "ButtonTests.test_shared_button_game_without_editor_state_input_navigation_native_targets_and_locality",
+          "outcome": "PASS"
+        },
+        {
+          "method": "PropertyAuthoringTests.test_property_set_field_preview_explicit_profile_save_cold_confirm_actual_clr_and_schema_drift",
+          "outcome": "PASS"
+        },
+        {
+          "method": "WebUITests.test_actual_editor_v480_property_set_explicit_receiver_value_cold_and_confirm",
+          "outcome": "PASS"
+        },
+        {
+          "method": "FeatureBlueprintTests.test_blueprint_owned_function_reference_call_import_cas_history_and_execution",
+          "outcome": "FAIL"
+        },
+        {
+          "method": "PropertyAuthoringTests.test_field_ref_preview_typed_aliases_source_cas_cold_confirm_actual_clr_and_schema_rejection",
+          "outcome": "PASS"
+        },
+        {
+          "method": "WebUITests.test_actual_editor_v480_field_ref_restricted_catalog_true_parameter_cold_and_confirm",
+          "outcome": "PASS"
+        }
+      ],
+      "elapsedSeconds": 284.981252755,
+      "resources": {
+        "cpuQuota": "400000 100000",
+        "memoryLimitBytes": 17179869184,
+        "cpuUsedSeconds": 1079.490031,
+        "averageCores": 3.7879334888321363,
+        "cpuThrottledPeriodCount": 2366,
+        "cpuPeriodCount": 2849,
+        "cpuThrottledCounterSeconds": 156.21937,
+        "observerCpuSeconds": 30.613418283,
+        "observerAverageCores": 0.10742256898322547,
+        "maximumSampledMemoryCurrentBytes": 7631585280,
+        "maximumSampledOwnedProcesses": 58,
+        "maximumSampledLiveGateProcesses": 56,
+        "maximumSampledGateZombies": 12,
+        "observerCpuScope": "Whole Python runner process, including sampling/gzip/source checks/orchestration; not child CPU",
+        "maximumCgroupPidsCurrent": 2184,
+        "oomKillDelta": 0
+      },
+      "driverBudgets": [
+        {
+          "utc": "2026-10-18T07:36:08.4710651+00:00",
+          "monotonicMs": 0.0073,
+          "pid": 1250304,
+          "phase": "native-button-driver:begin",
+          "cpuMs": 3567.661,
+          "rss": 113143808,
+          "data": {
+            "timeoutSeconds": 180
+          },
+          "traceFile": "managed-1250304.jsonl"
+        },
+        {
+          "utc": "2026-10-18T07:36:41.7740956+00:00",
+          "monotonicMs": 33302.9852,
+          "pid": 1250304,
+          "phase": "native-button-driver:exit",
+          "cpuMs": 3618.418,
+          "rss": 113500160,
+          "data": {
+            "ExitCode": 0,
+            "elapsedMs": 33303.2074
+          },
+          "traceFile": "managed-1250304.jsonl"
+        },
+        {
+          "utc": "2026-10-18T07:36:51.4427904+00:00",
+          "monotonicMs": 42971.6812,
+          "pid": 1250304,
+          "phase": "native-engine-driver:begin",
+          "cpuMs": 3839.416,
+          "rss": 120926208,
+          "data": {
+            "timeoutSeconds": 240
+          },
+          "traceFile": "managed-1250304.jsonl"
+        },
+        {
+          "utc": "2026-10-18T07:37:57.4536141+00:00",
+          "monotonicMs": 108982.5039,
+          "pid": 1250304,
+          "phase": "native-engine-driver:exit",
+          "cpuMs": 3873.442,
+          "rss": 120971264,
+          "data": {
+            "ExitCode": 0,
+            "elapsedMs": 66010.8149
+          },
+          "traceFile": "managed-1250304.jsonl"
+        },
+        {
+          "utc": "2026-10-18T07:35:19.3170965+00:00",
+          "monotonicMs": 26441.2038,
+          "pid": 1250291,
+          "phase": "graph-call-driver:begin",
+          "cpuMs": 2329.693,
+          "rss": 97832960,
+          "data": {
+            "timeoutSeconds": 240
+          },
+          "traceFile": "managed-1250291.jsonl"
+        },
+        {
+          "utc": "2026-10-18T07:39:19.5486284+00:00",
+          "monotonicMs": 266672.7354,
+          "pid": 1250291,
+          "phase": "graph-call-driver:timeout",
+          "cpuMs": 2801.068,
+          "rss": 100945920,
+          "data": {
+            "timeoutSeconds": 240,
+            "elapsedMs": 240231.4785
+          },
+          "traceFile": "managed-1250291.jsonl"
+        },
+        {
+          "utc": "2026-10-18T07:35:22.166537+00:00",
+          "monotonicMs": 29299.3185,
+          "pid": 1250280,
+          "phase": "graph-create-driver:begin",
+          "cpuMs": 2322.087,
+          "rss": 99463168,
+          "data": {
+            "timeoutSeconds": 180
+          },
+          "traceFile": "managed-1250280.jsonl"
+        },
+        {
+          "utc": "2026-10-18T07:38:22.5116508+00:00",
+          "monotonicMs": 209644.4325,
+          "pid": 1250280,
+          "phase": "graph-create-driver:timeout",
+          "cpuMs": 2831.857,
+          "rss": 105123840,
+          "data": {
+            "timeoutSeconds": 180,
+            "elapsedMs": 180345.0441
+          },
+          "traceFile": "managed-1250280.jsonl"
+        }
+      ],
+      "graphProgress": [
+        {
+          "pid": 1253655,
+          "group": "graph-create",
+          "completedCalls": 88,
+          "maxCompletedCallMs": 16560.3395,
+          "lastCall": {
+            "utc": "2026-10-18T07:38:11.3557051+00:00",
+            "monotonicMs": 169106.1601,
+            "pid": 1253655,
+            "phase": "blueprint:begin",
+            "cpuMs": 3425.864,
+            "rss": 105357312,
+            "data": {}
+          },
+          "completedCallsLast5SecondsBeforeTimeout": 0,
+          "lastOpenCallAgeAtTimeoutMs": 11155.94506263733,
+          "childBirthsLast5SecondsBeforeTimeout": 3,
+          "childExitsLast5SecondsBeforeTimeout": 3
+        },
+        {
+          "pid": 1253277,
+          "group": "graph-call",
+          "completedCalls": 157,
+          "maxCompletedCallMs": 16673.5109,
+          "lastCall": {
+            "utc": "2026-10-18T07:39:15.3468295+00:00",
+            "monotonicMs": 235933.8456,
+            "pid": 1253277,
+            "phase": "blueprint:begin",
+            "cpuMs": 4167.356,
+            "rss": 198737920,
+            "data": {}
+          },
+          "completedCallsLast5SecondsBeforeTimeout": 3,
+          "lastOpenCallAgeAtTimeoutMs": 4201.799154281616,
+          "childBirthsLast5SecondsBeforeTimeout": 3,
+          "childExitsLast5SecondsBeforeTimeout": 5
+        }
+      ],
+      "nativeWaits": [
+        {
+          "pid": 1260990,
+          "wait": 1,
+          "samples": 34,
+          "first": {
+            "utc": "2026-10-18T07:36:08.6207765+00:00",
+            "monotonicMs": 84.7373,
+            "pid": 1260990,
+            "phase": "native-wait:sample",
+            "cpuMs": 84.008,
+            "rss": 44589056,
+            "data": {
+              "wait": 1,
+              "elapsedMs": 2,
+              "state": "building",
+              "control": {
+                "available": false,
+                "connected": false,
+                "sequence": 0,
+                "reason": "Execution is building"
+              }
+            },
+            "traceFile": "driver-1260990.jsonl"
+          },
+          "last": {
+            "utc": "2026-10-18T07:36:41.0825306+00:00",
+            "monotonicMs": 32546.4899,
+            "pid": 1260990,
+            "phase": "native-wait:done",
+            "cpuMs": 2055.466,
+            "rss": 64561152,
+            "data": {
+              "wait": 1,
+              "elapsedMs": 32468,
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "running",
+                "frame": "3",
+                "ack": 0,
+                "pending": 0,
+                "sequence": 0,
+                "reason": "",
+                "outcome": ""
+              }
+            },
+            "traceFile": "driver-1260990.jsonl"
+          },
+          "completed": true,
+          "driverKind": "native-button"
+        },
+        {
+          "pid": 1260990,
+          "wait": 2,
+          "samples": 2,
+          "first": {
+            "utc": "2026-10-18T07:36:41.1325965+00:00",
+            "monotonicMs": 32596.5561,
+            "pid": 1260990,
+            "phase": "native-wait:sample",
+            "cpuMs": 2064.233,
+            "rss": 64618496,
+            "data": {
+              "wait": 2,
+              "elapsedMs": 9,
+              "state": "running",
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "running",
+                "frame": "5",
+                "ack": 0,
+                "pending": 1,
+                "sequence": 1,
+                "reason": "",
+                "outcome": "pending"
+              }
+            },
+            "traceFile": "driver-1260990.jsonl"
+          },
+          "last": {
+            "utc": "2026-10-18T07:36:41.1575305+00:00",
+            "monotonicMs": 32621.4899,
+            "pid": 1260990,
+            "phase": "native-wait:done",
+            "cpuMs": 2066.722,
+            "rss": 64634880,
+            "data": {
+              "wait": 2,
+              "elapsedMs": 35,
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "5",
+                "ack": 1,
+                "pending": 0,
+                "sequence": 1,
+                "reason": "",
+                "outcome": "applied"
+              }
+            },
+            "traceFile": "driver-1260990.jsonl"
+          },
+          "completed": true,
+          "driverKind": "native-button"
+        },
+        {
+          "pid": 1260990,
+          "wait": 3,
+          "samples": 2,
+          "first": {
+            "utc": "2026-10-18T07:36:41.2906457+00:00",
+            "monotonicMs": 32754.6052,
+            "pid": 1260990,
+            "phase": "native-wait:sample",
+            "cpuMs": 2071.189,
+            "rss": 64659456,
+            "data": {
+              "wait": 3,
+              "elapsedMs": 16,
+              "state": "running",
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "6",
+                "ack": 2,
+                "pending": 0,
+                "sequence": 2,
+                "reason": "",
+                "outcome": "applied"
+              }
+            },
+            "traceFile": "driver-1260990.jsonl"
+          },
+          "last": {
+            "utc": "2026-10-18T07:36:41.291231+00:00",
+            "monotonicMs": 32755.1902,
+            "pid": 1260990,
+            "phase": "native-wait:done",
+            "cpuMs": 2071.771,
+            "rss": 64659456,
+            "data": {
+              "wait": 3,
+              "elapsedMs": 16,
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "6",
+                "ack": 2,
+                "pending": 0,
+                "sequence": 2,
+                "reason": "",
+                "outcome": "applied"
+              }
+            },
+            "traceFile": "driver-1260990.jsonl"
+          },
+          "completed": true,
+          "driverKind": "native-button"
+        },
+        {
+          "pid": 1267657,
+          "wait": 1,
+          "samples": 59,
+          "first": {
+            "utc": "2026-10-18T07:36:51.633092+00:00",
+            "monotonicMs": 117.2594,
+            "pid": 1267657,
+            "phase": "native-wait:sample",
+            "cpuMs": 99.201,
+            "rss": 47853568,
+            "data": {
+              "wait": 1,
+              "elapsedMs": 2,
+              "state": "building",
+              "control": {
+                "available": false,
+                "connected": false,
+                "sequence": 0,
+                "reason": "Execution is building"
+              }
+            },
+            "traceFile": "driver-1267657.jsonl"
+          },
+          "last": {
+            "utc": "2026-10-18T07:37:49.4455674+00:00",
+            "monotonicMs": 57929.7334,
+            "pid": 1267657,
+            "phase": "native-wait:done",
+            "cpuMs": 2496.611,
+            "rss": 66019328,
+            "data": {
+              "wait": 1,
+              "elapsedMs": 57819,
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "running",
+                "frame": "10",
+                "ack": 0,
+                "pending": 0,
+                "sequence": 0,
+                "reason": "",
+                "outcome": ""
+              }
+            },
+            "traceFile": "driver-1267657.jsonl"
+          },
+          "completed": true,
+          "driverKind": "native-engine"
+        },
+        {
+          "pid": 1267657,
+          "wait": 2,
+          "samples": 4,
+          "first": {
+            "utc": "2026-10-18T07:37:49.4523614+00:00",
+            "monotonicMs": 57936.5274,
+            "pid": 1267657,
+            "phase": "native-wait:sample",
+            "cpuMs": 2500.929,
+            "rss": 66064384,
+            "data": {
+              "wait": 2,
+              "elapsedMs": 0,
+              "state": "building",
+              "control": {
+                "available": false,
+                "connected": false,
+                "sequence": 0,
+                "reason": "Execution is building"
+              }
+            },
+            "traceFile": "driver-1267657.jsonl"
+          },
+          "last": {
+            "utc": "2026-10-18T07:37:51.8808532+00:00",
+            "monotonicMs": 60365.019,
+            "pid": 1267657,
+            "phase": "native-wait:done",
+            "cpuMs": 2989.676,
+            "rss": 66920448,
+            "data": {
+              "wait": 2,
+              "elapsedMs": 2428,
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "running",
+                "frame": "12",
+                "ack": 0,
+                "pending": 0,
+                "sequence": 0,
+                "reason": "",
+                "outcome": ""
+              }
+            },
+            "traceFile": "driver-1267657.jsonl"
+          },
+          "completed": true,
+          "driverKind": "native-engine"
+        },
+        {
+          "pid": 1267657,
+          "wait": 3,
+          "samples": 2,
+          "first": {
+            "utc": "2026-10-18T07:37:51.8937519+00:00",
+            "monotonicMs": 60377.9177,
+            "pid": 1267657,
+            "phase": "native-wait:sample",
+            "cpuMs": 2992.875,
+            "rss": 66912256,
+            "data": {
+              "wait": 3,
+              "elapsedMs": 3,
+              "state": "running",
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "878",
+                "ack": 1,
+                "pending": 0,
+                "sequence": 1,
+                "reason": "",
+                "outcome": "applied"
+              }
+            },
+            "traceFile": "driver-1267657.jsonl"
+          },
+          "last": {
+            "utc": "2026-10-18T07:37:51.8941939+00:00",
+            "monotonicMs": 60378.3598,
+            "pid": 1267657,
+            "phase": "native-wait:done",
+            "cpuMs": 2993.316,
+            "rss": 66912256,
+            "data": {
+              "wait": 3,
+              "elapsedMs": 4,
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "878",
+                "ack": 1,
+                "pending": 0,
+                "sequence": 1,
+                "reason": "",
+                "outcome": "applied"
+              }
+            },
+            "traceFile": "driver-1267657.jsonl"
+          },
+          "completed": true,
+          "driverKind": "native-engine"
+        },
+        {
+          "pid": 1267657,
+          "wait": 4,
+          "samples": 2,
+          "first": {
+            "utc": "2026-10-18T07:37:52.2336905+00:00",
+            "monotonicMs": 60717.8564,
+            "pid": 1267657,
+            "phase": "native-wait:sample",
+            "cpuMs": 3020.396,
+            "rss": 67227648,
+            "data": {
+              "wait": 4,
+              "elapsedMs": 9,
+              "state": "running",
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "879",
+                "ack": 2,
+                "pending": 0,
+                "sequence": 2,
+                "reason": "",
+                "outcome": "applied"
+              }
+            },
+            "traceFile": "driver-1267657.jsonl"
+          },
+          "last": {
+            "utc": "2026-10-18T07:37:52.2340981+00:00",
+            "monotonicMs": 60718.264,
+            "pid": 1267657,
+            "phase": "native-wait:done",
+            "cpuMs": 3020.801,
+            "rss": 67227648,
+            "data": {
+              "wait": 4,
+              "elapsedMs": 10,
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "879",
+                "ack": 2,
+                "pending": 0,
+                "sequence": 2,
+                "reason": "",
+                "outcome": "applied"
+              }
+            },
+            "traceFile": "driver-1267657.jsonl"
+          },
+          "completed": true,
+          "driverKind": "native-engine"
+        },
+        {
+          "pid": 1267657,
+          "wait": 5,
+          "samples": 2,
+          "first": {
+            "utc": "2026-10-18T07:37:52.2383619+00:00",
+            "monotonicMs": 60722.5277,
+            "pid": 1267657,
+            "phase": "native-wait:sample",
+            "cpuMs": 3021.865,
+            "rss": 67235840,
+            "data": {
+              "wait": 5,
+              "elapsedMs": 0,
+              "state": "running",
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "879",
+                "ack": 2,
+                "pending": 3,
+                "sequence": 3,
+                "reason": "",
+                "outcome": "pending"
+              }
+            },
+            "traceFile": "driver-1267657.jsonl"
+          },
+          "last": {
+            "utc": "2026-10-18T07:37:52.2597194+00:00",
+            "monotonicMs": 60743.8852,
+            "pid": 1267657,
+            "phase": "native-wait:done",
+            "cpuMs": 3024.15,
+            "rss": 67252224,
+            "data": {
+              "wait": 5,
+              "elapsedMs": 22,
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "880",
+                "ack": 3,
+                "pending": 0,
+                "sequence": 3,
+                "reason": "",
+                "outcome": "applied"
+              }
+            },
+            "traceFile": "driver-1267657.jsonl"
+          },
+          "completed": true,
+          "driverKind": "native-engine"
+        },
+        {
+          "pid": 1267657,
+          "wait": 6,
+          "samples": 2,
+          "first": {
+            "utc": "2026-10-18T07:37:52.2740777+00:00",
+            "monotonicMs": 60758.2436,
+            "pid": 1267657,
+            "phase": "native-wait:sample",
+            "cpuMs": 3026.547,
+            "rss": 67231744,
+            "data": {
+              "wait": 6,
+              "elapsedMs": 5,
+              "state": "running",
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "881",
+                "ack": 4,
+                "pending": 0,
+                "sequence": 4,
+                "reason": "",
+                "outcome": "applied"
+              }
+            },
+            "traceFile": "driver-1267657.jsonl"
+          },
+          "last": {
+            "utc": "2026-10-18T07:37:52.2744484+00:00",
+            "monotonicMs": 60758.6143,
+            "pid": 1267657,
+            "phase": "native-wait:done",
+            "cpuMs": 3026.852,
+            "rss": 67231744,
+            "data": {
+              "wait": 6,
+              "elapsedMs": 7,
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "881",
+                "ack": 4,
+                "pending": 0,
+                "sequence": 4,
+                "reason": "",
+                "outcome": "applied"
+              }
+            },
+            "traceFile": "driver-1267657.jsonl"
+          },
+          "completed": true,
+          "driverKind": "native-engine"
+        },
+        {
+          "pid": 1267657,
+          "wait": 7,
+          "samples": 2,
+          "first": {
+            "utc": "2026-10-18T07:37:54.5826269+00:00",
+            "monotonicMs": 63066.7928,
+            "pid": 1267657,
+            "phase": "native-wait:sample",
+            "cpuMs": 3208.607,
+            "rss": 67321856,
+            "data": {
+              "wait": 7,
+              "elapsedMs": 3,
+              "state": "running",
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "running",
+                "frame": "882",
+                "ack": 5,
+                "pending": 0,
+                "sequence": 5,
+                "reason": "",
+                "outcome": "applied"
+              }
+            },
+            "traceFile": "driver-1267657.jsonl"
+          },
+          "last": {
+            "utc": "2026-10-18T07:37:54.5831055+00:00",
+            "monotonicMs": 63067.2714,
+            "pid": 1267657,
+            "phase": "native-wait:done",
+            "cpuMs": 3209.101,
+            "rss": 67321856,
+            "data": {
+              "wait": 7,
+              "elapsedMs": 4,
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "running",
+                "frame": "882",
+                "ack": 5,
+                "pending": 0,
+                "sequence": 5,
+                "reason": "",
+                "outcome": "applied"
+              }
+            },
+            "traceFile": "driver-1267657.jsonl"
+          },
+          "completed": true,
+          "driverKind": "native-engine"
+        },
+        {
+          "pid": 1267657,
+          "wait": 8,
+          "samples": 2,
+          "first": {
+            "utc": "2026-10-18T07:37:56.9972256+00:00",
+            "monotonicMs": 65481.3914,
+            "pid": 1267657,
+            "phase": "native-wait:sample",
+            "cpuMs": 3380.606,
+            "rss": 67907584,
+            "data": {
+              "wait": 8,
+              "elapsedMs": 0,
+              "state": "running",
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "2229",
+                "ack": 5,
+                "pending": 6,
+                "sequence": 6,
+                "reason": "",
+                "outcome": "pending"
+              }
+            },
+            "traceFile": "driver-1267657.jsonl"
+          },
+          "last": {
+            "utc": "2026-10-18T07:37:57.0149885+00:00",
+            "monotonicMs": 65499.1543,
+            "pid": 1267657,
+            "phase": "native-wait:done",
+            "cpuMs": 3383.5,
+            "rss": 67911680,
+            "data": {
+              "wait": 8,
+              "elapsedMs": 18,
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "2230",
+                "ack": 6,
+                "pending": 0,
+                "sequence": 6,
+                "reason": "",
+                "outcome": "applied"
+              }
+            },
+            "traceFile": "driver-1267657.jsonl"
+          },
+          "completed": true,
+          "driverKind": "native-engine"
+        }
+      ],
+      "ownershipEvents": [
+        {
+          "utc": 1792309060.8738272,
+          "monotonicNs": 33264772423420,
+          "pid": 1267949,
+          "phase": "before-confirmed-close",
+          "data": {
+            "hostPid": 1268273,
+            "processes": [
+              {
+                "pid": 1268273,
+                "ppid": 1267949,
+                "startTicks": 3321955,
+                "state": "S",
+                "cpuMs": 4920.0,
+                "waitedChildCpuMs": 15460.0,
+                "rss": 207360000,
+                "threads": 17,
+                "executable": "dotnet",
+                "assembly": "Confectory.App.dll",
+                "role": "generated-driver"
+              },
+              {
+                "pid": 1273918,
+                "ppid": 1268273,
+                "startTicks": 3326181,
+                "state": "S",
+                "cpuMs": 940.0,
+                "waitedChildCpuMs": 1000.0,
+                "rss": 63311872,
+                "threads": 16,
+                "executable": "dotnet",
+                "assembly": "Confectory.ProjectExecutionHost.dll",
+                "role": "run-worker"
+              },
+              {
+                "pid": 1274186,
+                "ppid": 1273918,
+                "startTicks": 3326388,
+                "state": "S",
+                "cpuMs": 110.0,
+                "waitedChildCpuMs": 0.0,
+                "rss": 39497728,
+                "threads": 14,
+                "executable": "dotnet",
+                "assembly": "Confectory.App.dll",
+                "role": "run-runtime"
+              }
+            ]
+          },
+          "traceFile": "python-1267949.jsonl"
+        },
+        {
+          "utc": 1792309061.0116296,
+          "monotonicNs": 33264910225773,
+          "pid": 1267949,
+          "phase": "run-retirement-check",
+          "data": {
+            "hostPid": 1268273,
+            "knownRunBirths": [
+              {
+                "pid": 1268914,
+                "startTicks": 3322463,
+                "role": "run-worker"
+              },
+              {
+                "pid": 1270675,
+                "startTicks": 3323808,
+                "role": "run-runtime"
+              },
+              {
+                "pid": 1272265,
+                "startTicks": 3324881,
+                "role": "run-worker"
+              },
+              {
+                "pid": 1272875,
+                "startTicks": 3325276,
+                "role": "run-runtime"
+              },
+              {
+                "pid": 1273259,
+                "startTicks": 3325632,
+                "role": "run-worker"
+              },
+              {
+                "pid": 1273724,
+                "startTicks": 3326038,
+                "role": "run-runtime"
+              },
+              {
+                "pid": 1273918,
+                "startTicks": 3326181,
+                "role": "run-worker"
+              },
+              {
+                "pid": 1274186,
+                "startTicks": 3326388,
+                "role": "run-runtime"
+              }
+            ],
+            "liveKnown": [
+              {
+                "pid": 1273918,
+                "ppid": 1268273,
+                "startTicks": 3326181,
+                "state": "S",
+                "cpuMs": 1010.0,
+                "waitedChildCpuMs": 1000.0,
+                "rss": 63442944,
+                "threads": 16,
+                "executable": "dotnet",
+                "assembly": "Confectory.ProjectExecutionHost.dll",
+                "role": "run-worker"
+              },
+              {
+                "pid": 1274186,
+                "ppid": 1273918,
+                "startTicks": 3326388,
+                "state": "S",
+                "cpuMs": 110.0,
+                "waitedChildCpuMs": 0.0,
+                "rss": 39497728,
+                "threads": 14,
+                "executable": "dotnet",
+                "assembly": "Confectory.App.dll",
+                "role": "run-runtime"
+              }
+            ],
+            "liveNew": [
+              {
+                "pid": 1273918,
+                "ppid": 1268273,
+                "startTicks": 3326181,
+                "state": "S",
+                "cpuMs": 1010.0,
+                "waitedChildCpuMs": 1000.0,
+                "rss": 63442944,
+                "threads": 16,
+                "executable": "dotnet",
+                "assembly": "Confectory.ProjectExecutionHost.dll",
+                "role": "run-worker"
+              },
+              {
+                "pid": 1274186,
+                "ppid": 1273918,
+                "startTicks": 3326388,
+                "state": "S",
+                "cpuMs": 110.0,
+                "waitedChildCpuMs": 0.0,
+                "rss": 39497728,
+                "threads": 14,
+                "executable": "dotnet",
+                "assembly": "Confectory.App.dll",
+                "role": "run-runtime"
+              }
+            ],
+            "exitedZombies": [
+              1270675,
+              1272875
+            ],
+            "otherDescendants": [
+              {
+                "pid": 1268273,
+                "ppid": 1267949,
+                "startTicks": 3321955,
+                "state": "S",
+                "cpuMs": 4920.0,
+                "waitedChildCpuMs": 15460.0,
+                "rss": 207360000,
+                "threads": 17,
+                "executable": "dotnet",
+                "assembly": "Confectory.App.dll",
+                "role": "generated-driver"
+              },
+              {
+                "pid": 1273918,
+                "ppid": 1268273,
+                "startTicks": 3326181,
+                "state": "S",
+                "cpuMs": 1010.0,
+                "waitedChildCpuMs": 1000.0,
+                "rss": 63442944,
+                "threads": 16,
+                "executable": "dotnet",
+                "assembly": "Confectory.ProjectExecutionHost.dll",
+                "role": "run-worker"
+              },
+              {
+                "pid": 1274186,
+                "ppid": 1273918,
+                "startTicks": 3326388,
+                "state": "S",
+                "cpuMs": 110.0,
+                "waitedChildCpuMs": 0.0,
+                "rss": 39497728,
+                "threads": 14,
+                "executable": "dotnet",
+                "assembly": "Confectory.App.dll",
+                "role": "run-runtime"
+              }
+            ]
+          },
+          "traceFile": "python-1267949.jsonl"
+        },
+        {
+          "utc": 1792309062.518574,
+          "monotonicNs": 33266417169480,
+          "pid": 1267949,
+          "phase": "child-count-assert-observation",
+          "data": {
+            "hostPid": 1268273,
+            "childIds": [],
+            "processes": [
+              {
+                "pid": 1268273,
+                "ppid": 1267949,
+                "startTicks": 3321955,
+                "state": "S",
+                "cpuMs": 5220.0,
+                "waitedChildCpuMs": 17750.0,
+                "rss": 212602880,
+                "threads": 18,
+                "executable": "dotnet",
+                "assembly": "Confectory.App.dll",
+                "role": "generated-driver"
+              },
+              {
+                "pid": 1274537,
+                "ppid": 1268273,
+                "startTicks": 3326625,
+                "state": "R",
+                "cpuMs": 30.0,
+                "waitedChildCpuMs": 0.0,
+                "rss": 34607104,
+                "threads": 8,
+                "executable": "dotnet",
+                "assembly": "Confectory.ElementAuthoring.dll",
+                "role": "element-authoring-host"
+              }
+            ]
+          },
+          "traceFile": "python-1267949.jsonl"
+        },
+        {
+          "utc": 1792309062.5186257,
+          "monotonicNs": 33266417221329,
+          "pid": 1267949,
+          "phase": "legacy-all-child-count",
+          "data": {
+            "childIds": [],
+            "wouldFail": false
+          },
+          "traceFile": "python-1267949.jsonl"
+        },
+        {
+          "utc": 1792309062.6421082,
+          "monotonicNs": 33266540704938,
+          "pid": 1267949,
+          "phase": "run-retirement-check",
+          "data": {
+            "hostPid": 1268273,
+            "knownRunBirths": [
+              {
+                "pid": 1268914,
+                "startTicks": 3322463,
+                "role": "run-worker"
+              },
+              {
+                "pid": 1270675,
+                "startTicks": 3323808,
+                "role": "run-runtime"
+              },
+              {
+                "pid": 1272265,
+                "startTicks": 3324881,
+                "role": "run-worker"
+              },
+              {
+                "pid": 1272875,
+                "startTicks": 3325276,
+                "role": "run-runtime"
+              },
+              {
+                "pid": 1273259,
+                "startTicks": 3325632,
+                "role": "run-worker"
+              },
+              {
+                "pid": 1273724,
+                "startTicks": 3326038,
+                "role": "run-runtime"
+              },
+              {
+                "pid": 1273918,
+                "startTicks": 3326181,
+                "role": "run-worker"
+              },
+              {
+                "pid": 1274186,
+                "startTicks": 3326388,
+                "role": "run-runtime"
+              }
+            ],
+            "liveKnown": [],
+            "liveNew": [],
+            "exitedZombies": [
+              1270675,
+              1272875,
+              1274186
+            ],
+            "otherDescendants": [
+              {
+                "pid": 1268273,
+                "ppid": 1267949,
+                "startTicks": 3321955,
+                "state": "S",
+                "cpuMs": 5220.0,
+                "waitedChildCpuMs": 17750.0,
+                "rss": 212602880,
+                "threads": 18,
+                "executable": "dotnet",
+                "assembly": "Confectory.App.dll",
+                "role": "generated-driver"
+              },
+              {
+                "pid": 1274537,
+                "ppid": 1268273,
+                "startTicks": 3326625,
+                "state": "R",
+                "cpuMs": 110.0,
+                "waitedChildCpuMs": 0.0,
+                "rss": 46366720,
+                "threads": 8,
+                "executable": "dotnet",
+                "assembly": "Confectory.ElementAuthoring.dll",
+                "role": "element-authoring-host"
+              }
+            ]
+          },
+          "traceFile": "python-1267949.jsonl"
+        },
+        {
+          "utc": 1792309063.6745343,
+          "monotonicNs": 33267573130874,
+          "pid": 1267949,
+          "phase": "run-retirement-check",
+          "data": {
+            "hostPid": 1268273,
+            "knownRunBirths": [
+              {
+                "pid": 1268914,
+                "startTicks": 3322463,
+                "role": "run-worker"
+              },
+              {
+                "pid": 1270675,
+                "startTicks": 3323808,
+                "role": "run-runtime"
+              },
+              {
+                "pid": 1272265,
+                "startTicks": 3324881,
+                "role": "run-worker"
+              },
+              {
+                "pid": 1272875,
+                "startTicks": 3325276,
+                "role": "run-runtime"
+              },
+              {
+                "pid": 1273259,
+                "startTicks": 3325632,
+                "role": "run-worker"
+              },
+              {
+                "pid": 1273724,
+                "startTicks": 3326038,
+                "role": "run-runtime"
+              },
+              {
+                "pid": 1273918,
+                "startTicks": 3326181,
+                "role": "run-worker"
+              },
+              {
+                "pid": 1274186,
+                "startTicks": 3326388,
+                "role": "run-runtime"
+              }
+            ],
+            "liveKnown": [],
+            "liveNew": [],
+            "exitedZombies": [
+              1270675,
+              1272875,
+              1274186
+            ],
+            "otherDescendants": [
+              {
+                "pid": 1268273,
+                "ppid": 1267949,
+                "startTicks": 3321955,
+                "state": "S",
+                "cpuMs": 5250.0,
+                "waitedChildCpuMs": 18130.0,
+                "rss": 213520384,
+                "threads": 18,
+                "executable": "dotnet",
+                "assembly": "Confectory.App.dll",
+                "role": "generated-driver"
+              }
+            ]
+          },
+          "traceFile": "python-1267949.jsonl"
+        },
+        {
+          "utc": 1792309065.8718936,
+          "monotonicNs": 33269770490262,
+          "pid": 1267949,
+          "phase": "run-retirement-check",
+          "data": {
+            "hostPid": 1274776,
+            "knownRunBirths": [
+              {
+                "pid": 1268914,
+                "startTicks": 3322463,
+                "role": "run-worker"
+              },
+              {
+                "pid": 1270675,
+                "startTicks": 3323808,
+                "role": "run-runtime"
+              },
+              {
+                "pid": 1272265,
+                "startTicks": 3324881,
+                "role": "run-worker"
+              },
+              {
+                "pid": 1272875,
+                "startTicks": 3325276,
+                "role": "run-runtime"
+              },
+              {
+                "pid": 1273259,
+                "startTicks": 3325632,
+                "role": "run-worker"
+              },
+              {
+                "pid": 1273724,
+                "startTicks": 3326038,
+                "role": "run-runtime"
+              },
+              {
+                "pid": 1273918,
+                "startTicks": 3326181,
+                "role": "run-worker"
+              },
+              {
+                "pid": 1274186,
+                "startTicks": 3326388,
+                "role": "run-runtime"
+              }
+            ],
+            "liveKnown": [],
+            "liveNew": [],
+            "exitedZombies": [
+              1270675,
+              1272875,
+              1274186
+            ],
+            "otherDescendants": [
+              {
+                "pid": 1274776,
+                "ppid": 1267949,
+                "startTicks": 3326765,
+                "state": "S",
+                "cpuMs": 470.0,
+                "waitedChildCpuMs": 170.0,
+                "rss": 138448896,
+                "threads": 16,
+                "executable": "dotnet",
+                "assembly": "Confectory.App.dll",
+                "role": "generated-driver"
+              }
+            ]
+          },
+          "traceFile": "python-1267949.jsonl"
+        }
+      ],
+      "uiRejectedResults": [],
+      "measurementLimits": [
+        "Owned process sampling is periodic; short-lived processes may be missed. PID birth identities retained; zombies distinguished from live execution.",
+        "Cgroup CPU includes shared services and observer. Throttled counter delta is not a per-operation lost-wall-time estimate.",
+        "Peak memory uses sampled memory.current; lifetime memory.peak not attributed to this phase.",
+        "Limited workload mix preserves 4 CPU, 17GiB and worker cap, not the complete original 235-method launch/cache history."
+      ]
+    },
+    {
+      "id": "control-2",
+      "headAtLaunch": "fd8fabcecdcf60347454f87200d26a2fbfc60b27",
+      "sourceManifestSha256": "d2c3fc3b61013dada50792a755aa4386bca187c67e87e24fc6219982fdc325e9",
+      "sourceFileCount": 2754,
+      "workers": 2,
+      "selectedMethods": {
+        "graph-call": [
+          "FeatureBlueprintTests.test_blueprint_owned_function_reference_call_import_cas_history_and_execution"
+        ],
+        "graph-create": [
+          "FeatureBlueprintTests.test_blueprint_owned_node_creation_removal_review_group_and_cold_restore"
+        ],
+        "ui-close": [
+          "WebUITests.test_actual_editor_v480_local_run_frame_ack_pause_step_reconnect_and_stop"
+        ],
+        "native": [
+          "EngineTests.test_role_composition_two_windows_and_cleanup",
+          "ProjectExecutionTests.test_actual_native_button_game_pause_single_draw_step_and_stop",
+          "ProjectExecutionTests.test_actual_native_engine_cooperative_frame_callbacks",
+          "ButtonTests.test_shared_button_game_without_editor_state_input_navigation_native_targets_and_locality"
+        ],
+        "related-ref": [
+          "PropertyAuthoringTests.test_field_ref_preview_typed_aliases_source_cas_cold_confirm_actual_clr_and_schema_rejection",
+          "WebUITests.test_actual_editor_v480_field_ref_restricted_catalog_true_parameter_cold_and_confirm"
+        ],
+        "related-set": [
+          "PropertyAuthoringTests.test_property_set_field_preview_explicit_profile_save_cold_confirm_actual_clr_and_schema_drift",
+          "WebUITests.test_actual_editor_v480_property_set_explicit_receiver_value_cold_and_confirm"
+        ]
+      },
+      "methodOutcomes": [
+        {
+          "method": "FeatureBlueprintTests.test_blueprint_owned_node_creation_removal_review_group_and_cold_restore",
+          "outcome": "PASS"
+        },
+        {
+          "method": "WebUITests.test_actual_editor_v480_local_run_frame_ack_pause_step_reconnect_and_stop",
+          "outcome": "PASS"
+        },
+        {
+          "method": "FeatureBlueprintTests.test_blueprint_owned_function_reference_call_import_cas_history_and_execution",
+          "outcome": "PASS"
+        },
+        {
+          "method": "EngineTests.test_role_composition_two_windows_and_cleanup",
+          "outcome": "PASS"
+        },
+        {
+          "method": "ProjectExecutionTests.test_actual_native_button_game_pause_single_draw_step_and_stop",
+          "outcome": "PASS"
+        },
+        {
+          "method": "ProjectExecutionTests.test_actual_native_engine_cooperative_frame_callbacks",
+          "outcome": "PASS"
+        },
+        {
+          "method": "ButtonTests.test_shared_button_game_without_editor_state_input_navigation_native_targets_and_locality",
+          "outcome": "PASS"
+        },
+        {
+          "method": "PropertyAuthoringTests.test_field_ref_preview_typed_aliases_source_cas_cold_confirm_actual_clr_and_schema_rejection",
+          "outcome": "PASS"
+        },
+        {
+          "method": "WebUITests.test_actual_editor_v480_field_ref_restricted_catalog_true_parameter_cold_and_confirm",
+          "outcome": "PASS"
+        },
+        {
+          "method": "PropertyAuthoringTests.test_property_set_field_preview_explicit_profile_save_cold_confirm_actual_clr_and_schema_drift",
+          "outcome": "PASS"
+        },
+        {
+          "method": "WebUITests.test_actual_editor_v480_property_set_explicit_receiver_value_cold_and_confirm",
+          "outcome": "PASS"
+        }
+      ],
+      "elapsedSeconds": 460.080821266,
+      "resources": {
+        "cpuQuota": "400000 100000",
+        "memoryLimitBytes": 17179869184,
+        "cpuUsedSeconds": 998.507875,
+        "averageCores": 2.1702879773436665,
+        "cpuThrottledPeriodCount": 63,
+        "cpuPeriodCount": 4600,
+        "cpuThrottledCounterSeconds": 1.407531,
+        "observerCpuSeconds": 48.141902415,
+        "observerAverageCores": 0.10463792488139016,
+        "maximumSampledMemoryCurrentBytes": 5373751296,
+        "maximumSampledOwnedProcesses": 29,
+        "maximumSampledLiveGateProcesses": 21,
+        "maximumSampledGateZombies": 12,
+        "observerCpuScope": "Whole Python runner process, including sampling/gzip/source checks/orchestration; not child CPU",
+        "maximumCgroupPidsCurrent": 1780,
+        "oomKillDelta": 0
+      },
+      "driverBudgets": [
+        {
+          "utc": "2026-10-18T07:44:35.0679034+00:00",
+          "monotonicMs": 0.0079,
+          "pid": 1311035,
+          "phase": "native-button-driver:begin",
+          "cpuMs": 3629.975,
+          "rss": 112717824,
+          "data": {
+            "timeoutSeconds": 180
+          },
+          "traceFile": "managed-1311035.jsonl"
+        },
+        {
+          "utc": "2026-10-18T07:44:37.0419083+00:00",
+          "monotonicMs": 1973.9542,
+          "pid": 1311035,
+          "phase": "native-button-driver:exit",
+          "cpuMs": 3669.728,
+          "rss": 113070080,
+          "data": {
+            "ExitCode": 0,
+            "elapsedMs": 1974.2732
+          },
+          "traceFile": "managed-1311035.jsonl"
+        },
+        {
+          "utc": "2026-10-18T07:44:42.6985164+00:00",
+          "monotonicMs": 7630.5638,
+          "pid": 1311035,
+          "phase": "native-engine-driver:begin",
+          "cpuMs": 3873.105,
+          "rss": 116690944,
+          "data": {
+            "timeoutSeconds": 240
+          },
+          "traceFile": "managed-1311035.jsonl"
+        },
+        {
+          "utc": "2026-10-18T07:45:19.0071582+00:00",
+          "monotonicMs": 43939.204,
+          "pid": 1311035,
+          "phase": "native-engine-driver:exit",
+          "cpuMs": 3901.647,
+          "rss": 116695040,
+          "data": {
+            "ExitCode": 0,
+            "elapsedMs": 36308.6374
+          },
+          "traceFile": "managed-1311035.jsonl"
+        },
+        {
+          "utc": "2026-10-18T07:41:33.7963279+00:00",
+          "monotonicMs": 14946.1408,
+          "pid": 1292363,
+          "phase": "graph-create-driver:begin",
+          "cpuMs": 2283.365,
+          "rss": 95932416,
+          "data": {
+            "timeoutSeconds": 180
+          },
+          "traceFile": "managed-1292363.jsonl"
+        },
+        {
+          "utc": "2026-10-18T07:43:17.2362286+00:00",
+          "monotonicMs": 118386.042,
+          "pid": 1292363,
+          "phase": "graph-create-driver:exit",
+          "cpuMs": 2513.569,
+          "rss": 97705984,
+          "data": {
+            "ExitCode": 0,
+            "elapsedMs": 103439.5181
+          },
+          "traceFile": "managed-1292363.jsonl"
+        },
+        {
+          "utc": "2026-10-18T07:41:32.2267596+00:00",
+          "monotonicMs": 13376.7133,
+          "pid": 1292364,
+          "phase": "graph-call-driver:begin",
+          "cpuMs": 2209.705,
+          "rss": 95342592,
+          "data": {
+            "timeoutSeconds": 240
+          },
+          "traceFile": "managed-1292364.jsonl"
+        },
+        {
+          "utc": "2026-10-18T07:44:08.3470057+00:00",
+          "monotonicMs": 169496.9601,
+          "pid": 1292364,
+          "phase": "graph-call-driver:exit",
+          "cpuMs": 2447.475,
+          "rss": 97705984,
+          "data": {
+            "ExitCode": 0,
+            "elapsedMs": 156120.1068
+          },
+          "traceFile": "managed-1292364.jsonl"
+        }
+      ],
+      "graphProgress": [
+        {
+          "pid": 1293478,
+          "group": "graph-create",
+          "completedCalls": 102,
+          "maxCompletedCallMs": 11485.8136,
+          "lastCall": {
+            "utc": "2026-10-18T07:43:17.2104547+00:00",
+            "monotonicMs": 103387.6725,
+            "pid": 1293478,
+            "phase": "command:end",
+            "cpuMs": 3727.669,
+            "rss": 323739648,
+            "data": {
+              "elapsedMs": 102.8893
+            }
+          }
+        },
+        {
+          "pid": 1293334,
+          "group": "graph-call",
+          "completedCalls": 224,
+          "maxCompletedCallMs": 11997.2352,
+          "lastCall": {
+            "utc": "2026-10-18T07:44:08.3236234+00:00",
+            "monotonicMs": 156067.1434,
+            "pid": 1293334,
+            "phase": "command:end",
+            "cpuMs": 4306.148,
+            "rss": 206790656,
+            "data": {
+              "elapsedMs": 0.374
+            }
+          }
+        }
+      ],
+      "nativeWaits": [
+        {
+          "pid": 1314965,
+          "wait": 1,
+          "samples": 3,
+          "first": {
+            "utc": "2026-10-18T07:44:35.1595157+00:00",
+            "monotonicMs": 63.6816,
+            "pid": 1314965,
+            "phase": "native-wait:sample",
+            "cpuMs": 91.486,
+            "rss": 45568000,
+            "data": {
+              "wait": 1,
+              "elapsedMs": 3,
+              "state": "building",
+              "control": {
+                "available": false,
+                "connected": false,
+                "sequence": 0,
+                "reason": "Execution is building"
+              }
+            },
+            "traceFile": "driver-1314965.jsonl"
+          },
+          "last": {
+            "utc": "2026-10-18T07:44:36.6309392+00:00",
+            "monotonicMs": 1535.1033,
+            "pid": 1314965,
+            "phase": "native-wait:done",
+            "cpuMs": 418.516,
+            "rss": 53796864,
+            "data": {
+              "wait": 1,
+              "elapsedMs": 1478,
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "running",
+                "frame": "2",
+                "ack": 0,
+                "pending": 0,
+                "sequence": 0,
+                "reason": "",
+                "outcome": ""
+              }
+            },
+            "traceFile": "driver-1314965.jsonl"
+          },
+          "completed": true,
+          "driverKind": "native-button"
+        },
+        {
+          "pid": 1314965,
+          "wait": 2,
+          "samples": 2,
+          "first": {
+            "utc": "2026-10-18T07:44:36.6359752+00:00",
+            "monotonicMs": 1540.1392,
+            "pid": 1314965,
+            "phase": "native-wait:sample",
+            "cpuMs": 423.942,
+            "rss": 53870592,
+            "data": {
+              "wait": 2,
+              "elapsedMs": 0,
+              "state": "running",
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "running",
+                "frame": "2",
+                "ack": 0,
+                "pending": 1,
+                "sequence": 1,
+                "reason": "",
+                "outcome": "pending"
+              }
+            },
+            "traceFile": "driver-1314965.jsonl"
+          },
+          "last": {
+            "utc": "2026-10-18T07:44:36.6538047+00:00",
+            "monotonicMs": 1557.9687,
+            "pid": 1314965,
+            "phase": "native-wait:done",
+            "cpuMs": 426.051,
+            "rss": 53886976,
+            "data": {
+              "wait": 2,
+              "elapsedMs": 18,
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "2",
+                "ack": 1,
+                "pending": 0,
+                "sequence": 1,
+                "reason": "",
+                "outcome": "applied"
+              }
+            },
+            "traceFile": "driver-1314965.jsonl"
+          },
+          "completed": true,
+          "driverKind": "native-button"
+        },
+        {
+          "pid": 1314965,
+          "wait": 3,
+          "samples": 2,
+          "first": {
+            "utc": "2026-10-18T07:44:36.7602355+00:00",
+            "monotonicMs": 1664.3996,
+            "pid": 1314965,
+            "phase": "native-wait:sample",
+            "cpuMs": 431.258,
+            "rss": 53891072,
+            "data": {
+              "wait": 3,
+              "elapsedMs": 0,
+              "state": "running",
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "2",
+                "ack": 1,
+                "pending": 2,
+                "sequence": 2,
+                "reason": "",
+                "outcome": "pending"
+              }
+            },
+            "traceFile": "driver-1314965.jsonl"
+          },
+          "last": {
+            "utc": "2026-10-18T07:44:36.7785023+00:00",
+            "monotonicMs": 1682.6663,
+            "pid": 1314965,
+            "phase": "native-wait:done",
+            "cpuMs": 433.738,
+            "rss": 53907456,
+            "data": {
+              "wait": 3,
+              "elapsedMs": 19,
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "3",
+                "ack": 2,
+                "pending": 0,
+                "sequence": 2,
+                "reason": "",
+                "outcome": "applied"
+              }
+            },
+            "traceFile": "driver-1314965.jsonl"
+          },
+          "completed": true,
+          "driverKind": "native-button"
+        },
+        {
+          "pid": 1315656,
+          "wait": 1,
+          "samples": 30,
+          "first": {
+            "utc": "2026-10-18T07:44:42.7817226+00:00",
+            "monotonicMs": 62.4569,
+            "pid": 1315656,
+            "phase": "native-wait:sample",
+            "cpuMs": 89.491,
+            "rss": 46325760,
+            "data": {
+              "wait": 1,
+              "elapsedMs": 2,
+              "state": "building",
+              "control": {
+                "available": false,
+                "connected": false,
+                "sequence": 0,
+                "reason": "Execution is building"
+              }
+            },
+            "traceFile": "driver-1315656.jsonl"
+          },
+          "last": {
+            "utc": "2026-10-18T07:45:11.9151188+00:00",
+            "monotonicMs": 29195.8528,
+            "pid": 1315656,
+            "phase": "native-wait:done",
+            "cpuMs": 1817.052,
+            "rss": 64905216,
+            "data": {
+              "wait": 1,
+              "elapsedMs": 29138,
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "running",
+                "frame": "8",
+                "ack": 0,
+                "pending": 0,
+                "sequence": 0,
+                "reason": "",
+                "outcome": ""
+              }
+            },
+            "traceFile": "driver-1315656.jsonl"
+          },
+          "completed": true,
+          "driverKind": "native-engine"
+        },
+        {
+          "pid": 1315656,
+          "wait": 2,
+          "samples": 3,
+          "first": {
+            "utc": "2026-10-18T07:45:11.9195161+00:00",
+            "monotonicMs": 29200.2504,
+            "pid": 1315656,
+            "phase": "native-wait:sample",
+            "cpuMs": 1820.451,
+            "rss": 64946176,
+            "data": {
+              "wait": 2,
+              "elapsedMs": 0,
+              "state": "building",
+              "control": {
+                "available": false,
+                "connected": false,
+                "sequence": 0,
+                "reason": "Execution is building"
+              }
+            },
+            "traceFile": "driver-1315656.jsonl"
+          },
+          "last": {
+            "utc": "2026-10-18T07:45:13.5590476+00:00",
+            "monotonicMs": 30839.7815,
+            "pid": 1315656,
+            "phase": "native-wait:done",
+            "cpuMs": 2382.602,
+            "rss": 66523136,
+            "data": {
+              "wait": 2,
+              "elapsedMs": 1639,
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "running",
+                "frame": "13",
+                "ack": 0,
+                "pending": 0,
+                "sequence": 0,
+                "reason": "",
+                "outcome": ""
+              }
+            },
+            "traceFile": "driver-1315656.jsonl"
+          },
+          "completed": true,
+          "driverKind": "native-engine"
+        },
+        {
+          "pid": 1315656,
+          "wait": 3,
+          "samples": 2,
+          "first": {
+            "utc": "2026-10-18T07:45:13.5618935+00:00",
+            "monotonicMs": 30842.6269,
+            "pid": 1315656,
+            "phase": "native-wait:sample",
+            "cpuMs": 2385.454,
+            "rss": 66543616,
+            "data": {
+              "wait": 3,
+              "elapsedMs": 0,
+              "state": "running",
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "running",
+                "frame": "1210",
+                "ack": 0,
+                "pending": 1,
+                "sequence": 1,
+                "reason": "",
+                "outcome": "pending"
+              }
+            },
+            "traceFile": "driver-1315656.jsonl"
+          },
+          "last": {
+            "utc": "2026-10-18T07:45:13.5787595+00:00",
+            "monotonicMs": 30859.4929,
+            "pid": 1315656,
+            "phase": "native-wait:done",
+            "cpuMs": 2389.956,
+            "rss": 66510848,
+            "data": {
+              "wait": 3,
+              "elapsedMs": 17,
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "1210",
+                "ack": 1,
+                "pending": 0,
+                "sequence": 1,
+                "reason": "",
+                "outcome": "applied"
+              }
+            },
+            "traceFile": "driver-1315656.jsonl"
+          },
+          "completed": true,
+          "driverKind": "native-engine"
+        },
+        {
+          "pid": 1315656,
+          "wait": 4,
+          "samples": 2,
+          "first": {
+            "utc": "2026-10-18T07:45:13.8467718+00:00",
+            "monotonicMs": 31127.5057,
+            "pid": 1315656,
+            "phase": "native-wait:sample",
+            "cpuMs": 2447.881,
+            "rss": 66879488,
+            "data": {
+              "wait": 4,
+              "elapsedMs": 0,
+              "state": "running",
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "1210",
+                "ack": 1,
+                "pending": 2,
+                "sequence": 2,
+                "reason": "",
+                "outcome": "pending"
+              }
+            },
+            "traceFile": "driver-1315656.jsonl"
+          },
+          "last": {
+            "utc": "2026-10-18T07:45:13.8644571+00:00",
+            "monotonicMs": 31145.1907,
+            "pid": 1315656,
+            "phase": "native-wait:done",
+            "cpuMs": 2451.448,
+            "rss": 66887680,
+            "data": {
+              "wait": 4,
+              "elapsedMs": 18,
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "1211",
+                "ack": 2,
+                "pending": 0,
+                "sequence": 2,
+                "reason": "",
+                "outcome": "applied"
+              }
+            },
+            "traceFile": "driver-1315656.jsonl"
+          },
+          "completed": true,
+          "driverKind": "native-engine"
+        },
+        {
+          "pid": 1315656,
+          "wait": 5,
+          "samples": 2,
+          "first": {
+            "utc": "2026-10-18T07:45:13.8656366+00:00",
+            "monotonicMs": 31146.37,
+            "pid": 1315656,
+            "phase": "native-wait:sample",
+            "cpuMs": 2452.811,
+            "rss": 66891776,
+            "data": {
+              "wait": 5,
+              "elapsedMs": 0,
+              "state": "running",
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "1211",
+                "ack": 2,
+                "pending": 3,
+                "sequence": 3,
+                "reason": "",
+                "outcome": "pending"
+              }
+            },
+            "traceFile": "driver-1315656.jsonl"
+          },
+          "last": {
+            "utc": "2026-10-18T07:45:13.8816591+00:00",
+            "monotonicMs": 31162.3927,
+            "pid": 1315656,
+            "phase": "native-wait:done",
+            "cpuMs": 2454.821,
+            "rss": 66908160,
+            "data": {
+              "wait": 5,
+              "elapsedMs": 16,
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "1212",
+                "ack": 3,
+                "pending": 0,
+                "sequence": 3,
+                "reason": "",
+                "outcome": "applied"
+              }
+            },
+            "traceFile": "driver-1315656.jsonl"
+          },
+          "completed": true,
+          "driverKind": "native-engine"
+        },
+        {
+          "pid": 1315656,
+          "wait": 6,
+          "samples": 2,
+          "first": {
+            "utc": "2026-10-18T07:45:13.8836322+00:00",
+            "monotonicMs": 31164.3657,
+            "pid": 1315656,
+            "phase": "native-wait:sample",
+            "cpuMs": 2457.018,
+            "rss": 66891776,
+            "data": {
+              "wait": 6,
+              "elapsedMs": 1,
+              "state": "running",
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "1212",
+                "ack": 3,
+                "pending": 4,
+                "sequence": 4,
+                "reason": "",
+                "outcome": "pending"
+              }
+            },
+            "traceFile": "driver-1315656.jsonl"
+          },
+          "last": {
+            "utc": "2026-10-18T07:45:13.8996616+00:00",
+            "monotonicMs": 31180.395,
+            "pid": 1315656,
+            "phase": "native-wait:done",
+            "cpuMs": 2459.267,
+            "rss": 66908160,
+            "data": {
+              "wait": 6,
+              "elapsedMs": 17,
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "1213",
+                "ack": 4,
+                "pending": 0,
+                "sequence": 4,
+                "reason": "",
+                "outcome": "applied"
+              }
+            },
+            "traceFile": "driver-1315656.jsonl"
+          },
+          "completed": true,
+          "driverKind": "native-engine"
+        },
+        {
+          "pid": 1315656,
+          "wait": 7,
+          "samples": 2,
+          "first": {
+            "utc": "2026-10-18T07:45:16.20338+00:00",
+            "monotonicMs": 33484.1139,
+            "pid": 1315656,
+            "phase": "native-wait:sample",
+            "cpuMs": 2729.461,
+            "rss": 67063808,
+            "data": {
+              "wait": 7,
+              "elapsedMs": 0,
+              "state": "running",
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "running",
+                "frame": "1214",
+                "ack": 5,
+                "pending": 0,
+                "sequence": 5,
+                "reason": "",
+                "outcome": "applied"
+              }
+            },
+            "traceFile": "driver-1315656.jsonl"
+          },
+          "last": {
+            "utc": "2026-10-18T07:45:16.2038914+00:00",
+            "monotonicMs": 33484.6248,
+            "pid": 1315656,
+            "phase": "native-wait:done",
+            "cpuMs": 2730.283,
+            "rss": 67096576,
+            "data": {
+              "wait": 7,
+              "elapsedMs": 1,
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "running",
+                "frame": "1214",
+                "ack": 5,
+                "pending": 0,
+                "sequence": 5,
+                "reason": "",
+                "outcome": "applied"
+              }
+            },
+            "traceFile": "driver-1315656.jsonl"
+          },
+          "completed": true,
+          "driverKind": "native-engine"
+        },
+        {
+          "pid": 1315656,
+          "wait": 8,
+          "samples": 2,
+          "first": {
+            "utc": "2026-10-18T07:45:18.6112608+00:00",
+            "monotonicMs": 35891.9945,
+            "pid": 1315656,
+            "phase": "native-wait:sample",
+            "cpuMs": 2995.894,
+            "rss": 68071424,
+            "data": {
+              "wait": 8,
+              "elapsedMs": 1,
+              "state": "running",
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "2948",
+                "ack": 5,
+                "pending": 6,
+                "sequence": 6,
+                "reason": "",
+                "outcome": "pending"
+              }
+            },
+            "traceFile": "driver-1315656.jsonl"
+          },
+          "last": {
+            "utc": "2026-10-18T07:45:18.6275025+00:00",
+            "monotonicMs": 35908.2359,
+            "pid": 1315656,
+            "phase": "native-wait:done",
+            "cpuMs": 2997.411,
+            "rss": 68087808,
+            "data": {
+              "wait": 8,
+              "elapsedMs": 17,
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "2949",
+                "ack": 6,
+                "pending": 0,
+                "sequence": 6,
+                "reason": "",
+                "outcome": "applied"
+              }
+            },
+            "traceFile": "driver-1315656.jsonl"
+          },
+          "completed": true,
+          "driverKind": "native-engine"
+        }
+      ],
+      "ownershipEvents": [
+        {
+          "utc": 1792309428.74222,
+          "monotonicNs": 33632640815721,
+          "pid": 1307598,
+          "phase": "before-confirmed-close",
+          "data": {
+            "hostPid": 1307789,
+            "processes": [
+              {
+                "pid": 1307789,
+                "ppid": 1307598,
+                "startTicks": 3360652,
+                "state": "S",
+                "cpuMs": 4110.0,
+                "waitedChildCpuMs": 15600.0,
+                "rss": 177094656,
+                "threads": 18,
+                "executable": "dotnet",
+                "assembly": "Confectory.App.dll",
+                "role": "generated-driver"
+              },
+              {
+                "pid": 1310384,
+                "ppid": 1307789,
+                "startTicks": 3363050,
+                "state": "S",
+                "cpuMs": 1140.0,
+                "waitedChildCpuMs": 1020.0,
+                "rss": 64274432,
+                "threads": 16,
+                "executable": "dotnet",
+                "assembly": "Confectory.ProjectExecutionHost.dll",
+                "role": "run-worker"
+              },
+              {
+                "pid": 1310543,
+                "ppid": 1310384,
+                "startTicks": 3363168,
+                "state": "S",
+                "cpuMs": 150.0,
+                "waitedChildCpuMs": 0.0,
+                "rss": 39854080,
+                "threads": 15,
+                "executable": "dotnet",
+                "assembly": "Confectory.App.dll",
+                "role": "run-runtime"
+              }
+            ]
+          },
+          "traceFile": "python-1307598.jsonl"
+        },
+        {
+          "utc": 1792309428.7913086,
+          "monotonicNs": 33632689904955,
+          "pid": 1307598,
+          "phase": "run-retirement-check",
+          "data": {
+            "hostPid": 1307789,
+            "knownRunBirths": [
+              {
+                "pid": 1308084,
+                "startTicks": 3360882,
+                "role": "run-worker"
+              },
+              {
+                "pid": 1308820,
+                "startTicks": 3361458,
+                "role": "run-runtime"
+              },
+              {
+                "pid": 1309552,
+                "startTicks": 3362263,
+                "role": "run-worker"
+              },
+              {
+                "pid": 1309820,
+                "startTicks": 3362475,
+                "role": "run-runtime"
+              },
+              {
+                "pid": 1310060,
+                "startTicks": 3362765,
+                "role": "run-worker"
+              },
+              {
+                "pid": 1310305,
+                "startTicks": 3362975,
+                "role": "run-runtime"
+              },
+              {
+                "pid": 1310384,
+                "startTicks": 3363050,
+                "role": "run-worker"
+              },
+              {
+                "pid": 1310543,
+                "startTicks": 3363168,
+                "role": "run-runtime"
+              }
+            ],
+            "liveKnown": [
+              {
+                "pid": 1310384,
+                "ppid": 1307789,
+                "startTicks": 3363050,
+                "state": "S",
+                "cpuMs": 1140.0,
+                "waitedChildCpuMs": 1020.0,
+                "rss": 64274432,
+                "threads": 16,
+                "executable": "dotnet",
+                "assembly": "Confectory.ProjectExecutionHost.dll",
+                "role": "run-worker"
+              },
+              {
+                "pid": 1310543,
+                "ppid": 1310384,
+                "startTicks": 3363168,
+                "state": "S",
+                "cpuMs": 160.0,
+                "waitedChildCpuMs": 0.0,
+                "rss": 39854080,
+                "threads": 15,
+                "executable": "dotnet",
+                "assembly": "Confectory.App.dll",
+                "role": "run-runtime"
+              }
+            ],
+            "liveNew": [
+              {
+                "pid": 1310384,
+                "ppid": 1307789,
+                "startTicks": 3363050,
+                "state": "S",
+                "cpuMs": 1140.0,
+                "waitedChildCpuMs": 1020.0,
+                "rss": 64274432,
+                "threads": 16,
+                "executable": "dotnet",
+                "assembly": "Confectory.ProjectExecutionHost.dll",
+                "role": "run-worker"
+              },
+              {
+                "pid": 1310543,
+                "ppid": 1310384,
+                "startTicks": 3363168,
+                "state": "S",
+                "cpuMs": 160.0,
+                "waitedChildCpuMs": 0.0,
+                "rss": 39854080,
+                "threads": 15,
+                "executable": "dotnet",
+                "assembly": "Confectory.App.dll",
+                "role": "run-runtime"
+              }
+            ],
+            "exitedZombies": [
+              1308820,
+              1309820
+            ],
+            "otherDescendants": [
+              {
+                "pid": 1307789,
+                "ppid": 1307598,
+                "startTicks": 3360652,
+                "state": "S",
+                "cpuMs": 4110.0,
+                "waitedChildCpuMs": 15600.0,
+                "rss": 177094656,
+                "threads": 18,
+                "executable": "dotnet",
+                "assembly": "Confectory.App.dll",
+                "role": "generated-driver"
+              },
+              {
+                "pid": 1310384,
+                "ppid": 1307789,
+                "startTicks": 3363050,
+                "state": "S",
+                "cpuMs": 1140.0,
+                "waitedChildCpuMs": 1020.0,
+                "rss": 64274432,
+                "threads": 16,
+                "executable": "dotnet",
+                "assembly": "Confectory.ProjectExecutionHost.dll",
+                "role": "run-worker"
+              },
+              {
+                "pid": 1310543,
+                "ppid": 1310384,
+                "startTicks": 3363168,
+                "state": "S",
+                "cpuMs": 160.0,
+                "waitedChildCpuMs": 0.0,
+                "rss": 39854080,
+                "threads": 15,
+                "executable": "dotnet",
+                "assembly": "Confectory.App.dll",
+                "role": "run-runtime"
+              }
+            ]
+          },
+          "traceFile": "python-1307598.jsonl"
+        },
+        {
+          "utc": 1792309429.3189847,
+          "monotonicNs": 33633217580002,
+          "pid": 1307598,
+          "phase": "child-count-assert-observation",
+          "data": {
+            "hostPid": 1307789,
+            "childIds": [],
+            "processes": [
+              {
+                "pid": 1307789,
+                "ppid": 1307598,
+                "startTicks": 3360652,
+                "state": "S",
+                "cpuMs": 4370.0,
+                "waitedChildCpuMs": 17770.0,
+                "rss": 180502528,
+                "threads": 18,
+                "executable": "dotnet",
+                "assembly": "Confectory.App.dll",
+                "role": "generated-driver"
+              }
+            ]
+          },
+          "traceFile": "python-1307598.jsonl"
+        },
+        {
+          "utc": 1792309429.3190324,
+          "monotonicNs": 33633217627694,
+          "pid": 1307598,
+          "phase": "legacy-all-child-count",
+          "data": {
+            "childIds": [],
+            "wouldFail": false
+          },
+          "traceFile": "python-1307598.jsonl"
+        },
+        {
+          "utc": 1792309429.3717945,
+          "monotonicNs": 33633270390830,
+          "pid": 1307598,
+          "phase": "run-retirement-check",
+          "data": {
+            "hostPid": 1307789,
+            "knownRunBirths": [
+              {
+                "pid": 1308084,
+                "startTicks": 3360882,
+                "role": "run-worker"
+              },
+              {
+                "pid": 1308820,
+                "startTicks": 3361458,
+                "role": "run-runtime"
+              },
+              {
+                "pid": 1309552,
+                "startTicks": 3362263,
+                "role": "run-worker"
+              },
+              {
+                "pid": 1309820,
+                "startTicks": 3362475,
+                "role": "run-runtime"
+              },
+              {
+                "pid": 1310060,
+                "startTicks": 3362765,
+                "role": "run-worker"
+              },
+              {
+                "pid": 1310305,
+                "startTicks": 3362975,
+                "role": "run-runtime"
+              },
+              {
+                "pid": 1310384,
+                "startTicks": 3363050,
+                "role": "run-worker"
+              },
+              {
+                "pid": 1310543,
+                "startTicks": 3363168,
+                "role": "run-runtime"
+              }
+            ],
+            "liveKnown": [],
+            "liveNew": [],
+            "exitedZombies": [
+              1308820,
+              1309820,
+              1310543
+            ],
+            "otherDescendants": [
+              {
+                "pid": 1307789,
+                "ppid": 1307598,
+                "startTicks": 3360652,
+                "state": "S",
+                "cpuMs": 4370.0,
+                "waitedChildCpuMs": 17770.0,
+                "rss": 180502528,
+                "threads": 18,
+                "executable": "dotnet",
+                "assembly": "Confectory.App.dll",
+                "role": "generated-driver"
+              }
+            ]
+          },
+          "traceFile": "python-1307598.jsonl"
+        },
+        {
+          "utc": 1792309430.2890062,
+          "monotonicNs": 33634187602711,
+          "pid": 1307598,
+          "phase": "run-retirement-check",
+          "data": {
+            "hostPid": 1307789,
+            "knownRunBirths": [
+              {
+                "pid": 1308084,
+                "startTicks": 3360882,
+                "role": "run-worker"
+              },
+              {
+                "pid": 1308820,
+                "startTicks": 3361458,
+                "role": "run-runtime"
+              },
+              {
+                "pid": 1309552,
+                "startTicks": 3362263,
+                "role": "run-worker"
+              },
+              {
+                "pid": 1309820,
+                "startTicks": 3362475,
+                "role": "run-runtime"
+              },
+              {
+                "pid": 1310060,
+                "startTicks": 3362765,
+                "role": "run-worker"
+              },
+              {
+                "pid": 1310305,
+                "startTicks": 3362975,
+                "role": "run-runtime"
+              },
+              {
+                "pid": 1310384,
+                "startTicks": 3363050,
+                "role": "run-worker"
+              },
+              {
+                "pid": 1310543,
+                "startTicks": 3363168,
+                "role": "run-runtime"
+              }
+            ],
+            "liveKnown": [],
+            "liveNew": [],
+            "exitedZombies": [
+              1308820,
+              1309820,
+              1310543
+            ],
+            "otherDescendants": [
+              {
+                "pid": 1307789,
+                "ppid": 1307598,
+                "startTicks": 3360652,
+                "state": "S",
+                "cpuMs": 4480.0,
+                "waitedChildCpuMs": 18270.0,
+                "rss": 181288960,
+                "threads": 18,
+                "executable": "dotnet",
+                "assembly": "Confectory.App.dll",
+                "role": "generated-driver"
+              }
+            ]
+          },
+          "traceFile": "python-1307598.jsonl"
+        },
+        {
+          "utc": 1792309431.4568026,
+          "monotonicNs": 33635355399031,
+          "pid": 1307598,
+          "phase": "run-retirement-check",
+          "data": {
+            "hostPid": 1310823,
+            "knownRunBirths": [
+              {
+                "pid": 1308084,
+                "startTicks": 3360882,
+                "role": "run-worker"
+              },
+              {
+                "pid": 1308820,
+                "startTicks": 3361458,
+                "role": "run-runtime"
+              },
+              {
+                "pid": 1309552,
+                "startTicks": 3362263,
+                "role": "run-worker"
+              },
+              {
+                "pid": 1309820,
+                "startTicks": 3362475,
+                "role": "run-runtime"
+              },
+              {
+                "pid": 1310060,
+                "startTicks": 3362765,
+                "role": "run-worker"
+              },
+              {
+                "pid": 1310305,
+                "startTicks": 3362975,
+                "role": "run-runtime"
+              },
+              {
+                "pid": 1310384,
+                "startTicks": 3363050,
+                "role": "run-worker"
+              },
+              {
+                "pid": 1310543,
+                "startTicks": 3363168,
+                "role": "run-runtime"
+              }
+            ],
+            "liveKnown": [],
+            "liveNew": [],
+            "exitedZombies": [
+              1308820,
+              1309820,
+              1310543
+            ],
+            "otherDescendants": [
+              {
+                "pid": 1310823,
+                "ppid": 1307598,
+                "startTicks": 3363424,
+                "state": "S",
+                "cpuMs": 410.0,
+                "waitedChildCpuMs": 180.0,
+                "rss": 138719232,
+                "threads": 16,
+                "executable": "dotnet",
+                "assembly": "Confectory.App.dll",
+                "role": "generated-driver"
+              }
+            ]
+          },
+          "traceFile": "python-1307598.jsonl"
+        }
+      ],
+      "uiRejectedResults": [],
+      "measurementLimits": [
+        "Owned process sampling is periodic; short-lived processes may be missed. PID birth identities retained; zombies distinguished from live execution.",
+        "Cgroup CPU includes shared services and observer. Throttled counter delta is not a per-operation lost-wall-time estimate.",
+        "Peak memory uses sampled memory.current; lifetime memory.peak not attributed to this phase.",
+        "Limited workload mix preserves 4 CPU, 17GiB and worker cap, not the complete original 235-method launch/cache history."
+      ]
+    },
+    {
+      "id": "lease-gap",
+      "headAtLaunch": "fd8fabcecdcf60347454f87200d26a2fbfc60b27",
+      "sourceManifestSha256": "d2c3fc3b61013dada50792a755aa4386bca187c67e87e24fc6219982fdc325e9",
+      "sourceFileCount": 2754,
+      "workers": 1,
+      "selectedMethods": {
+        "lease-gap": [
+          "ProjectExecutionTests.test_actual_native_engine_cooperative_frame_callbacks"
+        ]
+      },
+      "methodOutcomes": [
+        {
+          "method": "ProjectExecutionTests.test_actual_native_engine_cooperative_frame_callbacks",
+          "outcome": "PASS"
+        }
+      ],
+      "elapsedSeconds": 43.08069297,
+      "resources": {
+        "cpuQuota": "400000 100000",
+        "memoryLimitBytes": 17179869184,
+        "cpuUsedSeconds": 59.931193,
+        "averageCores": 1.3911380915282432,
+        "cpuThrottledPeriodCount": 1,
+        "cpuPeriodCount": 430,
+        "cpuThrottledCounterSeconds": 0.004551,
+        "observerCpuSeconds": 4.815887469,
+        "observerAverageCores": 0.1117876045390827,
+        "maximumSampledMemoryCurrentBytes": 4233572352,
+        "maximumSampledOwnedProcesses": 7,
+        "maximumSampledLiveGateProcesses": 7,
+        "maximumSampledGateZombies": 1,
+        "observerCpuScope": "Whole Python runner process, including sampling/gzip/source checks/orchestration; not child CPU",
+        "maximumCgroupPidsCurrent": 1580,
+        "oomKillDelta": 0
+      },
+      "driverBudgets": [
+        {
+          "utc": "2026-10-18T07:51:40.0712372+00:00",
+          "monotonicMs": 0.0059,
+          "pid": 1333103,
+          "phase": "native-engine-driver:begin",
+          "cpuMs": 1291.805,
+          "rss": 75661312,
+          "data": {
+            "timeoutSeconds": 240
+          },
+          "traceFile": "managed-1333103.jsonl"
+        },
+        {
+          "utc": "2026-10-18T07:52:16.9291549+00:00",
+          "monotonicMs": 36857.8737,
+          "pid": 1333103,
+          "phase": "native-engine-driver:exit",
+          "cpuMs": 1560.698,
+          "rss": 76713984,
+          "data": {
+            "ExitCode": 0,
+            "elapsedMs": 36858.1708
+          },
+          "traceFile": "managed-1333103.jsonl"
+        }
+      ],
+      "graphProgress": [],
+      "nativeWaits": [
+        {
+          "pid": 1333343,
+          "wait": 1,
+          "samples": 30,
+          "first": {
+            "utc": "2026-10-18T07:51:40.162758+00:00",
+            "monotonicMs": 63.1267,
+            "pid": 1333343,
+            "phase": "native-wait:sample",
+            "cpuMs": 96.411,
+            "rss": 47370240,
+            "data": {
+              "wait": 1,
+              "elapsedMs": 2,
+              "state": "building",
+              "control": {
+                "available": false,
+                "connected": false,
+                "sequence": 0,
+                "reason": "Execution is building"
+              }
+            },
+            "traceFile": "driver-1333343.jsonl"
+          },
+          "last": {
+            "utc": "2026-10-18T07:52:08.4556152+00:00",
+            "monotonicMs": 28355.9836,
+            "pid": 1333343,
+            "phase": "native-wait:done",
+            "cpuMs": 1778.321,
+            "rss": 64950272,
+            "data": {
+              "wait": 1,
+              "elapsedMs": 28297,
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "running",
+                "frame": "9",
+                "ack": 0,
+                "pending": 0,
+                "sequence": 0,
+                "reason": "",
+                "outcome": ""
+              }
+            },
+            "traceFile": "driver-1333343.jsonl"
+          },
+          "completed": true,
+          "driverKind": "native-engine"
+        },
+        {
+          "pid": 1333343,
+          "wait": 2,
+          "samples": 2,
+          "first": {
+            "utc": "2026-10-18T07:52:11.4714721+00:00",
+            "monotonicMs": 31371.84,
+            "pid": 1333343,
+            "phase": "native-wait:sample",
+            "cpuMs": 2316.913,
+            "rss": 66920448,
+            "data": {
+              "wait": 2,
+              "elapsedMs": 8,
+              "state": "running",
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "running",
+                "frame": "0",
+                "ack": 0,
+                "pending": 0,
+                "sequence": 0,
+                "reason": "",
+                "outcome": ""
+              }
+            },
+            "traceFile": "driver-1333343.jsonl"
+          },
+          "last": {
+            "utc": "2026-10-18T07:52:11.4880924+00:00",
+            "monotonicMs": 31388.4603,
+            "pid": 1333343,
+            "phase": "native-wait:done",
+            "cpuMs": 2320.241,
+            "rss": 66936832,
+            "data": {
+              "wait": 2,
+              "elapsedMs": 25,
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "running",
+                "frame": "8",
+                "ack": 0,
+                "pending": 0,
+                "sequence": 0,
+                "reason": "",
+                "outcome": ""
+              }
+            },
+            "traceFile": "driver-1333343.jsonl"
+          },
+          "completed": true,
+          "driverKind": "native-engine"
+        },
+        {
+          "pid": 1333343,
+          "wait": 3,
+          "samples": 2,
+          "first": {
+            "utc": "2026-10-18T07:52:11.4902361+00:00",
+            "monotonicMs": 31390.6042,
+            "pid": 1333343,
+            "phase": "native-wait:sample",
+            "cpuMs": 2322.937,
+            "rss": 66957312,
+            "data": {
+              "wait": 3,
+              "elapsedMs": 0,
+              "state": "running",
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "1658",
+                "ack": 0,
+                "pending": 1,
+                "sequence": 1,
+                "reason": "",
+                "outcome": "pending"
+              }
+            },
+            "traceFile": "driver-1333343.jsonl"
+          },
+          "last": {
+            "utc": "2026-10-18T07:52:11.5074942+00:00",
+            "monotonicMs": 31407.862,
+            "pid": 1333343,
+            "phase": "native-wait:done",
+            "cpuMs": 2325.395,
+            "rss": 67006464,
+            "data": {
+              "wait": 3,
+              "elapsedMs": 17,
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "1658",
+                "ack": 1,
+                "pending": 0,
+                "sequence": 1,
+                "reason": "",
+                "outcome": "applied"
+              }
+            },
+            "traceFile": "driver-1333343.jsonl"
+          },
+          "completed": true,
+          "driverKind": "native-engine"
+        },
+        {
+          "pid": 1333343,
+          "wait": 4,
+          "samples": 2,
+          "first": {
+            "utc": "2026-10-18T07:52:11.7752805+00:00",
+            "monotonicMs": 31675.6486,
+            "pid": 1333343,
+            "phase": "native-wait:sample",
+            "cpuMs": 2378.993,
+            "rss": 67088384,
+            "data": {
+              "wait": 4,
+              "elapsedMs": 5,
+              "state": "running",
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "1659",
+                "ack": 2,
+                "pending": 0,
+                "sequence": 2,
+                "reason": "",
+                "outcome": "applied"
+              }
+            },
+            "traceFile": "driver-1333343.jsonl"
+          },
+          "last": {
+            "utc": "2026-10-18T07:52:11.7756888+00:00",
+            "monotonicMs": 31676.0566,
+            "pid": 1333343,
+            "phase": "native-wait:done",
+            "cpuMs": 2379.397,
+            "rss": 67088384,
+            "data": {
+              "wait": 4,
+              "elapsedMs": 6,
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "1659",
+                "ack": 2,
+                "pending": 0,
+                "sequence": 2,
+                "reason": "",
+                "outcome": "applied"
+              }
+            },
+            "traceFile": "driver-1333343.jsonl"
+          },
+          "completed": true,
+          "driverKind": "native-engine"
+        },
+        {
+          "pid": 1333343,
+          "wait": 5,
+          "samples": 2,
+          "first": {
+            "utc": "2026-10-18T07:52:11.7805423+00:00",
+            "monotonicMs": 31680.9101,
+            "pid": 1333343,
+            "phase": "native-wait:sample",
+            "cpuMs": 2382.576,
+            "rss": 67043328,
+            "data": {
+              "wait": 5,
+              "elapsedMs": 3,
+              "state": "running",
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "1659",
+                "ack": 2,
+                "pending": 3,
+                "sequence": 3,
+                "reason": "",
+                "outcome": "pending"
+              }
+            },
+            "traceFile": "driver-1333343.jsonl"
+          },
+          "last": {
+            "utc": "2026-10-18T07:52:11.7969875+00:00",
+            "monotonicMs": 31697.3554,
+            "pid": 1333343,
+            "phase": "native-wait:done",
+            "cpuMs": 2386.627,
+            "rss": 67059712,
+            "data": {
+              "wait": 5,
+              "elapsedMs": 20,
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "1660",
+                "ack": 3,
+                "pending": 0,
+                "sequence": 3,
+                "reason": "",
+                "outcome": "applied"
+              }
+            },
+            "traceFile": "driver-1333343.jsonl"
+          },
+          "completed": true,
+          "driverKind": "native-engine"
+        },
+        {
+          "pid": 1333343,
+          "wait": 6,
+          "samples": 2,
+          "first": {
+            "utc": "2026-10-18T07:52:11.8001622+00:00",
+            "monotonicMs": 31700.5299,
+            "pid": 1333343,
+            "phase": "native-wait:sample",
+            "cpuMs": 2388.665,
+            "rss": 67072000,
+            "data": {
+              "wait": 6,
+              "elapsedMs": 2,
+              "state": "running",
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "1660",
+                "ack": 3,
+                "pending": 4,
+                "sequence": 4,
+                "reason": "",
+                "outcome": "pending"
+              }
+            },
+            "traceFile": "driver-1333343.jsonl"
+          },
+          "last": {
+            "utc": "2026-10-18T07:52:11.8172952+00:00",
+            "monotonicMs": 31717.6631,
+            "pid": 1333343,
+            "phase": "native-wait:done",
+            "cpuMs": 2393.694,
+            "rss": 67055616,
+            "data": {
+              "wait": 6,
+              "elapsedMs": 19,
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "1661",
+                "ack": 4,
+                "pending": 0,
+                "sequence": 4,
+                "reason": "",
+                "outcome": "applied"
+              }
+            },
+            "traceFile": "driver-1333343.jsonl"
+          },
+          "completed": true,
+          "driverKind": "native-engine"
+        },
+        {
+          "pid": 1333343,
+          "wait": 7,
+          "samples": 2,
+          "first": {
+            "utc": "2026-10-18T07:52:14.1224925+00:00",
+            "monotonicMs": 34022.8607,
+            "pid": 1333343,
+            "phase": "native-wait:sample",
+            "cpuMs": 2644.719,
+            "rss": 67198976,
+            "data": {
+              "wait": 7,
+              "elapsedMs": 0,
+              "state": "running",
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "running",
+                "frame": "1663",
+                "ack": 5,
+                "pending": 0,
+                "sequence": 5,
+                "reason": "",
+                "outcome": "applied"
+              }
+            },
+            "traceFile": "driver-1333343.jsonl"
+          },
+          "last": {
+            "utc": "2026-10-18T07:52:14.1230949+00:00",
+            "monotonicMs": 34023.4626,
+            "pid": 1333343,
+            "phase": "native-wait:done",
+            "cpuMs": 2645.254,
+            "rss": 67198976,
+            "data": {
+              "wait": 7,
+              "elapsedMs": 1,
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "running",
+                "frame": "1663",
+                "ack": 5,
+                "pending": 0,
+                "sequence": 5,
+                "reason": "",
+                "outcome": "applied"
+              }
+            },
+            "traceFile": "driver-1333343.jsonl"
+          },
+          "completed": true,
+          "driverKind": "native-engine"
+        },
+        {
+          "pid": 1333343,
+          "wait": 8,
+          "samples": 2,
+          "first": {
+            "utc": "2026-10-18T07:52:16.5272978+00:00",
+            "monotonicMs": 36427.6659,
+            "pid": 1333343,
+            "phase": "native-wait:sample",
+            "cpuMs": 2828.318,
+            "rss": 67952640,
+            "data": {
+              "wait": 8,
+              "elapsedMs": 0,
+              "state": "running",
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "3452",
+                "ack": 5,
+                "pending": 6,
+                "sequence": 6,
+                "reason": "",
+                "outcome": "pending"
+              }
+            },
+            "traceFile": "driver-1333343.jsonl"
+          },
+          "last": {
+            "utc": "2026-10-18T07:52:16.5446822+00:00",
+            "monotonicMs": 36445.0501,
+            "pid": 1333343,
+            "phase": "native-wait:done",
+            "cpuMs": 2830.891,
+            "rss": 67948544,
+            "data": {
+              "wait": 8,
+              "elapsedMs": 18,
+              "control": {
+                "available": true,
+                "connected": true,
+                "mode": "paused",
+                "frame": "3453",
+                "ack": 6,
+                "pending": 0,
+                "sequence": 6,
+                "reason": "",
+                "outcome": "applied"
+              }
+            },
+            "traceFile": "driver-1333343.jsonl"
+          },
+          "completed": true,
+          "driverKind": "native-engine"
+        }
+      ],
+      "ownershipEvents": [],
+      "uiRejectedResults": [],
+      "measurementLimits": [
+        "Owned process sampling is periodic; short-lived processes may be missed. PID birth identities retained; zombies distinguished from live execution.",
+        "Cgroup CPU includes shared services and observer. Throttled counter delta is not a per-operation lost-wall-time estimate.",
+        "Peak memory uses sampled memory.current; lifetime memory.peak not attributed to this phase.",
+        "Limited workload mix preserves 4 CPU, 17GiB and worker cap, not the complete original 235-method launch/cache history."
+      ]
+    }
+  ],
+  "untracedRelatedVerification": {
+    "head": "fd8fabcecdcf60347454f87200d26a2fbfc60b27",
+    "instrumentation": false,
+    "methods": [
+      "CoreTests.test_artifact_parallel_publication_and_corrupt_entry_repair",
+      "WebUITests.test_actual_editor_v480_local_run_frame_ack_pause_step_reconnect_and_stop",
+      "WebUITests.test_run_history_command_admission_preserves_published_revision_and_rejects_stale_step",
+      "ProjectExecutionTests.test_actual_native_button_game_pause_single_draw_step_and_stop",
+      "ProjectExecutionTests.test_actual_native_engine_cooperative_frame_callbacks",
+      "ProjectExecutionTests.test_actual_owned_cooperative_frames_pause_step_reconnect_and_stop"
+    ],
+    "exit": 0,
+    "elapsedSeconds": 104.75319775699609,
+    "outcomes": [
+      {
+        "method": "CoreTests.test_artifact_parallel_publication_and_corrupt_entry_repair",
+        "outcome": "PASS"
+      },
+      {
+        "method": "WebUITests.test_actual_editor_v480_local_run_frame_ack_pause_step_reconnect_and_stop",
+        "outcome": "PASS"
+      },
+      {
+        "method": "WebUITests.test_run_history_command_admission_preserves_published_revision_and_rejects_stale_step",
+        "outcome": "PASS"
+      },
+      {
+        "method": "ProjectExecutionTests.test_actual_native_button_game_pause_single_draw_step_and_stop",
+        "outcome": "PASS"
+      },
+      {
+        "method": "ProjectExecutionTests.test_actual_native_engine_cooperative_frame_callbacks",
+        "outcome": "PASS"
+      },
+      {
+        "method": "ProjectExecutionTests.test_actual_owned_cooperative_frames_pause_step_reconnect_and_stop",
+        "outcome": "PASS"
+      }
+    ],
+    "logSha256": "ea299b0abd4d7ce24fa0441750830f210a414f9d56c4c64bafc6a55af2d0bea5"
+  },
+  "finalScopedVerification": {
+    "distinctMethods": 14,
+    "methods": {
+      "FeatureBlueprintTests.test_blueprint_owned_node_creation_removal_review_group_and_cold_restore": "PASS",
+      "WebUITests.test_actual_editor_v480_local_run_frame_ack_pause_step_reconnect_and_stop": "PASS",
+      "FeatureBlueprintTests.test_blueprint_owned_function_reference_call_import_cas_history_and_execution": "PASS",
+      "EngineTests.test_role_composition_two_windows_and_cleanup": "PASS",
+      "ProjectExecutionTests.test_actual_native_button_game_pause_single_draw_step_and_stop": "PASS",
+      "ProjectExecutionTests.test_actual_native_engine_cooperative_frame_callbacks": "PASS",
+      "ButtonTests.test_shared_button_game_without_editor_state_input_navigation_native_targets_and_locality": "PASS",
+      "PropertyAuthoringTests.test_field_ref_preview_typed_aliases_source_cas_cold_confirm_actual_clr_and_schema_rejection": "PASS",
+      "WebUITests.test_actual_editor_v480_field_ref_restricted_catalog_true_parameter_cold_and_confirm": "PASS",
+      "PropertyAuthoringTests.test_property_set_field_preview_explicit_profile_save_cold_confirm_actual_clr_and_schema_drift": "PASS",
+      "WebUITests.test_actual_editor_v480_property_set_explicit_receiver_value_cold_and_confirm": "PASS",
+      "CoreTests.test_artifact_parallel_publication_and_corrupt_entry_repair": "PASS",
+      "WebUITests.test_run_history_command_admission_preserves_published_revision_and_rejects_stale_step": "PASS",
+      "ProjectExecutionTests.test_actual_owned_cooperative_frames_pause_step_reconnect_and_stop": "PASS"
+    },
+    "source": "control-2 + untraced related + controlled lease-gap scenario; overlapping method names counted once",
+    "notAllSixGateMethodsPass": true,
+    "knownSixGateGraphTimeoutsRetained": true,
+    "entire235Repeated": false,
+    "attemptCountsNotSummedAsTests": true
+  },
+  "artifacts": {
+    "v480-env4-attempts.log": {
+      "size": 13669,
+      "sha256": "b46bbc9b71937ecbcb5f95e5b9acfb5e497f436c43d5be7fac37590350a59c93"
+    },
+    "v480-env4-measurements.tar.gz": {
+      "size": 1384931,
+      "sha256": "47e986e02da4dbef13c14d5d19983da7fc425cd5ef14732e761f045b5fb9b219"
+    }
+  },
+  "remainingUncertainty": [
+    "Original native ButtonGame 90s predicate not reproduced in three six-gate attempts.",
+    "Initial diagnostic A Pause ACK0 failure occurred before close; no result-code trace then; later instrumented attempts did not reproduce it.",
+    "Exact original 235-method launch/cache/shared-service history not captured; paired scheduling result does not exclude all product races.",
+    "Terminated runtime zombies reparented to PID1 persist during observation; no PID1/subreaper/authority change; not proven cause of original deadlines.",
+    "Sampling can miss short-lived processes; runner CPU and shared services contribute to measured cgroup usage; no whole-OS/device/account claims."
+  ]
+}
