@@ -121,3 +121,7 @@ Workspace private 창 링크·수명은 [규칙과 저장 경계](V480_WORKSPACE
 비밀정보 없는 실행 이력과 콜드 상태 표시는 [범위·저장 형식·권한 경계](V480_RECORDED_RUN_HISTORY.md)를 따른다. 기존 실행 ID와 마지막 확인 상태/frame/ack/종료 결과를 제한된 원자적 기록으로 남긴다. 새 호스트는 owner-unavailable로 표시하며 기록을 실행 레지스트리에 가져오거나 이전 권한·명령을 복원하지 않는다. 손상·충돌·저장 실패는 실제 Run/Stop과 분리한다. [고정 원본·최종 검증](validation/v480-recorded-run-history.json)에 단계별 결과를 남긴다.
 
 실행 이력 후속은 고정 제품/검사 원본 28개에서 실행/모델 14/0/0, 실제 UI/전송 5/0/0, 관리 프로필 1/0/0, 일반 checkout·41개 리소스·Home 시작 1/0/0으로 통과했다. 서로 다른 21개 메서드다. 이전 UI 실패·구형 검사 보정과 명령 접수 중 poll이 revision을 바꾸던 실제 문제의 RED/GREEN은 [검증 기록](validation/v480-recorded-run-history.json)에 분리한다. revision/CAS·권한 검사와 자동 재실행 금지를 유지한다.
+
+타입 지정 property Set 후속은 [실제 receiver/value·owner/field hash·참조 보존·편집/콜드/Confirm 범위](BLUEPRINT_PROPERTY_SET.md), [고정 원본과 단계별 검사](validation/blueprint-property-set.json)를 따른다. 이전 문서의 property set/ref 미결 범위 중 general/reference 단일·배열 구조 Set을 완료한다. true field ref/lvalue와 compound/function·enum/Vector3 ABI·overflow는 별도로 남긴다. 기존 profile을 자동 전환하지 않는다.
+
+property Set의 최종 검사는 고정 제품·테스트 원본 27개에서 CLR/공개 편집 등 39개·기존 graph/편집 16개·실제 Chromium 5개·관리 프로필 컴파일 1개·일반 checkout/리소스/Home 시작 1개, 총 **62/0/0**이다. [단계·원본·초기 보정 근거](validation/blueprint-property-set.json)를 따른다. 전체 v480 완료나 기기 실행으로 확대하지 않는다.

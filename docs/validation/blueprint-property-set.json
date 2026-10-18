@@ -1,0 +1,477 @@
+{
+  "version": 1,
+  "verifiedUtc": "2026-10-18T02:30:47.232091+00:00",
+  "baseCommit": "1234e97d58060f7924e2c676c37026f3a5a7614a",
+  "implementationCommit": "2257db7b3202c7901c30a5b7001ef3daf607edbc",
+  "sourceManifestSha256": "a6842fa01d39fdca5219b445869d261339bcfad7cc7b25dc0cfd75ddd85547e8",
+  "sources": {
+    "examples/editor-home/WebBundle.csbody": {
+      "size": 10638,
+      "sha256": "eaf2f7cd50e5524cfe6bbcc71e24b0b10e97cf5b3f3c3e0185c4d8a92472c297"
+    },
+    "examples/editor-home/ui/blueprint-enum-plan.js": {
+      "size": 9060,
+      "sha256": "3d3e6dd176db82946ba4d54d39a4a6bb95312c641b08388f4154040281eb29fc"
+    },
+    "examples/editor-home/ui/blueprint-parameters.js": {
+      "size": 6715,
+      "sha256": "380cbdde5d9191f56f7983c4dbbb2ba207d4152240918da50b1ba5bf5069b373"
+    },
+    "examples/editor-home/ui/blueprint-pins.js": {
+      "size": 10033,
+      "sha256": "18c9560709c72066881bfba7c5c522ebc874c42f90aca684c756e372402d9a37"
+    },
+    "examples/editor-home/ui/blueprint-viewport.js": {
+      "size": 14565,
+      "sha256": "498269a69fcc54f725e2f757a480b63a61f46b5a71efe7b03df49f9963bd7b12"
+    },
+    "examples/editor-home/ui/blueprint.js": {
+      "size": 86625,
+      "sha256": "d9469ab995b44311b5624e31a872bbda2e92798fb630b64e66f2bbf60deb2c1b"
+    },
+    "examples/editor-home/ui/workspace-host.js": {
+      "size": 19910,
+      "sha256": "409299f2f84e1bd301decb4d6a1ca3fa1138c4bcf0131ec00987195a35d91ad2"
+    },
+    "packs/edit-workspace/BlueprintNode.csbody": {
+      "size": 14136,
+      "sha256": "233865260b04720f89e574a8f76bdde7b8b77bd183290308b6b14aab35fca867"
+    },
+    "packs/object-model/Set.celem": {
+      "size": 196,
+      "sha256": "2abd86dcad56a2465089b7b95e9e8bff2e973f351052144c2b690614c5267802"
+    },
+    "packs/object-model/Set.csbody": {
+      "size": 342,
+      "sha256": "be600c2fa854cfaa3c3e3af75454cf8d0281a391c2fae6b52636beba6b2938aa"
+    },
+    "packs/object-model/SetBody.celem": {
+      "size": 292,
+      "sha256": "30203ef34d038a946a98a67529d369a807fd554277a712106836f4a7022f9a5b"
+    },
+    "packs/object-model/pack.cpack": {
+      "size": 507,
+      "sha256": "9d5a919bdb8f56e08cab9c653dc3833ea4422479c8e5225cdf8722e28457cf97"
+    },
+    "packs/pack-workspace/Blueprint.csbody": {
+      "size": 81152,
+      "sha256": "db52cdf2355a208d2b968e250e6895d46794564117320911fee28df4c0c13bb3"
+    },
+    "src/Confectory.Core/BlueprintDocuments.cs": {
+      "size": 9232,
+      "sha256": "12fdcf3f83b8659a2ffe871c3a62bb060bd65c25cb6cefc4bb747eb0ce2ce08a"
+    },
+    "src/Confectory.Core/FeatureBlueprint.AliasLocals.cs": {
+      "size": 1254,
+      "sha256": "68a870beac3b057f2b7ff2c8fc84ebbab9db13a39c302529481a8b024c33d98d"
+    },
+    "src/Confectory.Core/FeatureBlueprint.Methods.cs": {
+      "size": 1945,
+      "sha256": "d9407de6c21f99a2d18ee708a5a139c75cdc3ff4c3a36fc1eb2ad762488b6fbd"
+    },
+    "src/Confectory.Core/FeatureBlueprint.Properties.cs": {
+      "size": 4197,
+      "sha256": "2d4880b5f17223517b30e6619147feabef1aeec05f75b2fd60986ec027e443e3"
+    },
+    "src/Confectory.Core/FeatureBlueprint.Switches.cs": {
+      "size": 7623,
+      "sha256": "8498f31c964b2a72e63fcf1e3de5b482b7198ace80d575707111d7c7381fb271"
+    },
+    "src/Confectory.Core/FeatureBlueprint.cs": {
+      "size": 48807,
+      "sha256": "83ca1ddaa8a060f5920cf071848edf3d69624c37a7e2baf764c3f7b55a4326d0"
+    },
+    "src/Confectory.Core/RuntimeObjectContracts.cs": {
+      "size": 5749,
+      "sha256": "37c1e4e6132c71868db97bc70ecb4269d7c90f28d873c34e34d1e646aba42f07"
+    },
+    "targets/dotnet/Program.cs": {
+      "size": 15150,
+      "sha256": "4b07bc17d26b9ffd1eedebbceccf9cd1c043116aa76f82e8273842359021d0b0"
+    },
+    "targets/element-authoring/BlueprintProperty.cs": {
+      "size": 6750,
+      "sha256": "1913ab25fcc1827822c4e32e5597345a3c8dd36f1135694c0a79bfcd79e5d0fd"
+    },
+    "tests/Confectory.Tests/PropertyAuthoringTests.cs": {
+      "size": 26039,
+      "sha256": "e8e4e33044d06923dc42154314a8991a4bc1c2731546643fad18e6c018fe6337"
+    },
+    "tests/Confectory.Tests/PropertyBlueprintTests.cs": {
+      "size": 39128,
+      "sha256": "d179de1f3f080c8d013be3d1eb797acdd2f591ef5580d5cfe9804cce55ef0415"
+    },
+    "tests/Confectory.Tests/WebUITests.cs": {
+      "size": 60607,
+      "sha256": "07cc3f7535590fa9c15323091cc06d3f12611361ec8d4bc7c20751985088203a"
+    },
+    "tests/web/v480_property_set.py": {
+      "size": 8770,
+      "sha256": "2fe09d2dbeb25a532452d3918ab4c31ef9dc3058339f90011752d1e91cdab790"
+    },
+    "tests/web/web_ui.py": {
+      "size": 65230,
+      "sha256": "92a0dd4d230b5332c0498bc5c0411b46f34d416d719a31469bbea87f0e378de2"
+    }
+  },
+  "build": {
+    "command": "dotnet build Confectory.sln -c Release --no-restore",
+    "warnings": 0,
+    "errors": 0,
+    "logSha256": "e896db40d10c96db6e63f7914c52c26d31de507c9209a1210929907effcb7153",
+    "stdout": "  Confectory.Build.DotNet -> /workspace/Confectory/targets/dotnet/bin/Release/net10.0/Confectory.Build.DotNet.dll\n  Confectory.WebView.Windows -> /workspace/Confectory/targets/webview-windows/bin/Release/net10.0-windows/Confectory.WebView.Windows.dll\n  Confectory.Build.Web -> /workspace/Confectory/targets/web/bin/Release/net10.0/Confectory.Build.Web.dll\n  Confectory.Core -> /workspace/Confectory/src/Confectory.Core/bin/Release/net10.0/Confectory.Core.dll\n  Confectory.AndroidExport -> /workspace/Confectory/targets/android-export/bin/Release/net10.0/Confectory.AndroidExport.dll\n  Confectory.DesktopEntry -> /workspace/Confectory/targets/desktop-entry/bin/Release/net10.0/Confectory.DesktopEntry.dll\n  Confectory.ProjectExecutionHost -> /workspace/Confectory/targets/project-execution-host/bin/Release/net10.0/Confectory.ProjectExecutionHost.dll\n  Confectory.ElementAuthoring -> /workspace/Confectory/targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll\n  Confectory.Build.BrowserWasm -> /workspace/Confectory/targets/browser-wasm/bin/Release/net10.0/Confectory.Build.BrowserWasm.dll\n  Confectory.Cli -> /workspace/Confectory/src/Confectory.Cli/bin/Release/net10.0/Confectory.Cli.dll\n  Confectory.Tests -> /workspace/Confectory/tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll\n\nBuild succeeded.\n    0 Warning(s)\n    0 Error(s)\n\nTime Elapsed 00:00:01.02\n"
+  },
+  "gates": {
+    "managed": {
+      "exit": 0,
+      "filters": [
+        "EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only"
+      ],
+      "methods": [
+        "EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only"
+      ],
+      "elapsed": 157.61139453599935,
+      "sourceManifestSha256": "a6842fa01d39fdca5219b445869d261339bcfad7cc7b25dc0cfd75ddd85547e8",
+      "logSha256": "3de9ae0fc1ecd100274e62c5eaa05bae88d30b57a5636a1bfcb9d8c319acbed7",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 157.576,
+      "stdout": "PASS EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only\n1 passed, 0 failed, 0 skipped; 157.576s\n"
+    },
+    "property": {
+      "exit": 0,
+      "filters": [
+        "PropertyBlueprintTests.",
+        "PropertyAuthoringTests.",
+        "NestedBlueprintTests.",
+        "SwitchBlueprintTests.",
+        "RefNodeTests."
+      ],
+      "methods": [
+        "SwitchBlueprintTests.test_branch_returns_join_assignment_paths_and_never_warn_at_the_return_itself",
+        "SwitchBlueprintTests.test_legacy_bool_inside_case_returns_from_both_ports_and_does_not_repeat_main",
+        "SwitchBlueprintTests.test_nested_switch_returns_to_inner_then_outer_main_and_keeps_real_out_warnings",
+        "SwitchBlueprintTests.test_old_profiles_keep_their_meaning_and_refuse_switch_fields_or_cross_region_routes",
+        "SwitchBlueprintTests.test_switch_cases_default_unmatched_and_main_calls_run_once_per_invocation",
+        "SwitchBlueprintTests.test_switch_no_default_and_explicit_empty_case_continue_without_termination",
+        "SwitchBlueprintTests.test_switch_ref_ref_out_aliases_preserve_caller_storage_through_case_and_main_return",
+        "PropertyBlueprintTests.test_checked_set_refuses_wrong_owner_value_cardinality_hash_and_unsupported_without_mutation",
+        "PropertyBlueprintTests.test_concept_reference_array_is_an_actual_shared_clr_value",
+        "PropertyBlueprintTests.test_live_property_refuses_wrong_instance_unset_null_wrong_cardinality_and_stale_contract",
+        "PropertyBlueprintTests.test_methods_profile_retains_actual_object_abi_and_node_time_property_reads",
+        "PropertyBlueprintTests.test_object_contract_factories_and_whole_body_conversion_preserve_actual_ref_aliases",
+        "PropertyBlueprintTests.test_private_property_uses_explicit_receiver_and_unreached_node_does_not_read",
+        "PropertyBlueprintTests.test_private_set_uses_explicit_receiver_and_unreached_set_does_not_write",
+        "PropertyBlueprintTests.test_property_array_result_retains_original_reference_after_field_replacement",
+        "PropertyBlueprintTests.test_property_declaration_inputs_are_rechecked_after_compiler_and_prior_artifact_is_retained",
+        "PropertyBlueprintTests.test_property_field_drift_is_visible_and_unsupported_kinds_and_old_profiles_are_refused",
+        "PropertyBlueprintTests.test_property_reads_at_node_once_from_actual_instance_and_reexecutes_on_next_call",
+        "PropertyBlueprintTests.test_property_reference_result_preserves_identity_and_later_mutation_without_deep_copy",
+        "PropertyBlueprintTests.test_set_all_general_primitive_and_array_clr_contracts_without_conversion_or_copy",
+        "PropertyBlueprintTests.test_set_profile_is_explicit_and_stale_schema_value_ref_and_unsupported_are_rejected",
+        "PropertyBlueprintTests.test_structural_property_set_executes_between_reads_on_actual_independent_instances",
+        "PropertyBlueprintTests.test_structural_set_preserves_general_array_and_single_multiple_reference_identity",
+        "PropertyAuthoringTests.test_property_set_field_preview_explicit_profile_save_cold_confirm_actual_clr_and_schema_drift",
+        "PropertyAuthoringTests.test_property_source_preview_schema_cas_cold_reader_group_and_explicit_rebind",
+        "PropertyAuthoringTests.test_unpublished_object_owner_stays_editable_without_becoming_a_property_contract",
+        "NestedBlueprintTests.test_private_imports_are_explicit_and_unused_child_bodies_are_compiled_without_execution",
+        "NestedBlueprintTests.test_private_nested_ref_out_aliases_return_to_parent_and_locals_reset_per_call",
+        "NestedBlueprintTests.test_private_observations_are_rechecked_after_real_compiler_and_original_proof_is_retained",
+        "NestedBlueprintTests.test_private_paths_separate_identical_local_definitions_and_reject_parent_capture_and_depth",
+        "NestedBlueprintTests.test_private_siblings_keep_same_local_ids_and_branch_return_boundary",
+        "NestedBlueprintTests.test_private_unassigned_outputs_reach_build_warnings_with_full_call_path",
+        "NestedBlueprintTests.test_static_helper_classes_from_private_siblings_are_emitted_with_unique_owners",
+        "NestedBlueprintTests.test_static_private_helpers_preserve_repeated_ref_out_caller_storage",
+        "RefNodeTests.test_code_ref_arguments_alias_same_local_immediately_and_out_warning_remains_per_end",
+        "RefNodeTests.test_ordinary_csharp_ref_calls_preserve_same_slot_aliases_including_ref_out_same_caller_cell",
+        "RefNodeTests.test_ref_array_parameters_alias_the_reference_slot_when_replacing_the_array",
+        "RefNodeTests.test_ref_to_value_input_and_preceding_node_result_use_real_storage_without_caller_copyback",
+        "RefNodeTests.test_typed_ref_call_uses_selected_object_scope_and_real_aliases"
+      ],
+      "elapsed": 346.1587800819998,
+      "sourceManifestSha256": "a6842fa01d39fdca5219b445869d261339bcfad7cc7b25dc0cfd75ddd85547e8",
+      "logSha256": "b916688961d40846dc0d770405e70096993f79252d13b0210cdebf45e399b75f",
+      "passed": 39,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 346.125,
+      "stdout": "PASS SwitchBlueprintTests.test_branch_returns_join_assignment_paths_and_never_warn_at_the_return_itself\nPASS SwitchBlueprintTests.test_legacy_bool_inside_case_returns_from_both_ports_and_does_not_repeat_main\nPASS SwitchBlueprintTests.test_nested_switch_returns_to_inner_then_outer_main_and_keeps_real_out_warnings\nPASS SwitchBlueprintTests.test_old_profiles_keep_their_meaning_and_refuse_switch_fields_or_cross_region_routes\nPASS SwitchBlueprintTests.test_switch_cases_default_unmatched_and_main_calls_run_once_per_invocation\nPASS SwitchBlueprintTests.test_switch_no_default_and_explicit_empty_case_continue_without_termination\nPASS SwitchBlueprintTests.test_switch_ref_ref_out_aliases_preserve_caller_storage_through_case_and_main_return\nPASS PropertyBlueprintTests.test_checked_set_refuses_wrong_owner_value_cardinality_hash_and_unsupported_without_mutation\nPASS PropertyBlueprintTests.test_concept_reference_array_is_an_actual_shared_clr_value\nPASS PropertyBlueprintTests.test_live_property_refuses_wrong_instance_unset_null_wrong_cardinality_and_stale_contract\nPASS PropertyBlueprintTests.test_methods_profile_retains_actual_object_abi_and_node_time_property_reads\nPASS PropertyBlueprintTests.test_object_contract_factories_and_whole_body_conversion_preserve_actual_ref_aliases\nPASS PropertyBlueprintTests.test_private_property_uses_explicit_receiver_and_unreached_node_does_not_read\nPASS PropertyBlueprintTests.test_private_set_uses_explicit_receiver_and_unreached_set_does_not_write\nPASS PropertyBlueprintTests.test_property_array_result_retains_original_reference_after_field_replacement\nPASS PropertyBlueprintTests.test_property_declaration_inputs_are_rechecked_after_compiler_and_prior_artifact_is_retained\nPASS PropertyBlueprintTests.test_property_field_drift_is_visible_and_unsupported_kinds_and_old_profiles_are_refused\nPASS PropertyBlueprintTests.test_property_reads_at_node_once_from_actual_instance_and_reexecutes_on_next_call\nPASS PropertyBlueprintTests.test_property_reference_result_preserves_identity_and_later_mutation_without_deep_copy\nPASS PropertyBlueprintTests.test_set_all_general_primitive_and_array_clr_contracts_without_conversion_or_copy\nPASS PropertyBlueprintTests.test_set_profile_is_explicit_and_stale_schema_value_ref_and_unsupported_are_rejected\nPASS PropertyBlueprintTests.test_structural_property_set_executes_between_reads_on_actual_independent_instances\nPASS PropertyBlueprintTests.test_structural_set_preserves_general_array_and_single_multiple_reference_identity\nPASS PropertyAuthoringTests.test_property_set_field_preview_explicit_profile_save_cold_confirm_actual_clr_and_schema_drift\nPASS PropertyAuthoringTests.test_property_source_preview_schema_cas_cold_reader_group_and_explicit_rebind\nPASS PropertyAuthoringTests.test_unpublished_object_owner_stays_editable_without_becoming_a_property_contract\nPASS NestedBlueprintTests.test_private_imports_are_explicit_and_unused_child_bodies_are_compiled_without_execution\nPASS NestedBlueprintTests.test_private_nested_ref_out_aliases_return_to_parent_and_locals_reset_per_call\nPASS NestedBlueprintTests.test_private_observations_are_rechecked_after_real_compiler_and_original_proof_is_retained\nPASS NestedBlueprintTests.test_private_paths_separate_identical_local_definitions_and_reject_parent_capture_and_depth\nPASS NestedBlueprintTests.test_private_siblings_keep_same_local_ids_and_branch_return_boundary\nPASS NestedBlueprintTests.test_private_unassigned_outputs_reach_build_warnings_with_full_call_path\nPASS NestedBlueprintTests.test_static_helper_classes_from_private_siblings_are_emitted_with_unique_owners\nPASS NestedBlueprintTests.test_static_private_helpers_preserve_repeated_ref_out_caller_storage\nPASS RefNodeTests.test_code_ref_arguments_alias_same_local_immediately_and_out_warning_remains_per_end\nPASS RefNodeTests.test_ordinary_csharp_ref_calls_preserve_same_slot_aliases_including_ref_out_same_caller_cell\nPASS RefNodeTests.test_ref_array_parameters_alias_the_reference_slot_when_replacing_the_array\nPASS RefNodeTests.test_ref_to_value_input_and_preceding_node_result_use_real_storage_without_caller_copyback\nPASS RefNodeTests.test_typed_ref_call_uses_selected_object_scope_and_real_aliases\n39 passed, 0 failed, 0 skipped; 346.125s\n"
+    },
+    "ui": {
+      "exit": 0,
+      "filters": [
+        "WebUITests.test_actual_editor_v480_property_set_explicit_receiver_value_cold_and_confirm",
+        "WebUITests.test_actual_editor_v480_node_time_property_contract_target_cold_and_confirm",
+        "WebUITests.test_actual_editor_v480_private_nested_navigation_source_cold_and_confirm",
+        "WebUITests.test_actual_editor_v480_switch_enum_scoped_case_return_cold_and_confirm",
+        "WebUITests.test_actual_editor_v480_static_methods_parameters_cold_and_confirm"
+      ],
+      "methods": [
+        "WebUITests.test_actual_editor_v480_node_time_property_contract_target_cold_and_confirm",
+        "WebUITests.test_actual_editor_v480_private_nested_navigation_source_cold_and_confirm",
+        "WebUITests.test_actual_editor_v480_property_set_explicit_receiver_value_cold_and_confirm",
+        "WebUITests.test_actual_editor_v480_static_methods_parameters_cold_and_confirm",
+        "WebUITests.test_actual_editor_v480_switch_enum_scoped_case_return_cold_and_confirm"
+      ],
+      "elapsed": 497.2358447129991,
+      "sourceManifestSha256": "a6842fa01d39fdca5219b445869d261339bcfad7cc7b25dc0cfd75ddd85547e8",
+      "logSha256": "9b0a665cf1a646395f3a5a68ad527d6621b4cbdacaa966dad2362dca3c947b5b",
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 497.198,
+      "stdout": "PASS actual v480 property explicit receiver, field catalog, node-time contract, cold preview fence, rebind and grouped compiler Confirm\nActual common WebUI blueprint-property Chromium PASS\nPASS WebUITests.test_actual_editor_v480_node_time_property_contract_target_cold_and_confirm\nPASS actual v480 nested creation, full owner path, navigation, source cold fence and grouped compiler Confirm\nActual common WebUI blueprint-nested Chromium PASS\nPASS WebUITests.test_actual_editor_v480_private_nested_navigation_source_cold_and_confirm\nPASS actual v480 property Set explicit receiver/value, typed field, cold preview, Set/Read order, rebind and grouped compiler Confirm\nActual common WebUI blueprint-property-set Chromium PASS\nPASS WebUITests.test_actual_editor_v480_property_set_explicit_receiver_value_cold_and_confirm\nPASS actual v480 static methods protected regions/history, typed explicit remap, body stale/reapply, cold basis fence and compiler Confirm\nActual common WebUI blueprint-methods Chromium PASS\nPASS WebUITests.test_actual_editor_v480_static_methods_parameters_cold_and_confirm\nPASS actual v480 pin blank-drop cancellation, invalid case/entry target and retained input preservation; valid click/drag unchanged\nPASS actual v480 switch enum explicit transition/Result source/scoped case/main return/cold/compiler Confirm\nActual common WebUI blueprint-switch Chromium PASS\nPASS WebUITests.test_actual_editor_v480_switch_enum_scoped_case_return_cold_and_confirm\n5 passed, 0 failed, 0 skipped; 497.198s\n"
+    },
+    "legacy": {
+      "exit": 0,
+      "filters": [
+        "FeatureBlueprintTests.",
+        "NestedAuthoringTests."
+      ],
+      "methods": [
+        "FeatureBlueprintTests.test_blueprint_disconnected_current_node_body_is_compiled_without_execution",
+        "FeatureBlueprintTests.test_blueprint_existing_feature_calls_use_typed_imports_and_contract_fences",
+        "FeatureBlueprintTests.test_blueprint_fixed_inputs_branch_compiler_reuse_node_replacement_and_legacy_preservation",
+        "FeatureBlueprintTests.test_blueprint_independent_probe_checks_an_unselected_body_without_running_or_publishing",
+        "FeatureBlueprintTests.test_blueprint_invalid_graphs_stale_contracts_and_dominating_values",
+        "FeatureBlueprintTests.test_blueprint_new_feature_registration_contract_group_compiler_and_cold_restore",
+        "FeatureBlueprintTests.test_blueprint_node_diagnostics_static_isolation_and_failed_build_retains_receipt",
+        "FeatureBlueprintTests.test_blueprint_node_only_worker_draft_save_restore_and_compiler_confirm",
+        "FeatureBlueprintTests.test_blueprint_node_task_assignment_scoped_dispatch_adoption_and_cold_no_replay",
+        "FeatureBlueprintTests.test_blueprint_owned_function_reference_call_import_cas_history_and_execution",
+        "FeatureBlueprintTests.test_blueprint_owned_node_creation_removal_review_group_and_cold_restore",
+        "FeatureBlueprintTests.test_blueprint_source_change_during_real_compile_is_not_published",
+        "NestedAuthoringTests.test_enum_preview_is_read_only_source_fenced_cold_and_preserves_legacy_execution",
+        "NestedAuthoringTests.test_private_nested_owned_sources_cold_peer_cas_and_atomic_compiler_confirm",
+        "NestedAuthoringTests.test_static_helpers_parameters_explicit_remap_task_cas_cold_and_compiler_confirm",
+        "NestedAuthoringTests.test_switch_profile_enum_source_cas_cold_branch_creation_and_atomic_confirm"
+      ],
+      "elapsed": 633.9109785719993,
+      "sourceManifestSha256": "a6842fa01d39fdca5219b445869d261339bcfad7cc7b25dc0cfd75ddd85547e8",
+      "logSha256": "8cbaacf7f817995550bd6fcc11e3b6eb982530424e263a526cf4c21f90085d90",
+      "passed": 16,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 633.881,
+      "stdout": "PASS FeatureBlueprintTests.test_blueprint_disconnected_current_node_body_is_compiled_without_execution\nPASS FeatureBlueprintTests.test_blueprint_existing_feature_calls_use_typed_imports_and_contract_fences\nPASS FeatureBlueprintTests.test_blueprint_fixed_inputs_branch_compiler_reuse_node_replacement_and_legacy_preservation\nPASS FeatureBlueprintTests.test_blueprint_independent_probe_checks_an_unselected_body_without_running_or_publishing\nPASS FeatureBlueprintTests.test_blueprint_invalid_graphs_stale_contracts_and_dominating_values\nPASS FeatureBlueprintTests.test_blueprint_new_feature_registration_contract_group_compiler_and_cold_restore\nPASS FeatureBlueprintTests.test_blueprint_node_diagnostics_static_isolation_and_failed_build_retains_receipt\nPASS FeatureBlueprintTests.test_blueprint_node_only_worker_draft_save_restore_and_compiler_confirm\nPASS FeatureBlueprintTests.test_blueprint_node_task_assignment_scoped_dispatch_adoption_and_cold_no_replay\nPASS FeatureBlueprintTests.test_blueprint_owned_function_reference_call_import_cas_history_and_execution\nPASS FeatureBlueprintTests.test_blueprint_owned_node_creation_removal_review_group_and_cold_restore\nPASS FeatureBlueprintTests.test_blueprint_source_change_during_real_compile_is_not_published\nPASS NestedAuthoringTests.test_enum_preview_is_read_only_source_fenced_cold_and_preserves_legacy_execution\nPASS NestedAuthoringTests.test_private_nested_owned_sources_cold_peer_cas_and_atomic_compiler_confirm\nPASS NestedAuthoringTests.test_static_helpers_parameters_explicit_remap_task_cas_cold_and_compiler_confirm\nPASS NestedAuthoringTests.test_switch_profile_enum_source_cas_cold_branch_creation_and_atomic_confirm\n16 passed, 0 failed, 0 skipped; 633.881s\n"
+    }
+  },
+  "ordinaryCheckout": {
+    "exit": 0,
+    "method": "WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup",
+    "implementationCommit": "2257db7b3202c7901c30a5b7001ef3daf607edbc",
+    "elapsed": 6.520186149000438,
+    "sourceManifestSha256": "a6842fa01d39fdca5219b445869d261339bcfad7cc7b25dc0cfd75ddd85547e8",
+    "logSha256": "4bcacf9f1458ec128dc80d8462689e111904be223aa68626ae21b0af1e316784",
+    "resourceCount": 41,
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "reportedSeconds": 6.489,
+    "stdout": "PASS WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup\n1 passed, 0 failed, 0 skipped; 6.489s\n"
+  },
+  "finalDistinctMethodCount": 62,
+  "phasesExcludedFromFinalCounts": [
+    {
+      "log": "build-fifth.log",
+      "sha256": "a16d9b18618773834d22b89ae97b6121474063290839350c18e88a00820c31ed",
+      "includedInFinalCounts": false,
+      "sourceFrozen": false
+    },
+    {
+      "log": "build-fourth.log",
+      "sha256": "bfc41746c96deedf8f1fdf747e8c4fcab54c029765b1162ff87f718e21182b2f",
+      "includedInFinalCounts": false,
+      "sourceFrozen": false
+    },
+    {
+      "log": "build-initial.log",
+      "sha256": "a576bfc90fb3f8e15ab56e05287af630b411adbd64677a1df50af5a2b201cbbf",
+      "includedInFinalCounts": false,
+      "sourceFrozen": false
+    },
+    {
+      "log": "build-second.log",
+      "sha256": "ba871bbedc1b806be0922a8ea9bad7ec4c46fd2467ca82a2e277901b7c5bcdc1",
+      "includedInFinalCounts": false,
+      "sourceFrozen": false
+    },
+    {
+      "log": "build-third.log",
+      "sha256": "48942e960d7e682340b5af1a99074d64aa6021b7a68ffa1122453bef11168ecc",
+      "includedInFinalCounts": false,
+      "sourceFrozen": false
+    },
+    {
+      "log": "checkout-driver.log",
+      "sha256": "ab0c7eb1d6bc18f77fadcf8de0509dea2b3865a2473d29f95aaed8e74407bddf",
+      "includedInFinalCounts": false,
+      "sourceFrozen": false
+    },
+    {
+      "log": "fifth-ui.log",
+      "sha256": "0d1180ab63f1430ba858bc2a3df9f6a82806ac671056fc9a0d0347136a500968",
+      "includedInFinalCounts": false,
+      "sourceFrozen": false,
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 103.897
+    },
+    {
+      "log": "fourth-ui.log",
+      "sha256": "e3a22aa01fbc2e72e1bba9316bb19f418290f1b8c25a862511261d531429fd82",
+      "includedInFinalCounts": false,
+      "sourceFrozen": false,
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "reportedSeconds": 38.123
+    },
+    {
+      "log": "initial-model.log",
+      "sha256": "ad16e56069e33cdf805097d448d9f71c46c9b78f0ba938577b3ce73563a4ddee",
+      "includedInFinalCounts": false,
+      "sourceFrozen": false,
+      "passed": 17,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 138.78
+    },
+    {
+      "log": "initial-ui.log",
+      "sha256": "10ca9e1c2b2643428ad67c32809d6584a7fed1556e290d9daa7cd03058b1e4e9",
+      "includedInFinalCounts": false,
+      "sourceFrozen": false,
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "reportedSeconds": 66.121
+    },
+    {
+      "log": "property-initial.log",
+      "sha256": "7226974b83bf048d88a01edcc9a38b874c205481253268d4ddc766bd3ae6a14b",
+      "includedInFinalCounts": false,
+      "sourceFrozen": false,
+      "passed": 12,
+      "failed": 2,
+      "skipped": 0,
+      "reportedSeconds": 63.366
+    },
+    {
+      "log": "second-ui.log",
+      "sha256": "751a92a45027c3e5f73a3296b8e7163b5afb057964b2e38a446aa386538b4a98",
+      "includedInFinalCounts": false,
+      "sourceFrozen": false,
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "reportedSeconds": 67.769
+    },
+    {
+      "log": "third-ui.log",
+      "sha256": "20f38b1a4030e0f89848c888de7ce4a21dab59c1d76e2a45f7424bc5c2d41500",
+      "includedInFinalCounts": false,
+      "sourceFrozen": false,
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "reportedSeconds": 64.467
+    }
+  ],
+  "earlierSourcePhases": [
+    {
+      "phase": "property-initial",
+      "finding": "Compiler did not advertise v13 profile and a test incorrectly expected source-ready before the ordinary code body was supplied. Added explicit compiler capability and corrected the fixture assertion. The old run overlapped a development target rebuild; it has no frozen-source claim."
+    },
+    {
+      "phase": "initial-model",
+      "finding": "16 property CLR/compiler methods and the new public authoring/actual-CLR method passed; excluded because final product/UI source was still changing."
+    },
+    {
+      "phase": "initial-ui",
+      "finding": "Resource identity updater added canonical text identities to binary resources. Restored original binary manifest rows and restricted the updater to utf8-lf-v1."
+    },
+    {
+      "phase": "second/third-ui",
+      "finding": "A nested toolbar template expression was inside a single-quoted branch and prevented module import. Corrected the template and validated actual ES module import. Added page-error diagnostics to the harness."
+    },
+    {
+      "phase": "fourth-ui",
+      "finding": "Cold Set window lost its mode because layoutMetadata did not retain it. Preserved property access/node metadata and kept the unsent Set input key separate from Read."
+    },
+    {
+      "phase": "fifth-ui",
+      "finding": "Full actual Chromium Set/Read authoring and fresh-host restore passed after all source corrections; excluded as a focused developmental repeat."
+    }
+  ],
+  "actualClrObservations": {
+    "nodeOrder": "before Read -> Set -> after Read produces 1020 / 2030 / 4050; actual independent instances end at 30 / 50",
+    "generalAbi": "all six primitives and corresponding CLR arrays retain exact type/identity",
+    "referenceAbi": "single and multiple references preserve identity and observe later array-element changes",
+    "unreached": "false branch with null target does not execute Set; live target remains 4 until true branch sets 8",
+    "rejections": "null/noninstance/wrong owner, wrong type/cardinality/reference schema, missing or changed hash, unsupported compound/function refuse before mutation; original value remains 17",
+    "publicAuthoring": "field preview -> explicit profile -> Save/cold -> preview reread -> typed Set/Read/import group Confirm -> actual 31,41,31; schema drift fails Confirm and preserves original graph/code"
+  },
+  "actualUiObservations": {
+    "method": "WebUITests.test_actual_editor_v480_property_set_explicit_receiver_value_cold_and_confirm",
+    "flow": "explicit upgrade -> selected owner/health long field -> receiver spawn/return and typed calculate value -> unsent Save/new host/restore -> reread preview -> structural Set -> separate Read -> Set/Read route -> explicit rebind -> grouped compiler Confirm -> second fresh host",
+    "previewTokenRestored": false,
+    "userObjectProducerExecuted": false,
+    "liveGraphExecutedByUiTest": false,
+    "screenshots": {
+      "docs/validation/blueprint-property-set-preview.png": {
+        "sha256": "83ab852fb393cd6eb4430de7784dec7361149bf333c885ff954edcc1b4bf7c1a",
+        "bytes": 136403
+      },
+      "docs/validation/blueprint-property-set-published.png": {
+        "sha256": "7c69a3dc96c81eef621a4b8761469a3049f006446d8634347f8525f42012dc7c",
+        "bytes": 117304
+      }
+    }
+  },
+  "contract": {
+    "profile": "sync-acyclic-property-set-v1",
+    "generator": "feature-blueprint-source-v13",
+    "kind": "property-set",
+    "signature": "(object target, exact field CLR type value) -> void",
+    "accessor": "Confectory.ObjectModel::Set(object,string owner,string field,string contractHash,object value) -> void",
+    "legacyProfilesReinterpreted": false,
+    "legacyWriteUsedByStructuralSet": false,
+    "fieldLvalueOrCopyInOut": false,
+    "supported": [
+      "general single",
+      "general multiple",
+      "reference single",
+      "reference multiple"
+    ],
+    "deferred": [
+      "true field ref/lvalue",
+      "nested compound/function live fields",
+      "general user enum/Vector3 ABI",
+      "overflow policy"
+    ]
+  },
+  "protected": {
+    "localMain": "b5ea38c3d7eec3eb20f170e68f0f4215b86b2aee",
+    "remoteMain": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+    "baseWorkCurrent": "1234e97d58060f7924e2c676c37026f3a5a7614a",
+    "zipSha256": {
+      "reference/site-ui/Confectory-Editor-Prototype-v196.zip": "02d4824e92ed0edbb43113659982b37a99a614117652bde4d8ac92367e334e34",
+      "reference/site-ui/Confectory-Editor-Prototype-v318.zip": "0a614fe2bf1ad3d8e10dfa8905bb6b61ea9f21b87b2492b2b87ca8566e9e6908",
+      "reference/site-ui/Confectory-Editor-Prototype-v424.zip": "b7969cd109ea2dad38bde9c9ab13967c20162c920a45a8cd51a8f82df6041874",
+      "reference/site-ui/Confectory-Editor-Prototype-v480.zip": "0489844c8c6d90f7cdc8ea0e80628f487dcfb27f2c871b19367a635212d3c5bd"
+    },
+    "androidFilesChanged": []
+  },
+  "scope": {
+    "realAccounts": false,
+    "paidModelCalls": false,
+    "mainModified": false,
+    "originalZipModified": false,
+    "androidSettingsModified": false,
+    "nativeDeviceExecutionClaimed": false,
+    "allV480ClaimedComplete": false
+  }
+}
