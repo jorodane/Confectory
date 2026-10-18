@@ -1,0 +1,915 @@
+{
+  "version": 1,
+  "verifiedUtc": "2026-10-18T01:42:47.799300+00:00",
+  "baseCommit": "0f7c9b3d385937eab60057576d40905e92045479",
+  "implementationCommit": "a89b13cf1a6f810a42c0fd7ee014dd62d5f5401e",
+  "sourceManifestSha256": "e81087f3c978ff029d05c604f33fc9e747ac9ff89632655c3a9d798eb2ae326f",
+  "sources": {
+    "examples/editor-home/WebBundle.csbody": {
+      "size": 10638,
+      "sha256": "0c3599be9d1ddf489b6aeb3e0f20dd0347121c93ebe79f4f75d3d88ca864a8c4"
+    },
+    "examples/editor-home/WebInvoke.csbody": {
+      "size": 23716,
+      "sha256": "a7b8e4d01adff94e05eff73fada09c59fce8062b0842ad9d397fd5c4af0472c6"
+    },
+    "examples/editor-home/WebStart.csbody": {
+      "size": 3241,
+      "sha256": "bea858b0eb319affbf90d3850f13a28929d2122e81f3196be330fcc0db869dad"
+    },
+    "examples/editor-home/WebState.csbody": {
+      "size": 28259,
+      "sha256": "ba90d820c8d14a5d4e08881b84b9da6a75461338642485eb675f5eb726825b48"
+    },
+    "examples/editor-home/ui/app.js": {
+      "size": 240169,
+      "sha256": "cf25535c3a32c287ec45ac2bc53c56c34970961d02161eb34898e67b7caa7541"
+    },
+    "examples/project-execution/history-verify-body.celem": {
+      "size": 1293,
+      "sha256": "cc1cc97b3349c31d54183748072be420f86573d40e53b3869591f4eedeacb380"
+    },
+    "examples/project-execution/history-verify.cpack": {
+      "size": 682,
+      "sha256": "b4e07dd728b3a4fbcb085998cc7381140bf07b693872d2bad9d9d4e5be76d2fd"
+    },
+    "examples/project-execution/history-verify.csbody": {
+      "size": 12818,
+      "sha256": "232e1d9a16b999a5c47e153c6d07affd6ddde26da32611ebdedc87e127e7bbac"
+    },
+    "packs/editor-home-model/Command.csbody": {
+      "size": 109924,
+      "sha256": "5003e8a9d3e2e656b9be6d6d0a5a7e58c497ec981a54cc916f4891df8288a09c"
+    },
+    "packs/editor-home-model/CommandBody.celem": {
+      "size": 8494,
+      "sha256": "b6974f924053a302bd74f8bc1d5a705acd5dcfd776413ac84140c0a0ebfac4c4"
+    },
+    "packs/project-execution/Capabilities.csbody": {
+      "size": 267,
+      "sha256": "874490cdf0d056310cfdb847172ee57cf6537938dad502f4451ef4644aee230a"
+    },
+    "packs/project-execution/LaunchConfigured.csbody": {
+      "size": 9756,
+      "sha256": "4ff8110f4489db6584999298521603cac4767e6c9555933cf3bf8319a0ba3008"
+    },
+    "packs/project-execution/LaunchConfiguredBody.celem": {
+      "size": 538,
+      "sha256": "eece3efb74d91545378001290fbde2dc8c381ad46e57247efe6ba0674c94f64b"
+    },
+    "packs/project-execution/Observe.csbody": {
+      "size": 665,
+      "sha256": "a4f3092b26eda12030e6cef4767dae78b0c23d48b8c972e7d86344a134eebf73"
+    },
+    "packs/project-execution/ObserveBody.celem": {
+      "size": 281,
+      "sha256": "27f0df277bb6a441d3710b02346787416c8343d69e3ce5243cf4433c3aaf150a"
+    },
+    "packs/project-execution/RunHistory.celem": {
+      "size": 417,
+      "sha256": "e92b4c659f21a8ae74293579ce999773507ee6925a32b356ee6aa342b4036f07"
+    },
+    "packs/project-execution/RunHistory.csbody": {
+      "size": 13291,
+      "sha256": "2230307471672ab09c749417c9d1923876053454ce28bf94160485f249cb5cf4"
+    },
+    "packs/project-execution/RunHistoryBody.celem": {
+      "size": 302,
+      "sha256": "a16dad4a9e763d82b03c9aaf710acbed63ac943fca07c2dff39edfcd2ccdfb97"
+    },
+    "packs/project-execution/RunHistoryUnavailable.csbody": {
+      "size": 440,
+      "sha256": "55b9491bfb53c94f653f3881db2613ff45b133a4a62c972f683753c5add2f02a"
+    },
+    "packs/project-execution/Stop.csbody": {
+      "size": 1136,
+      "sha256": "388af01e7eb2a9c7145bbf2f4f31a3af84466d63b673ffe0a1268dc86db68d7c"
+    },
+    "packs/project-execution/StopBody.celem": {
+      "size": 268,
+      "sha256": "598f2f27c86cb0882893d379485b999e5cf60d6846059e332576c6a4241bf84f"
+    },
+    "packs/project-execution/pack.cpack": {
+      "size": 1714,
+      "sha256": "e499e50c56f08a0263863dd82e05ad23f4528ea64a712277d135b012916055c6"
+    },
+    "tests/Confectory.Tests/ProjectExecutionTests.cs": {
+      "size": 20986,
+      "sha256": "091e5935793188827c67937716710c2db19ee9318eacd350586207524c8ad6fd"
+    },
+    "tests/Confectory.Tests/WebUITests.cs": {
+      "size": 60374,
+      "sha256": "938f28ba8746c3106d61288256d76ecdf22c14fd9583ab48d8a87a0e6ddb16b5"
+    },
+    "tests/web/editor_run_admission_v480.py": {
+      "size": 7954,
+      "sha256": "477ac26c342ac4fc382284141906d82011e1f91e43741870a71d09dd516dc4d1"
+    },
+    "tests/web/editor_run_control_v480.py": {
+      "size": 13643,
+      "sha256": "e4e60b12a335ecbacbd01f3e05740089751b1401062e373c579ffe19dde69f07"
+    },
+    "tests/web/editor_run_history_v480.py": {
+      "size": 10984,
+      "sha256": "5ffacec2629849a335d8cd1ea74f6664635fd1e511d8c64afbf69905b72d17d2"
+    },
+    "tests/web/editor_run_v318.py": {
+      "size": 11704,
+      "sha256": "f94d214b9aacc96abb5946db05e0d97ff69a403d488538ea74f23bafaa9188c2"
+    }
+  },
+  "build": {
+    "warnings": 0,
+    "errors": 0,
+    "logSha256": "ab5e4b0cb2da755be076eb124ebba0b4f1a9f6bea0ba828e413151eede556933"
+  },
+  "gates": {
+    "managed": {
+      "exit": 0,
+      "filters": [
+        "EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only"
+      ],
+      "methods": [
+        "EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only"
+      ],
+      "elapsed": 143.73887933400147,
+      "sourceManifestSha256": "e81087f3c978ff029d05c604f33fc9e747ac9ff89632655c3a9d798eb2ae326f",
+      "logSha256": "7ce3774718050fa4a697d68952c99d76ce5b4ed98855d3893351f4ac2894aaf7",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 143.697
+    },
+    "ui": {
+      "exit": 0,
+      "filters": [
+        "WebUITests.test_run_history_command_admission",
+        "WebUITests.test_actual_editor_v480_run_history_cold",
+        "WebUITests.test_actual_editor_v480_local_run_frame_ack",
+        "WebUITests.test_actual_editor_v318_run_process_and_presentation_restart",
+        "WebUITests.test_actual_editor_v480_private_workspace_links_bundle_portal_delete_undo_and_cold"
+      ],
+      "methods": [
+        "WebUITests.test_actual_editor_v318_run_process_and_presentation_restart",
+        "WebUITests.test_actual_editor_v480_local_run_frame_ack_pause_step_reconnect_and_stop",
+        "WebUITests.test_actual_editor_v480_private_workspace_links_bundle_portal_delete_undo_and_cold",
+        "WebUITests.test_actual_editor_v480_run_history_cold_unavailable_corruption_and_no_adoption",
+        "WebUITests.test_run_history_command_admission_preserves_published_revision_and_rejects_stale_step"
+      ],
+      "elapsed": 156.69164521999846,
+      "sourceManifestSha256": "e81087f3c978ff029d05c604f33fc9e747ac9ff89632655c3a9d798eb2ae326f",
+      "logSha256": "b16bca336d06cf71e1b4f3d8fb2d230e79bb4244c42b35185a652c3564044c2f",
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 156.656
+    },
+    "model_runtime": {
+      "exit": 0,
+      "filters": [
+        "ProjectExecutionTests.",
+        "RealTimeUpdateTests.",
+        "EngineTests.test_role_composition_two_windows_and_cleanup",
+        "ButtonTests.test_shared_button_game",
+        "EntryHomeTests.test_fresh_entry_home_project_contracts_and_consumer_locality",
+        "BuildJobTests."
+      ],
+      "methods": [
+        "RealTimeUpdateTests.test_lifecycle_and_provider_locality",
+        "EngineTests.test_role_composition_two_windows_and_cleanup",
+        "ProjectExecutionTests.test_actual_native_button_game_pause_single_draw_step_and_stop",
+        "ProjectExecutionTests.test_actual_native_engine_cooperative_frame_callbacks",
+        "ProjectExecutionTests.test_actual_owned_cooperative_frames_pause_step_reconnect_and_stop",
+        "ProjectExecutionTests.test_execution_handles_and_provider_locality",
+        "ProjectExecutionTests.test_frame_ack_foreign_stale_future_replies_cannot_overwrite_owner",
+        "ProjectExecutionTests.test_frame_control_actual_boundary_order_repeat_thread_and_close",
+        "ProjectExecutionTests.test_run_history_actual_owned_facts_cold_corruption_conflict_and_no_authority",
+        "ProjectExecutionTests.test_run_history_unavailable_profiles_do_not_read_or_write_storage",
+        "BuildJobTests.test_build_only_real_compiler_owned_cancel_artifacts_failure_history_and_no_run",
+        "BuildJobTests.test_unavailable_build_profiles_never_invoke_desktop_provider",
+        "ButtonTests.test_shared_button_game_without_editor_state_input_navigation_native_targets_and_locality",
+        "EntryHomeTests.test_fresh_entry_home_project_contracts_and_consumer_locality"
+      ],
+      "elapsed": 304.4426396500003,
+      "sourceManifestSha256": "e81087f3c978ff029d05c604f33fc9e747ac9ff89632655c3a9d798eb2ae326f",
+      "logSha256": "9f0f8887f030909d5eb53bd1cdaf4838d1d53ab6657134049a07c020e5188656",
+      "passed": 14,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 304.404
+    }
+  },
+  "ordinaryCheckout": {
+    "exit": 0,
+    "method": "WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup",
+    "implementationCommit": "a89b13cf1a6f810a42c0fd7ee014dd62d5f5401e",
+    "elapsed": 8.128108578999672,
+    "sourceManifestSha256": "e81087f3c978ff029d05c604f33fc9e747ac9ff89632655c3a9d798eb2ae326f",
+    "logSha256": "cdeb3e8b3f05d944120f642dee5c3f256e8ee7a348d2b1131ef33bc047fb8e04",
+    "resourceCount": 41,
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "reportedSeconds": 8.09
+  },
+  "finalDistinctMethodCount": 21,
+  "phasesExcludedFromFinalCounts": [
+    {
+      "log": "admission-green-and-frame.log",
+      "sha256": "5285f9dd2e1ee95dacd104d512cc427a0c0f1e09de9011440f05c2c8759360e9",
+      "includedInFinalCounts": false,
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 41.31
+    },
+    {
+      "log": "admission-red.log",
+      "sha256": "9cf3c9fbf7fa3383eeb20835cb73e00905dbb435414df63d601e1b67df1280f9",
+      "includedInFinalCounts": false,
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "reportedSeconds": 9.223
+    },
+    {
+      "log": "build-admission-red.log",
+      "sha256": "cc8c8b9f48ef38186dc2e3bf5c0f000e163ff9b70693a3aa9586be457b0d70ef",
+      "includedInFinalCounts": false
+    },
+    {
+      "log": "build-hardened.log",
+      "sha256": "be268e9600c6a9dc42c9fd2c74f74a2f7073912871b8f69c1d94cec8802c77f3",
+      "includedInFinalCounts": false
+    },
+    {
+      "log": "build-initial.log",
+      "sha256": "44c3262a3a4a30118fafff6bffd9cb72e2588b197e1ae747f3395832cfdb8e79",
+      "includedInFinalCounts": false
+    },
+    {
+      "log": "build-tests.log",
+      "sha256": "5112e944d7ada5491c808afae12f561b273b1ead1a840a16c47a0a75b9b7bc8a",
+      "includedInFinalCounts": false
+    },
+    {
+      "log": "build-ui.log",
+      "sha256": "f94aca5496244d9d8b6114831a21665ccd495366de172d93a8037dfb3cdecb6f",
+      "includedInFinalCounts": false
+    },
+    {
+      "log": "debug-run-control.log",
+      "sha256": "280cf7009380e8182414183088af9ecb2435cf0ce56469c99af65c6a8b8c7f57",
+      "includedInFinalCounts": false
+    },
+    {
+      "log": "debug-ui-build.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "includedInFinalCounts": false
+    },
+    {
+      "log": "final-frame-ui.log",
+      "sha256": "8f44d201bf903386cd4e8a2e16afe2af495735b8c22b8f211c62173eae024d7b",
+      "includedInFinalCounts": false,
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "reportedSeconds": 39.372
+    },
+    {
+      "log": "final-ui-corrected.log",
+      "sha256": "92e6da14e4b46e4771a9961ada8de30c2fdaad769d182dc70fc8bb96152a8858",
+      "includedInFinalCounts": false,
+      "passed": 3,
+      "failed": 1,
+      "skipped": 0,
+      "reportedSeconds": 137.379
+    },
+    {
+      "log": "focus-domain-1.log",
+      "sha256": "5debdb8d7eaf890e068c322a45c5faa95e3a911d15ac586fb00bad278de91046",
+      "includedInFinalCounts": false,
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 12.209
+    },
+    {
+      "log": "focus-domain-2.log",
+      "sha256": "935381a8869e037b434dff97ea8e973840b2feb1b704994edc21701403fb5cdb",
+      "includedInFinalCounts": false,
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 14.907
+    },
+    {
+      "log": "focus-domain-platform-3.log",
+      "sha256": "e47785e8ad19eaec72fc35fadbb67b3d9e6d855e8b60459890d377394c852a96",
+      "includedInFinalCounts": false,
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 23.797
+    },
+    {
+      "log": "focus-ui-1.log",
+      "sha256": "250b5eb1e49b075fe085d88908faa1008773561759dc539c9db2c9ee4c52cf38",
+      "includedInFinalCounts": false,
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 78.275
+    },
+    {
+      "log": "phase-before-admission-final-frame-ui.log",
+      "sha256": "8f44d201bf903386cd4e8a2e16afe2af495735b8c22b8f211c62173eae024d7b",
+      "includedInFinalCounts": false,
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "reportedSeconds": 39.372
+    },
+    {
+      "log": "phase-before-admission-final-managed.log",
+      "sha256": "d620abeb89cbaeaca1ed4f13e646b0cdf6ee57774f36184638c8dcf0e69073c7",
+      "includedInFinalCounts": false,
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 140.57
+    },
+    {
+      "log": "phase-before-admission-final-model_runtime.log",
+      "sha256": "80402a9876856ad47cada4e5af189b9685a436efedef2ece383842ce82884d88",
+      "includedInFinalCounts": false,
+      "passed": 14,
+      "failed": 0,
+      "skipped": 0,
+      "reportedSeconds": 330.335
+    },
+    {
+      "log": "phase-before-admission-final-ui.log",
+      "sha256": "c124659cbda7253f83874c1d500101a1c1b2e6e9c27c6a12e525b54ba2239b46",
+      "includedInFinalCounts": false,
+      "passed": 2,
+      "failed": 2,
+      "skipped": 0,
+      "reportedSeconds": 117.286
+    },
+    {
+      "log": "phase-first-fixture-ui.log",
+      "sha256": "92e6da14e4b46e4771a9961ada8de30c2fdaad769d182dc70fc8bb96152a8858",
+      "includedInFinalCounts": false,
+      "passed": 3,
+      "failed": 1,
+      "skipped": 0,
+      "reportedSeconds": 137.379
+    },
+    {
+      "log": "phase-initial-ui.log",
+      "sha256": "c124659cbda7253f83874c1d500101a1c1b2e6e9c27c6a12e525b54ba2239b46",
+      "includedInFinalCounts": false,
+      "passed": 2,
+      "failed": 2,
+      "skipped": 0,
+      "reportedSeconds": 117.286
+    },
+    {
+      "log": "phase-second-fixture-frame-ui.log",
+      "sha256": "82684d76312fcb083a9813186c2398c73775493377b40c88fac2259fdee6fb61",
+      "includedInFinalCounts": false,
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "reportedSeconds": 56.788
+    }
+  ],
+  "earlierSourcePhases": {
+    "initial": {
+      "examples/editor-home/WebBundle.csbody": {
+        "size": 10638,
+        "sha256": "0c3599be9d1ddf489b6aeb3e0f20dd0347121c93ebe79f4f75d3d88ca864a8c4"
+      },
+      "examples/editor-home/WebInvoke.csbody": {
+        "size": 23716,
+        "sha256": "a7b8e4d01adff94e05eff73fada09c59fce8062b0842ad9d397fd5c4af0472c6"
+      },
+      "examples/editor-home/WebState.csbody": {
+        "size": 28070,
+        "sha256": "46fa2aa9e22f8c41596892fae63f97c962af020dcaf2b9345d754e84def5663f"
+      },
+      "examples/editor-home/ui/app.js": {
+        "size": 240169,
+        "sha256": "cf25535c3a32c287ec45ac2bc53c56c34970961d02161eb34898e67b7caa7541"
+      },
+      "examples/project-execution/history-verify-body.celem": {
+        "size": 1293,
+        "sha256": "cc1cc97b3349c31d54183748072be420f86573d40e53b3869591f4eedeacb380"
+      },
+      "examples/project-execution/history-verify.cpack": {
+        "size": 682,
+        "sha256": "b4e07dd728b3a4fbcb085998cc7381140bf07b693872d2bad9d9d4e5be76d2fd"
+      },
+      "examples/project-execution/history-verify.csbody": {
+        "size": 12818,
+        "sha256": "232e1d9a16b999a5c47e153c6d07affd6ddde26da32611ebdedc87e127e7bbac"
+      },
+      "packs/editor-home-model/Command.csbody": {
+        "size": 109924,
+        "sha256": "5003e8a9d3e2e656b9be6d6d0a5a7e58c497ec981a54cc916f4891df8288a09c"
+      },
+      "packs/editor-home-model/CommandBody.celem": {
+        "size": 8494,
+        "sha256": "b6974f924053a302bd74f8bc1d5a705acd5dcfd776413ac84140c0a0ebfac4c4"
+      },
+      "packs/project-execution/Capabilities.csbody": {
+        "size": 267,
+        "sha256": "874490cdf0d056310cfdb847172ee57cf6537938dad502f4451ef4644aee230a"
+      },
+      "packs/project-execution/LaunchConfigured.csbody": {
+        "size": 9756,
+        "sha256": "4ff8110f4489db6584999298521603cac4767e6c9555933cf3bf8319a0ba3008"
+      },
+      "packs/project-execution/LaunchConfiguredBody.celem": {
+        "size": 538,
+        "sha256": "eece3efb74d91545378001290fbde2dc8c381ad46e57247efe6ba0674c94f64b"
+      },
+      "packs/project-execution/Observe.csbody": {
+        "size": 665,
+        "sha256": "a4f3092b26eda12030e6cef4767dae78b0c23d48b8c972e7d86344a134eebf73"
+      },
+      "packs/project-execution/ObserveBody.celem": {
+        "size": 281,
+        "sha256": "27f0df277bb6a441d3710b02346787416c8343d69e3ce5243cf4433c3aaf150a"
+      },
+      "packs/project-execution/RunHistory.celem": {
+        "size": 417,
+        "sha256": "e92b4c659f21a8ae74293579ce999773507ee6925a32b356ee6aa342b4036f07"
+      },
+      "packs/project-execution/RunHistory.csbody": {
+        "size": 13291,
+        "sha256": "2230307471672ab09c749417c9d1923876053454ce28bf94160485f249cb5cf4"
+      },
+      "packs/project-execution/RunHistoryBody.celem": {
+        "size": 302,
+        "sha256": "a16dad4a9e763d82b03c9aaf710acbed63ac943fca07c2dff39edfcd2ccdfb97"
+      },
+      "packs/project-execution/RunHistoryUnavailable.csbody": {
+        "size": 440,
+        "sha256": "55b9491bfb53c94f653f3881db2613ff45b133a4a62c972f683753c5add2f02a"
+      },
+      "packs/project-execution/Stop.csbody": {
+        "size": 1136,
+        "sha256": "388af01e7eb2a9c7145bbf2f4f31a3af84466d63b673ffe0a1268dc86db68d7c"
+      },
+      "packs/project-execution/StopBody.celem": {
+        "size": 268,
+        "sha256": "598f2f27c86cb0882893d379485b999e5cf60d6846059e332576c6a4241bf84f"
+      },
+      "packs/project-execution/pack.cpack": {
+        "size": 1714,
+        "sha256": "e499e50c56f08a0263863dd82e05ad23f4528ea64a712277d135b012916055c6"
+      },
+      "tests/Confectory.Tests/ProjectExecutionTests.cs": {
+        "size": 20986,
+        "sha256": "091e5935793188827c67937716710c2db19ee9318eacd350586207524c8ad6fd"
+      },
+      "tests/Confectory.Tests/WebUITests.cs": {
+        "size": 59725,
+        "sha256": "5958350322412ea2205b3e02fd3d006ccef10b26627b06fd9069330185a3341d"
+      },
+      "tests/web/editor_run_history_v480.py": {
+        "size": 10984,
+        "sha256": "5ffacec2629849a335d8cd1ea74f6664635fd1e511d8c64afbf69905b72d17d2"
+      }
+    },
+    "firstFixtureCorrection": {
+      "examples/editor-home/WebBundle.csbody": {
+        "size": 10638,
+        "sha256": "0c3599be9d1ddf489b6aeb3e0f20dd0347121c93ebe79f4f75d3d88ca864a8c4"
+      },
+      "examples/editor-home/WebInvoke.csbody": {
+        "size": 23716,
+        "sha256": "a7b8e4d01adff94e05eff73fada09c59fce8062b0842ad9d397fd5c4af0472c6"
+      },
+      "examples/editor-home/WebState.csbody": {
+        "size": 28070,
+        "sha256": "46fa2aa9e22f8c41596892fae63f97c962af020dcaf2b9345d754e84def5663f"
+      },
+      "examples/editor-home/ui/app.js": {
+        "size": 240169,
+        "sha256": "cf25535c3a32c287ec45ac2bc53c56c34970961d02161eb34898e67b7caa7541"
+      },
+      "examples/project-execution/history-verify-body.celem": {
+        "size": 1293,
+        "sha256": "cc1cc97b3349c31d54183748072be420f86573d40e53b3869591f4eedeacb380"
+      },
+      "examples/project-execution/history-verify.cpack": {
+        "size": 682,
+        "sha256": "b4e07dd728b3a4fbcb085998cc7381140bf07b693872d2bad9d9d4e5be76d2fd"
+      },
+      "examples/project-execution/history-verify.csbody": {
+        "size": 12818,
+        "sha256": "232e1d9a16b999a5c47e153c6d07affd6ddde26da32611ebdedc87e127e7bbac"
+      },
+      "packs/editor-home-model/Command.csbody": {
+        "size": 109924,
+        "sha256": "5003e8a9d3e2e656b9be6d6d0a5a7e58c497ec981a54cc916f4891df8288a09c"
+      },
+      "packs/editor-home-model/CommandBody.celem": {
+        "size": 8494,
+        "sha256": "b6974f924053a302bd74f8bc1d5a705acd5dcfd776413ac84140c0a0ebfac4c4"
+      },
+      "packs/project-execution/Capabilities.csbody": {
+        "size": 267,
+        "sha256": "874490cdf0d056310cfdb847172ee57cf6537938dad502f4451ef4644aee230a"
+      },
+      "packs/project-execution/LaunchConfigured.csbody": {
+        "size": 9756,
+        "sha256": "4ff8110f4489db6584999298521603cac4767e6c9555933cf3bf8319a0ba3008"
+      },
+      "packs/project-execution/LaunchConfiguredBody.celem": {
+        "size": 538,
+        "sha256": "eece3efb74d91545378001290fbde2dc8c381ad46e57247efe6ba0674c94f64b"
+      },
+      "packs/project-execution/Observe.csbody": {
+        "size": 665,
+        "sha256": "a4f3092b26eda12030e6cef4767dae78b0c23d48b8c972e7d86344a134eebf73"
+      },
+      "packs/project-execution/ObserveBody.celem": {
+        "size": 281,
+        "sha256": "27f0df277bb6a441d3710b02346787416c8343d69e3ce5243cf4433c3aaf150a"
+      },
+      "packs/project-execution/RunHistory.celem": {
+        "size": 417,
+        "sha256": "e92b4c659f21a8ae74293579ce999773507ee6925a32b356ee6aa342b4036f07"
+      },
+      "packs/project-execution/RunHistory.csbody": {
+        "size": 13291,
+        "sha256": "2230307471672ab09c749417c9d1923876053454ce28bf94160485f249cb5cf4"
+      },
+      "packs/project-execution/RunHistoryBody.celem": {
+        "size": 302,
+        "sha256": "a16dad4a9e763d82b03c9aaf710acbed63ac943fca07c2dff39edfcd2ccdfb97"
+      },
+      "packs/project-execution/RunHistoryUnavailable.csbody": {
+        "size": 440,
+        "sha256": "55b9491bfb53c94f653f3881db2613ff45b133a4a62c972f683753c5add2f02a"
+      },
+      "packs/project-execution/Stop.csbody": {
+        "size": 1136,
+        "sha256": "388af01e7eb2a9c7145bbf2f4f31a3af84466d63b673ffe0a1268dc86db68d7c"
+      },
+      "packs/project-execution/StopBody.celem": {
+        "size": 268,
+        "sha256": "598f2f27c86cb0882893d379485b999e5cf60d6846059e332576c6a4241bf84f"
+      },
+      "packs/project-execution/pack.cpack": {
+        "size": 1714,
+        "sha256": "e499e50c56f08a0263863dd82e05ad23f4528ea64a712277d135b012916055c6"
+      },
+      "tests/Confectory.Tests/ProjectExecutionTests.cs": {
+        "size": 20986,
+        "sha256": "091e5935793188827c67937716710c2db19ee9318eacd350586207524c8ad6fd"
+      },
+      "tests/Confectory.Tests/WebUITests.cs": {
+        "size": 59725,
+        "sha256": "5958350322412ea2205b3e02fd3d006ccef10b26627b06fd9069330185a3341d"
+      },
+      "tests/web/editor_run_control_v480.py": {
+        "size": 13110,
+        "sha256": "138eaaef964bf1fae818ff7352ce25e9abc5a83943b2296b7565eeebc12f6895"
+      },
+      "tests/web/editor_run_history_v480.py": {
+        "size": 10984,
+        "sha256": "5ffacec2629849a335d8cd1ea74f6664635fd1e511d8c64afbf69905b72d17d2"
+      },
+      "tests/web/editor_run_v318.py": {
+        "size": 11704,
+        "sha256": "f94d214b9aacc96abb5946db05e0d97ff69a403d488538ea74f23bafaa9188c2"
+      }
+    },
+    "secondFixtureCorrection": {
+      "examples/editor-home/WebBundle.csbody": {
+        "size": 10638,
+        "sha256": "0c3599be9d1ddf489b6aeb3e0f20dd0347121c93ebe79f4f75d3d88ca864a8c4"
+      },
+      "examples/editor-home/WebInvoke.csbody": {
+        "size": 23716,
+        "sha256": "a7b8e4d01adff94e05eff73fada09c59fce8062b0842ad9d397fd5c4af0472c6"
+      },
+      "examples/editor-home/WebState.csbody": {
+        "size": 28070,
+        "sha256": "46fa2aa9e22f8c41596892fae63f97c962af020dcaf2b9345d754e84def5663f"
+      },
+      "examples/editor-home/ui/app.js": {
+        "size": 240169,
+        "sha256": "cf25535c3a32c287ec45ac2bc53c56c34970961d02161eb34898e67b7caa7541"
+      },
+      "examples/project-execution/history-verify-body.celem": {
+        "size": 1293,
+        "sha256": "cc1cc97b3349c31d54183748072be420f86573d40e53b3869591f4eedeacb380"
+      },
+      "examples/project-execution/history-verify.cpack": {
+        "size": 682,
+        "sha256": "b4e07dd728b3a4fbcb085998cc7381140bf07b693872d2bad9d9d4e5be76d2fd"
+      },
+      "examples/project-execution/history-verify.csbody": {
+        "size": 12818,
+        "sha256": "232e1d9a16b999a5c47e153c6d07affd6ddde26da32611ebdedc87e127e7bbac"
+      },
+      "packs/editor-home-model/Command.csbody": {
+        "size": 109924,
+        "sha256": "5003e8a9d3e2e656b9be6d6d0a5a7e58c497ec981a54cc916f4891df8288a09c"
+      },
+      "packs/editor-home-model/CommandBody.celem": {
+        "size": 8494,
+        "sha256": "b6974f924053a302bd74f8bc1d5a705acd5dcfd776413ac84140c0a0ebfac4c4"
+      },
+      "packs/project-execution/Capabilities.csbody": {
+        "size": 267,
+        "sha256": "874490cdf0d056310cfdb847172ee57cf6537938dad502f4451ef4644aee230a"
+      },
+      "packs/project-execution/LaunchConfigured.csbody": {
+        "size": 9756,
+        "sha256": "4ff8110f4489db6584999298521603cac4767e6c9555933cf3bf8319a0ba3008"
+      },
+      "packs/project-execution/LaunchConfiguredBody.celem": {
+        "size": 538,
+        "sha256": "eece3efb74d91545378001290fbde2dc8c381ad46e57247efe6ba0674c94f64b"
+      },
+      "packs/project-execution/Observe.csbody": {
+        "size": 665,
+        "sha256": "a4f3092b26eda12030e6cef4767dae78b0c23d48b8c972e7d86344a134eebf73"
+      },
+      "packs/project-execution/ObserveBody.celem": {
+        "size": 281,
+        "sha256": "27f0df277bb6a441d3710b02346787416c8343d69e3ce5243cf4433c3aaf150a"
+      },
+      "packs/project-execution/RunHistory.celem": {
+        "size": 417,
+        "sha256": "e92b4c659f21a8ae74293579ce999773507ee6925a32b356ee6aa342b4036f07"
+      },
+      "packs/project-execution/RunHistory.csbody": {
+        "size": 13291,
+        "sha256": "2230307471672ab09c749417c9d1923876053454ce28bf94160485f249cb5cf4"
+      },
+      "packs/project-execution/RunHistoryBody.celem": {
+        "size": 302,
+        "sha256": "a16dad4a9e763d82b03c9aaf710acbed63ac943fca07c2dff39edfcd2ccdfb97"
+      },
+      "packs/project-execution/RunHistoryUnavailable.csbody": {
+        "size": 440,
+        "sha256": "55b9491bfb53c94f653f3881db2613ff45b133a4a62c972f683753c5add2f02a"
+      },
+      "packs/project-execution/Stop.csbody": {
+        "size": 1136,
+        "sha256": "388af01e7eb2a9c7145bbf2f4f31a3af84466d63b673ffe0a1268dc86db68d7c"
+      },
+      "packs/project-execution/StopBody.celem": {
+        "size": 268,
+        "sha256": "598f2f27c86cb0882893d379485b999e5cf60d6846059e332576c6a4241bf84f"
+      },
+      "packs/project-execution/pack.cpack": {
+        "size": 1714,
+        "sha256": "e499e50c56f08a0263863dd82e05ad23f4528ea64a712277d135b012916055c6"
+      },
+      "tests/Confectory.Tests/ProjectExecutionTests.cs": {
+        "size": 20986,
+        "sha256": "091e5935793188827c67937716710c2db19ee9318eacd350586207524c8ad6fd"
+      },
+      "tests/Confectory.Tests/WebUITests.cs": {
+        "size": 59725,
+        "sha256": "5958350322412ea2205b3e02fd3d006ccef10b26627b06fd9069330185a3341d"
+      },
+      "tests/web/editor_run_control_v480.py": {
+        "size": 13379,
+        "sha256": "480c6e1cb9830fea9cde034f97adac575c6103c23f3d46b76f21bc8c4e14ef34"
+      },
+      "tests/web/editor_run_history_v480.py": {
+        "size": 10984,
+        "sha256": "5ffacec2629849a335d8cd1ea74f6664635fd1e511d8c64afbf69905b72d17d2"
+      },
+      "tests/web/editor_run_v318.py": {
+        "size": 11704,
+        "sha256": "f94d214b9aacc96abb5946db05e0d97ff69a403d488538ea74f23bafaa9188c2"
+      }
+    },
+    "beforeAdmissionFix": {
+      "examples/editor-home/WebBundle.csbody": {
+        "size": 10638,
+        "sha256": "0c3599be9d1ddf489b6aeb3e0f20dd0347121c93ebe79f4f75d3d88ca864a8c4"
+      },
+      "examples/editor-home/WebInvoke.csbody": {
+        "size": 23716,
+        "sha256": "a7b8e4d01adff94e05eff73fada09c59fce8062b0842ad9d397fd5c4af0472c6"
+      },
+      "examples/editor-home/WebState.csbody": {
+        "size": 28070,
+        "sha256": "46fa2aa9e22f8c41596892fae63f97c962af020dcaf2b9345d754e84def5663f"
+      },
+      "examples/editor-home/ui/app.js": {
+        "size": 240169,
+        "sha256": "cf25535c3a32c287ec45ac2bc53c56c34970961d02161eb34898e67b7caa7541"
+      },
+      "examples/project-execution/history-verify-body.celem": {
+        "size": 1293,
+        "sha256": "cc1cc97b3349c31d54183748072be420f86573d40e53b3869591f4eedeacb380"
+      },
+      "examples/project-execution/history-verify.cpack": {
+        "size": 682,
+        "sha256": "b4e07dd728b3a4fbcb085998cc7381140bf07b693872d2bad9d9d4e5be76d2fd"
+      },
+      "examples/project-execution/history-verify.csbody": {
+        "size": 12818,
+        "sha256": "232e1d9a16b999a5c47e153c6d07affd6ddde26da32611ebdedc87e127e7bbac"
+      },
+      "packs/editor-home-model/Command.csbody": {
+        "size": 109924,
+        "sha256": "5003e8a9d3e2e656b9be6d6d0a5a7e58c497ec981a54cc916f4891df8288a09c"
+      },
+      "packs/editor-home-model/CommandBody.celem": {
+        "size": 8494,
+        "sha256": "b6974f924053a302bd74f8bc1d5a705acd5dcfd776413ac84140c0a0ebfac4c4"
+      },
+      "packs/project-execution/Capabilities.csbody": {
+        "size": 267,
+        "sha256": "874490cdf0d056310cfdb847172ee57cf6537938dad502f4451ef4644aee230a"
+      },
+      "packs/project-execution/LaunchConfigured.csbody": {
+        "size": 9756,
+        "sha256": "4ff8110f4489db6584999298521603cac4767e6c9555933cf3bf8319a0ba3008"
+      },
+      "packs/project-execution/LaunchConfiguredBody.celem": {
+        "size": 538,
+        "sha256": "eece3efb74d91545378001290fbde2dc8c381ad46e57247efe6ba0674c94f64b"
+      },
+      "packs/project-execution/Observe.csbody": {
+        "size": 665,
+        "sha256": "a4f3092b26eda12030e6cef4767dae78b0c23d48b8c972e7d86344a134eebf73"
+      },
+      "packs/project-execution/ObserveBody.celem": {
+        "size": 281,
+        "sha256": "27f0df277bb6a441d3710b02346787416c8343d69e3ce5243cf4433c3aaf150a"
+      },
+      "packs/project-execution/RunHistory.celem": {
+        "size": 417,
+        "sha256": "e92b4c659f21a8ae74293579ce999773507ee6925a32b356ee6aa342b4036f07"
+      },
+      "packs/project-execution/RunHistory.csbody": {
+        "size": 13291,
+        "sha256": "2230307471672ab09c749417c9d1923876053454ce28bf94160485f249cb5cf4"
+      },
+      "packs/project-execution/RunHistoryBody.celem": {
+        "size": 302,
+        "sha256": "a16dad4a9e763d82b03c9aaf710acbed63ac943fca07c2dff39edfcd2ccdfb97"
+      },
+      "packs/project-execution/RunHistoryUnavailable.csbody": {
+        "size": 440,
+        "sha256": "55b9491bfb53c94f653f3881db2613ff45b133a4a62c972f683753c5add2f02a"
+      },
+      "packs/project-execution/Stop.csbody": {
+        "size": 1136,
+        "sha256": "388af01e7eb2a9c7145bbf2f4f31a3af84466d63b673ffe0a1268dc86db68d7c"
+      },
+      "packs/project-execution/StopBody.celem": {
+        "size": 268,
+        "sha256": "598f2f27c86cb0882893d379485b999e5cf60d6846059e332576c6a4241bf84f"
+      },
+      "packs/project-execution/pack.cpack": {
+        "size": 1714,
+        "sha256": "e499e50c56f08a0263863dd82e05ad23f4528ea64a712277d135b012916055c6"
+      },
+      "tests/Confectory.Tests/ProjectExecutionTests.cs": {
+        "size": 20986,
+        "sha256": "091e5935793188827c67937716710c2db19ee9318eacd350586207524c8ad6fd"
+      },
+      "tests/Confectory.Tests/WebUITests.cs": {
+        "size": 59725,
+        "sha256": "5958350322412ea2205b3e02fd3d006ccef10b26627b06fd9069330185a3341d"
+      },
+      "tests/web/editor_run_control_v480.py": {
+        "size": 13643,
+        "sha256": "e4e60b12a335ecbacbd01f3e05740089751b1401062e373c579ffe19dde69f07"
+      },
+      "tests/web/editor_run_history_v480.py": {
+        "size": 10984,
+        "sha256": "5ffacec2629849a335d8cd1ea74f6664635fd1e511d8c64afbf69905b72d17d2"
+      },
+      "tests/web/editor_run_v318.py": {
+        "size": 11704,
+        "sha256": "f94d214b9aacc96abb5946db05e0d97ff69a403d488538ea74f23bafaa9188c2"
+      }
+    }
+  },
+  "actualColdHistoryObservation": {
+    "oldExecution": "6ae7dce2b7c74c98bb406597c597280e",
+    "lastConfirmedFrame": "27",
+    "lastConfirmedAck": 2,
+    "coldOwnerAvailable": false,
+    "coldProcessState": "idle",
+    "coldHostChildren": [],
+    "freshExplicitExecution": "438c13349e9d466b818627d0976de6ed",
+    "savedFacts": {
+      "version": 1,
+      "scope": "recorded-project-executions",
+      "manifest": "/tmp/confectory-run-history-v480-cziv4q1q/ordinary-frame-loop/project.cpack",
+      "sequence": 9,
+      "rows": [
+        {
+          "recordedState": "failed",
+          "frame": null,
+          "ack": null,
+          "frameState": null,
+          "exitCode": 1,
+          "execution": "592339000beb4347935dcd39c04107dd",
+          "revision": 2,
+          "observedUtc": "2026-10-18T01:39:35.1155047+00:00",
+          "order": 1
+        },
+        {
+          "recordedState": "running",
+          "frame": "27",
+          "ack": 2,
+          "frameState": "paused",
+          "exitCode": null,
+          "execution": "6ae7dce2b7c74c98bb406597c597280e",
+          "revision": 7,
+          "observedUtc": "2026-10-18T01:39:43.7175863+00:00",
+          "order": 3
+        }
+      ]
+    },
+    "corruptBytesPreserved": true,
+    "noAdoptionOrReplay": true
+  },
+  "actualCommandAdmissionObservation": {
+    "publishedRevision": 7,
+    "publishedFrame": "14",
+    "pauseAcceptedOnce": true,
+    "pauseAck": 1,
+    "actualOtherViewRevision": 10,
+    "staleStepError": "stale_revision",
+    "staleStepDidNotExecute": true,
+    "sourceBytesUnchanged": true
+  },
+  "recordFormat": {
+    "fixedHeaderFields": [
+      "version",
+      "scope",
+      "manifest",
+      "sequence",
+      "rows"
+    ],
+    "fixedRowFields": [
+      "execution",
+      "revision",
+      "order",
+      "observedUtc",
+      "recordedState",
+      "frame",
+      "ack",
+      "frameState",
+      "exitCode"
+    ],
+    "maximumRows": 256,
+    "maximumUtf8Bytes": 262144,
+    "pageSize": 32,
+    "sourceBuildLeaseUsed": false,
+    "secretsCapabilitiesTokensPidsRawDiagnosticsStored": false,
+    "coldQueriesRestoreAuthorityOrReplayCommands": false
+  },
+  "admissionCorrection": {
+    "red": "admission-red.log reproduced stale_revision with no intervening client state publication",
+    "fix": "Only the serving host thread publishes background observations; worker admission reads the published snapshot. Existing revision/CAS/scope/frame guards retained; no retry/replay.",
+    "positive": "admission-green-and-frame.log2/0/0 and final complete UI group",
+    "realOtherViewRevisionStillRejectsStaleStep": true
+  },
+  "fixtureCorrections": [
+    "Existing Run log summary is scoped to .run-log-view after a second summary was added.",
+    "Existing Frame UI waits for Home summary/button readiness and presentation flush between diagnostic probes and a new user intent; no forced click, revision waiver or automatic command reissue."
+  ],
+  "protected": {
+    "localHead": "0f7c9b3d385937eab60057576d40905e92045479",
+    "localMain": "b5ea38c3d7eec3eb20f170e68f0f4215b86b2aee",
+    "zips": {
+      "reference/site-ui/Confectory-Editor-Prototype-v196.zip": "02d4824e92ed0edbb43113659982b37a99a614117652bde4d8ac92367e334e34",
+      "reference/site-ui/Confectory-Editor-Prototype-v424.zip": "b7969cd109ea2dad38bde9c9ab13967c20162c920a45a8cd51a8f82df6041874",
+      "reference/site-ui/Confectory-Editor-Prototype-v318.zip": "0a614fe2bf1ad3d8e10dfa8905bb6b61ea9f21b87b2492b2b87ca8566e9e6908",
+      "reference/site-ui/Confectory-Editor-Prototype-v480.zip": "0489844c8c6d90f7cdc8ea0e80628f487dcfb27f2c871b19367a635212d3c5bd"
+    },
+    "androidFilesChanged": []
+  },
+  "scope": {
+    "selectedEnvironment": "Linux /workspace/Confectory; existing dotnet10.0.401; existing local Xorg dummy display :97; no installation",
+    "nativeLinuxEngineAndButtonGame": true,
+    "windowsAndroidHomeManagedCompileOnly": true,
+    "androidBrowserHistoryProfiles": "explicit unavailable; no filesystem history access",
+    "durableOwnerAdoption": false,
+    "embeddedSurfaceOrInput": false,
+    "newCredentialsSecurityPermissionsOrRemoteService": false,
+    "realAccountOrPaidCall": false,
+    "propertySetRefExtendedAbiGeneralOverflow": "separate unresolved scope"
+  }
+}
