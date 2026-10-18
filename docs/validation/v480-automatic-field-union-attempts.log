@@ -491,4 +491,3 @@ PASS actual v480 browser Data fields: shared versioned cells/exact int64/typed r
 Actual common WebUI browser-data-fields Chromium PASS
 PASS WebUITests.test_actual_editor_v480_browser_data_fields_typed_cas_inputs_and_cold
 3 passed, 0 failed, 0 skipped; 256.566s
-
