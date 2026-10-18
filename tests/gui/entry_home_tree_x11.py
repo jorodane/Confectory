@@ -184,6 +184,9 @@ def select_id(window,id):search_tree(window,id);return choose(window,'decl:'+id)
 p='Example.ButtonGame::';leaf=p+'TreeLeaf';middle=p+'TreeMiddle';parent=p+'TreeRoot';score=p+'Score';foreign='TreeRegistered.Api::Parent'
 try:
  a=launch();wait(lambda t:t['screen']=='intro' and 1 in t['hits'][::5],'intro');resize(display,a,1600,1150);flush(display);wait(lambda t:t["width"]==1600 and t["height"]==1150,"native resize observed");click(a,1);idle('home');click(a,100);idle('project');first=latest()['model']['selected']['context'];click(a,55);wait(lambda t:(t['model'].get('workspace') or {}).get('unit') and not t['job'],'source workspace');explore(a)
+ binding=field(77)['binding'];fill(a,77,'x'*257)
+ for action in [78,87,226]:
+  click(a,action);wait(lambda t:'Tree search limit 256' in t.get('message',''),'overlong tree search retained');assert tree()['nativeTreeState']['query']=='' and field(77)['text']=='x'*257 and field(77)['binding']==binding;assert not list((home_storage/'native-trees').glob('*.json'))
  select_id(a,leaf);assert tree()['nativeTree']['selected']['depth']==5;details=field(208);assert details['readonly'] and details['provider']=='gtk3' and 'contain' in details['text'] and 'schema' in details['text'];assert latest()['model']['workspace']['selected']!=leaf
  # Expansion is stored separately from temporary search-forced paths.
  for key in ['ns:Example','ns:Example.ButtonGame','decl:'+parent,'decl:'+middle]:choose(a,key);toggle_tree(a)
