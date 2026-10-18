@@ -51,3 +51,5 @@ main·원본 ZIP 네 개·Android 설정·CSP·기존 binary를 보존한다. We
 ![재시작 전: 읽기 전용 합집합과 기존 미적용 입력](validation/v480-automatic-field-union-before-cold.png)
 
 ![새 프로세스: 저장된 구성으로 최신 스키마 조회](validation/v480-automatic-field-union-after-cold.png)
+
+[후속 native 대응 화면](V480_NATIVE_FIELD_UNION.md)은 같은 읽기 전용 모델을 사용하며 별도의 실제 Linux 입력·private 보기 저장·관리 컴파일 근거로 구분한다. 위 9개는 이 WebUI 단계의 역사적 결과다.

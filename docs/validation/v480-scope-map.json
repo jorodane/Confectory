@@ -168,10 +168,12 @@
         "examples/editor-home/ui/app.js",
         "packs/instant-table/pack.cpack",
         "examples/editor-home/ui/field-discovery.js",
-        "packs/editor-home-model/FieldDiscovery.csbody"
+        "packs/editor-home-model/FieldDiscovery.csbody",
+        "examples/editor-home/Main.csbody",
+        "packs/editor-home-model/NativeFieldView.csbody"
       ],
-      "supported": "명시적 객체/필드 선택, 정확한 JSON·typed 셀·원자적 fill, 열 이동/너비, source/schema CAS와 cold; 명시 소유 대상·기존 스키마 메타데이터의 읽기 전용 자동 필드 합집합",
-      "limits": "합집합 대상64/객체 필드1024/일치 합집합512/페이지16×16; 계산 열·일반 선택 확장·native 합집합 제외; null 응답 adapter 검사와 CELEM null 문법 미확장 구분",
+      "supported": "명시적 객체/필드 선택, 정확한 JSON·typed 셀·원자적 fill, 열 이동/너비, source/schema CAS와 cold; 명시 소유 대상·기존 스키마 메타데이터의 읽기 전용 자동 필드 합집합; native 명시 대상/읽기 전용 표시/페이지/필터와 프로젝트별 비교 설정 저장/CAS",
+      "limits": "합집합 대상64/객체 필드1024/일치 합집합512/페이지16×16; 계산 열·일반 선택 확장 제외; null 응답 adapter 검사와 CELEM null 문법 미확장 구분; native live source/chat/cell 입력과 명시 비교 설정 cold 구분",
       "remaining": [
         "IMP3"
       ],
@@ -187,6 +189,11 @@
       "fieldUnionFollowupMethods": [
         "FieldDiscoveryTests.test_owned_field_discovery_union_precision_missing_limits_cancel_and_no_write_authority",
         "FieldDiscoveryTests.test_actual_editor_imp3_automatic_field_union_limits_cancel_selection_and_cold"
+      ],
+      "nativeFieldUnionFollowupEvidence": "v480-native-field-union.json",
+      "nativeFieldUnionFollowupMethods": [
+        "NativeFieldViewTests.test_native_field_view_same_readonly_model_states_pages_storage_cas_and_bounds",
+        "NativeFieldViewTests.test_linux_native_field_union_explicit_input_cancel_lifetime_cas_and_latest_cold"
       ]
     },
     {
@@ -1180,7 +1187,8 @@
       ],
       "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)",
       "treeFollowupEvidence": "v480-declaration-tree.json",
-      "fieldUnionFollowupEvidence": "v480-automatic-field-union.json"
+      "fieldUnionFollowupEvidence": "v480-automatic-field-union.json",
+      "nativeFieldUnionFollowupEvidence": "v480-native-field-union.json"
     },
     {
       "id": "X02",

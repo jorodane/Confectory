@@ -1,0 +1,510 @@
+{
+  "version": 1,
+  "sourceCommit": "9084674bd9e8edce5818b91628f523648f96a698",
+  "fixtureCommit": "a53f1ab397a460391a5e9ab0b7ecc280aa211909",
+  "baseWorkCurrent": "eb838f5c57b466036309e5c8669216c3788bcc63",
+  "measuredAtUtc": "2026-10-18T13:10:15.763406+00:00",
+  "scope": "Native bounded readonly automatic field union calling the existing FieldDiscovery; explicit owned target selection, private settings CAS, live input/write-version fences and latest process-cold read. No calculation/null-write policy/full-v480 or device completion.",
+  "distinctMethods": 10,
+  "passed": 10,
+  "failed": 0,
+  "skipped": 0,
+  "executedPassingResultsIncludingRecheck": 11,
+  "supersededFailedExecutions": [
+    {
+      "method": "EntryHomeResizeTests.test_entry_home_tiny_and_zero_client_suspend_restore_preserve_input_lifetimes",
+      "log": "confectory-native-fields-final-native-regression1.log",
+      "supersededBy": "confectory-native-fields-final-resize1.log"
+    }
+  ],
+  "repeatedMethods": {
+    "NativeFieldViewTests.test_native_field_view_same_readonly_model_states_pages_storage_cas_and_bounds": 2
+  },
+  "countingRule": "Use the last outcome per distinct method. The format recheck is not an additional method. The resize startup failed before UI because the default home is read-only; its unchanged test passed with owned XDG paths and supersedes that failure.",
+  "gateConcurrencyLimit": 2,
+  "cpuQuota": 4,
+  "memoryLimitBytes": 17179869184,
+  "groups": [
+    {
+      "group": "common-model-webui-and-managed",
+      "log": "confectory-native-fields-final-contracts1.log",
+      "executedPassedMethods": [
+        "FieldDiscoveryTests.test_actual_editor_imp3_automatic_field_union_limits_cancel_selection_and_cold",
+        "FieldDiscoveryTests.test_owned_field_discovery_union_precision_missing_limits_cancel_and_no_write_authority",
+        "NativeFieldViewTests.test_native_field_view_same_readonly_model_states_pages_storage_cas_and_bounds",
+        "EntryHomeTests.test_android_home_export_selects_activity_and_metadata_parser_without_engine_surface_sample",
+        "EntryHomeNativeDetailsTests.test_windows_native_information_and_profile_composition_builds"
+      ],
+      "executedFailedMethods": [],
+      "executedPassed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 300.167
+    },
+    {
+      "group": "current-format-fixture-recheck",
+      "log": "confectory-native-fields-final-format.log",
+      "executedPassedMethods": [
+        "NativeFieldViewTests.test_native_field_view_same_readonly_model_states_pages_storage_cas_and_bounds"
+      ],
+      "executedFailedMethods": [],
+      "executedPassed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 45.584
+    },
+    {
+      "group": "actual-native-field-union",
+      "log": "confectory-native-fields-gui7.log",
+      "executedPassedMethods": [
+        "NativeFieldViewTests.test_linux_native_field_union_explicit_input_cancel_lifetime_cas_and_latest_cold"
+      ],
+      "executedFailedMethods": [],
+      "executedPassed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 204.762
+    },
+    {
+      "group": "existing-native-input-regressions",
+      "log": "confectory-native-fields-final-native-regression1.log",
+      "executedPassedMethods": [
+        "EntryHomeNativeDetailsTests.test_linux_native_home_information_profile_cas_cancel_and_project_input_lifetimes",
+        "EntryHomeNativeDetailsTests.test_linux_native_tree_input_reopen_latest_state_and_pending_source_chat"
+      ],
+      "executedFailedMethods": [
+        "EntryHomeResizeTests.test_entry_home_tiny_and_zero_client_suspend_restore_preserve_input_lifetimes"
+      ],
+      "executedPassed": 2,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 330.068
+    },
+    {
+      "group": "owned-xdg-resize-recheck",
+      "log": "confectory-native-fields-final-resize1.log",
+      "executedPassedMethods": [
+        "EntryHomeResizeTests.test_entry_home_tiny_and_zero_client_suspend_restore_preserve_input_lifetimes"
+      ],
+      "executedFailedMethods": [],
+      "executedPassed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 145.311
+    },
+    {
+      "group": "ordinary-git-checkout",
+      "log": "confectory-native-fields-final-checkout1.log",
+      "executedPassedMethods": [
+        "WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup"
+      ],
+      "executedFailedMethods": [],
+      "executedPassed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 72.506
+    }
+  ],
+  "methodResults": {
+    "FieldDiscoveryTests.test_actual_editor_imp3_automatic_field_union_limits_cancel_selection_and_cold": {
+      "passed": true,
+      "log": "confectory-native-fields-final-contracts1.log"
+    },
+    "FieldDiscoveryTests.test_owned_field_discovery_union_precision_missing_limits_cancel_and_no_write_authority": {
+      "passed": true,
+      "log": "confectory-native-fields-final-contracts1.log"
+    },
+    "NativeFieldViewTests.test_native_field_view_same_readonly_model_states_pages_storage_cas_and_bounds": {
+      "passed": true,
+      "log": "confectory-native-fields-final-format.log"
+    },
+    "EntryHomeTests.test_android_home_export_selects_activity_and_metadata_parser_without_engine_surface_sample": {
+      "passed": true,
+      "log": "confectory-native-fields-final-contracts1.log"
+    },
+    "EntryHomeNativeDetailsTests.test_windows_native_information_and_profile_composition_builds": {
+      "passed": true,
+      "log": "confectory-native-fields-final-contracts1.log"
+    },
+    "NativeFieldViewTests.test_linux_native_field_union_explicit_input_cancel_lifetime_cas_and_latest_cold": {
+      "passed": true,
+      "log": "confectory-native-fields-gui7.log"
+    },
+    "EntryHomeNativeDetailsTests.test_linux_native_home_information_profile_cas_cancel_and_project_input_lifetimes": {
+      "passed": true,
+      "log": "confectory-native-fields-final-native-regression1.log"
+    },
+    "EntryHomeNativeDetailsTests.test_linux_native_tree_input_reopen_latest_state_and_pending_source_chat": {
+      "passed": true,
+      "log": "confectory-native-fields-final-native-regression1.log"
+    },
+    "EntryHomeResizeTests.test_entry_home_tiny_and_zero_client_suspend_restore_preserve_input_lifetimes": {
+      "passed": true,
+      "log": "confectory-native-fields-final-resize1.log"
+    },
+    "WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup": {
+      "passed": true,
+      "log": "confectory-native-fields-final-checkout1.log"
+    }
+  },
+  "productionSha256": {
+    "examples/editor-home/Main.celem": "9f506b2d78abbb5447fa7887539be388f8116ec20d09ea38d74eaeffdae4e94c",
+    "examples/editor-home/Main.csbody": "086b7b58eb6de6613d2fe71d7ca70fb8261e2e535ca12ce5fdc4571bdee5592b",
+    "examples/editor-home/MainBody.celem": "094de97a5a7fb673dca685ed827422579b15211cb245968a913dd2eee680c6b2",
+    "examples/editor-home/Verify.celem": "3f3bb84408e1697c811aa053bb198666103110975866e3666e7aca118d871b5d",
+    "examples/editor-home/VerifyShell.celem": "420125dd387482720bd56870e80a90af8f974703cc3a2d2ed1dcf4f1243f5756",
+    "packs/editor-home-model/NativeFieldView.celem": "fa47ae4afad18829b184401da02a9ac3a3c3d1e3d9b09aee5cf04b2043a5799d",
+    "packs/editor-home-model/NativeFieldView.csbody": "6de549931ec484e681c44a2f5278bf70fce42a26526101dba5ab6b0268e32214",
+    "packs/editor-home-model/NativeFieldViewBody.celem": "a6fe42cf610811fc0df73d01c7a866e6b9ddf452a3d6e33dbddbf5cf95f15088",
+    "packs/editor-home-model/pack.cpack": "4df8ce56e7018365b507f49724c0c2c32c0ffdbf42be31381ea025328922bac5",
+    "packs/editor-home-model/FieldDiscovery.celem": "57dcaba304a8e663a563e8b21bce4c2f1124bc977d71c1c7a8e63d3d68856c50",
+    "packs/editor-home-model/FieldDiscoveryBody.celem": "9837e0c036a106e5cedc36c3e24a559f0a929a5d8eee87b1087905adc70a4222",
+    "packs/editor-home-model/FieldDiscovery.csbody": "0205014bb9acaef5640e5aebd3a82752fabcc57466d45271d9441e3a8340abb1",
+    "packs/editor-home-model/NativeTree.csbody": "21920bb67a24604581104f8cf5e8c229997d5ea696250a93953e8559a33322b0",
+    "packs/edit-workspace/DescribeSchema.csbody": "b074577046ece9144c94659085c0dbc388689d22e95eba8b7e7d85dde020e224",
+    "examples/editor-home/WebBundle.csbody": "8ef5b848cf4f81982c37ed3e7e4c9dfce04db925395f3b6fac1be21f47cdd517"
+  },
+  "testSha256": {
+    "tests/Confectory.Tests/NativeFieldViewTests.cs": "74774f351bef2677b713d887d4481ab52a78d22c9f760c934dbe5e0374b99e1c",
+    "tests/Confectory.Tests/Program.cs": "1534e317f1af118bb47378784ba7cf0f1c7689278c8ffb8ef344947958bc03ff",
+    "tests/gui/entry_home_fields_x11.py": "88c21e0d366e9b6f04a6f94898524f864d61415e8967277396ede2c297cdd437",
+    "tests/probes/native_field_view_contract.csbody": "a51759a56941c596ef4a618c944af4fcd4cdceacf86958fc39d1184b5ec8637a"
+  },
+  "sourceProductionUnchangedAfter9084674": true,
+  "checkoutSourceCommit": "9084674bd9e8edce5818b91628f523648f96a698",
+  "checkoutProductionAnd43ResourcesMatchFinal": true,
+  "finalLogs": [
+    "confectory-native-fields-final-contracts1.log",
+    "confectory-native-fields-final-format.log",
+    "confectory-native-fields-gui7.log",
+    "confectory-native-fields-final-native-regression1.log",
+    "confectory-native-fields-final-resize1.log",
+    "confectory-native-fields-final-checkout1.log"
+  ],
+  "attempts": [
+    {
+      "log": "confectory-native-fields-build1.log",
+      "kind": "managed-tests-build",
+      "success": true
+    },
+    {
+      "log": "confectory-native-fields-compile1.log",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 39.049,
+      "finalEvidence": false
+    },
+    {
+      "log": "confectory-native-fields-compile2.log",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 32.38,
+      "finalEvidence": false
+    },
+    {
+      "log": "confectory-native-fields-build2.log",
+      "kind": "managed-tests-build",
+      "success": true
+    },
+    {
+      "log": "confectory-native-fields-build3.log",
+      "kind": "managed-tests-build",
+      "success": true
+    },
+    {
+      "log": "confectory-native-fields-contract1.log",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 42.767,
+      "finalEvidence": false
+    },
+    {
+      "log": "confectory-native-fields-gui1.log",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 113.589,
+      "finalEvidence": false
+    },
+    {
+      "log": "confectory-native-fields-contract2.log",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 44.568,
+      "finalEvidence": false
+    },
+    {
+      "log": "confectory-native-fields-gui2.log",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 88.736,
+      "finalEvidence": false
+    },
+    {
+      "log": "confectory-native-fields-contract3.log",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 46.316,
+      "finalEvidence": false
+    },
+    {
+      "log": "confectory-native-fields-gui3.log",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 129.67,
+      "finalEvidence": false
+    },
+    {
+      "log": "confectory-native-fields-gui4.log",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 222.593,
+      "finalEvidence": false
+    },
+    {
+      "log": "confectory-native-fields-final-contracts1.log",
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 300.167,
+      "finalEvidence": true
+    },
+    {
+      "log": "confectory-native-fields-transport.log",
+      "kind": "exec-transport-interruption",
+      "recovered": true
+    },
+    {
+      "log": "confectory-native-fields-final-checkout1.log",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 72.506,
+      "finalEvidence": true
+    },
+    {
+      "log": "confectory-native-fields-gui5.log",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 196.415,
+      "finalEvidence": false
+    },
+    {
+      "log": "confectory-native-fields-build4.log",
+      "kind": "managed-tests-build",
+      "success": true
+    },
+    {
+      "log": "confectory-native-fields-final-format.log",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 45.584,
+      "finalEvidence": true
+    },
+    {
+      "log": "confectory-native-fields-gui6.log",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 234.465,
+      "finalEvidence": false
+    },
+    {
+      "log": "confectory-native-fields-gui7.log",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 204.762,
+      "finalEvidence": true
+    },
+    {
+      "log": "confectory-native-fields-final-native-regression1.log",
+      "passed": 2,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 330.068,
+      "finalEvidence": true
+    },
+    {
+      "log": "confectory-native-fields-final-resize1.log",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 145.311,
+      "finalEvidence": true
+    }
+  ],
+  "publicLogNormalization": "Trailing whitespace and final empty line removed; original complete scratch logs and owned private UI traces retained.",
+  "diagnostics": [
+    "initial formatter cell-state local shadowed the saved-state local; renamed before managed compile passed",
+    "pending retained property cell may be occluded by source; fixture checks hidden native text/binding and explicitly activates its view before write",
+    "probe is recorded after successful Describe; malformed selected row is verified as unavailable, not falsely required in completed-read log",
+    "fixture native filter lookup permits the actual enabled input while readonly metadata is pending",
+    "fixture waits for applied IDs/current response request instead of a preceding ready trace",
+    "small native choice pages advance by actual visible rows rather than fixed16, preserving access across 64-object service pages",
+    "overlong live filter buffers are retained across view close/reopen, and explicit saved reload retires previous comparison widgets",
+    "existing project A/B/A reopen explicitly uses Edit sources before expecting original native workspace controls",
+    "live owned source reads use the existing working draft; competing revision is injected through existing SetTextIfRevision on that same owned draft, not by assuming external confirmed-file edits replace a live draft",
+    "owned copied reader ignores cancellation once and completes successfully; cancelled generation prevents publication",
+    "cold fixture waits for observed resize before clicking its new coordinates",
+    "unchanged legacy resize startup used a read-only default home; rerun only that method with owned XDG_DATA_HOME/XDG_CACHE_HOME, retaining the prior failure and both already-passed native methods",
+    "exec-server transport disconnected before a new command could start; readonly recovery confirmed intact files and no new test/push; task-owned Xorg was reused"
+  ],
+  "nativeJourney": {
+    "provider": "GTK3/GtkSourceView4 on task-owned Xorg dummy :97",
+    "entryControl": 82,
+    "shellControlCount": 128,
+    "newControlOwners": false,
+    "nativeFieldBudget": 128,
+    "maxNativeObjectButtons": 16,
+    "smallWindowChoicePagingObserved": true,
+    "explicitOwnedSelectionOnly": true,
+    "unselectedChoicesDoNotDescribeFields": true,
+    "registeredObjectsExcluded": true,
+    "allComparisonInputsReadonlyExceptFilters": true,
+    "actualReadonlyPasteRejected": true,
+    "exactInt64MaxJson": true,
+    "missingUnsetDefaultNullZeroFalseEmptyDistinct": true,
+    "failedDefinitionsUnknown": true,
+    "fieldAndRowPages": true,
+    "pendingFilterSeparateFromApplied": true,
+    "localRowFilterDoesNotRead": true,
+    "candidateCancelPreservesAppliedScope": true,
+    "cooperativeCancelBeforeHoldRelease": true,
+    "successfulNoncooperativeLateReplyIgnored": true,
+    "lateCompletionMarkerSha256": "7c4f42720a3729139150f21cc4b6813546912603b7d51dc853d31d8cff4cc9cf",
+    "schemaDriftMidReadRefused": true,
+    "liveSourceChatCellTextAndBindingsPreserved": true,
+    "originalNativeRevisionWriteBasisPreserved": true,
+    "competingDraftRevision": 1,
+    "oldPendingWriteRevision": 0,
+    "staleRetainedCellWriteRefused": true,
+    "noWritableTableConfigured": true,
+    "viewCloseDrainsAndForgetsNativeWidgets": true,
+    "viewReopenRetainsLiveBuffers": true,
+    "overlongFilterRetainedAndReadSaveRefused": true,
+    "projectContexts": 2,
+    "privateStateCasNotRebasedByFreshRead": true,
+    "corruptStateRetainedSaveDisabled": true,
+    "wmCloseDuringReadCancelsBeforeSessionDisposal": true,
+    "processColdSavedViewSettings": true,
+    "processColdFreshSchemaAndDifferentConfirmedValue": true,
+    "liveDraftObservedValue": "9223372036854775806",
+    "coldConfirmedValue": "9223372036854775805",
+    "processColdUnsavedSourceChatCellRestoreClaim": false,
+    "noAiOrProjectCreation": true,
+    "automaticSourceOrTableWrites": false,
+    "fixtureCompetingDraftWriter": true,
+    "confirmedSourcesUnchangedExceptIntentionalFixtureEdits": true
+  },
+  "viewSettings": {
+    "keys": [
+      "version",
+      "projectId",
+      "ids",
+      "query",
+      "queryInput",
+      "rowFilter",
+      "rowOffset",
+      "fieldPage"
+    ],
+    "explicitSaveOnly": true,
+    "originalHashCas": true,
+    "reloadSavedExplicit": true,
+    "snapshotsOrContextHandlesOrEditVersionsStored": false,
+    "symlinkRefusalTest": "managed owned formatter/storage contract fixture",
+    "stateBytes": 262144
+  },
+  "limits": {
+    "objects": 64,
+    "objectIdCharacters": 512,
+    "queryCharacters": 256,
+    "serviceObjectPage": 64,
+    "nativeObjectButtons": 16,
+    "perObjectObservedFields": 1024,
+    "existingSchemaRows": 512,
+    "existingSchemaDepth": 64,
+    "matchedUnionFields": 512,
+    "rowPage": 16,
+    "fieldPage": 16,
+    "typeVariants": 4,
+    "valueBytes": 65536,
+    "pageValueBytes": 262144,
+    "responseBytes": 1048576,
+    "nativeTextUtf16Characters": 524288,
+    "nativeTypeMetadataCharacters": 4096,
+    "celemNullLiteral": false,
+    "newNullWritePolicy": false,
+    "calculations": "excluded; remaining IMP3/DEC3/DEC4",
+    "overflow": "unchanged",
+    "env4": "prior ButtonGame/Pause/zombie uncertainty unchanged"
+  },
+  "fixtureAdapters": [
+    "nullable metadata read response from scalar source; no grammar/writer extension",
+    "bounded deterministic metadata hold",
+    "one noncooperative successful late response",
+    "competing selected owned draft writer through existing SetTextIfRevision; no production writer import"
+  ],
+  "platformEvidence": {
+    "linux": "actual native input, readonly property, two contexts, widget lifetime, stale write and view-settings CAS, cooperative and noncooperative late read, WM disposal and fresh new-process values/schema",
+    "windows": "managed native composition compile only; no Windows UI",
+    "android": "actual EditorHome managed export only; managedCompiled=true, androidAppCompiled=false, apkProduced=false; no settings or device change",
+    "webui": "actual existing automatic union Chromium regression and ordinary committed Git LF/retained CRLF checkout with actual Home startup",
+    "wasm": "not executed"
+  },
+  "webResources": {
+    "count": 43,
+    "changedPins": [],
+    "cspChanged": false,
+    "binaryChanged": false,
+    "ordinaryGitLfAndRetainedCrlf": true,
+    "actualHomeStartup": true,
+    "contentEncodingBomBinaryBudgetRejection": true
+  },
+  "preservation": {
+    "localMain": "b5ea38c3d7eec3eb20f170e68f0f4215b86b2aee",
+    "remoteMain": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+    "baseWorkCurrent": "eb838f5c57b466036309e5c8669216c3788bcc63",
+    "zipSha256": {
+      "reference/site-ui/Confectory-Editor-Prototype-v196.zip": "02d4824e92ed0edbb43113659982b37a99a614117652bde4d8ac92367e334e34",
+      "reference/site-ui/Confectory-Editor-Prototype-v318.zip": "0a614fe2bf1ad3d8e10dfa8905bb6b61ea9f21b87b2492b2b87ca8566e9e6908",
+      "reference/site-ui/Confectory-Editor-Prototype-v424.zip": "b7969cd109ea2dad38bde9c9ab13967c20162c920a45a8cd51a8f82df6041874",
+      "reference/site-ui/Confectory-Editor-Prototype-v480.zip": "0489844c8c6d90f7cdc8ea0e80628f487dcfb27f2c871b19367a635212d3c5bd"
+    }
+  },
+  "screenshots": [
+    {
+      "file": "v480-native-field-union-before-cold.png",
+      "sha256": "6851f310123b26ac569ff5bc1ab06adb9864ff4b70b2cceeff3ede001609dbb4"
+    },
+    {
+      "file": "v480-native-field-union-after-cold.png",
+      "sha256": "4254a613c1b2f29ad907c9e09e4d28fd2a061d04348e8fef5aae55c958fa202d"
+    }
+  ],
+  "environmentCleanup": {
+    "pid": 1487415,
+    "command": "/usr/lib/xorg/Xorg :97 -noreset -nolisten tcp -config /workspace/scratch/confectory-v480-integration/xorg.conf -logfile /workspace/scratch/confectory-native-fields-xorg.log ",
+    "ownedDisplay": ":97",
+    "socketRemoved": true,
+    "otherProcessesSignalled": false,
+    "postState": "Z"
+  },
+  "executionEnvironment": {
+    "network": "normal Git flow; no escalation or bypass",
+    "legacyResizeXdgData": "/tmp/confectory-native-fields-resize-data",
+    "legacyResizeXdgCache": "/tmp/confectory-native-fields-resize-cache",
+    "defaultHomeReadOnlyFailureSuperseded": true,
+    "newInstallOrAccountCall": false
+  }
+}
