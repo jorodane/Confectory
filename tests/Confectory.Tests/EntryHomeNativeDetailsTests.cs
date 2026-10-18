@@ -2,6 +2,29 @@ using Confectory.Core;
 namespace Confectory.Tests;
 public sealed class EntryHomeNativeDetailsTests : TestCase
 {
+ public void test_linux_native_context_actions_typed_proposal_cancel_stale_and_input_lifetimes()
+ {
+  if(string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DISPLAY")))Skip("native context actions require live X11");
+  string consumer=Path.Combine(f.Root,"native action consumer"),model=Path.Combine(f.Root,"native action model");Fixture.CopyTree(Path.Combine(Fixture.Repo,"examples/editor-home"),consumer);Fixture.CopyTree(Path.Combine(Fixture.Repo,"packs/editor-home-model"),model);
+  string project=Path.Combine(consumer,"project.cpack");File.WriteAllText(project,File.ReadAllText(project).Replace("../../",Fixture.Repo+"/").Replace(Path.Combine(Fixture.Repo,"packs/editor-home-model/pack.cpack"),Path.Combine(model,"pack.cpack")));
+  string source=Path.Combine(model,"ContextActions.csbody"),text=File.ReadAllText(source);
+  text="""
+string? fixtureRoot=Environment.GetEnvironmentVariable("CONFECTORY_NATIVE_ACTION_FIXTURE");
+bool fixtureLate=fixtureRoot is not null&&System.IO.File.Exists(System.IO.Path.Combine(fixtureRoot,"late"));if(fixtureLate){System.IO.File.Delete(System.IO.Path.Combine(fixtureRoot!,"late"));cancellation="";}
+if(fixtureRoot is not null&&System.IO.File.Exists(System.IO.Path.Combine(fixtureRoot,"replay"))){payload=System.IO.File.ReadAllText(System.IO.Path.Combine(fixtureRoot,"replay"));System.IO.File.Delete(System.IO.Path.Combine(fixtureRoot,"replay"));}
+"""+"\n"+text;
+  text=text.Replace("string key=\"Confectory.EditorHome.ContextActions.\"+session;", """
+if(fixtureRoot is not null&&operation=="invoke"&&System.IO.File.Exists(System.IO.Path.Combine(fixtureRoot,"mutate"))){System.IO.File.Delete(System.IO.Path.Combine(fixtureRoot,"mutate"));var unit=calls.Read.Invoke(draft,"Example.ButtonGame::Score");if(!calls.FixtureSet.Invoke(draft,unit[0],unit[3].Replace("value initial = 0;","value initial = 7;")+"\n// CURRENT_NATIVE_ACTION_DRAFT",long.Parse(unit[4])))throw new Exception("Fixture competing writer conflict");}
+string key="Confectory.EditorHome.ContextActions."+session;
+""");
+  text=text.Replace("string output=calls.Propose.Invoke(row[3],field,value);", """
+if(fixtureRoot is not null){string hold=System.IO.Path.Combine(fixtureRoot,"hold");if(System.IO.File.Exists(hold)){System.IO.File.WriteAllText(System.IO.Path.Combine(fixtureRoot,"entered"),"1");var deadline=DateTime.UtcNow.AddSeconds(20);while(System.IO.File.Exists(hold)){Cancelled();if(DateTime.UtcNow>deadline)throw new TimeoutException("Owned action fixture barrier");System.Threading.Thread.Sleep(10);}}Cancelled();System.IO.File.AppendAllText(System.IO.Path.Combine(fixtureRoot,"calls"),field+"="+value+"\n");}
+string output=calls.Propose.Invoke(row[3],field,value);if(fixtureLate&&fixtureRoot is not null)System.IO.File.WriteAllText(System.IO.Path.Combine(fixtureRoot,"late-done"),"completed");
+""");File.WriteAllText(source,text);
+  string declaration=Path.Combine(model,"ContextActionsBody.celem");File.WriteAllText(declaration,File.ReadAllText(declaration).Replace("body common","import Confectory.EditWorkspace::SetTextIfRevision as FixtureSet (string,string,string,long) -> bool;\nbody common"));
+  var built=new Builder(project,"linux").Build();string report=Path.Combine(f.Root,"native-actions.json");File.WriteAllText(report,built.ToJsonString());
+  var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/gui/entry_home_actions_x11.py"),report},timeoutSeconds:600);Console.WriteLine(run.Stdout.Trim());True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS native declared context actions actual GTK input"),run.Stdout+run.Stderr);
+ }
  public void test_linux_native_home_information_profile_cas_cancel_and_project_input_lifetimes()
  {
   if(string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DISPLAY")))Skip("native details need a live X11 display");

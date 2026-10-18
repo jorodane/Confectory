@@ -1,4 +1,5 @@
 implementation Confectory.EditorHome::MainBody for Confectory.EditorHome::Main () -> int {
+import Confectory.EditorHome.Model::ContextActions as ContextActions (string,string,string,string) -> string;
 import Confectory.EditorHome.Model::FieldDiscovery as FieldDiscovery (string,string,string,string) -> string;
 import Confectory.EditorHome.Model::NativeFieldView as NativeFieldView (string,string,string,string) -> string;
 import Confectory.EditorHome.Model::NativeTree as NativeTree (string,string,string,string) -> string;
