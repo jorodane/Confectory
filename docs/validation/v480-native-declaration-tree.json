@@ -1,0 +1,288 @@
+{
+  "version": 1,
+  "sourceCommit": "63b96b58d5b9ffa63b3b2c1c519b00fa89011671",
+  "parentCommit": "78996facdb9f401c700839809dab84d16500622c",
+  "measuredAtUtc": "2026-10-18T10:55:38.004523+00:00",
+  "scope": "IMP2 bounded native namespace/explicit-parent tree, private explicit state save/CAS/restore, project/live-input and direct-reference fences; not all v480 or device execution",
+  "distinctMethods": 8,
+  "passed": 8,
+  "failed": 0,
+  "skipped": 0,
+  "gateConcurrencyLimit": 2,
+  "cpuQuota": 4,
+  "memoryLimitBytes": 17179869184,
+  "groups": [
+    {
+      "group": "native",
+      "methods": [
+        "EntryHomeResizeTests.test_entry_home_tiny_and_zero_client_suspend_restore_preserve_input_lifetimes",
+        "EntryHomeNativeDetailsTests.test_linux_native_home_information_profile_cas_cancel_and_project_input_lifetimes",
+        "EntryHomeNativeDetailsTests.test_linux_native_tree_input_reopen_latest_state_and_pending_source_chat"
+      ],
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 349.845
+    },
+    {
+      "group": "contracts-and-managed-compile",
+      "methods": [
+        "RelationsMapTests.test_registered_reference_definition_direct_scope_identity_and_no_body_reads",
+        "WebUITests.test_actual_editor_imp2_multilevel_tree_windows_project_isolation_and_latest_cold",
+        "EntryHomeTests.test_android_home_export_selects_activity_and_metadata_parser_without_engine_surface_sample",
+        "EntryHomeNativeDetailsTests.test_native_tree_projection_webui_parity_storage_cas_and_bounds",
+        "EntryHomeNativeDetailsTests.test_windows_native_information_and_profile_composition_builds"
+      ],
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 223.677
+    }
+  ],
+  "sourceSha256": {
+    "examples/editor-home/Main.celem": "fcd8beb1930fcf483b776117e1cf810be5893dd8bee8a72fa6b54a0373892b38",
+    "examples/editor-home/Main.csbody": "3d8962a8a5c23c5bf6db52c71216a7e4e0e341f24e84118e1c9e322998db1c33",
+    "examples/editor-home/MainBody.celem": "050dd5e73b01ba10dd5b1c9fd49e2ca67df08ad44d20bfb4ecd4f577a2763d17",
+    "packs/editor-home-model/Command.celem": "48b9378ed15c9e3804d3c2c922d69b219b95c6b2d62cc6c0f9689f3fc5535f27",
+    "packs/editor-home-model/Command.csbody": "15d925f822aa83e5891581a85b21ec59fe8732de70d7e3ee78d82f921e19076d",
+    "packs/editor-home-model/CommandBody.celem": "6f22a3c850c66748f4dfdbaf526fd967e5beda39d75a6d58e73e76b372f05a34",
+    "packs/editor-home-model/NativeTree.celem": "e95049f4024c4781593a281328dbca2caef5551dd516d877e2b2eb5cafd08c7c",
+    "packs/editor-home-model/NativeTree.csbody": "21920bb67a24604581104f8cf5e8c229997d5ea696250a93953e8559a33322b0",
+    "packs/editor-home-model/NativeTreeBody.celem": "55933122345334f0c458d17946f7dba3386dc9a8e919833348ea495401228c89",
+    "packs/editor-home-model/pack.cpack": "3fe341e033124b30b3f130041200ec3e6230a3052b5d1d8489845c8ca9b11d81",
+    "tests/Confectory.Tests/EntryHomeNativeDetailsTests.cs": "3636bbc86f1200bb41cad5de716d16c7b04dd8ec97a3c49a3f5567602727d55d",
+    "tests/gui/entry_home_tree_x11.py": "9f09d5af4c456b24909359344c2094dac45d0d86ddbca3207cfb1fbb7ba4fc1e",
+    "tests/web/native_tree_contract.mjs": "516d7a588d0f005f219a9d2fa3cf932725cd33eb10cc1325c4cb54899390e86d"
+  },
+  "finalLogs": [
+    "confectory-native-tree-final3-native.log",
+    "confectory-native-tree-final5-contracts.log"
+  ],
+  "attempts": [
+    {
+      "log": "confectory-native-tree-compile1.log",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 64.459
+    },
+    {
+      "log": "confectory-native-tree-contract1.log",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 0.574
+    },
+    {
+      "log": "confectory-native-tree-contract2.log",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 0.565
+    },
+    {
+      "log": "confectory-native-tree-contract3.log",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 6.234
+    },
+    {
+      "log": "confectory-native-tree-gui1.log",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 100.753
+    },
+    {
+      "log": "confectory-native-tree-contract4.log",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 6.68
+    },
+    {
+      "log": "confectory-native-tree-gui2.log",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 16.065
+    },
+    {
+      "log": "confectory-native-tree-contract5.log",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 6.41
+    },
+    {
+      "log": "confectory-native-tree-gui3.log",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 45.713
+    },
+    {
+      "log": "confectory-native-tree-gui4.log",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 13.551
+    },
+    {
+      "log": "confectory-native-tree-final-contracts.log",
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 97.825
+    },
+    {
+      "log": "confectory-native-tree-gui5.log",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 64.648
+    },
+    {
+      "log": "confectory-native-tree-gui6.log",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "seconds": 108.671
+    },
+    {
+      "log": "confectory-native-tree-final2-contracts.log",
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 100.012
+    },
+    {
+      "log": "confectory-native-tree-final3-contracts.log",
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 100.948
+    },
+    {
+      "log": "confectory-native-tree-final-native.log",
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 315.518
+    },
+    {
+      "log": "confectory-native-tree-final4-contracts.log",
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 102.925
+    },
+    {
+      "log": "confectory-native-tree-final2-native.log",
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 315.178
+    },
+    {
+      "log": "confectory-native-tree-final5-contracts.log",
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 223.677
+    },
+    {
+      "log": "confectory-native-tree-final3-native.log",
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 349.845
+    }
+  ],
+  "diagnostics": [
+    "fixture initially replaced the Main provider scope and omitted required implementations; retained original consumer scope",
+    "fixture storage root now explicitly created before FileStream Commit",
+    "fixture output assertion now uses the exact complete PASS line",
+    "native selected node now carries depth/hasChildren/expanded alongside canonical identity",
+    "owned X11 fixture waits for observed resize, actual empty text deletion and changed expansion trace",
+    "fixture uses string field keys and opens the existing source workspace through UI when reopening a hidden project",
+    "Read latest retains original private-state CAS base; explicit reload/save alone updates it",
+    "corrupt reload retains current view; unavailable storage disables Save",
+    "Review overlay retains the original editable control208 binding",
+    "overlong native search retains raw input and refuses Search/Read/Save; linked private paths refused before snapshot"
+  ],
+  "publicLogNormalization": "Trailing whitespace removed from public text log; all original scratch logs retained.",
+  "nativeJourney": {
+    "provider": "GTK3/GtkSourceView4 on task-owned Xorg dummy :97",
+    "rowControlSlots": 16,
+    "shellControls": 128,
+    "nativeFieldBudget": 128,
+    "unchangedControlOwnersAndProviders": true,
+    "explicitStateSaveAndCas": true,
+    "staleCasAfterMetadataRefresh": true,
+    "corruptReadAndReloadRetained": true,
+    "overlongSearchRetained": true,
+    "privateStateSymlinkRefused": true,
+    "projectContexts": 2,
+    "pendingSourceAndChatBindingsPreserved": true,
+    "otherOwnedDefinitionSwitchDoesNotApplyPendingSource": true,
+    "viewReopen": true,
+    "processColdExplicitViewState": true,
+    "processColdFreshParentAndRegisteredDefinition": true,
+    "processColdUnsavedSourceChatClaim": false,
+    "ownedSourcesUnchangedExceptIntentionalExternalFixtureEdits": true,
+    "unreferencedRegisteredSourceAbsent": true,
+    "noAiOrProjectCreation": true
+  },
+  "platformEvidence": {
+    "linux": "actual native GTK/X11 input, field readonly, two live contexts, close/disposal and process restart",
+    "windows": "managed native composition compile only, no Windows UI",
+    "android": "actual EditorHome export with managedCompiled=true, androidAppCompiled=false, apkProduced=false; no device",
+    "wasm": "not executed",
+    "webui": "actual Chromium related tree and cold regression"
+  },
+  "webResources": {
+    "count": 42,
+    "changedPins": [],
+    "cspChanged": false,
+    "binaryChanged": false
+  },
+  "limits": {
+    "maxObservedAncestorDepth": 64,
+    "maxVisibleRows": 2048,
+    "maxNativeRowButtons": 16,
+    "maxExpandedIds": 2048,
+    "maxStateIdCharacters": 512,
+    "maxQueryCharacters": 256,
+    "maxSavedStateBytes": 262144,
+    "registeredParents": "unobserved; never automatically read body",
+    "containAndSchema": "separate reference labels, no inferred membership",
+    "category": "DEC1 excluded; existing category tab filters declaration kind",
+    "sourceDeletionRewrite": "DEC2 excluded",
+    "overflow": "DEC4 unchanged",
+    "env4": "previous ButtonGame/Pause/zombie uncertainty unchanged",
+    "fullAccessibilityAndWorkerReviewJourney": "not covered by this scoped native fixture"
+  },
+  "preservation": {
+    "localMain": "b5ea38c3d7eec3eb20f170e68f0f4215b86b2aee",
+    "remoteMain": "32dd44fbec6e9e39a7e3e68c0ca61d62bb47176f",
+    "baseWorkCurrent": "78996facdb9f401c700839809dab84d16500622c",
+    "zipSha256": {
+      "reference/site-ui/Confectory-Editor-Prototype-v196.zip": "02d4824e92ed0edbb43113659982b37a99a614117652bde4d8ac92367e334e34",
+      "reference/site-ui/Confectory-Editor-Prototype-v318.zip": "0a614fe2bf1ad3d8e10dfa8905bb6b61ea9f21b87b2492b2b87ca8566e9e6908",
+      "reference/site-ui/Confectory-Editor-Prototype-v424.zip": "b7969cd109ea2dad38bde9c9ab13967c20162c920a45a8cd51a8f82df6041874",
+      "reference/site-ui/Confectory-Editor-Prototype-v480.zip": "0489844c8c6d90f7cdc8ea0e80628f487dcfb27f2c871b19367a635212d3c5bd"
+    }
+  },
+  "screenshots": [
+    {
+      "file": "v480-native-tree-before-cold.png",
+      "sha256": "46a8fdd3dfad1eb975c8c1754043c9a278cf39f6680eafdd351c4fa48360c95b"
+    },
+    {
+      "file": "v480-native-tree-after-cold.png",
+      "sha256": "fb7f3e6c0f7525e411f071c33e875fa73b898bd4c0a0ab69c5918663c9c5c9ec"
+    }
+  ]
+}

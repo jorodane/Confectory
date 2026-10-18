@@ -124,14 +124,18 @@
         "examples/editor-home/ui/declarations.js",
         "examples/editor-home/ui/workspace-host.js",
         "examples/editor-home/ui/browser-tree.js",
-        "examples/editor-home/ui/inventory.js"
+        "examples/editor-home/ui/inventory.js",
+        "examples/editor-home/Main.csbody",
+        "packs/editor-home-model/NativeTree.csbody",
+        "packs/editor-home-model/Command.csbody"
       ],
-      "supported": "WebUI namespace/명시 parent 다단계 펼침·검색·키보드, 창별 선택/펼침·프로젝트 격리·미적용 입력 보존·cold 최신 조회, contain/schema 분리, 소유/등록 정의 gate, 여섯 선언 종류·variation",
-      "limits": "관계 조상64/표시2048행; 등록 parent 자동 본문 조회 없음; native 동일 트리·DEC1 Category 의미·DEC2 소스 삭제/치환 별도",
+      "supported": "WebUI namespace/명시 parent 다단계 펼침·검색·키보드, 창별 선택/펼침·프로젝트 격리·미적용 입력 보존·cold 최신 조회, contain/schema 분리, 소유/등록 정의 gate, 여섯 선언 종류·variation; native 동일 트리/선택 상세·명시 private 상태 저장/CAS·live source/chat 입력 보존",
+      "limits": "관계 조상64/표시2048행, native 최대16행 페이지; 등록 parent 자동 본문 조회 없음; DEC1 Category 의미·DEC2 소스 삭제/치환 및 ENV1/ENV2 실제 미실행 OS/기기 별도",
       "remaining": [
-        "IMP2",
         "DEC1",
-        "DEC2"
+        "DEC2",
+        "ENV1",
+        "ENV2"
       ],
       "finalMethods": [
         "WebUITests.test_actual_editor_v424_owned_object_variation_atomic_creation_and_cold_restart",
@@ -139,10 +143,13 @@
         "WebUITests.test_actual_editor_v424_typed_declaration_views_cas_confirm_and_restart",
         "WebUITests.test_actual_editor_v480_declaration_hierarchy_variation_fill_confirm_independent_cold",
         "WebUITests.test_browser_projection_declared_identity_parent_schema_and_reference_gates",
-        "WebUITests.test_actual_editor_imp2_multilevel_tree_windows_project_isolation_and_latest_cold"
+        "WebUITests.test_actual_editor_imp2_multilevel_tree_windows_project_isolation_and_latest_cold",
+        "EntryHomeNativeDetailsTests.test_linux_native_tree_input_reopen_latest_state_and_pending_source_chat",
+        "EntryHomeNativeDetailsTests.test_native_tree_projection_webui_parity_storage_cas_and_bounds"
       ],
       "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)",
-      "treeFollowupEvidence": "v480-declaration-tree.json"
+      "treeFollowupEvidence": "v480-declaration-tree.json",
+      "nativeTreeFollowupEvidence": "v480-native-declaration-tree.json"
     },
     {
       "id": "D01–D02",
@@ -190,9 +197,10 @@
         "examples/editor-home/ui/relations.js",
         "examples/editor-home/ui/tables.js",
         "packs/pack-workspace/pack.cpack",
-        "examples/editor-home/ui/browser-tree.js"
+        "examples/editor-home/ui/browser-tree.js",
+        "packs/editor-home-model/NativeTree.csbody"
       ],
-      "supported": "등록 원본 읽기 전용·소유 직접 참조/revision/hash gate, scoped 입력 준비·현재 값 이동, 명시 parent와 별도 contain/schema 관계",
+      "supported": "등록 원본 읽기 전용·소유 직접 참조/revision/hash gate, scoped 입력 준비·현재 값 이동, 명시 parent와 별도 contain/schema 관계; native 정의 열기도 동일 owned 직접 source gate 사용",
       "limits": "source 치환·쓰기 자동 선택 없음; 등록 본문/parent 자동 읽기 없음",
       "remaining": [
         "DEC2"
@@ -203,10 +211,12 @@
         "WebUITests.test_actual_editor_v424_declared_relations_map_and_cold_restart",
         "WebUITests.test_actual_editor_v424_registered_reference_definition_read_only_and_cold_restart",
         "WebUITests.test_actual_editor_v480_reference_gestures_columns_document_links_and_cold",
-        "WebUITests.test_actual_editor_imp2_multilevel_tree_windows_project_isolation_and_latest_cold"
+        "WebUITests.test_actual_editor_imp2_multilevel_tree_windows_project_isolation_and_latest_cold",
+        "EntryHomeNativeDetailsTests.test_linux_native_tree_input_reopen_latest_state_and_pending_source_chat"
       ],
       "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)",
-      "treeFollowupEvidence": "v480-declaration-tree.json"
+      "treeFollowupEvidence": "v480-declaration-tree.json",
+      "nativeTreeFollowupEvidence": "v480-native-declaration-tree.json"
     },
     {
       "id": "E01–E08",
@@ -1189,9 +1199,12 @@
       "finalMethods": [
         "ButtonTests.test_shared_button_game_without_editor_state_input_navigation_native_targets_and_locality",
         "EngineTests.test_role_composition_two_windows_and_cleanup",
-        "EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only"
+        "EntryHomeTests.test_entry_home_windows_android_managed_profiles_compile_only",
+        "EntryHomeNativeDetailsTests.test_windows_native_information_and_profile_composition_builds",
+        "EntryHomeTests.test_android_home_export_selects_activity_and_metadata_parser_without_engine_surface_sample"
       ],
-      "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)"
+      "evidence": "v480-integrated-regression.json (exact method results; shared assertions are not additional tests)",
+      "nativeTreeFollowupEvidence": "v480-native-declaration-tree.json"
     },
     {
       "id": "X03",

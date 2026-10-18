@@ -41,3 +41,5 @@ Linux의 실제 Chromium WebUI 및 관련 모델/투영 검사 **서로 다른 6
 한 번은 검사가 실행 중인 리소스를 편집해 canonical 크기가 달라졌고 리소스 guard가 정상 거부했다. 이후 소스와 pin을 고정한 상태로 최종 검사를 실행했다. timeout이나 gate 검증을 완화하지 않았다. 공개 텍스트 로그의 줄 끝 공백만 정리했으며 원본 scratch 로그는 보존했다.
 
 native raw 소스 탐색기에 동일한 트리를 구현하거나 Windows native UI·Android 기기·browser-wasm에서 실행한 결과는 이 근거에 포함하지 않는다. native 대응 구현은 남은 구현 목록에, 실제 장치 검증은 기존 ENV 항목에 구분한다. DEC1 분류 의미, DEC2 소스 삭제/치환, DEC4 overflow, 기존 ENV4 불확실성도 유지한다. main·원본 ZIP 4개·Android 설정·CSP·binary 리소스는 보존했다. 새 계정/유료 AI/설치/권한 확장은 없다.
+
+후속 [native 대응 트리](V480_NATIVE_DECLARATION_TREE.md)는 별도 소스·검증 기준으로 구현했다. 위 native 미구현 설명은 이 문서의 WebUI 기준 소스에 대한 범위 설명이며 현재 남은 구현 판정은 최신 상태 지도와 단일 목록을 따른다.
