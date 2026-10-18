@@ -338,6 +338,11 @@ public sealed class WebUITests : TestCase
         var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/web_ui.py"),Fixture.Repo,report,"declaration-navigation"},timeoutSeconds:600);
         Console.WriteLine(run.Stdout.Trim());True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS actual v480 declaration hierarchy"),run.Stdout+run.Stderr);
     }
+    public void test_actual_editor_imp2_multilevel_tree_windows_project_isolation_and_latest_cold()
+    {
+        var built=new Builder(Path.Combine(Fixture.Repo,"examples/editor-home/project.cpack"),"linux").Build();string report=Path.Combine(f.Root,"imp2-tree.json");File.WriteAllText(report,built.ToJsonString());
+        var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/web_ui.py"),Fixture.Repo,report,"declaration-tree"},timeoutSeconds:420);Console.WriteLine(run.Stdout.Trim());True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS actual IMP2 declaration tree"),run.Stdout+run.Stderr);
+    }
     public void test_browser_projection_declared_identity_parent_schema_and_reference_gates()
     {
         var run=Processes.Run(new[]{"node",Path.Combine(Fixture.Repo,"tests/web/browser_projection.mjs"),Fixture.Repo},timeoutSeconds:60);

@@ -1,0 +1,55 @@
+// Presentation over observed namespaces/explicit parent edges. No source reads or writes.
+export function createDeclarationTree(api){
+ const {$,$$,esc}=api,limit=2048;
+ const labels={linked:'명시 parent',root:'parent 없음',unobserved:'관계 미조회',unresolved:'parent 미해결',cycle:'parent 순환','depth-limit':'parent 깊이 제한 64','group-boundary':'다른 탭의 parent','invalid-parent':'parent 선언 오류','invalid-source':'선언 오류','ancestor-unresolved':'상위 parent 미해결','ancestor-cycle':'상위 parent 순환','ancestor-boundary':'상위 parent 탭 경계','ancestor-invalid':'상위 parent 선언 오류'};
+ function forest(w){
+  const snapshot=api.projection.snapshot(),rows=snapshot.rows.filter(row=>api.projection.group(row.kind)===w.meta.group),nodes=new Map(),children=new Map();
+  nodes.set('root',{key:'root',label:'ProjectPack',kind:'root',parent:null});
+  function namespace(name){if(!name)return 'root';const key='ns:'+name;if(nodes.has(key))return key;const parts=name.split('.'),parent=namespace(parts.slice(0,-1).join('.'));nodes.set(key,{key,label:parts.at(-1),namespace:name,kind:'namespace',parent});return key;}
+  const packs=api.current.inventory?.packs||[];for(const pack of packs){namespace(pack.namespace);nodes.get('ns:'+pack.namespace).pack=pack;}
+  for(const row of rows)namespace(row.namespace);
+  const visible=new Set(rows.map(row=>row.id));for(const row of rows){const parent=api.projection.parent(row.id),issue=api.projection.issue(row.id);nodes.set('decl:'+row.id,{key:'decl:'+row.id,label:row.id.split('::').at(-1),kind:'declaration',row,issue,parent:parent&&visible.has(parent)?'decl:'+parent:'ns:'+row.namespace});}
+  for(const node of nodes.values())if(node.parent){if(!children.has(node.parent))children.set(node.parent,[]);children.get(node.parent).push(node.key);}
+  for(const keys of children.values())keys.sort((a,b)=>{const x=nodes.get(a),y=nodes.get(b);return Number(x.kind==='declaration')-Number(y.kind==='declaration')||a.localeCompare(b);});
+  return {nodes,children,version:snapshot.version};
+ }
+ function render(w){
+  const root=$('.browser-folder-tree',w.body);if(!root)return;const scope=api.current.projectId,tree=forest(w),{nodes,children}=tree;
+  let initialExpanded;
+  if(!Array.isArray(w.meta.treeExpanded)){initialExpanded=[...nodes.values()].filter(node=>node.kind==='root'||node.kind==='namespace'&&(children.get(node.key)?.some(key=>nodes.get(key).kind==='namespace')||node.namespace===api.current.namespace||children.get(node.key)?.some(key=>children.has(key)))).map(node=>node.key).filter(key=>!key.startsWith('ns:')||!(w.meta.closedNamespaces||[]).includes(key.slice(3)));if(api.current.inventory?.status==='available'&&!api.projection.loading)w.meta.treeExpanded=initialExpanded;}
+  if(root.dataset.treeScope!==scope||!$('[data-tree-query]',root)){
+   root.dataset.treeScope=scope;root.innerHTML='<label class="browser-tree-search">트리 검색<input type="search" maxlength="256" data-tree-query aria-label="선언 트리 검색" placeholder="ID · 이름 · parent 검색"></label><p class="small" data-tree-notice></p><div role="tree" aria-label="namespace와 명시 parent 트리" data-tree-rows></div>';
+   $('[data-tree-query]',root).oninput=e=>{if(root.dataset.treeScope!==api.current.projectId||!w.el.isConnected)return;w.meta.treeQuery=e.target.value;render(w);api.persist();};
+  }
+  let detail=$('[data-tree-details]',w.body);if(!detail){const items=$('[data-browser-control="objects"]',w.body),pane=document.createElement('div');pane.className='browser-list-pane';items.before(pane);detail=document.createElement('section');detail.className='browser-tree-details';detail.dataset.treeDetails='';detail.setAttribute('aria-label','선택한 트리 항목');pane.append(detail,items);}
+  const search=$('[data-tree-query]',root);if(search.value!==(w.meta.treeQuery||''))search.value=w.meta.treeQuery||'';
+  const query=(w.meta.treeQuery||'').trim().toLocaleLowerCase(),expanded=new Set(w.meta.treeExpanded||initialExpanded),selected=w.meta.parent?'decl:'+w.meta.parent:w.meta.namespace?'ns:'+w.meta.namespace:'root',keep=new Set(),forced=new Set();
+  const location=scope+'|'+w.meta.group+'|'+selected;w.meta.treeSelection=selected;
+  if(w.treeLastLocation&&w.treeLastLocation!==location){let at=selected;while(at&&nodes.has(at)){expanded.add(at);at=nodes.get(at).parent;}w.meta.treeExpanded=[...expanded];}w.treeLastLocation=location;
+  if(query)for(const node of nodes.values())if(((node.row?node.row.id+' '+(node.row.title||'')+' '+(node.issue.declaredParent||''):node.namespace||node.label)).toLocaleLowerCase().includes(query)){
+   let key=node.key;while(key&&!keep.has(key)){keep.add(key);const parent=nodes.get(key)?.parent;if(parent)forced.add(parent);key=parent;}
+  }
+  const flat=[],stack=[['root',0]];let truncated=false;
+  while(stack.length){const [key,depth]=stack.pop(),node=nodes.get(key);if(!node||query&&!keep.has(key))continue;if(flat.length>=limit){truncated=true;break;}flat.push({...node,depth});if(expanded.has(key)||forced.has(key))for(const child of [...(children.get(key)||[])].reverse())stack.push([child,depth+1]);}
+  const notice=$('[data-tree-notice]',root),missing=selected&&!nodes.has(selected),available=api.current.inventory?.status==='available';notice.textContent=!available?'현재 namespace 목록을 읽지 못했습니다. 다시 읽기를 사용하세요.':api.projection.loading?'선언 관계를 읽는 중입니다.':api.projection.error?'관계 조회 실패 · 마지막 관측값을 표시합니다.':missing?'이전 선택 ID가 현재 스냅샷에 없습니다. 자동 대체하지 않습니다.':truncated?'표시 한도 2048개 · 검색 범위를 좁히세요.':query?'일치 항목과 알려진 조상을 임시로 펼쳤습니다.':'namespace 경로 · 선언 parent만 계층으로 표시합니다.';
+  const stamp=JSON.stringify([flat.map(n=>[n.key,n.issue?.status,n.row?.revision,n.row?.dirty,children.has(n.key)]),[...expanded],[...forced],selected,w.meta.group,query,tree.version]);
+  const rowsRoot=$('[data-tree-rows]',root);if(rowsRoot._treeStamp!==stamp){
+   const focused=document.activeElement?.closest('[data-tree-key]')?.dataset.treeKey,hadFocus=rowsRoot.contains(document.activeElement);rowsRoot._treeStamp=stamp;rowsRoot.innerHTML=flat.map(node=>{const descendants=children.get(node.key)?.length,open=expanded.has(node.key)||forced.has(node.key),row=node.row,foreign=!!row&&row.owned===false,status=row?labels[node.issue.status]:'',kind=row?.kind||(!node.pack&&node.kind==='namespace'?'namespace 경로':node.kind),extra=row?.relationships?.filter(edge=>edge.role==='contain'||edge.kind==='schema')||[];
+    return `<div role="treeitem" class="folder-tree-row declaration-tree-row" data-tree-key="${esc(node.key)}" aria-level="${node.depth+1}" aria-selected="${node.key===selected}" ${descendants?'aria-expanded="'+open+'"':''} style="--depth:${Math.min(24,node.depth)}"><button type="button" data-operation class="folder-tree-toggle" data-tree-toggle="${esc(node.key)}" ${node.kind==='namespace'?'data-toggle-namespace="'+esc(node.namespace)+'"':''} ${descendants?'aria-label="'+esc(node.label)+' 펼침" aria-expanded="'+open+'"':'disabled data-supported="false" aria-hidden="true" tabindex="-1"'}>${descendants?(open?'▾':'▸'):'·'}</button><button type="button" data-operation class="folder-tree-name" data-tree-select="${esc(node.key)}" ${row?'data-tree-id="'+esc(row.id)+'"'+(descendants?' data-parent="'+esc(row.id)+'"':''):'data-namespace="'+esc(node.namespace||'')+'"'} aria-current="${node.key===selected?'location':'false'}" title="${esc(row?.id||node.namespace||node.label)}"><span>${esc(node.label)}</span><small>${esc(kind)}${row?' · '+esc(status)+(foreign?' · 등록':' · 소유')+(row.dirty?' · 초안':'')+(extra.length?' · 소속/schema '+extra.length:''):node.pack?' · 선언 '+node.pack.count:''}</small></button></div>`;
+   }).join('')||'<p class="small">일치하는 항목이 없습니다.</p>';
+   if(focused&&hadFocus)$('[data-tree-key="'+CSS.escape(focused)+'"] [data-tree-select]',root)?.focus();
+   const reveal=query?flat.find(node=>node.row&&(node.row.id+' '+(node.issue.declaredParent||'')).toLocaleLowerCase().includes(query)):flat.find(node=>node.key===selected);if(reveal)$('[data-tree-key="'+CSS.escape(reveal.key)+'"]',rowsRoot)?.scrollIntoView({block:'nearest',inline:'nearest'});
+  }
+  const node=nodes.get(selected),row=node?.row,canOpen=!!row&&(row.owned!==false||!!api.projection.source(row.id));
+  const detailHTML=row?`<strong>${esc(row.id)}</strong><p>${esc(labels[node.issue.status])}${node.issue.declaredParent?' · parent ID: '+esc(node.issue.declaredParent):''}</p><ul>${(row.relationships||[]).map(edge=>'<li>'+esc(edge.role==='contain'?'contain 소속 참조':edge.role==='field'?'필드 schema 참조':'schema 사용')+' → '+esc(edge.target)+'</li>').join('')}</ul><button type="button" data-operation data-tree-definition data-supported="${canOpen}" ${canOpen?'':'disabled'}>${row.owned===false?'직접 참조 gate로 정의 읽기':'소유 선언 정의 열기'}</button>${!canOpen?'<p class="small">소유 선언의 직접 참조가 없어 읽기 권한을 넓히지 않습니다.</p>':''}`:missing?'<p>'+esc(selected)+' · 현재 데이터에서 찾을 수 없음</p>':'<p class="small">contain/schema는 폴더 소속으로 바꾸지 않습니다. 등록 선언의 parent는 자동으로 읽지 않습니다.</p>';
+  if(detail._treeHTML!==detailHTML){detail._treeHTML=detailHTML;detail.innerHTML=detailHTML;}
+  const valid=()=>root.dataset.treeScope===api.current.projectId&&w.el.isConnected;
+  for(const button of $$('[data-tree-toggle]',rowsRoot))button.onclick=()=>{if(!valid())return;const key=button.dataset.treeToggle;if(expanded.has(key))expanded.delete(key);else expanded.add(key);w.meta.treeExpanded=[...expanded];if(key.startsWith('ns:')){const closed=new Set(w.meta.closedNamespaces||[]);if(expanded.has(key))closed.delete(key.slice(3));else closed.add(key.slice(3));w.meta.closedNamespaces=[...closed];}render(w);api.persist();};
+  for(const button of $$('[data-tree-select]',rowsRoot))button.onclick=()=>{if(!valid())return;const item=nodes.get(button.dataset.treeSelect);if(!item)return;let at=item.key;while(at&&nodes.has(at)){expanded.add(at);at=nodes.get(at).parent;}w.meta.treeExpanded=[...expanded];w.meta.treeSelection=item.key;w.meta.catalogue=true;w.meta.namespace=item.row?.namespace||item.namespace||'';w.meta.parent=item.row?.id||null;w.meta.kind=null;api.render(w.key);api.persist();};
+  const open=$('[data-tree-definition]',detail);if(open)open.onclick=()=>{if(valid()&&canOpen)api.open(row);};
+  rowsRoot.onkeydown=e=>{const target=e.target.closest('[data-tree-key]');if(!target||!valid())return;const index=flat.findIndex(n=>n.key===target.dataset.treeKey),item=flat[index];let focus=null;
+   if(e.key==='ArrowDown')focus=flat[Math.min(flat.length-1,index+1)];else if(e.key==='ArrowUp')focus=flat[Math.max(0,index-1)];else if(e.key==='Home')focus=flat[0];else if(e.key==='End')focus=flat.at(-1);else if(e.key==='ArrowRight'){if(children.has(item.key)&&!expanded.has(item.key))$('[data-tree-toggle]',target).click();else focus=flat[index+1]?.parent===item.key?flat[index+1]:null;}else if(e.key==='ArrowLeft'){if(children.has(item.key)&&expanded.has(item.key))$('[data-tree-toggle]',target).click();else focus=flat.find(node=>node.key===item.parent);}else return;e.preventDefault();if(focus)$('[data-tree-key="'+CSS.escape(focus.key)+'"] [data-tree-select]',root)?.focus();
+  };
+ }
+ return {render};
+}

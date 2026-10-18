@@ -109,3 +109,18 @@
 .workspace-link-preview{z-index:260}.workspace-link-preview-line{stroke:#45d8c1;stroke-width:2;stroke-dasharray:6 4;fill:none}
 .workspace-link-prompt{position:absolute;top:48px;left:50%;transform:translateX(-50%);z-index:270;display:flex;gap:18px;align-items:center;padding:10px 14px;border:1px solid #45d8c1;border-radius:8px;background:#182923;color:#e8fff9}
 .window.link-source{outline:2px solid #d3af78}.window.link-target-preview{outline:3px solid #45d8c1}
+
+/* Declared-parent tree: independent presentation, no containment/category folder mapping. */
+.browser-folder-tree{flex:0 0 235px;min-width:160px;max-width:45%;overflow:auto;box-sizing:border-box}
+.browser-tree-search{display:block;padding:8px;font-size:12px}.browser-tree-search input{display:block;box-sizing:border-box;width:100%;min-width:0;margin-top:4px}
+.browser-folder-tree>[data-tree-notice]{padding:0 8px;font-size:11px;white-space:normal}
+.declaration-tree-row{display:flex;align-items:center;min-height:34px;padding-left:calc(var(--depth)*12px)}
+.declaration-tree-row[aria-selected=true]{background:#363127;box-shadow:inset 2px 0 #e9ba78}
+.declaration-tree-row .folder-tree-name{display:flex;flex-direction:column;align-items:flex-start;min-width:0;white-space:nowrap;text-align:left}
+.declaration-tree-row .folder-tree-name :is(span,small){max-width:100%;overflow:hidden;text-overflow:ellipsis}.declaration-tree-row small{font-size:10px;color:#b5aca0}
+.browser-tree-details{border-top:1px solid #4a463e;padding:8px;font-size:11px;overflow-wrap:anywhere;white-space:normal}.browser-tree-details :is(p,ul){margin:5px 0}.browser-tree-details button{white-space:normal}
+
+.browser-folder-tree{display:flex;flex-direction:column;overflow:hidden}.browser-tree-search,.browser-folder-tree>[data-tree-notice]{flex-shrink:0}
+.browser-folder-tree [data-tree-rows]{flex:1;min-height:0;overflow:auto}
+.browser-list-pane{display:flex;flex-direction:column;flex:1;min-width:0;min-height:0;overflow:hidden}
+.browser-list-pane>.browser-tree-details{flex-shrink:0;max-height:130px;overflow:auto;border-top:0;border-bottom:1px solid #4a463e}.browser-list-pane>.browser-items{flex:1;min-height:0;overflow:auto}

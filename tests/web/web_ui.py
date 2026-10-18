@@ -125,6 +125,9 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
  if kind=='blueprint-integrated':
   from v480_integrated_workflow import prepare
   prepare(repo,project,env)
+ if kind=='declaration-tree':
+  from v480_declaration_tree import prepare_tree
+  prepare_tree(project,root,repo)
  original=(project/'Score.celem').read_bytes();log=root/'host.log';owned=OwnedResponses(None) if kind=='editor' else None
  with log.open('w') as output:
   host=subprocess.Popen(report['run'],cwd=repo,env=env,stdout=output,stderr=subprocess.STDOUT)
@@ -364,6 +367,9 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
     elif kind=='reference-gestures':
      from v480_reference_navigation import verify_reference_navigation
      verify_reference_navigation(page,project,mount,send,envelope,settle,restart_actual_host)
+    elif kind=='declaration-tree':
+     from v480_declaration_tree import verify_tree
+     verify_tree(page,project,mount,send,envelope,settle,restart_actual_host)
     elif kind=='declaration-navigation':
      from v480_declaration_navigation import verify_declaration_navigation
      verify_declaration_navigation(page,project,mount,send,envelope,settle,restart_actual_host)
