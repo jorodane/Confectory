@@ -317,6 +317,198 @@
   "validation": {
     "status": "passed",
     "uniqueTests": 11,
+    "passed": 11,
+    "failed": 0,
+    "skipped": 0,
+    "testedHead": "3d81e54a1ec3e6755a70e76c0cd3ccbb4798451c",
+    "sourceImplementationCommit": "42078226bfbcbe8f3984638cf33ff122b6e1aacd",
+    "productAndTestsIdenticalExcludingDocs": true,
+    "cleanAtStartAndEnd": true,
+    "groups": [
+      {
+        "group": "connections",
+        "testedHead": "3d81e54a1ec3e6755a70e76c0cd3ccbb4798451c",
+        "endHead": "3d81e54a1ec3e6755a70e76c0cd3ccbb4798451c",
+        "cleanAtStart": true,
+        "cleanAtEnd": true,
+        "sourceUnchanged": true,
+        "startedAt": "2026-10-19T10:35:52.760571+00:00",
+        "finishedAt": "2026-10-19T10:42:26.168493+00:00",
+        "exitCode": 0,
+        "methods": [
+          "WebUITests.test_actual_agent_connection_presentation_diagnostics_retry_inputs_and_late_close",
+          "WebUITests.test_actual_editor_click_preparation_and_device_login_owned_fixtures",
+          "WebUITests.test_actual_editor_v318_codex_discovery_and_official_model_selection",
+          "WebUITests.test_actual_editor_v318_home_agent_connection_entry_and_saved_settings"
+        ],
+        "command": [
+          "/workspace/toolchains/dotnet-10.0.401/dotnet",
+          "/workspace/Confectory/tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll",
+          "WebUITests.test_actual_agent_connection_presentation_diagnostics_retry_inputs_and_late_close",
+          "WebUITests.test_actual_editor_click_preparation_and_device_login_owned_fixtures",
+          "WebUITests.test_actual_editor_v318_codex_discovery_and_official_model_selection",
+          "WebUITests.test_actual_editor_v318_home_agent_connection_entry_and_saved_settings"
+        ],
+        "passed": 4,
+        "failed": 0,
+        "skipped": 0,
+        "elapsedSeconds": 393.375,
+        "rawLogSha256": "41cabbd21e879f5c2f399622a1171fab5889626082cb9a902993579ca4903135"
+      },
+      {
+        "group": "platform",
+        "testedHead": "3d81e54a1ec3e6755a70e76c0cd3ccbb4798451c",
+        "endHead": "3d81e54a1ec3e6755a70e76c0cd3ccbb4798451c",
+        "cleanAtStart": true,
+        "cleanAtEnd": true,
+        "sourceUnchanged": true,
+        "startedAt": "2026-10-19T10:35:52.746440+00:00",
+        "finishedAt": "2026-10-19T10:39:53.043040+00:00",
+        "exitCode": 0,
+        "methods": [
+          "WebUITests.test_actual_editor_mcp_plugin_readonly_shared_node_draft_cas_and_cold",
+          "WebUITests.test_actual_editor_v424_source_conflict_real_files_cas_and_cold_restart",
+          "WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup",
+          "WebUITests.test_web_ui_client_coalescing_revision_retirement_and_unreplayed_retry",
+          "WebUITests.test_web_ui_scope_revision_cancellation_disposal_and_pack_locality",
+          "AIConnectionTests.test_connection_metadata_reads_current_bytes_without_cross_project_or_stamp_cache",
+          "WebUITests.test_actual_editor_v424_shared_draft_history_cas_and_cold_restart"
+        ],
+        "command": [
+          "/workspace/toolchains/dotnet-10.0.401/dotnet",
+          "/workspace/Confectory/tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll",
+          "WebUITests.test_actual_editor_mcp_plugin_readonly_shared_node_draft_cas_and_cold",
+          "WebUITests.test_actual_editor_v424_source_conflict_real_files_cas_and_cold_restart",
+          "WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup",
+          "WebUITests.test_web_ui_client_coalescing_revision_retirement_and_unreplayed_retry",
+          "WebUITests.test_web_ui_scope_revision_cancellation_disposal_and_pack_locality",
+          "AIConnectionTests.test_connection_metadata_reads_current_bytes_without_cross_project_or_stamp_cache",
+          "WebUITests.test_actual_editor_v424_shared_draft_history_cas_and_cold_restart"
+        ],
+        "passed": 7,
+        "failed": 0,
+        "skipped": 0,
+        "elapsedSeconds": 240.257,
+        "rawLogSha256": "8391381c268542280235798fab7ea6fbce2437762b2217d1d0ca5c511de72176"
+      }
+    ],
+    "methods": [
+      {
+        "method": "WebUITests.test_actual_agent_connection_presentation_diagnostics_retry_inputs_and_late_close",
+        "status": "passed",
+        "testedCommit": "3d81e54a1ec3e6755a70e76c0cd3ccbb4798451c",
+        "group": "connections"
+      },
+      {
+        "method": "WebUITests.test_actual_editor_click_preparation_and_device_login_owned_fixtures",
+        "status": "passed",
+        "testedCommit": "3d81e54a1ec3e6755a70e76c0cd3ccbb4798451c",
+        "group": "connections"
+      },
+      {
+        "method": "WebUITests.test_actual_editor_v318_codex_discovery_and_official_model_selection",
+        "status": "passed",
+        "testedCommit": "3d81e54a1ec3e6755a70e76c0cd3ccbb4798451c",
+        "group": "connections"
+      },
+      {
+        "method": "WebUITests.test_actual_editor_v318_home_agent_connection_entry_and_saved_settings",
+        "status": "passed",
+        "testedCommit": "3d81e54a1ec3e6755a70e76c0cd3ccbb4798451c",
+        "group": "connections"
+      },
+      {
+        "method": "WebUITests.test_actual_editor_mcp_plugin_readonly_shared_node_draft_cas_and_cold",
+        "status": "passed",
+        "testedCommit": "3d81e54a1ec3e6755a70e76c0cd3ccbb4798451c",
+        "group": "platform"
+      },
+      {
+        "method": "WebUITests.test_actual_editor_v424_shared_draft_history_cas_and_cold_restart",
+        "status": "passed",
+        "testedCommit": "3d81e54a1ec3e6755a70e76c0cd3ccbb4798451c",
+        "group": "platform"
+      },
+      {
+        "method": "WebUITests.test_actual_editor_v424_source_conflict_real_files_cas_and_cold_restart",
+        "status": "passed",
+        "testedCommit": "3d81e54a1ec3e6755a70e76c0cd3ccbb4798451c",
+        "group": "platform"
+      },
+      {
+        "method": "WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup",
+        "status": "passed",
+        "testedCommit": "3d81e54a1ec3e6755a70e76c0cd3ccbb4798451c",
+        "group": "platform"
+      },
+      {
+        "method": "WebUITests.test_web_ui_client_coalescing_revision_retirement_and_unreplayed_retry",
+        "status": "passed",
+        "testedCommit": "3d81e54a1ec3e6755a70e76c0cd3ccbb4798451c",
+        "group": "platform"
+      },
+      {
+        "method": "WebUITests.test_web_ui_scope_revision_cancellation_disposal_and_pack_locality",
+        "status": "passed",
+        "testedCommit": "3d81e54a1ec3e6755a70e76c0cd3ccbb4798451c",
+        "group": "platform"
+      },
+      {
+        "method": "AIConnectionTests.test_connection_metadata_reads_current_bytes_without_cross_project_or_stamp_cache",
+        "status": "passed",
+        "testedCommit": "3d81e54a1ec3e6755a70e76c0cd3ccbb4798451c",
+        "group": "platform"
+      }
+    ],
+    "log": "docs/validation/connection-ui-final-head-tests.log",
+    "performanceRemeasured": false,
+    "preservedPerformanceSectionSha256": {
+      "before": "34efa928fbe16c9d28a2fdf89ab7890125c1aecf671a5f24c02ece21d7590a39",
+      "after": "4789322d1a305d4d8bc9770f6bf5d81e00d5c6973c7112144059c7050f195181",
+      "instrumentedBaseline": "60d0f2a2315a6b29e6d05d0ad853f08c3cb31ff6a318526e5773b9637e0f23da"
+    },
+    "completedAt": "2026-10-19T10:43:35.640919+00:00",
+    "preservationVerified": {
+      "localMain": "b5ea38c3d7eec3eb20f170e68f0f4215b86b2aee",
+      "stash": "692d393ff7da35ed905264fe5b3a0eff1fef4b95",
+      "references": true,
+      "wipBundle": true,
+      "androidSettings": true
+    },
+    "actualUserInstallation": false,
+    "realAccountConnection": false,
+    "actualWindowsExecution": false
+  },
+  "preserved": {
+    "localMain": "b5ea38c3d7eec3eb20f170e68f0f4215b86b2aee",
+    "stash": "692d393ff7da35ed905264fe5b3a0eff1fef4b95",
+    "referenceSha256": {
+      "reference/site-ui/Confectory-Editor-Prototype-v508.zip": "b306ce4deff9616c4107ae224443d864f8fce0f52cf3c3e158de8745c17c659f",
+      "reference/site-ui/Confectory-Editor-Prototype-v196.zip": "02d4824e92ed0edbb43113659982b37a99a614117652bde4d8ac92367e334e34",
+      "reference/site-ui/Confectory-Editor-Prototype-v424.zip": "b7969cd109ea2dad38bde9c9ab13967c20162c920a45a8cd51a8f82df6041874",
+      "reference/site-ui/Confectory-Editor-Prototype-v318.zip": "0a614fe2bf1ad3d8e10dfa8905bb6b61ea9f21b87b2492b2b87ca8566e9e6908",
+      "reference/site-ui/Confectory-Editor-Prototype-v480.zip": "0489844c8c6d90f7cdc8ea0e80628f487dcfb27f2c871b19367a635212d3c5bd"
+    },
+    "wipBundleSha256": "c98dc4ec0809b457344b7c58413e596790717230f19e025d5c74311b968e334e",
+    "androidSettingsDiff": false
+  },
+  "instrumentedBaseline": {
+    "description": "f3f282d with timing-only WebUI/authoring instrumentation; separate run from click timing baseline",
+    "snapshotCount": 63,
+    "snapshotMedianMs": 0.601,
+    "authoringOperations": {
+      "connectionCatalog": 6,
+      "connectionSettings": 1,
+      "describe": 1,
+      "inspect": 3,
+      "effective": 3
+    },
+    "fullRegistryQueryCount": 10,
+    "fullRegistryQueryDefinition": "Count measured authoring requests whose source constructs a fresh Registry over registered metadata; not an OS file-read count."
+  },
+  "stagedValidation": {
+    "status": "passed",
+    "uniqueTests": 11,
     "methods": [
       {
         "method": "WebUITests.test_actual_agent_connection_presentation_diagnostics_retry_inputs_and_late_close",
@@ -411,31 +603,10 @@
       "uniqueTestAlreadyCounted": true
     }
   },
-  "preserved": {
-    "localMain": "b5ea38c3d7eec3eb20f170e68f0f4215b86b2aee",
-    "stash": "692d393ff7da35ed905264fe5b3a0eff1fef4b95",
-    "referenceSha256": {
-      "reference/site-ui/Confectory-Editor-Prototype-v508.zip": "b306ce4deff9616c4107ae224443d864f8fce0f52cf3c3e158de8745c17c659f",
-      "reference/site-ui/Confectory-Editor-Prototype-v196.zip": "02d4824e92ed0edbb43113659982b37a99a614117652bde4d8ac92367e334e34",
-      "reference/site-ui/Confectory-Editor-Prototype-v424.zip": "b7969cd109ea2dad38bde9c9ab13967c20162c920a45a8cd51a8f82df6041874",
-      "reference/site-ui/Confectory-Editor-Prototype-v318.zip": "0a614fe2bf1ad3d8e10dfa8905bb6b61ea9f21b87b2492b2b87ca8566e9e6908",
-      "reference/site-ui/Confectory-Editor-Prototype-v480.zip": "0489844c8c6d90f7cdc8ea0e80628f487dcfb27f2c871b19367a635212d3c5bd"
-    },
-    "wipBundleSha256": "c98dc4ec0809b457344b7c58413e596790717230f19e025d5c74311b968e334e",
-    "androidSettingsDiff": false
-  },
-  "instrumentedBaseline": {
-    "description": "f3f282d with timing-only WebUI/authoring instrumentation; separate run from click timing baseline",
-    "snapshotCount": 63,
-    "snapshotMedianMs": 0.601,
-    "authoringOperations": {
-      "connectionCatalog": 6,
-      "connectionSettings": 1,
-      "describe": 1,
-      "inspect": 3,
-      "effective": 3
-    },
-    "fullRegistryQueryCount": 10,
-    "fullRegistryQueryDefinition": "Count measured authoring requests whose source constructs a fresh Registry over registered metadata; not an OS file-read count."
+  "performanceProvenance": {
+    "beforeSource": "f3f282dc4904b3c3a5922996f55bc051b7f0fd49",
+    "afterSource": "42078226bfbcbe8f3984638cf33ff122b6e1aacd",
+    "existingSamplesPreserved": true,
+    "newRunScope": "11 regression checks at frozen HEAD only; no new before/after timing probe"
   }
 }

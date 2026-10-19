@@ -34,4 +34,10 @@ dotnet tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll test_actu
 
 `CONFECTORY_UI_TRACE=1`은 호스트 stderr에 consumer/snapshot/authoring 시간과 예외 타입만 기록한다. 브라우저에서 앱을 읽기 전에 `globalThis.confectoryWebUITrace=[]`를 설정하면 최대 512개 update/call/render 시간 기록을 얻는다. 기본값은 비활성화다. 실제 사용자의 Windows 실행, 계정·설치·마켓플레이스 등록, 실제 ChatGPT 앱 연결은 이 검증에 포함하지 않는다.
 
-검증은 고유 검사 11개가 통과했다. 전체 회귀의 구현은 `0c2b47c`, 독립 history 검사 보완은 `3b35e79`, 연결 진단의 source 분류 분리는 `4207822`다. 마지막 분류 변경 후 실제 클릭·실패·재시도 검사를 다시 통과했다. 각 검사별 실행 커밋과 개발 중 제외한 실패의 해결 근거는 JSON, 통과 목록은 [검증 로그](validation/connection-ui-latency-tests.log)에 있다.
+이전 단계별 검증에서는 고유 검사 11개가 통과했다. 전체 회귀의 구현은 `0c2b47c`, 독립 history 검사 보완은 `3b35e79`, 연결 진단의 source 분류 분리는 `4207822`다. 마지막 분류 변경 후 실제 클릭·실패·재시도 검사를 다시 통과했다. 각 검사별 실행 커밋과 개발 중 제외한 실패의 해결 근거는 JSON, 통과 목록은 [검증 로그](validation/connection-ui-latency-tests.log)에 있다.
+
+## 동일한 최종 소스의 전체 재검증
+
+HEAD `3d81e54a1ec3e6755a70e76c0cd3ccbb4798451c`를 고정해 위의 11개 검사를 모두 다시 실행했다. 연결 4개와 범위·CAS·체크아웃 7개가 **11 passed, 0 failed, 0 skipped**로 통과했다. 두 그룹의 시작·종료 HEAD와 깨끗한 작업 트리를 확인했다. docs를 제외한 제품·검사 파일은 `42078226bfbcbe8f3984638cf33ff122b6e1aacd`와 동일하다. 제품 변경은 하지 않았다.
+
+이 작업에서는 성능 probe를 재실행하지 않았다. 기존 before/after/instrumentedBaseline 데이터의 SHA-256을 비교해 동일함을 확인했다. 이전 소스 단계별 결과는 JSON의 `stagedValidation`, 이번 동일 HEAD 결과는 `validation`에 분리했다. [전체 재검증 로그](validation/connection-ui-final-head-tests.log)와 JSON에 검사별 HEAD, 시간, 종료 코드 및 보호 파일 확인 결과를 남겼다. 실제 사용자 앱 설치·계정 연결과 Windows 실기 실행은 포함하지 않았다.

@@ -1,0 +1,23 @@
+Frozen tested HEAD 3d81e54a1ec3e6755a70e76c0cd3ccbb4798451c
+Product and test files identical to 42078226bfbcbe8f3984638cf33ff122b6e1aacd (docs excluded).
+11 passed, 0 failed, 0 skipped across 4+7 tests.
+
+connections
+PASS Agent presentation zero invokes/processes; partial settings/missing host diagnostics; exact retry, retained input and late close; /tmp/confectory-connection-latency-bxni0qo7
+PASS WebUITests.test_actual_agent_connection_presentation_diagnostics_retry_inputs_and_late_close
+PASS WebUITests.test_actual_editor_click_preparation_and_device_login_owned_fixtures
+PASS WebUITests.test_actual_editor_v318_codex_discovery_and_official_model_selection
+PASS WebUITests.test_actual_editor_v318_home_agent_connection_entry_and_saved_settings
+4 passed, 0 failed, 0 skipped; 393.375s
+
+platform
+PASS actual MCP plugin shared node/CAS/Confirm/cold {"actualEngine": "ordinary EditorHome with existing DevelopmentTools", "actualAdapter": "managed MCP stdio over private Unix IPC", "engineConnectedBeforeProject": true, "explicitProjectScopeAfterConnection": true, "staleUngrantedSelectionRefused": true, "openCloseSwitchRetainEngine": true, "scopeEpochRejectsOldSameProjectHandles": true, "cachedAndRawOldScopeRefused": true, "malformedPeerRetainsScope": true, "initialReadOnly": true, "existingSharedNodeDraft": true, "duplicateStageOnce": true, "unsentIntentAndOriginalFilesRetained": true, "peerSourcePinAndHashCASRefused": true, "humanCompilerReviewConfirm": true, "coldRetiresConnectionAndScope": true, "confirmedSource": "return value + 10;", "layouts": [{"label": "home-engine-only", "x": 270, "y": 45, "width": 820, "height": 810, "viewport": [1360, 900], "scrollWidth": 818, "clientWidth": 818, "cards": [{"x": 299, "y": 176, "width": 376, "height": 96}, {"x": 685, "y": 176, "width": 376, "height": 96}]}, {"label": "home-compact", "x": 40, "y": 38, "width": 820, "height": 684, "viewport": [900, 760], "scrollWidth": 818, "clientWidth": 818, "cards": [{"x": 69, "y": 169, "width": 376, "height": 96}, {"x": 455, "y": 169, "width": 376, "height": 96}]}, {"label": "project-scoped", "x": 270, "y": 45, "width": 820, "height": 810, "viewport": [1360, 900], "scrollWidth": 818, "clientWidth": 818, "cards": [{"x": 299, "y": 175, "width": 376, "height": 96}, {"x": 685, "y": 175, "width": 376, "height": 96}]}, {"label": "project-compact", "x": 40, "y": 38, "width": 820, "height": 684, "viewport": [900, 760], "scrollWidth": 818, "clientWidth": 818, "cards": [{"x": 69, "y": 168, "width": 376, "height": 96}, {"x": 455, "y": 168, "width": 376, "height": 96}]}, {"label": "after-cold", "x": 690, "y": 202.703125, "width": 820, "height": 994.59375, "viewport": [2200, 1400], "scrollWidth": 818, "clientWidth": 818, "cards": [{"x": 719, "y": 333.703125, "width": 376, "height": 96}, {"x": 1105, "y": 333.703125, "width": 376, "height": 96}]}], "realChatGPTApp": false, "installed": false, "registered": false, "networkPort": false}
+Actual common WebUI blueprint-mcp Chromium PASS
+PASS WebUITests.test_actual_editor_mcp_plugin_readonly_shared_node_draft_cas_and_cold
+PASS WebUITests.test_actual_editor_v424_shared_draft_history_cas_and_cold_restart
+PASS WebUITests.test_actual_editor_v424_source_conflict_real_files_cas_and_cold_restart
+PASS WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup
+PASS WebUITests.test_web_ui_client_coalescing_revision_retirement_and_unreplayed_retry
+PASS WebUITests.test_web_ui_scope_revision_cancellation_disposal_and_pack_locality
+PASS AIConnectionTests.test_connection_metadata_reads_current_bytes_without_cross_project_or_stamp_cache
+7 passed, 0 failed, 0 skipped; 240.257s
