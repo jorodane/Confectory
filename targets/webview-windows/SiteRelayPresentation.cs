@@ -16,7 +16,7 @@ internal sealed class SiteRelayPresentation
         Stage.Navigating => loginDestination ? "ChatGPT 로그인 화면을 불러오고 있습니다. 아직 실패한 상태가 아닙니다." : "연결 페이지를 불러오고 있습니다. 페이지가 준비될 때까지 기다려 주세요.",
         Stage.AwaitingLogin => "ChatGPT 로그인을 기다리고 있습니다. 아래 로그인 화면에서 직접 진행해 주세요.",
         Stage.Connecting => "페이지 준비가 끝났습니다. 로그인 또는 엔진 연결 응답을 기다리고 있습니다.",
-        Stage.Connected => "엔진 연결 완료 · 이 창이 연결을 유지합니다. X 또는 연결 닫기를 누르면 연결이 해제됩니다.",
+        Stage.Connected => "엔진 연결 완료 · 창 숨김과 다시 열기는 연결을 유지합니다. 연결 해제를 누르면 통신을 끝냅니다.",
         Stage.Failed => "연결을 진행하지 못했습니다. 다시 연결을 누르세요. 계속 실패하면 이 창을 닫고 다시 여세요. [" + failure + "]",
         Stage.Disconnected => "연결이 종료되었습니다. 다시 연결하려면 다시 연결을 누르세요.",
         _ => "연결 창을 닫았습니다."
@@ -56,6 +56,7 @@ internal sealed class SiteRelayPresentation
         if(!IsNavigation(attempt,navigation)||Current==Stage.Failed)return false;
         Current=Stage.Disconnected;return true;
     }
+    public void Stop(){if(Current==Stage.Closed)return;Attempt++;NavigationId=null;Current=Stage.Disconnected;}
     public bool TryRetry(out long attempt)
     {
         attempt=Attempt;if(!CanRetry)return false;

@@ -15,5 +15,6 @@ const request=sent[0];assert.equal(request.native,'site-connect');assert.equal(r
 receive({data:{id:'foreign-reply',reply:{ok:true}}});
 receive({data:{id:request.id,reply:{ok:true}}});assert.equal((await opening).ok,true);
 const rejected=window.confectoryWebUI.connectSite();receive({data:{id:sent[1].id,error:'transport_closed'}});await assert.rejects(rejected,/transport_closed/);
+const disconnecting=window.confectoryWebUI.disconnectSite();assert.equal(sent[2].native,'site-disconnect');assert.equal(sent[2].envelope,null);receive({data:{id:sent[2].id,reply:{ok:true}}});assert.equal((await disconnecting).ok,true);
 const frame={top:{}};runInNewContext(source,{window:frame,chrome,setTimeout,clearTimeout});assert.equal(frame.confectoryWebUI,undefined);
 console.log('PASS actual Windows injected Site connect native envelope, correlation, rejection and frame exclusion; Windows runtime/login not executed');

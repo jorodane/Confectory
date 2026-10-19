@@ -26,24 +26,57 @@ The panel distinguishes local preparation from ChatGPT connection and explains
 when the running host cannot open the login window. No project is required for
 these connection steps.
 
-The native window now distinguishes runtime preparation, navigation, login wait,
-engine handshake, connected, disconnected and reported failure. A native loading
-surface appears immediately; elapsed time alone never marks loading as failed.
-Reconnect is shown only after a reported failure or disconnection. X still closes
-the WebView and revokes its engine connection; the page's **연결 닫기** retires the
-connection while leaving the window open. This change does not add background
-hiding, persistent login, restored grants or longer session lifetimes.
+The native window distinguishes runtime preparation, navigation, login wait,
+engine handshake, connected, disconnected and reported failure. Loading does not
+fail merely because time passes. After pairing, a host-wake-capable connection
+hides its window and keeps the relay alive in the running engine. **X / 창 숨기기**
+only hides an active supported connection. **연결 창 다시 열기** reopens that same
+window without preparing a new connection or resetting its grant. Before pairing,
+X cancels. **개인 플러그인 연결 해제** in the main panel and **연결 해제** in the
+connection window stop the relay explicitly. Engine exit always stops it.
 
-The Site page source also hides its redundant login link after pairing and ignores
-late pair/pulse/claim replies after close. Those two Site source files require the
-parent's separate deployment; no Site was published as part of this UX change.
+The Site page and native host negotiate `hostWake` only in their paired handshake.
+An older Site that does not acknowledge it stays visible, with an explanation;
+an older native host receives the original paired envelope. Polling and retry
+backoff use native wake messages when negotiated, rather than hidden JavaScript
+timers. A Windows Forms timer emits wakes every two seconds and independently
+checks the received session expiry. No unsupported browser flags or suspension
+settings are used. OS sleep, process loss and prolonged request failure can still
+expire the existing lease; no session is silently extended.
 
-The existing Codex connection panel opens a dedicated Windows Site WebView after
-engine preparation. No project is needed. This separate InPrivate view signs in
-through Sites' top-level ChatGPT authentication and uses same-origin HTTPS for
-the persistent D1 queue. The Site-scoped authenticated user ID owns every record.
-No service bypass token, separate OAuth implementation, API key, tunnel, copied
-browser cookies, external port, or permanent engine credential is used.
+## Saved login on this PC
+
+The user approved a fixed, dedicated, non-InPrivate WebView2 profile at:
+
+`%LOCALAPPDATA%/Confectory/SiteRelay/confectory-connect.jorodane.chatgpt.site`
+
+Its profile name is `ConfectoryRelay`. WebView2 keeps its own login cookies and
+browser storage there, independently of normal Edge/Chrome profiles. Password
+autosave and general autofill remain disabled. No browser cookie/token is read,
+copied or exported by Confectory code. A later engine run reuses whatever login
+state the service still considers valid when the user opens a new connection.
+It never restores a remote session, project/node grant, queued job or scope from
+the profile. The fresh connection starts with `scope: null`.
+
+To sign out and forget this local login, reopen the connection window, choose
+**로그인 정보 지우기**, and confirm. The app disconnects first, clears that
+WebView2 profile through `ClearBrowsingDataAsync`, then closes the window. A clear
+failure is reported rather than claimed as success. Other Confectory Connect
+windows using the same Windows user's profile may be signed out too. This does
+not delete ordinary browser profiles or uninstall/revoke the ChatGPT plugin.
+
+For manual cleanup when WebView2 cannot start, exit all Confectory engines normally
+first, then delete only the dedicated folder above. Do not remove an active user
+data folder. No automatic cleanup deletes the saved profile at engine shutdown.
+
+The Site runtime changes are in `worker/bridge-page.js`, with regression coverage
+in `tests/page.test.mjs`. They require the parent's separate private deployment;
+this engine task does not publish a Site or change its access policy/database.
+
+The dedicated saved-profile view signs in through Sites' top-level ChatGPT flow
+and uses same-origin HTTPS for its persistent D1 queue. Site-scoped identity owns
+each record. There is no separate native API key, service bypass, tunnel or browser
+cookie extraction in this connection path.
 
 The isolated view has no editor envelope transport, host objects, generic native
 actions or local WebUI token. The native host pins the exact HTTPS relay document,
@@ -121,7 +154,7 @@ existing shared drafts, duplicate remote staging, CAS and human Confirm with an
 owned Site-protocol fixture. This is not real Sites login or plugin installation.
 The Windows host and its shared presentation lifecycle are cross-built/event-tested.
 The earlier v2 Windows login and engine-only connection were parent-confirmed;
-this updated native loading presentation has not been run or timed on that PC.
+this updated retained-window/profile behavior has not been run or timed on that PC.
 
 ## Verified private deployment
 

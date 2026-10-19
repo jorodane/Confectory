@@ -1,8 +1,10 @@
 # Site relay lifetime and browser handoff review
 
-The user's earlier workflow is a regression question, not evidence that a visible
-relay window is a necessary product constraint. No persistence, background lifetime
-or external-browser credential handoff was implemented during this review.
+This document records the initial review before approval. The user subsequently
+approved retaining the relay while hidden and saving login in a dedicated PC
+profile. That implementation is now described in
+[Confectory Connect](../integrations/confectory-site/README.md#saved-login-on-this-pc).
+It does not add an external-browser credential handoff or restore project grants.
 
 ## Previous implementation at 1c16fe8
 
@@ -34,9 +36,9 @@ popup, embedded browser surface, external browser or complete engine restart.
 The old external-browser fallback opened conversation AI; these files do not
 establish an external-browser authentication handoff into the editor relay.
 
-## Current behavior and smallest restoration options
+## Pre-approval behavior at 6e8e08a and restoration options
 
-The current connection uses a temporary InPrivate profile. X retires the local
+At `6e8e08a`, the connection used a temporary InPrivate profile. X retires the local
 nonce/grant and disposes the WebView. The page's close action retires both the local
 connection and the hosted session. After X, the hosted engine listing can remain
 until its existing 15-second heartbeat lease expires; local dispatch is revoked
@@ -46,11 +48,12 @@ to 30 minutes and project/node grants remain explicit.
 The smallest candidate is to separate visible authentication UI from the retained
 relay WebView, add explicit reopen/disconnect controls, and verify polling while
 hidden. That can retain the existing running-session lifetime without restoring
-project grants. It is proposed only: X was not changed to hide, and hidden-view
-heartbeat behavior still needs actual Windows validation.
+project grants. This was the proposed minimum and is now approved and implemented with native
+wake scheduling. Actual hidden Windows heartbeat behavior still needs runtime
+validation; fixtures do not establish that measurement.
 
-Restoring login across engine restarts would additionally need an approved browser
-profile retention policy. It must not copy browser cookies/tokens, revive old node
+The user also approved the dedicated profile retention policy for login reuse
+across engine runs. It must not copy browser cookies/tokens, revive old node
 capabilities, replay interrupted edits, import the old eight-hour session rule or
 restore the old automatic initial project snapshot upload.
 
@@ -68,11 +71,11 @@ not an existing Sites feature. Before promising it, the native client needs a
 documented way through the owner-private gateway or a separately reviewed broker
 and scoped authentication contract. A child anonymous GET probe obtained no HTTP
 status (`URLError`), so it did not verify that route's native reachability. No
-gateway bypass, new grant, permanent credential or authentication server was made.
+gateway bypass, native handoff grant or authentication server was made.
 
 ## Verification limits
 
 The parent confirmed actual Windows login and one engine-only relay (`scope: null`)
-on v2. Real project operations remain unverified. New loading-state transitions,
+on v2. Real project operations remain unverified. New loading/hidden-state transitions, profile cleanup ordering,
 retry/close races and page late replies use owned fixtures; the Windows host is
 cross-built. No user-PC login delay or updated Windows rendering time was measured.

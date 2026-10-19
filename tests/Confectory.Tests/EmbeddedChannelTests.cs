@@ -4,6 +4,30 @@ using Confectory.Core;
 namespace Confectory.Tests;
 public sealed class EmbeddedChannelTests : TestCase
 {
+    public void test_site_hidden_relay_reopen_expiry_shutdown_and_fixed_profile()
+    {
+        var relay=new SiteRelayLifetime();long start=1000,expiry=start+1800000;
+        True(!relay.Connected&&!relay.CanHide&&!relay.Hidden);True(!relay.Hide());
+        True(relay.Pair(start,expiry,true));True(relay.CanHide);True(relay.Hide());True(relay.Hidden&&relay.Connected);
+        True(relay.Reopen());True(!relay.Hidden&&relay.Connected);Equal(expiry,relay.ExpiresAt);
+        for(int i=1;i<=600;i++)True(!relay.Tick(start+i*2000));True(relay.Connected);Equal(expiry,relay.ExpiresAt);
+        True(relay.Hide());True(relay.Tick(expiry));True(!relay.Connected&&!relay.CanHide);True(!relay.Tick(expiry+1));
+        True(relay.Reopen());True(!relay.Connected);True(relay.Pair(expiry+1,expiry+1000,true));relay.Disconnect();True(!relay.Connected&&!relay.CanHide);
+        relay.Shutdown();True(relay.Closed&&!relay.Connected&&!relay.Reopen());True(!relay.Pair(0,1000,true));
+        var oldSite=new SiteRelayLifetime();True(oldSite.Pair(0,1000,false));True(!oldSite.CanHide&&!oldSite.Hide());
+        string local=Path.GetFullPath(Path.Combine(Path.GetTempPath(),"owned-confectory-profile"));string saved=SiteRelayProfile.DirectoryFor(local);
+        Equal(saved,SiteRelayProfile.DirectoryFor(local));True(saved.Contains("Confectory")&&saved.Contains("confectory-connect.jorodane.chatgpt.site"));True(!SiteRelayProfile.InPrivate);
+        var restarted=new SiteRelayLifetime();True(!restarted.Connected&&!restarted.HostWake&&restarted.ExpiresAt==0);True(!restarted.Hide());
+    }
+    public void test_site_login_clear_disconnects_before_profile_clear_and_does_not_claim_late_success()
+    {
+        var relay=new SiteRelayLifetime();relay.Pair(0,1800000,true);var events=new List<string>();bool cookie=true;
+        True(relay.ForgetLoginAsync(()=>{relay.Disconnect();events.Add("disconnect");return Task.CompletedTask;},()=>{True(!relay.Connected);cookie=false;events.Add("profile-clear");return Task.CompletedTask;}).GetAwaiter().GetResult());
+        True(!cookie);Equal("disconnect,profile-clear",string.Join(',',events));
+        var response=new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);var closed=new SiteRelayLifetime();int cleared=0;
+        var late=closed.ForgetLoginAsync(async()=>{await response.Task;},()=>{cleared++;return Task.CompletedTask;});closed.Shutdown();response.SetResult(true);True(!late.GetAwaiter().GetResult());Equal(0,cleared);
+        bool failed=false;try{new SiteRelayLifetime().ForgetLoginAsync(()=>Task.CompletedTask,()=>throw new IOException("owned-clear-failure")).GetAwaiter().GetResult();}catch(IOException){failed=true;}True(failed);
+    }
     public void test_site_window_slow_preparation_login_redirect_and_connected_presentation()
     {
         var state=new SiteRelayPresentation();long attempt=state.Attempt;
@@ -18,7 +42,7 @@ public sealed class EmbeddedChannelTests : TestCase
         True(state.Navigate(attempt,11,true));True(!state.DocumentReady(attempt,10,true));True(!state.Fail(attempt,"old-navigation",10));
         True(state.DocumentReady(attempt,11,false));Equal(SiteRelayPresentation.Stage.AwaitingLogin,state.Current);True(state.ShowDocument&&!state.CanRetry&&!state.Busy);
         True(state.Navigate(attempt,12,false));True(state.BridgeReady(attempt,12));Equal(SiteRelayPresentation.Stage.Connecting,state.Current);
-        True(state.Paired(attempt,12));Equal(SiteRelayPresentation.Stage.Connected,state.Current);True(!state.CanRetry&&!state.Busy&&state.ShowDocument);True(state.Message.Contains("X")&&state.Message.Contains("해제"));
+        True(state.Paired(attempt,12));Equal(SiteRelayPresentation.Stage.Connected,state.Current);True(!state.CanRetry&&!state.Busy&&state.ShowDocument);True(state.Message.Contains("숨김")&&state.Message.Contains("해제"));
         True(state.DocumentReady(attempt,12,true));Equal(SiteRelayPresentation.Stage.Connected,state.Current);True(!state.TryRetry(out _));
     }
     public void test_site_window_real_failure_retry_and_old_navigation_do_not_replace_current_state()
@@ -68,6 +92,9 @@ public sealed class EmbeddedChannelTests : TestCase
         True(!SiteRelayBoundary.TryRead(address,address,"[]",nonce,true,out _));
         True(!SiteRelayBoundary.TryRead(address,address,"{",nonce,true,out _));
         var ready=new JsonObject{["protocol"]=SiteRelayBoundary.Protocol,["type"]="ready"};True(Accept(ready,hello:false));True(!Accept(ready));
+        var paired=(JsonObject)message.DeepClone();paired["type"]="paired";paired["hostWake"]=true;True(Accept(paired));
+        paired["hostWake"]=false;True(!Accept(paired));paired["hostWake"]="true";True(!Accept(paired));
+        wrong=(JsonObject)message.DeepClone();wrong["hostWake"]=true;True(!Accept(wrong));
     }
     // Exercises the actual platform-neutral host channel, not a replacement UI.
     public void test_embedded_channel_correlates_replies_and_retires_on_eof()

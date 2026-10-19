@@ -5,6 +5,7 @@
     <Compile Include="../../targets/webview-windows/PackChannel.cs" Link="PackChannel.cs" />
     <Compile Include="../../targets/webview-windows/SiteRelayBoundary.cs" Link="SiteRelayBoundary.cs" />
     <Compile Include="../../targets/webview-windows/SiteRelayPresentation.cs" Link="SiteRelayPresentation.cs" />
+    <Compile Include="../../targets/webview-windows/SiteRelayLifetime.cs" Link="SiteRelayLifetime.cs" />
     <ProjectReference Include="../../targets/android-export/Confectory.AndroidExport.csproj" />
     <ProjectReference Include="../../targets/browser-wasm/Confectory.Build.BrowserWasm.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="../../targets/web/Confectory.Build.Web.csproj" ReferenceOutputAssembly="false" />

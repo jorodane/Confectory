@@ -13,8 +13,9 @@ internal static class SiteRelayBoundary
         try {
             var row = JsonNode.Parse(json)!.AsObject();
             if (row["protocol"]?.GetValue<string>() != Protocol) return false;
-            foreach (var field in row) if (field.Key is not ("protocol" or "type" or "nonce" or "requestId" or "sessionId" or "expiresAt" or "job")) return false;
+            foreach (var field in row) if (field.Key is not ("protocol" or "type" or "nonce" or "requestId" or "sessionId" or "expiresAt" or "job" or "hostWake")) return false;
             string type = row["type"]?.GetValue<string>() ?? "";
+            if(row.ContainsKey("hostWake")&&(type!="paired"||row["hostWake"]?.GetValue<bool>()!=true))return false;
             if (type == "ready") { if (helloSent) return false; }
             else {
                 if (!helloSent || row["nonce"]?.GetValue<string>() != nonce || type is not ("paired" or "pulse" or "dispatch" or "close")) return false;
