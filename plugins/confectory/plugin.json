@@ -1,0 +1,18 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "confectory",
+  "version": "0.1.0",
+  "description": "Connect to an explicitly prepared local Confectory engine and reuse its existing scoped workspace tools.",
+  "repository": "https://github.com/jorodane/Confectory",
+  "extensions": {
+    "com.openai": {
+      "onboardingSkill": "./skills/setup/SKILL.md",
+      "interface": {
+        "displayName": "Confectory (development)",
+        "shortDescription": "Read owned project or node sources; stage existing drafts for human review.",
+        "longDescription": "Personal development package. Requires a local desktop Confectory host, .NET 10 runtime and explicit connection preparation in the app. No shell or automatic Confirm tool.",
+        "capabilities": ["Read", "Write"]
+      }
+    }
+  }
+}

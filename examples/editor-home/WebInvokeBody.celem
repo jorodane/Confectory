@@ -7,4 +7,5 @@ import Confectory.EditorHome.Model::ContextActions as ContextActions (string,str
 import Confectory.EditorHome.Model::BuildJobs as BuildJobs (string,string,string) -> string;
 import Confectory.EditorHome.Model::NodeTasks as NodeTasks (string,string,string) -> string;
 import Confectory.EditorHome.Model::Blueprint as Blueprint (string,string,string) -> string;
+import Confectory.EditorHome.Model::McpBridge as McpBridge (string,string,string) -> string;
 body common "WebInvoke.csbody"; }

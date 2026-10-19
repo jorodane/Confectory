@@ -1,0 +1,11 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "mcpServers": {
+    "confectory": {
+      "type": "stdio",
+      "command": "dotnet",
+      "args": ["./server/Confectory.Mcp.dll"],
+      "cwd": "${PLUGIN_ROOT}"
+    }
+  }
+}

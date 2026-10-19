@@ -68,6 +68,7 @@ with sync_playwright() as p:
     dialog.locator('[data-connection-back]').click();dialog.get_by_role('button',name='OpenAI Responses',exact=True).click();expect(dialog.locator('[data-connection-field="model"]')).to_have_value('owned-not-called-response-model')
     dialog.locator('[data-connection-cancel]').click();expect(page.locator('.home-grid')).to_be_visible()
     if phase=='existing':assert json.loads(page.evaluate("localStorage.getItem('confectory-participant-layout')"))['legacyAgent']=='Confectory.Agent.Responses::Connection'
+    page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='사용할 AI',exact=True);dialog.locator('[data-mcp-open]').click();expect(dialog).to_have_count(0);expect(page.locator('#status')).to_contain_text('먼저 연결할 프로젝트');expect(page.locator('.home-grid')).to_be_visible();assert page.locator('.window[data-key=\"mcp-bridge\"]').count()==0
     profiles.append({'phase':phase,'homeEntry':True,'providers':['OpenAI Responses','Codex'],'methods':['local-cli','desktop-ide','chatgpt-work'],'projectUnchanged':True,'cancelReenter':True,'actualAccountOrRequest':False})
    except Exception:
     print('Evidence',root,flush=True);print('Public state',json.dumps(public_state(url)),flush=True);raise

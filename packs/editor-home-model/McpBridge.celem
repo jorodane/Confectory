@@ -1,0 +1,1 @@
+function Confectory.EditorHome.Model::McpBridge (string session,string operation,string payload) -> string {provide Confectory.EditorHome.Model::McpBridge with Confectory.EditorHome.Model::McpBridgeBody;}
