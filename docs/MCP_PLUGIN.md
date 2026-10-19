@@ -19,28 +19,57 @@ flowchart LR
 
 첫 연결은 읽기 전용이다. 앱에서 읽기 전용을 해제하고 새로 준비한 경우에만 기존 초안 편집 도구가 도구 목록에 나온다. `workspace_stage/create`는 최종 파일을 쓰지 않는다. Confirm·빌드·실행·shell·임의 파일 경로 도구는 없다. 플러그인 설치만으로 앱의 연결 범위를 준비하거나 기존 초안을 승인하지 않는다.
 
-## 실제 패키지와 빌드
+## 개발용 marketplace 소스와 빌드
 
-소스는 `plugins/confectory/`다. portable `plugin.json`, `mcp.json`, 온보딩 `skills/setup/SKILL.md`와 marketplace **예시**가 있다. `.agents/plugins/marketplace.json`이나 사용자 설정에는 자동 등록하지 않는다.
+플러그인 소스는 `plugins/confectory/`, marketplace 원본 예시는 `plugins/marketplace.example.json`, 배포 루트 안내는 `plugins/MARKETPLACE.md`다. 저장소의 플러그인 소스에는 생성된 서버 DLL이 없다. 이 저장소 Git URL만 등록하면 실행 가능한 플러그인이 생긴다고 안내하지 않는다.
 
 이미 설치된 .NET 10 SDK로 다음을 실행하면 된다. SDK·런타임을 설치하는 명령은 포함하지 않는다.
 
 ```text
 dotnet build targets/mcp-host/Confectory.Mcp.csproj -c Release
-python3 tools/package_mcp_plugin.py --output /원하는/경로/Confectory-plugin-dev.zip
+python3 tools/package_mcp_plugin.py --output /원하는/경로/Confectory-marketplace-dev-0.1.1.zip
 ```
 
-ZIP은 `confectory/plugin.json`, `mcp.json`, `skills/`와 실제 빌드된 `server/Confectory.Mcp.dll`, deps/runtimeconfig 및 SHA-256 영수증을 포함한다. `mcp.json`의 실제 실행은 플러그인 root를 cwd로 삼아 `dotnet ./server/Confectory.Mcp.dll`을 시작하는 STDIO다. 연결 창은 공통 desktop WebUI와 Windows 기본 embedded 화면에 연결돼 있다. Linux 검사는 기존 `CONFECTORY_UI=web` 실행 표면을 사용한다. 별도 Linux native tree에는 이 새 메뉴를 연결하지 않았다.
+ZIP은 **개발용 소스를 옮기는 압축 파일**이다. 사용자 앱에 ZIP을 직접 가져와 설치하는 형식으로 안내하지 않는다. 압축을 풀면 다음 루트 하나가 생긴다.
 
-사용자 앱 환경의 PATH에서 .NET 10 `dotnet` 런타임이 실행 가능해야 한다. Confectory가 자체 런타임을 포함해 실행된다는 사실만으로 이를 가정하지 않는다. 없으면 자동 설치하지 않고 기존 런타임/앱 환경 확인에서 멈춘다.
+```text
+confectory-development/
+  .agents/plugins/marketplace.json
+  plugins/confectory/
+    plugin.json
+    mcp.json
+    skills/setup/SKILL.md
+    server/Confectory.Mcp.dll
+    server/Confectory.Mcp.deps.json
+    server/Confectory.Mcp.runtimeconfig.json
+    README.md
+  package-receipt.json
+  README.md
+```
 
-## 사용자가 직접 시험할 절차
+marketplace의 `source.path: ./plugins/confectory`는 `confectory-development/` 기준이다. `.agents/plugins/` 기준으로 해석하지 않는다. packaging 도구는 이 완성된 소스 안에만 catalog를 생성한다. 현재 저장소의 실제 `.agents/plugins/marketplace.json`, 사용자 설정과 설치 cache는 변경하지 않는다. 전체 트리를 함께 옮기면 상대 경로가 유지된다. 플러그인 root의 `mcp.json`은 `${PLUGIN_ROOT}`를 cwd로 사용해 `dotnet ./server/Confectory.Mcp.dll`을 시작한다.
 
-1. ZIP을 풀고, **로컬 플러그인 소스를 지원하는 ChatGPT 데스크톱 앱**에 개인 개발 패키지로 추가한다. 로컬 소스의 제공 여부는 앱 표면/버전에 따라 다르다. `marketplace.example.json`은 사용자가 선택한 실제 플러그인 위치를 가리키도록 기존 개인 목록에 병합할 때 참고하는 자료다. 현재 작업은 설치·marketplace 등록·앱 재시작·공개 제출을 실행하지 않는다. 브라우저/클라우드 채팅은 사용자의 로컬 IPC에 직접 접근하지 않는다.
-2. Confectory에서 프로젝트를 열고 **메뉴 → ChatGPT 플러그인 연결**을 연다. 노드만 공유하려면 먼저 **기능 Blueprint → C# 노드 → 설명·연결**로 노드를 선택한 뒤 연결 창을 다시 연다. 범위를 고르고 **읽기 전용으로 연결**을 유지한 채 **연결 준비**를 누른다. Agent 연결 대화상자에도 이 화면으로 이동하는 버튼이 있다. 프로젝트가 없으면 먼저 열도록 안내한다.
-3. 플러그인의 설정 절차에서 `confectory_instances`로 준비된 엔진을 조회하고, 표시된 `instanceId`로 `confectory_connect`한 뒤 `confectory_status`의 프로젝트·노드·읽기 전용 상태를 확인한다. 여러 엔진이면 사용자에게 선택을 받는다. `workspace_list/read` 결과가 앱의 선택 범위와 같아야 한다. 편집 시험은 앱에서 연결을 닫고 읽기 전용을 해제해 새 범위로 준비한 뒤 진행한다. 도구의 변경은 앱의 기존 **변경 검토 → Review/Confirm** 전까지 최종 파일을 바꾸면 안 된다.
+사용자 앱을 실행하는 환경에서 `dotnet --list-runtimes`를 확인한다. 명령을 찾지 못하면 그 환경의 PATH/기존 런타임 위치를 확인해야 한다. 명령은 실행되지만 `Microsoft.NETCore.App 10.x.x`가 없으면 필요한 런타임이 없다. 최신 major 런타임만 있는 경우도 기본 정책상 충분하지 않다. 이 문제를 계정 인증이나 프로젝트 연결 실패로 표시하지 않는다. SDK는 빌드용이며 사용자 호스트에는 해당 .NET 10 런타임이 필요하다. Confectory의 자체 포함 런타임만으로 별도 플러그인 호스트의 PATH를 가정하지 않고, 자동 설치·PATH 변경을 실행하지 않는다.
 
-수동 Codex CLI 설정을 필수로 요구하는 구성은 아니다. 개인/개발용 local 또는 repository marketplace와 온보딩 경로는 [공식 플러그인 패키징 문서](https://developers.openai.com/plugins/build/plugins)를 따른다. 공개 desktop-only 디렉터리 제출 조건은 별도 [제출 문서](https://developers.openai.com/plugins/deploy/desktop-only)의 범위다. 개인 개발이 공개 제출과 같은 절차라는 의미는 아니다. 실제 ChatGPT 앱의 설치/연결 호환성은 이 저장소 검사만으로 검증됐다고 표시하지 않는다.
+## 소스 등록, 앱 설치, 엔진 연결
+
+**소스 등록**이 먼저다. [공식 패키징 문서](https://developers.openai.com/plugins/build/plugins)는 repo 또는 개인 marketplace 파일을 설명한다. 사용자가 기존 루트를 선택한 뒤 catalog 항목과 실제 빌드된 플러그인 위치를 맞춰야 한다. 기존 catalog는 항목을 병합하고 전체를 덮어쓰지 않는다. 다른 루트에 옮길 때에는 그 루트 안의 실제 플러그인 위치에 맞춰 상대 경로를 조정한다.
+
+이미 지원되는 로컬 CLI가 있는 개발 환경에서는 [공식 개발자 명령](https://learn.chatgpt.com/docs/developer-commands)에 따른 다음 등록 경로도 있다. 대상은 ZIP이나 플러그인 하위 폴더가 아닌 **marketplace 루트**다.
+
+```text
+codex plugin marketplace add "/absolute/path/to/confectory-development"
+```
+
+위 명령은 사용자 설정을 바꾸는 소스 등록 작업이며 이번 구현·검증에서는 실행하지 않았다. `config.toml`이나 개별 MCP 서버를 수동 편집하도록 요구하는 구성은 아니다. CLI가 없다고 자동 설치하거나, 확인되지 않은 앱의 ZIP 가져오기/Git URL 입력 버튼을 안내하지 않는다. 개인 marketplace 파일을 쓰는 문서상 대안도 있지만, 실제 파일 변경 역시 사용자 환경에서 별도로 확인해야 한다. 관리자용 Import marketplace는 개인 계정의 등록 절차로 적용하지 않는다.
+
+**앱 설치**는 그다음이다. [공식 Plugins 안내](https://learn.chatgpt.com/docs/plugins)와 패키징 문서의 desktop 흐름은 등록 후 앱을 재시작하고, Plugins에서 해당 소스를 선택해 상세 화면의 `+`로 설치한 뒤 새 채팅을 시작하는 것이다. 이는 문서로 확인한 절차다. 사용자의 앱에서 해당 소스가 나타나는지, 실제 설치 cache와 온보딩이 동작하는지는 아직 직접 검증하지 않았다. 단순 압축 해제나 저장소 push를 설치 완료로 보지 않는다.
+
+**엔진 연결**은 설치 후 기존 온보딩으로 진행한다. Confectory에서 프로젝트를 열고 **메뉴 → ChatGPT 플러그인 연결**에서 정확한 범위를 골라 읽기 전용으로 준비한다. 노드만 공유하려면 먼저 Blueprint의 C# 노드를 선택한다. `confectory_instances`로 조회한 실제 instanceId로 `confectory_connect`한 뒤 `confectory_status`에서 프로젝트·노드·읽기 전용 상태를 확인한다. 여러 엔진이면 사용자에게 선택을 받는다. 편집은 사용자가 앱에서 범위를 다시 준비한 뒤 기존 변경 검토·Review/Confirm을 거친다. 이 엔진 흐름과 실제 STDIO 명령은 로컬에서 검증했고, 실제 ChatGPT 앱과 연결한 결과는 아니다.
+
+공통 desktop WebUI와 Windows 기본 embedded 화면에는 연결 창이 있다. Linux 검사는 기존 `CONFECTORY_UI=web` 표면을 사용하며 별도 native tree에는 이 메뉴를 연결하지 않았다. 브라우저/클라우드 세션은 사용자 로컬 IPC에 직접 접근하지 않는다.
+
+[공개 desktop-only 제출](https://developers.openai.com/plugins/deploy/desktop-only)은 승인 파트너 대상 심사·포털 ZIP 업로드 경로다. 개인 개발 소스 등록과 구분하며, 현재 marketplace 루트를 감싼 ZIP을 심사 제출용 플러그인 ZIP으로 설명하지 않는다. 이번 작업은 사용자 앱 설치·설정 변경·계정/접근 권한 생성·공개/워크스페이스 배포 등록을 실행하지 않는다.
 
 ## 연결 상태와 실패
 
@@ -66,6 +95,6 @@ STDIO는 UTF-8 newline JSON-RPC, 최대 8 MiB frame, 최대 8 pending/2 concurre
 
 잘못된 IPC frame이나 연결 중단은 해당 클라이언트 연결만 닫는다. 과도한 frame 하나가 앱에서 준비한 연결 범위 전체를 종료하던 문제를 실제 엔진에서 재현한 뒤 수정했다. 앱을 다시 시작하면 연결 창의 표시와 배치는 복원하되 연결 권한은 복원하지 않고 읽기 전용 상태로 다시 준비하도록 한다.
 
-최종 소스는 `25c2c1bfbf567eff58fc02ef6bf025aeee830622`이며 최종 검사 11개가 통과했다(실패 0, 건너뜀 0, 최대 동시 실행 2개). 정확한 메서드별 결과와 소스·로그·패키지 해시는 [검증 기록](validation/mcp-plugin.json)에 둔다. `Confectory-plugin-dev.zip`은 이 소스에서 빌드한 DLL을 포함하며 SHA-256은 `c51acf8e8946ffe729dce59a362953ae803505b62da0ae5fa22abc9b872fa401`이다. 실제 ChatGPT 앱 설치나 연결 완료를 뜻하지 않는다.
+초기 MCP 구현 소스 `25c2c1bfbf567eff58fc02ef6bf025aeee830622`의 검사 11개가 통과했다(실패 0, 건너뜀 0, 최대 동시 실행 2개). 당시 메서드·소스·로그·이전 압축 파일의 해시는 [초기 검증 기록](validation/mcp-plugin.json)에 보존한다. 그때의 `Confectory-plugin-dev.zip`은 marketplace 루트가 빠진 이전 산출물이므로 현재 등록 안내에는 사용하지 않는다. 이번 변경은 엔진·어댑터를 바꾸지 않고 개발 소스의 catalog 경로와 패키징·안내를 보완한다.
 
 별도로 진행하던 v508 분기 종료 UI는 미완료 상태로 보존돼 있다. stash `692d393ff7da35ed905264fe5b3a0eff1fef4b95`와 `Confectory-v508-branch-ends-WIP.bundle`에 원래 수정 및 미추적 파일을 담았으며, 이 MCP 변경에는 포함하지 않았다. 번들의 선행 커밋은 `b05c6ed228a32d7bed181ac80b66a10f9fbb0d32`, SHA-256은 `c98dc4ec0809b457344b7c58413e596790717230f19e025d5c74311b968e334e`다. 후속 작업에서 보존된 수정과 현재 리소스 선언을 함께 검토해 복원해야 한다.

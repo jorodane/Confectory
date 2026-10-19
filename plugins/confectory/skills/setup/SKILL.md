@@ -5,7 +5,11 @@ description: Connect this development plugin to the exact project or Blueprint n
 
 Use the packaged `confectory_instances` tool to find prepared local engines. This plugin uses the existing Confectory workspace tools; do not create another editing, proposal or batch system.
 
+This onboarding runs after the plugin has been installed from a configured local development marketplace. ZIP is a transport archive, not a direct desktop install action. Do not invent a ZIP import or personal Git-URL input screen. The repository source omits server binaries, so registering its Git URL alone is not a runnable installation. Refer to the built marketplace root's README for reviewed source registration; never execute registration or change existing configuration without authorization.
+
 Explain that this development package requires a supported local desktop plugin surface, .NET 10 runtime, and Confectory running under the same OS user. Actual ChatGPT app installation must be verified by the user. Browser/cloud sessions cannot reach a user's local IPC directly. If the MCP server cannot start, ask the user to confirm the existing .NET runtime and package location. Do not install a runtime, change Codex settings or register a marketplace without explicit authorization.
+
+For a launch failure, `dotnet --list-runtimes` must be available in the desktop host environment and list `Microsoft.NETCore.App 10.x.x`. Command not found indicates missing PATH/runtime discovery; a missing 10.x line indicates the required runtime is unavailable. A newer major runtime alone does not meet this package's default policy. Do not report those prerequisite failures as account authentication or engine-project connection failures.
 
 If no engine is available, guide the user to open their project in Confectory, choose **메뉴 → ChatGPT 플러그인 연결**, select the scope, leave **읽기 전용으로 연결** checked, then click **연결 준비**. For a Blueprint node scope, select a C# node in Blueprint before reopening the connection panel. Do not launch an engine or open a project automatically.
 

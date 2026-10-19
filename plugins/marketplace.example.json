@@ -1,6 +1,6 @@
 {
   "name": "confectory-development",
-  "interface": {"displayName": "Confectory Development"},
+  "interface": {"displayName": "Confectory Development (local)"},
   "plugins": [
     {
       "name": "confectory",
