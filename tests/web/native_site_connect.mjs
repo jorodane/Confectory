@@ -16,5 +16,6 @@ receive({data:{id:'foreign-reply',reply:{ok:true}}});
 receive({data:{id:request.id,reply:{ok:true}}});assert.equal((await opening).ok,true);
 const rejected=window.confectoryWebUI.connectSite();receive({data:{id:sent[1].id,error:'transport_closed'}});await assert.rejects(rejected,/transport_closed/);
 const disconnecting=window.confectoryWebUI.disconnectSite();assert.equal(sent[2].native,'site-disconnect');assert.equal(sent[2].envelope,null);receive({data:{id:sent[2].id,reply:{ok:true}}});assert.equal((await disconnecting).ok,true);
+const creating=window.confectoryWebUI.createProject('Owned proposal','Explicit local confirmation','opaque-parent','a'.repeat(32));assert.equal(sent[3].native,'create-project');assert.equal(sent[3].envelope.proposalId,'a'.repeat(32));assert.equal(sent[3].envelope.parent,'opaque-parent');receive({data:{id:sent[3].id,reply:{ok:true}}});assert.equal((await creating).ok,true);
 const frame={top:{}};runInNewContext(source,{window:frame,chrome,setTimeout,clearTimeout});assert.equal(frame.confectoryWebUI,undefined);
 console.log('PASS actual Windows injected Site connect native envelope, correlation, rejection and frame exclusion; Windows runtime/login not executed');

@@ -1,0 +1,49 @@
+// Engine-owned proposals only. Paths and final creation remain local UI actions.
+if(payload.Length>32768)throw new ArgumentException("creation_budget");
+var state=AppDomain.CurrentDomain.GetData("Confectory.EditorHome."+session) as object[]??throw new ObjectDisposedException("engine_closed");
+lock(state){
+ var model=(System.Text.Json.Nodes.JsonObject)state[3];string key="Confectory.EditorHome.Creation."+session;
+ var input=System.Text.Json.Nodes.JsonNode.Parse(payload)!.AsObject();string Text(string name)=>input[name]?.GetValue<string>()??"";
+ void Publish(System.Text.Json.Nodes.JsonNode? proposal){model["engineCreationProposal"]=proposal?.DeepClone();model["revision"]=model["revision"]!.GetValue<int>()+1;System.Threading.Volatile.Write(ref state[4],model.ToJsonString());}
+ if(operation=="open"){AppDomain.CurrentDomain.SetData(key,new object[]{Text("instanceId"),new System.Collections.Generic.Dictionary<string,System.Text.Json.Nodes.JsonObject>(StringComparer.Ordinal)});Publish(null);return "{}";}
+ var ownerState=AppDomain.CurrentDomain.GetData(key) as object[];
+ if(operation=="close"){AppDomain.CurrentDomain.SetData(key,null);Publish(null);return "{}";}
+ if(operation=="retire"&&ownerState is null)return "{}";
+ if(ownerState is null||((bool)state[6]&&operation!="retire"))throw new InvalidOperationException("engine_closed");
+ var rows=(System.Collections.Generic.Dictionary<string,System.Text.Json.Nodes.JsonObject>)ownerState[1];string owner=Text("owner");
+ System.Text.Json.Nodes.JsonObject Public(System.Text.Json.Nodes.JsonObject row){var result=(System.Text.Json.Nodes.JsonObject)row.DeepClone();result.Remove("owner");result.Remove("callId");result.Remove("fingerprint");return result;}
+ if(operation=="retire"){
+  foreach(var row in rows.Values)if(row["owner"]!.ToString()==owner&&row["status"]!.ToString()=="pending"){row["status"]="cancelled";if(model["engineCreationProposal"]?["id"]?.ToString()==row["id"]!.ToString())Publish(null);}
+  return "{}";
+ }
+ if(operation=="options"){
+  var template=calls.CreationTemplate.Invoke("Project.Preview",System.IO.Path.Combine((string)state[1],"targets","dotnet","pack.cpack"));
+  string manifest="";for(int i=0;i<template.Length;i+=2)if(template[i]=="project.cproj")manifest=template[i+1];
+  var targets=new System.Text.Json.Nodes.JsonArray();foreach(System.Text.RegularExpressions.Match match in System.Text.RegularExpressions.Regex.Matches(manifest,@"(?m)^target (\w+) "))targets.Add(match.Groups[1].Value);
+  return new System.Text.Json.Nodes.JsonObject{["templates"]=new System.Text.Json.Nodes.JsonArray(new System.Text.Json.Nodes.JsonObject{["id"]="empty-projectpack",["title"]="빈 ProjectPack",["targetId"]="dotnet",["buildTargets"]=targets}),["titleMaxLength"]=128,["descriptionMaxLength"]=4096,["instructions"]="Discuss the new project in the current conversation. Explicitly request a proposal only when the user asks. The engine user reviews the proposal and selects the parent folder before creating. No project access is granted by creation.",["unsupported"]=new System.Text.Json.Nodes.JsonArray("game pack recommendations","automatic Helper or Agent assignment","arbitrary target packs","remote filesystem paths")}.ToJsonString();
+ }
+ if(operation=="propose"){
+  foreach(var field in input)if(field.Key is not ("owner" or "callId" or "title" or "description" or "intent" or "templateId" or "targetId"))throw new ArgumentException("creation_argument_refused");
+  string title=Text("title"),description=Text("description"),intent=Text("intent"),callId=Text("callId");
+  if(owner.Length is <1 or >160||callId.Length is <1 or >160||string.IsNullOrWhiteSpace(intent)||intent.Length>4096||description.Length>4096||title.Length is <1 or >128||title!=title.Trim()||title.EndsWith('.')||title is "." or ".."||System.Linq.Enumerable.Any(title,c=>char.IsControl(c)||"<>:\"/\\|?*".Contains(c))||System.Text.RegularExpressions.Regex.IsMatch(title.Split('.')[0],"^(CON|PRN|AUX|NUL|COM[1-9¹²³]|LPT[1-9¹²³])$",System.Text.RegularExpressions.RegexOptions.IgnoreCase)||Text("templateId")!="empty-projectpack"||Text("targetId")!="dotnet")throw new ArgumentException("invalid_creation_proposal");
+  string fingerprint=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(System.Text.Json.JsonSerializer.Serialize(new[]{title,description,intent,"empty-projectpack","dotnet"}))));
+  var prior=System.Linq.Enumerable.FirstOrDefault(rows.Values,row=>row["owner"]!.ToString()==owner&&row["callId"]!.ToString()==callId);
+  if(prior is not null){if(prior["fingerprint"]!.ToString()!=fingerprint)throw new InvalidOperationException("call_id_reused");return Public(prior).ToJsonString();}
+  if(rows.Count>=32)throw new InvalidOperationException("creation_budget");
+  if(System.Linq.Enumerable.Any(rows.Values,row=>row["status"]!.ToString()=="pending"))throw new InvalidOperationException("creation_pending");
+  var next=new System.Text.Json.Nodes.JsonObject{["id"]=Guid.NewGuid().ToString("N"),["instanceId"]=(string)ownerState[0],["owner"]=owner,["callId"]=callId,["fingerprint"]=fingerprint,["status"]="pending",["source"]=owner.StartsWith("site:",StringComparison.Ordinal)?"site":"local",["title"]=title,["description"]=description,["intent"]=intent,["templateId"]="empty-projectpack",["targetId"]="dotnet",["projectId"]=null,["projectAccessGranted"]=false};
+  rows.Add(next["id"]!.ToString(),next);var result=Public(next);Publish(result);return result.ToJsonString();
+ }
+ if(!rows.TryGetValue(Text("proposalId"),out var selected))throw new InvalidOperationException("creation_proposal_missing");
+ if(operation=="status"){if(selected["owner"]!.ToString()!=owner)throw new UnauthorizedAccessException("creation_owner_refused");return Public(selected).ToJsonString();}
+ if(selected["status"]!.ToString()!="pending")throw new InvalidOperationException("creation_proposal_retired");
+ if(operation=="review")return Public(selected).ToJsonString();
+ if(operation is "reject" or "invalidate"){selected["status"]=operation=="reject"?"rejected":"cancelled";Publish(null);return Public(selected).ToJsonString();}
+ if(operation!="confirm")throw new UnauthorizedAccessException("creation_operation_refused");
+ if(model["selected"] is not null)throw new InvalidOperationException("Return to Home before creating a project");
+ // This operation is reachable only through the local native create-project action.
+ // The remote tool set has no confirm/create action or parent-folder argument.
+ var created=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(session,"create",new System.Text.Json.Nodes.JsonObject{["title"]=Text("title"),["description"]=Text("description"),["directory"]=Text("directory"),["targetPack"]=System.IO.Path.Combine((string)state[1],"targets","dotnet","pack.cpack")}.ToJsonString()))!;
+ if(created["status"]?.ToString().StartsWith("Error:",StringComparison.Ordinal)==true)throw new InvalidOperationException("creation_failed");
+ selected["status"]="created";selected["title"]=created["selected"]!["title"]!.DeepClone();selected["description"]=created["selected"]!["description"]?.DeepClone();selected["projectId"]=created["selected"]!["projectId"]!.DeepClone();Publish(null);return Public(selected).ToJsonString();
+}

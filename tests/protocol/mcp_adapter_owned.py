@@ -5,7 +5,7 @@ repo=pathlib.Path(sys.argv[1]).resolve();root=pathlib.Path(tempfile.mkdtemp(pref
 owner=hashlib.sha256(str(pathlib.Path.home()).encode()).hexdigest()[:16];ipc=pathlib.Path(tempfile.gettempdir())/('confectory-mcp-'+owner);ipc.mkdir(mode=0o700,exist_ok=True);assert ipc.stat().st_mode&0o077==0
 class Engine:
  def __init__(self,title):
-  self.id=uuid.uuid4().hex;self.address=ipc/(self.id+'.sock');self.title=title;self.scope=None;self.version=0;self.mode='ok';self.calls=[];self.entered=threading.Event();self.release=threading.Event();self.stopped=False;self.listener=socket.socket(socket.AF_UNIX);self.listener.bind(str(self.address));self.listener.listen();self.listener.settimeout(.2)
+  self.engine_creation=False;self.id=uuid.uuid4().hex;self.address=ipc/(self.id+'.sock');self.title=title;self.scope=None;self.version=0;self.mode='ok';self.calls=[];self.entered=threading.Event();self.release=threading.Event();self.stopped=False;self.listener=socket.socket(socket.AF_UNIX);self.listener.bind(str(self.address));self.listener.listen();self.listener.settimeout(.2)
   self.file=directory/(self.id+'.json');self.file.write_text(json.dumps(dict(schema=1,instance=self.id,pid=os.getpid(),transport='unix',address=str(self.address))));self.file.chmod(0o600)
   self.thread=threading.Thread(target=self.run,daemon=True);self.thread.start()
  def grant(self,project):self.version+=1;self.scope=dict(id=uuid.uuid4().hex,projectId=project,title=project,readOnly=True,node='')
@@ -22,11 +22,14 @@ class Engine:
      request=json.loads(data.split(b'\n')[0]);operation=request['operation'];self.calls.append(request)
      if self.mode=='malformed':connection.sendall(b'null\n');continue
      if operation=='status':reply=dict(ok=True,result=dict(state='ready',instance=self.id,title=self.title,scope=self.scope,scopeVersion=self.version))
-     elif operation=='tools/list':reply=dict(ok=True,result=[] if self.scope is None else [dict(name='workspace_read',description='Owned synthetic fixture source',parameters=dict(type='object',properties=dict(projectId=dict(type='string'),scopeId=dict(type='string',enum=[self.scope['id']]),id=dict(type='string')),required=['projectId','scopeId','id'],additionalProperties=False))])
+     elif operation=='tools/list':
+      engine=[dict(name=n,description='Owned engine fixture',parameters=dict(type='object',properties={},additionalProperties=False)) for n in ['engine_project_options','engine_project_propose','engine_project_status']] if self.engine_creation else []
+      reply=dict(ok=True,result=engine+([] if self.scope is None else [dict(name='workspace_read',description='Owned synthetic fixture source',parameters=dict(type='object',properties=dict(projectId=dict(type='string'),scopeId=dict(type='string',enum=[self.scope['id']]),id=dict(type='string')),required=['projectId','scopeId','id'],additionalProperties=False))]))
+     elif operation=='engine/forget':reply=dict(ok=True,result={})
      elif operation=='tools/call':
       args=request['payload']['arguments'];approved=self.scope.copy() if self.scope else None
       if self.mode=='slow':self.entered.set();self.release.wait(8)
-      reply=dict(ok=True,result=dict(id=args['id'],text='OWNED_FIXTURE_'+approved['projectId'])) if approved and args.get('projectId')==approved['projectId'] and args.get('scopeId')==approved['id'] else dict(ok=False,code='scope_changed')
+      reply=dict(ok=True,result=dict(instanceId=self.id,kind=request['payload']['name'])) if request['payload']['name'].startswith('engine_project_') and self.engine_creation else dict(ok=True,result=dict(id=args['id'],text='OWNED_FIXTURE_'+approved['projectId'])) if approved and args.get('projectId')==approved['projectId'] and args.get('scopeId')==approved['id'] else dict(ok=False,code='scope_changed')
      else:reply=dict(ok=False,code='operation_refused')
      connection.sendall((json.dumps(reply)+'\n').encode())
     except (BrokenPipeError,ConnectionResetError,OSError):pass
@@ -54,6 +57,14 @@ try:
   client.call('confectory_disconnect');assert client.call('workspace_read',dict(projectId='B',scopeId=b.scope['id'],id='B::Value'))[0]['code']=='no_engine_selected';client.connect(b.id)
   # Same scalar request ID and input returns the cached result; changed input is refused.
   request=client.send('ping',{},id='repeat');first=client.receive(request);client.send('ping',{},id='repeat');assert client.receive('repeat')==first;client.send('tools/list',{},id='repeat');assert client.receive('repeat')['error']['code']==-32600
+  a.engine_creation=True;b.engine_creation=True;a.revoke();b.revoke();client.connect(a.id)
+  tools=client.request('tools/list')['tools'];assert len(tools)==7 and not next(t for t in tools if t['name']=='engine_project_propose')['annotations']['readOnlyHint']
+  request=client.send('tools/call',dict(name='engine_project_options',arguments={}),id='old-engine-options');assert json.loads(client.receive(request)['result']['content'][0]['text'])['instanceId']==a.id
+  client.connect(b.id);client.send('tools/call',dict(name='engine_project_options',arguments={}),id='old-engine-options');assert json.loads(client.receive('old-engine-options')['result']['content'][0]['text'])['code']=='engine_changed'
+  assert client.call('engine_project_options')[0]['instanceId']==b.id
+  assert client.call('workspace_read',dict(projectId='A',scopeId='0'*32,id='A::Value'))[0]['code']=='no_project_scope'
+  client.call('confectory_disconnect');assert any(r['operation']=='engine/forget' for r in b.calls)
+  client.connect(b.id)
   b.close();engines.remove(b);assert client.call('confectory_status')[0]['code']=='engine_unavailable'
   client.write(dict(jsonrpc='2.0',id='unknown',method='not-an-mcp-method'));assert client.receive('unknown')['error']['code']==-32601
   assert any(n['method']=='notifications/tools/list_changed' for n in client.notifications)

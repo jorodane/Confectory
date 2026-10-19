@@ -1,6 +1,6 @@
 ---
 name: setup
-description: Connect to the local Confectory engine first, then separately select the explicit project or Blueprint node scope needed for the task.
+description: Connect to the local Confectory engine, discuss and propose new projects before one exists, then separately authorize any project or Blueprint node access.
 ---
 
 Use the packaged `confectory_instances` tool to find prepared local engines. This plugin uses the existing Confectory workspace tools; do not create another editing, proposal or batch system.
@@ -16,6 +16,21 @@ If no engine is available, guide the user to the existing Confectory AI connecti
 If several instances appear, show each engine instanceId and its current scope or absence of project access; ask the user to choose. Never silently pick the first engine or a project. Use `confectory_connect` with the exact instanceId, then `confectory_status`. Engine state `ready` with `scope: null` is a valid connection and grants no project access. The four connection-management tools remain usable before a project is chosen.
 
 Discuss the intended task before choosing a project. When project data is actually needed, have the user select the target through Confectory's existing Home/project UI, then use the same **Agent 추가 → Codex** form to choose an explicit project-owned-source or selected Blueprint-node range and click **선택한 범위 허용**, leaving **프로젝트 읽기 전용** checked. Opening a project alone does not authorize access. Do not open, pick, grant or broaden a target automatically.
+
+For creating a new project, keep using the current conversation. With no project
+selected, refresh tools and call `engine_project_options` for the actual supported
+template and targets. Only when the user explicitly asks for a creation proposal,
+call `engine_project_propose` with title, description, intent, templateId and
+targetId. This leaves a proposal in the running engine and creates no files. Do not
+invent unsupported templates or send a filesystem path, target-pack path, shell
+command, Helper/Agent assignment or confirmation request. Have the user choose
+**Home → 도우미의 새 프로젝트 제안 → 제안 검토**, review/edit the existing creation
+form, pick the parent folder locally, then press **프로젝트 생성** themselves.
+Use `engine_project_status` for that connection's proposal receipt. A created
+project still has no MCP access until the separate explicit scope grant. A missing
+engine creation tool means that engine/adapter needs the current build; selecting
+an existing project does not add this capability. Pending proposals are retired
+on connection close or engine restart and must not be automatically replayed.
 
 After the user grants a range, call `confectory_status` and refresh the tool list. Echo the exact `scope.id` as `scopeId` and its `projectId` in every workspace tool call. The definitions reuse the existing DevelopmentTools and pin this scope ID. Start with `workspace_list` or `workspace_read` within it. Do not infer filesystem paths or request other source files. A connected transport does not complete the engineering task.
 

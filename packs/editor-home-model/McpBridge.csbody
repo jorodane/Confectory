@@ -1,11 +1,16 @@
-if(payload.Length>2097152||operation is not ("start" or "status" or "stop" or "scope" or "revoke" or "site-prepare" or "site-message" or "site-grant" or "site-revoke"))throw new ArgumentException("Bounded MCP bridge operation required");
+if(payload.Length>2097152||operation is not ("start" or "status" or "stop" or "scope" or "revoke" or "site-prepare" or "site-message" or "site-grant" or "site-revoke" or "creation-review" or "creation-reject" or "creation-confirm"))throw new ArgumentException("Bounded MCP bridge operation required");
 var state=AppDomain.CurrentDomain.GetData("Confectory.EditorHome."+session) as object[]??throw new ObjectDisposedException("Entry/home session");
 string key="Confectory.EditorHome.McpBridge."+session,stopKey=key+".stop",revokeKey=key+".revoke",remoteKey=key+".site";
 lock(state){
  var model=(System.Text.Json.Nodes.JsonObject)state[3];var prior=AppDomain.CurrentDomain.GetData(key) as object[];
+ System.Text.Json.Nodes.JsonArray EngineTools()=>System.Text.Json.Nodes.JsonNode.Parse("""
+ [{"name":"engine_project_options","description":"Read supported new-project creation options without a project; never reads existing projects or starts a provider","parameters":{"type":"object","properties":{},"required":[],"additionalProperties":false}},
+ {"name":"engine_project_propose","description":"Only on the user's explicit request, propose a new project for local review. Creates no files. The engine user chooses the folder and confirms; no project access is granted.","parameters":{"type":"object","properties":{"title":{"type":"string","minLength":1,"maxLength":128},"description":{"type":"string","maxLength":4096},"intent":{"type":"string","minLength":1,"maxLength":4096},"templateId":{"type":"string","enum":["empty-projectpack"]},"targetId":{"type":"string","enum":["dotnet"]}},"required":["title","description","intent","templateId","targetId"],"additionalProperties":false}},
+ {"name":"engine_project_status","description":"Read this connection's proposal status; never reads created project files or grants access","parameters":{"type":"object","properties":{"proposalId":{"type":"string","pattern":"^[a-f0-9]{32}$"}},"required":["proposalId"],"additionalProperties":false}}]
+ """)!.AsArray();
  void Publish(System.Text.Json.Nodes.JsonObject status){model["mcpBridge"]=status.DeepClone();model["revision"]=model["revision"]!.GetValue<int>()+1;System.Threading.Volatile.Write(ref state[4],model.ToJsonString());}
  void RemoteRevoke(object[] bridge,bool stop=false){
-  if(AppDomain.CurrentDomain.GetData(remoteKey) is System.Text.Json.Nodes.JsonObject remote){remote["scopeId"]="";remote["scopeVersion"]=remote["scopeVersion"]!.GetValue<long>()+1;if(stop)AppDomain.CurrentDomain.SetData(remoteKey,null);}
+  if(AppDomain.CurrentDomain.GetData(remoteKey) is System.Text.Json.Nodes.JsonObject remote){if(stop&&remote["sessionId"]!.ToString().Length>0)calls.EngineCreation.Invoke(session,"retire",new System.Text.Json.Nodes.JsonObject{["owner"]="site:"+remote["sessionId"]!.ToString()}.ToJsonString());remote["scopeId"]="";remote["scopeVersion"]=remote["scopeVersion"]!.GetValue<long>()+1;if(stop)AppDomain.CurrentDomain.SetData(remoteKey,null);}
   var status=(System.Text.Json.Nodes.JsonObject)bridge[8];if(status["site"] is System.Text.Json.Nodes.JsonObject visible){visible["scopeGranted"]=false;if(stop)visible["state"]="stopped";}
  }
  void Revoke(object[] bridge){
@@ -15,7 +20,7 @@ lock(state){
   var status=(System.Text.Json.Nodes.JsonObject)bridge[8];status["scope"]=null;status["scopeVersion"]=status["scopeVersion"]!.GetValue<long>()+1;status["message"]="엔진 연결은 유지됩니다. 프로젝트 접근 범위를 선택하세요.";Publish(status);
  }
  void Stop(object[] bridge){
-  Revoke(bridge);
+  Revoke(bridge);calls.EngineCreation.Invoke(session,"close","{}");
   bridge[7]=true;((System.Threading.CancellationTokenSource)bridge[1]).Cancel();
   lock(bridge[0]){(bridge[2] as IDisposable)?.Dispose();(bridge[13] as IDisposable)?.Dispose();}
   try{System.IO.File.Delete((string)bridge[4]);}catch(System.IO.IOException){}
@@ -25,6 +30,17 @@ lock(state){
  if(operation=="stop"){if(prior is not null)Stop(prior);return (model["mcpBridge"]??new System.Text.Json.Nodes.JsonObject{["state"]="stopped"}).ToJsonString();}
  if(operation=="status")return (model["mcpBridge"]??new System.Text.Json.Nodes.JsonObject{["state"]="stopped"}).ToJsonString();
  if((bool)state[6])throw new ObjectDisposedException("Entry/home session");
+ if(operation.StartsWith("creation-",StringComparison.Ordinal)){
+  if(prior is null)throw new InvalidOperationException("engine_closed");
+  if(operation is "creation-review" or "creation-confirm"){
+   var proposal=System.Text.Json.Nodes.JsonNode.Parse(calls.EngineCreation.Invoke(session,"review",payload))!;
+   if(proposal["source"]?.ToString()=="site"){
+    var source=AppDomain.CurrentDomain.GetData(remoteKey) as System.Text.Json.Nodes.JsonObject;long now=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+    if(source is null||now>=source["expiresAt"]!.GetValue<long>()||now>=source["lease"]!.GetValue<long>()){calls.EngineCreation.Invoke(session,"invalidate",payload);throw new InvalidOperationException("site_connection_expired");}
+   }
+  }
+  return calls.EngineCreation.Invoke(session,operation[9..],payload);
+ }
  if(operation.StartsWith("site-",StringComparison.Ordinal)){
   if(prior is null)throw new InvalidOperationException("Prepare the engine connection first");
   var status=(System.Text.Json.Nodes.JsonObject)prior[8];var input=System.Text.Json.Nodes.JsonNode.Parse(payload)!.AsObject();long now=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
@@ -54,11 +70,17 @@ lock(state){
   if(!connected||input["sessionId"]?.ToString()!=remote["sessionId"]!.ToString())throw new UnauthorizedAccessException("site_session_refused");
   if(type=="pulse"){
    remote["lease"]=now+15000;bool granted=remote["scopeId"]!.ToString().Length>0&&remote["scopeId"]!.ToString()==status["scope"]?["id"]?.ToString();
-   return new System.Text.Json.Nodes.JsonObject{["instanceId"]=status["instance"]!.DeepClone(),["scopeVersion"]=remote["scopeVersion"]!.DeepClone(),["scope"]=granted?status["scope"]!.DeepClone():null,["tools"]=granted?((System.Text.Json.Nodes.JsonArray)prior[9]).DeepClone():new System.Text.Json.Nodes.JsonArray()}.ToJsonString();
+   return new System.Text.Json.Nodes.JsonObject{["instanceId"]=status["instance"]!.DeepClone(),["scopeVersion"]=remote["scopeVersion"]!.DeepClone(),["scope"]=granted?status["scope"]!.DeepClone():null,["tools"]=new System.Text.Json.Nodes.JsonArray(System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(System.Linq.Enumerable.Concat(EngineTools(),granted?((System.Text.Json.Nodes.JsonArray)prior[9]):new System.Text.Json.Nodes.JsonArray()),row=>row!.DeepClone())))}.ToJsonString();
   }
   if(type!="dispatch")throw new UnauthorizedAccessException("site_operation_refused");
   var job=input["job"]?.AsObject()??throw new ArgumentException("Bounded relay job required");string scopeId=remote["scopeId"]!.ToString();
   void Check(){long fresh=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();if(!ReferenceEquals(AppDomain.CurrentDomain.GetData(remoteKey),remote)||!ReferenceEquals(AppDomain.CurrentDomain.GetData(key),prior)||(bool)state[6]||(bool)prior[7]||fresh>=remote["expiresAt"]!.GetValue<long>()||fresh>=remote["lease"]!.GetValue<long>()||scopeId.Length==0||scopeId!=remote["scopeId"]!.ToString()||job["scopeId"]?.ToString()!=scopeId||status["scope"]?["id"]?.ToString()!=scopeId||job["instanceId"]?.ToString()!=status["instance"]!.ToString()||job["scopeVersion"]?.GetValue<long>()!=remote["scopeVersion"]!.GetValue<long>()||job["projectId"]?.ToString()!=status["scope"]?["projectId"]?.ToString())throw new InvalidOperationException("scope_changed");}
+  if(job["name"]?.ToString() is "engine_project_options" or "engine_project_propose" or "engine_project_status"){
+   void CheckEngine(){long fresh=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();if(!ReferenceEquals(AppDomain.CurrentDomain.GetData(remoteKey),remote)||!ReferenceEquals(AppDomain.CurrentDomain.GetData(key),prior)||(bool)state[6]||(bool)prior[7]||fresh>=remote["expiresAt"]!.GetValue<long>()||fresh>=remote["lease"]!.GetValue<long>()||job["instanceId"]?.ToString()!=status["instance"]!.ToString()||job["scopeId"]?.ToString()!=""||job["projectId"]?.ToString()!=""||job["scopeVersion"]?.GetValue<long>()!=0||job["callId"]?.ToString().Length is not (>0 and <=128))throw new InvalidOperationException("engine_closed");}
+   CheckEngine();string stable="site:"+Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(remote["sessionId"]!.ToString()+":"+job["callId"]!.ToString()))).ToLowerInvariant();
+   var engineDispatch=AppDomain.CurrentDomain.GetData(key+".dispatch") as Func<string,string,string>??throw new InvalidOperationException("engine_closed");
+   string value=engineDispatch("tools/call",new System.Text.Json.Nodes.JsonObject{["name"]=job["name"]!.DeepClone(),["callId"]=stable,["clientId"]="site:"+remote["sessionId"]!.ToString(),["arguments"]=job["arguments"]!.DeepClone()}.ToJsonString());CheckEngine();return new System.Text.Json.Nodes.JsonObject{["value"]=System.Text.Json.Nodes.JsonNode.Parse(value)}.ToJsonString();
+  }
   Check();string callId=job["callId"]?.GetValue<string>()??"";if(callId.Length is <1 or >128)throw new ArgumentException("Bounded call identity required");
   var arguments=job["arguments"]!.DeepClone().AsObject();if(arguments["scopeId"] is not null||arguments["projectId"] is not null&&arguments["projectId"]!.ToString()!=job["projectId"]!.ToString())throw new UnauthorizedAccessException("scope_changed");arguments["scopeId"]=scopeId;arguments["projectId"]=job["projectId"]!.DeepClone();
   var dispatch=AppDomain.CurrentDomain.GetData(key+".dispatch") as Func<string,string,string>??throw new ObjectDisposedException("MCP engine");
@@ -102,8 +124,16 @@ lock(state){
     if(token.IsCancellationRequested||(bool)bridge[7]||(bool)state[6])throw new InvalidOperationException("engine_closed");
     if(method=="status"){var result=(System.Text.Json.Nodes.JsonObject)status.DeepClone();result.Remove("directory");return result;}
     if(((string)bridge[6]).Length>0&&(model["selected"]?["projectId"]?.ToString()!=(string)bridge[12]||model["selected"]?["context"]?.ToString()!=(string)bridge[11]))Revoke(bridge);
-    if(method=="tools/list")return ((System.Text.Json.Nodes.JsonArray)bridge[9]).DeepClone();
+    if(method=="tools/list")return new System.Text.Json.Nodes.JsonArray(System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(System.Linq.Enumerable.Concat(EngineTools(),(System.Text.Json.Nodes.JsonArray)bridge[9]),row=>row!.DeepClone())));
+    if(method=="engine/forget"){calls.EngineCreation.Invoke(session,"retire",new System.Text.Json.Nodes.JsonObject{["owner"]=args["clientId"]!.DeepClone()}.ToJsonString());return new System.Text.Json.Nodes.JsonObject();}
     if(method!="tools/call")throw new UnauthorizedAccessException("operation_refused");
+    string engineName=args["name"]?.ToString()??"";
+    if(engineName is "engine_project_options" or "engine_project_propose" or "engine_project_status"){
+     var input=args["arguments"]!.DeepClone().AsObject();if(input.ContainsKey("owner")||input.ContainsKey("callId"))throw new UnauthorizedAccessException("operation_refused");
+     if(engineName=="engine_project_options"&&input.Count!=0||engineName=="engine_project_status"&&(input.Count!=1||input["proposalId"] is null))throw new ArgumentException("invalid_creation_proposal");
+     input["owner"]=args["clientId"]!.DeepClone();if(engineName=="engine_project_propose")input["callId"]=args["callId"]!.DeepClone();
+     return System.Text.Json.Nodes.JsonNode.Parse(calls.EngineCreation.Invoke(session,engineName[15..],input.ToJsonString()))!;
+    }
     if(((string)bridge[6]).Length==0)throw new InvalidOperationException("no_project_scope");
     string name=args["name"]!.GetValue<string>(),callId=args["callId"]!.GetValue<string>();
     var arguments=args["arguments"]!.DeepClone().AsObject();if(arguments["scopeId"]?.ToString()!=(string)bridge[14])throw new InvalidOperationException("scope_changed");arguments.Remove("scopeId");
@@ -132,7 +162,7 @@ lock(state){
      while(!ended){int n=await stream.ReadAsync(buffer,deadline.Token);if(n==0)break;for(int i=0;i<n;i++){if(buffer[i]==10){ended=true;break;}bytes.Add(buffer[i]);}if(bytes.Count>4194304)throw new System.IO.InvalidDataException("Frame budget");}
      if(ended){System.Text.Json.Nodes.JsonObject reply;
       try{var request=System.Text.Json.Nodes.JsonNode.Parse(new System.Text.UTF8Encoding(false,true).GetString(bytes.ToArray()))!.AsObject();if(request["instance"]?.ToString()!=instance)throw new UnauthorizedAccessException("scope_changed");reply=new System.Text.Json.Nodes.JsonObject{["ok"]=true,["result"]=Dispatch(request["operation"]!.GetValue<string>(),request["payload"]?.AsObject()??new System.Text.Json.Nodes.JsonObject())};}
-      catch(Exception error){string code=error is InvalidOperationException&&(error.Message is "scope_changed" or "engine_closed" or "no_project_scope")?error.Message:error is InvalidOperationException&&(error.Message.StartsWith("Approved node source changed",StringComparison.Ordinal)||error.Message.StartsWith("Assigned Blueprint definition or contract changed",StringComparison.Ordinal))?"source_changed":error is UnauthorizedAccessException&&error.Message=="read_only"?"read_only":"operation_refused";reply=new System.Text.Json.Nodes.JsonObject{["ok"]=false,["code"]=code};}
+      catch(Exception error){string code=error is InvalidOperationException&&(error.Message is "scope_changed" or "engine_closed" or "no_project_scope" or "creation_pending" or "creation_budget" or "creation_proposal_missing" or "creation_proposal_retired" or "call_id_reused")?error.Message:error is InvalidOperationException&&(error.Message.StartsWith("Approved node source changed",StringComparison.Ordinal)||error.Message.StartsWith("Assigned Blueprint definition or contract changed",StringComparison.Ordinal))?"source_changed":error is UnauthorizedAccessException&&error.Message=="read_only"?"read_only":error is ArgumentException&&(error.Message is "invalid_creation_proposal" or "creation_argument_refused")?"invalid_creation_proposal":error is UnauthorizedAccessException&&error.Message=="creation_owner_refused"?"creation_owner_refused":"operation_refused";reply=new System.Text.Json.Nodes.JsonObject{["ok"]=false,["code"]=code};}
       byte[] response=System.Text.Encoding.UTF8.GetBytes(reply.ToJsonString()+"\n");if(response.Length>4194304)throw new System.IO.InvalidDataException("Response budget");await stream.WriteAsync(response,deadline.Token);
      }
     }}catch(Exception error)when(!token.IsCancellationRequested&&(error is System.IO.IOException or System.IO.InvalidDataException or System.Net.Sockets.SocketException or OperationCanceledException)){
@@ -144,7 +174,7 @@ lock(state){
    catch{lock(state){if(!(bool)bridge[7])Stop(bridge);}}
    finally{lock(bridge[0]){(bridge[2] as IDisposable)?.Dispose();(bridge[13] as IDisposable)?.Dispose();}try{System.IO.File.Delete(descriptor);if(transport=="unix")System.IO.File.Delete(address);}catch(System.IO.IOException){}}
   });
-  handedOff=true;Publish(status);return status.ToJsonString();
+  calls.EngineCreation.Invoke(session,"open",new System.Text.Json.Nodes.JsonObject{["instanceId"]=instance}.ToJsonString());handedOff=true;Publish(status);return status.ToJsonString();
  }catch{
   if(handedOff&&AppDomain.CurrentDomain.GetData(key) is object[] opened)Stop(opened);
   else{

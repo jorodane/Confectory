@@ -1,0 +1,4 @@
+function Confectory.EditorHome.Model::EngineCreation (string session,string operation,string payload) -> string {
+provide Confectory.ProjectManager::CreationTemplate with Confectory.ProjectManager::CreationTemplateBody;
+provide Confectory.EditorHome.Model::EngineCreation with Confectory.EditorHome.Model::EngineCreationBody;
+}

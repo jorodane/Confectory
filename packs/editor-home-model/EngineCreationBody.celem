@@ -1,0 +1,4 @@
+implementation Confectory.EditorHome.Model::EngineCreationBody for Confectory.EditorHome.Model::EngineCreation (string session,string operation,string payload) -> string {
+import Confectory.EditorHome.Model::Command as Command (string,string,string) -> string;
+import Confectory.ProjectManager::CreationTemplate as CreationTemplate (string,string) -> string[];
+body common "EngineCreation.csbody";}

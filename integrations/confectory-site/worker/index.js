@@ -1,6 +1,7 @@
 import { bridgePage } from './bridge-page.js';
 
 const PROTOCOL = 'confectory.editor.v1';
+const ENGINE = new Set(['engine_project_options','engine_project_propose','engine_project_status']);
 const WORKSPACE = new Set(['workspace_list','workspace_read','workspace_inspect','workspace_stage','workspace_create','workspace_changes']);
 const SESSION_MS = 30 * 60 * 1000, LIVE_MS = 15000, JOB_MS = 90000;
 const json = (value, status=200) => new Response(JSON.stringify(value), {status, headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'}});
@@ -33,8 +34,17 @@ function scopeMatches(row,args){
   if(!scope||row.instance!==args.instanceId||row.scope_version!==args.scopeVersion||scope.id!==args.scopeId||scope.projectId!==args.projectId)refuse('scope_changed');
   return scope;
 }
-async function retireJobs(db,owner,sid,reason){
-  await stmt(db,"UPDATE requests SET status = 'cancelled', result = ? WHERE owner = ? AND session = ? AND status IN ('queued','claimed')",JSON.stringify({error:{code:reason}}),owner,sid).run();
+function engineJob(job){return ENGINE.has(job.name)&&job.scope_id===''&&job.project_id===''&&job.scope_version===0;}
+function jobMatches(s,job){if(engineJob(job)){if(job.instance!==s.instance)refuse('engine_changed');return;}scopeMatches(s,{instanceId:job.instance,scopeVersion:job.scope_version,scopeId:job.scope_id,projectId:job.project_id});}
+function engineArguments(name,args){
+ if(!object(args))refuse('invalid_arguments',400);
+ const keys=name==='engine_project_options'?[]:name==='engine_project_status'?['proposalId']:['title','description','intent','templateId','targetId'];
+ if(Object.keys(args).length!==keys.length||keys.some(k=>typeof args[k]!=='string')||Object.keys(args).some(k=>!keys.includes(k)))refuse('invalid_arguments',400);
+ if(name==='engine_project_status'&&!/^[a-f0-9]{32}$/.test(args.proposalId))refuse('invalid_arguments',400);
+ if(name==='engine_project_propose'&&(!args.title.trim()||args.title.length>128||!args.intent.trim()||args.intent.length>4096||args.description.length>4096||args.templateId!=='empty-projectpack'||args.targetId!=='dotnet'))refuse('invalid_arguments',400);
+}
+async function retireJobs(db,owner,sid,reason,projectOnly=false){
+  await stmt(db,"UPDATE requests SET status = 'cancelled', result = ? WHERE owner = ? AND session = ? AND status IN ('queued','claimed')"+(projectOnly?" AND scope_id <> ''":""),JSON.stringify({error:{code:reason}}),owner,sid).run();
 }
 async function relay(db,owner,path,input,now){
   if(path==='pair'){
@@ -56,18 +66,19 @@ async function relay(db,owner,path,input,now){
   const s=await session(db,owner,input.sessionId,now,false);
   if(path==='pulse'){
     if(input.instanceId!==s.instance||!Number.isSafeInteger(input.scopeVersion)||input.scopeVersion<0||input.scopeVersion<s.scope_version)refuse('scope_changed');
-    let scope=null,tools=[];
+    if(!Array.isArray(input.tools)||input.tools.length>9)refuse('invalid_tools',400);
+    let scope=null,tools=input.tools.filter(t=>ENGINE.has(t.name)&&object(t.parameters)).map(t=>({name:t.name,description:String(t.description??'').slice(0,2048),parameters:t.parameters}));
     if(input.scope!==null){
       const v=input.scope;if(!object(v)||!id(v.id)||!id(v.projectId)||typeof v.readOnly!=='boolean'||typeof v.node!=='string'||v.node.length>1024)refuse('invalid_scope',400);
       // Titles and filesystem paths are unnecessary for the remote grant.
       scope={id:v.id,projectId:v.projectId,node:v.node,readOnly:v.readOnly};
-      if(!Array.isArray(input.tools)||input.tools.length>6)refuse('invalid_tools',400);
-      tools=input.tools.filter(t=>WORKSPACE.has(t.name)&&object(t.parameters)).map(t=>({name:t.name,description:String(t.description??'').slice(0,2048),parameters:t.parameters}));
+      if(!Array.isArray(input.tools)||input.tools.length>9)refuse('invalid_tools',400);
+      tools=tools.concat(input.tools.filter(t=>WORKSPACE.has(t.name)&&object(t.parameters)).map(t=>({name:t.name,description:String(t.description??'').slice(0,2048),parameters:t.parameters})));
       if(v.readOnly)tools=tools.filter(t=>!['workspace_stage','workspace_create'].includes(t.name));
     }
     const encoded=JSON.stringify(scope);
     if(input.scopeVersion===s.scope_version&&encoded!==(s.scope??'null'))refuse('scope_changed');
-    if(input.scopeVersion!==s.scope_version||encoded!==(s.scope??'null'))await retireJobs(db,owner,s.id,'scope_changed');
+    if(input.scopeVersion!==s.scope_version||encoded!==(s.scope??'null'))await retireJobs(db,owner,s.id,'scope_changed',true);
     const updated=await stmt(db,'UPDATE sessions SET heartbeat = ?, scope = ?, tools = ?, scope_version = ? WHERE id = ? AND owner = ? AND revoked = 0 AND expires > ? AND scope_version <= ?',now,scope?encoded:null,JSON.stringify(tools),input.scopeVersion,s.id,owner,now,input.scopeVersion).run();
     if(!updated.meta.changes)refuse('session_retired',410);return {ok:true,expiresAt:s.expires};
   }
@@ -82,17 +93,21 @@ async function relay(db,owner,path,input,now){
     const claim=uid();
     const job=await stmt(db,"UPDATE requests SET status = 'claimed', claim = ?, lease = ? WHERE id = (SELECT id FROM requests WHERE owner = ? AND session = ? AND status = 'queued' AND expires > ? ORDER BY created, id LIMIT 1) AND status = 'queued' RETURNING *",claim,now+JOB_MS,owner,s.id,now).first();
     if(!job)return {job:null};
-    try{scopeMatches(s,{instanceId:job.instance,scopeVersion:job.scope_version,scopeId:job.scope_id,projectId:job.project_id});}catch(e){await retireJobs(db,owner,s.id,'scope_changed');throw e;}
+    try{jobMatches(s,job);}catch(e){await retireJobs(db,owner,s.id,'scope_changed',true);throw e;}
     return {job:{id:job.id,claim,callId:job.call_id,name:job.name,arguments:parse(job.arguments),instanceId:job.instance,scopeVersion:job.scope_version,scopeId:job.scope_id,projectId:job.project_id}};
   }
   if(path==='complete'){
     if(!id(input.requestId)||!id(input.claim)||!object(input.result))refuse('invalid_result',400);
     const job=await stmt(db,'SELECT * FROM requests WHERE id = ?',input.requestId).first();
     if(!job||job.owner!==owner||job.session!==s.id)refuse('request_refused',403);
-    scopeMatches(s,{instanceId:job.instance,scopeVersion:job.scope_version,scopeId:job.scope_id,projectId:job.project_id});
+    jobMatches(s,job);
     if(job.claim!==input.claim)refuse('claim_changed');
     const result=JSON.stringify(input.result);if(result.length>1048576)refuse('result_budget',413);
     if(job.status==='completed'){if(result!==job.result)refuse('result_changed');return {ok:true,duplicate:true};}
+    if(engineJob(job)){
+      const done=await stmt(db,"UPDATE requests SET status = 'completed', result = ? WHERE id = ? AND owner = ? AND status = 'claimed' AND claim = ? AND lease > ? AND expires > ? AND EXISTS (SELECT 1 FROM sessions WHERE sessions.id = requests.session AND sessions.owner = requests.owner AND sessions.instance = requests.instance AND sessions.revoked = 0 AND sessions.expires > ?)",result,job.id,owner,input.claim,now,now,now).run();
+      if(!done.meta.changes)refuse('request_retired');return {ok:true};
+    }
     const done=await stmt(db,"UPDATE requests SET status = 'completed', result = ? WHERE id = ? AND owner = ? AND status = 'claimed' AND claim = ? AND lease > ? AND expires > ? AND EXISTS (SELECT 1 FROM sessions WHERE sessions.id = requests.session AND sessions.owner = requests.owner AND sessions.revoked = 0 AND sessions.expires > ? AND sessions.scope_version = requests.scope_version AND json_extract(sessions.scope,'$.id') = requests.scope_id)",result,job.id,owner,input.claim,now,now,now).run();
     if(!done.meta.changes)refuse('request_retired');return {ok:true};
   }
@@ -111,8 +126,13 @@ function scopedDefinition(t,s,scope){
   for(const [key,value] of Object.entries({sessionId:s.id,instanceId:s.instance,scopeVersion:s.scope_version,scopeId:scope.id,projectId:scope.projectId}))properties[key].enum=[value];
   return {name:t.name,description:t.description,parameters:t.parameters,inputSchema:{type:'object',properties,required:Object.keys(pins),additionalProperties:false}};
 }
+const enginePins={sessionId:{type:'string'},instanceId:{type:'string'}};
+const engineCall={...enginePins,callId:{type:'string',pattern:'^[a-zA-Z0-9_-]{1,128}$'},arguments:{type:'object'}};
+function engineDefinitions(s){return parse(s.tools).filter(t=>ENGINE.has(t.name)&&object(t.parameters));}
 const tools=[
  {name:'confectory_engines',description:'List this signed-in owner’s live engines and explicitly granted scope. Connection alone grants no project access.',inputSchema:{type:'object',properties:{},additionalProperties:false}},
+ {name:'confectory_engine_tools',description:'Read engine-level new-project option/proposal/status schemas without selecting a project. No filesystem access or remote confirmation.',inputSchema:{type:'object',properties:enginePins,required:Object.keys(enginePins),additionalProperties:false}},
+ ...[...ENGINE].map(name=>({name,description:'Queue '+name+' on one explicit engine, even with scope:null. Fetch its schema with confectory_engine_tools. Proposals require an explicit user request and local review/folder selection/creation confirmation; creation grants no project access.',inputSchema:{type:'object',properties:engineCall,required:Object.keys(engineCall),additionalProperties:false},annotations:{readOnlyHint:name!=='engine_project_propose',destructiveHint:false,openWorldHint:false}})),
  {name:'confectory_tools',description:'Fetch the exact permitted workspace definitions for one explicit current grant before calling workspace tools. Each definition includes original engine parameters and a callable relay inputSchema. The transport injects projectId and scopeId into engine arguments; omit them inside arguments.',inputSchema:{type:'object',properties:scopePins,required:Object.keys(scopePins),additionalProperties:false}},
  ...[...WORKSPACE].map(name=>({name,description:'Queue '+name+' for one explicitly identified engine and grant. First fetch its exact inputSchema with confectory_tools. Results are fetched with confectory_result. Editing uses shared drafts; final Review/Confirm stays in the editor.',inputSchema:{type:'object',properties:pins,required:Object.keys(pins),additionalProperties:false}})),
  ...['result','cancel'].map(op=>({name:'confectory_'+op,description:op==='result'?'Read a queued request result. An interrupted edit has an unknown outcome: inspect shared changes before creating a new call.':'Cancel a queued request or discard a running result; applied draft changes are not rolled back.',inputSchema:{type:'object',properties:{sessionId:{type:'string'},requestId:{type:'string'}},required:['sessionId','requestId'],additionalProperties:false}}))
@@ -123,6 +143,10 @@ async function tool(db,owner,name,args,now){
     return {engines:list.results.map(s=>({sessionId:s.id,instanceId:s.instance,scope:parse(s.scope),scopeVersion:s.scope_version,expiresAt:s.expires}))};
   }
   const s=await session(db,owner,args.sessionId,now);
+  if(name==='confectory_engine_tools'){
+    if(args.instanceId!==s.instance)refuse('engine_changed');
+    return {tools:engineDefinitions(s).map(t=>({name:t.name,description:t.description,parameters:t.parameters,inputSchema:{type:'object',properties:{sessionId:{type:'string',enum:[s.id]},instanceId:{type:'string',enum:[s.instance]},callId:engineCall.callId,arguments:t.parameters},required:Object.keys(engineCall),additionalProperties:false}}))};
+  }
   if(name==='confectory_tools'){
     const scope=scopeMatches(s,args),definitions=permittedTools(s,scope).map(t=>scopedDefinition(t,s,scope));
     const current=await session(db,owner,s.id,Date.now());scopeMatches(current,args);
@@ -133,13 +157,25 @@ async function tool(db,owner,name,args,now){
     if(!id(args.requestId))refuse('invalid_request',400);
     let job=await stmt(db,'SELECT * FROM requests WHERE id = ?',args.requestId).first();
     if(!job||job.owner!==owner||job.session!==s.id)refuse('request_refused',403);
-    scopeMatches(await session(db,owner,s.id,now),{instanceId:job.instance,scopeVersion:job.scope_version,scopeId:job.scope_id,projectId:job.project_id});
+    jobMatches(await session(db,owner,s.id,now),job);
     if(name==='confectory_cancel'){
       await stmt(db,"UPDATE requests SET status = 'cancelled', result = ? WHERE id = ? AND owner = ? AND status IN ('queued','claimed')",JSON.stringify({error:{code:'cancelled'}}),job.id,owner).run();
       job=await stmt(db,'SELECT * FROM requests WHERE id = ?',job.id).first();
     }
     if((job.status==='queued'&&job.expires<=now)||(job.status==='claimed'&&(job.lease<=now||job.expires<=now)))return {requestId:job.id,status:'interrupted',error:{code:'execution_interrupted'}};
     return {requestId:job.id,status:job.status,...(job.result?{result:parse(job.result)}:{})};
+  }
+  if(ENGINE.has(name)){
+    if(args.instanceId!==s.instance)refuse('engine_changed');
+    if(Object.keys(args).some(k=>!Object.hasOwn(engineCall,k))||!id(args.callId))refuse('invalid_arguments',400);
+    engineArguments(name,args.arguments);if(!engineDefinitions(s).some(t=>t.name===name))refuse('tool_denied',403);
+    const fingerprint=await digest({name,args}),rid=uid();
+    const prior=await stmt(db,'SELECT id,fingerprint,status FROM requests WHERE owner = ? AND session = ? AND call_id = ?',owner,s.id,args.callId).first();
+    if(prior){if(prior.fingerprint!==fingerprint)refuse('call_id_reused');return {requestId:prior.id,status:prior.status};}
+    const count=await stmt(db,'SELECT COUNT(*) AS n FROM requests WHERE owner = ? AND session = ?',owner,s.id).first();if(count.n>=256)refuse('request_budget',429);
+    await stmt(db,"INSERT INTO requests (id,owner,session,instance,scope_version,scope_id,project_id,name,arguments,call_id,fingerprint,status,created,expires) SELECT ?,?,?,?,0,'','',?,?,?,?,'queued',?,? WHERE EXISTS (SELECT 1 FROM sessions WHERE id = ? AND owner = ? AND instance = ? AND revoked = 0 AND expires > ? AND heartbeat > ?) ON CONFLICT(owner,session,call_id) DO NOTHING",rid,owner,s.id,s.instance,name,JSON.stringify(args.arguments),args.callId,fingerprint,now,now+JOB_MS,s.id,owner,s.instance,now,now-LIVE_MS).run();
+    const job=await stmt(db,'SELECT id,fingerprint,status FROM requests WHERE owner = ? AND session = ? AND call_id = ?',owner,s.id,args.callId).first();
+    if(!job)refuse('engine_changed');if(job.fingerprint!==fingerprint)refuse('call_id_reused');return {requestId:job.id,status:job.status};
   }
   if(!WORKSPACE.has(name))refuse('tool_denied',403);
   const scope=scopeMatches(s,args);if(!id(args.callId)||!object(args.arguments)||Object.hasOwn(args.arguments,'scopeId'))refuse('invalid_arguments',400);

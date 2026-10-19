@@ -27,7 +27,7 @@ test('private scoped tool schemas, persistent relay boundaries, duplicate calls,
  assert.equal((await request('/mcp',{},null))[0],401);
  assert.equal((await request('/api/pair',{instanceId:'engine'},'owner-a',{origin:'https://foreign.invalid'}))[0],403);
  const discover=await request('/mcp',{jsonrpc:'2.0',id:1,method:'server/discover'});assert.deepEqual(discover[1].result.supportedVersions,['2026-07-28','2025-03-26']);
- const definitions=(await request('/mcp',{jsonrpc:'2.0',id:2,method:'tools/list'}))[1].result.tools;assert.equal(definitions.length,10);assert(definitions.some(t=>t.name==='confectory_tools'));assert(!JSON.stringify(definitions).includes('owner-a'));assert(!definitions.some(t=>/shell|confirm|execute/.test(t.name)));
+ const definitions=(await request('/mcp',{jsonrpc:'2.0',id:2,method:'tools/list'}))[1].result.tools;assert.equal(definitions.length,14);assert(definitions.some(t=>t.name==='confectory_tools'));assert(!JSON.stringify(definitions).includes('owner-a'));assert(!definitions.some(t=>/shell|confirm|execute/.test(t.name)));
  let pair=await api('pair',{instanceId:'engine'}),sessionId=pair.sessionId;
  const engine=(await mcp('confectory_engines')).engines[0];assert.equal(engine.scope,null);assert.equal(engine.scopeVersion,0);
  await api('pulse',{sessionId,instanceId:'engine',scopeVersion:0,scope:null,tools:[]},'owner-b',403);
@@ -113,4 +113,30 @@ test('private scoped tool schemas, persistent relay boundaries, duplicate calls,
  now=pair.expiresAt+1;await api('pulse',{sessionId,instanceId:'engine',scopeVersion:0,scope:null,tools:[]},'owner-a',410);
  await fails('confectory_tools',{...pins,sessionId},'session_retired');
  assert.equal((await mcp('confectory_engines')).engines.length,0);
+});
+
+test('engine creation proposals without a project retain identity, idempotency, cancellation and expiry',async t=>{
+ const folder=mkdtempSync(join(tmpdir(),'confectory-engine-creation-')),db=new D1(join(folder,'state.sqlite'));let now=1780000000000;
+ t.mock.method(Date,'now',()=>now);t.after(()=>{db.raw.close();rmSync(folder,{recursive:true});});db.raw.exec(readFileSync(new URL('../drizzle/0000_demonic_tempest.sql',import.meta.url),'utf8'));
+ const origin='https://confectory-connect.jorodane.chatgpt.site';
+ async function request(path,value,owner='owner-a'){const r=await app.fetch(new Request(origin+path,{method:'POST',headers:{'content-type':'application/json',origin,'oai-authenticated-user-id':owner},body:JSON.stringify(value)}),{DB:db});return [r.status,await r.json()];}
+ async function api(action,value,owner='owner-a',status=200){const [actual,result]=await request('/api/'+action,value,owner);assert.equal(actual,status,JSON.stringify(result));return result;}
+ async function mcp(name,args={},owner='owner-a'){const [status,result]=await request('/mcp',{jsonrpc:'2.0',id:'owned',method:'tools/call',params:{name,arguments:args}},owner);assert.equal(status,200);return JSON.parse(result.result.content[0].text);}
+ const definitions=['engine_project_options','engine_project_propose','engine_project_status'].map(name=>({name,description:'Engine-owned creation fixture',parameters:{type:'object',properties:{},additionalProperties:false}}));
+ const pair=await api('pair',{instanceId:'engine-a'}),sessionId=pair.sessionId,pins={sessionId,instanceId:'engine-a'};
+ await api('pulse',{sessionId,instanceId:'engine-a',scopeVersion:0,scope:null,tools:definitions});
+ assert.equal((await mcp('confectory_engines')).engines[0].scope,null);const discovered=await mcp('confectory_engine_tools',pins);assert.equal(discovered.tools.length,3);assert(discovered.tools.every(t=>!Object.hasOwn(t.inputSchema.properties,'projectId')));
+ const proposal={title:'New project',description:'Discuss before creating',intent:'User explicitly asked for a creation proposal',templateId:'empty-projectpack',targetId:'dotnet'},args={...pins,callId:'proposal-1',arguments:proposal};
+ assert.equal((await mcp('workspace_read',{...pins,scopeVersion:0,scopeId:'',projectId:'',callId:'bad',arguments:{id:'existing'}})).error.code,'scope_changed');
+ assert.equal((await mcp('engine_project_propose',{...args,instanceId:'engine-b'})).error.code,'engine_changed');assert.equal((await mcp('engine_project_propose',args,'owner-b')).error.code,'owner_mismatch');
+ for(const invalid of [{...args,arguments:{...proposal,directory:'/arbitrary'}},{...args,arguments:{...proposal,intent:''}},{...args,scopeId:'injected'}])assert.equal((await mcp('engine_project_propose',invalid)).error.code,'invalid_arguments');
+ const queued=await mcp('engine_project_propose',args);assert(queued.requestId);assert.equal((await mcp('engine_project_propose',args)).requestId,queued.requestId);assert.equal((await mcp('engine_project_propose',{...args,arguments:{...proposal,title:'changed'}})).error.code,'call_id_reused');
+ // Project grant changes cannot transform or retire an engine-level request.
+ await api('pulse',{sessionId,instanceId:'engine-a',scopeVersion:1,scope:{id:'scope',projectId:'project',node:'',readOnly:true},tools:definitions});await api('pulse',{sessionId,instanceId:'engine-a',scopeVersion:2,scope:null,tools:definitions});
+ const job=(await api('claim',{sessionId})).job;assert.equal(job.name,'engine_project_propose');assert.equal(job.scopeId,'');assert.equal(job.projectId,'');assert.equal(job.scopeVersion,0);assert.deepEqual(job.arguments,proposal);
+ const result={value:{id:'a'.repeat(32),status:'pending',projectId:null,projectAccessGranted:false}};await api('complete',{sessionId,requestId:job.id,claim:job.claim,result},'owner-b',403);await api('complete',{sessionId,requestId:job.id,claim:job.claim,result});
+ const receipt=await mcp('confectory_result',{sessionId,requestId:job.id});assert.equal(receipt.status,'completed');assert.equal(receipt.result.value.projectAccessGranted,false);assert.equal((await mcp('engine_project_confirm',{...pins,callId:'never',arguments:{}})).error.code,'tool_denied');
+ const cancelled=await mcp('engine_project_options',{...pins,callId:'options',arguments:{}});await mcp('confectory_cancel',{sessionId,requestId:cancelled.requestId});assert.equal((await mcp('confectory_result',{sessionId,requestId:cancelled.requestId})).status,'cancelled');assert.equal((await api('claim',{sessionId})).job,null);
+ const interrupted=await mcp('engine_project_options',{...pins,callId:'interrupted',arguments:{}});await api('claim',{sessionId});now+=90001;await api('pulse',{sessionId,instanceId:'engine-a',scopeVersion:2,scope:null,tools:definitions});assert.equal((await mcp('confectory_result',{sessionId,requestId:interrupted.requestId})).status,'interrupted');assert.equal((await api('claim',{sessionId})).job,null);
+ await api('close',{sessionId});assert.equal((await mcp('engine_project_options',{...pins,callId:'closed',arguments:{}})).error.code,'session_retired');const next=await api('pair',{instanceId:'engine-a'});assert.equal((await mcp('confectory_result',{sessionId:next.sessionId,requestId:job.id})).error.code,'request_refused');
 });

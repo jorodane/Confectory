@@ -3,6 +3,15 @@
 export function createMcpBridge(api){
  const {$,esc}=api;
  function update(){
+  const proposal=api.current?.engineCreationProposal;
+  for(const root of document.querySelectorAll('[data-engine-creation]')){
+   const identity=JSON.stringify(proposal);if(root.dataset.proposal===identity)continue;root.dataset.proposal=identity;
+   root.hidden=!proposal||proposal.status!=='pending';
+   root.innerHTML=root.hidden?'':'<p><strong>도우미의 새 프로젝트 제안</strong> · '+esc(proposal.title)+'</p><p>아직 파일을 만들지 않았습니다. 검토 후 생성 위치를 선택하고 직접 확정하세요.</p><div class="actions"><button data-operation data-creation-review>제안 검토</button><button data-operation data-creation-reject>제안 거절</button></div>';
+   if(root.hidden)continue;
+   root.querySelector('[data-creation-review]').onclick=()=>api.work(async()=>{const result=await api.view.call('mcpBridge',{action:'creation-review',proposalId:proposal.id});api.reviewCreation(result);});
+   root.querySelector('[data-creation-reject]').onclick=()=>api.work(()=>api.view.call('mcpBridge',{action:'creation-reject',proposalId:proposal.id}),'생성 제안을 거절했습니다.');
+  }
   for(const root of document.querySelectorAll('[data-mcp-panel]')){
    if(!$('[data-mcp-status]',root))continue;
    const status=api.current.mcpBridge||{state:'stopped'},active=status.state==='ready',scope=status.scope,project=api.current.projectId||'',field=$('[data-mcp-node]',root),readonly=$('[data-mcp-readonly]',root);

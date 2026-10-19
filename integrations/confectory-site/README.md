@@ -103,10 +103,37 @@ retires its grant. Remote revocation preserves the local grant. Reconnection nev
 inherits the earlier grant. The owner can have multiple identified engines;
 there is no implicit selected-engine or selected-project variable.
 
-Only the existing six `workspace_*` tools are exposed. They reuse DevelopmentTools,
+The six `workspace_*` tools reuse DevelopmentTools,
 shared drafts, source pins and hash/revision CAS. No shell, build, project opening
 or automatic Confirm tool exists. Final source changes still require the user's
 Review/Confirm in the engine.
+
+Before a project exists, call `confectory_engine_tools` with the selected engine's
+exact `sessionId` and `instanceId`. It returns the engine's three creation schemas:
+`engine_project_options`, `engine_project_propose`, and `engine_project_status`.
+These work with `scope: null` and never enable workspace access. Options come from
+the existing empty ProjectPack/.NET creation contract. A proposal requires the
+user's explicit request and bounded title/description/intent plus the supported
+template/target IDs. It creates no files and accepts no filesystem path.
+
+The engine user reviews the proposal from Home in the existing creation form,
+chooses the parent folder with the native picker, and explicitly presses create.
+They can instead reject it. No remote confirm tool exists. The final receipt has
+an ID/status/projectId and `projectAccessGranted: false`, with no local path.
+Project/node access remains a separate explicit step after creation. Current chat
+is used for consultation; no new global chat/provider/memory service is introduced.
+Unsupported game-pack recommendations and automatic Helper/Agent assignment are
+reported as unsupported rather than supplied as mock options.
+
+Engine jobs use the same owner/session/instance queue, request budget and expiry.
+Only these three allowlisted names use reserved empty project/scope pins and zero
+scope version; workspace names still require the exact current grant. Project grant
+changes do not retire engine jobs. Cancellation discards queued/running results;
+an already displayed proposal is rejected locally or retired on connection close.
+Reconnection cannot read another connection's proposal. Engine shutdown/restart
+does not restore pending proposals, sessions or grants. No database migration is
+needed. Runtime changes in `worker/index.js` and queue tests in `tests/relay.test.mjs`
+await the parent's private deployment; this task does not publish the Site.
 
 ## Queue and failure handling
 

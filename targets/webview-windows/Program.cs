@@ -112,17 +112,19 @@ internal static class Program
                             if(nativePickerOpen)throw new InvalidOperationException("Picker busy");
                             string title=message["envelope"]?["title"]?.GetValue<string>()??"",description=message["envelope"]?["description"]?.GetValue<string>()??"";
                             if(string.IsNullOrWhiteSpace(title)||title.Length>128||description.Length>4096)throw new ArgumentException("Bounded project information required");
+                            string? proposalId=message["envelope"]?["proposalId"]?.GetValue<string>();if(proposalId is not null&&!System.Text.RegularExpressions.Regex.IsMatch(proposalId,"^[a-f0-9]{32}$"))throw new ArgumentException("Known creation proposal required");
+                            JsonObject Creation(string directory){var payload=new JsonObject{["directory"]=directory,["title"]=title,["description"]=description};if(proposalId is not null)payload["proposalId"]=proposalId;return payload;}
                             string? ticket=message["envelope"]?["parent"]?.GetValue<string>();
                             if(ticket is not null){
                                 if(ticket!=parentTicket||projectParent is null)throw new ArgumentException("Unknown parent selection");
                                 nativePickerOpen=true;try{
-                                    response=await rpc.Call("native",new JsonObject{["action"]="create-project",["payload"]=new JsonObject{["directory"]=projectParent,["title"]=title,["description"]=description}});
+                                    response=await rpc.Call("native",new JsonObject{["action"]="create-project",["payload"]=Creation(projectParent)});
                                     if(response?["ok"]?.GetValue<bool>()==true){projectParent=null;parentTicket=null;}
                                 }finally{nativePickerOpen=false;}
                             }else{
                                 nativePickerOpen=true;try{using var picker=new FolderBrowserDialog{Description="Choose a parent directory for the new project",UseDescriptionForTitle=true};
                                 response=picker.ShowDialog(form)==DialogResult.OK
-                                    ?await rpc.Call("native",new JsonObject{["action"]="create-project",["payload"]=new JsonObject{["directory"]=picker.SelectedPath,["title"]=title,["description"]=description}})
+                                    ?await rpc.Call("native",new JsonObject{["action"]="create-project",["payload"]=Creation(picker.SelectedPath)})
                                     :new JsonObject{["ok"]=true,["cancelled"]=true};}finally{nativePickerOpen=false;}
                             }
                         }else if(message["native"] is not null)response=new JsonObject{["ok"]=false,["error"]=new JsonObject{["code"]="host_action_denied"}};
@@ -140,7 +142,7 @@ internal static class Program
                         const p=pending.get(event.data.id);if(!p)return;pending.delete(event.data.id);
                         clearTimeout(p.timer);event.data.error?p.reject(Error(event.data.error)):p.resolve(event.data.reply);
                       });
-                      Object.defineProperty(window,'confectoryWebUI',{value:Object.freeze({connectSite(){return this.send(null,'site-connect');},disconnectSite(){return this.send(null,'site-disconnect');},pickFile(){return this.send(null,'open-file');},chooseProjectParent(){return this.send(null,'choose-project-parent');},createProject(title,description,parent){return this.send({title,description,parent},'create-project');},send(envelope,native){
+                      Object.defineProperty(window,'confectoryWebUI',{value:Object.freeze({connectSite(){return this.send(null,'site-connect');},disconnectSite(){return this.send(null,'site-disconnect');},pickFile(){return this.send(null,'open-file');},chooseProjectParent(){return this.send(null,'choose-project-parent');},createProject(title,description,parent,proposalId){return this.send({title,description,parent,proposalId},'create-project');},send(envelope,native){
                         if(pending.size>=64)return Promise.reject(Error('transport_busy'));
                         const id=String(++serial);return new Promise((resolve,reject)=>{
                           const timer=setTimeout(()=>{pending.delete(id);reject(Error('transport_timeout'));},30000);

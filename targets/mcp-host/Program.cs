@@ -22,7 +22,7 @@ sealed class Adapter(string directory)
     readonly object outputGate = new(), bindingGate = new();
     readonly string client = Guid.NewGuid().ToString("N");
     readonly ConcurrentDictionary<string, CancellationTokenSource> pending = new();
-    readonly ConcurrentDictionary<string, (string Fingerprint, JsonObject Reply)> completed = new();
+    readonly ConcurrentDictionary<string, (string Fingerprint, JsonObject Reply, string Engine)> completed = new();
     readonly SemaphoreSlim slots = new(2);
     readonly List<Task> workers = [];
     readonly CancellationTokenSource lifetime = new();
@@ -30,6 +30,8 @@ sealed class Adapter(string directory)
     int selectionGeneration;
     string observedScope = "";
     volatile bool initialized, ready;
+    static bool EngineTool(string name) => name is "engine_project_options" or "engine_project_propose" or "engine_project_status";
+    string EngineStamp(){lock(bindingGate)return selectionGeneration+":"+Text(binding,"instance");}
 
     static string Text(JsonNode? node, string key) => node?[key]?.GetValue<string>() ?? "";
     static JsonObject Error(int code, string message) => new() { ["code"] = code, ["message"] = message };
@@ -48,6 +50,12 @@ sealed class Adapter(string directory)
         "instance_not_found" => "연결할 엔진을 다시 조회하고 표시된 instanceId를 선택하세요.",
         "engine_unavailable" => "엔진이 닫혔거나 응답하지 않습니다. 앱의 연결 상태를 확인한 뒤 다시 연결하세요.",
         "no_engine_selected" => "confectory_instances로 준비된 엔진을 조회한 뒤 confectory_connect로 하나를 선택하세요.",
+        "engine_changed" => "연결 대상 엔진이 바뀌었습니다. 엔진을 다시 조회하고 현재 엔진에서 새 요청으로 진행하세요.",
+        "creation_pending" => "엔진 홈에 검토 대기 중인 생성 제안이 있습니다. 사용자가 검토하거나 거절한 뒤 새 제안을 만드세요.",
+        "creation_budget" => "현재 엔진의 생성 제안 기록 한도에 도달했습니다. 엔진 연결을 닫고 새로 준비하세요.",
+        "creation_proposal_missing" or "creation_proposal_retired" => "생성 제안이 없거나 종료되었습니다. 생성 상태를 확인하고 필요하면 새 제안을 요청하세요.",
+        "invalid_creation_proposal" => "지원하는 템플릿과 이름·설명·명시적 생성 요청을 확인하세요. 저장 경로나 임의 타깃 팩은 제안할 수 없습니다.",
+        "creation_owner_refused" => "현재 연결이 만든 생성 제안만 조회할 수 있습니다.",
         "read_only" => "읽기 전용 프로젝트 범위입니다. 앱에서 접근 범위를 해제한 뒤 편집 범위를 명시적으로 허용하세요. 엔진 연결은 유지됩니다.",
         "no_project_scope" => "엔진은 연결됐지만 프로젝트 접근 범위가 없습니다. 앱에서 대상을 선택하고 범위를 허용한 뒤 상태와 도구 목록을 갱신하세요.",
         "scope_changed" => "프로젝트 접근 범위가 바뀌었습니다. 엔진 연결을 유지한 채 상태와 도구 목록을 다시 확인하세요. 이전 요청은 재전송하지 않습니다.",
@@ -90,19 +98,19 @@ sealed class Adapter(string directory)
             }
         }
         catch (InvalidDataException) { Console.Error.WriteLine("MCP frame budget exceeded"); }
-        finally { lifetime.Cancel(); await Task.WhenAll(workers); }
+        finally { lifetime.Cancel(); await Task.WhenAll(workers);JsonObject? selected;lock(bindingGate)selected=binding;if(selected is not null)await Send(selected,"engine/forget",new(){["clientId"]=client},CancellationToken.None); }
     }
 
     async Task Complete(JsonObject request, string method, JsonObject parameters, string key, string fingerprint, CancellationTokenSource cts)
     {
-        var reply = new JsonObject { ["jsonrpc"] = "2.0", ["id"] = request["id"]!.DeepClone() };bool entered = false;
+        var reply = new JsonObject { ["jsonrpc"] = "2.0", ["id"] = request["id"]!.DeepClone() };bool entered = false;string engine="";
         try
         {
-            await slots.WaitAsync(cts.Token); entered = true;
+            await slots.WaitAsync(cts.Token); entered = true;engine=EngineStamp();
             if (completed.TryGetValue(key, out var saved))
             {
                 if (saved.Fingerprint != fingerprint) throw new ProtocolException(-32600, "Request ID reused with different input");
-                string? scopeError = method == "tools/call" && Text(parameters, "name").StartsWith("workspace_", StringComparison.Ordinal) ? await CheckScope(parameters["arguments"] as JsonObject ?? new(), cts.Token) : null;
+                string? scopeError = method=="tools/call"&&EngineTool(Text(parameters,"name"))&&saved.Engine!=EngineStamp()?"engine_changed":method == "tools/call" && Text(parameters, "name").StartsWith("workspace_", StringComparison.Ordinal) ? await CheckScope(parameters["arguments"] as JsonObject ?? new(), cts.Token) : null;
                 reply = scopeError is null ? saved.Reply.DeepClone().AsObject() : new JsonObject { ["jsonrpc"] = "2.0", ["id"] = request["id"]!.DeepClone(), ["result"] = Failure(scopeError) };
             }
             else if (method == "initialize")
@@ -111,7 +119,7 @@ sealed class Adapter(string directory)
                 string version = Text(parameters, "protocolVersion");
                 if (version is not ("2025-11-25" or "2025-06-18" or "2025-03-26" or "2024-11-05")) version = "2025-06-18";
                 initialized = true;
-                reply["result"] = new JsonObject { ["protocolVersion"] = version, ["capabilities"] = new JsonObject { ["tools"] = new JsonObject { ["listChanged"] = true } }, ["serverInfo"] = new JsonObject { ["name"] = "confectory", ["version"] = "0.2.0" }, ["instructions"] = "Connect to an explicitly prepared engine before choosing a project. Connection grants no project access. After the user selects a project scope in Confectory, refresh status and tools; echo its exact projectId and scopeId. Existing drafts still require human Review/Confirm." };
+                reply["result"] = new JsonObject { ["protocolVersion"] = version, ["capabilities"] = new JsonObject { ["tools"] = new JsonObject { ["listChanged"] = true } }, ["serverInfo"] = new JsonObject { ["name"] = "confectory", ["version"] = "0.2.0" }, ["instructions"] = "Connect to an explicitly prepared engine before choosing a project. Connection grants no project access. Engine-level creation options and proposals work without a project; creation requires local review and folder selection, and never grants project access. After the user selects a project scope in Confectory, refresh status and tools; echo its exact projectId and scopeId. Existing drafts still require human Review/Confirm." };
             }
             else if (!ready) throw new ProtocolException(-32002, "Initialize the MCP session first");
             else if (method == "ping") reply["result"] = new JsonObject();
@@ -125,7 +133,7 @@ sealed class Adapter(string directory)
         finally { if (entered) slots.Release(); pending.TryRemove(key, out _); cts.Dispose(); }
         int replyBytes = Encoding.UTF8.GetByteCount(reply.ToJsonString());
         if (replyBytes > MaxFrame) reply = new JsonObject { ["jsonrpc"] = "2.0", ["id"] = request["id"]!.DeepClone(), ["result"] = Failure("result_budget") };
-        if (!completed.ContainsKey(key)) { Interlocked.Add(ref completedBytes, Math.Min(replyBytes, MaxFrame));completed[key] = (fingerprint, reply); }
+        if (!completed.ContainsKey(key)) { Interlocked.Add(ref completedBytes, Math.Min(replyBytes, MaxFrame));completed[key] = (fingerprint, reply, engine); }
         if (!lifetime.IsCancellationRequested) Write(reply);
     }
     static JsonObject Descriptor(string name, string description, JsonObject properties, params string[] required) => new()
@@ -144,11 +152,11 @@ sealed class Adapter(string directory)
         if (selected is null) return tools;
         var response = await Send(selected, "tools/list", new(), token);
         if (response["ok"]?.GetValue<bool>() != true) return tools;
-        if (response["result"] is not JsonArray definitions || definitions.Count > 6) throw new InvalidDataException();
+        if (response["result"] is not JsonArray definitions || definitions.Count > 9) throw new InvalidDataException();
         foreach (var row in definitions)
         {
-            string name = Text(row, "name");if (name is not ("workspace_list" or "workspace_read" or "workspace_inspect" or "workspace_stage" or "workspace_create" or "workspace_changes") || row?["parameters"] is not JsonObject schema) throw new InvalidDataException();
-            tools.Add(new JsonObject { ["name"] = name, ["description"] = Text(row, "description"), ["inputSchema"] = schema.DeepClone(), ["annotations"] = new JsonObject { ["readOnlyHint"] = name is not ("workspace_stage" or "workspace_create"), ["destructiveHint"] = false, ["openWorldHint"] = false } });
+            string name = Text(row, "name");if (!EngineTool(name)&&name is not ("workspace_list" or "workspace_read" or "workspace_inspect" or "workspace_stage" or "workspace_create" or "workspace_changes") || row?["parameters"] is not JsonObject schema) throw new InvalidDataException();
+            tools.Add(new JsonObject { ["name"] = name, ["description"] = Text(row, "description"), ["inputSchema"] = schema.DeepClone(), ["annotations"] = new JsonObject { ["readOnlyHint"] = name is not ("workspace_stage" or "workspace_create" or "engine_project_propose"), ["destructiveHint"] = false, ["openWorldHint"] = false } });
         }
         return tools;
     }
@@ -171,7 +179,7 @@ sealed class Adapter(string directory)
     }
     async Task<JsonObject> Call(string name, JsonObject arguments, string requestId, CancellationToken token)
     {
-        if (name == "confectory_disconnect") { lock (bindingGate) { binding = null;selectionGeneration++; } Changed(); return ToolResult(new JsonObject { ["connected"] = false }); }
+        if (name == "confectory_disconnect") {JsonObject? old;lock(bindingGate){old=binding;binding=null;selectionGeneration++;}if(old is not null)await Send(old,"engine/forget",new(){["clientId"]=client},token);Changed();return ToolResult(new JsonObject { ["connected"] = false }); }
         if (name == "confectory_instances")
         {
             var rows = new JsonArray();var unavailable = new JsonArray();foreach (var descriptor in Discover())
@@ -186,13 +194,19 @@ sealed class Adapter(string directory)
         {
             string id = Text(arguments, "instanceId");var descriptor = Discover().SingleOrDefault(d => Text(d, "instance") == id);
             if (descriptor is null) return Failure("instance_not_found");
-            int generation;lock (bindingGate) { generation = ++selectionGeneration;binding = null; }
+            int generation;JsonObject? old;lock (bindingGate) { old=binding;generation = ++selectionGeneration;binding = null; }
+            if(old is not null)await Send(old,"engine/forget",new(){["clientId"]=client},token);
             var response = await Send(descriptor, "status", new(), token);if (response["ok"]?.GetValue<bool>() != true) return Failure(Text(response, "code"));
             lock (bindingGate) { if (generation != selectionGeneration) return Failure("scope_changed");binding = descriptor.DeepClone().AsObject();observedScope = ""; }Changed();return ToolResult(response["result"]);
         }
         JsonObject? selected;int selectedGeneration;lock (bindingGate) { selected = binding?.DeepClone().AsObject();selectedGeneration = selectionGeneration; }
         if (selected is null) return Failure("no_engine_selected");
         if (name == "confectory_status") { var status = await Send(selected, "status", new(), token);lock (bindingGate) if (selectedGeneration != selectionGeneration) return Failure("scope_changed");if (status["ok"]?.GetValue<bool>() == true && status["result"] is JsonObject observed) Observe(observed, selectedGeneration);return status["ok"]?.GetValue<bool>() == true ? ToolResult(status["result"]) : Failure(Text(status, "code")); }
+        if(EngineTool(name)){
+            var response=await Send(selected,"tools/call",new(){["name"]=name,["clientId"]=client,["callId"]=client+":"+Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(requestId))).ToLowerInvariant(),["arguments"]=arguments.DeepClone()},token);
+            lock(bindingGate)if(selectedGeneration!=selectionGeneration)return Failure("engine_changed");
+            return response["ok"]?.GetValue<bool>()==true?ToolResult(response["result"]):Failure(Text(response,"code"));
+        }
         if (name is not ("workspace_list" or "workspace_read" or "workspace_inspect" or "workspace_stage" or "workspace_create" or "workspace_changes")) return Failure("operation_refused");
         string? scopeError = await CheckScope(arguments, token);if (scopeError is not null) return Failure(scopeError);
         var result = await Send(selected, "tools/call", new() { ["name"] = name, ["callId"] = client + ":" + Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(requestId))).ToLowerInvariant(), ["arguments"] = arguments.DeepClone() }, token);

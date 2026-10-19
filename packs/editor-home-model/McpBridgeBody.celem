@@ -1,5 +1,6 @@
 implementation Confectory.EditorHome.Model::McpBridgeBody for Confectory.EditorHome.Model::McpBridge (string session,string operation,string payload) -> string {
 import Confectory.EditorHome.Model::Command as Command (string,string,string) -> string;
+import Confectory.EditorHome.Model::EngineCreation as EngineCreation (string,string,string) -> string;
 import Confectory.DevelopmentTools::Open as ToolsOpen (string,string,string,string,string) -> string;
 import Confectory.DevelopmentTools::OpenNode as NodeOpen (string,string,string,string,string,string) -> string;
 import Confectory.DevelopmentTools::Definitions as Definitions (string) -> string;
