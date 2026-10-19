@@ -1,0 +1,149 @@
+{
+  "recordedAtUtc": "2026-10-19T04:22:11.297358+00:00",
+  "sourceCommit": "94247803942c04eff09e983efa57fe6240d275d2",
+  "baseWorkCurrent": "f0b592f0c6c0822df62acc73fbcd4513d43185fd",
+  "passed": 14,
+  "failed": 0,
+  "skipped": 0,
+  "maximumConcurrentGates": 2,
+  "sourceSha256": {
+    "examples/editor-home/WebBundle.csbody": "a2e8039ab5ddbe3fdad2e9c80da900a107e75902247febfc8afff2a8cb500841",
+    "examples/editor-home/ui/blueprint-rename.js": "ec8c0db679c052ccb7e63b6256dbe784ef6cb09027e06b2e3cfd401861a04bc9",
+    "examples/editor-home/ui/blueprint-viewport.js": "a690c93df99773adc678c3044ad26e4af1f0738ce1056d937d2958d19349b803",
+    "examples/editor-home/ui/blueprint.js": "30c1a604b47f657d54cf7b2b037f18829c98098a30d3f560b89b974d11ce56f8",
+    "examples/editor-home/ui/consumer.css": "39bb3cf4f2b23bfb9244e97ca0346773fdfccd7be56f5e4094156610da8c092a",
+    "packs/pack-workspace/Blueprint.csbody": "fd5200817d8e0935e3ac1068cf6d49649813da8a48b67539bbb770dc3fa3807f",
+    "src/Confectory.Core/FeatureBlueprint.DisplayNames.cs": "1f13effe5b3c329c839567e10806c578496a5f809f0cd8f9e766b4a11bb3115b",
+    "src/Confectory.Core/FeatureBlueprint.cs": "ccfd0e5e6c345a82ec444527149afbe6a66daccede2971d976fb8827316fa89d",
+    "tests/Confectory.Tests/BlueprintDisplayNameTests.cs": "d1433254728299303172d7211c06a18992127056486a7f6d483adc0340ffdb0a",
+    "tests/Confectory.Tests/BlueprintRenameAuthoringTests.cs": "8120220d3da93fe47564fcac2f1f92da84c108f2521191ed7a3cda6643eec9f5",
+    "tests/Confectory.Tests/FeatureBlueprintTests.cs": "2530a35ec3efe7f72517d47eacc9ef2e039e1ce47cc7fea2a1b6ff9089e83786",
+    "tests/Confectory.Tests/LocalAuthoringTests.cs": "d79b6f79928d853bad0c1e53f17b8555e205fb334ca09fcd9304fb6daa25aee6",
+    "tests/Confectory.Tests/NestedBlueprintTests.cs": "786f1e737a7fbab644f1abe7c4309fee17863eb6bb086b215d3a5f91e26647e9",
+    "tests/Confectory.Tests/WebUITests.cs": "1d6b2b24de901491fdb13e1047000a1cd71527b1cac04208393d207d63710734",
+    "tests/web/v508_blueprint_rename.py": "fa790713f9654e9a08eeaa0de46fec81f580ed2c6271386e348da9f377b066d0",
+    "tests/web/web_ui.py": "d91eee7407cc791ad1c753701fc9803d9b6f2de76bafb0d17c679524e8280530"
+  },
+  "groups": [
+    {
+      "name": "model",
+      "methods": [
+        "FeatureBlueprintTests.test_display_name_preserves_compiled_code_probe_reuse_and_never_renews_stale_bodies",
+        "LocalAuthoringTests.test_rename_owned_display_metadata_raw_cas_cold_and_compiler_confirm",
+        "NestedBlueprintTests.test_nested_display_names_preserve_parent_definition_and_leaf_compiler_evidence"
+      ],
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 45.613,
+      "log": "confectory-v508-rename-final-model.log",
+      "sha256": "6c8ee0f59f9e196be17daee42be1d6e95ac4b5c5884d80cdfd0d64914dd81fc7"
+    },
+    {
+      "name": "ui",
+      "methods": [
+        "WebUITests.test_actual_editor_v508_blueprint_rename_ime_cas_scope_and_cold"
+      ],
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 54.759,
+      "log": "confectory-v508-rename-final-ui.log",
+      "sha256": "713e45f049bfdd8e5c662f8f0a7081dc4619c7c63b682844936d523e2e8e27a1"
+    },
+    {
+      "name": "regression-model",
+      "methods": [
+        "SwitchBlueprintTests.test_old_profiles_keep_their_meaning_and_refuse_switch_fields_or_cross_region_routes",
+        "PropertyBlueprintTests.test_property_reads_at_node_once_from_actual_instance_and_reexecutes_on_next_call",
+        "NestedBlueprintTests.test_private_siblings_keep_same_local_ids_and_branch_return_boundary"
+      ],
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 11.197,
+      "log": "confectory-v508-rename-final-regression-model.log",
+      "sha256": "ff7c68536f1fadbc765aac1ab606b4eba434992ddea86e363e7f695d50b943d2"
+    },
+    {
+      "name": "regression-ui",
+      "methods": [
+        "WebUITests.test_actual_editor_v480_blueprint_camera_header_pins_tabs_and_cold_input",
+        "WebUITests.test_actual_editor_v480_blueprint_owned_graph_node_edit_and_cold_input",
+        "WebUITests.test_actual_editor_v508_blueprint_overview_camera_scope_cancel_and_cold",
+        "WebUITests.test_blueprint_overview_actual_dom_bounds_stale_nodes_and_disposal"
+      ],
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 120.934,
+      "log": "confectory-v508-rename-final-regression-ui.log",
+      "sha256": "3217a7e3aabeb5eb9a36a867dd447813733d431240d9d93ccb986fe68d168a0d"
+    },
+    {
+      "name": "checkout-platform",
+      "methods": [
+        "WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup",
+        "EntryHomeTests.test_android_home_export_selects_activity_and_metadata_parser_without_engine_surface_sample",
+        "EntryHomeNativeDetailsTests.test_windows_native_information_and_profile_composition_builds"
+      ],
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 135.372,
+      "log": "confectory-v508-rename-final-checkout-platform.log",
+      "sha256": "8ad6ba26f0eafd17934be5d997f9e3cc42ceb664dfa42478f91a2807465434d9"
+    }
+  ],
+  "actualEditorHome": {
+    "imeEnter": [
+      "isComposing",
+      "keyCode229"
+    ],
+    "cancel": [
+      "Escape",
+      "blank"
+    ],
+    "dragBeforeRename": true,
+    "focusedClickF2Context": true,
+    "casRefusedAndRebased": true,
+    "unsentIntentAndCodePreserved": true,
+    "graphs": 2,
+    "projects": 2,
+    "coldUnsentBasisRefused": true,
+    "persistedDisplayName": "COLD_UNSENT_NAME",
+    "staleCompletionRemainsStale": true,
+    "profileSignatureRoutesPreserved": true,
+    "originalFiles": 58,
+    "actualBrowser": "Chromium ordinary EditorHome host"
+  },
+  "resourceDeclarations": {
+    "total": 45,
+    "canonicalUtf8Lf": 36,
+    "exact": 9
+  },
+  "execution": {
+    "linux": "Actual ordinary EditorHome Chromium and owned .NET execution",
+    "windows": "Managed native composition compile only; no Windows device run",
+    "android": "Home export/activity/metadata selection only; no device run"
+  },
+  "protected": {
+    "localMain": "b5ea38c3d7eec3eb20f170e68f0f4215b86b2aee",
+    "remoteMain": "71b7ea6613fd90a4db29492eb2dc416b9a533e8b",
+    "originalZipSha256": {
+      "reference/site-ui/Confectory-Editor-Prototype-v196.zip": "02d4824e92ed0edbb43113659982b37a99a614117652bde4d8ac92367e334e34",
+      "reference/site-ui/Confectory-Editor-Prototype-v318.zip": "0a614fe2bf1ad3d8e10dfa8905bb6b61ea9f21b87b2492b2b87ca8566e9e6908",
+      "reference/site-ui/Confectory-Editor-Prototype-v424.zip": "b7969cd109ea2dad38bde9c9ab13967c20162c920a45a8cd51a8f82df6041874",
+      "reference/site-ui/Confectory-Editor-Prototype-v480.zip": "0489844c8c6d90f7cdc8ea0e80628f487dcfb27f2c871b19367a635212d3c5bd",
+      "reference/site-ui/Confectory-Editor-Prototype-v508.zip": "b306ce4deff9616c4107ae224443d864f8fce0f52cf3c3e158de8745c17c659f"
+    },
+    "androidSettingsUnchanged": true,
+    "executionProfilesAndAbiUnchanged": true,
+    "asyncWrapperPublicOutputExecutionUnchanged": true,
+    "overflowUnchanged": true
+  },
+  "developmentRunsExcluded": {
+    "model": "dev-model: test helper expected an exception instead of the returned compiler refusal; corrected before counted model run",
+    "ui": "dev-ui/dev2-ui: context target was retargeted by viewport pointer capture; fixed via capture and actual hit target. dev3-ui: overly specific error wording assertion. dev4-ui: F2 fixture did not activate its window. Count only dev5-ui."
+  }
+}

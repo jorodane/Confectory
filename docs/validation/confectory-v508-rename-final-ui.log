@@ -1,0 +1,4 @@
+PASS actual v508 Blueprint rename {"imeEnter": ["isComposing", "keyCode229"], "cancel": ["Escape", "blank"], "dragBeforeRename": true, "focusedClickF2Context": true, "casRefusedAndRebased": true, "unsentIntentAndCodePreserved": true, "graphs": 2, "projects": 2, "coldUnsentBasisRefused": true, "persistedDisplayName": "COLD_UNSENT_NAME", "staleCompletionRemainsStale": true, "profileSignatureRoutesPreserved": true, "originalFiles": 58, "actualBrowser": "Chromium ordinary EditorHome host"}
+Actual common WebUI blueprint-rename Chromium PASS
+PASS WebUITests.test_actual_editor_v508_blueprint_rename_ime_cas_scope_and_cold
+1 passed, 0 failed, 0 skipped; 54.759s

@@ -21,3 +21,7 @@
 이 단위의 최종 source, 실행 메서드와 로그는 `validation/v508-blueprint-rename.json`에 기록한다. 일반 EditorHome의 실제 Chromium 검사, .NET 컴파일/실행 및 Windows managed 구성·Android export 검사를 구분한다. 실제 Windows OS·Android 기기에서 새 Rename을 실행한 검증은 포함하지 않는다.
 
 main, 원본 ZIP, Android 설정, CSP/권한, overflow, async/wrapper/공개 출력 실행 의미와 기존 parameter 정렬은 이 단위 범위 밖이다.
+
+최종 소스는 `94247803942c04eff09e983efa57fe6240d275d2`다. 서로 다른 14개 메서드가 통과했고 실패·skip은 0이다. 새 Core/중첩/CAS/Confirm 3개, 기존 실행 의미 회귀 3개, 실제 Rename 브라우저 1개, 기존 편집·카메라·overview 및 DOM component 4개, 일반 Git 체크아웃/리소스 시작·Windows managed 구성·Android export 3개다. [정확한 메서드와 로그](validation/v508-blueprint-rename.json), [실제 화면](validation/v508-blueprint-rename.png)을 보관한다.
+
+실제 Rename 검사는 graph 2개·프로젝트 2개와 한글 Enter 플래그, 취소, 드래그 구분, CAS 거부·재검토, 미제출 의도·C# 본문, cold 입력의 basis 거부를 확인했다. 원본 58개 파일은 바뀌지 않았고 stale 상태도 유지됐다. 새 일반 Git 체크아웃 및 retained CRLF pull에서 canonical UTF-8 LF 36개와 exact/binary 9개, 합계 45개 리소스를 실제 로드했다. 초기 메뉴 연결과 fixture/오류 문구 보정 전 실행은 최종 합계에 넣지 않는다.

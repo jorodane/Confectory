@@ -1,0 +1,5 @@
+PASS WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup
+PASS EntryHomeTests.test_android_home_export_selects_activity_and_metadata_parser_without_engine_surface_sample
+PASS Windows managed native composition compile only; no Windows device run
+PASS EntryHomeNativeDetailsTests.test_windows_native_information_and_profile_composition_builds
+3 passed, 0 failed, 0 skipped; 135.372s
