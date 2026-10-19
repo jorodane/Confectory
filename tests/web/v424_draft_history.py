@@ -7,7 +7,18 @@ def verify_draft_history(page,project,mount,send,envelope,settle,restart):
  def state():
   view=mount();result=view['state'];assert send(envelope(view,'dispose'))['ok'];return result
  def invoke(endpoint,args):
-  view=mount();request='history-'+uuid.uuid4().hex;assert send(envelope(view,'invoke',endpoint=endpoint,requestId=request,expectedRevision=view['revision'],input=args))['ok'];out,_=settle(view,request);assert out['ok'],out;assert send(envelope(view,'dispose'))['ok'];return out.get('result')
+  # The GUI may save presentation between this independent mount and invoke.
+  # Only transport stale_revision guarantees no execution. Reach the source
+  # history-token assertion at a current transport revision; never replay an
+  # executed operation, source CAS rejection or uncertain response.
+  for attempt in range(3):
+   view=mount();request='history-'+uuid.uuid4().hex
+   try:
+    assert send(envelope(view,'invoke',endpoint=endpoint,requestId=request,expectedRevision=view['revision'],input=args))['ok']
+    out,_=settle(view,request)
+   finally:assert send(envelope(view,'dispose'))['ok']
+   if out.get('error',{}).get('code')=='stale_revision' and attempt<2:continue
+   assert out['ok'],out;return out.get('result')
  def ready():expect(page.locator('#nav')).to_be_enabled(timeout=60000)
  def nav(name):
   if not page.locator('.nav-menu').count():page.locator('#nav').click()
