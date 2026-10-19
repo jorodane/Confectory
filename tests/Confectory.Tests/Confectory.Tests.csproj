@@ -4,6 +4,7 @@
     <ProjectReference Include="../../targets/mcp-host/Confectory.Mcp.csproj" ReferenceOutputAssembly="false" />
     <Compile Include="../../targets/webview-windows/PackChannel.cs" Link="PackChannel.cs" />
     <Compile Include="../../targets/webview-windows/SiteRelayBoundary.cs" Link="SiteRelayBoundary.cs" />
+    <Compile Include="../../targets/webview-windows/SiteRelayPresentation.cs" Link="SiteRelayPresentation.cs" />
     <ProjectReference Include="../../targets/android-export/Confectory.AndroidExport.csproj" />
     <ProjectReference Include="../../targets/browser-wasm/Confectory.Build.BrowserWasm.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="../../targets/web/Confectory.Build.Web.csproj" ReferenceOutputAssembly="false" />

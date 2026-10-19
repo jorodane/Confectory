@@ -4,6 +4,48 @@ using Confectory.Core;
 namespace Confectory.Tests;
 public sealed class EmbeddedChannelTests : TestCase
 {
+    public void test_site_window_slow_preparation_login_redirect_and_connected_presentation()
+    {
+        var state=new SiteRelayPresentation();long attempt=state.Attempt;
+        Equal(SiteRelayPresentation.Stage.Preparing,state.Current);True(state.Busy&&!state.ShowDocument&&!state.CanRetry);True(state.Message.Contains("준비"));
+        var ready=new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        async Task NavigateWhenReady(){await ready.Task;state.Navigate(attempt,10,false);}
+        var initializing=NavigateWhenReady();True(!initializing.IsCompleted);True(!state.TryRetry(out _));
+        // No elapsed-time input can turn a pending runtime/navigation into failure.
+        for(int i=0;i<1000;i++)True(state.Current==SiteRelayPresentation.Stage.Preparing&&!state.CanRetry);
+        ready.SetResult(true);initializing.GetAwaiter().GetResult();Equal(SiteRelayPresentation.Stage.Navigating,state.Current);
+        True(!state.ShowDocument&&!state.CanRetry&&state.Busy);
+        True(state.Navigate(attempt,11,true));True(!state.DocumentReady(attempt,10,true));True(!state.Fail(attempt,"old-navigation",10));
+        True(state.DocumentReady(attempt,11,false));Equal(SiteRelayPresentation.Stage.AwaitingLogin,state.Current);True(state.ShowDocument&&!state.CanRetry&&!state.Busy);
+        True(state.Navigate(attempt,12,false));True(state.BridgeReady(attempt,12));Equal(SiteRelayPresentation.Stage.Connecting,state.Current);
+        True(state.Paired(attempt,12));Equal(SiteRelayPresentation.Stage.Connected,state.Current);True(!state.CanRetry&&!state.Busy&&state.ShowDocument);True(state.Message.Contains("X")&&state.Message.Contains("해제"));
+        True(state.DocumentReady(attempt,12,true));Equal(SiteRelayPresentation.Stage.Connected,state.Current);True(!state.TryRetry(out _));
+    }
+    public void test_site_window_real_failure_retry_and_old_navigation_do_not_replace_current_state()
+    {
+        var state=new SiteRelayPresentation();long old=state.Attempt;state.Navigate(old,1,false);
+        True(state.Fail(old,"ConnectionAborted",1));True(state.CanRetry&&!state.Busy&&!state.ShowDocument);True(state.Message.Contains("ConnectionAborted"));
+        True(!state.DocumentReady(old,1,true));True(!state.Paired(old,1));True(!state.Disconnect(old,1));
+        True(state.TryRetry(out long current));True(current!=old);Equal(SiteRelayPresentation.Stage.Preparing,state.Current);
+        True(!state.Fail(old,"late-initialization"));True(!state.Navigate(old,2,true));True(!state.DocumentReady(old,1,true));
+        state.Navigate(current,2,false);state.BridgeReady(current,2);state.Paired(current,2);
+        True(!state.Fail(current,"old-completion",1));Equal(SiteRelayPresentation.Stage.Connected,state.Current);
+        True(state.Disconnect(current,2));Equal(SiteRelayPresentation.Stage.Disconnected,state.Current);True(state.CanRetry);True(!state.Paired(current,2));
+    }
+    public void test_site_window_close_retires_late_preparation_and_ignores_late_callbacks()
+    {
+        var state=new SiteRelayPresentation();long initial=state.Attempt;
+        state.Fail(initial,"initialization-failed");True(state.TryRetry(out long attempt));
+        var response=new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);int adopted=0,retired=0;
+        async Task Complete(){await response.Task;await state.AcceptPreparedAsync(attempt,()=>adopted++,()=>{retired++;return Task.CompletedTask;});}
+        var pending=Complete();True(!pending.IsCompleted);state.Close();response.SetResult(true);pending.GetAwaiter().GetResult();
+        Equal(0,adopted);Equal(1,retired);Equal(SiteRelayPresentation.Stage.Closed,state.Current);True(!state.CanRetry&&!state.Busy&&!state.ShowDocument);
+        True(!state.IsCurrent(attempt));True(!state.Navigate(attempt,1,false));True(!state.DocumentReady(attempt,1,true));True(!state.BridgeReady(attempt,1));True(!state.Paired(attempt,1));True(!state.Fail(attempt,"late-error"));True(!state.TryRetry(out _));
+        // A superseded attempt is discarded even while a newer window attempt lives.
+        var retry=new SiteRelayPresentation();long old=retry.Attempt;retry.Fail(old,"network");True(retry.TryRetry(out long fresh));
+        True(!retry.AcceptPreparedAsync(old,()=>adopted++,()=>{retired++;return Task.CompletedTask;}).GetAwaiter().GetResult());
+        True(retry.AcceptPreparedAsync(fresh,()=>adopted++,()=>{retired++;return Task.CompletedTask;}).GetAwaiter().GetResult());Equal(1,adopted);Equal(2,retired);
+    }
     public void test_windows_native_site_connect_transport_envelope_and_reply()
     {
         var run=Processes.Run(new[]{"node",Path.Combine(Fixture.Repo,"tests/web/native_site_connect.mjs")},timeoutSeconds:35);

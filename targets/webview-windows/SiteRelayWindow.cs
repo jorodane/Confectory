@@ -2,87 +2,133 @@ using System.Text.Json.Nodes;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.WinForms;
 
-// A separate authenticated Site surface. It never receives the editor's generic
-// envelope transport, local session token, host objects, cookies or file paths.
+// This isolated Site view never receives the editor envelope transport, host
+// objects, local WebUI token, file paths or copied browser credentials.
 internal sealed class SiteRelayWindow : Form
 {
-    const string Protocol = SiteRelayBoundary.Protocol;
-    const string Address = SiteRelayBoundary.Address;
+    const string Protocol = SiteRelayBoundary.Protocol, Address = SiteRelayBoundary.Address;
     readonly PackChannel rpc;
     readonly JsonObject configuration;
-    readonly WebView2 view = new() { Dock = DockStyle.Fill };
+    readonly SiteRelayPresentation presentation = new();
+    readonly WebView2 view = new() { Dock = DockStyle.Fill, DefaultBackgroundColor = Color.FromArgb(16,20,24) };
+    readonly Label status = new() { Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft };
+    readonly Label pending = new() { Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter, Padding = new Padding(28) };
+    readonly Button reconnect = new() { Text = "다시 연결", Dock = DockStyle.Right, Width = 110, Visible = false };
+    readonly ProgressBar progress = new() { Dock = DockStyle.Bottom, Height = 4, Style = ProgressBarStyle.Marquee };
+    readonly Panel placeholder = new() { Dock = DockStyle.Fill, BackColor = Color.FromArgb(16,20,24) };
     readonly string profile = Path.Combine(Path.GetTempPath(), "Confectory", "site-relay", Guid.NewGuid().ToString("N"));
-    bool closed, closingMessage, sentHello; int navigation,inFlight;
+    bool closed, closingMessage, sentHello, configured, navigationAllowed; int navigation,inFlight;
     public SiteRelayWindow(PackChannel channel, JsonObject config)
     {
-        rpc = channel; configuration = config;
-        if (config["url"]?.ToString() != Address || config["protocol"]?.ToString() != Protocol || config["nonce"]?.ToString().Length != 64) throw new ArgumentException("Trusted Site configuration required");
-        Text = "Confectory · 개인 플러그인 연결"; Width = 800; Height = 760;
-        Controls.Add(view);
-        var bar=new ToolStrip{Dock=DockStyle.Top};var reconnect=new ToolStripButton("다시 연결");bar.Items.Add(reconnect);Controls.Add(bar);
-        reconnect.Click+=async(_,_)=>{if(inFlight>0||closed||view.CoreWebView2 is null)return;reconnect.Enabled=false;try{var fresh=await rpc.Call("native",new JsonObject{["action"]="site-relay",["payload"]=new JsonObject{["prepare"]=true}});if(fresh?["ok"]?.GetValue<bool>()!=true)throw new InvalidOperationException();configuration.Clear();foreach(var item in fresh["result"]!.AsObject())configuration[item.Key]=item.Value?.DeepClone();view.CoreWebView2.Navigate(Address);}catch{MessageBox.Show(this,"엔진 연결을 준비한 뒤 다시 시도하세요.");}finally{reconnect.Enabled=true;}};
-        Shown += async (_, _) => await Initialize();
-        FormClosed += async (_, _) => {
-            closed = true;
-            try { await Relay(new JsonObject { ["type"] = "close", ["nonce"] = configuration["nonce"]!.DeepClone() }); } catch { }
-            view.Dispose();
-            // InPrivate cookies are ephemeral. Cleanup can race the browser's exit;
-            // never keep a reusable login/profile as the connection mechanism.
-            try { Directory.Delete(profile, true); } catch (IOException) { } catch (UnauthorizedAccessException) { }
+        rpc=channel;configuration=config;Validate(config);
+        Text="Confectory · 개인 플러그인 연결";Width=800;Height=760;BackColor=Color.FromArgb(16,20,24);ForeColor=Color.Gainsboro;
+        view.CreationProperties=new CoreWebView2CreationProperties { UserDataFolder=profile, ProfileName="ConfectoryRelay", IsInPrivateModeEnabled=true };
+        var content=new Panel { Dock=DockStyle.Fill };content.Controls.Add(view);placeholder.Controls.Add(pending);content.Controls.Add(placeholder);Controls.Add(content);
+        var header=new Panel { Dock=DockStyle.Top, Height=100, Padding=new Padding(16,10,16,10), BackColor=BackColor };
+        header.Controls.Add(status);header.Controls.Add(reconnect);header.Controls.Add(progress);Controls.Add(header);
+        reconnect.Click+=async(_,_)=>await Retry();
+        Shown+=async(_,_)=>await Initialize(presentation.Attempt);
+        FormClosed+=async(_,_)=>{
+            closed=true;presentation.Close();navigation++;sentHello=false;navigationAllowed=false;
+            var retiring=(JsonObject)configuration.DeepClone();view.Dispose();
+            await Retire(retiring);
+            // InPrivate credentials are ephemeral; process shutdown may delay cache cleanup.
+            try{Directory.Delete(profile,true);}catch(IOException){}catch(UnauthorizedAccessException){}
         };
+        Render();
     }
-    static bool Owned(string source) => SiteRelayBoundary.Owned(source);
+    static bool Owned(string source)=>SiteRelayBoundary.Owned(source);
+    static void Validate(JsonObject config){if(config["url"]?.ToString()!=Address||config["protocol"]?.ToString()!=Protocol||config["nonce"]?.ToString().Length!=64)throw new ArgumentException("Trusted Site configuration required");}
+    void Render()
+    {
+        if(closed)return;
+        status.Text=presentation.Message;pending.Text=presentation.Message+"\n\nX로 창을 닫으면 연결이 해제됩니다.";
+        reconnect.Visible=presentation.CanRetry;reconnect.Enabled=inFlight==0;progress.Visible=presentation.Busy;
+        placeholder.Visible=!presentation.ShowDocument;
+        if(placeholder.Visible)placeholder.BringToFront();else view.BringToFront();
+    }
     async Task<JsonNode?> Relay(JsonObject input)
     {
-        var reply = await rpc.Call("native", new JsonObject { ["action"] = "site-relay", ["payload"] = input });
-        if (reply?["ok"]?.GetValue<bool>() != true) throw new InvalidOperationException("engine_rejected");
+        var reply=await rpc.Call("native",new JsonObject { ["action"]="site-relay",["payload"]=input });
+        if(reply?["ok"]?.GetValue<bool>()!=true)throw new InvalidOperationException("engine_rejected");
         return reply["result"]?.DeepClone();
     }
-    async Task Initialize()
+    async Task Retire(JsonObject config){try{await Relay(new JsonObject { ["type"]="close",["nonce"]=config["nonce"]!.DeepClone() });}catch{}}
+    async Task Retry()
     {
-        try {
-            view.CreationProperties = new CoreWebView2CreationProperties { UserDataFolder = profile, ProfileName = "ConfectoryRelay", IsInPrivateModeEnabled = true };
-            await view.EnsureCoreWebView2Async(); if (closed) return;
-            var core = view.CoreWebView2;
-            core.Settings.AreHostObjectsAllowed = false; core.Settings.AreDevToolsEnabled = false;
-            core.Settings.AreDefaultContextMenusEnabled = false; core.Settings.IsStatusBarEnabled = false;
-            core.Settings.IsPasswordAutosaveEnabled = false; core.Settings.IsGeneralAutofillEnabled = false;
-            core.PermissionRequested += (_, e) => e.State = CoreWebView2PermissionState.Deny;
-            core.DownloadStarting += (_, e) => e.Cancel = true;
-            core.NavigationStarting += (_, e) => {
-                if (!Uri.TryCreate(e.Uri, UriKind.Absolute, out var uri) || uri.Scheme != "https") e.Cancel = true;
-                sentHello = false; navigation++;
-            };
-            // Login redirects may leave the Site; native messages are accepted only
-            // on the exact trusted relay document. No frame bridge is registered.
-            core.NewWindowRequested += (_, e) => { e.Handled = true; if (Uri.TryCreate(e.Uri, UriKind.Absolute, out var uri) && uri.Scheme == "https") core.Navigate(uri.AbsoluteUri); };
-            core.WebMessageReceived += async (_, e) => {
-                if (closed || !SiteRelayBoundary.TryRead(core.Source,e.Source,e.WebMessageAsJson,configuration["nonce"]!.ToString(),sentHello,out var message)) return;
-                string requestId = "";bool entered=false,isClose=false;int generation=navigation;
-                try {
-                    string type = message!["type"]?.ToString() ?? "";
-                    if (type == "ready") {
-                        if (sentHello) return; sentHello = true;
-                        var hello = (JsonObject)configuration.DeepClone(); hello.Remove("url"); hello["type"] = "hello";
-                        core.PostWebMessageAsJson(hello.ToJsonString()); return;
-                    }
-                    if (!sentHello || message["nonce"]?.ToString() != configuration["nonce"]!.ToString() || type is not ("paired" or "pulse" or "dispatch" or "close")) return;
-                    requestId = message["requestId"]?.GetValue<string>() ?? "";
-                    if (requestId.Length is < 1 or > 128 || inFlight>0&&type!="close" || type=="close"&&closingMessage) return;
-                    isClose=type=="close";if(isClose)closingMessage=true;inFlight++;entered=true;
-                    // Construct the permitted relay message; never forward native
-                    // prepare, grant, editor envelopes, endpoints or host actions.
-                    var input = new JsonObject { ["type"] = type, ["nonce"] = configuration["nonce"]!.DeepClone() };
-                    foreach (string field in new[] { "sessionId", "expiresAt", "job" }) if (message[field] is not null) input[field] = message[field]!.DeepClone();
-                    var result = await Relay(input);
-                    if (!closed && generation==navigation && Owned(core.Source) && sentHello) core.PostWebMessageAsJson(new JsonObject { ["protocol"] = Protocol, ["nonce"] = configuration["nonce"]!.DeepClone(), ["requestId"] = requestId, ["result"] = result }.ToJsonString());
-                } catch {
-                    if (!closed && generation==navigation && Owned(core.Source) && requestId.Length is > 0 and <= 128) core.PostWebMessageAsJson(new JsonObject { ["protocol"] = Protocol, ["nonce"] = configuration["nonce"]!.DeepClone(), ["requestId"] = requestId, ["error"] = "engine_rejected" }.ToJsonString());
-                } finally { if(entered)inFlight--;if(isClose)closingMessage=false; }
-            };
-            core.Navigate(Address);
-        } catch (Exception e) {
-            if (!closed) { Controls.Clear(); Controls.Add(new Label { Dock = DockStyle.Fill, Padding = new Padding(24), Text = "연결 창을 시작할 수 없습니다: " + e.GetType().Name }); }
-        }
+        if(closed||inFlight>0||!presentation.TryRetry(out long attempt))return;
+        navigationAllowed=false;sentHello=false;navigation++;Render();
+        try{
+            try{view.CoreWebView2?.Stop();}catch(System.Runtime.InteropServices.COMException){}
+            var fresh=await rpc.Call("native",new JsonObject { ["action"]="site-relay",["payload"]=new JsonObject { ["prepare"]=true } });
+            if(fresh?["ok"]?.GetValue<bool>()!=true)throw new InvalidOperationException("engine_rejected");
+            var next=fresh["result"]!.DeepClone().AsObject();Validate(next);
+            if(!await presentation.AcceptPreparedAsync(attempt,()=>{
+                configuration.Clear();foreach(var item in next)configuration[item.Key]=item.Value?.DeepClone();
+            },()=>Retire(next)))return;
+            await Initialize(attempt);
+        }catch(Exception e){if(presentation.Fail(attempt,e.GetType().Name))Render();}
+    }
+    async Task Initialize(long attempt)
+    {
+        try{
+            await view.EnsureCoreWebView2Async();if(!presentation.IsCurrent(attempt))return;
+            var core=view.CoreWebView2;
+            if(!configured){Configure(core);configured=true;}
+            navigationAllowed=true;core.Navigate(Address);
+        }catch(Exception e){if(presentation.Fail(attempt,e.GetType().Name))Render();}
+    }
+    void Configure(CoreWebView2 core)
+    {
+        core.Settings.AreHostObjectsAllowed=false;core.Settings.AreDevToolsEnabled=false;
+        core.Settings.AreDefaultContextMenusEnabled=false;core.Settings.IsStatusBarEnabled=false;
+        core.Settings.IsPasswordAutosaveEnabled=false;core.Settings.IsGeneralAutofillEnabled=false;
+        core.PermissionRequested+=(_,e)=>e.State=CoreWebView2PermissionState.Deny;
+        core.DownloadStarting+=(_,e)=>e.Cancel=true;
+        core.NavigationStarting+=(_,e)=>{
+            if(closed||!navigationAllowed||!Uri.TryCreate(e.Uri,UriKind.Absolute,out var uri)||uri.Scheme!="https"){e.Cancel=true;return;}
+            sentHello=false;navigation++;presentation.Navigate(presentation.Attempt,e.NavigationId,!Owned(e.Uri));Render();
+        };
+        core.DOMContentLoaded+=(_,e)=>{if(!closed&&presentation.DocumentReady(presentation.Attempt,e.NavigationId,Owned(core.Source)))Render();};
+        core.NavigationCompleted+=(_,e)=>{
+            if(closed)return;
+            if(e.IsSuccess){if(presentation.DocumentReady(presentation.Attempt,e.NavigationId,Owned(core.Source)))Render();}
+            else if(e.WebErrorStatus!=CoreWebView2WebErrorStatus.OperationCanceled&&presentation.Fail(presentation.Attempt,e.WebErrorStatus.ToString(),e.NavigationId))Render();
+        };
+        core.ProcessFailed+=(_,e)=>{
+            if(e.ProcessFailedKind is CoreWebView2ProcessFailedKind.BrowserProcessExited or CoreWebView2ProcessFailedKind.RenderProcessExited)
+                if(presentation.Fail(presentation.Attempt,e.ProcessFailedKind.ToString()))Render();
+        };
+        // Authentication may navigate away. Only the exact relay document gets
+        // a native message bridge; frames, host objects and generic calls are excluded.
+        core.NewWindowRequested+=(_,e)=>{e.Handled=true;if(!closed&&Uri.TryCreate(e.Uri,UriKind.Absolute,out var uri)&&uri.Scheme=="https")core.Navigate(uri.AbsoluteUri);};
+        core.WebMessageReceived+=async(_,e)=>{
+            long attempt=presentation.Attempt;ulong? page=presentation.NavigationId;
+            if(closed||page is null||!SiteRelayBoundary.TryRead(core.Source,e.Source,e.WebMessageAsJson,configuration["nonce"]!.ToString(),sentHello,out var message))return;
+            string requestId="",type=message!["type"]!.ToString();bool entered=false,isClose=false;int generation=navigation;
+            try{
+                if(type=="ready"){
+                    if(!presentation.BridgeReady(attempt,page.Value))return;
+                    sentHello=true;Render();var hello=(JsonObject)configuration.DeepClone();hello.Remove("url");hello["type"]="hello";core.PostWebMessageAsJson(hello.ToJsonString());return;
+                }
+                if(type!="close"&&!presentation.CanRelay(attempt,page.Value))return;
+                requestId=message["requestId"]!.GetValue<string>();
+                if(inFlight>0&&type!="close"||type=="close"&&closingMessage)return;
+                isClose=type=="close";if(isClose)closingMessage=true;inFlight++;entered=true;
+                var input=new JsonObject { ["type"]=type,["nonce"]=configuration["nonce"]!.DeepClone() };
+                foreach(string field in new[]{"sessionId","expiresAt","job"})if(message[field] is not null)input[field]=message[field]!.DeepClone();
+                var result=await Relay(input);
+                if(closed||generation!=navigation||!presentation.IsNavigation(attempt,page.Value)||!Owned(core.Source)||!sentHello)return;
+                if(type!="close"&&!presentation.CanRelay(attempt,page.Value))return;
+                if(type=="paired")presentation.Paired(attempt,page.Value);
+                if(type=="close")presentation.Disconnect(attempt,page.Value);
+                Render();core.PostWebMessageAsJson(new JsonObject { ["protocol"]=Protocol,["nonce"]=configuration["nonce"]!.DeepClone(),["requestId"]=requestId,["result"]=result }.ToJsonString());
+            }catch{
+                if(!closed&&generation==navigation&&presentation.IsNavigation(attempt,page.Value)&&Owned(core.Source)&&requestId.Length is >0 and <=128){
+                    if(type is "paired" or "pulse")presentation.Fail(attempt,"engine_rejected",page.Value);
+                    Render();core.PostWebMessageAsJson(new JsonObject { ["protocol"]=Protocol,["nonce"]=configuration["nonce"]!.DeepClone(),["requestId"]=requestId,["error"]="engine_rejected" }.ToJsonString());
+                }
+            }finally{if(entered)inFlight--;if(isClose)closingMessage=false;Render();}
+        };
     }
 }

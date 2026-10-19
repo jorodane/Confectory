@@ -11,8 +11,9 @@ of PackEngine Links and the local STDIO development plugin. Neither is modified.
 - Plugin ID: `plugin_asdk_app_sites_c997ef642378819187e0c2511c98a119`.
 - Live private-plugin smoke test: `confectory_engines` succeeded and returned
   `{"engines":[]}`; no live PC engine was connected during that check.
-- Actual Windows login and engine pairing remain unverified. A plugin installation
-  URL was not supplied with these results; do not infer one from either ID.
+- Subsequent parent verification confirmed actual Windows login and one live
+  engine-only relay with `scope: null`. Real project-scope operations remain
+  unverified. A plugin installation URL was not supplied; do not infer one.
 
 ## Connection and permissions
 
@@ -24,6 +25,18 @@ An empty `confectory_engines` result is therefore expected before Site pairing.
 The panel distinguishes local preparation from ChatGPT connection and explains
 when the running host cannot open the login window. No project is required for
 these connection steps.
+
+The native window now distinguishes runtime preparation, navigation, login wait,
+engine handshake, connected, disconnected and reported failure. A native loading
+surface appears immediately; elapsed time alone never marks loading as failed.
+Reconnect is shown only after a reported failure or disconnection. X still closes
+the WebView and revokes its engine connection; the page's **연결 닫기** retires the
+connection while leaving the window open. This change does not add background
+hiding, persistent login, restored grants or longer session lifetimes.
+
+The Site page source also hides its redundant login link after pairing and ignores
+late pair/pulse/claim replies after close. Those two Site source files require the
+parent's separate deployment; no Site was published as part of this UX change.
 
 The existing Codex connection panel opens a dedicated Windows Site WebView after
 engine preparation. No project is needed. This separate InPrivate view signs in
@@ -106,8 +119,9 @@ idempotency, completion retries, lease expiry, cold persistence and late replies
 `tests/web/editor_mcp_plugin.py` also exercises the real ordinary EditorHome model,
 existing shared drafts, duplicate remote staging, CAS and human Confirm with an
 owned Site-protocol fixture. This is not real Sites login or plugin installation.
-The Windows host is cross-built; actual Windows authentication and runtime
-navigation remain user-environment acceptance tests.
+The Windows host and its shared presentation lifecycle are cross-built/event-tested.
+The earlier v2 Windows login and engine-only connection were parent-confirmed;
+this updated native loading presentation has not been run or timed on that PC.
 
 ## Verified private deployment
 
@@ -123,10 +137,12 @@ confirmed the following v2 result:
 - Private plugin: `plugin_asdk_app_sites_c997ef642378819187e0c2511c98a119`.
 - Official-helper verification: tests `3/3` passed and Worker build passed again.
 - Live plugin verification: `confectory_engines` returned `{"engines":[]}`.
+- Subsequent parent pixel review and live plugin call confirmed Windows login and
+  one connected engine with `scope: null`; no real project operation was verified.
 
-The successful live call verifies private MCP availability. It does not verify
-Windows WebView authentication, engine pairing, project access or real PC tool
-execution. Those remain user-environment acceptance tests. The initial engine
+The initial empty-list call verified private MCP availability. The later live check
+also verified Windows authentication and engine-only pairing. Real project access
+and PC tool execution remain unverified. The initial engine
 fixture report at `4b60bca18079ae0db3f071a28a8e8ff13d20ae06` predates publication;
 its unpublished status and helper blocker describe that earlier state.
 
