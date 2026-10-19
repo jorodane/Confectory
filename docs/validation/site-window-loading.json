@@ -1,0 +1,87 @@
+{
+  "implementationCommit": "ae84435a5bea87231cedc5b400fe635022ed360a",
+  "verification": {
+    "nativeLifecycleAndExistingBoundary": {
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0,
+      "elapsedSeconds": 0.243
+    },
+    "sitePageAndOwnerScopeQueue": {
+      "passed": 7,
+      "failed": 0,
+      "skipped": 0
+    },
+    "windowsHostBuild": {
+      "errors": 0,
+      "warnings": 0
+    },
+    "siteWorkerBuild": "passed"
+  },
+  "nativePresentation": {
+    "immediatePlaceholder": true,
+    "states": [
+      "preparing",
+      "navigating",
+      "awaiting-login",
+      "connecting",
+      "connected",
+      "reported-failure",
+      "disconnected"
+    ],
+    "retryOnlyAfterFailureOrDisconnect": true,
+    "loadingTimeoutAdded": false,
+    "lateNavigationAndInitializationIgnored": true,
+    "latePreparedConnectionRetiredAfterClose": true
+  },
+  "siteClient": {
+    "hideLoginOnlyAfterPairAcknowledgment": true,
+    "latePairPulseClaimAndDispatchAfterCloseIgnored": true,
+    "latePairSessionRetired": true,
+    "completionRetryDoesNotReexecute": true
+  },
+  "preserved": {
+    "privateProfile": "temporary InPrivate",
+    "sessionMinutes": 30,
+    "heartbeatLeaseSeconds": 15,
+    "explicitScopeAndCas": true,
+    "xClosesAndRevokes": true,
+    "pageCloseDisconnectsWithoutClosingWindow": true,
+    "engineShutdownRevokes": true,
+    "persistentCredentialsCreated": false,
+    "windowHidingImplemented": false,
+    "newAuthenticationServerOrGrant": false
+  },
+  "parentVerified": {
+    "baselineV2WindowsLogin": true,
+    "oneLiveEngineWithScopeNull": true,
+    "realProjectScopeOperation": false,
+    "newLoadingUiRunOrLoginDelayMeasuredOnWindows": false
+  },
+  "sitePublication": {
+    "projectId": "appgprj_6ad620d14cf4819191aef4a4d0a18b43",
+    "pendingParentDeployment": true,
+    "runtimeChanges": [
+      "integrations/confectory-site/worker/bridge-page.js"
+    ],
+    "testChanges": [
+      "integrations/confectory-site/tests/page.test.mjs"
+    ],
+    "databaseOrAuthContractChanges": false,
+    "publishedByThisTask": false
+  },
+  "research": {
+    "document": "docs/SITE_RELAY_LIFETIME.md",
+    "legacyCommit": "1c16fe84444d342d1277c7dd72aef1b505dfe830",
+    "windowsPartialFilesChecked": 27,
+    "hiddenRetainedWebViewAndFixedProfileConfirmed": true,
+    "automaticSiteRelayStartupInvocationFound": false,
+    "nativeSitesExternalBrowserHandoffContract": "not confirmed",
+    "anonymousProbe": "URLError; no HTTP status; no bypass attempted"
+  },
+  "limits": [
+    "Owned fixtures and Windows cross-build do not measure user-PC login delay",
+    "No credential or permission persistence, hidden background lifecycle, or external-browser handoff was implemented",
+    "main, reference ZIPs, Android settings, v508 recovery data and existing PackEngine Links were not changed"
+  ]
+}
