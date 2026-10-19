@@ -1,0 +1,75 @@
+{
+  "sourceCommit": "4b60bca18079ae0db3f071a28a8e8ff13d20ae06",
+  "site": {
+    "id": "appgprj_6ad620d14cf4819191aef4a4d0a18b43",
+    "expectedOrigin": "https://confectory-connect.jorodane.chatgpt.site",
+    "created": true,
+    "ownerOnlyAccessVerified": true,
+    "published": false,
+    "pluginId": null,
+    "installationUrl": null
+  },
+  "sourceDirectories": {
+    "canonical": "integrations/confectory-site",
+    "separateDeployment": "/workspace/sites/confectory-connect"
+  },
+  "verification": {
+    "serverAndPageFixtures": {
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0
+    },
+    "actualEngineAndNormalCheckout": {
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "elapsedSeconds": 75.539
+    },
+    "presentationAndPlatform": {
+      "passed": 7,
+      "failed": 0,
+      "skipped": 0,
+      "elapsedSeconds": 35.708
+    },
+    "windowsHostCrossBuild": {
+      "errors": 0,
+      "warnings": 0
+    }
+  },
+  "fixtureEvidence": {
+    "actualEngine": true,
+    "ownedSiteProtocol": true,
+    "engineBeforeProject": true,
+    "explicitRemoteGrant": true,
+    "readOnlyAndRevoke": true,
+    "remoteSharedDraftDuplicateStageOnce": true,
+    "sourceHashAndRevisionCAS": true,
+    "humanReviewConfirm": true,
+    "coldRetiresConnection": true,
+    "presentationZeroInvokesAndProcesses": true
+  },
+  "notPerformed": [
+    "Actual Sites authentication",
+    "ChatGPT plugin installation or OAuth authorization",
+    "Actual Windows Site relay runtime",
+    "User PC installation or settings changes",
+    "Private Site deployment"
+  ],
+  "blocker": {
+    "kind": "missing_sites_publish_helper",
+    "missingFiles": [
+      "site-workflow.mjs",
+      "project-setup.mjs"
+    ],
+    "mcpConnectionToolResult": "Publish this Site before connecting its MCP server to Codex.",
+    "requiredNextStep": "Use the parent environment Sites helper to push the separate Site source, deploy the exact commit privately, and retrieve the returned plugin ID and actual installation link."
+  },
+  "preserved": {
+    "oldPackEngineLinks": "untouched",
+    "localMain": "b5ea38c3d7eec3eb20f170e68f0f4215b86b2aee",
+    "remoteMainLastObserved": "09e2114aca67e0545ba39c7497440f9b0af76fc5",
+    "v508Stash": "692d393ff7da35ed905264fe5b3a0eff1fef4b95",
+    "v508BundleSha256": "c98dc4ec0809b457344b7c58413e596790717230f19e025d5c74311b968e334e",
+    "referenceZIPsAndAndroidSettings": "untouched"
+  }
+}

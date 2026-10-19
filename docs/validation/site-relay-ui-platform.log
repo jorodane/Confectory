@@ -1,0 +1,11 @@
+PASS EmbeddedChannelTests.test_embedded_channel_correlates_replies_and_retires_on_eof
+PASS EmbeddedChannelTests.test_site_relay_pins_document_nonce_protocol_and_bounded_schema
+PASS Agent presentation zero invokes/processes; partial settings/missing host diagnostics; exact retry, retained input and late close; /tmp/confectory-connection-latency-e99qk02s
+PASS WebUITests.test_actual_agent_connection_presentation_diagnostics_retry_inputs_and_late_close
+PASS MCP managed stdio/owned IPC scope, malformed reply, cancellation, reconnect, duplicate ID /tmp/confectory-mcp-protocol-a5zsn4wn
+PASS WebUITests.test_mcp_managed_stdio_owned_ipc_cancellation_and_reconnect
+PASS MCP portable official-schema snapshots/package hashes/real manifest command; marketplace root/source path/relocation; no installation or marketplace registration {"marketplaceRoot": "confectory-development", "sourcePath": "./plugins/confectory", "catalogResolvesBundledPlugin": true, "officialPortableSchemaSnapshots": true, "allBundledHashes": true, "realManifestCommand": true, "relocatedRootWithSpaces": true, "isolatedPluginCopy": true, "requiredRuntime": {"name": "Microsoft.NETCore.App", "version": "10.0.0"}, "actualChatGPTApp": false, "installed": false, "marketplaceRegistered": false, "userConfigChanged": false}
+PASS WebUITests.test_mcp_portable_package_schema_hashes_and_real_manifest_command
+PASS WebUITests.test_web_ui_client_coalescing_revision_retirement_and_unreplayed_retry
+PASS WebUITests.test_web_ui_scope_revision_cancellation_disposal_and_pack_locality
+7 passed, 0 failed, 0 skipped; 35.708s
