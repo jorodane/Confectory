@@ -4,11 +4,15 @@ New owner-private Sites MCP server and authenticated engine relay. It is indepen
 of PackEngine Links and the local STDIO development plugin. Neither is modified.
 
 - Site: `appgprj_6ad620d14cf4819191aef4a4d0a18b43`
-- Expected origin: `https://confectory-connect.jorodane.chatgpt.site`
+- Published private URL: `https://confectory-connect.jorodane.chatgpt.site`
 - Engine source: this directory in `jorodane/Confectory`, `work/current`.
 - Separate deployment source: `/workspace/sites/confectory-connect`.
-- Status: registered, owner-only access verified, not yet published. No plugin ID
-  or installation URL has been returned. Do not infer one from the Site ID.
+- Status: private v2 deployment succeeded with `has_mcp: true`.
+- Plugin ID: `plugin_asdk_app_sites_c997ef642378819187e0c2511c98a119`.
+- Live private-plugin smoke test: `confectory_engines` succeeded and returned
+  `{"engines":[]}`; no live PC engine was connected during that check.
+- Actual Windows login and engine pairing remain unverified. A plugin installation
+  URL was not supplied with these results; do not infer one from either ID.
 
 ## Connection and permissions
 
@@ -96,7 +100,28 @@ owned Site-protocol fixture. This is not real Sites login or plugin installation
 The Windows host is cross-built; actual Windows authentication and runtime
 navigation remain user-environment acceptance tests.
 
-## Publishing handoff
+## Verified private deployment
+
+The parent environment completed publication using the official Sites helper and
+confirmed the following v2 result:
+
+- Engine repository source: `7f78895a289d1bb1c0b0e2c8cde5543697a64993`.
+- Site source commit: `4c3a80fb33bec3ee520aefa200a321c8bb39c07c`.
+- Saved version: `appgprj_6ad620d14cf4819191aef4a4d0a18b43~appgver_e039beb2f978819199d4f6be09e23323`.
+- Deployment: `appgdep_6ad628b71ac48191a944b8635a5a0118`.
+- Deployment result: `succeeded`, `has_mcp: true`.
+- Published URL: `https://confectory-connect.jorodane.chatgpt.site`.
+- Private plugin: `plugin_asdk_app_sites_c997ef642378819187e0c2511c98a119`.
+- Official-helper verification: tests `3/3` passed and Worker build passed again.
+- Live plugin verification: `confectory_engines` returned `{"engines":[]}`.
+
+The successful live call verifies private MCP availability. It does not verify
+Windows WebView authentication, engine pairing, project access or real PC tool
+execution. Those remain user-environment acceptance tests. The initial engine
+fixture report at `4b60bca18079ae0db3f071a28a8e8ff13d20ae06` predates publication;
+its unpublished status and helper blocker describe that earlier state.
+
+## Future publishing
 
 Use the Sites plugin's shared `site-workflow.mjs` from an environment that has the
 plugin scripts. Run it against the separate deployment directory and this exact
@@ -107,12 +132,6 @@ with `save_version_and_deploy_private`. Sites applies D1 migrations before uploa
 Then call `get_site(include_mcp_connection: true)` and use the returned `plugin_id`
 to obtain the actual private plugin installation link. Do not update PackEngine
 Links or broaden this Site's access policy.
-
-The current execution environment exposes the native Sites calls but has neither
-`site-workflow.mjs` nor `project-setup.mjs` in its installed plugin paths. It cannot
-complete the prescribed source push and private deployment. `get_site` with MCP
-connection information currently returns: "Publish this Site before connecting
-its MCP server to Codex." No deployment or installation success is claimed.
 
 Real user login, App installation/authorization, engine installation/settings,
 permanent credentials, security relaxation and tunnels require their separate
