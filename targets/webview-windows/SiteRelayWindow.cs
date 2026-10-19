@@ -13,6 +13,7 @@ internal sealed class SiteRelayWindow : Form
     readonly SiteRelayLifetime lifetime = new();
     readonly WebView2 view = new() { Dock = DockStyle.Fill, DefaultBackgroundColor = Color.FromArgb(16,20,24) };
     readonly Label status = new() { Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleLeft };
+    readonly TextBox diagnostic = new() { Dock=DockStyle.Bottom, Height=44, Multiline=true, ReadOnly=true, ScrollBars=ScrollBars.Vertical, BackColor=Color.FromArgb(24,30,35), ForeColor=Color.Gainsboro };
     readonly Label pending = new() { Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter, Padding = new Padding(28) };
     readonly Button reconnect = new() { Text = "다시 연결", Dock = DockStyle.Right, Width = 110, Visible = false };
     readonly Button hide = new() { Text = "창 숨기기", AutoSize = true, Visible = false };
@@ -30,11 +31,11 @@ internal sealed class SiteRelayWindow : Form
         Text="Confectory · 개인 플러그인 연결";Width=800;Height=760;BackColor=Color.FromArgb(16,20,24);ForeColor=Color.Gainsboro;
         view.CreationProperties=new CoreWebView2CreationProperties { UserDataFolder=profile, ProfileName=SiteRelayProfile.Name, IsInPrivateModeEnabled=SiteRelayProfile.InPrivate };
         var content=new Panel { Dock=DockStyle.Fill };content.Controls.Add(view);placeholder.Controls.Add(pending);content.Controls.Add(placeholder);Controls.Add(content);
-        var header=new Panel { Dock=DockStyle.Top, Height=156, Padding=new Padding(16,10,16,10), BackColor=BackColor };
+        var header=new Panel { Dock=DockStyle.Top, Height=210, Padding=new Padding(16,10,16,10), BackColor=BackColor };
         var buttons=new FlowLayoutPanel { Dock=DockStyle.Bottom, Height=36, WrapContents=true };
         reconnect.Dock=DockStyle.None;reconnect.AutoSize=true;buttons.Controls.AddRange(new Control[]{hide,disconnect,reconnect,forget});
         var notice=new Label { Dock=DockStyle.Bottom, Height=36, Text="로그인 상태는 이 PC의 Confectory 전용 프로필에 저장됩니다. 로그인 정보 지우기로 삭제할 수 있습니다." };
-        header.Controls.Add(status);header.Controls.Add(notice);header.Controls.Add(buttons);header.Controls.Add(progress);Controls.Add(header);
+        header.Controls.Add(status);header.Controls.Add(diagnostic);header.Controls.Add(notice);header.Controls.Add(buttons);header.Controls.Add(progress);Controls.Add(header);
         reconnect.Click+=async(_,_)=>await Retry();
         hide.Click+=(_,_)=>HideConnectionWindow();disconnect.Click+=async(_,_)=>await DisconnectConnectionAsync();
         forget.Click+=async(_,_)=>await ForgetLogin();
@@ -62,11 +63,18 @@ internal sealed class SiteRelayWindow : Form
         if(closed)return;
         string message=disconnecting?"연결을 해제하고 있습니다.":presentation.Message;
         if(lifetime.Connected&&!lifetime.HostWake)message="엔진 연결 완료 · 이 Site 버전은 숨김 연결을 지원하지 않습니다. 창을 닫으면 연결이 해제됩니다.";
-        status.Text=message;pending.Text=message+"\n\n연결 전 X는 취소합니다. 연결 후에는 창 숨김과 연결 해제를 구분해 주세요.";
+        status.Text=message;diagnostic.Text=presentation.Diagnostic;pending.Text=message+"\n\n연결 전 X는 취소합니다. 연결 후에는 창 숨김과 연결 해제를 구분해 주세요.";
         reconnect.Visible=presentation.CanRetry;reconnect.Enabled=inFlight==0&&!disconnecting&&!clearingLogin;progress.Visible=presentation.Busy;
         hide.Visible=lifetime.CanHide;disconnect.Enabled=!disconnecting&&!clearingLogin;forget.Enabled=!clearingLogin&&!disconnecting;
         placeholder.Visible=!presentation.ShowDocument;
         if(placeholder.Visible)placeholder.BringToFront();else view.BringToFront();
+    }
+    void ReportFailure(long attempt,string code,ulong? page=null)
+    {
+        if(!presentation.Fail(attempt,code,page))return;
+        bool retire=lifetime.Connected;lifetime.Disconnect();heartbeat.Stop();
+        if(retire)_=Retire((JsonObject)configuration.DeepClone());
+        Render();if(!Visible)OpenConnectionWindow();
     }
     bool HideConnectionWindow(){if(!lifetime.Hide())return false;Hide();return true;}
     public void OpenConnectionWindow(){if(closed||!lifetime.Reopen())return;if(!Visible)Show();if(WindowState==FormWindowState.Minimized)WindowState=FormWindowState.Normal;Activate();}
@@ -92,7 +100,7 @@ internal sealed class SiteRelayWindow : Form
                 view.CoreWebView2.Stop();await view.CoreWebView2.Profile.ClearBrowsingDataAsync();
             }))return;
             MessageBox.Show(this,"Confectory 전용 로그인 정보를 지웠습니다. 다음 연결에서는 다시 로그인하세요.");forceClose=true;Close();
-        }catch{if(!closed){presentation.Fail(presentation.Attempt,"login_cleanup_failed");Render();}}
+        }catch(Exception e){if(!closed)ReportFailure(presentation.Attempt,SiteRelayPresentation.ExceptionCode("login-cleanup",e));}
         finally{clearingLogin=false;Render();}
     }
     async Task<JsonNode?> Relay(JsonObject input)
@@ -116,7 +124,7 @@ internal sealed class SiteRelayWindow : Form
                 configuration.Clear();foreach(var item in next)configuration[item.Key]=item.Value?.DeepClone();
             },()=>Retire(next)))return;
             await Initialize(attempt);
-        }catch(Exception e){if(presentation.Fail(attempt,e.GetType().Name))Render();}
+        }catch(Exception e){ReportFailure(attempt,SiteRelayPresentation.ExceptionCode("prepare",e));}
     }
     async Task Initialize(long attempt)
     {
@@ -125,7 +133,7 @@ internal sealed class SiteRelayWindow : Form
             var core=view.CoreWebView2;
             if(!configured){Configure(core);configured=true;}
             navigationAllowed=true;core.Navigate(Address);
-        }catch(Exception e){if(presentation.Fail(attempt,e.GetType().Name))Render();}
+        }catch(Exception e){ReportFailure(attempt,SiteRelayPresentation.ExceptionCode("initialize",e));}
     }
     void Configure(CoreWebView2 core)
     {
@@ -137,17 +145,18 @@ internal sealed class SiteRelayWindow : Form
         core.NavigationStarting+=(_,e)=>{
             if(closed||!navigationAllowed||!Uri.TryCreate(e.Uri,UriKind.Absolute,out var uri)||uri.Scheme!="https"){e.Cancel=true;return;}
             if(lifetime.Connected){_ = DisconnectConnectionAsync();e.Cancel=true;return;}
-            sentHello=false;navigation++;presentation.Navigate(presentation.Attempt,e.NavigationId,!Owned(e.Uri));Render();
+            sentHello=false;navigation++;presentation.Navigate(presentation.Attempt,e.NavigationId,!Owned(e.Uri),e.IsRedirected);Render();
         };
         core.DOMContentLoaded+=(_,e)=>{if(!closed&&presentation.DocumentReady(presentation.Attempt,e.NavigationId,Owned(core.Source)))Render();};
         core.NavigationCompleted+=(_,e)=>{
             if(closed)return;
-            if(e.IsSuccess){if(presentation.DocumentReady(presentation.Attempt,e.NavigationId,Owned(core.Source)))Render();}
-            else if(e.WebErrorStatus!=CoreWebView2WebErrorStatus.OperationCanceled&&presentation.Fail(presentation.Attempt,e.WebErrorStatus.ToString(),e.NavigationId))Render();
+            if(!presentation.NavigationCompleted(presentation.Attempt,e.NavigationId,e.IsSuccess,e.WebErrorStatus.ToString(),e.HttpStatusCode,Owned(core.Source)))return;
+            if(presentation.Current==SiteRelayPresentation.Stage.Failed)ReportFailure(presentation.Attempt,$"navigation: {e.WebErrorStatus}; HTTP={e.HttpStatusCode}",e.NavigationId);
+            else Render();
         };
         core.ProcessFailed+=(_,e)=>{
             if(e.ProcessFailedKind is CoreWebView2ProcessFailedKind.BrowserProcessExited or CoreWebView2ProcessFailedKind.RenderProcessExited)
-                { _ = DisconnectConnectionAsync();if(presentation.Fail(presentation.Attempt,e.ProcessFailedKind.ToString()))Render(); }
+                ReportFailure(presentation.Attempt,"process: "+e.ProcessFailedKind);
         };
         // Authentication may navigate away. Only the exact relay document gets
         // a native message bridge; frames, host objects and generic calls are excluded.
@@ -177,9 +186,9 @@ internal sealed class SiteRelayWindow : Form
                 if(type=="close"){lifetime.Disconnect();heartbeat.Stop();presentation.Disconnect(attempt,page.Value);}
                 Render();core.PostWebMessageAsJson(new JsonObject { ["protocol"]=Protocol,["nonce"]=configuration["nonce"]!.DeepClone(),["requestId"]=requestId,["result"]=result }.ToJsonString());
                 if(type=="paired")HideConnectionWindow();
-            }catch{
+            }catch(Exception error){
                 if(!closed&&generation==navigation&&presentation.IsNavigation(attempt,page.Value)&&Owned(core.Source)&&requestId.Length is >0 and <=128){
-                    if(type is "paired" or "pulse"){lifetime.Disconnect();heartbeat.Stop();presentation.Fail(attempt,"engine_rejected",page.Value);}
+                    if(type is "paired" or "pulse")ReportFailure(attempt,SiteRelayPresentation.ExceptionCode("native-"+type,error),page.Value);
                     Render();core.PostWebMessageAsJson(new JsonObject { ["protocol"]=Protocol,["nonce"]=configuration["nonce"]!.DeepClone(),["requestId"]=requestId,["error"]="engine_rejected" }.ToJsonString());
                 }
             }finally{if(entered)inFlight--;if(isClose)closingMessage=false;Render();}

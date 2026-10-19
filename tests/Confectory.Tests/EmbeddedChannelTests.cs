@@ -4,6 +4,48 @@ using Confectory.Core;
 namespace Confectory.Tests;
 public sealed class EmbeddedChannelTests : TestCase
 {
+    public void test_site_rendered_login_is_not_replaced_by_a_failure_overlay()
+    {
+        var state=new SiteRelayPresentation();long attempt=state.Attempt;
+        state.Navigate(attempt,10,true);state.DocumentReady(attempt,10,false);
+        True(state.ShowDocument);True(state.Fail(attempt,"ConnectionAborted HTTP=200",10));
+        True(state.ShowDocument,"A rendered login must remain visible when navigation reports a failure");
+        True(state.CanRetry&&!state.Busy);True(state.Message.Contains("ConnectionAborted"));
+        True(!state.Paired(attempt,10),"Keeping the login visible must not accept a failed handshake");
+    }
+    public void test_site_authentication_wait_and_stopped_successful_document_remain_usable()
+    {
+        foreach(string error in new[]{"ValidAuthenticationCredentialsRequired","ValidProxyAuthenticationRequired"}){
+            var state=new SiteRelayPresentation();long attempt=state.Attempt;
+            state.Navigate(attempt,10,true);
+            True(state.NavigationCompleted(attempt,10,false,error,401,false));
+            Equal(SiteRelayPresentation.Stage.AwaitingLogin,state.Current);True(state.ShowDocument&&!state.CanRetry);
+            True(state.Diagnostic.Contains(error)&&state.Diagnostic.Contains("HTTP=401"));
+            True(!state.Paired(attempt,10),"An authentication wait is not a successful pair");
+            state.Navigate(attempt,10,false,true);state.DocumentReady(attempt,10,true);state.BridgeReady(attempt,10);
+            True(state.Paired(attempt,10));True(state.NavigationCompleted(attempt,10,false,"ConnectionAborted",200,true));
+            Equal(SiteRelayPresentation.Stage.Connected,state.Current);True(state.ShowDocument&&!state.CanRetry);
+        }
+        var cancelled=new SiteRelayPresentation();long current=cancelled.Attempt;cancelled.Navigate(current,20,true);cancelled.DocumentReady(current,20,false);
+        True(cancelled.NavigationCompleted(current,20,false,"OperationCanceled",0,false));Equal(SiteRelayPresentation.Stage.AwaitingLogin,cancelled.Current);
+        cancelled.Navigate(current,21,false,true);True(!cancelled.NavigationCompleted(current,20,false,"ConnectionReset",0,false));
+        True(cancelled.BridgeReady(current,21));True(cancelled.Paired(current,21));
+    }
+    public void test_site_real_navigation_failures_keep_browser_details_and_require_retry()
+    {
+        foreach(var failure in new[]{("ConnectionAborted",0),("HostNameNotResolved",0),("CertificateExpired",0),("UnexpectedError",403)}){
+            var state=new SiteRelayPresentation();long attempt=state.Attempt;state.Navigate(attempt,10,true);
+            True(state.NavigationCompleted(attempt,10,false,failure.Item1,failure.Item2,false));
+            Equal(SiteRelayPresentation.Stage.Failed,state.Current);True(state.ShowDocument&&state.CanRetry&&!state.Busy);
+            True(state.Diagnostic.Contains(failure.Item1)&&state.Diagnostic.Contains("HTTP="+failure.Item2));
+            True(!state.BridgeReady(attempt,10)&&!state.Paired(attempt,10));
+            True(state.TryRetry(out long fresh));True(!state.NavigationCompleted(attempt,10,true,"Unknown",200,true));
+            state.Navigate(fresh,11,false);True(state.NavigationCompleted(fresh,11,true,"Unknown",200,true));True(state.BridgeReady(fresh,11));True(state.Paired(fresh,11));
+        }
+        var exception=new System.Runtime.InteropServices.COMException("secret-cookie-and-local-path",unchecked((int)0x8007139F));
+        string report=SiteRelayPresentation.ExceptionCode("initialize",exception);
+        True(report.Contains("initialize")&&report.Contains("COMException")&&report.Contains("0x8007139F"));True(!report.Contains("secret"));
+    }
     public void test_site_hidden_relay_reopen_expiry_shutdown_and_fixed_profile()
     {
         var relay=new SiteRelayLifetime();long start=1000,expiry=start+1800000;

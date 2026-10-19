@@ -35,6 +35,16 @@ window without preparing a new connection or resetting its grant. Before pairing
 X cancels. **개인 플러그인 연결 해제** in the main panel and **연결 해제** in the
 connection window stop the relay explicitly. Engine exit always stops it.
 
+A failed navigation keeps the browser's login/error document visible. Authentication
+waits are not terminal failures; an already rendered successful HTTP document that
+reports `ConnectionAborted` is also retained. Actual network, HTTP and certificate
+failures still require inspection/retry and cannot complete pairing. The selectable
+diagnostic field shows the stage, navigation result and HTTP status, or exception
+type/HRESULT for initialization and native transport. It excludes URLs, query
+strings, exception messages, local paths and credentials. If a paired hidden relay
+fails, its window is shown again. Do not begin diagnosis by clearing the profile:
+the diagnostic field is the minimum useful report.
+
 The Site page and native host negotiate `hostWake` only in their paired handshake.
 An older Site that does not acknowledge it stays visible, with an explanation;
 an older native host receives the original paired envelope. Polling and retry
