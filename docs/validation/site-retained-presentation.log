@@ -1,0 +1,3 @@
+PASS Agent presentation zero invokes/processes; partial settings/missing host diagnostics; exact retry, retained input and late close; /tmp/confectory-connection-latency-c0k4ss_9
+PASS WebUITests.test_actual_agent_connection_presentation_diagnostics_retry_inputs_and_late_close
+1 passed, 0 failed, 0 skipped; 90.711s

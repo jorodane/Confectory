@@ -1,0 +1,97 @@
+{
+  "implementationCommit": "dd31cbd94b0795819fb2c88409f61b77f81ea8ca",
+  "verification": {
+    "passed": 20,
+    "failed": 0,
+    "skipped": 0,
+    "nativeLifetimeBoundaryAndTransport": {
+      "passed": 8,
+      "elapsedSeconds": 0.267,
+      "log": "site-retained-native-tests.log"
+    },
+    "sitePageAndOwnerScopeQueue": {
+      "passed": 9,
+      "elapsedMilliseconds": 176.296
+    },
+    "actualEditorMcpSharedDraftCasConfirmAndCold": {
+      "passed": 1,
+      "elapsedSeconds": 137.332,
+      "log": "site-retained-editor-ui.log"
+    },
+    "actualAgentPresentationAndLateClose": {
+      "passed": 1,
+      "elapsedSeconds": 90.711,
+      "log": "site-retained-presentation.log"
+    },
+    "committedGitCheckoutResourcesAndActualStartup": {
+      "passed": 1,
+      "elapsedSeconds": 6.760,
+      "log": "site-retained-checkout.log"
+    },
+    "windowsHostReleaseBuild": { "errors": 0, "warnings": 0 },
+    "testsBuild": { "errors": 0, "warnings": 0 },
+    "siteWorkerBuild": "passed"
+  },
+  "relayLifetime": {
+    "hideAfterPairAcknowledgment": true,
+    "xHidesSupportedActiveConnection": true,
+    "xBeforePairCancels": true,
+    "reopenReusesConnectionAndCurrentGrant": true,
+    "explicitDisconnectSeparateFromHide": true,
+    "engineShutdownRevokes": true,
+    "receivedExpiryNeverExtended": true,
+    "oldSiteWithoutHostWakeStaysVisible": true,
+    "oldNativeReceivesOriginalPairedEnvelope": true,
+    "nativeWakeIntervalMilliseconds": 2000,
+    "fixtureWithStoppedJavascriptTimers": {
+      "simulatedMinutes": 10,
+      "nativeTicks": 300,
+      "polls": 301,
+      "completionRetriesDispatchExactlyOnce": true
+    },
+    "latePairPulseClaimDispatchAndCloseGuarded": true,
+    "unsupportedBrowserFlagsAdded": false
+  },
+  "savedLogin": {
+    "userApproved": true,
+    "profile": "ConfectoryRelay",
+    "directory": "%LOCALAPPDATA%/Confectory/SiteRelay/confectory-connect.jorodane.chatgpt.site",
+    "inPrivate": false,
+    "passwordAutosaveAndGeneralAutofill": false,
+    "cookiesAndStorageManagedOnlyByWebView2": true,
+    "browserCredentialsReadCopiedOrExportedByConfectory": false,
+    "reuseOnNextExplicitConnection": true,
+    "automaticEngineStartupConnectionAdded": false,
+    "forgetAction": "로그인 정보 지우기: disconnect, then Profile.ClearBrowsingDataAsync, then close",
+    "clearFailureOrLateCloseDoesNotClaimSuccess": true,
+    "manualCleanup": "Exit all Confectory engines normally; delete only the dedicated directory",
+    "ordinaryBrowserProfilesChanged": false,
+    "userPcLoginOrSettingsOperatedByThisTask": false
+  },
+  "preserved": {
+    "freshScope": null,
+    "explicitProjectAndNodeGrants": true,
+    "oldSessionGrantOrQueuedJobRestored": false,
+    "sessionMaximumMinutes": 30,
+    "heartbeatLeaseSeconds": 15,
+    "ownerIdentityNonceGenerationAndCasChecks": true,
+    "initialLoadingAndReportedFailurePresentation": true,
+    "newAuthenticationServerOrBypassToken": false,
+    "mainReferenceZipsAndroidAndPackEngineLinksModified": false,
+    "recoveryBundleSha256": "c98dc4ec0809b457344b7c58413e596790717230f19e025d5c74311b968e334e"
+  },
+  "sitePublication": {
+    "projectId": "appgprj_6ad620d14cf4819191aef4a4d0a18b43",
+    "pendingParentDeployment": true,
+    "runtimeChanges": ["integrations/confectory-site/worker/bridge-page.js"],
+    "testChanges": ["integrations/confectory-site/tests/page.test.mjs"],
+    "databaseOrAuthContractChanges": false,
+    "publishedByThisTask": false
+  },
+  "limits": [
+    "The ten-minute hidden-clock case is an owned fixture, not an actual Windows hidden-runtime measurement",
+    "Saved-login reuse and profile deletion have not been exercised on the user's Windows PC",
+    "The actual EditorHome regression uses an owned Site-protocol fixture, not real Sites authentication or ChatGPT App execution",
+    "Earlier v2 Windows login and one scope:null engine were parent-confirmed; updated Windows behavior and real project operations remain unverified"
+  ]
+}
