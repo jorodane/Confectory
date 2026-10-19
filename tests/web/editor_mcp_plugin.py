@@ -45,7 +45,7 @@ def verify_mcp_plugin(page,project,mount,send,envelope,settle,restart,repo,env):
   return binding
  def site_call(binding,kind,ok=True,**extra):return invoke('mcpBridge',dict(action='site-message',type=kind,**binding,**extra),ok=ok)
  def site_grant(binding):
-  expect(panel().locator('[data-mcp-site-grant]')).to_be_enabled();panel().locator('[data-mcp-site-grant]').click();ready();pulse=site_call(binding,'pulse');assert pulse['scope'];return pulse
+  expect(panel().locator('[data-mcp-site-grant]')).to_be_enabled();panel().locator('[data-mcp-site-grant]').click();ready();pulse=site_call(binding,'pulse');assert pulse['scope'];assert len(pulse['tools'])<=6 and len(pulse['engineTools'])==3, 'Old Sites must retain their workspace-only six-tool pulse';return pulse
  def site_job(pulse,name,arguments,call_id=None):return dict(id=uuid.uuid4().hex,claim=uuid.uuid4().hex,callId=call_id or uuid.uuid4().hex,name=name,arguments=arguments,instanceId=engine,scopeVersion=pulse['scopeVersion'],scopeId=pulse['scope']['id'],projectId=pulse['scope']['projectId'])
  def bp():return window('blueprint')
  def front(key):

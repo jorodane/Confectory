@@ -70,7 +70,7 @@ lock(state){
   if(!connected||input["sessionId"]?.ToString()!=remote["sessionId"]!.ToString())throw new UnauthorizedAccessException("site_session_refused");
   if(type=="pulse"){
    remote["lease"]=now+15000;bool granted=remote["scopeId"]!.ToString().Length>0&&remote["scopeId"]!.ToString()==status["scope"]?["id"]?.ToString();
-   return new System.Text.Json.Nodes.JsonObject{["instanceId"]=status["instance"]!.DeepClone(),["scopeVersion"]=remote["scopeVersion"]!.DeepClone(),["scope"]=granted?status["scope"]!.DeepClone():null,["tools"]=new System.Text.Json.Nodes.JsonArray(System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(System.Linq.Enumerable.Concat(EngineTools(),granted?((System.Text.Json.Nodes.JsonArray)prior[9]):new System.Text.Json.Nodes.JsonArray()),row=>row!.DeepClone())))}.ToJsonString();
+   return new System.Text.Json.Nodes.JsonObject{["instanceId"]=status["instance"]!.DeepClone(),["scopeVersion"]=remote["scopeVersion"]!.DeepClone(),["scope"]=granted?status["scope"]!.DeepClone():null,["tools"]=granted?((System.Text.Json.Nodes.JsonArray)prior[9]).DeepClone():new System.Text.Json.Nodes.JsonArray(),["engineTools"]=EngineTools()}.ToJsonString();
   }
   if(type!="dispatch")throw new UnauthorizedAccessException("site_operation_refused");
   var job=input["job"]?.AsObject()??throw new ArgumentException("Bounded relay job required");string scopeId=remote["scopeId"]!.ToString();

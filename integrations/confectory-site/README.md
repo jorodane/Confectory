@@ -125,7 +125,11 @@ is used for consultation; no new global chat/provider/memory service is introduc
 Unsupported game-pack recommendations and automatic Helper/Agent assignment are
 reported as unsupported rather than supplied as mock options.
 
-Engine jobs use the same owner/session/instance queue, request budget and expiry.
+The native pulse keeps its original workspace-only `tools` array (at most six)
+and adds an optional `engineTools` array (at most three). Older Sites ignore that
+field and retain the original workspace behavior; updated Sites store both sets.
+Older native engines advertise no creation tools. Engine jobs use the same
+owner/session/instance queue, request budget and expiry.
 Only these three allowlisted names use reserved empty project/scope pins and zero
 scope version; workspace names still require the exact current grant. Project grant
 changes do not retire engine jobs. Cancellation discards queued/running results;

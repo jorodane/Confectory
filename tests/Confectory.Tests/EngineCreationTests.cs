@@ -19,7 +19,7 @@ public sealed class EngineCreationTests : TestCase
    string nonce="",sid="";
    void Pair(){nonce=M("site-prepare",new{})["nonce"]!.ToString();sid=Guid.NewGuid().ToString("N");M("site-message",new{type="paired",nonce,sessionId=sid,expiresAt=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()+600000});}
    System.Text.Json.Nodes.JsonNode Call(string name,object args,string callId="owned-call")=>M("site-message",new{type="dispatch",nonce,sessionId=sid,job=new{instanceId=instance,scopeVersion=0,scopeId="",projectId="",callId,name,arguments=args}})["value"]!;
-   Pair();var pulse=M("site-message",new{type="pulse",nonce,sessionId=sid});Check(pulse["scope"] is null&&pulse["tools"]!.AsArray().Count==3,"only engine-level definitions before project");
+   Pair();var pulse=M("site-message",new{type="pulse",nonce,sessionId=sid});Check(pulse["scope"] is null&&pulse["tools"]!.AsArray().Count==0&&pulse["engineTools"]!.AsArray().Count==3,"only engine-level definitions before project");
    var options=Call("engine_project_options",new{});Check(options["templates"]![0]!["buildTargets"]!.AsArray().Count==3&&!options.ToJsonString().Contains(repo),"actual supported options without paths");
    var args=new{title="Fixture Created",description="User reviewed this description",intent="Please propose a new project",templateId="empty-projectpack",targetId="dotnet"};
    var proposal=Call("engine_project_propose",args);string id=proposal["id"]!.ToString();Check(proposal["status"]!.ToString()=="pending"&&proposal["projectId"] is null&&!proposal["projectAccessGranted"]!.GetValue<bool>(),"proposal only");

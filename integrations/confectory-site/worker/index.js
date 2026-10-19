@@ -66,13 +66,13 @@ async function relay(db,owner,path,input,now){
   const s=await session(db,owner,input.sessionId,now,false);
   if(path==='pulse'){
     if(input.instanceId!==s.instance||!Number.isSafeInteger(input.scopeVersion)||input.scopeVersion<0||input.scopeVersion<s.scope_version)refuse('scope_changed');
-    if(!Array.isArray(input.tools)||input.tools.length>9)refuse('invalid_tools',400);
-    let scope=null,tools=input.tools.filter(t=>ENGINE.has(t.name)&&object(t.parameters)).map(t=>({name:t.name,description:String(t.description??'').slice(0,2048),parameters:t.parameters}));
+    if(!Array.isArray(input.tools)||input.tools.length>6||input.engineTools!==undefined&&(!Array.isArray(input.engineTools)||input.engineTools.length>3))refuse('invalid_tools',400);
+    let scope=null,tools=(input.engineTools??[]).filter(t=>ENGINE.has(t.name)&&object(t.parameters)).map(t=>({name:t.name,description:String(t.description??'').slice(0,2048),parameters:t.parameters}));
     if(input.scope!==null){
       const v=input.scope;if(!object(v)||!id(v.id)||!id(v.projectId)||typeof v.readOnly!=='boolean'||typeof v.node!=='string'||v.node.length>1024)refuse('invalid_scope',400);
       // Titles and filesystem paths are unnecessary for the remote grant.
       scope={id:v.id,projectId:v.projectId,node:v.node,readOnly:v.readOnly};
-      if(!Array.isArray(input.tools)||input.tools.length>9)refuse('invalid_tools',400);
+      if(!Array.isArray(input.tools)||input.tools.length>6)refuse('invalid_tools',400);
       tools=tools.concat(input.tools.filter(t=>WORKSPACE.has(t.name)&&object(t.parameters)).map(t=>({name:t.name,description:String(t.description??'').slice(0,2048),parameters:t.parameters})));
       if(v.readOnly)tools=tools.filter(t=>!['workspace_stage','workspace_create'].includes(t.name));
     }
