@@ -1,0 +1,122 @@
+{
+  "recordedAtUtc": "2026-10-19T08:04:28.978482+00:00",
+  "sourceCommit": "6fbc03103b9f8423bbb03847e1771691732bc966",
+  "baseWorkCurrent": "7677500fbca6475aa40c54cad5b92c466bc36980",
+  "sourceSha256": {
+    "plugins/MARKETPLACE.md": "11a40424797f246bcd9675f728604845dd4fbaa7ab7ed77e15c9cee8ff4722a9",
+    "plugins/confectory/README.md": "b6ac0f21bcf67495b83694e259fda72ab491ce98d9e6e27393728a2217e6f3c1",
+    "plugins/confectory/plugin.json": "f02d24b1aa523d28d8666828571a8111e2c76c31e935150eaba42c5a7afa4112",
+    "plugins/confectory/skills/setup/SKILL.md": "4ce7a797bef2ab0924dc48d96ad44a04582a9af33b2f076f0772bd52d34f9225",
+    "plugins/marketplace.example.json": "a1a215ceacb5b74ed12e797de68ca49eec74f9d0addcd22af49dcc99e39a7f02",
+    "tests/protocol/mcp_package_owned.py": "15e3f2ea276c0c7a296f2c234f51958aaf8490bcd059f62e72cfc6d6e407ae1b",
+    "tools/package_mcp_plugin.py": "1729537e8ac6922bf6e24ca186f7d1c9b8fac63823ef607ee4035449e767e2e8"
+  },
+  "methods": [
+    "WebUITests.test_mcp_portable_package_schema_hashes_and_real_manifest_command"
+  ],
+  "passed": 1,
+  "failed": 0,
+  "skipped": 0,
+  "log": {
+    "file": "confectory-mcp-marketplace-final-check.log",
+    "sha256": "79af856d7d8ae9c7bf798fa225d69425880ca8f8582246213d543921145fc124"
+  },
+  "localVerification": {
+    "marketplaceRoot": "confectory-development",
+    "sourcePath": "./plugins/confectory",
+    "catalogResolvesBundledPlugin": true,
+    "officialPortableSchemaSnapshots": true,
+    "allBundledHashes": true,
+    "realManifestCommand": true,
+    "relocatedRootWithSpaces": true,
+    "isolatedPluginCopy": true,
+    "requiredRuntime": {
+      "name": "Microsoft.NETCore.App",
+      "version": "10.0.0"
+    },
+    "actualChatGPTApp": false,
+    "installed": false,
+    "marketplaceRegistered": false,
+    "userConfigChanged": false
+  },
+  "deliverable": {
+    "path": "/workspace/artifacts/Confectory-marketplace-dev-0.1.1.zip",
+    "sha256": "1dc20eb8ef68fdab20492fee7431e11c691264c749d6189922b8cf4bdafd2fa1",
+    "marketplaceRoot": "confectory-development",
+    "pluginVersion": "0.1.1",
+    "installed": false,
+    "marketplaceRegistered": false,
+    "bytes": 23696,
+    "kind": "Local development marketplace source transport archive",
+    "receipt": {
+      "version": "0.1.1",
+      "runtime": "net10.0",
+      "marketplace": ".agents/plugins/marketplace.json",
+      "plugin": "plugins/confectory",
+      "files": {
+        ".agents/plugins/marketplace.json": "a1a215ceacb5b74ed12e797de68ca49eec74f9d0addcd22af49dcc99e39a7f02",
+        "README.md": "11a40424797f246bcd9675f728604845dd4fbaa7ab7ed77e15c9cee8ff4722a9",
+        "plugins/confectory/README.md": "b6ac0f21bcf67495b83694e259fda72ab491ce98d9e6e27393728a2217e6f3c1",
+        "plugins/confectory/mcp.json": "743b1f47f9d795b44486296adf1e51804b0c743035da501fdbcbadd32777f59d",
+        "plugins/confectory/plugin.json": "f02d24b1aa523d28d8666828571a8111e2c76c31e935150eaba42c5a7afa4112",
+        "plugins/confectory/server/Confectory.Mcp.deps.json": "ea7314105b8f93ff1d2855441ecaf921d516f43131c7f4a7e6a117184eadd55b",
+        "plugins/confectory/server/Confectory.Mcp.dll": "107d6344313406a17af6e7c920b8da0d33e8908db8c955b6bc01174eefea3236",
+        "plugins/confectory/server/Confectory.Mcp.runtimeconfig.json": "9950d4583cfc9a106857c0d5b8a75b53e8774852b57b80bc3823a74d44a4d87f",
+        "plugins/confectory/skills/setup/SKILL.md": "4ce7a797bef2ab0924dc48d96ad44a04582a9af33b2f076f0772bd52d34f9225"
+      }
+    },
+    "localMarketplaceRoot": "/workspace/artifacts/Confectory-marketplace-dev-0.1.1/confectory-development"
+  },
+  "priorEngineVerification": {
+    "record": "mcp-plugin.json",
+    "sourceCommit": "25c2c1bfbf567eff58fc02ef6bf025aeee830622",
+    "passed": 11,
+    "rerun": false,
+    "engineAndAdapterSourceUnchanged": true,
+    "adapterBinariesUnchanged": {
+      "Confectory.Mcp.dll": "107d6344313406a17af6e7c920b8da0d33e8908db8c955b6bc01174eefea3236",
+      "Confectory.Mcp.deps.json": "ea7314105b8f93ff1d2855441ecaf921d516f43131c7f4a7e6a117184eadd55b",
+      "Confectory.Mcp.runtimeconfig.json": "9950d4583cfc9a106857c0d5b8a75b53e8774852b57b80bc3823a74d44a4d87f"
+    }
+  },
+  "officialReferences": [
+    "https://developers.openai.com/plugins/build/plugins",
+    "https://learn.chatgpt.com/docs/developer-commands",
+    "https://learn.chatgpt.com/docs/plugins",
+    "https://developers.openai.com/plugins/deploy/desktop-only"
+  ],
+  "documentedOnly": [
+    "Personal/repo marketplace registration or codex plugin marketplace add",
+    "Desktop app restart, source selection and details plus installation",
+    "Runtime/PATH checks on the real user desktop host"
+  ],
+  "notExecuted": [
+    "Actual user source registration or settings changes",
+    "Actual ChatGPT plugin installation, cache behavior, onboarding or app connection",
+    "User runtime installation or PATH changes",
+    "Account/credential/permission creation",
+    "Workspace admin import or public directory submission"
+  ],
+  "protected": {
+    "localMain": "b5ea38c3d7eec3eb20f170e68f0f4215b86b2aee",
+    "remoteMainAtReadOnlyCheck": "b05c6ed228a32d7bed181ac80b66a10f9fbb0d32",
+    "originalZipSha256": {
+      "reference/site-ui/Confectory-Editor-Prototype-v196.zip": "02d4824e92ed0edbb43113659982b37a99a614117652bde4d8ac92367e334e34",
+      "reference/site-ui/Confectory-Editor-Prototype-v318.zip": "0a614fe2bf1ad3d8e10dfa8905bb6b61ea9f21b87b2492b2b87ca8566e9e6908",
+      "reference/site-ui/Confectory-Editor-Prototype-v424.zip": "b7969cd109ea2dad38bde9c9ab13967c20162c920a45a8cd51a8f82df6041874",
+      "reference/site-ui/Confectory-Editor-Prototype-v480.zip": "0489844c8c6d90f7cdc8ea0e80628f487dcfb27f2c871b19367a635212d3c5bd",
+      "reference/site-ui/Confectory-Editor-Prototype-v508.zip": "b306ce4deff9616c4107ae224443d864f8fce0f52cf3c3e158de8745c17c659f"
+    },
+    "androidSettingsUnchanged": true,
+    "priorArchivePreserved": true,
+    "pendingV508BranchEnds": {
+      "stash": "692d393ff7da35ed905264fe5b3a0eff1fef4b95",
+      "base": "b05c6ed228a32d7bed181ac80b66a10f9fbb0d32",
+      "bundle": "/workspace/artifacts/Confectory-v508-branch-ends-WIP.bundle",
+      "sha256": "c98dc4ec0809b457344b7c58413e596790717230f19e025d5c74311b968e334e",
+      "bytes": 6205,
+      "restored": false,
+      "published": false
+    }
+  }
+}

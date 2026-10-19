@@ -97,4 +97,6 @@ STDIO는 UTF-8 newline JSON-RPC, 최대 8 MiB frame, 최대 8 pending/2 concurre
 
 초기 MCP 구현 소스 `25c2c1bfbf567eff58fc02ef6bf025aeee830622`의 검사 11개가 통과했다(실패 0, 건너뜀 0, 최대 동시 실행 2개). 당시 메서드·소스·로그·이전 압축 파일의 해시는 [초기 검증 기록](validation/mcp-plugin.json)에 보존한다. 그때의 `Confectory-plugin-dev.zip`은 marketplace 루트가 빠진 이전 산출물이므로 현재 등록 안내에는 사용하지 않는다. 이번 변경은 엔진·어댑터를 바꾸지 않고 개발 소스의 catalog 경로와 패키징·안내를 보완한다.
 
+현재 개발 소스 전달 파일은 `Confectory-marketplace-dev-0.1.1.zip`이며 SHA-256은 `1dc20eb8ef68fdab20492fee7431e11c691264c749d6189922b8cf4bdafd2fa1`이다. 소스 `6fbc031`에서 catalog 경로, 전체 파일 해시, portable schema 및 실제 STDIO 명령을 확인하는 검사 1개가 통과했다. 전체 루트를 공백이 있는 경로로 옮긴 경우와 플러그인만 별도로 복사한 경우도 실행했다. 이는 실제 ChatGPT 설치 cache를 실행한 결과가 아니다. 이전 엔진 검사 11개는 다시 실행하지 않았으며 엔진·어댑터 소스와 전달한 DLL/deps/runtimeconfig의 동일성을 확인했다. [이번 패키징 검증 기록](validation/mcp-marketplace-packaging.json)에 정확한 소스·파일·로그 해시와 문서로만 확인한 단계를 남긴다.
+
 별도로 진행하던 v508 분기 종료 UI는 미완료 상태로 보존돼 있다. stash `692d393ff7da35ed905264fe5b3a0eff1fef4b95`와 `Confectory-v508-branch-ends-WIP.bundle`에 원래 수정 및 미추적 파일을 담았으며, 이 MCP 변경에는 포함하지 않았다. 번들의 선행 커밋은 `b05c6ed228a32d7bed181ac80b66a10f9fbb0d32`, SHA-256은 `c98dc4ec0809b457344b7c58413e596790717230f19e025d5c74311b968e334e`다. 후속 작업에서 보존된 수정과 현재 리소스 선언을 함께 검토해 복원해야 한다.
