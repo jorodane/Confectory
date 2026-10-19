@@ -4,7 +4,12 @@ internal static class ConnectionDeclarations
  public static System.Text.Json.Nodes.JsonObject Query(string project,string? selected,Func<Confectory.Core.Manifest,string> format,Func<string,string> scope)
  {
  project=scope(System.IO.Path.GetFullPath(project));string root=System.IO.Path.GetDirectoryName(project)!;
- var stats=new Confectory.Core.BuildStatistics();var docs=new Confectory.Core.Documents(System.IO.Path.Combine(System.IO.Path.GetTempPath(),"confectory-connection-metadata-v1",Confectory.Core.JsonData.Digest(project)),stats);var registry=new Confectory.Core.Registry(project,docs,stats);
+ // Each query reads current declarations. Serializing/deserializing the persistent build
+ // cache for a small metadata query cost more than parsing these bounded source files.
+ // This reader also applies the declaration scope checks to every registered file.
+ long bytesRead=0;int filesRead=0;
+ byte[] Read(string path){byte[] bytes=System.IO.File.ReadAllBytes(scope(path));bytesRead+=bytes.Length;if(bytes.Length>1048576||bytesRead>16777216||++filesRead>2048)throw new ArgumentException("Connection metadata read budget");return bytes;}
+ var stats=new Confectory.Core.BuildStatistics();var docs=new Confectory.Core.Documents("",stats,Read);var registry=new Confectory.Core.Registry(project,docs,stats);
  var rows=new System.Text.Json.Nodes.JsonArray();foreach(var pack in registry.Packs.OrderBy(p=>p.Key,StringComparer.Ordinal))foreach(var item in pack.Value.Elements.OrderBy(p=>p.Key,StringComparer.Ordinal)){
  if(item.Value.Kind!="object")continue;string id=pack.Key+"::"+item.Key;if(id=="Confectory.AIConnection::Connection")continue;
  string path=scope(Confectory.Core.PackPaths.Owned(System.IO.Path.GetDirectoryName(registry.Paths[pack.Key])!,item.Value.Path));var element=registry.Get(id);var current=element;var seen=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);bool connection=false;

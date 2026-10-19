@@ -6,4 +6,21 @@ if(raw[0]=="exists"){cards=System.Text.Json.Nodes.JsonNode.Parse(raw[1])!.AsArra
 else calls.WriteAtomic.Invoke(path,"[]");
 var helperSaved=calls.FileSnapshot.Invoke(System.IO.Path.Combine(folder,"helper-selections.json"));var helperSelections=helperSaved[0]=="exists"?System.Text.Json.Nodes.JsonNode.Parse(helperSaved[1])!.AsObject():new System.Text.Json.Nodes.JsonObject();if(helperSelections.Count>64||helperSaved[1].Length>65536)throw new ArgumentException("Helper selection budget");
 var model=new System.Text.Json.Nodes.JsonObject{["homePreferences"]=System.Text.Json.Nodes.JsonNode.Parse(calls.HomePreferences.Invoke(folder,"load","{}")),["cards"]=cards,["status"]="",["selected"]=null,["picker"]=null,["shell"]=null,["execution"]=null,["executions"]=new System.Text.Json.Nodes.JsonObject(),["revision"]=0,["helperSelections"]=helperSelections,["helpers"]=new System.Text.Json.Nodes.JsonArray(),["helperContext"]=null,["aiRuns"]=new System.Text.Json.Nodes.JsonObject(),["aiBindings"]=new System.Text.Json.Nodes.JsonObject(),["aiPreview"]=null};
+// Installed connection cards are presentation metadata, not live provider configuration or
+// permission. Opening the picker must not start an authoring process or scan the repository.
+// Explicit catalog refresh and all provider operations still read/validate current declarations.
+var presentations=new System.Text.Json.Nodes.JsonArray();
+try{
+var assembly=System.Reflection.Assembly.GetEntryAssembly();string? linkedText=null;
+if(assembly is not null&&System.Linq.Enumerable.Contains(assembly.GetManifestResourceNames(),"public-linkage.json",StringComparer.Ordinal)){using var stream=assembly.GetManifestResourceStream("public-linkage.json")!;using var reader=new System.IO.StreamReader(stream);linkedText=reader.ReadToEnd();}
+else if(!OperatingSystem.IsBrowser()&&!OperatingSystem.IsAndroid()&&assembly?.Location is string location&&location.Length>0){string sidecar=System.IO.Path.Combine(System.IO.Path.GetDirectoryName(location)!,"public-linkage.json");var info=new System.IO.FileInfo(sidecar);if(info.Exists&&info.Length<=2097152&&info.LinkTarget is null)linkedText=System.IO.File.ReadAllText(sidecar);}
+if(linkedText is string text&&text.Length<=2097152){
+ foreach(var item in System.Text.Json.Nodes.JsonNode.Parse(text)!["elements"]!.AsArray()){
+  var values=item?["metadataValues"];string id=item?["id"]?.ToString()??"";if(values?["role"]?["value"]?.ToString()!="ai-connection"||id=="Confectory.AIConnection::Connection")continue;
+  if(presentations.Count>=32)throw new InvalidOperationException("Linked connection presentation count");var capabilities=new System.Text.Json.Nodes.JsonObject();foreach(string name in new[]{"transport","authentication","desktopSupported","browserSupported","androidSupported","functionTools","unsupportedReason","liveVerified"})capabilities[name]=values?[name]?["value"]?.DeepClone();
+  presentations.Add(new System.Text.Json.Nodes.JsonObject{["id"]=id,["title"]=values?["displayName"]?["value"]?.DeepClone(),["methodField"]=values?["connectionMethodField"]?["value"]?.DeepClone(),["methods"]=System.Text.Json.Nodes.JsonNode.Parse(values?["connectionMethods"]?["value"]?.ToString()??"[]"),["capabilities"]=capabilities});
+ }
+}
+}catch(Exception error) when(error is System.IO.IOException or UnauthorizedAccessException or System.Text.Json.JsonException or InvalidOperationException){presentations.Clear();}
+if(presentations.Count>0)model["connections"]=new System.Text.Json.Nodes.JsonObject{["connections"]=presentations};
 string token=Guid.NewGuid().ToString("N");AppDomain.CurrentDomain.SetData("Confectory.EditorHome."+token,new object[]{calls.CreateManager.Invoke(64),repo,path,model,model.ToJsonString(),new System.Collections.Generic.List<string>(),false,new System.Collections.Generic.Dictionary<string,string>(StringComparer.Ordinal),new System.Collections.Generic.Dictionary<string,string>(StringComparer.Ordinal),new System.Collections.Generic.Dictionary<string,string>(StringComparer.Ordinal),"",new System.Collections.Generic.Dictionary<string,string>(StringComparer.Ordinal),new System.Collections.Generic.Dictionary<string,string>(StringComparer.Ordinal),new System.Collections.Generic.Dictionary<string,string>(StringComparer.Ordinal)});return token;

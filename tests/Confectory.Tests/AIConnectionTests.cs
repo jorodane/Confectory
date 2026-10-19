@@ -2,6 +2,18 @@ using Confectory.Core;
 namespace Confectory.Tests;
 public sealed class AIConnectionTests : TestCase
 {
+ public void test_connection_metadata_reads_current_bytes_without_cross_project_or_stamp_cache()
+ {
+  string root=Path.Combine(f.Root,"fresh-metadata");Directory.CreateDirectory(root);
+  string pack=Path.Combine(root,"codex");Fixture.CopyTree(Path.Combine(Fixture.Repo,"packs/agent-codex"),pack);
+  var manifest=new Parser(File.ReadAllText(Path.Combine(Fixture.Repo,"examples/editor-home/project.cpack")),"fixture").ParseManifest();
+  string Registry(string selected)=>string.Join("\n",manifest.Registry.Select(pair=>"registry "+pair.Key+" "+System.Text.Json.JsonSerializer.Serialize(pair.Key=="Confectory.Agent.Codex"?selected:Path.GetFullPath(Path.Combine(Fixture.Repo,"examples/editor-home",pair.Value.Path)))+";"));
+  string project=Path.Combine(root,"project.cpack");File.WriteAllText(project,"project Fresh.Metadata version \"0.1.0\" {standalone false;"+Registry(Path.Combine(pack,"pack.cpack"))+"}");
+  System.Text.Json.Nodes.JsonNode Query(string input){var run=Processes.Run(new[]{Processes.DotNet(),Path.Combine(Fixture.Repo,"targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll")},System.Text.Json.JsonSerializer.Serialize(new{operation="connectionCatalog",project=input}),timeoutSeconds:30);True(run.ExitCode==0,run.Stderr);var result=System.Text.Json.Nodes.JsonNode.Parse(run.Stdout)!;True(result["ok"]!.GetValue<bool>(),run.Stdout);True(result["result"]!["bodyReads"]!.GetValue<int>()==0);return result["result"]!["connections"]!.AsArray().Single(row=>row!["id"]!.ToString()=="Confectory.Agent.Codex::Connection")!;}
+  True(Query(project)["title"]!.ToString()=="Codex");string source=Path.Combine(pack,"Connection.celem"),before=File.ReadAllText(source);var stamp=File.GetLastWriteTimeUtc(source);string changed=before.Replace("\"Codex\"","\"CodEx\"");True(changed!=before&&changed.Length==before.Length);File.WriteAllText(source,changed);File.SetLastWriteTimeUtc(source,stamp);
+  True(Query(project)["title"]!.ToString()=="CodEx","same-size same-stamp source must be reread");
+  string foreign=Path.Combine(root,"foreign.cpack");File.WriteAllText(foreign,"project Foreign.Metadata version \"0.1.0\" {standalone false;"+Registry(Path.Combine(Fixture.Repo,"packs/agent-codex/pack.cpack"))+"}");True(Query(foreign)["title"]!.ToString()=="Codex");True(Query(project)["title"]!.ToString()=="CodEx");
+ }
  public void test_codex_owned_stdio_protocol_fixture_without_installed_codex_authentication_or_external_network()
  {
  if(!OperatingSystem.IsLinux())Skip("Owned stdio fixture requires Linux /usr/bin/python3; installed CLI probe is explicit opt-in and unauthenticated");

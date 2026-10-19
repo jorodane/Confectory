@@ -1,5 +1,7 @@
+long traceStart=System.Diagnostics.Stopwatch.GetTimestamp();
 int timeout=300000;string? timeoutText=Environment.GetEnvironmentVariable("CONFECTORY_AUTHORING_TIMEOUT_MS");if(timeoutText is not null&&(!int.TryParse(timeoutText,out timeout)||timeout<1000||timeout>900000))throw new ArgumentException("CONFECTORY_AUTHORING_TIMEOUT_MS must be between 1000 and 900000.");
 string host=Environment.GetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST")??throw new InvalidOperationException("Explicit authoring tool strategy required.");
+if(!System.IO.File.Exists(host))throw new InvalidOperationException("AUTHORING_HOST_MISSING");
 string dotnet=Environment.GetEnvironmentVariable("CONFECTORY_DOTNET")??"dotnet";
 var request=System.Text.Json.Nodes.JsonNode.Parse(payload)!.AsObject();request["operation"]=operation;
 var start=new System.Diagnostics.ProcessStartInfo(dotnet){UseShellExecute=false,RedirectStandardInput=true,RedirectStandardOutput=true,RedirectStandardError=true};start.ArgumentList.Add(System.IO.Path.GetFullPath(host));
@@ -25,4 +27,4 @@ var result=System.Text.Json.Nodes.JsonNode.Parse(reply)!.AsObject();if(!result["
 return result["result"]!.ToJsonString();
 
 }
-finally{lock(registry){if(jobs.TryGetValue(owner,out var owned)){owned.Remove(process);if(owned.Count==0)jobs.Remove(owner);}}}
+finally{if(Environment.GetEnvironmentVariable("CONFECTORY_UI_TRACE")=="1")Console.Error.WriteLine("CONFECTORY_UI_TRACE "+System.Text.Json.JsonSerializer.Serialize(new{stage="authoring-process",operation,elapsedMs=System.Diagnostics.Stopwatch.GetElapsedTime(traceStart).TotalMilliseconds}));lock(registry){if(jobs.TryGetValue(owner,out var owned)){owned.Remove(process);if(owned.Count==0)jobs.Remove(owner);}}}

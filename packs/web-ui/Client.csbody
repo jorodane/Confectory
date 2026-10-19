@@ -14,16 +14,22 @@ export function localTransport(token) {
 }
 export class WebView {
  constructor(transport,onState){this.transport=transport;this.onState=onState;this.pending=new Map();this.generation=0;this.active=false;this.onPageHide=()=>{void this.dispose().catch(()=>{});};}
+ trace(stage,start,detail={}){const rows=globalThis.confectoryWebUITrace;if(Array.isArray(rows)){rows.push({stage,elapsedMs:performance.now()-start,...detail});if(rows.length>512)rows.shift();}}
  check(reply){if(!reply.ok)throw new Error(reply.error?.code||'request_failed');return reply;}
  async mount(){const generation=++this.generation;const reply=this.check(await this.transport({op:'mount'}));if(generation!==this.generation){await this.transport({op:'dispose',view:reply.view});return;}
   this.view=reply.view;this.scope=reply.scope;this.active=true;globalThis.addEventListener?.('pagehide',this.onPageHide,{once:true});this.revision=undefined;this.receive(reply);return reply;
  }
- receive(reply){if(this.revision!==undefined&&reply.revision<this.revision)return;const changed=this.revision!==reply.revision;this.revision=reply.revision;this.state=reply.state;if(changed)this.onState?.(reply.state,reply.revision);}
- async update(){if(!this.active)return;const generation=this.generation;const reply=this.check(await this.transport({op:'update',view:this.view,scope:this.scope}));if(!this.active||generation!==this.generation||reply.busy)return;
-  this.receive(reply);for(const row of reply.results||[]){const pending=this.pending.get(row.requestId);if(pending){this.pending.delete(row.requestId);row.ok?pending.resolve(row.result):pending.reject(new Error(row.error?.code||'request_failed'));}}
+ receive(reply){if(this.revision!==undefined&&reply.revision<this.revision)return;const changed=this.revision!==reply.revision;this.revision=reply.revision;this.state=reply.state;if(changed){const start=performance.now();this.onState?.(reply.state,reply.revision);this.trace('render',start);}}
+ update(){if(!this.active)return Promise.resolve();if(this.updating?.generation===this.generation)return this.updating.promise;
+  const generation=this.generation,start=performance.now();
+  const promise=(async()=>{const reply=this.check(await this.transport({op:'update',view:this.view,scope:this.scope}));if(!this.active||generation!==this.generation||reply.busy)return;
+   this.receive(reply);for(const row of reply.results||[]){const pending=this.pending.get(row.requestId);if(pending){this.pending.delete(row.requestId);this.trace('call',pending.start,{endpoint:pending.endpoint,code:row.error?.code||'completed'});row.ok?pending.resolve(row.result):pending.reject(new Error(row.error?.code||'request_failed'));}}
+  })().finally(()=>{this.trace('update',start);if(this.updating?.promise===promise)this.updating=null;});this.updating={generation,promise};return promise;
  }
+ // Wake the coalesced result read after acknowledgement; the regular poll owns recovery.
+ // This sends no second invoke and avoids a polling interval for already completed work.
  call(endpoint,input={}){if(!this.active)return Promise.reject(new Error('view_closed'));const requestId=crypto.randomUUID(),generation=this.generation;
-  const promise=new Promise((resolve,reject)=>{this.pending.set(requestId,{resolve,reject});this.transport({op:'invoke',view:this.view,scope:this.scope,requestId,endpoint,input,expectedRevision:this.revision}).then(reply=>{if(generation!==this.generation)return;if(!reply.ok){this.pending.delete(requestId);reject(new Error(reply.error?.code));}}).catch(error=>{this.pending.delete(requestId);reject(error);});});
+  const promise=new Promise((resolve,reject)=>{this.pending.set(requestId,{resolve,reject,start:performance.now(),endpoint});this.transport({op:'invoke',view:this.view,scope:this.scope,requestId,endpoint,input,expectedRevision:this.revision}).then(reply=>{if(generation!==this.generation)return;if(!reply.ok){this.pending.delete(requestId);reject(new Error(reply.error?.code));}else{void this.update().catch(()=>{});}}).catch(error=>{this.pending.delete(requestId);reject(error);});});
   promise.requestId=requestId;return promise;
  }
  async cancel(requestId){return this.check(await this.transport({op:'cancel',view:this.view,scope:this.scope,requestId}));}

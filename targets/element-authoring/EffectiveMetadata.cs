@@ -20,7 +20,11 @@ internal static class EffectiveMetadata
    }
    string sourceKind=manifest.Kind;manifest.Kind="project";
    System.IO.Directory.CreateDirectory(temporary);string candidate=System.IO.Path.Combine(temporary,"project.cpack");System.IO.File.WriteAllText(candidate,format(manifest));
-   var statistics=new Confectory.Core.BuildStatistics();var registry=new Confectory.Core.Registry(candidate,new Confectory.Core.Documents(System.IO.Path.Combine(temporary,"cache"),statistics),statistics);
+   // Metadata projections have a fresh registry and bounded byte reader per query;
+   // no persistent document cache or project/permission result survives the request.
+   long bytesRead=0;int filesRead=0;
+   byte[] Read(string path){byte[] bytes=System.Text.Encoding.UTF8.GetBytes(read(path));bytesRead+=bytes.Length;if(bytes.Length>1048576||bytesRead>16777216||++filesRead>2048)throw new ArgumentException("Effective metadata read budget");return bytes;}
+   var statistics=new Confectory.Core.BuildStatistics();var registry=new Confectory.Core.Registry(candidate,new Confectory.Core.Documents("",statistics,Read),statistics);
    registry.Paths[manifest.Namespace]=System.IO.Path.GetFullPath(project);
    // Public per-query declaration cache overlays only this explicitly owned draft.
    registry.Elements[id]=selected;var overlayIds=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal){id};int budget=text.Length;

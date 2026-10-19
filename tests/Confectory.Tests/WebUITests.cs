@@ -2,6 +2,19 @@ using Confectory.Core;
 namespace Confectory.Tests;
 public sealed class WebUITests : TestCase
 {
+    public void test_web_ui_client_coalescing_revision_retirement_and_unreplayed_retry()
+    {
+        var run=Processes.Run(new[]{"node",Path.Combine(Fixture.Repo,"tests/web/web_ui_client_lifecycle.mjs")},timeoutSeconds:30);
+        True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS coalesced snapshots"));
+    }
+    public void test_actual_agent_connection_presentation_diagnostics_retry_inputs_and_late_close()
+    {
+        if(!OperatingSystem.IsLinux())Skip("Actual Chromium fixture runs on Linux; user Windows timings are separate observations");
+        var built=new Builder(Path.Combine(Fixture.Repo,"examples","editor-home","project.cpack"),"linux").Build();
+        string report=Path.Combine(f.Root,"connection-latency.json");File.WriteAllText(report,built.ToJsonString());
+        var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/editor_connection_latency.py"),Fixture.Repo,report},timeoutSeconds:240);
+        Console.WriteLine(run.Stdout.Trim());True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS Agent presentation zero invokes/processes"));
+    }
     public void test_mcp_portable_package_schema_hashes_and_real_manifest_command()
     {
         var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/protocol/mcp_package_owned.py"),Fixture.Repo},timeoutSeconds:90);Console.WriteLine(run.Stdout.Trim());True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS MCP portable official-schema"),run.Stdout+run.Stderr);

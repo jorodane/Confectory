@@ -48,7 +48,10 @@ var retiredViews=new System.Collections.Generic.HashSet<string>(StringComparer.O
 var owner=calls.CreateOwner.Invoke(1);int revisionInstance=calls.CreateInstance.Invoke(owner,"Confectory.WebUI::Revision");
 var views=new System.Collections.Generic.Dictionary<string,(string Scope,string[] Subscription)>(StringComparer.Ordinal);
 var requests=new System.Collections.Generic.Dictionary<string,(string Fingerprint,string View,System.Threading.CancellationTokenSource Cancel,System.Text.Json.Nodes.JsonObject Row)>(StringComparer.Ordinal);
-System.Text.Json.Nodes.JsonObject State(){string text=calls.State.Invoke(context);if(text.Length>2097152)throw new InvalidOperationException("State budget exceeded");var s=System.Text.Json.Nodes.JsonNode.Parse(text)!.AsObject();if(s["scope"] is not System.Text.Json.Nodes.JsonObject||s["revision"]!.GetValue<long>()<0||s["state"] is null)throw new InvalidOperationException("Invalid consumer state");return s;}
+// Opt-in timings contain operation names and durations only, never input, state or exception text.
+bool trace=Environment.GetEnvironmentVariable("CONFECTORY_UI_TRACE")=="1";
+void Trace(string stage,long start,string endpoint="",string code=""){if(trace)Console.Error.WriteLine("CONFECTORY_UI_TRACE "+System.Text.Json.JsonSerializer.Serialize(new{stage,endpoint,code,elapsedMs=System.Diagnostics.Stopwatch.GetElapsedTime(start).TotalMilliseconds}));}
+System.Text.Json.Nodes.JsonObject State(string stage="snapshot"){long started=System.Diagnostics.Stopwatch.GetTimestamp();try{string text=calls.State.Invoke(context);if(text.Length>2097152)throw new InvalidOperationException("State budget exceeded");var s=System.Text.Json.Nodes.JsonNode.Parse(text)!.AsObject();if(s["scope"] is not System.Text.Json.Nodes.JsonObject||s["revision"]!.GetValue<long>()<0||s["state"] is null)throw new InvalidOperationException("Invalid consumer state");return s;}finally{Trace(stage,started);}}
 System.Text.Json.Nodes.JsonObject Error(string code,string id="")=>new(){["ok"]=false,["requestId"]=id,["error"]=new System.Text.Json.Nodes.JsonObject{["code"]=code}};
 System.Text.Json.Nodes.JsonObject? Refresh(){if(!System.Threading.Monitor.TryEnter(execution))return null;try{var s=State();calls.Write.Invoke(owner,revisionInstance,s["revision"]!.GetValue<long>());return s;}finally{System.Threading.Monitor.Exit(execution);}}
 string Dispatch(string text){
@@ -93,11 +96,11 @@ string Dispatch(string text){
     System.Text.Json.Nodes.JsonNode? result=null;string? error=null;
     try{lock(execution){
      if(cancel.IsCancellationRequested)error="cancelled";
-     else{var before=State();if(!System.Text.Json.Nodes.JsonNode.DeepEquals(before["scope"],System.Text.Json.Nodes.JsonNode.Parse(mounted.Scope)))error="scope_changed";
+     else{var before=State("invoke-before");if(!System.Text.Json.Nodes.JsonNode.DeepEquals(before["scope"],System.Text.Json.Nodes.JsonNode.Parse(mounted.Scope)))error="scope_changed";
       else if(before["revision"]!.GetValue<long>()!=expected)error="stale_revision";
-      else {string output=calls.Invoke.Invoke(context,endpoint,payload,cancellation);if(output.Length>2097152)throw new InvalidOperationException("Result budget exceeded");result=System.Text.Json.Nodes.JsonNode.Parse(output);if(!System.Text.Json.Nodes.JsonNode.DeepEquals(State()["scope"],System.Text.Json.Nodes.JsonNode.Parse(mounted.Scope))){error="scope_changed";result=null;}}
+      else {long started=System.Diagnostics.Stopwatch.GetTimestamp();string output;try{output=calls.Invoke.Invoke(context,endpoint,payload,cancellation);}finally{Trace("consumer",started,endpoint);}if(output.Length>2097152)throw new InvalidOperationException("Result budget exceeded");result=System.Text.Json.Nodes.JsonNode.Parse(output);if(!System.Text.Json.Nodes.JsonNode.DeepEquals(State("invoke-after")["scope"],System.Text.Json.Nodes.JsonNode.Parse(mounted.Scope))){error="scope_changed";result=null;}}
      }
-    }}catch(OperationCanceledException){error="cancelled";}catch(Exception){error="consumer_error";}
+    }}catch(OperationCanceledException){error="cancelled";}catch(Exception caught){error="consumer_error";Trace("failure",System.Diagnostics.Stopwatch.GetTimestamp(),endpoint,caught.GetType().Name);}
     finally{AppDomain.CurrentDomain.SetData("Confectory.WebUI.Cancel."+cancellation,null);}
     lock(gate){bool retired=closing||!views.ContainsKey(v);if(cancel.IsCancellationRequested||retired){error="cancelled";result=null;}
      status["ok"]=error is null;status["status"]=error=="cancelled"?"cancelled":error is null?"completed":"failed";
