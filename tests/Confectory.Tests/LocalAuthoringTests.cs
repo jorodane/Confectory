@@ -1,7 +1,7 @@
 using Confectory.Core;
 using System.Text.Json.Nodes;
 namespace Confectory.Tests;
-public sealed class LocalAuthoringTests : TestCase
+public sealed partial class LocalAuthoringTests : TestCase
 {
     void Consumer(string body,string marker)
     {
