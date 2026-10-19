@@ -1,0 +1,96 @@
+{
+  "implementationCommit": "e48cd81f59cab49034ee4639db0837363587b4d3",
+  "userRunCommit": "7f78895a289d1bb1c0b0e2c8cde5543697a64993",
+  "remoteMainDuringInvestigation": "7f78895a289d1bb1c0b0e2c8cde5543697a64993",
+  "workBeforeFix": "812acb12bc52007a5ef3fd29059f1277a6174a35",
+  "versionFinding": "Both branches already contained the Site connection implementation; their difference was README only.",
+  "reproduction": {
+    "viewport": [
+      1360,
+      900
+    ],
+    "dialogScrollTop": 0,
+    "nextActionTop": 1033.1875,
+    "nextActionBottom": 1075.1875,
+    "dialogBottom": 855,
+    "expectedRegressionFailure": true,
+    "cause": "The next login action was below project access settings and outside the visible scrolling dialog; local preparation text omitted the required Site login step."
+  },
+  "fix": {
+    "nextActionBesidePreparation": true,
+    "localPreparationDistinctFromChatGPTConnection": true,
+    "unsupportedBrowserAndHostReasonsVisible": true,
+    "projectRequiredForConnection": false
+  },
+  "verification": {
+    "actualEngineUiAndExistingDraftCasConfirm": {
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "elapsedSeconds": 136.216
+    },
+    "presentationAndExistingTransport": {
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "elapsedSeconds": 88.97
+    },
+    "nativeScriptAndNormalGitCheckout": {
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "elapsedSeconds": 6.883
+    },
+    "windowsHostCrossBuild": {
+      "errors": 0,
+      "warnings": 0
+    }
+  },
+  "uiFixture": {
+    "nextActionVisibleWithoutScroll": true,
+    "smallViewport": [
+      900,
+      760
+    ],
+    "nativeCapabilityClickCount": 1,
+    "windowAcknowledgmentDoesNotClaimPairing": true,
+    "missingNativeCapabilityReason": true,
+    "browserDiagnosticReason": true,
+    "presentationExtraInvokesAndProcesses": 0
+  },
+  "nativePath": [
+    "confectoryWebUI.connectSite()",
+    "send(null, site-connect)",
+    "Program WebMessageReceived site-connect",
+    "private native site-relay prepare",
+    "WebInvoke host.site-relay",
+    "McpBridge site-prepare",
+    "SiteRelayWindow.Show and Initialize",
+    "fixed HTTPS /editor-bridge"
+  ],
+  "nativeVerification": "The regression executes the actual injected Program.cs JS and checks its native envelope, reply correlation, rejection and frame exclusion. Windows host cross-build passed; actual Windows runtime/login/pairing were not executed.",
+  "newClickPath": [
+    "Agent 연결",
+    "Codex",
+    "엔진 연결 준비",
+    "2. ChatGPT 로그인 · 엔진 연결",
+    "전용 창에서 로그인 및 연결"
+  ],
+  "existing7fClickPath": [
+    "Agent 연결",
+    "Codex",
+    "엔진 연결 준비",
+    "대화상자 안을 아래로 스크롤",
+    "개인 ChatGPT 플러그인",
+    "개인 플러그인 연결 창"
+  ],
+  "preserved": [
+    "main branch",
+    "Site Worker and deployed v2",
+    "owner/scope/CAS boundaries",
+    "user PC settings and login",
+    "original ZIPs",
+    "v508 stash and recovery bundle",
+    "Android settings"
+  ]
+}
