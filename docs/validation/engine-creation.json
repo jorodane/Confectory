@@ -1,0 +1,150 @@
+{
+  "implementationCommits": [
+    "1c1f143a7b414aba9d3fd884625b55d01e9d746f",
+    "ac2d89b6d8c34941c1496f323496dfcaf3b55082"
+  ],
+  "problem": "Engine-only MCP connections exposed no creation options or proposal/review path before a project existed",
+  "engineTools": [
+    "engine_project_options",
+    "engine_project_propose",
+    "engine_project_status"
+  ],
+  "creationContract": {
+    "owner": "Confectory.EditorHome.Model::EngineCreation",
+    "optionsFrom": "Confectory.ProjectManager::CreationTemplate",
+    "templateId": "empty-projectpack",
+    "targetId": "dotnet",
+    "buildTargets": [
+      "portable",
+      "windows",
+      "linux"
+    ],
+    "explicitUserIntentRequiredForProposal": true,
+    "proposalCreatesFiles": false,
+    "parentPathAcceptedFromMcp": false,
+    "review": "Home proposal notice opens the existing creation form; the user may edit title/description or reject",
+    "confirmation": "Only the local native create-project action, with local parent-folder selection, invokes the existing creator",
+    "genericWebUiCreationConfirmationBlocked": true,
+    "remoteConfirmTool": false,
+    "receiptWithoutPaths": true,
+    "creationGrantsProjectAccess": false,
+    "duplicateCallIdentityPinned": true,
+    "connectionOwnerStatusPinned": true,
+    "disconnectAndExpiryRetirePendingConfirmation": true,
+    "restartRestoresPendingProposal": false,
+    "newChatSystemProviderCallOrPrivateHelperMemoryRead": false,
+    "unsupported": [
+      "game-pack recommendations",
+      "automatic Helper/Agent assignment",
+      "arbitrary target packs",
+      "shell or arbitrary filesystem tools"
+    ]
+  },
+  "siteQueue": {
+    "engineDiscovery": "confectory_engine_tools with exact sessionId and instanceId",
+    "projectGrantRequiredForEngineTools": false,
+    "workspaceGrantChecksPreserved": true,
+    "engineOnlyReservedPins": {
+      "scopeId": "",
+      "projectId": "",
+      "scopeVersion": 0
+    },
+    "reservedPinsAcceptedOnlyForThreeEngineNames": true,
+    "ownerSessionInstanceLeaseExpiryAndCallFingerprintChecksPreserved": true,
+    "projectScopeChangesDoNotRetireEngineJobs": true,
+    "interruptedJobsAutomaticallyReexecuted": false,
+    "pulseCompatibility": "Original tools array remains workspace-only and at most six; optional engineTools holds at most three. Older Sites ignore the added field.",
+    "databaseMigrationRequired": false,
+    "sessionMaximumMinutes": 30,
+    "heartbeatLeaseSeconds": 15
+  },
+  "verification": {
+    "passed": 26,
+    "failed": 0,
+    "skipped": 0,
+    "nativeLifetimeBoundaryTransportAndActualCreationModel": {
+      "passed": 12,
+      "elapsedSeconds": 43.719,
+      "log": "engine-creation-model-native-final.log"
+    },
+    "actualChromiumMcpCreationReviewAndExistingDraftCasConfirmCold": {
+      "passed": 1,
+      "elapsedSeconds": 70.704,
+      "log": "engine-creation-ui-final.log"
+    },
+    "actualManagedStdioOwnedIpcScript": {
+      "passed": 1,
+      "script": "tests/protocol/mcp_adapter_owned.py",
+      "log": "engine-creation-adapter-final.log"
+    },
+    "sitePageOwnerQueueAndEngineCreation": {
+      "passed": 10,
+      "elapsedMilliseconds": 299.64341,
+      "log": "engine-creation-site-final.log"
+    },
+    "finalCommittedCheckoutResourcesAndStartup": {
+      "passed": 1,
+      "elapsedSeconds": 7.06,
+      "log": "engine-creation-checkout-final.log"
+    },
+    "portablePackageSchemaHashesAndRelocation": {
+      "passed": 1,
+      "log": "engine-creation-checkout-package.log",
+      "countNote": "This earlier two-test log also includes checkout; checkout is counted once using the final committed-source rerun above"
+    },
+    "windowsHostBuild": {
+      "warnings": 0,
+      "errors": 0,
+      "elapsedSeconds": 0.84,
+      "log": "engine-creation-windows-host.log"
+    },
+    "windowsComposition": {
+      "target": "windows",
+      "ok": true,
+      "sdk": "10.0.401",
+      "framework": "net10.0",
+      "mode": "portable",
+      "includedPacks": 38,
+      "engineCreationContractPresentInBuildReport": true
+    },
+    "mcpAdapterBuild": {
+      "warnings": 0,
+      "errors": 0,
+      "elapsedSeconds": 0.74,
+      "log": "engine-creation-mcp-build.log"
+    },
+    "siteWorkerBuild": "passed",
+    "adapterAssemblySha256": "b6db822585f96dcfa9aacafe1fa6bf114223f42b8f7bbf22878484f6e7e2ccb7",
+    "maximumConcurrentHeavyGates": 2
+  },
+  "sitePublication": {
+    "projectId": "appgprj_6ad620d14cf4819191aef4a4d0a18b43",
+    "runtimeChanges": [
+      "integrations/confectory-site/worker/index.js"
+    ],
+    "testChanges": [
+      "integrations/confectory-site/tests/relay.test.mjs"
+    ],
+    "pendingParentDeployment": true,
+    "publishedByThisTask": false,
+    "olderSiteRetainsWorkspaceBehaviorButHasNoCreationTools": true
+  },
+  "uiReferenceInvestigation": {
+    "record": "ui-reference-provenance.json",
+    "fullLatestReferenceUiImplemented": false,
+    "specific300SeriesExecutionOnUserPcProven": false,
+    "confirmedGap": "Production assets are a separate incremental port; the latest retained v508 creation form tabs/helper roster are not fully implemented"
+  },
+  "limits": [
+    "Actual Windows login, native folder picker and creation on the user PC were not operated",
+    "Fixture project creation used only owned temporary storage and the existing production creator",
+    "Chromium used an owned native-capability/Site-protocol fixture; real Sites authentication and ChatGPT App execution were not performed",
+    "Prior fixed distribution ZIPs were not replaced; source and packaged fixture tests use the current rebuilt adapter",
+    "Initial fixture assumptions about four connection-only tools were updated to include three engine tools; an idempotent shutdown cleanup defect found in the first model run was corrected before the final pass"
+  ],
+  "preserved": {
+    "mainReferenceZipsAndroidAndPackEngineLinksModified": false,
+    "userInstallationSettingsCredentialsOrPcModified": false,
+    "recoveryBundleSha256": "c98dc4ec0809b457344b7c58413e596790717230f19e025d5c74311b968e334e"
+  }
+}

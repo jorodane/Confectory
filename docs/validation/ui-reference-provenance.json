@@ -1,0 +1,48 @@
+{
+  "inspectionBaseline": "99c18ae6f6f736ec1748c24d4471155f8794d6ac",
+  "observedRemoteMain": "4dc5415f74e00d1b0057fb78649f4e4e74de36b5",
+  "observedRemoteWorkCurrent": "99c18ae6f6f736ec1748c24d4471155f8794d6ac",
+  "referenceFilesObserved": [
+    "reference/site-ui/Confectory-Editor-Prototype-v196.zip",
+    "reference/site-ui/Confectory-Editor-Prototype-v318.zip",
+    "reference/site-ui/Confectory-Editor-Prototype-v424.zip",
+    "reference/site-ui/Confectory-Editor-Prototype-v480.zip",
+    "reference/site-ui/Confectory-Editor-Prototype-v508.zip"
+  ],
+  "highestReferencePresentAtInspection": 508,
+  "normalWindowsEntry": [
+    "Confectory.bat",
+    "scripts/windows/launcher.ps1 -Action editor",
+    "examples/editor-home/project.cpack",
+    "examples/editor-home/Main.csbody",
+    "examples/editor-home/WebStart.csbody",
+    "examples/editor-home/WebBundle.csbody",
+    "examples/editor-home/ui/index.html"
+  ],
+  "launcherClearsInheritedLegacyPresentationSwitches": true,
+  "mainDefaultsWindowsToEmbeddedWebStart": true,
+  "productionAssets": "Separate incrementally ported assets under examples/editor-home/ui; reference ZIP assets are not selected by the launcher",
+  "baselineAppGitBlobOnMainAndWork": "49ee21cdf4179e80c33917e303e38df9f0a6caaa",
+  "baselineAppSha256": "79213e4d9517cffe787993e6f72b2f248d3959627576e5c5660c6ed12f2404a9",
+  "lastBaselineAppCommit": "0c2b47c662358e4f960050d1b048b1025ab58248",
+  "legacyMarkers": [
+    "WebBundle comment says v196 assets",
+    "WebBundle resource version is 196-local-1",
+    "app.js identifies a frozen v196 presentation port"
+  ],
+  "markerLimit": "These retained resource identifiers/comments are not proof of the UI version running on the user PC",
+  "confirmedReferenceGap": {
+    "referenceSource": "Confectory-v508/dist/app.js in the retained ZIP",
+    "referenceCreation": "project-create-form with project-create-tabs, settings/packs panels and helper roster",
+    "productionCreationBaseline": "Single creation form; Main Helper and Main Agent selectors disabled; game-pack recommendation disabled",
+    "otherImplementedIncrements": "Separate v480 workspace/home/navigation and v508 Blueprint increments exist; this is not a complete latest-reference UI port"
+  },
+  "notEstablished": [
+    "User PC executed a 300-series file",
+    "An old executable/cache/association selected a different checkout",
+    "A recovery operation newly reintroduced a specific 300-series UI"
+  ],
+  "userPcOrScreenshotsInspected": false,
+  "referenceArchivesMainAndroidOrUserSettingsChanged": false,
+  "scopeOfCurrentImplementation": "Only engine-level project creation consultation and existing form review; no full UI rewrite or latest-reference completion claim"
+}

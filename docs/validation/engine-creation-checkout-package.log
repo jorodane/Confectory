@@ -1,0 +1,4 @@
+PASS WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup
+PASS MCP portable official-schema snapshots/package hashes/real manifest command; marketplace root/source path/relocation; no installation or marketplace registration {"marketplaceRoot": "confectory-development", "sourcePath": "./plugins/confectory", "catalogResolvesBundledPlugin": true, "officialPortableSchemaSnapshots": true, "allBundledHashes": true, "realManifestCommand": true, "relocatedRootWithSpaces": true, "isolatedPluginCopy": true, "requiredRuntime": {"name": "Microsoft.NETCore.App", "version": "10.0.0"}, "actualChatGPTApp": false, "installed": false, "marketplaceRegistered": false, "userConfigChanged": false}
+PASS WebUITests.test_mcp_portable_package_schema_hashes_and_real_manifest_command
+2 passed, 0 failed, 0 skipped; 7.430s

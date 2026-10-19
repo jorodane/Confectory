@@ -1,0 +1,22 @@
+
+> test
+> node --test tests/*.test.mjs
+
+✔ completion retries retransmit the same claim without executing the engine again (15.990765ms)
+✔ native wakes sustain polling with browser timers stopped and host disconnect ends it (46.907278ms)
+✔ closing during an engine operation discards its late completion (12.563297ms)
+✔ hidden completion retries use native wakes and never execute a claimed edit twice (14.695351ms)
+✔ closing during api:pair ignores late results and keeps the disconnected UI (11.780258ms)
+✔ closing during paired ignores late results and keeps the disconnected UI (11.742631ms)
+✔ closing during api:pulse ignores late results and keeps the disconnected UI (13.41373ms)
+✔ closing during api:claim ignores late results and keeps the disconnected UI (11.405462ms)
+✔ private scoped tool schemas, persistent relay boundaries, duplicate calls, cancellation, expiry and cold storage (152.737907ms)
+✔ engine creation proposals without a project retain identity, idempotency, cancellation and expiry (31.851273ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 299.64341
