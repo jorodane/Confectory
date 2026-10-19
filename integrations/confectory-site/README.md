@@ -43,7 +43,16 @@ Review/Confirm in the engine.
 
 MCP calls explicitly identify `sessionId`, `instanceId`, `scopeVersion`, `scopeId`,
 `projectId`, `callId`, and an `arguments` object. `confectory_engines` reports the
-owner's live grants. The six workspace tools return a durable `requestId`;
+owner's live grants. Before calling a workspace tool, call `confectory_tools` with
+the exact session/instance/scope generation/scope/project pins. It returns only
+that grant's permitted definitions, preserving the engine's original `parameters`
+and an exact callable relay `inputSchema`. The latter keeps node enums, required
+fields, types and CAS constraints, while moving the engine-injected `projectId`
+and `scopeId` out of the inner `arguments` object. Static `tools/list` contains no
+private schema values. Missing, stale, read-only, foreign-owner and retired grants
+cannot expose definitions they do not permit.
+
+The six workspace tools return a durable `requestId`;
 `confectory_result` reads its status/result, and `confectory_cancel` cancels pending
 execution or discards a running result. Cancellation does not roll back drafts.
 

@@ -98,10 +98,23 @@ async function relay(db,owner,path,input,now){
   }
   refuse('unknown_route',404);
 }
-const pins={sessionId:{type:'string'},instanceId:{type:'string'},scopeVersion:{type:'integer'},scopeId:{type:'string'},projectId:{type:'string'},callId:{type:'string'},arguments:{type:'object'}};
+const scopePins={sessionId:{type:'string'},instanceId:{type:'string'},scopeVersion:{type:'integer'},scopeId:{type:'string'},projectId:{type:'string'}};
+const pins={...scopePins,callId:{type:'string',pattern:'^[a-zA-Z0-9_-]{1,128}$'},arguments:{type:'object'}};
+function permittedTools(s,scope){return parse(s.tools).filter(t=>WORKSPACE.has(t.name)&&object(t.parameters)&&!(scope.readOnly&&['workspace_stage','workspace_create'].includes(t.name)));}
+function scopedDefinition(t,s,scope){
+  const argumentsSchema=structuredClone(t.parameters);
+  // These two engine arguments are injected from the validated transport pins.
+  // Retain the original parameters as well as the exact callable relay schema.
+  if(object(argumentsSchema.properties)){delete argumentsSchema.properties.projectId;delete argumentsSchema.properties.scopeId;}
+  if(Array.isArray(argumentsSchema.required))argumentsSchema.required=argumentsSchema.required.filter(k=>!['projectId','scopeId'].includes(k));
+  const properties={...structuredClone(pins),arguments:argumentsSchema};
+  for(const [key,value] of Object.entries({sessionId:s.id,instanceId:s.instance,scopeVersion:s.scope_version,scopeId:scope.id,projectId:scope.projectId}))properties[key].enum=[value];
+  return {name:t.name,description:t.description,parameters:t.parameters,inputSchema:{type:'object',properties,required:Object.keys(pins),additionalProperties:false}};
+}
 const tools=[
  {name:'confectory_engines',description:'List this signed-in owner’s live engines and explicitly granted scope. Connection alone grants no project access.',inputSchema:{type:'object',properties:{},additionalProperties:false}},
- ...[...WORKSPACE].map(name=>({name,description:'Queue '+name+' for one explicitly identified engine and grant. Results are fetched with confectory_result. Editing uses shared drafts; final Review/Confirm stays in the editor.',inputSchema:{type:'object',properties:pins,required:Object.keys(pins),additionalProperties:false}})),
+ {name:'confectory_tools',description:'Fetch the exact permitted workspace definitions for one explicit current grant before calling workspace tools. Each definition includes original engine parameters and a callable relay inputSchema. The transport injects projectId and scopeId into engine arguments; omit them inside arguments.',inputSchema:{type:'object',properties:scopePins,required:Object.keys(scopePins),additionalProperties:false}},
+ ...[...WORKSPACE].map(name=>({name,description:'Queue '+name+' for one explicitly identified engine and grant. First fetch its exact inputSchema with confectory_tools. Results are fetched with confectory_result. Editing uses shared drafts; final Review/Confirm stays in the editor.',inputSchema:{type:'object',properties:pins,required:Object.keys(pins),additionalProperties:false}})),
  ...['result','cancel'].map(op=>({name:'confectory_'+op,description:op==='result'?'Read a queued request result. An interrupted edit has an unknown outcome: inspect shared changes before creating a new call.':'Cancel a queued request or discard a running result; applied draft changes are not rolled back.',inputSchema:{type:'object',properties:{sessionId:{type:'string'},requestId:{type:'string'}},required:['sessionId','requestId'],additionalProperties:false}}))
 ];
 async function tool(db,owner,name,args,now){
@@ -110,6 +123,12 @@ async function tool(db,owner,name,args,now){
     return {engines:list.results.map(s=>({sessionId:s.id,instanceId:s.instance,scope:parse(s.scope),scopeVersion:s.scope_version,expiresAt:s.expires}))};
   }
   const s=await session(db,owner,args.sessionId,now);
+  if(name==='confectory_tools'){
+    const scope=scopeMatches(s,args),definitions=permittedTools(s,scope).map(t=>scopedDefinition(t,s,scope));
+    const current=await session(db,owner,s.id,Date.now());scopeMatches(current,args);
+    if(current.tools!==s.tools)refuse('scope_changed');
+    return {tools:definitions};
+  }
   if(name==='confectory_result'||name==='confectory_cancel'){
     if(!id(args.requestId))refuse('invalid_request',400);
     let job=await stmt(db,'SELECT * FROM requests WHERE id = ?',args.requestId).first();
@@ -125,7 +144,7 @@ async function tool(db,owner,name,args,now){
   if(!WORKSPACE.has(name))refuse('tool_denied',403);
   const scope=scopeMatches(s,args);if(!id(args.callId)||!object(args.arguments)||Object.hasOwn(args.arguments,'scopeId'))refuse('invalid_arguments',400);
   if(scope.readOnly&&['workspace_stage','workspace_create'].includes(name))refuse('read_only',403);
-  if(!parse(s.tools).some(t=>t.name===name))refuse('tool_denied',403);
+  if(!permittedTools(s,scope).some(t=>t.name===name))refuse('tool_denied',403);
   const fingerprint=await digest({name,args}),rid=uid();
   const prior=await stmt(db,'SELECT id,fingerprint,status FROM requests WHERE owner = ? AND session = ? AND call_id = ?',owner,s.id,args.callId).first();
   if(prior){if(prior.fingerprint!==fingerprint)refuse('call_id_reused');return {requestId:prior.id,status:prior.status};}
