@@ -1,5 +1,5 @@
 """Actual engine-first connection, scoped existing drafts and integrated Codex UI."""
-import json,pathlib,re,socket,sys,uuid
+import json,pathlib,re,socket,sys,time,uuid
 from playwright.sync_api import expect
 sys.path.insert(0,str(pathlib.Path(__file__).resolve().parents[1]/'protocol'))
 from mcp_client import Client
@@ -37,6 +37,16 @@ def verify_mcp_plugin(page,project,mount,send,envelope,settle,restart,repo,env):
   panel().locator('[data-mcp-node]').select_option(node);panel().locator('[data-mcp-readonly]').set_checked(readonly);panel().locator('[data-mcp-grant]').click();ready();status=state()['mcpBridge'];assert status['state']=='ready' and status['instance']==engine;scope=status['scope'];assert scope['readOnly']==readonly and scope['node']==node;return scope
  def revoke():
   panel().locator('[data-mcp-revoke]').click();ready();assert state()['mcpBridge']['scope'] is None
+ def site_pair():
+  prepared=invoke('mcpBridge',dict(action='site-prepare'));assert prepared['url']=='https://confectory-connect.jorodane.chatgpt.site/editor-bridge'
+  binding=dict(nonce=prepared['nonce'],sessionId=uuid.uuid4().hex)
+  invoke('mcpBridge',dict(action='site-message',type='paired',expiresAt=int(time.time()*1000)+600000,**binding))
+  visible=state()['mcpBridge']['site'];assert visible['state']=='connected' and not visible['scopeGranted'] and 'nonce' not in json.dumps(visible) and 'sessionId' not in visible
+  return binding
+ def site_call(binding,kind,ok=True,**extra):return invoke('mcpBridge',dict(action='site-message',type=kind,**binding,**extra),ok=ok)
+ def site_grant(binding):
+  expect(panel().locator('[data-mcp-site-grant]')).to_be_enabled();panel().locator('[data-mcp-site-grant]').click();ready();pulse=site_call(binding,'pulse');assert pulse['scope'];return pulse
+ def site_job(pulse,name,arguments,call_id=None):return dict(id=uuid.uuid4().hex,claim=uuid.uuid4().hex,callId=call_id or uuid.uuid4().hex,name=name,arguments=arguments,instanceId=engine,scopeVersion=pulse['scopeVersion'],scopeId=pulse['scope']['id'],projectId=pulse['scope']['projectId'])
  def bp():return window('blueprint')
  def front(key):
   title=window(key).locator('.window-title');point=title.evaluate("e=>{const r=e.getBoundingClientRect();for(const f of [.8,.6,.3,.95]){const x=Math.floor(r.width*f),y=18,hit=document.elementFromPoint(r.left+x,r.top+y);if(hit&&e.contains(hit)&&!hit.closest('button'))return {x,y}}return null}");assert point;title.click(position=point)
@@ -52,6 +62,10 @@ def verify_mcp_plugin(page,project,mount,send,envelope,settle,restart,repo,env):
   assert client.call('confectory_instances')[0]['code']=='engine_not_running'
   open_ai();expect(panel().locator('[data-mcp-grant]')).to_be_disabled();panel().locator('[data-mcp-start]').click();ready();status=state()['mcpBridge'];engine=status['instance'];assert status['state']=='ready' and status['scope'] is None
   expect(panel().locator('[data-mcp-instance]')).to_have_text(engine);connected=client.connect(engine);assert connected['scope'] is None and connected['state']=='ready';assert len(client.request('tools/list')['tools'])==4
+  owned_site=site_pair();assert site_call(owned_site,'pulse')['scope'] is None
+  site_call(dict(owned_site,nonce='0'*64),'pulse',ok=False);site_call(dict(owned_site,sessionId='f'*32),'pulse',ok=False)
+  invoke('mcpBridge',dict(action='site-grant',connectionId=state()['mcpBridge']['site']['connectionId'],instanceId=engine,scopeVersion=0,scopeId='missing'),ok=False)
+  site_call(owned_site,'close')
   assert client.call('workspace_read',dict(projectId='unselected',scopeId='0'*32,id=source))[0]['code']=='no_project_scope'
   layout('home-engine-only');page.set_viewport_size({'width':900,'height':760});layout('home-compact');page.set_viewport_size({'width':1360,'height':900});close_ai()
   page.locator('[data-project]').filter(has_text='Overview A').locator('[data-enter]').click();ready();project_id=state()['projectId'];assert client.call('confectory_status')[0]['scope'] is None and state()['mcpBridge']['instance']==engine
@@ -71,10 +85,25 @@ def verify_mcp_plugin(page,project,mount,send,envelope,settle,restart,repo,env):
    except (BrokenPipeError,ConnectionResetError):pass
   assert client.call('confectory_status')[0]['instance']==engine
   read,error=client.call('workspace_read',dict(projectId=project_id,scopeId=scope_id,id=source));assert not error and json.loads(read['text'])['source']=='return value + 4;'
+  owned_site=site_pair();assert site_call(owned_site,'pulse')['scope'] is None
+  invoke('mcpBridge',dict(action='site-grant',connectionId='old-connection',instanceId=engine,scopeVersion=state()['mcpBridge']['scopeVersion'],scopeId=scope_id),ok=False)
+  pulse=site_grant(owned_site);assert pulse['scope']['readOnly']
+  remote_read=site_job(pulse,'workspace_read',dict(id=source));assert site_call(owned_site,'dispatch',job=remote_read)['value']==read
+  site_call(owned_site,'dispatch',job=dict(remote_read,scopeId='foreign'),ok=False)
+  site_call(owned_site,'dispatch',job=site_job(pulse,'confirm',{}),ok=False)
+  site_call(owned_site,'dispatch',job=site_job(pulse,'workspace_stage',dict(id=source,text=read['text'],expectedRevision=read['revision'],expectedHash=read['textHash'])),ok=False)
+  panel().locator('[data-mcp-site-revoke]').click();ready();assert site_call(owned_site,'pulse')['scope'] is None;site_call(owned_site,'dispatch',job=remote_read,ok=False)
+  assert client.call('workspace_read',dict(projectId=project_id,scopeId=scope_id,id=source))[0]==read
+  site_call(owned_site,'close')
   denied,error=client.call('workspace_stage',dict(projectId=project_id,scopeId=scope_id,id=source,text=read['text'],expectedRevision=read['revision'],expectedHash=read['textHash']));assert error and denied['code']=='read_only';assert all(p.read_bytes()==raw for p,raw in original.items())
   old_read=dict(projectId=project_id,scopeId=scope_id,id=source);revoke();assert client.call('confectory_status')[0]['scope'] is None and client.call('workspace_read',old_read)[1]
   scope=grant(False);scope_id=scope['id'];assert scope_id!=old_read['scopeId'];assert host_call(old_read)['code']=='scope_changed';close_ai()
-  current,error=client.call('workspace_read',dict(projectId=project_id,scopeId=scope_id,id=source));assert not error;record=json.loads(current['text']);record['source']='return value + 8;';text=json.dumps(record)
+  current,error=client.call('workspace_read',dict(projectId=project_id,scopeId=scope_id,id=source));assert not error
+  open_ai();owned_site=site_pair();pulse=site_grant(owned_site);record=json.loads(current['text']);record['source']='return value + 6;'
+  remote_stage=site_job(pulse,'workspace_stage',dict(id=source,text=json.dumps(record),expectedRevision=current['revision'],expectedHash=current['textHash']))
+  staged=site_call(owned_site,'dispatch',job=remote_stage);assert staged['value']['applied'];assert site_call(owned_site,'dispatch',job=remote_stage)==staged
+  current,error=client.call('workspace_read',dict(projectId=project_id,scopeId=scope_id,id=source));assert not error and json.loads(current['text'])['source']=='return value + 6;';assert all(p.read_bytes()==raw for p,raw in original.items())
+  site_call(owned_site,'close');site_call(owned_site,'dispatch',job=remote_stage,ok=False);close_ai();record=json.loads(current['text']);record['source']='return value + 8;';text=json.dumps(record)
   front('blueprint');bp().locator('[data-bp-intent]').fill('MCP_UNSENT_INTENT');stage_args=dict(projectId=project_id,scopeId=scope_id,id=source,text=text,expectedRevision=current['revision'],expectedHash=current['textHash']);request=client.send('tools/call',dict(name='workspace_stage',arguments=stage_args),id='stage-once');result=client.receive(request)['result'];assert not result['isError'] and json.loads(result['content'][0]['text'])['applied'];client.send('tools/call',dict(name='workspace_stage',arguments=stage_args),id='stage-once');assert client.receive('stage-once')['result']==result
   expect(bp().locator('[data-bp-intent]')).to_have_value('MCP_UNSENT_INTENT');bp().locator('[data-bp-intent]').locator('..').locator('[data-apply]').click();ready();expect(bp().locator('[data-bp-intent]')).to_have_value('MCP_UNSENT_INTENT');bp().locator('[data-bp-intent]').locator('..').locator('[data-reset]').click()
   latest,error=client.call('workspace_read',dict(projectId=project_id,scopeId=scope_id,id=source));assert not error and latest['revision']==current['revision']+1;assert json.loads(latest['text'])['source']=='return value + 8;';assert all(p.read_bytes()==raw for p,raw in original.items())
@@ -94,5 +123,5 @@ def verify_mcp_plugin(page,project,mount,send,envelope,settle,restart,repo,env):
   page.locator('[data-project]').filter(has_text='Overview A').locator('[data-enter]').click();ready();open_ai();again=grant(True,'');assert again['projectId']==project_id and again['id']!=old_a['scopeId'];assert client.call('workspace_read',old_a)[1];close_ai()
   invoke('saveDraft',{});restart();ready();assert client.call('confectory_status')[1] and client.call('confectory_instances')[0]['code']=='engine_not_running';open_ai();assert not state().get('mcpBridge') or state()['mcpBridge']['state']=='stopped';panel().locator('[data-mcp-start]').click();ready();new=state()['mcpBridge'];assert new['instance']!=engine and new['scope'] is None;invoke('mcpBridge',dict(action='scope',instanceId=engine,projectId=state()['projectId'],scopeVersion=new['scopeVersion'],node=''),ok=False);assert state()['mcpBridge']['scope'] is None;client.connect(new['instance']);assert client.call('workspace_read',old_a)[0]['code']=='no_project_scope';layout('after-cold');panel().locator('[data-mcp-stop]').click();ready()
   assert not {'runProject','startAI','prepareAI','startInstallation','startLogin','permission'}.intersection(calls),calls
-  evidence=dict(actualEngine='ordinary EditorHome with existing DevelopmentTools',actualAdapter='managed MCP stdio over private Unix IPC',engineConnectedBeforeProject=True,explicitProjectScopeAfterConnection=True,staleUngrantedSelectionRefused=True,openCloseSwitchRetainEngine=True,scopeEpochRejectsOldSameProjectHandles=True,cachedAndRawOldScopeRefused=True,malformedPeerRetainsScope=True,initialReadOnly=True,existingSharedNodeDraft=True,duplicateStageOnce=True,unsentIntentAndOriginalFilesRetained=True,peerSourcePinAndHashCASRefused=True,humanCompilerReviewConfirm=True,coldRetiresConnectionAndScope=True,confirmedSource='return value + 10;',layouts=layouts,realChatGPTApp=False,installed=False,registered=False,networkPort=False)
+  evidence=dict(actualEngine='ordinary EditorHome with existing DevelopmentTools',actualAdapter='managed MCP stdio over private Unix IPC',engineConnectedBeforeProject=True,explicitProjectScopeAfterConnection=True,staleUngrantedSelectionRefused=True,openCloseSwitchRetainEngine=True,scopeEpochRejectsOldSameProjectHandles=True,cachedAndRawOldScopeRefused=True,malformedPeerRetainsScope=True,initialReadOnly=True,existingSharedNodeDraft=True,duplicateStageOnce=True,unsentIntentAndOriginalFilesRetained=True,peerSourcePinAndHashCASRefused=True,humanCompilerReviewConfirm=True,coldRetiresConnectionAndScope=True,confirmedSource='return value + 10;',layouts=layouts,ownedSiteProtocolFixture=True,remoteStartsWithoutScope=True,remoteWrongNonceSessionAndConnectionRefused=True,remoteReadOnlyAndRevoke=True,remoteSharedDraftAndDuplicateStage=True,realSitesAuthentication=False,realWindowsRelayRuntime=False,realChatGPTApp=False,installed=False,registered=False,networkPort=False)
   pathlib.Path('/workspace/scratch/confectory-mcp-ui.json').write_text(json.dumps(evidence,indent=2)+'\n');print('PASS actual MCP plugin shared node/CAS/Confirm/cold '+json.dumps(evidence),flush=True)

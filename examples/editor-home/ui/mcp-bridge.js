@@ -21,16 +21,25 @@ export function createMcpBridge(api){
    $('[data-mcp-stop]',root).dataset.supported=String(active);
    $('[data-mcp-grant]',root).dataset.supported=String(active&&!!project&&!scope&&field.value!=='choose');
    $('[data-mcp-revoke]',root).dataset.supported=String(active&&!!scope);
+   const site=status.site||{},paired=site.state==='connected'&&site.expiresAt>Date.now();root.dataset.siteConnection=site.connectionId||'';
+   $('[data-mcp-site-state]',root).textContent=paired?(site.scopeGranted?'개인 플러그인 연결됨 · 선택한 범위 공유 중':'개인 플러그인 연결됨 · 프로젝트 접근 없음'):site.state==='waiting'?'전용 연결 창에서 로그인과 연결을 완료하세요.':'개인 플러그인은 별도 연결 창에서 연결합니다.';
+   $('[data-mcp-site-open]',root).dataset.supported=String(active&&typeof globalThis.confectoryWebUI?.connectSite==='function');
+   $('[data-mcp-site-grant]',root).dataset.supported=String(paired&&!!scope&&!site.scopeGranted);
+   $('[data-mcp-site-revoke]',root).dataset.supported=String(paired&&site.scopeGranted===true);
   }
   api.controls();
  }
  function mount(root){
   root.dataset.mcpPanel='';root.innerHTML='<p>ChatGPT 앱의 플러그인으로 이 Confectory 엔진에 연결합니다. 연결한 뒤 대화 중에 접근할 프로젝트와 범위를 따로 고를 수 있습니다.</p><div class="actions"><button class="primary" data-operation data-mcp-start>엔진 연결 준비</button><button data-operation data-mcp-stop>엔진 연결 닫기</button></div><p data-mcp-status role="status"></p><fieldset class="mcp-project-scope"><legend>프로젝트 접근</legend><p data-mcp-target></p><label>접근 범위 <select data-operation data-mcp-node></select></label><label class="check"><input type="checkbox" data-operation data-mcp-readonly checked>프로젝트 읽기 전용</label><p class="small">편집을 허용해도 기존 초안에만 적용합니다. 최종 반영은 변경 검토와 Review/Confirm에서 직접 진행합니다.</p><div class="actions"><button data-operation data-mcp-grant>선택한 범위 허용</button><button data-operation data-mcp-revoke>프로젝트 접근 해제</button></div><p data-mcp-scope></p></fieldset><details><summary>개발 패키지와 연결 정보</summary><p><a href="https://github.com/jorodane/Confectory/blob/work/current/docs/MCP_PLUGIN.md" target="_blank" rel="noopener noreferrer">개발 소스 등록·설치 안내</a></p><p class="small">실제 ChatGPT 앱 설치와 연결은 별도 확인이 필요합니다. 여러 엔진이면 instanceId로 선택합니다.</p><p>현재 엔진 instanceId: <code data-mcp-instance></code></p><code data-mcp-directory></code></details>';
-  const call=(action,args={})=>api.work(async()=>{if(!root.isConnected)throw Error('연결 화면이 닫혔습니다. 다시 확인하세요.');if(action==='scope'&&(!root.dataset.project||root.dataset.project!==api.current.projectId))throw Error('접근 대상이 바뀌었습니다.');await api.view.call('mcpBridge',{action,...args});update();},'엔진 연결과 프로젝트 접근 상태를 갱신했습니다.');
+  root.querySelector('details').insertAdjacentHTML('beforebegin','<fieldset><legend>개인 ChatGPT 플러그인</legend><p data-mcp-site-state role="status"></p><p class="small">설치 링크는 새 private Site 배포 후 제공됩니다. Windows 전용 창에서 ChatGPT로 로그인한 뒤 연결합니다.</p><div class="actions"><button data-operation data-mcp-site-open>개인 플러그인 연결 창</button><button data-operation data-mcp-site-grant>현재 범위를 개인 플러그인에 허용</button><button data-operation data-mcp-site-revoke>개인 플러그인 접근 해제</button></div></fieldset>');
+  const call=(action,args={})=>api.work(async()=>{if(!root.isConnected)throw Error('연결 화면이 닫혔습니다. 다시 확인하세요.');if((action==='scope'||action==='site-grant')&&(!root.dataset.project||root.dataset.project!==api.current.projectId))throw Error('접근 대상이 바뀌었습니다.');await api.view.call('mcpBridge',{action,...args});update();},'엔진 연결과 프로젝트 접근 상태를 갱신했습니다.');
   $('[data-mcp-start]',root).onclick=()=>call('start');$('[data-mcp-stop]',root).onclick=()=>call('stop');
   $('[data-mcp-node]',root).onchange=update;
   $('[data-mcp-grant]',root).onclick=()=>call('scope',{instanceId:root.dataset.instance,projectId:root.dataset.project,scopeVersion:Number(root.dataset.scopeVersion),node:$('[data-mcp-node]',root).value,readOnly:$('[data-mcp-readonly]',root).checked});
   $('[data-mcp-revoke]',root).onclick=()=>call('revoke',{instanceId:root.dataset.instance,scopeVersion:Number(root.dataset.scopeVersion)});
+  $('[data-mcp-site-open]',root).onclick=()=>api.work(async()=>{if(!root.isConnected)throw Error('연결 화면이 닫혔습니다.');const result=await globalThis.confectoryWebUI.connectSite();if(!result?.ok)throw Error('연결 창을 시작하지 못했습니다.');},'개인 플러그인 연결 창을 열었습니다.');
+  $('[data-mcp-site-grant]',root).onclick=()=>call('site-grant',{connectionId:root.dataset.siteConnection,instanceId:root.dataset.instance,scopeVersion:Number(root.dataset.scopeVersion),scopeId:root.dataset.scope});
+  $('[data-mcp-site-revoke]',root).onclick=()=>call('site-revoke');
   update();
  }
  return {mount,update};

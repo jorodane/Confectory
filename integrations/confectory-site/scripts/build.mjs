@@ -1,0 +1,12 @@
+import { readFile, mkdir, rm, writeFile, cp } from 'node:fs/promises';
+const root = new URL('../', import.meta.url);
+const manifest = JSON.parse(await readFile(new URL('.openai/hosting.json', root), 'utf8'));
+if (!/^appgprj_[a-zA-Z0-9]+$/.test(manifest.project_id) || manifest.d1 !== 'DB' || manifest.capabilities?.join() !== 'mcp' || 'static' in manifest) throw Error('Private MCP Worker manifest required');
+await rm(new URL('dist/', root), {recursive:true, force:true});
+await mkdir(new URL('dist/server/', root), {recursive:true});
+await mkdir(new URL('dist/.openai/', root), {recursive:true});
+const page = (await readFile(new URL('worker/bridge-page.js', root), 'utf8')).replace('export const bridgePage', 'const bridgePage');
+const worker = (await readFile(new URL('worker/index.js', root), 'utf8')).replace("import { bridgePage } from './bridge-page.js';", page);
+await writeFile(new URL('dist/server/index.js', root), worker);
+await writeFile(new URL('dist/.openai/hosting.json', root), JSON.stringify(manifest, null, 2)+'\n');
+await cp(new URL('drizzle/', root), new URL('dist/drizzle/', root), {recursive:true});

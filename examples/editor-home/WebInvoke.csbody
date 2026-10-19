@@ -3,6 +3,7 @@ var args=System.Text.Json.Nodes.JsonNode.Parse(input)!.AsObject();
 System.Text.Json.Nodes.JsonNode Command(string operation,System.Text.Json.Nodes.JsonObject payload){var result=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(context,operation,payload.ToJsonString()))!;if(result["status"]?.ToString().StartsWith("Error:",StringComparison.Ordinal)==true)throw new InvalidOperationException("Consumer rejected operation");return result;}
 var before=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(context))!;
 if(endpoint=="mcpBridge")return calls.McpBridge.Invoke(context,args["action"]?.GetValue<string>()??"status",args.ToJsonString());
+if(endpoint=="host.site-relay")return calls.McpBridge.Invoke(context,args["prepare"]?.GetValue<bool>()==true?"site-prepare":"site-message",args.ToJsonString());
 if(endpoint=="saveHomePreferences"){Command("home-preferences-save",new(){["preferences"]=args["preferences"]!.DeepClone()});return "{\"accepted\":true}";}
 if(endpoint=="homeSummaries"){Command("home-summaries",new());return "{\"accepted\":true}";}
 if(endpoint is "projectInformation" or "saveProjectInformation"){

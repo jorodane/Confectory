@@ -3,6 +3,24 @@ using System.Text.Json.Nodes;
 namespace Confectory.Tests;
 public sealed class EmbeddedChannelTests : TestCase
 {
+    public void test_site_relay_pins_document_nonce_protocol_and_bounded_schema()
+    {
+        string address=SiteRelayBoundary.Address,nonce=new('a',64);
+        var message=new JsonObject{["protocol"]=SiteRelayBoundary.Protocol,["type"]="pulse",["nonce"]=nonce,["requestId"]="1",["sessionId"]="session"};
+        bool Accept(JsonObject value,string? current=null,string? source=null,bool hello=true)=>SiteRelayBoundary.TryRead(current??address,source??address,value.ToJsonString(),nonce,hello,out _);
+        True(Accept(message));True(!Accept(message,hello:false));
+        foreach(string foreign in new[]{"http://confectory-connect.jorodane.chatgpt.site/editor-bridge",address+"/",address+"?other",address+"#other","https://confectory-connect.jorodane.chatgpt.site/signin-with-chatgpt","https://confectory-connect.jorodane.chatgpt.site.foreign.invalid/editor-bridge","https://foreign.invalid/editor-bridge"}){True(!Accept(message,current:foreign));True(!Accept(message,source:foreign));}
+        var wrong=(JsonObject)message.DeepClone();wrong["nonce"]=new string('b',64);True(!Accept(wrong));
+        wrong=(JsonObject)message.DeepClone();wrong["protocol"]="packengine.editor.v1";True(!Accept(wrong));
+        foreach(string action in new[]{"start","scope","revoke","prepare","confirm","request","native"}){wrong=(JsonObject)message.DeepClone();wrong["type"]=action;True(!Accept(wrong));}
+        wrong=(JsonObject)message.DeepClone();wrong["prepare"]=true;True(!Accept(wrong));
+        wrong=(JsonObject)message.DeepClone();wrong["requestId"]=new string('x',129);True(!Accept(wrong));
+        wrong=(JsonObject)message.DeepClone();wrong["requestId"]=1;True(!Accept(wrong));
+        True(!SiteRelayBoundary.TryRead(address,address,new string('x',1572865),nonce,true,out _));
+        True(!SiteRelayBoundary.TryRead(address,address,"[]",nonce,true,out _));
+        True(!SiteRelayBoundary.TryRead(address,address,"{",nonce,true,out _));
+        var ready=new JsonObject{["protocol"]=SiteRelayBoundary.Protocol,["type"]="ready"};True(Accept(ready,hello:false));True(!Accept(ready));
+    }
     // Exercises the actual platform-neutral host channel, not a replacement UI.
     public void test_embedded_channel_correlates_replies_and_retires_on_eof()
     {

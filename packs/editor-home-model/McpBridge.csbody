@@ -1,10 +1,15 @@
-if(payload.Length>2097152||operation is not ("start" or "status" or "stop" or "scope" or "revoke"))throw new ArgumentException("Bounded MCP bridge operation required");
+if(payload.Length>2097152||operation is not ("start" or "status" or "stop" or "scope" or "revoke" or "site-prepare" or "site-message" or "site-grant" or "site-revoke"))throw new ArgumentException("Bounded MCP bridge operation required");
 var state=AppDomain.CurrentDomain.GetData("Confectory.EditorHome."+session) as object[]??throw new ObjectDisposedException("Entry/home session");
-string key="Confectory.EditorHome.McpBridge."+session,stopKey=key+".stop",revokeKey=key+".revoke";
+string key="Confectory.EditorHome.McpBridge."+session,stopKey=key+".stop",revokeKey=key+".revoke",remoteKey=key+".site";
 lock(state){
  var model=(System.Text.Json.Nodes.JsonObject)state[3];var prior=AppDomain.CurrentDomain.GetData(key) as object[];
  void Publish(System.Text.Json.Nodes.JsonObject status){model["mcpBridge"]=status.DeepClone();model["revision"]=model["revision"]!.GetValue<int>()+1;System.Threading.Volatile.Write(ref state[4],model.ToJsonString());}
+ void RemoteRevoke(object[] bridge,bool stop=false){
+  if(AppDomain.CurrentDomain.GetData(remoteKey) is System.Text.Json.Nodes.JsonObject remote){remote["scopeId"]="";remote["scopeVersion"]=remote["scopeVersion"]!.GetValue<long>()+1;if(stop)AppDomain.CurrentDomain.SetData(remoteKey,null);}
+  var status=(System.Text.Json.Nodes.JsonObject)bridge[8];if(status["site"] is System.Text.Json.Nodes.JsonObject visible){visible["scopeGranted"]=false;if(stop)visible["state"]="stopped";}
+ }
  void Revoke(object[] bridge){
+  RemoteRevoke(bridge);
   if(((string)bridge[6]).Length>0)calls.Close.Invoke((string)bridge[6]);
   bridge[6]="";bridge[9]=new System.Text.Json.Nodes.JsonArray();bridge[11]=bridge[12]=bridge[14]="";
   var status=(System.Text.Json.Nodes.JsonObject)bridge[8];status["scope"]=null;status["scopeVersion"]=status["scopeVersion"]!.GetValue<long>()+1;status["message"]="엔진 연결은 유지됩니다. 프로젝트 접근 범위를 선택하세요.";Publish(status);
@@ -14,12 +19,52 @@ lock(state){
   bridge[7]=true;((System.Threading.CancellationTokenSource)bridge[1]).Cancel();
   lock(bridge[0]){(bridge[2] as IDisposable)?.Dispose();(bridge[13] as IDisposable)?.Dispose();}
   try{System.IO.File.Delete((string)bridge[4]);}catch(System.IO.IOException){}
-  AppDomain.CurrentDomain.SetData(key,null);AppDomain.CurrentDomain.SetData(stopKey,null);AppDomain.CurrentDomain.SetData(revokeKey,null);
+  RemoteRevoke(bridge,true);AppDomain.CurrentDomain.SetData(key,null);AppDomain.CurrentDomain.SetData(stopKey,null);AppDomain.CurrentDomain.SetData(revokeKey,null);AppDomain.CurrentDomain.SetData(key+".dispatch",null);
   Publish(new System.Text.Json.Nodes.JsonObject{["state"]="stopped",["message"]="플러그인 연결을 닫았습니다. 기존 초안은 유지됩니다."});
  }
  if(operation=="stop"){if(prior is not null)Stop(prior);return (model["mcpBridge"]??new System.Text.Json.Nodes.JsonObject{["state"]="stopped"}).ToJsonString();}
  if(operation=="status")return (model["mcpBridge"]??new System.Text.Json.Nodes.JsonObject{["state"]="stopped"}).ToJsonString();
  if((bool)state[6])throw new ObjectDisposedException("Entry/home session");
+ if(operation.StartsWith("site-",StringComparison.Ordinal)){
+  if(prior is null)throw new InvalidOperationException("Prepare the engine connection first");
+  var status=(System.Text.Json.Nodes.JsonObject)prior[8];var input=System.Text.Json.Nodes.JsonNode.Parse(payload)!.AsObject();long now=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+  if(operation=="site-prepare"){
+   RemoteRevoke(prior,true);string nonce=Convert.ToHexString(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32)).ToLowerInvariant();
+   string connectionId=Guid.NewGuid().ToString("N");var created=new System.Text.Json.Nodes.JsonObject{["nonce"]=nonce,["connectionId"]=connectionId,["sessionId"]="",["expiresAt"]=now+600000,["lease"]=now+600000,["scopeId"]="",["scopeVersion"]=0L};AppDomain.CurrentDomain.SetData(remoteKey,created);
+   status["site"]=new System.Text.Json.Nodes.JsonObject{["state"]="waiting",["connectionId"]=connectionId,["scopeGranted"]=false,["expiresAt"]=now+600000};Publish(status);
+   return new System.Text.Json.Nodes.JsonObject{["url"]="https://confectory-connect.jorodane.chatgpt.site/editor-bridge",["protocol"]="confectory.editor.v1",["nonce"]=nonce,["instanceId"]=status["instance"]!.DeepClone()}.ToJsonString();
+  }
+  if(operation=="site-revoke"){RemoteRevoke(prior);Publish(status);return status.ToJsonString();}
+  var remote=AppDomain.CurrentDomain.GetData(remoteKey) as System.Text.Json.Nodes.JsonObject??throw new InvalidOperationException("site_connection_closed");
+  if(now>=remote["expiresAt"]!.GetValue<long>()||now>=remote["lease"]!.GetValue<long>()){RemoteRevoke(prior,true);Publish(status);throw new InvalidOperationException("site_connection_expired");}
+  bool connected=remote["sessionId"]!.ToString().Length>0;
+  if(operation=="site-grant"){
+   if(!connected||input["connectionId"]?.ToString()!=remote["connectionId"]!.ToString()||input["instanceId"]?.ToString()!=status["instance"]!.ToString()||input["scopeVersion"]?.GetValue<long>()!=status["scopeVersion"]!.GetValue<long>()||input["scopeId"]?.ToString()!=status["scope"]?["id"]?.ToString()||status["scope"] is null)throw new InvalidOperationException("scope_changed");
+   remote["scopeId"]=status["scope"]!["id"]!.DeepClone();remote["scopeVersion"]=remote["scopeVersion"]!.GetValue<long>()+1;status["site"]!["scopeGranted"]=true;Publish(status);return status.ToJsonString();
+  }
+  if(input["nonce"]?.GetValue<string>()!=remote["nonce"]!.GetValue<string>())throw new UnauthorizedAccessException("site_nonce_refused");
+  string type=input["type"]?.GetValue<string>()??"";
+  if(type=="close"){RemoteRevoke(prior,true);Publish(status);return "{}";}
+  if(type=="paired"){
+   string sid=input["sessionId"]?.GetValue<string>()??"";long expires=input["expiresAt"]?.GetValue<long>()??0;
+   if(connected||!System.Text.RegularExpressions.Regex.IsMatch(sid,"^[a-f0-9]{32}$")||expires<=now||expires>now+1860000)throw new UnauthorizedAccessException("site_pair_refused");
+   remote["sessionId"]=sid;remote["expiresAt"]=expires;remote["lease"]=now+15000;
+   status["site"]=new System.Text.Json.Nodes.JsonObject{["state"]="connected",["connectionId"]=remote["connectionId"]!.DeepClone(),["scopeGranted"]=false,["expiresAt"]=expires};Publish(status);return "{}";
+  }
+  if(!connected||input["sessionId"]?.ToString()!=remote["sessionId"]!.ToString())throw new UnauthorizedAccessException("site_session_refused");
+  if(type=="pulse"){
+   remote["lease"]=now+15000;bool granted=remote["scopeId"]!.ToString().Length>0&&remote["scopeId"]!.ToString()==status["scope"]?["id"]?.ToString();
+   return new System.Text.Json.Nodes.JsonObject{["instanceId"]=status["instance"]!.DeepClone(),["scopeVersion"]=remote["scopeVersion"]!.DeepClone(),["scope"]=granted?status["scope"]!.DeepClone():null,["tools"]=granted?((System.Text.Json.Nodes.JsonArray)prior[9]).DeepClone():new System.Text.Json.Nodes.JsonArray()}.ToJsonString();
+  }
+  if(type!="dispatch")throw new UnauthorizedAccessException("site_operation_refused");
+  var job=input["job"]?.AsObject()??throw new ArgumentException("Bounded relay job required");string scopeId=remote["scopeId"]!.ToString();
+  void Check(){long fresh=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();if(!ReferenceEquals(AppDomain.CurrentDomain.GetData(remoteKey),remote)||!ReferenceEquals(AppDomain.CurrentDomain.GetData(key),prior)||(bool)state[6]||(bool)prior[7]||fresh>=remote["expiresAt"]!.GetValue<long>()||fresh>=remote["lease"]!.GetValue<long>()||scopeId.Length==0||scopeId!=remote["scopeId"]!.ToString()||job["scopeId"]?.ToString()!=scopeId||status["scope"]?["id"]?.ToString()!=scopeId||job["instanceId"]?.ToString()!=status["instance"]!.ToString()||job["scopeVersion"]?.GetValue<long>()!=remote["scopeVersion"]!.GetValue<long>()||job["projectId"]?.ToString()!=status["scope"]?["projectId"]?.ToString())throw new InvalidOperationException("scope_changed");}
+  Check();string callId=job["callId"]?.GetValue<string>()??"";if(callId.Length is <1 or >128)throw new ArgumentException("Bounded call identity required");
+  var arguments=job["arguments"]!.DeepClone().AsObject();if(arguments["scopeId"] is not null||arguments["projectId"] is not null&&arguments["projectId"]!.ToString()!=job["projectId"]!.ToString())throw new UnauthorizedAccessException("scope_changed");arguments["scopeId"]=scopeId;arguments["projectId"]=job["projectId"]!.DeepClone();
+  var dispatch=AppDomain.CurrentDomain.GetData(key+".dispatch") as Func<string,string,string>??throw new ObjectDisposedException("MCP engine");
+  string stableCall="site:"+Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(remote["sessionId"]!.ToString()+":"+callId))).ToLowerInvariant();
+  string result=dispatch("tools/call",new System.Text.Json.Nodes.JsonObject{["name"]=job["name"]!.DeepClone(),["callId"]=stableCall,["arguments"]=arguments}.ToJsonString());Check();return new System.Text.Json.Nodes.JsonObject{["value"]=System.Text.Json.Nodes.JsonNode.Parse(result)}.ToJsonString();
+ }
  if(OperatingSystem.IsBrowser()||OperatingSystem.IsAndroid())throw new PlatformNotSupportedException("Local MCP bridge requires a desktop host");
  if(operation is "scope" or "revoke"){
   if(prior is null)throw new InvalidOperationException("Prepare the engine connection first");
@@ -74,7 +119,7 @@ lock(state){
   var description=new System.Text.Json.Nodes.JsonObject{["schema"]=1,["instance"]=instance,["pid"]=Environment.ProcessId,["transport"]=transport,["address"]=address};
   var options=new System.IO.FileStreamOptions{Mode=System.IO.FileMode.CreateNew,Access=System.IO.FileAccess.Write,Share=System.IO.FileShare.Read};if(!OperatingSystem.IsWindows())options.UnixCreateMode=System.IO.UnixFileMode.UserRead|System.IO.UnixFileMode.UserWrite;
   using(var file=new System.IO.FileStream(descriptor,options)){initializingDescriptor=descriptor;byte[] bytes=System.Text.Encoding.UTF8.GetBytes(description.ToJsonString());file.Write(bytes);}
-  AppDomain.CurrentDomain.SetData(key,bridge);AppDomain.CurrentDomain.SetData(stopKey,(Action)(()=>Stop(bridge)));AppDomain.CurrentDomain.SetData(revokeKey,(Action)(()=>Revoke(bridge)));
+  AppDomain.CurrentDomain.SetData(key,bridge);AppDomain.CurrentDomain.SetData(stopKey,(Action)(()=>Stop(bridge)));AppDomain.CurrentDomain.SetData(revokeKey,(Action)(()=>Revoke(bridge)));AppDomain.CurrentDomain.SetData(key+".dispatch",(Func<string,string,string>)((method,args)=>Dispatch(method,System.Text.Json.Nodes.JsonNode.Parse(args)!.AsObject()).ToJsonString()));
   bridge[3]=System.Threading.Tasks.Task.Run(async()=>{
    try{while(!token.IsCancellationRequested){
     System.IO.Stream stream;
@@ -106,7 +151,7 @@ lock(state){
    initializingCancel?.Cancel();initializingListener?.Dispose();
    if(initializingDescriptor.Length>0)System.IO.File.Delete(initializingDescriptor);
    if(initializingSocket.Length>0)System.IO.File.Delete(initializingSocket);
-   initializingCancel?.Dispose();AppDomain.CurrentDomain.SetData(key,null);AppDomain.CurrentDomain.SetData(stopKey,null);AppDomain.CurrentDomain.SetData(revokeKey,null);
+   initializingCancel?.Dispose();AppDomain.CurrentDomain.SetData(key,null);AppDomain.CurrentDomain.SetData(stopKey,null);AppDomain.CurrentDomain.SetData(revokeKey,null);AppDomain.CurrentDomain.SetData(key+".dispatch",null);AppDomain.CurrentDomain.SetData(remoteKey,null);
   }throw;
  }
 }
