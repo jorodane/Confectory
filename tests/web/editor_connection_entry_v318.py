@@ -44,13 +44,16 @@ with sync_playwright() as p:
     page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='사용할 AI',exact=True);expect(dialog).to_be_visible()
     expect(dialog.get_by_role('button',name='OpenAI Responses',exact=True)).to_be_visible();expect(dialog.get_by_role('button',name='Codex',exact=True)).to_be_visible()
     assert public_state(url)['projectId']==''
+    # A legitimate background snapshot can arrive before any provider is selected.
+    assert public_state(url).get('connectionSetup') is None
+    dialog.evaluate('(root)=>root._renderConnectionOutcome()')
     dialog.get_by_role('button',name='OpenAI Responses',exact=True).click();expect(dialog.locator('[data-connection-field="model"]')).to_be_visible()
     if phase=='fresh':
      dialog.locator('[data-connection-field="model"]').fill('owned-not-called-response-model');dialog.locator('[data-connection-field="credentialReference"]').fill('env:CONFECTORY_AI_ENTRY_OWNED_BINDING')
     else:expect(dialog.locator('[data-connection-field="model"]')).to_have_value('owned-not-called-response-model')
     dialog.locator('[data-connection-attempt]').click();expect(dialog.locator('[data-connection-result]')).to_have_attribute('data-connection-outcome','approval-required')
     state=public_state(url);assert state['projectId']=='' and state['cards']==[] and state['connectionSetup']['outcome']['authenticated'] is False and state['connectionSetup']['outcome']['networkContacted'] is False
-    dialog.locator('[data-connection-back]').click();expect(dialog.locator('[data-connection-form]')).to_be_empty()
+    dialog.locator('[data-connection-back]').click();expect(dialog.locator('[data-connection-form]')).to_be_empty();dialog.evaluate('(root)=>root._renderConnectionOutcome()')
     dialog.get_by_role('button',name='Codex',exact=True).click();dialog.locator('[data-connection-advanced] > summary').click();expect(dialog.locator('[data-method-choice]')).to_have_count(3)
     for method in ('local-cli','desktop-ide','chatgpt-work'):
      dialog.locator('[data-method-choice="'+method+'"]').click();expect(dialog.locator('[data-method-choice="'+method+'"]').first).to_have_attribute('aria-pressed','true')
@@ -59,7 +62,7 @@ with sync_playwright() as p:
      dialog.locator('[data-connection-attempt]').click();expect(dialog.locator('[data-connection-result]')).to_have_attribute('data-connection-outcome',{'chatgpt-work':'blocked','desktop-ide':'unsupported','local-cli':'preflight-required'}[method])
      state=public_state(url);assert state['projectId']=='' and state['cards']==[];outcome=state['connectionSetup']['outcome'];assert outcome['authenticated'] is False and outcome['networkContacted'] is False
      expect(dialog.locator('[data-connection-result]')).to_contain_text({'chatgpt-work':'실계정 연결은 차단','desktop-ide':'공유 앱·IDE 소켓','local-cli':'사전 확인'}[method])
-    dialog.locator('[data-connection-cancel]').click();expect(dialog).to_have_count(0);expect(page.locator('.home-grid')).to_be_visible()
+    dialog.evaluate('(root)=>globalThis.__closedConnectionDialog=root');dialog.locator('[data-connection-cancel]').click();expect(dialog).to_have_count(0);page.evaluate('()=>globalThis.__closedConnectionDialog._renderConnectionOutcome()');expect(page.locator('.home-grid')).to_be_visible()
     page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='사용할 AI',exact=True);dialog.get_by_role('button',name='Codex',exact=True).click();dialog.locator('[data-connection-advanced] > summary').click()
     expect(dialog.locator('[data-method-choice="chatgpt-work"]')).to_have_attribute('aria-pressed','true');expect(dialog.locator('[data-connection-field="workspaceTriggerId"]')).to_have_value('agtch_owned_entry')
     dialog.locator('[data-connection-back]').click();dialog.get_by_role('button',name='OpenAI Responses',exact=True).click();expect(dialog.locator('[data-connection-field="model"]')).to_have_value('owned-not-called-response-model')
