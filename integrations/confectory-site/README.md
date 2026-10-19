@@ -16,6 +16,15 @@ of PackEngine Links and the local STDIO development plugin. Neither is modified.
 
 ## Connection and permissions
 
+In the Windows editor launched by `Confectory.bat`, choose **Agent 연결 → Codex →
+엔진 연결 준비 → 2. ChatGPT 로그인 · 엔진 연결**. The second button is beside engine
+preparation, above project settings. Complete login in the dedicated window;
+preparation alone starts local IPC and does not register an engine with the Site.
+An empty `confectory_engines` result is therefore expected before Site pairing.
+The panel distinguishes local preparation from ChatGPT connection and explains
+when the running host cannot open the login window. No project is required for
+these connection steps.
+
 The existing Codex connection panel opens a dedicated Windows Site WebView after
 engine preparation. No project is needed. This separate InPrivate view signs in
 through Sites' top-level ChatGPT authentication and uses same-origin HTTPS for

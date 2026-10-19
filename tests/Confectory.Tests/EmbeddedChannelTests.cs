@@ -1,8 +1,14 @@
 using System.IO.Pipes;
 using System.Text.Json.Nodes;
+using Confectory.Core;
 namespace Confectory.Tests;
 public sealed class EmbeddedChannelTests : TestCase
 {
+    public void test_windows_native_site_connect_transport_envelope_and_reply()
+    {
+        var run=Processes.Run(new[]{"node",Path.Combine(Fixture.Repo,"tests/web/native_site_connect.mjs")},timeoutSeconds:35);
+        True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS actual Windows injected Site connect native envelope"));
+    }
     public void test_site_relay_pins_document_nonce_protocol_and_bounded_schema()
     {
         string address=SiteRelayBoundary.Address,nonce=new('a',64);

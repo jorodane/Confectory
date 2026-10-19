@@ -61,6 +61,22 @@ def verify_mcp_plugin(page,project,mount,send,envelope,settle,restart,repo,env):
  with Client(repo,directory,env) as client:
   assert client.call('confectory_instances')[0]['code']=='engine_not_running'
   open_ai();expect(panel().locator('[data-mcp-grant]')).to_be_disabled();panel().locator('[data-mcp-start]').click();ready();status=state()['mcpBridge'];engine=status['instance'];assert status['state']=='ready' and status['scope'] is None
+  # The next login action must be visible without scrolling past project settings.
+  next_action=panel().locator('[data-mcp-site-open]');next_bounds=next_action.evaluate("e=>{const r=e.getBoundingClientRect(),m=e.closest('.modal').getBoundingClientRect();return {top:r.top,bottom:r.bottom,modalTop:m.top,modalBottom:m.bottom,viewportHeight:innerHeight,scroll:e.closest('.modal').scrollTop}}")
+  page.screenshot(path='/tmp/confectory-site-next-action.png',full_page=True)
+  assert next_bounds['top']>=max(0,next_bounds['modalTop']) and next_bounds['bottom']<=min(next_bounds['viewportHeight'],next_bounds['modalBottom']),next_bounds
+  expect(next_action).to_be_disabled();expect(panel().locator('[data-mcp-site-hint]')).to_contain_text('브라우저 진단 모드')
+  expect(panel().locator('[data-mcp-status]')).to_contain_text('ChatGPT 연결은 아직 완료되지 않았습니다')
+  # Owned native-capability fixture: the real button calls the exposed native
+  # entry once. No Site request, login, account or Windows runtime is simulated.
+  close_ai();page.evaluate("()=>{globalThis.ownedSiteWindowCalls=0;globalThis.confectoryWebUI={connectSite(){globalThis.ownedSiteWindowCalls++;return Promise.resolve({ok:true});}};}")
+  page.set_viewport_size({'width':900,'height':760});open_ai();expect(panel().locator('[data-mcp-site-open]')).to_be_enabled()
+  expect(panel().locator('[data-mcp-site-open]')).to_be_in_viewport(ratio=1)
+  panel().locator('[data-mcp-site-open]').click();ready();assert page.evaluate('globalThis.ownedSiteWindowCalls')==1
+  assert not state()['mcpBridge'].get('site'), 'A window acknowledgment must not claim an authenticated connection'
+  close_ai();page.evaluate("()=>{globalThis.confectoryWebUI={send(){throw Error('owned unavailable native capability');}};}")
+  open_ai();expect(panel().locator('[data-mcp-site-open]')).to_be_disabled();expect(panel().locator('[data-mcp-site-hint]')).to_contain_text('호스트에는 로그인 창 기능이 없습니다')
+  close_ai();page.evaluate('()=>{delete globalThis.confectoryWebUI;}');page.set_viewport_size({'width':1360,'height':900});open_ai()
   expect(panel().locator('[data-mcp-instance]')).to_have_text(engine);connected=client.connect(engine);assert connected['scope'] is None and connected['state']=='ready';assert len(client.request('tools/list')['tools'])==4
   owned_site=site_pair();assert site_call(owned_site,'pulse')['scope'] is None
   site_call(dict(owned_site,nonce='0'*64),'pulse',ok=False);site_call(dict(owned_site,sessionId='f'*32),'pulse',ok=False)
