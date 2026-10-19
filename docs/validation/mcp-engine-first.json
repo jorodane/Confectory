@@ -1,0 +1,428 @@
+{
+  "recordedAtUtc": "2026-10-19T09:14:13.725194+00:00",
+  "sourceCommit": "3118e98202026de4752ca59e4fc9a1efca2db2ba",
+  "baseWorkCurrent": "b7d7800941070c62f675299c13331cdcf0abf193",
+  "passed": 15,
+  "failed": 0,
+  "skipped": 0,
+  "maximumConcurrentGates": 2,
+  "sourceSha256": {
+    "examples/editor-home/WebBundle.csbody": "8b12623b7fcfaf0e94100e2223066285e43c50c59bd1b7c5b09707ec30f2ecab",
+    "examples/editor-home/ui/app.js": "378e4e60db7d75b7e25e3b3f19ffca8a8f877e28e141cfd9457e5c4c6eb78d47",
+    "examples/editor-home/ui/consumer.css": "a0ee3fd927b3750ee9b2e461821cf78db8ef8edf40586b90faeff8f975cc16b6",
+    "examples/editor-home/ui/mcp-bridge.js": "e707e843cad4c1a9ef398c7f2ceb0e0c8dedd4a66013c69ebf347605e007dd4b",
+    "examples/editor-home/ui/workspace-host.js": "5947a326dde2be9ab9ee0594e56686fc74304b31973f1fca3bf008c8630a7f53",
+    "packs/editor-home-model/Command.csbody": "ae2fd8746930e7c5ba0ecec390dde87fcb7d1bb4378b813b076d591203c76a6c",
+    "packs/editor-home-model/McpBridge.csbody": "7615f4d0060d159cf29f1d0e7d0eaeb221b6cdc0a6d5775b99adacc3010f2463",
+    "plugins/MARKETPLACE.md": "7811d30f190c6dbf50580b891e98c1013e917aff89d0b9865c8e26f281037409",
+    "plugins/confectory/README.md": "73fbd402bf380e28ce5ae658e05a8735e435b9fbaea000f0fb401a93f8eef0af",
+    "plugins/confectory/plugin.json": "8b87a9ba8c04269364a1de6e61c96243c045af336f131d745993141655e7e9f8",
+    "plugins/confectory/skills/setup/SKILL.md": "720d83205f094f1cd2e50578d1897c3fd8e09d59dfd5e438a0534b0f613510c7",
+    "targets/mcp-host/Confectory.Mcp.csproj": "e45262a82f6fec8104d64a9abbb06064dd6f79954caeaac33c88a738fc82d4b0",
+    "targets/mcp-host/Program.cs": "ea82e891b6680fcc40268277e43e925a8cec18820b278e1b5a75ddc21271372c",
+    "tests/protocol/mcp_adapter_owned.py": "53a5994ace08393f31a3e6485cbf135d2129ec178a5764b25f76ab5bc0b7707c",
+    "tests/web/editor_codex_click_preparation.py": "1a43d7a19d23c3fdd9fa12108c80cf162333fc08167083693f7bc2f19415a458",
+    "tests/web/editor_codex_discovery_v318.py": "bf75009f36b49c91dade11e451ce4275543dda4a1207af76e3aaa52d56f0d578",
+    "tests/web/editor_codex_install_guide_v318.py": "df9e46a717c89acd65e10b0908ee1d2ebdf3f8fd403ac7f58bf4433ac2ca055c",
+    "tests/web/editor_codex_verification_v318.py": "ae9c5f2c571d6b31281c3856a9f5bda81e3368357d87647ad30bd291b2f32bb8",
+    "tests/web/editor_connection_entry_v318.py": "0c194d29c67a3df702971f0152ee23d34982f1cf71dd8800ec20d1329adf0512",
+    "tests/web/editor_mcp_plugin.py": "deb502b2ae681e04cd0d6c5373e288adb259d03ea56fc369d05faf8c82d36dce"
+  },
+  "build": {
+    "file": "confectory-mcp-engine-first-final-build.log",
+    "sha256": "2ca03cb0aad3b9be224987cc974eae6cc500ffe246f856dd942d66c0cc655f95"
+  },
+  "groups": [
+    {
+      "name": "ui",
+      "methods": [
+        "WebUITests.test_actual_editor_mcp_plugin_readonly_shared_node_draft_cas_and_cold",
+        "WebUITests.test_actual_editor_v318_home_agent_connection_entry_and_saved_settings",
+        "WebUITests.test_actual_editor_v480_blueprint_camera_header_pins_tabs_and_cold_input",
+        "WebUITests.test_actual_editor_v480_blueprint_owned_graph_node_edit_and_cold_input",
+        "WebUITests.test_actual_editor_v508_blueprint_rename_ime_cas_scope_and_cold"
+      ],
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 364.034,
+      "log": {
+        "file": "confectory-mcp-engine-first-final-ui.log",
+        "sha256": "0799944edbd9413b5d4ed3a0dc567ba845000e3f1599a1ab185c972ffa26bdb3"
+      }
+    },
+    {
+      "name": "existing-codex-ui",
+      "methods": [
+        "WebUITests.test_actual_editor_click_preparation_and_device_login_owned_fixtures",
+        "WebUITests.test_actual_editor_v318_codex_discovery_and_official_model_selection",
+        "WebUITests.test_actual_editor_v318_codex_verification_and_helper_grants",
+        "WebUITests.test_actual_editor_v318_legacy_codex_and_novice_installation_guide"
+      ],
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 393.916,
+      "log": {
+        "file": "confectory-mcp-engine-first-final-legacy-ui.log",
+        "sha256": "bff6e446f718836e2292129f4187ce1c18fc23381b1575d857323d4b053dcc12"
+      }
+    },
+    {
+      "name": "protocol-checkout-platform",
+      "methods": [
+        "WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup",
+        "WebUITests.test_mcp_managed_stdio_owned_ipc_cancellation_and_reconnect",
+        "WebUITests.test_mcp_portable_package_schema_hashes_and_real_manifest_command",
+        "PackWorkspaceTests.test_development_tools_owned_scope_shared_draft_no_confirm_and_locality",
+        "EntryHomeTests.test_android_home_export_selects_activity_and_metadata_parser_without_engine_surface_sample",
+        "EntryHomeNativeDetailsTests.test_windows_native_information_and_profile_composition_builds"
+      ],
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 154.62,
+      "log": {
+        "file": "confectory-mcp-engine-first-final-platform.log",
+        "sha256": "d5477493b3cf72752170655f9ef8e990c77931afb0c9eaac2904e473272c10fd"
+      }
+    }
+  ],
+  "actualEditorHome": {
+    "actualEngine": "ordinary EditorHome with existing DevelopmentTools",
+    "actualAdapter": "managed MCP stdio over private Unix IPC",
+    "engineConnectedBeforeProject": true,
+    "explicitProjectScopeAfterConnection": true,
+    "staleUngrantedSelectionRefused": true,
+    "openCloseSwitchRetainEngine": true,
+    "scopeEpochRejectsOldSameProjectHandles": true,
+    "cachedAndRawOldScopeRefused": true,
+    "malformedPeerRetainsScope": true,
+    "initialReadOnly": true,
+    "existingSharedNodeDraft": true,
+    "duplicateStageOnce": true,
+    "unsentIntentAndOriginalFilesRetained": true,
+    "peerSourcePinAndHashCASRefused": true,
+    "humanCompilerReviewConfirm": true,
+    "coldRetiresConnectionAndScope": true,
+    "confirmedSource": "return value + 10;",
+    "layouts": [
+      {
+        "label": "home-engine-only",
+        "x": 270,
+        "y": 45,
+        "width": 820,
+        "height": 810,
+        "viewport": [
+          1360,
+          900
+        ],
+        "scrollWidth": 818,
+        "clientWidth": 818,
+        "cards": [
+          {
+            "x": 299,
+            "y": 176,
+            "width": 376,
+            "height": 96
+          },
+          {
+            "x": 685,
+            "y": 176,
+            "width": 376,
+            "height": 96
+          }
+        ]
+      },
+      {
+        "label": "home-compact",
+        "x": 40,
+        "y": 38,
+        "width": 820,
+        "height": 684,
+        "viewport": [
+          900,
+          760
+        ],
+        "scrollWidth": 818,
+        "clientWidth": 818,
+        "cards": [
+          {
+            "x": 69,
+            "y": 169,
+            "width": 376,
+            "height": 96
+          },
+          {
+            "x": 455,
+            "y": 169,
+            "width": 376,
+            "height": 96
+          }
+        ]
+      },
+      {
+        "label": "project-scoped",
+        "x": 270,
+        "y": 45,
+        "width": 820,
+        "height": 810,
+        "viewport": [
+          1360,
+          900
+        ],
+        "scrollWidth": 818,
+        "clientWidth": 818,
+        "cards": [
+          {
+            "x": 299,
+            "y": 175,
+            "width": 376,
+            "height": 96
+          },
+          {
+            "x": 685,
+            "y": 175,
+            "width": 376,
+            "height": 96
+          }
+        ]
+      },
+      {
+        "label": "project-compact",
+        "x": 40,
+        "y": 38,
+        "width": 820,
+        "height": 684,
+        "viewport": [
+          900,
+          760
+        ],
+        "scrollWidth": 818,
+        "clientWidth": 818,
+        "cards": [
+          {
+            "x": 69,
+            "y": 168,
+            "width": 376,
+            "height": 96
+          },
+          {
+            "x": 455,
+            "y": 168,
+            "width": 376,
+            "height": 96
+          }
+        ]
+      },
+      {
+        "label": "after-cold",
+        "x": 690,
+        "y": 202.703125,
+        "width": 820,
+        "height": 994.59375,
+        "viewport": [
+          2200,
+          1400
+        ],
+        "scrollWidth": 818,
+        "clientWidth": 818,
+        "cards": [
+          {
+            "x": 719,
+            "y": 333.703125,
+            "width": 376,
+            "height": 96
+          },
+          {
+            "x": 1105,
+            "y": 333.703125,
+            "width": 376,
+            "height": 96
+          }
+        ]
+      }
+    ],
+    "realChatGPTApp": false,
+    "installed": false,
+    "registered": false,
+    "networkPort": false
+  },
+  "managedProtocol": {
+    "actualManagedStdio": true,
+    "engineSide": "owned synthetic Unix IPC fixture",
+    "initialization": true,
+    "toolsAndRead": true,
+    "multipleEnginesRequireSelection": true,
+    "foreignProjectRefused": true,
+    "noShellConfirm": true,
+    "cancelAndLateReplyFence": true,
+    "malformedResponse": true,
+    "disconnectReconnectAndRestart": true,
+    "duplicateRequestIdentity": true,
+    "engineOnlyBeforeProject": true,
+    "scopeChangeRetainsEngine": true,
+    "cachedAndLateScopeRepliesRefused": true,
+    "realChatGPTApp": false
+  },
+  "portablePackageValidation": {
+    "marketplaceRoot": "confectory-development",
+    "sourcePath": "./plugins/confectory",
+    "catalogResolvesBundledPlugin": true,
+    "officialPortableSchemaSnapshots": true,
+    "allBundledHashes": true,
+    "realManifestCommand": true,
+    "relocatedRootWithSpaces": true,
+    "isolatedPluginCopy": true,
+    "requiredRuntime": {
+      "name": "Microsoft.NETCore.App",
+      "version": "10.0.0"
+    },
+    "actualChatGPTApp": false,
+    "installed": false,
+    "marketplaceRegistered": false,
+    "userConfigChanged": false
+  },
+  "deliverable": {
+    "path": "/workspace/artifacts/Confectory-marketplace-dev-0.2.0.zip",
+    "sha256": "99fb5bf7b1045891119a4dde1ef5c449c395e2706fd8eb72a5e45bcf87f842e5",
+    "marketplaceRoot": "confectory-development",
+    "pluginVersion": "0.2.0",
+    "installed": false,
+    "marketplaceRegistered": false,
+    "bytes": 25637,
+    "receipt": {
+      "version": "0.2.0",
+      "runtime": "net10.0",
+      "marketplace": ".agents/plugins/marketplace.json",
+      "plugin": "plugins/confectory",
+      "files": {
+        ".agents/plugins/marketplace.json": "a1a215ceacb5b74ed12e797de68ca49eec74f9d0addcd22af49dcc99e39a7f02",
+        "README.md": "7811d30f190c6dbf50580b891e98c1013e917aff89d0b9865c8e26f281037409",
+        "plugins/confectory/README.md": "73fbd402bf380e28ce5ae658e05a8735e435b9fbaea000f0fb401a93f8eef0af",
+        "plugins/confectory/mcp.json": "743b1f47f9d795b44486296adf1e51804b0c743035da501fdbcbadd32777f59d",
+        "plugins/confectory/plugin.json": "8b87a9ba8c04269364a1de6e61c96243c045af336f131d745993141655e7e9f8",
+        "plugins/confectory/server/Confectory.Mcp.deps.json": "a5b3c4f7f3118a3964d2ad58e761641214e48d3356738ce06e49cdc5f638a070",
+        "plugins/confectory/server/Confectory.Mcp.dll": "da640316a20f8e32174f6e113421243aeebc591b073db55156ec0a1a27f7c00e",
+        "plugins/confectory/server/Confectory.Mcp.runtimeconfig.json": "9950d4583cfc9a106857c0d5b8a75b53e8774852b57b80bc3823a74d44a4d87f",
+        "plugins/confectory/skills/setup/SKILL.md": "720d83205f094f1cd2e50578d1897c3fd8e09d59dfd5e438a0534b0f613510c7"
+      }
+    },
+    "localMarketplaceRoot": "/workspace/artifacts/Confectory-marketplace-dev-0.2.0/confectory-development"
+  },
+  "screenshots": {
+    "home-engine-only": {
+      "file": "mcp-engine-first-home-engine-only.png",
+      "sha256": "6075509a438d65d4bbc5ba3243feb31bcbe6776e7eddd2a4c3a07aad05c18885"
+    },
+    "home-compact": {
+      "file": "mcp-engine-first-home-compact.png",
+      "sha256": "128e3b5cc0723f6d277cfe9e474277462abeeab15d70c5ac5f26bed3f20c0ede"
+    },
+    "project-scoped": {
+      "file": "mcp-engine-first-project-scoped.png",
+      "sha256": "142df92a1535cb33956ecd5fed5f43a8ace7376646cb20476f9027c72452b15d"
+    },
+    "project-compact": {
+      "file": "mcp-engine-first-project-compact.png",
+      "sha256": "645bffb00bf153641f5c35cb04b58d752d042e6d0f0abc63e93f71215f157847"
+    },
+    "after-cold": {
+      "file": "mcp-engine-first-after-cold.png",
+      "sha256": "1a07c692e58a0c74fbd9f271b9c688feeda8894f13550c4c9b27d24c1c946e2b"
+    },
+    "reference": {
+      "file": "mcp-v508-reference-ai-selection.png",
+      "sha256": "216e81f1fba7472669ce95f32d5b75b49d822fb7014ef4a9c16fc0fc527e41b1",
+      "prototype": true,
+      "providerCards": 4
+    }
+  },
+  "connectionContract": {
+    "engineWithoutProject": true,
+    "connectDoesNotOpenOrGrantProject": true,
+    "scopeInitiallyNull": true,
+    "projectSelectionAndScopeGrantSeparate": true,
+    "projectCloseSwitchKeepInstance": true,
+    "scopeIdRequiredOnWorkspaceTools": true,
+    "guiGrantChecksInstanceAndScopeVersion": true,
+    "ungrantedSelectionExpiresOnTransitions": true,
+    "cachedAndLateRepliesRecheckScope": true,
+    "existingDevelopmentToolsCasAndHumanConfirm": true,
+    "restartRetiresBoth": true
+  },
+  "layout": {
+    "existingAgentProviderCards": 2,
+    "pluginIsCodexConnectionMethod": true,
+    "newProviderAdded": false,
+    "independentPluginActionRemoved": true,
+    "independentMcpWindowRemoved": true,
+    "singleExistingDialog": true,
+    "reference": "Original v508 provider-card selection followed by connection fields; prototype has four example providers, production keeps its two supported providers",
+    "measuredViewports": [
+      [
+        1360,
+        900
+      ],
+      [
+        900,
+        760
+      ],
+      [
+        2200,
+        1400
+      ]
+    ]
+  },
+  "userAttachment": {
+    "libraryFileId": "libfile_8c74ac10f6508191a6a65569dc19ee1d",
+    "preparedMetadata": true,
+    "consumerWorkspacePathReturned": false,
+    "readableLocalImage": false,
+    "pixelsViewed": false,
+    "supportedRetryCount": 1,
+    "error": "Tunnel connection failed: 403 Forbidden",
+    "fallback": "Parent textual description, actual original v508 prototype pixels and actual ordinary EditorHome pixels"
+  },
+  "resourceDeclarations": {
+    "total": 46,
+    "canonicalUtf8Lf": 37,
+    "exact": 9
+  },
+  "execution": {
+    "linux": "Actual ordinary EditorHome/Chromium and managed MCP STDIO/private Unix IPC",
+    "windows": "Managed native composition compile only; no Windows device/named-pipe run",
+    "android": "Home export/activity/metadata selection only; no device run",
+    "chatgpt": "No actual user desktop plugin installation, source registration or app connection"
+  },
+  "notPerformed": [
+    "Actual user app installation or settings changes",
+    "Account/credential/access-grant creation in a user environment",
+    "Workspace marketplace registration or public directory submission",
+    "Runtime installation, PATH, tunnel, firewall or CSP changes"
+  ],
+  "protected": {
+    "localMain": "b5ea38c3d7eec3eb20f170e68f0f4215b86b2aee",
+    "remoteMainAtLatestRead": "b7d7800941070c62f675299c13331cdcf0abf193",
+    "mainPushed": false,
+    "originalZipSha256": {
+      "reference/site-ui/Confectory-Editor-Prototype-v196.zip": "02d4824e92ed0edbb43113659982b37a99a614117652bde4d8ac92367e334e34",
+      "reference/site-ui/Confectory-Editor-Prototype-v318.zip": "0a614fe2bf1ad3d8e10dfa8905bb6b61ea9f21b87b2492b2b87ca8566e9e6908",
+      "reference/site-ui/Confectory-Editor-Prototype-v424.zip": "b7969cd109ea2dad38bde9c9ab13967c20162c920a45a8cd51a8f82df6041874",
+      "reference/site-ui/Confectory-Editor-Prototype-v480.zip": "0489844c8c6d90f7cdc8ea0e80628f487dcfb27f2c871b19367a635212d3c5bd",
+      "reference/site-ui/Confectory-Editor-Prototype-v508.zip": "b306ce4deff9616c4107ae224443d864f8fce0f52cf3c3e158de8745c17c659f"
+    },
+    "androidSettingsUnchanged": true,
+    "coreExecutionAbiAndCspUnchanged": true,
+    "pendingV508BranchEnds": {
+      "stash": "692d393ff7da35ed905264fe5b3a0eff1fef4b95",
+      "base": "b05c6ed228a32d7bed181ac80b66a10f9fbb0d32",
+      "bundle": "/workspace/artifacts/Confectory-v508-branch-ends-WIP.bundle",
+      "sha256": "c98dc4ec0809b457344b7c58413e596790717230f19e025d5c74311b968e334e",
+      "bytes": 6205,
+      "restored": false,
+      "published": false
+    }
+  },
+  "developmentRunsExcluded": "Development protocol/UI/legacy runs are excluded. dev UI: missing inline mount container; dev2: test-only scoped mount invalid after project close and busy-state race; dev4: test screenshot wait hit strict CSP, replaced with locator assertion without changing CSP. Count only the final three groups above."
+}

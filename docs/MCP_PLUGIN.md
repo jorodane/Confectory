@@ -108,4 +108,12 @@ STDIO는 UTF-8 newline JSON-RPC, 최대 8 MiB frame, 최대 8 pending/2 concurre
 
 이전 0.1.1 전달 파일 `Confectory-marketplace-dev-0.1.1.zip`의 SHA-256은 `1dc20eb8ef68fdab20492fee7431e11c691264c749d6189922b8cf4bdafd2fa1`이다. 소스 `6fbc031`의 패키징 검사 1개와 당시 엔진/DLL 동일성은 [이전 패키징 기록](validation/mcp-marketplace-packaging.json)에 보존한다. 0.2.0은 엔진 연결과 프로젝트 범위를 분리하고 기존 Codex 연결 영역에 UI를 통합하는 변경이다. 새 기록은 홈/프로젝트 배치, 명시적 범위, 닫기·전환·재시작, 오래된 권한·CAS 및 이전 검증과 다른 실행 범위를 구분한다.
 
+0.2.0의 고정 소스는 `3118e98202026de4752ca59e4fc9a1efca2db2ba`이며 최종 검사 **15개 통과, 실패 0, 건너뜀 0**이다. 동시에 실행한 검사 묶음은 최대 2개다. [검증 기록](validation/mcp-engine-first.json)에 실제 엔진/공유 초안·미허용 상태·범위 식별자·지연/중복 응답·닫기/전환/재시작, 기존 Codex 회귀, checkout/리소스 시작 및 플랫폼 구성 결과를 남긴다. Windows는 구성 빌드, Android는 내보내기/Activity/메타데이터 선택이며 실제 장치 실행은 아니다. 실제 ChatGPT 앱 설치·연결도 수행하지 않았다.
+
+[프로젝트 없는 홈](validation/mcp-engine-first-home-engine-only.png), [프로젝트 범위 허용](validation/mcp-engine-first-project-scoped.png), [좁은 홈](validation/mcp-engine-first-home-compact.png), [좁은 프로젝트](validation/mcp-engine-first-project-compact.png), [재시작 뒤](validation/mcp-engine-first-after-cold.png)는 실제 ordinary EditorHome에서 캡처했다. 제공자 카드 2개, 기존 모달 1개 및 가로 넘침 없는 배치를 5개 상태에서 측정했다. 긴 연결 폼은 기존 모달 안에서 세로 스크롤한다. 비교에 사용한 [원본 v508의 Agent 선택 화면](validation/mcp-v508-reference-ai-selection.png)은 예시 제공자 4개를 가진 프로토타입이며, 지원되지 않는 제공자를 실제 앱에 추가하지 않았다.
+
+사용자 첨부 `libfile_8c74ac10f6508191a6a65569dc19ee1d`는 Library에서 소비자용 준비를 한 뒤 1회 재시도했지만 로컬 파일이 제공되지 않았고 다운로드가 `Tunnel connection failed: 403 Forbidden`으로 차단돼 직접 픽셀을 읽지 못했다. 부모가 전달한 설명, 원본 v508의 실제 픽셀과 실제 앱 화면을 기준으로 독립 버튼을 제거하고 Codex 연결 방식에 통합했다.
+
+현재 개발 소스 전달 파일은 `Confectory-marketplace-dev-0.2.0.zip`이다. SHA-256은 `99fb5bf7b1045891119a4dde1ef5c449c395e2706fd8eb72a5e45bcf87f842e5`이며 catalog와 실제 0.2.0 서버 DLL을 포함한다. 이 압축 파일은 소스 전달용이며 실제 사용자 설치·설정·권한 또는 공개 등록을 실행하지 않는다.
+
 별도로 진행하던 v508 분기 종료 UI는 미완료 상태로 보존돼 있다. stash `692d393ff7da35ed905264fe5b3a0eff1fef4b95`와 `Confectory-v508-branch-ends-WIP.bundle`에 원래 수정 및 미추적 파일을 담았으며, 이 MCP 변경에는 포함하지 않았다. 번들의 선행 커밋은 `b05c6ed228a32d7bed181ac80b66a10f9fbb0d32`, SHA-256은 `c98dc4ec0809b457344b7c58413e596790717230f19e025d5c74311b968e334e`다. 후속 작업에서 보존된 수정과 현재 리소스 선언을 함께 검토해 복원해야 한다.
