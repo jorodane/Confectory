@@ -1,0 +1,441 @@
+{
+  "baselineCommit": "f3f282dc4904b3c3a5922996f55bc051b7f0fd49",
+  "sourceCommit": "42078226bfbcbe8f3984638cf33ff122b6e1aacd",
+  "platform": {
+    "measured": "Linux / .NET 10.0.401 SDK / Chromium; 4 CPU, 16 GiB environment",
+    "windows": "User observations only; no actual Windows timing benchmark",
+    "method": "Actual click event -> MutationObserver DOM completion; fetch operation counts; strace -f -ttt -e trace=execve process counts. Poll requests can fall in click windows without being caused by the click."
+  },
+  "userWindowsObservationsMs": {
+    "agentToModal": 1000,
+    "additionalModalToProviderEnabled": 1000,
+    "codexToGenericError": 2000,
+    "close": 300
+  },
+  "before": {
+    "sampling": "3 actual click cycles; first cycle uses fresh owned settings; strace execve enabled; browser polling remains enabled",
+    "phases": [
+      {
+        "iteration": 0,
+        "outcome": "form",
+        "steps": [
+          {
+            "step": "dialog",
+            "clickToDomMs": 1069.7,
+            "providerEnabledMs": 1069.7,
+            "requests": {
+              "update": 16,
+              "connectionCatalog": 1
+            },
+            "authoringProcesses": 1,
+            "compilerProcesses": 0
+          },
+          {
+            "step": "form",
+            "clickToDomMs": 4170.6,
+            "providerEnabledMs": null,
+            "requests": {
+              "update": 45,
+              "connectionSetup": 1
+            },
+            "authoringProcesses": 5,
+            "compilerProcesses": 0
+          },
+          {
+            "step": "close",
+            "clickToDomMs": 186.9,
+            "providerEnabledMs": null,
+            "requests": {
+              "update": 7,
+              "cancelConnectionSetup": 1
+            },
+            "authoringProcesses": 0,
+            "compilerProcesses": 0
+          }
+        ]
+      },
+      {
+        "iteration": 1,
+        "outcome": "form",
+        "steps": [
+          {
+            "step": "dialog",
+            "clickToDomMs": 732.9,
+            "providerEnabledMs": 732.9,
+            "requests": {
+              "update": 11,
+              "connectionCatalog": 1
+            },
+            "authoringProcesses": 1,
+            "compilerProcesses": 0
+          },
+          {
+            "step": "form",
+            "clickToDomMs": 2745.4,
+            "providerEnabledMs": null,
+            "requests": {
+              "update": 31,
+              "connectionSetup": 1
+            },
+            "authoringProcesses": 3,
+            "compilerProcesses": 0
+          },
+          {
+            "step": "close",
+            "clickToDomMs": 203.5,
+            "providerEnabledMs": null,
+            "requests": {
+              "update": 7,
+              "cancelConnectionSetup": 1
+            },
+            "authoringProcesses": 0,
+            "compilerProcesses": 0
+          }
+        ]
+      },
+      {
+        "iteration": 2,
+        "outcome": "form",
+        "steps": [
+          {
+            "step": "dialog",
+            "clickToDomMs": 1365.5,
+            "providerEnabledMs": 1365.5,
+            "requests": {
+              "update": 20,
+              "connectionCatalog": 1
+            },
+            "authoringProcesses": 1,
+            "compilerProcesses": 0
+          },
+          {
+            "step": "form",
+            "clickToDomMs": 3032.6,
+            "providerEnabledMs": null,
+            "requests": {
+              "update": 33,
+              "connectionSetup": 1
+            },
+            "authoringProcesses": 3,
+            "compilerProcesses": 0
+          },
+          {
+            "step": "close",
+            "clickToDomMs": 164.4,
+            "providerEnabledMs": null,
+            "requests": {
+              "update": 7,
+              "cancelConnectionSetup": 1
+            },
+            "authoringProcesses": 0,
+            "compilerProcesses": 0
+          }
+        ]
+      }
+    ],
+    "browserErrors": [],
+    "backendSpans": {},
+    "clientSpans": {}
+  },
+  "after": {
+    "sampling": "3 actual click cycles; first cycle uses fresh owned settings; strace execve enabled; browser polling remains enabled",
+    "phases": [
+      {
+        "iteration": 0,
+        "outcome": "form",
+        "steps": [
+          {
+            "step": "dialog",
+            "clickToDomMs": 6.7,
+            "providerEnabledMs": 6.7,
+            "requests": {
+              "update": 1
+            },
+            "authoringProcesses": 0,
+            "compilerProcesses": 0
+          },
+          {
+            "step": "form",
+            "clickToDomMs": 3.1,
+            "providerEnabledMs": null,
+            "requests": {
+              "update": 1
+            },
+            "authoringProcesses": 0,
+            "compilerProcesses": 0
+          },
+          {
+            "step": "close",
+            "clickToDomMs": 0.8,
+            "providerEnabledMs": null,
+            "requests": {
+              "update": 2
+            },
+            "authoringProcesses": 0,
+            "compilerProcesses": 0
+          }
+        ]
+      },
+      {
+        "iteration": 1,
+        "outcome": "form",
+        "steps": [
+          {
+            "step": "dialog",
+            "clickToDomMs": 1.4,
+            "providerEnabledMs": 1.4,
+            "requests": {
+              "update": 1
+            },
+            "authoringProcesses": 0,
+            "compilerProcesses": 0
+          },
+          {
+            "step": "form",
+            "clickToDomMs": 1.0,
+            "providerEnabledMs": null,
+            "requests": {},
+            "authoringProcesses": 0,
+            "compilerProcesses": 0
+          },
+          {
+            "step": "close",
+            "clickToDomMs": 0.9,
+            "providerEnabledMs": null,
+            "requests": {
+              "update": 2
+            },
+            "authoringProcesses": 0,
+            "compilerProcesses": 0
+          }
+        ]
+      },
+      {
+        "iteration": 2,
+        "outcome": "form",
+        "steps": [
+          {
+            "step": "dialog",
+            "clickToDomMs": 1.4,
+            "providerEnabledMs": 1.4,
+            "requests": {},
+            "authoringProcesses": 0,
+            "compilerProcesses": 0
+          },
+          {
+            "step": "form",
+            "clickToDomMs": 1.1,
+            "providerEnabledMs": null,
+            "requests": {
+              "update": 1
+            },
+            "authoringProcesses": 0,
+            "compilerProcesses": 0
+          },
+          {
+            "step": "close",
+            "clickToDomMs": 0.8,
+            "providerEnabledMs": null,
+            "requests": {
+              "update": 2
+            },
+            "authoringProcesses": 0,
+            "compilerProcesses": 0
+          }
+        ]
+      }
+    ],
+    "browserErrors": [],
+    "backendSpans": {
+      "snapshot//": {
+        "count": 22,
+        "medianMs": 0.593,
+        "maxMs": 39.859
+      },
+      "invoke-before//": {
+        "count": 1,
+        "medianMs": 3.262,
+        "maxMs": 3.262
+      },
+      "consumer/globalHelpers/": {
+        "count": 1,
+        "medianMs": 115.384,
+        "maxMs": 115.384
+      },
+      "invoke-after//": {
+        "count": 1,
+        "medianMs": 0.452,
+        "maxMs": 0.452
+      }
+    },
+    "clientSpans": {
+      "render": {
+        "count": 2,
+        "medianMs": 4.8,
+        "maxMs": 8.5
+      },
+      "update": {
+        "count": 23,
+        "medianMs": 7.6,
+        "maxMs": 14.1
+      },
+      "call": {
+        "count": 1,
+        "medianMs": 225,
+        "maxMs": 225
+      }
+    },
+    "defaultPresentationInvokeCount": 0
+  },
+  "errorReproduction": {
+    "fixture": "owned Settings.celem retained; matching project.cpack absent",
+    "before": [
+      "consumer_error",
+      "source_operation_failed",
+      "same generic Korean source-operation message"
+    ],
+    "after": [
+      "default engine panel opens without provider settings",
+      "explicit provider route reports connection_settings_incomplete/settings-files",
+      "file retained; missing manifest recovered in fixture; explicit retry succeeds"
+    ],
+    "windowsUnderlyingFileCauseConfirmed": false
+  },
+  "security": [
+    "expectedRevision and server before/after scope validation retained",
+    "no automatic mutation replay",
+    "provider close waits for revocation; cancelled consent cannot dispatch",
+    "fresh per-query declaration reads, including same-size/same-stamp updates",
+    "owned input and original files retained",
+    "MCP project scope retirement and shared draft CAS/ReviewConfirm remain required"
+  ],
+  "scopeLimits": [
+    "Linux measurements include instrumentation and driver overhead; no Windows speed claim",
+    "Explicit provider settings still invoke authoring and validate current declarations; no universal instant-action guarantee",
+    "Real account/install/registration/ChatGPT application connection excluded"
+  ],
+  "validation": {
+    "status": "passed",
+    "uniqueTests": 11,
+    "methods": [
+      {
+        "method": "WebUITests.test_actual_agent_connection_presentation_diagnostics_retry_inputs_and_late_close",
+        "status": "passed",
+        "log": "connection-latency-release-classification.log",
+        "testedCommit": "42078226bfbcbe8f3984638cf33ff122b6e1aacd"
+      },
+      {
+        "method": "WebUITests.test_actual_editor_click_preparation_and_device_login_owned_fixtures",
+        "status": "passed",
+        "log": "connection-latency-release-connections.log",
+        "testedCommit": "0c2b47c"
+      },
+      {
+        "method": "WebUITests.test_actual_editor_v318_codex_discovery_and_official_model_selection",
+        "status": "passed",
+        "log": "connection-latency-release-connections.log",
+        "testedCommit": "0c2b47c"
+      },
+      {
+        "method": "WebUITests.test_actual_editor_v318_home_agent_connection_entry_and_saved_settings",
+        "status": "passed",
+        "log": "connection-latency-release-connections.log",
+        "testedCommit": "0c2b47c"
+      },
+      {
+        "method": "WebUITests.test_actual_editor_mcp_plugin_readonly_shared_node_draft_cas_and_cold",
+        "status": "passed",
+        "log": "connection-latency-release-platform.log",
+        "testedCommit": "0c2b47c"
+      },
+      {
+        "method": "WebUITests.test_actual_editor_v424_source_conflict_real_files_cas_and_cold_restart",
+        "status": "passed",
+        "log": "connection-latency-release-platform.log",
+        "testedCommit": "0c2b47c"
+      },
+      {
+        "method": "WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup",
+        "status": "passed",
+        "log": "connection-latency-release-platform.log",
+        "testedCommit": "0c2b47c"
+      },
+      {
+        "method": "WebUITests.test_web_ui_client_coalescing_revision_retirement_and_unreplayed_retry",
+        "status": "passed",
+        "log": "connection-latency-release-platform.log",
+        "testedCommit": "0c2b47c"
+      },
+      {
+        "method": "WebUITests.test_web_ui_scope_revision_cancellation_disposal_and_pack_locality",
+        "status": "passed",
+        "log": "connection-latency-release-platform.log",
+        "testedCommit": "0c2b47c"
+      },
+      {
+        "method": "AIConnectionTests.test_connection_metadata_reads_current_bytes_without_cross_project_or_stamp_cache",
+        "status": "passed",
+        "log": "connection-latency-release-platform.log",
+        "testedCommit": "0c2b47c"
+      },
+      {
+        "method": "WebUITests.test_actual_editor_v424_shared_draft_history_cas_and_cold_restart",
+        "status": "passed",
+        "log": "connection-latency-release-history.log",
+        "testedCommit": "3b35e79"
+      }
+    ],
+    "excludedDevelopmentFailures": [
+      {
+        "case": "provider close before consent revocation",
+        "resolution": "provider form disappearance now follows cancellation completion; preparation and discovery tests passed"
+      },
+      {
+        "case": "ordinary checkout before committing resource changes",
+        "resolution": "test clones committed Git source; passed after source commit with unchanged resource pin enforcement"
+      },
+      {
+        "case": "independent history probe used an expired transport revision",
+        "resolution": "server correctly rejected without execution; fixture retries only that guaranteed-unexecuted code, then asserts source history-token/CAS rejection; passed at 3b35e79"
+      }
+    ],
+    "sourceImplementationCommit": "42078226bfbcbe8f3984638cf33ff122b6e1aacd",
+    "fixtureCommit": "3b35e79",
+    "fullRegressionImplementationCommit": "0c2b47c662358e4f960050d1b048b1025ab58248",
+    "classificationChange": "4207822 changes only connection-vs-source diagnostic projection; the targeted actual-click regression was rerun with sourceError=null assertions.",
+    "classificationRun": {
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "elapsedSeconds": 25.043,
+      "uniqueTestAlreadyCounted": true
+    }
+  },
+  "preserved": {
+    "localMain": "b5ea38c3d7eec3eb20f170e68f0f4215b86b2aee",
+    "stash": "692d393ff7da35ed905264fe5b3a0eff1fef4b95",
+    "referenceSha256": {
+      "reference/site-ui/Confectory-Editor-Prototype-v508.zip": "b306ce4deff9616c4107ae224443d864f8fce0f52cf3c3e158de8745c17c659f",
+      "reference/site-ui/Confectory-Editor-Prototype-v196.zip": "02d4824e92ed0edbb43113659982b37a99a614117652bde4d8ac92367e334e34",
+      "reference/site-ui/Confectory-Editor-Prototype-v424.zip": "b7969cd109ea2dad38bde9c9ab13967c20162c920a45a8cd51a8f82df6041874",
+      "reference/site-ui/Confectory-Editor-Prototype-v318.zip": "0a614fe2bf1ad3d8e10dfa8905bb6b61ea9f21b87b2492b2b87ca8566e9e6908",
+      "reference/site-ui/Confectory-Editor-Prototype-v480.zip": "0489844c8c6d90f7cdc8ea0e80628f487dcfb27f2c871b19367a635212d3c5bd"
+    },
+    "wipBundleSha256": "c98dc4ec0809b457344b7c58413e596790717230f19e025d5c74311b968e334e",
+    "androidSettingsDiff": false
+  },
+  "instrumentedBaseline": {
+    "description": "f3f282d with timing-only WebUI/authoring instrumentation; separate run from click timing baseline",
+    "snapshotCount": 63,
+    "snapshotMedianMs": 0.601,
+    "authoringOperations": {
+      "connectionCatalog": 6,
+      "connectionSettings": 1,
+      "describe": 1,
+      "inspect": 3,
+      "effective": 3
+    },
+    "fullRegistryQueryCount": 10,
+    "fullRegistryQueryDefinition": "Count measured authoring requests whose source constructs a fresh Registry over registered metadata; not an OS file-read count."
+  }
+}

@@ -1,0 +1,29 @@
+Production source 0c2b47c662358e4f960050d1b048b1025ab58248; history fixture 3b35e79.
+Final unique test outcomes: 11 passed, 0 unresolved failures.
+
+connection-latency-release-connections.log
+PASS WebUITests.test_actual_agent_connection_presentation_diagnostics_retry_inputs_and_late_close
+PASS WebUITests.test_actual_editor_click_preparation_and_device_login_owned_fixtures
+PASS WebUITests.test_actual_editor_v318_codex_discovery_and_official_model_selection
+PASS WebUITests.test_actual_editor_v318_home_agent_connection_entry_and_saved_settings
+4 passed, 0 failed, 0 skipped; 332.341s
+
+connection-latency-release-platform.log
+PASS WebUITests.test_actual_editor_mcp_plugin_readonly_shared_node_draft_cas_and_cold
+PASS WebUITests.test_actual_editor_v424_source_conflict_real_files_cas_and_cold_restart
+PASS WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup
+PASS WebUITests.test_web_ui_client_coalescing_revision_retirement_and_unreplayed_retry
+PASS WebUITests.test_web_ui_scope_revision_cancellation_disposal_and_pack_locality
+PASS AIConnectionTests.test_connection_metadata_reads_current_bytes_without_cross_project_or_stamp_cache
+6 passed, 1 failed, 0 skipped; 147.844s
+
+connection-latency-release-history.log
+PASS WebUITests.test_actual_editor_v424_shared_draft_history_cas_and_cold_restart
+1 passed, 0 failed, 0 skipped; 54.946s
+
+The platform aggregate includes the earlier fixture stale_revision failure; its isolated rerun is the final history result. No source CAS/revision guard was relaxed.
+
+42078226bfbcbe8f3984638cf33ff122b6e1aacd diagnostic classification rerun:
+PASS Agent presentation zero invokes/processes; partial settings/missing host diagnostics; exact retry, retained input and late close; /tmp/confectory-connection-latency-f3x27l27
+PASS WebUITests.test_actual_agent_connection_presentation_diagnostics_retry_inputs_and_late_close
+1 passed, 0 failed, 0 skipped; 25.043s
