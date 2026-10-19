@@ -133,6 +133,7 @@ export function createActualWorkspace(api) {
     if(layout.key==='declaration'){api.declaration(layout.meta?.id);return runtime.state.windows.get('declaration');}
     if(layout.key==='worker')return api.worker(layout.meta?.workerId);
     if(layout.key==='connections'){api.connections();return runtime.state.windows.get('connections');}
+    if(layout.key==='mcp-bridge')return api.mcpBridge();
     if(layout.key==='packs')return api.packs();
     if(layout.key==='run')return api.run();
     if(layout.key==='targets'){api.targets();return runtime.state.windows.get('targets');}

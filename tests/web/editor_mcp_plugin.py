@@ -1,5 +1,5 @@
 """Actual EditorHome/DevelopmentTools and managed MCP stdio; no ChatGPT installation."""
-import json,os,pathlib,sys,uuid
+import json,os,pathlib,socket,sys,uuid
 from playwright.sync_api import expect
 sys.path.insert(0,str(pathlib.Path(__file__).resolve().parents[1]/'protocol'))
 from mcp_client import Client
@@ -32,6 +32,13 @@ def verify_mcp_plugin(page,project,mount,send,envelope,settle,restart,repo,env):
  with Client(repo,directory,env) as client:
   assert client.call('confectory_instances')[0]['code']=='engine_not_running'
   nav('기능 Blueprint');bp().locator('[data-bp-select="calculate"]').click();nav('ChatGPT 플러그인 연결');expect(panel().locator('[data-mcp-readonly]')).to_be_checked();a=bridge_start();project_id=a['projectId'];client.connect(a['instance']);names={t['name'] for t in client.request('tools/list')['tools']};assert {'workspace_read','workspace_list','workspace_changes'}<=names and not {'workspace_stage','workspace_create','confirm','shell'}&names
+  # A malformed peer must only lose its own IPC connection, not the user's scope.
+  descriptor=json.loads((directory/(a['instance']+'.json')).read_text());assert descriptor['transport']=='unix'
+  with socket.socket(socket.AF_UNIX,socket.SOCK_STREAM) as peer:
+   peer.settimeout(3);peer.connect(descriptor['address'])
+   try:peer.sendall(b'x'*(4194304+2048));peer.shutdown(socket.SHUT_WR);assert peer.recv(1)==b''
+   except (BrokenPipeError,ConnectionResetError):pass
+  after,error=client.call('confectory_status');assert not error and after['instance']==a['instance'],after
   read,error=client.call('workspace_read',dict(projectId=project_id,id=source));assert not error and json.loads(read['text'])['source']=='return value + 4;';denied,error=client.call('workspace_stage',dict(projectId=project_id,id=source,text=read['text'],expectedRevision=read['revision'],expectedHash=read['textHash']));assert error and denied['code']=='read_only';assert all(p.read_bytes()==raw for p,raw in original.items())
   bridge_stop();assert client.call('confectory_status')[1];a=bridge_start(False);client.connect(a['instance']);assert 'workspace_stage' in {t['name'] for t in client.request('tools/list')['tools']}
   current,error=client.call('workspace_read',dict(projectId=project_id,id=source));assert not error;record=json.loads(current['text']);record['source']='return value + 8;';text=json.dumps(record)
@@ -48,7 +55,7 @@ def verify_mcp_plugin(page,project,mount,send,envelope,settle,restart,repo,env):
   front('blueprint');bp().locator('[data-bp-read]').click();ready();bp().locator('[data-bp-review]').click();ready();review=window('review');review.locator('[data-review-advanced]').click();review.locator('[data-advanced-reviewed]').check();page.locator('#confirm').click();ready();assert json.loads((project/'calculate.node.json').read_text())['source']=='return value + 10;';assert all(p.read_bytes()==raw for p,raw in original.items() if p.name!='calculate.node.json')
   # Switching projects retires the original host scope, including its old node pin.
   page.locator('.brand').click();page.locator('[data-project]').filter(has_text='Overview B').locator('[data-enter]').click();ready();assert client.call('confectory_status')[1];nav('ChatGPT 플러그인 연결');b=bridge_start(True,'');assert b['projectId']!=project_id;client.connect(b['instance']);assert not client.call('workspace_list',dict(projectId=b['projectId'],query=''))[1];assert client.call('workspace_list',dict(projectId=project_id,query=''))[1];assert all(p.read_bytes()==raw for p,raw in other_original.items())
-  invoke('saveDraft',{});restart();ready();assert client.call('confectory_status')[1];assert client.call('confectory_instances')[0]['code']=='engine_not_running';nav('ChatGPT 플러그인 연결');expect(panel().locator('[data-mcp-readonly]')).to_be_checked();assert not state().get('mcpBridge') or state()['mcpBridge']['state']=='stopped'
+  invoke('saveDraft',{});restart();ready();assert client.call('confectory_status')[1];assert client.call('confectory_instances')[0]['code']=='engine_not_running';expect(panel()).to_have_attribute('aria-label','ChatGPT 플러그인 연결');expect(panel().locator('[data-mcp-readonly]')).to_be_checked();assert not state().get('mcpBridge') or state()['mcpBridge']['state']=='stopped'
   assert not {'runProject','startAI','prepareAI','startInstallation','startLogin','permission'}.intersection(calls),calls
-  evidence=dict(actualEngine='ordinary EditorHome with existing DevelopmentTools',actualAdapter='managed MCP stdio over private Unix IPC',initialReadOnly=True,existingSharedNodeDraft=True,duplicateStageOnce=True,unsentIntentAndOriginalFilesRetained=True,peerSourcePinAndHashCASRefused=True,humanCompilerReviewConfirm=True,projectSwitchAndColdRetireScope=True,confirmedSource='return value + 10;',realChatGPTApp=False,installed=False,registered=False,networkPort=False)
+  evidence=dict(actualEngine='ordinary EditorHome with existing DevelopmentTools',actualAdapter='managed MCP stdio over private Unix IPC',malformedPeerRetainsScope=True,initialReadOnly=True,existingSharedNodeDraft=True,duplicateStageOnce=True,unsentIntentAndOriginalFilesRetained=True,peerSourcePinAndHashCASRefused=True,humanCompilerReviewConfirm=True,projectSwitchAndColdRetireScope=True,confirmedSource='return value + 10;',realChatGPTApp=False,installed=False,registered=False,networkPort=False)
   page.screenshot(path='/tmp/confectory-mcp-plugin.png',full_page=True);pathlib.Path('/workspace/scratch/confectory-mcp-ui.json').write_text(json.dumps(evidence,indent=2)+'\n');print('PASS actual MCP plugin shared node/CAS/Confirm/cold '+json.dumps(evidence),flush=True)

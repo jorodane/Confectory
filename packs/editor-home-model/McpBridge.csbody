@@ -64,7 +64,7 @@ lock(state){
     if(socket is not null)stream=new System.Net.Sockets.NetworkStream(await socket.AcceptAsync(token),true);
     else{var pipe=(System.IO.Pipes.NamedPipeServerStream)bridge[2];await pipe.WaitForConnectionAsync(token);stream=pipe;}
     lock(bridge[0])bridge[13]=stream;
-    using(stream){
+    try{using(stream){
      using var deadline=System.Threading.CancellationTokenSource.CreateLinkedTokenSource(token);deadline.CancelAfter(15000);
      var bytes=new System.Collections.Generic.List<byte>();var buffer=new byte[2048];bool ended=false;
      while(!ended){int n=await stream.ReadAsync(buffer,deadline.Token);if(n==0)break;for(int i=0;i<n;i++){if(buffer[i]==10){ended=true;break;}bytes.Add(buffer[i]);}if(bytes.Count>4194304)throw new System.IO.InvalidDataException("Frame budget");}
@@ -73,8 +73,10 @@ lock(state){
       catch(Exception error){string code=error is InvalidOperationException&&(error.Message is "scope_changed" or "engine_closed")?error.Message:error is InvalidOperationException&&(error.Message.StartsWith("Approved node source changed",StringComparison.Ordinal)||error.Message.StartsWith("Assigned Blueprint definition or contract changed",StringComparison.Ordinal))?"source_changed":error is UnauthorizedAccessException&&error.Message=="read_only"?"read_only":"operation_refused";reply=new System.Text.Json.Nodes.JsonObject{["ok"]=false,["code"]=code};}
       byte[] response=System.Text.Encoding.UTF8.GetBytes(reply.ToJsonString()+"\n");if(response.Length>4194304)throw new System.IO.InvalidDataException("Response budget");await stream.WriteAsync(response,deadline.Token);
      }
+    }}catch(Exception error)when(!token.IsCancellationRequested&&(error is System.IO.IOException or System.IO.InvalidDataException or System.Net.Sockets.SocketException or OperationCanceledException)){
+     // A broken, oversized or timed-out peer retires only its connection.
     }
-    lock(bridge[0])bridge[13]=null!;
+    finally{lock(bridge[0])bridge[13]=null!;}
     if(socket is null&&!token.IsCancellationRequested){var pipe=new System.IO.Pipes.NamedPipeServerStream(address,System.IO.Pipes.PipeDirection.InOut,1,System.IO.Pipes.PipeTransmissionMode.Byte,System.IO.Pipes.PipeOptions.Asynchronous|System.IO.Pipes.PipeOptions.CurrentUserOnly);lock(bridge[0]){if(token.IsCancellationRequested)pipe.Dispose();else bridge[2]=pipe;}}
    }}catch(Exception)when(token.IsCancellationRequested){}
    catch{lock(state){if(!(bool)bridge[7])Stop(bridge);}}
