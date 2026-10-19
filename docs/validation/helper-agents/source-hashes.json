@@ -1,0 +1,17 @@
+{
+  "examples/editor-home/WebBundle.csbody": "bbc2d02ed01d1b5d779cbd8910891b82accdcaade2024166edc73b387f7ada66",
+  "examples/editor-home/WebInvoke.csbody": "3eaa82eb9852d869516fea726f28ef3536a8780270b15b7889e3434b8f02120d",
+  "examples/editor-home/WebState.csbody": "e00b290a101927af7479bd62abdbfb1fac9c3789112470d33d48ed208ea20509",
+  "examples/editor-home/ui/app.js": "959abf3ca2331451180bc57e051feb149528b6b3f40be640914b3c2a0a094a08",
+  "examples/editor-home/ui/helper-agents.js": "0b80efd6e8a437f3ce179b34eb2dfb3ac7e370ccbf9977b424418460f40efa21",
+  "examples/editor-home/ui/index.html": "6e092b7d0342436bd4c5881b8d35b098c30a55e7071bfef9afd755afd55ce9ad",
+  "examples/editor-home/ui/style.css": "7697fca4c65ad7a23e766b4f56a84db8827724fc81a69509371c8723e407ee31",
+  "packs/editor-home-model/HelperAgents.celem": "d1e785cdfb66c2d9e63ede52b095a11c23d4d03eefa744da4b7bbaa72a12c56a",
+  "packs/editor-home-model/HelperAgentsBody.celem": "5ce9bf845e63e719d0a9325a1ffbff372582f6b789afcd2c41cb08e4be85de59",
+  "packs/editor-home-model/HelperAgents.csbody": "0c8493b6288cd4be8dba872a86bfbd15e0d2ba5993d1f83c9c857bfa32a80a99",
+  "packs/editor-home-model/CreateSession.csbody": "e2d4e173b5532ab8617b9e1a94d494e80cb5752d309b2aa875f371cf6819ea48",
+  "packs/editor-home-model/Command.csbody": "780dfd8f42a5bb70f557887a8e03f743c0ccec42bd5e9e24c71d2f4542875cbf",
+  "packs/ai-connection/Authorize.csbody": "19d9e632f8e65bbb22c5195b86b4b54e1d2c5cdd3bfe49de19bd0fe7cc500746",
+  "packs/agent-codex/Provider.csbody": "302a77e9a41d988949da06f7b2a653177db921a0eabdd60966eee69165d4c56d",
+  "packs/agent-responses/Provider.csbody": "98e9ab29d0858d0d607f149a7f87f237ba082376d389ac92201501991a9dd2e1"
+}

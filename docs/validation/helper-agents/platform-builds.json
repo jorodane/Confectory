@@ -1,0 +1,20 @@
+{
+  "implementationCommit": "2bbb725fce62d98bfd81c9fee685580201f513ca",
+  "builds": [
+    {
+      "target": "linux",
+      "entry": "Confectory.EditorHome::Main",
+      "toolOk": true,
+      "diagnostics": [],
+      "includedPackCount": 38
+    },
+    {
+      "target": "windows",
+      "entry": "Confectory.EditorHome::Main",
+      "toolOk": true,
+      "diagnostics": [],
+      "includedPackCount": 38
+    }
+  ],
+  "actualWindowsRuntimeExecuted": false
+}

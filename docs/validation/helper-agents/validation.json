@@ -1,0 +1,82 @@
+{
+  "implementationCommit": "2bbb725fce62d98bfd81c9fee685580201f513ca",
+  "baseCommit": "3415d3d9499481d6583a66757ebf88f93e697ad9",
+  "branch": "work/current",
+  "status": "validated",
+  "testMethodCount": 28,
+  "testMethods": [
+    "AIConnectionTests.test_codex_owned_stdio_protocol_fixture_without_installed_codex_authentication_or_external_network",
+    "AIConnectionTests.test_declared_connection_settings_and_responses_approval_guards_without_external_network_or_credentials",
+    "AgentTests.test_configured_simulated_stream_cancel_errors_bounds_cleanup_and_locality",
+    "AgentTests.test_optional_agent_exclusion",
+    "EmbeddedChannelTests.test_embedded_channel_correlates_replies_and_retires_on_eof",
+    "EmbeddedChannelTests.test_site_authentication_wait_and_stopped_successful_document_remain_usable",
+    "EmbeddedChannelTests.test_site_hidden_relay_reopen_expiry_shutdown_and_fixed_profile",
+    "EmbeddedChannelTests.test_site_login_clear_disconnects_before_profile_clear_and_does_not_claim_late_success",
+    "EmbeddedChannelTests.test_site_real_navigation_failures_keep_browser_details_and_require_retry",
+    "EmbeddedChannelTests.test_site_relay_pins_document_nonce_protocol_and_bounded_schema",
+    "EmbeddedChannelTests.test_site_rendered_login_is_not_replaced_by_a_failure_overlay",
+    "EmbeddedChannelTests.test_site_window_close_retires_late_preparation_and_ignores_late_callbacks",
+    "EmbeddedChannelTests.test_site_window_real_failure_retry_and_old_navigation_do_not_replace_current_state",
+    "EmbeddedChannelTests.test_site_window_slow_preparation_login_redirect_and_connected_presentation",
+    "EmbeddedChannelTests.test_windows_native_site_connect_transport_envelope_and_reply",
+    "GlobalHelperAgentTests.test_actual_global_helper_responses_codex_scopes_approval_cancellation_and_restart",
+    "HelperTests.test_explicit_membership_and_project_memory_legacy_quarantine",
+    "HelperTests.test_persistent_memory_templates_owner_refs_conflict_and_optional_agent_locality",
+    "WebUITests.test_actual_agent_connection_presentation_diagnostics_retry_inputs_and_late_close",
+    "WebUITests.test_actual_editor_and_button_game_common_web_transport_chromium",
+    "WebUITests.test_actual_editor_mcp_plugin_readonly_shared_node_draft_cas_and_cold",
+    "WebUITests.test_actual_editor_original_v196_home_project_and_create_flow",
+    "WebUITests.test_actual_editor_v318_helper_connection_chat_state_and_ownership",
+    "WebUITests.test_actual_editor_v318_home_agent_connection_entry_and_saved_settings",
+    "WebUITests.test_actual_editor_v480_project_information_and_helper_profile_context_drafts_and_cold",
+    "WebUITests.test_actual_global_helper_agent_creation_assignment_conversation_and_v508_layout",
+    "WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup",
+    "WebUITests.test_mcp_portable_package_schema_hashes_and_real_manifest_command"
+  ],
+  "additionalChecks": [
+    "Pinned identities for 47 static resources",
+    "Common WebUI client coalescing, revision fencing and no mutation replay",
+    "Linux and Windows target builds; tool.ok=true, diagnostics=[]",
+    "Actual Git autocrlf checkout: retained CRLF pull and fresh LF, resource startup and corruption rejection"
+  ],
+  "fixtures": {
+    "globalHttpRequests": 4,
+    "globalHistoryCasPreservesOriginalAndResponse": true,
+    "globalUiPageErrors": [],
+    "globalUiExternalRequests": [],
+    "codex": "Owned stdio protocol executable and owned managed home; no real account or inference",
+    "projectEditing": "Owned temporary ProjectPacks only"
+  },
+  "preserved": {
+    "localMain": "b5ea38c3d7eec3eb20f170e68f0f4215b86b2aee",
+    "referenceArchivesUnchanged": true,
+    "androidSettingsUnchanged": true,
+    "siteFilesChanged": [],
+    "siteDeploymentRequired": false,
+    "realAccountLoginPerformed": false,
+    "paidInferencePerformed": false,
+    "newPermanentPermissionsCreated": false,
+    "userProjectCreated": false
+  },
+  "limits": [
+    "Actual user Windows runtime was not executed in this Linux environment",
+    "Only existing Codex and Responses reply transports; no fabricated provider or model support",
+    "Single actual main Helper in creation; arbitrary pack recommendation and image generation remain unavailable",
+    "Eight retained global owners, 24 conversation records, explicit context and message budgets; two displayed records per history page"
+  ],
+  "resolvedDuringValidation": [
+    "Unassigned Helper/import state now publishes independently of Agent registry changes",
+    "Growing global conversation remains scrollable with reachable Stop",
+    "Input entered after saving remains the next saved draft",
+    "History CAS failure keeps the received response visible and the original file unchanged",
+    "Existing fixtures follow the new explicit import, provider-route and stable Helper identity controls"
+  ],
+  "supportingFiles": [
+    "docs/helper-agents.md",
+    "docs/validation/helper-agents/passed-tests.log",
+    "docs/validation/helper-agents/source-hashes.json",
+    "docs/validation/helper-agents/platform-builds.json",
+    "docs/validation/helper-agents/ui-evidence.json"
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "root": "/tmp/confectory-global-ui-l8ipgu5x",
+  "checks": [
+    "real startup readiness and zero-call Codex engine entry",
+    "provider declarations vs registered configuration",
+    "Helper creation and assignment without project",
+    "creation/configuration input preservation",
+    "approval cancel and explicit consent",
+    "actual Responses reply, HTTP failure, original request cancel",
+    "draft/history reload without provider replay",
+    "v508 project/packs tabs, real Helper roster, no project submission"
+  ],
+  "historyCasPreservesOriginalAndResponse": true,
+  "httpRequests": 4,
+  "pageErrors": [],
+  "externalRequests": [],
+  "projectId": ""
+}

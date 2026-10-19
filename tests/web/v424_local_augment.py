@@ -48,7 +48,7 @@ def verify_local_augment(page,project,mount,send,envelope,settle,restart):
  from owned_responses import OwnedResponses
  owned=OwnedResponses(None)
  try:
-  page.locator('.augment-overlay [data-close]').click();page.locator('.home-side [data-helper]').filter(has_text='main-helper').click();page.locator('.participant-expanded-card [data-worker]').click();expect(page.locator('#worker-prepare')).to_be_disabled()
+  page.locator('.augment-overlay [data-close]').click();page.locator('.home-side [data-helper="main-helper"]').click();page.locator('.participant-expanded-card [data-worker]').click();expect(page.locator('#worker-prepare')).to_be_disabled()
   page.locator('#add-agent').click();setup=page.get_by_role('dialog',name='사용할 AI',exact=True);setup.get_by_role('button',name='OpenAI Responses',exact=True).click()
   for name,value in [('model','owned-local-plan-fixture'),('endpoint',owned.endpoint),('credentialReference','')]:setup.locator('[data-connection-field="'+name+'"]').fill(value)
   setup.locator('[data-connection-save]').click();expect(setup.locator('[data-connection-result]')).to_contain_text('설정 초안을 저장',timeout=30000);setup.locator('[data-connection-use]').click();expect(page.locator('#status')).to_contain_text('설정 선택됨',timeout=30000);setup.locator('[data-connection-cancel]').click()

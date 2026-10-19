@@ -1,0 +1,3 @@
+PASS actual global Helper creation/assignment/Responses/Codex/approval/HTTP error/cancel/history/restart; owned transports only
+PASS GlobalHelperAgentTests.test_actual_global_helper_responses_codex_scopes_approval_cancellation_and_restart
+1 passed, 0 failed, 0 skipped; 41.688s

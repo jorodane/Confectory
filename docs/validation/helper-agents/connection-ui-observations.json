@@ -1,0 +1,143 @@
+{
+  "environment": "Owned Linux Chromium fixture, not user Windows timing",
+  "presentationInvokes": 0,
+  "presentationAuthoringProcesses": 0,
+  "observations": [
+    {
+      "scenario": "fresh",
+      "renderMedianMs": 0.7999999970197678,
+      "renderMaxMs": 4.5,
+      "explicitCalls": [
+        {
+          "endpoint": "globalHelpers",
+          "elapsedMs": 178.39999999850988,
+          "code": "completed"
+        },
+        {
+          "endpoint": "connectionSetup",
+          "elapsedMs": 1129.6000000014901,
+          "code": "completed"
+        },
+        {
+          "endpoint": "discoverConnection",
+          "elapsedMs": 702.3000000044703,
+          "code": "completed"
+        },
+        {
+          "endpoint": "cancelConnectionSetup",
+          "elapsedMs": 14.199999995529652,
+          "code": "completed"
+        },
+        {
+          "endpoint": "connectionSetup",
+          "elapsedMs": 757,
+          "code": "completed"
+        },
+        {
+          "endpoint": "cancelConnectionSetup",
+          "elapsedMs": 10.600000001490116,
+          "code": "completed"
+        },
+        {
+          "endpoint": "connectionSetup",
+          "elapsedMs": 1085.2000000029802,
+          "code": "completed"
+        },
+        {
+          "endpoint": "cancelConnectionSetup",
+          "elapsedMs": 10.600000001490116,
+          "code": "completed"
+        },
+        {
+          "endpoint": "connectionSetup",
+          "elapsedMs": 664.5,
+          "code": "completed"
+        },
+        {
+          "endpoint": "cancelConnectionSetup",
+          "elapsedMs": 12,
+          "code": "completed"
+        }
+      ]
+    },
+    {
+      "scenario": "partial-settings",
+      "renderMedianMs": 1.1000000014901161,
+      "renderMaxMs": 7,
+      "explicitCalls": [
+        {
+          "endpoint": "globalHelpers",
+          "elapsedMs": 157.29999999701977,
+          "code": "completed"
+        },
+        {
+          "endpoint": "connectionSetup",
+          "elapsedMs": 339.20000000298023,
+          "code": "consumer_error"
+        },
+        {
+          "endpoint": "connectionSetup",
+          "elapsedMs": 874.2999999970198,
+          "code": "completed"
+        },
+        {
+          "endpoint": "discoverConnection",
+          "elapsedMs": 697.3999999985099,
+          "code": "completed"
+        },
+        {
+          "endpoint": "cancelConnectionSetup",
+          "elapsedMs": 21.600000001490116,
+          "code": "completed"
+        },
+        {
+          "endpoint": "connectionSetup",
+          "elapsedMs": 730.3999999985099,
+          "code": "completed"
+        },
+        {
+          "endpoint": "cancelConnectionSetup",
+          "elapsedMs": 15.200000002980232,
+          "code": "completed"
+        },
+        {
+          "endpoint": "connectionSetup",
+          "elapsedMs": 957.6000000014901,
+          "code": "completed"
+        },
+        {
+          "endpoint": "cancelConnectionSetup",
+          "elapsedMs": 15,
+          "code": "completed"
+        },
+        {
+          "endpoint": "connectionSetup",
+          "elapsedMs": 693.3999999985099,
+          "code": "completed"
+        },
+        {
+          "endpoint": "cancelConnectionSetup",
+          "elapsedMs": 10.600000001490116,
+          "code": "completed"
+        }
+      ]
+    },
+    {
+      "scenario": "missing-authoring",
+      "renderMedianMs": 2,
+      "renderMaxMs": 8.799999997019768,
+      "explicitCalls": [
+        {
+          "endpoint": "globalHelpers",
+          "elapsedMs": 141.39999999850988,
+          "code": "completed"
+        },
+        {
+          "endpoint": "connectionSetup",
+          "elapsedMs": 35.5,
+          "code": "consumer_error"
+        }
+      ]
+    }
+  ]
+}
