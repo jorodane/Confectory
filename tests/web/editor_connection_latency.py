@@ -74,7 +74,7 @@ with sync_playwright() as p:
                     diagnostic=dialog.locator('[data-connection-error]');code='connection_settings_incomplete' if scenario=='partial-settings' else 'authoring_host_missing'
                     expect(diagnostic).to_have_attribute('data-code',code);expect(diagnostic).to_be_visible()
                     assert str(owned) not in diagnostic.inner_text()
-                    assert str(owned) not in json.dumps(state(url).get('operationError'))
+                    snapshot=state(url);assert str(owned) not in json.dumps(snapshot.get('operationError'));assert snapshot['sourceError'] is None
                     assert not (settings/'project.cpack').exists()
                     if scenario=='missing-authoring':
                         dialog.locator('[data-connection-cancel]').click();continue
