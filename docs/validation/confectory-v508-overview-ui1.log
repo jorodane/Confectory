@@ -1,0 +1,64 @@
+UI page errors: []
+UI failure status: 같은 공유 초안의 독립 편집창
+UI failure controls: {'confirm': None, 'run': False, 'source': 'Example.ButtonGame::Score'}
+FAIL WebUITests.test_actual_editor_v508_blueprint_overview_camera_scope_cancel_and_cold
+System.Exception: UI page errors: []
+UI failure status: 같은 공유 초안의 독립 편집창
+UI failure controls: {'confirm': None, 'run': False, 'source': 'Example.ButtonGame::Score'}
+Traceback (most recent call last):
+  File "/workspace/Confectory/tests/web/web_ui.py", line 357, in <module>
+    verify_overview(page,project,mount,send,envelope,settle,restart_actual_host)
+  File "/workspace/Confectory/tests/web/v508_blueprint_overview.py", line 45, in verify_overview
+    nav('개념');page.locator('[data-id="Example.ButtonGame::Score"]').click();expect(window('schema').locator('[data-description]')).to_be_visible(timeout=120000);window('schema').locator('[data-close]').click();page.locator('#browser-actions').click();page.locator('#keep-properties').click();ready();page.locator('#browser-actions').click();page.locator('#advanced-source').click();ready()
+                                                                                                                                                                                                                                                                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/sync_api/_generated.py", line 17876, in click
+    self._sync(
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_sync_base.py", line 115, in _sync
+    return task.result()
+           ^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_locator.py", line 165, in click
+    return await self._frame._click(self._selector, strict=True, **params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_frame.py", line 593, in _click
+    await self._channel.send("click", self._timeout, locals_to_params(locals()))
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_connection.py", line 76, in send
+    return await self._connection.wrap_api_call(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_connection.py", line 632, in wrap_api_call
+    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+playwright._impl._errors.TimeoutError: Locator.click: Timeout 30000ms exceeded.
+Call log:
+  - waiting for locator("#browser-actions")
+    - locator resolved to <button class="secondary" aria-label="정렬 방법" id="browser-actions" data-browser-control="browser-actions">…</button>
+  - attempting click action
+    2 × waiting for element to be visible, enabled and stable
+      - element is visible, enabled and stable
+      - scrolling into view if needed
+      - done scrolling
+      - <div class="object-header">…</div> from <section tabindex="-1" data-key="editor-1" aria-label="Score · 데이터" class="window multi-selected active">…</section> subtree intercepts pointer events
+    - retrying click action
+    - waiting 20ms
+    2 × waiting for element to be visible, enabled and stable
+      - element is visible, enabled and stable
+      - scrolling into view if needed
+      - done scrolling
+      - <div class="object-header">…</div> from <section tabindex="-1" data-key="editor-1" aria-label="Score · 데이터" class="window multi-selected active">…</section> subtree intercepts pointer events
+    - retrying click action
+      - waiting 100ms
+    58 × waiting for element to be visible, enabled and stable
+       - element is visible, enabled and stable
+       - scrolling into view if needed
+       - done scrolling
+       - <div class="object-header">…</div> from <section tabindex="-1" data-key="editor-1" aria-label="Score · 데이터" class="window multi-selected active">…</section> subtree intercepts pointer events
+     - retrying click action
+       - waiting 500ms
+
+
+   at Confectory.Tests.TestCase.True(Boolean condition, String message) in /workspace/Confectory/tests/Confectory.Tests/Support.cs:line 127
+   at Confectory.Tests.WebUITests.RunOwnedBlueprint(String mode) in /workspace/Confectory/tests/Confectory.Tests/WebUITests.cs:line 300
+   at Confectory.Tests.WebUITests.test_actual_editor_v508_blueprint_overview_camera_scope_cancel_and_cold() in /workspace/Confectory/tests/Confectory.Tests/WebUITests.cs:line 183
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+PASS overview actual DOM {"kind": "actual Chromium mounted production viewport component", "sourceSha256": "caaad9cf9fe3efb6a5a36afef4bed9ffbcf66df3add08a276a4bae18fdde9c4a", "metadataNodes": 256, "initialMountedGlyphs": 255, "missingDomNodesIgnored": true, "oldSavedIdsIgnored": true, "prototypeIdSafe": true, "invalidPositionsFinite": true, "worldExtent": 10000000, "endCamera": {"x": -9999982, "y": -2072}, "homeCamera": {"x": 350, "y": 200}, "cancel": ["Escape", "pointercancel", "lostpointercapture"], "modelUnchanged": true, "emptySceneDisabled": true, "retiredHandlersIgnored": true}
+PASS WebUITests.test_blueprint_overview_actual_dom_bounds_stale_nodes_and_disposal
+1 passed, 1 failed, 0 skipped; 106.580s

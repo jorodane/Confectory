@@ -1,0 +1,36 @@
+{
+  "remoteMainCommit": "71b7ea6613fd90a4db29492eb2dc416b9a533e8b",
+  "referencePath": "reference/site-ui/Confectory-Editor-Prototype-v508.zip",
+  "fileName": "Confectory-Editor-Prototype-v508.zip",
+  "size": 16433599,
+  "sha256": "b306ce4deff9616c4107ae224443d864f8fce0f52cf3c3e158de8745c17c659f",
+  "entryCount": 26,
+  "expandedBytes": 19049148,
+  "zipSafety": "paths, duplicate/case collisions, symlinks/devices, encryption, size/ratio budgets and CRC checked",
+  "internalVersion": 508,
+  "prototypeSourceCommit": "0c2f828fec72923e628c6006d73e8823712e9d98",
+  "manifestHashesVerified": 25,
+  "baselineWorkCurrent": "be37cf7f96dc862731e3bb6488f807e2f368619e",
+  "localMainAfter": "b5ea38c3d7eec3eb20f170e68f0f4215b86b2aee",
+  "appOrLauncherExecuted": false,
+  "compiled": false,
+  "repositoryWorktreeChanged": false,
+  "mainReferenceGitBlob": "0619403dd8673acc03a5c006d9bbf557861d77cc",
+  "v508ExecutionPlanStatic": {
+    "versionSync": 4,
+    "versionAsync": 5,
+    "executionMode": "sequential-header-rail",
+    "onUnconnected": "return-to-sequence",
+    "branchHandling": "dispatch-result-then-continue",
+    "branchReturn": "return-from-function",
+    "continuationCondition": "always-after-branch",
+    "asyncOrder": [
+      "await",
+      "publish-outputs",
+      "completion",
+      "result-branch",
+      "continuation"
+    ]
+  },
+  "firstBoundedUnit": "Presentation-only Blueprint overview using existing camera/zoom/positions and stable node IDs; preserve header drag priority, source/CAS/Confirm and legacy profiles. No async/wrapper/output publication execution changes."
+}

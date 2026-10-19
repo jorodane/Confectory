@@ -1,0 +1,12 @@
+PASS WebUITests.test_actual_editor_v480_blueprint_camera_header_pins_tabs_and_cold_input
+PASS WebUITests.test_actual_editor_v480_blueprint_owned_graph_node_edit_and_cold_input
+PASS actual v480 pin blank-drop cancellation, invalid case/entry target and retained input preservation; valid click/drag unchanged
+PASS actual v480 switch enum explicit transition/Result source/scoped case/main return/cold/compiler Confirm
+Actual common WebUI blueprint-switch Chromium PASS
+PASS WebUITests.test_actual_editor_v480_switch_enum_scoped_case_return_cold_and_confirm
+PASS actual v508 Blueprint overview {"initialNodes": 2, "graphIds": ["Example.ButtonGame::NodeValueBody/body:common", "Example.ButtonGame::OtherValueBody/body:common"], "sameNodeIds": true, "projects": 2, "zoom": 137.125, "worldCamera": {"x": 330.5846153846154, "y": 13.969230769230771}, "otherGraphCamera": {"x": -316, "y": -334.5}, "otherProjectCamera": {"x": -316, "y": -334.5}, "pendingSourcePropertyIntentArgumentsCode": true, "originalInputBasisPreserved": true, "coldApplyRefused": true, "sourceSignatureEdgesProfileUnchanged": true, "originalFiles": 58, "cancellation": ["Escape", "pointercancel", "lostpointercapture", "graph-switch"], "actualBrowser": "Chromium ordinary EditorHome host"}
+Actual common WebUI blueprint-overview Chromium PASS
+PASS WebUITests.test_actual_editor_v508_blueprint_overview_camera_scope_cancel_and_cold
+PASS overview actual DOM {"kind": "actual Chromium mounted production viewport component", "sourceSha256": "43935d917603a6fcd6faf965b4e204228460131267d2ebd97831549f3f1bdd6e", "metadataNodes": 256, "initialMountedGlyphs": 255, "missingDomNodesIgnored": true, "oldSavedIdsIgnored": true, "prototypeIdSafe": true, "invalidPositionsFinite": true, "worldExtent": 10000000, "endCamera": {"x": -9999982, "y": -2072}, "homeCamera": {"x": 350, "y": 200}, "maxZoomCamera": {"x": -30000646, "y": -6616}, "cancel": ["Escape", "pointercancel", "lostpointercapture"], "modelUnchanged": true, "emptySceneDisabled": true, "retiredHandlersIgnored": true}
+PASS WebUITests.test_blueprint_overview_actual_dom_bounds_stale_nodes_and_disposal
+5 passed, 0 failed, 0 skipped; 226.639s

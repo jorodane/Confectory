@@ -1,0 +1,4 @@
+PASS actual v508 Blueprint overview {"initialNodes": 2, "graphIds": ["Example.ButtonGame::NodeValueBody/body:common", "Example.ButtonGame::OtherValueBody/body:common"], "sameNodeIds": true, "projects": 2, "zoom": 137.125, "worldCamera": {"x": 330.5846153846154, "y": 13.969230769230771}, "otherGraphCamera": {"x": -316, "y": -334.5}, "otherProjectCamera": {"x": -316, "y": -334.5}, "pendingSourcePropertyIntentArgumentsCode": true, "originalInputBasisPreserved": true, "coldApplyRefused": true, "sourceSignatureEdgesProfileUnchanged": true, "originalFiles": 58, "cancellation": ["Escape", "pointercancel", "lostpointercapture", "graph-switch"], "actualBrowser": "Chromium ordinary EditorHome host"}
+Actual common WebUI blueprint-overview Chromium PASS
+PASS WebUITests.test_actual_editor_v508_blueprint_overview_camera_scope_cancel_and_cold
+1 passed, 0 failed, 0 skipped; 31.681s

@@ -68,3 +68,5 @@
 - main·원본 ZIP·Android 설정을 보존한다. 새 ABI·제약 field ref·overflow 정책·소스 삭제/참조 치환·영속 실행 권한·CSP·실계정 설치는 이번 범위에 추가하지 않는다.
 
 과거 개별 단계의 근거는 [v480 통합 연혁](EDITOR_V480_INTEGRATION.md), [호환성 검토](EDITOR_V480_COMPATIBILITY_REVIEW.md), 각 기능 계약 문서와 `docs/validation/`의 이전 기록에 남는다. 해당 시점의 수치와 미완료 표시는 현재 표를 덮어쓰지 않는다.
+
+[v508 첫 단위: Blueprint overview](V508_BLUEPRINT_OVERVIEW.md)는 별도 보존한 v508 원본과 기존 private 카메라를 사용한다. graph의 실행/인수 순서·source CAS를 바꾸지 않으며 v508 전체의 완료를 뜻하지 않는다.

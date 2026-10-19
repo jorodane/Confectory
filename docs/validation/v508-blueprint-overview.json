@@ -1,0 +1,266 @@
+{
+  "version": 1,
+  "measuredAtUtc": "2026-10-18T18:41:26.851725+00:00",
+  "sourceCommit": "b40bd3a49e5068c8412fabc112538a5a9c11499f",
+  "firstImplementationCommit": "474a2501cd40cbda537fcad18e53a25cfbc2dbaf",
+  "baseWorkCurrent": "be37cf7f96dc862731e3bb6488f807e2f368619e",
+  "scope": "Presentation-only Blueprint overview, scoped private camera and stable node placement; no execution/ABI/order/source or async/wrapper/public-output policy changes",
+  "passed": 11,
+  "failed": 0,
+  "skipped": 0,
+  "distinctMethods": 11,
+  "countingRule": "Only the two final2 groups on the exact final source/fixture count; all prior results excluded. Documentation/evidence-only commit follows. No full suite or unexecuted OS/device claims.",
+  "gateConcurrencyLimit": 2,
+  "cpuQuota": 4,
+  "memoryLimitBytes": 17179869184,
+  "groups": [
+    {
+      "name": "actual-editor-and-component",
+      "log": "confectory-v508-overview-final2-ui.log",
+      "methods": [
+        "WebUITests.test_actual_editor_v480_blueprint_camera_header_pins_tabs_and_cold_input",
+        "WebUITests.test_actual_editor_v480_blueprint_owned_graph_node_edit_and_cold_input",
+        "WebUITests.test_actual_editor_v480_switch_enum_scoped_case_return_cold_and_confirm",
+        "WebUITests.test_actual_editor_v508_blueprint_overview_camera_scope_cancel_and_cold",
+        "WebUITests.test_blueprint_overview_actual_dom_bounds_stale_nodes_and_disposal"
+      ],
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 226.639
+    },
+    {
+      "name": "core-managed-and-checkout",
+      "log": "confectory-v508-overview-final2-model-checkout.log",
+      "methods": [
+        "SwitchBlueprintTests.test_old_profiles_keep_their_meaning_and_refuse_switch_fields_or_cross_region_routes",
+        "SwitchBlueprintTests.test_switch_cases_default_unmatched_and_main_calls_run_once_per_invocation",
+        "PropertyBlueprintTests.test_property_reads_at_node_once_from_actual_instance_and_reexecutes_on_next_call",
+        "WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup",
+        "EntryHomeTests.test_android_home_export_selects_activity_and_metadata_parser_without_engine_surface_sample",
+        "EntryHomeNativeDetailsTests.test_windows_native_information_and_profile_composition_builds"
+      ],
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 91.201
+    }
+  ],
+  "sourceSha256": {
+    "examples/editor-home/WebBundle.csbody": "2222971935e127247ecf709e36e704e044e264607f143fcf468df0becac7f7b1",
+    "examples/editor-home/ui/blueprint-viewport.js": "43935d917603a6fcd6faf965b4e204228460131267d2ebd97831549f3f1bdd6e",
+    "examples/editor-home/ui/blueprint.js": "2b2d659042608c32db1f66446d1bd057cccc1b431d8825e2065638faed42b1a0",
+    "examples/editor-home/ui/consumer.css": "d7d98faae7f739d6cd9350a74f67f23e7adda7e357c65eb8062764ba52ca4b91",
+    "reference/site-ui/Confectory-Editor-Prototype-v508.zip": "b306ce4deff9616c4107ae224443d864f8fce0f52cf3c3e158de8745c17c659f",
+    "tests/Confectory.Tests/WebUITests.cs": "00ee461bdf1bb058d118ea751be83c09fa333598fab827c652edcc3883e868f3",
+    "tests/probes/blueprint_overview_dom.py": "85a38c634cd71503d335af940ab0c6c6f36486adada468ac0471a3fbb6c56073",
+    "tests/web/v508_blueprint_overview.py": "62e69282aa8ce1eef378b8ad2fe45eb50d16fd4434888e6d30fd7442fd8f4e95",
+    "tests/web/web_ui.py": "f6151ca6b93e27acdbfbfaee450e35c50e9adc5d86f242f6799222390bd5e157"
+  },
+  "ordinaryEditor": {
+    "initialNodes": 2,
+    "graphIds": [
+      "Example.ButtonGame::NodeValueBody/body:common",
+      "Example.ButtonGame::OtherValueBody/body:common"
+    ],
+    "sameNodeIds": true,
+    "projects": 2,
+    "zoom": 137.125,
+    "worldCamera": {
+      "x": 330.5846153846154,
+      "y": 13.969230769230771
+    },
+    "otherGraphCamera": {
+      "x": -316,
+      "y": -334.5
+    },
+    "otherProjectCamera": {
+      "x": -316,
+      "y": -334.5
+    },
+    "pendingSourcePropertyIntentArgumentsCode": true,
+    "originalInputBasisPreserved": true,
+    "coldApplyRefused": true,
+    "sourceSignatureEdgesProfileUnchanged": true,
+    "originalFiles": 58,
+    "cancellation": [
+      "Escape",
+      "pointercancel",
+      "lostpointercapture",
+      "graph-switch"
+    ],
+    "actualBrowser": "Chromium ordinary EditorHome host"
+  },
+  "component": {
+    "kind": "actual Chromium mounted production viewport component",
+    "sourceSha256": "43935d917603a6fcd6faf965b4e204228460131267d2ebd97831549f3f1bdd6e",
+    "metadataNodes": 256,
+    "initialMountedGlyphs": 255,
+    "missingDomNodesIgnored": true,
+    "oldSavedIdsIgnored": true,
+    "prototypeIdSafe": true,
+    "invalidPositionsFinite": true,
+    "worldExtent": 10000000,
+    "endCamera": {
+      "x": -9999982,
+      "y": -2072
+    },
+    "homeCamera": {
+      "x": 350,
+      "y": 200
+    },
+    "maxZoomCamera": {
+      "x": -30000646,
+      "y": -6616
+    },
+    "cancel": [
+      "Escape",
+      "pointercancel",
+      "lostpointercapture"
+    ],
+    "modelUnchanged": true,
+    "emptySceneDisabled": true,
+    "retiredHandlersIgnored": true
+  },
+  "geometry": {
+    "worldPositionLimit": 10000000,
+    "privateCameraLimit": 40000000,
+    "zoomPercent": [
+      3.125,
+      300
+    ],
+    "axisNormalization": "independent X/Y as in v508 reference",
+    "nativeViewportScroll": [
+      0,
+      0
+    ],
+    "pointerCancel": [
+      "Escape",
+      "pointercancel",
+      "lostpointercapture"
+    ],
+    "overviewDoesNotReorderGraphOrArguments": true
+  },
+  "platforms": {
+    "linuxChromium": "Actual ordinary EditorHome camera/overview/owned-source/Review-Confirm/switch regressions, plus separately labelled production-module DOM stress probe",
+    "linuxDotnet": "Actual CLR switch case/default/main-call count and property node-time read; legacy profile validation",
+    "windows": "Managed native composition compilation only; no Windows OS overview execution",
+    "android": "Export/metadata fixture only; no Android overview/device execution",
+    "other": "Native GTK overview, Windows device, Android device and browser-WASM overview not executed"
+  },
+  "resources": {
+    "entries": 44,
+    "canonicalUtf8Lf": 35,
+    "exact": 9
+  },
+  "referenceReceipt": "v508-reference-receipt.json",
+  "protectedBaseline": {
+    "localMain": "b5ea38c3d7eec3eb20f170e68f0f4215b86b2aee",
+    "remoteMain": "71b7ea6613fd90a4db29492eb2dc416b9a533e8b",
+    "baseWorkCurrent": "be37cf7f96dc862731e3bb6488f807e2f368619e",
+    "zipSha256": {
+      "reference/site-ui/Confectory-Editor-Prototype-v196.zip": "02d4824e92ed0edbb43113659982b37a99a614117652bde4d8ac92367e334e34",
+      "reference/site-ui/Confectory-Editor-Prototype-v318.zip": "0a614fe2bf1ad3d8e10dfa8905bb6b61ea9f21b87b2492b2b87ca8566e9e6908",
+      "reference/site-ui/Confectory-Editor-Prototype-v424.zip": "b7969cd109ea2dad38bde9c9ab13967c20162c920a45a8cd51a8f82df6041874",
+      "reference/site-ui/Confectory-Editor-Prototype-v480.zip": "0489844c8c6d90f7cdc8ea0e80628f487dcfb27f2c871b19367a635212d3c5bd"
+    }
+  },
+  "priorAttempts": [
+    {
+      "log": "confectory-v508-overview-build1.log",
+      "rawSha256": "a4b2ad6e4e50fb2560ead0e30c8d981aa2a40e4c891536ab0cc931cddb631106",
+      "gitCopySha256": "a4b2ad6e4e50fb2560ead0e30c8d981aa2a40e4c891536ab0cc931cddb631106",
+      "counted": false
+    },
+    {
+      "log": "confectory-v508-overview-component1.log",
+      "rawSha256": "cff5816d9c50eef1880ac74f49e008bda69cc77f07d67e3202d683e8893781c2",
+      "gitCopySha256": "6057e29c17b2cb0b469e8b084c240845bcdccd38d0df6a5e4a9918fdab90895a",
+      "counted": false
+    },
+    {
+      "log": "confectory-v508-overview-existing1.log",
+      "rawSha256": "0d3cb03061326df72a902686abb715ff5e1da945f053767247d28f6e99e0d153",
+      "gitCopySha256": "0d3cb03061326df72a902686abb715ff5e1da945f053767247d28f6e99e0d153",
+      "counted": false
+    },
+    {
+      "log": "confectory-v508-overview-camera2.log",
+      "rawSha256": "2f08e4ce295045d1ed4619e7fb2666d4442df4380429a727ecf95ea2b440d33b",
+      "gitCopySha256": "2f08e4ce295045d1ed4619e7fb2666d4442df4380429a727ecf95ea2b440d33b",
+      "counted": false
+    },
+    {
+      "log": "confectory-v508-overview-final-ui.log",
+      "rawSha256": "21474fc3f88b3bca7672754064d34721da22406bd2f342ea0846e1ac2a5f5783",
+      "gitCopySha256": "21474fc3f88b3bca7672754064d34721da22406bd2f342ea0846e1ac2a5f5783",
+      "counted": false
+    },
+    {
+      "log": "confectory-v508-overview-final-model-checkout.log",
+      "rawSha256": "a662226795e716b25dfa66cd5856047a27924da049ba0ee56622982b9a2ab1d1",
+      "gitCopySha256": "a662226795e716b25dfa66cd5856047a27924da049ba0ee56622982b9a2ab1d1",
+      "counted": false
+    },
+    {
+      "log": "confectory-v508-overview-ui1.log",
+      "rawSha256": "dec9544becca28acf5ec291f96f7cfcfd8e3e237d560c2100ba46e1e87b88fee",
+      "gitCopySha256": "dec9544becca28acf5ec291f96f7cfcfd8e3e237d560c2100ba46e1e87b88fee",
+      "counted": false
+    },
+    {
+      "log": "confectory-v508-overview-ui2.log",
+      "rawSha256": "eacef15206497d185d4d5807d8076fc2c38ac2679d4fca0bb270864aee68fef6",
+      "gitCopySha256": "eacef15206497d185d4d5807d8076fc2c38ac2679d4fca0bb270864aee68fef6",
+      "counted": false
+    },
+    {
+      "log": "confectory-v508-overview-ui3.log",
+      "rawSha256": "6ca5274fe1ee50ffa6fcc82f52e63acea9066b6023f8078e1592d9a99f9ef5aa",
+      "gitCopySha256": "6ca5274fe1ee50ffa6fcc82f52e63acea9066b6023f8078e1592d9a99f9ef5aa",
+      "counted": false
+    },
+    {
+      "log": "confectory-v508-overview-ui4.log",
+      "rawSha256": "3b75002942e7ec6fc2ba18be05e12d4ece1168cd21cb84b2bdcfa709e3c28ad2",
+      "gitCopySha256": "3b75002942e7ec6fc2ba18be05e12d4ece1168cd21cb84b2bdcfa709e3c28ad2",
+      "counted": false
+    },
+    {
+      "log": "confectory-v508-overview-ui5.log",
+      "rawSha256": "3020eb1bbe425de1f5a9a7817ecb592b7c0539cb1be1b7e797d2968144443dc4",
+      "gitCopySha256": "3020eb1bbe425de1f5a9a7817ecb592b7c0539cb1be1b7e797d2968144443dc4",
+      "counted": false
+    }
+  ],
+  "priorFindings": [
+    "Standalone probe initially attempted a Playwright enabled click on an intentionally disabled empty map; final probe uses ordinary pointer input and verifies no effect",
+    "Initial full-editor fixture overlapped property/browser windows; final fixture separates them by real title dragging",
+    "72px overview consumed too much height in small windows; final strip is 36px",
+    "Native focus left unrecorded viewport scrollTop=249, placing bars outside their private camera; final draw/scroll handling maintains zero native scroll",
+    "Cold fixture restored another window in front of Read; final test brings Blueprint forward through its actually exposed title",
+    "Pixel inspection showed uniform scaling compressed map glyphs into the strip center; final independent X/Y normalization uses the full strip",
+    "A prior host restart during final display polish refused old canonical size 20108 versus new 20260. That mixed-source run is excluded; final2 groups use a frozen matching source/resource set"
+  ],
+  "logs": [
+    {
+      "log": "confectory-v508-overview-final2-ui.log",
+      "rawSha256": "81b2389d5ce09d3dff82993f16b335dd8b3cd9746b9263cff913cb19869f7dd3",
+      "gitCopySha256": "81b2389d5ce09d3dff82993f16b335dd8b3cd9746b9263cff913cb19869f7dd3"
+    },
+    {
+      "log": "confectory-v508-overview-final2-model-checkout.log",
+      "rawSha256": "d7f373f1ac372bba063c0ec4a35c7931a5667e9a70917c296326b98774eac254",
+      "gitCopySha256": "d7f373f1ac372bba063c0ec4a35c7931a5667e9a70917c296326b98774eac254"
+    }
+  ],
+  "screenshot": {
+    "file": "v508-blueprint-overview.png",
+    "sha256": "b87001b96ab5fcdb2499cccb0a039cfd6d598237b3088964a947a7954e49c218"
+  },
+  "remaining": [
+    "Explicit Rename and input/output/branch ordering UI are outside this finite overview unit",
+    "Async UI direction approved; async result ABI/execution/cancellation/exception/concurrency and wrapper/public-output contracts are not implemented",
+    "Unresolved arithmetic overflow policy unchanged"
+  ]
+}

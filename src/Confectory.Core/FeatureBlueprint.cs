@@ -130,6 +130,7 @@ public static partial class FeatureBlueprint
             var value = item!.AsObject();
             string id = Id(value, "id"), kind = S(value, "kind"), control = S(value, "control"), intent = S(value, "intent");
             Need(!nodes.ContainsKey(id), "GRAPH_DUPLICATE_NODE", id);
+            _ = DisplayName(value);
             Need(kind is "code" or "call" || nested && kind=="graph" || properties && kind=="property" || SupportsPropertySets(profile) && kind=="property-set" || profile==PropertyRefProfile && kind=="property-ref" || implicitEnd && kind=="export" || localProfile && kind=="set", "GRAPH_NODE_KIND", id);
             Need(control is "next" or "branch" || switchFlow && control=="switch", "GRAPH_CONTROL", id);
             Need(!string.IsNullOrWhiteSpace(intent), "NODE_INTENT", id);
@@ -171,7 +172,7 @@ public static partial class FeatureBlueprint
             if(kind=="graph"){
                 var childRequest=PrivateRequest(request,value,signature);
                 var child=Process(childRequest);request["privateChildren"]![id]=child;
-                definition["graph"]=value["graph"]!.DeepClone();
+                definition["graph"]=SemanticGraph(value["graph"]!.AsObject());
                 foreach(var imported in child["imports"]?.AsArray()??new JsonArray())references[S(imported,"feature")]=Import(S(imported,"feature")).Hash;
             }
             Need(switchFlow||!value.ContainsKey("branchOwner")&&!value.ContainsKey("executionEnum"),"GRAPH_SWITCH_PROFILE",id);
@@ -254,7 +255,7 @@ public static partial class FeatureBlueprint
                 members = MethodsMember(MethodClass(request,id),node,declarations,source,helper,marker);
                 code = "throw new global::System.InvalidOperationException(\"Independent static method probe must never execute\");";
             }
-            string graphHash = Hash(CanonicalText(graph));
+            string graphHash = Hash(CanonicalText(SemanticGraph(graph)));
             return new JsonObject
             {
                 ["state"] = "node-source-assembled", ["mode"] = "independent-node", ["profile"] = profile, ["generator"] = generator, ["feature"] = feature.Id,

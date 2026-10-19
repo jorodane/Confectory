@@ -28,3 +28,5 @@ IMP2의 WebUI와 [native 대응 트리](V480_NATIVE_DECLARATION_TREE.md)는 확�
 | P3 · ENV3 | 환경 미검증 | 실제 외부 Agent/협업/시장 서비스의 연결·장애/복구 | 해당 서비스 구현(IMP5) 및 AUTH1/2 후 실제 환경에서 검사. simulated transport·공식 metadata 조회·설치 안내를 실계정 성공으로 계산하지 않음 |
 
 이번 통합 범위를 마치는 데 사용자의 새 결정은 필요하지 않다. DEC 항목은 다음 기능 범위를 넓힐 때 필요한 결정이고, AUTH 항목은 실제 외부 작업을 시작할 때의 권한 경계다. main·ZIP·Android 설정 보존과 새 ABI/제약 ref/overflow/소스 삭제·치환/영속 권한/CSP/실계정 설치 제외 조건을 유지한다.
+
+v508 참조의 새 기능은 [수신·overview 범위](V508_BLUEPRINT_OVERVIEW.md)에 구분해 기록한다. overview는 private 탐색 단위이며 기존 v480 실행 항목의 완료 기준·미결 overflow·새 실행 계약의 결정을 대체하지 않는다.

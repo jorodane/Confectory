@@ -3,7 +3,7 @@ using System.Text.Json.Nodes;
 
 namespace Confectory.Tests;
 
-public sealed class FeatureBlueprintTests : TestCase
+public sealed partial class FeatureBlueprintTests : TestCase
 {
     private const string Feature = "function Api::Value (int n) -> int {}";
     private static JsonObject Signature(string result, params (string Type, string Name)[] args) => new()

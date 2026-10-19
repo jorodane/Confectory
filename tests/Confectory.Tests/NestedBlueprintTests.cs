@@ -3,7 +3,7 @@ using System.Text.Json.Nodes;
 
 namespace Confectory.Tests;
 
-public sealed class NestedBlueprintTests : TestCase
+public sealed partial class NestedBlueprintTests : TestCase
 {
     const string Plain = "function Api::Value (int n) -> int {}";
     static JsonObject Sig(string result, params Parameter[] args) => FeatureBlueprint.SignatureDocument(new(args.ToList(), result));

@@ -1,0 +1,59 @@
+PASS WebUITests.test_actual_editor_v480_blueprint_camera_header_pins_tabs_and_cold_input
+PASS WebUITests.test_actual_editor_v480_blueprint_owned_graph_node_edit_and_cold_input
+PASS actual v480 pin blank-drop cancellation, invalid case/entry target and retained input preservation; valid click/drag unchanged
+UI page errors: []
+UI failure status: Failed to fetch
+UI failure controls: {'confirm': None, 'run': False, 'source': 'Example.ButtonGame::Score'}
+FAIL WebUITests.test_actual_editor_v480_switch_enum_scoped_case_return_cold_and_confirm
+System.Exception: PASS actual v480 pin blank-drop cancellation, invalid case/entry target and retained input preservation; valid click/drag unchanged
+UI page errors: []
+UI failure status: Failed to fetch
+UI failure controls: {'confirm': None, 'run': False, 'source': 'Example.ButtonGame::Score'}
+Traceback (most recent call last):
+  File "/workspace/Confectory/tests/web/web_ui.py", line 315, in <module>
+    verify_switch(page,project,mount,send,envelope,settle,restart_actual_host)
+  File "/workspace/Confectory/tests/web/v480_switch.py", line 48, in verify_switch
+    invoke('saveDraft',{});page.evaluate('()=>globalThis.confectoryFlushPresentation()');restart();ready();nav();panel().locator('[data-bp-read]').click();ready();assert node('selector')['executionEnum']['members'][0]=={'id':'next','name':'Next','value':0};assert node('case_work')['branchOwner']=='selector';open_code('selector');plan('selector').locator('summary').click();plan('selector').locator('[data-bp-enum-rebind]').click();plan('selector').locator('[data-bp-enum-preview]').click();ready();expect(plan('selector').locator('[data-bp-enum-source]')).to_contain_text('Next = 0');plan('selector').locator('[data-bp-enum-source]').scroll_into_view_if_needed();page.screenshot(path='/tmp/confectory-v480-switch-enum.png',full_page=True);close_code('selector')
+                                                                                         ^^^^^^^^^
+  File "/workspace/Confectory/tests/web/web_ui.py", line 165, in restart_actual_host
+    assert host.poll() is None,log.read_text();time.sleep(.1)
+           ^^^^^^^^^^^^^^^^^^^
+AssertionError: CONFECTORY_WEB_UI http://127.0.0.1:38035/#bddff3b0d27e4c1eb6c6acaab33c0ef2
+Unhandled exception. System.ArgumentException: Resource 'blueprint-viewport.js': canonical size mismatch; expected=20108, actual=20260, raw=20260
+   at Confectory.Implementations.Ef9126e8172c41475adf45a64.Eefc2869779b2a65bf3df1ce2.Invoke(String context, String descriptor)
+   at Bcfdbaffb10c99cf8d732736b.Invoke(String context, String descriptor)
+   at Confectory.Implementations.Ea620445369633f57f16dee9a.E141c7f6633186a6ac1644211.Invoke()
+   at B43af26f050257fefd467eb99.Invoke()
+   at Confectory.Implementations.Ea620445369633f57f16dee9a.E9cd48a090b534f0132826411.Invoke()
+   at Bc84cc9ca7306eb44f5f191db.Invoke()
+   at Program.Main()
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workspace/Confectory/tests/web/web_ui.py", line 616, in <module>
+    assert host.returncode==0,log.read_text()
+           ^^^^^^^^^^^^^^^^^^
+AssertionError: CONFECTORY_WEB_UI http://127.0.0.1:38035/#bddff3b0d27e4c1eb6c6acaab33c0ef2
+Unhandled exception. System.ArgumentException: Resource 'blueprint-viewport.js': canonical size mismatch; expected=20108, actual=20260, raw=20260
+   at Confectory.Implementations.Ef9126e8172c41475adf45a64.Eefc2869779b2a65bf3df1ce2.Invoke(String context, String descriptor)
+   at Bcfdbaffb10c99cf8d732736b.Invoke(String context, String descriptor)
+   at Confectory.Implementations.Ea620445369633f57f16dee9a.E141c7f6633186a6ac1644211.Invoke()
+   at B43af26f050257fefd467eb99.Invoke()
+   at Confectory.Implementations.Ea620445369633f57f16dee9a.E9cd48a090b534f0132826411.Invoke()
+   at Bc84cc9ca7306eb44f5f191db.Invoke()
+   at Program.Main()
+
+
+   at Confectory.Tests.TestCase.True(Boolean condition, String message) in /workspace/Confectory/tests/Confectory.Tests/Support.cs:line 127
+   at Confectory.Tests.WebUITests.RunOwnedBlueprint(String mode) in /workspace/Confectory/tests/Confectory.Tests/WebUITests.cs:line 300
+   at Confectory.Tests.WebUITests.test_actual_editor_v480_switch_enum_scoped_case_return_cold_and_confirm() in /workspace/Confectory/tests/Confectory.Tests/WebUITests.cs:line 283
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+PASS actual v508 Blueprint overview {"initialNodes": 2, "graphIds": ["Example.ButtonGame::NodeValueBody/body:common", "Example.ButtonGame::OtherValueBody/body:common"], "sameNodeIds": true, "projects": 2, "zoom": 137.125, "worldCamera": {"x": 330.5846153846154, "y": 13.969230769230771}, "otherGraphCamera": {"x": -316, "y": -334.5}, "otherProjectCamera": {"x": -316, "y": -334.5}, "pendingSourcePropertyIntentArgumentsCode": true, "originalInputBasisPreserved": true, "coldApplyRefused": true, "sourceSignatureEdgesProfileUnchanged": true, "originalFiles": 58, "cancellation": ["Escape", "pointercancel", "lostpointercapture", "graph-switch"], "actualBrowser": "Chromium ordinary EditorHome host"}
+Actual common WebUI blueprint-overview Chromium PASS
+PASS WebUITests.test_actual_editor_v508_blueprint_overview_camera_scope_cancel_and_cold
+PASS overview actual DOM {"kind": "actual Chromium mounted production viewport component", "sourceSha256": "43935d917603a6fcd6faf965b4e204228460131267d2ebd97831549f3f1bdd6e", "metadataNodes": 256, "initialMountedGlyphs": 255, "missingDomNodesIgnored": true, "oldSavedIdsIgnored": true, "prototypeIdSafe": true, "invalidPositionsFinite": true, "worldExtent": 10000000, "endCamera": {"x": -9999982, "y": -2072}, "homeCamera": {"x": 350, "y": 200}, "maxZoomCamera": {"x": -30000646, "y": -6616}, "cancel": ["Escape", "pointercancel", "lostpointercapture"], "modelUnchanged": true, "emptySceneDisabled": true, "retiredHandlersIgnored": true}
+PASS WebUITests.test_blueprint_overview_actual_dom_bounds_stale_nodes_and_disposal
+4 passed, 1 failed, 0 skipped; 199.056s
