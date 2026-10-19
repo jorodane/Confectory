@@ -1,0 +1,21 @@
+implementation Confectory.EditorHome.Model::HelperAgentsBody for Confectory.EditorHome.Model::HelperAgents (string session,string operation,string payload) -> string {
+import Confectory.FileStream::Snapshot as Snapshot (string) -> string[];
+import Confectory.FileStream::Commit as Commit (string,string[],string[],string[]) -> string[];
+import Confectory.Helper::Open as HelperOpen (string) -> string;
+import Confectory.Helper::Close as HelperClose (string) -> void;
+import Confectory.Helper::List as HelperList (string,string) -> string;
+import Confectory.Helper::Recruit as Recruit (string,string,string) -> string;
+import Confectory.Helper::ProjectContext as Context (string,string,string,string,bool) -> string;
+import Confectory.EditorHome.Model::HelperPresentation as Presentation (string,string,string,string) -> string;
+import Confectory.PackWorkspace::Open as PackOpen (string,string,string) -> string;
+import Confectory.PackWorkspace::Command as PackCommand (string,string,string) -> string;
+import Confectory.PackWorkspace::Close as PackClose (string) -> void;
+import Confectory.ProjectAI::Configuration as Configuration (string,string) -> string;
+import Confectory.ProjectAI::Permission as Permission (string,string) -> string;
+import Confectory.AIConnection::Authorize as Authorize (string,string,string) -> string;
+import Confectory.Agent::Open as AgentOpen (string) -> string;
+import Confectory.Agent::Start as AgentStart (string,string,string) -> string;
+import Confectory.Agent::Poll as AgentPoll (string) -> string;
+import Confectory.Agent::Cancel as AgentCancel (string) -> void;
+import Confectory.Agent::Close as AgentClose (string) -> void;
+body common "HelperAgents.csbody";}

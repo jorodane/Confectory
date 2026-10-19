@@ -1,3 +1,4 @@
+from editor_navigation import goto_editor
 """Real EditorHome helper flow through an explicitly owned loopback HTTP fixture.
 
 The fixture simulates service output; production packs, permissions and owners run unchanged.
@@ -87,7 +88,7 @@ try:
   browser = p.chromium.launch(executable_path='/usr/bin/chromium', args=['--no-sandbox', '--disable-gpu'])
   page = browser.new_page(viewport={'width':1440, 'height':1000}); errors = []; page.on('pageerror', lambda error: errors.append(str(error)))
   try:
-   page.goto(url); page.locator('.work-body').wait_for()
+   goto_editor(page,url); page.locator('.work-body').wait_for()
    project_id = state()['projectId']
    page.locator('#add-helper').click(); page.locator('[data-recruit="global"]').click()
    page.locator('#helper-list button').first.click(); expect(page.locator('#helper-summary')).to_contain_text('main-helper')
@@ -101,7 +102,7 @@ try:
    expect(card.locator('textarea')).to_have_value('UNSENT selected helper input'); card.locator('[data-close]').click()
    responses = page.locator('[data-connection-row="Confectory.Agent.Responses::Connection"]')
    codex = page.locator('[data-connection-row="Confectory.Agent.Codex::Connection"]')
-   expect(codex.locator('[data-connection-status]')).to_contain_text('설정 선택 가능')
+   expect(codex.locator('[data-connection-status]')).to_contain_text('제공자 설정 가능')
    responses.locator('[data-connection-settings]').click()
    setup = page.get_by_role('dialog', name='사용할 AI', exact=True)
    expect(setup.locator('[data-connection-field="model"]')).to_be_visible()
@@ -186,9 +187,10 @@ try:
    sentinel.write_text('#!/usr/bin/python3\nfrom pathlib import Path\nPath(' + repr(str(launched)) + ').write_text("UNEXPECTED LAUNCH")\n')
    sentinel.chmod(0o700); managed = root / 'owned-empty-codex-home'; managed.mkdir()
    page.locator('[data-enter]').first.click(); expect(page.locator('.work-body')).to_be_visible(); assert state()['projectId'] == project_id
+   page.locator('.provider-catalogue>summary').click()
    page.locator('.agent-home[data-agent="Confectory.Agent.Codex::Connection"]').click()
    setup = page.get_by_role('dialog', name='사용할 AI', exact=True)
-   setup.locator('[data-connection-advanced] > summary').click();expect(setup.locator('[data-method-choice]')).to_have_count(3)
+   setup.locator('[data-codex-route="provider"]').click();setup.locator('[data-connection-advanced] > summary').click();expect(setup.locator('[data-method-choice]')).to_have_count(3)
    assert state()['projectId'] == project_id
    for method in ('desktop-ide','chatgpt-work','local-cli'):
     setup.locator('[data-method-choice="' + method + '"]').click(); expect(setup.locator('[data-method-choice="' + method + '"]')).to_have_attribute('aria-pressed','true')
@@ -199,7 +201,7 @@ try:
    assert state()['projectId'] == project_id and not launched.exists()
    setup.locator('[data-connection-cancel]').click()
    page.locator('#add-agent').click(); setup = page.get_by_role('dialog', name='사용할 AI', exact=True)
-   setup.get_by_role('button', name='Codex', exact=True).click(); setup.locator('[data-connection-advanced] > summary').click(); expect(setup.locator('[data-connection-field="model"]')).to_have_value('owned-not-called'); setup.locator('[data-connection-cancel]').click()
+   setup.get_by_role('button', name='Codex', exact=True).click(); setup.locator('[data-codex-route="provider"]').click(); setup.locator('[data-connection-advanced] > summary').click(); expect(setup.locator('[data-connection-field="model"]')).to_have_value('owned-not-called'); setup.locator('[data-connection-cancel]').click()
    # Existing project binding remains a local configuration choice; no account call.
    codex_card = open_helper(other); codex_card.locator('[data-close]').click()
    page.locator('#title').click(); page.get_by_role('button', name='프로젝트 완전 종료', exact=True).click(); expect(page.locator('.home-grid')).to_be_visible()

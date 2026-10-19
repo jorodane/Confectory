@@ -1,3 +1,4 @@
+from editor_navigation import goto_editor
 import json,os,pathlib,subprocess,tempfile,time,shutil,sys,http.server,threading,zipfile,signal
 from playwright.sync_api import sync_playwright,expect
 repo=pathlib.Path(sys.argv[1]).resolve();report=json.load(open(sys.argv[2]));root=pathlib.Path(tempfile.mkdtemp(prefix='confectory-v318-home-'))
@@ -32,7 +33,7 @@ with sync_playwright() as p:
   for n in range(2):
    host,stream,url=start(n)
    try:
-    page=browser.new_page(viewport={'width':1440,'height':1000});page.on('pageerror',lambda e:errors.append(str(e)));page.goto(url);page.locator('.work-body').wait_for(timeout=30000);page.locator('.brand').click();page.locator('#home-projects').wait_for();expect(page.locator('[data-project]')).to_have_count(1);favorite=page.locator('[data-favorite]')
+    page=browser.new_page(viewport={'width':1440,'height':1000});page.on('pageerror',lambda e:errors.append(str(e)));goto_editor(page,url);page.locator('.work-body').wait_for(timeout=30000);page.locator('.brand').click();page.locator('#home-projects').wait_for();expect(page.locator('[data-project]')).to_have_count(1);favorite=page.locator('[data-favorite]')
     if n==0:
      expect(favorite).to_have_attribute('aria-pressed','false');favorite.click();expect(page.locator('[data-favorite]')).to_have_attribute('aria-pressed','true');page.locator('#home-project-search').fill('no-such-project');expect(page.locator('[data-project]')).to_have_count(0);expect(page.locator('.project-empty')).to_have_text('검색 결과가 없습니다.');page.locator('#home-project-search').fill('');expect(page.locator('[data-project]')).to_have_count(1)
     else:expect(favorite).to_have_attribute('aria-pressed','true')

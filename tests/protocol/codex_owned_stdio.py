@@ -47,6 +47,7 @@ for index,models in enumerate(pages):
 a=read();assert a['method']=='thread/start' and a['params']['ephemeral'] and a['params']['sandbox']=='read-only' and a['params']['approvalPolicy']=='never'
 assert a['params']['environments']==[]
 assert a['params']['allowProviderModelFallback'] is False
+dynamic_tools=a['params']['dynamicTools']
 assert all(t['type']=='function' and 'inputSchema' in t for t in a['params']['dynamicTools'])
 assert os.getcwd()==a['params']['cwd'];hold('thread/start');send({'id':a['id'],'result':{'thread':{'id':thread,'environments':['unexpected'] if 'retained-environment' in __file__ else []},'instructionSources':[{'path':'owned-unreviewed-instruction'}] if 'instruction-source' in __file__ else [],'model':'owned-protocol-fixture','modelProvider':'openai'}})
 a=read();assert a['method']=='turn/start' and a['params']['sandboxPolicy']=={'type':'readOnly','networkAccess':False}
@@ -54,6 +55,14 @@ assert a['params']['environments']==[]
 open(os.path.join(os.path.dirname(__file__),'turn-start-'+os.path.basename(__file__)),'w').write('started')
 text=a['params']['input'][0]['text'];assert 'authorization' not in text and 'toolCapability' not in text and 'credentialReference' not in text
 mode=json.loads(text)['message'];send({'method':'turn/started','params':{'threadId':thread,'turn':{'id':turn,'status':'inProgress'}}});send({'id':a['id'],'result':{'turn':{'id':turn,'status':'inProgress'}}})
+if mode.startswith('global-'):
+ payload=json.loads(text);assert payload['kind']=='helper-global-chat' and payload['projectId']=='' and payload['context']['projectId']=='' and payload['context']['membership']['kind']=='global'
+ assert dynamic_tools==[] and all(m['scope']=='common' for m in payload['context']['memory'])
+ assert 'PROJECT PRIVATE' not in text and 'LEGACY PRIVATE' not in text
+ if mode=='global-hold':
+  b=read();assert b['method']=='turn/interrupt';sys.exit(0)
+ send({'method':'item/completed','params':{'threadId':thread,'turnId':turn,'item':{'id':'answer','type':'agentMessage','text':'OWNED GLOBAL CODEX FIXTURE: actual adapter, no account or inference.'}}})
+ send({'method':'turn/completed','params':{'threadId':thread,'turn':{'id':turn,'status':'completed'}}});read();sys.exit(0)
 if mode.startswith('ui-'):
  if mode=='ui-hold':
   b=read();assert b['method']=='turn/interrupt' and b['params']=={'threadId':thread,'turnId':turn};open(os.path.join(os.path.dirname(__file__),'owned-interrupt-marker'),'w').write(turn);sys.exit(0)

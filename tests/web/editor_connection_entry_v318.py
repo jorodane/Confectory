@@ -1,3 +1,4 @@
+from editor_navigation import goto_editor
 """Ordinary Home Agent entry, inline declared settings and exact readiness boundaries."""
 import json,os,pathlib,shutil,signal,subprocess,sys,tempfile,time,urllib.request
 from playwright.sync_api import sync_playwright,expect
@@ -36,7 +37,7 @@ with sync_playwright() as p:
   for phase in ('fresh','existing'):
    host,log,url=boot(phase);page=browser.new_page(viewport={'width':1360,'height':900});page.on('pageerror',lambda error:errors.append(str(error)))
    try:
-    page.goto(url);expect(page.locator('.home-grid')).to_be_visible()
+    goto_editor(page,url);expect(page.locator('.home-grid')).to_be_visible()
     if phase=='existing':
      # Keep existing layout data; it must not select/hide a provider or be cleared.
      page.evaluate("localStorage.setItem('confectory-participant-layout',JSON.stringify({participantSidebarWidth:211,homeSidebarCollapsed:false,legacyAgent:'Confectory.Agent.Responses::Connection'}))")

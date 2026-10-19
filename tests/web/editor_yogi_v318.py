@@ -1,3 +1,4 @@
+from editor_navigation import goto_editor
 import json,os,pathlib,subprocess,tempfile,time,shutil,sys,signal,urllib.request
 from playwright.sync_api import sync_playwright,expect
 expect.set_options(timeout=30000)
@@ -69,7 +70,7 @@ def begin(browser,n):
     body=req.post_data_json
     if body.get('op')=='invoke':requests.append((body.get('endpoint'),body.get('input',{}).get('action')))
    except Exception:pass
- page.on('request',request);page.goto(url);page.locator('.work-body').wait_for(timeout=30000);return host,stream,url,page
+ page.on('request',request);goto_editor(page,url);page.locator('.work-body').wait_for(timeout=30000);return host,stream,url,page
 def open_yogi(page):
  page.locator('#yogi').click();expect(page.locator('#nav')).to_be_enabled();expect(page.locator('.yogi-clipboard')).to_be_visible()
 def expand(page,kind):

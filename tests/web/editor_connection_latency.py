@@ -1,3 +1,4 @@
+from editor_navigation import goto_editor
 """Actual Agent clicks: no authoring for presentation, safe failure/retry and late-close fencing.
 
 All settings and hosts belong to this fixture. No real account, installation or network request.
@@ -52,7 +53,7 @@ with sync_playwright() as p:
                     if urls:url=urls[-1];break
                     assert host.poll() is None,log_path.read_text();time.sleep(.1)
                 else:raise AssertionError('host startup timeout')
-                page.goto(url);expect(page.locator('#add-agent')).to_be_enabled()
+                goto_editor(page,url);expect(page.locator('#add-agent')).to_be_enabled()
                 before=len(invocations)
                 before_processes=log_path.read_text().count('"stage":"authoring-process"')
                 # Installed cards and the engine route require no source scan or provider settings.

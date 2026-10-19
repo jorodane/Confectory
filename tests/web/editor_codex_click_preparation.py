@@ -1,3 +1,4 @@
+from editor_navigation import goto_editor
 """Actual Home + normal copied provider + owned HTTP archives. Never installs a real CLI or uses an account."""
 import fcntl,hashlib,http.server,io,json,os,pathlib,signal,subprocess,sys,tarfile,tempfile,threading,time,urllib.request,zipfile
 from playwright.sync_api import sync_playwright,expect
@@ -95,7 +96,7 @@ errors=[];external=[]
 with sync_playwright() as p:
  browser=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox','--disable-gpu']);page=browser.new_page(viewport={'width':1440,'height':1000});page.on('pageerror',lambda e:errors.append(str(e)));page.route('https://**/*',lambda route:(external.append(route.request.url),route.abort()))
  try:
-  page.goto(url);expect(page.locator('.home-grid')).to_be_visible()
+  goto_editor(page,url);expect(page.locator('.home-grid')).to_be_visible()
   def open_dialog():
    page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='사용할 AI',exact=True);dialog.get_by_role('button',name='Codex',exact=True).click();dialog.locator('[data-codex-route="provider"]').click();expect(dialog.locator('[data-install-prepare]')).to_be_visible();return dialog
   dialog=open_dialog();page.screenshot(path=str(root/'actual-ai-picker.png'));dialog.locator('[data-basic-check]').click();expect(dialog.locator('[data-job="preparation"] [data-job-consent]')).to_have_count(3);assert not downloads and not requests() and not managed.exists();page.screenshot(path=str(root/'actual-preparation-consent.png'))

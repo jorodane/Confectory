@@ -1,3 +1,4 @@
+from editor_navigation import goto_editor
 import json,os,pathlib,subprocess,tempfile,time,shutil,sys,signal,urllib.request
 from playwright.sync_api import sync_playwright,expect
 from owned_responses import OwnedResponses
@@ -39,7 +40,7 @@ owned=OwnedResponses(None)
 with sync_playwright() as p:
  browser=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox'])
  for n in range(2):
-  host,stream,url=start(n);page=browser.new_page(viewport={'width':1440,'height':1000});errors=[];page.on('pageerror',lambda e:errors.append(str(e)));page.goto(url);page.locator('.work-body').wait_for(timeout=30000)
+  host,stream,url=start(n);page=browser.new_page(viewport={'width':1440,'height':1000});errors=[];page.on('pageerror',lambda e:errors.append(str(e)));goto_editor(page,url);page.locator('.work-body').wait_for(timeout=30000)
   try:
    if n==0:
     page.locator('#add-helper').click();page.locator('[data-recruit="global"]').click();expect(page.locator('#helper-list')).to_contain_text('main-helper');page.locator('#helper-list button').click();expect(page.locator('#helper-summary')).to_contain_text('main-helper');page.locator('#helper-memory').fill('UNSAVED participant memory');page.wait_for_function('()=>typeof globalThis.confectoryFlushPresentation==="function"');page.evaluate('()=>globalThis.confectoryFlushPresentation()');expect(page.locator('#workspace-save-state')).to_have_text('');page.locator('.modal [data-close]').click()

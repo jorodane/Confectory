@@ -1,3 +1,4 @@
+from editor_navigation import goto_editor
 import json,os,pathlib,subprocess,tempfile,time,shutil,sys,signal,urllib.request,hashlib
 from playwright.sync_api import sync_playwright,expect
 expect.set_options(timeout=30000)
@@ -42,7 +43,7 @@ def drain():
    wd,mask,cookie,length=struct.unpack_from('iIII',data,offset);name=data[offset+16:offset+16+length].split(b'\0',1)[0].decode();offset+=16+length
    if mask&0x80 and name.endswith('.json'):writes.append(name)
 with sync_playwright() as p:
- browser=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox']);host,stream,url=start(0);page=browser.new_page(viewport={'width':1440,'height':1000});page.goto(url);page.locator('.work-body').wait_for();page.wait_for_timeout(1200)
+ browser=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox']);host,stream,url=start(0);page=browser.new_page(viewport={'width':1440,'height':1000});goto_editor(page,url);page.locator('.work-body').wait_for();page.wait_for_timeout(1200)
  folder=root/'storage/presentations';folder.mkdir(parents=True,exist_ok=True);assert lib.inotify_add_watch(fd,str(folder).encode(),0x80|0x08)>=0
  def req(request):
   if request.url.endswith('api/request'):

@@ -1,3 +1,4 @@
+from editor_navigation import goto_editor
 """Actual Home and Helper flow; owned stdio protocol simulation, no real account/model."""
 import json,os,pathlib,shutil,signal,subprocess,sys,tempfile,time,urllib.request
 from playwright.sync_api import sync_playwright,expect
@@ -42,7 +43,7 @@ try:
      with (root/'ui-requests.jsonl').open('a') as log:log.write(json.dumps(value)+'\n')
   page.on('request',capture)
   try:
-   page.goto(url);expect(page.locator('.work-body')).to_be_visible();project_id=state()['projectId']
+   goto_editor(page,url);expect(page.locator('.work-body')).to_be_visible();project_id=state()['projectId']
    page.locator('.brand').click();expect(page.locator('.home-grid')).to_be_visible();assert state()['projectId']==''
    def setup(home=False):
     if home:page.locator('#add-agent').click()

@@ -1,0 +1,4 @@
+function Confectory.EditorHome.Model::HelperAgents (string session,string operation,string payload) -> string {
+provide Confectory.Agent::Provider with Confectory.ProjectAI::Provider;
+provide Confectory.EditorHome.Model::HelperAgents with Confectory.EditorHome.Model::HelperAgentsBody;
+}

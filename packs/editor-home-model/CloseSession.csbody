@@ -2,6 +2,7 @@ var state=AppDomain.CurrentDomain.GetData("Confectory.EditorHome."+session) as o
 lock(state){
  // true means closing: commands are rejected, but CloseSession remains retryable.
  state[6]=true;var errors=new System.Collections.Generic.List<Exception>();
+ try{calls.HelperAgents.Invoke(session,"close","{}");}catch(Exception error){errors.Add(error);}
  try{if(AppDomain.CurrentDomain.GetData("Confectory.EditorHome.McpBridge."+session+".stop") is Action stopMcp)stopMcp();}catch(Exception error){errors.Add(error);}
  // Retire compiler leases before draft owners attempt their final Save.
  try{calls.StopBuilds.Invoke(calls.Executions.Invoke((string[])state[0]));}catch(Exception error){throw new AggregateException("Build jobs remain closing; retry CloseSession",error);}

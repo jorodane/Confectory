@@ -1,3 +1,4 @@
+from editor_navigation import goto_editor
 """Actual novice Home flow; legacy installations and preparation are owned fixtures only."""
 import hashlib,json,os,pathlib,shutil,signal,subprocess,sys,tempfile,time,urllib.request
 from playwright.sync_api import sync_playwright,expect
@@ -46,7 +47,7 @@ with sync_playwright() as p:
   for phase in ['fresh','saved']:
    host,log,url=boot(phase);page=browser.new_page(viewport={'width':1440,'height':1000});page.on('pageerror',lambda error:errors.append(str(error)));page.route('https://**/*',lambda route:(external.append(route.request.url),route.abort()))
    try:
-    page.goto(url);expect(page.locator('.home-grid')).to_be_visible();page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='사용할 AI',exact=True);dialog.get_by_role('button',name='Codex',exact=True).click();dialog.locator('[data-codex-route="provider"]').click()
+    goto_editor(page,url);expect(page.locator('.home-grid')).to_be_visible();page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='사용할 AI',exact=True);dialog.get_by_role('button',name='Codex',exact=True).click();dialog.locator('[data-codex-route="provider"]').click()
     expect(dialog.locator('[data-candidate-kind="executable"]')).to_have_count(len(binaries));expect(dialog.locator('[data-connection-advanced]')).not_to_have_attribute('open','');expect(dialog.locator('[data-connection-field="executable"]')).not_to_be_visible()
     def simple():
      visible=dialog.inner_text()

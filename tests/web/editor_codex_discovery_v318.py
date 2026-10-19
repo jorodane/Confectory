@@ -1,3 +1,4 @@
+from editor_navigation import goto_editor
 """Actual Home discovery and approved catalogue; all installations/accounts are owned fixtures."""
 import json,os,pathlib,shutil,signal,subprocess,sys,tempfile,time,urllib.request
 from playwright.sync_api import sync_playwright,expect
@@ -49,7 +50,7 @@ with sync_playwright() as p:
   for phase in ['fresh','saved']:
    host,stream,url=boot(phase);page=browser.new_page(viewport={'width':1440,'height':1000});page.on('pageerror',lambda error:errors.append(str(error)))
    try:
-    page.goto(url);expect(page.locator('.home-grid')).to_be_visible();page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='사용할 AI',exact=True);dialog.get_by_role('button',name='Codex',exact=True).click();dialog.locator('[data-codex-route="provider"]').click();dialog.locator('[data-connection-advanced] > summary').click();expect(dialog.locator('[data-discover-connection]')).to_be_visible()
+    goto_editor(page,url);expect(page.locator('.home-grid')).to_be_visible();page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='사용할 AI',exact=True);dialog.get_by_role('button',name='Codex',exact=True).click();dialog.locator('[data-codex-route="provider"]').click();dialog.locator('[data-connection-advanced] > summary').click();expect(dialog.locator('[data-discover-connection]')).to_be_visible()
     if phase=='saved':
      expect(dialog.locator('[data-connection-field="model"]')).to_have_value('owned-protocol-fixture');expect(dialog.locator('[data-connection-field="executable"]')).to_have_value(str(bins[0]/'codex'));expect(dialog.locator('[data-connection-field="managedHome"]')).to_have_value(str(managed));before=sum(len(requests(i)) for i in range(2));dialog.locator('[data-discover-connection]').click();expect(dialog.locator('[data-candidate-kind="executable"]')).to_have_count(4);assert sum(len(requests(i)) for i in range(2))==before;dialog.locator('[data-connection-cancel]').click();continue
     dialog.locator('[data-connection-field="model"]').fill('manual-saved-model');dialog.locator('[data-connection-save]').click();expect(dialog.locator('[data-connection-result]')).to_have_attribute('data-connection-outcome','saved')

@@ -1,3 +1,4 @@
+from editor_navigation import goto_editor
 import json,os,pathlib,subprocess,tempfile,time,shutil,sys,signal,urllib.request
 from playwright.sync_api import sync_playwright,expect
 expect.set_options(timeout=30000)
@@ -82,7 +83,7 @@ with sync_playwright() as p:
    reply=response.json()
    for result in reply.get('results',[]):
     env4_event('ui-invoke-result',{'endpoint':env4_requests.get(result['requestId']),'requestId':result['requestId'],'ok':result['ok'],'code':result.get('error',{}).get('code')})
-  page.on('response',env4_response);env4_tree(host.pid,'initial-host-tree');page.goto(url);page.locator('.work-body').wait_for();page.locator('#run').click();run=page.locator('.window[data-key="run"]');expect(run).to_be_visible();expect(run.locator('[data-run-pause]')).to_be_disabled();expect(run.locator('[data-run-step]')).to_be_disabled()
+  page.on('response',env4_response);env4_tree(host.pid,'initial-host-tree');goto_editor(page,url);page.locator('.work-body').wait_for();page.locator('#run').click();run=page.locator('.window[data-key="run"]');expect(run).to_be_visible();expect(run.locator('[data-run-pause]')).to_be_disabled();expect(run.locator('[data-run-step]')).to_be_disabled()
   # Actual ordinary source compiler failure, without a control handshake or fake frame.
   source=project/'Main.celem';original=source.read_bytes();source.write_text('invalid owned declaration')
   run.locator('[data-run-play]').click();expect(run.locator('.run-status')).to_contain_text('failed',timeout=180000);expect(run.locator('[data-run-frame]')).to_have_text('');source.write_bytes(original)
@@ -134,7 +135,7 @@ with sync_playwright() as p:
   run.locator('[data-run-close-project]').click();page.locator('.modal [data-complete-close]').click();expect(page.locator('.home-grid')).to_be_visible();env4_event('home-visible-after-close',{});legacy_children=child_ids(host.pid);env4_event('legacy-all-child-count',{'childIds':legacy_children,'wouldFail':bool(legacy_children)});assert_runs_retired(host.pid,known_runs)
   enter_home();expect(run.locator('.run-status')).to_have_text('idle');expect(run.locator('[data-run-step]')).to_be_disabled();assert_runs_retired(host.pid,known_runs)
   # Cold host has no borrowed control identity and launches nothing automatically.
-  page.evaluate('()=>globalThis.confectoryFlushPresentation()');stop(host,stream);page.close();host,stream,url=start(1);page=browser.new_page(viewport={'width':1440,'height':1000});page.goto(url);run=page.locator('.window[data-key="run"]');expect(run.locator('.run-status')).to_have_text('idle');assert_runs_retired(host.pid,known_runs);assert not public_state(url).get('executionHandle');expect(run.locator('[data-run-step]')).to_be_disabled();assert not errors,errors
+  page.evaluate('()=>globalThis.confectoryFlushPresentation()');stop(host,stream);page.close();host,stream,url=start(1);page=browser.new_page(viewport={'width':1440,'height':1000});goto_editor(page,url);run=page.locator('.window[data-key="run"]');expect(run.locator('.run-status')).to_have_text('idle');assert_runs_retired(host.pid,known_runs);assert not public_state(url).get('executionHandle');expect(run.locator('[data-run-step]')).to_be_disabled();assert not errors,errors
   assert all((project/name).read_bytes()==data for name,data in before.items())
   (root/'actual-frame-observation.json').write_text(json.dumps({'initial':initial,'paused':paused,'stepped':stepped,'afterReconnect':reconnected,'freshRun':fresh,'coldState':public_state(url)['executionState']},indent=2));page.screenshot(path=str(root/'actual-cold-frame-owner.png'));print('PASS actual v480 local Run frame/ack pause/Step, disconnect/lease/reconnect, same-owner reload, stale/foreign/repeated commands, close cancel/confirm, Stop and cold no replay '+str(root),flush=True)
  except Exception:

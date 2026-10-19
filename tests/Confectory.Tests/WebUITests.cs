@@ -7,6 +7,14 @@ public sealed class WebUITests : TestCase
         var run=Processes.Run(new[]{"node",Path.Combine(Fixture.Repo,"tests/web/web_ui_client_lifecycle.mjs")},timeoutSeconds:30);
         True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS coalesced snapshots"));
     }
+    public void test_actual_global_helper_agent_creation_assignment_conversation_and_v508_layout()
+    {
+        if(!OperatingSystem.IsLinux())Skip("Actual Chromium fixture runs on Linux; user Windows runtime is a separate check");
+        var built=new Builder(Path.Combine(Fixture.Repo,"examples/editor-home/project.cpack"),"linux").Build();
+        string report=Path.Combine(f.Root,"global-helpers.json");File.WriteAllText(report,built.ToJsonString());
+        var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/editor_global_helpers.py"),Fixture.Repo,report},timeoutSeconds:360);
+        Console.WriteLine(run.Stdout.Trim());True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS actual global Helper UI:"));
+    }
     public void test_actual_agent_connection_presentation_diagnostics_retry_inputs_and_late_close()
     {
         if(!OperatingSystem.IsLinux())Skip("Actual Chromium fixture runs on Linux; user Windows timings are separate observations");

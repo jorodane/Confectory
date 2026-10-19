@@ -1,3 +1,4 @@
+from editor_navigation import goto_editor
 import json,os,pathlib,subprocess,tempfile,time,shutil,sys,signal,urllib.request
 from playwright.sync_api import sync_playwright,expect
 expect.set_options(timeout=30000)
@@ -70,7 +71,7 @@ old_group=None
 with sync_playwright() as p:
  browser=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox']);errors=[]
  try:
-  host,stream,url=start(0);old_group=host.pid;page=browser.new_page(viewport={'width':1600,'height':1200});page.on('pageerror',lambda e:errors.append(str(e)));page.goto(url);page.locator('.work-body').wait_for();page.locator('#run').click();run=page.locator('.window[data-key="run"]');expect(run).to_be_visible()
+  host,stream,url=start(0);old_group=host.pid;page=browser.new_page(viewport={'width':1600,'height':1200});page.on('pageerror',lambda e:errors.append(str(e)));goto_editor(page,url);page.locator('.work-body').wait_for();page.locator('#run').click();run=page.locator('.window[data-key="run"]');expect(run).to_be_visible()
   def state():return public_state(url)
   def wait_state(predicate):
    end=time.monotonic()+30
@@ -92,7 +93,7 @@ with sync_playwright() as p:
   run.locator('[data-run-close-project]').click();page.locator('.modal [data-cancel]').click();assert path.read_bytes()==raw and state()['executionHandle']==owned
   run.locator('[data-run-history-refresh]').click();assert path.read_bytes()==raw;expect(run.locator('[data-run-frame]')).to_contain_text('ACK 2');page.evaluate('()=>globalThis.confectoryFlushPresentation()');page.screenshot(path=str(root/'actual-owned-run-history.png'))
   # Crash only this owned host. A new host must read facts without pinging/adopting its children.
-  before_children=child_ids(host.pid);assert before_children;host.kill();host.wait(timeout=10);stream.close();page.close();host,stream,url=start(1);page=browser.new_page(viewport={'width':1600,'height':1200});page.on('pageerror',lambda e:errors.append(str(e)));page.goto(url);run=page.locator('.window[data-key="run"]');expect(run.locator('.run-status')).to_have_text('idle');visible_history();row=run.locator('[data-run-history-execution="'+owned+'"]');expect(row).to_contain_text('owner-unavailable');expect(row).to_contain_text('마지막 확인: running');expect(row).to_contain_text('FRAME '+frame+' / ACK 2');expect(run.locator('[data-run-owner]')).to_contain_text('owner-unavailable');expect(run.locator('[data-run-stop]')).to_be_disabled();expect(run.locator('[data-run-step]')).to_be_disabled();expect(run.locator('[data-run-reconnect]')).to_be_disabled();assert not child_ids(host.pid) and not state()['executionHandle'];assert path.read_bytes()==raw
+  before_children=child_ids(host.pid);assert before_children;host.kill();host.wait(timeout=10);stream.close();page.close();host,stream,url=start(1);page=browser.new_page(viewport={'width':1600,'height':1200});page.on('pageerror',lambda e:errors.append(str(e)));goto_editor(page,url);run=page.locator('.window[data-key="run"]');expect(run.locator('.run-status')).to_have_text('idle');visible_history();row=run.locator('[data-run-history-execution="'+owned+'"]');expect(row).to_contain_text('owner-unavailable');expect(row).to_contain_text('마지막 확인: running');expect(row).to_contain_text('FRAME '+frame+' / ACK 2');expect(run.locator('[data-run-owner]')).to_contain_text('owner-unavailable');expect(run.locator('[data-run-stop]')).to_be_disabled();expect(run.locator('[data-run-step]')).to_be_disabled();expect(run.locator('[data-run-reconnect]')).to_be_disabled();assert not child_ids(host.pid) and not state()['executionHandle'];assert path.read_bytes()==raw
   for endpoint,bad in [('stopProject',{'handle':owned}),('runControl',{'handle':owned,'action':'step','runtime':stepped['executionControl']['runtime'],'ack':'2','sequence':'2'})]:
    denied,after=rpc(url,endpoint,bad);assert not denied['ok'] and after['executionState']=='idle' and not after['executionOwnerAvailable']
   for _ in range(2):run.locator('[data-run-history-refresh]').click();assert path.read_bytes()==raw and not child_ids(host.pid)

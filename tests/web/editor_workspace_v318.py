@@ -1,3 +1,4 @@
+from editor_navigation import goto_editor
 import json,os,pathlib,subprocess,tempfile,time,shutil,sys,signal,urllib.request
 from playwright.sync_api import sync_playwright,expect
 expect.set_options(timeout=30000)
@@ -36,7 +37,7 @@ with sync_playwright() as p:
   for n in range(2):
    host,stream,url=start(n)
    try:
-    page=browser.new_page(viewport={'width':1440,'height':1000});page.set_default_timeout(60000);page.on('pageerror',lambda e:errors.append(str(e)));page.goto(url);page.locator('#workspace-home-tab').wait_for()
+    page=browser.new_page(viewport={'width':1440,'height':1000});page.set_default_timeout(60000);page.on('pageerror',lambda e:errors.append(str(e)));goto_editor(page,url);page.locator('#workspace-home-tab').wait_for()
     def create(kind,x,y):
      page.locator('#workspace').click(button='right',position={'x':x,'y':y});page.get_by_role('button',name={'note':'메모 만들기','group':'그룹 만들기','portal':'하위 Workspace 만들기'}[kind],exact=True).click();expect(page.locator('.workspace-'+kind)).not_to_have_count(0)
      return page.locator('.workspace-'+kind).last

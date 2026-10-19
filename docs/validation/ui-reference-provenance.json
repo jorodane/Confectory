@@ -44,5 +44,13 @@
   ],
   "userPcOrScreenshotsInspected": false,
   "referenceArchivesMainAndroidOrUserSettingsChanged": false,
-  "scopeOfCurrentImplementation": "Only engine-level project creation consultation and existing form review; no full UI rewrite or latest-reference completion claim"
+  "scopeOfCurrentImplementation": "Engine-level project creation consultation plus local Agent/Helper registration, creation, assignment, global conversations, and v508 startup/creation layout over existing real contracts; no full UI rewrite or latest-reference completion claim",
+  "currentIncrement": {
+    "productionResourceVersion": "local-helper-agents-1",
+    "startup": "Actual model loading, Agent connection/later choice, reduced-motion aware Home transition",
+    "creation": "v508 project/packs tabs, native folder ticket, real single main Helper selection and retained input",
+    "agentHelper": "Registered configuration vs installed declarations; Helper create/import/assign; actual global conversation owner",
+    "scopeLimit": "Incremental port; not a complete reproduction of every v508 prototype feature",
+    "referenceArchivesChanged": false
+  }
 }

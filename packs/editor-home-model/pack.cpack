@@ -15,6 +15,7 @@ dependency Confectory.YogiBox version "0.1.0";
 dependency Confectory.ProjectAI version "0.1.0";
 dependency Confectory.Helper version "0.1.0";
 dependency Confectory.AIConnection version "0.1.0";
+dependency Confectory.Agent version "0.1.0";
 dependency Confectory.SemanticCatalog version "0.1.0";
 dependency Confectory.ChangeSet version "0.1.0";
 dependency Confectory.PackWorkspace version "0.1.0";
@@ -37,4 +38,5 @@ element HelperPresentation function "HelperPresentation.celem";element HelperPre
 element NativeFieldView function "NativeFieldView.celem";
 element NativeFieldViewBody implementation "NativeFieldViewBody.celem";
 element EngineCreation function "EngineCreation.celem";element EngineCreationBody implementation "EngineCreationBody.celem";
+element HelperAgents function "HelperAgents.celem";element HelperAgentsBody implementation "HelperAgentsBody.celem";
 }

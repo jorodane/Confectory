@@ -1,3 +1,4 @@
+from editor_navigation import goto_editor
 """Actual installed Chromium, local pack host, no external deployment or uploads."""
 import json, os, pathlib, re, signal, subprocess, sys, tempfile, time, urllib.request
 from playwright.sync_api import sync_playwright, expect
@@ -22,7 +23,7 @@ with tempfile.TemporaryDirectory(prefix='confectory-browser-gate-') as temporary
    with sync_playwright() as p:
     browser=p.chromium.launch(executable_path='/usr/bin/chromium',headless=True,args=['--no-sandbox','--disable-gpu'])
     page=browser.new_page(viewport={'width':1200,'height':850});errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
-    page.goto(url);page.get_by_role('status').filter(has_text='Ready').wait_for()
+    goto_editor(page,url);page.get_by_role('status').filter(has_text='Ready').wait_for()
     assert page.get_by_role('heading',name='Confectory',exact=True).is_visible()
     bad={'name':'broken.cproj','mimeType':'text/plain','buffer':b'not a pack'}
     page.locator('#file').set_input_files(bad);expect(page.locator('#status')).to_contain_text(re.compile('expected|error',re.I))

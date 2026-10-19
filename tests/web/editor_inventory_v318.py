@@ -1,3 +1,4 @@
+from editor_navigation import goto_editor
 import json,os,pathlib,subprocess,tempfile,time,shutil,sys,signal,urllib.request
 from playwright.sync_api import sync_playwright,expect
 expect.set_options(timeout=30000)
@@ -38,7 +39,7 @@ with sync_playwright() as p:
  browser=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox'])
  for n in range(3):
   if n==2:env['CONFECTORY_WEB_PROJECT']=str(repo/'examples/editor-home/project.cpack')
-  host,stream,url=start(n);page=browser.new_page(viewport={'width':1440,'height':1000});errors=[];page.on('pageerror',lambda e:errors.append(str(e)));page.goto(url);page.locator('.work-body').wait_for(timeout=30000)
+  host,stream,url=start(n);page=browser.new_page(viewport={'width':1440,'height':1000});errors=[];page.on('pageerror',lambda e:errors.append(str(e)));goto_editor(page,url);page.locator('.work-body').wait_for(timeout=30000)
   try:
    if n==0:
     page.locator('#nav').click();page.locator('.nav-menu button').filter(has_text='개념').first.click();expect(page.locator('#nav')).to_be_enabled();page.locator('#nav').click();main=page.locator('.window[data-key="browser"]');main.locator('[data-browser-projection-refresh]').click();expect(main.locator('[data-namespace="Example.ButtonGame"]')).to_be_visible();main.locator('[data-toggle-namespace="Confectory"]').click();expect(main.locator('[data-namespace="Confectory.BaseUI"]')).to_have_count(0);main.locator('[data-toggle-namespace="Confectory"]').click();state=public_state(url);inventory=state['inventory'];assert inventory['status']=='available';assert inventory['namespace']=='Example.ButtonGame';assert len(inventory['packs'])>1;assert not any('path' in p for p in inventory['packs']);assert any(p['namespace']=='Confectory.BaseUI' for p in inventory['packs']);owned=[d for d in inventory['declarations'] if d['owned']];assert any(d['id']=='Example.ButtonGame::Score' for d in owned)
