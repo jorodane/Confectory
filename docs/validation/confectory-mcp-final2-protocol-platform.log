@@ -1,0 +1,10 @@
+PASS WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup
+PASS MCP managed stdio/owned IPC scope, malformed reply, cancellation, reconnect, duplicate ID /tmp/confectory-mcp-protocol-ds55g0gn
+PASS WebUITests.test_mcp_managed_stdio_owned_ipc_cancellation_and_reconnect
+PASS MCP portable official-schema snapshots/package hashes/real manifest command; no installation or marketplace registration
+PASS WebUITests.test_mcp_portable_package_schema_hashes_and_real_manifest_command
+PASS PackWorkspaceTests.test_development_tools_owned_scope_shared_draft_no_confirm_and_locality
+PASS EntryHomeTests.test_android_home_export_selects_activity_and_metadata_parser_without_engine_surface_sample
+PASS Windows managed native composition compile only; no Windows device run
+PASS EntryHomeNativeDetailsTests.test_windows_native_information_and_profile_composition_builds
+6 passed, 0 failed, 0 skipped; 231.315s

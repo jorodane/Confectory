@@ -1,0 +1,21 @@
+UI page errors: []
+UI failure status: 선택한 범위의 플러그인 연결을 준비했습니다.
+UI failure controls: {'confirm': None, 'run': False, 'source': 'Example.ButtonGame::Score'}
+FAIL WebUITests.test_actual_editor_mcp_plugin_readonly_shared_node_draft_cas_and_cold
+System.Exception: UI page errors: []
+UI failure status: 선택한 범위의 플러그인 연결을 준비했습니다.
+UI failure controls: {'confirm': None, 'run': False, 'source': 'Example.ButtonGame::Score'}
+Traceback (most recent call last):
+  File "<repo>/tests/web/web_ui.py", line 358, in <module>
+    verify_mcp_plugin(page,project,mount,send,envelope,settle,restart_actual_host,repo,env)
+  File "<repo>/tests/web/editor_mcp_plugin.py", line 41, in verify_mcp_plugin
+    after,error=client.call('confectory_status');assert not error and after['instance']==a['instance'],after
+                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: {'code': 'engine_unavailable', 'message': '엔진이 닫혔거나 응답하지 않습니다. 앱의 연결 상태를 확인한 뒤 다시 연결하세요.'}
+
+   at Confectory.Tests.TestCase.True(Boolean condition, String message) in <repo>/tests/Confectory.Tests/Support.cs:line 127
+   at Confectory.Tests.WebUITests.RunOwnedBlueprint(String mode) in <repo>/tests/Confectory.Tests/WebUITests.cs:line 310
+   at Confectory.Tests.WebUITests.test_actual_editor_mcp_plugin_readonly_shared_node_draft_cas_and_cold() in <repo>/tests/Confectory.Tests/WebUITests.cs:line 191
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+0 passed, 1 failed, 0 skipped; 7.775s

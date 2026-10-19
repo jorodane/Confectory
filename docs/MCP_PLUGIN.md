@@ -63,3 +63,9 @@ STDIO는 UTF-8 newline JSON-RPC, 최대 8 MiB frame, 최대 8 pending/2 concurre
 기존 Agent 선택 화면은 `setup?.connection === selected?.id`에서 양쪽이 빈 경우 `undefined === undefined`로 통과한 뒤 `setup.schema`를 읽었다. 실제 빈 Home 화면의 갱신 콜백에서 `Cannot read properties of null (reading 'schema')`를 재현했다. 선택된 연결과 실제 setup이 함께 존재할 때만 갱신하도록 고쳤고, 뒤로 가기·닫힌 DOM·저장 후 재진입도 검사한다. 이 오류 자체를 인증·Codex transport 실패라고 해석하지 않는다.
 
 로컬 프로토콜 검사는 실제 managed STDIO 어댑터와 명확히 표시한 임시 Unix IPC fixture를 사용한다. 실제 엔진 검사는 ordinary EditorHome, 실제 DevelopmentTools 및 Chromium에서 공유 초안·노드 source pin/hash CAS·중복 편집·미제출 입력·사용자 compiler Review/Confirm·프로젝트 전환·cold를 확인한다. 실제 ChatGPT 앱 설치/연결과 Windows 장치의 named pipe는 별도 사용자 환경 검사다. Android/브라우저 호스트의 로컬 bridge는 제공하지 않는다. 최종 실행 메서드·소스·로그·패키지 해시는 검증 기록에 남긴다.
+
+잘못된 IPC frame이나 연결 중단은 해당 클라이언트 연결만 닫는다. 과도한 frame 하나가 앱에서 준비한 연결 범위 전체를 종료하던 문제를 실제 엔진에서 재현한 뒤 수정했다. 앱을 다시 시작하면 연결 창의 표시와 배치는 복원하되 연결 권한은 복원하지 않고 읽기 전용 상태로 다시 준비하도록 한다.
+
+최종 소스는 `25c2c1bfbf567eff58fc02ef6bf025aeee830622`이며 최종 검사 11개가 통과했다(실패 0, 건너뜀 0, 최대 동시 실행 2개). 정확한 메서드별 결과와 소스·로그·패키지 해시는 [검증 기록](validation/mcp-plugin.json)에 둔다. `Confectory-plugin-dev.zip`은 이 소스에서 빌드한 DLL을 포함하며 SHA-256은 `c51acf8e8946ffe729dce59a362953ae803505b62da0ae5fa22abc9b872fa401`이다. 실제 ChatGPT 앱 설치나 연결 완료를 뜻하지 않는다.
+
+별도로 진행하던 v508 분기 종료 UI는 미완료 상태로 보존돼 있다. stash `692d393ff7da35ed905264fe5b3a0eff1fef4b95`와 `Confectory-v508-branch-ends-WIP.bundle`에 원래 수정 및 미추적 파일을 담았으며, 이 MCP 변경에는 포함하지 않았다. 번들의 선행 커밋은 `b05c6ed228a32d7bed181ac80b66a10f9fbb0d32`, SHA-256은 `c98dc4ec0809b457344b7c58413e596790717230f19e025d5c74311b968e334e`다. 후속 작업에서 보존된 수정과 현재 리소스 선언을 함께 검토해 복원해야 한다.
