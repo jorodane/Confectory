@@ -97,7 +97,7 @@ with sync_playwright() as p:
  try:
   page.goto(url);expect(page.locator('.home-grid')).to_be_visible()
   def open_dialog():
-   page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='사용할 AI',exact=True);dialog.get_by_role('button',name='Codex',exact=True).click();expect(dialog.locator('[data-install-prepare]')).to_be_visible();return dialog
+   page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='사용할 AI',exact=True);dialog.get_by_role('button',name='Codex',exact=True).click();dialog.locator('[data-codex-route="provider"]').click();expect(dialog.locator('[data-install-prepare]')).to_be_visible();return dialog
   dialog=open_dialog();page.screenshot(path=str(root/'actual-ai-picker.png'));dialog.locator('[data-basic-check]').click();expect(dialog.locator('[data-job="preparation"] [data-job-consent]')).to_have_count(3);assert not downloads and not requests() and not managed.exists();page.screenshot(path=str(root/'actual-preparation-consent.png'))
   stale=setup()['preparation']['token'];invoke('startInstallation',token=stale,approvals={});assert not downloads
   dialog.locator('[data-connection-cancel]').click();expect(dialog).not_to_be_visible();assert not invoke('startInstallation',token=stale,approvals=approvals())['ok'];dialog=open_dialog()

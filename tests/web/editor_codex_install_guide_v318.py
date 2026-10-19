@@ -46,7 +46,7 @@ with sync_playwright() as p:
   for phase in ['fresh','saved']:
    host,log,url=boot(phase);page=browser.new_page(viewport={'width':1440,'height':1000});page.on('pageerror',lambda error:errors.append(str(error)));page.route('https://**/*',lambda route:(external.append(route.request.url),route.abort()))
    try:
-    page.goto(url);expect(page.locator('.home-grid')).to_be_visible();page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='사용할 AI',exact=True);dialog.get_by_role('button',name='Codex',exact=True).click()
+    page.goto(url);expect(page.locator('.home-grid')).to_be_visible();page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='사용할 AI',exact=True);dialog.get_by_role('button',name='Codex',exact=True).click();dialog.locator('[data-codex-route="provider"]').click()
     expect(dialog.locator('[data-candidate-kind="executable"]')).to_have_count(len(binaries));expect(dialog.locator('[data-connection-advanced]')).not_to_have_attribute('open','');expect(dialog.locator('[data-connection-field="executable"]')).not_to_be_visible()
     def simple():
      visible=dialog.inner_text()
@@ -68,7 +68,7 @@ with sync_playwright() as p:
     dialog.locator('[data-connection-diagnostics] > summary').click();expect(dialog.locator('[data-connection-diagnostics]')).to_contain_text('0.159.2');expect(dialog.locator('[data-connection-diagnostics]')).to_contain_text('비호환으로 입증된 것은 아닙니다');dialog.locator('[data-connection-diagnostics] > summary').click()
     choose('executable',packengine);simple();prepare();approve('models-found');simple();expect(dialog.locator('[data-catalogue-model]')).to_have_value('');dialog.locator('[data-catalogue-model]').select_option('owned-protocol-fixture');dialog.locator('[data-catalogue-select]').click();expect(dialog.locator('[data-check-consent]')).to_have_count(4);assert all(not box.is_checked() for box in dialog.locator('[data-check-consent]').all());assert state(url)['connectionSetup']['outcome']['supported'] is False
     assert not any(row['method'] in ['thread/start','turn/start'] for path in binaries for row in requests(path));simple();dialog.locator('[data-connection-cancel]').click()
-    page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='사용할 AI',exact=True);dialog.get_by_role('button',name='Codex',exact=True).click();simple();before_rescan=total()
+    page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='사용할 AI',exact=True);dialog.get_by_role('button',name='Codex',exact=True).click();dialog.locator('[data-codex-route="provider"]').click();simple();before_rescan=total()
     hidden=list(binaries)
     for path in hidden:path.rename(path.with_name(path.name+'-hidden'))
     dialog.locator('[data-discover-connection]').click();expect(dialog.locator('[data-candidate-kind="executable"]')).to_have_count(0);assert state(url)['connectionSetup']['discovery']['state']=='not-found';expect(dialog.locator('[data-install-guide]')).to_have_attribute('open','');simple();assert total()==before_rescan

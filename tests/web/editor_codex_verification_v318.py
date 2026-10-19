@@ -49,7 +49,7 @@ try:
     else:page.locator('.agent-home[data-agent="Confectory.Agent.Codex::Connection"]').click()
     dialog=page.get_by_role('dialog',name='사용할 AI',exact=True)
     if home:dialog.get_by_role('button',name='Codex',exact=True).click()
-    dialog.locator('[data-connection-advanced] > summary').click()
+    dialog.locator('[data-codex-route="provider"]').click();dialog.locator('[data-connection-advanced] > summary').click()
     expect(dialog.locator('[data-connection-field="model"]')).to_be_visible();return dialog
    dialog=setup(True)
    for name,value in {'model':'owned-protocol-fixture','executable':str(fixture),'managedHome':str(managed),'credentialReference':'codex:managed'}.items():dialog.locator('[data-connection-field="'+name+'"]').fill(value)
