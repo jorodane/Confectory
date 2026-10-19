@@ -1,0 +1,7 @@
+FAIL EmbeddedChannelTests.test_site_rendered_login_is_not_replaced_by_a_failure_overlay
+System.Exception: A rendered login must remain visible when navigation reports a failure
+   at Confectory.Tests.TestCase.True(Boolean condition, String message) in /workspace/Confectory/tests/Confectory.Tests/Support.cs:line 127
+   at Confectory.Tests.EmbeddedChannelTests.test_site_rendered_login_is_not_replaced_by_a_failure_overlay() in /workspace/Confectory/tests/Confectory.Tests/EmbeddedChannelTests.cs:line 12
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+0 passed, 1 failed, 0 skipped; 0.157s

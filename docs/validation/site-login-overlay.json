@@ -1,0 +1,52 @@
+{
+  "implementationCommit": "7adae8303b11183bdf739d386ea4429d524c8405",
+  "reportedBaseline": {
+    "engineCommit": "4dc5415f74e00d1b0057fb78649f4e4e74de36b5",
+    "parentReportedSiteV4Source": "621fada620f8325587cc67bcd7dcbc31b8c1ee5e",
+    "symptom": "The login document flashes briefly and is covered by the native failure overlay; the window itself remains open"
+  },
+  "confirmed": [
+    "Fail cleared ShowDocument even after the current login document had rendered",
+    "NavigationCompleted treated every unsuccessful navigation except OperationCanceled as terminal, including documented authentication waits",
+    "The pre-fix regression failed on retaining a rendered login document",
+    "Initialization errors exposed only the exception type; navigation failures omitted HTTP status"
+  ],
+  "notEstablished": [
+    "The actual WebErrorStatus, HTTP status or initialization HRESULT on the user's PC",
+    "Whether this specific PC failure came from an authentication wait, stopped successful document, real navigation failure or profile initialization",
+    "Empty recent Site worker logs do not establish that no request was sent",
+    "The reported symptom does not establish window close or successful pairing followed by automatic hide"
+  ],
+  "changes": {
+    "keepRenderedLoginAndBrowserErrorDocumentsVisible": true,
+    "authenticationWaitsRemainNonterminal": ["ValidAuthenticationCredentialsRequired", "ValidProxyAuthenticationRequired"],
+    "operationCanceledDoesNotFailCurrentLogin": true,
+    "connectionAbortedNonterminalOnlyWithRenderedDocumentAndHttp2xx": true,
+    "realNetworkHttpAndCertificateFailuresStillBlockPairing": true,
+    "selectableDiagnostic": ["attempt", "stage", "navigation", "WebErrorStatus", "HTTP status", "initialization or native phase", "exception type", "HRESULT"],
+    "urlsQueriesExceptionMessagesPathsAndCredentialsInDiagnostic": false,
+    "hiddenFailureWindowReopened": true,
+    "oldAttemptAndNavigationRepliesRemainIgnored": true,
+    "profileRetentionAuthenticationAndSessionLimitsChanged": false,
+    "siteRuntimeProtocolOrDatabaseChanged": false,
+    "siteDeploymentRequiredForThisFix": false
+  },
+  "verification": {
+    "beforeFix": { "passed": 0, "failed": 1, "skipped": 0, "expectedFailure": true, "log": "site-login-overlay-before.log" },
+    "afterFix": { "passed": 12, "failed": 0, "skipped": 0 },
+    "nativePresentationLifetimeBoundaryAndTransport": { "passed": 11, "elapsedSeconds": 0.526, "log": "site-login-overlay-after.log" },
+    "committedCheckoutResourcesAndActualStartup": { "passed": 1, "elapsedSeconds": 7.896, "log": "site-login-overlay-checkout.log" },
+    "windowsHostReleaseBuild": { "errors": 0, "warnings": 0, "elapsedSeconds": 1.53, "log": "site-login-overlay-windows-build.log" },
+    "testsBuild": { "errors": 0, "warnings": 0 },
+    "actualWindowsLoginRuntimeExecuted": false
+  },
+  "minimumFurtherDiagnostic": "The bracketed error code already visible in the old window, or the selectable diagnostic field in the updated host. Repeated login or profile deletion is not required for diagnosis.",
+  "primaryReference": "https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/winrt/microsoft_web_webview2_core/corewebview2navigationcompletedeventargs?view=webview2-winrt-1.0.4191.47",
+  "referenceUse": "Microsoft documents authentication waits as potentially non-catastrophic unsuccessful navigation, and ConnectionAborted with HTTP 200 after window.stop. This supports the classification change; it does not identify the user's actual error.",
+  "protected": {
+    "mainModifiedByThisTask": false,
+    "referenceZipsAndroidAndPackEngineLinksModified": false,
+    "userPcOperatedProfileDeletedOrCookieExtracted": false,
+    "recoveryBundleSha256": "c98dc4ec0809b457344b7c58413e596790717230f19e025d5c74311b968e334e"
+  }
+}
