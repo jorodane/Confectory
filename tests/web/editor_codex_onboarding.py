@@ -113,14 +113,14 @@ with sync_playwright() as p:
     # Initial repeated clicks never start a second workflow.
     dialog.locator('[data-cli-login]').evaluate('(b)=>{b.click();b.click();}')
     if name=='cancel-probe':
-     wait_file(case/'version-started');dialog.locator('[data-cli-stop]').click();write_control(holdVersion=False);expect(dialog.locator('[data-cli-login]')).to_be_enabled();dialog.locator('[data-cli-login]').click()
+     wait_file(case/'version-started');dialog.locator('[data-cli-stop]').click();expect(dialog.locator('[data-codex-onboarding]')).to_have_attribute('data-step',re.compile('cancelled|cancelling'));write_control(holdVersion=False);expect(dialog.locator('[data-cli-login]')).to_be_enabled();dialog.locator('[data-cli-login]').click()
     if absent or name=='unsupported-runtime':
      expect(dialog.locator('[data-cli-consent]')).to_have_text('동의하고 설치');page.screenshot(path=str(case/'install-consent.png'))
      if name=='unsupported-runtime':
       assert not [r for r in requests() if r['method']=='account/read'];dialog.locator('[data-connection-cancel]').click();print('PASS scenario unsupported-runtime',flush=True);continue
      consent=state()['codexOnboarding']['token'];dialog.locator('[data-cli-consent]').click();assert api('approve',token=consent)['ok']
      if name=='cancel-install':
-      wait_file(case/'download-started');page.screenshot(path=str(case/'installing.png'));dialog.locator('[data-cli-stop]').click();write_control(holdDownload=False)
+      wait_file(case/'download-started');page.screenshot(path=str(case/'installing.png'));dialog.locator('[data-cli-stop]').click();expect(dialog.locator('[data-codex-onboarding]')).to_have_attribute('data-step',re.compile('cancelled|cancelling'));write_control(holdDownload=False)
       expect(dialog.locator('[data-cli-login]')).to_be_enabled();dialog.locator('[data-cli-login]').click();expect(dialog.locator('[data-cli-consent]')).to_have_text('동의하고 설치');dialog.locator('[data-cli-consent]').click()
      if name=='bad-install':
       expect(dialog.locator('[data-cli-retry]')).to_be_visible();page.screenshot(path=str(case/'install-failed.png'));write_control(badArchive=False);dialog.locator('[data-cli-retry]').click();expect(dialog.locator('[data-cli-consent]')).to_have_text('동의하고 설치');dialog.locator('[data-cli-consent]').click()

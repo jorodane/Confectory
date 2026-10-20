@@ -1,0 +1,525 @@
+{
+  "sourceCommit": "23b6770ca2ab9a4e084c3bb64e1d8b67dd9f0141",
+  "baseline": "eca156f6f79ce9466a8c90a22d36bf67475278e1",
+  "environment": "Linux, .NET 10.0.401, Chromium",
+  "scenarioCount": 16,
+  "cases": [
+    {
+      "scenario": "authenticated",
+      "result": "passed",
+      "sourceCommit": "23b6770ca2ab9a4e084c3bb64e1d8b67dd9f0141",
+      "provider": "isolated owned protocol fixture",
+      "methods": {
+        "--version": 2,
+        "account/read": 5,
+        "config/read": 5,
+        "configRequirements/read": 5,
+        "experimentalFeature/list": 5,
+        "initialize": 5,
+        "initialized": 5,
+        "model/list": 5,
+        "process": 5,
+        "thread/start": 3,
+        "turn/interrupt": 1,
+        "turn/start": 1
+      },
+      "uiEndpoints": {
+        "cancelConnectionSetup": 2,
+        "codexOnboarding": 3,
+        "connectionSetup": 2,
+        "discoverConnection": 2,
+        "globalHelpers": 1,
+        "helperGlobal": 5
+      }
+    },
+    {
+      "scenario": "logged-out",
+      "result": "passed",
+      "sourceCommit": "23b6770ca2ab9a4e084c3bb64e1d8b67dd9f0141",
+      "provider": "isolated owned protocol fixture",
+      "methods": {
+        "--version": 1,
+        "account/login/start": 1,
+        "account/read": 4,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 4,
+        "initialized": 4,
+        "model/list": 2,
+        "process": 4,
+        "thread/start": 1
+      },
+      "uiEndpoints": {
+        "cancelConnectionSetup": 1,
+        "codexOnboarding": 3,
+        "connectionSetup": 2,
+        "discoverConnection": 2,
+        "globalHelpers": 1,
+        "helperGlobal": 1
+      }
+    },
+    {
+      "scenario": "install",
+      "result": "passed",
+      "sourceCommit": "23b6770ca2ab9a4e084c3bb64e1d8b67dd9f0141",
+      "provider": "isolated owned protocol fixture",
+      "methods": {
+        "--version": 1,
+        "account/login/start": 1,
+        "account/read": 4,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 4,
+        "initialized": 4,
+        "model/list": 2,
+        "process": 4,
+        "thread/start": 1
+      },
+      "uiEndpoints": {
+        "cancelConnectionSetup": 1,
+        "codexOnboarding": 4,
+        "connectionSetup": 2,
+        "discoverConnection": 2,
+        "globalHelpers": 1,
+        "helperGlobal": 1
+      }
+    },
+    {
+      "scenario": "multiple-accounts",
+      "result": "passed",
+      "sourceCommit": "23b6770ca2ab9a4e084c3bb64e1d8b67dd9f0141",
+      "provider": "isolated owned protocol fixture",
+      "methods": {
+        "--version": 1,
+        "account/read": 3,
+        "config/read": 3,
+        "configRequirements/read": 3,
+        "experimentalFeature/list": 3,
+        "initialize": 3,
+        "initialized": 3,
+        "model/list": 3,
+        "process": 3,
+        "thread/start": 1
+      },
+      "uiEndpoints": {
+        "cancelConnectionSetup": 1,
+        "codexOnboarding": 3,
+        "connectionSetup": 2,
+        "discoverConnection": 2,
+        "globalHelpers": 1,
+        "helperGlobal": 1
+      }
+    },
+    {
+      "scenario": "model-selection",
+      "result": "passed",
+      "sourceCommit": "23b6770ca2ab9a4e084c3bb64e1d8b67dd9f0141",
+      "provider": "isolated owned protocol fixture",
+      "methods": {
+        "--version": 1,
+        "account/read": 2,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 2,
+        "initialized": 2,
+        "model/list": 2,
+        "process": 2,
+        "thread/start": 1
+      },
+      "uiEndpoints": {
+        "cancelConnectionSetup": 1,
+        "codexOnboarding": 4,
+        "connectionSetup": 2,
+        "discoverConnection": 2,
+        "globalHelpers": 1,
+        "helperGlobal": 1
+      }
+    },
+    {
+      "scenario": "single-model",
+      "result": "passed",
+      "sourceCommit": "23b6770ca2ab9a4e084c3bb64e1d8b67dd9f0141",
+      "provider": "isolated owned protocol fixture",
+      "methods": {
+        "--version": 1,
+        "account/read": 2,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 2,
+        "initialized": 2,
+        "model/list": 2,
+        "process": 2,
+        "thread/start": 1
+      },
+      "uiEndpoints": {
+        "cancelConnectionSetup": 1,
+        "codexOnboarding": 3,
+        "connectionSetup": 2,
+        "discoverConnection": 2,
+        "globalHelpers": 1,
+        "helperGlobal": 1
+      }
+    },
+    {
+      "scenario": "configured-model",
+      "result": "passed",
+      "sourceCommit": "23b6770ca2ab9a4e084c3bb64e1d8b67dd9f0141",
+      "provider": "isolated owned protocol fixture",
+      "methods": {
+        "--version": 1,
+        "account/read": 2,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 2,
+        "initialized": 2,
+        "model/list": 2,
+        "process": 2,
+        "thread/start": 1
+      },
+      "uiEndpoints": {
+        "cancelConnectionSetup": 1,
+        "codexOnboarding": 3,
+        "connectionSetup": 2,
+        "discoverConnection": 2,
+        "globalHelpers": 1,
+        "helperGlobal": 1
+      }
+    },
+    {
+      "scenario": "no-models",
+      "result": "passed",
+      "sourceCommit": "23b6770ca2ab9a4e084c3bb64e1d8b67dd9f0141",
+      "provider": "isolated owned protocol fixture",
+      "methods": {
+        "--version": 2,
+        "account/read": 3,
+        "config/read": 3,
+        "configRequirements/read": 3,
+        "experimentalFeature/list": 3,
+        "initialize": 3,
+        "initialized": 3,
+        "model/list": 3,
+        "process": 3,
+        "thread/start": 1
+      },
+      "uiEndpoints": {
+        "cancelConnectionSetup": 1,
+        "codexOnboarding": 4,
+        "connectionSetup": 2,
+        "discoverConnection": 2,
+        "globalHelpers": 1,
+        "helperGlobal": 1
+      }
+    },
+    {
+      "scenario": "cancel-login",
+      "result": "passed",
+      "sourceCommit": "23b6770ca2ab9a4e084c3bb64e1d8b67dd9f0141",
+      "provider": "isolated owned protocol fixture",
+      "methods": {
+        "--version": 2,
+        "account/login/cancel": 1,
+        "account/login/start": 2,
+        "account/read": 5,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 6,
+        "initialized": 6,
+        "model/list": 2,
+        "process": 6,
+        "thread/start": 1
+      },
+      "uiEndpoints": {
+        "cancelConnectionSetup": 2,
+        "codexOnboarding": 5,
+        "connectionSetup": 3,
+        "discoverConnection": 3,
+        "globalHelpers": 1,
+        "helperGlobal": 1
+      }
+    },
+    {
+      "scenario": "cancel-install",
+      "result": "passed",
+      "sourceCommit": "23b6770ca2ab9a4e084c3bb64e1d8b67dd9f0141",
+      "provider": "isolated owned protocol fixture",
+      "methods": {
+        "--version": 1,
+        "account/login/start": 1,
+        "account/read": 4,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 4,
+        "initialized": 4,
+        "model/list": 2,
+        "process": 4,
+        "thread/start": 1
+      },
+      "uiEndpoints": {
+        "cancelConnectionSetup": 1,
+        "codexOnboarding": 7,
+        "connectionSetup": 2,
+        "discoverConnection": 2,
+        "globalHelpers": 1,
+        "helperGlobal": 1
+      }
+    },
+    {
+      "scenario": "bad-install",
+      "result": "passed",
+      "sourceCommit": "23b6770ca2ab9a4e084c3bb64e1d8b67dd9f0141",
+      "provider": "isolated owned protocol fixture",
+      "methods": {
+        "--version": 1,
+        "account/login/start": 1,
+        "account/read": 4,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 4,
+        "initialized": 4,
+        "model/list": 2,
+        "process": 4,
+        "thread/start": 1
+      },
+      "uiEndpoints": {
+        "cancelConnectionSetup": 1,
+        "codexOnboarding": 6,
+        "connectionSetup": 2,
+        "discoverConnection": 2,
+        "globalHelpers": 1,
+        "helperGlobal": 1
+      }
+    },
+    {
+      "scenario": "cancel-probe",
+      "result": "passed",
+      "sourceCommit": "23b6770ca2ab9a4e084c3bb64e1d8b67dd9f0141",
+      "provider": "isolated owned protocol fixture",
+      "methods": {
+        "--version": 2,
+        "account/read": 2,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 2,
+        "initialized": 2,
+        "model/list": 2,
+        "process": 2,
+        "thread/start": 1
+      },
+      "uiEndpoints": {
+        "cancelConnectionSetup": 1,
+        "codexOnboarding": 5,
+        "connectionSetup": 2,
+        "discoverConnection": 2,
+        "globalHelpers": 1,
+        "helperGlobal": 1
+      }
+    },
+    {
+      "scenario": "unsupported-runtime",
+      "result": "passed",
+      "sourceCommit": "23b6770ca2ab9a4e084c3bb64e1d8b67dd9f0141",
+      "provider": "isolated owned protocol fixture",
+      "methods": {
+        "--version": 1
+      },
+      "uiEndpoints": {
+        "codexOnboarding": 1,
+        "connectionSetup": 1,
+        "discoverConnection": 1,
+        "globalHelpers": 1
+      }
+    },
+    {
+      "scenario": "identity-change",
+      "result": "passed",
+      "sourceCommit": "23b6770ca2ab9a4e084c3bb64e1d8b67dd9f0141",
+      "provider": "isolated owned protocol fixture",
+      "methods": {
+        "--version": 2,
+        "account/read": 4,
+        "config/read": 4,
+        "configRequirements/read": 4,
+        "experimentalFeature/list": 4,
+        "initialize": 4,
+        "initialized": 4,
+        "model/list": 4,
+        "process": 4,
+        "thread/start": 2
+      },
+      "uiEndpoints": {
+        "cancelConnectionSetup": 2,
+        "codexOnboarding": 5,
+        "connectionSetup": 3,
+        "discoverConnection": 3,
+        "globalHelpers": 1,
+        "helperGlobal": 1
+      }
+    },
+    {
+      "scenario": "failed-login",
+      "result": "passed",
+      "sourceCommit": "23b6770ca2ab9a4e084c3bb64e1d8b67dd9f0141",
+      "provider": "isolated owned protocol fixture",
+      "methods": {
+        "--version": 2,
+        "account/login/start": 2,
+        "account/read": 5,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 6,
+        "initialized": 6,
+        "model/list": 2,
+        "process": 6,
+        "thread/start": 1
+      },
+      "uiEndpoints": {
+        "cancelConnectionSetup": 1,
+        "codexOnboarding": 5,
+        "connectionSetup": 2,
+        "discoverConnection": 2,
+        "globalHelpers": 1,
+        "helperGlobal": 1
+      }
+    },
+    {
+      "scenario": "switch-provider",
+      "result": "passed",
+      "sourceCommit": "23b6770ca2ab9a4e084c3bb64e1d8b67dd9f0141",
+      "provider": "isolated owned protocol fixture",
+      "methods": {
+        "--version": 1,
+        "account/login/cancel": 1,
+        "account/login/start": 1,
+        "account/read": 1,
+        "initialize": 2,
+        "initialized": 2,
+        "process": 2
+      },
+      "uiEndpoints": {
+        "codexOnboarding": 2,
+        "connectionSetup": 3,
+        "discoverConnection": 2,
+        "globalHelpers": 1
+      }
+    }
+  ],
+  "passingTestMethods": [
+    "AIConnectionTests.test_codex_owned_stdio_protocol_fixture_without_installed_codex_authentication_or_external_network",
+    "AIConnectionTests.test_connection_metadata_reads_current_bytes_without_cross_project_or_stamp_cache",
+    "AIConnectionTests.test_declared_connection_settings_and_responses_approval_guards_without_external_network_or_credentials",
+    "AIConnectionTests.test_first_agent_settings_installed_schema_no_registration_legacy_repair_and_retry",
+    "AIConnectionTests.test_owned_codex_control_socket_and_workspace_api_receipts_without_real_accounts",
+    "CoreTests.test_missing_namespace_structured_dependency_element_and_pack_check_context",
+    "GlobalHelperAgentTests.test_actual_global_helper_responses_codex_scopes_approval_cancellation_and_restart",
+    "WebUITests.test_actual_agent_connection_presentation_diagnostics_retry_inputs_and_late_close",
+    "WebUITests.test_actual_codex_cli_login_first_owned_install_accounts_models_cancel_retry_and_helper",
+    "WebUITests.test_actual_editor_click_preparation_and_device_login_owned_fixtures",
+    "WebUITests.test_actual_first_responses_agent_clean_profile_declarations_retry_registration_and_reload",
+    "WebUITests.test_actual_global_helper_agent_creation_assignment_conversation_and_v508_layout",
+    "WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup"
+  ],
+  "passingTestMethodCount": 13,
+  "pageErrors": [],
+  "externalBrowserRequests": [],
+  "builds": {
+    "linux": {
+      "ok": true,
+      "sdk": "10.0.401",
+      "mode": "linux",
+      "toolFingerprint": "9b3a69dd58dc53471d512abefc4799d7201fedf182c2cdfd1a09dafc72d0001c",
+      "sourceCommit": "23b6770ca2ab9a4e084c3bb64e1d8b67dd9f0141"
+    },
+    "windows": {
+      "ok": true,
+      "sdk": "10.0.401",
+      "mode": "portable",
+      "toolFingerprint": "4391a736a9b7949f1cdd3c826202a612a24358e3bea02d4337a01488a2031217",
+      "sourceCommit": "23b6770ca2ab9a4e084c3bb64e1d8b67dd9f0141"
+    }
+  },
+  "windowsNativeHost": {
+    "compilation": "passed",
+    "warnings": 0,
+    "errors": 0,
+    "execution": "not performed on Linux"
+  },
+  "gitCheckoutStartup": {
+    "passed": true,
+    "resourceCount": 50,
+    "retainedCRLFAfterPull": true,
+    "freshLF": true,
+    "encodingContentBOMBinaryBudgetRejections": true,
+    "originalBytesRetained": true
+  },
+  "screenshots": [
+    {
+      "file": "codex-cli-onboarding/01-Confectory-CLI-Login.png",
+      "sha256": "6a3e11597145b6853833f0dfdcc4b406861edb8f8ad8d09aa75147aefc2fbe25",
+      "capture": "actual production UI in Chromium; synthetic account/runtime/provider data"
+    },
+    {
+      "file": "codex-cli-onboarding/02-Confectory-CLI-Install-Consent.png",
+      "sha256": "2bfca0dfbbb834d15489a20c9322d1bb1930ee05b971cade0cb5ddd26318d3a2",
+      "capture": "actual production UI in Chromium; synthetic account/runtime/provider data"
+    },
+    {
+      "file": "codex-cli-onboarding/03-Confectory-CLI-Device-Login.png",
+      "sha256": "8b99ded72523f1693d290b0ef3f7470af0529fb6d4e4e0010451ae251b2070f9",
+      "capture": "actual production UI in Chromium; synthetic account/runtime/provider data"
+    },
+    {
+      "file": "codex-cli-onboarding/04-Confectory-CLI-Account-Choice.png",
+      "sha256": "fb11aa355cb60a461ddf722a87a4b3ca45c491271bf7adfbc97e5c5f6a09446a",
+      "capture": "actual production UI in Chromium; synthetic account/runtime/provider data"
+    },
+    {
+      "file": "codex-cli-onboarding/05-Confectory-CLI-Model-Choice.png",
+      "sha256": "a9026dbdcdfee062633e203b330a0fa6cd6688a30d77297dd6bc813bb487f457",
+      "capture": "actual production UI in Chromium; synthetic account/runtime/provider data"
+    },
+    {
+      "file": "codex-cli-onboarding/06-Confectory-CLI-Ready.png",
+      "sha256": "89c2b50a6e3d77d9a1ec7cd5ee2e0c53c0c38bfa8400a57a24b662ce2b12649b",
+      "capture": "actual production UI in Chromium; synthetic account/runtime/provider data"
+    },
+    {
+      "file": "codex-cli-onboarding/07-Confectory-CLI-Helper-Reply.png",
+      "sha256": "b9c46df72eb55c82dc79f164d5f0a92929a6dad439f423e18935adfdcfcd0b62",
+      "capture": "actual production UI in Chromium; synthetic account/runtime/provider data"
+    }
+  ],
+  "libraryDelivery": {
+    "status": "blocked before upload preparation",
+    "reason": "hosted apps tools/list request failed: network",
+    "attempts": 2,
+    "successfulLibraryWrites": 0,
+    "confirmedLibraryIds": [],
+    "readOnlyMetadataAccess": "succeeded between attempts"
+  },
+  "limits": [
+    "Owned runtime/account/model/installer fixtures are not live account authentication or service entitlement proof.",
+    "Only one explicit Helper request used an owned protocol reply; no real inference or paid request.",
+    "No official binary installation or OAuth login was attempted on a user computer.",
+    "Windows target and host compile; Windows/WebView2/system-browser login are unexecuted."
+  ],
+  "correctedAttempts": [
+    "The first UI presentation run found an advanced-disclosure busy timing defect; the UI fix and both manual regressions passed.",
+    "A probe fixture wait blocked Playwright request routing; its wait now pumps browser events.",
+    "The first complete integration attempt passed nine scenarios, then its install-cancel fixture released download before cancellation admission and incorrectly demanded reinstallation. The fixture now waits for cancelled/cancelling before releasing the download. The remaining seven scenarios passed separately."
+  ],
+  "protected": {
+    "examples/editor-home/ui/style.css": "f5b0be01e7daccef55d3aabcf2d33f9b887caee7b6f40c8d49cd46e7347a2700",
+    "reference/site-ui/Confectory-Editor-Prototype-v508.zip": "b306ce4deff9616c4107ae224443d864f8fce0f52cf3c3e158de8745c17c659f"
+  }
+}
