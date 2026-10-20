@@ -35,10 +35,12 @@ Routine Home-save messages are hidden. Errors and explicit action results remain
 | Final Linux and Windows target compilation | `tool.ok=true`, no diagnostics |
 | Source/runtime rendered comparison | 7 screens at 1440×1000, 900×760 and 600×800; 44 PNGs including narrow project footers; no horizontal overflow or page errors |
 | JavaScript/Python syntax and `git diff --check` | Passed |
-| Ordinary Git checkout/resource startup | Publication-stage check recorded in the final receipt |
+| Ordinary Git checkout/resource startup | Passed: 50 resources, retained CRLF after pull, fresh LF, content/encoding/BOM/binary/budget rejection; original bytes retained |
 
 The rendered comparison captures the original prototype in an isolated browser and the ordinary production host with owned temporary storage. Both use fallback fonts: the original Google Fonts request is blocked by the fixture and the production host retains its existing resource security policy. Dialog widths are compared and the narrow footer is reached by scrolling. Screenshots were visually inspected; these checks do not assert pixel equivalence across data or functionality that differs.
 
 Expected visible differences are registered configurations instead of seeded Agents/users/news; two real adapters instead of prototype mock adapters/versions; disabled generation without a real contract; explicit Helper import; and actual native folder tickets/available starter pack instead of fake paths and recommendations. The web fixture cannot show a native folder picker.
 
 No real account login, new credential, paid inference request, external connector scope grant or user project was created. Native Windows CMD/WebView execution and the exact user-PC Responses error remain unverified on this Linux executor. The entire repository test suite was not run; the table identifies the affected checks actually executed. Main, original ZIPs and Android settings were not edited.
+
+Implementation commit: `60d573b904525855eea082fd015df0ded581f806`. The separate receipt records final resource keys and checkout results. The local deliverables are `Confectory-v508-runtime-comparison.html` and `Confectory-v508-runtime-screenshots.zip`. Library delivery failed at the supported upload helper's connection step before any upload result; no new screenshot Library IDs are claimed.

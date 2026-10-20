@@ -25,17 +25,34 @@
     "customMainHelperLocalProposals": "passed",
     "finalGlobalUi": "passed",
     "sourceRuntimeComparison": "passed",
-    "ordinaryGitCheckout": "pending publication-stage check"
+    "ordinaryGitCheckout": {
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "resources": 50,
+      "retainedCRLFAfterPull": true,
+      "freshLF": true,
+      "rejected": [
+        "content-hash",
+        "invalid-UTF8",
+        "BOM",
+        "UTF16",
+        "bare-CR",
+        "raw-budget",
+        "binary-hash"
+      ],
+      "originalBytesPreserved": true
+    }
   },
   "builds": {
     "linux": {
       "ok": true,
-      "key": "80ca0fd703dbdf00d43ad878f69d146145152d2656e852b9c17d455ce5914752",
+      "key": "83bb390596aa1532d433adb1d6f88228e13204f10e0705a1fda87f502973f221",
       "diagnostics": []
     },
     "windows": {
       "ok": true,
-      "key": "7be8b45445bd5aeaf13b83a0ff13923da9565d94197c3370fe2b0a7b87f192aa",
+      "key": "6631fdbfca5aed267597275d4150a8a626672e7073bc747ec8d3b0031cf5109d",
       "diagnostics": []
     }
   },
@@ -232,5 +249,18 @@
       "bytes": 75223,
       "sha256": "a48d3db2c2f20f2c655f0ccdb16e4ae9aea2b384a3e0f755d210de25cf4635dd"
     }
-  }
+  },
+  "implementationCommit": "60d573b904525855eea082fd015df0ded581f806",
+  "libraryDelivery": {
+    "status": "blocked",
+    "reason": "supported prepared-upload helper failed tools/list with a network error before any create/finalize result; no screenshot Library IDs available",
+    "localReport": "Confectory-v508-runtime-comparison.html",
+    "localArchive": "Confectory-v508-runtime-screenshots.zip"
+  },
+  "preserved": {
+    "localMain": "b5ea38c3d7eec3eb20f170e68f0f4215b86b2aee",
+    "remoteMainAtRead": "744463bc1a15f0de726361dc137cd9792eea3be4",
+    "protectedTrackedChanges": []
+  },
+  "verifiedAt": "2026-10-20T06:21:32.549029+00:00"
 }
