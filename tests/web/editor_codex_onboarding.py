@@ -1,10 +1,10 @@
 """Production CLI onboarding with owned runtimes/accounts and a loopback archive.
 
 Only Discover/PreparationInfo are fixture providers. Every state transition,
-installer, device login, account/model validation and Helper transport is real
+installer, official browser/device login, account/model validation and Helper transport is real
 Confectory code. No real OAuth, user credentials, inference or external relay.
 """
-import hashlib,http.server,io,json,os,pathlib,re,shutil,signal,subprocess,sys,tarfile,tempfile,threading,time,urllib.request,uuid
+import hashlib,http.server,socket,select,io,json,os,pathlib,re,shutil,signal,subprocess,sys,tarfile,tempfile,threading,time,urllib.request,uuid
 from playwright.sync_api import sync_playwright,expect
 from editor_navigation import goto_editor
 
@@ -43,17 +43,17 @@ env=os.environ.copy();env.update(CONFECTORY_DOTNET=env.get('CONFECTORY_DOTNET','
 env['PATH']=str(pathlib.Path(env['CONFECTORY_DOTNET']).parent)+os.pathsep+env['PATH'];env.pop('CONFECTORY_WEB_PROJECT',None)
 with (root/'build.json').open('w') as out,(root/'build.err').open('w') as err:built=subprocess.run([env['CONFECTORY_DOTNET'],str(repo/'src/Confectory.Cli/bin/Release/net10.0/Confectory.Cli.dll'),'build',str(editor/'project.cpack'),'linux'],env=env,cwd=repo,stdout=out,stderr=err,timeout=180)
 report=json.loads((root/'build.json').read_text());assert built.returncode==0 and report.get('tool',{}).get('ok'),report.get('diagnostics')
-cases=['authenticated','logged-out','install','multiple-accounts','model-selection','single-model','configured-model','no-models','cancel-login','cancel-install','bad-install','cancel-probe','unsupported-runtime','identity-change','failed-login','switch-provider','install-empty-home','install-process-exit','install-initialize-error','install-account-error','install-model-error','install-mixed-homes','install-process-start-error','bundled-policy','user-bundle-settings','unexpected-extension','web-search-policy']
+cases=['authenticated','logged-out','install','multiple-accounts','model-selection','single-model','configured-model','no-models','cancel-login','cancel-install','bad-install','cancel-probe','unsupported-runtime','identity-change','failed-login','switch-provider','install-empty-home','install-process-exit','install-initialize-error','install-account-error','install-model-error','install-mixed-homes','install-process-start-error','bundled-policy','user-bundle-settings','unexpected-extension','web-search-policy','browser-open-failed','login-expired','callback-port-conflict','callback-rpc-conflict','invalid-login-url','device-fallback','device-cancel','device-retry','method-cleanup-failed']
 if os.environ.get('CONFECTORY_ONBOARDING_CASES'):cases=os.environ['CONFECTORY_ONBOARDING_CASES'].split(',')
 evidence=[];errors=[];external=[]
 with sync_playwright() as p:
  browser=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox','--disable-gpu'])
  try:
   for name in cases:
-   case=root/name;case.mkdir();storage=case/'profile';control={'rejectExtension':name=='unexpected-extension','rejectSearch':name=='web-search-policy','bundledPolicy':name in ('bundled-policy','user-bundle-settings'),'singleModel':name=='single-model','noDefault':name in ('model-selection','single-model'),'noModels':name=='no-models','configuredModel':'fixture-two' if name=='configured-model' else '', 'preAuthFailure':'mixed-account-error' if name=='install-mixed-homes' else name.removeprefix('install-') if name in ('install-process-exit','install-initialize-error','install-account-error','install-model-error','install-process-start-error') else '', 'failLogin':name=='failed-login','holdVersion':name=='cancel-probe','holdDownload':name=='cancel-install','badArchive':name=='bad-install','version':'0.159.2' if name=='unsupported-runtime' else '0.159.0-alpha.3'}
+   case=root/name;case.mkdir();storage=case/'profile';control={'loginExpired':name=='login-expired','loginPortError':name=='callback-rpc-conflict','invalidBrowserUrl':name=='invalid-login-url','rejectExtension':name=='unexpected-extension','rejectSearch':name=='web-search-policy','bundledPolicy':name in ('bundled-policy','user-bundle-settings'),'singleModel':name=='single-model','noDefault':name in ('model-selection','single-model'),'noModels':name=='no-models','configuredModel':'fixture-two' if name=='configured-model' else '', 'preAuthFailure':'mixed-account-error' if name=='install-mixed-homes' else name.removeprefix('install-') if name in ('install-process-exit','install-initialize-error','install-account-error','install-model-error','install-process-start-error') else '', 'failLogin':name=='failed-login','holdVersion':name=='cancel-probe','holdDownload':name=='cancel-install','badArchive':name=='bad-install','version':'0.159.2' if name=='unsupported-runtime' else '0.159.0-alpha.3'}
    def write_control(**values):control.update(values);(case/'control.json').write_text(json.dumps(control))
    write_control();(root/'active.json').write_text(json.dumps({'case':str(case)}))
-   absent=name.startswith('install-') or name in ('install','cancel-install','bad-install');logged_out=name.startswith('install-') and name!='install-model-error' or name in ('logged-out','install','cancel-login','cancel-install','bad-install','failed-login','switch-provider')
+   absent=name.startswith('install-') or name in ('install','cancel-install','bad-install');logged_out=name.startswith('install-') and name!='install-model-error' or name in ('logged-out','install','cancel-login','cancel-install','bad-install','failed-login','switch-provider','browser-open-failed','login-expired','callback-port-conflict','callback-rpc-conflict','invalid-login-url','device-fallback','device-cancel','device-retry','method-cleanup-failed')
    discovery={'executables':[] if absent else [{'path':str(runtime),'selectable':True,'source':'owned fixture'}],'homes':[]}
    homes=[]
    for index in range(0 if name=='install-empty-home' else 2 if name in ('multiple-accounts','install-mixed-homes') else 1):
@@ -63,8 +63,15 @@ with sync_playwright() as p:
    (root/'active-discovery.json').write_text(json.dumps(discovery))
    spec={'supported':True,'publisher':'OWNED FIXTURE','version':'0.159.0-alpha.3','target':'linux-x64','asset':'codex-owned.tar.gz','url':'http://127.0.0.1:'+str(server.server_port)+'/runtime','sha256':hashlib.sha256(archive).hexdigest(),'archiveKind':'tar.gz','archiveExecutable':'codex-owned','binaryName':'codex','rootBase':str(case/'managed'),'maxDownloadBytes':268435456,'maxUnpackedBytes':1073741824,'maxEntries':128,'downloadTimeoutSeconds':60}
    (root/'active-info.json').write_text(json.dumps(spec));run_env=env.copy();run_env.update(CONFECTORY_ENTRY_STORAGE=str(storage),CONFECTORY_HOME_STORAGE=str(storage),CONFECTORY_MCP_DIRECTORY=str(case/'instances'));log_path=case/'host.log';log=log_path.open('w');host=subprocess.Popen(report['run'],cwd=repo,env=run_env,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
-   page=browser.new_page(viewport={'width':1440,'height':1000});page.on('pageerror',lambda e:errors.append(str(e)));invocations=[]
+   port_lease=None
+   page=browser.new_page(viewport={'width':1440,'height':1000});page.add_init_script('''globalThis.__ownedBrowserOpens=[];globalThis.__ownedBrowserFailure=FAIL;Object.defineProperty(window,'confectoryWebUI',{value:Object.freeze({openCodexLogin(handle){globalThis.__ownedBrowserOpens.push(handle);return Promise.resolve({ok:!globalThis.__ownedBrowserFailure});}})});'''.replace('FAIL','true' if name=='browser-open-failed' else 'false'));page.on('pageerror',lambda e:errors.append(str(e)));invocations=[]
    page.on('request',lambda r:invocations.append(r.post_data_json.get('endpoint')) if r.url.endswith('/api/request') and r.post_data_json.get('op')=='invoke' else None)
+   def expect_browser():
+    expect(dialog.locator('[data-cli-official-login]')).to_be_visible();expect(dialog.locator('[data-cli-code]')).to_have_count(0)
+    assert state()['codexOnboarding']['loginMethod']=='browser'
+    assert [r for r in requests() if r['method']=='account/login/start'][-1]['params']=={'type':'chatgpt'}
+    assert 'auth.openai.com/oauth/authorize?' in dialog.locator('[data-cli-official-login]').get_attribute('href')
+    page.wait_for_function('globalThis.__ownedBrowserOpens.length>0')
    def requests():return [json.loads(line) for line in (case/'requests.jsonl').read_text().splitlines()] if (case/'requests.jsonl').exists() else []
    def wait_file(file):
     for _ in range(500):
@@ -129,7 +136,8 @@ with sync_playwright() as p:
      expect(dialog.locator('[data-cli-consent]')).to_have_text('동의하고 설치');clean_codex();page.screenshot(path=str(case/'install-consent.png'))
      if name=='unsupported-runtime':
       assert not [r for r in requests() if r['method']=='account/read'];dialog.locator('[data-connection-cancel]').click();print('PASS scenario unsupported-runtime',flush=True);continue
-     consent=state()['codexOnboarding']['token'];dialog.locator('[data-cli-consent]').click();assert api('approve',token=consent)['ok']
+     consent=state()['codexOnboarding']['token']
+     dialog.locator('[data-cli-consent]').click();assert api('approve',token=consent)['ok']
      if name=='cancel-install':
       wait_file(case/'download-started');clean_codex();page.screenshot(path=str(case/'installing.png'));dialog.locator('[data-cli-stop]').click();expect(dialog.locator('[data-codex-onboarding]')).to_have_attribute('data-step',re.compile('cancelled|cancelling'));write_control(holdDownload=False)
       expect(dialog.locator('[data-cli-login]')).to_be_enabled();dialog.locator('[data-cli-login]').click();expect(dialog.locator('[data-cli-consent]')).to_have_text('동의하고 설치');dialog.locator('[data-cli-consent]').click()
@@ -166,14 +174,46 @@ with sync_playwright() as p:
      assert not [r for r in requests() if r['method'] in ('model/list','account/login/start','turn/start')];clean_codex();page.screenshot(path=str(case/'policy-blocked.png'));write_control(rejectExtension=False,rejectSearch=False);dialog.locator('[data-cli-retry]').click()
     if logged_out or name=='multiple-accounts':
      if logged_out:assert not [r for r in requests() if r['method'] in ('model/list','account/login/start','turn/start')],'model/auth request before explicit login consent'
-     expect(dialog.locator('[data-cli-consent]')).to_have_text('동의하고 로그인');clean_codex();page.screenshot(path=str(case/'login-consent.png'));consent=state()['codexOnboarding']['token'];dialog.locator('[data-cli-consent]').click();assert api('approve',token=consent)['ok'];expect(dialog.locator('[data-cli-code]')).to_have_text('TEST-4240');expect(dialog.locator('[data-cli-official-login]')).to_have_attribute('href','https://auth.openai.com/codex/device');clean_codex();page.screenshot(path=str(case/'device-login.png'))
+     expect(dialog.locator('[data-cli-consent]')).to_have_text('동의하고 로그인');clean_codex();page.screenshot(path=str(case/'login-consent.png'));consent=state()['codexOnboarding']['token']
+     if name=='callback-port-conflict':port_lease=socket.socket();port_lease.bind(('127.0.0.1',1455));port_lease.listen(1)
+     dialog.locator('[data-cli-consent]').click();assert api('approve',token=consent)['ok']
+     if name in ('callback-port-conflict','callback-rpc-conflict','invalid-login-url'):
+      expect(dialog.locator('[data-cli-retry]')).to_be_visible();failed=state()['codexOnboarding'];assert failed['diagnostics']['failure']['code']==('login_url_rejected' if name=='invalid-login-url' else 'login_callback_unavailable'),failed
+      assert page.evaluate('globalThis.__ownedBrowserOpens')==[] and state()['helperAgents']['agents']==[]
+      if name=='callback-port-conflict':
+       assert not [r for r in requests() if r['method']=='account/login/start'];assert not select.select([port_lease],[],[],0)[0];port_lease.close();port_lease=None
+      safe=str(failed['diagnostics']);assert 'PRIVATE' not in safe and 'oauth/authorize' not in safe and 'owned-state' not in safe
+      clean_codex();page.screenshot(path=str(case/'browser-unavailable.png'));write_control(loginPortError=False,invalidBrowserUrl=False);dialog.locator('[data-cli-retry]').click();expect(dialog.locator('[data-cli-consent]')).to_have_text('동의하고 로그인');dialog.locator('[data-cli-consent]').click()
+     expect_browser();clean_codex();page.screenshot(path=str(case/'browser-login.png'))
+     if name in ('browser-open-failed','device-fallback','device-cancel','device-retry','method-cleanup-failed'):
+      page.wait_for_timeout(250);assert len(page.evaluate('globalThis.__ownedBrowserOpens'))==1
+      if name=='browser-open-failed':
+       expect(dialog.locator('[data-cli-browser-error]')).to_be_visible();dialog.locator('[data-cli-official-login]').click();page.wait_for_function('globalThis.__ownedBrowserOpens.length===2');expect(dialog.locator('[data-cli-browser-error]')).to_be_visible();page.screenshot(path=str(case/'browser-open-failed.png'))
+      browser_handle=state()['codexOnboarding']['openHandle'];browser_home=pathlib.Path([r for r in requests() if r['method']=='account/login/start'][-1]['home']);before=len([r for r in requests() if r['method']=='account/login/start'])
+      if name=='method-cleanup-failed':browser_home.chmod(0)
+      dialog.locator('[data-cli-login-alternative]>summary').click();dialog.locator('[data-cli-device-login]').click()
+      if name=='method-cleanup-failed':
+       try:
+        expect(dialog.locator('[data-cli-diagnostics]')).to_be_visible();blocked=state()['codexOnboarding'];assert blocked['diagnostics']['failure']['code']=='login_cleanup_pending' and blocked['retryable'] is False;expect(dialog.locator('[data-cli-retry],[data-cli-device-login],[data-cli-new-login]')).to_have_count(0)
+        assert not api('new-login')['ok'] and not api('retry',approved=True)['ok'];assert len([r for r in requests() if r['method']=='account/login/start'])==before and state()['helperAgents']['agents']==[]
+        page.screenshot(path=str(case/'cleanup-blocked.png'))
+       finally:browser_home.chmod(0o700)
+       print('PASS scenario '+name,flush=True);continue
+      expect(dialog.locator('[data-cli-consent]')).to_have_text('동의하고 로그인');assert '기기 코드 방식' in dialog.inner_text();assert len([r for r in requests() if r['method']=='account/login/start'])==before;assert not browser_home.exists();assert any(r['method']=='account/login/cancel' for r in requests());assert state()['helperAgents']['agents']==[];assert not api('device-login',token=browser_handle)['ok'];assert len([r for r in requests() if r['method']=='account/login/start'])==before
+      page.screenshot(path=str(case/'device-consent.png'));page.evaluate('globalThis.__ownedBrowserFailure=false');dialog.locator('[data-cli-consent]').click();expect(dialog.locator('[data-cli-code]')).to_have_text('TEST-4240');assert [r for r in requests() if r['method']=='account/login/start'][-1]['params']=={'type':'chatgptDeviceCode'};clean_codex();page.screenshot(path=str(case/'device-login.png'))
+      if name=='device-fallback':
+       device_home=pathlib.Path([r for r in requests() if r['method']=='account/login/start'][-1]['home']);before_back=len([r for r in requests() if r['method']=='account/login/start']);dialog.locator('[data-cli-browser-login]').click();expect(dialog.locator('[data-cli-consent]')).to_have_text('동의하고 로그인');assert '기본 브라우저' in dialog.inner_text() and not device_home.exists();assert len([r for r in requests() if r['method']=='account/login/start'])==before_back;dialog.locator('[data-cli-consent]').click();expect_browser();page.screenshot(path=str(case/'browser-after-device.png'))
+      if name=='device-cancel':
+       dialog.locator('[data-cli-stop]').click();expect(dialog.locator('[data-cli-login]')).to_be_visible();(case/'complete-login').write_text('late');page.wait_for_timeout(200);assert state()['helperAgents']['agents']==[];assert not list((case/'managed/accounts').glob('account-*'));print('PASS scenario '+name,flush=True);continue
+      if name=='device-retry':
+       write_control(failLogin=True);(case/'complete-login').write_text('failed');expect(dialog.locator('[data-cli-retry]')).to_be_visible();(case/'complete-login').unlink();write_control(failLogin=False);dialog.locator('[data-cli-retry]').click();expect(dialog.locator('[data-cli-consent]')).to_have_text('동의하고 로그인');assert '기기 코드 방식' in dialog.inner_text();dialog.locator('[data-cli-consent]').click();expect(dialog.locator('[data-cli-code]')).to_have_text('TEST-4240');assert [r for r in requests() if r['method']=='account/login/start'][-1]['params']=={'type':'chatgptDeviceCode'}
      if name=='switch-provider':
       dialog.get_by_role('button',name='OpenAI Responses',exact=True).click();expect(dialog.locator('[data-codex-onboarding]')).to_have_count(0);(case/'complete-login').write_text('owned');page.wait_for_timeout(500);assert state()['helperAgents']['agents']==[];dialog.get_by_role('button',name='Codex',exact=True).click();expect(dialog.locator('[data-cli-login]')).to_be_enabled();clean_codex();page.screenshot(path=str(case/'switched-cancelled.png'));print('PASS scenario switch-provider',flush=True);continue
      if name=='cancel-login':
-      dialog.locator('[data-connection-cancel]').click();page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='Agent 추가',exact=True);dialog.get_by_role('button',name='Codex',exact=True).click();expect(dialog.locator('[data-cli-login]')).to_be_enabled();dialog.locator('[data-cli-login]').click();expect(dialog.locator('[data-cli-consent]')).to_have_text('동의하고 로그인');dialog.locator('[data-cli-consent]').click();expect(dialog.locator('[data-cli-code]')).to_have_text('TEST-4240')
+      dialog.locator('[data-connection-cancel]').click();page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='Agent 추가',exact=True);dialog.get_by_role('button',name='Codex',exact=True).click();expect(dialog.locator('[data-cli-login]')).to_be_enabled();dialog.locator('[data-cli-login]').click();expect(dialog.locator('[data-cli-consent]')).to_have_text('동의하고 로그인');dialog.locator('[data-cli-consent]').click();expect_browser()
      (case/'complete-login').write_text('owned')
-     if name=='failed-login':
-      expect(dialog.locator('[data-cli-retry]')).to_be_visible();clean_codex();page.screenshot(path=str(case/'login-failed.png'));write_control(failLogin=False);(case/'complete-login').unlink();dialog.locator('[data-cli-retry]').click();expect(dialog.locator('[data-cli-consent]')).to_have_text('동의하고 로그인');dialog.locator('[data-cli-consent]').click();expect(dialog.locator('[data-cli-code]')).to_have_text('TEST-4240');(case/'complete-login').write_text('owned')
+     if name in ('failed-login','login-expired'):
+      expect(dialog.locator('[data-cli-retry]')).to_be_visible();clean_codex();page.screenshot(path=str(case/'login-failed.png'));assert state()['codexOnboarding']['diagnostics']['failure']['code']==('login_timeout' if name=='login-expired' else 'login_not_completed');write_control(failLogin=False,loginExpired=False);(case/'complete-login').unlink();dialog.locator('[data-cli-retry]').click();expect(dialog.locator('[data-cli-consent]')).to_have_text('동의하고 로그인');dialog.locator('[data-cli-consent]').click();expect_browser();(case/'complete-login').write_text('owned')
     else:
      if name=='no-models':
       expect(dialog.locator('[data-cli-retry]')).to_be_visible();assert state()['helperAgents']['agents']==[];clean_codex();page.screenshot(path=str(case/'models-empty.png'));write_control(noModels=False);dialog.locator('[data-cli-retry]').click()
@@ -196,7 +236,7 @@ with sync_playwright() as p:
      for item in approval.locator('[data-global-permission]').all():item.check()
      expect(approval.locator('[data-global-start]')).to_be_enabled();approval.locator('[data-global-start]').click();expect(card.locator('.global-helper-messages')).to_contain_text('OWNED CLI HELPER REPLY',timeout=30000);page.screenshot(path=str(case/'helper-reply.png'));assert len([r for r in requests() if r['method']=='turn/start'])==1
     if name=='identity-change':
-     write_control(loginEmail='changed@fixture.invalid');page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='Agent 추가',exact=True);dialog.get_by_role('button',name='Codex',exact=True).click();expect(dialog.locator('[data-cli-change-account]')).to_be_enabled();dialog.locator('[data-cli-change-account]').click();expect(dialog.locator('[data-cli-consent]')).to_have_text('동의하고 로그인');clean_codex();assert state()['helperAgents']['agents'][0]['accountIdentity']['email']=='alice@fixture.invalid';dialog.locator('[data-cli-consent]').click();expect(dialog.locator('[data-cli-code]')).to_have_text('TEST-4240');(case/'complete-login').write_text('owned');expect(dialog.locator('[data-cli-done]')).to_be_enabled();assert state()['helperAgents']['agents'][0]['accountIdentity']['email']=='changed@fixture.invalid';clean_codex();page.screenshot(path=str(case/'changed-account.png'))
+     write_control(loginEmail='changed@fixture.invalid');page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='Agent 추가',exact=True);dialog.get_by_role('button',name='Codex',exact=True).click();expect(dialog.locator('[data-cli-change-account]')).to_be_enabled();dialog.locator('[data-cli-change-account]').click();expect(dialog.locator('[data-cli-consent]')).to_have_text('동의하고 로그인');clean_codex();assert state()['helperAgents']['agents'][0]['accountIdentity']['email']=='alice@fixture.invalid';dialog.locator('[data-cli-consent]').click();expect_browser();(case/'complete-login').write_text('owned');expect(dialog.locator('[data-cli-done]')).to_be_enabled();assert state()['helperAgents']['agents'][0]['accountIdentity']['email']=='changed@fixture.invalid';clean_codex();page.screenshot(path=str(case/'changed-account.png'))
     if name=='authenticated':
      # A new engine process restores the confirmed account identity, then renews
      # readiness without asking for another OAuth login or account choice.
@@ -213,6 +253,7 @@ with sync_playwright() as p:
    except BaseException:
     page.screenshot(path=str(case/'failure.png'));print('FAILED '+name+' '+str(case),flush=True);print('HOST '+log_path.read_text()[-2500:],flush=True);print('STATE '+json.dumps(state(),ensure_ascii=False)[-9000:],flush=True);print('PAGE '+page.locator('body').inner_text()[-3000:],flush=True);raise
    finally:
+    if port_lease is not None:port_lease.close()
     evidence.append({'scenario':name,'requests':requests(),'uiInvocations':invocations});write_control(holdVersion=False,holdDownload=False);page.close()
     if host.poll() is None:os.killpg(host.pid,signal.SIGTERM)
     host.wait(timeout=15);log.close();(root/'evidence.json').write_text(json.dumps({'cases':evidence,'pageErrors':errors,'externalRequests':external},ensure_ascii=False,indent=2))

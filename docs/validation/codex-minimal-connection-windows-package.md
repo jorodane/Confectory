@@ -1,5 +1,7 @@
 # Minimal Codex connection and Windows exe package
 
+Historical validation for the minimal UI and exe package. [The later browser-first login change](codex-browser-login.md) replaces the device-code default while retaining this package layout and minimal UI.
+
 The Codex connection UI now exposes a login action, the installation/login consent that is actually needed, progress/cancel, failure/retry and automatic Agent registration. Candidate installations, account directories, path/platform/version chores, advanced/manual settings, model fields, save/check/manual registration and refresh menus are absent from the rendered Codex screen. Internal compatibility and discovery APIs remain. Original v508 styling/reference and existing account/project/settings data are preserved.
 
 Existing distinct accounts lead to official login rather than a local directory list. The same identity across multiple homes has one identified confirmation. Existing confirmed identity and saved/configured/default models are reused; absent these, the first model returned by the official visible catalogue is selected. Every actual Helper turn still needs its reviewed request approval. Selecting the card loads settings declarations but starts no runtime discovery, installation, authentication, model RPC or external relay. Local settings loading may invoke the authoring host.

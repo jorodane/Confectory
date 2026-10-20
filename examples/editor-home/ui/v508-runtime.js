@@ -386,7 +386,7 @@ function renderInstallationGuide(root,guide,rediscover,presentation={}){
 let connectionDialogCleanup=Promise.resolve();
 function openConnectionSettings(preferred){if($('[data-connection-dialog]'))return;
  modal('Agent 추가','<form class="agent-connect-form"><div data-connection-picker class="agent-provider-list" role="group" aria-label="Agent 선택"></div><div class="agent-connection-fields" data-connection-form></div></form><div data-connection-error role="status" hidden></div><div class="actions"><button data-connection-cancel>닫기</button></div>',(root,close)=>{
- root.dataset.connectionDialog='true';root.querySelector('form').onsubmit=e=>e.preventDefault();root.classList.add('agent-connect-modal');$('[data-connection-picker]',root).classList.add('agent-provider-list');let selected=null,flowStamp=null,closed=false,closing=false,needsCleanup=false,actionInFlight=Promise.resolve(),lastFailure=null;const project=current.projectId,generation=view.generation;
+ root.dataset.connectionDialog='true';root.querySelector('form').onsubmit=e=>e.preventDefault();root.classList.add('agent-connect-modal');$('[data-connection-picker]',root).classList.add('agent-provider-list');let selected=null,flowStamp=null,browserRecord=null,closed=false,closing=false,needsCleanup=false,actionInFlight=Promise.resolve(),lastFailure=null;const project=current.projectId,generation=view.generation;
  const selectedSetup=()=>{const setup=current.connectionSetup;return root.isConnected&&selected&&setup?.connection===selected.id?setup:null;};
  const alive=()=>!closed&&!closing&&root.isConnected&&view.active&&view.generation===generation&&current.projectId===project;
  const showFailure=()=>{if(!alive()||!current.operationError)return;const box=$('[data-connection-error]',root),error=current.operationError;const codex=selected?.id==='Confectory.Agent.Codex::Connection';box.hidden=false;box.dataset.code=error.code;box.textContent=(codex?'로그인 화면을 준비하지 못했어요. 다시 시도해 주세요.':error.code==='connection_settings_invalid'&&error.mode==='new'?'설치된 Agent 팩에서 첫 설정 화면을 만들지 못했습니다. 사전 Agent 등록이나 이전 연결 설정은 필요하지 않습니다. 팩 선언과 스키마를 확인한 뒤 다시 시도하세요.':operationFailures[error.code]||'연결 설정을 열 수 없습니다. 입력은 유지됩니다.')+' ['+error.code+' / '+error.stage+(error.cause?' / '+error.cause:'')+']'+(!codex&&error.namespaceDiagnostic?' 누락된 네임스페이스: '+error.namespaceDiagnostic.missingNamespace+(error.namespaceDiagnostic.ownerNamespace?' · 참조 팩: '+error.namespaceDiagnostic.ownerNamespace:'')+(error.namespaceDiagnostic.reference?' · 참조: '+error.namespaceDiagnostic.reference:''):'');const retry=document.createElement('button');retry.textContent=codex?'다시 시도':'설정 다시 읽기';retry.onclick=()=>{if(lastFailure?.connection===selected?.id)run(lastFailure.action,lastFailure.message);};box.append(retry);};
@@ -411,7 +411,7 @@ function openConnectionSettings(preferred){if($('[data-connection-dialog]'))retu
  const flowAction=(action,args={})=>run(async()=>{await jobCall('codexOnboarding',{action,...args});render();},'');
  const renderCodex=(body)=>{
   const flow=current.codexOnboarding||{state:'idle'},agent=current.helperAgents?.agents?.find(a=>a.id===selected.id),stamp=JSON.stringify([flow,agent]);if(flowStamp===stamp&&body.querySelector('[data-codex-onboarding]'))return;flowStamp=stamp;
-  const identity=flow.accountIdentity||agent?.accountIdentity,accountName=identity?.email||'이메일 정보가 없는 계정',pending=['probing','installing','inspecting','waiting-login','checking','cancelling'].includes(flow.state);
+  const identity=flow.accountIdentity||agent?.accountIdentity,accountName=identity?.email||'이메일 정보가 없는 계정',pending=['probing','installing','inspecting','waiting-login','checking','cancelling','switching-login'].includes(flow.state);
   body.innerHTML='<section data-codex-onboarding data-step="'+esc(flow.state)+'"><h3>Codex</h3><div data-cli-stage></div></section>';
   const area=$('[data-cli-stage]',body);const text=document.createElement('p');text.setAttribute('role','status');text.textContent=flow.message||'Codex로 로그인하면 Confectory 안에서 Helper와 대화할 수 있어요.';area.append(text);
   const button=(label,action,primary=true,attr='')=>{const b=document.createElement('button');b.type='button';b.dataset.operation='cli';if(primary)b.className='primary';if(attr)b.setAttribute(attr,'');b.textContent=label;b.onclick=action;area.append(b);return b;};
@@ -421,10 +421,23 @@ function openConnectionSettings(preferred){if($('[data-connection-dialog]'))retu
    if(agent)area.insertAdjacentHTML('beforeend','<p>'+esc(agent.state==='offline'?'연결 해제됨 · Helper와 설정은 보관됩니다.':'저장된 Agent 설정이 있습니다.')+'</p>'+(identity?'<p>'+esc(accountName)+'</p>':''));
    button(agent?.state==='offline'?'다시 연결':'로그인',begin,true,'data-cli-login');
   }else if(flow.state==='consent'){
-   area.insertAdjacentHTML('beforeend','<p class="small">'+(flow.kind==='install'?'공식 OpenAI 배포 파일 다운로드, 별도 공간 저장과 실행 확인에 동의합니다.':'Codex를 로그인용으로 실행하고 새 계정 공간을 사용합니다. 이후 공식 계정·모델과 연결 준비를 확인합니다.')+'</p>');
+   area.insertAdjacentHTML('beforeend','<p class="small">'+(flow.kind==='install'?'공식 OpenAI 배포 파일 다운로드, 별도 공간 저장과 실행 확인에 동의합니다.':flow.loginMethod==='device'?'기기 코드 방식으로 전환합니다. 계정에서 이 방식이 허용되어 있어야 할 수 있습니다. 새 로그인 공간을 사용합니다.':'기본 브라우저에서 공식 Codex 로그인으로 진행합니다. 새 로그인 공간을 사용하고 완료 후 연결을 확인합니다.')+'</p>');
    button(flow.kind==='install'?'동의하고 설치':'동의하고 로그인',()=>flowAction('approve',{token:flow.token}),true,'data-cli-consent');
   }else if(flow.state==='waiting-login'){
-   if(flow.verificationUrl){const link=document.createElement('a');link.href=flow.verificationUrl;link.target='_blank';link.rel='noopener noreferrer';link.textContent='공식 로그인 페이지 열기';link.setAttribute('data-cli-official-login','');if(globalThis.confectoryWebUI?.openCodexLogin)link.onclick=e=>{e.preventDefault();run(()=>globalThis.confectoryWebUI.openCodexLogin(flow.userCode),'공식 로그인 페이지를 열었습니다.');};area.append(link);const code=document.createElement('p');code.textContent=flow.userCode||'';code.setAttribute('data-cli-code','');area.append(code);}
+   const device=flow.loginMethod==='device',handle=flow.openHandle;
+   const alternate=()=>flowAction(device?'browser-login':'device-login',{token:handle});
+   if(flow.verificationUrl&&handle){
+    if(browserRecord?.handle!==handle)browserRecord={handle,state:'idle'};
+    const open=async()=>{if(browserRecord?.handle!==handle||browserRecord.state==='opening'||!alive())return;browserRecord.state='opening';try{const reply=globalThis.confectoryWebUI?.openCodexLogin?await globalThis.confectoryWebUI.openCodexLogin(handle):{ok:Boolean(window.open(flow.verificationUrl,'_blank','noopener'))};if(browserRecord?.handle===handle)browserRecord.state=reply?.ok===true?'opened':'failed';}catch{if(browserRecord?.handle===handle)browserRecord.state='failed';}if(alive()&&current.codexOnboarding?.openHandle===handle){flowStamp=null;render();}};
+    const link=document.createElement('a');link.href=flow.verificationUrl;link.target='_blank';link.rel='noopener noreferrer';link.textContent=device?'공식 로그인 페이지 열기':browserRecord.state==='opened'?'브라우저 다시 열기':'브라우저 열기';link.setAttribute('data-cli-official-login','');if(globalThis.confectoryWebUI?.openCodexLogin)link.onclick=e=>{e.preventDefault();void open();};area.append(link);
+    if(device){const code=document.createElement('p');code.textContent=flow.userCode||'';code.setAttribute('data-cli-code','');area.append(code);}
+    else{
+     if(browserRecord.state==='failed'){const error=document.createElement('p');error.setAttribute('data-cli-browser-error','');error.setAttribute('role','status');error.textContent='브라우저를 열지 못했어요. 위 링크로 다시 열거나 기기 코드 방식으로 전환할 수 있어요.';area.append(error);}
+     const help=document.createElement('details');help.setAttribute('data-cli-login-alternative','');help.innerHTML='<summary>브라우저 로그인이 어려운가요?</summary><p>기기 코드 방식으로 전환할 수 있어요. 진행 중인 브라우저 로그인은 취소됩니다.</p>';const choice=document.createElement('button');choice.type='button';choice.textContent='기기 코드로 로그인';choice.setAttribute('data-cli-device-login','');choice.onclick=alternate;help.append(choice);area.append(help);
+     if(browserRecord.state==='idle'&&typeof globalThis.confectoryWebUI?.openCodexLogin==='function')queueMicrotask(()=>{if(alive()&&current.codexOnboarding?.openHandle===handle)void open();});
+    }
+    if(device)button('브라우저 로그인으로 전환',alternate,false,'data-cli-browser-login');
+   }
   }else if(flow.state==='account-choice'){
    for(const [index,account] of (flow.accounts||[]).entries()){const label=account.identity.email||'계정 '+(index+1)+' · 이메일 정보 없음';button(label+(account.identity.planType?' · '+account.identity.planType:''),()=>flowAction('choose-account',{token:flow.token,account:account.id}),true,'data-cli-account');}
    button('다른 계정으로 로그인',()=>flowAction('new-login'),false,'data-cli-new-login');
@@ -437,7 +450,7 @@ function openConnectionSettings(preferred){if($('[data-connection-dialog]'))retu
   }else if(flow.state==='failed'){
    if(flow.installation?.state==='prepared')area.insertAdjacentHTML('beforeend','<p class="small" data-cli-installation-result>설치·버전 확인 완료 · 연결 준비 확인 실패</p>');
    if(flow.diagnostics){const details=document.createElement('details');details.setAttribute('data-cli-diagnostics','');const summary=document.createElement('summary');summary.textContent='오류 정보 · 문의할 때 이 내용만 전달하세요';const pre=document.createElement('pre');pre.className='consumer-output';pre.textContent=JSON.stringify(flow.diagnostics,null,2);details.append(summary,pre);area.append(details);}
-   if(flow.retryable!==false)button('다시 시도',()=>flowAction('retry',{approved:true}),true,'data-cli-retry');if(flow.canLogin)button('다른 계정으로 로그인',()=>flowAction('new-login'),false,'data-cli-new-login');
+   if(flow.retryable!==false)button('다시 시도',()=>flowAction('retry',{approved:true}),true,'data-cli-retry');if(flow.canSwitchLogin)button(flow.loginMethod==='device'?'브라우저 로그인으로 전환':'기기 코드로 로그인',()=>flowAction(flow.loginMethod==='device'?'browser-login':'device-login',{token:flow.switchHandle}),false,flow.loginMethod==='device'?'data-cli-browser-login':'data-cli-device-login');else if(flow.canLogin)button('다른 계정으로 로그인',()=>flowAction('new-login'),false,'data-cli-new-login');
   }
   if(pending){if(Number.isFinite(flow.percent)){const progress=document.createElement('progress');progress.max=100;progress.value=flow.percent;area.append(progress);}button('취소',()=>flowAction('cancel'),false,'data-cli-stop');}
   controls();

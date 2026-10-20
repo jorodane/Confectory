@@ -27,8 +27,8 @@ def send(value):
 def finish():
  while not (CASE/'complete-login').exists():time.sleep(.02)
  account={'type':'chatgpt','email':control().get('loginEmail','new-account@fixture.invalid'),'planType':'plus'}
- if not control().get('failLogin',False):(home/'.owned-account.json').write_text(json.dumps(account))
- send({'method':'account/login/completed','params':{'loginId':'owned-login','success':not control().get('failLogin',False)}})
+ if not (control().get('failLogin',False) or control().get('loginExpired')):(home/'.owned-account.json').write_text(json.dumps(account))
+ send({'method':'account/login/completed','params':{'loginId':'owned-login','success':not (control().get('failLogin',False) or control().get('loginExpired')),'error':'Login expired' if control().get('loginExpired') else None}})
 for line in sys.stdin:
  value=json.loads(line);method=value.get('method');params=value.get('params',{});record(method,params);result={}
  failure=control().get('preAuthFailure')
@@ -38,8 +38,14 @@ for line in sys.stdin:
  if method=='initialize':result={'userAgent':'confectory/'+control().get('version','0.159.0-alpha.3')+' (OWNED FIXTURE)'}
  elif method=='initialized':continue
  elif method=='account/login/start':
-  assert login and params=={'type':'chatgptDeviceCode'}
-  send({'id':value['id'],'result':{'type':'chatgptDeviceCode','loginId':'owned-login','verificationUrl':'https://auth.openai.com/codex/device','userCode':'TEST-4240'}})
+  assert login and params in ({'type':'chatgpt'},{'type':'chatgptDeviceCode'})
+  if control().get('loginPortError'):
+   send({'id':value['id'],'error':{'code':-32603,'message':'Address already in use (os error 10048) PRIVATE'}});continue
+  if params['type']=='chatgpt':
+   url='https://auth.openai.com/oauth/authorize?response_type=code&client_id=owned-fixture&redirect_uri=http%3A%2F%2F127.0.0.1%3A1455%2Fauth%2Fcallback&state=owned-state&code_challenge='+'A'*43+'&code_challenge_method=S256'
+   if control().get('invalidBrowserUrl'):url=url.replace('127.0.0.1','remote.fixture.invalid')
+   send({'id':value['id'],'result':{'type':'chatgpt','loginId':'owned-login','authUrl':url}})
+  else:send({'id':value['id'],'result':{'type':'chatgptDeviceCode','loginId':'owned-login','verificationUrl':'https://auth.openai.com/codex/device','userCode':'TEST-4240'}})
   threading.Thread(target=finish,daemon=True).start();continue
  elif method=='account/login/cancel':assert params=={'loginId':'owned-login'};result={'status':'canceled'}
  elif method=='account/read':

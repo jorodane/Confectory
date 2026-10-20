@@ -97,8 +97,10 @@ internal static class Program
                             }
                         }else if(message["native"]?.GetValue<string>()=="codex-login"){
                             var permitted=await rpc.Call("native",new JsonObject{["action"]="codex-login",["payload"]=message["envelope"]?.DeepClone()??new JsonObject()});
-                            if(permitted?["ok"]?.GetValue<bool>()!=true||permitted["result"]?["url"]?.ToString()!="https://auth.openai.com/codex/device")throw new UnauthorizedAccessException("Current Codex login required");
-                            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("https://auth.openai.com/codex/device"){UseShellExecute=true});response=new JsonObject{["ok"]=true};
+                            if(permitted?["ok"]?.GetValue<bool>()!=true)throw new UnauthorizedAccessException("Current Codex login required");
+                            string url=permitted["result"]?["url"]?.ToString()??"";
+                            bool opened=Confectory.WebView.CodexBrowserLogin.TryOpen(url,value=>System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(value){UseShellExecute=true})?.Dispose());
+                            response=new JsonObject{["ok"]=opened,["code"]=opened?"browser-opened":"browser-open-failed"};
                         }else if(message["native"]?.GetValue<string>()=="site-disconnect"){
                             if(siteRelay is {IsDisposed:false})await siteRelay.DisconnectConnectionAsync();response=new JsonObject{["ok"]=true};
                         }else if(message["native"]?.GetValue<string>()=="open-file"){
@@ -146,7 +148,7 @@ internal static class Program
                         const p=pending.get(event.data.id);if(!p)return;pending.delete(event.data.id);
                         clearTimeout(p.timer);event.data.error?p.reject(Error(event.data.error)):p.resolve(event.data.reply);
                       });
-                      Object.defineProperty(window,'confectoryWebUI',{value:Object.freeze({openCodexLogin(code){return this.send({code},'codex-login');},connectSite(){return this.send(null,'site-connect');},disconnectSite(){return this.send(null,'site-disconnect');},pickFile(){return this.send(null,'open-file');},chooseProjectParent(){return this.send(null,'choose-project-parent');},createProject(title,description,parent,proposalId){return this.send({title,description,parent,proposalId},'create-project');},send(envelope,native){
+                      Object.defineProperty(window,'confectoryWebUI',{value:Object.freeze({openCodexLogin(handle){return this.send({handle},'codex-login');},connectSite(){return this.send(null,'site-connect');},disconnectSite(){return this.send(null,'site-disconnect');},pickFile(){return this.send(null,'open-file');},chooseProjectParent(){return this.send(null,'choose-project-parent');},createProject(title,description,parent,proposalId){return this.send({title,description,parent,proposalId},'create-project');},send(envelope,native){
                         if(pending.size>=64)return Promise.reject(Error('transport_busy'));
                         const id=String(++serial);return new Promise((resolve,reject)=>{
                           const timer=setTimeout(()=>{pending.delete(id);reject(Error('transport_timeout'));},30000);

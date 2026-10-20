@@ -30,8 +30,11 @@ for line in sys.stdin:
  if method=='initialize':result={'userAgent':'confectory/'+control().get('version','0.159.0-alpha.3')+' (OWNED FIXTURE)'}
  elif method=='initialized':continue
  elif method=='account/login/start':
-  assert auth and params=={'type':'chatgptDeviceCode'}
-  result={'type':'chatgptDeviceCode','loginId':'owned-login','verificationUrl':'https://invalid.example/blocked' if control().get('invalidUrl') else 'https://auth.openai.com/codex/device','userCode':'TEST-4240'}
+  assert auth and params in ({'type':'chatgpt'},{'type':'chatgptDeviceCode'})
+  if params['type']=='chatgpt':
+   url='https://auth.openai.com/oauth/authorize?response_type=code&client_id=owned-fixture&redirect_uri=http%3A%2F%2F127.0.0.1%3A1455%2Fauth%2Fcallback&state=owned-state&code_challenge='+'A'*43+'&code_challenge_method=S256'
+   result={'type':'chatgpt','loginId':'owned-login','authUrl':'https://invalid.example/blocked' if control().get('invalidUrl') else url}
+  else:result={'type':'chatgptDeviceCode','loginId':'owned-login','verificationUrl':'https://auth.openai.com/codex/device','userCode':'TEST-4240'}
   send({'id':message['id'],'result':result});threading.Thread(target=complete,daemon=True).start();continue
  elif method=='account/login/cancel':
   assert auth and params=={'loginId':'owned-login'};result={'status':'canceled'}

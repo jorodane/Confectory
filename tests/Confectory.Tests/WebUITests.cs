@@ -2,6 +2,12 @@ using Confectory.Core;
 namespace Confectory.Tests;
 public sealed class WebUITests : TestCase
 {
+    public void test_codex_browser_login_native_url_failure_and_retry_guards()
+    {
+        if(!OperatingSystem.IsLinux())Skip("Portable native-launch guard fixture runs on Linux; actual Windows browser association is separate");
+        var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/protocol/codex_browser_login_contract.py"),Fixture.Repo},timeoutSeconds:120);
+        True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS production native browser URL allowlist"),run.Stdout+run.Stderr);
+    }
     public void test_actual_codex_cli_login_first_owned_install_accounts_models_cancel_retry_and_helper()
     {
         if(!OperatingSystem.IsLinux())Skip("Owned CLI and Chromium fixtures run on Linux; live accounts and Windows native execution are separate checks");
@@ -175,7 +181,7 @@ public sealed class WebUITests : TestCase
         File.AppendAllText(webState,"\n");File.WriteAllText(webState,File.ReadAllText(webState).Replace("var selected=model[\"selected\"];","if(model[\"status\"]?.ToString().StartsWith(\"Error:\",StringComparison.Ordinal)==true)System.IO.File.AppendAllText("+System.Text.Json.JsonSerializer.Serialize(trace)+",model[\"status\"]!.ToString()+Environment.NewLine);var selected=model[\"selected\"];",StringComparison.Ordinal));
         var built=new Builder(manifest,"linux").Build();string report=Path.Combine(f.Root,"click-preparation-report.json");File.WriteAllText(report,built.ToJsonString());
         var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/editor_codex_click_preparation.py"),Fixture.Repo,report,descriptor},timeoutSeconds:600);
-        True(run.ExitCode==0,run.Stdout+run.Stderr+(File.Exists(trace)?File.ReadAllText(trace):""));True(run.Stdout.Contains("PASS actual Home click preparation and device login"),run.Stdout+run.Stderr);
+        True(run.ExitCode==0,run.Stdout+run.Stderr+(File.Exists(trace)?File.ReadAllText(trace):""));True(run.Stdout.Contains("PASS actual Home click preparation and official login"),run.Stdout+run.Stderr);
     }
 
     public void test_actual_editor_v318_inventory_and_browser_instances_restart()

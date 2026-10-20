@@ -1,0 +1,772 @@
+{
+  "baseCommit": "80a3626779bc5ff3c3dd3297445124231f38d70c",
+  "cliVersion": "0.159.0-alpha.3",
+  "officialSchemaGeneratedWithFreshHomeAndChildNetworkDenial": true,
+  "officialSchemaSha256": {
+    "LoginAccountParams.json": "48fb9bea54d7e0890052653ac06737efb3200ba2261515b2c4014027f36bea3d",
+    "LoginAccountResponse.json": "72e6d77f49bc5809c3af50f183e2a0862dd8f7836816d4796ff69bb13eae0e89",
+    "CancelLoginAccountParams.json": "a4570a7542b82b918f69199f1e214ef747151c678473a5af58c58b088fdf58b6",
+    "AccountLoginCompletedNotification.json": "d81e8821fd5a4a9ad118dfc3506ea156d32dcb18da388b336501bbc6a5ccb4a6"
+  },
+  "officialBrowserApi": {
+    "method": "account/login/start",
+    "params": {
+      "type": "chatgpt"
+    },
+    "response": [
+      "type",
+      "loginId",
+      "authUrl"
+    ]
+  },
+  "explicitDeviceApi": {
+    "method": "account/login/start",
+    "params": {
+      "type": "chatgptDeviceCode"
+    }
+  },
+  "uiDistinctScenarios": 36,
+  "groups": [
+    {
+      "log": "browser-new-cases.log",
+      "passedScenarios": [
+        "logged-out",
+        "device-fallback",
+        "browser-open-failed",
+        "login-expired"
+      ],
+      "completeRun": false,
+      "pageErrors": [],
+      "externalBrowserRequests": []
+    },
+    {
+      "log": "browser-remaining.log",
+      "passedScenarios": [
+        "callback-port-conflict",
+        "callback-rpc-conflict",
+        "invalid-login-url",
+        "device-cancel",
+        "device-retry",
+        "device-fallback"
+      ],
+      "completeRun": true,
+      "pageErrors": [],
+      "externalBrowserRequests": []
+    },
+    {
+      "log": "browser-original-cases.log",
+      "passedScenarios": [
+        "authenticated",
+        "logged-out",
+        "install",
+        "multiple-accounts",
+        "model-selection",
+        "single-model",
+        "configured-model",
+        "no-models",
+        "cancel-login",
+        "cancel-install",
+        "bad-install",
+        "cancel-probe",
+        "unsupported-runtime",
+        "identity-change",
+        "failed-login",
+        "switch-provider",
+        "install-empty-home",
+        "install-process-exit",
+        "install-initialize-error",
+        "install-account-error",
+        "install-model-error",
+        "install-mixed-homes",
+        "install-process-start-error",
+        "bundled-policy",
+        "user-bundle-settings",
+        "unexpected-extension",
+        "web-search-policy"
+      ],
+      "completeRun": true,
+      "pageErrors": [],
+      "externalBrowserRequests": []
+    },
+    {
+      "log": "cleanup-guard.log",
+      "passedScenarios": [
+        "method-cleanup-failed"
+      ],
+      "completeRun": true,
+      "pageErrors": [],
+      "externalBrowserRequests": []
+    }
+  ],
+  "uiCases": [
+    {
+      "scenario": "logged-out",
+      "rpcCounts": {
+        "--version": 1,
+        "account/login/start": 1,
+        "account/read": 4,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 4,
+        "initialized": 4,
+        "model/list": 2,
+        "process": 4,
+        "thread/start": 1
+      },
+      "loginMethods": [
+        "chatgpt"
+      ]
+    },
+    {
+      "scenario": "device-fallback",
+      "rpcCounts": {
+        "--version": 1,
+        "account/login/cancel": 2,
+        "account/login/start": 3,
+        "account/read": 4,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 6,
+        "initialized": 6,
+        "model/list": 2,
+        "process": 6,
+        "thread/start": 1
+      },
+      "loginMethods": [
+        "chatgpt",
+        "chatgptDeviceCode",
+        "chatgpt"
+      ]
+    },
+    {
+      "scenario": "browser-open-failed",
+      "rpcCounts": {
+        "--version": 1,
+        "account/login/cancel": 1,
+        "account/login/start": 2,
+        "account/read": 4,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 5,
+        "initialized": 5,
+        "model/list": 2,
+        "process": 5,
+        "thread/start": 1
+      },
+      "loginMethods": [
+        "chatgpt",
+        "chatgptDeviceCode"
+      ]
+    },
+    {
+      "scenario": "login-expired",
+      "rpcCounts": {
+        "--version": 2,
+        "account/login/start": 2,
+        "account/read": 5,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 6,
+        "initialized": 6,
+        "model/list": 2,
+        "process": 6,
+        "thread/start": 1
+      },
+      "loginMethods": [
+        "chatgpt",
+        "chatgpt"
+      ]
+    },
+    {
+      "scenario": "callback-port-conflict",
+      "rpcCounts": {
+        "--version": 2,
+        "account/login/start": 1,
+        "account/read": 5,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 6,
+        "initialized": 6,
+        "model/list": 2,
+        "process": 6,
+        "thread/start": 1
+      },
+      "loginMethods": [
+        "chatgpt"
+      ]
+    },
+    {
+      "scenario": "callback-rpc-conflict",
+      "rpcCounts": {
+        "--version": 2,
+        "account/login/start": 2,
+        "account/read": 5,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 6,
+        "initialized": 6,
+        "model/list": 2,
+        "process": 6,
+        "thread/start": 1
+      },
+      "loginMethods": [
+        "chatgpt",
+        "chatgpt"
+      ]
+    },
+    {
+      "scenario": "invalid-login-url",
+      "rpcCounts": {
+        "--version": 2,
+        "account/login/start": 2,
+        "account/read": 5,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 6,
+        "initialized": 6,
+        "model/list": 2,
+        "process": 6,
+        "thread/start": 1
+      },
+      "loginMethods": [
+        "chatgpt",
+        "chatgpt"
+      ]
+    },
+    {
+      "scenario": "device-cancel",
+      "rpcCounts": {
+        "--version": 1,
+        "account/login/cancel": 2,
+        "account/login/start": 2,
+        "account/read": 1,
+        "initialize": 3,
+        "initialized": 3,
+        "process": 3
+      },
+      "loginMethods": [
+        "chatgpt",
+        "chatgptDeviceCode"
+      ]
+    },
+    {
+      "scenario": "device-retry",
+      "rpcCounts": {
+        "--version": 2,
+        "account/login/cancel": 1,
+        "account/login/start": 3,
+        "account/read": 5,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 7,
+        "initialized": 7,
+        "model/list": 2,
+        "process": 7,
+        "thread/start": 1
+      },
+      "loginMethods": [
+        "chatgpt",
+        "chatgptDeviceCode",
+        "chatgptDeviceCode"
+      ]
+    },
+    {
+      "scenario": "authenticated",
+      "rpcCounts": {
+        "--version": 2,
+        "account/read": 5,
+        "config/read": 5,
+        "configRequirements/read": 5,
+        "experimentalFeature/list": 5,
+        "initialize": 5,
+        "initialized": 5,
+        "model/list": 5,
+        "process": 5,
+        "thread/start": 3,
+        "turn/interrupt": 1,
+        "turn/start": 1
+      },
+      "loginMethods": []
+    },
+    {
+      "scenario": "install",
+      "rpcCounts": {
+        "--version": 1,
+        "account/login/start": 1,
+        "account/read": 4,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 4,
+        "initialized": 4,
+        "model/list": 2,
+        "process": 4,
+        "thread/start": 1
+      },
+      "loginMethods": [
+        "chatgpt"
+      ]
+    },
+    {
+      "scenario": "multiple-accounts",
+      "rpcCounts": {
+        "--version": 1,
+        "account/login/start": 1,
+        "account/read": 5,
+        "config/read": 4,
+        "configRequirements/read": 4,
+        "experimentalFeature/list": 4,
+        "initialize": 5,
+        "initialized": 5,
+        "model/list": 4,
+        "process": 5,
+        "thread/start": 1
+      },
+      "loginMethods": [
+        "chatgpt"
+      ]
+    },
+    {
+      "scenario": "model-selection",
+      "rpcCounts": {
+        "--version": 1,
+        "account/read": 2,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 2,
+        "initialized": 2,
+        "model/list": 2,
+        "process": 2,
+        "thread/start": 1
+      },
+      "loginMethods": []
+    },
+    {
+      "scenario": "single-model",
+      "rpcCounts": {
+        "--version": 1,
+        "account/read": 2,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 2,
+        "initialized": 2,
+        "model/list": 2,
+        "process": 2,
+        "thread/start": 1
+      },
+      "loginMethods": []
+    },
+    {
+      "scenario": "configured-model",
+      "rpcCounts": {
+        "--version": 1,
+        "account/read": 2,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 2,
+        "initialized": 2,
+        "model/list": 2,
+        "process": 2,
+        "thread/start": 1
+      },
+      "loginMethods": []
+    },
+    {
+      "scenario": "no-models",
+      "rpcCounts": {
+        "--version": 2,
+        "account/read": 3,
+        "config/read": 3,
+        "configRequirements/read": 3,
+        "experimentalFeature/list": 3,
+        "initialize": 3,
+        "initialized": 3,
+        "model/list": 3,
+        "process": 3,
+        "thread/start": 1
+      },
+      "loginMethods": []
+    },
+    {
+      "scenario": "cancel-login",
+      "rpcCounts": {
+        "--version": 2,
+        "account/login/cancel": 1,
+        "account/login/start": 2,
+        "account/read": 5,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 6,
+        "initialized": 6,
+        "model/list": 2,
+        "process": 6,
+        "thread/start": 1
+      },
+      "loginMethods": [
+        "chatgpt",
+        "chatgpt"
+      ]
+    },
+    {
+      "scenario": "cancel-install",
+      "rpcCounts": {
+        "--version": 1,
+        "account/login/start": 1,
+        "account/read": 4,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 4,
+        "initialized": 4,
+        "model/list": 2,
+        "process": 4,
+        "thread/start": 1
+      },
+      "loginMethods": [
+        "chatgpt"
+      ]
+    },
+    {
+      "scenario": "bad-install",
+      "rpcCounts": {
+        "--version": 1,
+        "account/login/start": 1,
+        "account/read": 4,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 4,
+        "initialized": 4,
+        "model/list": 2,
+        "process": 4,
+        "thread/start": 1
+      },
+      "loginMethods": [
+        "chatgpt"
+      ]
+    },
+    {
+      "scenario": "cancel-probe",
+      "rpcCounts": {
+        "--version": 2,
+        "account/read": 2,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 2,
+        "initialized": 2,
+        "model/list": 2,
+        "process": 2,
+        "thread/start": 1
+      },
+      "loginMethods": []
+    },
+    {
+      "scenario": "unsupported-runtime",
+      "rpcCounts": {
+        "--version": 1
+      },
+      "loginMethods": []
+    },
+    {
+      "scenario": "identity-change",
+      "rpcCounts": {
+        "--version": 1,
+        "account/login/start": 1,
+        "account/read": 5,
+        "config/read": 4,
+        "configRequirements/read": 4,
+        "experimentalFeature/list": 4,
+        "initialize": 5,
+        "initialized": 5,
+        "model/list": 4,
+        "process": 5,
+        "thread/start": 2
+      },
+      "loginMethods": [
+        "chatgpt"
+      ]
+    },
+    {
+      "scenario": "failed-login",
+      "rpcCounts": {
+        "--version": 2,
+        "account/login/start": 2,
+        "account/read": 5,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 6,
+        "initialized": 6,
+        "model/list": 2,
+        "process": 6,
+        "thread/start": 1
+      },
+      "loginMethods": [
+        "chatgpt",
+        "chatgpt"
+      ]
+    },
+    {
+      "scenario": "switch-provider",
+      "rpcCounts": {
+        "--version": 1,
+        "account/login/cancel": 1,
+        "account/login/start": 1,
+        "account/read": 1,
+        "initialize": 2,
+        "initialized": 2,
+        "process": 2
+      },
+      "loginMethods": [
+        "chatgpt"
+      ]
+    },
+    {
+      "scenario": "install-empty-home",
+      "rpcCounts": {
+        "--version": 1,
+        "account/login/start": 1,
+        "account/read": 3,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 3,
+        "initialized": 3,
+        "model/list": 2,
+        "process": 3,
+        "thread/start": 1
+      },
+      "loginMethods": [
+        "chatgpt"
+      ]
+    },
+    {
+      "scenario": "install-process-exit",
+      "rpcCounts": {
+        "--version": 2,
+        "account/read": 1,
+        "initialize": 1,
+        "initialized": 1,
+        "process": 2
+      },
+      "loginMethods": []
+    },
+    {
+      "scenario": "install-initialize-error",
+      "rpcCounts": {
+        "--version": 2,
+        "account/read": 1,
+        "initialize": 2,
+        "initialized": 1,
+        "process": 2
+      },
+      "loginMethods": []
+    },
+    {
+      "scenario": "install-account-error",
+      "rpcCounts": {
+        "--version": 2,
+        "account/read": 2,
+        "initialize": 2,
+        "initialized": 2,
+        "process": 2
+      },
+      "loginMethods": []
+    },
+    {
+      "scenario": "install-model-error",
+      "rpcCounts": {
+        "--version": 2,
+        "account/read": 2,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 2,
+        "initialized": 2,
+        "model/list": 2,
+        "process": 2
+      },
+      "loginMethods": []
+    },
+    {
+      "scenario": "install-mixed-homes",
+      "rpcCounts": {
+        "--version": 2,
+        "account/read": 4,
+        "initialize": 4,
+        "initialized": 4,
+        "process": 4
+      },
+      "loginMethods": []
+    },
+    {
+      "scenario": "install-process-start-error",
+      "rpcCounts": {
+        "--version": 2,
+        "account/read": 1,
+        "initialize": 1,
+        "initialized": 1,
+        "process": 1
+      },
+      "loginMethods": []
+    },
+    {
+      "scenario": "bundled-policy",
+      "rpcCounts": {
+        "--version": 1,
+        "account/read": 2,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 2,
+        "initialized": 2,
+        "model/list": 2,
+        "process": 2,
+        "thread/start": 1
+      },
+      "loginMethods": []
+    },
+    {
+      "scenario": "user-bundle-settings",
+      "rpcCounts": {
+        "--version": 1,
+        "account/read": 2,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 2,
+        "initialized": 2,
+        "model/list": 2,
+        "process": 2,
+        "thread/start": 1
+      },
+      "loginMethods": []
+    },
+    {
+      "scenario": "unexpected-extension",
+      "rpcCounts": {
+        "--version": 2,
+        "account/read": 3,
+        "config/read": 3,
+        "configRequirements/read": 3,
+        "experimentalFeature/list": 3,
+        "initialize": 3,
+        "initialized": 3,
+        "model/list": 2,
+        "process": 3,
+        "thread/start": 1
+      },
+      "loginMethods": []
+    },
+    {
+      "scenario": "web-search-policy",
+      "rpcCounts": {
+        "--version": 2,
+        "account/read": 3,
+        "config/read": 3,
+        "configRequirements/read": 3,
+        "experimentalFeature/list": 3,
+        "initialize": 3,
+        "initialized": 3,
+        "model/list": 2,
+        "process": 3,
+        "thread/start": 1
+      },
+      "loginMethods": []
+    },
+    {
+      "scenario": "method-cleanup-failed",
+      "rpcCounts": {
+        "--version": 1,
+        "account/login/cancel": 1,
+        "account/login/start": 1,
+        "account/read": 1,
+        "initialize": 2,
+        "initialized": 2,
+        "process": 2
+      },
+      "loginMethods": [
+        "chatgpt"
+      ]
+    }
+  ],
+  "backendRegressions": "3 passed, 0 failed, 0 skipped; 137.246s",
+  "installerAndPresentationRegressions": "2 passed, 0 failed, 0 skipped; 298.516s",
+  "nativeUrlOpenGuard": {
+    "productionHelperExecuted": true,
+    "osBrowserSimulated": true,
+    "unsafeUrlsDispatchCount": 0,
+    "canonicalUriAndBrowserFailureRetry": true,
+    "actualFixtureRequestsValidatedAgainstPinnedSchema": true
+  },
+  "package": {
+    "pass": true,
+    "package": "/workspace/Confectory/Builds/Windows-x64",
+    "files": 2222,
+    "crossPublishedWindowsX64PE": true,
+    "unrelatedWorkingDirectory": true,
+    "packageTamperAndMissingDependencyRejected": true,
+    "packagedEngineWebStartup": true,
+    "runtimeOnlyNoInstalledSDK": true,
+    "existingCheckoutProfileReusedAndExplicitOverrideRetained": true,
+    "resources": 50,
+    "renderedMinimalLogin": true,
+    "windowsApphostExecuted": false,
+    "webView2Executed": false,
+    "actualLoginOrInference": false,
+    "evidence": "/tmp/confectory-desktop-package-iokr4uzk"
+  },
+  "screenshots": {
+    "01-Browser-Consent.png": "2cb25eb09f8e253f9e462cbf36bb35881f9f0c17a9ff565a00377ae3c2b1b8b0",
+    "02-Browser-Login.png": "e741425bded36c85dbcaa9d44a794d463ada3af429f7d289ac2531ec3e551f3c",
+    "03-Browser-Open-Failed.png": "4531a6952aba3ddcd4a6415bb56b19e73f61fd89201cb4deeed50dc1c0585d23",
+    "04-Device-Consent.png": "6ed905c9b4bf9b21a7a5b44f7792a29e2a69d09f5fec7b168785c59f48efea84",
+    "05-Device-Login.png": "4bbfacb546b0e39ebc3b78ffe3b57cb5a0e79745580257c979589ab36f1384ab",
+    "06-Agent-Ready.png": "ade405eac3cb26f91e68d504f78b2105755519e4e9b108251a69c0b166ff968b",
+    "07-Callback-Unavailable.png": "7144c002b0472d8376fbe7b49ed03f670e06e2dc79693df14a921511bb84e79e",
+    "08-Cleanup-Blocked.png": "0e7914d4408dc9a4b87f562ee04fff385ddc1b235a1e0413e6f153ab30ab3c67"
+  },
+  "limits": {
+    "actualWindowsExecution": false,
+    "actualWebView2Execution": false,
+    "actualDefaultBrowserAssociation": false,
+    "actualUserOAuth": false,
+    "actualOAuthCallbackSuccess": false,
+    "codexUserTokenFilesRead": false,
+    "paidInference": false,
+    "accountSecuritySettingsChanged": false,
+    "serviceReportedExpirySimulated": true,
+    "realTenMinuteWaitExecuted": false
+  },
+  "failedAttempts": [
+    "Initial C# local-name conflict corrected before final builds.",
+    "switching-login omitted from WebState polling predicate; fixed and retested.",
+    "Owned port-conflict fixture socket was created in install branch; moved before login approval and retested."
+  ],
+  "deliveryZip": {
+    "file": "/workspace/scratch/codex-browser-login/Confectory-Windows-x64-Browser-Login.zip",
+    "bytes": 59816882,
+    "sha256": "eb59f000d9e29be7bda8f82fd243a673843b85b285d7403c9f94f4b232507e91",
+    "entries": 2223,
+    "windowsExecuted": false
+  },
+  "solutionReleaseBuild": {
+    "warnings": 0,
+    "errors": 0,
+    "elapsedSeconds": 11.29,
+    "result": "passed"
+  }
+}
