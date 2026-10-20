@@ -1,5 +1,7 @@
 # Registered Codex readiness after restart
 
+Historical validation: the send-only trigger below is superseded by [startup readiness](codex-startup-state.md).
+
 This validation follows `1265455e8eb29cdad2261574b17b96c990ac63da`. The reproduced startup problem is loss of a process-only readiness lease, not demonstrated loss of the user's saved authentication. The user's separate `[provider-error · response-events]` failure remains unresolved on their Windows PC.
 
 ## Renewal behavior and boundaries

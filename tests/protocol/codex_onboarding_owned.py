@@ -39,7 +39,10 @@ def send(value):
   if isinstance(container.get('turn'),dict):container['turn'].setdefault('items',[])
  with outlock:
   with (CASE/'responses.jsonl').open('a') as capture:capture.write(json.dumps(value)+'\n')
-  print(json.dumps(value),flush=True)
+  wire=(json.dumps(value,ensure_ascii=False)+'\n').encode('utf-8')
+  if control().get('splitUtf8'):
+   for byte in wire:sys.stdout.buffer.write(bytes([byte]));sys.stdout.buffer.flush()
+  else:sys.stdout.buffer.write(wire);sys.stdout.buffer.flush()
 def finish():
  while not (CASE/'complete-login').exists():time.sleep(.02)
  account={'type':'chatgpt','email':control().get('loginEmail','new-account@fixture.invalid'),'planType':'plus'}
@@ -67,6 +70,7 @@ for line in sys.stdin:
   threading.Thread(target=finish,daemon=True).start();continue
  elif method=='account/login/cancel':assert params=={'loginId':'owned-login'};result={'status':'canceled'}
  elif method=='account/read':
+  while control().get('holdAccount'):time.sleep(.01)
   assert params=={'refreshToken':False};p=home/'.owned-account.json';account=json.loads(p.read_text()) if p.exists() else None
   if control().get('hideAccount'):account=None
   if account and control().get('readEmail'):account['email']=control()['readEmail']
@@ -109,8 +113,11 @@ for line in sys.stdin:
   if failure=='foreign-event':send({'method':'item/agentMessage/delta','params':{'threadId':'foreign-thread','turnId':'owned-turn','itemId':'answer','delta':'PRIVATE MUST NOT RENDER'}});continue
   if failure=='remote-http':send({'method':'error','params':{'threadId':'owned-thread','turnId':'owned-turn','willRetry':False,'error':{'message':'PRIVATE service token=NEVER-EXPOSE','additionalDetails':'PRIVATE','codexErrorInfo':{'httpConnectionFailed':{'httpStatusCode':503}}}}});continue
   if failure=='completed-error':send({'method':'turn/completed','params':{'threadId':'owned-thread','turn':{'id':'owned-turn','status':'failed','error':{'message':'PRIVATE token=NEVER-EXPOSE','codexErrorInfo':{'httpConnectionFailed':{'httpStatusCode':403}}}}}});continue
-  send({'method':'item/agentMessage/delta','params':{'threadId':'owned-thread','turnId':'owned-turn','itemId':'answer','delta':'OWNED CLI HELPER REPLY'}})
-  send({'method':'item/completed','params':{'threadId':'owned-thread','turnId':'owned-turn','item':{'id':'answer','type':'agentMessage','text':'OWNED CLI HELPER REPLY'}}})
+  text=control().get('replyText','OWNED CLI HELPER REPLY')
+  send({'method':'item/agentMessage/delta','params':{'threadId':'owned-thread','turnId':'owned-turn','itemId':'answer','delta':text}})
+  if failure=='bad-json-after-delta':print('PRIVATE invalid JSON token=NEVER-EXPOSE',flush=True);continue
+  if failure=='invalid-utf8':sys.stdout.buffer.write(b'\xff\n');sys.stdout.buffer.flush();continue
+  send({'method':'item/completed','params':{'threadId':'owned-thread','turnId':'owned-turn','item':{'id':'answer','type':'agentMessage','text':text}}})
   send({'method':'turn/completed','params':{'threadId':'owned-thread','turn':{'id':'owned-turn','status':'completed'}}});continue
  elif method=='turn/interrupt':result={}
  else:raise AssertionError('Undeclared owned fixture method: '+str(method))

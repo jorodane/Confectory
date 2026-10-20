@@ -17,7 +17,11 @@ def read():
  x=json.loads(line)
  with open(os.path.join(os.path.dirname(__file__),'owned-requests.jsonl'),'a') as f:f.write(json.dumps(x)+'\n')
  return x
-def send(x):print(json.dumps(x),flush=True)
+def send(x):
+ wire=(json.dumps(x,ensure_ascii=False)+'\n').encode('utf-8')
+ if globals().get('mode')=='unicode':
+  for byte in wire:sys.stdout.buffer.write(bytes([byte]));sys.stdout.buffer.flush()
+ else:sys.stdout.buffer.write(wire);sys.stdout.buffer.flush()
 def hold(method):
  if control.get('holdMethod')!=method:return
  marker=os.path.join(os.path.dirname(__file__),control['holdId'])
@@ -79,6 +83,15 @@ if mode in ('hold-a','hold-b'):
   assert time.monotonic()<deadline;time.sleep(.01)
  send({'method':'item/completed','params':{'threadId':thread,'turnId':turn,'item':{'id':'answer','type':'agentMessage','text':'OWNED LOOPBACK FIXTURE: helper B kept running.'}}})
  send({'method':'turn/completed','params':{'threadId':thread,'turn':{'id':turn,'status':'completed'}}})
+ read();sys.exit(0)
+if mode in ('unicode','bad-json-after-delta','invalid-utf8'):
+ text='한글 😀 "따옴표"\n{plain delta: [not JSON]}'
+ send({'method':'item/agentMessage/delta','params':{'threadId':thread,'turnId':turn,'itemId':'answer','delta':text}})
+ if mode=='bad-json-after-delta':sys.stdout.buffer.write(b'PRIVATE invalid JSON\n');sys.stdout.buffer.flush()
+ elif mode=='invalid-utf8':sys.stdout.buffer.write(b'\xff\n');sys.stdout.buffer.flush()
+ else:
+  send({'method':'item/completed','params':{'threadId':thread,'turnId':turn,'item':{'id':'answer','type':'agentMessage','text':text}}})
+  send({'method':'turn/completed','params':{'threadId':thread,'turn':{'id':turn,'status':'completed'}}})
  read();sys.exit(0)
 if mode=='missing-turn':
  send({'method':'item/agentMessage/delta','params':{'threadId':thread,'itemId':'answer','delta':'UNOWNED OUTPUT'}});read();sys.exit(0)

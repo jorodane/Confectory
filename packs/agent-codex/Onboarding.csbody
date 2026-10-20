@@ -63,6 +63,13 @@ lock(state[0]){
    }catch(OperationCanceledException) when(!cts.IsCancellationRequested){code="runtime_probe_timeout";}catch(Exception error) when(error is not OperationCanceledException){code="runtime_version_unverified";}finally{if(process is not null){try{if(!process.HasExited){process.Kill(true);process.WaitForExit(1000);}}catch{}lock(state[0])if(ReferenceEquals(state[4],process))state[4]=null!;process.Dispose();}}}
   }catch(OperationCanceledException){code="cancelled";}finally{try{System.IO.Directory.Delete(scratch,true);}catch{code="runtime_cleanup_pending";}lock(state[0])if(ReferenceEquals(state[3],cts))state[5]=new System.Text.Json.Nodes.JsonObject{["executable"]=supported,["code"]=code};}
  });}
+ if(operation=="restore"){
+  if(Phase() is not ("idle" or "cancelled" or "ready"))return Result();
+  string config=calls.Candidate.Invoke(input["settings"]!.ToJsonString());var verified=System.Text.Json.Nodes.JsonNode.Parse(calls.Verification.Invoke(config,"status","{}"))!;
+  if(verified["supported"]?.GetValue<bool>()!=true||input["knownIdentity"]?["fingerprint"]?.ToString()!=verified["accountIdentity"]?["fingerprint"]?.ToString())return Result();
+  flow=new System.Text.Json.Nodes.JsonObject{["settings"]=input["settings"]!.DeepClone(),["config"]=System.Text.Json.Nodes.JsonNode.Parse(config),["executable"]=input["settings"]!["executable"]!.DeepClone(),["selected"]=new System.Text.Json.Nodes.JsonObject{["identity"]=verified["accountIdentity"]!.DeepClone()},["loginMethod"]="browser"};state[1]=flow;
+  Set("ready","Codex 연결 준비가 끝났어요. 실제 응답은 대화 요청 시 확인합니다.");flow["view"]!["model"]=flow["config"]!["model"]!.DeepClone();return Result();
+ }
  if(operation is "cancel" or "close"){if(operation=="cancel"&&Phase()=="ready")return Result();Stop();Set(Retiring()?"cancelling":"cancelled","연결을 취소했어요. 완료된 설치·로그인과 기존 설정은 유지됩니다.");if(operation=="close"){state[6]=true;var pending=state[2] as System.Threading.Tasks.Task;if(pending is not null&&!pending.IsCompleted)throw new InvalidOperationException("CLI runtime cleanup remains owned; retry close");calls.Preparation.Invoke(jobOwner,"close","{}");calls.Login.Invoke(jobOwner,"close","{}");AppDomain.CurrentDomain.SetData(key,null);}return Result();}
  if((bool)state[6])throw new ObjectDisposedException("CLI onboarding");
  if(operation is "begin" or "retry" or "change-account"){

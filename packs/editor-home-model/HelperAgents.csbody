@@ -37,11 +37,27 @@ lock(owner){
  void RetirePreview(){model["globalHelperPreview"]=null;foreach(var turn in turns.Values){var row=(System.Text.Json.Nodes.JsonObject)turn[0];if(row["state"]?.ToString()=="prepared")row["state"]="history";}}
  void ChangingAgent(string agent){foreach(var run in model["aiRuns"]?.AsObject()??new System.Text.Json.Nodes.JsonObject())if(run.Value?["state"]?.ToString()=="running"&&model["aiBindings"]?[run.Key]?["connection"]?.ToString()==agent)throw new InvalidOperationException("Stop this Agent's project request before changing it");if(model["aiPreview"]?["connection"]?.ToString()==agent)model["aiPreview"]=null;}
  void Cleanup(object[] turn,bool wait=false){if(((string)turn[1]).Length==0)return;if(turn[3] is System.Threading.Tasks.Task task){if(!task.IsCompleted&&(!wait||!task.Wait(5000)))throw new InvalidOperationException("Prior owned Agent is still closing");task.GetAwaiter().GetResult();turn[1]="";turn[3]=null!;}else{calls.AgentClose.Invoke((string)turn[1]);turn[1]="";}}
+ System.Text.Json.Nodes.JsonObject ConnectionState(System.Text.Json.Nodes.JsonNode binding,System.Text.Json.Nodes.JsonNode? evidence){
+  string code=evidence?["code"]?.ToString()??"preflight_required",phase="needs-check",pin=binding["identity"]?["fingerprint"]?.ToString()??"";
+  if(binding["offline"]?.GetValue<bool>()==true){phase="offline";code="agent-offline";}
+  else if(pin.Length==0){phase="unverified";code="codex-registration-unverified";}
+  else if(evidence?["supported"]?.GetValue<bool>()==true){phase=evidence["accountIdentity"]?["fingerprint"]?.ToString()==pin?"ready":"account-mismatch";code=phase=="ready"?"ready":"codex-account-mismatch";}
+  else if(evidence?["state"]?.ToString()=="checking")phase="checking";
+  else if(evidence?["state"]?.ToString()=="unauthenticated")phase="auth-required";
+  else if(!System.IO.File.Exists(binding["config"]?["executable"]?.ToString()??"")){phase="missing-runtime";code="codex-runtime-missing";}
+  else if(evidence?["state"]?.ToString()=="cancelled")phase="cancelled";
+  else if(evidence?["state"]?.ToString() is "blocked" or "unsupported")phase="blocked";
+  if(!System.Text.RegularExpressions.Regex.IsMatch(code,"^[a-zA-Z][a-zA-Z0-9_-]{0,79}$"))code="codex-readiness-failed";
+  string message=phase switch{"ready"=>"Codex 연결 준비가 끝났어요. 실제 응답은 대화 요청 시 확인합니다.","checking"=>"등록한 Codex 연결을 확인하고 있어요.","offline"=>"연결 해제됨 · 기존 Helper와 설정은 보관됩니다.","auth-required"=>"저장된 인증을 사용할 수 없어요. Codex 로그인을 확인하세요.","account-mismatch"=>"등록한 계정과 확인 정보가 달라요. 사용할 계정을 확인하세요.","missing-runtime"=>"등록한 Codex 실행 파일을 찾지 못했어요.","unverified"=>"등록한 계정 정보를 먼저 확인하세요.","cancelled"=>"연결 확인을 취소했어요.","blocked"=>"Codex 연결 확인을 마치지 못했어요.",_=>"등록한 Codex 연결 상태를 다시 확인하세요."};
+  return new System.Text.Json.Nodes.JsonObject{["state"]=phase,["code"]=code,["message"]=message};
+ }
  void Publish(){
   var agents=new System.Text.Json.Nodes.JsonArray();foreach(var item in registry["agents"]!.AsObject()){
-   System.Text.Json.Nodes.JsonNode? evidence=null;if(item.Key=="Confectory.Agent.Codex::Connection")try{evidence=System.Text.Json.Nodes.JsonNode.Parse(calls.CodexVerification.Invoke(item.Value!["config"]!.ToJsonString(),"status","{}"));}catch(ArgumentException){}
+   System.Text.Json.Nodes.JsonNode? evidence=null;if(item.Key=="Confectory.Agent.Codex::Connection")try{evidence=System.Text.Json.Nodes.JsonNode.Parse(calls.CodexVerification.Invoke(item.Value!["config"]!.ToJsonString(),"status","{}"));}catch(ArgumentException){evidence=new System.Text.Json.Nodes.JsonObject{["state"]="blocked",["code"]="codex-registration-invalid"};}
+   var connectionState=item.Key=="Confectory.Agent.Codex::Connection"?ConnectionState(item.Value!,evidence):null;
    string status=item.Value?["offline"]?.GetValue<bool>()==true?"offline":evidence?["supported"]?.GetValue<bool>()==true?"ready":"configured";foreach(var turn in turns.Values){var row=(System.Text.Json.Nodes.JsonObject)turn[0];if(status!="offline"&&row["agent"]?.ToString()==item.Key&&row["state"]?.ToString()=="running")status="running";else if(status is not ("offline" or "running")&&row["agent"]?.ToString()==item.Key&&row["state"]?.ToString()=="completed"&&row["answerReceived"]?.GetValue<bool>()==true)status="responded";}
-   agents.Add(new System.Text.Json.Nodes.JsonObject{["id"]=item.Key,["connection"]=item.Key,["model"]=item.Value!["config"]!["model"]!.DeepClone(),["state"]=status,["source"]="registered-configuration",["accountVerified"]=false,["accountMetadataVerified"]=evidence?["accountMetadataVerified"]?.GetValue<bool>()==true,["accountIdentity"]=item.Value?["identity"]?.DeepClone(),["configFingerprint"]=Hash(item.Value!["config"]!.ToJsonString())});
+   if(connectionState is not null&&connectionState["state"]?.ToString()!="ready")status=connectionState["state"]!.ToString();
+   agents.Add(new System.Text.Json.Nodes.JsonObject{["id"]=item.Key,["connection"]=item.Key,["model"]=item.Value!["config"]!["model"]!.DeepClone(),["state"]=status,["source"]="registered-configuration",["accountVerified"]=false,["accountMetadataVerified"]=evidence?["accountMetadataVerified"]?.GetValue<bool>()==true,["accountIdentity"]=item.Value?["identity"]?.DeepClone(),["configFingerprint"]=Hash(item.Value!["config"]!.ToJsonString()),["readiness"]=connectionState});
   }
   var publicTurns=new System.Text.Json.Nodes.JsonObject();foreach(var item in turns){var row=(System.Text.Json.Nodes.JsonObject)item.Value[0];var view=new System.Text.Json.Nodes.JsonObject();foreach(string field in new[]{"state","requestId","output","errorCode","answerReceived","agent","historyError","errorDiagnostics"})view[field]=row[field]?.DeepClone();if(journals.TryGetValue(item.Key,out var journal)){var records=((System.Text.Json.Nodes.JsonObject)journal[0])["records"]!.AsArray();int pages=Math.Max(1,(records.Count+1)/2),page=Math.Clamp(row["historyPage"]?.GetValue<int>()??0,0,pages-1),end=Math.Max(0,records.Count-page*2),start=Math.Max(0,end-2);var visible=new System.Text.Json.Nodes.JsonArray();for(int i=start;i<end;i++)visible.Add(records[i]!.DeepClone());view["records"]=visible;view["recordCount"]=records.Count;view["historyPage"]=page;view["historyPages"]=pages;}publicTurns[item.Key]=view;}
   var savedSettings=new System.Text.Json.Nodes.JsonObject();foreach(string connection in new[]{"Confectory.Agent.Codex::Connection","Confectory.Agent.Responses::Connection"})savedSettings[connection]=System.IO.File.Exists(System.IO.Path.Combine(storage,"ai-settings",Hash(connection)[..16],"project.cpack"));
@@ -81,29 +97,44 @@ lock(owner){
  }
  if(operation=="connection-state"){
   ChangingAgent(Text("agent"));
-  string agent=Text("agent");if(registry["agents"]?[agent] is null)throw new ArgumentException("Registered Agent required");foreach(var turn in turns.Values)if(((System.Text.Json.Nodes.JsonObject)turn[0])["agent"]?.ToString()==agent&&((System.Text.Json.Nodes.JsonObject)turn[0])["state"]?.ToString()=="running")throw new InvalidOperationException("Stop owned requests before disconnecting this Agent");var next=(System.Text.Json.Nodes.JsonObject)registry.DeepClone();next["agents"]![agent]!["offline"]=input["offline"]?.GetValue<bool>()==true;SaveRegistry(next);RetirePreview();Publish();return "{}";
+  string agent=Text("agent");if(registry["agents"]?[agent] is null)throw new ArgumentException("Registered Agent required");foreach(var turn in turns.Values)if(((System.Text.Json.Nodes.JsonObject)turn[0])["agent"]?.ToString()==agent&&((System.Text.Json.Nodes.JsonObject)turn[0])["state"]?.ToString()=="running")throw new InvalidOperationException("Stop owned requests before disconnecting this Agent");var next=(System.Text.Json.Nodes.JsonObject)registry.DeepClone();next["agents"]![agent]!["offline"]=input["offline"]?.GetValue<bool>()==true;if(input["offline"]?.GetValue<bool>()==true)CancelReadiness(agent);SaveRegistry(next);RetirePreview();Publish();return "{}";
  }
- // Lazy renewal only for an already registered, non-offline CLI and its pinned account.
- // The helper's explicit Send may inspect this exact configuration, never discover/login/register.
- if(operation=="readiness"){
-  foreach(var field in input)if(field.Key is not ("action" or "helper" or "begin" or "token"))throw new ArgumentException("Registered readiness field");
-  string helper=Text("helper");var binding=Binding(helper);string agent=binding["connection"]!.ToString(),basis=BindingBasis(binding);
-  string Reply(string phase,string code,string message,string token=""){Publish();return new System.Text.Json.Nodes.JsonObject{["state"]=phase,["code"]=code,["message"]=message,["token"]=token}.ToJsonString();}
+ // Startup and explicit Send inspect only an already registered, active CLI/account.
+ // Neither path discovers, installs, logs in, changes identity or registers an Agent.
+ string RegisteredReadiness(System.Text.Json.Nodes.JsonObject binding,bool begin,string ticket,bool retry=false){
+  string agent=binding["connection"]!.ToString(),basis=BindingBasis(binding);
+  string Reply(string phase,string code,string message,string token=""){var result=new System.Text.Json.Nodes.JsonObject{["state"]=phase,["code"]=code,["message"]=message,["token"]=token};return result.ToJsonString();}
   if(binding["offline"]?.GetValue<bool>()==true)return Reply("blocked","agent-offline","연결 해제한 Agent입니다. Codex에서 다시 연결하세요.");
-  if(agent!="Confectory.Agent.Codex::Connection")return Text("token").Length>0?Reply("blocked","codex-readiness-changed","확인 중인 Agent가 바뀌었어요. 다시 보내세요."):Reply("ready","ready","");
+  if(agent!="Confectory.Agent.Codex::Connection")return ticket.Length>0?Reply("blocked","codex-readiness-changed","확인 중인 Agent가 바뀌었어요. 다시 보내세요."):Reply("ready","ready","");
   string pin=binding["identity"]?["fingerprint"]?.ToString()??"";
   if(binding["config"]?["connectionMethod"]?.ToString()!="local-cli"||!System.Text.RegularExpressions.Regex.IsMatch(pin,"^[a-f0-9]{64}$"))return Reply("blocked","codex-registration-unverified","등록한 계정 확인이 필요해요. Codex에서 사용할 계정을 확인하세요.");
+  if(!System.IO.File.Exists(binding["config"]?["executable"]?.ToString()??""))return Reply("blocked","codex-runtime-missing","등록한 Codex 실행 파일을 찾지 못했어요.");
   var status=System.Text.Json.Nodes.JsonNode.Parse(calls.CodexVerification.Invoke(binding["config"]!.ToJsonString(),"status","{}"))!;readiness.TryGetValue(agent,out var pending);
-  if(input["begin"]?.GetValue<bool>()!=true&&(pending is null||Text("token")!=pending["token"]?.ToString()||basis!=pending["basis"]?.ToString()||status["checkId"]?.ToString()!=pending["checkId"]?.ToString()))return Reply("blocked","codex-readiness-changed","확인 중인 Agent 설정이 바뀌었어요. 다시 보내세요.");
+  if(!begin&&(pending is null||ticket!=pending["token"]?.ToString()||basis!=pending["basis"]?.ToString()||status["checkId"]?.ToString()!=pending["checkId"]?.ToString()))return Reply("blocked","codex-readiness-changed","확인 중인 Agent 설정이 바뀌었어요. 다시 보내세요.");
   if(status["supported"]?.GetValue<bool>()==true){if(status["accountIdentity"]?["fingerprint"]?.ToString()!=pin)return Reply("blocked","codex-account-mismatch","등록한 계정의 확인 정보가 달라요. Codex에서 사용할 계정을 확인하세요.");return Reply("ready","ready","");}
   if(status["state"]?.ToString()=="checking"){if(pending?["basis"]?.ToString()==basis&&pending["checkId"]?.ToString()==status["checkId"]?.ToString())return Reply("checking","checking","등록한 계정의 연결 상태를 확인하고 있어요.",pending["token"]!.ToString());return Reply("blocked","codex-verification-busy","다른 연결 확인이 진행 중입니다. 완료 후 다시 보내세요.");}
   // Revoked/cancelled/failed checks do not silently acquire a replacement grant.
   bool renew=status["state"]?.ToString()=="preflight-required"||status["state"]?.ToString()=="stale"&&status["code"]?.ToString()=="verification_stale";
-  if(input["begin"]?.GetValue<bool>()!=true||!renew){string code=status["code"]?.ToString()??"codex-readiness-failed";return Reply("blocked",code,status["state"]?.ToString()=="unauthenticated"?"저장된 Codex 인증을 사용할 수 없어요. Codex에서 로그인 상태를 확인하세요.":"연결 상태를 확인하지 못했어요. Codex에서 오류 정보를 확인한 뒤 다시 연결하세요.");}
-  var required=System.Text.Json.Nodes.JsonNode.Parse(calls.CodexVerification.Invoke(binding["config"]!.ToJsonString(),"requirements","{}"))!.AsArray();string[] known={"checkProcessApproved","checkAccountApproved","checkConfigurationApproved","checkStorageApproved"};if(required.Count!=known.Length||System.Linq.Enumerable.Any(required,item=>!System.Linq.Enumerable.Contains(known,item?["id"]?.ToString())))return Reply("blocked","codex-readiness-consent-required","새 연결 권한 확인이 필요해요. Codex에서 확인하세요.");
+  if(!begin||!renew&&!retry){string code=status["code"]?.ToString()??"codex-readiness-failed";return Reply("blocked",code,status["state"]?.ToString()=="unauthenticated"?"저장된 Codex 인증을 사용할 수 없어요. Codex에서 로그인 상태를 확인하세요.":"연결 상태를 확인하지 못했어요. Codex에서 오류 정보를 확인한 뒤 다시 연결하세요.");}
+  var required=System.Text.Json.Nodes.JsonNode.Parse(calls.CodexVerification.Invoke(binding["config"]!.ToJsonString(),"requirements","{}"))!.AsArray();string[] known={"checkProcessApproved","checkAccountApproved","checkConfigurationApproved","checkStorageApproved"};if(required.Count!=known.Length||System.Linq.Enumerable.Any(required,item=>!System.Linq.Enumerable.Contains(known,item?["id"]?.ToString()))||System.Linq.Enumerable.Count(System.Linq.Enumerable.Distinct(System.Linq.Enumerable.Select(required,item=>item?["id"]?.ToString())))!=known.Length)return Reply("blocked","codex-readiness-consent-required","새 연결 권한 확인이 필요해요. Codex에서 확인하세요.");
   var choices=new System.Text.Json.Nodes.JsonObject();foreach(string id in known)choices[id]=true;
   status=System.Text.Json.Nodes.JsonNode.Parse(calls.CodexVerification.Invoke(binding["config"]!.ToJsonString(),"start",choices.ToJsonString()))!;var attempt=new System.Text.Json.Nodes.JsonObject{["basis"]=basis,["token"]=Guid.NewGuid().ToString("N"),["checkId"]=status["checkId"]?.DeepClone(),["config"]=binding["config"]!.DeepClone()};readiness[agent]=attempt;
   return Reply("checking","checking","등록한 계정의 연결 상태를 확인하고 있어요.",attempt["token"]!.ToString());
+ }
+ void CancelReadiness(string agent){if(readiness.TryGetValue(agent,out var pending)){string config=pending["config"]!.ToJsonString();var status=System.Text.Json.Nodes.JsonNode.Parse(calls.CodexVerification.Invoke(config,"status","{}"))!;if(status["state"]?.ToString()=="checking"&&status["checkId"]?.ToString()==pending["checkId"]?.ToString())calls.CodexVerification.Invoke(config,"cancel","{}");}}
+ if(operation=="agent-binding"){return registry["agents"]?[Text("agent")]?.ToJsonString()??"null";}
+ if(operation=="startup"){
+  foreach(var agent in registry["agents"]!.AsObject())if(agent.Key=="Confectory.Agent.Codex::Connection"&&agent.Value?["offline"]?.GetValue<bool>()!=true)try{RegisteredReadiness(agent.Value!.DeepClone().AsObject(),true,"");}catch(ArgumentException){/* Publish reports invalid registration without replacing it. */}
+  RefreshHelpers();Publish();return "{}";
+ }
+ if(operation=="readiness"){
+  foreach(var field in input)if(field.Key is not ("action" or "helper" or "begin" or "token"))throw new ArgumentException("Registered readiness field");
+  string result=RegisteredReadiness(Binding(Text("helper")),input["begin"]?.GetValue<bool>()==true,Text("token"));Publish();return result;
+ }
+ if(operation is "cancel-readiness" or "retry-readiness"){
+  string agent=Text("agent");if(agent!="Confectory.Agent.Codex::Connection"||registry["agents"]?[agent] is not System.Text.Json.Nodes.JsonObject binding)throw new ArgumentException("Registered Codex Agent required");
+  if(operation=="retry-readiness"){if(input["approved"]?.GetValue<bool>()!=true)throw new UnauthorizedAccessException("Explicit registered reconnect required");string result=RegisteredReadiness(binding.DeepClone().AsObject(),true,"",true);Publish();return result;}
+  CancelReadiness(agent);Publish();return "{}";
  }
  if(operation=="draft"){
   string helper=Text("helper"),text=Text("text");Find(helper,true);if(text.Length>8192||text.Contains('\0'))throw new ArgumentException("Bounded global draft required");
@@ -137,6 +168,9 @@ lock(owner){
   if(turns.TryGetValue(Text("helper"),out var turn)&&((string)turn[2]).Length>0){if(((System.Text.Json.Nodes.JsonObject)turn[0])["requestId"]?.ToString()!=Text("requestId"))throw new InvalidOperationException("Original request identity required");calls.AgentCancel.Invoke((string)turn[2]);}return "{}";
  }
  if(operation=="poll"){
+  foreach(var agent in registry["agents"]!.AsObject())if(agent.Key=="Confectory.Agent.Codex::Connection"&&agent.Value?["offline"]?.GetValue<bool>()!=true&&readiness.TryGetValue(agent.Key,out var pending)){
+   var status=System.Text.Json.Nodes.JsonNode.Parse(calls.CodexVerification.Invoke(agent.Value!["config"]!.ToJsonString(),"status","{}"))!;if(status["state"]?.ToString()=="checking")RegisteredReadiness(agent.Value.DeepClone().AsObject(),false,pending["token"]!.ToString());
+  }
   foreach(var item in turns){var turn=item.Value;var row=(System.Text.Json.Nodes.JsonObject)turn[0];if(row["state"]?.ToString()!="running"||((string)turn[2]).Length==0)continue;var result=System.Text.Json.Nodes.JsonNode.Parse(calls.AgentPoll.Invoke((string)turn[2]))!;foreach(var e in result["events"]!.AsArray())if(e!["requestID"]?.ToString()==row["requestId"]!.ToString()&&e["kind"]?.ToString()=="delta")row["output"]=row["output"]!.ToString()+e["text"]!.ToString();row["state"]=result["state"]!.DeepClone();row["errorCode"]=result["errorCode"]?.DeepClone();row["errorDiagnostics"]=result["errorDiagnostics"]?.DeepClone();
    if(row["state"]!.ToString()!="running"){
     row["answerReceived"]=row["state"]!.ToString()=="completed"&&row["output"]!.ToString().Length>0;var journal=Journal(item.Key);var next=(System.Text.Json.Nodes.JsonObject)((System.Text.Json.Nodes.JsonObject)journal[0]).DeepClone();var record=System.Linq.Enumerable.Last(next["records"]!.AsArray());record!["state"]=row["state"]!.DeepClone();record["output"]=row["output"]!.DeepClone();record["errorCode"]=row["errorCode"]?.DeepClone();record["errorDiagnostics"]=row["errorDiagnostics"]?.DeepClone();try{SaveJournal(item.Key,journal,next);}catch{row["historyError"]="history_save_failed";}string agent=(string)turn[1];turn[3]=System.Threading.Tasks.Task.Run(()=>calls.AgentClose.Invoke(agent));

@@ -59,13 +59,15 @@ void SetupValue(string connection,string field,string value){string view=SetupVi
 void InvalidateCheck(string connection){model["connectionCatalogues"]?.AsObject().Remove(connection);if(model["connectionChecks"]?[connection] is System.Text.Json.Nodes.JsonNode saved)calls.CodexVerification.Invoke(saved.ToString(),"invalidate","{}");model["connectionCheckPreview"]=null;}
 
 const string Codex="Confectory.Agent.Codex::Connection";
+void RestoreRegisteredCodex(){var binding=System.Text.Json.Nodes.JsonNode.Parse(calls.HelperAgents.Invoke(session,"agent-binding",System.Text.Json.JsonSerializer.Serialize(new{agent=Codex})));if(binding is not null&&binding["offline"]?.GetValue<bool>()!=true){var saved=new System.Text.Json.Nodes.JsonObject();foreach(string field in new[]{"connectionMethod","executable","managedHome","credentialReference","model"})saved[field]=binding["config"]![field]?.DeepClone();Onboarding("restore",new(){["settings"]=saved,["knownIdentity"]=binding["identity"]?.DeepClone()});}}
+
 void Onboarding(string action,System.Text.Json.Nodes.JsonObject input){
  var result=System.Text.Json.Nodes.JsonNode.Parse(calls.CodexOnboarding.Invoke(session,action,input.ToJsonString()))!;model["codexOnboarding"]=result["view"]!.DeepClone();
- if(action!="snapshot"&&result["view"]?["state"]?.ToString()=="ready"){
+ if(action is not ("snapshot" or "restore")&&result["completionId"] is not null&&result["view"]?["state"]?.ToString()=="ready"){
   try{string completion=result["completionId"]!.ToString();if(model["codexOnboardingApplied"]?.ToString()!=completion){var config=result["configuration"]!;string view=SetupView(Codex);foreach(string field in new[]{"connectionMethod","executable","managedHome","credentialReference","model"})SetupValue(Codex,field,config[field]!.ToString());calls.CheckSettings.Invoke(System.Text.Json.Nodes.JsonNode.Parse(calls.PackSnapshot.Invoke(view))!["unit"]!["text"]!.ToString());calls.PackCommand.Invoke(view,"save","{}");model["connectionSetupModes"]![Codex]="existing";connectionSetupMode="existing";calls.HelperAgents.Invoke(session,"register",System.Text.Json.JsonSerializer.Serialize(new{connection=Codex}));model["codexOnboardingApplied"]=completion;SetupSnapshot(Codex,view);}
-   if(action is "begin" or "retry")calls.HelperAgents.Invoke(session,"connection-state",System.Text.Json.JsonSerializer.Serialize(new{agent=Codex,offline=false}));
   }catch{model["codexOnboarding"]=new System.Text.Json.Nodes.JsonObject{["state"]="failed",["code"]="settings_save_failed",["retryable"]=true,["message"]="연결 설정을 저장하지 못했어요. 입력과 기존 설정은 유지됩니다."};model["codexOnboarding"]!["message"]="연결 설정을 저장하지 못했어요. 입력과 기존 설정은 유지됩니다. 다시 시도하세요.";throw;}
  }
+ if(action is "begin" or "retry"&&result["view"]?["state"]?.ToString()=="ready")calls.HelperAgents.Invoke(session,"connection-state",System.Text.Json.JsonSerializer.Serialize(new{agent=Codex,offline=false}));
 }
 
 void LocalForm(){if(Value("connection")!=Codex||model["connectionSetup"]?["connection"]?.ToString()!=Codex||SetupData(SetupView(Codex))["connectionMethod"]?.ToString()!="local-cli")throw new InvalidOperationException("Current local Codex form required");}
@@ -162,12 +164,13 @@ try{model["status"]="";model["archive"]=null;
  case "text":calls.YogiText.Invoke(box,Value("text"));break;case "seal":calls.YogiSeal.Invoke(box,args["sealed"]?.GetValue<bool>()??throw new ArgumentException("Explicit seal choice required"));break;case "remove":calls.YogiRemove.Invoke(box,Value("item"));break;default:throw new ArgumentException("Unknown local Yogi action");}calls.YogiSave.Invoke(box);model["yogi"]=System.Text.Json.Nodes.JsonNode.Parse(calls.YogiRevalidate.Invoke(box,calls.ProposalDraft.Invoke(Workspace(context))));}
  model["status"]="Local semantic Yogi package and bounded owned capture; no external recipient";
  }
- else if(operation=="connection-setup"){string connection=Value("connection");if(connection!=Codex)Onboarding("cancel",new());CancelPreparation();SetupSnapshot(connection,SetupView(connection));if(connection==Codex)Onboarding("snapshot",new());model["status"]="Connection configuration opened in place; selected project and work unchanged";}
+ else if(operation=="connection-setup"){string connection=Value("connection");if(connection!=Codex)Onboarding("cancel",new());CancelPreparation();SetupSnapshot(connection,SetupView(connection));if(connection==Codex){Onboarding("snapshot",new());RestoreRegisteredCodex();}model["status"]="Connection configuration opened in place; selected project and work unchanged";}
 
  else if(operation=="connection-onboarding"){
   string action=Value("action");if(action is not ("begin" or "retry" or "approve" or "choose-account" or "choose-model" or "change-account" or "new-login" or "device-login" or "browser-login" or "cancel" or "snapshot"))throw new ArgumentException("CLI onboarding action");if(model["connectionSetup"]?["connection"]?.ToString()!=Codex)throw new InvalidOperationException("Current Codex setup required");
   var input=new System.Text.Json.Nodes.JsonObject();foreach(string field in new[]{"approved","token","account","model"})if(args[field] is not null)input[field]=args[field]!.DeepClone();
   if(action is "begin" or "retry" or "change-account"){input["settings"]=SetupData(SetupView(Codex));var agent=System.Linq.Enumerable.FirstOrDefault(model["helperAgents"]?["agents"]?.AsArray()??new System.Text.Json.Nodes.JsonArray(),a=>a?["id"]?.ToString()==Codex);input["knownIdentity"]=agent?["accountIdentity"]?.DeepClone();input["knownConfigFingerprint"]=agent?["configFingerprint"]?.DeepClone();}
+  if(action=="new-login")RestoreRegisteredCodex();
   Onboarding(action,input);model["status"]="Owned CLI onboarding step updated; no inference or external connector";
  }
 

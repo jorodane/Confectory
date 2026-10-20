@@ -94,8 +94,9 @@ export function createHelperAgentsUI(api){
   const code=record.errorCode||(row?.requestId===record.requestId?row.errorCode:'');if(!/^provider-[a-z-]{1,64}$/.test(code||''))return '';
   const info=record.errorDiagnostics||(row?.requestId===record.requestId?row.errorDiagnostics:null),parts=[code];
   if(['storage','process-start','initialize','account-read','configuration-read','runtime-features','requirements-read','policy-check','model-list','verification-check','thread-start','turn-start','response-events'].includes(info?.stage))parts.push(info.stage);
-  if(['Win32Exception','UnauthorizedAccessException','IOException','JsonException','PlatformNotSupportedException','ArgumentException','InvalidOperationException','Other'].includes(info?.errorType))parts.push(info.errorType);
+  if(['Win32Exception','UnauthorizedAccessException','IOException','JsonException','DecoderFallbackException','PlatformNotSupportedException','ArgumentException','InvalidOperationException','Other'].includes(info?.errorType))parts.push(info.errorType);
   if(['contextWindowExceeded','sessionBudgetExceeded','usageLimitExceeded','rateLimitExceeded','flexUnavailable','serverOverloaded','cyberPolicy','misalignmentPolicyViolation','internalServerError','unauthorized','badRequest','threadRollbackFailed','sandboxError','other','unknown','httpConnectionFailed','responseStreamConnectionFailed','responseStreamDisconnected','responseTooManyFailedAttempts'].includes(info?.providerErrorKind))parts.push(info.providerErrorKind);
+  if(['frame-read','frame-parse','event-handle','rpc-response'].includes(info?.readPhase))parts.push(info.readPhase);
   if(['error','item/started','item/completed','item/agentMessage/delta','turn/started','turn/completed','other'].includes(info?.protocolEvent))parts.push(info.protocolEvent);
   for(const field of ['rpcErrorCode','nativeErrorCode','exitCode','httpStatusCode'])if(Number.isInteger(info?.[field]))parts.push(field+'='+info[field]);
   return ' ['+parts.join(' · ')+']';

@@ -43,7 +43,7 @@ env=os.environ.copy();env.update(CONFECTORY_DOTNET=env.get('CONFECTORY_DOTNET','
 env['PATH']=str(pathlib.Path(env['CONFECTORY_DOTNET']).parent)+os.pathsep+env['PATH'];env.pop('CONFECTORY_WEB_PROJECT',None)
 with (root/'build.json').open('w') as out,(root/'build.err').open('w') as err:built=subprocess.run([env['CONFECTORY_DOTNET'],str(repo/'src/Confectory.Cli/bin/Release/net10.0/Confectory.Cli.dll'),'build',str(editor/'project.cpack'),'linux'],env=env,cwd=repo,stdout=out,stderr=err,timeout=180)
 report=json.loads((root/'build.json').read_text());assert built.returncode==0 and report.get('tool',{}).get('ok'),report.get('diagnostics')
-cases=['restart-mismatch','restart-expired-auth','restart-offline','restart-unverified','restart-renewal-failure','turn-remote-bad-request','turn-rpc-error','turn-exit','turn-bad-json','turn-foreign-event','turn-remote-http','turn-completed-error','authenticated','logged-out','install','multiple-accounts','model-selection','single-model','configured-model','no-models','cancel-login','cancel-install','bad-install','cancel-probe','unsupported-runtime','identity-change','failed-login','switch-provider','install-empty-home','install-process-exit','install-initialize-error','install-account-error','install-model-error','install-mixed-homes','install-process-start-error','bundled-policy','user-bundle-settings','unexpected-extension','web-search-policy','browser-open-failed','login-expired','callback-port-conflict','callback-rpc-conflict','invalid-login-url','device-fallback','device-cancel','device-retry','method-cleanup-failed','plugins-existing','install-plugins','plugins-browser','plugins-change','plugins-budget','plugins-cancel','plugins-login-blocked','plugins-restart-exit','plugins-restart-initialize','plugins-restart-config','plugins-login-restart-exit','plugins-post-browser','plugins-restart-start','plugins-restart-file-change','plugins-login-restart-start']
+cases=['restart-cancel','unicode','turn-bad-json-after-delta','turn-invalid-utf8','restart-missing-runtime','restart-mismatch','restart-expired-auth','restart-offline','restart-unverified','restart-renewal-failure','turn-remote-bad-request','turn-rpc-error','turn-exit','turn-bad-json','turn-foreign-event','turn-remote-http','turn-completed-error','authenticated','logged-out','install','multiple-accounts','model-selection','single-model','configured-model','no-models','cancel-login','cancel-install','bad-install','cancel-probe','unsupported-runtime','identity-change','failed-login','switch-provider','install-empty-home','install-process-exit','install-initialize-error','install-account-error','install-model-error','install-mixed-homes','install-process-start-error','bundled-policy','user-bundle-settings','unexpected-extension','web-search-policy','browser-open-failed','login-expired','callback-port-conflict','callback-rpc-conflict','invalid-login-url','device-fallback','device-cancel','device-retry','method-cleanup-failed','plugins-existing','install-plugins','plugins-browser','plugins-change','plugins-budget','plugins-cancel','plugins-login-blocked','plugins-restart-exit','plugins-restart-initialize','plugins-restart-config','plugins-login-restart-exit','plugins-post-browser','plugins-restart-start','plugins-restart-file-change','plugins-login-restart-start']
 if os.environ.get('CONFECTORY_ONBOARDING_CASES'):cases=os.environ['CONFECTORY_ONBOARDING_CASES'].split(',')
 evidence=[];errors=[];external=[]
 with sync_playwright() as p:
@@ -243,15 +243,23 @@ with sync_playwright() as p:
     page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='Agent 추가',exact=True);dialog.get_by_role('button',name='Codex',exact=True).click();expect(dialog.locator('[data-cli-done]')).to_be_enabled();assert len(requests())==before,'reopen repeated completed steps'
     dialog.locator('[data-cli-offline]').click();expect(dialog.locator('[data-cli-login]')).to_have_text('다시 연결');assert state()['helperAgents']['agents'][0]['state']=='offline';dialog.locator('[data-cli-login]').click();expect(dialog.locator('[data-cli-done]')).to_be_enabled();assert state()['helperAgents']['agents'][0]['state']=='ready' and len(requests())==before
     dialog.locator('[data-cli-done]').click()
-    if name=='authenticated' or name.startswith(('turn-','restart-')):
+    if name in ('authenticated','unicode') or name.startswith(('turn-','restart-')):
+     if name=='unicode':write_control(replyText='OWNED CLI HELPER REPLY 한글 😀 "따옴표"\n{plain delta: [not JSON]}',splitUtf8=True)
      page.locator('#add-helper').click();creator=page.locator('[data-v508-helper]');creator.locator('#participant-name').fill('Owned CLI Helper');creator.locator('#participant-description').fill('Owned account metadata and protocol only');creator.locator('button[type=submit]').click();expect(creator).to_have_count(0);page.locator('.home-side [data-helper]').first.click();card=page.locator('.participant-expanded-card');card.locator('textarea').fill('owned CLI message');card.locator('[data-global-send]').click();expect(page.locator('[data-global-approval]')).to_have_count(0);expect(card.locator('textarea')).to_have_value('')
      if name.startswith('turn-'):
-      expected={'turn-remote-bad-request':('provider-error','response-events','badRequest'),'turn-rpc-error':('provider-error','turn-start','rpcErrorCode=-32602'),'turn-exit':('provider-error','turn-start','exitCode=37'),'turn-bad-json':('provider-error','response-events',None),'turn-foreign-event':('provider-error','response-events',None),'turn-remote-http':('provider-http-error','response-events','httpStatusCode=503'),'turn-completed-error':('provider-auth-required','response-events','httpStatusCode=403')}[name]
+      expected={'turn-remote-bad-request':('provider-error','response-events','badRequest'),'turn-rpc-error':('provider-error','turn-start','rpcErrorCode=-32602'),'turn-exit':('provider-error','turn-start','exitCode=37'),'turn-bad-json':('provider-error','response-events','frame-parse'),'turn-bad-json-after-delta':('provider-error','response-events','frame-parse'),'turn-invalid-utf8':('provider-error','response-events','frame-read'),'turn-foreign-event':('provider-error','response-events',None),'turn-remote-http':('provider-http-error','response-events','httpStatusCode=503'),'turn-completed-error':('provider-auth-required','response-events','httpStatusCode=403')}[name]
       for value in expected:
-       if value:expect(card.locator('.messages')).to_contain_text(value)
-      terminal=next(iter(state()['helperAgents']['turns'].values()));assert terminal['state']=='error' and terminal['errorCode']==expected[0];assert terminal['errorDiagnostics']['stage']==expected[1];assert 'PRIVATE' not in json.dumps(terminal) and 'NEVER-EXPOSE' not in json.dumps(terminal);assert not any(k in terminal['errorDiagnostics'] for k in ('message','path','stderr','accountIdentity','fingerprint'))
+       if value and not (name=='turn-invalid-utf8' and value=='response-events'):expect(card.locator('.messages')).to_contain_text(value)
+      terminal=next(iter(state()['helperAgents']['turns'].values()));assert terminal['state']=='error' and terminal['errorCode']==expected[0];assert terminal['errorDiagnostics']['stage'] in (('turn-start','response-events') if name=='turn-invalid-utf8' else (expected[1],));assert 'PRIVATE' not in json.dumps(terminal) and 'NEVER-EXPOSE' not in json.dumps(terminal);assert not any(k in terminal['errorDiagnostics'] for k in ('message','path','stderr','accountIdentity','fingerprint'))
+      if name in ('turn-bad-json','turn-bad-json-after-delta','turn-invalid-utf8'):
+       assert terminal['errorDiagnostics'].get('protocolEvent','')==''
+       assert terminal['errorDiagnostics']['errorType']==('DecoderFallbackException' if name=='turn-invalid-utf8' else 'JsonException')
       card.locator('[data-close]').click();page.locator('.home-side [data-helper]').first.click();expect(card.locator('.messages')).to_contain_text(expected[0]);page.screenshot(path=str(case/'safe-helper-error.png'))
-     else:expect(card.locator('.messages')).to_contain_text('OWNED CLI HELPER REPLY',timeout=30000);page.screenshot(path=str(case/'helper-reply.png'))
+     else:
+      expect(card.locator('.messages')).to_contain_text('OWNED CLI HELPER REPLY',timeout=30000)
+      if name=='unicode':
+       expect(card.locator('.messages')).to_contain_text('한글 😀 "따옴표"');expect(card.locator('.messages')).to_contain_text('{plain delta: [not JSON]}');assert next(iter(state()['helperAgents']['turns'].values()))['output']=='OWNED CLI HELPER REPLY 한글 😀 "따옴표"\n{plain delta: [not JSON]}'
+      page.screenshot(path=str(case/'helper-reply.png'))
      assert len([r for r in requests() if r['method']=='turn/start'])==1
     if name=='identity-change':
      write_control(loginEmail='changed@fixture.invalid');page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='Agent 추가',exact=True);dialog.get_by_role('button',name='Codex',exact=True).click();expect(dialog.locator('[data-cli-change-account]')).to_be_enabled();dialog.locator('[data-cli-change-account]').click();expect(dialog.locator('[data-cli-consent]')).to_have_text('동의하고 로그인');clean_codex();assert state()['helperAgents']['agents'][0]['accountIdentity']['email']=='alice@fixture.invalid';dialog.locator('[data-cli-consent]').click();expect_browser();(case/'complete-login').write_text('owned');expect(dialog.locator('[data-cli-done]')).to_be_enabled();assert state()['helperAgents']['agents'][0]['accountIdentity']['email']=='changed@fixture.invalid';clean_codex();page.screenshot(path=str(case/'changed-account.png'));dialog.locator('[data-cli-done]').click()
@@ -262,6 +270,8 @@ with sync_playwright() as p:
      registry_file=storage/'helper-agents.json';registry=json.loads(registry_file.read_text())
      if name=='restart-offline':registry['agents']['Confectory.Agent.Codex::Connection']['offline']=True;registry_file.write_text(json.dumps(registry))
      if name=='restart-unverified':registry['agents']['Confectory.Agent.Codex::Connection'].pop('identity',None);registry_file.write_text(json.dumps(registry))
+     if name=='restart-cancel':write_control(holdAccount=True)
+     if name=='restart-missing-runtime':runtime.rename(root/'codex-hidden')
      if name=='restart-mismatch':write_control(readEmail='different@fixture.invalid')
      if name=='restart-expired-auth':write_control(hideAccount=True)
      if name=='restart-renewal-failure':write_control(preAuthFailure='account-error')
@@ -271,18 +281,38 @@ with sync_playwright() as p:
       if urls:url=urls[-1];break
       assert host.poll() is None;time.sleep(.1)
      origin,token=url.split('/#');page=browser.new_page(viewport={'width':1440,'height':1000});page.on('pageerror',lambda e:errors.append(str(e)));page.route('**/*',route);page.goto(url);expect(page.locator('#add-agent')).to_be_enabled(timeout=30000)
+     # No settings/Helper click or send triggers readiness: wait at Home first.
+     expected_state={'restart-cancel':'checking','restart-mismatch':'account-mismatch','restart-expired-auth':'auth-required','restart-offline':'offline','restart-unverified':'unverified','restart-renewal-failure':'blocked','restart-missing-runtime':'missing-runtime'}.get(name,'ready')
+     for _ in range(600):
+      if state()["helperAgents"]["agents"][0]["readiness"]["state"]==expected_state:break
+      time.sleep(.05)
+     else:raise AssertionError(state()["helperAgents"])
+     settled=state()['helperAgents']['agents'][0];assert settled['readiness']['state']==expected_state
+     page.screenshot(path=str(case/'startup-home.png'))
+     checks_before=len(requests());page.locator('.home-side [data-agent]').first.click();dialog=page.get_by_role('dialog',name='Agent 추가',exact=True)
+     if expected_state=='checking':expect(dialog.locator('[data-cli-stop]')).to_be_enabled()
+     elif expected_state=='ready':expect(dialog.locator('[data-cli-done]')).to_be_enabled();expect(dialog.locator('[data-cli-login]')).to_have_count(0);expect(dialog.locator('[data-cli-account]')).to_have_count(0)
+     elif expected_state=='offline':expect(dialog.locator('[data-cli-login]')).to_have_text('다시 연결')
+     else:expect(dialog.locator('[data-codex-onboarding]')).to_have_attribute('data-step','failed')
+     assert len(requests())==checks_before,'opening settings repeated startup/login work';page.screenshot(path=str(case/'startup-settings.png'))
+     if name=='restart-cancel':
+      dialog.locator('[data-cli-stop]').click();expect(dialog.locator('[data-cli-retry]')).to_be_enabled();assert state()['helperAgents']['agents'][0]['readiness']['state']=='cancelled';checks=len(requests());page.wait_for_timeout(300);assert len(requests())==checks;page.screenshot(path=str(case/'startup-cancelled.png'));write_control(holdAccount=False);dialog.locator('[data-cli-retry]').click();expect(dialog.locator('[data-cli-done]')).to_be_enabled();assert state()['helperAgents']['agents'][0]['readiness']['state']=='ready'
+
+     dialog.locator('[data-close]').click()
+     expect(dialog).to_have_count(0)
      before=len(requests());page.locator('.home-side [data-helper]').first.click();card=page.locator('.participant-expanded-card');expect(card.locator('.messages')).to_contain_text('owned CLI message');expect(card.locator('.messages')).to_contain_text('OWNED CLI HELPER REPLY');assert len(requests())==before;card.locator('textarea').fill('owned after restart')
      if name=='restart-offline':card.locator('form').evaluate('e=>e.requestSubmit()')
      else:card.locator('textarea').press('Enter')
-     if name.startswith('restart-'):
-      expected={'restart-mismatch':'codex-account-mismatch','restart-expired-auth':'provider-auth-required','restart-offline':'codex-readiness-changed','restart-unverified':'codex-registration-unverified','restart-renewal-failure':'provider-account-query-failed'}[name];expect(page.locator('#toast')).to_contain_text(expected);expect(card.locator('textarea')).to_have_value('owned after restart');assert len([r for r in requests() if r['method']=='turn/start'])==1
-      if name in ('restart-offline','restart-unverified'):assert len(requests())==before
+     if name.startswith('restart-') and name!='restart-cancel':
+      expected={'restart-mismatch':'codex-account-mismatch','restart-expired-auth':'provider-auth-required','restart-offline':'codex-readiness-changed','restart-unverified':'codex-registration-unverified','restart-renewal-failure':'provider-account-query-failed','restart-missing-runtime':'codex-runtime-missing'}[name];expect(page.locator('#toast')).to_contain_text(expected);expect(card.locator('textarea')).to_have_value('owned after restart');assert len([r for r in requests() if r['method']=='turn/start'])==1
+      if name in ('restart-offline','restart-unverified','restart-missing-runtime'):assert len(requests())==before
       page.screenshot(path=str(case/'cold-blocked.png'))
      else:
       expect(card.locator('.messages')).to_contain_text('owned after restart');expect(card.locator('textarea')).to_have_value('');expect(card.locator('[data-global-send]')).to_have_text('보내기');assert len([r for r in requests() if r['method']=='turn/start'])==2;page.screenshot(path=str(case/'cold-auto-reply.png'))
       # Repeated sends use the renewed lease without another preflight process.
       checks=sum(r['method']=='account/read' for r in requests());card.locator('textarea').fill('same verified session');card.locator('textarea').press('Enter');expect(card.locator('textarea')).to_have_value('');expect(card.locator('[data-global-send]')).to_have_text('보내기');assert sum(r['method']=='account/read' for r in requests())==checks+1
-     assert registry_file.read_bytes()==registered_bytes,'readiness changed saved registration';assert len([r for r in requests() if r['method']=='account/login/start'])==login_count;assert (state().get('codexOnboarding') or {}).get('state','idle')=='idle';assert page.locator('[data-codex-onboarding]').count()==0
+     assert registry_file.read_bytes()==registered_bytes,'readiness changed saved registration';assert len([r for r in requests() if r['method']=='account/login/start'])==login_count;assert page.locator('[data-codex-onboarding]').count()==0
+     if name=='restart-missing-runtime':(root/'codex-hidden').rename(runtime)
     if name=='user-bundle-settings':assert (homes[0]/'config.toml').read_text()=='[plugins."unified-computer-use@openai-bundled"]\nenabled = true\n'
     if name in ('plugins-existing','install-plugins','plugins-browser','plugins-change','plugins-budget','plugins-cancel','plugins-login-blocked','plugins-restart-exit','plugins-restart-initialize','plugins-restart-config','plugins-login-restart-exit','plugins-post-browser','plugins-restart-start','plugins-restart-file-change','plugins-login-restart-start'):
      events=requests();processes={r['pid']:r['params'] for r in events if r['method']=='process'}
