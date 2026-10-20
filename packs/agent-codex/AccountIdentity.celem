@@ -1,0 +1,1 @@
+function Confectory.Agent.Codex::AccountIdentity (string account) -> string { provide Confectory.Agent.Codex::AccountIdentity with Confectory.Agent.Codex::AccountIdentityBody; }

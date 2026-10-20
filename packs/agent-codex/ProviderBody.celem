@@ -1,6 +1,7 @@
 implementation Confectory.Agent.Codex::ProviderBody for Confectory.Agent::Provider (string config,string execution,string operation,string payload) -> string {
 import Confectory.Agent.Codex::ValidateSelection as Selection (string,bool) -> string;
 import Confectory.Agent.Codex::Verification as Verification (string,string,string) -> string;
+import Confectory.Agent.Codex::AccountIdentity as Identity (string) -> string;
 import Confectory.DevelopmentTools::Definitions as Definitions (string) -> string;
 import Confectory.DevelopmentTools::Snapshot as Scope (string) -> string;
 import Confectory.DevelopmentTools::Invoke as Tool (string,string,string,string) -> string;

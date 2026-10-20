@@ -2,6 +2,13 @@ using Confectory.Core;
 namespace Confectory.Tests;
 public sealed class WebUITests : TestCase
 {
+    public void test_actual_codex_cli_login_first_owned_install_accounts_models_cancel_retry_and_helper()
+    {
+        if(!OperatingSystem.IsLinux())Skip("Owned CLI and Chromium fixtures run on Linux; live accounts and Windows native execution are separate checks");
+        var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/editor_codex_onboarding.py"),Fixture.Repo},timeoutSeconds:900);
+        Console.WriteLine(run.Stdout.Trim());True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS owned CLI login-first integration"));
+    }
+
     public void test_actual_first_responses_agent_clean_profile_declarations_retry_registration_and_reload()
     {
         if(!OperatingSystem.IsLinux())Skip("Actual Chromium fixture runs on Linux; user Windows runtime is a separate check");

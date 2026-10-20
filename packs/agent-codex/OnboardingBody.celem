@@ -1,0 +1,7 @@
+implementation Confectory.Agent.Codex::OnboardingBody for Confectory.Agent.Codex::Onboarding (string owner,string operation,string payload) -> string {
+import Confectory.Agent.Codex::Discover as Discover () -> string;
+import Confectory.Agent.Codex::Preparation as Preparation (string,string,string) -> string;
+import Confectory.Agent.Codex::AccountLogin as Login (string,string,string) -> string;
+import Confectory.Agent.Codex::CandidateConfiguration as Candidate (string) -> string;
+import Confectory.Agent.Codex::Verification as Verification (string,string,string) -> string;
+body common "Onboarding.csbody"; }

@@ -1,0 +1,1 @@
+implementation Confectory.Agent.Codex::AccountIdentityBody for Confectory.Agent.Codex::AccountIdentity (string account) -> string { body common "AccountIdentity.csbody"; }

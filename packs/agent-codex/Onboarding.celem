@@ -1,0 +1,1 @@
+function Confectory.Agent.Codex::Onboarding (string owner,string operation,string payload) -> string { provide Confectory.Agent.Codex::Onboarding with Confectory.Agent.Codex::OnboardingBody; }

@@ -16,4 +16,6 @@ element PreparationInfo function "PreparationInfo.celem"; element PreparationInf
 element PreparationStorage function "PreparationStorage.celem"; element PreparationStorageBody implementation "PreparationStorageBody.celem";
 element Preparation function "Preparation.celem"; element PreparationBody implementation "PreparationBody.celem";
 element AccountLogin function "AccountLogin.celem"; element AccountLoginBody implementation "AccountLoginBody.celem";
+element AccountIdentity function "AccountIdentity.celem"; element AccountIdentityBody implementation "AccountIdentityBody.celem";
+element Onboarding function "Onboarding.celem"; element OnboardingBody implementation "OnboardingBody.celem";
 }

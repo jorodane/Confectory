@@ -13,6 +13,7 @@ import Confectory.PackWorkspace::Close as PackClose (string) -> void;
 import Confectory.ProjectAI::Configuration as Configuration (string,string) -> string;
 import Confectory.ProjectAI::Permission as Permission (string,string) -> string;
 import Confectory.AIConnection::Authorize as Authorize (string,string,string) -> string;
+import Confectory.Agent.Codex::Verification as CodexVerification (string,string,string) -> string;
 import Confectory.Agent::Open as AgentOpen (string) -> string;
 import Confectory.Agent::Start as AgentStart (string,string,string) -> string;
 import Confectory.Agent::Poll as AgentPoll (string) -> string;
