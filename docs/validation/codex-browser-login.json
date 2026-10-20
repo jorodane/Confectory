@@ -768,5 +768,13 @@
     "errors": 0,
     "elapsedSeconds": 11.29,
     "result": "passed"
+  },
+  "implementationCommit": "80ddc1b506024fd090bf2ba5d6d00c238c0a1efb",
+  "gitCheckoutResources": {
+    "result": "1 passed, 0 failed, 0 skipped; 8.414s",
+    "actualRetainedCRLFPullAndFreshLFCheckout": true,
+    "resources": 50,
+    "invalidContentEncodingBOMUtf16BareCRBinaryBudgetRejected": true,
+    "originalBytesPreserved": true
   }
 }
