@@ -17,6 +17,7 @@ for file in (repo/'examples/editor-home').glob('*.celem'):shutil.copy2(file,edit
 shutil.copytree(repo/'examples/editor-home/ui',editor/'ui')
 pack=root/'installed-responses';shutil.copytree(repo/'packs/agent-responses',pack)
 pack_path=pack/'pack.cpack';pack_source=pack_path.read_text()
+schema_path=pack/'Settings.celem';schema_source=schema_path.read_text()
 manifest=(repo/'examples/editor-home/project.cpack').read_text().replace('../../',str(repo)+'/')
 manifest=manifest.replace(json.dumps(str(repo/'packs/agent-responses/pack.cpack')),json.dumps(str(pack_path)))
 # Installed/discoverable does not imply a root-project direct dependency.
@@ -39,21 +40,28 @@ def state(url):
 with sync_playwright() as p:
     browser=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox','--disable-gpu'])
     try:
-        for scenario in ('fresh','missing-installed-schema','existing-invalid'):
+        for scenario in ('fresh','missing-installed-schema','existing-invalid','old-registry','custom-old-registry','fresh-compound-missing'):
             storage=root/scenario/'storage';settings=storage/'ai-settings'/hashlib.sha256(connection.encode()).hexdigest()[:16]
             pack_path.write_text(pack_source)
+            schema_path.write_text(schema_source)
             env=os.environ.copy();env.update(CONFECTORY_UI='web',CONFECTORY_EDITOR_REPO=str(owned),CONFECTORY_ENTRY_STORAGE=str(storage),CONFECTORY_HOME_STORAGE=str(storage),CONFECTORY_MCP_DIRECTORY=str(root/scenario/'instances'),CONFECTORY_ELEMENT_AUTHORING_HOST=str(repo/'targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll'),CONFECTORY_PROJECT_EXECUTION_HOST=str(repo/'targets/project-execution-host/bin/Release/net10.0/Confectory.ProjectExecutionHost.dll'));env.pop('CONFECTORY_WEB_PROJECT',None)
             original_manifest=None;original_source=None
-            if scenario=='existing-invalid':
+            if scenario in ('existing-invalid','old-registry','custom-old-registry'):
                 generated=subprocess.run([env['CONFECTORY_DOTNET'],env['CONFECTORY_ELEMENT_AUTHORING_HOST']],input=json.dumps({'operation':'connectionSettings','project':str(editor/'project.cpack'),'id':connection}),text=True,capture_output=True,check=True,env=env)
                 generated=json.loads(generated.stdout);assert generated['ok'],generated
                 original_manifest=generated['result']['manifest'];original_source='object Confectory.AISettings::Settings extends '+connection+' {data model = "preserved-existing-input";}\n'
                 settings.mkdir(parents=True);(settings/'Settings.celem').write_text(original_source)
-                invalid=re.sub(r'element\s+Settings\s+object\s+"Settings\.celem";','',original_manifest);assert invalid!=original_manifest
+                if scenario=='existing-invalid':invalid=re.sub(r'element\s+Settings\s+object\s+"Settings\.celem";','',original_manifest)
+                else:
+                    invalid=re.sub(r'registry\s+Confectory\.InstantTable\s+"[^"\n]*"\s*;\s*','',original_manifest)
+                    invalid=re.sub(r'dependency\s+Confectory\.InstantTable\s+version\s+"[^"\n]*"\s*;\s*','',invalid)
+                    if scenario=='custom-old-registry':invalid+='// owned custom manifest\n'
+                assert invalid!=original_manifest
                 (settings/'project.cpack').write_text(invalid)
             else:assert not settings.exists()
             if scenario=='missing-installed-schema':
                 broken=re.sub(r'element\s+Settings\s+schema\s+"Settings\.celem";','',pack_source);assert broken!=pack_source;pack_path.write_text(broken)
+            if scenario=='fresh-compound-missing':schema_path.write_text(schema_source.replace('{','{ field unresolved single compound Missing.Installed::Details;'))
             log_path=root/scenario/'host.log';log_path.parent.mkdir(parents=True,exist_ok=True);log=log_path.open('w')
             host=subprocess.Popen(report['run'],cwd=repo,env=env,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
             page=browser.new_page(viewport={'width':1440,'height':1000});page.on('pageerror',lambda e:errors.append(str(e)));invocations=[]
@@ -74,22 +82,33 @@ with sync_playwright() as p:
                 # Responses is the very first Agent choice; no Codex form is opened.
                 page.locator('#connect').click();dialog=page.get_by_role('dialog',name='Agent 추가',exact=True)
                 dialog.get_by_role('button',name='OpenAI Responses',exact=True).click()
-                if scenario!='fresh':
+                if scenario not in ('fresh','old-registry'):
                     diagnostic=dialog.locator('[data-connection-error]');code='connection_declarations_unavailable' if scenario=='missing-installed-schema' else 'connection_settings_invalid'
                     expect(diagnostic).to_have_attribute('data-code',code);expect(diagnostic).to_be_visible();failed=state(url)
-                    assert failed['operationError']['mode']==('new' if scenario=='missing-installed-schema' else 'existing')
+                    assert failed['operationError']['mode']==('new' if scenario in ('missing-installed-schema','fresh-compound-missing') else 'existing')
                     assert str(root) not in diagnostic.inner_text() and '기존 연결 설정의 선언' not in diagnostic.inner_text()
+                    if scenario in ('custom-old-registry','fresh-compound-missing'):
+                        assert failed['operationError']['cause']=='MISSING_NAMESPACE'
+                        missing='Missing.Installed' if scenario=='fresh-compound-missing' else 'Confectory.InstantTable'
+                        expect(diagnostic).to_contain_text('누락된 네임스페이스: '+missing)
+                        assert failed['operationError']['namespaceDiagnostic']['missingNamespace']==missing
+                        if scenario=='custom-old-registry':expect(diagnostic).to_contain_text('참조 팩: Confectory.EditorHome.Model');assert not list(settings.glob('project.cpack.before-*'))
+                        else:expect(diagnostic).to_contain_text('첫 설정 화면');expect(diagnostic).to_contain_text('참조: Missing.Installed::Details')
+                        page.screenshot(path=str(root/scenario/'missing-namespace.png'))
                     if scenario=='missing-installed-schema':assert not settings.exists();pack_path.write_text(pack_source)
+                    elif scenario=='fresh-compound-missing':schema_path.write_text(schema_source)
                     else:
                         assert (settings/'Settings.celem').read_text()==original_source and (settings/'project.cpack').read_text()==invalid
                         (settings/'project.cpack').write_text(original_manifest)
                     diagnostic.get_by_role('button',name='설정 다시 읽기').click()
                 expect(dialog.locator('[data-connection-field="model"]')).to_be_visible();expect(dialog.locator('[data-connection-error]')).to_be_hidden()
-                expect(dialog).to_have_attribute('data-connection-mode','existing' if scenario=='existing-invalid' else 'new')
+                expect(dialog).to_have_attribute('data-connection-mode','existing' if scenario in ('existing-invalid','old-registry','custom-old-registry') else 'new')
                 for field in ('endpoint','maxRounds','credentialReference'):expect(dialog.locator('[data-connection-field="'+field+'"]').first).to_be_visible()
                 assert state(url)['helperAgents']['agents']==[] and state(url)['projectId']==''
                 assert 'dependency Confectory.Agent.Responses version ' in (settings/'project.cpack').read_text()
-                if scenario=='existing-invalid':expect(dialog.locator('[data-connection-field="model"]')).to_have_value('preserved-existing-input')
+                if scenario in ('existing-invalid','old-registry','custom-old-registry'):expect(dialog.locator('[data-connection-field="model"]')).to_have_value('preserved-existing-input')
+                if scenario=='old-registry':
+                    backups=list(settings.glob('project.cpack.before-*'));assert len(backups)==1 and backups[0].read_text()==invalid and (settings/'Settings.celem').read_text()==original_source
                 dialog.locator('[data-connection-field="model"]').fill('owned-first-registration')
                 dialog.locator('[data-connection-field="endpoint"]').fill('http://127.0.0.1:1/v1/responses')
                 dialog.locator('[data-connection-cancel]').click();expect(dialog).to_have_count(0)

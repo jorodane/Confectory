@@ -23,7 +23,7 @@ try
 var output=process.StandardOutput.ReadToEndAsync();var error=process.StandardError.ReadToEndAsync();process.StandardInput.Write(request.ToJsonString());process.StandardInput.Close();
 if(!process.WaitForExit(timeout)){process.Kill(true);process.WaitForExit();throw new TimeoutException("Authoring tool timeout.");}
 string reply=output.GetAwaiter().GetResult(),stderr=error.GetAwaiter().GetResult();if(process.ExitCode!=0)throw new InvalidOperationException("Authoring process failed: "+stderr);
-var result=System.Text.Json.Nodes.JsonNode.Parse(reply)!.AsObject();if(!result["ok"]!.GetValue<bool>())throw new InvalidOperationException(result["code"]!.GetValue<string>()+": "+result["message"]!.GetValue<string>());
+var result=System.Text.Json.Nodes.JsonNode.Parse(reply)!.AsObject();if(!result["ok"]!.GetValue<bool>()){var failure=new InvalidOperationException(result["code"]!.GetValue<string>()+": "+result["message"]!.GetValue<string>());if(result["namespaceDiagnostic"] is System.Text.Json.Nodes.JsonObject diagnostic)failure.Data["Confectory.NamespaceDiagnostic"]=diagnostic.ToJsonString();throw failure;}
 return result["result"]!.ToJsonString();
 
 }

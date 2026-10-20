@@ -82,6 +82,19 @@ public sealed class CoreTests : TestCase
         True(diag.Location.File.EndsWith("Value.celem", StringComparison.Ordinal)); Equal(1, diag.Location.Line);
     }
     public void test_missing_namespace() { f.Packs["App"].Dependencies["Absent"] = "1"; f.Sync(); Error("MISSING_NAMESPACE", () => f.Registry()); }
+    public void test_missing_namespace_structured_dependency_element_and_pack_check_context()
+    {
+        f.Sync();
+        var element=Error("MISSING_NAMESPACE",()=>f.Registry().Get("Absent::Settings")).NamespaceDiagnostic!;
+        Equal("Absent",element.MissingNamespace);Equal("element",element.Resolution);Equal("Absent::Settings",element.Reference!);
+        var check=Error("MISSING_NAMESPACE",()=>new Builder(f.Project,"portable").Check("Absent")).NamespaceDiagnostic!;
+        Equal("Absent",check.MissingNamespace);Equal("pack-check",check.Resolution);
+        f.Packs["App"].Dependencies["Absent"]="1";f.Sync();
+        var dependency=Error("MISSING_NAMESPACE",()=>f.Registry()).NamespaceDiagnostic!;
+        Equal("Absent",dependency.MissingNamespace);Equal("dependency",dependency.Resolution);Equal("App",dependency.OwnerNamespace!);
+        f.Packs["App"].Dependencies.Remove("Absent");string wrong=Path.Combine(f.Root,"wrong-registration.cpack");File.WriteAllText(wrong,"pack Different version \"1\" {standalone false;}");f.ExtraRegistry["Expected"]=wrong;f.Sync();
+        True(Error("REGISTRY_ID",()=>f.Registry()).NamespaceDiagnostic is null,"wrong registered namespace is not MISSING_NAMESPACE");
+    }
     public void test_missing_element() { f.Main("provide Api::Absent with Provider::ValueBody;"); Error("MISSING_ELEMENT", () => f.Plan()); }
     public void test_wrong_element_kind() { f.Main("provide Api::Value with Api::Value;"); Error("ELEMENT_KIND", () => f.Plan()); }
     public void test_undeclared_cross_pack_dependency() { f.Packs["App"].Dependencies.Remove("Api"); f.Sync(); Error("UNDECLARED_DEPENDENCY", () => f.Plan()); }

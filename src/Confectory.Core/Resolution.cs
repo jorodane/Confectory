@@ -29,7 +29,7 @@ public sealed class Registry
         foreach (var (dep, expectation) in pack.Dependencies)
         {
             if (dep == ns) throw new BuildError("DEPENDENCY", "A pack must not depend on itself", expectation.Loc);
-            if (!Packs.TryGetValue(dep, out var selected)) throw new BuildError("MISSING_NAMESPACE", $"Dependency {dep} is not registered", expectation.Loc);
+            if (!Packs.TryGetValue(dep, out var selected)) throw new BuildError("MISSING_NAMESPACE", $"Dependency {dep} is not registered", expectation.Loc) { NamespaceDiagnostic = new(dep, "dependency", ns) };
             if (!VersionExpectation.Matches(expectation.Version, selected.Version))
                 Warnings.Add(new("warning", "VERSION_MISMATCH", $"{ns} expects {dep} {expectation.Version}; selected {selected.Version}", expectation.Loc));
         }
@@ -53,7 +53,7 @@ public sealed class Registry
             string owner = PackPaths.Namespace(source);
             if (ns != owner && !Packs[owner].Dependencies.ContainsKey(ns)) throw new BuildError("UNDECLARED_DEPENDENCY", $"{source} refers to {ns} without a direct dependency", loc);
         }
-        if (!Packs.TryGetValue(ns, out var pack)) throw new BuildError("MISSING_NAMESPACE", $"Namespace {ns} is not registered", loc);
+        if (!Packs.TryGetValue(ns, out var pack)) throw new BuildError("MISSING_NAMESPACE", $"Namespace {ns} is not registered", loc) { NamespaceDiagnostic = new(ns, "element", source is null ? null : PackPaths.Namespace(source), id) };
         if (!pack.Elements.TryGetValue(local, out var locator)) throw new BuildError("MISSING_ELEMENT", $"No declaration for {id}", loc);
         if (expected is not null && locator.Kind != expected) throw new BuildError("ELEMENT_KIND", $"{id} is {locator.Kind}, expected {expected}", loc ?? locator.Loc);
         if (!Elements.TryGetValue(id, out var element))

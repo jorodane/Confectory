@@ -43,6 +43,7 @@ import Confectory.PackWorkspace::Close as PackClose (string) -> void;
 import Confectory.FileStream::Snapshot as FileSnapshot (string) -> string[];
 import Confectory.AIConnection::Discover as Connections (string) -> string;
 import Confectory.AIConnection::SettingsSource as ConnectionSource (string,string) -> string;
+import Confectory.SchemaEditing::Call as ConnectionRepair (string,string) -> string;
 import Confectory.AIConnection::MaterializeMetadata as ConnectionMetadata (string) -> string;
 import Confectory.AIConnection::ValidateSettings as CheckSettings (string) -> void;
 import Confectory.AIConnection::ValidateReference as CheckReference (string) -> void;

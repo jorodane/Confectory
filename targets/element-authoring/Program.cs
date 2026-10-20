@@ -68,8 +68,8 @@ try
         case "projectionBrowse": case "projectionDelta":reply=ProjectionDelivery.Execute(S("operation"),request);break;
         case "projectionAffected": case "projectionVersions": case "projectionQueue": case "projectionPublish": case "projectionQuery": case "projectionList": case "editorDescribe":reply=ProjectionArtifacts.Execute(S("operation"),request);break;
         case "algorithmProject":reply=AlgorithmProjectionOperations.Execute(request);break;
-        case "connectionCatalog": case "connectionSettings":
-            reply=ConnectionDeclarations.Query(S("project"),S("operation")=="connectionSettings"?S("id"):null,FormatManifest,path=>{var file=new FileInfo(path);if(!file.Exists||file.Length>1048576||file.LinkTarget is not null)throw new IOException("Connection declaration unavailable");return path;});break;
+        case "connectionCatalog": case "connectionSettings": case "connectionSettingsRepair":
+            reply=ConnectionDeclarations.Query(S("project"),S("operation")=="connectionCatalog"?null:S("id"),FormatManifest,path=>{var file=new FileInfo(path);if(!file.Exists||file.Length>1048576||file.LinkTarget is not null)throw new IOException("Connection declaration unavailable");return path;},S("operation")=="connectionSettingsRepair"?request:null);break;
         case "catalog":
             reply=SemanticCatalogService.Query(S("project"),request["request"]!.AsObject(),path=>{var file=new FileInfo(path);if(!file.Exists||file.Length>1048576||file.LinkTarget is not null)throw new IOException("Owned document unavailable");return path;});break;
         case "effective":
@@ -168,7 +168,7 @@ try
 }
 catch(Exception error)
 {
-    Console.Write(JsonSerializer.Serialize(new{ok=false,code=error is BuildError build?build.Diagnostic.Code:"AUTHORING",message=error.Message}));return 0;
+    Console.Write(JsonSerializer.Serialize(new{ok=false,code=error is BuildError build?build.Diagnostic.Code:"AUTHORING",message=error.Message,namespaceDiagnostic=NamespaceDiagnostic.From(error as BuildError)}));return 0;
 }
 static string Owned(string root,string relative)
 {

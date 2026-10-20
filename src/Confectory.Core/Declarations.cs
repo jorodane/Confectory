@@ -6,10 +6,12 @@ namespace Confectory.Core;
 
 public sealed record SourceLocation(string File = "<build>", int Line = 1, int Column = 1);
 public sealed record Diagnostic(string Severity, string Code, string Message, SourceLocation Location);
+public sealed record NamespaceResolutionDiagnostic(string MissingNamespace, string Resolution, string? OwnerNamespace = null, string? Reference = null);
 
 public sealed class BuildError : Exception
 {
     public Diagnostic Diagnostic { get; }
+    public NamespaceResolutionDiagnostic? NamespaceDiagnostic { get; init; }
     public BuildError(string code, string message, SourceLocation? location = null) : base(message)
         => Diagnostic = new("error", code, message, location ?? new());
     public override string ToString() => $"{Diagnostic.Location.File}({Diagnostic.Location.Line},{Diagnostic.Location.Column}): {Diagnostic.Code}: {Message}";

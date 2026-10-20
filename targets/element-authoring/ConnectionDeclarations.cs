@@ -1,7 +1,7 @@
 using System.Linq;
 internal static class ConnectionDeclarations
 {
- public static System.Text.Json.Nodes.JsonObject Query(string project,string? selected,Func<Confectory.Core.Manifest,string> format,Func<string,string> scope)
+ public static System.Text.Json.Nodes.JsonObject Query(string project,string? selected,Func<Confectory.Core.Manifest,string> format,Func<string,string> scope,System.Text.Json.Nodes.JsonObject? repair=null)
  {
  project=scope(System.IO.Path.GetFullPath(project));string root=System.IO.Path.GetDirectoryName(project)!;
  // Each query reads current declarations. Serializing/deserializing the persistent build
@@ -28,6 +28,7 @@ internal static class ConnectionDeclarations
  // its own ProjectPack must declare the dependency, even on the very first run.
  string selectedPack=selected.Split("::")[0];var installed=registry.Packs[selectedPack];
  manifest.Dependencies.TryAdd(selectedPack,new Confectory.Core.Dependency(installed.Version,installed.Loc));
+ if(repair is not null)return ConnectionSettingsRepair.Propose(manifest,registry,selected,repair,format);
  return new System.Text.Json.Nodes.JsonObject{["manifest"]=format(manifest),["source"]="object Confectory.AISettings::Settings extends "+selected+" {}\n",["connection"]=selected,["settingsDependency"]=new System.Text.Json.Nodes.JsonObject{["namespace"]=selectedPack,["version"]=installed.Version},["credentialRead"]=false,["executionPerformed"]=false};
  }
 }

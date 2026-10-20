@@ -258,7 +258,7 @@ public sealed class Builder
 
     public JsonObject Check(string ns)
     {
-        if (!Registry.Packs.TryGetValue(ns, out var pack)) throw new BuildError("MISSING_NAMESPACE", $"Pack {ns} is not selected");
+        if (!Registry.Packs.TryGetValue(ns, out var pack)) throw new BuildError("MISSING_NAMESPACE", $"Pack {ns} is not selected") { NamespaceDiagnostic = new(ns, "pack-check") };
         List<Element> implementations = []; var planner = new Planner(Registry, Target);
         foreach (var (local, locator) in pack.Elements)
         {
