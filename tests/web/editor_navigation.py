@@ -5,3 +5,9 @@ def goto_editor(page, url):
     later=page.locator('.welcome #later')
     if later.count():
         later.click()
+
+
+def open_project_tools(page):
+    """Open the real project menu; the v508 toolbar has no legacy browse button."""
+    page.locator('#title').click()
+    page.locator('.context-menu').get_by_role('button', name='프로젝트 도구', exact=True).click()

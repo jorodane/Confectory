@@ -1,0 +1,236 @@
+{
+  "base": "744463bc1a15f0de726361dc137cd9792eea3be4",
+  "reference": {
+    "referenceZip": "reference/site-ui/Confectory-Editor-Prototype-v508.zip",
+    "zipSha256": "b306ce4deff9616c4107ae224443d864f8fce0f52cf3c3e158de8745c17c659f",
+    "referenceStyleSha256": "f5b0be01e7daccef55d3aabcf2d33f9b887caee7b6f40c8d49cd46e7347a2700",
+    "runtimeStyleSha256": "f5b0be01e7daccef55d3aabcf2d33f9b887caee7b6f40c8d49cd46e7347a2700",
+    "referenceAppSha256": "f861e1717c53e095830af13cb358dfabf1f3a8a01d0d7a9966a284444410afd8",
+    "entry": "examples/editor-home/ui/index.html -> app.js -> v508-runtime.js",
+    "backup": "/workspace/artifacts/Confectory-ui-before-v508-744463b.tar.gz",
+    "base": "744463bc1a15f0de726361dc137cd9792eea3be4"
+  },
+  "resourceCount": 50,
+  "checks": {
+    "affectedAggregate": {
+      "passed": 19,
+      "failed": 0,
+      "skipped": 0
+    },
+    "blueprintRegressions": {
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0
+    },
+    "customMainHelperLocalProposals": "passed",
+    "finalGlobalUi": "passed",
+    "sourceRuntimeComparison": "passed",
+    "ordinaryGitCheckout": "pending publication-stage check"
+  },
+  "builds": {
+    "linux": {
+      "ok": true,
+      "key": "80ca0fd703dbdf00d43ad878f69d146145152d2656e852b9c17d455ce5914752",
+      "diagnostics": []
+    },
+    "windows": {
+      "ok": true,
+      "key": "7be8b45445bd5aeaf13b83a0ff13923da9565d94197c3370fe2b0a7b87f192aa",
+      "diagnostics": []
+    }
+  },
+  "screens": {
+    "widths": [
+      1440,
+      900,
+      600
+    ],
+    "count": 44,
+    "pageErrors": [],
+    "externalRequests": [],
+    "referenceFontRequestBlocked": true
+  },
+  "notRun": [
+    "native Windows CMD/WebView",
+    "actual user-PC Responses error reproduction",
+    "entire repository test suite"
+  ],
+  "screenshots": {
+    "reference-agent-1440.png": {
+      "bytes": 51373,
+      "sha256": "27335b7bf8a83a2775b733d5f3f318bc119296886bde75d171a418dd221d7d2b"
+    },
+    "reference-agent-600.png": {
+      "bytes": 35823,
+      "sha256": "48858b1dfdb9f5c6b0ad7ae93046b9e9e24ca83b43d514c595274e11ef252aec"
+    },
+    "reference-agent-900.png": {
+      "bytes": 42959,
+      "sha256": "dd04eb0c270f9b8bc31da83197270a2c47d37704d8785a8992a631cfac8f9f2d"
+    },
+    "reference-helper-add-1440.png": {
+      "bytes": 68958,
+      "sha256": "42c6a3e445184a54ccf6957bd76c5ba5ee6e58d0e3d163491423623df2d3f86d"
+    },
+    "reference-helper-add-600.png": {
+      "bytes": 41915,
+      "sha256": "28a4493faeb26f4a83226d877dec4584e405274b84a7f1f8e2261fee9776d2da"
+    },
+    "reference-helper-add-900.png": {
+      "bytes": 56820,
+      "sha256": "f2f0ef2f7e41d19983ee1b1e9a8544291ef958451df28d20087369bc8a8caf98"
+    },
+    "reference-home-1440.png": {
+      "bytes": 35778,
+      "sha256": "63818dfa08ff9a77dc0b118c7f29fa4ef48b4e1eafe8a761af3f68e284f6fbf0"
+    },
+    "reference-home-600.png": {
+      "bytes": 29199,
+      "sha256": "5e44fb6908536381b0c5f68eae4aac05889d2d1f25a58a1a24247df6b003acd4"
+    },
+    "reference-home-900.png": {
+      "bytes": 31078,
+      "sha256": "6933a7cdf6538f114477e84ba535cbd21a829518edcd4f55b4bee91bab976a32"
+    },
+    "reference-project-1440.png": {
+      "bytes": 77135,
+      "sha256": "8530170bab965ee779ff82adcfaf20baa704affadce1c3d265b22606a3381572"
+    },
+    "reference-project-600.png": {
+      "bytes": 36688,
+      "sha256": "f717c2d1e34f9d1f41d6f7debf462e2215967e0800029891fe589052559f9805"
+    },
+    "reference-project-900.png": {
+      "bytes": 49084,
+      "sha256": "a98f4a562fa0f4fa34cf46dec15e5fd78e19ed4e9e0a6c81e7949d9008e1503a"
+    },
+    "reference-project-footer-600.png": {
+      "bytes": 35392,
+      "sha256": "0587309f59c5c7cd4aec6841196d836449e8c3422f4cd305c7eab133fe20ee34"
+    },
+    "reference-project-packs-1440.png": {
+      "bytes": 82992,
+      "sha256": "560a51a88c82f360636297804dd488052c91e928b44dd2006f9a07b4d207427f"
+    },
+    "reference-project-packs-600.png": {
+      "bytes": 44921,
+      "sha256": "1d803bbf3d9608ec92c32bc0336f8e68c40e00890eb426ba68790b325f134fb0"
+    },
+    "reference-project-packs-900.png": {
+      "bytes": 56753,
+      "sha256": "c1f41fb7cddb4ea1630026f07cca4c0af74e953831b4d52b7adc5a3f2579b665"
+    },
+    "reference-sidebar-1440.png": {
+      "bytes": 39140,
+      "sha256": "9ff83eef7a412a0a1d44da1866ef808ae17248d6eb4e5194d0d2b9dfe341253c"
+    },
+    "reference-sidebar-600.png": {
+      "bytes": 28312,
+      "sha256": "e3542563de822f8f38ece8699689f640d37d7a72e3427e3b68589d8662c44dee"
+    },
+    "reference-sidebar-900.png": {
+      "bytes": 34335,
+      "sha256": "0277feb89a64a91506dec4a0bf49a62b485a03258d1cd81035961cf09a98b3d4"
+    },
+    "reference-start-1440.png": {
+      "bytes": 113451,
+      "sha256": "eddce22dacc9b9811b141b2721f0fd945fb6c9e9cc870e0c61c923ee89372323"
+    },
+    "reference-start-600.png": {
+      "bytes": 61154,
+      "sha256": "f9c4c7263eaca9c8b19d4cf32007b65df7a422a880826047c350d61f950c1ddd"
+    },
+    "reference-start-900.png": {
+      "bytes": 75223,
+      "sha256": "a48d3db2c2f20f2c655f0ccdb16e4ae9aea2b384a3e0f755d210de25cf4635dd"
+    },
+    "runtime-agent-1440.png": {
+      "bytes": 42894,
+      "sha256": "d3469314d37391db42677a8abaf560857b2f16a7f197560026acdecd3c485dd8"
+    },
+    "runtime-agent-600.png": {
+      "bytes": 24215,
+      "sha256": "a8270a0999dc79b7990ddfc68d2a8edb732d6ab2fcd3dce559b31c090d67e6a0"
+    },
+    "runtime-agent-900.png": {
+      "bytes": 35836,
+      "sha256": "f7105ca5b2a6b4466056c6120952b3f526d45850eab96b44ec53d6e709dcc42a"
+    },
+    "runtime-helper-add-1440.png": {
+      "bytes": 70803,
+      "sha256": "d86894c59eaa62b6af97e21be8e76c0224ebb66cf7952d5cfb5902c58612a243"
+    },
+    "runtime-helper-add-600.png": {
+      "bytes": 43632,
+      "sha256": "e069c7a5b2c036583bf0b24c2eafdcb53249584606cbeabed918fdac6d459a5d"
+    },
+    "runtime-helper-add-900.png": {
+      "bytes": 57225,
+      "sha256": "1ab8b564ba454bf3d571416f5af59f61c9d2e2ccdac1752834df8ca2a19d8420"
+    },
+    "runtime-home-1440.png": {
+      "bytes": 28263,
+      "sha256": "6e4389727a922092f1c9da79411e1b5b65c42eab3f46b1649768b1ab80c73f84"
+    },
+    "runtime-home-600.png": {
+      "bytes": 22869,
+      "sha256": "43c77ffc1342d06e2dd703ea6931ec35527125edef4ef10f2e91539d991843ce"
+    },
+    "runtime-home-900.png": {
+      "bytes": 24328,
+      "sha256": "039ce5ebf16101f33289244e0c05da4abf8b1fb77fe20ab1bfa4e8ac917a41d6"
+    },
+    "runtime-project-1440.png": {
+      "bytes": 75761,
+      "sha256": "a49e1e8f9e3137f9eea888849063f1969e9262f3eafec8861e1ce13ea941bd35"
+    },
+    "runtime-project-600.png": {
+      "bytes": 35646,
+      "sha256": "838add6c0fd53eedbd7c9fe4aba8ddec63f624d455ae6f064f5c894dd85c01b5"
+    },
+    "runtime-project-900.png": {
+      "bytes": 49431,
+      "sha256": "057c83e67b7f76e5d148b1f45b6bde3880bf43fc2c696c2b49f76c5bc563ade0"
+    },
+    "runtime-project-footer-600.png": {
+      "bytes": 36299,
+      "sha256": "3abedd3fb4a2a2dff18328a18075589ce86fee75553d4385f98df1b8a6a44e53"
+    },
+    "runtime-project-packs-1440.png": {
+      "bytes": 61910,
+      "sha256": "68669408f71b23c332ec2f81035903c9758d4612ed1f71b3c51d908d5771756d"
+    },
+    "runtime-project-packs-600.png": {
+      "bytes": 25805,
+      "sha256": "45bf9e2986b25d9d99b3b1a17c7948ce331b2093d2d0dc37ef8df99a6ed5d000"
+    },
+    "runtime-project-packs-900.png": {
+      "bytes": 39997,
+      "sha256": "3397ca67131ae16553c8f65395e2b60c2daffa25d2bc1eb75c10cc73c83b9c86"
+    },
+    "runtime-sidebar-1440.png": {
+      "bytes": 39316,
+      "sha256": "80064fda9059eec298d87e8f84f089494a52cfa5fcd7fe4db7b850e548017a33"
+    },
+    "runtime-sidebar-600.png": {
+      "bytes": 29201,
+      "sha256": "eb35f65c3c9620030a2209218309bc1a0741caedacf4c9d7ebc2b1ad0a232de7"
+    },
+    "runtime-sidebar-900.png": {
+      "bytes": 34466,
+      "sha256": "6dfe16a0ed58902e4d1d8b9d327c9cd061f15e4976e944a865e59a6f68e73274"
+    },
+    "runtime-start-1440.png": {
+      "bytes": 113451,
+      "sha256": "eddce22dacc9b9811b141b2721f0fd945fb6c9e9cc870e0c61c923ee89372323"
+    },
+    "runtime-start-600.png": {
+      "bytes": 61154,
+      "sha256": "f9c4c7263eaca9c8b19d4cf32007b65df7a422a880826047c350d61f950c1ddd"
+    },
+    "runtime-start-900.png": {
+      "bytes": 75223,
+      "sha256": "a48d3db2c2f20f2c655f0ccdb16e4ae9aea2b384a3e0f755d210de25cf4635dd"
+    }
+  }
+}

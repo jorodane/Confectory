@@ -58,9 +58,9 @@ with sync_playwright() as p:
                 before_processes=log_path.read_text().count('"stage":"authoring-process"')
                 # Installed cards and the engine route require no source scan or provider settings.
                 for iteration in range(3):
-                    page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='사용할 AI',exact=True);expect(dialog).to_be_visible()
+                    page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='Agent 추가',exact=True);expect(dialog).to_be_visible()
                     expect(dialog.locator('[data-connection-choice]')).to_have_count(2)
-                    dialog.get_by_role('button',name='Codex',exact=True).click();expect(dialog.locator('[data-mcp-panel]')).to_be_visible()
+                    expect(dialog.locator('[data-mcp-panel]')).to_have_count(0)
                     dialog.locator('[data-connection-cancel]').click();expect(dialog).to_have_count(0)
                 assert invocations[before:]==[],invocations[before:]
                 assert log_path.read_text().count('"stage":"authoring-process"')==before_processes
@@ -69,8 +69,8 @@ with sync_playwright() as p:
                 else:assert not (settings/'Settings.celem').exists()
                 # A double entry event owns exactly one modal; a closed dialog cannot render later.
                 page.locator('#add-agent').evaluate('(button)=>{button.click();button.click();}')
-                dialog=page.get_by_role('dialog',name='사용할 AI',exact=True);expect(dialog).to_have_count(1)
-                dialog.get_by_role('button',name='Codex',exact=True).click();dialog.locator('[data-codex-route="provider"]').click()
+                dialog=page.get_by_role('dialog',name='Agent 추가',exact=True);expect(dialog).to_have_count(1)
+                dialog.get_by_role('button',name='Codex',exact=True).click()
                 if scenario!='fresh':
                     diagnostic=dialog.locator('[data-connection-error]');code='connection_settings_incomplete' if scenario=='partial-settings' else 'authoring_host_missing'
                     expect(diagnostic).to_have_attribute('data-code',code);expect(diagnostic).to_be_visible()
@@ -91,17 +91,15 @@ with sync_playwright() as p:
                 if scenario=='partial-settings':expect(field).to_have_value('preserved-user-input')
                 field.fill('unapplied-kept-across-close');dialog.locator('[data-connection-cancel]').click();expect(dialog).to_have_count(0)
                 expect(page.locator('#add-agent')).to_be_enabled()
-                page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='사용할 AI',exact=True);dialog.get_by_role('button',name='Codex',exact=True).click();dialog.locator('[data-codex-route="provider"]').click();expect(dialog.locator('[data-connection-advanced]')).to_be_visible();dialog.locator('[data-connection-advanced]>summary').click()
+                page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='Agent 추가',exact=True);dialog.get_by_role('button',name='Codex',exact=True).click();expect(dialog.locator('[data-connection-advanced]')).to_be_visible();dialog.locator('[data-connection-advanced]>summary').click()
                 expect(dialog.locator('[data-connection-field="model"]')).to_have_value('unapplied-kept-across-close')
                 dialog.locator('[data-connection-back]').click();expect(dialog.locator('[data-connection-form]')).to_be_empty()
                 dialog.get_by_role('button',name='OpenAI Responses',exact=True).click();expect(dialog.locator('[data-connection-field="model"]')).not_to_have_value('unapplied-kept-across-close')
                 dialog.locator('[data-connection-cancel]').click();expect(page.locator('#add-agent')).to_be_enabled()
                 # Close after the backend request starts, before it can return its settings.
-                page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='사용할 AI',exact=True);dialog.get_by_role('button',name='Codex',exact=True).click()
-                with page.expect_request(lambda req:req.url.endswith('/api/request') and req.post_data_json.get('endpoint')=='connectionSetup'):
-                    dialog.locator('[data-codex-route="provider"]').click()
+                page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='Agent 추가',exact=True);dialog.get_by_role('button',name='Codex',exact=True).click()
                 dialog.locator('[data-connection-cancel]').click();expect(dialog).to_have_count(0);expect(page.locator('#add-agent')).to_be_enabled()
-                page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='사용할 AI',exact=True);dialog.get_by_role('button',name='Codex',exact=True).click();expect(dialog.locator('[data-mcp-panel]')).to_be_visible()
+                page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='Agent 추가',exact=True);dialog.get_by_role('button',name='Codex',exact=True).click();expect(dialog.locator('[data-connection-advanced]')).to_be_visible()
                 assert state(url)['projectId']==''
                 dialog.locator('[data-connection-cancel]').click()
                 if scenario=='partial-settings':assert (settings/'Settings.celem').read_text()==original

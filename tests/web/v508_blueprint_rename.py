@@ -1,3 +1,4 @@
+from editor_navigation import open_project_tools
 """Owned source Rename through the ordinary host, browser, transport and cold restore."""
 import json,uuid,copy
 from pathlib import Path
@@ -17,8 +18,8 @@ def verify_rename(page,project,mount,send,envelope,settle,restart):
  def read():return invoke('blueprint',dict(action='read',id=graph))
  def node(data):return next(n for n in data['nodes'] if n['id']=='calculate')
  def nav(text):
-  ready();page.locator('#nav').click();page.locator('.nav-menu').get_by_role('button',name=text,exact=True).click();ready()
-  if page.locator('.nav-menu').count():page.locator('#nav').click()
+  ready();open_project_tools(page);page.locator('.nav-menu').get_by_role('button',name=text,exact=True).click();ready()
+  if page.locator('.nav-menu').count():open_project_tools(page)
  def select():panel().locator('[data-bp-select="calculate"]').click();ready()
  def f2():front();label().focus();page.keyboard.press('F2');expect(edit()).to_be_visible()
  def commit(text):edit().fill(text);edit().press('Enter');ready()

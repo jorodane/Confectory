@@ -1,3 +1,4 @@
+from editor_navigation import open_project_tools
 """v508 overview through the ordinary Home host; source and pending edit bases stay owned."""
 import copy,json,shutil,time,uuid
 from playwright.sync_api import expect
@@ -29,8 +30,8 @@ def verify_overview(page,project,mount,send,envelope,settle,restart):
  def meta():return next(r for r in saved()['layout']+saved().get('windowDocuments',[]) if r['key']=='blueprint')['meta']
  def camera():return meta()['blueprintCamera']
  def nav(label):
-  ready();page.locator('#nav').click();page.locator('.nav-menu').get_by_role('button',name=label,exact=True).click();ready()
-  if page.locator('.nav-menu').count():page.locator('#nav').click()
+  ready();open_project_tools(page);page.locator('.nav-menu').get_by_role('button',name=label,exact=True).click();ready()
+  if page.locator('.nav-menu').count():open_project_tools(page)
  def position(key,x,y):
   title=window(key).locator('.window-title');b=title.bounding_box();assert b;page.mouse.move(b['x']+120,b['y']+18);page.mouse.down();page.mouse.move(x+120,y+18,steps=10);page.mouse.up();ready()
  def source_inputs(dom=True):

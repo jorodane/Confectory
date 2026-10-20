@@ -1,3 +1,4 @@
+from editor_navigation import open_project_tools
 """Actual Home graph/node consumer; reference demo stamps never supply success."""
 import json,uuid,time
 from playwright.sync_api import expect
@@ -18,7 +19,7 @@ def verify_blueprint(page,project,mount,send,envelope,settle,restart):
  def panel():return page.locator('.window[data-key="blueprint"]')
  def front(w):
   title=w.locator('.window-title');point=title.evaluate("el=>{const r=el.getBoundingClientRect();for(const fraction of [.75,.5,.25,.9]){const x=Math.floor(r.width*fraction),y=Math.floor(r.height*.6),hit=document.elementFromPoint(r.left+x,r.top+y);if(hit&&el.contains(hit)&&!hit.closest('button,[data-resize]'))return {x,y}}return null}");assert point,'No actually exposed title area';title.click(position=point)
- page.locator('#nav').click();page.locator('.nav-menu').get_by_role('button',name='기능 Blueprint',exact=True).click();ready()
+ open_project_tools(page);page.locator('.nav-menu').get_by_role('button',name='기능 Blueprint',exact=True).click();ready()
  expect(panel().locator('[data-bp-node]')).to_have_count(2);expect(panel().locator('.bp-start')).to_contain_text('n');expect(panel().locator('.bp-start')).to_contain_text('long');expect(panel().locator('[data-bp-exit="fallback"]')).to_have_value('{"constant":9223372036854775807}')
  assert not state()['aiOwnerAvailable'] and not state()['planningOwnerAvailable'];assert all(p.read_bytes()==b for p,b in before.items())
  expect(panel().locator('.bp-wires path')).to_have_count(1)
@@ -26,7 +27,7 @@ def verify_blueprint(page,project,mount,send,envelope,settle,restart):
  first=invoke('blueprint',{'action':'read','id':graph});handle=panel().locator('[data-bp-drag="calculate"]');box=handle.bounding_box();page.mouse.move(box['x']+40,box['y']+12);page.mouse.down();page.mouse.move(box['x']+85,box['y']+38,steps=5);page.mouse.up();panel().locator('[data-bp-zoom]').fill('90');page.evaluate('()=>globalThis.confectoryFlushPresentation()');again=invoke('blueprint',{'action':'read','id':graph});assert first['sources']==again['sources']
  panel().locator('[data-bp-select="calculate"]').click();intent=panel().locator('[data-bp-intent]');intent.fill('Human revised intent, retained until explicitly applied');panel().locator('[data-bp-task]').click();expect(page.locator('#status')).to_contain_text('미적용 입력');assert page.locator('.window[data-key="node-tasks"]').count()==0
  # Standalone node inspection sees the same unsent node intent, even without a chief.
- page.locator('#nav').click();page.locator('.nav-menu').get_by_role('button',name='Blueprint 노드 Task',exact=True).click();ready();tasks=page.locator('.window[data-key="node-tasks"]');tasks.locator('[data-node-task-id="'+node+'"]').click();tasks.locator('[data-node-task-inspect]').click();ready();expect(page.locator('#status')).to_contain_text('미적용 입력');tasks.locator('[data-close]').click();front(panel());expect(intent).to_have_value('Human revised intent, retained until explicitly applied')
+ open_project_tools(page);page.locator('.nav-menu').get_by_role('button',name='Blueprint 노드 Task',exact=True).click();ready();tasks=page.locator('.window[data-key="node-tasks"]');tasks.locator('[data-node-task-id="'+node+'"]').click();tasks.locator('[data-node-task-inspect]').click();ready();expect(page.locator('#status')).to_contain_text('미적용 입력');tasks.locator('[data-close]').click();front(panel());expect(intent).to_have_value('Human revised intent, retained until explicitly applied')
  # The opaque basis also fences another source, even when graph itself is unchanged.
  invoke('select',{'id':node});unit=state()['draft'];record=json.loads(unit['text']);record['source']='return value + 6;';invoke('editDraft',{'id':node,'text':json.dumps(record),'revision':unit['revision']})
  intent.locator('..').locator('[data-apply]').click();ready();expect(page.locator('#status')).to_contain_text('입력은 유지');expect(intent).to_have_value('Human revised intent, retained until explicitly applied')

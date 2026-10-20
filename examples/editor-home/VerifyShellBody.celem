@@ -3,4 +3,5 @@ import Confectory.EditorHome.Model::CreateSession as CreateSession (string, stri
 import Confectory.EditorHome.Model::Command as Command (string, string, string) -> string;
 import Confectory.EditorHome.Model::Snapshot as Snapshot (string) -> string;
 import Confectory.EditorHome.Model::CloseSession as CloseSession (string) -> void;
+import Confectory.EditorHome.Model::HelperAgents as HelperAgents (string,string,string) -> string;
 body common "VerifyShell.csbody"; }

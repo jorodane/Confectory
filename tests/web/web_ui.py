@@ -1,3 +1,4 @@
+from editor_navigation import open_project_tools
 from editor_navigation import goto_editor
 """Real ordinary EditorHome + ButtonGame packs through the common local web transport."""
 import re,hashlib,json,os,pathlib,signal,subprocess,sys,tempfile,time,urllib.request,urllib.error,uuid,shutil
@@ -215,7 +216,7 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
     if kind=='button':
      expect(page.locator('#score')).to_have_text('1');page.locator('#increase').click();expect(page.locator('#score')).to_have_text('2');page.locator('#reconnect').click();expect(page.locator('#status')).to_have_text('Reconnected');expect(page.locator('#score')).to_have_text('2');page.locator('#reset').click();expect(page.locator('#score')).to_have_text('0')
     elif kind=='review-before':
-     page.locator('#nav').click();page.locator('.nav-menu button').filter(has_text='개념').first.click();expect(page.locator('#nav')).to_be_enabled();page.locator('#nav').click()
+     open_project_tools(page);page.locator('.nav-menu button').filter(has_text='개념').first.click();expect(page.locator('#nav')).to_be_enabled();open_project_tools(page)
      page.locator('[data-id="Example.ButtonGame::Score"]').click();expect(page.locator('[data-schema-field="initial"]')).to_be_visible(timeout=30000)
      value=page.locator('[data-schema-field="initial"]');value.fill('1');value.locator('..').get_by_role('button',name='Apply field',exact=True).click();expect(page.locator('#status')).to_have_text('Shared field draft updated',timeout=30000)
      page.locator('#semantic-review').click();expect(page.locator('#confirm')).to_be_enabled(timeout=30000)
@@ -228,7 +229,7 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
     elif kind=='review-presentation':
      prefix='Example.ButtonGame::'
      def presentation_browser():
-      page.locator('#nav').click();page.locator('.nav-menu button').filter(has_text='개념').first.click();expect(page.locator('#nav')).to_be_enabled();page.locator('#nav').click()
+      open_project_tools(page);page.locator('.nav-menu button').filter(has_text='개념').first.click();expect(page.locator('#nav')).to_be_enabled();open_project_tools(page)
      def action(selector):
       page.locator('#browser-actions').click();page.locator(selector).click()
      manifest=(project/'project.cpack').read_bytes()
@@ -422,19 +423,19 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
      verify_relations_map(page,project,mount,send,envelope,settle,restart_actual_host)
     elif kind=='declaration-forms':
      def open_browser():
-      page.locator('#nav').click();page.locator('.nav-menu button').filter(has_text='개념').first.click();expect(page.locator('#nav')).to_be_enabled();page.locator('#nav').click();page.locator('.window[data-key="browser"] [data-tab="concept"]').click();expect(page.locator('#nav')).to_be_enabled()
+      open_project_tools(page);page.locator('.nav-menu button').filter(has_text='개념').first.click();expect(page.locator('#nav')).to_be_enabled();open_project_tools(page);page.locator('.window[data-key="browser"] [data-tab="concept"]').click();expect(page.locator('#nav')).to_be_enabled()
      def browser_action(selector):page.locator('#browser-actions').click();page.locator(selector).click()
      from v424_declaration_forms import verify_declaration_forms
      verify_declaration_forms(page,project,mount,send,envelope,settle,open_browser,browser_action,restart_actual_host)
     elif kind=='declarations':
      def open_browser():
-      page.locator('#nav').click();page.locator('.nav-menu button').filter(has_text='개념').first.click();expect(page.locator('#nav')).to_be_enabled();page.locator('#nav').click()
+      open_project_tools(page);page.locator('.nav-menu button').filter(has_text='개념').first.click();expect(page.locator('#nav')).to_be_enabled();open_project_tools(page)
      def browser_action(selector):page.locator('#browser-actions').click();page.locator(selector).click()
      from v424_authoring import verify_declaration_kinds
      verify_declaration_kinds(page,project,mount,send,envelope,settle,open_browser,browser_action,restart_actual_host)
     elif kind=='creation':
      def open_browser():
-      page.locator('#nav').click();page.locator('.nav-menu button').filter(has_text='개념').first.click();expect(page.locator('#nav')).to_be_enabled();page.locator('#nav').click()
+      open_project_tools(page);page.locator('.nav-menu button').filter(has_text='개념').first.click();expect(page.locator('#nav')).to_be_enabled();open_project_tools(page)
      def browser_action(selector):page.locator('#browser-actions').click();page.locator(selector).click()
      from semantic_authoring import verify_concept_creation
      verify_concept_creation(page,project,mount,send,envelope,open_browser,browser_action,restart_actual_host)
@@ -443,7 +444,7 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
       # Navigation is local UI state: never leave a blind toggle over the next source action.
       for _ in range(3):
        if bool(page.locator('.nav-menu').count())==visible:return
-       page.locator('#nav').click()
+       open_project_tools(page)
       expect(page.locator('.nav-menu')).to_have_count(1 if visible else 0)
      def open_browser():
       selected=page.locator('.window[data-key="browser"] [data-tab].selected');group=selected.get_attribute('data-tab') if selected.count() else 'concept'

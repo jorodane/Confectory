@@ -2,7 +2,7 @@
 export function createHomePreferences(api){
  let value=null,revision=0,saved=0,timer=null,saving=null,status='ready';
  function hydrate(remote){if(value)return;value=structuredClone(remote.value);status=remote.status;render();}
- function render(){const label=api.$('#home-save-state'),retry=api.$('#home-save-retry');if(label)label.textContent=status==='unavailable'?'Home 보기 저장 자료를 읽지 못했습니다. 기존 파일을 유지합니다.':status==='failed'?'Home 보기 저장 실패 · 입력을 유지했습니다.':saving?'Home 보기 저장 중…':revision>saved?'Home 보기 변경 있음':'Home 보기 저장됨';if(retry){retry.hidden=status!=='failed';retry.disabled=!!saving;retry.onclick=()=>flush();}}
+ function render(){const label=api.$('#home-save-state'),retry=api.$('#home-save-retry');if(label){label.hidden=!['unavailable','failed'].includes(status);label.textContent=status==='unavailable'?'Home 보기 저장 자료를 읽지 못했습니다. 기존 파일을 유지합니다.':status==='failed'?'Home 보기 저장 실패 · 입력을 유지했습니다.':saving?'Home 보기 저장 중…':revision>saved?'Home 보기 변경 있음':'';}if(retry){retry.hidden=status!=='failed';retry.disabled=!!saving;retry.onclick=()=>flush();}}
  function schedule(){clearTimeout(timer);timer=setTimeout(()=>{if(!api.canSave()){schedule();return;}flush();},250);}
  function changed(){revision++;render();schedule();}
  async function flush(){
