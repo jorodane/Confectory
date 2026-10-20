@@ -17,7 +17,7 @@ class Fixture(http.server.BaseHTTPRequestHandler):
    if content['message']=='wait-global':
     (root/'waiting').touch();deadline=time.monotonic()+15
     while not (root/'release').exists() and time.monotonic()<deadline:time.sleep(.01)
-   if content['message']=='fail-global':self.send_response(429);self.end_headers();return
+   if content['message']=='fail-global' and not (root/'allow-retry').exists():self.send_response(429);self.end_headers();return
    text='OWNED GLOBAL HTTP FIXTURE: '+content['context']['helper']+' / '+content['message']
    data=json.dumps({'status':'completed','output':[{'type':'message','role':'assistant','content':[{'type':'output_text','text':text}]}]}).encode()
    self.send_response(200);self.send_header('Content-Type','application/json');self.send_header('Content-Length',str(len(data)));self.end_headers();self.wfile.write(data)

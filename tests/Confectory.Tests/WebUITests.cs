@@ -2,6 +2,12 @@ using Confectory.Core;
 namespace Confectory.Tests;
 public sealed class WebUITests : TestCase
 {
+    public void test_actual_v508_helper_chat_layout_and_send_boundary_contract()
+    {
+        if(!OperatingSystem.IsLinux())Skip("Original ZIP/Chromium contract runs on Linux; native Windows execution is separate");
+        var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/helper_chat_v508_contract.py"),Fixture.Repo},timeoutSeconds:120);
+        True(run.ExitCode==0,run.Stdout+run.Stderr);Console.WriteLine(run.Stdout.Trim());True(run.Stdout.Contains("PASS original v508 chat geometry and production UI contract"));
+    }
     public void test_codex_plugin_isolation_toml_argv_and_metadata_bounds()
     {
         if(!OperatingSystem.IsLinux())Skip("Portable process argv fixture runs on Linux; actual Windows runtime is separate");

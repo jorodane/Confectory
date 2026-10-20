@@ -1,0 +1,142 @@
+{
+  "pass": true,
+  "originalGeometryMatchedAt": [
+    1440,
+    600
+  ],
+  "geometry": [
+    {
+      "viewport": [
+        1440,
+        1000
+      ],
+      "original": {
+        ".messages": {
+          "x": 215,
+          "y": 458.03125,
+          "width": 404,
+          "height": 108
+        },
+        "form": {
+          "x": 215,
+          "y": 582.03125,
+          "width": 404,
+          "height": 42
+        },
+        "textarea": {
+          "x": 215,
+          "y": 582.03125,
+          "width": 325.828125,
+          "height": 38
+        },
+        "button[type=submit]": {
+          "x": 548.828125,
+          "y": 582.03125,
+          "width": 70.171875,
+          "height": 42
+        }
+      },
+      "restored": {
+        ".messages": {
+          "x": 215,
+          "y": 458.03125,
+          "width": 404,
+          "height": 108
+        },
+        "form": {
+          "x": 215,
+          "y": 582.03125,
+          "width": 404,
+          "height": 42
+        },
+        "textarea": {
+          "x": 215,
+          "y": 582.03125,
+          "width": 325.828125,
+          "height": 38
+        },
+        "button[type=submit]": {
+          "x": 548.828125,
+          "y": 582.03125,
+          "width": 70.171875,
+          "height": 42
+        }
+      }
+    },
+    {
+      "viewport": [
+        600,
+        800
+      ],
+      "original": {
+        ".messages": {
+          "x": 209,
+          "y": 452.03125,
+          "width": 416,
+          "height": 108
+        },
+        "form": {
+          "x": 209,
+          "y": 576.03125,
+          "width": 416,
+          "height": 42
+        },
+        "textarea": {
+          "x": 209,
+          "y": 576.03125,
+          "width": 337.828125,
+          "height": 38
+        },
+        "button[type=submit]": {
+          "x": 554.828125,
+          "y": 576.03125,
+          "width": 70.171875,
+          "height": 42
+        }
+      },
+      "restored": {
+        ".messages": {
+          "x": 209,
+          "y": 452.03125,
+          "width": 416,
+          "height": 108
+        },
+        "form": {
+          "x": 209,
+          "y": 576.03125,
+          "width": 416,
+          "height": 42
+        },
+        "textarea": {
+          "x": 209,
+          "y": 576.03125,
+          "width": 337.828125,
+          "height": 38
+        },
+        "button[type=submit]": {
+          "x": 554.828125,
+          "y": 576.03125,
+          "width": 70.171875,
+          "height": 42
+        }
+      }
+    }
+  ],
+  "oneOriginalSendSlot": true,
+  "checks": [
+    "IME",
+    "double submit",
+    "streaming",
+    "same-slot cancel",
+    "newer draft preserved",
+    "extra permissions conditional",
+    "unexpected project blocked",
+    "changed Agent blocked",
+    "extra memory conditional",
+    "lost ack no replay",
+    "error retry draft",
+    "typing during autosave"
+  ],
+  "realAccountOrInference": false,
+  "root": "/tmp/confectory-v508-chat-contract-9zkp7ao9"
+}

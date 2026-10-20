@@ -17,4 +17,4 @@ if(operation=="save"){
  if(calls.Commit.Invoke(storage,new[]{relative},new[]{saved[2]},new[]{candidate.ToJsonString()})[0]!="applied")throw new InvalidOperationException("Helper display changed; inputs retained");
  saved=calls.Snapshot.Invoke(path);value=candidate;
 }else if(operation!="load")throw new ArgumentException("Unknown Helper display operation");
-return new System.Text.Json.Nodes.JsonObject{["revision"]=saved[2],["value"]=value}.ToJsonString();
+return new System.Text.Json.Nodes.JsonObject{["revision"]=saved[2],["draftRevision"]=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(value["globalDraft"]!.GetValue<string>()))).ToLowerInvariant(),["value"]=value}.ToJsonString();

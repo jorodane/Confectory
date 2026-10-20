@@ -2,7 +2,7 @@ if(calls.Cancelled.Invoke(cancellation))throw new OperationCanceledException();
 var args=System.Text.Json.Nodes.JsonNode.Parse(input)!.AsObject();
 System.Text.Json.Nodes.JsonNode Command(string operation,System.Text.Json.Nodes.JsonObject payload){var result=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(context,operation,payload.ToJsonString()))!;if(result["status"]?.ToString().StartsWith("Error:",StringComparison.Ordinal)==true)throw new InvalidOperationException("Consumer rejected operation");return result;}
 var before=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(context))!;
-if(endpoint=="helperGlobal"){string helperAction=args["action"]?.ToString()??"snapshot";if(helperAction is not ("snapshot" or "conversation" or "register" or "create" or "import" or "assign" or "connection-state" or "prepare" or "start" or "cancel" or "cancel-preview"))throw new UnauthorizedAccessException("Helper UI action denied");return calls.HelperAgents.Invoke(context,helperAction,args.ToJsonString());}
+if(endpoint=="helperGlobal"){string helperAction=args["action"]?.ToString()??"snapshot";if(helperAction is not ("snapshot" or "conversation" or "draft" or "register" or "create" or "import" or "assign" or "connection-state" or "prepare" or "start" or "cancel" or "cancel-preview"))throw new UnauthorizedAccessException("Helper UI action denied");return calls.HelperAgents.Invoke(context,helperAction,args.ToJsonString());}
 if(endpoint=="projectHelpers"){Command("helper-roster",args);return "{\"accepted\":true}";}
 if(endpoint=="selectHelperConversation"){Command("helper-chat-select",args);return "{\"accepted\":true}";}
 if(endpoint=="bindHelperAgent"){Command("ai-bind-helper",args);return "{\"accepted\":true}";}

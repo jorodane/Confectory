@@ -1,5 +1,5 @@
 // Global Helper conversations own no ProjectContext, DevelopmentTools, shell or MCP grant.
-if(payload.Length>32768)throw new ArgumentException("Helper action budget");
+if(payload.Length>(operation=="draft"?131072:65536))throw new ArgumentException("Helper action budget");
 var owner=AppDomain.CurrentDomain.GetData("Confectory.EditorHome."+session) as object[]??throw new ObjectDisposedException("EditorHome");
 lock(owner){
  var model=(System.Text.Json.Nodes.JsonObject)owner[3];string key="Confectory.EditorHome.HelperAgents."+session,storage=System.IO.Path.GetDirectoryName((string)owner[2])!;
@@ -81,13 +81,20 @@ lock(owner){
   ChangingAgent(Text("agent"));
   string agent=Text("agent");if(registry["agents"]?[agent] is null)throw new ArgumentException("Registered Agent required");foreach(var turn in turns.Values)if(((System.Text.Json.Nodes.JsonObject)turn[0])["agent"]?.ToString()==agent&&((System.Text.Json.Nodes.JsonObject)turn[0])["state"]?.ToString()=="running")throw new InvalidOperationException("Stop owned requests before disconnecting this Agent");var next=(System.Text.Json.Nodes.JsonObject)registry.DeepClone();next["agents"]![agent]!["offline"]=input["offline"]?.GetValue<bool>()==true;SaveRegistry(next);RetirePreview();Publish();return "{}";
  }
+ if(operation=="draft"){
+  string helper=Text("helper"),text=Text("text");Find(helper,true);if(text.Length>8192||text.Contains('\0'))throw new ArgumentException("Bounded global draft required");
+  var saved=System.Text.Json.Nodes.JsonNode.Parse(calls.Presentation.Invoke(storage,helper,"load","{}"))!;
+  if(Text("revision")!=saved["draftRevision"]!.ToString()&&text!=saved["value"]!["globalDraft"]!.ToString()){saved["conflict"]=true;RefreshHelpers();Publish();return saved.ToJsonString();}
+  if(text!=saved["value"]!["globalDraft"]!.ToString()){var value=saved["value"]!.DeepClone();value["globalDraft"]=text;saved=System.Text.Json.Nodes.JsonNode.Parse(calls.Presentation.Invoke(storage,helper,"save",new System.Text.Json.Nodes.JsonObject{["revision"]=saved["revision"]!.DeepClone(),["value"]=value}.ToJsonString()))!;}
+  RefreshHelpers();Publish();return saved.ToJsonString();
+ }
  if(operation=="conversation"){
   string helper=Text("helper");Find(helper,true);var journal=Journal(helper);if(!turns.ContainsKey(helper)){if(turns.Count>=8)throw new InvalidOperationException("Eight global conversation owners are already retained");turns[helper]=new object[]{new System.Text.Json.Nodes.JsonObject{["state"]="history",["output"]="",["answerReceived"]=false},"","",null!};}if(input["page"] is not null){int page=input["page"]!.GetValue<int>(),pages=Math.Max(1,(((System.Text.Json.Nodes.JsonObject)journal[0])["records"]!.AsArray().Count+1)/2);if(page<0||page>=pages)throw new ArgumentException("Existing conversation history page required");((System.Text.Json.Nodes.JsonObject)turns[helper][0])["historyPage"]=page;}Publish();return model["helperAgents"]!.ToJsonString();
  }
  if(operation=="binding")return Binding(Text("helper")).ToJsonString();
  if(operation=="prepare"){
   if(turns.Count>=8&&!turns.ContainsKey(Text("helper")))throw new InvalidOperationException("Eight global conversation owners are already retained in this engine");
-  string helper=Text("helper"),message=Text("message");Find(helper,true);if(string.IsNullOrWhiteSpace(message)||message.Length>8192)throw new ArgumentException("Bounded global message required");if(turns.TryGetValue(helper,out var old)){if(((System.Text.Json.Nodes.JsonObject)old[0])["state"]?.ToString()=="running")throw new InvalidOperationException("This Helper's request is already running");Cleanup(old);}
+  string helper=Text("helper"),message=Text("message");Find(helper,true);if(string.IsNullOrWhiteSpace(message)||message.Length>8192)throw new ArgumentException("Bounded global message required");if(turns.TryGetValue(helper,out var old)){if(((System.Text.Json.Nodes.JsonObject)old[0])["state"]?.ToString()=="running")throw new InvalidOperationException("This Helper's request is already running");Cleanup(old,true);}
   var binding=Binding(helper);if(binding["offline"]?.GetValue<bool>()==true)throw new InvalidOperationException("This registered Agent is offline");var journal=Journal(helper);var history=(System.Text.Json.Nodes.JsonObject)journal[0];if(history["records"]!.AsArray().Count>=24)throw new InvalidOperationException("Conversation history limit reached; no records were deleted");
   bool common=input["includeCommon"]?.GetValue<bool>()==true;var context=System.Text.Json.Nodes.JsonNode.Parse(calls.Context.Invoke(store,helper,"local-user","",common))!.AsObject();context["conversationId"]=history["conversationId"]!.DeepClone();var messages=new System.Text.Json.Nodes.JsonArray();foreach(var record in history["records"]!.AsArray())if(record!["state"]?.ToString()=="completed"){messages.Add(new System.Text.Json.Nodes.JsonObject{["role"]="user",["text"]=record["message"]!.DeepClone()});messages.Add(new System.Text.Json.Nodes.JsonObject{["role"]="assistant",["text"]=record["output"]!.DeepClone()});}context["history"]=messages;
   if(context.ToJsonString().Length+message.Length>49152)throw new InvalidOperationException("Global conversation context limit reached; no history was silently removed");

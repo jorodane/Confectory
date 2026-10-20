@@ -1,0 +1,231 @@
+{
+  "baseline": "02c6b751ac7dfde6d5249820185ba96db27a0248",
+  "branch": "work/current",
+  "publication": "Source validation snapshot; final commit, exact-commit checkout gate and remote SHA are recorded in the completion report.",
+  "localBehaviorAndPackageChecksComplete": true,
+  "sourceSha256": {
+    "examples/editor-home/WebBundle.csbody": "6b875536e1b2d65546ff39f1f76e49a9d388c027bfc4f3eec237a1d5511d10b5",
+    "examples/editor-home/WebInvoke.csbody": "1887c7e9e0f1f2e6fdfff0e2957da4f355575ae316808751f6d79476e5183528",
+    "examples/editor-home/ui/helper-agents.js": "908c8f41280353636228ff538db5b4cffc69dfa8391976aa643a66dfee23df8a",
+    "examples/editor-home/ui/v508-runtime.js": "799247ec0d62a4a876299260e5e1e845fa965574877d0c3440bc64ce7c716b8d",
+    "packs/editor-home-model/HelperAgents.csbody": "da58ccadc3a20d4786952bdaa9aee6b9552315125a520bb58d71c5d4459e5d08",
+    "packs/editor-home-model/HelperPresentation.csbody": "d2e3c05338bdf21415057b7c176bf89da9a026d679d26abffcf53453a1350ed5"
+  },
+  "protectedSha256": {
+    "examples/editor-home/ui/style.css": "f5b0be01e7daccef55d3aabcf2d33f9b887caee7b6f40c8d49cd46e7347a2700",
+    "reference/site-ui/Confectory-Editor-Prototype-v508.zip": "b306ce4deff9616c4107ae224443d864f8fce0f52cf3c3e158de8745c17c659f"
+  },
+  "actualEngineUI": {
+    "root": "/tmp/confectory-global-ui-jm7s3hp_",
+    "checks": [
+      "real startup readiness; internal Codex setup without external connector panel",
+      "registered Agent-only sidebar",
+      "Agent-owned Helper creation without project",
+      "v508 Helper-add input preservation at 1440/900/600; group/favorite interactions",
+      "normal explicit Send without duplicate approval, original DOM/108px message area, original Send/stop dimensions, Korean composition guard, automatic draft persistence",
+      "actual Responses reply, HTTP failure, original request cancel",
+      "actual engine restart, independent two-Helper drafts, typing during delayed save, both CAS conflict choices, same-message retry, scroll history without replay",
+      "v508 project/packs tabs, real Helper roster, no project submission"
+    ],
+    "historyCasPreservesOriginalAndResponse": true,
+    "httpRequests": 5,
+    "pageErrors": [],
+    "externalRequests": [],
+    "projectId": ""
+  },
+  "originalFrameContract": {
+    "pass": true,
+    "originalGeometryMatchedAt": [
+      1440,
+      600
+    ],
+    "geometry": [
+      {
+        "viewport": [
+          1440,
+          1000
+        ],
+        "original": {
+          ".messages": {
+            "x": 215,
+            "y": 458.03125,
+            "width": 404,
+            "height": 108
+          },
+          "form": {
+            "x": 215,
+            "y": 582.03125,
+            "width": 404,
+            "height": 42
+          },
+          "textarea": {
+            "x": 215,
+            "y": 582.03125,
+            "width": 325.828125,
+            "height": 38
+          },
+          "button[type=submit]": {
+            "x": 548.828125,
+            "y": 582.03125,
+            "width": 70.171875,
+            "height": 42
+          }
+        },
+        "restored": {
+          ".messages": {
+            "x": 215,
+            "y": 458.03125,
+            "width": 404,
+            "height": 108
+          },
+          "form": {
+            "x": 215,
+            "y": 582.03125,
+            "width": 404,
+            "height": 42
+          },
+          "textarea": {
+            "x": 215,
+            "y": 582.03125,
+            "width": 325.828125,
+            "height": 38
+          },
+          "button[type=submit]": {
+            "x": 548.828125,
+            "y": 582.03125,
+            "width": 70.171875,
+            "height": 42
+          }
+        }
+      },
+      {
+        "viewport": [
+          600,
+          800
+        ],
+        "original": {
+          ".messages": {
+            "x": 209,
+            "y": 452.03125,
+            "width": 416,
+            "height": 108
+          },
+          "form": {
+            "x": 209,
+            "y": 576.03125,
+            "width": 416,
+            "height": 42
+          },
+          "textarea": {
+            "x": 209,
+            "y": 576.03125,
+            "width": 337.828125,
+            "height": 38
+          },
+          "button[type=submit]": {
+            "x": 554.828125,
+            "y": 576.03125,
+            "width": 70.171875,
+            "height": 42
+          }
+        },
+        "restored": {
+          ".messages": {
+            "x": 209,
+            "y": 452.03125,
+            "width": 416,
+            "height": 108
+          },
+          "form": {
+            "x": 209,
+            "y": 576.03125,
+            "width": 416,
+            "height": 42
+          },
+          "textarea": {
+            "x": 209,
+            "y": 576.03125,
+            "width": 337.828125,
+            "height": 38
+          },
+          "button[type=submit]": {
+            "x": 554.828125,
+            "y": 576.03125,
+            "width": 70.171875,
+            "height": 42
+          }
+        }
+      }
+    ],
+    "oneOriginalSendSlot": true,
+    "checks": [
+      "IME",
+      "double submit",
+      "streaming",
+      "same-slot cancel",
+      "newer draft preserved",
+      "extra permissions conditional",
+      "unexpected project blocked",
+      "changed Agent blocked",
+      "extra memory conditional",
+      "lost ack no replay",
+      "error retry draft",
+      "typing during autosave"
+    ],
+    "realAccountOrInference": false,
+    "root": "/tmp/confectory-v508-chat-contract-9zkp7ao9"
+  },
+  "tests": {
+    "finalUiAndContract": {
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 36.921
+    },
+    "backendGlobalHelperAndDraftCAS": "PASS GlobalHelperAgentTests in regression-final.log (the old UI attempt in that group failed; superseded by final passing UI group)",
+    "projectPinnedAndWorkerColdRestart": {
+      "passed": 1,
+      "failed": 0,
+      "seconds": 18.345,
+      "log": "/workspace/scratch/helper-chat-v508/project-pinned-scoped.log"
+    },
+    "codexConnectionCases": [
+      "authenticated",
+      "logged-out",
+      "install",
+      "model-selection",
+      "cancel-login",
+      "identity-change",
+      "plugins-existing",
+      "plugins-browser",
+      "plugins-restart-exit"
+    ],
+    "solutionBuild": "0 warnings / 0 errors"
+  },
+  "package": {
+    "pass": true,
+    "package": "/workspace/Confectory/Builds/Windows-x64",
+    "files": 2225,
+    "crossPublishedWindowsX64PE": true,
+    "unrelatedWorkingDirectory": true,
+    "packageTamperAndMissingDependencyRejected": true,
+    "packagedEngineWebStartup": true,
+    "runtimeOnlyNoInstalledSDK": true,
+    "existingCheckoutProfileReusedAndExplicitOverrideRetained": true,
+    "resources": 50,
+    "renderedMinimalLogin": true,
+    "windowsApphostExecuted": false,
+    "webView2Executed": false,
+    "actualLoginOrInference": false,
+    "evidence": "/tmp/confectory-desktop-package-p4tvii3s"
+  },
+  "packageMatchesExactCurrentSources": true,
+  "limits": [
+    "Actual Windows apphost/WebView2/default-browser/OAuth/live model not executed",
+    "Normal engine restart after automatic save acknowledgement tested; abrupt kill before write ack not claimed lossless",
+    "Prior journal CAS failure preserves original file and received output in current owner with warning; not claimed stored successfully",
+    "Frame geometry comparison uses same original profile/card, not full-app pixel identity for differing user data"
+  ],
+  "savedVisualEvidenceReviewed": true,
+  "finalStaticChecksComplete": true
+}

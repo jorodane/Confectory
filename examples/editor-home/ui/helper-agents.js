@@ -1,6 +1,6 @@
 // Registered provider configuration, Helper identity and global conversation are separate owners.
 export function createHelperAgentsUI(api){
- const {$,$$,esc}=api,loaded=new Set();
+ const {$,$$,esc}=api,loaded=new Set(),drafts=new Map(),pending=new Set(),uncertain=new Map(),history=new Map(),loadingHistory=new Set(),sentDrafts=new Map(),recoveredDrafts=new Set(),notices=new Set();let saveTimer=null,saving=null,conflictOpen=false;
  const state=()=>api.current?.helperAgents||{agents:[],assignments:{},turns:{}};
  const agents=()=>state().agents||[],assigned=id=>state().assignments?.[id]||'';
  const title=id=>api.connectionTitle((api.current.connections||[]).find(row=>row.id===id)||{id});
@@ -13,38 +13,78 @@ export function createHelperAgentsUI(api){
    const start=$('[data-global-start]',root),requirements=preview.policy.requirements||[];
    const ready=()=>{const ok=preview.canStart===true&&api.current.helperAgents?.preview?.token===preview.token&&requirements.every(row=>$('[data-global-permission="'+CSS.escape(row.id)+'"]',root)?.checked);start.dataset.supported=String(ok);start.disabled=!ok||api.busy;};
    for(const checkbox of $$('[data-global-permission]',root))checkbox.onchange=ready;
-   start.onclick=()=>api.action(async()=>{const approvals=Object.fromEntries($$('[data-global-permission]',root).map(input=>[input.dataset.globalPermission,input.checked]));await invoke('start',{helper:preview.helper,token:preview.token,approvals});close();},'전역 요청 시작됨');
+   start.onclick=()=>api.action(async()=>{const approvals=Object.fromEntries($$('[data-global-permission]',root).map(input=>[input.dataset.globalPermission,input.checked]));await invoke('start',{helper:preview.helper,token:preview.token,approvals});await accepted({id:preview.helper},preview.message,preview.token);close();},'전역 요청 시작됨');
    const cancel=()=>api.action(async()=>{await invoke('cancel-preview');close();},'검토 취소됨 · 입력 보관');
    $('[data-global-review-cancel]',root).onclick=$('[data-close]',root).onclick=cancel;
    const keys=root.onkeydown;root.onkeydown=e=>{if(e.key==='Escape'){e.preventDefault();cancel();}else keys(e);};root.parentElement.onclick=e=>{if(e.target===root.parentElement)cancel();};ready();
   });
  }
+ // Match the original v508 helperChat content; behavior changes do not add layout.
+ function remember(helper,text){const draft=api.draft(helper);draft.value.globalDraft=text;draft.dirty=true;draft.editGeneration=(draft.editGeneration||0)+1;drafts.set(helper.id,helper);clearTimeout(saveTimer);saveTimer=setTimeout(()=>flushDrafts().catch(draftFailure),180);}
+ function draftFailure(error){
+  if(error.message!=='helper_draft_changed'){api.toast('입력을 아직 보관하지 못했어요. 입력은 유지됩니다. 다시 시도하세요.');return;}
+  if(conflictOpen)return;conflictOpen=true;const saved=error.saved,helper=drafts.get(saved?.value?.helper);if(!helper||!saved){conflictOpen=false;return;}
+  api.modal('보관된 입력이 바뀌었어요',`<p>저장된 입력과 현재 입력을 함께 유지하고 있어요. 사용할 입력을 선택하세요.</p><div class="actions"><button data-keep-saved>저장된 입력 사용</button><button class="primary" data-keep-mine>내 입력 보관</button><button data-later>나중에</button></div>`,(root,close)=>{
+   const finish=()=>{conflictOpen=false;close();};$('[data-later]',root).onclick=$('[data-close]',root).onclick=finish;const keys=root.onkeydown;root.onkeydown=e=>{if(e.key==='Escape'){e.preventDefault();finish();}else keys?.(e);};root.parentElement.onclick=e=>{if(e.target===root.parentElement)finish();};
+   $('[data-keep-saved]',root).onclick=()=>{const draft=api.draft(helper);Object.assign(draft,{revision:saved.revision,draftRevision:saved.draftRevision,value:saved.value,dirty:false});drafts.delete(helper.id);for(const card of $$('[data-global-helper="'+CSS.escape(helper.id)+'"]'))$('textarea',card).value=saved.value.globalDraft;finish();};
+   $('[data-keep-mine]',root).onclick=()=>{api.draft(helper).draftRevision=saved.draftRevision;finish();flushDrafts().catch(draftFailure);};
+  });
+ }
+ async function flushDrafts(){
+  clearTimeout(saveTimer);if(saving){await saving;return flushDrafts();}
+  saving=(async()=>{for(const [id,helper] of drafts){while(api.draft(helper).dirty)await api.saveDraft(helper);drafts.delete(id);}})();try{await saving;}finally{saving=null;}
+ }
+ addEventListener('beforeunload',e=>{if([...drafts.values()].some(h=>api.draft(h).dirty)){void flushDrafts().catch(()=>{});e.preventDefault();e.returnValue='';}});
+ document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')void flushDrafts().catch(draftFailure);});
+ const baseline=new Set(['contentApproved','usageApproved','processApproved','managedCredentialApproved','managedConfigurationApproved','managedStorageApproved']);
+ async function send(helper,message){
+  await flushDrafts();let preview=uncertain.get(helper.id);
+  if(preview){await api.view.update();const row=state().turns?.[helper.id];if(row?.requestId===preview.token&&row.state!=='prepared'){uncertain.delete(helper.id);return preview.token;}if(api.current.helperAgents?.preview?.token!==preview.token)throw Error('전송 상태를 확인하지 못했어요. 연결을 확인한 뒤 다시 시도하세요.');}
+  else for(let attempt=0;;attempt++){try{preview=await invoke('prepare',{helper:helper.id,message,includeCommon:false});break;}catch(error){if(error.message!=='stale_revision'||attempt===2)throw error;await api.view.update();}}
+  const binding=agents().find(row=>row.id===assigned(helper.id));if(!binding||binding.state==='offline'||preview.connection!==binding.id||preview.model!==binding.model)throw Error('Helper의 Agent가 바뀌었어요. 연결을 확인한 뒤 다시 보내세요.');
+  const pinned=binding.accountIdentity?.fingerprint,observed=preview.policy?.verification?.accountIdentity?.fingerprint;if(pinned&&pinned!==observed)throw Error('연결한 계정이 바뀌었어요. 사용할 계정을 다시 확인하세요.');
+  const context=preview.context,scope=preview.policy?.contentScope;
+  if(context?.projectId!==''||context?.membership?.kind!=='global'||scope?.kind!=='helper-global'||scope.helperId!==helper.id||scope.conversationId!==context.conversationId)throw Error('전역 대화 범위를 확인하지 못했어요.');
+  if(!preview.canStart)throw Error(preview.policy?.blockedReason||'Agent 연결을 확인한 뒤 다시 보내세요.');
+  if((preview.context.memory||[]).length>0||(preview.policy.requirements||[]).some(row=>!baseline.has(row.id))){approval(preview);return false;}
+  // Explicit Send authorizes this displayed message and its existing global-only Agent scope.
+  // Unknown permissions still require the separate conditional approval; provider gates remain.
+  uncertain.set(helper.id,preview);
+  try{await invoke('start',{helper:helper.id,token:preview.token,approvals:Object.fromEntries(preview.policy.requirements.map(row=>[row.id,true]))});uncertain.delete(helper.id);return preview.token;}
+  catch(error){await api.view.update().catch(()=>{});const row=state().turns?.[helper.id];if(row?.requestId===preview.token&&row.state!=='prepared'){uncertain.delete(helper.id);return preview.token;}throw error;}
+ }
+ async function accepted(helper,message,token){
+  const draft=api.draft(helper);if(draft.value.globalDraft!==message)return;
+  remember(helper,'');sentDrafts.set(helper.id,{helper,message,token,generation:api.draft(helper).editGeneration});
+  for(const card of $$('[data-global-helper="'+CSS.escape(helper.id)+'"]')){const input=$('textarea',card);if(input.value===message)input.value='';}await flushDrafts();
+ }
  function renderGlobal(root,helper){
   const draft=api.draft(helper);root.dataset.conversationMode='global';root.dataset.globalHelper=helper.id;
-  root.innerHTML=`<div class="window-content global-helper-conversation"><h3>전역 대화</h3><p class="small" data-global-agent></p><div class="global-helper-messages" aria-live="polite"></div><div class="actions global-history-navigation"><button type="button" data-operation data-global-history-older data-supported="false">이전 기록</button><small data-global-history-page></small><button type="button" data-operation data-global-history-newer data-supported="false">최근 기록</button></div><p role="status" data-global-status></p><form class="stack" data-global-draft><textarea rows="3" maxlength="8192" aria-label="전역 Helper 대화 입력">${esc(draft.value.globalDraft)}</textarea><label class="check"><input type="checkbox" data-global-common> 이번 전송에 공통 기억 포함</label><div class="actions"><button type="submit" class="primary" data-operation data-global-prepare data-supported="false">보내기 전 검토</button><button type="button" data-operation data-global-save data-supported="${!!draft.revision}">전역 입력 보관</button><button type="button" data-global-discard>입력 버리기 · 저장본 다시 읽기</button></div></form><div class="actions"><button type="button" data-global-agent-settings>Helper 설정</button><button type="button" data-operation data-global-stop data-supported="false">이 전역 요청 중지</button></div></div>`;
-  $('textarea',root).oninput=e=>{const draft=api.draft(helper);draft.value.globalDraft=e.target.value;draft.dirty=true;};
-  $('form',root).onsubmit=e=>{e.preventDefault();const message=$('textarea',root).value,includeCommon=$('[data-global-common]',root).checked;api.action(async()=>{const preview=await invoke('prepare',{helper:helper.id,message,includeCommon});approval(preview);},'전역 전송 전 검토 · 아직 전송 없음');};
-  $('[data-global-save]',root).onclick=()=>api.action(()=>api.save(helper),'전역 입력이 로컬에 보관됨 · 전송 없음');
-  $('[data-global-discard]',root).onclick=()=>{api.discard(helper);renderGlobal(root,helper);};
-  $('[data-global-agent-settings]',root).onclick=()=>api.openHelper(helper.id);
-  $('[data-global-stop]',root).onclick=()=>{const requestId=state().turns?.[helper.id]?.requestId;api.action(()=>invoke('cancel',{helper:helper.id,requestId}),'원래 전역 요청에 중지 요청됨');};
-  for(const [selector,direction] of [['[data-global-history-older]',1],['[data-global-history-newer]',-1]])$(selector,root).onclick=()=>api.action(()=>invoke('conversation',{helper:helper.id,page:(state().turns?.[helper.id]?.historyPage||0)+direction}),'보관한 전역 기록 조회 · 전송 없음');
-  update(root);
-  if(!loaded.has(helper.id)){
-   const load=()=>{if(!root.isConnected)return;if(api.busy){setTimeout(load,50);return;}loaded.add(helper.id);api.action(()=>invoke('conversation',{helper:helper.id}),'').then(result=>{if(result===false)loaded.delete(helper.id);});};setTimeout(load,0);
-  }
+  root.innerHTML=`<div class="window-content"><div class="messages" style="max-height:180px;margin:16px 0" aria-live="polite"></div><form class="helper-chat-compose" data-global-draft><div class="yogi-attachments"></div><textarea rows="1" maxlength="8192" placeholder="Helper에게 이야기하기…" aria-label="Helper 대화 입력">${esc(draft.value.globalDraft)}</textarea><button class="primary" type="submit" data-global-send data-operation data-supported="false">보내기</button></form></div>`;
+  const input=$('textarea',root),form=$('form',root);let composing=false;
+  input.addEventListener('compositionstart',()=>{composing=true;});input.addEventListener('compositionend',()=>{composing=false;remember(helper,input.value);});
+  input.oninput=()=>{remember(helper,input.value);if(composing)clearTimeout(saveTimer);};
+  form.onsubmit=e=>{e.preventDefault();if(composing||e.isComposing||pending.has(helper.id))return;
+   const row=state().turns?.[helper.id];if(row?.state==='running'){api.action(()=>invoke('cancel',{helper:helper.id,requestId:row.requestId}),'');return;}
+   const message=input.value;if(!message.trim())return;pending.add(helper.id);update(root);
+   api.action(async()=>{const token=await send(helper,message);if(token)await accepted(helper,message,token);},'').finally(()=>{pending.delete(helper.id);update(root);});
+  };
+  const box=$('.messages',root);box.onscroll=()=>{if(box.scrollTop<=0)older(root,helper);};box.addEventListener('wheel',e=>{if(e.deltaY<0&&box.scrollTop<=0)older(root,helper);},{passive:true});update(root);
+  if(!loaded.has(helper.id)){const load=()=>{if(!root.isConnected)return;if(api.busy){setTimeout(load,50);return;}loaded.add(helper.id);api.action(()=>invoke('conversation',{helper:helper.id}),'').then(result=>{if(result===false)loaded.delete(helper.id);});};setTimeout(load,0);}
  }
+ function older(root,helper){const row=state().turns?.[helper.id];if(loadingHistory.has(helper.id)||api.busy||!row||(row.historyPage||0)+1>=(row.historyPages||1))return;loadingHistory.add(helper.id);api.action(()=>invoke('conversation',{helper:helper.id,page:(row.historyPage||0)+1}),'').finally(()=>loadingHistory.delete(helper.id));}
  function update(root){
-  const id=root.dataset.globalHelper;if(!id||root.dataset.conversationMode!=='global')return;
-  const card=root.closest('.participant-expanded-card');if(card){const top=Math.max(112,Math.min(parseFloat(card.style.top)||225,innerHeight-360));card.style.top=top+'px';card.style.maxHeight=Math.max(180,innerHeight-top-12)+'px';const body=card.querySelector('.expanded-card-body');if(body){body.style.maxHeight=Math.max(120,innerHeight-body.getBoundingClientRect().top-24)+'px';body.style.overflow='auto';}}
-  const row=state().turns?.[id],agent=agents().find(agent=>agent.id===assigned(id));
-  $('[data-global-agent]',root).textContent=agent?title(agent.id)+' · '+agent.model+(agent.state==='offline'?' · 연결 해제됨':''):'Agent 미배정 · 설정을 등록하고 이 Helper에 배정하세요.';
-  $('[data-global-status]',root).textContent=status(id)+(row?.errorCode?' · '+row.errorCode:'')+(row?.historyError?' · 응답은 유지되지만 기록 저장을 확인해야 합니다.':'');
-  $('[data-global-history-page]',root).textContent=`보관 기록 ${row?.recordCount||0}개 · ${(row?.historyPage||0)+1} / ${row?.historyPages||1}`;
-  for(const [selector,ok] of [['[data-global-history-older]',(row?.historyPage||0)+1<(row?.historyPages||1)],['[data-global-history-newer]',(row?.historyPage||0)>0]]){const button=$(selector,root);button.dataset.supported=String(ok);button.disabled=api.busy||!ok;}
-  const stamp=JSON.stringify([row?.records,row?.requestId,row?.state,row?.output,row?.historyError]);const box=$('.global-helper-messages',root);
-  if(box.dataset.stamp!==stamp){box.dataset.stamp=stamp;box.innerHTML=(row?.records||[]).map(record=>`<article class="global-helper-turn" data-global-record="${esc(record.requestId)}"><p class="global-user-message">${esc(record.message)}</p><p class="small">${esc(({completed:'응답 수신',error:'요청 실패',cancelled:'취소됨',interrupted:'이전 실행 중단',running:'응답 대기'})[record.state]||record.state)}</p>${record.output?'<pre class="global-assistant-message">'+esc(record.output)+'</pre>':''}</article>`).join('');if(row?.output&&(row.state==='running'||row.historyError))box.insertAdjacentHTML('beforeend',(row.historyError?'<p class="small">이번 요청에서 받은 응답 · 기록 저장 실패</p>':'')+'<pre class="global-assistant-message" data-current-global-output>'+esc(row.output)+'</pre>');if(!box.childNodes.length)box.innerHTML='<p class="muted">아직 받은 전역 응답이 없습니다.</p>';}
-  const prepare=$('[data-global-prepare]',root),stop=$('[data-global-stop]',root);prepare.dataset.supported=String(supported()&&!!agent&&agent.state!=='offline'&&row?.state!=='running');prepare.disabled=api.busy||prepare.dataset.supported==='false';stop.dataset.supported=String(row?.state==='running');stop.disabled=api.busy||stop.dataset.supported==='false';
+  const id=root?.dataset.globalHelper;if(!id||root.dataset.conversationMode!=='global')return;
+  const row=state().turns?.[id],agent=agents().find(agent=>agent.id===assigned(id));if(row?.historyError&&!notices.has(row.requestId)){notices.add(row.requestId);api.toast('받은 응답은 유지하지만 대화 기록을 보관하지 못했어요. 저장 상태를 확인하세요.');}let records=history.get(id);if(!records){records=new Map();history.set(id,records);}
+  const offset=Math.max(0,(row?.recordCount||0)-(row?.historyPage||0)*2-(row?.records||[]).length);
+  (row?.records||[]).forEach((record,index)=>records.set(record.requestId,{...record,index:offset+index}));
+  if(row?.requestId&&records.has(row.requestId)){const record=records.get(row.requestId);if(row.state!=='prepared')Object.assign(record,{output:row.output||record.output,state:row.state});}
+  const saved=api.draft({id}),last=[...records.values()].sort((a,b)=>a.index-b.index).at(-1),sent=sentDrafts.get(id);
+  if(sent&&row?.requestId===sent.token&&['error','cancelled'].includes(row.state)&&saved.value.globalDraft===''&&saved.editGeneration===sent.generation){$('textarea',root).value=sent.message;remember(sent.helper,sent.message);sentDrafts.delete(id);}
+  if(!recoveredDrafts.has(id)&&row?.recordCount){recoveredDrafts.add(id);if(last?.state==='interrupted'&&saved.value.globalDraft===''){$('textarea',root).value=last.message;remember({id},last.message);}}
+  const list=[...records.values()].sort((a,b)=>a.index-b.index),box=$('.messages',root),stamp=JSON.stringify(list);
+  if(box.dataset.stamp!==stamp){const bottom=box.scrollHeight-box.scrollTop-box.clientHeight<20,height=box.scrollHeight,top=box.scrollTop;box.innerHTML=list.map(record=>`<p><strong>나</strong> · ${esc(record.message).replace(/\n/g,'<br>')}</p><p><strong>${esc(api.draft({id}).value.name||id)}</strong> · ${esc(record.output||(record.state==='running'?'응답을 기다리고 있어요…':record.state==='error'?'응답을 받지 못했어요. 다시 보내서 재시도할 수 있어요.':record.state==='cancelled'?'응답을 중지했어요.':record.state==='interrupted'?'이전 응답이 중단됐어요.':'')).replace(/\n/g,'<br>')}</p>`).join('')||'<p class="muted">아직 대화가 없어요.</p>';box.dataset.stamp=stamp;box.scrollTop=loadingHistory.has(id)?top+box.scrollHeight-height:bottom?box.scrollHeight:top;}
+  const button=$('[data-global-send]',root);if(!button.dataset.width)button.dataset.width=String(button.getBoundingClientRect().width);button.style.width=button.dataset.width+'px';button.textContent=row?.state==='running'?'중지':'보내기';button.setAttribute('aria-label',row?.state==='running'?'응답 중지':'메시지 보내기');button.dataset.supported=String(!pending.has(id)&&supported()&&!!agent&&agent.state!=='offline');button.disabled=api.busy||button.dataset.supported==='false';
  }
- return {renderGlobal,update,status,assigned,agents};
+ return {renderGlobal,update,status,assigned,agents,flushDrafts:async()=>{try{await flushDrafts();}catch(error){draftFailure(error);throw error;}}};
 }

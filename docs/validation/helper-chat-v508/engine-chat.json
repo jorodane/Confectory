@@ -1,0 +1,18 @@
+{
+  "root": "/tmp/confectory-global-ui-jm7s3hp_",
+  "checks": [
+    "real startup readiness; internal Codex setup without external connector panel",
+    "registered Agent-only sidebar",
+    "Agent-owned Helper creation without project",
+    "v508 Helper-add input preservation at 1440/900/600; group/favorite interactions",
+    "normal explicit Send without duplicate approval, original DOM/108px message area, original Send/stop dimensions, Korean composition guard, automatic draft persistence",
+    "actual Responses reply, HTTP failure, original request cancel",
+    "actual engine restart, independent two-Helper drafts, typing during delayed save, both CAS conflict choices, same-message retry, scroll history without replay",
+    "v508 project/packs tabs, real Helper roster, no project submission"
+  ],
+  "historyCasPreservesOriginalAndResponse": true,
+  "httpRequests": 5,
+  "pageErrors": [],
+  "externalRequests": [],
+  "projectId": ""
+}
