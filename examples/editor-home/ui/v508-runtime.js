@@ -435,6 +435,8 @@ function openConnectionSettings(preferred){if($('[data-connection-dialog]'))retu
    if(agent?.state==='offline'){area.insertAdjacentHTML('beforeend','<p>연결 해제됨 · Helper와 설정은 보관됩니다.</p>');button('다시 연결',begin,true,'data-cli-login');}
    else{button('완료',()=>root._retireConnectionDialog(),true,'data-cli-done');button('계정 변경',()=>flowAction('change-account',{approved:true}),false,'data-cli-change-account');button('연결 해제',()=>run(async()=>{await view.call('helperGlobal',{action:'connection-state',agent:selected.id,offline:true});render();},''),false,'data-cli-offline');}
   }else if(flow.state==='failed'){
+   if(flow.installation?.state==='prepared')area.insertAdjacentHTML('beforeend','<p class="small" data-cli-installation-result>설치·버전 확인 완료 · 연결 준비 확인 실패</p>');
+   if(flow.diagnostics){const details=document.createElement('details');details.setAttribute('data-cli-diagnostics','');const summary=document.createElement('summary');summary.textContent='오류 정보 · 문의할 때 이 내용만 전달하세요';const pre=document.createElement('pre');pre.className='consumer-output';pre.textContent=JSON.stringify(flow.diagnostics,null,2);details.append(summary,pre);area.append(details);}
    if(flow.retryable!==false)button('다시 시도',()=>flowAction('retry',{approved:true}),true,'data-cli-retry');if(flow.canLogin)button('다른 계정으로 로그인',()=>flowAction('new-login'),false,'data-cli-new-login');
   }
   if(pending){if(Number.isFinite(flow.percent)){const progress=document.createElement('progress');progress.max=100;progress.value=flow.percent;area.append(progress);}button('취소',()=>flowAction('cancel'),false,'data-cli-stop');}

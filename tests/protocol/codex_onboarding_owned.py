@@ -12,13 +12,16 @@ def record(method,params=None):
 if sys.argv[1:]==['--version']:
  record('--version');(CASE/'version-started').write_text('owned')
  while control().get('holdVersion'):time.sleep(.02)
+ if control().get('preAuthFailure')=='process-start-error':os.chmod(sys.argv[0],0o600)
  print('codex-cli '+control().get('version','0.159.0-alpha.3'));sys.exit(0)
 args=sys.argv[1:];assert args[:3]==['app-server','--stdio','--strict-config']
 denied={'shell_tool','shell_snapshot','apps','plugins','connectors','browser_use','computer_use','image_generation','imagegenext','in_app_browser','browser_use_external','code_mode','code_mode_host','multi_agent','multi_agent_v2','hooks','plugin_hooks','codex_hooks','remote_plugin','tool_suggest','tool_search','request_permissions_tool','deferred_executor','memories','memory_tool'}
 assert {args[i+1] for i,a in enumerate(args) if a=='--disable'}==denied
 assert all(k not in os.environ for k in ('HOME','OPENAI_API_KEY','OPENAI_AUTH_TOKEN'))
 home=pathlib.Path(os.environ['CODEX_HOME']);login='cli_auth_credentials_store="file"' in args
-record('process',{'login':login});outlock=threading.Lock()
+record('process',{'login':login})
+if control().get('preAuthFailure')=='process-exit' and not login:sys.exit(23)
+outlock=threading.Lock()
 def send(value):
  with outlock:print(json.dumps(value),flush=True)
 def finish():
@@ -28,6 +31,10 @@ def finish():
  send({'method':'account/login/completed','params':{'loginId':'owned-login','success':not control().get('failLogin',False)}})
 for line in sys.stdin:
  value=json.loads(line);method=value.get('method');params=value.get('params',{});record(method,params);result={}
+ failure=control().get('preAuthFailure')
+ if failure=='mixed-account-error' and home.name=='account-0':failure='account-error'
+ if not login and method=={'initialize-error':'initialize','account-error':'account/read','model-error':'model/list'}.get(failure):
+  send({'id':value['id'],'error':{'code':-32603,'message':'PRIVATE fixture diagnostic /home/fake-user token=NEVER-EXPOSE'}});continue
  if method=='initialize':result={'userAgent':'confectory/'+control().get('version','0.159.0-alpha.3')+' (OWNED FIXTURE)'}
  elif method=='initialized':continue
  elif method=='account/login/start':

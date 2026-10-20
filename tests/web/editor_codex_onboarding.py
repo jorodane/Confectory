@@ -31,7 +31,7 @@ archive=archive.getvalue()
 class Assets(http.server.BaseHTTPRequestHandler):
     def log_message(self,*args):pass
     def do_GET(self):
-        case=pathlib.Path(json.loads((root/'active.json').read_text())['case']);(case/'download-started').write_text('owned')
+        case=pathlib.Path(json.loads((root/'active.json').read_text())['case']);(case/'download-started').write_text('owned');count=case/'download-count';count.write_text(str(int(count.read_text())+1 if count.exists() else 1))
         payload=(bytes([archive[0]^1])+archive[1:]) if json.loads((case/'control.json').read_text()).get('badArchive') else archive
         try:
             self.send_response(200);self.send_header('Content-Length',str(len(payload)));self.end_headers()
@@ -43,20 +43,20 @@ env=os.environ.copy();env.update(CONFECTORY_DOTNET=env.get('CONFECTORY_DOTNET','
 env['PATH']=str(pathlib.Path(env['CONFECTORY_DOTNET']).parent)+os.pathsep+env['PATH'];env.pop('CONFECTORY_WEB_PROJECT',None)
 with (root/'build.json').open('w') as out,(root/'build.err').open('w') as err:built=subprocess.run([env['CONFECTORY_DOTNET'],str(repo/'src/Confectory.Cli/bin/Release/net10.0/Confectory.Cli.dll'),'build',str(editor/'project.cpack'),'linux'],env=env,cwd=repo,stdout=out,stderr=err,timeout=180)
 report=json.loads((root/'build.json').read_text());assert built.returncode==0 and report.get('tool',{}).get('ok'),report.get('diagnostics')
-cases=['authenticated','logged-out','install','multiple-accounts','model-selection','single-model','configured-model','no-models','cancel-login','cancel-install','bad-install','cancel-probe','unsupported-runtime','identity-change','failed-login','switch-provider']
+cases=['authenticated','logged-out','install','multiple-accounts','model-selection','single-model','configured-model','no-models','cancel-login','cancel-install','bad-install','cancel-probe','unsupported-runtime','identity-change','failed-login','switch-provider','install-empty-home','install-process-exit','install-initialize-error','install-account-error','install-model-error','install-mixed-homes','install-process-start-error']
 if os.environ.get('CONFECTORY_ONBOARDING_CASES'):cases=os.environ['CONFECTORY_ONBOARDING_CASES'].split(',')
 evidence=[];errors=[];external=[]
 with sync_playwright() as p:
  browser=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox','--disable-gpu'])
  try:
   for name in cases:
-   case=root/name;case.mkdir();storage=case/'profile';control={'singleModel':name=='single-model','noDefault':name in ('model-selection','single-model'),'noModels':name=='no-models','configuredModel':'fixture-two' if name=='configured-model' else '', 'failLogin':name=='failed-login','holdVersion':name=='cancel-probe','holdDownload':name=='cancel-install','badArchive':name=='bad-install','version':'0.159.2' if name=='unsupported-runtime' else '0.159.0-alpha.3'}
+   case=root/name;case.mkdir();storage=case/'profile';control={'singleModel':name=='single-model','noDefault':name in ('model-selection','single-model'),'noModels':name=='no-models','configuredModel':'fixture-two' if name=='configured-model' else '', 'preAuthFailure':'mixed-account-error' if name=='install-mixed-homes' else name.removeprefix('install-') if name in ('install-process-exit','install-initialize-error','install-account-error','install-model-error','install-process-start-error') else '', 'failLogin':name=='failed-login','holdVersion':name=='cancel-probe','holdDownload':name=='cancel-install','badArchive':name=='bad-install','version':'0.159.2' if name=='unsupported-runtime' else '0.159.0-alpha.3'}
    def write_control(**values):control.update(values);(case/'control.json').write_text(json.dumps(control))
    write_control();(root/'active.json').write_text(json.dumps({'case':str(case)}))
-   absent=name in ('install','cancel-install','bad-install');logged_out=name in ('logged-out','install','cancel-login','cancel-install','bad-install','failed-login','switch-provider')
+   absent=name.startswith('install-') or name in ('install','cancel-install','bad-install');logged_out=name.startswith('install-') and name!='install-model-error' or name in ('logged-out','install','cancel-login','cancel-install','bad-install','failed-login','switch-provider')
    discovery={'executables':[] if absent else [{'path':str(runtime),'selectable':True,'source':'owned fixture'}],'homes':[]}
    homes=[]
-   for index in range(2 if name=='multiple-accounts' else 1):
+   for index in range(0 if name=='install-empty-home' else 2 if name in ('multiple-accounts','install-mixed-homes') else 1):
     home=case/('account-'+str(index));home.mkdir();(home/'original.keep').write_bytes(b'owned original account state\x00');homes.append(home);discovery['homes'].append({'path':str(home),'selectable':True,'source':'owned fixture'})
     if not logged_out:(home/'.owned-account.json').write_text(json.dumps({'type':'chatgpt','email':('alice' if index==0 else 'bob')+'@fixture.invalid','planType':'plus'}))
    (root/'active-discovery.json').write_text(json.dumps(discovery))
@@ -124,7 +124,34 @@ with sync_playwright() as p:
       expect(dialog.locator('[data-cli-login]')).to_be_enabled();dialog.locator('[data-cli-login]').click();expect(dialog.locator('[data-cli-consent]')).to_have_text('동의하고 설치');dialog.locator('[data-cli-consent]').click()
      if name=='bad-install':
       expect(dialog.locator('[data-cli-retry]')).to_be_visible();page.screenshot(path=str(case/'install-failed.png'));write_control(badArchive=False);dialog.locator('[data-cli-retry]').click();expect(dialog.locator('[data-cli-consent]')).to_have_text('동의하고 설치');dialog.locator('[data-cli-consent]').click()
+    if name in ('install-process-exit','install-initialize-error','install-account-error','install-model-error','install-mixed-homes','install-process-start-error'):
+     expect(dialog.locator('[data-cli-retry]')).to_be_visible();failure=state()['codexOnboarding'];assert len(state()['helperAgents']['agents'])==0;assert not [r for r in requests() if r['method'] in ('account/login/start','turn/start')]
+     if os.environ.get('CONFECTORY_ONBOARDING_EXPECT_LEGACY_FAILURES')=='1':
+      assert failure['message']=='기존 Codex 설정으로 연결 준비를 마치지 못했어요. 다시 시도하거나 별도 계정으로 로그인할 수 있습니다.',failure
+      page.screenshot(path=str(case/'legacy-post-install-failed.png'));print('PASS reproduced legacy '+name+' code='+failure['code'],flush=True);continue
+     diagnostic=failure['diagnostics'];expected={'install-process-start-error':('provider-start-failed','process-start'),'install-process-exit':('provider-protocol-unsupported','initialize'),'install-initialize-error':('provider-protocol-unsupported','initialize'),'install-account-error':('provider-account-query-failed','account-read'),'install-model-error':('provider-model-catalog-unavailable','model-list'),'install-mixed-homes':('provider-account-query-failed','account-read')}[name]
+     assert (diagnostic['failure']['code'],diagnostic['failure']['stage'])==expected,diagnostic
+     assert diagnostic['installation']=={'state':'prepared','version':'0.159.0-alpha.3'} and failure['installation']['state']=='prepared',failure
+     assert len(diagnostic['attempts'])==(2 if name=='install-mixed-homes' else 1),diagnostic
+     if name=='install-mixed-homes':assert diagnostic['attempts'][1]['code']=='provider-auth-required'
+     if name=='install-process-exit':assert diagnostic['failure'].get('exitCode')==23,diagnostic
+     elif name=='install-process-start-error':assert diagnostic['failure']['processStarted'] is False and diagnostic['failure']['nativeErrorCode']==13 and 'exitCode' not in diagnostic['failure'],diagnostic
+     else:assert diagnostic['failure']['rpcErrorCode']==-32603,diagnostic
+     safe=json.dumps(diagnostic);assert not any(x in safe for x in ('PRIVATE','NEVER-EXPOSE','/tmp','/home','@','token=','accountIdentity','executable','managedHome')),safe
+     expect(dialog.locator('[data-cli-installation-result]')).to_be_visible();details=dialog.locator('[data-cli-diagnostics]');details.locator('summary').click();expect(details.locator('pre')).to_contain_text(expected[0]);page.screenshot(path=str(case/'post-install-failed.png'));(case/'safe-diagnostics.json').write_text(json.dumps(diagnostic,indent=2))
+     write_control(preAuthFailure='')
+     if name=='install-process-start-error':
+      for prepared in (case/'managed/installations').rglob('codex'):prepared.chmod(0o700)
+     dialog.locator('[data-cli-retry]').click()
+     if name=='install-model-error':expect(dialog.locator('[data-cli-account]')).to_have_count(1)
+     else:expect(dialog.locator('[data-cli-consent]')).to_have_text('동의하고 로그인')
+     assert (case/'download-count').read_text()=='1','retry repeated completed installation'
+     for home in homes:assert (home/'original.keep').read_bytes()==b'owned original account state\x00'
+     assert not [r for r in requests() if r['method'] in ('account/login/start','turn/start')]
+     assert 'mcpBridge' not in invocations
+     print('PASS scenario '+name,flush=True);continue
     if logged_out:
+     assert not [r for r in requests() if r['method'] in ('model/list','account/login/start','turn/start')],'model/auth request before explicit login consent'
      expect(dialog.locator('[data-cli-consent]')).to_have_text('동의하고 로그인');page.screenshot(path=str(case/'login-consent.png'));consent=state()['codexOnboarding']['token'];dialog.locator('[data-cli-consent]').click();assert api('approve',token=consent)['ok'];expect(dialog.locator('[data-cli-code]')).to_have_text('TEST-4240');expect(dialog.locator('[data-cli-official-login]')).to_have_attribute('href','https://auth.openai.com/codex/device');page.screenshot(path=str(case/'device-login.png'))
      if name=='switch-provider':
       dialog.get_by_role('button',name='OpenAI Responses',exact=True).click();expect(dialog.locator('[data-codex-onboarding]')).to_have_count(0);(case/'complete-login').write_text('owned');page.wait_for_timeout(500);assert state()['helperAgents']['agents']==[];dialog.get_by_role('button',name='Codex',exact=True).click();expect(dialog.locator('[data-cli-login]')).to_be_enabled();page.screenshot(path=str(case/'switched-cancelled.png'));print('PASS scenario switch-provider',flush=True);continue
