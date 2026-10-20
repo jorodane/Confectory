@@ -510,5 +510,19 @@
     "bytes": 59810008,
     "sha256": "f747c6c5f921a268ee04753a3fc4c1c378fd221ad4f1115328ac692eee87673d",
     "windowsExecuted": false
+  },
+  "implementationCommit": "5953ac3c7df46802ff17bcbf337a6ef72da035f3",
+  "gitCheckoutResources": {
+    "result": "1 passed, 0 failed, 0 skipped; 10.855s",
+    "actualRetainedCRLFAfterAttributesPull": true,
+    "actualFreshLFCheckout": true,
+    "resourceCount": 50,
+    "invalidContentEncodingBOMUtf16BareCRBinaryBudgetRejected": true,
+    "originalWorkingTreeBytesRetained": true
+  },
+  "solutionReleaseBuild": {
+    "result": "passed",
+    "warnings": 0,
+    "errors": 0
   }
 }
