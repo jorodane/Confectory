@@ -2,6 +2,7 @@
 setlocal DisableDelayedExpansion
 rem Read-only verification of the default solution Release/net10.0 installation.
 for %%F in (
+ "%~dp0..\..\..\targets\editor-desktop\bin\Release\net10.0\Confectory"
  "%~dp0..\..\..\targets\desktop-entry\bin\Release\net10.0\Confectory.DesktopEntry"
  "%~dp0..\..\..\src\Confectory.Cli\bin\Release\net10.0\Confectory.Cli"
  "%~dp0..\..\..\targets\dotnet\bin\Release\net10.0\Confectory.Build.DotNet"

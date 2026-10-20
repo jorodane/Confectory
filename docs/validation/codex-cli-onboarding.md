@@ -1,5 +1,7 @@
 # Codex CLI onboarding
 
+Historical validation for the initial CLI implementation. The later [minimal connection and Windows package change](codex-minimal-connection-windows-package.md) removes the advanced/manual UI and model dropdown described here.
+
 This change starts from `eca156f6f79ce9466a8c90a22d36bf67475278e1` and retains v508, existing generated-settings repair, and user data.
 
 ## Behavior

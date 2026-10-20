@@ -16,6 +16,9 @@ rem Build success must include the desktop entry and its required installed host
 call "%~dp0..\..\..\scripts\windows\verification\verify-desktop-entry-windows.bat"
 set "confectory_exit=%errorlevel%"
 if not "%confectory_exit%"=="0" echo [Confectory] Expected Release/net10.0 outputs are missing. Check the checkout version, solution project list and custom output/framework overrides.
+if not "%confectory_exit%"=="0" goto finished
+"%confectory_build_dotnet%" "targets\editor-desktop\bin\Release\net10.0\Confectory.dll" package "%CD%" "%CD%\Builds\Windows-x64"
+set "confectory_exit=%errorlevel%"
 :finished
 popd
 exit /b %confectory_exit%

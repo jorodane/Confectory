@@ -1,6 +1,6 @@
 # Confectory C# build core
 
-Windows entry: **[Confectory.bat](Confectory.bat)**. See [direct startup and developer tools](docs/WINDOWS_LAUNCHER.md). Windows defaults to the embedded HTML editor. The v196 integration is partial; see [verified and remaining features](docs/EMBEDDED_WEB_UI.md). External-browser use remains developer diagnostics.
+Windows entry: **[Confectory.bat](Confectory.bat)**. After a Windows package build, open **`Builds/Windows-x64/Confectory.exe`** with its complete output folder; see [exe package prerequisites and commands](docs/WINDOWS_LAUNCHER.md#빌드-후-exe-실행). See [direct startup and developer tools](docs/WINDOWS_LAUNCHER.md). Windows defaults to the embedded HTML editor. The v196 integration is partial; see [verified and remaining features](docs/EMBEDDED_WEB_UI.md). External-browser use remains developer diagnostics.
 
 
 A .NET 10 build core for **ProjectPack + target**. It resolves namespace-qualified pack elements, generates C# contracts, compiles owned implementations locally, and links actual providers through a build-target pack. The core, CLI, target tool and tests are implemented in C#; Python is not required. Runtime and UI are assembled from ordinary packs, including the current small draft-authoring slice. Full editor, physics and mod loading are later packs.
@@ -21,7 +21,7 @@ The repository's `global.json` selects the newest installed stable **10.0 SDK** 
 
 Building the core/CLI/tool/tests or compiling a ProjectPack requires the SDK. Running an already generated application requires only the .NET 10 `Microsoft.NETCore.App` runtime and its `dotnet` host. The CLI starts on that runtime, but build/check/validate use the SDK-dependent target tool. Generated packages are framework-dependent; there is no self-contained distribution. Linux execution with an isolated runtime-only installation is verified in the evidence report.
 
-On Windows, `Confectory.bat` directly opens the embedded HTML EditorHome. For a build-only action, explicitly open **`scripts/windows/developer-tools.bat`** and choose **3 — Build tools** to build the entire solution in Release. The internal build script is `scripts/windows/internal/build-windows.bat`. It uses the script's directory, so it can be called from another working directory. It performs only the build and returns the .NET build exit code; it does not install tools or run tests. Outputs are in each project's `bin/Release/net10.0/` directory. The .NET 10 SDK must already be installed.
+On Windows, `Confectory.bat` directly opens the embedded HTML EditorHome. For a build-only action, explicitly open **`scripts/windows/developer-tools.bat`** and choose **3 — Build Windows editor exe package** to build the solution and `Builds/Windows-x64/Confectory.exe`. The internal build script is `scripts/windows/internal/build-windows.bat`. It uses the script's directory, so it can be called from another working directory. It builds the editor package and returns its exit code; it does not install system runtimes or run tests. Tool outputs remain in each project's `bin/Release/net10.0/` directory. The .NET 10 SDK must already be installed.
 
 ```sh
 dotnet build Confectory.sln -c Release

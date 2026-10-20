@@ -85,21 +85,21 @@ with sync_playwright() as p:
                     generated=subprocess.run([env['CONFECTORY_DOTNET'],str(repo/'targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll')],input=json.dumps(request_body),text=True,capture_output=True,check=True,env=env)
                     recovery=json.loads(generated.stdout);assert recovery['ok'],recovery
                     (settings/'project.cpack').write_text(recovery['result']['manifest'])
-                    diagnostic.get_by_role('button',name='설정 다시 읽기').click()
-                expect(dialog.locator('[data-connection-advanced]')).to_be_visible()
-                dialog.locator('[data-connection-advanced]>summary').click();field=dialog.locator('[data-connection-field="model"]')
-                if scenario=='partial-settings':expect(field).to_have_value('preserved-user-input')
-                field.fill('unapplied-kept-across-close');dialog.locator('[data-connection-cancel]').click();expect(dialog).to_have_count(0)
-                expect(page.locator('#add-agent')).to_be_enabled()
-                page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='Agent 추가',exact=True);dialog.get_by_role('button',name='Codex',exact=True).click();expect(dialog.locator('[data-connection-advanced]')).to_be_visible();dialog.locator('[data-connection-advanced]>summary').click()
+                    diagnostic.get_by_role('button',name='다시 시도').click()
+                expect(dialog.locator('[data-cli-login]')).to_be_enabled()
+                expect(dialog.locator('input,select,textarea,[data-connection-advanced],[data-connection-save],[data-installation-candidates],[data-home-candidates]')).to_have_count(0)
+                dialog.locator('[data-connection-cancel]').click();expect(dialog).to_have_count(0)
+                # Input retention still applies to the separate Responses form.
+                page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='Agent 추가',exact=True)
+                dialog.get_by_role('button',name='OpenAI Responses',exact=True).click();field=dialog.locator('[data-connection-field="model"]');field.fill('unapplied-kept-across-close')
+                dialog.locator('[data-connection-cancel]').click();expect(dialog).to_have_count(0)
+                page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='Agent 추가',exact=True);dialog.get_by_role('button',name='OpenAI Responses',exact=True).click()
                 expect(dialog.locator('[data-connection-field="model"]')).to_have_value('unapplied-kept-across-close')
-                dialog.locator('[data-connection-back]').click();expect(dialog.locator('[data-connection-form]')).to_be_empty()
-                dialog.get_by_role('button',name='OpenAI Responses',exact=True).click();expect(dialog.locator('[data-connection-field="model"]')).not_to_have_value('unapplied-kept-across-close')
                 dialog.locator('[data-connection-cancel]').click();expect(page.locator('#add-agent')).to_be_enabled()
                 # Close after the backend request starts, before it can return its settings.
                 page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='Agent 추가',exact=True);dialog.get_by_role('button',name='Codex',exact=True).click()
                 dialog.locator('[data-connection-cancel]').click();expect(dialog).to_have_count(0);expect(page.locator('#add-agent')).to_be_enabled()
-                page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='Agent 추가',exact=True);dialog.get_by_role('button',name='Codex',exact=True).click();expect(dialog.locator('[data-connection-advanced]')).to_be_visible()
+                page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='Agent 추가',exact=True);dialog.get_by_role('button',name='Codex',exact=True).click();expect(dialog.locator('[data-cli-login]')).to_be_enabled()
                 assert state(url)['projectId']==''
                 dialog.locator('[data-connection-cancel]').click()
                 if scenario=='partial-settings':assert (settings/'Settings.celem').read_text()==original

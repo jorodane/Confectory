@@ -1,5 +1,8 @@
 from editor_navigation import goto_editor
-"""Actual Home + normal copied provider + owned HTTP archives. Never installs a real CLI or uses an account."""
+"""Actual minimal Home entry, then internal installer/login safety APIs with owned archives.
+Production login-first UI is covered by editor_codex_onboarding.py; manual menus must stay absent.
+Never installs a real CLI or uses a real account.
+"""
 import fcntl,hashlib,http.server,io,json,os,pathlib,signal,subprocess,sys,tarfile,tempfile,threading,time,urllib.request,zipfile
 from playwright.sync_api import sync_playwright,expect
 expect.set_options(timeout=25000)
@@ -87,19 +90,14 @@ def requests():return [json.loads(row) for row in (root/'requests.jsonl').read_t
 def approvals(login=False):return {k:True for k in (['loginProcessApproved','accountInteractionApproved','accountStorageApproved'] if login else ['downloadApproved','storageApproved','versionCheckApproved'])}
 def plan_start(login=False):
  result=invoke('prepareLogin' if login else 'prepareInstallation');assert result['ok'],result;value=setup()['login' if login else 'preparation'];assert value['state']=='approval-required',value;started=invoke('startLogin' if login else 'startInstallation',token=value['token'],approvals=approvals(login));assert started['ok'],started;return value
-def fresh_ui_plan(selector,login=False):
- key='login' if login else 'preparation';prior=(setup().get(key) or {}).get('token')
- dialog.locator(selector).click();box=dialog.locator('[data-job="'+key+'"]')
- page.wait_for_function("arg=>{const box=document.querySelector('[data-job=\"'+arg.key+'\"]');if(!box||box.dataset.jobState!=='approval-required')return false;const state=JSON.parse(box.dataset.snapshot||'{}');return Boolean(state.token)&&state.token!==arg.prior}",arg={'key':key,'prior':prior})
- expect(page.locator('#add-agent')).to_be_enabled();return box
 errors=[];external=[]
 with sync_playwright() as p:
  browser=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox','--disable-gpu']);page=browser.new_page(viewport={'width':1440,'height':1000});page.on('pageerror',lambda e:errors.append(str(e)));page.route('https://**/*',lambda route:(external.append(route.request.url),route.abort()))
  try:
   goto_editor(page,url);expect(page.locator('.home-grid')).to_be_visible()
   def open_dialog():
-   page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='Agent 추가',exact=True);dialog.get_by_role('button',name='Codex',exact=True).click();expect(dialog.locator('[data-cli-login]')).to_be_enabled();dialog.locator('[data-connection-advanced]>summary').click();expect(dialog.locator('[data-install-prepare]')).to_be_visible();return dialog
-  dialog=open_dialog();page.screenshot(path=str(root/'actual-ai-picker.png'));dialog.locator('[data-basic-check]').click();expect(dialog.locator('[data-job="preparation"] [data-job-consent]')).to_have_count(3);assert not downloads and not requests() and not managed.exists();page.screenshot(path=str(root/'actual-preparation-consent.png'))
+   page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='Agent 추가',exact=True);dialog.get_by_role('button',name='Codex',exact=True).click();expect(dialog.locator('[data-cli-login]')).to_be_enabled();expect(dialog.locator('[data-connection-advanced],[data-install-prepare],input,select,textarea')).to_have_count(0);return dialog
+  dialog=open_dialog();page.screenshot(path=str(root/'actual-ai-picker.png'));invoke('prepareInstallation');assert setup()['preparation']['state']=='approval-required';assert not downloads and not requests() and not managed.exists()
   stale=setup()['preparation']['token'];invoke('startInstallation',token=stale,approvals={});assert not downloads
   dialog.locator('[data-connection-cancel]').click();expect(dialog).not_to_be_visible();assert not invoke('startInstallation',token=stale,approvals=approvals())['ok'];dialog=open_dialog()
   # Settings changes invalidate the form-bound consent even when changed back later.
@@ -117,7 +115,7 @@ with sync_playwright() as p:
   finally:fcntl.flock(lock,fcntl.LOCK_UN);lock.close()
   linked=root/'linked-root';linked.symlink_to(old,target_is_directory=True);configure(rootBase=str(linked));assert not invoke('prepareInstallation')['ok'];assert (old/'keep.txt').read_bytes()==before
   configure(name='/slow');slow.clear();plan=plan_start();assert slow.wait(5);before_count=len(downloads);invoke('startInstallation',token=plan['token'],approvals=approvals());assert len(downloads)==before_count
-  dialog.locator('[data-job="preparation"] [data-job-cancel]').click();wait_job('preparation',['cancelling','cancelled']);slow.clear();wait_job('preparation',['cancelled']);assert field('executable') in ['', 'codex'] and not list(managed.glob('installations/*/*/.pending-*'))
+  invoke('cancelInstallation');wait_job('preparation',['cancelling','cancelled']);slow.clear();wait_job('preparation',['cancelled']);assert field('executable') in ['', 'codex'] and not list(managed.glob('installations/*/*/.pending-*'))
   # Cancel the owned version-check process, then retry in a fresh unique transaction.
   configure();(root/'version-ready').unlink(missing_ok=True);(root/'control.json').write_text(json.dumps({'holdVersion':True}));plan_start()
   deadline=time.monotonic()+10
@@ -125,33 +123,40 @@ with sync_playwright() as p:
   invoke('cancelInstallation');wait_job('preparation',['cancelled']);assert field('executable') in ['', 'codex'];(root/'control.json').write_text('{}')
   # An unvalidated installation cannot become a prepared or logged-in result.
   (root/'control.json').write_text(json.dumps({'version':'0.159.2'}));plan_start();assert wait_job('preparation',['failed'])['code']=='preparation_version_mismatch';assert not requests();(root/'control.json').write_text('{}')
-  configure(kind='tar.gz');box=fresh_ui_plan('[data-install-prepare]');expect(box.locator('[data-job-consent]')).to_have_count(3)
-  for checkbox in box.locator('[data-job-consent]').all():checkbox.check()
-  box.locator('[data-job-start]').click();expect(box).to_have_attribute('data-job-state','prepared');prepared=pathlib.Path(field('executable'));assert prepared.exists() and prepared.parent.name.startswith('install-');assert not field('managedHome') and not requests();assert not list(managed.glob('installations/*/*/.pending-*'))
+  configure(kind='tar.gz');plan_start();wait_job('preparation',['prepared']);prepared=pathlib.Path(field('executable'));assert prepared.exists() and prepared.parent.name.startswith('install-');assert not field('managedHome') and not requests();assert not list(managed.glob('installations/*/*/.pending-*'))
   # Login always uses a fresh home. Cancellation removes it, code and consent; saved installations remain.
-  box.locator('[data-job-continue]').click();login=dialog.locator('[data-job="login"]');expect(login.locator('[data-job-consent]')).to_have_count(3)
+  invoke('saveConnectionSetup')
   hold=descriptor.parent/'owned-hold-account';ready=descriptor.parent/'owned-account-ready';hold.write_text('hold');launches=(root/'process-starts').read_text() if (root/'process-starts').exists() else ''
-  for checkbox in login.locator('[data-job-consent]').all():checkbox.check()
-  login.locator('[data-job-start]').click();deadline=time.monotonic()+10
+  plan_start(True);deadline=time.monotonic()+10
   while not ready.exists():assert time.monotonic()<deadline;time.sleep(.02)
-  login.locator('[data-job-cancel]').click();wait_job('login',['cancelling','cancelled']);hold.unlink();wait_job('login',['cancelled']);assert ((root/'process-starts').read_text() if (root/'process-starts').exists() else '')==launches;assert not list(managed.glob('accounts/account-*'))
-  login=fresh_ui_plan('[data-login-prepare]',True);expect(login.locator('[data-job-consent]')).to_have_count(3)
-  for checkbox in login.locator('[data-job-consent]').all():checkbox.check()
-  login.locator('[data-job-start]').click();expect(login).to_have_attribute('data-job-state','waiting-user');expect(login.locator('[data-login-code]')).to_have_text('TEST-4240');expect(login.locator('[data-login-page]')).to_have_attribute('href','https://auth.openai.com/codex/device');assert not field('managedHome');assert not any(r['method'] in ['thread/start','turn/start','model/list'] for r in requests())
-  login.locator('[data-job-cancel]').click();expect(login).to_have_attribute('data-job-state','cancelled');expect(login.locator('[data-login-code]')).to_have_count(0);assert not list(managed.glob('accounts/account-*')) and prepared.exists()
+  invoke('cancelLogin');wait_job('login',['cancelling','cancelled']);hold.unlink();wait_job('login',['cancelled']);assert ((root/'process-starts').read_text() if (root/'process-starts').exists() else '')==launches;assert not list(managed.glob('accounts/account-*'))
+  plan_start(True);login=wait_job('login',['waiting-user']);assert login['userCode']=='TEST-4240' and login['verificationUrl']=='https://auth.openai.com/codex/device';assert not field('managedHome');assert not any(r['method'] in ['thread/start','turn/start','model/list'] for r in requests())
+  invoke('cancelLogin');login=wait_job('login',['cancelled']);assert not login.get('userCode');assert not list(managed.glob('accounts/account-*')) and prepared.exists()
   # Gate rejects 0.159.2 before requesting any login or account operation.
   (root/'control.json').write_text(json.dumps({'version':'0.159.2'}));count=len(requests());plan_start(True);assert wait_job('login',['failed'])['code']=='login_version_unverified';assert [r['method'] for r in requests()[count:]]==['initialize'];(root/'control.json').write_text('{}')
   # A redirected login page is never exposed or opened.
   (root/'control.json').write_text(json.dumps({'invalidUrl':True}));plan_start(True);assert wait_job('login',['failed'])['code']=='login_service_unavailable';assert not list(managed.glob('accounts/account-*'));(root/'control.json').write_text('{}')
   plan_start(True);wait_job('login',['waiting-user']);dialog.locator('[data-connection-cancel]').click();expect(dialog).not_to_be_visible();(root/'complete-login').write_text('late');time.sleep(.3);assert not list(managed.glob('accounts/account-*'));(root/'complete-login').unlink();dialog=open_dialog();assert not field('managedHome') and field('executable')==str(prepared)
-  login=fresh_ui_plan('[data-login-prepare]',True);expect(login.locator('[data-job-consent]')).to_have_count(3)
-  for checkbox in login.locator('[data-job-consent]').all():checkbox.check()
-  login.locator('[data-job-start]').click();expect(login).to_have_attribute('data-job-state','waiting-user');(root/'complete-login').write_text('complete');expect(login).to_have_attribute('data-job-state','login-complete');account=pathlib.Path(field('managedHome'));assert (account/'.owned-signed-in').exists() and (account/'.confectory-account-ready').exists();assert account!=prepared.parent and field('credentialReference')=='codex:managed'
-  login.locator('[data-job-continue]').click();expect(dialog.locator('[data-check-consent]')).to_have_count(4);assert all(not checkbox.is_checked() for checkbox in dialog.locator('[data-check-consent]').all())
-  for checkbox in dialog.locator('[data-check-consent]').all():checkbox.check()
-  dialog.locator('[data-connection-check-start]').click();expect(dialog.locator('[data-connection-result]')).to_have_attribute('data-connection-outcome','models-found');assert setup()['outcome'].get('authenticated') is False;assert not any(r['method'] in ['thread/start','turn/start'] for r in requests())
-  dialog.locator('[data-catalogue-model]').select_option('owned-protocol-fixture');dialog.locator('[data-catalogue-select]').click();expect(dialog.locator('[data-check-consent]')).to_have_count(4);assert all(not box.is_checked() for box in dialog.locator('[data-check-consent]').all());page.screenshot(path=str(root/'actual-home-prepared.png'));assert not errors and not external,(errors,external);assert (old/'keep.txt').read_bytes()==before
-  (root/'evidence.json').write_text(json.dumps({'normalHomeEntry':True,'ownedDownloadAndDigestAndSafeExtraction':True,'archiveRejections':len(cases),'cancelDownloadAndVersionAndLoginAndClose':True,'cancelBeforeProcessZeroLaunch':True,'unownedRootAndLinksPreserved':True,'crossProcessPreparationLock':True,'separateManagedInstallAndAccount':True,'staleConsentAndDuplicateStart':True,'versionGateUnchanged':True,'modelPreflightAndRequestApprovalRemainSeparate':True,'realInstallationAccountTokenOrModelCalls':False},indent=2));print('PASS actual Home click preparation and device login; OWNED fixtures only',root,flush=True)
+  plan_start(True);wait_job('login',['waiting-user']);(root/'complete-login').write_text('complete');wait_job('login',['login-complete']);account=pathlib.Path(field('managedHome'));assert (account/'.owned-signed-in').exists() and (account/'.confectory-account-ready').exists();assert account!=prepared.parent and field('credentialReference')=='codex:managed'
+  invoke('saveConnectionSetup');before_catalogue=requests();before_launches=(root/'process-starts').read_bytes()
+  invoke('prepareConnectionCatalogue');outcome=setup()['outcome'];assert outcome['state']=='catalogue-approval-required' and outcome['code']=='catalogue_approval_required'
+  assert {row['id'] for row in outcome['preflightRequirements']}=={'checkProcessApproved','checkAccountApproved','checkConfigurationApproved','checkStorageApproved'}
+  assert requests()==before_catalogue and (root/'process-starts').read_bytes()==before_launches
+  assert not invoke('startConnectionCheck',token=outcome['token'],approvals={})['ok']
+  assert requests()==before_catalogue and (root/'process-starts').read_bytes()==before_launches
+  assert setup()['outcome']['state']=='catalogue-approval-required' and setup()['outcome']['token']==outcome['token']
+  assert invoke('startConnectionCheck',token=outcome['token'],approvals={row['id']:True for row in outcome['preflightRequirements']})['ok']
+  outcome=wait_job('outcome',['models-found']);assert outcome.get('authenticated') is False;assert not any(r['method'] in ['thread/start','turn/start'] for r in requests())
+  before_model=requests();before_launches=(root/'process-starts').read_bytes()
+  assert invoke('selectConnectionModel',model='owned-protocol-fixture')['ok'];invoke('saveConnectionSetup');invoke('attemptConnectionSetup');preflight=setup()['outcome']
+  assert preflight['state']=='preflight-required' and preflight['code']=='preflight_required' and preflight['diagnostics']['processStarted'] is False
+  assert len(preflight['preflightRequirements'])==4 and preflight['authenticated'] is False
+  assert requests()==before_model and (root/'process-starts').read_bytes()==before_launches
+  assert not invoke('startConnectionCheck',token=preflight['token'],approvals={})['ok']
+  assert setup()['outcome']['state']=='preflight-required' and requests()==before_model and (root/'process-starts').read_bytes()==before_launches
+
+  page.screenshot(path=str(root/'actual-home-prepared.png'));assert not errors and not external,(errors,external);assert (old/'keep.txt').read_bytes()==before
+  (root/'evidence.json').write_text(json.dumps({'normalHomeEntry':True,'manualMenusAbsent':True,'installerLoginSafetyViaInternalAPI':True,'ownedDownloadAndDigestAndSafeExtraction':True,'archiveRejections':len(cases),'cancelDownloadAndVersionAndLoginAndClose':True,'cancelBeforeProcessZeroLaunch':True,'unownedRootAndLinksPreserved':True,'crossProcessPreparationLock':True,'separateManagedInstallAndAccount':True,'staleConsentAndDuplicateStart':True,'versionGateUnchanged':True,'modelPreflightAndRequestApprovalRemainSeparate':True,'catalogueApprovalRequiredWithZeroProcessOrRpcBeforeConsent':True,'realInstallationAccountTokenOrModelCalls':False},indent=2));print('PASS actual Home click preparation and device login; minimal UI plus internal safety APIs; OWNED fixtures only',root,flush=True)
  except Exception:
   print('Evidence',root,flush=True);page.screenshot(path=str(root/'failure.png'));print('State',json.dumps({key:(setup() or {}).get(key) for key in ['preparation','login','outcome']},ensure_ascii=False),flush=True);raise
  finally:

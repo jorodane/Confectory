@@ -1,5 +1,5 @@
 """Opt-in pinned official CLI probe: fresh empty account home, child seccomp
-network denial, initialize and account/read only. Never login, model/list or turn.
+network denial, initialize, account/read and config/read only. Never login, model/list or turn.
 No token/config copies; raw stderr and the owned temporary tree are removed.
 """
 import ctypes,ctypes.util,errno,json,os,pathlib,re,selectors,shutil,socket,subprocess,sys,tempfile,time
@@ -43,7 +43,7 @@ version=subprocess.run([str(binary),'--version'],env=env,cwd=scratch,preexec_fn=
 features=re.search(r'string\[\] deniedFeatures=\{([^}]+)\}',(repo/'packs/agent-codex/Provider.csbody').read_text()).group(1);features=re.findall(r'"([a-z0-9_]+)"',features)
 args=[str(binary),'app-server','--stdio','--strict-config','-c','web_search="disabled"','-c','cli_auth_credentials_store="ephemeral"']
 for f in features:args+=['--disable',f]
-args+=['-c','notify=[]'];record={'version':text,'network':'child seccomp denies socket/connect/send and io_uring','freshOwnedHome':True,'platform':'Linux','sentMethods':[],'liveLoginOrModelRequests':False};process=None
+args+=['-c','notify=[]','-c','plugins.unified-computer-use@openai-bundled.enabled=false'];record={'version':text,'network':'child seccomp denies socket/connect/send and io_uring','freshOwnedHome':True,'platform':'Linux','sentMethods':[],'liveLoginOrModelRequests':False};process=None
 try:
  with (root/'owned-stderr.txt').open('wb') as err:
   process=subprocess.Popen(args,env=env,cwd=scratch,preexec_fn=deny_child_network,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=err,start_new_session=True);selector=selectors.DefaultSelector();selector.register(process.stdout,selectors.EVENT_READ);pending=bytearray()
@@ -60,7 +60,7 @@ try:
       if 'error' in obj:record['rpcCode']=obj['error'].get('code');raise RuntimeError('rpc-error')
       return obj['result']
    raise TimeoutError('bounded-rpc-timeout')
-  init=rpc(1,'initialize',{'clientInfo':{'name':'confectory','title':'Confectory','version':'0.1.0'},'capabilities':{'experimentalApi':True}});record['initialization']='passed';process.stdin.write(b'{"method":"initialized","params":{}}\n');process.stdin.flush();account=rpc(2,'account/read',{'refreshToken':False});assert account.get('account') is None,'Unexpected account: abort';record['account']='null';record['result']='passed'
+  init=rpc(1,'initialize',{'clientInfo':{'name':'confectory','title':'Confectory','version':'0.1.0'},'capabilities':{'experimentalApi':True}});record['initialization']='passed';process.stdin.write(b'{"method":"initialized","params":{}}\n');process.stdin.flush();account=rpc(2,'account/read',{'refreshToken':False});assert account.get('account') is None,'Unexpected account: abort';record['account']='null';config=rpc(3,'config/read',{'includeLayers':False})['config'];assert config['plugins']['unified-computer-use@openai-bundled']['enabled'] is False;assert config['web_search']=='disabled';record['bundledPluginDisabled']=True;record['searchDisabled']=True;record['result']='passed'
 except Exception as e:record['result']='failed';record['failureKind']=str(e) if str(e) in ('bounded-rpc-timeout','stdio-ended-before-response','rpc-error') else type(e).__name__
 finally:
  if process is not None:

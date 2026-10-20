@@ -43,14 +43,14 @@ env=os.environ.copy();env.update(CONFECTORY_DOTNET=env.get('CONFECTORY_DOTNET','
 env['PATH']=str(pathlib.Path(env['CONFECTORY_DOTNET']).parent)+os.pathsep+env['PATH'];env.pop('CONFECTORY_WEB_PROJECT',None)
 with (root/'build.json').open('w') as out,(root/'build.err').open('w') as err:built=subprocess.run([env['CONFECTORY_DOTNET'],str(repo/'src/Confectory.Cli/bin/Release/net10.0/Confectory.Cli.dll'),'build',str(editor/'project.cpack'),'linux'],env=env,cwd=repo,stdout=out,stderr=err,timeout=180)
 report=json.loads((root/'build.json').read_text());assert built.returncode==0 and report.get('tool',{}).get('ok'),report.get('diagnostics')
-cases=['authenticated','logged-out','install','multiple-accounts','model-selection','single-model','configured-model','no-models','cancel-login','cancel-install','bad-install','cancel-probe','unsupported-runtime','identity-change','failed-login','switch-provider','install-empty-home','install-process-exit','install-initialize-error','install-account-error','install-model-error','install-mixed-homes','install-process-start-error']
+cases=['authenticated','logged-out','install','multiple-accounts','model-selection','single-model','configured-model','no-models','cancel-login','cancel-install','bad-install','cancel-probe','unsupported-runtime','identity-change','failed-login','switch-provider','install-empty-home','install-process-exit','install-initialize-error','install-account-error','install-model-error','install-mixed-homes','install-process-start-error','bundled-policy','user-bundle-settings','unexpected-extension','web-search-policy']
 if os.environ.get('CONFECTORY_ONBOARDING_CASES'):cases=os.environ['CONFECTORY_ONBOARDING_CASES'].split(',')
 evidence=[];errors=[];external=[]
 with sync_playwright() as p:
  browser=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox','--disable-gpu'])
  try:
   for name in cases:
-   case=root/name;case.mkdir();storage=case/'profile';control={'singleModel':name=='single-model','noDefault':name in ('model-selection','single-model'),'noModels':name=='no-models','configuredModel':'fixture-two' if name=='configured-model' else '', 'preAuthFailure':'mixed-account-error' if name=='install-mixed-homes' else name.removeprefix('install-') if name in ('install-process-exit','install-initialize-error','install-account-error','install-model-error','install-process-start-error') else '', 'failLogin':name=='failed-login','holdVersion':name=='cancel-probe','holdDownload':name=='cancel-install','badArchive':name=='bad-install','version':'0.159.2' if name=='unsupported-runtime' else '0.159.0-alpha.3'}
+   case=root/name;case.mkdir();storage=case/'profile';control={'rejectExtension':name=='unexpected-extension','rejectSearch':name=='web-search-policy','bundledPolicy':name in ('bundled-policy','user-bundle-settings'),'singleModel':name=='single-model','noDefault':name in ('model-selection','single-model'),'noModels':name=='no-models','configuredModel':'fixture-two' if name=='configured-model' else '', 'preAuthFailure':'mixed-account-error' if name=='install-mixed-homes' else name.removeprefix('install-') if name in ('install-process-exit','install-initialize-error','install-account-error','install-model-error','install-process-start-error') else '', 'failLogin':name=='failed-login','holdVersion':name=='cancel-probe','holdDownload':name=='cancel-install','badArchive':name=='bad-install','version':'0.159.2' if name=='unsupported-runtime' else '0.159.0-alpha.3'}
    def write_control(**values):control.update(values);(case/'control.json').write_text(json.dumps(control))
    write_control();(root/'active.json').write_text(json.dumps({'case':str(case)}))
    absent=name.startswith('install-') or name in ('install','cancel-install','bad-install');logged_out=name.startswith('install-') and name!='install-model-error' or name in ('logged-out','install','cancel-login','cancel-install','bad-install','failed-login','switch-provider')
@@ -58,6 +58,7 @@ with sync_playwright() as p:
    homes=[]
    for index in range(0 if name=='install-empty-home' else 2 if name in ('multiple-accounts','install-mixed-homes') else 1):
     home=case/('account-'+str(index));home.mkdir();(home/'original.keep').write_bytes(b'owned original account state\x00');homes.append(home);discovery['homes'].append({'path':str(home),'selectable':True,'source':'owned fixture'})
+    if name=='user-bundle-settings':(home/'config.toml').write_text('[plugins."unified-computer-use@openai-bundled"]\nenabled = true\n')
     if not logged_out:(home/'.owned-account.json').write_text(json.dumps({'type':'chatgpt','email':('alice' if index==0 else 'bob')+'@fixture.invalid','planType':'plus'}))
    (root/'active-discovery.json').write_text(json.dumps(discovery))
    spec={'supported':True,'publisher':'OWNED FIXTURE','version':'0.159.0-alpha.3','target':'linux-x64','asset':'codex-owned.tar.gz','url':'http://127.0.0.1:'+str(server.server_port)+'/runtime','sha256':hashlib.sha256(archive).hexdigest(),'archiveKind':'tar.gz','archiveExecutable':'codex-owned','binaryName':'codex','rootBase':str(case/'managed'),'maxDownloadBytes':268435456,'maxUnpackedBytes':1073741824,'maxEntries':128,'downloadTimeoutSeconds':60}
@@ -110,25 +111,35 @@ with sync_playwright() as p:
      else:external.append(request.request.url);request.abort()
     page.route('**/*',route);goto_editor(page,url);page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='Agent 추가',exact=True);dialog.get_by_role('button',name='Codex',exact=True).click();expect(dialog.locator('[data-cli-login]')).to_be_enabled();assert not requests();expect(dialog.locator('[data-discover-connection]')).to_have_count(0);expect(dialog.locator('[data-mcp-panel]')).to_have_count(0);page.screenshot(path=str(case/'initial.png'))
     initial=state();assert initial['helperAgents']['agents']==[] and initial['projectId']==''
+    def clean_codex():
+     forbidden='[data-connection-advanced],[data-discover-connection],[data-basic-check],[data-install-prepare],[data-login-prepare],[data-discover-models],[data-installation-candidates],[data-home-candidates],[data-candidate-kind],[data-install-target],[data-install-guide],[data-connection-field],[data-connection-save],[data-connection-attempt],[data-agent-register],[data-connection-refresh],[data-connection-back],[data-method-choice],input,select,textarea'
+     expect(dialog.locator(forbidden)).to_have_count(0)
+     text=dialog.inner_text()
+     for phrase in ('이전 PackEngine','새로 준비한 AI','고급 설정','수동 지정','계정 참조','계정 정보 위치','실행 파일','플랫폼 선택','목록 새로 고침','설정 저장','조건 확인','준비 확인을 눌러'):
+      assert phrase not in text,(phrase,text)
+    clean_codex()
     # Initial repeated clicks never start a second workflow.
     dialog.locator('[data-cli-login]').evaluate('(b)=>{b.click();b.click();}')
+    if name=='bundled-policy' and os.environ.get('CONFECTORY_ONBOARDING_EXPECT_BUNDLED_FAILURE')=='1':
+     expect(dialog.locator('[data-cli-retry]')).to_be_visible();diagnostic=state()['codexOnboarding']['diagnostics'];assert diagnostic['failure']['code']=='provider-tool-policy-unsupported' and diagnostic['failure']['stage']=='policy-check' and diagnostic['failure']['errorType']=='PlatformNotSupportedException' and diagnostic['failure']['processStarted'] is True,diagnostic
+     assert 'detail' not in diagnostic['failure'];assert not [r for r in requests() if r['method'] in ('model/list','account/login/start','turn/start')];(case/'safe-diagnostics.json').write_text(json.dumps(diagnostic,indent=2));print('PASS reproduced bundled default plugin policy-check PlatformNotSupportedException',flush=True);continue
     if name=='cancel-probe':
      wait_file(case/'version-started');dialog.locator('[data-cli-stop]').click();expect(dialog.locator('[data-codex-onboarding]')).to_have_attribute('data-step',re.compile('cancelled|cancelling'));write_control(holdVersion=False);expect(dialog.locator('[data-cli-login]')).to_be_enabled();dialog.locator('[data-cli-login]').click()
     if absent or name=='unsupported-runtime':
-     expect(dialog.locator('[data-cli-consent]')).to_have_text('동의하고 설치');page.screenshot(path=str(case/'install-consent.png'))
+     expect(dialog.locator('[data-cli-consent]')).to_have_text('동의하고 설치');clean_codex();page.screenshot(path=str(case/'install-consent.png'))
      if name=='unsupported-runtime':
       assert not [r for r in requests() if r['method']=='account/read'];dialog.locator('[data-connection-cancel]').click();print('PASS scenario unsupported-runtime',flush=True);continue
      consent=state()['codexOnboarding']['token'];dialog.locator('[data-cli-consent]').click();assert api('approve',token=consent)['ok']
      if name=='cancel-install':
-      wait_file(case/'download-started');page.screenshot(path=str(case/'installing.png'));dialog.locator('[data-cli-stop]').click();expect(dialog.locator('[data-codex-onboarding]')).to_have_attribute('data-step',re.compile('cancelled|cancelling'));write_control(holdDownload=False)
+      wait_file(case/'download-started');clean_codex();page.screenshot(path=str(case/'installing.png'));dialog.locator('[data-cli-stop]').click();expect(dialog.locator('[data-codex-onboarding]')).to_have_attribute('data-step',re.compile('cancelled|cancelling'));write_control(holdDownload=False)
       expect(dialog.locator('[data-cli-login]')).to_be_enabled();dialog.locator('[data-cli-login]').click();expect(dialog.locator('[data-cli-consent]')).to_have_text('동의하고 설치');dialog.locator('[data-cli-consent]').click()
      if name=='bad-install':
-      expect(dialog.locator('[data-cli-retry]')).to_be_visible();page.screenshot(path=str(case/'install-failed.png'));write_control(badArchive=False);dialog.locator('[data-cli-retry]').click();expect(dialog.locator('[data-cli-consent]')).to_have_text('동의하고 설치');dialog.locator('[data-cli-consent]').click()
+      expect(dialog.locator('[data-cli-retry]')).to_be_visible();clean_codex();page.screenshot(path=str(case/'install-failed.png'));write_control(badArchive=False);dialog.locator('[data-cli-retry]').click();expect(dialog.locator('[data-cli-consent]')).to_have_text('동의하고 설치');dialog.locator('[data-cli-consent]').click()
     if name in ('install-process-exit','install-initialize-error','install-account-error','install-model-error','install-mixed-homes','install-process-start-error'):
      expect(dialog.locator('[data-cli-retry]')).to_be_visible();failure=state()['codexOnboarding'];assert len(state()['helperAgents']['agents'])==0;assert not [r for r in requests() if r['method'] in ('account/login/start','turn/start')]
      if os.environ.get('CONFECTORY_ONBOARDING_EXPECT_LEGACY_FAILURES')=='1':
       assert failure['message']=='기존 Codex 설정으로 연결 준비를 마치지 못했어요. 다시 시도하거나 별도 계정으로 로그인할 수 있습니다.',failure
-      page.screenshot(path=str(case/'legacy-post-install-failed.png'));print('PASS reproduced legacy '+name+' code='+failure['code'],flush=True);continue
+      clean_codex();page.screenshot(path=str(case/'legacy-post-install-failed.png'));print('PASS reproduced legacy '+name+' code='+failure['code'],flush=True);continue
      diagnostic=failure['diagnostics'];expected={'install-process-start-error':('provider-start-failed','process-start'),'install-process-exit':('provider-protocol-unsupported','initialize'),'install-initialize-error':('provider-protocol-unsupported','initialize'),'install-account-error':('provider-account-query-failed','account-read'),'install-model-error':('provider-model-catalog-unavailable','model-list'),'install-mixed-homes':('provider-account-query-failed','account-read')}[name]
      assert (diagnostic['failure']['code'],diagnostic['failure']['stage'])==expected,diagnostic
      assert diagnostic['installation']=={'state':'prepared','version':'0.159.0-alpha.3'} and failure['installation']['state']=='prepared',failure
@@ -137,8 +148,8 @@ with sync_playwright() as p:
      if name=='install-process-exit':assert diagnostic['failure'].get('exitCode')==23,diagnostic
      elif name=='install-process-start-error':assert diagnostic['failure']['processStarted'] is False and diagnostic['failure']['nativeErrorCode']==13 and 'exitCode' not in diagnostic['failure'],diagnostic
      else:assert diagnostic['failure']['rpcErrorCode']==-32603,diagnostic
-     safe=json.dumps(diagnostic);assert not any(x in safe for x in ('PRIVATE','NEVER-EXPOSE','/tmp','/home','@','token=','accountIdentity','executable','managedHome')),safe
-     expect(dialog.locator('[data-cli-installation-result]')).to_be_visible();details=dialog.locator('[data-cli-diagnostics]');details.locator('summary').click();expect(details.locator('pre')).to_contain_text(expected[0]);page.screenshot(path=str(case/'post-install-failed.png'));(case/'safe-diagnostics.json').write_text(json.dumps(diagnostic,indent=2))
+     clean_codex();safe=json.dumps(diagnostic);assert not any(x in safe for x in ('PRIVATE','NEVER-EXPOSE','/tmp','/home','@','token=','accountIdentity','executable','managedHome')),safe
+     expect(dialog.locator('[data-cli-installation-result]')).to_be_visible();details=dialog.locator('[data-cli-diagnostics]');details.locator('summary').click();expect(details.locator('pre')).to_contain_text(expected[0]);clean_codex();page.screenshot(path=str(case/'post-install-failed.png'));(case/'safe-diagnostics.json').write_text(json.dumps(diagnostic,indent=2))
      write_control(preAuthFailure='')
      if name=='install-process-start-error':
       for prepared in (case/'managed/installations').rglob('codex'):prepared.chmod(0o700)
@@ -150,31 +161,31 @@ with sync_playwright() as p:
      assert not [r for r in requests() if r['method'] in ('account/login/start','turn/start')]
      assert 'mcpBridge' not in invocations
      print('PASS scenario '+name,flush=True);continue
-    if logged_out:
-     assert not [r for r in requests() if r['method'] in ('model/list','account/login/start','turn/start')],'model/auth request before explicit login consent'
-     expect(dialog.locator('[data-cli-consent]')).to_have_text('동의하고 로그인');page.screenshot(path=str(case/'login-consent.png'));consent=state()['codexOnboarding']['token'];dialog.locator('[data-cli-consent]').click();assert api('approve',token=consent)['ok'];expect(dialog.locator('[data-cli-code]')).to_have_text('TEST-4240');expect(dialog.locator('[data-cli-official-login]')).to_have_attribute('href','https://auth.openai.com/codex/device');page.screenshot(path=str(case/'device-login.png'))
+    if name in ('unexpected-extension','web-search-policy'):
+     expect(dialog.locator('[data-cli-retry]')).to_be_visible();blocked=state()['codexOnboarding']['diagnostics'];assert blocked['failure']['stage']=='policy-check' and blocked['failure']['detail']==('enabled-plugin-entry' if name=='unexpected-extension' else 'startup-web-search'),blocked
+     assert not [r for r in requests() if r['method'] in ('model/list','account/login/start','turn/start')];clean_codex();page.screenshot(path=str(case/'policy-blocked.png'));write_control(rejectExtension=False,rejectSearch=False);dialog.locator('[data-cli-retry]').click()
+    if logged_out or name=='multiple-accounts':
+     if logged_out:assert not [r for r in requests() if r['method'] in ('model/list','account/login/start','turn/start')],'model/auth request before explicit login consent'
+     expect(dialog.locator('[data-cli-consent]')).to_have_text('동의하고 로그인');clean_codex();page.screenshot(path=str(case/'login-consent.png'));consent=state()['codexOnboarding']['token'];dialog.locator('[data-cli-consent]').click();assert api('approve',token=consent)['ok'];expect(dialog.locator('[data-cli-code]')).to_have_text('TEST-4240');expect(dialog.locator('[data-cli-official-login]')).to_have_attribute('href','https://auth.openai.com/codex/device');clean_codex();page.screenshot(path=str(case/'device-login.png'))
      if name=='switch-provider':
-      dialog.get_by_role('button',name='OpenAI Responses',exact=True).click();expect(dialog.locator('[data-codex-onboarding]')).to_have_count(0);(case/'complete-login').write_text('owned');page.wait_for_timeout(500);assert state()['helperAgents']['agents']==[];dialog.get_by_role('button',name='Codex',exact=True).click();expect(dialog.locator('[data-cli-login]')).to_be_enabled();page.screenshot(path=str(case/'switched-cancelled.png'));print('PASS scenario switch-provider',flush=True);continue
+      dialog.get_by_role('button',name='OpenAI Responses',exact=True).click();expect(dialog.locator('[data-codex-onboarding]')).to_have_count(0);(case/'complete-login').write_text('owned');page.wait_for_timeout(500);assert state()['helperAgents']['agents']==[];dialog.get_by_role('button',name='Codex',exact=True).click();expect(dialog.locator('[data-cli-login]')).to_be_enabled();clean_codex();page.screenshot(path=str(case/'switched-cancelled.png'));print('PASS scenario switch-provider',flush=True);continue
      if name=='cancel-login':
       dialog.locator('[data-connection-cancel]').click();page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='Agent 추가',exact=True);dialog.get_by_role('button',name='Codex',exact=True).click();expect(dialog.locator('[data-cli-login]')).to_be_enabled();dialog.locator('[data-cli-login]').click();expect(dialog.locator('[data-cli-consent]')).to_have_text('동의하고 로그인');dialog.locator('[data-cli-consent]').click();expect(dialog.locator('[data-cli-code]')).to_have_text('TEST-4240')
      (case/'complete-login').write_text('owned')
      if name=='failed-login':
-      expect(dialog.locator('[data-cli-retry]')).to_be_visible();page.screenshot(path=str(case/'login-failed.png'));write_control(failLogin=False);(case/'complete-login').unlink();dialog.locator('[data-cli-retry]').click();expect(dialog.locator('[data-cli-consent]')).to_have_text('동의하고 로그인');dialog.locator('[data-cli-consent]').click();expect(dialog.locator('[data-cli-code]')).to_have_text('TEST-4240');(case/'complete-login').write_text('owned')
+      expect(dialog.locator('[data-cli-retry]')).to_be_visible();clean_codex();page.screenshot(path=str(case/'login-failed.png'));write_control(failLogin=False);(case/'complete-login').unlink();dialog.locator('[data-cli-retry]').click();expect(dialog.locator('[data-cli-consent]')).to_have_text('동의하고 로그인');dialog.locator('[data-cli-consent]').click();expect(dialog.locator('[data-cli-code]')).to_have_text('TEST-4240');(case/'complete-login').write_text('owned')
     else:
      if name=='no-models':
-      expect(dialog.locator('[data-cli-retry]')).to_be_visible();assert state()['helperAgents']['agents']==[];page.screenshot(path=str(case/'models-empty.png'));write_control(noModels=False);dialog.locator('[data-cli-retry]').click()
-     expect(dialog.locator('[data-cli-account]')).to_have_count(2 if name=='multiple-accounts' else 1);page.screenshot(path=str(case/'account-choice.png'))
+      expect(dialog.locator('[data-cli-retry]')).to_be_visible();assert state()['helperAgents']['agents']==[];clean_codex();page.screenshot(path=str(case/'models-empty.png'));write_control(noModels=False);dialog.locator('[data-cli-retry]').click()
+     expect(dialog.locator('[data-cli-account]')).to_have_count(1);clean_codex();page.screenshot(path=str(case/'account-choice.png'))
      assert 'alice@fixture.invalid' in dialog.locator('[data-cli-account]').first.inner_text()
-     if name=='multiple-accounts':expect(dialog.locator('[data-cli-account]').nth(1)).to_contain_text('bob@fixture.invalid')
      # A foreign selection token cannot become an account or registration.
      rejected=api('choose-account',token='foreign-token',account='foreign-account');assert not rejected['ok'];assert state()['helperAgents']['agents']==[]
      choice=state()['codexOnboarding'];rejected=api('choose-account',token=choice['token'],account='foreign-account');assert not rejected['ok'];assert state()['helperAgents']['agents']==[]
-     dialog.locator('[data-cli-account]').nth(1 if name=='multiple-accounts' else 0).click();assert api('choose-account',token=choice['token'],account=choice['accounts'][1 if name=='multiple-accounts' else 0]['id'])['ok']
-    if name=='model-selection':
-     expect(dialog.locator('[data-cli-model]')).to_be_visible();page.screenshot(path=str(case/'model-choice.png'));dialog.locator('[data-cli-model]').select_option('fixture-two');dialog.locator('[data-cli-model-confirm]').click()
-    expect(dialog.locator('[data-cli-done]')).to_be_enabled(timeout=40000);page.screenshot(path=str(case/'ready.png'));ready=state();assert ready['projectId']=='' and len(ready['helperAgents']['agents'])==1;agent=ready['helperAgents']['agents'][0];assert agent['state']=='ready' and agent['accountVerified'] is False and agent['accountMetadataVerified'] is True,agent
-    assert agent['model']==('fixture-two' if name in ('model-selection','configured-model') else 'fixture-one')
-    expected_email='new-account@fixture.invalid' if logged_out else ('bob@fixture.invalid' if name=='multiple-accounts' else 'alice@fixture.invalid');assert agent['accountIdentity']['email']==expected_email,agent
+     dialog.locator('[data-cli-account]').first.click();assert api('choose-account',token=choice['token'],account=choice['accounts'][0]['id'])['ok']
+    expect(dialog.locator('[data-cli-done]')).to_be_enabled(timeout=40000);clean_codex();page.screenshot(path=str(case/'ready.png'));ready=state();assert ready['projectId']=='' and len(ready['helperAgents']['agents'])==1;agent=ready['helperAgents']['agents'][0];assert agent['state']=='ready' and agent['accountVerified'] is False and agent['accountMetadataVerified'] is True,agent
+    assert agent['model']==('fixture-two' if name=='configured-model' else 'fixture-one')
+    expected_email='new-account@fixture.invalid' if logged_out or name=='multiple-accounts' else 'alice@fixture.invalid';assert agent['accountIdentity']['email']==expected_email,agent
     assert not [r for r in requests() if r['method']=='turn/start']
     before=len(requests());dialog.locator('[data-cli-done]').click();expect(dialog).to_have_count(0)
     page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='Agent 추가',exact=True);dialog.get_by_role('button',name='Codex',exact=True).click();expect(dialog.locator('[data-cli-done]')).to_be_enabled();assert len(requests())==before,'reopen repeated completed steps'
@@ -185,7 +196,7 @@ with sync_playwright() as p:
      for item in approval.locator('[data-global-permission]').all():item.check()
      expect(approval.locator('[data-global-start]')).to_be_enabled();approval.locator('[data-global-start]').click();expect(card.locator('.global-helper-messages')).to_contain_text('OWNED CLI HELPER REPLY',timeout=30000);page.screenshot(path=str(case/'helper-reply.png'));assert len([r for r in requests() if r['method']=='turn/start'])==1
     if name=='identity-change':
-     write_control(changedIdentity=True);page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='Agent 추가',exact=True);dialog.get_by_role('button',name='Codex',exact=True).click();expect(dialog.locator('[data-cli-change-account]')).to_be_enabled();dialog.locator('[data-cli-change-account]').click();expect(dialog.locator('[data-cli-account]')).to_have_count(1);expect(dialog.locator('[data-cli-account]')).to_contain_text('changed@fixture.invalid');assert state()['helperAgents']['agents'][0]['accountIdentity']['email']=='alice@fixture.invalid';dialog.locator('[data-cli-account]').click();expect(dialog.locator('[data-cli-done]')).to_be_enabled();assert state()['helperAgents']['agents'][0]['accountIdentity']['email']=='changed@fixture.invalid';page.screenshot(path=str(case/'changed-account.png'))
+     write_control(loginEmail='changed@fixture.invalid');page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='Agent 추가',exact=True);dialog.get_by_role('button',name='Codex',exact=True).click();expect(dialog.locator('[data-cli-change-account]')).to_be_enabled();dialog.locator('[data-cli-change-account]').click();expect(dialog.locator('[data-cli-consent]')).to_have_text('동의하고 로그인');clean_codex();assert state()['helperAgents']['agents'][0]['accountIdentity']['email']=='alice@fixture.invalid';dialog.locator('[data-cli-consent]').click();expect(dialog.locator('[data-cli-code]')).to_have_text('TEST-4240');(case/'complete-login').write_text('owned');expect(dialog.locator('[data-cli-done]')).to_be_enabled();assert state()['helperAgents']['agents'][0]['accountIdentity']['email']=='changed@fixture.invalid';clean_codex();page.screenshot(path=str(case/'changed-account.png'))
     if name=='authenticated':
      # A new engine process restores the confirmed account identity, then renews
      # readiness without asking for another OAuth login or account choice.
@@ -194,7 +205,8 @@ with sync_playwright() as p:
       urls=[line.split(' ',1)[1] for line in log_path.read_text().splitlines() if line.startswith('CONFECTORY_WEB_UI ')]
       if urls:url=urls[-1];break
       assert host.poll() is None;time.sleep(.1)
-     origin,token=url.split('/#');page=browser.new_page(viewport={'width':1440,'height':1000});page.on('pageerror',lambda e:errors.append(str(e)));page.route('**/*',route);page.goto(url);expect(page.locator('#add-agent')).to_be_enabled(timeout=30000);page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='Agent 추가',exact=True);dialog.get_by_role('button',name='Codex',exact=True).click();expect(dialog.locator('[data-cli-login]')).to_be_enabled();dialog.locator('[data-cli-login]').click();expect(dialog.locator('[data-cli-done]')).to_be_enabled(timeout=40000);assert len([r for r in requests() if r['method']=='account/login/start'])==login_count;assert state()['helperAgents']['agents'][0]['accountIdentity']['email']=='alice@fixture.invalid';page.screenshot(path=str(case/'cold-ready.png'))
+     origin,token=url.split('/#');page=browser.new_page(viewport={'width':1440,'height':1000});page.on('pageerror',lambda e:errors.append(str(e)));page.route('**/*',route);page.goto(url);expect(page.locator('#add-agent')).to_be_enabled(timeout=30000);page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='Agent 추가',exact=True);dialog.get_by_role('button',name='Codex',exact=True).click();expect(dialog.locator('[data-cli-login]')).to_be_enabled();dialog.locator('[data-cli-login]').click();expect(dialog.locator('[data-cli-done]')).to_be_enabled(timeout=40000);assert len([r for r in requests() if r['method']=='account/login/start'])==login_count;assert state()['helperAgents']['agents'][0]['accountIdentity']['email']=='alice@fixture.invalid';clean_codex();page.screenshot(path=str(case/'cold-ready.png'))
+    if name=='user-bundle-settings':assert (homes[0]/'config.toml').read_text()=='[plugins."unified-computer-use@openai-bundled"]\nenabled = true\n'
     for home in homes:assert (home/'original.keep').read_bytes()==b'owned original account state\x00'
     assert 'mcpBridge' not in invocations and not any('site' in x.lower() for x in invocations if x)
     print('PASS scenario '+name,flush=True)

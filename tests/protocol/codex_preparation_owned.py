@@ -12,7 +12,7 @@ with (ROOT/'process-starts').open('a') as process_log:process_log.write(str(os.g
 args=sys.argv[1:];assert args[:4]==['app-server','--stdio','--strict-config','-c'] and args[4]=='web_search="disabled"'
 denied={'shell_tool','shell_snapshot','apps','plugins','connectors','browser_use','computer_use','image_generation','imagegenext','in_app_browser','browser_use_external','code_mode','code_mode_host','multi_agent','multi_agent_v2','hooks','plugin_hooks','codex_hooks','remote_plugin','tool_suggest','tool_search','request_permissions_tool','deferred_executor','memories','memory_tool'}
 assert {args[i+1] for i,a in enumerate(args) if a=='--disable'}==denied
-assert args[-2:]==['-c','notify=[]']
+assert args[-4:]==['-c','notify=[]','-c','plugins.unified-computer-use@openai-bundled.enabled=false']
 assert os.environ.get('CODEX_HOME') and all(k not in os.environ for k in ['HOME','OPENAI_API_KEY','OPENAI_AUTH_TOKEN'])
 home=pathlib.Path(os.environ['CODEX_HOME']);auth='cli_auth_credentials_store="file"' in args
 if auth:assert (home/'config.toml').read_text()=='cli_auth_credentials_store = "file"\n'

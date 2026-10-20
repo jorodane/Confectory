@@ -1,7 +1,15 @@
 using System.Diagnostics;
+using Confectory.Core;
 namespace Confectory.Tests;
 public sealed class WindowsLauncherTests : TestCase
 {
+    public void test_windows_exe_package_composition_and_packaged_engine_web_startup()
+    {
+        if(!OperatingSystem.IsLinux())Skip("Cross-publish/browser fixture runs on Linux; actual Windows double click is a separate native check");
+        var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/probes/desktop_package.py"),Fixture.Repo},timeoutSeconds:480);
+        Console.WriteLine(run.Stdout.Trim());True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS Windows x64 package composition and actual packaged engine web startup"));
+    }
+
     public void test_actual_cmd_menu_spaces_repeat_unsupported_error_and_environment_scope()
     {
         if(!OperatingSystem.IsWindows())Skip("CMD/Windows PowerShell unavailable; static layout tests are not Windows execution evidence");

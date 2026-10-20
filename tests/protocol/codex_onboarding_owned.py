@@ -46,7 +46,7 @@ for line in sys.stdin:
   assert params=={'refreshToken':False};p=home/'.owned-account.json';account=json.loads(p.read_text()) if p.exists() else None
   if account and control().get('changedIdentity') and any(json.loads(x).get('method')=='thread/start' for x in (CASE/'requests.jsonl').read_text().splitlines()):account['email']='changed@fixture.invalid'
   result={'requiresOpenaiAuth':True,'account':account}
- elif method=='config/read':result={'config':{'model_provider':'openai','model_providers':{},'features':{name:False for name in denied},'web_search':'disabled','plugins':{},'mcp_servers':{},**({'model':control()['configuredModel']} if control().get('configuredModel') else {})}}
+ elif method=='config/read':result={'config':{'model_provider':'openai','model_providers':{},'features':{name:False for name in denied},'web_search':'enabled' if control().get('rejectSearch') else 'disabled','plugins':({'owned-unexpected@fixture':{'enabled':True}} if control().get('rejectExtension') else {'unified-computer-use@openai-bundled':{'enabled':'plugins.unified-computer-use@openai-bundled.enabled=false' not in args}} if control().get('bundledPolicy') else {}),'mcp_servers':{},**({'model':control()['configuredModel']} if control().get('configuredModel') else {})}}
  elif method=='experimentalFeature/list':result={'data':[{'name':name,'enabled':False,'stage':'stable'} for name in denied-{'connectors','imagegenext','codex_hooks','memory_tool'}],'nextCursor':None}
  elif method=='configRequirements/read':result={'requirements':None}
  elif method=='model/list':

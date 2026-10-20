@@ -6,7 +6,7 @@ if sys.argv[1:]==['--version']:print('codex '+control.get('version','0.159.0-alp
 thread="owned-thread-"+str(os.getpid());turn="owned-turn-"+str(os.getpid())
 assert sys.argv[1:5]==['app-server','--stdio','--strict-config','-c']
 assert sys.argv[5]=='web_search="disabled"'
-assert sys.argv[6:56:2]==['--disable']*25 and sys.argv[56:]==['-c','notify=[]']
+assert sys.argv[6:56:2]==['--disable']*25 and sys.argv[56:]==['-c','notify=[]','-c','plugins.unified-computer-use@openai-bundled.enabled=false']
 denied={'shell_tool','shell_snapshot','apps','plugins','connectors','browser_use','computer_use','image_generation','imagegenext','in_app_browser','browser_use_external','code_mode','code_mode_host','multi_agent','multi_agent_v2','hooks','plugin_hooks','codex_hooks','remote_plugin','tool_suggest','tool_search','request_permissions_tool','deferred_executor','memories','memory_tool'}
 assert set(sys.argv[7:56:2])==denied
 open(os.path.join(os.path.dirname(__file__),'owned-launch.json'),'w').write(json.dumps(sys.argv[1:]))

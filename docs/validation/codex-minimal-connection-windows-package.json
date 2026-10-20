@@ -1,0 +1,514 @@
+{
+  "baseCommit": "e3a65aa5d9b59c18732b72a695638aaa2ee7f864",
+  "platform": "Linux x64 cross-publishing win-x64",
+  "uiScenarios": [
+    {
+      "name": "authenticated",
+      "rpcCounts": {
+        "--version": 2,
+        "account/read": 5,
+        "config/read": 5,
+        "configRequirements/read": 5,
+        "experimentalFeature/list": 5,
+        "initialize": 5,
+        "initialized": 5,
+        "model/list": 5,
+        "process": 5,
+        "thread/start": 3,
+        "turn/interrupt": 1,
+        "turn/start": 1
+      }
+    },
+    {
+      "name": "logged-out",
+      "rpcCounts": {
+        "--version": 1,
+        "account/login/start": 1,
+        "account/read": 4,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 4,
+        "initialized": 4,
+        "model/list": 2,
+        "process": 4,
+        "thread/start": 1
+      }
+    },
+    {
+      "name": "install",
+      "rpcCounts": {
+        "--version": 1,
+        "account/login/start": 1,
+        "account/read": 4,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 4,
+        "initialized": 4,
+        "model/list": 2,
+        "process": 4,
+        "thread/start": 1
+      }
+    },
+    {
+      "name": "multiple-accounts",
+      "rpcCounts": {
+        "--version": 1,
+        "account/login/start": 1,
+        "account/read": 5,
+        "config/read": 4,
+        "configRequirements/read": 4,
+        "experimentalFeature/list": 4,
+        "initialize": 5,
+        "initialized": 5,
+        "model/list": 4,
+        "process": 5,
+        "thread/start": 1
+      }
+    },
+    {
+      "name": "model-selection",
+      "rpcCounts": {
+        "--version": 1,
+        "account/read": 2,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 2,
+        "initialized": 2,
+        "model/list": 2,
+        "process": 2,
+        "thread/start": 1
+      }
+    },
+    {
+      "name": "single-model",
+      "rpcCounts": {
+        "--version": 1,
+        "account/read": 2,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 2,
+        "initialized": 2,
+        "model/list": 2,
+        "process": 2,
+        "thread/start": 1
+      }
+    },
+    {
+      "name": "configured-model",
+      "rpcCounts": {
+        "--version": 1,
+        "account/read": 2,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 2,
+        "initialized": 2,
+        "model/list": 2,
+        "process": 2,
+        "thread/start": 1
+      }
+    },
+    {
+      "name": "no-models",
+      "rpcCounts": {
+        "--version": 2,
+        "account/read": 3,
+        "config/read": 3,
+        "configRequirements/read": 3,
+        "experimentalFeature/list": 3,
+        "initialize": 3,
+        "initialized": 3,
+        "model/list": 3,
+        "process": 3,
+        "thread/start": 1
+      }
+    },
+    {
+      "name": "cancel-login",
+      "rpcCounts": {
+        "--version": 2,
+        "account/login/cancel": 1,
+        "account/login/start": 2,
+        "account/read": 5,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 6,
+        "initialized": 6,
+        "model/list": 2,
+        "process": 6,
+        "thread/start": 1
+      }
+    },
+    {
+      "name": "cancel-install",
+      "rpcCounts": {
+        "--version": 1,
+        "account/login/start": 1,
+        "account/read": 4,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 4,
+        "initialized": 4,
+        "model/list": 2,
+        "process": 4,
+        "thread/start": 1
+      }
+    },
+    {
+      "name": "bad-install",
+      "rpcCounts": {
+        "--version": 1,
+        "account/login/start": 1,
+        "account/read": 4,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 4,
+        "initialized": 4,
+        "model/list": 2,
+        "process": 4,
+        "thread/start": 1
+      }
+    },
+    {
+      "name": "cancel-probe",
+      "rpcCounts": {
+        "--version": 2,
+        "account/read": 2,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 2,
+        "initialized": 2,
+        "model/list": 2,
+        "process": 2,
+        "thread/start": 1
+      }
+    },
+    {
+      "name": "unsupported-runtime",
+      "rpcCounts": {
+        "--version": 1
+      }
+    },
+    {
+      "name": "identity-change",
+      "rpcCounts": {
+        "--version": 1,
+        "account/login/start": 1,
+        "account/read": 5,
+        "config/read": 4,
+        "configRequirements/read": 4,
+        "experimentalFeature/list": 4,
+        "initialize": 5,
+        "initialized": 5,
+        "model/list": 4,
+        "process": 5,
+        "thread/start": 2
+      }
+    },
+    {
+      "name": "failed-login",
+      "rpcCounts": {
+        "--version": 2,
+        "account/login/start": 2,
+        "account/read": 5,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 6,
+        "initialized": 6,
+        "model/list": 2,
+        "process": 6,
+        "thread/start": 1
+      }
+    },
+    {
+      "name": "switch-provider",
+      "rpcCounts": {
+        "--version": 1,
+        "account/login/cancel": 1,
+        "account/login/start": 1,
+        "account/read": 1,
+        "initialize": 2,
+        "initialized": 2,
+        "process": 2
+      }
+    },
+    {
+      "name": "install-empty-home",
+      "rpcCounts": {
+        "--version": 1,
+        "account/login/start": 1,
+        "account/read": 3,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 3,
+        "initialized": 3,
+        "model/list": 2,
+        "process": 3,
+        "thread/start": 1
+      }
+    },
+    {
+      "name": "install-process-exit",
+      "rpcCounts": {
+        "--version": 2,
+        "account/read": 1,
+        "initialize": 1,
+        "initialized": 1,
+        "process": 2
+      }
+    },
+    {
+      "name": "install-initialize-error",
+      "rpcCounts": {
+        "--version": 2,
+        "account/read": 1,
+        "initialize": 2,
+        "initialized": 1,
+        "process": 2
+      }
+    },
+    {
+      "name": "install-account-error",
+      "rpcCounts": {
+        "--version": 2,
+        "account/read": 2,
+        "initialize": 2,
+        "initialized": 2,
+        "process": 2
+      }
+    },
+    {
+      "name": "install-model-error",
+      "rpcCounts": {
+        "--version": 2,
+        "account/read": 2,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 2,
+        "initialized": 2,
+        "model/list": 2,
+        "process": 2
+      }
+    },
+    {
+      "name": "install-mixed-homes",
+      "rpcCounts": {
+        "--version": 2,
+        "account/read": 4,
+        "initialize": 4,
+        "initialized": 4,
+        "process": 4
+      }
+    },
+    {
+      "name": "install-process-start-error",
+      "rpcCounts": {
+        "--version": 2,
+        "account/read": 1,
+        "initialize": 1,
+        "initialized": 1,
+        "process": 1
+      }
+    },
+    {
+      "name": "bundled-policy",
+      "rpcCounts": {
+        "--version": 1,
+        "account/read": 2,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 2,
+        "initialized": 2,
+        "model/list": 2,
+        "process": 2,
+        "thread/start": 1
+      }
+    },
+    {
+      "name": "user-bundle-settings",
+      "rpcCounts": {
+        "--version": 1,
+        "account/read": 2,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 2,
+        "initialized": 2,
+        "model/list": 2,
+        "process": 2,
+        "thread/start": 1
+      }
+    },
+    {
+      "name": "unexpected-extension",
+      "rpcCounts": {
+        "--version": 2,
+        "account/read": 3,
+        "config/read": 3,
+        "configRequirements/read": 3,
+        "experimentalFeature/list": 3,
+        "initialize": 3,
+        "initialized": 3,
+        "model/list": 2,
+        "process": 3,
+        "thread/start": 1
+      }
+    },
+    {
+      "name": "web-search-policy",
+      "rpcCounts": {
+        "--version": 2,
+        "account/read": 3,
+        "config/read": 3,
+        "configRequirements/read": 3,
+        "experimentalFeature/list": 3,
+        "initialize": 3,
+        "initialized": 3,
+        "model/list": 2,
+        "process": 3,
+        "thread/start": 1
+      }
+    }
+  ],
+  "pageErrors": [],
+  "externalBrowserRequests": [],
+  "officialEmptyHomePolicyBefore": {
+    "version": "codex-cli 0.159.0-alpha.3",
+    "network": "child seccomp denies socket/connect/send and io_uring",
+    "freshOwnedHome": true,
+    "platform": "Linux",
+    "sentMethods": [
+      "initialize",
+      "account/read",
+      "config/read"
+    ],
+    "liveLoginOrModelRequests": false,
+    "initialization": "passed",
+    "account": "null",
+    "policyShape": {
+      "webSearchSnake": "disabled",
+      "webSearchCamel": null,
+      "pluginKeys": [
+        "unified-computer-use@openai-bundled"
+      ],
+      "extensions": {
+        "plugins": [
+          {
+            "enabled": true
+          }
+        ],
+        "mcp_servers": []
+      },
+      "webKeys": [
+        "web_search",
+        "experimental_realtime_webrtc_call_base_url"
+      ]
+    },
+    "result": "passed",
+    "exitCode": 0,
+    "stderrCategory": "none",
+    "authFileCreated": false
+  },
+  "officialEmptyHomePolicyAfter": {
+    "version": "codex-cli 0.159.0-alpha.3",
+    "network": "child seccomp denies socket/connect/send and io_uring",
+    "freshOwnedHome": true,
+    "platform": "Linux",
+    "sentMethods": [
+      "initialize",
+      "account/read",
+      "config/read"
+    ],
+    "liveLoginOrModelRequests": false,
+    "initialization": "passed",
+    "account": "null",
+    "bundledPluginDisabled": true,
+    "searchDisabled": true,
+    "result": "passed",
+    "exitCode": 0,
+    "stderrCategory": "none",
+    "authFileCreated": false
+  },
+  "windowsPackage": {
+    "pass": true,
+    "package": "/workspace/Confectory/Builds/Windows-x64",
+    "files": 2221,
+    "crossPublishedWindowsX64PE": true,
+    "unrelatedWorkingDirectory": true,
+    "packageTamperAndMissingDependencyRejected": true,
+    "packagedEngineWebStartup": true,
+    "runtimeOnlyNoInstalledSDK": true,
+    "existingCheckoutProfileReusedAndExplicitOverrideRetained": true,
+    "resources": 50,
+    "renderedMinimalLogin": true,
+    "windowsApphostExecuted": false,
+    "webView2Executed": false,
+    "actualLoginOrInference": false,
+    "evidence": "/tmp/confectory-desktop-package-5okafjax"
+  },
+  "protectedHashes": {
+    "examples/editor-home/ui/style.css": "f5b0be01e7daccef55d3aabcf2d33f9b887caee7b6f40c8d49cd46e7347a2700",
+    "reference/site-ui/Confectory-Editor-Prototype-v508.zip": "b306ce4deff9616c4107ae224443d864f8fce0f52cf3c3e158de8745c17c659f"
+  },
+  "screenshots": {
+    "01-Codex-Login.png": "b725f60823cd62b1be560b33765b5638ee94080ea0f554a1cf76b715aa6801b1",
+    "02-Codex-Install-Consent.png": "5783669c4469dc977bc93c40a99078445f31f2aa576d4be7db26c11296ae2d4d",
+    "03-Codex-Device-Login.png": "5ad1436bc816fa76ebd67c91f3da13c391953a845506a1ac2aad8cc488bbf6c5",
+    "04-Codex-Ready-Fixture.png": "ade405eac3cb26f91e68d504f78b2105755519e4e9b108251a69c0b166ff968b",
+    "05-Codex-Policy-Failure.png": "a26d3b69d54f0b306ef5a09347bdfa0160b8cd7c1cd1410653df45fbbf3cacce",
+    "06-Windows-Package-Login.png": "b725f60823cd62b1be560b33765b5638ee94080ea0f554a1cf76b715aa6801b1",
+    "07-Codex-Post-Install-Failure.png": "1ebd9474f464020a049a89ca979707a92142dc3bb4b5ea12503b72abbe4dd456"
+  },
+  "limits": {
+    "actualWindowsDoubleClick": false,
+    "nativeWebView2Execution": false,
+    "actualUserAccount": false,
+    "actualOAuth": false,
+    "paidInference": false,
+    "userWindowsPrivateConfigurationCauseProven": false,
+    "onlySimulatedAccountsAndModelsInUI": true
+  },
+  "internalInstallerLoginSafety": {
+    "normalHomeEntry": true,
+    "manualMenusAbsent": true,
+    "installerLoginSafetyViaInternalAPI": true,
+    "ownedDownloadAndDigestAndSafeExtraction": true,
+    "archiveRejections": 9,
+    "cancelDownloadAndVersionAndLoginAndClose": true,
+    "cancelBeforeProcessZeroLaunch": true,
+    "unownedRootAndLinksPreserved": true,
+    "crossProcessPreparationLock": true,
+    "separateManagedInstallAndAccount": true,
+    "staleConsentAndDuplicateStart": true,
+    "versionGateUnchanged": true,
+    "modelPreflightAndRequestApprovalRemainSeparate": true,
+    "catalogueApprovalRequiredWithZeroProcessOrRpcBeforeConsent": true,
+    "realInstallationAccountTokenOrModelCalls": false,
+    "finalDotnetResult": "1 passed, 0 failed, 0 skipped; 176.385s"
+  },
+  "libraryDelivery": {
+    "saved": false,
+    "attemptedFiles": 7,
+    "status": "network error before hosted-app tool discovery; no upload or Library ID confirmed",
+    "localZip": "Confectory-Windows-x64-Codex-Login.zip"
+  },
+  "deliveryZip": {
+    "file": "/workspace/scratch/codex-production-ui/Confectory-Windows-x64-Codex-Login.zip",
+    "files": 2222,
+    "bytes": 59810008,
+    "sha256": "f747c6c5f921a268ee04753a3fc4c1c378fd221ad4f1115328ac692eee87673d",
+    "windowsExecuted": false
+  }
+}

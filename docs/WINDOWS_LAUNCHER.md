@@ -18,7 +18,7 @@
 | --- | --- |
 | 1 | 솔루션을 빌드하고 실제 `examples/editor-home/project.cpack`의 내장 HTML 에디터 실행. 파일 인수가 있으면 기존 DesktopEntry의 같은 인스턴스 전달/metadata-only 열기 사용. |
 | 2 | 미연결 Helper/Worker/증강 등 남은 기능을 안내. 빌드·브라우저·서버·설치 작업 없음. |
-| 3 | 솔루션/도구 빌드만 실행. 사용자 프로젝트 실행 없음. |
+| 3 | 솔루션/도구 및 Windows x64 에디터 exe 폴더 생성. 사용자 프로젝트 실행 없음. |
 | 4 | 기존 Android exporter로 **unsigned** 내보내기. 기존 JDK/Android SDK/workload가 필요하며, 없으면 실패 진단. 설치·키 생성·서명 없음. 파일 선택 취소 가능. |
 | 5 | `.confectory/Confectory.cproj.reg` 생성만 수행. 내용을 검토한 뒤 사용자가 직접 import해야 하며, 런처는 레지스트리를 변경하지 않음. |
 | 6 → 1 | 개발 진단: 선택한 프로젝트에 대해 **외부 브라우저** WebUI 기반 화면 실행. `CONFECTORY_UI=web`, `CONFECTORY_WEB_PROJECT`를 자식 프로세스에 설정해 실제 EditorHome 팩 실행. 구웹데모를 실행하지 않음. |
@@ -138,3 +138,31 @@ push/merge하지 않습니다. 원래 18파일과 `/workspace/confectory-paused-
 - Windows 전용 테스트는 공백·한글·`&`·`!` 경로에서 잘못된 선택/미지원 안내,
   반복 메뉴, SDK 누락 오류/로그, 부모 환경 복원을 확인하도록 구성했습니다.
   실제 명령줄 실행은 Windows 인수로 명시적으로 구분합니다.
+
+## 빌드 후 exe 실행
+
+개발 도구의 3번 빌드 또는 `scripts/windows/internal/build-windows.bat` 실행이 성공하면
+`Builds/Windows-x64/Confectory.exe`를 더블클릭할 수 있습니다. exe와 `content` 및 나머지 파일을
+포함한 **결과 폴더 전체**를 함께 유지하세요. 단일 파일 배포나 설치 프로그램이 아닙니다.
+이미 열린 저장소나 명령 프롬프트의 작업 위치 대신 exe 폴더를 기준으로 엔진·팩·UI·호스트를 찾습니다.
+기존 결과 폴더는 유효한 Confectory 패키지일 때만 새 결과로 교체하며 이전 폴더를 `.previous-시각`으로 보관합니다.
+
+필요한 런타임은 Microsoft .NET **Desktop Runtime 10.0 x64**와 Microsoft Edge WebView2 Runtime입니다.
+사용자가 별도로 준비해야 하며 자동 설치하지 않습니다. .NET 10 SDK는 결과물을 만들거나 사용자 프로젝트를 빌드할 때 추가로 필요합니다.
+기본 에디터 데이터와 시작 로그는 `%LOCALAPPDATA%/Confectory/EditorHome`에 저장하며,
+기존 `CONFECTORY_HOME_STORAGE` / `CONFECTORY_ENTRY_STORAGE` 지정은 유지합니다. 사용자 계정·설정·프로젝트를 배포 폴더에 복사하지 않습니다.
+
+명령으로 결과 폴더만 만들려면 솔루션 Release 빌드 후 저장소 루트에서 실행합니다.
+
+```text
+dotnet targets/editor-desktop/bin/Release/net10.0/Confectory.dll package . Builds/Windows-x64
+```
+
+`dotnet <결과폴더>/Confectory.dll --check-package <결과폴더>`로 구성·해시·x64 PE와 리소스 경로를 확인할 수 있습니다.
+Linux에서 win-x64 apphost를 게시하고 별도 작업 디렉터리에서 패키지 엔진과 50개 웹 리소스의 시작을 검사했습니다.
+실제 Windows exe 더블클릭·WebView2 창과 사용자 계정 연결은 별도 검증이 필요합니다.
+
+배포 방식과 런타임 전제는 Microsoft의 [.NET 게시 문서](https://learn.microsoft.com/en-us/dotnet/core/deploying/)와
+[WebView2 Runtime 배포 문서](https://learn.microsoft.com/en-us/microsoft-edge/webview2/concepts/distribution)를 따릅니다.
+
+A package built into an existing checkout’s `Builds/Windows-x64` reuses its existing `.confectory/editor-home` profile when present and no explicit storage override is set. Standalone distributions use the LocalAppData default. The profile stays outside the package; no user settings are copied into the ZIP. An owned checkout/profile fixture verifies reuse and unchanged sentinel bytes.

@@ -11,7 +11,7 @@ if ($Action -eq 'menu') {
         Write-Host "`nConfectory"
         Write-Host '1  Editor - embedded HTML EditorHome (build tools, then run/open selected file)'
         Write-Host '2  v196 integration status (information only)'
-        Write-Host '3  Build tools only - no project execution'
+        Write-Host '3  Build Windows editor exe package - no project execution'
         Write-Host '4  Export unsigned Android package - existing Android SDK/JDK required'
         Write-Host '5  Generate file association .reg - review/import manually, no registry changes'
         Write-Host '6  Developer diagnostics (external browser, not the embedded editor)'
@@ -109,7 +109,7 @@ try {
         $required = Join-Path $repo ('targets\element-authoring\bin\Release\net10.0\' + $assembly)
         if (!(Test-Path -LiteralPath $required -PathType Leaf)) { throw "Missing authoring dependency: $required" }
     }
-    if ($Action -eq 'build') { exit 0 }
+    if ($Action -eq 'build') { Run-Tool -ToolArguments @((Join-Path $repo 'targets\editor-desktop\bin\Release\net10.0\Confectory.dll'), 'package', $repo, (Join-Path $repo 'Builds\Windows-x64')); Write-Host 'Open Builds\Windows-x64\Confectory.exe; keep its complete result folder together.'; exit 0 }
     $cli = Join-Path $repo 'src\Confectory.Cli\bin\Release\net10.0\Confectory.Cli.dll'
     $entry = Join-Path $repo 'targets\desktop-entry\bin\Release\net10.0\Confectory.DesktopEntry.dll'
     $confectoryEditorProject = Join-Path $repo 'examples\editor-home\project.cpack'
