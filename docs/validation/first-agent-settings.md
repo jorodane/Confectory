@@ -2,6 +2,8 @@
 
 Source commit: `bf6efbe8d341317f60fc7ee885a72e0bb64f26d9` (after v508 `7529415`).
 
+Later user evidence identifies `MISSING_NAMESPACE`, a different underlying code. This record retains the separate `UNDECLARED_DEPENDENCY` regression; see [the subsequent namespace investigation](missing-namespace-settings.md) for the current evidence and limits.
+
 ## Reproduced cause
 
 The clean-profile fixture has zero registered Agents and no `ai-settings` copy. Both Responses and Codex work on the normal checkout and the installed metadata fallback. A third valid installation shape reproduces the exact reported `connection_settings_invalid / settings-schema` failure: the Agent pack is present in the installed registry but is not a direct dependency of the editor project.

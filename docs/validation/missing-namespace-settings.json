@@ -1,0 +1,323 @@
+{
+  "sourceCommit": "88e8e273cfa16138934a7b44f634cbc70017a395",
+  "baseCommit": "4226be9fc4a66678fdd63a956264972f8b51e2db",
+  "recordedUtc": "2026-10-20T08:02:35.500536+00:00",
+  "userEvidence": {
+    "code": "connection_settings_invalid",
+    "stage": "settings-schema",
+    "cause": "MISSING_NAMESPACE",
+    "actualUserMissingNamespace": null,
+    "actualUserProfileInspected": false
+  },
+  "reproductions": [
+    {
+      "historicalManifestCommit": "539d17c730999c12243fe055e485072850302b33",
+      "baselineHome": {
+        "historicalManifest": "539d17c730",
+        "registeredAgents": 0,
+        "operationError": {
+          "code": "connection_settings_invalid",
+          "stage": "settings-schema",
+          "mode": "existing",
+          "cause": "MISSING_NAMESPACE"
+        },
+        "status": "Error: Schema description unavailable: MISSING_NAMESPACE",
+        "schemaStatus": null
+      },
+      "baselineDependencyMessage": "Dependency Confectory.InstantTable is not registered",
+      "missingNamespace": "Confectory.InstantTable",
+      "ownerNamespace": "Confectory.EditorHome.Model",
+      "repairAddedNamespaces": [
+        "Confectory.InstantTable"
+      ],
+      "repairedSchemaStatus": "available"
+    },
+    {
+      "historicalManifestCommit": "2b083276c9ae48b95fe4a3ae5ab2824f5d414010",
+      "baselineHome": {
+        "historicalManifest": "2b083276c9",
+        "registeredAgents": 0,
+        "operationError": {
+          "code": "connection_settings_invalid",
+          "stage": "settings-schema",
+          "mode": "existing",
+          "cause": "MISSING_NAMESPACE"
+        },
+        "status": "Error: Schema description unavailable: MISSING_NAMESPACE",
+        "schemaStatus": null
+      },
+      "baselineDependencyMessage": "Dependency Confectory.WorkerTasks is not registered",
+      "missingNamespace": "Confectory.WorkerTasks",
+      "ownerNamespace": "Confectory.EditorHome.Model",
+      "repairAddedNamespaces": [
+        "Confectory.WorkerTasks",
+        "Confectory.InstantTable",
+        "Confectory.YogiBox",
+        "Confectory.ProjectAI",
+        "Confectory.Augment"
+      ],
+      "repairedSchemaStatus": "available"
+    }
+  ],
+  "backendScenarios": [
+    "checkout:Confectory.Agent.Responses::Connection:fresh-cancel-save-reopen",
+    "checkout:Confectory.Agent.Codex::Connection:fresh-cancel-save-reopen",
+    "installed-metadata:Confectory.Agent.Responses::Connection:fresh-cancel-save-reopen",
+    "installed-metadata:Confectory.Agent.Codex::Connection:fresh-cancel-save-reopen",
+    "registered-only:Confectory.Agent.Responses::Connection:fresh-cancel-save-reopen",
+    "registered-only:Confectory.Agent.Codex::Connection:fresh-cancel-save-reopen",
+    "legacy-dependency-preserved",
+    "moved-registry-preserved",
+    "missing-installed-schema-cancel-repair-retry",
+    "missing-settings-locator-retry",
+    "settings-identity-retry",
+    "source-only-copy-retained",
+    "manifest-only-copy-retained",
+    "custom-manifest-retained-with-bounded-cause",
+    "pre-instant-table:Confectory.Agent.Responses::Connection:exact-missing-namespace-repaired",
+    "pre-instant-table:Confectory.Agent.Codex::Connection:exact-missing-namespace-repaired",
+    "pre-worker-tasks:Confectory.Agent.Responses::Connection:exact-missing-namespace-repaired",
+    "pre-worker-tasks:Confectory.Agent.Codex::Connection:exact-missing-namespace-repaired",
+    "custom-old-registry-safe-diagnostic",
+    "first-installed-field-missing-namespace-cancel-repair-retry"
+  ],
+  "uiScenarios": {
+    "scenarios": [
+      {
+        "scenario": "fresh",
+        "checks": [
+          "Responses-first",
+          "zero prior Agents",
+          "actual inherited fields",
+          "cancel-reopen input retained",
+          "local unauthenticated registration",
+          "reload-existing settings retained"
+        ],
+        "invocations": [
+          "globalHelpers",
+          "connectionSetup",
+          "cancelConnectionSetup",
+          "connectionSetup",
+          "editConnectionSetup",
+          "editConnectionSetup",
+          "saveConnectionSetup",
+          "helperGlobal",
+          "globalHelpers",
+          "connectionSetup"
+        ]
+      },
+      {
+        "scenario": "missing-installed-schema",
+        "checks": [
+          "Responses-first",
+          "zero prior Agents",
+          "actual inherited fields",
+          "cancel-reopen input retained",
+          "local unauthenticated registration",
+          "reload-existing settings retained"
+        ],
+        "invocations": [
+          "globalHelpers",
+          "connectionSetup",
+          "connectionSetup",
+          "cancelConnectionSetup",
+          "connectionSetup",
+          "editConnectionSetup",
+          "editConnectionSetup",
+          "saveConnectionSetup",
+          "helperGlobal",
+          "cancelConnectionSetup",
+          "globalHelpers",
+          "connectionSetup"
+        ]
+      },
+      {
+        "scenario": "existing-invalid",
+        "checks": [
+          "Responses-first",
+          "zero prior Agents",
+          "actual inherited fields",
+          "cancel-reopen input retained",
+          "local unauthenticated registration",
+          "reload-existing settings retained"
+        ],
+        "invocations": [
+          "globalHelpers",
+          "connectionSetup",
+          "connectionSetup",
+          "cancelConnectionSetup",
+          "connectionSetup",
+          "editConnectionSetup",
+          "editConnectionSetup",
+          "saveConnectionSetup",
+          "helperGlobal",
+          "cancelConnectionSetup",
+          "globalHelpers",
+          "connectionSetup"
+        ]
+      },
+      {
+        "scenario": "old-registry",
+        "checks": [
+          "Responses-first",
+          "zero prior Agents",
+          "actual inherited fields",
+          "cancel-reopen input retained",
+          "local unauthenticated registration",
+          "reload-existing settings retained"
+        ],
+        "invocations": [
+          "globalHelpers",
+          "connectionSetup",
+          "cancelConnectionSetup",
+          "connectionSetup",
+          "editConnectionSetup",
+          "editConnectionSetup",
+          "saveConnectionSetup",
+          "helperGlobal",
+          "cancelConnectionSetup",
+          "globalHelpers",
+          "connectionSetup"
+        ]
+      },
+      {
+        "scenario": "custom-old-registry",
+        "checks": [
+          "Responses-first",
+          "zero prior Agents",
+          "actual inherited fields",
+          "cancel-reopen input retained",
+          "local unauthenticated registration",
+          "reload-existing settings retained"
+        ],
+        "invocations": [
+          "globalHelpers",
+          "connectionSetup",
+          "connectionSetup",
+          "cancelConnectionSetup",
+          "connectionSetup",
+          "editConnectionSetup",
+          "editConnectionSetup",
+          "saveConnectionSetup",
+          "helperGlobal",
+          "cancelConnectionSetup",
+          "globalHelpers",
+          "connectionSetup"
+        ]
+      },
+      {
+        "scenario": "fresh-compound-missing",
+        "checks": [
+          "Responses-first",
+          "zero prior Agents",
+          "actual inherited fields",
+          "cancel-reopen input retained",
+          "local unauthenticated registration",
+          "reload-existing settings retained"
+        ],
+        "invocations": [
+          "globalHelpers",
+          "connectionSetup",
+          "connectionSetup",
+          "cancelConnectionSetup",
+          "connectionSetup",
+          "editConnectionSetup",
+          "editConnectionSetup",
+          "saveConnectionSetup",
+          "helperGlobal",
+          "cancelConnectionSetup",
+          "globalHelpers",
+          "connectionSetup"
+        ]
+      }
+    ],
+    "pageErrors": [],
+    "externalRequests": []
+  },
+  "publicDiagnosticExamples": [
+    {
+      "fixture": "custom-old-registry",
+      "diagnostics": [
+        {
+          "code": "connection_settings_invalid",
+          "stage": "settings-schema",
+          "mode": "existing",
+          "cause": "MISSING_NAMESPACE",
+          "namespaceDiagnostic": {
+            "missingNamespace": "Confectory.InstantTable",
+            "resolution": "dependency",
+            "ownerNamespace": "Confectory.EditorHome.Model"
+          }
+        }
+      ]
+    },
+    {
+      "fixture": "fresh-compound-missing",
+      "diagnostics": [
+        {
+          "code": "connection_settings_invalid",
+          "stage": "settings-schema",
+          "mode": "new",
+          "cause": "MISSING_NAMESPACE",
+          "namespaceDiagnostic": {
+            "missingNamespace": "Missing.Installed",
+            "resolution": "element",
+            "reference": "Missing.Installed::Details"
+          }
+        }
+      ]
+    }
+  ],
+  "testResults": {
+    "backend-tests": {
+      "file": "missing-namespace-settings-backend-tests.log",
+      "passedMethods": 2,
+      "failed": 0,
+      "skipped": 0
+    },
+    "first-agent-ui": {
+      "file": "missing-namespace-settings-first-agent-ui.log",
+      "passedMethods": 1,
+      "failed": 0,
+      "skipped": 0
+    },
+    "existing-regressions": {
+      "file": "missing-namespace-settings-existing-regressions.log",
+      "passedMethods": 4,
+      "failed": 0,
+      "skipped": 0
+    },
+    "checkout": {
+      "file": "missing-namespace-settings-checkout.log",
+      "passedMethods": 1,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "windows": {
+    "buildOk": true,
+    "target": "windows",
+    "sdk": "10.0.401",
+    "nativeExecution": false
+  },
+  "gitCheckout": {
+    "sourceCommit": "88e8e273cfa16138934a7b44f634cbc70017a395",
+    "passed": true,
+    "resourceCount": 50,
+    "checks": [
+      "retained CRLF after actual Git pull",
+      "fresh LF checkout",
+      "canonical/exact served resource identities",
+      "content/encoding/BOM/binary/budget rejection",
+      "original working-tree bytes retained"
+    ]
+  },
+  "protectedSha256": {
+    "examples/editor-home/ui/style.css": "f5b0be01e7daccef55d3aabcf2d33f9b887caee7b6f40c8d49cd46e7347a2700",
+    "reference/site-ui/Confectory-Editor-Prototype-v508.zip": "b306ce4deff9616c4107ae224443d864f8fce0f52cf3c3e158de8745c17c659f"
+  },
+  "limits": [
+    "The actual missing namespace on the user Windows PC remains unknown; new bounded diagnostic identifiers are required if it persists.",
+    "No user profile deletion, secret values, real account registration, provider login, paid request or permission grant."
+  ]
+}
