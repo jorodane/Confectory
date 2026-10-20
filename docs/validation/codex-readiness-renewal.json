@@ -1,0 +1,283 @@
+{
+  "baseline": "1265455e8eb29cdad2261574b17b96c990ac63da",
+  "branch": "work/current",
+  "publication": "Source validation snapshot; final commit, exact-commit checkout/startup gate and independent remote SHA recorded in completion report.",
+  "sourceSha256": {
+    "examples/editor-home/WebBundle.csbody": "5dccc797cc4aa3ffa830c838056cc8f8dc0d5a0be6fd50fb2bc0e6fcfe0eedf0",
+    "examples/editor-home/WebInvoke.csbody": "97d7b34ee1156246ebcc5b5f006c2e86f1ad15ca770bb79396569520e6f65e1c",
+    "examples/editor-home/ui/helper-agents.js": "f21203a86c293eccf717e2e31ddd790a20906e7cc428a2635213c7b018552d3a",
+    "examples/editor-home/ui/v508-runtime.js": "143d60c0b5d64cd9469a6edc1d5399cb0f21da92a21375da5f520cb0b6941718",
+    "packs/agent-codex/Provider.csbody": "805cc78e6a80d92776e0dd2fd28c43f2413302792f7acc387fd9273e7adc95e2",
+    "packs/agent-codex/Verification.csbody": "e195b5e4514ce3d5047bb04f8c87316a7cea2824d70c06f6eed3d3ea111ecc62",
+    "packs/agent/Start.csbody": "c500e70440f92435c30eada55d8cebb13e9be21291c0d16068ed88ac032f20fb",
+    "packs/editor-home-model/HelperAgents.csbody": "39c3538d4fc6c5bfe101fc8480254fcef57ab72aaef6dc431c036426dbbf6ecd"
+  },
+  "protectedSha256": {
+    "examples/editor-home/ui/style.css": "f5b0be01e7daccef55d3aabcf2d33f9b887caee7b6f40c8d49cd46e7347a2700",
+    "reference/site-ui/Confectory-Editor-Prototype-v508.zip": "b306ce4deff9616c4107ae224443d864f8fce0f52cf3c3e158de8745c17c659f"
+  },
+  "packageMatchesExactRuntimeSources": true,
+  "renewalTrigger": "Explicit existing Helper Send only, not engine/Helper open",
+  "newOAuthOrRegistrationOrInstallation": false,
+  "newPersistedSchemaOrIdentityRewrite": false,
+  "backendRegression": {
+    "passed": 3,
+    "failed": 0,
+    "skipped": 0,
+    "seconds": 143.894,
+    "includes": [
+      "expired proof renewal",
+      "valid proof reuse",
+      "duplicate pending check",
+      "foreign token refusal",
+      "changed binding refusal",
+      "cancelled proof not silently renewed",
+      "caller config refusal",
+      "registration byte preservation",
+      "safe enum redaction",
+      "pre-dispatch revocation/settings/replacement/expiry fences"
+    ]
+  },
+  "ownedCLI": {
+    "root": "/tmp/confectory-cli-flow-gcka4gt5",
+    "passedCases": [
+      "authenticated",
+      "restart-mismatch",
+      "restart-expired-auth",
+      "restart-offline",
+      "restart-unverified",
+      "restart-renewal-failure",
+      "turn-bad-json",
+      "turn-foreign-event",
+      "turn-remote-bad-request",
+      "turn-remote-http",
+      "turn-completed-error"
+    ],
+    "pageErrors": [],
+    "externalRequests": [],
+    "realAccountOrPaidInference": false
+  },
+  "uiContract": {
+    "pass": true,
+    "originalGeometryMatchedAt": [
+      1440,
+      600
+    ],
+    "geometry": [
+      {
+        "viewport": [
+          1440,
+          1000
+        ],
+        "original": {
+          ".messages": {
+            "x": 215,
+            "y": 458.03125,
+            "width": 404,
+            "height": 108
+          },
+          "form": {
+            "x": 215,
+            "y": 582.03125,
+            "width": 404,
+            "height": 42
+          },
+          "textarea": {
+            "x": 215,
+            "y": 582.03125,
+            "width": 325.828125,
+            "height": 38
+          },
+          "button[type=submit]": {
+            "x": 548.828125,
+            "y": 582.03125,
+            "width": 70.171875,
+            "height": 42
+          }
+        },
+        "restored": {
+          ".messages": {
+            "x": 215,
+            "y": 458.03125,
+            "width": 404,
+            "height": 108
+          },
+          "form": {
+            "x": 215,
+            "y": 582.03125,
+            "width": 404,
+            "height": 42
+          },
+          "textarea": {
+            "x": 215,
+            "y": 582.03125,
+            "width": 325.828125,
+            "height": 38
+          },
+          "button[type=submit]": {
+            "x": 548.828125,
+            "y": 582.03125,
+            "width": 70.171875,
+            "height": 42
+          }
+        }
+      },
+      {
+        "viewport": [
+          600,
+          800
+        ],
+        "original": {
+          ".messages": {
+            "x": 209,
+            "y": 452.03125,
+            "width": 416,
+            "height": 108
+          },
+          "form": {
+            "x": 209,
+            "y": 576.03125,
+            "width": 416,
+            "height": 42
+          },
+          "textarea": {
+            "x": 209,
+            "y": 576.03125,
+            "width": 337.828125,
+            "height": 38
+          },
+          "button[type=submit]": {
+            "x": 554.828125,
+            "y": 576.03125,
+            "width": 70.171875,
+            "height": 42
+          }
+        },
+        "restored": {
+          ".messages": {
+            "x": 209,
+            "y": 452.03125,
+            "width": 416,
+            "height": 108
+          },
+          "form": {
+            "x": 209,
+            "y": 576.03125,
+            "width": 416,
+            "height": 42
+          },
+          "textarea": {
+            "x": 209,
+            "y": 576.03125,
+            "width": 337.828125,
+            "height": 38
+          },
+          "button[type=submit]": {
+            "x": 554.828125,
+            "y": 576.03125,
+            "width": 70.171875,
+            "height": 42
+          }
+        }
+      }
+    ],
+    "oneOriginalSendSlot": true,
+    "checks": [
+      "unverified/expired/cancelled/auth missing identity distinguished",
+      "verified account mismatch blocked",
+      "same verified account allowed",
+      "IME",
+      "double submit",
+      "streaming",
+      "same-slot cancel",
+      "newer draft preserved",
+      "extra permissions conditional",
+      "unexpected project blocked",
+      "changed Agent blocked",
+      "extra memory conditional",
+      "lost ack no replay",
+      "accepted input cleared with explicit same-slot retry",
+      "Enter/ShiftEnter/IME",
+      "late identical new edit preserved",
+      "failure diagnostic redaction",
+      "renewal polling does not dispatch",
+      "binding change during renewal blocked",
+      "typing during autosave"
+    ],
+    "realAccountOrInference": false,
+    "root": "/tmp/confectory-v508-chat-contract-cfq66pud"
+  },
+  "actualGlobalEngineUI": {
+    "root": "/tmp/confectory-global-ui-bjo6uv_m",
+    "checks": [
+      "real startup readiness; internal Codex setup without external connector panel",
+      "registered Agent-only sidebar",
+      "Agent-owned Helper creation without project",
+      "v508 Helper-add input preservation at 1440/900/600; group/favorite interactions",
+      "normal explicit Send without duplicate approval, original DOM/108px message area, original Send/stop dimensions, Korean composition guard, automatic draft persistence",
+      "Enter sends/ShiftEnter newline, actual Responses reply, accepted input cleared, explicit retry, safe HTTP failure, original request cancel, reopen-only history and two-Helper separation",
+      "delayed history response after Helper switch cannot render into the other Helper; actual engine restart, independent two-Helper drafts, typing during delayed save, both CAS conflict choices, same-message retry, scroll history without replay",
+      "v508 project/packs tabs, real Helper roster, no project submission"
+    ],
+    "historyCasPreservesOriginalAndResponse": true,
+    "httpRequests": 5,
+    "pageErrors": [],
+    "externalRequests": [],
+    "projectId": ""
+  },
+  "projectPinnedRegression": {
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "seconds": 19.803
+  },
+  "notificationSchema": {
+    "pass": true,
+    "fixtureCases": 11,
+    "validatedOwnedMessages": {
+      "item/agentMessage/delta": 9,
+      "item/completed": 8,
+      "turn/completed": 9,
+      "error": 2,
+      "turn/start response": 13
+    },
+    "actualAccountOrInference": false
+  },
+  "retainedSchemaSha256": {
+    "AgentMessageDeltaNotification": "996e6c0ea65e57bed5a00f410b94381fe5ebf804333e5d00c2b6e6d47e5c55f6",
+    "ItemCompletedNotification": "d04b9153de38cd8302a2a418a44a65e8265d4c7586d46ea2cc801b594c6acf5b",
+    "TurnCompletedNotification": "b6f418007f28a0511c3798a5bd2c6b6365e4e60df21ccaf2ef1e3321d43347bf",
+    "ErrorNotification": "89a91e721f09dbf0533aed9812a32d25a0b0f0d72e9c4517cd07f05a4bf3f873",
+    "TurnStartResponse": "6c76a2d3917e7ef16fd3962016126cc21f23d149d022e156711e9ce2f27cf545"
+  },
+  "releaseSolution": {
+    "warnings": 0,
+    "errors": 0,
+    "seconds": 3.39
+  },
+  "windowsPackage": {
+    "pass": true,
+    "package": "/workspace/Confectory/Builds/Windows-x64",
+    "files": 2225,
+    "crossPublishedWindowsX64PE": true,
+    "unrelatedWorkingDirectory": true,
+    "packageTamperAndMissingDependencyRejected": true,
+    "packagedEngineWebStartup": true,
+    "runtimeOnlyNoInstalledSDK": true,
+    "existingCheckoutProfileReusedAndExplicitOverrideRetained": true,
+    "resources": 50,
+    "renderedMinimalLogin": true,
+    "windowsApphostExecuted": false,
+    "webView2Executed": false,
+    "actualLoginOrInference": false,
+    "evidence": "/tmp/confectory-desktop-package-uj6f8uqi"
+  },
+  "savedRepresentativeScreensReviewed": true,
+  "actualUserWindowsResponseEventsCauseConfirmed": false,
+  "limits": [
+    "No actual Windows apphost/WebView2/OAuth/live model execution",
+    "Schema validates owned lifecycle/error shape, not full experimental request/live-service compatibility",
+    "Additional pinned source fetch restricted; no bypass",
+    "No full-app UI restoration claimed"
+  ]
+}

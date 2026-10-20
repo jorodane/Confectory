@@ -37,8 +37,18 @@ export function createHelperAgentsUI(api){
  addEventListener('beforeunload',e=>{if([...drafts.values()].some(h=>api.draft(h).dirty)){void flushDrafts().catch(()=>{});e.preventDefault();e.returnValue='';}});
  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')void flushDrafts().catch(draftFailure);});
  const baseline=new Set(['contentApproved','usageApproved','processApproved','managedCredentialApproved','managedConfigurationApproved','managedStorageApproved']);
+ async function ensureReady(helper){
+  const initial=agents().find(row=>row.id===assigned(helper.id));if(initial?.id!=='Confectory.Agent.Codex::Connection')return;
+  const basis=JSON.stringify([initial.id,initial.configFingerprint,initial.accountIdentity?.fingerprint]);
+  const unchanged=()=>{const current=agents().find(row=>row.id===assigned(helper.id));if(!current||current.state==='offline'||JSON.stringify([current.id,current.configFingerprint,current.accountIdentity?.fingerprint])!==basis)throw Error('확인 중인 Agent 설정이 바뀌었어요. 다시 보내세요. [codex-readiness-changed]');};
+  const call=async payload=>{for(let retry=0;;retry++){try{return await invoke('readiness',{helper:helper.id,...payload});}catch(error){if(error.message!=='stale_revision'||retry===2)throw error;await api.view.update();unchanged();}}};
+  unchanged();let result=await call({begin:true});const deadline=Date.now()+95000;
+  while(result.state==='checking'){if(Date.now()>deadline)throw Error('등록한 Agent의 연결 확인이 지연되고 있어요. Codex에서 상태를 확인하세요. [codex-readiness-timeout]');await new Promise(resolve=>setTimeout(resolve,100));unchanged();result=await call({token:result.token});}
+  unchanged();if(result.state!=='ready')throw Error((result.message||'Codex에서 연결 상태를 확인하세요.')+' ['+(/^[a-z][a-z0-9_-]{0,79}$/.test(result.code||'')?result.code:'codex-readiness-failed')+']');
+ }
  async function send(helper,message,generation){
   await flushDrafts();let preview=uncertain.get(helper.id);
+  if(!preview)await ensureReady(helper);
   if(preview){await api.view.update();const row=state().turns?.[helper.id];if(row?.requestId===preview.token&&row.state!=='prepared'){uncertain.delete(helper.id);return preview.token;}if(api.current.helperAgents?.preview?.token!==preview.token)throw Error('전송 상태를 확인하지 못했어요. 연결을 확인한 뒤 다시 시도하세요.');}
   else for(let attempt=0;;attempt++){try{preview=await invoke('prepare',{helper:helper.id,message,includeCommon:false});break;}catch(error){if(error.message!=='stale_revision'||attempt===2)throw error;await api.view.update();}}
   const binding=agents().find(row=>row.id===assigned(helper.id));if(!binding||binding.state==='offline'||preview.connection!==binding.id||preview.model!==binding.model)throw Error('Helper의 Agent가 바뀌었어요. 연결을 확인한 뒤 다시 보내세요.');
@@ -84,6 +94,9 @@ export function createHelperAgentsUI(api){
   const code=record.errorCode||(row?.requestId===record.requestId?row.errorCode:'');if(!/^provider-[a-z-]{1,64}$/.test(code||''))return '';
   const info=record.errorDiagnostics||(row?.requestId===record.requestId?row.errorDiagnostics:null),parts=[code];
   if(['storage','process-start','initialize','account-read','configuration-read','runtime-features','requirements-read','policy-check','model-list','verification-check','thread-start','turn-start','response-events'].includes(info?.stage))parts.push(info.stage);
+  if(['Win32Exception','UnauthorizedAccessException','IOException','JsonException','PlatformNotSupportedException','ArgumentException','InvalidOperationException','Other'].includes(info?.errorType))parts.push(info.errorType);
+  if(['contextWindowExceeded','sessionBudgetExceeded','usageLimitExceeded','rateLimitExceeded','flexUnavailable','serverOverloaded','cyberPolicy','misalignmentPolicyViolation','internalServerError','unauthorized','badRequest','threadRollbackFailed','sandboxError','other','unknown','httpConnectionFailed','responseStreamConnectionFailed','responseStreamDisconnected','responseTooManyFailedAttempts'].includes(info?.providerErrorKind))parts.push(info.providerErrorKind);
+  if(['error','item/started','item/completed','item/agentMessage/delta','turn/started','turn/completed','other'].includes(info?.protocolEvent))parts.push(info.protocolEvent);
   for(const field of ['rpcErrorCode','nativeErrorCode','exitCode','httpStatusCode'])if(Number.isInteger(info?.[field]))parts.push(field+'='+info[field]);
   return ' ['+parts.join(' · ')+']';
  }
@@ -99,5 +112,5 @@ export function createHelperAgentsUI(api){
   if(box.dataset.stamp!==stamp){const bottom=box.scrollHeight-box.scrollTop-box.clientHeight<20,height=box.scrollHeight,top=box.scrollTop;box.innerHTML=list.map(record=>`<p><strong>나</strong> · ${esc(record.message).replace(/\n/g,'<br>')}</p><p><strong>${esc(api.draft({id}).value.name||id)}</strong> · ${esc((record.output||(record.state==='running'?'응답을 기다리고 있어요…':record.state==='error'?'응답을 받지 못했어요. 재시도로 다시 보낼 수 있어요.':record.state==='cancelled'?'응답을 중지했어요.':record.state==='interrupted'?'이전 응답이 중단됐어요.':''))+(record.state==='error'?failureDetails(record,row):'')).replace(/\n/g,'<br>')}</p>`).join('')||'<p class="muted">아직 대화가 없어요.</p>';box.dataset.stamp=stamp;box.scrollTop=loadingHistory.has(id)?top+box.scrollHeight-height:bottom?box.scrollHeight:top;}
   const button=$('[data-global-send]',root);if(!button.dataset.width)button.dataset.width=String(button.getBoundingClientRect().width);button.style.width=button.dataset.width+'px';const retry=!$('textarea',root).value.trim()&&retryRecord(id);button.textContent=row?.state==='running'?'중지':retry?'재시도':'보내기';button.setAttribute('aria-label',row?.state==='running'?'응답 중지':retry?'이전 메시지 다시 보내기':'메시지 보내기');button.dataset.supported=String(!pending.has(id)&&supported()&&!!agent&&agent.state!=='offline');button.disabled=api.busy||button.dataset.supported==='false';
  }
- return {renderGlobal,update,status,assigned,agents,flushDrafts:async()=>{try{await flushDrafts();}catch(error){draftFailure(error);throw error;}}};
+ return {renderGlobal,update,status,assigned,agents,ensureReady,flushDrafts:async()=>{try{await flushDrafts();}catch(error){draftFailure(error);throw error;}}};
 }

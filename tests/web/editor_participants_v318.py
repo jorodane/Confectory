@@ -37,6 +37,7 @@ def public_state(url):
  try:return mounted['state']
  finally:assert send({'op':'dispose','view':mounted['view']})['ok']
 def invoke(url,endpoint,args):
+ class RejectedStale(Exception):pass
  token=url.split('#',1)[1];api=url.split('#',1)[0]+'api/request'
  def send(body):
   request=urllib.request.Request(api,data=json.dumps(body).encode(),headers={'Content-Type':'application/json','X-Confectory-Session':token})
@@ -61,9 +62,12 @@ def invoke(url,endpoint,args):
      else:raise AssertionError(('unexpected scope change',endpoint))
      return {}
     for row in reply.get('results',[]):
-     if row['requestId']==request_id:assert row['ok'],row;return row.get('result')
+     if row['requestId']==request_id:
+      if not row.get('ok') and row.get('error',{}).get('code')=='stale_revision':raise RejectedStale()
+      assert row['ok'],row;return row.get('result')
     page.wait_for_timeout(10)
    raise AssertionError('owned metadata action timeout')
+  except RejectedStale:continue
   finally:send({'op':'dispose','view':mounted['view']})
  raise AssertionError('owned metadata action stayed stale')
 owned=OwnedResponses(None)

@@ -321,6 +321,7 @@ async function prepareHelperMessage(helper,scope,text){
  await view.call('selectHelperConversation',{helper});
  if(helperAgentsUI.assigned(helper))await view.call('bindHelperAgent',{helper});
  if(!current.connection)throw Error('이 Helper의 Agent 설정을 확인하세요.');
+ await helperAgentsUI.ensureReady({id:helper});if(current.projectId!==scope||!current.projectHelperIds?.includes(helper))throw Error('프로젝트 대화 범위가 바뀌었습니다. 입력은 유지됩니다.');
  await view.call('chatDraft',{value:text});await view.call('prepareAI',{kind:'chat',message:text});showPreview();return true;
 }
 function homeHelper(h){return v508.homeHelper(h);}

@@ -32,7 +32,14 @@ if control().get('preAuthFailure')=='process-exit' and not login:sys.exit(23)
 if table_args and control().get('isolationFailure')=='exit':sys.exit(29)
 outlock=threading.Lock()
 def send(value):
- with outlock:print(json.dumps(value),flush=True)
+ # Include required lifecycle metadata from the retained official CLI schema.
+ params=value.get('params',{})
+ if value.get('method')=='item/completed':params.setdefault('completedAtMs',0)
+ for container in [params,value.get('result',{})]:
+  if isinstance(container.get('turn'),dict):container['turn'].setdefault('items',[])
+ with outlock:
+  with (CASE/'responses.jsonl').open('a') as capture:capture.write(json.dumps(value)+'\n')
+  print(json.dumps(value),flush=True)
 def finish():
  while not (CASE/'complete-login').exists():time.sleep(.02)
  account={'type':'chatgpt','email':control().get('loginEmail','new-account@fixture.invalid'),'planType':'plus'}
@@ -61,6 +68,8 @@ for line in sys.stdin:
  elif method=='account/login/cancel':assert params=={'loginId':'owned-login'};result={'status':'canceled'}
  elif method=='account/read':
   assert params=={'refreshToken':False};p=home/'.owned-account.json';account=json.loads(p.read_text()) if p.exists() else None
+  if control().get('hideAccount'):account=None
+  if account and control().get('readEmail'):account['email']=control()['readEmail']
   if account and control().get('changedIdentity') and any(json.loads(x).get('method')=='thread/start' for x in (CASE/'requests.jsonl').read_text().splitlines()):account['email']='changed@fixture.invalid'
   result={'requiresOpenaiAuth':True,'account':account}
  elif method=='config/read':
@@ -96,6 +105,7 @@ for line in sys.stdin:
   if failure=='exit':print('PRIVATE stderr token=NEVER-EXPOSE /owned/secret',file=sys.stderr,flush=True);sys.exit(37)
   send({'id':value['id'],'result':{'turn':{'id':'owned-turn','status':'inProgress'}}})
   if failure=='bad-json':print('PRIVATE invalid JSON token=NEVER-EXPOSE',flush=True);continue
+  if failure=='remote-bad-request':send({'method':'error','params':{'threadId':'owned-thread','turnId':'owned-turn','willRetry':False,'error':{'message':'PRIVATE prompt/account details token=NEVER-EXPOSE','codexErrorInfo':'badRequest'}}});continue
   if failure=='foreign-event':send({'method':'item/agentMessage/delta','params':{'threadId':'foreign-thread','turnId':'owned-turn','itemId':'answer','delta':'PRIVATE MUST NOT RENDER'}});continue
   if failure=='remote-http':send({'method':'error','params':{'threadId':'owned-thread','turnId':'owned-turn','willRetry':False,'error':{'message':'PRIVATE service token=NEVER-EXPOSE','additionalDetails':'PRIVATE','codexErrorInfo':{'httpConnectionFailed':{'httpStatusCode':503}}}}});continue
   if failure=='completed-error':send({'method':'turn/completed','params':{'threadId':'owned-thread','turn':{'id':'owned-turn','status':'failed','error':{'message':'PRIVATE token=NEVER-EXPOSE','codexErrorInfo':{'httpConnectionFailed':{'httpStatusCode':403}}}}}});continue
