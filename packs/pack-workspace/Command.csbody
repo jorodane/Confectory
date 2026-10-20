@@ -50,7 +50,7 @@ case "effective": case "schema-view": case "call-check":{
    inspectedReply["effectiveDraftRevisions"]=revisions;
    inspectedReply["effective"]=System.Text.Json.Nodes.JsonNode.Parse(calls.Locate.Invoke("effective",System.Text.Json.JsonSerializer.Serialize(new{project=identity[0],manifest,id=inspectedId,text=u[3],drafts,schemaView=operation is "schema-view" or "call-check"})));
    if(operation is "schema-view" or "call-check"){
-    var resolved=inspectedReply["effective"]!;if(resolved["status"]!.ToString()!="available")throw new InvalidOperationException("Schema description unavailable: "+resolved["code"]!.ToString());
+    var resolved=inspectedReply["effective"]!;if(resolved["status"]!.ToString()!="available")throw new InvalidOperationException("Schema description unavailable: "+resolved["code"]!.ToString());if(resolved["schemaModel"] is not System.Text.Json.Nodes.JsonObject)throw new InvalidOperationException("Schema description unavailable: SCHEMA_MODEL_MISSING");
     inspectedReply["schemaView"]=System.Text.Json.Nodes.JsonNode.Parse(calls.DescribeSchemaView.Invoke(resolved["schemaModel"]!.ToJsonString()));
     if(operation=="call-check")inspectedReply["callCheck"]=System.Text.Json.Nodes.JsonNode.Parse(calls.CheckCall.Invoke(inspectedReply["schemaView"]!.ToJsonString(),request["path"]!.ToJsonString(),request["arguments"]!.ToJsonString(),request["target"]!.GetValue<string>()));
    }

@@ -2,6 +2,14 @@ using Confectory.Core;
 namespace Confectory.Tests;
 public sealed class WebUITests : TestCase
 {
+    public void test_actual_first_responses_agent_clean_profile_declarations_retry_registration_and_reload()
+    {
+        if(!OperatingSystem.IsLinux())Skip("Actual Chromium fixture runs on Linux; user Windows runtime is a separate check");
+        var built=new Builder(Path.Combine(Fixture.Repo,"examples/editor-home/project.cpack"),"linux").Build();
+        string report=Path.Combine(f.Root,"first-agent.json");File.WriteAllText(report,built.ToJsonString());
+        var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/editor_first_agent_setup.py"),Fixture.Repo,report},timeoutSeconds:300);
+        Console.WriteLine(run.Stdout.Trim());True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS first Responses Agent UI:"));
+    }
     public void test_web_ui_client_coalescing_revision_retirement_and_unreplayed_retry()
     {
         var run=Processes.Run(new[]{"node",Path.Combine(Fixture.Repo,"tests/web/web_ui_client_lifecycle.mjs")},timeoutSeconds:30);

@@ -23,6 +23,11 @@ internal static class ConnectionDeclarations
  if(selected is null)return new System.Text.Json.Nodes.JsonObject{["connections"]=rows,["bodyReads"]=stats.ReadDocuments.Count(path=>path.EndsWith(".csbody",StringComparison.Ordinal)),["executionPerformed"]=false};
  if(!rows.Any(row=>row!["id"]!.ToString()==selected))throw new ArgumentException("Select a declared registered connection descendant");
  var manifest=docs.Manifest(project);manifest.Namespace="Confectory.AISettings";manifest.Kind="project";manifest.Standalone=false;manifest.Entry=null;manifest.Targets.Clear();manifest.Always.Clear();manifest.Elements.Clear();foreach(string ns in manifest.Registry.Keys.ToArray()){var registration=manifest.Registry[ns];manifest.Registry[ns]=registration with{Path=System.IO.Path.GetFullPath(System.IO.Path.Combine(root,registration.Path))};}manifest.Elements.Add("Settings",new Confectory.Core.Locator("object","Settings.celem",new()));
- return new System.Text.Json.Nodes.JsonObject{["manifest"]=format(manifest),["source"]="object Confectory.AISettings::Settings extends "+selected+" {}\n",["connection"]=selected,["credentialRead"]=false,["executionPerformed"]=false};
+ // A registered/discoverable Agent pack need not be a direct dependency of the
+ // editor's root project. The new Settings object itself extends that pack, so
+ // its own ProjectPack must declare the dependency, even on the very first run.
+ string selectedPack=selected.Split("::")[0];var installed=registry.Packs[selectedPack];
+ manifest.Dependencies.TryAdd(selectedPack,new Confectory.Core.Dependency(installed.Version,installed.Loc));
+ return new System.Text.Json.Nodes.JsonObject{["manifest"]=format(manifest),["source"]="object Confectory.AISettings::Settings extends "+selected+" {}\n",["connection"]=selected,["settingsDependency"]=new System.Text.Json.Nodes.JsonObject{["namespace"]=selectedPack,["version"]=installed.Version},["credentialRead"]=false,["executionPerformed"]=false};
  }
 }

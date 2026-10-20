@@ -1,6 +1,6 @@
 using Confectory.Core;
 namespace Confectory.Tests;
-public sealed class AIConnectionTests : TestCase
+public sealed partial class AIConnectionTests : TestCase
 {
  public void test_connection_metadata_reads_current_bytes_without_cross_project_or_stamp_cache()
  {
