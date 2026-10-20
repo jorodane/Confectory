@@ -19,6 +19,11 @@ lock(state[0]){
   string type=status["errorType"]?.ToString()??"";if(System.Linq.Enumerable.Contains(new[]{"Win32Exception","UnauthorizedAccessException","IOException","JsonException","PlatformNotSupportedException","ArgumentException","InvalidOperationException","Other"},type))info["errorType"]=type;
   foreach(string field in new[]{"rpcErrorCode","nativeErrorCode","exitCode"})if(status[field] is System.Text.Json.Nodes.JsonValue number&&number.TryGetValue<int>(out int value))info[field]=value;
   if(status["processStarted"] is System.Text.Json.Nodes.JsonValue started&&started.TryGetValue<bool>(out bool processStarted))info["processStarted"]=processStarted;
+  if(status["pluginIsolation"] is System.Text.Json.Nodes.JsonObject isolation){
+   var safe=new System.Text.Json.Nodes.JsonObject();foreach(string flag in new[]{"overrideRequested","effectiveRechecked","overrideVerified"})if(isolation[flag] is System.Text.Json.Nodes.JsonValue value&&value.TryGetValue<bool>(out bool enabled))safe[flag]=enabled;
+   foreach(string phase in new[]{"initial","effective"})if(isolation[phase] is System.Text.Json.Nodes.JsonObject counts){var summary=new System.Text.Json.Nodes.JsonObject();foreach(string field in new[]{"entries","enabledBundled","enabledOther","unconfirmed"})if(counts[field] is System.Text.Json.Nodes.JsonValue number&&number.TryGetValue<int>(out int count)&&count is >=0 and <=65536)summary[field]=count;if(counts["bounded"] is System.Text.Json.Nodes.JsonValue limit&&limit.TryGetValue<bool>(out bool bounded))summary["bounded"]=bounded;safe[phase]=summary;}
+   info["pluginIsolation"]=safe;
+  }
   return info;
  }
  void CaptureInstallation(){var prepared=System.Text.Json.Nodes.JsonNode.Parse(calls.Preparation.Invoke(jobOwner,"status","{}"))!;if(prepared["state"]?.ToString()=="prepared"&&prepared["executable"]?.ToString()==flow["executable"]?.ToString())flow["installation"]=new System.Text.Json.Nodes.JsonObject{["state"]="prepared",["version"]="0.159.0-alpha.3"};}
@@ -100,7 +105,7 @@ lock(state[0]){
  else if(Phase()=="waiting-login"){
   var status=System.Text.Json.Nodes.JsonNode.Parse(calls.Login.Invoke(jobOwner,"status","{}"))!;
   if(status["state"]?.ToString()=="login-complete"){flow["loginIdentity"]=status["accountIdentity"]?.DeepClone();flow["homes"]=new System.Text.Json.Nodes.JsonArray(new System.Text.Json.Nodes.JsonObject{["path"]=status["managedHome"]!.DeepClone()});flow["homeIndex"]=0;flow["accounts"]=new System.Text.Json.Nodes.JsonArray();flow["inspectionFailures"]=new System.Text.Json.Nodes.JsonArray();InspectNext();}
-  else if(status["state"]?.ToString() is "failed" or "cancelled")Fail(status["code"]?.ToString()??"login_failed",status["message"]?.ToString()??"로그인을 확인하지 못했어요.","login");else{flow["view"]!["message"]=status["message"]?.DeepClone();foreach(string field in new[]{"verificationUrl","userCode","expires","loginMethod","openHandle"})flow["view"]![field]=status[field]?.DeepClone();}
+  else if(status["state"]?.ToString() is "failed" or "cancelled")Fail(status["code"]?.ToString()??"login_failed",status["message"]?.ToString()??"로그인을 확인하지 못했어요.","login",FailureInfo(status));else{flow["view"]!["message"]=status["message"]?.DeepClone();foreach(string field in new[]{"verificationUrl","userCode","expires","loginMethod","openHandle"})flow["view"]![field]=status[field]?.DeepClone();}
  }
  else if(Phase() is "inspecting" or "checking"){
   bool inspecting=Phase()=="inspecting";var status=System.Text.Json.Nodes.JsonNode.Parse(calls.Verification.Invoke(flow["checkConfig"]!.ToJsonString(),"status","{}"))!;string phase=status["state"]?.ToString()??"";

@@ -1,0 +1,69 @@
+{
+  "schema": "confectory-codex-onboarding-v1",
+  "host": "linux",
+  "architecture": "x64",
+  "expectedVersion": "0.159.0-alpha.3",
+  "installation": {
+    "state": "not-installed-by-this-flow"
+  },
+  "failure": {
+    "code": "provider-configuration-query-failed",
+    "stage": "configuration-read",
+    "version": "0.159.0-alpha.3",
+    "detail": "enabled-plugin-entry",
+    "errorType": "InvalidOperationException",
+    "rpcErrorCode": -32603,
+    "processStarted": true,
+    "pluginIsolation": {
+      "overrideRequested": true,
+      "effectiveRechecked": false,
+      "overrideVerified": false,
+      "initial": {
+        "entries": 4,
+        "enabledBundled": 1,
+        "enabledOther": 1,
+        "unconfirmed": 1,
+        "bounded": true
+      },
+      "effective": {
+        "entries": 4,
+        "enabledBundled": 1,
+        "enabledOther": 1,
+        "unconfirmed": 1,
+        "bounded": true
+      }
+    },
+    "candidate": 1
+  },
+  "attempts": [
+    {
+      "code": "provider-configuration-query-failed",
+      "stage": "configuration-read",
+      "version": "0.159.0-alpha.3",
+      "detail": "enabled-plugin-entry",
+      "errorType": "InvalidOperationException",
+      "rpcErrorCode": -32603,
+      "processStarted": true,
+      "pluginIsolation": {
+        "overrideRequested": true,
+        "effectiveRechecked": false,
+        "overrideVerified": false,
+        "initial": {
+          "entries": 4,
+          "enabledBundled": 1,
+          "enabledOther": 1,
+          "unconfirmed": 1,
+          "bounded": true
+        },
+        "effective": {
+          "entries": 4,
+          "enabledBundled": 1,
+          "enabledOther": 1,
+          "unconfirmed": 1,
+          "bounded": true
+        }
+      },
+      "candidate": 1
+    }
+  ]
+}

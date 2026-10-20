@@ -1,0 +1,28 @@
+{
+  "schema": "confectory-codex-onboarding-v1",
+  "host": "linux",
+  "architecture": "x64",
+  "expectedVersion": "0.159.0-alpha.3",
+  "installation": {
+    "state": "prepared",
+    "version": "0.159.0-alpha.3"
+  },
+  "failure": {
+    "code": "provider-protocol-unsupported",
+    "stage": "initialize",
+    "errorType": "InvalidOperationException",
+    "exitCode": 23,
+    "processStarted": true,
+    "candidate": 1
+  },
+  "attempts": [
+    {
+      "code": "provider-protocol-unsupported",
+      "stage": "initialize",
+      "errorType": "InvalidOperationException",
+      "exitCode": 23,
+      "processStarted": true,
+      "candidate": 1
+    }
+  ]
+}

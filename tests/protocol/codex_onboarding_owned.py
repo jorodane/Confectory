@@ -1,11 +1,11 @@
 #!/usr/bin/python3
 """Owned protocol fixture. Fake account metadata only; no OAuth or network."""
-import json,os,pathlib,sys,threading,time
+import json,os,pathlib,sys,threading,time,tomllib
 ROOT=pathlib.Path('__FIXTURE_ROOT__')
 CASE=pathlib.Path(json.loads((ROOT/'active.json').read_text())['case'])
 def control():return json.loads((CASE/'control.json').read_text())
 def record(method,params=None):
- value={'method':method,'params':params or {},'home':os.environ.get('CODEX_HOME','')}
+ value={'method':method,'params':params or {},'home':os.environ.get('CODEX_HOME',''),'pid':os.getpid()}
  fd=os.open(CASE/'requests.jsonl',os.O_WRONLY|os.O_CREAT|os.O_APPEND,0o600)
  try:os.write(fd,(json.dumps(value)+'\n').encode())
  finally:os.close(fd)
@@ -19,8 +19,17 @@ denied={'shell_tool','shell_snapshot','apps','plugins','connectors','browser_use
 assert {args[i+1] for i,a in enumerate(args) if a=='--disable'}==denied
 assert all(k not in os.environ for k in ('HOME','OPENAI_API_KEY','OPENAI_AUTH_TOKEN'))
 home=pathlib.Path(os.environ['CODEX_HOME']);login='cli_auth_credentials_store="file"' in args
-record('process',{'login':login})
+table_args=[args[i+1] for i,a in enumerate(args) if a=='-c' and args[i+1].startswith('plugins={')]
+if table_args:
+ for prior in (CASE/'requests.jsonl').read_text().splitlines():
+  row=json.loads(prior)
+  if row['method']=='process' and row['home']==str(home):
+   try:os.kill(row['pid'],0)
+   except ProcessLookupError:continue
+   raise AssertionError('Prior same-home process still alive before isolation restart')
+record('process',{'login':login,'isolationOverride':bool(table_args)})
 if control().get('preAuthFailure')=='process-exit' and not login:sys.exit(23)
+if table_args and control().get('isolationFailure')=='exit':sys.exit(29)
 outlock=threading.Lock()
 def send(value):
  with outlock:print(json.dumps(value),flush=True)
@@ -35,6 +44,8 @@ for line in sys.stdin:
  if failure=='mixed-account-error' and home.name=='account-0':failure='account-error'
  if not login and method=={'initialize-error':'initialize','account-error':'account/read','model-error':'model/list'}.get(failure):
   send({'id':value['id'],'error':{'code':-32603,'message':'PRIVATE fixture diagnostic /home/fake-user token=NEVER-EXPOSE'}});continue
+ if table_args and control().get('isolationFailure')==method:
+  send({'id':value['id'],'error':{'code':-32603,'message':'PRIVATE isolation restart diagnostic'}});continue
  if method=='initialize':result={'userAgent':'confectory/'+control().get('version','0.159.0-alpha.3')+' (OWNED FIXTURE)'}
  elif method=='initialized':continue
  elif method=='account/login/start':
@@ -52,7 +63,23 @@ for line in sys.stdin:
   assert params=={'refreshToken':False};p=home/'.owned-account.json';account=json.loads(p.read_text()) if p.exists() else None
   if account and control().get('changedIdentity') and any(json.loads(x).get('method')=='thread/start' for x in (CASE/'requests.jsonl').read_text().splitlines()):account['email']='changed@fixture.invalid'
   result={'requiresOpenaiAuth':True,'account':account}
- elif method=='config/read':result={'config':{'model_provider':'openai','model_providers':{},'features':{name:False for name in denied},'web_search':'enabled' if control().get('rejectSearch') else 'disabled','plugins':({'owned-unexpected@fixture':{'enabled':True}} if control().get('rejectExtension') else {'unified-computer-use@openai-bundled':{'enabled':'plugins.unified-computer-use@openai-bundled.enabled=false' not in args}} if control().get('bundledPolicy') else {}),'mcp_servers':{},**({'model':control()['configuredModel']} if control().get('configuredModel') else {})}}
+ elif method=='config/read':
+  result={'config':{'model_provider':'openai','model_providers':{},'features':{name:False for name in denied},'web_search':'enabled' if control().get('rejectSearch') else 'disabled','plugins':({'owned-unexpected@fixture':{'enabled':True}} if control().get('rejectExtension') else {'unified-computer-use@openai-bundled':{'enabled':'plugins.unified-computer-use@openai-bundled.enabled=false' not in args}} if control().get('bundledPolicy') else {}),'mcp_servers':{},**({'model':control()['configuredModel']} if control().get('configuredModel') else {})}}
+  preset=control().get('pluginPreset')
+  if preset:
+   result['config']['plugins']={'unified-computer-use@openai-bundled':{'enabled':False},'owned.extra@openai-bundled':{'enabled':True},'PRIVATE.owned-quote"\\name-한글🧁@fixture':{'enabled':True},'PRIVATE.unconfirmed@fixture':{}}
+   if preset=='budget':result['config']['plugins']={str(i)+'@fixture':{'enabled':True} for i in range(129)}
+  if control().get('postLoginPlugins') and not login and (home/'.owned-account.json').exists():result['config']['plugins']['PRIVATE.after-browser@fixture']={'enabled':True}
+  if table_args and not control().get('rejectExtension'):
+   for k,v in tomllib.loads(table_args[-1])['plugins'].items():result['config']['plugins'].setdefault(k,{}).update(v)
+  if preset=='changed-after-override' and table_args:result['config']['plugins']['PRIVATE.new@fixture']={'enabled':True}
+  if not table_args and control().get('isolationFailure')=='start':os.chmod(sys.argv[0],0o600)
+  if not table_args and control().get('isolationFailure')=='file-change':
+   with open(sys.argv[0],'a') as executable:executable.write('\n# OWNED isolation executable mutation\n')
+  if control().get('holdIsolation') and table_args:
+   (CASE/'isolation-started').write_text('owned')
+   while control().get('holdIsolation'):time.sleep(.02)
+
  elif method=='experimentalFeature/list':result={'data':[{'name':name,'enabled':False,'stage':'stable'} for name in denied-{'connectors','imagegenext','codex_hooks','memory_tool'}],'nextCursor':None}
  elif method=='configRequirements/read':result={'requirements':None}
  elif method=='model/list':

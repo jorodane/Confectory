@@ -1,0 +1,1 @@
+function Confectory.Agent.Codex::PluginIsolation (string effective) -> string {provide Confectory.Agent.Codex::PluginIsolation with Confectory.Agent.Codex::PluginIsolationBody;}

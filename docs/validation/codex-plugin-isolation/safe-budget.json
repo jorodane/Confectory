@@ -1,0 +1,67 @@
+{
+  "schema": "confectory-codex-onboarding-v1",
+  "host": "linux",
+  "architecture": "x64",
+  "expectedVersion": "0.159.0-alpha.3",
+  "installation": {
+    "state": "not-installed-by-this-flow"
+  },
+  "failure": {
+    "code": "provider-tool-policy-unsupported",
+    "stage": "policy-check",
+    "version": "0.159.0-alpha.3",
+    "detail": "enabled-plugin-entry",
+    "errorType": "PlatformNotSupportedException",
+    "processStarted": true,
+    "pluginIsolation": {
+      "overrideRequested": false,
+      "effectiveRechecked": false,
+      "overrideVerified": false,
+      "initial": {
+        "entries": 129,
+        "enabledBundled": 0,
+        "enabledOther": 129,
+        "unconfirmed": 0,
+        "bounded": false
+      },
+      "effective": {
+        "entries": 129,
+        "enabledBundled": 0,
+        "enabledOther": 129,
+        "unconfirmed": 0,
+        "bounded": false
+      }
+    },
+    "candidate": 1
+  },
+  "attempts": [
+    {
+      "code": "provider-tool-policy-unsupported",
+      "stage": "policy-check",
+      "version": "0.159.0-alpha.3",
+      "detail": "enabled-plugin-entry",
+      "errorType": "PlatformNotSupportedException",
+      "processStarted": true,
+      "pluginIsolation": {
+        "overrideRequested": false,
+        "effectiveRechecked": false,
+        "overrideVerified": false,
+        "initial": {
+          "entries": 129,
+          "enabledBundled": 0,
+          "enabledOther": 129,
+          "unconfirmed": 0,
+          "bounded": false
+        },
+        "effective": {
+          "entries": 129,
+          "enabledBundled": 0,
+          "enabledOther": 129,
+          "unconfirmed": 0,
+          "bounded": false
+        }
+      },
+      "candidate": 1
+    }
+  ]
+}

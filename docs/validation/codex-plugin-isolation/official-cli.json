@@ -1,0 +1,43 @@
+{
+  "productionPlannerCompiled": true,
+  "tomlQuotedKeysAndExactPluginOnlyScope": true,
+  "singleArgvItemNoShell": true,
+  "controlsEmptyMalformedAndArgumentBudgetRejected": true,
+  "safeCountSummary": true,
+  "platform": "linux",
+  "windowsExecution": false,
+  "actualLoginOrInference": false,
+  "officialPinnedLinuxCLI": [
+    {
+      "case": "static-only",
+      "enabledEntries": 5,
+      "methods": [
+        "initialize",
+        "config/read"
+      ],
+      "configUnchanged": true,
+      "authFileAbsent": true
+    },
+    {
+      "case": "empty-table",
+      "enabledEntries": 5,
+      "methods": [
+        "initialize",
+        "config/read"
+      ],
+      "configUnchanged": true,
+      "authFileAbsent": true
+    },
+    {
+      "case": "production-table",
+      "enabledEntries": 0,
+      "methods": [
+        "initialize",
+        "config/read"
+      ],
+      "configUnchanged": true,
+      "authFileAbsent": true
+    }
+  ],
+  "childNetworkDenied": true
+}

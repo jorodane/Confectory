@@ -27,16 +27,16 @@ def hold(method):
   assert time.monotonic()<deadline;time.sleep(.01)
 a=read();assert a['method']=='initialize' and a['params']['capabilities']['experimentalApi'];send({'id':a['id'],'result':{'userAgent':'confectory/'+control.get('version','0.159.0-alpha.3')+' (OWNED FIXTURE ONLY)'}})
 assert read()['method']=='initialized'
-a=read();assert a['method']=='account/read' and a['params']=={'refreshToken':False}
-hold('account/read')
-account=None if 'no-account' in __file__ or control.get('noAccount') else {'type':'apiKey'} if 'api-account' in __file__ else {'type':'chatgpt','email':'OWNED FIXTURE, NOT A REAL ACCOUNT','planType':'unknown'}
-send({'id':a['id'],'result':{'account':account,'requiresOpenaiAuth':True}})
-if not account or account['type']!='chatgpt':read();sys.exit(0)
 a=read();assert a['method']=='config/read' and a['params']=={'includeLayers':False}
 while control.get('holdCheck'):
  time.sleep(.01)
  control=json.load(open(control_path))
 send({'id':a['id'],'result':{'config':{'model_provider':'openai','model_providers':{'owned-unreviewed':{}} if 'custom-provider' in __file__ else {},'features':{name:bool(control.get('unsafeTools') and name=='shell_tool') for name in sorted(denied,reverse=bool(os.getpid()%2))},'web_search':'disabled','plugins':{},'mcp_servers':{},'ownedRevision':control.get('configRevision',0)}}})
+a=read();assert a['method']=='account/read' and a['params']=={'refreshToken':False}
+hold('account/read')
+account=None if 'no-account' in __file__ or control.get('noAccount') else {'type':'apiKey'} if 'api-account' in __file__ else {'type':'chatgpt','email':'OWNED FIXTURE, NOT A REAL ACCOUNT','planType':'unknown'}
+send({'id':a['id'],'result':{'account':account,'requiresOpenaiAuth':True}})
+if not account or account['type']!='chatgpt':read();sys.exit(0)
 a=read();assert a['method']=='experimentalFeature/list';send({'id':a['id'],'result':{'data':[{'name':name,'enabled':bool(control.get('runtimeUnsafe') and name=='apps'),'stage':'stable'} for name in sorted(denied-{'connectors','imagegenext','codex_hooks','memory_tool'})],'nextCursor':None}})
 a=read();assert a['method']=='configRequirements/read';send({'id':a['id'],'result':{'requirements':None}})
 pages=control.get('modelPages',[['owned-protocol-fixture']])

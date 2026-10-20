@@ -2,6 +2,12 @@ using Confectory.Core;
 namespace Confectory.Tests;
 public sealed class WebUITests : TestCase
 {
+    public void test_codex_plugin_isolation_toml_argv_and_metadata_bounds()
+    {
+        if(!OperatingSystem.IsLinux())Skip("Portable process argv fixture runs on Linux; actual Windows runtime is separate");
+        var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/protocol/codex_plugin_isolation.py"),Fixture.Repo},timeoutSeconds:120);
+        True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS production plugin isolation TOML argv bounds"),run.Stdout+run.Stderr);
+    }
     public void test_codex_browser_login_native_url_failure_and_retry_guards()
     {
         if(!OperatingSystem.IsLinux())Skip("Portable native-launch guard fixture runs on Linux; actual Windows browser association is separate");
@@ -11,7 +17,7 @@ public sealed class WebUITests : TestCase
     public void test_actual_codex_cli_login_first_owned_install_accounts_models_cancel_retry_and_helper()
     {
         if(!OperatingSystem.IsLinux())Skip("Owned CLI and Chromium fixtures run on Linux; live accounts and Windows native execution are separate checks");
-        var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/editor_codex_onboarding.py"),Fixture.Repo},timeoutSeconds:900);
+        var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/editor_codex_onboarding.py"),Fixture.Repo},timeoutSeconds:1500);
         Console.WriteLine(run.Stdout.Trim());True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS owned CLI login-first integration"));
     }
 

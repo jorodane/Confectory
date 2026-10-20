@@ -1,0 +1,1 @@
+implementation Confectory.Agent.Codex::PluginIsolationBody for Confectory.Agent.Codex::PluginIsolation (string effective) -> string {body common "PluginIsolation.csbody";}

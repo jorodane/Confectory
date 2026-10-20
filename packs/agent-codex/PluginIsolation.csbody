@@ -1,0 +1,19 @@
+// Private process-only plan from effective metadata. No config writes or plugin loading.
+// A top-level CLI table replaces earlier CLI table entries, but merges with files/defaults:
+// include every observed key AND the known default, then re-read in the new process.
+if(effective.Length>262144)throw new ArgumentException("Plugin metadata budget");
+var node=System.Text.Json.Nodes.JsonNode.Parse(effective);var entries=node as System.Text.Json.Nodes.JsonObject;
+int bundled=0,other=0,unconfirmed=node is not null&&entries is null?1:0;bool bounded=entries is null?node is null:entries.Count<=128;
+var keys=new System.Collections.Generic.SortedSet<string>(StringComparer.Ordinal){"unified-computer-use@openai-bundled"};
+if(entries is not null)foreach(var entry in entries){
+ if(entry.Value is System.Text.Json.Nodes.JsonObject item&&item["enabled"] is System.Text.Json.Nodes.JsonValue scalar&&scalar.TryGetValue<bool>(out bool enabled)){if(enabled){if(entry.Key.EndsWith("@openai-bundled",StringComparison.Ordinal))bundled++;else other++;}}else unconfirmed++;
+ // Reject controls/invalid Unicode rather than handing non-identifiers to the CLI.
+ if(entry.Key.Length is <1 or >1024||System.Linq.Enumerable.Any(entry.Key,ch=>ch<' '||ch=='\u007f'))bounded=false;
+ try{new System.Text.UTF8Encoding(false,true).GetByteCount(entry.Key);}catch(System.Text.EncoderFallbackException){bounded=false;}keys.Add(entry.Key);
+}
+string Quote(string key){
+ var quoted=new System.Text.StringBuilder("\"");foreach(char ch in key){switch(ch){case '"':quoted.Append("\\\"");break;case '\\':quoted.Append("\\\\");break;default:if(ch<' '||ch=='\u007f')quoted.Append("\\u").Append(((int)ch).ToString("X4",System.Globalization.CultureInfo.InvariantCulture));else quoted.Append(ch);break;}}return quoted.Append('"').ToString();
+}
+string argument="";if(bounded){var table=new System.Text.StringBuilder("plugins={");foreach(string key in keys){if(table.Length>9)table.Append(',');table.Append(Quote(key)).Append("={enabled=false}");}argument=table.Append('}').ToString();if(argument.Length>8192||new System.Text.UTF8Encoding(false,true).GetByteCount(argument)>8192){bounded=false;argument="";}}
+var summary=new System.Text.Json.Nodes.JsonObject{["entries"]=entries?.Count??0,["enabledBundled"]=bundled,["enabledOther"]=other,["unconfirmed"]=unconfirmed,["bounded"]=bounded};
+return new System.Text.Json.Nodes.JsonObject{["required"]=bundled+other+unconfirmed>0,["argument"]=bounded?argument:"",["summary"]=summary}.ToJsonString();

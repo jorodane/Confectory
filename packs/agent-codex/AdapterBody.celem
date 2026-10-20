@@ -4,4 +4,4 @@ import Confectory.Agent.Codex::Verification as Verification (string,string,strin
 import Confectory.DevelopmentTools::Definitions as Definitions (string) -> string;
 import Confectory.DevelopmentTools::Snapshot as Scope (string) -> string;
 import Confectory.DevelopmentTools::Invoke as Tool (string,string,string,string) -> string;
-import Confectory.Agent.Codex::AccountIdentity as Identity (string) -> string; body common "Provider.csbody";}
+import Confectory.Agent.Codex::AccountIdentity as Identity (string) -> string; import Confectory.Agent.Codex::PluginIsolation as PluginIsolation (string) -> string; body common "Provider.csbody";}
