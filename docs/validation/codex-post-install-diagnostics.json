@@ -1,0 +1,625 @@
+{
+  "baseline": "835a60b3eb9477263674782787819f887e99f8a9",
+  "implementationCommit": "d0f4af5855141fcb909f672e9d5dd8c260549751",
+  "reportedSequence": "Login -> install consent -> loading -> generic existing-settings failure before account login",
+  "confirmedDefects": [
+    "Account/read RPC errors inherited the initialization classification.",
+    "Onboarding flattened distinct post-installation failures into one message.",
+    "Last candidate failure overwrote earlier failures."
+  ],
+  "userWindowsCause": "unconfirmed; no actual user machine/account inspected",
+  "scenarioCount": 23,
+  "scenarios": [
+    {
+      "scenario": "install",
+      "result": "passed",
+      "methods": {
+        "--version": 1,
+        "account/login/start": 1,
+        "account/read": 4,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 4,
+        "initialized": 4,
+        "model/list": 2,
+        "process": 4,
+        "thread/start": 1
+      },
+      "provider": "isolated owned runtime/account replies and loopback installation archive"
+    },
+    {
+      "scenario": "install-empty-home",
+      "result": "passed",
+      "methods": {
+        "--version": 1,
+        "account/login/start": 1,
+        "account/read": 3,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 3,
+        "initialized": 3,
+        "model/list": 2,
+        "process": 3,
+        "thread/start": 1
+      },
+      "provider": "isolated owned runtime/account replies and loopback installation archive"
+    },
+    {
+      "scenario": "install-process-exit",
+      "result": "passed",
+      "methods": {
+        "--version": 2,
+        "account/read": 1,
+        "initialize": 1,
+        "initialized": 1,
+        "process": 2
+      },
+      "provider": "isolated owned runtime/account replies and loopback installation archive"
+    },
+    {
+      "scenario": "install-initialize-error",
+      "result": "passed",
+      "methods": {
+        "--version": 2,
+        "account/read": 1,
+        "initialize": 2,
+        "initialized": 1,
+        "process": 2
+      },
+      "provider": "isolated owned runtime/account replies and loopback installation archive"
+    },
+    {
+      "scenario": "install-account-error",
+      "result": "passed",
+      "methods": {
+        "--version": 2,
+        "account/read": 2,
+        "initialize": 2,
+        "initialized": 2,
+        "process": 2
+      },
+      "provider": "isolated owned runtime/account replies and loopback installation archive"
+    },
+    {
+      "scenario": "install-model-error",
+      "result": "passed",
+      "methods": {
+        "--version": 2,
+        "account/read": 2,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 2,
+        "initialized": 2,
+        "model/list": 2,
+        "process": 2
+      },
+      "provider": "isolated owned runtime/account replies and loopback installation archive"
+    },
+    {
+      "scenario": "install-mixed-homes",
+      "result": "passed",
+      "methods": {
+        "--version": 2,
+        "account/read": 4,
+        "initialize": 4,
+        "initialized": 4,
+        "process": 4
+      },
+      "provider": "isolated owned runtime/account replies and loopback installation archive"
+    },
+    {
+      "scenario": "install-process-start-error",
+      "result": "passed",
+      "methods": {
+        "--version": 2,
+        "account/read": 1,
+        "initialize": 1,
+        "initialized": 1,
+        "process": 1
+      },
+      "provider": "isolated owned runtime/account replies and loopback installation archive"
+    },
+    {
+      "scenario": "authenticated",
+      "result": "passed",
+      "methods": {
+        "--version": 2,
+        "account/read": 5,
+        "config/read": 5,
+        "configRequirements/read": 5,
+        "experimentalFeature/list": 5,
+        "initialize": 5,
+        "initialized": 5,
+        "model/list": 5,
+        "process": 5,
+        "thread/start": 3,
+        "turn/interrupt": 1,
+        "turn/start": 1
+      },
+      "provider": "isolated owned runtime/account replies and loopback installation archive"
+    },
+    {
+      "scenario": "logged-out",
+      "result": "passed",
+      "methods": {
+        "--version": 1,
+        "account/login/start": 1,
+        "account/read": 4,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 4,
+        "initialized": 4,
+        "model/list": 2,
+        "process": 4,
+        "thread/start": 1
+      },
+      "provider": "isolated owned runtime/account replies and loopback installation archive"
+    },
+    {
+      "scenario": "multiple-accounts",
+      "result": "passed",
+      "methods": {
+        "--version": 1,
+        "account/read": 3,
+        "config/read": 3,
+        "configRequirements/read": 3,
+        "experimentalFeature/list": 3,
+        "initialize": 3,
+        "initialized": 3,
+        "model/list": 3,
+        "process": 3,
+        "thread/start": 1
+      },
+      "provider": "isolated owned runtime/account replies and loopback installation archive"
+    },
+    {
+      "scenario": "model-selection",
+      "result": "passed",
+      "methods": {
+        "--version": 1,
+        "account/read": 2,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 2,
+        "initialized": 2,
+        "model/list": 2,
+        "process": 2,
+        "thread/start": 1
+      },
+      "provider": "isolated owned runtime/account replies and loopback installation archive"
+    },
+    {
+      "scenario": "single-model",
+      "result": "passed",
+      "methods": {
+        "--version": 1,
+        "account/read": 2,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 2,
+        "initialized": 2,
+        "model/list": 2,
+        "process": 2,
+        "thread/start": 1
+      },
+      "provider": "isolated owned runtime/account replies and loopback installation archive"
+    },
+    {
+      "scenario": "configured-model",
+      "result": "passed",
+      "methods": {
+        "--version": 1,
+        "account/read": 2,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 2,
+        "initialized": 2,
+        "model/list": 2,
+        "process": 2,
+        "thread/start": 1
+      },
+      "provider": "isolated owned runtime/account replies and loopback installation archive"
+    },
+    {
+      "scenario": "no-models",
+      "result": "passed",
+      "methods": {
+        "--version": 2,
+        "account/read": 3,
+        "config/read": 3,
+        "configRequirements/read": 3,
+        "experimentalFeature/list": 3,
+        "initialize": 3,
+        "initialized": 3,
+        "model/list": 3,
+        "process": 3,
+        "thread/start": 1
+      },
+      "provider": "isolated owned runtime/account replies and loopback installation archive"
+    },
+    {
+      "scenario": "cancel-login",
+      "result": "passed",
+      "methods": {
+        "--version": 2,
+        "account/login/cancel": 1,
+        "account/login/start": 2,
+        "account/read": 5,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 6,
+        "initialized": 6,
+        "model/list": 2,
+        "process": 6,
+        "thread/start": 1
+      },
+      "provider": "isolated owned runtime/account replies and loopback installation archive"
+    },
+    {
+      "scenario": "cancel-install",
+      "result": "passed",
+      "methods": {
+        "--version": 1,
+        "account/login/start": 1,
+        "account/read": 4,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 4,
+        "initialized": 4,
+        "model/list": 2,
+        "process": 4,
+        "thread/start": 1
+      },
+      "provider": "isolated owned runtime/account replies and loopback installation archive"
+    },
+    {
+      "scenario": "bad-install",
+      "result": "passed",
+      "methods": {
+        "--version": 1,
+        "account/login/start": 1,
+        "account/read": 4,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 4,
+        "initialized": 4,
+        "model/list": 2,
+        "process": 4,
+        "thread/start": 1
+      },
+      "provider": "isolated owned runtime/account replies and loopback installation archive"
+    },
+    {
+      "scenario": "cancel-probe",
+      "result": "passed",
+      "methods": {
+        "--version": 2,
+        "account/read": 2,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 2,
+        "initialized": 2,
+        "model/list": 2,
+        "process": 2,
+        "thread/start": 1
+      },
+      "provider": "isolated owned runtime/account replies and loopback installation archive"
+    },
+    {
+      "scenario": "unsupported-runtime",
+      "result": "passed",
+      "methods": {
+        "--version": 1
+      },
+      "provider": "isolated owned runtime/account replies and loopback installation archive"
+    },
+    {
+      "scenario": "identity-change",
+      "result": "passed",
+      "methods": {
+        "--version": 2,
+        "account/read": 4,
+        "config/read": 4,
+        "configRequirements/read": 4,
+        "experimentalFeature/list": 4,
+        "initialize": 4,
+        "initialized": 4,
+        "model/list": 4,
+        "process": 4,
+        "thread/start": 2
+      },
+      "provider": "isolated owned runtime/account replies and loopback installation archive"
+    },
+    {
+      "scenario": "failed-login",
+      "result": "passed",
+      "methods": {
+        "--version": 2,
+        "account/login/start": 2,
+        "account/read": 5,
+        "config/read": 2,
+        "configRequirements/read": 2,
+        "experimentalFeature/list": 2,
+        "initialize": 6,
+        "initialized": 6,
+        "model/list": 2,
+        "process": 6,
+        "thread/start": 1
+      },
+      "provider": "isolated owned runtime/account replies and loopback installation archive"
+    },
+    {
+      "scenario": "switch-provider",
+      "result": "passed",
+      "methods": {
+        "--version": 1,
+        "account/login/cancel": 1,
+        "account/login/start": 1,
+        "account/read": 1,
+        "initialize": 2,
+        "initialized": 2,
+        "process": 2
+      },
+      "provider": "isolated owned runtime/account replies and loopback installation archive"
+    }
+  ],
+  "diagnosticExamples": {
+    "install-process-exit": {
+      "schema": "confectory-codex-onboarding-v1",
+      "host": "linux",
+      "architecture": "x64",
+      "expectedVersion": "0.159.0-alpha.3",
+      "installation": {
+        "state": "prepared",
+        "version": "0.159.0-alpha.3"
+      },
+      "failure": {
+        "code": "provider-protocol-unsupported",
+        "stage": "initialize",
+        "errorType": "InvalidOperationException",
+        "exitCode": 23,
+        "processStarted": true,
+        "candidate": 1
+      },
+      "attempts": [
+        {
+          "code": "provider-protocol-unsupported",
+          "stage": "initialize",
+          "errorType": "InvalidOperationException",
+          "exitCode": 23,
+          "processStarted": true,
+          "candidate": 1
+        }
+      ]
+    },
+    "install-initialize-error": {
+      "schema": "confectory-codex-onboarding-v1",
+      "host": "linux",
+      "architecture": "x64",
+      "expectedVersion": "0.159.0-alpha.3",
+      "installation": {
+        "state": "prepared",
+        "version": "0.159.0-alpha.3"
+      },
+      "failure": {
+        "code": "provider-protocol-unsupported",
+        "stage": "initialize",
+        "errorType": "InvalidOperationException",
+        "rpcErrorCode": -32603,
+        "processStarted": true,
+        "candidate": 1
+      },
+      "attempts": [
+        {
+          "code": "provider-protocol-unsupported",
+          "stage": "initialize",
+          "errorType": "InvalidOperationException",
+          "rpcErrorCode": -32603,
+          "processStarted": true,
+          "candidate": 1
+        }
+      ]
+    },
+    "install-account-error": {
+      "schema": "confectory-codex-onboarding-v1",
+      "host": "linux",
+      "architecture": "x64",
+      "expectedVersion": "0.159.0-alpha.3",
+      "installation": {
+        "state": "prepared",
+        "version": "0.159.0-alpha.3"
+      },
+      "failure": {
+        "code": "provider-account-query-failed",
+        "stage": "account-read",
+        "version": "0.159.0-alpha.3",
+        "errorType": "InvalidOperationException",
+        "rpcErrorCode": -32603,
+        "processStarted": true,
+        "candidate": 1
+      },
+      "attempts": [
+        {
+          "code": "provider-account-query-failed",
+          "stage": "account-read",
+          "version": "0.159.0-alpha.3",
+          "errorType": "InvalidOperationException",
+          "rpcErrorCode": -32603,
+          "processStarted": true,
+          "candidate": 1
+        }
+      ]
+    },
+    "install-model-error": {
+      "schema": "confectory-codex-onboarding-v1",
+      "host": "linux",
+      "architecture": "x64",
+      "expectedVersion": "0.159.0-alpha.3",
+      "installation": {
+        "state": "prepared",
+        "version": "0.159.0-alpha.3"
+      },
+      "failure": {
+        "code": "provider-model-catalog-unavailable",
+        "stage": "model-list",
+        "version": "0.159.0-alpha.3",
+        "errorType": "InvalidOperationException",
+        "rpcErrorCode": -32603,
+        "processStarted": true,
+        "candidate": 1
+      },
+      "attempts": [
+        {
+          "code": "provider-model-catalog-unavailable",
+          "stage": "model-list",
+          "version": "0.159.0-alpha.3",
+          "errorType": "InvalidOperationException",
+          "rpcErrorCode": -32603,
+          "processStarted": true,
+          "candidate": 1
+        }
+      ]
+    },
+    "install-mixed-homes": {
+      "schema": "confectory-codex-onboarding-v1",
+      "host": "linux",
+      "architecture": "x64",
+      "expectedVersion": "0.159.0-alpha.3",
+      "installation": {
+        "state": "prepared",
+        "version": "0.159.0-alpha.3"
+      },
+      "failure": {
+        "code": "provider-account-query-failed",
+        "stage": "account-read",
+        "version": "0.159.0-alpha.3",
+        "errorType": "InvalidOperationException",
+        "rpcErrorCode": -32603,
+        "processStarted": true,
+        "candidate": 1
+      },
+      "attempts": [
+        {
+          "code": "provider-account-query-failed",
+          "stage": "account-read",
+          "version": "0.159.0-alpha.3",
+          "errorType": "InvalidOperationException",
+          "rpcErrorCode": -32603,
+          "processStarted": true,
+          "candidate": 1
+        },
+        {
+          "code": "provider-auth-required",
+          "stage": "account-read",
+          "version": "0.159.0-alpha.3",
+          "errorType": "InvalidOperationException",
+          "processStarted": true,
+          "candidate": 2
+        }
+      ]
+    },
+    "install-process-start-error": {
+      "schema": "confectory-codex-onboarding-v1",
+      "host": "linux",
+      "architecture": "x64",
+      "expectedVersion": "0.159.0-alpha.3",
+      "installation": {
+        "state": "prepared",
+        "version": "0.159.0-alpha.3"
+      },
+      "failure": {
+        "code": "provider-start-failed",
+        "stage": "process-start",
+        "errorType": "Win32Exception",
+        "nativeErrorCode": 13,
+        "processStarted": false,
+        "candidate": 1
+      },
+      "attempts": [
+        {
+          "code": "provider-start-failed",
+          "stage": "process-start",
+          "errorType": "Win32Exception",
+          "nativeErrorCode": 13,
+          "processStarted": false,
+          "candidate": 1
+        }
+      ]
+    }
+  },
+  "passingTestMethods": [
+    "AIConnectionTests.test_codex_owned_stdio_protocol_fixture_without_installed_codex_authentication_or_external_network",
+    "GlobalHelperAgentTests.test_actual_global_helper_responses_codex_scopes_approval_cancellation_and_restart",
+    "WebUITests.test_actual_agent_connection_presentation_diagnostics_retry_inputs_and_late_close",
+    "WebUITests.test_actual_codex_cli_login_first_owned_install_accounts_models_cancel_retry_and_helper",
+    "WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup"
+  ],
+  "officialLinuxEmptyAccountProbe": {
+    "version": "codex-cli 0.159.0-alpha.3",
+    "network": "child seccomp denies socket/connect/send and io_uring",
+    "freshOwnedHome": true,
+    "platform": "Linux",
+    "sentMethods": [
+      "initialize",
+      "account/read"
+    ],
+    "liveLoginOrModelRequests": false,
+    "initialization": "passed",
+    "account": "null",
+    "result": "passed",
+    "exitCode": 0,
+    "stderrCategory": "none",
+    "authFileCreated": false
+  },
+  "windowsProductBuild": {
+    "ok": true,
+    "sdk": "10.0.401",
+    "mode": "portable"
+  },
+  "windowsNativeHostCompile": {
+    "ok": true,
+    "warnings": 0,
+    "errors": 0,
+    "execution": "not performed on Linux"
+  },
+  "resourceCheckout": {
+    "actualOrdinaryGitCheckoutStartup": "passed",
+    "retainedCRLFAndFreshLF": true,
+    "resourceCount": 50,
+    "contentEncodingBOMBinaryBudgetRejection": true
+  },
+  "protectedHashes": {
+    "examples/editor-home/ui/style.css": "f5b0be01e7daccef55d3aabcf2d33f9b887caee7b6f40c8d49cd46e7347a2700",
+    "reference/site-ui/Confectory-Editor-Prototype-v508.zip": "b306ce4deff9616c4107ae224443d864f8fce0f52cf3c3e158de8745c17c659f"
+  },
+  "screenshot": {
+    "file": "codex-post-install-account-diagnostic.png",
+    "sha256": "301ac8ca6618c3cbcab1b53420a5e05ba6389d3ec29700bc8dedac918088d37c",
+    "description": "actual rendered production failure view with an owned synthetic RPC error; sanitized diagnostic only"
+  },
+  "privacy": {
+    "rawRpcMessagesForwarded": false,
+    "rawStderrForwarded": false,
+    "pathsOrAccountIdentifiersInDiagnostics": false,
+    "tokenFilesReadOrCopied": false,
+    "liveOAuthOrInference": false
+  },
+  "limits": [
+    "Linux official CLI empty-account metadata is not Windows/live-service authentication evidence.",
+    "Six post-install failure scenarios use controlled owned failures; they do not diagnose the user PC.",
+    "The EACCES native code13 is a Linux fixture result; no Windows native process was executed.",
+    "Installation prepared means archive/digest/version verification completed in that owned transaction; service readiness is separate."
+  ],
+  "correctedTestAttempt": "A diagnostic assertion reused the build report variable and stopped the first run after three successful cases. It was renamed; the remaining four cases then completed. The not-started ExitCode guard was verified separately with real owned-process EACCES, after the normal sixteen-case regression had started."
+}
