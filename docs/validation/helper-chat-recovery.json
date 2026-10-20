@@ -1,0 +1,235 @@
+{
+  "baseline": "f3e38877954a94613fee74e0e9a0674c7d7562ae",
+  "branch": "work/current",
+  "publication": "Source validation snapshot; final commit, exact-commit checkout gate and remote verification are recorded in completion report.",
+  "confirmedBugs": [
+    "missing session verification mislabeled as account changed",
+    "project renderer overwrote global history on reopen"
+  ],
+  "actualUserWindowsFailureResolved": false,
+  "sourceSha256": {
+    "examples/editor-home/WebBundle.csbody": "474088822e07a040d189468a3713ea8408ccc63c697195241b98f1f1b7959d19",
+    "examples/editor-home/ui/helper-agents.js": "43ec8e598426cb5ed55ec2d1de0066451e85f1fa5f64e7e0157b4f15ab351863",
+    "examples/editor-home/ui/v508-runtime.js": "de0767577130c3a71ac01a1703d6c416bf74dec4cce388207d4cf0839e8530d1",
+    "packs/agent-codex/Provider.csbody": "d6f5f3586df334693a50dcc0489cb41a8346db2fbf2330b36395efeb49ed8323",
+    "packs/agent/Start.csbody": "a7c558fe817cab44381bb2dbc11b4900b62fb78e4967a6abfe60a6e206649319",
+    "packs/agent/Poll.csbody": "beab0c3c893e0c51b23ce0811d4ab710f49d320ed62c5abb7aeef25453e41bac",
+    "packs/editor-home-model/HelperAgents.csbody": "5c7ec0db4bd4a86f6623611772d9f4ff6ac61e6944577f11875938470254d7a4"
+  },
+  "protectedSha256": {
+    "examples/editor-home/ui/style.css": "f5b0be01e7daccef55d3aabcf2d33f9b887caee7b6f40c8d49cd46e7347a2700",
+    "reference/site-ui/Confectory-Editor-Prototype-v508.zip": "b306ce4deff9616c4107ae224443d864f8fce0f52cf3c3e158de8745c17c659f"
+  },
+  "packageMatchesCurrentSources": true,
+  "uiContract": {
+    "pass": true,
+    "originalGeometryMatchedAt": [
+      1440,
+      600
+    ],
+    "geometry": [
+      {
+        "viewport": [
+          1440,
+          1000
+        ],
+        "original": {
+          ".messages": {
+            "x": 215,
+            "y": 458.03125,
+            "width": 404,
+            "height": 108
+          },
+          "form": {
+            "x": 215,
+            "y": 582.03125,
+            "width": 404,
+            "height": 42
+          },
+          "textarea": {
+            "x": 215,
+            "y": 582.03125,
+            "width": 325.828125,
+            "height": 38
+          },
+          "button[type=submit]": {
+            "x": 548.828125,
+            "y": 582.03125,
+            "width": 70.171875,
+            "height": 42
+          }
+        },
+        "restored": {
+          ".messages": {
+            "x": 215,
+            "y": 458.03125,
+            "width": 404,
+            "height": 108
+          },
+          "form": {
+            "x": 215,
+            "y": 582.03125,
+            "width": 404,
+            "height": 42
+          },
+          "textarea": {
+            "x": 215,
+            "y": 582.03125,
+            "width": 325.828125,
+            "height": 38
+          },
+          "button[type=submit]": {
+            "x": 548.828125,
+            "y": 582.03125,
+            "width": 70.171875,
+            "height": 42
+          }
+        }
+      },
+      {
+        "viewport": [
+          600,
+          800
+        ],
+        "original": {
+          ".messages": {
+            "x": 209,
+            "y": 452.03125,
+            "width": 416,
+            "height": 108
+          },
+          "form": {
+            "x": 209,
+            "y": 576.03125,
+            "width": 416,
+            "height": 42
+          },
+          "textarea": {
+            "x": 209,
+            "y": 576.03125,
+            "width": 337.828125,
+            "height": 38
+          },
+          "button[type=submit]": {
+            "x": 554.828125,
+            "y": 576.03125,
+            "width": 70.171875,
+            "height": 42
+          }
+        },
+        "restored": {
+          ".messages": {
+            "x": 209,
+            "y": 452.03125,
+            "width": 416,
+            "height": 108
+          },
+          "form": {
+            "x": 209,
+            "y": 576.03125,
+            "width": 416,
+            "height": 42
+          },
+          "textarea": {
+            "x": 209,
+            "y": 576.03125,
+            "width": 337.828125,
+            "height": 38
+          },
+          "button[type=submit]": {
+            "x": 554.828125,
+            "y": 576.03125,
+            "width": 70.171875,
+            "height": 42
+          }
+        }
+      }
+    ],
+    "oneOriginalSendSlot": true,
+    "checks": [
+      "unverified/expired/cancelled/auth missing identity distinguished",
+      "verified account mismatch blocked",
+      "same verified account allowed",
+      "IME",
+      "double submit",
+      "streaming",
+      "same-slot cancel",
+      "newer draft preserved",
+      "extra permissions conditional",
+      "unexpected project blocked",
+      "changed Agent blocked",
+      "extra memory conditional",
+      "lost ack no replay",
+      "accepted input cleared with explicit same-slot retry",
+      "Enter/ShiftEnter/IME",
+      "late identical new edit preserved",
+      "failure diagnostic redaction",
+      "typing during autosave"
+    ],
+    "realAccountOrInference": false,
+    "root": "/tmp/confectory-v508-chat-contract-a4sdht1y"
+  },
+  "actualEngineUI": {
+    "root": "/tmp/confectory-global-ui-6uiufrjy",
+    "checks": [
+      "real startup readiness; internal Codex setup without external connector panel",
+      "registered Agent-only sidebar",
+      "Agent-owned Helper creation without project",
+      "v508 Helper-add input preservation at 1440/900/600; group/favorite interactions",
+      "normal explicit Send without duplicate approval, original DOM/108px message area, original Send/stop dimensions, Korean composition guard, automatic draft persistence",
+      "Enter sends/ShiftEnter newline, actual Responses reply, accepted input cleared, explicit retry, safe HTTP failure, original request cancel, reopen-only history and two-Helper separation",
+      "delayed history response after Helper switch cannot render into the other Helper; actual engine restart, independent two-Helper drafts, typing during delayed save, both CAS conflict choices, same-message retry, scroll history without replay",
+      "v508 project/packs tabs, real Helper roster, no project submission"
+    ],
+    "historyCasPreservesOriginalAndResponse": true,
+    "httpRequests": 5,
+    "pageErrors": [],
+    "externalRequests": [],
+    "projectId": ""
+  },
+  "ownedCLI": {
+    "root": "/tmp/confectory-cli-flow-7_6ux_2x",
+    "passedCases": [
+      "authenticated",
+      "identity-change",
+      "turn-rpc-error",
+      "turn-exit",
+      "turn-bad-json",
+      "turn-foreign-event",
+      "turn-remote-http",
+      "turn-completed-error"
+    ],
+    "realAccountOrInference": false
+  },
+  "tests": {
+    "globalBackendAndEngineAndAgent": "3 passed, 0 failed, 0 skipped (global-regression.log)",
+    "engineFinalDelayedHistoryRace": "1 passed, 0 failed, 0 skipped; 25.388s",
+    "agentFinalDiagnosticBoundary": "1 passed, 0 failed, 0 skipped; 17.246s",
+    "codexStdioFences": "1 passed, 0 failed, 0 skipped; 93.770s",
+    "releaseSolution": "0 warnings / 0 errors"
+  },
+  "payloadSchemaLimit": "Optional cached browser-login schema check failed: three experimental thread/start fields absent; not counted as a passing full payload-schema check. No guard weakened.",
+  "package": {
+    "pass": true,
+    "package": "/workspace/Confectory/Builds/Windows-x64",
+    "files": 2225,
+    "crossPublishedWindowsX64PE": true,
+    "unrelatedWorkingDirectory": true,
+    "packageTamperAndMissingDependencyRejected": true,
+    "packagedEngineWebStartup": true,
+    "runtimeOnlyNoInstalledSDK": true,
+    "existingCheckoutProfileReusedAndExplicitOverrideRetained": true,
+    "resources": 50,
+    "renderedMinimalLogin": true,
+    "windowsApphostExecuted": false,
+    "webView2Executed": false,
+    "actualLoginOrInference": false,
+    "evidence": "/tmp/confectory-desktop-package-b3mbxjs2"
+  },
+  "limits": [
+    "Actual Windows apphost/WebView2/user OAuth/live model success unverified",
+    "User PC request failure still requires new safe bracketed code/stage/numbers",
+    "Original-frame geometry is not full-app visual parity",
+    "Titlebar, Workspace menu/zoom and Pack Manager follow-up remain separate"
+  ]
+}

@@ -91,7 +91,14 @@ for line in sys.stdin:
   result={'thread':{'id':'owned-thread','environments':[]},'instructionSources':[],'model':params['model'],'modelProvider':'openai'}
  elif method=='turn/start':
   assert params['environments']==[];content=json.loads(params['input'][0]['text']);assert content['kind']=='helper-global-chat'
+  failure=control().get('turnFailure')
+  if failure=='rpc-error':send({'id':value['id'],'error':{'code':-32602,'message':'PRIVATE turn payload token=NEVER-EXPOSE /owned/secret'}});continue
+  if failure=='exit':print('PRIVATE stderr token=NEVER-EXPOSE /owned/secret',file=sys.stderr,flush=True);sys.exit(37)
   send({'id':value['id'],'result':{'turn':{'id':'owned-turn','status':'inProgress'}}})
+  if failure=='bad-json':print('PRIVATE invalid JSON token=NEVER-EXPOSE',flush=True);continue
+  if failure=='foreign-event':send({'method':'item/agentMessage/delta','params':{'threadId':'foreign-thread','turnId':'owned-turn','itemId':'answer','delta':'PRIVATE MUST NOT RENDER'}});continue
+  if failure=='remote-http':send({'method':'error','params':{'threadId':'owned-thread','turnId':'owned-turn','willRetry':False,'error':{'message':'PRIVATE service token=NEVER-EXPOSE','additionalDetails':'PRIVATE','codexErrorInfo':{'httpConnectionFailed':{'httpStatusCode':503}}}}});continue
+  if failure=='completed-error':send({'method':'turn/completed','params':{'threadId':'owned-thread','turn':{'id':'owned-turn','status':'failed','error':{'message':'PRIVATE token=NEVER-EXPOSE','codexErrorInfo':{'httpConnectionFailed':{'httpStatusCode':403}}}}}});continue
   send({'method':'item/agentMessage/delta','params':{'threadId':'owned-thread','turnId':'owned-turn','itemId':'answer','delta':'OWNED CLI HELPER REPLY'}})
   send({'method':'item/completed','params':{'threadId':'owned-thread','turnId':'owned-turn','item':{'id':'answer','type':'agentMessage','text':'OWNED CLI HELPER REPLY'}}})
   send({'method':'turn/completed','params':{'threadId':'owned-thread','turn':{'id':'owned-turn','status':'completed'}}});continue
