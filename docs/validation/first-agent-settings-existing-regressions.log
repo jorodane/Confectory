@@ -1,0 +1,7 @@
+PASS actual global Helper creation/assignment/Responses/Codex/approval/HTTP error/cancel/history/restart; owned transports only
+PASS GlobalHelperAgentTests.test_actual_global_helper_responses_codex_scopes_approval_cancellation_and_restart
+PASS Agent presentation zero invokes/processes; partial settings/missing host diagnostics; exact retry, retained input and late close; /tmp/confectory-connection-latency-lzckkav3
+PASS WebUITests.test_actual_agent_connection_presentation_diagnostics_retry_inputs_and_late_close
+PASS AIConnectionTests.test_connection_metadata_reads_current_bytes_without_cross_project_or_stamp_cache
+PASS AIConnectionTests.test_declared_connection_settings_and_responses_approval_guards_without_external_network_or_credentials
+4 passed, 0 failed, 0 skipped; 102.762s

@@ -1,0 +1,3 @@
+PASS first Responses Agent UI: clean installed-pack setup, declaration/settings retry, local registration and reload; /tmp/confectory-first-agent-ui-qmykb2s2
+PASS WebUITests.test_actual_first_responses_agent_clean_profile_declarations_retry_registration_and_reload
+1 passed, 0 failed, 0 skipped; 41.549s

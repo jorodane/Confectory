@@ -1,0 +1,2 @@
+PASS WebUITests.test_editor_web_resources_windows_git_checkout_and_actual_startup
+1 passed, 0 failed, 0 skipped; 6.857s
