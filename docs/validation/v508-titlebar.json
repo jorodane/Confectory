@@ -260,9 +260,34 @@
     "scope": "Extracted original window-control DOM/icons and MyInfo form, frozen styles, shared base header; excludes full original application and native OS frame"
   },
   "committedCheckout": {
-    "state": "pending source commit"
+    "pass": true,
+    "sourceCommit": "e7e2c0ea3cf194aed05298ef2c2a63ce4a83d8be",
+    "resources": 51,
+    "retainedCrlfAttributePull": true,
+    "freshLf": true,
+    "tamperEncodingBomBinaryBudgetRejected": true,
+    "originalBytesUnchanged": true,
+    "result": "PASS actual EditorHome retained CRLF after attribute pull and fresh LF; 51 canonical/exact snapshots; content/encoding/BOM/binary/budget rejection; original bytes unchanged"
   },
   "actualWindowsNativeTested": false,
   "wholeV508UiComplete": false,
-  "actualLoginOrInference": false
+  "actualLoginOrInference": false,
+  "finalDistributionVerification": {
+    "pass": true,
+    "package": "/workspace/Confectory/Builds/Windows-x64",
+    "rid": "win-x64",
+    "files": 2238,
+    "source": "/workspace/scratch/v508-ui-refresh/titlebar-final-output-check.json",
+    "windowsExecuted": false
+  },
+  "screenshotSha256": {
+    "docs/validation/v508-titlebar/engine-home-0.png": "162a7a9fa66b0aa8e8d8fa7ca7c37166e6e88716cacb289c05356bfad964e9b4",
+    "docs/validation/v508-titlebar/engine-home-2.png": "3db4f5de3ab0f623bd077d7a275736aa59426d722627ee6d15473d3544933b9c",
+    "docs/validation/v508-titlebar/engine-profile-1.png": "302d3063af0a682acaa38ca1dd9ab4566464666cee22c5434dd6dc00cf27f154",
+    "docs/validation/v508-titlebar/my-info.png": "34c156db1649a5abdb8194049fe97c493b9b0ef233522bde0612d5990bd58ad4",
+    "docs/validation/v508-titlebar/native-titlebar.png": "508f5b68a64c30e9bef84b137b113aa27f15b4228aa132c468957a9248c26e63",
+    "docs/validation/v508-titlebar/titlebar-640.png": "5cd569350fd9a49efe75427e047badf40069cc9fc1c3dea850a7d1eb680e22cf",
+    "docs/validation/v508-titlebar/titlebar-960.png": "3022f47cd258e744738ea0d3d9f1288e7cbf82628ecf142f6626a4ec0b3902b6",
+    "docs/validation/v508-titlebar/v508-titlebar.png": "508f5b68a64c30e9bef84b137b113aa27f15b4228aa132c468957a9248c26e63"
+  }
 }

@@ -35,7 +35,7 @@ The isolated visual oracle extracts the original window-control DOM construction
 
 The bridge admits only a fixed window-command vocabulary from the current trusted root/index document. It has no arbitrary window handle, process, account or project command. The production host blocks frame navigation, disallows host objects and keeps the existing CSP frame prohibition. The injected-script browser checks are not native WebView2 admission tests, and do not claim that an allowed same-origin iframe could not borrow a parent API. Such frames are prohibited by this host.
 
-The committed-checkout result is recorded after the source commit in the machine-readable evidence. Previously passed connection/consent suites were not repeated: their implementation and guards are unchanged. This is not new evidence of live account or model success.
+The actual committed-checkout test passed against source commit `e7e2c0ea3cf194aed05298ef2c2a63ce4a83d8be`: retained CRLF after the attributes pull and a fresh LF checkout both served all 51 pinned resources; content, encoding, BOM, binary and size-budget tampering was rejected and original bytes stayed unchanged. The byte-identical distribution copied to `Builds/Windows-x64` also passed its final package check. Previously passed connection/consent suites were not repeated: their implementation and guards are unchanged. This is not new evidence of live account or model success.
 
 ## Distribution and remaining native checks
 
