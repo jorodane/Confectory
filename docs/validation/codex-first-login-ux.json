@@ -1,0 +1,128 @@
+{
+  "baseline": "eea0a3a6b8085ca782838754d33a24893b1c9009",
+  "renderer": {
+    "checks": [
+      "pristine",
+      "candidates alone do not imply account/login attempt",
+      "saved settings alone",
+      "legacy unverified registration",
+      "invalid identity is not known account",
+      "cancelled login",
+      "pre-auth policy block keeps Login and real diagnostics",
+      "initial process failure repeats preparation through Login",
+      "explicit login failure has login-specific retry",
+      "explicit install failure has install-specific retry",
+      "login complete does not mean connection ready",
+      "known connected account",
+      "automatic registered check is not login failure",
+      "registered auth-required allows account choice",
+      "account mismatch does not enable check bypass",
+      "offline stays explicit reconnect",
+      "cleanup failure cannot start another job",
+      "discovered account is not registered account change"
+    ],
+    "count": 18,
+    "pageErrors": [],
+    "externalRequests": [],
+    "actualLoginOrInference": false,
+    "backendTransitionsExecuted": false,
+    "evidence": "/tmp/confectory-login-state-8b6al35i"
+  },
+  "actualEngine": {
+    "distinctPassedCases": [
+      "first-unverified",
+      "first-policy-block",
+      "post-login-policy-block",
+      "logged-out",
+      "cancel-login",
+      "failed-login",
+      "bad-install",
+      "restart-unverified",
+      "restart-cancel",
+      "restart-expired-auth",
+      "restart-mismatch",
+      "restart-offline",
+      "authenticated"
+    ],
+    "count": 13,
+    "pageErrors": [],
+    "externalRequests": [],
+    "fakeAccountAndProviderOnly": true,
+    "fixtureRoot": "/tmp/confectory-cli-flow-xofzhk7g",
+    "freshCompileToolOk": true,
+    "laterRunReusedSameCompiledSource": true,
+    "totalDistinctWithCompatibility": 17
+  },
+  "sourceSha256": {
+    "packs/agent-codex/Onboarding.csbody": "032391bdfc33dc82807a2d70372fa03409a68e32798686b1e5f9228de35ee0ab",
+    "packs/editor-home-model/Command.csbody": "aa2da771750445397479c933eed891f1688efcda610e7b03c642cd59391e058f",
+    "examples/editor-home/ui/v508-runtime.js": "4f382b46160319ff6b181b1efcf3982b2875186120343a1bbf97a1fb9d10fc46",
+    "examples/editor-home/WebBundle.csbody": "c3587150f6f55a69e6888eedfd60d706da765a71c43597bb84553b5e2a170bd2"
+  },
+  "unchangedGuardsCssAndReference": {
+    "packs/agent-codex/Provider.csbody": true,
+    "packs/agent-codex/AccountLogin.csbody": true,
+    "packs/agent-codex/PluginIsolation.csbody": true,
+    "packs/editor-home-model/HelperAgents.csbody": true,
+    "packs/editor-home-model/ChatUse.csbody": true,
+    "packs/development-tools/Invoke.csbody": true,
+    "examples/editor-home/ui/style.css": true,
+    "examples/editor-home/ui/runtime.css": true,
+    "reference/site-ui/Confectory-Editor-Prototype-v508.zip": true
+  },
+  "packagedSourceMatches": {
+    "packs/agent-codex/Onboarding.csbody": true,
+    "packs/editor-home-model/Command.csbody": true,
+    "examples/editor-home/ui/v508-runtime.js": true,
+    "examples/editor-home/WebBundle.csbody": true
+  },
+  "release": {
+    "warnings": 0,
+    "errors": 0,
+    "seconds": 11.96
+  },
+  "windowsPackage": {
+    "ok": true,
+    "rid": "win-x64",
+    "files": 2228,
+    "engine": "content/runtime/Confectory.App.dll",
+    "resourceRoot": "content",
+    "launcher": "Confectory.exe",
+    "prerequisites": "Microsoft .NET Desktop Runtime 10.0 x64; Microsoft Edge WebView2 Runtime",
+    "windowsExecuted": false,
+    "output": "/workspace/Confectory/Builds/Windows-x64",
+    "executable": "/workspace/Confectory/Builds/Windows-x64/Confectory.exe",
+    "previousPackage": "/workspace/Confectory/Builds/Windows-x64.previous-202610210933060754088"
+  },
+  "packageProbe": {
+    "pass": true,
+    "package": "/workspace/Confectory/Builds/Windows-x64",
+    "files": 2228,
+    "crossPublishedWindowsX64PE": true,
+    "unrelatedWorkingDirectory": true,
+    "packageTamperAndMissingDependencyRejected": true,
+    "packagedEngineWebStartup": true,
+    "runtimeOnlyNoInstalledSDK": true,
+    "existingCheckoutProfileReusedAndExplicitOverrideRetained": true,
+    "resources": 50,
+    "renderedMinimalLogin": true,
+    "windowsApphostExecuted": false,
+    "webView2Executed": false,
+    "actualLoginOrInference": false,
+    "evidence": "/tmp/confectory-desktop-package-vnxwkrko"
+  },
+  "committedCheckout": "pending",
+  "actualWindowsPolicyCause": "not established",
+  "actualWindowsApphostOAuthOrPaidInference": false,
+  "compatibility": {
+    "passedCases": [
+      "plugins-change",
+      "plugins-restart-config",
+      "no-models",
+      "install-account-error"
+    ],
+    "pageErrors": [],
+    "externalRequests": [],
+    "notes": "Distinct adapted pre-authentication recovery branches; no repeated 13-case suite."
+  }
+}
