@@ -1,0 +1,10 @@
+implementation Confectory.PackWorkspace::BrowserDraftsBody for Confectory.PackWorkspace::BrowserDrafts (string draft,string input) -> string {
+ import Confectory.EditWorkspace::Identity as Identity (string) -> string[];
+ import Confectory.EditWorkspace::List as List (string) -> string[];
+ import Confectory.EditWorkspace::Read as Read (string,string) -> string[];
+ import Confectory.EditWorkspace::EditBatch as EditBatch (string,string[],string[],long[],string[]) -> bool;
+ import Confectory.Save::Read as Saved (string) -> string;
+ import Confectory.Save::Write as Save (string) -> string;
+ import Confectory.FileStream::Snapshot as FileSnapshot (string) -> string[];
+ body common "BrowserDrafts.csbody";
+}

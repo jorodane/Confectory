@@ -1,7 +1,7 @@
 // Existing confirmed identities + versioned owned declared relations. This is a
 // private read projection; every edit/reference read still uses its owner gate.
 export function createBrowserProjection(api){
- const caches=new Map(),group=kind=>kind==='function'||kind==='implementation'?'feature':kind==='module'?'module':'concept';
+ const caches=new Map(),group=kind=>kind==='function'||kind==='implementation'?'feature':kind==='module'?'module':kind==='schema'?'info':'concept';
  const declaration=kind=>['object','schema','category','concept','function','module','implementation'].includes(kind);
  const observed=()=>[...(api.current?.units||[]),...(api.current?.draft?[api.current.draft]:[])].filter(row=>declaration(row.kind)&&row.id.startsWith(api.current.namespace+'::'));
  const stateKey=()=>JSON.stringify(observed().map(row=>[row.id,row.revision]).sort());

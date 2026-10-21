@@ -1,0 +1,30 @@
+var request=System.Text.Json.Nodes.JsonNode.Parse(input)!.AsObject();string action=request["action"]?.GetValue<string>()??"status";
+if(action is not ("status" or "save" or "discard")||System.Linq.Enumerable.Any(request,p=>p.Key is not ("action" or "ids" or "revisions" or "hashes" or "checkpointHash" or "ownerHash")))throw new UnauthorizedAccessException("browser-draft-action");
+var ids=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(request["ids"]!.AsArray(),n=>n!.GetValue<string>()));if(ids.Length is <1 or >64||new System.Collections.Generic.HashSet<string>(ids,StringComparer.Ordinal).Count!=ids.Length)throw new ArgumentException("browser-draft-scope");
+string Hash(string text)=>Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(text))).ToLowerInvariant();
+var identity=calls.Identity.Invoke(draft);string manifest=System.Linq.Enumerable.First(calls.List.Invoke(draft),id=>id.EndsWith("::ProjectManifest",StringComparison.Ordinal)||id.EndsWith("::PackManifest",StringComparison.Ordinal));string space=manifest[..manifest.IndexOf("::",StringComparison.Ordinal)];
+string ownerHash=Hash(System.Text.Json.JsonSerializer.Serialize(identity));if(action!="status"&&request["ownerHash"]?.ToString()!=ownerHash)throw new UnauthorizedAccessException("browser-draft-owner-changed");
+string saved=calls.Saved.Invoke(draft);if(saved.Length>8388608)throw new ArgumentException("browser-draft-checkpoint-budget");var checkpoint=saved.Length==0?null:System.Text.Json.Nodes.JsonNode.Parse(saved)!.AsObject();
+if(checkpoint is not null&&(checkpoint["version"]?.GetValue<int>()!=1||checkpoint["project"]?.ToString()!=identity[0]||checkpoint["participant"]?.ToString()!=identity[1]||checkpoint["context"]?.ToString()!=identity[2]))throw new UnauthorizedAccessException("browser-draft-checkpoint-owner");
+var savedRows=new System.Collections.Generic.Dictionary<string,System.Text.Json.Nodes.JsonNode>(StringComparer.Ordinal);foreach(var row in checkpoint?["changes"]?.AsArray()??new System.Text.Json.Nodes.JsonArray())if(!savedRows.TryAdd(row!["id"]!.GetValue<string>(),row))throw new ArgumentException("browser-draft-checkpoint-duplicate");
+var units=new System.Collections.Generic.List<string[]>();var targets=new System.Collections.Generic.List<string>();var rows=new System.Text.Json.Nodes.JsonArray();bool anyDirty=false,anyUnsaved=false,canDiscard=true;
+foreach(string id in ids){
+ if(!id.StartsWith(space+"::",StringComparison.Ordinal))throw new UnauthorizedAccessException("browser-draft-owner");var unit=calls.Read.Invoke(draft,id);if(unit[0]!=id||unit[1] is not ("object" or "schema" or "category" or "concept" or "function" or "module" or "implementation"))throw new UnauthorizedAccessException("browser-draft-kind");
+ string? target=null;if(savedRows.TryGetValue(id,out var prior)){if(prior["path"]?.ToString()!=unit[2]||prior["kind"]?.ToString()!=unit[1]||prior["baseline"]?.ToString()!=unit[5])throw new InvalidOperationException("browser-draft-checkpoint-stale");target=prior["draft"]!.GetValue<string>();}
+ else if(unit[5]!="missing"){
+  string root=System.IO.Path.GetFullPath(identity[3]),path=System.IO.Path.GetFullPath(System.IO.Path.Combine(root,unit[2]));var comparison=OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal;
+  if(System.IO.Path.IsPathRooted(unit[2])||!path.StartsWith(root+System.IO.Path.DirectorySeparatorChar,comparison))throw new UnauthorizedAccessException("browser-draft-path");
+  for(System.IO.FileSystemInfo? node=new System.IO.FileInfo(path);node is not null;node=node is System.IO.FileInfo file?file.Directory:((System.IO.DirectoryInfo)node).Parent){if(node.LinkTarget is not null)throw new UnauthorizedAccessException("browser-draft-linked-source");if(node.FullName.Equals(root,comparison))break;}
+  var original=calls.FileSnapshot.Invoke(path);if(original[0]=="exists"&&original[2]==unit[5])target=original[1];
+ }
+ bool dirty=unit[6]=="dirty",unsaved=target is null?dirty:unit[3]!=target;canDiscard&=target is not null;anyDirty|=dirty;anyUnsaved|=unsaved;units.Add(unit);targets.Add(target??unit[3]);rows.Add(new System.Text.Json.Nodes.JsonObject{["id"]=id,["revision"]=long.Parse(unit[4],System.Globalization.CultureInfo.InvariantCulture),["hash"]=Hash(unit[3]),["dirty"]=dirty,["unsaved"]=unsaved});
+}
+if(action!="status"){
+ var revisions=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(request["revisions"]!.AsArray(),n=>n!.GetValue<long>()));var hashes=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(request["hashes"]!.AsArray(),n=>n!.GetValue<string>()));if(revisions.Length!=ids.Length||hashes.Length!=ids.Length||request["checkpointHash"]?.ToString()!=Hash(saved))throw new InvalidOperationException("browser-draft-stale");
+ for(int n=0;n<ids.Length;n++)if(revisions[n]!=long.Parse(units[n][4],System.Globalization.CultureInfo.InvariantCulture)||hashes[n]!=Hash(units[n][3]))throw new InvalidOperationException("browser-draft-stale");
+ if(action=="save")calls.Save.Invoke(draft);
+ else{if(!canDiscard)throw new InvalidOperationException("browser-draft-discard-unavailable");if(!calls.EditBatch.Invoke(draft,ids,targets.ToArray(),revisions,hashes))throw new InvalidOperationException("browser-draft-stale");}
+ // No final source writes occur here. Confirm still needs the existing reviewed token/compiler path.
+ return new System.Text.Json.Nodes.JsonObject{["state"]="applied",["action"]=action}.ToJsonString();
+}
+return new System.Text.Json.Nodes.JsonObject{["state"]="ready",["ownerHash"]=ownerHash,["ids"]=System.Text.Json.JsonSerializer.SerializeToNode(ids),["rows"]=rows,["checkpointHash"]=Hash(saved),["dirty"]=anyDirty,["unsaved"]=anyUnsaved,["canDiscard"]=canDiscard}.ToJsonString();

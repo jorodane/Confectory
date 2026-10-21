@@ -147,3 +147,8 @@
 .helper-group-toggle h4{display:flex;align-items:center;gap:4px;min-width:0;flex:1;overflow:hidden}
 .helper-group-toggle .agent-group-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .helper-group-toggle .agent-group-count,.helper-agent-group-heading .helper-group-add{flex:none}
+
+/* Retain project chat/draft DOM without displaying an unplaced participant. */
+.participant-expanded-card[data-project-helper-unplaced]{display:none!important}
+
+.browser-view.browser-hierarchy-hidden .browser-folder-tree{display:none}

@@ -1,0 +1,1 @@
+function Confectory.PackWorkspace::BrowserDrafts (string draft,string input) -> string { provide Confectory.PackWorkspace::BrowserDrafts with Confectory.PackWorkspace::BrowserDraftsBody; }

@@ -2,6 +2,7 @@ var state=AppDomain.CurrentDomain.GetData("Confectory.PackWorkspace."+handle) as
 var request=System.Text.Json.Nodes.JsonNode.Parse(payload)?.AsObject()??throw new ArgumentException("Object payload required.");
 lock(state){if(state["closing"]!.GetValue<bool>())throw new ObjectDisposedException("PackWorkspace");string draft=state["draft"]!.GetValue<string>();bool conflict=false;
 switch(operation){
+case "browser-drafts":{var input=request.DeepClone().AsObject();input.Remove("context");input["action"]=input["draftAction"]?.DeepClone()??System.Text.Json.Nodes.JsonValue.Create("status");input.Remove("draftAction");string outcome=calls.BrowserDrafts.Invoke(draft,input.ToJsonString());var reply=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(handle))!.AsObject();reply["browserDrafts"]=System.Text.Json.Nodes.JsonNode.Parse(outcome);return reply.ToJsonString();}
 case "relations-map":{
  var mapNodes=new System.Text.Json.Nodes.JsonArray();var mapEdges=new System.Text.Json.Nodes.JsonArray();var versions=new System.Collections.Generic.Dictionary<string,string[]>(StringComparer.Ordinal);var batch=new System.Text.Json.Nodes.JsonArray();
  void Collect(){if(batch.Count==0)return;var result=System.Text.Json.Nodes.JsonNode.Parse(calls.Locate.Invoke("relationsMap",new System.Text.Json.Nodes.JsonObject{["units"]=batch.DeepClone()}.ToJsonString()))!;foreach(var node in result["nodes"]!.AsArray())mapNodes.Add(node!.DeepClone());foreach(var edge in result["edges"]!.AsArray())mapEdges.Add(edge!.DeepClone());batch.Clear();}

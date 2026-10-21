@@ -1,0 +1,341 @@
+{
+  "baseline": "596497635b794efa0c3eaa7b27348f0700aac7da",
+  "stage": "Workspace / Pack Manager / Project Browser chrome / placed Helper filtering",
+  "sources": {
+    "examples/editor-home/WebBundle.csbody": "1c0e709a2e5c4bb4ad82aa5959ada203e6976b17594c0e04f1be74b0a1acc68f",
+    "examples/editor-home/WebInvoke.csbody": "39b0f69cc9996196cf1ffb133a887a393aafb848e43a7d5acf9d296025105440",
+    "examples/editor-home/ui/browser-projection.js": "68244b4762f74815a3695d0bddcccd8e3659cacd649eb7440ce660ef230cce27",
+    "examples/editor-home/ui/browser-shell.js": "2e2a05a82f66fe776ea76289c9b27c7f85c69942c9a9e78b404ad005cd509aa5",
+    "examples/editor-home/ui/browser-tree.js": "2ab6c8c5dac25a9cff433a223c7a4f97cc05d562de3439cb8b8ed70d62ad8e10",
+    "examples/editor-home/ui/inventory.js": "8233f3e504a73c77cd1505662891286e9ef62af9ee61142e1e9ba14588332d78",
+    "examples/editor-home/ui/note-documents.js": "5a72a6ac0114373f89962a545095fa8876fd8a08fef965fa693a5c82209f059f",
+    "examples/editor-home/ui/pack-manager.js": "7569d898414d75f492ffc192823bda4737fd7fb58aae6b5d064af7d34ef01dfa",
+    "examples/editor-home/ui/runtime.css": "e6c8e4c9ba2f31483e8fe0e2b6b11bcd3e286a29256201772eb230bfe172d64c",
+    "examples/editor-home/ui/v508-runtime.js": "1126d5acf293e390c53599bbd3ca2eb565fbb1c533c66306c87a4c4ac7afe144",
+    "examples/editor-home/ui/v508-views.js": "b84f1ed84fcdd400cf31817e841a2513fcaf1e59963614e49ae4e145f9d09a35",
+    "examples/editor-home/ui/window-documents.js": "48ce836b9ae6e73e2453ac02cdbbd07c9e87ff4810aeb6c3e34708eeb488c137",
+    "examples/editor-home/ui/workspace-host.js": "d55e97122a415730b823b97fe27176448c53010993b65dc8f152240dc4fba7cc",
+    "examples/editor-home/ui/workspace.js": "ffedc46447589182282ff4be8bf86ca972e2298ebcb7e47451aaf1259ef123d7",
+    "packs/editor-home-model/Command.csbody": "2853dbd7c71c6a135355c972b0e6c9f86e2507fb31ac3b40cd2af654af6b5801",
+    "packs/pack-workspace/BrowserDrafts.celem": "456effe35acb0b539b082c56a4ba448f2ecce89b2e1992923fd045d779ff18e4",
+    "packs/pack-workspace/BrowserDrafts.csbody": "c9837046a21c66f149eeb61d8f025af6b3c0a6a1199e5b5c4040eec09ace32af",
+    "packs/pack-workspace/BrowserDraftsBody.celem": "2daec7e45164614e91f0a87d846d5459c44ed207b64fdf64ee6d20b6c56de04c",
+    "packs/pack-workspace/Command.csbody": "ca0ebe0542174daaa0be48e0c5c0f21170f3a73651d93675e67067c4e13b9b0a",
+    "packs/pack-workspace/CommandBody.celem": "e0a9241ca65647010bfb23f0f08e84e14dc7ba363e637259f91e884880bc3b13",
+    "packs/pack-workspace/pack.cpack": "c02f3adc583ed1bbd00df2e989432919098d25ad9b294aa3ad303e1f24101f98"
+  },
+  "reference": {
+    "path": "reference/site-ui/Confectory-Editor-Prototype-v508.zip",
+    "sha256": "b306ce4deff9616c4107ae224443d864f8fce0f52cf3c3e158de8745c17c659f",
+    "modified": false
+  },
+  "tests": {
+    "actualEngine": {
+      "checks": [
+        "actual generated engine starts and projects real inventory into original Pack Manager",
+        "real concept/info/feature/module rows use original chrome without developer panels",
+        "original Browser Save/Discard use real private checkpoint; Confirm opens guarded Review without final source writes",
+        "Project Browser info projection and window document/Pack Manager transitions preserve input",
+        "engine restart restores Pack Manager selection/favorite, zoom and document search without editing project"
+      ],
+      "pageErrors": [],
+      "external": [],
+      "actualEngine": true,
+      "accountOrInference": false,
+      "nativeWindows": false,
+      "evidence": "/tmp/confectory-workspace-engine-7sjlthhk"
+    },
+    "helperRestart": {
+      "checks": [
+        "placement candidates preserved; unassignment hides retained pinned draft",
+        "restart restores hidden unplaced panel and pending draft; reassignment reveals same draft",
+        "same-name project B has no A participants; returning A restores input; outside keeps all globals"
+      ],
+      "pageErrors": [],
+      "external": [],
+      "actualEngine": true,
+      "fixtureAccountOnly": true,
+      "loginOrInference": false,
+      "nativeWindows": false,
+      "evidence": "/tmp/confectory-cli-flow-8dwq3m_s/visibility-9h6rtnk4"
+    },
+    "originalBrowserChrome": {
+      "pass": true,
+      "original": [
+        {
+          "selector": ".browser-tabs",
+          "x": 41,
+          "y": 126,
+          "width": 676,
+          "height": 55
+        },
+        {
+          "selector": ".browser-tools",
+          "x": 41,
+          "y": 181,
+          "width": 676,
+          "height": 60
+        },
+        {
+          "selector": ".search",
+          "x": 93,
+          "y": 194,
+          "width": 300,
+          "height": 34
+        },
+        {
+          "selector": ".density-steps",
+          "x": 665,
+          "y": 197.5,
+          "width": 36,
+          "height": 27
+        },
+        {
+          "selector": ".browser-file-pane",
+          "x": 41,
+          "y": 241,
+          "width": 676,
+          "height": 296
+        },
+        {
+          "selector": ".browser-folder-tree",
+          "x": 41,
+          "y": 241,
+          "width": 160,
+          "height": 296
+        },
+        {
+          "selector": ".browser-tree-resizer",
+          "x": 201,
+          "y": 241,
+          "width": 10,
+          "height": 296
+        },
+        {
+          "selector": ".browser-items",
+          "x": 211,
+          "y": 241,
+          "width": 506,
+          "height": 296
+        },
+        {
+          "selector": ".browser-title-path",
+          "x": 74.78125,
+          "y": 90.90625,
+          "width": 363.6875,
+          "height": 24.1875
+        },
+        {
+          "selector": "[data-browser-discard]",
+          "x": 453.46875,
+          "y": 91,
+          "width": 57.546875,
+          "height": 24
+        },
+        {
+          "selector": "[data-browser-save]",
+          "x": 521.015625,
+          "y": 91,
+          "width": 57.546875,
+          "height": 24
+        },
+        {
+          "selector": "[data-browser-confirm]",
+          "x": 588.5625,
+          "y": 91,
+          "width": 34.25,
+          "height": 24
+        }
+      ],
+      "adapted": [
+        {
+          "selector": ".browser-tabs",
+          "x": 41,
+          "y": 126,
+          "width": 676,
+          "height": 55
+        },
+        {
+          "selector": ".browser-tools",
+          "x": 41,
+          "y": 181,
+          "width": 676,
+          "height": 60
+        },
+        {
+          "selector": ".search",
+          "x": 93,
+          "y": 194,
+          "width": 300,
+          "height": 34
+        },
+        {
+          "selector": ".density-steps",
+          "x": 665,
+          "y": 197.5,
+          "width": 36,
+          "height": 27
+        },
+        {
+          "selector": ".browser-file-pane",
+          "x": 41,
+          "y": 241,
+          "width": 676,
+          "height": 296
+        },
+        {
+          "selector": ".browser-folder-tree",
+          "x": 41,
+          "y": 241,
+          "width": 160,
+          "height": 296
+        },
+        {
+          "selector": ".browser-tree-resizer",
+          "x": 201,
+          "y": 241,
+          "width": 10,
+          "height": 296
+        },
+        {
+          "selector": ".browser-items",
+          "x": 211,
+          "y": 241,
+          "width": 506,
+          "height": 296
+        },
+        {
+          "selector": ".browser-title-path",
+          "x": 74.78125,
+          "y": 90.90625,
+          "width": 363.6875,
+          "height": 24.1875
+        },
+        {
+          "selector": "[data-browser-discard]",
+          "x": 453.46875,
+          "y": 91,
+          "width": 57.546875,
+          "height": 24
+        },
+        {
+          "selector": "[data-browser-save]",
+          "x": 521.015625,
+          "y": 91,
+          "width": 57.546875,
+          "height": 24
+        },
+        {
+          "selector": "[data-browser-confirm]",
+          "x": 588.5625,
+          "y": 91,
+          "width": 34.25,
+          "height": 24
+        }
+      ],
+      "pageErrors": [],
+      "scope": "empty-data browser chrome and original commit bar geometry, native/backend not executed",
+      "evidence": "/tmp/confectory-browser-oracle-ej17j7qn"
+    },
+    "isolatedShell": {
+      "checks": [
+        "original fixed Workspace/Pack Manager tabs have no close control",
+        "real module uses project dependency closure, excludes merely registered packs",
+        "local metadata/favorite choice separated from installed project scope",
+        "unsupported pack writes never forge metadata success",
+        "original zoom markup/presets/direct input update actual canvas scale",
+        "original context hierarchy/create grid/back navigation restored",
+        "Project Browser action calls actual adapter, no fake source object"
+      ],
+      "pageErrors": [],
+      "actualEngine": false,
+      "nativeWindows": false,
+      "evidence": "/tmp/confectory-v508-shell-7uq9zwh3"
+    },
+    "package": {
+      "pass": true,
+      "package": "/tmp/confectory-desktop-package-eu59rmwo/Windows result 한글",
+      "files": 2241,
+      "crossPublishedWindowsX64PE": true,
+      "unrelatedWorkingDirectory": true,
+      "packageTamperAndMissingDependencyRejected": true,
+      "packagedEngineWebStartup": true,
+      "runtimeOnlyNoInstalledSDK": true,
+      "existingCheckoutProfileReusedAndExplicitOverrideRetained": true,
+      "resources": 53,
+      "renderedMinimalLogin": true,
+      "windowsApphostExecuted": false,
+      "webView2Executed": false,
+      "actualLoginOrInference": false,
+      "evidence": "/tmp/confectory-desktop-package-eu59rmwo"
+    },
+    "packageBoundaryViewport": {
+      "checks": [
+        "actual packaged endpoint denies client context override, foreign namespace and forged mutation owner",
+        "640x500 packaged renderer keeps fixed tabs, Pack Manager search and docked Browser search usable",
+        "negative requests and viewport interactions preserve original project files"
+      ],
+      "errors": [],
+      "external": [],
+      "packageEngine": true,
+      "nativeWindows": false,
+      "accountOrInference": false,
+      "evidence": "/tmp/confectory-workspace-boundary-bfhoq5p3"
+    },
+    "helperFilterPrior": {
+      "checks": [
+        "technical readiness alone neither registers nor consents nor enters Home",
+        "closing common consent does not register or grant",
+        "one explicit Agent completion registers, grants and finishes Intro",
+        "fff and second global Helper direct first/next send with no Helper grant or project context",
+        "outside project retains complete owned global participant list",
+        "original project creation/roster explicitly grants only exact selected Helper project scopes",
+        "both assigned Helpers project first/next direct, no contract dialog",
+        "placed project participant draft retained before unassignment",
+        "unassignment hides project participants and retained pinned panel, preserves draft and server denies send",
+        "reassignment restores retained panel/draft without losing other candidates",
+        "project removal preserves Agent grant and global Helper conversation",
+        "same-name different-folder project cannot reuse old placement token or context and cannot dispatch unassigned chat",
+        "Agent settings revocation blocks global use, preserves input and shows no Helper consent"
+      ],
+      "turns": 7,
+      "fixtureAccountOnly": true,
+      "actualOAuthOrInference": false,
+      "windowsExecuted": false
+    },
+    "browserDrafts": {
+      "pass": true,
+      "checks": 23,
+      "log": "PASS 23 browser checkpoint scope/revision/CAS/save/discard/source-preservation cases; no final Confirm or account action\n\nARTIFACT /tmp/confectory-browser-drafts-vhja48nr\n",
+      "artifact": "/tmp/confectory-browser-drafts-vhja48nr",
+      "executedShippedBody": true,
+      "nativeWindows": false
+    },
+    "sourceBoundaryAudit": {
+      "protectedBaselineUnchanged": true,
+      "currentProductionMatchesPackage": true,
+      "fixtureProviderAndNativeCreateRouteAbsentInPackage": true,
+      "providerToolsAndGrantsUnchanged": true,
+      "newEndpointClosedFieldsAndServerSelectedContext": true,
+      "connectionSettingsRejected": true
+    }
+  },
+  "checkout": {
+    "state": "pending source commit"
+  },
+  "distribution": {
+    "source": "/tmp/confectory-desktop-package-eu59rmwo/Windows result 한글",
+    "output": "/workspace/Confectory/Builds/Windows-x64",
+    "previousPreserved": "/workspace/scratch/v508-workspace/previous-Windows-x64-5964976",
+    "byteIdentical": true,
+    "copiedFiles": 2242,
+    "windowsExecuted": false
+  },
+  "limits": [
+    "Semantic element editor interiors deferred",
+    "Unsupported pack writes/marketplace/mine/Enum create/recent-created timestamp sort are not simulated",
+    "Uncheckpointed new declaration discard fails closed; at most64 explicit declarations",
+    "No actual Windows apphost/WebView2/DPI/Snap/doubleclick execution",
+    "No real account login, credential read, grant or paid inference"
+  ]
+}

@@ -150,6 +150,9 @@ if(endpoint is "openEditorView" or "closeEditorView" or "editEditorView" or "sav
  if(args["revision"] is not null)payload["expectedRevision"]=args["revision"]!.DeepClone();if(args["hash"] is not null)payload["expectedHash"]=args["hash"]!.DeepClone();
  Command("workspace",payload);return "{\"accepted\":true}";
 }
+if(endpoint=="browserDrafts"){
+ foreach(var field in args)if(field.Key is not ("action" or "ids" or "revisions" or "hashes" or "checkpointHash" or "ownerHash"))throw new UnauthorizedAccessException("browser-draft-fields");var payload=args.DeepClone().AsObject();payload["context"]=selected["context"]!.DeepClone();payload["draftAction"]=payload["action"]?.DeepClone()??System.Text.Json.Nodes.JsonValue.Create("status");payload["action"]="browser-drafts";return Command("workspace",payload)["workspace"]!["browserDrafts"]!.ToJsonString();
+}
 var request=new System.Text.Json.Nodes.JsonObject{["context"]=selected["context"]!.DeepClone()};
 switch(endpoint){
  case "relationsMap":request["action"]="relations-map";break;

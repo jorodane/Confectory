@@ -36,7 +36,7 @@ export function createNoteDocuments(api){
    render(source);
   }finally{editing=null;}
  }
- function activate(id){if(api.loading||!resolve(id)||!ids().includes(id))return;api.project.activeNoteDocument=id;api.project.activeWindowDocument=null;api.refreshWindows?.();render();api.persist();records.get(id)?.el.focus({preventScroll:true});}
+ function activate(id){if(api.loading||!resolve(id)||!ids().includes(id))return;api.activateDocument?.();api.project.activeNoteDocument=id;api.project.activeWindowDocument=null;api.refreshWindows?.();render();api.persist();records.get(id)?.el.focus({preventScroll:true});}
  function open(item){if(api.loading||resolve(item.id)!==item)return;const open=ids();if(!open.includes(item.id)){if(open.length>=64){api.toast('메모 문서 탭은 최대 64개입니다.');return;}open.push(item.id);}api.project.noteDocuments=open;activate(item.id);}
  function close(id){if(!api.project)return;api.project.noteDocuments=ids().filter(value=>value!==id);if(api.project.activeNoteDocument===id)api.project.activeNoteDocument=null;render();api.persist();}
  function deactivate(){if(!activeId())return false;api.project.activeNoteDocument=null;render();api.persist();return true;}
