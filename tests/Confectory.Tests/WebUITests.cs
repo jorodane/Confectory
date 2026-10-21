@@ -2,6 +2,19 @@ using Confectory.Core;
 namespace Confectory.Tests;
 public sealed class WebUITests : TestCase
 {
+    public void test_actual_project_creation_modal_responsiveness_and_owned_scope_completion()
+    {
+        if(!OperatingSystem.IsLinux())Skip("Isolated native-contract browser fixture runs on Linux; Windows picker remains separate QA");
+        var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/editor_create_responsiveness.py"),Fixture.Repo},timeoutSeconds:360);
+        Console.WriteLine(run.Stdout.Trim());True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS actual native-contract creation / inert / scope / cancel / duplicate responsiveness"));
+    }
+    public void test_actual_floating_helper_chat_space_and_responsive_input_controls()
+    {
+        if(!OperatingSystem.IsLinux())Skip("Owned browser/HTTP geometry fixture runs on Linux; native Windows execution remains separate");
+        var built=new Builder(Path.Combine(Fixture.Repo,"examples/editor-home/project.cpack"),"linux").Build();string report=Path.Combine(f.Root,"helper-space.json");File.WriteAllText(report,built.ToJsonString());
+        var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/helper_chat_space.py"),Fixture.Repo,report,Path.Combine(Fixture.Repo,"tests/web/fixtures/helper-chat-space-a99925c.json")},timeoutSeconds:180);
+        Console.WriteLine(run.Stdout.Trim());True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS focused Helper chat space / responsive / errors / retry / reopen"));
+    }
     public void test_actual_v508_helper_chat_layout_and_send_boundary_contract()
     {
         if(!OperatingSystem.IsLinux())Skip("Original ZIP/Chromium contract runs on Linux; native Windows execution is separate");

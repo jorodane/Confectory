@@ -2404,3 +2404,11 @@ body:has(#app.is-app-minimized) .workspace-chat-bubbles,body:has(#app.is-app-min
 /* Node titles are drag surfaces until explicitly renamed. */
 .bp-function-shell .function-node-heading>.bp-node-name{cursor:grab;user-select:none}
 .bp-function-shell .function-node-heading>.bp-node-name-editor{cursor:text;user-select:text;border-color:#b8a07b;background:#232323}
+
+/* User-approved 1.25x floating Helper chat; fonts, controls and compact pinned characters keep their sizes. */
+.helper-profile-card.participant-expanded-card:not(.helper-sd-companion){width:562.5px;height:439.5px;max-width:calc(100vw - 24px);max-height:calc(100svh - 24px);display:flex;flex-direction:column}
+.helper-profile-card.participant-expanded-card:not(.helper-sd-companion)>.helper-profile-identity,.helper-profile-card.participant-expanded-card:not(.helper-sd-companion)>.helper-profile-status,.helper-profile-card.participant-expanded-card:not(.helper-sd-companion)>.helper-profile-workers{flex-shrink:0}
+.helper-profile-card.participant-expanded-card:not(.helper-sd-companion) .expanded-card-body{flex:1;min-height:0;max-height:none;display:flex;overflow:hidden}
+.helper-profile-card.participant-expanded-card:not(.helper-sd-companion) #global-chat,.helper-profile-card.participant-expanded-card:not(.helper-sd-companion) #global-chat>.window-content{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column}
+.helper-profile-card.participant-expanded-card:not(.helper-sd-companion) #global-chat .messages{flex:1;height:auto;min-height:0;max-height:none!important}
+.helper-profile-card.participant-expanded-card:not(.helper-sd-companion) #global-chat .helper-chat-compose{flex-shrink:0}

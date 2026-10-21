@@ -1,0 +1,90 @@
+{
+  "measured": {
+    "empty": {
+      "card": {
+        "x": 192,
+        "y": 311.84375,
+        "width": 450,
+        "height": 351.578125
+      },
+      "messages": {
+        "x": 215,
+        "y": 474.421875,
+        "width": 404,
+        "height": 108
+      },
+      "send": {
+        "x": 548.828125,
+        "y": 598.421875,
+        "width": 70.171875,
+        "height": 42
+      },
+      "input": {
+        "x": 215,
+        "y": 598.421875,
+        "width": 325.828125,
+        "height": 38
+      },
+      "font": "16px",
+      "buttonFont": "16px",
+      "status": {
+        "x": 211,
+        "y": 399.03125,
+        "width": 412,
+        "height": 20.390625
+      },
+      "statusVisible": true,
+      "bodyGap": 50.390625,
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      }
+    },
+    "success": {
+      "card": {
+        "x": 192,
+        "y": 311.84375,
+        "width": 450,
+        "height": 351.578125
+      },
+      "messages": {
+        "x": 215,
+        "y": 474.421875,
+        "width": 404,
+        "height": 108
+      },
+      "send": {
+        "x": 548.828125,
+        "y": 598.421875,
+        "width": 70.171875,
+        "height": 42
+      },
+      "input": {
+        "x": 215,
+        "y": 598.421875,
+        "width": 325.828125,
+        "height": 38
+      },
+      "font": "16px",
+      "buttonFont": "16px",
+      "status": {
+        "x": 211,
+        "y": 399.03125,
+        "width": 412,
+        "height": 20.390625
+      },
+      "statusVisible": true,
+      "bodyGap": 50.390625,
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      }
+    }
+  },
+  "baseline": null,
+  "errors": [],
+  "external": [],
+  "actualAccountOrInference": false,
+  "sourceCommit": "a99925c4b06988590fba45ab33b4333664fda7df",
+  "purpose": "Measured pre-change floating Helper geometry; fonts and controls are preserved by the approved 1.25x surface change."
+}

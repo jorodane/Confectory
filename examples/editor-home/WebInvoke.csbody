@@ -54,7 +54,7 @@ if(endpoint=="openConnectionSettings"){
 }
 if(endpoint=="host.create-project"){
  if(before["selected"] is not null)throw new InvalidOperationException("Hide current project before creation");
- if(args["proposalId"] is not null)calls.McpBridge.Invoke(context,"creation-confirm",args.ToJsonString());else Command("create",new(){["directory"]=args["directory"]!.DeepClone(),["title"]=args["title"]!.DeepClone(),["description"]=args["description"]?.DeepClone()??System.Text.Json.Nodes.JsonValue.Create("")});OpenSemantic();return "{\"accepted\":true}";
+ if(args["proposalId"] is not null)calls.McpBridge.Invoke(context,"creation-confirm",args.ToJsonString());else Command("create",new(){["directory"]=args["directory"]!.DeepClone(),["title"]=args["title"]!.DeepClone(),["description"]=args["description"]?.DeepClone()??System.Text.Json.Nodes.JsonValue.Create("")});OpenSemantic();var created=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(context))!;return new System.Text.Json.Nodes.JsonObject{["accepted"]=true,["projectId"]=created["selected"]!["projectId"]!.DeepClone()}.ToJsonString();
 }
 var selected=before["selected"]??throw new InvalidOperationException("Project scope unavailable");
 if(endpoint=="closeProject"){

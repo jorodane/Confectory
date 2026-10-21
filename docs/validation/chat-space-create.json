@@ -1,0 +1,486 @@
+{
+  "baseline": "a99925c4b06988590fba45ab33b4333664fda7df",
+  "branch": "work/current",
+  "scopes": [
+    "project creation modal input lock",
+    "user-approved 1.25x floating Helper chat without status strip"
+  ],
+  "sourceSha256": {
+    "examples/editor-home/WebBundle.csbody": "c30e10ce0654e5e56982e5f34e730181576dfe0b9fbfb63bd013c239f7aad6f7",
+    "examples/editor-home/WebInvoke.csbody": "4536a735fa174ca027f970c3c12d1a09185d65466b5c9d0259e7c09ae725226f",
+    "examples/editor-home/ui/style.css": "d70175deb7a978df6f107804ec040e29074226f088722c77a87d96f045deacc8",
+    "examples/editor-home/ui/v508-runtime.js": "4ad98e098a88499843fa4552e4e2c90dea6d14888b6582652348899cacc229ea",
+    "examples/editor-home/ui/v508-views.js": "8d9986ea2d7140ddbae729cba9384b49f97ee807fbe541b62ddb9d54e3fcf387"
+  },
+  "originalV508ZipSha256": "b306ce4deff9616c4107ae224443d864f8fce0f52cf3c3e158de8745c17c659f",
+  "chat": {
+    "before": {
+      "empty": {
+        "card": {
+          "x": 192,
+          "y": 311.84375,
+          "width": 450,
+          "height": 351.578125
+        },
+        "messages": {
+          "x": 215,
+          "y": 474.421875,
+          "width": 404,
+          "height": 108
+        },
+        "send": {
+          "x": 548.828125,
+          "y": 598.421875,
+          "width": 70.171875,
+          "height": 42
+        },
+        "input": {
+          "x": 215,
+          "y": 598.421875,
+          "width": 325.828125,
+          "height": 38
+        },
+        "font": "16px",
+        "buttonFont": "16px",
+        "status": {
+          "x": 211,
+          "y": 399.03125,
+          "width": 412,
+          "height": 20.390625
+        },
+        "statusVisible": true,
+        "bodyGap": 50.390625,
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        }
+      },
+      "success": {
+        "card": {
+          "x": 192,
+          "y": 311.84375,
+          "width": 450,
+          "height": 351.578125
+        },
+        "messages": {
+          "x": 215,
+          "y": 474.421875,
+          "width": 404,
+          "height": 108
+        },
+        "send": {
+          "x": 548.828125,
+          "y": 598.421875,
+          "width": 70.171875,
+          "height": 42
+        },
+        "input": {
+          "x": 215,
+          "y": 598.421875,
+          "width": 325.828125,
+          "height": 38
+        },
+        "font": "16px",
+        "buttonFont": "16px",
+        "status": {
+          "x": 211,
+          "y": 399.03125,
+          "width": 412,
+          "height": 20.390625
+        },
+        "statusVisible": true,
+        "bodyGap": 50.390625,
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        }
+      }
+    },
+    "after": {
+      "empty": {
+        "card": {
+          "x": 192,
+          "y": 311.84375,
+          "width": 562.5,
+          "height": 439.5
+        },
+        "messages": {
+          "x": 215,
+          "y": 440.03125,
+          "width": 516.5,
+          "height": 230.3125
+        },
+        "send": {
+          "x": 661.328125,
+          "y": 686.34375,
+          "width": 70.171875,
+          "height": 42
+        },
+        "input": {
+          "x": 215,
+          "y": 686.34375,
+          "width": 438.328125,
+          "height": 38
+        },
+        "font": "16px",
+        "buttonFont": "16px",
+        "status": null,
+        "statusVisible": false,
+        "bodyGap": 16,
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        }
+      },
+      "success": {
+        "card": {
+          "x": 192,
+          "y": 311.84375,
+          "width": 562.5,
+          "height": 439.5
+        },
+        "messages": {
+          "x": 215,
+          "y": 440.03125,
+          "width": 516.5,
+          "height": 230.3125
+        },
+        "send": {
+          "x": 661.328125,
+          "y": 686.34375,
+          "width": 70.171875,
+          "height": 42
+        },
+        "input": {
+          "x": 215,
+          "y": 686.34375,
+          "width": 438.328125,
+          "height": 38
+        },
+        "font": "16px",
+        "buttonFont": "16px",
+        "status": null,
+        "statusVisible": false,
+        "bodyGap": 16,
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        }
+      },
+      "900x760": {
+        "card": {
+          "x": 192,
+          "y": 308.5,
+          "width": 562.5,
+          "height": 439.5
+        },
+        "messages": {
+          "x": 215,
+          "y": 436.6875,
+          "width": 516.5,
+          "height": 230.3125
+        },
+        "send": {
+          "x": 661.328125,
+          "y": 683,
+          "width": 70.171875,
+          "height": 42
+        },
+        "input": {
+          "x": 215,
+          "y": 683,
+          "width": 438.328125,
+          "height": 38
+        },
+        "font": "16px",
+        "buttonFont": "16px",
+        "status": null,
+        "statusVisible": false,
+        "bodyGap": 16,
+        "viewport": {
+          "width": 900,
+          "height": 760
+        }
+      },
+      "600x800": {
+        "card": {
+          "x": 25.5,
+          "y": 308.5,
+          "width": 562.5,
+          "height": 439.5
+        },
+        "messages": {
+          "x": 42.5,
+          "y": 430.6875,
+          "width": 528.5,
+          "height": 242.3125
+        },
+        "send": {
+          "x": 500.828125,
+          "y": 689,
+          "width": 70.171875,
+          "height": 42
+        },
+        "input": {
+          "x": 42.5,
+          "y": 689,
+          "width": 450.328125,
+          "height": 38
+        },
+        "font": "16px",
+        "buttonFont": "16px",
+        "status": null,
+        "statusVisible": false,
+        "bodyGap": 16,
+        "viewport": {
+          "width": 600,
+          "height": 800
+        }
+      },
+      "375x667": {
+        "card": {
+          "x": 12,
+          "y": 215.5,
+          "width": 351,
+          "height": 439.5
+        },
+        "messages": {
+          "x": 29,
+          "y": 337.6875,
+          "width": 317,
+          "height": 242.3125
+        },
+        "send": {
+          "x": 275.828125,
+          "y": 596,
+          "width": 70.171875,
+          "height": 42
+        },
+        "input": {
+          "x": 29,
+          "y": 596,
+          "width": 238.828125,
+          "height": 38
+        },
+        "font": "16px",
+        "buttonFont": "16px",
+        "status": null,
+        "statusVisible": false,
+        "bodyGap": 16,
+        "viewport": {
+          "width": 375,
+          "height": 667
+        }
+      },
+      "667x375": {
+        "card": {
+          "x": 12,
+          "y": 12,
+          "width": 562.5,
+          "height": 351
+        },
+        "messages": {
+          "x": 35,
+          "y": 140.1875,
+          "width": 516.5,
+          "height": 141.8125
+        },
+        "send": {
+          "x": 481.328125,
+          "y": 298,
+          "width": 70.171875,
+          "height": 42
+        },
+        "input": {
+          "x": 35,
+          "y": 298,
+          "width": 438.328125,
+          "height": 38
+        },
+        "font": "16px",
+        "buttonFont": "16px",
+        "status": null,
+        "statusVisible": false,
+        "bodyGap": 16,
+        "viewport": {
+          "width": 667,
+          "height": 375
+        }
+      },
+      "320x240": {
+        "card": {
+          "x": 12,
+          "y": 12,
+          "width": 296,
+          "height": 216
+        },
+        "messages": {
+          "x": 29,
+          "y": 134.1875,
+          "width": 262,
+          "height": 2.8125
+        },
+        "send": {
+          "x": 220.828125,
+          "y": 153,
+          "width": 70.171875,
+          "height": 42
+        },
+        "input": {
+          "x": 29,
+          "y": 153,
+          "width": 183.828125,
+          "height": 58
+        },
+        "font": "16px",
+        "buttonFont": "16px",
+        "status": null,
+        "statusVisible": false,
+        "bodyGap": 16,
+        "viewport": {
+          "width": 320,
+          "height": 240
+        }
+      },
+      "error": {
+        "card": {
+          "x": 12,
+          "y": 12,
+          "width": 562.5,
+          "height": 439.5
+        },
+        "messages": {
+          "x": 35,
+          "y": 140.1875,
+          "width": 516.5,
+          "height": 230.3125
+        },
+        "send": {
+          "x": 481.328125,
+          "y": 386.5,
+          "width": 70.171875,
+          "height": 42
+        },
+        "input": {
+          "x": 35,
+          "y": 386.5,
+          "width": 438.328125,
+          "height": 38
+        },
+        "font": "16px",
+        "buttonFont": "16px",
+        "status": null,
+        "statusVisible": false,
+        "bodyGap": 16,
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        }
+      }
+    },
+    "focusedPass": true,
+    "errors": [],
+    "externalRequests": [],
+    "evidence": "/tmp/confectory-chat-space-r5xcqlyz"
+  },
+  "creation": {
+    "before": {
+      "afterCreation": {
+        "inert": true,
+        "overlays": "",
+        "projectId": "e9b671c795c84b918ab6d68b686b682c",
+        "mainHelperId": "helper-431b973738704839a298bc843e9fdedd",
+        "helperIds": [
+          "helper-431b973738704839a298bc843e9fdedd"
+        ],
+        "errors": []
+      }
+    },
+    "after": {
+      "afterCreation": {
+        "inert": false,
+        "overlays": "",
+        "projectId": "10eae45fdaa74e3fa7fb387e54e29cbb",
+        "mainHelperId": "helper-c4209240384147b1928f717195c76a8c",
+        "helperIds": [
+          "helper-c4209240384147b1928f717195c76a8c"
+        ],
+        "errors": []
+      },
+      "modalOwnership": {
+        "nested": true,
+        "staleCloseSafe": true,
+        "released": true,
+        "priorInertPreserved": true
+      },
+      "checks": [
+        "actual creation native contract",
+        "automatic Agent-owned Main Helper",
+        "selected Helper without duplicate",
+        "native cancel",
+        "duplicate failure leaves visible usable modal",
+        "post-create hover and controls",
+        "project/home modal cleanup"
+      ],
+      "nativeCalls": [
+        {
+          "title": "Owned Created",
+          "milliseconds": 1126,
+          "ok": true
+        },
+        {
+          "title": "Owned Selected",
+          "milliseconds": 1092,
+          "ok": true
+        },
+        {
+          "title": "Owned Created",
+          "milliseconds": 0,
+          "ok": false
+        }
+      ],
+      "actualWindowsExecuted": false,
+      "actualAccountOrInference": false
+    },
+    "beforeNativeMilliseconds": 1130,
+    "noAutomaticCreationReplay": true,
+    "scopeGuardRetained": true,
+    "fixtureNativeRouteInProduction": false,
+    "evidence": "/tmp/confectory-create-responsive-5s_dmtg4"
+  },
+  "regressions": {
+    "actualGlobalHelper": "PASS /tmp/confectory-global-ui-ehjon9te",
+    "actualProjectPinnedCold": "PASS /tmp/confectory-participants-v318-vunfa7_0",
+    "backendProjectManagerAndEngineCreation": {
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 92.671
+    }
+  },
+  "release": {
+    "passed": true,
+    "warnings": 0,
+    "errors": 0,
+    "seconds": 7.89
+  },
+  "windowsPackage": {
+    "passed": true,
+    "output": "Builds/Windows-x64/Confectory.exe",
+    "files": 2225,
+    "resources": 50,
+    "matchingChangedRuntimeSourceFiles": 5,
+    "unrelatedWorkingDirectoryRuntimeOnlyStartup": true,
+    "ownedProfilePreserved": true,
+    "tamperAndMissingDependencyRejected": true,
+    "evidence": "/tmp/confectory-desktop-package-jiqr0k70",
+    "windowsExecuted": false
+  },
+  "screenshotsReviewed": true,
+  "limits": [
+    "No native Windows folder picker, WebView2 input/render or double-click QA",
+    "No real login, credential access or paid inference",
+    "No claim that Linux reproduction proves all Windows causes resolved",
+    "No whole-suite or broader v508 restoration claim"
+  ]
+}
