@@ -170,7 +170,16 @@
     "actualLoginOrInference": false,
     "evidence": "/tmp/confectory-desktop-package-xpt2v03j"
   },
-  "committedCheckout": "pending",
+  "committedCheckout": {
+    "pass": true,
+    "sourceCommit": "0d5f5281220fe7072f96a61295cdb951f63a8567",
+    "resources": 50,
+    "retainedCrlfAfterAttributePull": true,
+    "freshLfCheckout": true,
+    "tamperEncodingBomBinaryBudgetRejected": true,
+    "originalBytesUnchanged": true,
+    "result": "PASS actual EditorHome retained CRLF after attribute pull and fresh LF; 50 canonical/exact snapshots; content/encoding/BOM/binary/budget rejection; original bytes unchanged"
+  },
   "actualWindowsOAuthInference": false,
   "agentConsentMigration": "Separate follow-up; no grant/approval implementation changed",
   "packagedSourceMatches": {
