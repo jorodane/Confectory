@@ -321,7 +321,14 @@
     }
   },
   "checkout": {
-    "state": "pending source commit"
+    "pass": true,
+    "sourceCommit": "e91cf6b2d6dd2618097f4eb4d951958616788ed9",
+    "resources": 53,
+    "retainedCRLFAfterAttributePull": true,
+    "freshLFCheckout": true,
+    "contentEncodingBOMBinaryBudgetTamperRejected": true,
+    "originalBytesUnchanged": true,
+    "log": "PASS actual EditorHome retained CRLF after attribute pull and fresh LF; 53 canonical/exact snapshots; content/encoding/BOM/binary/budget rejection; original bytes unchanged"
   },
   "distribution": {
     "source": "/tmp/confectory-desktop-package-eu59rmwo/Windows result 한글",
@@ -329,7 +336,9 @@
     "previousPreserved": "/workspace/scratch/v508-workspace/previous-Windows-x64-5964976",
     "byteIdentical": true,
     "copiedFiles": 2242,
-    "windowsExecuted": false
+    "windowsExecuted": false,
+    "finalCopiedPackageCheck": true,
+    "manifestTrackedFiles": 2241
   },
   "limits": [
     "Semantic element editor interiors deferred",
@@ -337,5 +346,6 @@
     "Uncheckpointed new declaration discard fails closed; at most64 explicit declarations",
     "No actual Windows apphost/WebView2/DPI/Snap/doubleclick execution",
     "No real account login, credential read, grant or paid inference"
-  ]
+  ],
+  "sourceCommit": "e91cf6b2d6dd2618097f4eb4d951958616788ed9"
 }
