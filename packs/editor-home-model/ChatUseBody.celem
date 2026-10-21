@@ -1,0 +1,7 @@
+implementation Confectory.EditorHome.Model::ChatUseBody for Confectory.EditorHome.Model::ChatUse (string session,string operation,string payload) -> string {
+import Confectory.FileStream::Snapshot as Snapshot (string) -> string[];
+import Confectory.FileStream::Commit as Commit (string,string[],string[],string[]) -> string[];
+import Confectory.Agent.Codex::Verification as Verification (string,string,string) -> string;
+import Confectory.DevelopmentTools::Definitions as Definitions (string) -> string;
+body common "ChatUse.csbody";
+}

@@ -39,4 +39,5 @@ element NativeFieldView function "NativeFieldView.celem";
 element NativeFieldViewBody implementation "NativeFieldViewBody.celem";
 element EngineCreation function "EngineCreation.celem";element EngineCreationBody implementation "EngineCreationBody.celem";
 element HelperAgents function "HelperAgents.celem";element HelperAgentsBody implementation "HelperAgentsBody.celem";
+element ChatUse function "ChatUse.celem";element ChatUseBody implementation "ChatUseBody.celem";
 }

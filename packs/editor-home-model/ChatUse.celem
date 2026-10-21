@@ -1,0 +1,6 @@
+function Confectory.EditorHome.Model::ChatUse (string session,string operation,string payload) -> string {
+provide Confectory.EditorHome.Model::ChatUse with Confectory.EditorHome.Model::ChatUseBody;
+provide Confectory.FileStream::Snapshot with Confectory.FileStream::SnapshotBody;
+provide Confectory.FileStream::Commit with Confectory.FileStream::CommitBody;
+provide Confectory.FileStream::WriteAtomic with Confectory.FileStream::WriteAtomicBody;
+}

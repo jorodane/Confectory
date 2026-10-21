@@ -2,6 +2,12 @@ if(calls.Cancelled.Invoke(cancellation))throw new OperationCanceledException();
 var args=System.Text.Json.Nodes.JsonNode.Parse(input)!.AsObject();
 System.Text.Json.Nodes.JsonNode Command(string operation,System.Text.Json.Nodes.JsonObject payload){var result=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(context,operation,payload.ToJsonString()))!;if(result["status"]?.ToString().StartsWith("Error:",StringComparison.Ordinal)==true)throw new InvalidOperationException("Consumer rejected operation");return result;}
 var before=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(context))!;
+if(endpoint=="chatUse"){
+ foreach(var field in args)if(field.Key is not ("action" or "kind" or "helper" or "challenge"))throw new UnauthorizedAccessException("chat-use-ui-fields");
+ string useAction=args["action"]?.ToString()??"status";if(useAction is not ("status" or "accept" or "revoke-helper"))throw new UnauthorizedAccessException("chat-use-ui-action");
+ if(useAction=="revoke-helper"&&!System.Linq.Enumerable.Any(before["helpers"]?.AsArray()??new System.Text.Json.Nodes.JsonArray(),row=>row?["helper"]?.ToString()==args["helper"]?.ToString()))throw new UnauthorizedAccessException("chat-use-owned-helper");
+ var useRequest=args.DeepClone().AsObject();useRequest.Remove("action");try{return calls.ChatUse.Invoke(context,useAction,useRequest.ToJsonString());}catch(Exception error){string code=System.Text.RegularExpressions.Regex.IsMatch(error.Message,"^chat-use-[a-z-]{1,80}$")?error.Message:"chat-use-storage-unavailable";return new System.Text.Json.Nodes.JsonObject{["state"]="blocked",["code"]=code}.ToJsonString();}
+}
 if(endpoint=="helperGlobal"){string helperAction=args["action"]?.ToString()??"snapshot";if(helperAction is not ("snapshot" or "conversation" or "cancel-readiness" or "retry-readiness" or "readiness" or "draft" or "register" or "create" or "import" or "assign" or "connection-state" or "prepare" or "start" or "cancel" or "cancel-preview"))throw new UnauthorizedAccessException("Helper UI action denied");return calls.HelperAgents.Invoke(context,helperAction,args.ToJsonString());}
 if(endpoint=="projectHelpers"){Command("helper-roster",args);return "{\"accepted\":true}";}
 if(endpoint=="selectHelperConversation"){Command("helper-chat-select",args);return "{\"accepted\":true}";}

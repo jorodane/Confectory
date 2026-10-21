@@ -1,5 +1,7 @@
 # Concise Korean project chat consent
 
+Historical copy-only validation. The ordinary local Codex send lifecycle is superseded by [scoped chat use](chat-use.md); other explicit review flows remain.
+
 Baseline: `df9ef8263d0e422bc44657dc0507351942d7b113`. This is a copy/render change for ordinary project chat using the registered local Codex CLI. It does not eliminate the per-request review step. The existing 640 × 500 window, controls, six requirement IDs, initially unchecked choices, token validation and server/provider approval enforcement remain intact. No persistent permission or automatic approval is added. Proposals, Workers, Blueprint node and adoption reviews retain their separate scope disclosures; global chat and Responses approval behavior are unchanged.
 
 The normal Codex chat review now shows the friendly provider/model and OpenAI recipient, the exact message, project/Helper context and selected memory count, and transmission of tool results. Its visible Korean summary states that the current project's content can be read and drafts changed, while other projects, final Confirm and project execution are not granted. Possible usage charges, multiple model calls/retries and the absence of an enforceable monetary cap remain visible before approval. The six short Korean choices individually cover content/results, usage/cost, CLI execution, the connected account, selected configuration, and working/temporary storage.

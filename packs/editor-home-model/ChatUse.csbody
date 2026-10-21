@@ -1,0 +1,112 @@
+// App-owned chat-use receipts. Registration and short-lived readiness never create one.
+if(payload.Length>4096)throw new ArgumentException("chat-use-input-bound");
+var owner=AppDomain.CurrentDomain.GetData("Confectory.EditorHome."+session) as object[]??throw new ObjectDisposedException("EditorHome");
+lock(owner){
+if((bool)owner[6]&&operation!="close")throw new ObjectDisposedException("EditorHome");
+var model=(System.Text.Json.Nodes.JsonObject)owner[3];var input=System.Text.Json.Nodes.JsonNode.Parse(payload)!.AsObject();
+foreach(var field in input)if(field.Key is not ("kind" or "helper" or "challenge" or "agent" or "project"))throw new ArgumentException("chat-use-undeclared-field");
+string Value(string key)=>input[key]?.GetValue<string>()??"";
+string storage=System.IO.Path.GetDirectoryName((string)owner[2])!;
+string Hash(string text)=>Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(text))).ToLowerInvariant();
+System.Text.Json.Nodes.JsonNode? Stable(System.Text.Json.Nodes.JsonNode? node){if(node is System.Text.Json.Nodes.JsonObject obj){var sorted=new System.Text.Json.Nodes.JsonObject();foreach(var pair in System.Linq.Enumerable.OrderBy(obj,p=>p.Key,StringComparer.Ordinal))sorted[pair.Key]=Stable(pair.Value);return sorted;}if(node is System.Text.Json.Nodes.JsonArray list)return new System.Text.Json.Nodes.JsonArray(System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(list,Stable)));return node?.DeepClone();}
+string Digest(System.Text.Json.Nodes.JsonNode value)=>Hash(Stable(value)!.ToJsonString());
+string Normalize(string path){path=System.IO.Path.GetFullPath(path);return OperatingSystem.IsWindows()?path.ToUpperInvariant():path;}
+string rootKey="Confectory.ChatUse."+Hash(Normalize(storage));object gate;lock(AppDomain.CurrentDomain){gate=AppDomain.CurrentDomain.GetData(rootKey+".gate")??new object();AppDomain.CurrentDomain.SetData(rootKey+".gate",gate);}
+var tokenRows=AppDomain.CurrentDomain.GetData(rootKey+".tokens") as System.Collections.Concurrent.ConcurrentDictionary<string,object[]>;
+if(tokenRows is null){lock(gate){tokenRows=AppDomain.CurrentDomain.GetData(rootKey+".tokens") as System.Collections.Concurrent.ConcurrentDictionary<string,object[]>??new();AppDomain.CurrentDomain.SetData(rootKey+".tokens",tokenRows);}}
+var pendingRevokes=AppDomain.CurrentDomain.GetData(rootKey+".pendingRevokes") as System.Collections.Concurrent.ConcurrentDictionary<string,Func<System.Text.Json.Nodes.JsonObject,bool>>;
+if(pendingRevokes is null){lock(gate){pendingRevokes=AppDomain.CurrentDomain.GetData(rootKey+".pendingRevokes") as System.Collections.Concurrent.ConcurrentDictionary<string,Func<System.Text.Json.Nodes.JsonObject,bool>>??new();AppDomain.CurrentDomain.SetData(rootKey+".pendingRevokes",pendingRevokes);}}
+const string file="chat-use-grants.json";
+string[] rights={"contentApproved","usageApproved","processApproved","managedCredentialApproved","managedConfigurationApproved","managedStorageApproved"};
+void Exact(System.Text.Json.Nodes.JsonObject value,string[] fields){if(value.Count!=fields.Length||System.Linq.Enumerable.Any(value,p=>!System.Linq.Enumerable.Contains(fields,p.Key)))throw new InvalidOperationException("chat-use-storage-invalid");}
+(System.Text.Json.Nodes.JsonObject Doc,string Hash) Load(){
+ for(string? path=System.IO.Path.Combine(storage,file);path is not null&&path.Length>=storage.Length;path=System.IO.Path.GetDirectoryName(path))if((System.IO.File.Exists(path)||System.IO.Directory.Exists(path))&&(System.IO.File.GetAttributes(path)&System.IO.FileAttributes.ReparsePoint)!=0)throw new InvalidOperationException("chat-use-storage-invalid");
+ var saved=calls.Snapshot.Invoke(System.IO.Path.Combine(storage,file));
+ if(saved[0]!="exists")return(new(){["version"]=1,["revision"]=0L,["grants"]=new System.Text.Json.Nodes.JsonArray()},saved[2]);
+ if(saved[1].Length>2097152)throw new InvalidOperationException("chat-use-storage-invalid");
+ var doc=System.Text.Json.Nodes.JsonNode.Parse(saved[1])!.AsObject();Exact(doc,new[]{"version","revision","grants"});
+ if(doc["version"]?.GetValue<int>()!=1||doc["revision"]?.GetValue<long>()<0||doc["grants"] is not System.Text.Json.Nodes.JsonArray rows||rows.Count>2048)throw new InvalidOperationException("chat-use-storage-invalid");
+ var seen=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
+ foreach(var item in rows){var record=item!.AsObject();Exact(record,new[]{"id","basis","scope","audience","acceptedAt","revision","state","checksum"});var copy=(System.Text.Json.Nodes.JsonObject)record.DeepClone();string checksum=copy["checksum"]!.ToString();copy.Remove("checksum");
+  if(!Guid.TryParseExact(record["id"]?.ToString(),"N",out _)||!seen.Add(record["id"]!.ToString())||record["revision"]!.GetValue<long>()<1||record["state"]?.ToString() is not ("active" or "revoked")||record["scope"]?.ToString()!=Digest(record["basis"]!)||record["audience"]?.ToString()!=Digest(record["basis"]!["context"]!)||checksum!=Digest(copy)||!DateTimeOffset.TryParse(record["acceptedAt"]?.ToString(),out _))throw new InvalidOperationException("chat-use-storage-invalid");
+ }
+ return(doc,saved[2]);
+}
+void Seal(System.Text.Json.Nodes.JsonObject record){record.Remove("checksum");record["checksum"]=Digest(record);}
+void Save((System.Text.Json.Nodes.JsonObject Doc,string Hash) source){source.Doc["revision"]=source.Doc["revision"]!.GetValue<long>()+1;if(calls.Commit.Invoke(storage,new[]{file},new[]{source.Hash},new[]{source.Doc.ToJsonString()})[0]!="applied")throw new InvalidOperationException("chat-use-storage-changed");}
+void Disable(Func<object[],bool> matches){foreach(var pair in tokenRows!)if(matches(pair.Value)){System.Threading.Interlocked.Exchange(ref pair.Value[0],true);(System.Threading.Volatile.Read(ref pair.Value[4]) as Action)?.Invoke();}}
+void Revoke(Func<System.Text.Json.Nodes.JsonObject,bool> matches){
+ // Retain a failed revocation intent before touching storage. A CAS conflict must
+ // not let the still-active on-disk receipt mint a fresh ticket in this process.
+ string request=Guid.NewGuid().ToString("N");pendingRevokes![request]=matches;
+ lock(gate){var pending=System.Linq.Enumerable.ToArray(pendingRevokes);var saved=Load();bool changed=false;foreach(var row in saved.Doc["grants"]!.AsArray())if(row!["state"]!.ToString()=="active"&&System.Linq.Enumerable.Any(pending,p=>p.Value(row.AsObject()))){row["state"]="revoked";row["revision"]=row["revision"]!.GetValue<long>()+1;Seal(row.AsObject());changed=true;}if(changed)Save(saved);foreach(var entry in pending)pendingRevokes.TryRemove(entry.Key,out _);}
+}
+if(operation=="close"){Disable(row=>row[6].ToString()==session);foreach(var pair in tokenRows!)if(pair.Value[6].ToString()==session){if(AppDomain.CurrentDomain.GetData("Confectory.ChatUse.Guard."+pair.Key) is object[] runtime)((Action)runtime[2])();}AppDomain.CurrentDomain.SetData(rootKey+".challenge."+session,null);return "{}";}
+if(operation is "revoke-agent" or "revoke-helper" or "revoke-project" or "revoke-context"){
+ string revokingAgent=Value("agent"),revokingHelper=Value("helper"),revokingProject=operation=="revoke-project"?Value("project"):model["selected"]?["projectId"]?.ToString()??"";
+ if(operation=="revoke-agent"&&revokingAgent!="Confectory.Agent.Codex::Connection"||operation is "revoke-helper" or "revoke-context"&&string.IsNullOrWhiteSpace(revokingHelper)||operation=="revoke-context"&&Value("kind") is not ("project" or "global")||operation=="revoke-project"&&string.IsNullOrWhiteSpace(revokingProject))throw new ArgumentException("chat-use-revoke-scope");
+ bool Match(System.Text.Json.Nodes.JsonNode basis)=>operation=="revoke-agent"?basis["agent"]?.ToString()==revokingAgent:operation=="revoke-helper"?basis["context"]?["helper"]?.ToString()==revokingHelper:operation=="revoke-project"?basis["context"]?["project"]?.ToString()==revokingProject:basis["context"]?["helper"]?.ToString()==revokingHelper&&basis["context"]?["kind"]?.ToString()==Value("kind")&&(Value("kind")=="global"||basis["context"]?["project"]?.ToString()==revokingProject);
+ Disable(row=>Match((System.Text.Json.Nodes.JsonNode)row[5]));Revoke(row=>Match(row["basis"]!));return "{\"state\":\"revoked\"}";
+}
+if(operation is not ("status" or "accept" or "authorize"))throw new ArgumentException("chat-use-operation");
+string kind=Value("kind");if(kind is not ("project" or "global"))throw new ArgumentException("chat-use-context-kind");
+var preview=kind=="project"?model["aiPreview"]:model["globalHelperPreview"];
+if(preview is null||kind=="project"&&preview["kind"]?.ToString()!="chat")throw new InvalidOperationException("chat-use-prepare-required");
+string helper=kind=="project"?preview["helperContext"]!["helper"]!.ToString():preview["helper"]!.ToString();if(Value("helper").Length>0&&Value("helper")!=helper)throw new UnauthorizedAccessException("chat-use-helper-changed");
+var helperState=AppDomain.CurrentDomain.GetData("Confectory.EditorHome.HelperAgents."+session) as object[]??throw new InvalidOperationException("chat-use-registry-missing");
+var registry=(System.Text.Json.Nodes.JsonObject)helperState[0];string agent=registry["assignments"]?[helper]?.ToString()??"";
+var binding=registry["agents"]?[agent];if(agent!="Confectory.Agent.Codex::Connection")return "{\"state\":\"not-applicable\"}";
+if(binding is null||binding["offline"]?.GetValue<bool>()==true)throw new UnauthorizedAccessException("chat-use-agent-offline");
+var config=binding["config"]!;if(config["connectionMethod"]?.ToString()!="local-cli")throw new UnauthorizedAccessException("chat-use-cli-required");
+var policy=kind=="project"?preview["permissionPolicy"]!:preview["policy"]!;
+var required=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(policy["requirements"]!.AsArray(),r=>r!["id"]!.ToString()));
+if(required.Length!=rights.Length||System.Linq.Enumerable.Any(required,id=>!System.Linq.Enumerable.Contains(rights,id))||System.Linq.Enumerable.Count(System.Linq.Enumerable.Distinct(required))!=rights.Length){Disable(row=>((System.Text.Json.Nodes.JsonNode)row[5])["agent"]?.ToString()==agent);Revoke(row=>row["basis"]?["agent"]?.ToString()==agent);return "{\"state\":\"blocked\",\"code\":\"chat-use-new-permission\"}";}
+var evidence=System.Text.Json.Nodes.JsonNode.Parse(calls.Verification.Invoke(config.ToJsonString(),"status","{}"))!;
+string identity=binding["identity"]?["fingerprint"]?.ToString()??"";
+if(evidence["supported"]?.GetValue<bool>()==true&&identity.Length>0&&evidence["accountIdentity"]?["fingerprint"]?.ToString()!=identity){Disable(row=>((System.Text.Json.Nodes.JsonNode)row[5])["agent"]?.ToString()==agent);Revoke(row=>row["basis"]?["agent"]?.ToString()==agent);}
+if(!System.Text.RegularExpressions.Regex.IsMatch(identity,"^[a-f0-9]{64}$")||evidence["supported"]?.GetValue<bool>()!=true||evidence["accountIdentity"]?["fingerprint"]?.ToString()!=identity)return "{\"state\":\"blocked\",\"code\":\"chat-use-account-check-required\"}";
+if(preview["canStart"]?.GetValue<bool>()!=true)return "{\"state\":\"blocked\",\"code\":\"chat-use-runtime-unavailable\"}";
+var context=(kind=="project"?preview["helperContext"]:preview["context"])!;
+var target=new System.Text.Json.Nodes.JsonObject{["kind"]=kind,["helper"]=helper};bool common;
+var categories=new System.Text.Json.Nodes.JsonArray("message","helper-profile");
+var tools=new System.Text.Json.Nodes.JsonArray();
+if(kind=="project"){
+ var selected=model["selected"]??throw new InvalidOperationException("chat-use-active-project-required");if(preview["context"]?.ToString()!=selected["context"]?.ToString()||context["projectId"]?.ToString()!=selected["projectId"]?.ToString())throw new UnauthorizedAccessException("chat-use-project-changed");
+ string project=selected["projectId"]!.ToString();var choice=model["helperSelections"]?[project];if(choice is null||choice["manifest"]?.ToString()!=selected["path"]?.ToString()||choice["helper"]?.ToString()!=helper&&!System.Linq.Enumerable.Any(choice["helpers"]?.AsArray()??new System.Text.Json.Nodes.JsonArray(),h=>h?.ToString()==helper))throw new UnauthorizedAccessException("chat-use-helper-unassigned");
+ target["project"]=project;target["manifest"]=Hash(Normalize(selected["path"]!.ToString()));target["namespace"]=selected["namespace"]!.DeepClone();common=choice["allowCommon"]?.GetValue<bool>()==true;categories.Add("project-memory");categories.Add("owned-project-and-draft-results");
+ var owners=(System.Collections.Generic.Dictionary<string,string>)owner[11];var ai=AppDomain.CurrentDomain.GetData("Confectory.ProjectAI."+owners[selected["context"]!.ToString()]) as object[]??throw new InvalidOperationException("chat-use-project-owner-missing");
+ tools=System.Text.Json.Nodes.JsonNode.Parse(calls.Definitions.Invoke((string)ai[4]))!.AsArray();foreach(var tool in tools)tool!.AsObject().Remove("description");
+}else{
+ if(context["projectId"]?.ToString()!=""||context["membership"]?["kind"]?.ToString()!="global")throw new UnauthorizedAccessException("chat-use-global-scope");
+ target["conversation"]=context["conversationId"]!.DeepClone();common=preview["includeCommon"]?.GetValue<bool>()==true;
+ // includeCommon is owned by the prepared server row, not supplied by the consent request.
+ var turns=(System.Collections.Generic.Dictionary<string,object[]>)helperState[3];common=((System.Text.Json.Nodes.JsonObject)turns[helper][0])["includeCommon"]?.GetValue<bool>()==true;categories.Add("completed-global-history");
+}
+if(common)categories.Add("common-memory");
+var boundary=new System.Text.Json.Nodes.JsonObject{["executable"]=Normalize(config["executable"]!.ToString()),["managedHome"]=Normalize(config["managedHome"]!.ToString()),["credentialReference"]=config["credentialReference"]!.DeepClone(),["method"]=config["connectionMethod"]!.DeepClone()};
+var basis=new System.Text.Json.Nodes.JsonObject{["version"]=1,["policy"]="codex-chat-use-v1",["agent"]=agent,["provider"]="openai-codex",["model"]=config["model"]!.DeepClone(),["account"]=identity,["boundary"]=Digest(boundary),["context"]=target,["categories"]=categories,["permissions"]=new System.Text.Json.Nodes.JsonArray(System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(rights,id=>(System.Text.Json.Nodes.JsonNode)System.Text.Json.Nodes.JsonValue.Create(id)!))),["tools"]=Digest(tools)};
+string scope=Digest(basis),audience=Digest(target);
+// Any material change to the same target retires prior evidence, even if later changed back.
+Disable(row=>((System.Text.Json.Nodes.JsonNode)row[5])["context"]?.ToJsonString()==target.ToJsonString()&&row[3].ToString()!=scope);
+Revoke(row=>row["audience"]?.ToString()==audience&&row["scope"]?.ToString()!=scope);
+string challengeKey=rootKey+".challenge."+session;
+lock(gate){
+ var saved=Load();var record=System.Linq.Enumerable.LastOrDefault(saved.Doc["grants"]!.AsArray(),r=>r!["scope"]?.ToString()==scope&&r["state"]?.ToString()=="active");
+ if(operation=="accept"){
+  var challenge=AppDomain.CurrentDomain.GetData(challengeKey) as string[];
+  if(challenge is null||challenge[0]!=Value("challenge")||challenge[1]!=scope||challenge[2]!=saved.Hash)throw new UnauthorizedAccessException("chat-use-stale-consent");
+  if(record is null){if(saved.Doc["grants"]!.AsArray().Count>=2048)throw new InvalidOperationException("chat-use-storage-full");var next=new System.Text.Json.Nodes.JsonObject{["id"]=Guid.NewGuid().ToString("N"),["basis"]=basis.DeepClone(),["scope"]=scope,["audience"]=audience,["acceptedAt"]=DateTimeOffset.UtcNow.ToString("O"),["revision"]=1L,["state"]="active"};Seal(next);saved.Doc["grants"]!.AsArray().Add(next);Save(saved);record=next;}
+  AppDomain.CurrentDomain.SetData(challengeKey,null);
+ }
+ if(record is null){if(operation=="authorize")throw new UnauthorizedAccessException("chat-use-consent-required");string challenge=Guid.NewGuid().ToString("N");AppDomain.CurrentDomain.SetData(challengeKey,new[]{challenge,scope,saved.Hash});return new System.Text.Json.Nodes.JsonObject{["state"]="consent-required",["challenge"]=challenge,["kind"]=kind,["helper"]=helper,["model"]=config["model"]!.DeepClone(),["accountLabel"]=binding["identity"]?["email"]?.DeepClone(),["categories"]=categories.DeepClone(),["draftTools"]=kind=="project"}.ToJsonString();}
+ if(operation!="authorize")return "{\"state\":\"granted\"}";
+ if(tokenRows!.Count>=256)throw new InvalidOperationException("chat-use-active-turn-limit");
+ string token=Guid.NewGuid().ToString("N"),recordId=record["id"]!.ToString();long revision=record["revision"]!.GetValue<long>();var ticket=new object[]{false,recordId,revision,scope,null!,basis.DeepClone(),session};
+ Action<Action> guard=action=>{lock(gate){if((bool)System.Threading.Volatile.Read(ref ticket[0])||(bool)owner[6]||System.Linq.Enumerable.Any(pendingRevokes!,p=>p.Value(record!.AsObject())))throw new UnauthorizedAccessException("chat-use-revoked");var current=Load().Doc["grants"]!.AsArray();if(!System.Linq.Enumerable.Any(current,r=>r!["id"]?.ToString()==recordId&&r["state"]?.ToString()=="active"&&r["scope"]?.ToString()==scope&&r["revision"]?.GetValue<long>()==revision))throw new UnauthorizedAccessException("chat-use-revoked");action();}};
+ Action<Action> onCancel=action=>{System.Threading.Interlocked.Exchange(ref ticket[4],action);if((bool)System.Threading.Volatile.Read(ref ticket[0]))action();};
+ Action complete=()=>{System.Threading.Interlocked.Exchange(ref ticket[0],true);tokenRows!.TryRemove(token,out _);AppDomain.CurrentDomain.SetData("Confectory.ChatUse.Guard."+token,null);};
+ tokenRows![token]=ticket;AppDomain.CurrentDomain.SetData("Confectory.ChatUse.Guard."+token,new object[]{guard,onCancel,complete});
+ var choices=new System.Text.Json.Nodes.JsonObject();foreach(string id in rights)choices[id]=true;
+ return new System.Text.Json.Nodes.JsonObject{["state"]="granted",["token"]=token,["approvals"]=choices}.ToJsonString();
+}
+}

@@ -103,7 +103,7 @@ for line in sys.stdin:
   assert params['environments']==[] and params['ephemeral'] and params['approvalPolicy']=='never'
   result={'thread':{'id':'owned-thread','environments':[]},'instructionSources':[],'model':params['model'],'modelProvider':'openai'}
  elif method=='turn/start':
-  assert params['environments']==[];content=json.loads(params['input'][0]['text']);assert content['kind']=='helper-global-chat'
+  assert params['environments']==[];content=json.loads(params['input'][0]['text']);assert content['kind']=='helper-global-chat' or (control().get('projectChat') and content['kind']=='project-chat' and content['projectId']==content['context']['projectId'] and content['projectId'])
   failure=control().get('turnFailure')
   if failure=='rpc-error':send({'id':value['id'],'error':{'code':-32602,'message':'PRIVATE turn payload token=NEVER-EXPOSE /owned/secret'}});continue
   if failure=='exit':print('PRIVATE stderr token=NEVER-EXPOSE /owned/secret',file=sys.stderr,flush=True);sys.exit(37)

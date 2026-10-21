@@ -60,11 +60,13 @@ export function createHelperAgentsUI(api){
   if(pinned&&pinned!==observed)throw Error('연결한 계정의 확인 정보가 바뀌었어요. Codex에서 사용할 계정을 다시 확인하세요. [codex-account-mismatch]');
   const context=preview.context,scope=preview.policy?.contentScope;
   if(context?.projectId!==''||context?.membership?.kind!=='global'||scope?.kind!=='helper-global'||scope.helperId!==helper.id||scope.conversationId!==context.conversationId)throw Error('전역 대화 범위를 확인하지 못했어요.');
-  if((preview.context.memory||[]).length>0||(preview.policy.requirements||[]).some(row=>!baseline.has(row.id))){approval(preview,generation);return false;}
+  const codex=preview.connection==='Confectory.Agent.Codex::Connection';
+  if(codex){if(!await api.useConsent(preview,'global',helper.id,async()=>{pending.add(helper.id);try{const token=await send(helper,message,generation);if(token)await accepted(helper,message,generation);}finally{pending.delete(helper.id);}},()=>invoke('cancel-preview')))return false;}
+  else if((preview.context.memory||[]).length>0||(preview.policy.requirements||[]).some(row=>!baseline.has(row.id))){approval(preview,generation);return false;}
   // Explicit Send authorizes this displayed message and its existing global-only Agent scope.
   // Unknown permissions still require the separate conditional approval; provider gates remain.
   uncertain.set(helper.id,preview);
-  try{await invoke('start',{helper:helper.id,token:preview.token,approvals:Object.fromEntries(preview.policy.requirements.map(row=>[row.id,true]))});uncertain.delete(helper.id);return preview.token;}
+  try{await invoke('start',{helper:helper.id,token:preview.token,...(codex?{}:{approvals:Object.fromEntries(preview.policy.requirements.map(row=>[row.id,true]))})});uncertain.delete(helper.id);return preview.token;}
   catch(error){await api.view.update().catch(()=>{});const row=state().turns?.[helper.id];if(row?.requestId===preview.token&&row.state!=='prepared'){uncertain.delete(helper.id);return preview.token;}throw error;}
  }
  async function accepted(helper,message,generation){
@@ -82,7 +84,10 @@ export function createHelperAgentsUI(api){
   form.onsubmit=e=>{e.preventDefault();if(composing||e.isComposing||pending.has(helper.id))return;
    const row=state().turns?.[helper.id];if(row?.state==='running'){api.action(()=>invoke('cancel',{helper:helper.id,requestId:row.requestId}),'');return;}
    const message=input.value.trim()?input.value:retryRecord(helper.id)?.message;if(!message?.trim())return;const generation=api.draft(helper).editGeneration||0;pending.add(helper.id);update(root);
-   api.action(async()=>{const token=await send(helper,message,generation);if(token)await accepted(helper,message,generation);},'').finally(()=>{pending.delete(helper.id);update(root);});
+   // Enter during history hydration remains an intentional send. Wait for the
+   // actual UI operation to finish; never let the global busy gate discard it.
+   const project=api.current.projectId||'';
+   (async()=>{while(api.busy)await api.whenIdle();if(!root.isConnected||(api.current.projectId||'')!==project)return;await api.action(async()=>{const token=await send(helper,message,generation);if(token)await accepted(helper,message,generation);},'');})().finally(()=>{pending.delete(helper.id);if(root.isConnected)update(root);});
   };
   const box=$('.messages',root);box.onscroll=()=>{if(box.scrollTop<=0)older(root,helper);};box.addEventListener('wheel',e=>{if(e.deltaY<0&&box.scrollTop<=0)older(root,helper);},{passive:true});update(root);
   if(!loaded.has(helper.id)){const load=()=>{if(!root.isConnected)return;if(api.busy){setTimeout(load,50);return;}loaded.add(helper.id);api.action(()=>invoke('conversation',{helper:helper.id}),'').then(result=>{if(result===false)loaded.delete(helper.id);if(root.isConnected)update(root);});};setTimeout(load,0);}

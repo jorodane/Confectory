@@ -1,0 +1,101 @@
+{
+  "baseline": "db197424dc58865bf431471e93a811da48c20f42",
+  "actualUi": {
+    "checks": [
+      "Enter during held history queues once, input preserved, no silent dropped send",
+      "legacy no continuing grant",
+      "cancel no grant/dispatch/input loss",
+      "explicit global use once",
+      "second global send direct",
+      "global grant cannot cover project",
+      "forged six flags/internal action/client grant denied",
+      "explicit project use once",
+      "second project send direct, context intact",
+      "new memory content within category no new consent",
+      "technical expiry renews without new use consent",
+      "same name different project/path does not reuse grant",
+      "engine restart loads consent/history",
+      "global and original project direct after startup revalidation",
+      "sent project draft remains cleared",
+      "cancelled different-project draft restored without send",
+      "settings revoke cancels before inference",
+      "revokes project/global receipts together",
+      "later send requires new optin, no silent revival"
+    ],
+    "turns": 8,
+    "noRealAccountOrInference": true,
+    "windowsExecuted": false,
+    "projectIdsDistinct": true
+  },
+  "sourceSha256": {
+    "packs/editor-home-model/ChatUse.csbody": "2c1292dc8df743bb074e5a4c8d8112fd3a52217bf92454c0103ca1e1aea0ee74",
+    "packs/editor-home-model/Command.csbody": "e6c5a5eb8b9dea6b1fb4b09f337f6625f87cc226b4bc79d7471bfd4a1e4611eb",
+    "packs/editor-home-model/HelperAgents.csbody": "44be2e3389fcddd418d299447f98c412a0b428af32fbc9ed820eddb2baadbaea",
+    "packs/agent-codex/Provider.csbody": "e3466662c22a9469c2b5649e76c2b1b740f9e4beb36bab3cc8eca888b4982682",
+    "packs/development-tools/Invoke.csbody": "c805d941ea649f299cbef5d44fe87021521f219782389363eb8187b4646c8c61",
+    "examples/editor-home/WebInvoke.csbody": "3a848f2b702d95fd5186a1f453c2dc575ce2518673fb894f1169906fa6f8285d",
+    "examples/editor-home/ui/helper-agents.js": "75c0ff7e4f8a1b1606959aa2e941c12ec00b380929393ed747df5ea80635faa6",
+    "examples/editor-home/ui/v508-runtime.js": "dc9f40e759b1741e64e9dbd72cfc67115d7b74397d57ef30781bb8a6a459170b",
+    "examples/editor-home/ui/v508-views.js": "f0daee62b943d696a464da8a161b68576ae7873f7040862abbd0bcc51b65a4a6"
+  },
+  "fixture": "/tmp/confectory-cli-flow-onxdrcwk/chat-use-458959f6",
+  "compiledFixtureRoot": "/tmp/confectory-cli-flow-onxdrcwk",
+  "fixtureCompilation": "Fresh run9 whole generated engine; run11 reuses unchanged compiled production source with navigation/test-only corrections",
+  "pageErrors": [],
+  "externalRequests": [],
+  "core": {
+    "nativePolicyCases": 53,
+    "simulatedWindowsPolicyCases": 54,
+    "shippedDevelopmentToolsBodyExercised": true,
+    "casRevokeFailureDenied": true,
+    "queuedAndFutureToolsDenied": true,
+    "artifact": "/tmp/confectory-use-ledger-n2hzj32c"
+  },
+  "stdio": {
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "seconds": 84.749
+  },
+  "responsesProjectGlobalRegression": true,
+  "v508ChatContract": true,
+  "releaseBuild": {
+    "warnings": 0,
+    "errors": 0
+  },
+  "windowsCrossPackage": {
+    "files": 2228,
+    "path": "Builds/Windows-x64/Confectory.exe",
+    "windowsExecuted": false
+  },
+  "actualOAuthOrInference": false,
+  "packageProbe": {
+    "pass": true,
+    "package": "/workspace/Confectory/Builds/Windows-x64",
+    "files": 2228,
+    "crossPublishedWindowsX64PE": true,
+    "unrelatedWorkingDirectory": true,
+    "packageTamperAndMissingDependencyRejected": true,
+    "packagedEngineWebStartup": true,
+    "runtimeOnlyNoInstalledSDK": true,
+    "existingCheckoutProfileReusedAndExplicitOverrideRetained": true,
+    "resources": 50,
+    "renderedMinimalLogin": true,
+    "windowsApphostExecuted": false,
+    "webView2Executed": false,
+    "actualLoginOrInference": false,
+    "evidence": "/tmp/confectory-desktop-package-eywwf6hf"
+  },
+  "committedCheckout": "pending",
+  "packagedSourceMatches": {
+    "packs/editor-home-model/ChatUse.csbody": true,
+    "packs/editor-home-model/Command.csbody": true,
+    "packs/editor-home-model/HelperAgents.csbody": true,
+    "packs/agent-codex/Provider.csbody": true,
+    "packs/development-tools/Invoke.csbody": true,
+    "examples/editor-home/WebInvoke.csbody": true,
+    "examples/editor-home/ui/helper-agents.js": true,
+    "examples/editor-home/ui/v508-runtime.js": true,
+    "examples/editor-home/ui/v508-views.js": true
+  }
+}

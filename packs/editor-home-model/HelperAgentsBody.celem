@@ -1,4 +1,5 @@
 implementation Confectory.EditorHome.Model::HelperAgentsBody for Confectory.EditorHome.Model::HelperAgents (string session,string operation,string payload) -> string {
+import Confectory.EditorHome.Model::ChatUse as ChatUse (string,string,string) -> string;
 import Confectory.FileStream::Snapshot as Snapshot (string) -> string[];
 import Confectory.FileStream::Commit as Commit (string,string[],string[],string[]) -> string[];
 import Confectory.Helper::Open as HelperOpen (string) -> string;
