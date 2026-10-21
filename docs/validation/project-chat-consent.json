@@ -1,0 +1,164 @@
+{
+  "measurements": [
+    {
+      "variant": "before",
+      "window": {
+        "x": 40,
+        "y": 85,
+        "width": 640,
+        "height": 500
+      },
+      "bodyScrollHeight": 744,
+      "visibleTextLength": 1688
+    },
+    {
+      "variant": "after",
+      "window": {
+        "x": 40,
+        "y": 85,
+        "width": 640,
+        "height": 500
+      },
+      "bodyScrollHeight": 494,
+      "visibleTextLength": 425
+    }
+  ],
+  "checks": [
+    "unchanged window geometry",
+    "six unchecked explicit choices",
+    "no start until all choices",
+    "new preview choices empty",
+    "unknown right visible and unapproved",
+    "cancel does not dispatch",
+    "stale/missing/expired/cancelled cannot start",
+    "accurate evidence-derived readiness",
+    "visible material recipient/scope/cost/rights",
+    "readable exact optional context",
+    "small viewport internal scroll without horizontal overflow"
+  ],
+  "baseline": "df9ef8263d0e422bc44657dc0507351942d7b113",
+  "serverConsentCases": 24,
+  "globalProductionUiContract": "passed (controlled in-memory API; no account/inference)",
+  "release": {
+    "warnings": 0,
+    "errors": 0
+  },
+  "sourceSha256": {
+    "examples/editor-home/WebBundle.csbody": "e75ba121cfbce2eec93d511326c009d2c0824928a2cc046e80f55092dc8a14c0",
+    "examples/editor-home/ui/v508-runtime.js": "01e3bcf87947bfb9ab5d53dbd8aa5b6caaac7cdb2c3501fe01479d2596131711"
+  },
+  "unchangedBackend": {
+    "packs/agent-codex/Permission.csbody": "276b62cc016a800a77337448aed0a43bf1de71d2444b93115806a7393bb02643",
+    "packs/agent-codex/Verification.csbody": "e195b5e4514ce3d5047bb04f8c87316a7cea2824d70c06f6eed3d3ea111ecc62",
+    "packs/agent-codex/Provider.csbody": "94fa8f900f12f3d321076f84743f74ed1a93c4eae5d2e9d7b53a44b35671ef92",
+    "packs/ai-connection/Authorize.csbody": "19d9e632f8e65bbb22c5195b86b4b54e1d2c5cdd3bfe49de19bd0fe7cc500746",
+    "packs/editor-home-model/Command.csbody": "7ce0d88c760a84c298b6c8acf070fa13401d13667ad41e316645ead1a1b202cd",
+    "packs/editor-home-model/HelperAgents.csbody": "d1659561e0309ee0615be0d8d375787f22942539db625c2bd8a9f689131b2197",
+    "examples/editor-home/ui/helper-agents.js": "702a84f2f6dadef5e3ae2ec1ee1729ec7be850effe67d431e1d389b469b4745c"
+  },
+  "rendererBoundary": {
+    "controlledPermissionSnapshots": true,
+    "inMemoryApi": true,
+    "actualBackendRequests": false,
+    "actualWindows": false
+  },
+  "actualAccountOrInference": false,
+  "codexOwnedStdioRegression": {
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "seconds": 95.452,
+    "actualCodexAccount": false
+  },
+  "projectGlobalOwnedHttpRegression": {
+    "checks": [
+      "project IME Enter not sent",
+      "Shift Enter newline",
+      "Enter and button share route",
+      "redacted workspace-open failure",
+      "retry before provider dispatch",
+      "explicit project content/usage consent",
+      "owned project actual Responses HTTP round trip",
+      "project remains selected through response",
+      "Home global Responses HTTP round trip",
+      "no source file changes"
+    ],
+    "diagnostic": [
+      {
+        "diagnostic": {
+          "code": "project_chat_failed",
+          "stage": "workspace-open",
+          "cause": "state_rejected"
+        },
+        "sourceError": null
+      },
+      {
+        "diagnostic": {
+          "code": "project_chat_failed",
+          "stage": "workspace-open",
+          "cause": "state_rejected"
+        },
+        "sourceError": null
+      },
+      {
+        "diagnostic": {
+          "code": "project_chat_failed",
+          "stage": "workspace-open",
+          "cause": "state_rejected"
+        },
+        "sourceError": null
+      },
+      {
+        "diagnostic": {
+          "code": "project_chat_failed",
+          "stage": "workspace-open",
+          "cause": "state_rejected"
+        },
+        "sourceError": null
+      },
+      {
+        "diagnostic": {
+          "code": "project_chat_failed",
+          "stage": "workspace-open",
+          "cause": "state_rejected"
+        },
+        "sourceError": null
+      },
+      {
+        "diagnostic": {
+          "code": "project_chat_failed",
+          "stage": "workspace-open",
+          "cause": "state_rejected"
+        },
+        "sourceError": null
+      }
+    ],
+    "providerKinds": [
+      "project-chat",
+      "helper-global-chat"
+    ],
+    "actualWindowsExecuted": false,
+    "actualAccountOrInference": false
+  },
+  "windowsPackage": {
+    "pass": true,
+    "package": "/workspace/Confectory/Builds/Windows-x64",
+    "files": 2225,
+    "crossPublishedWindowsX64PE": true,
+    "unrelatedWorkingDirectory": true,
+    "packageTamperAndMissingDependencyRejected": true,
+    "packagedEngineWebStartup": true,
+    "runtimeOnlyNoInstalledSDK": true,
+    "existingCheckoutProfileReusedAndExplicitOverrideRetained": true,
+    "resources": 50,
+    "renderedMinimalLogin": true,
+    "windowsApphostExecuted": false,
+    "webView2Executed": false,
+    "actualLoginOrInference": false,
+    "evidence": "/tmp/confectory-desktop-package-xtdwuglk"
+  },
+  "packageSourceMatches": {
+    "examples/editor-home/WebBundle.csbody": "e75ba121cfbce2eec93d511326c009d2c0824928a2cc046e80f55092dc8a14c0",
+    "examples/editor-home/ui/v508-runtime.js": "01e3bcf87947bfb9ab5d53dbd8aa5b6caaac7cdb2c3501fe01479d2596131711"
+  }
+}
