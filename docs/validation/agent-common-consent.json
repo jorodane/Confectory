@@ -104,7 +104,16 @@
     "executable": "/workspace/Confectory/Builds/Windows-x64/Confectory.exe",
     "previousPackage": "/workspace/Confectory/Builds/Windows-x64.previous-202610211132122131617"
   },
-  "committedCheckout": "pending source commit",
+  "committedCheckout": {
+    "pass": true,
+    "sourceCommit": "e0737b494199bcb543ff72cb2a631399d1100802",
+    "resources": 50,
+    "retainedCrlfAttributePull": true,
+    "freshLf": true,
+    "tamperEncodingBomBinaryBudgetRejected": true,
+    "originalBytesUnchanged": true,
+    "result": "PASS actual EditorHome retained CRLF after attribute pull and fresh LF; 50 canonical/exact snapshots; content/encoding/BOM/binary/budget rejection; original bytes unchanged"
+  },
   "packagedSourceBytesMatch": {
     "examples/editor-home/WebBundle.csbody": true,
     "examples/editor-home/WebInvoke.csbody": true,
