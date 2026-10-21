@@ -1,0 +1,156 @@
+{
+  "baseline": "a10caf7c6aef6a319c08352e36a9bd360693a388",
+  "sourceSha256": {
+    "examples/editor-home/WebBundle.csbody": "ec5c28ce98952baadd2569dd1a46cc83f98e498246cbf58a31243e985c66d442",
+    "examples/editor-home/WebInvoke.csbody": "7267dcc7416097fd80eb1516ea53f6849ba26d3ce72e01022c97fe6560aa3fc6",
+    "examples/editor-home/WebState.csbody": "250f76e009abf6d0fe46d69ef0bd7e4e6fe3c247befbe078129ab95be5c03d04",
+    "examples/editor-home/ui/v508-runtime.js": "15db978ee6dcefff1a381ad1a85a493369ec0ff2c10766cfea9c7675e9df5724",
+    "examples/editor-home/ui/v508-views.js": "2047273d8e374cac707f875fc18f32ef76f8037631c91a0561db4872fde64ba0",
+    "packs/development-tools/Definitions.csbody": "67160d92ba33941e88dd090d64b2f5861704e47a9f730b6be14ad7d73795359d",
+    "packs/development-tools/DefinitionsBody.celem": "ddbfcf4cb6dd9308a0000f4f0552c3d6922bb6a41537e4067c7de115486cbd20",
+    "packs/development-tools/pack.cpack": "aafdba8aadf34bcf422b7fe25e8395022fa2c3a3c6a56693126cf4e382512823",
+    "packs/editor-home-model/ChatUse.csbody": "4d46c2ce7516aa7719cc4dbef42142c9f4a8b2b563e481cbcbcebbb1b6f46742",
+    "packs/editor-home-model/ChatUseBody.celem": "24186f0f7ef7893bb0b53a73cd42b96e89a2246604e814253e72d3a962c064fb",
+    "packs/editor-home-model/Command.csbody": "b22bfa7959bcd50100bfd1587ce06d723710f976c777938edc704ef7b31413bd",
+    "packs/editor-home-model/HelperAgents.csbody": "9bb9c805cd0383def2f772fa42ce5ac88b391c7010dfd31422dbba26867283cf",
+    "packs/development-tools/Schema.celem": "92ae6d126a41fbba17789feda0a8bceaca65e1a9ed022c4fdb7a7e48346dfbaf",
+    "packs/development-tools/SchemaBody.celem": "04df87c20f5810be0b46dcd29a21d4b6663d32a6e93216b3fc394bcacce0ffa1",
+    "packs/development-tools/Schema.csbody": "b9a62d9d17a72d457585e4060a59131faee544c35a35328e9c5a5cff3ee1a4bd"
+  },
+  "protectedGuardsStylesReferenceUnchanged": {
+    "packs/agent-codex/Provider.csbody": true,
+    "packs/agent-codex/Verification.csbody": true,
+    "packs/agent-codex/AccountLogin.csbody": true,
+    "packs/agent-codex/Onboarding.csbody": true,
+    "packs/development-tools/Invoke.csbody": true,
+    "packs/development-tools/Open.csbody": true,
+    "packs/ai-connection/Authorize.csbody": true,
+    "examples/editor-home/ui/style.css": true,
+    "examples/editor-home/ui/runtime.css": true,
+    "reference/site-ui/Confectory-Editor-Prototype-v508.zip": true
+  },
+  "actualRenderer": {
+    "checks": [
+      "technical readiness alone neither registers nor consents nor enters Home",
+      "closing common consent does not register or grant",
+      "one explicit Agent completion registers, grants and finishes Intro",
+      "fff and second global Helper direct first/next send with no Helper grant or project context",
+      "original project creation/roster explicitly grants only exact selected Helper project scopes",
+      "both assigned Helpers project first/next direct, no contract dialog",
+      "cancel preserves old placement; explicit removal revokes all project receipts and blocks unassigned send without global fallback",
+      "project removal preserves Agent grant and global Helper conversation",
+      "same-name different-folder project cannot reuse old placement token or context and cannot dispatch unassigned chat",
+      "Agent settings revocation blocks global use, preserves input and shows no Helper consent"
+    ],
+    "turns": 7,
+    "fixtureAccountOnly": true,
+    "actualOAuthOrInference": false,
+    "windowsExecuted": false
+  },
+  "actualLifecycle": {
+    "checks": [
+      "revoked legacy ready registration restores technically but never acquires common consent",
+      "closed Agent settings reject even previously issued valid consent challenge",
+      "existing Agent explicitly accepts once in same modal; small 640x500 and375x700 copy/action usable without horizontal overflow",
+      "technical expiry renews with stable common grant and direct send",
+      "full engine restart connects at startup without settings/input and direct sends preserve common grant",
+      "Agent settings revoke cancels queued provider before context dispatch and blocks future send",
+      "changed live fixture account rejected before model turn; registered identity not silently replaced"
+    ],
+    "extraFixtureTurns": 3,
+    "accountFailureCode": "provider-verification-stale",
+    "noActualAccountOAuthOrInference": true,
+    "windowsExecuted": false
+  },
+  "coreLedger": {
+    "nativePolicyPassed": 110,
+    "simulatedWindowsPolicyPassed": 112,
+    "evidence": "/tmp/confectory-use-ledger-t7af3w31"
+  },
+  "schemaCompatibility": {
+    "passed": 7,
+    "evidence": "/tmp/confectory-tool-schema-dg4ssrtj"
+  },
+  "publicAdmission": {
+    "passed": 10,
+    "scope": "exact shipped public admission C# block, counted fixture handlers; not real grant or live HTTP",
+    "evidence": "/tmp/confectory-public-use-dopfykcc"
+  },
+  "creationAdmission": {
+    "passed": 8,
+    "scope": "exact shipped JS creation handler with owned in-memory native bridge; no files created"
+  },
+  "actualFixtureOnly": true,
+  "windowsNativeOrWebView2Executed": false,
+  "actualUserOAuthOrPaidInference": false,
+  "migration": {
+    "oldRegistrationIsConsent": false,
+    "agentSettingsExplicitAcceptRequired": true,
+    "globalHelpersRequireSeparateConsent": false,
+    "oldProjectPlacementNeedsExplicitApply": true,
+    "legacyReceiptsPreservedNeverPromoted": true
+  },
+  "responses": "Unchanged; no fabricated account identity or new continuing consent path",
+  "windowsPackage": {
+    "ok": true,
+    "rid": "win-x64",
+    "files": 2231,
+    "engine": "content/runtime/Confectory.App.dll",
+    "resourceRoot": "content",
+    "launcher": "Confectory.exe",
+    "prerequisites": "Microsoft .NET Desktop Runtime 10.0 x64; Microsoft Edge WebView2 Runtime",
+    "windowsExecuted": false,
+    "output": "/workspace/Confectory/Builds/Windows-x64",
+    "executable": "/workspace/Confectory/Builds/Windows-x64/Confectory.exe",
+    "previousPackage": "/workspace/Confectory/Builds/Windows-x64.previous-202610211132122131617"
+  },
+  "committedCheckout": "pending source commit",
+  "packagedSourceBytesMatch": {
+    "examples/editor-home/WebBundle.csbody": true,
+    "examples/editor-home/WebInvoke.csbody": true,
+    "examples/editor-home/WebState.csbody": true,
+    "examples/editor-home/ui/v508-runtime.js": true,
+    "examples/editor-home/ui/v508-views.js": true,
+    "packs/development-tools/Definitions.csbody": true,
+    "packs/development-tools/DefinitionsBody.celem": true,
+    "packs/development-tools/pack.cpack": true,
+    "packs/editor-home-model/ChatUse.csbody": true,
+    "packs/editor-home-model/ChatUseBody.celem": true,
+    "packs/editor-home-model/Command.csbody": true,
+    "packs/editor-home-model/HelperAgents.csbody": true,
+    "packs/development-tools/Schema.celem": true,
+    "packs/development-tools/SchemaBody.celem": true,
+    "packs/development-tools/Schema.csbody": true
+  },
+  "noTestApiInProductionOrPackage": {
+    "pass": true,
+    "filesScanned": 4426,
+    "packagedAssemblies": 76,
+    "utf8AndUtf16Markers": [
+      "/fixture/native-create",
+      "/fixture/expire",
+      "active-discovery.json",
+      "active-info.json",
+      "OWNED FIXTURE"
+    ],
+    "findings": []
+  },
+  "packageProbe": {
+    "pass": true,
+    "package": "/workspace/Confectory/Builds/Windows-x64",
+    "files": 2231,
+    "crossPublishedWindowsX64PE": true,
+    "unrelatedWorkingDirectory": true,
+    "packageTamperAndMissingDependencyRejected": true,
+    "packagedEngineWebStartup": true,
+    "runtimeOnlyNoInstalledSDK": true,
+    "existingCheckoutProfileReusedAndExplicitOverrideRetained": true,
+    "resources": 50,
+    "renderedMinimalLogin": true,
+    "windowsApphostExecuted": false,
+    "webView2Executed": false,
+    "actualLoginOrInference": false,
+    "evidence": "/tmp/confectory-desktop-package-s8l1w_vx"
+  },
+  "testsBeforeFinalAdmissionOnlyChanges": "Actual positive renderer suites preceded only creation precheck and narrowing of unused public legacy actions; affected guards separately passed 8 JS and10 C# cases. Current complete source compiled/started in final package."
+}

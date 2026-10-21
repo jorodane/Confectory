@@ -26,7 +26,7 @@ if not reuse:
  return result.ToJsonString();
  '''.replace('PATH',json.dumps(str(root/'active-discovery.json'))))
  # Owned lifecycle fixture supplies native parent selection and technical expiry only.
- if any(n=='chat-use' or n.startswith('intro-') for n in os.environ.get('CONFECTORY_ONBOARDING_CASES','').split(',')):
+ if any(n in ('chat-use','agent-common') or n.startswith('intro-') for n in os.environ.get('CONFECTORY_ONBOARDING_CASES','').split(',')):
   browser_pack=root/'browser-host';shutil.copytree(repo/'packs/browser-host',browser_pack)
   for f in editor.glob('*.cpack'):f.write_text(f.read_text().replace(json.dumps(str(repo/'packs/browser-host/pack.cpack')),json.dumps(str(browser_pack/'pack.cpack'))))
   p=browser_pack/'ServeBody.celem';p.write_text(p.read_text().replace('body common','import Confectory.WebUI::NativeRequest as NativeRequest (string,string,string) -> string;\nbody common'))
@@ -51,7 +51,7 @@ class Assets(http.server.BaseHTTPRequestHandler):
 server=http.server.ThreadingHTTPServer(('127.0.0.1',0),Assets);threading.Thread(target=server.serve_forever,daemon=True).start()
 env=os.environ.copy();env.update(CONFECTORY_DOTNET=env.get('CONFECTORY_DOTNET','/workspace/toolchains/dotnet-10.0.401/dotnet'),CONFECTORY_UI='web',CONFECTORY_EDITOR_REPO=str(owned),CONFECTORY_ELEMENT_AUTHORING_HOST=str(repo/'targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll'),CONFECTORY_PROJECT_EXECUTION_HOST=str(repo/'targets/project-execution-host/bin/Release/net10.0/Confectory.ProjectExecutionHost.dll'))
 env['PATH']=str(pathlib.Path(env['CONFECTORY_DOTNET']).parent)+os.pathsep+env['PATH'];env.pop('CONFECTORY_WEB_PROJECT',None)
-if any(n=='chat-use' or n.startswith('intro-') for n in os.environ.get('CONFECTORY_ONBOARDING_CASES','').split(',')):env['CONFECTORY_EDITOR_REPO']=str(repo)
+if any(n in ('chat-use','agent-common') or n.startswith('intro-') for n in os.environ.get('CONFECTORY_ONBOARDING_CASES','').split(',')):env['CONFECTORY_EDITOR_REPO']=str(repo)
 built=None
 if not reuse:
  with (root/'build.json').open('w') as out,(root/'build.err').open('w') as err:built=subprocess.run([env['CONFECTORY_DOTNET'],str(repo/'src/Confectory.Cli/bin/Release/net10.0/Confectory.Cli.dll'),'build',str(editor/'project.cpack'),'linux'],env=env,cwd=repo,stdout=out,stderr=err,timeout=180)
@@ -80,7 +80,7 @@ with sync_playwright() as p:
     storage.mkdir();(storage/'helper-agents.json').write_text(json.dumps({'version':1,'agents':{'Confectory.Agent.Codex::Connection':{'connection':'Confectory.Agent.Codex::Connection','config':{'connectionMethod':'local-cli','executable':str(runtime),'managedHome':str(homes[0]),'credentialReference':'codex:managed','model':'fixture-one'}}},'assignments':{}}))
    run_env=env.copy();run_env.update(CONFECTORY_ENTRY_STORAGE=str(storage),CONFECTORY_HOME_STORAGE=str(storage),CONFECTORY_MCP_DIRECTORY=str(case/'instances'));log_path=case/'host.log';log=log_path.open('w');host=subprocess.Popen(report['run'],cwd=repo,env=run_env,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
    port_lease=None;login_recovery=False
-   page=browser.new_page(viewport={'width':1440,'height':1000});page.add_init_script('''globalThis.__ownedBrowserOpens=[];globalThis.__ownedBrowserFailure=FAIL;Object.defineProperty(window,'confectoryWebUI',{value:Object.freeze({openCodexLogin(handle){globalThis.__ownedBrowserOpens.push(handle);return Promise.resolve({ok:!globalThis.__ownedBrowserFailure});}})});'''.replace('FAIL','true' if name=='browser-open-failed' else 'false'));page.on('pageerror',lambda e:errors.append(str(e)));invocations=[]
+   page=browser.new_page(viewport={'width':1440,'height':1000});page.add_init_script('''globalThis.__ownedBrowserOpens=[];globalThis.__ownedBrowserFailure=FAIL;Object.defineProperty(window,'confectoryWebUI',{value:Object.freeze({openCodexLogin(handle){globalThis.__ownedBrowserOpens.push(handle);return Promise.resolve({ok:!globalThis.__ownedBrowserFailure});}})});'''.replace('FAIL','true' if name=='browser-open-failed' else 'false').replace('Object.freeze({', '''Object.freeze({async chooseProjectParent(){return {ok:true,parent:'owned-parent',label:'Owned fixture projects'};},async createProject(title,description){const token=sessionStorage.getItem('confectory.webui.session');return (await fetch('/fixture/native-create',{method:'POST',headers:{'Content-Type':'application/json','X-Confectory-Session':token},body:JSON.stringify({title,description,bucket:globalThis.__projectBucket||'one'})})).json();},''' if name=='agent-common' else 'Object.freeze({'));page.on('pageerror',lambda e:errors.append(str(e)));invocations=[]
    page.on('request',lambda r:invocations.append(r.post_data_json.get('endpoint')) if r.url.endswith('/api/request') and r.post_data_json.get('op')=='invoke' else None)
    def expect_browser():
     expect(dialog.locator('[data-cli-official-login]')).to_be_visible();expect(dialog.locator('[data-cli-code]')).to_have_count(0)
@@ -133,8 +133,9 @@ with sync_playwright() as p:
      if request.request.url.startswith(origin+'/') or request.request.url.startswith('data:'):request.continue_()
      else:external.append(request.request.url);request.abort()
     page.route('**/*',route)
-    if name.startswith('intro-'):
-     from intro_connection import run as run_intro
+    if name in ('agent-common',) or name.startswith('intro-'):
+     if name=='agent-common':from agent_common_consent import run as run_intro
+     else:from intro_connection import run as run_intro
      context={'page':page,'browser':browser,'host':host,'log':log,'url':url,'origin':origin,'token':token,'case':case,'storage':storage,'repo':repo,'report':report,'run_env':run_env,'log_path':log_path,'requests':requests,'control':write_control,'errors':errors,'external':external,'scenario':name}
      try:run_intro(context)
      finally:page=context['page'];host=context['host'];log=context['log'];origin=context['origin'];token=context['token'];url=context['url']

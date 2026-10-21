@@ -10,5 +10,6 @@ element Open function "Open.celem"; element OpenBody implementation "OpenBody.ce
 element Invoke function "Invoke.celem"; element InvokeBody implementation "InvokeBody.celem";
 element Snapshot function "Snapshot.celem"; element SnapshotBody implementation "SnapshotBody.celem";
 element Close function "Close.celem"; element CloseBody implementation "CloseBody.celem";
+element Schema function "Schema.celem"; element SchemaBody implementation "SchemaBody.celem";
 element Definitions function "Definitions.celem"; element DefinitionsBody implementation "DefinitionsBody.celem";
 }

@@ -1,0 +1,1 @@
+implementation Confectory.DevelopmentTools::SchemaBody for Confectory.DevelopmentTools::Schema (string scope) -> string {body common "Schema.csbody";}

@@ -3,13 +3,23 @@ var args=System.Text.Json.Nodes.JsonNode.Parse(input)!.AsObject();
 System.Text.Json.Nodes.JsonNode Command(string operation,System.Text.Json.Nodes.JsonObject payload){var result=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(context,operation,payload.ToJsonString()))!;if(result["status"]?.ToString().StartsWith("Error:",StringComparison.Ordinal)==true)throw new InvalidOperationException("Consumer rejected operation");return result;}
 var before=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(context))!;
 if(endpoint=="chatUse"){
- foreach(var field in args)if(field.Key is not ("action" or "kind" or "helper" or "challenge"))throw new UnauthorizedAccessException("chat-use-ui-fields");
- string useAction=args["action"]?.ToString()??"status";if(useAction is not ("status" or "accept" or "revoke-helper"))throw new UnauthorizedAccessException("chat-use-ui-action");
- if(useAction=="revoke-helper"&&!System.Linq.Enumerable.Any(before["helpers"]?.AsArray()??new System.Text.Json.Nodes.JsonArray(),row=>row?["helper"]?.ToString()==args["helper"]?.ToString()))throw new UnauthorizedAccessException("chat-use-owned-helper");
+ foreach(var field in args)if(field.Key is not ("action" or "kind" or "helper" or "challenge" or "agent"))throw new UnauthorizedAccessException("chat-use-ui-fields");
+ string useAction=args["action"]?.ToString()??"status";if(useAction is not ("status" or "agent-status" or "agent-accept" or "revoke-agent"))throw new UnauthorizedAccessException("chat-use-ui-action");
+ if(useAction is "agent-status" or "agent-accept" or "revoke-agent"){
+  foreach(var field in args)if(field.Key is not ("action" or "agent" or "challenge"))throw new UnauthorizedAccessException("chat-use-agent-ui-fields");if(args["agent"]?.ToString()!="Confectory.Agent.Codex::Connection")throw new UnauthorizedAccessException("chat-use-agent-scope");
+  if(useAction=="agent-accept"){Command("agent-use-complete",new(){["challenge"]=args["challenge"]?.DeepClone()});return "{\"state\":\"granted\"}";}
+  if(useAction=="revoke-agent"){Command("agent-use-revoke",new());return "{\"state\":\"revoked\"}";}
+ }
+
  var useRequest=args.DeepClone().AsObject();useRequest.Remove("action");try{return calls.ChatUse.Invoke(context,useAction,useRequest.ToJsonString());}catch(Exception error){string code=System.Text.RegularExpressions.Regex.IsMatch(error.Message,"^chat-use-[a-z-]{1,80}$")?error.Message:"chat-use-storage-unavailable";return new System.Text.Json.Nodes.JsonObject{["state"]="blocked",["code"]=code}.ToJsonString();}
 }
 if(endpoint=="helperGlobal"){string helperAction=args["action"]?.ToString()??"snapshot";if(helperAction is not ("snapshot" or "conversation" or "cancel-readiness" or "retry-readiness" or "readiness" or "draft" or "register" or "create" or "import" or "assign" or "connection-state" or "prepare" or "start" or "cancel" or "cancel-preview"))throw new UnauthorizedAccessException("Helper UI action denied");return calls.HelperAgents.Invoke(context,helperAction,args.ToJsonString());}
-if(endpoint=="projectHelpers"){Command("helper-roster",args);return "{\"accepted\":true}";}
+if(endpoint=="projectHelpers"){
+ foreach(var field in args)if(field.Key is not ("action" or "helpers" or "allowCommon" or "token"))throw new UnauthorizedAccessException("chat-use-placement-fields");string placementAction=args["action"]?.ToString()??"legacy";
+ if(placementAction=="plan"){var plan=Command("helper-roster-plan",new(){["helpers"]=args["helpers"]?.DeepClone(),["allowCommon"]=args["allowCommon"]?.DeepClone()})["helperPlacementPlan"]!;return new System.Text.Json.Nodes.JsonObject{["token"]=plan["token"]!.DeepClone()}.ToJsonString();}
+ if(placementAction=="apply"){var owner=AppDomain.CurrentDomain.GetData("Confectory.EditorHome."+context) as object[]??throw new ObjectDisposedException("EditorHome");var plan=((System.Text.Json.Nodes.JsonObject)owner[3])["helperPlacementPlan"];if(args["helpers"] is not null||args["allowCommon"] is not null||plan is null||plan["token"]?.ToString()!=args["token"]?.ToString())throw new UnauthorizedAccessException("chat-use-stale-placement");Command("helper-roster",new(){["helpers"]=plan["helpers"]!.DeepClone(),["placementToken"]=args["token"]!.DeepClone()});return "{\"accepted\":true}";}
+ if(placementAction!="legacy")throw new UnauthorizedAccessException("chat-use-placement-action");Command("helper-roster",new(){["helpers"]=args["helpers"]?.DeepClone()});return "{\"accepted\":true}";
+}
 if(endpoint=="selectHelperConversation"){Command("helper-chat-select",args);return "{\"accepted\":true}";}
 if(endpoint=="bindHelperAgent"){Command("ai-bind-helper",args);return "{\"accepted\":true}";}
 if(endpoint=="mcpBridge"){if(args["action"]?.ToString()=="creation-confirm")throw new UnauthorizedAccessException("host_action_denied");return calls.McpBridge.Invoke(context,args["action"]?.GetValue<string>()??"status",args.ToJsonString());}

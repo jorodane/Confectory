@@ -1,1 +1,3 @@
-implementation Confectory.DevelopmentTools::DefinitionsBody for Confectory.DevelopmentTools::Definitions (string capability) -> string {body common "Definitions.csbody";}
+implementation Confectory.DevelopmentTools::DefinitionsBody for Confectory.DevelopmentTools::Definitions (string capability) -> string {
+import Confectory.DevelopmentTools::Schema as Schema (string) -> string;
+body common "Definitions.csbody";}

@@ -1,0 +1,1 @@
+function Confectory.DevelopmentTools::Schema (string scope) -> string {provide Confectory.DevelopmentTools::Schema with Confectory.DevelopmentTools::SchemaBody;}
