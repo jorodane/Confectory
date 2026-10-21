@@ -26,7 +26,7 @@ if not reuse:
  return result.ToJsonString();
  '''.replace('PATH',json.dumps(str(root/'active-discovery.json'))))
  # Owned lifecycle fixture supplies native parent selection and technical expiry only.
- if 'chat-use' in os.environ.get('CONFECTORY_ONBOARDING_CASES','').split(','):
+ if any(n=='chat-use' or n.startswith('intro-') for n in os.environ.get('CONFECTORY_ONBOARDING_CASES','').split(',')):
   browser_pack=root/'browser-host';shutil.copytree(repo/'packs/browser-host',browser_pack)
   for f in editor.glob('*.cpack'):f.write_text(f.read_text().replace(json.dumps(str(repo/'packs/browser-host/pack.cpack')),json.dumps(str(browser_pack/'pack.cpack'))))
   p=browser_pack/'ServeBody.celem';p.write_text(p.read_text().replace('body common','import Confectory.WebUI::NativeRequest as NativeRequest (string,string,string) -> string;\nbody common'))
@@ -51,7 +51,7 @@ class Assets(http.server.BaseHTTPRequestHandler):
 server=http.server.ThreadingHTTPServer(('127.0.0.1',0),Assets);threading.Thread(target=server.serve_forever,daemon=True).start()
 env=os.environ.copy();env.update(CONFECTORY_DOTNET=env.get('CONFECTORY_DOTNET','/workspace/toolchains/dotnet-10.0.401/dotnet'),CONFECTORY_UI='web',CONFECTORY_EDITOR_REPO=str(owned),CONFECTORY_ELEMENT_AUTHORING_HOST=str(repo/'targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll'),CONFECTORY_PROJECT_EXECUTION_HOST=str(repo/'targets/project-execution-host/bin/Release/net10.0/Confectory.ProjectExecutionHost.dll'))
 env['PATH']=str(pathlib.Path(env['CONFECTORY_DOTNET']).parent)+os.pathsep+env['PATH'];env.pop('CONFECTORY_WEB_PROJECT',None)
-if 'chat-use' in os.environ.get('CONFECTORY_ONBOARDING_CASES','').split(','):env['CONFECTORY_EDITOR_REPO']=str(repo)
+if any(n=='chat-use' or n.startswith('intro-') for n in os.environ.get('CONFECTORY_ONBOARDING_CASES','').split(',')):env['CONFECTORY_EDITOR_REPO']=str(repo)
 built=None
 if not reuse:
  with (root/'build.json').open('w') as out,(root/'build.err').open('w') as err:built=subprocess.run([env['CONFECTORY_DOTNET'],str(repo/'src/Confectory.Cli/bin/Release/net10.0/Confectory.Cli.dll'),'build',str(editor/'project.cpack'),'linux'],env=env,cwd=repo,stdout=out,stderr=err,timeout=180)
@@ -63,10 +63,10 @@ with sync_playwright() as p:
  browser=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox','--disable-gpu'])
  try:
   for name in cases:
-   case=root/(name+'-'+uuid.uuid4().hex[:8] if reuse else name);case.mkdir();storage=case/'profile';control={'isolationFailure':{'plugins-restart-start':'start','plugins-restart-file-change':'file-change','plugins-restart-exit':'exit','plugins-restart-initialize':'initialize','plugins-restart-config':'config/read'}.get(name,''),'postLoginPlugins':name=='plugins-post-browser','pluginPreset':'changed-after-override' if name=='plugins-change' else 'budget' if name=='plugins-budget' else 'multiple' if name in ('plugins-existing','install-plugins','plugins-browser','plugins-cancel','plugins-login-blocked','plugins-restart-exit','plugins-restart-initialize','plugins-restart-config','plugins-login-restart-exit','plugins-post-browser','plugins-restart-start','plugins-restart-file-change','plugins-login-restart-start') else '', 'holdIsolation':name=='plugins-cancel','loginExpired':name=='login-expired','loginPortError':name=='callback-rpc-conflict','invalidBrowserUrl':name=='invalid-login-url','rejectExtension':name in ('unexpected-extension','first-policy-block'),'rejectSearch':name=='web-search-policy','bundledPolicy':name in ('bundled-policy','user-bundle-settings'),'singleModel':name=='single-model','noDefault':name in ('model-selection','single-model'),'noModels':name=='no-models','configuredModel':'fixture-two' if name=='configured-model' else '', 'preAuthFailure':'mixed-account-error' if name=='install-mixed-homes' else name.removeprefix('install-') if name in ('install-process-exit','install-initialize-error','install-account-error','install-model-error','install-process-start-error') else '', 'failLogin':name=='failed-login','holdVersion':name=='cancel-probe','holdDownload':name=='cancel-install','badArchive':name=='bad-install','version':'0.159.2' if name=='unsupported-runtime' else '0.159.0-alpha.3'}
+   case=root/(name+'-'+uuid.uuid4().hex[:8] if reuse else name);case.mkdir();storage=case/'profile';control={'isolationFailure':{'plugins-restart-start':'start','plugins-restart-file-change':'file-change','plugins-restart-exit':'exit','plugins-restart-initialize':'initialize','plugins-restart-config':'config/read'}.get(name,''),'postLoginPlugins':name=='plugins-post-browser','pluginPreset':'changed-after-override' if name=='plugins-change' else 'budget' if name=='plugins-budget' else 'multiple' if name in ('plugins-existing','install-plugins','plugins-browser','plugins-cancel','plugins-login-blocked','plugins-restart-exit','plugins-restart-initialize','plugins-restart-config','plugins-login-restart-exit','plugins-post-browser','plugins-restart-start','plugins-restart-file-change','plugins-login-restart-start') else '', 'holdIsolation':name=='plugins-cancel','loginExpired':name=='login-expired','loginPortError':name=='callback-rpc-conflict','invalidBrowserUrl':name=='invalid-login-url','rejectExtension':name in ('unexpected-extension','first-policy-block','intro-policy-block'),'rejectSearch':name=='web-search-policy','bundledPolicy':name in ('bundled-policy','user-bundle-settings'),'singleModel':name=='single-model','noDefault':name in ('model-selection','single-model'),'noModels':name=='no-models','configuredModel':'fixture-two' if name=='configured-model' else '', 'preAuthFailure':'mixed-account-error' if name=='install-mixed-homes' else name.removeprefix('install-') if name in ('install-process-exit','install-initialize-error','install-account-error','install-model-error','install-process-start-error') else '', 'failLogin':name=='failed-login','holdVersion':name=='cancel-probe','holdDownload':name=='cancel-install','badArchive':name=='bad-install','version':'0.159.2' if name=='unsupported-runtime' else '0.159.0-alpha.3'}
    def write_control(**values):control.update(values);(case/'control.json').write_text(json.dumps(control))
    write_control(turnFailure=name.removeprefix('turn-') if name.startswith('turn-') else '');(root/'active.json').write_text(json.dumps({'case':str(case)}))
-   absent=name.startswith('install-') or name in ('install','cancel-install','bad-install');logged_out=name.startswith('install-') and name!='install-model-error' or name in ('first-unverified','post-login-policy-block','plugins-browser','plugins-login-blocked','plugins-login-restart-exit','plugins-post-browser','plugins-login-restart-start','logged-out','install','cancel-login','cancel-install','bad-install','failed-login','switch-provider','browser-open-failed','login-expired','callback-port-conflict','callback-rpc-conflict','invalid-login-url','device-fallback','device-cancel','device-retry','method-cleanup-failed')
+   absent=name.startswith('install-') or name in ('install','cancel-install','bad-install','intro-install');logged_out=name.startswith('install-') and name!='install-model-error' or name in ('intro-new-login','intro-install','intro-close-race','intro-stop-race','first-unverified','post-login-policy-block','plugins-browser','plugins-login-blocked','plugins-login-restart-exit','plugins-post-browser','plugins-login-restart-start','logged-out','install','cancel-login','cancel-install','bad-install','failed-login','switch-provider','browser-open-failed','login-expired','callback-port-conflict','callback-rpc-conflict','invalid-login-url','device-fallback','device-cancel','device-retry','method-cleanup-failed')
    discovery={'executables':[] if absent else [{'path':str(runtime),'selectable':True,'source':'owned fixture'}],'homes':[]}
    homes=[]
    for index in range(0 if name=='install-empty-home' else 2 if name in ('multiple-accounts','install-mixed-homes') else 1):
@@ -132,7 +132,14 @@ with sync_playwright() as p:
     def route(request):
      if request.request.url.startswith(origin+'/') or request.request.url.startswith('data:'):request.continue_()
      else:external.append(request.request.url);request.abort()
-    page.route('**/*',route);goto_editor(page,url);page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='Agent 추가',exact=True);dialog.get_by_role('button',name='Codex',exact=True).click();expect(dialog.locator('[data-cli-login]')).to_be_enabled();assert not requests();expect(dialog.locator('[data-discover-connection]')).to_have_count(0);expect(dialog.locator('[data-mcp-panel]')).to_have_count(0);page.screenshot(path=str(case/'initial.png'))
+    page.route('**/*',route)
+    if name.startswith('intro-'):
+     from intro_connection import run as run_intro
+     context={'page':page,'browser':browser,'host':host,'log':log,'url':url,'origin':origin,'token':token,'case':case,'storage':storage,'repo':repo,'report':report,'run_env':run_env,'log_path':log_path,'requests':requests,'control':write_control,'errors':errors,'external':external,'scenario':name}
+     try:run_intro(context)
+     finally:page=context['page'];host=context['host'];log=context['log'];origin=context['origin'];token=context['token'];url=context['url']
+     print('PASS scenario '+name,flush=True);continue
+    goto_editor(page,url);page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='Agent 추가',exact=True);dialog.get_by_role('button',name='Codex',exact=True).click();expect(dialog.locator('[data-cli-login]')).to_be_enabled();assert not requests();expect(dialog.locator('[data-discover-connection]')).to_have_count(0);expect(dialog.locator('[data-mcp-panel]')).to_have_count(0);page.screenshot(path=str(case/'initial.png'))
     initial=state()
     if name=='first-unverified':
      expect(dialog.locator('[data-cli-login]')).to_have_text('로그인');expect(dialog.locator('[data-cli-retry],[data-cli-new-login],[data-cli-change-account]')).to_have_count(0);assert not requests();assert initial['helperAgents']['agents'][0]['readiness']['state']=='unverified';page.screenshot(path=str(case/'unverified-initial.png'));print('PASS scenario first-unverified',flush=True);continue
@@ -318,7 +325,7 @@ with sync_playwright() as p:
       urls=[line.split(' ',1)[1] for line in log_path.read_text().splitlines() if line.startswith('CONFECTORY_WEB_UI ')]
       if urls:url=urls[-1];break
       assert host.poll() is None;time.sleep(.1)
-     origin,token=url.split('/#');page=browser.new_page(viewport={'width':1440,'height':1000});page.on('pageerror',lambda e:errors.append(str(e)));page.route('**/*',route);page.goto(url);expect(page.locator('#add-agent')).to_be_enabled(timeout=30000)
+     origin,token=url.split('/#');page=browser.new_page(viewport={'width':1440,'height':1000});page.on('pageerror',lambda e:errors.append(str(e)));page.route('**/*',route);page.goto(url)
      # No settings/Helper click or send triggers readiness: wait at Home first.
      expected_state={'restart-cancel':'checking','restart-mismatch':'account-mismatch','restart-expired-auth':'auth-required','restart-offline':'offline','restart-unverified':'unverified','restart-renewal-failure':'blocked','restart-missing-runtime':'missing-runtime'}.get(name,'ready')
      for _ in range(600):
@@ -326,6 +333,9 @@ with sync_playwright() as p:
       time.sleep(.05)
      else:raise AssertionError(state()["helperAgents"])
      settled=state()['helperAgents']['agents'][0];assert settled['readiness']['state']==expected_state
+     if expected_state!='ready':
+      expect(page.locator('.welcome #later')).to_be_enabled();assert not page.locator('.home-grid').count();page.locator('.welcome #later').click()
+     expect(page.locator('#add-agent')).to_be_enabled(timeout=30000)
      page.screenshot(path=str(case/'startup-home.png'))
      checks_before=len(requests());page.locator('.home-side [data-agent]').first.click();dialog=page.get_by_role('dialog',name='Agent 추가',exact=True)
      if expected_state=='checking':expect(dialog.locator('[data-cli-stop]')).to_be_enabled()

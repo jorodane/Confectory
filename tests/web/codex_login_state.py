@@ -16,7 +16,7 @@ script='''
 const $=(s,r=document)=>r.querySelector(s),esc=v=>{const d=document.createElement('div');d.textContent=String(v??'');return d.innerHTML;};
 const selected={id:'Confectory.Agent.Codex::Connection'},root=document.querySelector('.modal'),body=document.querySelector('[data-connection-form]');
 let current={},flowStamp=null,browserRecord=null,codexReadinessAttempted=false;
-globalThis.calls=[];const view={call:async(endpoint,args)=>{calls.push({endpoint,args});}},flowAction=(action,args={})=>calls.push({action,args}),run=async fn=>fn(),controls=()=>{},alive=()=>true;
+globalThis.calls=[];const view={call:async(endpoint,args)=>{calls.push({endpoint,args});}},flowAction=(action,args={})=>calls.push({action,args}),run=async fn=>fn(),controls=()=>{},alive=()=>true,maybeFinishIntro=()=>{};
 root._retireConnectionDialog=()=>calls.push({action:'close'});
 PRESENTATION
 RENDER

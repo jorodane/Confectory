@@ -1,0 +1,181 @@
+{
+  "baseline": "6954a80ce4ee21a241b34eaab9b81b5fd2b3d3a7",
+  "sourceSha256": {
+    "examples/editor-home/WebBundle.csbody": "92c962d68b4adf3bff2291f5f527f5cfe90b3f010d336be573e8656eef5214fc",
+    "examples/editor-home/ui/v508-runtime.js": "2b867224c3d9dc6558118bd66522d9dc4cb7f4cce655edd56330b34c48e9ac16",
+    "examples/editor-home/ui/v508-views.js": "34f048072b55cbdfd7b1e6d5466e5a955f4577aead5df73c6f8c6a6a566b6eba"
+  },
+  "unchangedBackendGuardsConsentStylesAndReference": {
+    "packs/agent-codex/Onboarding.csbody": true,
+    "packs/agent-codex/Provider.csbody": true,
+    "packs/agent-codex/AccountLogin.csbody": true,
+    "packs/agent-codex/PluginIsolation.csbody": true,
+    "packs/editor-home-model/Command.csbody": true,
+    "packs/editor-home-model/HelperAgents.csbody": true,
+    "packs/editor-home-model/ChatUse.csbody": true,
+    "packs/development-tools/Invoke.csbody": true,
+    "examples/editor-home/ui/style.css": true,
+    "examples/editor-home/ui/runtime.css": true,
+    "reference/site-ui/Confectory-Editor-Prototype-v508.zip": true
+  },
+  "renderedStartupViews": {
+    "checks": [
+      "configuration/progress/failure/offline/unverified not success",
+      "authentication-only completion not success",
+      "existing verified connection completes once",
+      "intro success after modal cleanup, duplicate events one transition",
+      "cancel suppresses late readiness, explicit reopen can complete",
+      "navigation invalidates old intro callback",
+      "stale startup generation cannot complete",
+      "disposed view ignores late connection",
+      "Later works without connection and ignores later updates",
+      "transition preserves new modal inert/focus, its close releases inert",
+      "original animated transition still completes"
+    ],
+    "count": 11,
+    "pageErrors": [],
+    "actualBackendAccountOrInference": false,
+    "evidence": "/tmp/confectory-intro-transition-wh78hzos",
+    "timing": "Shipped views source unchanged since these 11 cases; final Stop-intent change is in connection runtime."
+  },
+  "actualEngine": {
+    "cases": {
+      "intro-close-race": {
+        "checks": [
+          "waiting for login stays intro",
+          "user close before ready delivery cancels auto navigation despite registered ready"
+        ],
+        "noRealAccountOrInference": true,
+        "modelTurns": 0,
+        "windowsExecuted": false
+      },
+      "intro-existing": {
+        "checks": [
+          "new verified registered connection automatically enters project list once",
+          "registered startup waits for usable readiness then transitions without opening settings/login"
+        ],
+        "noRealAccountOrInference": true,
+        "modelTurns": 0,
+        "windowsExecuted": false
+      },
+      "intro-install": {
+        "checks": [
+          "installation alone stays intro",
+          "waiting for login stays intro",
+          "new verified registered connection automatically enters project list once"
+        ],
+        "noRealAccountOrInference": true,
+        "modelTurns": 0,
+        "windowsExecuted": false
+      },
+      "intro-new-login": {
+        "checks": [
+          "waiting for login stays intro",
+          "explicit login failure stays intro, retry works",
+          "explicit Stop stays intro; explicit retry restores transition intent",
+          "new verified registered connection automatically enters project list once"
+        ],
+        "noRealAccountOrInference": true,
+        "modelTurns": 0,
+        "windowsExecuted": false
+      },
+      "intro-policy-block": {
+        "checks": [
+          "policy failure stays intro",
+          "cancel then Later remains usable"
+        ],
+        "noRealAccountOrInference": true,
+        "modelTurns": 0,
+        "windowsExecuted": false
+      },
+      "intro-settings": {
+        "checks": [
+          "Home settings success does not auto-retire or navigate",
+          "project settings preserve ProjectContext and remain explicit"
+        ],
+        "noRealAccountOrInference": true,
+        "modelTurns": 0,
+        "windowsExecuted": false
+      },
+      "intro-stop-race": {
+        "checks": [
+          "waiting for login stays intro",
+          "explicit Stop beats an already registered ready reply",
+          "user close before ready delivery cancels auto navigation despite registered ready"
+        ],
+        "noRealAccountOrInference": true,
+        "modelTurns": 0,
+        "windowsExecuted": false
+      }
+    },
+    "pageErrors": [],
+    "externalRequests": [],
+    "fakeAccountOnly": true,
+    "compiledFixture": "/tmp/confectory-cli-flow-wlr7rb1g",
+    "compiledProductionUiMatches": {
+      "examples/editor-home/WebBundle.csbody": true,
+      "examples/editor-home/ui/v508-runtime.js": true,
+      "examples/editor-home/ui/v508-views.js": true
+    },
+    "finalRun": "final-integration.log; all seven PASS, exit 0",
+    "verifiedDefectAndFix": "Stop during an already registered but undelivered ready update previously navigated Home; synchronous cancellation intent now blocks navigation until an explicit retry."
+  },
+  "existingLoginStateRenderer": {
+    "passed": 18,
+    "pageErrors": [],
+    "evidence": "/tmp/confectory-login-state-ugmyq2tc",
+    "timing": "Passed before final intro-only Stop-intent guard; extracted normal-setting renderer unchanged."
+  },
+  "registeredStartupRegression": {
+    "passedCases": [
+      "restart-unverified",
+      "restart-cancel",
+      "restart-expired-auth",
+      "authenticated"
+    ],
+    "timing": "Passed before final intro-only Stop-intent guard; final seven-case run covers that guard. Backend and non-intro settings paths unchanged."
+  },
+  "releaseBuild": {
+    "warnings": 0,
+    "errors": 0,
+    "seconds": 13.91
+  },
+  "windowsPackage": {
+    "ok": true,
+    "rid": "win-x64",
+    "files": 2228,
+    "engine": "content/runtime/Confectory.App.dll",
+    "resourceRoot": "content",
+    "launcher": "Confectory.exe",
+    "prerequisites": "Microsoft .NET Desktop Runtime 10.0 x64; Microsoft Edge WebView2 Runtime",
+    "windowsExecuted": false,
+    "output": "/workspace/Confectory/Builds/Windows-x64",
+    "executable": "/workspace/Confectory/Builds/Windows-x64/Confectory.exe",
+    "previousPackage": "/workspace/Confectory/Builds/Windows-x64.previous-202610211029085239132"
+  },
+  "packageProbe": {
+    "pass": true,
+    "package": "/workspace/Confectory/Builds/Windows-x64",
+    "files": 2228,
+    "crossPublishedWindowsX64PE": true,
+    "unrelatedWorkingDirectory": true,
+    "packageTamperAndMissingDependencyRejected": true,
+    "packagedEngineWebStartup": true,
+    "runtimeOnlyNoInstalledSDK": true,
+    "existingCheckoutProfileReusedAndExplicitOverrideRetained": true,
+    "resources": 50,
+    "renderedMinimalLogin": true,
+    "windowsApphostExecuted": false,
+    "webView2Executed": false,
+    "actualLoginOrInference": false,
+    "evidence": "/tmp/confectory-desktop-package-xpt2v03j"
+  },
+  "committedCheckout": "pending",
+  "actualWindowsOAuthInference": false,
+  "agentConsentMigration": "Separate follow-up; no grant/approval implementation changed",
+  "packagedSourceMatches": {
+    "examples/editor-home/WebBundle.csbody": true,
+    "examples/editor-home/ui/v508-runtime.js": true,
+    "examples/editor-home/ui/v508-views.js": true
+  }
+}
