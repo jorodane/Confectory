@@ -13,7 +13,7 @@ internal static class Program
         if (!OperatingSystem.IsWindows()) { Console.Error.WriteLine("Embedded WebUI requires Windows."); return 2; }
         ApplicationConfiguration.Initialize();
         using var rpc = new PackChannel();
-        using var form = new Form { Text = "Confectory", Width = 1440, Height = 960 };
+        using var form = new AppWindowForm { Text = "Confectory", Width = 1440, Height = 960 };
         using var view = new WebView2 { Dock = DockStyle.Fill };
         form.Controls.Add(view);
         int result = 0;
@@ -22,6 +22,10 @@ internal static class Program
         bool closing = false,nativePickerOpen=false;SiteRelayWindow? siteRelay=null;
         form.FormClosed += (_,_)=>siteRelay?.Shutdown();
         bool closeApproved=false,closePending=false,ready=false;TaskCompletionSource<bool>? presentationFlush=null;string? presentationFlushKey=null;
+        bool nonClientSupported=false;
+        JsonObject WindowSnapshot()=>new(){["supported"]=nonClientSupported,["customCaption"]=form.CustomCaption,["state"]=form.WindowState.ToString().ToLowerInvariant(),["dpi"]=form.DeviceDpi,["active"]=form.ContainsFocus};
+        void PublishWindowState(){if(!ready||closing||view.CoreWebView2 is null)return;try{view.CoreWebView2.PostWebMessageAsJson(new JsonObject{["type"]="confectory-window-state",["state"]=WindowSnapshot()}.ToJsonString());}catch(ObjectDisposedException){}catch(InvalidOperationException){}catch(System.Runtime.InteropServices.COMException){}}
+        form.Resize+=(_,_)=>PublishWindowState();form.Activated+=(_,_)=>PublishWindowState();form.Deactivate+=(_,_)=>PublishWindowState();form.DpiChanged+=(_,_)=>PublishWindowState();
         form.FormClosing += async (_, e) => {
             if(ready&&!closeApproved&&!rpc.IsClosed){
                 e.Cancel=true;if(closePending)return;
@@ -49,6 +53,10 @@ internal static class Program
                 await view.EnsureCoreWebView2Async(environment);
                 if (closing) return;
                 var core = view.CoreWebView2;
+                try{core.Settings.IsNonClientRegionSupportEnabled=true;nonClientSupported=true;}
+                catch(NotImplementedException){/* Keep the native caption if this runtime lacks draggable regions. */}
+                catch(System.Runtime.InteropServices.COMException){/* No caption removal without a working native drag path. */}
+
                 core.Settings.AreHostObjectsAllowed = false;
                 core.Settings.AreDevToolsEnabled = false;
                 core.Settings.AreDefaultContextMenusEnabled = false;
@@ -56,7 +64,7 @@ internal static class Program
                 core.Settings.IsPasswordAutosaveEnabled = false;
                 core.Settings.IsGeneralAutofillEnabled = false;
                 bool Owned(string url) => Uri.TryCreate(url, UriKind.Absolute, out var uri) && uri.GetLeftPart(UriPartial.Authority) == origin;
-                core.NavigationStarting += (_, e) => { if (!Owned(e.Uri)) e.Cancel = true; };
+                core.NavigationStarting += (_, e) => { if (!Owned(e.Uri)) e.Cancel = true; else form.SetCustomCaption(false); };
                 core.FrameNavigationStarting += (_, e) => e.Cancel = true;
                 core.NewWindowRequested += (_, e) => e.Handled = true;
                 core.PermissionRequested += (_, e) => e.State = CoreWebView2PermissionState.Deny;
@@ -82,13 +90,31 @@ internal static class Program
                     string id = "";
                     try
                     {
-                        if (!Owned(e.Source) || e.WebMessageAsJson.Length > 2097152) return;
+                        if (!Owned(e.Source) || !Owned(core.Source) || new Uri(e.Source).AbsolutePath is not ("/" or "/index.html") || new Uri(core.Source).AbsolutePath is not ("/" or "/index.html") || e.WebMessageAsJson.Length > 2097152) return;
                         var message = JsonNode.Parse(e.WebMessageAsJson)!;
                         if(closePending&&presentationFlushKey is not null&&message["presentationFlush"]?.GetValue<string>()==presentationFlushKey){presentationFlush?.TrySetResult(message["ok"]?.GetValue<bool>()==true);return;}
                         id = message["id"]!.GetValue<string>();
                         if (id.Length is < 1 or > 128) return;
                         JsonNode? response;
-                        if(message["native"]?.GetValue<string>()=="site-connect"){
+                        if(message["native"]?.GetValue<string>()=="window"){
+                            var command=message["envelope"]?.AsObject()??throw new ArgumentException("Window command required");
+                            string action=command["command"]?.GetValue<string>()??"";
+                            bool known=action is "state" or "chrome" or "minimize" or "maximize" or "restore" or "toggle-maximize" or "close";
+                            if(!known||command.Count!=(action=="chrome"?2:1)||command.Any(p=>p.Key!="command"&&(action!="chrome"||p.Key!="enabled")))throw new UnauthorizedAccessException("Window command denied");
+                            if(action!="state"&&(closing||closePending||nativePickerOpen))response=new JsonObject{["ok"]=false,["error"]=new JsonObject{["code"]="window_busy"}};
+                            else if(action!="state"&&!nonClientSupported)response=new JsonObject{["ok"]=false,["error"]=new JsonObject{["code"]="window_chrome_unsupported"}};
+                            else{
+                                switch(action){
+                                    case "chrome":form.SetCustomCaption(command["enabled"]!.GetValue<bool>());break;
+                                    case "minimize":form.WindowState=FormWindowState.Minimized;break;
+                                    case "maximize":form.WindowState=FormWindowState.Maximized;break;
+                                    case "restore":form.WindowState=FormWindowState.Normal;break;
+                                    case "toggle-maximize":form.WindowState=form.WindowState==FormWindowState.Maximized?FormWindowState.Normal:FormWindowState.Maximized;break;
+                                    case "close":form.Close();break; // Existing FormClosing owns flush, confirmation and engine cleanup.
+                                }
+                                response=new JsonObject{["ok"]=true,["requested"]=action=="close",["state"]=WindowSnapshot()};
+                            }
+                        }else if(message["native"]?.GetValue<string>()=="site-connect"){
                             if(siteRelay is {IsDisposed:false}){siteRelay.OpenConnectionWindow();response=new JsonObject{["ok"]=true};}
                             else{
                             var prepared=await rpc.Call("native",new JsonObject{["action"]="site-relay",["payload"]=new JsonObject{["prepare"]=true}});
@@ -142,13 +168,13 @@ internal static class Program
                 // The page gets only an envelope transport; no host object, paths or shell.
                 await core.AddScriptToExecuteOnDocumentCreatedAsync("""
                     (()=>{
-                      if(window!==window.top)return;
+                      if(window!==window.top||location.origin!==__WINDOW_ORIGIN__)return;
                       const pending=new Map();let serial=0;
                       chrome.webview.addEventListener('message',event=>{
                         const p=pending.get(event.data.id);if(!p)return;pending.delete(event.data.id);
                         clearTimeout(p.timer);event.data.error?p.reject(Error(event.data.error)):p.resolve(event.data.reply);
                       });
-                      Object.defineProperty(window,'confectoryWebUI',{value:Object.freeze({openCodexLogin(handle){return this.send({handle},'codex-login');},connectSite(){return this.send(null,'site-connect');},disconnectSite(){return this.send(null,'site-disconnect');},pickFile(){return this.send(null,'open-file');},chooseProjectParent(){return this.send(null,'choose-project-parent');},createProject(title,description,parent,proposalId){return this.send({title,description,parent,proposalId},'create-project');},send(envelope,native){
+                      Object.defineProperty(window,'confectoryWebUI',{value:Object.freeze({windowChromeSupported:__WINDOW_CHROME__,windowState(){return this.send({command:'state'},'window');},windowCommand(command,enabled){return this.send(command==='chrome'?{command,enabled}:{command},'window');},openCodexLogin(handle){return this.send({handle},'codex-login');},connectSite(){return this.send(null,'site-connect');},disconnectSite(){return this.send(null,'site-disconnect');},pickFile(){return this.send(null,'open-file');},chooseProjectParent(){return this.send(null,'choose-project-parent');},createProject(title,description,parent,proposalId){return this.send({title,description,parent,proposalId},'create-project');},send(envelope,native){
                         if(pending.size>=64)return Promise.reject(Error('transport_busy'));
                         const id=String(++serial);return new Promise((resolve,reject)=>{
                           const timer=setTimeout(()=>{pending.delete(id);reject(Error('transport_timeout'));},30000);
@@ -156,7 +182,7 @@ internal static class Program
                         });
                       }})});
                     })();
-                    """);
+                    """.Replace("__WINDOW_CHROME__",nonClientSupported?"true":"false").Replace("__WINDOW_ORIGIN__",JsonSerializer.Serialize(origin)));
                 ready=true;core.Navigate(origin + "/");
             }
             catch (Exception e)

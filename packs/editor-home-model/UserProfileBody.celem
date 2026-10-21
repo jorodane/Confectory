@@ -1,0 +1,5 @@
+implementation Confectory.EditorHome.Model::UserProfileBody for Confectory.EditorHome.Model::UserProfile (string storage,string operation,string payload) -> string {
+import Confectory.FileStream::Snapshot as Snapshot (string) -> string[];
+import Confectory.FileStream::Commit as Commit (string,string[],string[],string[]) -> string[];
+body common "UserProfile.csbody";
+}

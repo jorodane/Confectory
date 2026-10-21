@@ -1,0 +1,6 @@
+function Confectory.EditorHome.Model::UserProfile (string storage,string operation,string payload) -> string {
+provide Confectory.EditorHome.Model::UserProfile with Confectory.EditorHome.Model::UserProfileBody;
+provide Confectory.FileStream::Snapshot with Confectory.FileStream::SnapshotBody;
+provide Confectory.FileStream::Commit with Confectory.FileStream::CommitBody;
+provide Confectory.FileStream::WriteAtomic with Confectory.FileStream::WriteAtomicBody;
+}

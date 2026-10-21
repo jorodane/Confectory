@@ -1,4 +1,5 @@
 implementation Confectory.EditorHome::WebInvokeBody for Confectory.WebUI::Invoke (string context, string endpoint, string input, string cancellation) -> string {
+import Confectory.EditorHome.Model::UserProfile as UserProfile (string,string,string) -> string;
 import Confectory.EditorHome.Model::ChatUse as ChatUse (string,string,string) -> string;
 import Confectory.EditorHome.Model::HelperAgents as HelperAgents (string,string,string) -> string;
 import Confectory.WebUI::Cancelled as Cancelled (string) -> bool;

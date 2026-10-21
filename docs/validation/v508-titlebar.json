@@ -1,0 +1,268 @@
+{
+  "baseline": "9eecdcc5d40fb5660d7bf2588ec3c79a81ac3e3e",
+  "scope": "v508 real app titlebar stage only; whole UI refresh incomplete",
+  "sourceSha256": {
+    "examples/editor-home/WebBundle.csbody": "5cc435c4b66dda78ca3bc188e8196c2da1b9f0785c1aff879af4558462f71356",
+    "examples/editor-home/WebInvoke.csbody": "ddd815466b6cebe6cc909f6adf76bd91e32624b7a97f5af159b4661313f36204",
+    "examples/editor-home/WebInvokeBody.celem": "8ce32043d66025e9be0d805a149bda53d38292b1955d9f82130a2051820b4b8e",
+    "examples/editor-home/ui/app-titlebar.js": "c415a3d6b7c75fdc19fe38940aa72bb40c117dda03252445a40645fdc12c83e9",
+    "examples/editor-home/ui/v508-runtime.js": "b549b8837a66c6ce6d20a83dc91d895837eabec677dd8f53b8c209811a59f9b3",
+    "packs/editor-home-model/UserProfile.celem": "440e9e4aef5efda216faa0e867831c90f8ecba797fd627413da4e9759758e584",
+    "packs/editor-home-model/UserProfile.csbody": "9c2e7110fe9ce5607b1fe05f9da6ab7621e37ea401602ab4c7fec332e24728b2",
+    "packs/editor-home-model/UserProfileBody.celem": "94d33d5732b393b288c727ec2b674b356c1a1871da2a1a0f4944af055bbb7326",
+    "packs/editor-home-model/pack.cpack": "6a8a513eaf611ccbe7b12519aa721a2ef48ff72e5d05ad3e29c49f5caf4d9abc",
+    "targets/webview-windows/AppWindowForm.cs": "75da48ae173bd6aeace1118615aa9594a4c9c18c46f68b9e2efc5cb3c1c40379",
+    "targets/webview-windows/Confectory.WebView.Windows.csproj": "449c7a5f87573d9eb5b03a7c7c724cc11029681209c4887f8530b853b83c2087",
+    "targets/webview-windows/Program.cs": "5f4f1def4020e6bbe44ab0357ccd35f36f101e46293bb8f6f271444d92ebbf43"
+  },
+  "packagedSourceBytesMatch": {
+    "examples/editor-home/WebBundle.csbody": true,
+    "examples/editor-home/WebInvoke.csbody": true,
+    "examples/editor-home/WebInvokeBody.celem": true,
+    "examples/editor-home/ui/app-titlebar.js": true,
+    "examples/editor-home/ui/v508-runtime.js": true,
+    "packs/editor-home-model/UserProfile.celem": true,
+    "packs/editor-home-model/UserProfile.csbody": true,
+    "packs/editor-home-model/UserProfileBody.celem": true,
+    "packs/editor-home-model/pack.cpack": true,
+    "targets/webview-windows/AppWindowForm.cs": true,
+    "targets/webview-windows/Confectory.WebView.Windows.csproj": true,
+    "targets/webview-windows/Program.cs": true
+  },
+  "protectedGuardsStylesReferenceUnchanged": {
+    "packs/agent-codex/Provider.csbody": true,
+    "packs/agent-codex/Verification.csbody": true,
+    "packs/agent-codex/AccountLogin.csbody": true,
+    "packs/agent-codex/Onboarding.csbody": true,
+    "packs/development-tools/Invoke.csbody": true,
+    "packs/development-tools/Open.csbody": true,
+    "packs/ai-connection/Authorize.csbody": true,
+    "examples/editor-home/ui/style.css": true,
+    "examples/editor-home/ui/runtime.css": true,
+    "reference/site-ui/Confectory-Editor-Prototype-v508.zip": true
+  },
+  "hostCrossBuild": {
+    "pass": true,
+    "warnings": 0,
+    "errors": 0,
+    "nativeWindowsExecuted": false
+  },
+  "hostGeometryAndCommands": {
+    "pass": true,
+    "cases": 19,
+    "fakeForm": true,
+    "originalFormClosingUnchanged": true
+  },
+  "privateDisplayProfile": {
+    "pass": true,
+    "cases": 22,
+    "actualAccountOrGrant": false
+  },
+  "renderer": {
+    "checks": [
+      "exact original DOM/icon geometry at1280x892",
+      "commands/events use host, no fake minimize/fullscreen/close navigation",
+      "pending explicit Save flush awaits commit; duplicate submits blocked",
+      "save failure retains input and blocks flush until explicit dismissal",
+      "async no-header/replaced-header handoff converges without duplicate controls",
+      "partial header rerender idempotent",
+      "small viewports no horizontal overflow",
+      "native drag declaration excludes interactive controls/tabs",
+      "unsupported native/browser retains visible header without fake window controls",
+      "click during initial profile load shares pending read and opens once"
+    ],
+    "geometry": [
+      {
+        "viewport": 1280,
+        "oracle": [
+          {
+            "selector": ".topbar",
+            "x": 0,
+            "y": 0,
+            "width": 1280,
+            "height": 64,
+            "html": null
+          },
+          {
+            "selector": ".app-my-info-button",
+            "x": 957.4375,
+            "y": 13.5,
+            "width": 83.46875,
+            "height": 36,
+            "html": "<span class=\"my-header-avatar\" aria-hidden=\"true\">👤</span><span>내 정보</span>"
+          },
+          {
+            "selector": ".app-settings-button",
+            "x": 1056.90625,
+            "y": 13.5,
+            "width": 69.09375,
+            "height": 36,
+            "html": "<svg viewBox=\"0 0 24 24\"><path d=\"m9 3-.6 2.1-1.8 1L4.5 5.6 2 9.9l1.5 1.6v2L2 15.1l2.5 4.3 2.1-.5 1.8 1L9 22h6l.6-2.1 1.8-1 2.1.5 2.5-4.3-1.5-1.6v-2L22 9.9l-2.5-4.3-2.1.5-1.8-1L15 3Z\"></path><circle cx=\"12\" cy=\"12.5\" r=\"3.5\"></circle></svg><span>설정</span>"
+          },
+          {
+            "selector": ".app-window-controls",
+            "x": 1150,
+            "y": 15.5,
+            "width": 106,
+            "height": 32,
+            "html": "<button type=\"button\" data-app-minimize=\"\" aria-label=\"최소화\" title=\"최소화\"><svg viewBox=\"0 0 16 16\" aria-hidden=\"true\" focusable=\"false\"><path fill-rule=\"evenodd\" d=\"M2 7.25h12v1.5H2z\"></path></svg></button><button type=\"button\" data-app-maximize=\"\" aria-label=\"최대화\" title=\"최대화\" aria-pressed=\"false\"><svg viewBox=\"0 0 16 16\" aria-hidden=\"true\" focusable=\"false\"><path fill-rule=\"evenodd\" d=\"M2 2h12v12H2zM3.5 3.5v9h9v-9z\"></path></svg></button><button type=\"button\" data-app-close=\"\" aria-label=\"닫기\" title=\"닫기\"><svg viewBox=\"0 0 16 16\" aria-hidden=\"true\" focusable=\"false\"><path fill-rule=\"evenodd\" d=\"M2 3.06066 3.06066 2 8 6.93934 12.93934 2 14 3.06066 9.06066 8 14 12.93934 12.93934 14 8 9.06066 3.06066 14 2 12.93934 6.93934 8z\"></path></svg></button>"
+          },
+          {
+            "selector": "[data-app-minimize]",
+            "x": 1150,
+            "y": 15.5,
+            "width": 34,
+            "height": 32,
+            "html": "<svg viewBox=\"0 0 16 16\" aria-hidden=\"true\" focusable=\"false\"><path fill-rule=\"evenodd\" d=\"M2 7.25h12v1.5H2z\"></path></svg>"
+          },
+          {
+            "selector": "[data-app-maximize]",
+            "x": 1186,
+            "y": 15.5,
+            "width": 34,
+            "height": 32,
+            "html": "<svg viewBox=\"0 0 16 16\" aria-hidden=\"true\" focusable=\"false\"><path fill-rule=\"evenodd\" d=\"M2 2h12v12H2zM3.5 3.5v9h9v-9z\"></path></svg>"
+          },
+          {
+            "selector": "[data-app-close]",
+            "x": 1222,
+            "y": 15.5,
+            "width": 34,
+            "height": 32,
+            "html": "<svg viewBox=\"0 0 16 16\" aria-hidden=\"true\" focusable=\"false\"><path fill-rule=\"evenodd\" d=\"M2 3.06066 3.06066 2 8 6.93934 12.93934 2 14 3.06066 9.06066 8 14 12.93934 12.93934 14 8 9.06066 3.06066 14 2 12.93934 6.93934 8z\"></path></svg>"
+          }
+        ],
+        "actual": [
+          {
+            "selector": ".topbar",
+            "x": 0,
+            "y": 0,
+            "width": 1280,
+            "height": 64,
+            "html": null
+          },
+          {
+            "selector": ".app-my-info-button",
+            "x": 957.4375,
+            "y": 13.5,
+            "width": 83.46875,
+            "height": 36,
+            "html": "<span class=\"my-header-avatar\" aria-hidden=\"true\">👤</span><span>내 정보</span>"
+          },
+          {
+            "selector": ".app-settings-button",
+            "x": 1056.90625,
+            "y": 13.5,
+            "width": 69.09375,
+            "height": 36,
+            "html": "<svg viewBox=\"0 0 24 24\"><path d=\"m9 3-.6 2.1-1.8 1L4.5 5.6 2 9.9l1.5 1.6v2L2 15.1l2.5 4.3 2.1-.5 1.8 1L9 22h6l.6-2.1 1.8-1 2.1.5 2.5-4.3-1.5-1.6v-2L22 9.9l-2.5-4.3-2.1.5-1.8-1L15 3Z\"></path><circle cx=\"12\" cy=\"12.5\" r=\"3.5\"></circle></svg><span>설정</span>"
+          },
+          {
+            "selector": ".app-window-controls",
+            "x": 1150,
+            "y": 15.5,
+            "width": 106,
+            "height": 32,
+            "html": "<button type=\"button\" data-app-minimize=\"\" aria-label=\"최소화\" title=\"최소화\"><svg viewBox=\"0 0 16 16\" aria-hidden=\"true\" focusable=\"false\"><path fill-rule=\"evenodd\" d=\"M2 7.25h12v1.5H2z\"></path></svg></button><button type=\"button\" data-app-maximize=\"\" aria-label=\"최대화\" title=\"최대화\" aria-pressed=\"false\"><svg viewBox=\"0 0 16 16\" aria-hidden=\"true\" focusable=\"false\"><path fill-rule=\"evenodd\" d=\"M2 2h12v12H2zM3.5 3.5v9h9v-9z\"></path></svg></button><button type=\"button\" data-app-close=\"\" aria-label=\"닫기\" title=\"닫기\"><svg viewBox=\"0 0 16 16\" aria-hidden=\"true\" focusable=\"false\"><path fill-rule=\"evenodd\" d=\"M2 3.06066 3.06066 2 8 6.93934 12.93934 2 14 3.06066 9.06066 8 14 12.93934 12.93934 14 8 9.06066 3.06066 14 2 12.93934 6.93934 8z\"></path></svg></button>"
+          },
+          {
+            "selector": "[data-app-minimize]",
+            "x": 1150,
+            "y": 15.5,
+            "width": 34,
+            "height": 32,
+            "html": "<svg viewBox=\"0 0 16 16\" aria-hidden=\"true\" focusable=\"false\"><path fill-rule=\"evenodd\" d=\"M2 7.25h12v1.5H2z\"></path></svg>"
+          },
+          {
+            "selector": "[data-app-maximize]",
+            "x": 1186,
+            "y": 15.5,
+            "width": 34,
+            "height": 32,
+            "html": "<svg viewBox=\"0 0 16 16\" aria-hidden=\"true\" focusable=\"false\"><path fill-rule=\"evenodd\" d=\"M2 2h12v12H2zM3.5 3.5v9h9v-9z\"></path></svg>"
+          },
+          {
+            "selector": "[data-app-close]",
+            "x": 1222,
+            "y": 15.5,
+            "width": 34,
+            "height": 32,
+            "html": "<svg viewBox=\"0 0 16 16\" aria-hidden=\"true\" focusable=\"false\"><path fill-rule=\"evenodd\" d=\"M2 3.06066 3.06066 2 8 6.93934 12.93934 2 14 3.06066 9.06066 8 14 12.93934 12.93934 14 8 9.06066 3.06066 14 2 12.93934 6.93934 8z\"></path></svg>"
+          }
+        ]
+      }
+    ],
+    "pageErrors": [],
+    "nativeWindowsExecuted": false,
+    "evidence": "/tmp/confectory-titlebar-ui-r7bne17s"
+  },
+  "bridge": {
+    "checks": [
+      "exact owner top-frame bridge installs frozen transport and bounded window envelope",
+      "same-origin and remote iframe document receives no injected bridge",
+      "remote top document receives no bridge",
+      "source audit: native admission checks sender/current owned root document; frames blocked, host objects off"
+    ],
+    "nativeWindowsExecuted": false
+  },
+  "packagedEngine": {
+    "checks": [
+      "real owned userProfile endpoint stores display fields without account/auth",
+      "actual renderer reload rehydrates profile",
+      "generated runtime flush and native simulated maximize leave app usable",
+      "engine process restart uses private persisted display profile",
+      "generated runtime flush and native simulated maximize leave app usable",
+      "project screen uses same native titlebar and display profile",
+      "generated runtime flush and native simulated maximize leave app usable"
+    ],
+    "pageErrors": [],
+    "externalRequests": [],
+    "nativeWindowsExecuted": false,
+    "accountOrInference": false,
+    "evidence": "/tmp/confectory-titlebar-engine-7pcp4ac9"
+  },
+  "packageProbe": {
+    "pass": true,
+    "package": "/workspace/Confectory/Builds/Windows-x64",
+    "files": 2238,
+    "crossPublishedWindowsX64PE": true,
+    "unrelatedWorkingDirectory": true,
+    "packageTamperAndMissingDependencyRejected": true,
+    "packagedEngineWebStartup": true,
+    "runtimeOnlyNoInstalledSDK": true,
+    "existingCheckoutProfileReusedAndExplicitOverrideRetained": true,
+    "resources": 51,
+    "renderedMinimalLogin": true,
+    "windowsApphostExecuted": false,
+    "webView2Executed": false,
+    "actualLoginOrInference": false,
+    "evidence": "/tmp/confectory-desktop-package-_4b9_ews",
+    "verifiedOriginalOutput": "/tmp/confectory-desktop-package-_4b9_ews/Windows result 한글",
+    "previousPackagePreserved": "/workspace/Confectory/Builds/Windows-x64.previous-titlebar-20261021130133"
+  },
+  "visualOracle": {
+    "originalArchive": "reference/site-ui/Confectory-Editor-Prototype-v508.zip",
+    "entry": "Confectory-v508/dist/app.js",
+    "viewport": {
+      "width": 1280,
+      "height": 892
+    },
+    "pixelsIdentical": true,
+    "topbarHeight": 64,
+    "windowControls": {
+      "width": 106,
+      "height": 32
+    },
+    "individualControl": {
+      "width": 34,
+      "height": 32
+    },
+    "scope": "Extracted original window-control DOM/icons and MyInfo form, frozen styles, shared base header; excludes full original application and native OS frame"
+  },
+  "committedCheckout": {
+    "state": "pending source commit"
+  },
+  "actualWindowsNativeTested": false,
+  "wholeV508UiComplete": false,
+  "actualLoginOrInference": false
+}

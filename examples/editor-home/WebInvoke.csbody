@@ -2,6 +2,10 @@ if(calls.Cancelled.Invoke(cancellation))throw new OperationCanceledException();
 var args=System.Text.Json.Nodes.JsonNode.Parse(input)!.AsObject();
 System.Text.Json.Nodes.JsonNode Command(string operation,System.Text.Json.Nodes.JsonObject payload){var result=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(context,operation,payload.ToJsonString()))!;if(result["status"]?.ToString().StartsWith("Error:",StringComparison.Ordinal)==true)throw new InvalidOperationException("Consumer rejected operation");return result;}
 var before=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(context))!;
+if(endpoint=="userProfile"){
+ string profileAction=args["action"]?.GetValue<string>()??"load";if(profileAction is not ("load" or "save")||System.Linq.Enumerable.Any(args,p=>p.Key is not ("action" or "revision" or "value")))throw new UnauthorizedAccessException("profile_action_denied");
+ var owner=AppDomain.CurrentDomain.GetData("Confectory.EditorHome."+context) as object[]??throw new ObjectDisposedException("EditorHome");var profileInput=args.DeepClone().AsObject();profileInput.Remove("action");return calls.UserProfile.Invoke(System.IO.Path.GetDirectoryName((string)owner[2])!,profileAction,profileInput.ToJsonString());
+}
 if(endpoint=="chatUse"){
  foreach(var field in args)if(field.Key is not ("action" or "kind" or "helper" or "challenge" or "agent"))throw new UnauthorizedAccessException("chat-use-ui-fields");
  string useAction=args["action"]?.ToString()??"status";if(useAction is not ("status" or "agent-status" or "agent-accept" or "revoke-agent"))throw new UnauthorizedAccessException("chat-use-ui-action");
