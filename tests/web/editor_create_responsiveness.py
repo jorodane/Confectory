@@ -5,11 +5,20 @@ from editor_navigation import goto_editor
 import json,os,pathlib,shutil,signal,subprocess,sys,tempfile,time,urllib.request,uuid
 from playwright.sync_api import sync_playwright,expect
 expect.set_options(timeout=30000)
+project_chat=os.environ.get('CONFECTORY_PROJECT_CHAT')=='1';chat_provider=None
+if project_chat:
+ from project_chat_contract import OwnedChat
+ chat_provider=OwnedChat()
 repo=pathlib.Path(sys.argv[1]).resolve();root=pathlib.Path(tempfile.mkdtemp(prefix='confectory-create-responsive-'));print('FIXTURE '+str(root),flush=True)
 owned=root/'engine';editor=owned/'examples/editor-home';shutil.copytree(repo/'examples/editor-home',editor,ignore=shutil.ignore_patterns('.confectory'));(owned/'targets/dotnet').mkdir(parents=True);(owned/'targets/dotnet/pack.cpack').write_text('pack Owned.Marker version "1" {standalone false;}')
 # Production model still uses the real repository/template. Only the native parent-selection boundary is supplied by the fixture.
 pack=root/'browser-host';shutil.copytree(repo/'packs/browser-host',pack)
 for p in editor.glob('*.cpack'):p.write_text(p.read_text().replace('../../',str(repo)+'/').replace(json.dumps(str(repo/'packs/browser-host/pack.cpack')),json.dumps(str(pack/'pack.cpack'))))
+if project_chat:
+ tools=root/'development-tools';shutil.copytree(repo/'packs/development-tools',tools)
+ for p in editor.glob('*.cpack'):p.write_text(p.read_text().replace(json.dumps(str(repo/'packs/development-tools/pack.cpack')),json.dumps(str(tools/'pack.cpack'))))
+ failure=root/'fail-once';failure.write_text('owned')
+ p=tools/'Open.csbody';p.write_text('if(System.IO.File.Exists('+json.dumps(str(failure))+')){System.IO.File.Delete('+json.dumps(str(failure))+');throw new InvalidOperationException("owned-secret-must-not-leak");}\n'+p.read_text())
 p=pack/'ServeBody.celem';p.write_text(p.read_text().replace('body common','import Confectory.WebUI::NativeRequest as NativeRequest (string,string,string) -> string;\nbody common'))
 p=pack/'Serve.csbody';s=p.read_text();needle='if(request.Url.AbsolutePath=="/api/request")';assert needle in s
 branch='''if(request.Url.AbsolutePath=="/fixture/native-create"){
@@ -43,7 +52,7 @@ try:
   # Browser transport stays production. This emulates only the native API that is absent on Linux.
   page.add_init_script('''globalThis.__creationReply='normal';globalThis.confectoryWebUI={async chooseProjectParent(){return {ok:true,parent:'owned-parent',label:'Owned fixture projects'};},async createProject(title,description,parent,proposalId){if(globalThis.__creationReply==='cancel')return {ok:true,cancelled:true};const token=sessionStorage.getItem('confectory.webui.session');return (await fetch('/fixture/native-create',{method:'POST',headers:{'Content-Type':'application/json','X-Confectory-Session':token},body:JSON.stringify({title,description,...(proposalId?{proposalId}:{})})})).json();}};''')
   goto_editor(page,url);page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='Agent 추가',exact=True);dialog.get_by_role('button',name='OpenAI Responses',exact=True).click()
-  for name,value in [('model','owned-no-inference'),('endpoint','http://127.0.0.1:9/responses'),('credentialReference','')]:dialog.locator('[data-connection-field="'+name+'"]').fill(value)
+  for name,value in [('model','owned-no-inference'),('endpoint',chat_provider.endpoint if chat_provider else 'http://127.0.0.1:9/responses'),('credentialReference','')]:dialog.locator('[data-connection-field="'+name+'"]').fill(value)
   dialog.locator('[data-agent-register]').click();expect(dialog.locator('[data-agent-registration-state]')).to_contain_text('Agent 등록됨');dialog.locator('[data-connection-cancel]').click();assert state()['helpers']==[]
   def create(title,helper=None):
    page.locator('#new-project').click();modal=page.get_by_role('dialog',name='새 프로젝트 만들기',exact=True);modal.locator('#project-name').fill(title);modal.locator('#project-desc').fill('Owned creation responsiveness fixture');
@@ -57,7 +66,10 @@ try:
   else:raise AssertionError('created project never received its owned Main Helper')
   page.wait_for_timeout(300);evidence['afterCreation']={'inert':page.locator('#app').evaluate('e=>e.inert'),'overlays':page.locator('#overlays').inner_text(),'projectId':value['projectId'],'mainHelperId':value['mainHelperId'],'helperIds':value['projectHelperIds'],'errors':errors};page.screenshot(path=str(root/'created.png'))
   assert (root/'projects/Owned Created/project.cproj').is_file();assert len(value['helpers'])==1;assert value['helperAgents']['assignments'][value['mainHelperId']]=='Confectory.Agent.Responses::Connection'
-  if os.environ.get('CONFECTORY_EXPECT_CREATE_BUG')=='1':
+  if project_chat:
+   from project_chat_contract import run
+   run(page,state,root,chat_provider)
+  elif os.environ.get('CONFECTORY_EXPECT_CREATE_BUG')=='1':
    assert evidence['afterCreation']['inert'] and not evidence['afterCreation']['overlays'];(root/'evidence.json').write_text(json.dumps(evidence,indent=2));print('REPRODUCED orphaned inert after actual native-contract project creation '+str(root),flush=True)
   else:
    assert not evidence['afterCreation']['inert'],evidence
@@ -80,3 +92,4 @@ except BaseException:
 finally:
  if host.poll() is None:os.killpg(host.pid,signal.SIGTERM);host.wait(timeout=15)
  log.close()
+ if chat_provider:chat_provider.close()

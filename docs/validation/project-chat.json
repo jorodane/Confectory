@@ -1,0 +1,56 @@
+{
+  "checks": [
+    "project IME Enter not sent",
+    "Shift Enter newline",
+    "Enter and button share route",
+    "redacted workspace-open failure",
+    "retry before provider dispatch",
+    "explicit project content/usage consent",
+    "owned project actual Responses HTTP round trip",
+    "project remains selected through response",
+    "Home global Responses HTTP round trip",
+    "no source file changes"
+  ],
+  "diagnostic": [
+    {
+      "diagnostic": {
+        "code": "project_chat_failed",
+        "stage": "workspace-open",
+        "cause": "state_rejected"
+      },
+      "sourceError": null
+    }
+  ],
+  "providerKinds": [
+    "project-chat",
+    "helper-global-chat"
+  ],
+  "actualWindowsExecuted": false,
+  "actualAccountOrInference": false,
+  "baseline": "9822c01eed85a274cd9c1503a2e79f93ca54af8c",
+  "ownershipPolicy": {
+    "before": "same-name Windows case rejected by shipped Open body",
+    "after": "12 positive/negative cases passed; Windows comparison simulated on Linux"
+  },
+  "backendApprovalRegression": "1 passed, 0 failed, 0 skipped; 29.920s",
+  "release": {
+    "warnings": 0,
+    "errors": 0
+  },
+  "package": {
+    "files": 2225,
+    "resources": 50,
+    "windowsExecuted": false,
+    "runtimeOnlyStartup": true,
+    "unrelatedCwd": true,
+    "tamperAndMissingDependencyRejected": true,
+    "existingProfilePreserved": true
+  },
+  "sourceSha256": {
+    "examples/editor-home/WebBundle.csbody": "1941a9be92f96ae00d4e9da6e5a9a385f22dffe5458873e3b338c6dcf34d90cb",
+    "examples/editor-home/ui/style.css": "40cd1bd83457299bd6bb10bbcd5cfc366f53067d641aec26cd26c898d0718cf4",
+    "examples/editor-home/ui/v508-runtime.js": "9e5292985eb840eaf10e044e17360ecb8a5bf30d6ae4c5cb3c5b02544d7d3f4b",
+    "packs/development-tools/Open.csbody": "8e66c3534a7529e0bdaa7c0b2e9c4884ab6a48680320e4b6a521f2e547025d12",
+    "packs/editor-home-model/Command.csbody": "7ce0d88c760a84c298b6c8acf070fa13401d13667ad41e316645ead1a1b202cd"
+  }
+}

@@ -2412,3 +2412,6 @@ body:has(#app.is-app-minimized) .workspace-chat-bubbles,body:has(#app.is-app-min
 .helper-profile-card.participant-expanded-card:not(.helper-sd-companion) #global-chat,.helper-profile-card.participant-expanded-card:not(.helper-sd-companion) #global-chat>.window-content{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column}
 .helper-profile-card.participant-expanded-card:not(.helper-sd-companion) #global-chat .messages{flex:1;height:auto;min-height:0;max-height:none!important}
 .helper-profile-card.participant-expanded-card:not(.helper-sd-companion) #global-chat .helper-chat-compose{flex-shrink:0}
+
+/* Respect modal visibility while retaining the floating chat flex layout. */
+.helper-profile-card.participant-expanded-card[hidden]{display:none!important}
