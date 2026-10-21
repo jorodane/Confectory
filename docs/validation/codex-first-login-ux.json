@@ -111,7 +111,16 @@
     "actualLoginOrInference": false,
     "evidence": "/tmp/confectory-desktop-package-vnxwkrko"
   },
-  "committedCheckout": "pending",
+  "committedCheckout": {
+    "passed": true,
+    "sourceCommit": "7815aa4c1c3e4c6d789095f7dbf0a50876c12f24",
+    "resources": 50,
+    "retainedCrlfAfterAttributePull": true,
+    "freshLfCheckout": true,
+    "contentEncodingBomBinaryBudgetRejection": true,
+    "originalBytesUnchanged": true,
+    "windowsExecuted": false
+  },
   "actualWindowsPolicyCause": "not established",
   "actualWindowsApphostOAuthOrPaidInference": false,
   "compatibility": {
