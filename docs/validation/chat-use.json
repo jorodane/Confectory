@@ -86,7 +86,16 @@
     "actualLoginOrInference": false,
     "evidence": "/tmp/confectory-desktop-package-eywwf6hf"
   },
-  "committedCheckout": "pending",
+  "committedCheckout": {
+    "passed": true,
+    "sourceCommit": "077f5836829d4cca85045830e392fb8643f6c6c4",
+    "resources": 50,
+    "retainedCrlfAfterAttributePull": true,
+    "freshLf": true,
+    "contentEncodingBomBinaryBudgetRejection": true,
+    "originalBytesUnchanged": true,
+    "windowsExecuted": false
+  },
   "packagedSourceMatches": {
     "packs/editor-home-model/ChatUse.csbody": true,
     "packs/editor-home-model/Command.csbody": true,
