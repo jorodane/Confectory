@@ -57,3 +57,5 @@ Browser 후속 정리: 이번 유한 잔여와 이후 Blueprint 작업 단위는
 후속 모바일 특수핀 첫 수용: 선행 ABI 엔진을 사용한390폭 실제6건에서 whole-body C# 값/ref/out·native 이름 대응·폭 전환·cold·원자 Save·Review취소/명시 Confirm을 확인했다. runtime 변경 없이 회귀와 경계를 기록했다. `VALIDATION_V536_MOBILE_SPECIAL_PINS.md`를 따르며 특수핀 전체/async/복사·등록 문맥 완료가 아니다.
 
 직접 등록 callable ABI 후속: 기존 직접 의존성 선언/manifest receipt를 명시적 갱신·typed import/graph 원자 저장에 연결했다. 등록 변경 거절 후 새 계약 재확인·cold·Review/명시 Confirm 실제6건, 소유 슬롯 영향 회귀8건을 구분해 `VALIDATION_V536_REGISTERED_CALL_ABI.md`에 기록한다. 복사본·여러 target/호출·일반 ABI는 미완료이며, backend/어댑터 구분과 혼합 Save·조작 검증의 진입 조건은 `V536_REMAINING_BACKEND_MAP.md`를 따른다.
+
+wrapper enum 특수 실행 핀 후속: 원본의 이름 우선 ID 대응을 복원하고 모바일 분기 소유 삽입·취소·cold·원자 Save·명시 compiler Confirm·충돌 입력 보존 실제8건을 수용했다. `VALIDATION_V536_ENUM_PINS.md` 참조. 일반 code enum/속성 평가 시점/local Set 등의 남은 경계는 전체 특수 핀 완료로 합치지 않는다. 복사본·다중 target·혼합 Save 차단은 유지한다.
