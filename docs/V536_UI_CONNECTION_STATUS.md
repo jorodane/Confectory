@@ -59,3 +59,5 @@ Browser 후속 정리: 이번 유한 잔여와 이후 Blueprint 작업 단위는
 직접 등록 callable ABI 후속: 기존 직접 의존성 선언/manifest receipt를 명시적 갱신·typed import/graph 원자 저장에 연결했다. 등록 변경 거절 후 새 계약 재확인·cold·Review/명시 Confirm 실제6건, 소유 슬롯 영향 회귀8건을 구분해 `VALIDATION_V536_REGISTERED_CALL_ABI.md`에 기록한다. 복사본·여러 target/호출·일반 ABI는 미완료이며, backend/어댑터 구분과 혼합 Save·조작 검증의 진입 조건은 `V536_REMAINING_BACKEND_MAP.md`를 따른다.
 
 wrapper enum 특수 실행 핀 후속: 원본의 이름 우선 ID 대응을 복원하고 모바일 분기 소유 삽입·취소·cold·원자 Save·명시 compiler Confirm·충돌 입력 보존 실제8건을 수용했다. `VALIDATION_V536_ENUM_PINS.md` 참조. 일반 code enum/속성 평가 시점/local Set 등의 남은 경계는 전체 특수 핀 완료로 합치지 않는다. 복사본·다중 target·혼합 Save 차단은 유지한다.
+
+일반 enum 후속: 기존 소유 static/void code를 원본 C# enum/body/helpers 및 모바일 실행 줄에 연결하고 한 checkpoint로 저장한다. 화면 강제 재진입 중 불완전 원문을 정상 graph에 적용하던 결함을 수정하여 원문 복구와 실제 source 변경 차단을 분리했다. 지원 범위·검증은 `VALIDATION_V536_GENERAL_ENUM.md`, 속성/Set/결합 저장의 정확한 다음 구현과 결정은 `V536_PIN_AND_ATOMIC_NEXT.md`를 따른다. 전체 v536 완료 또는 실제 Windows/mobile 검증이 아니다.
