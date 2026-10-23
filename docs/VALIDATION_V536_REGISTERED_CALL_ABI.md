@@ -19,7 +19,7 @@
 - 직접 등록 함수/manifest 확인과 기존 슬롯 진입; 누락/위조 receipt 차단; 같은 함수여도 manifest 변경 시 실제 UI Save 차단·입력 보관; 원래 checkpoint/전체 owned closure 검증과 잘못된 hash/checkpoint 거절; cold 후 새 계약 명시 확인/원래 refreshFrom 유지/원자 Save; Review 취소와 새 compiler Confirm에서 owned Caller 선언·graph만 변경하고 외부 팩/provider·다른 소스를 보존했다. 적용 후의 이전 기준은 재시도 기록 해제 증거로 사용할 수 없음을 확인했다.
 - 변경된 batch/settled의 기존 소유 슬롯 회귀8건도 exit0(`/tmp/confectory-slot-call-abi-wnu9vs_m`, build3). 최종 한 줄의 refreshFrom 유지 수정은 위 build4 등록 통합에서 확인했다. 이전 모바일6건을 새 구현 검사로 세지 않는다.
 - Linux 생성 build4 exit0, JS/Python 구문 및 diff 검사 통과. 중간 build2의 Count 확장 메서드 이름 오류는 정식 `System.Linq.Enumerable.Count`로 수정했다. 이전 실패/기대 오류 기록을 삭제하지 않았다.
-- Windows x64 교차 패키지: `/workspace/artifacts/Confectory-v536-registered-call-abi/Windows-x64/Confectory.exe`, 선언2305파일/66 UI 리소스. `desktop_package.py` exit0(`/tmp/confectory-desktop-package-eau7ohva`): 구성·누락/변조 거절·SDK 없는 패키지 웹 기동·다른 cwd·프로필 재사용/명시 override·최소 로그인 화면을 확인했다. 깨끗한 checkout 결과는 게시 시 별도로 기록한다. .NET Desktop Runtime10.0 x64와 Edge WebView2 Runtime이 필요하며 자동 설치하지 않는다.
+- Windows x64 교차 패키지: `/workspace/artifacts/Confectory-v536-registered-call-abi/Windows-x64/Confectory.exe`, 선언2305파일/66 UI 리소스. `desktop_package.py` exit0(`/tmp/confectory-desktop-package-eau7ohva`): 구성·누락/변조 거절·SDK 없는 패키지 웹 기동·다른 cwd·프로필 재사용/명시 override·최소 로그인 화면을 확인했다. 구현 커밋 `d8b3752bbfbad63e0c27f23db8cea3cecf576435`의 일반 ff checkout 생성 빌드와 `web_resource_checkout.py`도 exit0이다. 실제 과거 CRLF checkout→일반 pull 및 fresh LF의66개 정확한 리소스, 잘못된 내용/인코딩/BOM/바이너리/예산 거절과 원본 바이트 보존을 확인했다. 원격 work/current의 구현 SHA 일치와 두 작업 트리 clean을 확인했다. .NET Desktop Runtime10.0 x64와 Edge WebView2 Runtime이 필요하며 자동 설치하지 않는다.
 
 ## 남은 범위
 
