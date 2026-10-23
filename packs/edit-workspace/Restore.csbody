@@ -61,6 +61,7 @@ lock(state)
    if(System.Linq.Enumerable.Any(conversionOrigin["observations"]!.AsArray(),input=>string.Equals(input!["path"]!.ToString(),candidatePath,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal))&&candidate.Value["draft"]!.ToString()!=System.IO.File.ReadAllText(candidatePath))throw new ArgumentException("Saved conversion must preserve its original source files");
   }
  }
+ var privateCopies=data["privateCopies"]?.DeepClone() as System.Text.Json.Nodes.JsonObject??new System.Text.Json.Nodes.JsonObject();if(privateCopies.Count>8||System.Text.Encoding.UTF8.GetByteCount(privateCopies.ToJsonString())>16777216)throw new ArgumentException("Private copy seed budget");foreach(var item in privateCopies){var seed=item.Value!;if(seed["snapshot"]?["implementation"]?.ToString()!=item.Key||staged[item.Key] is not null||staged[seed["snapshot"]!["owner"]!.ToString()]?["kind"]?.ToString()!="object"&&!retiredIds.Contains(seed["snapshot"]!["owner"]!.ToString()))throw new ArgumentException("Private seed identity already registered or missing owner");calls.Metadata.Invoke("privateCopySeed",new System.Text.Json.Nodes.JsonObject{["seed"]=seed.DeepClone(),["project"]=state["project"]!.DeepClone(),["identity"]=state["identity"]!.DeepClone()}.ToJsonString());}
  var history=data["history"]?.DeepClone() as System.Text.Json.Nodes.JsonObject??new System.Text.Json.Nodes.JsonObject{["revision"]=0L,["undo"]=new System.Text.Json.Nodes.JsonArray(),["redo"]=new System.Text.Json.Nodes.JsonArray()};
  if(history.ToJsonString().Length>2098176||history["revision"]!.GetValue<long>()<0||history["undo"] is not System.Text.Json.Nodes.JsonArray undo||history["redo"] is not System.Text.Json.Nodes.JsonArray redo||undo.Count+redo.Count>32)throw new ArgumentException("Bounded saved history required");
  var entryIds=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
@@ -70,5 +71,5 @@ lock(state)
  }
  if(history["boundary"] is not null&&history["boundary"]!.ToString() is not ("ENTRY_BUDGET" or "OWNERSHIP_CHANGED" or "CONFLICT_REBASED"))throw new ArgumentException("Saved history boundary invalid");
  history["epoch"]=Guid.NewGuid().ToString("N");state["history"]=history;
- state["units"]=staged;state["retirements"]=retired;
+ state["units"]=staged;state["retirements"]=retired;state["privateCopies"]=privateCopies;
 }

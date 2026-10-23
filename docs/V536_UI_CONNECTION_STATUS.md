@@ -1,6 +1,14 @@
 # v536 연결 현황과 중간 빌드 준비 조건
 
-2026-10-23, 게시된 `work/current` 기준 HEAD `c08d08f29f16c35e896097f5a62042f50c5ae242` 및 후속 Browser 검증. UI 기준은 사용자가 지정한 `origin/main` `196c605`의 원본 v536 ZIP이다. 첨부 ZIP과의 바이트 동일성은 미확인이다. 아래의 ‘검증 완료’는 명시한 묶음에 한정되며 전체 v536 복원, 전체 편집 문맥 또는 실제 Windows 통과를 뜻하지 않는다.
+2026-10-23 최신 한정 작업은 `VALIDATION_V536_PRIVATE_COPY_ABI.md`다. 아래 후속 문단은 시점별 기록이며, 이전 문단의 미지원 상태를 최신 지원으로 오해하지 않는다. UI 기준은 지정된 `origin/main` `196c605`의 원본 v536 ZIP이고 첨부 ZIP과의 바이트 동일성은 미확인이다. 묶음별 통과는 전체 UI 복원이나 Windows 실기기 수용을 뜻하지 않는다.
+
+현재 남은 범위는 다음과 같다.
+
+- **Blueprint 연결/원자 저장:** 일반 ABI 이름·순서·타입/out/반환 remap, opaque C#·상속/복사본 다중 target·whole-body context·같은 callee 여러 사용·등록 all-target receipt는 미완료다. 새 private copy의 단일 target 명시 갱신과 owned ordinary2target의 한정 값/ref 갱신은 완료 범위에 추가됐다. 여러 copy+owner 데이터, schema/부모/modules/복합·참조/unset, saved-copy/multi-target/Set-property와 다른 편집 결합은 `V536_ATOMIC_REMAINING_COMBINATIONS.md`대로 차단한다.
+- **원본 모바일/조작 수용:** 공유/고정 반환 이름·잠정 빈 출력·영역/다중 선택·내부 흐름/async·readonly 및 나머지 지원 문맥·줌/검색/키보드/밀집 rail의 최종 정밀 수용은 남아 있다. 기존 함수/모듈·copy 편집의 이미 검증된 범위를 다시 미구현으로 세지 않는다.
+- **Browser:** 독립 object Data, 여섯 소유 선언의 공통 설명, 직접 등록 참조 탐색, 문자 아이콘/표시 이름은 기존 묶음에서 검증했다(`VALIDATION_V536_BROWSER_REMAINDER.md`). 모든 source에 대한 범용 이동/삭제·외부 runtime Data/구조 편집·일반 receipt/check-path·OS 드래그/전체 pixel equality는 미수용이다.
+- **backend 부재:** Helper 이미지 제공자/자산/이력, Browser 선언별 작업자 배지, 실제 협의/승자/공유 Confirm/신문고, 실행창 내장 렌더/FPS 및 일부 외부 전달 계약은 별도 기능 개발이다. Pack Manager 업데이트/설치해제는 기존 명시적 미지원이다.
+- **플랫폼/완료 판정:** 새 Windows 교차 패키지는 해당 검증 문서의 결과를 따른다. 실제 Windows/Android·native/touch/DPI/IME·모든 화면 통합은 미수용이며 전체 UI 완료 후에만 Helper 에디터 도구 누락을 별도 감사한다. 이번 묶음은 실제 사용자 권한·프로젝트 실행·자동 Confirm을 추가하지 않는다.
 
 ## 구현 및 해당 묶음 검증 완료
 
@@ -64,4 +72,4 @@ wrapper enum 특수 실행 핀 후속: 원본의 이름 우선 ID 대응을 복�
 
 Set backend 첫 묶음: legacy void Set을 유지하며 outputLocal/stored 분리 및 한 후보/checkpoint의 setPlan을 구현했다. Core7·실제 엔진9·복사 차단2의 범위와 한계는 `VALIDATION_V536_SET_BACKEND.md`를 따른다. 후속 원본 Set 카드/모바일 및 ordinary main-line 속성 읽기·쓰기 입력 연결은 `VALIDATION_V536_SET_UI.md`의 한정 범위로 검증했다. 전체 UI 완료가 아니다. 속성 읽기 정책은 사용자 결정으로 실행 시점 현재 값/재실행 재읽기/기존 출력 보존으로 확정했고 새 읽기→소비 작업 연결과 이전 출력 보존을 실제 UI/격리 CLR로 확인했다. mutable ref와 branch/private/copy 일반화는 남아 있다.
 
-후속 저장 copy ABI: 이미 확정된 직접 배치 복사본의 한 본문 값↔ref를 별도 후보/CAS·출처/소유자/최종 provider 검사에 연결했다(`VALIDATION_V536_SAVED_COPY_ABI.md`). 새로운 비공개 복사 초안·다중 target·혼합 Save는 계속 미지원이다. 기존 원본 레이아웃과 전체 v536/실제 Windows 미완료 판정을 바꾸지 않는다.
+후속 저장 copy ABI: 이미 확정된 직접 배치 복사본의 한 본문 값↔ref를 별도 후보/CAS·출처/소유자/최종 provider 검사에 연결했다(`VALIDATION_V536_SAVED_COPY_ABI.md`). 이 문단 이후의 새 private copy·다중 target·최소 혼합 지원은 위 최신 구분과 각각의 검증 문서를 따른다. 넓은 혼합은 미지원이다. 기존 원본 레이아웃과 전체 v536/실제 Windows 미완료 판정을 바꾸지 않는다.

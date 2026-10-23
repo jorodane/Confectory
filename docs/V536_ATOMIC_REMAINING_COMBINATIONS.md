@@ -6,7 +6,7 @@
 | --- | --- | --- |
 | 새 copy 하나 + 동일 owner 설명/기존 단일 primitive 값 | `VALIDATION_V536_MIXED_COPY.md`의 지원/검증 범위 | 기존 상태 보존. 일반 구조 편집까지 완료로 확대하지 않는다. |
 | 소유 ordinary root의 모든 Blueprint target + 공유 값/ref import/wrapper ABI | `VALIDATION_V536_MULTI_TARGET_ABI.md`의 한정 지원 | 현재 ordinary/context 없는 code/소유 callee 범위만. opaque/상속·copy·등록 callee/multiple uses·whole-body context는 미지원. |
-| 새 비공개 copy의 오래된 ABI | 미구현, 기존 fingerprint/stale source 차단 유지 | 원래 private snapshot·정확한 source/target/provenance와 현재 callee/등록 receipt를 독립적으로 결부한다. source/import/wrapper/모든 record를 copy 후보에서만 검증하고 donor/부모/등록 원본은 변경하지 않는다. source 자체 invalid의 compiler 실패를 숨기지 않는다. |
+| 새 비공개 copy의 오래된 ABI | `VALIDATION_V536_PRIVATE_COPY_ABI.md`의 한정 지원 | 원래 immutable seed와 현재 callee/직접 등록 receipt를 분리한다. 단일 선택 Blueprint target·context 없는 code·같은 이름/순서/타입/out/반환의 값↔ref만 명시 갱신한다. 기존 최소 one-copy+설명/단일 primitive 혼합은 같은 후보/CAS에 결부한다. donor/부모/등록 원본·다른 target을 변경하지 않는다. whole-body C#/일반 ABI·다중 target copy는 미지원. |
 | 여러 새 copy + owner 설명/기본값 | 미지원 | 기존 다중 slot batch에 owner 변경을 한 번 적용하고 모든 copy/요구/제공/record를 최종 후보로 검사한다. 첫 slot만 저장하는 반복 호출을 금지한다. |
 | 새 copy + 스키마/필드 정의·타입·추가/삭제·부모·모듈 | 미지원 | 구조 변경 후 상속/요구/제공/유효성의 전체 closure를 한 후보에 표현한다. 다른 객체의 정의나 외부 소유 원본을 쓰지 않는다. |
 | 새 copy + 복합/배열/참조/중첩 값 또는 unset | 미지원 | 실제 typed value/참조 유효성·정확한 숫자·원래/이전 필드 보존을 같은 선언 후보에 결부한다. raw owner text를 받지 않는다. |
