@@ -68,3 +68,19 @@ Release 전체 솔루션 0 warning/0 error, Linux 생성 엔진과70개 canonica
 | pure mapping 기준 비교 | adapter 3 PASS; 본문/source/receipt/owner/target/서명 변화는 mapping-only 재시도로 인정하지 않음 |
 
 이 수정은 원래 Undo/갱신 동작을 연결하며 CSS/HTML/창 크기·레이아웃이나 권한을 바꾸지 않는다. 전 문맥 ABI·schema/별도 저장 결합·최종 모바일/조작 수용 및 실제 Windows 검증은 여전히 별도 잔여다.
+
+## 최종 재현 및 Windows 교차 패키지
+
+검증한 코드 기준은 `7d012d80fdea0d41f41ffb28c99272ec66d13014`다(`b56ea1f`의 일반 mapping + 게시 전 재시도 수정). 별도 깨끗한 checkout을 정상 fast-forward한 뒤 Release 전체 솔루션이 0 warning/0 error로 빌드됐고, 그 checkout에서 Linux EditorHome 엔진을 새로 생성했다. 실제 Git의 이전 CRLF checkout→현재 속성 pull과 새 LF checkout 모두에서 70개 canonical/exact 리소스를 로드했다. 잘못된 내용/encoding/BOM/binary/budget도 거절하며 원본 bytes를 보존했다. 근거는 `checkout-solution-final.log`, `checkout-engine-final.json`, `checkout-resources-final.log`다.
+
+교차 패키지는 `/workspace/artifacts/Confectory-v536-general-abi-v3/Windows-x64/Confectory.exe`다. 실행 시 폴더 전체가 필요하다. 선언 파일 2,313개와 marker를 합쳐 2,314개, 총 131,687,710 bytes다.
+
+- `confectory-desktop-package.json` SHA-256: `4a96511e4e30b1f04486031551916d92c8fafa58716ce30c59e2dfd27c3b896c`
+- 정렬한 전체 파일 checksum 목록 SHA-256: `0a59af4eaf2fbb91359afdb669dc4b27ca87a4fd9323cc5ab445b6e1f72bb3ac`
+- 파일별 목록/검토는 scratch의 `review-final/PACKAGE_SHA256SUMS`, `package-files.json`, `source-inventory.json`, `secret-review.json`에 보존했다. 추가 변경은 구현 4·테스트 4·문서 2개로 분류했고 secret-pattern 추가 발견은 없었다. 패턴 검토가 모든 가능한 비밀 부재를 보장한다는 뜻은 아니다. 기존 코드 묶음과 합친 게시 소스는 구현 8·테스트 7·문서 6개이며 로그/빌드/프로필/인증정보는 포함하지 않는다.
+
+패키지 검사(`package-probe3-env.log`)는 .NET SDK가 없는 격리 runtime 복사본과 무관한 cwd/profile에서 실제 managed 패키지 엔진의 웹 시작·70개 리소스를 확인했다. 누락/변조 파일도 거절했다. 첫 probe는 `CONFECTORY_DOTNET` 환경 인자 누락으로 실행 도구를 못 찾았으며 올바른 도구 경로를 설정한 동일 검사로 통과했다. 패키지 source/pins는 root와 정확히 같고 CRLF checkout과는 LF 정규화 후 같다. helper DLL은 root와 패키지 사이 정확히 일치한다. 다른 경로/CRLF 재빌드 DLL 전체의 byte 재현성은 주장하지 않는다.
+
+추가로 실제 fixture 검증에 사용한 Linux 엔진의 EditWorkspace·PackWorkspace·EditorHome·EditorHome.Model DLL과 Windows 패키지의 해당 DLL이 정확히 같음을 확인했다(`package-abi-runtime-match.json`). NativeUI의 Windows/Linux 차이는 의도된 플랫폼별 구현이며 같은 것으로 주장하지 않는다.
+
+실제 Windows apphost/WebView2 실행, native/DPI/IME, Android/실기기 touch, 사용자 계정/유료 추론 및 전체 UI 수용은 미검증이다. 이 로컬 패키지의 Library 업로드·사용자 첨부 전달은 완료되지 않았다. 전체 UI 완료가 아니라 명시 mapping과 이번 안전한 재시도 범위의 검증 결과다. 다음 작업은 현황표에 고정한 기존 schema/별도 저장 경로 결합과 모바일·조작 잔여이며, 미지원 ABI 교차 문맥을 이번 단일/owned2target 성공으로 확장하지 않는다.
