@@ -51,3 +51,5 @@
 후속 Browser 갱신: 독립 Data cold 재적용은 내용 지문과 최신 전체 CAS를 구분해 정상 복원을 허용하고 실제 타 소스/상속 스키마 변경은 차단했다. 이번 범위와 기존 c08d08f Windows ZIP의 Library 전달 실패(파일 ID 없음)는 `VALIDATION_V536_STANDALONE_DATA.md`에 구분했다. 이전 로컬 전용/미게시라는 아래 기록은 해당 시점의 이력이며 현재 게시 상태를 소급해 뜻하지 않는다.
 
 Browser 후속 정리: 이번 유한 잔여와 이후 Blueprint 작업 단위는 `VALIDATION_V536_BROWSER_REMAINDER.md`, `V536_BLUEPRINT_REMAINDER.md`로 고정했다. 상단의 예전 로컬 전용/미게시 문구는 그 시점 이력이다. 최종 게시 여부와 새 Windows 교차 패키지는 해당 묶음의 검증 결과를 따른다.
+
+후속 소유 슬롯 ABI: 기존 갱신 버튼에서 단일 소유 root의 값↔ref와 typed import를 함께 checkpoint하고 명시 Confirm하는 경로를 연결했다. 8건(순수1/실제엔진7)과 controlled renderer10, Windows 교차 패키지/웹 시작 검사를 구분해 `VALIDATION_V536_SLOT_CALL_ABI.md`에 기록했다. 복사본·등록 callable·여러 target 본문 등은 `V536_CALL_ABI_SCOPE.md`의 미지원 경계를 유지한다. 전체 v536/네이티브 수용 완료가 아니다.
