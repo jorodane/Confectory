@@ -44,3 +44,15 @@ Release 전체 솔루션과 helper 0 warning/0 error, 새 Linux 실제 생성 �
 실제 Windows apphost/WebView2/더블클릭·DPI/IME/native snap, Android/실기기 touch는 미검증이다. 로컬 폴더가 있다는 것은 Library 전달 성공이 아니다. 기존 Library discovery 네트워크 실패에 새 복구 근거가 없어 반복하지 않았다.
 
 실제 fixture는2copy이며8copy/모든 타입·구조/플랫폼 조합의 전수 수용은 아니다. saved-copy ABI·multi-target ABI·Set/property·다른 provider·dirty raw source 결합 및 기존 schema 편집은 미지원 차단을 유지한다. 일반 ABI와 원본 모바일/조작의 구체적 완료 조건은 `V536_REMAINING_ACCEPTANCE.md`, 고정 조합은 `V536_ATOMIC_REMAINING_COMBINATIONS.md`다. 이미지/협의/렌더 신규 backend는 이번 범위가 아니다. main/Android/원본ZIP·사용자 자료·동의·권한 경계를 보존한다.
+
+## 최종 재현 기록
+
+코드 커밋은 `ffcd5e1c44ec3377cc68f2faea3d124bd96c3145`다. 별도의 clean checkout이 이 커밋으로 정상 fast-forward한 뒤 Release 솔루션0 warning/0 error와 새 Linux 엔진 빌드를 통과했다(`checkout-solution.log`, `checkout-engine.json`). 패키지의 변경 구현9개와 helper DLL은 이 코드 커밋/검증 Release와 byte 동일하다. 후속 변경은 이 검증 기록과 안전 예산의 설명뿐이며 C#/UI/리소스를 바꾸지 않는다.
+
+`desktop_package.py`의 package 구성/변조·누락 거절, 별도 cwd·SDK 없는 managed 웹 시작, 기존 profile 재사용·override, 69 UI리소스 검사 PASS. 증거는 `/tmp/confectory-desktop-package-xkznqfbv`다. Windows apphost/WebView2/더블클릭 실기기 검사는 아니다.
+
+패키지는 선언 파일2,312개+marker로 총2,313개, 131,664,721 bytes다. marker SHA-256은 `6f357e9dd2cca569ee2aad5100bc3ea766d3c590d4cae3f97366c30309a2caaf`, 파일 목록 checksum은 `9f390860ff1022cb825c1ccec4a17b2a90538257d01d246a0551369cb08227ff`이다. 전체 경로/크기/checksum 목록은 scratch의 `review/package-files.json`/`review/PACKAGE_SHA256SUMS`에 보존한다.
+
+검토한19개는 구현9/테스트3/문서7이고 비밀 패턴 추가 검토 항목0, 외부 임시 fixture를 필수로 요구하는 테스트0이다. 생성 빌드/로그/profile/인증정보는 커밋하지 않았다. 패턴 검사는 모든 비밀 부재의 절대 증명이 아니다. 원격 게시 SHA와 두 checkout clean/리소스 pull 재현 결과는 완료 checkpoint에 직접 확인한다.
+
+실제 Git 속성 pull 뒤 retained CRLF와 fresh LF 양쪽의69개 canonical/exact 리소스 및 내용/encoding/BOM/binary/budget 변조 거절도 통과했다(`checkout-resources.log`). 원래 byte는 그대로 유지됐다. 최종 문서 변경은 이 결과만 기록하며 이미 통과한 코드 검사를 반복하거나 전체 UI 수용으로 확대하지 않았다.

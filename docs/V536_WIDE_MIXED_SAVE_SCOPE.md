@@ -11,3 +11,5 @@
 | 새 속성 | 원래 추가 행의 새 primitive 정의+기본값 | 기존 schema를 수정하지 않고 새 소유 schema/uses/등록을 같은 후보에 포함 |
 
 기존 속성 타입/이름/아이콘/삭제, 새로운 compound schema 정의, 외부 schema·다른 소유자 수정은 현재 UI가 연결하지 않은 기능이라 추가하지 않는다. 일반 ABI remap·모바일 특수 문맥·Set/property 및 다른 소스 편집은 별도 고정 잔여다. 잘못된 마지막 copy/선언·CAS·저장 실패는 전체 미적용/입력 보존이어야 하며 Review/Confirm을 자동 실행하지 않는다. 실제 검사는 격리 fixture만 사용한다.
+
+안전 예산은 owner 연산64개/새 primitive 정의32개/modules32개, copy1~8개 및 전체 receipt source64개다. 초과 시 쓰기 전에 전체 거절하며 일부 저장하지 않는다. 실제 수용 fixture는2copy이며 모든 최대치 조합을 전수 검증한 것은 아니다.
