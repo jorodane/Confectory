@@ -11,3 +11,29 @@ export function createReferenceGestures(api){
  function link(owner,id,attribute){if(!valid(id))return null;const button=document.createElement('button');button.type='button';button.dataset.operation='reference-link';button.dataset[attribute]=id;button.textContent='현재 참조 열기';button.title='확인한 현재 참조를 엽니다. 미적용 입력을 적용하지 않습니다.';button.onclick=()=>api.open(owner,id);source(button,id);return button;}
  return {source,target,link};
 }
+
+// v536 hover is declared inheritance, not generic project or account access.
+export function createBrowserReferenceHover(api){
+ let active=null,shift=false;
+ function close(){active?.tip?.remove();active=null;}
+ function draw(){
+  if(!active)return;const {anchor,id,scope}=active;
+  if(api.projectId!==scope||!anchor.isConnected||!anchor.getClientRects().length){close();return;}
+  active.tip?.remove();const rows=api.projection.rows(),row=rows.find(row=>row.id===id),name=id=>rows.find(row=>row.id===id)?.title||id?.split('::').at(-1)||'Root';
+  if(!row){close();return;}const refs=shift?api.projection.children(id):rows.filter(value=>value.id===api.projection.parent(id));
+  const tip=document.createElement('div');tip.className='object-ref floating-object-ref';tip.setAttribute('role','tooltip');
+  const title=document.createElement('strong');title.textContent=shift?'역참조 · Shift + Hover':'참조 · Hover';const info=document.createElement('small');info.textContent='분류: '+name(api.projection.folder(id))+' · ID: '+id.slice(0,12);
+  tip.append(title,document.createElement('br'),document.createTextNode(refs.map(row=>name(row.id)).join(' · ')||'연결된 상속 참조 없음'),document.createElement('br'),info);document.body.append(tip);active.tip=tip;
+  const r=anchor.getBoundingClientRect(),t=tip.getBoundingClientRect();tip.style.left=Math.max(8,Math.min(r.left,innerWidth-t.width-8))+'px';tip.style.top=Math.max(8,Math.min(r.top-t.height-8>=8?r.top-t.height-8:r.bottom+8,innerHeight-t.height-8))+'px';
+ }
+ for(const event of ['keydown','keyup'])document.addEventListener(event,e=>{if(shift!==e.shiftKey){shift=e.shiftKey;draw();}});
+ window.addEventListener('blur',()=>{shift=false;close();});window.addEventListener('resize',close);document.addEventListener('scroll',close,true);document.addEventListener('pointerdown',close,true);
+ function bind(root,items){
+  if(active&&!active.anchor.isConnected)close();
+  for(const row of root.querySelectorAll('[data-object]')){
+   const id=row.dataset.object;if(!items.some(value=>value.id===id))continue;const anchor=row.querySelector('.browser-data-identity')||row;anchor.classList.add('reference-hover-target');
+   anchor.onmouseenter=e=>{close();shift=e.shiftKey;active={anchor,id,scope:api.projectId};draw();};anchor.onmouseleave=close;
+  }
+ }
+ return {bind,close};
+}
