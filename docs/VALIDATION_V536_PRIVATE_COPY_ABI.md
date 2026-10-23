@@ -47,3 +47,15 @@ Release 전체 솔루션과 helper는 0 warning/0 error, 실제 Linux 생성 엔
 로컬 산출물: `/workspace/artifacts/Confectory-v536-private-copy-abi/Windows-x64/Confectory.exe`. 전체 폴더를 함께 둔다. .NET Desktop Runtime10.0 x64와 Edge WebView2 Runtime이 필요하며 자동 설치하지 않았다. 프로젝트 빌드에는 별도 .NET10 SDK가 필요하다. 로컬 산출물은 Library 첨부 전달 성공을 뜻하지 않는다. 기존 Library discovery 네트워크 장애에 새 복구 근거가 없어 반복하지 않았다.
 
 넓은 혼합 Save는 `V536_ATOMIC_REMAINING_COMBINATIONS.md`, 전체 UI 잔여는 `V536_UI_CONNECTION_STATUS.md`의 최신 구분을 따른다. 원본 v536 레이아웃과 main/Android/원본 ZIP/사용자 데이터는 보존한다. 게시 대상은 승인된 `https://github.com/jorodane/Confectory.git`의 `work/current`만이며 정상 commit/push와 원격 SHA·깨끗한 checkout 결과를 최종 기록에 구분한다.
+
+## 최종 재현 기록
+
+코드 커밋은 `f426fcffc0d014a549873247701b0954bc65c2c4`다. 별도의 깨끗한 checkout에서 Release 솔루션 0 warning/0 error와 새 Linux 엔진 빌드가 통과했다(`checkout-solution.log`, `checkout-engine.json`). 실제 Git 속성 pull 뒤 retained CRLF와 fresh LF 양쪽의 68개 canonical/exact 리소스·내용/encoding/BOM/binary/budget 변조 거절을 확인했다(`checkout-resources.log`). 패키지의 변경 구현 source11개는 이 코드 커밋과 byte 동일하고 helper DLL도 최종 검증한 Release와 동일했다. 후속 변경은 검증 문서와 wrapper-only 갱신 시 원래 record가 그대로임을 검사하는 통과한 metadata assertion뿐이며 C#/UI/리소스는 바꾸지 않았다.
+
+Windows 패키지는 선언 파일2,311개+marker로 총2,312개, 131,645,375 bytes다. marker SHA-256은 `fd2b4d4eaa8e458a62f4a326e82bc0477343f0d66da65531f581dd30ca1f623c`, 파일 목록 checksum은 `ffc52f1d70e44eac7e6981420ae7d82a65cd65e6f50407bbe47d2ce4e865c8c0`이다. `desktop_package.py`의 실제 managed 웹 시작 증거는 `/tmp/confectory-desktop-package-fu4j0n4e`다. Windows apphost/WebView2 실기기 검사는 아니다.
+
+최종 검토 대상20개는 구현11/테스트4/문서5다. 비밀 패턴 추가 검토 항목0, 외부 임시 fixture를 필수 전제로 쓰는 테스트0이며 생성물·로그·profile·인증 파일은 Git에 넣지 않았다. 패턴 검사는 모든 비밀 부재의 절대 증명이 아니다. 진단용 임시 StartupHook도 scratch에만 있고 코드·패키지에는 포함하지 않는다.
+
+부가적인 invalid-donor UI 실험은 이미 잘못된 프로젝트에서 정상 editor 재진입 hook을 기대하여 실패했다. 이를 정상 UI 복원 통과로 세지 않는다. 최종 검사는 해당 경계를 별도로 나누어 실제 compiler `validate`의 `CONTRACT_MISMATCH`와 donor 파일 위치, private 순수 후보가 원본을 쓰지 않는다는 점을 확인했다. 초기 로그를 지우거나 invalid 원본을 자동으로 고쳐 통과시키지 않았다. 최초 pure와 정상/등록 UI·저장·경합·취소 통과 기록과 구별한다.
+
+정상 remote 게시 SHA와 두 checkout의 clean 상태는 완료 결과/checkpoint에서 직접 확인한다. 이 마지막 기록은 앞서 통과한 코드 검사를 불필요하게 반복한 결과가 아니다. 전체 UI 복원·일반 ABI·넓은 혼합 저장은 여전히 미완료다.
