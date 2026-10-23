@@ -62,23 +62,24 @@ def unchanged():assert all((project/k).read_bytes()==v for k,v in original.items
 def current():return call('blueprint',{'action':'read','id':n+'CalcBody/body:common'})
 def request(data,plan):return {'id':data['id'],'attempt':uuid.uuid4().hex,'sourceProof':json.dumps(sorted([[v['id'],v['revision'],v['hash']] for v in data['sources']]),separators=(',',':')),'checkpointHash':data['checkpointHash'],'edits':[{'action':'setPlan','node':'$sets','definition':plan}]}
 
-try:
- start(0);data=current();plan={'reads':[{'node':'after','owner':n+'Monster','field':'health','descriptor':descriptor,'targetJson':'{"input":"target"}'}],'changes':[{'action':'route','node':'write','port':'next','to':'after'},{'action':'route','node':'after','port':'next','to':'second'},{'action':'argument','node':'second','name':'value','valueJson':'{"node":"after","output":"return"}'}]}
- def command(plan,data=data):return {'action':'authorBatch','id':data['id'],'attempt':uuid.uuid4().hex,'sourceProof':json.dumps(sorted([[v['id'],v['revision'],v['hash']] for v in data['sources']]),separators=(',',':')),'checkpointHash':data['checkpointHash'],'edits':[{'action':'propertyPlan','node':'$properties','definition':plan}]}
- if 'copy-boundary' in sys.argv[3:]:
-  assert data['requiresCoupledCopy'];call('blueprint',command(plan),ok=False);assert current()['sources']==data['sources'];unchanged();checked('복사 provenance graph는 owner 문맥을 생략한 Property 후보도 거절한다');print(json.dumps({'checks':checks,'evidence':str(case)},ensure_ascii=False));sys.exit(0)
- baseline=copy.deepcopy(data)
- def rejected(plan):
-  call('blueprint',command(plan),ok=False);after=current();assert after['sources']==baseline['sources'] and after['checkpointHash']==baseline['checkpointHash'];unchanged()
- call('blueprint',{'action':'propertyPlan','id':data['id'],'definition':plan},ok=False);assert current()['sources']==data['sources'];unchanged();checked('Property plan을 실제 checkpoint author 후보 밖에서 직접 호출하면 거절한다')
- bad=copy.deepcopy(plan);bad['reads'][0]['descriptor']['fields'][0]['hash']='0'*64;rejected(bad);checked('선택 후 바뀐 필드 계약 descriptor는 거절하고 새 노드/가져오기/연결을 부분 적용하지 않는다')
- bad=copy.deepcopy(plan);bad['changes'].append({'action':'argument','node':'second','name':'missing','valueJson':'{"constant":7}'});rejected(bad);checked('늦은 입력 대상 오류는 앞서 준비한 읽기·typed 가져오기·경로까지 같은 후보에서 롤백한다')
- bad=copy.deepcopy(plan);bad['reads'][0]['targetJson']='{"input":"replacement"}';rejected(bad);checked('실제 receiver 자료형 오류는 최종 graph 검증으로 거절하며 기존 두 Set와 schema를 유지한다')
- bad=copy.deepcopy(plan);bad['changes']=[{'action':'source','node':'combine','text':'return 0;'}];rejected(bad);checked('Property 결합 경로를 통한 임의 본문 쓰기와 지원 밖 action을 거절한다')
- bad=copy.deepcopy(plan);bad['changes']=[{'action':'argument','node':'second','name':'value','valueJson':'{"node":"after","output":"return"}'}];rejected(bad);checked('실행 시점이 지정되지 않은 읽기를 소비만 연결해 제출하면 가용성/attachment 검사가 거절한다')
- valid=command(plan);call('blueprint',valid);after=current();assert len(after['nodes'])==len(data['nodes'])+1;assert after['diagnostics']['state'] in ['source-ready','source-assembled'];assert (next(v for v in after['sources'] if v['id']==n+'CalcBody')['hash']==next(v for v in data['sources'] if v['id']==n+'CalcBody')['hash'])==('new-import' not in sys.argv[3:]);unchanged();checked('명시적 읽기/receiver/소비/직렬 연결은 한 후보로 저장하고 기존 typed 구현은 보존하며 누락한 읽기 import만 함께 준비한다')
- retry={**valid,'action':'settledAuthorBatch'};assert call('blueprint',retry)['settled'];checkpoint=after['checkpointHash'];call('blueprint',valid);assert current()['checkpointHash']==checkpoint and len(current()['nodes'])==len(after['nodes']);unchanged();checked('같은 시도의 receipt 조회와 재시도는 읽기 노드·경로·저장소를 중복 생성하지 않는다')
-except Exception:
- print('EVIDENCE '+str(case),flush=True);raise
-finally:stop()
-record={'checks':checks,'actualEngine':True,'renderer':False,'projectRun':False,'accountOrInference':False,'evidence':str(case)};(case/'evidence.json').write_text(json.dumps(record,ensure_ascii=False,indent=2));print(json.dumps(record,ensure_ascii=False,indent=2))
+if __name__=='__main__':
+ try:
+  start(0);data=current();plan={'reads':[{'node':'after','owner':n+'Monster','field':'health','descriptor':descriptor,'targetJson':'{"input":"target"}'}],'changes':[{'action':'route','node':'write','port':'next','to':'after'},{'action':'route','node':'after','port':'next','to':'second'},{'action':'argument','node':'second','name':'value','valueJson':'{"node":"after","output":"return"}'}]}
+  def command(plan,data=data):return {'action':'authorBatch','id':data['id'],'attempt':uuid.uuid4().hex,'sourceProof':json.dumps(sorted([[v['id'],v['revision'],v['hash']] for v in data['sources']]),separators=(',',':')),'checkpointHash':data['checkpointHash'],'edits':[{'action':'propertyPlan','node':'$properties','definition':plan}]}
+  if 'copy-boundary' in sys.argv[3:]:
+   assert data['requiresCoupledCopy'];call('blueprint',command(plan),ok=False);assert current()['sources']==data['sources'];unchanged();checked('복사 provenance graph는 owner 문맥을 생략한 Property 후보도 거절한다');print(json.dumps({'checks':checks,'evidence':str(case)},ensure_ascii=False));sys.exit(0)
+  baseline=copy.deepcopy(data)
+  def rejected(plan):
+   call('blueprint',command(plan),ok=False);after=current();assert after['sources']==baseline['sources'] and after['checkpointHash']==baseline['checkpointHash'];unchanged()
+  call('blueprint',{'action':'propertyPlan','id':data['id'],'definition':plan},ok=False);assert current()['sources']==data['sources'];unchanged();checked('Property plan을 실제 checkpoint author 후보 밖에서 직접 호출하면 거절한다')
+  bad=copy.deepcopy(plan);bad['reads'][0]['descriptor']['fields'][0]['hash']='0'*64;rejected(bad);checked('선택 후 바뀐 필드 계약 descriptor는 거절하고 새 노드/가져오기/연결을 부분 적용하지 않는다')
+  bad=copy.deepcopy(plan);bad['changes'].append({'action':'argument','node':'second','name':'missing','valueJson':'{"constant":7}'});rejected(bad);checked('늦은 입력 대상 오류는 앞서 준비한 읽기·typed 가져오기·경로까지 같은 후보에서 롤백한다')
+  bad=copy.deepcopy(plan);bad['reads'][0]['targetJson']='{"input":"replacement"}';rejected(bad);checked('실제 receiver 자료형 오류는 최종 graph 검증으로 거절하며 기존 두 Set와 schema를 유지한다')
+  bad=copy.deepcopy(plan);bad['changes']=[{'action':'source','node':'combine','text':'return 0;'}];rejected(bad);checked('Property 결합 경로를 통한 임의 본문 쓰기와 지원 밖 action을 거절한다')
+  bad=copy.deepcopy(plan);bad['changes']=[{'action':'argument','node':'second','name':'value','valueJson':'{"node":"after","output":"return"}'}];rejected(bad);checked('실행 시점이 지정되지 않은 읽기를 소비만 연결해 제출하면 가용성/attachment 검사가 거절한다')
+  valid=command(plan);call('blueprint',valid);after=current();assert len(after['nodes'])==len(data['nodes'])+1;assert after['diagnostics']['state'] in ['source-ready','source-assembled'];assert (next(v for v in after['sources'] if v['id']==n+'CalcBody')['hash']==next(v for v in data['sources'] if v['id']==n+'CalcBody')['hash'])==('new-import' not in sys.argv[3:]);unchanged();checked('명시적 읽기/receiver/소비/직렬 연결은 한 후보로 저장하고 기존 typed 구현은 보존하며 누락한 읽기 import만 함께 준비한다')
+  retry={**valid,'action':'settledAuthorBatch'};assert call('blueprint',retry)['settled'];checkpoint=after['checkpointHash'];call('blueprint',valid);assert current()['checkpointHash']==checkpoint and len(current()['nodes'])==len(after['nodes']);unchanged();checked('같은 시도의 receipt 조회와 재시도는 읽기 노드·경로·저장소를 중복 생성하지 않는다')
+ except Exception:
+  print('EVIDENCE '+str(case),flush=True);raise
+ finally:stop()
+ record={'checks':checks,'actualEngine':True,'renderer':False,'projectRun':False,'accountOrInference':False,'evidence':str(case)};(case/'evidence.json').write_text(json.dumps(record,ensure_ascii=False,indent=2));print(json.dumps(record,ensure_ascii=False,indent=2))

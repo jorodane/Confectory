@@ -232,13 +232,14 @@ def ui():
   review.locator('[data-review-advanced]').click()
   if review.locator('[data-advanced-reviewed]').count():review.locator('[data-advanced-reviewed]').check()
  review.locator('#confirm').click();expect(review).to_have_count(0,timeout=120000);idle();assert {k for k,v in original.items() if (project/k).read_bytes()!=v}=={'Slime.celem','project.cproj'};checked('실제 명시적 compiler Confirm은 해당 owner/등록/새 schema/두 copy만 반영하고 donor/부모/다른 target 소스를 보존한다');assert not errors and not external,(errors,external);browser.close();p.stop()
-try:
- if len(sys.argv)>3 and sys.argv[3]=='backend':backend()
- else:ui()
-except Exception:
- evidence={'checks':checks,'errors':errors,'traffic':traffic[-30:]}
- try:evidence['messages']=owner().locator('[data-element-error]').all_text_contents();page.screenshot(path=str(case/'failure.png'))
- except Exception:pass
- (case/'failure.json').write_text(json.dumps(evidence,ensure_ascii=False,indent=2));print('EVIDENCE '+str(case),flush=True);raise
-finally:stop()
-print(json.dumps({'checks':checks,'actualEngine':True,'renderer':len(sys.argv)<4 or sys.argv[3]!='backend','nativeWindows':False,'accountOrInference':False,'projectRun':False,'evidence':str(case)},ensure_ascii=False,indent=2))
+if __name__=='__main__':
+ try:
+  if len(sys.argv)>3 and sys.argv[3]=='backend':backend()
+  else:ui()
+ except Exception:
+  evidence={'checks':checks,'errors':errors,'traffic':traffic[-30:]}
+  try:evidence['messages']=owner().locator('[data-element-error]').all_text_contents();page.screenshot(path=str(case/'failure.png'))
+  except Exception:pass
+  (case/'failure.json').write_text(json.dumps(evidence,ensure_ascii=False,indent=2));print('EVIDENCE '+str(case),flush=True);raise
+ finally:stop()
+ print(json.dumps({'checks':checks,'actualEngine':True,'renderer':len(sys.argv)<4 or sys.argv[3]!='backend','nativeWindows':False,'accountOrInference':False,'projectRun':False,'evidence':str(case)},ensure_ascii=False,indent=2))

@@ -25,3 +25,5 @@
 최신 혼합 범위: `VALIDATION_V536_WIDE_MIXED_SAVE.md`의 현재 owner widget+여러 new private copy는 원자적으로 연결했다. 기존 schema 편집·saved-copy ABI/multi-target ABI/Setproperty/다른 provider/dirty source와의 결합은 미완료다. 일반 ABI·특수 문맥 및 조작 수용을 backend 존재/계약 누락/UI 미연결로 구분한 구체적 완료 조건은 `V536_REMAINING_ACCEPTANCE.md`를 따른다.
 
 최신 명시 general mapping: `VALIDATION_V536_GENERAL_ABI.md`. 현재 supported 단일 root/슬롯/saved/private copy/직접 등록 및 owned ordinary target group에 입력/출력 선택을 연결했고 모든 ABI authorBatch의 전체 typed graph 검사 누락을 수정했다. 등록 callable의 all-target은 `MultiAbiRequest`의 owned contract/검토 group만으로 receipt를 표현할 수 없어 계속 차단한다. copy-alltarget/여러 동일 호출/opaque context 역시 현재 group/provenance 범위를 넘어가므로 자동 재작성하지 않는다.
+
+후속 schema/Save 첫 단위는 `VALIDATION_V536_SCHEMA_SAVE.md`를 따른다. primary owner-only Save와 직접 사용하는 소유 primitive schema 타입·값·새 copy를 한 후보/CAS·원자 Review 그룹에 연결했다. 기존 schema 표시 이름/삭제/복합 정의, 독립 View/dirty raw source/provider/saved-copy ABI·다중 target·Set-property 혼합은 여전히 별도 미완료다.

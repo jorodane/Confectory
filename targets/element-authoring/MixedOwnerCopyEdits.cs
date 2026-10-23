@@ -4,7 +4,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 
 // The declaration half of one copy transaction. It never writes sources or
-// edits an existing schema, parent, imported implementation or external owner.
+// edits an external schema, parent, imported implementation or external owner.
 internal static class MixedOwnerCopyEdits
 {
  static string Hash(string text)=>JsonData.HashBytes(Encoding.UTF8.GetBytes(text));
@@ -29,7 +29,7 @@ internal static class MixedOwnerCopyEdits
   string Read(string path){var file=new FileInfo(path);if(!file.Exists||file.Length>1048576)throw new IOException("Mixed declaration source budget");return File.ReadAllText(path);}
   JsonObject Inspect(string source,string currentManifest,JsonArray overlays)=>EffectiveMetadata.Query(project,currentManifest,id,source,formatManifest,Read,overlays,schemaView:true,validateObjects:true,observeSources:true);
   void Valid(JsonObject result){if(result["status"]?.ToString()!="available"||result["schemaModel"]?["validation"]?["status"]?.ToString()!="valid")throw new InvalidOperationException("Mixed declaration/schema context invalid; retain all input");}
-  var before=Inspect(text,manifest,drafts);Valid(before);var seen=new HashSet<string>(StringComparer.Ordinal);var paths=new List<JsonArray>();var definitions=new JsonArray();
+  var before=Inspect(text,manifest,drafts);Valid(before);var seen=new HashSet<string>(StringComparer.Ordinal);var paths=new List<JsonArray>();var definitions=new JsonArray();var schemaChanges=new List<JsonObject>();
   void Unique(string value){if(!seen.Add(value))throw new ArgumentException("Duplicate mixed operation");}
   JsonArray Path(JsonObject row){var path=row["path"]!.AsArray();Field(before["schemaModel"]!.AsObject(),path);foreach(var prior in paths)if(prior.Take(Math.Min(prior.Count,path.Count)).Select(p=>p!.ToJsonString()).SequenceEqual(path.Take(Math.Min(prior.Count,path.Count)).Select(p=>p!.ToJsonString())))throw new ArgumentException("Overlapping typed operations require explicit reconciliation");paths.Add(path);return path;}
   foreach(var change in changes){
@@ -47,9 +47,17 @@ internal static class MixedOwnerCopyEdits
     Exact(row,"type","ids");Unique(type);var ids=row["ids"]!.AsArray();if(ids.Count>32||ids.Select(n=>n!.GetValue<string>()).Distinct(StringComparer.Ordinal).Count()!=ids.Count)throw new ArgumentException("Unique bounded module attachments required");DeclarationAuthoring.Apply(element,new(){["action"]="relations",["role"]="module",["entries"]=new JsonArray(ids.Select(n=>(JsonNode)new JsonObject{["id"]=n!.DeepClone()}).ToArray())});
    }else if(type=="definition"){
     Exact(row,"type","name","nativeType","valueJson");string name=row["name"]!.GetValue<string>();Unique("definition:"+name);if(before["fields"]?[name] is not null||row["nativeType"]!.ToString() is not ("string" or "bool" or "int" or "long" or "float" or "double"))throw new ArgumentException("New primitive property required; existing definitions are immutable");definitions.Add(row.DeepClone());
+   }else if(type=="schema-field"){
+    Exact(row,"type","path","contract","schema","schemaHash","nativeType");var path=row["path"]!.AsArray();if(path.Count!=1||row["nativeType"]!.ToString() is not ("string" or "bool" or "int" or "long" or "float" or "double"))throw new ArgumentException("Explicit primitive root field contract required");Unique("schema:"+path.ToJsonString());var shape=Field(before["schemaModel"]!.AsObject(),path);if(!JsonNode.DeepEquals(shape,row["contract"])||shape["kind"]!.ToString()!="general"||shape["cardinality"]!.ToString()!="single")throw new InvalidOperationException("Original field contract changed; retain original input");
+    string schema=row["schema"]!.GetValue<string>();if(!schema.StartsWith(ns+"::",StringComparison.Ordinal)||!element.Uses.Any(use=>use.Kind=="schema"&&use.Id==schema))throw new ArgumentException("Direct owned local schema required; inherited/external definitions preserved");schemaChanges.Add(row);
    }else throw new ArgumentException("Mixed operation is not connected by the object UI");
   }
-  var additions=new JsonArray();string finalManifest=manifest;var finalDrafts=drafts.DeepClone().AsArray();
+  var additions=new JsonArray();var updates=new JsonArray();string finalManifest=manifest;var finalDrafts=drafts.DeepClone().AsArray();
+  foreach(var group in schemaChanges.GroupBy(row=>row["schema"]!.GetValue<string>(),StringComparer.Ordinal)){
+   var source=drafts.SingleOrDefault(row=>row?["id"]?.ToString()==group.Key)??throw new InvalidOperationException("Observed schema declaration missing");string original=source["text"]!.GetValue<string>();var schema=new Parser(original,"<mixed-owned-schema>").ParseElement();if(schema.Kind!="schema"||schema.Id!=group.Key||group.Any(row=>row["schemaHash"]!.ToString()!=Hash(original)))throw new InvalidOperationException("Schema source changed; no changes applied");
+   foreach(var row in group){string field=row["path"]![0]!.GetValue<string>();if(!schema.Fields.TryGetValue(field,out var existing)||existing.Kind!="general"||existing.Cardinality!="single"||existing.Type!=row["contract"]?["type"]?.ToString())throw new InvalidOperationException("Local field declaration changed; no changes applied");SchemaContracts.SetField(schema,field,JsonSerializer.SerializeToElement(new{cardinality="single",kind="general",type=row["nativeType"]!.ToString()}));}
+   string updated=format(schema);finalDrafts.Single(row=>row?["id"]?.ToString()==group.Key)!["text"]=updated;updates.Add(new JsonObject{["id"]=group.Key,["hash"]=Hash(original),["text"]=updated});
+  }
   if(definitions.Count>0){
    if(definitions.Count>32)throw new ArgumentException("New property budget");string schemaId=id+"_Properties_"+Hash(definitions.ToJsonString())[..12],name=schemaId[(ns.Length+2)..],relative="elements/"+name+".celem";
    if(registration.Elements.ContainsKey(name)||drafts.Any(d=>d?["id"]?.ToString()==schemaId)||File.Exists(System.IO.Path.Combine(System.IO.Path.GetDirectoryName(System.IO.Path.GetFullPath(project))!,relative)))throw new InvalidOperationException("Property destination exists; retain input");var schema=new Parser("schema "+schemaId+" {}","<mixed-properties>").ParseElement();
@@ -57,6 +65,6 @@ internal static class MixedOwnerCopyEdits
    element.Uses.Add(new(schemaId,new(),id,"schema"));registration.Elements.Add(name,new("schema",relative,new()));finalManifest=formatManifest(registration);string schemaText=format(schema);additions.Add(new JsonObject{["id"]=schemaId,["kind"]="schema",["path"]=relative,["text"]=schemaText});finalDrafts.Add(new JsonObject{["id"]=schemaId,["text"]=schemaText});
   }
   string formatted=format(element);if(formatted.Length>1048576)throw new ArgumentException("Mixed owner budget");var after=Inspect(formatted,finalManifest,finalDrafts);Valid(after);
-  return new JsonObject{["text"]=formatted,["manifest"]=finalManifest,["additions"]=additions,["observations"]=before["observations"]!.DeepClone(),["sourceWritten"]=false,["compiled"]=false};
+  return new JsonObject{["text"]=formatted,["manifest"]=finalManifest,["additions"]=additions,["updates"]=updates,["observations"]=before["observations"]!.DeepClone(),["sourceWritten"]=false,["compiled"]=false};
  }
 }

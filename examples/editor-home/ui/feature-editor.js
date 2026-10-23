@@ -63,5 +63,5 @@ export function createFeatureEditors(api){
    };
   });
  }
- return {show,reset,create,restoreAuthor,afterAuthorConfirm:author.afterOwnConfirm,openSlotInWork:author.openSlotInWork,openCopyInWork:author.openCopyInWork,copyDrafts:author.copyDrafts,copyDiscardSnapshot:author.copyDiscardSnapshot,validateCopyDiscard:author.validateCopyDiscard,discardCopies:author.discardCopies,discardCopiesInWork:author.discardCopiesInWork,saveCopiesInWork:author.saveCopiesInWork,recoverCopiesInWork:author.recoverCopiesInWork,hasCopyAttempt:author.hasCopyAttempt};
+ return {recoverOwnerEditsInWork:author.recoverOwnerEditsInWork,saveOwnerEditsInWork:author.saveOwnerEditsInWork,hasOwnerAttempt:author.hasOwnerAttempt,discardOwnerAttemptInWork:author.discardOwnerAttemptInWork,show,reset,create,restoreAuthor,afterAuthorConfirm:author.afterOwnConfirm,openSlotInWork:author.openSlotInWork,openCopyInWork:author.openCopyInWork,copyDrafts:author.copyDrafts,copyDiscardSnapshot:author.copyDiscardSnapshot,validateCopyDiscard:author.validateCopyDiscard,discardCopies:author.discardCopies,discardCopiesInWork:author.discardCopiesInWork,saveCopiesInWork:author.saveCopiesInWork,recoverCopiesInWork:author.recoverCopiesInWork,hasCopyAttempt:author.hasCopyAttempt};
 }
