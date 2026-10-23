@@ -8,6 +8,7 @@ const rowAt=(schema,path)=>schema.rows?.find(row=>same(row.path,path));
 export function captureMixedCell(value,schema,valueJson){
  if(value.revision!==schema.revision||value.hash!==schema.textHash||Object.keys(value.invalidChildren||{}).length)throw Error('편집 기준이나 입력 형식을 확인해 주세요. 모든 입력은 유지됩니다.');
  if(value.kind==='schema-field')return {type:'schema-field',path:structuredClone(value.path),contract:structuredClone(value.contract),schema:value.schema,schemaHash:value.schemaHash,nativeType:value.nativeType};
+ if(['schema-name','schema-remove'].includes(value.kind))return {type:value.kind,path:structuredClone(value.path),contract:structuredClone(value.contract),schema:value.schema,schemaHash:value.schemaHash,...(value.kind==='schema-name'?{name:value.text}:{})};
  if(value.kind==='description')return {type:'description',text:value.text};
  if(value.kind==='parent')return {type:'parent',value:value.value};
  if(value.kind==='modules')return {type:'modules',ids:structuredClone(value.value)};
@@ -21,6 +22,7 @@ function capturedValue(value,type){if(value.wireJson)return printTypedJson(parse
 export function mixedCellMatches(key,value,change,start){
  if(!change||!key.startsWith(start))return false;
  if(value.kind==='schema-field')return key===start+'schema:'+JSON.stringify(value.path)&&same(change,{type:'schema-field',path:value.path,contract:value.contract,schema:value.schema,schemaHash:value.schemaHash,nativeType:value.nativeType});
+ if(['schema-name','schema-remove'].includes(value.kind))return key===start+value.kind+':'+JSON.stringify(value.path)&&same(change,{type:value.kind,path:value.path,contract:value.contract,schema:value.schema,schemaHash:value.schemaHash,...(value.kind==='schema-name'?{name:value.text}:{})});
  if(value.kind==='description')return key===start+'description'&&change.type==='description'&&change.text===value.text;
  if(value.kind==='parent')return key===start+'parent'&&change.type==='parent'&&same(change.value,value.value);
  if(value.kind==='modules')return key===start+'modules'&&change.type==='modules'&&same(change.ids,value.value);

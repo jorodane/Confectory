@@ -7,9 +7,9 @@ var saved=System.Text.Json.Nodes.JsonNode.Parse(snapshot[1])!.AsObject();var cha
 var grouped=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
 var settled=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
 foreach(var unit in changes){
- string groupField=unit?["retirementGroup"] is System.Text.Json.Nodes.JsonArray?"retirementGroup":unit?["hierarchyGroup"] is System.Text.Json.Nodes.JsonArray?"hierarchyGroup":"rootContractGroup";if(unit?[groupField] is not System.Text.Json.Nodes.JsonArray group)continue;
+ string groupField=unit?["retirementGroup"] is System.Text.Json.Nodes.JsonArray?"retirementGroup":unit?["hierarchyGroup"] is System.Text.Json.Nodes.JsonArray?"hierarchyGroup":unit?["atomicEditGroup"] is System.Text.Json.Nodes.JsonArray?"atomicEditGroup":"rootContractGroup";if(unit?[groupField] is not System.Text.Json.Nodes.JsonArray group)continue;
  var members=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(group,id=>id!.GetValue<string>()));foreach(string id in members)grouped.Add(id);
- if((groupField=="retirementGroup"?members.Length is <2 or >33:groupField=="hierarchyGroup"?members.Length is <2 or >32:members.Length is <3 or >64)||System.Linq.Enumerable.Count(System.Linq.Enumerable.Distinct(members,StringComparer.Ordinal))!=members.Length||!System.Linq.Enumerable.Any(members,id=>Array.IndexOf(selected,id)>=0))continue;
+ if((groupField=="retirementGroup"?members.Length is <2 or >33:groupField=="hierarchyGroup"?members.Length is <2 or >32:groupField=="atomicEditGroup"?members.Length is <1 or >64:members.Length is <3 or >64)||System.Linq.Enumerable.Count(System.Linq.Enumerable.Distinct(members,StringComparer.Ordinal))!=members.Length||!System.Linq.Enumerable.Any(members,id=>Array.IndexOf(selected,id)>=0))continue;
  bool complete=true;foreach(string id in members){
   var row=System.Linq.Enumerable.SingleOrDefault(changes,item=>item!["id"]!.ToString()==id);
   if(row is null||!System.Text.Json.Nodes.JsonNode.DeepEquals(row[groupField],group)){complete=false;break;}
