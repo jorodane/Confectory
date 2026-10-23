@@ -9,13 +9,14 @@ var settled=new System.Collections.Generic.HashSet<string>(StringComparer.Ordina
 foreach(var unit in changes){
  string groupField=unit?["retirementGroup"] is System.Text.Json.Nodes.JsonArray?"retirementGroup":unit?["hierarchyGroup"] is System.Text.Json.Nodes.JsonArray?"hierarchyGroup":"rootContractGroup";if(unit?[groupField] is not System.Text.Json.Nodes.JsonArray group)continue;
  var members=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(group,id=>id!.GetValue<string>()));foreach(string id in members)grouped.Add(id);
- if((groupField=="retirementGroup"?members.Length is <2 or >33:groupField=="hierarchyGroup"?members.Length is <2 or >32:members.Length is not (3 or 4))||System.Linq.Enumerable.Count(System.Linq.Enumerable.Distinct(members,StringComparer.Ordinal))!=members.Length||!System.Linq.Enumerable.Any(members,id=>Array.IndexOf(selected,id)>=0))continue;
+ if((groupField=="retirementGroup"?members.Length is <2 or >33:groupField=="hierarchyGroup"?members.Length is <2 or >32:members.Length is <3 or >64)||System.Linq.Enumerable.Count(System.Linq.Enumerable.Distinct(members,StringComparer.Ordinal))!=members.Length||!System.Linq.Enumerable.Any(members,id=>Array.IndexOf(selected,id)>=0))continue;
  bool complete=true;foreach(string id in members){
   var row=System.Linq.Enumerable.SingleOrDefault(changes,item=>item!["id"]!.ToString()==id);
   if(row is null||!System.Text.Json.Nodes.JsonNode.DeepEquals(row[groupField],group)){complete=false;break;}
   var current=calls.Read.Invoke(handle,id);
   if(current[6]!="clean"||current[3]!=row["draft"]!.GetValue<string>()||current[1]!=row["kind"]!.ToString()||current[2]!=row["path"]!.ToString()){complete=false;break;}
  }
+ if(complete&&groupField=="rootContractGroup"&&members.Length>4){try{calls.RootGroup.Invoke(handle,members[0]);}catch{complete=false;}}
  if(complete&&groupField=="rootContractGroup"&&members.Length==4){
   try{calls.RootGroup.Invoke(handle,members[0]);var fn=calls.Read.Invoke(handle,members[0]);var impl=calls.Read.Invoke(handle,members[1]);var graph=calls.Read.Invoke(handle,members[2]);var body=calls.Read.Invoke(handle,members[3]);string prefix=members[2]+"/node:";
    if(fn[1]!="function"||impl[1]!="implementation"||graph[1]!="blueprint"||body[1]!="blueprint-node"||!members[2].StartsWith(members[1]+"/body:",StringComparison.Ordinal)||!members[3].StartsWith(prefix,StringComparison.Ordinal))complete=false;

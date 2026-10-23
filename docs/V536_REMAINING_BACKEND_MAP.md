@@ -19,3 +19,5 @@
 후속 계약의 구현 가능/결정 필요 구분: `V536_PIN_AND_ATOMIC_NEXT.md`. Set 출력·copy ABI·다중 target·동일 owner 혼합 Save는 기술 계약으로 진행 가능하고, 속성은 사용자 답변으로 읽기 실행 시점의 현재 값과 이미 생성된 출력 보존으로 확정했다. ordinary main-line의 Set/속성 어댑터는 `VALIDATION_V536_SET_UI.md`의 한정 범위로 연결했다. 다음은 복사본 ABI→다중 target→동일 owner 선언+copy 원자 저장이며 각 차단을 실제 결합 계약 없이 제거하지 않는다.
 
 후속 최소 혼합 단위는 `VALIDATION_V536_MIXED_COPY.md`를 따른다. 새 copy 하나와 같은 owner 설명/기존 단일 primitive 값은 한 후보/CAS·선언 결부 receipt로 저장한다. 현재 유효한 wrapper와 export를 보존하지만 stale private ABI·여러 target·복수/스키마/구조/복합 값 혼합은 미완료이며 계속 차단한다. 전체 v536 완료 판정을 바꾸지 않는다.
+
+다중 target의 후속 한정 단위는 `VALIDATION_V536_MULTI_TARGET_ABI.md`를 따른다. 모든 owned Blueprint target의 같은 호출 값/ref 계약을 한 후보/CAS·정확한 source/record 검토 그룹으로 연결한다. opaque/상속/copy/context 있는 code/등록 callee all-target/복수 사용/일반 ABI와 넓은 혼합은 미완료다. 고정된 혼합 조합은 `V536_ATOMIC_REMAINING_COMBINATIONS.md`에 분리했으며 전체 v536 완료 판정은 바꾸지 않는다.
