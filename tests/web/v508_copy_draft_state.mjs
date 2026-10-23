@@ -5,7 +5,7 @@ import path from 'node:path';
 import {pathToFileURL} from 'node:url';
 const moduleRoot=fs.mkdtempSync(path.join(os.tmpdir(),'confectory-copy-state-'));
 fs.writeFileSync(path.join(moduleRoot,'package.json'),'{"type":"module"}');
-for(const name of ['feature-authoring.js','element-functions.js','typed-json.js'])fs.copyFileSync(path.join(process.cwd(),'examples/editor-home/ui',name),path.join(moduleRoot,name));
+for(const name of fs.readdirSync(path.join(process.cwd(),'examples/editor-home/ui')).filter(name=>name.endsWith('.js')))fs.copyFileSync(path.join(process.cwd(),'examples/editor-home/ui',name),path.join(moduleRoot,name));
 const {createFeatureAuthoring}=await import(pathToFileURL(path.join(moduleRoot,'feature-authoring.js')));
 
 const checks=[];

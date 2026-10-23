@@ -28,6 +28,7 @@ try
         case "blueprintCallAfter":reply=BlueprintCallAfter.Prepare(new Parser(S("functionText"),"<post-call-contract>").ParseElement(),request["expected"]?.GetValue<string>(),request["source"]?.GetValue<string>(),request["helpers"]?.GetValue<string>()??"");break;
         case "blueprintCallAbi":reply=BlueprintCallAbi.Prepare(request,Format);break;
         case "blueprintCopyAbiBinding":reply=BlueprintCopyAbi.Bind(request);break;
+        case "mixedOwnerCopyEdits":reply=MixedOwnerCopyEdits.Prepare(request,Format,FormatManifest);break;
         case "blueprintAliases":reply=BlueprintAliases.Prepare(request);break;
         case "blueprintInputAdaptation":reply=BlueprintInputAdaptation.Prepare(request);break;
         case "blueprintFeatureBodies":reply=BlueprintFeatureBodies.Query(request);break;

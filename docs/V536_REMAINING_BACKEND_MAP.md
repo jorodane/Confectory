@@ -17,3 +17,5 @@
 다음 **혼합 저장**은 속성/스키마 변경과 복사본 intent를 하나의 원자적 저장 단위로 표현하는 현재 누락을 먼저 다뤄야 한다. raw EditBatch가 있다는 이유로 서로 다른 저장 경로를 순서대로 호출해 부분 성공시키지 않는다. 계약이 없을 동안 혼합 Save 차단과 입력 보존은 유지한다. **조작 검증**은 실제 연결된 문맥에서 원본 선택/삭제/줌/검색/키보드 및 창/프로젝트 전환을 유한 목록으로 검사할 수 있다. 복사본/다중 target 등의 미구현을 완료로 덮을 수 없으며 전체 v536 완료 판정은 여전히 보류다.
 
 후속 계약의 구현 가능/결정 필요 구분: `V536_PIN_AND_ATOMIC_NEXT.md`. Set 출력·copy ABI·다중 target·동일 owner 혼합 Save는 기술 계약으로 진행 가능하고, 속성은 사용자 답변으로 읽기 실행 시점의 현재 값과 이미 생성된 출력 보존으로 확정했다. ordinary main-line의 Set/속성 어댑터는 `VALIDATION_V536_SET_UI.md`의 한정 범위로 연결했다. 다음은 복사본 ABI→다중 target→동일 owner 선언+copy 원자 저장이며 각 차단을 실제 결합 계약 없이 제거하지 않는다.
+
+후속 최소 혼합 단위는 `VALIDATION_V536_MIXED_COPY.md`를 따른다. 새 copy 하나와 같은 owner 설명/기존 단일 primitive 값은 한 후보/CAS·선언 결부 receipt로 저장한다. 현재 유효한 wrapper와 export를 보존하지만 stale private ABI·여러 target·복수/스키마/구조/복합 값 혼합은 미완료이며 계속 차단한다. 전체 v536 완료 판정을 바꾸지 않는다.

@@ -38,3 +38,5 @@ SlotBatch는 같은 owner의 1~8개 명시적 함수 변경을 candidate에서 �
 다음 순서는 Set 출력 계약 → 복사본 ABI 단일 대상 → 모든 영향 body를 묶는 다중 target → 동일 소유 객체의 선언+copy 혼합 Save다. 속성 읽기 정책의 답은 도착했으며 ordinary root 화면 연결에서 같은 실행 시점/출력 보존을 검증했다. 새 UI 설계·새 실행 모델·추가 내구성 요구로 범위를 넓히지 않는다. 이 문서는 다음 구현 경계를 고정하는 것이며 해당 기능의 완료 보고가 아니다.
 
 후속 첫 원자 단위: 저장·확정된 직접 배치 copy의 단일 Blueprint/호출 값↔ref를 `rebindCopyAbi`로 결부했다. 출처·직접 owner·요구 계약·모든 node record 및 최종 provider 검증 뒤 한 후보/checkpoint CAS를 사용한다. 결과/제한은 `VALIDATION_V536_SAVED_COPY_ABI.md`를 따른다. **새 비공개 copy intent 결합·다중 target·선언+copy 혼합 Save는 여전히 미완료**이며 이 첫 단위로 완료 처리하지 않는다.
+
+후속 최소 혼합 Save: `VALIDATION_V536_MIXED_COPY.md`의 새 copy 하나 + 같은 객체 설명/기존 primitive 값만 한 후보·CAS에 연결했다. 앞의 포괄적 미완료 표기는 이 한정 단위 이후에는 stale private ABI·다중 target·넓은 혼합 Save에 해당한다. 기존 current wrapper 편집 지원은 stale ABI 갱신과 구별한다.
