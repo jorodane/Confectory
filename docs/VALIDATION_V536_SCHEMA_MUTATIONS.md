@@ -55,3 +55,9 @@
 최종 Windows 교차 패키지: `/workspace/artifacts/Confectory-v536-schema-mutations-final/Windows-x64/Confectory.exe` (폴더 전체 필요). 선언 파일 2313개+marker=2314개, 131,739,879 bytes. marker SHA-256 `a70d634bd87f14a3c5b678811c032201cef7a10b8bf495ad2b0b909a48e7294b`, checksum 목록 SHA-256 `a89ec0eaf2d5c8abb6dee0ffeae66cdec88336a56b4e1010431fe3f2e058302c`. package/root source 및 helper 일치, SDK 없는 격리 managed 웹 시작/구성·리소스 변조/누락 거절과 깨끗한 checkout의 재현 결과는 아래 게시 마무리에서 구분한다. 실제 Windows 네이티브 실행이나 Library 전달은 아니다.
 
 최종 패키지 구성/checksum 및 SDK 없는 별도 cwd/profile의 실제 managed 웹 시작·70 resource·변조/누락 거절은 `package-probe2.log` PASS다. 변경17개는 구현12/테스트2/문서3으로 검토했고 생성물·로그·profile/사용자 데이터는 Git 후보에 없으며 비밀 패턴 발견0이다(모든 비밀 부재를 증명하는 검사는 아님). 실제 인증파일은 읽지 않았다. 원본 HTML/CSS·reference·Android 변경은 없다.
+
+## 깨끗한 checkout 최종 기록
+
+검증 코드 커밋 `f96a584ac4b2d0202b81a8d84dfae870e8380125`를 기존 격리 checkout에 정상 fast-forward했다. Release solution build 경고0/오류0(`checkout-build.log`), Linux 생성 엔진 경고0(`checkout-engine.json`), 실제 이전 CRLF checkout→attributes pull과 fresh LF 모두70 canonical/exact resource 읽기·내용/인코딩/BOM/binary/budget 거절·원래 byte 불변 PASS(`checkout-resources.log`)다. root/checkout의 구현12개 source는 정규화 byte가 일치하고 root/package 구현12개 및 helper DLL은 실제 byte가 일치했다.
+
+이번 중간 환경 disconnect는 실제 명령이 불가능한 상태를 확인한 뒤 같은 저장소의 pwd/status/engine JSON 읽기로 복구를 확인했다. 그 이후 검증을 마쳤으며 다른 환경/저장소로 옮기지 않았다. 최종 문서 기록 커밋은 runtime 변경이 없다. 승인된 `https://github.com/jorodane/Confectory.git`의 `work/current`만 정상 게시하며 최종 원격 SHA/두 작업 트리 clean/main 보존은 체크포인트·최종 응답에 남긴다. 전체 UI 및 실제 Windows 실행 완료가 아니다.
