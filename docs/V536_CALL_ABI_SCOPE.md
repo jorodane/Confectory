@@ -5,9 +5,9 @@
 | 문맥 | 현재 연결 범위 / 제한 |
 | --- | --- |
 | 소유 일반 Blueprint root | 단일 본문·단일 동일 callee 호출의 값↔ref. 기존 이름·순서·타입·out·반환·명시적 storage binding을 보존한다. 기존 통합 검증 범위다. |
-| 객체 소유 슬롯 | 이번 묶음의 구현/검증 대상. 같은 일반 root 제한에 더해 객체 원본 hash·revision·provide 대상을 read/batch/재시도에서 재검사한다. 슬롯 자신의 공용 구현을 편집하며 복사본을 자동 만들지 않는다. |
+| 객체 소유 슬롯 | 실제 엔진/화면 검증 완료. 같은 일반 root 제한에 더해 객체 원본 hash·revision·provide 대상을 read/batch/재시도에서 재검사한다. 슬롯 자신의 공용 구현을 편집하며 복사본을 자동 만들지 않는다. |
 | 비공개 복사 초안 / 저장된 복사본 | 미지원. copy edits/출처 계약을 함께 갱신하는 서버 계약이 없으므로 UI 및 서버에서 계속 차단한다. |
-| 등록 callable | 미지원. 등록 manifest/receipt를 묶은 ABI 갱신 계약이 아직 없으며 소유 callee 조건을 완화하지 않는다. 기존 import나 등록 팩을 수정하지 않는다. |
+| 등록 callable | 직접 등록 의존성의 함수/manifest receipt를 기존 명시적 ABI 갱신·적용·checkpoint에 결부했다. 소유 Caller의 typed import/graph만 바꾸며 등록 팩을 쓰지 않는다. 단일 root/본문/호출 값↔ref에 한정하고 `VALIDATION_V536_REGISTERED_CALL_ABI.md`의 common/long 실제6건과 제한을 따른다. 전이 의존성이나 provider 자동 선택은 지원하지 않는다. |
 | 실행 대상 | 정확히 선택된 단일 Blueprint 본문만 가능하다. target별 본문이 여러 개인 구현은 import를 공유하므로 다른 본문 영향 검증 없이 변경하지 않는다. 현재 UI 통합 검증은 common 대상이다. |
 | 상속/다른 소유자·중첩 그래프·같은 callee 다중 호출 | 미지원. 출처·다른 사용처를 조용히 바꾸거나 연결을 삭제하지 않는다. |
 | 이름/타입/순서/추가삭제/out/반환 변경 | 이 갱신 경로에서는 미지원. 임의 대응·storage 생성·자동 변환을 하지 않는다. |

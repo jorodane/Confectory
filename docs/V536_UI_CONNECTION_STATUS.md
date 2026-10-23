@@ -55,3 +55,5 @@ Browser 후속 정리: 이번 유한 잔여와 이후 Blueprint 작업 단위는
 후속 소유 슬롯 ABI: 기존 갱신 버튼에서 단일 소유 root의 값↔ref와 typed import를 함께 checkpoint하고 명시 Confirm하는 경로를 연결했다. 8건(순수1/실제엔진7)과 controlled renderer10, Windows 교차 패키지/웹 시작 검사를 구분해 `VALIDATION_V536_SLOT_CALL_ABI.md`에 기록했다. 복사본·등록 callable·여러 target 본문 등은 `V536_CALL_ABI_SCOPE.md`의 미지원 경계를 유지한다. 전체 v536/네이티브 수용 완료가 아니다.
 
 후속 모바일 특수핀 첫 수용: 선행 ABI 엔진을 사용한390폭 실제6건에서 whole-body C# 값/ref/out·native 이름 대응·폭 전환·cold·원자 Save·Review취소/명시 Confirm을 확인했다. runtime 변경 없이 회귀와 경계를 기록했다. `VALIDATION_V536_MOBILE_SPECIAL_PINS.md`를 따르며 특수핀 전체/async/복사·등록 문맥 완료가 아니다.
+
+직접 등록 callable ABI 후속: 기존 직접 의존성 선언/manifest receipt를 명시적 갱신·typed import/graph 원자 저장에 연결했다. 등록 변경 거절 후 새 계약 재확인·cold·Review/명시 Confirm 실제6건, 소유 슬롯 영향 회귀8건을 구분해 `VALIDATION_V536_REGISTERED_CALL_ABI.md`에 기록한다. 복사본·여러 target/호출·일반 ABI는 미완료이며, backend/어댑터 구분과 혼합 Save·조작 검증의 진입 조건은 `V536_REMAINING_BACKEND_MAP.md`를 따른다.
