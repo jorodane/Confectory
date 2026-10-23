@@ -1,0 +1,3 @@
+function Confectory.EditorHome.Model::RunWindows (string session,string operation,string payload) -> string {
+provide Confectory.EditorHome.Model::RunWindows with Confectory.EditorHome.Model::RunWindowsBody;
+}

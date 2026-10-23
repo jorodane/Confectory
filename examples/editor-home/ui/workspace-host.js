@@ -17,13 +17,14 @@ export function createActualWorkspace(api) {
     uid:()=>crypto.randomUUID(),toast:api.toast,modal:api.modal,contextMenu:api.contextMenu,
     persist:()=>schedule('layout'),get running(){return false},closeRun:()=>{},
     openNoteDocument:item=>noteDocuments.open(item),activateWorkspaceView:()=>{const pack=deactivatePackManager(),changed=noteDocuments.deactivate();return windowDocuments.deactivate()||changed||pack;},get activeFixedTab(){return project?.activeWorkspacePanel==='pack-manager'?'pack-manager':noteDocuments.active||windowDocuments.active?'document':null},openPackManager:()=>openPackManager(),beforeRenderTabs:tabs=>windowDocuments.rememberTabs(tabs),renderDocumentTabs:tabs=>{noteDocuments.renderTabs(tabs);windowDocuments.renderTabs(tabs);windowDocuments.arrangeTabs(tabs);},refreshNoteDocuments:()=>{noteDocuments.render();windowDocuments.render();},noteChanged:(item,source)=>noteDocuments.changed(item,source),pruneNoteDocuments:()=>noteDocuments.prune(),
-    revealWorkspaceForWindow:()=>{if(!loading){deactivatePackManager();noteDocuments.deactivate();windowDocuments.deactivate();}},
-    openWindowDocument:(w,opts)=>windowDocuments.open(w,opts),openWindowDocuments:windows=>windowDocuments.openMany(windows),focusWindowDocument:w=>{if(!loading)windowDocuments.activate(w.key);},closeWindowDocument:key=>windowDocuments.close(key),windowDocumentDropAt:(x,y)=>windowDocuments.tabDropAt(x,y),
+    revealWorkspaceForWindow:w=>{if(!loading&&w?.placed!==false){deactivatePackManager();noteDocuments.deactivate();windowDocuments.deactivate();}},syncWindowLayer:w=>windowDocuments.syncFloating(w),
+    openWindowDocument:(w,opts)=>windowDocuments.open(w,opts),openWindowDocuments:windows=>windowDocuments.openMany(windows),focusWindowDocument:w=>{if(!loading)windowDocuments.activate(w.key);},closeWindowDocument:(key,approved)=>windowDocuments.close(key,approved),windowDocumentDropAt:(x,y)=>windowDocuments.tabDropAt(x,y),
     takeDetachedWindow:key=>{const w=detached.get(scope+'|'+key);detached.delete(scope+'|'+key);return w},
     detachWindow:w=>{if(w.overlay)return;detached.set(scope+'|'+w.key,w);capture()},
     foregroundZ:node=>node.key==='ai-preview'&&api.$('.augment-overlay')?271:undefined,
+    beforeCloseWindow:(w,close)=>api.beforeCloseWindow?.(w,close)||false,
     hideWindowOnClose:key=>keepsEditing(key,runtime.state.windows.get(key)?.meta),
-    layoutMetadata:w=>Object.fromEntries(['id','view','mode','group','density','query','sort','mainWorkspace','namespace','catalogue','kind','parent','queryInput','browserLocations','hierarchyVisible','treeWidth','treeRestoreWidth','closedNamespaces','treeExpanded','treeSelection','treeQuery','workerId','blueprintGraph','blueprintNode','blueprintPropertyAccess','blueprintPropertyNode','blueprintCodeMode','blueprintEnumDraft','blueprintOutputWidth','blueprintOutputCollapsed','blueprintZoom','blueprintPositions','blueprintCamera','blueprintViews','nodeTaskNode','nodeTaskQuery','nodeTaskPage','nodeTaskReason','buildJob','buildPage','conflictSourceId','referenceRequest','mapQuery','mapRoles','mapFocus','mapSelected','mapPositions','mapCamera','mapDidFit','mapFocusId','mapFocusPositions','fieldDiscovery','tableDefinition','tableName','tableQuery','tableSort','tableSelected','tableInputs','tableFill','tableBuilder','tableColumnOrder','tableWidths','tableValueSort'].filter(key=>w.meta[key]!==undefined).map(key=>[key,w.meta[key]])),
+    layoutMetadata:w=>Object.fromEntries(['id','view','mode','group','density','query','sort','mainWorkspace','namespace','catalogue','kind','parent','queryInput','browserLocations','schemaCollapsed','ownPropertiesCollapsed','inheritedSourceCollapsed','functionsCollapsed','ownFunctionsCollapsed','variationsCollapsed','variations','elementBrowsers','browserData','propertyExpanded','propertyCollapsedInfo','propertyCollapsedValues','behaviorSourceCollapsed','hierarchyVisible','treeWidth','treeRestoreWidth','closedNamespaces','treeExpanded','treeSelection','treeQuery','workerId','copyDraft','implementationBody','conversionDraft','slotOwner','slotHash','slotRevision','slotImplementation','blueprintGraph','blueprintV508','blueprintNode','blueprintPropertyAccess','blueprintPropertyNode','blueprintCodeMode','blueprintEnumDraft','blueprintOutputWidth','blueprintOutputCollapsed','blueprintZoom','blueprintPositions','blueprintCamera','blueprintViews','recordId','conflictFilter','collapsedConflictSections','readRecordIds','battlePage','runView','nodeTaskNode','nodeTaskQuery','nodeTaskPage','nodeTaskReason','buildJob','buildTarget','buildCommand','buildPage','conflictSourceId','referenceRequest','mapQuery','mapRoles','mapFocus','mapSelected','mapPositions','mapCamera','mapDidFit','mapFocusId','mapFocusPositions','fieldDiscovery','tableDefinition','tableName','tableQuery','tableSort','tableSelected','tableInputs','tableFill','tableBuilder','tableColumnOrder','tableWidths','tableValueSort'].filter(key=>w.meta[key]!==undefined).map(key=>[key,w.meta[key]])),
     restoreActualWindow:layout=>restore(layout),
     afterSwitchWorkspace:()=>{const panels=structuredClone(runtime.workspaceRecord().participants||[]);api.clearPanels();api.clearYogi();panelWorkspace=runtime.state.activeWorkspaceId;api.restorePanels(panels);api.restoreYogi(runtime.workspaceRecord().yogiPresentation);api.render();schedule()},
     beforePrivateLayout:()=>deletionHistory.before('layout'),recordPrivateLayout:before=>deletionHistory.record(before),beforePrivateDelete:()=>deletionHistory.before(),recordPrivateDelete:before=>deletionHistory.record(before),privateHistoryMenu:()=>deletionHistory.menu(),
@@ -43,19 +44,20 @@ export function createActualWorkspace(api) {
           }
     },
     browserCanEnter:row=>api.projection.children(row.id).length>0,browserHierarchyParent:row=>api.projection.parent(row?.id),
-    selectObject:id=>api.openDeclaration(id),openEditor:id=>{api.openDeclaration(id);return null},
+    projectIdentity:()=>scope,placeObjects:(ids,spot,target)=>api.placeBrowserElements(ids,spot,target),selectObject:id=>api.openDeclaration(id),openEditor:id=>{api.openDeclaration(id);return null},
     createWorkspaceObject:(kind,x,y)=>api.createWorkspaceObject(kind,x,y),createWorkspaceVariation:(row,x,y)=>api.createWorkspaceVariation(row,x,y),openObjectTable:at=>api.openObjectTable(at),openBrowser:(...args)=>api.openBrowser(...args),renderBrowser:()=>api.renderObjects(),
     browserTreeCreateMenu:()=>api.unsupported('분류 편집','실제 계층 편집 계약은 아직 연결되지 않았습니다.'),
     browserCreateMenu:()=>api.unsupported('생성','실제 브라우저의 + 버튼에서 기존 선언 생성 계약을 사용하세요.'),
     duplicateChildBrowser:w=>api.duplicateBrowser(w),
-    objectContext:(event,object)=>api.objectContext(object.id,event),
+    objectContext:(event,object,w)=>api.objectContext(object.id,event,w),
   };
   const runtime=createWorkspaceRuntime(host);
   const noteDocuments=createNoteDocuments({activateDocument:()=>deactivatePackManager(),get project(){return project},get scope(){return scope},get loading(){return loading},canvas:()=>api.$('#workspace'),persist:()=>schedule('input'),refreshWindows:()=>windowDocuments.render(),toast:api.toast,renderTabs:()=>runtime.renderWorkspaceTabs(),renderDecorations:()=>runtime.renderWorkspaceDecorations(),editTitle:(item,owns)=>runtime.editWorkspaceTitle(item,owns,true)});
-  const windowDocuments=createWindowDocuments({activateDocument:()=>deactivatePackManager(),get project(){return project},get loading(){return loading},canvas:()=>api.$('#workspace'),runtime,persist:()=>schedule('layout'),toast:api.toast,contextMenu:api.contextMenu,renderTabs:()=>runtime.renderWorkspaceTabs(),refreshNotes:()=>noteDocuments.render(),retain:w=>host.detachWindow(w)});
+  const windowDocuments=createWindowDocuments({activateDocument:()=>deactivatePackManager(),get project(){return project},get loading(){return loading},canvas:()=>api.$('#workspace'),runtime,persist:()=>schedule('layout'),toast:api.toast,contextMenu:api.contextMenu,renderTabs:()=>runtime.renderWorkspaceTabs(),refreshNotes:()=>noteDocuments.render(),activateBackground:activateBackground,retain:w=>host.detachWindow(w),beforeCloseWindow:host.beforeCloseWindow});
   const deletionHistory=createPrivateLayoutHistory({project:()=>project,ready:()=>!!project&&!loading&&!api.isBusy&&!runtime.state.gesture&&!runtime.state.cancelDrag,capture:()=>{capture();runtime.saveLayouts();},restore:restorePrivate,toast:api.toast,persist:()=>schedule('layout')});
+  function activateBackground(id){if(id==='pack-manager')openPackManager();else if(id?.startsWith('window:'))windowDocuments.activate(id.slice(7));else if(id?.startsWith('note:'))noteDocuments.activate(id.slice(5));else{deactivatePackManager();noteDocuments.deactivate();windowDocuments.deactivate();}}
   function deactivatePackManager(){if(project?.activeWorkspacePanel!=='pack-manager')return false;project.activeWorkspacePanel=null;api.showPackManager?.(false);return true;}
-  function openPackManager(){if(!project||loading)return;noteDocuments.deactivate();windowDocuments.deactivate();if(runtime.state.activeWorkspaceId!=='root')runtime.switchWorkspace('root');project.activeWorkspacePanel='pack-manager';api.showPackManager?.(true);runtime.renderWorkspaceTabs();schedule('layout');}
+  function openPackManager(){if(!project||loading)return;noteDocuments.deactivate();windowDocuments.deactivate();if(runtime.state.activeWorkspaceId!=='root')runtime.switchWorkspace('root');project.activeWorkspacePanel='pack-manager';api.showPackManager?.(true);windowDocuments.syncFloating();runtime.renderWorkspaceTabs();schedule('layout');}
   function restorePrivate(apply,reveal=[],placement=null){
     capture();runtime.cancelInteractions();loading=true;
     try{
@@ -76,7 +78,7 @@ export function createActualWorkspace(api) {
     }finally{loading=false;api.controls?.();}
     runtime.saveLayouts();schedule('layout');
   }
-  document.addEventListener('keydown',event=>{if(!project||loading||api.page!=='work'||event.altKey||event.isComposing||!(event.ctrlKey||event.metaKey)||!['z','y'].includes(event.key.toLowerCase())||event.target.isContentEditable||event.target.closest?.('input,textarea,select,.modal,.tab-document,.note-document'))return;const undo=event.key.toLowerCase()==='z'&&!event.shiftKey;if((undo?project.privateHistory?.undo:project.privateHistory?.redo)?.length){event.preventDefault();event.stopImmediatePropagation();undo?deletionHistory.undo():deletionHistory.redo();}},true);
+  document.addEventListener('keydown',event=>{if(!project||loading||api.page!=='work'||event.altKey||event.isComposing||!(event.ctrlKey||event.metaKey)||!['z','y'].includes(event.key.toLowerCase())||event.target.isContentEditable||event.target.closest?.('input,textarea,select,.modal,.tab-document,.note-document,.feature-author-document'))return;const undo=event.key.toLowerCase()==='z'&&!event.shiftKey;if((undo?project.privateHistory?.undo:project.privateHistory?.redo)?.length){event.preventDefault();event.stopImmediatePropagation();undo?deletionHistory.undo():deletionHistory.redo();}},true);
   function capture(){if(project){windowDocuments.capture();if(!loading&&!project.recoveryFailed){project.selectedObjectId=api.current.draft?.id;project.editorBindings=api.current.editorViews.map(({view,id,mode})=>({view,id,mode}));}project.inputs=api.captureInputs(detached.get(scope+'|source'));const owner=runtime.workspaceRecord();if(owner&&!loading&&panelWorkspace===runtime.state.activeWorkspaceId){owner.participants=api.capturePanels();owner.yogiPresentation=api.captureYogi();}if(owner){if(runtime.state.activeWorkspaceId==='root')project.rootWorkspaceView={...project.workspaceView};else owner.view={...project.workspaceView};}if(owner)for(const w of runtime.state.windows.values()){if(w.overlay)continue;const row=owner.layout.find(row=>row.key===w.key);if(row)Object.assign(row,runtime.windowLayout(w));}}}
   function snapshot(){capture();project.activeWorkspaceId=runtime.state.activeWorkspaceId;project.visitedWorkspaceTabs=[...runtime.state.visitedWorkspaceTabs];const value=JSON.parse(JSON.stringify(project));delete value.selectedNodeKeys;
     // Persist fresh input while a pointer gesture is provisional, using its last
@@ -115,13 +117,29 @@ export function createActualWorkspace(api) {
     return project.workspaces.find(child=>child.layout.some(row=>row.key===key))?.id??null;
   }
   function shouldRender(key){const owner=findOwner(key);return !owner||owner===runtime.state.activeWorkspaceId;}
+  // Presentation metadata is hydrated before the element renderer consumes it.
+  // It never chooses the source: only the already-bound server schema may match.
+  function restoreElementMetadata(layout,schema){
+    if(schema?.kind!=='object'||layout.meta?.id!==schema.id)return;
+    const meta=structuredClone(layout.meta),w=runtime.openWindow(layout.key,schema.id.split('::').at(-1)+' · 데이터',layout.width,layout.height,{refresh:true,meta});
+    Object.assign(w.meta,meta);w.elementStamp=null;
+  }
   function restore(layout){
+    // Layout is not a reviewed source token. Keep stale Review geometry privately, without a fake editor.
+    if(layout.key==='review'){
+      if(api.current.review){api.review();return runtime.state.windows.get('review');}
+      layout.hidden=true;const w=runtime.openWindow('review','변경 검토',layout.width,layout.height,{refresh:true,meta:layout.meta});w.body.replaceChildren();return w;
+    }
+    // A retained author DOM was suspended/disposed on project departure. Rebind
+    // its owned source and private inputs before making that document usable.
+    if(layout.key==='blueprint'&&layout.meta?.blueprintV508)return api.blueprint(layout.meta);
     const cached=detached.get(scope+'|'+layout.key);
     if(cached)return runtime.openWindow(layout.key,cached.title,cached.width,cached.height,{refresh:true});
     if(layout.key==='source'){api.editor();return runtime.state.windows.get('source');}
     if(layout.key==='browser'||layout.key.startsWith('browser:')||layout.key.startsWith('browser-tree:')){const w=api.browser(layout.meta?.group||'concept',layout.key);Object.assign(w.meta,layout.meta);w.treeLastLocation=null;w.browserFilterRestored=false;w.browserFilterError=false;return api.browser(w.meta.group,layout.key);}
     if(layout.key==='blueprint')return api.blueprint(layout.meta||{});
     if(layout.key.startsWith('blueprint-code:'))return api.blueprintCode(layout.meta||{});
+    if(layout.key==='conflict-log'||layout.key==='conflict-detail')return api.battleLog(layout.key,layout.meta||{});
     if(layout.key==='node-tasks')return api.nodeTasks(layout.meta||{});
     if(layout.key==='builds')return api.builds(layout.meta||{});
     if(layout.key==='history')return api.history(layout.meta||{});
@@ -131,15 +149,16 @@ export function createActualWorkspace(api) {
     if(layout.key==='field-discovery')return api.discovery(layout.meta||{});
     if(layout.key.startsWith('table:')&&layout.meta?.tableDefinition)return api.table(layout.meta.tableDefinition,layout.meta||{});
     if(layout.key==='custom')return api.custom(layout.meta||{});
-    if(layout.key==='schema'){api.schema();return runtime.state.windows.get('schema');}
+    if(layout.key==='schema'){restoreElementMetadata(layout,api.current.schema);api.schema();return runtime.state.windows.get('schema');}
     if(layout.key==='declaration'){api.declaration(layout.meta?.id);return runtime.state.windows.get('declaration');}
     if(layout.key==='worker')return api.worker(layout.meta?.workerId);
     if(layout.key==='connections'){api.connections();return runtime.state.windows.get('connections');}
     if(layout.key==='mcp-bridge'){api.connections();return runtime.state.windows.get('connections');}
     if(layout.key==='packs')return api.packs();
-    if(layout.key==='run')return api.run();
+    if(layout.key==='run'||/^run:instance:[a-f0-9]{32}$/.test(layout.key))return api.run(layout.key,layout.meta);
+    if(layout.key==='build-result')return api.runExport?.(layout.meta);
     if(layout.key==='targets'){api.targets();return runtime.state.windows.get('targets');}
-    if(layout.key.startsWith('editor-')){api.renderViews();return runtime.state.windows.get(layout.key);}
+    if(layout.key.startsWith('editor-')){const row=api.current.editorViews?.find(row=>'editor-'+row.view===layout.key&&row.id===layout.meta?.id&&row.mode==='properties');if(row)restoreElementMetadata(layout,row.schema);api.renderViews();return runtime.state.windows.get(layout.key);}
     // Unsupported/restale views are retained as presentation records, never
     // represented as successful domain editors or discarded silently.
     const w=runtime.openWindow(layout.key,'편집창 복원',420,220,{refresh:true,meta:layout.meta});
@@ -158,14 +177,17 @@ export function createActualWorkspace(api) {
     runtime.state.visitedWorkspaceTabs=(project.visitedWorkspaceTabs||['root']).filter(id=>runtime.workspaceRecord(id));
     Object.assign(project.workspaceView,runtime.state.activeWorkspaceId==='root'?project.rootWorkspaceView:runtime.workspaceRecord().view);
     if(!checkpoints.has(scope)){const baseline=JSON.parse(JSON.stringify(project));delete baseline.selectedNodeKeys;checkpoints.set(scope,baseline);}project.selectedNodeKeys=[];api.restoreInputs(project.inputs||{});
-    runtime.setupWorkspaceNavigation();runtime.setupWindowSelection();runtime.renderWorkspaceTabs();runtime.renderWorkspaceDecorations();
+    runtime.setupWorkspaceNavigation();runtime.setupOwnedObjectDrop();runtime.setupWindowSelection();runtime.renderWorkspaceTabs();runtime.renderWorkspaceDecorations();
     const layouts=runtime.workspaceRecord().layout.map(row=>structuredClone(row));
     for(const layout of layouts)runtime.restoreWindow(layout);windowDocuments.restore();
     runtime.setWorkspaceNodeSelection((project.selectedNodeKeys||[]).map(key=>runtime.state.workspaceNodes.get(key)).filter(Boolean));
-    loading=false;changed=0;saved=0;panelWorkspace=runtime.state.activeWorkspaceId;api.restorePanels(runtime.workspaceRecord().participants||[]);api.restoreYogi(runtime.workspaceRecord().yogiPresentation);if(project.activeWorkspacePanel==='pack-manager')openPackManager();
-    api.$('#workspace').addEventListener('input',()=>schedule());
     const bindings=project.editorBindings||[],selected=project.selectedObjectId;
     const missing=bindings.filter(binding=>!state.editorViews.some(row=>row.view===binding.view&&row.id===binding.id&&row.mode===binding.mode));
+    // Rendering the saved Pack Manager may capture before domain views reopen.
+    // Keep the original binding plan intact until recovery has actually succeeded.
+    if(missing.length||(selected&&selected!==state.draft?.id))project.recoveryFailed=true;
+    loading=false;changed=0;saved=0;panelWorkspace=runtime.state.activeWorkspaceId;api.restorePanels(runtime.workspaceRecord().participants||[]);api.restoreYogi(runtime.workspaceRecord().yogiPresentation);if(project.activeWorkspacePanel==='pack-manager')openPackManager();
+    api.$('#workspace').addEventListener('input',()=>schedule());
     if(missing.length||(selected&&selected!==state.draft?.id)){
       loading=true;api.setWorkspaceStatus('편집창 복원 중');const owner=scope;
       (async()=>{
@@ -181,5 +203,5 @@ export function createActualWorkspace(api) {
   }
   function detach(){if(!project)return;api.showPackManager?.(false);runtime.cancelInteractions();capture();loading=true;api.clearPanels();api.clearYogi();clearTimeout(scheduled);runtime.saveLayouts();capture();for(const w of runtime.state.windows.values())host.detachWindow(w);projects.set(scope,project);noteDocuments.detach();windowDocuments.detach();project=null;scope='';loading=false;changed=0;saved=0;}
   function reveal(key){const owner=findOwner(key);if(owner&&owner!==runtime.state.activeWorkspaceId)runtime.switchWorkspace(owner);let w=runtime.state.windows.get(key);if(!w){const layout=runtime.workspaceRecord()?.layout.find(row=>row.key===key);if(layout)w=runtime.restoreWindow(layout);}if(w){w.el.hidden=false;runtime.registerWorkspaceNode(w);runtime.focusWindow(w);runtime.saveLayouts();}return w;}
-  return {runtime,noteDocuments,windowDocuments,deletionHistory,attach,detach,flush,flushInputs,schedule,shouldRender,reveal,get project(){return project},get loading(){return loading}};
+  return {runtime,noteDocuments,windowDocuments,deletionHistory,activateBackground,attach,detach,flush,flushInputs,schedule,shouldRender,reveal,get project(){return project},get loading(){return loading}};
 }

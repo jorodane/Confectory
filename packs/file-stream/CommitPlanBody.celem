@@ -1,0 +1,5 @@
+implementation Confectory.FileStream::CommitPlanBody for Confectory.FileStream::CommitPlan (string root, string plan) -> string[] {
+import Confectory.FileStream::LeasePath as LeasePath (string) -> string;
+import Confectory.FileStream::WriteAtomic as WriteAtomic (string,string) -> void;
+body common "CommitPlan.csbody";
+}

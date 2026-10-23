@@ -1,0 +1,1 @@
+function Confectory.Save::WriteChecked (string handle,string expected) -> string {provide Confectory.Save::WriteChecked with Confectory.Save::WriteCheckedBody;}

@@ -1,0 +1,1 @@
+function Confectory.Save::ApplySlots (string handle,string plans) -> string {provide Confectory.Save::ApplySlots with Confectory.Save::ApplySlotsBody;}

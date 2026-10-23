@@ -12,8 +12,9 @@ for(int i=0;i<ids.Length;i++){
 lock(state){
  if(!ReferenceEquals(AppDomain.CurrentDomain.GetData(key),state))throw new ObjectDisposedException("EditWorkspace");
  for(int i=0;i<ids.Length;i++){var unit=state["units"]![ids[i]];if(unit is null||unit["kind"]!.ToString()!=kinds[i]||unit["path"]!.ToString()!=paths[i]||unit["revision"]!.GetValue<long>()!=revisions[i]||Hash(unit["draft"]!.ToString())!=hashes[i])return false;}
- var before=new System.Text.Json.Nodes.JsonObject();foreach(string id in ids)before[id]=state["units"]![id]!["draft"]!.DeepClone();
+ var before=new System.Text.Json.Nodes.JsonObject();foreach(string id in ids)before[id]=new System.Text.Json.Nodes.JsonObject{["text"]=state["units"]![id]!["draft"]!.DeepClone(),["hierarchyGroup"]=state["units"]![id]!["hierarchyGroup"]?.DeepClone()};
  for(int i=0;i<ids.Length;i++){var unit=state["units"]![ids[i]]!;if(unit["draft"]!.ToString()==texts[i])continue;unit["draft"]=texts[i];unit["revision"]=unit["revision"]!.GetValue<long>()+1;}
- if(System.Linq.Enumerable.Any(ids,id=>before[id]!.ToString()!=state["units"]![id]!["draft"]!.ToString())&&AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace.HistoryRecorder."+handle) is Action<System.Text.Json.Nodes.JsonObject,string> record)record(before,"batch-edit");
+ foreach(var row in state["units"]!.AsObject())if(row.Value?["hierarchyGroup"] is System.Text.Json.Nodes.JsonArray group&&System.Linq.Enumerable.All(group,member=>state["units"]?[member!.ToString()] is System.Text.Json.Nodes.JsonObject unit&&unit["draft"]?.ToString()==unit["original"]?.ToString()))row.Value.AsObject().Remove("hierarchyGroup");
+ if(System.Linq.Enumerable.Any(ids,id=>before[id]!["text"]!.ToString()!=state["units"]![id]!["draft"]!.ToString())&&AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace.HistoryRecorder."+handle) is Action<System.Text.Json.Nodes.JsonObject,string> record)record(before,"batch-edit");
 }
 return true;

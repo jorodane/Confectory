@@ -1,0 +1,1 @@
+function Confectory.EditWorkspace::CopyImplementation (string handle,string plan) -> string {provide Confectory.EditWorkspace::CopyImplementation with Confectory.EditWorkspace::CopyImplementationBody;}

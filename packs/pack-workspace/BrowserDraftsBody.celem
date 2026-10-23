@@ -6,5 +6,8 @@ implementation Confectory.PackWorkspace::BrowserDraftsBody for Confectory.PackWo
  import Confectory.Save::Read as Saved (string) -> string;
  import Confectory.Save::Write as Save (string) -> string;
  import Confectory.FileStream::Snapshot as FileSnapshot (string) -> string[];
+ import Confectory.EditWorkspace::DiscardCreationGroup as DiscardCreationGroup (string,string,string) -> string;
+import Confectory.EditWorkspace::CreationGroup as CreationGroup (string,string) -> string[];
+ import Confectory.EditWorkspace::Retirement as Retirement (string,string,string) -> string;
  body common "BrowserDrafts.csbody";
 }

@@ -1,0 +1,25 @@
+"""Pure explicit call-ABI preparation: narrow value/ref change, no implicit field remaps."""
+import copy,json,os,pathlib,subprocess,sys,tempfile
+r=pathlib.Path(sys.argv[1]).resolve();host=r/'targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll';dotnet='/workspace/toolchains/dotnet-10.0.401/dotnet';case=pathlib.Path(tempfile.mkdtemp(prefix='confectory-call-abi-contract-'));checks=[];env=os.environ.copy();env.update(DOTNET_CLI_HOME='/tmp/confectory-dotnet10-final',NUGET_PACKAGES='/tmp/confectory-site-nuget')
+def sdk(op,ok=True,**body):
+ p=subprocess.run([dotnet,str(host)],input=json.dumps({'operation':op,**body}),text=True,capture_output=True,env=env,check=True);v=json.loads(p.stdout);assert v['ok']==ok,v;return v.get('result') if ok else v
+
+def checked(text):checks.append(text);print('PASS '+text,flush=True)
+fixture=r.parent/'scratch/v508-elements/actual13-source-fixture/owned project';g=json.loads(next((fixture/'blueprints').glob('*.graph.json')).read_text());caller=(fixture/'elements/SerialBlueprintBody.celem').read_text();fn='function Owned.Elements::Native (ref long seed,out long count) -> long {}';enum={'primary':'next','members':[{'id':'next','name':'NoBranch','value':0}]};node='native';prepared=sdk('blueprintPrepareCall',id='Owned.Elements::SerialBlueprintBody',text=caller,targetText=fn,graph=g,definition={'id':node,'feature':'Owned.Elements::Native','intent':'Explicit ABI input','control':'next'});g=prepared['graph'];n=next(n for n in g['nodes'] if n['id']==node);n.update(control='switch',arguments={'seed':{'input':'seed'}},executionEnum=enum,postCall={'mode':'execution-enum','contractHash':'0'*64,'returnMapping':'native-return-out-v1','source':'return Result.NoBranch;','helpers':'private static int Keep(){return 7;}'})
+plan={'id':'Owned.Elements::SerialBlueprintBody','text':prepared['implementation'],'graph':g,'node':node,'signature':{'args':[{'type':'long','name':'seed'},{'type':'long','name':'count','mode':'out'}],'return':'long'},'contractHash':'1'*64};original=copy.deepcopy(plan);result=sdk('blueprintCallAbi',**plan);new=next(n for n in result['graph']['nodes'] if n['id']==node);assert new['signature']==plan['signature'] and new['arguments']==n['arguments'] and new['postCall']['source']==n['postCall']['source'] and new['postCall']['helpers']==n['postCall']['helpers'] and result['graph']['edges']==g['edges'] and result['graph']['exits']==g['exits'] and plan==original and '(long, out long)' in result['implementation'] and not result['sourceWritten'] and not result['compiled'];checked('explicit value/ref preparation changes one matching call/import together and retains every named data binding, route, enum, body and helper without mutating its input')
+for kind in ['name','type','return','out-mode','new-arg','unchanged','second-call','nested','other-body']:
+ q=copy.deepcopy(plan)
+ if kind=='name':q['signature']['args'][0]['name']='renamed'
+ elif kind=='type':q['signature']['args'][0]['type']='int'
+ elif kind=='return':q['signature']['return']='bool'
+ elif kind=='out-mode':q['signature']['args'][1]['mode']='ref'
+ elif kind=='new-arg':q['signature']['args'].append({'type':'long','name':'new'})
+ elif kind=='unchanged':q['signature']['args'][0]['mode']='ref'
+ elif kind=='second-call':extra=copy.deepcopy(n);extra['id']='other';q['graph']['nodes'].append(extra)
+ elif kind=='nested':q['graph']['nodes'].append({'id':'child','kind':'graph'})
+ else:q['text']=q['text'].replace('blueprint common','body windows "other.csbody";blueprint common')
+ sdk('blueprintCallAbi',False,**q);assert plan==original
+checked('renamed/new/removed-direction/type/return fields, unchanged ABI and other shared call/body uses refuse instead of guessing or dropping their connections')
+q=copy.deepcopy(plan);q['graph']['nodes'][-1]['signature']['args'][0].pop('mode');q['text']=q['text'].replace('(ref long,','(long,');q['signature']['args'][0]['mode']='ref';q['graph']['nodes'][-1]['arguments']['seed']={'constant':3};bad=sdk('blueprintCallAbi',False,**q);assert 'storage' in str(bad).lower();q['graph']['nodes'][-1]['arguments']['seed']={'input':'seed'};back=sdk('blueprintCallAbi',**q);assert next(n for n in back['graph']['nodes'] if n['id']==node)['signature']['args'][0]['mode']=='ref';checked('reverse value-to-ref preparation requires an explicitly retained storage binding; a literal fails while an existing root storage survives')
+q=copy.deepcopy(plan);q['text']=q['text'].replace(') -> long;\n',') -> long in Owned.Elements::Unit;\n',1);scoped=sdk('blueprintCallAbi',**q);assert scoped['scope']=='Owned.Elements::Unit' and 'in Owned.Elements::Unit;' in scoped['implementation'] and scoped['alias']==result['alias'];checked('existing import alias and object scope are preserved exactly; preview never selects a new provider or broadens authority')
+record={'checks':checks,'evidence':str(case),'actualEngine':False,'sourceWrites':False,'scope':'pure preparation, final ownership/type/receipt/atomic save checked by workspace','nativeWindows':False,'accountOrInference':False};(case/'evidence.json').write_text(json.dumps(record,indent=2));print(json.dumps(record,indent=2))

@@ -5,7 +5,8 @@ lock(state)
  foreach(string id in selected){if(!unique.Add(id))throw new ArgumentException("Duplicate selected unit.");var unit=state["units"]![id] as System.Text.Json.Nodes.JsonObject??throw new ArgumentException("Unknown owned unit.");
 
  if(unit["draft"] is null)continue;
- if(unit["draft"]!.GetValue<string>()==unit["original"]!.GetValue<string>()&&unit["baseline"]!.GetValue<string>()!="missing")continue;
+ if(unit["draft"]!.GetValue<string>()==unit["original"]!.GetValue<string>()&&unit["baseline"]!.GetValue<string>()!="missing"&&unit["retirementGroup"] is null&&unit["hierarchyGroup"] is null)continue;
  result.Add(id);result.Add(unit["path"]!.GetValue<string>());result.Add(unit["baseline"]!.GetValue<string>());result.Add(unit["draft"]!.GetValue<string>());}
+ foreach(var operation in state["retirements"]?.AsObject()??new System.Text.Json.Nodes.JsonObject()){var receipt=operation.Value!;if(receipt["state"]?.ToString()!="pending"||Array.IndexOf(selected,receipt["manifest"]!.ToString())<0)continue;foreach(var row in receipt["entries"]!.AsObject()){var unit=row.Value!;result.Add(row.Key);result.Add(unit["path"]!.ToString());result.Add(unit["baseline"]!.ToString());result.Add(unit["original"]!.ToString());}}
  return result.ToArray();
 }

@@ -1,7 +1,7 @@
 var state=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+handle) as System.Text.Json.Nodes.JsonObject??throw new ObjectDisposedException("EditWorkspace");
 lock(state){
  var units=state["units"]!.AsObject();string implementation=id;int marker=id.IndexOf("/body:",StringComparison.Ordinal);if(marker>=0)implementation=id[..marker];
- var unit=units[implementation];if(unit?["kind"]?.ToString()!="implementation"||unit["baseline"]?.ToString()!="missing"||unit["creationOwner"] is null)return Array.Empty<string>();
+ var unit=units[implementation];if(unit?["kind"]?.ToString() is not ("implementation" or "schema")||unit["baseline"]?.ToString()!="missing"||unit["creationOwner"] is null)return Array.Empty<string>();
  string owner=unit["creationOwner"]!.GetValue<string>();if(units[owner]?["kind"]?.ToString()!="object")throw new InvalidOperationException("New implementation requires its owned object context");
  return new[]{owner};
 }

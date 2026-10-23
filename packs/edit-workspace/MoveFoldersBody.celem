@@ -1,0 +1,5 @@
+implementation Confectory.EditWorkspace::MoveFoldersBody for Confectory.EditWorkspace::MoveFolders (string handle, string plan) -> string {
+import Confectory.EditWorkspace::Read as Read (string,string) -> string[];
+import Confectory.SchemaEditing::Call as Metadata (string,string) -> string;
+body common "MoveFolders.csbody";
+}

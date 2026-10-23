@@ -4,6 +4,22 @@ namespace Confectory.Tests;
 
 public sealed class CoreTests : TestCase
 {
+    public void test_documents_accept_initial_utf8_bom_without_changing_source_bytes()
+    {
+        string root = Path.Combine(f.Root, "utf8-documents"); Directory.CreateDirectory(root);
+        string element = Path.Combine(root, "O.celem"), manifest = Path.Combine(root, "project.cpack");
+        byte[] Bom(string text) => new byte[] { 0xef, 0xbb, 0xbf }.Concat(System.Text.Encoding.UTF8.GetBytes(text)).ToArray();
+        byte[] original = Bom("object X::O { value label = \"한글\"; }"); File.WriteAllBytes(element, original);
+        File.WriteAllBytes(manifest, Bom("pack X version \"1\" { element O object \"O.celem\"; }"));
+        var documents = new Documents(Path.Combine(root, "cache"), new BuildStatistics());
+        Equal("X", documents.Manifest(manifest).Namespace); Equal("X::O", documents.Element(element).Id);
+        var observed = new Documents(Path.Combine(root, "unused"), new BuildStatistics(), File.ReadAllBytes);
+        Equal("X::O", observed.Element(element).Id); True(File.ReadAllBytes(element).SequenceEqual(original));
+        string invalid = Path.Combine(root, "invalid.celem"); File.WriteAllBytes(invalid, [0xff]);
+        Error("SOURCE_READ", () => documents.Element(invalid));
+        File.WriteAllText(invalid, " \ufeffobject X::Invalid {}"); Error("SYNTAX", () => documents.Element(invalid));
+    }
+
     public void test_direct_schema_fields_data_inheritance_and_reference_cycles()
     {
         f.Add("App", "schema", "Shape", "schema App::Shape { field name single general string; field n single general int; field flags multiple general bool; field child single compound App::Leaf; field peer single reference App::Shape; field callback single function Api::Value; }");

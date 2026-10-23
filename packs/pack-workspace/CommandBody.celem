@@ -20,5 +20,10 @@ import Confectory.EditWorkspace::Create as Create (string, string, string) -> vo
 import Confectory.SchemaEditing::DescribeView as DescribeSchemaView (string) -> string;
 import Confectory.SchemaEditing::CheckCall as CheckCall (string,string,string,string) -> string;
 import Confectory.PackWorkspace::BrowserDrafts as BrowserDrafts (string,string) -> string;
+import Confectory.EditWorkspace::EditObjectStructure as EditObjectStructure (string,string,long,string,string) -> void;
+import Confectory.EditWorkspace::MoveObjects as MoveObjects (string,string) -> string;
+import Confectory.EditWorkspace::PlanRemoval as PlanRemoval (string,string) -> string;
+import Confectory.EditWorkspace::Retirement as Retirement (string,string,string) -> string;
+import Confectory.EditWorkspace::MoveFolders as MoveFolders (string,string) -> string;
 body common "Command.csbody";
 }

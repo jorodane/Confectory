@@ -1,0 +1,5 @@
+implementation Confectory.EditWorkspace::PlanRemovalBody for Confectory.EditWorkspace::PlanRemoval (string handle, string request) -> string {
+import Confectory.EditWorkspace::Read as Read (string,string) -> string[];
+import Confectory.SchemaEditing::Call as Metadata (string,string) -> string;
+body common "PlanRemoval.csbody";
+}

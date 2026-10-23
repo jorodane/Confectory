@@ -140,7 +140,12 @@ internal static class ChangeStamp
 public sealed class Documents(string cache, BuildStatistics statistics, Func<string, byte[]>? sourceReader)
 {
     public Documents(string cache, BuildStatistics statistics) : this(cache, statistics, null) { }
-    private const string Format = "csharp-declarations-v3-blueprint";
+    private const string Format = "csharp-declarations-v4-utf8-bom";
+    private static string Decode(byte[] bytes)
+    {
+        int offset = bytes.Length >= 3 && bytes[0] == 0xef && bytes[1] == 0xbb && bytes[2] == 0xbf ? 3 : 0;
+        return new UTF8Encoding(false, true).GetString(bytes, offset, bytes.Length - offset);
+    }
     private T Read<T>(string input, string role, Func<string, string, T> parse)
     {
         string path = PackPaths.Resolve(input);
@@ -150,7 +155,7 @@ public sealed class Documents(string cache, BuildStatistics statistics, Func<str
         {
             byte[] bytes = sourceReader(path);
             statistics.ReadDocuments.Add(path);
-            var value = parse(new UTF8Encoding(false, true).GetString(bytes), path);
+            var value = parse(Decode(bytes), path);
             if (role != "body") statistics.ParsedDocuments.Add(path);
             return value;
         }
@@ -164,7 +169,7 @@ public sealed class Documents(string cache, BuildStatistics statistics, Func<str
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException or InvalidOperationException or KeyNotFoundException or FormatException) { }
         byte[] raw; string text;
-        try { raw = File.ReadAllBytes(path); text = new UTF8Encoding(false, true).GetString(raw); }
+        try { raw = File.ReadAllBytes(path); text = Decode(raw); }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or DecoderFallbackException)
         { throw new BuildError("SOURCE_READ", $"Cannot read UTF-8 source {path}: {ex.Message}", new(path)); }
         statistics.ReadDocuments.Add(path);

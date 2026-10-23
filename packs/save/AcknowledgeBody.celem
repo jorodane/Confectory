@@ -4,5 +4,6 @@ import Confectory.EditWorkspace::Identity as Identity (string) -> string[];
 import Confectory.EditWorkspace::Read as Read (string, string) -> string[];
 import Confectory.FileStream::Snapshot as Snapshot (string) -> string[];
 import Confectory.FileStream::Commit as Commit (string, string[], string[], string[]) -> string[];
+import Confectory.EditWorkspace::CreationGroup as RootGroup (string,string) -> string[];
 body common "Acknowledge.csbody";
 }

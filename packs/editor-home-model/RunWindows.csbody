@@ -1,0 +1,54 @@
+// UI view ids persist presentation only. A fresh engine never restores a process/lease from disk.
+if(payload.Length>8192)throw new ArgumentException("Run view input budget");
+var owner=AppDomain.CurrentDomain.GetData("Confectory.EditorHome."+session) as object[]??throw new ObjectDisposedException("EditorHome");
+lock(owner){
+ var model=(System.Text.Json.Nodes.JsonObject)owner[3];string key="Confectory.EditorHome.RunWindows."+session;var state=AppDomain.CurrentDomain.GetData(key) as object[];
+ if(state is null&&operation=="active-context")return "{\"active\":false}";
+ if(state is null&&(operation is "close-all" or "close-context"))return "{}";
+ if(state is null){state=new object[]{new System.Collections.Generic.Dictionary<string,System.Text.Json.Nodes.JsonObject>(StringComparer.Ordinal),new System.Collections.Generic.Dictionary<string,System.Text.Json.Nodes.JsonObject>(StringComparer.Ordinal),0};AppDomain.CurrentDomain.SetData(key,state);}
+ var rows=(System.Collections.Generic.Dictionary<string,System.Text.Json.Nodes.JsonObject>)state[0];var closed=(System.Collections.Generic.Dictionary<string,System.Text.Json.Nodes.JsonObject>)state[1];var input=System.Text.Json.Nodes.JsonNode.Parse(payload)!.AsObject();
+ string Text(string field)=>input[field]?.GetValue<string>()??"";
+ var manager=(string[])owner[0];
+ string[] Execution()=>calls.Executions.Invoke(manager);
+ void Observe(System.Text.Json.Nodes.JsonObject row){if(row["handle"]?.ToString() is not string handle||handle.Length==0)return;var observed=calls.Observe.Invoke(Execution(),handle);row["state"]=observed[1];row["exit"]=int.TryParse(observed[5],out int exit)?System.Text.Json.Nodes.JsonValue.Create(exit):null;row["failed"]=observed[6].Length>0;row["control"]=System.Text.Json.Nodes.JsonNode.Parse(calls.Control.Invoke(Execution(),handle,"observe"));}
+ System.Text.Json.Nodes.JsonObject Public(System.Text.Json.Nodes.JsonObject row){
+  var result=new System.Text.Json.Nodes.JsonObject();foreach(string field in new[]{"view","lease","handle","state","target","exit","closed","failed","lastCommand"})result[field]=row[field]?.DeepClone();
+  var c=row["control"];var control=new System.Text.Json.Nodes.JsonObject();foreach(string field in new[]{"available","connected","runtime","sequence","ack","frame","pending","mode","outcome","action"})if(c?[field] is not null)control[field]=c[field]!.DeepClone();result["control"]=control;
+  result["canRun"]=row["canRun"]?.GetValue<bool>()==true;result["surfaceSupported"]=false;result["fpsSupported"]=false;return result;
+ }
+ void Close(System.Text.Json.Nodes.JsonObject row){if(row["handle"]?.ToString() is string handle&&handle.Length>0){calls.Stop.Invoke(Execution(),handle);Observe(row);if(row["state"]?.ToString() is "building" or "running")throw new InvalidOperationException("Owned Run view is still stopping; retain it for retry");}row["closed"]=true;var receipt=Public(row);receipt["context"]=row["context"]!.DeepClone();receipt["manifest"]=row["manifest"]!.DeepClone();closed[row["view"]!.ToString()]=receipt;rows.Remove(row["view"]!.ToString());while(closed.Count>128)closed.Remove(System.Linq.Enumerable.First(closed.Keys));}
+ if(operation=="active-context"){string context=Text("context");if(model["selected"]?["context"]?.ToString()!=context)throw new UnauthorizedAccessException("Run active context changed");bool active=false;foreach(var row in rows.Values)if(row["context"]!.ToString()==context){Observe(row);active|=row["state"]?.ToString() is "building" or "running";}return new System.Text.Json.Nodes.JsonObject{["active"]=active}.ToJsonString();}
+ if(operation is "close-all" or "close-context"){
+  string context=input["context"]?.ToString()??"";if(operation=="close-context"&&model["selected"]?["context"]?.ToString()!=context)throw new UnauthorizedAccessException("Run close context changed");
+  foreach(var row in System.Linq.Enumerable.ToArray(rows.Values))if(operation=="close-all"||row["context"]!.ToString()==context)Close(row);
+  if(operation=="close-all")AppDomain.CurrentDomain.SetData(key,null);return "{}";
+ }
+ if((bool)owner[6])throw new ObjectDisposedException("EditorHome closing");
+ foreach(var field in input)if(field.Key is not ("context" or "view" or "lease" or "command" or "target" or "handle" or "action" or "runtime" or "ack" or "sequence"))throw new UnauthorizedAccessException("Run view input fields");
+ if(operation is not ("open" or "read" or "start" or "stop" or "close" or "control"))throw new ArgumentException("Run view operation");
+ var selected=model["selected"]??throw new UnauthorizedAccessException("Open the owned project first");string current=selected["context"]!.ToString();if(Text("context")!=current)throw new UnauthorizedAccessException("Run view project changed");var child=calls.Context.Invoke(manager,current);if(child[1]!=selected["path"]!.ToString())throw new UnauthorizedAccessException("Run view manifest changed");
+ string id=Text("view");if(id.Length==0&&operation=="open")id=Guid.NewGuid().ToString("N");if(!Guid.TryParseExact(id,"N",out _))throw new ArgumentException("Run view identity");
+ if(rows.TryGetValue(id,out var view)&&(view["context"]!.ToString()!=current||view["manifest"]!.ToString()!=child[1]))throw new UnauthorizedAccessException("Run view belongs to another project");
+ if(view is null&&closed.TryGetValue(id,out var receipt)&&(receipt["context"]!.ToString()!=current||receipt["manifest"]!.ToString()!=child[1]))throw new UnauthorizedAccessException("Run view receipt belongs to another project");
+ if(operation=="open"){
+  if(view is null){if(rows.Count>=32||System.Linq.Enumerable.Count(rows.Values,row=>row["context"]!.ToString()==current)>=8)throw new InvalidOperationException("Eight Run windows per project are already open");closed.Remove(id);view=new System.Text.Json.Nodes.JsonObject{["view"]=id,["lease"]=Guid.NewGuid().ToString("N"),["context"]=current,["manifest"]=child[1],["project"]=selected["projectId"]!.DeepClone(),["handle"]="",["state"]="idle",["target"]="",["exit"]=null,["closed"]=false};rows.Add(id,view);}
+  view["canRun"]=selected["standalone"]?.GetValue<bool>()==true&&selected["kind"]?.ToString()=="project"&&System.Linq.Enumerable.Contains(calls.Capabilities.Invoke(),"build-and-run",StringComparer.Ordinal);Observe(view);return Public(view).ToJsonString();
+ }
+ if(view is null){if(operation is "read" or "close"&&closed.TryGetValue(id,out var previous)){if(operation=="close"&&previous["lease"]?.ToString()!=Text("lease"))throw new UnauthorizedAccessException("Run close receipt changed");return Public(previous).ToJsonString();}if(operation!="read")throw new UnauthorizedAccessException("Run owner unavailable; explicitly open this view first");return new System.Text.Json.Nodes.JsonObject{["view"]=id,["state"]="owner-unavailable",["closed"]=true,["canRun"]=false,["surfaceSupported"]=false,["fpsSupported"]=false}.ToJsonString();}
+ if(operation=="read"){Observe(view);return Public(view).ToJsonString();}
+ if(Text("lease")!=view["lease"]!.ToString())throw new UnauthorizedAccessException("Run view lease changed");
+ if(operation=="start"){
+  if(view["canRun"]?.GetValue<bool>()!=true)throw new PlatformNotSupportedException("This project cannot run on the current host");
+  string target=Text("target"),command=Text("command");if(!Guid.TryParseExact(command,"N",out _)||!System.Linq.Enumerable.Any(selected["targets"]?.AsArray()??new System.Text.Json.Nodes.JsonArray(),value=>value?.ToString()==target))throw new ArgumentException("Explicit declared Run target and command required");
+  if(view["lastCommand"]?.ToString()==command){if(view["target"]?.ToString()!=target)throw new UnauthorizedAccessException("Run command reused with another target");Observe(view);return Public(view).ToJsonString();}
+  Observe(view);if(view["state"]?.ToString() is "building" or "running")throw new InvalidOperationException("This Run window already has an active process");if((int)state[2]>=64)throw new InvalidOperationException("Owned Run launch budget reached");
+  string instance=Guid.NewGuid().ToString("N"),root=System.IO.Path.GetDirectoryName(child[1])!;string handle=calls.Launch.Invoke(Execution(),child[1],child[3],target,new[]{"CONFECTORY_ENTRY_SCOPE","CONFECTORY_HOME_STORAGE","CONFECTORY_ENTRY_STORAGE"},new[]{System.IO.Path.Combine(root,".confectory","instances",instance),System.IO.Path.Combine(root,".confectory","instance-home",instance),System.IO.Path.Combine(root,".confectory","instance-entry",instance)});
+  state[2]=(int)state[2]+1;view["handle"]=handle;view["state"]="building";view["target"]=target;view["lastCommand"]=command;view["exit"]=null;view["control"]=null;Observe(view);return Public(view).ToJsonString();
+ }
+ if(Text("handle")!=view["handle"]?.ToString())throw new UnauthorizedAccessException("Run handle changed");
+ if(operation=="stop"){if(Text("handle").Length>0)calls.Stop.Invoke(Execution(),Text("handle"));Observe(view);return Public(view).ToJsonString();}
+ if(operation=="close"){Close(view);return Public(view).ToJsonString();}
+ string action=Text("action");if(action is not ("pause" or "resume" or "step"))throw new UnauthorizedAccessException("Unsupported Run frame action");var prior=view["control"];
+ if(prior?["runtime"]?.ToString()!=Text("runtime")||prior?["ack"]?.ToString()!=Text("ack")||prior?["sequence"]?.ToString()!=Text("sequence"))throw new InvalidOperationException("Run frame acknowledgement changed");
+ view["control"]=System.Text.Json.Nodes.JsonNode.Parse(calls.Control.Invoke(Execution(),Text("handle"),action));return Public(view).ToJsonString();
+}

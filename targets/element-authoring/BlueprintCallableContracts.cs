@@ -2,8 +2,9 @@ using Confectory.Core;
 using System.Text;
 using System.Text.Json.Nodes;
 
-// Explicit direct dependencies only. This reads manifests and the selected function,
-// never implementations, provider bodies or a transitive registry.
+// Explicit direct dependencies only: manifests and selected function declarations,
+// plus bounded public declaration page summaries when requested. Never provider bodies
+// or a transitive callable registry.
 internal static class BlueprintCallableContracts
 {
  public static JsonObject Query(JsonObject request)
@@ -27,18 +28,21 @@ internal static class BlueprintCallableContracts
    string path=Path.GetFullPath(Path.Combine(Path.GetDirectoryName(project)!,registration.Path)),text=Read(path);var pack=new Parser(text,path).ParseManifest();
    if(pack.Kind!="pack"||pack.Namespace!=ns)throw new ArgumentException("Registered callable pack identity differs");return (pack,text,path);
   }
+  (Element Function,string Text,Manifest Pack,string ManifestText) FunctionDeclaration(string id){
+   new Parser("function "+id+" () -> void {}","<callable-id>").ParseElement();string ns=PackPaths.Namespace(id);var registered=Pack(ns);
+   if(!registered.Pack.Elements.TryGetValue(id[(ns.Length+2)..],out var locator)||locator.Kind!="function")throw new ArgumentException("Registered function declaration required");
+   string lexical=Path.GetFullPath(Path.Combine(Path.GetDirectoryName(registered.Path)!,locator.Path));string owned=PackPaths.Owned(Path.GetDirectoryName(registered.Path)!,locator.Path);if(owned!=lexical)throw new ArgumentException("Owned registered function path required");string text=Read(lexical);
+   var function=new Parser(text,owned).ParseElement();if(function.Kind!="function"||function.Id!=id||function.Signature is null)throw new ArgumentException("Registered function locator identity differs");return(function,text,registered.Pack,registered.Text);
+  }
   JsonObject result;
   if(action=="list"){
    var dependencies=owner.Dependencies.Keys.Where(ns=>ns!=owner.Namespace&&owner.Registry.ContainsKey(ns)).Order(StringComparer.Ordinal).ToArray();if(dependencies.Length>128)throw new ArgumentException("At most128 registered direct callable packs may be listed");
    var matches=new List<(string Id,string Version)>();foreach(string ns in dependencies){var registered=Pack(ns);foreach(var pair in registered.Pack.Elements)if(pair.Value.Kind=="function"&&ns+"::"+pair.Key!=exclude&&(ns+"::"+pair.Key).Contains(query,StringComparison.OrdinalIgnoreCase))matches.Add((ns+"::"+pair.Key,registered.Pack.Version));}
-   matches.Sort((a,b)=>StringComparer.Ordinal.Compare(a.Id,b.Id));var rows=new JsonArray();foreach(var row in matches.Skip(checked(page*32)).Take(32))rows.Add(new JsonObject{["id"]=row.Id,["version"]=row.Version,["readOnly"]=true,["dirty"]=false});
+   matches.Sort((a,b)=>StringComparer.Ordinal.Compare(a.Id,b.Id));var rows=new JsonArray();bool summaries=request["summaries"]?.GetValue<bool>()==true;foreach(var row in matches.Skip(checked(page*32)).Take(32)){var item=new JsonObject{["id"]=row.Id,["version"]=row.Version,["readOnly"]=true,["dirty"]=false};if(summaries){var declaration=FunctionDeclaration(row.Id);item["signature"]=FeatureBlueprint.SignatureDocument(declaration.Function.Signature!);item["description"]=declaration.Function.Description;}rows.Add(item);}
    result=new(){["rows"]=rows,["total"]=matches.Count,["page"]=page,["pageSize"]=32};
   }else{
-   string id=request["id"]!.GetValue<string>();new Parser("function "+id+" () -> void {}","<callable-id>").ParseElement();string ns=PackPaths.Namespace(id);var registered=Pack(ns);
-   if(!registered.Pack.Elements.TryGetValue(id[(ns.Length+2)..],out var locator)||locator.Kind!="function")throw new ArgumentException("Registered function declaration required");
-   string lexical=Path.GetFullPath(Path.Combine(Path.GetDirectoryName(registered.Path)!,locator.Path));string owned=PackPaths.Owned(Path.GetDirectoryName(registered.Path)!,locator.Path);if(owned!=lexical)throw new ArgumentException("Owned registered function path required");string text=Read(lexical);
-   var function=new Parser(text,owned).ParseElement();if(function.Kind!="function"||function.Id!=id||function.Signature is null)throw new ArgumentException("Registered function locator identity differs");
-   result=new(){["id"]=id,["kind"]="function",["text"]=text,["version"]=registered.Pack.Version,["receipt"]=new JsonObject{["id"]=id,["ownerManifestHash"]=Hash(manifestText),["manifestHash"]=Hash(registered.Text),["textHash"]=Hash(text)}};
+   string id=request["id"]!.GetValue<string>();var selected=FunctionDeclaration(id);
+   result=new(){["id"]=id,["kind"]="function",["text"]=selected.Text,["version"]=selected.Pack.Version,["receipt"]=new JsonObject{["id"]=id,["ownerManifestHash"]=Hash(manifestText),["manifestHash"]=Hash(selected.ManifestText),["textHash"]=Hash(selected.Text)}};
   }
   foreach(var pair in reads.ToArray())Read(pair.Key);
   result["registeredBytes"]=reads.Values.Sum(value=>Encoding.UTF8.GetByteCount(value));result["scope"]="registered-direct-dependency-functions";result["readOnly"]=true;result["bodyReads"]=0;result["compiled"]=false;result["providerSelection"]="not-performed";return result;

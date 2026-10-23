@@ -85,6 +85,7 @@ public static class BlueprintDocuments
         var result=FeatureBlueprint.Execute(new JsonObject
         {
             ["operation"] = request["definitionsOnly"]?.GetValue<bool>() == true ? "featureBlueprintNodes" : "featureBlueprintDescribe", ["featureSource"] = featureSource,
+            ["inspectStalePostCalls"] = request["definitionsOnly"]?.GetValue<bool>() == true && request["inspectStalePostCalls"]?.GetValue<bool>() == true,
             ["implementationContext"] = FeatureBlueprint.ImplementationContext(implementation), ["bodyTarget"] = request["bodyTarget"]?.DeepClone(), ["featureContracts"] = contracts, ["graph"] = graph,
             ["implementations"] = request["implementations"]?.DeepClone(), ["propertyContracts"] = propertyContracts
         });

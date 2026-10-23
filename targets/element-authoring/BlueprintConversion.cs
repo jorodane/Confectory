@@ -48,7 +48,7 @@ internal static class BlueprintConversion
   var context=FeatureBlueprint.ImplementationContext(effective);
   var signature=context["signature"]!.DeepClone();var arguments=new JsonObject();
   for(int i=0;i<effective.Signature!.Args.Count;i++)if(!effective.Signature.Args[i].IsOut)arguments[effective.Signature.Args[i].Name]=new JsonObject{["input"]=function.Signature!.Args[i].Name};
-  var nodes=new JsonArray(new JsonObject{["id"]="body",["kind"]="code",["intent"]="Whole existing body of "+id+" / "+target,["control"]="next",["signature"]=signature,["arguments"]=arguments,["implementation"]=nodePath,["implementationContext"]=context.DeepClone(),["sourceIdentity"]=oldPath});
+  var nodes=new JsonArray(new JsonObject{["id"]="body",["kind"]="code",["intent"]="기존 C# 본문",["control"]="next",["signature"]=signature,["arguments"]=arguments,["implementation"]=nodePath,["implementationContext"]=context.DeepClone(),["sourceIdentity"]=oldPath});
   var edges=new JsonArray();
   bool callerStorage=effective.Signature!.Args.Any(p=>p.Mode is "ref" or "out");
   if(effective.Signature.Return!="void"){
@@ -62,8 +62,14 @@ internal static class BlueprintConversion
   var receipt=new JsonObject{["schema"]=1,["id"]=id,["target"]=target,["graphPath"]=graphPath,["nodePath"]=nodePath,["originalImplementation"]=implementationText,["originalBodyPath"]=oldPath,["originalBodyHash"]=observations[oldPath],["bodyOrigin"]=body.Origin,["observations"]=new JsonArray(observations.Select(p=>(JsonNode)new JsonObject{["path"]=p.Key,["sha256"]=p.Value}).ToArray())};
   foreach(var pair in observations)if(JsonData.HashBytes(File.ReadAllBytes(pair.Key))!=pair.Value)throw new IOException("Conversion source changed during preparation");
   if(verify&& !JsonNode.DeepEquals(origin,receipt))throw new InvalidOperationException("Pending conversion origin changed; preserve the original body and review a new conversion");
+  var previewNodes=new JsonArray();foreach(var node in graph["nodes"]!.AsArray()){
+   string selected=node!["id"]!.ToString();var metadata=definitions["nodes"]!.AsArray().Single(n=>n!["id"]!.ToString()==selected)!;var native=metadata["definition"]!["signature"]!;var inputs=new JsonArray();foreach(var arg in native["args"]!.AsArray().Where(a=>a!["mode"]?.ToString()!="out")){string name=arg!["name"]!.ToString();inputs.Add(new JsonObject{["name"]=name,["type"]=arg["type"]!.DeepClone(),["valueJson"]=node["arguments"]?[name]?.ToJsonString()??"null"});}
+   previewNodes.Add(new JsonObject{["id"]=selected,["kind"]=node["kind"]!.DeepClone(),["control"]=node["control"]!.DeepClone(),["intent"]=node["intent"]?.DeepClone(),["signature"]=native.DeepClone(),["arguments"]=inputs,["definitionHash"]=metadata["definitionHash"]!.DeepClone(),["output"]=node["output"]?.DeepClone(),["implementationContext"]=node["implementationContext"]?.DeepClone(),["forwardCallerStorage"]=node["implementationContext"] is not null,["renameable"]=false,["sourceStatus"]=selected=="body"?"available":"output-assignment",["source"]=selected=="body"?source:null});
+  }
+  var previewExits=new JsonArray();foreach(var exit in graph["exits"]!.AsObject())previewExits.Add(new JsonObject{["name"]=exit.Key,["valueJson"]=exit.Value?.ToJsonString()??"null"});
+  var preview=new JsonObject{["id"]=null,["rootId"]=id+"/body:"+target,["feature"]=function.Id,["signature"]=FeatureBlueprint.SignatureDocument(function.Signature!),["profile"]=graph["profile"]!.DeepClone(),["entry"]=graph["entry"]!.DeepClone(),["nodes"]=previewNodes,["edges"]=edges.DeepClone(),["exits"]=previewExits,["locals"]=new JsonArray(),["privateConversion"]=true,["implementation"]=id,["target"]=target,["diagnostics"]=new JsonObject{["state"]="conversion-preview"},["featureDefinition"]=new JsonObject{["id"]=function.Id,["kind"]="function",["description"]=function.Description,["signature"]=FeatureBlueprint.SignatureDocument(function.Signature!)}};
   string declaration=ReplaceBody(implementationText,target,graphPath);
-  return new JsonObject{["id"]=id+"/body:"+target,["implementation"]=declaration,["graph"]=graph,["node"]=record,["origin"]=receipt,["context"]=context,["signature"]=context["signature"]!.DeepClone(),["observedBytes"]=bytes,["sourceWritten"]=false,["compiled"]=false};
+  return new JsonObject{["id"]=id+"/body:"+target,["implementation"]=declaration,["graph"]=graph,["node"]=record,["origin"]=receipt,["context"]=context,["signature"]=context["signature"]!.DeepClone(),["preview"]=preview,["observedBytes"]=bytes,["sourceWritten"]=false,["compiled"]=false};
  }
 
  private static string ReplaceBody(string text,string target,string graphPath)

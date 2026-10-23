@@ -3,6 +3,10 @@ var request=System.Text.Json.Nodes.JsonNode.Parse(payload)?.AsObject()??throw ne
 lock(state){if(state["closing"]!.GetValue<bool>())throw new ObjectDisposedException("PackWorkspace");string draft=state["draft"]!.GetValue<string>();bool conflict=false;
 switch(operation){
 case "browser-drafts":{var input=request.DeepClone().AsObject();input.Remove("context");input["action"]=input["draftAction"]?.DeepClone()??System.Text.Json.Nodes.JsonValue.Create("status");input.Remove("draftAction");string outcome=calls.BrowserDrafts.Invoke(draft,input.ToJsonString());var reply=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(handle))!.AsObject();reply["browserDrafts"]=System.Text.Json.Nodes.JsonNode.Parse(outcome);return reply.ToJsonString();}
+case "retirement":{var resultNode=System.Text.Json.Nodes.JsonNode.Parse(calls.Retirement.Invoke(draft,request["action"]!.ToString(),new System.Text.Json.Nodes.JsonObject{["token"]=request["token"]!.DeepClone()}.ToJsonString()))!;if(!System.Linq.Enumerable.Contains(calls.List.Invoke(draft),state["selected"]!.ToString(),StringComparer.Ordinal))state["selected"]=resultNode["manifest"]!.DeepClone();state["review"]=null;var reply=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(handle))!.AsObject();reply["retirementResult"]=resultNode;return reply.ToJsonString();}
+case "plan-removal":{string removalResult=calls.PlanRemoval.Invoke(draft,request.ToJsonString());var reply=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(handle))!.AsObject();reply["removalPlan"]=System.Text.Json.Nodes.JsonNode.Parse(removalResult);return reply.ToJsonString();}
+case "move-folders":{var folderResult=System.Text.Json.Nodes.JsonNode.Parse(calls.MoveFolders.Invoke(draft,request["plan"]!.ToJsonString()));state["review"]=null;var reply=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(handle))!.AsObject();reply["folderMoveResult"]=folderResult;return reply.ToJsonString();}
+case "move-objects":{calls.MoveObjects.Invoke(draft,request["plan"]!.ToJsonString());state["review"]=null;break;}
 case "relations-map":{
  var mapNodes=new System.Text.Json.Nodes.JsonArray();var mapEdges=new System.Text.Json.Nodes.JsonArray();var versions=new System.Collections.Generic.Dictionary<string,string[]>(StringComparer.Ordinal);var batch=new System.Text.Json.Nodes.JsonArray();
  void Collect(){if(batch.Count==0)return;var result=System.Text.Json.Nodes.JsonNode.Parse(calls.Locate.Invoke("relationsMap",new System.Text.Json.Nodes.JsonObject{["units"]=batch.DeepClone()}.ToJsonString()))!;foreach(var node in result["nodes"]!.AsArray())mapNodes.Add(node!.DeepClone());foreach(var edge in result["edges"]!.AsArray())mapEdges.Add(edge!.DeepClone());batch.Clear();}
@@ -64,6 +68,9 @@ case "effective": case "schema-view": case "call-check":{
  }
  return inspectedReply.ToJsonString();
 }
+case "object-structure":{
+ string objectId=request["id"]!.GetValue<string>();if(state["selected"]!.ToString()!=objectId)throw new InvalidOperationException("Object structure selection changed");calls.EditObjectStructure.Invoke(draft,objectId,request["expectedRevision"]!.GetValue<long>(),request["expectedHash"]!.GetValue<string>(),request["edit"]!.ToJsonString());state["review"]=null;break;
+}
 case "declaration":{
  string selectedDeclaration=state["selected"]!.GetValue<string>();if(selectedDeclaration==""||request["id"]?.GetValue<string>()!=selectedDeclaration)throw new InvalidOperationException("Explicit declaration must match this View");
  var unit=calls.Read.Invoke(draft,selectedDeclaration);if(unit[1] is not ("category" or "concept" or "function" or "module" or "object" or "schema" or "implementation"))throw new ArgumentException("Authored declaration required");
@@ -118,6 +125,7 @@ case "review":{
  if(!dirty)throw new InvalidOperationException("No changes in reviewed sources.");
  var changes=calls.Changes.Invoke(draft,selectedReview);calls.ValidateSelection.Invoke(draft,selectedReview);
  foreach(var row in rows){try{row!["semantic"]=System.Text.Json.Nodes.JsonNode.Parse(calls.Locate.Invoke("reviewSummary",new System.Text.Json.Nodes.JsonObject{["kind"]=row["kind"]!.DeepClone(),["before"]=row["before"]!.DeepClone(),["after"]=row["after"]!.DeepClone()}.ToJsonString()));}catch{row!["semantic"]=new System.Text.Json.Nodes.JsonObject{["changes"]=new System.Text.Json.Nodes.JsonArray(),["additionalChanges"]=true};}}
+ var removalState=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+draft) as System.Text.Json.Nodes.JsonObject;foreach(var row in rows)foreach(var removalOp in removalState?["retirements"]?.AsObject()??new System.Text.Json.Nodes.JsonObject()){var receipt=removalOp.Value!;if(row!["id"]!.ToString()!=receipt["manifest"]!.ToString()||receipt["state"]?.ToString() is not ("pending" or "restoring"))continue;row["semantic"]!["changes"]!.AsArray().Add(new System.Text.Json.Nodes.JsonObject{["label"]=receipt["state"]!.ToString()=="pending"?"삭제 · 원본과 편집 초안 보관":"삭제 항목 복구",["before"]=receipt["state"]!.ToString()=="pending"?string.Join(" · ",System.Linq.Enumerable.Select(receipt["ids"]!.AsArray(),id=>id!.ToString().Split("::")[^1])):"삭제 보관 중",["after"]=receipt["state"]!.ToString()=="pending"?"프로젝트 등록에서 제외 · 원본 파일 보관":string.Join(" · ",System.Linq.Enumerable.Select(receipt["ids"]!.AsArray(),id=>id!.ToString().Split("::")[^1])),["beforeDefined"]=true,["afterDefined"]=true});}
  foreach(var row in rows){var current=calls.Read.Invoke(draft,row!["id"]!.GetValue<string>());if(current[4]!=row["revision"]!.GetValue<string>()||current[3]!=row["after"]!.GetValue<string>())throw new InvalidOperationException("Draft changed during review; retry.");}
  var reviewRequired=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);foreach(string reviewedId in selectedReview)foreach(string dependency in calls.CreationGroup.Invoke(draft,reviewedId))if(Array.IndexOf(selectedReview,dependency)>=0)reviewRequired.Add(dependency);
  var checkedReview=calls.Review.Invoke(draft,selectedReview);calls.Save.Invoke(draft);
@@ -132,7 +140,23 @@ case "confirm":{
  string[] ids=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(rows,x=>x!["id"]!.GetValue<string>()));var checkedReview=calls.Review.Invoke(draft,ids);
  string[] confirmed=checkedReview[0]!="ready"?checkedReview:calls.Confirm.Invoke(draft,ids,reviewed["target"]!.ToString(),System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(reviewed["changes"]!.AsArray(),x=>x!.GetValue<string>())));
  reviewed["status"]=confirmed[0];reviewed["message"]=string.Join("\n",confirmed[1..]);reviewed["token"]="";
- if(confirmed[0] is "confirmed" or "confirmed-with-warning")state["review"]=null;
+ if(confirmed[0] is "confirmed" or "confirmed-with-warning"){
+  // Accept advances versions even when bytes stay identical. Refresh only ordinary
+  // standalone receipts whose COMPLETE observed closure still matches this exact
+  // successful confirmation; never adopt different content, paths or peer edits.
+  string AcceptedSourceHash(string text)=>Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(text))).ToLowerInvariant();
+  foreach(var frame in state["blueprintBases"]?.AsObject()??new System.Text.Json.Nodes.JsonObject()){
+   if(frame.Value is not System.Text.Json.Nodes.JsonObject basis||basis["kind"] is not null||basis["slotContext"] is not null||basis["sources"] is not System.Text.Json.Nodes.JsonObject inputs)continue;
+   try{bool valid=true;var versions=new System.Collections.Generic.Dictionary<string,long>(StringComparer.Ordinal);
+    foreach(var input in inputs){var prior=input.Value!;var current=calls.Read.Invoke(draft,input.Key);long receiptBefore=prior["revision"]!.GetValue<long>(),receiptAfter=long.Parse(current[4],System.Globalization.CultureInfo.InvariantCulture);if(current[3]!=prior["text"]!.ToString()||current[2]!=prior["path"]!.ToString()||AcceptedSourceHash(current[3])!=prior["hash"]!.ToString()||current[1]!=prior["kind"]!.ToString()){valid=false;break;}
+     var accepted=System.Linq.Enumerable.SingleOrDefault(rows,row=>row!["id"]!.ToString()==input.Key);if(accepted is null){if(receiptAfter!=receiptBefore){valid=false;break;}}
+     else{if(accepted["revision"]!.ToString()!=receiptBefore.ToString(System.Globalization.CultureInfo.InvariantCulture)||accepted["after"]!.ToString()!=prior["text"]!.ToString()||accepted["path"]!.ToString()!=current[2]||receiptAfter!=receiptBefore&&receiptAfter!=receiptBefore+1){valid=false;break;}if(receiptAfter!=receiptBefore)versions[input.Key]=receiptAfter;}
+    }
+    if(valid)foreach(var version in versions)inputs[version.Key]!["revision"]=version.Value;
+   }catch{ /* A stale/incomplete receipt remains stale; never change Confirm's result. */ }
+  }
+  state["review"]=null;
+ }
  var snapshot=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(handle))!.AsObject();snapshot["confirmation"]=System.Text.Json.JsonSerializer.SerializeToNode(confirmed);return snapshot.ToJsonString();
 }
 case "save":calls.Save.Invoke(draft);break;

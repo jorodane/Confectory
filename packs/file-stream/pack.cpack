@@ -1,5 +1,6 @@
 pack Confectory.FileStream version "0.1.0" {
 standalone false;
+element CommitPlan function "CommitPlan.celem";element CommitPlanBody implementation "CommitPlanBody.celem";
 element BoundedSnapshot function "BoundedSnapshot.celem";
 element BoundedSnapshotBody implementation "BoundedSnapshotBody.celem";
 element Snapshot function "Snapshot.celem";

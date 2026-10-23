@@ -1,0 +1,1 @@
+function Confectory.EditWorkspace::Retirement (string handle, string action, string request) -> string {provide Confectory.EditWorkspace::Retirement with Confectory.EditWorkspace::RetirementBody;description "Stage exact planned declaration unregistration and non-destructive recovery as owned draft transactions. Final publication still needs compiler Review/Confirm.";}

@@ -1,5 +1,7 @@
+import {createFeatureEditors} from './feature-editor.js';
 // Human declaration editing over the consumer's scoped draft operations.
 export function createDeclarationEditors(api){
+ const features=createFeatureEditors(api);
  const {$,$$,esc,inputs}=api,types=['bool','int','long','float','double','string','object'],returns=['void',...types,...types.map(t=>t+'[]')],argumentsTypes=returns.filter(t=>t!=='void');
  const roleNames={module:'적용 모듈',include:'포함 모듈',require:'필요 기능',default:'기본 구현',provide:'제공 구현',use:'사용 관계',contain:'소속 관계',import:'가져온 기능'};
  const signature=value=>({args:(value?.Args||value?.args||[]).map(p=>({type:p.Type??p.type,name:p.Name??p.name,...(['out','ref'].includes(p.mode??p.Mode)?{mode:p.mode??p.Mode}:{})})),return:value?.return||'int'});
@@ -11,7 +13,7 @@ export function createDeclarationEditors(api){
  function local(info,row,section,value){const id=key(info,row),record=inputs.get(id)||{};record[section]??={revision:info.revision,hash:info.textHash,value:structuredClone(value)};inputs.set(id,record);return record[section];}
  function persist(){api.persist();}
  function show(info=api.current.declaration,row=null,force=false){
-  if(!info)return null;const scope=api.current.projectId,cacheKey=key(info,row),panelKey=row?'editor-'+row.view:'declaration',old=api.windows.get(panelKey),stamp=JSON.stringify(info);
+  if(!info)return null;if(info.kind==='function'&&!row)return features.show(info,force);features.reset(api.windows.get(row?'editor-'+row.view:'declaration'));const scope=api.current.projectId,cacheKey=key(info,row),panelKey=row?'editor-'+row.view:'declaration',old=api.windows.get(panelKey),stamp=JSON.stringify(info);
   if(old&&!force&&old.meta.declarationStamp===stamp)return old;
   const w=api.openWindow(panelKey,(info.values?.editorName||info.id.split('::').at(-1))+(info.kind==='module'?' · 인터페이스':' · 선언'),['module','object'].includes(info.kind)?850:640,['module','object'].includes(info.kind)?620:510,{refresh:!!old});w.meta.id=info.id;w.meta.view=row?.view||'';w.meta.mode='declaration';w.meta.declarationStamp=stamp;w.meta.revision=info.revision;const title=(info.values?.editorName||info.id.split('::').at(-1))+(info.kind==='module'?' · 인터페이스':' · 선언');w.title=title;$('.caption strong',w.el).textContent=title;w.el.setAttribute('aria-label',title);
   const cache=inputs.get(cacheKey)||{},common=cache.properties?.value||{},display={displayName:info.values?.editorName||'',icon:info.values?.editorIcon||'',description:info.description||'',parent:info.parent||''};
@@ -153,5 +155,5 @@ export function createDeclarationEditors(api){
   api.controls();return w;
  }
  function open(info=api.current.declaration,row=null){const w=show(info,row);if(w)api.focus(w);return w;}
- return {show,open};
+ return {show,open,afterAuthorConfirm:features.afterAuthorConfirm,createFeature:features.create,restoreAuthor:features.restoreAuthor,openSlotInWork:features.openSlotInWork,openCopyInWork:features.openCopyInWork,copyDrafts:features.copyDrafts,copyDiscardSnapshot:features.copyDiscardSnapshot,validateCopyDiscard:features.validateCopyDiscard,discardCopies:features.discardCopies,discardCopiesInWork:features.discardCopiesInWork,saveCopiesInWork:features.saveCopiesInWork,recoverCopiesInWork:features.recoverCopiesInWork,hasCopyAttempt:features.hasCopyAttempt};
 }

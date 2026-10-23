@@ -18,18 +18,21 @@ lock(state){
    result=new System.Text.Json.Nodes.JsonObject{["activeCount"]=System.Linq.Enumerable.Count(rows,pair=>Active(pair.Value)),["changed"]=before!=rows.ToJsonString()};
   }else{
    string path=ActivePath(),context=model["selected"]!["context"]!.ToString();
+   string command=args["command"]?.GetValue<string>()??"";if(command.Length>0&&!Guid.TryParseExact(command,"N",out _))throw new ArgumentException("Build command identity");
    if(operation=="start"){
+    if(command.Length>0&&model["buildCommands"]?[command] is System.Text.Json.Nodes.JsonNode prior){if(prior["context"]?.ToString()!=context||prior["path"]?.ToString()!=path||prior["target"]?.ToString()!=args["target"]?.ToString())throw new UnauthorizedAccessException("Build command belongs to another scope");string previous=prior["job"]!.ToString();if(rows[previous] is not System.Text.Json.Nodes.JsonObject retained)throw new InvalidOperationException("Build command receipt is no longer retained; inspect history before a new command");Refresh(retained);return retained["summary"]!.ToJsonString();}
+    if(command.Length>0&&(model["buildCommands"]?.AsObject().Count??0)>=128)throw new InvalidOperationException("Owned build command receipt budget reached");
     if(!System.Linq.Enumerable.Contains(calls.Capabilities.Invoke(),"build-only",StringComparer.Ordinal))throw new PlatformNotSupportedException("This runtime has no build-only provider");
     foreach(var pair in rows)if(pair.Value!["path"]!.ToString()==path&&Active(pair.Value))Refresh(pair.Value.AsObject());
     if(System.Linq.Enumerable.Any(rows,pair=>pair.Value!["path"]!.ToString()==path&&Active(pair.Value)))throw new InvalidOperationException("This project already owns an active build job");
     var selected=model["selected"]!;string target=args["target"]!.GetValue<string>(),entry=calls.Context.Invoke(manager,context)[3];if(string.IsNullOrWhiteSpace(entry)||!System.Linq.Enumerable.Any(selected["targets"]!.AsArray(),candidate=>candidate!.ToString()==target))throw new ArgumentException("Declared build entry and target required");
-    string job=calls.Build.Invoke(execution,path,entry,target);var row=new System.Text.Json.Nodes.JsonObject{["path"]=path,["projectId"]=selected["projectId"]!.DeepClone(),["context"]=context,["job"]=job};rows[job]=row;Refresh(row);result=row["summary"]!.DeepClone();
+    string job=calls.Build.Invoke(execution,path,entry,target);var row=new System.Text.Json.Nodes.JsonObject{["path"]=path,["projectId"]=selected["projectId"]!.DeepClone(),["context"]=context,["job"]=job};rows[job]=row;if(command.Length>0){model["buildCommands"]??=new System.Text.Json.Nodes.JsonObject();model["buildCommands"]![command]=new System.Text.Json.Nodes.JsonObject{["context"]=context,["path"]=path,["target"]=target,["job"]=job};}Refresh(row);result=row["summary"]!.DeepClone();
    }else if(operation=="close"){
     foreach(var pair in rows)if(pair.Value!["path"]!.ToString()==path&&Active(pair.Value)){try{calls.Stop.Invoke(execution,pair.Key);}finally{Refresh(pair.Value.AsObject());}}result=new System.Text.Json.Nodes.JsonObject{["accepted"]=true};
    }else if(operation=="history"){
     int page=args["page"]?.GetValue<int>()??0;result=System.Text.Json.Nodes.JsonNode.Parse(calls.Query.Invoke(execution,path,"history",System.Text.Json.JsonSerializer.Serialize(new{page})))!;
    }else{
-    string job=args["job"]!.GetValue<string>();var info=Info(path,job,args["verify"]?.GetValue<bool>()==true);
+    string job=args["job"]?.GetValue<string>()??"";if(job.Length==0&&operation=="info"&&command.Length>0){if(model["buildCommands"]?[command] is not System.Text.Json.Nodes.JsonNode known)return new System.Text.Json.Nodes.JsonObject{["scope"]="project-build-job",["state"]="owner-unavailable",["ownerAvailable"]=false,["canStop"]=false}.ToJsonString();if(known["context"]?.ToString()!=context||known["path"]?.ToString()!=path)throw new UnauthorizedAccessException("Build receipt belongs to another scope");job=known["job"]!.ToString();}var info=Info(path,job,args["verify"]?.GetValue<bool>()==true);
     if(operation=="stop"){if(info["ownerAvailable"]?.GetValue<bool>()!=true)throw new InvalidOperationException("This session does not own that build job");try{calls.Stop.Invoke(execution,job);}finally{info=Info(path,job);if(rows[job] is not null)rows[job]!["summary"]=Summary(info);}}
     else if(rows[job] is not null)rows[job]!["summary"]=Summary(info);result=info;
    }

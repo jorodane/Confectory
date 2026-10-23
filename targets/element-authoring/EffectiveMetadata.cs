@@ -1,7 +1,7 @@
 using System.Linq;
 internal static class EffectiveMetadata
 {
- public static System.Text.Json.Nodes.JsonObject Query(string project,string manifestText,string id,string text,Func<Confectory.Core.Manifest,string> format,Func<string,string> read,System.Text.Json.Nodes.JsonArray? drafts=null,bool schemaView=false)
+ public static System.Text.Json.Nodes.JsonObject Query(string project,string manifestText,string id,string text,Func<Confectory.Core.Manifest,string> format,Func<string,string> read,System.Text.Json.Nodes.JsonArray? drafts=null,bool schemaView=false,bool validateObjects=false,bool observeSources=false)
  {
   string temporary=System.IO.Path.Combine(System.IO.Path.GetTempPath(),"confectory-effective-"+Guid.NewGuid().ToString("N"));
   try
@@ -13,9 +13,14 @@ internal static class EffectiveMetadata
    string local=id[(manifest.Namespace.Length+2)..];if(!manifest.Elements.TryGetValue(local,out var locator))throw new ArgumentException("Selected declaration has no owned locator.");
    string path=Confectory.Core.PackPaths.Owned(root,locator.Path);var selected=new Confectory.Core.Parser(text,path).ParseElement();
    if(selected.Id!=id||selected.Kind!=locator.Kind)throw new ArgumentException("Selected draft identity/kind mismatch.");
+   long observationBytes=0;var observed=new System.Collections.Generic.Dictionary<string,string>(OperatingSystem.IsWindows()?StringComparer.OrdinalIgnoreCase:StringComparer.Ordinal);
+   string Observe(string path){
+    path=System.IO.Path.GetFullPath(path);if(observeSources)for(System.IO.FileSystemInfo? entry=new System.IO.FileInfo(path);entry is not null;entry=entry is System.IO.FileInfo file?file.Directory:((System.IO.DirectoryInfo)entry).Parent)if(entry.LinkTarget is not null)throw new System.ArgumentException("Slot context cannot traverse links");
+    string value=read(path);if(observeSources){if(observed.TryGetValue(path,out string? previous)&&previous!=value)throw new System.InvalidOperationException("Slot context changed during reading");if(!observed.ContainsKey(path)){observationBytes+=System.Text.Encoding.UTF8.GetByteCount(value);if(observed.Count>=2048||observationBytes>16777216)throw new System.ArgumentException("Slot context observation budget");}observed[path]=value;}return value;
+   }
    foreach(var ns in manifest.Registry.Keys.ToArray())
    {
-    var registration=manifest.Registry[ns];string registered=System.IO.Path.GetFullPath(System.IO.Path.Combine(root,registration.Path));read(registered);
+    var registration=manifest.Registry[ns];string registered=System.IO.Path.GetFullPath(System.IO.Path.Combine(root,registration.Path));Observe(registered);
     manifest.Registry[ns]=registration with{Path=registered};
    }
    string sourceKind=manifest.Kind;manifest.Kind="project";
@@ -23,7 +28,7 @@ internal static class EffectiveMetadata
    // Metadata projections have a fresh registry and bounded byte reader per query;
    // no persistent document cache or project/permission result survives the request.
    long bytesRead=0;int filesRead=0;
-   byte[] Read(string path){byte[] bytes=System.Text.Encoding.UTF8.GetBytes(read(path));bytesRead+=bytes.Length;if(bytes.Length>1048576||bytesRead>16777216||++filesRead>2048)throw new ArgumentException("Effective metadata read budget");return bytes;}
+   byte[] Read(string path){byte[] bytes=System.Text.Encoding.UTF8.GetBytes(path==candidate?read(path):Observe(path));bytesRead+=bytes.Length;if(bytes.Length>1048576||bytesRead>16777216||++filesRead>2048)throw new ArgumentException("Effective metadata read budget");return bytes;}
    var statistics=new Confectory.Core.BuildStatistics();var registry=new Confectory.Core.Registry(candidate,new Confectory.Core.Documents("",statistics,Read),statistics);
    registry.Paths[manifest.Namespace]=System.IO.Path.GetFullPath(project);
    // Public per-query declaration cache overlays only this explicitly owned draft.
@@ -34,14 +39,21 @@ internal static class EffectiveMetadata
     if(!manifest.Elements.TryGetValue(ownedId[(manifest.Namespace.Length+2)..],out var ownedLocator))throw new ArgumentException("Draft overlay locator missing.");
     var owned=new Confectory.Core.Parser(source,Confectory.Core.PackPaths.Owned(root,ownedLocator.Path)).ParseElement();if(owned.Id!=ownedId||owned.Kind!=ownedLocator.Kind)throw new ArgumentException("Draft overlay identity/kind mismatch.");registry.Elements[ownedId]=owned;
    }
+   var planner=new Confectory.Core.Planner(registry,"metadata");
+   // A signature edit must preserve contracts of unselected owned modules too.
+   // Module validates requirements/defaults without selecting providers or executing bodies.
+   if(validateObjects)foreach(var declaration in manifest.Elements){string owned=manifest.Namespace+"::"+declaration.Key;if(declaration.Value.Kind is "object" or "schema")Confectory.Core.SchemaContracts.Validate(registry,owned);else if(declaration.Value.Kind=="module")planner.Module(owned);else if(declaration.Value.Kind=="implementation"){var implementation=registry.Get(owned,"implementation");if(implementation.Function is not null)registry.Implementation(implementation.Function,owned,owned,implementation.Loc);}}
+
    var effective=registry.Effective(id);var descriptionSource=selected;while(!descriptionSource.DescriptionPresent&&descriptionSource.Parent is not null)descriptionSource=registry.Get(descriptionSource.Parent,descriptionSource.Kind,descriptionSource.Id,descriptionSource.Loc);
-var planner=new Confectory.Core.Planner(registry,"metadata");
-   var module=effective.Kind=="module"?planner.Module(id):planner.ModulesFor(id);
+var module=effective.Kind=="module"?planner.Module(id):planner.ModulesFor(id);
    var values=new System.Text.Json.Nodes.JsonArray();foreach(var pair in effective.Values.OrderBy(p=>p.Key,StringComparer.Ordinal))values.Add(new System.Text.Json.Nodes.JsonObject{["field"]=pair.Key,["value"]=System.Text.Json.JsonSerializer.SerializeToNode(pair.Value.Value),["origin"]=pair.Value.Origin});
    var requirements=new System.Text.Json.Nodes.JsonArray();foreach(var pair in module.Required.OrderBy(p=>p.Key,StringComparer.Ordinal))
    {
     var defaults=new System.Text.Json.Nodes.JsonArray();if(module.Defaults.TryGetValue(pair.Key,out var choices))foreach(var choice in choices.OrderBy(p=>p.Key,StringComparer.Ordinal))defaults.Add(new System.Text.Json.Nodes.JsonObject{["implementation"]=choice.Key,["origin"]=choice.Value.Origin});
-    requirements.Add(new System.Text.Json.Nodes.JsonObject{["function"]=pair.Key,["signature"]=System.Text.Json.JsonSerializer.SerializeToNode(pair.Value.Signature),["origin"]=pair.Value.Origin,["defaults"]=defaults});
+    // Module requirements constrain positional types/modes; the function owns pin names.
+    // Read its public declaration only. Never infer names from a selected provider body.
+    var requiredFunction=registry.Get(pair.Key,"function",pair.Value.Origin,pair.Value.Loc);var requiredSignature=requiredFunction.Signature??throw new System.ArgumentException("Required function must declare its named signature");if(!pair.Value.Signature.Matches(requiredSignature))throw new System.ArgumentException("Required module and function signatures differ");
+    requirements.Add(new System.Text.Json.Nodes.JsonObject{["function"]=pair.Key,["signature"]=System.Text.Json.JsonSerializer.SerializeToNode(requiredSignature),["moduleSignature"]=System.Text.Json.JsonSerializer.SerializeToNode(pair.Value.Signature),["origin"]=pair.Value.Origin,["defaults"]=defaults});
    }
    var providers=new System.Text.Json.Nodes.JsonArray();foreach(var pair in effective.Provides.OrderBy(p=>p.Key,StringComparer.Ordinal)){
     var provider=new System.Text.Json.Nodes.JsonObject{["function"]=pair.Key,["implementation"]=pair.Value.Id,["origin"]=pair.Value.Origin};
@@ -52,8 +64,14 @@ var planner=new Confectory.Core.Planner(registry,"metadata");
    var modules=new System.Text.Json.Nodes.JsonArray();foreach(var reference in effective.Modules)modules.Add(new System.Text.Json.Nodes.JsonObject{["id"]=reference.Id,["origin"]=reference.Origin});
    var schemaFields=effective.Kind=="object"?Confectory.Core.SchemaContracts.Fields(registry,id):effective.Fields;
    var functionContracts=new System.Text.Json.Nodes.JsonObject();foreach(var pair in schemaFields.Where(p=>p.Value.Kind=="function")){var fn=registry.Get(pair.Value.Type,"function",pair.Value.Origin,pair.Value.Loc);functionContracts[pair.Key]=new System.Text.Json.Nodes.JsonObject{["id"]=fn.Id,["signature"]=System.Text.Json.JsonSerializer.SerializeToNode(fn.Signature)};}
+   // The declaration that attaches a schema is distinct from the schema definition and a local value override.
+   var fieldSources=new System.Text.Json.Nodes.JsonObject();
+   if(effective.Kind=="object")foreach(var use in effective.Uses.Where(x=>x.Kind=="schema"))foreach(var field in registry.Effective(use.Id).Fields)fieldSources[field.Key]=use.Origin??id;
+   else foreach(var field in schemaFields)fieldSources[field.Key]=field.Value.Origin;
    var schemaModel=schemaView?SchemaModel(registry,effective,schemaFields):null;
-   return new System.Text.Json.Nodes.JsonObject{["scope"]="effective-metadata",["status"]="available",["id"]=id,["description"]=effective.Description,["descriptionOrigin"]=descriptionSource.DescriptionPresent?descriptionSource.Id:null,["sourceKind"]=sourceKind,["fields"]=System.Text.Json.JsonSerializer.SerializeToNode(schemaFields),["functionContracts"]=functionContracts,["schemaModel"]=schemaModel,["data"]=System.Text.Json.JsonSerializer.SerializeToNode(effective.Data),["values"]=values,["modules"]=modules,["requirements"]=requirements,["providers"]=providers,["providerSelection"]="not-performed",["declarationsLoaded"]=System.Text.Json.JsonSerializer.SerializeToNode(registry.Elements.Keys.Order(StringComparer.Ordinal).ToArray()),["registeredManifests"]=registry.Packs.Count,["bodyReads"]=statistics.ReadDocuments.Count(path=>registry.Elements.Values.Any(e=>e.Bodies.Values.Any(b=>Confectory.Core.PackPaths.Owned(System.IO.Path.GetDirectoryName(e.Loc.File)!,b.Path)==path))),["draftOverlayIDs"]=System.Text.Json.JsonSerializer.SerializeToNode(overlayIds.Order(StringComparer.Ordinal).ToArray()),["dependencySource"]="root-owned-drafts-and-confirmed-registered-files"};
+   var result=new System.Text.Json.Nodes.JsonObject{["scope"]="effective-metadata",["status"]="available",["id"]=id,["description"]=effective.Description,["descriptionOrigin"]=descriptionSource.DescriptionPresent?descriptionSource.Id:null,["sourceKind"]=sourceKind,["fields"]=System.Text.Json.JsonSerializer.SerializeToNode(schemaFields),["fieldSources"]=fieldSources,["functionContracts"]=functionContracts,["schemaModel"]=schemaModel,["data"]=System.Text.Json.JsonSerializer.SerializeToNode(effective.Data),["values"]=values,["modules"]=modules,["requirements"]=requirements,["providers"]=providers,["providerSelection"]="not-performed",["declarationsLoaded"]=System.Text.Json.JsonSerializer.SerializeToNode(registry.Elements.Keys.Order(StringComparer.Ordinal).ToArray()),["registeredManifests"]=registry.Packs.Count,["bodyReads"]=statistics.ReadDocuments.Count(path=>registry.Elements.Values.Any(e=>e.Bodies.Values.Any(b=>Confectory.Core.PackPaths.Owned(System.IO.Path.GetDirectoryName(e.Loc.File)!,b.Path)==path))),["draftOverlayIDs"]=System.Text.Json.JsonSerializer.SerializeToNode(overlayIds.Order(StringComparer.Ordinal).ToArray()),["dependencySource"]="root-owned-drafts-and-confirmed-registered-files"};
+   if(observeSources){var observations=new System.Text.Json.Nodes.JsonArray();foreach(var input in observed.OrderBy(p=>p.Key,StringComparer.Ordinal)){if(read(input.Key)!=input.Value)throw new System.InvalidOperationException("Slot context changed after validation");observations.Add(new System.Text.Json.Nodes.JsonObject{["path"]=input.Key,["hash"]=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(input.Value))).ToLowerInvariant()});}result["observations"]=observations;}
+   return result;
   }
   catch(Confectory.Core.BuildError error){return new System.Text.Json.Nodes.JsonObject{["scope"]="effective-metadata",["status"]="unavailable",["id"]=id,["code"]=error.Diagnostic.Code,["message"]=error.Diagnostic.Message,["namespaceDiagnostic"]=NamespaceDiagnostic.From(error)};}
   catch(Exception error){return new System.Text.Json.Nodes.JsonObject{["scope"]="effective-metadata",["status"]="unavailable",["id"]=id,["code"]="METADATA_UNAVAILABLE",["message"]=error.Message};}

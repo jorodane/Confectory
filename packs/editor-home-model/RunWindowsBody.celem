@@ -1,0 +1,10 @@
+implementation Confectory.EditorHome.Model::RunWindowsBody for Confectory.EditorHome.Model::RunWindows (string session,string operation,string payload) -> string {
+import Confectory.ProjectManager::Context as Context (string[],string) -> string[];
+import Confectory.ProjectManager::Executions as Executions (string[]) -> string[];
+import Confectory.ProjectExecution::Capabilities as Capabilities () -> string[];
+import Confectory.ProjectExecution::LaunchConfigured as Launch (string[],string,string,string,string[],string[]) -> string;
+import Confectory.ProjectExecution::Observe as Observe (string[],string) -> string[];
+import Confectory.ProjectExecution::Control as Control (string[],string,string) -> string;
+import Confectory.ProjectExecution::Stop as Stop (string[],string) -> void;
+body common "RunWindows.csbody";
+}

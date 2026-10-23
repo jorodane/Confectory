@@ -1,5 +1,6 @@
 implementation Confectory.EditWorkspace::RestoreBody for Confectory.EditWorkspace::Restore (string handle, string saved) -> void {
 import Confectory.EditWorkspace::Read as Read (string, string) -> string[];
 import Confectory.SchemaEditing::Call as Metadata (string, string) -> string;
+import Confectory.FileStream::Snapshot as Snapshot (string) -> string[];
 body common "Restore.csbody";
 }

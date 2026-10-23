@@ -1,5 +1,13 @@
 pack Confectory.EditWorkspace version "0.1.0" {
+element EditObjectStructure function "EditObjectStructure.celem";element EditObjectStructureBody implementation "EditObjectStructureBody.celem";
 standalone false;
+element Retirement function "Retirement.celem";element RetirementBody implementation "RetirementBody.celem";
+element PlanRemoval function "PlanRemoval.celem";element PlanRemovalBody implementation "PlanRemovalBody.celem";
+element MoveObjects function "MoveObjects.celem";element MoveObjectsBody implementation "MoveObjectsBody.celem";
+element CopyImplementation function "CopyImplementation.celem";element CopyImplementationBody implementation "CopyImplementationBody.celem";
+element DiscardCreationGroup function "DiscardCreationGroup.celem";element DiscardCreationGroupBody implementation "DiscardCreationGroupBody.celem";
+element SlotContext function "SlotContext.celem";element SlotContextBody implementation "SlotContextBody.celem";
+element SlotBatch function "SlotBatch.celem";element SlotBatchBody implementation "SlotBatchBody.celem";
 element BlueprintConvert function "BlueprintConvert.celem";element BlueprintConvertBody implementation "BlueprintConvertBody.celem";
 element BlueprintCall function "BlueprintCall.celem";element BlueprintCallBody implementation "BlueprintCallBody.celem";
 element BlueprintImplementationContract function "BlueprintImplementationContract.celem";element BlueprintImplementationContractBody implementation "BlueprintImplementationContractBody.celem";
@@ -54,4 +62,5 @@ element SetTextIfRevision function "SetTextIfRevision.celem";
 element SetTextIfRevisionBody implementation "SetTextIfRevisionBody.celem";
 element RefreshClean function "RefreshClean.celem";
 element RefreshCleanBody implementation "RefreshCleanBody.celem";
+element MoveFolders function "MoveFolders.celem";element MoveFoldersBody implementation "MoveFoldersBody.celem";
 }

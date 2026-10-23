@@ -1,0 +1,5 @@
+implementation Confectory.EditorHome.Model::BattleLogBody for Confectory.EditorHome.Model::BattleLog (string session,string payload) -> string {
+import Confectory.ProjectManager::Context as Context (string[],string) -> string[];
+import Confectory.FileStream::Snapshot as Snapshot (string) -> string[];
+body common "BattleLog.csbody";
+}

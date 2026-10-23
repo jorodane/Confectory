@@ -1,11 +1,13 @@
 var state=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+handle) as System.Text.Json.Nodes.JsonObject??throw new ObjectDisposedException("EditWorkspace");
 lock(state)
 {
- foreach(string id in selected){var unit=state["units"]![id] as System.Text.Json.Nodes.JsonObject??throw new ArgumentException("Unknown owned unit.");
+ foreach(string id in selected){var unit=state["units"]![id] as System.Text.Json.Nodes.JsonObject;if(unit is null){var archived=System.Linq.Enumerable.SingleOrDefault(state["retirements"]?.AsObject()??new System.Text.Json.Nodes.JsonObject(),row=>row.Value?["state"]?.ToString()=="pending"&&row.Value["entries"]?[id] is not null);if(archived.Value is null)throw new ArgumentException("Unknown owned unit");var receipt=archived.Value!;var source=receipt["entries"]![id]!;var file=calls.Snapshot.Invoke(System.IO.Path.Combine(state["root"]!.ToString(),source["path"]!.ToString()));if(file[0]!="exists"||file[2]!=source["baseline"]!.ToString()||file[1]!=source["original"]!.ToString())throw new InvalidOperationException("Retained original changed before acceptance");continue;}
 
  var snapshot=calls.Snapshot.Invoke(System.IO.Path.Combine(state["root"]!.GetValue<string>(),unit["path"]!.GetValue<string>()));
  if(snapshot[0]!="exists"||snapshot[1]!=unit["draft"]!.GetValue<string>())throw new InvalidOperationException("Committed source changed before workspace acceptance; preserve draft.");
  unit.AsObject().Remove("conversionOrigin");
- unit["baseline"]=snapshot[2];unit["original"]=snapshot[1];unit["revision"]=unit["revision"]!.GetValue<long>()+1;
+ bool unchanged=unit["draft"]!.ToString()==unit["original"]!.ToString()&&unit["baseline"]!.ToString()==snapshot[2];unit["baseline"]=snapshot[2];unit["original"]=snapshot[1];if(!unchanged)unit["revision"]=unit["revision"]!.GetValue<long>()+1;
  }
+ foreach(var operation in System.Linq.Enumerable.ToArray(state["retirements"]?.AsObject()??new System.Text.Json.Nodes.JsonObject())){var receipt=operation.Value!;var ids=System.Text.Json.JsonSerializer.Deserialize<string[]>(receipt["ids"]!.ToJsonString())!;if(Array.IndexOf(selected,receipt["manifest"]!.ToString())<0||System.Linq.Enumerable.Any(ids,id=>Array.IndexOf(selected,id)<0))continue;if(receipt["state"]?.ToString()=="pending")receipt["state"]="confirmed";else if(receipt["state"]?.ToString()=="restoring"){foreach(string id in System.Linq.Enumerable.Prepend(ids,receipt["manifest"]!.ToString()))state["units"]![id]!.AsObject().Remove("retirementGroup");state["retirements"]!.AsObject().Remove(operation.Key);}}
+ foreach(var row in state["units"]!.AsObject())if(row.Value?["hierarchyGroup"] is System.Text.Json.Nodes.JsonArray group&&System.Linq.Enumerable.All(group,member=>state["units"]?[member!.ToString()] is System.Text.Json.Nodes.JsonObject unit&&unit["draft"]?.ToString()==unit["original"]?.ToString()))row.Value!.AsObject().Remove("hierarchyGroup");
 }

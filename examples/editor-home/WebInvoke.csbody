@@ -17,7 +17,7 @@ if(endpoint=="chatUse"){
 
  var useRequest=args.DeepClone().AsObject();useRequest.Remove("action");try{return calls.ChatUse.Invoke(context,useAction,useRequest.ToJsonString());}catch(Exception error){string code=System.Text.RegularExpressions.Regex.IsMatch(error.Message,"^chat-use-[a-z-]{1,80}$")?error.Message:"chat-use-storage-unavailable";return new System.Text.Json.Nodes.JsonObject{["state"]="blocked",["code"]=code}.ToJsonString();}
 }
-if(endpoint=="helperGlobal"){string helperAction=args["action"]?.ToString()??"snapshot";if(helperAction is not ("snapshot" or "conversation" or "cancel-readiness" or "retry-readiness" or "readiness" or "draft" or "register" or "create" or "import" or "assign" or "connection-state" or "prepare" or "start" or "cancel" or "cancel-preview"))throw new UnauthorizedAccessException("Helper UI action denied");return calls.HelperAgents.Invoke(context,helperAction,args.ToJsonString());}
+if(endpoint=="helperGlobal"){string helperAction=args["action"]?.ToString()??"snapshot";if(helperAction is not ("snapshot" or "archive-details" or "archive-status" or "archive-plan" or "archive" or "conversation" or "cancel-readiness" or "retry-readiness" or "readiness" or "draft" or "register" or "create" or "import" or "assign" or "connection-state" or "prepare" or "start" or "cancel" or "cancel-preview"))throw new UnauthorizedAccessException("Helper UI action denied");return calls.HelperAgents.Invoke(context,helperAction,args.ToJsonString());}
 if(endpoint=="projectHelpers"){
  foreach(var field in args)if(field.Key is not ("action" or "helpers" or "allowCommon" or "token"))throw new UnauthorizedAccessException("chat-use-placement-fields");string placementAction=args["action"]?.ToString()??"legacy";
  if(placementAction=="plan"){var plan=Command("helper-roster-plan",new(){["helpers"]=args["helpers"]?.DeepClone(),["allowCommon"]=args["allowCommon"]?.DeepClone()})["helperPlacementPlan"]!;return new System.Text.Json.Nodes.JsonObject{["token"]=plan["token"]!.DeepClone()}.ToJsonString();}
@@ -35,6 +35,12 @@ if(endpoint is "projectInformation" or "saveProjectInformation"){
 }
 if(endpoint=="saveHelperPresentation"){
  Command("helper-presentation-save",new(){["helper"]=args["helper"]!.DeepClone(),["revision"]=args["revision"]!.DeepClone(),["value"]=args["value"]!.DeepClone()});return "{\"accepted\":true}";
+}
+if(endpoint=="runWindow"){
+ foreach(var field in args)if(field.Key is not ("view" or "lease" or "command" or "target" or "handle" or "action" or "runtime" or "ack" or "sequence" or "operation"))throw new UnauthorizedAccessException("Run UI fields");string operation=args["operation"]?.GetValue<string>()??"read";if(operation is not ("open" or "read" or "start" or "stop" or "close" or "control"))throw new UnauthorizedAccessException("Run UI operation");var runQuery=args.DeepClone().AsObject();runQuery.Remove("operation");runQuery["context"]=before["selected"]?["context"]?.DeepClone()??throw new UnauthorizedAccessException("Open project first");return calls.RunWindows.Invoke(context,operation,runQuery.ToJsonString());
+}
+if(endpoint=="battleLog"){
+ foreach(var field in args)if(field.Key is not ("action" or "id" or "page"))throw new UnauthorizedAccessException("Battle log UI query fields");var battleQuery=args.DeepClone().AsObject();battleQuery["context"]=before["selected"]?["context"]?.DeepClone()??throw new UnauthorizedAccessException("Open project first");return calls.BattleLog.Invoke(context,battleQuery.ToJsonString());
 }
 if(endpoint=="buildPoll")return calls.BuildJobs.Invoke(context,"poll","{}");
 System.Text.Json.Nodes.JsonNode? ExactFieldValue(){if(args["valueJson"] is null)return args["value"]?.DeepClone();if(args["hash"] is null)throw new ArgumentException("Exact field input requires its displayed source hash");string raw=args["valueJson"]!.GetValue<string>();if(raw.Length>1048576)throw new ArgumentException("Exact field input budget");return System.Text.Json.Nodes.JsonNode.Parse(raw);}
@@ -93,7 +99,7 @@ if(endpoint=="nodeTask"){
  var nodeRequest=args.DeepClone().AsObject();nodeRequest["context"]=selected["context"]!.DeepClone();string nodeAction=nodeRequest["action"]!.GetValue<string>();nodeRequest.Remove("action");return calls.NodeTasks.Invoke(context,nodeAction,nodeRequest.ToJsonString());
 }
 if(endpoint is "startBuild" or "stopBuild" or "buildInfo" or "buildHistory"){
- var buildRequest=new System.Text.Json.Nodes.JsonObject{["context"]=selected["context"]!.DeepClone()};foreach(string field in new[]{"job","target","page","verify"})if(args[field] is not null)buildRequest[field]=args[field]!.DeepClone();
+ var buildRequest=new System.Text.Json.Nodes.JsonObject{["context"]=selected["context"]!.DeepClone()};foreach(string field in new[]{"job","target","page","verify","command"})if(args[field] is not null)buildRequest[field]=args[field]!.DeepClone();
  return calls.BuildJobs.Invoke(context,endpoint switch{"startBuild"=>"start","stopBuild"=>"stop","buildInfo"=>"info",_=>"history"},buildRequest.ToJsonString());
 }
 if(endpoint=="draftHistory"){
@@ -138,18 +144,30 @@ if(localActions.TryGetValue(endpoint,out var action)){
  if(endpoint=="chatDraft")payload["action"]="draft";
  Command(action[0],payload);return "{\"accepted\":true}";
 }
+if(endpoint=="editBrowserElement"){
+ foreach(var field in args)if(field.Key is not ("id" or "column" or "valueJson" or "version"))throw new UnauthorizedAccessException("browser-cell-ui-fields");
+ var payload=args.DeepClone().AsObject();payload["context"]=selected["context"]!.DeepClone();payload["action"]="browser-element-edit";return Command("table",payload)["browserElementEdit"]!.ToJsonString();
+}
+if(endpoint=="browserElements"){
+ foreach(var field in args)if(field.Key!="ids")throw new UnauthorizedAccessException("browser-elements-ui-fields");
+ return Command("table",new(){["context"]=selected["context"]!.DeepClone(),["action"]="browser-elements",["ids"]=args["ids"]?.DeepClone()})["browserElements"]!.ToJsonString();
+}
 if(endpoint is "tableOptions" or "openTable" or "refreshTable" or "configureTable" or "editTable" or "closeTable"){
  var payload=new System.Text.Json.Nodes.JsonObject{["context"]=selected["context"]!.DeepClone(),["action"]=endpoint switch{"tableOptions"=>"options","openTable"=>"open","refreshTable"=>"refresh","configureTable"=>"configure","editTable"=>"edit",_=>"close"}};
  foreach(string field in new[]{"table","id","ids","columns","request","field","valueJson","versions","operation","definitionHash","page"})if(args[field] is not null)payload[field]=args[field]!.DeepClone();
  Command("table",payload);return "{\"accepted\":true}";
 }
-if(endpoint is "openEditorView" or "closeEditorView" or "editEditorView" or "saveEditorView" or "editViewField" or "editViewMetadata" or "editViewDescription" or "editViewDefinition" or "editViewDeclaration"){
- var payload=new System.Text.Json.Nodes.JsonObject{["context"]=selected["context"]!.DeepClone(),["view"]=args["view"]!.DeepClone(),["id"]=args["id"]!.DeepClone(),["action"]=endpoint switch{"openEditorView"=>"open-view","closeEditorView"=>"close-view","saveEditorView"=>"save","editViewField"=>"data-path","editViewMetadata"=>"value","editViewDescription"=>"description","editViewDefinition"=>"field","editViewDeclaration"=>"declaration",_=>"open"}};
+if(endpoint is "openEditorView" or "closeEditorView" or "editEditorView" or "saveEditorView" or "editViewField" or "editViewMetadata" or "editViewDescription" or "editViewDefinition" or "editViewDeclaration" or "editViewObjectStructure"){
+ var payload=new System.Text.Json.Nodes.JsonObject{["context"]=selected["context"]!.DeepClone(),["view"]=args["view"]!.DeepClone(),["id"]=args["id"]!.DeepClone(),["action"]=endpoint switch{"openEditorView"=>"open-view","closeEditorView"=>"close-view","saveEditorView"=>"save","editViewField"=>"data-path","editViewMetadata"=>"value","editViewDescription"=>"description","editViewDefinition"=>"field","editViewDeclaration"=>"declaration","editViewObjectStructure"=>"object-structure",_=>"open"}};
  foreach(string field in new[]{"viewMode","text","path","value","field","edit"})if(args[field] is not null)payload[field]=args[field]!.DeepClone();
  if(endpoint is "editViewField" or "editViewMetadata")payload["value"]=ExactFieldValue();
  if(args["revision"] is not null)payload["expectedRevision"]=args["revision"]!.DeepClone();if(args["hash"] is not null)payload["expectedHash"]=args["hash"]!.DeepClone();
  Command("workspace",payload);return "{\"accepted\":true}";
 }
+if(endpoint=="browserRetirement"){if(args.Count!=2||args["action"]?.ToString() is not ("apply" or "recover" or "cancel")||args["token"] is null)throw new UnauthorizedAccessException("browser-retirement-fields");return Command("workspace",new(){["context"]=selected["context"]!.DeepClone(),["action"]="retirement",["retirementAction"]=args["action"]!.DeepClone(),["token"]=args["token"]!.DeepClone()})["workspace"]!["retirementResult"]!.ToJsonString();}
+if(endpoint=="planBrowserRemoval"){if(args.Count!=1||args["ids"] is not System.Text.Json.Nodes.JsonArray)throw new UnauthorizedAccessException("browser-removal-fields");return Command("workspace",new(){["context"]=selected["context"]!.DeepClone(),["action"]="plan-removal",["ids"]=args["ids"]!.DeepClone()})["workspace"]!["removalPlan"]!.ToJsonString();}
+if(endpoint=="moveBrowserFolders"){if(args.Count!=1||args["moves"] is not System.Text.Json.Nodes.JsonArray)throw new UnauthorizedAccessException("browser-folder-fields");return Command("workspace",new(){["context"]=selected["context"]!.DeepClone(),["action"]="move-folders",["plan"]=args.DeepClone()})["workspace"]!["folderMoveResult"]!.ToJsonString();}
+if(endpoint=="moveBrowserObjects"){if(args.Count!=1||args["moves"] is not System.Text.Json.Nodes.JsonArray)throw new UnauthorizedAccessException("browser-move-fields");Command("workspace",new(){["context"]=selected["context"]!.DeepClone(),["action"]="move-objects",["plan"]=args.DeepClone()});return "{\"accepted\":true}";}
 if(endpoint=="browserDrafts"){
  foreach(var field in args)if(field.Key is not ("action" or "ids" or "revisions" or "hashes" or "checkpointHash" or "ownerHash"))throw new UnauthorizedAccessException("browser-draft-fields");var payload=args.DeepClone().AsObject();payload["context"]=selected["context"]!.DeepClone();payload["draftAction"]=payload["action"]?.DeepClone()??System.Text.Json.Nodes.JsonValue.Create("status");payload["action"]="browser-drafts";return Command("workspace",payload)["workspace"]!["browserDrafts"]!.ToJsonString();
 }
@@ -157,6 +175,8 @@ var request=new System.Text.Json.Nodes.JsonObject{["context"]=selected["context"
 switch(endpoint){
  case "relationsMap":request["action"]="relations-map";break;
  case "inspectDeclaration":if(args["id"]?.ToString()!=before["workspace"]?["unit"]?["id"]?.ToString())throw new InvalidOperationException("Declaration selection changed");request["action"]=before["workspace"]?["unit"]?["kind"]?.ToString()=="module"?"effective":"inspect";break;
+ case "editFunctionContract":if(before["workspace"]?["unit"]?["kind"]?.ToString()!="function")throw new InvalidOperationException("Select the owned function contract first");goto case "editObjectStructure";
+ case "editObjectStructure":if(args["id"]?.ToString()!=before["workspace"]?["unit"]?["id"]?.ToString())throw new InvalidOperationException("Object structure selection changed");request["action"]="object-structure";request["id"]=args["id"]!.DeepClone();request["edit"]=args["edit"]!.DeepClone();request["expectedHash"]=args["hash"]!.DeepClone();request["expectedRevision"]=args["revision"]!.DeepClone();break;
  case "editDeclaration":if(args["id"]?.ToString()!=before["workspace"]?["unit"]?["id"]?.ToString())throw new InvalidOperationException("Declaration selection changed");request["action"]="declaration";request["id"]=args["id"]!.DeepClone();request["edit"]=args["edit"]!.DeepClone();request["expectedHash"]=args["hash"]!.DeepClone();request["expectedRevision"]=args["revision"]!.DeepClone();break;
  case "createVariation":if(args["parent"]?.ToString()!=before["workspace"]?["unit"]?["id"]?.ToString())throw new InvalidOperationException("Parent selection changed");request["action"]="create-variation";request["id"]=args["id"]!.DeepClone();request["parent"]=args["parent"]!.DeepClone();request["expectedRevision"]=args["revision"]!.DeepClone();request["expectedHash"]=args["hash"]!.DeepClone();break;
  case "createDeclaration":request["action"]="create";request["id"]=args["id"]!.DeepClone();string createKind=args["kind"]!.GetValue<string>();if(createKind is not ("object" or "schema" or "category" or "concept" or "function" or "module"))throw new ArgumentException("Supported declaration kind required");request["kind"]=createKind;break;

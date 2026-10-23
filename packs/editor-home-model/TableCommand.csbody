@@ -8,6 +8,68 @@ lock(state){
  var handles=(System.Collections.Generic.Dictionary<string,string>)state[13];string prefix=context+"/table/";
  model["tableViews"]??=new System.Text.Json.Nodes.JsonObject();model["tableViews"]![context]??=new System.Text.Json.Nodes.JsonObject();var rows=model["tableViews"]![context]!.AsObject();
  void Snapshot(string id){var row=rows[id]!;try{row["snapshot"]=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(handles[prefix+id]));row["error"]=null;}catch{row["error"]="TABLE_SNAPSHOT_UNAVAILABLE";throw;}}
+ System.Text.Json.Nodes.JsonNode? BrowserValue(System.Text.Json.Nodes.JsonNode? datum){if(datum is null)return null;if(datum["kind"]?.ToString()=="reference")return new System.Text.Json.Nodes.JsonObject{["$ref"]=datum["reference"]!.DeepClone()};if(datum["items"] is System.Text.Json.Nodes.JsonArray items)return new System.Text.Json.Nodes.JsonArray(System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(items,BrowserValue)));if(datum["members"] is System.Text.Json.Nodes.JsonObject members){var result=new System.Text.Json.Nodes.JsonObject();foreach(var pair in members)result[pair.Key]=BrowserValue(pair.Value);return result;}return datum["scalar"]?.DeepClone();}
+ string BrowserJson(System.Text.Json.Nodes.JsonNode? value)=>value?.ToJsonString(new System.Text.Json.JsonSerializerOptions{Encoder=System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping})??"null";
+ bool BrowserKind(string kind)=>kind is "object" or "schema" or "function" or "implementation" or "module" or "category" or "concept";
+ string BrowserHash(string raw)=>Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(raw))).ToLowerInvariant();
+ System.Text.Json.Nodes.JsonObject BrowserRow(string draft,string id){
+  var source=calls.Read.Invoke(draft,id);
+  if(source[1]!="object"){
+   if(!BrowserKind(source[1]))throw new UnauthorizedAccessException("browser-declaration-kind");
+   var info=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("inspect",System.Text.Json.JsonSerializer.Serialize(new{text=source[3]})))!;
+   if(info["id"]?.ToString()!=id||info["kind"]?.ToString()!=source[1])throw new UnauthorizedAccessException("browser-declaration-identity");
+   var declaredFields=new System.Text.Json.Nodes.JsonArray{new System.Text.Json.Nodes.JsonObject{["column"]="description",["path"]=new System.Text.Json.Nodes.JsonArray("description"),["name"]="설명",["kind"]="description",["type"]="string",["inputKind"]="text",["writable"]=true,["cardinality"]="single",["state"]="present",["valueJson"]=BrowserJson(info["description"]??System.Text.Json.Nodes.JsonValue.Create(""))}};
+   // Existing metadata values remain visible; only the common description is
+   // editable here. Contracts, schema definitions and structural metadata use
+   // their existing checked detail editor, never generic Browser cell writes.
+   foreach(var pair in info["values"]?.AsObject()??new System.Text.Json.Nodes.JsonObject())if(pair.Value?.GetValueKind() is System.Text.Json.JsonValueKind.String or System.Text.Json.JsonValueKind.Number or System.Text.Json.JsonValueKind.True or System.Text.Json.JsonValueKind.False)declaredFields.Add(new System.Text.Json.Nodes.JsonObject{["column"]="value:"+BrowserJson(System.Text.Json.Nodes.JsonValue.Create(pair.Key)),["path"]=new System.Text.Json.Nodes.JsonArray(pair.Key),["name"]=pair.Key,["kind"]="metadata",["type"]="metadata",["inputKind"]=pair.Value.GetValueKind()==System.Text.Json.JsonValueKind.String?"text":pair.Value.GetValueKind()==System.Text.Json.JsonValueKind.Number?"number":"boolean",["writable"]=false,["cardinality"]="single",["state"]="present",["valueJson"]=BrowserJson(pair.Value)});
+   var latest=calls.Read.Invoke(draft,id);if(latest[4]!=source[4]||latest[3]!=source[3])throw new InvalidOperationException("Browser declaration changed during read");
+   string hash=BrowserHash(source[3]),declaredContent=BrowserHash(id+"\n"+source[1]+"\n"+hash);
+   return new System.Text.Json.Nodes.JsonObject{["id"]=id,["kind"]=source[1],["status"]="available",["revision"]=long.Parse(source[4],System.Globalization.CultureInfo.InvariantCulture),["textHash"]=hash,["viewHash"]=BrowserHash(declaredContent+"\n"+source[4]),["contentHash"]=declaredContent,["fields"]=declaredFields};
+  }
+  var observed=System.Text.Json.Nodes.JsonNode.Parse(calls.Describe.Invoke(draft,id,""))!;var fields=new System.Text.Json.Nodes.JsonArray();
+  foreach(var field in observed["schemaView"]!["rows"]!.AsArray())fields.Add(new System.Text.Json.Nodes.JsonObject{["column"]="data:"+BrowserJson(field!["path"]),["path"]=field["path"]!.DeepClone(),["name"]=field["name"]!.DeepClone(),["kind"]=field["kind"]!.DeepClone(),["type"]=field["type"]!.DeepClone(),["inputKind"]=field["inputKind"]!.DeepClone(),["writable"]=field["pathWritable"]?.GetValue<bool>()==true&&field["kind"]?.ToString()=="general"&&field["cardinality"]?.ToString()=="single"&&field["state"]?.ToString()=="present",["cardinality"]=field["cardinality"]!.DeepClone(),["state"]=field["state"]!.DeepClone(),["valueJson"]=BrowserJson(BrowserValue(field["datum"]))});
+  foreach(var field in observed["values"]!.AsArray()){var value=field!["value"];bool scalar=value?.GetValueKind() is System.Text.Json.JsonValueKind.String or System.Text.Json.JsonValueKind.Number or System.Text.Json.JsonValueKind.True or System.Text.Json.JsonValueKind.False;fields.Add(new System.Text.Json.Nodes.JsonObject{["column"]="value:"+BrowserJson(field["field"]),["path"]=new System.Text.Json.Nodes.JsonArray(field["field"]!.DeepClone()),["name"]=field["field"]!.DeepClone(),["kind"]="metadata",["type"]="metadata",["inputKind"]=value?.GetValueKind()==System.Text.Json.JsonValueKind.String?"text":value?.GetValueKind() is System.Text.Json.JsonValueKind.True or System.Text.Json.JsonValueKind.False?"boolean":"number",["writable"]=scalar,["cardinality"]="single",["state"]="present",["valueJson"]=BrowserJson(value)});}
+  if(observed["descriptionOrigin"]?.ToString()==id&&observed["description"] is not null)fields.Add(new System.Text.Json.Nodes.JsonObject{["column"]="description",["path"]=new System.Text.Json.Nodes.JsonArray("description"),["name"]="설명",["kind"]="description",["type"]="string",["inputKind"]="text",["writable"]=true,["cardinality"]="single",["state"]="present",["valueJson"]=BrowserJson(observed["description"])});
+  // Private input may outlive the runtime revision counters. Content identity
+  // retains source/manifest/overlay hashes and the effective typed view/values.
+  // Writes still require the freshly observed full revision + text/view hash CAS.
+  var contentVersions=observed["versions"]!.DeepClone().AsObject();foreach(var versionEntry in contentVersions)versionEntry.Value!.AsObject().Remove("revision");
+  var content=new System.Text.Json.Nodes.JsonObject{["id"]=id,["versions"]=contentVersions,["view"]=observed["schemaView"]!.DeepClone(),["values"]=observed["values"]!.DeepClone(),["description"]=observed["description"]?.DeepClone(),["descriptionOrigin"]=observed["descriptionOrigin"]?.DeepClone()};
+  string contentHash=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(content.ToJsonString()))).ToLowerInvariant();
+  return new System.Text.Json.Nodes.JsonObject{["id"]=id,["status"]="available",["revision"]=observed["revision"]!.DeepClone(),["textHash"]=observed["textHash"]!.DeepClone(),["viewHash"]=observed["viewHash"]!.DeepClone(),["contentHash"]=contentHash,["fields"]=fields};
+ }
+ if(action=="browser-elements"){
+  foreach(var field in args)if(field.Key is not ("action" or "ids" or "context"))throw new UnauthorizedAccessException("browser-elements-fields");if(args["context"] is not null&&args["context"]!.ToString()!=context)throw new UnauthorizedAccessException("browser-elements-owner");
+  var ids=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(args["ids"]?.AsArray()??throw new ArgumentException("Explicit browser objects required"),row=>row!.GetValue<string>()));
+  if(ids.Length<1||ids.Length>64||System.Linq.Enumerable.Count(System.Linq.Enumerable.Distinct(ids,StringComparer.Ordinal))!=ids.Length)throw new ArgumentException("Bounded unique browser objects required");
+  string draft=calls.Borrow.Invoke(workspace),ns=selected["namespace"]!.ToString()+"::";foreach(string id in ids)if(!id.StartsWith(ns,StringComparison.Ordinal)||!BrowserKind(calls.Status.Invoke(draft,id)[1]))throw new UnauthorizedAccessException("browser-elements-owner");
+  var result=new System.Text.Json.Nodes.JsonArray();foreach(string id in ids){try{result.Add(BrowserRow(draft,id));}catch{result.Add(new System.Text.Json.Nodes.JsonObject{["id"]=id,["status"]="unavailable",["code"]="element-values-unavailable"});}}
+  try{var checkpoint=System.Text.Json.Nodes.JsonNode.Parse(calls.PackCommand.Invoke(workspace,"browser-drafts",new System.Text.Json.Nodes.JsonObject{["draftAction"]="status",["ids"]=System.Text.Json.JsonSerializer.SerializeToNode(ids)}.ToJsonString()))!["browserDrafts"]!;foreach(var row in result){var saved=System.Linq.Enumerable.SingleOrDefault(checkpoint["rows"]!.AsArray(),entry=>entry?["id"]?.ToString()==row!["id"]!.ToString());row!["checkpointSaved"]=saved?["unsaved"]?.GetValue<bool>()==false&&saved["hash"]?.ToString()==row["textHash"]?.ToString()&&saved["revision"]?.ToString()==row["revision"]?.ToString();}}catch{/* Unknown checkpoint never discards a recovery receipt. */}
+  model["browserElements"]=new System.Text.Json.Nodes.JsonObject{["projectId"]=selected["projectId"]!.DeepClone(),["rows"]=result};return;
+ }
+ if(action=="browser-element-edit"){
+  foreach(var field in args)if(field.Key is not ("action" or "context" or "id" or "column" or "valueJson" or "version"))throw new UnauthorizedAccessException("browser-cell-fields");if(args["context"] is not null&&args["context"]!.ToString()!=context)throw new UnauthorizedAccessException("browser-cell-owner");
+  string id=args["id"]!.GetValue<string>(),column=args["column"]!.GetValue<string>(),raw=args["valueJson"]!.GetValue<string>(),draft=calls.Borrow.Invoke(workspace);if(!id.StartsWith(selected["namespace"]!.ToString()+"::",StringComparison.Ordinal)||!BrowserKind(calls.Status.Invoke(draft,id)[1]))throw new UnauthorizedAccessException("browser-cell-owner");if(column.Length is <1 or >1024||raw.Length>1048576)throw new ArgumentException("browser-cell-budget");
+  var version=args["version"]!.AsObject();foreach(var field in version)if(field.Key is not ("revision" or "textHash" or "viewHash"))throw new UnauthorizedAccessException("browser-cell-version");
+  var datum=System.Text.Json.Nodes.JsonNode.Parse(raw);if(datum?.GetValueKind() is not (System.Text.Json.JsonValueKind.String or System.Text.Json.JsonValueKind.Number or System.Text.Json.JsonValueKind.True or System.Text.Json.JsonValueKind.False))throw new ArgumentException("browser-cell-scalar");
+  var cellState=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+draft) as System.Text.Json.Nodes.JsonObject??throw new ObjectDisposedException("EditWorkspace");
+  lock(cellState){
+   var observed=BrowserRow(draft,id);if(version["revision"]?.ToString()!=observed["revision"]!.ToString()||version["textHash"]?.ToString()!=observed["textHash"]!.ToString()||version["viewHash"]?.ToString()!=observed["viewHash"]!.ToString()){model["browserElementEdit"]=new System.Text.Json.Nodes.JsonObject{["accepted"]=false,["code"]="element-value-stale"};return;}
+   var editableField=System.Linq.Enumerable.SingleOrDefault(observed["fields"]!.AsArray(),entry=>entry?["column"]?.ToString()==column);if(editableField?["writable"]?.GetValue<bool>()!=true)throw new UnauthorizedAccessException("browser-cell-readonly");
+   bool cellApplied;
+   if(calls.Status.Invoke(draft,id)[1]!="object"){
+    if(column!="description"||datum.GetValueKind()!=System.Text.Json.JsonValueKind.String||datum.GetValue<string>().Length>16384)throw new UnauthorizedAccessException("browser-declaration-cell-readonly");
+    var source=calls.Read.Invoke(draft,id);string formatted=System.Text.Json.JsonSerializer.Deserialize<string>(calls.Metadata.Invoke("setDescription",System.Text.Json.JsonSerializer.Serialize(new{text=source[3],value=datum.GetValue<string>()})))!;
+    cellApplied=calls.SetText.Invoke(draft,id,formatted,version["revision"]!.GetValue<long>());
+   }else{
+    string temporary=calls.Create.Invoke(draft,new[]{id},new[]{column},"Browser cell");try{cellApplied=calls.Edit.Invoke(temporary,new[]{id},column,raw,new System.Text.Json.Nodes.JsonObject{[id]=version.DeepClone()}.ToJsonString(),"set");}finally{calls.Close.Invoke(temporary);}
+   }
+   if(!cellApplied){model["browserElementEdit"]=new System.Text.Json.Nodes.JsonObject{["accepted"]=false,["code"]="element-value-stale"};return;}
+   model["browserElementEdit"]=new System.Text.Json.Nodes.JsonObject{["accepted"]=true,["row"]=BrowserRow(draft,id),["sourceWritten"]=false};
+  }
+  calls.PackCommand.Invoke(workspace,"cancel-review","{}");model["status"]="Browser cell staged; Save and reviewed Confirm remain explicit";return;
+ }
  if(action=="options"){
   string draft=calls.Borrow.Invoke(workspace),ns=selected["namespace"]!.ToString()+"::";var objects=new System.Text.Json.Nodes.JsonArray();var objectIds=new System.Collections.Generic.List<string>();int page=args["page"]?.GetValue<int>()??0;if(page<0||page>4095)throw new ArgumentOutOfRangeException("page");
   foreach(string id in calls.List.Invoke(draft))if(id.StartsWith(ns,StringComparison.Ordinal)&&calls.Status.Invoke(draft,id)[1]=="object")objectIds.Add(id);
