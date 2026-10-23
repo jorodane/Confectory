@@ -45,4 +45,6 @@ Windows x64 교차 패키지는 `/workspace/artifacts/Confectory-v536-mixed-copy
 
 `desktop_package.py`는 실제 패키지 managed 엔진을 SDK 없는 환경/다른 cwd에서 시작하고, fixture 프로필 재사용/override, 68리소스, 최소 연결 화면, 변조/의존성 누락 거절을 확인했다(`package-probe.log`, `/tmp/confectory-desktop-package-bmxhn09a`). Windows exe/WebView2는 실행하지 않았다. Library discovery 장애에 새 복구 근거가 없어 업로드를 반복하지 않았으며 로컬 경로는 사용자에게 전달된 첨부가 아니다.
 
-깨끗한 checkout과 게시 결과는 완료 후 별도 기록한다.
+코드 커밋 `01432cf299879d3acc06170af7c46cdd46d009e2`의 깨끗한 별도 checkout에서 Release 솔루션 0 warning/0 error, 새 Linux 엔진 빌드가 통과했다(`checkout-solution.log`, `checkout-engine.json`). 실제 Git CRLF 속성 pull 후 retained 창과 fresh LF 창 모두 68개 canonical/exact 리소스를 확인하고 내용/encoding/BOM/binary/budget 변조를 거절했으며 원본 byte를 보존했다(`checkout-resources.log`). 두 작업 트리는 깨끗했다. 패키지에 포함된 변경 구현 소스 12개는 이 코드 커밋과 byte 동일하다(`package-code-proof.json`).
+
+게시 대상으로 검토한 20개 파일은 구현12/테스트5/문서3이며 생성물·로그·프로필·인증 파일은 포함하지 않았다. 비밀 패턴 검토에서 추가 검토 대상 패턴이 없었으나 모든 비밀 부재의 절대 증명은 아니다. 이 마지막 기록은 문서만 갱신하며 통과한 코드 검사를 불필요하게 반복하지 않는다. 원격 대상은 승인된 `https://github.com/jorodane/Confectory.git`의 `work/current`이고 main/Android/원본 v536 ZIP은 변경하지 않는다.
