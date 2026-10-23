@@ -54,17 +54,17 @@ internal static class BlueprintProperty
         var reader=registry.Get(referencing?FeatureBlueprint.PropertyRefAccessor:writing?FeatureBlueprint.PropertySetter:FeatureBlueprint.PropertyReader,"function",implementation.Id);
         var parameters=new List<Parameter>{new("object","target")};if(writing)parameters.Add(new(field["clrType"]!.ToString(),"value"));
         var signature=new FunctionSignature(parameters,writing?"void":field["clrType"]!.ToString());
-        string alias=FeatureBlueprint.ImportAlias(reader.Id);
+        string alias=FeatureBlueprint.ImportAlias(reader.Id);bool importAdded=false;
         if(implementation.Imports.TryGetValue(alias,out var existing)){
             if(existing.Id!=reader.Id||!existing.Signature.Matches(reader.Signature))throw new ArgumentException("Existing property reader import differs; preserve and review it explicitly");
         }else{
             if(implementation.Imports.Values.Any(i=>i.Id==reader.Id))throw new ArgumentException("Property reader has another alias; review the existing typed import explicitly");
-            implementation.Imports.Add(alias,new Import(reader.Id,reader.Signature!,null,new(),implementation.Id));
+            implementation.Imports.Add(alias,new Import(reader.Id,reader.Signature!,null,new(),implementation.Id));importAdded=true;
         }
         var node=new JsonObject{["id"]=id,["kind"]=kind,["control"]=prior?["control"]?.DeepClone()??JsonValue.Create("next"),["intent"]=prior?["intent"]?.DeepClone()??JsonValue.Create((referencing?"Reference ":writing?"Set ":"Read ")+owner+" / "+name+" at this node"),["propertyOwner"]=owner,["field"]=name,["fieldContractHash"]=field["hash"]!.DeepClone(),["signature"]=FeatureBlueprint.SignatureDocument(signature),["arguments"]=new JsonObject{["target"]=request["target"]?.DeepClone()??prior?["arguments"]?["target"]?.DeepClone()}};
         if(writing)node["arguments"]!["value"]=request["value"]?.DeepClone()??prior?["arguments"]?["value"]?.DeepClone();
         if(prior?["branchOwner"] is JsonNode branchOwner)node["branchOwner"]=branchOwner.DeepClone();
         if(prior is null)selected["nodes"]!.AsArray().Add(node);else selected["nodes"]!.AsArray()[selected["nodes"]!.AsArray().IndexOf(prior)]=node;
-        return new JsonObject{["implementation"]=format(implementation),["graph"]=graph,["node"]=node.DeepClone(),["descriptor"]=descriptor,[referencing?"referenceSource":writing?"setterSource":"readerSource"]=File.ReadAllText(reader.Loc.File),[referencing?"referenceTiming":writing?"writeTiming":"readTiming"]="execution-node",["sourceWritten"]=false,["executed"]=false};
+        return new JsonObject{["implementation"]=importAdded?format(implementation):request["text"]!.GetValue<string>(),["graph"]=graph,["node"]=node.DeepClone(),["descriptor"]=descriptor,[referencing?"referenceSource":writing?"setterSource":"readerSource"]=File.ReadAllText(reader.Loc.File),[referencing?"referenceTiming":writing?"writeTiming":"readTiming"]="execution-node",["sourceWritten"]=false,["executed"]=false};
     }
 }

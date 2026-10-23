@@ -13,4 +13,4 @@ Browser 잔여 묶음 이후 수행할 고정 UI 연결 목록이다. 이 문서
 
 다음 최소 구현 순서와 확정된 속성 읽기 계약은 `V536_PIN_AND_ATOMIC_NEXT.md`에 고정한다. backend 차이를 단순 UI 잔여로 뭉치거나 사용자에게 기술적 원자성 설계를 다시 선택하게 하지 않는다.
 
-Set backend 분리 출력/원자 setPlan 첫 묶음과 정확한 UI 잔여는 `VALIDATION_V536_SET_BACKEND.md`를 따른다. 아직 원본 Set 카드·모바일을 연결한 결과는 아니다. 속성 읽기 시점 답변은 도착했으므로 최초 캐시/최신 읽기 질문을 다시 하지 않는다.
+Set backend 분리 출력/원자 setPlan 첫 묶음과 정확한 UI 잔여는 `VALIDATION_V536_SET_BACKEND.md`를 따른다. 후속 카드·모바일·속성 ordinary main-line 연결/검증은 `VALIDATION_V536_SET_UI.md`를 따른다. 복사본·다중 target·혼합 Save 등 전체 미완료를 유지한다. 속성 읽기 시점 답변은 도착했으므로 최초 캐시/최신 읽기 질문을 다시 하지 않는다.
