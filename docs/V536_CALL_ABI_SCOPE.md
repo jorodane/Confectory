@@ -13,3 +13,5 @@
 | 같은 callee의 여러 호출·nested·외부 소유/whole-body C# | 여전히 미지원. source closure/공유 import/record와 소유 문맥을 함께 표현하기 전에는 연결이나 원본을 조용히 바꾸지 않는다. |
 
 모든 ABI Save는 임시 초안이며 최종 source는 기존 명시적 compiler Confirm으로만 반영한다. 실패/취소/cold/응답 유실과 이전 값/ref·소유권 보호는 유지한다. 기존 schema 편집/별도 Save 결합과 모바일 최종 수용은 다음 범위다.
+
+실패한 명시 mapping은 원래 Undo→갱신→새 mapping 선택으로 수정할 수 있다. 단, 서버가 기존 미적용·원래 checkpoint/source/계약/copy/target 불변을 확인한 경우만 새 시도로 접수한다. 성공/불명 결과를 실패로 치환하지 않으며 조회 불가·실제 변경 시 입력/이전 journal을 유지한다. 등록 단일·owned2target·저장 copy의 실제 correction/cold/Confirm 및 응답·조회 유실/동료 변경 검증은 `VALIDATION_V536_GENERAL_ABI.md`에 기록했다.

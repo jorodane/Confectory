@@ -29,7 +29,7 @@ Save는 전체 임시 draft의 접수다. C# 본문 구문·컴파일은 기존 
 | 검사 | 실제 결과 |
 | --- | --- |
 | `v536_general_abi_metadata.py` | 6 PASS. 명시적 rename/order/ref-value/new input literal/multiple out/return 대응,11개 누락·중복·알 수 없는 핀/소비 중 출력/연결된 입력 제거/타입·storage·불완전 값 거절, raw64비트, void wrapper의 소비 없는 return 제거. source 쓰기 없음 |
-| `v536_general_abi_adapter.mjs` | 2 PASS 묶음. exact long/한글·따옴표/불완전 literal·동일 이름만 표시, 승인한 mapping의 값/입력/소비자 화면 투영과 constant 객체 보존 |
+| `v536_general_abi_adapter.mjs` | 3 PASS 묶음. exact long/한글·따옴표/불완전 literal·동일 이름만 표시, 승인한 mapping의 값/입력/소비자 화면 투영과 constant 객체 보존 |
 | `v536_general_abi_ui.py` | 직접 등록 callable 실제 normal4; 최종 incompatible-map/정상 재시도5; 성공 응답 유실5; peer caller 충돌3; checkpoint 쓰기 거절5. 실제 원본 갱신/취소→승인 전 form cold 복원→부분 숫자 거절→name/order/long→double 입력/새 int 값/long return→out total와 bool return→한 후보/CAS→cold·Review 취소·명시 compiler Confirm. Lib 원본/owner/다른 구현/node 본문 보존 |
 | `v536_general_multi_abi.py` | owned ordinary common/windows 실제 normal4, 마지막 windows 출력 mapping 오류5, 성공 응답 유실5, Undo/cold3. 공유 import·양쪽 graph·모든 record를 함께 검사하고 마지막 target 오류 시 첫 target도 미적용. 실제 compiler Confirm 및 source 보존 |
 | `v536_general_copy_abi.py` | 저장된 직접 배치 copy 소유/직접 등록 callee 각각 실제4 PASS. owner/배치/provenance를 유지한 명시적 general mapping·form cold·Save/receipt·cold·Review 취소/compiler Confirm. donor는 별도로 현재 계약에 맞춘 fixture이고 제품이 donor를 수정하지 않음 |
@@ -48,3 +48,23 @@ Release 전체 솔루션 0 warning/0 error, Linux 생성 엔진과70개 canonica
 .NET Desktop Runtime10.0 x64·Edge WebView2 Runtime이 전제이며 자동 설치하지 않았다. 프로젝트 빌드에는 별도 .NET10 SDK가 필요하다. main/Android/원본 v536 ZIP/사용자 자료·기존 Agent 동의·권한을 보존한다. 일반화하지 않은 문맥·모바일/조작·기존 schema 및 별도 저장 결합은 여전히 미완료다. 이미지·협의·렌더 신규 backend는 추가하지 않는다.
 
 최종 공용 field 행은 `/tmp/confectory-general-abi-sqqtbsqz/final-mapping-field-rows.png`에서 확인했다. 실제 renderer에서 세 선택 행이 겹치지 않고 선택·취소 뒤 source/입력이 그대로임을 검사했다(`form-evidence.log`). 이 마지막 변경은 기존 field class 적용뿐이며 통과한 C# 동작 검사를 다시 구현/반복하지 않았다.
+
+## 게시 전 발견한 명시적 매핑 재시도 결함
+
+실제 화면에서 잘못된 `long return → bool return` 선택은 전체 미적용으로 거절됐지만, 원래 Undo 뒤 `return → out total`을 명시적으로 다시 선택해도 저장 시도 기록이 달라졌다는 이유로 재시도가 막혔다. 초기 실패는 `user-correction.log`, `/tmp/confectory-general-abi-bhu98mxl`에 보존했다.
+
+이제 먼저 기존 시도의 서버 결과를 조회한다. 성공 receipt이면 그 결과만 복구한다. 미적용이고 원래 checkpoint의 메모리·디스크 해시, 전체 source ID/해시, 현재 callee 해시/서명, copy 및 target 그룹 기준이 모두 그대로임을 확인한 경우에만 같은 wrapper의 명시적 mapping 변경을 새 시도로 접수한다. 본문·소유권·계약·대상·source 변경을 mapping 수정으로 취급하지 않으며 CAS와 staged 전체 타입 검사는 그대로다. 이전 실패 요청은 새 journal의 `previousAttempts`에 보관해 결과를 확인할 때까지 유지한다. 조회가 실패하거나 적용 여부가 불명확하면 새 요청을 보내지 않는다.
+
+다음 검사는 격리 프로젝트와 실제 Linux 엔진/Chromium 화면을 사용했다. 각 수는 공통 준비를 포함한 해당 실행의 PASS 묶음이며 합산한 독립 테스트 수가 아니다.
+
+| 추가 실행 | 결과 |
+| --- | --- |
+| 실제 잘못된 선택 → 거절 → 원래 Ctrl+Z → 새 선택 → Save/cold/Review 취소/명시 compiler Confirm | 등록 callable 5 PASS, `user-correction-fixed.log`, `/tmp/confectory-general-abi-dzzg1d18` |
+| 마지막 windows target만 잘못 선택한 같은 흐름 | 두 owned target 5 PASS, `multi-user-correction.log`, `/tmp/confectory-multi-abi-bwj1p35_`; 첫 target/import도 실패 시 미적용 |
+| 저장된 직접 배치 copy에서 같은 흐름 | 5 PASS, `copy-user-correction.log`, `/tmp/confectory-saved-copy-abi-iesyekix`; owner/donor/다른 구현 보존 |
+| 실패 뒤 동료의 caller 저장 | 4 PASS, `user-correction-conflict-fixed.log`; 새 요청을 보내지 않고 기존 기록·새 입력·동료 checkpoint를 cold까지 보존 |
+| checkpoint는 그대로인데 외부 callee 실제 서명만 변경 | 4 PASS, `source-change.log`; 기존 파일 해시만 보고 재시도하지 않으며 새 요청 없이 차단 |
+| 수정 저장의 성공 응답과 후속 결과 조회 모두 유실 | 6 PASS, `user-correction-loss-fixed.log`, `/tmp/confectory-general-abi-slye5qgo`; 두 시도 기록과 입력 유지, 조회 불가 중 Save에도 추가 authorBatch 없음, cold 뒤 receipt 조회로 복구 후 Confirm |
+| pure mapping 기준 비교 | adapter 3 PASS; 본문/source/receipt/owner/target/서명 변화는 mapping-only 재시도로 인정하지 않음 |
+
+이 수정은 원래 Undo/갱신 동작을 연결하며 CSS/HTML/창 크기·레이아웃이나 권한을 바꾸지 않는다. 전 문맥 ABI·schema/별도 저장 결합·최종 모바일/조작 수용 및 실제 Windows 검증은 여전히 별도 잔여다.

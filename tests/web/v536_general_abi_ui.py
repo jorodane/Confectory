@@ -2,7 +2,7 @@
 import hashlib,json,re,os,pathlib,signal,subprocess,sys,tempfile,time,urllib.request,uuid
 from playwright.sync_api import sync_playwright,expect
 from editor_navigation import goto_editor
-repo=pathlib.Path(sys.argv[1]).resolve();report=json.loads(pathlib.Path(sys.argv[2]).read_text());case=pathlib.Path(tempfile.mkdtemp(prefix='confectory-general-abi-'));project=case/'owned project';project.mkdir();n='Owned.Context::'
+repo=pathlib.Path(sys.argv[1]).resolve();report=json.loads(pathlib.Path(sys.argv[2]).read_text());mode=sys.argv[3] if len(sys.argv)>3 else 'normal';case=pathlib.Path(tempfile.mkdtemp(prefix='confectory-general-abi-'));project=case/'owned project';project.mkdir();n='Owned.Context::'
 env=os.environ.copy();env.update(CONFECTORY_DOTNET=env.get('CONFECTORY_DOTNET','/workspace/toolchains/dotnet-10.0.401/dotnet'))
 def metadata(operation,**data):
  r=subprocess.run([env['CONFECTORY_DOTNET'],str(repo/'targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll')],input=json.dumps({'operation':operation,**data}),text=True,capture_output=True,env=env,check=True);v=json.loads(r.stdout);assert v['ok'],v;return v['result']
@@ -115,8 +115,31 @@ try:
  start(0);call('saveDraft',{})
  with sync_playwright() as p:
   expect.set_options(timeout=60000);browser=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox']);page=setup(browser);author=open_slot();expect(author.locator('[data-wrapper-refresh]')).to_be_enabled(timeout=60000);data=current();node=next(r for r in data['nodes'] if r['id']=='native');assert node['callAbiRemap']['inputs']=={'step':None,'renamed':None};assert node['callAbiReceipt']['id']=='Lib::Native';unchanged();foreign_same();focus_call();author.locator('[data-wrapper-refresh]').click();choose();page.screenshot(path=str(case/'mapping-dialog.png'));mapping().locator('[data-abi-remap-cancel]').click();assert not pending();unchanged();checked('원래 갱신에서 명시적 핀 대응을 열고 취소해도 caller/import/연결/외부 팩을 변경하지 않는다')
-  focus_call();author.locator('[data-wrapper-refresh]').click();choose();held_form=pending();assert len(held_form)==1 and held_form[0][1]['type']=='abi-remap-form';reopen(1);focus_call();author.locator('[data-wrapper-refresh]').click();root=mapping();expect(root.locator('[data-abi-value=step]')).to_have_value('3');expect(root.locator('[data-abi-input=renamed]')).to_have_value('pin:amount');expect(root.locator('[data-abi-output=return]')).to_have_value('total');root.locator('[data-abi-value=step]').fill('3e');root.locator('[data-abi-remap-accept]').click();expect(root.locator('[data-abi-error]')).to_be_visible();assert not collect_wrapper();root.locator('[data-abi-value=step]').fill('3');root.locator('[data-abi-remap-accept]').click();held=collect_wrapper();assert len(held)==1;plan=json.loads(held[0][1]['text']);assert plan['abi']['remap']=={'inputs':{'step':{'valueJson':'3'},'renamed':'amount'},'outputs':{'return':'total'}};expect(author.locator('[data-bp-node=native] [aria-label="입력값 · step"]')).to_have_value('3');expect(author.locator('[data-bp-node=native] [aria-label="입력값 · renamed"]')).to_have_value(__import__('re').compile('amount'));unchanged();foreign_same();page.screenshot(path=str(case/'explicit-general-map.png'));checked('확인 전 raw 핀/값 선택을 cold에서 복원하며 불완전 값은 승인하지 않고 명시적 이름/순서/타입/반환→out 대응만 보관한다')
+  focus_call();author.locator('[data-wrapper-refresh]').click();choose();held_form=pending();assert len(held_form)==1 and held_form[0][1]['type']=='abi-remap-form';reopen(1);focus_call();author.locator('[data-wrapper-refresh]').click();root=mapping();expect(root.locator('[data-abi-value=step]')).to_have_value('3');expect(root.locator('[data-abi-input=renamed]')).to_have_value('pin:amount');expect(root.locator('[data-abi-output=return]')).to_have_value('total');root.locator('[data-abi-value=step]').fill('3e');root.locator('[data-abi-remap-accept]').click();expect(root.locator('[data-abi-error]')).to_be_visible();assert not collect_wrapper();root.locator('[data-abi-value=step]').fill('3');
+  if mode.startswith('user-correction'):root.locator('[data-abi-output=return]').select_option('return')
+  root.locator('[data-abi-remap-accept]').click();held=collect_wrapper();assert len(held)==1;plan=json.loads(held[0][1]['text']);assert plan['abi']['remap']=={'inputs':{'step':{'valueJson':'3'},'renamed':'amount'},'outputs':{'return':'return' if mode.startswith('user-correction') else 'total'}};expect(author.locator('[data-bp-node=native] [aria-label="입력값 · step"]')).to_have_value('3');expect(author.locator('[data-bp-node=native] [aria-label="입력값 · renamed"]')).to_have_value(__import__('re').compile('amount'));unchanged();foreign_same();page.screenshot(path=str(case/'explicit-general-map.png'));checked('확인 전 raw 핀/값 선택을 cold에서 복원하며 불완전 값은 승인하지 않고 명시적 이름/순서/타입/반환→out 대응만 보관한다')
   mode=sys.argv[3] if len(sys.argv)>3 else 'normal';checkpoint=next(project.glob('.confectory/edit-workspaces/*/draft.json'));baseline=checkpoint.read_bytes()
+  if mode.startswith('user-correction'):
+   mark=len(traffic);author.locator('[data-bp-save]').click()
+   for _ in range(1800):
+    failed=[results[r['requestId']] for r in traffic[mark:] if r['endpoint']=='blueprint' and r.get('input',{}).get('action')=='authorBatch' and r['requestId'] in results and not results[r['requestId']].get('ok') and results[r['requestId']].get('error',{}).get('code')!='stale_revision']
+    if failed:break
+    page.wait_for_timeout(20)
+   assert failed;idle();assert checkpoint.read_bytes()==baseline and collect_wrapper()==held;unchanged();foreign_same()
+   old_attempt=next(v for k,v in pending() if v.get('kind')=='author-attempt')
+   author.locator('.bp-viewport').focus();page.keyboard.press('Control+z');idle();focus_call();author.locator('[data-bp-node=native] [data-wrapper-refresh]').click();choose().locator('[data-abi-remap-accept]').click();held=collect_wrapper();assert json.loads(held[0][1]['text'])['abi']['remap']['outputs']['return']=='total';assert next(v for k,v in pending() if v.get('kind')=='author-attempt')==old_attempt
+   checked('잘못된 실제 출력 선택은 전체 미적용이며 원래 Undo 후 새 명시적 선택이 이전 실패 기록·입력을 보존한다')
+   if mode in ['user-correction-conflict','user-correction-source']:
+    if mode=='user-correction-source':
+     (lib/'Native.celem').write_text(after.replace('int step','long step'));foreign_original['Native.celem']=(lib/'Native.celem').read_bytes()
+    else:
+     call('select',{'id':n+'Caller'});d=state()['draft'];call('editDescription',{'id':n+'Caller','revision':d['revision'],'hash':hashlib.sha256(d['text'].encode()).hexdigest(),'value':'동료의 먼저 저장한 설명'});call('saveDraft',{})
+    peer=checkpoint.read_bytes();assert (peer==baseline)==(mode=='user-correction-source');mark=len(traffic);author.locator('[data-bp-save]').click()
+    for _ in range(1800):
+     queries=[r for r in traffic[mark:] if r['endpoint']=='blueprint' and r.get('input',{}).get('action')=='settledAuthorBatch' and r['requestId'] in results]
+     if queries and '저장 중' not in author.locator('.bp-status').inner_text():break
+     page.wait_for_timeout(20)
+    assert queries and not any(r for r in traffic[mark:] if r['endpoint']=='blueprint' and r.get('input',{}).get('action')=='authorBatch');assert checkpoint.read_bytes()==peer and collect_wrapper()==held and next(v for k,v in pending() if v.get('kind')=='author-attempt')==old_attempt;unchanged();reopen(2);assert collect_wrapper()==held and checkpoint.read_bytes()==peer;foreign_same();checked('거절 뒤 실제 source/checkpoint가 바뀌면 새 매핑도 재시도하지 않고 실패 기록·동료 저장·입력을 cold까지 보존한다');finish()
   if mode=='cancel':
    author.locator('.bp-viewport').focus();page.keyboard.press('Control+z');assert not pending();unchanged();reopen(2);assert not pending();unchanged();foreign_same();checked('원본 Undo는 전체 갱신 계획만 취소하고 cold에 기존 입력/출력 계약과 source를 유지한다');finish()
   if mode=='conflict':
@@ -143,6 +166,22 @@ try:
    if mode=='storage':checkpoint.chmod(0o600)
    else:page.unroute('**/api/request',inject);assert len(changed)==1
    reopen(2);assert collect_wrapper()==held;unchanged();checked('실제 쓰기 거절/호환 불가 출력은 caller/import/소비자 전체 미적용과 정확한 입력을 유지하고 cold 명시 재시도를 허용한다')
+  if mode=='user-correction-loss':
+   ids=set();lookups=set();lost={};blocked=[]
+   def unknown(route):
+    body=route.request.post_data_json
+    if body.get('op')=='invoke' and body.get('endpoint')=='blueprint':
+     if body.get('input',{}).get('action')=='authorBatch':ids.add(body['requestId'])
+     if ids and body.get('input',{}).get('action')=='settledAuthorBatch':lookups.add(body['requestId'])
+    response=route.fetch();payload=response.json()
+    if body.get('op')=='update':
+     for row in payload.get('results',[]):
+      if row['requestId'] in ids:
+       assert row.get('ok'),row;lost['saved']=True;row.clear();row.update(requestId=next(iter(ids)),ok=False,error={'code':'transport-interrupted'})
+      elif row['requestId'] in lookups:
+       rid=row['requestId'];blocked.append(rid);row.clear();row.update(requestId=rid,ok=False,error={'code':'transport-interrupted'})
+    route.fulfill(response=response,json=payload)
+   page.route('**/api/request',unknown)
   if mode=='response-loss':
    ids=set();lost={}
    def intercept(route):
@@ -154,7 +193,21 @@ try:
     route.fulfill(response=response)
    page.route('**/api/request',intercept)
   mark=len(traffic);author.locator('[data-bp-save]').click()
-  if mode=='response-loss':
+  if mode=='user-correction-loss':
+   for _ in range(1800):
+    if lost and blocked and '저장 중' not in author.locator('.bp-status').inner_text():break
+    page.wait_for_timeout(20)
+   assert lost and blocked and len(ids)==1;held_attempt=next(v for k,v in pending() if v.get('kind')=='author-attempt');assert held_attempt['attempt']!=old_attempt['attempt'] and held_attempt['previousAttempts']==[old_attempt] and collect_wrapper()==held;unchanged();assert checkpoint.read_bytes()!=baseline
+   before_queries=len(blocked);author.locator('[data-bp-save]').click()
+   for _ in range(1800):
+    if len(blocked)>before_queries and '저장 중' not in author.locator('.bp-status').inner_text():break
+    page.wait_for_timeout(20)
+   assert len(blocked)>before_queries and len(ids)==1 and next(v for k,v in pending() if v.get('kind')=='author-attempt')==held_attempt;page.unroute('**/api/request',unknown);reopen(2);assert next(v for k,v in pending() if v.get('kind')=='author-attempt')==held_attempt;mark=len(traffic);author.locator('[data-bp-save]').click();completed('blueprint','settledAuthorBatch',mark)
+   for _ in range(1800):
+    if not pending():break
+    page.wait_for_timeout(20)
+   assert not pending() and not any(r for r in traffic[mark:] if r['endpoint']=='blueprint' and r.get('input',{}).get('action')=='authorBatch');checked('수정 저장 응답과 조회 결과가 모두 유실되면 이전·새 시도와 입력을 보존하며 cold 결과 조회 후만 복구하고 중복 적용하지 않는다')
+  elif mode=='response-loss':
    for _ in range(1800):
     if lost and not pending():break
     page.wait_for_timeout(20)

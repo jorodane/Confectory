@@ -2,6 +2,14 @@ import {parseTypedJson,printTypedJson} from './typed-json.js';
 const signature=value=>({args:structuredClone(value?.args??value?.Args??[]).map(a=>({name:a.name??a.Name,type:a.type??a.Type,...((a.mode??a.Mode)?{mode:a.mode??a.Mode}:{})})),return:value?.return??'void'});
 const outputs=s=>[...(s.return==='void'?[]:[{name:'return',type:s.return}]),...s.args.filter(a=>a.mode==='out')];
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+// A rejected attempt may be replaced only after the server independently proves
+// its original checkpoint and complete source closure still unchanged. This
+// predicate permits a new explicit mapping, never a new contract/body/scope.
+export function sameAbiRemapBasis(before,after){
+ const canonical=v=>Array.isArray(v)?v.map(canonical):v&&typeof v==='object'?Object.fromEntries(Object.keys(v).sort().map(k=>[k,canonical(v[k])])):v;
+ const basis=value=>{const copy=structuredClone(value);if(!copy?.abi?.remap)return null;delete copy.abi.remap;for(const plan of Object.values(copy.abi.targetPlans??{}))delete plan.remap;return canonical(copy);};
+ const a=basis(before),b=basis(after);return !!a&&!!b&&same(a,b)&&!same(canonical(before),canonical(after));
+}
 export function defaultAbiRemap(before,after){before=signature(before);after=signature(after);return {inputs:Object.fromEntries(after.args.filter(a=>a.mode!=='out').map(a=>[a.name,before.args.some(b=>b.mode!=='out'&&b.name===a.name)?a.name:null])),outputs:Object.fromEntries(outputs(before).map(a=>[a.name,outputs(after).some(b=>b.name===a.name)?a.name:null]))};}
 export function abiLiteral(text,type){if(type==='string')return JSON.stringify(text);if(type==='bool'){if(!['true','false'].includes(text.trim()))throw Error('조건 값은 true 또는 false로 입력해 주세요.');return text.trim();}if(!['int','long','float','double'].includes(type))throw Error('이 자료형은 기존 입력 연결을 선택해 주세요.');const value=parseTypedJson(text.trim());if(value.kind!=='number')throw Error('숫자 값을 확인해 주세요.');return printTypedJson(value);}
 // Existing confirmation surface only. An unmatched pin is never assigned by

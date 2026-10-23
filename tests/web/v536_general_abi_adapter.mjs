@@ -1,9 +1,14 @@
 import assert from 'node:assert/strict';
 import {pathToFileURL} from 'node:url';
 import path from 'node:path';
-const {abiLiteral,defaultAbiRemap,projectAbiValue,remappedAbiArguments}=await import(pathToFileURL(path.join(process.argv[2],'examples/editor-home/ui/call-abi-remap.js')));
+const {abiLiteral,defaultAbiRemap,projectAbiValue,remappedAbiArguments,sameAbiRemapBasis}=await import(pathToFileURL(path.join(process.argv[2],'examples/editor-home/ui/call-abi-remap.js')));
 assert.equal(abiLiteral('9223372036854775806','long'),'9223372036854775806');assert.equal(abiLiteral('한글 "본문"','string'),JSON.stringify('한글 "본문"'));assert.equal(abiLiteral('false','bool'),'false');assert.throws(()=>abiLiteral('9223e','double'));assert.throws(()=>abiLiteral('3','Owned::Other'));
 assert.deepEqual(defaultAbiRemap({args:[{name:'x',type:'long'},{name:'value',type:'int'}],return:'long'},{args:[{name:'value',type:'int'},{name:'renamed',type:'long'}],return:'bool'}),{inputs:{value:'value',renamed:null},outputs:{return:'return'}});
 console.log('PASS exact long/raw text literals and same-name-only suggestions; rename/order never infer ordinal pin identity');
 
 const maps={native:{inputs:{renamed:'amount',step:{valueJson:'9223372036854775806'}},outputs:{return:'total'}}};assert.equal(projectAbiValue('{"node":"native"}',maps),'{"node":"native","output":"total"}');assert.equal(projectAbiValue('{"constant":{"node":"native","raw":9223372036854775806}}',maps),'{"constant":{"node":"native","raw":9223372036854775806}}');assert.deepEqual(remappedAbiArguments([{name:'amount',type:'long',valueJson:'{"input":"amount"}'}],{args:[{name:'step',type:'long'},{name:'renamed',type:'double'}],return:'bool'},maps.native,(name,raw)=>raw),[{name:'step',type:'long',valueJson:'{"constant":9223372036854775806}'},{name:'renamed',type:'double',valueJson:'{"input":"amount"}'}]);console.log('PASS approved preview shows literal/source/input/output mappings; literal data and raw long are not recursively rewritten');
+
+const plan={source:'return Result.NoBranch;',helpers:'',contractHash:'wrapper',refreshFrom:'old',abi:{sourceHash:'callee',signature:{args:[{name:'x',type:'long'}],return:'long'},receipt:{id:'Lib::F',ownerManifestHash:'pack'},remap:{inputs:{x:'x'},outputs:{return:'return'}},targetPlans:{windows:{node:'native',remap:{inputs:{x:'x'},outputs:{return:'return'}}}}}};
+const corrected=structuredClone(plan);corrected.abi.remap.outputs.return='total';corrected.abi.targetPlans.windows.remap.outputs.return='total';assert.equal(sameAbiRemapBasis(plan,corrected),true);assert.equal(sameAbiRemapBasis(plan,plan),false);
+for(const change of [p=>p.source+=' ',p=>p.abi.sourceHash='new',p=>p.abi.receipt.ownerManifestHash='other',p=>p.abi.signature.args[0].type='bool',p=>p.abi.targetPlans.windows.node='other',p=>p.abi.copyBinding={owner:'other'},p=>p.abi.targetGroup={hash:'new'}]){const other=structuredClone(corrected);change(other);assert.equal(sameAbiRemapBasis(plan,other),false);}
+console.log('PASS correction changes explicit mappings only; body/contract/source/receipt/owner/target changes are never treated as the same rejected request');
