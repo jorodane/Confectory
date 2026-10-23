@@ -63,3 +63,5 @@ wrapper enum 특수 실행 핀 후속: 원본의 이름 우선 ID 대응을 복�
 일반 enum 후속: 기존 소유 static/void code를 원본 C# enum/body/helpers 및 모바일 실행 줄에 연결하고 한 checkpoint로 저장한다. 화면 강제 재진입 중 불완전 원문을 정상 graph에 적용하던 결함을 수정하여 원문 복구와 실제 source 변경 차단을 분리했다. 지원 범위·검증은 `VALIDATION_V536_GENERAL_ENUM.md`, 속성/Set/결합 저장의 정확한 다음 구현과 결정은 `V536_PIN_AND_ATOMIC_NEXT.md`를 따른다. 전체 v536 완료 또는 실제 Windows/mobile 검증이 아니다.
 
 Set backend 첫 묶음: legacy void Set을 유지하며 outputLocal/stored 분리 및 한 후보/checkpoint의 setPlan을 구현했다. Core7·실제 엔진9·복사 차단2의 범위와 한계는 `VALIDATION_V536_SET_BACKEND.md`를 따른다. 후속 원본 Set 카드/모바일 및 ordinary main-line 속성 읽기·쓰기 입력 연결은 `VALIDATION_V536_SET_UI.md`의 한정 범위로 검증했다. 전체 UI 완료가 아니다. 속성 읽기 정책은 사용자 결정으로 실행 시점 현재 값/재실행 재읽기/기존 출력 보존으로 확정했고 새 읽기→소비 작업 연결과 이전 출력 보존을 실제 UI/격리 CLR로 확인했다. mutable ref와 branch/private/copy 일반화는 남아 있다.
+
+후속 저장 copy ABI: 이미 확정된 직접 배치 복사본의 한 본문 값↔ref를 별도 후보/CAS·출처/소유자/최종 provider 검사에 연결했다(`VALIDATION_V536_SAVED_COPY_ABI.md`). 새로운 비공개 복사 초안·다중 target·혼합 Save는 계속 미지원이다. 기존 원본 레이아웃과 전체 v536/실제 Windows 미완료 판정을 바꾸지 않는다.
