@@ -64,3 +64,9 @@
 이전 `Confectory-v536-schema-save` 및 `Confectory-v536-schema-save-final` 폴더는 이번 전환 수정 전 중간본이다. 새 패키지와 혼동하지 않는다. Library 업로드는 이전 tools/list 네트워크 장애 뒤 새 복구 근거가 없어 재시도하지 않았고 전달 성공으로 보고하지 않는다.
 
 변경26파일을 구현19/테스트4/문서3으로 검토했다. 생성물·로그·profile·사용자 데이터는 Git 후보에 없다. 비밀 패턴 검사 발견0이며 모든 비밀의 부재를 증명하는 검사는 아니다. 실제 인증파일은 읽지 않았다. 최종 깨끗한 checkout·리소스와 원격 게시 결과는 아래에 기록한다.
+
+## 깨끗한 checkout 최종 검사
+
+검증 코드 커밋은 `96d4ecb770727f1c1b444031c68c0f84b2a715c6`다. 기존 격리 checkout을 이 커밋으로 정상 fast-forward하고 입력/추가 파일이 없는 상태에서 Release solution build 경고0/오류0, 실제 Linux 생성 엔진 성공·경고0을 확인했다(`checkout-build.log`, `checkout-engine.json`). 생성 완료 전에 시작한 첫 resource 명령은 빈 준비 JSON 읽기에서 중단됐으며 제품 검사로 세지 않는다(`checkout-resources-premature.log`). 완료된 생성 엔진으로 다시 실행한 `web_resource_checkout.py`는 실제 이전 CRLF checkout→attribute pull과 fresh LF 모두 70 canonical/exact resource를 읽고, 내용/인코딩/BOM/binary/budget 변조를 거절했으며 원래 파일 byte를 유지해 PASS(`checkout-resources.log`).
+
+root/깨끗한 checkout의 구현19개는 정규화 source가 일치한다. package/root의 소스2,019개 byte와 helper DLL이 일치하고 package checksum도 검증했다. 원본 HTML/CSS 및 main/Android/reference 변경은 없다. 검증 변경은 승인된 `https://github.com/jorodane/Confectory.git`의 `work/current`만 정상 게시하며, 최종 문서 기록 커밋은 runtime을 바꾸지 않는다. 실제 push와 원격 SHA/clean 결과는 작업 체크포인트와 최종 응답에 기록한다. 전체 schema 편집·v536 UI 복원 및 실제 Windows 실행 완료가 아니다.
