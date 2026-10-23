@@ -14,11 +14,13 @@
 2. `openInWork`가 같은 기능의 직전 `blueprintGraph`를 전역 재진입 문맥으로 재사용했는데, 그것이 객체 슬롯/복사 편집의 graph인지 구분하지 않았다. 전역 선택 기록은 같은 프로젝트·기능의 **전역 문맥만** 재사용하며 `slotOwner`/`copyDraft`는 제외한다. 저장된 슬롯·복사 입력은 삭제하지 않는다.
 3. 재사용 기능 창의 title/aria-label을 현재 기능으로 갱신한다. 기존 이름 input의 tooltip에는 선택한 owner/implementation/body target을 표시한다. 화면 영역/버튼/크기는 그대로다. 로딩 중에는 이전 body/owner DOM 표식을 비우고 server 확인 후 새 표식을 채운다. 테스트는 이전 창의 enabled 버튼을 로드 완료로 오인하지 않고 이 표식과 실제 RPC/내용/저장 결과를 함께 확인한다. DOM 표식은 권한 또는 서버 검증의 대체물이 아니다.
 
+4. 마지막 실패 재시도 검토에서 추가 결함을 재현했다. 슬롯 뒤 전역 목록 조회가 실패하면 `loading`이 owner는 지우고 예전 graph는 남겨, 다음 전역 재시도가 해당 슬롯 graph를 선택할 수 있었다. 초기화는 오래된 graph를 지우고, 명시적으로 선택한 전역 body/슬롯 graph는 비동기 조회 전에 해당 문맥에 기록한다. 실패·presentation 복원 뒤에도 그 정확한 body만 재검사하며 다른 구현으로 fallback하지 않는다. 새 권한이나 자동 동의는 없다.
+
 변경은 UI 어댑터와 리소스 hash뿐이며 backend 읽기/쓰기/소유권/변환/Confirm 계약을 변경하지 않았다. CSS와 원본 ZIP을 수정하지 않았다.
 
 ## 실제 엔진 + Chromium 통합: 9건, 전체 exit 0
 
-`tests/web/v536_multiple_implementations.py`, 증거 `/tmp/confectory-multiple-implementations-jk1cxnld`:
+`tests/web/v536_multiple_implementations.py`, 증거 `/tmp/confectory-multiple-implementations-jw73x92g`:
 
 1. 실제 A/B 슬롯 선택·전환과 Script 취소가 Alpha/Beta의 두 비공개 본문을 분리 보존한다.
 2. 슬롯 편집 후 전역 진입은 슬롯 graph가 아닌 명시 provide Default C# common의 비공개 미리보기를 연다.
@@ -36,7 +38,7 @@ fixture는 자체 선언·graph·node·profile/registry만 만든다. Main은 �
 
 ## 영향 회귀
 
-`v508_module_slot_renderer.py`: **8건, 전체 exit 0**, 통제 provider와 실제 renderer를 사용한다. 두 객체 슬롯, A/common·B/common·B/windows 본문별 입력 분리/명시 복원, 알 수 없는 대상 거절, 정확한 source 증명에 한정한 legacy 입력 이관, 슬롯 외 입력 보존과 저장 payload를 확인한다. 증거 `/tmp/confectory-slot-editor-renderer-c3f6ox3w`. 실제 backend 성공 증거와 구분한다. 기존 단일 C# 전환 검사를 의미 없이 반복하지 않았다.
+`v508_module_slot_renderer.py`: **10건, 전체 exit 0**, 통제 provider와 실제 renderer를 사용한다. 두 객체 슬롯, A/common·B/common·B/windows 본문별 입력 분리/명시 복원, 알 수 없는 대상 거절, 정확한 source 증명에 한정한 legacy 입력 이관, 슬롯 외 입력 보존과 저장 payload를 확인한다. 증거 `/tmp/confectory-slot-editor-renderer-k9f61u6h`. 추가 2건은 실제 renderer에서 목록 조회 실패 후 슬롯의 전역 승격 차단, 명시 body 읽기 실패 뒤 같은 target 복원/재시도를 확인했다. 추가 결함을 수정한 최종 코드에서 위 실제 엔진9건도 다시 전체 exit0을 확인했다. 실제 backend 성공 증거와 controlled provider 결과는 구분한다. 기존 단일 C# 전환 검사를 의미 없이 반복하지 않았다.
 
 생성 Linux 엔진 build 통과. 구문·리소스 hash·diff 검사를 수행한다. Windows 교차 package/clean checkout/정상 게시 결과는 최종 기록에 구분한다. 실제 캡처 `three-implementation-contexts.png`를 열어 확인했으며 원본 레이아웃/CSS와 같은 기존 frame을 유지한다. 이 캡처가 모든 화면의 pixel equality 증거는 아니다.
 
@@ -51,8 +53,8 @@ fixture는 자체 선언·graph·node·profile/registry만 만든다. Main은 �
 
 ## 패키지와 게시 검토
 
-Windows x64 교차 package **2,305 선언 파일+marker**, UI canonical/exact resources **66개**를 생성했다. `desktop_package.py` 전체 exit0: apphost/런타임/packs/UI 구성, 누락/변조 거절, 설치 SDK 없는 runtime-only 환경의 다른 cwd에서 실제 packaged managed 웹 시작, 최소 로그인 화면·기존 profile 재사용/명시적 override를 확인했다. 증거 `/tmp/confectory-desktop-package-xygejjs2`. **Windows apphost와 WebView2는 실행하지 않았다.**
+Windows x64 교차 package **2,305 선언 파일+marker**, UI canonical/exact resources **66개**를 생성했다. `desktop_package.py` 전체 exit0: apphost/런타임/packs/UI 구성, 누락/변조 거절, 설치 SDK 없는 runtime-only 환경의 다른 cwd에서 실제 packaged managed 웹 시작, 최소 로그인 화면·기존 profile 재사용/명시적 override를 확인했다. 증거 `/tmp/confectory-desktop-package-_q1daq7e`. **Windows apphost와 WebView2는 실행하지 않았다.**
 
-로컬 exe는 `/workspace/artifacts/Confectory-v536-multiple-implementations/Windows-x64/Confectory.exe`다. 전체 폴더를 함께 두고 실행하며 .NET Desktop Runtime 10.0 x64 및 Edge WebView2 Runtime이 필요하다. 사용자 PC에 자동 설치하지 않았다. marker SHA-256 `96d252f4593affe1af31e19fa597a5d9927f881b39d4758e677e8331927e4d65`, 전체 파일 목록 checksum `2e13a0060a7ba355a7facfaf2f9da6f668697a3ea8755ad76570f9e01f4d081e`. 로컬 경로는 Library 전달 완료를 뜻하지 않는다.
+로컬 exe는 `/workspace/artifacts/Confectory-v536-multiple-implementations-final/Windows-x64/Confectory.exe`다. 전체 폴더를 함께 두고 실행하며 .NET Desktop Runtime 10.0 x64 및 Edge WebView2 Runtime이 필요하다. 사용자 PC에 자동 설치하지 않았다. marker SHA-256 `5dca693077a97c761d36d51030f2841cbe464823a53ca964f74099a678618e36`, 전체 파일 목록 checksum `0077f0c358194b997ca29b5a96769b2b8676e8035f9d52cfc79b76e4e58fde03`. 로컬 경로는 Library 전달 완료를 뜻하지 않는다.
 
-검토 대상은 구현4·테스트1·문서3 = **8파일**, 비밀정보 탐지0이다. 생성 빌드/로그/사용자 데이터/인증정보는 Git에 넣지 않는다. 원본 v536/v508 ZIP hash와 CSS·Android 설정은 그대로다. 승인된 `https://github.com/jorodane/Confectory.git`의 `work/current`에 정상 commit/push만 수행한다. 커밋 후 clean checkout의 솔루션/생성 엔진/일반 CRLF·LF 리소스 검증 및 direct remote SHA 결과는 완료 체크포인트에 기록한다. main을 merge/reset하거나 수정하지 않는다.
+검토 대상은 구현4·테스트2·문서3 = **9파일**, 비밀정보 탐지0이다. 생성 빌드/로그/사용자 데이터/인증정보는 Git에 넣지 않는다. 원본 v536/v508 ZIP hash와 CSS·Android 설정은 그대로다. 승인된 `https://github.com/jorodane/Confectory.git`의 `work/current`에 정상 commit/push만 수행한다. 커밋 후 clean checkout의 솔루션/생성 엔진/일반 CRLF·LF 리소스 검증 및 direct remote SHA 결과는 완료 체크포인트에 기록한다. main을 merge/reset하거나 수정하지 않는다.

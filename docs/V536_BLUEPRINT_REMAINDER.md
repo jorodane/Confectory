@@ -2,7 +2,7 @@
 
 Browser 잔여 묶음 이후 수행할 고정 UI 연결 목록이다. 이 문서는 구현 완료/사용자 권한 승낙이 아니며 이번 Browser 변경에서 아래 기능을 새로 구현하지 않았다. 원본 v536 레이아웃과 자연어 Blueprint 좌→우 직렬 실행, 사용자 초안/소유권/CAS·명시적 compiler Confirm을 유지한다. 새 시각적 분기/반복 모델을 도입하지 않는다.
 
-1. **다중 구현·C# 변환 실제 화면 완주 — 지원 원본 문맥 묶음 검증.** 기존 `blueprintFeatureBodies`/conversion/정확한 source proof API를 원본 선택·추가·전환에 연결한다. 각 구현/실행 대상별 미저장 입력을 분리하고 다른 구현/부모/등록 팩 원본을 보존한다. UI 선택→미리보기→취소/저장→cold→명시 Confirm, 실패/응답 유실/늦은 새 입력을 유한 회귀로 수용한다. 기존 서버 검사가 실제 UI 전체 완료를 뜻하지 않는다. 실제 3문맥(두 소유 슬롯+전역 provide)의 선택·전환·cold·응답 유실/늦은 입력·개별 Save/Review/compiler Confirm·provider 변경 차단 9건과 controlled renderer8건을 확인했다. 원본에 없는 전역 ID picker/추가, 외부 source 직접 편집, 모든 native/target/View 조합은 확대하지 않았다. 정확한 한계와 결과는 `VALIDATION_V536_MULTIPLE_IMPLEMENTATIONS.md`를 따른다.
+1. **다중 구현·C# 변환 실제 화면 완주 — 지원 원본 문맥 묶음 검증.** 기존 `blueprintFeatureBodies`/conversion/정확한 source proof API를 원본 선택·추가·전환에 연결한다. 각 구현/실행 대상별 미저장 입력을 분리하고 다른 구현/부모/등록 팩 원본을 보존한다. UI 선택→미리보기→취소/저장→cold→명시 Confirm, 실패/응답 유실/늦은 새 입력을 유한 회귀로 수용한다. 기존 서버 검사가 실제 UI 전체 완료를 뜻하지 않는다. 실제 3문맥(두 소유 슬롯+전역 provide)의 선택·전환·cold·응답 유실/늦은 입력·개별 Save/Review/compiler Confirm·provider 변경 차단 9건과 controlled renderer10건을 확인했다. 원본에 없는 전역 ID picker/추가, 외부 source 직접 편집, 모든 native/target/View 조합은 확대하지 않았다. 정확한 한계와 결과는 `VALIDATION_V536_MULTIPLE_IMPLEMENTATIONS.md`를 따른다.
 
 2. **검증된 범위 밖의 호출 ABI.** 현재 검증은 단일 소유 호출의 값↔ref, typed import, 생산자 공개 출력→소비자 검토·공동 명시 Confirm이다. 원본이 요구하는 다른 호출 소유 문맥/형태를 먼저 실제 목록으로 고정하고 하나씩 연결한다. 비호환 연결을 추측해 변경/삭제하지 않고 명시적 갱신에서만 일관되게 갱신한다. 공개 출력은 호출 후 SourceContext 읽기이며 외부 공유/프로젝트 권한이 아니다.
 3. **모바일/데스크톱 원본 특수 계약.** 공유/고정 반환 이름, 잠정 빈 출력, 영역·다중 선택, 내부 흐름/async, 특수 핀·readonly 핀의 원본 의미를 실제 소스와 대조한다. 지원 backend와 UI만 미연결인 항목을 분리해 카드/상세와 기존 desktop 편집의 동일 초안에 연결한다. 원본에 없거나 실행 모델이 없는 동작을 데모 성공으로 표시하지 않는다.
