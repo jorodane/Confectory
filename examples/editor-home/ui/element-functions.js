@@ -1,3 +1,4 @@
+import {captureMixedCell} from './mixed-declaration.js';
 // Original v508 module cards and function nodes over real declaration contracts.
 export function createFunctionPresentation(api){
  const {$,$$,esc}=api;
@@ -113,7 +114,7 @@ export function createElementFunctions(api){
   w.slotViews??=new Map();const key=viewKey(w,schema,provider);if(w.slotViews.has(key))return;const record={pending:true};w.slotViews.set(key,record);const valid=()=>own(w,schema)&&!imported(w,requirement.function)&&w.slotViews.get(key)===record;
   (async()=>{for(let attempt=0;attempt<3;attempt++){await api.whenIdle();if(!valid())return;let started=false;await api.work(async()=>{started=true;try{record.data=await readImplementationView(w,schema,requirement,provider,valid);}catch(error){record.error=error.message;}record.pending=false;if(valid())show(w,w.elementSchema);},'');if(started)return;}record.pending=false;})();
  }
- function pendingCopyOwner(w,schema){const cells=[...inputs].filter(([key])=>key.startsWith(w.elementScope+'|'+schema.id+'|element|'));for(const [key,value] of cells){const row=value.kind==='field'?schema.rows.find(row=>JSON.stringify(row.path)===JSON.stringify(value.path)):null;if(value.revision!==schema.revision||value.hash!==schema.textHash||value.kind!=='description'&&!(value.kind==='field'&&row?.path.length===1&&row.kind==='general'&&row.cardinality==='single'&&['int','long','float','double','bool','string'].includes(row.type)))throw Error('다른 종류의 객체 입력을 먼저 처리해 주세요. 모든 입력은 유지됩니다.');}return {map:inputs,cells};}
+ function pendingCopyOwner(w,schema){const cells=[...inputs].filter(([key])=>key.startsWith(w.elementScope+'|'+schema.id+'|element|'));for(const [,value] of cells)captureMixedCell(value,schema,api.valueJson);return {map:inputs,cells};}
  function copyPicker(w,schema,requirement){return (async()=>{await api.whenIdle();if(!own(w,schema))return;
   const saved=api.copyDrafts?.(schema.id,requirement.function)?.[0];if(saved)return api.work(()=>api.openCopyInWork({id:requirement.function,signature:requirement.signature},saved,true),'');const valid=()=>own(w,schema);return api.work(async()=>{try{
    if(!valid()||api.otherPending?.([schema.id],pendingCopyOwner(w,schema)))throw Error('같은 객체의 미적용 입력을 먼저 확인해 주세요. 입력은 유지됩니다.');
