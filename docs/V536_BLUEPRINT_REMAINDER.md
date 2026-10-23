@@ -16,3 +16,5 @@ Browser 잔여 묶음 이후 수행할 고정 UI 연결 목록이다. 이 문서
 Set backend 분리 출력/원자 setPlan 첫 묶음과 정확한 UI 잔여는 `VALIDATION_V536_SET_BACKEND.md`를 따른다. 후속 카드·모바일·속성 ordinary main-line 연결/검증은 `VALIDATION_V536_SET_UI.md`를 따른다. 복사본·다중 target·혼합 Save 등 전체 미완료를 유지한다. 속성 읽기 시점 답변은 도착했으므로 최초 캐시/최신 읽기 질문을 다시 하지 않는다.
 
 현재 다음 작업의 유한 완료 조건 및 backend/UI 구분: `V536_REMAINING_ACCEPTANCE.md`. 이 목록을 넘는 신규 기능·내구성 조합은 UI 복원 완료 조건에 계속 추가하지 않는다.
+
+최신 일반 ABI의 명시 pin mapping은 `VALIDATION_V536_GENERAL_ABI.md`의 기존 지원 문맥에 연결했다. 이름/순서/타입·새 입력 값·out/return 대응을 호출/import/consumer와 한 후보로 검사하며 오류 시 전체 미적용이다. opaque/상속/copy-alltarget/등록-alltarget/여러 동일 호출 등 미지원 문맥과 모바일/조작·기존 schema/별도 저장 결합은 완료로 바꾸지 않는다.

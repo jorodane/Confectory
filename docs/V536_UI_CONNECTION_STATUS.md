@@ -1,10 +1,10 @@
 # v536 연결 현황과 중간 빌드 준비 조건
 
-2026-10-23 최신 한정 작업은 `VALIDATION_V536_WIDE_MIXED_SAVE.md`다. 아래 후속 문단은 시점별 기록이며, 이전 문단의 미지원 상태를 최신 지원으로 오해하지 않는다. UI 기준은 지정된 `origin/main` `196c605`의 원본 v536 ZIP이고 첨부 ZIP과의 바이트 동일성은 미확인이다. 묶음별 통과는 전체 UI 복원이나 Windows 실기기 수용을 뜻하지 않는다.
+2026-10-23 최신 한정 작업은 `VALIDATION_V536_GENERAL_ABI.md`다. 아래 후속 문단은 시점별 기록이며, 이전 문단의 미지원 상태를 최신 지원으로 오해하지 않는다. UI 기준은 지정된 `origin/main` `196c605`의 원본 v536 ZIP이고 첨부 ZIP과의 바이트 동일성은 미확인이다. 묶음별 통과는 전체 UI 복원이나 Windows 실기기 수용을 뜻하지 않는다.
 
 현재 남은 범위는 다음과 같다.
 
-- **Blueprint 연결/원자 저장:** 일반 ABI 이름·순서·타입/out/반환 remap, opaque C#·상속/복사본 다중 target·whole-body context·같은 callee 여러 사용·등록 all-target receipt는 미완료다. 새 private copy의 단일 target 명시 갱신과 owned ordinary2target의 한정 값/ref 갱신은 완료 범위에 추가됐다. 현재 UI의 여러 new copy+owner 설명/typed 값/override·unset/parent/modules/새 primitive 정의는 같은 후보/CAS로 연결했다. 기존 schema의 타입/삭제 등 미연결 편집과 saved-copy ABI/multi-target ABI/Set-property/다른 provider 또는 dirty raw source 결합은 `V536_ATOMIC_REMAINING_COMBINATIONS.md`대로 차단한다. 일반 ABI·모바일/조작의 구체적인 다음 완료 조건은 `V536_REMAINING_ACCEPTANCE.md`다.
+- **Blueprint 연결/원자 저장:** 기존 지원 root/슬롯/단일 saved/private copy·직접 등록 단일 caller 및 owned ordinary2target의 명시 일반 ABI remap은 연결했다. opaque C#·상속/복사본 다중 target·whole-body context·같은 callee 여러 사용·등록 all-target receipt는 미완료다. 새 private copy의 단일 target 명시 갱신과 owned ordinary2target의 한정 값/ref 갱신은 완료 범위에 추가됐다. 현재 UI의 여러 new copy+owner 설명/typed 값/override·unset/parent/modules/새 primitive 정의는 같은 후보/CAS로 연결했다. 기존 schema의 타입/삭제 등 미연결 편집과 saved-copy ABI/multi-target ABI/Set-property/다른 provider 또는 dirty raw source 결합은 `V536_ATOMIC_REMAINING_COMBINATIONS.md`대로 차단한다. 일반 ABI·모바일/조작의 구체적인 다음 완료 조건은 `V536_REMAINING_ACCEPTANCE.md`다.
 - **원본 모바일/조작 수용:** 공유/고정 반환 이름·잠정 빈 출력·영역/다중 선택·내부 흐름/async·readonly 및 나머지 지원 문맥·줌/검색/키보드/밀집 rail의 최종 정밀 수용은 남아 있다. 기존 함수/모듈·copy 편집의 이미 검증된 범위를 다시 미구현으로 세지 않는다.
 - **Browser:** 독립 object Data, 여섯 소유 선언의 공통 설명, 직접 등록 참조 탐색, 문자 아이콘/표시 이름은 기존 묶음에서 검증했다(`VALIDATION_V536_BROWSER_REMAINDER.md`). 모든 source에 대한 범용 이동/삭제·외부 runtime Data/구조 편집·일반 receipt/check-path·OS 드래그/전체 pixel equality는 미수용이다.
 - **backend 부재:** Helper 이미지 제공자/자산/이력, Browser 선언별 작업자 배지, 실제 협의/승자/공유 Confirm/신문고, 실행창 내장 렌더/FPS 및 일부 외부 전달 계약은 별도 기능 개발이다. Pack Manager 업데이트/설치해제는 기존 명시적 미지원이다.

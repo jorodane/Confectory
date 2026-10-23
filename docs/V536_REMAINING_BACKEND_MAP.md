@@ -23,3 +23,5 @@
 다중 target의 후속 한정 단위는 `VALIDATION_V536_MULTI_TARGET_ABI.md`를 따른다. 모든 owned Blueprint target의 같은 호출 값/ref 계약을 한 후보/CAS·정확한 source/record 검토 그룹으로 연결한다. opaque/상속/copy/context 있는 code/등록 callee all-target/복수 사용/일반 ABI와 넓은 혼합은 미완료다. 고정된 혼합 조합은 `V536_ATOMIC_REMAINING_COMBINATIONS.md`에 분리했으며 전체 v536 완료 판정은 바꾸지 않는다.
 
 최신 혼합 범위: `VALIDATION_V536_WIDE_MIXED_SAVE.md`의 현재 owner widget+여러 new private copy는 원자적으로 연결했다. 기존 schema 편집·saved-copy ABI/multi-target ABI/Setproperty/다른 provider/dirty source와의 결합은 미완료다. 일반 ABI·특수 문맥 및 조작 수용을 backend 존재/계약 누락/UI 미연결로 구분한 구체적 완료 조건은 `V536_REMAINING_ACCEPTANCE.md`를 따른다.
+
+최신 명시 general mapping: `VALIDATION_V536_GENERAL_ABI.md`. 현재 supported 단일 root/슬롯/saved/private copy/직접 등록 및 owned ordinary target group에 입력/출력 선택을 연결했고 모든 ABI authorBatch의 전체 typed graph 검사 누락을 수정했다. 등록 callable의 all-target은 `MultiAbiRequest`의 owned contract/검토 group만으로 receipt를 표현할 수 없어 계속 차단한다. copy-alltarget/여러 동일 호출/opaque context 역시 현재 group/provenance 범위를 넘어가므로 자동 재작성하지 않는다.

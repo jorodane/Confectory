@@ -4,7 +4,7 @@
 
 | 고정 작업 단위 | 현재 기반 / 실제 부족 | 다음 완료 조건 |
 | --- | --- | --- |
-| 일반 ABI의 이름·순서·타입/out/반환 변경 | `BlueprintCallAbi`의 한정 same-name/order/type 값↔ref가 존재. 일반 대응/타입 손실 정책은 미구현 | 원본의 명시적 갱신에서 새 계약과 기존 연결 대응을 표시·선택하고 호출/import/wrapper/모든 영향 본문을 한 후보로 검사한다. 비호환 연결은 추측 삭제/자동 변경하지 않는다. 정상 편집·취소·Save·cold·실제 compiler Confirm, 계약 변경 거절과 원문 보존을 fixture UI로 수용한다. |
+| 일반 ABI의 이름·순서·타입/out/반환 변경 | 기존 지원 문맥의 명시 mapping을 연결·검증했다(`VALIDATION_V536_GENERAL_ABI.md`). 기존 binding/새 primitive 값·출력 대응만 사용하고 전체 typed graph를 checkpoint 전에 검사한다. | 아래 미지원 교차 문맥은 별도 source closure가 필요하다. bound input/consumed output 제거·임의 cast는 자동 승인하지 않는다. 일반화된 전 문맥 완료로 세지 않는다. |
 | 복사/상속/opaque C#·whole-body context·같은 호출 복수 사용·등록 callable의 여러 target | seed/ownership·직접 등록 receipt 및 ordinary2target 그룹 backend가 각각 존재. 전체 문맥을 결합한 계약과 어댑터는 미완료 | 선택 대상의 모든 영향 target/source closure/import/record와 원래 snapshot을 하나의 후보/CAS·검토 그룹에 결부한다. opaque 본문은 자동 재작성하지 않는다. 마지막 target 실패 시 전체 미적용, donor/상속/등록 원본 불변, 취소/cold/명시 Confirm을 확인한다. 단일 문맥 통과로 일반화하지 않는다. |
 | 다른 편집과 결합 Save | 현재 owner widget+1~8 new private copy는 연결. 기존 schema 수정/삭제, saved-copy ABI+owner, multi-target ABI+copy/owner, Set/property+다른 계획, 다른 provider/raw source 결합은 미지원 | 원본에서 실제 허용한 각 조합의 source closure·공통 baseline·필수 Review 그룹을 먼저 고정한다. 현재 여러 endpoint를 순서 호출하지 않고 한 검증 후보/CAS로 전체 성공/미적용, 실패/응답 유실/충돌/취소/cold 및 입력 보존을 수용한 뒤 차단을 제거한다. |
 | 공유/고정 반환 이름·잠정 빈 출력 | 기본 출력 정의/이름 대응 backend는 존재. 해당 모든 UI 문맥은 미수용 | 표시 별칭과 native ABI를 구별하고 원본의 고정 이름 제한을 그대로 적용한다. 원래 연결/정확한 출력 타입을 유지하며 desktop/mobile 같은 초안의 편집/취소/Save/cold/Confirm을 확인한다. 원본에서 잠정 UI만인 항목은 compiler 지원으로 주장하지 않는다. |
