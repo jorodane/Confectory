@@ -46,7 +46,7 @@ public static partial class FeatureBlueprint
             var binding=node.Arguments[parameter.Name] as JsonObject??throw new Refusal("GRAPH_VALUE",subject);
             Need(binding.Count==1||binding.Count==2&&binding.ContainsKey("node")&&binding.ContainsKey("output"),"GRAPH_VALUE",subject);
             if(binding.ContainsKey("input"))Need(feature.Args.Any(p=>p.Name==S(binding,"input")&&!p.IsOut&&p.Type==type),"GRAPH_INPUT_TYPE",subject);
-            else if(binding.ContainsKey("node"))Need(nodes.TryGetValue(S(binding,"node"),out var source)&&FeatureOutputs(source.Signature).Any(p=>p.Name==(binding["output"]?.ToString()??"return")&&p.Type==type),"GRAPH_VALUE_UNAVAILABLE",subject);
+            else if(binding.ContainsKey("node"))Need(nodes.TryGetValue(S(binding,"node"),out var source)&&NodeOutputs(source).Any(p=>p.Name==(binding["output"]?.ToString()??"return")&&p.Type==type),"GRAPH_VALUE_UNAVAILABLE",subject);
             else if(binding.ContainsKey("local"))Need(locals.TryGetValue(S(binding,"local"),out var local)&&S(local,"type")==type,"GRAPH_LOCAL_TYPE",subject);
             else if(binding.ContainsKey("constant"))_ = ConstantLiteral(binding["constant"],type);
             else throw new Refusal("GRAPH_VALUE",subject);

@@ -61,3 +61,5 @@ Browser 후속 정리: 이번 유한 잔여와 이후 Blueprint 작업 단위는
 wrapper enum 특수 실행 핀 후속: 원본의 이름 우선 ID 대응을 복원하고 모바일 분기 소유 삽입·취소·cold·원자 Save·명시 compiler Confirm·충돌 입력 보존 실제8건을 수용했다. `VALIDATION_V536_ENUM_PINS.md` 참조. 일반 code enum/속성 평가 시점/local Set 등의 남은 경계는 전체 특수 핀 완료로 합치지 않는다. 복사본·다중 target·혼합 Save 차단은 유지한다.
 
 일반 enum 후속: 기존 소유 static/void code를 원본 C# enum/body/helpers 및 모바일 실행 줄에 연결하고 한 checkpoint로 저장한다. 화면 강제 재진입 중 불완전 원문을 정상 graph에 적용하던 결함을 수정하여 원문 복구와 실제 source 변경 차단을 분리했다. 지원 범위·검증은 `VALIDATION_V536_GENERAL_ENUM.md`, 속성/Set/결합 저장의 정확한 다음 구현과 결정은 `V536_PIN_AND_ATOMIC_NEXT.md`를 따른다. 전체 v536 완료 또는 실제 Windows/mobile 검증이 아니다.
+
+Set backend 첫 묶음: legacy void Set을 유지하며 outputLocal/stored 분리 및 한 후보/checkpoint의 setPlan을 구현했다. Core7·실제 엔진9·복사 차단2의 범위와 한계는 `VALIDATION_V536_SET_BACKEND.md`를 따른다. 원본 Set 카드/모바일 편집은 미연결이며 전체 UI 완료가 아니다. 속성 읽기 정책은 사용자 결정으로 실행 시점 현재 값/재실행 재읽기/기존 출력 보존으로 확정했고 아직 어댑터는 구현하지 않았다.

@@ -9,7 +9,7 @@ public static partial class FeatureBlueprint
         foreach(var local in locals.Where(p=>p.Value["source"] is JsonObject)){
             var source=local.Value["source"]!.AsObject();Parameter? value;
             if(source.ContainsKey("input"))value=feature.Signature!.Args.SingleOrDefault(p=>!p.IsOut&&p.Name==S(source,"input"));
-            else{Need(nodes.TryGetValue(S(source,"node"),out var node),"GRAPH_LOCAL_ALIAS_SOURCE",local.Key);value=FeatureOutputs(node!.Signature).SingleOrDefault(p=>p.Name==(source.ContainsKey("output")?S(source,"output"):"return"));}
+            else{Need(nodes.TryGetValue(S(source,"node"),out var node),"GRAPH_LOCAL_ALIAS_SOURCE",local.Key);value=NodeOutputs(node!).SingleOrDefault(p=>p.Name==(source.ContainsKey("output")?S(source,"output"):"return"));}
             Need(value is not null,"GRAPH_LOCAL_ALIAS_SOURCE",local.Key);Need(value!.Type==S(local.Value,"type"),"GRAPH_LOCAL_ALIAS_TYPE",local.Key);
         }
     }
