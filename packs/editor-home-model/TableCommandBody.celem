@@ -3,6 +3,9 @@ import Confectory.PackWorkspace::Command as PackCommand (string,string,string) -
 import Confectory.PackWorkspace::BorrowDraft as Borrow (string) -> string;
 import Confectory.EditWorkspace::List as List (string) -> string[];
 import Confectory.EditWorkspace::Status as Status (string,string) -> string[];
+import Confectory.EditWorkspace::Read as Read (string,string) -> string[];
+import Confectory.EditWorkspace::SetTextIfRevision as SetText (string,string,string,long) -> bool;
+import Confectory.SchemaEditing::Call as Metadata (string,string) -> string;
 import Confectory.EditWorkspace::DescribeSchema as Describe (string,string,string) -> string;
 import Confectory.InstantTable::Create as Create (string,string[],string[],string) -> string;
 import Confectory.InstantTable::SnapshotVersioned as Snapshot (string) -> string;

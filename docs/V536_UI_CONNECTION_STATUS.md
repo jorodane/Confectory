@@ -18,7 +18,7 @@
 
 | 영역 | 현재 실제 동작 | 고정 잔여 |
 | --- | --- | --- |
-| 요소 정의/Browser Data | 상속/자기 속성·스칼라/복합/참조·배열의 검증된 편집, 부모/자손 탐색, embedded Data 셀·독립 View 상세·inline 바리에이션 생성, 그룹 Save/취소/명시 Confirm | 독립 소유 개념 Data9건/embedded7건, 상속 Hover·Shift 역참조 및 원본 Data11영역 대조 완료. 나머지 source 종류 Data·일반 context/참조 정의·모든 이름 표면/아이콘/뱃지/드래그 미리보기·전체 정밀 대조 및 receipt/check-path 수용은 남음. `VALIDATION_V536_STANDALONE_DATA.md` 참조. 기존 자료 보존/CAS를 완화하지 않는다 |
+| 요소 정의/Browser Data | 상속/자기 속성·스칼라/복합/참조·배열의 검증된 편집, 부모/자손 탐색, embedded Data 셀·독립 View 상세·inline 바리에이션 생성, 그룹 Save/취소/명시 Confirm | 독립 소유 개념 Data9건/embedded7건, 상속 Hover·Shift 역참조 및 원본 Data11영역 대조 완료. 다른 소유 선언 6종의 공통 설명 Data·등록 직접 참조·문자 아이콘/표시 이름은 이번 고정 Browser 잔여로 연결하며 결과는 `VALIDATION_V536_BROWSER_REMAINDER.md`에 구분한다. 원본 작업자 배정 배지 backend·외부 runtime Data/구조 편집·이미지/OS 드래그와 전체 pixel equality·일반 receipt/check-path 수용은 완료가 아니다. `VALIDATION_V536_STANDALONE_DATA.md` 참조. 기존 자료 보존/CAS를 완화하지 않는다 |
 | Blueprint 데스크톱/모바일 | 직렬 자연어 노드·검증된 값/핀/표현식/별칭·정수→실수 적응, root/function/implementation/graph 그룹 편집과 명시 Confirm, 일반 소유 기능 참조/모듈 가져오기·복사·원자 Save, 모바일 카드/상세/검색·기존 출력/새 정의 배치 | 공유/고정 반환 이름·잠정 빈 출력·영역/다중 선택·내부 흐름/async·일부 특수 핀/ABI/readonly, 나머지 원본 노드/지원 문맥·줌/검색/키보드·밀집 rail 정밀 수용. 속성+복사 혼합 Save는 기존 안전 차단을 유지한다 |
 | 호출 ABI/공개 출력 | 공개는 호출 뒤 SourceContext에서 읽는 출력이다. 검증된 단일 소유 호출의 값↔ref 갱신과 생산자/소비자 검토·공동 명시 Confirm | 다른 호출 형태/소유 문맥·일반적인 임의 ABI 재연결까지 구현한 것이 아니다. 프로젝트/외부 공유 권한으로 해석하지 않는다 |
 | 다중 구현/C# 변환 | 구현·실행 대상·출처 열거, 원본 C# preview/변환·정확한 source proof와 그룹 compiler Confirm의 서버 기반 및 이전 검증 | 실제 원본 UI의 모든 구현/대상 선택·전환·구현별 미저장 입력 격리/복원·Cancel/Save/실패/늦은 입력 수용은 전체 완료 아님. 첫 구현을 임의 선택하거나 원본을 덮어쓰지 않는다. `V508_UI_RESTORATION_SCOPE.md`의 마지막 서버 묶음과 v536 초기 실패 재검증 기록을 구분한다 |
@@ -49,3 +49,5 @@
 2026-10-23 로컬 검증 갱신: 실행창 결합 전체8·핵심8·문서4·Data7·Agent fixture13과 Blueprint 전반10/집중 재개3을 확인했다. Windows 교차 패키지/구성/packaged 웹 시작은 통과했고 실제 native/전체 UI/게시/미게시 작업의 일반 commit checkout은 미완료다. 이번 요청은 커밋·푸시·업로드를 금지했으며 수행하지 않았다. 상세 실패/정정/검증 범위와 정확한 산출물은 [VALIDATION_V536_LOCAL_INTERMEDIATE.md](VALIDATION_V536_LOCAL_INTERMEDIATE.md)를 따른다.
 
 후속 Browser 갱신: 독립 Data cold 재적용은 내용 지문과 최신 전체 CAS를 구분해 정상 복원을 허용하고 실제 타 소스/상속 스키마 변경은 차단했다. 이번 범위와 기존 c08d08f Windows ZIP의 Library 전달 실패(파일 ID 없음)는 `VALIDATION_V536_STANDALONE_DATA.md`에 구분했다. 이전 로컬 전용/미게시라는 아래 기록은 해당 시점의 이력이며 현재 게시 상태를 소급해 뜻하지 않는다.
+
+Browser 후속 정리: 이번 유한 잔여와 이후 Blueprint 작업 단위는 `VALIDATION_V536_BROWSER_REMAINDER.md`, `V536_BLUEPRINT_REMAINDER.md`로 고정했다. 상단의 예전 로컬 전용/미게시 문구는 그 시점 이력이다. 최종 게시 여부와 새 Windows 교차 패키지는 해당 묶음의 검증 결과를 따른다.

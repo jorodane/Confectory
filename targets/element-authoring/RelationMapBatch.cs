@@ -24,6 +24,7 @@ internal static class RelationMapBatch
                 if (element.Id != id || element.Kind != kind) throw new ArgumentException("Map declaration identity differs");
                 if (element.Values.TryGetValue("editorName", out var label) && label.Value.ValueKind == System.Text.Json.JsonValueKind.String)
                     node["title"] = label.Value.GetString();
+                if (element.Values.TryGetValue("editorIcon", out var icon) && icon.Value.ValueKind == System.Text.Json.JsonValueKind.String && icon.Value.GetString() is string iconText && iconText.Length <= 64) node["icon"] = iconText;
                 var folder=BrowserFolderLayout.Folder(element);node["folderDefined"]=folder.Defined;node["folder"]=folder.Id;node["browserGroup"]=BrowserFolderLayout.Group(element);
                 node["description"] = element.Description;
                 node["valid"] = true;

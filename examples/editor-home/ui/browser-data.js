@@ -1,4 +1,5 @@
 import {parseTypedJson} from './typed-json.js';
+const browserKinds=new Set(['object','schema','function','implementation','module','category','concept']);
 // Shared original Browser cells: private input receipts are never login/permission grants.
 export function createBrowserDataCells(api){
  const {w,view,values,reads,name,currentWindow,alive,esc}=api;
@@ -33,7 +34,7 @@ export function createBrowserDataCells(api){
  }
 
  function dataFields(row){
-  if(row.owned===false||row.kind!=='object')return '';const data=values.get(row.id);if(!data)return '<small role="status">값을 불러오는 중이에요.</small>';if(data.status!=='available')return '<button type="button" class="secondary" data-values-retry="'+esc(row.id)+'">값을 다시 읽기</button>';
+  if(row.owned===false||!browserKinds.has(row.kind))return '';const data=values.get(row.id);if(!data)return '<small role="status">값을 불러오는 중이에요.</small>';if(data.status!=='available')return '<button type="button" class="secondary" data-values-retry="'+esc(row.id)+'">값을 다시 읽기</button>';
   const all=data.fields||[],fields=all.filter(field=>!['value:"editorName"','value:"editorIcon"'].includes(field.column)&&field.kind!=='function'&&field.state==='present'&&!all.some(parent=>parent.path.length<field.path.length&&parent.path.every((part,i)=>field.path[i]===part)&&parent.cardinality==='multiple')&&!(field.kind==='compound'&&field.cardinality==='single'&&all.some(child=>child.path.length>field.path.length&&field.path.every((part,i)=>child.path[i]===part))));
   const priority=['hp','speed','attack','drop','description'],rank=field=>{const i=priority.indexOf(field.kind==='description'?'description':field.path[0]);return i<0?priority.length:i;};fields.sort((a,b)=>rank(a)-rank(b)||a.path.join('.').localeCompare(b.path.join('.'),'ko'));
   return fields.map(field=>{const label=field.kind==='description'?'설명':field.path.join('.'),key=cellKey(row.id,field.column),pending=view.meta.dataInputs[key];let node;try{node=parseTypedJson(field.valueJson);}catch{}const complex=field.cardinality==='multiple'||['compound','reference'].includes(field.kind)||node?.kind==='object'||node?.kind==='array';let control;
@@ -50,7 +51,7 @@ export function createBrowserDataCells(api){
   }
  }
  function readValues(items){
-  const missing=items.filter(row=>row.owned!==false&&row.kind==='object'&&!values.has(row.id)&&!reads.has(row.id));if(!missing.length||!api.readElements)return;
+  const missing=items.filter(row=>row.owned!==false&&browserKinds.has(row.kind)&&!values.has(row.id)&&!reads.has(row.id));if(!missing.length||!api.readElements)return;
   for(let i=0;i<missing.length;i+=8){const ids=missing.slice(i,i+8).map(row=>row.id);ids.forEach(id=>reads.add(id));const read=async()=>{if(!alive())return;return api.readElements(ids,alive);},promise=enqueue(read);promise.then(result=>{if(!alive()||!result)return;for(const id of ids){const row=result.rows.find(row=>row.id===id)||{id,status:'unavailable'};values.set(id,row);if(row.status==='available')checkpointReceipt(row);}api.persist();api.activeView()?.render?.();},()=>{if(!alive())return;for(const id of ids)values.set(id,{id,status:'unavailable'});api.activeView()?.render?.();}).finally(()=>ids.forEach(id=>reads.delete(id)));}
  }
 
@@ -81,7 +82,7 @@ export function createStandaloneBrowserData(api){
   if(root.contains(document.activeElement)&&document.activeElement.matches('input,textarea,select'))return;
   view.stamp=stamp;
   const esc=api.esc;
-  root.innerHTML='<div class="browser-data-list">'+items.map(row=>'<article class="object-data browser-data-row" data-object="'+esc(row.id)+'" data-id="'+esc(row.id)+'" tabindex="0"><div class="browser-data-identity"><span class="obj-icon">◇</span><button type="button" class="browser-data-name" data-inline-name="'+esc(row.id)+'">'+esc(name(row.id))+'</button></div><div class="browser-data-fields">'+view.cells.fields(row)+'</div><button type="button" class="browser-data-edit" data-data-detail="'+esc(row.id)+'" aria-label="'+esc(name(row.id))+' 편집">⋯</button></article>').join('')+'</div>';
+  root.innerHTML='<div class="browser-data-list">'+items.map(row=>'<article class="object-data browser-data-row" data-object="'+esc(row.id)+'" data-id="'+esc(row.id)+'" tabindex="0"><div class="browser-data-identity"><span class="obj-icon">'+browserIconMarkup(row,esc)+'</span><button type="button" class="browser-data-name" data-inline-name="'+esc(row.id)+'">'+esc(name(row.id))+'</button></div><div class="browser-data-fields">'+view.cells.fields(row)+'</div><button type="button" class="browser-data-edit" data-data-detail="'+esc(row.id)+'" aria-label="'+esc(name(row.id))+' 편집">⋯</button></article>').join('')+'</div>';
   view.cells.bind(root);view.cells.load(items);
   for(const b of root.querySelectorAll('[data-values-retry]'))b.onclick=e=>{e.stopPropagation();view.values.delete(b.dataset.valuesRetry);view.stamp=null;view.render();};
   for(const b of root.querySelectorAll('[data-data-detail]'))b.onclick=async e=>{
@@ -99,4 +100,10 @@ export function createStandaloneBrowserData(api){
   };
  }
  return {render,saved:()=>{for(const w of api.windows.values())if(w.browserDataView?.scope===api.current.projectId)w.browserDataView.saved();}};
+}
+
+// Stored bounded character icons only. Image creation/assets remain a separate contract.
+export function browserIconMarkup(row,esc){
+ const fallback={info:'▤',feature:'✦',module:'▣',concept:'◇'}[row?.group||({schema:'info',function:'feature',implementation:'feature',module:'module'}[row?.kind]||'concept')];
+ return esc(typeof row?.icon==='string'&&row.icon.length<=64&&row.icon?row.icon:fallback);
 }
