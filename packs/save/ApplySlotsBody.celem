@@ -1,0 +1,6 @@
+implementation Confectory.Save::ApplySlotsBody for Confectory.Save::ApplySlots (string handle,string plans) -> string {
+import Confectory.EditWorkspace::SlotBatch as SlotBatch (string,string) -> string;
+import Confectory.Save::WriteChecked as WriteChecked (string,string) -> string;
+import Confectory.Save::Read as ReadSaved (string) -> string;
+import Confectory.EditWorkspace::Export as Export (string) -> string;
+body common "ApplySlots.csbody";}

@@ -1,0 +1,5 @@
+implementation Confectory.EditWorkspace::CopyImplementationBody for Confectory.EditWorkspace::CopyImplementation (string handle,string plan) -> string {
+import Confectory.EditWorkspace::Read as Read (string,string) -> string[];
+import Confectory.SchemaEditing::Call as Metadata (string,string) -> string;
+import Confectory.SchemaEditing::Register as Register (string,string,string,string) -> string;
+body common "CopyImplementation.csbody";}

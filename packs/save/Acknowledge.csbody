@@ -1,8 +1,35 @@
 string path=calls.Location.Invoke(handle);var snapshot=calls.Snapshot.Invoke(path);if(snapshot[0]=="missing")return;
 var saved=System.Text.Json.Nodes.JsonNode.Parse(snapshot[1])!.AsObject();var changes=saved["changes"]!.AsArray();bool changed=false;
+// Root Save checkpoints include unchanged function/implementation support rows.
+// Confirm commits only actual changes. Retire a fully clean, byte-identical
+// saved group together; never leave its support rows pointing at a removed graph.
+// If any member has changed, preserve the COMPLETE saved group for explicit review.
+var grouped=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
+var settled=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
+foreach(var unit in changes){
+ string groupField=unit?["retirementGroup"] is System.Text.Json.Nodes.JsonArray?"retirementGroup":unit?["hierarchyGroup"] is System.Text.Json.Nodes.JsonArray?"hierarchyGroup":"rootContractGroup";if(unit?[groupField] is not System.Text.Json.Nodes.JsonArray group)continue;
+ var members=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(group,id=>id!.GetValue<string>()));foreach(string id in members)grouped.Add(id);
+ if((groupField=="retirementGroup"?members.Length is <2 or >33:groupField=="hierarchyGroup"?members.Length is <2 or >32:members.Length is not (3 or 4))||System.Linq.Enumerable.Count(System.Linq.Enumerable.Distinct(members,StringComparer.Ordinal))!=members.Length||!System.Linq.Enumerable.Any(members,id=>Array.IndexOf(selected,id)>=0))continue;
+ bool complete=true;foreach(string id in members){
+  var row=System.Linq.Enumerable.SingleOrDefault(changes,item=>item!["id"]!.ToString()==id);
+  if(row is null||!System.Text.Json.Nodes.JsonNode.DeepEquals(row[groupField],group)){complete=false;break;}
+  var current=calls.Read.Invoke(handle,id);
+  if(current[6]!="clean"||current[3]!=row["draft"]!.GetValue<string>()||current[1]!=row["kind"]!.ToString()||current[2]!=row["path"]!.ToString()){complete=false;break;}
+ }
+ if(complete&&groupField=="rootContractGroup"&&members.Length==4){
+  try{calls.RootGroup.Invoke(handle,members[0]);var fn=calls.Read.Invoke(handle,members[0]);var impl=calls.Read.Invoke(handle,members[1]);var graph=calls.Read.Invoke(handle,members[2]);var body=calls.Read.Invoke(handle,members[3]);string prefix=members[2]+"/node:";
+   if(fn[1]!="function"||impl[1]!="implementation"||graph[1]!="blueprint"||body[1]!="blueprint-node"||!members[2].StartsWith(members[1]+"/body:",StringComparison.Ordinal)||!members[3].StartsWith(prefix,StringComparison.Ordinal))complete=false;
+   else{var graphJson=System.Text.Json.Nodes.JsonNode.Parse(graph[3])!;var node=System.Linq.Enumerable.SingleOrDefault(graphJson["nodes"]!.AsArray(),n=>n!["id"]?.ToString()==members[3][prefix.Length..]);if(node?["kind"]?.ToString()!="code"||node["implementationContext"]?["implementation"]?.ToString()!=members[1]||node["implementationContext"]?["feature"]?.ToString()!=members[0])complete=false;}
+  }catch{complete=false;}
+ }
+ if(complete)foreach(string id in members)settled.Add(id);
+}
 for(int i=changes.Count-1;i>=0;i--)
 {
- var unit=changes[i]!;string id=unit["id"]!.GetValue<string>();if(Array.IndexOf(selected,id)<0)continue;
+ var unit=changes[i]!;string id=unit["id"]!.GetValue<string>();if(grouped.Contains(id)?!settled.Contains(id):Array.IndexOf(selected,id)<0)continue;
  var current=calls.Read.Invoke(handle,id);if(current[6]=="clean"&&current[3]==unit["draft"]!.GetValue<string>()){changes.RemoveAt(i);changed=true;}
 }
+var workspaceState=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+handle) as System.Text.Json.Nodes.JsonObject;if(saved["retirements"] is System.Text.Json.Nodes.JsonObject archivedRows&&workspaceState is not null)lock(workspaceState){foreach(var operation in System.Linq.Enumerable.ToArray(archivedRows)){if(Array.IndexOf(selected,operation.Value!["manifest"]!.ToString())<0)continue;var actual=workspaceState["retirements"]?[operation.Key];if(actual is null)archivedRows.Remove(operation.Key);else archivedRows[operation.Key]=actual.DeepClone();changed=true;}}
 if(!changed)return;var identity=calls.Identity.Invoke(handle);var result=calls.Commit.Invoke(identity[3],new[]{System.IO.Path.GetRelativePath(identity[3],path)},new[]{snapshot[2]},new[]{saved.ToJsonString()});if(result[0]!="applied")throw new InvalidOperationException("Concurrent saved-draft change; final source already confirmed, saved bookkeeping needs review.");
+
+string confirmedSaved=saved.ToJsonString();var state=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+handle) as System.Text.Json.Nodes.JsonObject;if(state is not null)lock(state){if(state["checkpointVersion"]?.ToString()==snapshot[2])state["checkpointVersion"]=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(confirmedSaved))).ToLowerInvariant();}

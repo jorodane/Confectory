@@ -1,5 +1,12 @@
 var state=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+handle) as System.Text.Json.Nodes.JsonObject??throw new ObjectDisposedException("EditWorkspace");
 lock(state){
+ foreach(string id in selected)if(state["units"]?[id]?["retirementGroup"] is not null&&System.Linq.Enumerable.Any(calls.CreationGroup.Invoke(handle,id),member=>Array.IndexOf(selected,member)<0))throw new InvalidOperationException("Review the recovered sources and registration together");
+ foreach(string id in selected)if(state["units"]?[id]?["hierarchyGroup"] is not null){var required=calls.CreationGroup.Invoke(handle,id);if(System.Linq.Enumerable.Any(required,member=>!System.Linq.Enumerable.Contains(selected,member,StringComparer.Ordinal)))throw new InvalidOperationException("Review the complete hierarchy move together");}
+ foreach(string id in selected)if(state["units"]?[id]?["rootContractGroup"] is not null){var group=calls.CreationGroup.Invoke(handle,id);if(System.Linq.Enumerable.Any(group,key=>Array.IndexOf(selected,key)<0))throw new InvalidOperationException("Review the function, implementation and root graph together");}
+
+ var folderMembers=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);foreach(string id in selected)if(state["units"]?[id]?["hierarchyGroup"] is System.Text.Json.Nodes.JsonArray members&&System.Linq.Enumerable.Any(members,member=>state["units"]?[member!.ToString()]?["kind"]?.ToString()=="category"))foreach(var member in members)folderMembers.Add(member!.ToString());
+ if(folderMembers.Count>0){var folderUnits=new System.Text.Json.Nodes.JsonArray();foreach(string id in folderMembers){var unit=state["units"]![id]!;folderUnits.Add(new System.Text.Json.Nodes.JsonObject{["id"]=id,["kind"]=unit["kind"]!.DeepClone(),["text"]=unit["draft"]!.DeepClone()});}calls.Metadata.Invoke("browserFolderValidate",new System.Text.Json.Nodes.JsonObject{["namespace"]=state["namespace"]!.DeepClone(),["units"]=folderUnits}.ToJsonString());}
+
  var conversionChanges=calls.Changes.Invoke(handle,selected);
  foreach(var conversion in state["units"]!.AsObject()){
   if(conversion.Value?["conversionOrigin"] is null||conversion.Value["baseline"]?.ToString()!="missing")continue;
@@ -13,6 +20,7 @@ lock(state){
   if(!System.Linq.Enumerable.All(required,id=>Array.IndexOf(selected,id)>=0))throw new InvalidOperationException("Body conversion requires the implementation, graph and independent body together");
   calls.Metadata.Invoke("blueprintConversion",new System.Text.Json.Nodes.JsonObject{["action"]="verify",["project"]=state["project"]!.DeepClone(),["origin"]=conversion.Value["conversionOrigin"]!.DeepClone()}.ToJsonString());
  }
+ foreach(var entry in state["units"]!.AsObject())if(entry.Value?["kind"]?.ToString()=="schema"&&entry.Value["baseline"]?.ToString()=="missing"&&entry.Value["creationOwner"] is not null){var required=calls.CreationGroup.Invoke(handle,entry.Key);if(System.Linq.Enumerable.Any(required,id=>Array.IndexOf(selected,id)>=0)&&!System.Linq.Enumerable.All(required,id=>Array.IndexOf(selected,id)>=0))throw new InvalidOperationException("New object properties require their object, schema and registration together");}
  var ids=new System.Collections.Generic.HashSet<string>(selected,StringComparer.Ordinal);var changes=calls.Changes.Invoke(handle,selected);var changed=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);for(int i=0;i<changes.Length;i+=4)changed.Add(changes[i]);
  bool manifest=false;for(int i=0;i<changes.Length;i+=4)if(changes[i+1]==System.IO.Path.GetFileName(state["project"]!.ToString()))manifest=true;
  for(int i=0;i<changes.Length;i+=4)if(changes[i+2]=="missing"&&state["units"]![changes[i]]?["conversionOrigin"] is null&&state["units"]![changes[i]]!["kind"]!.ToString()!="blueprint-node"&&!manifest)throw new InvalidOperationException("New declaration review must explicitly include its manifest registration.");

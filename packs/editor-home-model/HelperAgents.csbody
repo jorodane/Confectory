@@ -81,13 +81,64 @@ lock(owner){
  }
  if(operation is "create" or "import"){
   string agent=Text("agent");if(agent.Length==0||registry["agents"]?[agent] is null)throw new InvalidOperationException("Choose a registered Agent; provider declarations alone are not connected Agents");
-  string helper=operation=="import"?(Text("helper").Length>0?Text("helper"):"main-helper"):"helper-"+Text("creationId");if(operation=="import"&&Text("helper").Length>0)Find(helper,true);if(operation=="create"&&!System.Text.RegularExpressions.Regex.IsMatch(Text("creationId"),"^[a-f0-9]{32}$"))throw new ArgumentException("Explicit creation identity required");
+  string helper=operation=="import"?(Text("helper").Length>0?Text("helper"):"main-helper"):"helper-"+Text("creationId");if(operation=="import"&&Text("helper").Length>0){var restoring=Find(helper);if(restoring["membership"]?["kind"]?.ToString()=="project"){
+   var archived=calls.Snapshot.Invoke(System.IO.Path.Combine(storage,"helper-archives",Hash(helper)+".json"));var receipt=archived[0]=="exists"?System.Text.Json.Nodes.JsonNode.Parse(archived[1]):null;
+   if(registry["assignments"]?[helper] is not null||receipt?["helper"]?.ToString()!=helper||receipt?["project"]?.ToString()!=model["selected"]?["projectId"]?.ToString()||receipt?["manifest"]?.ToString()!=model["selected"]?["path"]?.ToString())throw new UnauthorizedAccessException("Restore this Helper in its archived project; other projects remain excluded");
+  }}if(operation=="create"&&!System.Text.RegularExpressions.Regex.IsMatch(Text("creationId"),"^[a-f0-9]{32}$"))throw new ArgumentException("Explicit creation identity required");
   if(agent.Length>0&&turns.TryGetValue(helper,out var existingTurn)&&((System.Text.Json.Nodes.JsonObject)existingTurn[0])["state"]?.ToString()=="running")throw new InvalidOperationException("Stop the original Helper request before importing or retrying its Agent assignment");
   string name=operation=="import"?"Main Helper":Text("name").Trim(),personality=operation=="import"?"Collaborative project development assistant":Text("personality").Trim(),speciality=operation=="import"?"Confectory pack development":Text("speciality").Trim();
   if(name.Length is <1 or >80||personality.Length is <1 or >2048||speciality.Length is <1 or >160)throw new ArgumentException("Bounded Helper name, personality and speciality required");
   if(operation!="import"||Text("helper").Length==0)calls.Recruit.Invoke(store,"local-user",new System.Text.Json.Nodes.JsonObject{["helper"]=helper,["owner"]="local-user",["personality"]=personality,["speciality"]=speciality,["membership"]=new System.Text.Json.Nodes.JsonObject{["kind"]="global",["projectId"]=""}}.ToJsonString());
   var profile=System.Text.Json.Nodes.JsonNode.Parse(calls.Presentation.Invoke(storage,helper,"load","{}"))!;if(profile["value"]!["name"]!.ToString().Length==0){var value=profile["value"]!.DeepClone();value["name"]=name;value["shortDescription"]=speciality;value["description"]=personality;calls.Presentation.Invoke(storage,helper,"save",new System.Text.Json.Nodes.JsonObject{["revision"]=profile["revision"]!.DeepClone(),["value"]=value}.ToJsonString());}
   var next=(System.Text.Json.Nodes.JsonObject)registry.DeepClone();if(agent.Length>0)next["assignments"]![helper]=agent;if(registry["assignments"]?[helper] is not null&&registry["assignments"]?[helper]?.ToString()!=agent)calls.ChatUse.Invoke(session,"revoke-helper",System.Text.Json.JsonSerializer.Serialize(new{helper}));SaveRegistry(next);RetirePreview();if(model["aiPreview"]?["helperContext"]?["helper"]?.ToString()==helper){model["aiPreview"]=null;helperProjectionChanged=true;}RefreshHelpers();Publish();return new System.Text.Json.Nodes.JsonObject{["helper"]=helper}.ToJsonString();
+ }
+ // UI deletion retires the assignment, never destroys recruitment, memory or conversation files.
+ // Re-import is explicit and does not restore old project grants or placements.
+ if(operation=="archive-details"){
+  string helper=Text("helper");var restoring=Find(helper);if(restoring["membership"]?["kind"]?.ToString()!="project"||registry["assignments"]?[helper] is not null)throw new InvalidOperationException("An archived project Helper is required");
+  var snapshot=calls.Snapshot.Invoke(System.IO.Path.Combine(storage,"helper-archives",Hash(helper)+".json"));var receipt=snapshot[0]=="exists"?System.Text.Json.Nodes.JsonNode.Parse(snapshot[1]):null;
+  if(receipt?["helper"]?.ToString()!=helper||receipt?["project"]?.ToString()!=model["selected"]?["projectId"]?.ToString()||receipt?["manifest"]?.ToString()!=model["selected"]?["path"]?.ToString())throw new UnauthorizedAccessException("Archived Helper belongs to another project");
+  string priorAgent=receipt?["agent"]?.GetValue<string>()??throw new InvalidOperationException("Archived Agent identity missing");if(priorAgent is not ("Confectory.Agent.Codex::Connection" or "Confectory.Agent.Responses::Connection"))throw new InvalidOperationException("Archived Agent identity invalid");return new System.Text.Json.Nodes.JsonObject{["agent"]=priorAgent}.ToJsonString();
+ }
+ if(operation=="archive-status"||(operation=="archive"&&registry["assignments"]?[Text("helper")] is null)){
+  string helper=Text("helper");Find(helper);var receipt=calls.Snapshot.Invoke(System.IO.Path.Combine(storage,"helper-archives",Hash(helper)+".json"));var record=receipt[0]=="exists"?System.Text.Json.Nodes.JsonNode.Parse(receipt[1]):null;
+  bool retained=registry["assignments"]?[helper] is null&&record?["helper"]?.ToString()==helper&&record?["operationId"]?.ToString()==Text("token")&&Text("token").Length==32;return new System.Text.Json.Nodes.JsonObject{["retained"]=retained}.ToJsonString();
+ }
+ if(operation is "archive-plan" or "archive"){
+  string helper=Text("helper");var retiring=Find(helper);bool projectOnly=retiring["membership"]?["kind"]?.ToString()=="project";if(registry["assignments"]?[helper] is null)throw new InvalidOperationException("Helper is already retained; reopen the list before retrying");
+  void Idle(){
+   if(turns.TryGetValue(helper,out var turn)&&((System.Text.Json.Nodes.JsonObject)turn[0])["state"]?.ToString()=="running")throw new InvalidOperationException("Stop this Helper's conversation before deleting it");
+   foreach(var run in model["aiRuns"]?.AsObject()??new System.Text.Json.Nodes.JsonObject()){
+    if(run.Value?["helper"]?.ToString()==helper&&run.Value?["state"]?.ToString() is "running" or "dispatching" or "planning")throw new InvalidOperationException("Stop this Helper's project request before deleting it");
+    foreach(var worker in run.Value?["workers"]?.AsObject()??new System.Text.Json.Nodes.JsonObject())if(worker.Value?["ownerHelper"]?.ToString()==helper&&worker.Value?["status"]?.ToString() is not ("completed" or "error" or "interrupted" or "cancelled"))throw new InvalidOperationException("Finish or stop this Helper's workers before deleting it");
+   }
+  }
+  Idle();var selections=model["helperSelections"]!.AsObject();var savedSelections=calls.Snapshot.Invoke(System.IO.Path.Combine(storage,"helper-selections.json"));
+  var diskSelections=savedSelections[0]=="exists"?System.Text.Json.Nodes.JsonNode.Parse(savedSelections[1]):new System.Text.Json.Nodes.JsonObject();
+  if(!System.Text.Json.Nodes.JsonNode.DeepEquals(diskSelections,selections))throw new InvalidOperationException("Helper placements changed; reopen without discarding inputs");
+  if(operation=="archive-plan"){
+   var plan=new System.Text.Json.Nodes.JsonObject{["token"]=Guid.NewGuid().ToString("N"),["helper"]=helper,["registryRevision"]=(string)state[1],["selectionRevision"]=savedSelections[2],["project"]=projectOnly?model["selected"]!["projectId"]!.DeepClone():null,["manifest"]=projectOnly?model["selected"]!["path"]!.DeepClone():null,["expires"]=DateTime.UtcNow.AddMinutes(5)};model["helperArchivePlan"]=plan;
+   return new System.Text.Json.Nodes.JsonObject{["token"]=plan["token"]!.DeepClone(),["helper"]=helper}.ToJsonString();
+  }
+  var approved=model["helperArchivePlan"];if(approved?["helper"]?.ToString()!=helper||approved["token"]?.ToString()!=Text("token")||approved["expires"]!.GetValue<DateTime>()<DateTime.UtcNow||projectOnly&&(approved["project"]?.ToString()!=model["selected"]?["projectId"]?.ToString()||approved["manifest"]?.ToString()!=model["selected"]?["path"]?.ToString())||approved["registryRevision"]?.ToString()!=(string)state[1]||approved["selectionRevision"]?.ToString()!=savedSelections[2])throw new InvalidOperationException("Helper deletion changed; review again without discarding inputs");
+  var next=(System.Text.Json.Nodes.JsonObject)registry.DeepClone();next["assignments"]!.AsObject().Remove(helper);var remaining=(System.Text.Json.Nodes.JsonObject)selections.DeepClone();var removed=new System.Text.Json.Nodes.JsonObject();
+  foreach(var item in selections){var row=item.Value!;var ids=row["helpers"]?.AsArray()??new System.Text.Json.Nodes.JsonArray(row["helper"]?.DeepClone());if(!System.Linq.Enumerable.Any(ids,id=>id?.ToString()==helper)&&row["helper"]?.ToString()!=helper)continue;
+   removed[item.Key]=row.DeepClone();var kept=new System.Text.Json.Nodes.JsonArray();foreach(var id in ids)if(id?.ToString()!=helper)kept.Add(id?.DeepClone());if(kept.Count==0)remaining.Remove(item.Key);else{remaining[item.Key]!["helpers"]=kept;if(row["helper"]?.ToString()==helper)remaining[item.Key]!["helper"]=kept[0]!.DeepClone();}
+  }
+  string receipt="helper-archives/"+Hash(helper)+".json";var prior=calls.Snapshot.Invoke(System.IO.Path.Combine(storage,receipt));var record=new System.Text.Json.Nodes.JsonObject{["version"]=1,["operationId"]=Text("token"),["helper"]=helper,["project"]=approved["project"]?.DeepClone(),["manifest"]=approved["manifest"]?.DeepClone(),["agent"]=registry["assignments"]![helper]!.DeepClone(),["placements"]=removed,["previousReceiptHash"]=prior[2]};
+  if(turns.TryGetValue(helper,out var closingTurn))Cleanup(closingTurn,true);
+  // Revocation is fail-closed even if a subsequent filesystem CAS fails. It never revokes the Agent grant.
+  calls.ChatUse.Invoke(session,"revoke-helper",System.Text.Json.JsonSerializer.Serialize(new{helper}));
+  if(calls.Commit.Invoke(storage,new[]{"helper-agents.json","helper-selections.json",receipt},new[]{(string)state[1],savedSelections[2],prior[2]},new[]{next.ToJsonString(),remaining.ToJsonString(),record.ToJsonString()})[0]!="applied")throw new InvalidOperationException("Helper data changed; original data and inputs retained");
+  state[0]=registry=next;state[1]=Hash(next.ToJsonString());selections.Clear();foreach(var item in remaining)selections[item.Key]=item.Value?.DeepClone();
+  foreach(var item in System.Linq.Enumerable.ToArray(model["chatHelperSelections"]?.AsObject()??new System.Text.Json.Nodes.JsonObject()))if(item.Value?.ToString()==helper)model["chatHelperSelections"]![item.Key]=null;
+  model["helperArchivePlan"]=null;
+  if(System.Linq.Enumerable.Any(model["helperPlacementPlan"]?["helpers"]?.AsArray()??new System.Text.Json.Nodes.JsonArray(),id=>id?.ToString()==helper))model["helperPlacementPlan"]=null;
+  if(model["helperContext"]?["helper"]?.ToString()==helper)model["helperContext"]=null;
+  if(model["helperPanel"]?["helper"]?.ToString()==helper)model["helperPanel"]=null;
+  if(model["aiPreview"]?["helperContext"]?["helper"]?.ToString()==helper)model["aiPreview"]=null;
+  if(model["globalHelperPreview"]?["helper"]?.ToString()==helper)model["globalHelperPreview"]=null;
+  turns.Remove(helper);RefreshHelpers();Publish();return "{\"retained\":true}";
  }
  if(operation=="unbind")throw new InvalidOperationException("A Helper conversation must retain its registered Agent owner");
  if(operation=="assign"){

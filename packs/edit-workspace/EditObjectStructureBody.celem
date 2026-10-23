@@ -1,0 +1,7 @@
+implementation Confectory.EditWorkspace::EditObjectStructureBody for Confectory.EditWorkspace::EditObjectStructure (string handle, string id, long revision, string hash, string edit) -> void {
+import Confectory.SchemaEditing::Create as Create (string, string) -> string;
+import Confectory.SchemaEditing::Register as Register (string, string, string, string) -> string;
+import Confectory.SchemaEditing::Call as Metadata (string, string) -> string;
+import Confectory.EditWorkspace::Read as Read (string,string) -> string[];
+body common "EditObjectStructure.csbody";
+}

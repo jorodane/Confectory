@@ -1,0 +1,1 @@
+function Confectory.EditWorkspace::SlotContext (string handle,string owner) -> string {provide Confectory.EditWorkspace::SlotContext with Confectory.EditWorkspace::SlotContextBody;}

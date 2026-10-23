@@ -3,7 +3,7 @@ export function createBuildJobs(api){
  const {$,$$,esc}=api,labels={queued:'대기',building:'빌드 중',stopping:'중지 정리 중',built:'빌드 완료',failed:'실패',stopped:'중지됨','owner-unavailable':'이전 소유권 확인 필요',unavailable:'조회 불가'},phases={'waiting-for-lease':'소스 잠금 대기',compiling:'컴파일 중'};
  let timer=null,paused=false;
  const active=row=>['queued','building','stopping'].includes(row?.state);
- function schedule(){if(timer||paused||!api.current?.hasActiveBuilds)return;timer=setTimeout(async()=>{timer=null;if(api.busy||api.restoring||!api.view.active){schedule();return;}await api.work(async()=>{try{await api.view.call('buildPoll',{});if((api.current.buildJobs||[]).some(row=>active(row)&&row.recordState==='unavailable'))paused=true;}catch(error){paused=true;api.toast('빌드 상태를 다시 읽어야 합니다. '+error.message);}return false;},'',{flushWorkspace:false});schedule();},500);}
+ function schedule(){if(timer||paused||!api.current?.hasActiveBuilds)return;timer=setTimeout(async()=>{timer=null;if(api.busy||api.restoring||!api.view.active){schedule();return;}const read=async()=>{try{await api.view.call('buildPoll',{});if((api.current.buildJobs||[]).some(row=>active(row)&&row.recordState==='unavailable'))paused=true;}catch(error){paused=true;api.toast('빌드 상태를 다시 읽어야 합니다. '+error.message);}return false;};if(api.backgroundRead)await api.backgroundRead(read);else await api.work(read,'',{flushWorkspace:false});schedule();},500);}
  function show(data=null,info=null,meta={}){
   const scope=api.current.projectId,w=api.openWindow('builds','빌드 작업',780,430,{refresh:true});Object.assign(w.meta,meta);w.buildScope=scope;w.buildData=data;w.buildInfo=info;
   const rows=data?.rows||[],selected=info?.job||w.meta.buildJob||'';if(selected)w.meta.buildJob=selected;

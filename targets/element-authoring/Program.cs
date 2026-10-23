@@ -21,11 +21,21 @@ try
         case "blueprintConversion":reply=BlueprintConversion.Query(request);break;
         case "blueprintPrepareFeature":reply=BlueprintCreation.Prepare(request,Format);break;
         case "blueprintPrepareImplementation":reply=BlueprintCreation.PrepareForOwner(request,Format);break;
+        case "blueprintRootContract":reply=BlueprintRootContract.Prepare(request,Format);break;
+        case "blueprintRootGroup":reply=BlueprintRootGroup.Validate(request);break;
+        case "blueprintOutputSnapshot":reply=BlueprintOutputSnapshot.Prepare(new Parser(S("functionText"),"<published-output-contract>").ParseElement(),request["expected"]?.GetValue<string>());break;
+        case "blueprintCallWrapper":reply=BlueprintCallWrapper.Prepare(new Parser(S("functionText"),"<wrapper-contract>").ParseElement(),request["executionEnum"]!.AsObject(),request["expected"]?.GetValue<string>(),request["source"]?.GetValue<string>(),request["helpers"]?.GetValue<string>()??"",request["returnMapping"]?.GetValue<string>());break;
+        case "blueprintCallAfter":reply=BlueprintCallAfter.Prepare(new Parser(S("functionText"),"<post-call-contract>").ParseElement(),request["expected"]?.GetValue<string>(),request["source"]?.GetValue<string>(),request["helpers"]?.GetValue<string>()??"");break;
+        case "blueprintCallAbi":reply=BlueprintCallAbi.Prepare(request,Format);break;
+        case "blueprintAliases":reply=BlueprintAliases.Prepare(request);break;
+        case "blueprintInputAdaptation":reply=BlueprintInputAdaptation.Prepare(request);break;
+        case "blueprintFeatureBodies":reply=BlueprintFeatureBodies.Query(request);break;
         case "blueprintPrepareCall":reply=BlueprintCall.Prepare(request,Format);break;
         case "blueprintPropertyCatalog":reply=BlueprintProperty.Query(request);break;
         case "blueprintPrepareProperty":reply=BlueprintProperty.Prepare(request,Format);break;
         case "blueprintCallableContracts":reply=BlueprintCallableContracts.Query(request);break;
         case "blueprintSourceValidate":reply=BlueprintDocuments.Validate(S("id"),S("kind"),S("text"));break;
+        case "browserFolderMove":case "browserFolderValidate":reply=BrowserFolderLayout.Execute(request,Format,S("operation")=="browserFolderValidate");break;
         case "relationsMap":reply=RelationMapBatch.Query(request);break;
         case "bodyUnits":reply=BodyUnitMetadata.Query(request);break;
         case "describe":
@@ -73,7 +83,8 @@ try
         case "catalog":
             reply=SemanticCatalogService.Query(S("project"),request["request"]!.AsObject(),path=>{var file=new FileInfo(path);if(!file.Exists||file.Length>1048576||file.LinkTarget is not null)throw new IOException("Owned document unavailable");return path;});break;
         case "effective":
-            reply=EffectiveMetadata.Query(S("project"),S("manifest"),S("id"),S("text"),FormatManifest,path=>{if(new FileInfo(path).Length>1048576)throw new IOException("Manifest budget");return File.ReadAllText(path);},request["drafts"]?.AsArray(),request["schemaView"]?.GetValue<bool>()==true);break;
+            reply=EffectiveMetadata.Query(S("project"),S("manifest"),S("id"),S("text"),FormatManifest,path=>{if(new FileInfo(path).Length>1048576)throw new IOException("Manifest budget");return File.ReadAllText(path);},request["drafts"]?.AsArray(),request["schemaView"]?.GetValue<bool>()==true,request["validateObjects"]?.GetValue<bool>()==true,request["observeSources"]?.GetValue<bool>()==true);break;
+        case "implementationCopy":reply=ImplementationCopy.Query(request,Format);break;
         case "referenceDefinition":
             reply=ReferenceDefinition.Query(S("project"),S("manifest"),S("sourceId"),S("text"),S("id"),path=>{var file=new FileInfo(path);if(!file.Exists||file.Length>1048576||file.LinkTarget is not null)throw new IOException("Definition unavailable");return File.ReadAllText(path,new System.Text.UTF8Encoding(false,true));});break;
         case "locate":
@@ -84,6 +95,11 @@ try
         {
             var element=new Parser(S("text"),"<draft>").ParseElement();
             reply=new JsonObject{["id"]=element.Id,["kind"]=element.Kind,["parent"]=element.Parent,["function"]=element.Function,["descriptionDefined"]=element.DescriptionPresent,["relations"]=DeclaredRelations.Describe(element),["description"]=element.Description,["signature"]=JsonSerializer.SerializeToNode(element.Signature),["editor"]=AlgorithmProjectionOperations.Editor(element),["fields"]=JsonSerializer.SerializeToNode(element.Fields),["data"]=JsonSerializer.SerializeToNode(element.Data),["values"]=JsonSerializer.SerializeToNode(element.Values.ToDictionary(x=>x.Key,x=>x.Value.Value))};break;
+        }
+        case "unregisterDeclarations":
+        {
+            var manifest=new Parser(S("text"),"<owned-registration>").ParseManifest();var entries=request["entries"]!.AsArray();if(entries.Count is <1 or >32)throw new ArgumentException("Bounded declaration group required");var seen=new HashSet<string>(StringComparer.Ordinal);
+            foreach(var row in entries){string id=row!["id"]!.GetValue<string>(),prefix=manifest.Namespace+"::";if(!id.StartsWith(prefix,StringComparison.Ordinal)||!seen.Add(id)||!manifest.Elements.TryGetValue(id[prefix.Length..],out var locator)||locator.Kind!=row["kind"]!.ToString()||locator.Path!=row["path"]!.ToString())throw new ArgumentException("Exact owned declaration registration required");manifest.Elements.Remove(id[prefix.Length..]);}string formatted=FormatManifest(manifest);string? prior=request["prior"]?.GetValue<string>();if(prior is not null&&FormatManifest(new Parser(prior,"<checkpoint-registration>").ParseManifest())==formatted)formatted=prior;reply=JsonValue.Create(formatted);break;
         }
         case "editDeclaration":
         {
@@ -246,7 +262,8 @@ static JsonObject ReviewSummary(string kind,string before,string after)
    Contract("기본 구현",Bindings(old.Defaults),Bindings(next.Defaults));Contract("제공 구현",Bindings(old.Provides),Bindings(next.Provides));Contract("사용 관계",Refs(old.Uses),Refs(next.Uses));Contract("소속 관계",Refs(old.Contains),Refs(next.Contains));Contract("외부 기능",Imports(old.Imports),Imports(next.Imports));
    next.Signature=old.Signature;next.Parent=old.Parent;next.Modules=old.Modules;next.Includes=old.Includes;next.Requires=old.Requires;next.Defaults=old.Defaults;next.Provides=old.Provides;next.Uses=old.Uses;next.Contains=old.Contains;next.Imports=old.Imports;
    if(old.Description!=next.Description||old.DescriptionPresent!=next.DescriptionPresent)Add("설명",old.DescriptionPresent?JsonValue.Create(old.Description):null,next.DescriptionPresent?JsonValue.Create(next.Description):null,old.DescriptionPresent,next.DescriptionPresent);
-   foreach(string name in old.Values.Keys.Union(next.Values.Keys)){var a=old.Values.TryGetValue(name,out var av)?JsonNode.Parse(av.Value.GetRawText()):null;var b=next.Values.TryGetValue(name,out var bv)?JsonNode.Parse(bv.Value.GetRawText()):null;if(a is not null&&b is not null&&JsonNode.DeepEquals(a,b)&&a.ToJsonString()!=b.ToJsonString())additional=true;if(old.Values.ContainsKey(name)!=next.Values.ContainsKey(name)||!JsonNode.DeepEquals(a,b))Add("값 · "+name,a,b,old.Values.ContainsKey(name),next.Values.ContainsKey(name));}
+   JsonNode? FolderLabel(JsonNode? value){if(value is null)return null;string location=value.GetValue<string>();return JsonValue.Create(location.Length==0?"Root":location.Split("::")[^1]);}
+   foreach(string name in old.Values.Keys.Union(next.Values.Keys)){var a=old.Values.TryGetValue(name,out var av)?JsonNode.Parse(av.Value.GetRawText()):null;var b=next.Values.TryGetValue(name,out var bv)?JsonNode.Parse(bv.Value.GetRawText()):null;if(a is not null&&b is not null&&JsonNode.DeepEquals(a,b)&&a.ToJsonString()!=b.ToJsonString())additional=true;if(old.Values.ContainsKey(name)!=next.Values.ContainsKey(name)||!JsonNode.DeepEquals(a,b))Add(name=="editorFolder"?"분류 위치":name=="editorName"?"표시 이름":"값 · "+name,name=="editorFolder"?FolderLabel(a):a,name=="editorFolder"?FolderLabel(b):b,old.Values.ContainsKey(name),next.Values.ContainsKey(name));}
    foreach(string name in old.Data.Keys.Union(next.Data.Keys)){var a=old.Data.TryGetValue(name,out var av)?Datum(av):null;var b=next.Data.TryGetValue(name,out var bv)?Datum(bv):null;if(a is not null&&b is not null&&JsonNode.DeepEquals(a,b)&&a.ToJsonString()!=b.ToJsonString())additional=true;if(old.Data.ContainsKey(name)!=next.Data.ContainsKey(name)||!JsonNode.DeepEquals(a,b))Add("필드 값 · "+name,a,b,old.Data.ContainsKey(name),next.Data.ContainsKey(name));}
    foreach(string name in old.Fields.Keys.Union(next.Fields.Keys)){JsonNode? Field(SchemaField? f)=>f is null?null:JsonValue.Create(f.Type+" · "+f.Kind+" · "+f.Cardinality);var a=Field(old.Fields.GetValueOrDefault(name));var b=Field(next.Fields.GetValueOrDefault(name));if(!JsonNode.DeepEquals(a,b))Add("필드 정의 · "+name,a,b,old.Fields.ContainsKey(name),next.Fields.ContainsKey(name));}
    additional|=!old.Values.Keys.Where(k=>next.Values.ContainsKey(k)).SequenceEqual(next.Values.Keys.Where(k=>old.Values.ContainsKey(k)))||!old.Data.Keys.Where(k=>next.Data.ContainsKey(k)).SequenceEqual(next.Data.Keys.Where(k=>old.Data.ContainsKey(k)))||!old.Fields.Keys.Where(k=>next.Fields.ContainsKey(k)).SequenceEqual(next.Fields.Keys.Where(k=>old.Fields.ContainsKey(k)));next.Description=old.Description;next.DescriptionPresent=old.DescriptionPresent;next.Values=old.Values;next.Data=old.Data;next.Fields=old.Fields;

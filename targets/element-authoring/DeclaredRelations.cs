@@ -7,6 +7,7 @@ internal static class DeclaredRelations
   var rows=new System.Collections.Generic.List<(string Role,string Target,string? Function,string? Kind,string? Alias,string? Scope,FunctionSignature? Signature)>();
   void Add(string role,string target,string? function=null,string? kind=null,string? alias=null,string? scope=null,FunctionSignature? signature=null)=>rows.Add((role,target,function,kind,alias,scope,signature));
   if(e.Parent is not null)Add("parent",e.Parent);
+  if(BrowserFolderLayout.Folder(e).Id is string editorFolder)Add("editor-folder",editorFolder,kind:"category");
   foreach(var r in e.Modules)Add("module",r.Id);
   foreach(var r in e.Includes)Add("include",r.Id);
   foreach(var r in e.Requires)Add("require",r.Key,signature:r.Value.Signature);

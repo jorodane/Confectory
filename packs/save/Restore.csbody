@@ -1,1 +1,2 @@
-string saved=calls.Read.Invoke(handle);if(saved!="")calls.RestoreDraft.Invoke(handle,saved);
+var snapshot=calls.CheckpointSnapshot.Invoke(calls.Location.Invoke(handle));string saved=snapshot[0]=="exists"?snapshot[1]:"";if(saved!="")calls.RestoreDraft.Invoke(handle,saved);
+var state=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+handle) as System.Text.Json.Nodes.JsonObject??throw new ObjectDisposedException("EditWorkspace");lock(state)state["checkpointVersion"]=snapshot[2];

@@ -13,4 +13,12 @@ import Confectory.EditWorkspace::BlueprintCall as BlueprintCall (string,string,s
 import Confectory.EditWorkspace::CreationGroup as CreationGroup (string,string) -> string[];
 import Confectory.SchemaEditing::Call as Metadata (string,string) -> string;
 import Confectory.EditWorkspace::BlueprintConvert as BlueprintConvert (string,string,string[],long[],string[]) -> string;
+import Confectory.EditWorkspace::SlotContext as SlotContext (string,string) -> string;
+import Confectory.EditWorkspace::SlotBatch as SlotBatch (string,string) -> string;
+import Confectory.Save::ApplySlots as SaveSlots (string,string) -> string;
+import Confectory.Save::WriteChecked as WriteChecked (string,string) -> string;
+import Confectory.Save::Read as ReadSaved (string) -> string;
+import Confectory.EditWorkspace::Export as ExportDraft (string) -> string;
+import Confectory.Save::Location as CheckpointLocation (string) -> string;
+import Confectory.FileStream::Snapshot as CheckpointSnapshot (string) -> string[];
 body common "Blueprint.csbody";}

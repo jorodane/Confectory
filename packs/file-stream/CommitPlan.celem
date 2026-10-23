@@ -1,0 +1,1 @@
+function Confectory.FileStream::CommitPlan (string root, string plan) -> string[] {provide Confectory.FileStream::CommitPlan with Confectory.FileStream::CommitPlanBody;description "Owned optimistic write batch plus explicit read-only source checks under the same lease. Never deletes checked originals.";}

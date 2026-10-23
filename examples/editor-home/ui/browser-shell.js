@@ -19,11 +19,11 @@ export function mountBrowserCommitActions(w,api){
  for(const [key,label,title] of [['discard','변경 취소','현재 범위의 적용된 변경을 마지막 저장본으로 되돌리기'],['save','임시 저장','이 프로젝트의 작업 사본을 저장 · 최종 소스는 변경하지 않음'],['confirm','확정','현재 범위의 변경을 검토한 뒤 별도 확정']]){const b=document.createElement('button');b.type='button';b.className='window-commit-action';b.dataset['browser'+key[0].toUpperCase()+key.slice(1)]='';b.textContent=label;b.title=title;b.dataset.normalTitle=title;b.disabled=true;b.onclick=()=>api.action(w,key);controls.insertBefore(b,controls.querySelector('[data-fold],[data-close]'));}
 }
 export function updateBrowserCommitActions(w,status,blocked=false){
- for(const key of ['save','discard','confirm']){const button=w.el.querySelector('[data-browser-'+key+']');if(!button)continue;button.title=status?.state==='error'?'변경 상태 확인 실패 · 검색을 눌러 다시 확인해 주세요. [browser-draft-status]':button.dataset.normalTitle;button.disabled=blocked||status?.state!=='ready'||(key==='confirm'?!status.dirty:!status.unsaved)||(key==='discard'&&!status.canDiscard);}
+ for(const key of ['save','discard','confirm']){const button=w.el.querySelector('[data-browser-'+key+']');if(!button)continue;button.title=status?.state==='error'?'변경 상태 확인 실패 · 검색을 눌러 다시 확인해 주세요. [browser-draft-status]':button.dataset.normalTitle;button.disabled=blocked||status?.state!=='ready'||(key==='confirm'?!status.dirty:key==='discard'?!status.unsaved&&!status.canRecover:!status.unsaved)||(key==='discard'&&!status.canDiscard);}
 }
 
 export function updateBrowserTitlePath(w,api={}){
- const caption=w.el.querySelector(':scope>.window-title .caption'),path=w.el.querySelector('.crumbs');if(!caption||!path)return;
+ const caption=w.el.querySelector(':scope>.window-title .caption')||w.el.querySelector(':scope>.embedded-browser-path'),path=w.el.querySelector('.crumbs');if(!caption||!path)return;
  w.pathObserver?.disconnect();caption.querySelector(':scope>strong')?.remove();
  const buttons=[...path.querySelectorAll('button')];if(!buttons.length)return;path.replaceChildren();const spans=buttons.map((button,index)=>{const step=document.createElement('span');step.className='browser-path-step';if(index){const separator=document.createElement('span');separator.textContent='/';separator.className='path-separator';step.append(separator);}button.title=button.title||button.textContent;if(!index)button.classList.add('browser-path-root');step.append(button);path.append(step);return step;});
  path.classList.add('browser-title-path');path.setAttribute('aria-label','현재 브라우저 경로');path.title=buttons.map(b=>b.textContent).join(' / ');caption.append(path);
@@ -37,7 +37,7 @@ function setupBrowserTreeResize(w,pane,tree,items,api){
  handle.setAttribute('aria-label','계층 너비 조절, 클릭하여 접기 또는 펼치기');handle.title='드래그하여 너비 조절 · 클릭하여 접기 / 펼치기';
  tree.after(handle);
  const max=()=>pane.clientWidth?Math.max(80,pane.clientWidth-100):Math.max(160,w.meta.treeWidth||160);
- const apply=value=>{const width=Math.max(0,Math.min(max(),value));w.meta.hierarchyVisible=width>0;const toggle=w.body.querySelector("[data-browser-detail]");toggle?.setAttribute("aria-pressed",String(width>0));toggle?.setAttribute("aria-label",width>0?"폴더 계층 접기":"폴더 계층 펼치기");w.meta.treeWidth=width;pane.style.setProperty('--browser-tree-width',width+'px');pane.classList.toggle('tree-collapsed',width===0);handle.title=width===0?'계층구조 펼치기 · 드래그하여 너비 조절':'드래그하여 너비 조절 · 클릭하여 접기';tree.inert=width===0;handle.setAttribute('aria-valuemin','0');handle.setAttribute('aria-valuemax',String(max()));handle.setAttribute('aria-valuenow',String(Math.round(width)));return width};
+ const apply=value=>{const width=Math.max(0,Math.min(max(),value));w.meta.hierarchyVisible=width>0;w.body.classList.toggle('browser-simple',width===0);const toggle=w.body.querySelector("[data-browser-detail]");toggle?.setAttribute("aria-pressed",String(width>0));toggle?.setAttribute("aria-label",width>0?"폴더 계층 접기":"폴더 계층 펼치기");w.meta.treeWidth=width;pane.style.setProperty('--browser-tree-width',width+'px');pane.classList.toggle('tree-collapsed',width===0);handle.title=width===0?'계층구조 펼치기 · 드래그하여 너비 조절':'드래그하여 너비 조절 · 클릭하여 접기';tree.inert=width===0;handle.setAttribute('aria-valuemin','0');handle.setAttribute('aria-valuemax',String(max()));handle.setAttribute('aria-valuenow',String(Math.round(width)));return width};
  const toggle=()=>{if(w.meta.treeWidth>0){w.meta.treeRestoreWidth=w.meta.treeWidth;apply(0)}else apply(w.meta.treeRestoreWidth||160);api.persist()};
  w.setBrowserTreeWidth=apply;apply(w.meta.hierarchyVisible===false?0:w.meta.treeWidth??160);
  handle.onpointerdown=e=>{

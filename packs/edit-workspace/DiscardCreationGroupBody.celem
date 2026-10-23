@@ -1,0 +1,5 @@
+implementation Confectory.EditWorkspace::DiscardCreationGroupBody for Confectory.EditWorkspace::DiscardCreationGroup (string handle,string checkpoint,string request) -> string {
+import Confectory.EditWorkspace::Read as Read (string,string) -> string[];
+import Confectory.SchemaEditing::Call as Metadata (string,string) -> string;
+import Confectory.FileStream::Snapshot as Snapshot (string) -> string[];
+body common "DiscardCreationGroup.csbody";}

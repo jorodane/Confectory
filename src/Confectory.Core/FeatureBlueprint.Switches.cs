@@ -4,9 +4,10 @@ namespace Confectory.Core;
 
 public static partial class FeatureBlueprint
 {
-    public const string SwitchProfile = "sync-acyclic-switch-v1", SwitchGenerator = "feature-blueprint-source-v12";
+    public const string SwitchProfile = "sync-acyclic-switch-v1", SwitchGenerator = "feature-blueprint-source-v13";
     public static bool SupportsMethods(string? profile) => profile is MethodsProfile or SwitchProfile or PropertySetProfile or PropertyRefProfile;
     static string Owner(Node node) => node.Definition["branchOwner"]?.GetValue<string>() ?? "";
+    static bool WrappedReturn(Node node) => node.Kind == "call" && node.Control == "switch" && node.Signature.Return != "void";
     static string ExecutionType(Node node) => node.Control == "switch" ? "int" : node.Signature.Return;
     static JsonObject EnumContract(JsonNode value)
     {

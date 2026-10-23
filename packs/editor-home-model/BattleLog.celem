@@ -1,0 +1,4 @@
+function Confectory.EditorHome.Model::BattleLog (string session,string payload) -> string {
+provide Confectory.EditorHome.Model::BattleLog with Confectory.EditorHome.Model::BattleLogBody;
+provide Confectory.FileStream::Snapshot with Confectory.FileStream::SnapshotBody;
+}

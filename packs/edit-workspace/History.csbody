@@ -8,8 +8,8 @@ System.Text.Json.Nodes.JsonObject Preview(string direction){
  var history=state["history"]!;var stack=history[direction]!.AsArray();if(stack.Count==0)return new(){["available"]=false,["code"]="EMPTY"};
  var entry=stack[^1]!;var fingerprints=new System.Text.Json.Nodes.JsonArray();var units=new System.Text.Json.Nodes.JsonArray();bool available=true;
  foreach(var recorded in entry["units"]!.AsArray()){
-  string id=recorded!["id"]!.ToString();var unit=state["units"]?[id];bool matches=unit is not null&&unit["draft"] is not null&&unit["kind"]!.ToString()==recorded["kind"]!.ToString()&&unit["path"]!.ToString()==recorded["path"]!.ToString()&&unit["draft"]!.ToString()==recorded[direction=="undo"?"after":"before"]!.ToString();available&=matches;
-  fingerprints.Add(new System.Text.Json.Nodes.JsonObject{["id"]=id,["revision"]=unit?["revision"]?.DeepClone(),["hash"]=unit?["draft"] is null?null:Hash(unit["draft"]!.ToString()),["baseline"]=unit?["baseline"]?.DeepClone(),["matches"]=matches});
+  string id=recorded!["id"]!.ToString();var unit=state["units"]?[id];bool matches=unit is not null&&unit["draft"] is not null&&unit["kind"]!.ToString()==recorded["kind"]!.ToString()&&unit["path"]!.ToString()==recorded["path"]!.ToString()&&unit["draft"]!.ToString()==recorded[direction=="undo"?"after":"before"]!.ToString();if(recorded["hierarchyVersion"]?.GetValue<int>()==1)matches&=System.Text.Json.Nodes.JsonNode.DeepEquals(unit?["hierarchyGroup"],recorded[direction=="undo"?"afterGroup":"beforeGroup"]);else if(unit?["hierarchyGroup"] is not null)matches=false;available&=matches;
+  fingerprints.Add(new System.Text.Json.Nodes.JsonObject{["id"]=id,["revision"]=unit?["revision"]?.DeepClone(),["hash"]=unit?["draft"] is null?null:Hash(unit["draft"]!.ToString()),["baseline"]=unit?["baseline"]?.DeepClone(),["matches"]=matches,["hierarchyGroup"]=unit?["hierarchyGroup"]?.DeepClone()});
   units.Add(new System.Text.Json.Nodes.JsonObject{["id"]=id,["kind"]=recorded["kind"]!.DeepClone(),["beforeHash"]=Hash(recorded["before"]!.ToString()),["afterHash"]=Hash(recorded["after"]!.ToString()),["revision"]=unit?["revision"]?.DeepClone()});
  }
  return new(){["available"]=available,["code"]=available?"READY":"SOURCE_CHANGED",["token"]=Hash(handle+history["epoch"]!.ToString()+history["revision"]!.ToString()+direction+entry["id"]!.ToString()+fingerprints.ToJsonString()),["id"]=entry["id"]!.DeepClone(),["label"]=entry["label"]!.DeepClone(),["units"]=units};
@@ -35,6 +35,6 @@ foreach(var unit in entry["units"]!.AsArray()){
 lock(state){
  if(!ReferenceEquals(AppDomain.CurrentDomain.GetData(key),state))throw new ObjectDisposedException("EditWorkspace");
  var preview=Preview(operation);if(preview["available"]!.GetValue<bool>()!=true||preview["token"]?.ToString()!=expected)return Inspect(code:"HISTORY_CHANGED");
- foreach(var recorded in entry["units"]!.AsArray()){var unit=state["units"]![recorded!["id"]!.ToString()]!;unit["draft"]=recorded[operation=="undo"?"before":"after"]!.DeepClone();unit["revision"]=unit["revision"]!.GetValue<long>()+1;}
+ foreach(var recorded in entry["units"]!.AsArray()){var unit=state["units"]![recorded!["id"]!.ToString()]!;unit["draft"]=recorded[operation=="undo"?"before":"after"]!.DeepClone();unit["revision"]=unit["revision"]!.GetValue<long>()+1;if(recorded["hierarchyVersion"]?.GetValue<int>()==1){unit.AsObject().Remove("hierarchyGroup");var group=recorded[operation=="undo"?"beforeGroup":"afterGroup"];if(group is not null)unit["hierarchyGroup"]=group.DeepClone();}}
  var history=state["history"]!;var from=history[operation]!.AsArray();var moved=from[^1]!;from.RemoveAt(from.Count-1);history[operation=="undo"?"redo":"undo"]!.AsArray().Add(moved);history["revision"]=history["revision"]!.GetValue<long>()+1;return Inspect(true,true);
 }

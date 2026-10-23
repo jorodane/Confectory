@@ -1,0 +1,35 @@
+"""원본 자유 숫자 입력 정의 적응: 순수 준비/본문 stale/정밀도/범위 경계."""
+import copy,json,os,pathlib,subprocess,sys,tempfile
+r=pathlib.Path(sys.argv[1]).resolve();dotnet='/workspace/toolchains/dotnet-10.0.401/dotnet';host=r/'targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll';case=pathlib.Path(tempfile.mkdtemp(prefix='confectory-input-adaptation-'));checks=[];env=os.environ.copy();env.update(DOTNET_CLI_HOME='/tmp/confectory-dotnet10-final',NUGET_PACKAGES='/tmp/confectory-site-nuget')
+def sdk(op,success=True,**data):
+ p=subprocess.run([dotnet,str(host)],input=json.dumps({'operation':op,**data}),text=True,capture_output=True,check=True,env=env);v=json.loads(p.stdout);assert bool(v['ok']) is success,v;return v.get('result')
+def checked(t):checks.append(t);print('PASS '+t,flush=True)
+a=sdk('blueprintPrepareFeature',id='Adapt.Case::F',text='function Adapt.Case::F (long seed,int narrow,double ratio,float quick) -> double {}',implementation='Adapt.Case::Body',graphPath='f.graph.json',nodePath='n.node.json');original=copy.deepcopy(a);plan={'node':'body','name':'seed','type':'double','path':[],'baseJson':'{"input":"seed"}','sourceJson':'{"input":"ratio"}'}
+def prepare(p=plan,graph=None,success=True):return sdk('blueprintInputAdaptation',success=success,featureSource=a['function'],graph=graph or a['graph'],plan=p)
+v=prepare();assert a==original and v['bodyNeedsReview'] and not v['sourceWritten'];expected=copy.deepcopy(a['graph']);expected['nodes'][0]['signature']['args'][0]['type']='double';expected['nodes'][0]['arguments']['seed']={'input':'ratio'};assert v['graph']==expected
+checked('원본 함수·다른 핀·연결을 유지한 채 선택한 자유 숫자 입력과 값만 함께 준비한다')
+for to,source in [('int','narrow'),('float','quick'),('double','ratio')]:
+ result=prepare({**plan,'type':to,'sourceJson':json.dumps({'input':source})});assert result['graph']['nodes'][0]['signature']['args'][0]['type']==to
+alias_graph=copy.deepcopy(a['graph']);alias_graph.update(profile='sync-acyclic-alias-locals-v1',locals=[{'id':'old','name':'정수 원본','type':'long','source':{'input':'seed'}}]);result=prepare({**plan,'name':'narrow','type':'long','sourceJson':'{"local":"old"}'},graph=alias_graph);assert result['graph']['locals']==alias_graph['locals'] and alias_graph['nodes'][0]['signature']['args'][1]['type']=='int'
+checked('숫자 정의 적응은 선택한 native 타입을 사용하고 별칭 선언·원본 그래프를 바꾸거나 기존 정수를 축소 변환하지 않는다')
+
+nested={**plan,'path':[1,0],'baseJson':'{"binary":{"operator":"+","operands":[{"constant":9007199254740992},{"binary":{"operator":"*","operands":[{"input":"seed"},{"constant":2}]}}]}}'};v=prepare(nested);binding=v['graph']['nodes'][0]['arguments']['seed'];assert binding['binary']['operands'][0]=={'constant':9007199254740992,'type':'long'} and binding['binary']['operands'][1]['binary']['operands']==[{'input':'ratio'},{'constant':2,'type':'long'}]
+checked('중첩 승격은 기존 64비트 정수 리터럴의 native 타입과 원문·다른 피연산자를 보존한다')
+sibling={**plan,'path':[1],'baseJson':'{"binary":{"operator":"+","operands":[{"binary":{"operator":"/","operands":[{"constant":3},{"constant":2}]}},{"input":"seed"}]}}'};preserved=prepare(sibling);result=preserved['graph']['nodes'][0]['arguments']['seed'];assert result['binary']['type']=='double' and result['binary']['operands'][0]['binary']['type']=='long'
+checked('선택 경로 밖의 정수 나눗셈 하위 식은 정수 계산을 유지하고 선택 조상만 실수로 승격한다')
+
+for patch in [{'type':'float'},{'sourceJson':'{"node":"body"}'},{'sourceJson':'{"constant":2.5}'},{'path':[2]},{'extra':True},{'path':[0],'baseJson':'{"input":"seed"}'}]:prepare({**plan,**patch},success=False)
+for patch in [{'kind':'call'},{'implementationContext':{}},{'forwardCallerStorage':True},{'control':'switch'}]:
+ g=copy.deepcopy(a['graph']);g['nodes'][0].update(patch);prepare(graph=g,success=False)
+g=copy.deepcopy(a['graph']);g['nodes'][0]['signature']['args'][0]['mode']='ref';prepare(graph=g,success=False)
+checked('위조 타입·자기 출력·리터럴 타입 추측·잘못된 경로·고정 호출·전체본문·ref 계약 적응은 거부한다')
+# A changed definition never upgrades its old body receipt.
+old=sdk('featureBlueprintNodes',featureSource=a['function'],graph=a['graph'])['nodes'][0];record={'schema':1,'node':'body','definitionHash':old['definitionHash'],'source':'return ratio;'};v=prepare();stale=sdk('featureBlueprintAssemble',featureSource=a['function'],graph=v['graph'],implementations={'body':record});assert stale['state']=='needs-implementation' and stale['nodes'][0]['status']=='stale'
+now=sdk('featureBlueprintNodes',featureSource=a['function'],graph=v['graph'])['nodes'][0];record['definitionHash']=now['definitionHash'];ready=sdk('featureBlueprintAssemble',featureSource=a['function'],graph=v['graph'],implementations={'body':record});assert ready['state']=='source-assembled'
+checked('정의 적응은 이전 본문 승인을 재사용하지 않으며 새 정의에 대한 본문 재적용 후에만 어셈블된다')
+loss={**plan,'path':[1],'baseJson':'{"binary":{"operator":"+","operands":[{"constant":9007199254740993},{"input":"seed"}]}}'};v=prepare(loss);invalid=sdk('featureBlueprintDescribe',featureSource=a['function'],graph=v['graph']);assert invalid['state']=='invalid' and invalid['diagnostics'][0]['code']=='GRAPH_NUMERIC_PRECISION'
+for patch in [{'name':'ratio','type':'long','path':[0],'baseJson':'{"binary":{"operator":"+","operands":[null,null]}}','sourceJson':'{"input":"seed"}'},{'name':'quick','type':'double','path':[0],'baseJson':'{"binary":{"operator":"+","operands":[null,null]}}'}]:prepare({**plan,**patch},success=False)
+checked('승격 후 알려진 정밀도 손실은 거부하고 중첩 실수 축소나 정수 역변환을 허용하지 않는다')
+runtime_graph=preserved['graph'];node=sdk('featureBlueprintNodes',featureSource=a['function'],graph=runtime_graph)['nodes'][0];compiled=sdk('featureBlueprintAssemble',featureSource=a['function'],graph=runtime_graph,implementations={'body':{'schema':1,'node':'body','definitionHash':node['definitionHash'],'source':'return seed;'}});assert compiled['state']=='source-assembled';(case/'Test.csproj').write_text('<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><TreatWarningsAsErrors>true</TreatWarningsAsErrors></PropertyGroup></Project>');(case/'NuGet.Config').write_text('<configuration><packageSources><clear /></packageSources></configuration>');(case/'Program.cs').write_text('using System;static class Program {static double F(long seed,int narrow,double ratio,float quick){'+compiled['body']+'}static void Main(){if(F(0,0,0.5,0)!=1.5)throw new Exception("integer sibling changed to real division");Console.WriteLine("PASS preserved integer division");}}');p=subprocess.run([dotnet,'build',str(case/'Test.csproj'),'--configfile',str(case/'NuGet.Config'),'--nologo'],env=env,text=True,capture_output=True);assert p.returncode==0,p.stdout+p.stderr;p=subprocess.run([dotnet,str(case/'bin/Debug/net10.0/Test.dll')],env=env,text=True,capture_output=True);assert p.returncode==0,p.stdout+p.stderr
+checked('생성 C#의 통제된 실행에서 3/2 정수 하위 식과 실수 0.5의 합은 1.5이며 2.0으로 바뀌지 않는다')
+record={'checks':checks,'actualEngine':False,'nativeWindows':False,'accountOrInference':False,'evidence':str(case)};(case/'evidence.json').write_text(json.dumps(record,ensure_ascii=False,indent=2));print(json.dumps(record,ensure_ascii=False,indent=2))

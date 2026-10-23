@@ -1,0 +1,1 @@
+function Confectory.EditWorkspace::DiscardCreationGroup (string handle,string checkpoint,string request) -> string {provide Confectory.EditWorkspace::DiscardCreationGroup with Confectory.EditWorkspace::DiscardCreationGroupBody;}

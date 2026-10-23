@@ -24,6 +24,7 @@ internal static class RelationMapBatch
                 if (element.Id != id || element.Kind != kind) throw new ArgumentException("Map declaration identity differs");
                 if (element.Values.TryGetValue("editorName", out var label) && label.Value.ValueKind == System.Text.Json.JsonValueKind.String)
                     node["title"] = label.Value.GetString();
+                var folder=BrowserFolderLayout.Folder(element);node["folderDefined"]=folder.Defined;node["folder"]=folder.Id;node["browserGroup"]=BrowserFolderLayout.Group(element);
                 node["description"] = element.Description;
                 node["valid"] = true;
                 foreach (var reference in DeclaredRelations.Describe(element)["edges"]!.AsArray())

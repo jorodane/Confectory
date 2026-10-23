@@ -1,0 +1,7 @@
+implementation Confectory.EditWorkspace::SlotBatchBody for Confectory.EditWorkspace::SlotBatch (string handle,string plans) -> string {
+import Confectory.EditWorkspace::Read as Read (string,string) -> string[];
+import Confectory.EditWorkspace::SlotContext as Context (string,string) -> string;
+import Confectory.EditWorkspace::BlueprintImplementationContract as Create (string,string,string,string,string,string[],long[],string[]) -> string;
+import Confectory.SchemaEditing::Call as Metadata (string,string) -> string;
+import Confectory.EditWorkspace::CopyImplementation as Copy (string,string) -> string;
+body common "SlotBatch.csbody";}

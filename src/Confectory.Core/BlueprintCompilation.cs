@@ -78,7 +78,10 @@ internal sealed class BlueprintCompilation(Registry registry, string target, Tar
             string id = node["id"]?.GetValue<string>() ?? throw new BuildError("BLUEPRINT_GRAPH", "Node ID required", new(path));
             if (node["implementation"] is not JsonValue file) continue; // Missing stays explicit, never synthesized.
             string nodePath = PackPaths.Owned(Path.GetDirectoryName(path)!, file.GetValue<string>());
-            string ownerKey = implementation.Id + "/" + (FeatureBlueprint.SupportsPrivateGraphs(graph["profile"]?.ToString()) ? path+"/" : "") + entry.Key;
+            // Effective inherited bodies retain their declaring origin. A child is not a new
+            // owner of the same inherited node file. Independently declared bodies still
+            // have distinct origins and cannot alias another implementation's records.
+            string ownerKey = body.Origin + "/" + (FeatureBlueprint.SupportsPrivateGraphs(graph["profile"]?.ToString()) ? path+"/" : "") + entry.Key;
             if (nodeOwners.TryGetValue(nodePath, out var owner) && owner != ownerKey) throw new BuildError("BLUEPRINT_NODE_OWNERSHIP", "Node source belongs to another feature node", new(nodePath));
             nodeOwners[nodePath] = ownerKey;
             if (!nodePaths.Add(nodePath)) throw new BuildError("BLUEPRINT_NODE_OWNERSHIP", "Each node owns a separate implementation file", new(nodePath));

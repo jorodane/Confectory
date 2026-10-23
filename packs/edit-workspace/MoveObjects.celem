@@ -1,0 +1,1 @@
+function Confectory.EditWorkspace::MoveObjects (string handle, string plan) -> string {provide Confectory.EditWorkspace::MoveObjects with Confectory.EditWorkspace::MoveObjectsBody;description "Validate and stage a complete owned-object parent move batch under source/dependency CAS, retaining one explicit Save/Cancel/Review group. No final source writes.";}
