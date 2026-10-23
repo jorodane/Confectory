@@ -53,3 +53,5 @@
 Browser 후속 정리: 이번 유한 잔여와 이후 Blueprint 작업 단위는 `VALIDATION_V536_BROWSER_REMAINDER.md`, `V536_BLUEPRINT_REMAINDER.md`로 고정했다. 상단의 예전 로컬 전용/미게시 문구는 그 시점 이력이다. 최종 게시 여부와 새 Windows 교차 패키지는 해당 묶음의 검증 결과를 따른다.
 
 후속 소유 슬롯 ABI: 기존 갱신 버튼에서 단일 소유 root의 값↔ref와 typed import를 함께 checkpoint하고 명시 Confirm하는 경로를 연결했다. 8건(순수1/실제엔진7)과 controlled renderer10, Windows 교차 패키지/웹 시작 검사를 구분해 `VALIDATION_V536_SLOT_CALL_ABI.md`에 기록했다. 복사본·등록 callable·여러 target 본문 등은 `V536_CALL_ABI_SCOPE.md`의 미지원 경계를 유지한다. 전체 v536/네이티브 수용 완료가 아니다.
+
+후속 모바일 특수핀 첫 수용: 선행 ABI 엔진을 사용한390폭 실제6건에서 whole-body C# 값/ref/out·native 이름 대응·폭 전환·cold·원자 Save·Review취소/명시 Confirm을 확인했다. runtime 변경 없이 회귀와 경계를 기록했다. `VALIDATION_V536_MOBILE_SPECIAL_PINS.md`를 따르며 특수핀 전체/async/복사·등록 문맥 완료가 아니다.
