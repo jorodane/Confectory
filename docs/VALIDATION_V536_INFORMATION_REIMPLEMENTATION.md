@@ -25,7 +25,7 @@
 | 실제 기본 창 UI | 4 PASS: 원본 삭제 취소/Undo/Redo·새 편집기·C# 취소/미저장 cold/저장·Review 취소/Confirm/cold |
 | 실제 독립 창 UI, 생성 응답 유실 | 4 PASS: 성공 응답 한 번 유실 후 조회 복구, create 요청 1회, 이후 같은 저장/취소/cold/Confirm |
 | 실제 기본 창 UI, 생성 쓰기 실패 | 5 PASS: 실패 미적용과 명시 재시도, 이후 같은 저장/취소/cold/Confirm |
-| 기존 첫 본문 작성 UI | 5 PASS: 기존 고정 첫 identity·빈 본문 cold·C# 취소·private 입력/창 복원·Review/Confirm 호환 |
+| 기존 첫 본문 작성 UI | 6 PASS: 기존 고정 첫 identity·빈 본문 cold·C# 취소·private 입력/창 복원·Review/Confirm·확정 후 같은 창 재편집 호환 |
 | 깨끗한 checkout의 확정 archive 독립 창 UI / 실제 source 경합 API | 각각 4 / 1 PASS: 확정된 삭제 뒤 새 생성·본문 취소/미저장 cold/저장·새 Review/Confirm·원본 보존 및 실제 변경 전체 거절 |
 
 처음 작성한 fixture의 archive 요약 키와 source 경합 후 projection 가정을 고쳤다. 생성 응답 유실 주입은 동일 request의 첫 성공 응답만 제거하도록 했다. 모달 종료 직후에는 임의 대기 대신 실제 idle 상태를 기다린다. 여러 Chromium을 동시 실행하다 렌더러가 종료된 실행은 통과로 세지 않으며 동시 실행 수를 줄였다. 실패 로그도 보존한다.
