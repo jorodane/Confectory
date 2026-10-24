@@ -31,6 +31,7 @@ try
         case "blueprintCopyAbiBinding":reply=BlueprintCopyAbi.Bind(request);break;
         case "mixedOwnerCopyEdits":reply=MixedOwnerCopyEdits.Prepare(request,Format,FormatManifest);break;
         case "informationTypes":reply=InformationTypes.Query(request,FormatManifest);break;
+        case "informationFunctionInputUses":reply=InformationFunctionInputUses.Read(request);break;
         case "informationFunctionInputs":reply=InformationFunctionContracts.Inputs(request);break;
         case "informationDefinitions":reply=InformationDefinitions.Prepare(request,Format,FormatManifest);break;
         case "informationFunctionRetirement":reply=InformationFunctionRetirement.Execute(request,Format,FormatManifest);break;
