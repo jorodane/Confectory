@@ -92,7 +92,7 @@ def unchanged():
  assert all((project/k).read_bytes()==v for k,v in original.items())
  assert all(p.read_bytes()==v for p,v in foreign_original.items())
 def setup(browser):
- page=browser.new_page(viewport={'width':1480,'height':1050});page.on('pageerror',lambda e:errors.append(str(e)))
+ page=browser.new_page(viewport={'width':390,'height':844} if 'mobile-context' in sys.argv[3:] else {'width':1480,'height':1050});page.on('pageerror',lambda e:errors.append(str(e)))
  def observe(response):
   try:
    body=response.request.post_data_json
@@ -113,13 +113,31 @@ def completed(endpoint,action,mark):
  raise AssertionError((endpoint,action,'actual response not observed',page.get_by_role('status').all_text_contents()))
 def pending():page.evaluate('async()=>await confectoryFlushPresentation()');return state()['presentation']['inputs']['blueprint']
 def open_row(name,group):
- idle();page.locator('#workspace').click(button='right',position={'x':1240,'y':650});page.get_by_role('button',name='프로젝트 브라우저',exact=True).click();b=page.locator('.window[data-key^="browser:project:"]');b.locator('[data-tab="'+group+'"]').click();row=b.locator('[data-object="'+n+name+'"]');expect(row).to_have_attribute('aria-disabled','false');row.press('Enter');idle();b.locator('[data-close]').click();return b
+ idle()
+ if 'mobile-context' in sys.argv[3:]:page.locator('[data-mobile-files]').click()
+ else:
+  page.locator('#workspace').click(button='right',position={'x':1240,'y':650});page.get_by_role('button',name='프로젝트 브라우저',exact=True).click()
+ b=page.locator('.window[data-key^="browser:project:"]');b.locator('[data-tab="'+group+'"]').click();row=b.locator('[data-object="'+n+name+'"]');expect(row).to_have_attribute('aria-disabled','false');idle();row.press('Enter');idle()
+ if 'mobile-context' in sys.argv[3:]:page.screenshot(path=str(case/'mobile-open-owner.png'))
+ if b.is_visible():b.locator('[data-close]').click()
+ return b
 def open_slot():
- open_row('A','concept');w=page.locator('.window[data-key=schema]');slot=w.locator('[data-module-method="'+n+'Calc"]');expect(slot.locator('[data-function-edit]')).to_be_enabled();slot.locator('[data-function-edit]').click();a=page.locator('.window[data-key=blueprint]');expect(a).to_have_attribute('data-blueprint-owner',n+'A');expect(a).to_have_attribute('data-blueprint-body',n+'Copy/body:common');idle();return a
+ open_row('A','concept');w=page.locator('.window[data-key=schema]');slot=w.locator('[data-module-method="'+n+'Calc"]');expect(slot.locator('[data-function-edit]')).to_be_enabled();slot.locator('[data-function-edit]').click();a=page.locator('.window[data-key=blueprint]');expect(a).to_have_attribute('data-blueprint-owner',n+'A');expect(a).to_have_attribute('data-blueprint-body',n+'Copy/body:common');idle()
+ if 'mobile-context' in sys.argv[3:]:
+  expect(a.locator('[data-flow-graph]')).to_be_visible();page.screenshot(path=str(case/'mobile-open-copy.png'))
+ return a
 def current():return call('blueprint',{'action':'read','id':n+'Copy/body:common','owner':n+'A','ownerHash':hashlib.sha256((project/'A.celem').read_bytes()).hexdigest()})
 def collect_wrapper():return [(k,v) for k,v in pending() if v.get('type')=='wrapper']
 def focus_call():
- author.locator(':scope > .window-title .caption').click(position={'x':5,'y':8});author.locator('[data-bp-overview-node=native]').click()
+ if 'mobile-context' in sys.argv[3:]:
+  flow=author.locator('[aria-label="카드 흐름 편집"]')
+  if flow.is_visible():flow.locator('[data-flow-graph]').click()
+  if not author.locator('[data-bp-overview]').is_visible():
+   author.locator('[data-mobile-view]').click();page.locator('.context-menu').get_by_role('button',name='미니맵 펼치기',exact=True).click()
+ if 'mobile-context' not in sys.argv[3:]:author.locator(':scope > .window-title .caption').click(position={'x':5,'y':8})
+ if 'mobile-context' in sys.argv[3:]:
+  page.screenshot(path=str(case/'before-overview.png'));(case/'overview-state.json').write_text(json.dumps(page.evaluate('''()=>{const w=document.querySelector('.window[data-key=blueprint]'),r=w.querySelector('.blueprint-editor'),m=w.querySelector('[data-bp-overview]');return {root:r.className,width:r.clientWidth,hidden:w.hidden,mapWidth:m.clientWidth,svg:m.querySelector('svg').innerHTML} }''')));expect(author.locator('[data-bp-overview-node=native]')).to_have_count(1,timeout=5000)
+ author.locator('[data-bp-overview-node=native]').click()
 def foreign_same():assert all(p.read_bytes()==v for p,v in foreign_original.items())
 def mapping():return page.locator('[data-abi-remap-accept]').locator('..').locator('..')
 def choose():
@@ -128,6 +146,7 @@ def choose():
 def reopen(i):
  global page,author
  pending();page.close();stop();start(i);page=setup(browser);author=page.locator('.window[data-key=blueprint]');expect(author.locator('[data-bp-save]')).to_be_enabled(timeout=60000);idle()
+ if 'mobile-context' in sys.argv[3:]:expect(author.locator('[data-flow-graph]')).to_be_visible()
 def finish():
  assert not errors and not external,(errors,external);browser.close();print(json.dumps({'checks':checks,'actualEngineRenderer':True,'nativeWindows':False,'accountOrInference':False,'projectRun':False,'evidence':str(case)},ensure_ascii=False));sys.exit(0)
 try:
@@ -146,8 +165,11 @@ try:
     page.wait_for_timeout(20)
    assert failed;idle();assert checkpoint.read_bytes()==baseline and collect_wrapper()==held;unchanged();foreign_same()
    old_attempt=next(v for k,v in pending() if v.get('kind')=='author-attempt')
+   if 'mobile-context' in sys.argv[3:] and author.locator('[aria-label="카드 흐름 편집"]').is_visible():author.locator('[data-flow-graph]').click()
    author.locator('.bp-viewport').focus();page.keyboard.press('Control+z');idle();focus_call();author.locator('[data-bp-node=native] [data-wrapper-refresh]').click();choose().locator('[data-abi-remap-accept]').click();held=collect_wrapper();assert json.loads(held[0][1]['text'])['abi']['remap']['outputs']['return']=='total';assert next(v for k,v in pending() if v.get('kind')=='author-attempt')==old_attempt
    checked('잘못된 실제 출력 선택은 전체 미적용이며 원래 Undo 후 새 명시적 선택이 이전 실패 기록·입력을 보존한다')
+  if 'mobile-context' in sys.argv[3:] and mode in ['normal','user-correction']:
+   listing=state()['listingId'];scope=state()['projectId'];page.locator('[data-wrapper-refresh]').evaluate('e=>globalThis.retiredRefresh=e.onclick');page.locator('.brand').click();expect(page.locator('.home-grid')).to_be_visible();mark=len(traffic);page.evaluate('()=>globalThis.retiredRefresh()');assert not [r for r in traffic[mark:] if r['endpoint']=='blueprint'];page.locator('[data-enter="'+listing+'"]').click();expect(author.locator('[data-bp-save]')).to_be_enabled(timeout=60000);idle();assert state()['projectId']==scope and collect_wrapper()==held;unchanged();foreign_same();checked('실제 프로젝트 나가기/재진입은 대응 입력을 보존하며 퇴역한 이전 창의 계약 갱신 callback은 요청하지 않는다')
   if mode=='cancel':
    author.locator('.bp-viewport').focus();page.keyboard.press('Control+z');assert not pending();unchanged();reopen(2);assert not pending();unchanged();foreign_same();checked('원본 Undo는 전체 갱신 계획만 취소하고 cold에 기존 입력/출력 계약과 source를 유지한다');finish()
   if mode=='conflict':
@@ -192,7 +214,9 @@ try:
    assert lost and len(ids)==1;page.unroute('**/api/request',intercept);idle();assert not pending();checked('실제 성공 응답 유실은 같은 전체 mapping/source receipt로 한 번 확인하고 중복 변경하지 않는다')
   else:completed('blueprint','authorBatch',mark);assert not pending()
   saved=current();native=next(r for r in saved['nodes'] if r['id']=='native');assert native['signature']['return']=='bool' and native['signature']['args'][0]['name']=='step' and native['signature']['args'][1]['name']=='renamed';assert json.loads(next(r for r in saved['nodes'] if r['id']=='body')['arguments'][0]['valueJson'])=={'node':'native','output':'total'};assert saved['diagnostics']['state'] in ['source-ready','source-assembled'];unchanged();foreign_same();checked('한 authorBatch 후보/CAS가 copy 소유권/출처·typed import·입력/출력 대응·소비자를 함께 검증하고 원본 코드를 보존한다')
-  reopen(3);assert not pending();unchanged();foreign_same();author.locator('[data-bp-complete]').click();review=page.locator('.window[data-key=review]');expect(review).to_be_visible(timeout=60000);assert state()['review']['status']=='ready';assert all(not row['id'].startswith('Lib::') for row in state()['review']['units']);review.locator('[data-reject]').click();expect(review).to_be_hidden();unchanged();author.locator('[data-bp-complete]').click();expect(review).to_be_visible(timeout=60000)
+  reopen(3);assert not pending();unchanged();foreign_same();author.locator('[data-bp-complete]').click();review=page.locator('.window[data-key=review]');expect(review).to_be_visible(timeout=60000);assert state()['review']['status']=='ready';assert all(not row['id'].startswith('Lib::') for row in state()['review']['units']);review.locator('[data-reject]').click();expect(review).to_be_hidden();unchanged()
+  if not author.is_visible():page.locator('[data-window-tab=blueprint]').click()
+  author.locator('[data-bp-complete]').click();expect(review).to_be_visible(timeout=60000)
   if review.locator('[data-review-advanced]').count():
    review.locator('[data-review-advanced]').click()
    if review.locator('[data-advanced-reviewed]').count():review.locator('[data-advanced-reviewed]').check()

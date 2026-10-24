@@ -1,6 +1,6 @@
 # v536 잔여 화면·조작의 명시적 경계
 
-기준: `11b6a4da`와 이번 네 화면 연결 변경. 기존 표는 실제 25행이었다. M3/M5에 섞였던 두 계약 제한을 M11/M12로 분리해 **27개 조작**으로 고정한다. 새 기능을 추가한 목록이 아니다.
+기준: `4102f2f`와 A7/M6 수용 수정. 기존 표는 실제 25행이었다. M3/M5에 섞였던 두 계약 제한을 M11/M12로 분리해 **27개 조작**으로 고정한다. 새 기능을 추가한 목록이 아니다.
 
 원본 `196c605`의 v536 `app.js`/`blueprint.js`. `VALIDATION_V536_UI_ACCEPTANCE.md`의 포괄적인 잔여 표현을 아래 조작으로 분해한다. **미연결**, **미검증**, **지원 제한**, **백엔드 부재**를 서로 바꾸어 쓰지 않는다. 원본 프로토타입의 메모리상 데모 동작이 컴파일/저장 계약의 존재를 증명하지 않는다. 표의 현재 결과가 소스 판독이면 실제 기기 재현이라고 표시하지 않는다.
 
@@ -14,7 +14,7 @@
 | A4. **등록** callable + 여러 caller target에서 갱신 | 등록 receipt까지 포함한 모든 대상의 원자 후보가 필요 | **명시적 계약 지원 제한**. `BlueprintCallAbiGroup.ValidateGroup`는 모든 import가 소유 group에 있는지 요구한다. 단일 등록 receipt와 all-target group의 결합은 없다. 외부 팩을 소유 source로 위조해 통과시키지 않는다. A3의 단순 미검증 조합이 아니다. |
 | A5. copy의 여러 target 또는 상속된 구현 대상으로 일괄 갱신 | immutable seed/부모/각 target 출처를 보존한 전체 후보 | **명시적 계약 지원 제한**. group은 `caller.Parent==null`, 각 graph의 `copySource==null`을 요구한다. 단일 copy 성공을 이 조합 완료로 확대하지 않는다. |
 | A6. whole-body/opaque 문맥·forwarded storage 또는 같은 callee의 복수 사용에서 갱신 | 모든 사용처와 본문 의미를 명시적으로 검증, 임의 재작성 금지 | **명시적 계약 지원 제한**. `BlueprintCallAbi.Prepare`는 `implementationContext`/`forwardCallerStorage` 및 다른 동일 callee 사용을 거절한다. group도 ordinary graph와 target당 한 호출만 받는다. 새 backend 계약 없이 해제하지 않는다. |
-| A7. 모바일 카드에서 `그래프 ↗` → `보기/미니맵 펼치기` → 기존 갱신 → 카드/저장/재시작/Confirm | 동일 caller/선택/입력을 유지하며 기존 갱신을 사용할 수 있음 | **추가 수용 대상**. 데스크톱 A2와 모바일 whole-body가 각각 통과했지만 이 실제 이동 경로를 함께 완주했다는 근거는 없었다. 별도의 ‘모바일 ABI backend 부재’라고 단정하지 않는다. |
+| A7. 모바일 카드에서 `그래프 ↗` → `보기/미니맵 펼치기` → 기존 갱신 → 카드/저장/재시작/Confirm | 동일 caller/선택/입력을 유지하며 기존 갱신을 사용할 수 있음 | **지원·수용 완료(등록 copy 모바일6)**. 실제 Files→슬롯 카드→Graph/View/minimap→기존 명시 갱신을 완주했다. 빈 지도 재그리기 누락을 수정했다. raw 선택의 cold/취소, 잘못된 대응 전체 미적용과 활성 창 Undo 재선택, Home 재진입·retired callback 차단, 한 후보 Save·Review 취소/compiler Confirm을 확인했다. 외부 팩/부모/원문은 불변이다. A4–A6까지 확대하지 않는다. |
 
 ## 모바일: 원본에 있는 정확한 조작
 
@@ -25,7 +25,7 @@
 | M3. 동작 카드 → `내부 흐름 편집` | 원본 `api.internal(node,false)`로 해당 노드의 내부 흐름 진입·복귀 | **기존 native 중첩 graph 수용 완료(실제 엔진4)**. `kind=graph`를 원본 동작 카드에 렌더하고 내부 흐름·breadcrumb·상위 복귀를 연결했다. root/private path별 입력과 위치·Undo 문맥을 분리하고 desktop/mobile 전환·cold·코드 취소/Save·compiler Confirm을 확인했다. C# code→graph 변환은 M11로 분리한다. 부모/자식 양쪽의 미저장 쓰기는 자동 병합하지 않고 기존 보호로 막는다. |
 | M4. 동작 카드 → `비동기 함수로 전환` | 원본은 정의의 async 상태를 전환해 표시 | **대응 실행 계약 부재에 따른 제한**. 현재 버튼 disabled. 기존 지원 프로파일은 sync-acyclic 계열이며 이 원본 async 플래그와 await/실행·저장 계약의 매핑이 없다. 버튼만 켜거나 새 async 실행 모델을 이번 수용에 추가하지 않는다. |
 | M5. 소유 code/wrapper 동작 상세의 분기 목록 | 원본 executionOutputs의 이름/순서/추가·삭제를 편집 | **소유 code/wrapper enum 패널 연결·수용 완료(wrapper5/code3)**. 원본 분기 행/이름 편집/추가/순서·삭제 UI를 기존 enum 후보에 연결했다. 숫자와 stable ID·연결·본문을 유지한다. 연결된 삭제는 거절, 잘못된 이름 원문은 cold까지 보관하며 Escape/Undo/Redo·Save/Review취소/Confirm을 확인했다. 별도 root 실행 출력은 M12다. |
-| M6. 여러 배치가 공유하는 출력의 이름을 한 배치 inspector에서 변경 | 원본의 공유 정의 rename과 배치별 선택을 구별 | **배치 inspector의 명시적 제한 / 정의 탭은 연결됨**. `exportName`은 같은 output을 쓰는 다른 export가 있으면 거절하고 raw 이름을 보존한다. 그러나 `출력` 정의 탭의 `bindRootOutputName`은 `renameRootArgument`로 공통 정의를 편집한다. 따라서 공유 출력 이름 전체가 미연결이라는 이전 표기는 부정확했다. 여러 배치가 같은 정의를 쓰는 이 특정 탭 흐름은 아직 별도 완주 근거가 없어 **미검증**으로 남기며 없는 제품 결함을 단정하지 않는다. |
+| M6. 여러 배치가 공유하는 출력의 이름을 한 배치 inspector에서 변경 | 원본의 공유 정의 rename과 배치별 선택을 구별 | **공유 정의 탭 수용 완료(실제 엔진4) / 배치 inspector 제한 유지**. 두 export가 공유하는 out 정의의 이름 변경·Undo/Redo·cold·저장/Review 취소/compiler Confirm을 확인했다. 정의 remap 후 배치 guard가 옛 ID와 비교하던 결함을 고쳤다. 두 64비트 값·실행 경로를 유지하고 거절된 배치 raw 이름 취소도 보존한다. 고정 native return rename은 M7이다. |
 | M7. native `return`/종료 카드의 출력 이름 변경 | ABI identity와 표시 별칭을 구별해야 함 | **의도된 native 계약 보호**. 고정 return 이름/종료 선택은 readonly. 별도의 표시 별칭 편집 계약은 없다. ‘return을 자유롭게 rename하지 못함’을 기존 native Save 결함으로 표시하지 않는다. |
 | M8. 새 출력 이름을 빈 값/불완전 이름으로 둔 뒤 Save | 개인 입력은 보관하고 안정된 출력 identity 없이 최종 적용하지 않음 | **명시적 Save 제한**. raw draft를 보관하며 이름을 정하기 전 저장을 차단한다. 기존 새 정의+배치+값의 완전한 이름은 Save/Confirm 가능하다. 개인 draft와 compiler가 받을 이름 없는 최종 출력을 구분한다. |
 | M9. 입력/출력 카드의 ref/out·고정 native 이름·외부 readonly 값 편집 | 소유 범위와 현재 C# 계약을 보호하며 지원된 코드 편집으로 이동 | **기존 지원/보호이며 잔여에서 제외**. whole-body 모바일 C# ref/out·native 이름 대응·폭 전환/cold/Confirm6 PASS. 외부/readonly 값을 일반 타입 버튼으로 바꾸지 않는다. 모든 readonly 핀을 미연결이라고 쓰지 않는다. |
@@ -50,3 +50,9 @@
 `legacy inline`은 손실 우려가 있는 이전 기록을 총칭하던 표현이었다. 별도의 새 UI 조작을 가리키지 않으므로 독립적인 무한 잔여로 세지 않는다. 기존 입력을 보존하고 미지원 정의 전환은 I2로 한정한다. 원본의 모든 가능한 타입 조합을 새 수용 요구로 추가하지 않는다.
 
 raw+저장 copy ABI/기존 body/다중 target/Set-property/다른 Blueprint 계획, 여러 raw/독립 properties+copy는 이번 지시에서 확장하지 않는 명시적 제한이다. 새 ABI 결합 계약·opaque 자동 재작성·새 async runtime·이미지/협의/렌더 backend는 이번 UI 수용 수정에 포함하지 않는다. 실제 Windows/WebView2/모바일 하드웨어·DPI/native IME와 Library 전달은 계속 미검증이다.
+
+## 27개 조작 최종 판정
+
+지원 경로 수용 **11개**: A1/A2/A3/A7, M1/M2/M3/M5/M6/M9/M10. 이 한정 범위에 남은 재현된 화면 미연결 또는 필수 미검증은 없다. 전체 타입·ABI 조합이나 원본의 모든 기능을 구현했다는 뜻은 아니다. M2의 다중 삭제는 직접 소유 ordinary root/연결 해제 후, M3은 기존 native graph 진입, M5는 지원 code/wrapper enum 범위다.
+
+나머지 **16개**를 완료로 바꾸지 않는다. M7/M8/B1은 의도된 native identity·최종 이름·소유권 보호다. A4/A5/A6/M4/M11/M12/I1/I2/I3/I4/I5/I6/B2는 위에 적은 정확한 범위의 추가 계약/adapter/데이터 구현이 필요한 제한·미구현이다. I6 아이콘 편집처럼 원본 조작이 실제로 미구현인 것도 이 목록에 남으며 단순 미검증으로 숨기지 않는다. 실제 기기 및 이미지/협의/렌더 backend 부재도 해제하지 않는다. 상세 근거는 [A7/M6 수용](VALIDATION_V536_A7_M6.md)을 참조한다.

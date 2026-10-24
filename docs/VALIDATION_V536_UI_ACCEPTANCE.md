@@ -47,3 +47,5 @@
 구현 커밋 `5fd3967019927a2d56a67649ef53f034165ef765`을 별도 깨끗한 checkout에 ff-only로 적용했다. Release solution은 경고/오류0, Linux 엔진 생성 exit0/warnings0이고 retained-CRLF attribute pull·fresh-LF의73리소스 시작·변조/인코딩/BOM/binary/budget 거절이 통과했다. 원래 checkout 바이트는 유지됐고 두 checkout의 추적 구현/테스트3202파일은 줄끝 정규화 후 같다. 최종 문서 커밋은 실행 코드를 바꾸지 않는다. 수용한 지원 경로에서 이번 검사 후 남은 재현 오류는 없지만 위의 연결 제한·백엔드 부재·기기 미검증은 해제하지 않는다. 원격 게시 SHA와 clean 상태는 체크포인트에서 확인한다.
 
 이번 네 화면의 최신 구현/검증과 정확한 제한은 [선택·중첩 흐름·모바일 분기 연결](VALIDATION_V536_UI_FOUR.md)을 참고한다. 전체 UI 완료를 뜻하지 않는다.
+
+A7 모바일 등록 copy ABI 이동과 M6 공유 출력 정의 이름 변경의 최신 마감은 [A7/M6 수용 기록](VALIDATION_V536_A7_M6.md)이다. [27항목 표](V536_RESIDUAL_UI_AUDIT.md)는 지원11/보호·제한·미구현16을 구분하며 기존의 포괄적 미검증 표기를 대체한다. 전체 원본 기능 완료나 실제 Windows/모바일 기기 통과를 뜻하지 않는다.
