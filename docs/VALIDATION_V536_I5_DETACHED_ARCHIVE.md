@@ -26,9 +26,9 @@
 | 독립 추가 화면 경계 | 쓰기 거절 1, 실제 source 경합 1, 응답/결과조회 유실+cold 1, 다른 창 exact64 원문 1, 실제 프로젝트 A/B 전환 2 PASS |
 | 기존 화면 회귀 | 기본 창 전체 함수 삭제 5 + 독립 구현-only 삭제 4 PASS |
 | Windows x64 교차 패키지 및 관리 엔진 web probe | manifest 2,326 runtime files, 무관 cwd/runtime-only·73리소스·변조/누락 dependency 거절·fixture profile 보존 PASS |
-| clean checkout 재현 | 다음 검증 단계. 게시 전 완료 결과로 갱신한다. |
+| clean checkout `473405911be0307d19e6c9d14b5e6648e54592d4` 재현 | 별도 Linux 빌드 warnings/stderr 0, API 4 + 실제 독립 UI 5 PASS, 실제 CRLF pull/fresh LF·73 canonical 리소스·변조/encoding/BOM/binary/budget 거절 PASS |
 
-신규 독립 함수 화면 16건과 기존 화면 회귀 9건은 별도로 센다. API 4+4는 공통 준비 검사가 있어 고유 조작 수로 합산하지 않는다. native archive 알고리즘은 변경하지 않았다. [460px 원본 카드](evidence/v536-i5-detached/function-before-delete.png)와 [최종 복구 후](evidence/v536-i5-detached/function-after-recovery.png)를 보존했다. 카드·기존 버튼 구조/치수를 확인했으며 전체 pixel equality라고 주장하지 않는다.
+구현 snapshot은 `473405911be0307d19e6c9d14b5e6648e54592d4`다. 신규 독립 함수 화면 16건과 기존 화면 회귀 9건은 별도로 센다. 별도 checkout의 API 4/UI 5 재현은 root 결과와 중복 합산하지 않는다. API 4+4는 공통 준비 검사가 있어 고유 조작 수로 합산하지 않는다. native archive 알고리즘은 변경하지 않았다. [460px 원본 카드](evidence/v536-i5-detached/function-before-delete.png)와 [최종 복구 후](evidence/v536-i5-detached/function-after-recovery.png)를 보존했다. 카드·기존 버튼 구조/치수를 확인했으며 전체 pixel equality라고 주장하지 않는다.
 
 ## 패키지 및 남은 범위
 
