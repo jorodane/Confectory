@@ -26,7 +26,20 @@ graph/node/argument ID, 원래 graph hash와 바인딩 원문, 명시한 새 값
 
 격리 fixture의 실제 엔진·Chromium·컴파일러를 사용한다. fixture의 root 입력을 읽는 실제 `inner` call과 별도 소유 callee/typed import를 만들고 call 결과가 기존 code/내보내기로 이어지게 했다. 원래 C#과 별도 callee의 세 파일이 보존되는지 검사한다. 테스트 launcher는 기존 원자 저장 수용 검사를 재사용하며 제품에 테스트 API나 권한을 추가하지 않는다.
 
-근거 디렉터리는 `/workspace/scratch/v536-information-call-inputs`다. 원래 작업 트리의 API 12 check(삭제 3·타입 변경 3·두 target 3·실제 callee 선언 충돌 1·caller 파일 충돌 2), 순수 후보 보호 2 check가 통과했다. 누락/변조/타입 불일치/다른 소유 선택을 거절하고 원문·기존 checkpoint를 보존한다. 실제 UI 14 check(독립 창 혼합 편집 2·타입 변경 쓰기 실패/재시도 3·저장/조회 응답 유실 2·기본 창 변경 취소 2·동시 편집 거절 2·잘못된 선택 거절→같은 세션 Undo→새 명시 선택 재시도 3)도 통과했다. 저장/Review 취소/Confirm/cold 복원과 정확 64비트 값·다른 입력·callee source 보존을 포함한다. Native 계약 회귀 7·ABI 선택 어댑터 3·기존 code 입력 혼합 저장 API 3 check가 통과했다. ABI 어댑터의 최초 실행은 필수 repo 인자를 빠뜨려 테스트 진입 전에 실패했고, 인자를 바로잡아 3 check를 확인했다. clean checkout·프로젝트 전환·패키지 결과는 마감 후 아래에 기록한다. 실제 Windows apphost/WebView2·모바일 기기·계정 로그인·유료 추론·사용자 프로젝트 Run·Library 전달은 이번 검증이 아니다. 전체 solution/full suite를 실행했다는 뜻도 아니다.
+근거 디렉터리는 `/workspace/scratch/v536-information-call-inputs`다. 원래 작업 트리의 API 12 check(삭제 3·타입 변경 3·두 target 3·실제 callee 선언 충돌 1·caller 파일 충돌 2), 순수 후보 보호 2 check가 통과했다. 누락/변조/타입 불일치/다른 소유 선택을 거절하고 원문·기존 checkpoint를 보존한다. 실제 UI 14 check(독립 창 혼합 편집 2·타입 변경 쓰기 실패/재시도 3·저장/조회 응답 유실 2·기본 창 변경 취소 2·동시 편집 거절 2·잘못된 선택 거절→같은 세션 Undo→새 명시 선택 재시도 3)도 통과했다. 저장/Review 취소/Confirm/cold 복원과 정확 64비트 값·다른 입력·callee source 보존을 포함한다. Native 계약 회귀 7·ABI 선택 어댑터 3·기존 code 입력 혼합 저장 API 3 check가 통과했다. ABI 어댑터의 최초 실행은 필수 repo 인자를 빠뜨려 테스트 진입 전에 실패했고, 인자를 바로잡아 3 check를 확인했다. 기존 프로젝트 전환 실제 UI 회귀 2 check도 통과했다. 같은 namespace/요소 ID의 다른 프로젝트 및 오래된 form은 입력을 분리하고 source를 변경하지 않는다. 실제 Windows apphost/WebView2·모바일 기기·계정 로그인·유료 추론·사용자 프로젝트 Run·Library 전달은 이번 검증이 아니다. 전체 solution/full suite를 실행했다는 뜻도 아니다.
 
 
 [실제 연결 선택창](evidence/v536-information-call-inputs/picker.png)과 [저장/확정 후 정보 화면](evidence/v536-information-call-inputs/saved.png)을 확인했다. CSS 3파일과 element-functions/call-abi-remap/WebBundle의 baseline `e46395e` byte 일치는 `layout-evidence.json`에 기록했다. 화면을 재설계하거나 원본 v536 대비 전체 pixel 일치/네이티브 조작을 검증했다는 뜻은 아니다.
+
+
+## 깨끗한 체크아웃과 Windows 교차 패키지
+
+검증 소스 커밋은 `33c39a901b71e39e0261371ee4f80a2915754daf`다. 별도 기존 clean clone을 로컬 origin에서 정상 fetch/fast-forward했다. 그 체크아웃의 Native 컴파일·Linux engine 빌드가 경고/오류/stderr 0으로 끝났고, 새로 생성한 runtime으로 API 다중 target 3 check와 독립 창 삭제 UI 2 check를 재현했다. 정상 Save/Review 취소/컴파일 Confirm/cold 복원, C#·callee 파일과 다른 입력 보존을 포함한다. 기존 프로젝트 전환을 포함한 영향 회귀는 15 check(Native 7·ABI 3·code API 3·project UI 2)이며 신규 API 12·UI 14·순수 후보 보호 2와 별도 집계다.
+
+원래 작업 트리의 `web_resource_checkout.py`는 실제 CRLF 유지 pull/fresh LF checkout에서 74개 canonical/exact 리소스를 확인했다. 내용/UTF-8/BOM/UTF-16/단독 CR/예산/PNG 변조를 거절하고 원본 바이트를 보존했다.
+
+Windows x64 교차 패키지는 `/workspace/artifacts/v536-information-call-inputs/Windows-x64`다. `Confectory.exe`가 시작 파일이며 .NET Desktop Runtime 10.0 x64와 WebView2 Runtime이 필요하다. 패키지 manifest는 2,331파일, SHA-256 `316e9c083d8f3eb93b20c2f8a91d76ef5c9390b73e8b1044b443ef22da16e672`다. 바뀐 두 Native source·Native DLL·기존 element-functions/call-abi-remap/WebBundle의 6파일이 검증 소스와 일치하고, 테스트/프로필/로그는 패키지에 없다.
+
+`desktop_package.py`는 별도 cwd와 SDK 없는 복사 runtime에서 패키지 실제 엔진의 웹 기동·74리소스·최소 로그인창 렌더, 변조/의존성 누락 거절, fixture 설정 보존과 명시 override를 확인했다. 격리 fixture 외 사용자 자료는 사용하지 않는다. 이 결과는 **Windows apphost/WebView2 실행, 사용자 로그인/유료 추론, 모바일 기기 또는 Library 첨부 전달 성공을 뜻하지 않는다**. 전체 I5-6 및 v536 UI는 [고정 잔여 목록](V536_I5_6_REMAINING.md)대로 미완료다.
+
+재현: `v536_information_call_inputs_api.py`에 repo·Linux build JSON·delete/type/multi/callee-conflict/conflict를 전달한다. `v536_information_call_inputs_ui.py`는 동일 인자와 mixed/type-storage/delete-loss/delete-cancel/type-conflict/type-retry, 독립 창은 마지막 `view` 인자를 사용한다. `v536_information_call_inputs_guards.py`는 실제 파싱한 원래 자료의 순수 후보만 검사한다. 기존 code 입력 suite를 공통 사용하되 새로운 call fixture가 실제 use-site를 바꾼다. 패키지·빌드·프로필·실행 로그는 Git에 포함하지 않는다.
