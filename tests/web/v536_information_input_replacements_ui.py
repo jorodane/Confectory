@@ -25,13 +25,13 @@ def restart(i):
  expect(f.owner().locator('.object-title-name')).to_have_text('FreeInfo');f.idle()
 def picker():
  m=f.page.get_by_role('dialog',name='입력 연결 갱신',exact=True);expect(m).to_be_visible();return m
-def select():
+def select(correct=True):
  m=picker()
  for target in m.locator('section[data-abi-target]').all():
   if target.get_attribute('data-abi-target').startswith('use:'):
    select=target.locator('[data-abi-input=amount]')
    if x.kind=='delete':select.select_option('value');target.locator('[data-abi-value=amount]').fill('9223372036854775806')
-   else:select.select_option('pin:count' if x.kind=='type' else 'pin:fresh')
+   else:select.select_option('pin:amount' if not correct and x.kind=='type' else 'pin:count' if x.kind=='type' else 'pin:fresh')
   elif x.kind=='type':target.locator('[data-abi-input=amount]').select_option('value');target.locator('[data-abi-value=amount]').fill('새 한글 값')
   elif x.kind=='mixed':target.locator('[data-abi-input=fresh]').select_option('pin:amount')
  if x.kind!='mixed':m.locator('[data-abi-disconnect=amount]').select_option('disconnect')
@@ -48,11 +48,17 @@ try:
    if x.kind=='mixed':
     p.locator('[data-signature-add=inputs]').click();row=p.locator('[data-signature-kind=inputs] [data-signature-id]').last;row.locator('[data-signature-name]').fill('fresh');row.locator('[data-signature-type]').click();f.page.get_by_role('dialog',name='속성 타입 선택',exact=True).locator('[data-type=long]').click()
   p.get_by_role('button',name='저장',exact=True).click();m=picker();m.locator('[data-abi-remap-accept]').click();expect(m.locator('[data-abi-error]')).to_be_visible();m.locator('[data-abi-remap-cancel]').click();assert pending() and checkpoint.read_bytes()==baseline;preserved()
-  p=popup();p.get_by_role('button',name='저장',exact=True).click();select();value=pending()[0][1];assert value['mapping']['args']==x.mapping['args'] and value['mapping']['implementations']
+  p=popup();p.get_by_role('button',name='저장',exact=True).click();select(correct=not x.mode.endswith('retry'));value=pending()[0][1];assert value['mapping']['args']==x.mapping['args'] and value['mapping']['implementations']
   for _ in range(2):f.owner().locator('[data-own-functions-toggle]').press('Control+z')
   assert not pending()
   for _ in range(2):f.owner().locator('[data-own-functions-toggle]').press('Control+y')
-  assert pending()[0][1]==value;held=f.pending();restart(1);assert f.pending()==held;preserved();f.checked('원본 입력 삭제/타입/혼합 선택은 callee·caller를 명시하며 취소·Undo/Redo·미저장 cold 입력/원문 보존')
+  assert pending()[0][1]==value;held=f.pending()
+  # The original window's Undo stack is session-local. Test rejected-mapping
+  # Undo in that same session; cold input preservation is covered independently.
+  if not x.mode.endswith('retry'):restart(1)
+  assert f.pending()==held;preserved();f.checked('원본 입력 삭제/타입/혼합 선택은 callee·caller를 명시하며 취소·Undo/Redo·입력/원문 보존')
+  if x.mode.endswith('retry'):
+   start=len(f.traffic);f.owner().locator('[data-element-action=save]').click();wait('blueprint',start,False,'applySlots');assert pending()[0][1]==value and checkpoint.read_bytes()==baseline;preserved();f.owner().locator('[data-own-functions-toggle]').press('Control+z');assert pending() and not pending()[0][1]['mapping'].get('callers');p=popup();p.get_by_role('button',name='저장',exact=True).click();select();value=pending()[0][1];f.checked('호환되지 않는 본문 연결 거절은 원문/입력을 유지하며 Undo와 새 명시 선택 뒤 같은 원래 기준으로 재시도한다')
   if x.mode.endswith('cancel'):
    f.owner().locator('[data-element-action=discard]').click();f.idle();assert not pending() and checkpoint.read_bytes()==baseline;preserved();restart(2);assert not pending() and checkpoint.read_bytes()==baseline;preserved();f.checked('명시 변경 취소·cold는 계약/양쪽 연결 선택만 취소하고 원문·다른 값 보존');f.browser.close();raise SystemExit(0)
   if x.mode.endswith('conflict'):

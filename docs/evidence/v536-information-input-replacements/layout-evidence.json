@@ -1,0 +1,21 @@
+{
+  "baseline": "391aaff",
+  "sourceCommit": "c08b9f4fdb08a6c4541b8a8b111040afd2e5756c",
+  "css": {
+    "style.css": {
+      "sameAsBaseline": true,
+      "sha256": "adfc1b205f0d357a380122763d411147e4db7535d1484f0852a6064984912188"
+    },
+    "consumer.css": {
+      "sameAsBaseline": true,
+      "sha256": "fc3584f1784ba822fd438edb5fe33deb6527d8e621cc478184d5f5b82244dc3e"
+    },
+    "runtime.css": {
+      "sameAsBaseline": true,
+      "sha256": "7ace817c492c5bd51a3b11a2fd6b86fdc3d98e242ae4115d5cc52b179afc6e3e"
+    }
+  },
+  "actualRenderer": true,
+  "nativeWindows": false,
+  "fullPixelEquality": false
+}

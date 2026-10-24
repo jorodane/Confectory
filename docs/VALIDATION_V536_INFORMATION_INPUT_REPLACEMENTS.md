@@ -23,11 +23,23 @@
 격리 fixture, 실제 엔진/Chromium/compiler를 사용한다. 사용자 프로젝트, 실제 계정·유료 추론·프로젝트 Run은 사용하지 않는다. 실행 근거는 `/workspace/scratch/v536-information-input-replacements`다. 숫자는 각 시나리오의 check 수다.
 
 - Native SDK 컴파일 경고/오류 0, 최종 Linux engine-3 stderr 0.
-- API: 사용 입력 삭제 3, long→string 루트 타입 변경과 별도 long code 연결 3, 삭제/추가와 저장소 재사용 3, 여러 target의 전체 후보 3, 실제 caller 파일 충돌 2 PASS. 누락된 본문/호출자 선택, 잘못된 hash/원문/값/다른 소유 및 모순 해제 거절과 원문/checkpoint 보존을 포함한다. 다중 target은 모든 후보/record 검증 및 portable 컴파일 결과이며 Windows 실행을 뜻하지 않는다.
-- 실제 UI: 독립 창의 혼합 저장·Undo/Redo·cold·Review 취소/Confirm 2, 독립 창의 타입 변경 쓰기 실패/재시도/Confirm 3, 삭제 저장·조회 응답 유실과 receipt/cold 복구 2, 기본 창의 명시 변경 취소/cold 2, 타입 변경 뒤 실제 동시 편집 보존/저장 거절 2 PASS.
+- API: 사용 입력 삭제 3, long→string 루트 타입 변경과 별도 long code 연결 3, 삭제/추가와 저장소 재사용 3, 여러 target의 전체 후보 3, 실제 caller 파일 충돌 2, 정보 자체의 provide 범위/typed import를 사용하는 삭제·컴파일 3 PASS. API 합계 17 check. 누락된 본문/호출자 선택, 잘못된 hash/원문/값/다른 소유 및 모순 해제 거절과 원문/checkpoint 보존을 포함한다. 다중 target은 모든 후보/record 검증 및 portable 컴파일 결과이며 Windows 실행을 뜻하지 않는다.
+- 실제 UI: 독립 창의 혼합 저장·Undo/Redo·cold·Review 취소/Confirm 2, 독립 창의 타입 변경 쓰기 실패/재시도/Confirm 3, 삭제 저장·조회 응답 유실과 receipt/cold 복구 2, 기본 창의 명시 변경 취소/cold 2, 타입 변경 뒤 실제 동시 편집 보존/저장 거절 2, 호환 불가 선택 거절→같은 세션 Undo→새 명시 선택→저장/Confirm/cold 재시도 3 PASS. 원래 작업 트리의 신규 UI 합계 14 check.
 - 기존 Native 계약 회귀 7, 일반 ABI 어댑터 3, out 이름 변경 실제 API/컴파일 회귀 2 PASS.
 
 초기 혼합 UI 검사는 실제 저장 후, 타입 벡터가 같아 그대로 보존된 import 선언까지 변경 그룹에 포함해야 한다는 fixture 기대 때문에 실패했다. 첫 보완도 그 선언이 dirty checkpoint에 존재한다고 잘못 가정했다. 변경 그룹은 실제 바뀐 선언/graph를 확인하고, 바뀌지 않은 import는 원문 byte 보존과 저장본 존재 시 동일성을 별도로 확인하도록 수정했다. API와 UI의 전체 저장·재시작·컴파일 Confirm을 다시 통과했다. 엔진의 source/CAS 검사를 완화하지 않았다.
+
+추가 재시도 fixture는 재시작 전의 Undo 스택이 남아 있다고 잘못 기대해 처음 실패했다. 기존 세션 내 Undo/새 명시 선택과 재시작 입력 복원을 별개로 검사하도록 보완했다. Undo 스택의 재시작 보관 기능을 새로 추가하거나 기존 정책을 바꾸지 않았다.
+
+## checkout·패키지
+
+실행 source는 `c08b9f4fdb08a6c4541b8a8b111040afd2e5756c`다. 해당 깨끗한 checkout의 Native SDK와 Linux 엔진 재생성은 경고/오류/stderr 0으로 통과했다. 혼합 대응 API의 거절 보호·저장/cold·compiler Confirm 3 check와 독립 창의 사용 입력 삭제·Undo/취소·저장/cold·Review/Confirm 2 check도 통과했다. 원래 작업 트리의 기존 입력 편집은 같은 namespace/ID의 프로젝트 전환·오래된 form 제출·원문/입력 보존 회귀 2 check도 통과했다.
+
+최종 Windows x64 교차 패키지는 `/workspace/artifacts/v536-information-input-replacements/Windows-x64`의 2,331개 파일이며 진입점은 `Confectory.exe`다. manifest SHA-256은 `9338f3aca53465c7708581f2b05946c2e58d4082172571d640285320d0a998f4`이다. 바뀐 실행 source 7개와 Native DLL이 패키지 byte와 일치한다. SDK 없는 런타임과 다른 cwd에서 실제 패키지 웹 엔진 기동·74개 리소스·최소 연결창 렌더·변조/누락 의존성 거절·격리된 기존 profile 재사용을 확인했다. 실제 Git CRLF pull/fresh LF의 74개 리소스 및 내용/인코딩/BOM/binary/budget 거절도 통과했다.
+
+테스트/프로필/로그는 패키지 manifest에 없다. 생성물·프로필·로그·인증 자료는 Git에 게시하지 않는다. 이 교차 패키지 검증은 실제 Windows apphost/WebView2 실행이나 Library 첨부 전달을 뜻하지 않는다. 전체 solution/full suite 반복은 수행하지 않았다.
+
+[선택창](evidence/v536-information-input-replacements/picker.png)과 [저장 후 원래 정보 화면](evidence/v536-information-input-replacements/saved.png)을 실제 렌더러에서 확인했다. CSS의 baseline byte 일치는 `layout-evidence.json`에 기록했다. 전체 pixel 일치나 native 조작 검증이라는 뜻은 아니다.
 
 ## 남은 조작
 

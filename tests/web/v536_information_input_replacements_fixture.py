@@ -1,5 +1,5 @@
 """Used ordinary root inputs with explicit callee/caller replacements only."""
-import copy,json
+import copy,json,re
 import v536_information_function_contracts_native as n
 f,d,owner,fn=n.f,n.a.d,n.owner,n.fn
 mode=n.a.mode
@@ -11,6 +11,8 @@ if mode=='multi':
  p=f.project/(fn.split('::')[1]+'Body.celem');p.write_text(p.read_text().replace('}','blueprint windows "function-windows.graph.json";}'))
  g=json.loads((f.project/'function.graph.json').read_text());next(r for r in g['nodes'] if r['id']=='body')['implementation']='function-windows.node.json'
  source=(f.project/('elements/'+fn.split('::')[1]+'.celem')).read_text();defs=f.metadata('featureBlueprintNodes',featureSource=source,graph=g);rec={**n.record,'definitionHash':next(r['definitionHash'] for r in defs['nodes'] if r['id']=='body')};(f.project/'function-windows.graph.json').write_text(json.dumps(g));(f.project/'function-windows.node.json').write_text(json.dumps(rec))
+if mode=='scoped':
+ p=f.project/('elements/'+fn.split('::')[1]+'.celem');p.write_text(p.read_text().replace('provide '+fn+' with '+fn+'Body;',''));n.a.info.write_text(n.a.info.read_text().replace('{','{provide '+fn+' with '+fn+'Body;',1));p=f.project/'CallerBody.celem';p.write_text(re.sub(r'(import [^;]+)(;)',r'\1 in '+owner+r'\2',p.read_text()))
 snapshot={str(p.relative_to(f.project)):p.read_bytes() for p in f.project.rglob('*') if p.is_file() and '.confectory' not in p.relative_to(f.project).parts}
 def selections(preview):
  callers={}
