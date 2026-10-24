@@ -25,6 +25,7 @@
 | 같은 검사 `loss` | `ui-loss2.log` 5 PASS. 실제 적용 응답과 조회 응답 유실, journal/입력 보존, cold receipt 조회만으로 복구하고 새 applySlots 없음, peer 경합·Review/Confirm·확정 후 cold |
 | `v536_view_owner_projects.py` | `projects1.log` 4 PASS. namespace/id/slot이 같은 별도 실제 프로젝트 A/B의 Home 전환, 은퇴한 A 저장 콜백은 B 요청 없음, A Save가 B native/private 입력을 보존, 프로세스 재시작 및 양방향 재진입 |
 | 기존 primary 혼합 Save 회귀 | `root-regression1.log` 4 PASS. 기존 타입 거절→Undo→새 copy 결합→응답/조회 유실→cold·Review 취소·compiler Confirm. primary receipt 호환과 priorOwner 내부 재조회 경로를 확인 |
+| `v536_view_owner_schema.py` | `ui-schema2.log` 4 PASS. 불완전 표시 이름 전체 거절/원문 보존→Escape→명시 새 이름, schema-only Save/cold와 정확한 데이터 key/raw64, peer private 입력 보존 및 공동 Review 차단, 명시 peer 취소 후 Review 취소/compiler Confirm/cold에서 schema 파일만 반영 |
 
 초기 `ui-loss1.log`는 테스트 route를 닫는 중 `Route is already handled!`가 났다. `unroute_all(behavior='wait')`로 pending callback을 정리한 뒤 loss2를 실행했다. 제품 실패를 통과로 바꾸거나 보호 assertion을 제거하지 않았고 초기 로그를 보존한다. 종료된 프로젝트/primary 검사 세션50342/37134의 결과는 로그의 최종 JSON으로 확인했다. 새로 중복 실행하지 않았다.
 
@@ -46,3 +47,11 @@
 새 Windows 교차 패키지는 `/workspace/artifacts/Confectory-v536-view-save/Windows-x64/Confectory.exe`이며 폴더 전체가 필요하다. marker 제외2314개/포함2315개, 131,752,770 bytes다. marker SHA-256 `d780e5122464cb9dae88ef7c5c6c3c568d0b1f97544840b89e5cb0fdd1274dfd`, checksum 목록 SHA-256 `f53ee034eddfc34dea240c2f8251b22e8272790e6ac61f10fb28aa6eef4b1df5`다.
 
 `package-probe.log`는 PASS다. SDK 없는 격리 runtime·별도 cwd/profile의 실제 managed 웹 기동/71 resource·기존 fixture profile 보존·패키지 변조/의존성 누락 거절을 검사했다. 실제 Windows apphost/WebView2 실행은 아니다. 구현10개 source는 package/content와 실제 byte가 일치했다. 후보17개(구현10·테스트3·문서4)를 검토했고 생성물/로그/사용자 자료는 후보에 없으며 비밀 패턴 발견0이다. 이는 모든 비밀의 부재를 증명하는 전수 검사는 아니며 실제 인증파일을 읽지 않았다.
+
+## 깨끗한 checkout과 최종 추가 수용
+
+코드 커밋 `801576af08754de165ed50312502caa3382c5b18`을 기존 격리 checkout에 정상 fetch/fast-forward했다. `checkout-build2.log`의 Release solution은 경고0/오류0, `checkout-engine.json`의 Linux 생성 엔진도 경고0이다. `checkout-resources.log`는 실제 이전 CRLF checkout→attributes pull 및 fresh LF의71 canonical/exact snapshots, 내용/인코딩/BOM/binary/budget 거절과 원래 byte 불변 PASS다. root/checkout 구현10개는 정규화 byte가 일치하고 checkout도 clean이었다.
+
+추가 schema-only 테스트의 첫 시도(`ui-schema1.log`)는 같은 객체 peer 입력을 남긴 상태에서도 공동 Review가 열릴 것이라고 잘못 기대했다. 기존 `reviewCreation`은 검토 그룹의 미적용 입력을 차단한다. 이 보호를 완화하지 않고, peer 입력 보존/Review 요청0 확인→사용자의 명시 local 취소→실제 Review/Confirm으로 테스트를 보완했다. 최종4 PASS/exit0이며 `/tmp/confectory-wide-mixed-i8jwmbqh`에 근거를 보관한다. 창별 schema 표시 이름은 수용했지만 모든 schema 타입/삭제·중첩 정의의 독립 View 문맥을 전수 수용한 것은 아니다.
+
+추가 테스트까지 게시 후보는 총18개(구현10·테스트4·문서4)다. 마지막 추가 변경은 테스트/검증 기록뿐이며 runtime/package byte는 코드 커밋과 동일하다. 최종 정상 게시/원격 SHA·clean tree·main 보존은 체크포인트와 최종 응답에 기록한다. 실제 Windows 실행/Library 첨부/전체 UI 완료로 표현하지 않는다.
