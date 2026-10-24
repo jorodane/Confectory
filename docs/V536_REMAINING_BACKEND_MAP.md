@@ -29,3 +29,5 @@
 후속 schema/Save 첫 단위는 `VALIDATION_V536_SCHEMA_SAVE.md`를 따른다. primary owner-only Save와 직접 사용하는 소유 primitive schema 타입·값·새 copy를 한 후보/CAS·원자 Review 그룹에 연결했다. 기존 schema 표시 이름/삭제/복합 정의, 독립 View/dirty raw source/provider/saved-copy ABI·다중 target·Set-property 혼합은 여전히 별도 미완료다.
 
 후속 root 표시 이름/삭제는 `VALIDATION_V536_SCHEMA_MUTATIONS.md`에 연결·검증 범위를 기록한다. stable native key를 표시 이름으로 rename하지 않으며, 삭제는 현재 owner 로컬 값과 같은 후보로 검사한다. 자손 데이터/Blueprint 참조는 거절한다. 복합/중첩 정의·독립 View/raw source 결합과 전체 ABI·모바일 수용은 여전히 미완료다.
+
+최신 독립 properties View Save: `VALIDATION_V536_VIEW_SAVE.md`. 설명과 기존 복합/정확한 숫자 값을 한 후보/CAS로 보관하고 자기 View receipt·취소·경합·프로젝트 전환·cold/Review/Confirm을 검증했다. source View/copy/타 owner는 허용하지 않는다. 복합/중첩 정의 생성 및 원본 정보 picker/기본값, raw source와 다른 계획의 결합은 미완료다. compound/reference native 타입은 존재하므로 backend 전체 부재와 구별한다.

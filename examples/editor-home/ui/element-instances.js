@@ -1,3 +1,4 @@
+import {createElementViewSave} from './element-view-save.js';
 import {createElementEditors} from './elements.js';
 
 // Reuse the reference element renderer; only its window, input and RPC owners differ.
@@ -18,8 +19,9 @@ export function createElementInstances(api){
    if(endpoint==='schema'||endpoint==='select')return api.view.call('openEditorView',{view:slot,id,viewMode:'properties'});
    const aliases={editField:'editViewField',editDescription:'editViewDescription',editDeclaration:'editViewDeclaration',editObjectStructure:'editViewObjectStructure',saveDraft:'saveEditorView'};
    if(aliases[endpoint])return api.view.call(aliases[endpoint],{...input,view:slot,id});
+   if(endpoint==='blueprint')return api.view.call(endpoint,{...input,view:slot,id});
    if(['editObjectStructure','readAppliedModules','readModuleInterface'].includes(endpoint))return api.view.call(endpoint,{...input,view:slot,id});
-   if(endpoint==='browserDrafts'&&Array.isArray(input.ids)&&input.ids.length===1&&input.ids[0]===id)return api.view.call(endpoint,input);
+   if(endpoint==='browserDrafts'&&Array.isArray(input.ids)&&input.ids.length===1&&input.ids[0]===id)return api.view.call(endpoint,{...input,view:slot,id});
    throw Error('이 독립 편집창에는 해당 작업이 아직 연결되지 않았어요. 입력은 유지됩니다.');
   }};
   const unavailable=()=>{throw Error('구현 복사 편집은 원래 요소 창에서 진행해 주세요. 이 창의 입력은 유지됩니다.');};
@@ -29,6 +31,8 @@ export function createElementInstances(api){
    localDiscardOnly:true,hasOwnerAttempt:()=>false,discardOwnerAttemptInWork:unavailable,copyDrafts:()=>[],hasCopyAttempt:()=>false,copyDiscardSnapshot:()=>null,openSlotInWork:unavailable,openCopyInWork:unavailable,saveCopiesInWork:unavailable,discardCopiesInWork:unavailable,
    review:async target=>{requireOwner();if(target!==id)throw Error('검토할 요소가 바뀌었습니다.');await api.review(id,requireOwner);}
   };
+  const saves=createElementViewSave({slot,owner:id,inputs,journals:base.ownerAuthorInputs,get current(){return scoped.current;},get view(){return proxy;},persist:base.persist,flush:base.persistOwnerInputs});
+  Object.assign(scoped,{atomicOwnerEdits:true,hasOwnerAttempt:saves.has,recoverOwnerEditsInWork:saves.recover,saveOwnerEditsInWork:saves.save,discardOwnerAttemptInWork:saves.discard,otherPending:()=>false});
   const editor=createElementEditors(scoped);instances.set(key,editor);return editor;
  }
  return {show:row=>instance(row).show(row.schema),reopen(row,w){instance(row).retryStatus(w);},retire(row,w){const key=api.current.projectId+'|'+row.view+'|'+row.id;instances.get(key)?.reset(w);instances.delete(key);},refreshProjection:()=>{for(const editor of instances.values())editor.refreshProjection();},controls:blocked=>{for(const editor of instances.values())editor.controls(blocked);}};
