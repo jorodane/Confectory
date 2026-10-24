@@ -31,12 +31,12 @@
 | 기존 회귀 | raw owner 5, I5-5 순서 4, 자체 함수 7, 함수 전체 삭제 9, 구현만 삭제 추가 7 PASS. 구현 검사 안의 기존 함수 9는 중복 합산하지 않음 |
 | 원본 화면 | style/consumer/runtime CSS는 c370e5a와 byte 일치. 기존 정보 상세창과 기본/독립 창을 사용. 새 폼/패널/레이아웃 없음 |
 | 교차 패키지 | 최종 source guard 보완 후 win-x64 PE 2330파일. SDK 없는 runtime-only에서 실제 패키지 엔진 웹 기동·74개 리소스·최소 연결창 렌더·변조/누락 의존성 거절 PASS |
-| 깨끗한 checkout/리소스 | 소스 커밋 후 별도 재현하여 마감 기록에 갱신 |
+| 깨끗한 checkout/리소스 | 소스 `19931e6ab0f5360c2f6b2f564333ea6ab1f93324`: Native/Linux warnings/errors/stderr 0, 실제 다중 target API 2 + 독립 창 화면 2 PASS. 실제 CRLF pull/fresh LF 및 canonical/exact 74개, 변조/인코딩/BOM/binary/budget 거절 PASS |
 
 기본 [화면](evidence/v536-information-function-contracts/primary.png)과 독립 [화면](evidence/v536-information-function-contracts/detached.png), CSS 근거 `layout-evidence.json`을 남겼다. 전체 화면의 pixel 일치나 native 조작을 검증했다는 뜻이 아니다.
 
 ## 배포와 제한
 
-로컬 패키지 경로는 `/workspace/artifacts/v536-information-function-contracts/Windows-x64`, 진입점은 `Confectory.exe`다. 마지막 source guard 수정 후 다시 만든 패키지를 검사했다. manifest SHA-256은 `76d88adfb9b228c3fcf4649ee3753cedf7273dc3051ee5231209ad05c1cf8a51`이며, 바뀐 source 9개와 Native DLL의 패키지 byte 일치를 확인했다. 테스트/인증/프로필/로그 경로는 manifest에 없다. 로컬 경로는 Library 첨부 전달 성공을 뜻하지 않는다. 실제 Windows apphost/WebView2·모바일 기기·Library 전달은 미검증이다. 생성 빌드·프로필·로그·인증 자료를 Git에 포함하지 않는다.
+로컬 패키지 경로는 `/workspace/artifacts/v536-information-function-contracts/Windows-x64`, 진입점은 `Confectory.exe`다. 마지막 source guard 수정 후 다시 만든 패키지를 검사했다. manifest SHA-256은 `76d88adfb9b228c3fcf4649ee3753cedf7273dc3051ee5231209ad05c1cf8a51`이며, 바뀐 source 9개와 Native DLL의 패키지 byte 일치를 확인했다. 테스트/인증/프로필/로그 경로는 manifest에 없다. 로컬 경로는 Library 첨부 전달 성공을 뜻하지 않는다. 실제 Windows apphost/WebView2·모바일 기기·Library 전달은 미검증이다. 생성 빌드·프로필·로그·인증 자료를 Git에 포함하지 않는다. 실행 source는 `19931e6ab0f5360c2f6b2f564333ea6ab1f93324`에 대응하며 이후 문서 마감은 실행 파일을 바꾸지 않는다.
 
 한 직접 소유 함수의 검증된 계약 변경을 지원한다. C# 재작성·nested consumer·전체 본문 문맥/저장소 전달, 등록/복사 출처의 이 경로 수용, 연결된 출력의 전체 편집과 여러 함수 동시 후보는 미완료 또는 명시 거절이다. 공개 출력은 호출 후 SourceContext 의미이며 프로젝트/외부 공유 권한으로 확장하지 않는다. I5-1~5를 보존하며 나머지 UI 범위를 이번 변경에 섞지 않았다.
