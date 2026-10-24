@@ -45,6 +45,6 @@ Release solution 빌드 경고/오류0, 최신 Linux 엔진 생성 warnings0/리
 
 ## 새 타입 편집의 실제 프로젝트 전환 추가 수용
 
-`tests/web/v536_field_projects.py` 4개 통과: 동일 namespace/정보 이름의 서로 다른 실제 프로젝트 A/B에 다른 cardinality·exact64·새 reference 후보를 만들고, Home의 실제 프로젝트 전환 뒤 은퇴한 A Save 콜백을 호출해 B 요청/적용/입력 삭제가 없음을 확인했다. A에만 후보를 저장하고 B checkpoint/미저장 입력과 양쪽 원본이 그대로이며, 프로세스 재시작 및 양방향 재진입에서도 분리 복원된다. 격리 fixture만 사용했다. 이번 후속은 검사와 문서만 변경하며 `9958534`의 실행 코드 및 Windows 로컬 패키지는 그대로다.
+`tests/web/v536_field_projects.py` 4개 통과: 동일 namespace/정보 이름의 서로 다른 실제 프로젝트 A/B에 다른 cardinality·exact64·새 reference 후보를 만들고, Home의 실제 프로젝트 전환 뒤 은퇴한 A Save 콜백을 호출해 B 요청/적용/입력 삭제가 없음을 확인했다. A에만 후보를 저장하고 B checkpoint/미저장 입력과 양쪽 원본이 그대로이며, 프로세스 재시작 및 양방향 재진입에서도 분리 복원된다. 격리 fixture만 사용했다. 이 프로젝트 전환 검사 단위(`39b82f5`/`1d490d4`)는 검사·문서만 변경했다. root와 별도 깨끗한 checkout에서 각각 4개를 완주했다. 이어서 연결한 정보 부모 adapter는 [별도 검증 기록](VALIDATION_V536_INFORMATION_PARENT.md)으로 구분한다.
 
 I4 후속 조사에서 원본 정보 카드의 부모 선택은 schema 상속이 아닌 info 카테고리/Root 분류임을 확인했다(`app.js`의 `browserHierarchyParent`, `openObjectParentPicker`, `canMoveBrowserObject`, `moveBrowserObject`). 현재 native 분류 저장은 `BrowserFolderLayout`/`MoveFolders`가 `editorFolder`를 사용해 상속과 구별한다. 해당 헤더 adapter를 연결하는 것이 원본 복원 범위이며 schema 상속 UI를 임의 추가하지 않는다. I5/I6/B2는 이 검사 후속에서 구현하지 않았다.
