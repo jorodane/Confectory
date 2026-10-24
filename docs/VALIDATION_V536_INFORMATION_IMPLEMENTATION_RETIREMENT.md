@@ -31,10 +31,16 @@
 | 실제 renderer 기본/독립 normal | 각각 4 PASS. 확인창 취소·inert 정리·Undo/Redo·Browser 복구·cold·삭제/복구 Review 취소/Confirm·복구 취소 후 재복구 |
 | 실제 renderer 추가 경계 | 기본/독립 쓰기 거절 각각 1, 독립 응답/결과조회 유실+cold 1, 다른 창 원문/exact64 1, 실제 source 경합 1, 기본/독립 실제 프로젝트 A/B 전환 각각 1 PASS. 합계 7 |
 | 기존 지원 회귀 | 함수 전체 삭제 UI 5 + 독립 본문 편집 UI 5 + 함수 archive readonly API 3 PASS |
-| 깨끗한 checkout 재현 | 진행 예정 |
-| Windows x64 교차 패키지·runtime probe | 새 native 계약 검증 추가 후 최종 재패키징 예정 |
+| 깨끗한 checkout `b7f06f3b308c8d6aabb9a6fc6c6a870a885a0088` | native SDK/Linux 엔진 경고·오류 0, 별도 native 16 + view API 4 + 실제 view UI 4 PASS, 실제 CRLF pull/fresh LF와 73리소스·변조/encoding/BOM/binary/budget 거절 PASS |
+| Windows x64 교차 패키지·runtime probe | 최종 2,326파일 구성·무관 cwd/runtime-only 엔진 웹 기동·73리소스·최소 로그인 화면·변조/누락 dependency 거절·fixture 기존 프로필 보존 PASS |
 
 새 renderer는 normal 8건과 추가 경계 7건으로 총 15건이며, 기존 회귀 10건은 별도다. fixture만 사용했고 실제 사용자 프로젝트 실행·영구 삭제·로그인·권한부여·유료 추론을 하지 않았다.
+
+## 재현 snapshot과 패키지
+
+구현 snapshot은 `b7f06f3b308c8d6aabb9a6fc6c6a870a885a0088`다. 이 snapshot을 깨끗한 checkout으로 정상 fast-forward하고 native SDK/Linux 엔진을 다시 만들어 새 helper/독립 view 계약/실제 화면을 재현했다. 별도 재현 24건을 root 결과와 중복 합산하지 않는다. 검증 문서 커밋은 runtime에 포함하지 않는다.
+
+로컬 패키지는 `/workspace/artifacts/v536-implementation-retirement/Windows-x64`이며 전체 폴더를 함께 두고 `Confectory.exe`를 연다. manifest SHA-256은 `e651f1b42b7705d902f8367b8ae3c8c9e4914202c1867fd02371fef06a25445b`다. 패키지의 SDK·소스·UI resource가 위 snapshot과 같음을 확인했다. 패키지와 프로필·로그·사용자 자료는 Git에 넣지 않았다.
 
 ## 확인하고 고친 결함
 
