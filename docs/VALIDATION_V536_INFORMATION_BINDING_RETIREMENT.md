@@ -39,9 +39,12 @@
 | 화면 취소·다른 창 입력 | 독립 창 3 PASS: Undo/Redo·복구 메뉴·cold·변경 취소 동안 다른 창의 설명과 exact64 입력 2개를 보존 |
 | 화면 동시 입력 | 독립 창 1 PASS: 계획 뒤 peer 원문은 유지하며 연결·checkpoint 전체 미적용. DSL의 한글 JSON escape는 파싱해서 확인 |
 | 화면 미확정 copy·공유 자체 함수 | 독립 창 각각 3 PASS: 기존 원문/등록 보존, 완전 Review/Confirm·취소·cold·복구 흐름 |
+| 깨끗한 checkout 재현 | 소스 `2d0f3e58c4310fabab03e2966e5fbb6106ca0bda`, Native/Linux build warnings·errors 0, 미확정 copy 실제 API 3 + 독립 창 공유 자체 함수 실제 화면 3 PASS |
+| 리소스 checkout | 실제 CRLF 유지 후 pull 및 fresh LF, canonical/exact 74개·내용/인코딩/BOM/binary/budget 거절·원래 byte 보존 PASS |
+| Windows 교차 패키지 | win-x64 PE 구성 2328파일, 패키지 엔진 runtime-only 웹 기동과 74개 리소스·최소 연결창 렌더 PASS; Windows apphost/WebView2 실행 미검증 |
 | 영향받는 실제 API 회귀 | I5-1 창별 module basis 4, I5-3 삭제 후 새 구현 4, I5-4 함수 전체 삭제 4 PASS |
 
-실제 API 16개 check, 실제 화면 9회 실행의 22개 check를 통과했다. 회차/fixture가 다른 중첩 시나리오의 검사 수이며 서로 다른 기능 수를 뜻하지 않는다. Windows x64 교차 패키지 생성과 구성 검사, SDK가 없는 runtime-only 환경에서 패키지 엔진의 실제 web 기동·74개 리소스·기존 프로필 재사용·변조/누락 의존성 거절을 통과했다. 현재 소스/Native와 패키지 7개 핵심 파일의 byte 일치를 확인했다. 깨끗한 checkout은 아래 후속 검증에서 기록한다. 실제 Windows apphost/WebView2, 실제 모바일 기기와 Library 전달은 미검증이다. 생성 빌드·로그·프로필을 Git에 포함하지 않는다.
+실제 API 16개 check, 실제 화면 9회 실행의 22개 check를 통과했다. 회차/fixture가 다른 중첩 시나리오의 검사 수이며 서로 다른 기능 수를 뜻하지 않는다. Windows x64 교차 패키지 생성과 구성 검사, SDK가 없는 runtime-only 환경에서 패키지 엔진의 실제 web 기동·74개 리소스·기존 프로필 재사용·변조/누락 의존성 거절을 통과했다. 현재 소스/Native와 패키지 7개 핵심 파일의 byte 일치를 확인했다. 별도 깨끗한 checkout의 재빌드·실제 API 3개 및 화면 3개 재현도 통과했다. 이 6개는 앞선 16/22개 회귀와 별도 재현 횟수다. 실제 Windows apphost/WebView2, 실제 모바일 기기와 Library 전달은 미검증이다. 생성 빌드·로그·프로필을 Git에 포함하지 않는다. 패키지 manifest에 이 작업의 테스트 스크립트·인증 파일·프로필·로그가 없음을 확인했고, 테스트 전용 우회 API를 제품에 추가하지 않았다.
 
 ## 로컬 패키지와 화면 근거
 
