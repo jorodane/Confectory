@@ -266,9 +266,9 @@ async function informationArchiveAction(receipt,action,alive=()=>true,surface=nu
   throw Error('삭제·복구 결과를 확인하지 못했어요. 재전송 전에 결과를 확인하며 입력은 보관해요. [archive-outcome]');}
 }
 async function removeOwnFunction(w,schema,method){
- const scope=current.projectId,alive=()=>current.projectId===scope&&windows.get(w.key)===w&&w.elementScope===scope&&w.elementSchema?.id===schema.id;
+ const scope=current.projectId;if(w.elementScope!==scope||windows.get(w.key)!==w)return;const surface=informationArchiveSurface(w,schema),alive=()=>current.projectId===scope&&windows.get(w.key)===w&&w.elementScope===scope&&w.elementSchema?.id===schema.id&&(!surface||current.editorViews?.some(row=>row.view===surface.view&&row.id===schema.id&&row.authorBinding===surface.viewBinding));
  if(!alive()||method.writable===false)return;
- return requestBrowserRemoval([method.id],alive,{owner:schema.id,hash:schema.textHash,functionHash:method.hash,label:method.name,window:w,function:method.id});
+ return requestBrowserRemoval([method.id],alive,{owner:schema.id,hash:schema.textHash,functionHash:method.hash,label:method.name,window:w,function:method.id,surface});
 }
 function informationArchiveSurface(w,schema){if(!w.meta.view)return null;const row=current.editorViews?.find(row=>row.view===w.meta.view&&row.id===schema.id&&row.mode==='properties');if(!row?.authorBinding)throw Error('정보 편집창의 연결이 바뀌었어요. 입력은 유지됩니다.');return {view:row.view,id:schema.id,viewBinding:row.authorBinding};}
 async function removeOwnImplementation(w,schema,method){const scope=current.projectId,surface=informationArchiveSurface(w,schema),alive=()=>current.projectId===scope&&windows.get(w.key)===w&&w.elementScope===scope&&w.elementSchema?.id===schema.id&&(!surface||current.editorViews?.some(row=>row.view===surface.view&&row.id===schema.id&&row.authorBinding===surface.viewBinding));if(!alive()||method.writable===false)return;return requestBrowserRemoval([method.id],alive,{owner:schema.id,hash:schema.textHash,functionHash:method.hash,label:method.name,window:w,function:method.id,mode:'implementation-only-v1',surface});}
