@@ -1,6 +1,6 @@
 # v536 연결 현황과 중간 빌드 준비 조건
 
-2026-10-24 최신 한정 작업은 `VALIDATION_V536_RAW_COPY_SAVE.md`의 raw·기본 요소 typed 입력·새 private copy 원자 Save다. 아래 후속 문단은 시점별 기록이며, 이전 문단의 미지원 상태를 최신 지원으로 오해하지 않는다. UI 기준은 지정된 `origin/main` `196c605`의 원본 v536 ZIP이고 첨부 ZIP과의 바이트 동일성은 미확인이다. 묶음별 통과는 전체 UI 복원이나 Windows 실기기 수용을 뜻하지 않는다.
+2026-10-24 최신 수용은 `VALIDATION_V536_UI_ACCEPTANCE.md`다. 등록 callable/저장 복사본·소유 두 target ABI와 모바일/문서/프로젝트 전환의 기존 지원 경로를 교차 검증했다. 원문·복사본의 지원 조합은 `VALIDATION_V536_RAW_COPY_SAVE.md`를 따른다. 아래 후속 문단은 시점별 기록이며, 이전 문단의 미지원 상태를 최신 지원으로 오해하지 않는다. UI 기준은 지정된 `origin/main` `196c605`의 원본 v536 ZIP이고 첨부 ZIP과의 바이트 동일성은 미확인이다. 묶음별 통과는 전체 UI 복원이나 Windows 실기기 수용을 뜻하지 않는다.
 
 현재 남은 범위는 다음과 같다.
 
