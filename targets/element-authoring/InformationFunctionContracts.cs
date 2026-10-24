@@ -4,14 +4,34 @@ using System.Text.Json.Nodes;
 // One pure owned-function closure. Never rewrites C# or writes source files.
 internal static class InformationFunctionContracts
 {
+ // Read-only targets for the existing explicit call-input picker. Save repeats
+ // the complete closure validation; this snapshot never grants write access.
+ public static JsonObject Inputs(JsonObject request)
+ {
+  string owner=request["id"]!.ToString(),function=request["function"]!.ToString(),ns=PackPaths.Namespace(owner);
+  var units=request["units"]!.AsObject();var schema=new Parser(units[owner]!["draft"]!.ToString(),"<input-owner>").ParseElement();
+  if(schema.Kind!="schema"||!schema.Contains.Any(c=>c.Id==function&&c.Kind=="function")||!function.StartsWith(owner+"_Function_",StringComparison.Ordinal))throw new InvalidOperationException("Direct owned information function required");
+  var original=new Parser(units[function]!["draft"]!.ToString(),"<input-contract>").ParseElement();var result=new JsonObject();
+  foreach(var entry in units){if(entry.Value?["kind"]?.ToString()!="implementation")continue;var d=new Parser(entry.Value["draft"]!.ToString(),"<input-consumer>").ParseElement();if(!d.Imports.Values.Any(i=>i.Id==function))continue;
+   if(!entry.Key.StartsWith(ns+"::",StringComparison.Ordinal)||d.Parent is not null||d.Bodies.Count is <1 or >8)throw new InvalidOperationException("Direct owned caller and all targets required");
+   foreach(var body in d.Bodies){if(body.Value.SourceKind!="blueprint")throw new InvalidOperationException("C# caller inputs require explicit source editing");string id=d.Id+"/body:"+body.Key;var unit=units[id]??throw new InvalidOperationException("Caller snapshot missing");var g=JsonNode.Parse(unit["draft"]!.ToString())!.AsObject();if(g["nodes"]!.AsArray().Any(n=>n!["kind"]?.ToString()=="graph"))throw new InvalidOperationException("Nested callers retain their own explicit contract context");
+    foreach(var call in g["nodes"]!.AsArray().Where(n=>n!["kind"]?.ToString()=="call"&&n["feature"]?.ToString()==function)){
+     if(!JsonNode.DeepEquals(call!["signature"],FeatureBlueprint.SignatureDocument(original.Signature!)))throw new InvalidOperationException("Caller contract changed; retain input");
+     result.Add(id+"#"+call["id"]!.ToString(),new JsonObject{["graph"]=id,["node"]=call["id"]!.DeepClone(),["hash"]=JsonData.HashBytes(System.Text.Encoding.UTF8.GetBytes(unit["draft"]!.ToString())),["before"]=call["signature"]!.DeepClone(),["bindings"]=new JsonObject(call["arguments"]!.AsObject().Select(p=>KeyValuePair.Create<string,JsonNode?>(p.Key,JsonValue.Create(p.Value?.ToJsonString()??"null"))))});if(result.Count>64)throw new ArgumentException("Caller input selection budget");
+    }
+   }
+  }
+  return result;
+ }
  public static JsonObject Prepare(JsonObject request, Element original, Element requested, JsonObject mapping, Func<Element,string> format)
  {
   string Hash(string text)=>JsonData.HashBytes(System.Text.Encoding.UTF8.GetBytes(text));
   var units=request["units"]?.AsObject()??throw new InvalidOperationException("Read the complete function usage snapshot before changing its contract");
   string project=request["project"]!.ToString(),owner=request["id"]!.ToString(),ns=PackPaths.Namespace(owner),root=Path.GetDirectoryName(Path.GetFullPath(project))!;
   var manifest=new Parser(request["manifest"]!.ToString(),"<contract-registration>").ParseManifest();
-  if(units.Count>2048||mapping.Count!=2||mapping.Any(p=>p.Key is not ("before" or "args"))||!JsonNode.DeepEquals(mapping["before"],FeatureBlueprint.SignatureDocument(original.Signature!)))throw new InvalidOperationException("Exact original function and explicit pin identities required");
+  if(units.Count>2048||mapping.Count!=(mapping["callers"] is null?2:3)||mapping.Any(p=>p.Key is not ("before" or "args" or "callers"))||!JsonNode.DeepEquals(mapping["before"],FeatureBlueprint.SignatureDocument(original.Signature!)))throw new InvalidOperationException("Exact original function and explicit pin identities required");
   var remap=mapping["args"]!.AsObject();var old=original.Signature!;var next=requested.Signature!;
+  var callerPlans=mapping["callers"]?.AsObject()??new JsonObject();var selectedCallers=new HashSet<string>(StringComparer.Ordinal);if(callerPlans.Count>64)throw new ArgumentException("Caller selection budget");
   if(remap.Count!=old.Args.Count||old.Args.Any(a=>!remap.ContainsKey(a.Name)))throw new ArgumentException("Map every original function pin explicitly");
   var mapped=new HashSet<string>(StringComparer.Ordinal);
   foreach(var pair in remap)if(pair.Value is not null){string name=pair.Value.GetValue<string>();if(!mapped.Add(name)||!next.Args.Any(a=>a.Name==name))throw new ArgumentException("One original pin per selected destination");}
@@ -40,7 +60,25 @@ internal static class InformationFunctionContracts
    string originalImplementation=texts[d.Id];var graphs=new Dictionary<string,JsonObject>(StringComparer.Ordinal);
    foreach(var body in d.Bodies){string id=d.Id+"/body:"+body.Key;var graph=JsonNode.Parse(Unit(id,"blueprint",body.Value.Path)["draft"]!.ToString())!.AsObject();var previous=graph.DeepClone().AsObject();
     if(implementation){var one=new Parser(originalImplementation,"<contract-target>").ParseElement();one.Bodies=new(){[body.Key]=body.Value};var prepared=BlueprintRootContract.Prepare(new JsonObject{["functionText"]=texts[original.Id],["text"]=format(one),["bodyTarget"]=body.Key,["graph"]=graph,["plan"]=new JsonObject{["args"]=FeatureBlueprint.SignatureDocument(next)["args"]!.DeepClone(),["returnType"]=next.Return,["remap"]=remap.DeepClone()}},format);graph=prepared["graph"]!.AsObject();var fn=new Parser(prepared["function"]!.ToString(),"<updated-published-contract>").ParseElement();if(!BlueprintOutputSnapshot.Read(fn).SequenceEqual(BlueprintOutputSnapshot.Read(requested)))throw new InvalidOperationException("Every target must agree on published output identities");}
-    if(consumer){if(graph["nodes"]!.AsArray().Any(n=>n!["kind"]?.ToString()=="graph"))throw new InvalidOperationException("Select nested function uses in their own contract context; all input retained");foreach(var node in graph["nodes"]!.AsArray().Where(n=>n!["kind"]?.ToString()=="call"&&n["feature"]?.ToString()==original.Id)){var call=node!.AsObject();if(!JsonNode.DeepEquals(call["signature"],FeatureBlueprint.SignatureDocument(old)))throw new InvalidOperationException("Caller contract was already stale");if(call["postCall"] is not null&&!sameNames)throw new InvalidOperationException("C# call wrapper rewriting requires explicit source editing; all inputs retained");var args=call["arguments"]!.AsObject();var bound=new JsonObject();var used=new HashSet<string>(StringComparer.Ordinal);foreach(var arg in next.Args.Where(a=>!a.IsOut)){var from=old.Args.SingleOrDefault(a=>!a.IsOut&&remap[a.Name]?.ToString()==arg.Name);if(from is null||from.Type!=arg.Type||from.Mode!=arg.Mode||!args.ContainsKey(from.Name))throw new InvalidOperationException("Explicit compatible existing caller storage required for every input");bound[arg.Name]=args[from.Name]?.DeepClone();used.Add(from.Name);}if(args.Any(p=>!used.Contains(p.Key)&&p.Value is not null))throw new InvalidOperationException("Disconnect removed caller input explicitly; no data is discarded");call["arguments"]=bound;call["signature"]=FeatureBlueprint.SignatureDocument(next);
+    if(consumer){if(graph["nodes"]!.AsArray().Any(n=>n!["kind"]?.ToString()=="graph"))throw new InvalidOperationException("Select nested function uses in their own contract context; all input retained");foreach(var node in graph["nodes"]!.AsArray().Where(n=>n!["kind"]?.ToString()=="call"&&n["feature"]?.ToString()==original.Id)){var call=node!.AsObject();if(!JsonNode.DeepEquals(call["signature"],FeatureBlueprint.SignatureDocument(old)))throw new InvalidOperationException("Caller contract was already stale");if(call["postCall"] is not null&&!sameNames)throw new InvalidOperationException("C# call wrapper rewriting requires explicit source editing; all inputs retained");var args=call["arguments"]!.AsObject();var bound=new JsonObject();var used=new HashSet<string>(StringComparer.Ordinal);
+     string selectionKey=id+"#"+call["id"]!.ToString();var selection=callerPlans[selectionKey]?.AsObject();JsonObject? inputMap=null,disconnect=null;
+     if(selection is not null){
+      if(selection.Count!=5||selection.Any(p=>p.Key is not ("graph" or "node" or "hash" or "inputs" or "disconnect"))||selection["graph"]?.ToString()!=id||selection["node"]?.ToString()!=call["id"]!.ToString()||selection["hash"]?.ToString()!=Hash(units[id]!["draft"]!.ToString()))throw new InvalidOperationException("Explicit caller source changed; all input retained");
+      inputMap=selection["inputs"]!.AsObject();disconnect=selection["disconnect"]!.AsObject();if(inputMap.Count!=next.Args.Count(a=>!a.IsOut)||inputMap.Any(p=>!next.Args.Any(a=>!a.IsOut&&a.Name==p.Key)))throw new ArgumentException("Select every current caller input explicitly");selectedCallers.Add(selectionKey);
+     }
+     foreach(var arg in next.Args.Where(a=>!a.IsOut)){
+      var from=old.Args.SingleOrDefault(a=>!a.IsOut&&remap[a.Name]?.ToString()==arg.Name);
+      JsonNode? choice=inputMap is null?from is null?null:JsonValue.Create(from.Name):inputMap[arg.Name];
+      if(choice is JsonValue name&&name.TryGetValue<string>(out var previousName)){
+       var previousArg=old.Args.SingleOrDefault(a=>!a.IsOut&&a.Name==previousName);
+       if(previousArg is null||previousArg.Type!=arg.Type||previousArg.Mode!=arg.Mode||!args.ContainsKey(previousName)||!used.Add(previousName))throw new InvalidOperationException("Select one exact compatible existing caller binding per input");bound[arg.Name]=args[previousName]?.DeepClone();
+      }else if(choice is JsonObject literal&&literal.Count==1&&literal["valueJson"] is JsonValue raw&&raw.TryGetValue<string>(out var json)&&json.Length<=65536&&arg.Mode is null){
+       using var parsed=System.Text.Json.JsonDocument.Parse(json);bound[arg.Name]=new JsonObject{["constant"]=JsonNode.Parse(parsed.RootElement.GetRawText())};
+      }else throw new InvalidOperationException("Every new caller input needs an explicit value or existing storage; no value is inferred");
+     }
+     foreach(var pair in args)if(!used.Contains(pair.Key)&&pair.Value is not null){if(disconnect is null||!disconnect.ContainsKey(pair.Key)||disconnect[pair.Key]?.ToString()!=pair.Value.ToJsonString()||remap[pair.Key] is not null)throw new InvalidOperationException("Explicitly disconnect each removed caller binding; no data is discarded silently");}
+     if(disconnect is not null&&disconnect.Any(p=>!args.ContainsKey(p.Key)||used.Contains(p.Key)||remap[p.Key] is not null||p.Value?.ToString()!=(args[p.Key]?.ToJsonString()??"null")))throw new InvalidOperationException("Disconnect only the exact original removed input binding");
+     call["arguments"]=bound;call["signature"]=FeatureBlueprint.SignatureDocument(next);
      string? Output(string name)=>name=="return"?old.Return==next.Return?"return":null:remap[name]?.ToString();
      void Rebind(JsonNode? value){if(value is JsonObject o){if(o["node"]?.ToString()==call["id"]!.ToString()){string name=o["output"]?.ToString()??"return",to=Output(name)??throw new InvalidOperationException("A removed caller output is still connected");if(to=="return")o.Remove("output");else o["output"]=to;return;}foreach(var p in o.ToArray())Rebind(p.Value);}else if(value is JsonArray array)foreach(var v in array)Rebind(v);}
      Rebind(graph);if(call["postCall"] is JsonObject post){var snapshot=BlueprintOutputSnapshot.Prepare(requested);post["contractHash"]=snapshot["contractHash"]!.DeepClone();if(post["mode"]?.ToString()=="execution-enum")BlueprintCallWrapper.Prepare(requested,call["executionEnum"]!.AsObject(),post["contractHash"]!.ToString(),post["source"]!.ToString(),post["helpers"]?.ToString()??"",post["returnMapping"]?.GetValue<string>());else if(post["mode"] is null)BlueprintCallAfter.Prepare(requested,post["contractHash"]!.ToString(),post["source"]!.ToString(),post["helpers"]?.ToString()??"");else throw new InvalidOperationException("Known explicit call wrapper required");}
@@ -56,6 +94,7 @@ internal static class InformationFunctionContracts
    }
    Put(d.Id,d.Kind,manifest.Elements[d.Id[(ns.Length+2)..]].Path,DeclarationTextMerge.MergeContract(texts[d.Id],format(d),format));
   }
+  if(callerPlans.Any(p=>!selectedCallers.Contains(p.Key)))throw new InvalidOperationException("An explicitly selected caller no longer exists; all input retained");
   return new JsonObject{["function"]=format(requested),["updates"]=updates,["observations"]=new JsonArray(observations.Select(p=>(JsonNode)new JsonObject{["path"]=p.Key,["hash"]=p.Value}).ToArray())};
  }
 }
