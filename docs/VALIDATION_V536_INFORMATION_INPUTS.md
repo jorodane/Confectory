@@ -28,6 +28,14 @@
 
 [기본 창](evidence/v536-information-inputs/primary.png)과 [독립 창 삭제](evidence/v536-information-inputs/detached-delete.png), [640×500 기존 선택창 스크롤](evidence/v536-information-inputs/picker-small.png)을 확인했다. CSS의 baseline byte 일치는 `layout-evidence.json`에 기록했다. 전체 화면 pixel 일치나 native 기기 검증이라는 뜻은 아니다.
 
+## checkout·패키지
+
+소스 커밋 `df9b3d2f1723cbfdc0eceaa152aa1083536b4844`의 깨끗한 checkout에서 Native SDK 컴파일과 Linux 엔진 재생성은 경고/오류/stderr 0으로 통과했다. 새 API의 두 호출 동시 후보·거절 보호·cold·compiler Confirm 3 check도 통과했다. 같은 checkout의 독립 창에서 명시 값 선택·Undo/Redo·cold 입력 복원과 저장/조회 응답 유실 뒤 receipt 확인 2 check도 통과했다. 중복 apply 없이 보관 후보를 복원했고 stderr는 비어 있다. 전체 solution/full suite를 반복했다는 뜻은 아니다.
+
+기존 등록 callable 일반 ABI의 실제 선택창·명시 대응·취소·raw 입력/cold·저장·Review/Confirm 4 check를 추가 확인했다. 실제 Git CRLF pull/fresh LF 74개 리소스와 내용/인코딩/BOM/binary/budget 거절도 통과했다.
+
+최종 Windows x64 교차 패키지는 `/workspace/artifacts/v536-information-inputs/Windows-x64`의 2,330개 파일이며 진입점은 `Confectory.exe`다. manifest SHA-256은 `e44803e0ea202d27f4913cd05b2f445be098c83ef5b7a78466b5eb61c54b630a`다. 바뀐 실행 source 6개와 Native DLL의 byte 일치를 대조했다. SDK 없는 별도 런타임, 다른 cwd에서 실제 패키지 웹 엔진 기동·74개 리소스·최소 연결창 렌더·변조/누락 의존성 거절·격리된 기존 profile 재사용을 확인했다. 테스트/프로필/로그는 패키지 manifest에 없다. 생성 패키지·프로필·로그·인증 자료는 Git에 포함하지 않는다. 실제 Windows apphost/WebView2 실행이나 Library 첨부 전달을 뜻하지 않는다.
+
 ## 지원과 잔여
 
 검증된 범위는 일반 `long` 새 입력의 명시 값/기존 바인딩 선택과 구현이 사용하지 않는 `long` 입력의 명시적 caller 연결 해제다. UI의 기본형 직접 값은 기존 typed JSON/서버 타입 검사를 재사용한다. 여러 직접 호출을 모두 선택하며 하나라도 부적합하면 모두 거절한다. 새 입력을 기존 코드에서 사용하도록 본문을 자동 변경하지 않는다.
