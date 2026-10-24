@@ -12,7 +12,7 @@ export function captureMixedCell(value,schema,valueJson){
  if(value.kind==='description')return {type:'description',text:value.text};
  if(value.kind==='parent')return {type:'parent',value:value.value};
  if(value.kind==='modules')return {type:'modules',ids:structuredClone(value.value)};
- if(value.kind==='definition'){if(!/^[A-Za-z_][A-Za-z_0-9]*$/.test(value.name))throw Error('새 속성 이름을 확인해 주세요. 입력은 유지됩니다.');return {type:'definition',name:value.name,nativeType:value.type,valueJson:valueJson({value:value.text,type:value.type==='bool'?'checkbox':'text',checked:value.text==='true'},{type:value.type,inputKind:value.type==='bool'?'boolean':value.type==='string'?'text':'number',kind:'general',cardinality:'single'})};}
+ if(value.kind==='definition'){if(!/^[A-Za-z_][A-Za-z_0-9]*$/.test(value.name))throw Error('새 속성 이름을 확인해 주세요. 입력은 유지됩니다.');if(value.information)return {type:'information-definition',name:value.name,schema:value.information.id,sources:structuredClone(value.information.sources),valueJson:printTypedJson(parseTypedJson(value.text))};return {type:'definition',name:value.name,nativeType:value.type,valueJson:valueJson({value:value.text,type:value.type==='bool'?'checkbox':'text',checked:value.text==='true'},{type:value.type,inputKind:value.type==='bool'?'boolean':value.type==='string'?'text':'number',kind:'general',cardinality:'single'})};}
  if(value.dataType==='bool'&&!['true','false'].includes(value.text))throw Error('조건 값은 true 또는 false로 입력해 주세요. 원문은 유지됩니다.');
  const row=rowAt(schema,value.path);if(!['field','unset'].includes(value.kind)||!row?.writable||!['general','compound','reference'].includes(row.kind)||value.kind==='unset'&&!row.localOverride)throw Error('이 속성 입력은 함께 저장할 수 없어요. 입력은 유지됩니다.');
  const change={type:value.kind==='unset'?'unset':'data',path:structuredClone(value.path),contract:mixedFieldContract(row)};
@@ -26,7 +26,7 @@ export function mixedCellMatches(key,value,change,start){
  if(value.kind==='description')return key===start+'description'&&change.type==='description'&&change.text===value.text;
  if(value.kind==='parent')return key===start+'parent'&&change.type==='parent'&&same(change.value,value.value);
  if(value.kind==='modules')return key===start+'modules'&&change.type==='modules'&&same(change.ids,value.value);
- if(value.kind==='definition')return key.startsWith(start+'definition:')&&change.type==='definition'&&change.name===value.name&&change.nativeType===value.type&&typeof value.text==='string'&&change.valueJson===capturedValue(value,value.type);
+ if(value.kind==='definition')return key.startsWith(start+'definition:')&&change.name===value.name&&typeof value.text==='string'&&(value.information?change.type==='information-definition'&&change.schema===value.information.id&&same(change.sources,value.information.sources)&&change.valueJson===printTypedJson(parseTypedJson(value.text)):change.type==='definition'&&change.nativeType===value.type&&change.valueJson===capturedValue(value,value.type));
  return ['field','unset'].includes(value.kind)&&key===start+JSON.stringify(value.path)&&same(value.path,change.path)&&(value.kind==='unset'?change.type==='unset':['scalar','data'].includes(change.type)&&typeof value.text==='string'&&change.valueJson===capturedValue(value,value.dataType??change.nativeType??change.contract?.type));
 }
 export function receiptFieldProof(value,change,schema){

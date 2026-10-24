@@ -1,0 +1,23 @@
+using Confectory.Core;
+using System.Text;
+using System.Text.Json.Nodes;
+
+// Read-only named information choices. No defaults are inferred for references,
+// executable fields, imported definitions or application-specific metadata.
+internal static class InformationTypes
+{
+ public static JsonArray Query(JsonObject request,Func<Manifest,string> formatManifest)
+ {
+  string project=request["project"]!.GetValue<string>(),manifest=request["manifest"]!.GetValue<string>();var registration=new Parser(manifest,"<information-registration>").ParseManifest();var drafts=request["drafts"]!.AsArray();if(drafts.Count>255)throw new ArgumentException("Information catalogue budget");var schemas=drafts.Where(row=>new Parser(row!["text"]!.GetValue<string>(),"<information-source>").ParseElement().Kind=="schema").ToArray();if(schemas.Length>64)throw new ArgumentException("Information choice budget");var result=new JsonArray();
+  bool Presentation(string key)=>key is "editorName" or "editorFolder"||key.StartsWith("editorFieldName_",StringComparison.Ordinal);
+  string Read(string path){var file=new FileInfo(path);if(!file.Exists||file.Length>1048576)throw new IOException("Information source budget");return File.ReadAllText(path);}
+  foreach(var source in schemas){string id=source!["id"]!.ToString(),text=source["text"]!.ToString();if(!id.StartsWith(registration.Namespace+"::",StringComparison.Ordinal))throw new ArgumentException("Owned information choice required");var row=new JsonObject{["id"]=id,["available"]=false};result.Add(row);
+   try{
+    var effective=EffectiveMetadata.Query(project,manifest,id,text,formatManifest,Read,new JsonArray(drafts.Where(d=>d!["id"]!.ToString()!=id).Select(d=>d!.DeepClone()).ToArray()),schemaView:true);if(effective["status"]?.ToString()!="available")throw new ArgumentException("Information definition unavailable");if(effective["values"]!.AsArray().Any(v=>!Presentation(v!["field"]!.ToString())))throw new ArgumentException("Inherited custom information defaults are not connected");var model=effective["schemaModel"]!.AsObject();var types=model["schemas"]!.DeepClone().AsObject();types[id]=new JsonObject{["fields"]=model["fields"]!.DeepClone()};var proofs=new JsonObject();int fields=0;
+    JsonObject Defaults(string schema,HashSet<string> path){if(path.Count>=16||!path.Add(schema))throw new ArgumentException("Recursive information defaults are not supported");if(!schema.StartsWith(registration.Namespace+"::",StringComparison.Ordinal))throw new ArgumentException("Imported information defaults are not connected");var observed=drafts.Single(d=>d!["id"]!.ToString()==schema)!;string raw=observed["text"]!.ToString();var parsed=new Parser(raw,"<information-defaults>").ParseElement();if(parsed.Values.Keys.Any(key=>!Presentation(key)))throw new ArgumentException("Custom information defaults are not connected");proofs[schema]=JsonData.HashBytes(Encoding.UTF8.GetBytes(raw));var value=new JsonObject();foreach(var field in types[schema]!["fields"]!.AsObject()){if(++fields>128)throw new ArgumentException("Information field budget");var shape=field.Value!;string origin=shape["origin"]!.ToString();if(!origin.StartsWith(registration.Namespace+"::",StringComparison.Ordinal))throw new ArgumentException("Imported information field is not connected");var original=drafts.Single(d=>d!["id"]!.ToString()==origin)!;proofs[origin]=JsonData.HashBytes(Encoding.UTF8.GetBytes(original["text"]!.ToString()));JsonNode Single()=>shape["kind"]!.ToString() switch{"compound"=>Defaults(shape["type"]!.ToString(),new(path,StringComparer.Ordinal)),"general"=>shape["type"]!.ToString() switch{"string"=>JsonValue.Create("")!,"bool"=>JsonValue.Create(false)!,"int" or "long" or "float" or "double"=>JsonValue.Create(0)!,_=>throw new ArgumentException("Information primitive is not connected")},_=>throw new ArgumentException("Information reference/function defaults need an explicit target")};value[field.Key]=shape["cardinality"]!.ToString()=="multiple"?new JsonArray(Single()):Single();}return value;}
+    var defaults=Defaults(id,new(StringComparer.Ordinal));foreach(var proof in proofs){var original=drafts.Single(d=>d!["id"]!.ToString()==proof.Key)!;if(new Parser(original["text"]!.ToString(),"<information-observed-defaults>").ParseElement().Values.Keys.Any(key=>!Presentation(key)))throw new ArgumentException("Nested/inherited custom information defaults are not connected");}row["types"]=types;row["sources"]=proofs;row["valueJson"]=defaults.ToJsonString();row["available"]=true;
+   }catch(ArgumentException){row["reason"]="이 정보의 기본값·참조 형식은 아직 연결되지 않았어요.";}catch(InvalidOperationException){row["reason"]="이 정보의 정의를 확인하지 못했어요. 입력은 유지됩니다.";}
+  }
+  return result;
+ }
+}

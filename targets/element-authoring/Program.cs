@@ -30,6 +30,7 @@ try
         case "blueprintCallAbiGroup":reply=BlueprintCallAbiGroup.Prepare(request,Format);break;
         case "blueprintCopyAbiBinding":reply=BlueprintCopyAbi.Bind(request);break;
         case "mixedOwnerCopyEdits":reply=MixedOwnerCopyEdits.Prepare(request,Format,FormatManifest);break;
+        case "informationTypes":reply=InformationTypes.Query(request,FormatManifest);break;
         case "blueprintAliases":reply=BlueprintAliases.Prepare(request);break;
         case "blueprintInputAdaptation":reply=BlueprintInputAdaptation.Prepare(request);break;
         case "blueprintFeatureBodies":reply=BlueprintFeatureBodies.Query(request);break;

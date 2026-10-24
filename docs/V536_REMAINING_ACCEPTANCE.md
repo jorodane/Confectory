@@ -17,3 +17,5 @@
 이미지 제공자/자산·이력, 협의·승자·공유 Confirm, 실행창 내장 렌더/FPS backend는 이 UI 복원 묶음에서 구현하지 않는다. Browser의 모든 source 범용 이동·외부 runtime Data·작업자 배지와 플랫폼 native 수용도 현황표의 제한을 유지한다. 실제 Windows/Android/터치·DPI는 미수용이다. UI 완료 후 Helper 에디터 도구 누락 감사는 별도 후속이며 기존 계정/동의가 Confirm·프로젝트 실행·다른 프로젝트 접근 권한으로 확대되지 않는다.
 
 후속 독립 properties View의 설명/기존 값/owner 후보는 `VALIDATION_V536_VIEW_SAVE.md`의 창별 한 후보/CAS·receipt/취소·프로젝트 전환 경계로 연결했다. 앞 표의 독립 View 미완료 중 해당 범위만 해제하며, 복합/중첩 **정의**와 raw source/다른 계획 결합은 남아 있다. 원본의 재사용 정보 정의·기본값과 기존 inline compound를 구별해야 하므로 임의 새 타입/버튼을 추가하지 않는다.
+
+후속 정보 picker 첫 단위는 `VALIDATION_V536_INFORMATION.md`다. 기존 소유 정보의 primitive/중첩·상속 fallback을 선택해 새 compound 정의와 owner 값/설명을 한 후보/CAS로 저장한다. 정보 원본/참조 대상을 임의 변경하지 않는다. 정보 자체 정의/custom 기본값·legacy inline 복합·raw source 결합은 미완료이며 전체 복합 정의 편집 완료로 세지 않는다.

@@ -31,3 +31,5 @@
 후속 root 표시 이름/삭제는 `VALIDATION_V536_SCHEMA_MUTATIONS.md`에 연결·검증 범위를 기록한다. stable native key를 표시 이름으로 rename하지 않으며, 삭제는 현재 owner 로컬 값과 같은 후보로 검사한다. 자손 데이터/Blueprint 참조는 거절한다. 복합/중첩 정의·독립 View/raw source 결합과 전체 ABI·모바일 수용은 여전히 미완료다.
 
 최신 독립 properties View Save: `VALIDATION_V536_VIEW_SAVE.md`. 설명과 기존 복합/정확한 숫자 값을 한 후보/CAS로 보관하고 자기 View receipt·취소·경합·프로젝트 전환·cold/Review/Confirm을 검증했다. source View/copy/타 owner는 허용하지 않는다. 복합/중첩 정의 생성 및 원본 정보 picker/기본값, raw source와 다른 계획의 결합은 미완료다. compound/reference native 타입은 존재하므로 backend 전체 부재와 구별한다.
+
+최신 정보 picker: `VALIDATION_V536_INFORMATION.md`. 소유 named schema의 중첩 primitive·상속 fallback/내부 multiple을 새 compound 정의로 선택하고 source hash proof와 owner 값·등록·설명을 한 후보에 결부한다. ref/function/imported/custom-default는 미연결로 표시한다. 정보 자체 정의/custom 기본값·legacy inline 변경과 raw source 결합은 다음 미완료다. native 타입 존재와 원본 UI 어댑터/기본값 계약 부족을 구분한다.
