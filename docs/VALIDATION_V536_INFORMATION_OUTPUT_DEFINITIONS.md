@@ -46,3 +46,5 @@
 기존 수용 레이아웃 `d4e3793`의 style/consumer/runtime CSS는 byte 동일하다. 실제 clean 엔진의 독립 정보 창에서 [상세 편집](evidence/v536-information-output-definitions/output-definition-popover.png)과 [값/삽입 위치 선택](evidence/v536-information-output-definitions/output-definition-mapping.png)을 열어 확인했다. 원본 상세창/계약 대응창에 필요한 field/select를 연결했으며 새 상시 패널이나 CSS를 만들지 않았다. 전체 화면 pixel/native 일치 검사는 아니다.
 
 로컬 패키지는 `/workspace/artifacts/v536-information-output-definitions/Windows-x64` 폴더 전체이고 Windows 진입점은 `Confectory.exe`다. source 커밋은 `233ce265ca22ae73a67ca9ed753b747a63d90485`, manifest SHA-256은 `754683e7c2ea371e6a3c9a2d2b93a89da3c113b9bbe864c9a29da7d1e9282833`이다. .NET Desktop Runtime 10 x64와 WebView2 Runtime 전제는 유지한다. 생성물은 Git에 넣지 않으며 Library로 전달하지 않았다.
+
+후속 다중 writer·비숫자 기존 출력 타입 변경/다른 exact-typed source 수용은 [출력 대응 기록](VALIDATION_V536_INFORMATION_OUTPUT_REMAP.md)으로 이어진다. 위 제한은 이 문서의 최초 단위 시점 기록이다.
