@@ -73,3 +73,5 @@ wrapper enum 특수 실행 핀 후속: 원본의 이름 우선 ID 대응을 복�
 Set backend 첫 묶음: legacy void Set을 유지하며 outputLocal/stored 분리 및 한 후보/checkpoint의 setPlan을 구현했다. Core7·실제 엔진9·복사 차단2의 범위와 한계는 `VALIDATION_V536_SET_BACKEND.md`를 따른다. 후속 원본 Set 카드/모바일 및 ordinary main-line 속성 읽기·쓰기 입력 연결은 `VALIDATION_V536_SET_UI.md`의 한정 범위로 검증했다. 전체 UI 완료가 아니다. 속성 읽기 정책은 사용자 결정으로 실행 시점 현재 값/재실행 재읽기/기존 출력 보존으로 확정했고 새 읽기→소비 작업 연결과 이전 출력 보존을 실제 UI/격리 CLR로 확인했다. mutable ref와 branch/private/copy 일반화는 남아 있다.
 
 후속 저장 copy ABI: 이미 확정된 직접 배치 복사본의 한 본문 값↔ref를 별도 후보/CAS·출처/소유자/최종 provider 검사에 연결했다(`VALIDATION_V536_SAVED_COPY_ABI.md`). 이 문단 이후의 새 private copy·다중 target·최소 혼합 지원은 위 최신 구분과 각각의 검증 문서를 따른다. 넓은 혼합은 미지원이다. 기존 원본 레이아웃과 전체 v536/실제 Windows 미완료 판정을 바꾸지 않는다.
+
+정보 자체 정의/custom 기본값의 후속 범위와 실패/수정/실제 검사·원본10영역 치수·Windows 교차 패키지는 `VALIDATION_V536_INFORMATION_DEFAULTS.md`에 구분했다. 원본 정보 카드와 독립 창에 기존 기본값·한글 stable key 새 primitive/linked 정보 정의를 연결했다. raw source 결합·legacy inline/모든 정의 전환은 미완료이며 전체 v536/실제 Windows/Library 전달 완료가 아니다.

@@ -129,7 +129,10 @@ public sealed class CoreTests : TestCase
     {
         Error("DUPLICATE_DECLARATION", () => new Parser("implementation X::F for X::Fn () -> int { body common \"a\"; body common \"b\"; }", "test.celem").ParseElement());
         Error("SYNTAX", () => new Parser("object X::O { delete field; }", "test.celem").ParseElement());
-        Error("TYPE", () => new Parser("function X::F (object data) -> int {}", "test.celem").ParseElement());
+        // Object pins are an existing supported ABI type; retain an actually
+        // unsupported type in the syntax guard rather than rejecting that ABI.
+        Equal("object", new Parser("function X::F (object data) -> int {}", "test.celem").ParseElement().Signature!.Args[0].Type);
+        Error("TYPE", () => new Parser("function X::F (decimal data) -> int {}", "test.celem").ParseElement());
     }
     public void test_single_module_default()
     { f.Module("M"); f.Main("module App::M;"); f.Sync(); Equal("Provider::ValueBody", f.Plan().Bindings[new("App::Main", "Api::Value")].Implementation); }

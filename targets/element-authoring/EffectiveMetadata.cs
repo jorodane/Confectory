@@ -42,7 +42,7 @@ internal static class EffectiveMetadata
    var planner=new Confectory.Core.Planner(registry,"metadata");
    // A signature edit must preserve contracts of unselected owned modules too.
    // Module validates requirements/defaults without selecting providers or executing bodies.
-   if(validateObjects)foreach(var declaration in manifest.Elements){string owned=manifest.Namespace+"::"+declaration.Key;if(declaration.Value.Kind is "object" or "schema")Confectory.Core.SchemaContracts.Validate(registry,owned);else if(declaration.Value.Kind=="module")planner.Module(owned);else if(declaration.Value.Kind=="implementation"){var implementation=registry.Get(owned,"implementation");if(implementation.Function is not null)registry.Implementation(implementation.Function,owned,owned,implementation.Loc);}}
+   if(validateObjects)foreach(var declaration in manifest.Elements){string owned=manifest.Namespace+"::"+declaration.Key;if(declaration.Value.Kind is "object" or "schema"){Confectory.Core.SchemaContracts.Validate(registry,owned);if(declaration.Value.Kind=="schema")InformationDefaults.Stored(registry,owned);}else if(declaration.Value.Kind=="module")planner.Module(owned);else if(declaration.Value.Kind=="implementation"){var implementation=registry.Get(owned,"implementation");if(implementation.Function is not null)registry.Implementation(implementation.Function,owned,owned,implementation.Loc);}}
 
    var effective=registry.Effective(id);var descriptionSource=selected;while(!descriptionSource.DescriptionPresent&&descriptionSource.Parent is not null)descriptionSource=registry.Get(descriptionSource.Parent,descriptionSource.Kind,descriptionSource.Id,descriptionSource.Loc);
 var module=effective.Kind=="module"?planner.Module(id):planner.ModulesFor(id);
@@ -106,11 +106,11 @@ var module=effective.Kind=="module"?planner.Module(id):planner.ModulesFor(id);
     }
    }
   }
-  Contracts(fields);Associations(fields,element.Data);
+  var projectedData=element.Data;System.Text.Json.Nodes.JsonObject? information=null;if(element.Kind=="schema"){var defaults=InformationDefaults.Resolve(registry,element.Id);projectedData=defaults.Values;information=new(){["complete"]=defaults.Complete,["sources"]=System.Text.Json.JsonSerializer.SerializeToNode(defaults.Sources.Order(StringComparer.Ordinal).ToArray())};}Contracts(fields);Associations(fields,projectedData);
   System.Text.Json.Nodes.JsonObject validation;
   try{Confectory.Core.SchemaContracts.Validate(registry,element.Id);validation=new System.Text.Json.Nodes.JsonObject{["status"]="valid"};}
   catch(Confectory.Core.BuildError error){validation=new System.Text.Json.Nodes.JsonObject{["status"]="invalid",["code"]=error.Diagnostic.Code,["message"]=error.Message};}
-  return new System.Text.Json.Nodes.JsonObject{["id"]=element.Id,["kind"]=element.Kind,["validation"]=validation,["fields"]=Fields(fields),["data"]=System.Text.Json.JsonSerializer.SerializeToNode(element.Data,Confectory.Core.JsonData.Options),["schemas"]=schemas,["functions"]=functions,["implementations"]=implementations,["targets"]=System.Text.Json.JsonSerializer.SerializeToNode(registry.Project.Targets.Keys.Order(StringComparer.Ordinal).ToArray()),["executionAuthorized"]=false};
+  return new System.Text.Json.Nodes.JsonObject{["id"]=element.Id,["kind"]=element.Kind,["information"]=information,["validation"]=validation,["fields"]=Fields(fields),["data"]=System.Text.Json.JsonSerializer.SerializeToNode(projectedData,Confectory.Core.JsonData.Options),["schemas"]=schemas,["functions"]=functions,["implementations"]=implementations,["targets"]=System.Text.Json.JsonSerializer.SerializeToNode(registry.Project.Targets.Keys.Order(StringComparer.Ordinal).ToArray()),["executionAuthorized"]=false};
  }
 
 }

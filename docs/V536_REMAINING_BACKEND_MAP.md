@@ -33,3 +33,5 @@
 최신 독립 properties View Save: `VALIDATION_V536_VIEW_SAVE.md`. 설명과 기존 복합/정확한 숫자 값을 한 후보/CAS로 보관하고 자기 View receipt·취소·경합·프로젝트 전환·cold/Review/Confirm을 검증했다. source View/copy/타 owner는 허용하지 않는다. 복합/중첩 정의 생성 및 원본 정보 picker/기본값, raw source와 다른 계획의 결합은 미완료다. compound/reference native 타입은 존재하므로 backend 전체 부재와 구별한다.
 
 최신 정보 picker: `VALIDATION_V536_INFORMATION.md`. 소유 named schema의 중첩 primitive·상속 fallback/내부 multiple을 새 compound 정의로 선택하고 source hash proof와 owner 값·등록·설명을 한 후보에 결부한다. ref/function/imported/custom-default는 미연결로 표시한다. 정보 자체 정의/custom 기본값·legacy inline 변경과 raw source 결합은 다음 미완료다. native 타입 존재와 원본 UI 어댑터/기본값 계약 부족을 구분한다.
+
+최신 정보 자체 정의/기본값: `VALIDATION_V536_INFORMATION_DEFAULTS.md`. schema owner-only 후보와 명시 typed-default metadata를 compiler 검증까지 연결했다. 현재 지원된 기본값은 정보 picker에서도 같은 projection을 사용한다. 다른 owner/slot/copy 권한을 확장하지 않으며 legacy inline/미지원 타입 전환/raw source 결합은 유지한다. 다음은 source 원문 보존과 같은 후보/CAS의 raw 결합이며 순차 endpoint 호출로 대체하지 않는다.

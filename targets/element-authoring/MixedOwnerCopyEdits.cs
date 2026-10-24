@@ -10,7 +10,7 @@ internal static class MixedOwnerCopyEdits
  static string Hash(string text)=>JsonData.HashBytes(Encoding.UTF8.GetBytes(text));
  static void Exact(JsonObject row,params string[] keys){if(row.Count!=keys.Length||row.Any(p=>!keys.Contains(p.Key,StringComparer.Ordinal)))throw new ArgumentException("Exact mixed declaration operation required");}
  static JsonObject Shape(JsonNode field)=>new(){["kind"]=(field["kind"]??field["Kind"])!.DeepClone(),["cardinality"]=(field["cardinality"]??field["Cardinality"])!.DeepClone(),["type"]=(field["type"]??field["Type"])!.DeepClone()};
- static JsonObject Field(JsonObject model,JsonArray path)
+ internal static JsonObject Field(JsonObject model,JsonArray path)
  {
   if(path.Count is <1 or >64||path[0] is not JsonValue)throw new ArgumentException("Bounded typed path required");
   var field=model["fields"]?[path[0]!.GetValue<string>()]??throw new ArgumentException("Existing effective field required");var shape=Shape(field);
