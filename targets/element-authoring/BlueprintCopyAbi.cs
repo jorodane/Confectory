@@ -14,7 +14,7 @@ internal static class BlueprintCopyAbi
   var fn=new Parser(request["functionText"]!.GetValue<string>(),"<copy-function>").ParseElement();
   var owner=new Parser(request["ownerText"]!.GetValue<string>(),"<copy-owner>").ParseElement();
   var graph=request["graph"]!.AsObject();string ns=PackPaths.Namespace(id);
-  if(caller.Id!=id||caller.Kind!="implementation"||caller.Parent is not null||caller.Bodies.Count!=1||owner.Id!=ownerId||owner.Kind!="object"||PackPaths.Namespace(ownerId)!=ns||fn.Kind!="function"||PackPaths.Namespace(fn.Id)!=ns||caller.Function!=fn.Id||!fn.Signature!.Matches(caller.Signature)||graph["feature"]?.ToString()!=fn.Id)throw new ArgumentException("One owned saved copy and its direct object/function required");
+  if(caller.Id!=id||caller.Kind!="implementation"||caller.Parent is not null||caller.Bodies.Count!=1||owner.Id!=ownerId||owner.Kind is not ("object" or "schema")||PackPaths.Namespace(ownerId)!=ns||fn.Kind!="function"||PackPaths.Namespace(fn.Id)!=ns||caller.Function!=fn.Id||!fn.Signature!.Matches(caller.Signature)||graph["feature"]?.ToString()!=fn.Id)throw new ArgumentException("One owned saved copy and its direct object/function required");
   var body=caller.Bodies.Single();if(body.Value.SourceKind!="blueprint"||graphId!=id+"/body:"+body.Key||body.Value.Path!=request["graphPath"]!.ToString())throw new ArgumentException("One exact saved copy target/locator required");
   if(graph["copySource"] is not JsonObject provenance||provenance.Count!=4||provenance.Any(p=>p.Key is not ("implementation" or "target" or "bodyOrigin" or "sourceKind"))||provenance["target"]?.ToString()!=body.Key||provenance["sourceKind"]?.ToString() is not ("blueprint" or "csharp")||provenance["implementation"] is not JsonValue||provenance["bodyOrigin"] is not JsonValue||!provenance["implementation"]!.ToString().Contains("::",StringComparison.Ordinal)||!provenance["bodyOrigin"]!.ToString().Contains("::",StringComparison.Ordinal)||provenance["implementation"]!.ToString()==id||request["unitProvenance"] is not null&&!JsonNode.DeepEquals(request["unitProvenance"],provenance))throw new ArgumentException("Exact unchanged copy provenance required");
   if(!owner.Provides.TryGetValue(fn.Id,out var direct)||direct.Id!=id)throw new ArgumentException("Direct copied slot assignment required");
@@ -30,7 +30,7 @@ internal static class BlueprintCopyAbi
   var snapshots=new JsonArray();var seen=new HashSet<string>(StringComparer.Ordinal);int assignments=0,bytes=0;
   foreach(var row in objects.OrderBy(r=>r!["id"]!.ToString(),StringComparer.Ordinal)){
    string text=row!["text"]!.GetValue<string>(),objectId=row["id"]!.ToString();bytes=checked(bytes+Encoding.UTF8.GetByteCount(text));if(bytes>2097152||!seen.Add(objectId))throw new ArgumentException("Unique bounded object closure required");
-   var obj=new Parser(text,"<copy-object>").ParseElement();if(obj.Kind!="object"||obj.Id!=objectId||PackPaths.Namespace(objectId)!=ns)throw new ArgumentException("Owned object closure required");
+   var obj=new Parser(text,"<copy-object>").ParseElement();if(obj.Kind is not ("object" or "schema")||obj.Id!=objectId||PackPaths.Namespace(objectId)!=ns)throw new ArgumentException("Owned object closure required");
    foreach(var slot in obj.Provides.Where(p=>p.Value.Id==id)){if(objectId!=ownerId||slot.Key!=fn.Id)throw new ArgumentException("A shared copy requires an all-owner candidate");assignments++;}
    snapshots.Add(new JsonObject{["id"]=objectId,["path"]=row["path"]!.DeepClone(),["hash"]=Hash(text)});
   }
