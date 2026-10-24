@@ -1,0 +1,216 @@
+{
+  "original": [
+    {
+      "selector": ":scope",
+      "x": 0,
+      "y": 0,
+      "width": 454,
+      "height": 152,
+      "color": "rgb(255, 255, 255)"
+    },
+    {
+      "selector": ".function-node-heading",
+      "x": 1,
+      "y": 1,
+      "width": 452,
+      "height": 45,
+      "color": "rgb(255, 255, 255)"
+    },
+    {
+      "selector": "[data-inline-name]",
+      "x": 45,
+      "y": 9,
+      "width": 89,
+      "height": 28,
+      "color": "rgb(234, 234, 234)"
+    },
+    {
+      "selector": ".function-node-symbol",
+      "x": 11,
+      "y": 9,
+      "width": 26,
+      "height": 28,
+      "color": "rgb(198, 183, 149)"
+    },
+    {
+      "selector": "[data-function-toggle]",
+      "x": 383,
+      "y": 9,
+      "width": 26,
+      "height": 28,
+      "color": "rgb(170, 170, 170)"
+    },
+    {
+      "selector": "[data-function-delete]",
+      "x": 417,
+      "y": 9,
+      "width": 26,
+      "height": 28,
+      "color": "rgb(170, 170, 170)"
+    },
+    {
+      "selector": ".function-node-flow",
+      "x": 1,
+      "y": 46,
+      "width": 452,
+      "height": 68,
+      "color": "rgb(255, 255, 255)"
+    },
+    {
+      "selector": "[data-pin-side=inputs]",
+      "x": 1,
+      "y": 58,
+      "width": 85.59375,
+      "height": 44,
+      "color": "rgb(255, 255, 255)"
+    },
+    {
+      "selector": "[data-pin-side=outputs]",
+      "x": 367.390625,
+      "y": 58,
+      "width": 85.59375,
+      "height": 44,
+      "color": "rgb(255, 255, 255)"
+    },
+    {
+      "selector": ".function-node-description",
+      "x": 98.59375,
+      "y": 66,
+      "width": 256.796875,
+      "height": 28,
+      "color": "rgb(185, 185, 185)"
+    },
+    {
+      "selector": ".function-node-writing-actions",
+      "x": 1,
+      "y": 114,
+      "width": 452,
+      "height": 37,
+      "color": "rgb(255, 255, 255)"
+    },
+    {
+      "selector": "[data-function-write-description]",
+      "x": 1,
+      "y": 115,
+      "width": 226,
+      "height": 36,
+      "color": "rgb(222, 210, 191)"
+    },
+    {
+      "selector": "[data-function-write-direct]",
+      "x": 227,
+      "y": 115,
+      "width": 226,
+      "height": 36,
+      "color": "rgb(222, 210, 191)"
+    }
+  ],
+  "adapted": [
+    {
+      "selector": ":scope",
+      "x": 0,
+      "y": 0,
+      "width": 454,
+      "height": 152,
+      "color": "rgb(255, 255, 255)"
+    },
+    {
+      "selector": ".function-node-heading",
+      "x": 1,
+      "y": 1,
+      "width": 452,
+      "height": 45,
+      "color": "rgb(255, 255, 255)"
+    },
+    {
+      "selector": "[data-inline-name]",
+      "x": 45,
+      "y": 9,
+      "width": 89,
+      "height": 28,
+      "color": "rgb(234, 234, 234)"
+    },
+    {
+      "selector": ".function-node-symbol",
+      "x": 11,
+      "y": 9,
+      "width": 26,
+      "height": 28,
+      "color": "rgb(198, 183, 149)"
+    },
+    {
+      "selector": "[data-function-toggle]",
+      "x": 383,
+      "y": 9,
+      "width": 26,
+      "height": 28,
+      "color": "rgb(170, 170, 170)"
+    },
+    {
+      "selector": "[data-function-delete]",
+      "x": 417,
+      "y": 9,
+      "width": 26,
+      "height": 28,
+      "color": "rgb(170, 170, 170)"
+    },
+    {
+      "selector": ".function-node-flow",
+      "x": 1,
+      "y": 46,
+      "width": 452,
+      "height": 68,
+      "color": "rgb(255, 255, 255)"
+    },
+    {
+      "selector": "[data-pin-side=inputs]",
+      "x": 1,
+      "y": 58,
+      "width": 85.59375,
+      "height": 44,
+      "color": "rgb(255, 255, 255)"
+    },
+    {
+      "selector": "[data-pin-side=outputs]",
+      "x": 367.390625,
+      "y": 58,
+      "width": 85.59375,
+      "height": 44,
+      "color": "rgb(255, 255, 255)"
+    },
+    {
+      "selector": ".function-node-description",
+      "x": 98.59375,
+      "y": 66,
+      "width": 256.796875,
+      "height": 28,
+      "color": "rgb(185, 185, 185)"
+    },
+    {
+      "selector": ".function-node-writing-actions",
+      "x": 1,
+      "y": 114,
+      "width": 452,
+      "height": 37,
+      "color": "rgb(255, 255, 255)"
+    },
+    {
+      "selector": "[data-function-write-description]",
+      "x": 1,
+      "y": 115,
+      "width": 226,
+      "height": 36,
+      "color": "rgb(222, 210, 191)"
+    },
+    {
+      "selector": "[data-function-write-direct]",
+      "x": 227,
+      "y": 115,
+      "width": 226,
+      "height": 36,
+      "color": "rgb(222, 210, 191)"
+    }
+  ],
+  "pageErrors": [],
+  "scope": "same own function original v536 geometry/colors; no native/engine persistence proof"
+}

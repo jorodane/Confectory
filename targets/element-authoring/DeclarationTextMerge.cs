@@ -124,7 +124,33 @@ internal static class DeclarationTextMerge
         string merged = result.ToString(); var final = Read(canonical(merged));
         if (merged.Length > 1048576 || final.Statements.Count != expected.Count || final.Statements.Any(p => !expected.TryGetValue(p.Key, out string? proof) || proof != Fingerprint(p.Value)))
             throw new InvalidOperationException("Merged declaration differs from explicit candidates; all input retained");
-        return merged;
+        return MergeFunctionOrder(b, t, r, merged, canonical);
+    }
+    static string MergeFunctionOrder(Parts baseline, Parts typed, Parts raw, string merged, Func<string, string> canonical)
+    {
+        const string prefix = "contain:w:function:";
+        string[] Order(Parts parts) => parts.Statements.Keys.Where(key => key.StartsWith(prefix, StringComparison.Ordinal)).ToArray();
+        var before = Order(baseline); var requested = Order(typed); var observed = Order(raw);
+        var b = before.ToHashSet(StringComparer.Ordinal); var t = requested.ToHashSet(StringComparer.Ordinal); var r = observed.ToHashSet(StringComparer.Ordinal);
+        // Adds normally append. Only an explicit material permutation overrides
+        // source order; ordinary field/name edits keep the raw editor's order.
+        if (requested.SequenceEqual(before.Where(t.Contains).Concat(requested.Where(key => !b.Contains(key))))) return merged;
+        var commonBefore = before.Where(key => t.Contains(key) && r.Contains(key));
+        var commonRaw = observed.Where(key => b.Contains(key) && t.Contains(key));
+        var commonTyped = requested.Where(key => b.Contains(key) && r.Contains(key));
+        if (!commonRaw.SequenceEqual(commonBefore) && !commonRaw.SequenceEqual(commonTyped))
+            throw new InvalidOperationException("Raw and function order edits conflict; retain both inputs");
+        var source = Read(merged);
+        if (requested.Any(key => !source.Statements.ContainsKey(key))) throw new InvalidOperationException("Function membership changed during order merge");
+        var slots = source.Statements.Where(row => t.Contains(row.Key)).Select(row => row.Value).OrderBy(part => part.Start).ToArray();
+        if (slots.Length != requested.Length) throw new InvalidOperationException("Complete function order required");
+        var result = new StringBuilder(merged);
+        // Move each exact clause (including its internal comments). Whitespace,
+        // comments outside clauses, other contain kinds and all other text stay.
+        for (int i = slots.Length - 1; i >= 0; i--) { var part = slots[i]; result.Remove(part.Start, part.End - part.Start); result.Insert(part.Start, source.Statements[requested[i]].Text); }
+        string final = result.ToString();
+        if (final.Length > 1048576 || !Order(Read(canonical(final))).Where(t.Contains).SequenceEqual(requested)) throw new InvalidOperationException("Function order differs from explicit candidate");
+        return final;
     }
     static bool HasComments(Part part)
     {
