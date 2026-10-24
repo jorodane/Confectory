@@ -30,3 +30,11 @@
 I4 독립 정보 창 분류/취소 그룹 연결과 실제 UI의 오류·응답 유실·Undo 조합은 추가 검증/연결이 남는다. 기존 분류 CAS/순환/소유권 보호는 통과했지만 이를 새 헤더의 모든 실패 조합 검사라고 확대하지 않는다. I5 정보 기능/모듈, I6 glyph/emoji/로컬 이미지 아이콘, B2 실제 선언별 작업자 배지는 아직 구현하지 않았다. A4–A6 및 M4/M11/M12도 별도 고정 잔여다.
 
 Windows 패키지는 교차 생성·구성 및 Linux에서 패키지의 관리형 웹 엔진 기동을 검사한다. 실제 Windows apphost/WebView2/DPI/IME·모바일 하드웨어 통과가 아니다. Library 업로드/사용자 전달은 완료하지 않았다. 최종 패키지/checkout 검사 결과와 SHA는 후속 기록을 따른다.
+
+## 최종 checkout·패키지 검증
+
+실행 변경 커밋 `258c8992d23bc0122711be2e808cb0c709e864f6`을 기존 별도 checkout에 ff-only 적용하고 깨끗한 상태에서 새 정보 부모 UI **6 PASS**를 재현했다. root/checkout의 추적 실행 소스·검사 3214개는 줄끝 정규화 후 일치한다. 실제 Git CRLF attribute pull·fresh LF와 내용/인코딩/BOM/바이너리/budget 거절을 포함한 **73리소스** 검사도 통과했다. 원본 파일 바이트는 불변이다. 새 네이티브 C# 소스 변경은 없으며, 이번 엔진의 pinned pack 본문은 Linux/Windows 교차 빌드로 컴파일했다.
+
+최종 로컬 전체 패키지: `/workspace/artifacts/Confectory-v536-information-parent-final/Windows-x64`의 `Confectory.exe`와 모든 동반 파일. 선언 2322개/marker 포함 2323개, 131924302바이트다. marker SHA-256은 `a0fa423c0c6944db2745d1098cf33c1665e89fbb7bc902b652e1fddec28cb25b`, 정렬 체크섬 목록 SHA-256은 `d8c5a435e2b62b5219bd1325cc7fc63afe3e99ba9f4d4ed7e7eb5c11fe2a2e0a`다. 패키지의 추적 실행 소스 2102개가 이 커밋과 바이트 일치한다. PE/의존성/리소스/검증값 손상 거절과, 다른 cwd·SDK 없는 격리 runtime으로 패키지의 관리형 웹 엔진 및 최소 로그인 화면 기동을 검사했다. 실제 로그인/추론/Windows apphost/WebView2 실행은 하지 않았다. 필요한 Windows 선행 설치는 .NET Desktop Runtime 10 x64와 WebView2이며 전체 폴더를 함께 사용해야 한다. 파일은 로컬 보관 상태이며 사용자에게 전달/업로드됐다고 표시하지 않는다.
+
+분류 adapter가 포함된 최종 엔진에서도 `v536_field_projects.py`를 다시 실행해 **4 PASS**했다(`projects-current.log`). 저장 뒤 분류 projection 재조회가 추가된 경로에서도 A/B 전환·오래된 콜백 차단·정확한 typed 입력·cold 복원은 유지된다. 비교 페이지의 원본/실제 PNG와 최종 정보 창 PNG도 직접 열어 확인했다.
