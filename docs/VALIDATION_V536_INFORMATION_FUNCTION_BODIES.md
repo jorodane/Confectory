@@ -28,11 +28,17 @@ I5의 기본 정보 창에서 자체 함수의 기존 `직접 작성`·`편집`�
 
 실패 근거도 보존했다. 실제 본문 Save가 live source 적용·private 입력 삭제 후 checkpoint 쓰기에 실패하던 결함을 원자 저장으로 수정했다. 프로젝트 재진입 시 모든 source ID/hash가 같은데 technical revision만 달라 거절되던 경우를 기존 완전한 source 복원 검사에 연결했다. 확정 후 본문만 수정하면 정보의 Review 표시가 갱신되지 않던 결함과, 저장 응답 직전 닫은 창이 다시 열리던 결함도 실제 UI로 재검증했다. 한 응답 유실 fixture의 자체 대기 교착은 응답을 보류한 채 `busy` 종료를 기다리는 flush를 호출한 테스트 오류였으며, 이를 수정해 재실행했다. 보호 조건이나 실패 assertion을 없애지 않았다.
 
-[검증된 정보 카드](evidence/v536-information-own-bodies/engine-card.png). 기존 [카드 12영역 원본 대조](VALIDATION_V536_INFORMATION_OWN_FUNCTIONS.md)는 보존하며 이 단위에서 정밀 대조를 새로 전부 실행했다고 주장하지 않는다.
+[검증된 정보 카드](evidence/v536-information-own-bodies/engine-card.png). 기존 [카드 12영역 원본 대조](VALIDATION_V536_INFORMATION_OWN_FUNCTIONS.md)를 보존했고 깨끗한 checkout의 정의 UI 회귀에서도 다시 일치를 확인했다. 본문 편집기 전체의 새 정밀 대조를 전부 실행했다는 뜻은 아니다.
 
 ## 게시 전 재현 및 한계
 
-깨끗한 checkout 회귀와 Windows 교차 패키지 검사는 이 문서 작성 시점에 진행 예정이다. 완료 결과와 source commit은 후속 검증 기록에 추가한다. Windows apphost/WebView2·실제 모바일 기기 실행은 미검증이다. 로컬 패키지 생성과 Library 첨부/사용자 전달은 별개이며 전달 성공을 주장하지 않는다.
+소스 snapshot은 `53974d08df71dddb06569b3f2510e657ca64188e`이다. 해당 커밋의 깨끗한 checkout에서 Linux 엔진을 경고/오류 0으로 다시 컴파일했다. 실제 엔진/렌더러 본문 UI 6, 저장 후보 API 4, 저장 중 창 닫기·cold 복구 2, 기존 자체 함수 정의 UI 7 PASS로 재현했다. 마지막 suite는 원본 카드 12영역의 위치·치수·font·padding 일치도 다시 검증했다. source/checkpoint/입력/명시적 Confirm assertion은 유지했다.
+
+같은 checkout에서 실제 retained CRLF 속성 pull과 fresh LF의 73개 canonical/exact snapshot, content·encoding·BOM·binary·byte-budget 거절 검사를 통과했다. 원래 checkout 바이트를 변경하지 않았다.
+
+Windows x64 교차 패키지는 `/workspace/artifacts/v536-information-own-bodies/Windows-x64`에 생성했다. runtime 2,322개 파일 구성, 변조 asset/누락 dependency 거절, 무관한 cwd와 SDK가 없는 격리 runtime에서 패키지 엔진 웹 기동·73개 리소스 제공·최소 로그인 화면 렌더를 확인했다. 기존 fixture checkout 설정 재사용과 명시적 storage override도 검사했다. 패키지 runtime 내용은 위 source snapshot과 같다. 문서 후속 커밋이나 검증 fixture를 배포 파일로 넣지 않는다.
+
+**Windows apphost/WebView2·실제 모바일 기기 실행은 미검증이다.** 실제 계정 로그인·권한 부여·유료 추론·사용자 프로젝트 실행은 하지 않았다. 로컬 패키지 생성과 Library 첨부/사용자 전달은 별개이며 전달 성공을 주장하지 않는다.
 
 - 저장된 자체 함수 삭제·복구·구현 삭제와 순서 변경, 독립 properties 창의 구현 선택·복사·본문 편집은 계속 차단한다.
 - 연결된 서명 전체 변경과 원본 복합 entity/참조 핀 선택의 나머지 의미는 기존 I5 잔여 목록대로다. 이번 plain 저장에 구조/ABI 의미를 임의 추가하지 않았다.
