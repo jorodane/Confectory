@@ -34,6 +34,7 @@ try
         case "informationFunctionInputUses":reply=InformationFunctionInputUses.Read(request);break;
         case "informationFunctionInputs":reply=InformationFunctionContracts.Inputs(request);break;
         case "informationFunctionOutputs":reply=InformationFunctionOutputs.Read(request);break;
+        case "informationFunctionOutputGraphs":reply=InformationFunctionOutputs.Graphs(request);break;
         case "informationDefinitions":reply=InformationDefinitions.Prepare(request,Format,FormatManifest);break;
         case "informationFunctionRetirement":reply=InformationFunctionRetirement.Execute(request,Format,FormatManifest);break;
         case "rawOwnerEdits":reply=RawOwnerEdits.Prepare(request,Format,FormatManifest);break;

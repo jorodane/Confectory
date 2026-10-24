@@ -39,3 +39,5 @@ UI는 기존 출력 타입 선택과 동일 계약 대응창을 사용한다. [�
 ## 재현 빌드
 
 현재 패키지 source는 `263a9a7ede4451a4a90619ae58f466171b60f90e`다. `/workspace/artifacts/v536-information-output-types/Windows-x64` 폴더 전체이며 Windows 진입점은 `Confectory.exe`다. manifest SHA-256은 `bf5b70f207e146677efda8c21322c111bc746c95f199db394c3d681c67a143ca`다. .NET Desktop Runtime 10 x64와 WebView2 Runtime 전제는 그대로다. 로컬 생성물이며 Library로 전달하지 않았다. 생성물은 Git에 포함하지 않는다.
+
+후속 출력 추가/전체 배치 삭제·void 전환은 [출력 정의 수용 기록](VALIDATION_V536_INFORMATION_OUTPUT_DEFINITIONS.md)으로 이어진다. 이 문서의 최초 타입 변경 수용/제한은 당시 범위의 기록이다.
