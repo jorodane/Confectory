@@ -70,62 +70,66 @@ def review():
  if f.page.locator('#review-creation').count():f.page.locator('#review-creation').click()
  expect(r).to_be_visible();return r
 
-try:
- f.start(0);f.invoke('select',{'id':owner});f.invoke('saveDraft',{})
- with sync_playwright() as pw:
-  f.browser=pw.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox']);f.page=f.setup();f.page.set_viewport_size({'width':2300 if is_view else 1600,'height':1500 if is_object or is_view else 1100});expect.set_options(timeout=60000);open_info();assert abs(f.owner().bounding_box()['width']-460)<1
-  if is_object:
-   for toggle in f.owner().locator('.inherited-property-source>.inherited-source-toggle').all():toggle.click()
-  choose(field(['Power']).locator('[data-property-type]'),'general','long',True);expect(field(['Power']).locator('[data-value-path=\'["Power",0]\']')).to_have_value('9223372036854775806');f.owner().locator('[data-own-properties-toggle]').focus();f.page.keyboard.press('Control+z');expect(field(['Power']).locator('[data-property-value]')).to_have_value('9223372036854775806');assert not pending();choose(field(['Power']).locator('[data-property-type]'),'general','long',True)
-  choose(field(['Tree']).locator('[data-property-type]'),'compound',f.n+'Leaf2');expect(field(['Tree','Count']).locator('[data-property-value]')).to_have_value('9223372036854775805');field(['Tree','Note']).locator('[data-property-value]').fill('새 형식 한글');choose(field(['Peer']).locator('[data-property-type]'),'reference',f.n+'Leaf');expect(field(['Peer']).locator('.property-reference-value')).to_have_text('RefTarget');field(['Power']).locator(':scope>.property-content-box>.object-property-default>.property-expand').click();field(['Tree']).locator(':scope>.property-content-box>.object-property-default>.property-expand').click();f.checked('460px 원본 정보 카드의 단일→다중/Undo와 복합·참조 타입 변경은 exact64·상속 참조·기존 값을 보존한다')
-  target(add(labels[0],'reference',f.n+'Leaf'),f.n+'RefTarget');target(add(labels[1],'function',f.n+'Native'),f.n+'NativeBody');imported=add(labels[2],'compound','External.Fields::Leaf',True);imported.locator('[aria-label="HP 기본값"]').fill('9223372036854775804');imported.locator(':scope>.property-content-box>.object-property-default>.property-expand').click();add(labels[3],'general','long').locator('[data-property-value]').fill('9223372036854775803');add(labels[4],'general','bool').locator('[data-property-value]').check();new_paths.update({v['name']:v.get('nativeKey') or v['name'] for _,v in pending() if v.get('kind')=='definition'});values();f.owner().locator('.object-title-description').fill('I1 I2 I3 한 후보');held=pending();checkpoint=next(f.project.glob('.confectory/edit-workspaces/*/draft.json'));before=checkpoint.read_bytes();f.originals();f.checked('기존 타입 선택창의 객체·기능·등록 정보와 다중 값은 명시적 대상 선택 후 한 private 후보에 보관된다')
-  if mode=='context':open_peer()
-  restart(1);assert pending()==held;values();verify_peer();
-  if is_view:f.owner().locator('.object-title-name').click(position={'x':4,'y':4})
-  f.originals();f.checked('저장 전 실제 재시작은 선택한 계약·출처 근거·한글·정확한 수치와 함수/객체 대상을 복원한다')
-  if mode=='cancel':
-   f.owner().locator('[data-element-action=discard]').click();expect(f.owner().locator('[data-definition-key]')).to_have_count(0);assert not pending() and checkpoint.read_bytes()==before;restart(2);assert not pending();f.originals();f.checked('명시 취소/cold는 원본·등록 팩·참조·checkpoint를 보존하며 새 필드를 만들지 않는다')
-  else:
-   if mode=='conflict':
-    source=f.project/('LocalFields.celem' if is_object else 'FreeInfo.celem');peer=source.read_bytes()+b'\n// isolated peer definition change\n';source.write_bytes(peer);f.original[str(source.relative_to(f.project))]=peer;f.rejected_save();assert checkpoint.read_bytes()==before and pending()==held;f.originals();restart(2);assert pending()==held;f.rejected_save();assert checkpoint.read_bytes()==before and pending()==held;f.originals();f.checked('실제 source 변경은 후보 전체를 거절하고 cold 재시도에도 원문·타입 근거·peer source를 보존한다')
+def run():
+ global peer_inputs
+ try:
+  f.start(0);f.invoke('select',{'id':owner});f.invoke('saveDraft',{})
+  with sync_playwright() as pw:
+   f.browser=pw.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox']);f.page=f.setup();f.page.set_viewport_size({'width':2300 if is_view else 1600,'height':1500 if is_object or is_view else 1100});expect.set_options(timeout=60000);open_info();assert abs(f.owner().bounding_box()['width']-460)<1
+   if is_object:
+    for toggle in f.owner().locator('.inherited-property-source>.inherited-source-toggle').all():toggle.click()
+   choose(field(['Power']).locator('[data-property-type]'),'general','long',True);expect(field(['Power']).locator('[data-value-path=\'["Power",0]\']')).to_have_value('9223372036854775806');f.owner().locator('[data-own-properties-toggle]').focus();f.page.keyboard.press('Control+z');expect(field(['Power']).locator('[data-property-value]')).to_have_value('9223372036854775806');assert not pending();choose(field(['Power']).locator('[data-property-type]'),'general','long',True)
+   choose(field(['Tree']).locator('[data-property-type]'),'compound',f.n+'Leaf2');expect(field(['Tree','Count']).locator('[data-property-value]')).to_have_value('9223372036854775805');field(['Tree','Note']).locator('[data-property-value]').fill('새 형식 한글');choose(field(['Peer']).locator('[data-property-type]'),'reference',f.n+'Leaf');expect(field(['Peer']).locator('.property-reference-value')).to_have_text('RefTarget');field(['Power']).locator(':scope>.property-content-box>.object-property-default>.property-expand').click();field(['Tree']).locator(':scope>.property-content-box>.object-property-default>.property-expand').click();f.checked('460px 원본 정보 카드의 단일→다중/Undo와 복합·참조 타입 변경은 exact64·상속 참조·기존 값을 보존한다')
+   target(add(labels[0],'reference',f.n+'Leaf'),f.n+'RefTarget');target(add(labels[1],'function',f.n+'Native'),f.n+'NativeBody');imported=add(labels[2],'compound','External.Fields::Leaf',True);imported.locator('[aria-label="HP 기본값"]').fill('9223372036854775804');imported.locator(':scope>.property-content-box>.object-property-default>.property-expand').click();add(labels[3],'general','long').locator('[data-property-value]').fill('9223372036854775803');add(labels[4],'general','bool').locator('[data-property-value]').check();new_paths.update({v['name']:v.get('nativeKey') or v['name'] for _,v in pending() if v.get('kind')=='definition'});values();f.owner().locator('.object-title-description').fill('I1 I2 I3 한 후보');held=pending();checkpoint=next(f.project.glob('.confectory/edit-workspaces/*/draft.json'));before=checkpoint.read_bytes();f.originals();f.checked('기존 타입 선택창의 객체·기능·등록 정보와 다중 값은 명시적 대상 선택 후 한 private 후보에 보관된다')
+   if mode=='context':open_peer()
+   restart(1);assert pending()==held;values();verify_peer();
+   if is_view:f.owner().locator('.object-title-name').click(position={'x':4,'y':4})
+   f.originals();f.checked('저장 전 실제 재시작은 선택한 계약·출처 근거·한글·정확한 수치와 함수/객체 대상을 복원한다')
+   if mode=='cancel':
+    f.owner().locator('[data-element-action=discard]').click();expect(f.owner().locator('[data-definition-key]')).to_have_count(0);assert not pending() and checkpoint.read_bytes()==before;restart(2);assert not pending();f.originals();f.checked('명시 취소/cold는 원본·등록 팩·참조·checkpoint를 보존하며 새 필드를 만들지 않는다')
    else:
-    if mode=='reject':
-     choose(field(['Power']).locator('[data-property-type]'),'general','bool',True);wrong=pending();f.rejected_save();assert checkpoint.read_bytes()==before and pending()==wrong;f.originals();f.owner().locator('[data-own-properties-toggle]').focus();f.page.keyboard.press('Control+z');values();assert pending()==held;f.checked('호환 불가 타입 Save 거절→실제 Undo는 원문과 원래 후보를 복원하며 새 기준 덮어쓰기 없이 재시도한다')
-    if mode=='storage':
-     checkpoint.chmod(0o400)
-     try:f.rejected_save();assert checkpoint.read_bytes()==before and pending()==held;values();f.originals();f.checked('실제 저장 파일 쓰기 거절은 선언/정의/기본값 전체 미적용과 입력 보존이다')
-     finally:checkpoint.chmod(0o600)
-     restart(2);assert pending()==held
-    if mode=='loss':
-     applies=set();queries=set();lost=[]
-     def intercept(route):
-      body=route.request.post_data_json
-      if body.get('op')=='invoke' and body.get('endpoint')=='blueprint':
-       action=body.get('input',{}).get('action')
-       if action=='applySlots':applies.add(body['requestId'])
-       elif applies and action=='settledSlots':queries.add(body['requestId'])
-      response=route.fetch();payload=response.json()
-      for row in payload.get('results',[]):
-       if row['requestId'] in applies|queries:rid=row['requestId'];lost.append(rid);row.clear();row.update(requestId=rid,ok=False,error={'code':'transport-interrupted'})
-      route.fulfill(response=response,json=payload)
-     f.page.route('**/api/request',intercept);f.owner().locator('[data-element-action=save]').click()
-     for _ in range(300):
-      if applies and any(r in queries for r in lost):break
-      f.page.wait_for_timeout(100)
-     assert len(applies)==1 and any(r in queries for r in lost);assert pending()==held;f.page.unroute_all(behavior='wait');mark=len(f.traffic);restart(2);f.owner().locator('[data-element-action=save]').click();saved();assert not any(r.get('invoke',{}).get('input',{}).get('action')=='applySlots' for r in f.traffic[mark:]);f.checked('응답과 결과 조회 유실 뒤 cold는 receipt 조회만으로 복구하며 새 필드·schema·배열을 중복 저장하지 않는다')
-    else:f.owner().locator('[data-element-action=save]').click();saved();
-    f.originals();restart(3);values();verify_peer();assert not pending();f.checked('한 후보 Save와 cold 복원은 정의·기본값을 함께 저장하고 원본/부모/등록 팩을 아직 확정하지 않는다')
-    if mode=='context':
-     accepted=checkpoint.read_bytes();f.owner().locator('[data-element-action=confirm]').click();dialog=f.page.get_by_role('dialog',name='관련 변경 검토',exact=True);expect(dialog).to_be_visible();dialog.locator('#review-creation').click();expect(f.page.locator('#status')).to_contain_text('미적용 입력을 먼저 적용');expect(dialog).to_be_visible();verify_peer();assert checkpoint.read_bytes()==accepted;f.originals();dialog.get_by_role('button',name='닫기',exact=True).click();peer=f.page.locator('.window[data-key=editor-2]');peer.locator('[data-element-action=discard]').click();expect(peer.get_by_label('Count 기본값',exact=True)).to_have_value('8');expect(peer.locator('.object-title-description')).to_have_value('');assert not [(k,v) for k,v in f.pending()['schema'] if '|'+f.n+'RefTarget|view:2|element|' in k];peer_inputs=None;f.originals();values();f.checked('독립 창 Save/cold는 peer 입력을 보존하고 전역 검토는 미적용 입력을 차단하며 peer의 명시 취소만 그 입력을 해제한다')
-    r=review();r.locator('[data-reject]').click();expect(r).to_be_hidden();f.originals();r=review()
-    if r.locator('[data-review-advanced]').count():
-     r.locator('[data-review-advanced]').click()
-     if r.locator('[data-advanced-reviewed]').count():r.locator('[data-advanced-reviewed]').check()
-    r.locator('#confirm').click();expect(r).to_have_count(0,timeout=120000);f.idle();changed={k for k,v in f.original.items() if (f.project/k).read_bytes()!=v};assert changed==({'Slime.celem','LocalFields.celem','project.cproj'} if is_object else {'FreeInfo.celem'}),changed;restart(4);values();verify_peer();f.checked('Review 취소/명시 compiler Confirm/재시작은 소유 정보만 반영하고 원본 타입·객체·부모·등록 팩·다른 target을 보존한다')
-  f.page.screenshot(path=str(f.case/'field-definitions-final.png'));assert not f.errors and not f.external,(f.errors,f.external);f.page.unroute_all(behavior='wait');f.browser.close()
-except Exception:
- try:f.case.joinpath('field-definitions-failure.json').write_text(json.dumps({'state':f.state(),'traffic':f.traffic[-50:],'errors':f.errors},ensure_ascii=False,indent=2));f.page.screenshot(path=str(f.case/'field-definitions-failure.png'))
- except Exception:pass
- print('EVIDENCE '+str(f.case),flush=True);raise
-finally:f.stop()
-print(json.dumps({'checks':f.checks,'evidence':str(f.case),'actualEngine':True,'renderer':True,'nativeWindows':False,'accountOrInference':False},ensure_ascii=False))
+    if mode=='conflict':
+     source=f.project/('LocalFields.celem' if is_object else 'FreeInfo.celem');peer=source.read_bytes()+b'\n// isolated peer definition change\n';source.write_bytes(peer);f.original[str(source.relative_to(f.project))]=peer;f.rejected_save();assert checkpoint.read_bytes()==before and pending()==held;f.originals();restart(2);assert pending()==held;f.rejected_save();assert checkpoint.read_bytes()==before and pending()==held;f.originals();f.checked('실제 source 변경은 후보 전체를 거절하고 cold 재시도에도 원문·타입 근거·peer source를 보존한다')
+    else:
+     if mode=='reject':
+      choose(field(['Power']).locator('[data-property-type]'),'general','bool',True);wrong=pending();f.rejected_save();assert checkpoint.read_bytes()==before and pending()==wrong;f.originals();f.owner().locator('[data-own-properties-toggle]').focus();f.page.keyboard.press('Control+z');values();assert pending()==held;f.checked('호환 불가 타입 Save 거절→실제 Undo는 원문과 원래 후보를 복원하며 새 기준 덮어쓰기 없이 재시도한다')
+     if mode=='storage':
+      checkpoint.chmod(0o400)
+      try:f.rejected_save();assert checkpoint.read_bytes()==before and pending()==held;values();f.originals();f.checked('실제 저장 파일 쓰기 거절은 선언/정의/기본값 전체 미적용과 입력 보존이다')
+      finally:checkpoint.chmod(0o600)
+      restart(2);assert pending()==held
+     if mode=='loss':
+      applies=set();queries=set();lost=[]
+      def intercept(route):
+       body=route.request.post_data_json
+       if body.get('op')=='invoke' and body.get('endpoint')=='blueprint':
+        action=body.get('input',{}).get('action')
+        if action=='applySlots':applies.add(body['requestId'])
+        elif applies and action=='settledSlots':queries.add(body['requestId'])
+       response=route.fetch();payload=response.json()
+       for row in payload.get('results',[]):
+        if row['requestId'] in applies|queries:rid=row['requestId'];lost.append(rid);row.clear();row.update(requestId=rid,ok=False,error={'code':'transport-interrupted'})
+       route.fulfill(response=response,json=payload)
+      f.page.route('**/api/request',intercept);f.owner().locator('[data-element-action=save]').click()
+      for _ in range(300):
+       if applies and any(r in queries for r in lost):break
+       f.page.wait_for_timeout(100)
+      assert len(applies)==1 and any(r in queries for r in lost);assert pending()==held;f.page.unroute_all(behavior='wait');mark=len(f.traffic);restart(2);f.owner().locator('[data-element-action=save]').click();saved();assert not any(r.get('invoke',{}).get('input',{}).get('action')=='applySlots' for r in f.traffic[mark:]);f.checked('응답과 결과 조회 유실 뒤 cold는 receipt 조회만으로 복구하며 새 필드·schema·배열을 중복 저장하지 않는다')
+     else:f.owner().locator('[data-element-action=save]').click();saved();
+     f.originals();restart(3);values();verify_peer();assert not pending();f.checked('한 후보 Save와 cold 복원은 정의·기본값을 함께 저장하고 원본/부모/등록 팩을 아직 확정하지 않는다')
+     if mode=='context':
+      accepted=checkpoint.read_bytes();f.owner().locator('[data-element-action=confirm]').click();dialog=f.page.get_by_role('dialog',name='관련 변경 검토',exact=True);expect(dialog).to_be_visible();dialog.locator('#review-creation').click();expect(f.page.locator('#status')).to_contain_text('미적용 입력을 먼저 적용');expect(dialog).to_be_visible();verify_peer();assert checkpoint.read_bytes()==accepted;f.originals();dialog.get_by_role('button',name='닫기',exact=True).click();peer=f.page.locator('.window[data-key=editor-2]');peer.locator('[data-element-action=discard]').click();expect(peer.get_by_label('Count 기본값',exact=True)).to_have_value('8');expect(peer.locator('.object-title-description')).to_have_value('');assert not [(k,v) for k,v in f.pending()['schema'] if '|'+f.n+'RefTarget|view:2|element|' in k];peer_inputs=None;f.originals();values();f.checked('독립 창 Save/cold는 peer 입력을 보존하고 전역 검토는 미적용 입력을 차단하며 peer의 명시 취소만 그 입력을 해제한다')
+     r=review();r.locator('[data-reject]').click();expect(r).to_be_hidden();f.originals();r=review()
+     if r.locator('[data-review-advanced]').count():
+      r.locator('[data-review-advanced]').click()
+      if r.locator('[data-advanced-reviewed]').count():r.locator('[data-advanced-reviewed]').check()
+     r.locator('#confirm').click();expect(r).to_have_count(0,timeout=120000);f.idle();changed={k for k,v in f.original.items() if (f.project/k).read_bytes()!=v};assert changed==({'Slime.celem','LocalFields.celem','project.cproj'} if is_object else {'FreeInfo.celem'}),changed;restart(4);values();verify_peer();f.checked('Review 취소/명시 compiler Confirm/재시작은 소유 정보만 반영하고 원본 타입·객체·부모·등록 팩·다른 target을 보존한다')
+   f.page.screenshot(path=str(f.case/'field-definitions-final.png'));assert not f.errors and not f.external,(f.errors,f.external);f.page.unroute_all(behavior='wait');f.browser.close()
+ except Exception:
+  try:f.case.joinpath('field-definitions-failure.json').write_text(json.dumps({'state':f.state(),'traffic':f.traffic[-50:],'errors':f.errors},ensure_ascii=False,indent=2));f.page.screenshot(path=str(f.case/'field-definitions-failure.png'))
+  except Exception:pass
+  print('EVIDENCE '+str(f.case),flush=True);raise
+ finally:f.stop()
+ print(json.dumps({'checks':f.checks,'evidence':str(f.case),'actualEngine':True,'renderer':True,'nativeWindows':False,'accountOrInference':False},ensure_ascii=False))
+
+if __name__=='__main__':run()
