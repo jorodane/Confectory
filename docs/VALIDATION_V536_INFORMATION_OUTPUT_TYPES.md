@@ -4,7 +4,7 @@
 
 ## 이번 지원 단위
 
-직접 소유한 함수 하나에서 기존 일반 출력 **하나**의 숫자 타입(int/long/float/double)을 바꾼다. 일반 `out`과 반환 출력에 같은 검증을 적용한다. 다른 입력·출력의 이름·순서·역할은 유지한다. 각 직접 Blueprint target의 해당 출력은 단일 내보내기 노드 또는 직접 exit 바인딩이어야 한다. 화면은 바뀐 타입과 정확히 같은 타입의 현재 루트 입력을 사용자가 선택하게 한다. 새 값·수치 변환·기본값·저장소를 추측하지 않는다.
+직접 소유한 함수 하나에서 기존 일반 출력 **하나**의 숫자 타입(int/long/float/double)을 바꾼다. 일반 `out`과 반환 출력에 같은 검증을 적용한다. 다른 입력·출력의 이름·순서·역할은 유지한다. 실제 통합 fixture는 out과 반환 각각의 long→double 변경을 검증했으며 모든 숫자 조합을 전수 검사한 것은 아니다. 각 직접 Blueprint target의 해당 출력은 단일 내보내기 노드 또는 직접 exit 바인딩이어야 한다. 화면은 바뀐 타입과 정확히 같은 타입의 현재 루트 입력을 사용자가 선택하게 한다. 새 값·수치 변환·기본값·저장소를 추측하지 않는다.
 
 원래 graph hash, 출력 이름·노드·원래 바인딩과 새 타입/source를 같은 후보에 묶는다. 호출마다 원래 출력에서 어느 현재 출력으로 받을지도 명시 선택한다. 사용 중인 출력은 정확히 같은 타입의 현재 출력에 대응해야 한다. 연결 없음은 실제 사용처가 남으면 거절한다. 소비되는 바인딩 전체를 유지하며 상수 안의 `node`/`output` 이름은 그래프 연결로 해석하지 않는다. 함수·구현·import·graph·code definition hash·공개 출력 계약을 기존 원자적 후보/CAS와 Review/Confirm에 넣고 C# 원문은 보존한다.
 
@@ -21,7 +21,9 @@
 | 추가 순수 후보 경계 | 값 선택 없는 출력 추가 거절, 원래 유효한 C# After formal 계약 변경 거절 2 check 통과 |
 | 영향 회귀 | Native 함수 계약 7, 기존 out C# After 보호 1 check 통과 |
 | Native/Linux | 최종 Native 0 warning/0 error, 실제 저장소 Linux 엔진 빌드 성공·stderr 0. 두 마지막 보완은 출력 read를 요청할 때만 실행하고, 선택 없는 output 변경 후보를 거절함 |
-| clean checkout·리소스·패키지 | 소스 커밋 뒤 재현 검사를 수행하고 결과를 별도 확정 기록한다. 아직 이 행을 통과로 간주하지 않음 |
+| clean checkout | 소스 `263a9a7ede4451a4a90619ae58f466171b60f90e`에서 Native/Linux를 다시 빌드. 실제 out API 3 + 독립 정보 창 UI 2 check 통과. Save/cold/Review 취소·실제 compiler Confirm/cold까지 재현 |
+| 리소스 | 보존된 CRLF checkout의 실제 fast-forward와 fresh LF checkout에서 74 canonical/exact 리소스, 내용/인코딩/BOM/binary/budget 변조 거절 통과 |
+| Windows 교차 패키지 | win-x64 2,333파일 생성 성공. source/Native DLL 7개 byte 일치, fixture·인증파일·프로필·로그·Git 미포함. runtime-only(no SDK)·별도 cwd에서 실제 패키지 웹 엔진 기동과 74리소스 검증, 변조/의존성 누락 거절 및 fixture 기존 프로필 보존·최초 로그인 화면 확인 통과. Windows apphost/WebView2 실행은 아님 |
 
 UI는 기존 출력 타입 선택과 동일 계약 대응창을 사용한다. [상세창](evidence/v536-information-output-types/output-contract-popover.png), [출력 대응창](evidence/v536-information-output-types/output-contract-mapping.png)을 실제로 열어 확인했다. 기존 수용 레이아웃 `9318098`의 style/consumer/runtime CSS는 byte 동일이며 타입 변경 전후 상세 카드/제목/행 치수도 동일하다. 전체 화면 pixel diff 또는 실제 Windows 비교는 아니다.
 
@@ -32,3 +34,8 @@ UI는 기존 출력 타입 선택과 동일 계약 대응창을 사용한다. [�
 3행 전체 완료는 아니다. 출력 추가·삭제와 그 실행 경로/반환 계약 변경은 `outputCreates/removeOutputs/outputRoutes/outputEntry`를 같은 후보와 caller 출력 대응에 결합해야 한다. 값 선택 없는 출력 추가는 이번 단위에서 거절한다. 여러 출력의 동시 타입 변경, 같은 출력의 여러 writer, 숫자 외 타입, 현재 루트 입력 이외의 대체 값/source는 이번 지원 단위에 포함하지 않는다. 기존 일반 out 이름 변경은 유지한다.
 
 고정 9행의 4~9행(C# 명시 본문 결합, nested, 전체 본문/ref/out 역할, 등록/복사 출처, 여러 함수 동시 후보, 고급 핀 타입/표시명)은 기존 명세의 미구현으로 유지한다. 이번 거절을 그 기능의 완료로 표시하지 않는다. 실제 Windows apphost/WebView2·모바일 기기·Library 전달은 미검증이다.
+
+
+## 재현 빌드
+
+현재 패키지 source는 `263a9a7ede4451a4a90619ae58f466171b60f90e`다. `/workspace/artifacts/v536-information-output-types/Windows-x64` 폴더 전체이며 Windows 진입점은 `Confectory.exe`다. manifest SHA-256은 `bf5b70f207e146677efda8c21322c111bc746c95f199db394c3d681c67a143ca`다. .NET Desktop Runtime 10 x64와 WebView2 Runtime 전제는 그대로다. 로컬 생성물이며 Library로 전달하지 않았다. 생성물은 Git에 포함하지 않는다.
