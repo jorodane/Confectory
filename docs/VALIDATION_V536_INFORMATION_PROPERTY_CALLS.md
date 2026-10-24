@@ -30,3 +30,14 @@ UI: 독립 property 타입 변경·쓰기 실패/재시도 3, property 저장·�
 
 
 [수신자 선택](evidence/v536-information-property-calls/property-picker.png), [기존 특수 호출의 값 선택](evidence/v536-information-property-calls/special-picker.png)을 실제 renderer에서 확인했다. 저장/확정 후 원래 정보 화면과 CSS 세 파일의 baseline 9962759 byte 일치 근거도 같은 evidence 디렉터리에 있다. 스크린샷은 전체 pixel 일치나 Windows native 조작 검증을 의미하지 않는다.
+
+
+## 깨끗한 체크아웃·교차 패키지
+
+검증 소스는 `2e1c0aff52ab0a20391aec313a7ab867d8111cd7`다. 별도 clean clone을 로컬 origin에서 정상 fetch/fast-forward했고 Native/Linux 빌드는 경고/오류/stderr 0으로 끝났다. 그 runtime에서 ref/out 보존 특수 호출 API 3 check와 독립 property 타입 변경 UI 2 check를 실제 Save/Review 취소/컴파일 Confirm/cold까지 재현했다. 원래 작업 트리의 신규 API 12·UI 18·property 보호 3, 영향 회귀 22와 clean 재현 5는 별도 집계다.
+
+실제 CRLF 유지 pull/fresh LF checkout에서 74개 canonical/exact 리소스를 확인했다. 내용·UTF-8·BOM·UTF-16·단독 CR·예산·PNG 변조를 거절하고 원래 바이트를 보존했다.
+
+Windows x64 교차 패키지는 `/workspace/artifacts/v536-information-property-calls/Windows-x64`다. manifest 2,332파일, SHA-256 `ba3e8a2b34c5c916a0a8c9e5142eacbe01aa3ac6a73c80454502457ad071375a`이며 새 property source와 Native DLL·kernel Blueprint·두 JS·WebBundle 등의 8파일이 검증 소스와 일치한다. 테스트/프로필/로그는 패키지에 없다. 실행 파일은 `Confectory.exe`, 선행 조건은 .NET Desktop Runtime 10.0 x64와 WebView2 Runtime이다. `desktop_package.py`가 별도 cwd와 SDK 없는 복사 runtime에서 실제 패키지 엔진 웹 기동·74리소스·최소 로그인창 렌더, 변조/의존성 누락 거절, fixture 설정 보존과 명시 override를 확인했다. Windows apphost/WebView2나 사용자 로그인은 실행하지 않았다. 실제 Windows 실행 또는 파일 전달 성공을 의미하지 않는다.
+
+이번에 닫은 것은 [고정 9행](V536_I5_6_REMAINING.md)의 **1행 지원 문맥**이다. 다음은 3행 출력 타입·추가삭제·반환 계약이며, 4~9행의 C# 형식 매개변수/본문 결합·중첩·whole-body/ref·out·등록/복사·다중 함수·고급 타입은 미구현으로 유지한다. 이들은 기존 의미와 명세로 구현할 항목이며 실제 미결정 설계로 돌리지 않는다. 2행의 기존 일반 입력 추가 지원은 보존한다. I5-6 전체/v536 전체 완료 또는 전체 solution/full suite 통과라는 뜻은 아니다.
