@@ -43,3 +43,9 @@
 남은 정보 경계는 legacy inline compound 정의 변경, 기존 compound/multiple 정의의 모든 전환·순서·아이콘, 새 ref/function/imported 정보 선택, Info 부모/기능 편집이다. 현재 지원 위젯과 native 계약을 넘어 자동 변환하거나 성공 표시하지 않는다. 기존 참조 필드의 명시 기본값 검증과 새 참조 정의 생성 UI를 혼동하지 않는다.
 
 다음은 **raw source와 owner/schema·독립 View 결합 Save**다. 원래 source/id/path/hash·checkpoint·창별 입력과 원문/주석을 같은 후보/CAS에 결부하기 전까지 현재 dirty source 차단은 유지한다. 그 뒤 ABI 교차 문맥(opaque/상속/whole-body/copy 다중 target·등록 callable 여러 target·동일 호출 복수 사용·다른 계획 혼합)과 모바일 최종 조작의 고정 목록을 `V536_REMAINING_ACCEPTANCE.md` 기준으로 마감한다. 이미지 자산/제공자·협의·내장 렌더/FPS backend는 이 UI 복원에 추가하지 않는다.
+
+최종 산출물 구성은 선언2318개+marker=2319개, 131,819,891 bytes다. marker SHA-256은 `384e923a6919dd1fa522ad3082a0c4525bc8b49024b1538d9fd89021171e0b16`, checksum 목록 SHA-256은 `0dc7b78bc1256018f016964438690f1fb790789bc11b4b0086b32b4e7fa230b6`이다. `review/`의 읽기 전용24개 후보 검토는 구현16·테스트4·문서4이며 생성물/로그/사용자 자료는 포함하지 않고 비밀 패턴 발견0이다(모든 비밀 부재를 증명하는 검사는 아님). source로 복사하는 구현15개, 배포된 Core DLL7곳과 helper DLL이 현재 코드와 일치한다. Core의 `.cs` 파일은 배포 설계상 복사 대상이 아니므로 binary 일치로 확인했다.
+
+코드 커밋 `eaa70b82f472c72be81459ccc4e1831893dd08a2`를 기존 격리 checkout에 정상 fetch/fast-forward했다. `checkout-build.log` Release solution과 `checkout-engine.json` 생성 엔진은 경고0이며, root/checkout의 구현·테스트20개 정규화 byte가 일치했다. 첫 resource probe는 두 번째 임시 clone에서128로 실패했고 stderr가 해당 기존 probe에서 수집되지 않아 원인을 단정하지 않는다. 단독 같은 local clone은 성공했으며 당시 `/tmp` 여유323MB였다. 충분한 같은 환경 scratch를 TMPDIR로 지정한 원래 검사 `checkout-resources2.log`는72 canonical/exact 리소스·실제 CRLF 과거 checkout→attributes pull·fresh LF·내용/인코딩/BOM/binary/budget 거절과 원래 byte 보존 PASS다. assertion/보호 조건을 바꾸지 않았으며 새 환경/저장소로 대체하지 않았다.
+
+마지막 기록 커밋은 문서만 갱신하며 패키지 실행 코드는 위 코드 커밋과 같다. 정상 push/최종 원격 SHA·두 작업 트리 clean·main 보존 결과는 체크포인트/최종 응답에서 확인한다. `NEXT_RAW.txt`에 원문·source closure·한 후보/CAS 및 시도 조회를 유지해야 하는 정확한 다음 연결 지점을 보존했다.
