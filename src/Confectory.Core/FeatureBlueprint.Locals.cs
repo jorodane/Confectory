@@ -27,6 +27,9 @@ public static partial class FeatureBlueprint
         ? new[]{new Parameter(node.Signature.Args[0].Type,"stored")} : FeatureOutputs(node.Signature);
     static JsonArray NodeOutputDocument(Node node)=>new(NodeOutputs(node).Select(p=>(JsonNode)new JsonObject{["name"]=p.Name,["type"]=p.Type}).ToArray());
     static JsonArray LocalDocument(Dictionary<string,JsonObject> locals)=>new(locals.OrderBy(p=>p.Key,StringComparer.Ordinal).Select(p=>(JsonNode)p.Value.DeepClone()).ToArray());
+    // Authoring adapters share the compiler's literal rules; this never emits
+    // or executes a project, nor infers a conversion from an existing value.
+    public static void ValidateConstant(JsonNode? value,string type) => _ = ConstantLiteral(value,type);
     static string ConstantLiteral(JsonNode? value, string type)
         {
             if (type.EndsWith("[]", StringComparison.Ordinal))
