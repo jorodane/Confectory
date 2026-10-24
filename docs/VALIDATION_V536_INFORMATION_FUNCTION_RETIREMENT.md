@@ -31,7 +31,17 @@ I5의 기본 정보 카드에서 저장된 자체 함수의 기존 ×와 Browser
 
 초기 UI fixture는 `sourceConfirmed`를 확인하지 않아 비어 있는 scaffold를 확정본으로 잘못 간주했다. 실제 검증은 `BLUEPRINT_NOT_READY`로 정확히 차단했다. fixture에 유효한 본문을 준비하고 실제 compiler Confirm 성공을 필수로 확인하도록 강화했다. 복구 Confirm 뒤 원래 삭제 상태 바이트가 유지되어야 한다던 잘못된 기대도 원래 등록/소스 전체 바이트의 복원 검사로 고쳤다. 이전 실패 로그를 보존했고 보호 조건이나 실패 assertion을 제거하지 않았다.
 
-게시 전 깨끗한 checkout/회귀 및 Windows 교차 패키지 결과는 완료 후 아래에 기록한다. 현재 문서의 집중 통과 범위를 전체 I5 또는 전체 v536 UI 완료로 해석하지 않는다.
+## 깨끗한 checkout 및 Windows 교차 패키지
+
+소스 snapshot은 `24074bd6b3bac84fc629d21008d0b51a88eee67b`다. 해당 커밋의 깨끗한 checkout에서 native SDK와 Linux 최종 엔진을 경고/오류 0으로 재컴파일했다. 새로운 삭제·복구 UI 5, 읽기 전용 결과 API 3, 기존 v1 Browser 삭제/복구 계약 6, 기본 정보 본문 UI 6으로 **별도 재현/회귀 20 PASS**를 확인했다. 기존 v1 fixture는 checkout의 격리 위치에 복사하여 표준 build registry만 해당 checkout으로 연결했다. 사용자 자료는 사용하지 않았다.
+
+같은 checkout의 실제 Git CRLF 유지/pull과 fresh LF, 73개 canonical/exact resource, content/encoding/BOM/binary/byte-budget 거절 및 원래 바이트 보존 검사를 통과했다. checkout과 원래 소스의 리소스를 임의로 다시 추출하거나 변경하지 않았다.
+
+Windows x64 교차 패키지는 `/workspace/artifacts/v536-information-function-retirement/Windows-x64`다. runtime 2,326개 파일의 구성 검증, 변조 asset·누락 dependency 거절, 무관한 cwd 및 SDK 없는 격리 runtime의 실제 패키지 엔진 웹 기동·73개 리소스 제공·최소 로그인 화면 렌더를 통과했다. fixture의 기존 checkout 프로필 재사용과 명시적 저장소 override도 검증했다. 실제 로그인 버튼을 누르거나 사용자 계정 설정을 변경하지 않았다.
+
+패키지 manifest `confectory-desktop-package.json`의 SHA-256은 `b15cf39e3562f7eb405989dc70782a19315d874128cda2a7df8f07203aa64b44`다. 이 manifest의 전체 파일 hash를 패키지 검사로 확인했다. 후속 문서 커밋이나 테스트 fixture는 runtime에 포함하지 않는다. Windows apphost/WebView2의 실제 실행과 Library 첨부/전달은 확인하지 않았으며 로컬 빌드를 전달 완료로 보고하지 않는다.
+
+이 검증은 이번 기본 정보 함수 삭제·복구 단위를 마감한다. I5 및 전체 v536 UI 완료를 뜻하지 않는다.
 
 ## 남은 범위
 
