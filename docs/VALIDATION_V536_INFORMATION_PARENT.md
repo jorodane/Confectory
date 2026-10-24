@@ -69,3 +69,7 @@ native 재선택 변경을 포함한 `normal-final-5.log`도 **5 PASS**로 다�
 `atomic` 격리 실제 검사 **1 PASS**(`atomic-final-2.log`): 기존 정보 설명을 실제 UI에서 원자 저장하면 정보+ProjectManifest의 기존 `atomicEditGroup`이 생긴다. 이 상태에서 분류 그룹으로 바꾸려는 요청은 전체 거절되고 기존 그룹/checkpoint/원문/다른 창의 private 입력이 불변이다. 그룹을 자동 분해하거나 확정하지 않는다. 이 단계의 독립 창 검사는 **16개(5+3+2+2+3+1)**이며 기본 창6·projection3은 별도다. 원본의 카테고리 재선택은 지원하되 아직 확정하지 않은 다른 종류의 원자적 편집 그룹과의 혼합 저장으로 확대하지 않는다.
 
 현재 로컬 최종 패키지는 `/workspace/artifacts/Confectory-v536-information-views-final/Windows-x64`의 전체 폴더다. 선언2322/marker 포함2323파일,131932651바이트. marker SHA-256 `061ae0a6a0cd02f26d0642f77e5384f73617a951be573afb09801dfe63fcd6ab`, 정렬 체크섬 목록 SHA-256 `10a16f5435076371bda30d2113e78b47ebd7428695e8d66b0c61d0634766436c`. Windows 교차 생성, PE/의존성/리소스/손상 거절 및 SDK 없는 격리 runtime·다른 cwd에서 패키지 관리형 웹 엔진/최소 로그인 화면 기동 검사가 통과했다. Windows apphost/WebView2 실행·실제 로그인·모델 호출·Library 전달 통과로 해석하지 않는다. 이전 `information-views` 폴더는 마지막 재선택/atomic guard 변경 전 중간 결과이므로 이번에는 `-final` 폴더를 사용한다.
+
+## 독립 창 후속의 깨끗한 checkout 재현
+
+실행 변경 `b55d52c6af76fb48d7327636d6b8e6e9253d1930`을 별도 깨끗한 checkout에 ff-only 적용했다. 그 checkout에서 새 Linux 엔진을 빌드해 warnings0을 확인하고 독립 창 normal **5 PASS**(분류/취소/실제 UI UndoRedo/창 재진입/Save/cold/Review/Confirm)를 재현했다. 순수 projection **3 PASS**, 실제 CRLF attribute pull·fresh LF 및 내용/encoding/BOM/binary/budget 거절을 포함한 **73리소스** 검사도 통과했다. source/test3215파일은 root/checkout에서 줄끝 정규화 후 같고, 최종 패키지의 추적 실행 소스2102파일은 이 실행 커밋과 바이트 일치한다. 실제 Windows 실행·모바일 기기·Library 전달은 여전히 미검증이다. 이 검증 기록 후속은 실행 코드나 패키지를 변경하지 않는다.
