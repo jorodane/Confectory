@@ -23,7 +23,7 @@ Fixture는 `(long amount, out long count) -> long`과 `count=amount+1;return amo
 | API C# After 보호 | 1 PASS. 기존 공개 이름을 읽는 C#를 추측하지 않고 전체 거절 |
 | 실제 화면 | 기본 2, 독립 2, 입력/out 동시 2, 취소 2, 응답·조회 유실/cold 2, 타입 거절→Undo 재시도 3 PASS. 6회 실행, 총 13 check |
 | 원본 외형 | style/consumer/runtime CSS 및 제품 코드가 01ce248과 동일. 기존 출력 상세 행 사용 |
-| 깨끗한 checkout | 소스 커밋 후 별도 실제 API/화면 재현 기록을 마감 단계에서 갱신 |
+| 깨끗한 checkout | 소스 `70cc78d11e9c36e1b59d4fdb1c9fd623ee9229e5`, 앱 source가 01ce248과 동일함을 확인한 matching runtime에서 입력/out 동시 API 2 + 독립 창 화면 2 PASS. 실행 source 변경이 없어 SDK/Linux/리소스 검사를 반복하지 않음 |
 
 API는 5회 실행 9 check다. check 수를 기능 개수나 통과/실패 비율로 해석하지 않는다. 처음 API fixture는 공개 응답의 실제 key인 `fields`를 `published`로 잘못 읽어 멈췄다. 지원 규격에 맞춘 field 이름 검증으로 고친 뒤 저장/확정까지 완주했다. assertion/보호를 제거하지 않았다. 원시 로그와 실패 근거는 `/workspace/scratch/v536-information-out`에 있다.
 
