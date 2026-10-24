@@ -66,6 +66,10 @@ def check(present):
         assert next(p for p in current()['providers'] if p['function'] == a.function)['origin'] == f.n + 'Leaf'
     else:
         expect(slot().locator('[data-function-write-direct]')).to_be_visible()
+    if getattr(a, 'archive_copy', False) and not present:
+        receipt = next(row for row in f.state()['retirements'] if row['owner'] == owner)
+        assert receipt['mode'] == 'information-copy-v1'
+        assert a.implementation in receipt['ids'] and len(receipt['ids']) >= 3
     unchanged()
 
 
@@ -76,7 +80,7 @@ def dialog():
     popup = f.page.get_by_role('dialog', name='구현 삭제', exact=True)
     expect(popup).to_be_visible()
     wait('planBrowserRemoval', after)
-    expect(popup).to_contain_text('이 정보의 연결만 해제')
+    expect(popup).to_contain_text('원본과 편집 초안은 복구할 수 있게 보관' if getattr(a, 'archive_copy', False) else '이 정보의 연결만 해제')
     f.page.screenshot(path=str(f.case / 'binding-delete-modal.png'))
     return popup
 
@@ -308,8 +312,8 @@ try:
             wait('browserRetirement', after, 'apply')
             expect(popup).to_have_count(0)
             check(False)
-            assert f.state()['retirements'][0]['mode'] == 'information-binding-v1'
-            f.checked('460px 원본 모듈 삭제/취소/Undo/Redo는 정보 연결만 보관하고 상위 fallback과 부모/공유/copy 본문을 유지한다')
+            assert f.state()['retirements'][0]['mode'] == ('information-copy-v1' if getattr(a, 'archive_copy', False) else 'information-binding-v1')
+            f.checked('460px 원본 삭제/취소/Undo/Redo는 소유 copy closure만 보관하고 부모/공유 원문과 fallback을 유지한다' if getattr(a, 'archive_copy', False) else '460px 원본 모듈 삭제/취소/Undo/Redo는 정보 연결만 보관하고 상위 fallback과 부모/공유/copy 본문을 유지한다')
             restart(1)
             check(False)
             recover()
