@@ -26,6 +26,8 @@
 
 ## 영역별 수용 판정
 
+후속 정확한 조작별 판정은 `V536_RESIDUAL_UI_AUDIT.md`의 A1–A7/M1–M10/I1–I6/B1–B2다. 아래 포괄적인 표현만으로 새 결함이나 완료를 판정하지 않는다. 특히 whole-body ref/out, 일반 ABI 및 최신 새 출력 전체 흐름은 지원·수용된 경로이고, 고정 return/외부 readonly 보호는 결함이 아니다.
+
 - **연결된 지원 UI:** 기존 상단바·Workspace/Pack Manager·Helper 생성/배치/삭제·프로젝트 목록/생성·문서/독립 View·Browser의 지원 Data/참조/이름/카테고리/복구·요소 상속/자체속성/기능모듈/복사·지원 Blueprint와 실제 Run/저장 이력 읽기는 각 기존 검증 문서의 범위다. 이번에는 위 문맥 교차·모바일 수명을 추가 수용했다. 변경하지 않은 과거 전체 검사를 다시 실행했다고 표시하지 않는다.
 - **실제 연결/계약 잔여:** 등록 callable all-target의 receipt closure, copy-alltarget/상속/opaque·whole-body·같은 callee 여러 사용의 provenance/remap, 공유/고정 반환 이름·잠정 빈 출력, 영역/다중 선택과 나머지 readonly/async/내부 흐름 문맥은 전체 연결 미완료다. primitive runtime이 일부 존재하는 것과 UI 계약 결합 완료를 구분한다. Info legacy inline/모든 compound·multiple 정의 전환·일부 ref/function/imported·부모/기능 및 일반 Browser 외부 runtime Data/범용 mutation·작업자 배지도 제한이다. 지원 경로에서 새로 재현된 미해결 오류와 이 지원 제한을 섞지 않는다.
 - **그대로 차단한 조합:** raw+저장 복사본 ABI/기존 본문/다중 target ABI/Set-property/다른 Blueprint 계획, 여러 raw 또는 독립 properties+copy. 기존 한 raw+기본 요소 typed+새 private copy 범위만 지원한다. 이번 수용에서 순차 Save·자동 병합·자동 Confirm으로 확대하지 않았다.
@@ -43,3 +45,5 @@
 `package-probe.log`는 선언2321파일·리소스73개, PE/의존성/변조 거절, 별도 cwd와 설치 SDK 없는 runtime-only packaged managed 웹 기동·최소 로그인 렌더를 통과했다. Windows apphost/WebView2는 실행하지 않았다. marker 포함2322파일/131882098bytes의 manifest hash를 모두 확인했고 포함된 추적 소스2101파일은 이번 실행 코드와 바이트 단위로 같다. marker SHA-256은 `cff7c4f7dd383831122d45ccd4651312b91da71538c0f14a25887195f46b0e1d`, 정렬 checksum 목록의 SHA-256은 `6318d2e98aba7d52bd4c6a42c37a4c19c427b6b64facdc53c5735a8c58164c79`이다. 사전 검토11파일(구현2/테스트6/문서3)의 비밀 패턴 검출0, 생성물/로그/사용자 데이터는 Git 후보에 없다. 패턴 검사는 모든 비밀 부재의 증명이 아니며 실제 profile/인증파일은 읽지 않았다. 전체 파일 목록·checksums는 scratch의 `review/`에만 둔다.
 
 구현 커밋 `5fd3967019927a2d56a67649ef53f034165ef765`을 별도 깨끗한 checkout에 ff-only로 적용했다. Release solution은 경고/오류0, Linux 엔진 생성 exit0/warnings0이고 retained-CRLF attribute pull·fresh-LF의73리소스 시작·변조/인코딩/BOM/binary/budget 거절이 통과했다. 원래 checkout 바이트는 유지됐고 두 checkout의 추적 구현/테스트3202파일은 줄끝 정규화 후 같다. 최종 문서 커밋은 실행 코드를 바꾸지 않는다. 수용한 지원 경로에서 이번 검사 후 남은 재현 오류는 없지만 위의 연결 제한·백엔드 부재·기기 미검증은 해제하지 않는다. 원격 게시 SHA와 clean 상태는 체크포인트에서 확인한다.
+
+이번 네 화면의 최신 구현/검증과 정확한 제한은 [선택·중첩 흐름·모바일 분기 연결](VALIDATION_V536_UI_FOUR.md)을 참고한다. 전체 UI 완료를 뜻하지 않는다.
