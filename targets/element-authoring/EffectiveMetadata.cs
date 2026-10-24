@@ -1,7 +1,7 @@
 using System.Linq;
 internal static class EffectiveMetadata
 {
- public static System.Text.Json.Nodes.JsonObject Query(string project,string manifestText,string id,string text,Func<Confectory.Core.Manifest,string> format,Func<string,string> read,System.Text.Json.Nodes.JsonArray? drafts=null,bool schemaView=false,bool validateObjects=false,bool observeSources=false)
+ public static System.Text.Json.Nodes.JsonObject Query(string project,string manifestText,string id,string text,Func<Confectory.Core.Manifest,string> format,Func<string,string> read,System.Text.Json.Nodes.JsonArray? drafts=null,bool schemaView=false,bool validateObjects=false,bool observeSources=false,bool definitionTypes=false)
  {
   string temporary=System.IO.Path.Combine(System.IO.Path.GetTempPath(),"confectory-effective-"+Guid.NewGuid().ToString("N"));
   try
@@ -71,6 +71,7 @@ var module=effective.Kind=="module"?planner.Module(id):planner.ModulesFor(id);
    string DefinitionSource(string schemaId)=>schemaId==id?text:drafts?.FirstOrDefault(row=>row?["id"]?.ToString()==schemaId)?["text"]?.GetValue<string>()??Observe(registry.Get(schemaId,"schema").Loc.File);
    var schemaModel=schemaView?SchemaModel(registry,effective,schemaFields,DefinitionSource):null;
    var result=new System.Text.Json.Nodes.JsonObject{["scope"]="effective-metadata",["status"]="available",["id"]=id,["description"]=effective.Description,["descriptionOrigin"]=descriptionSource.DescriptionPresent?descriptionSource.Id:null,["sourceKind"]=sourceKind,["fields"]=System.Text.Json.JsonSerializer.SerializeToNode(schemaFields),["fieldSources"]=fieldSources,["functionContracts"]=functionContracts,["schemaModel"]=schemaModel,["data"]=System.Text.Json.JsonSerializer.SerializeToNode(effective.Data),["values"]=values,["modules"]=modules,["requirements"]=requirements,["providers"]=providers,["providerSelection"]="not-performed",["declarationsLoaded"]=System.Text.Json.JsonSerializer.SerializeToNode(registry.Elements.Keys.Order(StringComparer.Ordinal).ToArray()),["registeredManifests"]=registry.Packs.Count,["bodyReads"]=statistics.ReadDocuments.Count(path=>registry.Elements.Values.Any(e=>e.Bodies.Values.Any(b=>Confectory.Core.PackPaths.Owned(System.IO.Path.GetDirectoryName(e.Loc.File)!,b.Path)==path))),["draftOverlayIDs"]=System.Text.Json.JsonSerializer.SerializeToNode(overlayIds.Order(StringComparer.Ordinal).ToArray()),["dependencySource"]="root-owned-drafts-and-confirmed-registered-files"};
+   if(definitionTypes)result["definitionTypes"]=FieldTypes.Project(registry,id,sourceId=>sourceId==id?text:drafts?.FirstOrDefault(row=>row?["id"]?.ToString()==sourceId)?["text"]?.GetValue<string>()??Observe(registry.Get(sourceId).Loc.File));
    if(observeSources){var observations=new System.Text.Json.Nodes.JsonArray();foreach(var input in observed.OrderBy(p=>p.Key,StringComparer.Ordinal)){if(read(input.Key)!=input.Value)throw new System.InvalidOperationException("Slot context changed after validation");observations.Add(new System.Text.Json.Nodes.JsonObject{["path"]=input.Key,["hash"]=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(input.Value))).ToLowerInvariant()});}result["observations"]=observations;}
    return result;
   }

@@ -38,9 +38,9 @@
 
 | ID·화면/조작 | 기대 결과 | 현재 결과·분류·근거 |
 | --- | --- | --- |
-| I1. 요소/정보 속성 `자료형` → `여러 개 허용`으로 **정의 cardinality 변경** | 기존 정확한 값/참조를 검증하는 원자 정의 변경 | **정의 편집 계약 지원 제한**. checkbox disabled, `info-definition`은 `cardinality=single`만 받는다. 기존 배열/다중 **값** 편집은 지원·검증됐으므로 다시 미완료로 세지 않는다. |
-| I2. 이미 존재하는 compound/reference/다중 정의의 자료형 버튼으로 구조 자체 전환 | 모든 기존 값/참조·자손을 검증하거나 전체 거절 | **정의 편집 계약 지원 제한**. `schemaType`은 직접 소유 single general 필드만 처리한다. linked 정보로 새 중첩 정의를 추가하거나 기존 중첩 값을 편집하는 지원과 다르다. ‘모든 복합 편집 미완료’라는 표현은 제거한다. |
-| I3. 새 속성 타입에서 ref/function/imported 정의 선택 | 선택 종류의 source receipt·기본값·참조 검증이 필요 | **새 정의 후보 지원 제한**. 현재 picker는 네 primitive와 지원 named information만 노출한다. 원문으로 존재하는 참조의 읽기/값 선택 성공을 새 정의 생성 지원으로 확대하지 않는다. 원본 없는 새 타입/메뉴를 만들지 않는다. |
+| I1. 요소/정보 속성 `자료형` → `여러 개 허용`으로 **정의 cardinality 변경** | 기존 정확한 값/참조를 검증하는 원자 정의 변경 | **지원·수용 완료**. 기존 picker에서 단일↔다중을 한 후보/CAS로 처리하고 정확한 값·참조를 보존한다. 다중→단일은 사용자가 먼저 하나로 정리해야 하며 자동 폐기하지 않는다. [I1–I3 검증](VALIDATION_V536_FIELD_DEFINITIONS.md). |
+| I2. 이미 존재하는 compound/reference/다중 정의의 자료형 버튼으로 구조 자체 전환 | 모든 기존 값/참조·자손을 검증하거나 전체 거절 | **지원·수용 완료**. 직접 소유한 정보/직접 적용한 소유 schema의 compound/reference/다중 정의를 변경한다. 다른 객체/자손/기본값·참조·연결과 호환되지 않으면 전체 미적용하고 원문을 보존한다. 외부/상속 정의 자동 수정은 허용하지 않는다. |
+| I3. 새 속성 타입에서 ref/function/imported 정의 선택 | 선택 종류의 source receipt·기본값·참조 검증이 필요 | **지원·수용 완료**. 현재 문법의 primitive/compound/schema 제약 reference/function 연관과 직접 dependency의 등록 schema/function을 선택하고 명시적 대상·기본값을 검증한다. 선택은 실행 허가가 아니다. 임의 CLR 타입이나 다른 원본 종류를 새 의미로 추가하지 않는다. |
 | I4. 정보(schema) 카드 `부모 변경` | schema 상속/기본값과 기존 사용 객체를 함께 검증 | **저장 계약/adapter 미지원**. 현재 schema의 부모는 조회만, 변경은 unsupported callback. object의 Unit→Monster 부모 변경은 지원 완료이며 이 항목과 다르다. |
 | I5. 정보(schema) 카드의 원본 기능/모듈 영역 | 해당 정보 타입에 결부된 기능 의미·소유 편집을 보존 | **원본→native schema 매핑 미지원**. 원본 `renderObjectFunctions`는 정보에서도 제거하지 않지만 현재 `schema.kind==='schema'`에는 기능 영역을 렌더하지 않는다. object의 기능/모듈·복사 지원과 구분한다. 기존 object slot 권한을 schema에 임의 적용하지 않는다. |
 | I6. 요소 아이콘 `편집`·속성/핀 아이콘 클릭 | 원본 선택과 저장된 표시 metadata 연결 | **실제 표시 편집 미연결/저장 후보 부족**. 현재 요소/속성은 unsupported callback, 모바일 서명 icon은 disabled. 현재 읽기·문자 아이콘 표시 수용은 이 편집의 완료가 아니다. 이미지 생성 provider와도 별개다. |
@@ -53,6 +53,6 @@ raw+저장 copy ABI/기존 body/다중 target/Set-property/다른 Blueprint 계�
 
 ## 27개 조작 최종 판정
 
-지원 경로 수용 **11개**: A1/A2/A3/A7, M1/M2/M3/M5/M6/M9/M10. 이 한정 범위에 남은 재현된 화면 미연결 또는 필수 미검증은 없다. 전체 타입·ABI 조합이나 원본의 모든 기능을 구현했다는 뜻은 아니다. M2의 다중 삭제는 직접 소유 ordinary root/연결 해제 후, M3은 기존 native graph 진입, M5는 지원 code/wrapper enum 범위다.
+지원 경로 수용 **14개**: A1/A2/A3/A7, M1/M2/M3/M5/M6/M9/M10, I1/I2/I3. 이 한정 범위에 남은 재현된 화면 미연결 또는 필수 미검증은 없다. 전체 타입·ABI 조합이나 원본의 모든 기능을 구현했다는 뜻은 아니다. M2의 다중 삭제는 직접 소유 ordinary root/연결 해제 후, M3은 기존 native graph 진입, M5는 지원 code/wrapper enum 범위다.
 
-나머지 **16개**를 완료로 바꾸지 않는다. M7/M8/B1은 의도된 native identity·최종 이름·소유권 보호다. A4/A5/A6/M4/M11/M12/I1/I2/I3/I4/I5/I6/B2는 위에 적은 정확한 범위의 추가 계약/adapter/데이터 구현이 필요한 제한·미구현이다. I6 아이콘 편집처럼 원본 조작이 실제로 미구현인 것도 이 목록에 남으며 단순 미검증으로 숨기지 않는다. 실제 기기 및 이미지/협의/렌더 backend 부재도 해제하지 않는다. 상세 근거는 [A7/M6 수용](VALIDATION_V536_A7_M6.md)을 참조한다.
+나머지 **13개**를 완료로 바꾸지 않는다. M7/M8/B1은 의도된 native identity·최종 이름·소유권 보호다. A4/A5/A6/M4/M11/M12/I4/I5/I6/B2는 위에 적은 정확한 범위의 추가 계약/adapter/데이터 구현이 필요한 제한·미구현이다. I6 아이콘 편집처럼 원본 조작이 실제로 미구현인 것도 이 목록에 남으며 단순 미검증으로 숨기지 않는다. 실제 기기 및 이미지/협의/렌더 backend 부재도 해제하지 않는다. 상세 근거는 [A7/M6 수용](VALIDATION_V536_A7_M6.md)을 참조한다.

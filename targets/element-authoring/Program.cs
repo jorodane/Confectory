@@ -90,7 +90,7 @@ try
         case "catalog":
             reply=SemanticCatalogService.Query(S("project"),request["request"]!.AsObject(),path=>{var file=new FileInfo(path);if(!file.Exists||file.Length>1048576||file.LinkTarget is not null)throw new IOException("Owned document unavailable");return path;});break;
         case "effective":
-            reply=EffectiveMetadata.Query(S("project"),S("manifest"),S("id"),S("text"),FormatManifest,path=>{if(new FileInfo(path).Length>1048576)throw new IOException("Manifest budget");return File.ReadAllText(path);},request["drafts"]?.AsArray(),request["schemaView"]?.GetValue<bool>()==true,request["validateObjects"]?.GetValue<bool>()==true,request["observeSources"]?.GetValue<bool>()==true);break;
+            reply=EffectiveMetadata.Query(S("project"),S("manifest"),S("id"),S("text"),FormatManifest,path=>{if(new FileInfo(path).Length>1048576)throw new IOException("Manifest budget");return File.ReadAllText(path);},request["drafts"]?.AsArray(),request["schemaView"]?.GetValue<bool>()==true,request["validateObjects"]?.GetValue<bool>()==true,request["observeSources"]?.GetValue<bool>()==true,request["definitionTypes"]?.GetValue<bool>()==true);break;
         case "implementationCopy":reply=ImplementationCopy.Query(request,Format);break;
         case "privateCopySeed":reply=PrivateImplementationCopy.Validate(request);break;
         case "referenceDefinition":
