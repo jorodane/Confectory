@@ -1,6 +1,7 @@
 var state=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+handle) as System.Text.Json.Nodes.JsonObject??throw new ObjectDisposedException("EditWorkspace");
 lock(state)
 {
+ foreach(var operation in state["retirements"]?.AsObject()??new System.Text.Json.Nodes.JsonObject()){var receipt=operation.Value!;if(receipt["mode"]?.ToString()=="information-binding-v1"&&receipt["state"]?.ToString() is "pending" or "restoring"&&(Array.IndexOf(selected,receipt["owner"]!.ToString())>=0||Array.IndexOf(selected,receipt["manifest"]!.ToString())>=0)&&System.Linq.Enumerable.Any(receipt["reviewIds"]!.AsArray(),id=>Array.IndexOf(selected,id!.ToString())<0))throw new InvalidOperationException("Review the complete retained provider creation and binding together");}
  var result=new System.Collections.Generic.List<string>();var unique=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
  foreach(string id in selected){if(!unique.Add(id))throw new ArgumentException("Duplicate selected unit.");var unit=state["units"]![id] as System.Text.Json.Nodes.JsonObject??throw new ArgumentException("Unknown owned unit.");
 

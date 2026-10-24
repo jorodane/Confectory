@@ -1,0 +1,18 @@
+{
+  "css": [
+    {
+      "path": "examples/editor-home/ui/consumer.css",
+      "unchangedFrom943e4d8": true,
+      "sha256": "fc3584f1784ba822fd438edb5fe33deb6527d8e621cc478184d5f5b82244dc3e"
+    },
+    {
+      "path": "examples/editor-home/ui/style.css",
+      "unchangedFrom943e4d8": true,
+      "sha256": "adfc1b205f0d357a380122763d411147e4db7535d1484f0852a6064984912188"
+    }
+  ],
+  "cardWidth": 460,
+  "htmlAndControlsPreserved": true,
+  "modalCopyUpdated": true,
+  "pixelEqualityClaimed": false
+}
