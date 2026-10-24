@@ -30,6 +30,7 @@ def select(correct=True):
  if hasattr(x,'inspect_picker'):x.inspect_picker(m)
  for target in m.locator('section[data-abi-target]').all():
   if target.get_attribute('data-abi-target').startswith('use:'):
+   if hasattr(x,'select_use'):x.select_use(target,correct);continue
    select=target.locator('[data-abi-input]').first;name=select.get_attribute('data-abi-input')
    if name=='source':select.select_option('pin:count')
    elif x.kind=='delete':select.select_option('value');target.locator('[data-abi-value="'+name+'"]').fill('9223372036854775806')
@@ -58,6 +59,7 @@ try:
   # The original window's Undo stack is session-local. Test rejected-mapping
   # Undo in that same session; cold input preservation is covered independently.
   if not x.mode.endswith('retry'):restart(1)
+  if hasattr(x,'reselect'):x.reselect(popup,select)
   assert f.pending()==held;preserved();f.checked('원본 입력 삭제/타입/혼합 선택은 callee·caller를 명시하며 취소·Undo/Redo·입력/원문 보존')
   if x.mode.endswith('retry'):
    start=len(f.traffic);f.owner().locator('[data-element-action=save]').click();wait('blueprint',start,False,'applySlots');assert pending()[0][1]==value and checkpoint.read_bytes()==baseline;preserved();f.owner().locator('[data-own-functions-toggle]').press('Control+z');assert pending() and not pending()[0][1]['mapping'].get('callers');p=popup();p.get_by_role('button',name='저장',exact=True).click();select();value=pending()[0][1];f.checked('호환되지 않는 본문 연결 거절은 원문/입력을 유지하며 Undo와 새 명시 선택 뒤 같은 원래 기준으로 재시도한다')

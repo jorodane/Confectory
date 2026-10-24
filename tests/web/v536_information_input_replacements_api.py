@@ -34,6 +34,7 @@ try:
  f.invoke('reviewGroup',{'ids':ids,'target':'portable'});review=f.state()['review'];assert review['status']=='ready',review;f.invoke('confirmGroup',{'ids':ids,'token':review['token']});f.stop();f.start(2);f.invoke('select',{'id':owner});assert n.canonical(next(m for m in schema()['ownFunctions'] if m['id']==fn)['signature'])==x.new
  assert json.loads((f.project/'function.node.json').read_text())['source']==n.record['source']
  allowed={'FreeInfo.celem','elements/'+fn.split('::')[1]+'.celem',fn.split('::')[1]+'Body.celem','function.graph.json','function.node.json','caller.graph.json','CallerBody.celem','function-windows.graph.json','function-windows.node.json'}
+ allowed|=getattr(x,'extra_allowed',set())
  assert all((f.project/p).read_bytes()==b for p,b in x.snapshot.items() if p not in allowed)
  f.checked('실제 compiler Review/Confirm·재시작은 전체 계약/바인딩만 반영하고 다른 소스·함수·부모 보존')
 finally:
