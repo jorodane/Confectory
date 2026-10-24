@@ -41,3 +41,17 @@
 3. ABI 교차 문맥·다른 계획 혼합과 모바일 최종 조작은 `V536_REMAINING_ACCEPTANCE.md`의 고정 잔여다. 이미지·협의·내장 렌더 backend를 이번 복원에 추가하지 않는다. 실제 Windows/Android/touch·DPI/IME·Library 전달은 미검증이다.
 
 독립 properties View 및 패키지/깨끗한 checkout 결과는 아래에 추가한다. 전체 UI 복원 완료가 아니다.
+
+## 최종 패키지와 검토
+
+최종 Windows 교차 패키지는 `/workspace/artifacts/Confectory-v536-information-verified/Windows-x64/Confectory.exe`이며 폴더 전체가 필요하다. 앞선 information/information-final 폴더는 마지막 Workspace/metadata guard 이전 중간본과 구분한다. 선언2316개+marker=2317개, 131,772,126 bytes, marker SHA-256 `aab3b139ba739a8c1c3d8ccd9d2a875d5f82cae098f3a80491ea793784cb6e74`, checksum 목록 SHA-256 `50dd1bfe52d1e60359e837d67d38c1ed43d5ac84237009f57c31b4c675f973cc`다.
+
+`package-verified-probe.log` PASS는 SDK 없는 격리 runtime·별도 cwd/profile의 실제 packaged managed 웹 시작/72 resource·기존 fixture profile 보존 및 변조/의존성 누락 거절이다. Windows apphost/WebView2를 실행한 검사는 아니다. 구현9개 source와 최신 helper DLL은 package/content와 실제 byte가 일치했다. 게시 후보15개(구현9·테스트2·문서4)는 검토했고 생성물·로그·사용자 자료는 없으며 비밀 패턴 발견0이다. 이는 모든 비밀 부재를 증명하는 검사는 아니며 실제 인증파일을 읽지 않았다.
+
+중간 disconnect 후 같은 환경에서 pwd/status/보존 파일과 검사 최종 JSON을 읽어 실제 명령 실행을 확인했다. 종료된 기존 세션은 로그로 회수했고 새 환경·저장소나 중복 검사로 대체하지 않았다. 기존 불완전 checkpoint를 자동 삭제하지 않는다. 실제 Windows/Library 전달/전체 v536 UI 완료로 표현하지 않는다.
+
+## 깨끗한 checkout
+
+코드 커밋 `5daf7a82a253ec7c76f93dd8bcf76ff270bae99d`를 기존 격리 checkout에 정상 fetch/fast-forward했다. `checkout-build.log`의 Release solution은 경고0/오류0, `checkout-engine.json`의 Linux 생성 엔진도 경고0이다. `checkout-resources.log`는 실제 이전 CRLF checkout→attributes pull 및 fresh LF에서72 canonical/exact 리소스·내용/인코딩/BOM/binary/budget 거절·원래 byte 불변 PASS다. root/checkout 구현9개는 정규화 byte가 일치하고 checkout은 clean이었다. 마지막 추가 커밋은 이 검증 기록뿐이며 package runtime은 코드 커밋과 동일하다.
+
+정상 push와 최종 원격 SHA·두 작업 트리 clean·main 보존 결과는 체크포인트/최종 응답에 남긴다. 다음 구현 항목은 `NEXT_INFO_RAW.txt`에 보존한다. Info 자체의 정의·기본값 및 raw source 결합을 이미 구현한 것으로 세지 않는다.
