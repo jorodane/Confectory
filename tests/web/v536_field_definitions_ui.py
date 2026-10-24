@@ -31,7 +31,7 @@ def pending():return [(k,v) for k,v in f.pending()['schema'] if '|'+owner+('|vie
 def field(path):return f.owner().locator('[data-property-path=\''+json.dumps(path,separators=(',',':'))+'\']')
 def open_info():
  if is_object and not is_view:return f.open_owner(owner)
- f.page.locator('#workspace').click(button='right',position={'x':80,'y':100});f.page.get_by_role('button',name='프로젝트 브라우저',exact=True).click();b=f.page.locator('.window[data-key^="browser:project:"]');b.locator('[data-tab=info]').click();b.locator('[data-browser-control="object-query"]').fill('FreeInfo');b.locator('[data-browser-control="object-search"]').click();row=b.locator('[data-object="'+owner+'"]');expect(row).to_have_attribute('aria-disabled','false');
+ f.page.locator('#workspace').click(button='right',position={'x':80,'y':100});f.page.get_by_role('button',name='프로젝트 브라우저',exact=True).click();b=f.page.locator('.window[data-key^="browser:project:"]');b.locator('[data-tab=info]').click();b.locator('[data-browser-control="object-query"]').fill('FreeInfo');b.locator('[data-browser-control="object-search"]').click();row=b.locator('[data-object="'+owner+'"]');expect(row).to_have_attribute('aria-disabled','false');f.idle();
  if is_view:
   row.click(button='right');f.page.locator('.context-menu').get_by_role('button',name='새 창으로 열기',exact=True).click();f.owner=lambda:f.page.locator('.window[data-key=editor-1]')
  else:row.press('Enter')
