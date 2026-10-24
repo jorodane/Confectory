@@ -51,7 +51,8 @@ internal static class DeclarationTextMerge
             string key = word switch
             {
                 "description" or "standalone" or "entry" => word,
-                "field" or "data" or "value" or "provide" or "module" => word + ":" + section[1].Key,
+                "field" or "data" or "value" or "provide" or "module" or "require" or "default" or "body" or "blueprint" => word + ":" + section[1].Key,
+                "import" => word + ":" + section[section.FindIndex(t => t.Text == "as") + 1].Key,
                 "element" or "dependency" or "registry" or "target" or "always" => word + ":" + section[1].Key,
                 "use" or "contain" => word + ":" + section[1].Key + ":" + section[2].Key,
                 _ => throw new ArgumentException("This raw statement has no same-owner merge contract")
@@ -75,6 +76,14 @@ internal static class DeclarationTextMerge
         if (original.Kind != "function" || next.Kind != "function" || original.Id != next.Id || original.Parent != next.Parent)
             throw new ArgumentException("Same owned function identity required; retain all input");
         return Combine(baseline, typed, baseline, s => format(new Parser(s, "<function-merge>").ParseElement()));
+    }
+    public static string MergeContract(string baseline, string typed, Func<Element, string> format)
+    {
+        var original = new Parser(baseline, "<contract-baseline>").ParseElement();
+        var next = new Parser(typed, "<contract-candidate>").ParseElement();
+        if (original.Kind is not ("function" or "implementation" or "module") || next.Kind != original.Kind || original.Id != next.Id || original.Parent != next.Parent || original.Function != next.Function)
+            throw new ArgumentException("Same owned contract identity required; all input retained");
+        return Combine(baseline, typed, baseline, s => format(new Parser(s, "<contract-merge>").ParseElement()));
     }
     public static string MergeManifest(string baseline, string typed, Func<Manifest, string> format)
     {
@@ -105,7 +114,10 @@ internal static class DeclarationTextMerge
                 patches.Add((actual.Start, actual.End, "")); continue;
             }
             if (replacement is null) throw new InvalidOperationException("Explicit typed source statement missing");
-            if (actual.Tokens.Count == replacement.Tokens.Count)
+            // Moving a mode keyword across a comma can keep the token count but
+            // turn a former punctuation boundary into two adjacent identifiers.
+            // Preserve raw trivia for token edits only when word boundaries agree.
+            if (actual.Tokens.Count == replacement.Tokens.Count && actual.Tokens.Select(t => Regex.IsMatch(t.Text, @"\A[A-Za-z_0-9]", RegexOptions.CultureInvariant)).SequenceEqual(replacement.Tokens.Select(t => Regex.IsMatch(t.Text, @"\A[A-Za-z_0-9]", RegexOptions.CultureInvariant))))
             {
                 for (int i = 0; i < actual.Tokens.Count; i++) if (actual.Tokens[i].Key != replacement.Tokens[i].Key) patches.Add((actual.Tokens[i].Start, actual.Tokens[i].End, replacement.Tokens[i].Text));
             }

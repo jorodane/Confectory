@@ -18,7 +18,7 @@ internal static class RawOwnerEdits
             : declaration.Kind == "schema" ? InformationDefinitions.Prepare(request, format, formatManifest) : MixedOwnerCopyEdits.Prepare(request, format, formatManifest);
         string merged = DeclarationTextMerge.Merge(text, prepared["text"]!.GetValue<string>(), raw, format);
         var overlays = drafts.DeepClone().AsArray();
-        foreach (var row in prepared["updates"]!.AsArray()) overlays.Single(d => d!["id"]!.ToString() == row!["id"]!.ToString())!["text"] = row!["text"]!.DeepClone();
+        foreach (var row in prepared["updates"]!.AsArray().Concat((prepared["linkedUpdates"] as JsonArray??new JsonArray()).Where(row=>row!["kind"]?.ToString() is "function" or "implementation" or "module" or "schema" or "object"))) overlays.Single(d => d!["id"]!.ToString() == row!["id"]!.ToString())!["text"] = row!["text"]!.DeepClone();
         foreach (var row in prepared["additions"]!.AsArray()) overlays.Add(new JsonObject { ["id"] = row!["id"]!.DeepClone(), ["text"] = row["text"]!.DeepClone() });
         var final = Inspect(merged, prepared["manifest"]!.GetValue<string>(), overlays); Valid(final);
         var observations = new Dictionary<string, string>(OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
