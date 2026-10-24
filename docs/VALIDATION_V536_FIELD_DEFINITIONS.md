@@ -35,6 +35,10 @@ Release solution 빌드 경고/오류0, 최신 Linux 엔진 생성 warnings0/리
 
 패키지 검사는 managed packaged 엔진의 다른 cwd/runtime-only 기동, 최소 로그인 renderer, PE/의존성/리소스·변조 거절을 포함한다. 실제 Windows apphost/WebView2, 기기 DPI/IME/터치 및 실제 계정은 실행하지 않았다. Linux renderer를 Windows 실기기 통과로 세지 않는다. 이 패키지의 Library 전달은 완료하지 않았다.
 
-깨끗한 checkout·파일 checksum·최종 게시 결과는 완료 후 추가 기록한다. I1–I3 이외 원본 UI 전체 또는 지원하지 않는 타입/조합까지 완료했다는 의미가 아니다.
+ I1–I3 이외 원본 UI 전체 또는 지원하지 않는 타입/조합까지 완료했다는 의미가 아니다.
 
 현재 패키지 선언2322파일 + marker 포함2323파일, 131921582bytes. marker SHA-256 `218c44cd3c7f8aaab4bc40f62cf5155564114f04ecd58bc8b37c7a3e0c1df7ae`, 정렬 checksum 목록 SHA-256 `50126461c9e6074f7c082534da5ed9371fbbe42db4f35036f8ef9dbe9ac97156`. 소스 검토 대상16파일은 구현11/검사3/문서2이며 비밀정보 패턴 발견0, 로그·사용자 데이터·인증자료·생성 빌드는 포함하지 않는다.
+
+## 깨끗한 checkout 재현
+
+실행 코드 커밋 `98357afe10cf2c7f7035d3df1d3d450e263dfb19`을 별도 깨끗한 `work/current` checkout에 ff-only 적용했다. Release solution 경고/오류0, Linux 엔진 생성 warnings0, 새 후보 검사7개, 실제 CRLF attribute pull·fresh-LF 및 content/encoding/BOM/binary/budget 거절을 포함한73리소스 검사 통과. 검사 전후 원본 바이트는 불변이다. root/checkout의 추적 실행 소스·검사3212파일은 줄끝 정규화 후 같고, 패키지의 추적 runtime 소스2102파일은 이 실행 코드와 바이트가 같다. 이 후속 변경은 검증 문서만 보완하며 실행 파일을 바꾸지 않는다. 원격 게시 SHA와 로컬 패키지 보관 상태는 작업 체크포인트에 기록한다.
