@@ -67,15 +67,15 @@ internal static class MixedOwnerCopyEdits
     else SchemaContracts.SetField(schema,field,JsonSerializer.SerializeToElement(new{cardinality="single",kind="general",type=row["nativeType"]!.ToString()}));
    }
    if(schema.Fields.Select(pair=>schema.Values.TryGetValue("editorFieldName_"+pair.Key,out var value)&&value.Value.ValueKind==JsonValueKind.String?value.Value.GetString():pair.Key).Distinct(StringComparer.OrdinalIgnoreCase).Count()!=schema.Fields.Count)throw new ArgumentException("Distinct property display names required; all inputs retained");
-   string updated=format(schema);finalDrafts.Single(row=>row?["id"]?.ToString()==group.Key)!["text"]=updated;updates.Add(new JsonObject{["id"]=group.Key,["hash"]=Hash(original),["text"]=updated});
+   string updated=DeclarationTextMerge.Merge(original,format(schema),original,format);finalDrafts.Single(row=>row?["id"]?.ToString()==group.Key)!["text"]=updated;updates.Add(new JsonObject{["id"]=group.Key,["hash"]=Hash(original),["text"]=updated});
   }
   if(definitions.Count>0){
    if(definitions.Count>32)throw new ArgumentException("New property budget");string schemaId=id+"_Properties_"+Hash(definitions.ToJsonString())[..12],name=schemaId[(ns.Length+2)..],relative="elements/"+name+".celem";
    if(registration.Elements.ContainsKey(name)||drafts.Any(d=>d?["id"]?.ToString()==schemaId)||File.Exists(System.IO.Path.Combine(System.IO.Path.GetDirectoryName(System.IO.Path.GetFullPath(project))!,relative)))throw new InvalidOperationException("Property destination exists; retain input");var schema=new Parser("schema "+schemaId+" {}","<mixed-properties>").ParseElement();
    foreach(var row in definitions){string field=row!["name"]!.GetValue<string>(),type=(row["nativeType"]??row["schema"])!.GetValue<string>(),value=row["valueJson"]!.GetValue<string>();if(value.Length>65536)throw new ArgumentException("New property default budget");SchemaContracts.SetField(schema,field,JsonSerializer.SerializeToElement(new{cardinality="single",kind=row["type"]!.ToString()=="information-definition"?"compound":"general",type}));using var parsed=JsonDocument.Parse(value);SchemaContracts.SetData(element,field,parsed.RootElement);}
-   element.Uses.Add(new(schemaId,new(),id,"schema"));registration.Elements.Add(name,new("schema",relative,new()));finalManifest=formatManifest(registration);string schemaText=format(schema);additions.Add(new JsonObject{["id"]=schemaId,["kind"]="schema",["path"]=relative,["text"]=schemaText});finalDrafts.Add(new JsonObject{["id"]=schemaId,["text"]=schemaText});
+   element.Uses.Add(new(schemaId,new(),id,"schema"));registration.Elements.Add(name,new("schema",relative,new()));finalManifest=DeclarationTextMerge.MergeManifest(manifest,formatManifest(registration),formatManifest);string schemaText=format(schema);additions.Add(new JsonObject{["id"]=schemaId,["kind"]="schema",["path"]=relative,["text"]=schemaText});finalDrafts.Add(new JsonObject{["id"]=schemaId,["text"]=schemaText});
   }
-  string formatted=format(element);if(formatted==format(new Parser(text,"<mixed-original-owner>").ParseElement()))formatted=text;if(formatted.Length>1048576)throw new ArgumentException("Mixed owner budget");var after=Inspect(formatted,finalManifest,finalDrafts);Valid(after);
+  string formatted=DeclarationTextMerge.Merge(text,format(element),text,format);if(formatted.Length>1048576)throw new ArgumentException("Mixed owner budget");var after=Inspect(formatted,finalManifest,finalDrafts);Valid(after);
   return new JsonObject{["text"]=formatted,["manifest"]=finalManifest,["additions"]=additions,["updates"]=updates,["observations"]=before["observations"]!.DeepClone(),["sourceWritten"]=false,["compiled"]=false};
  }
 }

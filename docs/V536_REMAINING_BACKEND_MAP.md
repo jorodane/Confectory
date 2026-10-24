@@ -35,3 +35,5 @@
 최신 정보 picker: `VALIDATION_V536_INFORMATION.md`. 소유 named schema의 중첩 primitive·상속 fallback/내부 multiple을 새 compound 정의로 선택하고 source hash proof와 owner 값·등록·설명을 한 후보에 결부한다. ref/function/imported/custom-default는 미연결로 표시한다. 정보 자체 정의/custom 기본값·legacy inline 변경과 raw source 결합은 다음 미완료다. native 타입 존재와 원본 UI 어댑터/기본값 계약 부족을 구분한다.
 
 최신 정보 자체 정의/기본값: `VALIDATION_V536_INFORMATION_DEFAULTS.md`. schema owner-only 후보와 명시 typed-default metadata를 compiler 검증까지 연결했다. 현재 지원된 기본값은 정보 picker에서도 같은 projection을 사용한다. 다른 owner/slot/copy 권한을 확장하지 않으며 legacy inline/미지원 타입 전환/raw source 결합은 유지한다. 다음은 source 원문 보존과 같은 후보/CAS의 raw 결합이며 순차 endpoint 호출로 대체하지 않는다.
+
+최신 raw source 결합의 한정 단위는 `VALIDATION_V536_RAW_OWNER_SAVE.md`다. 직접 소유 object/schema 한 raw 입력과 한 properties 화면의 지원 typed 변경을 원래 source identity/hash·한 후보/CAS·receipt·명시 Review/Confirm에 연결한다. 여러 raw/여러 typed 화면 자동 선택, raw+copy/다른 계획 혼합과 모든 문법의 무손실 구조 병합은 계속 차단한다. 이전 단위의 raw 전체 미완료 표시는 이 지원 범위만 해제하며 ABI 교차 문맥·모바일/특수 핀·legacy 정보 및 backend 부재는 합산 완료하지 않는다.

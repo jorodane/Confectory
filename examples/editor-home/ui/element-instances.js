@@ -25,7 +25,7 @@ export function createElementInstances(api){
    throw Error('이 독립 편집창에는 해당 작업이 아직 연결되지 않았어요. 입력은 유지됩니다.');
   }};
   const unavailable=()=>{throw Error('구현 복사 편집은 원래 요소 창에서 진행해 주세요. 이 창의 입력은 유지됩니다.');};
-  const base=api.base,scoped={...base,inputs,windows,get current(){const value=binding();return {...api.current,draft:value?.draft||null,schema:value?.schema||null};},get view(){return proxy;},get busy(){return base.busy;},get dirty(){return false;},
+  const base=api.base,scoped={...base,inputs,windows,rawSlot:slot,get current(){const value=binding();return {...api.current,draft:value?.draft||null,schema:value?.schema||null};},get view(){return proxy;},get busy(){return base.busy;},get dirty(){return false;},
    openWindow(name,title,width,height,options){requireOwner();if(name!=='schema')throw Error('독립 편집창의 표시 대상이 다릅니다.');const w=base.openWindow(panel,title,width,height,options);w.meta.id=id;w.meta.view=slot;w.meta.mode='properties';return w;},
    open:target=>api.open(target),work:(fn,...args)=>base.work(async()=>{requireOwner();return fn();},...args),
    localDiscardOnly:true,hasOwnerAttempt:()=>false,discardOwnerAttemptInWork:unavailable,copyDrafts:()=>[],hasCopyAttempt:()=>false,copyDiscardSnapshot:()=>null,openSlotInWork:unavailable,openCopyInWork:unavailable,saveCopiesInWork:unavailable,discardCopiesInWork:unavailable,

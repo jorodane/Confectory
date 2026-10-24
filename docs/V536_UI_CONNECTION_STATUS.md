@@ -75,3 +75,5 @@ Set backend 첫 묶음: legacy void Set을 유지하며 outputLocal/stored 분�
 후속 저장 copy ABI: 이미 확정된 직접 배치 복사본의 한 본문 값↔ref를 별도 후보/CAS·출처/소유자/최종 provider 검사에 연결했다(`VALIDATION_V536_SAVED_COPY_ABI.md`). 이 문단 이후의 새 private copy·다중 target·최소 혼합 지원은 위 최신 구분과 각각의 검증 문서를 따른다. 넓은 혼합은 미지원이다. 기존 원본 레이아웃과 전체 v536/실제 Windows 미완료 판정을 바꾸지 않는다.
 
 정보 자체 정의/custom 기본값의 후속 범위와 실패/수정/실제 검사·원본10영역 치수·Windows 교차 패키지는 `VALIDATION_V536_INFORMATION_DEFAULTS.md`에 구분했다. 원본 정보 카드와 독립 창에 기존 기본값·한글 stable key 새 primitive/linked 정보 정의를 연결했다. raw source 결합·legacy inline/모든 정의 전환은 미완료이며 전체 v536/실제 Windows/Library 전달 완료가 아니다.
+
+최신 raw source 결합의 한정 단위는 `VALIDATION_V536_RAW_OWNER_SAVE.md`다. 직접 소유 object/schema 한 raw 입력과 한 properties 화면의 지원 typed 변경을 원래 source identity/hash·한 후보/CAS·receipt·명시 Review/Confirm에 연결한다. 여러 raw/여러 typed 화면 자동 선택, raw+copy/다른 계획 혼합과 모든 문법의 무손실 구조 병합은 계속 차단한다. 이전 단위의 raw 전체 미완료 표시는 이 지원 범위만 해제하며 ABI 교차 문맥·모바일/특수 핀·legacy 정보 및 backend 부재는 합산 완료하지 않는다.

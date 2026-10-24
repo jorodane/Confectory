@@ -32,6 +32,7 @@ try
         case "mixedOwnerCopyEdits":reply=MixedOwnerCopyEdits.Prepare(request,Format,FormatManifest);break;
         case "informationTypes":reply=InformationTypes.Query(request,FormatManifest);break;
         case "informationDefinitions":reply=InformationDefinitions.Prepare(request,Format,FormatManifest);break;
+        case "rawOwnerEdits":reply=RawOwnerEdits.Prepare(request,Format,FormatManifest);break;
         case "blueprintAliases":reply=BlueprintAliases.Prepare(request);break;
         case "blueprintInputAdaptation":reply=BlueprintInputAdaptation.Prepare(request);break;
         case "blueprintFeatureBodies":reply=BlueprintFeatureBodies.Query(request);break;
