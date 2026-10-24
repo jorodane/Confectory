@@ -35,10 +35,10 @@ private copy 선택 직후 원문 schema가 같으면 독립 정보 창의 stamp
 | 실제 Blueprint 원본 | 별도 4 PASS. 실제 원본 graph/node 파일을 생성해 상속 Blueprint와 등록 C#를 함께 선택하고 계약 변경 전체 거절·재시도·Review/Confirm·등록 callable을 검증 |
 | 기존 회귀 | 기본 정보 module UI 4, 기존 자체 함수 독립 body API 7, module 연결/Undo·cold·취소/Confirm UI 4 PASS |
 | 원본 v536 module 선택창 | 6영역의 치수/스타일 exact equality; 원본 source에서 추출한 picker와 실제 데이터 어댑터를 비교 |
-| 깨끗한 checkout | 게시 전 재현 단계에서 갱신한다. |
+| 깨끗한 checkout `c7eb372443d3ac1012003f8d71c9a66806921e33` | Linux warnings/stderr 0, 별도 bound API 4 + 실제 Blueprint/등록 UI 4 PASS, 실제 CRLF pull/fresh LF·74 canonical 리소스·변조/encoding/BOM/binary/budget 거절 PASS |
 | Windows x64 교차 패키지 | manifest 2,327 runtime files. 무관 cwd/runtime-only 관리 엔진 web 기동·74 assets·변조/누락 dependency 거절·fixture profile 보존 PASS |
 
-공통 fixture 준비/회귀/별도 checkout 재현은 고유 사용자 조작 수로 합산하지 않는다. [원본 picker](evidence/v536-information-module-views/information-module-picker-original.png), [실제 picker](evidence/v536-information-module-views/information-module-picker-engine.png), [6영역 수치](evidence/v536-information-module-views/information-module-picker-geometry.json), [등록 기능 연결 후](evidence/v536-information-module-views/registered-module-final.png)를 보존했다. 전체 화면 pixel equality나 실제 기기 검증으로 주장하지 않는다.
+구현 snapshot은 `c7eb372443d3ac1012003f8d71c9a66806921e33`다. 패키지의 surface/authoring/runtime/manifest 및 서버 Blueprint 소스가 해당 snapshot과 같음을 확인했다. 공통 fixture 준비/회귀/별도 checkout 재현 8건은 고유 사용자 조작 수로 합산하지 않는다. [원본 picker](evidence/v536-information-module-views/information-module-picker-original.png), [실제 picker](evidence/v536-information-module-views/information-module-picker-engine.png), [6영역 수치](evidence/v536-information-module-views/information-module-picker-geometry.json), [등록 기능 연결 후](evidence/v536-information-module-views/registered-module-final.png)를 보존했다. 전체 화면 pixel equality나 실제 기기 검증으로 주장하지 않는다.
 
 로컬 Windows 폴더는 `/workspace/artifacts/v536-information-module-views/Windows-x64`다. 전체 폴더를 함께 두고 `Confectory.exe`를 실행한다. manifest SHA256은 `92163bbf525784bf86b71337a4b8bb252f0daa8b47f3cab1e818d054e6f40e5b`다. 실제 Windows apphost/WebView2·모바일 기기와 Library 전달은 미검증이며 패키지/프로필/로그를 Git에 포함하지 않는다.
 
