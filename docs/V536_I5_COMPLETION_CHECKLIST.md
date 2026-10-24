@@ -11,7 +11,7 @@
 | I5-3 | 삭제 후 새 구현 생성 | 직접 소유 정보 함수의 지원 경로 완료. 새 고유 ID/경로와 이전 archive를 분리하고, 새 provider가 있으면 이전 복구가 덮어쓰지 않는다. 상세 범위는 VALIDATION_V536_INFORMATION_REIMPLEMENTATION.md. |
 | I5-4 | 독립 창 함수 전체 삭제 | 지원 경로 완료. 기본/독립 창·미확정 생성 함수·복구 취소 후 재복구·실패/경합/응답 유실/재시작·Review/Confirm을 검증했다. |
 | I5-5 | 함수 순서 변경 | 지원 경로 완료. 원본 제목 드래그·Alt+↑/↓, 기본/독립 창·Undo/Redo·취소·원자 저장·응답 유실·충돌·프로젝트 전환·cold·Review/Confirm을 검증했다. 함수 식별자·핀·본문·참조는 바꾸지 않는다. 상세 범위는 VALIDATION_V536_INFORMATION_FUNCTION_ORDER.md. |
-| I5-6 | 연결된 함수 전체 계약 편집 | 부분 지원. 직접 소유 함수 하나의 명시 핀 대응·일반 Blueprint callee/caller 입력 변경·안전한 동일 매개변수 집합 순열을 원자 저장/복원/Confirm에 연결했다. C# 재작성·중첩·전체 저장소 문맥 및 나머지 출력/타입/여러 함수 편집은 V536_I5_6_REMAINING.md에 고정한 미완료/제한이다. |
+| I5-6 | 연결된 함수 전체 계약 편집 | 부분 지원. 직접 소유 함수 하나의 명시 핀 대응·일반 Blueprint callee/caller 입력 변경·일반 out 이름 변경·안전한 동일 매개변수 집합 순열을 원자 저장/복원/Confirm에 연결했다. C# 재작성·중첩·전체 저장소 문맥 및 나머지 출력/타입/여러 함수 편집은 V536_I5_6_REMAINING.md에 고정한 미완료/제한이다. |
 
 기존 지원 및 각 항목의 구체적 완료 조건은 다음 표에 유지한다.
 
@@ -24,7 +24,7 @@
 | 구현 삭제 후 새 구현 작성 | 확정된 직접 소유 함수 선언의 첫 구현 이름은 호환 유지한다. 이전 unit/파일/디렉터리/archive가 이름을 예약하면 새 GUID 구현·본문을 생성한다. 기본/독립 창·미확정/확정 archive·실패/경합/생성 응답 유실·C# 및 Review 취소·cold·Confirm을 검증했다. 공유/상속/copy 삭제 수명은 I5-2로 분리한다. | 새 고유 구현/본문 후보를 명시적으로 생성하고 기존 archive/다른 target을 보존한다. 새 provider가 있으면 이전 archive 복구가 덮어쓰지 않으며 저장/취소/cold/Confirm을 별도로 검증한다. |
 | 독립 정보 창의 자체 함수 × 삭제·복구 | 기본 창의 기존 거래를 bound 독립 창에 연결했다. 직접 소유 자체 함수와 단독 구현/본문의 복구 가능한 삭제·복구를 검증했다. 공유·상속·copy 원본의 확장 수명은 I5-2로 분리한다. 상세 검증은 VALIDATION_V536_I5_DETACHED_ARCHIVE.md. | bound view/정보에서만 함수·단독 구현의 완전한 archive 거래를 허용한다. 다른 창 입력, 참조 보호, 원자 변경 취소·응답 유실 조회·cold·Review/Confirm을 기본 창과 같은 경계로 검증한다. 구현만 삭제와 혼동하지 않는다. |
 | 자체 함수 제목 드래그 및 키보드 순서 변경 | 원본 `bindOwnFunctionReorder`의 제목 드래그와 Alt+↑/↓를 기존 정보 기본/독립 창에 연결했다. 읽기 전용 행의 상대 순서와 상속 정의는 보존하며 정확한 로컬 contain permutation만 저장한다. | 직접 소유 함수만 정렬하고 상속·override 행은 보존한다. 저장된 contain 순서·Undo/Redo·취소·cold·Confirm까지 원래 행/핀 식별성을 유지한다. |
-| 구현/호출이 연결된 자체 함수의 입출력 계약 변경 | 기본/독립 상세창의 입력 이름 변경과 기존 body/caller를 한 후보에 연결한 부분 지원이다. 전체 완료가 아니다. 검증은 VALIDATION_V536_INFORMATION_FUNCTION_CONTRACTS.md, 정확한 잔여는 V536_I5_6_REMAINING.md 참조. | 원본 핀 편집에서 이름·타입·순서·추가/삭제·값/ref/out을 바꿀 때 구현·호출자·기존 연결·정확한 값을 함께 검증한다. 비호환 변경은 원문을 보존하고 전체 미적용한다. 새 언어 타입을 임의로 추가하지 않는다. |
+| 구현/호출이 연결된 자체 함수의 입출력 계약 변경 | 기본/독립 상세창의 입력/out 이름 변경과 기존 body/caller를 한 후보에 연결한 부분 지원이다. 전체 완료가 아니다. 검증은 VALIDATION_V536_INFORMATION_FUNCTION_CONTRACTS.md, 정확한 잔여는 V536_I5_6_REMAINING.md 참조. | 원본 핀 편집에서 이름·타입·순서·추가/삭제·값/ref/out을 바꿀 때 구현·호출자·기존 연결·정확한 값을 함께 검증한다. 비호환 변경은 원문을 보존하고 전체 미적용한다. 새 언어 타입을 임의로 추가하지 않는다. |
 | `설명으로 작성`의 실제 Helper 작업 | 현재 차단. UI 완료 후 에디터 도구 감사/실제 작업 구현 단계로 사용자가 별도 순서를 정했다. | 실제 제공 도구와 없는 도구를 감사한 뒤 범위 있는 초안 편집·저장으로 연결한다. 실행/최종 Confirm 권한을 자동 부여하지 않으며 이번 UI 검증에서 실제 계정·유료 모델을 호출하지 않는다. |
 
 원본 구현 삭제 근거: `confirmFunctionImplementationDeletion`은 이름과 입출력 유지, 필요 시 상위 구현 fallback을 안내한다. `deleteFunctionBody`는 blueprint/compiled/body/codeLanguage/importedFeatureId/importedFeatureName/implementationRevision을 지우며 함수 정의 자체를 삭제하지 않는다. 엔진 연결은 이 수명 차이를 보존하고 복구 가능한 기존 저장·초안 모델로 처리해야 한다.
