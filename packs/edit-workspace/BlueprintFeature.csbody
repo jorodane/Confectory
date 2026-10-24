@@ -4,7 +4,11 @@ string Hash(string text)=>Convert.ToHexString(System.Security.Cryptography.SHA25
 var observed=new string[ids.Length][];for(int i=0;i<ids.Length;i++){observed[i]=calls.Read.Invoke(handle,ids[i]);if(revisions[i]<0||observed[i][4]!=revisions[i].ToString(System.Globalization.CultureInfo.InvariantCulture)||Hash(observed[i][3])!=hashes[i])throw new InvalidOperationException("Feature or registration changed; read the current source before creating its graph");}
 string root=state["root"]!.ToString(),project=state["project"]!.ToString(),ns=state["namespace"]!.ToString();
 if(observed[0][1]!="function"||observed[0][5]!="missing"&&ids.Length!=3||!id.StartsWith(ns+"::",StringComparison.Ordinal)||observed[1][1]!="project"||observed[1][2]!=System.IO.Path.GetFileName(project))throw new ArgumentException("Only an unpublished function owned by this ProjectPack can acquire a new Blueprint here; preserve existing implementations");
-string name=id[(ns.Length+2)..]+"BlueprintBody",implementationId=ns+"::"+name,implementationPath="elements/"+name+".celem",graphRelative="blueprints/"+Guid.NewGuid().ToString("N")+".graph.json",nodeRelative="nodes/"+Guid.NewGuid().ToString("N")+".node.json";
+// A retained file/receipt reserves the old identity even after unregistration.
+// Keep first-creation compatibility; a replacement gets a distinct owned source.
+string name=id[(ns.Length+2)..]+"BlueprintBody";
+if(ids.Length==3)lock(state){string prior=ns+"::"+name,path=System.IO.Path.Combine(root,"elements",name+".celem");if(state["units"]?[prior] is not null||System.IO.File.Exists(path)||System.IO.Directory.Exists(path)||System.Linq.Enumerable.Any(state["retirements"]?.AsObject()??new System.Text.Json.Nodes.JsonObject(),row=>row.Value?["entries"]?[prior] is not null))name="Impl_"+Guid.NewGuid().ToString("N");}
+string implementationId=ns+"::"+name,implementationPath="elements/"+name+".celem",graphRelative="blueprints/"+Guid.NewGuid().ToString("N")+".graph.json",nodeRelative="nodes/"+Guid.NewGuid().ToString("N")+".node.json";
 string graphId=implementationId+"/body:common",nodeId=graphId+"/node:body";
 var creation=new System.Text.Json.Nodes.JsonObject{["id"]=id,["text"]=observed[0][3],["implementation"]=implementationId,["graphPath"]=graphRelative,["nodePath"]=nodeRelative};if(ids.Length==3){creation["owner"]=ids[2];creation["ownerText"]=observed[2][3];}
 var prepared=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke(ids.Length==3?"blueprintPrepareImplementation":"blueprintPrepareFeature",creation.ToJsonString()))!;
