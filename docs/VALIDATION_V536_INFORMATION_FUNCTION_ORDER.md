@@ -27,13 +27,15 @@ Undo/Redo는 창별 입력 Map의 이전/다음 순서를 복원한다. 저장 �
 | 기존 순수 회귀 | raw owner 병합 5, 함수 전체 삭제 9, 구현만 삭제의 추가 7 PASS. 구현 검사 안의 기존 함수 9 재실행은 중복 합산하지 않음 |
 | 원본 화면 대조 | 동일 함수 카드의 13영역 위치·크기·색 일치, title/drag 속성 일치. style/consumer/runtime CSS는 기준 d596c09와 byte 일치 |
 | Windows 교차 패키지 | win-x64 PE 2329파일. SDK 없는 runtime-only에서 패키지 엔진 웹 기동, 74개 리소스, 최소 연결창 렌더, 변조/의존성 누락 거절 PASS |
-| 깨끗한 checkout/리소스 재현 | 소스 커밋 후 수행하여 최종 문서에 별도 기록 |
+| 깨끗한 checkout/리소스 재현 | 소스 `1faba6a5541da4a2e5251bfa92591790ac1710a7`: Native/Linux warnings/errors/stderr 0, 실제 API 2 + 독립 창 화면 3 PASS. 별도 재현 횟수다. 실제 CRLF pull/fresh LF 및 canonical/exact 74개, 변조/encoding/BOM/binary/budget 거절 PASS |
 
 원본 [카드](evidence/v536-information-function-order/original.png)와 [어댑터](evidence/v536-information-function-order/adapted.png), 실제 엔진 [기본 창](evidence/v536-information-function-order/primary.png)·[독립 창과 보존된 다른 입력](evidence/v536-information-function-order/detached.png)을 남겼다. 13영역 측정은 정적 동일 데이터 카드 범위다. 실제 화면의 전체 pixel 일치나 네이티브 조작 검증을 뜻하지 않는다.
 
 ## 패키지와 한계
 
 로컬 Windows 패키지: `/workspace/artifacts/v536-information-function-order/Windows-x64`, 진입점 `Confectory.exe`. .NET Desktop Runtime 10.0 x64와 WebView2 Runtime이 필요하다. 실제 Windows apphost/WebView2·모바일 기기·Library 전달은 미검증이다. 로컬 경로는 첨부 전달 성공이 아니다. 생성 빌드·프로필·로그는 Git에 넣지 않는다.
+
+패키지 manifest `confectory-desktop-package.json` SHA-256은 `5e4729c665d45c76d7396f7b59906f1cdbc328fd12be665726c7446101a9489d`다. 패키지는 소스 `1faba6a5541da4a2e5251bfa92591790ac1710a7`의 실행 변경을 포함한다. touched JS 2개·WebBundle·Native DLL·Native source 2개의 패키지 byte 일치를 확인했다. 테스트·인증/프로필·로그 경로는 manifest에 없다. 이후 문서만 마감하는 변경은 실행 파일을 바꾸지 않는다.
 
 ## I5-6 다음 경계
 
