@@ -25,7 +25,7 @@
 | 실제 renderer context engine-7 | 3 PASS: 공통 2 + Home A/B/A와 은퇴 callback·프로젝트 입력 보존 1 |
 | 기존 독립 properties 후보 API | 5 PASS |
 | 기존 기본 정보 함수 UI engine-8 | 7 PASS: 생성·핀/이름·cold·확정후재편집·원본 12영역 DOM 대조 |
-| 깨끗한 checkout/리소스 회귀 | 미실행 |
+| 깨끗한 checkout source `0ffb3d113f766c0cc0ed17361152ecfd9a862cc8` | native SDK/Linux engine 경고·오류 0, 별도 API 7 + 실제 renderer 5 PASS, 실제 CRLF pull/fresh LF 및 73리소스·변조/encoding/BOM/binary/budget 거절 PASS |
 | Windows x64 교차 패키지·구성검사 | 2,326파일 구성과 runtime-only 패키지 웹 기동·73리소스·최소 로그인 화면·변조/누락 dependency 거절 PASS |
 
 ## 확인한 결함
@@ -43,6 +43,14 @@
 기존 v536 레퍼런스 함수 카드와 실제 DOM의 12영역 치수·폰트·padding이 정확히 같음을 확인했다. 독립 정보 창은 기존 460px, 본문창은 기존 마크업을 재사용하며 새 레이아웃이나 CSS를 추가하지 않았다. [원본](evidence/v536-information-view-bodies/function-original.png) · [실제](evidence/v536-information-view-bodies/function-engine.png) · [정밀 측정](evidence/v536-information-view-bodies/function-geometry.json) · [독립 본문창](evidence/v536-information-view-bodies/independent-body.png).
 
 로컬 Windows x64 패키지는 `/workspace/artifacts/v536-information-view-bodies/Windows-x64`다. 전체 폴더를 함께 사용하며 Confectory.exe가 진입점이다. 패키지 probe는 Windows PE 구성 확인과 Linux의 실제 managed 엔진 웹 기동이다. Windows apphost/WebView2 실행을 뜻하지 않으며 Library 전달도 하지 않았다. 생성 패키지와 프로필/로그는 Git에 넣지 않는다.
+
+## 재현과 게시 범위
+
+구현 snapshot은 `0ffb3d113f766c0cc0ed17361152ecfd9a862cc8`다. 기존 깨끗한 checkout을 이 snapshot으로 정상 fast-forward한 뒤 native SDK와 Linux 엔진을 다시 만들고 API 7 및 본문 UI 5를 별도로 완주했다. 재현 결과를 root suite와 중복 합산하지 않는다. 원래 source/초안·권한 보호를 약화하지 않았고 생성 패키지·프로필·로그·사용자 자료를 커밋하지 않는다.
+
+Windows 패키지 manifest SHA-256은 `514e117990c3f862a9316a8d738bc84a6d45d96d17a52685ff89849f8339fcf7`다. runtime은 위 구현 snapshot과 같은 코드이며 후속 검증 문서 커밋은 runtime에 포함하지 않는다.
+
+기존 기본 정보 함수 UI의 첫 회귀 실행은 이전 게시 `5521859`에서 이미 활성화한 저장된 함수 삭제 버튼을 여전히 disabled로 기대하던 fixture 때문에 실패했다. 기본 창은 enabled, 아직 미지원인 독립 창은 disabled라는 현재 계약을 확인하도록 고쳤고 생성·핀 편집·재시작·Review/Confirm·12영역 비교 7건을 다시 통과했다. 실제 삭제 보호를 제거하지 않았다.
 
 ## 정확한 남은 I5 조작
 
