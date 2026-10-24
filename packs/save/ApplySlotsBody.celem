@@ -3,4 +3,5 @@ import Confectory.EditWorkspace::SlotBatch as SlotBatch (string,string) -> strin
 import Confectory.Save::WriteChecked as WriteChecked (string,string) -> string;
 import Confectory.Save::Read as ReadSaved (string) -> string;
 import Confectory.EditWorkspace::Export as Export (string) -> string;
+import Confectory.FileStream::Snapshot as Snapshot (string) -> string[];
 body common "ApplySlots.csbody";}

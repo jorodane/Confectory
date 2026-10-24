@@ -114,10 +114,10 @@ export function createElementFunctions(api){
   w.slotViews??=new Map();const key=viewKey(w,schema,provider);if(w.slotViews.has(key))return;const record={pending:true};w.slotViews.set(key,record);const valid=()=>own(w,schema)&&!imported(w,requirement.function)&&w.slotViews.get(key)===record;
   (async()=>{for(let attempt=0;attempt<3;attempt++){await api.whenIdle();if(!valid())return;let started=false;await api.work(async()=>{started=true;try{record.data=await readImplementationView(w,schema,requirement,provider,valid);}catch(error){record.error=error.message;}record.pending=false;if(valid())show(w,w.elementSchema);},'');if(started)return;}record.pending=false;})();
  }
- function pendingCopyOwner(w,schema){const cells=[...inputs].filter(([key])=>key.startsWith(w.elementScope+'|'+schema.id+'|element|'));for(const [,value] of cells)captureMixedCell(value,schema,api.valueJson);return {map:inputs,cells};}
+ function pendingCopyOwner(w,schema,allowRaw=false){const cells=[...inputs].filter(([key])=>key.startsWith(w.elementScope+'|'+schema.id+'|element|'));for(const [,value] of cells)captureMixedCell(value,schema,api.valueJson);return {map:inputs,cells,...(allowRaw&&api.raw?.pending(schema.id)?{raw:api.raw.selectionSource(schema.id,w.elementScope)}:{})};}
  function copyPicker(w,schema,requirement){return (async()=>{await api.whenIdle();if(!own(w,schema))return;
   const saved=api.copyDrafts?.(schema.id,requirement.function)?.[0];if(saved)return api.work(()=>api.openCopyInWork({id:requirement.function,signature:requirement.signature},saved,true),'');const valid=()=>own(w,schema);return api.work(async()=>{try{
-   if(!valid()||api.otherPending?.([schema.id],pendingCopyOwner(w,schema)))throw Error('같은 객체의 미적용 입력을 먼저 확인해 주세요. 입력은 유지됩니다.');
+   if(!valid()||api.otherPending?.([schema.id],pendingCopyOwner(w,schema,true)))throw Error('같은 객체의 미적용 입력을 먼저 확인해 주세요. 입력은 유지됩니다.');
    const catalog=await rpc(w,'blueprint',{action:'implementationSources',id:schema.id,function:requirement.function,revision:schema.revision,hash:schema.textHash},valid);
    if(!valid())return;api.modal('구현 선택','<div class="module-function-import"><p class="small">'+esc(api.name(schema.id))+'에 복사해 편집해요. 원본·상위 객체의 구현은 유지됩니다.</p><input type="search" data-copy-search aria-label="복사할 구현 검색" placeholder="구현 검색…"><div class="feature-import-options"></div></div>',(root,close)=>{
     root.classList.add('feature-import-dialog');const list=$('.feature-import-options',root),search=$('[data-copy-search]',root),alive=()=>valid()&&root.isConnected;

@@ -56,11 +56,13 @@ def invoke(endpoint,body,success=True):
   v=mount();rid=uuid.uuid4().hex
   try:
    assert raw({'op':'invoke','view':v['view'],'scope':v['scope'],'expectedRevision':v['revision'],'requestId':rid,'endpoint':endpoint,'input':body})['ok']
-   for _ in range(600):
+   deadline=time.monotonic()+60;rows=[]
+   while time.monotonic()<deadline:
+    assert host.poll() is None,{'endpoint':endpoint,'action':body.get('action'),'reason':'fixture engine exited','evidence':str(case)}
     u=raw({'op':'update','view':v['view'],'scope':v['scope']});rows=[r for r in u.get('results',[]) if r['requestId']==rid]
     if rows:break
     time.sleep(.01)
-   assert rows
+   assert rows,{'endpoint':endpoint,'action':body.get('action'),'reason':'bounded result deadline','evidence':str(case)}
    if rows[0].get('error',{}).get('code')=='stale_revision':continue
    assert bool(rows[0].get('ok')) is success,rows;return {'result':rows[0],'state':u.get('state')}
   finally:raw({'op':'dispose','view':v['view']})

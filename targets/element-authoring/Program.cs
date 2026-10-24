@@ -33,6 +33,7 @@ try
         case "informationTypes":reply=InformationTypes.Query(request,FormatManifest);break;
         case "informationDefinitions":reply=InformationDefinitions.Prepare(request,Format,FormatManifest);break;
         case "rawOwnerEdits":reply=RawOwnerEdits.Prepare(request,Format,FormatManifest);break;
+        case "mergeDeclarationText":reply=JsonValue.Create(DeclarationTextMerge.Merge(S("text"),S("typed"),S("raw"),Format));break;
         case "blueprintAliases":reply=BlueprintAliases.Prepare(request);break;
         case "blueprintInputAdaptation":reply=BlueprintInputAdaptation.Prepare(request);break;
         case "blueprintFeatureBodies":reply=BlueprintFeatureBodies.Query(request);break;
@@ -144,7 +145,7 @@ try
             var manifest=new Parser(S("text"),"<draft>").ParseManifest();string id=S("id");
             if(!id.StartsWith(manifest.Namespace+"::",StringComparison.Ordinal))throw new ArgumentException("Creation belongs to selected project namespace.");
             string name=id[(manifest.Namespace.Length+2)..];manifest.Elements.Add(name,new(S("kind"),S("path"),new()));
-            string text=FormatManifest(manifest);new Parser(text,"<draft>").ParseManifest();reply=JsonValue.Create(text);break;
+            string text=DeclarationTextMerge.MergeManifest(S("text"),FormatManifest(manifest),FormatManifest);new Parser(text,"<draft>").ParseManifest();reply=JsonValue.Create(text);break;
         }
         case "prepare":
         {

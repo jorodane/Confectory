@@ -13,7 +13,7 @@
 | 저장 copy ABI + 동일 owner 값/구조 편집 | 미지원 | 기존 exclusive `rebindCopyAbi`의 출처/독점 owner와 선언 변경을 함께 검증해야 한다. 새 copy 생성의 receipt로 대신하지 않는다. |
 | 다중 target ABI + 새 copy/slot/owner 구조·값 편집 | 미지원 | 모든 영향 target/공용 import 및 copy/owner 계획의 공통 원래 snapshot·하나의 Review 그룹이 필요하다. 현재 단일 경로를 순서대로 Save하지 않는다. |
 | Set/property 계획 + copy/slot/다중 target/별도 선언 편집 | 미지원 | 명시적 runtime/타입 의미와 관련 source 계획을 하나의 후보에 표현하기 전에는 분리 차단을 유지한다. field 값 변경과 local Set을 혼동하지 않는다. |
-| dirty raw source + 위 결합 편집 | 미지원 | 사용자가 raw 편집 대상을 먼저 확인해야 한다. 서로 다른 편집기의 입력을 자동 합치거나 버리지 않는다. |
+| dirty raw source + 새 private copy/primary owner typed 편집 | 한정 지원 | `VALIDATION_V536_RAW_COPY_SAVE.md`: 직접 소유 object 한 raw 입력과 기본 요소 창 및 새 copy1~8개만 한 후보/CAS·전체 receipt/Review 그룹에 결부한다. 원문 먼저 선택·source Save도 지원하며 실제2copy·실패/충돌/응답 유실/Undo/cold/Confirm을 검증했다. 여러 raw/독립 properties+copy·saved-copy ABI/기존 body·multi-target ABI/Set/property/다른 Blueprint 계획은 차단한다. |
 
 이 조합들은 구현/검증 후에만 지원으로 바뀐다. 준비 상태·과거 계정 동의·현재 대화는 프로젝트 실행이나 자동 Confirm 권한이 아니다. 원본 v536 레이아웃, main/Android/reference ZIP과 사용자 자료는 유지한다. 사용자 결정 없이 정할 수 있는 기존 기술 계약은 새 승인 대기를 만들지 않고 구현하되, 실제 편집 시 변경 대상·비호환 remap·최종 반영 선택은 원본의 명시적 동작을 사용한다.
 

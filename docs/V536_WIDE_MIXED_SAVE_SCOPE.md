@@ -13,3 +13,5 @@
 기존 속성 타입/이름/아이콘/삭제, 새로운 compound schema 정의, 외부 schema·다른 소유자 수정은 현재 UI가 연결하지 않은 기능이라 추가하지 않는다. 일반 ABI remap·모바일 특수 문맥·Set/property 및 다른 소스 편집은 별도 고정 잔여다. 잘못된 마지막 copy/선언·CAS·저장 실패는 전체 미적용/입력 보존이어야 하며 Review/Confirm을 자동 실행하지 않는다. 실제 검사는 격리 fixture만 사용한다.
 
 안전 예산은 owner 연산64개/새 primitive 정의32개/modules32개, copy1~8개 및 전체 receipt source64개다. 초과 시 쓰기 전에 전체 거절하며 일부 저장하지 않는다. 실제 수용 fixture는2copy이며 모든 최대치 조합을 전수 검증한 것은 아니다.
+
+후속 raw 결합의 한정 범위는 `VALIDATION_V536_RAW_COPY_SAVE.md`다. 직접 소유 object의 한 raw 입력·기본 요소 typed 입력·새 private copy1~8개를 같은 후보/CAS로 저장한다. 실제2copy와 원문 주석/정확한 숫자/구조/복합·배열·참조, 실패/충돌/취소/응답 유실/Undo/cold/명시 Confirm을 검증했다. 독립 properties+copy·saved-copy ABI/기존 body·multi-target ABI/Set/property/다른 Blueprint 계획은 이 단위에 포함하지 않는다. unknown plan은 전체 입력을 보존하며 차단한다.

@@ -1,6 +1,6 @@
 # v536 연결 현황과 중간 빌드 준비 조건
 
-2026-10-24 최신 한정 작업은 `VALIDATION_V536_INFORMATION.md`의 기존 정보 선택·새 중첩 속성 원자 Save다. 아래 후속 문단은 시점별 기록이며, 이전 문단의 미지원 상태를 최신 지원으로 오해하지 않는다. UI 기준은 지정된 `origin/main` `196c605`의 원본 v536 ZIP이고 첨부 ZIP과의 바이트 동일성은 미확인이다. 묶음별 통과는 전체 UI 복원이나 Windows 실기기 수용을 뜻하지 않는다.
+2026-10-24 최신 한정 작업은 `VALIDATION_V536_RAW_COPY_SAVE.md`의 raw·기본 요소 typed 입력·새 private copy 원자 Save다. 아래 후속 문단은 시점별 기록이며, 이전 문단의 미지원 상태를 최신 지원으로 오해하지 않는다. UI 기준은 지정된 `origin/main` `196c605`의 원본 v536 ZIP이고 첨부 ZIP과의 바이트 동일성은 미확인이다. 묶음별 통과는 전체 UI 복원이나 Windows 실기기 수용을 뜻하지 않는다.
 
 현재 남은 범위는 다음과 같다.
 
@@ -76,4 +76,4 @@ Set backend 첫 묶음: legacy void Set을 유지하며 outputLocal/stored 분�
 
 정보 자체 정의/custom 기본값의 후속 범위와 실패/수정/실제 검사·원본10영역 치수·Windows 교차 패키지는 `VALIDATION_V536_INFORMATION_DEFAULTS.md`에 구분했다. 원본 정보 카드와 독립 창에 기존 기본값·한글 stable key 새 primitive/linked 정보 정의를 연결했다. raw source 결합·legacy inline/모든 정의 전환은 미완료이며 전체 v536/실제 Windows/Library 전달 완료가 아니다.
 
-최신 raw source 결합의 한정 단위는 `VALIDATION_V536_RAW_OWNER_SAVE.md`다. 직접 소유 object/schema 한 raw 입력과 한 properties 화면의 지원 typed 변경을 원래 source identity/hash·한 후보/CAS·receipt·명시 Review/Confirm에 연결한다. 여러 raw/여러 typed 화면 자동 선택, raw+copy/다른 계획 혼합과 모든 문법의 무손실 구조 병합은 계속 차단한다. 이전 단위의 raw 전체 미완료 표시는 이 지원 범위만 해제하며 ABI 교차 문맥·모바일/특수 핀·legacy 정보 및 backend 부재는 합산 완료하지 않는다.
+최신 raw source 결합의 한정 단위는 `VALIDATION_V536_RAW_OWNER_SAVE.md`다. 직접 소유 object/schema 한 raw 입력과 한 properties 화면의 지원 typed 변경을 원래 source identity/hash·한 후보/CAS·receipt·명시 Review/Confirm에 연결한다. 여러 raw/여러 typed 화면 자동 선택과 모든 문법의 무손실 구조 병합은 계속 차단한다. 후속 `VALIDATION_V536_RAW_COPY_SAVE.md`는 직접 소유 object 한 raw와 기본 요소 창 typed 입력·새 private copy1~8개만 한 후보/CAS로 결합한다. saved-copy ABI/기존 본문·multi-target ABI/Set/property/다른 Blueprint 계획 및 독립 properties+copy는 여전히 차단한다. 이전 단위의 raw 전체 미완료 표시는 이 지원 범위만 해제하며 ABI 교차 문맥·모바일/특수 핀·legacy 정보 및 backend 부재는 합산 완료하지 않는다.
