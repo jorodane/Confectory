@@ -50,7 +50,7 @@ schema 소유 구현의 읽기/쓰기에는 실제 직접 `provide`, 동일 name
 
 ## 첫 단위 최종 재현
 
-실행 변경 커밋은 `47d0ee959a62fc5ce49b552e0c07a7437fe1e37f`다. 기존 별도 checkout을 ff-only 갱신하고 깨끗한 상태에서 native helper와 Linux 엔진을 새로 빌드했다(경고/오류 0). 그 엔진으로 기본 정보 구현 UI **4 PASS**, 실제 성공/조회 응답 유실 복구 **1 PASS**, 순수 정보 모듈 후보 **5 PASS**를 재현했다. root와 checkout의 추적 파일 전체는 바이트가 일치한다. 실제 Git CRLF attribute pull/fresh LF 및 내용·인코딩·BOM·binary/budget 거절 **73리소스** 검사도 통과했다.
+실행 변경 커밋은 `47d0ee959a62fc5ce49b552e0c07a7437fe1e37f`다. 기존 별도 checkout을 ff-only 갱신하고 깨끗한 상태에서 native helper와 Linux 엔진을 새로 빌드했다(경고/오류 0). 그 엔진으로 기본 정보 구현 UI **4 PASS**, 실제 성공/조회 응답 유실 복구 **1 PASS**, 순수 정보 모듈 후보 **5 PASS**를 재현했다. 기존 checkout의 CRLF 줄끝은 보존되므로 root와의 텍스트 비교는 줄끝 정규화 후 일치 기준이다. 바이너리는 원래 바이트로 비교한다. 실제 Git CRLF attribute pull/fresh LF 및 내용·인코딩·BOM·binary/budget 거절 **73리소스** 검사도 통과했다.
 
 최종 로컬 패키지는 `/workspace/artifacts/v536-information-modules/Windows-x64`의 `Confectory.exe`와 동반 파일 전체다. marker 포함 2323파일/131944080바이트이며, 패키지의 추적 실행 소스 2102개는 이 커밋과 바이트 일치한다. marker SHA-256은 `823559788c0a73bffe5f6bb79baff9bb3160f3d4f5de190c73e39ceb97b78e17`, 정렬 체크섬 목록 SHA-256은 `00b9aaba79ebf6f6a51f11c52fc52fd785b35e84f3926e455bee56b282379e31`이다. 패키지 구성과 관리형 웹 엔진은 Linux에서 검사했다. 실제 Windows apphost/WebView2·사용자 계정·유료 모델 및 Library 전달은 검증/실행하지 않았다.
 
