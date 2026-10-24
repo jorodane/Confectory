@@ -1,6 +1,6 @@
 # v536 I5-2: 소유 copy 등록·본문 아카이브
 
-이 단위는 기존 연결 보관과 구분하여 현재 정보에 직접 연결된 프로젝트 소유 copy의 등록·구현·모든 선언 본문을 복구 가능한 거래로 보관한다. 물리 파일은 삭제하지 않는다. 함수 선언·핀·공유/부모/등록 팩 원본, 다른 사용처·target은 유지한다. 구현과 격리 수명/화면 검증을 진행했으며, 게시 및 checkout/패키지 결과는 아래에 기록한다.
+이 단위는 기존 연결 보관과 구분하여 현재 정보에 직접 연결된 프로젝트 소유 copy의 등록·구현·모든 선언 본문을 복구 가능한 거래로 보관한다. 물리 파일은 삭제하지 않는다. 함수 선언·핀·공유/부모/등록 팩 원본, 다른 사용처·target은 유지한다. 현재 지원 수명의 구현·격리 화면·checkout·교차 패키지 검증을 완료했다. 전체 I5/v536 복원이나 실제 Windows 실행 완료를 뜻하지 않는다.
 
 ## 원본 동작과 범위
 
@@ -35,12 +35,18 @@
 | 원본 독립 창 화면 | 3 PASS: 삭제 취소/Undo/Redo, Browser 복구/cold, Review 취소/Confirm·복구 취소/재복구/Confirm |
 | 기존 pure 회귀 | 연결 9, 함수 전체 9, 단독 구현 7 PASS |
 | 추가 실제 화면 | 기본 창 3, 쓰기 실패/재시도 4, 응답·조회 유실/cold 1(apply 1회), 프로젝트 전환 1, 다른 창 입력/취소 3, 계획 뒤 경합 1 PASS |
-| clean checkout·교차 패키지·게시 | 미실행 |
+| 깨끗한 checkout | 소스 `1d181c1f0edd5dc6cbfc3a015d1f900cf7759dfd`, Native/Linux warnings/errors/stderr 0, 실제 copy API 2 + 독립 창 화면 3 PASS |
+| 리소스 checkout | 실제 CRLF pull/fresh LF 및 canonical/exact 74개, 변조/인코딩/BOM/binary/budget 거절 PASS |
+| Windows 교차 패키지 | win-x64 PE 2329파일, SDK 없는 runtime-only에서 패키지 엔진 웹 기동·74개 리소스·최소 연결창 렌더·변조/누락 의존성 거절 PASS |
 
-화면 7회 실행 16개 check와 API 12개 check를 통과했다. 각 수명 검사에는 실제 compiler Review/Confirm과 반복 cold가 포함된다. 이 문서의 검사 수는 시나리오의 check 수이며 서로 다른 기능 수를 뜻하지 않는다. 실제 Windows apphost/WebView2·모바일 기기 실행과 Library 전달은 미검증이다. 이전 af65e36 패키지는 이 copy closure 변경을 포함하지 않는다. 생성 빌드·로그·프로필은 Git에 포함하지 않는다.
+화면 7회 실행 16개 check와 API 12개 check를 통과했다. Native-6의 독립적인 깨끗한 checkout에서 실제 API 2개·화면 3개를 추가 재현했다. 이 5개는 16/12개와 별도 재현 횟수다. 각 수명 검사에는 실제 compiler Review/Confirm과 반복 cold가 포함된다. 이 문서의 검사 수는 시나리오의 check 수이며 서로 다른 기능 수를 뜻하지 않는다. 실제 Windows apphost/WebView2·모바일 기기 실행과 Library 전달은 미검증이다. 이전 af65e36 패키지는 이 copy closure 변경을 포함하지 않는다. 생성 빌드·로그·프로필은 Git에 포함하지 않는다.
 
 화면 근거는 `evidence/v536-information-copy-retirement/{primary,detached,modal}.png`와 `layout-evidence.json`이다. 카드 폭 460px 및 consumer/style CSS의 기준 `af65e36` byte 일치를 확인했다. 원본 레이아웃과 제어를 유지하며 pixel equality를 주장하지 않는다.
 
+## 로컬 패키지
+
+`/workspace/artifacts/v536-information-copy-retirement/Windows-x64`에 Windows 패키지가 있다. Windows에서는 `Confectory.exe`로 시작한다. `confectory-desktop-package.json` SHA-256은 `95125c319ed683b694c690218c2689988b452e32f4d76bcfdb3d8cb1763f4afe`이며 2329파일이다. 소스 커밋은 `1d181c1f0edd5dc6cbfc3a015d1f900cf7759dfd`이고 이후 문서 마감은 실행 파일을 바꾸지 않는다. 현재 소스/Native와 패키지의 핵심 7개 파일 byte 일치를 확인했다. 테스트 스크립트·인증 파일·프로필·로그는 manifest에 없고 제품에 테스트 우회 API를 추가하지 않았다. 이 로컬 경로는 Library 첨부나 사용자 전달 성공을 의미하지 않는다.
+
 ## 고정 후속
 
-I5-1 독립 모듈 편집/가져오기, I5-3 삭제 후 새 구현, I5-4 독립 함수 전체 삭제의 기존 지원을 보존한다. I5-2의 최종 완료는 이번 closure와 화면/오류/checkout 검증이 끝나야 판단한다. I5-5 함수 순서 변경과 I5-6 연결된 함수 전체 계약 편집은 이 단위 다음이다. 새 레이아웃이나 새 편집·실행 체계를 만들지 않는다.
+I5-1 독립 모듈 편집/가져오기, I5-3 삭제 후 새 구현, I5-4 독립 함수 전체 삭제의 기존 지원을 보존한다. I5-2는 원본 v536이 제공하는 현재 지원 수명 범위로 마감한다. 독점 소유를 증명하지 못한 provider/사용 중 copy는 연결만 보관하며 원본을 유지한다. 진행 중 다른 atomic group이나 호환 불가 계약은 먼저 완료하도록 거절한다. 원본에 없는 자체 함수 copy 생성 API를 새로 추가하지 않았다. I5-5 함수 순서 변경과 I5-6 연결된 함수 전체 계약 편집은 이 단위 다음이다. 새 레이아웃이나 새 편집·실행 체계를 만들지 않는다.
