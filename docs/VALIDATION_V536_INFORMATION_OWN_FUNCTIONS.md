@@ -36,3 +36,9 @@ I5는 아직 부분 지원이다. 기준은 저장소 v536(`196c605`)이며 새 
 - Helper의 `설명으로 작성` 연결·권한 확장, I6 아이콘·B2 실제 배지, A4~A6/M4/M11/M12는 이번 단위에 포함하지 않는다.
 
 실제 Windows/모바일 기기·실제 계정·유료 추론은 검증하지 않았다. 로컬 Windows 패키지는 `/workspace/artifacts/v536-information-functions/Windows-x64`이며 Library 업로드/사용자 전달 성공을 뜻하지 않는다. 생성 빌드·로그·계정 정보·사용자 프로젝트는 Git 게시에서 제외한다.
+
+## 게시 전 체크아웃 재현
+
+구현 커밋 `8da384cbcbfb29b4456fa7427cf3b6846d548ef0`을 별도 clean checkout에 fast-forward한 뒤 native와 Linux 엔진을 새로 빌드했다(경고/오류 0). 그 엔진과 해당 checkout 소스에서 자체 함수 UI **7**, 기존 정보 모듈 copy/가져오기/본문 UI **4**, 전역 함수 생성 UI **6**을 모두 통과했다. 동일 원본 카드 12영역 대조도 포함한다. 기존 정보 모듈의 혼합 선택+값 미지원 차단과 소스 보존/Review/Confirm을 유지한다.
+
+실제 Git CRLF attribute pull과 fresh LF checkout의 73개 리소스, 인코딩/BOM/바이너리/크기 한도 및 변조 거절 검사도 통과했다. Windows 패키지는 위 구현 snapshot의 runtime으로 교차 생성·구성 검사·managed 웹 엔진 기동까지 확인했다. 이 뒤 검증 기록만 갱신했으며 runtime 소스는 바꾸지 않았다. 네이티브 Windows 실행과 Library 전달은 여전히 미검증이다.
