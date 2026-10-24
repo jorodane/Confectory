@@ -1,0 +1,17 @@
+{
+  "reference": "repository v536 196c605",
+  "acceptedLayoutBaseline": "d4e379300db6c9b6d5bbbc409b137dd1d82012d2",
+  "cssByteEqual": {
+    "style.css": "adfc1b205f0d357a380122763d411147e4db7535d1484f0852a6064984912188",
+    "consumer.css": "fc3584f1784ba822fd438edb5fe33deb6527d8e621cc478184d5f5b82244dc3e",
+    "runtime.css": "7ace817c492c5bd51a3b11a2fd6b86fdc3d98e242ae4115d5cc52b179afc6e3e"
+  },
+  "actualCleanEngineDetachedRenderer": true,
+  "newPanelOrCss": false,
+  "fullPixelOrNativeClaim": false,
+  "scope": "existing information detail/output add/remove and existing ABI field/select modal; explicit value+insertion/deletion acknowledgement",
+  "screenshots": [
+    "output-definition-popover.png",
+    "output-definition-mapping.png"
+  ]
+}

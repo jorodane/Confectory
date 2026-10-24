@@ -24,7 +24,9 @@
 | 실제 화면 | 독립 추가/쓰기 실패 3, 기본 복수 writer 삭제 2, 독립 void 저장·조회 응답 유실 3, 기본 fromvoid 2, 혼합 취소 2, 실제 peer 충돌 2: 총 14 check 통과. Undo/Redo·미저장 cold·명시 선택 누락 표시·Save·저장 cold·Review 취소/Confirm·확정 cold 포함 |
 | 영향 회귀 | 기존 숫자 반환 타입 API 3, Native 함수 계약 7 check 통과 |
 | Native/Linux | 최종 0 warning/0 error, 실제 Linux 엔진 빌드 성공·stderr 0 |
-| clean checkout/리소스/패키지 | 소스 커밋 뒤 실제 완료 후 확정 기록. 아직 이 행을 성공으로 간주하지 않음 |
+| clean checkout | 소스 `233ce265ca22ae73a67ca9ed753b747a63d90485`에서 Native/Linux 새 빌드, 실제 혼합 API 3 + 독립 창 두 출력 연속 생성 UI 2 check 통과. 마지막 경로 최소 변경 보완을 포함해 cold·Review/Confirm까지 재현 |
+| 리소스 | 보존 CRLF checkout의 실제 fast-forward와 fresh LF checkout, 74 canonical/exact snapshot·변조/인코딩/BOM/binary/budget 거절 통과 |
+| Windows 교차 패키지 | win-x64 2,333파일 생성. 소스/Native DLL 9개 byte 일치, test fixture/인증파일/프로필/로그/Git 미포함. SDK 없는 runtime-only 복사와 별도 cwd에서 실제 패키지 웹 엔진 기동/74리소스, 변조·의존성 누락 거절, fixture 기존 프로필 보존/최초 로그인 화면 검사 통과. Windows apphost/WebView2 실행은 아님 |
 
 기존에 유지되는 실행 edge는 다시 생성하지 않고 삽입으로 달라지는 edge만 기존 root 계획에 제출한다. 원래 노드와 C#는 보존한다. 새 출력 위치와 값 선택, 전체 writer 삭제 확인은 source/hash와 함께 서버에서 다시 검증한다.
 
@@ -37,3 +39,10 @@
 비직렬/중첩 graph, C# After/enum 후처리의 formal 계약 변경, raw C#/전체 본문/복사·등록 출처/여러 함수 동시 closure는 기존 차단을 유지한다. 사용자가 편집한 C# 원문을 명시적으로 결합하는 것은 고정 9행의 4~9행에 남기며 새 시각적 분기·반복이나 자동 소스 치환을 도입하지 않는다. 고급 핀 타입/표시명 및 I6/B2, A4~A6/M4/M11/M12와 Helper 작업 도구도 기존 후속이다.
 
 실제 Windows apphost/WebView2·모바일 기기·Library 전달은 미검증이다. 교차 빌드 및 Linux에서 패키지 웹 엔진 기동을 그 검증과 혼동하지 않는다.
+
+
+## 화면·빌드 근거
+
+기존 수용 레이아웃 `d4e3793`의 style/consumer/runtime CSS는 byte 동일하다. 실제 clean 엔진의 독립 정보 창에서 [상세 편집](evidence/v536-information-output-definitions/output-definition-popover.png)과 [값/삽입 위치 선택](evidence/v536-information-output-definitions/output-definition-mapping.png)을 열어 확인했다. 원본 상세창/계약 대응창에 필요한 field/select를 연결했으며 새 상시 패널이나 CSS를 만들지 않았다. 전체 화면 pixel/native 일치 검사는 아니다.
+
+로컬 패키지는 `/workspace/artifacts/v536-information-output-definitions/Windows-x64` 폴더 전체이고 Windows 진입점은 `Confectory.exe`다. source 커밋은 `233ce265ca22ae73a67ca9ed753b747a63d90485`, manifest SHA-256은 `754683e7c2ea371e6a3c9a2d2b93a89da3c113b9bbe864c9a29da7d1e9282833`이다. .NET Desktop Runtime 10 x64와 WebView2 Runtime 전제는 유지한다. 생성물은 Git에 넣지 않으며 Library로 전달하지 않았다.
