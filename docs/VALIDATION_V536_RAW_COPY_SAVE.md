@@ -48,6 +48,8 @@ Release helper와 solution 빌드는 경고/오류0, 최종 Linux 엔진 생성�
 
 로컬 사전 검토는 변경21파일(구현12/테스트3/문서6)을 검토 대상으로 분류했다. 비밀 패턴 검출0이며 실제 인증/profile 파일은 읽지 않았다. 패턴 검사는 모든 비밀이 없음을 증명하지 않는다. Git 후보에 생성물·로그·사용자 자료·패키지가 없다. 패키지 marker 포함2322파일/131882009bytes의 모든 선언 hash를 확인했다. marker SHA-256은 `5a4887abda969f1fb71ad33109110bd99f59f1a0a7f3a7245c153ec2ee69e9b4`, 정렬된 `PACKAGE_SHA256SUMS` 자체의 SHA-256은 `de0369068d2b19500f0b3ba8e425496bfc3a625ce00c33aa2e72998b62b78bec`이다. 전체 파일 목록과 hash는 `/workspace/scratch/v536-raw-copies/review/`에 있고 산출물과 함께 Git에서 제외한다.
 
+구현 커밋 `692b92b6f0ddbcabd78ae6d0588bf527a98e7f56`을 기존 깨끗한 격리 checkout에 ff-only로 적용했다. Release solution 경고/오류0, Linux 엔진 생성 exit0/warnings0, 실제 retained-CRLF attribute pull·fresh-LF checkout의73개 canonical/exact 리소스 시작 검사 및 변조/인코딩/BOM/binary/budget 거절을 통과했다. 원래 checkout 바이트는 유지됐다. 추적 구현·테스트의 두 checkout 내용은 줄끝 정규화 후 같고, 패키지에 포함된 추적 소스2101파일은 구현 커밋과 바이트 단위로 같다. 패키지의 생성 runtime/플랫폼별 bin은 추적 소스 동등성 검사 대상이 아니며 별도 패키지 manifest/기동 검사로 확인했다. exe SHA-256은 `680cde3accda12f7a033c665a4ea7a4b4d1630d11b23369163a6183b2e34b7be`다. 후속 문서 커밋은 실행 코드를 바꾸지 않으며 최종 원격 SHA와 clean 결과는 체크포인트에 기록한다.
+
 ## 고정 후속 수용
 
 1. 등록 callable의 모든 target: 기존 `BlueprintCallAbiGroup`에 직접 등록 receipt와 모든 target/import/wrapper/record의 공통 원래 closure를 결부한다. 마지막 target/receipt 변경의 전체 거절, 원본 불변, Save/cold/Confirm이 조건이다.
