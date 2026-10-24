@@ -32,6 +32,7 @@ try
         case "mixedOwnerCopyEdits":reply=MixedOwnerCopyEdits.Prepare(request,Format,FormatManifest);break;
         case "informationTypes":reply=InformationTypes.Query(request,FormatManifest);break;
         case "informationDefinitions":reply=InformationDefinitions.Prepare(request,Format,FormatManifest);break;
+        case "informationFunctionRetirement":reply=InformationFunctionRetirement.Execute(request,Format,FormatManifest);break;
         case "rawOwnerEdits":reply=RawOwnerEdits.Prepare(request,Format,FormatManifest);break;
         case "mergeDeclarationText":reply=JsonValue.Create(DeclarationTextMerge.Merge(S("text"),S("typed"),S("raw"),Format));break;
         case "blueprintAliases":reply=BlueprintAliases.Prepare(request);break;

@@ -44,3 +44,5 @@ Windows x64 교차 패키지는 `/workspace/artifacts/v536-information-own-bodie
 - 연결된 서명 전체 변경과 원본 복합 entity/참조 핀 선택의 나머지 의미는 기존 I5 잔여 목록대로다. 이번 plain 저장에 구조/ABI 의미를 임의 추가하지 않았다.
 - 설명 없는 첫 scaffold의 기존 영문 intent fallback은 별도 관측 항목으로 남긴다. 기존 함수 원문/본문을 자동 변경하지 않았다.
 - Helper `설명으로 작성`, I6/B2 및 A4~A6/M4/M11/M12는 후속 범위다.
+
+후속 기본 창 자체 함수의 비파괴 삭제·복구는 [별도 검증 단위](VALIDATION_V536_INFORMATION_FUNCTION_RETIREMENT.md)로 연결했다. 위 본문 편집 단위 당시의 미연결 기록과 검증 수를 소급하여 바꾸지 않는다. 독립 창 본문 편집 및 구현만 삭제는 계속 후속이다.

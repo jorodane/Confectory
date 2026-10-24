@@ -9,5 +9,6 @@ implementation Confectory.PackWorkspace::BrowserDraftsBody for Confectory.PackWo
  import Confectory.EditWorkspace::DiscardCreationGroup as DiscardCreationGroup (string,string,string) -> string;
 import Confectory.EditWorkspace::CreationGroup as CreationGroup (string,string) -> string[];
  import Confectory.EditWorkspace::Retirement as Retirement (string,string,string) -> string;
+ import Confectory.Save::InformationArchive as Archive (string,string,string) -> string;
  body common "BrowserDrafts.csbody";
 }

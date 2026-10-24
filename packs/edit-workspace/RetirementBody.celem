@@ -1,5 +1,7 @@
 implementation Confectory.EditWorkspace::RetirementBody for Confectory.EditWorkspace::Retirement (string handle, string action, string request) -> string {
 import Confectory.SchemaEditing::Register as Register (string,string,string,string) -> string;
 import Confectory.FileStream::Snapshot as Snapshot (string) -> string[];
+import Confectory.SchemaEditing::Call as Metadata (string,string) -> string;
+import Confectory.EditWorkspace::Read as Read (string,string) -> string[];
 body common "Retirement.csbody";
 }
