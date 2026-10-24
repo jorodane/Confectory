@@ -1,5 +1,5 @@
 """Information module attachment through original v536 UI, isolated real engine.
-Implementation/copy editing stays unavailable until its complete schema-owner contract exists.
+Bound module editing uses the same candidates; complete lifecycles have separate focused suites.
 """
 import json,re,sys,time,zipfile
 from playwright.sync_api import sync_playwright,expect
@@ -64,8 +64,8 @@ try:
    held=d.pending();restart(1);assert d.pending()==held;expect(card()).to_be_visible();save();f.originals();values();d.verify_peer();assert not any(r.get('invoke',{}).get('endpoint') in ['run','runProject','startProject'] for r in f.traffic);assert {r['function'] for r in schema()['requirements']}=={f.n+'Slot',f.n+'Slot2'}
 
    for control in ['[data-function-import]','[data-function-edit]']:
-    (expect(card().locator(control).first).to_be_disabled if d.is_view else expect(card().locator(control).first).to_be_enabled)()
-   f.checked('원본 모듈 카드·핀은 실제 schema module/provide/default 계약을 표시하고 독립 창의 미지원 구현 쓰기와 AI 작성을 차단하며 실행하지 않는다')
+    expect(card().locator(control).first).to_be_enabled()
+   f.checked('원본 모듈 카드·핀은 실제 schema module/provide/default 계약을 표시하고 기본/독립 창 구현 진입을 연결하고 AI 작성 및 프로젝트 실행은 하지 않는다')
    f.page.screenshot(path=str(f.case/'information-modules-saved.png'));restart(2);assert not d.pending();expect(card().locator('[data-module-method]')).to_have_count(2);values();d.verify_peer();f.checked('Save와 실제 cold는 bound 정보의 모듈·계약·provider·typed defaults 및 독립 peer 입력을 복원한다')
    card().locator('[data-behavior-unlink]').click();expect(card()).to_have_count(0);f.owner().locator('[data-element-action=discard]').click();expect(card().locator('[data-module-method]')).to_have_count(2);values();d.verify_peer()
    if d.is_view:
