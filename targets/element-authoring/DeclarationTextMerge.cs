@@ -68,6 +68,14 @@ internal static class DeclarationTextMerge
         foreach (string text in new[] { typed, raw }) { var element = new Parser(text, "<raw-candidate>").ParseElement(); if (element.Id != original.Id || element.Kind != original.Kind || element.Kind is not ("object" or "schema")) throw new ArgumentException("Raw declaration identity/kind changed; all input retained"); }
         return Combine(baseline, typed, raw, s => format(new Parser(s, "<merge>").ParseElement()));
     }
+    public static string MergeFunction(string baseline, string typed, Func<Element, string> format)
+    {
+        var original = new Parser(baseline, "<function-baseline>").ParseElement();
+        var next = new Parser(typed, "<function-candidate>").ParseElement();
+        if (original.Kind != "function" || next.Kind != "function" || original.Id != next.Id || original.Parent != next.Parent)
+            throw new ArgumentException("Same owned function identity required; retain all input");
+        return Combine(baseline, typed, baseline, s => format(new Parser(s, "<function-merge>").ParseElement()));
+    }
     public static string MergeManifest(string baseline, string typed, Func<Manifest, string> format)
     {
         var original = new Parser(baseline, "<registration-baseline>").ParseManifest(); var next = new Parser(typed, "<registration-candidate>").ParseManifest();

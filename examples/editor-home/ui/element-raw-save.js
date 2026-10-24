@@ -18,7 +18,7 @@ export function createRawOwnerSaves(api){
   if(!(await rpc(j,'settledSlots',query,alive)).settled)throw Error('저장 결과를 읽는 동안 소스가 바뀌었습니다. 입력은 유지됩니다.');
   const source=await api.refreshRaw(j.raw,alive);if(source?.id!==j.owner||source.sourceIdentity!==j.declaration.raw.sourceIdentity)throw Error('저장한 소스 위치를 확인하지 못했어요. 입력은 유지됩니다.');
   for(const [k,v] of j.cells)if(same(api.inputs.get(k),v))api.inputs.delete(k);
-  if(schema)for(const [k,v] of api.inputs)if(k.startsWith(prefix(j.owner,j.typedSlot))&&v.hash===j.declaration.hash){const index=j.cells.findIndex(([old])=>k===old),proof=receiptFieldProof(v,j.declaration.changes[index],schema);if(proof)api.inputs.set(k,{...v,hash:schema.textHash,revision:schema.revision,copySavedBasis:proof});}
+  if(schema)for(const [k,v] of api.inputs)if(k.startsWith(prefix(j.owner,j.typedSlot))&&v.hash===j.declaration.hash){const index=j.cells.findIndex(([old])=>k===old),proof=receiptFieldProof(v,j.declaration.changes[index],schema);if(proof)api.inputs.set(k,{...v,hash:schema.textHash,revision:schema.revision,...proof.inputPatch,copySavedBasis:proof});}
   if(stillRaw(j.raw))api.acceptRaw(j.raw,source);
   if(same(api.journals.get(key(j.owner)),j))api.journals.delete(key(j.owner));await persist();api.changed();return {settled:true};
  }

@@ -1,1 +1,1 @@
-implementation Confectory.EditWorkspace::CreationOwnersBody for Confectory.EditWorkspace::CreationOwners (string handle,string id) -> string[] {body common "CreationOwners.csbody";}
+implementation Confectory.EditWorkspace::CreationOwnersBody for Confectory.EditWorkspace::CreationOwners (string handle,string id) -> string[] {import Confectory.SchemaEditing::Call as Metadata (string,string) -> string;body common "CreationOwners.csbody";}

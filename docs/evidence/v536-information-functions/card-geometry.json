@@ -1,0 +1,222 @@
+{
+  "expected": [
+    {
+      "selector": ":scope",
+      "x": 0,
+      "y": 0,
+      "width": 390,
+      "height": 152,
+      "font": "16px \"DM Sans\", \"Noto Sans KR\", sans-serif",
+      "padding": "0px"
+    },
+    {
+      "selector": ".function-node-heading",
+      "x": 1,
+      "y": 1,
+      "width": 388,
+      "height": 45,
+      "font": "16px \"DM Sans\", \"Noto Sans KR\", sans-serif",
+      "padding": "8px 10px"
+    },
+    {
+      "selector": "[data-inline-name]",
+      "x": 45,
+      "y": 9,
+      "width": 165,
+      "height": 28,
+      "font": "650 13px \"DM Sans\", \"Noto Sans KR\", sans-serif",
+      "padding": "3px 4px"
+    },
+    {
+      "selector": ".function-node-flow",
+      "x": 1,
+      "y": 46,
+      "width": 388,
+      "height": 68,
+      "font": "16px \"DM Sans\", \"Noto Sans KR\", sans-serif",
+      "padding": "12px 0px"
+    },
+    {
+      "selector": "[data-inline-description]",
+      "x": 85.796875,
+      "y": 62,
+      "width": 218.390625,
+      "height": 36,
+      "font": "12px / 18px \"DM Sans\", \"Noto Sans KR\", sans-serif",
+      "padding": "8px 4px"
+    },
+    {
+      "selector": ".function-node-writing-actions",
+      "x": 1,
+      "y": 114,
+      "width": 388,
+      "height": 37,
+      "font": "16px \"DM Sans\", \"Noto Sans KR\", sans-serif",
+      "padding": "0px"
+    },
+    {
+      "selector": "[data-pin-side=inputs]",
+      "x": 1,
+      "y": 58,
+      "width": 72.796875,
+      "height": 44,
+      "font": "16px \"DM Sans\", \"Noto Sans KR\", sans-serif",
+      "padding": "0px"
+    },
+    {
+      "selector": "[data-pin-side=outputs]",
+      "x": 316.1875,
+      "y": 58,
+      "width": 72.8125,
+      "height": 44,
+      "font": "16px \"DM Sans\", \"Noto Sans KR\", sans-serif",
+      "padding": "0px"
+    },
+    {
+      "selector": "[data-function-icon]",
+      "x": 11,
+      "y": 9,
+      "width": 26,
+      "height": 28,
+      "font": "20px / 20px \"DM Sans\", \"Noto Sans KR\", sans-serif",
+      "padding": "2px"
+    },
+    {
+      "selector": "[data-function-toggle]",
+      "x": 319,
+      "y": 9,
+      "width": 26,
+      "height": 28,
+      "font": "13px / 13px \"DM Sans\", \"Noto Sans KR\", sans-serif",
+      "padding": "2px"
+    },
+    {
+      "selector": "[data-function-delete]",
+      "x": 353,
+      "y": 9,
+      "width": 26,
+      "height": 28,
+      "font": "20px / 20px \"DM Sans\", \"Noto Sans KR\", sans-serif",
+      "padding": "2px"
+    },
+    {
+      "selector": "[data-function-write-direct]",
+      "x": 195,
+      "y": 115,
+      "width": 194,
+      "height": 36,
+      "font": "12px / 18px \"DM Sans\", \"Noto Sans KR\", sans-serif",
+      "padding": "7px 5px"
+    }
+  ],
+  "actual": [
+    {
+      "selector": ":scope",
+      "x": 0,
+      "y": 0,
+      "width": 390,
+      "height": 152,
+      "font": "16px \"DM Sans\", \"Noto Sans KR\", sans-serif",
+      "padding": "0px"
+    },
+    {
+      "selector": ".function-node-heading",
+      "x": 1,
+      "y": 1,
+      "width": 388,
+      "height": 45,
+      "font": "16px \"DM Sans\", \"Noto Sans KR\", sans-serif",
+      "padding": "8px 10px"
+    },
+    {
+      "selector": "[data-inline-name]",
+      "x": 45,
+      "y": 9,
+      "width": 165,
+      "height": 28,
+      "font": "650 13px \"DM Sans\", \"Noto Sans KR\", sans-serif",
+      "padding": "3px 4px"
+    },
+    {
+      "selector": ".function-node-flow",
+      "x": 1,
+      "y": 46,
+      "width": 388,
+      "height": 68,
+      "font": "16px \"DM Sans\", \"Noto Sans KR\", sans-serif",
+      "padding": "12px 0px"
+    },
+    {
+      "selector": "[data-inline-description]",
+      "x": 85.796875,
+      "y": 62,
+      "width": 218.390625,
+      "height": 36,
+      "font": "12px / 18px \"DM Sans\", \"Noto Sans KR\", sans-serif",
+      "padding": "8px 4px"
+    },
+    {
+      "selector": ".function-node-writing-actions",
+      "x": 1,
+      "y": 114,
+      "width": 388,
+      "height": 37,
+      "font": "16px \"DM Sans\", \"Noto Sans KR\", sans-serif",
+      "padding": "0px"
+    },
+    {
+      "selector": "[data-pin-side=inputs]",
+      "x": 1,
+      "y": 58,
+      "width": 72.796875,
+      "height": 44,
+      "font": "16px \"DM Sans\", \"Noto Sans KR\", sans-serif",
+      "padding": "0px"
+    },
+    {
+      "selector": "[data-pin-side=outputs]",
+      "x": 316.1875,
+      "y": 58,
+      "width": 72.8125,
+      "height": 44,
+      "font": "16px \"DM Sans\", \"Noto Sans KR\", sans-serif",
+      "padding": "0px"
+    },
+    {
+      "selector": "[data-function-icon]",
+      "x": 11,
+      "y": 9,
+      "width": 26,
+      "height": 28,
+      "font": "20px / 20px \"DM Sans\", \"Noto Sans KR\", sans-serif",
+      "padding": "2px"
+    },
+    {
+      "selector": "[data-function-toggle]",
+      "x": 319,
+      "y": 9,
+      "width": 26,
+      "height": 28,
+      "font": "13px / 13px \"DM Sans\", \"Noto Sans KR\", sans-serif",
+      "padding": "2px"
+    },
+    {
+      "selector": "[data-function-delete]",
+      "x": 353,
+      "y": 9,
+      "width": 26,
+      "height": 28,
+      "font": "20px / 20px \"DM Sans\", \"Noto Sans KR\", sans-serif",
+      "padding": "2px"
+    },
+    {
+      "selector": "[data-function-write-direct]",
+      "x": 195,
+      "y": 115,
+      "width": 194,
+      "height": 36,
+      "font": "12px / 18px \"DM Sans\", \"Noto Sans KR\", sans-serif",
+      "padding": "7px 5px"
+    }
+  ]
+}
