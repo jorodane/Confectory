@@ -26,12 +26,17 @@
 | 실제 독립 창 UI, 생성 응답 유실 | 4 PASS: 성공 응답 한 번 유실 후 조회 복구, create 요청 1회, 이후 같은 저장/취소/cold/Confirm |
 | 실제 기본 창 UI, 생성 쓰기 실패 | 5 PASS: 실패 미적용과 명시 재시도, 이후 같은 저장/취소/cold/Confirm |
 | 기존 첫 본문 작성 UI | 5 PASS: 기존 고정 첫 identity·빈 본문 cold·C# 취소·private 입력/창 복원·Review/Confirm 호환 |
+| 깨끗한 checkout의 확정 archive 독립 창 UI / 실제 source 경합 API | 각각 4 / 1 PASS: 확정된 삭제 뒤 새 생성·본문 취소/미저장 cold/저장·새 Review/Confirm·원본 보존 및 실제 변경 전체 거절 |
 
 처음 작성한 fixture의 archive 요약 키와 source 경합 후 projection 가정을 고쳤다. 생성 응답 유실 주입은 동일 request의 첫 성공 응답만 제거하도록 했다. 모달 종료 직후에는 임의 대기 대신 실제 idle 상태를 기다린다. 여러 Chromium을 동시 실행하다 렌더러가 종료된 실행은 통과로 세지 않으며 동시 실행 수를 줄였다. 실패 로그도 보존한다.
 
 HTML/CSS/원본 버튼·팝오버 배치는 변경하지 않았다. 실제 정보 카드 폭 460px와 원본 C# 편집기·기존 Review를 사용했다. 보존한 [기본 창](evidence/v536-information-reimplementation/primary.png)과 [독립 창](evidence/v536-information-reimplementation/detached.png)은 격리 fixture의 실제 화면이며 전체 화면 pixel equality나 실제 Windows 검증을 의미하지 않는다.
 
-깨끗한 checkout·canonical 리소스·Windows 패키지의 최종 재현 결과는 게시 검증을 마친 뒤 이 문서에 추가한다. 실제 Windows apphost/WebView2·모바일 기기·Library 전달은 미검증이다. 생성 패키지·사용자 자료·로그는 Git에 포함하지 않는다.
+구현 snapshot은 `1120407d92b888251c3c304c639d8fb117faf75d`다. 별도 깨끗한 checkout의 Linux 빌드는 warnings/stderr 0이며, 실제 Git의 CRLF 유지/새 LF checkout과 74 canonical 리소스·변조/encoding/BOM/binary/budget 거절 검사를 통과했다.
+
+Windows x64 교차 패키지의 2,327 runtime files, 무관 cwd/runtime-only 관리 엔진 web 기동, 기존 fixture profile 보존, 74 assets, 최소 연결 화면, 변조/누락 dependency 거절을 확인했다. 패키지의 변경된 JS·resource manifest·BlueprintFeature 소스가 구현 snapshot과 동일하다. 폴더는 `/workspace/artifacts/v536-information-reimplementation/Windows-x64`이며 전체 폴더를 함께 두고 `Confectory.exe`를 실행한다. `confectory-desktop-package.json` SHA256은 `896b1951dc91d13524df176b27312e6d19f53dec984c3ffe023e8e52919a20f7`이다. 실제 Windows apphost/WebView2·모바일 기기·Library 전달은 미검증이다. 생성 패키지·사용자 자료·로그는 Git에 포함하지 않는다.
+
+중간 검사에서 `/tmp` tmpfs가 100%가 되어 sandbox 명령 시작과 새 임시 복사에 실패했다. 이번 두 실패 probe의 재생성 가능한 runtime/package 복사만 정리하고 로그·소스·profile을 남겼다. 같은 환경의 workspace TMPDIR에서 패키지·리소스 검사를 다시 실행하여 통과했다. 코드/계정/권한 검사 우회는 하지 않았다.
 
 ## 다음 고정 단위
 
