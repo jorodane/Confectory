@@ -16,6 +16,7 @@
 - `v536_blueprint_selection.py`: controlled renderer 6건. modifier 이동/Undo/Redo, 영역 사각형, 한 묶음 삭제 취소/재실행, 연결 시 전체 거절, private 다중 순차 삭제 차단, retired project callback 차단.
 - `v536_blueprint_selection_engine.py`: 실제 엔진·renderer 5건. 늦은 connected 삭제 전체 rollback, 실제 이동/Undo/Redo·입력 불변, 두 삭제의 cold 보관, 단일 authorBatch와 receipt 조회/재시도, Review 취소·compiler Confirm의 소유 graph만 변경.
 - `v536_mobile_branch_panel.py`: 실제 엔진·renderer 5건. stable enum/연결 보호, 이름·순서·추가, Undo/Redo, 잘못된 이름 cold/Escape, Save 및 별도 compiler Confirm. source/callee/다른 구현은 불변이다.
+- `v536_mobile_code_branch_panel.py`: 실제 엔진·renderer 3건. 일반 code 동작의 원본 F2 이름/추가 패널, 기존 C# 본문·enum 숫자/ID·실행 경로 보존, 한 enumCode checkpoint, compiler Confirm에서 소유 graph/code record만 변경. wrapper 검사와 구분한다.
 - `v536_blueprint_internal_flow.py`: 실제 엔진·renderer 4건. native 내부 graph 진입, 본문 취소/개인 입력 보관·상위 복귀, desktop breadcrumb/mobile/cold, 저장·Review 취소·compiler Confirm. 선택한 leaf 파일만 최종 변경했다.
 - `v536_document_windows_engine.py`: 실제 엔진 6건. 두 독립 요소 창의 원문 입력 격리, Pack Manager 플로팅/배경 선택, 일괄 닫기/재열기, cold 후 layout/입력/활성 탭, 모바일 Browser 재진입. 이 검사는 최종 소스 파일을 변경하지 않는다.
 - `v536_document_projects_engine.py`: 실제 엔진 4건. 같은 이름의 서로 다른 프로젝트/독립 View 입력 분리, 실제 A→B 전환, retired 쓰기 거절, 프로세스 재시작.
@@ -36,3 +37,5 @@ M3은 기존 native graph 진입만 완료다. 기존 C# code를 내부 graph로
 로컬 Windows 교차 패키지는 `/workspace/artifacts/Confectory-v536-ui-four/Windows-x64/Confectory.exe`를 포함한 **전체 폴더**다. .NET Desktop Runtime10 x64/WebView2가 별도 필요하다. probe는 선언2321파일·73리소스·PE/의존성/변조 거절, 다른 cwd에서 설치 SDK 없이 packaged managed 웹 기동과 최소 로그인 렌더를 통과했다. Windows apphost/WebView2 실행은 하지 않았다.
 
 marker 포함 2322파일/131896943bytes. marker SHA-256 `3a9941354e233264e6bbaefc313fdbcb99b6a6ac697ce6330ce60ab905c2b6de`, 정렬 checksum 목록 SHA-256 `4bd5e8dcdb660194aa8bd344494867e5cb4db7e3070a5719623c64ce36ece1f8`. 사전 검토 15파일(구현4/테스트7/문서4) 비밀 패턴 검출0, 로그/사용자 데이터/산출물은 게시 대상에 없다. 패턴 검사가 모든 비밀의 부재를 증명하지 않으며 인증 파일 내용은 읽지 않았다. 파일 목록/checksum은 scratch review에 보관한다.
+
+실행 코드 커밋 `8cedf58dfbfb714100bb64185c12bde2b18c4470`을 기존 깨끗한 checkout에 ff-only 적용했다. Release 경고/오류0, checkout Linux 엔진 exit0/warnings0. 실제 retained-CRLF attribute pull·fresh-LF 73리소스와 content/encoding/BOM/binary/budget 거절 검사를 통과했으며 검사 전후 바이트가 같다. root/checkout의 추적 실행 소스·테스트3206파일은 줄끝 정규화 후 동일했다. 최초 resource probe는 아직 생성 중인 빈 JSON 보고서를 읽어 시작 단계에서 실패했으며 엔진 완료 확인 후 정상 재실행했다. 리소스/사용자 데이터 결함으로 오인하지 않는다. 후속 일반 code 패널 검사는 같은 실행 코드에서 수행했으며 마지막 커밋은 테스트/검증 기록만 추가한다.
