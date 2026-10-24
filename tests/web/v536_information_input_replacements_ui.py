@@ -27,10 +27,12 @@ def picker():
  m=f.page.get_by_role('dialog',name='입력 연결 갱신',exact=True);expect(m).to_be_visible();return m
 def select(correct=True):
  m=picker()
+ if hasattr(x,'inspect_picker'):x.inspect_picker(m)
  for target in m.locator('section[data-abi-target]').all():
   if target.get_attribute('data-abi-target').startswith('use:'):
-   select=target.locator('[data-abi-input=amount]')
-   if x.kind=='delete':select.select_option('value');target.locator('[data-abi-value=amount]').fill('9223372036854775806')
+   select=target.locator('[data-abi-input]').first;name=select.get_attribute('data-abi-input')
+   if name=='source':select.select_option('pin:count')
+   elif x.kind=='delete':select.select_option('value');target.locator('[data-abi-value="'+name+'"]').fill('9223372036854775806')
    else:select.select_option('pin:amount' if not correct and x.kind=='type' else 'pin:count' if x.kind=='type' else 'pin:fresh')
   elif x.kind=='type':target.locator('[data-abi-input=amount]').select_option('value');target.locator('[data-abi-value=amount]').fill('새 한글 값')
   elif x.kind=='mixed':target.locator('[data-abi-input=fresh]').select_option('pin:amount')

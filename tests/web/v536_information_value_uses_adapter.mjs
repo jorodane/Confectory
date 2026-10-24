@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {pathToFileURL} from 'node:url';
+import path from 'node:path';
+const {abiBindingLabel}=await import(pathToFileURL(path.join(process.argv[2],'examples/editor-home/ui/call-abi-remap.js')));
+assert.equal(abiBindingLabel('{"binary":{"operator":"+","operands":[{"input":"이전값"},{"constant":9223372036854775806}]}}'),'(입력 이전값 + 9223372036854775806)');
+assert.equal(abiBindingLabel('{"binary":{"operator":"*","operands":[{"binary":{"operator":"-","operands":[{"local":"balance"},{"constant":0}]}},{"node":"body","output":"sum"}]}}'),'((별칭/변수 balance - 0) * 노드 body · sum)');
+console.log('PASS whole/nested expression preview preserves exact long tokens, names and source roles');
+assert.equal(abiBindingLabel('{"constant":{"input":"data","raw":9223372036854775806}}'),'{"input":"data","raw":9223372036854775806}');
+assert.equal(abiBindingLabel('{"constant":"<input>한글</input>"}'),'"<input>한글</input>"');
+assert.throws(()=>abiBindingLabel('{broken'));
+console.log('PASS literal data is not interpreted as an input use; invalid JSON is never silently reinterpreted');

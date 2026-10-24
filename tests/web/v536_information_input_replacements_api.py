@@ -19,6 +19,7 @@ try:
  bad=copy.deepcopy(r);m=bad['declaration']['changes'][0]['mapping'];m['implementations']['Other::Body/body:common#body#amount']=copy.deepcopy(next(iter(m['implementations'].values())));cases.append(bad)
  if x.kind=='mixed':
   bad=copy.deepcopy(r);next(iter(bad['declaration']['changes'][0]['mapping']['callers'].values()))['disconnect']={'amount':'{"input":"first"}'};cases.append(bad)
+ if hasattr(x,'extra_cases'):cases.extend(x.extra_cases(r))
  for bad in cases:
   rpc('applySlots',False,**bad);assert checkpoint.read_bytes()==saved;unchanged();assert n.canonical(next(m for m in schema()['ownFunctions'] if m['id']==fn)['signature'])==x.old
  f.checked('누락/잘못된 callee·caller 대응·source·값·다른 소유·모순 해제는 전체 거절 및 원문/기존 checkpoint 보존')
