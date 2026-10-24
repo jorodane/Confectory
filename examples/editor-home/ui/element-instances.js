@@ -21,7 +21,7 @@ export function createElementInstances(api){
    if(aliases[endpoint])return api.view.call(aliases[endpoint],{...input,view:slot,id});
    if(endpoint==='blueprint')return api.view.call(endpoint,{...input,view:slot,id});
    if(['editObjectStructure','readAppliedModules','readModuleInterface'].includes(endpoint))return api.view.call(endpoint,{...input,view:slot,id});
-   if(endpoint==='browserDrafts'&&Array.isArray(input.ids)&&input.ids.length===1&&input.ids[0]===id)return api.view.call(endpoint,{...input,view:slot,id});
+   if(endpoint==='moveBrowserFolders'||endpoint==='browserDrafts'&&Array.isArray(input.ids)&&input.ids.includes(id))return api.view.call(endpoint,{...input,view:slot,id});
    throw Error('이 독립 편집창에는 해당 작업이 아직 연결되지 않았어요. 입력은 유지됩니다.');
   }};
   const unavailable=()=>{throw Error('구현 복사 편집은 원래 요소 창에서 진행해 주세요. 이 창의 입력은 유지됩니다.');};
@@ -31,6 +31,12 @@ export function createElementInstances(api){
    localDiscardOnly:true,hasOwnerAttempt:()=>false,discardOwnerAttemptInWork:unavailable,copyDrafts:()=>[],hasCopyAttempt:()=>false,copyDiscardSnapshot:()=>null,openSlotInWork:unavailable,openCopyInWork:unavailable,saveCopiesInWork:unavailable,discardCopiesInWork:unavailable,
    review:async target=>{requireOwner();if(target!==id)throw Error('검토할 요소가 바뀌었습니다.');await api.review(id,requireOwner);}
   };
+  Object.assign(scoped,{classificationInView:true,classificationPeers:()=>base.classificationPending([id],{map:base.inputs,cells:[...inputs].map(([k,v])=>[toWire(k),v])}),classify:async(moves,alive)=>{
+   await base.whenIdle();return scoped.work(async()=>{const guard=()=>{requireOwner();if(!alive()||moves.length!==1||moves[0].id!==id)throw Error('분류할 창이나 대상이 바뀌었습니다. 입력은 유지됩니다.');if(base.classificationPending([id]))throw Error('이 정보의 입력을 먼저 저장하거나 취소해 주세요. 다른 입력은 유지됩니다.');};
+    for(let attempt=0;attempt<3;attempt++){await proxy.update();guard();try{const result=await proxy.call('moveBrowserFolders',{moves});if(result.moved===false)return false;break;}catch(error){if(error.message!=='stale_revision'||attempt===2)throw error;}}
+    await proxy.call('schema',{id});await base.refreshClassification();
+   },'분류 위치를 변경했어요. 상속·참조·네임스페이스는 유지됩니다.');
+  }});
   const saves=createElementViewSave({slot,owner:id,inputs,journals:base.ownerAuthorInputs,get current(){return scoped.current;},get view(){return proxy;},persist:base.persist,flush:base.persistOwnerInputs});
   Object.assign(scoped,{atomicOwnerEdits:true,hasOwnerAttempt:saves.has,recoverOwnerEditsInWork:saves.recover,saveOwnerEditsInWork:saves.save,discardOwnerAttemptInWork:saves.discard,otherPending:()=>false});
   const editor=createElementEditors(scoped);instances.set(key,editor);return editor;
