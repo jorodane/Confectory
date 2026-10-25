@@ -1,0 +1,27 @@
+{
+  "packageSource": "531a1f279fc4487304bd01c00ebbbe469ae11ba2",
+  "latestPublishedAtTaskStart": "01f570b3326c3cb22d5eecfb09ced1218f1e912a",
+  "subsequentChanges": [
+    "docs/V536_I5_6_REMAINING.md",
+    "docs/V536_I5_COMPLETION_CHECKLIST.md",
+    "docs/VALIDATION_V536_INFORMATION_OUTPUT_DEFINITIONS.md",
+    "docs/VALIDATION_V536_INFORMATION_OUTPUT_REMAP.md",
+    "docs/evidence/v536-information-output-remap/layout-evidence.json",
+    "docs/evidence/v536-information-output-remap/typed-output-mapping.png",
+    "docs/evidence/v536-information-output-remap/typed-output-popover.png"
+  ],
+  "runtimeSourceChanges": [],
+  "matchingPublishedPackagedSources": {
+    "targets/element-authoring/BlueprintOutputBindings.cs": "1be759d07a14598c8c06cd1511cd6ef74a6b1a3ad949b3c452bb6d3cde0f68e7",
+    "targets/element-authoring/BlueprintRootContract.cs": "14fa5b2f25ef0fcf657de7ed3897347c4cade912b3adfaf63dde33283250b4cc",
+    "targets/element-authoring/InformationFunctionContracts.cs": "e420cdc9f8d89dffe1e93165f1956dd66e218004912dfd28c1416291c8c70dcc",
+    "targets/element-authoring/InformationFunctionOutputs.cs": "293561487edcf48b8e97e7cf11b282d4db600ffaa214cd67742397e9d9827fb8",
+    "examples/editor-home/ui/element-functions.js": "6ac3203610fdd099e60ecaf9bdfc387d54717d0f4f63bda748c830403db3d1be",
+    "examples/editor-home/ui/call-abi-remap.js": "d67a04f3b45b5d68ccf13cda9b2279683b977feb831482f1f94c8758c8ee5314",
+    "examples/editor-home/WebBundle.csbody": "9f1d0ee845dd9c3632b99cb91ca80926001fbf319d9cf85fe7ce6977f6bb576f"
+  },
+  "executableInputEquivalence": true,
+  "rebuiltBinaryBitwiseComparison": false,
+  "nativeWindowsExecuted": false,
+  "explanation": "531a1f2 is the implementation/test commit built into the package. 01f570b only adds validation documentation/screenshots; packaged runtime source inputs are unchanged. This is build-input equivalence, not a claim of a second byte-identical rebuilt binary or actual Windows execution."
+}

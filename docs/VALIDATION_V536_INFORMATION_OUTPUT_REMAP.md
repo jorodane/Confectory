@@ -41,3 +41,5 @@
 ## 로컬 재현 패키지
 
 source 커밋은 `531a1f279fc4487304bd01c00ebbbe469ae11ba2`다. `/workspace/artifacts/v536-information-output-remap/Windows-x64` 폴더 전체이며 Windows 진입점은 `Confectory.exe`다. manifest SHA-256은 `a8a9991cca73a85540569c2f59fdf616d797394a06b2b6ad79784be2a3cb0adc`다. manifest 2,334항목과 manifest 파일 자체를 포함한 실제 2,335파일을 구분한다. 기존 .NET Desktop Runtime 10 x64·WebView2 Runtime 전제를 유지한다. 생성물은 Git에 넣지 않았으며 Library로 전달하지 않았다.
+
+후속 입력/출력 동시 편집의 마지막 결합은 [3행 결합 수용 기록](VALIDATION_V536_INFORMATION_IO_CONTRACTS.md)에서 마감했다. 위 동시 편집 차단은 이 문서 최초 단위 시점의 기록이다.

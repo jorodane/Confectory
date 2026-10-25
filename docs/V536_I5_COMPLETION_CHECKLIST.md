@@ -11,7 +11,7 @@
 | I5-3 | 삭제 후 새 구현 생성 | 직접 소유 정보 함수의 지원 경로 완료. 새 고유 ID/경로와 이전 archive를 분리하고, 새 provider가 있으면 이전 복구가 덮어쓰지 않는다. 상세 범위는 VALIDATION_V536_INFORMATION_REIMPLEMENTATION.md. |
 | I5-4 | 독립 창 함수 전체 삭제 | 지원 경로 완료. 기본/독립 창·미확정 생성 함수·복구 취소 후 재복구·실패/경합/응답 유실/재시작·Review/Confirm을 검증했다. |
 | I5-5 | 함수 순서 변경 | 지원 경로 완료. 원본 제목 드래그·Alt+↑/↓, 기본/독립 창·Undo/Redo·취소·원자 저장·응답 유실·충돌·프로젝트 전환·cold·Review/Confirm을 검증했다. 함수 식별자·핀·본문·참조는 바꾸지 않는다. 상세 범위는 VALIDATION_V536_INFORMATION_FUNCTION_ORDER.md. |
-| I5-6 | 연결된 함수 전체 계약 편집 | 부분 지원. 직접 소유 함수 하나의 명시 핀 대응·일반 Blueprint callee/caller 입력 변경·일반 out 이름 변경·안전한 동일 매개변수 집합 순열을 원자 저장/복원/Confirm에 연결했다. 다중 writer/비숫자/여러 출력의 동시 타입 변경과 명시 값/노드/지역값 대응도 검증했다(VALIDATION_V536_INFORMATION_OUTPUT_REMAP.md). 입출력의 동시 편집·C# 명시 본문 결합·중첩·전체 저장소 문맥·여러 함수 편집은 V536_I5_6_REMAINING.md에 고정한 미완료/제한이다. |
+| I5-6 | 연결된 함수 전체 계약 편집 | 부분 지원. 직접 소유 함수 하나의 명시 핀 대응·일반 Blueprint callee/caller 입력 변경·일반 out 이름 변경·안전한 동일 매개변수 집합 순열을 원자 저장/복원/Confirm에 연결했다. 다중 writer/비숫자/여러 출력의 동시 타입 변경과 명시 값/노드/지역값 대응도 검증했다(VALIDATION_V536_INFORMATION_OUTPUT_REMAP.md). 입출력 동시 편집도 원래 증거/한 후보에 결합해 3행 지원 경로를 마감했다(VALIDATION_V536_INFORMATION_IO_CONTRACTS.md). C# 명시 본문 결합·중첩·전체 저장소 문맥·여러 함수 편집은 V536_I5_6_REMAINING.md에 고정한 미완료/제한이다. |
 
 기존 지원 및 각 항목의 구체적 완료 조건은 다음 표에 유지한다.
 
