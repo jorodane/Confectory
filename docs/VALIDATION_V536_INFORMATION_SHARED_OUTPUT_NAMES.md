@@ -1,5 +1,7 @@
 # v536 공유 호출자의 일반 out 이름 결합
 
+이 문서는 2a33c95의 이름 단위 기록이다. 후속 scalar out 타입·writer/consumer 결합은 [별도 검증](VALIDATION_V536_INFORMATION_SHARED_OUTPUT_TYPES.md)을 따른다.
+
 고정 8행의 다음 지원 단위는 같은 정보가 직접 소유한 함수 2~8개의 out 이름 변경이다. 같은 위치·타입·값/out 역할·핀 수와 반환을 유지한다. callee는 import 없는 code/export leaf이고 shared caller는 선택한 함수의 call/export만 사용한다. 값 입력 이름을 함께 편집해도 동일한 원래 핀 대응을 유지해야 한다. scalar 타입 변경과 out 계약을 한 그룹에서 섞거나 추가 caller 선택·C# 편집·중첩·copy를 섞지는 않는다. 7행 독립 복제 정책은 답변 대기이며 새 ID/함수/호출 대상은 만들지 않는다.
 
 기존 원본 상세창의 안정된 핀 대응을 각 원래 스냅샷에서 먼저 검증한다. 각 closure를 내부 overlay에 순차 준비하고 공유 소스는 한 번의 원래 hash로 제출한다. 이전 closure가 바꾼 출력 이름이 다른 call의 값 인자나 최종 exit에 사용되면 같은 call ID/출력 핀의 새 이름으로 전파된다. 이는 명시된 원래 핀의 이름 변경이며 다른 출력으로 추측해 연결하는 동작이 아니다. 코드 매개변수·C# 본문·writer ID·제어 경로·값은 보존하고 기존 후보/CAS·receipt·Review/Confirm을 사용한다. 중간 결과는 live 상태나 파일에 쓰지 않는다.
