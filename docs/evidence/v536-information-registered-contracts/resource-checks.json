@@ -1,0 +1,7 @@
+{
+  "pass": true,
+  "sourceCommit": "a6048356ab04a426f9d134b7cc5b96cbd84e3ad3",
+  "resources": 74,
+  "result": "PASS actual EditorHome retained CRLF after attribute pull and fresh LF; 74 canonical/exact snapshots; content/encoding/BOM/binary/budget rejection; original bytes unchanged",
+  "nativeWindowsExecuted": false
+}

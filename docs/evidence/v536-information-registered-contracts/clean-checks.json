@@ -1,0 +1,50 @@
+{
+  "sourceCommit": "a6048356ab04a426f9d134b7cc5b96cbd84e3ad3",
+  "nativeWarnings": 0,
+  "nativeErrors": 0,
+  "linuxStderrBytes": 0,
+  "reproductionChecks": 6,
+  "results": {
+    "api": {
+      "passedChecks": [
+        "실제 서버는 누락·위조·바뀐 등록 계약을 저장 전에 거절하고 checkpoint·외부 팩을 보존한다",
+        "명시 계약·C#·import/context를 한 후보/CAS로 저장하고 재시작에서 원문과 외부 출처를 보존한다",
+        "실제 컴파일 Review/Confirm과 재시작 후에도 외부 선언·provider·등록 manifest는 불변이다"
+      ],
+      "summary": {
+        "checks": [
+          "실제 서버는 누락·위조·바뀐 등록 계약을 저장 전에 거절하고 checkpoint·외부 팩을 보존한다",
+          "명시 계약·C#·import/context를 한 후보/CAS로 저장하고 재시작에서 원문과 외부 출처를 보존한다",
+          "실제 컴파일 Review/Confirm과 재시작 후에도 외부 선언·provider·등록 manifest는 불변이다"
+        ],
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-e9_s1vt8",
+        "actualEngine": true,
+        "projectRun": false,
+        "nativeWindows": false
+      }
+    },
+    "ui": {
+      "passedChecks": [
+        "원본 전체 본문 편집창의 본문·형식 매개변수/입출력은 취소·불완전 cold·코드 저장·명시 caller 선택·Undo/Redo에서 보존된다",
+        "화면 정상 저장·cold는 전체 후보와 C# 원문·호출자를 정확히 복원한다",
+        "실제 화면 compiler Review 취소·재검토·명시 Confirm은 입출력 저장소와 C# 원문을 함께 반영한다"
+      ],
+      "summary": {
+        "checks": [
+          "원본 전체 본문 편집창의 본문·형식 매개변수/입출력은 취소·불완전 cold·코드 저장·명시 caller 선택·Undo/Redo에서 보존된다",
+          "화면 정상 저장·cold는 전체 후보와 C# 원문·호출자를 정확히 복원한다",
+          "실제 화면 compiler Review 취소·재검토·명시 Confirm은 입출력 저장소와 C# 원문을 함께 반영한다"
+        ],
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-ub8s3ycx",
+        "actualEngine": true,
+        "scenario": "types",
+        "chain": false,
+        "mode": "ui-simple",
+        "wholeCaller": true,
+        "nativeWindows": false,
+        "deviceTouch": false
+      }
+    }
+  },
+  "windowsExecuted": false
+}

@@ -1,0 +1,23 @@
+{
+  "sourceCommit": "a6048356ab04a426f9d134b7cc5b96cbd84e3ad3",
+  "package": "/workspace/artifacts/v536-information-registered-contracts/Windows-x64",
+  "manifestSha256": "ad04e3e43355ab4047823bd0866936f72be723fcf6fb6f2a758efd0cbb3a4d92",
+  "manifestFiles": 2341,
+  "actualFiles": 2342,
+  "allManifestHashesValid": true,
+  "sourceAndNativeByteIdentical": [
+    "examples/editor-home/WebBundle.csbody",
+    "examples/editor-home/ui/element-functions.js",
+    "packs/pack-workspace/Blueprint.csbody",
+    "targets/element-authoring/BlueprintCallableContracts.cs",
+    "targets/element-authoring/InformationFunctionBodies.cs",
+    "targets/element-authoring/InformationFunctionContracts.cs",
+    "targets/element-authoring/InformationFunctionDependencies.cs",
+    "targets/element-authoring/InformationFunctionWholeBody.cs",
+    "targets/element-authoring/Program.cs",
+    "targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll",
+    "targets/element-authoring/bin/Release/net10.0/Confectory.Core.dll"
+  ],
+  "nativeWindowsExecuted": false,
+  "delivered": false
+}
