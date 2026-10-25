@@ -22,8 +22,9 @@ def request(signature, remap):
     entries = f.metadata('describe', project=str(f.manifest))['units']
     units = {}
     for row in entries:
-        text = (f.project / row['path']).read_text()
-        units[row['id']] = {**row, 'draft': text, 'original': text, 'revision': 1, 'baseline': h(text)}
+        raw = (f.project / row['path']).read_bytes()
+        text = raw.decode('utf-8-sig')
+        units[row['id']] = {**row, 'draft': text, 'original': text, 'revision': 1, 'baseline': hashlib.sha256(raw).hexdigest()}
     text = units[fn]['draft']
     before = canonical(f.metadata('inspect', text=text)['signature'])
     change = {'type': 'function-edit', 'id': fn, 'hash': h(text), 'name': '연결 계약', 'description': '원문과 참조 보존', 'signature': signature, 'mapping': {'before': before, 'args': remap}}

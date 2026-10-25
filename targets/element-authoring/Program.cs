@@ -33,6 +33,7 @@ try
         case "informationTypes":reply=InformationTypes.Query(request,FormatManifest);break;
         case "informationFunctionInputUses":reply=InformationFunctionInputUses.Read(request);break;
         case "informationFunctionDependencies":reply=InformationFunctionDependencies.Query(request);break;
+        case "informationFunctionCopies":reply=InformationFunctionCopies.Query(request);break;
         case "informationFunctionBodies":reply=InformationFunctionBodies.Read(request);break;
         case "informationFunctionInputs":reply=InformationFunctionContracts.Inputs(request);break;
         case "informationFunctionOutputs":reply=InformationFunctionOutputs.Read(request);break;

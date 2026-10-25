@@ -23,13 +23,13 @@ internal static class BlueprintCallableContracts
    string text=File.ReadAllText(path,new UTF8Encoding(false,true));if(reads.TryGetValue(path,out string? previous)){if(previous!=text)throw new InvalidOperationException("Registered contract changed while reading");return text;}
    bytes=checked(bytes+Encoding.UTF8.GetByteCount(text));if(bytes>2097152)throw new ArgumentException("Registered callable read budget exceeded");reads.Add(path,text);return text;
   }
-  (Manifest Pack,string Text,string Path) Pack(string ns){
-   if(ns==owner.Namespace||!owner.Dependencies.ContainsKey(ns)||!owner.Registry.TryGetValue(ns,out var registration))throw new ArgumentException("Callable must be in a registered direct dependency");
+  (Manifest Pack,string Text,string Path) Pack(string ns,Manifest? consumer=null){
+   var source=consumer??owner;if(ns==owner.Namespace||ns!=source.Namespace&&!source.Dependencies.ContainsKey(ns)||!owner.Registry.TryGetValue(ns,out var registration))throw new ArgumentException("Callable must follow its declared registered dependency");
    string path=Path.GetFullPath(Path.Combine(Path.GetDirectoryName(project)!,registration.Path)),text=Read(path);var pack=new Parser(text,path).ParseManifest();
    if(pack.Kind!="pack"||pack.Namespace!=ns)throw new ArgumentException("Registered callable pack identity differs");return (pack,text,path);
   }
-  (Element Function,string Text,Manifest Pack,string ManifestText) FunctionDeclaration(string id){
-   new Parser("function "+id+" () -> void {}","<callable-id>").ParseElement();string ns=PackPaths.Namespace(id);var registered=Pack(ns);
+  (Element Function,string Text,Manifest Pack,string ManifestText) FunctionDeclaration(string id,Manifest? consumer=null){
+   new Parser("function "+id+" () -> void {}","<callable-id>").ParseElement();string ns=PackPaths.Namespace(id);var registered=Pack(ns,consumer);
    if(!registered.Pack.Elements.TryGetValue(id[(ns.Length+2)..],out var locator)||locator.Kind!="function")throw new ArgumentException("Registered function declaration required");
    string lexical=Path.GetFullPath(Path.Combine(Path.GetDirectoryName(registered.Path)!,locator.Path));string owned=PackPaths.Owned(Path.GetDirectoryName(registered.Path)!,locator.Path);if(owned!=lexical)throw new ArgumentException("Owned registered function path required");string text=Read(lexical);
    var function=new Parser(text,owned).ParseElement();if(function.Kind!="function"||function.Id!=id||function.Signature is null)throw new ArgumentException("Registered function locator identity differs");return(function,text,registered.Pack,registered.Text);
@@ -43,6 +43,11 @@ internal static class BlueprintCallableContracts
   }else{
    string id=request["id"]!.GetValue<string>();var selected=FunctionDeclaration(id);
    result=new(){["id"]=id,["kind"]="function",["text"]=selected.Text,["version"]=selected.Pack.Version,["receipt"]=new JsonObject{["id"]=id,["ownerManifestHash"]=Hash(manifestText),["manifestHash"]=Hash(selected.ManifestText),["textHash"]=Hash(selected.Text)}};
+   if(request["includeParents"]?.GetValue<bool>()==true){
+    var parents=new JsonObject();var receipts=new JsonArray();var seen=new HashSet<string>(StringComparer.Ordinal){id};var current=selected;
+    while(current.Function.Parent is string parent){if(seen.Count>=16||!seen.Add(parent))throw new ArgumentException("Bounded acyclic callable inheritance required");var inherited=FunctionDeclaration(parent,current.Pack);if(!current.Function.Signature!.Matches(inherited.Function.Signature))throw new InvalidOperationException("Inherited callable contract changed; retain input");var proof=new JsonObject{["id"]=parent,["manifestHash"]=Hash(inherited.ManifestText),["textHash"]=Hash(inherited.Text)};parents[parent]=new JsonObject{["text"]=inherited.Text,["receipt"]=proof.DeepClone()};receipts.Add(proof);current=inherited;}
+    result["parents"]=parents;if(receipts.Count>0)result["receipt"]!["parents"]=receipts;
+   }
   }
   foreach(var pair in reads.ToArray())Read(pair.Key);
   result["observations"]=new JsonArray(reads.Select(p=>(JsonNode)new JsonObject{["path"]=p.Key,["hash"]=Hash(p.Value)}).ToArray());

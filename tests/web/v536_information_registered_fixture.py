@@ -1,5 +1,5 @@
 """Read-only registered contracts in an owned information-function candidate."""
-import copy
+import copy,sys
 import json
 import v536_information_context_fixture as b
 
@@ -9,8 +9,22 @@ selected,edited,body_id,body_path,caller_signature,scenario,chain=b.selected,b.e
 registered=f.project/'registered'
 foreign='External.Fields::Echo'
 foreign_source='function '+foreign+' (long input) -> long {provide '+foreign+' with '+foreign+'Body;}'
+inherited=any(flag in sys.argv[4:] for flag in ['inherited','cross-parent'])
+cross_parent='cross-parent' in sys.argv[4:]
+parent_id=('External.Parents::' if cross_parent else 'External.Fields::')+'EchoParent'
+if inherited:
+    foreign_source=foreign_source.replace(' -> long {',' -> long extends '+parent_id+' {')
 pack=registered/'pack.cpack'
 pack.write_text(pack.read_text().replace('}', 'element Echo function "Echo.celem";element EchoBody implementation "EchoBody.celem";}'))
+if inherited:
+    parent_root=f.project/'registered parents' if cross_parent else registered
+    parent_root.mkdir(exist_ok=True);parent_file=parent_root/'EchoParent.celem'
+    if cross_parent:
+        (parent_root/'pack.cpack').write_text('pack External.Parents version "1" {element EchoParent function "EchoParent.celem";}')
+        pack.write_text(pack.read_text().replace('}', 'dependency External.Parents version "1";}'))
+        f.manifest.write_text(f.manifest.read_text().replace('registry Confectory.Build.DotNet','registry External.Parents "registered parents/pack.cpack";registry Confectory.Build.DotNet',1))
+    else:pack.write_text(pack.read_text().replace('}', 'element EchoParent function "EchoParent.celem";}'))
+    parent_file.write_text('function '+parent_id+' (long inheritedInput) -> long {}')
 (registered/'Echo.celem').write_text(foreign_source)
 (registered/'EchoBody.celem').write_text('implementation '+foreign+'Body for '+foreign+' (long input) -> long {body common "Echo.csbody";}')
 (registered/'Echo.csbody').write_text('return checked(input+1); // 외부 원문 · 9223372036854775806')

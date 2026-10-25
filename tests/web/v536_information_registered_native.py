@@ -34,4 +34,23 @@ try:
 finally:body.write_bytes(original)
 x.unchanged()
 print('PASS 등록 provider 본문 없이 계약 검증을 수행하며 외부 구현을 편집 대상으로 삼지 않는다',flush=True)
-print(json.dumps({'checks':4,'evidence':str(x.f.case),'pureCandidate':True,'projectRun':False},ensure_ascii=False))
+if x.inherited:
+    proof=r['changes'][0]['mapping']['dependencies'][x.caller+'Body']['contracts'][x.foreign]
+    assert proof['parents'][0]['id']==x.parent_id
+    for fault in ['missing','forged']:
+        bad=copy.deepcopy(r);receipt=bad['changes'][0]['mapping']['dependencies'][x.caller+'Body']['contracts'][x.foreign]
+        if fault=='missing':receipt.pop('parents')
+        else:receipt['parents'][0]['textHash']='0'*64
+        x.n.prepare(bad,False);x.unchanged()
+    original=x.parent_file.read_bytes()
+    for source in [original+b' ',original.replace(b'long inheritedInput',b'string inheritedInput'),('function '+x.parent_id+' (long inheritedInput) -> long extends '+x.foreign+' {}').encode()]:
+        try:x.parent_file.write_bytes(source);x.n.prepare(r,False)
+        finally:x.parent_file.write_bytes(original)
+        x.unchanged()
+    print('PASS 상속 부모 receipt 누락·위조·실제 변경·타입 불일치·순환은 전체 미적용이며 원본을 보존한다',flush=True)
+    if x.cross_parent:
+        import subprocess
+        result=subprocess.run([x.f.env['CONFECTORY_DOTNET'],str(x.f.repo/'targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll')],input=json.dumps({'operation':'blueprintCallableContracts','action':'read','project':str(x.f.manifest),'manifest':x.f.manifest.read_text(),'sourceId':x.caller+'Body','text':r['units'][x.caller+'Body']['draft'],'id':x.parent_id}),text=True,capture_output=True,check=True,env=x.f.env)
+        assert not json.loads(result.stdout)['ok']
+        print('PASS 등록 팩의 명시된 부모 의존성만 따라 읽으며 caller의 직접 import 권한으로 확대하지 않는다',flush=True)
+print(json.dumps({'checks':4+(1 if x.inherited else 0)+(1 if x.cross_parent else 0),'evidence':str(x.f.case),'pureCandidate':True,'projectRun':False},ensure_ascii=False))

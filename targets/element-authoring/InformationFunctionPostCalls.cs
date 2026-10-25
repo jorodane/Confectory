@@ -22,9 +22,9 @@ internal static class InformationFunctionPostCalls
    if(result.Count>32)throw new ArgumentException("Explicit body/wrapper selection budget");
   }return bytes;
  }
- internal static JsonObject Prepare(string id,string text,JsonObject originalCall,Element original,Element current,JsonObject plan,string? qualified=null)
+ internal static JsonObject Prepare(string id,string text,JsonObject originalCall,Element original,Element current,JsonObject plan,string? qualified=null,InformationFunctionCopies.View? copy=null)
  {
-  if(JsonNode.Parse(text)?["copySource"] is not null)throw new InvalidOperationException("Copy wrapper provenance requires its separate source receipt");
+  if(JsonNode.Parse(text)?["copySource"] is not null&&copy?.Matches(id,text)!=true)throw new InvalidOperationException("Copy wrapper provenance requires its separate source receipt");
   if(plan.Count!=4||plan.Any(p=>p.Key is not ("wrapper" or "contract" or "text" or "helpers"))||!JsonNode.DeepEquals(plan["wrapper"],Receipt(id,text,originalCall,qualified))||!JsonNode.DeepEquals(plan["contract"],FeatureBlueprint.SignatureDocument(current.Signature!))||plan["text"] is not JsonValue body||!body.TryGetValue<string>(out string? source)||plan["helpers"] is not JsonValue members||!members.TryGetValue<string>(out string? helpers))throw new InvalidOperationException("Exact original wrapper and explicit current C# regions required; source retained");
   var before=originalCall["postCall"]!.AsObject();if(before["contractHash"]?.ToString()!=BlueprintOutputSnapshot.Prepare(original)["contractHash"]!.ToString())throw new InvalidOperationException("Original wrapper publication changed; source retained");
   var prepared=Editor(current,originalCall,source,helpers);var post=new JsonObject{["contractHash"]=prepared["contractHash"]!.DeepClone(),["source"]=source,["helpers"]=helpers};if(prepared["mode"] is not null){post["mode"]=prepared["mode"]!.DeepClone();if(prepared["returnMapping"] is not null)post["returnMapping"]=prepared["returnMapping"]!.DeepClone();}return post;

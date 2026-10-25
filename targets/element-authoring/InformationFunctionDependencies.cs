@@ -2,8 +2,8 @@ using Confectory.Core;
 using System.Text;
 using System.Text.Json.Nodes;
 
-// Existing direct-dependency function declarations only. No provider body or
-// registration is read or changed, and a new receipt never replaces a saved one.
+// Reads existing registration and function declarations, never provider bodies.
+// No registration is changed, and a saved receipt is never silently replaced.
 internal sealed class InformationFunctionDependencies(JsonObject request,Action<string>? observe=null)
 {
  readonly Dictionary<string,(string Text,Element Function)> functions=new(StringComparer.Ordinal);
@@ -31,11 +31,12 @@ internal sealed class InformationFunctionDependencies(JsonObject request,Action<
   string project=PackPaths.Resolve(Project),manifest=Manifest;string physicalText=Read(project);var physical=new Parser(physicalText,project).ParseManifest();var selected=new Parser(manifest,"<selected-callable-project>").ParseManifest();
   if(physical.Kind!="project"||physical.Namespace!=selected.Namespace||physical.Registry.Count!=selected.Registry.Count||physical.Registry.Any(p=>!selected.Registry.TryGetValue(p.Key,out var row)||row.Path!=p.Value.Path)||physical.Dependencies.Count!=selected.Dependencies.Count||physical.Dependencies.Any(p=>!selected.Dependencies.TryGetValue(p.Key,out var row)||row.Version!=p.Value.Version))throw new InvalidOperationException("Confirm registration changes separately before editing function contracts");
   Observe(project,Hash(physicalText));var contracts=new JsonObject();
-  foreach(string id in ids){var data=BlueprintCallableContracts.Query(new JsonObject{["action"]="read",["project"]=project,["manifest"]=manifest,["sourceId"]=implementation.Id,["text"]=text,["id"]=id});string source=data["text"]!.GetValue<string>();var function=new Parser(source,"<registered-read-only-callable>").ParseElement();
-   if(function.Id!=id||function.Kind!="function"||function.Signature is null||function.Parent is not null)throw new InvalidOperationException("An inherited callable needs its complete parent declaration receipt; retain input");
+  foreach(string id in ids){var data=BlueprintCallableContracts.Query(new JsonObject{["action"]="read",["project"]=project,["manifest"]=manifest,["sourceId"]=implementation.Id,["text"]=text,["id"]=id,["includeParents"]=true});string source=data["text"]!.GetValue<string>();var function=new Parser(source,"<registered-read-only-callable>").ParseElement();
+   if(function.Id!=id||function.Kind!="function"||function.Signature is null)throw new InvalidOperationException("Current registered callable declaration required");
    foreach(var import in implementation.Imports.Values.Where(i=>i.Id==id))if(!import.Signature.Matches(function.Signature))throw new InvalidOperationException("Registered typed import changed; explicitly refresh it before this contract edit");
    if(implementation.Function==id&&!implementation.Signature!.Matches(function.Signature))throw new InvalidOperationException("The read-only implemented function contract changed; retain input");
    if(functions.TryGetValue(id,out var prior)&&prior.Text!=source)throw new InvalidOperationException("Registered function declaration changed");functions[id]=(source,function);if(functions.Count>64)throw new ArgumentException("Registered callable closure budget");
+   foreach(var parent in data["parents"]!.AsObject()){string parentText=parent.Value!["text"]!.ToString();var declaration=new Parser(parentText,"<registered-read-only-parent>").ParseElement();if(functions.TryGetValue(parent.Key,out var previous)&&previous.Text!=parentText)throw new InvalidOperationException("Registered parent declaration changed");functions[parent.Key]=(parentText,declaration);if(functions.Count>64)throw new ArgumentException("Registered callable parent budget");}
    foreach(var row in data["observations"]!.AsArray())Observe(row!["path"]!.ToString(),row["hash"]!.ToString());contracts[id]=data["receipt"]!.DeepClone();
   }
   var proof=new JsonObject{["schema"]=1,["caller"]=implementation.Id,["callerHash"]=Hash(text),["contracts"]=contracts};proofs.Add(implementation.Id,proof);return proof.DeepClone().AsObject();
