@@ -52,16 +52,16 @@ def choose():
     for section in m.locator('[data-abi-target]').all():
         key=section.get_attribute('data-abi-target');path='left' if key.endswith('#left') else 'right'
         if x.computed and key not in [x.caller_id+'#left',x.caller_id+'#right']:
-            for field in section.locator('[data-abi-output]').all():field.select_option('return' if key.endswith('#right/deep') and field.get_attribute('data-abi-output')=='return' else 'total')
+            for field in section.locator('[data-abi-output]').all():field.select_option('return' if (key.endswith('#right/deep') and field.get_attribute('data-abi-output')=='return' or x.multi and key.endswith(x.leaf_id+'2') and field.get_attribute('data-abi-output')=='count') else 'total')
             continue
         section.locator('[data-abi-input=text]').select_option('value');section.locator('[data-abi-value=text]').fill('왼쪽 부모' if path=='left' else '오른쪽 부모');section.locator('[data-abi-input=increment]').select_option('pin:value')
-        for field in section.locator('[data-abi-output]').all():field.select_option('return' if x.computed and field.get_attribute('data-abi-output')=='return' else 'total')
+        for field in section.locator('[data-abi-output]').all():field.select_option(('total' if field.get_attribute('data-abi-output')=='return' else '') if x.linked and key.endswith('#left') else 'return' if x.computed and field.get_attribute('data-abi-output')=='return' else 'total')
     if x.computed:f.page.screenshot(path=str(f.case/'computed-mapping.png'))
     m.locator('[data-abi-remap-accept]').click();expect(m).to_have_count(0);f.idle()
     for name in ['left','right']:
         if x.cpp:scoped_code(name)
     if x.post_mode:
-        for path in ['left','right/deep']:post_code(path)
+        for path in (x.post_keys if x.multi else ['left','right/deep']):post_code(path)
 def replace_body(dialog,text):
     field=dialog.locator('[data-code-source]');field.evaluate(r"el=>{const p=el.value.indexOf(' Invoke('),a=el.value.indexOf('\n{\n',p)+3,b=el.value.indexOf('\n}\n',a);el.focus();el.setSelectionRange(a,b);}");f.page.keyboard.insert_text(text);f.idle()
 def scoped_code(name):
@@ -71,7 +71,7 @@ def scoped_code(name):
         field=dialog.locator('[data-code-source]');field.evaluate(r"el=>{const p=el.value.indexOf(' Invoke('),a=el.value.indexOf('\n{\n',p)+3,b=el.value.indexOf('\n}\n',a)+3;el.focus();el.setSelectionRange(b,el.value.length);}");f.page.keyboard.insert_text(x.code_helpers)
     f.page.screenshot(path=str(f.case/(name+'-scoped-code.png')));dialog.locator('[data-code-save]').click();f.idle();assert pending()[0][1]['mapping']['bodies'][id]['text']==text
 def post_code(path):
-    id=x.caller_id+'/postCall:'+path+'/'+x.leaf_id;dialog=cpp(id);field=dialog.locator('[data-code-source]');assert '@total' in field.input_value()
+    id=x.caller_id+'/postCall:'+(path if x.multi else path+'/'+x.leaf_id);dialog=cpp(id);field=dialog.locator('[data-code-source]');assert '@total' in field.input_value()
     field.evaluate("el=>{const p=el.value.indexOf(' After('),a=el.value.indexOf('\\n{\\n',p)+3,b=el.value.indexOf('\\n}\\n',a);el.focus();el.setSelectionRange(a,b);}");f.page.keyboard.insert_text(x.post_source)
     field.evaluate("el=>{const p=el.value.indexOf(' After('),a=el.value.indexOf('\\n{\\n',p)+3,b=el.value.indexOf('\\n}\\n',a)+3,c=el.value.lastIndexOf('\\n}\\n');el.focus();el.setSelectionRange(b,c);}");f.page.keyboard.insert_text(x.post_helpers);dialog.locator('[data-code-save]').click();f.idle();assert pending()[0][1]['mapping']['bodies'][id]['helpers']==x.post_helpers
 

@@ -10,9 +10,11 @@ def request():
  return {'id':owner,'rows':[],'basis':p['basis'],'declaration':{'id':owner,'hash':s['textHash'],'changes':[{'type':'function-edit','id':fn,'hash':method['hash'],'name':method['name'],'description':method['description'],'signature':x.new,'mapping':x.selections(p)}]}}
 try:
  f.start(0);f.invoke('select',{'id':owner});f.invoke('saveDraft',{});checkpoint=next(f.project.glob('.confectory/edit-workspaces/*/draft.json'));baseline=checkpoint.read_bytes()
- for fault in ['missing','path','source','body-path']:
+ for fault in ['missing','path','source','body-path']+(['last-child','last-child-type'] if x.multi else []):
   r=request();m=r['declaration']['changes'][0]['mapping'];key=next(iter(m['callers']))
-  if fault=='missing':m['callers'].pop(key)
+  if fault=='last-child':m['callers'].pop(x.caller_id+'#right/invokeOuter')
+  elif fault=='last-child-type':m['callers'][x.caller_id+'#right/invokeOuter']['outputs']['return']='missing'
+  elif fault=='missing':m['callers'].pop(key)
   elif fault=='path':m['callers'][key]['node']='right/'+x.leaf_id
   elif fault=='source':
    if x.callee:next(iter(m['implementations'].values()))['value']={'valueJson':'true'}

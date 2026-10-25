@@ -34,3 +34,5 @@ Windows x64 교차 패키지의 manifest 2,340개(자기 manifest 포함 실제 
 패키지의 managed 엔진을 SDK 없는 격리 runtime·별도 작업 디렉터리에서 기동하여 74개 리소스와 최소 로그인 화면, 누락/변조 의존성 거절, fixture 프로필/명시 override 보존을 확인했다([기록](evidence/v536-information-private-forward/package-probe.json)). Windows x64 교차 패키지 경로는 `/workspace/artifacts/v536-information-private-forward/Windows-x64/Confectory.exe`다. 실제 Windows apphost/WebView2·실제 모바일 기기는 실행하지 않았다. 계정 로그인·추론·사용자 프로젝트 실행과 Library 전달도 수행하지 않았다.
 
 후속 마감 커밋은 검증 문서·증거만 추가하며 위 실행 소스와 동등하다. 이번 직접 소유 부모 계약/branch·switch/private enum 지원 단위를 마감한다. 같은 frame의 여러 forwarded 자식은 5행에 남아 있으므로 5행 전체·I5-6·v536 전체 완료로 처리하지 않는다.
+
+후속 여러 forwarded 자식/연결된 부모 합성은 [VALIDATION_V536_INFORMATION_MULTI_FORWARD.md](VALIDATION_V536_INFORMATION_MULTI_FORWARD.md)에서 마감한다. 위 단일 자식 제한은 이 문서의 이전 게시 시점 기록이며 현재 지원 경계는 V536_I5_6_NESTED_SCOPE.md를 따른다.
