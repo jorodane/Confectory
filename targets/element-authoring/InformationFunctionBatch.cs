@@ -60,11 +60,14 @@ internal sealed class InformationFunctionBatch
     projections.Add(row["id"]!.ToString(),callers.DeepClone().AsObject());
    }
   }else if(outputTyped){
-   bool combined=typed;if(combined&&(!inputTypes.SetEquals(functions)||!outputTypes.SetEquals(functions)))throw new InvalidOperationException("Select both scalar input and output type changes for every grouped function; all input retained");
+   // Each original closure owns its own selections. An input-only edit does
+   // not grant an output rebind, nor does an output-only edit replace inputs.
+   if(typed&&functions.Any(id=>!inputTypes.Contains(id)&&!outputTypes.Contains(id)))throw new InvalidOperationException("Select scalar type edits for every grouped function; other input retained");
    foreach(var row in edits){var mapping=row!["mapping"]!.AsObject();var before=InformationFunctionBodies.Signature(mapping["before"]!);var next=InformationFunctionBodies.Signature(row["signature"]!);
-    if(mapping.Count!=4+(combined?1:0)||mapping["callers"] is not JsonObject callers||mapping["outputs"] is not JsonObject||(combined?mapping["implementations"] is not JsonObject:mapping.ContainsKey("implementations"))||before.Args.Select((a,i)=>a.Name!=next.Args[i].Name||!combined&&!a.IsOut&&a.Type!=next.Args[i].Type).Any(v=>v))throw new InvalidOperationException("Shared scalar input/output types retain every pin identity and require original binding/writer/caller selections");
-    foreach(var plan in callers.Select(p=>p.Value!.AsObject()))if(plan["inputs"] is not JsonObject inputs||inputs.Count!=before.Args.Count(a=>!a.IsOut)||plan["disconnect"] is not JsonObject disconnect||!combined&&(before.Args.Where(a=>!a.IsOut).Any(a=>inputs[a.Name]?.ToString()!=a.Name)||disconnect.Count!=0)||plan["outputs"] is not JsonObject)throw new InvalidOperationException("Select exact caller inputs, removed bindings and compatible outputs explicitly");
-    projections.Add(row["id"]!.ToString(),callers.DeepClone().AsObject());
+    string id=row["id"]!.ToString();bool inputsChanged=inputTypes.Contains(id),outputsChanged=outputTypes.Contains(id)||returns.Contains(id);
+    if(mapping.Count!=3+(inputsChanged?1:0)+(outputsChanged?1:0)||mapping["callers"] is not JsonObject callers||(outputsChanged?mapping["outputs"] is not JsonObject:mapping.ContainsKey("outputs"))||(inputsChanged?mapping["implementations"] is not JsonObject:mapping.ContainsKey("implementations"))||before.Args.Select((a,i)=>a.Name!=next.Args[i].Name||!inputsChanged&&!a.IsOut&&a.Type!=next.Args[i].Type).Any(v=>v))throw new InvalidOperationException("Shared scalar input/output types retain every pin identity and require original binding/writer/caller selections");
+    foreach(var plan in callers.Select(p=>p.Value!.AsObject()))if(plan["inputs"] is not JsonObject inputs||inputs.Count!=before.Args.Count(a=>!a.IsOut)||plan["disconnect"] is not JsonObject disconnect||!inputsChanged&&(before.Args.Where(a=>!a.IsOut).Any(a=>inputs[a.Name]?.ToString()!=a.Name)||disconnect.Count!=0)||(outputsChanged?plan["outputs"] is not JsonObject:plan.ContainsKey("outputs")))throw new InvalidOperationException("Select exact caller inputs, removed bindings and compatible outputs explicitly");
+    if(outputsChanged)projections.Add(id,callers.DeepClone().AsObject());
    }
   }else if((hasOutputs&&(typed||edits.Any(row=>row!["mapping"]!.AsObject().Count!=2)))||edits.Any(row=>row!["mapping"]?["outputs"] is not null))throw new InvalidOperationException("Shared output names retain exact types and automatic identity-preserving bindings; other selected input is retained");
   // Out names propagate the explicit old-pin identity through existing semantic

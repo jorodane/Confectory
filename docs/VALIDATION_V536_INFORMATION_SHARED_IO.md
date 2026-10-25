@@ -144,3 +144,5 @@ SDK 없는 재사용 runtime/별도 cwd에서 패키지 관리형 엔진을 실�
 쓴다. 이전 inherited-contract의 엔진 보고서는 옛 UI manifest를 포함하므로 새
 리소스 검증에 재사용하지 않는다. 전체 로컬 증거는 scratch에 보존한다.
 최종 검증 기록 추가는 문서/JSON만 바꾸며 위 커밋의 실행 코드/UI와 동일하다.
+
+후속 현재 상태: 입력 전용/출력 전용 함수 혼합은 [서로 다른 scalar 편집 종류 단위](VALIDATION_V536_INFORMATION_SHARED_MIXED_TYPES.md)에서 별도 검증한다. 위 내용과 결과는 이 문서의 이전 게시 단위 기록이며 최신 지원/잔여는 고정 수용 표를 따른다.

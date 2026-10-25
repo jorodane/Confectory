@@ -24,7 +24,7 @@ scalar_leaf=json.loads(scalar_rows[x.functions[0]+'Body/body:common']);assert ne
 x.unchanged();x.f.checked('서로 다른 bool/string·string/double 조합도 명시 literal과 같은 후보의 기존 타입 검사로 준비한다')
 single=copy.deepcopy(r);single['changes']=single['changes'][:1];intermediate=x.n.prepare(single)
 graph=next(row['text'] for row in intermediate['linkedUpdates'] if row['id']==x.n.caller+'Body/body:common')
-for fault in ['projected-proof','intermediate-hash','missing-disconnect','wrong-disconnect','missing-use','bad-use','bad-output','missing-writer','role','count','return','mixed-group','body','source']:
+for fault in ['projected-proof','intermediate-hash','missing-disconnect','wrong-disconnect','missing-use','bad-use','bad-output','missing-writer','role','count','return','mixed-name','body','source']:
     bad=copy.deepcopy(r);row=bad['changes'][1];mapping=row['mapping'];caller=next(iter(mapping['callers'].values()))
     if fault=='projected-proof':caller['disconnect']['amount']='{"node":"invoke"}'
     elif fault=='intermediate-hash':caller['hash']=hashlib.sha256(graph.encode()).hexdigest()
@@ -37,7 +37,7 @@ for fault in ['projected-proof','intermediate-hash','missing-disconnect','wrong-
     elif fault=='role':row['signature']['args'][2]['mode']='ref'
     elif fault=='count':row['signature']['args'].append({'name':'new','type':'long'})
     elif fault=='return':row['signature']['return']='double'
-    elif fault=='mixed-group':row['signature']['args'][0]['type']='long';mapping['args']['amount']='amount';mapping.pop('implementations')
+    elif fault=='mixed-name':row['signature']['args'][1]['name']='renamed';mapping['args']['real']='renamed'
     elif fault=='body':mapping['bodies']={}
     else:
         unit=bad['units'][x.n.caller+'Body/body:common'];g=json.loads(unit['draft']);g['nodes'][1]['intent']='실제 선택 후 변경';unit['draft']=json.dumps(g)

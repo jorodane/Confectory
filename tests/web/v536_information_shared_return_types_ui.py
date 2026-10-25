@@ -4,7 +4,9 @@ import time
 import shutil
 import os
 from playwright.sync_api import sync_playwright,expect
-if os.environ.get('CONFECTORY_SHARED_IO') == '1':
+if os.environ.get('CONFECTORY_SHARED_MIXED_TYPES') == '1':
+    import v536_information_shared_mixed_types_fixture as x
+elif os.environ.get('CONFECTORY_SHARED_IO') == '1':
     import v536_information_shared_io_fixture as x
 elif os.environ.get('CONFECTORY_SHARED_LOCAL_IMPORTS') == '1':
     import v536_information_shared_local_imports_fixture as x
@@ -72,24 +74,26 @@ try:
         assert not pending()
         for index,fn in enumerate(x.functions):
             p=popup(fn)
-            if combined_io:
+            input_changed=combined_io and x.nexts[index]['args'][0]['type']!=x.old['args'][0]['type']
+            output_changed=not combined_io or x.nexts[index]['args'][2]['type']!=x.old['args'][2]['type']
+            if input_changed:
                 p.locator('[data-signature-id=arg0] [data-signature-type]').click()
                 f.page.get_by_role('dialog',name='속성 타입 선택',exact=True).locator('[data-type=string]').click()
-            p.locator('[data-signature-id='+('arg2' if combined_io else 'return')+'] [data-signature-type]').click()
-            f.page.get_by_role('dialog',name='속성 타입 선택',exact=True).locator('[data-type=double]').click()
+            if output_changed:
+                p.locator('[data-signature-id='+('arg2' if combined_io else 'return')+'] [data-signature-type]').click()
+                f.page.get_by_role('dialog',name='속성 타입 선택',exact=True).locator('[data-type=double]').click()
             f.page.screenshot(path=str(f.case/('shared-return-'+str(index)+'.png')))
             p.get_by_role('button',name='저장',exact=True).click()
-            m=f.page.get_by_role('dialog',name='입력 연결 갱신' if combined_io else '호출 계약 갱신',exact=True);expect(m).to_be_visible()
-            m.locator('[data-abi-target^="output:"] [data-abi-input=value]').select_option('pin:real')
-            if combined_io:
+            m=f.page.get_by_role('dialog',name='입력 연결 갱신' if input_changed else '호출 계약 갱신',exact=True);expect(m).to_be_visible()
+            if output_changed:m.locator('[data-abi-target^="output:"] [data-abi-input=value]').select_option('pin:real')
+            if input_changed:
                 for target in m.locator('section[data-abi-target]').all():
                     key=target.get_attribute('data-abi-target')
                     if key.startswith('output:'):continue
                     target.locator('[data-abi-input=amount]').select_option('value')
                     target.locator('[data-abi-value=amount]').fill(x.replacement if key.startswith('use:') else x.text_value)
                 m.locator('[data-abi-disconnect=amount]').select_option('disconnect')
-                m.locator('[data-abi-output=count]').select_option('return')
-            else:m.locator('[data-abi-output=return]').select_option('count')
+            if output_changed:m.locator('[data-abi-output='+('count' if combined_io else 'return')+']').select_option('return' if combined_io else 'count')
             f.page.screenshot(path=str(f.case/('shared-return-mapping-'+str(index)+'.png')))
             m.locator('[data-abi-remap-accept]').click();expect(m).to_have_count(0);f.idle()
         held=pending();assert len(held)==2
@@ -98,7 +102,7 @@ try:
         for _ in range(2):f.owner().locator('[data-own-functions-toggle]').press('Control+y')
         assert pending()==held
         preserved();restart(1);assert pending()==held;preserved()
-        f.checked('두 원본 상세창의 취소·명시 입력·Undo/Redo·미저장 cold는 두 함수 입력과 exact64 값을 보존한다')
+        f.checked('두 원본 상세창의 취소·명시 대응·Undo/Redo·미저장 cold는 두 함수 입력과 exact64 값을 보존한다')
         if x.mode=='cancel':
             f.owner().locator('[data-element-action=discard]').click();f.idle();assert not pending() and checkpoint.read_bytes()==baseline
             restart(2);assert not pending() and checkpoint.read_bytes()==baseline;preserved()
@@ -120,7 +124,7 @@ try:
             f.page.evaluate("()=>staleSharedContractForm.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}))")
             assert not pending() and checkpoint.read_bytes()==baseline and peer_checkpoint.read_bytes()==peer_saved
             enter(first);assert pending()==held;preserved()
-            f.checked('동일 namespace 프로젝트 전환은 두 출력 계약 입력을 A에 보관하고 오래된 상세창의 B 적용을 막는다')
+            f.checked('동일 namespace 프로젝트 전환은 두 함수 계약 입력을 A에 보관하고 오래된 상세창의 B 적용을 막는다')
             finish_early()
         if x.mode=='conflict':
             sc=schema();f.invoke('editDescription',{'id':x.owner,'hash':sc['textHash'],'revision':sc['revision'],'value':'peer 설명 보존'})
@@ -156,7 +160,7 @@ try:
             f.owner().locator('[data-element-action=save]').click();wait('blueprint',mark,'settledSlots');saved()
             assert not any(row.get('invoke',{}).get('input',{}).get('action')=='applySlots' for row in f.traffic[mark:])
             x.verify(checkpoint);preserved()
-            f.checked('저장/결과조회 응답 유실 뒤 cold는 결합 receipt를 확인하고 두 출력 계약을 중복 적용하지 않는다')
+            f.checked('저장/결과조회 응답 유실 뒤 cold는 결합 receipt를 확인하고 두 함수 계약을 중복 적용하지 않는다')
             finish_early()
         if x.mode=='storage':
             checkpoint.chmod(0o400)
@@ -188,9 +192,9 @@ try:
         calls=json.loads((f.project/'caller.graph.json').read_text())['nodes']
         assert calls[1]['arguments']==(x.caller_arguments(1) if combined_io else {'amount':x.binding('invoke',x.destination),'real':{'constant':2.5}})
         assert json.loads((f.project/'caller.graph.json').read_text())['exits']==(x.caller_exits() if combined_io else {'return':x.binding('invoke_second',x.destination)})
-        for fn in x.functions:
-            expect(f.owner().locator('[data-inline-method="'+fn+'"] [data-pin-side=outputs] [data-function-pin-name="'+('count' if combined_io else '결과')+'"]')).to_have_attribute('data-function-pin-type','실수')
-            if combined_io:expect(f.owner().locator('[data-inline-method="'+fn+'"] [data-pin-side=inputs] [data-function-pin-name=amount]')).to_have_attribute('data-function-pin-type','글자')
+        for index,fn in enumerate(x.functions):
+            expect(f.owner().locator('[data-inline-method="'+fn+'"] [data-pin-side=outputs] [data-function-pin-name="'+('count' if combined_io else '결과')+'"]')).to_have_attribute('data-function-pin-type','실수' if not combined_io or x.nexts[index]['args'][2]['type']=='double' else '정수')
+            if combined_io:expect(f.owner().locator('[data-inline-method="'+fn+'"] [data-pin-side=inputs] [data-function-pin-name=amount]')).to_have_attribute('data-function-pin-type','글자' if x.nexts[index]['args'][0]['type']=='string' else '정수')
             for name in x.removed:
                 label='결과' if name=='return' else name
                 expect(f.owner().locator('[data-inline-method="'+fn+'"] [data-pin-side=outputs] [data-function-pin-name="'+label+'"]')).to_have_count(0)
@@ -199,7 +203,7 @@ try:
                 expect(f.owner().locator('[data-inline-method="'+fn+'"] [data-pin-side=outputs] [data-function-pin-name="'+label+'"]')).to_have_count(1)
         for path in ['function.node.json','second.node.json']:
             assert json.loads((f.project/path).read_text())['source']==json.loads(x.snapshot[path])['source']
-        f.checked('원본 460px 기본/독립 화면의 한 Save·cold·Review 취소/Confirm은 두 출력 계약과 공유 caller를 함께 확정한다')
+        f.checked('원본 460px 기본/독립 화면의 한 Save·cold·Review 취소/Confirm은 두 함수 계약과 공유 caller를 함께 확정한다')
         f.page.screenshot(path=str(f.case/'shared-return-types.png'))
         assert not f.errors and not f.external,(f.errors,f.external)
         f.browser.close()
