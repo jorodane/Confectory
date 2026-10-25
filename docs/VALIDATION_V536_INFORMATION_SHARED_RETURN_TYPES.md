@@ -80,3 +80,39 @@ OOM/oom_kill 0이며 샘플은 순간 전체 peak 보장이 아니다. 이전 �
 실제 화면을 열어 원본 대응창과 최종 반환 핀을 확인했다. 이번 실행의 실패는 없었다.
 근거: `docs/evidence/v536-information-shared-return-types/focused-verification.json`,
 전체 로컬 `/workspace/scratch/v536-shared-return-types/`.
+
+## Clean checkout 재현
+
+구현 commit `df0a6b75182dc0716978a1a6d7b1ca1180a8ad53`를 기존 독립 checkout에
+fast-forward하고 Native를 다시 빌드했다(warning/error 0). 순수 후보 4체크,
+실제 API 3체크, 독립 창 2체크를 통과했다. source 파일의 반환 writer/타입,
+공개 snapshot, 유지 out, caller 입력/반환 연결과 C# 원문을 Confirm 후 다시
+확인했다. 두 checkout은 clean이고 각각 74 리소스의 canonical hash/size가 맞았다.
+새 clone이나 기존 파일 정리 없이 재현했다. 근거는 로컬 `clean-final.json`이다.
+
+## 새 Windows 교차 패키지
+
+동일 commit에서 solution/MCP Release(warning/error 0) 후 새 Windows x64
+패키지를 생성했다. 이전 보관본을 최신 결과로 재사용하지 않았다.
+파일 2344개(marker 포함), 132745157 B이며 전체 manifest/hash,
+현재 Core의 7개 복사본, Native DLL과 제품 source가 root와 일치했다. symlink는 없었다.
+manifest SHA-256: `5aa99cee6055e72fbcbc25ea1316686e4631ce1a7a2e625e286564ad5f5ef9f8`.
+
+SDK-less 실제 관리형 엔진 웹 기동, 다른 cwd, 74 리소스·최소 로그인 화면,
+변조/missing dependency 거절, 기존 checkout profile과 명시 override가 통과했다.
+패키지 안 Native로 새 반환 후보/역순/리터럴/부적합 거절 4체크도 통과했다.
+로그인·유료 추론·사용자 프로젝트 실행은 하지 않았다. 관리형 엔진/pack/UI 소스는
+그대로라 기존 격리 Linux 엔진과 최신 Native/API/렌더러를 사용했으며 새 Linux CLI
+build는 반복하지 않았다. Windows apphost/WebView2 및 모바일 기기 실행은 미검증이다.
+
+새 package는 검증용 RAM 복사본이다. manifest와 probe source/profile/로그/이미지를
+workspace evidence에 보존한 뒤 이번에 만든 package만 identity/정확한 경로로
+제거했다. probe의 자체 legacy 복사본도 종료 cleanup으로 제거됐고 외부 runtime과
+이전 보관 package/SDK/기존 cache/output은 보존했다. `packageAvailableAfterExec=false`
+제거를 확인했으며 전달/다운로드 가능한 보관 빌드라는 주장은 하지 않는다.
+Library에 업로드하지 않았다.
+
+패키지 단계 200ms 샘플 workspace 최소 394317824 B, memory 최대 16962670592 B였다.
+OOM/oom_kill 0, 단계별 순차 실행이며 샘플은 순간 절대 peak가 아니다.
+이후 최종 기록 commit은 문서/JSON만 변경하므로 검증된 실행 제품 소스는 위
+구현 commit과 같다. 근거는 같은 evidence 폴더의 `package-clean-verification.json`이다.
