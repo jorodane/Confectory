@@ -66,3 +66,31 @@ copy/상속/등록/owner 속성 혼합과 scalar 밖 선택 타입은 별도다.
 참조/외부 함수 타입 및 표시명/native ID 분리, I6/B2·A4~A6·M4/M11/M12와 Helper
 실제 편집 도구는 후속이다. 전체 UI·실제 Windows/WebView2·모바일 기기 및
 Library 전달 완료가 아니며 사용자 자료/계정/유료 추론을 사용하지 않는다.
+
+## 최종 checkout·패키지 결과
+
+검증 소스는 `ef922a1329586e60f0c1ac51ab3d8f1baf26fb3e`다. 독립 clean checkout의
+Native Release warning/error0, 일반/삭제 순수 후보·삭제 독립 창·실제 API와
+오버라이드 guard의 5흐름/16확인이 통과했다. 기존 CRLF checkout의 Git blob·커밋과
+줄바꿈 변환만 확인했고 설정은 바꾸지 않았다. UI가 같아 Linux 엔진은 재사용했고
+각 checkout의 Native는 현재 소스로 빌드했다. 실제 UI는 저장·재시작·Review 취소/
+Confirm과 C# 원문/출력/값 보존을 확인했다.
+
+솔루션/MCP Release도 warning/error0이다. 새 win-x64 패키지 생성, SDK 없는
+runtime-only·다른 cwd에서 packaged engine 기동, 74리소스와 최소 로그인 화면,
+변조/누락 DLL 거절, 격리 프로필/명시 override 보존과 packaged Native 4확인이
+통과했다. 전체 2343개 선언 파일+marker 1개/132756725 bytes와 symlink 없음,
+Core DLL 7개·현재 Native DLL·제품 소스/UI manifest의 정확한 해시를 검증했다.
+manifest SHA-256은
+`acb280a921186ed76fa7bd5d59335222eb7456de1f8ae6904a962246af7a677a`다.
+
+새 패키지는 RAM 검증용이며 전체 manifest·소스/프로필·로그 증거를 보존한 뒤
+이번에 만든 패키지만 소유/경로 경계를 확인해 정리했다. 전달 가능한 보관 빌드나
+Library 업로드가 아니다. 기존 `e827a52` 보관 패키지·SDK/runtime·원본·기존 로그/
+스크린샷/fixture를 삭제하지 않았고 일반 빌더 출력/캐시 정리도 하지 않았다.
+종료 시 여유는 약196MiB, OOM/oom_kill0이었다.
+
+[checkout/패키지 증거](evidence/v536-information-shared-input-definitions/package-clean-verification.json)에 상세 결과가 있다.
+이후 결과/정책 문서만 바꾼 커밋은 검증한 실행 코드·현재 DLL·UI 리소스를 바꾸지
+않는다. 실제 Windows apphost/WebView2·모바일 기기 실행, 전체 UI 및 Library
+전달 완료와 구분한다.
