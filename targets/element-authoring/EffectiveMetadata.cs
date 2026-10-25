@@ -57,7 +57,7 @@ var module=effective.Kind=="module"?planner.Module(id):planner.ModulesFor(id);
    }
    var providers=new System.Text.Json.Nodes.JsonArray();foreach(var pair in effective.Provides.OrderBy(p=>p.Key,StringComparer.Ordinal)){
     var provider=new System.Text.Json.Nodes.JsonObject{["function"]=pair.Key,["implementation"]=pair.Value.Id,["origin"]=pair.Value.Origin};
-    try{var body=registry.Implementation(pair.Key,pair.Value.Id,pair.Value.Origin??id,pair.Value.Loc);provider["contract"]=new System.Text.Json.Nodes.JsonObject{["status"]="valid",["signature"]=System.Text.Json.JsonSerializer.SerializeToNode(body.Signature),["targets"]=System.Text.Json.JsonSerializer.SerializeToNode(body.Bodies.Keys.Order(StringComparer.Ordinal).ToArray())};}
+    try{var body=registry.Implementation(pair.Key,pair.Value.Id,pair.Value.Origin??id,pair.Value.Loc);provider["contract"]=new System.Text.Json.Nodes.JsonObject{["status"]="valid",["signature"]=System.Text.Json.JsonSerializer.SerializeToNode(body.Signature),["targets"]=System.Text.Json.JsonSerializer.SerializeToNode(body.Bodies.Keys.Order(StringComparer.Ordinal).ToArray()),["parent"]=registry.Get(pair.Value.Id,"implementation",pair.Value.Origin??id,pair.Value.Loc).Parent,["bodyOrigins"]=new System.Text.Json.Nodes.JsonObject(body.Bodies.Select(b=>System.Collections.Generic.KeyValuePair.Create<string,System.Text.Json.Nodes.JsonNode?>(b.Key,System.Text.Json.Nodes.JsonValue.Create(b.Value.Origin))))};}
     catch(Confectory.Core.BuildError error){provider["contract"]=new System.Text.Json.Nodes.JsonObject{["status"]="invalid",["code"]=error.Diagnostic.Code,["message"]=error.Diagnostic.Message};}
     providers.Add(provider);
    }

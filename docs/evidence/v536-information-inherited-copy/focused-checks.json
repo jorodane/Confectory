@@ -1,0 +1,253 @@
+{
+  "focusedChecks": 25,
+  "regressionChecks": 5,
+  "cases": [
+    {
+      "case": "native",
+      "log": "inherited-native-1.log",
+      "logSha256": "695d22bc5f491762d8731ba9582a52e39556ae185baa253e1fc7774fd1225ae7",
+      "checks": [
+        "상속 구현의 직접 ID와 실제 부모/본문 출처는 읽기 전용 metadata에서 구별한다",
+        "명시 복사는 자식/부모 header와 부모 CRLF 본문 receipt를 묶고 원본·다른 호출자를 수정하지 않는다"
+      ],
+      "summary": {
+        "checks": [
+          "상속 구현의 직접 ID와 실제 부모/본문 출처는 읽기 전용 metadata에서 구별한다",
+          "명시 복사는 자식/부모 header와 부모 CRLF 본문 receipt를 묶고 원본·다른 호출자를 수정하지 않는다"
+        ],
+        "pureCandidate": true,
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-ln0hmsbx",
+        "actualWindows": false
+      }
+    },
+    {
+      "case": "api",
+      "log": "inherited-api-protected-1.log",
+      "logSha256": "8b126d9763361ce74051187a5e2342f802f2c88869b280bcaaf7200aa9498107",
+      "checks": [
+        "자체 정보 함수의 기존 선택/비공개 초안 경로는 부모 header/body와 원래 snapshot을 보관하며 모듈 UI를 추가하지 않는다",
+        "오류는 전체 미적용이고 명시 재시도/원자 저장/cold는 새 복사본만 연결하며 부모·함수·호출자를 보존한다",
+        "복사 후 본문 재편집은 미사용 상속 선언을 바꾸지 않고 같은 ABI/전체 후보 검증으로 보관한다"
+      ],
+      "summary": {
+        "checks": [
+          "자체 정보 함수의 기존 선택/비공개 초안 경로는 부모 header/body와 원래 snapshot을 보관하며 모듈 UI를 추가하지 않는다",
+          "오류는 전체 미적용이고 명시 재시도/원자 저장/cold는 새 복사본만 연결하며 부모·함수·호출자를 보존한다",
+          "복사 후 본문 재편집은 미사용 상속 선언을 바꾸지 않고 같은 ABI/전체 후보 검증으로 보관한다"
+        ],
+        "actualEngine": true,
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-vlcda4_n",
+        "projectRun": false,
+        "actualWindows": false
+      }
+    },
+    {
+      "case": "guards",
+      "log": "inherited-guards-2.log",
+      "logSha256": "0444345cc2a6ea3a65510a00ced60e45d9910dd8c8a1afe7d1983afbcbd08e55",
+      "checks": [
+        "위조된 본문 계획으로 부모를 수정하려 해도 같은 ABI의 예외를 쓰기 권한으로 사용할 수 없다",
+        "직접 상속 ABI 변경은 전체 명시 후보가 없으면 여전히 거절하며 부모·원문·초안을 보존한다",
+        "직접 소유하지 않은 상속 함수는 새 copy 진입의 대상으로 승격되지 않는다",
+        "읽기 선택기에서도 상속 선언의 위조된 ID/locator는 건너뛰지 않고 거절한다"
+      ],
+      "summary": {
+        "checks": [
+          "위조된 본문 계획으로 부모를 수정하려 해도 같은 ABI의 예외를 쓰기 권한으로 사용할 수 없다",
+          "직접 상속 ABI 변경은 전체 명시 후보가 없으면 여전히 거절하며 부모·원문·초안을 보존한다",
+          "직접 소유하지 않은 상속 함수는 새 copy 진입의 대상으로 승격되지 않는다",
+          "읽기 선택기에서도 상속 선언의 위조된 ID/locator는 건너뛰지 않고 거절한다"
+        ],
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-8iqe_cot",
+        "actualEngine": true,
+        "actualWindows": false
+      }
+    },
+    {
+      "case": "legacy-seed",
+      "log": "inherited-compat-1.log",
+      "logSha256": "25251e29efed1294298d097c14872e14eb7ded496a06e49fa088785a7940957c",
+      "checks": [
+        "이전 게시 엔진의 실제 module copy snapshot/범위 식별자는 새 엔진 cold에서도 변하지 않는다",
+        "업그레이드 후 기존 모듈 copy의 명시 저장은 새 소유 구현만 보관하며 새로운 함수/모듈 권한을 요구하지 않는다"
+      ],
+      "summary": {
+        "checks": [
+          "이전 게시 엔진의 실제 module copy snapshot/범위 식별자는 새 엔진 cold에서도 변하지 않는다",
+          "업그레이드 후 기존 모듈 copy의 명시 저장은 새 소유 구현만 보관하며 새로운 함수/모듈 권한을 요구하지 않는다"
+        ],
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-su_bppxw",
+        "actualEngine": true,
+        "actualWindows": false
+      }
+    },
+    {
+      "case": "primary-ui",
+      "log": "inherited-ui-primary-final-1.log",
+      "logSha256": "4bb0955fa3ce693d2657d3c2e417f95328bc6bc81bc935aa40024586ff65bea9",
+      "checks": [
+        "기본/독립 정보 창의 기존 상속 복사 선택·취소·C# Undo/Redo·cold는 원본/정확한 값/새 복사 ID를 보존한다",
+        "실제 Save·재시작·Review 취소/재검토·명시 Confirm은 새 소유 복사본만 반영하며 함수/부모/호출자를 보존한다"
+      ],
+      "summary": {
+        "checks": [
+          "기본/독립 정보 창의 기존 상속 복사 선택·취소·C# Undo/Redo·cold는 원본/정확한 값/새 복사 ID를 보존한다",
+          "실제 Save·재시작·Review 취소/재검토·명시 Confirm은 새 소유 복사본만 반영하며 함수/부모/호출자를 보존한다"
+        ],
+        "mode": "normal",
+        "view": false,
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-_r5nhpev",
+        "actualEngineRenderer": true,
+        "actualWindows": false,
+        "accountOrInference": false
+      }
+    },
+    {
+      "case": "detached-ui",
+      "log": "inherited-ui-view-2.log",
+      "logSha256": "dcf1081f8f916cdd3895ce2413f48d1c924ce8ee66c9268c707c199b8ed0e0a5",
+      "checks": [
+        "독립 정보 창의 기존 상속 복사 선택·취소·C# Undo/Redo·cold는 원본/정확한 값/새 복사 ID를 보존한다",
+        "실제 Save·재시작·Review 취소/재검토·명시 Confirm은 새 소유 복사본만 반영하며 함수/부모/호출자를 보존한다"
+      ],
+      "summary": {
+        "checks": [
+          "독립 정보 창의 기존 상속 복사 선택·취소·C# Undo/Redo·cold는 원본/정확한 값/새 복사 ID를 보존한다",
+          "실제 Save·재시작·Review 취소/재검토·명시 Confirm은 새 소유 복사본만 반영하며 함수/부모/호출자를 보존한다"
+        ],
+        "mode": "normal",
+        "view": true,
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-el3oas7t",
+        "actualEngineRenderer": true,
+        "actualWindows": false,
+        "accountOrInference": false
+      }
+    },
+    {
+      "case": "write-failure-ui",
+      "log": "inherited-ui-storage-3.log",
+      "logSha256": "3c932390ef92335fcfbf9dcb2d9a18ee0734747f8f7b20874c102f53036d7c80",
+      "checks": [
+        "기본 정보 창의 기존 상속 복사 선택·취소·C# Undo/Redo·cold는 원본/정확한 값/새 복사 ID를 보존한다",
+        "실제 화면 저장 실패는 복사본·owner·등록을 부분 적용하지 않고 입력과 부모를 보존한다",
+        "실제 Save·재시작·Review 취소/재검토·명시 Confirm은 새 소유 복사본만 반영하며 함수/부모/호출자를 보존한다"
+      ],
+      "summary": {
+        "checks": [
+          "기본 정보 창의 기존 상속 복사 선택·취소·C# Undo/Redo·cold는 원본/정확한 값/새 복사 ID를 보존한다",
+          "실제 화면 저장 실패는 복사본·owner·등록을 부분 적용하지 않고 입력과 부모를 보존한다",
+          "실제 Save·재시작·Review 취소/재검토·명시 Confirm은 새 소유 복사본만 반영하며 함수/부모/호출자를 보존한다"
+        ],
+        "mode": "storage",
+        "view": false,
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-7fu0khgq",
+        "actualEngineRenderer": true,
+        "actualWindows": false,
+        "accountOrInference": false
+      }
+    },
+    {
+      "case": "source-conflict-ui",
+      "log": "inherited-ui-conflict-2.log",
+      "logSha256": "f92dd66a113a6a698c3a970529dfa78a7e8da1734b8902846f66d673436ff021",
+      "checks": [
+        "독립 정보 창의 기존 상속 복사 선택·취소·C# Undo/Redo·cold는 원본/정확한 값/새 복사 ID를 보존한다",
+        "실제 부모 header 경합은 cold 뒤에도 원자 거절하며 peer 원문·원래 private snapshot·입력을 덮어쓰지 않는다"
+      ],
+      "summary": {
+        "checks": [
+          "독립 정보 창의 기존 상속 복사 선택·취소·C# Undo/Redo·cold는 원본/정확한 값/새 복사 ID를 보존한다",
+          "실제 부모 header 경합은 cold 뒤에도 원자 거절하며 peer 원문·원래 private snapshot·입력을 덮어쓰지 않는다"
+        ],
+        "mode": "conflict",
+        "view": true,
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-4yi2lnmq",
+        "actualEngineRenderer": true,
+        "actualWindows": false,
+        "accountOrInference": false
+      }
+    },
+    {
+      "case": "cancel-ui",
+      "log": "inherited-ui-cancel-1.log",
+      "logSha256": "863edcac2f7c6f3c6d0a9ff2d87bcdb6e2682a2f37ecedca299d4952e8c9d61b",
+      "checks": [
+        "기본 정보 창의 기존 상속 복사 선택·취소·C# Undo/Redo·cold는 원본/정확한 값/새 복사 ID를 보존한다",
+        "전체 취소는 private 복사 입력만 해제하며 부모/원래 provider와 다른 입력을 보존한다"
+      ],
+      "summary": {
+        "checks": [
+          "기본 정보 창의 기존 상속 복사 선택·취소·C# Undo/Redo·cold는 원본/정확한 값/새 복사 ID를 보존한다",
+          "전체 취소는 private 복사 입력만 해제하며 부모/원래 provider와 다른 입력을 보존한다"
+        ],
+        "mode": "cancel",
+        "view": false,
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-xn1dluzt",
+        "actualEngineRenderer": true,
+        "actualWindows": false,
+        "accountOrInference": false
+      }
+    },
+    {
+      "case": "lost-response-ui",
+      "log": "inherited-ui-loss-2.log",
+      "logSha256": "45edd323c9a7cc4984b8cbcdc0144733e4ffbaa5596453c75b630c3414289958",
+      "checks": [
+        "독립 정보 창의 기존 상속 복사 선택·취소·C# Undo/Redo·cold는 원본/정확한 값/새 복사 ID를 보존한다",
+        "적용/조회 응답 유실과 cold 뒤 재시도는 receipt만 조회하여 같은 복사 ID를 중복 생성하지 않는다",
+        "실제 Save·재시작·Review 취소/재검토·명시 Confirm은 새 소유 복사본만 반영하며 함수/부모/호출자를 보존한다"
+      ],
+      "summary": {
+        "checks": [
+          "독립 정보 창의 기존 상속 복사 선택·취소·C# Undo/Redo·cold는 원본/정확한 값/새 복사 ID를 보존한다",
+          "적용/조회 응답 유실과 cold 뒤 재시도는 receipt만 조회하여 같은 복사 ID를 중복 생성하지 않는다",
+          "실제 Save·재시작·Review 취소/재검토·명시 Confirm은 새 소유 복사본만 반영하며 함수/부모/호출자를 보존한다"
+        ],
+        "mode": "loss",
+        "view": true,
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-31vafdr3",
+        "actualEngineRenderer": true,
+        "actualWindows": false,
+        "accountOrInference": false
+      }
+    },
+    {
+      "case": "saved-copy-native-regression",
+      "log": "inherited-regression-saved-copy-native-1.log",
+      "logSha256": "6bdecaa9f8cc8d310761d2885d55c14149583822c33618272e25252e9545c9d5",
+      "checks": [
+        "소유 copy의 root/수동 본문만 계약 후보로 갱신하고 출처·native donor를 보존한다",
+        "누락·위조·다른 배정/공유·원래 출처 및 저장 기준 변경은 전체 미적용이다"
+      ],
+      "summary": {
+        "checks": 2,
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-i5ac46co",
+        "pureCandidate": true,
+        "projectRun": false
+      }
+    },
+    {
+      "case": "saved-copy-api-regression",
+      "log": "inherited-regression-saved-copy-api-1.log",
+      "logSha256": "4b1d807d27026046fcc7320b724b61dc684d707f9045651da514ff6e7c880e69",
+      "checks": [
+        "복사 소유·배정·원래 출처의 누락/위조는 실제 서버에서 전체 미적용으로 거절한다",
+        "저장 실패/재시도·cold는 소유 copy만 원자 반영하고 원래 출처와 donor CRLF 바이트를 보존한다",
+        "실제 compiler Review/Confirm과 재시작 후에도 donor·소유 copy ID·원래 출처를 혼동하지 않는다"
+      ],
+      "summary": {
+        "checks": [
+          "복사 소유·배정·원래 출처의 누락/위조는 실제 서버에서 전체 미적용으로 거절한다",
+          "저장 실패/재시도·cold는 소유 copy만 원자 반영하고 원래 출처와 donor CRLF 바이트를 보존한다",
+          "실제 compiler Review/Confirm과 재시작 후에도 donor·소유 copy ID·원래 출처를 혼동하지 않는다"
+        ],
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-0xu5fobm",
+        "actualEngine": true,
+        "projectRun": false,
+        "nativeWindows": false
+      }
+    }
+  ],
+  "actualWindowsExecuted": false,
+  "accountOrInference": false
+}

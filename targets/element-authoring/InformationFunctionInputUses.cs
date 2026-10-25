@@ -51,7 +51,12 @@ internal static class InformationFunctionInputUses
   if(units.Count>2048||schema.Kind!="schema"||!schema.Contains.Any(c=>c.Id==function&&c.Kind=="function")||!function.StartsWith(owner+"_Function_",StringComparison.Ordinal))throw new InvalidOperationException("Direct owned function input uses required");
   var fn=new Parser(units[function]!["draft"]!.ToString(),"<input-use-function>").ParseElement();var result=new JsonObject();
   foreach(var entry in units){if(entry.Value?["kind"]?.ToString()!="implementation")continue;var impl=new Parser(entry.Value["draft"]!.ToString(),"<input-use-implementation>").ParseElement();if(impl.Function!=function)continue;
-   if(!entry.Key.StartsWith(ns+"::",StringComparison.Ordinal)||impl.Id!=entry.Key||impl.Parent is not null||impl.Bodies.Count is <1 or >8)throw new InvalidOperationException("Direct owned implementation and all targets required");
+   if(!entry.Key.StartsWith(ns+"::",StringComparison.Ordinal)||impl.Id!=entry.Key)throw new InvalidOperationException("Owned implementation identity required");
+   // Inherited bodies remain read-only. The copy path records their parent
+   // receipts; this local binding picker must not offer their storage as owned.
+   // Prepare still rejects a changed ABI without its explicit full candidate.
+   if(impl.Parent is not null)continue;
+   if(impl.Bodies.Count is <1 or >8)throw new InvalidOperationException("Direct owned implementation and all targets required");
    foreach(var body in impl.Bodies){if(body.Value.SourceKind!="blueprint")continue;string id=impl.Id+"/body:"+body.Key;var unit=units[id]??throw new InvalidOperationException("Original input-use graph missing");var g=JsonNode.Parse(unit["draft"]!.ToString())!.AsObject();
     string? contracts=null;
     if(g["nodes"]!.AsArray().Any(n=>FeatureBlueprint.IsPropertyNode(n!["kind"]?.ToString()))){int bytes=0;var seen=new Dictionary<string,string>(OperatingSystem.IsWindows()?StringComparer.OrdinalIgnoreCase:StringComparer.Ordinal);void Observe(string path){var info=new FileInfo(path);if(!info.Exists||info.Length>1048576)throw new ArgumentException("Bounded property source required");string text=File.ReadAllText(path),hash=Hash(text);if(seen.TryGetValue(path,out var before)){if(hash!=before)throw new InvalidOperationException("Property input dependencies changed");}else{seen[path]=hash;bytes=checked(bytes+System.Text.Encoding.UTF8.GetByteCount(text));if(seen.Count>256||bytes>2097152)throw new ArgumentException("Property input dependency budget");}}contracts=new InformationFunctionProperties(request,Observe).ForGraph(impl,g).Proof;}
