@@ -39,3 +39,13 @@ I5-6 전체·v536 전체 UI·I6/B2 및 A4~A6/M4/M11/M12·Helper 실제 작업 �
 기본 창 첫 실패는 고정 `.window[data-key=schema]`를 찾지 못했다. 그 실행의 DOM screenshot을 예외 전에 보관하지 못해 최초 실패의 원인을 제품 회귀로 단정하지 않는다. 보완한 fixture는 실제 열린 정보 창을 정확한 제목/단일 인스턴스로 확인하고, 가림이 생기면 원래 title pointer-drag로 정보 창을 빈 영역으로 이동한다. 저장 버튼이 실제 hit-test 대상인지 확인한 뒤 정상 click한다. force click·직접 JS 저장 호출·숨긴 요소 삭제를 사용하지 않는다. 기능/서명/ref·out/원문·저장·명시 compiler Confirm·별도 사본의 실제 scope 호출 컴파일 검사는 모두 유지했다.
 
 보완 후 Browser Enter 기본 창과 `새 창으로 열기` 독립 창을 각각 2 check, 총 4 check로 완주했다([기본](evidence/v536-information-csharp-content/actual-normal-save-control.json), [독립](evidence/v536-information-csharp-content/actual-view-save-control.json)). 원본 사용자 조작에 맞춘 검사 선택·배치 수정이며, 이번 진단에서 제품 데이터/저장 회귀는 재현되지 않았다. 제품 레이아웃 수정은 없다. 영향 회귀는 기존 계약 10 + 기존 본문 화면 4 = 14 check다. 전체 suite나 네이티브 Windows 통과 주장은 아니다.
+
+## 이번 소스와 교차 패키지
+
+구현·검사 소스는 `bacb58b09a5cb06949f2195ed4bf38465d80f89b`다. root 및 깨끗한 checkout의 Native 빌드는 0 warning/0 error이고 Linux 엔진 빌드의 stderr는 0이다. 실제 Git fast-forward의 보존 CRLF와 fresh LF에서 74개 canonical/exact 리소스 및 내용/인코딩/BOM/binary/budget 변조 거절을 통과했다.
+
+로컬 Windows 폴더 전체는 `/workspace/artifacts/v536-information-csharp-content/Windows-x64`이며 진입점은 `Confectory.exe`다. manifest 2,335항목, manifest 자체 포함 2,336파일, manifest SHA-256 `602ed9b665b1cc3dd24aeb34d6ee19812e107c9472fa9d17ce343a7346d20122`다. 변경된 실행 source 13개와 Native/Core DLL 2개가 실제 패키지와 byte 일치한다([식별 근거](evidence/v536-information-csharp-content/package-identity.json)). Microsoft .NET Desktop Runtime 10 x64·WebView2 Runtime의 기존 실행 전제는 유지한다.
+
+별도 cwd·SDK 없는 runtime-only에서 패키지 managed 웹 엔진·74리소스·최소 첫 로그인 화면을 실제 기동했다. 패키지 변조/의존성 누락 거절과 격리 기존 프로필/명시 override 보존도 통과했다([결과](evidence/v536-information-csharp-content/package-probe.json)). Windows apphost/WebView2를 실행한 검사 또는 Library 첨부 전달 성공은 아니다. 실제 로그인·유료 모델·사용자 프로젝트 Run도 하지 않았다.
+
+깨끗한 checkout에서도 여러 C# target·직접 C# 호출자의 실제 API 3 check와 독립 창 실제 화면 2 check를 통과했다([재현](evidence/v536-information-csharp-content/clean-checkout.json)). 본문 미저장 cold·명시 코드 저장·Undo/Redo·임시 저장·저장 cold·Review 취소·실제 compiler Confirm·확정 cold를 재현했다. 이 단위의 source 이후 최종 기록 커밋은 문서/근거만 바꾸므로 같은 실행 입력과 위 `bacb58b` 패키지를 사용한다. 추가 바이너리 재빌드의 bit-for-bit 동등성을 주장하지 않는다.
