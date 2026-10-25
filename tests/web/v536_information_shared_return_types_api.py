@@ -1,7 +1,11 @@
 """One actual checkpoint transaction for two contracts and a shared caller."""
 import copy
 import json
-import v536_information_shared_return_types_fixture as x
+import os
+if os.environ.get('CONFECTORY_SHARED_LOCAL_IMPORTS') == '1':
+    import v536_information_shared_local_imports_fixture as x
+else:
+    import v536_information_shared_return_types_fixture as x
 
 f=x.f
 def rpc(action,ok=True,**body):return f.invoke('blueprint',{'action':action,**body},ok)['result'].get('result')
@@ -25,11 +29,16 @@ try:
         assert f.state()['draft']['text']==text and checkpoint.read_bytes()==baseline;x.unchanged()
         f.checked('실제 동시 수정은 두 계약 전체 미적용이며 다른 편집자의 입력을 유지한다')
     elif x.mode=='source':
-        target=f.project/'caller.graph.json';g=json.loads(target.read_text());g['nodes'][0]['intent']='외부 편집 원문';target.write_text(json.dumps(g));peer=target.read_bytes()
+        source='StableHelper.celem' if hasattr(x,'stable') else 'caller.graph.json'
+        target=f.project/source
+        if source.endswith('.json'):
+            g=json.loads(target.read_text());g['nodes'][0]['intent']='외부 편집 원문';target.write_text(json.dumps(g))
+        else:target.write_text(target.read_text().replace('long value','string value'))
+        peer=target.read_bytes()
         rpc('applySlots',False,**request)
         assert target.read_bytes()==peer and checkpoint.read_bytes()==baseline
-        assert all((f.project/path).read_bytes()==raw for path,raw in x.snapshot.items() if path!='caller.graph.json')
-        f.checked('공유 caller 물리 파일 경합은 기존 checkpoint와 peer 원문을 보존하고 전부 거절한다')
+        assert all((f.project/path).read_bytes()==raw for path,raw in x.snapshot.items() if path!=source)
+        f.checked('참조 중인 물리 파일 경합은 기존 checkpoint와 peer 원문을 보존하고 전부 거절한다')
     else:
         if x.mode=='storage':
             checkpoint.chmod(0o400)

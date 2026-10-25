@@ -70,10 +70,19 @@ internal sealed class InformationFunctionBatch
   // Out names propagate the explicit old-pin identity through existing semantic
   // bindings. They never select a different output, rewrite C# or replan values.
   bool independent=typed||hasOutputs||structures.Count>0||returns.Count>0;
+  string ns=PackPaths.Namespace(request["id"]!.ToString());
   foreach(var row in units.Where(p=>p.Value?["kind"]?.ToString()=="implementation")){
    var d=new Parser(row.Value!["draft"]!.ToString(),"<shared-caller-group>").ParseElement();if(!functions.Contains(d.Function!)&&!d.Imports.Values.Any(i=>functions.Contains(i.Id)))continue;
    bool callee=functions.Contains(d.Function!);
-   if(independent&&(callee&&d.Imports.Count!=0||!callee&&d.Imports.Values.Any(i=>!functions.Contains(i.Id))))throw new InvalidOperationException("Shared type/output edits require independent leaf implementations and callers of only the selected functions");
+   if(independent)foreach(var imported in d.Imports.Values){
+    // An unselected local contract is a read dependency, not another edit.
+    // Existing closures observe its source and check the exact typed import;
+    // the overlay never changes it or infers C# source/argument rewrites.
+    if(functions.Contains(imported.Id)){if(callee)throw new InvalidOperationException("Selected callees need their own explicit dependency composition; all input retained");continue;}
+    var unit=units[imported.Id];if(!imported.Id.StartsWith(ns+"::",StringComparison.Ordinal)||unit?["kind"]?.ToString()!="function")throw new InvalidOperationException("Shared contract groups retain external import boundaries; all input retained");
+    var dependency=new Parser(unit["draft"]!.ToString(),"<unchanged-local-contract>").ParseElement();
+    if(dependency.Id!=imported.Id||dependency.Kind!="function"||dependency.Parent is not null||dependency.Signature is null||!imported.Signature.Matches(dependency.Signature))throw new InvalidOperationException("The unselected local import contract changed; all input retained");
+   }
    if(d.Parent is not null||d.Bodies.Count is <1 or >8||d.Bodies.Any(b=>b.Value.SourceKind!="blueprint"))throw new InvalidOperationException("Shared caller batching currently requires direct Blueprint targets; original sources retained");
    foreach(var body in d.Bodies){var graph=JsonNode.Parse(units[d.Id+"/body:"+body.Key]?["draft"]?.ToString()??throw new InvalidOperationException("Complete shared caller graph required"))!.AsObject();
     if(graph["copySource"] is not null||graph["nodes"] is not JsonArray nodes||nodes.Any(n=>n is not JsonObject||n["graph"] is not null||n["implementationContext"] is not null||n["forwardCallerStorage"] is not null||n["postCall"] is not null||n["kind"]?.ToString() is not ("code" or "call" or "export")||n["kind"]?.ToString()!="export"&&n["control"]?.ToString()!="next"))throw new InvalidOperationException("Shared caller batching preserves copy, private, native and wrapper contexts; save those contracts separately");

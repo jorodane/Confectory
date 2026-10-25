@@ -1,0 +1,166 @@
+{
+  "focusedFlows": 11,
+  "focusedChecks": 27,
+  "impactChecks": 18,
+  "sampleIntervalSeconds": 0.2,
+  "peakCgroupMemoryBytesSampled": 16944295936,
+  "minimumWorkspaceAvailableBytesSampled": 382210048,
+  "results": [
+    {
+      "name": "pure",
+      "exit": 0,
+      "elapsedSeconds": 10.0,
+      "minimumWorkspaceAvailableBytesSampled": 393416704,
+      "peakMemoryBytesSampled": 15990546432
+    },
+    {
+      "name": "api-normal",
+      "exit": 0,
+      "elapsedSeconds": 35.7,
+      "minimumWorkspaceAvailableBytesSampled": 393101312,
+      "peakMemoryBytesSampled": 16186384384
+    },
+    {
+      "name": "ui-primary",
+      "exit": 0,
+      "elapsedSeconds": 64.5,
+      "minimumWorkspaceAvailableBytesSampled": 392712192,
+      "peakMemoryBytesSampled": 16932589568
+    },
+    {
+      "name": "api-source",
+      "exit": 0,
+      "elapsedSeconds": 11.8,
+      "minimumWorkspaceAvailableBytesSampled": 391536640,
+      "peakMemoryBytesSampled": 16133234688
+    },
+    {
+      "name": "ui-view",
+      "exit": 0,
+      "elapsedSeconds": 74.6,
+      "minimumWorkspaceAvailableBytesSampled": 391188480,
+      "peakMemoryBytesSampled": 16925106176
+    },
+    {
+      "name": "ui-storage",
+      "exit": 0,
+      "elapsedSeconds": 83.8,
+      "minimumWorkspaceAvailableBytesSampled": 390094848,
+      "peakMemoryBytesSampled": 16944295936
+    },
+    {
+      "name": "ui-loss",
+      "exit": 0,
+      "elapsedSeconds": 47.7,
+      "minimumWorkspaceAvailableBytesSampled": 388911104,
+      "peakMemoryBytesSampled": 16877989888
+    },
+    {
+      "name": "ui-cancel",
+      "exit": 0,
+      "elapsedSeconds": 36.9,
+      "minimumWorkspaceAvailableBytesSampled": 387821568,
+      "peakMemoryBytesSampled": 16864198656
+    },
+    {
+      "name": "ui-conflict",
+      "exit": 0,
+      "elapsedSeconds": 25.5,
+      "minimumWorkspaceAvailableBytesSampled": 386904064,
+      "peakMemoryBytesSampled": 16840294400
+    },
+    {
+      "name": "ui-projects",
+      "exit": 0,
+      "elapsedSeconds": 34.1,
+      "minimumWorkspaceAvailableBytesSampled": 385900544,
+      "peakMemoryBytesSampled": 16915771392
+    },
+    {
+      "name": "ui-retry",
+      "exit": 0,
+      "elapsedSeconds": 79.2,
+      "minimumWorkspaceAvailableBytesSampled": 384569344,
+      "peakMemoryBytesSampled": 16915894272
+    },
+    {
+      "name": "impact-input-names",
+      "exit": 0,
+      "elapsedSeconds": 5.8,
+      "minimumWorkspaceAvailableBytesSampled": 383393792,
+      "peakMemoryBytesSampled": 16005001216
+    },
+    {
+      "name": "impact-input-types",
+      "exit": 0,
+      "elapsedSeconds": 8.6,
+      "minimumWorkspaceAvailableBytesSampled": 383098880,
+      "peakMemoryBytesSampled": 16001380352
+    },
+    {
+      "name": "impact-output-names",
+      "exit": 0,
+      "elapsedSeconds": 7.6,
+      "minimumWorkspaceAvailableBytesSampled": 382799872,
+      "peakMemoryBytesSampled": 16002011136
+    },
+    {
+      "name": "impact-output-types",
+      "exit": 0,
+      "elapsedSeconds": 11.8,
+      "minimumWorkspaceAvailableBytesSampled": 382504960,
+      "peakMemoryBytesSampled": 16007786496
+    },
+    {
+      "name": "impact-definitions",
+      "exit": 0,
+      "elapsedSeconds": 12.0,
+      "minimumWorkspaceAvailableBytesSampled": 382210048,
+      "peakMemoryBytesSampled": 16006045696
+    }
+  ],
+  "nativeReleaseWarnings": 0,
+  "nativeReleaseErrors": 0,
+  "initialSdkHomeInvocationFailed": true,
+  "conflictProductAssertionsPassedWithTestTeardownWarning": true,
+  "teardownReverificationPending": false,
+  "actualWindows": false,
+  "actualMobile": false,
+  "libraryDelivered": false,
+  "existingFilesDeleted": false,
+  "copyIdentityDecisionUsed": false,
+  "teardownReverificationChecks": 8,
+  "teardownReverificationWarnings": false,
+  "teardownResults": [
+    {
+      "name": "ui-loss",
+      "exit": 0,
+      "elapsedSeconds": 47.9,
+      "minimumWorkspaceAvailableBytesSampled": 381579264,
+      "peakMemoryBytesSampled": 16922107904
+    },
+    {
+      "name": "ui-cancel",
+      "exit": 0,
+      "elapsedSeconds": 36.5,
+      "minimumWorkspaceAvailableBytesSampled": 380489728,
+      "peakMemoryBytesSampled": 16898068480
+    },
+    {
+      "name": "ui-conflict",
+      "exit": 0,
+      "elapsedSeconds": 25.7,
+      "minimumWorkspaceAvailableBytesSampled": 379576320,
+      "peakMemoryBytesSampled": 16892805120
+    },
+    {
+      "name": "ui-projects",
+      "exit": 0,
+      "elapsedSeconds": 34.3,
+      "minimumWorkspaceAvailableBytesSampled": 378572800,
+      "peakMemoryBytesSampled": 16909598720
+    }
+  ],
+  "oom": 0,
+  "oomKill": 0
+}

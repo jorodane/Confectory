@@ -2,8 +2,12 @@
 import json
 import time
 import shutil
+import os
 from playwright.sync_api import sync_playwright,expect
-import v536_information_shared_return_types_fixture as x
+if os.environ.get('CONFECTORY_SHARED_LOCAL_IMPORTS') == '1':
+    import v536_information_shared_local_imports_fixture as x
+else:
+    import v536_information_shared_return_types_fixture as x
 
 f,d=x.f,x.d
 def pending():return [(k,v) for k,v in d.pending() if v['kind']=='function-edit']
@@ -47,6 +51,12 @@ def reject_conflict():
         ids={r['invoke']['requestId'] for r in f.traffic[mark:] if r.get('invoke',{}).get('endpoint')=='blueprint' and r['invoke']['input'].get('action')=='applySlots'}
         assert not any(r.get('result',{}).get('requestId') in ids and r['result'].get('ok') for r in f.traffic[mark:])
     finally:f.page.evaluate('()=>boundaryObserver.disconnect()')
+def finish_early():
+    # Let owned intercepted requests finish before exiting Playwright's context.
+    # All product/checkpoint/input assertions run before this test-only cleanup.
+    f.page.unroute_all(behavior='wait')
+    f.browser.close()
+    raise SystemExit(0)
 
 try:
     f.start(0);f.invoke('select',{'id':x.owner});f.invoke('saveDraft',{})
@@ -78,7 +88,7 @@ try:
             f.owner().locator('[data-element-action=discard]').click();f.idle();assert not pending() and checkpoint.read_bytes()==baseline
             restart(2);assert not pending() and checkpoint.read_bytes()==baseline;preserved()
             f.checked('한 변경 취소와 cold는 두 함수 입력만 취소하고 공유 caller·원래 checkpoint를 유지한다')
-            raise SystemExit(0)
+            finish_early()
         if x.mode=='projects':
             first=f.state()['listingId'];f.page.close();f.stop()
             other=f.case/'other project';shutil.copytree(f.project,other,ignore=shutil.ignore_patterns('.confectory'))
@@ -96,7 +106,7 @@ try:
             assert not pending() and checkpoint.read_bytes()==baseline and peer_checkpoint.read_bytes()==peer_saved
             enter(first);assert pending()==held;preserved()
             f.checked('동일 namespace 프로젝트 전환은 두 출력 계약 입력을 A에 보관하고 오래된 상세창의 B 적용을 막는다')
-            raise SystemExit(0)
+            finish_early()
         if x.mode=='conflict':
             sc=schema();f.invoke('editDescription',{'id':x.owner,'hash':sc['textHash'],'revision':sc['revision'],'value':'peer 설명 보존'})
             try:reject_conflict()
@@ -109,7 +119,7 @@ try:
             assert pending()==held and checkpoint.read_bytes()==baseline
             assert f.metadata('inspect',text=f.state()['draft']['text'])['description']=='peer 설명 보존';preserved()
             f.checked('다른 창의 실제 source 경합은 두 함수 전체 미적용이며 peer 입력과 사용자 입력을 유지한다')
-            raise SystemExit(0)
+            finish_early()
         if x.mode=='loss':
             applies,queries,masked=set(),set(),set()
             def intercept(route):
@@ -132,7 +142,7 @@ try:
             assert not any(row.get('invoke',{}).get('input',{}).get('action')=='applySlots' for row in f.traffic[mark:])
             x.verify(checkpoint);preserved()
             f.checked('저장/결과조회 응답 유실 뒤 cold는 결합 receipt를 확인하고 두 출력 계약을 중복 적용하지 않는다')
-            raise SystemExit(0)
+            finish_early()
         if x.mode=='storage':
             checkpoint.chmod(0o400)
             try:
