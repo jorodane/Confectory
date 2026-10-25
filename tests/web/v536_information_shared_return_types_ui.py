@@ -4,7 +4,9 @@ import time
 import shutil
 import os
 from playwright.sync_api import sync_playwright,expect
-if os.environ.get('CONFECTORY_SHARED_OUTPUT_DEFINITION_MIX') == '1':
+if os.environ.get('CONFECTORY_SHARED_INPUT_NAME_OUTPUT_MIX') == '1':
+    import v536_information_shared_input_name_output_mix_fixture as x
+elif os.environ.get('CONFECTORY_SHARED_OUTPUT_DEFINITION_MIX') == '1':
     import v536_information_shared_output_definition_mix_fixture as x
 elif os.environ.get('CONFECTORY_SHARED_OUTPUT_RETURN_MIX') == '1':
     import v536_information_shared_output_return_mix_fixture as x
@@ -95,6 +97,9 @@ try:
                 f.page.get_by_role('dialog',name='속성 타입 선택',exact=True).locator('[data-type=double]').click()
             f.page.screenshot(path=str(f.case/('shared-return-'+str(index)+'.png')))
             p.get_by_role('button',name='저장',exact=True).click()
+            if hasattr(x,'has_mapping_dialog') and not x.has_mapping_dialog(index):
+                f.idle();expect(f.page.locator('[data-abi-remap-accept]')).to_have_count(0)
+                continue
             has_uses=input_changed and (not hasattr(x,'usage_replacement_required') or x.usage_replacement_required(index))
             m=f.page.get_by_role('dialog',name=x.remap_title(index) if hasattr(x,'remap_title') else '입력 연결 갱신' if has_uses else '호출 계약 갱신',exact=True);expect(m).to_be_visible()
             if hasattr(x,'select_contract'):x.select_contract(m,index)

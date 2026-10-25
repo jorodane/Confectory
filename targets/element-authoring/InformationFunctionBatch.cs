@@ -25,7 +25,7 @@ internal sealed class InformationFunctionBatch
   if(edits.Length<2)return null;
   if(edits.Length>8||changes.Count!=edits.Length)throw new InvalidOperationException("Save up to eight direct function contracts together; other input is retained");
   var units=request["units"]?.AsObject()??throw new InvalidOperationException("Read every shared caller before saving the function group");if(units.Count>2048)throw new ArgumentException("Shared contract source budget");
-  var functions=new HashSet<string>(StringComparer.Ordinal);var structures=new HashSet<string>(StringComparer.Ordinal);var inputDefinitions=new HashSet<string>(StringComparer.Ordinal);var returns=new HashSet<string>(StringComparer.Ordinal);var inputTypes=new HashSet<string>(StringComparer.Ordinal);var outputTypes=new HashSet<string>(StringComparer.Ordinal);bool typed=false,hasOutputs=false,outputTyped=false;
+  var functions=new HashSet<string>(StringComparer.Ordinal);var structures=new HashSet<string>(StringComparer.Ordinal);var inputDefinitions=new HashSet<string>(StringComparer.Ordinal);var returns=new HashSet<string>(StringComparer.Ordinal);var inputTypes=new HashSet<string>(StringComparer.Ordinal);var inputNames=new HashSet<string>(StringComparer.Ordinal);var outputTypes=new HashSet<string>(StringComparer.Ordinal);bool typed=false,hasOutputs=false,outputTyped=false;
   bool Scalar(string type)=>type is "bool" or "int" or "long" or "float" or "double" or "string";
   foreach(var row in edits){
    string id=row!["id"]!.ToString();if(!functions.Add(id))throw new ArgumentException("One explicit edit per function identity required");
@@ -59,13 +59,14 @@ internal sealed class InformationFunctionBatch
    if(before.Return!=next.Return){
     // Out and return writers use the same explicit output closure. Value
     // inputs stay exact; the loop below proves every retained out identity.
-    if(!Scalar(before.Return)||!Scalar(next.Return)||!before.Args.Where(a=>!a.IsOut).Select(a=>(a.Name,a.Type,a.Mode)).SequenceEqual(next.Args.Where(a=>!a.IsOut).Select(a=>(a.Name,a.Type,a.Mode))))throw new InvalidOperationException("Shared scalar return changes retain every original value input contract");
+    if(!Scalar(before.Return)||!Scalar(next.Return)||!before.Args.Where(a=>!a.IsOut).Select(a=>(Name:remap[a.Name]?.ToString(),a.Type,a.Mode)).SequenceEqual(next.Args.Where(a=>!a.IsOut).Select(a=>(Name:(string?)a.Name,a.Type,a.Mode))))throw new InvalidOperationException("Shared scalar return changes retain explicitly mapped value input types/order/roles");
     returns.Add(id);outputTyped=true;
    }
    if(before.Args.Count!=next.Args.Count)throw new InvalidOperationException("Shared caller batching retains original argument identities outside coordinated output definitions");
+   if(before.Args.Where((a,i)=>!a.IsOut&&a.Name!=next.Args[i].Name).Any())inputNames.Add(id);
    for(int i=0;i<before.Args.Count;i++){var a=before.Args[i];var b=next.Args[i];if(a.Mode!=b.Mode)throw new InvalidOperationException("Retain the original input/output roles explicitly");hasOutputs|=a.IsOut;if(a.Type==b.Type){if(remap[a.Name]?.ToString()!=b.Name)throw new InvalidOperationException("Retain each unchanged pin identity explicitly");}else if(a.IsOut){outputTyped=true;outputTypes.Add(id);if(a.Name!=b.Name||!Scalar(a.Type)||!Scalar(b.Type)||remap[a.Name]?.ToString()!=a.Name)throw new InvalidOperationException("Changed scalar outputs retain their explicit original pin identity");}else{typed=true;inputTypes.Add(id);if(a.Mode is not null||a.Name!=b.Name||!Scalar(a.Type)||!Scalar(b.Type)||!remap.ContainsKey(a.Name)||remap[a.Name] is not null)throw new InvalidOperationException("Changed scalar inputs need explicit replacement at the same position and name");}}
   }
-  if(returns.Count>0&&(typed||!functions.SetEquals(returns.Concat(outputTypes).Concat(structures))))throw new InvalidOperationException("Combine only explicit scalar output definitions/types; retain every value input");
+  if(returns.Count>0&&(typed||!functions.SetEquals(returns.Concat(outputTypes).Concat(structures).Concat(inputNames))))throw new InvalidOperationException("Combine only mapped input names and scalar output definitions/types; retain every value input");
   var projections=new Dictionary<string,JsonObject>(StringComparer.Ordinal);
   if(structures.Count>0){
    if(typed||inputDefinitions.Count>0||!functions.SetEquals(structures.Concat(outputTypes).Concat(returns)))throw new InvalidOperationException("Combine only explicit output definitions and scalar types; all input retained");
@@ -88,10 +89,13 @@ internal sealed class InformationFunctionBatch
    if(typed&&functions.Any(id=>!inputTypes.Contains(id)&&!outputTypes.Contains(id)))throw new InvalidOperationException("Select scalar type edits for every grouped function; other input retained");
    foreach(var row in edits){var mapping=row!["mapping"]!.AsObject();var before=InformationFunctionBodies.Signature(mapping["before"]!);var next=InformationFunctionBodies.Signature(row["signature"]!);
     string id=row["id"]!.ToString();bool inputsChanged=inputTypes.Contains(id),outputsChanged=outputTypes.Contains(id)||returns.Contains(id),inputPlans=mapping["implementations"] is JsonObject;
+    // A pure rename uses its exact old-pin map and the existing semantic
+    // rename path. It cannot smuggle a value, writer or caller re-selection.
+    if(inputNames.Contains(id)&&!inputsChanged&&!outputsChanged){if(mapping.Count!=2||before.Args.Where(a=>a.IsOut).Any(a=>mapping["args"]![a.Name]?.ToString()!=a.Name))throw new InvalidOperationException("A pure value pin rename retains every original output and binding");continue;}
     // The UI omits this object when there are no callee uses. Prepare below
     // still checks every original use and rejects any missing replacement.
-    if(mapping.Count!=3+(inputPlans?1:0)+(outputsChanged?1:0)||mapping["callers"] is not JsonObject callers||(outputsChanged?mapping["outputs"] is not JsonObject:mapping.ContainsKey("outputs"))||mapping.ContainsKey("implementations")&&(!inputsChanged||!inputPlans)||before.Args.Select((a,i)=>a.Name!=next.Args[i].Name||!inputsChanged&&!a.IsOut&&a.Type!=next.Args[i].Type).Any(v=>v))throw new InvalidOperationException("Shared scalar input/output types retain every pin identity and require original binding/writer/caller selections");
-    foreach(var plan in callers.Select(p=>p.Value!.AsObject()))if(plan["inputs"] is not JsonObject inputs||inputs.Count!=before.Args.Count(a=>!a.IsOut)||plan["disconnect"] is not JsonObject disconnect||!inputsChanged&&(before.Args.Where(a=>!a.IsOut).Any(a=>inputs[a.Name]?.ToString()!=a.Name)||disconnect.Count!=0)||(outputsChanged?plan["outputs"] is not JsonObject:plan.ContainsKey("outputs")))throw new InvalidOperationException("Select exact caller inputs, removed bindings and compatible outputs explicitly");
+    if(mapping.Count!=3+(inputPlans?1:0)+(outputsChanged?1:0)||mapping["callers"] is not JsonObject callers||(outputsChanged?mapping["outputs"] is not JsonObject:mapping.ContainsKey("outputs"))||mapping.ContainsKey("implementations")&&(!inputsChanged||!inputPlans)||before.Args.Select((a,i)=>(a.IsOut||typed||!inputNames.Contains(id))&&a.Name!=next.Args[i].Name||!inputsChanged&&!a.IsOut&&a.Type!=next.Args[i].Type).Any(v=>v))throw new InvalidOperationException("Shared scalar outputs retain mapped input identities and require original binding/writer/caller selections");
+    foreach(var plan in callers.Select(p=>p.Value!.AsObject()))if(plan["inputs"] is not JsonObject inputs||inputs.Count!=before.Args.Count(a=>!a.IsOut)||plan["disconnect"] is not JsonObject disconnect||!inputsChanged&&(before.Args.Where(a=>!a.IsOut).Any(a=>inputs[mapping["args"]![a.Name]!.ToString()]?.ToString()!=a.Name)||disconnect.Count!=0)||(outputsChanged?plan["outputs"] is not JsonObject:plan.ContainsKey("outputs")))throw new InvalidOperationException("Select exact caller inputs, removed bindings and compatible outputs explicitly");
     if(outputsChanged)projections.Add(id,callers.DeepClone().AsObject());
    }
   }else if((hasOutputs&&(typed||edits.Any(row=>row!["mapping"]!.AsObject().Count!=2)))||edits.Any(row=>row!["mapping"]?["outputs"] is not null))throw new InvalidOperationException("Shared output names retain exact types and automatic identity-preserving bindings; other selected input is retained");

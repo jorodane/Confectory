@@ -2,7 +2,9 @@
 import copy
 import json
 import os
-if os.environ.get('CONFECTORY_SHARED_OUTPUT_DEFINITION_MIX') == '1':
+if os.environ.get('CONFECTORY_SHARED_INPUT_NAME_OUTPUT_MIX') == '1':
+    import v536_information_shared_input_name_output_mix_fixture as x
+elif os.environ.get('CONFECTORY_SHARED_OUTPUT_DEFINITION_MIX') == '1':
     import v536_information_shared_output_definition_mix_fixture as x
 elif os.environ.get('CONFECTORY_SHARED_OUTPUT_RETURN_MIX') == '1':
     import v536_information_shared_output_return_mix_fixture as x
@@ -77,9 +79,11 @@ try:
         assert call['nodes'][1]['arguments']==(x.caller_arguments(1) if hasattr(x,'caller_arguments') else {'amount':x.binding('invoke',x.destination),'real':{'constant':2.5}})
         assert call['exits']==(x.caller_exits() if hasattr(x,'caller_exits') else {'return':x.binding('invoke_second',x.destination)})
         header=(f.project/'CallerBody.celem').read_text()
-        for selected in x.nexts:
-            signature='('+', '.join((a.get('mode','')+' '+a['type']).strip() for a in selected['args'])+') -> '+selected['return']+';'
-            assert header.count(signature)==x.nexts.count(selected),header
+        # Native imports serialize type/mode/return, while graph signatures
+        # retain public pin names. Count equal native contracts accordingly.
+        native_signatures=['('+', '.join((a.get('mode','')+' '+a['type']).strip() for a in selected['args'])+') -> '+selected['return']+';' for selected in x.nexts]
+        for signature in set(native_signatures):
+            assert header.count(signature)==native_signatures.count(signature),header
         for path,raw in x.snapshot.items():
             if path not in {'FreeInfo.celem','CallerBody.celem','caller.graph.json','function.graph.json','function.node.json','second.graph.json','second.node.json',
                            *['elements/'+fn.split('::')[1]+'.celem' for fn in x.functions],
