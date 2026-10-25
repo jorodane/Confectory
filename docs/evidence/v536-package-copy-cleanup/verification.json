@@ -84,5 +84,22 @@
   "actualMobile": false,
   "libraryUploaded": false,
   "generalBuilderCacheCleanup": false,
-  "row7PolicyAwaitingUser": true
+  "row7PolicyAwaitingUser": true,
+  "cleanCheckoutVerification": {
+    "sourceCommit": "ed7b6e99dcbc973fcb74eb133ceb8a970ddda81f",
+    "unitTestsPassed": 7,
+    "packageCompositionPassed": true,
+    "realPackagedEngineWebPassed": true,
+    "resources": 74,
+    "copiesRemoved": 1,
+    "evidenceRetained": true,
+    "originalPackageUnchanged": true,
+    "newWindowsCrossBuild": false,
+    "actualWindows": false,
+    "actualWebView2": false,
+    "exit": 0,
+    "minimumWorkspaceFreeBytesSampled": 337014784,
+    "peakMemoryBytesSampled": 16549675008,
+    "retainedBytesDelta": 155648
+  }
 }

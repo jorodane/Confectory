@@ -114,3 +114,20 @@ contexts remain separate. Row 9 advanced pin types/display-name identity and oth
 documented UI work remain. The recovered space permits the next bounded unit,
 with disk/memory preflight and sequential tests. General builder generation/cache
 retention was diagnosed but not changed or cleaned here.
+
+## Clean checkout reproduction
+
+The existing independent checkout at
+`/workspace/scratch/v536-multiple-implementations/checkout` was fast-forwarded
+to committed test source `ed7b6e99dcbc973fcb74eb133ceb8a970ddda81f`; it was clean
+before and after verification. All seven isolated regressions passed there.
+The committed package probe then passed actual packaged-engine web startup, all
+74 resources and the minimal login screen using the preserved external runtime.
+Its one new hard-linked legacy copy was removed after host exit; screenshot, log,
+profile and cleanup evidence remained. Every original package hash/link count
+was unchanged. The completed run retained 155,648 bytes. No new executable build
+was needed for this Python test-only change; Windows execution remains untested.
+Local committed-source logs: `clean-unit.log`, `clean-package.log`,
+`clean-verification.json` in the audit directory. The later validation-record
+commit changes only this document and its JSON evidence; tested Python sources
+remain byte-for-byte identical.
