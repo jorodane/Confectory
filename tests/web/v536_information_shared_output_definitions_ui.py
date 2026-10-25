@@ -180,8 +180,12 @@ try:
         assert calls[1]['arguments']=={'amount':x.binding('invoke',x.destination),'real':{'constant':2.5}}
         assert json.loads((f.project/'caller.graph.json').read_text())['exits']['return']==x.binding('invoke_second',x.destination)
         for fn in x.functions:
-            for name in x.removed:expect(f.owner().locator('[data-inline-method="'+fn+'"] [data-pin-side=outputs] [data-function-pin-name="'+name+'"]')).to_have_count(0)
-            for name in x.added:expect(f.owner().locator('[data-inline-method="'+fn+'"] [data-pin-side=outputs] [data-function-pin-name="'+name+'"]')).to_have_count(1)
+            for name in x.removed:
+                label='결과' if name=='return' else name
+                expect(f.owner().locator('[data-inline-method="'+fn+'"] [data-pin-side=outputs] [data-function-pin-name="'+label+'"]')).to_have_count(0)
+            for name in x.added:
+                label='결과' if name=='return' else name
+                expect(f.owner().locator('[data-inline-method="'+fn+'"] [data-pin-side=outputs] [data-function-pin-name="'+label+'"]')).to_have_count(1)
         for path in ['function.node.json','second.node.json']:
             assert json.loads((f.project/path).read_text())['source']==json.loads(x.snapshot[path])['source']
         f.checked('원본 460px 기본/독립 화면의 한 Save·cold·Review 취소/Confirm은 두 출력 계약과 공유 caller를 함께 확정한다')
