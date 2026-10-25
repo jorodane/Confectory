@@ -20,4 +20,15 @@
 
 [본문 화면](evidence/v536-information-retained/native-code.png), [serial 후처리](evidence/v536-information-retained/post-call-code.png), [enum 후처리](evidence/v536-information-retained/enum-post-call.png)와 [원본 구조/CSS 근거](evidence/v536-information-retained/layout-evidence.json)를 보관한다. 원본 Script/backdrop/source/status/error와 구현 선택/매핑을 재사용한다. 전체 screenshot pixel 일치는 주장하지 않는다.
 
-고정 6행의 위 직접 소유 C1~C4 지원 경계에서 남은 실제 미연결 조작은 없다. 아래 clean checkout·교차 패키지·게시 검증을 통과한 뒤 지원 경계 마감으로 기록한다. 다음 구현은 고정 5행이며 전체 I5-6/v536 UI 완료와 구분한다. 실제 Windows apphost/WebView2·모바일 기기·사용자 로그인/권한·유료 AI·사용자 프로젝트 실행·Library 전달은 수행하지 않았다.
+고정 6행의 위 직접 소유 C1~C4 지원 경계에서 남은 실제 미연결 조작은 없다. clean checkout·교차 패키지·패키지 기동 검증까지 통과하여 이 지원 경계를 마감한다. 다음 구현은 고정 5행이며 전체 I5-6/v536 UI 완료와 구분한다. 실제 Windows apphost/WebView2·모바일 기기·사용자 로그인/권한·유료 AI·사용자 프로젝트 실행·Library 전달은 수행하지 않았다.
+
+
+## clean checkout·리소스·패키지
+
+검증한 실행 소스 커밋은 `6eb926cc8cb65d79aa4c3f9960b9f6d00f27c07f`다. 깨끗한 checkout에서 Native Release 0 warning/0 error, Linux 빌드 stderr 0과 실제 storage+enum API 3/독립 창 3 check를 재현했다([기록](evidence/v536-information-retained/clean-checks.json)). 집중 47 check와 별개로 재현 결과를 기록하며 중복 검사로 기능 수를 늘리지 않는다.
+
+실제 Git retained CRLF→속성 pull 및 fresh LF에서 74개 canonical/exact 리소스를 기동하고 content/encoding/BOM/binary/budget 변조를 거절했다. 기존 파일 바이트는 보존됐다.
+
+로컬 Windows 교차 패키지는 `/workspace/artifacts/v536-information-retained/Windows-x64/Confectory.exe`다. manifest 2,338개(자기 manifest 포함 실제 2,339개) 해시와 변경 소스 12개·Native/Core DLL 2개의 바이트 일치를 검증했다([기록](evidence/v536-information-retained/package-bytes.json)). manifest SHA-256은 `78901ec0d52d0682c2eedae2a102da6d004d20ff3abcd872fcb855ceb8fbe9a8`다.
+
+SDK 없는 격리 runtime·다른 작업 디렉터리에서 패키지 managed 엔진/74 리소스/최소 로그인 화면을 기동하고, 변조·누락된 의존성 거절과 기존 fixture profile/명시 override 보존을 확인했다([기록](evidence/v536-information-retained/package-probe.json)). 이는 실제 Windows apphost/WebView2 실행 검사가 아니며 실제 로그인이나 유료 추론도 없다. Library 첨부로 전달하지 않았다. 후속 검증 문서 커밋은 실행 소스를 변경하지 않으므로 위 패키지와 실행 코드가 같다.

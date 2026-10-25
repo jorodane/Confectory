@@ -1,0 +1,41 @@
+{
+  "sourceCommit": "6eb926cc8cb65d79aa4c3f9960b9f6d00f27c07f",
+  "nativeBuildWarnings": 0,
+  "nativeBuildErrors": 0,
+  "linuxBuildStderrBytes": 0,
+  "cleanFocusedChecks": 6,
+  "records": [
+    {
+      "log": "clean-api.log",
+      "checks": [
+        "별칭·graph 증거·출력/원문·후처리 오류는 기존 checkpoint를 바꾸지 않고 전체 거절한다",
+        "추가 노드·alias/live storage·정확한 local·본문·후처리를 한 후보/CAS에 저장하고 cold에서 유지한다",
+        "실제 compiler Review/Confirm·cold 뒤에도 노드/alias/원문·postCall helpers와 다른 소스를 보존한다"
+      ],
+      "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-9arh8ivk",
+      "storage": true,
+      "postMode": "enum",
+      "actualEngine": true,
+      "projectRun": false,
+      "nativeWindows": false
+    },
+    {
+      "log": "clean-ui.log",
+      "checks": [
+        "원본 전체 본문 편집창의 본문·형식 매개변수/입출력은 취소·불완전 cold·코드 저장·명시 caller 선택·Undo/Redo에서 보존된다",
+        "화면 정상 저장·cold는 전체 후보와 C# 원문·호출자를 정확히 복원한다",
+        "실제 화면 compiler Review 취소·재검토·명시 Confirm은 입출력 저장소와 C# 원문을 함께 반영한다"
+      ],
+      "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-vpx81f5o",
+      "actualEngine": true,
+      "scenario": "types",
+      "chain": false,
+      "storage": true,
+      "postMode": "enum",
+      "mode": "normal-simple",
+      "nativeWindows": false,
+      "deviceTouch": false,
+      "independentView": true
+    }
+  ]
+}
