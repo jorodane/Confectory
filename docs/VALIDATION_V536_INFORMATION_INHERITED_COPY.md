@@ -27,3 +27,16 @@ provider metadata는 자식 구현의 직접 부모와 실제 body origin을 구
 [기존 선택창](evidence/v536-information-inherited-copy/copy-picker.png)과 [C# 편집창](evidence/v536-information-inherited-copy/copy-script.png)을 실제 렌더로 확인했다. 정보 카드 폭 460px와 기존 HTML/CSS 네 파일의 이전 게시 대비 바이트 불변을 확인했다([근거](evidence/v536-information-inherited-copy/layout-evidence.json)). 모든 화면의 pixel equality를 주장하지 않는다. Native Release 경고/오류 0건, Linux 빌드 stderr 0이다.
 
 전체 7행/I5-6/v536 UI 복원 완료가 아니다. 상속 정의를 유지한 공개 계약 동시 변경과 일반 Blueprint 부모의 정보 창 수용, 기존 미확정/외부 함수 ID/여러 target copy 계약 편집은 [고정 잔여](V536_I5_6_INHERITED_COPY_SCOPE.md)에 남는다. 8행 공유 caller·9행 고급 타입/표시명은 별도 후속이다. 실제 Windows/WebView2·모바일 기기·계정/유료 추론·사용자 프로젝트 실행·Library 전달은 미검증이다.
+
+
+## 최종 checkout·패키지 재현
+
+구현 커밋 `f9a97fe57dd14ae9871d1947d59f5a32a7b40097`을 기존의 깨끗한 재현 checkout에 fast-forward한 뒤 Native Release와 Linux 엔진을 빌드했다. Native 경고/오류 0건, Linux `tool.ok=true`/stderr 0바이트이며, 그 checkout의 실제 API 3건·보호 4건·독립 창 UI 2건 **9 check**를 통과했다. 상속 parent/본문 위조 ID 및 변경된 공개 계약 차단도 포함된다. 집중 25건/영향 회귀 5건과 구분한 재현 검사다.
+
+실제 Git CRLF 유지 checkout과 fresh LF checkout에서 **74개** canonical/exact 리소스를 검증했다. clone/checkout/pull/clone 네 명령은 모두 종료 코드 0이며 stderr도 보존했다. 원본 바이트·인코딩/BOM/바이너리·budget 거절 검사를 유지했다.
+
+Windows x64 교차 패키지는 `/workspace/artifacts/v536-information-inherited-copy/Windows-x64`에 생성했다. manifest의 **2,342개 파일** 해시와 manifest를 포함한 2,343개 파일 집합·symlink 부재를 확인했다. 이전 게시 이후 변경된 제품 소스 7개와 Native authoring/Core DLL이 실제 빌드 트리와 바이트로 일치한다. 패키지 실행 코드 기준은 위 구현 커밋이며 이후 검증 문서·증거만 추가한다. 오래된 assembly revision 문자열이나 desktop 도구의 예전 로컬 DLL을 실행 코드 동등성의 근거로 사용하지 않았다.
+
+기존 package probe도 통과했다. SDK 없는 격리 런타임에서 다른 작업 경로로 패키지의 managed 엔진을 기동해 74개 리소스와 실제 최소 Agent 창을 확인했다. 변조된 리소스/누락 DLL은 기동 전에 거절되고 원상 복구됐으며, 격리된 기존 checkout 프로필과 명시 경로 override가 보존됐다. 로그인/추론 호출은 없었다. 이는 Linux에서 수행한 **교차 패키지 및 managed 엔진 검사**로, Windows apphost/WebView2 실행 검사가 아니다.
+
+전체 결과·검사별 증거·소스/DLL 및 원본 로그 해시는 [최종 검증 기록](evidence/v536-information-inherited-copy/final-verification.json)에 남겼다. 이미 승인받아 정리한 여덟 검사 복사 폴더 외 추가 기존 파일 삭제는 하지 않았고, 최종 검사를 순차 실행했다. 이번 패키지는 로컬 산출물이며 Library에 전달됐다고 주장하지 않는다. 위의 고정 7행 잔여 및 실제 기기 미검증은 그대로 유지한다.
