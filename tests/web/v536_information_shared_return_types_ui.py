@@ -4,7 +4,9 @@ import time
 import shutil
 import os
 from playwright.sync_api import sync_playwright,expect
-if os.environ.get('CONFECTORY_SHARED_INPUT_DEFINITIONS') == '1':
+if os.environ.get('CONFECTORY_SHARED_INPUT_MIX') == '1':
+    import v536_information_shared_input_mix_fixture as x
+elif os.environ.get('CONFECTORY_SHARED_INPUT_DEFINITIONS') == '1':
     import v536_information_shared_input_definitions_fixture as x
 elif os.environ.get('CONFECTORY_SHARED_INPUTS_WITH_OUT') == '1':
     import v536_information_shared_inputs_with_out_fixture as x

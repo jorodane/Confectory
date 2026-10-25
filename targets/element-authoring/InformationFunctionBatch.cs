@@ -45,11 +45,13 @@ internal sealed class InformationFunctionBatch
    }
    bool inputDefinition=before.Args.Any(a=>!a.IsOut&&remap[a.Name] is null&&!next.Args.Any(b=>!b.IsOut&&b.Name==a.Name))||next.Args.Any(b=>!b.IsOut&&!before.Args.Any(a=>!a.IsOut&&(a.Name==b.Name||remap[a.Name]?.ToString()==b.Name)));
    if(inputDefinition){
-    // Add/remove only explicit value identities. Keep every retained pin and
-    // its relative order; callers and actual removed-input uses are selected
-    // by the existing single closure, never by inferred values or C# edits.
-    var retained=before.Args.Where(a=>remap[a.Name] is not null).ToArray();
-    if(before.Return!=next.Return||!before.Args.Where(a=>a.IsOut).Select(a=>(a.Name,a.Type,a.Mode)).SequenceEqual(next.Args.Where(a=>a.IsOut).Select(a=>(a.Name,a.Type,a.Mode)))||before.Args.Any(a=>remap[a.Name] is null&&(a.IsOut||!Scalar(a.Type)||next.Args.Any(b=>b.Name==a.Name)))||retained.Any(a=>remap[a.Name]?.ToString()!=a.Name)||!retained.Select(a=>(a.Name,a.Type,a.Mode)).SequenceEqual(next.Args.Where(b=>retained.Any(a=>a.Name==b.Name)).Select(b=>(b.Name,b.Type,b.Mode)))||next.Args.Any(b=>!retained.Any(a=>a.Name==b.Name)&&(b.Mode is not null||!Scalar(b.Type))))throw new InvalidOperationException("Explicit value input definitions preserve retained pins, outputs and return contracts");
+    // A same-name scalar type replacement is selected exactly like a removed
+    // input. Keep surviving identities/order and every output contract; the
+    // original single closure proves each new value and actual old use.
+    var surviving=before.Args.Where(a=>next.Args.Any(b=>b.Name==a.Name)).ToArray();
+    bool inputIdentities=before.Args.All(a=>{var b=next.Args.SingleOrDefault(p=>p.Name==a.Name);if(b is null)return !a.IsOut&&Scalar(a.Type)&&remap[a.Name] is null;if(a.Mode!=b.Mode)return false;if(a.Type==b.Type)return remap[a.Name]?.ToString()==a.Name;return !a.IsOut&&Scalar(a.Type)&&Scalar(b.Type)&&remap[a.Name] is null;});
+    if(before.Return!=next.Return||!before.Args.Where(a=>a.IsOut).Select(a=>(a.Name,a.Type,a.Mode)).SequenceEqual(next.Args.Where(a=>a.IsOut).Select(a=>(a.Name,a.Type,a.Mode)))||!inputIdentities||!surviving.Select(a=>a.Name).SequenceEqual(next.Args.Where(b=>before.Args.Any(a=>a.Name==b.Name)).Select(b=>b.Name))||next.Args.Any(b=>!before.Args.Any(a=>a.Name==b.Name)&&(b.Mode is not null||!Scalar(b.Type))))throw new InvalidOperationException("Explicit value input definitions preserve pin identities/order, outputs and return contracts");
+    if(before.Args.Any(a=>next.Args.Any(b=>b.Name==a.Name&&b.Type!=a.Type))){typed=true;inputTypes.Add(id);}
     inputDefinitions.Add(id);continue;
    }
    if(before.Return!=next.Return){
@@ -69,7 +71,7 @@ internal sealed class InformationFunctionBatch
     projections.Add(row["id"]!.ToString(),callers.DeepClone().AsObject());
    }
   }else if(inputDefinitions.Count>0){
-   if(inputDefinitions.Count!=edits.Length)throw new InvalidOperationException("Keep value input definitions separate from other grouped contract edits; retain every input");
+   if(outputTyped||!functions.SetEquals(inputDefinitions.Concat(inputTypes)))throw new InvalidOperationException("Combine only explicit value input definitions and scalar type edits; retain every input");
    foreach(var row in edits){var mapping=row!["mapping"]!.AsObject();var next=InformationFunctionBodies.Signature(row["signature"]!);bool uses=mapping["implementations"] is JsonObject;
     if(mapping.Count!=3+(uses?1:0)||mapping["callers"] is not JsonObject callers||mapping.ContainsKey("implementations")&&!uses||mapping.ContainsKey("outputs")||mapping.ContainsKey("outputGraphs"))throw new InvalidOperationException("Select original caller bindings and every removed input use; keep output plans unchanged");
     foreach(var plan in callers.Select(p=>p.Value!.AsObject()))if(plan["inputs"] is not JsonObject inputs||inputs.Count!=next.Args.Count(a=>!a.IsOut)||plan["disconnect"] is not JsonObject||plan.ContainsKey("outputs"))throw new InvalidOperationException("Select every current value input and explicit unused binding removal; preserve outputs");

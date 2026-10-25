@@ -94,3 +94,5 @@ Library 업로드가 아니다. 기존 `e827a52` 보관 패키지·SDK/runtime·
 이후 결과/정책 문서만 바꾼 커밋은 검증한 실행 코드·현재 DLL·UI 리소스를 바꾸지
 않는다. 실제 Windows apphost/WebView2·모바일 기기 실행, 전체 UI 및 Library
 전달 완료와 구분한다.
+
+후속 입력 정의/scalar 타입 혼합의 최신 지원은 [입력 혼합 단위](VALIDATION_V536_INFORMATION_SHARED_INPUT_MIX.md)에서 별도 검증한다. 이 문서의 원래 실행 결과를 바꾸거나 출력/반환/ref/순서 지원으로 확대하지 않는다.
