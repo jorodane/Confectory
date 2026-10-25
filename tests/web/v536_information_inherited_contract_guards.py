@@ -8,7 +8,7 @@ prepared = x.n.prepare(r)
 assert all(row['id'] not in [x.parent, x.child] for row in prepared['linkedUpdates'])
 x.unchanged()
 x.f.checked('공개 이름 대응·소유 copy·호출자 후보는 부모/자식 선언을 쓰지 않고 함께 준비한다')
-for fault in ['parent-source', 'child-source', 'type', 'role', 'return', 'reorder']:
+for fault in ['parent-source', 'child-source', 'type', 'count', 'role', 'return', 'reorder']:
     bad = copy.deepcopy(r)
     change = bad['changes'][0]
     mapping = change['mapping']
@@ -19,13 +19,14 @@ for fault in ['parent-source', 'child-source', 'type', 'role', 'return', 'reorde
     else:
         sig = change['signature']
         if fault == 'type':sig['args'][0]['type'] = 'double'
+        elif fault == 'count':sig['args'].append({'name':'extra','type':'long'})
         elif fault == 'role':sig['args'][0]['mode'] = 'ref'
         elif fault == 'return':sig['return'] = 'double'
         else:sig['args'].reverse()
         for plan in mapping['bodies'].values():plan['contract'] = copy.deepcopy(sig)
     x.n.prepare(bad, False)
     x.unchanged()
-x.f.checked('부모/자식 쓰기 위조·타입/역할/반환/순서의 불명확한 변경은 전체 미적용으로 거절한다')
+x.f.checked('부모/자식 쓰기 위조·타입/핀 수/역할/반환/순서의 계약 변경은 정상 보호로 전체 미적용이다')
 parent = x.f.project / x.parent_path
 before = parent.read_bytes()
 try:

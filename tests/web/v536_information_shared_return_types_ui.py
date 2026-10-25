@@ -4,7 +4,9 @@ import time
 import shutil
 import os
 from playwright.sync_api import sync_playwright,expect
-if os.environ.get('CONFECTORY_SHARED_INPUTS_WITH_OUT') == '1':
+if os.environ.get('CONFECTORY_SHARED_INPUT_DEFINITIONS') == '1':
+    import v536_information_shared_input_definitions_fixture as x
+elif os.environ.get('CONFECTORY_SHARED_INPUTS_WITH_OUT') == '1':
     import v536_information_shared_inputs_with_out_fixture as x
 elif os.environ.get('CONFECTORY_SHARED_MIXED_TYPES') == '1':
     import v536_information_shared_mixed_types_fixture as x
@@ -76,8 +78,9 @@ try:
         assert not pending()
         for index,fn in enumerate(x.functions):
             p=popup(fn)
-            input_changed=combined_io and x.nexts[index]['args'][0]['type']!=x.old['args'][0]['type']
-            output_changed=not combined_io or x.nexts[index]['args'][2]['type']!=x.old['args'][2]['type']
+            input_changed=not hasattr(x,'edit_contract') and combined_io and x.nexts[index]['args'][0]['type']!=x.old['args'][0]['type']
+            output_changed=not hasattr(x,'edit_contract') and (not combined_io or x.nexts[index]['args'][2]['type']!=x.old['args'][2]['type'])
+            if hasattr(x,'edit_contract'):x.edit_contract(p,index)
             if input_changed:
                 p.locator('[data-signature-id=arg0] [data-signature-type]').click()
                 f.page.get_by_role('dialog',name='속성 타입 선택',exact=True).locator('[data-type=string]').click()
@@ -87,7 +90,8 @@ try:
             f.page.screenshot(path=str(f.case/('shared-return-'+str(index)+'.png')))
             p.get_by_role('button',name='저장',exact=True).click()
             has_uses=input_changed and (not hasattr(x,'usage_replacement_required') or x.usage_replacement_required(index))
-            m=f.page.get_by_role('dialog',name='입력 연결 갱신' if has_uses else '호출 계약 갱신',exact=True);expect(m).to_be_visible()
+            m=f.page.get_by_role('dialog',name=x.remap_title(index) if hasattr(x,'remap_title') else '입력 연결 갱신' if has_uses else '호출 계약 갱신',exact=True);expect(m).to_be_visible()
+            if hasattr(x,'select_contract'):x.select_contract(m,index)
             if output_changed:m.locator('[data-abi-target^="output:"] [data-abi-input=value]').select_option('pin:real')
             if input_changed:
                 for target in m.locator('section[data-abi-target]').all():
@@ -196,6 +200,9 @@ try:
         assert calls[1]['arguments']==(x.caller_arguments(1) if combined_io else {'amount':x.binding('invoke',x.destination),'real':{'constant':2.5}})
         assert json.loads((f.project/'caller.graph.json').read_text())['exits']==(x.caller_exits() if combined_io else {'return':x.binding('invoke_second',x.destination)})
         for index,fn in enumerate(x.functions):
+            if hasattr(x,'verify_pins'):
+                x.verify_pins(f.owner(),index)
+                continue
             expect(f.owner().locator('[data-inline-method="'+fn+'"] [data-pin-side=outputs] [data-function-pin-name="'+('count' if combined_io else '결과')+'"]')).to_have_attribute('data-function-pin-type','실수' if not combined_io or x.nexts[index]['args'][2]['type']=='double' else '정수')
             if combined_io:expect(f.owner().locator('[data-inline-method="'+fn+'"] [data-pin-side=inputs] [data-function-pin-name=amount]')).to_have_attribute('data-function-pin-type','글자' if x.nexts[index]['args'][0]['type']=='string' else '정수')
             for name in x.removed:

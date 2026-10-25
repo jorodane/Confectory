@@ -25,7 +25,7 @@ internal sealed class InformationFunctionBatch
   if(edits.Length<2)return null;
   if(edits.Length>8||changes.Count!=edits.Length)throw new InvalidOperationException("Save up to eight direct function contracts together; other input is retained");
   var units=request["units"]?.AsObject()??throw new InvalidOperationException("Read every shared caller before saving the function group");if(units.Count>2048)throw new ArgumentException("Shared contract source budget");
-  var functions=new HashSet<string>(StringComparer.Ordinal);var structures=new HashSet<string>(StringComparer.Ordinal);var returns=new HashSet<string>(StringComparer.Ordinal);var inputTypes=new HashSet<string>(StringComparer.Ordinal);var outputTypes=new HashSet<string>(StringComparer.Ordinal);bool typed=false,hasOutputs=false,outputTyped=false;
+  var functions=new HashSet<string>(StringComparer.Ordinal);var structures=new HashSet<string>(StringComparer.Ordinal);var inputDefinitions=new HashSet<string>(StringComparer.Ordinal);var returns=new HashSet<string>(StringComparer.Ordinal);var inputTypes=new HashSet<string>(StringComparer.Ordinal);var outputTypes=new HashSet<string>(StringComparer.Ordinal);bool typed=false,hasOutputs=false,outputTyped=false;
   bool Scalar(string type)=>type is "bool" or "int" or "long" or "float" or "double" or "string";
   foreach(var row in edits){
    string id=row!["id"]!.ToString();if(!functions.Add(id))throw new ArgumentException("One explicit edit per function identity required");
@@ -43,6 +43,15 @@ internal sealed class InformationFunctionBatch
     if(retained.Any(a=>remap[a.Name]?.ToString()!=a.Name)||!retained.Select(a=>(a.Name,a.Type,a.Mode)).SequenceEqual(next.Args.Where(b=>retained.Any(a=>a.Name==b.Name)).Select(b=>(b.Name,b.Type,b.Mode)))||next.Args.Any(b=>b.IsOut&&!retained.Any(a=>a.Name==b.Name)&&!Scalar(b.Type)))throw new InvalidOperationException("Explicitly remove old output identities and preserve every retained pin");
     structures.Add(id);continue;
    }
+   bool inputDefinition=before.Args.Any(a=>!a.IsOut&&remap[a.Name] is null&&!next.Args.Any(b=>!b.IsOut&&b.Name==a.Name))||next.Args.Any(b=>!b.IsOut&&!before.Args.Any(a=>!a.IsOut&&(a.Name==b.Name||remap[a.Name]?.ToString()==b.Name)));
+   if(inputDefinition){
+    // Add/remove only explicit value identities. Keep every retained pin and
+    // its relative order; callers and actual removed-input uses are selected
+    // by the existing single closure, never by inferred values or C# edits.
+    var retained=before.Args.Where(a=>remap[a.Name] is not null).ToArray();
+    if(before.Return!=next.Return||!before.Args.Where(a=>a.IsOut).Select(a=>(a.Name,a.Type,a.Mode)).SequenceEqual(next.Args.Where(a=>a.IsOut).Select(a=>(a.Name,a.Type,a.Mode)))||before.Args.Any(a=>remap[a.Name] is null&&(a.IsOut||!Scalar(a.Type)||next.Args.Any(b=>b.Name==a.Name)))||retained.Any(a=>remap[a.Name]?.ToString()!=a.Name)||!retained.Select(a=>(a.Name,a.Type,a.Mode)).SequenceEqual(next.Args.Where(b=>retained.Any(a=>a.Name==b.Name)).Select(b=>(b.Name,b.Type,b.Mode)))||next.Args.Any(b=>!retained.Any(a=>a.Name==b.Name)&&(b.Mode is not null||!Scalar(b.Type))))throw new InvalidOperationException("Explicit value input definitions preserve retained pins, outputs and return contracts");
+    inputDefinitions.Add(id);continue;
+   }
    if(before.Return!=next.Return){
     if(!Scalar(before.Return)||!Scalar(next.Return)||!JsonNode.DeepEquals(FeatureBlueprint.SignatureDocument(before)["args"],FeatureBlueprint.SignatureDocument(next)["args"]))throw new InvalidOperationException("Shared scalar return changes retain every original argument contract");
     returns.Add(id);outputTyped=true;
@@ -58,6 +67,12 @@ internal sealed class InformationFunctionBatch
     if(mapping.Count!=4||mapping["callers"] is not JsonObject callers||mapping["outputGraphs"] is not JsonObject)throw new InvalidOperationException("Select every original output graph and caller before changing shared definitions");
     foreach(var plan in callers.Select(p=>p.Value!.AsObject()))if(plan["inputs"] is not JsonObject inputs||inputs.Count!=before.Args.Count(a=>!a.IsOut)||before.Args.Where(a=>!a.IsOut).Any(a=>inputs[a.Name]?.ToString()!=a.Name)||plan["disconnect"] is not JsonObject disconnect||disconnect.Count!=0||plan["outputs"] is not JsonObject)throw new InvalidOperationException("Retain caller inputs and explicitly map every original output");
     projections.Add(row["id"]!.ToString(),callers.DeepClone().AsObject());
+   }
+  }else if(inputDefinitions.Count>0){
+   if(inputDefinitions.Count!=edits.Length)throw new InvalidOperationException("Keep value input definitions separate from other grouped contract edits; retain every input");
+   foreach(var row in edits){var mapping=row!["mapping"]!.AsObject();var next=InformationFunctionBodies.Signature(row["signature"]!);bool uses=mapping["implementations"] is JsonObject;
+    if(mapping.Count!=3+(uses?1:0)||mapping["callers"] is not JsonObject callers||mapping.ContainsKey("implementations")&&!uses||mapping.ContainsKey("outputs")||mapping.ContainsKey("outputGraphs"))throw new InvalidOperationException("Select original caller bindings and every removed input use; keep output plans unchanged");
+    foreach(var plan in callers.Select(p=>p.Value!.AsObject()))if(plan["inputs"] is not JsonObject inputs||inputs.Count!=next.Args.Count(a=>!a.IsOut)||plan["disconnect"] is not JsonObject||plan.ContainsKey("outputs"))throw new InvalidOperationException("Select every current value input and explicit unused binding removal; preserve outputs");
    }
   }else if(outputTyped||(typed&&hasOutputs)){
    // Each original closure owns its own selections. An input-only edit does
@@ -76,7 +91,7 @@ internal sealed class InformationFunctionBatch
   }else if((hasOutputs&&(typed||edits.Any(row=>row!["mapping"]!.AsObject().Count!=2)))||edits.Any(row=>row!["mapping"]?["outputs"] is not null))throw new InvalidOperationException("Shared output names retain exact types and automatic identity-preserving bindings; other selected input is retained");
   // Out names propagate the explicit old-pin identity through existing semantic
   // bindings. They never select a different output, rewrite C# or replan values.
-  bool independent=typed||hasOutputs||structures.Count>0||returns.Count>0;
+  bool independent=typed||hasOutputs||structures.Count>0||inputDefinitions.Count>0||returns.Count>0;
   string ns=PackPaths.Namespace(request["id"]!.ToString());
   foreach(var row in units.Where(p=>p.Value?["kind"]?.ToString()=="implementation")){
    var d=new Parser(row.Value!["draft"]!.ToString(),"<shared-caller-group>").ParseElement();if(!functions.Contains(d.Function!)&&!d.Imports.Values.Any(i=>functions.Contains(i.Id)))continue;
@@ -99,7 +114,7 @@ internal sealed class InformationFunctionBatch
   // Prove every original selection before composing anything. No user consent
   // is rebased onto a changed live source, and no intermediate result is saved.
   if(independent)foreach(var row in edits){var original=new Parser(units[row!["id"]!.ToString()]!["draft"]!.ToString(),"<original-group-contract>").ParseElement();var next=new Parser(units[original.Id]!["draft"]!.ToString(),"<group-contract>").ParseElement();DeclarationAuthoring.Apply(next,new JsonObject{["action"]="signature",["value"]=row["signature"]!.DeepClone()});InformationFunctionContracts.Prepare(request,original,next,row["mapping"]!.AsObject(),format);}
-  return new(request,functions,typed||outputTyped||structures.Count>0,projections);
+  return new(request,functions,typed||outputTyped||structures.Count>0||inputDefinitions.Count>0,projections);
  }
  public JsonObject MappingFor(string function,JsonObject mapping)
  {
