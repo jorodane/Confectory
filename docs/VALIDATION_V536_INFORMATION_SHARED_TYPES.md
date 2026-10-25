@@ -1,5 +1,7 @@
 # v536 공유 호출자의 값 입력 타입 결합
 
+이 문서는 f4b9780의 입력 타입 단위 기록이다. 후속 일반 out 이름 결합은 [별도 검증](VALIDATION_V536_INFORMATION_SHARED_OUTPUT_NAMES.md)과 고정 범위 문서를 따른다.
+
 고정 8행의 후속 단위다. 같은 정보가 직접 소유한 일반 Blueprint 함수 2~8개의 같은 위치·이름·수를 가진 값 입력의 scalar 타입 변경을 함께 저장한다. callee는 import 없는 code/export leaf이며, 공유 caller는 선택한 함수들의 call/export만 사용하고 반환 계약은 바꾸지 않는다. 현재 scalar는 bool/int/long/float/double/string이다. 새 메뉴·화면·ID·권한은 추가하지 않았다. 7행 독립 복제 정책은 여전히 답변 대기이며 이 구현과 무관하다.
 
 각 함수의 기존 검증기를 원래 스냅샷에서 먼저 실행하여 caller·callee 매핑, 해제 동의, 원문과 hash를 확인한다. 내부 후보 결합 시 선택한 호출 자체는 원래와 같아야 한다. 다른 선택된 호출의 서명·인자만 앞선 검증 결과로 바뀔 수 있고, 그래프의 연결·실행 경로·기타 필드는 동일해야 한다. 그 경우에만 복제한 내부 매핑의 graph hash를 내부 후보에 맞춘다. 사용자 요청은 변경하지 않으며, 최종 업데이트는 원래 hash 한 개씩과 기존 후보/CAS·receipt·Review/Confirm을 사용한다. 실패한 선택을 최신 소스로 무조건 재시도하지 않는다.

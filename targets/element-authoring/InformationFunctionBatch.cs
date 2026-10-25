@@ -23,29 +23,33 @@ internal sealed class InformationFunctionBatch
   if(edits.Length<2)return null;
   if(edits.Length>8||changes.Count!=edits.Length)throw new InvalidOperationException("Save up to eight direct function input contracts together; other input is retained");
   var units=request["units"]?.AsObject()??throw new InvalidOperationException("Read every shared caller before saving the function group");if(units.Count>2048)throw new ArgumentException("Shared contract source budget");
-  var functions=new HashSet<string>(StringComparer.Ordinal);bool typed=false;
+  var functions=new HashSet<string>(StringComparer.Ordinal);bool typed=false,hasOutputs=false;
   bool Scalar(string type)=>type is "bool" or "int" or "long" or "float" or "double" or "string";
   foreach(var row in edits){
    string id=row!["id"]!.ToString();if(!functions.Add(id))throw new ArgumentException("One explicit edit per function identity required");
    var mapping=row["mapping"]!.AsObject();if(mapping.Any(p=>p.Key is not ("before" or "args" or "callers" or "implementations"))||mapping["before"] is not JsonObject||mapping["args"] is not JsonObject)throw new InvalidOperationException("Shared caller batching currently preserves body, output and copy contracts; retain all input");
    var original=new Parser(units[id]?["draft"]?.ToString()??throw new InvalidOperationException("Original function snapshot missing"),"<function-group>").ParseElement();
    var before=original.Signature??throw new ArgumentException("Function signature required");var next=InformationFunctionBodies.Signature(row["signature"]!);var remap=mapping["args"]!.AsObject();
-   if(original.Kind!="function"||original.Parent is not null||!JsonNode.DeepEquals(mapping["before"],FeatureBlueprint.SignatureDocument(before))||before.Return!=next.Return||before.Args.Count!=next.Args.Count||before.Args.Count!=remap.Count||before.Args.Any(a=>a.Mode is not null)||next.Args.Any(a=>a.Mode is not null))throw new InvalidOperationException("Shared caller batching requires same-position value inputs and an unchanged return; retain all input");
-   for(int i=0;i<before.Args.Count;i++){var a=before.Args[i];var b=next.Args[i];if(a.Type==b.Type){if(remap[a.Name]?.ToString()!=b.Name)throw new InvalidOperationException("Retain each unchanged input identity explicitly");}else{typed=true;if(a.Name!=b.Name||!Scalar(a.Type)||!Scalar(b.Type)||!remap.ContainsKey(a.Name)||remap[a.Name] is not null)throw new InvalidOperationException("Changed scalar inputs need explicit replacement at the same position and name");}}
+   if(original.Kind!="function"||original.Parent is not null||!JsonNode.DeepEquals(mapping["before"],FeatureBlueprint.SignatureDocument(before))||before.Return!=next.Return||before.Args.Count!=next.Args.Count||before.Args.Count!=remap.Count||before.Args.Any(a=>a.Mode is not (null or "out")))throw new InvalidOperationException("Shared caller batching requires same-position value/out identities and an unchanged return; retain all input");
+   for(int i=0;i<before.Args.Count;i++){var a=before.Args[i];var b=next.Args[i];if(a.Mode!=b.Mode)throw new InvalidOperationException("Retain the original input/output roles explicitly");hasOutputs|=a.IsOut;if(a.Type==b.Type){if(remap[a.Name]?.ToString()!=b.Name)throw new InvalidOperationException("Retain each unchanged pin identity explicitly");}else{typed=true;if(a.Mode is not null||a.Name!=b.Name||!Scalar(a.Type)||!Scalar(b.Type)||!remap.ContainsKey(a.Name)||remap[a.Name] is not null)throw new InvalidOperationException("Changed scalar inputs need explicit replacement at the same position and name");}}
   }
+  if(hasOutputs&&(typed||edits.Any(row=>row!["mapping"]!.AsObject().Count!=2)))throw new InvalidOperationException("Shared output names retain exact types and automatic identity-preserving bindings; other selected input is retained");
+  // Out names propagate the explicit old-pin identity through existing semantic
+  // bindings. They never select a different output, rewrite C# or replan values.
+  bool independent=typed||hasOutputs;
   foreach(var row in units.Where(p=>p.Value?["kind"]?.ToString()=="implementation")){
    var d=new Parser(row.Value!["draft"]!.ToString(),"<shared-caller-group>").ParseElement();if(!functions.Contains(d.Function!)&&!d.Imports.Values.Any(i=>functions.Contains(i.Id)))continue;
    bool callee=functions.Contains(d.Function!);
-   if(typed&&(callee&&d.Imports.Count!=0||!callee&&d.Imports.Values.Any(i=>!functions.Contains(i.Id))))throw new InvalidOperationException("Shared type edits require independent leaf implementations and callers of only the selected functions");
+   if(independent&&(callee&&d.Imports.Count!=0||!callee&&d.Imports.Values.Any(i=>!functions.Contains(i.Id))))throw new InvalidOperationException("Shared type/output edits require independent leaf implementations and callers of only the selected functions");
    if(d.Parent is not null||d.Bodies.Count is <1 or >8||d.Bodies.Any(b=>b.Value.SourceKind!="blueprint"))throw new InvalidOperationException("Shared caller batching currently requires direct Blueprint targets; original sources retained");
    foreach(var body in d.Bodies){var graph=JsonNode.Parse(units[d.Id+"/body:"+body.Key]?["draft"]?.ToString()??throw new InvalidOperationException("Complete shared caller graph required"))!.AsObject();
     if(graph["copySource"] is not null||graph["nodes"] is not JsonArray nodes||nodes.Any(n=>n is not JsonObject||n["graph"] is not null||n["implementationContext"] is not null||n["forwardCallerStorage"] is not null||n["postCall"] is not null||n["kind"]?.ToString() is not ("code" or "call" or "export")||n["kind"]?.ToString()!="export"&&n["control"]?.ToString()!="next"))throw new InvalidOperationException("Shared caller batching preserves copy, private, native and wrapper contexts; save those contracts separately");
-    if(typed&&(graph["locals"] is JsonArray locals&&locals.Count>0||graph["aliases"] is JsonObject aliases&&aliases.Count>0||nodes.Any(n=>n!["kind"]?.ToString()!=(callee?"code":"call")&&n["kind"]?.ToString()!="export")))throw new InvalidOperationException("Shared type edits preserve code-free caller and leaf callee contexts; retain all input");
+    if(independent&&(graph["locals"] is JsonArray locals&&locals.Count>0||graph["aliases"] is JsonObject aliases&&aliases.Count>0||nodes.Any(n=>n!["kind"]?.ToString()!=(callee?"code":"call")&&n["kind"]?.ToString()!="export")))throw new InvalidOperationException("Shared type/output edits preserve code-free caller and leaf callee contexts; retain all input");
    }
   }
   // Prove every original selection before composing anything. No user consent
   // is rebased onto a changed live source, and no intermediate result is saved.
-  if(typed)foreach(var row in edits){var original=new Parser(units[row!["id"]!.ToString()]!["draft"]!.ToString(),"<original-group-contract>").ParseElement();var next=new Parser(units[original.Id]!["draft"]!.ToString(),"<group-contract>").ParseElement();DeclarationAuthoring.Apply(next,new JsonObject{["action"]="signature",["value"]=row["signature"]!.DeepClone()});InformationFunctionContracts.Prepare(request,original,next,row["mapping"]!.AsObject(),format);}
+  if(independent)foreach(var row in edits){var original=new Parser(units[row!["id"]!.ToString()]!["draft"]!.ToString(),"<original-group-contract>").ParseElement();var next=new Parser(units[original.Id]!["draft"]!.ToString(),"<group-contract>").ParseElement();DeclarationAuthoring.Apply(next,new JsonObject{["action"]="signature",["value"]=row["signature"]!.DeepClone()});InformationFunctionContracts.Prepare(request,original,next,row["mapping"]!.AsObject(),format);}
   return new(request,functions,typed);
  }
  public JsonObject MappingFor(string function,JsonObject mapping)
