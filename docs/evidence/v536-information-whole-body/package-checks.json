@@ -1,0 +1,36 @@
+{
+  "sourceCommit": "d36a2d74539c1f483fdafd214677f59b01606365",
+  "manifestFiles": 2336,
+  "actualFiles": 2337,
+  "manifestSha256": "42c3d9d35b597cf3722933d30e15db110656dc416c0d12807725726cf7b4cae3",
+  "allManifestHashesValid": true,
+  "exactSourceAndAssemblyFiles": [
+    "examples/editor-home/WebBundle.csbody",
+    "examples/editor-home/ui/element-functions.js",
+    "examples/editor-home/ui/feature-authoring.js",
+    "targets/element-authoring/InformationFunctionBodies.cs",
+    "targets/element-authoring/InformationFunctionContracts.cs",
+    "targets/element-authoring/InformationFunctionWholeBody.cs",
+    "targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll",
+    "targets/element-authoring/bin/Release/net10.0/Confectory.Core.dll"
+  ],
+  "windowsNativeExecuted": false,
+  "uploadedOrDelivered": false,
+  "probe": {
+    "pass": true,
+    "package": "/workspace/artifacts/v536-information-whole-body/Windows-x64",
+    "files": 2336,
+    "crossPublishedWindowsX64PE": true,
+    "unrelatedWorkingDirectory": true,
+    "packageTamperAndMissingDependencyRejected": true,
+    "packagedEngineWebStartup": true,
+    "runtimeOnlyNoInstalledSDK": true,
+    "existingCheckoutProfileReusedAndExplicitOverrideRetained": true,
+    "resources": 74,
+    "renderedMinimalLogin": true,
+    "windowsApphostExecuted": false,
+    "webView2Executed": false,
+    "actualLoginOrInference": false,
+    "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-desktop-package-3is2p_0_"
+  }
+}

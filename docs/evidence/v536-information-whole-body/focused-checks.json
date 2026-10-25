@@ -162,10 +162,61 @@
           "nativeWindows": false
         }
       ]
+    },
+    "clean-api.log": {
+      "passCount": 4,
+      "checks": [
+        "whole-body 본문/원래 증거/컴파일/명시 ref 저장소/호출자 오류는 전체 미적용이다",
+        "명시 본문·native/ref/out·호출자 저장소는 한 후보/CAS로 저장하고 cold에서 정확히 복원한다",
+        "실제 compiler Review/Confirm 이후에만 source/native/context/caller를 함께 반영하며 부모·타 함수·정확한 원문을 보존한다",
+        "자기 Confirm 뒤 최신 증거로 다시 편집하여 ref→값을 되돌려도 native/out/source와 저장소를 보존하며 허위 충돌로 차단하지 않는다"
+      ],
+      "summaries": [
+        {
+          "checks": [
+            "whole-body 본문/원래 증거/컴파일/명시 ref 저장소/호출자 오류는 전체 미적용이다",
+            "명시 본문·native/ref/out·호출자 저장소는 한 후보/CAS로 저장하고 cold에서 정확히 복원한다",
+            "실제 compiler Review/Confirm 이후에만 source/native/context/caller를 함께 반영하며 부모·타 함수·정확한 원문을 보존한다",
+            "자기 Confirm 뒤 최신 증거로 다시 편집하여 ref→값을 되돌려도 native/out/source와 저장소를 보존하며 허위 충돌로 차단하지 않는다"
+          ],
+          "actualEngine": true,
+          "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-ktaniab3",
+          "nativeWindows": false,
+          "projectRun": false
+        }
+      ]
+    },
+    "clean-ui.log": {
+      "passCount": 2,
+      "checks": [
+        "원본 전체 본문 편집창의 ref/native/out 입력은 취소·불완전 cold·코드 저장·명시 caller 선택·Undo/Redo에서 보존된다",
+        "변경 취소는 본문·native/ref/out·호출자와 cold 기록을 함께 미적용으로 유지한다"
+      ],
+      "summaries": [
+        {
+          "checks": [
+            "원본 전체 본문 편집창의 ref/native/out 입력은 취소·불완전 cold·코드 저장·명시 caller 선택·Undo/Redo에서 보존된다",
+            "변경 취소는 본문·native/ref/out·호출자와 cold 기록을 함께 미적용으로 유지한다"
+          ],
+          "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-hoqt_8p1",
+          "actualEngine": true,
+          "nativeWindows": false,
+          "deviceTouch": false
+        }
+      ]
+    },
+    "resources-final.log": {
+      "passCount": 1,
+      "checks": [
+        "actual EditorHome retained CRLF after attribute pull and fresh LF; 74 canonical/exact snapshots; content/encoding/BOM/binary/budget rejection; original bytes unchanged"
+      ],
+      "summaries": []
     }
   },
   "nativeWindows": false,
   "deviceTouch": false,
   "userAccountOrInference": false,
-  "projectRun": false
+  "projectRun": false,
+  "sourceCommit": "d36a2d74539c1f483fdafd214677f59b01606365",
+  "resourceProbeInitialFailure": "Probe launcher omitted CONFECTORY_DOTNET and default dotnet was absent from PATH; reran exact probe with installed .NET10 executable, PASS74. No product bypass/change."
 }
