@@ -8,7 +8,25 @@
 
 격리된 두 leaf와 한 공유 caller를 사용한다. 두 번째 호출은 원래 첫 호출의 long 반환을 사용한다. 각 amount 입력을 string으로 바꾸면서 기존 code의 long amount 사용은 count로, caller 입력은 명시한 한글 문자열로 교체하고 원래 연결 해제를 확인한다. C# 매개변수·본문, 반환 연결과 exact64 기본값은 보존한다.
 
-집중 검사와 최종 checkout·교차 패키지 검증 결과는 이 단위 마감 시 아래 근거에 기록한다. Windows/WebView2 및 실제 모바일 기기 실행, Library 전달은 별개로 미검증이다.
+구현 커밋은 `820c1bdf7d9421ee1a66a054e14ff6d6ba77d4ab`이다. [집중/checkout 근거](evidence/v536-information-shared-types/focused-verification.json)에 명령·종료 코드·로그 해시를 남겼다.
+
+| 검사 | 통과 결과 |
+|---|---|
+| 순수 후보 4 check | 사용자 요청 불변, 한 소스당 원래 hash 한 개, 역순 동일 결과, 명시 bool/double 값, 마지막 선택의 원문/hash/누락/타입/연결·실행 경로/역할/반환 오류 전체 거절 |
+| 실제 API 3회 / 7 check | 정상 저장·재시작·compiler Confirm, 두 번째 함수 오류, 물리 caller 파일 경합, 다른 편집자의 live 변경 보존 |
+| 실제 화면 6회 / 13 check | 기본/독립 창, 상세창 취소, 두 단계 Undo/Redo, 미저장 cold, 저장 실패·재시도, 저장/조회 응답 유실 뒤 receipt 조회만 수행, 전체 변경 취소, 프로젝트 전환·오래된 submit 차단, Review 취소·명시 Confirm |
+| 영향 회귀 7 check | 기존 공유 caller 이름 변경/설명 편집 4, 기존 상속·외부 원본 보호 3 |
+| clean checkout 9 check | 기존 깨끗한 checkout을 로컬 구현 커밋으로 ff, Native Release, 순수 후보 4·실제 API 3·독립 화면 2 재현 |
+
+집중 합계는 24 check 문구다. 반복 준비 단계가 포함되어 고유 기능 수가 아니며 영향 회귀·checkout 재현·패키지 4 check와 합쳐 새 기능 수로 세지 않는다. 초기에 fixture는 합법적인 CallerBody import 타입 갱신을 누락한 기대와 타입 편집+매핑 승낙을 한 번의 Undo로 간주한 기대 때문에 실패했다. import 두 개와 호출자 ABI 불변을 정확히 확인하고 실제 두 사용자 동작을 Undo/Redo하도록 수정했다. 보호 조건이나 레이아웃을 약화하지 않았다. 최신 기본/clean 독립 화면은 Confirm+cold 뒤 두 amount 핀이 실제로 글자로 표시됨도 기다려 검사했다.
+
+460px 원본 정보 카드와 exact64 입력을 검사하고 [기본](evidence/v536-information-shared-types/primary.png)·[독립](evidence/v536-information-shared-types/detached.png) 화면을 열어 살폈다. 전체 UI 소스와 WebBundle은 e827a52에서 바이트 변경이 없다. 원본 레이아웃 재설계나 전체 v536 화면의 새 픽셀 비교를 했다는 주장은 하지 않는다.
+
+Release solution, 별도 MCP Release 및 Linux build `tool.ok=true`를 확인했다. Windows 교차 패키지는 아래 RAM 경계에서 생성·검증했다. [패키지 근거](evidence/v536-information-shared-types/package-verification.json)에 전체 manifest 검증, 제품 소스·Native DLL·Core 7개 사본의 일치 및 명령/로그 해시를 남겼다. 파일 집합은 manifest 2,343개+marker 총 2,344개, 132,727,682 bytes이며 symlink가 없다. manifest SHA-256은 `a55dbf35e836ee9f868003246b98d77795afdbd9b6e4e495fca2815abf8f530b`이다. 패키지에 포함된 Native로 후보 4 check도 통과했다.
+
+SDK 없는 기존 fixture 런타임을 전체 파일·해시 대조 후 읽기 전용으로 재사용했다. 새 legacy profile tree는 같은 RAM 패키지의 읽기 전용 hard link이며 변조 검사가 끝난 뒤 만든다. 다른 cwd에서 packaged managed 엔진 기동, 74리소스·최소 로그인 화면, 변조/누락 DLL 거절, 기본 프로필·명시 경로 override를 모두 통과했다. 로그인·유료 추론·사용자 프로젝트 실행은 하지 않았다. 이는 Linux/Chromium 및 교차 빌드이며 실제 Windows apphost/WebView2·모바일 기기 실행이나 Library 전달은 아니다.
+
+패키지의 실행 코드 기준은 구현 커밋 820c1bd다. 이후에는 검증 문서·evidence만 변경하며 제품 소스는 동일하다. 커밋 전 e827 버전 DLL을 섞지 않도록 커밋 후 solution/MCP를 다시 빌드했고 모든 Core 사본이 현재 Release와 같음을 확인했다.
 
 ## 지원하지 않는 결합
 
