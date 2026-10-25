@@ -21,3 +21,17 @@
 모든 쓰기/Confirm은 임시 fixture 프로젝트와 저장소에 한정한다. 사용자 계정·유료 AI·사용자 프로젝트 실행·영구 삭제는 없다. 실제 Windows apphost/WebView2·모바일 기기·Library 전달과 전체 v536 UI 완료는 별도 미검증이다. 추가 callee 노드/별칭, whole-body caller/forwardCallerStorage·postCall 문맥과 고정 5·7·8·9행은 남아 있다.
 
 [실제 편집 화면](evidence/v536-information-whole-contract/code-editor.png)에서 public의 `text/total/increment`와 native의 `message/nativeTotal/delta`, bool 반환·직접 작성한 본문을 확인했다. 기존 Script 창의 위치·크기·버튼/CSS를 유지했다. [선별된 검사 결과](evidence/v536-information-whole-contract/focused-checks.json)는 체크 이름과 격리 fixture 경로만 보관하며 실제 세션 토큰·인증정보·사용자 데이터는 포함하지 않는다.
+
+
+## clean checkout와 교차 패키지
+
+실행 소스 커밋은 `e6a693e29b6d5e8fc988c5de3f15cc880f729fc3`다. root/clean Native 빌드는 모두 0 warning/0 error, 두 Linux 엔진 빌드 stderr는 0이다. 실제 Git fast-forward의 보존 CRLF/fresh LF에서 리소스 74개와 내용·인코딩·BOM·UTF-16·bare CR·binary·budget 변조 거절을 통과했다.
+
+로컬 Windows x64 폴더는 `/workspace/artifacts/v536-information-whole-contract/Windows-x64`, 실행기는 그 안의 `Confectory.exe`다. manifest 대상 2,336개/manifest 포함 실제 2,337개이며 manifest SHA-256은 `a1b8247491dcb7963d98e9c33394559b3ddf710d30f03539ee6a2a3ed5f1eb5c`다. 전체 manifest hash와 변경 실행 source 6개·Native/Core DLL 2개가 root/package에서 정확히 같은 바이트임을 확인했다. 최종 문서 보완은 실행 소스를 변경하지 않는다.
+
+
+clean checkout에서 타입 결합 API 3건과 연결된 두 호출 API 3건, 실제 out→ref 저장소 선택/저장/cold/Review/Confirm 화면 3건을 통과했다. 기존 root의 7시나리오 API 21건/화면 28건과 두 호출 API 3건/화면 3건을 불필요하게 전체 반복하지 않고 변경 경계를 재현했다.
+
+[패키지 근거](evidence/v536-information-whole-contract/package-checks.json): Windows x64 PE·전체 구성, SDK 없는 runtime-only 관리 패키지 기동·74 리소스·최소 로그인 렌더, 무관한 cwd, 변조/의존 DLL 누락 거절, 기존 checkout 프로필/명시 override를 통과했다. Linux에서 관리 패키지 경로를 검사한 것이며 실제 Windows apphost/WebView2·네이티브 모바일 실행/사용자 로그인 검증이 아니다. 패키지는 로컬 산출물이며 Library 업로드나 전달 성공을 뜻하지 않는다. 생성 빌드·로그·인증정보·사용자 데이터는 Git에 게시하지 않는다.
+
+직접 소유/import 없는 원래 전체 본문의 현 기본형·배열 선택기/기존 바인딩 지원 단위를 마감한다. 추가 노드·별칭·별도 forwardCallerStorage·whole-body caller/postCall/import 문맥, 고정 5·7·8·9행은 여전히 미구현이다. 전체 6행이나 전체 v536 UI 완료로 계산하지 않는다.
