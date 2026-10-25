@@ -14,4 +14,6 @@
 
 이 단위의 종료 조건은 위 직접 경로의 실제 화면 편집·저장·Undo/취소·실패/충돌·응답 유실·재시작·명시적 Review/Confirm, 연결된 두 호출 회귀, 기존 6-field 명시 계획 호환, clean checkout와 Windows 교차 패키지다. 전체 6행 종료와 구분한다.
 
-남은 6행: 추가 코드/제어 노드·locals/별칭이 있는 callee, `forwardCallerStorage`의 별도 문맥, 전체 본문 caller와 postCall 래퍼의 명시 본문/import 계약 갱신. 현재 기존 호출 바인딩에 없는 새 ref 저장소를 임의 선택/생성하지 않는다. 5행 nested/private path, 7행 copy/등록 receipt, 8행 여러 함수의 공유 caller, 9행 고급 타입/표시명은 기존 별도 잔여다. 실제 Windows/모바일 기기 실행과 Library 전달도 미검증이다.
+후속 전체 본문 caller의 프로젝트 소유 import·명시 C# 편집 단위는 `VALIDATION_V536_INFORMATION_CONTEXTS.md`에 분리한다. caller 자신의 public/native ABI와 노드·저장소는 유지하고, 편집한 callee의 import 계약과 수동 본문만 같은 후보에서 검증한다. 등록/상속/copy 문맥은 이 단위가 허용하지 않는다.
+
+남은 6행: 추가 코드/제어 노드·locals/별칭이 있는 callee, `forwardCallerStorage`의 별도 문맥, postCall 래퍼의 명시 본문/import 계약 갱신. 현재 기존 호출 바인딩에 없는 새 ref 저장소를 임의 선택/생성하지 않는다. 5행 nested/private path, 7행 copy/등록 receipt, 8행 여러 함수의 공유 caller, 9행 고급 타입/표시명은 기존 별도 잔여다. 실제 Windows/모바일 기기 실행과 Library 전달도 미검증이다.

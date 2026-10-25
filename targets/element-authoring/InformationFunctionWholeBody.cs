@@ -56,4 +56,20 @@ internal static class InformationFunctionWholeBody
   return new JsonObject{["function"]=format(requested),["implementation"]=format(one),["graph"]=graph,["rootBody"]=new JsonObject{["node"]=nodeId,["source"]=text}};
  }
 
+ internal static JsonObject Receipt(string id,string text,JsonObject graph,JsonObject node)
+ {
+  var returns=graph["nodes"]!.AsArray().Where(n=>n!["kind"]?.ToString()=="export"&&n["output"]?.ToString()=="return").ToArray();
+  return new JsonObject{["graph"]=id,["hash"]=JsonData.HashBytes(System.Text.Encoding.UTF8.GetBytes(text)),["node"]=node["id"]!.DeepClone(),["returnNode"]=returns.Length==1?returns[0]!["id"]!.DeepClone():null};
+ }
+ internal static string Caller(string id,JsonObject graph,Element implementation,Element feature,Element changed,JsonObject units,JsonObject plan)
+ {
+  if(graph["copySource"] is not null||implementation.Parent is not null||implementation.Function!=feature.Id||!implementation.Signature!.Matches(feature.Signature))throw new InvalidOperationException("Direct owned caller context required; source retained");
+  var node=graph["nodes"]!.AsArray().Single(n=>n!["implementationContext"] is not null)!.AsObject();
+  if(node["kind"]?.ToString()!="code"||!JsonNode.DeepEquals(node["implementationContext"],FeatureBlueprint.ImplementationContext(implementation))||!JsonNode.DeepEquals(node["signature"],FeatureBlueprint.SignatureDocument(implementation.Signature)))throw new InvalidOperationException("Original caller native/context contract changed");
+  foreach(var import in implementation.Imports.Values)if(PackPaths.Namespace(import.Id)!=PackPaths.Namespace(implementation.Id)||units[import.Id]?["kind"]?.ToString()!="function")throw new InvalidOperationException("Registered caller imports require their separate read-only receipts");
+  if(plan.Count!=7||!JsonNode.DeepEquals(plan["whole"],Receipt(id,units[id]!["draft"]!.ToString(),graph,node)))throw new InvalidOperationException("Original caller graph and manual body receipt required");
+  var explicitPlan=plan.DeepClone().AsObject();explicitPlan.Remove("whole");string recordId=id+"/node:"+node["id"]!.ToString();var unit=units[recordId]!.AsObject();
+  return InformationFunctionBodies.Text(recordId,unit["path"]!.ToString(),unit,implementation.Signature,implementation.Signature,changed.Signature!,explicitPlan);
+ }
+
 }
