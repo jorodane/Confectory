@@ -113,3 +113,34 @@ OOM/oom_kill 0, 모든 검사 순차 실행이며 순간 절대 peak를 보장�
 경로만 정리했다. 기존 파일·cache/보관 빌드는 삭제하지 않았다.
 근거는 `docs/evidence/v536-information-shared-io/`, 전체 로컬
 `/workspace/scratch/v536-shared-io/`다. clean checkout/새 교차 패키지는 이어서 기록한다.
+
+## Clean checkout 및 새 교차 패키지
+
+구현 `567e8a9e610e71db3dea62c0949699f75085706a`를 기존 독립 checkout에
+fast-forward했다. Native Release warning/error 0, 새 Linux 엔진 warning 없음.
+포커스2/순수5/API3/독립 UI2의 12체크가 통과했고 두 checkout은 clean이며
+각각 74개 고정 리소스 hash/size가 맞았다. 새 전체 clone은 만들지 않았다.
+
+같은 구현에서 solution/별도 MCP Release(warning/error 0) 후 새 Windows x64
+교차 패키지를 만들었다. 2,343개 선언 파일+marker 총 2,344개, 132749402 B,
+manifest SHA-256 `f53f6ade21b5d9a2795c993ccbdb89880e4627d8a02278ae3661d0c61341ac66`.
+전체 file set/hash·현재 Core DLL 7개 복사본·Native DLL·제품 CS와 포커스 JS/
+WebBundle source가 맞고 symlink는 없다. 패키지 안의 Native로 순수 5체크가 통과했다.
+
+SDK 없는 재사용 runtime/별도 cwd에서 패키지 관리형 엔진을 실제 기동해 74개
+리소스와 최소 로그인 렌더를 확인했다. 변조/의존 DLL 누락 거절과 격리 프로필/
+명시 override 보존도 통과했다. Windows apphost/WebView2, 실제 모바일 기기,
+실제 로그인·추론 또는 Library 전달 검증은 아니다.
+
+이번 RAM 패키지는 전체 manifest와 source/profile/로그/화면 증거 보존 후 정확한
+새 경로의 identity/dir_fd 경계로 정리했다. 다운로드나 전달 가능한 보관 빌드가
+아니다. 기존 보관 패키지(e827a52 코드, manifest `9d8f3fa8…`), SDK/runtime와
+기존 cache/outputs는 유지했다. 새 Linux/Windows 엔진 출력은 일반 builder가
+디스크에 남기며 이 출력 세대를 무단 정리하지 않았다. 최종 여유 약 289 MiB,
+200ms 샘플 메모리 최대 17097392128 B/limit17179869184 B, OOM/oom_kill 0이다.
+모든 검사는 순차 실행했으며 샘플이 순간 절대 peak를 보장하지는 않는다.
+
+새 renderer 검사는 이 단위의 `engine-report.json` 및 `clean-engine-report.json`을
+쓴다. 이전 inherited-contract의 엔진 보고서는 옛 UI manifest를 포함하므로 새
+리소스 검증에 재사용하지 않는다. 전체 로컬 증거는 scratch에 보존한다.
+최종 검증 기록 추가는 문서/JSON만 바꾸며 위 커밋의 실행 코드/UI와 동일하다.
