@@ -5,6 +5,17 @@ An optional fixture path after repo/package reuses an exact SDK-less runtime;
 the read-only legacy package check uses hard links in the new TMPDIR fixture.
 """
 import hashlib,json,os,pathlib,re,shutil,signal,subprocess,sys,tempfile,time,urllib.request
+from contextlib import contextmanager
+@contextmanager
+def browser_scratch():
+ path=os.environ.get('CONFECTORY_BROWSER_TMP');previous=os.environ.get('TMPDIR')
+ if path:
+  assert pathlib.Path(path).is_dir() and not pathlib.Path(path).is_symlink()
+  os.environ['TMPDIR']=path
+ try:yield
+ finally:
+  if previous is None:os.environ.pop('TMPDIR',None)
+  else:os.environ['TMPDIR']=previous
 repo=pathlib.Path(sys.argv[1]).resolve();reuse=pathlib.Path(sys.argv[3]).resolve() if len(sys.argv)>3 else None;root=pathlib.Path(tempfile.mkdtemp(prefix='confectory-desktop-package-'));outside=root/'unrelated cwd';outside.mkdir();storage=root/'owned-data';storage.mkdir()
 dotnet=os.environ.get('CONFECTORY_DOTNET','dotnet');tool=repo/'targets/editor-desktop/bin/Release/net10.0/Confectory.dll'
 env=os.environ.copy();env.update(CONFECTORY_HOME_STORAGE=str(storage),CONFECTORY_ENTRY_STORAGE=str(storage),HOME=str(root/'owned-home'),CONFECTORY_MCP_DIRECTORY=str(root/'instances'))
@@ -81,7 +92,7 @@ try:
   data=urllib.request.urlopen(origin+'/'+name,timeout=10).read();assert len(data)==row.get('canonicalSize',row.get('size')) and hashlib.sha256(data).hexdigest()==row.get('canonicalSha256',row.get('sha256')),name
  sys.path.insert(0,str(repo/'tests/web'));from editor_navigation import goto_editor
  from playwright.sync_api import sync_playwright,expect
- with sync_playwright() as playwright:
+ with browser_scratch(),sync_playwright() as playwright:
   browser=playwright.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox','--disable-gpu']);page=browser.new_page(viewport={'width':1440,'height':1000});errors=[];external=[]
   page.on('pageerror',lambda e:errors.append(str(e)))
   def route(r):
