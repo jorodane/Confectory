@@ -15,7 +15,7 @@ try:
   try:f.invoke('blueprint',r,False);assert path.read_bytes()==peer and checkpoint.read_bytes()==before;assert all((f.project/p).read_bytes()==b for p,b in x.snapshot.items() if f.project/p!=path)
   finally:path.write_bytes(original)
  f.checked('선택 후 accessor·등록 manifest·필드 소유 선언의 실제 변경은 ABI가 같아도 전체 거절하고 peer/입력 보존')
- pure=n.request(x.new,x.mapping['args']);preview={k:f.metadata(op,project=str(f.manifest),manifest=f.manifest.read_text(),id=owner,function=fn,units=pure['units']) for k,op in [('functionInputs','informationFunctionInputs'),('functionInputUses','informationFunctionInputUses')]};pure['changes'][0]['mapping']=x.selections(preview);result=n.prepare(pure)
+ pure=n.request(x.new,x.mapping['args']);preview={k:f.metadata(op,project=str(f.manifest),manifest=f.manifest.read_text(),id=owner,function=fn,units=pure['units']) for k,op in [('functionInputs','informationFunctionInputs'),('functionInputUses','informationFunctionInputUses'),('functionDependencies','informationFunctionDependencies')]};pure['changes'][0]['mapping']=x.selections(preview);result=n.prepare(pure)
  observations={v['path'] for v in result['observations']};external={p for p in observations if p.startswith(str(c.model))};assert external=={str(c.model/p) for p in ['pack.cpack','Read.celem','Set.celem','RefCell.celem']},external
  assert all((c.model/p).read_bytes()==b for p,b in c.model_original.items());assert all((f.project/p).read_bytes()==b for p,b in x.snapshot.items());f.checked('property 계약 조회는 고정 accessor 선언/manifest만 관찰하고 provider 본문·실제 getter·원본 자료를 사용하지 않는다')
 finally:

@@ -45,6 +45,7 @@ internal static class BlueprintCallableContracts
    result=new(){["id"]=id,["kind"]="function",["text"]=selected.Text,["version"]=selected.Pack.Version,["receipt"]=new JsonObject{["id"]=id,["ownerManifestHash"]=Hash(manifestText),["manifestHash"]=Hash(selected.ManifestText),["textHash"]=Hash(selected.Text)}};
   }
   foreach(var pair in reads.ToArray())Read(pair.Key);
+  result["observations"]=new JsonArray(reads.Select(p=>(JsonNode)new JsonObject{["path"]=p.Key,["hash"]=Hash(p.Value)}).ToArray());
   result["registeredBytes"]=reads.Values.Sum(value=>Encoding.UTF8.GetByteCount(value));result["scope"]="registered-direct-dependency-functions";result["readOnly"]=true;result["bodyReads"]=0;result["compiled"]=false;result["providerSelection"]="not-performed";return result;
  }
 }

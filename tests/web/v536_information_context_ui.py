@@ -4,6 +4,8 @@ import shutil
 import time
 from playwright.sync_api import sync_playwright,expect
 import v536_information_context_fixture as x
+if 'registered' in __import__('sys').argv[4:]:
+    import v536_information_registered_fixture as x
 f,d,owner,fn,mode=x.f,x.d,x.owner,x.fn,x.mode
 x.edited=x.edited.replace('\r\n','\n');x.caller_text=x.caller_text.replace('\r\n','\n')
 
@@ -76,6 +78,18 @@ try:
         f.owner().locator('[data-own-functions-toggle]').press('Control+z');f.owner().locator('[data-own-functions-toggle]').press('Control+y');assert pending()[0][1]==value
         held=restart(2);assert f.pending()==held and pending()[0][1]==value;preserved()
         f.checked('원본 전체 본문 편집창의 본문·형식 매개변수/입출력은 취소·불완전 cold·코드 저장·명시 caller 선택·Undo/Redo에서 보존된다')
+        if mode=='ui-registered':
+            original=x.pack.read_bytes()
+            try:
+                x.pack.write_bytes(original+b' ')
+                mark=len(f.traffic)
+                f.owner().locator('[data-inline-method="'+fn+'"] [data-function-edit], [data-inline-method="'+fn+'"] [data-function-write-direct]').click()
+                wait('blueprint',mark,True,'readOwnerEdits')
+                f.page.wait_for_function("()=>document.body.textContent.includes('보관한 등록 기능 계약이 바뀌었습니다')")
+                assert pending()[0][1]==value and not f.page.get_by_role('dialog',name='구현 선택',exact=True).count()
+                assert checkpoint.read_bytes()==baseline
+            finally:x.pack.write_bytes(original)
+            preserved();f.checked('보관한 C# 입력 뒤 등록 계약이 바뀌면 새 receipt로 덮지 않고 원래 입력과 checkpoint를 유지한다')
         if mode.endswith('projects'):
             alist=f.state()['listingId'];held=f.pending();f.page.close();f.stop()
             other=f.case/'other root'/'owned project';shutil.copytree(f.project,other,ignore=shutil.ignore_patterns('.confectory'))

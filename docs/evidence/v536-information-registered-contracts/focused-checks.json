@@ -1,0 +1,188 @@
+{
+  "checks": 30,
+  "results": {
+    "native": {
+      "passedChecks": [
+        "등록 함수와 소유 caller 수동 C#·import를 한 후보에 담고 외부 선언/manifest만 관측한다",
+        "누락·위조·다른 소유·오래된 typed import와 C# 오류를 전체 거절한다",
+        "등록 manifest/선언 변경은 입력 후보를 재사용하지 않고 전체 거절한다",
+        "등록 provider 본문 없이 계약 검증을 수행하며 외부 구현을 편집 대상으로 삼지 않는다"
+      ],
+      "summary": {
+        "checks": 4,
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-1aw16cak",
+        "pureCandidate": true,
+        "projectRun": false
+      },
+      "log": "row7-registered-native-2.log"
+    },
+    "api": {
+      "passedChecks": [
+        "실제 서버는 누락·위조·바뀐 등록 계약을 저장 전에 거절하고 checkpoint·외부 팩을 보존한다",
+        "명시 계약·C#·import/context를 한 후보/CAS로 저장하고 재시작에서 원문과 외부 출처를 보존한다",
+        "실제 컴파일 Review/Confirm과 재시작 후에도 외부 선언·provider·등록 manifest는 불변이다"
+      ],
+      "summary": {
+        "checks": [
+          "실제 서버는 누락·위조·바뀐 등록 계약을 저장 전에 거절하고 checkpoint·외부 팩을 보존한다",
+          "명시 계약·C#·import/context를 한 후보/CAS로 저장하고 재시작에서 원문과 외부 출처를 보존한다",
+          "실제 컴파일 Review/Confirm과 재시작 후에도 외부 선언·provider·등록 manifest는 불변이다"
+        ],
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-6xh29k41",
+        "actualEngine": true,
+        "projectRun": false,
+        "nativeWindows": false
+      },
+      "log": "row7-registered-api-1.log"
+    },
+    "uiPrimary": {
+      "passedChecks": [
+        "원본 전체 본문 편집창의 본문·형식 매개변수/입출력은 취소·불완전 cold·코드 저장·명시 caller 선택·Undo/Redo에서 보존된다",
+        "화면 정상 저장·cold는 전체 후보와 C# 원문·호출자를 정확히 복원한다",
+        "실제 화면 compiler Review 취소·재검토·명시 Confirm은 입출력 저장소와 C# 원문을 함께 반영한다"
+      ],
+      "summary": {
+        "checks": [
+          "원본 전체 본문 편집창의 본문·형식 매개변수/입출력은 취소·불완전 cold·코드 저장·명시 caller 선택·Undo/Redo에서 보존된다",
+          "화면 정상 저장·cold는 전체 후보와 C# 원문·호출자를 정확히 복원한다",
+          "실제 화면 compiler Review 취소·재검토·명시 Confirm은 입출력 저장소와 C# 원문을 함께 반영한다"
+        ],
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-b2b8ofj4",
+        "actualEngine": true,
+        "scenario": "types",
+        "chain": false,
+        "mode": "ui-simple",
+        "wholeCaller": true,
+        "nativeWindows": false,
+        "deviceTouch": false
+      },
+      "log": "row7-registered-ui-1.log"
+    },
+    "uiIndependent": {
+      "passedChecks": [
+        "원본 전체 본문 편집창의 본문·형식 매개변수/입출력은 취소·불완전 cold·코드 저장·명시 caller 선택·Undo/Redo에서 보존된다",
+        "보관한 C# 입력 뒤 등록 계약이 바뀌면 새 receipt로 덮지 않고 원래 입력과 checkpoint를 유지한다",
+        "화면 저장 장치 오류는 source·호출자·checkpoint 부분 적용 없이 명시 입력을 보존한다",
+        "응답과 receipt 유실 뒤 cold/재시도는 결과 조회로 전체 저장을 확인하며 중복 적용하지 않는다",
+        "실제 화면 compiler Review 취소·재검토·명시 Confirm은 입출력 저장소와 C# 원문을 함께 반영한다"
+      ],
+      "summary": {
+        "checks": [
+          "원본 전체 본문 편집창의 본문·형식 매개변수/입출력은 취소·불완전 cold·코드 저장·명시 caller 선택·Undo/Redo에서 보존된다",
+          "보관한 C# 입력 뒤 등록 계약이 바뀌면 새 receipt로 덮지 않고 원래 입력과 checkpoint를 유지한다",
+          "화면 저장 장치 오류는 source·호출자·checkpoint 부분 적용 없이 명시 입력을 보존한다",
+          "응답과 receipt 유실 뒤 cold/재시도는 결과 조회로 전체 저장을 확인하며 중복 적용하지 않는다",
+          "실제 화면 compiler Review 취소·재검토·명시 Confirm은 입출력 저장소와 C# 원문을 함께 반영한다"
+        ],
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-u7oqahn2",
+        "actualEngine": true,
+        "scenario": "types",
+        "chain": false,
+        "mode": "ui-registered",
+        "wholeCaller": true,
+        "nativeWindows": false,
+        "deviceTouch": false
+      },
+      "log": "row7-registered-ui-2.log"
+    },
+    "uiConflict": {
+      "passedChecks": [
+        "원본 전체 본문 편집창의 본문·형식 매개변수/입출력은 취소·불완전 cold·코드 저장·명시 caller 선택·Undo/Redo에서 보존된다",
+        "동시 source 변경은 본문·저장소·호출자 전체를 거절하고 새 입력과 다른 편집자를 보존한다"
+      ],
+      "summary": {
+        "checks": [
+          "원본 전체 본문 편집창의 본문·형식 매개변수/입출력은 취소·불완전 cold·코드 저장·명시 caller 선택·Undo/Redo에서 보존된다",
+          "동시 source 변경은 본문·저장소·호출자 전체를 거절하고 새 입력과 다른 편집자를 보존한다"
+        ],
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-s9enmkll",
+        "actualEngine": true,
+        "scenario": "types",
+        "chain": false,
+        "mode": "ui-conflict",
+        "wholeCaller": true,
+        "nativeWindows": false,
+        "deviceTouch": false
+      },
+      "log": "row7-registered-ui-conflict-1.log"
+    },
+    "uiCancel": {
+      "passedChecks": [
+        "원본 전체 본문 편집창의 본문·형식 매개변수/입출력은 취소·불완전 cold·코드 저장·명시 caller 선택·Undo/Redo에서 보존된다",
+        "변경 취소는 본문·native 입출력·호출자와 cold 기록을 함께 미적용으로 유지한다"
+      ],
+      "summary": {
+        "checks": [
+          "원본 전체 본문 편집창의 본문·형식 매개변수/입출력은 취소·불완전 cold·코드 저장·명시 caller 선택·Undo/Redo에서 보존된다",
+          "변경 취소는 본문·native 입출력·호출자와 cold 기록을 함께 미적용으로 유지한다"
+        ],
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-72z47y5a",
+        "actualEngine": true,
+        "scenario": "types",
+        "chain": false,
+        "mode": "ui-cancel",
+        "wholeCaller": true,
+        "nativeWindows": false,
+        "deviceTouch": false
+      },
+      "log": "row7-registered-ui-cancel-1.log"
+    },
+    "uiProjects": {
+      "passedChecks": [
+        "원본 전체 본문 편집창의 본문·형식 매개변수/입출력은 취소·불완전 cold·코드 저장·명시 caller 선택·Undo/Redo에서 보존된다",
+        "동일 namespace 두 프로젝트는 전체 본문/입출력 입력을 분리하고 닫힌 편집창 저장을 차단한다"
+      ],
+      "summary": {
+        "checks": [
+          "원본 전체 본문 편집창의 본문·형식 매개변수/입출력은 취소·불완전 cold·코드 저장·명시 caller 선택·Undo/Redo에서 보존된다",
+          "동일 namespace 두 프로젝트는 전체 본문/입출력 입력을 분리하고 닫힌 편집창 저장을 차단한다"
+        ],
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-ga13hsca",
+        "actualEngine": true,
+        "scenario": "types",
+        "chain": false,
+        "mode": "ui-projects",
+        "wholeCaller": true,
+        "nativeWindows": false,
+        "deviceTouch": false
+      },
+      "log": "row7-registered-ui-projects-1.log"
+    },
+    "forwardedRegression": {
+      "passedChecks": [
+        "명시 부모 계약과 depth2 forwarded chain·caller·본문을 한 후보에 결합한다",
+        "누락·경계·stale·사용 중 출력·타입·C# 오류는 chain 전체 미적용과 원문 보존이다",
+        "계산·별칭의 실제 입력/child출력과 부모출력은 각각 명시 대응하며 누락·유실을 전체 거절한다",
+        "부모 계산이 있는 기존 고정 계약의 본문만 편집할 때 불필요한 부모 계약 갱신을 요구하지 않는다",
+        "다섯 forwarded 호출·부모계약·계산/별칭·out 공유와 실행순서를 한 후보에 결합하며 선택 나열순서를 바꿔도 동일하다",
+        "마지막 child 누락·stale·타입·추측 입력은 앞선 부모/child도 전부 미적용으로 보존한다"
+      ],
+      "summary": {
+        "checks": 6,
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-a6bbo03e",
+        "executed": false
+      },
+      "log": "row7-owned-regression-1.log"
+    },
+    "propertyRegression": {
+      "passedChecks": [
+        "위조/누락 계약 receipt와 null/다른 타입 수신자는 전체 미적용 및 원래 checkpoint 보존",
+        "선택 후 accessor·등록 manifest·필드 소유 선언의 실제 변경은 ABI가 같아도 전체 거절하고 peer/입력 보존",
+        "property 계약 조회는 고정 accessor 선언/manifest만 관찰하고 provider 본문·실제 getter·원본 자료를 사용하지 않는다"
+      ],
+      "summary": {
+        "checks": [
+          "위조/누락 계약 receipt와 null/다른 타입 수신자는 전체 미적용 및 원래 checkpoint 보존",
+          "선택 후 accessor·등록 manifest·필드 소유 선언의 실제 변경은 ABI가 같아도 전체 거절하고 peer/입력 보존",
+          "property 계약 조회는 고정 accessor 선언/manifest만 관찰하고 provider 본문·실제 getter·원본 자료를 사용하지 않는다"
+        ],
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-j6um0kwu",
+        "actualEngine": true,
+        "projectRun": false,
+        "nativeWindows": false
+      },
+      "log": "row7-property-guards-1.log"
+    }
+  },
+  "notProjectExecution": true
+}

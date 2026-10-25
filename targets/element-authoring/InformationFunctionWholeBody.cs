@@ -66,7 +66,8 @@ internal static class InformationFunctionWholeBody
   if(graph["copySource"] is not null||implementation.Parent is not null||implementation.Function!=feature.Id||!implementation.Signature!.Matches(feature.Signature))throw new InvalidOperationException("Direct owned caller context required; source retained");
   var node=selectedNode??graph["nodes"]!.AsArray().Single(n=>n!["implementationContext"] is not null)!.AsObject();var native=InformationFunctionBodies.Signature(node["signature"]!);bool context=node["implementationContext"] is not null;
   if(node["kind"]?.ToString()!="code"||!native.Matches(implementation.Signature)||context&&(!JsonNode.DeepEquals(node["implementationContext"],FeatureBlueprint.ImplementationContext(implementation))||!JsonNode.DeepEquals(node["signature"],FeatureBlueprint.SignatureDocument(implementation.Signature)))||!context&&node["forwardCallerStorage"]?.GetValue<bool>()!=true)throw new InvalidOperationException("Original caller native/context contract changed");
-  foreach(var import in implementation.Imports.Values)if(PackPaths.Namespace(import.Id)!=PackPaths.Namespace(implementation.Id)||units[import.Id]?["kind"]?.ToString()!="function")throw new InvalidOperationException("Registered caller imports require their separate read-only receipts");
+  // Registered imports are bound by the owner candidate's immutable dependency
+  // receipts before any body preparation; they remain read-only declarations.
   if(plan.Count!=7||!JsonNode.DeepEquals(plan["whole"],Receipt(id,units[id]!["draft"]!.ToString(),graph,node)))throw new InvalidOperationException("Original caller graph and manual body receipt required");
   var explicitPlan=plan.DeepClone().AsObject();explicitPlan.Remove("whole");string recordId=id+"/node:"+node["id"]!.ToString();var unit=units[recordId]!.AsObject();
   return InformationFunctionBodies.Text(recordId,unit["path"]!.ToString(),unit,native,native,changed.Signature!,explicitPlan);

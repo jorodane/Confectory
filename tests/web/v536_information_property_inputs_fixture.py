@@ -32,7 +32,7 @@ x.snapshot={str(p.relative_to(f.project)):p.read_bytes() for p in f.project.rglo
 def selections(preview):
  callers={k:{field:t[field] for field in ['graph','node','hash']}|{'inputs':{'count':'count',x.old['args'][2]['name']:x.old['args'][2]['name']}|({'amount':{'valueJson':json.dumps('새 한글 값')}} if x.kind=='type' else {}),'disconnect':{'amount':t['bindings']['amount']}} for k,t in preview['functionInputs'].items()}
  plans={k:{field:t[field] for field in ['graph','node','argument','hash','before','contracts']}|{'value':{'input':'count'} if receiver or x.kind=='type' else {'valueJson':'9223372036854775806'}} for k,t in preview['functionInputUses'].items() if 'amount' in t.get('inputs',[t['input']])}
- return x.mapping|{'callers':callers,'implementations':plans}
+ return x.mapping|{'callers':callers,'implementations':plans}|({'dependencies':preview['functionDependencies']} if preview.get('functionDependencies') else {})
 x.selections=selections
 def expected_caller():return {'count':{'input':'second'},x.old['args'][2]['name']:{'input':x.old['args'][2]['name']}}|({'amount':{'constant':'새 한글 값'}} if x.kind=='type' else {})
 x.expected_caller=expected_caller
