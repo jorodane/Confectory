@@ -50,7 +50,7 @@ source 변경은 전체 미적용이어야 한다.
 추가 런너의 최초 실행은 물려받은 검사 항목과 새 항목의 이름 충돌을 계획 검증이
 worker 시작 전에 거절했다. 빈 최초 결과 폴더와 진단을 보존하고 항목 이름만
 구별해 새 결과 경로에서 실행했다. 중복 worker/증거 덮어쓰기는 없으며 fail-closed
-검사는 유지한다. clean checkout/패키지 결과는 다음 검증에 기록한다.
+검사는 유지한다.
 
 ## 고정 잔여와 보호
 
@@ -64,3 +64,27 @@ owner 속성 혼합 및 scalar 밖 선택 타입은 별도다. 9행 named 정보
 생성과 직접 소유 함수 편집까지 막는 근거로 확대하지 않는다. 현재 단위는 7행
 전체 완료로 표시하지 않는다. 전체 UI·실제 Windows/WebView2·모바일 기기·Library
 전달도 미완료이며 사용자 프로젝트/실제 계정/유료 추론은 사용하지 않는다.
+
+## 커밋 후 독립 checkout·새 교차 패키지
+
+실행 소스는 `8549f5cbb197d96173f91ab59fc9f7d6279a65ec`이다. 독립 checkout의
+동일 Git blob과 기존 LF/CRLF 변환을 확인하고 설정 변경 없이 Native Release를
+빌드했다. 정상/같은 함수 결합·실제 API·같은 함수 독립 창 UI·오버라이드 보호의
+5흐름/16확인이 통과했다. root solution Release와 별도 MCP Release도 모두
+warning/error 0이며, 실행 순서를 겹치지 않았다.
+
+이 소스로 새 Windows x64 패키지를 RAM에 교차 생성했다. manifest 2,343항목,
+marker 포함 2,344파일/132,757,551바이트이며 전체 파일 목록·해시와 현재 Native
+DLL/제품 소스·7개 Core DLL 일치를 확인했다. manifest SHA-256은
+`a1a3294583796374ae60f869eb729a3ffbff5d32dec016104faa4b9dad694a30`이다.
+SDK 없는 기존 runtime fixture를 읽기 전용으로 재사용해 패키지의 실제 managed
+엔진 웹 기동, 무관한 cwd, 74리소스, synthetic profile/override 보존과 변조·의존성
+누락 거절을 확인했다. 패키지의 새 backend 후보 검사 4건도 통과했다.
+
+완전한 manifest와 fixture·로그 증거를 보존한 뒤 이번 검사에서 직접 만든 RAM
+패키지 복사본만 제거했다. 새 배포 파일을 보관하거나 전달한 결과가 아니다.
+이전 보관 패키지·SDK·사용자 자료·기존 파일은 삭제하지 않았다. 최저 디스크 여유
+174,153,728바이트, cgroup OOM/oom_kill 0이다. RAM 메모리 제한에는 근접했으므로
+후속 대형 검사는 계속 순차 실행한다. Windows apphost/WebView2·모바일 실기기와
+Library 전달은 미검증이다. 이 뒤 커밋은 검증 결과 문서만 바꾸며 실행 코드는
+위 소스와 동일하다. [checkout·패키지 증거](evidence/v536-information-shared-input-mix/package-clean-verification.json)에 정확한 범위·해시를 기록한다.
