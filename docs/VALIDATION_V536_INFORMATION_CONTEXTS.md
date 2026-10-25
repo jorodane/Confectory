@@ -22,3 +22,13 @@
 이 단위로 6행 전체가 완료되지는 않는다. 고정 잔여는 (1) 추가 callee 노드·locals/별칭이 있는 native/public 계약 변경, (2) 별도 `forwardCallerStorage` 저장소 대응, (3) serial After/execution-enum postCall의 명시 source/helpers 갱신이다. caller 등록/상속/copy receipt는 7행, nested/private path는 다음 5행이다. 새 조합을 덧붙이지 않는다.
 
 원본 `196c605` v536 Script 편집기의 구조와 현재 CSS를 유지한다. 실제 Windows apphost/WebView2·모바일 기기, 사용자 로그인·계정/권한 설정·유료 AI·사용자 프로젝트 실행 및 Library 전달은 수행하지 않았다. Windows 교차 패키지는 실제 Windows 실행과 구별한다.
+
+## checkout·리소스·Windows 교차 패키지
+
+검증한 실행 소스 커밋은 `612a40913498abb8225af43fb280029d871cc018`이다. 깨끗한 checkout에서 Native Release 0 warning/0 error, Linux 빌드 stderr 0, 실제 API 3 + 독립 창 렌더러 3 check를 재현했다([기록](evidence/v536-information-contexts/clean-checks.json)). root의 집중 25 check에 같은 검사의 재실행 수를 더하지 않는다.
+
+실제 Git retained CRLF→속성 pull과 fresh LF에서 74개 canonical/exact 리소스를 기동했고 내용/인코딩/BOM/binary/budget 변조를 거절했다. 원래 checkout 바이트는 바꾸지 않았다.
+
+로컬 Windows 패키지는 `/workspace/artifacts/v536-information-contexts/Windows-x64`이며 실행 진입점은 `Confectory.exe`다. manifest 2,336개(자기 manifest 포함 실제 2,337개)의 모든 해시와 변경 소스 5개·Native/Core DLL 2개의 root 바이트 일치를 확인했다([기록](evidence/v536-information-contexts/package-bytes.json)). manifest SHA-256은 `b2fca70b91320ad343ade4204826fa0280900243d758ae4c2d7729b51c2c2fd7`다.
+
+패키지 검사는 SDK 없는 격리 runtime·관계없는 작업 디렉터리에서 managed 엔진 기동·74 리소스·최소 로그인 화면, 변조/의존성 누락 거절과 기존 fixture profile/명시 override 보존을 통과했다([기록](evidence/v536-information-contexts/package-probe.json)). 실제 Windows apphost/WebView2나 실제 로그인을 실행한 검사가 아니다. 사용자에게 첨부로 전달하지 않았다. 이 결과를 기록하는 후속 문서 커밋은 실행 소스를 변경하지 않으므로 위 패키지와 실행 코드가 같다.

@@ -8,6 +8,6 @@
 
 이 단위의 종료 조건은 기본/독립 정보 창의 실제 편집·저장·Undo/취소·실패·충돌·응답 유실·재시작·Review/Confirm, 원문/out 저장소/이전 입력과 다른 소스 보존, 집중 회귀·clean checkout·Windows 교차 패키지다. 이 첫 단위는 아래 문서의 검증을 마쳤다. 아래 잔여를 전체 6행 완료로 계산하지 않는다.
 
-남은 6행 조작은 전체 본문의 이름·타입·핀 수·out 역할·반환 변경과 추가 본문/alias가 있는 forwardCallerStorage, whole-body 호출자와 postCall 래퍼가 있는 호출 문맥이다. 이들은 기존 native/public/호출자 저장소 식별성과 명시적 출력·반환 대응을 함께 검증해야 하며 현재 단위가 안전하게 거절한다. 등록/상속/copy 출처와 import receipt는 고정 7행, 중첩 private path는 5행, 공유 caller의 여러 함수는 8행, 고급 타입/표시명은 9행으로 유지한다.
+후속 직접 소유 전체 본문의 타입·핀 수·값/ref/out·반환 편집은 `V536_I5_6_WHOLE_CONTRACT_SCOPE.md`와 `VALIDATION_V536_INFORMATION_WHOLE_CONTRACT.md`에 검증 범위를 분리했다. 전체 본문 caller의 자신의 ABI를 유지한 프로젝트 소유 import·수동 C# 갱신은 `VALIDATION_V536_INFORMATION_CONTEXTS.md`의 후속 단위다.
 
-원본 레이아웃·권한·명시적 Review/Confirm은 유지한다. 실제 Windows/모바일 실행과 Library 전달은 미검증이며 사용자 계정/유료 AI/사용자 프로젝트 Run은 수행하지 않는다.
+현재 남은 6행 조작은 추가 callee 노드·locals/별칭, 별도 `forwardCallerStorage`, postCall의 명시 source/helpers 갱신이다. 이들은 현재 단위가 안전하게 거절하며 이를 완료로 계산하지 않는다. 등록/상속/copy 출처와 import receipt는 고정 7행, 중첩 private path는 5행, 공유 caller의 여러 함수는 8행, 고급 타입/표시명은 9행으로 유지한다.
