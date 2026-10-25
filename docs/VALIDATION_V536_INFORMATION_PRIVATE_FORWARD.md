@@ -24,3 +24,13 @@ private enum 응답 유실 뒤 재시작 시, 이미 완료된 저장의 receipt
 현재 부모 전달 지원은 frame마다 forwarded 자식 하나인 직접 소유 계층이다. 같은 private frame의 여러 forwarded 자식 계약 동시 변경은 미구현이며, 기존 설계의 후속 구현이다. 계산에 필요한 새 값/저장소를 추정하거나 공유/부모/donor를 수정하지 않는다. copy/등록 receipt·여러 함수 공유 caller·고급 타입/표시명은 기존 7~9행이다. 이번 단위와 5행 전체/I5-6/v536 전체 완료를 구별한다. 실제 Windows apphost/WebView2·모바일 기기 실행과 Library 전달은 미검증이다.
 
 Windows x64 교차 패키지의 manifest 2,340개(자기 manifest 포함 실제 2,341개) 해시와 production source 8개·Native/Core DLL 2개의 바이트가 모두 일치한다([기록](evidence/v536-information-private-forward/package-bytes.json)). manifest SHA-256은 `bf29992873e928727cc8ebd9d4e6c240ef31d9a3fb33ced58f10c7c818136768`이다. 패키지는 로컬 산출물이며 전달 성공을 의미하지 않는다.
+
+## clean checkout·패키지 마감
+
+검증한 실행 소스는 `9c6fd9fa3ed3f1b9c3314c9dd1ea74a607eaafda`다. 깨끗한 checkout의 Native Release는 경고·오류 0건, Linux 빌드 stderr는 0이다. 추가 계산이 있는 부모 계약 API 3건과 private enum 저장 실패·응답 유실·재시작·Confirm 화면 3건을 재현했다([기록](evidence/v536-information-private-forward/clean-checks.json)). 집중 58건과 별개인 재현 6건이며 기능 수에 중복 합산하지 않는다.
+
+실제 Git retained CRLF/속성 pull과 fresh LF에서 74개 리소스를 기동하고 content/encoding/BOM/binary/budget 변조를 거절했다([기록](evidence/v536-information-private-forward/resource-checks.json)). 원래 working tree 바이트를 보존했다.
+
+패키지의 managed 엔진을 SDK 없는 격리 runtime·별도 작업 디렉터리에서 기동하여 74개 리소스와 최소 로그인 화면, 누락/변조 의존성 거절, fixture 프로필/명시 override 보존을 확인했다([기록](evidence/v536-information-private-forward/package-probe.json)). Windows x64 교차 패키지 경로는 `/workspace/artifacts/v536-information-private-forward/Windows-x64/Confectory.exe`다. 실제 Windows apphost/WebView2·실제 모바일 기기는 실행하지 않았다. 계정 로그인·추론·사용자 프로젝트 실행과 Library 전달도 수행하지 않았다.
+
+후속 마감 커밋은 검증 문서·증거만 추가하며 위 실행 소스와 동등하다. 이번 직접 소유 부모 계약/branch·switch/private enum 지원 단위를 마감한다. 같은 frame의 여러 forwarded 자식은 5행에 남아 있으므로 5행 전체·I5-6·v536 전체 완료로 처리하지 않는다.
