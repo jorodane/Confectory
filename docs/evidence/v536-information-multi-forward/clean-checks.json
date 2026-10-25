@@ -1,0 +1,28 @@
+{
+  "sourceCommit": "ab225ccdbf52eb769dbd58836d8ca31eabe00bfd",
+  "nativeWarnings": 0,
+  "nativeErrors": 0,
+  "linuxStderrBytes": 0,
+  "suites": [
+    {
+      "suite": "clean-multi-api",
+      "checks": [
+        "중첩 호출/record의 경계·source·누락 증거는 전체 거절하며 부모·형제·checkpoint를 보존한다",
+        "depth2·동명 leaf·명시 C#/postCall을 실제 한 후보/CAS에 저장하고 cold에서 분리 복원한다",
+        "실제 compiler Review/Confirm·cold 뒤에도 모든 qualified source·부모/형제·정확한 값이 보존된다"
+      ],
+      "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-qbzvx84u"
+    },
+    {
+      "suite": "clean-multi-ui",
+      "checks": [
+        "원본 전체 본문 편집창의 본문·형식 매개변수/입출력은 취소·불완전 cold·코드 저장·명시 caller 선택·Undo/Redo에서 보존된다",
+        "화면 정상 저장·cold는 전체 후보와 C# 원문·호출자를 정확히 복원한다",
+        "실제 화면 compiler Review 취소·재검토·명시 Confirm은 입출력 저장소와 C# 원문을 함께 반영한다"
+      ],
+      "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-ja2mzbub"
+    }
+  ],
+  "reproductionChecks": 6,
+  "actualWindowsOrMobile": false
+}

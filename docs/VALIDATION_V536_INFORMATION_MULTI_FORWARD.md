@@ -24,3 +24,11 @@
 고정 5행의 직접 소유 함수 하나·기존 명시 대응 지원 경계를 마감한다. 7행 copy/등록·상속 receipt, 8행 여러 함수 공유 caller, 9행 고급 핀 타입/표시명은 별도 잔여다. I5-6 전체나 v536 전체 완료로 보고하지 않는다. 실제 계정·권한 설정·유료 AI·사용자 프로젝트 실행 없이 격리 fixture만 사용했다. 실제 Windows/WebView2·모바일 기기와 Library 전달은 미검증이다.
 
 Windows 교차 패키지 manifest 2,340개(자기 manifest 포함 실제 2,341개)의 모든 해시와 변경 production 소스 4개·Native/Core DLL 2개의 바이트를 확인했다([기록](evidence/v536-information-multi-forward/package-bytes.json)). manifest SHA-256은 `d0d13decdc706a9452cb4de31b34d1acd6a34e6ea2b2639ef9158674d3869a1a`다. 로컬 산출물은 `/workspace/artifacts/v536-information-multi-forward/Windows-x64/Confectory.exe`이며 파일 전달이나 실제 Windows 실행을 의미하지 않는다.
+
+## 깨끗한 checkout·패키지 마감
+
+실행 소스 커밋은 `ab225ccdbf52eb769dbd58836d8ca31eabe00bfd`다. 깨끗한 checkout의 Native Release는 경고·오류 0건, Linux 빌드 stderr는 0이다. 연결된 부모/여러 자식/후처리 API 3건과 실제 독립 창 UI 3건의 저장·재시작·Review/Confirm을 재현했다([기록](evidence/v536-information-multi-forward/clean-checks.json)). 집중 29건과 별개인 재현 6건이며 기능 수에 합산하지 않는다.
+
+Git retained CRLF/속성 pull과 fresh LF에서 74개 리소스·변조 거절 및 원래 working tree 바이트 보존을 확인했다([기록](evidence/v536-information-multi-forward/resource-checks.json)). 패키지는 SDK 없는 격리 runtime·별도 작업 디렉터리에서 managed 엔진·74 리소스·최소 로그인 화면을 기동했다. 누락/변조 의존성 거절과 fixture 프로필/명시 override 보존을 통과했다([기록](evidence/v536-information-multi-forward/package-probe.json)). 실제 Windows apphost/WebView2·모바일 기기·실제 로그인/추론·사용자 프로젝트 실행·Library 전달은 수행하지 않았다.
+
+후속 마감 커밋은 검증 문서·증거만 추가하며 위 패키지와 실행 코드가 같다. 고정 5행의 기존 직접 소유 지원 경계를 마감하고 7~9행의 다음 구현을 별도로 유지한다.
