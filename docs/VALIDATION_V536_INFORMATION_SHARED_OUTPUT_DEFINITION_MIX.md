@@ -54,7 +54,7 @@ peer 경합 시 원문·입력 보존, 프로젝트 전환과 오래된 창 차�
 error 0이고 UI 74리소스와 WebBundle은 기준 850bc5c 그대로다. 대형 검사는 순차
 실행했고 OOM/oom_kill 0이다. 사전48MiB 증가 예산(최근 단위 실증가28.6MiB와 여유)
 및64MiB 디스크 reserve를 확인했으며 기존 자료를 삭제하지 않았다.
-[집중·영향 증거](evidence/v536-information-shared-output-definition-mix/focused-verification.json)에 결과를 기록한다. 독립 checkout/패키지 검증은 다음 결과로 구분한다.
+[집중·영향 증거](evidence/v536-information-shared-output-definition-mix/focused-verification.json)에 결과를 기록한다. 독립 checkout/패키지 검증은 아래에 구분한다.
 
 ## 고정 잔여
 
@@ -68,3 +68,26 @@ error 0이고 UI 74리소스와 WebBundle은 기준 850bc5c 그대로다. 대형
 import/graph 수용 경계와 나머지 UI는 별도다. 전체 UI·실제 Windows/WebView2·
 모바일 기기 실행·Library 전달 완료가 아니며 사용자 프로젝트/실제 계정/유료
 추론은 사용하지 않는다.
+
+## 커밋 후 독립 checkout·새 교차 패키지 완료
+
+실행 소스는 `4963163096265e83c6eb853a94ae09384230c802`이다. 독립 checkout의
+10개 동일 Git blob과 기존 LF/CRLF 설정·clean 상태를 확인했고 Native Release는
+warning/error 0이다. 같은 함수 결합 후보·실제 API·void에서 여러 반환 배치를
+만드는 독립 UI·오버라이드 보호 4흐름/12확인이 통과했다. root solution Release와
+별도 MCP Release도 warning/error 0이다. 대형 검사는 모두 순차 실행했다.
+
+같은 소스로 새 Windows x64 패키지를 RAM에 생성했다. manifest 2,343항목,
+marker 포함 2,344파일/132,760,037바이트의 파일 집합·전체 해시, 현재 Native DLL/
+제품 소스·7개 Core DLL 일치를 확인했다. manifest SHA-256은
+`ba4aee4b0570a082577b50b485a266f119ae96afedb61e01c52c0bba8e2391d4`다.
+기존 SDK 없는 runtime fixture를 읽기 전용 재사용해 managed 엔진 웹 기동·
+무관한 cwd·74리소스·synthetic profile/override 보존과 변조·DLL 누락 거절을
+확인했다. 패키지 안의 새 backend 후보 검사 4건도 통과했다.
+
+전체 manifest·fixture·로그 증거를 보존한 뒤 이번 검사가 만든 RAM 패키지만
+제거했다. 이전 보관 패키지/SDK·기존 자료는 삭제하지 않았고 새 배포 파일을
+보관·전달한 결과가 아니다. 패키지 단계 최저 디스크 여유 110,198,784바이트,
+OOM/oom_kill 0이다. 이후 커밋은 결과 문서만 바꾸므로 실행 코드는 위 소스와
+동일하다. 실제 Windows apphost/WebView2·모바일 기기 실행·Library 전달은 미검증이다.
+[checkout·패키지 증거](evidence/v536-information-shared-output-definition-mix/package-clean-verification.json)에 단계·소스·해시·한계를 기록한다.
