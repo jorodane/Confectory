@@ -1,5 +1,7 @@
 # I5-6 고정 6행: 전체 본문과 호출자 저장소
 
+아래는 첫 게시 단위의 기록이다. 후속 타입·핀/out 역할·반환 전환의 현재 지원 범위는 [전체 본문 계약 단위](V536_I5_6_WHOLE_CONTRACT_SCOPE.md)에 기록한다.
+
 기준은 저장소 v536과 기존 `BlueprintRootContract.rootBody/inputModes`, 전체 본문 C# 편집창, `implementationContext`/`forwardCallerStorage`의 위치별 native/public 저장소 계약이다. 새로운 C# 변환·임의 저장소·별칭 스냅샷·분기/반복 의미를 만들지 않는다.
 
 첫 완료 단위는 직접 소유한 함수 하나의 import 없는 원래 전체 본문 lift다. 기존 C# 편집창에서 사용자가 직접 작성한 본문과 값↔ref 전달을 선택하고, 보존된 원래 out 인자·반환·native 인자명/타입/순서·공개 핀·래퍼 없는 일반 Blueprint 호출자별 기존 저장소를 같은 후보와 CAS에 넣는다. 여러 target은 모두 같은 native 선언에 동의해야 한다. 원본 record/hash/정의·context·입력의 위치별 저장소·직렬 반환 경로를 재검사한다. 실제 생성기의 본문·멤버·entry를 Roslyn으로 검사하며 코드를 실행하지 않는다. 호출자의 모드 변경은 기존 연결 매핑 화면에서 명시적으로 선택한 exact-typed 저장소만 사용하고, ref에 리터럴·임의 셀을 만들지 않는다.

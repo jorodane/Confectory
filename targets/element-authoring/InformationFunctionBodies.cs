@@ -30,7 +30,7 @@ internal static class InformationFunctionBodies
       string recordId=id+"/node:"+node["id"]!.ToString();var recordUnit=units[recordId]??throw new InvalidOperationException("Original whole-body record missing");
       BlueprintDocuments.Validate(recordId,"blueprint-node",recordUnit["draft"]!.ToString());
       var record=JsonNode.Parse(recordUnit["draft"]!.ToString())!;
-      row["sourceKind"]="whole-csharp";row["graph"]=id;row["node"]=node["id"]!.DeepClone();row["path"]=recordUnit["path"]!.DeepClone();row["hash"]=Hash(recordUnit["draft"]!.ToString());row["signature"]=node["signature"]!.DeepClone();row["text"]=record["source"]!.DeepClone();id=recordId;
+      row["whole"]=new JsonObject{["graph"]=id,["hash"]=Hash(text),["node"]=node["id"]!.DeepClone(),["returnNode"]=g["nodes"]!.AsArray().SingleOrDefault(n=>n!["kind"]?.ToString()=="export"&&n["output"]?.ToString()=="return")?["id"]?.DeepClone()};row["sourceKind"]="whole-csharp";row["graph"]=id;row["node"]=node["id"]!.DeepClone();row["path"]=recordUnit["path"]!.DeepClone();row["hash"]=Hash(recordUnit["draft"]!.ToString());row["signature"]=node["signature"]!.DeepClone();row["text"]=record["source"]!.DeepClone();id=recordId;
      }
     }else row["text"]=text;
     if(row["text"] is not null)bytes=checked(bytes+System.Text.Encoding.UTF8.GetByteCount(row["text"]!.GetValue<string>()));
