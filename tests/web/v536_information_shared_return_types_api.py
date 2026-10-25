@@ -2,7 +2,9 @@
 import copy
 import json
 import os
-if os.environ.get('CONFECTORY_SHARED_OUTPUT_RETURN_MIX') == '1':
+if os.environ.get('CONFECTORY_SHARED_OUTPUT_DEFINITION_MIX') == '1':
+    import v536_information_shared_output_definition_mix_fixture as x
+elif os.environ.get('CONFECTORY_SHARED_OUTPUT_RETURN_MIX') == '1':
     import v536_information_shared_output_return_mix_fixture as x
 elif os.environ.get('CONFECTORY_SHARED_INPUT_MIX') == '1':
     import v536_information_shared_input_mix_fixture as x

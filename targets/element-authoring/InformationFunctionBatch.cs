@@ -36,11 +36,13 @@ internal sealed class InformationFunctionBatch
    bool structural=before.Args.Any(a=>a.IsOut&&(remap[a.Name] is null||!next.Args.Any(b=>b.IsOut&&b.Name==remap[a.Name]!.ToString())))||next.Args.Any(b=>b.IsOut&&!before.Args.Any(a=>a.IsOut&&remap[a.Name]?.ToString()==b.Name))||before.Return!=next.Return&&(before.Return=="void"||next.Return=="void");
    if(structural){
     // The existing coordinated graph plan owns writer removal/insertion and
-    // void transitions. Value inputs and every retained pin keep their identity,
-    // type and relative order. No C# or value is inferred for a new output.
-    if((before.Return!="void"&&next.Return!="void"&&before.Return!=next.Return)||(next.Return!="void"&&!Scalar(next.Return))||!before.Args.Where(a=>!a.IsOut).Select(a=>(a.Name,a.Type,a.Mode)).SequenceEqual(next.Args.Where(a=>!a.IsOut).Select(a=>(a.Name,a.Type,a.Mode))))throw new InvalidOperationException("Shared output definitions retain value inputs and retained output types");
+    // void transitions. Value inputs and retained identities/order stay fixed;
+    // separate explicit writer plans can change retained scalar output types.
+    if((before.Return!="void"&&next.Return!="void"&&before.Return!=next.Return&&!Scalar(before.Return))||(next.Return!="void"&&!Scalar(next.Return))||!before.Args.Where(a=>!a.IsOut).Select(a=>(a.Name,a.Type,a.Mode)).SequenceEqual(next.Args.Where(a=>!a.IsOut).Select(a=>(a.Name,a.Type,a.Mode))))throw new InvalidOperationException("Shared output definitions retain value inputs and explicit scalar outputs");
     var retained=before.Args.Where(a=>!a.IsOut||remap[a.Name] is not null).ToArray();
-    if(retained.Any(a=>remap[a.Name]?.ToString()!=a.Name)||!retained.Select(a=>(a.Name,a.Type,a.Mode)).SequenceEqual(next.Args.Where(b=>retained.Any(a=>a.Name==b.Name)).Select(b=>(b.Name,b.Type,b.Mode)))||next.Args.Any(b=>b.IsOut&&!retained.Any(a=>a.Name==b.Name)&&!Scalar(b.Type)))throw new InvalidOperationException("Explicitly remove old output identities and preserve every retained pin");
+    if(retained.Any(a=>remap[a.Name]?.ToString()!=a.Name)||!retained.Select(a=>(a.Name,a.Mode)).SequenceEqual(next.Args.Where(b=>retained.Any(a=>a.Name==b.Name)).Select(b=>(b.Name,b.Mode)))||retained.Any(a=>{var b=next.Args.Single(p=>p.Name==a.Name);return a.Type!=b.Type&&(!a.IsOut||!Scalar(a.Type)||!Scalar(b.Type));})||next.Args.Any(b=>b.IsOut&&!retained.Any(a=>a.Name==b.Name)&&!Scalar(b.Type)))throw new InvalidOperationException("Explicitly remove old output identities and preserve retained names/order/roles");
+    if(retained.Any(a=>a.IsOut&&next.Args.Any(b=>b.Name==a.Name&&b.Type!=a.Type))){outputTypes.Add(id);outputTyped=true;}
+    if(before.Return!="void"&&next.Return!="void"&&before.Return!=next.Return){returns.Add(id);outputTyped=true;}
     structures.Add(id);continue;
    }
    bool inputDefinition=before.Args.Any(a=>!a.IsOut&&remap[a.Name] is null&&!next.Args.Any(b=>!b.IsOut&&b.Name==a.Name))||next.Args.Any(b=>!b.IsOut&&!before.Args.Any(a=>!a.IsOut&&(a.Name==b.Name||remap[a.Name]?.ToString()==b.Name)));
@@ -63,12 +65,12 @@ internal sealed class InformationFunctionBatch
    if(before.Args.Count!=next.Args.Count)throw new InvalidOperationException("Shared caller batching retains original argument identities outside coordinated output definitions");
    for(int i=0;i<before.Args.Count;i++){var a=before.Args[i];var b=next.Args[i];if(a.Mode!=b.Mode)throw new InvalidOperationException("Retain the original input/output roles explicitly");hasOutputs|=a.IsOut;if(a.Type==b.Type){if(remap[a.Name]?.ToString()!=b.Name)throw new InvalidOperationException("Retain each unchanged pin identity explicitly");}else if(a.IsOut){outputTyped=true;outputTypes.Add(id);if(a.Name!=b.Name||!Scalar(a.Type)||!Scalar(b.Type)||remap[a.Name]?.ToString()!=a.Name)throw new InvalidOperationException("Changed scalar outputs retain their explicit original pin identity");}else{typed=true;inputTypes.Add(id);if(a.Mode is not null||a.Name!=b.Name||!Scalar(a.Type)||!Scalar(b.Type)||!remap.ContainsKey(a.Name)||remap[a.Name] is not null)throw new InvalidOperationException("Changed scalar inputs need explicit replacement at the same position and name");}}
   }
-  if(returns.Count>0&&(typed||!functions.SetEquals(returns.Concat(outputTypes))))throw new InvalidOperationException("Combine only explicit scalar out and return type edits; retain every value input");
+  if(returns.Count>0&&(typed||!functions.SetEquals(returns.Concat(outputTypes).Concat(structures))))throw new InvalidOperationException("Combine only explicit scalar output definitions/types; retain every value input");
   var projections=new Dictionary<string,JsonObject>(StringComparer.Ordinal);
   if(structures.Count>0){
-   if(structures.Count!=edits.Length||typed||outputTyped)throw new InvalidOperationException("Keep coordinated output definitions separate from other contract edits; all input retained");
-   foreach(var row in edits){var mapping=row!["mapping"]!.AsObject();var before=InformationFunctionBodies.Signature(mapping["before"]!);
-    if(mapping.Count!=4||mapping["callers"] is not JsonObject callers||mapping["outputGraphs"] is not JsonObject)throw new InvalidOperationException("Select every original output graph and caller before changing shared definitions");
+   if(typed||inputDefinitions.Count>0||!functions.SetEquals(structures.Concat(outputTypes).Concat(returns)))throw new InvalidOperationException("Combine only explicit output definitions and scalar types; all input retained");
+   foreach(var row in edits){var mapping=row!["mapping"]!.AsObject();var before=InformationFunctionBodies.Signature(mapping["before"]!);string id=row["id"]!.ToString();bool structure=structures.Contains(id),writers=outputTypes.Contains(id)||returns.Contains(id);
+    if(mapping.Count!=3+(structure?1:0)+(writers?1:0)||mapping["callers"] is not JsonObject callers||(structure?mapping["outputGraphs"] is not JsonObject:mapping.ContainsKey("outputGraphs"))||(writers?mapping["outputs"] is not JsonObject:mapping.ContainsKey("outputs")))throw new InvalidOperationException("Select original graph changes and every changed writer before combining output contracts");
     foreach(var plan in callers.Select(p=>p.Value!.AsObject()))if(plan["inputs"] is not JsonObject inputs||inputs.Count!=before.Args.Count(a=>!a.IsOut)||before.Args.Where(a=>!a.IsOut).Any(a=>inputs[a.Name]?.ToString()!=a.Name)||plan["disconnect"] is not JsonObject disconnect||disconnect.Count!=0||plan["outputs"] is not JsonObject)throw new InvalidOperationException("Retain caller inputs and explicitly map every original output");
     projections.Add(row["id"]!.ToString(),callers.DeepClone().AsObject());
    }

@@ -59,7 +59,7 @@ Native Release는 warning/error 0이다. 최초 빌드 호출은 기존 SDK 홈 
 ## 고정 잔여
 
 8행 전체 완료는 아니다. 입력 이름/타입/정의와 출력·반환의 더 넓은 결합,
-출력 정의 추가/삭제·void 전환과 타입 편집의 혼합, ref·역할·순서, 수동 C#/
+출력 정의와 타입 편집의 결합은 후속 [수용 단위](VALIDATION_V536_INFORMATION_SHARED_OUTPUT_DEFINITION_MIX.md)로 구분한다. ref·역할·순서, 수동 C#/
 혼합 native·중첩/private/whole/postCall, 같은 계약 내 copy/상속/등록/소유
 정보 속성 혼합 및 scalar 밖 함수 타입은 별도다. 9행 named 정보/참조/외부
 함수 타입과 표시명/native 식별자 분리도 미완료다.
