@@ -1,0 +1,276 @@
+{
+  "baseCommit": "a1204ea3ac441250d18e486244fdea8bd124f9f2",
+  "before": [
+    {
+      "name": "before",
+      "exit": 0,
+      "elapsedSeconds": 6.2,
+      "minimumWorkspaceAvailableBytesSampled": 173219840,
+      "peakMemoryBytesSampled": 16379367424,
+      "checks": [
+        "out/반환 결합의 원래 단일 후보는 각각 유효하고 원본은 그대로다",
+        "기존 그룹 가드는 유효한 out/반환 타입 편집의 결합을 거절한다"
+      ]
+    },
+    {
+      "name": "joint-before",
+      "exit": 0,
+      "elapsedSeconds": 6.4,
+      "minimumWorkspaceAvailableBytesSampled": 172916736,
+      "peakMemoryBytesSampled": 16378077184,
+      "checks": [
+        "out/반환 결합의 원래 단일 후보는 각각 유효하고 원본은 그대로다",
+        "기존 그룹 가드는 유효한 out/반환 타입 편집의 결합을 거절한다"
+      ]
+    }
+  ],
+  "focusedFlows": 13,
+  "focusedChecks": 36,
+  "focused": [
+    {
+      "name": "pure",
+      "exit": 0,
+      "elapsedSeconds": 14.0,
+      "minimumWorkspaceAvailableBytesSampled": 172609536,
+      "peakMemoryBytesSampled": 16386633728,
+      "checks": [
+        "out/반환 결합의 원래 단일 후보는 각각 유효하고 원본은 그대로다",
+        "한 후보·역순·원래 hash는 writer/공유 소비·기존 입력·정확64비트·C# 원문을 보존한다",
+        "명시 bool/한글 string writer도 같은 타입 규칙과 호환 소비 대응으로 준비하며 기존 출력을 보존한다",
+        "writer/소비 누락·타입 오류·입력/이름/순서/역할/void/수/본문·source 변경은 전체 미적용이다",
+        "실제 물리 source 경합은 전체 거절하고 원래 후보와 peer/사용자 입력을 유지한다"
+      ]
+    },
+    {
+      "name": "joint-pure",
+      "exit": 0,
+      "elapsedSeconds": 14.0,
+      "minimumWorkspaceAvailableBytesSampled": 172277760,
+      "peakMemoryBytesSampled": 16387559424,
+      "checks": [
+        "out/반환 결합의 원래 단일 후보는 각각 유효하고 원본은 그대로다",
+        "한 후보·역순·원래 hash는 writer/공유 소비·기존 입력·정확64비트·C# 원문을 보존한다",
+        "명시 bool/한글 string writer도 같은 타입 규칙과 호환 소비 대응으로 준비하며 기존 출력을 보존한다",
+        "writer/소비 누락·타입 오류·입력/이름/순서/역할/void/수/본문·source 변경은 전체 미적용이다",
+        "실제 물리 source 경합은 전체 거절하고 원래 후보와 peer/사용자 입력을 유지한다"
+      ]
+    },
+    {
+      "name": "api",
+      "exit": 0,
+      "elapsedSeconds": 32.5,
+      "minimumWorkspaceAvailableBytesSampled": 171950080,
+      "peakMemoryBytesSampled": 16584953856,
+      "checks": [
+        "실제 서버는 두 번째 계약 오류에서 첫 함수와 공유 caller도 checkpoint에 남기지 않는다",
+        "두 callee·공유 caller는 단일 거래로 저장되고 cold 복원에서도 연결과 원문을 유지한다",
+        "실제 compiler Review/Confirm는 두 계약을 함께 확정하고 code/다른 함수·부모 원문을 보존한다"
+      ]
+    },
+    {
+      "name": "joint-api",
+      "exit": 0,
+      "elapsedSeconds": 32.5,
+      "minimumWorkspaceAvailableBytesSampled": 171573248,
+      "peakMemoryBytesSampled": 16588578816,
+      "checks": [
+        "실제 서버는 두 번째 계약 오류에서 첫 함수와 공유 caller도 checkpoint에 남기지 않는다",
+        "두 callee·공유 caller는 단일 거래로 저장되고 cold 복원에서도 연결과 원문을 유지한다",
+        "실제 compiler Review/Confirm는 두 계약을 함께 확정하고 code/다른 함수·부모 원문을 보존한다"
+      ]
+    },
+    {
+      "name": "primary",
+      "exit": 0,
+      "elapsedSeconds": 62.1,
+      "minimumWorkspaceAvailableBytesSampled": 171184128,
+      "peakMemoryBytesSampled": 17179869184,
+      "checks": [
+        "두 원본 상세창의 취소·명시 대응·Undo/Redo·미저장 cold는 두 함수 입력과 exact64 값을 보존한다",
+        "원본 460px 기본/독립 화면의 한 Save·cold·Review 취소/Confirm은 두 함수 계약과 공유 caller를 함께 확정한다"
+      ]
+    },
+    {
+      "name": "joint-view",
+      "exit": 0,
+      "elapsedSeconds": 72.4,
+      "minimumWorkspaceAvailableBytesSampled": 170012672,
+      "peakMemoryBytesSampled": 17075871744,
+      "checks": [
+        "두 원본 상세창의 취소·명시 대응·Undo/Redo·미저장 cold는 두 함수 입력과 exact64 값을 보존한다",
+        "원본 460px 기본/독립 화면의 한 Save·cold·Review 취소/Confirm은 두 함수 계약과 공유 caller를 함께 확정한다"
+      ]
+    },
+    {
+      "name": "source",
+      "exit": 0,
+      "elapsedSeconds": 10.6,
+      "minimumWorkspaceAvailableBytesSampled": 168906752,
+      "peakMemoryBytesSampled": 16256978944,
+      "checks": [
+        "실제 서버는 두 번째 계약 오류에서 첫 함수와 공유 caller도 checkpoint에 남기지 않는다",
+        "참조 중인 물리 파일 경합은 기존 checkpoint와 peer 원문을 보존하고 전부 거절한다"
+      ]
+    },
+    {
+      "name": "storage",
+      "exit": 0,
+      "elapsedSeconds": 80.6,
+      "minimumWorkspaceAvailableBytesSampled": 168570880,
+      "peakMemoryBytesSampled": 17019965440,
+      "checks": [
+        "두 원본 상세창의 취소·명시 대응·Undo/Redo·미저장 cold는 두 함수 입력과 exact64 값을 보존한다",
+        "화면 checkpoint 실패는 양쪽 계약·공유 caller 전체 미적용과 입력 보존 후 재시도를 허용한다",
+        "원본 460px 기본/독립 화면의 한 Save·cold·Review 취소/Confirm은 두 함수 계약과 공유 caller를 함께 확정한다"
+      ]
+    },
+    {
+      "name": "loss",
+      "exit": 0,
+      "elapsedSeconds": 46.5,
+      "minimumWorkspaceAvailableBytesSampled": 167399424,
+      "peakMemoryBytesSampled": 17017921536,
+      "checks": [
+        "두 원본 상세창의 취소·명시 대응·Undo/Redo·미저장 cold는 두 함수 입력과 exact64 값을 보존한다",
+        "저장/결과조회 응답 유실 뒤 cold는 결합 receipt를 확인하고 두 함수 계약을 중복 적용하지 않는다"
+      ]
+    },
+    {
+      "name": "cancel",
+      "exit": 0,
+      "elapsedSeconds": 35.9,
+      "minimumWorkspaceAvailableBytesSampled": 166309888,
+      "peakMemoryBytesSampled": 17039183872,
+      "checks": [
+        "두 원본 상세창의 취소·명시 대응·Undo/Redo·미저장 cold는 두 함수 입력과 exact64 값을 보존한다",
+        "한 변경 취소와 cold는 두 함수 입력만 취소하고 공유 caller·원래 checkpoint를 유지한다"
+      ]
+    },
+    {
+      "name": "conflict",
+      "exit": 0,
+      "elapsedSeconds": 24.9,
+      "minimumWorkspaceAvailableBytesSampled": 165400576,
+      "peakMemoryBytesSampled": 17028587520,
+      "checks": [
+        "두 원본 상세창의 취소·명시 대응·Undo/Redo·미저장 cold는 두 함수 입력과 exact64 값을 보존한다",
+        "다른 창의 실제 source 경합은 두 함수 전체 미적용이며 peer 입력과 사용자 입력을 유지한다"
+      ]
+    },
+    {
+      "name": "projects",
+      "exit": 0,
+      "elapsedSeconds": 34.3,
+      "minimumWorkspaceAvailableBytesSampled": 164397056,
+      "peakMemoryBytesSampled": 17031012352,
+      "checks": [
+        "두 원본 상세창의 취소·명시 대응·Undo/Redo·미저장 cold는 두 함수 입력과 exact64 값을 보존한다",
+        "동일 namespace 프로젝트 전환은 두 함수 계약 입력을 A에 보관하고 오래된 상세창의 B 적용을 막는다"
+      ]
+    },
+    {
+      "name": "retry",
+      "exit": 0,
+      "elapsedSeconds": 74.8,
+      "minimumWorkspaceAvailableBytesSampled": 163086336,
+      "peakMemoryBytesSampled": 17060847616,
+      "checks": [
+        "두 원본 상세창의 취소·명시 대응·Undo/Redo·미저장 cold는 두 함수 입력과 exact64 값을 보존한다",
+        "마지막 함수의 미완성 대응 거절은 양쪽 입력을 보존하고 Undo 후 원래 기준으로 명시 재시도한다",
+        "원본 460px 기본/독립 화면의 한 Save·cold·Review 취소/Confirm은 두 함수 계약과 공유 caller를 함께 확정한다"
+      ]
+    }
+  ],
+  "impactFlows": 6,
+  "impactChecks": 23,
+  "impacts": [
+    {
+      "name": "impact-inputmix",
+      "exit": 0,
+      "elapsedSeconds": 13.6,
+      "minimumWorkspaceAvailableBytesSampled": 161910784,
+      "peakMemoryBytesSampled": 16140640256,
+      "checks": [
+        "입력 정의/타입 혼합의 원래 단일 후보는 각각 유효하다",
+        "원래 hash·한 후보·역순은 명시 새 값/기존 값 재사용과 out/return/정확64비트/C# 원문을 보존한다",
+        "사용처/값/해제 증거 누락·타입 오류·출력/순서/역할/반환/본문·선택 변경은 전체 미적용이다",
+        "실제 물리 source 경합은 원래 기준으로 거절하며 입력과 기존 파일을 보존한다"
+      ]
+    },
+    {
+      "name": "impact-return",
+      "exit": 0,
+      "elapsedSeconds": 12.2,
+      "minimumWorkspaceAvailableBytesSampled": 161583104,
+      "peakMemoryBytesSampled": 16141008896,
+      "checks": [
+        "두 반환 타입·writer와 명시된 생산자→소비자 대응을 원래 hash 한 개씩 가진 후보로 결합한다",
+        "역순도 같은 최종 import/call/writer이며 C# 원문·정확한 입력·제어 경로를 보존한다",
+        "명시 bool/한글 string 반환도 기존 scalar 타입 검사와 호환 소비 대응으로 준비한다",
+        "중간 hash 재사용·writer/값/소비 대응 누락·타입/역할/반환/본문·문맥 변경은 첫 함수도 적용하지 않는다"
+      ]
+    },
+    {
+      "name": "impact-outtypes",
+      "exit": 0,
+      "elapsedSeconds": 12.2,
+      "minimumWorkspaceAvailableBytesSampled": 161284096,
+      "peakMemoryBytesSampled": 16141545472,
+      "checks": [
+        "두 out 타입·writer와 명시된 생산자→소비자 대응을 원래 hash 한 개씩 가진 후보로 결합한다",
+        "역순도 같은 최종 import/call/writer이며 C# 원문·정확한 입력·제어 경로를 보존한다",
+        "명시 bool/한글 string 출력도 기존 scalar 타입 검사와 호환 소비 대응으로 준비한다",
+        "중간 hash 재사용·writer/값/소비 대응 누락·타입/역할/반환/본문·문맥 변경은 첫 함수도 적용하지 않는다"
+      ]
+    },
+    {
+      "name": "impact-outdefs",
+      "exit": 0,
+      "elapsedSeconds": 12.0,
+      "minimumWorkspaceAvailableBytesSampled": 160989184,
+      "peakMemoryBytesSampled": 16141668352,
+      "checks": [
+        "명시 출력 정의·writer·공유 소비자는 원래 hash 하나씩 가진 결합 후보이며 원본은 그대로다",
+        "편집 역순도 같은 최종 계약·import·연결·출력이고 C# 원문과 정확한 값을 유지한다",
+        "마지막 함수의 writer/경로/값/소비 대응 및 실제 source 오류는 첫 함수도 적용하지 않는다"
+      ]
+    },
+    {
+      "name": "impact-types",
+      "exit": 0,
+      "elapsedSeconds": 15.8,
+      "minimumWorkspaceAvailableBytesSampled": 160694272,
+      "peakMemoryBytesSampled": 16142610432,
+      "checks": [
+        "입력만/출력만의 원래 단일 후보는 각각 유효하고 원본 파일을 바꾸지 않는다",
+        "다른 입력/out 편집 종류도 원래 hash의 한 후보이며 역순·정확64비트·원문과 소비 연결을 보존한다",
+        "입력/out 동시 변경도 입력 전용·출력 전용과 섞이며 양방향 후보 순서와 원래 해제 증거를 보존한다",
+        "불완전·타입/대응 오류·추가 계획·역할/수/반환/이름/본문 변경은 원래 파일에 전부 미적용이다",
+        "실제 물리 source 변경은 내부 후보 합성과 달리 전부 거절하고 peer와 입력을 보존한다"
+      ]
+    },
+    {
+      "name": "policy7",
+      "exit": 0,
+      "elapsedSeconds": 7.2,
+      "minimumWorkspaceAvailableBytesSampled": 160374784,
+      "peakMemoryBytesSampled": 16354770944,
+      "checks": [
+        "공개 이름 대응·소유 copy·호출자 후보는 부모/자식 선언을 쓰지 않고 함께 준비한다",
+        "부모/자식 쓰기 위조·타입/핀 수/역할/반환/순서의 계약 변경은 정상 보호로 전체 미적용이다",
+        "실제 부모 파일 경합은 원래 읽기 기준으로 차단하고 후보/복사본 원문을 보존한다"
+      ]
+    }
+  ],
+  "originalUiResourcesUnchanged": 74,
+  "initialBuildFailedBeforeCompilation": "DOTNET_CLI_HOME omitted; read-only /home/agent/.dotnet; fixed invocation to existing writable CLI home without changing settings",
+  "nativeReleaseWarnings": 0,
+  "nativeReleaseErrors": 0,
+  "cgroupMemoryEvents": "low 0\nhigh 0\nmax 201616\noom 0\noom_kill 0\noom_group_kill 0\n",
+  "existingFilesDeleted": false,
+  "actualWindows": false,
+  "webView2Executed": false,
+  "actualMobile": false,
+  "libraryUploaded": false,
+  "workspaceAvailableBytes": 160022528
+}

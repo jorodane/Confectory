@@ -55,13 +55,15 @@ internal sealed class InformationFunctionBatch
     inputDefinitions.Add(id);continue;
    }
    if(before.Return!=next.Return){
-    if(!Scalar(before.Return)||!Scalar(next.Return)||!JsonNode.DeepEquals(FeatureBlueprint.SignatureDocument(before)["args"],FeatureBlueprint.SignatureDocument(next)["args"]))throw new InvalidOperationException("Shared scalar return changes retain every original argument contract");
+    // Out and return writers use the same explicit output closure. Value
+    // inputs stay exact; the loop below proves every retained out identity.
+    if(!Scalar(before.Return)||!Scalar(next.Return)||!before.Args.Where(a=>!a.IsOut).Select(a=>(a.Name,a.Type,a.Mode)).SequenceEqual(next.Args.Where(a=>!a.IsOut).Select(a=>(a.Name,a.Type,a.Mode))))throw new InvalidOperationException("Shared scalar return changes retain every original value input contract");
     returns.Add(id);outputTyped=true;
    }
    if(before.Args.Count!=next.Args.Count)throw new InvalidOperationException("Shared caller batching retains original argument identities outside coordinated output definitions");
    for(int i=0;i<before.Args.Count;i++){var a=before.Args[i];var b=next.Args[i];if(a.Mode!=b.Mode)throw new InvalidOperationException("Retain the original input/output roles explicitly");hasOutputs|=a.IsOut;if(a.Type==b.Type){if(remap[a.Name]?.ToString()!=b.Name)throw new InvalidOperationException("Retain each unchanged pin identity explicitly");}else if(a.IsOut){outputTyped=true;outputTypes.Add(id);if(a.Name!=b.Name||!Scalar(a.Type)||!Scalar(b.Type)||remap[a.Name]?.ToString()!=a.Name)throw new InvalidOperationException("Changed scalar outputs retain their explicit original pin identity");}else{typed=true;inputTypes.Add(id);if(a.Mode is not null||a.Name!=b.Name||!Scalar(a.Type)||!Scalar(b.Type)||!remap.ContainsKey(a.Name)||remap[a.Name] is not null)throw new InvalidOperationException("Changed scalar inputs need explicit replacement at the same position and name");}}
   }
-  if(returns.Count>0&&returns.Count!=edits.Length)throw new InvalidOperationException("Save scalar return changes separately from other contract changes; retain all input");
+  if(returns.Count>0&&(typed||!functions.SetEquals(returns.Concat(outputTypes))))throw new InvalidOperationException("Combine only explicit scalar out and return type edits; retain every value input");
   var projections=new Dictionary<string,JsonObject>(StringComparer.Ordinal);
   if(structures.Count>0){
    if(structures.Count!=edits.Length||typed||outputTyped)throw new InvalidOperationException("Keep coordinated output definitions separate from other contract edits; all input retained");

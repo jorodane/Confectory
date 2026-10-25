@@ -22,7 +22,7 @@
 
 후속 [출력 정의/void 반환 단위](VALIDATION_V536_INFORMATION_SHARED_OUTPUT_DEFINITIONS.md)는 기존 `outputGraphs`의 모든 writer/exit 삭제, 새 배치의 값·삽입 위치·다음 경로 및 caller outputs를 원래 source에서 먼저 검증한다. 직접 소유 leaf/call 경계에서 값 입력과 유지되는 핀의 이름·타입·상대 순서는 고정한다. 명시한 scalar out 추가·삭제·삭제/추가 혼합과 양방향 void 반환 전환을 여러 함수에서 함께 저장하며, 새 출력은 자동으로 공개하지 않는다. 삭제된 출력을 소비하던 연결은 같은 타입의 명시 대응 없이는 저장하지 않는다. 이전 생산자 출력 대응만 원래 공유 graph 복제본에 투영한 뒤 현재 내부 overlay와 대조하며, 사용자 원래 hash와 단일 CAS는 유지한다. 새 ID는 원본 출력 배치가 요구하는 graph node에 한정되고 함수/계약/copy ID 정책을 변경하지 않는다.
 
-후속 [비void 반환 타입 단위](VALIDATION_V536_INFORMATION_SHARED_RETURN_TYPES.md)는 모든 선택 함수의 인자 계약(이름·타입·위치·수·mode)을 고정하고 scalar 비void 반환 타입만 변경한다. 반환도 기존 typed 출력 writer로 검증하며 각 caller의 원래 출력마다 같은 타입의 현재 출력 대응을 명시한다. 기존 공개 출력 이름은 유지하고 반환 필드의 타입 snapshot만 갱신한다. 이 그룹과 다른 계약 편집은 섞지 않는다. 원래 source의 모든 writer/caller 선택을 먼저 검증한 뒤 같은 `ProjectOutputs`와 내부 후보/CAS에 연결한다. C# 원문을 새 반환 타입에 맞춰 자동 변환하지 않는다.
+후속 [비void 반환 타입 단위](VALIDATION_V536_INFORMATION_SHARED_RETURN_TYPES.md)는 모든 선택 함수의 인자 계약(이름·타입·위치·수·mode)을 고정하고 scalar 비void 반환 타입만 변경한다. 반환도 기존 typed 출력 writer로 검증하며 각 caller의 원래 출력마다 같은 타입의 현재 출력 대응을 명시한다. 기존 공개 출력 이름은 유지하고 반환 필드의 타입 snapshot만 갱신한다. 초기 반환 단위는 다른 계약 편집과 분리했으며, 아래 out/반환 타입 결합 단위가 입력을 고정한 혼합을 추가한다. 원래 source의 모든 writer/caller 선택을 먼저 검증한 뒤 같은 `ProjectOutputs`와 내부 후보/CAS에 연결한다. C# 원문을 새 반환 타입에 맞춰 자동 변환하지 않는다.
 
 후속 [고정 로컬 import 단위](VALIDATION_V536_INFORMATION_SHARED_LOCAL_IMPORTS.md)는 위 독립 code/export·call/export 경계에서 선택 밖 같은 팩의 직접 함수 계약을 읽기 의존성으로 유지한다. 원래 선언과 typed import가 일치해야 하며 미선택 선언도 파일 관측으로 검증한다. callee C# 노드의 원문/import와 caller의 별도 호출을 보존하고 명시한 출력 대응만 전파한다. 선택 callee 사이의 의존·외부/상속 import·수동 최종 본문/문맥 편집은 추가하지 않는다.
 
@@ -36,7 +36,9 @@
 
 후속 [입력 정의/타입 결합 단위](VALIDATION_V536_INFORMATION_SHARED_INPUT_MIX.md)는 함수별 입력 정의와 scalar 타입 편집 및 같은 함수 안의 추가/삭제+타입 교체를 결합한다. 살아남는 핀 이름/역할/상대 순서와 out·반환은 유지하며, 같은 이름의 타입 교체도 원래 사용처/값/해제를 명시해야 한다.
 
-8행 전체 완료는 아니다. 위 좁은 경계 밖의 입력/out/반환/출력 정의 동시 변경과 ref 역할·순서·유지 출력 타입/역할과 정의 변경의 혼합, 반환 타입과 다른 계약 편집의 혼합, 명시 C# 본문 편집, 중첩/private·whole/native·postCall wrapper, 복사본/상속/외부 함수가 섞인 여러 closure의 결합은 아직 지원하지 않는다. 이 조합은 기존 입력을 보존하며 거절한다. 함수 변경과 소유 정보의 속성/설명 변경을 함께 제출하는 확대도 이번 단위 밖이다. 결합한 linked source도 기존 64개 한도를 유지한다. 단일 함수의 이전 지원은 그대로다.
+후속 [out/비void 반환 타입 결합 단위](VALIDATION_V536_INFORMATION_SHARED_OUTPUT_RETURN_MIX.md)는 반환 전용·out 전용·out/반환 동시 scalar 타입 편집을 함수별 원래 writer/호환 소비 대응으로 구분해 결합한다. 값 입력과 핀 이름/수/역할/순서는 유지한다. 같은 함수의 두 종류 변경도 명시 출력 closure로 검증하며 기존 long 소비를 다른 타입으로 조용히 변환하지 않는다.
+
+8행 전체 완료는 아니다. 위 좁은 경계 밖의 입력/out/반환/출력 정의 동시 변경과 ref 역할·순서·유지 출력 타입/역할과 정의 변경의 혼합, 반환 타입과 입력·정의·이름 등 다른 계약 편집의 혼합, 명시 C# 본문 편집, 중첩/private·whole/native·postCall wrapper, 복사본/상속/외부 함수가 섞인 여러 closure의 결합은 아직 지원하지 않는다. 이 조합은 기존 입력을 보존하며 거절한다. 함수 변경과 소유 정보의 속성/설명 변경을 함께 제출하는 확대도 이번 단위 밖이다. 결합한 linked source도 기존 64개 한도를 유지한다. 단일 함수의 이전 지원은 그대로다.
 
 7행은 원래 매개변수/출력 계약을 유지하는 오버라이드만 대상으로 한다. 계약을 깨는 변경은 정상 보호이며 독립 계약 복제/새 ID 발급은 필수 복원에서 제외한다(V536_OVERRIDE_CONTRACT_POLICY.md). 직접 소유 함수의 기존 편집과 새 함수 생성은 제한하지 않는다. 9행의 정보/참조/외부 타입 핀과 표시명/native 식별자 분리는 별도다. 현재 함수 문법은 기본 CLR 타입/배열이며, 속성용 타입 catalogue를 단순 표시하는 것만으로 named 함수 계약이 구현되는 것은 아니다. 이 문법/타입 연결 작업은 독립 copy 정책과 무관한 기존 요구의 미구현이다.
 
