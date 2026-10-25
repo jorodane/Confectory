@@ -56,10 +56,10 @@ internal static class InformationFunctionWholeBody
   return new JsonObject{["function"]=format(requested),["implementation"]=format(one),["graph"]=graph,["rootBody"]=new JsonObject{["node"]=nodeId,["source"]=text}};
  }
 
- internal static JsonObject Receipt(string id,string text,JsonObject graph,JsonObject node)
+ internal static JsonObject Receipt(string id,string text,JsonObject graph,JsonObject node,string? qualified=null)
  {
   var returns=graph["nodes"]!.AsArray().Where(n=>n!["kind"]?.ToString()=="export"&&n["output"]?.ToString()=="return").ToArray();
-  return new JsonObject{["graph"]=id,["hash"]=JsonData.HashBytes(System.Text.Encoding.UTF8.GetBytes(text)),["node"]=node["id"]!.DeepClone(),["returnNode"]=returns.Length==1?returns[0]!["id"]!.DeepClone():null};
+  return new JsonObject{["graph"]=id,["hash"]=JsonData.HashBytes(System.Text.Encoding.UTF8.GetBytes(text)),["node"]=qualified is null?node["id"]!.DeepClone():JsonValue.Create(qualified),["returnNode"]=returns.Length==1?returns[0]!["id"]!.DeepClone():null};
  }
  internal static string Caller(string id,JsonObject graph,Element implementation,Element feature,Element changed,JsonObject units,JsonObject plan,JsonObject? selectedNode=null)
  {

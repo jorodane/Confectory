@@ -36,7 +36,7 @@ internal static class InformationFunctionInputUses
  static IEnumerable<Use> Uses(JsonObject graph,Element implementation,JsonObject units,FunctionSignature signature)
  {
   foreach(var item in graph["nodes"]!.AsArray()){
-   var node=item!.AsObject();if(!(node["kind"]?.ToString() is "code" or "set" or "export" or "property" or "property-set" or "property-ref"||SupportedCall(node,graph["feature"]!.ToString(),implementation,units))||node["control"]?.ToString() is not ("next" or "branch" or "switch")||node["implementationContext"] is not null||node["forwardCallerStorage"]?.GetValue<bool>()==true)continue;
+   var node=item!.AsObject();if(!(node["kind"]?.ToString() is "code" or "graph" or "set" or "export" or "property" or "property-set" or "property-ref"||SupportedCall(node,graph["feature"]!.ToString(),implementation,units))||node["control"]?.ToString() is not ("next" or "branch" or "switch")||node["implementationContext"] is not null||node["forwardCallerStorage"]?.GetValue<bool>()==true)continue;
    foreach(var argument in node["arguments"]!.AsObject()){
     var parameter=node["signature"]!["args"]!.AsArray().SingleOrDefault(a=>a!["name"]?.ToString()==argument.Key&&a["mode"]?.ToString()!="out");if(parameter is not null)yield return new(node["id"]!.ToString(),argument.Key,parameter["type"]!.ToString(),node["arguments"]!.AsObject(),argument.Key,parameter["mode"]?.ToString()=="ref",node["id"]!.ToString()+" · "+argument.Key,FeatureBlueprint.IsPropertyNode(node["kind"]?.ToString())&&parameter["type"]!.ToString()=="object");
    }
