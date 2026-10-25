@@ -63,3 +63,31 @@ owner 속성 혼합과 scalar 밖 선택 타입은 별도다. 기존 고정 8행
 분리, I6/B2·A4~A6·M4/M11/M12와 Helper 실제 편집 도구는 별도 후속이다.
 전체 UI·실제 Windows/WebView2·모바일 기기 실행·Library 전달 완료가 아니다.
 사용자 프로젝트·실제 계정·유료 추론은 사용하지 않는다.
+
+## 최종 checkout·패키지 결과
+
+검증한 소스 커밋은 `217f673d7ac36f6278090889fd8702a8ba085dcb`이다. 기존
+CRLF 독립 checkout은 같은 Git blob/커밋·clean 상태와 줄바꿈 변환만 확인했고
+설정은 바꾸지 않았다. Native Release warning/error 0, 일반/미사용 순수 후보와
+실제 API·미사용 독립 창의 4흐름/13확인이 통과했다. 독립 창도 저장·재시작·
+Review 취소/Confirm까지 실제 경로로 검증했다. 제품 UI가 같아 기존 Linux
+엔진은 재사용했고 Native는 각 checkout에서 현재 소스로 빌드했다.
+
+솔루션 및 MCP Release도 warning/error 0이다. 새 win-x64 패키지와 SDK 없는
+runtime-only/다른 cwd에서 packaged engine 기동, 리소스 74개·최소 로그인 화면,
+변조/의존 DLL 누락 거절, 격리 프로필 및 명시 override 보존이 통과했다. 그 안의
+현재 Native로 순수 후보 4확인도 통과했다. 전체 2343개 선언 파일+marker 1개,
+132750131 bytes와 symlink 없음, Core DLL 7개·Native DLL·제품 소스·UI manifest의
+정확한 해시를 확인했다. manifest SHA-256은
+`fb3ef3ef0fae404e3ea2d2920bc9048e415d8ff1cd66f74ae44cc26120f34b53`이다.
+
+새 패키지는 RAM 검증용이다. 전체 manifest와 소스/프로필·로그 증거를 보존하고
+이번에 만든 복사본만 소유/경로 경계를 확인해 정리했다. 전달용 보관 빌드나
+Library 업로드가 아니다. 기존 `e827a52` 보관 패키지·SDK/runtime·기존 자료는
+삭제하지 않았다. 일반 빌더의 기존 출력/캐시 정리는 하지 않았다. 종료 시 여유는
+약 227MiB다. cgroup memory.max 압력을 관측했으나 OOM/oom_kill은 0이었다.
+
+상세 결과는 [checkout/패키지 증거](evidence/v536-information-shared-inputs-with-out/package-clean-verification.json)에 기록한다.
+이후 문서/evidence 전용 커밋은 검증 소스의 실행 코드·현재 Native DLL·UI 리소스를
+바꾸지 않는다. 전체 UI, 실제 Windows apphost/WebView2·모바일 기기 실행 및
+Library 전달 완료로 해석하지 않는다.
