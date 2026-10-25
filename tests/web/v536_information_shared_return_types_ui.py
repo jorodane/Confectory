@@ -4,12 +4,15 @@ import time
 import shutil
 import os
 from playwright.sync_api import sync_playwright,expect
-if os.environ.get('CONFECTORY_SHARED_LOCAL_IMPORTS') == '1':
+if os.environ.get('CONFECTORY_SHARED_IO') == '1':
+    import v536_information_shared_io_fixture as x
+elif os.environ.get('CONFECTORY_SHARED_LOCAL_IMPORTS') == '1':
     import v536_information_shared_local_imports_fixture as x
 else:
     import v536_information_shared_return_types_fixture as x
 
 f,d=x.f,x.d
+combined_io=hasattr(x,'caller_arguments')
 def pending():return [(k,v) for k,v in d.pending() if v['kind']=='function-edit']
 def schema():
     state=f.state()
@@ -68,13 +71,25 @@ try:
         p=popup(x.functions[0]);p.locator('[data-signature-id=arg0] [data-signature-name]').fill('취소한 이름');p.locator('[data-detail-cancel]').click()
         assert not pending()
         for index,fn in enumerate(x.functions):
-            p=popup(fn);p.locator('[data-signature-id=return] [data-signature-type]').click()
+            p=popup(fn)
+            if combined_io:
+                p.locator('[data-signature-id=arg0] [data-signature-type]').click()
+                f.page.get_by_role('dialog',name='속성 타입 선택',exact=True).locator('[data-type=string]').click()
+            p.locator('[data-signature-id='+('arg2' if combined_io else 'return')+'] [data-signature-type]').click()
             f.page.get_by_role('dialog',name='속성 타입 선택',exact=True).locator('[data-type=double]').click()
             f.page.screenshot(path=str(f.case/('shared-return-'+str(index)+'.png')))
             p.get_by_role('button',name='저장',exact=True).click()
-            m=f.page.get_by_role('dialog',name='호출 계약 갱신',exact=True);expect(m).to_be_visible()
+            m=f.page.get_by_role('dialog',name='입력 연결 갱신' if combined_io else '호출 계약 갱신',exact=True);expect(m).to_be_visible()
             m.locator('[data-abi-target^="output:"] [data-abi-input=value]').select_option('pin:real')
-            m.locator('[data-abi-output=return]').select_option('count')
+            if combined_io:
+                for target in m.locator('section[data-abi-target]').all():
+                    key=target.get_attribute('data-abi-target')
+                    if key.startswith('output:'):continue
+                    target.locator('[data-abi-input=amount]').select_option('value')
+                    target.locator('[data-abi-value=amount]').fill(x.replacement if key.startswith('use:') else x.text_value)
+                m.locator('[data-abi-disconnect=amount]').select_option('disconnect')
+                m.locator('[data-abi-output=count]').select_option('return')
+            else:m.locator('[data-abi-output=return]').select_option('count')
             f.page.screenshot(path=str(f.case/('shared-return-mapping-'+str(index)+'.png')))
             m.locator('[data-abi-remap-accept]').click();expect(m).to_have_count(0);f.idle()
         held=pending();assert len(held)==2
@@ -151,7 +166,7 @@ try:
             finally:checkpoint.chmod(0o600)
             f.checked('화면 checkpoint 실패는 양쪽 계약·공유 caller 전체 미적용과 입력 보존 후 재시도를 허용한다')
         if x.mode=='retry':
-            p=popup(x.functions[1]);p.locator('[data-signature-id=arg0] [data-signature-type]').click()
+            p=popup(x.functions[1]);p.locator('[data-signature-id='+('arg1' if combined_io else 'arg0')+'] [data-signature-type]').click()
             types=f.page.get_by_role('dialog',name='속성 타입 선택',exact=True);types.locator('[data-type=string]').click()
             p.get_by_role('button',name='저장',exact=True).click()
             remap_cancel=f.page.locator('[data-abi-remap-cancel]');expect(remap_cancel).to_be_visible()
@@ -159,7 +174,7 @@ try:
             mark=len(f.traffic);f.owner().locator('[data-element-action=save]').click();wait('blueprint',mark,'applySlots',False)
             assert len(pending())==2 and checkpoint.read_bytes()==baseline;preserved()
             f.owner().locator('[data-own-functions-toggle]').press('Control+z');assert pending()==held
-            f.checked('마지막 함수 입력 타입 혼합 거절은 양쪽 입력을 보존하고 Undo 후 원래 기준으로 명시 재시도한다')
+            f.checked('마지막 함수의 미완성 대응 거절은 양쪽 입력을 보존하고 Undo 후 원래 기준으로 명시 재시도한다')
         mark=len(f.traffic);f.owner().locator('[data-element-action=save]').click();wait('blueprint',mark,'applySlots');saved()
         x.verify(checkpoint);preserved();restart(2);assert not pending();x.verify(checkpoint)
         review=d.review();review.locator('[data-reject]').click();preserved();review=d.review()
@@ -171,10 +186,11 @@ try:
         for fn,sig in zip(x.functions,x.nexts):assert x.n.canonical(next(row for row in schema()['ownFunctions'] if row['id']==fn)['signature'])==sig
         x.verify_live()
         calls=json.loads((f.project/'caller.graph.json').read_text())['nodes']
-        assert calls[1]['arguments']=={'amount':x.binding('invoke',x.destination),'real':{'constant':2.5}}
-        assert json.loads((f.project/'caller.graph.json').read_text())['exits']['return']==x.binding('invoke_second',x.destination)
+        assert calls[1]['arguments']==(x.caller_arguments(1) if combined_io else {'amount':x.binding('invoke',x.destination),'real':{'constant':2.5}})
+        assert json.loads((f.project/'caller.graph.json').read_text())['exits']==(x.caller_exits() if combined_io else {'return':x.binding('invoke_second',x.destination)})
         for fn in x.functions:
-            expect(f.owner().locator('[data-inline-method="'+fn+'"] [data-pin-side=outputs] [data-function-pin-name="결과"]')).to_have_attribute('data-function-pin-type','실수')
+            expect(f.owner().locator('[data-inline-method="'+fn+'"] [data-pin-side=outputs] [data-function-pin-name="'+('count' if combined_io else '결과')+'"]')).to_have_attribute('data-function-pin-type','실수')
+            if combined_io:expect(f.owner().locator('[data-inline-method="'+fn+'"] [data-pin-side=inputs] [data-function-pin-name=amount]')).to_have_attribute('data-function-pin-type','글자')
             for name in x.removed:
                 label='결과' if name=='return' else name
                 expect(f.owner().locator('[data-inline-method="'+fn+'"] [data-pin-side=outputs] [data-function-pin-name="'+label+'"]')).to_have_count(0)
@@ -188,8 +204,11 @@ try:
         assert not f.errors and not f.external,(f.errors,f.external)
         f.browser.close()
 except Exception:
+    failure={'traffic':f.traffic[-80:],'checks':f.checks}
+    try:failure['pending']=f.pending()
+    except Exception:failure['pendingUnavailableAfterContextClose']=True
+    (f.case/'shared-return-types-failure.json').write_text(json.dumps(failure,ensure_ascii=False,indent=2))
     try:
-        (f.case/'shared-return-types-failure.json').write_text(json.dumps({'pending':f.pending(),'traffic':f.traffic[-35:]},ensure_ascii=False,indent=2))
         f.page.screenshot(path=str(f.case/'failure.png'))
     except Exception:pass
     raise

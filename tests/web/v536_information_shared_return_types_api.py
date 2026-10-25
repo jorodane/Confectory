@@ -2,7 +2,9 @@
 import copy
 import json
 import os
-if os.environ.get('CONFECTORY_SHARED_LOCAL_IMPORTS') == '1':
+if os.environ.get('CONFECTORY_SHARED_IO') == '1':
+    import v536_information_shared_io_fixture as x
+elif os.environ.get('CONFECTORY_SHARED_LOCAL_IMPORTS') == '1':
     import v536_information_shared_local_imports_fixture as x
 else:
     import v536_information_shared_return_types_fixture as x
@@ -58,8 +60,8 @@ try:
         for fn,sig in zip(x.functions,x.nexts):assert x.n.canonical(next(row for row in sc['ownFunctions'] if row['id']==fn)['signature'])==sig
         x.verify_live()
         call=json.loads((f.project/'caller.graph.json').read_text())
-        assert call['nodes'][1]['arguments']=={'amount':x.binding('invoke',x.destination),'real':{'constant':2.5}}
-        assert call['exits']['return']==x.binding('invoke_second',x.destination)
+        assert call['nodes'][1]['arguments']==(x.caller_arguments(1) if hasattr(x,'caller_arguments') else {'amount':x.binding('invoke',x.destination),'real':{'constant':2.5}})
+        assert call['exits']==(x.caller_exits() if hasattr(x,'caller_exits') else {'return':x.binding('invoke_second',x.destination)})
         header=(f.project/'CallerBody.celem').read_text();signature='('+', '.join((a.get('mode','')+' '+a['type']).strip() for a in x.new['args'])+') -> '+x.new['return']+';';assert header.count(signature)==2,header
         for path,raw in x.snapshot.items():
             if path not in {'FreeInfo.celem','CallerBody.celem','caller.graph.json','function.graph.json','function.node.json','second.graph.json','second.node.json',
