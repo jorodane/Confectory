@@ -32,3 +32,5 @@
 로컬 Windows 패키지는 `/workspace/artifacts/v536-information-contexts/Windows-x64`이며 실행 진입점은 `Confectory.exe`다. manifest 2,336개(자기 manifest 포함 실제 2,337개)의 모든 해시와 변경 소스 5개·Native/Core DLL 2개의 root 바이트 일치를 확인했다([기록](evidence/v536-information-contexts/package-bytes.json)). manifest SHA-256은 `b2fca70b91320ad343ade4204826fa0280900243d758ae4c2d7729b51c2c2fd7`다.
 
 패키지 검사는 SDK 없는 격리 runtime·관계없는 작업 디렉터리에서 managed 엔진 기동·74 리소스·최소 로그인 화면, 변조/의존성 누락 거절과 기존 fixture profile/명시 override 보존을 통과했다([기록](evidence/v536-information-contexts/package-probe.json)). 실제 Windows apphost/WebView2나 실제 로그인을 실행한 검사가 아니다. 사용자에게 첨부로 전달하지 않았다. 이 결과를 기록하는 후속 문서 커밋은 실행 소스를 변경하지 않으므로 위 패키지와 실행 코드가 같다.
+
+후속 고정 C1/C3/C4의 직접 소유 수용 경계와 현재 잔여는 `V536_I5_6_RETAINED_SCOPE.md` 및 `VALIDATION_V536_INFORMATION_RETAINED.md`로 갱신했다. 이 문서의 이전 미완료 기록과 이후 마감 결과를 구별한다.

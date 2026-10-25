@@ -38,7 +38,7 @@ internal static class InformationFunctionInputUses
   foreach(var item in graph["nodes"]!.AsArray()){
    var node=item!.AsObject();if(!(node["kind"]?.ToString() is "code" or "set" or "export" or "property" or "property-set" or "property-ref"||SupportedCall(node,graph["feature"]!.ToString(),implementation,units))||node["control"]?.ToString() is not ("next" or "branch" or "switch")||node["implementationContext"] is not null||node["forwardCallerStorage"]?.GetValue<bool>()==true)continue;
    foreach(var argument in node["arguments"]!.AsObject()){
-    var parameter=node["signature"]!["args"]!.AsArray().SingleOrDefault(a=>a!["name"]?.ToString()==argument.Key&&a["mode"] is null);if(parameter is not null)yield return new(node["id"]!.ToString(),argument.Key,parameter["type"]!.ToString(),node["arguments"]!.AsObject(),argument.Key,false,node["id"]!.ToString()+" · "+argument.Key,FeatureBlueprint.IsPropertyNode(node["kind"]?.ToString())&&parameter["type"]!.ToString()=="object");
+    var parameter=node["signature"]!["args"]!.AsArray().SingleOrDefault(a=>a!["name"]?.ToString()==argument.Key&&a["mode"]?.ToString()!="out");if(parameter is not null)yield return new(node["id"]!.ToString(),argument.Key,parameter["type"]!.ToString(),node["arguments"]!.AsObject(),argument.Key,parameter["mode"]?.ToString()=="ref",node["id"]!.ToString()+" · "+argument.Key,FeatureBlueprint.IsPropertyNode(node["kind"]?.ToString())&&parameter["type"]!.ToString()=="object");
    }
   }
   foreach(var item in graph["locals"]?.AsArray()??new JsonArray())if(item!["source"] is JsonObject source&&source.Count==1&&source["input"] is JsonValue)yield return new("$alias:"+item["id"]!.ToString(),"source",item["type"]!.ToString(),item.AsObject(),"source",true,"별칭 · "+item["name"]!.ToString());
@@ -56,7 +56,7 @@ internal static class InformationFunctionInputUses
     string? contracts=null;
     if(g["nodes"]!.AsArray().Any(n=>FeatureBlueprint.IsPropertyNode(n!["kind"]?.ToString()))){int bytes=0;var seen=new Dictionary<string,string>(OperatingSystem.IsWindows()?StringComparer.OrdinalIgnoreCase:StringComparer.Ordinal);void Observe(string path){var info=new FileInfo(path);if(!info.Exists||info.Length>1048576)throw new ArgumentException("Bounded property source required");string text=File.ReadAllText(path),hash=Hash(text);if(seen.TryGetValue(path,out var before)){if(hash!=before)throw new InvalidOperationException("Property input dependencies changed");}else{seen[path]=hash;bytes=checked(bytes+System.Text.Encoding.UTF8.GetByteCount(text));if(seen.Count>256||bytes>2097152)throw new ArgumentException("Property input dependency budget");}}contracts=new InformationFunctionProperties(request,Observe).ForGraph(impl,g).Proof;}
     foreach(var use in Uses(g,impl,units,fn.Signature!)){
-     var value=use.Container[use.Property];var names=Inputs(value);if(names.Length==0||names.Any(name=>!fn.Signature!.Args.Any(a=>a.Name==name&&a.Mode is null)))continue;
+     var value=use.Container[use.Property];var names=Inputs(value);if(names.Length==0||names.Any(name=>!fn.Signature!.Args.Any(a=>a.Name==name&&!a.IsOut)))continue;
      var entryUse=new JsonObject{["graph"]=id,["node"]=use.Node,["argument"]=use.Argument,["type"]=use.Type,["input"]=names[0],["inputs"]=new JsonArray(names.Select(n=>JsonValue.Create(n)).ToArray()),["storageOnly"]=use.Storage,["inputOnly"]=use.InputOnly,["label"]=use.Label,["hash"]=Hash(unit["draft"]!.ToString()),["before"]=value!.ToJsonString()};if(contracts is not null)entryUse["contracts"]=contracts;result.Add(id+"#"+use.Node+"#"+use.Argument,entryUse);if(result.Count>64)throw new ArgumentException("Input use selection budget");
     }
    }
@@ -69,9 +69,9 @@ internal static class InformationFunctionInputUses
   foreach(var pair in plans){var p=pair.Value!.AsObject();if(p["graph"]?.ToString()!=id)continue;
    if(pair.Key!=id+"#"+p["node"]?.ToString()+"#"+p["argument"]?.ToString()||p.Count!=(contracts is null?6:7)||p["contracts"]?.ToString()!=contracts||p.Any(v=>v.Key is not ("graph" or "node" or "argument" or "hash" or "before" or "value" or "contracts"))||p["hash"]?.ToString()!=Hash(text)||!sites.TryGetValue(pair.Key,out var use))throw new InvalidOperationException("Exact original binding location required; all input retained");
    var binding=use.Container[use.Property];var names=Inputs(binding);
-   if(binding is not JsonObject||p["before"]?.GetValue<string>()!=binding.ToJsonString()||names.Length==0||names.Any(name=>!old.Args.Any(a=>a.Name==name&&a.Mode is null))||!names.Any(name=>remap.ContainsKey(name)&&remap[name] is null))throw new InvalidOperationException("Select the whole original value or alias storage using the removed/replaced input explicitly");
+   if(binding is not JsonObject||p["before"]?.GetValue<string>()!=binding.ToJsonString()||names.Length==0||names.Any(name=>!old.Args.Any(a=>a.Name==name&&!a.IsOut))||!names.Any(name=>remap.ContainsKey(name)&&remap[name] is null))throw new InvalidOperationException("Select the whole original value or alias storage using the removed/replaced input explicitly");
    var choice=p["value"]!.AsObject();JsonObject replacement;
-   if(choice.Count==1&&choice["input"] is JsonValue selected&&selected.TryGetValue<string>(out string? name)&&next.Args.Any(a=>a.Name==name&&a.Type==use.Type&&a.Mode is null))replacement=new JsonObject{["input"]=name};
+   if(choice.Count==1&&choice["input"] is JsonValue selected&&selected.TryGetValue<string>(out string? name)&&next.Args.Any(a=>a.Name==name&&a.Type==use.Type&&!a.IsOut))replacement=new JsonObject{["input"]=name};
    else if(!use.Storage&&!use.InputOnly&&choice.Count==1&&choice["valueJson"] is JsonValue literal&&literal.TryGetValue<string>(out var json)&&json.Length<=65536){using var parsed=System.Text.Json.JsonDocument.Parse(json);replacement=new JsonObject{["constant"]=JsonNode.Parse(parsed.RootElement.GetRawText())};}
    else throw new InvalidOperationException("An exact compatible current input storage or explicit value is required; aliases never become value copies");
    use.Container[use.Property]=null;restorations.Add(new JsonObject{["node"]=use.Node,["argument"]=use.Argument,["storage"]=use.Storage,["value"]=replacement});if(!used.Add(pair.Key))throw new ArgumentException("Duplicate binding selection");
@@ -86,6 +86,6 @@ internal static class InformationFunctionInputUses
    else{container=graph["nodes"]!.AsArray().Single(n=>n!["id"]?.ToString()==id)!["arguments"]!.AsObject();name=arg;}
    if(!container.ContainsKey(name)||container[name] is not null)throw new InvalidOperationException("Selected binding changed during preparation");container[name]=row["value"]!.DeepClone();
   }
-  foreach(var row in rows.Where(v=>v!["storage"]!.GetValue<bool>())){string id=row!["node"]!.ToString()[7..];var local=graph["locals"]!.AsArray().Single(v=>v!["id"]!.ToString()==id)!;if(graph["locals"]!.AsArray().Any(v=>v!["id"]!.ToString()!=id&&JsonNode.DeepEquals(v["source"],local["source"])))throw new InvalidOperationException("Selected storage already has an alias; preserve every existing name and use");}
+  foreach(var row in rows.Where(v=>v!["storage"]!.GetValue<bool>()&&v["node"]!.ToString().StartsWith("$alias:",StringComparison.Ordinal))){string id=row!["node"]!.ToString()[7..];var local=graph["locals"]!.AsArray().Single(v=>v!["id"]!.ToString()==id)!;if(graph["locals"]!.AsArray().Any(v=>v!["id"]!.ToString()!=id&&JsonNode.DeepEquals(v["source"],local["source"])))throw new InvalidOperationException("Selected storage already has an alias; preserve every existing name and use");}
  }
 }

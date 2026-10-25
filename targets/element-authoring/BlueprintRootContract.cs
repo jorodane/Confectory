@@ -4,7 +4,7 @@ using Confectory.Core;
 // Pure, bounded root contract preparation. No file writes, source stamping or execution.
 static class BlueprintRootContract
 {
- public static JsonObject Prepare(JsonObject request,Func<Element,string> format)
+ public static JsonObject Prepare(JsonObject request,Func<Element,string> format,IReadOnlySet<string>? coordinated=null)
  {
   var function=new Parser(request["functionText"]!.GetValue<string>(),"<root-function>").ParseElement();
   var implementation=new Parser(request["text"]!.GetValue<string>(),"<root-implementation>").ParseElement();
@@ -49,7 +49,7 @@ static class BlueprintRootContract
    }else if(graph["edges"]!.AsArray().Count!=0)throw new InvalidOperationException("Preserve the whole-body void termination");
    nativeSignature=new FunctionSignature(nativeSignature.Args.Select((p,i)=>new Parameter(p.Type,p.Name,function.Signature.Args[i].Mode)).ToList(),nativeSignature.Return);
    implementation.Signature=nativeSignature;node["signature"]=FeatureBlueprint.SignatureDocument(nativeSignature);node["implementationContext"]=FeatureBlueprint.ImplementationContext(implementation);
-  }else if(nodes.Any(n=>n!["implementationContext"] is not null||n["forwardCallerStorage"]?.GetValue<bool>()==true))throw new InvalidOperationException("Whole-body caller-storage root needs coordinated body conversion; sources retained");
+  }else if(nodes.Any(n=>(n!["implementationContext"] is not null||n["forwardCallerStorage"]?.GetValue<bool>()==true)&&coordinated?.Contains(n["id"]!.ToString())!=true))throw new InvalidOperationException("Whole-body caller-storage root needs coordinated body conversion; sources retained");
   var removed=new HashSet<string>(StringComparer.Ordinal);var declared=FeatureBlueprint.FeatureOutputs(function.Signature!).ToDictionary(p=>p.Name,p=>p.Type,StringComparer.Ordinal);
   if(plan["removeOutputs"] is JsonArray removals){if(removals.Count>65)throw new ArgumentException("Output removal budget");var originalOutputs=FeatureBlueprint.FeatureOutputs(old).Select(p=>p.Name).ToHashSet(StringComparer.Ordinal);foreach(var item in removals){string name=item!.GetValue<string>();if(!originalOutputs.Contains(name)||declared.ContainsKey(name)||!removed.Add(name))throw new ArgumentException("Remove only explicitly selected original outputs, also absent from the new signature");}}
   bool outputGraphChanged=removed.Count>0||plan["outputCreates"] is not null||plan["outputRoutes"] is not null||plan.ContainsKey("outputEntry");
@@ -67,7 +67,7 @@ static class BlueprintRootContract
   // Existing slots still use old input names. Explicit output replacements and
   // new assignments already use the selected current signature and must never
   // be remapped a second time (including swapped input names).
-  foreach(var node in nodes)if(!outputBindings.ContainsKey(node!["id"]!.ToString())&&!(plan["outputCreates"] is JsonArray currentCreates&&currentCreates.Any(row=>row!["node"]?.ToString()==node["id"]!.ToString())))Inputs(node!["arguments"]);
+  foreach(var node in nodes)if(coordinated?.Contains(node!["id"]!.ToString())!=true&&!outputBindings.ContainsKey(node!["id"]!.ToString())&&!(plan["outputCreates"] is JsonArray currentCreates&&currentCreates.Any(row=>row!["node"]?.ToString()==node["id"]!.ToString())))Inputs(node!["arguments"]);
   Inputs(graph["locals"]);foreach(var exit in graph["exits"]!.AsObject())if(!outputBindings.ContainsKey("$exit:"+exit.Key))Inputs(exit.Value);
   string? Output(string name){if(name=="return")return adaptedName=="return"||boundTypes.ContainsKey("return")||function.Signature!.Return==old.Return||old.Return=="void"&&function.Signature!.Return!="void"&&plan["outputCreates"] is JsonArray addedReturns&&addedReturns.Any(row=>row!["output"]?.ToString()=="return")?"return":null;var previous=old.Args.SingleOrDefault(p=>p.Name==name&&p.Mode=="out");return previous is null?null:remap[name]?.GetValue<string>();}
   var exits=new JsonObject();foreach(var item in graph["exits"]!.AsObject()){string? name=Output(item.Key);if(name is null){if(item.Value is not null||nodes.Any(n=>n!["kind"]?.ToString()=="export"&&n["output"]?.ToString()==item.Key)||graph["edges"]!.AsArray().Any(e=>e!["to"]?.ToString()=="exit:"+item.Key)||graph["entry"]?.ToString()=="exit:"+item.Key)throw new InvalidOperationException("Disconnect existing output nodes/routes before changing or removing a root output");continue;}exits[name]=item.Value?.DeepClone();}

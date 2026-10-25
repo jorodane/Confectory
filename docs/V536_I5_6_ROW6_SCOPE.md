@@ -11,3 +11,5 @@
 후속 직접 소유 전체 본문의 타입·핀 수·값/ref/out·반환 편집은 `V536_I5_6_WHOLE_CONTRACT_SCOPE.md`와 `VALIDATION_V536_INFORMATION_WHOLE_CONTRACT.md`에 검증 범위를 분리했다. 전체 본문 caller의 자신의 ABI를 유지한 프로젝트 소유 import·수동 C# 갱신은 `VALIDATION_V536_INFORMATION_CONTEXTS.md`의 후속 단위다.
 
 현재 남은 6행 조작은 추가 callee 노드·locals/별칭, 별도 `forwardCallerStorage`, postCall의 명시 source/helpers 갱신이다. 이들은 현재 단위가 안전하게 거절하며 이를 완료로 계산하지 않는다. 등록/상속/copy 출처와 import receipt는 고정 7행, 중첩 private path는 5행, 공유 caller의 여러 함수는 8행, 고급 타입/표시명은 9행으로 유지한다.
+
+후속 고정 C1/C3/C4의 직접 소유 수용 경계와 현재 잔여는 `V536_I5_6_RETAINED_SCOPE.md` 및 `VALIDATION_V536_INFORMATION_RETAINED.md`로 갱신했다. 이 문서의 이전 미완료 기록과 이후 마감 결과를 구별한다.
