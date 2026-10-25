@@ -4,7 +4,9 @@ import time
 import shutil
 import os
 from playwright.sync_api import sync_playwright,expect
-if os.environ.get('CONFECTORY_SHARED_MIXED_TYPES') == '1':
+if os.environ.get('CONFECTORY_SHARED_INPUTS_WITH_OUT') == '1':
+    import v536_information_shared_inputs_with_out_fixture as x
+elif os.environ.get('CONFECTORY_SHARED_MIXED_TYPES') == '1':
     import v536_information_shared_mixed_types_fixture as x
 elif os.environ.get('CONFECTORY_SHARED_IO') == '1':
     import v536_information_shared_io_fixture as x
@@ -84,7 +86,8 @@ try:
                 f.page.get_by_role('dialog',name='속성 타입 선택',exact=True).locator('[data-type=double]').click()
             f.page.screenshot(path=str(f.case/('shared-return-'+str(index)+'.png')))
             p.get_by_role('button',name='저장',exact=True).click()
-            m=f.page.get_by_role('dialog',name='입력 연결 갱신' if input_changed else '호출 계약 갱신',exact=True);expect(m).to_be_visible()
+            has_uses=input_changed and (not hasattr(x,'usage_replacement_required') or x.usage_replacement_required(index))
+            m=f.page.get_by_role('dialog',name='입력 연결 갱신' if has_uses else '호출 계약 갱신',exact=True);expect(m).to_be_visible()
             if output_changed:m.locator('[data-abi-target^="output:"] [data-abi-input=value]').select_option('pin:real')
             if input_changed:
                 for target in m.locator('section[data-abi-target]').all():

@@ -2,7 +2,9 @@
 import copy
 import json
 import os
-if os.environ.get('CONFECTORY_SHARED_MIXED_TYPES') == '1':
+if os.environ.get('CONFECTORY_SHARED_INPUTS_WITH_OUT') == '1':
+    import v536_information_shared_inputs_with_out_fixture as x
+elif os.environ.get('CONFECTORY_SHARED_MIXED_TYPES') == '1':
     import v536_information_shared_mixed_types_fixture as x
 elif os.environ.get('CONFECTORY_SHARED_IO') == '1':
     import v536_information_shared_io_fixture as x
@@ -23,7 +25,9 @@ try:
     f.start(0);f.invoke('select',{'id':x.owner});f.invoke('saveDraft',{})
     checkpoint=next(f.project.glob('.confectory/edit-workspaces/*/draft.json'))
     baseline=checkpoint.read_bytes();request=prepare()
-    bad=copy.deepcopy(request);next(iter(bad['declaration']['changes'][1]['mapping']['outputs'].values()))['source']={'input':'amount'}
+    bad=copy.deepcopy(request);last=bad['declaration']['changes'][1]['mapping']
+    if 'outputs' in last:next(iter(last['outputs'].values()))['source']={'input':'amount'}
+    else:next(iter(last['implementations'].values()))['value']={'valueJson':'"long 아닌 값"'}
     rpc('applySlots',False,**bad)
     assert checkpoint.read_bytes()==baseline;x.unchanged()
     f.checked('실제 서버는 두 번째 계약 오류에서 첫 함수와 공유 caller도 checkpoint에 남기지 않는다')

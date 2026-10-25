@@ -96,3 +96,5 @@ SDK/runtime·로그·스크린샷·fixture는 삭제하지 않았다. 기존 보
 실행 코드·Native DLL·UI 리소스를 바꾸지 않으므로 실행 파일 동등성을 유지한다.
 자세한 결과는 [checkout/패키지 증거](evidence/v536-information-shared-mixed-types/package-clean-verification.json)에 있다.
 Windows apphost/WebView2·실제 모바일 기기 실행과 Library 전달은 미검증이다.
+
+후속 현재 상태: 이 문서에서 별도로 남긴 out 유지 입력 타입 전용 그룹은 [out 유지 입력 타입 단위](VALIDATION_V536_INFORMATION_SHARED_INPUTS_WITH_OUT.md)로 이어진다. 위 결과는 이전 게시 단위 기록이며 최신 지원/잔여는 고정 수용 표를 따른다.

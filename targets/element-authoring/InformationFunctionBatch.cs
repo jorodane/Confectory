@@ -59,13 +59,17 @@ internal sealed class InformationFunctionBatch
     foreach(var plan in callers.Select(p=>p.Value!.AsObject()))if(plan["inputs"] is not JsonObject inputs||inputs.Count!=before.Args.Count(a=>!a.IsOut)||before.Args.Where(a=>!a.IsOut).Any(a=>inputs[a.Name]?.ToString()!=a.Name)||plan["disconnect"] is not JsonObject disconnect||disconnect.Count!=0||plan["outputs"] is not JsonObject)throw new InvalidOperationException("Retain caller inputs and explicitly map every original output");
     projections.Add(row["id"]!.ToString(),callers.DeepClone().AsObject());
    }
-  }else if(outputTyped){
+  }else if(outputTyped||(typed&&hasOutputs)){
    // Each original closure owns its own selections. An input-only edit does
    // not grant an output rebind, nor does an output-only edit replace inputs.
+   // Unchanged out pins still require the explicit input closure, not the
+   // identity-only out-name path. No output selection is added for them.
    if(typed&&functions.Any(id=>!inputTypes.Contains(id)&&!outputTypes.Contains(id)))throw new InvalidOperationException("Select scalar type edits for every grouped function; other input retained");
    foreach(var row in edits){var mapping=row!["mapping"]!.AsObject();var before=InformationFunctionBodies.Signature(mapping["before"]!);var next=InformationFunctionBodies.Signature(row["signature"]!);
-    string id=row["id"]!.ToString();bool inputsChanged=inputTypes.Contains(id),outputsChanged=outputTypes.Contains(id)||returns.Contains(id);
-    if(mapping.Count!=3+(inputsChanged?1:0)+(outputsChanged?1:0)||mapping["callers"] is not JsonObject callers||(outputsChanged?mapping["outputs"] is not JsonObject:mapping.ContainsKey("outputs"))||(inputsChanged?mapping["implementations"] is not JsonObject:mapping.ContainsKey("implementations"))||before.Args.Select((a,i)=>a.Name!=next.Args[i].Name||!inputsChanged&&!a.IsOut&&a.Type!=next.Args[i].Type).Any(v=>v))throw new InvalidOperationException("Shared scalar input/output types retain every pin identity and require original binding/writer/caller selections");
+    string id=row["id"]!.ToString();bool inputsChanged=inputTypes.Contains(id),outputsChanged=outputTypes.Contains(id)||returns.Contains(id),inputPlans=mapping["implementations"] is JsonObject;
+    // The UI omits this object when there are no callee uses. Prepare below
+    // still checks every original use and rejects any missing replacement.
+    if(mapping.Count!=3+(inputPlans?1:0)+(outputsChanged?1:0)||mapping["callers"] is not JsonObject callers||(outputsChanged?mapping["outputs"] is not JsonObject:mapping.ContainsKey("outputs"))||mapping.ContainsKey("implementations")&&(!inputsChanged||!inputPlans)||before.Args.Select((a,i)=>a.Name!=next.Args[i].Name||!inputsChanged&&!a.IsOut&&a.Type!=next.Args[i].Type).Any(v=>v))throw new InvalidOperationException("Shared scalar input/output types retain every pin identity and require original binding/writer/caller selections");
     foreach(var plan in callers.Select(p=>p.Value!.AsObject()))if(plan["inputs"] is not JsonObject inputs||inputs.Count!=before.Args.Count(a=>!a.IsOut)||plan["disconnect"] is not JsonObject disconnect||!inputsChanged&&(before.Args.Where(a=>!a.IsOut).Any(a=>inputs[a.Name]?.ToString()!=a.Name)||disconnect.Count!=0)||(outputsChanged?plan["outputs"] is not JsonObject:plan.ContainsKey("outputs")))throw new InvalidOperationException("Select exact caller inputs, removed bindings and compatible outputs explicitly");
     if(outputsChanged)projections.Add(id,callers.DeepClone().AsObject());
    }

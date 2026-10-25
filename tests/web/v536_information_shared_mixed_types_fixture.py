@@ -43,15 +43,17 @@ def caller_arguments(index, signatures=None):
     return result
 
 
-def caller_exits():
-    return {'return': {'node': 'invoke_second'}}
+def caller_exits(signatures=None):
+    signatures = signatures or nexts
+    return ({'return': {'node': 'invoke_second'}} if signatures[1]['args'][2]['type'] != old['args'][2]['type']
+            else copy.deepcopy(graph['exits']))
 
 
 def verify_rows(rows, signatures=None):
     signatures = signatures or nexts
     caller = json.loads(rows[n.caller+'Body/body:common']['draft'])
     assert caller['edges'] == graph['edges'] and caller['entry'] == graph['entry']
-    assert caller['exits'] == caller_exits()
+    assert caller['exits'] == caller_exits(signatures)
     for index, (fn, signature) in enumerate(zip(functions, signatures)):
         assert n.canonical(f.metadata('inspect', text=rows[fn]['draft'])['signature']) == signature
         assert caller['nodes'][index]['signature'] == signature
@@ -73,15 +75,15 @@ def verify_rows(rows, signatures=None):
         assert f.metadata('blueprintOutputSnapshot', functionText=rows[fn]['draft'])['fields'][0]['type'] == signature['args'][2]['type']
 
 
-def verify(checkpoint):
+def verify(checkpoint, signatures=None):
     rows = {row['id']: row for row in json.loads(checkpoint.read_text())['changes']}
-    verify_rows(rows)
+    verify_rows(rows, signatures)
     unchanged()
     group = rows[owner]['atomicEditGroup']
     assert set(functions+[fn+'Body/body:common' for fn in functions]+[n.caller+'Body', n.caller+'Body/body:common', owner]) <= set(group)
     return group
 
 
-def verify_live():
+def verify_live(signatures=None):
     units = f.metadata('describe', project=str(f.manifest))['units']
-    verify_rows({row['id']: {'draft': (f.project/row['path']).read_text()} for row in units})
+    verify_rows({row['id']: {'draft': (f.project/row['path']).read_text()} for row in units}, signatures)
