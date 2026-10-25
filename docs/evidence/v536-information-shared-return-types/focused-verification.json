@@ -1,0 +1,140 @@
+{
+  "baselineCommit": "dc7097509bf8b29258efe31124ecf4d108f1b602",
+  "focusedChecks": 27,
+  "impactChecks": 18,
+  "nativeBuildWarnings": 0,
+  "nativeBuildErrors": 0,
+  "uiSourceChanges": false,
+  "copyPolicyUsed": false,
+  "actualWindows": false,
+  "results": [
+    {
+      "name": "pure",
+      "exit": 0,
+      "elapsedSeconds": 12.4,
+      "minimumWorkspaceAvailableBytesSampled": 422322176,
+      "peakMemoryBytesSampled": 15947993088,
+      "checks": 4
+    },
+    {
+      "name": "api-normal",
+      "exit": 0,
+      "elapsedSeconds": 32.5,
+      "minimumWorkspaceAvailableBytesSampled": 422019072,
+      "peakMemoryBytesSampled": 16143159296,
+      "checks": 3
+    },
+    {
+      "name": "ui-primary",
+      "exit": 0,
+      "elapsedSeconds": 61.6,
+      "minimumWorkspaceAvailableBytesSampled": 421642240,
+      "peakMemoryBytesSampled": 16873500672,
+      "checks": 2
+    },
+    {
+      "name": "api-source",
+      "exit": 0,
+      "elapsedSeconds": 11.0,
+      "minimumWorkspaceAvailableBytesSampled": 420474880,
+      "peakMemoryBytesSampled": 16070701056,
+      "checks": 2
+    },
+    {
+      "name": "ui-view",
+      "exit": 0,
+      "elapsedSeconds": 72.0,
+      "minimumWorkspaceAvailableBytesSampled": 420134912,
+      "peakMemoryBytesSampled": 16892190720,
+      "checks": 2
+    },
+    {
+      "name": "ui-storage",
+      "exit": 0,
+      "elapsedSeconds": 80.2,
+      "minimumWorkspaceAvailableBytesSampled": 419057664,
+      "peakMemoryBytesSampled": 16857337856,
+      "checks": 3
+    },
+    {
+      "name": "ui-loss",
+      "exit": 0,
+      "elapsedSeconds": 45.7,
+      "minimumWorkspaceAvailableBytesSampled": 417894400,
+      "peakMemoryBytesSampled": 16784818176,
+      "checks": 2
+    },
+    {
+      "name": "ui-cancel",
+      "exit": 0,
+      "elapsedSeconds": 35.9,
+      "minimumWorkspaceAvailableBytesSampled": 416817152,
+      "peakMemoryBytesSampled": 16825065472,
+      "checks": 2
+    },
+    {
+      "name": "ui-conflict",
+      "exit": 0,
+      "elapsedSeconds": 25.3,
+      "minimumWorkspaceAvailableBytesSampled": 415916032,
+      "peakMemoryBytesSampled": 16842330112,
+      "checks": 2
+    },
+    {
+      "name": "ui-projects",
+      "exit": 0,
+      "elapsedSeconds": 34.7,
+      "minimumWorkspaceAvailableBytesSampled": 414924800,
+      "peakMemoryBytesSampled": 16842375168,
+      "checks": 2
+    },
+    {
+      "name": "ui-retry",
+      "exit": 0,
+      "elapsedSeconds": 76.2,
+      "minimumWorkspaceAvailableBytesSampled": 413622272,
+      "peakMemoryBytesSampled": 16866521088,
+      "checks": 3
+    },
+    {
+      "name": "impact-input-names",
+      "exit": 0,
+      "elapsedSeconds": 5.8,
+      "minimumWorkspaceAvailableBytesSampled": 412454912,
+      "peakMemoryBytesSampled": 15953952768,
+      "checks": 4
+    },
+    {
+      "name": "impact-input-types",
+      "exit": 0,
+      "elapsedSeconds": 8.8,
+      "minimumWorkspaceAvailableBytesSampled": 412160000,
+      "peakMemoryBytesSampled": 15962963968,
+      "checks": 4
+    },
+    {
+      "name": "impact-output-names",
+      "exit": 0,
+      "elapsedSeconds": 7.6,
+      "minimumWorkspaceAvailableBytesSampled": 411860992,
+      "peakMemoryBytesSampled": 15956836352,
+      "checks": 3
+    },
+    {
+      "name": "impact-output-types",
+      "exit": 0,
+      "elapsedSeconds": 12.0,
+      "minimumWorkspaceAvailableBytesSampled": 411566080,
+      "peakMemoryBytesSampled": 15964508160,
+      "checks": 4
+    },
+    {
+      "name": "impact-definitions",
+      "exit": 0,
+      "elapsedSeconds": 11.8,
+      "minimumWorkspaceAvailableBytesSampled": 411271168,
+      "peakMemoryBytesSampled": 15964352512,
+      "checks": 3
+    }
+  ]
+}

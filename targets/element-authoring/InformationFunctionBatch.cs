@@ -23,9 +23,9 @@ internal sealed class InformationFunctionBatch
   }
   var edits=changes.Where(ContractEdit).ToArray();
   if(edits.Length<2)return null;
-  if(edits.Length>8||changes.Count!=edits.Length)throw new InvalidOperationException("Save up to eight direct function input contracts together; other input is retained");
+  if(edits.Length>8||changes.Count!=edits.Length)throw new InvalidOperationException("Save up to eight direct function contracts together; other input is retained");
   var units=request["units"]?.AsObject()??throw new InvalidOperationException("Read every shared caller before saving the function group");if(units.Count>2048)throw new ArgumentException("Shared contract source budget");
-  var functions=new HashSet<string>(StringComparer.Ordinal);var structures=new HashSet<string>(StringComparer.Ordinal);bool typed=false,hasOutputs=false,outputTyped=false;
+  var functions=new HashSet<string>(StringComparer.Ordinal);var structures=new HashSet<string>(StringComparer.Ordinal);var returns=new HashSet<string>(StringComparer.Ordinal);bool typed=false,hasOutputs=false,outputTyped=false;
   bool Scalar(string type)=>type is "bool" or "int" or "long" or "float" or "double" or "string";
   foreach(var row in edits){
    string id=row!["id"]!.ToString();if(!functions.Add(id))throw new ArgumentException("One explicit edit per function identity required");
@@ -43,9 +43,14 @@ internal sealed class InformationFunctionBatch
     if(retained.Any(a=>remap[a.Name]?.ToString()!=a.Name)||!retained.Select(a=>(a.Name,a.Type,a.Mode)).SequenceEqual(next.Args.Where(b=>retained.Any(a=>a.Name==b.Name)).Select(b=>(b.Name,b.Type,b.Mode)))||next.Args.Any(b=>b.IsOut&&!retained.Any(a=>a.Name==b.Name)&&!Scalar(b.Type)))throw new InvalidOperationException("Explicitly remove old output identities and preserve every retained pin");
     structures.Add(id);continue;
    }
-   if(before.Return!=next.Return||before.Args.Count!=next.Args.Count)throw new InvalidOperationException("Shared caller batching retains the original return outside coordinated output definitions");
+   if(before.Return!=next.Return){
+    if(!Scalar(before.Return)||!Scalar(next.Return)||!JsonNode.DeepEquals(FeatureBlueprint.SignatureDocument(before)["args"],FeatureBlueprint.SignatureDocument(next)["args"]))throw new InvalidOperationException("Shared scalar return changes retain every original argument contract");
+    returns.Add(id);outputTyped=true;
+   }
+   if(before.Args.Count!=next.Args.Count)throw new InvalidOperationException("Shared caller batching retains original argument identities outside coordinated output definitions");
    for(int i=0;i<before.Args.Count;i++){var a=before.Args[i];var b=next.Args[i];if(a.Mode!=b.Mode)throw new InvalidOperationException("Retain the original input/output roles explicitly");hasOutputs|=a.IsOut;if(a.Type==b.Type){if(remap[a.Name]?.ToString()!=b.Name)throw new InvalidOperationException("Retain each unchanged pin identity explicitly");}else if(a.IsOut){outputTyped=true;if(a.Name!=b.Name||!Scalar(a.Type)||!Scalar(b.Type)||remap[a.Name]?.ToString()!=a.Name)throw new InvalidOperationException("Changed scalar outputs retain their explicit original pin identity");}else{typed=true;if(a.Mode is not null||a.Name!=b.Name||!Scalar(a.Type)||!Scalar(b.Type)||!remap.ContainsKey(a.Name)||remap[a.Name] is not null)throw new InvalidOperationException("Changed scalar inputs need explicit replacement at the same position and name");}}
   }
+  if(returns.Count>0&&returns.Count!=edits.Length)throw new InvalidOperationException("Save scalar return changes separately from other contract changes; retain all input");
   var projections=new Dictionary<string,JsonObject>(StringComparer.Ordinal);
   if(structures.Count>0){
    if(structures.Count!=edits.Length||typed||outputTyped)throw new InvalidOperationException("Keep coordinated output definitions separate from other contract edits; all input retained");
@@ -64,7 +69,7 @@ internal sealed class InformationFunctionBatch
   }else if((hasOutputs&&(typed||edits.Any(row=>row!["mapping"]!.AsObject().Count!=2)))||edits.Any(row=>row!["mapping"]?["outputs"] is not null))throw new InvalidOperationException("Shared output names retain exact types and automatic identity-preserving bindings; other selected input is retained");
   // Out names propagate the explicit old-pin identity through existing semantic
   // bindings. They never select a different output, rewrite C# or replan values.
-  bool independent=typed||hasOutputs||structures.Count>0;
+  bool independent=typed||hasOutputs||structures.Count>0||returns.Count>0;
   foreach(var row in units.Where(p=>p.Value?["kind"]?.ToString()=="implementation")){
    var d=new Parser(row.Value!["draft"]!.ToString(),"<shared-caller-group>").ParseElement();if(!functions.Contains(d.Function!)&&!d.Imports.Values.Any(i=>functions.Contains(i.Id)))continue;
    bool callee=functions.Contains(d.Function!);
