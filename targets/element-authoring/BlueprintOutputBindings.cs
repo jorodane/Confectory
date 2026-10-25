@@ -24,7 +24,10 @@ internal static class BlueprintOutputBindings
   if(binding.ContainsKey("constant")){if(binding.Count!=1)throw new ArgumentException("A replacement literal has its selected exact output type");FeatureBlueprint.ValidateConstant(binding["constant"],type);return;}
   if(binding.Count==1&&binding["input"] is JsonValue input&&input.TryGetValue<string>(out var name)&&signature.Args.Any(a=>!a.IsOut&&a.Name==name&&a.Type==type))return;
   if(binding["node"] is JsonValue source&&source.TryGetValue<string>(out var node)&&binding.Count is 1 or 2&&binding.All(p=>p.Key is "node" or "output")){var found=graph["nodes"]!.AsArray().OfType<JsonObject>().SingleOrDefault(n=>n["id"]?.ToString()==node);if(found is not null&&Outputs(found).Any(p=>p.Name==(binding["output"]?.ToString()??"return")&&p.Type==type))return;}
-  if(binding.Count==1&&binding["local"] is JsonValue local&&local.TryGetValue<string>(out var id)){var found=(graph["locals"] as JsonArray??new()).OfType<JsonObject>().SingleOrDefault(n=>n["id"]?.ToString()==id&&n["type"]?.ToString()==type);if(found is not null){if(found["source"] is not null)Value(graph,signature,found["source"],type,depth+1);return;}}
+  // A selected alias keeps its declared type and identity. Its source is checked
+  // by the complete graph validator after explicit input restorations, so an
+  // intermediate old source never substitutes for the final current binding.
+  if(binding.Count==1&&binding["local"] is JsonValue local&&local.TryGetValue<string>(out var id)&&(graph["locals"] as JsonArray??new()).OfType<JsonObject>().Any(n=>n["id"]?.ToString()==id&&n["type"]?.ToString()==type))return;
   if(binding.Count==1&&binding["binary"] is JsonObject binary&&binary.Count is 2 or 3&&binary.All(p=>p.Key is "operator" or "operands" or "type")&&(binary["type"] is null||binary["type"]!.ToString()==type)&&binary["operands"] is JsonArray operands&&operands.Count==2){
    string op=binary["operator"]?.ToString()??"";
    if(!(type is "int" or "long" or "float" or "double"?op is "+" or "-" or "*" or "/" or "%":type=="string"?op=="+":type=="bool"&&op is "AND" or "OR" or "XOR"))throw new InvalidOperationException("Unsupported output expression operator");
@@ -35,7 +38,7 @@ internal static class BlueprintOutputBindings
  }
  internal static Dictionary<string,Assignment> Prepare(JsonObject graph,FunctionSignature old,FunctionSignature next,JsonObject remap,JsonArray rows)
  {
-  if(rows.Count>384||!old.Args.Where(a=>!a.IsOut).SequenceEqual(next.Args.Where(a=>!a.IsOut)))throw new ArgumentException("Bounded output edits retain their input contract");
+  if(rows.Count>384)throw new ArgumentException("Output assignment budget");
   var wanted=new Dictionary<string,(string Name,string Type,JsonNode? Before)>(StringComparer.Ordinal);var after=FeatureBlueprint.FeatureOutputs(next).ToDictionary(p=>p.Name,p=>p.Type,StringComparer.Ordinal);
   foreach(var output in FeatureBlueprint.FeatureOutputs(old)){string? name=output.Name=="return"?next.Return!="void"?"return":null:remap[output.Name]?.GetValue<string>();if(name is null||!after.TryGetValue(name,out string? type)||type==output.Type)continue;foreach(var writer in Writers(graph,output.Name))wanted.Add(writer.Node,(output.Name,type,writer.Value));}
   if(rows.Count!=wanted.Count)throw new InvalidOperationException("Select every writer and exit of every changed output");var result=new Dictionary<string,Assignment>(StringComparer.Ordinal);

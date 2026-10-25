@@ -43,13 +43,22 @@ internal static class InformationFunctionOutputs
   return sources;
  }
  static void Exact(JsonObject row,params string[] keys){if(row.Count!=keys.Length||row.Any(p=>!keys.Contains(p.Key,StringComparer.Ordinal)))throw new ArgumentException("Exact selected output graph required");}
+ // Called only after Plan has verified all original output hashes/bindings.
+ // Such slots are wholly replaced/deleted, so a second input plan is ambiguous.
+ internal static HashSet<string> ReplacedSlots(JsonObject graph,JsonObject plan)
+ {
+  var slots=new HashSet<string>(StringComparer.Ordinal);
+  foreach(var row in plan["outputBindings"] as JsonArray??new())slots.Add(row!["node"]!.ToString()+"#value");
+  foreach(var name in plan["removeOutputs"] as JsonArray??new())foreach(var writer in BlueprintOutputBindings.Writers(graph,name!.ToString()))slots.Add(writer.Node+"#value");
+  return slots;
+ }
  static JsonObject Structure(string id,string text,JsonObject graph,FunctionSignature old,FunctionSignature next,JsonObject remap,IReadOnlyList<string> published,JsonObject selected)
  {
   Exact(selected,"graph","hash","removes","creates","publicOutputs");if(selected["graph"]?.ToString()!=id||selected["hash"]?.ToString()!=Hash(text))throw new InvalidOperationException("Output graph changed; retain every input");
   var before=FeatureBlueprint.FeatureOutputs(old).ToDictionary(p=>p.Name,p=>p.Type,StringComparer.Ordinal);var after=FeatureBlueprint.FeatureOutputs(next).ToDictionary(p=>p.Name,p=>p.Type,StringComparer.Ordinal);
   string? Destination(string name)=>name=="return"?next.Return!="void"?"return":null:remap[name]?.GetValue<string>();
   var removed=before.Keys.Where(n=>Destination(n) is not string to||!after.ContainsKey(to)).ToHashSet(StringComparer.Ordinal);var retained=before.Keys.Where(n=>!removed.Contains(n)).Select(n=>Destination(n)!).ToHashSet(StringComparer.Ordinal);var added=after.Keys.Where(n=>!retained.Contains(n)).ToHashSet(StringComparer.Ordinal);
-  if(removed.Count+added.Count==0||!old.Args.Where(a=>!a.IsOut).SequenceEqual(next.Args.Where(a=>!a.IsOut))||old.Args.Any(a=>!a.IsOut&&remap[a.Name]?.ToString()!=a.Name||a.IsOut&&removed.Contains(a.Name)&&remap[a.Name] is not null)||!old.Args.Where(a=>a.IsOut&&!removed.Contains(a.Name)).Select(a=>(Name:Destination(a.Name)!,a.Mode)).SequenceEqual(next.Args.Where(a=>a.IsOut&&!added.Contains(a.Name)).Select(a=>(a.Name,a.Mode))))throw new InvalidOperationException("Output definitions retain every other input, type, identity and role");
+  if(removed.Count+added.Count==0||old.Args.Any(a=>a.IsOut&&removed.Contains(a.Name)&&remap[a.Name] is not null)||!old.Args.Where(a=>a.IsOut&&!removed.Contains(a.Name)).Select(a=>(Name:Destination(a.Name)!,a.Mode)).SequenceEqual(next.Args.Where(a=>a.IsOut&&!added.Contains(a.Name)).Select(a=>(a.Name,a.Mode))))throw new InvalidOperationException("Output definitions retain explicitly mapped output identities and roles");
   var expectedPublic=new JsonArray(published.Select(Destination).Where(n=>n is not null&&after.ContainsKey(n)).Select(n=>JsonValue.Create(n)).ToArray());if(!JsonNode.DeepEquals(selected["publicOutputs"],expectedPublic))throw new InvalidOperationException("Remove only the explicitly deleted publication; no new public output is inferred");
   var nodes=graph["nodes"]!.AsArray();if(nodes.Any(n=>n!["control"]?.ToString()!="next"))throw new InvalidOperationException("Select the existing serial output graph; branch regions stay protected");
   var removeRows=selected["removes"]!.AsArray();var createRows=selected["creates"]!.AsArray();if(removeRows.Count!=removed.Count||createRows.Count!=added.Count||removeRows.Count>65||createRows.Count>65)throw new ArgumentException("Select every removed definition and every new assignment");

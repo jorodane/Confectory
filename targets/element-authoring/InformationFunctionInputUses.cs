@@ -63,9 +63,9 @@ internal static class InformationFunctionInputUses
   }
   return result;
  }
- public static JsonArray Detach(string id,string text,JsonObject graph,JsonObject units,FunctionSignature old,FunctionSignature next,JsonObject remap,JsonObject plans,HashSet<string> used,string? contracts=null)
+ public static JsonArray Detach(string id,string text,JsonObject graph,JsonObject units,FunctionSignature old,FunctionSignature next,JsonObject remap,JsonObject plans,HashSet<string> used,string? contracts=null,IReadOnlySet<string>? replacedOutputs=null)
  {
-  var restorations=new JsonArray();string implementationId=id[..id.LastIndexOf("/body:",StringComparison.Ordinal)];var implementation=new Parser(units[implementationId]!["draft"]!.ToString(),"<input-use-implementation>").ParseElement();var sites=Uses(graph,implementation,units,old).ToDictionary(u=>id+"#"+u.Node+"#"+u.Argument,StringComparer.Ordinal);
+  var restorations=new JsonArray();string implementationId=id[..id.LastIndexOf("/body:",StringComparison.Ordinal)];var implementation=new Parser(units[implementationId]!["draft"]!.ToString(),"<input-use-implementation>").ParseElement();var sites=Uses(graph,implementation,units,old).Where(u=>replacedOutputs?.Contains(u.Node+"#"+u.Argument)!=true).ToDictionary(u=>id+"#"+u.Node+"#"+u.Argument,StringComparer.Ordinal);
   foreach(var pair in plans){var p=pair.Value!.AsObject();if(p["graph"]?.ToString()!=id)continue;
    if(pair.Key!=id+"#"+p["node"]?.ToString()+"#"+p["argument"]?.ToString()||p.Count!=(contracts is null?6:7)||p["contracts"]?.ToString()!=contracts||p.Any(v=>v.Key is not ("graph" or "node" or "argument" or "hash" or "before" or "value" or "contracts"))||p["hash"]?.ToString()!=Hash(text)||!sites.TryGetValue(pair.Key,out var use))throw new InvalidOperationException("Exact original binding location required; all input retained");
    var binding=use.Container[use.Property];var names=Inputs(binding);
@@ -78,11 +78,11 @@ internal static class InformationFunctionInputUses
   }
   return restorations;
  }
- public static void Restore(JsonObject graph,JsonArray rows)
+ public static void Restore(JsonObject graph,JsonArray rows,JsonObject? outputRemap=null)
  {
   foreach(var row in rows){string id=row!["node"]!.ToString(),arg=row["argument"]!.ToString(),name;JsonObject container;
    if(id.StartsWith("$alias:",StringComparison.Ordinal)){container=graph["locals"]!.AsArray().Single(v=>v!["id"]!.ToString()==id[7..])!.AsObject();name="source";}
-   else if(id.StartsWith("$exit:",StringComparison.Ordinal)){container=graph["exits"]!.AsObject();name=id[6..];}
+   else if(id.StartsWith("$exit:",StringComparison.Ordinal)){container=graph["exits"]!.AsObject();string original=id[6..];name=original=="return"||outputRemap is null?original:outputRemap[original]?.GetValue<string>()??throw new InvalidOperationException("A removed output cannot restore an input binding");}
    else{container=graph["nodes"]!.AsArray().Single(n=>n!["id"]?.ToString()==id)!["arguments"]!.AsObject();name=arg;}
    if(!container.ContainsKey(name)||container[name] is not null)throw new InvalidOperationException("Selected binding changed during preparation");container[name]=row["value"]!.DeepClone();
   }
