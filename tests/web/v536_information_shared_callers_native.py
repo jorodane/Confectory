@@ -29,5 +29,16 @@ for fault in ['last-type','last-map','missing-source','copy','native-context']:
         unit['draft']=json.dumps(g)
     x.n.prepare(bad,False);x.unchanged()
 x.f.checked('마지막 함수 타입/대응 오류·snapshot 누락·copy/whole 문맥은 첫 계약도 적용하지 않고 거절한다')
+metadata=copy.deepcopy(r);metadata['changes']=[]
+for fn in [x.functions[0],x.n.a.functions[2]]:
+    text=metadata['units'][fn]['draft'];sig=x.n.canonical(x.f.metadata('inspect',text=text)['signature'])
+    metadata['changes'].append({'type':'function-edit','id':fn,'hash':hashlib.sha256(text.encode()).hexdigest(),
+        'name':'설명만 편집','description':'기존 native/ref 구현의 설명 편집 보존','signature':sig,
+        'mapping':{'before':copy.deepcopy(sig),'args':{arg['name']:arg['name'] for arg in sig['args']}}})
+plain=x.n.prepare(metadata);assert len(plain['updates'])==2 and not plain['linkedUpdates'];x.unchanged()
+mixed=copy.deepcopy(r);mixed['changes']=[copy.deepcopy(r['changes'][0]),copy.deepcopy(metadata['changes'][1])]
+one=x.n.prepare(mixed);calls=json.loads(next(row['text'] for row in one['linkedUpdates'] if row['id']==x.n.caller+'Body/body:common'))['nodes']
+assert calls[0]['arguments']['leftAmount']=={'input':'first'} and calls[1]['arguments']['amount']=={'node':'invoke'};x.unchanged()
+x.f.checked('여러 설명 편집과 계약 하나+설명 편집은 기존 native/ref 구현에서도 원래 경로를 유지한다')
 print(json.dumps({'checks':x.f.checks,'evidence':str(x.f.case),'pureCandidate':True,
                   'actualWindows':False,'copyIdentityDecisionUsed':False},ensure_ascii=False))

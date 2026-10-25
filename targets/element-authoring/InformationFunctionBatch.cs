@@ -10,7 +10,14 @@ internal sealed class InformationFunctionBatch
  InformationFunctionBatch(JsonObject request){Request=request.DeepClone().AsObject();originalUnits=request["units"]!.AsObject();}
  public static InformationFunctionBatch? Begin(JsonObject request,JsonArray changes)
  {
-  var edits=changes.Where(row=>row?["type"]?.ToString()=="function-edit"&&row["mapping"] is JsonObject).ToArray();
+  bool ContractEdit(JsonNode? row){
+   if(row?["type"]?.ToString()!="function-edit"||row["mapping"] is not JsonObject mapping)return false;
+   if((mapping["bodies"] as JsonObject)?.Count>0)return true;
+   // Metadata-only edits keep the existing path, including native/ref bodies.
+   if(mapping["before"] is null)return true;
+   return !JsonNode.DeepEquals(FeatureBlueprint.SignatureDocument(InformationFunctionBodies.Signature(mapping["before"]!)),FeatureBlueprint.SignatureDocument(InformationFunctionBodies.Signature(row["signature"]!)));
+  }
+  var edits=changes.Where(ContractEdit).ToArray();
   if(edits.Length<2)return null;
   if(edits.Length>8||changes.Count!=edits.Length)throw new InvalidOperationException("Save up to eight direct function input-name contracts together; other input is retained");
   var units=request["units"]?.AsObject()??throw new InvalidOperationException("Read every shared caller before saving the function group");if(units.Count>2048)throw new ArgumentException("Shared contract source budget");

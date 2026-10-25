@@ -1,8 +1,8 @@
 """Cross-publish/composition checks plus packaged engine web startup from unrelated cwd.
 A Linux pass is not Windows apphost/WebView2 or actual double-click execution.
 Only fixture data is used; no CLI login, plugin relay or external request.
-An optional fixture path after repo/package reuses hash-verified fixture copies
-read-only while new host/browser scratch follows TMPDIR.
+An optional fixture path after repo/package reuses an exact SDK-less runtime;
+the read-only legacy package check uses hard links in the new TMPDIR fixture.
 """
 import hashlib,json,os,pathlib,re,shutil,signal,subprocess,sys,tempfile,time,urllib.request
 repo=pathlib.Path(sys.argv[1]).resolve();reuse=pathlib.Path(sys.argv[3]).resolve() if len(sys.argv)>3 else None;root=pathlib.Path(tempfile.mkdtemp(prefix='confectory-desktop-package-'));outside=root/'unrelated cwd';outside.mkdir();storage=root/'owned-data';storage.mkdir()
@@ -48,16 +48,21 @@ finally:held.rename(missing)
 check()
 # Default output in an owned checkout reuses existing settings instead of opening
 # an empty profile. Explicit overrides above still win. Never touch user profiles.
-legacy=(reuse if reuse else root)/'owned checkout';legacy_package=legacy/'Builds/Windows-x64';legacy_storage=legacy/'.confectory/editor-home';sentinel=legacy_storage/'retained-settings'
+legacy=root/'owned checkout';legacy_package=legacy/'Builds/Windows-x64';legacy_storage=legacy/'.confectory/editor-home';sentinel=legacy_storage/'retained-settings'
 if reuse:
+ # This tree is only read by --check-package. Tamper checks above have finished.
+ # Do not hard-link a package across filesystems or fall back to a large copy.
+ assert package.stat().st_dev==root.stat().st_dev
+ shutil.copytree(package,legacy_package,copy_function=os.link)
  marker='confectory-desktop-package.json';manifest=json.loads((package/marker).read_text())
  assert (legacy_package/marker).read_bytes()==(package/marker).read_bytes()
  actual={p.relative_to(legacy_package).as_posix():p for p in legacy_package.rglob('*') if p.is_file()}
  assert set(actual)==set(manifest['files'])|{marker} and not any(p.is_symlink() for p in legacy_package.rglob('*'))
  assert all(hashlib.sha256(actual[name].read_bytes()).hexdigest()==digest for name,digest in manifest['files'].items())
- assert (legacy/'examples/editor-home/project.cpack').read_text()=='owned source marker' and sentinel.read_bytes()==b'fixture user profile unchanged'
+ assert all(actual[name].stat().st_ino==(package/name).stat().st_ino for name in actual)
 else:
- shutil.copytree(package,legacy_package);(legacy/'examples/editor-home').mkdir(parents=True);(legacy/'examples/editor-home/project.cpack').write_text('owned source marker');legacy_storage.mkdir(parents=True);sentinel.write_bytes(b'fixture user profile unchanged')
+ shutil.copytree(package,legacy_package)
+(legacy/'examples/editor-home').mkdir(parents=True);(legacy/'examples/editor-home/project.cpack').write_text('owned source marker');legacy_storage.mkdir(parents=True);sentinel.write_bytes(b'fixture user profile unchanged')
 no_override=env.copy();no_override.pop('CONFECTORY_HOME_STORAGE',None);no_override.pop('CONFECTORY_ENTRY_STORAGE',None)
 legacy_plan=json.loads(subprocess.check_output([dotnet,str(legacy_package/'Confectory.dll'),'--check-package',str(legacy_package)],cwd=outside,env=no_override,text=True))
 assert pathlib.Path(legacy_plan['environment']['CONFECTORY_HOME_STORAGE'])==legacy_storage and sentinel.read_bytes()==b'fixture user profile unchanged'
@@ -86,5 +91,7 @@ try:
 finally:
  if host.poll() is None:os.killpg(host.pid,signal.SIGTERM)
  host.wait(timeout=15);log.close()
+if reuse:
+ assert all(hashlib.sha256((package/name).read_bytes()).hexdigest()==digest for name,digest in manifest['files'].items())
 record={'pass':True,'package':str(package),'files':plan['files'],'crossPublishedWindowsX64PE':True,'unrelatedWorkingDirectory':True,'packageTamperAndMissingDependencyRejected':True,'packagedEngineWebStartup':True,'runtimeOnlyNoInstalledSDK':True,'existingCheckoutProfileReusedAndExplicitOverrideRetained':True,'fixtureCopiesReusedReadOnly':str(reuse) if reuse else None,'resources':len(resources),'renderedMinimalLogin':True,'windowsApphostExecuted':False,'webView2Executed':False,'actualLoginOrInference':False,'evidence':str(root)}
 (root/'evidence.json').write_text(json.dumps(record,indent=2));print(json.dumps(record,indent=2));print('PASS Windows x64 package composition and actual packaged engine web startup; Windows execution unverified')

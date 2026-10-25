@@ -1,6 +1,6 @@
 {
   "scope": "row8 direct flat Blueprint value-input rename only",
-  "checks": 32,
+  "checks": 33,
   "commonChecksRepeatedPerRun": true,
   "runs": [
     {
@@ -248,14 +248,15 @@
     {
       "name": "native-final",
       "exit": 0,
-      "log": "/workspace/scratch/v536-shared-callers/native-budget-final.log",
+      "log": "/workspace/scratch/v536-shared-callers/native-metadata-filter.log",
       "result": {
         "checks": [
           "두 계약과 공유 호출자 입력/연결을 원래 hash 한 개씩 가진 순수 결합 후보로 준비한다",
           "편집 순서를 뒤집어도 최종 공유 caller와 각 callee 원문이 같은 후보가 된다",
-          "마지막 함수 타입/대응 오류·snapshot 누락·copy/whole 문맥은 첫 계약도 적용하지 않고 거절한다"
+          "마지막 함수 타입/대응 오류·snapshot 누락·copy/whole 문맥은 첫 계약도 적용하지 않고 거절한다",
+          "여러 설명 편집과 계약 하나+설명 편집은 기존 native/ref 구현에서도 원래 경로를 유지한다"
         ],
-        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-jrr_ia1v",
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-w5o3sw47",
         "pureCandidate": true,
         "actualWindows": false,
         "copyIdentityDecisionUsed": false
@@ -319,7 +320,7 @@
     "uiRetryInitial": "Normal connection-remap modal was still open; now cancel it through the original button before testing Save refusal"
   },
   "testedProductSha256": {
-    "targets/element-authoring/InformationFunctionBatch.cs": "088397593f33bb41553aa21ae34f9578a660fc7811dcbe61e890fbf0b7bb3825",
+    "targets/element-authoring/InformationFunctionBatch.cs": "e0eeb4f6ff0ef1f845bb12687792ee3512aa0af823c6c52a4c6c67ad9e610bc7",
     "targets/element-authoring/InformationDefinitions.cs": "a238f794bc5dae93efe3e4462a90284b44909604de8c67fd5b2e6469083b8701"
   }
 }
