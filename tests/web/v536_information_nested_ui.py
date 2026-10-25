@@ -6,7 +6,7 @@ from playwright.sync_api import sync_playwright,expect
 import v536_information_nested_fixture as x
 f,d,owner,fn,mode=x.f,x.d,x.owner,x.fn,x.mode
 if mode.startswith('view-'):d.is_view=True
-x.edited=x.edited.replace('\r\n','\n');x.edited_records={k:v.replace('\r\n','\n') for k,v in x.edited_records.items()};x.post_source=x.post_source.replace('\r\n','\n');x.post_helpers=x.post_helpers.replace('\r\n','\n')
+x.edited=x.edited.replace('\r\n','\n');x.edited_records={k:v.replace('\r\n','\n') for k,v in x.edited_records.items()};x.post_source=x.post_source.replace('\r\n','\n');x.post_helpers=x.post_helpers.replace('\r\n','\n');x.code_helpers=x.code_helpers.replace('\r\n','\n')
 
 def pending():return [(k,v) for k,v in d.pending() if v['kind']=='function-edit']
 def preserved():
@@ -59,10 +59,13 @@ def choose():
     if x.post_mode:
         for path in ['left','right/deep']:post_code(path)
 def replace_body(dialog,text):
-    field=dialog.locator('[data-code-source]');field.evaluate(r"el=>{el.focus();el.setSelectionRange(el.value.indexOf('\n{\n')+3,el.value.lastIndexOf('\n}'));}");f.page.keyboard.insert_text(text);f.idle()
+    field=dialog.locator('[data-code-source]');field.evaluate(r"el=>{const p=el.value.indexOf(' Invoke('),a=el.value.indexOf('\n{\n',p)+3,b=el.value.indexOf('\n}\n',a);el.focus();el.setSelectionRange(a,b);}");f.page.keyboard.insert_text(text);f.idle()
 def scoped_code(name):
-    id=x.record_ids[name];text=x.edited_records[name];dialog=cpp(id);assert ('public long Invoke('+('ref ' if x.forward else '')+'long item)') in dialog.locator('[data-code-source]').input_value();replace_body(dialog,text);dialog.locator('[data-code-cancel]').click();assert id not in pending()[0][1]['mapping']['bodies']
-    dialog=cpp(id);replace_body(dialog,text+'partial');held=restart(6 if name=='left' else 7);assert f.pending()==held;dialog=cpp(id);assert text+'partial' in dialog.locator('[data-code-source]').input_value();replace_body(dialog,text);f.page.screenshot(path=str(f.case/(name+'-scoped-code.png')));dialog.locator('[data-code-save]').click();f.idle();assert pending()[0][1]['mapping']['bodies'][id]['text']==text
+    id=x.record_ids[name];text=x.edited_records[name];dialog=cpp(id);assert ('public '+('Result' if x.code_control=='switch' else x.code_native['return'])+' Invoke('+('ref ' if x.forward else '')+'long item)') in dialog.locator('[data-code-source]').input_value();replace_body(dialog,text);dialog.locator('[data-code-cancel]').click();assert id not in pending()[0][1]['mapping']['bodies']
+    dialog=cpp(id);replace_body(dialog,text+'partial');held=restart(6 if name=='left' else 7);assert f.pending()==held;dialog=cpp(id);assert text+'partial' in dialog.locator('[data-code-source]').input_value();replace_body(dialog,text);
+    if x.code_control:
+        field=dialog.locator('[data-code-source]');field.evaluate(r"el=>{const p=el.value.indexOf(' Invoke('),a=el.value.indexOf('\n{\n',p)+3,b=el.value.indexOf('\n}\n',a)+3;el.focus();el.setSelectionRange(b,el.value.length);}");f.page.keyboard.insert_text(x.code_helpers)
+    f.page.screenshot(path=str(f.case/(name+'-scoped-code.png')));dialog.locator('[data-code-save]').click();f.idle();assert pending()[0][1]['mapping']['bodies'][id]['text']==text
 def post_code(path):
     id=x.caller_id+'/postCall:'+path+'/'+x.leaf_id;dialog=cpp(id);field=dialog.locator('[data-code-source]');assert '@total' in field.input_value()
     field.evaluate("el=>{const p=el.value.indexOf(' After('),a=el.value.indexOf('\\n{\\n',p)+3,b=el.value.indexOf('\\n}\\n',a);el.focus();el.setSelectionRange(a,b);}");f.page.keyboard.insert_text(x.post_source)

@@ -27,6 +27,7 @@ try:
  g=json.loads((f.project/'caller.graph.json').read_text());assert g['nodes'][2]==x.root['nodes'][2] and g['locals']==x.root['locals']
  for name in x.record_ids:
   record=json.loads((f.project/(name+'.node.json')).read_text());assert record['source']==(x.edited_records[name] if x.cpp and name in x.edited_records else x.record_sources[name])
+  if x.code_control and name in x.record_helpers:assert record['helpers']==x.code_helpers
  if not x.callee:assert json.loads((f.project/x.body_path).read_text())['source']==x.edited
  else:assert json.loads((f.project/'inner.node.json').read_text())==json.loads(x.snapshot['inner.node.json'])
  f.checked('실제 compiler Review/Confirm·cold 뒤에도 모든 qualified source·부모/형제·정확한 값이 보존된다')

@@ -32,3 +32,5 @@
 SDK 없는 격리 runtime·다른 작업 디렉터리에서 패키지 managed 엔진·74 리소스·최소 로그인 화면을 기동했다. 변조/누락 의존성 거절과 기존 fixture profile/명시 override 보존을 통과했다([기록](evidence/v536-information-nested/package-probe.json)). 실제 Windows apphost/WebView2 실행, 실제 계정 로그인·권한 설정·유료 추론·사용자 프로젝트 실행 및 Library 전달은 수행하지 않았다. 후속 검증 문서 커밋은 실행 소스를 바꾸지 않으므로 위 패키지와 실행 코드가 같다.
 
 이번 직접 소유 qualified private 호출·고정 next C#·serial/enum After 지원 단위의 게시 검증을 마감했다. 부모 private 계약까지 바꾸는 forwarded 호출과 private branch/switch C#의 owner 거래 어댑터는 남아 있으며 5행 전체/I5-6 전체/v536 전체 완료로 처리하지 않는다. 7~9행은 고정 별도 후속이다.
+
+후속 부모 계약·branch/switch·private enum 및 별도 복원 알림 검증은 [VALIDATION_V536_INFORMATION_PRIVATE_FORWARD.md](VALIDATION_V536_INFORMATION_PRIVATE_FORWARD.md)에 기록한다. 위 기록은 이전 게시 단위의 당시 결과이며, 현재 지원 경계는 V536_I5_6_NESTED_SCOPE.md를 따른다.

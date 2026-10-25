@@ -9,6 +9,11 @@ cpp='source' in sys.argv[4:]
 forward='forward' in sys.argv[4:]
 if forward:assert cpp
 callee='callee' in sys.argv[4:]
+code_control=next((v.removesuffix('-code') for v in sys.argv[4:] if v in ['branch-code','switch-code']),None)
+if code_control:assert cpp and not forward
+code_native={'args':[{'name':'item','type':'long',**({'mode':'ref'} if forward else {})}],'return':'void' if code_control=='switch' else 'bool' if code_control=='branch' else 'long'}
+code_helpers='private static long Read(long value){return checked(value+1);} // 직접 보조 함수\r\n'
+record_helpers={}
 post_mode='enum' if 'enum' in sys.argv[4:] else 'post' if 'post' in sys.argv[4:] else None
 if post_mode:
  file=b.base.function_file;file.write_text(file.read_text().replace('{','{value blueprintPublishedOutputs='+json.dumps(json.dumps(['count']))+';',1))
@@ -33,6 +38,12 @@ def private(name):
   else:
    graph['profile']='sync-acyclic-methods-v1'
    wrapper=f.metadata('blueprintCallAfter',functionText=b.base.function_file.read_text(),source='return @context.@count;');call['postCall']={k:wrapper[k] for k in ['contractHash','source','helpers']}
+ if code_control:
+  graph['profile']='sync-acyclic-switch-v1';code['control']=code_control;code['signature']=copy.deepcopy(code_native)
+  if code_control=='switch':code['executionEnum']={'primary':'done','members':[{'id':'done','name':'Done','value':0},{'id':'next','name':'Next','value':7}]}
+  source='long result='+alias+'.Invoke(item,out long count);return '+('Read(count)>0;' if code_control=='branch' else 'Read(count)>0?Result.Done:Result.Next;')+' // 원래 '+name+' '+code_control+'\r\n';record_helpers[name]='private static long Read(long value){return value;} // 원래 보조 함수\r\n'
+  graph['exits']['return']['binary']['operands'][0]={'node':leaf_id}
+  graph['edges']=[{'from':leaf_id,'port':'next','to':'body'},{'from':'body','port':'true' if code_control=='branch' else 'case:done','to':'exit:return'},{'from':'body','port':'false' if code_control=='branch' else 'next','to':'exit:return'}]
  record_sources[name]=source
  return graph
 def box(name,graph,binding):return {'id':name,'kind':'graph','control':'next','intent':'내부 '+name,'signature':copy.deepcopy(private_signature),'arguments':{'value':binding},'graph':graph}
@@ -43,9 +54,10 @@ root.update(profile='sync-acyclic-nested-v1',nodes=[box('left',left,{'input':'fi
 assert defs['state']=='node-definitions',defs
 for row in defs.get('nestedNodes',[]):
  if row['definition']['kind']=='code':
-  name={'left/body':'left','right/deep/body':'right','untouched/body':'untouched'}[row['id']];(f.project/(name+'.node.json')).write_text(json.dumps({'schema':1,'node':'body','definitionHash':row['definitionHash'],'source':record_sources[name]},ensure_ascii=False))
+  name={'left/body':'left','right/deep/body':'right','untouched/body':'untouched'}[row['id']];(f.project/(name+'.node.json')).write_text(json.dumps({'schema':1,'node':'body','definitionHash':row['definitionHash'],'source':record_sources[name],**({'helpers':record_helpers[name]} if name in record_helpers else {})},ensure_ascii=False))
 if post_mode=='enum':post_source='return Read(@context.@total)>0?Result.Done:Result.Next; // enum 후처리\r\n'
 edited_records={name:'bool ready='+alias+'.Invoke(\"직접 쓴 '+name+'\",out long count,item);return count; // 수동 C# 원문 😀\r\n' for name in ['left','right']}
+if code_control:edited_records={name:'bool ready='+alias+'.Invoke(\"직접 쓴 '+name+'\",out long count,item);return '+('Read(count)>0&&ready;' if code_control=='branch' else 'Read(count)>0&&ready?Result.Done:Result.Next;')+' // 직접 '+code_control+' C# 😀\r\n' for name in ['left','right']}
 record_ids={name:caller_id+'/node:'+path.replace('/','/node:') for name,path in [('left','left/body'),('right','right/deep/body'),('untouched','untouched/body')]}
 if callee:
  callee_graph=json.loads((f.project/'function.graph.json').read_text());sig={'args':[{'name':'value','type':'long'},{'name':'count','type':'long','mode':'out'}],'return':'long'};child={'schema':1,'profile':'sync-acyclic-nested-v1','nodes':[{'id':'body','kind':'code','control':'next','intent':'private callee 원문','implementation':'inner.node.json','signature':copy.deepcopy(sig),'arguments':{'value':{'input':'value'}}}],'entry':'body','edges':[{'from':'body','port':'next','to':'exit:return'}],'exits':{'return':{'node':'body'},'count':{'node':'body','output':'count'}},'locals':[]};parent=box('inner',child,{'input':'amount'});parent['signature']=copy.deepcopy(sig);callee_graph.update(profile='sync-acyclic-nested-v1',nodes=[parent],entry='inner',edges=[{'from':'inner','port':'next','to':'exit:return'}],exits={'return':{'node':'inner'},'count':{'node':'inner','output':'count'}},locals=[])
@@ -60,7 +72,7 @@ def selections(preview):
   plan['callers'][key]['inputs']['text']={'valueJson':json.dumps('왼쪽' if row['scope']=='left' else '오른쪽')}
  if cpp:
   for name in ['left','right']:
-   row=preview['functionBodies'][record_ids[name]];sig={'args':[{'name':'item','type':'long',**({'mode':'ref'} if forward else {})}],'return':'long'};plan['bodies'][record_ids[name]]={k:row[k] for k in ['hash','path','whole']}|{'beforeSignature':sig,'signature':sig,'contract':new,'text':edited_records[name]}
+   row=preview['functionBodies'][record_ids[name]];sig=code_native;plan['bodies'][record_ids[name]]={k:row[k] for k in ['hash','path','whole']}|{'beforeSignature':sig,'signature':sig,'contract':new,'text':edited_records[name],**({'helpers':code_helpers} if code_control else {})}
  if post_mode:
   for path in ['left','right/deep']:
    id=caller_id+'/postCall:'+path+'/'+leaf_id;row=preview['functionBodies'][id];plan['bodies'][id]={'wrapper':row['wrapper'],'contract':new,'text':post_source,'helpers':post_helpers}
@@ -79,7 +91,9 @@ def verify(checkpoint):
   assert child['nodes'][1]['arguments']==({'item':{'input':'value'}} if forward else {'item':{'node':leaf_id,'output':'total'}}) and child['nodes'][1]['signature']==original['nodes'][1]['signature']
   if post_mode:assert call['postCall']['source']==post_source and call['postCall']['helpers']==post_helpers
   assert child['exits']['return']['binary']['operands'][1]=={'node':leaf_id,'output':'total'}
- for name,id in record_ids.items():assert json.loads(rows[id]['draft'] if id in rows else (f.project/(name+'.node.json')).read_text())['source']==(edited_records[name] if cpp and name in edited_records else record_sources[name])
+ for name,id in record_ids.items():
+  record=json.loads(rows[id]['draft'] if id in rows else (f.project/(name+'.node.json')).read_text());assert record['source']==(edited_records[name] if cpp and name in edited_records else record_sources[name])
+  if code_control and name in record_helpers:assert record['helpers']==code_helpers
  if callee:
   after=json.loads(rows[fn+'Body/body:common']['draft']);assert after['nodes'][0]['signature']==callee_sig and after['nodes'][0]['arguments']=={'value':{'input':'increment'}} and after['nodes'][0]['graph']==callee_child
   assert after['exits']=={'total':{'node':'inner','output':'count'},'return':{'constant':True}}

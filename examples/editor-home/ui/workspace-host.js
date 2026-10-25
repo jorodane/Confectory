@@ -149,7 +149,7 @@ export function createActualWorkspace(api) {
     if(layout.key==='field-discovery')return api.discovery(layout.meta||{});
     if(layout.key.startsWith('table:')&&layout.meta?.tableDefinition)return api.table(layout.meta.tableDefinition,layout.meta||{});
     if(layout.key==='custom')return api.custom(layout.meta||{});
-    if(layout.key==='schema'){restoreElementMetadata(layout,api.current.schema);api.schema();return runtime.state.windows.get('schema');}
+    if(layout.key==='schema'){const schema=api.current.schema;if(!schema||schema.id!==api.current.draft?.id||layout.meta?.id&&layout.meta.id!==schema.id)return null;restoreElementMetadata(layout,schema);api.schema();return runtime.state.windows.get('schema');}
     if(layout.key==='declaration'){api.declaration(layout.meta?.id);return runtime.state.windows.get('declaration');}
     if(layout.key==='worker')return api.worker(layout.meta?.workerId);
     if(layout.key==='connections'){api.connections();return runtime.state.windows.get('connections');}
