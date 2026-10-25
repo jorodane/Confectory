@@ -59,11 +59,20 @@ internal static class InformationFunctionContracts
    if(d.Requires.TryGetValue(original.Id,out var required)){if(!required.Signature.Matches(old))throw new InvalidOperationException("Module requirement was already stale");d.Requires[original.Id]=required with{Signature=next};}
    bool implementation=d.Kind=="implementation"&&d.Function==original.Id,consumer=d.Imports.Values.Any(i=>i.Id==original.Id);
    if(!implementation&&!consumer){if(d.Requires.ContainsKey(original.Id))Put(d.Id,d.Kind,manifest.Elements[d.Id[(ns.Length+2)..]].Path,DeclarationTextMerge.MergeContract(texts[d.Id],format(d),format));continue;}
+   string retainedPrefix=d.Id+"/body:";
+   if(implementation&&!consumer&&copyProofs.Count>0&&declarations.Values.Any(child=>child.Parent==d.Id)&&JsonNode.DeepEquals(FeatureBlueprint.SignatureDocument(old),FeatureBlueprint.SignatureDocument(next))&&!new[]{bodyPlans,callerPlans,implementationPlans,outputPlans,graphPlans}.Any(plans=>plans.Any(p=>p.Key.StartsWith(retainedPrefix,StringComparison.Ordinal)))){
+    // Unselected parent graphs are observations, not editable copy storage.
+    // Keep exact records instead of requiring/reformatting their whole bodies.
+    foreach(var body in d.Bodies){if(body.Value.SourceKind is not ("csharp" or "blueprint"))throw new InvalidOperationException("Known inherited source required");Unit(d.Id+"/body:"+body.Key,body.Value.SourceKind=="blueprint"?"blueprint":"body",body.Value.Path);}
+    foreach(var source in units.Where(p=>p.Key.StartsWith(retainedPrefix,StringComparison.Ordinal)&&p.Value?["kind"]?.ToString()=="blueprint-node"))Unit(source.Key,"blueprint-node",source.Value!["path"]!.ToString());
+    continue;
+   }
    // A local copy may change its body while an unused inherited definition
-   // remains registered. Keep that declaration and parent untouched only when
-   // the exact public ABI is unchanged and no edit targets it. Contract changes
-   // still require a complete explicit inherited candidate.
-   if(implementation&&d.Parent is not null&&!consumer&&JsonNode.DeepEquals(FeatureBlueprint.SignatureDocument(old),FeatureBlueprint.SignatureDocument(next))&&d.Signature is not null&&d.Signature.Matches(old)&&!bodyPlans.Any(p=>p.Key.StartsWith(d.Id+"/body:",StringComparison.Ordinal)))continue;
+   // remains registered. A public pin rename also keeps its native boundary
+   // when every old pin explicitly maps to the same position/type/role. Never
+   // infer a reordered native body or a changed type, role or return contract.
+   bool retainedEntry=old.Matches(next)&&old.Args.Select((a,i)=>remap[a.Name]?.ToString()==next.Args[i].Name).All(v=>v);
+   if(implementation&&d.Parent is not null&&!consumer&&(JsonNode.DeepEquals(FeatureBlueprint.SignatureDocument(old),FeatureBlueprint.SignatureDocument(next))||retainedEntry)&&d.Signature is not null&&d.Signature.Matches(old)&&!bodyPlans.Any(p=>p.Key.StartsWith(d.Id+"/body:",StringComparison.Ordinal)))continue;
    if(d.Kind!="implementation"||d.Parent is not null||d.Bodies.Count is <1 or >8)throw new InvalidOperationException("Direct owned implementation and all targets required");
    if(implementation&&(d.Signature is null||!d.Signature.Matches(old)||d.Signature.Args.Select(a=>a.Name).Distinct(StringComparer.Ordinal).Count()!=d.Signature.Args.Count))throw new InvalidOperationException("Original implementation contract is stale or ambiguous; all input retained");
    var imported=d.Imports.Where(p=>p.Value.Id==original.Id).ToArray();if(imported.Any(p=>!p.Value.Signature.Matches(old)))throw new InvalidOperationException("Original C# or Blueprint import contract was already stale");

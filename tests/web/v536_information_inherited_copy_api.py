@@ -23,7 +23,7 @@ try:
     assert seed['records'][0]['record']['source'] == x.original
     observed = {r['path'] for r in seed['observations']}
     assert {str(f.project / x.parent_path), str(x.b.implementation_file),
-            str(f.project / 'whole-original.csbody')}.issubset(observed)
+            *(str(f.project / p) for p in x.body_observations)}.issubset(observed)
     assert all((f.project / p).read_bytes() == v for p, v in x.snapshot.items())
     f.checked('자체 정보 함수의 기존 선택/비공개 초안 경로는 부모 header/body와 원래 snapshot을 보관하며 모듈 UI를 추가하지 않는다')
     row = x.copy_row(prepared)
@@ -40,6 +40,7 @@ try:
                  ownerRevision=s['revision'], ownerHash=s['textHash'])
     assert view['nodes'][0]['source'] == x.edited
     ids = view['reviewIds']
+    assert {owner, x.copy_id, x.copy_id + '/body:common'}.issubset(ids), ids
     x.original_sources()
     f.stop()
     f.start(1)
@@ -50,7 +51,8 @@ try:
     f.invoke('reviewGroup', {'ids': ids, 'target': 'portable'})
     review = f.state()['review']
     assert review['status'] == 'ready', review
-    f.invoke('confirmGroup', {'ids': ids, 'token': review['token']})
+    confirmed = f.invoke('confirmGroup', {'ids': ids, 'token': review['token']})
+    assert confirmed['result']['result']['sourceConfirmed'], f.state().get('review')
     f.stop()
     f.start(2)
     f.invoke('select', {'id': owner})
@@ -64,8 +66,9 @@ try:
     source = x.edited.replace('소유한 상속 복사본', '저장한 복사본 재편집')
     plan = {k: body[k] for k in ['hash', 'path', 'whole']}
     plan.update(beforeSignature=body['signature'], signature=body['signature'],
-                contract=signature, text=source,
-                outputs={'return': 'return', 'nativeTotal': 'nativeTotal'})
+                contract=signature, text=source)
+    if body['sourceKind'] != 'whole-csharp':
+        plan['outputs'] = {'return': 'return', 'nativeTotal': 'nativeTotal'}
     method = next(m for m in s['ownFunctions'] if m['id'] == fn)
     declaration = {'id': owner, 'hash': s['textHash'], 'changes': [{
         'type': 'function-edit', 'id': fn, 'hash': method['hash'],

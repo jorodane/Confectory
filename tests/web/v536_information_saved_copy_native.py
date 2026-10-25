@@ -1,6 +1,9 @@
 """Saved copy provenance/ownership is required before an editable view exists."""
 import copy,json
-import v536_information_saved_copy_fixture as x
+if 'inherited-copy' in __import__('sys').argv[4:]:
+    import v536_information_inherited_contract_fixture as x
+else:
+    import v536_information_saved_copy_fixture as x
 r=x.request();p=x.n.prepare(r);rows={row['id']:row['text'] for row in p['linkedUpdates']}
 assert json.loads(rows[x.body_id])['source']==x.edited
 graph=json.loads(rows[x.graph_id]);assert graph['copySource']==x.prepared['graph']['copySource']

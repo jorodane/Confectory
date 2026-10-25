@@ -1,0 +1,221 @@
+{
+  "baseCommit": "74ea8066a5d08b008e0b507c2efae7b5c9d2fc90",
+  "focusedChecks": 42,
+  "focused": [
+    {
+      "name": "native-input-1",
+      "checks": [
+        "소유 copy의 root/수동 본문만 계약 후보로 갱신하고 출처·native donor를 보존한다",
+        "누락·위조·다른 배정/공유·원래 출처 및 저장 기준 변경은 전체 미적용이다"
+      ],
+      "count": 2,
+      "fixture": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-e7zcsx2v",
+      "log": "native-input-1.log",
+      "sha256": "962263f189d81f4996f8a23bf3338c1ad2196601b1cfe1656ea8c3ab8cebefc3"
+    },
+    {
+      "name": "native-out-1",
+      "checks": [
+        "소유 copy의 root/수동 본문만 계약 후보로 갱신하고 출처·native donor를 보존한다",
+        "누락·위조·다른 배정/공유·원래 출처 및 저장 기준 변경은 전체 미적용이다"
+      ],
+      "count": 2,
+      "fixture": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-t1mopvg5",
+      "log": "native-out-1.log",
+      "sha256": "28d7bd81b6851cf94aceaf577212688d7157993e7057568a46dc10f5efdc0595"
+    },
+    {
+      "name": "contract-guards-1",
+      "checks": [
+        "공개 이름 대응·소유 copy·호출자 후보는 부모/자식 선언을 쓰지 않고 함께 준비한다",
+        "부모/자식 쓰기 위조·타입/역할/반환/순서의 불명확한 변경은 전체 미적용으로 거절한다",
+        "실제 부모 파일 경합은 원래 읽기 기준으로 차단하고 후보/복사본 원문을 보존한다"
+      ],
+      "count": 3,
+      "fixture": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-9euuvj3k",
+      "log": "contract-guards-1.log",
+      "sha256": "1235dae64aa1919b79146519a312b8dc68bdc2146f3cc6d571daed4e7ac9300d"
+    },
+    {
+      "name": "blueprint-native-2",
+      "checks": [
+        "상속 구현의 직접 ID와 실제 부모/본문 출처는 읽기 전용 metadata에서 구별한다",
+        "명시 복사는 자식/부모 header와 부모 CRLF 본문 receipt를 묶고 원본·다른 호출자를 수정하지 않는다"
+      ],
+      "count": 2,
+      "fixture": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-b1dj3_um",
+      "log": "blueprint-native-2.log",
+      "sha256": "80a97f539a8137b08de0413081394339f2bf136d0f64b13f6ff05dc818c4c91c"
+    },
+    {
+      "name": "contract-api-1",
+      "checks": [
+        "복사 소유·배정·원래 출처의 누락/위조는 실제 서버에서 전체 미적용으로 거절한다",
+        "저장 실패/재시도·cold는 소유 copy만 원자 반영하고 원래 출처와 donor CRLF 바이트를 보존한다",
+        "실제 compiler Review/Confirm과 재시작 후에도 donor·소유 copy ID·원래 출처를 혼동하지 않는다"
+      ],
+      "count": 3,
+      "fixture": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-bac4orj5",
+      "log": "contract-api-1.log",
+      "sha256": "1a40b3f97b60edfc2a64d55601492a233b95495ddd3713c8c171633e99db0b5c"
+    },
+    {
+      "name": "out-name-api-1",
+      "checks": [
+        "복사 소유·배정·원래 출처의 누락/위조는 실제 서버에서 전체 미적용으로 거절한다",
+        "저장 실패/재시도·cold는 소유 copy만 원자 반영하고 원래 출처와 donor CRLF 바이트를 보존한다",
+        "실제 compiler Review/Confirm과 재시작 후에도 donor·소유 copy ID·원래 출처를 혼동하지 않는다"
+      ],
+      "count": 3,
+      "fixture": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-0jz2be0_",
+      "log": "out-name-api-1.log",
+      "sha256": "1129aec114331a4ee03f80be00638031e0fd66d51572ce53cf51b2a48a34d4a3"
+    },
+    {
+      "name": "blueprint-api-5",
+      "checks": [
+        "자체 정보 함수의 기존 선택/비공개 초안 경로는 부모 header/body와 원래 snapshot을 보관하며 모듈 UI를 추가하지 않는다",
+        "오류는 전체 미적용이고 명시 재시도/원자 저장/cold는 새 복사본만 연결하며 부모·함수·호출자를 보존한다",
+        "복사 후 본문 재편집은 미사용 상속 선언을 바꾸지 않고 같은 ABI/전체 후보 검증으로 보관한다"
+      ],
+      "count": 3,
+      "fixture": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-8rg_wdln",
+      "log": "blueprint-api-5.log",
+      "sha256": "1913007f7b1b89d2798f9d81ed5db1754fb0e97926f605530994439ba7476a5e"
+    },
+    {
+      "name": "blueprint-guards-2",
+      "checks": [
+        "실제 부모의 whole-body 문맥을 검증한 뒤 선택한 소유 copy ID로만 결부한다",
+        "같은 실제 상속 문맥은 원본 child의 compiler probe에서도 통과하고 본문을 실행하거나 다시 쓰지 않는다",
+        "상속 child의 다른 native 별칭·위조된 문맥·오래된 부모 노드 정의는 추측 변환 없이 거절한다"
+      ],
+      "count": 3,
+      "fixture": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-72rsr_os",
+      "log": "blueprint-guards-2.log",
+      "sha256": "4e53c5539f7d164c450993b904f9eb70919084b1841edf55a9d3130364eaba30"
+    },
+    {
+      "name": "contract-ui-primary-1",
+      "checks": [
+        "원본 UI에서 donor/소유 copy를 명시 선택하고 CRLF 원문·취소·불완전 입력·Undo/Redo·cold를 보존한다",
+        "화면 저장 실패는 선언이나 copy만 남기지 않고 전체 입력과 donor 바이트를 보존한다",
+        "응답/receipt 유실 후 cold 재시도는 결과 조회로 저장을 확인하며 copy를 중복 적용하지 않는다",
+        "화면 저장·Review 취소/재검토·명시 Confirm·cold는 copy만 갱신하고 donor와 원래 출처를 보존한다"
+      ],
+      "count": 4,
+      "fixture": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-9r0alz42",
+      "log": "contract-ui-primary-1.log",
+      "sha256": "b8e9ecd41235fd70660054d7ba16fc7dc552d2290c7e2ad2704ff3371edc5159"
+    },
+    {
+      "name": "contract-ui-conflict-view-1",
+      "checks": [
+        "원본 UI에서 donor/소유 copy를 명시 선택하고 CRLF 원문·취소·불완전 입력·Undo/Redo·cold를 보존한다",
+        "실제 경합은 copy·선언·caller 전체 미적용이며 새 입력과 donor를 보존한다"
+      ],
+      "count": 2,
+      "fixture": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-itsdq6pm",
+      "log": "contract-ui-conflict-view-1.log",
+      "sha256": "0f52c2271128e5b8bfe53c65ec23826caed60139040120c0271ff5afd536bec5"
+    },
+    {
+      "name": "contract-ui-cancel-1",
+      "checks": [
+        "원본 UI에서 donor/소유 copy를 명시 선택하고 CRLF 원문·취소·불완전 입력·Undo/Redo·cold를 보존한다",
+        "전체 취소와 재시작은 소유 copy·선언·caller를 반영하지 않고 donor/출처를 보존한다"
+      ],
+      "count": 2,
+      "fixture": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-eok7_9ni",
+      "log": "contract-ui-cancel-1.log",
+      "sha256": "c4216b300529cd9d41cf4f5574584bf202bfca42b585b9ea0cc5718d43dd82be"
+    },
+    {
+      "name": "contract-ui-projects-view-1",
+      "checks": [
+        "원본 UI에서 donor/소유 copy를 명시 선택하고 CRLF 원문·취소·불완전 입력·Undo/Redo·cold를 보존한다",
+        "두 프로젝트/독립 창에서 copy ID가 같아도 입력과 닫힌 저장 동작은 원래 문맥에 묶인다"
+      ],
+      "count": 2,
+      "fixture": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-4nup9pqx",
+      "log": "contract-ui-projects-view-1.log",
+      "sha256": "70e982c4a62e2c2e5a80fc02e8b8d9bae1de1d30658cba4d560041fa25e6c59a"
+    },
+    {
+      "name": "blueprint-ui-primary-1",
+      "checks": [
+        "기본 정보 창의 기존 상속 복사 선택·취소·C# Undo/Redo·cold는 원본/정확한 값/새 복사 ID를 보존한다",
+        "실제 Save·재시작·Review 취소/재검토·명시 Confirm은 새 소유 복사본만 반영하며 함수/부모/호출자를 보존한다"
+      ],
+      "count": 2,
+      "fixture": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-fh65qt_p",
+      "log": "blueprint-ui-primary-1.log",
+      "sha256": "9a53b36d39c57701e3bf0b043bfb1a05e304d9c9480fbe6e08789f84db31e3de"
+    },
+    {
+      "name": "blueprint-ui-storage-view-1",
+      "checks": [
+        "독립 정보 창의 기존 상속 복사 선택·취소·C# Undo/Redo·cold는 원본/정확한 값/새 복사 ID를 보존한다",
+        "실제 화면 저장 실패는 복사본·owner·등록을 부분 적용하지 않고 입력과 부모를 보존한다",
+        "실제 Save·재시작·Review 취소/재검토·명시 Confirm은 새 소유 복사본만 반영하며 함수/부모/호출자를 보존한다"
+      ],
+      "count": 3,
+      "fixture": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-ll9l3klh",
+      "log": "blueprint-ui-storage-view-1.log",
+      "sha256": "a35d593a89f1916f955549ca86ac2d9a364096a3b913ff861a441ffe398e0d43"
+    },
+    {
+      "name": "blueprint-ui-loss-1",
+      "checks": [
+        "기본 정보 창의 기존 상속 복사 선택·취소·C# Undo/Redo·cold는 원본/정확한 값/새 복사 ID를 보존한다",
+        "적용/조회 응답 유실과 cold 뒤 재시도는 receipt만 조회하여 같은 복사 ID를 중복 생성하지 않는다",
+        "실제 Save·재시작·Review 취소/재검토·명시 Confirm은 새 소유 복사본만 반영하며 함수/부모/호출자를 보존한다"
+      ],
+      "count": 3,
+      "fixture": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-fc9g5bdn",
+      "log": "blueprint-ui-loss-1.log",
+      "sha256": "d9c5323abcdecfd9d292fde24961dedea02b0e0878d628cf283df075ae2abc42"
+    },
+    {
+      "name": "blueprint-ui-serial-view-1",
+      "checks": [
+        "독립 정보 창의 기존 상속 복사 선택·취소·C# Undo/Redo·cold는 원본/정확한 값/새 복사 ID를 보존한다",
+        "실제 Save·재시작·Review 취소/재검토·명시 Confirm은 새 소유 복사본만 반영하며 함수/부모/호출자를 보존한다",
+        "추가 직렬 동작과 반환 writer를 포함한 부모 그래프는 선택한 본문만 편집하고 다른 노드 원문을 보존한다"
+      ],
+      "count": 3,
+      "fixture": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-w9l_a1sx",
+      "log": "blueprint-ui-serial-view-1.log",
+      "sha256": "dacc887d12681aeb2582db94e906959894559eec0ce7decee88b3b5e18543a32"
+    }
+  ],
+  "regressionChecks": 6,
+  "regression": [
+    {
+      "name": "original-guards-1",
+      "count": 4,
+      "log": "original-guards-1.log",
+      "sha256": "8ee1d95e9dc4c3525e07ce49ea12e51afd7a8c12b979297a06e2ed22ae012249"
+    },
+    {
+      "name": "core-inheritance-1",
+      "count": 2,
+      "log": "core-inheritance-1.log",
+      "sha256": "3e53c199dfe97753b230b02f802765df1400fe9d60ae04f609f0528409a79101"
+    }
+  ],
+  "testedProductSha256": {
+    "src/Confectory.Core/BlueprintCompilation.cs": "69888944ae44f70cc52a84270fd0ef071013fa353b65ab65bc72bdba6941ea48",
+    "targets/element-authoring/ImplementationCopy.cs": "437fa1cda001522f4868e5b96fad6f47496b1a9ea5a3fdcf3d0101cda68af6b7",
+    "targets/element-authoring/InformationFunctionContracts.cs": "e98a3178c07ca28a6f3b4c5243c85e14fae1b69e00f2c2cf999449a637d3b67c"
+  },
+  "solutionRelease": {
+    "log": "solution-build-1.log",
+    "warnings": 0,
+    "errors": 0,
+    "sha256": "ae4454693ce603c0917d01f2f3fc3cc7b34c5c8a589fb214930872bd08784e62"
+  },
+  "actualWindows": false,
+  "actualLoginOrInference": false,
+  "libraryDelivered": false
+}

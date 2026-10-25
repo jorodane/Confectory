@@ -1,6 +1,8 @@
 """Actual copy-only checkpoint updates, CRLF donor retention and explicit Confirm."""
 import copy,json
-if 'caller-copy' in __import__('sys').argv[4:]:
+if 'inherited-copy' in __import__('sys').argv[4:]:
+    import v536_information_inherited_contract_fixture as x
+elif 'caller-copy' in __import__('sys').argv[4:]:
     import v536_information_caller_copy_fixture as x
 else:
     import v536_information_saved_copy_fixture as x

@@ -45,7 +45,13 @@ internal static class ImplementationCopy
   if(request["extraFeatures"] is JsonArray extra){if(extra.Count>64)throw new ArgumentException("Private callable closure budget");foreach(string called in extra.Select(n=>n!.GetValue<string>()).Distinct(StringComparer.Ordinal))if(!contracts.ContainsKey(called))contracts[called]=Read(registry.Get(called,"function",ownerId).Loc.File);}
   if(action=="observe")return Finish(new JsonObject{["featureSource"]=Read(fn.Loc.File),["featureContracts"]=contracts.DeepClone(),["bodyOrigin"]=bodySource.Origin,["sourceKind"]=bodySource.SourceKind,["sourceBodyPath"]=bodyPath});
   if(originalGraph is not null){
-   var sourceDefinitions=FeatureBlueprint.Execute(new JsonObject{["operation"]="featureBlueprintNodes",["featureSource"]=Read(fn.Loc.File),["featureContracts"]=contracts.DeepClone(),["implementationContext"]=FeatureBlueprint.ImplementationContext(original),["graph"]=originalGraph});if(sourceDefinitions["state"]?.ToString()!="node-definitions")throw new ArgumentException(sourceDefinitions.ToJsonString());
+   var sourceContext=FeatureBlueprint.ImplementationContext(original);
+   if(originalGraph["nodes"]!.AsArray().Any(n=>n?["implementationContext"] is not null)&&bodySource.Origin!=selected){
+    var declaredContext=FeatureBlueprint.ImplementationContext(Source(bodySource.Origin));var selectedContext=declaredContext.DeepClone().AsObject();selectedContext["implementation"]=selected;
+    if(!JsonNode.DeepEquals(sourceContext,selectedContext))throw new InvalidOperationException("Inherited Blueprint native parameters or imports differ; retain the source and select an explicit compatible body");
+    sourceContext=declaredContext;
+   }
+   var sourceDefinitions=FeatureBlueprint.Execute(new JsonObject{["operation"]="featureBlueprintNodes",["featureSource"]=Read(fn.Loc.File),["featureContracts"]=contracts.DeepClone(),["implementationContext"]=sourceContext,["graph"]=originalGraph});if(sourceDefinitions["state"]?.ToString()!="node-definitions")throw new ArgumentException(sourceDefinitions.ToJsonString());
    foreach(var entry in records){string id=entry!["id"]!.ToString();var record=entry["record"]!;BlueprintDocuments.Validate(implementation+"/body:"+target+"/node:"+id,"blueprint-node",record.ToJsonString());if(record["definitionHash"]?.ToString()!=sourceDefinitions["nodes"]!.AsArray().Single(n=>n!["id"]!.ToString()==id)!["definitionHash"]!.ToString())throw new InvalidOperationException("Confirm the source Blueprint against its current contract before copying; stale code is preserved");}
   }
   JsonObject Definitions()=>FeatureBlueprint.Execute(new JsonObject{["operation"]="featureBlueprintNodes",["featureSource"]=Read(fn.Loc.File),["featureContracts"]=contracts.DeepClone(),["implementationContext"]=context.DeepClone(),["graph"]=graph.DeepClone()});

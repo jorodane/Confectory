@@ -1,7 +1,10 @@
 """Existing v536 function/C# dialogs distinguish an owned copy from its donor."""
 import json,time,shutil
 from playwright.sync_api import sync_playwright,expect
-import v536_information_saved_copy_fixture as x
+if 'inherited-copy' in __import__('sys').argv[4:]:
+    import v536_information_inherited_contract_fixture as x
+else:
+    import v536_information_saved_copy_fixture as x
 f,d,owner,fn,mode=x.f,x.d,x.owner,x.fn,x.mode
 x.edited=x.edited.replace('\r\n','\n')
 def pending():return [(k,v) for k,v in d.pending() if v['kind']=='function-edit']

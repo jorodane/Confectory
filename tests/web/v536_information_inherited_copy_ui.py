@@ -230,6 +230,13 @@ try:
             assert (f.project / x.parent_path).read_bytes() == x.snapshot[x.parent_path]
             f.page.screenshot(path=str(f.case / 'inherited-copy-confirmed.png'))
             f.checked('실제 Save·재시작·Review 취소/재검토·명시 Confirm은 새 소유 복사본만 반영하며 함수/부모/호출자를 보존한다')
+            if 'serial-extra' in __import__('sys').argv[4:]:
+                records = [json.loads(p.read_text()) for p in
+                           (f.project / 'blueprints/nodes').glob(copied.split('::')[1] + '.*.node.json')]
+                assert len(records) == 2
+                assert next(r for r in records if r['node'] == 'extra')['source'] == 'return value + 1; // 원본 추가 동작'
+                assert '상속 복사 UI 😀' in next(r for r in records if r['node'] == 'body')['source']
+                f.checked('추가 직렬 동작과 반환 writer를 포함한 부모 그래프는 선택한 본문만 편집하고 다른 노드 원문을 보존한다')
         assert not f.errors and not f.external, (f.errors, f.external)
         f.page.unroute_all(behavior='wait')
         f.browser.close()
