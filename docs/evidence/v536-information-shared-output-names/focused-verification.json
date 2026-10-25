@@ -1,0 +1,357 @@
+{
+  "implementationCommit": "acbaaf312ab014530a3c6526b87c95b4be7bd522",
+  "focusedPureChecks": 3,
+  "pureLogSha256": "9c4889116c1bc6519cb2d91731810a5b9e53b9074e2166867986c6dfe26d7db4",
+  "apiRuns": 3,
+  "apiCheckLabels": 7,
+  "rendererRuns": 7,
+  "rendererCheckLabels": 16,
+  "focusedTotalCheckLabels": 26,
+  "impactCheckLabels": 8,
+  "cleanReproductionCheckLabels": 8,
+  "countsIncludeRepeatedPreparation": true,
+  "focused": [
+    {
+      "name": "api-normal",
+      "command": [
+        "python3",
+        "tests/web/v536_information_shared_outputs_api.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-information-inherited-contract/clean-engine-1.json",
+        "normal"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 29.2,
+      "log": "/workspace/scratch/v536-shared-outputs/run-1/api-normal.log",
+      "workspaceAvailableBytes": 45326336,
+      "logSha256": "c57069359780430a6d6b01af132db5b441b84f5f4c0e0cbe5f6e63872533f107"
+    },
+    {
+      "name": "ui-primary",
+      "command": [
+        "python3",
+        "tests/web/v536_information_shared_outputs_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-information-inherited-contract/clean-engine-1.json",
+        "normal"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 50.5,
+      "log": "/workspace/scratch/v536-shared-outputs/run-1/ui-primary.log",
+      "workspaceAvailableBytes": 45293568,
+      "logSha256": "3c419c10b5658f3c358264f784c3616ea881fdbbde018c01c56058e948b08584"
+    },
+    {
+      "name": "api-source",
+      "command": [
+        "python3",
+        "tests/web/v536_information_shared_outputs_api.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-information-inherited-contract/clean-engine-1.json",
+        "source"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 8.7,
+      "log": "/workspace/scratch/v536-shared-outputs/run-1/api-source.log",
+      "workspaceAvailableBytes": 45137920,
+      "logSha256": "5a1db40d1ada47f6fe6e4f2ff32815e86aa74b540de411410c51f659779c2021"
+    },
+    {
+      "name": "api-conflict",
+      "command": [
+        "python3",
+        "tests/web/v536_information_shared_outputs_api.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-information-inherited-contract/clean-engine-1.json",
+        "conflict"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 11.0,
+      "log": "/workspace/scratch/v536-shared-outputs/run-1/api-conflict.log",
+      "workspaceAvailableBytes": 45121536,
+      "logSha256": "a3e59e682b8b77570bf785dcf4ba099f05b4955f3719871473f5ed736d52eb17"
+    },
+    {
+      "name": "ui-view",
+      "command": [
+        "python3",
+        "tests/web/v536_information_shared_outputs_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-information-inherited-contract/clean-engine-1.json",
+        "normal",
+        "view"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 61.0,
+      "log": "/workspace/scratch/v536-shared-outputs/run-1/ui-view.log",
+      "workspaceAvailableBytes": 45105152,
+      "logSha256": "75e62eb59ac0b08ea5687a0869aca61591817d05c07eb167b1066ce1c92032da"
+    },
+    {
+      "name": "ui-storage",
+      "command": [
+        "python3",
+        "tests/web/v536_information_shared_outputs_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-information-inherited-contract/clean-engine-1.json",
+        "storage"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 68.1,
+      "log": "/workspace/scratch/v536-shared-outputs/run-1/ui-storage.log",
+      "workspaceAvailableBytes": 44941312,
+      "logSha256": "4247efc860a4f5589529db2f43b742ac5ebc1722e8ef3f343dbb2f0a3a87bef0"
+    },
+    {
+      "name": "ui-loss",
+      "command": [
+        "python3",
+        "tests/web/v536_information_shared_outputs_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-information-inherited-contract/clean-engine-1.json",
+        "loss"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 35.9,
+      "log": "/workspace/scratch/v536-shared-outputs/run-1/ui-loss.log",
+      "workspaceAvailableBytes": 44785664,
+      "logSha256": "a3f0efe5cfe7245e7dab1b7afc3955fd26767ce4fc2df50864a29ca70ac7596f"
+    },
+    {
+      "name": "ui-cancel",
+      "command": [
+        "python3",
+        "tests/web/v536_information_shared_outputs_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-information-inherited-contract/clean-engine-1.json",
+        "cancel",
+        "view"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 25.6,
+      "log": "/workspace/scratch/v536-shared-outputs/run-1/ui-cancel.log",
+      "workspaceAvailableBytes": 44761088,
+      "logSha256": "b9911cb64b7dbb2aca61140d9266d8e25dcf957edd7d9594cea25e34441a5128"
+    },
+    {
+      "name": "ui-projects",
+      "command": [
+        "python3",
+        "tests/web/v536_information_shared_outputs_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-information-inherited-contract/clean-engine-1.json",
+        "projects"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 23.9,
+      "log": "/workspace/scratch/v536-shared-outputs/run-1/ui-projects.log",
+      "workspaceAvailableBytes": 44736512,
+      "logSha256": "cbcbe4e818d93ce4fb0597eb79a2b69fc0aebb2ab3fde1e2970e5d5e9e7ecaad"
+    },
+    {
+      "name": "ui-retry",
+      "command": [
+        "python3",
+        "tests/web/v536_information_shared_outputs_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-information-inherited-contract/clean-engine-1.json",
+        "retry"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 62.6,
+      "log": "/workspace/scratch/v536-shared-outputs/run-1/ui-retry.log",
+      "workspaceAvailableBytes": 44695552,
+      "logSha256": "bd60bd189b0e3df7a26f9c50d4c7a7018bdaee1f855600f031c044411bf1f62b"
+    }
+  ],
+  "impact": [
+    {
+      "name": "names-regression",
+      "command": [
+        "python3",
+        "tests/web/v536_information_shared_callers_native.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-information-inherited-contract/clean-engine-1.json",
+        "normal"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 5.7,
+      "log": "/workspace/scratch/v536-shared-outputs/names-regression.log",
+      "logSha256": "f0de7d87480ef6f18072de39af8129ad05a05c2790e3bac21c5dfa3337c033f0"
+    },
+    {
+      "name": "types-regression",
+      "command": [
+        "python3",
+        "tests/web/v536_information_shared_types_native.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-information-inherited-contract/clean-engine-1.json",
+        "normal"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 8.5,
+      "log": "/workspace/scratch/v536-shared-outputs/types-regression.log",
+      "logSha256": "9c2da0f73bb54c66a57bb7393d6a5825fdaca1e11a71101aa6f6e6e74706dcb1"
+    }
+  ],
+  "cleanCheckout": [
+    {
+      "name": "clean-ff",
+      "command": [
+        "git",
+        "pull",
+        "--ff-only",
+        "/workspace/Confectory",
+        "work/current"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 0.1,
+      "log": "/workspace/scratch/v536-shared-outputs/clean-ff.log",
+      "sourceCommit": "acbaaf312ab014530a3c6526b87c95b4be7bd522",
+      "workspaceAvailableBytes": 44290048,
+      "logSha256": "ffa96037bdaa15335b77cc8661be6b96b9f6e46571d3b020b98bf533260d8286"
+    },
+    {
+      "name": "clean-native-build",
+      "command": [
+        "/workspace/toolchains/dotnet-10.0.401/dotnet",
+        "build",
+        "targets/element-authoring",
+        "-c",
+        "Release",
+        "--no-restore"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 8.3,
+      "log": "/workspace/scratch/v536-shared-outputs/clean-native-build.log",
+      "sourceCommit": "acbaaf312ab014530a3c6526b87c95b4be7bd522",
+      "workspaceAvailableBytes": 44277760,
+      "logSha256": "e180d8244d60d0c6b65eef5293312b6f0b9a68fa471db139c619390f843dec9b"
+    },
+    {
+      "name": "clean-pure",
+      "command": [
+        "python3",
+        "tests/web/v536_information_shared_outputs_native.py",
+        "/workspace/scratch/v536-multiple-implementations/checkout",
+        "/workspace/scratch/v536-information-inherited-contract/clean-engine-1.json",
+        "normal"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 7.9,
+      "log": "/workspace/scratch/v536-shared-outputs/clean-pure.log",
+      "sourceCommit": "acbaaf312ab014530a3c6526b87c95b4be7bd522",
+      "workspaceAvailableBytes": 44261376,
+      "logSha256": "59cad00d665a6fdf5bdd5d9f7203175b18ca7280226def17ffc2c442abc3aad1"
+    },
+    {
+      "name": "clean-api",
+      "command": [
+        "python3",
+        "tests/web/v536_information_shared_outputs_api.py",
+        "/workspace/scratch/v536-multiple-implementations/checkout",
+        "/workspace/scratch/v536-information-inherited-contract/clean-engine-1.json",
+        "normal"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 29.3,
+      "log": "/workspace/scratch/v536-shared-outputs/clean-api.log",
+      "sourceCommit": "acbaaf312ab014530a3c6526b87c95b4be7bd522",
+      "workspaceAvailableBytes": 44244992,
+      "logSha256": "2d9c3124f49be496830405f6b4487f2f1bd5f01e1949bddf343d57e6cc810700"
+    },
+    {
+      "name": "clean-view",
+      "command": [
+        "python3",
+        "tests/web/v536_information_shared_outputs_ui.py",
+        "/workspace/scratch/v536-multiple-implementations/checkout",
+        "/workspace/scratch/v536-information-inherited-contract/clean-engine-1.json",
+        "normal",
+        "view"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 61.3,
+      "log": "/workspace/scratch/v536-shared-outputs/clean-view.log",
+      "sourceCommit": "acbaaf312ab014530a3c6526b87c95b4be7bd522",
+      "workspaceAvailableBytes": 44220416,
+      "logSha256": "4b327d28f9008d0cf08c70fa14a65cc05c8386fb6c1fca799295c61eeeae4bfa"
+    }
+  ],
+  "uiUnchangedFrom": "f4b9780a4cdf185db948e4fc5dff777afdac0ad1",
+  "uiSha256": {
+    "element-functions.js": "5775a9718cd3ed7d57bcdd8a74e4153860242f4078358541d471dcb7510db3e9",
+    "blueprint-rename.js": "ec8c0db679c052ccb7e63b6256dbe784ef6cb09027e06b2e3cfd401861a04bc9",
+    "v508-views.js": "ad53508ad632b0c972dbdd15efd4774f26abf1235ec906eee0ee034968142728",
+    "call-abi-remap.js": "d67a04f3b45b5d68ccf13cda9b2279683b977feb831482f1f94c8758c8ee5314",
+    "workspace.js": "fd3fb6c7852bd6b78eb219d959a866f716e2447ee84c9dad1b2ce4ea9529022e",
+    "typed-json.js": "8c0b9287739b9e4243116b82cbd0d276805445ab924453f04825fb3b515db506",
+    "browser-projection.js": "0377888ce66866d4cf28c084dfd3c934c4cbd816ee9f29f369a300e0a30cea61",
+    "find.js": "44623cf3ce418ab924cd75ead0a43ebaacf6c226619982a81f78a70ca04ca0fb",
+    "element-view-save.js": "e6e17857945ba777cc1c7cb80bfe850f6e68083ed6e0de8582ea5a79b8691c70",
+    "property-authoring.js": "690b3823512dc5bc53702407292abe95835d0db01401dc64bfe1a81beebecb48",
+    "declarations.js": "335b124b91ff386e83ded3ff340dfb3dd3d385ed3ca297b61330848115d0000b",
+    "inventory.js": "e7a50efcc35a1e5da62ebef10a802303cf30f6b3bc585af664088fece1ad905a",
+    "relations.js": "ab15571de6969f042a95e82143a08830969c706048a09111f08d4a85403a6032",
+    "mixed-declaration.js": "9776b5881211c2020a2af4a573c61e5126c449d3787832999cc093dc0491b08d",
+    "run-exports.js": "91e48b9893168c302395c1ae35e9c5e6fd1661a0772465d4316f822954d7ca9f",
+    "pack-manager.js": "7569d898414d75f492ffc192823bda4737fd7fb58aae6b5d064af7d34ef01dfa",
+    "blueprint-code-editor.js": "eb7088037150403ac1819bcdb44d4366ae08ee63f2a656d820b6b083b3c49547",
+    "blueprint-viewport.js": "a690c93df99773adc678c3044ad26e4af1f0738ce1056d937d2958d19349b803",
+    "builds.js": "e4e022d1657b7cbf22a8274f15c8c0b76fff851165a69695faee3bf5052ef7ee",
+    "element-raw-save.js": "e451d861ebacfb0d2b6b01643d80ac1c2f506d7f72773d172e3917c43aada02a",
+    "workspace-links.js": "182ec947d0020f134510251ac41b3ab8d1714a091127a8afba5d26c2d66ececb",
+    "note-documents.js": "5a72a6ac0114373f89962a545095fa8876fd8a08fef965fa693a5c82209f059f",
+    "history.js": "f21d3c4fad09a2506198ee8c017fc398cf44599a24e901f64aa6ebd4107880ed",
+    "window-documents.js": "eb330d8e8707e156b4c51673f50e81d75e2d044db41b91cd51fcff7ba34bc0df",
+    "mobile-shell.js": "62e63467dda3da547d4d62808632b42b89ec95671a30949bdc78575071018374",
+    "notes.js": "4adab64b6fc755dc4dda65d80a5232c7fbe3a375d3d4c34b4ba8695bc43486fa",
+    "node-tasks.js": "415215f33bfc171630d7aeeaf9f00a1e68ca823a6c214e25591784aedcd33247",
+    "elements.js": "022957ae95acc905ee8b0784ae4210d9aa5e059e1a55acb4a47ddeefdb994cf4",
+    "app.js": "3c25756db6251fbd013c9285ab0193d041d52c4c3bcab0900ef87b04b2bb22ac",
+    "runtime.css": "7ace817c492c5bd51a3b11a2fd6b86fdc3d98e242ae4115d5cc52b179afc6e3e",
+    "workspace-history.js": "395f3c813f49f5086a60db9b79e3882cf599a32b0b68b16d0a0f1ef549df1826",
+    "mcp-bridge.js": "21a2a09e29ce3ae0bbcace892b58d47cbec5499dd9b57e36b4780f5d8668599b",
+    "set-authoring.js": "80071084be7c69975a96fb17ac5e467b871e09f1bb9effc2672a4999b984a224",
+    "blueprint-enum-plan.js": "c0be05b4bb5289184da6264375f599cd14e0bdcaebb53bdcf02c7f25b6daa21b",
+    "feature-authoring.js": "a2c408bab52335137c112f37a5a34375b28bb8008cddb264d2e9b1ab25f198d2",
+    "blueprint-parameters.js": "d1753701eb9feffab7e3949174f65f360f362ab49be599c788701dc385f940de",
+    "browser-shell.js": "12c4368b3add1d9d268f4d1ed898c62f8639ea51c56dab63332e2edf029cc5a1",
+    "browser-data.js": "0ad5974b9f127258d41859e66887ded4e566c1b07d340fa149a7434c304f678f",
+    "element-author-surface.js": "7213ab9ed37a1e23779b5a3653a6270168a0950d0db4c00b124304e3e6fd9e21",
+    "battle-log.js": "81aa05ae7f2ccb337772b6435875af53d7deed263cd4a0cf59f32c3947b892f8",
+    "browser-tree.js": "4981dc44ca6c24f2559c3eaa56dd8f63408bebdd3367737bd088e1708d383c09",
+    "references.js": "a9544ddeb1672a7a38f4fd525bc614aae4115b2ff8c99dfbc0bc2fe3569fde3f",
+    "helper-agents.js": "75c0ff7e4f8a1b1606959aa2e941c12ec00b380929393ed747df5ea80635faa6",
+    "run-windows.js": "a5ab5e9f4ea806a42159d6b23b5343703a6ec2471b42ac21dfedf9503095868d",
+    "element-information-values.js": "e474cfc5cd0b22dcdfe6c34f1469aab0a4b6b4ef97a1237fb2fab42525324a81",
+    "element-values.js": "4194b01fafc41f1c969c0229ee04c0417ac99fe89e96ec87bdbf9934068ce4fc",
+    "context-actions.js": "cd921374c23fe5ea58b5de2904d5c8f2fdf9e860e79c7c5654979462a8ee1d47",
+    "blueprint.js": "30c1a604b47f657d54cf7b2b037f18829c98098a30d3f560b89b974d11ce56f8",
+    "blueprint-pins.js": "1e141e2b6563ec9b93ce3639add59e878a39f0415dc1cacff9f0ebe29ea57764",
+    "field-discovery.js": "e44121ad7618ba47f503af2752a699dab690a6e697782f52f68d643870b00b11",
+    "element-instances.js": "31cbf42fefe35215011ee00c006ee73592328207fcfcf74d787a127adcd2e326",
+    "workspace-host.js": "66fc50d6bd1b24b57897b90d149a9491ae77fc7a5b206754ce5cc7b419c15014",
+    "home-preferences.js": "64d6c5032978397ede265ee2437f1ddeb4caac038f4eaff011a43a4cf2688fb6",
+    "app-titlebar.js": "b53ad9f0d02d96ce6591f3c887727d5a6e4cf8fecbdd4474de14e46f8aaa4d8b",
+    "mobile-blueprint.js": "1c300b66028d30aba12baf0d80bd55f9a135d9210dd3c110e0918c482ff4a607",
+    "index.html": "9c4c08bbd90a15b7e18f65ceae0d9b0e7e1c17189595853a102941e27af778d0",
+    "ConfectoryIcon.svg": "6fbd2054764098b340cc104ccbb2e42b9568cec53b063d7f3aa78aa222ef6b20",
+    "tables.js": "6afa14b03f1bc85e86ba928afb3a0c8d48e59b99259818bea0ca29033df20020",
+    "consumer.css": "fc3584f1784ba822fd438edb5fe33deb6527d8e621cc478184d5f5b82244dc3e",
+    "style.css": "adfc1b205f0d357a380122763d411147e4db7535d1484f0852a6064984912188",
+    "conflicts.js": "b3365f537c2b223caa90901362b9e11cdfccdcc15aefa85bba98e3cd8f32b896",
+    "v508-runtime.js": "e90a214d0d7192651ddf0a1709aaa96406d820832a6024bfc4db8fb69321e005",
+    "feature-editor.js": "fc31e167979d55a62d710ffaf234fc70f21983157c45495c24b5b2b56f04af03"
+  },
+  "screenshots": {
+    "detached.png": "cff94abf78f411fa8ef192ed016b1c574696b0d0e3d33420d787a8eaa1c15698",
+    "primary.png": "15956f698e679b025e4420816df49ed2b7b8dc6bba4fc4b460063b4adfc00382"
+  },
+  "failedRuns": [],
+  "row7PolicyUsed": false,
+  "actualWindows": false,
+  "actualMobile": false,
+  "userProjectRun": false,
+  "actualLoginOrInference": false
+}

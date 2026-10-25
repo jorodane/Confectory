@@ -1,0 +1,128 @@
+{
+  "package": {
+    "sourceCommit": "acbaaf312ab014530a3c6526b87c95b4be7bd522",
+    "ephemeralPackagePath": "/dev/shm/confectory-shared-outputs-package/Windows-x64",
+    "persistentPackageCreated": false,
+    "packageAvailableAfterExec": false,
+    "manifestSha256": "153dae8b2022a2121c8daaa3e16d9d2a6a09c7b1bca51c643fa4bbebe2094df1",
+    "declaredFiles": 2343,
+    "totalFiles": 2344,
+    "packageBytes": 132728805,
+    "manifestAndFileSetMatch": true,
+    "symlinks": false,
+    "coreCopies": {
+      "Confectory.Core.dll": "af738e065601dbd4542aa46133ca68b7a41c583fbb09c69da5a8c78f3b63fe92",
+      "content/src/Confectory.Cli/bin/Release/net10.0/Confectory.Core.dll": "af738e065601dbd4542aa46133ca68b7a41c583fbb09c69da5a8c78f3b63fe92",
+      "content/targets/android-export/bin/Release/net10.0/Confectory.Core.dll": "af738e065601dbd4542aa46133ca68b7a41c583fbb09c69da5a8c78f3b63fe92",
+      "content/targets/browser-wasm/bin/Release/net10.0/Confectory.Core.dll": "af738e065601dbd4542aa46133ca68b7a41c583fbb09c69da5a8c78f3b63fe92",
+      "content/targets/element-authoring/bin/Release/net10.0/Confectory.Core.dll": "af738e065601dbd4542aa46133ca68b7a41c583fbb09c69da5a8c78f3b63fe92",
+      "content/targets/desktop-entry/bin/Release/net10.0/Confectory.Core.dll": "af738e065601dbd4542aa46133ca68b7a41c583fbb09c69da5a8c78f3b63fe92",
+      "content/targets/project-execution-host/bin/Release/net10.0/Confectory.Core.dll": "af738e065601dbd4542aa46133ca68b7a41c583fbb09c69da5a8c78f3b63fe92"
+    },
+    "nativeAssemblySha256": "b6dfc0c7cc27de498c440cfdcfc8cfd35d4f371a487351850dfa00585d07ef07",
+    "productSha256": {
+      "targets/element-authoring/InformationDefinitions.cs": "20ab49df2032b7c28a35b686b2d68bb84b7cade93934d9a911b83911cbcf3020",
+      "targets/element-authoring/InformationFunctionBatch.cs": "50e6b5d99152f411f31089c18eaedb79507b3e8574d7b01fa73e530b01c4bf8b"
+    },
+    "packagedBackendChecks": 3,
+    "actualWindows": false,
+    "webView2Executed": false,
+    "actualMobile": false,
+    "libraryUploaded": false,
+    "oldDurablePackageUnchanged": "/workspace/artifacts/v536-information-shared-callers/Windows-x64",
+    "oldDurableManifestSha256": "9d8f3fa88b1e8c62753ba2fe32228e02aa3be6ef41c34c394a81be15bd42f559",
+    "existingFilesDeleted": false,
+    "workspaceAvailableBytes": 30732288
+  },
+  "preflight": {
+    "sourceCommit": "acbaaf312ab014530a3c6526b87c95b4be7bd522",
+    "workspaceAvailableBytes": 44064768,
+    "tmpAvailableBytes": 106446848,
+    "ramAvailableBytes": 9441337344,
+    "ramPackageBudgetBytes": 262144000,
+    "workspaceBuildReserveBytes": 31457280,
+    "persistentPackageCreated": false,
+    "oldArtifactDeleted": false,
+    "runtimeFixtureReadOnly": "/tmp/confectory-desktop-package-7gk4rmzn/runtime only"
+  },
+  "commands": [
+    {
+      "name": "committed-release",
+      "command": [
+        "/workspace/toolchains/dotnet-10.0.401/dotnet",
+        "build",
+        "Confectory.sln",
+        "-c",
+        "Release",
+        "--no-restore",
+        "-m:1"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 9.2,
+      "log": "/workspace/scratch/v536-shared-outputs/committed-release.log",
+      "workspaceAvailableBytes": 44060672,
+      "logSha256": "e38c2f4642b8c74280f8c90acfda0f99b871a7f8d6471dc493b8d4dc3a046726"
+    },
+    {
+      "name": "committed-mcp-release",
+      "command": [
+        "/workspace/toolchains/dotnet-10.0.401/dotnet",
+        "build",
+        "targets/mcp-host",
+        "-c",
+        "Release",
+        "--no-restore"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 1.2,
+      "log": "/workspace/scratch/v536-shared-outputs/committed-mcp-release.log",
+      "workspaceAvailableBytes": 44052480,
+      "logSha256": "92af8fa86f78a27d103bd0e4eb09ec48737fa99f55e94dd7fd1e66fb3d12938a"
+    },
+    {
+      "name": "windows-package",
+      "command": [
+        "/workspace/toolchains/dotnet-10.0.401/dotnet",
+        "targets/editor-desktop/bin/Release/net10.0/Confectory.dll",
+        "package",
+        "/workspace/Confectory",
+        "/dev/shm/confectory-shared-outputs-package/Windows-x64"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 75.8,
+      "log": "/workspace/scratch/v536-shared-outputs/windows-package.log",
+      "workspaceAvailableBytes": 30740480,
+      "logSha256": "d1073267f6a94d8fe4631a0d6e162e34d13bd62f52ab3cb32a76ea2b34bc1acf"
+    },
+    {
+      "name": "windows-probe",
+      "command": [
+        "python3",
+        "tests/probes/desktop_package.py",
+        "/workspace/Confectory",
+        "/dev/shm/confectory-shared-outputs-package/Windows-x64",
+        "/tmp/confectory-desktop-package-7gk4rmzn"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 8.2,
+      "log": "/workspace/scratch/v536-shared-outputs/windows-probe.log",
+      "workspaceAvailableBytes": 30736384,
+      "logSha256": "0ceab178dbdb189d4b15d74715264934ef48f6970a3b4e909b3754c79268e2ac"
+    },
+    {
+      "name": "packaged-pure",
+      "command": [
+        "python3",
+        "tests/web/v536_information_shared_outputs_native.py",
+        "/dev/shm/confectory-shared-outputs-package/Windows-x64/content",
+        "/workspace/scratch/v536-information-inherited-contract/clean-engine-1.json",
+        "normal"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 7.5,
+      "log": "/workspace/scratch/v536-shared-outputs/packaged-pure.log",
+      "workspaceAvailableBytes": 30732288,
+      "logSha256": "0e07a6fd47bcabe112d93c4e51a057350256ffd13b72d1b614a10b643887dd37"
+    }
+  ]
+}
