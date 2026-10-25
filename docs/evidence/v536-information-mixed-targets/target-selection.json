@@ -1,0 +1,12 @@
+{
+  "portable": {
+    "receiptSha256": "b40dcd43fc275de09c2c1911adf197c0c64a516a731152abfc2638771b43c6a1",
+    "calleeAndCallerSourceKind": "blueprint",
+    "compiledNotExecuted": true
+  },
+  "windows": {
+    "receiptSha256": "decb2c7353de821e23b5ebdc9d77c7856aa529f1527049823d0f3f9f72b8cc3c",
+    "calleeAndCallerSourceKind": "csharp",
+    "compiledNotExecuted": true
+  }
+}

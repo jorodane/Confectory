@@ -14,7 +14,7 @@ def request():
     f.invoke('schema', {'id': owner})
     s = f.state()['schema']
     method = next(r for r in s['ownFunctions'] if r['id'] == fn)
-    preview = rpc('readOwnerEdits', id=owner, hash=s['textHash'], includeFunctionInputs=fn, includeFunctionBodies=True)
+    preview = rpc('readOwnerEdits', id=owner, hash=s['textHash'], includeFunctionInputs=fn, includeFunctionBodies=True, **({'includeFunctionOutputGraphs': True} if getattr(x, 'mixed_output', False) else {}))
     return {'id': owner, 'rows': [], 'basis': preview['basis'], 'declaration': {'id': owner, 'hash': s['textHash'], 'changes': [{'type': 'function-edit', 'id': fn, 'hash': method['hash'], 'name': method['name'], 'description': method['description'], 'signature': x.new, 'mapping': x.selections(preview)}]}}
 
 
@@ -24,7 +24,7 @@ try:
     f.invoke('saveDraft', {})
     checkpoint = next(f.project.glob('.confectory/edit-workspaces/*/draft.json'))
     baseline = checkpoint.read_bytes()
-    for fault in ['missing', 'source-hash', 'old-contract', 'syntax', 'type', 'outside', 'caller']:
+    for fault in ['missing', 'source-hash', 'old-contract', 'syntax', 'type', 'outside', 'caller'] + (['graph-use', 'last-graph'] if getattr(x, 'mixed_target', False) else []):
         bad = request()
         m = bad['declaration']['changes'][0]['mapping']
         b = m['bodies'][x.body_id]
@@ -40,6 +40,10 @@ try:
             b['text'] = x.original
         elif fault == 'outside':
             m['bodies']['Other.Project::Body/body:common'] = copy.deepcopy(b)
+        elif fault == 'graph-use':
+            m['implementations'].clear()
+        elif fault == 'last-graph':
+            next(iter(m['callers'].values()))['inputs']['text'] = 'amount'
         else:
             if m['callers']:
                 m['callers'].clear()
@@ -70,7 +74,7 @@ try:
     f.invoke('schema', {'id': owner})
     assert x.n.canonical(next(r for r in f.state()['schema']['ownFunctions'] if r['id'] == fn)['signature']) == x.new
     for p, v in x.snapshot.items():
-        if p not in {'FreeInfo.celem', 'elements/' + fn.split('::')[1] + '.celem', fn.split('::')[1] + 'Body.celem', x.body_path, 'CallerBody.celem', 'caller.graph.json'} | set(edited_files):
+        if p not in {'FreeInfo.celem', 'elements/' + fn.split('::')[1] + '.celem', fn.split('::')[1] + 'Body.celem', x.body_path, 'CallerBody.celem', 'caller.graph.json'} | set(edited_files) | set(getattr(x, 'updated_files', set())):
             assert (f.project / p).read_bytes() == v, p
     f.checked('실제 compiler Review/Confirm·cold에서만 C#와 계약을 함께 반영하고 다른 함수·부모·target을 보존한다')
 finally:

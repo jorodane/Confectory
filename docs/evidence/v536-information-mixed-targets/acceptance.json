@@ -1,0 +1,145 @@
+{
+  "pure-2": {
+    "checks": 2,
+    "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-bs7qj_7s",
+    "pureCandidate": true,
+    "executed": false
+  },
+  "outputs-2": {
+    "checks": 2,
+    "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-mn55h3kg",
+    "pureCandidate": true,
+    "executed": false
+  },
+  "api-1": {
+    "checks": [
+      "명시 C# 본문·현재 계약·호출자 누락 및 컴파일/경로/기준 오류는 전체 미적용이며 원문/checkpoint를 보존한다",
+      "직접 쓴 C# 원문과 함수·구현·호출 인자는 한 후보/CAS로 저장·재시작 복원하며 원본 파일은 유지한다",
+      "실제 compiler Review/Confirm·cold에서만 C#와 계약을 함께 반영하고 다른 함수·부모·target을 보존한다"
+    ],
+    "actualEngine": true,
+    "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-urfw73jt",
+    "nativeWindows": false
+  },
+  "api-outputs-1": {
+    "checks": [
+      "명시 C# 본문·현재 계약·호출자 누락 및 컴파일/경로/기준 오류는 전체 미적용이며 원문/checkpoint를 보존한다",
+      "직접 쓴 C# 원문과 함수·구현·호출 인자는 한 후보/CAS로 저장·재시작 복원하며 원본 파일은 유지한다",
+      "실제 compiler Review/Confirm·cold에서만 C#와 계약을 함께 반영하고 다른 함수·부모·target을 보존한다"
+    ],
+    "actualEngine": true,
+    "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-4br__ce5",
+    "nativeWindows": false
+  },
+  "ui-normal-3": {
+    "checks": [
+      "원본 함수·직접 편집한 C#의 취소·Undo/Redo·미저장 cold는 계약·정확한 입력을 보존한다",
+      "직접 편집한 C#·계약·호출자는 화면 저장·재시작·Review 취소/Confirm에서 한 후보로 반영된다"
+    ],
+    "mode": "normal",
+    "view": true,
+    "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-r4edqr10",
+    "actualEngineRenderer": true,
+    "nativeWindows": false
+  },
+  "ui-storage-1": {
+    "checks": [
+      "원본 함수·직접 편집한 C#의 취소·Undo/Redo·미저장 cold는 계약·정확한 입력을 보존한다",
+      "실제 화면 저장 실패는 선언·C#·호출자 모두 미적용이며 직접 편집 입력을 보존한다",
+      "직접 편집한 C#·계약·호출자는 화면 저장·재시작·Review 취소/Confirm에서 한 후보로 반영된다"
+    ],
+    "mode": "normal-storage",
+    "view": false,
+    "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-9n62iqws",
+    "actualEngineRenderer": true,
+    "nativeWindows": false
+  },
+  "ui-loss-1": {
+    "checks": [
+      "원본 함수·직접 편집한 C#의 취소·Undo/Redo·미저장 cold는 계약·정확한 입력을 보존한다",
+      "C#·계약 저장 및 receipt 응답 유실 뒤 cold는 결과 조회로 복원하며 중복 저장하지 않는다",
+      "직접 편집한 C#·계약·호출자는 화면 저장·재시작·Review 취소/Confirm에서 한 후보로 반영된다"
+    ],
+    "mode": "normal-loss",
+    "view": true,
+    "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-7s7u64q6",
+    "actualEngineRenderer": true,
+    "nativeWindows": false
+  },
+  "ui-cancel-1": {
+    "checks": [
+      "원본 함수·직접 편집한 C#의 취소·Undo/Redo·미저장 cold는 계약·정확한 입력을 보존한다",
+      "C#과 계약의 실제 변경 취소·재시작은 모든 선언·본문·호출자를 미적용으로 유지한다"
+    ],
+    "mode": "normal-cancel",
+    "view": false,
+    "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-agsolmk8",
+    "actualEngineRenderer": true,
+    "nativeWindows": false
+  },
+  "ui-conflict-1": {
+    "checks": [
+      "원본 함수·직접 편집한 C#의 취소·Undo/Redo·미저장 cold는 계약·정확한 입력을 보존한다",
+      "실제 동시 정보 변경은 전체 미적용이며 C# 원문·계약 선택과 타 편집자 입력을 보존한다"
+    ],
+    "mode": "normal-conflict",
+    "view": false,
+    "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-pay5r2bw",
+    "actualEngineRenderer": true,
+    "nativeWindows": false
+  },
+  "regression-legacy-native": {
+    "checks": [
+      "C# 원문을 재작성하지 않는 정확한 이름/타입/모드 순열은 함수·직접 구현을 한 후보에 담고 원본 파일을 보존한다",
+      "C# 이름 재작성 추측·오래된 원래 서명·중복 pin 대응은 전체 거절한다",
+      "공개 함수와 다른 C# 구현 매개변수 이름·본문을 보존하고 기존 구현 계약 불일치는 거절한다",
+      "C# 다중 target과 소유 module require는 같은 명시 순열 후보로 갱신하며 모든 target 본문을 보존한다",
+      "명시적 pin ID 대응은 루트·typed import·실제 호출 입력을 함께 갱신하며 code 노드 서명/본문과 물리 원본은 보존한다",
+      "연결된 타입 불일치·호출자 snapshot 누락은 부분 후보 없이 거절한다",
+      "Blueprint 모든 target과 안전한 같은 이름 집합의 C# 후처리는 명시 순서 후보를 공유하고 원문을 재작성하지 않는다"
+    ],
+    "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-rkzmdfyy",
+    "pure": true,
+    "engineIntegrated": false,
+    "windowsNative": false
+  },
+  "regression-native-context": {
+    "checks": 4,
+    "pureCandidate": true,
+    "sourceWritten": false,
+    "executed": false,
+    "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-w1fuvp86"
+  },
+  "regression-io": {
+    "checks": [
+      "중첩된 입력/출력 선택의 누락·중복 대체·타입/원래 기준 오류·마지막 새 출력 오류는 후보 전체 미적용이다",
+      "현재 입력·출력 writer/exit·별칭·호출자 선택은 한 CAS로 저장·재시작하며 C#와 정확한 원문을 보존한다",
+      "결합된 계약은 실제 compiler Review/Confirm·cold를 통과하고 다른 소스·부모·target은 보존된다"
+    ],
+    "kind": "combined",
+    "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-azxu6rn_",
+    "actualEngine": true,
+    "actualWindows": false
+  },
+  "compile-targets-2": {
+    "checks": [
+      "portable",
+      "windows"
+    ],
+    "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-mixed-compile-acn1fksr",
+    "originalFixtureUnchanged": true,
+    "compiledOnly": true,
+    "executed": false
+  },
+  "ui-projects-1": {
+    "checks": [
+      "원본 함수·직접 편집한 C#의 취소·Undo/Redo·미저장 cold는 계약·정확한 입력을 보존한다",
+      "동일 namespace 프로젝트 전환은 C#·계약 입력을 분리하고 닫힌 편집창 저장이 다른 프로젝트를 바꾸지 않는다"
+    ],
+    "mode": "normal-projects",
+    "view": true,
+    "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-84wzya1m",
+    "actualEngineRenderer": true,
+    "nativeWindows": false
+  }
+}

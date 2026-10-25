@@ -62,7 +62,7 @@ def edit():
     p.get_by_role('button', name='저장', exact=True).click()
     if getattr(x, 'native_context', False):
         return None
-    modal = f.page.get_by_role('dialog', name='호출 계약 갱신', exact=True)
+    modal = f.page.get_by_role('dialog', name='입력 연결 갱신' if getattr(x, 'mixed_target', False) else '호출 계약 갱신', exact=True)
     expect(modal).to_be_visible()
     return modal
 
@@ -70,7 +70,7 @@ def edit():
 def cpp(body=x.body_id):
     f.owner().locator('[data-inline-method="' + fn + '"] [data-function-edit], [data-inline-method="' + fn + '"] [data-function-write-direct]').click()
     picker = f.page.get_by_role('dialog', name='구현 선택', exact=True)
-    if getattr(x, 'native_context', False):
+    if getattr(x, 'body_picker', getattr(x, 'native_context', False)):
         expect(picker).to_be_visible()
         picker.locator('[data-information-body="' + body + '"]').click()
     dialog = f.page.locator('[role=dialog]:has([data-code-source])')
@@ -95,6 +95,8 @@ def choose(modal):
         modal.locator('[data-abi-input=text]').select_option('value')
         modal.locator('[data-abi-value=text]').fill('직접 입력한 호출 인자')
         modal.locator('[data-abi-disconnect=amount]').select_option('disconnect')
+        if getattr(x, 'mixed_target', False):
+            modal.locator('[data-abi-input=amount]').select_option('pin:count')
         modal.locator('[data-abi-remap-accept]').click()
         expect(modal).to_have_count(0)
     dialog = cpp()
@@ -263,6 +265,22 @@ try:
             x.verify(checkpoint)
             preserved()
             restart(3)
+            if getattr(x, 'mixed_target', False):
+                if d.is_view:
+                    box = f.owner().bounding_box()
+                    heading = f.owner().locator('.object-title-name').bounding_box()
+                    f.page.mouse.move(heading['x'] + heading['width'] / 2, heading['y'] + heading['height'] / 2)
+                    f.page.mouse.down()
+                    f.page.mouse.move(heading['x'] + heading['width'] / 2 + 2300 - box['width'] - 20 - box['x'], heading['y'] + heading['height'] / 2, steps=12)
+                    f.page.mouse.up()
+                f.owner().locator('[data-inline-method="' + fn + '"] [data-function-edit], [data-inline-method="' + fn + '"] [data-function-write-direct]').click()
+                picker = f.page.get_by_role('dialog', name='구현 선택', exact=True)
+                expect(picker).to_be_visible()
+                picker.locator('[data-information-body="' + fn + 'Body/body:common"]').click()
+                expect(f.author().locator('[data-bp-node=body]')).to_be_visible()
+                f.page.screenshot(path=str(f.case / 'mixed-target-blueprint.png'))
+                f.close_author()
+                x.verify(checkpoint)
             review = d.review()
             review.locator('[data-reject]').click()
             preserved()
