@@ -16,7 +16,7 @@ Blueprint 부모 복사에서 `GRAPH_IMPLEMENTATION_CONTEXT_STALE`를 재현했�
 
 ## 실제 검사 상태
 
-전체 Release solution build는 경고/오류 0건이다. 공개 입력/out 이름 변경의 실제 API 저장 실패·재시도·cold·compiler Confirm, Blueprint 복사/Confirm/소유 본문 재편집, 부모/비소유/문맥 위조·stale node·실제 부모 파일 변경 차단을 확인했다. 기존 상속 body node 소유권 회귀 2건도 통과했다. 최종 화면·checkout·패키지 결과와 각 명령의 근거는 이 단위 검증을 마친 뒤 아래에 추가한다.
+전체 Release solution build는 경고/오류 0건이다. 공개 입력/out 이름 변경의 실제 API 저장 실패·재시도·cold·compiler Confirm, Blueprint 복사/Confirm/소유 본문 재편집, 부모/비소유/문맥 위조·stale node·실제 부모 파일 변경 차단을 확인했다. 기존 상속 body node 소유권 회귀 2건도 통과했다. 최종 화면·checkout·패키지 결과와 각 명령의 근거는 아래에 기록한다.
 
 일반 원본 C# 자동 재작성, 등록 부모 계약 불일치 허용, 외부 쓰기 권한, 실제 계정/추론·사용자 프로젝트 실행은 포함하지 않는다. 고정 7행 전체와 8·9행은 위 범위 문서의 잔여로 유지한다.
 
@@ -28,3 +28,14 @@ Blueprint 부모 복사에서 `GRAPH_IMPLEMENTATION_CONTEXT_STALE`를 재현했�
 Blueprint는 whole-body 부모의 기본·독립 창, 저장 실패/재시도·응답 유실 복구·Review 취소/재검토·명시 Confirm을 확인했다. 추가 code 노드와 반환 writer를 둔 부모 그래프도 독립 창에서 편집·저장·확정했고, 복사본의 다른 노드 원문은 보존됐다. 원래 child의 compiler probe는 실행 없이 통과하며 다른 native 별칭·위조 문맥·stale node는 metadata와 compiler 모두 거절한다. 기존 정상 상속 node owner/독립 선언 빌림 차단 두 회귀도 유지한다.
 
 [C# 복사 편집](evidence/v536-information-inherited-contract/copy-csharp.png), [Blueprint 선택창](evidence/v536-information-inherited-contract/blueprint-picker.png), [독립 창 확정 후](evidence/v536-information-inherited-contract/blueprint-confirmed.png)를 실제 렌더로 확인했다. 기존 제목 드래그/선택 조작을 사용하고 강제 클릭이나 레이아웃 변경을 하지 않았다. HTML/CSS·UI 어댑터·WebBundle과 원본 ZIP의 이전 게시 대비 바이트 불변은 [기록](evidence/v536-information-inherited-contract/layout-source-evidence.json)으로 남겼으며 모든 화면 pixel equality를 주장하지 않는다.
+
+
+## 최종 checkout·패키지 재현
+
+실행 코드 기준은 `d7dc4027bc540c7a7b9b73675419c499bb139c23`이다. 이 커밋 후 root Release solution/MCP와 재사용한 깨끗한 checkout의 전체 Release solution을 빌드했다. 모두 경고/오류 0건이며, clean Linux 빌드는 exit 0·`tool.ok=true`·stderr 0바이트다. 같은 checkout에서 공개 계약 API 3건·Blueprint metadata/compiler 보호 3건·추가 직렬 노드가 있는 독립 창 UI 3건, 합계 **9 check**가 통과했다. 새 clone을 중복 생성하지 않고 기존 clean checkout을 fast-forward해 공간 피크를 줄였다.
+
+새 Windows x64 교차 패키지는 `/workspace/artifacts/v536-information-inherited-contract/Windows-x64`다. **2,342개** manifest 파일 해시와 manifest 포함 2,343개 파일 집합·symlink 부재를 확인했다. 변경된 Native 소스 두 파일이 패키지와 바이트로 일치하며 Native assembly와 Core DLL **7개 전부**가 현재 Release 빌드와 일치한다. Core 소스 자체는 패키징하지 않으므로 소스 파일이 포함됐다고 주장하지 않는다. 실제 포함된 Native/Core DLL에서 부모 copy/compiler probe와 별칭·문맥·stale node 거절 **3 check**도 실행해 올바른 컴파일러가 전달되는 것을 확인했다.
+
+기존 package probe는 SDK 없는 격리 런타임·다른 작업 경로의 managed 엔진 기동, 리소스 **74개** 및 최소 Agent 창 렌더, 변조/누락 의존성 거절과 복구, 격리된 기존 프로필/명시 override 보존을 통과했다. 실제 로그인·추론 호출은 없다. 이는 Linux의 교차 패키지/managed 검사이며 Windows apphost/WebView2나 모바일 기기 실행 검사가 아니다.
+
+[최종 기록](evidence/v536-information-inherited-contract/final-verification.json)에 명령별 결과와 원본 로그/패키지/소스/DLL 해시를 남겼다. 이후 커밋은 검증 문서·증거만 추가하며 패키지의 실행 코드와 다르지 않다. 추가 기존 파일 삭제나 Library 업로드는 하지 않았다. 남은 7행 계약 경로와 별도 8·9행은 [범위 문서](V536_I5_6_INHERITED_CONTRACT_SCOPE.md)에 유지하며, 전체 UI·실제 Windows 실행·전달 완료로 해석하지 않는다.
