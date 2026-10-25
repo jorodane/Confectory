@@ -37,3 +37,13 @@
 5행 중첩/private graph 호출, 6행 whole-body/forwardCallerStorage의 ref/out 저장소 역할, 7행 등록 callable receipt·상속/copy 출처, 8행 여러 함수의 공유 caller 후보, 9행 고급 핀 타입/표시명은 미완료다. 기존 우선순위대로 다음은 6행의 명시 whole-body 본문/저장소 계약, 이어 5·7·8행의 소유·참조 문맥과 9행의 catalogue/표시명 경계다. 이번 직접 native out/void 검사를 6행 전체 문맥 완료로 표시하지 않는다.
 
 I5-6 전체/v536 전체 UI·I6/B2·A4~A6/M4/M11/M12·Helper 실제 편집 작업은 완료가 아니다. 실제 Windows apphost/WebView2·모바일 기기·Library 전달도 별도 미검증이며 교차 빌드/브라우저 폭 검사와 구분한다. main·Android·원본 ZIP·사용자 자료는 보존한다.
+
+## checkout·교차 패키지
+
+소스는 `af6b26b685b39122e94e08bec0887462597097b0`다. root/clean Native 빌드는 0 warning/0 error, Linux 엔진 빌드 stderr는 0이다. 실제 Git fast-forward의 보존 CRLF/fresh LF에서 74개 canonical/exact 리소스와 내용·인코딩·BOM·binary·budget 변조 거절을 통과했다.
+
+로컬 패키지 폴더는 `/workspace/artifacts/v536-information-mixed-targets/Windows-x64`, 진입점은 `Confectory.exe`다. manifest 2,335항목, manifest 자체 포함 2,336파일, manifest SHA-256 `02f061a4713fd4a0cde1c4245de25d61cfe3031e86f9ec780f56e5e2286c9ea7`다. 변경 실행 source 6개와 Native/Core DLL 2개를 패키지와 byte 비교했다([근거](evidence/v536-information-mixed-targets/package-identity.json)). 기존 Microsoft .NET Desktop Runtime 10 x64·WebView2 Runtime 전제를 유지한다.
+
+별도 cwd·SDK 없는 runtime-only에서 실제 패키지 managed 웹 엔진·74리소스·최소 로그인 화면을 기동했다. 변조/의존성 누락 거절 및 격리 기존 프로필·명시 override 보존도 통과했다([결과](evidence/v536-information-mixed-targets/package-probe.json)). Windows apphost/WebView2를 실행하거나 실제 로그인/추론·프로젝트 Run·Library 전달을 한 결과는 아니다. 생성물/fixture/인증정보는 Git에 넣지 않는다.
+
+깨끗한 checkout에서 혼합 out/void API 3 check와 독립 창 정상 UI 2 check도 통과했다([재현](evidence/v536-information-mixed-targets/clean-checkout.json)). 미저장 cold·CodeSave·Undo/Redo·Save/cold·Blueprint 선택/열기·Review 취소·실제 compiler Confirm·cold까지 확인했다. source 이후 최종 기록 커밋은 문서/근거만 변경하며 위 `af6b26b` 패키지와 실행 입력이 같다. 별도 재빌드의 바이너리 전체 bit-for-bit 동등성 주장은 아니다.

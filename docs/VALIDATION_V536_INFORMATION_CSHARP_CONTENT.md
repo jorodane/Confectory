@@ -1,5 +1,7 @@
 # I5-6 4행: 사용자가 직접 편집한 C#과 계약의 결합
 
+이 문서는 `ed63fc1`의 native C# 첫 단위 기록이다. 이후 혼합 target은 [후속 검증](VALIDATION_V536_INFORMATION_MIXED_TARGETS.md)에서 연결·마감했으며 최신 상태는 고정 잔여 표를 따른다.
+
 v536 원본 정보 함수 상세창·구현 선택창·보호된 `C# Script` 편집기를 사용한다. 기존 CSS와 권한, 저장/Review/Confirm 구분은 유지한다. C# 원문의 자동 재작성 기능이 아니다.
 
 ## 이번 지원 경계
