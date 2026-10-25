@@ -1,0 +1,194 @@
+{
+  "baselineCommit": "7340c9b1da508ec2df20b884fde76238be560b16",
+  "focusedChecks": 48,
+  "focusedFlows": 19,
+  "standalonePureMixedChecks": 3,
+  "impactChecks": 15,
+  "passedResults": [
+    {
+      "name": "pure-add",
+      "exit": 0,
+      "elapsedSeconds": 10.8,
+      "minimumWorkspaceAvailableBytesSampled": 459763712,
+      "peakMemoryBytesSampled": 16118288384,
+      "checks": 3
+    },
+    {
+      "name": "pure-delete",
+      "exit": 0,
+      "elapsedSeconds": 10.6,
+      "minimumWorkspaceAvailableBytesSampled": 459460608,
+      "peakMemoryBytesSampled": 16119103488,
+      "checks": 3
+    },
+    {
+      "name": "pure-void",
+      "exit": 0,
+      "elapsedSeconds": 10.6,
+      "minimumWorkspaceAvailableBytesSampled": 459165696,
+      "peakMemoryBytesSampled": 16115470336,
+      "checks": 3
+    },
+    {
+      "name": "pure-fromvoid",
+      "exit": 0,
+      "elapsedSeconds": 10.6,
+      "minimumWorkspaceAvailableBytesSampled": 458870784,
+      "peakMemoryBytesSampled": 16114991104,
+      "checks": 3
+    },
+    {
+      "name": "api-normal",
+      "exit": 0,
+      "elapsedSeconds": 30.1,
+      "minimumWorkspaceAvailableBytesSampled": 458571776,
+      "peakMemoryBytesSampled": 16297115648,
+      "checks": 3
+    },
+    {
+      "name": "ui-primary",
+      "exit": 0,
+      "elapsedSeconds": 59.9,
+      "minimumWorkspaceAvailableBytesSampled": 458194944,
+      "peakMemoryBytesSampled": 17014910976,
+      "checks": 2
+    },
+    {
+      "name": "api-void",
+      "exit": 0,
+      "elapsedSeconds": 30.3,
+      "minimumWorkspaceAvailableBytesSampled": 456953856,
+      "peakMemoryBytesSampled": 16275472384,
+      "checks": 3
+    },
+    {
+      "name": "api-fromvoid",
+      "exit": 0,
+      "elapsedSeconds": 29.9,
+      "minimumWorkspaceAvailableBytesSampled": 456568832,
+      "peakMemoryBytesSampled": 16266309632,
+      "checks": 3
+    },
+    {
+      "name": "api-source",
+      "exit": 0,
+      "elapsedSeconds": 9.8,
+      "minimumWorkspaceAvailableBytesSampled": 456192000,
+      "peakMemoryBytesSampled": 16188436480,
+      "checks": 2
+    },
+    {
+      "name": "ui-view",
+      "exit": 0,
+      "elapsedSeconds": 70.6,
+      "minimumWorkspaceAvailableBytesSampled": 455864320,
+      "peakMemoryBytesSampled": 17033412608,
+      "checks": 2
+    },
+    {
+      "name": "ui-void",
+      "exit": 0,
+      "elapsedSeconds": 59.5,
+      "minimumWorkspaceAvailableBytesSampled": 454754304,
+      "peakMemoryBytesSampled": 16805195776,
+      "checks": 2
+    },
+    {
+      "name": "ui-fromvoid",
+      "exit": 0,
+      "elapsedSeconds": 70.4,
+      "minimumWorkspaceAvailableBytesSampled": 453586944,
+      "peakMemoryBytesSampled": 16835555328,
+      "checks": 2
+    },
+    {
+      "name": "ui-storage",
+      "exit": 0,
+      "elapsedSeconds": 77.6,
+      "minimumWorkspaceAvailableBytesSampled": 452517888,
+      "peakMemoryBytesSampled": 16852258816,
+      "checks": 3
+    },
+    {
+      "name": "ui-loss",
+      "exit": 0,
+      "elapsedSeconds": 45.1,
+      "minimumWorkspaceAvailableBytesSampled": 451289088,
+      "peakMemoryBytesSampled": 16836055040,
+      "checks": 2
+    },
+    {
+      "name": "ui-cancel",
+      "exit": 0,
+      "elapsedSeconds": 34.9,
+      "minimumWorkspaceAvailableBytesSampled": 450154496,
+      "peakMemoryBytesSampled": 16857112576,
+      "checks": 2
+    },
+    {
+      "name": "ui-conflict",
+      "exit": 0,
+      "elapsedSeconds": 23.9,
+      "minimumWorkspaceAvailableBytesSampled": 447074304,
+      "peakMemoryBytesSampled": 16814034944,
+      "checks": 2
+    },
+    {
+      "name": "ui-projects",
+      "exit": 0,
+      "elapsedSeconds": 32.7,
+      "minimumWorkspaceAvailableBytesSampled": 446005248,
+      "peakMemoryBytesSampled": 16806113280,
+      "checks": 2
+    },
+    {
+      "name": "ui-retry",
+      "exit": 0,
+      "elapsedSeconds": 72.8,
+      "minimumWorkspaceAvailableBytesSampled": 444637184,
+      "peakMemoryBytesSampled": 16845246464,
+      "checks": 3
+    },
+    {
+      "name": "impact-input-names",
+      "exit": 0,
+      "elapsedSeconds": 5.6,
+      "minimumWorkspaceAvailableBytesSampled": 443412480,
+      "peakMemoryBytesSampled": 15912333312,
+      "checks": 4
+    },
+    {
+      "name": "impact-input-types",
+      "exit": 0,
+      "elapsedSeconds": 9.0,
+      "minimumWorkspaceAvailableBytesSampled": 443113472,
+      "peakMemoryBytesSampled": 15920222208,
+      "checks": 4
+    },
+    {
+      "name": "impact-output-names",
+      "exit": 0,
+      "elapsedSeconds": 7.6,
+      "minimumWorkspaceAvailableBytesSampled": 442818560,
+      "peakMemoryBytesSampled": 15913897984,
+      "checks": 3
+    },
+    {
+      "name": "impact-output-types",
+      "exit": 0,
+      "elapsedSeconds": 12.0,
+      "minimumWorkspaceAvailableBytesSampled": 442519552,
+      "peakMemoryBytesSampled": 15921623040,
+      "checks": 4
+    }
+  ],
+  "initialConflictTimeout": "checkpoint unchanged; same product re-run passed; exact initial cause unconfirmed; current-text+mutation and failed-transaction assertions added to new test",
+  "preflightFailure": "run-2 fixed RAM path already existed before tests; no old data deleted; subsequent invocations use unique new temp roots",
+  "nativeReleaseWarnings": 0,
+  "nativeReleaseErrors": 0,
+  "uiSourceChanges": false,
+  "row7CopyPolicyUsed": false,
+  "actualWindows": false,
+  "actualMobile": false,
+  "libraryUploaded": false
+}
