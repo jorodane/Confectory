@@ -22,7 +22,17 @@ check 수는 각 실행의 반복 공통 준비 단계도 포함하는 관측 �
 
 초기 두 번째 fixture의 node hash는 최종 함수 선언을 기준으로 준비되지 않아 단일 두 번째 함수에서도 stale이 재현됐다. 기존 정상 authoring metadata로 최종 definition hash를 준비하여 fixture를 고쳤으며 검증을 완화하지 않았다. 재시도 화면 검사는 원본 연결 갱신창의 정상 취소를 먼저 수행하도록 고쳤다. 가려진 저장 버튼을 force click하거나 원본 레이아웃을 변경하지 않았다. 실패 로그는 로컬 scratch에 보존한다.
 
-실행별 결과/해시·기본 화면 근거는 `docs/evidence/v536-information-shared-callers/`에 정리한다. 전체 로그·프로필·fixture·빌드는 Git에 포함하지 않는다.
+실행별 결과/해시·기본 화면 근거는 [집중 검증 기록](evidence/v536-information-shared-callers/focused-checks.json)에 정리했다. 전체 로그·프로필·fixture·빌드는 Git에 포함하지 않는다.
+
+## Checkout·교차 패키지
+
+구현 커밋은 `7d81edde581699608054f1cb5851f465f4178dc0`이다. 전체 Release 및 MCP Release 빌드는 경고/오류 0건이며 Linux 엔진 빌드도 `tool.ok=true`다. 기존 단일 함수 API 2 check와 상속 원본/위조·경합 보호 3 check를 추가 회귀 확인했다. 기존의 깨끗한 재현 checkout을 해당 커밋으로 fast-forward하여 Native Release를 빌드하고 순수 후보 3·실제 API 3·독립 창 2의 **8 check**를 재현했다. 이는 집중 32 check와 구분한 재현 횟수다.
+
+Windows x64 패키지는 `/workspace/artifacts/v536-information-shared-callers/Windows-x64`에 생성했다. Windows에서는 전체 폴더를 유지하고 `Confectory.exe`를 연다. manifest의 **2,343파일** 해시와 marker를 포함한 2,344파일 집합·symlink 부재를 확인했다. manifest SHA-256은 `bf451e38e273676ac82f46cca58e8364a2bf656eecd6261329ac85f85a50f7a7`이다. 패키지의 변경 제품 소스 두 파일과 Native DLL은 검증한 현재 소스/Release DLL과 바이트로 일치하며, Core DLL 7개도 모두 현재 Release Core와 일치한다. 패키지에 포함된 Native로 공유 caller 후보 3 check를 추가 실행했다. 이후 검증 문서와 probe 테스트만 바뀌므로 실행 코드 기준은 위 구현 커밋이다. assembly revision 문자열만으로 포함 코드를 판정하지 않았다.
+
+패키지 probe는 SDK가 없는 런타임·다른 작업 경로에서 managed 엔진을 시작하고 74리소스·최소 Agent 화면, 변조 리소스/누락 DLL 거절, 기존 checkout 프로필과 명시 경로 override를 확인했다. 최초 실행에서는 Chromium 탭이 `Target crashed`로 종료됐다. 정확한 원인은 확정하지 않았다. 실패 로그를 보존한 채 새 대형 복제를 만들지 않고, 실패 fixture의 런타임 전체를 SDK 원본과 대조하고 패키지 복사본의 모든 파일을 manifest와 대조해 읽기 전용으로 재사용했다. 브라우저 임시 경로를 작업 볼륨으로 바꿔 동일 검사를 모두 통과했다. probe의 repo/package 뒤 선택적 fixture 경로는 이 해시/링크/SDK 부재 검사 뒤에만 복사본을 재사용하며, 기존 검사를 제거하지 않는다. 기존 산출물은 삭제하지 않았다.
+
+이는 Linux에서 수행한 교차 패키징과 packaged managed 엔진/Chromium 검사다. Windows apphost/WebView2나 실제 모바일 기기 실행은 아니다. 로컬 패키지 경로는 Library 전달 성공을 의미하지 않는다. [최종 재현·패키지 근거](evidence/v536-information-shared-callers/final-verification.json)에 실행별 로그 해시·파일 해시·공간 사전 측정과 제한을 남겼다.
 
 ## 남은 범위
 

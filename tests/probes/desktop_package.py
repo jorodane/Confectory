@@ -1,9 +1,11 @@
 """Cross-publish/composition checks plus packaged engine web startup from unrelated cwd.
 A Linux pass is not Windows apphost/WebView2 or actual double-click execution.
 Only fixture data is used; no CLI login, plugin relay or external request.
+An optional fixture path after repo/package reuses hash-verified fixture copies
+read-only while new host/browser scratch follows TMPDIR.
 """
 import hashlib,json,os,pathlib,re,shutil,signal,subprocess,sys,tempfile,time,urllib.request
-repo=pathlib.Path(sys.argv[1]).resolve();root=pathlib.Path(tempfile.mkdtemp(prefix='confectory-desktop-package-'));outside=root/'unrelated cwd';outside.mkdir();storage=root/'owned-data';storage.mkdir()
+repo=pathlib.Path(sys.argv[1]).resolve();reuse=pathlib.Path(sys.argv[3]).resolve() if len(sys.argv)>3 else None;root=pathlib.Path(tempfile.mkdtemp(prefix='confectory-desktop-package-'));outside=root/'unrelated cwd';outside.mkdir();storage=root/'owned-data';storage.mkdir()
 dotnet=os.environ.get('CONFECTORY_DOTNET','dotnet');tool=repo/'targets/editor-desktop/bin/Release/net10.0/Confectory.dll'
 env=os.environ.copy();env.update(CONFECTORY_HOME_STORAGE=str(storage),CONFECTORY_ENTRY_STORAGE=str(storage),HOME=str(root/'owned-home'),CONFECTORY_MCP_DIRECTORY=str(root/'instances'))
 package=pathlib.Path(sys.argv[2]).resolve() if len(sys.argv)>2 else root/'Windows result 한글'
@@ -16,7 +18,18 @@ def check(ok=True):
  return json.loads(result.stdout) if ok else result.stderr
 # An owned copy of the existing runtime, deliberately without sdk/packs, proves
 # startup does not accidentally depend on the build machine's SDK being found.
-source=pathlib.Path(dotnet).resolve().parent;runtime=root/'runtime only';runtime.mkdir();shutil.copy2(source/'dotnet',runtime/'dotnet');shutil.copytree(source/'host',runtime/'host');(runtime/'shared').mkdir();shutil.copytree(source/'shared/Microsoft.NETCore.App',runtime/'shared/Microsoft.NETCore.App')
+source=pathlib.Path(dotnet).resolve().parent;runtime=(reuse if reuse else root)/'runtime only'
+if reuse:
+ # Reuse only an exact, link-free SDK-less fixture; never alter the old copy.
+ assert runtime.is_dir() and not runtime.is_symlink()
+ expected={pathlib.Path('dotnet'):source/'dotnet'}
+ for part in ['host','shared/Microsoft.NETCore.App']:
+  expected.update({p.relative_to(source):p for p in (source/part).rglob('*') if p.is_file()})
+ actual={p.relative_to(runtime):p for p in runtime.rglob('*') if p.is_file()}
+ assert set(actual)==set(expected) and not any(p.is_symlink() for p in runtime.rglob('*'))
+ assert all(hashlib.sha256(actual[name].read_bytes()).digest()==hashlib.sha256(path.read_bytes()).digest() for name,path in expected.items())
+else:
+ runtime.mkdir();shutil.copy2(source/'dotnet',runtime/'dotnet');shutil.copytree(source/'host',runtime/'host');(runtime/'shared').mkdir();shutil.copytree(source/'shared/Microsoft.NETCore.App',runtime/'shared/Microsoft.NETCore.App')
 dotnet=str(runtime/'dotnet');env['CONFECTORY_DOTNET']=dotnet;env['DOTNET_ROOT']=str(runtime);env['PATH']=str(runtime)+os.pathsep+'/usr/bin:/bin'
 assert subprocess.check_output([dotnet,'--list-sdks'],env=env,text=True).strip()==''
 plan=check();assert plan['rid']=='win-x64' and plan['windowsExecuted'] is False
@@ -35,9 +48,16 @@ finally:held.rename(missing)
 check()
 # Default output in an owned checkout reuses existing settings instead of opening
 # an empty profile. Explicit overrides above still win. Never touch user profiles.
-legacy=root/'owned checkout';legacy_package=legacy/'Builds/Windows-x64';shutil.copytree(package,legacy_package)
-(legacy/'examples/editor-home').mkdir(parents=True);(legacy/'examples/editor-home/project.cpack').write_text('owned source marker')
-legacy_storage=legacy/'.confectory/editor-home';legacy_storage.mkdir(parents=True);sentinel=legacy_storage/'retained-settings';sentinel.write_bytes(b'fixture user profile unchanged')
+legacy=(reuse if reuse else root)/'owned checkout';legacy_package=legacy/'Builds/Windows-x64';legacy_storage=legacy/'.confectory/editor-home';sentinel=legacy_storage/'retained-settings'
+if reuse:
+ marker='confectory-desktop-package.json';manifest=json.loads((package/marker).read_text())
+ assert (legacy_package/marker).read_bytes()==(package/marker).read_bytes()
+ actual={p.relative_to(legacy_package).as_posix():p for p in legacy_package.rglob('*') if p.is_file()}
+ assert set(actual)==set(manifest['files'])|{marker} and not any(p.is_symlink() for p in legacy_package.rglob('*'))
+ assert all(hashlib.sha256(actual[name].read_bytes()).hexdigest()==digest for name,digest in manifest['files'].items())
+ assert (legacy/'examples/editor-home/project.cpack').read_text()=='owned source marker' and sentinel.read_bytes()==b'fixture user profile unchanged'
+else:
+ shutil.copytree(package,legacy_package);(legacy/'examples/editor-home').mkdir(parents=True);(legacy/'examples/editor-home/project.cpack').write_text('owned source marker');legacy_storage.mkdir(parents=True);sentinel.write_bytes(b'fixture user profile unchanged')
 no_override=env.copy();no_override.pop('CONFECTORY_HOME_STORAGE',None);no_override.pop('CONFECTORY_ENTRY_STORAGE',None)
 legacy_plan=json.loads(subprocess.check_output([dotnet,str(legacy_package/'Confectory.dll'),'--check-package',str(legacy_package)],cwd=outside,env=no_override,text=True))
 assert pathlib.Path(legacy_plan['environment']['CONFECTORY_HOME_STORAGE'])==legacy_storage and sentinel.read_bytes()==b'fixture user profile unchanged'
@@ -66,5 +86,5 @@ try:
 finally:
  if host.poll() is None:os.killpg(host.pid,signal.SIGTERM)
  host.wait(timeout=15);log.close()
-record={'pass':True,'package':str(package),'files':plan['files'],'crossPublishedWindowsX64PE':True,'unrelatedWorkingDirectory':True,'packageTamperAndMissingDependencyRejected':True,'packagedEngineWebStartup':True,'runtimeOnlyNoInstalledSDK':True,'existingCheckoutProfileReusedAndExplicitOverrideRetained':True,'resources':len(resources),'renderedMinimalLogin':True,'windowsApphostExecuted':False,'webView2Executed':False,'actualLoginOrInference':False,'evidence':str(root)}
+record={'pass':True,'package':str(package),'files':plan['files'],'crossPublishedWindowsX64PE':True,'unrelatedWorkingDirectory':True,'packageTamperAndMissingDependencyRejected':True,'packagedEngineWebStartup':True,'runtimeOnlyNoInstalledSDK':True,'existingCheckoutProfileReusedAndExplicitOverrideRetained':True,'fixtureCopiesReusedReadOnly':str(reuse) if reuse else None,'resources':len(resources),'renderedMinimalLogin':True,'windowsApphostExecuted':False,'webView2Executed':False,'actualLoginOrInference':False,'evidence':str(root)}
 (root/'evidence.json').write_text(json.dumps(record,indent=2));print(json.dumps(record,indent=2));print('PASS Windows x64 package composition and actual packaged engine web startup; Windows execution unverified')
