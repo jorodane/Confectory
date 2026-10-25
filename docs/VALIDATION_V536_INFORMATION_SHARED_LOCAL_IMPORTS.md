@@ -19,8 +19,9 @@ Batch의 import 일괄 차단 때문에 저장할 수 없었다. 같은 원래 �
   호출도 전체 graph 비교에 포함된다. 앞선 생산자의 명시 출력 대응만 기존
   semantic binding으로 전파한다. hash만 갱신하거나 C#·변환을 추측하지 않는다.
 - 미선택 로컬 선언의 실제 파일도 기존 closure 관측에 포함하며 실제 변경은
-  단일 후보/CAS로 거절한다. 미선택 함수·구현·본문은 업데이트나 저장 그룹에
-  포함하지 않는다. receipt·Undo·취소·재시작·Review/Confirm은 기존 경계다.
+  단일 후보/CAS로 거절한다. 이 fixture의 미선택 helper 함수·구현·본문은
+  업데이트나 저장 그룹에 포함하지 않는다. 실제 영향을 받는 caller는 기존의
+  명시적 선택과 원래 hash로 검증한다. receipt·Undo·취소·재시작·Review/Confirm은 기존 경계다.
 
 ## 격리 fixture와 검사
 
@@ -81,3 +82,34 @@ OOM/oom_kill은 0이다. 순간 전체 peak를 보장하는 수치는 아니다.
 추가 삭제하지 않았으며 이번 실행의 RAM fixture는 재생성 cache/output을 제외한
 source/profile/증거 보존 후 자신의 새 RAM 경로만 정리했다. 새 교차 패키지와
 clean checkout 결과는 최종 기록으로 덧붙인다.
+
+## Clean checkout 및 새 교차 패키지
+
+구현 commit `a08949fa2ff2c35633cae8bef4f80af3f3c0ee9b`를 기존 독립 checkout에
+fast-forward하고 Native Release를 다시 빌드했다(warning/error 0). 순수4/API3/
+독립 UI2의 9체크가 통과했고 두 checkout은 clean, 각각 74개 리소스의 고정
+hash/size가 맞았다. 새 전체 clone이나 기존 파일 정리는 하지 않았다.
+
+같은 commit에서 solution 및 별도 MCP Release(warning/error 0), 새 Windows x64
+교차 패키지를 생성했다. 2,343개 선언 파일+marker 총 2,344개, 132746581 B이며
+manifest SHA-256은 `0339eb04538fabe2f5d1bc22845079ce0dc4177d7bb87e09d785f0b1df9ace5a`다.
+전체 file set/hash, 현재 Core DLL 7개 복사본·Native DLL·제품 소스가 일치하고
+symlink는 없다. 패키지 안의 Native로 새 순수 검사 4체크도 통과했다.
+
+별도 cwd/SDK 없는 정확한 runtime에서 패키지의 관리형 엔진 웹을 실제 기동했다.
+74개 리소스·최소 로그인 화면, 변조/의존 DLL 누락 거절과 기존 fixture 프로필/
+명시 override를 확인했다. Windows apphost/WebView2 실행이나 실제 로그인을
+했다는 뜻은 아니다. 실제 Windows·모바일 기기·Library 전달은 여전히 미검증이다.
+
+이번 새 RAM 패키지는 전체 manifest와 fixture/profile/로그/화면 증거를 보존한 후
+정확한 새 경로의 identity/dir_fd 경계로 정리했다. 다운로드/전달 가능한 보관
+패키지가 아니다. 기존 보관 패키지(e827a52 코드, manifest `9d8f3fa8…`)와 SDK/
+재사용 runtime·기존 cache/outputs는 그대로다. 일반 builder는 이번 Windows 엔진
+생성물을 디스크에 남기며 이를 무단 정리하지 않았다. 패키지 단계에서 workspace
+약 13.3 MB가 사용됐고 최종 여유는 약 344 MiB였다. 샘플 메모리 최대
+17014001664 B/limit17179869184 B, OOM/oom_kill 0이며 모든 검사는 순차 수행했다.
+
+근거: `docs/evidence/v536-information-shared-local-imports/`의 focused/package-clean
+JSON과 화면 두 장. 전체 실행 로그/프로필/fixture/manifest는 로컬
+`/workspace/scratch/v536-shared-local-imports/`에 보존한다. 최종 검증 기록 추가는
+문서/JSON만 변경하며 테스트한 구현과 UI 실행 소스는 위 commit과 같다.

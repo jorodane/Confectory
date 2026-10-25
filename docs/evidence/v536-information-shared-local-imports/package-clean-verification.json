@@ -1,0 +1,130 @@
+{
+  "cleanCheckout": {
+    "sourceCommit": "a08949fa2ff2c35633cae8bef4f80af3f3c0ee9b",
+    "bothCheckoutClean": true,
+    "resourcesPerCheckout": [
+      74,
+      74
+    ],
+    "checks": 9,
+    "nativeWarnings": 0,
+    "nativeErrors": 0,
+    "results": [
+      {
+        "name": "pure",
+        "exit": 0,
+        "elapsedSeconds": 9.8,
+        "minimumWorkspaceAvailableBytesSampled": 376266752,
+        "peakMemoryBytesSampled": 16015835136
+      },
+      {
+        "name": "api-normal",
+        "exit": 0,
+        "elapsedSeconds": 35.1,
+        "minimumWorkspaceAvailableBytesSampled": 375951360,
+        "peakMemoryBytesSampled": 16212541440
+      },
+      {
+        "name": "ui-view",
+        "exit": 0,
+        "elapsedSeconds": 75.0,
+        "minimumWorkspaceAvailableBytesSampled": 375562240,
+        "peakMemoryBytesSampled": 16956260352
+      }
+    ]
+  },
+  "package": {
+    "sourceCommit": "a08949fa2ff2c35633cae8bef4f80af3f3c0ee9b",
+    "ephemeralPackagePath": "/dev/shm/pkg-sli-20524t9q/Windows-x64",
+    "persistentPackageCreated": false,
+    "packageAvailableAfterExec": false,
+    "manifestSha256": "0339eb04538fabe2f5d1bc22845079ce0dc4177d7bb87e09d785f0b1df9ace5a",
+    "declaredFiles": 2343,
+    "totalFiles": 2344,
+    "packageBytes": 132746581,
+    "manifestAndFileSetMatch": true,
+    "symlinks": false,
+    "coreCopies": {
+      "Confectory.Core.dll": "2502366ae2216c6ac7518c343fbd93420d9ad18a08b080a79802c8d2629fe5e0",
+      "content/src/Confectory.Cli/bin/Release/net10.0/Confectory.Core.dll": "2502366ae2216c6ac7518c343fbd93420d9ad18a08b080a79802c8d2629fe5e0",
+      "content/targets/android-export/bin/Release/net10.0/Confectory.Core.dll": "2502366ae2216c6ac7518c343fbd93420d9ad18a08b080a79802c8d2629fe5e0",
+      "content/targets/browser-wasm/bin/Release/net10.0/Confectory.Core.dll": "2502366ae2216c6ac7518c343fbd93420d9ad18a08b080a79802c8d2629fe5e0",
+      "content/targets/element-authoring/bin/Release/net10.0/Confectory.Core.dll": "2502366ae2216c6ac7518c343fbd93420d9ad18a08b080a79802c8d2629fe5e0",
+      "content/targets/desktop-entry/bin/Release/net10.0/Confectory.Core.dll": "2502366ae2216c6ac7518c343fbd93420d9ad18a08b080a79802c8d2629fe5e0",
+      "content/targets/project-execution-host/bin/Release/net10.0/Confectory.Core.dll": "2502366ae2216c6ac7518c343fbd93420d9ad18a08b080a79802c8d2629fe5e0"
+    },
+    "nativeAssemblySha256": "5bb3fd1c92d8674677955094541bcbfa3f93e10c7e99385a11f29f444a04ba51",
+    "productSha256": {
+      "targets/element-authoring/InformationDefinitions.cs": "20ab49df2032b7c28a35b686b2d68bb84b7cade93934d9a911b83911cbcf3020",
+      "targets/element-authoring/InformationFunctionBatch.cs": "2ba7859743dc34bf8b4329818547300cb309f76bcf2d19422846ce19673f0628"
+    },
+    "packagedBackendChecks": 4,
+    "actualWindows": false,
+    "webView2Executed": false,
+    "actualMobile": false,
+    "libraryUploaded": false,
+    "oldDurablePackageUnchanged": "/workspace/artifacts/v536-information-shared-callers/Windows-x64",
+    "oldDurableManifestSha256": "9d8f3fa88b1e8c62753ba2fe32228e02aa3be6ef41c34c394a81be15bd42f559",
+    "existingFilesDeleted": false,
+    "workspaceAvailableBytes": 361132032,
+    "newTemporaryPackageRemovedAfterVerification": true,
+    "fixtureEvidencePreserved": true
+  },
+  "buildAndPackageResults": [
+    {
+      "name": "committed-release",
+      "exit": 0,
+      "sampleIntervalSeconds": 0.2,
+      "minimumWorkspaceAvailableBytes": 374464512,
+      "peakCgroupMemoryBytes": 16345866240,
+      "elapsedSeconds": 30.7,
+      "workspaceAvailableBytes": 374468608
+    },
+    {
+      "name": "committed-mcp-release",
+      "exit": 0,
+      "sampleIntervalSeconds": 0.2,
+      "minimumWorkspaceAvailableBytes": 374460416,
+      "peakCgroupMemoryBytes": 16112861184,
+      "elapsedSeconds": 3.2,
+      "workspaceAvailableBytes": 374460416
+    },
+    {
+      "name": "windows-package",
+      "exit": 0,
+      "sampleIntervalSeconds": 0.2,
+      "minimumWorkspaceAvailableBytes": 361144320,
+      "peakCgroupMemoryBytes": 16421896192,
+      "elapsedSeconds": 77.4,
+      "workspaceAvailableBytes": 361140224
+    },
+    {
+      "name": "windows-probe",
+      "exit": 0,
+      "sampleIntervalSeconds": 0.2,
+      "minimumWorkspaceAvailableBytes": 361140224,
+      "peakCgroupMemoryBytes": 17014001664,
+      "elapsedSeconds": 8.4,
+      "workspaceAvailableBytes": 361136128
+    },
+    {
+      "name": "packaged-pure",
+      "exit": 0,
+      "sampleIntervalSeconds": 0.2,
+      "minimumWorkspaceAvailableBytes": 361132032,
+      "peakCgroupMemoryBytes": 16347013120,
+      "elapsedSeconds": 10.0,
+      "workspaceAvailableBytes": 361132032
+    }
+  ],
+  "workspaceAvailableBytesAfterEvidence": 360394752,
+  "memoryLimitBytes": 17179869184,
+  "oom": 0,
+  "oomKill": 0,
+  "allTestsSequential": true,
+  "actualWindows": false,
+  "actualMobile": false,
+  "libraryDelivered": false,
+  "newRetainedDownloadPackage": false,
+  "existingFilesDeleted": false
+}
