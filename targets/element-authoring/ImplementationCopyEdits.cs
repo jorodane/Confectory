@@ -13,11 +13,14 @@ internal static class ImplementationCopyEdits
   bool Uses(JsonNode? value,string id){if(value is JsonObject obj){if(obj["node"]?.ToString()==id)return true;return obj.Any(p=>Uses(p.Value,id));}return value is JsonArray array&&array.Any(v=>Uses(v,id));}
   foreach(var edit in edits){string type=edit!["type"]!.GetValue<string>(),id=edit["node"]!.GetValue<string>(),text=edit["text"]!.GetValue<string>();if(text.Length>1048576||!unique.Add(id+"|"+type))throw new ArgumentException("Bounded distinct private edits required");}
   // A private leaf remains qualified by its complete graph path. This first
-  // adapter edits only opaque body/intent; it grants no private contract change.
+  // adapter preserves contracts; value bindings are checked in the full frame.
   foreach(var edit in edits.Where(e=>e!["node"]!.ToString().Contains('/'))){
    string key=edit!["node"]!.ToString(),type=edit["type"]!.ToString();var leaf=BlueprintTree.Nodes(graph).SingleOrDefault(e=>e.Key==key)?.Node??throw new ArgumentException("Exact copied private leaf required");
-   if(leaf["kind"]?.ToString()!="code"||leaf["implementationContext"] is not null||type is not ("source" or "intent"))throw new InvalidOperationException("Only copied private body/intent is connected; all input retained");
-   if(type=="source"){records.Single(r=>r!["id"]!.ToString()==key)!["record"]!["source"]=edit["text"]!.DeepClone();reapplied.Add(key);}else{if(edit["text"]!.ToString().Length>16384)throw new ArgumentException("Intent budget");leaf["intent"]=edit["text"]!.DeepClone();}
+   if(leaf["kind"]?.ToString()!="code"||leaf["implementationContext"] is not null||type is not ("source" or "intent")&&!type.StartsWith("argument:",StringComparison.Ordinal))throw new InvalidOperationException("Only copied private body/intent/value inputs are connected; all input retained");
+   if(type=="source"){records.Single(r=>r!["id"]!.ToString()==key)!["record"]!["source"]=edit["text"]!.DeepClone();reapplied.Add(key);}else if(type.StartsWith("argument:",StringComparison.Ordinal)){
+    string name=type[9..];var argument=Input(leaf,name);if(leaf["control"]?.ToString()!="next"||argument is null||argument["mode"]?.ToString() is "ref" or "out"||leaf["forwardCallerStorage"]?.GetValue<bool>()==true)throw new InvalidOperationException("Declared ordinary private value input required; preserve caller storage");
+    leaf["arguments"]??=new JsonObject();leaf["arguments"]![name]=JsonNode.Parse(edit["text"]!.GetValue<string>());
+   }else{if(edit["text"]!.ToString().Length>16384)throw new ArgumentException("Intent budget");leaf["intent"]=edit["text"]!.DeepClone();}
   }
   edits=new JsonArray(edits.Where(e=>!e!["node"]!.ToString().Contains('/')).Select(e=>e!.DeepClone()).ToArray());
   // Membership is prepared before dependent input edits; IDs never become source paths.

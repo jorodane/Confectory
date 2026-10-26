@@ -38,6 +38,14 @@ call('implementationCopy',False,**{**private,'privatePath':'right/missing'});ass
 checked('미등록 copy seed의 cold JSON·qualified preview 이동은 원래 snapshot/출처를 유지하고 불명 private 경로를 거절한다')
 changed=call('implementationCopy',**req,edits=[{'node':'left/body','type':'source','text':'return Keep(amount)+3; // 명시 편집\n'}]);assert next(r for r in changed['records'] if r['id']=='left/body')['record']['source']=='return Keep(amount)+3; // 명시 편집\n';assert next(r for r in changed['records'] if r['id']=='right/deep/body')['record']==next(r for r in plan['records'] if r['id']=='right/deep/body')['record']
 checked('명시한 qualified leaf 본문만 후보에서 바꾸고 동명 형제·부모·원본은 그대로 유지한다')
+values=call('implementationCopy',**req,edits=[{'node':'left/body','type':'source','text':'return Keep(amount)+3; // 値候補\n'},{'node':'left/body','type':'argument:amount','text':'{"constant":9223372036854775804}'},{'node':'right/deep/body','type':'argument:amount','text':'{"local":"kept"}'}])
+left_node=values['graph']['nodes'][0]['graph']['nodes'][0];right_node=values['graph']['nodes'][1]['graph']['nodes'][0]['graph']['nodes'][0]
+assert left_node['arguments']['amount']=={'constant':9223372036854775804} and right_node['arguments']['amount']=={'local':'kept'}
+assert values['signature']==plan['signature'] and values['implementation']==plan['implementation'] and values['graph']['edges']==plan['graph']['edges'] and values['graph']['exits']==plan['graph']['exits'];assert all(p.read_bytes()==v for p,v in before.items())
+checked('qualified 하위 값/기존 local 연결과 명시 본문은 같은 후보에서 원계약·순서·route·정확한64비트 값과 다른 프레임을 보존한다')
+for key,name,value in [('left/body','amount','{"constant":"wrong"}'),('left/body','amount','{"constant":9223372036854775808}'),('left/body','amount','{"node":"right/deep/body"}'),('left/body','missing','{"constant":1}'),('right/deep/body','amount','{"local":"outside"}'),('left/body','amount','null')]:
+ call('implementationCopy',False,**req,edits=[{'node':'left/body','type':'source','text':'return 100; // 적용되면 안 되는 첫 편집'},{'node':key,'type':'argument:'+name,'text':value}]);assert all(p.read_bytes()==v for p,v in before.items())
+checked('타입/범위/64비트 overflow/미선언 핀·local·미완성 연결의 마지막 편집이 잘못되면 본문도 반환하지 않고 전체거절한다')
 for bad in [ {'node':'body','type':'source','text':'guess'}, {'node':'right/body','type':'source','text':'guess'}, {'node':'../left/body','type':'source','text':'guess'}, {'node':'left/body','type':'parameters','text':'{}'}, {'node':'left','type':'source','text':'guess'} ]:
  call('implementationCopy',False,**req,edits=[bad]);assert all(p.read_bytes()==v for p,v in before.items())
 checked('불완전/위조 경로·경계넘기·private 계약 편집·graph 본문 추측은 전체거절하고 원문을 보존한다')

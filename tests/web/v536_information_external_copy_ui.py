@@ -27,6 +27,7 @@ info = f.project / 'FreeInfo.celem'
 info.write_text(info.read_text().replace('FreeInfo {', 'FreeInfo {module ' + foreign + 'Rules;', 1))
 f.manifest.write_text(f.manifest.read_text().replace('registry Confectory.Build.DotNet', 'registry Source.Module "../registered module source/pack.cpack";dependency Source.Module version "1";registry Confectory.Build.DotNet', 1))
 nested_source='nested-source' in sys.argv[4:]
+nested_values='nested-values' in sys.argv[4:]
 branch_source=next((v.removesuffix('-source') for v in sys.argv[4:] if v in ['branch-source','switch-source']),None)
 if 'blueprint-source' in sys.argv[4:] or branch_source or nested_source:
     feature_text = (source / 'Feature.celem').read_text()
@@ -177,15 +178,54 @@ def nested_edit_initial():
         f.edit_region(f.author().locator('[data-bp-node=body] [data-internal-code]'),nested_original[path+'/body'].replace('\r\n','\n'),nested_changed[path+'/body']);nested_parent()
     f.checked('원래 내부 편집/빵부스러기로 깊이1/2 copy를 오가며 동명 leaf의 서로 다른 본문·qualified 입력을 보존한다')
 
+def nested_value(raw=None,option=None):
+    f.author().locator('[data-bp-overview-node=body]').click();pin=f.author().get_by_role('combobox',name='입력값 · amount',exact=True);pin.click();menu=f.page.get_by_role('dialog',name='핀 값 선택',exact=True)
+    if option:menu.get_by_role('button',name=option,exact=True).click()
+    else:
+        menu.get_by_role('searchbox',name='값 검색').fill(raw);menu.locator('[data-value-new]').click()
+    expect(menu).to_have_count(0);f.idle()
+
+def nested_values_initial():
+    nested_enter(['left']);f.author().locator('[data-bp-overview-node=body]').click();before=f.pending()['blueprint'];f.author().get_by_role('combobox',name='입력값 · amount',exact=True).click();menu=f.page.get_by_role('dialog',name='핀 값 선택',exact=True);search=menu.get_by_role('searchbox',name='값 검색');search.fill('9223372036854775808');search.press('Enter');expect(search).to_have_attribute('aria-invalid','true');assert any(v.get('type')=='value-draft:amount' and v['text']=='9223372036854775808' for _,v in f.pending()['blueprint']);search.press('Escape');expect(menu).to_have_count(0);assert f.pending()['blueprint']==before
+    nested_value(raw='9223372036854775804');nested_parent();nested_enter(['right','deep']);before=f.pending()['blueprint'];nested_value(option='지역변수 · 정확한 값')
+    if 'value-undo' in sys.argv[4:]:
+        after=f.pending()['blueprint'];f.author().locator('.bp-viewport').focus();f.page.keyboard.press('Control+z');assert dict(f.pending()['blueprint'])==dict(before),'value selection Undo must restore every original keyed cell';f.author().locator('.bp-viewport').focus();f.page.keyboard.press('Control+Shift+z');assert dict(f.pending()['blueprint'])==dict(after);f.checked('하위 값 선택 Undo/Redo는 그 프레임의 값만 되돌리고 다른 깊이의 입력과 본문을 보존한다')
+    nested_parent()
+    f.checked('원래 핀 값 선택의 overflow 원문/취소, 정확한64비트 상수와 프레임별 기존 local 연결은 다른 leaf·본문·공개 계약을 보존한다')
+
+def nested_value_guards():
+    current=f.state();schema=next(v for v in current['editorViews'] if v['view']=='1')['schema'] if d.is_view else current['schema'];surface={'view':'1','viewBinding':next(v for v in current['editorViews'] if v['view']=='1')['authorBinding']} if d.is_view else {}
+    graph=copied+'/body:'+target+'/graph:left';base={'owner':owner,'ownerHash':schema['textHash'],'ownerRevision':schema['revision']};row=f.invoke('blueprint',{'action':'read','id':graph,**base,**surface})['result']['result'];held=f.pending();before=checkpoint.read_bytes();proof=json.dumps(sorted([[v['id'],v['revision'],v['hash']] for v in row['sources']]))
+    for value in ['{"constant":"wrong"}','{"node":"right/deep/body"}']:
+        request={'action':'authorBatch','id':graph,**base,**surface,'attempt':__import__('uuid').uuid4().hex,'sourceProof':proof,'checkpointHash':row['checkpointHash'],'edits':[{'action':'source','node':'body','text':'return 100; // 첫 편집도 적용되면 안 됨'},{'action':'argument','node':'body','name':'amount','valueJson':value}]}
+        f.invoke('blueprint',request,False)
+        if 'retry-values' in sys.argv[4:]:
+            query={**request,'action':'settledAuthorBatch'};settled=f.invoke('blueprint',query)['result']['result'];assert settled['settled'] is False and settled['baselineUnchanged'] is True
+            raw=info.read_bytes()
+            try:
+                info.write_bytes(raw+'\n// fixture 실제 외부 변경\n'.encode());changed=f.invoke('blueprint',query)['result']['result'];assert changed['settled'] is False and changed['baselineUnchanged'] is False
+            finally:info.write_bytes(raw)
+            settled=f.invoke('blueprint',query)['result']['result'];assert settled['settled'] is False and settled['baselineUnchanged'] is True
+        assert checkpoint.read_bytes()==before and f.pending()==held
+        again=f.invoke('blueprint',{'action':'read','id':graph,**base,**surface})['result']['result'];assert next(n for n in again['nodes'] if n['id']=='body')['source']==next(n for n in row['nodes'] if n['id']=='body')['source']
+    f.checked('실제 bound 하위 authorBatch에서 마지막 값의 타입/프레임 오류는 먼저 편집한 본문도 저장하지 않고 checkpoint·입력을 보존한다')
+    if 'retry-values' in sys.argv[4:]:f.checked('이전 거절의 전체 미적용/원래 기준은 조회로 확인하고 실제 물리 source 변경이 있으면 재시도 증거를 주지 않는다')
+
 def nested_saved_edit():
     nested_enter(['left']);f.author().locator('[data-bp-overview-node=body]').click()
+    if nested_values:nested_value_guards()
     previous=nested_changed['left/body'];value=previous.replace('복사본 본문','저장된 내부 재편집')
     f.edit_region(f.author().locator('[data-bp-node=body] [data-internal-code]'),previous,value)
+    if nested_values:
+        if 'retry-values' in sys.argv[4:]:
+            nested_value(option='연결 해제');old_checkpoint=checkpoint.read_bytes();mark=len(f.traffic);f.author().locator('[data-bp-save]').click();wait_result(mark,'authorBatch',False);f.idle();rejected=f.pending();assert checkpoint.read_bytes()==old_checkpoint and any(v.get('kind')=='author-attempt' for _,v in rejected['blueprint']);originals()
+        nested_value(option='입력 · amount')
     if 'cold-private' in sys.argv[4:]:
         restart(8);expect(f.author().locator('.bp-breadcrumbs')).to_be_visible();expect(f.author().locator('[data-bp-node=body]')).to_be_visible();f.checked('저장된 copy의 하위 창과 미저장 leaf 입력도 실제 cold 재시작에서 소유/프로젝트 문맥을 유지한다')
     f.author().locator('[data-bp-save]').click();f.page.wait_for_function('()=>{const s=document.querySelector(".window[data-key=blueprint] .bp-status");return s&&s.textContent.startsWith("복사본 ·")}',timeout=120000);f.idle();assert not any(v.get('type')=='source' for _,v in f.pending()['blueprint']);nested_changed['left/body']=value
+    if 'retry-values' in sys.argv[4:]:f.checked('미완성 값 저장 거절 뒤 원래 기준 미적용을 확인하고 새 명시 값으로 재시도하며 이전 실패/입력/CAS를 보존한다')
     nested_parent();nested_enter(['right','deep']);button=f.author().locator('[data-bp-node=body] [data-internal-code]');button.click();dialog=f.page.locator('.bp-script-dialog');assert nested_changed['right/deep/body'] in dialog.locator('[data-code-source]').input_value();dialog.locator('[data-code-cancel]').click();nested_parent()
-    f.checked('저장된 copy 내부 source-only 후보/CAS는 선택 leaf만 바꾸며 다른 깊이 동명 leaf·원본·공개 계약을 보존한다')
+    f.checked(('저장된 copy 내부 본문/값' if nested_values else '저장된 copy 내부 source-only')+' 후보/CAS는 선택 leaf만 바꾸며 다른 깊이 동명 leaf·원본·공개 계약을 보존한다')
 
 def accept():
     f.close_author()
@@ -270,6 +310,7 @@ try:
             f.page.screenshot(path=str(f.case/'enum-copy-prepared.png'))
         if nested_source:
             nested_edit_initial()
+            if nested_values:nested_values_initial()
             if 'cold-private' in sys.argv[4:]:
                 nested_enter(['right','deep']);f.page.screenshot(path=str(f.case/'nested-private-before-cold.png'));restart(7)
                 expect(f.author().locator('.bp-breadcrumbs')).to_be_visible();button=f.author().locator('[data-bp-node=body] [data-internal-code]');button.click();dialog=f.page.locator('.bp-script-dialog');assert nested_changed['right/deep/body'] in dialog.locator('[data-code-source]').input_value();dialog.locator('[data-code-cancel]').click();nested_parent()
@@ -481,6 +522,8 @@ try:
                     units=f.metadata('describe',project=str(f.manifest))['units'];body_key=copied+'/body:'+target
                     for key,value in nested_changed.items():
                         unit=next(v for v in units if v['id']==body_key+'/node:'+key.replace('/','/node:'));record=json.loads((f.project/unit['path']).read_text());assert record['source']==value and record['node']=='body';original_record=json.loads((source/('Left.node.json' if key=='left/body' else 'Right.node.json')).read_text());assert record['helpers']==original_record['helpers']
+                    if nested_values:
+                        graph_unit=next(v for v in units if v['id']==body_key);stored=json.loads((f.project/graph_unit['path']).read_text());left=stored['nodes'][0]['graph']['nodes'][0];right=stored['nodes'][1]['graph']['nodes'][0]['graph']['nodes'][0];assert left['arguments']['amount']=={'input':'amount'} and right['arguments']['amount']=={'local':'kept'};assert stored['edges']==source_graph['edges'] and stored['exits']==source_graph['exits'];f.checked('내부 값/본문을 한 후보로 저장·Confirm하고 입력 재연결·다른 프레임 local·실행선/반환·원계약과 원본을 보존한다')
                     f.checked('중첩 copy의 실제 compiler Confirm은 qualified 각 leaf 본문만 반영하고 동명/공개 계약·부모/외부 원문을 보존한다')
                 if branch_source:
                     units=f.metadata('describe',project=str(f.manifest))['units'];graph_unit=next(v for v in units if v['id']==copied+'/body:'+target)

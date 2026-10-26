@@ -26,3 +26,8 @@ Confirm 전 재편집의 실제 완료 범위와 검증은 [미확정 copy](VALI
 [등록 함수 copy 수용](VALIDATION_V536_INFORMATION_EXTERNAL_COPY.md)은 정보 모듈 `직접 작성/편집`의 단독 소유 copy를 다룬다. `BlueprintCopyAbi`의 local 함수 guard는 이 별도 본문 화면 전체의 차단이 아니었다. 기존 C#/직렬 Blueprint source의 선택 target 생성·배정과 정상 재편집은 이미 동작했고, 재편집 Save의 쓰기 실패 입력 선삭제를 한 후보/CAS/receipt 경로에 연결한다. 함수 계약·copy ID·출처·원본·다른 target은 유지한다. 미확정/확정 copy를 구분하며 Windows-only copy를 Linux/common 본문으로 추측해 바꾸지 않는다. UI/레이아웃과 권한은 바꾸지 않는다.
 
 외부 root copy의 내부 호출 ref→값 명시 갱신은 읽기 전용 root receipt·기본/독립 창 Save/Confirm까지 연결했다(VALIDATION_V536_REGISTERED_ROOT_COPY_ABI.md). 원본 Result enum code switch의 선택 target 복사·표시·기존 C# 본문 편집도 연결한다(VALIDATION_V536_ENUM_COPY_BODY.md). enum ID/값/순서와 기존 실행선·보조 원문은 유지한다. 같은 공개 계약의 기존 중첩/private graph 복사·이동·qualified leaf C# 본문/설명은 한 후보/CAS와 기본/독립 창 Save/Review/Confirm에 연결했다(VALIDATION_V536_NESTED_COPY_BODY.md). copy 내부 핀/계약·새 동작/연결 편집·callee ABI 대응과 내부 실행 enum 계약/새 분기는 별도 어댑터 잔여다. 공개 오버라이드 구조 변경 거절과 혼동하지 않는다. native alias/import 선언의 새 전용 UI와 legacy bool 시각 분기는 원본 v536 조작과 구분하며 새 필수 기능으로 늘리지 않는다. 기존 target 하나의 명시 복사를 전체 target 자동 복제로 확장하지 않는다. 오버라이드 독립 계약 복제는 계속 필수 제외다.
+
+
+## 기존 하위 값 입력 연결의 최소 단위
+
+[하위 copy 값 입력 검증](VALIDATION_V536_NESTED_COPY_VALUES.md)은 기존 private `code next`의 일반 값 입력을 명시 상수·같은 프레임 input/local로 선택하고 본문과 한 후보/CAS로 저장하는 단위다. qualified 경로·정확한 숫자·다른 프레임 입력과 원본을 보존한다. 공개 오버라이드 계약 변경은 정상 금지이며 독립 계약 복제는 요구에서 제외한다. private 핀 정의·새 동작/route·callee ABI·내부 enum 어댑터는 실제 후속으로 남기고 가능한 조합 전체를 늘리지 않는다. 7행 전체 완료, 8/9행 또는 I6/B2/A4~A6/M4/M11/M12 완료로 세지 않는다.
