@@ -3,7 +3,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
-// A verified editing view for a saved, directly assigned copy. Provenance is
+// A verified editing view for a staged or saved, directly assigned copy. Provenance is
 // detached only inside this view and restored before a candidate can leave it.
 // Donor declarations/bodies are never used as writable source identities.
 internal sealed class InformationFunctionCopies(JsonObject request,Action<string>? observe=null)
@@ -44,8 +44,9 @@ internal sealed class InformationFunctionCopies(JsonObject request,Action<string
   if(views.TryGetValue(id,out var existing))return existing;var unit=units[id]??throw new InvalidOperationException("Original copy graph required");string text=unit["draft"]!.ToString();if(unit["kind"]?.ToString()!="blueprint"||Encoding.UTF8.GetByteCount(text)>1048576)throw new ArgumentException("Bounded original copy graph required");var graph=JsonNode.Parse(text)!.AsObject();
   if(graph["copySource"] is not null&&graph["copySource"] is not JsonObject)throw new InvalidOperationException("Exact saved copy provenance required");
   if(graph["copySource"] is not JsonObject provenance){int at=id.LastIndexOf("/body:",StringComparison.Ordinal);if(at>=0&&units[id[..at]]?["copySource"] is not null)throw new InvalidOperationException("Retain the saved copy provenance on its graph");return new View(id,text,null,new());}
-  if(unit["baseline"]?.ToString() is null or "missing")throw new InvalidOperationException("Confirm a new copy before editing its saved function contract; retain input");
   int slash=id.LastIndexOf("/body:",StringComparison.Ordinal);if(slash<0)throw new ArgumentException("Exact saved copy root required");string implementation=id[..slash];var implUnit=units[implementation]??throw new InvalidOperationException("Copy implementation required");
+  bool pending=unit["baseline"]?.ToString()=="missing";
+  if(unit["baseline"] is null||pending&&(implUnit["baseline"]?.ToString()!="missing"||unit["original"]?.ToString()!=""||implUnit["original"]?.ToString()!=""||!JsonNode.DeepEquals(implUnit["copySource"],provenance)))throw new InvalidOperationException("Exact staged copy identity and original provenance required; retain input");
   var d=new Parser(implUnit["draft"]!.ToString(),"<owned-information-copy>").ParseElement();
   var objects=new JsonArray(units.Where(p=>p.Value?["kind"]?.ToString() is "object" or "schema").OrderBy(p=>p.Key,StringComparer.Ordinal).Select(p=>(JsonNode)new JsonObject{["id"]=p.Key,["path"]=p.Value!["path"]!.DeepClone(),["text"]=p.Value["draft"]!.DeepClone()}).ToArray());
   var owners=objects.Where(p=>new Parser(p!["text"]!.ToString(),"<copy-assignment>").ParseElement().Provides.GetValueOrDefault(d.Function!)?.Id==implementation).ToArray();if(owners.Length!=1)throw new InvalidOperationException("Select one directly owned copy assignment; shared copies retain every source");
@@ -56,6 +57,10 @@ internal sealed class InformationFunctionCopies(JsonObject request,Action<string
   var provider=r.Implementation(fn.Id,implementation,owner,d.Loc);var providers=new JsonArray(new JsonObject{["function"]=fn.Id,["implementation"]=implementation,["origin"]=owner,["contract"]=new JsonObject{["status"]="valid"}});
   var proof=BlueprintCopyAbi.Bind(new JsonObject{["id"]=implementation,["text"]=implUnit["draft"]!.DeepClone(),["implementationPath"]=implUnit["path"]!.DeepClone(),["functionText"]=units[fn.Id]?["draft"]?.DeepClone()??throw new InvalidOperationException("Owned copy function required"),["owner"]=owner,["ownerText"]=units[owner]!["draft"]!.DeepClone(),["graphId"]=id,["graphPath"]=unit["path"]!.DeepClone(),["graph"]=graph.DeepClone(),["unitProvenance"]=implUnit["copySource"]?.DeepClone(),["objects"]=objects,["requirements"]=requirements,["providers"]=providers,["requireValid"]=true});
   proof["graphHash"]=Hash(text);proof["implementationHash"]=Hash(implUnit["draft"]!.ToString());
+  // Missing files belong to the already staged creation, not to a confirmed
+  // donor. Bind that distinction and both exact contracts into the receipt.
+  // Re-editing its body must never turn this path into a new-contract clone.
+  if(pending)proof["pending"]=new JsonObject{["functionSignature"]=FeatureBlueprint.SignatureDocument(fn.Signature!),["implementationSignature"]=FeatureBlueprint.SignatureDocument(d.Signature!)};
   proof["context"]=new JsonArray(context.Select(p=>(JsonNode)new JsonObject{["path"]=p.Key,["hash"]=p.Value}).ToArray());
   var view=new View(id,text,provenance,proof);views.Add(id,view);return view;
  }
@@ -69,7 +74,7 @@ internal sealed class InformationFunctionCopies(JsonObject request,Action<string
   foreach(var row in updates)afterUnits[row!["id"]!.ToString()]!["draft"]=row["text"]!.DeepClone();
   var after=new InformationFunctionCopies(candidate,observe).Read(function);
   if(after.Count!=views.Count)throw new InvalidOperationException("Copy assignments changed during candidate preparation");
-  foreach(var row in views)foreach(string field in new[]{"owner","ownerHash","objectsHash","implementation","implementationPath","graph","graphPath","target","function","provenance"})if(!JsonNode.DeepEquals(row.Value.Proof[field],after[row.Key]?[field]))throw new InvalidOperationException("Preserve the copy owner, target and original provenance");
+  foreach(var row in views)foreach(string field in new[]{"owner","ownerHash","objectsHash","implementation","implementationPath","graph","graphPath","target","function","provenance","pending"})if(!JsonNode.DeepEquals(row.Value.Proof[field],after[row.Key]?[field]))throw new InvalidOperationException("Preserve the copy owner, target, staged contract and original provenance");
  }
  public static JsonObject Query(JsonObject request)
  {

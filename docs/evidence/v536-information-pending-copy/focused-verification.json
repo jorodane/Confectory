@@ -1,0 +1,433 @@
+{
+  "base": "0b99e760ad37051da809add5f3e004ba43e3197b",
+  "groups": {
+    "focused-fixed": [
+      {
+        "name": "api",
+        "command": [
+          "python3",
+          "/workspace/Confectory/tests/web/v536_information_inherited_copy_api.py",
+          "/workspace/Confectory",
+          "/workspace/scratch/v536-pending-copy/engine-report.json",
+          "normal"
+        ],
+        "exit": 0,
+        "seconds": 55.9,
+        "minimumWorkspaceBytes": 1681874944,
+        "peakMemoryBytes": 3675213824,
+        "pendingCopy": true,
+        "checks": [
+          "자체 정보 함수의 기존 선택/비공개 초안 경로는 부모 header/body와 원래 snapshot을 보관하며 모듈 UI를 추가하지 않는다",
+          "오류는 전체 미적용이고 명시 재시도/원자 저장/cold는 새 복사본만 연결하며 부모·함수·호출자를 보존한다",
+          "미확정 receipt 누락/변조·계약 변경·잘못된 본문은 기존 생성/배정까지 전체 미적용으로 보존한다",
+          "미확정 copy의 실제 부모 원문 경합도 원자 거절하고 원래 생성 기록을 보존한다",
+          "복사 후 본문 재편집은 미사용 상속 선언을 바꾸지 않고 같은 ABI/전체 후보 검증으로 보관한다",
+          "미확정 생성 header·모든 record·배정·본문의 완전한 한 Review/Confirm은 compiler를 통과하고 부모를 보존한다"
+        ],
+        "logSha256": "932631d618661dc61095602293670dc82c73441c4c5b418205bd37698f0e59e2",
+        "archiveSha256": "82485e9852d7331e0a1972d2b7527dc4b548f1f83707e3cfa7200fba4f17a2fa",
+        "archiveBytes": 32698
+      },
+      {
+        "name": "primary",
+        "command": [
+          "python3",
+          "/workspace/Confectory/tests/web/v536_information_inherited_copy_ui.py",
+          "/workspace/Confectory",
+          "/workspace/scratch/v536-pending-copy/engine-report.json",
+          "normal"
+        ],
+        "exit": 0,
+        "seconds": 134.5,
+        "minimumWorkspaceBytes": 1681776640,
+        "peakMemoryBytes": 4343570432,
+        "pendingCopy": true,
+        "checks": [
+          "기본 정보 창의 기존 상속 복사 선택·취소·C# Undo/Redo·cold는 원본/정확한 값/새 복사 ID를 보존한다",
+          "미확정 복사본 재편집·팝업 취소·불완전 입력 cold·Undo/Redo는 계약/복사 ID/출처/정확한 값과 입력을 보존한다",
+          "미확정 복사본의 같은 계약 본문 저장은 생성/배정과 한 그룹으로 남고 재시작 후 부모/호출자 원문을 보존한다",
+          "실제 Save·재시작·Review 취소/재검토·명시 Confirm은 새 소유 복사본만 반영하며 함수/부모/호출자를 보존한다"
+        ],
+        "logSha256": "736afe49d527bad47cb83a41e5ec6f3b6d2a28a6bf78593b985eb65b98b89e5b",
+        "archiveSha256": "803773168f7adba58e660e83e0a2d51b3c7e72d0fb36ee7ef6d11c1b417f06df",
+        "archiveBytes": 453227
+      },
+      {
+        "name": "view",
+        "command": [
+          "python3",
+          "/workspace/Confectory/tests/web/v536_information_inherited_copy_ui.py",
+          "/workspace/Confectory",
+          "/workspace/scratch/v536-pending-copy/engine-report.json",
+          "normal",
+          "view"
+        ],
+        "exit": 0,
+        "seconds": 170.3,
+        "minimumWorkspaceBytes": 1681276928,
+        "peakMemoryBytes": 4369006592,
+        "pendingCopy": true,
+        "checks": [
+          "독립 정보 창의 기존 상속 복사 선택·취소·C# Undo/Redo·cold는 원본/정확한 값/새 복사 ID를 보존한다",
+          "미확정 복사본 재편집·팝업 취소·불완전 입력 cold·Undo/Redo는 계약/복사 ID/출처/정확한 값과 입력을 보존한다",
+          "미확정 복사본의 같은 계약 본문 저장은 생성/배정과 한 그룹으로 남고 재시작 후 부모/호출자 원문을 보존한다",
+          "실제 Save·재시작·Review 취소/재검토·명시 Confirm은 새 소유 복사본만 반영하며 함수/부모/호출자를 보존한다"
+        ],
+        "logSha256": "aef3e114f1d403501bb693c630be7d27ee8218db694dd8a2008efff06bfb6cf2",
+        "archiveSha256": "be639045bdd7fa04c6fecff5210aabce964d03c764de4ba58de128eb4838b9ec",
+        "archiveBytes": 471889
+      },
+      {
+        "name": "storage",
+        "command": [
+          "python3",
+          "/workspace/Confectory/tests/web/v536_information_inherited_copy_ui.py",
+          "/workspace/Confectory",
+          "/workspace/scratch/v536-pending-copy/engine-report.json",
+          "reedit-storage"
+        ],
+        "exit": 0,
+        "seconds": 152.4,
+        "minimumWorkspaceBytes": 1680764928,
+        "peakMemoryBytes": 4360982528,
+        "pendingCopy": true,
+        "checks": [
+          "기본 정보 창의 기존 상속 복사 선택·취소·C# Undo/Redo·cold는 원본/정확한 값/새 복사 ID를 보존한다",
+          "미확정 복사본 재편집·팝업 취소·불완전 입력 cold·Undo/Redo는 계약/복사 ID/출처/정확한 값과 입력을 보존한다",
+          "재편집 저장 실패는 기존 미확정 생성/배정과 입력을 부분 적용 없이 보존한다",
+          "미확정 복사본의 같은 계약 본문 저장은 생성/배정과 한 그룹으로 남고 재시작 후 부모/호출자 원문을 보존한다",
+          "실제 Save·재시작·Review 취소/재검토·명시 Confirm은 새 소유 복사본만 반영하며 함수/부모/호출자를 보존한다"
+        ],
+        "logSha256": "b55a0367e2a721c0b25861b4dab8863489d9c89fc679077a07a8db4fd439bbe1",
+        "archiveSha256": "c3d4a54c50b0ba70067cc1292d99b29767cadd91f20b8405f21b16776839b92e",
+        "archiveBytes": 453258
+      },
+      {
+        "name": "loss",
+        "command": [
+          "python3",
+          "/workspace/Confectory/tests/web/v536_information_inherited_copy_ui.py",
+          "/workspace/Confectory",
+          "/workspace/scratch/v536-pending-copy/engine-report.json",
+          "reedit-loss",
+          "view"
+        ],
+        "exit": 0,
+        "seconds": 185.1,
+        "minimumWorkspaceBytes": 1678729216,
+        "peakMemoryBytes": 4377333760,
+        "pendingCopy": true,
+        "checks": [
+          "독립 정보 창의 기존 상속 복사 선택·취소·C# Undo/Redo·cold는 원본/정확한 값/새 복사 ID를 보존한다",
+          "미확정 복사본 재편집·팝업 취소·불완전 입력 cold·Undo/Redo는 계약/복사 ID/출처/정확한 값과 입력을 보존한다",
+          "재편집 응답 유실/cold는 결과 조회 후 확정하며 같은 복사본을 중복 적용하지 않는다",
+          "미확정 복사본의 같은 계약 본문 저장은 생성/배정과 한 그룹으로 남고 재시작 후 부모/호출자 원문을 보존한다",
+          "실제 Save·재시작·Review 취소/재검토·명시 Confirm은 새 소유 복사본만 반영하며 함수/부모/호출자를 보존한다"
+        ],
+        "logSha256": "2655ff049e8b8a6b621f7a1a17e010fe4333c1bd68067cfaf932c76065f67d20",
+        "archiveSha256": "b2e82ad85c29a1783811061832201a4176a43fc7e94bbc5b15b8a57393499ef6",
+        "archiveBytes": 475473
+      },
+      {
+        "name": "cancel",
+        "command": [
+          "python3",
+          "/workspace/Confectory/tests/web/v536_information_inherited_copy_ui.py",
+          "/workspace/Confectory",
+          "/workspace/scratch/v536-pending-copy/engine-report.json",
+          "reedit-cancel"
+        ],
+        "exit": 0,
+        "seconds": 105.9,
+        "minimumWorkspaceBytes": 1678213120,
+        "peakMemoryBytes": 4251041792,
+        "pendingCopy": true,
+        "checks": [
+          "기본 정보 창의 기존 상속 복사 선택·취소·C# Undo/Redo·cold는 원본/정확한 값/새 복사 ID를 보존한다",
+          "미확정 복사본 재편집·팝업 취소·불완전 입력 cold·Undo/Redo는 계약/복사 ID/출처/정확한 값과 입력을 보존한다",
+          "재편집 취소는 기존 미확정 생성·배정을 유지하고 추가 입력만 취소한다"
+        ],
+        "logSha256": "de9d63f316448ffa9e3d54b0e5c9d460a9605df391a0d2a6402ca2b6db84d947",
+        "archiveSha256": "06d6a0cbddd1a254378185aaf1543d061d763a4a2bbd17eaad8e6a4e1ace0dcd",
+        "archiveBytes": 345818
+      }
+    ],
+    "focused-tail-fixed": [
+      {
+        "name": "conflict",
+        "command": [
+          "python3",
+          "/workspace/Confectory/tests/web/v536_information_inherited_copy_ui.py",
+          "/workspace/Confectory",
+          "/workspace/scratch/v536-pending-copy/engine-report.json",
+          "reedit-conflict"
+        ],
+        "exit": 0,
+        "seconds": 99.8,
+        "minimumWorkspaceBytes": 1676972032,
+        "peakMemoryBytes": 4248170496,
+        "pendingCopy": true,
+        "checks": [
+          "기본 정보 창의 기존 상속 복사 선택·취소·C# Undo/Redo·cold는 원본/정확한 값/새 복사 ID를 보존한다",
+          "미확정 복사본 재편집·팝업 취소·불완전 입력 cold·Undo/Redo는 계약/복사 ID/출처/정확한 값과 입력을 보존한다",
+          "다른 창 경합은 cold 뒤에도 원자 거절하며 기존 복사 초안과 새 입력을 보존한다"
+        ],
+        "logSha256": "994b71d4256509cf908580542c197aae7cd5e1184ebdd22b7a914cb7c1731ea5",
+        "archiveSha256": "867acc582033879b1c5cef0e4139938b2630aa27d5cd9a2bb9ee44f651820a3c",
+        "archiveBytes": 349101
+      }
+    ],
+    "focused-end": [
+      {
+        "name": "projects",
+        "command": [
+          "python3",
+          "/workspace/Confectory/tests/web/v536_information_inherited_copy_ui.py",
+          "/workspace/Confectory",
+          "/workspace/scratch/v536-pending-copy/engine-report.json",
+          "reedit-projects",
+          "view"
+        ],
+        "exit": 0,
+        "seconds": 204.1,
+        "minimumWorkspaceBytes": 1676115968,
+        "peakMemoryBytes": 4415528960,
+        "pendingCopy": true,
+        "checks": [
+          "독립 정보 창의 기존 상속 복사 선택·취소·C# Undo/Redo·cold는 원본/정확한 값/새 복사 ID를 보존한다",
+          "미확정 복사본 재편집·팝업 취소·불완전 입력 cold·Undo/Redo는 계약/복사 ID/출처/정확한 값과 입력을 보존한다",
+          "프로젝트 전환/독립 창의 미확정 copy 입력과 닫힌 저장 동작은 원래 소유 문맥을 보존한다",
+          "미확정 복사본의 같은 계약 본문 저장은 생성/배정과 한 그룹으로 남고 재시작 후 부모/호출자 원문을 보존한다",
+          "실제 Save·재시작·Review 취소/재검토·명시 Confirm은 새 소유 복사본만 반영하며 함수/부모/호출자를 보존한다"
+        ],
+        "logSha256": "0de5672c4340071470325249aed6b640af6563c975c9418882e0e460ad860a60",
+        "archiveSha256": "6f9e4cb514d7ef774683b354abea855cf6d6646bfffe8c42c7c984d88e67c4b3",
+        "archiveBytes": 494714
+      },
+      {
+        "name": "blueprint-api",
+        "command": [
+          "python3",
+          "/workspace/Confectory/tests/web/v536_information_inherited_copy_api.py",
+          "/workspace/Confectory",
+          "/workspace/scratch/v536-pending-copy/engine-report.json",
+          "normal",
+          "blueprint-parent"
+        ],
+        "exit": 0,
+        "seconds": 57.3,
+        "minimumWorkspaceBytes": 1675563008,
+        "peakMemoryBytes": 3685728256,
+        "pendingCopy": true,
+        "checks": [
+          "자체 정보 함수의 기존 선택/비공개 초안 경로는 부모 header/body와 원래 snapshot을 보관하며 모듈 UI를 추가하지 않는다",
+          "오류는 전체 미적용이고 명시 재시도/원자 저장/cold는 새 복사본만 연결하며 부모·함수·호출자를 보존한다",
+          "미확정 receipt 누락/변조·계약 변경·잘못된 본문은 기존 생성/배정까지 전체 미적용으로 보존한다",
+          "미확정 copy의 실제 부모 원문 경합도 원자 거절하고 원래 생성 기록을 보존한다",
+          "복사 후 본문 재편집은 미사용 상속 선언을 바꾸지 않고 같은 ABI/전체 후보 검증으로 보관한다",
+          "미확정 생성 header·모든 record·배정·본문의 완전한 한 Review/Confirm은 compiler를 통과하고 부모를 보존한다"
+        ],
+        "logSha256": "c57ce94e27b6ff3606c1f0831a23547dec937ba62e55d56c7de233ae091ffd11",
+        "archiveSha256": "a018d1bcaba612e51abd5ed7fa60f88a68bc7fc054b8c1b82b9c90b50de4417c",
+        "archiveBytes": 34691
+      }
+    ],
+    "impact": [
+      {
+        "name": "legacy",
+        "command": [
+          "python3",
+          "/workspace/Confectory/tests/web/v536_information_inherited_copy_api.py",
+          "/workspace/Confectory",
+          "/workspace/scratch/v536-pending-copy/engine-report.json",
+          "normal"
+        ],
+        "exit": 0,
+        "seconds": 47.1,
+        "minimumWorkspaceBytes": 1675485184,
+        "peakMemoryBytes": 3682275328,
+        "pendingCopy": false,
+        "checks": [
+          "자체 정보 함수의 기존 선택/비공개 초안 경로는 부모 header/body와 원래 snapshot을 보관하며 모듈 UI를 추가하지 않는다",
+          "오류는 전체 미적용이고 명시 재시도/원자 저장/cold는 새 복사본만 연결하며 부모·함수·호출자를 보존한다",
+          "복사 후 본문 재편집은 미사용 상속 선언을 바꾸지 않고 같은 ABI/전체 후보 검증으로 보관한다"
+        ],
+        "logSha256": "fb5639ed3385ad20e97f235b43d487700c7e23d9844d211abb5f798a3495614b",
+        "archiveSha256": "dc2d12083ec9b48f3268812f7f86d5fcfce59bdc823831ca14114ea3e346033f",
+        "archiveBytes": 35661
+      },
+      {
+        "name": "override",
+        "command": [
+          "python3",
+          "/workspace/Confectory/tests/web/v536_information_inherited_contract_guards.py",
+          "/workspace/Confectory",
+          "/workspace/scratch/v536-pending-copy/engine-report.json",
+          "normal"
+        ],
+        "exit": 0,
+        "seconds": 7.2,
+        "minimumWorkspaceBytes": 1675411456,
+        "peakMemoryBytes": 3544252416,
+        "pendingCopy": false,
+        "checks": [
+          "공개 이름 대응·소유 copy·호출자 후보는 부모/자식 선언을 쓰지 않고 함께 준비한다",
+          "부모/자식 쓰기 위조·타입/핀 수/역할/반환/순서의 계약 변경은 정상 보호로 전체 미적용이다",
+          "실제 부모 파일 경합은 원래 읽기 기준으로 차단하고 후보/복사본 원문을 보존한다"
+        ],
+        "logSha256": "da34330ea89cda1946c14bbd2b1825d54f8ad5b42b3e354c99527ce0ba961183",
+        "archiveSha256": "29d67e8bf51c8021cee4c6c147d934f863c2e73fb2edc218504002c7620479a5",
+        "archiveBytes": 25863
+      },
+      {
+        "name": "saved-copy",
+        "command": [
+          "python3",
+          "/workspace/Confectory/tests/web/v536_information_saved_copy_native.py",
+          "/workspace/Confectory",
+          "/workspace/scratch/v536-pending-copy/engine-report.json",
+          "normal"
+        ],
+        "exit": 0,
+        "seconds": 7.0,
+        "minimumWorkspaceBytes": 1675358208,
+        "peakMemoryBytes": 3626287104,
+        "pendingCopy": false,
+        "checks": [
+          "소유 copy의 root/수동 본문만 계약 후보로 갱신하고 출처·native donor를 보존한다",
+          "누락·위조·다른 배정/공유·원래 출처 및 저장 기준 변경은 전체 미적용이다"
+        ],
+        "logSha256": "d9f2bdb2184e6be1e13184b572d7da007e84c6efd8ca3d0128fc01d029cf9afc",
+        "archiveSha256": "f5c5cdb0ebc5e453a5605c23be8e7217e75f6dae7e39cb2175a38efafc511d5e",
+        "archiveBytes": 24884
+      },
+      {
+        "name": "shared-bodies",
+        "command": [
+          "python3",
+          "/workspace/Confectory/tests/web/v536_information_shared_bodies_native.py",
+          "/workspace/Confectory",
+          "/workspace/scratch/v536-pending-copy/engine-report.json",
+          "normal"
+        ],
+        "exit": 0,
+        "seconds": 14.0,
+        "minimumWorkspaceBytes": 1675304960,
+        "peakMemoryBytes": 3536998400,
+        "pendingCopy": false,
+        "checks": [
+          "계약을 유지한 직접 편집 본문의 두 단일 후보는 유효하고 원본은 그대로다",
+          "역순·원래hash·하나의 후보는 그대로인 native/public 계약·직접 편집 원문·caller/import·원문과 경로를 보존한다",
+          "마지막 계약/본문/원래 서명/해시·구문/컴파일/보호 경계·소유/경로 오류는 전부 미적용이며 입력은 보존된다",
+          "실제 caller source 경합은 원래 기준에서 두 계약을 함께 거절하고 부모/다른 입력을 보존한다"
+        ],
+        "logSha256": "8e6f68e6005ec350d74b0ca7774033e51a52569bc9d651e53dcdc6da47afbbbf",
+        "archiveSha256": "a06abb9ff79be04bd98b2c5992b2343d6f926cc8275c7356383c1cc8b8e0cde0",
+        "archiveBytes": 31501
+      }
+    ]
+  },
+  "flows": 13,
+  "checks": 53,
+  "layout": {
+    "base": "0b99e760ad37051da809add5f3e004ba43e3197b",
+    "files": {
+      "examples/editor-home/WebBundle.csbody": "e5ea4bfdfb2f64372bf4546a0c7cbfaf17fa96005b97a6dba58a7c70751857cf",
+      "examples/editor-home/ui/ConfectoryIcon.svg": "6fbd2054764098b340cc104ccbb2e42b9568cec53b063d7f3aa78aa222ef6b20",
+      "examples/editor-home/ui/app-titlebar.js": "b53ad9f0d02d96ce6591f3c887727d5a6e4cf8fecbdd4474de14e46f8aaa4d8b",
+      "examples/editor-home/ui/app.js": "3c25756db6251fbd013c9285ab0193d041d52c4c3bcab0900ef87b04b2bb22ac",
+      "examples/editor-home/ui/assets/html2canvas.min.js": "e87e550794322e574a1fda0c1549a3c70dae5a93d9113417a429016838eab8cb",
+      "examples/editor-home/ui/assets/lumi-bust.png": "74aa3662f35d0455754c9ee9e93535e43d945dfae638d648a16fe2e474388233",
+      "examples/editor-home/ui/assets/lumi-sd.png": "04d53eeba74b45a6faa6d31de2f2f1a807af8a166434e57cb2a4fa6335fab0a1",
+      "examples/editor-home/ui/assets/lumi.png": "d20087b6f4737492f32fb79593a2110ecf83e48503e44f7f6bfa4aab9529787f",
+      "examples/editor-home/ui/assets/portraits.json": "989099ef0fb43da17de863669d578df89dafe0f928e8cdb022a816c3e0cbec11",
+      "examples/editor-home/ui/assets/tori-bust.png": "d63a937754e949129a3d13de90b0e5b04fc8818c11b9e41de71509ed45373e74",
+      "examples/editor-home/ui/assets/tori-sd.png": "197434d69d1321c34e34562936f68c31ebe694aa87ebc2bfd41dae9c0f01bf1a",
+      "examples/editor-home/ui/assets/tori.png": "544a698250fe6f912aca43bd424a59ab1407bea84842b7d52da9b28438810ba9",
+      "examples/editor-home/ui/assets/vex-bust.png": "1406e9e878c0975414f11d49ded729c4c58f943710965c97fe7358cc2f3785f7",
+      "examples/editor-home/ui/assets/vex-sd.png": "df1fc134b85974e6f5b2ec793805131c2099114979eeeabcb64533daf6338674",
+      "examples/editor-home/ui/assets/vex.png": "3599a2f4c6a6f3ad10758a39e242478fe16cd113c98c97db740f63ba1d6330de",
+      "examples/editor-home/ui/battle-log.js": "81aa05ae7f2ccb337772b6435875af53d7deed263cd4a0cf59f32c3947b892f8",
+      "examples/editor-home/ui/blueprint-code-editor.js": "eb7088037150403ac1819bcdb44d4366ae08ee63f2a656d820b6b083b3c49547",
+      "examples/editor-home/ui/blueprint-enum-plan.js": "c0be05b4bb5289184da6264375f599cd14e0bdcaebb53bdcf02c7f25b6daa21b",
+      "examples/editor-home/ui/blueprint-parameters.js": "d1753701eb9feffab7e3949174f65f360f362ab49be599c788701dc385f940de",
+      "examples/editor-home/ui/blueprint-pins.js": "1e141e2b6563ec9b93ce3639add59e878a39f0415dc1cacff9f0ebe29ea57764",
+      "examples/editor-home/ui/blueprint-rename.js": "ec8c0db679c052ccb7e63b6256dbe784ef6cb09027e06b2e3cfd401861a04bc9",
+      "examples/editor-home/ui/blueprint-viewport.js": "a690c93df99773adc678c3044ad26e4af1f0738ce1056d937d2958d19349b803",
+      "examples/editor-home/ui/blueprint.js": "30c1a604b47f657d54cf7b2b037f18829c98098a30d3f560b89b974d11ce56f8",
+      "examples/editor-home/ui/browser-data.js": "0ad5974b9f127258d41859e66887ded4e566c1b07d340fa149a7434c304f678f",
+      "examples/editor-home/ui/browser-projection.js": "0377888ce66866d4cf28c084dfd3c934c4cbd816ee9f29f369a300e0a30cea61",
+      "examples/editor-home/ui/browser-shell.js": "12c4368b3add1d9d268f4d1ed898c62f8639ea51c56dab63332e2edf029cc5a1",
+      "examples/editor-home/ui/browser-tree.js": "4981dc44ca6c24f2559c3eaa56dd8f63408bebdd3367737bd088e1708d383c09",
+      "examples/editor-home/ui/builds.js": "e4e022d1657b7cbf22a8274f15c8c0b76fff851165a69695faee3bf5052ef7ee",
+      "examples/editor-home/ui/call-abi-remap.js": "d67a04f3b45b5d68ccf13cda9b2279683b977feb831482f1f94c8758c8ee5314",
+      "examples/editor-home/ui/conflicts.js": "b3365f537c2b223caa90901362b9e11cdfccdcc15aefa85bba98e3cd8f32b896",
+      "examples/editor-home/ui/consumer.css": "fc3584f1784ba822fd438edb5fe33deb6527d8e621cc478184d5f5b82244dc3e",
+      "examples/editor-home/ui/context-actions.js": "cd921374c23fe5ea58b5de2904d5c8f2fdf9e860e79c7c5654979462a8ee1d47",
+      "examples/editor-home/ui/declarations.js": "335b124b91ff386e83ded3ff340dfb3dd3d385ed3ca297b61330848115d0000b",
+      "examples/editor-home/ui/element-author-surface.js": "7213ab9ed37a1e23779b5a3653a6270168a0950d0db4c00b124304e3e6fd9e21",
+      "examples/editor-home/ui/element-functions.js": "4c2dbfaf56554d3b6aa708fd473ac5273f0b8a0d6036d22da9d9c41fd24f2347",
+      "examples/editor-home/ui/element-information-values.js": "e474cfc5cd0b22dcdfe6c34f1469aab0a4b6b4ef97a1237fb2fab42525324a81",
+      "examples/editor-home/ui/element-instances.js": "31cbf42fefe35215011ee00c006ee73592328207fcfcf74d787a127adcd2e326",
+      "examples/editor-home/ui/element-raw-save.js": "e451d861ebacfb0d2b6b01643d80ac1c2f506d7f72773d172e3917c43aada02a",
+      "examples/editor-home/ui/element-values.js": "4194b01fafc41f1c969c0229ee04c0417ac99fe89e96ec87bdbf9934068ce4fc",
+      "examples/editor-home/ui/element-view-save.js": "e6e17857945ba777cc1c7cb80bfe850f6e68083ed6e0de8582ea5a79b8691c70",
+      "examples/editor-home/ui/elements.js": "022957ae95acc905ee8b0784ae4210d9aa5e059e1a55acb4a47ddeefdb994cf4",
+      "examples/editor-home/ui/feature-authoring.js": "d95f3cdeea420a7e9f2119945fbd80162778da2f7c88f0f10940c4a6eceee0ac",
+      "examples/editor-home/ui/feature-editor.js": "fc31e167979d55a62d710ffaf234fc70f21983157c45495c24b5b2b56f04af03",
+      "examples/editor-home/ui/field-discovery.js": "e44121ad7618ba47f503af2752a699dab690a6e697782f52f68d643870b00b11",
+      "examples/editor-home/ui/find.js": "44623cf3ce418ab924cd75ead0a43ebaacf6c226619982a81f78a70ca04ca0fb",
+      "examples/editor-home/ui/helper-agents.js": "75c0ff7e4f8a1b1606959aa2e941c12ec00b380929393ed747df5ea80635faa6",
+      "examples/editor-home/ui/history.js": "f21d3c4fad09a2506198ee8c017fc398cf44599a24e901f64aa6ebd4107880ed",
+      "examples/editor-home/ui/home-preferences.js": "64d6c5032978397ede265ee2437f1ddeb4caac038f4eaff011a43a4cf2688fb6",
+      "examples/editor-home/ui/index.html": "9c4c08bbd90a15b7e18f65ceae0d9b0e7e1c17189595853a102941e27af778d0",
+      "examples/editor-home/ui/inventory.js": "e7a50efcc35a1e5da62ebef10a802303cf30f6b3bc585af664088fece1ad905a",
+      "examples/editor-home/ui/mcp-bridge.js": "21a2a09e29ce3ae0bbcace892b58d47cbec5499dd9b57e36b4780f5d8668599b",
+      "examples/editor-home/ui/mixed-declaration.js": "9776b5881211c2020a2af4a573c61e5126c449d3787832999cc093dc0491b08d",
+      "examples/editor-home/ui/mobile-blueprint.js": "1c300b66028d30aba12baf0d80bd55f9a135d9210dd3c110e0918c482ff4a607",
+      "examples/editor-home/ui/mobile-shell.js": "62e63467dda3da547d4d62808632b42b89ec95671a30949bdc78575071018374",
+      "examples/editor-home/ui/node-tasks.js": "415215f33bfc171630d7aeeaf9f00a1e68ca823a6c214e25591784aedcd33247",
+      "examples/editor-home/ui/note-documents.js": "5a72a6ac0114373f89962a545095fa8876fd8a08fef965fa693a5c82209f059f",
+      "examples/editor-home/ui/notes.js": "4adab64b6fc755dc4dda65d80a5232c7fbe3a375d3d4c34b4ba8695bc43486fa",
+      "examples/editor-home/ui/pack-manager.js": "7569d898414d75f492ffc192823bda4737fd7fb58aae6b5d064af7d34ef01dfa",
+      "examples/editor-home/ui/property-authoring.js": "690b3823512dc5bc53702407292abe95835d0db01401dc64bfe1a81beebecb48",
+      "examples/editor-home/ui/references.js": "a9544ddeb1672a7a38f4fd525bc614aae4115b2ff8c99dfbc0bc2fe3569fde3f",
+      "examples/editor-home/ui/relations.js": "ab15571de6969f042a95e82143a08830969c706048a09111f08d4a85403a6032",
+      "examples/editor-home/ui/run-exports.js": "91e48b9893168c302395c1ae35e9c5e6fd1661a0772465d4316f822954d7ca9f",
+      "examples/editor-home/ui/run-windows.js": "a5ab5e9f4ea806a42159d6b23b5343703a6ec2471b42ac21dfedf9503095868d",
+      "examples/editor-home/ui/runtime.css": "7ace817c492c5bd51a3b11a2fd6b86fdc3d98e242ae4115d5cc52b179afc6e3e",
+      "examples/editor-home/ui/set-authoring.js": "80071084be7c69975a96fb17ac5e467b871e09f1bb9effc2672a4999b984a224",
+      "examples/editor-home/ui/style.css": "adfc1b205f0d357a380122763d411147e4db7535d1484f0852a6064984912188",
+      "examples/editor-home/ui/tables.js": "6afa14b03f1bc85e86ba928afb3a0c8d48e59b99259818bea0ca29033df20020",
+      "examples/editor-home/ui/typed-json.js": "8c0b9287739b9e4243116b82cbd0d276805445ab924453f04825fb3b515db506",
+      "examples/editor-home/ui/v508-runtime.js": "e180c2b7674af30a413f2591329ae522a22711637a03d2dc115d8f7673a33e58",
+      "examples/editor-home/ui/v508-views.js": "ad53508ad632b0c972dbdd15efd4774f26abf1235ec906eee0ee034968142728",
+      "examples/editor-home/ui/window-documents.js": "eb330d8e8707e156b4c51673f50e81d75e2d044db41b91cd51fcff7ba34bc0df",
+      "examples/editor-home/ui/workspace-history.js": "395f3c813f49f5086a60db9b79e3882cf599a32b0b68b16d0a0f1ef549df1826",
+      "examples/editor-home/ui/workspace-host.js": "66fc50d6bd1b24b57897b90d149a9491ae77fc7a5b206754ce5cc7b419c15014",
+      "examples/editor-home/ui/workspace-links.js": "182ec947d0020f134510251ac41b3ab8d1714a091127a8afba5d26c2d66ececb",
+      "examples/editor-home/ui/workspace.js": "fd3fb6c7852bd6b78eb219d959a866f716e2447ee84c9dad1b2ce4ea9529022e"
+    },
+    "unchangedCount": 75,
+    "newUiOrLayout": false
+  },
+  "productSourceSha256": {
+    "targets/element-authoring/InformationFunctionCopies.cs": "9484237e8f516682be1ca62b8f6ec36ce05e029b33c05ac270892870f7258cfa",
+    "packs/save/ApplySlots.csbody": "4d3c37e7de9f1f3a9408cf811c66672713b0ba722bfe9c142d6a65c2b83721d4"
+  },
+  "nativeBuildLogSha256": "9124995460f991335ef9583b47b9d60e88f9c08d2778b2528f6e1031040fe99a",
+  "freshEngineBuildLogSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "initialFailuresPreserved": [
+    "Project fixture startup override was restored to the first requested project before cold restart; current inputs had already survived the two-project switch",
+    "baseline guard reproduced before patch",
+    "UI test key/protected region/escaped emoji assertions corrected without weakening product checks",
+    "Review after checkpoint save omitted unchanged pending implementation header; complete selected creation footprint added and actual compiler Confirm retested",
+    "UI conflict was rejected at readOwnerEdits before applySlots; assert the actual failed guard, persist the independent peer draft before restart, and preserve that checkpoint plus the old copy input"
+  ],
+  "noUserProjectsOrInference": true,
+  "actualWindows": false,
+  "actualMobile": false,
+  "libraryDelivered": false,
+  "oldFilesDeleted": false,
+  "workspaceAvailableBytes": 1675251712
+}

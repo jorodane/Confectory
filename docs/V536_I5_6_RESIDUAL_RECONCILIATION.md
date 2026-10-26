@@ -6,7 +6,7 @@
 
 | 항목 | 원래 사용자 조작 | 현재 실제 차단/미연결 | 판정 |
 |---|---|---|---|
-| 7: same-contract copy | 기존 복사 구현을 편집·배정하고 원본 유지 | `InformationFunctionCopies.For`는 저장 baseline·직접 배정 1개를 요구한다. `BlueprintCopyAbi.Bind`는 단일 target·같은 namespace 함수만 받는다 | 미확정/다중 target/외부 함수의 소유·출처 receipt 결합 구현 잔여. 언어 제약이나 새 독립 복제 요구가 아님 |
+| 7: same-contract copy | 기존 복사 구현을 편집·배정하고 원본 유지 | `InformationFunctionCopies.For`는 직접 배정 1개를 요구하며, 저장 후 미확정 copy는 새 생성 기준/원래 출처/같은 공개·native 계약을 receipt로 보관해 본문 재편집한다. `BlueprintCopyAbi.Bind`는 단일 target·같은 namespace 함수만 받는다 | 미확정 같은 계약 본문 재진입은 좁게 연결했다. 다중 target/외부 함수의 소유·출처 receipt 결합은 실제 잔여다. 언어 제약이나 새 독립 복제 요구가 아님 |
 | 7: override | 원본 매개변수·출력 계약을 유지하고 구현 편집 | 부모/외부 쓰기와 타입·핀 수·역할·반환 구조 변경 거절 | 사용자 확정 정상 보호. 독립 계약 복제/새 ID는 필수 제외 |
 | 8: 같은 창의 한 Save | 여러 함수에서 실제 편집한 내용을 함께 저장 | `InformationFunctionBatch.Begin`은 body 계획이 있으면 계약 편집으로 분류하고, native C# target 및 대부분 body 계획을 거절한다. 계약이 같은 C# 본문 2개도 거절됨 | 명확한 현재 UI 저장 연결 누락. 다음 최소 단위 |
 | 8: 다른 계약/문맥 | 원본에서 제공하는 이름·타입·순서 편집과 명시 본문/연결을 보존 | batch의 direct leaf/call·code/return lift·native/private/copy/wrapper/서로 의존하는 callee guard | 각 실제 UI 흐름을 기준으로 축소 재현할 구현 경계. 가능한 C# 조합 전체를 새 수용 목록으로 만들지 않음 |

@@ -73,6 +73,206 @@ def restart(i, expect_same=True):
     if expect_same:
         assert restored == held
 
+def reedit_pending(copied, checkpoint):
+    """The existing own-function body dialog after Save, before Confirm."""
+    key = copied + '/body:common/node:body'
+    def pending():
+        return [v for _, v in d.pending() if v.get('kind') == 'function-edit']
+    def editor():
+        f.owner().locator('[data-inline-method="' + fn + '"] [data-function-edit]').click()
+        popup = f.page.get_by_role('dialog', name='구현 선택', exact=True)
+        expect(popup).to_be_visible()
+        expect(popup.locator('[data-information-body="' + key + '"]')).to_contain_text('소유 복사본')
+        popup.locator('[data-information-body="' + key + '"]').click()
+        dialog = f.page.locator('[role=dialog]:has([data-code-source])')
+        expect(dialog).to_be_visible()
+        return dialog
+    def fill(dialog, value):
+        code = dialog.locator('[data-code-source]')
+        code.evaluate(r"el=>{el.focus();el.setSelectionRange(el.value.indexOf('\n{\n')+3,el.value.lastIndexOf('\n}'));}")
+        # Use the real editor's editable body region; its native header/footer
+        # are protected. A whole-text replacement is correctly rejected.
+        suffix = value[value.rfind('\n}') + 2:]
+        body = value[value.index('\n{\n') + 3:value.rfind('\n}')]
+        if suffix: body += suffix
+        f.page.keyboard.insert_text(body)
+        f.idle()
+    def wait(start, ok=True, action='applySlots'):
+        deadline = time.monotonic() + 90
+        while time.monotonic() < deadline:
+            ids = {r['invoke']['requestId'] for r in f.traffic[start:]
+                   if r.get('invoke', {}).get('endpoint') == 'blueprint'
+                   and r['invoke']['input'].get('action') == action}
+            rows = [r['result'] for r in f.traffic[start:]
+                    if r.get('result', {}).get('requestId') in ids
+                    and r['result'].get('error', {}).get('code') != 'stale_revision']
+            if rows:
+                assert bool(rows[-1]['ok']) == ok, rows[-1]
+                f.idle()
+                return
+            f.page.wait_for_timeout(20)
+        raise AssertionError({'waiting': action, 'evidence': str(f.case)})
+    def save(ok=True):
+        mark = len(f.traffic)
+        f.owner().locator('[data-element-action=save]').click()
+        wait(mark, ok)
+    before = checkpoint.read_bytes()
+    dialog = editor()
+    original = dialog.locator('[data-code-source]').input_value()
+    assert '상속 복사 UI 😀' in original and not pending()
+    edited = original.replace('상속 복사 UI 😀', '미확정 복사 재편집 😀')
+    fill(dialog, edited)
+    dialog.locator('[data-code-cancel]').click()
+    assert not pending() and checkpoint.read_bytes() == before
+    dialog = editor()
+    fill(dialog, edited + '\n// unfinished local input')
+    held = f.pending()
+    restart(10)
+    assert f.pending() == held
+    dialog = editor()
+    assert 'unfinished local input' in dialog.locator('[data-code-source]').input_value()
+    fill(dialog, edited)
+    dialog.locator('[data-code-save]').click()
+    mapping = f.page.locator('[role=dialog]:has([data-abi-remap-accept])')
+    expect(mapping).to_be_visible()
+    mapping.locator('[data-abi-remap-accept]').click()
+    f.idle()
+    assert len(pending()) == 1
+    value = pending()[0]
+    assert value['mapping']['copies'][copied + '/body:common']['pending']['functionSignature'] == x.b.old
+    f.owner().locator('[data-own-functions-toggle]').press('Control+z')
+    f.owner().locator('[data-own-functions-toggle]').press('Control+y')
+    assert pending()[0] == value
+    held = f.pending()
+    restart(11)
+    assert f.pending() == held and pending()[0] == value
+    preserved()
+    f.checked('미확정 복사본 재편집·팝업 취소·불완전 입력 cold·Undo/Redo는 계약/복사 ID/출처/정확한 값과 입력을 보존한다')
+    if mode == 'reedit-cancel':
+        f.owner().locator('[data-element-action=discard]').click()
+        f.idle()
+        assert not pending()
+        rows = json.loads(checkpoint.read_text())['changes']
+        assert any(r['id'] == copied for r in rows)
+        assert '미확정 복사 재편집' not in checkpoint.read_text()
+        restart(12)
+        assert not pending()
+        preserved()
+        f.checked('재편집 취소는 기존 미확정 생성·배정을 유지하고 추가 입력만 취소한다')
+        return False
+    if mode == 'reedit-conflict':
+        state = f.state()['schema']
+        f.invoke('editDescription', {'id': owner, 'hash': state['textHash'],
+                                   'revision': state['revision'], 'value': '다른 창의 새 입력'})
+        # Persist the peer's independent change. A backend-only unsaved edit
+        # is not a durable other-window input and may disappear on restart.
+        f.invoke('saveDraft', {})
+        peer_checkpoint = checkpoint.read_bytes()
+        assert peer_checkpoint != before
+        mark = len(f.traffic)
+        f.rejected_save()
+        failed = {r['result']['requestId'] for r in f.traffic[mark:]
+                  if r.get('result', {}).get('ok') is False}
+        assert any(r.get('invoke', {}).get('requestId') in failed
+                   and r['invoke'].get('input', {}).get('action') == 'readOwnerEdits'
+                   for r in f.traffic[mark:])
+        assert pending()[0] == value and checkpoint.read_bytes() == peer_checkpoint
+        restart(12)
+        f.rejected_save()
+        assert pending()[0] == value and checkpoint.read_bytes() == peer_checkpoint
+        preserved()
+        f.checked('다른 창 경합은 cold 뒤에도 원자 거절하며 기존 복사 초안과 새 입력을 보존한다')
+        return False
+    if mode == 'reedit-projects':
+        import shutil
+        listing = f.state()['listingId']
+        f.page.close(); f.stop()
+        other = f.case / 'other root' / 'owned project'
+        shutil.copytree(f.project, other, ignore=shutil.ignore_patterns('.confectory'))
+        f.env['CONFECTORY_WEB_PROJECT'] = str(other / 'project.cproj')
+        f.start(12); f.invoke('select', {'id': owner}); f.invoke('saveDraft', {})
+        second = f.state()['listingId']
+        other_checkpoint = next(other.glob('.confectory/edit-workspaces/*/draft.json'))
+        other_before = other_checkpoint.read_bytes()
+        f.page = f.setup(); f.page.set_viewport_size({'width': 2300, 'height': 1700})
+        def enter(id):
+            f.page.locator('.brand').click()
+            expect(f.page.locator('.home-grid')).to_be_visible()
+            f.page.locator('[data-enter="' + id + '"]').click()
+            expect(f.page.locator('.work-body')).to_be_visible(); f.idle()
+        enter(listing)
+        assert pending()[0] == value
+        dialog = editor()
+        dialog.locator('[data-code-save]').evaluate('el=>globalThis.stalePendingCopySave=el')
+        dialog.locator('[data-code-cancel]').click()
+        enter(second); d.open_info()
+        assert not pending()
+        f.page.evaluate('()=>stalePendingCopySave.click()')
+        assert not pending() and other_checkpoint.read_bytes() == other_before
+        assert checkpoint.read_bytes() == before
+        enter(listing)
+        assert pending()[0] == value
+        preserved()
+        # The second project was only a startup fixture for discovery. Restore
+        # the requested first project before the following cold-start check.
+        f.env['CONFECTORY_WEB_PROJECT'] = str(f.manifest)
+        f.checked('프로젝트 전환/독립 창의 미확정 copy 입력과 닫힌 저장 동작은 원래 소유 문맥을 보존한다')
+    if mode == 'reedit-storage':
+        checkpoint.chmod(0o400)
+        try:
+            save(False)
+            assert pending()[0] == value and checkpoint.read_bytes() == before
+            preserved()
+        finally:
+            checkpoint.chmod(0o600)
+        f.checked('재편집 저장 실패는 기존 미확정 생성/배정과 입력을 부분 적용 없이 보존한다')
+    if mode == 'reedit-loss':
+        applies, queries, lost = set(), set(), set()
+        def intercept(route):
+            request = route.request.post_data_json
+            if request.get('op') == 'invoke' and request.get('endpoint') == 'blueprint':
+                action = request.get('input', {}).get('action')
+                if action == 'applySlots': applies.add(request['requestId'])
+                elif applies and action == 'settledSlots': queries.add(request['requestId'])
+            response = route.fetch()
+            payload = response.json()
+            for row in payload.get('results', []):
+                if row['requestId'] in applies | queries:
+                    rid = row['requestId']; lost.add(rid); row.clear()
+                    row.update(requestId=rid, ok=False, error={'code': 'transport_lost'})
+            route.fulfill(response=response, json=payload)
+        f.page.route('**/api/request', intercept)
+        f.owner().locator('[data-element-action=save]').click()
+        deadline = time.monotonic() + 90
+        while time.monotonic() < deadline and not queries & lost: f.page.wait_for_timeout(20)
+        assert len(applies) == 1 and queries & lost and pending()
+        mark = len(f.traffic)
+        restart(12, expect_same=False)
+        if pending():
+            f.owner().locator('[data-element-action=save]').click()
+            wait(mark, action='settledSlots')
+        assert not any(r.get('invoke', {}).get('input', {}).get('action') == 'applySlots' for r in f.traffic[mark:])
+        f.checked('재편집 응답 유실/cold는 결과 조회 후 확정하며 같은 복사본을 중복 적용하지 않는다')
+    else:
+        save()
+    deadline = time.monotonic() + 60
+    while pending() and time.monotonic() < deadline: f.page.wait_for_timeout(20)
+    assert not pending()
+    rows = json.loads(checkpoint.read_text())['changes']
+    assert len([r for r in rows if r['id'] == copied]) == 1
+    record = next(r for r in rows if r['id'] == key)
+    assert json.loads(record['draft'])['source'] in edited
+    assert '미확정 복사 재편집 😀' in json.loads(record['draft'])['source']
+    assert all(r.get('baseline') == 'missing' for r in rows if r['id'].startswith(copied))
+    by_id = {r['id']: r for r in rows}
+    group = by_id[owner]['atomicEditGroup']
+    assert {r['id'] for r in rows if r['id'].startswith(copied)} <= set(group)
+    assert all(by_id[id]['atomicEditGroup'] == group for id in group)
+    restart(13)
+    preserved()
+    f.checked('미확정 복사본의 같은 계약 본문 저장은 생성/배정과 한 그룹으로 남고 재시작 후 부모/호출자 원문을 보존한다')
+    return True
+
 def saved():
     deadline = time.monotonic() + 90
     while time.monotonic() < deadline:
@@ -214,6 +414,11 @@ try:
                 saved()
             preserved()
             restart(3 if mode == 'loss' else 2)
+            if __import__('os').environ.get('CONFECTORY_PENDING_COPY') == '1':
+                if not reedit_pending(copied, checkpoint):
+                    assert not f.errors and not f.external, (f.errors, f.external)
+                    f.browser.close()
+                    raise SystemExit(0)
             review = d.review()
             review.locator('[data-reject]').click()
             preserved()
@@ -242,10 +447,13 @@ try:
         f.browser.close()
 except Exception:
     try:
-        f.page.screenshot(path=str(f.case / 'inherited-copy-failure.png'))
         (f.case / 'inherited-copy-failure.json').write_text(json.dumps(
-            {'state': f.state(), 'traffic': f.traffic[-70:], 'checks': f.checks},
+            {'traffic': f.traffic[-100:], 'checks': f.checks},
             ensure_ascii=False, indent=2))
+    except Exception:
+        pass
+    try:
+        f.page.screenshot(path=str(f.case / 'inherited-copy-failure.png'), timeout=10000)
     except Exception:
         pass
     print('EVIDENCE ' + str(f.case), flush=True)

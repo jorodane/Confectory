@@ -48,11 +48,13 @@ try:
     assert next(p for p in x.schema()['providers'] if p['function'] == fn)['implementation'] == x.copy_id
     x.original_sources()
     f.checked('오류는 전체 미적용이고 명시 재시도/원자 저장/cold는 새 복사본만 연결하며 부모·함수·호출자를 보존한다')
-    f.invoke('reviewGroup', {'ids': ids, 'target': 'portable'})
-    review = f.state()['review']
-    assert review['status'] == 'ready', review
-    confirmed = f.invoke('confirmGroup', {'ids': ids, 'token': review['token']})
-    assert confirmed['result']['result']['sourceConfirmed'], f.state().get('review')
+    pending_copy = __import__('os').environ.get('CONFECTORY_PENDING_COPY') == '1'
+    if not pending_copy:
+        f.invoke('reviewGroup', {'ids': ids, 'target': 'portable'})
+        review = f.state()['review']
+        assert review['status'] == 'ready', review
+        confirmed = f.invoke('confirmGroup', {'ids': ids, 'token': review['token']})
+        assert confirmed['result']['result']['sourceConfirmed'], f.state().get('review')
     f.stop()
     f.start(2)
     f.invoke('select', {'id': owner})
@@ -76,6 +78,36 @@ try:
         'signature': signature, 'mapping': {'before': signature,
         'args': {'amount': 'amount', 'count': 'count'},
         'copies': preview['functionCopies'], 'bodies': {body_id: plan}}}]}
+    if pending_copy:
+        proof = preview['functionCopies'][x.copy_id + '/body:common']
+        assert proof['pending'] == {'functionSignature': signature,
+                                    'implementationSignature': body['signature']}
+        unchanged_checkpoint = checkpoint.read_bytes()
+        for fault in ['missing-proof', 'changed-proof', 'changed-contract', 'invalid-body']:
+            bad = copy.deepcopy(declaration)
+            change = bad['changes'][0]
+            if fault == 'missing-proof': change['mapping'].pop('copies')
+            elif fault == 'changed-proof': change['mapping']['copies'][x.copy_id + '/body:common']['pending']['functionSignature']['return'] = 'double'
+            elif fault == 'changed-contract':
+                change['signature'] = copy.deepcopy(signature)
+                change['signature']['args'][0]['name'] = 'renamed'
+                change['mapping']['args']['amount'] = 'renamed'
+                change['mapping']['bodies'][body_id]['contract'] = change['signature']
+            else: change['mapping']['bodies'][body_id]['text'] = 'not C#'
+            x.rpc('applySlots', False, id=owner, rows=[], basis=preview['basis'], declaration=bad)
+            assert checkpoint.read_bytes() == unchanged_checkpoint
+            x.original_sources()
+        f.checked('미확정 receipt 누락/변조·계약 변경·잘못된 본문은 기존 생성/배정까지 전체 미적용으로 보존한다')
+        parent_file = f.project / x.parent_path
+        original_parent = parent_file.read_bytes()
+        try:
+            parent_file.write_bytes(original_parent + b'\n// real peer source change\n')
+            x.rpc('applySlots', False, id=owner, rows=[], basis=preview['basis'], declaration=declaration)
+            assert checkpoint.read_bytes() == unchanged_checkpoint
+        finally:
+            parent_file.write_bytes(original_parent)
+        x.original_sources()
+        f.checked('미확정 copy의 실제 부모 원문 경합도 원자 거절하고 원래 생성 기록을 보존한다')
     result = x.rpc('applySlots', id=owner, rows=[], basis=preview['basis'], declaration=declaration)
     assert result['atomic'] and result['checkpointSaved']
     rows = {r['id']: r for r in json.loads(checkpoint.read_text())['changes']}
@@ -83,6 +115,17 @@ try:
     assert x.parent not in rows and x.child not in rows
     x.original_sources()
     f.checked('복사 후 본문 재편집은 미사용 상속 선언을 바꾸지 않고 같은 ABI/전체 후보 검증으로 보관한다')
+    if pending_copy:
+        group = rows[owner]['atomicEditGroup']
+        assert {r for r in rows if r.startswith(x.copy_id)} <= set(group)
+        assert all(rows[id]['atomicEditGroup'] == group for id in group)
+        f.invoke('reviewGroup', {'ids': group, 'target': 'portable'})
+        review = f.state()['review']
+        assert review['status'] == 'ready', review
+        f.invoke('confirmGroup', {'ids': group, 'token': review['token']})
+        x.original_sources()
+        assert x.copy_id in x.b.info.read_text()
+        f.checked('미확정 생성 header·모든 record·배정·본문의 완전한 한 Review/Confirm은 compiler를 통과하고 부모를 보존한다')
 finally:
     f.stop()
     print(json.dumps({'checks': f.checks, 'actualEngine': True,
