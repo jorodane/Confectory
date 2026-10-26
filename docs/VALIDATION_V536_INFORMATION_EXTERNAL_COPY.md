@@ -17,3 +17,11 @@ Windows 본문만 선택한 copy를 Linux/portable만 선언한 fixture의 Linux
 이번 단위 밖의 실제 다음 조작은 외부 함수를 구현하는 copy 내부의 호출 래퍼에서 `원본 계약 갱신`을 누를 때 필요한 외부 root 함수의 읽기 전용 receipt다. 현재 같은 namespace `BlueprintCopyAbi` 경계로 해당 명시적 ABI 갱신은 제한된다. import/alias 자체 변경 및 기존 serial copy whitelist 밖 graph의 원래 지원 문맥은 각각 별도로 남는다. 오버라이드 원계약의 타입/핀 수/역할/반환 구조를 독립적으로 바꾸는 새 계약 복제는 필수 제외이며 정상 거절이다.
 
 8행의 다른 계약/body/private/whole/wrapper closure 결합, 9행 함수 고급 타입·표시명, I6 기호/이모지/사용자 로컬 이미지, B2 실제 작업자 배지 및 A4~A6/M4/M11/M12는 별도 후속이다. 전체 UI·실제 Windows/WebView2·모바일 기기·Library 전달은 미완료/미검증이다. 사용자 프로젝트·유료 AI를 호출하지 않는다. 기존 자료를 정리하지 않고 이번 검사의 소유 복사본만 증거를 보관한 뒤 승인된 수명관리로 정리한다.
+
+## 독립 checkout·새 교차 패키지 검증
+
+실행 소스 커밋 `fc04be9148ba9fa04d1510c33e0bdb34281ae383`에서 기존 독립 checkout을 정상 FF하고 원래 `core.autocrlf=true`를 유지했다. 변경 파일의 Git blob과 clean 상태를 확인하고 Native Release·새 Linux 엔진·실제 기본/독립 창·미확정 쓰기 실패·권한/오버라이드 회귀 4흐름 16확인을 통과했다. 루트의 14흐름 59확인과 별도로 구분한다.
+
+restore·솔루션 Release·명시 MCP Release·새 Windows x64 교차 패키징·패키지 probe·실제 패키지 `content/runtime/Confectory.App.dll`의 등록 함수 copy 독립 창 UI/컴파일러 4확인까지 6단계가 통과했다. manifest 2344개, 전체 2345개 파일/해시와 링크 부재, 실제 Core/Native DLL 및 변경 제품 소스의 바이트 일치를 확인했다. manifest SHA-256 `fcec236d27f836bbc8cf8f7d0845f945d356505801d0e9bcec35035c3009c663`, Native DLL `30b58a807c50e38eabd4ba9565607257c48b718cea568c8ee188b33a2862338e`. SDK 없는 Linux runtime에서 패키지 웹 기동·74 resource·변조/필수 의존 누락 거절·기존 프로필/명시 override 보존은 probe로 구분한다. Windows apphost/WebView2를 실제 Windows에서 실행한 검사가 아니다.
+
+전체 manifest와 fixture ZIP을 보관·무결성 확인한 뒤 이번 RAM 검증 패키지만 정리했다. 이전 보관 패키지/원본/사용자 자료는 삭제하지 않았다. 새 전달용 산출물을 보관하거나 Library에 업로드한 것은 아니다. 기록 시 workspace 여유 1515.0 MiB. [상세 결과](evidence/v536-information-external-copy/package-clean-verification.json)에 실제 명령·로그·SHA를 남겼다. 이 이후 커밋은 이 검증 문서와 결과 JSON만 추가하며 실행 코드는 위 소스 커밋과 같다.
