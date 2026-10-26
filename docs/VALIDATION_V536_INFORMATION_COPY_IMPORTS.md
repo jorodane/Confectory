@@ -13,3 +13,11 @@ C# 부모의 연결은 이미 존재했다. 최초 API 검사에서 기존 등�
 제품 코드 3파일의 좁은 검증 연결을 수정했다. C# 부모의 변경 없는 Retained 경로 4흐름은 초기 통과 근거를 재사용하고 현재 코드의 C# 화면을 영향 회귀로 재확인한다. 수정된 Blueprint 부모 경로는 새 API/독립 창과 실패/복원 경계로 확인한다. 일반 root 요청에 featureContracts/stableImports JSON을 넣어도 거절되는 순수 가드 2확인은 별도다. 이전 패키지 코드 동등성은 수정 전 진단에만 해당하므로 최종 검증 근거로 재사용하지 않으며, 새 Native/Linux 빌드·교차 패키지를 별도로 검사한다. 실제 Windows/WebView2·모바일 기기·Library 전달 및 전체 UI는 미완료다. 추가 기존 자료는 삭제하지 않고 이번 검사의 자체 fixture만 증거 보관 후 정리한다.
 
 최종 독립 checkout 검증 및 게시 결과는 다음 기록에서 구분한다.
+
+## 독립 checkout·새 교차 패키지 검증
+
+실행 소스 커밋 `cf84e8258da23918034067a069a3a377840b4a27`에서 기존 독립 checkout을 정상 FF하고 원래 `core.autocrlf=true`를 유지했다. 변경 파일의 Git blob과 clean 상태를 확인하고 Native Release·새 Linux 엔진·실제 API/독립 창/오버라이드 회귀 3흐름 14확인을 통과했다. 루트의 15흐름 63확인과 별도로 구분한다.
+
+restore·솔루션 Release·명시 MCP Release·새 Windows x64 교차 패키징·패키지 probe·실제 패키지 `content/runtime/Confectory.App.dll`의 미확정 copy API/컴파일러 7확인까지 6단계가 통과했다. manifest 2344개, 전체 2345개 파일/해시와 링크 부재, 실제 Core/Native DLL 및 변경 제품 소스의 바이트 일치를 확인했다. manifest SHA-256 `60f02d5b2c50fc9d3d93107a2300bc5cca71819ad2bbc9ae74eee2dabf4fcbd8`, Native DLL `d6cc689bd95a4f6895473f7665d1808d00c83e3f1800b159160c5ee7242e2d1d`. SDK 없는 Linux runtime에서 패키지 웹 기동·74 resource·변조/필수 의존 누락 거절·기존 프로필/명시 override 보존은 probe로 구분한다. Windows apphost/WebView2를 실제 Windows에서 실행한 검사가 아니다.
+
+전체 manifest와 fixture ZIP을 보관·무결성 확인한 뒤 이번 RAM 검증 패키지만 정리했다. 이전 보관 패키지/원본/사용자 자료는 삭제하지 않았다. 새 전달용 산출물을 보관하거나 Library에 업로드한 것은 아니다. 기록 시 workspace 여유 1551.6 MiB. [상세 결과](evidence/v536-information-copy-imports/package-clean-verification.json)에 실제 명령·로그·SHA를 남겼다. 이 이후 커밋은 이 검증 문서와 결과 JSON만 추가하며 실행 코드는 위 소스 커밋과 같다.
