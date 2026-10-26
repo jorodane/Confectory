@@ -42,3 +42,28 @@ B2는 실제 worker 데이터가 전부 없는 상태가 아니며 기존 WebSta
 전체 UI 및 실제 Windows/WebView2·모바일 기기·Library 전달은 미완료/미검증이다.
 
 집중 12흐름·31확인, 영향 8흐름·25확인이 통과했다. 기본/독립 창의 본문 편집·취소·Undo/Redo·미저장 cold·저장 cold·Review 취소/명시 Confirm, 실패 전체 미적용/재시도·응답 유실/결과 조회·중복 방지·실제 경합·프로젝트/오래된 창 차단·거절 후 Undo 재시도를 확인했다. 마지막 body/hash/path/원래 서명·구문/컴파일/경계 오류는 전부 미적용이며 원문을 보존한다. 암시 return과 기존 다중 출력 profile의 명시 return을 함께 포함한 실제 후보·독립 화면에서도 caller 원문 전체와 실행 경로를 유지했다. 초기 기대값/fixture 4건과 실제 재직렬화 결함의 실패 증거 및 통과한 재검증은 별도로 기록했으며 미해결 실패는 없다.
+
+## 독립 checkout·새 교차 패키지 완료
+
+실행 소스는 `bf9524f3060098518a6c6f3b3d707d1ed0e9b32b`다. 기존 독립 checkout을 정상 fast-forward하고
+12개 Git blob·기존 LF/CRLF 설정·clean 상태를 확인했다. Native Release 경고/
+오류 0, 후보·API·독립 UI·기존 경로·오버라이드 보호 5흐름·13확인이 통과했다.
+root solution 및 별도 MCP Release도 경고·오류 0이다.
+
+새 Windows x64 교차 패키지의 manifest 2,344항목/marker 포함
+2,345파일, 132,803,342바이트의 집합·전체 해시 및
+현재 제품 소스·Native DLL과 7개 Core DLL 일치를 확인했다. manifest SHA-256은
+`4aef806206b3d85826625eac49f3d30db235c6e7f16210e4bbae6990896e6aae`, Native DLL SHA-256은
+`488acb52addf4c3f5f78acc6787d776fe14139556392fcce5bc4cbdc9632a221`이다.
+
+SDK 없는 새 소유 runtime에서 무관한 cwd의 Linux managed 엔진 웹 기동,
+74리소스·synthetic profile/명시 override 보존·변조/DLL 누락 거절과 패키지
+backend 후보 4확인이 통과했다. 검사 6단계를 순차 수행했으며 OOM/oom_kill은 0이다.
+실제 Windows apphost/WebView2·모바일 기기 실행 및 Library 전달과 구별한다.
+
+새 증거 ZIP 37개의 파일 집합·권한·전체 바이트·해시를 재검증하고 전체 manifest와
+fixture 증거를 보존한 뒤 이번 소유 임시 RAM 패키지만 종료 cleanup했다.
+기존 자료 삭제·압축 변환이나 새 영구 배포 파일 보관·전달은 하지 않았다.
+패키지 단계 최저 디스크 여유는 1,697,095,680바이트다. 후속 결과 문서 커밋은
+실행 소스를 바꾸지 않는다.
+[checkout·패키지 근거](evidence/v536-information-shared-bodies/package-clean-verification.json)에 단계·소스·해시·검증 한계를 기록했다.
