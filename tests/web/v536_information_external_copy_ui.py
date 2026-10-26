@@ -26,10 +26,28 @@ if target == 'windows':
 info = f.project / 'FreeInfo.celem'
 info.write_text(info.read_text().replace('FreeInfo {', 'FreeInfo {module ' + foreign + 'Rules;', 1))
 f.manifest.write_text(f.manifest.read_text().replace('registry Confectory.Build.DotNet', 'registry Source.Module "../registered module source/pack.cpack";dependency Source.Module version "1";registry Confectory.Build.DotNet', 1))
-if 'blueprint-source' in sys.argv[4:]:
+branch_source=next((v.removesuffix('-source') for v in sys.argv[4:] if v in ['branch-source','switch-source']),None)
+if 'blueprint-source' in sys.argv[4:] or branch_source:
     feature_text = (source / 'Feature.celem').read_text()
     prepared = f.metadata('blueprintPrepareFeature', id=fn, text=feature_text.replace('provide ' + fn + ' with ' + foreign + 'Body;', ''), implementation=foreign + 'Body', graphPath='Body.graph.json', nodePath='Body.node.json')
+    if branch_source:
+        graph=prepared['graph'];graph['profile']='sync-acyclic-switch-v1'
+        decision={'id':'decision','kind':'code','control':branch_source,'intent':'기존 분기 원문 보존','signature':{'args':[{'name':'amount','type':'long'}],'return':'bool' if branch_source=='branch' else 'void'},'arguments':{'amount':{'input':'amount'}},'implementation':'Decision.node.json'}
+        if branch_source=='switch':decision['executionEnum']={'primary':'next','members':[{'id':'next','name':'NoBranch','value':0},{'id':'positive','name':'Positive','value':7}]}
+        graph['nodes'].insert(0,decision);graph['entry']='decision'
+        if branch_source=='branch':graph['edges'] += [{'from':'decision','port':port,'to':'body'} for port in ['true','false']]
+        else:
+            graph['nodes'].append({'id':'positive','kind':'code','control':'next','branchOwner':'decision','intent':'원래 enum 실행 줄','signature':{'args':[],'return':'void'},'arguments':{},'implementation':'Positive.node.json'})
+            graph['edges'] += [{'from':'decision','port':'case:positive','to':'positive'},{'from':'positive','port':'next','to':'return:decision'},{'from':'decision','port':'next','to':'body'}]
     definitions = f.metadata('featureBlueprintNodes', featureSource=feature_text, graph=prepared['graph'])
+    if branch_source:
+        decision_definition=next(v for v in definitions['nodes'] if v['id']=='decision')
+        decision_source='return amount>0;' if branch_source=='branch' else 'return amount>0?Result.Positive:Result.NoBranch;'
+        (source/'Decision.node.json').write_text(json.dumps({'schema':1,'node':'decision','definitionHash':decision_definition['definitionHash'],'source':decision_source+' // 분기 원문 😀 9223372036854775806\r\n','helpers':'private static long Keep(long value){return value;} // 보조 원문\r\n'}))
+        if branch_source=='switch':
+            positive=next(v for v in definitions['nodes'] if v['id']=='positive');(source/'Positive.node.json').write_text(json.dumps({'schema':1,'node':'positive','definitionHash':positive['definitionHash'],'source':'// 원래 enum 실행 줄 😀\r\n'}))
+        source_graph=__import__('copy').deepcopy(prepared['graph'])
+        copied_decision_source=decision_source.replace('amount>0','Keep(amount)>1')+' // 분기 원문 😀 9223372036854775806\n'
     node = next(n for n in definitions['nodes'] if n['id'] == 'body')
     (source / 'Body.graph.json').write_text(json.dumps(prepared['graph']))
     (source / 'Body.node.json').write_text(json.dumps({'schema': 1, 'node': 'body', 'definitionHash': node['definitionHash'], 'source': original_body}))
@@ -114,6 +132,14 @@ def reopen():
     assert row['slotContext']['writable'] is True
     assert row['slotContext']['copySource']['implementation'] == foreign + 'Body'
     assert row['slotContext']['copySource']['target'] == target
+    if branch_source:
+        assert row['entry']==source_graph['entry'] and row['edges']==source_graph['edges']
+        assert {v['name']:json.loads(v['valueJson']) for v in row['exits']}==source_graph['exits']
+        decision=next(v for v in row['nodes'] if v['id']=='decision')
+        original=json.loads((source/'Decision.node.json').read_text())
+        assert decision['control']==branch_source and decision['source']==copied_decision_source and decision['helpers']==original['helpers']
+        assert decision['signature']==next(v for v in source_graph['nodes'] if v['id']=='decision')['signature']
+        if branch_source=='switch':assert decision['executionEnum']==next(v for v in source_graph['nodes'] if v['id']=='decision')['executionEnum']
     return row
 
 def accept():
@@ -176,8 +202,27 @@ try:
         slot().locator('[data-function-write-direct]').click()
         picker = f.page.get_by_role('dialog', name='구현 선택', exact=True)
         expect(picker.locator('[data-copy-source="' + foreign + 'Body"]')).to_have_count(2)
+        mark=len(f.traffic)
         picker.locator('[data-copy-source="' + foreign + 'Body"][data-copy-target="' + target + '"]').click()
+        if mode=='diagnostic':
+            result=wait_result(mark,'readImplementationCopy',False)
+            f.page.screenshot(path=str(f.case/'branch-copy-before.png'));originals()
+            f.checked('원래 구현 선택에 표시된 code '+branch_source+' Blueprint를 선택하면 기존 copy whitelist에서 실제 UI 준비가 거절되고 원본은 유지된다')
+            f.browser.close();print(json.dumps({'evidence':str(f.case),'checks':f.checks,'renderer':True,'refused':result},ensure_ascii=False));sys.exit(0)
         expect(f.author().locator('[data-bp-node=body]')).to_be_visible()
+        if branch_source=='switch':
+            expect(f.author().locator('[data-bp-node=decision] [data-branch-name=positive]')).to_have_attribute('readonly','')
+            expect(f.author().locator('[data-bp-node=decision] [data-branch-remove=positive]')).to_be_disabled()
+            f.author().locator('[data-bp-overview-node=decision]').click()
+            button=f.author().locator('[data-bp-node=decision] [data-internal-code]');button.click();dialog=f.page.locator('.bp-script-dialog');code=dialog.locator('[data-code-source]')
+            value=code.input_value();assert 'public enum Result' in value and 'Positive = 7' in value and 'public static Result Execute(long amount)' in value
+            code.evaluate("el=>{el.focus();const i=el.value.indexOf('Positive = 7');el.setSelectionRange(i,i+8)}");f.page.keyboard.insert_text('Changed');assert code.input_value()==value
+            dialog.locator('[data-code-cancel]').click()
+            original_decision=json.loads((source/'Decision.node.json').read_text())['source']
+            f.edit_region(button,original_decision.replace('\r\n','\n'),copied_decision_source)
+            f.author().locator('[data-bp-overview-node=body]').click()
+            box=f.author().bounding_box();assert round(box['width'])==850 and round(box['height'])==600
+            f.page.screenshot(path=str(f.case/'enum-copy-prepared.png'))
         edited = original_body.replace('\r\n', '\n').replace('원문', '소유 복사본 😀')
         edit(original_body, edited)
         f.close_author()
@@ -332,7 +377,9 @@ try:
                 f.checked('저장 실패는 checkpoint·live 본문·입력 원문·기존 copy를 보존하고 부분 적용하지 않는다')
                 start = len(f.traffic)
                 f.author().locator('[data-bp-save]').click()
-            f.page.wait_for_function('()=>{const s=document.querySelector(".window[data-key=blueprint] .bp-status");return s&&s.textContent.startsWith("복사본 ·")}')
+            # Confirmed enum copies observe more source records. Wait for the
+            # complete receipt/read/receipt reconciliation, keeping every assertion below.
+            f.page.wait_for_function('()=>{const s=document.querySelector(".window[data-key=blueprint] .bp-status");return s&&s.textContent.startsWith("복사본 ·")}',timeout=120000)
             f.idle()
             assert not any(v.get('type') == 'source' for _, v in f.pending()['blueprint'])
             rows = {r['id']: r for r in json.loads(checkpoint.read_text())['changes']}
@@ -377,6 +424,13 @@ try:
                 assert json.loads(rows[copied + '/body:' + target + '/node:body']['draft'])['source'] == final
             assert all(p.read_bytes() == value for p, value in registered.items())
             if accepted:
+                if branch_source:
+                    units=f.metadata('describe',project=str(f.manifest))['units'];graph_unit=next(v for v in units if v['id']==copied+'/body:'+target)
+                    stored=json.loads((f.project/graph_unit['path']).read_text());assert stored['entry']==source_graph['entry'] and stored['edges']==source_graph['edges'] and stored['exits']==source_graph['exits']
+                    decision_unit=next(v for v in units if v['id']==copied+'/body:'+target+'/node:decision')
+                    decision_record=json.loads((f.project/decision_unit['path']).read_text());origin_record=json.loads((source/'Decision.node.json').read_text())
+                    assert decision_record['source']==copied_decision_source and decision_record['helpers']==origin_record['helpers']
+                    f.checked('copied code '+branch_source+'의 분기/enum ID·값·순서·모든 route·반환과 C#·보조 원문은 실제 compiler Confirm 뒤에도 유지된다')
                 f.checked('재시작·실제 compiler Review 취소와 명시 Confirm은 같은 copy만 반영하고 외부 팩을 쓰지 않는다')
         f.page.screenshot(path=str(f.case / 'external-copy-final.png'))
         assert not f.errors and not f.external, (f.errors, f.external)
