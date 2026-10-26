@@ -29,3 +29,5 @@ cold 복원은 원래 basis가 없는 journal에도 프로세스 로컬 basis를
 ## 집중 검증 완료
 
 Native Release 0경고/오류와 순수 후보 9확인, 실제 엔진/렌더러 및 영향 회귀 10흐름 95확인을 통과했다. 정상·독립 창 값 Undo/Redo·cold·취소·저장 실패·다른 창 경합·응답 유실 조회·원래 source의 실제 물리 변경 거절·거절 후 명시 값 수정 재시도·프로젝트/창 문맥·Review/Confirm을 구분했다. 첫 기본·독립 창의 미확정 경로는 확정 copy 복원 출처 보완 전 결과를 재사용한다. 해당 미확정 경로는 출처 보완 분기를 사용하지 않는다. 확정/private의 쓰기 실패·실제 경합은 출처 보완 뒤 통과했고 마지막 readonly receipt 선조회 추가 전 결과를 재사용한다. 응답 유실과 나머지 영향 회귀·독립 checkout·패키지는 최종 엔진으로 확인한다. 이후 추가한 원본 치수/스크린샷과 저장된 핀 Undo/본문 취소 단언은 나머지 집중 흐름·독립 checkout·패키지에서 실행한다. 이전 실패 시도는 합계에서 제외했다. [명령·결과·제품 해시](evidence/v536-nested-copy-pins/focused-verification.json)에 기록했다. 다음 checkout/새 교차 패키지 결과는 별도 추가한다.
+
+독립 checkout의 첫 충돌 검사는 peer 저장 뒤 화면 갱신이 끝나기 전에 클릭하여, 거절 메시지 대기에서 타임아웃됐다. 보관된 traffic에는 해당 클릭 뒤 authorBatch/settledAuthorBatch 요청이 전혀 없고 입력·peer 저장은 남아 있다. 제품/CAS의 거절 검사를 완화하지 않고 기존 idle 표시를 기다려 조작하도록 동기화한다. 실제 settledAuthorBatch가 미적용이고 원래 기준이 달라졌음을 응답으로 확인하는 단언을 추가했다. 이 실패는 clean/evidence/conflict.zip과 로그로 보존하며 해당 충돌 및 미실행 권한 회귀만 재검증한다. 제품 5개 파일은 실행 소스 70457ac와 같으며 통과한 독립 화면 12확인과 빌드 결과는 재사용한다.
