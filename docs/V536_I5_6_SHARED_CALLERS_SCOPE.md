@@ -65,3 +65,5 @@ ref 보유 직접 계약의 값/ref 이름 편집은 원래 타입·역할·수�
 후속 [whole-body ref→out 단위](VALIDATION_V536_INFORMATION_SHARED_REF_OUT.md)는 원래 정확한 code/return lift의 native/public 선언·본문/whole receipt와 제거 caller 입력의 명시 해제를 여러 함수에서 결합한다. 위치별 타입·이름·수·순서·반환 및 남는 caller 바인딩/출력을 유지하고 typed import도 같은 후보/CAS에 갱신한다. 추가 노드/지역값·별칭을 지우거나 root 검증을 완화하지 않으며 순서·반대 방향·다른 문맥은 별도다.
 
 후속 [whole-body out→ref 단위](VALIDATION_V536_INFORMATION_SHARED_OUT_REF.md)는 원래 정확한 code/return lift의 같은 이름·타입·수·순서·반환을 유지하고, 새 ref의 원래 입력 저장소·다른 입력의 명시 값·기존 out 소비자의 호환 return 대응을 한 후보/CAS로 결합한다. 앞선 함수의 명시 출력 이동을 뒤 함수의 선택된 저장소에도 원래 증거로 투영하며 본문·별도 셀을 추정하지 않는다. 일반 retained 그래프·값/out 역할·순서 및 다른 계약 결합은 별도다.
+
+후속 [whole-body out→값 단위](VALIDATION_V536_INFORMATION_SHARED_OUT_VALUE.md)는 정확한 code/return lift의 같은 이름·타입·수·순서·반환과 원문을 유지하며 새 값 입력·다른 입력·기존 out 소비자의 호환 return 대응을 명시 선택해 여러 함수/공유 caller의 한 후보/CAS에 결합한다. 기존 ref 경로와 구분하고 원래 입력을 자동 복제·삭제하지 않는다. 값→out·순서·다른 문맥은 별도다.

@@ -2,6 +2,8 @@
 import copy
 import hashlib
 import json
+import os
+value_mode=os.environ.get("CONFECTORY_SHARED_OUT_VALUE")=="1"
 import v536_information_shared_ref_names_fixture as base
 
 f,d,n,owner,mode=base.f,base.d,base.n,base.owner,base.mode
@@ -9,10 +11,14 @@ functions=base.functions
 olds=copy.deepcopy(base.olds)
 for sig in olds:sig['args'][1]['mode']='out'
 nexts=copy.deepcopy(olds)
-for sig in nexts:sig['args'][1]['mode']='ref'
+for sig in nexts:
+    if value_mode:sig['args'][1].pop('mode')
+    else:sig['args'][1]['mode']='ref'
 old=olds[0];new=nexts[0];removed=[];added=[];retry_field='arg0';undo_steps=2
 native={'args':[{'name':'nativeAmount','type':'long'},{'name':'nativeTotal','type':'long','mode':'out'}],'return':'long'}
-selected=copy.deepcopy(native);selected['args'][1]['mode']='ref'
+selected=copy.deepcopy(native)
+if value_mode:selected['args'][1].pop('mode')
+else:selected['args'][1]['mode']='ref'
 graphs={};records={}
 source='nativeTotal=checked(nativeAmount+1);return nativeTotal; // 원문 · 9223372036854775806 😀\n'
 for index,fn in enumerate(functions):
@@ -55,7 +61,7 @@ def caller_arguments(index):return {'amount':{'constant':5},'count':{'input':'fi
 def caller_exits():return {'return':{'node':'invoke_second'}}
 def verify_caller_header(text):
     expected=snapshot['CallerBody.celem'].decode()
-    for fn in functions:expected='\n'.join(line.replace('out long','ref long') if fn+' ' in line else line for line in expected.split('\n'))
+    for fn in functions:expected='\n'.join(line.replace('out long','long' if value_mode else 'ref long') if fn+' ' in line else line for line in expected.split('\n'))
     assert text==expected
 
 def verify_rows(rows):
@@ -91,7 +97,9 @@ def verify_pins(panel,index):
     method=panel.locator('[data-inline-method="'+functions[index]+'"]')
     expect(method.locator('[data-pin-side=inputs] [data-function-pin-name=amount]')).to_have_attribute('data-function-pin-type','정수')
     expect(method.locator('[data-pin-side=inputs] [data-function-pin-name=count]')).to_have_attribute('data-function-pin-type','정수')
-    expect(method.locator('[data-pin-side=outputs] [data-function-pin-name=count]')).to_have_attribute('data-function-pin-type','정수')
+    output=method.locator('[data-pin-side=outputs] [data-function-pin-name=count]')
+    if value_mode:expect(output).to_have_count(0)
+    else:expect(output).to_have_attribute('data-function-pin-type','정수')
 
 def after_contract(index):
     from playwright.sync_api import expect
@@ -100,7 +108,7 @@ def after_contract(index):
     dialog=f.page.locator('[role=dialog]:has([data-code-source])');expect(dialog).to_be_visible();assert source in dialog.locator('[data-code-source]').input_value()
     def fill():
         field=dialog.locator('[data-code-source]');field.evaluate("el=>{el.focus();el.setSelectionRange(el.value.indexOf('(')+1,el.value.indexOf(')'));}")
-        f.page.keyboard.insert_text('long nativeAmount, ref long nativeTotal');f.idle()
+        f.page.keyboard.insert_text('long nativeAmount, '+('' if value_mode else 'ref ')+'long nativeTotal');f.idle()
     fill();dialog.locator('[data-code-cancel]').click();assert d.pending()==held
     f.owner().locator(selector).click();expect(dialog).to_be_visible();fill();dialog.locator('[data-code-save]').click()
     remap=f.page.get_by_role('dialog',name='호출 계약 갱신',exact=True);expect(remap).to_be_visible()

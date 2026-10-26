@@ -26,26 +26,28 @@ internal sealed class InformationFunctionBatch
   if(edits.Length>8||changes.Count!=edits.Length)throw new InvalidOperationException("Save up to eight direct function contracts together; other input is retained");
   var units=request["units"]?.AsObject()??throw new InvalidOperationException("Read every shared caller before saving the function group");if(units.Count>2048)throw new ArgumentException("Shared contract source budget");
   bool referencePins=edits.Any(row=>new[]{row?["mapping"]?["before"],row?["signature"]}.Any(s=>s?["args"] is JsonArray args&&args.Any(a=>a?["mode"]?.ToString()=="ref")));
+  bool wholeValue=edits.Any(row=>row?["mapping"]?["bodies"] is JsonObject&&row["mapping"]?["before"]?["args"] is JsonArray before&&row["signature"]?["args"] is JsonArray after&&before.Count==after.Count&&before.Where((a,i)=>a?["mode"]?.ToString()=="out"&&after[i]?["mode"] is null).Any());
   var wholeRoleFunctions=new HashSet<string>(StringComparer.Ordinal);var wholeRolePlans=new Dictionary<string,JsonObject>(StringComparer.Ordinal);
   var functions=new HashSet<string>(StringComparer.Ordinal);var structures=new HashSet<string>(StringComparer.Ordinal);var inputDefinitions=new HashSet<string>(StringComparer.Ordinal);var returns=new HashSet<string>(StringComparer.Ordinal);var inputTypes=new HashSet<string>(StringComparer.Ordinal);var inputNames=new HashSet<string>(StringComparer.Ordinal);var outputTypes=new HashSet<string>(StringComparer.Ordinal);bool typed=false,hasOutputs=false,outputTyped=false;
   bool Scalar(string type)=>type is "bool" or "int" or "long" or "float" or "double" or "string";
   foreach(var row in edits){
    string id=row!["id"]!.ToString();if(!functions.Add(id))throw new ArgumentException("One explicit edit per function identity required");
-   var mapping=row["mapping"]!.AsObject();if(mapping.Any(p=>p.Key is not ("before" or "args" or "callers" or "implementations" or "outputs" or "outputGraphs" or "bodies")||p.Key=="bodies"&&!referencePins)||mapping["before"] is not JsonObject||mapping["args"] is not JsonObject)throw new InvalidOperationException("Shared caller batching preserves body and copy contracts; retain all input");
+   var mapping=row["mapping"]!.AsObject();if(mapping.Any(p=>p.Key is not ("before" or "args" or "callers" or "implementations" or "outputs" or "outputGraphs" or "bodies")||p.Key=="bodies"&&!referencePins&&!wholeValue)||mapping["before"] is not JsonObject||mapping["args"] is not JsonObject)throw new InvalidOperationException("Shared caller batching preserves body and copy contracts; retain all input");
    var original=new Parser(units[id]?["draft"]?.ToString()??throw new InvalidOperationException("Original function snapshot missing"),"<function-group>").ParseElement();
    var before=original.Signature??throw new ArgumentException("Function signature required");var next=InformationFunctionBodies.Signature(row["signature"]!);var remap=mapping["args"]!.AsObject();
    if(original.Kind!="function"||original.Parent is not null||!JsonNode.DeepEquals(mapping["before"],FeatureBlueprint.SignatureDocument(before))||before.Args.Count!=remap.Count||before.Args.Any(a=>!remap.ContainsKey(a.Name)||a.Mode is not (null or "out" or "ref"))||next.Args.Any(a=>a.Mode is not (null or "out" or "ref")))throw new InvalidOperationException("Shared caller batching requires exact original pin identities; retain all input");
-   if(referencePins){
+   if(referencePins||wholeValue){
     bool refOut=before.Args.Count==next.Args.Count&&before.Args.Where((a,i)=>a.IsRef&&next.Args[i].IsOut).Any();
     bool outRef=before.Args.Count==next.Args.Count&&before.Args.Where((a,i)=>a.IsOut&&next.Args[i].IsRef).Any();
-    if(refOut||outRef){
+    bool outValue=before.Args.Count==next.Args.Count&&before.Args.Where((a,i)=>a.IsOut&&next.Args[i].Mode is null).Any();
+    if(refOut||outRef||outValue){
      // Existing whole-body proof owns the native/public cells. Caller storage,
      // removed inputs and output consumers require explicit original choices.
-     if(refOut&&outRef||mapping.Count!=4||mapping.Any(p=>p.Key is not ("before" or "args" or "bodies" or "callers"))||mapping["bodies"] is not JsonObject bodies||bodies.Count==0||mapping["callers"] is not JsonObject callers||before.Return!=next.Return||before.Args.Where((a,i)=>a.Name!=next.Args[i].Name||a.Type!=next.Args[i].Type||remap[a.Name]?.ToString()!=a.Name||a.Mode!=next.Args[i].Mode&&!(refOut?a.IsRef&&next.Args[i].IsOut:a.IsOut&&next.Args[i].IsRef)).Any())throw new InvalidOperationException("Whole ref/out edits retain exact pin identities, types, count, order and return; review one explicit direction and every body and caller");
+     if((refOut?1:0)+(outRef?1:0)+(outValue?1:0)!=1||mapping.Count!=4||mapping.Any(p=>p.Key is not ("before" or "args" or "bodies" or "callers"))||mapping["bodies"] is not JsonObject bodies||bodies.Count==0||mapping["callers"] is not JsonObject callers||before.Return!=next.Return||before.Args.Where((a,i)=>a.Name!=next.Args[i].Name||a.Type!=next.Args[i].Type||remap[a.Name]?.ToString()!=a.Name||a.Mode!=next.Args[i].Mode&&!(refOut?a.IsRef&&next.Args[i].IsOut:outRef?a.IsOut&&next.Args[i].IsRef:a.IsOut&&next.Args[i].Mode is null)).Any())throw new InvalidOperationException("Whole ref/out edits retain exact pin identities, types, count, order and return; review one explicit direction and every body and caller");
      var removed=before.Args.Where((a,i)=>a.IsRef&&next.Args[i].IsOut).Select(a=>a.Name).ToHashSet(StringComparer.Ordinal);var outputs=FeatureBlueprint.FeatureOutputs(before).ToArray();
      foreach(var plan in callers.Select(p=>p.Value!.AsObject())){
       if(refOut){if(plan["inputs"] is not JsonObject inputs||inputs.Count!=next.Args.Count(a=>!a.IsOut)||next.Args.Where(a=>!a.IsOut).Any(a=>inputs[a.Name]?.GetValue<string>()!=a.Name)||plan["disconnect"] is not JsonObject disconnect||disconnect.Count!=removed.Count||disconnect.Any(p=>!removed.Contains(p.Key))||plan["outputs"] is not JsonObject outputMap||outputMap.Count!=outputs.Length||outputs.Any(a=>outputMap[a.Name]?.GetValue<string>()!=a.Name))throw new InvalidOperationException("Select each retained caller binding, exact removed ref input and original compatible output explicitly");}
-      else if(plan["inputs"] is not JsonObject inputs||inputs.Count!=next.Args.Count(a=>!a.IsOut)||inputs.Any(p=>!next.Args.Any(a=>!a.IsOut&&a.Name==p.Key))||before.Args.Where((a,i)=>a.IsOut&&next.Args[i].IsRef).Any(a=>inputs[a.Name] is not JsonValue choice||!choice.TryGetValue<string>(out var from)||!before.Args.Any(b=>!b.IsOut&&b.Type==a.Type&&b.Name==from))||plan["disconnect"] is not JsonObject disconnect||disconnect.Count!=0||plan["outputs"] is not JsonObject outputMap||outputMap.Count!=outputs.Length||outputs.Any(a=>{bool converted=before.Args.Any(b=>b.IsOut&&b.Name==a.Name)&&next.Args.Any(b=>b.IsRef&&b.Name==a.Name);return outputMap[a.Name]?.GetValue<string>()!=(converted?"return":a.Name)||converted&&a.Type!=next.Return;}))throw new InvalidOperationException("Select existing storage for every new ref, all other inputs and compatible return for each old out; no binding or output is inferred");
+      else if(plan["inputs"] is not JsonObject inputs||inputs.Count!=next.Args.Count(a=>!a.IsOut)||inputs.Any(p=>!next.Args.Any(a=>!a.IsOut&&a.Name==p.Key))||before.Args.Where((a,i)=>a.IsOut&&next.Args[i].IsRef).Any(a=>inputs[a.Name] is not JsonValue choice||!choice.TryGetValue<string>(out var from)||!before.Args.Any(b=>!b.IsOut&&b.Type==a.Type&&b.Name==from))||plan["disconnect"] is not JsonObject disconnect||disconnect.Count!=0||plan["outputs"] is not JsonObject outputMap||outputMap.Count!=outputs.Length||outputs.Any(a=>{bool converted=before.Args.Any(b=>b.IsOut&&b.Name==a.Name)&&next.Args.Any(b=>!b.IsOut&&b.Name==a.Name);return outputMap[a.Name]?.GetValue<string>()!=(converted?"return":a.Name)||converted&&a.Type!=next.Return;}))throw new InvalidOperationException("Select existing storage for every new ref, all other inputs and compatible return for each old out; no binding or output is inferred");
      }
      wholeRoleFunctions.Add(id);wholeRolePlans.Add(id,callers.DeepClone().AsObject());continue;
     }
@@ -138,7 +140,7 @@ internal sealed class InformationFunctionBatch
   }else if((hasOutputs&&(typed||edits.Any(row=>row!["mapping"]!.AsObject().Count!=2)))||edits.Any(row=>row!["mapping"]?["outputs"] is not null))throw new InvalidOperationException("Shared output names retain exact types and automatic identity-preserving bindings; other selected input is retained");
   // Out names propagate the explicit old-pin identity through existing semantic
   // bindings. They never select a different output, rewrite C# or replan values.
-  bool independent=referencePins||typed||hasOutputs||structures.Count>0||inputDefinitions.Count>0||returns.Count>0;
+  bool independent=referencePins||wholeValue||typed||hasOutputs||structures.Count>0||inputDefinitions.Count>0||returns.Count>0;
   string ns=PackPaths.Namespace(request["id"]!.ToString());
   foreach(var row in units.Where(p=>p.Value?["kind"]?.ToString()=="implementation")){
    var d=new Parser(row.Value!["draft"]!.ToString(),"<shared-caller-group>").ParseElement();if(!functions.Contains(d.Function!)&&!d.Imports.Values.Any(i=>functions.Contains(i.Id)))continue;
@@ -163,7 +165,7 @@ internal sealed class InformationFunctionBatch
   // Prove every original selection before composing anything. No user consent
   // is rebased onto a changed live source, and no intermediate result is saved.
   if(independent)foreach(var row in edits){var original=new Parser(units[row!["id"]!.ToString()]!["draft"]!.ToString(),"<original-group-contract>").ParseElement();var next=new Parser(units[original.Id]!["draft"]!.ToString(),"<group-contract>").ParseElement();DeclarationAuthoring.Apply(next,new JsonObject{["action"]="signature",["value"]=row["signature"]!.DeepClone()});InformationFunctionContracts.Prepare(request,original,next,row["mapping"]!.AsObject(),format);}
-  return new(request,functions,referencePins||typed||outputTyped||structures.Count>0||inputDefinitions.Count>0,projections);
+  return new(request,functions,referencePins||wholeValue||typed||outputTyped||structures.Count>0||inputDefinitions.Count>0,projections);
  }
  public JsonObject MappingFor(string function,JsonObject mapping)
  {
