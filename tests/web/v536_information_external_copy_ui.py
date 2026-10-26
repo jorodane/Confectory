@@ -26,8 +26,9 @@ if target == 'windows':
 info = f.project / 'FreeInfo.celem'
 info.write_text(info.read_text().replace('FreeInfo {', 'FreeInfo {module ' + foreign + 'Rules;', 1))
 f.manifest.write_text(f.manifest.read_text().replace('registry Confectory.Build.DotNet', 'registry Source.Module "../registered module source/pack.cpack";dependency Source.Module version "1";registry Confectory.Build.DotNet', 1))
+nested_source='nested-source' in sys.argv[4:]
 branch_source=next((v.removesuffix('-source') for v in sys.argv[4:] if v in ['branch-source','switch-source']),None)
-if 'blueprint-source' in sys.argv[4:] or branch_source:
+if 'blueprint-source' in sys.argv[4:] or branch_source or nested_source:
     feature_text = (source / 'Feature.celem').read_text()
     prepared = f.metadata('blueprintPrepareFeature', id=fn, text=feature_text.replace('provide ' + fn + ' with ' + foreign + 'Body;', ''), implementation=foreign + 'Body', graphPath='Body.graph.json', nodePath='Body.node.json')
     if branch_source:
@@ -39,7 +40,22 @@ if 'blueprint-source' in sys.argv[4:] or branch_source:
         else:
             graph['nodes'].append({'id':'positive','kind':'code','control':'next','branchOwner':'decision','intent':'원래 enum 실행 줄','signature':{'args':[],'return':'void'},'arguments':{},'implementation':'Positive.node.json'})
             graph['edges'] += [{'from':'decision','port':'case:positive','to':'positive'},{'from':'positive','port':'next','to':'return:decision'},{'from':'decision','port':'next','to':'body'}]
-    definitions = f.metadata('featureBlueprintNodes', featureSource=feature_text, graph=prepared['graph'])
+    if nested_source:
+        import copy
+        graph=prepared['graph'];graph['profile']='sync-acyclic-nested-v1';private_sig={'args':[{'name':'amount','type':'long'}],'return':'long'}
+        def leaf(name):return {'schema':1,'profile':'sync-acyclic-methods-v1','entry':'body','nodes':[{'id':'body','kind':'code','control':'next','intent':'원래 '+name,'signature':copy.deepcopy(private_sig),'arguments':{'amount':{'input':'amount'}},'implementation':name+'.node.json'}],'edges':[{'from':'body','port':'next','to':'exit:return'}],'exits':{'return':{'node':'body'}},'locals':[{'id':'kept','name':'정확한 값','type':'long','initial':{'constant':9223372036854775806}}]}
+        def box(name,child):return {'id':name,'kind':'graph','control':'next','intent':'내부 '+name,'signature':copy.deepcopy(private_sig),'arguments':{'amount':{'input':'amount'}},'graph':child}
+        right={'schema':1,'profile':'sync-acyclic-nested-v1','entry':'deep','nodes':[box('deep',leaf('Right'))],'edges':[{'from':'deep','port':'next','to':'exit:return'}],'exits':{'return':{'node':'deep'}},'locals':[]}
+        graph['nodes'][:0]=[box('left',leaf('Left')),box('right',right)];graph['entry']='left';graph['edges'] += [{'from':'left','port':'next','to':'right'},{'from':'right','port':'next','to':'body'}]
+        source_graph=copy.deepcopy(graph);native_context={'implementation':foreign+'Body','feature':fn,'signature':graph['nodes'][-1]['signature'],'imports':{}}
+    definitions = f.metadata('featureBlueprintNodes', featureSource=feature_text, graph=prepared['graph'],**({'implementationContext':native_context,'bodyTarget':'common'} if nested_source else {}))
+    if nested_source:
+        nested_original={};nested_changed={}
+        for row in definitions['nestedNodes']:
+            if row['definition']['kind']!='code':continue
+            key=row['id'];name='Left' if key=='left/body' else 'Right';body='return Keep(amount)+'+('1' if name=='Left' else '7')+'; // '+name+' 原文 😀\r\n';nested_original[key]=body;nested_changed[key]=body.replace('原文','복사본 본문').replace('\r\n','\n')
+            (source/(name+'.node.json')).write_text(json.dumps({'schema':1,'node':'body','definitionHash':row['definitionHash'],'source':body,'helpers':'private static long Keep(long value){return value;} // '+name+' 보조 원문\r\n'}))
+
     if branch_source:
         decision_definition=next(v for v in definitions['nodes'] if v['id']=='decision')
         decision_source='return amount>0;' if branch_source=='branch' else 'return amount>0?Result.Positive:Result.NoBranch;'
@@ -142,6 +158,35 @@ def reopen():
         if branch_source=='switch':assert decision['executionEnum']==next(v for v in source_graph['nodes'] if v['id']=='decision')['executionEnum']
     return row
 
+def nested_enter(parts):
+    for part in parts:
+        f.author().locator('[data-bp-overview-node="'+part+'"]').click()
+        f.author().locator('[data-bp-node="'+part+'"] [data-function-write-direct]').click()
+        expect(f.author().locator('.bp-breadcrumbs')).to_be_visible()
+        expect(f.author().locator('[data-bp-node="'+('deep' if part=='right' else 'body')+'"]').first).to_be_visible()
+        f.idle()
+
+def nested_parent():
+    f.author().locator('.bp-breadcrumbs button').first.click()
+    expect(f.author().locator('[data-bp-node=left]')).to_be_visible()
+    f.idle()
+
+def nested_edit_initial():
+    for path in ['left','right/deep']:
+        nested_enter(path.split('/'));f.author().locator('[data-bp-overview-node=body]').click()
+        f.edit_region(f.author().locator('[data-bp-node=body] [data-internal-code]'),nested_original[path+'/body'].replace('\r\n','\n'),nested_changed[path+'/body']);nested_parent()
+    f.checked('원래 내부 편집/빵부스러기로 깊이1/2 copy를 오가며 동명 leaf의 서로 다른 본문·qualified 입력을 보존한다')
+
+def nested_saved_edit():
+    nested_enter(['left']);f.author().locator('[data-bp-overview-node=body]').click()
+    previous=nested_changed['left/body'];value=previous.replace('복사본 본문','저장된 내부 재편집')
+    f.edit_region(f.author().locator('[data-bp-node=body] [data-internal-code]'),previous,value)
+    if 'cold-private' in sys.argv[4:]:
+        restart(8);expect(f.author().locator('.bp-breadcrumbs')).to_be_visible();expect(f.author().locator('[data-bp-node=body]')).to_be_visible();f.checked('저장된 copy의 하위 창과 미저장 leaf 입력도 실제 cold 재시작에서 소유/프로젝트 문맥을 유지한다')
+    f.author().locator('[data-bp-save]').click();f.page.wait_for_function('()=>{const s=document.querySelector(".window[data-key=blueprint] .bp-status");return s&&s.textContent.startsWith("복사본 ·")}',timeout=120000);f.idle();assert not any(v.get('type')=='source' for _,v in f.pending()['blueprint']);nested_changed['left/body']=value
+    nested_parent();nested_enter(['right','deep']);button=f.author().locator('[data-bp-node=body] [data-internal-code]');button.click();dialog=f.page.locator('.bp-script-dialog');assert nested_changed['right/deep/body'] in dialog.locator('[data-code-source]').input_value();dialog.locator('[data-code-cancel]').click();nested_parent()
+    f.checked('저장된 copy 내부 source-only 후보/CAS는 선택 leaf만 바꾸며 다른 깊이 동명 leaf·원본·공개 계약을 보존한다')
+
 def accept():
     f.close_author()
     review = d.review()
@@ -223,6 +268,12 @@ try:
             f.author().locator('[data-bp-overview-node=body]').click()
             box=f.author().bounding_box();assert round(box['width'])==850 and round(box['height'])==600
             f.page.screenshot(path=str(f.case/'enum-copy-prepared.png'))
+        if nested_source:
+            nested_edit_initial()
+            if 'cold-private' in sys.argv[4:]:
+                nested_enter(['right','deep']);f.page.screenshot(path=str(f.case/'nested-private-before-cold.png'));restart(7)
+                expect(f.author().locator('.bp-breadcrumbs')).to_be_visible();button=f.author().locator('[data-bp-node=body] [data-internal-code]');button.click();dialog=f.page.locator('.bp-script-dialog');assert nested_changed['right/deep/body'] in dialog.locator('[data-code-source]').input_value();dialog.locator('[data-code-cancel]').click();nested_parent()
+                f.checked('저장 전 private copy의 깊이2 화면과 서로 다른 leaf 입력은 실제 cold 재시작에서 snapshot/선택/경로와 함께 복원한다')
         edited = original_body.replace('\r\n', '\n').replace('원문', '소유 복사본 😀')
         edit(original_body, edited)
         f.close_author()
@@ -244,6 +295,8 @@ try:
         current = reopen()
         assert current['slotContext']['checkpointPlain'] is True
         provenance = current['slotContext']['copySource']
+        if nested_source:
+            nested_saved_edit();before=checkpoint.read_bytes();current=reopen()
         cancel_and_undo(edited)
         final = edited.replace('소유 복사본 😀', '재편집 · 한글 😀')
         edit(edited, final)
@@ -424,6 +477,11 @@ try:
                 assert json.loads(rows[copied + '/body:' + target + '/node:body']['draft'])['source'] == final
             assert all(p.read_bytes() == value for p, value in registered.items())
             if accepted:
+                if nested_source:
+                    units=f.metadata('describe',project=str(f.manifest))['units'];body_key=copied+'/body:'+target
+                    for key,value in nested_changed.items():
+                        unit=next(v for v in units if v['id']==body_key+'/node:'+key.replace('/','/node:'));record=json.loads((f.project/unit['path']).read_text());assert record['source']==value and record['node']=='body';original_record=json.loads((source/('Left.node.json' if key=='left/body' else 'Right.node.json')).read_text());assert record['helpers']==original_record['helpers']
+                    f.checked('중첩 copy의 실제 compiler Confirm은 qualified 각 leaf 본문만 반영하고 동명/공개 계약·부모/외부 원문을 보존한다')
                 if branch_source:
                     units=f.metadata('describe',project=str(f.manifest))['units'];graph_unit=next(v for v in units if v['id']==copied+'/body:'+target)
                     stored=json.loads((f.project/graph_unit['path']).read_text());assert stored['entry']==source_graph['entry'] and stored['edges']==source_graph['edges'] and stored['exits']==source_graph['exits']

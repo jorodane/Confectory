@@ -12,6 +12,14 @@ internal static class ImplementationCopyEdits
   JsonNode? Input(JsonNode node,string name){if(node["kind"]?.ToString()!="export")return node["signature"]!["args"]!.AsArray().SingleOrDefault(a=>a!["name"]!.ToString()==name&&a["mode"]?.ToString()!="out");if(name!="value")return null;string output=node["output"]!.ToString(),type=output=="return"?publicSignature.Return:publicSignature.Args.Single(a=>a.Name==output&&a.IsOut).Type;if(type=="void")throw new ArgumentException("Declared copied output required");return new JsonObject{["name"]="value",["type"]=type};}
   bool Uses(JsonNode? value,string id){if(value is JsonObject obj){if(obj["node"]?.ToString()==id)return true;return obj.Any(p=>Uses(p.Value,id));}return value is JsonArray array&&array.Any(v=>Uses(v,id));}
   foreach(var edit in edits){string type=edit!["type"]!.GetValue<string>(),id=edit["node"]!.GetValue<string>(),text=edit["text"]!.GetValue<string>();if(text.Length>1048576||!unique.Add(id+"|"+type))throw new ArgumentException("Bounded distinct private edits required");}
+  // A private leaf remains qualified by its complete graph path. This first
+  // adapter edits only opaque body/intent; it grants no private contract change.
+  foreach(var edit in edits.Where(e=>e!["node"]!.ToString().Contains('/'))){
+   string key=edit!["node"]!.ToString(),type=edit["type"]!.ToString();var leaf=BlueprintTree.Nodes(graph).SingleOrDefault(e=>e.Key==key)?.Node??throw new ArgumentException("Exact copied private leaf required");
+   if(leaf["kind"]?.ToString()!="code"||leaf["implementationContext"] is not null||type is not ("source" or "intent"))throw new InvalidOperationException("Only copied private body/intent is connected; all input retained");
+   if(type=="source"){records.Single(r=>r!["id"]!.ToString()==key)!["record"]!["source"]=edit["text"]!.DeepClone();reapplied.Add(key);}else{if(edit["text"]!.ToString().Length>16384)throw new ArgumentException("Intent budget");leaf["intent"]=edit["text"]!.DeepClone();}
+  }
+  edits=new JsonArray(edits.Where(e=>!e!["node"]!.ToString().Contains('/')).Select(e=>e!.DeepClone()).ToArray());
   // Membership is prepared before dependent input edits; IDs never become source paths.
   foreach(var edit in edits.Where(e=>e!["type"]!.ToString()=="create")){
    string id=edit!["node"]!.ToString();var definition=JsonNode.Parse(edit["text"]!.GetValue<string>())!.AsObject();if(!Regex.IsMatch(id,@"\A[A-Za-z_][A-Za-z_0-9.-]{0,127}\z")||nodes.Count>=64||nodes.Any(n=>n!["id"]!.ToString()==id)||definition["kind"]?.ToString()!="code"||definition["control"]?.ToString()!="next"||definition.Any(p=>p.Key is not ("kind" or "intent" or "control" or "signature")))throw new ArgumentException("Unique original serial code node definition required");

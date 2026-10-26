@@ -16,7 +16,7 @@ lock(state){
   if(informationBody){
    if(selected["namespace"]?.ToString()=="Confectory.AISettings")throw new UnauthorizedAccessException("Connection settings retain their own validation workflow");
    if(row["workspace"]?["unit"]?["kind"]?.ToString()!="schema"||row["authorBinding"] is null||input["viewBinding"]?.ToString()!=row["authorBinding"]!.ToString())throw new UnauthorizedAccessException("Current information authoring view required; retain input");
-   if(operation is "read" or "authorBatch" or "settledAuthorBatch"&&(input["ownerHash"] is null||input["id"]?.ToString().Contains("/graph:",StringComparison.Ordinal)!=false))throw new UnauthorizedAccessException("An observed direct information body is required");
+   if(operation is "read" or "authorBatch" or "settledAuthorBatch"&&input["ownerHash"] is null)throw new UnauthorizedAccessException("An observed direct information body is required");
    if(operation is "authorBatch" or "settledAuthorBatch"){
     var edits=input["edits"] as System.Text.Json.Nodes.JsonArray;
     // The selected exclusive copy still proves its owner, target, provenance and
