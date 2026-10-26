@@ -31,3 +31,8 @@ Confirm 전 재편집의 실제 완료 범위와 검증은 [미확정 copy](VALI
 ## 기존 하위 값 입력 연결의 최소 단위
 
 [하위 copy 값 입력 검증](VALIDATION_V536_NESTED_COPY_VALUES.md)은 기존 private `code next`의 일반 값 입력을 명시 상수·같은 프레임 input/local로 선택하고 본문과 한 후보/CAS로 저장하는 단위다. qualified 경로·정확한 숫자·다른 프레임 입력과 원본을 보존한다. 공개 오버라이드 계약 변경은 정상 금지이며 독립 계약 복제는 요구에서 제외한다. private 핀 정의·새 동작/route·callee ABI·내부 enum 어댑터는 실제 후속으로 남기고 가능한 조합 전체를 늘리지 않는다. 7행 전체 완료, 8/9행 또는 I6/B2/A4~A6/M4/M11/M12 완료로 세지 않는다.
+
+
+## 기존 private 동작의 내부 입력 핀 편집
+
+[private 핀 계획 검증](VALIDATION_V536_NESTED_COPY_PINS.md)은 기존 ordinary code next의 내부 이름·추가·명시 해제 후 삭제/교체와 수동 C#·값을 같은 후보/CAS에 연결하는 단위다. 기존 exact type/mode 매핑·소비 중 입력/출력/반환 보호를 재사용한다. 공개 override 계약 변경과 독립 계약 복제는 제외이며 부모/외부 원본·함수 ID·다른 프레임/target을 보존한다. 실제 지원/검증은 위 문서의 조작으로 한정하고 복잡한 ref/out/다른 control·출력/반환 조합 전체를 새 필수로 늘리지 않는다. 새 private 동작/실행선·callee ABI·내부 enum 어댑터, 고정 8/9행 및 I6/B2/A4~A6/M4/M11/M12와 플랫폼/전달 잔여는 별도다. 7행 전체 완료로 세지 않는다.

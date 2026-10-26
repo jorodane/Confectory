@@ -28,6 +28,7 @@ info.write_text(info.read_text().replace('FreeInfo {', 'FreeInfo {module ' + for
 f.manifest.write_text(f.manifest.read_text().replace('registry Confectory.Build.DotNet', 'registry Source.Module "../registered module source/pack.cpack";dependency Source.Module version "1";registry Confectory.Build.DotNet', 1))
 nested_source='nested-source' in sys.argv[4:]
 nested_values='nested-values' in sys.argv[4:]
+nested_pins='nested-pins' in sys.argv[4:]
 branch_source=next((v.removesuffix('-source') for v in sys.argv[4:] if v in ['branch-source','switch-source']),None)
 if 'blueprint-source' in sys.argv[4:] or branch_source or nested_source:
     feature_text = (source / 'Feature.celem').read_text()
@@ -160,6 +161,7 @@ def reopen():
     return row
 
 def nested_enter(parts):
+    f.idle()
     for part in parts:
         f.author().locator('[data-bp-overview-node="'+part+'"]').click()
         f.author().locator('[data-bp-node="'+part+'"] [data-function-write-direct]').click()
@@ -175,6 +177,8 @@ def nested_parent():
 def nested_edit_initial():
     for path in ['left','right/deep']:
         nested_enter(path.split('/'));f.author().locator('[data-bp-overview-node=body]').click()
+        if nested_pins and path=='left':
+            nested_pin_initial();nested_changed[path+'/body']=nested_changed[path+'/body'].replace('Keep(amount)','Keep(received)')
         f.edit_region(f.author().locator('[data-bp-node=body] [data-internal-code]'),nested_original[path+'/body'].replace('\r\n','\n'),nested_changed[path+'/body']);nested_parent()
     f.checked('원래 내부 편집/빵부스러기로 깊이1/2 copy를 오가며 동명 leaf의 서로 다른 본문·qualified 입력을 보존한다')
 
@@ -211,7 +215,81 @@ def nested_value_guards():
     f.checked('실제 bound 하위 authorBatch에서 마지막 값의 타입/프레임 오류는 먼저 편집한 본문도 저장하지 않고 checkpoint·입력을 보존한다')
     if 'retry-values' in sys.argv[4:]:f.checked('이전 거절의 전체 미적용/원래 기준은 조회로 확인하고 실제 물리 source 변경이 있으면 재시도 증거를 주지 않는다')
 
+def nested_pin_name(before,after):
+    unit=f.author().locator('[data-bp-node=body] [data-action-side=inputs][data-action-field="'+before+'"]');name=unit.locator('[data-action-field-name]');name.fill(after);name.press('Enter');f.idle();expect(f.author().locator('[data-bp-node=body] [data-action-side=inputs][data-action-field="'+after+'"]')).to_be_visible()
+
+def nested_pin_value(name,raw=None,option=None):
+    f.author().get_by_role('combobox',name='입력값 · '+name,exact=True).click();menu=f.page.get_by_role('dialog',name='핀 값 선택',exact=True)
+    if option:menu.get_by_role('button',name=option,exact=True).click()
+    else:menu.get_by_role('searchbox',name='값 검색').fill(raw);menu.locator('[data-value-new]').click()
+    expect(menu).to_have_count(0);f.idle()
+
+def nested_pin_initial():
+    name=f.author().locator('[data-bp-node=body] [data-action-side=inputs][data-action-field=amount] [data-action-field-name]');held=f.pending()['blueprint'];name.fill('잘못된 이름');assert any(v.get('type')=='contract-draft:amount' and v['text']=='잘못된 이름' for _,v in f.pending()['blueprint']);name.press('Escape');assert dict(f.pending()['blueprint'])==dict(held)
+    nested_pin_name('amount','received');after=f.pending()['blueprint'];f.author().locator('.bp-viewport').focus();f.page.keyboard.press('Control+z');assert dict(f.pending()['blueprint'])==dict(held);f.author().locator('.bp-viewport').focus();f.page.keyboard.press('Control+Shift+z');assert dict(f.pending()['blueprint'])==dict(after)
+    f.author().locator('[data-bp-node=body] [data-action-field-add=inputs]').click();f.idle();nested_pin_name('input1','note');nested_pin_value('note',raw='"처음 😀"')
+    box=f.author().bounding_box();assert round(box['width'])==850 and round(box['height'])==600;assert round(f.author().locator('[data-bp-node=body]').bounding_box()['width'])==360;f.page.screenshot(path=str(f.case/'pin-copy-prepared.png'))
+    f.checked('원래 내부 핀 이름/추가 조작과 불완전 이름 취소·Undo/Redo는 기존 값 연결과 다른 프레임 입력을 보존한다')
+
+def nested_pins_saved():
+    global mode
+    nested_enter(['left']);f.author().locator('[data-bp-overview-node=body]').click();before=checkpoint.read_bytes()
+    nested_pin_value('note',option='연결 해제');f.author().get_by_role('button',name='note 삭제',exact=True).click();f.idle();nested_pin_name('received','saved');f.author().locator('[data-bp-node=body] [data-action-field-add=inputs]').click();f.idle()
+    after=f.pending()['blueprint'];f.author().locator('.bp-viewport').focus();f.page.keyboard.press('Control+z');assert not any(v.get('type')=='parameters' and any(a['name']=='input1' for a in json.loads(v['text'])['args']) for _,v in f.pending()['blueprint']);f.author().locator('.bp-viewport').focus();f.page.keyboard.press('Control+Shift+z');assert dict(f.pending()['blueprint'])==dict(after)
+    button=f.author().locator('[data-bp-node=body] [data-internal-code]');pending=f.pending();button.click();dialog=f.page.locator('.bp-script-dialog');code=dialog.locator('[data-code-source]');text=code.input_value();at=text.index(nested_changed['left/body']);code.evaluate('(el,i)=>{el.focus();el.setSelectionRange(i,i)}',at);f.page.keyboard.insert_text('// 취소할 편집\n');dialog.locator('[data-code-cancel]').click();expect(dialog).to_be_hidden();assert f.pending()==pending
+    f.checked('저장된 copy의 핀 추가 Undo/Redo와 C# 편집 취소는 명시 해제·이름/매핑·원문을 보존한다')
+    previous=nested_changed['left/body'];wanted=previous.replace('Keep(received)','Keep(saved)').replace('복사본 본문','저장된 핀 본문');f.edit_region(f.author().locator('[data-bp-node=body] [data-internal-code]'),previous,wanted)
+    mark=len(f.traffic);f.author().locator('[data-bp-save]').click();wait_result(mark,'authorBatch',False);f.idle();rejected=f.pending();assert checkpoint.read_bytes()==before and any(v.get('kind')=='author-attempt' for _,v in rejected['blueprint']);originals()
+    nested_pin_value('input1',raw='"저장 😀"');held=f.pending();assert all(dict(held['blueprint']).get(k)==v for k,v in rejected['blueprint'] if v.get('kind')=='author-attempt')
+    restart(10);expect(f.author().locator('.bp-breadcrumbs')).to_be_visible();expect(f.author().locator('[data-action-field=saved]')).to_be_visible();expect(f.author().locator('[data-action-field=input1]')).to_be_visible()
+    reads=[v['result']['result'] for v in f.traffic if isinstance(v.get('result',{}).get('result'),dict) and v['result']['result'].get('privatePath')=='left' and 'slotContext' in v['result']['result']];assert reads[-1]['slotContext']['copySource']['implementation']==foreign+'Body'
+    f.checked('핀 삭제/추가·수동 C# 결합의 미완성 후보는 전체 거절하고 새 값 선택·cold 뒤에도 원래 실패 기록과 모든 입력을 보존한다')
+    if mode=='context':
+        f.close_author();d.open_peer();peer=f.page.locator('.window[data-key=editor-2]');title=peer.locator('.object-title-name').bounding_box();box=peer.bounding_box();f.page.mouse.move(title['x']+5,title['y']+5);f.page.mouse.down();f.page.mouse.move(1100+title['x']-box['x']+5,800+title['y']-box['y']+5,steps=10);f.page.mouse.up();reopen();nested_enter(['left']);d.verify_peer();assert all(dict(f.pending()['blueprint']).get(k)==v for k,v in held['blueprint']);f.checked('독립 창의 서로 다른 입력은 private 핀 계획 재진입에서도 분리된다')
+    other_checkpoint=None
+    if mode=='projects':
+        listing=f.state()['listingId'];f.page.close();f.stop();other=f.case/'pin other root'/'owned project';shutil.copytree(f.project,other,ignore=shutil.ignore_patterns('.confectory'));shutil.copytree(source,other.parent/source.name);f.env['CONFECTORY_WEB_PROJECT']=str(other/'project.cproj');f.start(11);f.invoke('select',{'id':owner});f.invoke('saveDraft',{});second=f.state()['listingId'];other_checkpoint=next(other.glob('.confectory/edit-workspaces/*/draft.json'));other_before=other_checkpoint.read_bytes();f.page=f.setup();f.page.set_viewport_size({'width':2300,'height':1700})
+        def enter(id):
+            f.page.locator('.brand').click();expect(f.page.locator('.home-grid')).to_be_visible();f.page.locator('[data-enter="'+id+'"]').click();expect(f.page.locator('.work-body')).to_be_visible();f.idle()
+        enter(listing);assert all(dict(f.pending()['blueprint']).get(k)==v for k,v in held['blueprint']);enter(second);assert not any(v.get('type')=='parameters' for _,v in f.pending()['blueprint']);enter(listing);reopen();nested_enter(['left']);assert other_checkpoint.read_bytes()==other_before;f.env['CONFECTORY_WEB_PROJECT']=str(f.manifest);f.checked('실제 프로젝트 전환은 private 핀·본문 계획을 다른 프로젝트에 적용하지 않고 보존한다')
+    if mode=='conflict':
+        f.invoke('schema',{'id':owner});state=f.state()['schema'];f.invoke('editDescription',{'id':owner,'hash':state['textHash'],'revision':state['revision'],'value':'핀 계획 경합의 다른 저장'});f.invoke('saveDraft',{});peer=checkpoint.read_bytes();assert peer!=before;f.author().locator('[data-bp-save]').click();f.page.wait_for_function('()=>/유지|보존|다시 확인/.test(document.querySelector(".window[data-key=blueprint] .bp-status")?.textContent||"")');f.idle();assert checkpoint.read_bytes()==peer and all(dict(f.pending()['blueprint']).get(k)==v for k,v in held['blueprint']);restart(12);assert checkpoint.read_bytes()==peer and all(dict(f.pending()['blueprint']).get(k)==v for k,v in held['blueprint']);originals();f.checked('실제 다른 창 경합은 핀·값·본문 전부 미적용이며 peer 초안과 원래 입력/실패 기록을 보존한다');f.browser.close();print(json.dumps({'checks':f.checks,'evidence':str(f.case),'actualEngine':True,'renderer':True,'nativeWindows':False},ensure_ascii=False));sys.exit(0)
+    applies=set();queries=set();lost=set()
+    if mode=='loss':
+        def intercept(route):
+            request=route.request.post_data_json
+            if request.get('op')=='invoke' and request.get('endpoint')=='blueprint':
+                action=request.get('input',{}).get('action')
+                if action=='authorBatch':applies.add(request['requestId'])
+                elif applies and action=='settledAuthorBatch':queries.add(request['requestId'])
+            response=route.fetch();payload=response.json()
+            for row in payload.get('results',[]):
+                if row['requestId'] in applies|queries:
+                    rid=row['requestId'];lost.add(rid);row.clear();row.update(requestId=rid,ok=False,error={'code':'transport_lost'})
+            route.fulfill(response=response,json=payload)
+        f.page.route('**/api/request',intercept)
+    if mode=='storage':checkpoint.chmod(0o400)
+    mark=len(f.traffic);f.author().locator('[data-bp-save]').click()
+    if mode=='storage':
+        wait_result(mark,'authorBatch',False);f.idle();assert checkpoint.read_bytes()==before
+        now=dict(f.pending()['blueprint'])
+        for key,value in held['blueprint']:
+            if value.get('kind')=='author-attempt':assert {k:v for k,v in value.items() if k not in ['previousAttempts','basis']} in [{k:v for k,v in old.items() if k!='basis'} for old in now[key].get('previousAttempts',[])]
+            else:assert now.get(key)==value
+        read=next(v['invoke']['input'] for v in reversed(f.traffic) if v.get('invoke',{}).get('endpoint')=='blueprint' and v['invoke']['input'].get('action')=='read' and v['invoke']['input']['id'].endswith('/graph:left'));live=f.invoke('blueprint',read)['result']['result'];node=next(n for n in live['nodes'] if n['id']=='body');assert [a['name'] for a in node['signature']['args']]==['received','note'] and node['source']==previous
+        originals();checkpoint.chmod(0o600);f.checked('실제 쓰기 실패는 핀 정의/바인딩/C# 어느 것도 부분 저장하지 않고 입력·이전 실패를 보존한다');f.author().locator('[data-bp-save]').click()
+    if mode=='loss':
+        deadline=time.monotonic()+90
+        while time.monotonic()<deadline and not queries&lost:f.page.wait_for_timeout(20)
+        assert len(applies)==1 and queries&lost;f.page.unroute_all(behavior='wait');f.page.close();f.stop();f.start(13);f.page=f.setup();f.page.set_viewport_size({'width':2300,'height':1700});f.idle();expect(f.author().locator('.bp-breadcrumbs')).to_be_visible();expect(f.author().locator('[data-action-field=saved]')).to_be_visible();mark=len(f.traffic);f.author().locator('[data-bp-save]').click();wait_result(mark,'settledAuthorBatch');assert not any(v.get('invoke',{}).get('input',{}).get('action')=='authorBatch' for v in f.traffic[mark:]);f.checked('핀 결합 저장/조회 응답 유실 뒤 cold에서 receipt를 조회해 새 계약을 중복 적용하지 않는다')
+    f.page.wait_for_function('()=>document.querySelector(".window[data-key=blueprint] .bp-status")?.textContent.startsWith("복사본 ·")',timeout=120000);f.idle();assert not any(v.get('type') in ['source','parameters'] for _,v in f.pending()['blueprint']);nested_changed['left/body']=wanted;originals()
+    if mode=='context':
+        d.verify_peer();peer=f.page.locator('.window[data-key=editor-2]');peer.locator('[data-element-action=discard]').click();expect(peer.get_by_label('Count 기본값',exact=True)).to_have_value('8');d.peer_inputs=None
+    if other_checkpoint:assert other_checkpoint.read_bytes()==other_before
+    nested_parent();f.checked('동일 후보/CAS의 핀·바인딩·수동 C#은 거절 후 명시 보완으로 함께 저장되고 원본/부모/다른 프레임을 보존한다');mode='normal'
+
 def nested_saved_edit():
+    if nested_pins:return nested_pins_saved()
     nested_enter(['left']);f.author().locator('[data-bp-overview-node=body]').click()
     if nested_values:nested_value_guards()
     previous=nested_changed['left/body'];value=previous.replace('복사본 본문','저장된 내부 재편집')
@@ -522,6 +600,8 @@ try:
                     units=f.metadata('describe',project=str(f.manifest))['units'];body_key=copied+'/body:'+target
                     for key,value in nested_changed.items():
                         unit=next(v for v in units if v['id']==body_key+'/node:'+key.replace('/','/node:'));record=json.loads((f.project/unit['path']).read_text());assert record['source']==value and record['node']=='body';original_record=json.loads((source/('Left.node.json' if key=='left/body' else 'Right.node.json')).read_text());assert record['helpers']==original_record['helpers']
+                    if nested_pins:
+                        graph_unit=next(v for v in units if v['id']==body_key);stored=json.loads((f.project/graph_unit['path']).read_text());left=stored['nodes'][0]['graph']['nodes'][0];right=stored['nodes'][1]['graph']['nodes'][0]['graph']['nodes'][0];assert left['signature']=={'args':[{'name':'saved','type':'long'},{'name':'input1','type':'string'}],'return':'long'} and left['arguments']=={'saved':{'input':'amount'},'input1':{'constant':'저장 😀'}};assert right['signature']=={'args':[{'name':'amount','type':'long'}],'return':'long'} and stored['edges']==source_graph['edges'] and stored['exits']==source_graph['exits'];f.checked('실제 compiler Confirm 뒤 private 핀/값/본문만 변경되고 공개 계약·형제·실행선·원본은 보존된다')
                     if nested_values:
                         graph_unit=next(v for v in units if v['id']==body_key);stored=json.loads((f.project/graph_unit['path']).read_text());left=stored['nodes'][0]['graph']['nodes'][0];right=stored['nodes'][1]['graph']['nodes'][0]['graph']['nodes'][0];assert left['arguments']['amount']=={'input':'amount'} and right['arguments']['amount']=={'local':'kept'};assert stored['edges']==source_graph['edges'] and stored['exits']==source_graph['exits'];f.checked('내부 값/본문을 한 후보로 저장·Confirm하고 입력 재연결·다른 프레임 local·실행선/반환·원계약과 원본을 보존한다')
                     f.checked('중첩 copy의 실제 compiler Confirm은 qualified 각 leaf 본문만 반영하고 동명/공개 계약·부모/외부 원문을 보존한다')

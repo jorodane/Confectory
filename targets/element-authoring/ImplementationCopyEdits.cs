@@ -12,15 +12,20 @@ internal static class ImplementationCopyEdits
   JsonNode? Input(JsonNode node,string name){if(node["kind"]?.ToString()!="export")return node["signature"]!["args"]!.AsArray().SingleOrDefault(a=>a!["name"]!.ToString()==name&&a["mode"]?.ToString()!="out");if(name!="value")return null;string output=node["output"]!.ToString(),type=output=="return"?publicSignature.Return:publicSignature.Args.Single(a=>a.Name==output&&a.IsOut).Type;if(type=="void")throw new ArgumentException("Declared copied output required");return new JsonObject{["name"]="value",["type"]=type};}
   bool Uses(JsonNode? value,string id){if(value is JsonObject obj){if(obj["node"]?.ToString()==id)return true;return obj.Any(p=>Uses(p.Value,id));}return value is JsonArray array&&array.Any(v=>Uses(v,id));}
   foreach(var edit in edits){string type=edit!["type"]!.GetValue<string>(),id=edit["node"]!.GetValue<string>(),text=edit["text"]!.GetValue<string>();if(text.Length>1048576||!unique.Add(id+"|"+type))throw new ArgumentException("Bounded distinct private edits required");}
-  // A private leaf remains qualified by its complete graph path. This first
-  // adapter preserves contracts; value bindings are checked in the full frame.
-  foreach(var edit in edits.Where(e=>e!["node"]!.ToString().Contains('/'))){
-   string key=edit!["node"]!.ToString(),type=edit["type"]!.ToString();var leaf=BlueprintTree.Nodes(graph).SingleOrDefault(e=>e.Key==key)?.Node??throw new ArgumentException("Exact copied private leaf required");
-   if(leaf["kind"]?.ToString()!="code"||leaf["implementationContext"] is not null||type is not ("source" or "intent")&&!type.StartsWith("argument:",StringComparison.Ordinal))throw new InvalidOperationException("Only copied private body/intent/value inputs are connected; all input retained");
-   if(type=="source"){records.Single(r=>r!["id"]!.ToString()==key)!["record"]!["source"]=edit["text"]!.DeepClone();reapplied.Add(key);}else if(type.StartsWith("argument:",StringComparison.Ordinal)){
-    string name=type[9..];var argument=Input(leaf,name);if(leaf["control"]?.ToString()!="next"||argument is null||argument["mode"]?.ToString() is "ref" or "out"||leaf["forwardCallerStorage"]?.GetValue<bool>()==true)throw new InvalidOperationException("Declared ordinary private value input required; preserve caller storage");
-    leaf["arguments"]??=new JsonObject();leaf["arguments"]![name]=JsonNode.Parse(edit["text"]!.GetValue<string>());
-   }else{if(edit["text"]!.ToString().Length>16384)throw new ArgumentException("Intent budget");leaf["intent"]=edit["text"]!.DeepClone();}
+  // Reuse the existing ordinary pin rules inside the exact selected frame.
+  // Qualified identity never becomes a file path or a public override contract.
+  var qualified=edits.Where(e=>e!["node"]!.ToString().Contains('/')).ToArray();
+  foreach(var group in qualified.GroupBy(e=>e!["node"]!.ToString()[..e["node"]!.ToString().LastIndexOf('/')],StringComparer.Ordinal)){
+   string path=group.Key;var frame=BlueprintTree.Select(graph,path);var localEdits=new JsonArray();
+   foreach(var edit in group){string key=edit!["node"]!.ToString(),type=edit["type"]!.ToString(),local=key[(path.Length+1)..];var leaf=frame["nodes"]!.AsArray().SingleOrDefault(n=>n!["id"]!.ToString()==local)??throw new ArgumentException("Exact copied private leaf required");
+    if(leaf["kind"]?.ToString()!="code"||leaf["implementationContext"] is not null||type is not ("source" or "intent" or "parameters")&&!type.StartsWith("argument:",StringComparison.Ordinal)||(type=="parameters"||type.StartsWith("argument:",StringComparison.Ordinal))&&(leaf["control"]?.ToString()!="next"||leaf["forwardCallerStorage"]?.GetValue<bool>()==true))throw new InvalidOperationException("Ordinary private body/pins/value edits required; preserve public and caller-storage contracts");
+    var localEdit=edit.DeepClone().AsObject();localEdit["node"]=local;localEdits.Add(localEdit);
+   }
+   var rows=records.Where(row=>row!["id"]!.ToString().StartsWith(path+"/",StringComparison.Ordinal)&&!row["id"]!.ToString()[(path.Length+1)..].Contains('/')).ToArray();
+   var localRecords=new JsonArray(rows.Select(row=>{var local=row!.DeepClone().AsObject();local["id"]=row["id"]!.ToString()[(path.Length+1)..];return (JsonNode)local;}).ToArray());
+   var applied=Apply(frame,localRecords,localEdits,copy,implementation,publicSignature);
+   foreach(var local in localRecords){var original=rows.Single(row=>row!["id"]!.ToString()==path+"/"+local!["id"]!.ToString());original!["record"]=local!["record"]!.DeepClone();}
+   foreach(string id in applied)reapplied.Add(path+"/"+id);
   }
   edits=new JsonArray(edits.Where(e=>!e!["node"]!.ToString().Contains('/')).Select(e=>e!.DeepClone()).ToArray());
   // Membership is prepared before dependent input edits; IDs never become source paths.

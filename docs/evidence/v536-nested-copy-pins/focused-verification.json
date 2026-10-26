@@ -1,0 +1,278 @@
+{
+  "base": "bd26d52f08a0515518aebd6cf4ea3734ed570de8",
+  "flows": 10,
+  "checks": 95,
+  "pureCandidateChecks": 9,
+  "flowsDetail": [
+    {
+      "name": "primary",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-pins/ui-engine-report.json",
+        "normal",
+        "nested-source",
+        "nested-pins"
+      ],
+      "exit": 0,
+      "seconds": 227.3,
+      "minimumWorkspaceBytes": 1340416000,
+      "peakMemoryBytes": 4789346304,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 10,
+      "log": "/workspace/scratch/v536-nested-pins/first-idle/primary.log",
+      "ranBeforeConfirmedPrivateRestoreFix": true,
+      "ranBeforeEarlyPrivateReceiptLookup": true
+    },
+    {
+      "name": "view",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-pins/ui-engine-report.json",
+        "normal",
+        "view",
+        "nested-source",
+        "nested-pins",
+        "cold-private"
+      ],
+      "exit": 0,
+      "seconds": 285.6,
+      "minimumWorkspaceBytes": 1340227584,
+      "peakMemoryBytes": 4821467136,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 11,
+      "log": "/workspace/scratch/v536-nested-pins/focused/view.log",
+      "ranBeforeConfirmedPrivateRestoreFix": true,
+      "ranBeforeEarlyPrivateReceiptLookup": true
+    },
+    {
+      "name": "storage",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-pins/ui-engine-report.json",
+        "storage",
+        "view",
+        "nested-source",
+        "nested-pins",
+        "confirmed"
+      ],
+      "exit": 0,
+      "seconds": 341.8,
+      "minimumWorkspaceBytes": 1331847168,
+      "peakMemoryBytes": 4859183104,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 12,
+      "log": "/workspace/scratch/v536-nested-pins/verification/storage.log",
+      "ranBeforeConfirmedPrivateRestoreFix": false,
+      "ranBeforeEarlyPrivateReceiptLookup": true
+    },
+    {
+      "name": "conflict",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-pins/ui-engine-report.json",
+        "conflict",
+        "nested-source",
+        "nested-pins",
+        "confirmed"
+      ],
+      "exit": 0,
+      "seconds": 134.5,
+      "minimumWorkspaceBytes": 1331572736,
+      "peakMemoryBytes": 4839739392,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 6,
+      "log": "/workspace/scratch/v536-nested-pins/verification/conflict.log",
+      "ranBeforeConfirmedPrivateRestoreFix": false,
+      "ranBeforeEarlyPrivateReceiptLookup": true
+    },
+    {
+      "name": "loss",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-pins/ui-engine-report.json",
+        "loss",
+        "view",
+        "nested-source",
+        "nested-pins"
+      ],
+      "exit": 0,
+      "seconds": 279.5,
+      "minimumWorkspaceBytes": 1324654592,
+      "peakMemoryBytes": 4927410176,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 12,
+      "log": "/workspace/scratch/v536-nested-pins/settlement/loss.log",
+      "ranBeforeConfirmedPrivateRestoreFix": false,
+      "ranBeforeEarlyPrivateReceiptLookup": false
+    },
+    {
+      "name": "context",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-pins/ui-engine-report.json",
+        "context",
+        "view",
+        "nested-source",
+        "nested-pins",
+        "confirmed"
+      ],
+      "exit": 0,
+      "seconds": 346.0,
+      "minimumWorkspaceBytes": 1324380160,
+      "peakMemoryBytes": 5001240576,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 12,
+      "log": "/workspace/scratch/v536-nested-pins/settlement/context.log",
+      "ranBeforeConfirmedPrivateRestoreFix": false,
+      "ranBeforeEarlyPrivateReceiptLookup": false
+    },
+    {
+      "name": "projects",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-pins/ui-engine-report.json",
+        "projects",
+        "nested-source",
+        "nested-pins"
+      ],
+      "exit": 0,
+      "seconds": 270.1,
+      "minimumWorkspaceBytes": 1324081152,
+      "peakMemoryBytes": 4838928384,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 12,
+      "log": "/workspace/scratch/v536-nested-pins/settlement/projects.log",
+      "ranBeforeConfirmedPrivateRestoreFix": false,
+      "ranBeforeEarlyPrivateReceiptLookup": false
+    },
+    {
+      "name": "values-regression",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-pins/ui-engine-report.json",
+        "normal",
+        "view",
+        "nested-source",
+        "nested-values",
+        "value-undo",
+        "retry-values"
+      ],
+      "exit": 0,
+      "seconds": 291.7,
+      "minimumWorkspaceBytes": 1323782144,
+      "peakMemoryBytes": 5064122368,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 13,
+      "log": "/workspace/scratch/v536-nested-pins/settlement/values-regression.log",
+      "ranBeforeConfirmedPrivateRestoreFix": false,
+      "ranBeforeEarlyPrivateReceiptLookup": false
+    },
+    {
+      "name": "module-guards",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_module_view_guards.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-pins/ui-engine-report.json",
+        "normal",
+        "view"
+      ],
+      "exit": 0,
+      "seconds": 19.0,
+      "minimumWorkspaceBytes": 1323642880,
+      "peakMemoryBytes": 3945246720,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 4,
+      "log": "/workspace/scratch/v536-nested-pins/settlement/module-guards.log",
+      "ranBeforeConfirmedPrivateRestoreFix": false,
+      "ranBeforeEarlyPrivateReceiptLookup": false
+    },
+    {
+      "name": "override",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_inherited_contract_guards.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-pins/ui-engine-report.json",
+        "normal"
+      ],
+      "exit": 0,
+      "seconds": 7.2,
+      "minimumWorkspaceBytes": 1323601920,
+      "peakMemoryBytes": 4027228160,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 3,
+      "log": "/workspace/scratch/v536-nested-pins/settlement/override.log",
+      "ranBeforeConfirmedPrivateRestoreFix": false,
+      "ranBeforeEarlyPrivateReceiptLookup": false
+    }
+  ],
+  "productSha256": {
+    "examples/editor-home/WebBundle.csbody": "dcf8ea9da14a10869745bceee6d96a67981712296198c48a1959a35f3b73819b",
+    "examples/editor-home/ui/feature-authoring.js": "5ebd0e8f869063221e54c58dc156312080a5b4521771ce2cfc69d598bb078fbb",
+    "packs/editor-home-model/Blueprint.csbody": "3afdb48b2e02228dc41ecd3fb038297408b33467758951e9c05bee612fc58627",
+    "packs/pack-workspace/Blueprint.csbody": "d2b606df487e51a9574784fdd6deaeeaef720c49d311d218f37c8d202dd4f7ae",
+    "targets/element-authoring/ImplementationCopyEdits.cs": "a8996cc9d542e2a9f84fcc6003707d655d9c77d5c9533a9f047590c994e42ea1"
+  },
+  "layoutResourceProof": {
+    "base": "bd26d52f08a0515518aebd6cf4ea3734ed570de8",
+    "resourceCount": 74,
+    "changedResourceOnly": [
+      "feature-authoring.js"
+    ],
+    "other73UiResourcesCssHtmlBytesUnchanged": true,
+    "reference": "196c605",
+    "referenceOperations": [
+      "bindActionPins",
+      "chooseActionPinType",
+      "pinRemoveButton",
+      "openInternal"
+    ]
+  },
+  "nativeRelease": {
+    "exit": 0,
+    "log": "/workspace/scratch/v536-nested-pins/native-build.log"
+  },
+  "failedAttemptsPreserved": [
+    "pure.log",
+    "first/primary.log",
+    "focused/storage.log",
+    "focused-final/storage.log",
+    "focused-checked/storage.log",
+    "verification/loss.log"
+  ],
+  "reusedChecksReason": "The first primary and view flows passed on the same pin adapter before the confirmed-private cold provenance fallback and fail-closed guard; their unconfirmed path does not use that fallback. Confirmed storage and real conflict passed after those fixes and before the last read-only early private receipt lookup. The final engine tests actual response loss with exactly one apply, all remaining influences, the independent checkout and packaged runtime. No product candidate mutation was added in the receipt lookup. Extra dimension/Undo/cancel assertions run in subsequent flows. Failed attempts are preserved and excluded.",
+  "existingFilesDeleted": false,
+  "temporaryFixtureEvidencePreserved": true,
+  "actualWindows": false,
+  "actualMobile": false,
+  "libraryDelivered": false,
+  "fullUiComplete": false,
+  "workspaceAvailableBytes": 1323552768
+}

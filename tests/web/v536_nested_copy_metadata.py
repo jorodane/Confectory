@@ -48,5 +48,19 @@ for key,name,value in [('left/body','amount','{"constant":"wrong"}'),('left/body
 checked('타입/범위/64비트 overflow/미선언 핀·local·미완성 연결의 마지막 편집이 잘못되면 본문도 반환하지 않고 전체거절한다')
 for bad in [ {'node':'body','type':'source','text':'guess'}, {'node':'right/body','type':'source','text':'guess'}, {'node':'../left/body','type':'source','text':'guess'}, {'node':'left/body','type':'parameters','text':'{}'}, {'node':'left','type':'source','text':'guess'} ]:
  call('implementationCopy',False,**req,edits=[bad]);assert all(p.read_bytes()==v for p,v in before.items())
-checked('불완전/위조 경로·경계넘기·private 계약 편집·graph 본문 추측은 전체거절하고 원문을 보존한다')
+checked('불완전/위조 경로·경계넘기·불완전 private 핀 계획·graph 본문 추측은 전체거절하고 원문을 보존한다')
+if 'pins' in sys.argv[2:]:
+ pin_plan={'args':[{'name':'received','type':'long'},{'name':'extra','type':'string'}],'returnType':'long','remap':{'amount':'received'}}
+ pin_edits=[{'node':'left/body','type':'parameters','text':json.dumps(pin_plan)},{'node':'left/body','type':'argument:extra','text':json.dumps({'constant':'새 입력 😀'})},{'node':'left/body','type':'source','text':'return Keep(received)+3; // 명시 새 본문\n'}]
+ pins=call('implementationCopy',**req,edits=pin_edits);node=pins['graph']['nodes'][0]['graph']['nodes'][0]
+ assert node['signature']=={'args':pin_plan['args'],'return':'long'} and node['arguments']=={'received':{'input':'amount'},'extra':{'constant':'새 입력 😀'}}
+ assert pins['signature']==plan['signature'] and pins['graph']['edges']==plan['graph']['edges'] and pins['graph']['exits']==plan['graph']['exits'];assert next(r for r in pins['records'] if r['id']=='right/deep/body')==next(r for r in plan['records'] if r['id']=='right/deep/body')
+ private_pins=call('implementationCopy',**{**private,'preview':False},edits=pin_edits);assert private_pins['graph']['nodes'][0]['graph']['nodes'][0]['signature']==node['signature'] and private_pins['seedHash']==private['seed']['snapshot']['hash']
+ checked('원래 private 동작 핀 이름/추가와 명시 값·C# 본문을 한 후보로 묶고 seed·원계약·프레임·연결·정확한 원문을 보존한다')
+ dropped={'args':[{'name':'newValue','type':'long'}],'returnType':'long','remap':{'amount':None}}
+ changed=call('implementationCopy',**req,edits=[{'node':'left/body','type':'argument:amount','text':'null'},{'node':'left/body','type':'parameters','text':json.dumps(dropped)},{'node':'left/body','type':'argument:newValue','text':'{"local":"kept"}'},{'node':'left/body','type':'source','text':'return Keep(newValue);'}]);assert changed['graph']['nodes'][0]['graph']['nodes'][0]['arguments']=={'newValue':{'local':'kept'}}
+ checked('기존 사용 입력의 삭제는 명시 해제·새 핀/값 대응과 본문이 모두 있을 때만 원자 후보에서 처리한다')
+ for edits in [pin_edits[:-1], [{'node':'left/body','type':'parameters','text':json.dumps({**pin_plan,'args':[{'name':'received','type':'string'}]})}], [{'node':'left/body','type':'parameters','text':json.dumps(dropped)},{'node':'left/body','type':'source','text':'return Keep(newValue);'}],pin_edits+[{'node':'right/deep/body','type':'parameters','text':'{}'}], [{'node':'left/body','type':'parameters','text':json.dumps({'args':[{'name':'amount','type':'long'}],'returnType':'void','remap':{'amount':'amount'}})},{'node':'left/body','type':'source','text':'return;'}]]:
+  call('implementationCopy',False,**req,edits=edits);assert all(p.read_bytes()==v for p,v in before.items())
+ checked('stale 본문·호환불가 매핑·사용 중인 입력/반환 제거·마지막 형제 핀 오류는 원본을 보존하고 전체 미적용한다')
 (root/'result.json').write_text(json.dumps({'checks':checks,'evidence':str(root),'pureMetadata':True,'nativeWindows':False},ensure_ascii=False,indent=2));print(json.dumps({'checks':checks,'evidence':str(root),'pureMetadata':True},ensure_ascii=False))
