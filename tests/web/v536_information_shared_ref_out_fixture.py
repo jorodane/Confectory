@@ -2,22 +2,30 @@
 import copy
 import hashlib
 import json
+import os
+value_origin=os.environ.get("CONFECTORY_SHARED_VALUE_OUT")=="1"
 import v536_information_shared_ref_names_fixture as base
 
 f,d,n,owner,mode=base.f,base.d,base.n,base.owner,base.mode
 functions=base.functions
 olds=copy.deepcopy(base.olds)
 assert all(sig['args'][1].get('mode')=='ref' for sig in olds)
+if value_origin:
+    for sig in olds:sig['args'][1].pop('mode')
 nexts=copy.deepcopy(olds)
 for sig in nexts:sig['args'][1]['mode']='out'
 old=olds[0];new=nexts[0];removed=[];added=[];retry_field='arg0';undo_steps=2
 native={'args':[{'name':'nativeAmount','type':'long'},{'name':'nativeTotal','type':'long','mode':'ref'}],'return':'long'}
+if value_origin:native['args'][1].pop('mode')
 selected=copy.deepcopy(native);selected['args'][1]['mode']='out'
 graphs={};records={}
 source='nativeTotal=checked(nativeAmount+1);return nativeTotal; // 원문 · 9223372036854775806 😀\n'
 for index,fn in enumerate(functions):
     prefix='function' if index==0 else 'second'
-    cpp='implementation '+fn+'Body for '+fn+' (long nativeAmount,ref long nativeTotal) -> long {body common "'+prefix+'-original.csbody";}'
+    if value_origin:
+        declaration=f.project/('elements/'+fn.split('::')[1]+'.celem')
+        declaration.write_text(declaration.read_text().replace('ref long count','long count'))
+    cpp='implementation '+fn+'Body for '+fn+' (long nativeAmount,'+('' if value_origin else 'ref ')+'long nativeTotal) -> long {body common "'+prefix+'-original.csbody";}'
     (f.project/(fn.split('::')[1]+'Body.celem')).write_text(cpp)
     (f.project/(prefix+'-original.csbody')).write_text(source)
     prepared=f.metadata('blueprintConversion',project=str(f.manifest),id=fn+'Body',text=cpp,target='common',graphPath=prefix+'.graph.json',nodePath=prefix+'.node.json')
@@ -26,6 +34,11 @@ for index,fn in enumerate(functions):
     assert records[fn]['source']==source
     (f.project/(prefix+'.graph.json')).write_text(json.dumps(graphs[fn]));(f.project/(prefix+'.node.json')).write_text(json.dumps(records[fn]))
 graph=copy.deepcopy(base.graph)
+if value_origin:
+    for index,node in enumerate(graph['nodes']):node['signature']=copy.deepcopy(olds[index])
+    header=(f.project/'CallerBody.celem').read_text()
+    (f.project/'CallerBody.celem').write_text('\n'.join(line.replace('ref long','long') if line.startswith('import ') else line for line in header.split('\n')))
+    (f.project/'caller.graph.json').write_text(json.dumps(graph))
 snapshot={str(p.relative_to(f.project)):p.read_bytes() for p in f.project.rglob('*') if p.is_file() and '.confectory' not in p.relative_to(f.project).parts}
 
 def unchanged():assert all((f.project/path).read_bytes()==raw for path,raw in snapshot.items())
@@ -46,7 +59,7 @@ def caller_arguments(index):return {'amount':copy.deepcopy(graph['nodes'][index]
 def caller_exits():return copy.deepcopy(graph['exits'])
 def verify_caller_header(text):
     expected=snapshot['CallerBody.celem'].decode()
-    for fn in functions:expected='\n'.join(line.replace('ref long','out long') if fn+' ' in line else line for line in expected.split('\n'))
+    for fn in functions:expected='\n'.join((line.replace(', long)',', out long)') if value_origin else line.replace('ref long','out long')) if fn+' ' in line else line for line in expected.split('\n'))
     assert text==expected
 
 def verify_rows(rows):
@@ -61,6 +74,7 @@ def verify_rows(rows):
         actual=json.loads(merged[fn+'Body/body:common']['draft']);expected=copy.deepcopy(graphs[fn]);code=next(node for node in expected['nodes'] if node['kind']=='code')
         code['signature']=copy.deepcopy(selected);code['implementationContext']['signature']=copy.deepcopy(selected);code['arguments']={'nativeAmount':{'input':'amount'}}
         expected['exits']={'count':None,'return':None}
+        if value_origin:expected['profile']='sync-acyclic-ref-v1'
         definitions=f.metadata('featureBlueprintNodes',featureSource=merged[fn]['draft'],implementationContext=code['implementationContext'],bodyTarget='common',graph=actual)
         assert definitions['state']=='node-definitions',definitions
         expected['contractHash']=definitions['contractHash'];assert actual==expected
