@@ -36,11 +36,13 @@ internal sealed class InformationFunctionBatch
    bool structural=before.Args.Any(a=>a.IsOut&&(remap[a.Name] is null||!next.Args.Any(b=>b.IsOut&&b.Name==remap[a.Name]!.ToString())))||next.Args.Any(b=>b.IsOut&&!before.Args.Any(a=>a.IsOut&&remap[a.Name]?.ToString()==b.Name))||before.Return!=next.Return&&(before.Return=="void"||next.Return=="void");
    if(structural){
     // The existing coordinated graph plan owns writer removal/insertion and
-    // void transitions. Value inputs and retained identities/order stay fixed;
+    // void transitions. Value input types/order and retained output identities
+    // stay fixed; an explicit input-name map preserves its original binding.
     // separate explicit writer plans can change retained scalar output types.
-    if((before.Return!="void"&&next.Return!="void"&&before.Return!=next.Return&&!Scalar(before.Return))||(next.Return!="void"&&!Scalar(next.Return))||!before.Args.Where(a=>!a.IsOut).Select(a=>(a.Name,a.Type,a.Mode)).SequenceEqual(next.Args.Where(a=>!a.IsOut).Select(a=>(a.Name,a.Type,a.Mode))))throw new InvalidOperationException("Shared output definitions retain value inputs and explicit scalar outputs");
+    if((before.Return!="void"&&next.Return!="void"&&before.Return!=next.Return&&!Scalar(before.Return))||(next.Return!="void"&&!Scalar(next.Return))||!before.Args.Where(a=>!a.IsOut).Select(a=>(Name:remap[a.Name]?.ToString(),a.Type,a.Mode)).SequenceEqual(next.Args.Where(a=>!a.IsOut).Select(a=>(Name:(string?)a.Name,a.Type,a.Mode))))throw new InvalidOperationException("Shared output definitions retain mapped value input types/order and explicit scalar outputs");
     var retained=before.Args.Where(a=>!a.IsOut||remap[a.Name] is not null).ToArray();
-    if(retained.Any(a=>remap[a.Name]?.ToString()!=a.Name)||!retained.Select(a=>(a.Name,a.Mode)).SequenceEqual(next.Args.Where(b=>retained.Any(a=>a.Name==b.Name)).Select(b=>(b.Name,b.Mode)))||retained.Any(a=>{var b=next.Args.Single(p=>p.Name==a.Name);return a.Type!=b.Type&&(!a.IsOut||!Scalar(a.Type)||!Scalar(b.Type));})||next.Args.Any(b=>b.IsOut&&!retained.Any(a=>a.Name==b.Name)&&!Scalar(b.Type)))throw new InvalidOperationException("Explicitly remove old output identities and preserve retained names/order/roles");
+    if(retained.Any(a=>a.IsOut&&remap[a.Name]?.ToString()!=a.Name)||!retained.Select(a=>(Name:remap[a.Name]?.ToString(),a.Mode)).SequenceEqual(next.Args.Where(b=>retained.Any(a=>remap[a.Name]?.ToString()==b.Name)).Select(b=>(Name:(string?)b.Name,b.Mode)))||retained.Any(a=>{var b=next.Args.Single(p=>p.Name==remap[a.Name]?.ToString());return a.Type!=b.Type&&(!a.IsOut||!Scalar(a.Type)||!Scalar(b.Type));})||next.Args.Any(b=>b.IsOut&&!retained.Any(a=>a.Name==b.Name)&&!Scalar(b.Type)))throw new InvalidOperationException("Explicitly remove old output identities and preserve mapped input/output order and roles");
+    if(before.Args.Any(a=>!a.IsOut&&remap[a.Name]?.ToString()!=a.Name))inputNames.Add(id);
     if(retained.Any(a=>a.IsOut&&next.Args.Any(b=>b.Name==a.Name&&b.Type!=a.Type))){outputTypes.Add(id);outputTyped=true;}
     if(before.Return!="void"&&next.Return!="void"&&before.Return!=next.Return){returns.Add(id);outputTyped=true;}
     structures.Add(id);continue;
@@ -69,10 +71,11 @@ internal sealed class InformationFunctionBatch
   if(returns.Count>0&&(typed||!functions.SetEquals(returns.Concat(outputTypes).Concat(structures).Concat(inputNames))))throw new InvalidOperationException("Combine only mapped input names and scalar output definitions/types; retain every value input");
   var projections=new Dictionary<string,JsonObject>(StringComparer.Ordinal);
   if(structures.Count>0){
-   if(typed||inputDefinitions.Count>0||!functions.SetEquals(structures.Concat(outputTypes).Concat(returns)))throw new InvalidOperationException("Combine only explicit output definitions and scalar types; all input retained");
+   if(typed||inputDefinitions.Count>0||!functions.SetEquals(structures.Concat(outputTypes).Concat(returns).Concat(inputNames)))throw new InvalidOperationException("Combine only mapped input names and explicit output definitions/scalar types; all input retained");
    foreach(var row in edits){var mapping=row!["mapping"]!.AsObject();var before=InformationFunctionBodies.Signature(mapping["before"]!);string id=row["id"]!.ToString();bool structure=structures.Contains(id),writers=outputTypes.Contains(id)||returns.Contains(id);
+    if(inputNames.Contains(id)&&!structure&&!writers){if(mapping.Count!=2||before.Args.Where(a=>a.IsOut).Any(a=>mapping["args"]![a.Name]?.ToString()!=a.Name))throw new InvalidOperationException("A pure value pin rename retains every original output and binding");continue;}
     if(mapping.Count!=3+(structure?1:0)+(writers?1:0)||mapping["callers"] is not JsonObject callers||(structure?mapping["outputGraphs"] is not JsonObject:mapping.ContainsKey("outputGraphs"))||(writers?mapping["outputs"] is not JsonObject:mapping.ContainsKey("outputs")))throw new InvalidOperationException("Select original graph changes and every changed writer before combining output contracts");
-    foreach(var plan in callers.Select(p=>p.Value!.AsObject()))if(plan["inputs"] is not JsonObject inputs||inputs.Count!=before.Args.Count(a=>!a.IsOut)||before.Args.Where(a=>!a.IsOut).Any(a=>inputs[a.Name]?.ToString()!=a.Name)||plan["disconnect"] is not JsonObject disconnect||disconnect.Count!=0||plan["outputs"] is not JsonObject)throw new InvalidOperationException("Retain caller inputs and explicitly map every original output");
+    foreach(var plan in callers.Select(p=>p.Value!.AsObject()))if(plan["inputs"] is not JsonObject inputs||inputs.Count!=before.Args.Count(a=>!a.IsOut)||before.Args.Where(a=>!a.IsOut).Any(a=>inputs[mapping["args"]![a.Name]!.ToString()]?.ToString()!=a.Name)||plan["disconnect"] is not JsonObject disconnect||disconnect.Count!=0||plan["outputs"] is not JsonObject)throw new InvalidOperationException("Retain mapped caller inputs and explicitly map every original output");
     projections.Add(row["id"]!.ToString(),callers.DeepClone().AsObject());
    }
   }else if(inputDefinitions.Count>0){
