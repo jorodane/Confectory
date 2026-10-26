@@ -21,3 +21,11 @@
 7행에서 import/alias 자체의 이름 변경 및 serial copy whitelist 밖 그래프의 기존 지원 문맥 연결은 이번 단위 밖이다. 8행 다른 계약/body/private/whole/wrapper closure 결합과 9행 함수 고급 타입·표시명, I6 기호/이모지/사용자 로컬 이미지, B2 실제 배정 작업자 배지, A4~A6/M4/M11/M12는 별도 후속이다. 이미지 생성·협의/승자·공유 Confirm·내장 렌더/FPS backend는 구현하지 않는다. 전체 UI·실제 Windows/WebView2·모바일 기기·Library 전달은 완료로 표시하지 않는다.
 
 검사는 격리 fixture만 사용하고 사용자 프로젝트·유료 AI를 호출하지 않는다. 기존 자료/보관 빌드는 삭제하지 않으며 이번 검사 소유 복사본만 전체 증거 ZIP/무결성을 확인한 뒤 기존 승인 수명관리로 정리한다.
+
+## 독립 checkout·새 교차 패키지 검증
+
+실행 소스 커밋 `3ee1c920080ceef47949cf2da289a05f266782a6`에서 기존 독립 checkout을 정상 FF하고 원래 `core.autocrlf=true`를 유지했다. 변경 파일의 Git blob과 clean 상태를 확인하고 Native Release·새 Linux 엔진·실제 기본/독립 창·외부 root 변경 거절·권한/오버라이드 회귀 4흐름 21확인을 통과했다. 루트의 13흐름 77확인과 별도로 구분한다.
+
+restore·솔루션 Release·명시 MCP Release·새 Windows x64 교차 패키징·패키지 probe·실제 패키지 `content/runtime/Confectory.App.dll`의 등록 함수 copy 독립 창 UI/컴파일러 10확인까지 6단계가 통과했다. manifest 2345개, 전체 2346개 파일/해시와 링크 부재, 실제 Core/Native DLL 및 변경 제품 소스의 바이트 일치를 확인했다. manifest SHA-256 `0ffb1167de7cb1076e824331e050d0b93f889a0b96f27b94822a9bd836b46144`, Native DLL `256f8147bd7736b6e5de171d5268b0ea570d755bd599fb9df552c003c0cdcdaa`. SDK 없는 Linux runtime에서 패키지 웹 기동·74 resource·변조/필수 의존 누락 거절·기존 프로필/명시 override 보존은 probe로 구분한다. Windows apphost/WebView2를 실제 Windows에서 실행한 검사가 아니다.
+
+전체 manifest와 fixture ZIP을 보관·무결성 확인한 뒤 이번 RAM 검증 패키지만 정리했다. 이전 보관 패키지/원본/사용자 자료는 삭제하지 않았다. 새 전달용 산출물을 보관하거나 Library에 업로드한 것은 아니다. 기록 시 workspace 여유 1471.9 MiB. [상세 결과](evidence/v536-registered-root-copy-abi/package-clean-verification.json)에 실제 명령·로그·SHA를 남겼다. 이 이후 커밋은 이 검증 문서와 결과 JSON만 추가하며 실행 코드는 위 소스 커밋과 같다.
