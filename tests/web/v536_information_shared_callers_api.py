@@ -2,7 +2,9 @@
 import copy
 import json
 import os
-if os.environ.get('CONFECTORY_SHARED_REF_NAMES') == '1':
+if os.environ.get('CONFECTORY_SHARED_REF_ROLES') == '1':
+    import v536_information_shared_ref_roles_fixture as x
+elif os.environ.get('CONFECTORY_SHARED_REF_NAMES') == '1':
     import v536_information_shared_ref_names_fixture as x
 else:
     import v536_information_shared_callers_fixture as x
@@ -55,6 +57,8 @@ try:
         assert call['nodes'][0]['arguments']['leftAmount']=={'input':'first'}
         assert call['nodes'][1]['arguments']['rightAmount']=={'node':'invoke'}
         for path,raw in x.snapshot.items():
+            if path=='CallerBody.celem' and hasattr(x,'verify_caller_header'):
+                x.verify_caller_header((f.project/path).read_text());continue
             if path not in {'FreeInfo.celem','caller.graph.json','function.graph.json','function.node.json','second.graph.json','second.node.json',
                            *['elements/'+fn.split('::')[1]+'.celem' for fn in x.functions],
                            *[fn.split('::')[1]+'Body.celem' for fn in x.functions]}:

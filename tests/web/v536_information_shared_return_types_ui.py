@@ -4,7 +4,9 @@ import time
 import shutil
 import os
 from playwright.sync_api import sync_playwright,expect
-if os.environ.get('CONFECTORY_SHARED_REF_NAMES') == '1':
+if os.environ.get('CONFECTORY_SHARED_REF_ROLES') == '1':
+    import v536_information_shared_ref_roles_fixture as x
+elif os.environ.get('CONFECTORY_SHARED_REF_NAMES') == '1':
     import v536_information_shared_ref_names_fixture as x
 elif os.environ.get('CONFECTORY_SHARED_INPUT_OUTPUT_DEFINITIONS') == '1':
     import v536_information_shared_input_output_definitions_fixture as x
@@ -128,7 +130,10 @@ try:
             f.page.screenshot(path=str(f.case/('shared-return-mapping-'+str(index)+'.png')))
             m.locator('[data-abi-remap-accept]').click();expect(m).to_have_count(0);f.idle()
         held=pending();assert len(held)==2
-        for _ in range(getattr(x,'undo_steps',2)):f.owner().locator('[data-own-functions-toggle]').press('Control+z')
+        undo_trace=[held]
+        for _ in range(getattr(x,'undo_steps',2)):
+            f.owner().locator('[data-own-functions-toggle]').press('Control+z');undo_trace.append(pending())
+        (f.case/'shared-function-undo-trace.json').write_text(json.dumps(undo_trace,ensure_ascii=False,indent=2))
         assert len(pending())==1
         if hasattr(x,'undo_steps'):assert pending()[0][1]['id']==x.functions[0]
         for _ in range(getattr(x,'undo_steps',2)):f.owner().locator('[data-own-functions-toggle]').press('Control+y')

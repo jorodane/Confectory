@@ -74,9 +74,13 @@ try:
         dialog=cpp();fill(dialog,True);held=restart(1);assert f.pending()==held
         dialog=cpp()
         text=dialog.locator('[data-code-source]').input_value();assert x.edited+'native' in text and x.selected['args'][0]['name'] in text
+        previous_draft=pending()
         fill(dialog);f.page.screenshot(path=str(f.case/'whole-body-code.png'));dialog.locator('[data-code-save]').click();choose()
         value=pending()[0][1];assert value['signature']==x.new and value['mapping']['bodies'][x.body_id]['signature']==x.selected and value['mapping']['bodies'][x.body_id]['text']==x.edited
-        f.owner().locator('[data-own-functions-toggle]').press('Control+z');f.owner().locator('[data-own-functions-toggle]').press('Control+y');assert pending()[0][1]==value
+        for _ in range(2):f.owner().locator('[data-own-functions-toggle]').press('Control+z')
+        assert pending()==previous_draft
+        for _ in range(2):f.owner().locator('[data-own-functions-toggle]').press('Control+y')
+        assert pending()[0][1]==value
         held=restart(2);assert f.pending()==held and pending()[0][1]==value;preserved()
         f.checked('원본 전체 본문 편집창의 본문·형식 매개변수/입출력은 취소·불완전 cold·코드 저장·명시 caller 선택·Undo/Redo에서 보존된다')
         if mode.endswith('projects'):
