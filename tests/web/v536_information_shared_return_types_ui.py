@@ -4,7 +4,9 @@ import time
 import shutil
 import os
 from playwright.sync_api import sync_playwright,expect
-if os.environ.get('CONFECTORY_SHARED_REF_OUT') == '1':
+if os.environ.get('CONFECTORY_SHARED_OUT_REF') == '1':
+    import v536_information_shared_out_ref_fixture as x
+elif os.environ.get('CONFECTORY_SHARED_REF_OUT') == '1':
     import v536_information_shared_ref_out_fixture as x
 elif os.environ.get('CONFECTORY_SHARED_REF_ROLES') == '1':
     import v536_information_shared_ref_roles_fixture as x
