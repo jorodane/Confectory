@@ -6,7 +6,7 @@
 
 | 항목 | 원래 사용자 조작 | 현재 실제 차단/미연결 | 판정 |
 |---|---|---|---|
-| 7: same-contract copy | 기존 복사 구현을 편집·배정하고 원본 유지 | `InformationFunctionCopies.For`는 직접 배정 1개를 요구하며, 저장 후 미확정 copy는 새 생성 기준/원래 출처/같은 공개·native 계약을 receipt로 보관해 본문 재편집한다. `BlueprintCopyAbi.Bind`는 단일 target·같은 namespace 함수만 받는다 | 미확정 같은 계약 본문 재진입은 좁게 연결했다. 다중 target/외부 함수의 소유·출처 receipt 결합은 실제 잔여다. 언어 제약이나 새 독립 복제 요구가 아님 |
+| 7: same-contract copy | 기존 복사 구현을 편집·배정하고 원본 유지 | `BlueprintCopyAbi.Bind`의 같은 namespace 함수·단일 target 제한은 ABI receipt의 경계다. 모듈 화면의 외부 함수 copy 본문 재편집은 별도 owned slot 경로이며 정상 저장은 이미 동작했다. 쓰기 실패 시 입력 선삭제 결함을 기존 후보/CAS/receipt에 연결해 보완한다 | 단독 정보 소유 copy의 고정 계약 본문 저장은 [집중 수용](VALIDATION_V536_INFORMATION_EXTERNAL_COPY.md)으로 구분한다. 외부 함수를 구현하는 copy 내부 호출의 명시 ABI 갱신 receipt·import/alias 자체 변경·serial whitelist 밖 graph는 실제 잔여다. 기존 선택창은 target 하나를 복사하며 자동 전체 target 복제는 새 필수 요구로 늘리지 않는다 |
 | 7: override | 원본 매개변수·출력 계약을 유지하고 구현 편집 | 부모/외부 쓰기와 타입·핀 수·역할·반환 구조 변경 거절 | 사용자 확정 정상 보호. 독립 계약 복제/새 ID는 필수 제외 |
 | 8: 같은 창의 한 Save | 여러 함수에서 실제 편집한 내용을 함께 저장 | `InformationFunctionBatch.Begin`은 body 계획이 있으면 계약 편집으로 분류하고, native C# target 및 대부분 body 계획을 거절한다. 계약이 같은 C# 본문 2개도 거절됨 | 명확한 현재 UI 저장 연결 누락. 다음 최소 단위 |
 | 8: 다른 계약/문맥 | 원본에서 제공하는 이름·타입·순서 편집과 명시 본문/연결을 보존 | batch의 direct leaf/call·code/return lift·native/private/copy/wrapper/서로 의존하는 callee guard | 각 실제 UI 흐름을 기준으로 축소 재현할 구현 경계. 가능한 C# 조합 전체를 새 수용 목록으로 만들지 않음 |
@@ -39,3 +39,5 @@ Library 전달, 전체 UI 완료는 별개 미검증/미완료다. 기존 자료
 직접 소유 단일 native C# 본문 두 개의 계약 불변 Save를 후보/CAS와 기존 화면에 연결했다. 집중12흐름31확인·영향8흐름25확인 및 실제 compiler Confirm이 통과했다([검증](VALIDATION_V536_INFORMATION_SHARED_BODIES.md)). 같은 graph의 재직렬화와 identity 출력 표현의 불필요한 정규화도 보완해 caller 원문을 보존한다. 원래 순열 adapter의 경계를 영구 정책으로 정하거나 새로운 핀 ID를 만들지 않았다. 7행 copy·8행 나머지 실제 문맥·9행 타입/표시명과 후속 UI는 위 표의 원래 범위로 남긴다.
 
 로컬 same-contract copy가 이미 가진 native 별칭·읽기 전용 등록 import를 그대로 보존하는 본문 편집은 [별도 수용 기록](VALIDATION_V536_INFORMATION_COPY_IMPORTS.md)으로 구별한다. 변환된 Blueprint 부모의 import 일괄 거절만 관측된 source map과 고정 서명의 내부 연결로 보완한다. 외부 함수를 구현하는 copy/다중 target/별칭·import 자체 변경/다른 graph 문맥의 원래 잔여를 자동 완료로 세지 않는다.
+
+등록 함수를 구현하는 정보 모듈 copy의 본문 재편집은 [현재 수용 기록](VALIDATION_V536_INFORMATION_EXTERNAL_COPY.md)에 별도로 정리한다. 외부 함수 ID라는 이유만으로 전체 본문 편집을 미구현으로 분류하지 않는다. Windows-only 선택본의 Linux compiler Confirm 거절은 target/common body 규칙의 정상 보호이며 독립 계약 복제 요구와 관계없다.

@@ -20,3 +20,9 @@
 Confirm 전 재편집의 실제 완료 범위와 검증은 [미확정 copy](VALIDATION_V536_INFORMATION_PENDING_COPY.md)를 따른다. 최초 생성·선택·배정은 기존 private copy 거래이며 새 기능이 아니다. 이번 수정은 저장 후 Confirm 전 본문 재진입을 막던 baseline guard의 좁은 보완이다.
 
 [단일 copy의 native 별칭·외부 import 수용](VALIDATION_V536_INFORMATION_COPY_IMPORTS.md)은 로컬 함수를 구현하는 copy가 기존 읽기 전용 외부 함수 import를 그대로 호출하는 본문 편집이다. C# 부모와 변환된 Blueprint 부모의 고정 공개/native 계약을 확인한다. 외부 namespace 함수를 구현하는 copy 또는 여러 target을 한 copy로 편집하는 지원과 혼동하지 않는다. 다른 별칭/import 자체 변경의 명시적 대응과 직렬 whitelist 밖 graph는 기존 잔여다.
+
+## 등록 함수 모듈 copy의 고정 계약 본문
+
+[등록 함수 copy 수용](VALIDATION_V536_INFORMATION_EXTERNAL_COPY.md)은 정보 모듈 `직접 작성/편집`의 단독 소유 copy를 다룬다. `BlueprintCopyAbi`의 local 함수 guard는 이 별도 본문 화면 전체의 차단이 아니었다. 기존 C#/직렬 Blueprint source의 선택 target 생성·배정과 정상 재편집은 이미 동작했고, 재편집 Save의 쓰기 실패 입력 선삭제를 한 후보/CAS/receipt 경로에 연결한다. 함수 계약·copy ID·출처·원본·다른 target은 유지한다. 미확정/확정 copy를 구분하며 Windows-only copy를 Linux/common 본문으로 추측해 바꾸지 않는다. UI/레이아웃과 권한은 바꾸지 않는다.
+
+외부 root 함수를 구현하는 copy의 내부 호출에서 `원본 계약 갱신`을 누르는 명시적 ABI repair는 여전히 그 root 함수의 읽기 전용 contract receipt가 필요하다. alias/import 자체 변경과 copy serial whitelist 밖 graph의 실제 기존 UI 연결도 별도다. 기존 target 선택창이 원본 target 하나를 복사하는 것을 전체 target 자동 복제의 미구현으로 확대하지 않는다. 오버라이드 독립 계약 복제는 계속 필수 제외다.
