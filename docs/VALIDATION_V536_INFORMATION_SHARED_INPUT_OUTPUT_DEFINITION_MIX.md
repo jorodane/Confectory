@@ -84,3 +84,28 @@ WebBundle은 82e2676와 바이트가 같으며 실제 460px 창·기존 매핑/�
 렌더로 확인했다. 새 증거 ZIP 29개의 집합·권한·내용·해시를 재검증했다.
 [집중·회귀 증거](evidence/v536-information-shared-input-output-definition-mix/focused-verification.json)에 실패/수정/통과를 구분한다.
 독립 checkout·패키지는 이후 별도 기록한다.
+
+## 독립 checkout·새 교차 패키지 완료
+
+실행 소스는 `8a77ae72695fe712f038b22ce3231952e803c179`다. 기존 독립 checkout을 정상 fast-forward하고
+9개 Git blob·기존 LF/CRLF 설정·clean 상태를 확인했다. Native Release 경고/오류 0,
+기존 입력 전용·새 후보·실제 API·독립 UI·오버라이드 보호의 5흐름·13확인이 통과했다.
+root solution과 별도 MCP Release도 경고/오류 0이다.
+
+Windows x64 패키지를 새로 교차 빌드했다. manifest 2,343항목/marker 포함
+2,344파일, 132,764,092바이트의 집합/전체 해시와 현재 제품 소스·
+Native DLL 및 7개 Core DLL 일치를 확인했다. manifest SHA-256은
+`7b99a3ffa7f8daeb2ddab31342f0422c36391e56e114f49723c5d189bbc8b248`,
+Native DLL SHA-256은 `4a1c01dc2460ddbe248217c444115b9cb170a8fbd626fb4dd6e95a4a5eaef9a7`이다.
+
+새 SDK 없는 소유 runtime에서 무관한 cwd의 실제 managed 엔진 웹 기동,
+74리소스·synthetic profile/명시 override 보존·변조/DLL 누락 거절과 패키지
+backend 후보 4확인이 통과했다. 검사 6단계 모두 성공했으며 대형 검사는 순차 실행했다.
+실제 Windows apphost/WebView2·모바일 기기 실행과 구별한다.
+
+36개 새 증거 ZIP의 파일 집합·권한·전체 바이트를 재검증하고 전체 manifest와
+fixture 증거를 보존한 뒤 이번 임시 RAM 패키지만 정리했다. 기존 자료 삭제·
+변환이나 새 배포 파일 보관·Library 전달은 하지 않았다. 패키지 단계 최저 디스크
+여유는 2,028,744,704바이트이며 OOM/oom_kill 0이다. 후속 결과 문서 커밋은
+실행 코드를 바꾸지 않는다.
+[checkout·패키지 증거](evidence/v536-information-shared-input-output-definition-mix/package-clean-verification.json)에 소스·단계·해시·한계를 기록한다.
