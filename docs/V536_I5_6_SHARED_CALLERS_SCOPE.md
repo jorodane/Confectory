@@ -61,3 +61,5 @@ ref 보유 직접 계약의 값/ref 이름 편집은 원래 타입·역할·수�
 전체 I5-6/v536 UI 또는 실제 Windows/WebView2·모바일 기기 검증 완료를 의미하지 않는다. 사용자 프로젝트·계정·유료 추론은 사용하지 않는다.
 
 후속 [기존 저장소 값/ref 단위](VALIDATION_V536_INFORMATION_SHARED_REF_ROLES.md)는 같은 위치·타입·핀 수·반환 및 원래 caller 저장소를 유지한 값↔ref 전환을 연결한다. 기존 retained native 매개변수·본문·출력/graph receipt와 caller 바인딩을 명시 검토하며 typed import도 같은 후보에서 갱신한다. 원래 핀 이름 편집을 함께 할 수 있지만 out 역할·순서 변경은 별도다. 새 셀/별칭·자동 C# 재작성·오버라이드 원계약 변경을 만들지 않는다.
+
+후속 [whole-body ref→out 단위](VALIDATION_V536_INFORMATION_SHARED_REF_OUT.md)는 원래 정확한 code/return lift의 native/public 선언·본문/whole receipt와 제거 caller 입력의 명시 해제를 여러 함수에서 결합한다. 위치별 타입·이름·수·순서·반환 및 남는 caller 바인딩/출력을 유지하고 typed import도 같은 후보/CAS에 갱신한다. 추가 노드/지역값·별칭을 지우거나 root 검증을 완화하지 않으며 순서·반대 방향·다른 문맥은 별도다.

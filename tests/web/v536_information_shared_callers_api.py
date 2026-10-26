@@ -2,7 +2,9 @@
 import copy
 import json
 import os
-if os.environ.get('CONFECTORY_SHARED_REF_ROLES') == '1':
+if os.environ.get('CONFECTORY_SHARED_REF_OUT') == '1':
+    import v536_information_shared_ref_out_fixture as x
+elif os.environ.get('CONFECTORY_SHARED_REF_ROLES') == '1':
     import v536_information_shared_ref_roles_fixture as x
 elif os.environ.get('CONFECTORY_SHARED_REF_NAMES') == '1':
     import v536_information_shared_ref_names_fixture as x
@@ -54,8 +56,12 @@ try:
         sc=schema()
         for fn,sig in zip(x.functions,x.nexts):assert x.n.canonical(next(row for row in sc['ownFunctions'] if row['id']==fn)['signature'])==sig
         call=json.loads((f.project/'caller.graph.json').read_text())
-        assert call['nodes'][0]['arguments']['leftAmount']=={'input':'first'}
-        assert call['nodes'][1]['arguments']['rightAmount']=={'node':'invoke'}
+        if hasattr(x,'caller_arguments'):
+            assert all(node['arguments']==x.caller_arguments(index) for index,node in enumerate(call['nodes']))
+        else:
+            assert call['nodes'][0]['arguments']['leftAmount']=={'input':'first'}
+            assert call['nodes'][1]['arguments']['rightAmount']=={'node':'invoke'}
+        if hasattr(x,'verify_live'):x.verify_live()
         for path,raw in x.snapshot.items():
             if path=='CallerBody.celem' and hasattr(x,'verify_caller_header'):
                 x.verify_caller_header((f.project/path).read_text());continue

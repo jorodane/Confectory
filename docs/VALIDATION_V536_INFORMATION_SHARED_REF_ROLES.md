@@ -76,8 +76,8 @@ caller 헤더/import와 graph·C# 원문·실제 ref 셀을 대조했다.
 본문 취소·완전한 Undo/Redo·미저장/저장 재시작·검토 취소/Confirm을 통과했다.
 checkpoint 실패/재시도, 저장/조회 응답 유실 뒤 cold receipt 확인과 중복 방지,
 실제 peer 경합·프로젝트 분리/오래된 창 제출 차단, 마지막 함수의 불완전 대응
-거절·Undo 재시도를 확인했다. 기존 입력/출력 정의·반환·이름·오버라이드 보호와
-이전 ref 이름 화면도 회귀했다. 기존 whole-body 화면에서는 cold에서 복원한
+거절·Undo 재시도를 확인했다. 기존 입력/출력 정의·반환·이름·오버라이드 보호도 회귀했다.
+추가 UI 1건의 실제 범위는 아래 검사 범위 정정을 참조한다. 기존 whole-body 화면에서는 cold에서 복원한
 불완전 원문을 Undo 두 번으로 정확히 복구하고 Redo/저장/Confirm을 확인했다.
 
 새 증거 ZIP38개의 파일 집합·권한·전체 바이트/SHA-256을 재검증했다. 원본/
@@ -122,3 +122,16 @@ fixture 증거를 보존한 뒤 이번 소유 임시 RAM 패키지만 종료 cle
 패키지 단계 최저 디스크 여유는 1,914,765,312바이트다. 후속 결과 문서 커밋은
 실행 소스를 바꾸지 않는다.
 [checkout·패키지 근거](evidence/v536-information-shared-ref-roles/package-clean-verification.json)에 단계·소스·해시·검증 한계를 기록했다.
+
+## 후속 감사: UI 회귀 플래그 정정
+
+다음 ref→out 단위에서 검사 래퍼의 환경 초기화 순서를 감사했다. 이 문서의
+`impact-ref-ui` 1건은 플래그 재설정 때문에 실제로 ref 이름 편집 대신 값/ref
+역할 UI를 실행했다. 당시 ZIP의 확정 선언은 leftCount가 값 전달인 것을 확인했다.
+원래 8흐름/25확인은 실제 실행 수지만 해당 1건을 ref 이름 UI 근거로 사용하지
+않는다. 별도 native ref 이름 검사는 올바르게 실행됐으며 기존 증거는 보존한다.
+
+현재 동일한 JS/레이아웃에서 플래그를 먼저 초기화하고 종류별 값을 설정한 뒤
+실제 이름 UI를 재검증했고 취소·Undo/Redo·cold·저장·Review/Confirm을 통과했다. 실행 환경 플래그와 원래 ZIP SHA는
+[후속 검증](VALIDATION_V536_INFORMATION_SHARED_REF_OUT.md)과 그 집중/회귀
+JSON에 기록한다. 이 정정은 제품 검증을 완화하거나 과거 증거를 교체하지 않는다.
