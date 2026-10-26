@@ -52,12 +52,14 @@ internal sealed class InformationFunctionBatch
    bool inputDefinition=before.Args.Any(a=>!a.IsOut&&remap[a.Name] is null&&!next.Args.Any(b=>!b.IsOut&&b.Name==a.Name))||next.Args.Any(b=>!b.IsOut&&!before.Args.Any(a=>!a.IsOut&&(a.Name==b.Name||remap[a.Name]?.ToString()==b.Name)));
    if(inputDefinition){
     // A same-name scalar type replacement is selected exactly like a removed
-    // input. Keep surviving identities/order and every output contract; the
-    // original single closure proves each new value and actual old use.
+    // input. Keep surviving identities/order and each retained output ID;
+    // the single closure proves new values, old uses and changed writers.
     var surviving=before.Args.Where(a=>next.Args.Any(b=>b.Name==a.Name)).ToArray();
-    bool inputIdentities=before.Args.All(a=>{var b=next.Args.SingleOrDefault(p=>p.Name==a.Name);if(b is null)return !a.IsOut&&Scalar(a.Type)&&remap[a.Name] is null;if(a.Mode!=b.Mode)return false;if(a.Type==b.Type)return remap[a.Name]?.ToString()==a.Name;return !a.IsOut&&Scalar(a.Type)&&Scalar(b.Type)&&remap[a.Name] is null;});
-    if(before.Return!=next.Return||!before.Args.Where(a=>a.IsOut).Select(a=>(a.Name,a.Type,a.Mode)).SequenceEqual(next.Args.Where(a=>a.IsOut).Select(a=>(a.Name,a.Type,a.Mode)))||!inputIdentities||!surviving.Select(a=>a.Name).SequenceEqual(next.Args.Where(b=>before.Args.Any(a=>a.Name==b.Name)).Select(b=>b.Name))||next.Args.Any(b=>!before.Args.Any(a=>a.Name==b.Name)&&(b.Mode is not null||!Scalar(b.Type))))throw new InvalidOperationException("Explicit value input definitions preserve pin identities/order, outputs and return contracts");
-    if(before.Args.Any(a=>next.Args.Any(b=>b.Name==a.Name&&b.Type!=a.Type))){typed=true;inputTypes.Add(id);}
+    bool inputIdentities=before.Args.All(a=>{var b=next.Args.SingleOrDefault(p=>p.Name==a.Name);if(b is null)return !a.IsOut&&Scalar(a.Type)&&remap[a.Name] is null;if(a.Mode!=b.Mode)return false;if(a.Type==b.Type)return remap[a.Name]?.ToString()==a.Name;return Scalar(a.Type)&&Scalar(b.Type)&&(a.IsOut?remap[a.Name]?.ToString()==a.Name:remap[a.Name] is null);});
+    if(before.Return!=next.Return&&(!Scalar(before.Return)||!Scalar(next.Return))||!before.Args.Where(a=>a.IsOut).Select(a=>(a.Name,a.Mode)).SequenceEqual(next.Args.Where(a=>a.IsOut).Select(a=>(a.Name,a.Mode)))||!inputIdentities||!surviving.Select(a=>a.Name).SequenceEqual(next.Args.Where(b=>before.Args.Any(a=>a.Name==b.Name)).Select(b=>b.Name))||next.Args.Any(b=>!before.Args.Any(a=>a.Name==b.Name)&&(b.Mode is not null||!Scalar(b.Type))))throw new InvalidOperationException("Explicit value input definitions preserve pin identities/order and scalar output/return contracts");
+    if(before.Args.Any(a=>!a.IsOut&&next.Args.Any(b=>b.Name==a.Name&&b.Type!=a.Type))){typed=true;inputTypes.Add(id);}
+    if(before.Args.Any(a=>a.IsOut&&next.Args.Any(b=>b.Name==a.Name&&b.Type!=a.Type))){outputTyped=true;outputTypes.Add(id);}
+    if(before.Return!=next.Return){outputTyped=true;returns.Add(id);}
     inputDefinitions.Add(id);continue;
    }
    if(before.Return!=next.Return){
@@ -71,7 +73,7 @@ internal sealed class InformationFunctionBatch
    if(before.Args.Where((a,i)=>!a.IsOut&&a.Name!=next.Args[i].Name).Any())inputNames.Add(id);
    for(int i=0;i<before.Args.Count;i++){var a=before.Args[i];var b=next.Args[i];if(a.Mode!=b.Mode)throw new InvalidOperationException("Retain the original input/output roles explicitly");hasOutputs|=a.IsOut;if(a.Type==b.Type){if(remap[a.Name]?.ToString()!=b.Name)throw new InvalidOperationException("Retain each unchanged pin identity explicitly");}else if(a.IsOut){outputTyped=true;outputTypes.Add(id);if(a.Name!=b.Name||!Scalar(a.Type)||!Scalar(b.Type)||remap[a.Name]?.ToString()!=a.Name)throw new InvalidOperationException("Changed scalar outputs retain their explicit original pin identity");}else{typed=true;inputTypes.Add(id);if(a.Mode is not null||a.Name!=b.Name||!Scalar(a.Type)||!Scalar(b.Type)||!remap.ContainsKey(a.Name)||remap[a.Name] is not null)throw new InvalidOperationException("Changed scalar inputs need explicit replacement at the same position and name");}}
   }
-  if(returns.Count>0&&!functions.SetEquals(returns.Concat(outputTypes).Concat(structures).Concat(inputNames).Concat(inputTypes)))throw new InvalidOperationException("Combine only explicit scalar input/output types or mapped input names; retain every input");
+  if(returns.Count>0&&!functions.SetEquals(returns.Concat(outputTypes).Concat(structures).Concat(inputNames).Concat(inputTypes).Concat(inputDefinitions)))throw new InvalidOperationException("Combine only explicit scalar input/output types, definitions or mapped input names; retain every input");
   var projections=new Dictionary<string,JsonObject>(StringComparer.Ordinal);
   if(structures.Count>0){
    if(inputDefinitions.Count>0||!functions.SetEquals(structures.Concat(outputTypes).Concat(returns).Concat(inputNames).Concat(inputTypes)))throw new InvalidOperationException("Combine only explicit scalar input replacements and output definitions/types; all input retained");
@@ -83,10 +85,11 @@ internal sealed class InformationFunctionBatch
     if(outputsChanged)projections.Add(id,callers.DeepClone().AsObject());
    }
   }else if(inputDefinitions.Count>0){
-   if(outputTyped||!functions.SetEquals(inputDefinitions.Concat(inputTypes)))throw new InvalidOperationException("Combine only explicit value input definitions and scalar type edits; retain every input");
-   foreach(var row in edits){var mapping=row!["mapping"]!.AsObject();var next=InformationFunctionBodies.Signature(row["signature"]!);bool uses=mapping["implementations"] is JsonObject;
-    if(mapping.Count!=3+(uses?1:0)||mapping["callers"] is not JsonObject callers||mapping.ContainsKey("implementations")&&!uses||mapping.ContainsKey("outputs")||mapping.ContainsKey("outputGraphs"))throw new InvalidOperationException("Select original caller bindings and every removed input use; keep output plans unchanged");
-    foreach(var plan in callers.Select(p=>p.Value!.AsObject()))if(plan["inputs"] is not JsonObject inputs||inputs.Count!=next.Args.Count(a=>!a.IsOut)||plan["disconnect"] is not JsonObject||plan.ContainsKey("outputs"))throw new InvalidOperationException("Select every current value input and explicit unused binding removal; preserve outputs");
+   if(!functions.SetEquals(inputDefinitions.Concat(inputTypes).Concat(outputTypes).Concat(returns)))throw new InvalidOperationException("Combine only explicit value input definitions and scalar output/return types; retain every input");
+   foreach(var row in edits){var mapping=row!["mapping"]!.AsObject();var before=InformationFunctionBodies.Signature(mapping["before"]!);var next=InformationFunctionBodies.Signature(row["signature"]!);string id=row["id"]!.ToString();bool uses=mapping["implementations"] is JsonObject,inputsChanged=inputDefinitions.Contains(id)||inputTypes.Contains(id),outputsChanged=outputTypes.Contains(id)||returns.Contains(id);
+    if(mapping.Count!=3+(uses?1:0)+(outputsChanged?1:0)||mapping["callers"] is not JsonObject callers||mapping.ContainsKey("implementations")&&(!inputsChanged||!uses)||(outputsChanged?mapping["outputs"] is not JsonObject:mapping.ContainsKey("outputs"))||mapping.ContainsKey("outputGraphs"))throw new InvalidOperationException("Select original caller bindings, removed input uses and changed output writers explicitly");
+    foreach(var plan in callers.Select(p=>p.Value!.AsObject()))if(plan["inputs"] is not JsonObject inputs||inputs.Count!=next.Args.Count(a=>!a.IsOut)||plan["disconnect"] is not JsonObject disconnect||!inputsChanged&&(before.Args.Where(a=>!a.IsOut).Any(a=>inputs[a.Name]?.ToString()!=a.Name)||disconnect.Count!=0)||(outputsChanged?plan["outputs"] is not JsonObject:plan.ContainsKey("outputs")))throw new InvalidOperationException("Select every current input, unused binding removal and compatible output; preserve unchanged bindings");
+    if(outputsChanged)projections.Add(id,callers.DeepClone().AsObject());
    }
   }else if(outputTyped||(typed&&hasOutputs)){
    // Each original closure owns its own selections. An input-only edit does
