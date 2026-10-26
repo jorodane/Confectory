@@ -18,3 +18,5 @@
 최신 정책과 미완료 해석은 [오버라이드 계약 정책](V536_OVERRIDE_CONTRACT_POLICY.md)을 따른다. 과거 보호 거절을 독립 복제 기능의 필수 미구현으로 집계하지 않는다.
 
 Confirm 전 재편집의 실제 완료 범위와 검증은 [미확정 copy](VALIDATION_V536_INFORMATION_PENDING_COPY.md)를 따른다. 최초 생성·선택·배정은 기존 private copy 거래이며 새 기능이 아니다. 이번 수정은 저장 후 Confirm 전 본문 재진입을 막던 baseline guard의 좁은 보완이다.
+
+[단일 copy의 native 별칭·외부 import 수용](VALIDATION_V536_INFORMATION_COPY_IMPORTS.md)은 로컬 함수를 구현하는 copy가 기존 읽기 전용 외부 함수 import를 그대로 호출하는 본문 편집이다. C# 부모와 변환된 Blueprint 부모의 고정 공개/native 계약을 확인한다. 외부 namespace 함수를 구현하는 copy 또는 여러 target을 한 copy로 편집하는 지원과 혼동하지 않는다. 다른 별칭/import 자체 변경의 명시적 대응과 직렬 whitelist 밖 graph는 기존 잔여다.

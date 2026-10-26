@@ -3,6 +3,20 @@ import json
 import v536_information_whole_body_fixture as b
 
 f, d, n, owner, fn, mode = b.f, b.d, b.n, b.owner, b.fn, b.mode
+imported_copy = __import__('os').environ.get('CONFECTORY_COPY_IMPORTS') == '1'
+if imported_copy:
+    # Existing typed imports and native parameter aliases, not a new callable
+    # contract. The registered declaration/body are always read-only donors.
+    foreign = 'External.Fields::Echo'
+    registered = f.project / 'registered'
+    pack = registered / 'pack.cpack'
+    pack.write_text(pack.read_text().replace('}', 'element Echo function "Echo.celem";element EchoBody implementation "EchoBody.celem";}'))
+    (registered / 'Echo.celem').write_text('function ' + foreign + ' (long foreignInput) -> long {provide ' + foreign + ' with ' + foreign + 'Body;}')
+    (registered / 'EchoBody.celem').write_text('implementation ' + foreign + 'Body for ' + foreign + ' (long externalValue) -> long {body common "Echo.csbody";}')
+    (registered / 'Echo.csbody').write_text('return checked(externalValue+3); // 외부 원문 · 9223372036854775806\r\n')
+    b.cpp = b.cpp.replace('{body common', '{import ' + foreign + ' as ForeignEcho (long) -> long;body common')
+    b.original = 'nativeTotal=checked(calls.ForeignEcho.Invoke(nativeAmount)+1);return nativeTotal; // 원래 별칭 · 9223372036854775806\r\n'
+    (f.project / 'whole-original.csbody').write_bytes(b.original.encode())
 child = fn + 'Body'
 parent = fn + 'ParentBody'
 parent_path = parent.split('::')[1] + '.celem'
@@ -72,3 +86,26 @@ def copy_row(prepared, text=edited):
     return {'function': fn, 'implementation': copy_id, 'copySource': child,
             'copyTarget': 'common', 'basis': prepared['basis'],
             'edits': [{'type': 'source', 'node': 'body', 'text': text}]}
+
+
+def imported_copy_contract(rows, implementation):
+    if not imported_copy:
+        return
+    graph = json.loads(rows[implementation + '/body:common']['draft'])
+    context = next(node['implementationContext'] for node in graph['nodes']
+                   if node.get('implementationContext'))
+    assert context['signature'] == b.native
+    assert context['imports'] == {'ForeignEcho': {'feature': foreign, 'scope': None,
+           'signature': {'args': [{'name': 'arg0', 'type': 'long'}], 'return': 'long'}}}
+    if implementation in rows:
+        text = rows[implementation]['draft']
+    else:
+        # An unchanged confirmed header need not be exported as a dirty unit.
+        # Read its real locator instead of inventing a pending creation member.
+        header = next(row for row in f.metadata('describe', project=str(f.manifest))['units']
+                      if row['id'] == implementation and row['kind'] == 'implementation')
+        text = (f.project / header['path']).read_bytes().decode('utf-8-sig')
+    assert 'import ' + foreign + ' as ForeignEcho (long) -> long;' in text
+    record = rows[implementation + '/body:common/node:body']
+    assert 'calls.ForeignEcho.Invoke(nativeAmount)' in json.loads(record['draft'])['source']
+    original_sources()

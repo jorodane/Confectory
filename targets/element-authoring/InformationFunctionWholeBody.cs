@@ -5,14 +5,14 @@ using System.Text.Json.Nodes;
 // adapter never infers a C# edit, a new cell, an alias or a caller binding.
 internal static class InformationFunctionWholeBody
 {
- internal static JsonObject Prepare(string id, JsonObject graph, Element original, Element requested, Element implementation, string target, JsonObject units, JsonObject plans, JsonObject remap, Func<Element,string> format)
+ internal static JsonObject Prepare(string id, JsonObject graph, Element original, Element requested, Element implementation, string target, JsonObject units, JsonObject plans, JsonObject remap, Func<Element,string> format,IReadOnlyDictionary<string,Element> contracts)
  {
   if(graph["copySource"] is not null)throw new InvalidOperationException("Copy provenance requires its separate explicit source receipt; original copy retained");
   var node=graph["nodes"]!.AsArray().SingleOrDefault(n=>n!["implementationContext"] is not null)??throw new InvalidOperationException("One explicit whole-body context required");
   string recordId=id+"/node:"+node["id"]!.ToString();var unit=units[recordId]?.AsObject()??throw new InvalidOperationException("Original whole-body source missing");
   var plan=plans[recordId]?.AsObject()??throw new InvalidOperationException("Explicitly review the whole C# body and caller storage before changing its contract");
   var before=implementation.Signature!;var selected=InformationFunctionBodies.Signature(plan["signature"]!);
-  if(plan["whole"] is JsonObject whole)return Contract(id,graph,original,requested,implementation,target,units,plan,whole,remap,format);
+  if(plan["whole"] is JsonObject whole)return Contract(id,graph,original,requested,implementation,target,units,plan,whole,remap,format,contracts);
 
   var expected=new FunctionSignature(before.Args.Select((p,i)=>new Parameter(p.Type,p.Name,requested.Signature!.Args.ElementAtOrDefault(i)?.Mode)).ToList(),before.Return);
   if(!JsonNode.DeepEquals(FeatureBlueprint.SignatureDocument(selected),FeatureBlueprint.SignatureDocument(expected)))throw new InvalidOperationException("Keep exact native names, types, order and out roles; select value/ref explicitly");
@@ -24,7 +24,7 @@ internal static class InformationFunctionWholeBody
  // The original graph is first proved to be the exact whole-body lift. Only
  // explicit native text/signature and its positional public storage contract
  // may replace it; no independent nodes, aliases or control routes are erased.
- static JsonObject Contract(string id,JsonObject originalGraph,Element original,Element requested,Element implementation,string target,JsonObject units,JsonObject plan,JsonObject whole,JsonObject remap,Func<Element,string> format)
+ static JsonObject Contract(string id,JsonObject originalGraph,Element original,Element requested,Element implementation,string target,JsonObject units,JsonObject plan,JsonObject whole,JsonObject remap,Func<Element,string> format,IReadOnlyDictionary<string,Element> contracts)
  {
   string Hash(string text)=>JsonData.HashBytes(System.Text.Encoding.UTF8.GetBytes(text));
   var node=originalGraph["nodes"]!.AsArray().Single(n=>n!["implementationContext"] is not null)!;
@@ -37,7 +37,7 @@ internal static class InformationFunctionWholeBody
   string text=InformationFunctionBodies.Text(recordId,unit["path"]!.ToString(),unit,implementation.Signature!,selected,requested.Signature!,bodyPlan);
   var one=new Parser(format(implementation),"<original-whole-target>").ParseElement();one.Bodies=new(){[target]=implementation.Bodies[target]};
   var signature=FeatureBlueprint.SignatureDocument(original.Signature!);
-  var proved=BlueprintRootContract.Prepare(new JsonObject{["functionText"]=format(original),["text"]=format(one),["bodyTarget"]=target,["graph"]=originalGraph.DeepClone(),["plan"]=new JsonObject{["args"]=signature["args"]!.DeepClone(),["returnType"]=original.Signature!.Return,["remap"]=new JsonObject(original.Signature.Args.Select(a=>KeyValuePair.Create<string,JsonNode?>(a.Name,JsonValue.Create(a.Name)))),["rootBody"]=new JsonObject{["node"]=nodeId,["source"]=originalRecord["source"]!.DeepClone()}}},format);
+  var proved=BlueprintRootContract.Prepare(new JsonObject{["functionText"]=format(original),["text"]=format(one),["bodyTarget"]=target,["graph"]=originalGraph.DeepClone(),["plan"]=new JsonObject{["args"]=signature["args"]!.DeepClone(),["returnType"]=original.Signature!.Return,["remap"]=new JsonObject(original.Signature.Args.Select(a=>KeyValuePair.Create<string,JsonNode?>(a.Name,JsonValue.Create(a.Name)))),["rootBody"]=new JsonObject{["node"]=nodeId,["source"]=originalRecord["source"]!.DeepClone()}}},format,stableImports:JsonNode.DeepEquals(FeatureBlueprint.SignatureDocument(original.Signature!),FeatureBlueprint.SignatureDocument(requested.Signature!))&&JsonNode.DeepEquals(FeatureBlueprint.SignatureDocument(implementation.Signature!),FeatureBlueprint.SignatureDocument(selected))?contracts:null);
   var graph=proved["graph"]!.DeepClone().AsObject();var code=graph["nodes"]!.AsArray().Single(n=>n!["id"]!.ToString()==nodeId)!;
   var priorReturn=graph["nodes"]!.AsArray().SingleOrDefault(n=>n!["kind"]?.ToString()=="export");
   string? returnId=whole["returnNode"]?.GetValue<string>();

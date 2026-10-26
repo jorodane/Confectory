@@ -134,8 +134,19 @@ def reedit_pending(copied, checkpoint):
     fill(dialog, edited)
     dialog.locator('[data-code-save]').click()
     mapping = f.page.locator('[role=dialog]:has([data-abi-remap-accept])')
-    expect(mapping).to_be_visible()
-    mapping.locator('[data-abi-remap-accept]').click()
+    if 'blueprint-parent' in __import__('sys').argv[4:]:
+        # Whole lifts retain an exact identity contract without an output plan;
+        # selectCallerInputs deliberately returns before opening a remap dialog.
+        expect(mapping).to_have_count(0)
+        retained = pending()[0]
+        body_plan = retained['mapping']['bodies'][key]
+        assert 'outputs' not in body_plan
+        assert body_plan['signature'] == body_plan['beforeSignature'] == x.b.native
+        assert retained['signature'] == retained['mapping']['before'] == x.b.old
+        assert retained['mapping']['args'] == {'amount': 'amount', 'count': 'count'}
+    else:
+        expect(mapping).to_be_visible()
+        mapping.locator('[data-abi-remap-accept]').click()
     f.idle()
     assert len(pending()) == 1
     value = pending()[0]
@@ -268,6 +279,7 @@ def reedit_pending(copied, checkpoint):
     group = by_id[owner]['atomicEditGroup']
     assert {r['id'] for r in rows if r['id'].startswith(copied)} <= set(group)
     assert all(by_id[id]['atomicEditGroup'] == group for id in group)
+    x.imported_copy_contract(by_id, copied)
     restart(13)
     preserved()
     f.checked('미확정 복사본의 같은 계약 본문 저장은 생성/배정과 한 그룹으로 남고 재시작 후 부모/호출자 원문을 보존한다')

@@ -37,3 +37,5 @@ Library 전달, 전체 UI 완료는 별개 미검증/미완료다. 기존 자료
 ## 선정 단위의 후속 결과
 
 직접 소유 단일 native C# 본문 두 개의 계약 불변 Save를 후보/CAS와 기존 화면에 연결했다. 집중12흐름31확인·영향8흐름25확인 및 실제 compiler Confirm이 통과했다([검증](VALIDATION_V536_INFORMATION_SHARED_BODIES.md)). 같은 graph의 재직렬화와 identity 출력 표현의 불필요한 정규화도 보완해 caller 원문을 보존한다. 원래 순열 adapter의 경계를 영구 정책으로 정하거나 새로운 핀 ID를 만들지 않았다. 7행 copy·8행 나머지 실제 문맥·9행 타입/표시명과 후속 UI는 위 표의 원래 범위로 남긴다.
+
+로컬 same-contract copy가 이미 가진 native 별칭·읽기 전용 등록 import를 그대로 보존하는 본문 편집은 [별도 수용 기록](VALIDATION_V536_INFORMATION_COPY_IMPORTS.md)으로 구별한다. 변환된 Blueprint 부모의 import 일괄 거절만 관측된 source map과 고정 서명의 내부 연결로 보완한다. 외부 함수를 구현하는 copy/다중 target/별칭·import 자체 변경/다른 graph 문맥의 원래 잔여를 자동 완료로 세지 않는다.

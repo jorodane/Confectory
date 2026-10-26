@@ -4,7 +4,7 @@ using Confectory.Core;
 // Pure, bounded root contract preparation. No file writes, source stamping or execution.
 static class BlueprintRootContract
 {
- public static JsonObject Prepare(JsonObject request,Func<Element,string> format,IReadOnlySet<string>? coordinated=null)
+ public static JsonObject Prepare(JsonObject request,Func<Element,string> format,IReadOnlySet<string>? coordinated=null,IReadOnlyDictionary<string,Element>? stableImports=null)
  {
   var function=new Parser(request["functionText"]!.GetValue<string>(),"<root-function>").ParseElement();
   var implementation=new Parser(request["text"]!.GetValue<string>(),"<root-implementation>").ParseElement();
@@ -39,7 +39,11 @@ static class BlueprintRootContract
    rootBody=plan["rootBody"]!.AsObject();if(rootBody.Count!=2||rootBody["node"] is null||rootBody["source"] is null||rootBody["source"]!.GetValue<string>().Length>1048576||plan.Any(p=>p.Key is not ("args" or "returnType" or "remap" or "inputModes" or "rootBody")))throw new ArgumentException("Explicit root mode/body source only; other root edits stay separate");
    string id=rootBody["node"]!.GetValue<string>();var node=nodes.SingleOrDefault(n=>n!["id"]?.ToString()==id) as JsonObject;
    nativeSignature=implementation.Signature;
-   if(implementation.Imports.Count>0)throw new InvalidOperationException("Imported whole-body modes require their complete source contracts; retain source and use the existing body editor");
+   if(implementation.Imports.Count>0){
+    // Only the information editor can supply its already observed source map.
+    // This permits a fixed-contract body edit, never an inferred import repair.
+    if(stableImports is null||implementation.Imports.Count>32||!JsonNode.DeepEquals(FeatureBlueprint.SignatureDocument(old),FeatureBlueprint.SignatureDocument(function.Signature!))||implementation.Imports.Values.Any(import=>!stableImports.TryGetValue(import.Id,out var declaredImport)||declaredImport.Kind!="function"||declaredImport.Signature is null||!import.Signature.Matches(declaredImport.Signature)))throw new InvalidOperationException("Imported whole-body modes require their complete unchanged source contracts; retain source and use the existing body editor");
+   }
    if(nativeSignature is null||!old.Matches(nativeSignature)||node is null||node["kind"]?.ToString()!="code"||node["control"]?.ToString()!="next"||node["implementation"] is null||!JsonNode.DeepEquals(node["signature"],FeatureBlueprint.SignatureDocument(nativeSignature))||!JsonNode.DeepEquals(node["implementationContext"],FeatureBlueprint.ImplementationContext(implementation))||graph["entry"]?.ToString()!=id||graph["contractHash"]?.ToString()!=FeatureBlueprint.ContractHash(new Parser(request["functionText"]!.GetValue<string>(),"<old-root>").ParseElement()))throw new InvalidOperationException("Exact owned whole-body context/signature/source required");
    if(next.Count!=old.Args.Count||function.Signature!.Return!=old.Return||old.Args.Select((p,i)=>(p,i)).Any(x=>function.Signature.Args[x.i].Name!=x.p.Name||function.Signature.Args[x.i].Type!=x.p.Type||remap[x.p.Name]?.ToString()!=x.p.Name||x.p.IsOut&&function.Signature.Args[x.i].Mode!="out"||!x.p.IsOut&&function.Signature.Args[x.i].IsOut))throw new InvalidOperationException("Whole-body mode editing retains names, types, order, return and out roles");
    if(nodes.Count!=(old.Return=="void"?1:2)||graph["locals"] is JsonArray locals&&locals.Count>0||graph["exits"]!.AsObject().Any(p=>p.Value is not null))throw new InvalidOperationException("Coordinate only the original whole-body lift, not additional data/control nodes");
