@@ -42,3 +42,11 @@
 ## 최종 집중·영향 결과
 
 최종 집중 UI5흐름과 영향6검사, 총11흐름 66확인을 통과했다. 별도 순수 후보4확인은 clone·immutable seed/중간/깊이2 preview·cold JSON·qualified leaf 편집과 5거절 경계를 구분한다. 영향검사는 enum copy UI·실제 프로젝트 전환, 기존 직접 소유 내부 흐름 UI, private ABI 순수 후보/실제 compiler 거절, 독립 창 소유 가드 API, 오버라이드 계약 보호다. 개발 중 기본 창7확인과 수정 전 실패는 최종 합계와 구분해 보관했다. [상세 명령·체크·해시](evidence/v536-nested-copy-body/focused-verification.json)를 남긴다.
+
+## 독립 checkout·새 교차 패키지 검증
+
+실행 소스 커밋 `ac5524751b76c25b917e6418512e7a4384c89b23`에서 기존 독립 checkout을 정상 FF하고 원래 `core.autocrlf=true`를 유지했다. 변경 파일의 Git blob과 clean 상태를 확인하고 Native Release·새 Linux 엔진·실제 기본/독립 창·nested copy 경합·권한/오버라이드 회귀 4흐름 21확인을 통과했다. 루트의 11흐름 66확인과 별도로 구분한다.
+
+restore·솔루션 Release·명시 MCP Release·새 Windows x64 교차 패키징·패키지 probe·실제 패키지 `content/runtime/Confectory.App.dll`의 등록 함수 nested copy 독립 창 UI/컴파일러 7확인까지 6단계가 통과했다. manifest 2346개, 전체 2347개 파일/해시와 링크 부재, 실제 Core/Native DLL 및 변경 제품 소스의 바이트 일치를 확인했다. manifest SHA-256 `43cf9c522012f32997f145c20914252bf7bf8216f156ef2143a6e935ad88162a`, Native DLL `1c3e0e5224205b84c4f02f4343b92d1f80460fd4519d715eaeb8f09001c401d5`. SDK 없는 Linux runtime에서 패키지 웹 기동·74 resource·변조/필수 의존 누락 거절·기존 프로필/명시 override 보존은 probe로 구분한다. Windows apphost/WebView2를 실제 Windows에서 실행한 검사가 아니다.
+
+전체 manifest와 fixture ZIP을 보관·무결성 확인한 뒤 이번 RAM 검증 패키지만 정리했다. 이전 보관 패키지/원본/사용자 자료는 삭제하지 않았다. 새 전달용 산출물을 보관하거나 Library에 업로드한 것은 아니다. 기록 시 workspace 여유 1352.2 MiB. [상세 결과](evidence/v536-nested-copy-body/package-clean-verification.json)에 실제 명령·로그·SHA를 남겼다. 이 이후 커밋은 이 검증 문서와 결과 JSON만 추가하며 실행 코드는 위 소스 커밋과 같다.
