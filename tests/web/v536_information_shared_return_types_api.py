@@ -2,7 +2,9 @@
 import copy
 import json
 import os
-if os.environ.get('CONFECTORY_SHARED_INPUT_DEFINITION_RETURN_MIX') == '1':
+if os.environ.get('CONFECTORY_SHARED_INPUT_OUTPUT_DEFINITIONS') == '1':
+    import v536_information_shared_input_output_definitions_fixture as x
+elif os.environ.get('CONFECTORY_SHARED_INPUT_DEFINITION_RETURN_MIX') == '1':
     import v536_information_shared_input_definition_return_mix_fixture as x
 elif os.environ.get('CONFECTORY_SHARED_INPUT_OUTPUT_DEFINITION_MIX') == '1':
     import v536_information_shared_input_output_definition_mix_fixture as x
@@ -45,7 +47,14 @@ try:
     baseline=checkpoint.read_bytes();request=prepare()
     bad=copy.deepcopy(request);last=bad['declaration']['changes'][1]['mapping']
     if 'outputs' in last:next(iter(last['outputs'].values()))['source']={'input':'amount'}
-    else:next(iter(last['implementations'].values()))['value']={'valueJson':'"long 아닌 값"'}
+    elif last.get('implementations'):next(iter(last['implementations'].values()))['value']={'valueJson':'"long 아닌 값"'}
+    else:
+        # An addition-only last row has no removed use or changed writer.
+        # Still reject its explicitly selected new value before any row saves.
+        values=[value for caller in last['callers'].values() for value in caller['inputs'].values()
+                if isinstance(value,dict) and 'valueJson' in value]
+        assert values, 'Select a real last-row value to invalidate'
+        values[0]['valueJson']='"long 아닌 값"'
     rpc('applySlots',False,**bad)
     assert checkpoint.read_bytes()==baseline;x.unchanged()
     f.checked('실제 서버는 두 번째 계약 오류에서 첫 함수와 공유 caller도 checkpoint에 남기지 않는다')
