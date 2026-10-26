@@ -29,6 +29,7 @@ try
         case "blueprintCallAbi":reply=BlueprintCallAbi.Prepare(request,Format);break;
         case "blueprintCallAbiGroup":reply=BlueprintCallAbiGroup.Prepare(request,Format);break;
         case "blueprintCopyAbiBinding":reply=BlueprintCopyAbi.Bind(request);break;
+        case "blueprintRegisteredCopyAbiBinding":reply=BlueprintRegisteredCopyAbi.Query(request);break;
         case "mixedOwnerCopyEdits":reply=MixedOwnerCopyEdits.Prepare(request,Format,FormatManifest);break;
         case "informationTypes":reply=InformationTypes.Query(request,FormatManifest);break;
         case "informationFunctionInputUses":reply=InformationFunctionInputUses.Read(request);break;

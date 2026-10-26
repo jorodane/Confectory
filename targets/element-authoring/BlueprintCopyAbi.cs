@@ -7,14 +7,14 @@ using System.Text.Json.Nodes;
 // receipt binds one directly assigned object and exact target. No file I/O.
 internal static class BlueprintCopyAbi
 {
- public static JsonObject Bind(JsonObject request)
+ public static JsonObject Bind(JsonObject request,Element? registeredFunction=null)
  {
   string id=request["id"]!.ToString(),ownerId=request["owner"]!.ToString(),graphId=request["graphId"]!.ToString();
   var caller=new Parser(request["text"]!.GetValue<string>(),"<copy-abi>").ParseElement();
-  var fn=new Parser(request["functionText"]!.GetValue<string>(),"<copy-function>").ParseElement();
+  var fn=registeredFunction??new Parser(request["functionText"]!.GetValue<string>(),"<copy-function>").ParseElement();
   var owner=new Parser(request["ownerText"]!.GetValue<string>(),"<copy-owner>").ParseElement();
   var graph=request["graph"]!.AsObject();string ns=PackPaths.Namespace(id);
-  if(caller.Id!=id||caller.Kind!="implementation"||caller.Parent is not null||caller.Bodies.Count!=1||owner.Id!=ownerId||owner.Kind is not ("object" or "schema")||PackPaths.Namespace(ownerId)!=ns||fn.Kind!="function"||PackPaths.Namespace(fn.Id)!=ns||caller.Function!=fn.Id||!fn.Signature!.Matches(caller.Signature)||graph["feature"]?.ToString()!=fn.Id)throw new ArgumentException("One owned saved copy and its direct object/function required");
+  if(caller.Id!=id||caller.Kind!="implementation"||caller.Parent is not null||caller.Bodies.Count!=1||owner.Id!=ownerId||owner.Kind is not ("object" or "schema")||PackPaths.Namespace(ownerId)!=ns||fn.Kind!="function"||registeredFunction is null&&PackPaths.Namespace(fn.Id)!=ns||caller.Function!=fn.Id||!fn.Signature!.Matches(caller.Signature)||graph["feature"]?.ToString()!=fn.Id)throw new ArgumentException("One owned saved copy and its direct object/function required");
   var body=caller.Bodies.Single();if(body.Value.SourceKind!="blueprint"||graphId!=id+"/body:"+body.Key||body.Value.Path!=request["graphPath"]!.ToString())throw new ArgumentException("One exact saved copy target/locator required");
   if(graph["copySource"] is not JsonObject provenance||provenance.Count!=4||provenance.Any(p=>p.Key is not ("implementation" or "target" or "bodyOrigin" or "sourceKind"))||provenance["target"]?.ToString()!=body.Key||provenance["sourceKind"]?.ToString() is not ("blueprint" or "csharp")||provenance["implementation"] is not JsonValue||provenance["bodyOrigin"] is not JsonValue||!provenance["implementation"]!.ToString().Contains("::",StringComparison.Ordinal)||!provenance["bodyOrigin"]!.ToString().Contains("::",StringComparison.Ordinal)||provenance["implementation"]!.ToString()==id||request["unitProvenance"] is not null&&!JsonNode.DeepEquals(request["unitProvenance"],provenance))throw new ArgumentException("Exact unchanged copy provenance required");
   if(!owner.Provides.TryGetValue(fn.Id,out var direct)||direct.Id!=id)throw new ArgumentException("Direct copied slot assignment required");
