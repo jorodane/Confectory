@@ -31,7 +31,7 @@ Native Release와 순수 후보는 정상 결합과 마지막 값의 타입/프�
 
 미완성 값을 서버가 거절한 뒤 값을 고친 경우에는 이전 요청의 미적용, 원래 checkpoint·전체 source closure와 실제 물리 원본 파일 불변을 조회로 확인한다. 같은 키/노드/증거와 본문 원문을 유지한 명시 값 수정만 새 attempt로 만들며 이전 실패 요청은 previousAttempts에 보관한다. 적용 여부가 불명하거나 실제 source가 바뀌면 이 경로를 열지 않는다. 응답 유실의 성공 receipt 조회·중복 방지는 기존 경로를 유지한다.
 
-처음 Undo 검사는 기존 값 변경이 canvas 이력에 들어가지 않는 실제 결함을 재현했다. 기존 structuralEdit을 하위 copy 값 선택에 연결했다. 그다음 키/원문이 같아도 Map 순회 순서가 달라 검사에서 거절되던 비교 문제를 바로잡았으며, 원래 graph/pin/route 순서 검사는 유지했다. 수정 전 기본 UI 통과와 이 실패 시도는 최종 결과와 별도로 보관한다. 창 전환 검사 중 report-2 엔진의 재시작에 개발 중 갱신한 JS가 섞여 strict canonical size mismatch가 난 실행도 미통과로 보존한다. 최종 엔진/리소스 버전을 일치시켜 해당 흐름을 재검증하며 resource 검증을 완화하지 않는다.
+처음 Undo 검사는 기존 값 변경이 canvas 이력에 들어가지 않는 실제 결함을 재현했다. 기존 structuralEdit을 하위 copy 값 선택에 연결했다. 그다음 키/원문이 같아도 Map 순회 순서가 달라 검사에서 거절되던 비교 문제를 바로잡았으며, 원래 graph/pin/route 순서 검사는 유지했다. 수정 전 기본 UI 통과와 이 실패 시도는 최종 결과와 별도로 보관한다. 창 전환 검사 중 report-2 엔진의 재시작에 개발 중 갱신한 JS가 섞여 strict canonical size mismatch가 난 실행도 미통과로 보존한다. 최종 엔진/리소스 버전을 일치시켜 해당 흐름을 재검증했고 resource 검증을 유지했다.
 
 ## 실제 잔여와 플랫폼 한계
 
@@ -43,8 +43,16 @@ Native Release와 순수 후보는 정상 결합과 마지막 값의 타입/프�
 
 수정 전 실제 독립 창에서 미완성 값 Save 거절→올바른 input 선택→Save가 막히는 결함을 재현했다. 이전 authorBatch는 미적용이었지만 조회가 baselineUnchanged=false만 반환해 새 명시 값이 제출되지 않았다. 이를 최종 성공으로 집계하지 않고 retry-before 증거로 보관한다.
 
-최종 재시도 guard의 닫는 괄호 누락으로 브라우저 초기 진입이 실패한 시도도 기록한다. 실제 제공된 57개 스크립트와 CDP exception 위치(feature-authoring.js 621행)를 대조해 원인을 수정했다. 정적 Node check만으로 이 시도를 통과로 분류하지 않았으며 실제 Chromium/엔진 검증을 다시 수행한다.
+최종 재시도 guard의 닫는 괄호 누락으로 브라우저 초기 진입이 실패한 시도도 기록한다. 실제 제공된 57개 스크립트와 CDP exception 위치(feature-authoring.js 621행)를 대조해 원인을 수정했다. 정적 Node check만으로 이 시도를 통과로 분류하지 않았으며 실제 Chromium/엔진 검증을 다시 수행해 통과했다.
 
 ## 집중 검증 완료
 
-Native Release 0경고/오류와 순수 후보 6확인, 실제 엔진/렌더러 및 영향 회귀 11흐름 91확인을 통과했다. 정상·독립 창 값 Undo/Redo·cold·취소·저장 실패·다른 창 경합·응답 유실 조회·원래 source의 실제 물리 변경 거절·거절 후 명시 값 수정 재시도·프로젝트/창 문맥·Review/Confirm을 구분했다. 첫 네 흐름은 좁은 재시도 수정 전의 동일 정상/receipt 경로 결과를 재사용하며, 수정 분기와 앞서 실패한 창 전환 및 영향 회귀는 최종 엔진으로 확인했다. 이전 실패 시도는 합계에서 제외했다. [명령·결과·제품 해시](evidence/v536-nested-copy-values/focused-verification.json)에 기록했다. 다음 checkout/새 교차 패키지 결과는 별도 추가한다.
+Native Release 0경고/오류와 순수 후보 6확인, 실제 엔진/렌더러 및 영향 회귀 11흐름 91확인을 통과했다. 정상·독립 창 값 Undo/Redo·cold·취소·저장 실패·다른 창 경합·응답 유실 조회·원래 source의 실제 물리 변경 거절·거절 후 명시 값 수정 재시도·프로젝트/창 문맥·Review/Confirm을 구분했다. 첫 네 흐름은 좁은 재시도 수정 전의 동일 정상/receipt 경로 결과를 재사용하며, 수정 분기와 앞서 실패한 창 전환 및 영향 회귀는 최종 엔진으로 확인했다. 이전 실패 시도는 합계에서 제외했다. [명령·결과·제품 해시](evidence/v536-nested-copy-values/focused-verification.json)에 기록했다. checkout/새 교차 패키지 결과는 아래에 별도로 기록했다.
+
+## 독립 checkout·새 교차 패키지 검증
+
+실행 소스 커밋 `598458669a662d78b75ff77491a3604fd1fe4543`에서 기존 독립 checkout을 정상 FF하고 원래 `core.autocrlf=true`를 유지했다. 변경 파일의 Git blob과 clean 상태를 확인하고 Native Release·새 Linux 엔진·실제 기본/독립 창·nested copy 경합·권한/오버라이드 회귀 4흐름 29확인을 통과했다. 루트의 11흐름 91확인과 별도로 구분한다.
+
+restore·솔루션 Release·명시 MCP Release·새 Windows x64 교차 패키징·패키지 probe·실제 패키지 `content/runtime/Confectory.App.dll`의 등록 함수 nested copy 독립 창 UI/컴파일러 13확인까지 6단계가 통과했다. manifest 2346개, 전체 2347개 파일/해시와 링크 부재, 실제 Core/Native DLL 및 변경 제품 소스의 바이트 일치를 확인했다. manifest SHA-256 `b594ae9997730a8cd9cd700893a2d251d1f6abb79671a4b183184e870d77a38f`, Native DLL `13d634540106daad9cf48e5d2f37bda0b1b81e533bee664644faba1dbf0e0483`. SDK 없는 Linux runtime에서 패키지 웹 기동·74 resource·변조/필수 의존 누락 거절·기존 프로필/명시 override 보존은 probe로 구분한다. Windows apphost/WebView2를 실제 Windows에서 실행한 검사가 아니다.
+
+전체 manifest와 fixture ZIP을 보관·무결성 확인한 뒤 이번 RAM 검증 패키지만 정리했다. 이전 보관 패키지/원본/사용자 자료는 삭제하지 않았다. 새 전달용 산출물을 보관하거나 Library에 업로드한 것은 아니다. 기록 시 workspace 여유 1292.6 MiB. [상세 결과](evidence/v536-nested-copy-values/package-clean-verification.json)에 실제 명령·로그·SHA를 남겼다. 이 이후 커밋은 이 검증 문서와 결과 JSON만 추가하며 실행 코드는 위 소스 커밋과 같다.
