@@ -59,16 +59,17 @@ internal sealed class InformationFunctionBatch
     inputDefinitions.Add(id);continue;
    }
    if(before.Return!=next.Return){
-    // Out and return writers use the same explicit output closure. Value
-    // inputs stay exact; the loop below proves every retained out identity.
-    if(!Scalar(before.Return)||!Scalar(next.Return)||!before.Args.Where(a=>!a.IsOut).Select(a=>(Name:remap[a.Name]?.ToString(),a.Type,a.Mode)).SequenceEqual(next.Args.Where(a=>!a.IsOut).Select(a=>(Name:(string?)a.Name,a.Type,a.Mode))))throw new InvalidOperationException("Shared scalar return changes retain explicitly mapped value input types/order/roles");
+    // Out and return writers share the explicit output closure. Keep value
+    // identities/order here; the loop below proves unchanged maps or explicit
+    // scalar input replacements and every retained output identity.
+    if(!Scalar(before.Return)||!Scalar(next.Return)||!before.Args.Where(a=>!a.IsOut).Select(a=>(Name:remap[a.Name]?.ToString()??a.Name,a.Mode)).SequenceEqual(next.Args.Where(a=>!a.IsOut).Select(a=>(Name:a.Name,a.Mode))))throw new InvalidOperationException("Shared scalar returns retain explicit value input identities/order/roles");
     returns.Add(id);outputTyped=true;
    }
    if(before.Args.Count!=next.Args.Count)throw new InvalidOperationException("Shared caller batching retains original argument identities outside coordinated output definitions");
    if(before.Args.Where((a,i)=>!a.IsOut&&a.Name!=next.Args[i].Name).Any())inputNames.Add(id);
    for(int i=0;i<before.Args.Count;i++){var a=before.Args[i];var b=next.Args[i];if(a.Mode!=b.Mode)throw new InvalidOperationException("Retain the original input/output roles explicitly");hasOutputs|=a.IsOut;if(a.Type==b.Type){if(remap[a.Name]?.ToString()!=b.Name)throw new InvalidOperationException("Retain each unchanged pin identity explicitly");}else if(a.IsOut){outputTyped=true;outputTypes.Add(id);if(a.Name!=b.Name||!Scalar(a.Type)||!Scalar(b.Type)||remap[a.Name]?.ToString()!=a.Name)throw new InvalidOperationException("Changed scalar outputs retain their explicit original pin identity");}else{typed=true;inputTypes.Add(id);if(a.Mode is not null||a.Name!=b.Name||!Scalar(a.Type)||!Scalar(b.Type)||!remap.ContainsKey(a.Name)||remap[a.Name] is not null)throw new InvalidOperationException("Changed scalar inputs need explicit replacement at the same position and name");}}
   }
-  if(returns.Count>0&&(typed||!functions.SetEquals(returns.Concat(outputTypes).Concat(structures).Concat(inputNames))))throw new InvalidOperationException("Combine only mapped input names and scalar output definitions/types; retain every value input");
+  if(returns.Count>0&&!functions.SetEquals(returns.Concat(outputTypes).Concat(structures).Concat(inputNames).Concat(inputTypes)))throw new InvalidOperationException("Combine only explicit scalar input/output types or mapped input names; retain every input");
   var projections=new Dictionary<string,JsonObject>(StringComparer.Ordinal);
   if(structures.Count>0){
    if(typed||inputDefinitions.Count>0||!functions.SetEquals(structures.Concat(outputTypes).Concat(returns).Concat(inputNames)))throw new InvalidOperationException("Combine only mapped input names and explicit output definitions/scalar types; all input retained");
@@ -89,7 +90,7 @@ internal sealed class InformationFunctionBatch
    // not grant an output rebind, nor does an output-only edit replace inputs.
    // Unchanged out pins still require the explicit input closure, not the
    // identity-only out-name path. No output selection is added for them.
-   if(typed&&functions.Any(id=>!inputTypes.Contains(id)&&!outputTypes.Contains(id)))throw new InvalidOperationException("Select scalar type edits for every grouped function; other input retained");
+   if(typed&&functions.Any(id=>!inputTypes.Contains(id)&&!outputTypes.Contains(id)&&!returns.Contains(id)))throw new InvalidOperationException("Select scalar input/output/return type edits for every grouped function; other input retained");
    foreach(var row in edits){var mapping=row!["mapping"]!.AsObject();var before=InformationFunctionBodies.Signature(mapping["before"]!);var next=InformationFunctionBodies.Signature(row["signature"]!);
     string id=row["id"]!.ToString();bool inputsChanged=inputTypes.Contains(id),outputsChanged=outputTypes.Contains(id)||returns.Contains(id),inputPlans=mapping["implementations"] is JsonObject;
     // A pure rename uses its exact old-pin map and the existing semantic
