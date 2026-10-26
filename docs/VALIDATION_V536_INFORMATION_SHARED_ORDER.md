@@ -44,3 +44,28 @@ postCall·복사/상속/등록 문맥의 여러 closure 결합은 현재 별도 
 이번 UI 복원 범위 밖이며 구현하지 않는다.
 
 집중 12흐름·32확인, 영향 9흐름·25확인이 통과했다. 기본/독립 창의 C# 잘못된 혼합 순서 거절/입력 보존·취소/재열기·명시 호출 대응·Undo/Redo·미저장 cold·저장 cold·Review 취소/Confirm, checkpoint 실패 전체 미적용/재시도·응답 유실 뒤 settled 결과 조회와 중복 방지·실제 peer 경합·프로젝트 전환/오래된 창 차단을 확인했다. 마지막 함수의 잘못된 계획/본문·receipt·컴파일·다른 문맥은 첫 함수까지 미적용이며 원본·정확64 값·반환 경로를 보존한다. 초기 실패 5건의 원인과 통과한 재검증은 근거에 별도로 기록했고 미해결 실패는 없다. 원본 렌더/실제 C#·호출 검토창 스크린샷과 원문 fixture를 보존했다.
+
+## 독립 checkout·새 교차 패키지 완료
+
+실행 소스는 `29ac38428d149e77f096606e558fb6c7df364c11`다. 기존 독립 checkout을 정상 fast-forward하고
+12개 Git blob·기존 LF/CRLF 설정·clean 상태를 확인했다. Native Release 경고/
+오류 0, 후보·API·독립 UI·기존 경로·오버라이드 보호 5흐름·13확인이 통과했다.
+root solution 및 별도 MCP Release도 경고·오류 0이다.
+
+새 Windows x64 교차 패키지의 manifest 2,343항목/marker 포함
+2,344파일, 132,793,663바이트의 집합·전체 해시 및
+현재 제품 소스·Native DLL과 7개 Core DLL 일치를 확인했다. manifest SHA-256은
+`922c7f487012eeacd11749b713c50e8bcc5c4b86d27ce7883777313a026a1143`, Native DLL SHA-256은
+`864bff96013a00b0418da6a6166bee81f5fb6ffa6af9f852a60fcf4c758f5a90`이다.
+
+SDK 없는 새 소유 runtime에서 무관한 cwd의 Linux managed 엔진 웹 기동,
+74리소스·synthetic profile/명시 override 보존·변조/DLL 누락 거절과 패키지
+backend 후보 4확인이 통과했다. 검사 6단계를 순차 수행했으며 OOM/oom_kill은 0이다.
+실제 Windows apphost/WebView2·모바일 기기 실행 및 Library 전달과 구별한다.
+
+새 증거 ZIP 35개의 파일 집합·권한·전체 바이트·해시를 재검증하고 전체 manifest와
+fixture 증거를 보존한 뒤 이번 소유 임시 RAM 패키지만 종료 cleanup했다.
+기존 자료 삭제·압축 변환이나 새 영구 배포 파일 보관·전달은 하지 않았다.
+패키지 단계 최저 디스크 여유는 1,728,356,352바이트다. 후속 결과 문서 커밋은
+실행 소스를 바꾸지 않는다.
+[checkout·패키지 근거](evidence/v536-information-shared-order/package-clean-verification.json)에 단계·소스·해시·검증 한계를 기록했다.
