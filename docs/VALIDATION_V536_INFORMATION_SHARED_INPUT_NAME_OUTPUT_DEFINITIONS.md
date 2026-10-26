@@ -86,3 +86,28 @@ checkpoint 저장 실패·재시도, 응답/조회 유실 receipt·중복 방지
 해시를 재검증했다. 실패 기대값 수정과 통과 결과를 구분한
 [집중·회귀 증거](evidence/v536-information-shared-input-name-output-definitions/focused-verification.json)에 기록한다.
 독립 checkout·패키지 결과는 이후 별도로 기록한다.
+
+## 독립 checkout·새 교차 패키지 완료
+
+실행 소스는 `c0c6b62e85374b97f801c790314ebc0b0172010a`다. 기존 독립 checkout을
+정상 fast-forward하고 9개 Git blob·기존 LF/CRLF 설정·clean 상태를 확인했다.
+Native Release 경고/오류 0, 기존 입력 전용·새 후보·실제 API·독립 UI·오버라이드
+보호의 5흐름·13확인이 통과했다. root solution과 별도 MCP Release도 경고/오류 0이다.
+
+복구 후 누락된 NuGet 의존성을 정상 restore하고 Windows x64 패키지를 새로
+교차 빌드했다. manifest 2,343항목/marker 포함 2,344파일, 132,763,486바이트의
+전체 집합/해시와 현재 소스·Native DLL 및 7개 Core DLL 일치를 확인했다.
+manifest SHA-256은 `10adc55b3869d236b2e724b81a32f7dc6883392c204e3cd3268921c13dfa20a5`,
+Native DLL SHA-256은 `d5deec988bb013fa634d0d41d9d62bfddd5df092f302b31ec4b2e2820aaeac18`이다.
+
+새 SDK 없는 소유 runtime에서 무관한 cwd의 실제 managed 엔진 웹 기동,
+74리소스·synthetic profile/명시 override 보존·변조/DLL 누락 거절과 패키지
+backend 후보 4확인이 통과했다. 실제 Windows apphost/WebView2 실행은 아니다.
+검증 단계 6개가 모두 성공했으며 대형 검사는 순차 실행했다.
+
+총 35개 새 증거 ZIP의 파일 집합·권한·내용을 재검증하고 전체 manifest와
+fixture 증거를 보존한 뒤 이번 임시 RAM 패키지만 정리했다. 새 배포 파일 보관이나
+Library 전달 결과가 아니다. 승인한 기존 18개 복사본 외 다른 기존 자료를 지우지
+않았다. 패키지 단계 최저 디스크 여유는 2,074,644,480바이트이며 OOM/oom_kill 0이다.
+후속 결과 문서 커밋은 실행 코드를 바꾸지 않는다.
+[checkout·패키지 증거](evidence/v536-information-shared-input-name-output-definitions/package-clean-verification.json)에 소스·단계·해시·정리 범위·한계를 기록한다.
