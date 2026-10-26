@@ -27,15 +27,26 @@ internal sealed class InformationFunctionBatch
   var units=request["units"]?.AsObject()??throw new InvalidOperationException("Read every shared caller before saving the function group");if(units.Count>2048)throw new ArgumentException("Shared contract source budget");
   bool referencePins=edits.Any(row=>new[]{row?["mapping"]?["before"],row?["signature"]}.Any(s=>s?["args"] is JsonArray args&&args.Any(a=>a?["mode"]?.ToString()=="ref")));
   bool wholeValue=edits.Any(row=>row?["mapping"]?["bodies"] is JsonObject&&row["mapping"]?["before"]?["args"] is JsonArray before&&row["signature"]?["args"] is JsonArray after&&before.Count==after.Count&&before.Where((a,i)=>(a?["mode"]?.ToString()=="out"&&after[i]?["mode"] is null||a?["mode"] is null&&after[i]?["mode"]?.ToString()=="out")).Any());
+  bool Permutation(FunctionSignature before,FunctionSignature next)=>before.Return==next.Return&&before.Args.Count==next.Args.Count&&!before.Args.SequenceEqual(next.Args)&&before.Args.All(a=>next.Args.Any(b=>a==b));
+  bool wholeOrder=edits.Any(row=>row?["mapping"]?["before"] is JsonObject&&row["signature"] is JsonObject&&Permutation(InformationFunctionBodies.Signature(row!["mapping"]!["before"]!),InformationFunctionBodies.Signature(row["signature"]!)));
+  var orderedFunctions=new HashSet<string>(StringComparer.Ordinal);
   var wholeRoleFunctions=new HashSet<string>(StringComparer.Ordinal);var wholeRolePlans=new Dictionary<string,JsonObject>(StringComparer.Ordinal);
   var functions=new HashSet<string>(StringComparer.Ordinal);var structures=new HashSet<string>(StringComparer.Ordinal);var inputDefinitions=new HashSet<string>(StringComparer.Ordinal);var returns=new HashSet<string>(StringComparer.Ordinal);var inputTypes=new HashSet<string>(StringComparer.Ordinal);var inputNames=new HashSet<string>(StringComparer.Ordinal);var outputTypes=new HashSet<string>(StringComparer.Ordinal);bool typed=false,hasOutputs=false,outputTyped=false;
   bool Scalar(string type)=>type is "bool" or "int" or "long" or "float" or "double" or "string";
   foreach(var row in edits){
    string id=row!["id"]!.ToString();if(!functions.Add(id))throw new ArgumentException("One explicit edit per function identity required");
-   var mapping=row["mapping"]!.AsObject();if(mapping.Any(p=>p.Key is not ("before" or "args" or "callers" or "implementations" or "outputs" or "outputGraphs" or "bodies")||p.Key=="bodies"&&!referencePins&&!wholeValue)||mapping["before"] is not JsonObject||mapping["args"] is not JsonObject)throw new InvalidOperationException("Shared caller batching preserves body and copy contracts; retain all input");
+   var mapping=row["mapping"]!.AsObject();if(mapping.Any(p=>p.Key is not ("before" or "args" or "callers" or "implementations" or "outputs" or "outputGraphs" or "bodies")||p.Key=="bodies"&&!referencePins&&!wholeValue&&!wholeOrder)||mapping["before"] is not JsonObject||mapping["args"] is not JsonObject)throw new InvalidOperationException("Shared caller batching preserves body and copy contracts; retain all input");
    var original=new Parser(units[id]?["draft"]?.ToString()??throw new InvalidOperationException("Original function snapshot missing"),"<function-group>").ParseElement();
    var before=original.Signature??throw new ArgumentException("Function signature required");var next=InformationFunctionBodies.Signature(row["signature"]!);var remap=mapping["args"]!.AsObject();
    if(original.Kind!="function"||original.Parent is not null||!JsonNode.DeepEquals(mapping["before"],FeatureBlueprint.SignatureDocument(before))||before.Args.Count!=remap.Count||before.Args.Any(a=>!remap.ContainsKey(a.Name)||a.Mode is not (null or "out" or "ref"))||next.Args.Any(a=>a.Mode is not (null or "out" or "ref")))throw new InvalidOperationException("Shared caller batching requires exact original pin identities; retain all input");
+   if(Permutation(before,next)){
+    // Existing native names identify the same public pins in a new order.
+    // Do not turn a permutation into a role change or a new storage choice.
+    if(mapping.Count!=4||mapping.Any(p=>p.Key is not ("before" or "args" or "bodies" or "callers"))||before.Args.Any(a=>remap[a.Name]?.ToString()!=a.Name)||mapping["bodies"] is not JsonObject bodies||bodies.Count==0||mapping["callers"] is not JsonObject callers)throw new InvalidOperationException("Review every original body and caller for the exact pin permutation");
+    foreach(var plan in bodies.Select(p=>p.Value!.AsObject()))if(!Permutation(InformationFunctionBodies.Signature(plan["beforeSignature"]!),InformationFunctionBodies.Signature(plan["signature"]!)))throw new InvalidOperationException("Parameter order keeps each native name, type, role and return; no alias is inferred");
+    foreach(var plan in callers.Select(p=>p.Value!.AsObject()))if(plan["inputs"] is not JsonObject inputs||inputs.Count!=next.Args.Count(a=>!a.IsOut)||next.Args.Where(a=>!a.IsOut).Any(a=>inputs[a.Name]?.GetValue<string>()!=a.Name)||plan["disconnect"] is not JsonObject disconnect||disconnect.Count!=0||plan.ContainsKey("outputs"))throw new InvalidOperationException("Parameter order retains every caller binding and output identity explicitly");
+    orderedFunctions.Add(id);wholeRoleFunctions.Add(id);continue;
+   }
    if(referencePins||wholeValue){
     bool refOut=before.Args.Count==next.Args.Count&&before.Args.Where((a,i)=>a.IsRef&&next.Args[i].IsOut).Any();
     bool outRef=before.Args.Count==next.Args.Count&&before.Args.Where((a,i)=>a.IsOut&&next.Args[i].IsRef).Any();
@@ -103,6 +114,7 @@ internal sealed class InformationFunctionBatch
    if(before.Args.Where((a,i)=>!a.IsOut&&a.Name!=next.Args[i].Name).Any())inputNames.Add(id);
    for(int i=0;i<before.Args.Count;i++){var a=before.Args[i];var b=next.Args[i];if(a.Mode!=b.Mode)throw new InvalidOperationException("Retain the original input/output roles explicitly");hasOutputs|=a.IsOut;if(a.Type==b.Type){if(remap[a.Name]?.ToString()!=b.Name)throw new InvalidOperationException("Retain each unchanged pin identity explicitly");}else if(a.IsOut){outputTyped=true;outputTypes.Add(id);if(a.Name!=b.Name||!Scalar(a.Type)||!Scalar(b.Type)||remap[a.Name]?.ToString()!=a.Name)throw new InvalidOperationException("Changed scalar outputs retain their explicit original pin identity");}else{typed=true;inputTypes.Add(id);if(a.Mode is not null||a.Name!=b.Name||!Scalar(a.Type)||!Scalar(b.Type)||!remap.ContainsKey(a.Name)||remap[a.Name] is not null)throw new InvalidOperationException("Changed scalar inputs need explicit replacement at the same position and name");}}
   }
+  if(orderedFunctions.Count>0&&!functions.SetEquals(orderedFunctions))throw new InvalidOperationException("Review parameter permutations separately from other shared contract changes");
   if(returns.Count>0&&!functions.SetEquals(returns.Concat(outputTypes).Concat(structures).Concat(inputNames).Concat(inputTypes).Concat(inputDefinitions)))throw new InvalidOperationException("Combine only explicit scalar input/output types, definitions or mapped input names; retain every input");
   var projections=new Dictionary<string,JsonObject>(wholeRolePlans,StringComparer.Ordinal);
   if(structures.Count>0){
@@ -141,7 +153,7 @@ internal sealed class InformationFunctionBatch
   }else if((hasOutputs&&(typed||edits.Any(row=>row!["mapping"]!.AsObject().Count!=2)))||edits.Any(row=>row!["mapping"]?["outputs"] is not null))throw new InvalidOperationException("Shared output names retain exact types and automatic identity-preserving bindings; other selected input is retained");
   // Out names propagate the explicit old-pin identity through existing semantic
   // bindings. They never select a different output, rewrite C# or replan values.
-  bool independent=referencePins||wholeValue||typed||hasOutputs||structures.Count>0||inputDefinitions.Count>0||returns.Count>0;
+  bool independent=wholeOrder||referencePins||wholeValue||typed||hasOutputs||structures.Count>0||inputDefinitions.Count>0||returns.Count>0;
   string ns=PackPaths.Namespace(request["id"]!.ToString());
   foreach(var row in units.Where(p=>p.Value?["kind"]?.ToString()=="implementation")){
    var d=new Parser(row.Value!["draft"]!.ToString(),"<shared-caller-group>").ParseElement();if(!functions.Contains(d.Function!)&&!d.Imports.Values.Any(i=>functions.Contains(i.Id)))continue;
@@ -166,7 +178,7 @@ internal sealed class InformationFunctionBatch
   // Prove every original selection before composing anything. No user consent
   // is rebased onto a changed live source, and no intermediate result is saved.
   if(independent)foreach(var row in edits){var original=new Parser(units[row!["id"]!.ToString()]!["draft"]!.ToString(),"<original-group-contract>").ParseElement();var next=new Parser(units[original.Id]!["draft"]!.ToString(),"<group-contract>").ParseElement();DeclarationAuthoring.Apply(next,new JsonObject{["action"]="signature",["value"]=row["signature"]!.DeepClone()});InformationFunctionContracts.Prepare(request,original,next,row["mapping"]!.AsObject(),format);}
-  return new(request,functions,referencePins||wholeValue||typed||outputTyped||structures.Count>0||inputDefinitions.Count>0,projections);
+  return new(request,functions,wholeOrder||referencePins||wholeValue||typed||outputTyped||structures.Count>0||inputDefinitions.Count>0,projections);
  }
  public JsonObject MappingFor(string function,JsonObject mapping)
  {

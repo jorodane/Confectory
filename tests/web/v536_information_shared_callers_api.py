@@ -2,7 +2,9 @@
 import copy
 import json
 import os
-if os.environ.get('CONFECTORY_SHARED_VALUE_OUT') == '1':
+if os.environ.get('CONFECTORY_SHARED_ORDER') == '1':
+    import v536_information_shared_order_fixture as x
+elif os.environ.get('CONFECTORY_SHARED_VALUE_OUT') == '1':
     import v536_information_shared_value_out_fixture as x
 elif os.environ.get('CONFECTORY_SHARED_OUT_VALUE') == '1':
     import v536_information_shared_out_value_fixture as x
