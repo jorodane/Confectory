@@ -25,6 +25,7 @@ internal sealed class InformationFunctionBatch
   if(edits.Length<2)return null;
   if(edits.Length>8||changes.Count!=edits.Length)throw new InvalidOperationException("Save up to eight direct function contracts together; other input is retained");
   var units=request["units"]?.AsObject()??throw new InvalidOperationException("Read every shared caller before saving the function group");if(units.Count>2048)throw new ArgumentException("Shared contract source budget");
+  if(InformationFunctionBodyBatch.Prepare(request,edits,units,format) is {} bodyFunctions)return new(request,bodyFunctions,false,new());
   bool referencePins=edits.Any(row=>new[]{row?["mapping"]?["before"],row?["signature"]}.Any(s=>s?["args"] is JsonArray args&&args.Any(a=>a?["mode"]?.ToString()=="ref")));
   bool wholeValue=edits.Any(row=>row?["mapping"]?["bodies"] is JsonObject&&row["mapping"]?["before"]?["args"] is JsonArray before&&row["signature"]?["args"] is JsonArray after&&before.Count==after.Count&&before.Where((a,i)=>(a?["mode"]?.ToString()=="out"&&after[i]?["mode"] is null||a?["mode"] is null&&after[i]?["mode"]?.ToString()=="out")).Any());
   bool Permutation(FunctionSignature before,FunctionSignature next)=>before.Return==next.Return&&before.Args.Count==next.Args.Count&&!before.Args.SequenceEqual(next.Args)&&before.Args.All(a=>next.Args.Any(b=>a==b));
@@ -215,7 +216,7 @@ internal sealed class InformationFunctionBatch
   foreach(string function in completed){if(!outputPlans.TryGetValue(function,out var plans))continue;
    foreach(var plan in plans.Select(p=>p.Value!.AsObject()).Where(p=>p["graph"]?.ToString()==id)){
     string nodeId=plan["node"]!.ToString();if(!graph["nodes"]!.AsArray().Any(n=>n!["id"]?.ToString()==nodeId&&n["feature"]?.ToString()==function))throw new InvalidOperationException("Original producer identity changed; retain every input");
-    var outputs=plan["outputs"]!.AsObject();void Rebind(JsonNode? value){if(value is JsonObject o){if(o["node"]?.ToString()==nodeId){string name=o["output"]?.ToString()??"return",to=outputs[name]?.GetValue<string>()??throw new InvalidOperationException("An explicitly disconnected output is still consumed");if(to=="return")o.Remove("output");else o["output"]=to;return;}foreach(var p in o.ToArray())if(p.Key!="constant")Rebind(p.Value);}else if(value is JsonArray array)foreach(var v in array)Rebind(v);}
+    var outputs=plan["outputs"]!.AsObject();void Rebind(JsonNode? value){if(value is JsonObject o){if(o["node"]?.ToString()==nodeId){string name=o["output"]?.ToString()??"return",to=outputs[name]?.GetValue<string>()??throw new InvalidOperationException("An explicitly disconnected output is still consumed");if(to==name)return;if(to=="return")o.Remove("output");else o["output"]=to;return;}foreach(var p in o.ToArray())if(p.Key!="constant")Rebind(p.Value);}else if(value is JsonArray array)foreach(var v in array)Rebind(v);}
     InformationFunctionGraphs.Bindings(graph,Rebind);
    }
   }

@@ -2,7 +2,9 @@
 import copy
 import json
 import os
-if os.environ.get('CONFECTORY_SHARED_ORDER') == '1':
+if os.environ.get('CONFECTORY_SHARED_BODIES') == '1':
+    import v536_information_shared_bodies_fixture as x
+elif os.environ.get('CONFECTORY_SHARED_ORDER') == '1':
     import v536_information_shared_order_fixture as x
 elif os.environ.get('CONFECTORY_SHARED_VALUE_OUT') == '1':
     import v536_information_shared_value_out_fixture as x
@@ -75,7 +77,7 @@ try:
                 x.verify_caller_header((f.project/path).read_text());continue
             if path not in {'FreeInfo.celem','caller.graph.json','function.graph.json','function.node.json','second.graph.json','second.node.json',
                            *['elements/'+fn.split('::')[1]+'.celem' for fn in x.functions],
-                           *[fn.split('::')[1]+'Body.celem' for fn in x.functions]}:
+                           *[fn.split('::')[1]+'Body.celem' for fn in x.functions],*getattr(x,'changed_source_paths',[])}:
                 assert (f.project/path).read_bytes()==raw,path
         f.checked('실제 compiler Review/Confirm는 두 계약을 함께 확정하고 code/다른 함수·부모 원문을 보존한다')
 finally:
