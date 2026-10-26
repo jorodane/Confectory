@@ -75,3 +75,28 @@ UI 이후이고 이미지/협의/렌더 신규 backend는 이번 UI 복원 범�
 | 오버라이드의 원래 매개변수/출력 구조 변경 | 정상 금지, 미구현으로 세지 않음 |
 | 독립 계약 복제/새 계약 ID와 정보 상세창의 새 정렬 제어 | 필수 범위에서 제외하거나 원본에 없는 추가 UI |
 | 값→out·원본에서 가능한 순서 편집의 그룹 결합·위 별도 문맥 | 실제 남은 구현/수용 경계, 이번 완료와 구분 |
+
+## 독립 checkout·새 교차 패키지 완료
+
+실행 소스는 `a53c7c967467e5a43f9afb59e6d0e26e8546fc87`다. 기존 독립 checkout을 정상 fast-forward하고
+10개 Git blob·기존 LF/CRLF 설정·clean 상태를 확인했다. Native Release 경고/
+오류 0, 후보·API·독립 UI·기존 경로·오버라이드 보호 5흐름·13확인이 통과했다.
+root solution 및 별도 MCP Release도 경고·오류 0이다.
+
+새 Windows x64 교차 패키지의 manifest 2,343항목/marker 포함
+2,344파일, 132,786,509바이트의 집합·전체 해시 및
+현재 제품 소스·Native DLL과 7개 Core DLL 일치를 확인했다. manifest SHA-256은
+`b852c8ec06836f5ee611fd3d80d818937f748bb46830fd8e4f4cb22a16834310`, Native DLL SHA-256은
+`b96b005fd21891266b82afe2e68f75536a77d6bcfa9d29de8ed456c21487b723`이다.
+
+SDK 없는 새 소유 runtime에서 무관한 cwd의 Linux managed 엔진 웹 기동,
+74리소스·synthetic profile/명시 override 보존·변조/DLL 누락 거절과 패키지
+backend 후보 4확인이 통과했다. 검사 6단계를 순차 수행했으며 OOM/oom_kill은 0이다.
+실제 Windows apphost/WebView2·모바일 기기 실행 및 Library 전달과 구별한다.
+
+새 증거 ZIP 27개의 파일 집합·권한·전체 바이트·해시를 재검증하고 전체 manifest와
+fixture 증거를 보존한 뒤 이번 소유 임시 RAM 패키지만 종료 cleanup했다.
+기존 자료 삭제·압축 변환이나 새 영구 배포 파일 보관·전달은 하지 않았다.
+패키지 단계 최저 디스크 여유는 1,828,794,368바이트다. 후속 결과 문서 커밋은
+실행 소스를 바꾸지 않는다.
+[checkout·패키지 근거](evidence/v536-information-shared-out-value/package-clean-verification.json)에 단계·소스·해시·검증 한계를 기록했다.
