@@ -4,7 +4,9 @@ import time
 import shutil
 import os
 from playwright.sync_api import sync_playwright,expect
-if os.environ.get('CONFECTORY_SHARED_INPUT_OUTPUT_DEFINITIONS') == '1':
+if os.environ.get('CONFECTORY_SHARED_REF_NAMES') == '1':
+    import v536_information_shared_ref_names_fixture as x
+elif os.environ.get('CONFECTORY_SHARED_INPUT_OUTPUT_DEFINITIONS') == '1':
     import v536_information_shared_input_output_definitions_fixture as x
 elif os.environ.get('CONFECTORY_SHARED_INPUT_DEFINITION_RETURN_MIX') == '1':
     import v536_information_shared_input_definition_return_mix_fixture as x
@@ -107,6 +109,7 @@ try:
                 f.page.get_by_role('dialog',name='속성 타입 선택',exact=True).locator('[data-type=double]').click()
             f.page.screenshot(path=str(f.case/('shared-return-'+str(index)+'.png')))
             p.get_by_role('button',name='저장',exact=True).click()
+            if hasattr(x,'after_contract'):x.after_contract(index)
             if hasattr(x,'has_mapping_dialog') and not x.has_mapping_dialog(index):
                 f.idle();expect(f.page.locator('[data-abi-remap-accept]')).to_have_count(0)
                 continue
@@ -125,9 +128,10 @@ try:
             f.page.screenshot(path=str(f.case/('shared-return-mapping-'+str(index)+'.png')))
             m.locator('[data-abi-remap-accept]').click();expect(m).to_have_count(0);f.idle()
         held=pending();assert len(held)==2
-        for _ in range(2):f.owner().locator('[data-own-functions-toggle]').press('Control+z')
+        for _ in range(getattr(x,'undo_steps',2)):f.owner().locator('[data-own-functions-toggle]').press('Control+z')
         assert len(pending())==1
-        for _ in range(2):f.owner().locator('[data-own-functions-toggle]').press('Control+y')
+        if hasattr(x,'undo_steps'):assert pending()[0][1]['id']==x.functions[0]
+        for _ in range(getattr(x,'undo_steps',2)):f.owner().locator('[data-own-functions-toggle]').press('Control+y')
         assert pending()==held
         preserved();restart(1);assert pending()==held;preserved()
         f.checked('두 원본 상세창의 취소·명시 대응·Undo/Redo·미저장 cold는 두 함수 입력과 exact64 값을 보존한다')
@@ -198,7 +202,7 @@ try:
             finally:checkpoint.chmod(0o600)
             f.checked('화면 checkpoint 실패는 양쪽 계약·공유 caller 전체 미적용과 입력 보존 후 재시도를 허용한다')
         if x.mode=='retry':
-            p=popup(x.functions[1]);p.locator('[data-signature-id='+('arg1' if combined_io else 'arg0')+'] [data-signature-type]').click()
+            p=popup(x.functions[1]);p.locator('[data-signature-id='+getattr(x,'retry_field',('arg1' if combined_io else 'arg0'))+'] [data-signature-type]').click()
             types=f.page.get_by_role('dialog',name='속성 타입 선택',exact=True);types.locator('[data-type=string]').click()
             p.get_by_role('button',name='저장',exact=True).click()
             remap_cancel=f.page.locator('[data-abi-remap-cancel]');expect(remap_cancel).to_be_visible()

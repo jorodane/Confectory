@@ -1,7 +1,11 @@
 """One actual checkpoint transaction for two contracts and a shared caller."""
 import copy
 import json
-import v536_information_shared_callers_fixture as x
+import os
+if os.environ.get('CONFECTORY_SHARED_REF_NAMES') == '1':
+    import v536_information_shared_ref_names_fixture as x
+else:
+    import v536_information_shared_callers_fixture as x
 
 f=x.f
 def rpc(action,ok=True,**body):return f.invoke('blueprint',{'action':action,**body},ok)['result'].get('result')
