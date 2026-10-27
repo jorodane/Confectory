@@ -30,3 +30,9 @@
 ## 확정 집중 검사
 
 선행 집중 검사 13흐름 65확인 후 readonly CAS 누락을 수정했다. 최종 코드의 영향 검사 7흐름 34확인과 순수 후보/group 5확인이 통과했다. 수정 영향이 없는 선행 Save 실패·응답 유실·계획 Undo/재시도 검사는 단계별 소스/엔진 증거와 함께 재사용했다. 정상·cold·Review 취소/Confirm과 독립 raw 문서의 별도 미저장 원문을 지켰다. 등록 manifest가 저장 전/Review 전/Confirm 전에 달라지는 경우, 마지막 target 오류·물리 source/CP 충돌·쓰기 실패·응답 유실·Undo 후 새 선택의 전체 미적용/입력 보존을 확인했다. owned multi-target과 저장 copy의 등록 단일-target은 영향 회귀로 지켰다. 초기 실패 로그/fixture 증거를 보관하고 최종 통과만 집계했다.
+
+## 독립 checkout·새 교차 패키지
+
+소스 커밋 `3eb2dc7ed45263efad786929bf25acdd63e4b1da`의 변경 16개 Git blob과 기존 autocrlf/clean을 확인했다. Native/CLI Release·Linux 엔진과 독립 UI 1흐름 5확인·순수 후보/group 5확인이 통과했다. 새 RAM Windows x64 교차 패키지의 restore·Release·MCP·생성·probe·패키지 자체 UI 5확인까지 6단계가 통과했다. 전체 2349개/manifest 2348개 목록·SHA·Core/Native DLL과 변경 제품 소스 바이트를 확인했다.
+
+manifest SHA `0711cc4dece5c479948c04065d242793a4d66e4816f402ded2adf8692e9b8451`, Native DLL `e9d4ed903c0b54e1b457df710bac5f6723abf1558431f7f8cd0f65e72c5d48b6`다. 전체 manifest·fixture/로그/프로필 증거를 보관한 후 이번 임시 패키지만 정리했다. 보관 패키지/SDK/원본/기존 자료는 삭제하지 않았다. 전달 가능한 새 보관 패키지나 Library 업로드가 아니며 실제 Windows apphost/WebView2·모바일 기기는 미검증이다. 후속 최종 커밋은 문서/evidence만 바뀌므로 실행 소스는 이 소스 커밋과 같다.

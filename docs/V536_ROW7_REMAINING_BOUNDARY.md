@@ -87,3 +87,5 @@ Library 전달 및 전체 UI 완료는 이번 단위의 결과가 아니다.
 ## 일반 다중 target의 등록 receipt 결합
 
 최신 [다중 target 등록 ABI 검증](VALIDATION_V536_REGISTERED_TARGET_ABI.md)은 직접 소유 ordinary all-Blueprint 구현의 target별 기존 명시 대응·공유 import와 읽기 전용 등록 snapshot을 한 후보/CAS·Review/Confirm에 연결한다. 이번 화면 표본은 common/windows 두 target, target당 한 등록 wrapped call이다. 저장 copy의 다중 target/provenance 그룹·새 copy의 등록 복수 use 및 별도 frame 계약/본문·opaque closure는 같은 기존 잔여이며 7/8행·A4–A6 밖으로 늘리지 않는다. 9행·I6/B2·M4/M11/M12와 실제 Windows/mobile/Library 전달은 별도 미완료다.
+
+일반 다중 target 등록 receipt의 독립 checkout·새 교차 패키지 증거는 위 최신 검증/evidence를 따른다. copy 다중 target 및 다른 기존 잔여와 실제 Windows/mobile/Library 전달은 완료로 합산하지 않는다.
