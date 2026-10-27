@@ -1,5 +1,12 @@
 # 7행 원래 조작과 남은 경계
 
+최신 [forwarded/opaque 및 I6 원래 흐름 대조](VALIDATION_V536_ELEMENT_GLYPH.md)는
+이미 지원한 ordinary wrapper/frame 저장·직접 소유 private 매핑, 공개 override의
+정상 금지, copy의 실제 영향 source closure 안전 경계를 구별한다. 새 부모 계약
+기능이나 모든 엔진 형태 조합을 추가 필수로 만들지 않는다. 실제 copy 영향 경계는
+A6/7행에 유지하고, 다음 원래 미연결 UI인 객체·정보의 문자 아이콘 단위를 별도로
+마감한다. 7행·8행·전체 UI 완료로 합산하지 않는다.
+
 최신 [wrapper와 다른 frame 결합 수용](VALIDATION_V536_COPY_WRAPPER_FRAME_SAVE.md)은 한 wrapper/callee 명시 갱신과 ordinary source/intent를 기존 Root/private Save·한 후보/CAS에 연결한다. 아래 과거의 wrapper 단독/다른 frame 입력 거절은 이 지원 범위만 해제한다. 실제 forwarded/opaque 영향 후보와 다른 계획은 해당 최신 표의 안전 경계·원래 요구 구분을 따른다.
 
 Root 복귀 Save의 최신 지원/잔여 판정은 [Root 수용 기록](VALIDATION_V536_ROOT_COPY_SAVE.md)을 우선한다. 원래 빵부스러기·전체 graph Save에 근거한 ordinary private 입력 진입만 해제하며, forwarded/다른 frame 영향 후보와 opaque는 아래 같은 고정 항목으로 한 번만 관리한다.

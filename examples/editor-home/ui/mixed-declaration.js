@@ -10,6 +10,7 @@ export function captureMixedCell(value,schema,valueJson){
  if(value.kind==='schema-field')return {type:'schema-field',path:structuredClone(value.path),contract:structuredClone(value.contract),schema:value.schema,schemaHash:value.schemaHash,...(value.definition?{definition:structuredClone(value.definition),sources:structuredClone(value.typeChoice?.sources??null)}:{nativeType:value.nativeType})};
  if(['schema-name','schema-remove'].includes(value.kind))return {type:value.kind,path:structuredClone(value.path),contract:structuredClone(value.contract),schema:value.schema,schemaHash:value.schemaHash,...(value.kind==='schema-name'?{name:value.text}:{})};
  if(value.kind==='description')return {type:'description',text:value.text};
+ if(value.kind==='icon')return {type:'icon',text:value.text};
  if(value.kind==='parent')return {type:'parent',value:value.value};
  if(value.kind==='modules')return {type:'modules',ids:structuredClone(value.value)};
  if(value.kind==='function-order'){if(schema.kind!=='schema'||!Array.isArray(value.ids)||value.ids.length>64||new Set(value.ids).size!==value.ids.length)throw Error('기능 순서를 확인해 주세요. 입력은 유지됩니다.');return {type:'function-order',ids:structuredClone(value.ids)};}
@@ -27,6 +28,7 @@ export function mixedCellMatches(key,value,change,start){
  if(value.kind==='schema-field')return key===start+'schema:'+JSON.stringify(value.path)&&same(change,{type:'schema-field',path:value.path,contract:value.contract,schema:value.schema,schemaHash:value.schemaHash,...(value.definition?{definition:value.definition,sources:value.typeChoice?.sources??null}:{nativeType:value.nativeType})});
  if(['schema-name','schema-remove'].includes(value.kind))return key===start+value.kind+':'+JSON.stringify(value.path)&&same(change,{type:value.kind,path:value.path,contract:value.contract,schema:value.schema,schemaHash:value.schemaHash,...(value.kind==='schema-name'?{name:value.text}:{})});
  if(value.kind==='description')return key===start+'description'&&change.type==='description'&&change.text===value.text;
+ if(value.kind==='icon')return key===start+'icon'&&change.type==='icon'&&change.text===value.text;
  if(value.kind==='parent')return key===start+'parent'&&change.type==='parent'&&same(change.value,value.value);
  if(value.kind==='modules')return key===start+'modules'&&change.type==='modules'&&same(change.ids,value.value);
  if(value.kind==='function-order')return key===start+'function-order'&&change.type==='function-order'&&same(change.ids,value.ids);
@@ -38,6 +40,7 @@ export function mixedCellMatches(key,value,change,start){
 }
 export function receiptFieldProof(value,change,schema){
  if(value.kind==='description'&&change?.type==='description')return {hash:schema.textHash,kind:'description'};
+ if(value.kind==='icon'&&change?.type==='icon'&&schema.values?.editorIcon===change.text)return {hash:schema.textHash,kind:'icon',accepted:change.text};
  if(value.kind==='function-order'&&change?.type==='function-order'&&same((schema.ownFunctions||[]).filter(row=>row.origin===schema.id).map(row=>row.id),change.ids))return {hash:schema.textHash,kind:'function-order',ids:structuredClone(change.ids)};
  if(['function-add','function-edit'].includes(value.kind)&&value.id===change?.id){const row=schema.ownFunctions?.find(row=>row.id===value.id),sig=s=>({args:(s?.args||s?.Args||[]).map(a=>({name:a.name??a.Name,type:a.type??a.Type,...((a.mode??a.Mode)?{mode:a.mode??a.Mode}:{})})),return:s?.return??s?.Return??'void'});if(row?.writable&&row.origin===schema.id&&row.name===change.name.trim()&&row.description===change.description&&same(sig(row.signature),sig(change.signature)))return {hash:schema.textHash,kind:'function-edit',id:row.id,functionHash:row.hash,inputPatch:{kind:'function-edit',functionHash:row.hash}};return null;}
  if(!['field','unset'].includes(value.kind)||!same(value.path,change?.path))return null;const row=rowAt(schema,value.path),contract=change.type==='scalar'?{kind:'general',cardinality:'single',type:change.nativeType}:change.contract;
@@ -45,6 +48,7 @@ export function receiptFieldProof(value,change,schema){
 }
 export function restoredMixedProof(value,schema){
  const proof=value.copySavedBasis;if(!proof||proof.hash!==schema.textHash||value.hash!==proof.hash||proof.kind!==value.kind)return false;if(value.kind==='description')return true;
+ if(value.kind==='icon')return schema.values?.editorIcon===proof.accepted;
  if(value.kind==='function-order')return same(value.ids,proof.ids)&&same((schema.ownFunctions||[]).filter(row=>row.origin===schema.id).map(row=>row.id),proof.ids);
  if(value.kind==='function-edit'){const row=schema.ownFunctions?.find(row=>row.id===value.id);return row?.writable&&row.origin===schema.id&&row.hash===proof.functionHash&&value.functionHash===proof.functionHash&&proof.id===value.id;}
  const row=rowAt(schema,value.path),contract=proof.contract??{kind:'general',cardinality:'single',type:proof.nativeType};return ['field','unset'].includes(value.kind)&&same(proof.path,value.path)&&row?.writable&&(value.kind!=='unset'||row.localOverride)&&same(mixedFieldContract(row),contract);

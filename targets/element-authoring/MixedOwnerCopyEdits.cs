@@ -35,6 +35,7 @@ internal static class MixedOwnerCopyEdits
   foreach(var change in changes){
    var row=change!.AsObject();string type=row["type"]!.GetValue<string>();
    if(type=="description"){Exact(row,"type","text");Unique(type);string value=row["text"]!.GetValue<string>();if(value.Length>16384)throw new ArgumentException("Mixed description budget");element.Description=value;element.DescriptionPresent=true;}
+   else if(type=="icon"){Exact(row,"type","text");Unique(type);DeclarationAuthoring.Icon(element,row["text"]!.GetValue<string>());}
    else if(type is "scalar" or "data" or "unset"){
     Exact(row,type=="scalar"?new[]{"type","path","nativeType","valueJson"}:type=="data"?new[]{"type","path","contract","valueJson"}:new[]{"type","path","contract"});var path=Path(row);var shape=Field(before["schemaModel"]!.AsObject(),path);
     if(type=="scalar"){if(path.Count!=1||shape["kind"]!.ToString()!="general"||shape["cardinality"]!.ToString()!="single"||shape["type"]!.ToString() is not ("string" or "bool" or "int" or "long" or "float" or "double")||row["nativeType"]?.ToString()!=shape["type"]!.ToString())throw new InvalidOperationException("Scalar schema changed; input retained");}
