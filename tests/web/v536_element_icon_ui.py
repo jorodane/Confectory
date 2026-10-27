@@ -7,6 +7,9 @@ mode=sys.argv[3] if len(sys.argv)>3 else 'normal'
 kind=sys.argv[4] if len(sys.argv)>4 else 'schema'
 detached='view' in sys.argv[5:]
 with_peer='peer' in sys.argv[5:]
+is_function='function' in sys.argv[5:]
+function_name='OwnGlyph'
+function_id=f.n+'Details_Function_'+'1'*32
 is_new_object='new-object-property' in sys.argv[5:]
 is_object_property='object-property' in sys.argv[5:] or is_new_object
 is_new='new-property' in sys.argv[5:] or is_new_object
@@ -27,6 +30,16 @@ if is_property:
  else:file.write_text(file.read_text().replace(' {',' extends '+f.n+'IconBase {',1).replace('{','{ // property icon fixture preserve\nvalue editorIcon="📦";\n',1))
  f.original={str(path.relative_to(f.project)):path.read_bytes() for path in f.project.rglob('*') if path.is_file()}
 icon_file=f.project/'Details.celem' if is_object_property and not is_new_object else file
+if is_function:
+ (f.project/'elements').mkdir(exist_ok=True)
+ function_file=f.project/'elements'/(function_id.split('::')[-1]+'.celem')
+ function_file.write_text('function '+function_id+' (long amount,out bool active) -> long { // preserved function comment\nvalue editorName="OwnGlyph";description "함수 원래 설명";provide '+function_id+' with '+f.n+'GlyphBody;}')
+ (f.project/'GlyphBody.celem').write_text('implementation '+f.n+'GlyphBody for '+function_id+' (long amount,out bool active) -> long {body common "Glyph.csbody";}')
+ (f.project/'Glyph.csbody').write_text('active=true;return amount+1;')
+ file.write_text(file.read_text().replace('{','{contain function '+function_id+';value editorIcon="📦";',1))
+ caller=f.project/'MainBody.celem';caller.write_text(caller.read_text().replace('{','{import '+function_id+' as GlyphCall (long,out bool) -> long;',1))
+ f.manifest.write_text(f.manifest.read_text().replace('registry Confectory.Build.DotNet','element '+function_id.split('::')[-1]+' function "elements/'+function_file.name+'";element GlyphBody implementation "GlyphBody.celem";registry Confectory.Build.DotNet'))
+ f.original={str(path.relative_to(f.project)):path.read_bytes() for path in f.project.rglob('*') if path.is_file()};icon_file=function_file
 f.original[file.name]=file.read_bytes()
 def surface():return f.page.locator('.window[data-key="'+('editor-1' if detached else 'schema')+'"]')
 f.owner=surface
@@ -43,12 +56,14 @@ def assert_confirmed_sources():
   assert icon_file.is_file() and 'field '+new_native+' single general long;' in icon_file.read_text() and re.search(r'\bdata\s+'+re.escape(new_native)+r'\s*=\s*9223372036854775804;',file.read_text())
   assert str(icon_file.relative_to(f.project)) in f.manifest.read_text();assert len(list((f.project/'elements').glob(leaf+'_Properties_*.celem')))==1
   f.checked('최종 Confirm만 객체·등록·단 하나의 새 소유 속성 스키마를 함께 반영하고 재시도에서 중복 생성하지 않는다')
+ elif is_function:assert changed=={file.name,str(icon_file.relative_to(f.project))},changed
  else:assert (file.name in changed and changed<={file.name,icon_file.name}) if is_object_property and mode=='clear' else changed==({file.name,icon_file.name} if is_object_property else {file.name})
 def new_row():
  selector='[data-property-path='+json.dumps(json.dumps([new_native],separators=(',',':')))+']';draft=surface().locator('[data-definition-key='+json.dumps(new_draft_key)+']') if new_draft_key else surface().locator('[data-definition-key]'+selector);return draft if draft.count() else surface().locator(selector)
-def icon():return new_row().locator('[data-property-icon]') if is_new else surface().get_by_label('Power 속성 아이콘 편집',exact=True) if is_property else surface().locator('.object-icon-control>.obj-icon')
+def function_row():return surface().locator('[data-inline-method='+json.dumps(function_id)+']')
+def icon():return function_row().locator('[data-function-icon]') if is_function else new_row().locator('[data-property-icon]') if is_new else surface().get_by_label('Power 속성 아이콘 편집',exact=True) if is_property else surface().locator('.object-icon-control>.obj-icon')
 def popup():
- (icon() if is_property else surface().locator('.object-icon-edit')).click();p=f.page.get_by_role('dialog',name=(new_label if is_new else 'Power' if is_property else leaf)+' 아이콘 편집',exact=True);expect(p).to_be_visible();return p
+ (icon() if is_property or is_function else surface().locator('.object-icon-edit')).click();p=f.page.get_by_role('dialog',name=(function_name if is_function else new_label if is_new else 'Power' if is_property else leaf)+' 아이콘 편집',exact=True);expect(p).to_be_visible();return p
 def saved():
  for _ in range(300):
   if not pending() and not [v for _,v in f.pending()['blueprint'] if v.get('kind') in ['owner-attempt','view-owner-attempt'] and v.get('owner')==owner]:f.idle();return
@@ -67,8 +82,8 @@ def compare(p):
  a=source.index('function editIconValue(');b=source.index('\nfunction ',a+1);function=source[a:b]
  selectors=[':scope','form','.object-icon-preview','.object-icon-options','[data-icon-choice="🛡️"]','#object-icon-input','.object-icon-upload','small','.actions','[type=submit]']
  measure="""(el,selectors)=>{const b=el.getBoundingClientRect();return selectors.map(s=>{const e=s===':scope'?el:el.querySelector(s),r=e.getBoundingClientRect(),c=getComputedStyle(e);return {selector:s,x:r.x-b.x,y:r.y-b.y,width:r.width,height:r.height,font:c.font,padding:c.padding,background:c.backgroundColor};});}"""
- actual=p.evaluate(measure,selectors);anchor=(icon() if is_property else surface().locator('.object-icon-edit')).bounding_box();original=f.browser.new_page(viewport=f.page.viewport_size);original.route('**/*',lambda r:r.abort());original.set_content('<!doctype html><html lang="ko"><head><style>'+css+'</style></head><body><button id="anchor" style="position:fixed;box-sizing:border-box;left:'+str(anchor['x'])+'px;top:'+str(anchor['y'])+'px;width:'+str(anchor['width'])+'px;height:'+str(anchor['height'])+'px">편집</button></body></html>')
- original.add_script_tag(content="const esc=s=>String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('\"','&quot;');let closeObjectIconPopover=null;const profileIconMarkup=esc;"+function+"\neditIconValue({name:'"+(new_label if is_new else 'Power' if is_property else leaf)+"',icon:'"+('' if is_property else '▤')+"'},document.querySelector('#anchor'),()=>{throw Error('visual oracle cannot write')},"+('true' if is_property else 'false')+");")
+ actual=p.evaluate(measure,selectors);anchor=(icon() if is_property or is_function else surface().locator('.object-icon-edit')).bounding_box();original=f.browser.new_page(viewport=f.page.viewport_size);original.route('**/*',lambda r:r.abort());original.set_content('<!doctype html><html lang="ko"><head><style>'+css+'</style></head><body><button id="anchor" style="position:fixed;box-sizing:border-box;left:'+str(anchor['x'])+'px;top:'+str(anchor['y'])+'px;width:'+str(anchor['width'])+'px;height:'+str(anchor['height'])+'px">편집</button></body></html>')
+ original.add_script_tag(content="const esc=s=>String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('\"','&quot;');let closeObjectIconPopover=null;const profileIconMarkup=esc;"+function+"\neditIconValue({name:'"+(function_name if is_function else new_label if is_new else 'Power' if is_property else leaf)+"',icon:'"+('⚙' if is_function else '' if is_property else '▤')+"'},document.querySelector('#anchor'),()=>{throw Error('visual oracle cannot write')},"+('true' if is_property else 'false')+");")
  expected=original.locator('.object-icon-popover').evaluate(measure,selectors);assert p.bounding_box()==original.locator('.object-icon-popover').bounding_box();original.screenshot(path=str(f.case/'icon-original.png'));f.page.screenshot(path=str(f.case/'icon-engine.png'));original.close();(f.case/'icon-geometry.json').write_text(json.dumps({'original':expected,'actual':actual},ensure_ascii=False,indent=2));assert expected==actual,{'expected':expected,'actual':actual}
  f.checked('원본 ZIP의 실제 팝오버 10영역과 같은 치수·위치·글꼴·패딩·배경을 사용한다(이미지 미연결은 별도 제한)')
 try:
@@ -83,18 +98,22 @@ try:
   p=popup();compare(p)
   if with_peer:
    button=f.page.locator('.window[data-key=schema] .object-icon-edit');button.focus();button.press('Enter');expect(f.page.locator('.object-icon-popover')).to_have_count(1);peer_popup=f.page.get_by_role('dialog',name='Target1 아이콘 편집',exact=True);expect(peer_popup).to_be_visible();peer_popup.locator('[data-cancel]').click();p=popup();f.checked('다른 창의 키보드 아이콘 진입은 원본처럼 이전 팝오버 하나만 닫고 각 창의 입력을 보존한다')
-  expect(p.locator('.object-icon-upload')).to_be_disabled();p.locator('[data-icon-choice="🔥"]').click();p.locator('[data-cancel]').click();assert pending()==base_pending;expect(icon()).to_have_text(default);expect(icon() if is_property else surface().locator('.object-icon-edit')).to_be_focused();p=popup();p.get_by_label('기호나 이모지',exact=True).fill('ab');p.get_by_role('button',name='적용',exact=True).click();expect(p).to_be_visible();assert pending()==base_pending;control=p.get_by_label('기호나 이모지',exact=True);control.fill('★');control.press('End');f.page.keyboard.insert_text('x');control.press('Control+z');expect(control).to_have_value('★');control.press('Escape');expect(p).to_have_count(0);f.originals();f.checked('선택 후 닫기·Escape·문자 입력 Undo·잘못된 복수 문자 적용은 원본·초안·입력을 바꾸지 않으며 초점을 복원한다')
+  expect(p.locator('.object-icon-upload')).to_be_disabled();p.locator('[data-icon-choice="🔥"]').click();p.locator('[data-cancel]').click();assert pending()==base_pending;expect(icon()).to_have_text(default);expect(icon() if is_property or is_function else surface().locator('.object-icon-edit')).to_be_focused();p=popup();p.get_by_label('기호나 이모지',exact=True).fill('ab');p.get_by_role('button',name='적용',exact=True).click();expect(p).to_be_visible();assert pending()==base_pending;control=p.get_by_label('기호나 이모지',exact=True);control.fill('★');control.press('End');f.page.keyboard.insert_text('x');control.press('Control+z');expect(control).to_have_value('★');control.press('Escape');expect(p).to_have_count(0);f.originals();f.checked('선택 후 닫기·Escape·문자 입력 Undo·잘못된 복수 문자 적용은 원본·초안·입력을 바꾸지 않으며 초점을 복원한다')
+  if is_function:
+   p=popup();p.locator('[data-icon-choice="★"]').click();p.get_by_role('button',name='적용',exact=True).click();icon().focus();f.page.keyboard.press('Control+z');expect(icon()).to_have_text(default);assert pending()==base_pending;f.checked('함수 카드의 기존 Undo는 glyph 초안만 되돌리고 원래 서명·함수 identity·다른 입력을 보존한다')
   if is_property:
    assert surface().locator('[data-property-id="Inherited"] [data-property-icon]').count()==0;expect(surface().locator('[data-property-id="Inherited"] .property-label-icon')).to_have_text('🌿')
    p=popup();p.locator('[data-icon-choice="★"]').click();p.get_by_role('button',name='적용',exact=True).click();icon().focus();f.page.keyboard.press('Control+z');expect(icon()).to_have_text('◇');assert pending()==base_pending;p=popup();p.locator('[data-icon-choice="★"]').click();p.get_by_role('button',name='적용',exact=True).click();p=popup();p.get_by_role('button',name='아이콘 없음',exact=True).click();expect(icon()).to_have_text('◇');icon().focus();f.page.keyboard.press('Control+z');expect(icon()).to_have_text('★');f.checked('기존 직접 정보 속성의 기호 적용/아이콘 없음/Undo는 stable field와 다른 입력을 유지하며 상속 아이콘은 읽기 전용으로 표시한다')
   p=popup();p.locator('[data-icon-choice="🛡️"]').click();p.get_by_role('button',name='적용',exact=True).click();expect(icon()).to_have_text('🛡️')
   if is_new:
    new_row().get_by_label(new_label+' 기본값',exact=True).fill('9223372036854775805');new_row().get_by_label(new_label+' 기본값',exact=True).fill('9223372036854775804');assert next(v for _,v in pending() if v['kind']=='definition')['icon']=='🛡️'
-  surface().locator('.object-title-description').fill('아이콘과 설명 원자 저장');held=pending();assert len(held)==2;glyph=next(v for _,v in held if v['kind']==('definition' if is_new else 'schema-icon' if is_property else 'icon'));assert glyph['icon' if is_new else 'text']=='🛡️';assert checkpoint.read_bytes()==before;f.originals();restart(1);assert pending()==held;expect(icon()).to_have_text('🛡️');f.checked('한 grapheme 이모지 적용과 설명은 저장 전 같은 owner 입력으로 보관되고 프로세스 재시작에 원래 기준과 함께 복원한다')
+  if is_function:
+   function_row().locator('[data-inline-name]').fill('다른 이름');function_row().locator('[data-inline-name]').fill(function_name);assert next(v for _,v in pending() if v['kind']=='function-edit')['icon']=='🛡️'
+  surface().locator('.object-title-description').fill('아이콘과 설명 원자 저장');held=pending();assert len(held)==2;glyph=next(v for _,v in held if v['kind']==('function-edit' if is_function else 'definition' if is_new else 'schema-icon' if is_property else 'icon'));assert glyph['icon' if is_new or is_function else 'text']=='🛡️';assert checkpoint.read_bytes()==before;f.originals();restart(1);assert pending()==held;expect(icon()).to_have_text('🛡️');f.checked('한 grapheme 이모지 적용과 설명은 저장 전 같은 owner 입력으로 보관되고 프로세스 재시작에 원래 기준과 함께 복원한다')
   if mode=='cancel':
    surface().locator('[data-element-action=discard]').click();saved();expect(new_row()).to_have_count(0) if is_new else expect(icon()).to_have_text(default);restart(2);assert not pending() and checkpoint.read_bytes()==before;f.originals();f.checked('명시적 변경 취소/cold는 아이콘·설명만 취소하고 부모·참조·정확한 기존 값과 원본을 보존한다')
   elif mode=='conflict':
-   peer=icon_file.read_bytes()+b'\n// fixture concurrent source\n';icon_file.write_bytes(peer);f.original[icon_file.name]=peer;f.rejected_save();assert pending()==held and checkpoint.read_bytes()==before;f.originals();restart(2);assert pending()==held;f.rejected_save();assert pending()==held and checkpoint.read_bytes()==before;f.originals();f.checked('실제 source 변경은 후보 전부 미적용·입력 보존이고 재시작 재시도에도 원래 기준을 자동 교체하지 않는다')
+   peer=icon_file.read_bytes()+b'\n// fixture concurrent source\n';icon_file.write_bytes(peer);f.original[str(icon_file.relative_to(f.project))]=peer;f.rejected_save();assert pending()==held and checkpoint.read_bytes()==before;f.originals();restart(2);assert pending()==held;f.rejected_save();assert pending()==held and checkpoint.read_bytes()==before;f.originals();f.checked('실제 source 변경은 후보 전부 미적용·입력 보존이고 재시작 재시도에도 원래 기준을 자동 교체하지 않는다')
   else:
    if mode=='storage':
     checkpoint.chmod(0o400)
@@ -134,9 +153,11 @@ try:
     for _ in range(300):
      if len(pending())==1 and pending()[0][1].get('copySavedBasis'):break
      f.page.wait_for_timeout(100)
-    assert len(pending())==1 and pending()[0][1]['text']=='👑' and pending()[0][1]['copySavedBasis']['accepted']=='🛡️';restart(2);expect(icon()).to_have_text('👑');surface().locator('[data-element-action=save]').click();saved();expected_glyph='👑';f.checked('성공 응답 대기 중 새 glyph는 채택/폐기하지 않고 receipt 기준으로 보존하며 cold 뒤 새 명시 저장만 반영한다')
+    assert len(pending())==1 and pending()[0][1]['icon' if is_function else 'text']=='👑' and pending()[0][1]['copySavedBasis']['acceptedIcon' if is_function else 'accepted']=='🛡️';restart(2);expect(icon()).to_have_text('👑');surface().locator('[data-element-action=save]').click();saved();expected_glyph='👑';f.checked('성공 응답 대기 중 새 glyph는 채택/폐기하지 않고 receipt 기준으로 보존하며 cold 뒤 새 명시 저장만 반영한다')
    else:surface().locator('[data-element-action=save]').click();saved()
-   assert (next(row for row in own_schema()['rows'] if row['path']==([new_native] if is_new else ['Power'])).get('icon') if is_property else own_schema()['values']['editorIcon'])==expected_glyph and own_schema()['description']=='아이콘과 설명 원자 저장';f.originals();restart(3);expect(icon()).to_have_text(expected_glyph);assert not pending();f.checked('단일 owner 후보/CAS 임시 저장과 cold는 glyph·설명을 함께 저장하며 원본 파일과 실행 권한은 유지한다')
+   assert (next(row for row in own_schema()['ownFunctions'] if row['id']==function_id).get('icon') if is_function else next(row for row in own_schema()['rows'] if row['path']==([new_native] if is_new else ['Power'])).get('icon') if is_property else own_schema()['values']['editorIcon'])==expected_glyph and own_schema()['description']=='아이콘과 설명 원자 저장';f.originals();restart(3);expect(icon()).to_have_text(expected_glyph);assert not pending();f.checked('단일 owner 후보/CAS 임시 저장과 cold는 glyph·설명을 함께 저장하며 원본 파일과 실행 권한은 유지한다')
+   if is_function:
+    current=next(row for row in own_schema()['ownFunctions'] if row['id']==function_id);assert current['signature']['Args'][0]['Name']=='amount' and current['signature']['Args'][1]['Mode']=='out' and current['signature'].get('return',current['signature'].get('Return'))=='long';assert own_schema()['values']['editorIcon']=='📦';f.checked('연결된 함수 glyph와 정보 설명의 Save/cold는 서명·typed import·구현 C#·부모·기존 값을 보존한다')
    if is_new_object:
     row=next(row for row in own_schema()['rows'] if row['path']==[new_native]);assert row['schemaOrigin'].startswith(owner+'_Properties_') and row['fieldSource']==owner;icon_file=f.project/'elements'/(row['schemaOrigin'].split('::')[-1]+'.celem');assert not icon_file.exists();f.checked('새 객체 속성의 등록·소유 스키마·값·glyph는 확정 전 하나의 생성 후보이며 원본 파일은 생성하지 않는다')
    if is_new:
