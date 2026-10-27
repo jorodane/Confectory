@@ -251,8 +251,13 @@ def nested_pin_initial():
     f.checked('원래 내부 핀 이름/추가 조작과 불완전 이름 취소·Undo/Redo는 기존 값 연결과 다른 프레임 입력을 보존한다')
 
 def separate_frames():
+    root_save='root-save' in sys.argv[4:];paths=['left'] if 'root-single' in sys.argv[4:] else ['left','right/deep']
+    def save_at_root():
+        if root_save and f.author().locator('.bp-breadcrumbs').count():nested_parent()
+        if root_save:
+            expect(f.author().locator('[data-bp-node=left]')).to_be_visible();expect(f.author().locator('[data-bp-save]')).to_be_enabled()
     before=checkpoint.read_bytes();wanted={}
-    for index,path in enumerate(['left','right/deep']):
+    for index,path in enumerate(paths):
         nested_enter(path.split('/'));f.author().locator('[data-bp-overview-node=body]').click()
         old=nested_changed[path+'/body'];name='leftValue' if index==0 else 'rightValue'
         nested_pin_name('amount',name)
@@ -264,8 +269,10 @@ def separate_frames():
         f.edit_region(button,old,wanted[path])
         box=f.author().bounding_box();assert round(box['width'])==850 and round(box['height'])==600
         if index==0:nested_parent()
-    f.page.screenshot(path=str(f.case/'separate-frame-before-save.png'));held=f.pending();restart(20)
-    assert all(dict(f.pending()['blueprint']).get(k)==v for k,v in held['blueprint']);expect(f.author().locator('[data-action-field=rightValue]')).to_be_visible()
+    save_at_root();f.page.screenshot(path=str(f.case/'separate-frame-before-save.png'));held=f.pending();restart(20)
+    assert all(dict(f.pending()['blueprint']).get(k)==v for k,v in held['blueprint'])
+    if root_save:expect(f.author().locator('[data-bp-node=left]')).to_be_visible()
+    else:expect(f.author().locator('[data-action-field=rightValue]')).to_be_visible()
     f.checked('같은 창의 깊이1/2 frame 핀/본문 입력은 원래850×600 화면·frame별 Undo/Redo·팝업 취소·cold 복원을 보존한다')
     if mode=='context':
         f.close_author();f.page.locator('#workspace').click(button='right',position={'x':80,'y':100});f.page.get_by_role('button',name='프로젝트 브라우저',exact=True).click();browser=f.page.locator('.window[data-key^="browser:project:"]');browser.locator('[data-tab=concept]').click();browser.locator('[data-browser-control="object-query"]').fill('RefTarget');browser.locator('[data-browser-control="object-search"]').click();row=browser.locator('[data-object="'+f.n+'RefTarget"]');expect(row).to_have_attribute('aria-disabled','false');row.click(button='right');f.page.locator('.context-menu').get_by_role('button',name='새 창으로 열기',exact=True).click()
@@ -278,14 +285,21 @@ def separate_frames():
         def enter(id):
             f.page.locator('.brand').click();expect(f.page.locator('.home-grid')).to_be_visible();f.page.locator('[data-enter="'+id+'"]').click();expect(f.page.locator('.work-body')).to_be_visible();f.idle()
         enter(listing);assert all(dict(f.pending()['blueprint']).get(k)==v for k,v in held['blueprint']);enter(second);assert not any(v.get('type') in ['parameters','source'] for _,v in f.pending()['blueprint']);enter(listing);reopen();nested_enter(['right','deep']);assert other_checkpoint.read_bytes()==other_before;f.env['CONFECTORY_WEB_PROJECT']=str(f.manifest);f.checked('동일 namespace 프로젝트 전환은 두 frame 입력을 다른 프로젝트에 적용하지 않는다')
+    save_at_root()
     if mode=='conflict':
         f.invoke('schema',{'id':owner});row=f.state()['schema'];f.invoke('editDescription',{'id':owner,'hash':row['textHash'],'revision':row['revision'],'value':'다른 창의 별도 저장'});f.invoke('saveDraft',{});peer=checkpoint.read_bytes();assert peer!=before;mark=len(f.traffic);f.author().locator('[data-bp-save]').click();wait_result(mark,'authorBatch',False);f.idle();assert checkpoint.read_bytes()==peer and all(dict(f.pending()['blueprint']).get(k)==v for k,v in held['blueprint']);restart(22);assert checkpoint.read_bytes()==peer;originals();f.checked('동일 source의 실제 peer checkpoint 경합은 모든 frame 미적용·기존 입력/peer 초안 보존이다');f.browser.close();print(json.dumps({'checks':f.checks,'evidence':str(f.case),'actualEngine':True,'renderer':True},ensure_ascii=False));sys.exit(0)
     def unchanged_live():
-        read=next(v['invoke']['input'] for v in reversed(f.traffic) if v.get('invoke',{}).get('endpoint')=='blueprint' and v['invoke']['input'].get('action')=='read' and '/graph:' in v['invoke']['input'].get('id',''))
+        # Returning to Root after cold restore refreshes its owner revision/view binding.
+        # Verify each private frame using that current receipt, not a pre-restart read.
+        read=next(v['invoke']['input'] for v in reversed(f.traffic) if v.get('invoke',{}).get('endpoint')=='blueprint' and v['invoke']['input'].get('action')=='read')
         for path in ['left','right/deep']:
             request={**read,'id':copied+'/body:'+target+''.join('/graph:'+part for part in path.split('/'))};live=f.invoke('blueprint',request)['result']['result'];node=next(n for n in live['nodes'] if n['id']=='body');assert [a['name'] for a in node['signature']['args']]==['amount'] and node['source']==nested_changed[path+'/body']
     if mode=='invalid-last':
-        expect(f.author().locator('[data-action-field=input1]')).to_be_visible();mark=len(f.traffic);f.author().locator('[data-bp-save]').click();wait_result(mark,'authorBatch',False);f.idle();assert checkpoint.read_bytes()==before;unchanged_live();rejected=f.pending();nested_pin_value('input1',raw='"명시 값 😀"');assert all(dict(f.pending()['blueprint']).get(k)==v for k,v in rejected['blueprint'] if v.get('kind')=='author-attempt');f.checked('마지막 frame 미연결 핀의 거절은 앞선 핀/본문도 저장하지 않으며 실패 기록을 보존한다')
+        if root_save:nested_enter(['right','deep']);f.author().locator('[data-bp-overview-node=body]').click()
+        expect(f.author().locator('[data-action-field=input1]')).to_be_visible();save_at_root();mark=len(f.traffic);f.author().locator('[data-bp-save]').click();wait_result(mark,'authorBatch',False);f.idle();assert checkpoint.read_bytes()==before;unchanged_live();rejected=f.pending();
+        if root_save:nested_enter(['right','deep']);f.author().locator('[data-bp-overview-node=body]').click()
+        nested_pin_value('input1',raw='"명시 값 😀"');assert all(dict(f.pending()['blueprint']).get(k)==v for k,v in rejected['blueprint'] if v.get('kind')=='author-attempt');f.checked('마지막 frame 미연결 핀의 거절은 앞선 핀/본문도 저장하지 않으며 실패 기록을 보존한다')
+    save_at_root()
     applies=set();queries=set();lost=set()
     if mode=='loss':
         def intercept(route):
@@ -310,12 +324,13 @@ def separate_frames():
         assert len(applies)==1 and queries&lost;f.page.unroute_all(behavior='wait');restart(23);mark=len(f.traffic);f.author().locator('[data-bp-save]').click();wait_result(mark,'settledAuthorBatch');assert not any(v.get('invoke',{}).get('input',{}).get('action')=='authorBatch' for v in f.traffic[mark:]);f.checked('저장/조회 응답 유실과 cold 뒤 receipt 확인으로 모든 frame 중복 적용을 방지한다')
     else:wait_result(mark,'authorBatch',mode!='storage') if mode!='storage' else None
     f.page.wait_for_function('()=>document.querySelector(".window[data-key=blueprint] .bp-status")?.textContent.startsWith("복사본 ·")',timeout=120000);f.idle();assert checkpoint.read_bytes()!=before
-    assert not any(v.get('type') in ['parameters','source'] for _,v in f.pending()['blueprint']);originals();nested_parent()
-    for path in ['left','right/deep']:
+    assert not any(v.get('type') in ['parameters','source'] for _,v in f.pending()['blueprint']);originals();
+    if f.author().locator('.bp-breadcrumbs').count():nested_parent()
+    for path in paths:
         nested_enter(path.split('/'));f.author().locator('[data-bp-overview-node=body]').click();name='leftValue' if path=='left' else 'rightValue';expect(f.author().locator('[data-action-field="'+name+'"]')).to_be_visible()
         f.author().locator('[data-bp-node=body] [data-internal-code]').click();dialog=f.page.locator('.bp-script-dialog');assert wanted[path] in dialog.locator('[data-code-source]').input_value();dialog.locator('[data-code-cancel]').click();nested_parent()
     rows={r['id']:r for r in json.loads(checkpoint.read_text())['changes']};body_key=copied+'/body:'+target;stored_graph=json.loads(rows[body_key]['draft']);expected=__import__('copy').deepcopy(json.loads(next(r['draft'] for r in json.loads(before)['changes'] if r['id']==body_key)))
-    for path,name in [('left','leftValue'),('right/deep','rightValue')]:
+    for path,name in [(path,'leftValue' if path=='left' else 'rightValue') for path in paths]:
         frame=expected
         for part in path.split('/'):frame=next(n for n in frame['nodes'] if n['id']==part)['graph']
         node=next(n for n in frame['nodes'] if n['id']=='body');node['signature']['args'][0]['name']=name;node['arguments'][name]=node['arguments'].pop('amount')
@@ -326,7 +341,9 @@ def separate_frames():
     if mode=='context':
         verify_separate_peer();peer=f.page.locator('.window[data-key="'+peer_key+'"]');peer.locator('[data-element-action=discard]').click();expect(peer.get_by_label('Count 기본값',exact=True)).to_have_value('8')
     if mode=='projects':assert other_checkpoint.read_bytes()==other_before
-    f.checked('두 private frame의 핀·수동 본문을 단일 candidate/CAS로 저장하고 동명 leaf·원본·공개 계약을 보존한다')
+    if root_save:
+        requests=[row['invoke']['input'] for row in f.traffic if row.get('invoke',{}).get('endpoint')=='blueprint' and row['invoke']['input'].get('action')=='authorBatch'];assert requests and all('/graph:' not in row['id'] and len({edit['frame'] for edit in row['edits']})==len(paths) for row in requests);f.checked('원래 Root로 돌아온 Save가 명시 편집한 private frame만 같은 후보/CAS로 저장하고 Root 계약·문맥을 보존한다')
+    else:f.checked('두 private frame의 핀·수동 본문을 단일 candidate/CAS로 저장하고 동명 leaf·원본·공개 계약을 보존한다')
     assert accept();f.checked('분리 frame 저장은 Review 거절 뒤 재검토·명시 Confirm으로만 원본 반영한다')
     units=f.metadata('describe',project=str(f.manifest))['units'];graph_path=f.project/next(v for v in units if v['id']==body_key)['path'];assert json.loads(graph_path.read_text())==expected;assert not f.errors and not f.external,(f.errors,f.external)
     f.browser.close();print(json.dumps({'checks':f.checks,'evidence':str(f.case),'actualEngine':True,'renderer':True,'nativeWindows':False},ensure_ascii=False));sys.exit(0)

@@ -1,5 +1,7 @@
 # 7행 원래 조작과 남은 경계
 
+Root 복귀 Save의 최신 지원/잔여 판정은 [Root 수용 기록](VALIDATION_V536_ROOT_COPY_SAVE.md)을 우선한다. 원래 빵부스러기·전체 graph Save에 근거한 ordinary private 입력 진입만 해제하며, forwarded/다른 frame 영향 후보와 opaque는 아래 같은 고정 항목으로 한 번만 관리한다.
+
 새 copy 등록 복수 use의 최신 결과는 [새 등록 closure 검증](VALIDATION_V536_PENDING_REGISTERED_CLOSURE.md)을 우선한다. 아래 과거 단위의 같은 미완료 표현은 해당 지원 범위만 해제한다.
 
 대조 기준은 게시 `7ea290211e472a50d661688774ed356c5e163a6e`, 원본 저장소
@@ -103,3 +105,7 @@ Library 전달 및 전체 UI 완료는 이번 단위의 결과가 아니다.
 ## 저장 copy의 별도 frame ordinary 핀·본문 결합
 
 [분리 frame 수용 검증](VALIDATION_V536_SAVED_COPY_FRAMES.md)은 동일 author surface/owner의 저장 single-target copy에서 현재 편집 중인 private frame의 Save를 통해 두 private frame의 기존 ordinary code leaf 핀·값·직접 작성 본문을 한 후보/CAS에 연결한다. Root로 돌아와 Save하는 진입은 원래 guard에 남아 있으며 완료로 세지 않는다. frame별 Undo/취소·실패 입력·원래 source closure와 Review/Confirm을 보존한다. 새 copy에서 이미 되던 owner 결합을 중복 구현하지 않는다. 원본 callee ABI 갱신에 따른 forwarded frame 계약·wrapper와 다른 frame 일반 편집의 결합, opaque/whole-body closure는 이 단위 밖의 기존 잔여로 구별한다. 공개 override 구조 변경은 정상 금지·독립 계약 복제는 필수 제외다. 8/9행·별도 UI·실제 Windows/mobile·Library 전달과 전체 UI 완료로 합산하지 않는다.
+
+## Root 복귀 Save 마감
+
+[Root 수용 기록](VALIDATION_V536_ROOT_COPY_SAVE.md)은 현재 frame뿐 아니라 기존 Root 버튼에서 단일/복수 ordinary private 핀·값·수동 본문을 같은 소유 후보/CAS로 저장한다. 직전 분리 frame 단위의 Root guard 잔여는 이 범위만 해제한다. wrapper 원본 계약 갱신 및 실제 forwarded 영향과 다른 frame 계획, opaque/whole-body source closure는 원래 내부 편집/전체 graph 저장에 필요한 기존 결합이며 독립 기능 설계나 가능한 조합 전체를 추가하는 뜻이 아니다. 공개 override 구조 변경/새 독립 계약 복제는 정상 금지·필수 제외를 유지한다. 8/9행·별도 UI·실제 Windows/mobile·Library 및 전체 UI 완료로 합산하지 않는다.

@@ -1,0 +1,400 @@
+{
+  "기준커밋": "0edf63d79a0c0e11053ed8cbc53f007d436ddc24",
+  "범위": "기존 saved same-contract copy의 명시 private ordinary 핀·값·수동 본문 편집→Root→기존 Save. 동일 actor surface/owner/target, 한 후보/전체 closure/CAS. 공개 Root 계약이나 비선택 target을 수정하지 않음.",
+  "집중흐름": 8,
+  "집중확인": {
+    "normal": 6,
+    "view": 6,
+    "invalid": 7,
+    "storage": 7,
+    "loss": 7,
+    "conflict": 4,
+    "context": 7,
+    "projects": 7
+  },
+  "영향회귀": {
+    "single-pins": 11,
+    "saved-abi": 12,
+    "cas": 4
+  },
+  "결과": [
+    {
+      "name": "normal",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-saved-copy-root-save/ui-engine-report.json",
+        "normal",
+        "nested-source",
+        "separate-frames",
+        "root-save",
+        "root-single"
+      ],
+      "exit": 0,
+      "seconds": 134.7,
+      "minimumWorkspaceBytes": 593137664,
+      "peakMemoryBytes": 7025668096,
+      "pendingCopy": false,
+      "copyImports": false
+    },
+    {
+      "name": "view",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-saved-copy-root-save/ui-engine-report.json",
+        "normal",
+        "nested-source",
+        "separate-frames",
+        "root-save",
+        "view"
+      ],
+      "exit": 0,
+      "seconds": 184.2,
+      "minimumWorkspaceBytes": 585961472,
+      "peakMemoryBytes": 7190171648,
+      "pendingCopy": false,
+      "copyImports": false
+    },
+    {
+      "name": "invalid",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-saved-copy-root-save/ui-engine-report.json",
+        "invalid-last",
+        "nested-source",
+        "separate-frames",
+        "root-save"
+      ],
+      "exit": 0,
+      "seconds": 246.4,
+      "minimumWorkspaceBytes": 585768960,
+      "peakMemoryBytes": 7265775616,
+      "pendingCopy": false,
+      "copyImports": false
+    },
+    {
+      "name": "storage",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-saved-copy-root-save/ui-engine-report.json",
+        "storage",
+        "nested-source",
+        "separate-frames",
+        "root-save"
+      ],
+      "exit": 0,
+      "seconds": 225.0,
+      "minimumWorkspaceBytes": 585392128,
+      "peakMemoryBytes": 7109922816,
+      "pendingCopy": false,
+      "copyImports": false
+    },
+    {
+      "name": "loss",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-saved-copy-root-save/ui-engine-report.json",
+        "loss",
+        "nested-source",
+        "separate-frames",
+        "root-save"
+      ],
+      "exit": 0,
+      "seconds": 187.8,
+      "minimumWorkspaceBytes": 585199616,
+      "peakMemoryBytes": 7056400384,
+      "pendingCopy": false,
+      "copyImports": false
+    },
+    {
+      "name": "conflict",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-saved-copy-root-save/ui-engine-report.json",
+        "conflict",
+        "nested-source",
+        "separate-frames",
+        "root-save"
+      ],
+      "exit": 0,
+      "seconds": 95.2,
+      "minimumWorkspaceBytes": 585015296,
+      "peakMemoryBytes": 7024304128,
+      "pendingCopy": false,
+      "copyImports": false
+    },
+    {
+      "name": "context",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-saved-copy-root-save/ui-engine-report.json",
+        "context",
+        "nested-source",
+        "separate-frames",
+        "root-save"
+      ],
+      "exit": 0,
+      "seconds": 198.7,
+      "minimumWorkspaceBytes": 584830976,
+      "peakMemoryBytes": 7207976960,
+      "pendingCopy": false,
+      "copyImports": false
+    },
+    {
+      "name": "projects",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-saved-copy-root-save/ui-engine-report.json",
+        "projects",
+        "nested-source",
+        "separate-frames",
+        "root-save"
+      ],
+      "exit": 0,
+      "seconds": 210.7,
+      "minimumWorkspaceBytes": 584646656,
+      "peakMemoryBytes": 7123767296,
+      "pendingCopy": false,
+      "copyImports": false
+    },
+    {
+      "name": "single-pins",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-saved-copy-root-save/ui-engine-report.json",
+        "normal",
+        "nested-source",
+        "nested-pins"
+      ],
+      "exit": 0,
+      "seconds": 233.8,
+      "minimumWorkspaceBytes": 584425472,
+      "peakMemoryBytes": 7044362240,
+      "pendingCopy": false,
+      "copyImports": false
+    },
+    {
+      "name": "saved-abi",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_saved_copy_abi.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-saved-copy-root-save/ui-engine-report.json",
+        "nested",
+        "remap",
+        "closure",
+        "registered",
+        "view"
+      ],
+      "exit": 0,
+      "seconds": 190.2,
+      "minimumWorkspaceBytes": 584155136,
+      "peakMemoryBytes": 6987550720,
+      "pendingCopy": false,
+      "copyImports": false
+    },
+    {
+      "name": "cas",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_copy_read_guards_core.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-saved-copy-root-save/ui-engine-report.json"
+      ],
+      "exit": 0,
+      "seconds": 3.8,
+      "minimumWorkspaceBytes": 583548928,
+      "peakMemoryBytes": 6143422464,
+      "pendingCopy": false,
+      "copyImports": false
+    }
+  ],
+  "sourceSha256": {
+    "examples/editor-home/ui/feature-authoring.js": "6bab34007c52d3a8166fc795fa1cb17ebd1d475150b463823f4c701d1c581d6b",
+    "examples/editor-home/WebBundle.csbody": "425afde40cdaf5f3265e495b026c64594263955f1dd606899950b220fe33b6fa",
+    "packs/pack-workspace/Blueprint.csbody": "c2a95e0d9b20fd08d14ce5750c7fc9ed304bf5375aa7f2bbb70bb1a81fad38ce",
+    "packs/editor-home-model/Blueprint.csbody": "181d244749becb5db0da14a13b8b8b5445ad5bcad8cf8ef4b18334c1bc947f7d",
+    "tests/web/v536_information_external_copy_ui.py": "a20e9f6ebe0452a3a14ab4af2afd8e8e3c1f060d6f5e3dc6ecfe3ff08f42462d"
+  },
+  "원본대조": {
+    "기준": "저장소 196c605의 v536 원본, 현재 고정7행/A4–A6",
+    "zip": "reference/site-ui/Confectory-Editor-Prototype-v536.zip",
+    "gitBlob": "e7c023de3949934647d91d97a1a627a212f43fcb",
+    "zipSHA256": "b53156e73fdbbe1f6b8b36a0829cdbfdaec002352304da0060fa53026314bd22",
+    "원본JS": "Confectory-v536/dist/blueprint.js",
+    "원본JSSHA256": "75b9361c9029b37b5218f0c10ebdb5d7b1caf2e42ff480fecf0422ba2ab1c001",
+    "확인": {
+      "빵부스러기": {
+        "문자위치": 254131,
+        "동작": "자식 definitionDraft/graphDraft를 parentMeta 노드에 넣고 graphDirty를 설정한 뒤 선택한 상위 화면으로 복귀"
+      },
+      "Root저장": {
+        "문자위치": 240198,
+        "동작": "기존 data-bp-save가 saveDefinition을 호출해 전체 graph를 현재 구현에 저장, source/override는 원본의 입출력 필드를 보존"
+      },
+      "원본계약갱신": {
+        "문자위치": 161484,
+        "동작": "기존 wrapper 카드가 callee의 최신 입출력/분기와 signature를 가져옴. 수동 후속 코드 확인은 남기며 새 독립 기능 생성 아님"
+      }
+    },
+    "잔여판정": [
+      {
+        "조작": "private ordinary 핀/본문 편집→Root→Save",
+        "분류": "원래 요구의 실제 저장 진입 누락, 이번 구현/검증 대상"
+      },
+      {
+        "조작": "원본 계약 갱신 wrapper와 다른 frame의 일반 편집이 같은 구현에 존재",
+        "분류": "원래 내부 편집·전체 graph Save에서 필요한 영향 후보 결합, 기존7행/A4–A6 잔여 하나로 관리. 임의 모든 조합 아님"
+      },
+      {
+        "조작": "기존 forwarded 연결을 유지하려면 private 부모 계약도 영향받는 갱신",
+        "분류": "실제 영향이 있는 경우의 명시 대응·본문/import 원자 후보 결합 잔여. 공개 override 구조 변경은 여전히 정상 금지"
+      },
+      {
+        "조작": "opaque/whole-body C#·import 사용이 있는 copy",
+        "분류": "기존 수동 C#·엔진 계약 기반의 소유/출처 closure 결합 잔여. 임의 자동 재작성이나 신규 backend로 분류하지 않음"
+      },
+      {
+        "조작": "override 독립 계약/새 ID 복제·모든 target 자동 선택·alias/import만의 새 전용 UI",
+        "분류": "확정된 필수 제외/원본 UI에 없는 추가 제안, 이번 미구현으로 확대하지 않음"
+      }
+    ],
+    "레이아웃수정": false,
+    "새기능설계": false
+  },
+  "공간사전검토": {
+    "baseCommit": "0edf63d79a0c0e11053ed8cbc53f007d436ddc24",
+    "workspaceFreeBytes": 607817728,
+    "tmpFreeBytes": 9178505216,
+    "diskBudgetBytes": 209715200,
+    "ramOutputBudgetBytes": 805306368,
+    "cgroupCurrentBytes": 6056845312,
+    "cgroupLimitBytes": 17179869184,
+    "existingDeletion": false,
+    "newEnvironment": false
+  },
+  "리소스검사": {
+    "리소스수": 74,
+    "전체원문해시일치": true,
+    "리소스SHA256": {
+      "ConfectoryIcon.svg": "6fbd2054764098b340cc104ccbb2e42b9568cec53b063d7f3aa78aa222ef6b20",
+      "workspace.js": "fd3fb6c7852bd6b78eb219d959a866f716e2447ee84c9dad1b2ce4ea9529022e",
+      "workspace-host.js": "66fc50d6bd1b24b57897b90d149a9491ae77fc7a5b206754ce5cc7b419c15014",
+      "app.js": "3c25756db6251fbd013c9285ab0193d041d52c4c3bcab0900ef87b04b2bb22ac",
+      "assets/html2canvas.min.js": "e87e550794322e574a1fda0c1549a3c70dae5a93d9113417a429016838eab8cb",
+      "assets/lumi-bust.png": "74aa3662f35d0455754c9ee9e93535e43d945dfae638d648a16fe2e474388233",
+      "assets/lumi-sd.png": "04d53eeba74b45a6faa6d31de2f2f1a807af8a166434e57cb2a4fa6335fab0a1",
+      "assets/lumi.png": "d20087b6f4737492f32fb79593a2110ecf83e48503e44f7f6bfa4aab9529787f",
+      "assets/portraits.json": "989099ef0fb43da17de863669d578df89dafe0f928e8cdb022a816c3e0cbec11",
+      "assets/tori-bust.png": "d63a937754e949129a3d13de90b0e5b04fc8818c11b9e41de71509ed45373e74",
+      "assets/tori-sd.png": "197434d69d1321c34e34562936f68c31ebe694aa87ebc2bfd41dae9c0f01bf1a",
+      "assets/tori.png": "544a698250fe6f912aca43bd424a59ab1407bea84842b7d52da9b28438810ba9",
+      "assets/vex-bust.png": "1406e9e878c0975414f11d49ded729c4c58f943710965c97fe7358cc2f3785f7",
+      "assets/vex-sd.png": "df1fc134b85974e6f5b2ec793805131c2099114979eeeabcb64533daf6338674",
+      "assets/vex.png": "3599a2f4c6a6f3ad10758a39e242478fe16cd113c98c97db740f63ba1d6330de",
+      "consumer.css": "fc3584f1784ba822fd438edb5fe33deb6527d8e621cc478184d5f5b82244dc3e",
+      "index.html": "9c4c08bbd90a15b7e18f65ceae0d9b0e7e1c17189595853a102941e27af778d0",
+      "style.css": "af9b74e5ba8c4cbebfee93e5e9a056cc0e56bea7151d16796a7c2e2f1945c49c",
+      "inventory.js": "e7a50efcc35a1e5da62ebef10a802303cf30f6b3bc585af664088fece1ad905a",
+      "declarations.js": "335b124b91ff386e83ded3ff340dfb3dd3d385ed3ca297b61330848115d0000b",
+      "relations.js": "ab15571de6969f042a95e82143a08830969c706048a09111f08d4a85403a6032",
+      "tables.js": "6afa14b03f1bc85e86ba928afb3a0c8d48e59b99259818bea0ca29033df20020",
+      "conflicts.js": "b3365f537c2b223caa90901362b9e11cdfccdcc15aefa85bba98e3cd8f32b896",
+      "history.js": "f21d3c4fad09a2506198ee8c017fc398cf44599a24e901f64aa6ebd4107880ed",
+      "builds.js": "e4e022d1657b7cbf22a8274f15c8c0b76fff851165a69695faee3bf5052ef7ee",
+      "node-tasks.js": "415215f33bfc171630d7aeeaf9f00a1e68ca823a6c214e25591784aedcd33247",
+      "blueprint.js": "30c1a604b47f657d54cf7b2b037f18829c98098a30d3f560b89b974d11ce56f8",
+      "find.js": "44623cf3ce418ab924cd75ead0a43ebaacf6c226619982a81f78a70ca04ca0fb",
+      "notes.js": "4adab64b6fc755dc4dda65d80a5232c7fbe3a375d3d4c34b4ba8695bc43486fa",
+      "note-documents.js": "5a72a6ac0114373f89962a545095fa8876fd8a08fef965fa693a5c82209f059f",
+      "window-documents.js": "eb330d8e8707e156b4c51673f50e81d75e2d044db41b91cd51fcff7ba34bc0df",
+      "blueprint-viewport.js": "a690c93df99773adc678c3044ad26e4af1f0738ce1056d937d2958d19349b803",
+      "blueprint-pins.js": "1e141e2b6563ec9b93ce3639add59e878a39f0415dc1cacff9f0ebe29ea57764",
+      "blueprint-code-editor.js": "eb7088037150403ac1819bcdb44d4366ae08ee63f2a656d820b6b083b3c49547",
+      "blueprint-parameters.js": "d1753701eb9feffab7e3949174f65f360f362ab49be599c788701dc385f940de",
+      "blueprint-enum-plan.js": "c0be05b4bb5289184da6264375f599cd14e0bdcaebb53bdcf02c7f25b6daa21b",
+      "home-preferences.js": "64d6c5032978397ede265ee2437f1ddeb4caac038f4eaff011a43a4cf2688fb6",
+      "references.js": "a9544ddeb1672a7a38f4fd525bc614aae4115b2ff8c99dfbc0bc2fe3569fde3f",
+      "browser-projection.js": "0377888ce66866d4cf28c084dfd3c934c4cbd816ee9f29f369a300e0a30cea61",
+      "workspace-links.js": "182ec947d0020f134510251ac41b3ab8d1714a091127a8afba5d26c2d66ececb",
+      "workspace-history.js": "395f3c813f49f5086a60db9b79e3882cf599a32b0b68b16d0a0f1ef549df1826",
+      "browser-tree.js": "4981dc44ca6c24f2559c3eaa56dd8f63408bebdd3367737bd088e1708d383c09",
+      "field-discovery.js": "e44121ad7618ba47f503af2752a699dab690a6e697782f52f68d643870b00b11",
+      "context-actions.js": "cd921374c23fe5ea58b5de2904d5c8f2fdf9e860e79c7c5654979462a8ee1d47",
+      "blueprint-rename.js": "ec8c0db679c052ccb7e63b6256dbe784ef6cb09027e06b2e3cfd401861a04bc9",
+      "mcp-bridge.js": "21a2a09e29ce3ae0bbcace892b58d47cbec5499dd9b57e36b4780f5d8668599b",
+      "helper-agents.js": "75c0ff7e4f8a1b1606959aa2e941c12ec00b380929393ed747df5ea80635faa6",
+      "runtime.css": "7ace817c492c5bd51a3b11a2fd6b86fdc3d98e242ae4115d5cc52b179afc6e3e",
+      "v508-runtime.js": "e180c2b7674af30a413f2591329ae522a22711637a03d2dc115d8f7673a33e58",
+      "v508-views.js": "ad53508ad632b0c972dbdd15efd4774f26abf1235ec906eee0ee034968142728",
+      "app-titlebar.js": "b53ad9f0d02d96ce6591f3c887727d5a6e4cf8fecbdd4474de14e46f8aaa4d8b",
+      "pack-manager.js": "7569d898414d75f492ffc192823bda4737fd7fb58aae6b5d064af7d34ef01dfa",
+      "browser-shell.js": "12c4368b3add1d9d268f4d1ed898c62f8639ea51c56dab63332e2edf029cc5a1",
+      "elements.js": "022957ae95acc905ee8b0784ae4210d9aa5e059e1a55acb4a47ddeefdb994cf4",
+      "typed-json.js": "8c0b9287739b9e4243116b82cbd0d276805445ab924453f04825fb3b515db506",
+      "element-values.js": "4194b01fafc41f1c969c0229ee04c0417ac99fe89e96ec87bdbf9934068ce4fc",
+      "element-functions.js": "acdf3a28f8c0a4ca1433a666185d4a4c98ef0deafaacc9c4970bb2be3ab31ee2",
+      "feature-editor.js": "fc31e167979d55a62d710ffaf234fc70f21983157c45495c24b5b2b56f04af03",
+      "feature-authoring.js": "6bab34007c52d3a8166fc795fa1cb17ebd1d475150b463823f4c701d1c581d6b",
+      "mobile-shell.js": "62e63467dda3da547d4d62808632b42b89ec95671a30949bdc78575071018374",
+      "element-instances.js": "31cbf42fefe35215011ee00c006ee73592328207fcfcf74d787a127adcd2e326",
+      "mobile-blueprint.js": "1c300b66028d30aba12baf0d80bd55f9a135d9210dd3c110e0918c482ff4a607",
+      "battle-log.js": "81aa05ae7f2ccb337772b6435875af53d7deed263cd4a0cf59f32c3947b892f8",
+      "run-windows.js": "a5ab5e9f4ea806a42159d6b23b5343703a6ec2471b42ac21dfedf9503095868d",
+      "run-exports.js": "91e48b9893168c302395c1ae35e9c5e6fd1661a0772465d4316f822954d7ca9f",
+      "browser-data.js": "0ad5974b9f127258d41859e66887ded4e566c1b07d340fa149a7434c304f678f",
+      "set-authoring.js": "80071084be7c69975a96fb17ac5e467b871e09f1bb9effc2672a4999b984a224",
+      "property-authoring.js": "690b3823512dc5bc53702407292abe95835d0db01401dc64bfe1a81beebecb48",
+      "mixed-declaration.js": "9776b5881211c2020a2af4a573c61e5126c449d3787832999cc093dc0491b08d",
+      "call-abi-remap.js": "6749b431071cea244ecb9ceed064ea787e3bf7d9aec848af4119d975fc682699",
+      "element-view-save.js": "e6e17857945ba777cc1c7cb80bfe850f6e68083ed6e0de8582ea5a79b8691c70",
+      "element-information-values.js": "e474cfc5cd0b22dcdfe6c34f1469aab0a4b6b4ef97a1237fb2fab42525324a81",
+      "element-raw-save.js": "e451d861ebacfb0d2b6b01643d80ac1c2f506d7f72773d172e3917c43aada02a",
+      "element-author-surface.js": "7213ab9ed37a1e23779b5a3653a6270168a0950d0db4c00b124304e3e6fd9e21"
+    },
+    "레이아웃파일변경": false,
+    "기존자료삭제": false
+  },
+  "기본정상검사와후속차이": "기본 Root 단일 frame 검사는 독립 창 Root frame payload의 어댑터 분류 보완 전이다. 그 후속 변경은 detached view 분기만 바꾸며 최종 독립/실패 흐름과 checkout/package에서 검증한다.",
+  "검사코드후속차이": "storage 재검증부터 미적용 조회 helper가 재시작 후 최신 Root read 결박을 사용한다. 먼저 통과한 normal/view에는 해당 helper 호출이 없고 invalid는 실패 전 private 재진입으로 최신 read를 얻어 같은 전체 미적용 검증을 이미 통과했다. 제품 코드는 detached adapter 보완 이후 변경되지 않았다.",
+  "이전실패": [
+    {
+      "단계": "focused-view/storage",
+      "분류": "검사 코드의 재시작 전 read 재사용",
+      "결과": "쓰기 거절 뒤 checkpoint/입력 보존은 확인됐으나 미적용 서버 검사가 재시작 전 private read의 ownerRevision을 재사용해 정상 거절됐다. Root의 최신 read 결박으로 각 frame을 다시 조회하도록 검사만 보완하고 기존 전체 미적용 검증을 유지했다."
+    },
+    {
+      "단계": "focused/view",
+      "분류": "실제 독립 창 어댑터 누락",
+      "결과": "Root 기준 parameters 요청을 일반 Root 계약 편집으로 분류해 거절. 기존 owner/hash/nonce/view 검증을 유지하고 Root 아래 frame ID가 명시된 ordinary body 요청만 기존 후보로 전달하도록 보완."
+    },
+    {
+      "단계": "baseline/normal",
+      "분류": "실제 UI 누락",
+      "결과": "내부 핀·본문을 보관하고 Root로 돌아와 Save하면 이전 입력 guard가 거절하고 authorBatch 요청도 보내지 않는다. 입력은 보존됨."
+    }
+  ],
+  "레이아웃변경": false,
+  "기존자료삭제": false,
+  "실제Windows": false,
+  "실제모바일": false,
+  "Library전달": false,
+  "현재여유바이트": 583389184
+}

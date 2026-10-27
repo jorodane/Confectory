@@ -38,3 +38,7 @@ Save는 초안 보관이고 컴파일 및 물리 원본 반영은 기존 명시 
 실행 소스 커밋 `335c80d041b2562b7437b01c562608f5fa30a515`의 변경 Git blob·기존 autocrlf·clean을 확인했다. 기존 독립 checkout에서 Native/CLI Release·새 Linux 엔진, 두 private frame의 독립 정보 창 6확인 및 생산 final CAS 4확인이 통과했다. 새 RAM Windows x64 교차 패키지는 restore·Release·MCP·생성·probe·패키지 자체 두 frame UI 6확인까지 6단계를 통과했다. 전체 2349개/manifest 2348개 목록·SHA·Core/Native DLL과 변경 제품 소스 바이트를 확인했다.
 
 manifest SHA `0de3f84f50b027febeb609b1f40f09e31b824e3091d11dc0f11e79196693b6c6`. 전체 manifest와 fixture/로그/프로필 증거 보관 뒤 이번 실행의 임시 패키지만 정리했고 기존 보관 패키지/SDK/원본/사용자 자료는 삭제하지 않았다. 최종 후속 커밋은 문서/evidence만 달라 실행 코드는 위 소스 커밋과 같다. 실제 Windows apphost/WebView2·모바일 기기/터치·Library 전달 및 전체 UI는 계속 미완료다.
+
+## 후속 Root 진입
+
+이 문서의 당시 Root guard 잔여는 [Root 복귀 Save 수용](VALIDATION_V536_ROOT_COPY_SAVE.md)에서 ordinary private 핀·값·수동 본문에 한해 마감했다. 당시 검증 결과와 실행 소스 커밋은 그대로 유지한다. forwarded/wrapper·다른 frame 영향 후보 및 opaque/whole-body closure와 별도8/9행·UI·실제 기기/Library는 해당 후속 기록의 잔여 판정을 따른다.
