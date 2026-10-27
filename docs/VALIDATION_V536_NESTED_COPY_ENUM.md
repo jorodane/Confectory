@@ -30,3 +30,11 @@
 ## 확정 집중 검사
 
 Native Release 0 warning/error, 순수 후보 9확인 및 실제 엔진/렌더러 12흐름 89확인을 통과했다. 취소·연결된 포트 제거 거절·이름/순서/값·잘못된 이름 거절→Undo→cold→명시 재시도·쓰기 실패·응답 유실·경합·기본/독립 창·프로젝트 전환·Review 취소/Confirm과 새 동작/기존 non-copy enum/권한·override 회귀를 포함한다. 74리소스의 canonical 크기/해시를 확인했고 어댑터 JS와 원본 모바일 Script 7규칙 복원 CSS 외 72항목·HTML은 동일하다. 현재 실행의 fixture는 로그/스크린샷/프로필·원본 증거를 ZIP/manifest로 보존한 뒤 그 검사 복사본만 정리했다.
+
+## 독립 checkout·새 교차 패키지
+
+소스/집중 검사 체크포인트 `6381512bb8523b5f3175bb6da26a5ec2e8f31245`를 기존 독립 checkout에 정상 FF하고 원래 `core.autocrlf=true`와 clean 상태·변경 Git blob을 확인했다. Native Release·새 Linux 엔진·실제 독립 copy UI/명시 재시도와 기존 non-copy private enum 회귀 2흐름 12확인, 별도 순수 후보 9확인이 통과했다. 집중 12흐름 89확인은 별도다.
+
+restore·솔루션 Release·MCP Release·새 Windows x64 교차 패키지·package probe·실제 패키지 runtime의 모바일/독립 창 UI/컴파일러 8확인까지 6단계가 통과했다. manifest 2346개/전체 2347개의 파일 목록·SHA, 링크 부재와 Core/Native DLL·변경 소스 바이트가 일치한다. manifest SHA `8a1382f61d73a427d8b3a2fe27dc3b374b1af90190cc9cabed270063492f2bf8`, Native DLL `4b007e041f00b4088f58d97dd25163e5e3abb4e3b2f71434c0530c02a3a16da3`. 실제 Windows apphost/WebView2나 모바일 기기를 실행한 검사가 아니다.
+
+전체 manifest와 fixture ZIP/무결성 증거를 보존한 뒤 이번 RAM 검증 패키지만 정리했다. 보관 패키지·원본·사용자 자료와 기존 캐시는 삭제하지 않았다. 새 전달용 산출물 보관/Library 업로드가 아니다. 이 기록 이후 게시 커밋은 문서/결과 JSON만 추가하고 실행 소스는 위 체크포인트와 같다. 여유 1090.8 MiB. [명령·결과·해시](evidence/v536-nested-copy-enum/package-clean-verification.json).
