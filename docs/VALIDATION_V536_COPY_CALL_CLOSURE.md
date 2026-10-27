@@ -63,3 +63,11 @@ Root 혼합 표본의 `switch` 프로파일 지정 누락은 정상 `GRAPH_CONTR
 ## 확정 집중 검사
 
 최종 제품의 실제 엔진/렌더러 12흐름 83확인과 순수 closure4확인이 통과했다. 기본/독립 창의 취소·cold·CPP compiler Confirm, 누락/위조/마지막 비호환 대응의 전체 미적용, 쓰기 실패·물리 source/CP 충돌·응답 유실·Undo 후 새 대응 재시도 및 다른 frame 입력 보존을 확인했다. 단일/root/새-copy 기존 지원도 회귀로 지켰다. 독립 checkout/새 패키지는 별도 후속 evidence다.
+
+## 독립 checkout·새 교차 패키지
+
+소스 커밋 `ebfc040ecbb3b736727915e9a99ffc26f80a9b8c`의 변경12개 Git blob과 기존 autocrlf/clean을 확인했다. Native/CLI Release·Linux 엔진 및 독립 UI2흐름22확인·closure 순수4/기존 순수6확인이 통과했다. 새 RAM Windows x64 교차 패키지의 restore·Release·MCP·생성·probe·패키지 자체 독립 창 UI12확인까지 6단계가 통과했다. 전체 2348개/manifest 2347개 목록·SHA·Core/Native DLL 및 소스 바이트를 확인했다.
+
+manifest SHA `a81965bfff3b3007bfae2083c85b632d5a5d21bf5ec71f7ab9e27bf4735acc77`, Native DLL `0aebc2c25d3027433fc8cb9371d893b92049debc4d03844a621d5d6ebfbe040d`다. 전체 manifest·fixture/로그/프로필 증거를 보관한 후 이번 임시 패키지만 정리했다. 보관 패키지/SDK/원본/기존 자료는 그대로다. 다운로드 가능한 새 보관 패키지나 Library 전달이 아니며 실제 Windows apphost/WebView2·모바일 기기는 미검증이다. 후속 최종 커밋은 문서/evidence만 바뀌므로 실행 소스는 이 소스 커밋과 같다.
+
+초기 마지막 출력 검증 누락·Root fixture 프로파일 오류·모듈 진입 조회 실패도 각각 scratch 로그에 보존했다. 전체 source-ready 검사와 정확한 정규화 필드/fixture 수정 후 재검증했다. 첫 시도나 진단 실패를 통과 수에 합산하지 않는다.
