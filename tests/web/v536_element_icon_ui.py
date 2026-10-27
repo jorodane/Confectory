@@ -1,5 +1,5 @@
 """Original element glyph popover and actual atomic owner save; isolated fixture only."""
-import json,re,sys,time,zipfile
+import json,pathlib,re,sys,time,zipfile
 from playwright.sync_api import sync_playwright,expect
 import v536_wide_mixed as f
 
@@ -33,7 +33,7 @@ def review():
  if f.page.locator('#review-creation').count():f.page.locator('#review-creation').click()
  expect(r).to_be_visible();return r
 def compare(p):
- with zipfile.ZipFile(f.repo/'reference/site-ui/Confectory-Editor-Prototype-v536.zip') as z:
+ with zipfile.ZipFile(pathlib.Path(__file__).resolve().parents[2]/'reference/site-ui/Confectory-Editor-Prototype-v536.zip') as z:
   app='Confectory-v536/dist/app.js';source=z.read(app).decode();css=re.sub(r'@import\s+url\([^)]*\)\s*;','',z.read('Confectory-v536/dist/style.css').decode())
  a=source.index('function editIconValue(');b=source.index('\nfunction ',a+1);function=source[a:b]
  selectors=[':scope','form','.object-icon-preview','.object-icon-options','[data-icon-choice="🛡️"]','#object-icon-input','.object-icon-upload','small','.actions','[type=submit]']
