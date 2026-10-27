@@ -58,3 +58,30 @@ for boundary in ['missing-target','missing-record','unrelated','contract','recor
  call('blueprintRootGroup',False,namespace='Owned.Multi',group=ids,units=u)
 print('PASS exact all-target review group validates every callee/graph/record; six missing/unrelated/stale/locator mutations are refused (legacy 3/4 group rules retained)')
 print(json.dumps({'pureMetadata':True,'actualEngine':False,'renderer':False,'windowsExecuted':False,'accountOrInference':False,'candidateAndGroupChecks':4}))
+
+# External declarations remain read-only snapshots in a fully owned target group.
+import hashlib
+hashtext=lambda s:hashlib.sha256(s.encode()).hexdigest()
+foreign='Lib::Native';foreign_text=after.replace(n+'Native',foreign);u=copy.deepcopy(units);del u[n+'Native'];u[n+'Caller']['draft']=u[n+'Caller']['draft'].replace(n+'Native',foreign)
+manifest='project Owned.Multi version "1" {standalone true;element Caller implementation "Caller.celem";registry Lib "../Lib/pack.cpack";dependency Lib version "1";}'
+snapshot={'schema':1,'manifest':n+'manifest','path':'project.cproj','text':manifest,'contracts':{foreign:{'text':foreign_text,'receipt':{'id':foreign,'ownerManifestHash':hashtext(manifest),'manifestHash':'a'*64,'textHash':hashtext(foreign_text)}}}}
+u[n+'manifest']={'kind':'project','path':'project.cproj','draft':manifest};u[n+'Caller']['rootAbiContracts']=snapshot
+for target in bodies:
+ root=n+'Caller/body:'+target;graph=json.loads(u[root]['draft']);node=next(row for row in graph['nodes'] if row['id']=='native');node['feature']=foreign;w=call('blueprintCallWrapper',functionText=foreign_text,executionEnum=enum,returnMapping='native-return-out-v1',source=node['postCall']['source']);node['postCall']['contractHash']=w['contractHash'];u[root]['draft']=json.dumps(graph);defs=call('featureBlueprintNodes',featureSource=feature,graph=graph,featureContracts={foreign:foreign_text});record=json.loads(u[root+'/node:body']['draft']);record['definitionHash']=next(row for row in defs['nodes'] if row['id']=='body')['definitionHash'];u[root+'/node:body']['draft']=json.dumps(record)
+ids=list(u)
+for unit in u.values():unit['rootContractGroup']=ids
+assert call('blueprintRootGroup',namespace='Owned.Multi',group=ids,units=u)['valid']
+for boundary in ['missing-snapshot','foreign-unit','owner-hash','text-hash','undeclared','wrong-locator','wrong-manifest','wrong-import','misplaced-snapshot']:
+ rows=copy.deepcopy(u);members=ids.copy();proof=rows[n+'Caller']['rootAbiContracts']
+ if boundary=='missing-snapshot':del rows[n+'Caller']['rootAbiContracts']
+ elif boundary=='foreign-unit':rows[foreign]={'kind':'function','path':'external.celem','draft':foreign_text};members.append(foreign)
+ elif boundary=='owner-hash':proof['contracts'][foreign]['receipt']['ownerManifestHash']='0'*64
+ elif boundary=='text-hash':proof['contracts'][foreign]['receipt']['textHash']='0'*64
+ elif boundary=='undeclared':proof['contracts']['Other::Native']=proof['contracts'].pop(foreign)
+ elif boundary=='wrong-locator':proof['text']=proof['text'].replace('Caller.celem','Other.celem')
+ elif boundary=='wrong-manifest':rows[n+'manifest']['draft']+='\n'
+ elif boundary=='wrong-import':rows[n+'Caller']['draft']=rows[n+'Caller']['draft'].replace('(long) -> long','(bool) -> bool')
+ else:rows[n+'manifest']['rootAbiContracts']=copy.deepcopy(proof)
+ for unit in rows.values():unit['rootContractGroup']=members
+ call('blueprintRootGroup',False,namespace='Owned.Multi',group=members,units=rows)
+print('PASS registered snapshots validate pure restoration and reject nine foreign-write/identity/receipt/manifest/import boundary mutations without reading external files')

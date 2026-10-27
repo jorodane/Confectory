@@ -14,7 +14,12 @@ internal static class BlueprintCallAbiGroup
   var function=new Parser(units[ids[0]]!["draft"]!.GetValue<string>(),"<abi-group-function>").ParseElement();var caller=new Parser(units[ids[1]]!["draft"]!.GetValue<string>(),"<abi-group-implementation>").ParseElement();
   if(function.Kind!="function"||function.Id!=ids[0]||caller.Kind!="implementation"||caller.Id!=ids[1]||caller.Function!=function.Id||caller.Parent is not null||caller.Bodies.Count is <2 or >8||!function.Signature!.Matches(caller.Signature)||caller.Bodies.Any(p=>p.Value.SourceKind!="blueprint"))throw new ArgumentException("Exact all-Blueprint direct target declaration group required");
   var expected=new HashSet<string>(new[]{function.Id,caller.Id},StringComparer.Ordinal);var contracts=new JsonObject();
+  var snapshot=units[caller.Id]!["rootAbiContracts"] as JsonObject;var registered=BlueprintAbiContracts.Validate(snapshot,caller,units[caller.Id]!["path"]!.ToString());
+  if(units.Any(p=>p.Key!=caller.Id&&p.Value?["rootAbiContracts"] is not null))throw new ArgumentException("Registered evidence belongs only to the owned caller");
+  if(snapshot is not null){string manifest=snapshot["manifest"]!.ToString();if(!ids.Contains(manifest,StringComparer.Ordinal)||units[manifest]?["kind"]?.ToString()!="project"||units[manifest]?["path"]?.ToString()!=snapshot["path"]?.ToString()||units[manifest]?["draft"]?.ToString()!=snapshot["text"]?.ToString())throw new ArgumentException("Owned manifest is a read-only coordinated member");expected.Add(manifest);if(request["verifyRegistered"]?.GetValue<bool>()==true)BlueprintAbiContracts.Verify(request["project"]!.GetValue<string>(),snapshot,units[caller.Id]!["draft"]!.GetValue<string>());}
+
   foreach(string feature in caller.Imports.Values.Select(i=>i.Id).Distinct(StringComparer.Ordinal)){
+   if(PackPaths.Namespace(feature)!=ns){contracts[feature]=registered[feature]!.DeepClone();var external=new Parser(contracts[feature]!.GetValue<string>(),"<abi-registered-contract>").ParseElement();if(caller.Imports.Values.Any(i=>i.Id==feature&&!i.Signature.Matches(external.Signature)))throw new ArgumentException("Registered typed import must match its reviewed snapshot");continue;}
    if(!ids.Contains(feature,StringComparer.Ordinal)||units[feature]?["kind"]?.ToString()!="function")throw new ArgumentException("Every owned imported contract belongs in the coordinated group");var fn=new Parser(units[feature]!["draft"]!.GetValue<string>(),"<abi-group-contract>").ParseElement();if(fn.Kind!="function"||fn.Id!=feature)throw new ArgumentException("Exact contract identity required");expected.Add(feature);contracts[feature]=units[feature]!["draft"]!.DeepClone();
   }
   string root=Path.Combine(Path.GetTempPath(),"confectory-pure-abi-group");var paths=new HashSet<string>(OperatingSystem.IsWindows()?StringComparer.OrdinalIgnoreCase:StringComparer.Ordinal);
@@ -34,6 +39,8 @@ internal static class BlueprintCallAbiGroup
   var caller=new Parser(text,"<multi-abi-caller>").ParseElement();var function=new Parser(request["functionText"]!.GetValue<string>(),"<multi-abi-function>").ParseElement();
   var bodies=request["bodies"]!.AsObject();var contracts=request["featureContracts"]!.AsObject();
   if(caller.Id!=id||caller.Kind!="implementation"||caller.Parent is not null||caller.Bodies.Count is <2 or >8||bodies.Count!=caller.Bodies.Count||function.Kind!="function"||function.Id!=caller.Function||PackPaths.Namespace(function.Id)!=PackPaths.Namespace(id)||!function.Signature!.Matches(caller.Signature)||caller.Bodies.Any(p=>p.Value.SourceKind!="blueprint"||!bodies.ContainsKey(p.Key)))throw new ArgumentException("Complete direct owned Blueprint target closure required; opaque/inherited targets are retained");
+  if(request["registeredContracts"] is JsonObject registeredSnapshot){var foreign=BlueprintAbiContracts.Validate(registeredSnapshot,caller,request["implementationPath"]!.GetValue<string>());foreach(var contract in foreign)if(!JsonNode.DeepEquals(contracts[contract.Key],contract.Value))throw new ArgumentException("Candidate registered snapshot differs");}
+  else if(caller.Imports.Values.Any(i=>PackPaths.Namespace(i.Id)!=PackPaths.Namespace(id)))throw new ArgumentException("Registered all-target receipt required");
   var callee=new Parser(contracts[feature]!.GetValue<string>(),"<multi-abi-callee>").ParseElement();
   if(callee.Kind!="function"||callee.Id!=feature)throw new ArgumentException("Exact callee declaration required");
   var signature=FeatureBlueprint.SignatureDocument(callee.Signature!);var previews=new JsonObject();var originalProofs=new JsonArray();
@@ -60,6 +67,7 @@ internal static class BlueprintCallAbiGroup
    originalProofs.Add(new JsonObject{["target"]=body.Key,["path"]=body.Value.Path,["graphHash"]=JsonData.Digest(graph.ToJsonString()),["recordsHash"]=JsonData.Digest(records.ToJsonString())});
   }
   var binding=new JsonObject{["schema"]=1,["implementation"]=id,["implementationHash"]=JsonData.Digest(text),["functionHash"]=JsonData.Digest(request["functionText"]!.GetValue<string>()),["feature"]=feature,["sourceHash"]=JsonData.Digest(contracts[feature]!.GetValue<string>()),["signature"]=signature.DeepClone(),["contractsHash"]=JsonData.Digest(contracts.ToJsonString()),["targets"]=originalProofs};
+  if(request["registeredContracts"] is not null)binding["registeredHash"]=JsonData.Digest(request["registeredContracts"]!.ToJsonString());
   if(request["plans"] is null)return new JsonObject{["binding"]=binding,["plans"]=previews,["sourceWritten"]=false,["compiled"]=false};
   if(!JsonNode.DeepEquals(request["binding"],binding))throw new InvalidOperationException("Reviewed all-target source closure changed; retain every input");
   var plans=request["plans"]!.AsObject();if(plans.Count!=previews.Count||plans.Any(p=>!previews.ContainsKey(p.Key)))throw new ArgumentException("Explicit plans for every affected target required");

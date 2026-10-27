@@ -1,7 +1,8 @@
 using System.Text.Json.Nodes;
 using Confectory.Core;
 
-// No file I/O or source acceptance. Legacy3 or exactly one owned whole-body record.
+// No source writes. Legacy3/4 validation is pure; multi-target groups may
+// explicitly recheck registered receipts at Save, Review and Confirm.
 static class BlueprintRootGroup
 {
  public static JsonObject Validate(JsonObject request)

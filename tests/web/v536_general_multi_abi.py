@@ -5,24 +5,30 @@ from editor_navigation import goto_editor
 repo=pathlib.Path(sys.argv[1]).resolve();dotnet=os.environ.get('CONFECTORY_DOTNET','/workspace/toolchains/dotnet-10.0.401/dotnet');dll=repo/'targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll'
 def metadata(operation,ok=True,**data):
  p=subprocess.run([dotnet,str(dll)],input=json.dumps({'operation':operation,**data}),text=True,capture_output=True,check=True);v=json.loads(p.stdout);assert bool(v['ok'])==ok,(operation,v);return v.get('result') if ok else v
-n='Owned.Multi::';feature='function '+n+'Calc (long amount) -> long {provide '+n+'Calc with '+n+'Caller;}';before='function '+n+'Native (ref long amount) -> long {}';after='function '+n+'Native (int step,double renamed,out long total) -> bool {}'
-base=metadata('blueprintPrepareFeature',id=n+'Calc',text='function '+n+'Calc (long amount) -> long {}',implementation=n+'Caller',graphPath='common.graph.json',nodePath='common.node.json');base=metadata('blueprintPrepareCall',id=n+'Caller',text=base['implementation'],targetText=before,graph=base['graph'],definition={'id':'native','feature':n+'Native','intent':'명시적 호출','control':'next'})
+context='context' in sys.argv[3:];context_text=None
+registered='registered' in sys.argv[3:];callee='Lib::Native' if registered else 'Owned.Multi::Native'
+n='Owned.Multi::';feature='function '+n+'Calc (long amount) -> long {provide '+n+'Calc with '+n+'Caller;}';before='function '+callee+' (ref long amount) -> long {}';after='function '+callee+' (int step,double renamed,out long total) -> bool {}'
+base=metadata('blueprintPrepareFeature',id=n+'Calc',text='function '+n+'Calc (long amount) -> long {}',implementation=n+'Caller',graphPath='common.graph.json',nodePath='common.node.json');base=metadata('blueprintPrepareCall',id=n+'Caller',text=base['implementation'],targetText=before,graph=base['graph'],definition={'id':'native','feature':callee,'intent':'명시적 호출','control':'next'})
 g=base['graph'];g['profile']='sync-acyclic-switch-v1';g['entry']='native';g['edges'].append({'from':'native','port':'next','to':'body'});native=next(row for row in g['nodes'] if row['id']=='native');native['arguments']={'amount':{'input':'amount'}};next(row for row in g['nodes'] if row['id']=='body')['arguments']={'amount':{'node':'native'}};enum={'primary':'next','members':[{'id':'next','name':'NoBranch','value':0}]};wrapper=metadata('blueprintCallWrapper',functionText=before,executionEnum=enum,returnMapping='native-return-out-v1',source='return Result.NoBranch;');native.update(control='switch',executionEnum=enum,postCall={'mode':'execution-enum','returnMapping':'native-return-out-v1','contractHash':wrapper['contractHash'],'source':wrapper['source'],'helpers':''})
 text=base['implementation'].replace('\n}', '\nblueprint windows "windows.graph.json";\n}');assert 'blueprint windows' in text,text
 bodies={}
 for target in ['common','windows']:
- graph=copy.deepcopy(g);next(row for row in graph['nodes'] if row['id']=='body')['implementation']=target+'.node.json';defs=metadata('featureBlueprintNodes',featureSource=feature,graph=graph,featureContracts={n+'Native':before});record={'schema':1,'node':'body','definitionHash':next(row for row in defs['nodes'] if row['id']=='body')['definitionHash'],'source':'return amount+'+('7' if target=='common' else '9')+';'};bodies[target]={'path':target+'.graph.json','graph':graph,'records':{'body':{'path':target+'.node.json','record':record}}}
-request={'id':n+'Caller','text':text,'functionText':feature,'feature':n+'Native','featureContracts':{n+'Native':after},'bodies':bodies}
+ graph=copy.deepcopy(g);next(row for row in graph['nodes'] if row['id']=='body')['implementation']=target+'.node.json';defs=metadata('featureBlueprintNodes',featureSource=feature,graph=graph,featureContracts={callee:before});record={'schema':1,'node':'body','definitionHash':next(row for row in defs['nodes'] if row['id']=='body')['definitionHash'],'source':'return amount+'+('7' if target=='common' else '9')+';'};bodies[target]={'path':target+'.graph.json','graph':graph,'records':{'body':{'path':target+'.node.json','record':record}}}
+request={'id':n+'Caller','text':text,'functionText':feature,'feature':callee,'featureContracts':{callee:after},'bodies':bodies}
 
 report=json.loads(pathlib.Path(sys.argv[2]).read_text());mode=sys.argv[3] if len(sys.argv)>3 else 'normal';case=pathlib.Path(tempfile.mkdtemp(prefix='confectory-multi-abi-'));project=case/'owned project';project.mkdir()
 items={'Main':('function','function '+n+'Main () -> int {provide '+n+'Main with '+n+'MainBody;}'),'MainBody':('implementation','implementation '+n+'MainBody for '+n+'Main () -> int {import '+n+'Calc as Chosen (long) -> long;body common "Main.csbody";}'),'Calc':('function',feature),'Caller':('implementation',text),'Native':('function',after[:-1]+'provide '+n+'Native with '+n+'NativeBody;}'),'NativeBody':('implementation','implementation '+n+'NativeBody for '+n+'Native (int step,double renamed,out long total) -> bool {body common "Native.csbody";}')}
+lib=case/'Lib'
+if registered:
+ lib.mkdir();items.pop('Native');items.pop('NativeBody');(lib/'Native.celem').write_text(after[:-1]+'provide Lib::Native with Lib::NativeBody;}');(lib/'NativeBody.celem').write_text('implementation Lib::NativeBody for Lib::Native (int step,double renamed,out long total) -> bool {body common "Native.csbody";}');(lib/'Native.csbody').write_text('total=checked((long)renamed);return step>0;');(lib/'pack.cpack').write_text('pack Lib version "1" {element Native function "Native.celem";element NativeBody implementation "NativeBody.celem";}')
 for name,(kind,source) in items.items():(project/(name+'.celem')).write_text(source)
 (project/'Main.csbody').write_text('return checked((int)calls.Chosen.Invoke(1));');(project/'Native.csbody').write_text('total=checked((long)renamed);return step>0;')
 for target,row in bodies.items():
  (project/row['path']).write_text(json.dumps(row['graph']))
  for record in row['records'].values():(project/record['path']).write_text(json.dumps(record['record']))
 (project/'project.cproj').write_text('project Owned.Multi version "1" {standalone true;entry '+n+'Main;'+''.join('element '+name+' '+kind+' "'+name+'.celem";' for name,(kind,_) in items.items())+'registry Confectory.Build.DotNet "'+str(repo/'targets/dotnet/pack.cpack')+'";dependency Confectory.Build.DotNet version "0.1.0";target portable Confectory.Build.DotNet::Portable;target linux Confectory.Build.DotNet::Linux;}')
-foreign_original={}
+if registered:(project/'project.cproj').write_text((project/'project.cproj').read_text().replace('registry Confectory.Build.DotNet','registry Lib "../Lib/pack.cpack";dependency Lib version "1";registry Confectory.Build.DotNet'))
+foreign_original={p:p.read_bytes() for p in lib.iterdir()} if registered else {}
 original={p.name:p.read_bytes() for p in project.iterdir()};env=os.environ.copy();env.update(CONFECTORY_DOTNET=dotnet,CONFECTORY_UI='web',CONFECTORY_EDITOR_REPO=str(repo),CONFECTORY_HOME_STORAGE=str(case/'profile'),CONFECTORY_ENTRY_STORAGE=str(case/'profile'),CONFECTORY_MCP_DIRECTORY=str(case/'instances'),CONFECTORY_WEB_PROJECT=str(project/'project.cproj'));env['PATH']=str(pathlib.Path(env['CONFECTORY_DOTNET']).parent)+os.pathsep+env['PATH'];host=None;log=None;traffic=[];results={};errors=[];external=[];checks=[]
 def stop():
  global host,log
@@ -92,11 +98,13 @@ def open_row(name,group):
 def read(target='common'):return call('blueprint',{'action':'read','id':n+'Caller/body:'+target})
 def graph_window():return page.locator('.window[data-key=blueprint]')
 def current():return read()
-def foreign_same():pass
+def foreign_same():
+ assert all(p.read_bytes()==v for p,v in foreign_original.items())
+ if context_text is not None:assert page.locator('.window[data-key=editor-1] [data-editor-source]').input_value()==context_text
 def open_slot():
  open_row('Calc','feature');decl=page.locator('.window[data-key=declaration]');decl.locator('[data-function-write-direct]').click();a=graph_window();expect(a).to_have_attribute('data-blueprint-body',n+'Caller/body:common',timeout=60000);idle();return a
 def focus_call():
- author.locator(':scope > .window-title .caption').click(position={'x':5,'y':8});author.locator('[data-bp-overview-node=native]').click()
+ title=author.locator(':scope > .window-title');box=title.bounding_box();title.click(position={'x':box['width']-120,'y':12});author.locator('[data-bp-overview-node=native]').click()
 def collect_wrapper():return [(k,v) for k,v in pending() if v.get('type')=='wrapper']
 def mapping():return page.locator('[data-abi-remap-accept]').locator('..').locator('..')
 def choose():
@@ -113,7 +121,10 @@ def finish():
 try:
  start(0);call('saveDraft',{})
  with sync_playwright() as p:
-  expect.set_options(timeout=60000);browser=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox']);page=setup(browser);author=open_slot();expect(author.locator('[data-wrapper-refresh]')).to_be_enabled(timeout=60000);data=current();node=next(r for r in data['nodes'] if r['id']=='native');assert set(node['callAbiGroupPlans'])=={'common','windows'};assert all(p['remap']['inputs']=={'step':None,'renamed':None} for p in node['callAbiGroupPlans'].values());unchanged();foreign_same();focus_call();author.locator('[data-wrapper-refresh]').click();choose();page.screenshot(path=str(case/'mapping-dialog.png'));mapping().locator('[data-abi-remap-cancel]').click();assert not pending();unchanged();checked('원래 갱신에서 명시적 핀 대응을 열고 취소해도 caller/import/연결/외부 팩을 변경하지 않는다')
+  expect.set_options(timeout=60000);browser=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox']);page=setup(browser);author=open_slot();expect(author.locator('[data-wrapper-refresh]')).to_be_enabled(timeout=60000);data=current();
+  if context:
+   call('openEditorView',{'view':'1','id':n+'Main','viewMode':'source'});field=page.locator('.window[data-key=editor-1] [data-editor-source]');expect(field).to_be_visible();context_text=field.input_value()+'\n// 독립 문서에 남길 미저장 원문 9007199254740993';field.fill(context_text);pending()
+  node=next(r for r in data['nodes'] if r['id']=='native');assert set(node['callAbiGroupPlans'])=={'common','windows'};assert all(p['remap']['inputs']=={'step':None,'renamed':None} for p in node['callAbiGroupPlans'].values());unchanged();foreign_same();focus_call();author.locator('[data-wrapper-refresh]').click();choose();page.screenshot(path=str(case/'mapping-dialog.png'));mapping().locator('[data-abi-remap-cancel]').click();assert not pending();unchanged();checked('원래 갱신에서 명시적 핀 대응을 열고 취소해도 caller/import/연결/외부 팩을 변경하지 않는다')
   focus_call();author.locator('[data-wrapper-refresh]').click();choose();held_form=pending();assert len(held_form)==1 and held_form[0][1]['type']=='abi-remap-form';reopen(1);focus_call();author.locator('[data-wrapper-refresh]').click();root=mapping();expect(root.locator('[data-abi-target=common]').locator('[data-abi-value=step]')).to_have_value('3');expect(root.locator('[data-abi-target=common]').locator('[data-abi-input=renamed]')).to_have_value('pin:amount');expect(root.locator('[data-abi-target=common]').locator('[data-abi-output=return]')).to_have_value('total');root.locator('[data-abi-target=common]').locator('[data-abi-value=step]').fill('3e');root.locator('[data-abi-remap-accept]').click();expect(root.locator('[data-abi-error]')).to_be_visible();assert not collect_wrapper();root.locator('[data-abi-target=common]').locator('[data-abi-value=step]').fill('3');
   if mode=='user-correction':root.locator('[data-abi-target=windows] [data-abi-output=return]').select_option('return')
   root.locator('[data-abi-remap-accept]').click();held=collect_wrapper();assert len(held)==1;plan=json.loads(held[0][1]['text']);assert plan['abi']['remap']=={'inputs':{'step':{'valueJson':'3'},'renamed':'amount'},'outputs':{'return':'total'}};expect(author.locator('[data-bp-node=native] [aria-label="입력값 · step"]')).to_have_value('3');expect(author.locator('[data-bp-node=native] [aria-label="입력값 · renamed"]')).to_have_value(__import__('re').compile('amount'));unchanged();foreign_same();page.screenshot(path=str(case/'explicit-general-map.png'));checked('확인 전 raw 핀/값 선택을 cold에서 복원하며 불완전 값은 승인하지 않고 명시적 이름/순서/타입/반환→out 대응만 보관한다')
@@ -130,6 +141,17 @@ try:
    checked('잘못된 실제 출력 선택은 전체 미적용이며 원래 Undo 후 새 명시적 선택이 이전 실패 기록·입력을 보존한다')
   if mode=='cancel':
    author.locator('.bp-viewport').focus();page.keyboard.press('Control+z');assert not pending();unchanged();reopen(2);assert not pending();unchanged();foreign_same();checked('원본 Undo는 전체 갱신 계획만 취소하고 cold에 기존 입력/출력 계약과 source를 유지한다');finish()
+  if mode in ['registry-before','source-change']:
+   if mode=='registry-before':
+    assert registered;file=lib/'pack.cpack';file.write_text(file.read_text()+'\n');foreign_original={p:p.read_bytes() for p in lib.iterdir()}
+   else:
+    file=project/'windows.node.json';record=json.loads(file.read_text());record['source']='return amount+11;';file.write_text(json.dumps(record));original[file.name]=file.read_bytes()
+   mark=len(traffic);author.locator('[data-bp-save]').click()
+   for _ in range(1800):
+    bad=[results[r['requestId']] for r in traffic[mark:] if r['endpoint']=='blueprint' and r.get('input',{}).get('action')=='authorBatch' and r['requestId'] in results and not results[r['requestId']].get('ok') and results[r['requestId']].get('error',{}).get('code')!='stale_revision']
+    if bad:break
+    page.wait_for_timeout(20)
+   assert bad;idle();assert checkpoint.read_bytes()==baseline and collect_wrapper()==held;unchanged();foreign_same();reopen(2);assert collect_wrapper()==held and checkpoint.read_bytes()==baseline;unchanged();foreign_same();checked('등록 manifest 또는 마지막 target 본문이 실제 변경되면 전부 미적용하고 입력과 상대 원문·CP를 cold에도 보존한다');finish()
   if mode=='conflict':
    call('select',{'id':n+'Caller'});d=state()['draft'];call('editDescription',{'id':n+'Caller','revision':d['revision'],'hash':hashlib.sha256(d['text'].encode()).hexdigest(),'value':'동료의 먼저 저장한 설명'});call('saveDraft',{});peer=checkpoint.read_bytes();mark=len(traffic);author.locator('[data-bp-save]').click()
    for _ in range(1800):
@@ -172,7 +194,25 @@ try:
    assert lost and len(ids)==1;page.unroute('**/api/request',intercept);idle();assert not pending();checked('실제 성공 응답 유실은 같은 전체 mapping/source receipt로 한 번 확인하고 중복 변경하지 않는다')
   else:completed('blueprint','authorBatch',mark);assert not pending()
   saved=current();native=next(r for r in saved['nodes'] if r['id']=='native');assert native['signature']['return']=='bool' and native['signature']['args'][0]['name']=='step' and native['signature']['args'][1]['name']=='renamed';assert json.loads(next(r for r in saved['nodes'] if r['id']=='body')['arguments'][0]['valueJson'])=={'node':'native','output':'total'};assert saved['diagnostics']['state'] in ['source-ready','source-assembled'];unchanged();foreign_same();checked('한 authorBatch 후보/CAS가 전체 target closure·typed import·입력/출력 대응·소비자를 함께 검증하고 원본 코드를 보존한다')
+  if registered:
+   stored=json.loads(checkpoint.read_text());caller=next(u for u in stored['changes'] if u['id']==n+'Caller') if isinstance(stored['changes'],list) else stored['changes'][n+'Caller'];assert caller['rootAbiContracts']['contracts'][callee]['receipt']==plan['abi']['receipt'];assert all(not k.startswith('Lib::') for k in caller['rootContractGroup']);checked('외부 선언/receipt는 소유 caller snapshot으로만 CP에 보관하고 외부 unit이나 원본 변경을 만들지 않는다')
   reopen(3);assert not pending();unchanged();foreign_same();author.locator('[data-bp-complete]').click();review=page.locator('.window[data-key=review]');expect(review).to_be_visible(timeout=60000);assert state()['review']['status']=='ready';assert all(not row['id'].startswith('Lib::') for row in state()['review']['units']);review.locator('[data-reject]').click();expect(review).to_be_hidden();unchanged();author.locator('[data-bp-complete]').click();expect(review).to_be_visible(timeout=60000)
+  if mode in ['registry-review','registry-confirm','owned-review','owned-confirm','record-confirm']:
+   assert registered;before_cp=checkpoint.read_bytes();file=(project/'windows.node.json') if mode=='record-confirm' else (project/'project.cproj') if mode.startswith('owned-') else (lib/'pack.cpack');file.write_text(file.read_text()+'\n');foreign_original={p:p.read_bytes() for p in lib.iterdir()};original.update({p.name:p.read_bytes() for p in [file] if p.parent==project})
+   if mode in ['registry-review','owned-review']:
+    review.locator('[data-reject]').click();mark=len(traffic);author.locator('[data-bp-complete]').click();endpoint='complete';action=None
+   else:
+    if review.locator('[data-review-advanced]').count():
+     review.locator('[data-review-advanced]').click()
+     if review.locator('[data-advanced-reviewed]').count():review.locator('[data-advanced-reviewed]').check()
+    mark=len(traffic);review.locator('#confirm').click();endpoint='confirmGroup';action=None
+   for _ in range(2400):
+    bad=[results[r['requestId']] for r in traffic[mark:] if r['requestId'] in results and ((not results[r['requestId']].get('ok') and results[r['requestId']].get('error',{}).get('code')!='stale_revision') or (mode.endswith('confirm') and r['endpoint']=='confirmGroup' and results[r['requestId']].get('ok') and results[r['requestId']].get('result',{}).get('sourceConfirmed') is False))]
+    complete=[results[r['requestId']] for r in traffic[mark:] if r['endpoint']=='confirmGroup' and r['requestId'] in results and results[r['requestId']].get('ok')]
+    if complete:assert complete[-1]['result'].get('sourceConfirmed') is False,complete[-1]
+    if bad:break
+    page.wait_for_timeout(20)
+   assert bad;idle();unchanged();foreign_same();assert checkpoint.read_bytes()==before_cp;reopen(4);assert checkpoint.read_bytes()==before_cp;unchanged();foreign_same();checked('저장된 snapshot과 원문을 cold에도 보존하고 소유 manifest/record 물리 변경을 Review/Confirm에서 차단한다' if mode.startswith('owned-') or mode=='record-confirm' else '저장된 읽기전용 snapshot은 외부 변경 후에도 복원되며 현재 등록 receipt 변경은 Review/Confirm을 차단한다');finish()
   if review.locator('[data-review-advanced]').count():
    review.locator('[data-review-advanced]').click()
    if review.locator('[data-advanced-reviewed]').count():review.locator('[data-advanced-reviewed]').check()

@@ -86,3 +86,5 @@ I5-1~5 지원 경로는 유지한다. I5-6 전체와 v536 전체 UI는 아직 �
 저장 copy의 Root 카드 직접 진입은 [Root closure 검증](VALIDATION_V536_ROOT_CALL_CLOSURE.md)을 따른다. 등록/all-target 및 별도 frame 계약/본문/opaque closure는 기존 7/8행·A4–A6의 같은 잔여로만 관리한다. 공개 override 계약 변경과 독립 계약 복제는 추가하지 않는다.
 
 등록 direct-dependency callee의 저장 copy 복수 use는 [등록 receipt closure 검증](VALIDATION_V536_REGISTERED_CALL_CLOSURE.md)을 따른다. 외부 선언은 읽기 전용 값/receipt이며 owned unit이 아니다. 다중 target·새 초안 등록 복수 use·별도 frame 계약/본문/opaque closure는 기존 7/8행·A4–A6의 같은 잔여로 관리한다.
+
+[일반 다중 target 등록 ABI](VALIDATION_V536_REGISTERED_TARGET_ABI.md)는 기존 target별 mapping과 읽기 전용 snapshot/receipt를 직접 소유 all-Blueprint 구현의 한 후보/CAS 및 저장·복원·Review/Confirm에 연결한다. same-contract copy의 여러 target 그룹, 새 copy 등록 복수 use 및 별도 frame/opaque closure는 동일한 기존 7/8행·A4–A6 잔여다. override 계약 위반 차단은 정상 보호이며 독립 계약 복제는 요구에서 제외한다. 이번 단위를 7행 전체/I5/UI 또는 실제 기기·Library 완료로 세지 않는다.
