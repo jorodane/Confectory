@@ -4,9 +4,14 @@ using System.Text.Json.Nodes;
 // Ordinary declaration syntax transformations. The caller owns draft CAS and source publication.
 internal static class DeclarationAuthoring
 {
+ internal static void Glyph(string value,bool allowEmpty=false)
+ {
+  if(allowEmpty&&value.Length==0)return;
+  if(value!=value.Trim()||value.Length is <1 or >64||System.Globalization.StringInfo.ParseCombiningCharacters(value).Length!=1||value.Any(c=>char.IsControl(c)||c is '<' or '>' or '&'))throw new ArgumentException("One symbol or emoji required; original input retained");
+ }
  internal static void Icon(Element element,string value)
  {
-  if(value!=value.Trim()||value.Length is <1 or >64||System.Globalization.StringInfo.ParseCombiningCharacters(value).Length!=1||value.Any(c=>char.IsControl(c)||c is '<' or '>' or '&'))throw new ArgumentException("One symbol or emoji required; original input retained");
+  Glyph(value);
   Apply(element,new JsonObject{["action"]="properties",["values"]=new JsonObject{["icon"]=value}});
  }
  public static void Apply(Element element, JsonObject edit)
