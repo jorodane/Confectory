@@ -1,0 +1,381 @@
+{
+  "baseCommit": "e97dcda525a231f3837187726c190998a0e11954",
+  "supportedEntry": "Save from the currently edited private frame; returning to Root before saving remains outside this connected entry.",
+  "scope": "Saved exclusively owned single-target same-contract copy; same author surface edits existing ordinary code leaves in two private frames, explicit pin definitions/bindings and manually edited C# in one candidate/CAS. No public override or graph-root signature change, opaque expansion or automatic targets.",
+  "focusedFlows": 8,
+  "focusedChecks": {
+    "normal": 5,
+    "view": 5,
+    "invalid": 7,
+    "storage": 7,
+    "loss": 7,
+    "conflict": 4,
+    "context": 7,
+    "projects": 7
+  },
+  "regressionFlows": 3,
+  "regressionChecks": {
+    "single-pins": 11,
+    "saved-abi": 12,
+    "cas": 4
+  },
+  "results": [
+    {
+      "name": "normal",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-saved-copy-frames/ui-engine-report.json",
+        "normal",
+        "nested-source",
+        "separate-frames"
+      ],
+      "exit": 0,
+      "seconds": 178.6,
+      "minimumWorkspaceBytes": 654110720,
+      "peakMemoryBytes": 7031476224,
+      "pendingCopy": false,
+      "copyImports": false,
+      "evidencePhase": "focused-bound"
+    },
+    {
+      "name": "view",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-saved-copy-frames/ui-engine-report.json",
+        "normal",
+        "nested-source",
+        "separate-frames",
+        "view"
+      ],
+      "exit": 0,
+      "seconds": 193.8,
+      "minimumWorkspaceBytes": 653910016,
+      "peakMemoryBytes": 7097622528,
+      "pendingCopy": false,
+      "copyImports": false,
+      "evidencePhase": "focused-bound"
+    },
+    {
+      "name": "invalid",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-saved-copy-frames/ui-engine-report.json",
+        "invalid-last",
+        "nested-source",
+        "separate-frames"
+      ],
+      "exit": 0,
+      "seconds": 231.9,
+      "minimumWorkspaceBytes": 632221696,
+      "peakMemoryBytes": 7055949824,
+      "pendingCopy": false,
+      "copyImports": false,
+      "evidencePhase": "focused-scoped"
+    },
+    {
+      "name": "storage",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-saved-copy-frames/ui-engine-report.json",
+        "storage",
+        "nested-source",
+        "separate-frames"
+      ],
+      "exit": 0,
+      "seconds": 229.7,
+      "minimumWorkspaceBytes": 646647808,
+      "peakMemoryBytes": 7030403072,
+      "pendingCopy": false,
+      "copyImports": false,
+      "evidencePhase": "focused-final"
+    },
+    {
+      "name": "loss",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-saved-copy-frames/ui-engine-report.json",
+        "loss",
+        "nested-source",
+        "separate-frames"
+      ],
+      "exit": 0,
+      "seconds": 201.1,
+      "minimumWorkspaceBytes": 646467584,
+      "peakMemoryBytes": 6969720832,
+      "pendingCopy": false,
+      "copyImports": false,
+      "evidencePhase": "focused-final"
+    },
+    {
+      "name": "conflict",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-saved-copy-frames/ui-engine-report.json",
+        "conflict",
+        "nested-source",
+        "separate-frames"
+      ],
+      "exit": 0,
+      "seconds": 97.8,
+      "minimumWorkspaceBytes": 646287360,
+      "peakMemoryBytes": 6995546112,
+      "pendingCopy": false,
+      "copyImports": false,
+      "evidencePhase": "focused-final"
+    },
+    {
+      "name": "context",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-saved-copy-frames/ui-engine-report.json",
+        "context",
+        "nested-source",
+        "separate-frames"
+      ],
+      "exit": 0,
+      "seconds": 201.3,
+      "minimumWorkspaceBytes": 632623104,
+      "peakMemoryBytes": 7134973952,
+      "pendingCopy": false,
+      "copyImports": false,
+      "evidencePhase": "focused-scoped"
+    },
+    {
+      "name": "projects",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-saved-copy-frames/ui-engine-report.json",
+        "projects",
+        "nested-source",
+        "separate-frames"
+      ],
+      "exit": 0,
+      "seconds": 223.2,
+      "minimumWorkspaceBytes": 632434688,
+      "peakMemoryBytes": 7100551168,
+      "pendingCopy": false,
+      "copyImports": false,
+      "evidencePhase": "focused-scoped"
+    },
+    {
+      "name": "single-pins",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-saved-copy-frames/ui-engine-report.json",
+        "normal",
+        "nested-source",
+        "nested-pins"
+      ],
+      "exit": 0,
+      "seconds": 232.5,
+      "minimumWorkspaceBytes": 632037376,
+      "peakMemoryBytes": 7007985664,
+      "pendingCopy": false,
+      "copyImports": false
+    },
+    {
+      "name": "saved-abi",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_saved_copy_abi.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-saved-copy-frames/ui-engine-report.json",
+        "nested",
+        "remap",
+        "closure",
+        "registered",
+        "view"
+      ],
+      "exit": 0,
+      "seconds": 190.2,
+      "minimumWorkspaceBytes": 631767040,
+      "peakMemoryBytes": 6861697024,
+      "pendingCopy": false,
+      "copyImports": false
+    },
+    {
+      "name": "cas",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_copy_read_guards_core.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-saved-copy-frames/ui-engine-report.json"
+      ],
+      "exit": 0,
+      "seconds": 4.0,
+      "minimumWorkspaceBytes": 631156736,
+      "peakMemoryBytes": 6064205824,
+      "pendingCopy": false,
+      "copyImports": false
+    }
+  ],
+  "sourceSha256": {
+    "examples/editor-home/ui/feature-authoring.js": "5c3bf5a9c68091a2e8ba4b9433e5ac440624308247d8ffa7b96645b47041d70a",
+    "examples/editor-home/WebBundle.csbody": "96798776a2c375d816c31db6ee10f9810f26bf58af4de89c171e9f4f2c238fe9",
+    "packs/pack-workspace/Blueprint.csbody": "ffcdd2cd71dc200df7d1e727cdf643e90c49146cd78cb63558d4d1308a03b502",
+    "tests/web/v536_information_external_copy_ui.py": "4fc1480da222280004e3879211af720532fc3471991ceb7124d82146282c39a8"
+  },
+  "resourceIdentity": {
+    "boundResources": 74,
+    "allCanonicalOrExactBytesMatch": true,
+    "resourceSha256": {
+      "ConfectoryIcon.svg": "6fbd2054764098b340cc104ccbb2e42b9568cec53b063d7f3aa78aa222ef6b20",
+      "workspace.js": "fd3fb6c7852bd6b78eb219d959a866f716e2447ee84c9dad1b2ce4ea9529022e",
+      "workspace-host.js": "66fc50d6bd1b24b57897b90d149a9491ae77fc7a5b206754ce5cc7b419c15014",
+      "app.js": "3c25756db6251fbd013c9285ab0193d041d52c4c3bcab0900ef87b04b2bb22ac",
+      "assets/html2canvas.min.js": "e87e550794322e574a1fda0c1549a3c70dae5a93d9113417a429016838eab8cb",
+      "assets/lumi-bust.png": "74aa3662f35d0455754c9ee9e93535e43d945dfae638d648a16fe2e474388233",
+      "assets/lumi-sd.png": "04d53eeba74b45a6faa6d31de2f2f1a807af8a166434e57cb2a4fa6335fab0a1",
+      "assets/lumi.png": "d20087b6f4737492f32fb79593a2110ecf83e48503e44f7f6bfa4aab9529787f",
+      "assets/portraits.json": "989099ef0fb43da17de863669d578df89dafe0f928e8cdb022a816c3e0cbec11",
+      "assets/tori-bust.png": "d63a937754e949129a3d13de90b0e5b04fc8818c11b9e41de71509ed45373e74",
+      "assets/tori-sd.png": "197434d69d1321c34e34562936f68c31ebe694aa87ebc2bfd41dae9c0f01bf1a",
+      "assets/tori.png": "544a698250fe6f912aca43bd424a59ab1407bea84842b7d52da9b28438810ba9",
+      "assets/vex-bust.png": "1406e9e878c0975414f11d49ded729c4c58f943710965c97fe7358cc2f3785f7",
+      "assets/vex-sd.png": "df1fc134b85974e6f5b2ec793805131c2099114979eeeabcb64533daf6338674",
+      "assets/vex.png": "3599a2f4c6a6f3ad10758a39e242478fe16cd113c98c97db740f63ba1d6330de",
+      "consumer.css": "fc3584f1784ba822fd438edb5fe33deb6527d8e621cc478184d5f5b82244dc3e",
+      "index.html": "9c4c08bbd90a15b7e18f65ceae0d9b0e7e1c17189595853a102941e27af778d0",
+      "style.css": "af9b74e5ba8c4cbebfee93e5e9a056cc0e56bea7151d16796a7c2e2f1945c49c",
+      "inventory.js": "e7a50efcc35a1e5da62ebef10a802303cf30f6b3bc585af664088fece1ad905a",
+      "declarations.js": "335b124b91ff386e83ded3ff340dfb3dd3d385ed3ca297b61330848115d0000b",
+      "relations.js": "ab15571de6969f042a95e82143a08830969c706048a09111f08d4a85403a6032",
+      "tables.js": "6afa14b03f1bc85e86ba928afb3a0c8d48e59b99259818bea0ca29033df20020",
+      "conflicts.js": "b3365f537c2b223caa90901362b9e11cdfccdcc15aefa85bba98e3cd8f32b896",
+      "history.js": "f21d3c4fad09a2506198ee8c017fc398cf44599a24e901f64aa6ebd4107880ed",
+      "builds.js": "e4e022d1657b7cbf22a8274f15c8c0b76fff851165a69695faee3bf5052ef7ee",
+      "node-tasks.js": "415215f33bfc171630d7aeeaf9f00a1e68ca823a6c214e25591784aedcd33247",
+      "blueprint.js": "30c1a604b47f657d54cf7b2b037f18829c98098a30d3f560b89b974d11ce56f8",
+      "find.js": "44623cf3ce418ab924cd75ead0a43ebaacf6c226619982a81f78a70ca04ca0fb",
+      "notes.js": "4adab64b6fc755dc4dda65d80a5232c7fbe3a375d3d4c34b4ba8695bc43486fa",
+      "note-documents.js": "5a72a6ac0114373f89962a545095fa8876fd8a08fef965fa693a5c82209f059f",
+      "window-documents.js": "eb330d8e8707e156b4c51673f50e81d75e2d044db41b91cd51fcff7ba34bc0df",
+      "blueprint-viewport.js": "a690c93df99773adc678c3044ad26e4af1f0738ce1056d937d2958d19349b803",
+      "blueprint-pins.js": "1e141e2b6563ec9b93ce3639add59e878a39f0415dc1cacff9f0ebe29ea57764",
+      "blueprint-code-editor.js": "eb7088037150403ac1819bcdb44d4366ae08ee63f2a656d820b6b083b3c49547",
+      "blueprint-parameters.js": "d1753701eb9feffab7e3949174f65f360f362ab49be599c788701dc385f940de",
+      "blueprint-enum-plan.js": "c0be05b4bb5289184da6264375f599cd14e0bdcaebb53bdcf02c7f25b6daa21b",
+      "home-preferences.js": "64d6c5032978397ede265ee2437f1ddeb4caac038f4eaff011a43a4cf2688fb6",
+      "references.js": "a9544ddeb1672a7a38f4fd525bc614aae4115b2ff8c99dfbc0bc2fe3569fde3f",
+      "browser-projection.js": "0377888ce66866d4cf28c084dfd3c934c4cbd816ee9f29f369a300e0a30cea61",
+      "workspace-links.js": "182ec947d0020f134510251ac41b3ab8d1714a091127a8afba5d26c2d66ececb",
+      "workspace-history.js": "395f3c813f49f5086a60db9b79e3882cf599a32b0b68b16d0a0f1ef549df1826",
+      "browser-tree.js": "4981dc44ca6c24f2559c3eaa56dd8f63408bebdd3367737bd088e1708d383c09",
+      "field-discovery.js": "e44121ad7618ba47f503af2752a699dab690a6e697782f52f68d643870b00b11",
+      "context-actions.js": "cd921374c23fe5ea58b5de2904d5c8f2fdf9e860e79c7c5654979462a8ee1d47",
+      "blueprint-rename.js": "ec8c0db679c052ccb7e63b6256dbe784ef6cb09027e06b2e3cfd401861a04bc9",
+      "mcp-bridge.js": "21a2a09e29ce3ae0bbcace892b58d47cbec5499dd9b57e36b4780f5d8668599b",
+      "helper-agents.js": "75c0ff7e4f8a1b1606959aa2e941c12ec00b380929393ed747df5ea80635faa6",
+      "runtime.css": "7ace817c492c5bd51a3b11a2fd6b86fdc3d98e242ae4115d5cc52b179afc6e3e",
+      "v508-runtime.js": "e180c2b7674af30a413f2591329ae522a22711637a03d2dc115d8f7673a33e58",
+      "v508-views.js": "ad53508ad632b0c972dbdd15efd4774f26abf1235ec906eee0ee034968142728",
+      "app-titlebar.js": "b53ad9f0d02d96ce6591f3c887727d5a6e4cf8fecbdd4474de14e46f8aaa4d8b",
+      "pack-manager.js": "7569d898414d75f492ffc192823bda4737fd7fb58aae6b5d064af7d34ef01dfa",
+      "browser-shell.js": "12c4368b3add1d9d268f4d1ed898c62f8639ea51c56dab63332e2edf029cc5a1",
+      "elements.js": "022957ae95acc905ee8b0784ae4210d9aa5e059e1a55acb4a47ddeefdb994cf4",
+      "typed-json.js": "8c0b9287739b9e4243116b82cbd0d276805445ab924453f04825fb3b515db506",
+      "element-values.js": "4194b01fafc41f1c969c0229ee04c0417ac99fe89e96ec87bdbf9934068ce4fc",
+      "element-functions.js": "acdf3a28f8c0a4ca1433a666185d4a4c98ef0deafaacc9c4970bb2be3ab31ee2",
+      "feature-editor.js": "fc31e167979d55a62d710ffaf234fc70f21983157c45495c24b5b2b56f04af03",
+      "feature-authoring.js": "5c3bf5a9c68091a2e8ba4b9433e5ac440624308247d8ffa7b96645b47041d70a",
+      "mobile-shell.js": "62e63467dda3da547d4d62808632b42b89ec95671a30949bdc78575071018374",
+      "element-instances.js": "31cbf42fefe35215011ee00c006ee73592328207fcfcf74d787a127adcd2e326",
+      "mobile-blueprint.js": "1c300b66028d30aba12baf0d80bd55f9a135d9210dd3c110e0918c482ff4a607",
+      "battle-log.js": "81aa05ae7f2ccb337772b6435875af53d7deed263cd4a0cf59f32c3947b892f8",
+      "run-windows.js": "a5ab5e9f4ea806a42159d6b23b5343703a6ec2471b42ac21dfedf9503095868d",
+      "run-exports.js": "91e48b9893168c302395c1ae35e9c5e6fd1661a0772465d4316f822954d7ca9f",
+      "browser-data.js": "0ad5974b9f127258d41859e66887ded4e566c1b07d340fa149a7434c304f678f",
+      "set-authoring.js": "80071084be7c69975a96fb17ac5e467b871e09f1bb9effc2672a4999b984a224",
+      "property-authoring.js": "690b3823512dc5bc53702407292abe95835d0db01401dc64bfe1a81beebecb48",
+      "mixed-declaration.js": "9776b5881211c2020a2af4a573c61e5126c449d3787832999cc093dc0491b08d",
+      "call-abi-remap.js": "6749b431071cea244ecb9ceed064ea787e3bf7d9aec848af4119d975fc682699",
+      "element-view-save.js": "e6e17857945ba777cc1c7cb80bfe850f6e68083ed6e0de8582ea5a79b8691c70",
+      "element-information-values.js": "e474cfc5cd0b22dcdfe6c34f1469aab0a4b6b4ef97a1237fb2fab42525324a81",
+      "element-raw-save.js": "e451d861ebacfb0d2b6b01643d80ac1c2f506d7f72773d172e3917c43aada02a",
+      "element-author-surface.js": "7213ab9ed37a1e23779b5a3653a6270168a0950d0db4c00b124304e3e6fd9e21"
+    },
+    "layoutResourcesChanged": false,
+    "workspaceAvailableBytes": 631005184,
+    "existingFilesDeleted": false
+  },
+  "layoutUnchanged": true,
+  "actualWindows": false,
+  "actualMobile": false,
+  "libraryDelivered": false,
+  "userProjectRun": false,
+  "existingDataDeleted": false,
+  "maximumWorkspaceBudgetBytes": 209715200,
+  "preflight": {
+    "baseCommit": "e97dcda525a231f3837187726c190998a0e11954",
+    "localMain": "b5ea38c3d7eec3eb20f170e68f0f4215b86b2aee",
+    "remoteMain": "b3a828672b98f838b4202e9ea46ab3de4b0290fc",
+    "initialWorkspaceAvailableBytes": 682184704,
+    "maximumDiskBudgetBytes": 209715200,
+    "ramOutputBudgetBytes": 805306368,
+    "newCloneCreated": false,
+    "existingDataDeletionAuthorized": false,
+    "onlyOwnInvocationCleanup": true,
+    "currentWorkspaceAvailableBytes": 653729792,
+    "tmpFilesystem": "Filesystem     Type  1K-blocks   Used Available Use% Mounted on\nnone           tmpfs   9220056 423804   8796252   5% /tmp\n",
+    "sameEnvironment": true
+  },
+  "finalScopeReview": "Multi-frame argument edits reuse the original private value-only/ref-out protection. Final invalid retry, independent checkout and packaged UI validate the reviewed final source.",
+  "peerScopeCorrection": "Focused scoped context, final invalid retry, independent checkout and packaged UI use the final primary private-copy pending-input scope; earlier cases without pending peer input are unaffected.",
+  "sourceChangeAfterNormalAndView": "Only accept previously validated exact-ID/hash cold-restored proof in a proven-unapplied corrected retry. Latest six basic flows and final independent/package UI cover this change; initial normal/view results predate that correction.",
+  "failuresBeforeCompletion": [
+    {
+      "stage": "focused-latest/context",
+      "type": "product-defect",
+      "actual": "Primary saved private copy Save treats pending edits on read-only ownership dependency RefTarget as conflicting writes and sends no authorBatch. Apply the existing detached-surface pending-input scope to saved private copy; retain full server proof, own-source pending protection and final CAS."
+    },
+    {
+      "stage": "focused-final/context",
+      "type": "fixture-selector",
+      "actual": "Existing helper assumed editor-2. Original UI reused editor-1; select the actually opened RefTarget window and preserve its exact keyed inputs instead of assigning a fixed slot."
+    },
+    {
+      "stage": "focused-resume/invalid",
+      "type": "product-defect",
+      "actual": "Cold-restored exact sources passed verification but corrected retry compared process revisions literally and blocked with settled=false/baselineUnchanged=true. Narrow fix reuses only exact ID/hash restored proof; checkpoint/CAS and failure journal remain required."
+    },
+    {
+      "stage": "focused-bound/invalid",
+      "type": "fixture-order",
+      "actual": "Existing UI correctly blocks pin edits after a body draft. Test attempted the add too late; assert actual creation and add before the body. Refusal checks remain unchanged."
+    },
+    {
+      "stage": "baseline-engine-fixed/normal",
+      "type": "missing-connection",
+      "actual": "Two private frames edited through original UI; Save never reaches authorBatch because sibling-frame input guard rejects it."
+    },
+    {
+      "stage": "engine-build-final",
+      "type": "compile",
+      "actual": "Explicit LINQ qualification required in bound C# body; corrected without relaxing validation."
+    },
+    {
+      "stage": "focused-resources/normal",
+      "type": "resource-declaration",
+      "actual": "JS resource canonical length/hash declaration was stale; updated the exact resource descriptor and rebuilt, preserving the integrity gate."
+    }
+  ],
+  "workspaceAvailableBytes": 630996992
+}

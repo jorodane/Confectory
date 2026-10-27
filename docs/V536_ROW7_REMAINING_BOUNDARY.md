@@ -99,3 +99,7 @@ Library 전달 및 전체 UI 완료는 이번 단위의 결과가 아니다.
 ## 새 immutable copy의 등록 복수 use
 
 [새 등록 closure 검증](VALIDATION_V536_PENDING_REGISTERED_CLOSURE.md)은 단일 target의 기존 ordinary 호출들을 원래 snapshot/선택 receipt·qualified use 계획·한 후보/CAS에 결합한다. 생성된 copy의 저장 후보에 읽기 전용 receipt를 보관하고 cold·Review/Confirm에 재조회한다. 공개 override·부모/외부 원본·레이아웃/권한은 유지한다. 별도 frame 계약/본문 및 opaque closure, 기존8행 여러 함수 문맥·9행·I6/B2·M4/M11/M12·native/Library는 남긴다. target 자동 복제나 가능한 조합 전체를 새 요구로 추가하지 않으며 7행 전체/UI 완료로 합산하지 않는다.
+
+## 저장 copy의 별도 frame ordinary 핀·본문 결합
+
+[분리 frame 수용 검증](VALIDATION_V536_SAVED_COPY_FRAMES.md)은 동일 author surface/owner의 저장 single-target copy에서 현재 편집 중인 private frame의 Save를 통해 두 private frame의 기존 ordinary code leaf 핀·값·직접 작성 본문을 한 후보/CAS에 연결한다. Root로 돌아와 Save하는 진입은 원래 guard에 남아 있으며 완료로 세지 않는다. frame별 Undo/취소·실패 입력·원래 source closure와 Review/Confirm을 보존한다. 새 copy에서 이미 되던 owner 결합을 중복 구현하지 않는다. 원본 callee ABI 갱신에 따른 forwarded frame 계약·wrapper와 다른 frame 일반 편집의 결합, opaque/whole-body closure는 이 단위 밖의 기존 잔여로 구별한다. 공개 override 구조 변경은 정상 금지·독립 계약 복제는 필수 제외다. 8/9행·별도 UI·실제 Windows/mobile·Library 전달과 전체 UI 완료로 합산하지 않는다.
