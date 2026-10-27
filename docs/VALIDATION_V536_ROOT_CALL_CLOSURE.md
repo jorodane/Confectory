@@ -28,3 +28,11 @@ Root 진입은 기존 copy의 atomic review group과 한 authorBatch/checkpoint 
 ## 확정 집중 검사
 
 최종 제품의 실제 엔진/렌더러 10흐름 78확인과 순수 closure4확인이 통과했다. 기본/독립 창의 취소·cold·C# compiler Confirm, 누락/위조/마지막 비호환 대응의 전체 미적용, 쓰기 실패·물리 source/CP 충돌·응답 유실·Undo 후 새 대응 재시도 및 동일 local ID의 Root/private 문맥과 기존 입력 보존을 확인했다. 저장 private/새-copy 기존 지원은 영향 회귀로 지켰다. 독립 checkout/새 패키지는 별도 후속 evidence다.
+
+## 독립 checkout·새 교차 패키지
+
+소스 커밋 `8547632d38a01ed73235649d1feae7c2aed7903a`의 변경7개 Git blob과 기존 autocrlf/clean을 확인했다. Native/CLI Release·Linux 엔진 및 독립 UI2흐름20확인·closure 순수4확인이 통과했다. 새 RAM Windows x64 교차 패키지의 restore·Release·MCP·생성·probe·패키지 자체 독립 창 UI12확인까지 6단계가 통과했다. 전체 2348개/manifest 2347개 목록·SHA·Core/Native DLL 및 소스 바이트를 확인했다.
+
+manifest SHA `b40e49a9d346f4bfb9a0aee25acbbf2f3f97aa430bee7ccd23362dd75a5e336a`, Native DLL `3f5dca59f515ea958c21c6ed36030a675fcb175af7c0ad51121f46ebe9242b5e`다. 전체 manifest·fixture/로그/프로필 증거를 보관한 후 이번 임시 패키지만 정리했다. 보관 패키지/SDK/원본/기존 자료는 그대로다. 다운로드 가능한 새 보관 패키지나 Library 전달이 아니며 실제 Windows apphost/WebView2·모바일 기기는 미검증이다. 후속 최종 커밋은 문서/evidence만 바뀌므로 실행 소스는 이 소스 커밋과 같다.
+
+최종 제품의 통과 검사만 집계했다. UI리소스와 레이아웃은 기준 게시와 동일하며 미완료와 실제 기기 검증을 구별한다.

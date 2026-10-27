@@ -75,3 +75,5 @@ Library 전달 및 전체 UI 완료는 이번 단위의 결과가 아니다.
 ## 저장 copy의 Root 카드 직접 진입
 
 최신 [Root 진입 검증](VALIDATION_V536_ROOT_CALL_CLOSURE.md)을 우선한다. 원래의 전체 ordinary-use 후보·소유권/출처·명시 대응을 Root 카드에 연결한다. 새 copy 초안/private의 완료 범위와 구별하며 등록/all-target receipt·다른 frame 계약/본문/opaque closure는 실제 잔여로 유지한다.
+
+독립 checkout·교차 패키지 결과는 최신 closure 검증/evidence를 따른다. 실제 Windows/mobile/Library 전달은 별도 미완료다.
