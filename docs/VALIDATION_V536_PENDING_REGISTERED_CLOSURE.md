@@ -42,3 +42,9 @@ python3 tests/web/v536_general_private_abi_ui.py "$REPO" "$ENGINE_REPORT" normal
 ## 확정 집중·영향 검사
 
 최종 고정 소스의 실제 엔진/렌더러11흐름 76확인 및 순수 후보 8확인이 통과했다. 영향 회귀의 확인 수는 `{'owned': 8, 'copy-targets': 3, 'metadata-owned': 7, 'cas': 4}`이며 기존 소유 callee 새 copy·직전 두 target copy 결합·소유 순수 후보와 생산 최종 CAS를 검증했다. 초기 차단/재현 실패를 이 수에 넣지 않는다. 실제 명령·소스 SHA와 실패 구분은 위 evidence에 있다. 독립 checkout/새 교차 패키지는 별도 후속 결과로 기록한다.
+
+## 독립 checkout·새 교차 패키지 확정 결과
+
+실행 소스 커밋 `cf71d4d8277e68b83988501a07984b08a9005966`의 변경 Git blob·기존 autocrlf·clean을 확인했다. 기존 독립 checkout에서 Native/CLI Release·새 Linux 엔진 및 실제 독립 정보 창 9확인·순수 후보8확인이 통과했다. 새 RAM Windows x64 교차 패키지의 restore·Release·MCP·생성·probe·패키지 자체 UI9확인까지 6단계가 통과했다. 전체 2349개/manifest 2348개 목록·SHA·Core/Native DLL과 변경 엔진 소스 바이트를 확인했다.
+
+manifest SHA `5b399df0d96050b032e92e725c86ec8b63bb98194daf07b2ad12073352e49c0d`. 전체 manifest와 fixture/로그/프로필 증거를 보관하고 이번 임시 패키지만 정리했다. 기존 보관 패키지/SDK/원본/사용자 자료는 삭제하지 않았다. 후속 최종 커밋은 문서/evidence만 달라 실행 소스는 위 커밋과 같다. 이 교차 패키지는 실제 Windows apphost/WebView2 실행이나 Library 첨부 성공이 아니며, 네이티브 Windows/mobile·전체 UI·전달은 계속 미완료다.
