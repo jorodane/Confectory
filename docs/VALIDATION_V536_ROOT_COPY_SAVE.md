@@ -42,3 +42,9 @@ Save는 초안 보관이다. 물리 원본 반영과 컴파일은 기존 명시 
 | override 독립 계약/새 ID 복제·전체 target 자동 선택·alias/import 전용 새 UI | 사용자 확정 필수 제외이거나 원본에 없는 추가 제안 | 이번 미구현으로 확대하지 않음 |
 
 위 영향 후보 결합은 같은 고정7행/A4–A6 항목으로 한 번만 관리한다. 이름/타입/핀 수/ref/out/순서의 가능한 순열을 별도 새 작업으로 늘리지 않는다. 후속8행의 남은 여러 함수 C#/중첩/copy 문맥과 9행 고급 핀 타입·표시명/생성 식별자, I6 로컬 아이콘·B2 실제 배지·M4 async/M11 C#→graph/M12 root 분기는 별도다. 이미지/협의/렌더 신규 backend는 이 복원 범위 밖이다. 전체 UI·실제 Windows/WebView2·모바일 기기·Library 전달은 미완료다.
+
+## 독립 checkout·새 교차 패키지 확정 결과
+
+실행 소스 커밋 `20348bdd316501e582c179b43677f0a6271c7004`의 변경 Git blob·기존 autocrlf·clean을 확인했다. 기존 독립 checkout에서 Native/CLI Release·새 Linux 엔진, 두 private frame의 독립 정보 창 6확인 및 생산 final CAS 4확인이 통과했다. 새 RAM Windows x64 교차 패키지는 restore·Release·MCP·생성·probe·패키지 자체 두 frame UI 6확인까지 6단계를 통과했다. 전체 2349개/manifest 2348개 목록·SHA·Core/Native DLL과 변경 제품 소스 바이트를 확인했다.
+
+manifest SHA `fc50d5e4e429348efaaef2982769d4d4d523869182b1aedd8d7fac33aba0939f`. 전체 manifest와 fixture/로그/프로필 증거 보관 뒤 이번 실행의 임시 패키지만 정리했고 기존 보관 패키지/SDK/원본/사용자 자료는 삭제하지 않았다. 최종 후속 커밋은 문서/evidence만 달라 실행 코드는 위 소스 커밋과 같다. 실제 Windows apphost/WebView2·모바일 기기/터치·Library 전달 및 전체 UI는 계속 미완료다.
