@@ -7,7 +7,7 @@ const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 // predicate permits a new explicit mapping, never a new contract/body/scope.
 export function sameAbiRemapBasis(before,after){
  const canonical=v=>Array.isArray(v)?v.map(canonical):v&&typeof v==='object'?Object.fromEntries(Object.keys(v).sort().map(k=>[k,canonical(v[k])])):v;
- const basis=value=>{const copy=structuredClone(value);if(!copy?.abi?.remap)return null;delete copy.abi.remap;for(const plan of Object.values(copy.abi.targetPlans??{}))delete plan.remap;return canonical(copy);};
+ const basis=value=>{const copy=structuredClone(value);if(!copy?.abi?.remap)return null;delete copy.abi.remap;for(const plan of Object.values({...copy.abi.targetPlans,...copy.abi.usePlans}))delete plan.remap;return canonical(copy);};
  const a=basis(before),b=basis(after);return !!a&&!!b&&same(a,b)&&!same(canonical(before),canonical(after));
 }
 export function defaultAbiRemap(before,after){before=signature(before);after=signature(after);return {inputs:Object.fromEntries(after.args.filter(a=>a.mode!=='out').map(a=>[a.name,before.args.some(b=>b.mode!=='out'&&b.name===a.name)?a.name:null])),outputs:Object.fromEntries(outputs(before).map(a=>[a.name,outputs(after).some(b=>b.name===a.name)?a.name:null]))};}

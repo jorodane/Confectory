@@ -1,0 +1,306 @@
+{
+  "baseCommit": "0c7f1b765e2b0e5e8aaa54e047c0fcbb8aaedcd6",
+  "scope": "saved exclusive single-target copy; private entry; one owned callee, all existing ordinary wrapped uses",
+  "focusedFlows": 12,
+  "focusedChecks": 83,
+  "results": [
+    {
+      "name": "normal",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_saved_copy_abi.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-copy-call-closure/ui-engine-report.json",
+        "nested",
+        "remap",
+        "closure"
+      ],
+      "exit": 0,
+      "seconds": 134.7,
+      "minimumWorkspaceBytes": 985247744,
+      "peakMemoryBytes": 5122777088,
+      "phase": "linked",
+      "checks": 10,
+      "logSha256": "acc306eeec9aad29f6e41139de47f4d9eb34b69e5e5a47b50211c1622e859228"
+    },
+    {
+      "name": "view",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_saved_copy_abi.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-copy-call-closure/ui-engine-report.json",
+        "nested",
+        "remap",
+        "closure",
+        "view"
+      ],
+      "exit": 0,
+      "seconds": 163.2,
+      "minimumWorkspaceBytes": 984788992,
+      "peakMemoryBytes": 5284859904,
+      "phase": "focused",
+      "checks": 12,
+      "logSha256": "6026ca0f2dfbb979668e02746668c364b848f7767fd9b63a0d8bf7b3ec2e9f36"
+    },
+    {
+      "name": "storage",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_saved_copy_abi.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-copy-call-closure/ui-engine-report.json",
+        "nested",
+        "remap",
+        "closure",
+        "storage"
+      ],
+      "exit": 0,
+      "seconds": 78.2,
+      "minimumWorkspaceBytes": 984178688,
+      "peakMemoryBytes": 5030539264,
+      "phase": "focused",
+      "checks": 5,
+      "logSha256": "cc4639410d3e400230cc6988d6273170bbafd833aa18754f58930e3dfeeb7cc7"
+    },
+    {
+      "name": "loss",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_saved_copy_abi.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-copy-call-closure/ui-engine-report.json",
+        "nested",
+        "remap",
+        "closure",
+        "response-loss"
+      ],
+      "exit": 0,
+      "seconds": 60.4,
+      "minimumWorkspaceBytes": 983719936,
+      "peakMemoryBytes": 5047914496,
+      "phase": "focused",
+      "checks": 5,
+      "logSha256": "67b2bbf05c29c2096ef62463beefbb796f0c9fbb344cb8c6636c784cfb520bf5"
+    },
+    {
+      "name": "source",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_saved_copy_abi.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-copy-call-closure/ui-engine-report.json",
+        "nested",
+        "remap",
+        "closure",
+        "source-change"
+      ],
+      "exit": 0,
+      "seconds": 49.9,
+      "minimumWorkspaceBytes": 983273472,
+      "peakMemoryBytes": 5056577536,
+      "phase": "focused",
+      "checks": 5,
+      "logSha256": "aa1f543e658170213a8d07d285bbb6e13f7ed727a126be3ff5824cb66d7cd147"
+    },
+    {
+      "name": "conflict",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_saved_copy_abi.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-copy-call-closure/ui-engine-report.json",
+        "nested",
+        "remap",
+        "closure",
+        "conflict"
+      ],
+      "exit": 0,
+      "seconds": 59.3,
+      "minimumWorkspaceBytes": 982822912,
+      "peakMemoryBytes": 5062283264,
+      "phase": "focused",
+      "checks": 5,
+      "logSha256": "3861229d5075535622ca18b20833fce5c31aec22086e7fc6927ed5e749c388f7"
+    },
+    {
+      "name": "cancel",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_saved_copy_abi.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-copy-call-closure/ui-engine-report.json",
+        "nested",
+        "remap",
+        "closure",
+        "cancel"
+      ],
+      "exit": 0,
+      "seconds": 47.7,
+      "minimumWorkspaceBytes": 982376448,
+      "peakMemoryBytes": 5052846080,
+      "phase": "focused",
+      "checks": 5,
+      "logSha256": "c57cf23bd2114236d9b422b737d951636c26dd1c922ead111b5bfe2d94b47af4"
+    },
+    {
+      "name": "peer",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_saved_copy_abi.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-copy-call-closure/ui-engine-report.json",
+        "nested",
+        "remap",
+        "closure",
+        "peer-input"
+      ],
+      "exit": 0,
+      "seconds": 49.7,
+      "minimumWorkspaceBytes": 981934080,
+      "peakMemoryBytes": 5067755520,
+      "phase": "focused",
+      "checks": 5,
+      "logSha256": "790596197af6eb0646f017147af470cd5920d27b6d6a7abb05ef26e905a51045"
+    },
+    {
+      "name": "single",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_saved_copy_abi.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-copy-call-closure/ui-engine-report.json",
+        "nested",
+        "remap"
+      ],
+      "exit": 0,
+      "seconds": 115.3,
+      "minimumWorkspaceBytes": 981483520,
+      "peakMemoryBytes": 5129920512,
+      "phase": "focused",
+      "checks": 10,
+      "logSha256": "16effb37b8473e504d7338816cbee9f59c4b9911563b2e6dcc3173a5235b3a69"
+    },
+    {
+      "name": "root",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_general_abi_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-copy-call-closure/ui-engine-report.json",
+        "normal"
+      ],
+      "exit": 0,
+      "seconds": 52.5,
+      "minimumWorkspaceBytes": 981041152,
+      "peakMemoryBytes": 5097508864,
+      "phase": "focused",
+      "checks": 4,
+      "logSha256": "0d084e5c834c8e1a75285d478b85f1874118539377bfd0b9081bac5c9a62f599"
+    },
+    {
+      "name": "pending",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_general_private_abi_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-copy-call-closure/ui-engine-report.json",
+        "normal",
+        "nested",
+        "remap"
+      ],
+      "exit": 0,
+      "seconds": 60.3,
+      "minimumWorkspaceBytes": 980815872,
+      "peakMemoryBytes": 5091631104,
+      "phase": "focused",
+      "checks": 6,
+      "logSha256": "f24d58633de06f7bfaee08260d321009687434f22248e3f9a9a669d9a77bad1f"
+    },
+    {
+      "name": "correction",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_saved_copy_abi.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-copy-call-closure/ui-engine-report.json",
+        "nested",
+        "remap",
+        "closure",
+        "correction"
+      ],
+      "exit": 0,
+      "seconds": 145.9,
+      "minimumWorkspaceBytes": 980606976,
+      "peakMemoryBytes": 5127892992,
+      "phase": "corrected",
+      "checks": 11,
+      "logSha256": "fd20e5e686bcb8c90d929c96ecbe3289796860d6a5c20bd4cc9547176e416304"
+    }
+  ],
+  "pureClosureChecks": 4,
+  "pureClosureLogSha256": "3148edb04b49a5654666ac3f9834bb95e69e400bd26dfd015e4ab169271e63bd",
+  "pureClosureResult": {
+    "name": "metadata",
+    "command": [
+      "python3",
+      "/workspace/Confectory/tests/web/v536_saved_copy_abi.py",
+      "/workspace/Confectory",
+      "/workspace/scratch/v536-copy-call-closure/ui-engine-report.json",
+      "nested",
+      "remap",
+      "closure",
+      "metadata-only"
+    ],
+    "exit": 0,
+    "seconds": 5.0,
+    "minimumWorkspaceBytes": 991154176,
+    "peakMemoryBytes": 4291444736,
+    "pendingCopy": false,
+    "copyImports": false
+  },
+  "productSha256": {
+    "targets/element-authoring/BlueprintCallAbi.cs": "ae3ae076117f56b1de9881d592df0722f2c7208ad18340beafb8853581367cc1",
+    "targets/element-authoring/BlueprintCallAbiUses.cs": "97e9bdfa7de4e764ce4d29319d12ca3c9670c873366bf8b74558fe4591cfa93e",
+    "targets/element-authoring/Program.cs": "8b84f970be9dcbdb49092040bbd4d906ada8bbd4f7fed43044bfd6b8276895a3",
+    "packs/pack-workspace/Blueprint.csbody": "a7a2de91915d580c8a4149e12f5b42d8d99a887aa9e59908ba69b3c3c6692d7e",
+    "examples/editor-home/ui/feature-authoring.js": "f021a545fe4dbcf847e00fee977ffc69b37b763fbafc1cdf60898180785617da",
+    "examples/editor-home/ui/call-abi-remap.js": "6749b431071cea244ecb9ceed064ea787e3bf7d9aec848af4119d975fc682699",
+    "examples/editor-home/WebBundle.csbody": "efc0adfa10f41df272ee22ca5fceab4d0b3981c1a1aba1f5d97188b7b9343e66"
+  },
+  "preflight": {
+    "baseCommit": "0c7f1b765e2b0e5e8aaa54e047c0fcbb8aaedcd6",
+    "scope": "all existing ordinary wrapped calls to one callee within one exclusively owned single-target saved copy; explicit per-use mapping; same public contract",
+    "workspaceAvailableBytes": 1005281280,
+    "tmpAvailableBytes": 9195683840,
+    "workspacePeakBudgetBytes": 209715200,
+    "ramOutputBudgetBytes": 805306368,
+    "memoryCurrentBytes": 4371263488,
+    "memoryLimitBytes": 17179869184,
+    "sequential": true,
+    "newClone": false,
+    "existingDataDeleted": false
+  },
+  "resourceReview": {
+    "resources": 74,
+    "changedEntries": [
+      "feature-authoring.js",
+      "call-abi-remap.js"
+    ],
+    "unchangedEntries": 72,
+    "allCanonicalBytesMatch": true,
+    "htmlAndCssUnchanged": true,
+    "newLayout": false
+  },
+  "initialFailuresPreserved": [
+    "pure-first.log: nodes-only check missed incompatible last output; full source-ready records validation added",
+    "pure-final.log: added root fixture omitted existing switch profile; fixture corrected, graph protection unchanged",
+    "connected/normal.log: root module normalized calledFeature lookup fixed"
+  ],
+  "newPublicContract": false,
+  "newLayout": false,
+  "existingDataDeleted": false,
+  "actualWindows": false,
+  "actualMobile": false,
+  "libraryDelivered": false
+}

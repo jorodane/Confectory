@@ -4,7 +4,7 @@ Fixture setup shares the finite local call context used by v536_slot_call_abi.
 import hashlib,json,re,os,pathlib,signal,subprocess,sys,tempfile,time,urllib.request,uuid
 from playwright.sync_api import sync_playwright,expect
 from editor_navigation import goto_editor
-nested='nested' in sys.argv[3:];is_view='view' in sys.argv[3:];general='remap' in sys.argv[3:]
+nested='nested' in sys.argv[3:];is_view='view' in sys.argv[3:];general='remap' in sys.argv[3:];closure='closure' in sys.argv[3:];correction='correction' in sys.argv[3:];corrected=False
 repo=pathlib.Path(sys.argv[1]).resolve();report=json.loads(pathlib.Path(sys.argv[2]).read_text());case=pathlib.Path(tempfile.mkdtemp(prefix='confectory-saved-copy-abi-'));project=case/'owned project';project.mkdir();n='Owned.Context::'
 env=os.environ.copy();env.update(CONFECTORY_DOTNET=env.get('CONFECTORY_DOTNET','/workspace/toolchains/dotnet-10.0.401/dotnet'))
 def metadata(operation,**data):
@@ -20,6 +20,7 @@ items={
  'A':('object','object '+n+'A {module '+n+'Rules;provide '+n+'Calc with '+n+'Copy;}'),
  'B':('object','object '+n+'B {module '+n+'Rules;provide '+n+'Calc with '+n+'Other;}')}
 if is_view:items['A']=('schema',items['A'][1].replace('object ','schema ',1))
+assert not closure or nested and general
 registered='registered' in sys.argv[3:];assert not general or nested and not registered;callee='Lib::Native' if registered else n+'Native';callee_text=items['Native'][1].replace(n+'Native','Lib::Native') if registered else items['Native'][1]
 lib=case/'Lib'
 if registered:
@@ -34,6 +35,8 @@ wrapper=metadata('blueprintCallWrapper',functionText=callee_text,executionEnum=e
 node.update(control='switch',executionEnum=enum,postCall={'mode':'execution-enum','returnMapping':'native-return-out-v1','contractHash':wrapper['contractHash'],'source':wrapper['source'],'helpers':''})
 if nested:
  child={'schema':1,'profile':'sync-acyclic-switch-v1','entry':'native','nodes':[__import__('copy').deepcopy(node)],'edges':[{'from':'native','port':'next','to':'exit:return'}],'exits':{'return':{'node':'native'}},'locals':[{'id':'kept','name':'정확한 값','type':'long','initial':{'constant':9223372036854775806}}]};body_node=next(v for v in g['nodes'] if v['id']=='body');body_node['arguments']={'amount':{'node':'frame'}};g.update(profile='sync-acyclic-nested-v1',entry='frame',nodes=[{'id':'frame','kind':'graph','control':'next','intent':'기존 내부 호출','signature':{'args':[{'name':'amount','type':'long'}],'return':'long'},'arguments':{'amount':{'input':'amount'}},'graph':child},*[v for v in g['nodes'] if v['id']!='native']],edges=[{**e,'from':'frame' if e['from']=='native' else e['from']} for e in g['edges']])
+ if closure:
+  second=__import__('copy').deepcopy(g['nodes'][0]);second['id']='other';second['intent']='다른 frame의 기존 호출';second['arguments']={'amount':{'node':'frame'}};g['nodes'].insert(1,second);next(v for v in g['nodes'] if v['id']=='body')['arguments']={'amount':{'node':'other'}};g['edges']=[{'from':'frame','port':'next','to':'other'},{'from':'other','port':'next','to':'body'},{'from':'body','port':'next','to':'exit:return'}]
  assert metadata('featureBlueprintDescribe',featureSource=items['Calc'][1],graph=g,featureContracts={callee:callee_text},implementations={'body':record})['state']=='source-ready'
 current_signature={'args':[{'type':'int','name':'step'},{'type':'double','name':'renamed'},{'type':'long','name':'total','mode':'out'}],'return':'bool'} if general else {'args':[{'type':'long','name':'amount'}],'return':'long'}
 current_text=callee_text.replace('(ref long amount) -> long','(int step,double renamed,out long total) -> bool' if general else '(long amount) -> long')
@@ -48,7 +51,13 @@ donor=__import__('copy').deepcopy(g);next(v for v in donor['nodes'] if v['id']==
 # carries its older snapshot. The product repair must never rewrite the donor.
 if 'stale-donor' not in sys.argv[3:]:
  current_wrapper=metadata('blueprintCallWrapper',functionText=current_text,executionEnum=enum,returnMapping='native-return-out-v1',source=wrapper['source'])
- current_donor=metadata('blueprintCallAbi',id=n+'Donor',text=items['Donor'][1],graph=donor,node='native',signature=current_signature,contractHash=current_wrapper['contractHash'],**({'privatePath':'frame'} if nested else {}),**({'remap':explicit_remap} if general else {}))
+ if closure:
+  query={'id':n+'Donor','text':items['Donor'][1],'graph':donor,'functionText':items['Calc'][1],'feature':callee,'featureContracts':{callee:current_text},'records':{'body':record}}
+  preview=metadata('blueprintCallAbiUses',**query);plans=preview['plans']
+  for key,value in plans.items():value['remap']=__import__('copy').deepcopy(explicit_remap);value['remap']['inputs']['step']['valueJson']='5' if key.startswith('other/') else '3'
+  current_donor=metadata('blueprintCallAbiUses',**query,binding=preview['binding'],plans=plans)
+ else:
+  current_donor=metadata('blueprintCallAbi',id=n+'Donor',text=items['Donor'][1],graph=donor,node='native',signature=current_signature,contractHash=current_wrapper['contractHash'],**({'privatePath':'frame'} if nested else {}),**({'remap':explicit_remap} if general else {}))
  items['Donor']=('implementation',current_donor['implementation']);donor=current_donor['graph']
 sources={'Donor.graph.json':json.dumps(donor),'Donor.node.json':json.dumps(record),'Main.csbody':'return checked((int)calls.Chosen.Invoke(1));','Other.csbody':'return amount+8;','Native.csbody':'total=checked((long)renamed);return step>0;' if general else 'return amount+3;','Copy.graph.json':json.dumps(g),'Copy.node.json':json.dumps(record)}
 for name,(kind,text) in items.items():sources[name+'.celem']=text
@@ -155,6 +164,34 @@ for boundary in ['target','path','multi-target','provenance','unit-provenance','
 checked('단일 저장 복사본 receipt를 준비하고 대상·locator·다중본문·출처·공유소유·요구계약 위조 10종을 거절한다')
 def read_copy():return call('blueprint',{'action':'read','id':n+'Copy/body:common'+('/graph:frame' if nested else ''),'owner':n+'A','ownerHash':hashlib.sha256((project/'A.celem').read_bytes()).hexdigest(),**view_basis()})
 def batch(data,plan):return {'action':'authorBatch','id':data['id'],'attempt':uuid.uuid4().hex,'checkpointHash':data['checkpointHash'],'sourceProof':json.dumps(sorted([[v['id'],v['revision'],v['hash']] for v in data['sources']])),'edits':[{'action':'rebindCopyAbi','node':'native','definition':plan}],'owner':n+'A','ownerHash':hashlib.sha256((project/'A.celem').read_bytes()).hexdigest(),**view_basis()}
+if 'metadata-only' in sys.argv[3:]:
+ assert closure
+ query={'id':n+'Copy','text':items['Copy'][1],'graph':g,'functionText':items['Calc'][1],'feature':callee,'featureContracts':{callee:current_text},'records':{'body':record}}
+ preview=metadata('blueprintCallAbiUses',**query);assert set(preview['plans'])=={'frame/native','other/native'};plans=__import__('copy').deepcopy(preview['plans'])
+ for key,value in plans.items():value['remap']=__import__('copy').deepcopy(explicit_remap);value['remap']['inputs']['step']['valueJson']='5' if key.startswith('other/') else '3'
+ candidate=metadata('blueprintCallAbiUses',**query,binding=preview['binding'],plans=plans);unchanged()
+ assert candidate['graph']['copySource']==provenance and candidate['uses']==['frame/native','other/native']
+ for frame in candidate['graph']['nodes'][:2]:
+  call_node=frame['graph']['nodes'][0];assert call_node['arguments']['step']=={'constant':5 if frame['id']=='other' else 3};assert frame['graph']['exits']['return']=={'node':'native','output':'total'};assert frame['graph']['locals'][0]['initial']['constant']==9223372036854775806
+ checked('순수 closure는 같은 로컬 ID의 두 frame 대응·정확한 값·출처를 구분하고 공유 import를 한 후보로 갱신한다')
+ wide=__import__('copy').deepcopy(query);root_call=__import__('copy').deepcopy(g['nodes'][0]['graph']['nodes'][0]);wide['graph']['nodes'].insert(0,root_call);wide['graph']['profile']='sync-acyclic-switch-v1';wide['graph']['entry']='native';wide['graph']['nodes'][1]['arguments']['amount']={'node':'native'};wide['graph']['edges'].insert(0,{'from':'native','port':'next','to':'frame'})
+ wide_preview=metadata('blueprintCallAbiUses',**wide);wide_plans=wide_preview['plans']
+ for key,value in wide_plans.items():value['remap']=__import__('copy').deepcopy(explicit_remap)
+ wide_result=metadata('blueprintCallAbiUses',**wide,binding=wide_preview['binding'],plans=wide_plans);assert len(wide_result['uses'])==3;assert wide_result['graph']['nodes'][1]['arguments']['amount']=={'node':'native','output':'total'}
+ for frame in wide_result['graph']['nodes'][1:3]:assert frame['graph']['exits']['return']=={'node':'native','output':'total'}
+ unchanged();checked('Root와 private의 동일 로컬 ID는 각 frame의 소비자만 대응하며 경계를 넘어 잘못 재연결하지 않는다')
+ for mutation in ['missing','unknown','last-output','stale','path','unscoped']:
+  q=__import__('copy').deepcopy(query);binding=__import__('copy').deepcopy(preview['binding']);bad=__import__('copy').deepcopy(plans)
+  if mutation=='missing':del bad['other/native']
+  elif mutation=='unknown':bad['foreign/native']=__import__('copy').deepcopy(bad['other/native'])
+  elif mutation=='last-output':bad['other/native']['remap']['outputs']['return']='return'
+  elif mutation=='stale':binding['graphHash']='0'*64
+  elif mutation=='path':bad['other/native']['privatePath']='frame'
+  else:
+   result=subprocess.run([env['CONFECTORY_DOTNET'],str(repo/'targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll')],input=json.dumps({'operation':'blueprintCallAbi','id':n+'Copy','text':items['Copy'][1],'graph':g,'privatePath':'frame','node':'native','signature':current_signature,'contractHash':current_wrapper['contractHash'],'remap':explicit_remap,'coordinatedUses':True}),text=True,capture_output=True,check=True);assert not json.loads(result.stdout)['ok'];continue
+  result=subprocess.run([env['CONFECTORY_DOTNET'],str(repo/'targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll')],input=json.dumps({'operation':'blueprintCallAbiUses',**q,'binding':binding,'plans':bad}),text=True,capture_output=True,check=True);assert not json.loads(result.stdout)['ok'],mutation;unchanged()
+ checked('누락/추가/경로/오래된 closure·마지막 비호환 대응과 단일 API boolean 우회는 전체 거절하고 원본을 쓰지 않는다')
+ print(json.dumps({'checks':checks,'actualEngine':False,'evidence':str(case)},ensure_ascii=False));sys.exit(0)
 try:
  start(0)
  call('saveDraft',{})
@@ -166,7 +203,10 @@ try:
   author.locator(':scope > .window-title').click(position={'x':700,'y':12});author.locator('[data-bp-overview-node=native]').click();refresh.click()
   if general:
    def choose():
-    form=page.locator('[data-abi-remap-accept]').locator('..').locator('..');form.locator('[data-abi-input=step]').select_option('value');form.locator('[data-abi-value=step]').fill('3');form.locator('[data-abi-input=renamed]').select_option('pin:amount');form.locator('[data-abi-output=return]').select_option('total');return form
+    form=page.locator('[data-abi-remap-accept]').locator('..').locator('..')
+    for section in form.locator('[data-abi-target]').all():
+     section.locator('[data-abi-input=step]').select_option('value');section.locator('[data-abi-value=step]').fill('5' if section.get_attribute('data-abi-target')=='other/native' else '3');section.locator('[data-abi-input=renamed]').select_option('pin:amount');section.locator('[data-abi-output=return]').select_option('return' if correction and not corrected and section.get_attribute('data-abi-target')=='other/native' else 'total')
+    return form
    form=choose()
    page.screenshot(path=str(case/'private-mapping-dialog.png'))
    form.locator('[data-abi-remap-cancel]').click()
@@ -182,21 +222,22 @@ try:
    author.locator('[data-bp-overview-node=native]').click()
    author.locator('[data-wrapper-refresh]').click()
    form=page.locator('[data-abi-remap-accept]').locator('..').locator('..')
-   expect(form.locator('[data-abi-value=step]')).to_have_value('3')
-   expect(form.locator('[data-abi-input=renamed]')).to_have_value('pin:amount')
-   expect(form.locator('[data-abi-output=return]')).to_have_value('total')
-   form.locator('[data-abi-value=step]').fill('3e')
+   selected_form=form.locator('[data-abi-target="frame/native"]') if closure else form
+   expect(selected_form.locator('[data-abi-value=step]')).to_have_value('3')
+   expect(selected_form.locator('[data-abi-input=renamed]')).to_have_value('pin:amount')
+   expect(selected_form.locator('[data-abi-output=return]')).to_have_value('total')
+   selected_form.locator('[data-abi-value=step]').fill('3e')
    form.locator('[data-abi-remap-accept]').click()
    expect(form.locator('[data-abi-error]')).to_be_visible()
    page.screenshot(path=str(case/'invalid-before-flush.png'))
    assert not any(v.get('type')=='wrapper' for _,v in pending())
    page.screenshot(path=str(case/'invalid-after-flush.png'))
    expect(form.locator('[data-abi-error]')).to_be_visible()
-   form.locator('[data-abi-value=step]').fill('3')
+   selected_form.locator('[data-abi-value=step]').fill('3')
    form.locator('[data-abi-remap-accept]').click()
    unchanged()
    checked('기존 내부 계약 갱신의 명시 대응 취소·불완전 값·cold 복원은 입력과 원문을 보존한다')
-  held=pending();assert len(held)==1;plan=json.loads(held[0][1]['text']);assert plan['abi']['copyBinding']==row['copyAbiBinding'];assert not general or plan['abi']['remap']==explicit_remap;unchanged();page.screenshot(path=str(case/'copy-abi-explicit-refresh.png'));checked('명시적 갱신은 복사 소유자·target·출처와 원본 callee hash를 함께 초안에 고정하고 파일은 쓰지 않는다')
+  held=pending();assert len(held)==1;plan=json.loads(held[0][1]['text']);assert not closure or plan['abi']['useGroup']==row['callAbiUseGroupBinding'] and set(plan['abi']['usePlans'])=={'frame/native','other/native'};assert plan['abi']['copyBinding']==row['copyAbiBinding'];assert not general or plan['abi']['remap']==explicit_remap;unchanged();page.screenshot(path=str(case/'copy-abi-explicit-refresh.png'));checked('명시적 갱신은 복사 소유자·target·출처와 원본 callee hash를 함께 초안에 고정하고 파일은 쓰지 않는다')
   if 'peer-input' in sys.argv[3:]:
    checkpoint=next(project.glob('.confectory/edit-workspaces/*/draft.json'));before=checkpoint.read_bytes();author.locator('.bp-breadcrumbs button').first.click();expect(author.locator('[data-bp-node=body]')).to_be_visible();author.locator('[data-bp-overview-node=body]').click();author.locator('[data-bp-node=body] [data-inline-description]').fill('다른 frame의 보존할 입력');author.locator('[data-bp-overview-node=frame]').click();author.locator('[data-bp-node=frame] [data-function-write-direct]').click();expect(author.locator('[data-bp-node=native]')).to_be_visible();all_held=pending();assert any(v.get('type')=='intent' and v['text']=='다른 frame의 보존할 입력' for _,v in all_held);author.locator('[data-bp-save]').click();expect(page.get_by_role('status').last).to_contain_text('같은 구현의 이전 입력',timeout=30000);assert checkpoint.read_bytes()==before and dict(pending())==dict(all_held);unchanged();page.close();stop();start(1);page=setup(browser);author=page.locator('.window[data-key=blueprint]');expect(author.locator('[data-bp-node=native]')).to_be_visible();assert dict(pending())==dict(all_held) and checkpoint.read_bytes()==before;unchanged();checked('다른 frame의 별도 입력이 있으면 ABI 저장을 전체 차단하고 두 문맥의 원문/계획을 cold 복원에서도 보존한다');browser.close();print(json.dumps({'checks':checks,'evidence':str(case)},ensure_ascii=False));sys.exit(0)
   if 'source-change' in sys.argv[3:]:
@@ -237,9 +278,17 @@ try:
     if lost:break
     page.wait_for_timeout(20)
    assert lost,'missing real successful reply to lose';idle();page.unroute('**/api/request',intercept);assert pending()==[];saved=read_copy();assert not next(v for v in saved['nodes'] if v['id']=='native')['postCallStale'];checkpoint=saved['checkpointHash'];page.close();stop();start(1);page=setup(browser);author=page.locator('.window[data-key=blueprint]');expect(author.locator('[data-bp-save]')).to_be_enabled();assert not pending();assert read_copy()['checkpointHash']==checkpoint;unchanged();checked('실제 성공 응답을 유실해도 복사 ABI receipt가 완료를 확인하며 cold 복원에 중복·부분 저장이나 재전송 입력을 남기지 않는다');assert not errors,errors;browser.close();print(json.dumps({'checks':checks,'evidence':str(case)},ensure_ascii=False));sys.exit(0)
+  if correction:
+   checkpoint=next(project.glob('.confectory/edit-workspaces/*/draft.json'));before_rejection=checkpoint.read_bytes();mark=len(traffic);author.locator('[data-bp-save]').click()
+   for _ in range(1800):
+    requests=[r for r in traffic[mark:] if r['endpoint']=='blueprint' and r.get('input',{}).get('action')=='authorBatch'];refused=[results[r['requestId']] for r in requests if r['requestId'] in results and not results[r['requestId']].get('ok') and results[r['requestId']].get('error',{}).get('code')!='stale_revision']
+    if refused:break
+    page.wait_for_timeout(20)
+   assert refused and checkpoint.read_bytes()==before_rejection;unchanged();failed=pending();old_attempt=next(v for _,v in failed if v.get('kind')=='author-attempt');assert next(v for v in read_copy()['nodes'] if v['id']=='native')['signature']['args'][0].get('mode')=='ref'
+   author.locator('.bp-viewport').focus();page.keyboard.press('Control+z');corrected=True;author.locator('[data-wrapper-refresh]').click();choose().locator('[data-abi-remap-accept]').click();held=pending();plan=json.loads(next(v['text'] for _,v in held if v.get('type')=='wrapper'));assert plan['abi']['usePlans']['other/native']['remap']['outputs']['return']=='total';assert next(v for _,v in held if v.get('kind')=='author-attempt')==old_attempt;assert checkpoint.read_bytes()==before_rejection;unchanged();checked('마지막 호출 거절 후 실제 Undo와 새 명시 대응은 미적용 기록·원래 기준을 보존하며 올바른 전체 후보로 재시도한다')
   # Client cannot downgrade to legacy action or forge copy evidence.
   base=batch(read_copy(),plan)
-  mutations=['legacy','no-binding','target','donor','no-owner','mixed']+(['private-path','private-graph'] if nested else [])+(['unmapped-output','incompatible-output','missing-input'] if general else [])
+  mutations=['legacy','no-binding','target','donor','no-owner','mixed']+(['private-path','private-graph'] if nested else [])+(['unmapped-output','incompatible-output','missing-input'] if general else [])+(['missing-use','unknown-use','wrong-use-path','stale-use-group','bad-last-output'] if closure else [])
   for mutation in mutations:
    b=__import__('copy').deepcopy(base);b['attempt']=uuid.uuid4().hex;checkpoint=next(project.glob('.confectory/edit-workspaces/*/draft.json'));checkpoint_bytes=checkpoint.read_bytes()
    if mutation=='legacy':b['edits'][0]['action']='rebindCallAbi'
@@ -250,6 +299,12 @@ try:
    elif mutation=='unmapped-output':b['edits'][0]['definition']['abi']['remap']['outputs']['return']=None
    elif mutation=='incompatible-output':b['edits'][0]['definition']['abi']['remap']['outputs']['return']='return'
    elif mutation=='missing-input':del b['edits'][0]['definition']['abi']['remap']['inputs']['renamed']
+   elif mutation=='missing-use':del b['edits'][0]['definition']['abi']['usePlans']['other/native']
+   elif mutation=='unknown-use':b['edits'][0]['definition']['abi']['usePlans']['foreign/native']=__import__('copy').deepcopy(plan['abi']['usePlans']['other/native'])
+   elif mutation=='wrong-use-path':b['edits'][0]['definition']['abi']['usePlans']['other/native']['privatePath']='frame'
+   elif mutation=='stale-use-group':b['edits'][0]['definition']['abi']['useGroup']['graphHash']='0'*64
+   elif mutation=='bad-last-output':b['edits'][0]['definition']['abi']['usePlans']['other/native']['remap']['outputs']['return']='return'
+
    elif mutation=='private-path':b['edits'][0]['definition']['abi']['copyBinding']['privatePath']='other'
    elif mutation=='private-graph':b['edits'][0]['definition']['abi']['copyBinding']['privateGraph']=n+'Copy/body:common/graph:other'
    else:b['edits'].append({'action':'intent','node':'native','text':'not silently mixed'})
@@ -282,8 +337,10 @@ try:
   if is_view:assert state()['draft']['id']==n+'B' and state()['draft']['text']==primary_text
   assert result['result'].get('sourceConfirmed');expect(review).to_have_count(0,timeout=90000);changed={k for k,v in original.items() if (project/k).read_bytes()!=v};assert changed=={'Copy.celem','Copy.graph.json'},changed;assert json.loads((project/'Copy.graph.json').read_text())['copySource']==provenance
   if nested:
-   expected=__import__('copy').deepcopy(g);leaf=expected['nodes'][0]['graph']['nodes'][0];leaf['signature']=plan['abi']['signature'];leaf['postCall']['contractHash']=plan['contractHash'];
-   if general:leaf['arguments']={'step':{'constant':3},'renamed':{'input':'amount'}};expected['nodes'][0]['graph']['exits']['return']={'node':'native','output':'total'}
+   expected=__import__('copy').deepcopy(g)
+   for frame in expected['nodes'][:2 if closure else 1]:
+    leaf=frame['graph']['nodes'][0];leaf['signature']=plan['abi']['signature'];leaf['postCall']['contractHash']=plan['contractHash']
+    if general:leaf['arguments']={'step':{'constant':5 if closure and frame['id']=='other' else 3},'renamed':{'input':'amount'}};frame['graph']['exits']['return']={'node':'native','output':'total'}
    assert json.loads((project/'Copy.graph.json').read_text())==expected
   checked('명시적 compiler Confirm은 Copy 선언과 graph만 반영하고 donor·callee·부모/다른 객체·원본 node 본문은 byte 보존한다')
   assert not errors and not external,(errors,external);page.close();browser.close()

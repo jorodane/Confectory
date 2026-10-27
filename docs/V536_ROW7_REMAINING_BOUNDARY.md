@@ -13,6 +13,8 @@
 재대조한 것이다. 다른 고정 수용 행을 새 7행 요구로 가져오지 않으며, 전체 7행이나
 모든 copy 문맥의 전수 완료를 주장하지 않는다.
 
+최신 저장 copy 복수 호출 단위는 [호출 closure 검증](VALIDATION_V536_COPY_CALL_CLOSURE.md)을 우선한다. 아래 대조 시점의 단일 호출 제한 중 그 지원 경계만 해제한다.
+
 ## 유한한 실제 잔여
 
 | 원래 사용자 조작 | 대조 시점의 현재 결과 | 완료 조건 / 다음 단위 |
@@ -55,3 +57,9 @@ Library 전달 및 전체 UI 완료는 이번 단위의 결과가 아니다.
 첫 행의 선택된 한 내부 호출은 기존 root 대응을 재사용하여 연결했다. 저장된 단독 배정 copy의 기본/독립 창과 새 복사 초안의 실제 UI/혼합 저장·compiler Confirm, 실패/충돌/응답 유실·Undo/cold를 검증했다([검증 기록](VALIDATION_V536_PRIVATE_ABI_REMAP.md)). 공개 override 계약은 유지한다.
 
 남은 조작은 두 번째 행의 다른 호출/frame 계약·본문까지 영향을 받는 source closure 결합이다. 같은 callee의 여러 사용·opaque 문맥과 별도 frame 입력을 현재 단일 호출 경로에서 추측해 고치지 않는다. 이를 모드 조합별 작업으로 분해하거나 전체 7행/8·9행/UI 완료로 합산하지 않는다.
+
+## 저장 copy의 기존 호출 closure
+
+선택한 private 카드에서 같은 프로젝트 소유 callee의 여러 기존 ordinary wrapped call을 호출별 명시 대응과 한 후보/CAS로 연결했다. 두 private frame의 실제 기본/독립 UI와 Root/private 혼합 순수 후보를 검증했으며, 공유 import·전체 graph·본문 기록을 함께 검사한다. 공개 override·원본/본문/값/설명·소유권은 유지한다.
+
+원래 잔여는 새 immutable copy의 복수 use 어댑터, Root 카드 직접 진입, 등록/all-target source receipt, 다른 frame 계약/본문 동시 편집과 opaque/whole-body closure다. 현재 단일 저장/기존 wrapped-use 단위와 구별하고 기존 4/8행·A4–A6와 중복 집계하지 않는다. ref/out 변환 조합별 새 요구를 추가하지 않는다. 실제 지원/실패/검증은 위 최신 문서와 evidence를 따른다.

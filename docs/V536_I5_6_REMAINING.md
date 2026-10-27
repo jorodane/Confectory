@@ -76,3 +76,7 @@ I5-1~5 지원 경로는 유지한다. I5-6 전체와 v536 전체 UI는 아직 �
 ## 선택한 내부 호출의 일반 명시 대응
 
 [private ABI 대응 검증](VALIDATION_V536_PRIVATE_ABI_REMAP.md)에서 저장/새 copy의 한 기존 호출에 root와 같은 입력·출력 mapping을 연결했다. 이름·타입·핀 수·반환의 대표 결합과 기본/독립 창·보존/실패 경계를 확인했다. UI·공개 override 계약·donor/부모/외부 원본은 유지한다. 최신 유한한 잔여는 [7행 재대조](V536_ROW7_REMAINING_BOUNDARY.md)의 다른 호출/frame까지 영향을 받는 후보 결합이며 가능한 변환 조합별 새 작업을 만들지 않는다. 8/9행·별도 UI/실제 기기/Library 수용은 별개다.
+
+## 저장 copy의 여러 기존 호출 원자 갱신
+
+[호출 closure 검증](VALIDATION_V536_COPY_CALL_CLOSURE.md)은 단독 배정·단일 target 저장 copy의 선택 private 카드에서 소유 callee의 모든 기존 ordinary wrapped use를 명시 대응하고 한 후보/CAS로 저장하는 단위다. 같은 로컬 ID의 여러 frame·공유 import·본문 기록·실패/Undo 재시도·cold/Confirm을 함께 확인했다. 공개 계약/원본/권한/레이아웃은 유지한다. 새 immutable copy·Root 카드 직접 시작·등록/all-target 및 별도 frame 계약/수동 C# source 결합은 명시 잔여이며 새 조합별 요구로 늘리지 않는다. 9행·I6/B2/M4/M11/M12 및 실제 Windows/mobile/Library와 전체 UI 완료는 별도다.

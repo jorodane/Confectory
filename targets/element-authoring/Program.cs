@@ -27,6 +27,7 @@ try
         case "blueprintCallWrapper":reply=BlueprintCallWrapper.Prepare(new Parser(S("functionText"),"<wrapper-contract>").ParseElement(),request["executionEnum"]!.AsObject(),request["expected"]?.GetValue<string>(),request["source"]?.GetValue<string>(),request["helpers"]?.GetValue<string>()??"",request["returnMapping"]?.GetValue<string>());break;
         case "blueprintCallAfter":reply=BlueprintCallAfter.Prepare(new Parser(S("functionText"),"<post-call-contract>").ParseElement(),request["expected"]?.GetValue<string>(),request["source"]?.GetValue<string>(),request["helpers"]?.GetValue<string>()??"");break;
         case "blueprintCallAbi":reply=BlueprintCallAbi.Prepare(request,Format);break;
+        case "blueprintCallAbiUses":reply=BlueprintCallAbiUses.Prepare(request,Format);break;
         case "blueprintCallAbiGroup":reply=BlueprintCallAbiGroup.Prepare(request,Format);break;
         case "blueprintCopyAbiBinding":reply=BlueprintCopyAbi.Bind(request);break;
         case "blueprintRegisteredCopyAbiBinding":reply=BlueprintRegisteredCopyAbi.Query(request);break;
