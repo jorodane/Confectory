@@ -27,3 +27,13 @@
 Native/CLI Release 0 warning/error, 순수 후보 10확인(새 private 6·기존 root 4), 실제 엔진/렌더러 12흐름 62확인을 통과했다. 기본/독립 정보 창, 저장 실패·전체 미적용·cold 재시도, 실제 callee/owner 경합, 성공 응답 유실/늦은 입력, 명시 취소, Undo/Redo, Review 취소/컴파일러 Confirm과 기존 root/모듈 nonce/enum/프로젝트 전환/override 보호 회귀를 포함한다. 모든 결과는 격리 fixture이며 원래 seed·원문·정확한 long·부모/다른 target을 보존한다. 독립 창 검사는 기존 schema 정보 창/nonce 경계를 사용하고 객체 창 권한을 넓히지 않는다.
 
 74개 리소스 canonical 크기/SHA가 일치하고 JS 어댑터 한 항목 외 73개·HTML·CSS는 동일하다. 실제 화면의 원래 850×600 Blueprint와 기존 내부 흐름/갱신 버튼을 사용한다. 이번 검사의 fixture는 로그·프로필·스크린샷 증거를 ZIP/manifest로 보존한 뒤 이 실행이 만든 복사본만 정리했다. 원래 자료/보관 빌드 삭제는 없다.
+
+## 독립 checkout·교차 패키지
+
+소스 체크포인트 `6e877cd7c97ca539750dd66492bf06f7ae3e5a02`를 기존 독립 checkout에 정상 FF하여 10개 변경 Git blob·원래 autocrlf/clean을 확인했다. Native/CLI Release와 Linux 엔진, 독립 정보 창의 실제 UI/컴파일러 Confirm 및 기존 private enum 회귀 2흐름 9확인, 순수 private 후보 6확인이 통과했다. 집중 12흐름 62확인/순수10은 별도다.
+
+restore·솔루션 Release·MCP Release·새 Windows x64 교차 패키지·package probe·패키지 자체 runtime의 독립 창 private ABI UI/컴파일러 7확인까지 6단계가 통과했다. manifest 2346개/전체 2347개 목록·SHA·링크 부재와 Core/Native DLL·검토 소스 바이트가 일치한다. manifest SHA `4d13057c5ada4af9d6b9c1e701bd194d070022ac26284648b30d991db407fad3`, Native DLL `8d6fd73a3c71cad423313a2d648049543e4c48eabf722a2fd0c0159a6f6b7d01`다.
+
+이번 패키지는 `/tmp` RAM 기반 검사 산출물이다. 전체 manifest와 fixture/로그/프로필·원본 증거를 보존한 뒤 이번 실행의 임시 패키지만 제거했다. 기존 보관 패키지/SDK/원본/사용자 자료는 지우지 않았다. 다운로드 가능한 새 보관 빌드나 Library 첨부 전달이 아니다. 최종 후속 커밋은 문서/evidence만 추가하며 위 소스 체크포인트의 실행 코드와 동일하다. 실제 Windows apphost/WebView2·모바일 기기/터치와 전체 UI 완료는 미검증/미완료로 유지한다.
+
+패키지의 6단계와 UI7확인은 처음 실행에서 모두 통과했다. 후속 바이트 증거 수집만 Core 소스 파일이 배포된다는 잘못된 기대 때문에 실패했다. 기존 `DesktopPackage.cs`의 배포 목록을 확인해 소스 대신 이미 배포된 Core DLL 7개와 root Release DLL의 SHA를 대조했다. 동일한 패키지/성공 로그를 재사용해 목록·바이트·증거 보관을 복구했으며, 패키지/화면 검사를 새로 중복 실행하거나 배포 구성을 바꾸지 않았다. 초기 실패 stderr도 보존한다.
