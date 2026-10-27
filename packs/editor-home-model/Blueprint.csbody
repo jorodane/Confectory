@@ -21,7 +21,7 @@ lock(state){
     var edits=input["edits"] as System.Text.Json.Nodes.JsonArray;
     // The selected exclusive copy still proves its owner, target, provenance and
     // read-only registered root in the PackWorkspace candidate; the view grants no source authority.
-    bool nestedBodyEdits=input["id"]?.ToString().Contains("/graph:",StringComparison.Ordinal)==true&&edits is not null&&System.Linq.Enumerable.All(edits,e=>e?["action"]?.ToString() is "source" or "intent" or "argument" or "parameters" or "route" or "entry" or "createNode" or "rename");
+    bool nestedBodyEdits=input["id"]?.ToString().Contains("/graph:",StringComparison.Ordinal)==true&&edits is not null&&System.Linq.Enumerable.All(edits,e=>e?["action"]?.ToString() is "source" or "intent" or "argument" or "parameters" or "route" or "entry" or "createNode" or "rename" or "enumCode");
     bool copyAbi=edits?.Count==1&&edits[0]?["action"]?.ToString()=="rebindCopyAbi"&&edits[0]?["definition"]?["abi"]?["copyBinding"] is System.Text.Json.Nodes.JsonObject binding&&binding["owner"]?.ToString()==owner&&binding["graph"]?.ToString()==input["id"]?.ToString()&&binding["registeredFunction"]?["readOnly"]?.GetValue<bool>()==true;
     if(edits is null||edits.Count is <1 or >64||!copyAbi&&!nestedBodyEdits&&System.Linq.Enumerable.Any(edits,edit=>edit?["action"]?.ToString() is not ("source" or "intent" or "implementationDescription")))throw new UnauthorizedAccessException("This view saves its bound information body or explicit registered-root copy ABI only");
    }

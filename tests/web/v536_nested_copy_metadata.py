@@ -97,3 +97,27 @@ if 'create' in sys.argv[2:]:
   call('implementationCopy',False,**req,edits=bad);assert all(p.read_bytes()==v for p,v in before.items())
  checked('본문 누락·다른 frame 연결·중복/위조 ID·분기 소유권 위조의 마지막 오류는 새 노드/기존 본문 모두 반환하지 않고 원본을 보존한다')
 (root/'result.json').write_text(json.dumps({'checks':checks,'evidence':str(root),'pureMetadata':True,'nativeWindows':False},ensure_ascii=False,indent=2));print(json.dumps({'checks':checks,'evidence':str(root),'pureMetadata':True},ensure_ascii=False))
+
+if 'enum' in sys.argv[2:]:
+ left['profile']='sync-acyclic-switch-v1';node=left['nodes'][0];node['control']='switch';node['signature']['return']='void';node['executionEnum']={'primary':'next','members':[{'id':'next','name':'NoBranch','value':0},{'id':'positive','name':'Positive','value':7}]};left['edges']=[{'from':'body','port':'case:positive','to':'exit:return'},{'from':'body','port':'next','to':'exit:return'}];left['exits']['return']={'input':'amount'}
+ (source/'body.graph.json').write_text(json.dumps(g));defs=call('featureBlueprintNodes',featureSource=fn,implementationContext=context,bodyTarget='common',graph=g);record=records['left/body'];record['definitionHash']=next(n['definitionHash'] for n in defs['nestedNodes'] if n['id']=='left/body');record['source']='return amount>0?Result.Positive:Result.NoBranch; // 原文 enum 😀\r\n';(source/'left.node.json').write_text(json.dumps(record));before={p:p.read_bytes() for p in root.rglob('*') if p.is_file()};plan=call('implementationCopy',**req)
+ private.update(initialize=True,seed={**seed,'snapshot':copy.deepcopy(plan['snapshot'])});preview=call('implementationCopy',**private);private.update(initialize=False,seed=preview['seed'])
+ execution={'primary':'next','members':[{'id':'positive','name':'Renamed','value':7},{'id':'next','name':'NoBranch','value':0},{'id':'unused','name':'Unused','value':9}]}
+ wanted={'executionEnum':execution,'source':'return Keep(amount)>0?Result.Renamed:Result.NoBranch; // enum 편집 😀\r\n','helpers':'private static long Keep(long value){return checked(value+1);} // 수동 helpers\r\n'}
+ edits=[{'node':'left/body','type':'enum-code','text':json.dumps(wanted)}];changed=call('implementationCopy',**req,edits=edits);frame=changed['graph']['nodes'][0]['graph'];record=next(r for r in changed['records'] if r['id']=='left/body')['record']
+ assert frame['nodes'][0]['executionEnum']==execution and record['source']==wanted['source'] and record['helpers']==wanted['helpers'] and frame['edges']==left['edges'] and frame['exits']==left['exits'] and frame['locals']==left['locals'];assert changed['signature']==plan['signature'] and changed['graph']['nodes'][1]==plan['graph']['nodes'][1];assert all(p.read_bytes()==v for p,v in before.items())
+ checked('private enum 이름/순서·미연결 항목 추가와 수동 본문/helpers는 원래 포트·공개 계약·형제·정확한 원문을 보존한 한 후보다')
+ seeded=call('implementationCopy',**{**private,'preview':False},edits=edits);assert seeded['seedHash']==private['seed']['snapshot']['hash'] and seeded['graph']['nodes'][0]['graph']['nodes'][0]['executionEnum']==execution
+ checked('미확정 copy enum 후보도 원래 snapshot·선택·소유 ID 기준을 유지하고 파일을 쓰지 않는다')
+ for fault in ['primary','connected','name','value','source','field','root']:
+  bad=copy.deepcopy(wanted);key='left/body'
+  if fault=='primary':bad['executionEnum']['primary']='positive'
+  elif fault=='connected':bad['executionEnum']['members']=bad['executionEnum']['members'][1:]
+  elif fault=='name':bad['executionEnum']['members'][0]['name']='class'
+  elif fault=='value':bad['executionEnum']['members'][0]['value']=9223372036854775806
+  elif fault=='source':bad['source']=[]
+  elif fault=='field':bad['extra']='unsupported'
+  else:key='body'
+  call('implementationCopy',False,**req,edits=[{'node':'right/deep/body','type':'source','text':'return 100; // 이 변경도 미적용'},{'node':key,'type':'enum-code','text':json.dumps(bad)}]);assert all(p.read_bytes()==v for p,v in before.items())
+ checked('primary/소비중 포트·형식·int32/원문/범위 오류는 앞선 형제 편집도 전체 거절하고 원본을 보존한다')
+ print(json.dumps({'checks':checks,'evidence':str(root),'sourceWritten':False},ensure_ascii=False))

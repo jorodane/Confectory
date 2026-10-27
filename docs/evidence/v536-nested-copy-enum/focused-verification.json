@@ -1,0 +1,461 @@
+{
+  "baselineCommit": "95bafd7c175345ec7518fd77c40be9b662acbcad",
+  "scope": "existing ordinary private switch in unconfirmed/saved same-contract owned copy",
+  "productSha256": {
+    "targets/element-authoring/ImplementationCopyEdits.cs": "c137712d8e10a6c40ca2b505b59f7b1c23aacde8af88ffd1f8d62038ee108a91",
+    "packs/pack-workspace/Blueprint.csbody": "2d109e5fd687ed019aed7be1f697ec6471ea43831d5368ee20073e07dc579243",
+    "packs/editor-home-model/Blueprint.csbody": "c2b3e11cefc9af71397502df2705f9e598d71773e5a2a7886496c329d6699a0d",
+    "examples/editor-home/ui/feature-authoring.js": "570470a03d39e2054acbbdb96e889bc1382fe56457c63081b1d1307846b1a485",
+    "examples/editor-home/WebBundle.csbody": "808559fd3a3dc21936f4e1c0b63f76b8245724092085948a3447d2e68e758e70",
+    "examples/editor-home/ui/style.css": "af9b74e5ba8c4cbebfee93e5e9a056cc0e56bea7151d16796a7c2e2f1945c49c"
+  },
+  "nativeRelease": {
+    "warnings": 0,
+    "errors": 0
+  },
+  "pureChecks": 9,
+  "pureLogSha256": "5b612844c38067718ae4a0bb8887bbc7dd82cef7486e8232d629eb13bd378a3f",
+  "flows": [
+    {
+      "name": "view",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-enum/ui-engine-report.json",
+        "normal",
+        "view",
+        "nested-source",
+        "nested-enum",
+        "cold-private",
+        "retry-enum"
+      ],
+      "exit": 0,
+      "seconds": 304.5,
+      "minimumWorkspaceBytes": 1178882048,
+      "peakMemoryBytes": 5193986048,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 10,
+      "logSha256": "858965dfac0054d352bb6ef9cbe1db80565fb32bd9e6df6715a62dcce668028d",
+      "productGeneration": "same-functional-engine-before-css-restoration",
+      "fixtureArchiveEvidence": {
+        "archive": "view.zip",
+        "archiveSha256": "3ec9eebbbe84a8244fe8ce5b1d6e7451ce3b455b4f34b3a39a12d51f4520169c",
+        "archiveBytes": 546025,
+        "files": 76,
+        "fileSetModesAndBytesMatch": true,
+        "excludedRegenerableCacheAndOutputs": true
+      }
+    },
+    {
+      "name": "primary",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-enum/ui-engine-report.json",
+        "normal",
+        "nested-source",
+        "nested-enum"
+      ],
+      "exit": 0,
+      "seconds": 205.7,
+      "minimumWorkspaceBytes": 1178296320,
+      "peakMemoryBytes": 5155975168,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 8,
+      "logSha256": "5b67dca93ea1add8b56f46225c206dd5e349b7bc39d059015081f28ae4c985e5",
+      "productGeneration": "same-functional-engine-before-css-restoration",
+      "fixtureArchiveEvidence": {
+        "archive": "primary.zip",
+        "archiveSha256": "cfe5eb961990c8961443619ee10058d925124c33dfb8d215eed19006b59b5f33",
+        "archiveBytes": 415644,
+        "files": 73,
+        "fileSetModesAndBytesMatch": true,
+        "excludedRegenerableCacheAndOutputs": true
+      }
+    },
+    {
+      "name": "mobile",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-enum/ui-engine-report.json",
+        "normal",
+        "view",
+        "nested-source",
+        "nested-enum",
+        "mobile-enum"
+      ],
+      "exit": 0,
+      "seconds": 231.9,
+      "minimumWorkspaceBytes": 1168015360,
+      "peakMemoryBytes": 5099802624,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 8,
+      "logSha256": "6a48c1ad4637fda1a2ba1959eaf9aefe53f898584cd409bbfdd4160e9b0f3c4d",
+      "productGeneration": "final-original-mobile-script-css",
+      "fixtureArchiveEvidence": {
+        "archive": "mobile.zip",
+        "archiveSha256": "3149be97a589833aaa84d8a246e2aed78fdcd0f5d03e2f3a716ba28b727d611a",
+        "archiveBytes": 273393,
+        "files": 74,
+        "fileSetModesAndBytesMatch": true,
+        "excludedRegenerableCacheAndOutputs": true
+      }
+    },
+    {
+      "name": "storage",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-enum/ui-engine-report.json",
+        "storage",
+        "view",
+        "nested-source",
+        "nested-enum",
+        "confirmed"
+      ],
+      "exit": 0,
+      "seconds": 316.7,
+      "minimumWorkspaceBytes": 1177239552,
+      "peakMemoryBytes": 5194502144,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 9,
+      "logSha256": "1d7bd23ed0e41f8b0e7e7ac3d471f6c5c2dcb6e27167124347d6446035c111d5",
+      "productGeneration": "same-functional-engine-before-css-restoration",
+      "fixtureArchiveEvidence": {
+        "archive": "storage.zip",
+        "archiveSha256": "a72ef5c9c5028ea63b92d164cfcbcd59444355df72fd284ceb4bb47d4dead025",
+        "archiveBytes": 421864,
+        "files": 73,
+        "fileSetModesAndBytesMatch": true,
+        "excludedRegenerableCacheAndOutputs": true
+      }
+    },
+    {
+      "name": "loss",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-enum/ui-engine-report.json",
+        "loss",
+        "view",
+        "nested-source",
+        "nested-enum"
+      ],
+      "exit": 0,
+      "seconds": 255.2,
+      "minimumWorkspaceBytes": 1176780800,
+      "peakMemoryBytes": 5106745344,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 9,
+      "logSha256": "8e0197ec8a8f4a2a236785640951cd9b096f8fffc4f19949d9599eec94e6f761",
+      "productGeneration": "same-functional-engine-before-css-restoration",
+      "fixtureArchiveEvidence": {
+        "archive": "loss.zip",
+        "archiveSha256": "4a6492cb62485f5efce5e2580bcbf9a6802cb351b36da2fdfa28252937da76c4",
+        "archiveBytes": 419804,
+        "files": 75,
+        "fileSetModesAndBytesMatch": true,
+        "excludedRegenerableCacheAndOutputs": true
+      }
+    },
+    {
+      "name": "conflict",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-enum/ui-engine-report.json",
+        "conflict",
+        "nested-source",
+        "nested-enum",
+        "confirmed"
+      ],
+      "exit": 0,
+      "seconds": 114.1,
+      "minimumWorkspaceBytes": 1176305664,
+      "peakMemoryBytes": 5151072256,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 4,
+      "logSha256": "c5b550cd9dd3a3f7cbb3f287119b469df07b1781345f2f6edc71023a63bdfadf",
+      "productGeneration": "same-functional-engine-before-css-restoration",
+      "fixtureArchiveEvidence": {
+        "archive": "conflict.zip",
+        "archiveSha256": "153beb5f17400897153547fdc8f2b56969806fe120f0468c5ce4fba04036f5e5",
+        "archiveBytes": 338282,
+        "files": 72,
+        "fileSetModesAndBytesMatch": true,
+        "excludedRegenerableCacheAndOutputs": true
+      }
+    },
+    {
+      "name": "context",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-enum/ui-engine-report.json",
+        "context",
+        "view",
+        "nested-source",
+        "nested-enum",
+        "confirmed"
+      ],
+      "exit": 0,
+      "seconds": 321.1,
+      "minimumWorkspaceBytes": 1175539712,
+      "peakMemoryBytes": 5244325888,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 10,
+      "logSha256": "9b031db7a5493b2af538d592aa79c4184de4ed7563aa9d34c6df38d2b9d8a31e",
+      "productGeneration": "same-functional-engine-before-css-restoration",
+      "fixtureArchiveEvidence": {
+        "archive": "context.zip",
+        "archiveSha256": "838695f2f03963a8632e3d32f921ac1cc877f9f5b7beae5a83dbe1e8d20bc95d",
+        "archiveBytes": 451633,
+        "files": 74,
+        "fileSetModesAndBytesMatch": true,
+        "excludedRegenerableCacheAndOutputs": true
+      }
+    },
+    {
+      "name": "projects",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-enum/ui-engine-report.json",
+        "projects",
+        "nested-source",
+        "nested-enum"
+      ],
+      "exit": 0,
+      "seconds": 246.2,
+      "minimumWorkspaceBytes": 1175040000,
+      "peakMemoryBytes": 5118152704,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 9,
+      "logSha256": "cad222ede4b35bc1261bfdf6703b0b663c7863929fc1e768bd3a5d406a468bbd",
+      "productGeneration": "same-functional-engine-before-css-restoration",
+      "fixtureArchiveEvidence": {
+        "archive": "projects.zip",
+        "archiveSha256": "8ed6e79ca786fbde940f3bb29b59ffcf98e97141c1091ab6e876bf4e449f2100",
+        "archiveBytes": 434156,
+        "files": 128,
+        "fileSetModesAndBytesMatch": true,
+        "excludedRegenerableCacheAndOutputs": true
+      }
+    },
+    {
+      "name": "create-regression",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-enum/ui-engine-report.json",
+        "normal",
+        "view",
+        "nested-source",
+        "nested-create",
+        "standalone-create"
+      ],
+      "exit": 0,
+      "seconds": 286.1,
+      "minimumWorkspaceBytes": 1174560768,
+      "peakMemoryBytes": 5158391808,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 13,
+      "logSha256": "388cbb6dc8a5455877cbb732cfeb539b34c2239804992e61fa7c097c7ce8da35",
+      "productGeneration": "same-functional-engine-before-css-restoration",
+      "fixtureArchiveEvidence": {
+        "archive": "create-regression.zip",
+        "archiveSha256": "090deee9bd88e9df2c0dd1a625d406a851ea4a1c1972b12e13ac9c89684ed73a",
+        "archiveBytes": 489726,
+        "files": 90,
+        "fileSetModesAndBytesMatch": true,
+        "excludedRegenerableCacheAndOutputs": true
+      }
+    },
+    {
+      "name": "private-enum",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_private_enum_api.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-enum/ui-engine-report.json",
+        "normal",
+        "source",
+        "switch-code"
+      ],
+      "exit": 0,
+      "seconds": 30.9,
+      "minimumWorkspaceBytes": 1174036480,
+      "peakMemoryBytes": 4324315136,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 2,
+      "logSha256": "fb1c83ee4b9fa787ddc3f45a8db7227f9707b8737ff5b2c905b09af8d7592766",
+      "productGeneration": "same-functional-engine-before-css-restoration",
+      "fixtureArchiveEvidence": {
+        "archive": "private-enum.zip",
+        "archiveSha256": "9728f832badc8e322f6683b4168f02f3805b5bce88854e080f6c79e7a324aa3a",
+        "archiveBytes": 33431,
+        "files": 85,
+        "fileSetModesAndBytesMatch": true,
+        "excludedRegenerableCacheAndOutputs": true
+      }
+    },
+    {
+      "name": "module-guards",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_module_view_guards.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-enum/ui-engine-report.json",
+        "normal",
+        "view"
+      ],
+      "exit": 0,
+      "seconds": 19.2,
+      "minimumWorkspaceBytes": 1173966848,
+      "peakMemoryBytes": 4206321664,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 4,
+      "logSha256": "38610b1a6f15dc692a02f1a0bbfbfb94ac1ab2603a4aa99d8a99c3c742253bdb",
+      "productGeneration": "same-functional-engine-before-css-restoration",
+      "fixtureArchiveEvidence": {
+        "archive": "module-guards.zip",
+        "archiveSha256": "a4a2b9bccc9166c4c95792d46dcf937a50c9bc4ccb0f345e7adc111b52251136",
+        "archiveBytes": 18232,
+        "files": 49,
+        "fileSetModesAndBytesMatch": true,
+        "excludedRegenerableCacheAndOutputs": true
+      }
+    },
+    {
+      "name": "override",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_inherited_contract_guards.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-enum/ui-engine-report.json",
+        "normal"
+      ],
+      "exit": 0,
+      "seconds": 7.0,
+      "minimumWorkspaceBytes": 1173925888,
+      "peakMemoryBytes": 4292169728,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 3,
+      "logSha256": "b55fbfcf20d484777b1f8cfdd9e6c61ed1785e4ef0700f99eaf65464f80685a2",
+      "productGeneration": "same-functional-engine-before-css-restoration",
+      "fixtureArchiveEvidence": {
+        "archive": "override.zip",
+        "archiveSha256": "6af7f1bb3a8a8462e8e79be2e3f0bcdfc84080df306281eb1b3ef5f8192aac9c",
+        "archiveBytes": 25852,
+        "files": 74,
+        "fileSetModesAndBytesMatch": true,
+        "excludedRegenerableCacheAndOutputs": true
+      }
+    }
+  ],
+  "totalChecks": 89,
+  "resources": {
+    "resources": 74,
+    "changedEntries": [
+      "style.css",
+      "feature-authoring.js"
+    ],
+    "unchangedEntries": 72,
+    "allCanonicalBytesMatch": true,
+    "htmlUnchanged": true,
+    "styleChange": "exact seven original v536 mobile Script rules appended; original prefix preserved",
+    "functionalNativePackModelAndAuthoringJsUnchangedByCssRestoration": true
+  },
+  "originalMobileScriptRestoration": {
+    "originalRules": {
+      "commit": "196c605",
+      "zipBlob": "e7c023de3949934647d91d97a1a627a212f43fcb",
+      "entry": "Confectory-v536/dist/style.css",
+      "rules": 7,
+      "blockSha256": "257102eeab5d8d3d40f6e94d3b40f39ffc6734a374fedeb584145bc237e6bb77",
+      "applied": false,
+      "originalRender": {
+        "reference": "196c605 repository v536",
+        "prototypeOnly": true,
+        "engineIntegration": false,
+        "errors": [],
+        "desktopAndMobileOriginalScriptRendered": true,
+        "layout": {
+          "x": 6,
+          "y": 6,
+          "width": 378,
+          "height": 832
+        }
+      }
+    },
+    "onlyOriginalRulesAppended": true,
+    "originalPrefixPreserved": true,
+    "changedResourceEntry": "style.css",
+    "sourceCountUnchanged": 74,
+    "publicLayoutRedesigned": false
+  },
+  "preCssProductSha256": {
+    "targets/element-authoring/ImplementationCopyEdits.cs": "c137712d8e10a6c40ca2b505b59f7b1c23aacde8af88ffd1f8d62038ee108a91",
+    "packs/pack-workspace/Blueprint.csbody": "2d109e5fd687ed019aed7be1f697ec6471ea43831d5368ee20073e07dc579243",
+    "packs/editor-home-model/Blueprint.csbody": "c2b3e11cefc9af71397502df2705f9e598d71773e5a2a7886496c329d6699a0d",
+    "examples/editor-home/ui/feature-authoring.js": "570470a03d39e2054acbbdb96e889bc1382fe56457c63081b1d1307846b1a485",
+    "examples/editor-home/WebBundle.csbody": "e4d93b9cdd10c85cbea757d61feec64e2f9eb2edf1bd79c61d1816cdb2fef1d7"
+  },
+  "reuseReason": "After functional regressions, only the original 7 mobile Script CSS rules and their style resource descriptor change. The final mobile interaction/geometry flow is rerun. Native copy logic, Pack/model guards and authoring JS remain identical; independent checkout and new package then test the final complete resource generation.",
+  "initialFailures": [
+    {
+      "phase": "first/view",
+      "cause": "test-time product resource update overlapped cold restart, canonical size mismatch",
+      "preserved": true,
+      "passed": false
+    },
+    {
+      "phase": "final/view",
+      "cause": "comparison assumed optional absent root locals; corrected to whole-graph equality",
+      "preserved": true,
+      "passed": false
+    },
+    {
+      "phase": "accepted/storage",
+      "cause": "fixture assumed confirmed graph still existed in checkpoint changes; read its actual owned source when clean",
+      "preserved": true,
+      "passed": false
+    },
+    {
+      "phase": "bound/context",
+      "cause": "helper skipped existing global Review pending-input protection path; test now follows original explicit peer cancel before Confirm",
+      "preserved": true,
+      "passed": false
+    }
+  ],
+  "contextHarnessCorrection": "The helper normalized its mode and skipped the existing global Review pending-input policy path; the test now checks that rejection and uses only the original explicit peer cancel button before Confirm. No product guard was changed.",
+  "globalReviewPendingGuardPreserved": true,
+  "actualWindows": false,
+  "actualMobile": false,
+  "libraryDelivered": false,
+  "existingDataDeleted": false,
+  "publicOverrideContractPreserved": true,
+  "newContractCloneAdded": false
+}

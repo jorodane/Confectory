@@ -2,7 +2,7 @@ using Confectory.Core;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 
-// Private original serial authoring edits. Runs only on a new isolated copy candidate.
+// Original private body/pin/enum edits. Runs only on a new isolated copy candidate.
 internal static class ImplementationCopyEdits
 {
  public static HashSet<string> Apply(JsonObject graph,JsonArray records,JsonArray edits,Element copy,string implementation,FunctionSignature publicSignature,string framePath="")
@@ -24,7 +24,8 @@ internal static class ImplementationCopyEdits
     if(type=="entry"&&local=="$entry"){var entryEdit=edit.DeepClone().AsObject();entryEdit["node"]=local;localEdits.Add(entryEdit);continue;}
     if(leaf is null&&created.TryGetValue(local,out var added))leaf=added;
     if(leaf is null)throw new ArgumentException("Exact copied private leaf required");
-    if(leaf["kind"]?.ToString()!="code"||leaf["implementationContext"] is not null||type is not ("source" or "intent" or "parameters" or "route" or "create" or "rename")&&!type.StartsWith("argument:",StringComparison.Ordinal)||(type is "parameters" or "route" or "create" or "rename"||type.StartsWith("argument:",StringComparison.Ordinal))&&(leaf["control"]?.ToString()!="next"||leaf["forwardCallerStorage"]?.GetValue<bool>()==true))throw new InvalidOperationException("Ordinary private body/pins/value edits required; preserve public and caller-storage contracts");
+    if(leaf["kind"]?.ToString()!="code"||leaf["implementationContext"] is not null||type is not ("source" or "intent" or "parameters" or "route" or "create" or "rename" or "enum-code")&&!type.StartsWith("argument:",StringComparison.Ordinal)||(type is "parameters" or "route" or "create" or "rename"||type.StartsWith("argument:",StringComparison.Ordinal))&&(leaf["control"]?.ToString()!="next"||leaf["forwardCallerStorage"]?.GetValue<bool>()==true))throw new InvalidOperationException("Ordinary private body/pins/value edits required; preserve public and caller-storage contracts");
+    if(type=="enum-code"&&(leaf["control"]?.ToString()!="switch"||leaf["forwardCallerStorage"]?.GetValue<bool>()==true))throw new InvalidOperationException("Existing private execution enum required");
     if((type is "route" or "rename")&&leaf["branchOwner"] is not null)throw new InvalidOperationException("Preserve branch-owned private routes");
     var localEdit=edit.DeepClone().AsObject();localEdit["node"]=local;localEdits.Add(localEdit);
    }
@@ -55,6 +56,14 @@ internal static class ImplementationCopyEdits
     var plan=JsonNode.Parse(text)!.AsObject();var post=node["postCall"]!;
     if(plan.Any(p=>p.Key is not ("source" or "helpers" or "executionEnum" or "contractHash" or "returnMapping"))||plan["contractHash"]?.ToString()!=post["contractHash"]?.ToString()||plan["returnMapping"]?.ToString()!=post["returnMapping"]?.ToString()||plan["source"] is not JsonValue||plan["executionEnum"] is not JsonObject)throw new InvalidOperationException("Exact current copy wrapper contract required; stale ABI needs its separate plan");
     string source=plan["source"]!.GetValue<string>(),helpers=plan["helpers"]?.GetValue<string>()??"";if(source.Length>65536||helpers.Length>65536)throw new ArgumentException("Copied wrapper source budget");post["source"]=source;post["helpers"]=helpers;node["executionEnum"]=plan["executionEnum"]!.DeepClone();
+   }
+   else if(type=="enum-code"){
+    if(framePath.Length==0||node["kind"]?.ToString()!="code"||node["control"]?.ToString()!="switch"||node["signature"]?["return"]?.ToString()!="void"||node["implementationContext"] is not null||node["forwardCallerStorage"]?.GetValue<bool>()==true||graph["profile"]?.ToString() is not (FeatureBlueprint.SwitchProfile or FeatureBlueprint.PropertySetProfile or FeatureBlueprint.PropertyRefProfile))throw new InvalidOperationException("Owned ordinary private execution enum required");
+    var plan=JsonNode.Parse(text)!.AsObject();if(plan.Count!=3||plan.Any(p=>p.Key is not ("executionEnum" or "source" or "helpers")))throw new ArgumentException("Explicit enum/body/helpers required");
+    var execution=plan["executionEnum"]!.AsObject();if(execution.Count!=2||execution.Any(p=>p.Key is not ("primary" or "members"))||execution["primary"]?.ToString()!=node["executionEnum"]?["primary"]?.ToString())throw new InvalidOperationException("Preserve primary execution identity");
+    var validated=BlueprintEnumContract.Validate(new JsonObject{["schema"]=1,["kind"]="execution-enum-proposal",["sourceId"]=framePath+"/"+id,["definitionHash"]=new string('0',64),["sourceHash"]=new string('0',64),["primary"]=execution["primary"]!.DeepClone(),["members"]=execution["members"]!.DeepClone()});
+    if(graph["edges"]!.AsArray().Any(e=>e!["from"]?.ToString()==id&&e["port"]!.ToString().StartsWith("case:",StringComparison.Ordinal)&&!validated["members"]!.AsArray().Any(m=>m!["id"]!.ToString()==e["port"]!.ToString()[5..])))throw new InvalidOperationException("Disconnect consumed execution ports explicitly before removal");
+    var record=records.Single(r=>r!["id"]!.ToString()==id)!["record"]!;record["source"]=plan["source"]!.GetValue<string>();record["helpers"]=plan["helpers"]!.GetValue<string>();node["executionEnum"]=new JsonObject{["primary"]=validated["primary"]!.DeepClone(),["members"]=validated["members"]!.DeepClone()};reapplied.Add(id);
    }
    else if(type=="source"&&node["kind"]!.ToString()=="code"){records.Single(n=>n!["id"]!.ToString()==id)!["record"]!["source"]=text;reapplied.Add(id);}
    else if(type=="intent"&&node["kind"]!.ToString()=="code"){if(text.Length>16384)throw new ArgumentException("Intent budget");node["intent"]=text;}

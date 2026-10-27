@@ -2873,3 +2873,10 @@ body.project-create-open{overflow:hidden}
 .run-window-title > .run-controls { grid-area: 2 / 1 / auto / -1; }
 .run-window-title > .run-window-actions { grid-area: 1 / 2; }
 }
+.is-mobile-editor .modal.bp-script-dialog{display:flex;flex-direction:column;height:calc(var(--mobile-height,100dvh) - 12px)!important;overflow:hidden}
+.is-mobile-editor .bp-script-dialog .modal-head,.is-mobile-editor .bp-script-dialog>.actions,.is-mobile-editor .bp-script-status,.is-mobile-editor .bp-script-error{flex:none}
+.is-mobile-editor .bp-script-guide,.is-mobile-editor .bp-script-dialog>p.small{font-size:11px;line-height:1.4;margin:3px 0 6px;max-height:32px;overflow:auto;flex:none}
+.is-mobile-editor .bp-script-editor{flex:1;min-height:40px;height:auto;max-height:none}
+.is-mobile-editor .bp-script-backdrop>pre,.is-mobile-editor .bp-script-editor>textarea{font-size:16px;padding:8px}
+.is-mobile-editor .bp-script-dialog .bp-wrapper-bindings{max-height:48px;overflow:auto;font-size:11px;flex:none}
+.is-mobile-editor.is-mobile-keyboard .bp-script-guide,.is-mobile-editor.is-mobile-keyboard .bp-script-dialog>p.small,.is-mobile-editor.is-mobile-keyboard .bp-wrapper-bindings{display:none}

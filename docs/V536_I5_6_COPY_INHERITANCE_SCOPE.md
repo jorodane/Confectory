@@ -46,3 +46,8 @@ Confirm 전 재편집의 실제 완료 범위와 검증은 [미확정 copy](VALI
 ## private 일반 동작 생성·삽입
 
 [새 private 동작 검증](VALIDATION_V536_NESTED_COPY_CREATE.md)은 원래 검색/모바일 삽입·별도 추가에서 만든 ordinary code next의 명시 본문·표시 이름·연결을 미확정/저장된 same-contract copy의 한 후보/CAS에 연결한다. 기존 local ID와 qualified 경로·소유 새 기록·원래 snapshot/부모/외부·공개 override 계약을 보존한다. 다음은 private callee ABI와 내부 enum 어댑터이며 다른 control/저장소 조합을 새 요구로 늘리지 않는다. 고정 8/9행과 다른 UI/실제 기기/Library는 별도다. 7행 전체 완료로 세지 않는다.
+
+
+## 기존 private 실행 enum 편집의 최소 단위
+
+[private enum 편집 검증](VALIDATION_V536_NESTED_COPY_ENUM.md)은 미확정/저장된 same-contract copy의 기존 ordinary switch 노드에서 enum·수동 C#/helpers를 같은 소유 후보/CAS로 연결하는 단위다. 공개 오버라이드 계약 변경과 독립 계약 복제는 제외한다. 연결된 case/primary ID·다른 frame/target·원문/정확한 값·부모/외부 원본을 보존한다. private callee ABI 갱신과 실제 기존 수용 기준의 다른 내부 조작, 고정 8/9행·I6/B2/A4~A6/M4/M11/M12·플랫폼/Library는 별도이며 7행 전체 완료로 세지 않는다. 확정된 검사 결과는 해당 검증 문서와 evidence JSON을 따른다.

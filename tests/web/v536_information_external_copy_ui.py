@@ -27,6 +27,8 @@ info = f.project / 'FreeInfo.celem'
 info.write_text(info.read_text().replace('FreeInfo {', 'FreeInfo {module ' + foreign + 'Rules;', 1))
 f.manifest.write_text(f.manifest.read_text().replace('registry Confectory.Build.DotNet', 'registry Source.Module "../registered module source/pack.cpack";dependency Source.Module version "1";registry Confectory.Build.DotNet', 1))
 nested_source='nested-source' in sys.argv[4:]
+nested_enum='nested-enum' in sys.argv[4:]
+enum_expected=None;enum_helpers=None
 nested_values='nested-values' in sys.argv[4:]
 nested_pins='nested-pins' in sys.argv[4:]
 nested_create='nested-create' in sys.argv[4:]
@@ -54,6 +56,9 @@ if 'blueprint-source' in sys.argv[4:] or branch_source or nested_source:
         graph['nodes'][:0]=[box('left',leaf('Left')),box('right',right)];graph['entry']='left';graph['edges'] += [{'from':'left','port':'next','to':'right'},{'from':'right','port':'next','to':'body'}]
         if nested_routes and not nested_create:
             left=graph['nodes'][0]['graph'];left['nodes'].append({'id':'tap','kind':'code','control':'next','intent':'기존 부수 동작','signature':{'args':[],'return':'void'},'arguments':{},'implementation':'Tap.node.json'});left['entry']='tap';left['edges'].append({'from':'tap','port':'next','to':'body'})
+        if nested_enum:
+            left=graph['nodes'][0]['graph'];left['profile']='sync-acyclic-switch-v1';node=left['nodes'][0];node['control']='switch';node['signature']['return']='void';node['executionEnum']={'primary':'next','members':[{'id':'next','name':'NoBranch','value':0},{'id':'positive','name':'Positive','value':7}]};left['edges']=[{'from':'body','port':'case:positive','to':'exit:return'},{'from':'body','port':'next','to':'exit:return'}];left['exits']['return']={'input':'amount'}
+            enum_expected=copy.deepcopy(node['executionEnum'])
         source_graph=copy.deepcopy(graph);native_context={'implementation':foreign+'Body','feature':fn,'signature':graph['nodes'][-1]['signature'],'imports':{}}
     definitions = f.metadata('featureBlueprintNodes', featureSource=feature_text, graph=prepared['graph'],**({'implementationContext':native_context,'bodyTarget':'common'} if nested_source else {}))
     if nested_source:
@@ -61,6 +66,8 @@ if 'blueprint-source' in sys.argv[4:] or branch_source or nested_source:
         for row in definitions['nestedNodes']:
             if row['definition']['kind']!='code':continue
             key=row['id'];name='Left' if key=='left/body' else 'Right';body='return Keep(amount)+'+('1' if name=='Left' else '7')+'; // '+name+' 原文 😀\r\n';nested_original[key]=body;nested_changed[key]=body.replace('原文','복사본 본문').replace('\r\n','\n')
+            if nested_enum and key=='left/body':
+                body='return Keep(amount)>0?Result.Positive:Result.NoBranch; // Left 原文 😀\r\n';nested_original[key]=body;nested_changed[key]=body.replace('原文','복사본 본문').replace('\r\n','\n')
             if key=='left/tap':
                 name='Tap';body='// 기존 부수 동작 😀\r\n';nested_original[key]=body;nested_changed[key]=body
             (source/(name+'.node.json')).write_text(json.dumps({'schema':1,'node':key.split('/')[-1],'definitionHash':row['definitionHash'],'source':body,'helpers':'' if name=='Tap' else 'private static long Keep(long value){return value;} // '+name+' 보조 원문\r\n'}))
@@ -424,7 +431,14 @@ def nested_routes_saved():
     if other_checkpoint:assert other_checkpoint.read_bytes()==other_before
     nested_parent();f.checked('동일 후보/CAS의 실행선·바인딩·수동 C#은 거절 후 명시 보완으로 함께 저장되고 원본/부모/다른 프레임을 보존한다');mode='normal'
 
+def nested_enum_saved():
+    global mode,enum_expected,enum_helpers
+    from v536_nested_copy_enum_ui import saved
+    enum_expected,enum_helpers=saved(globals())
+    mode='normal'
+
 def nested_saved_edit():
+    if nested_enum:return nested_enum_saved()
     if nested_routes:return nested_routes_saved()
     if nested_pins:return nested_pins_saved()
     nested_enter(['left']);f.author().locator('[data-bp-overview-node=body]').click()
@@ -699,7 +713,7 @@ try:
             f.checked('명시 Save/재시도는 기존 copy 본문만 저장하며 원본 함수 계약·출처·다른 target은 불변이다')
             restart(2)
             if mode == 'context': d.verify_peer()
-            if mode == 'context':
+            if mode == 'context' or nested_enum and d.peer_inputs is not None:
                 # Existing global Review policy blocks unapplied inputs. Do
                 # not discard another window implicitly or loosen that guard.
                 f.close_author()
@@ -736,7 +750,9 @@ try:
                 if nested_source:
                     units=f.metadata('describe',project=str(f.manifest))['units'];body_key=copied+'/body:'+target
                     for key,value in nested_changed.items():
-                        unit=next(v for v in units if v['id']==body_key+'/node:'+key.replace('/','/node:'));record=json.loads((f.project/unit['path']).read_text());assert record['source']==value and record['node']==key.split('/')[-1];original_record=json.loads((source/('Left.node.json' if key=='left/body' else 'Tap.node.json' if key=='left/tap' else 'Right.node.json')).read_text());assert record['helpers']==original_record['helpers']
+                        unit=next(v for v in units if v['id']==body_key+'/node:'+key.replace('/','/node:'));record=json.loads((f.project/unit['path']).read_text());assert record['source']==value and record['node']==key.split('/')[-1];original_record=json.loads((source/('Left.node.json' if key=='left/body' else 'Tap.node.json' if key=='left/tap' else 'Right.node.json')).read_text());assert record['helpers']==(enum_helpers if nested_enum and key=='left/body' else original_record['helpers'])
+                    if nested_enum:
+                        stored=json.loads((f.project/next(v for v in units if v['id']==body_key)['path']).read_text());expected=copy.deepcopy(enum_graph_before);expected['nodes'][0]['graph']['nodes'][0]['executionEnum']=enum_expected;assert stored==expected
                     if nested_routes:
                         stored=json.loads((f.project/next(v for v in units if v['id']==body_key)['path']).read_text());frame=stored['nodes'][0]['graph'];chain=([saved_new] if saved_new else [])+[route_node,'body'];edges=[{'from':a,'port':'next','to':b} for a,b in zip(chain,chain[1:]+['exit:return'])];assert frame['entry']==chain[0] and {tuple(sorted(e.items())) for e in frame['edges']}=={tuple(sorted(e.items())) for e in edges};expected=copy.deepcopy(route_baseline);expected['nodes'][0]['graph']['entry']=chain[0];expected['nodes'][0]['graph']['edges']=frame['edges']
                         if nested_create:
@@ -759,6 +775,8 @@ try:
                     assert decision_record['source']==copied_decision_source and decision_record['helpers']==origin_record['helpers']
                     f.checked('copied code '+branch_source+'의 분기/enum ID·값·순서·모든 route·반환과 C#·보조 원문은 실제 compiler Confirm 뒤에도 유지된다')
                 f.checked('재시작·실제 compiler Review 취소와 명시 Confirm은 같은 copy만 반영하고 외부 팩을 쓰지 않는다')
+        if nested_enum and 'enum_other_checkpoint' in globals():assert enum_other_checkpoint[0].read_bytes()==enum_other_checkpoint[1]
+        if nested_enum and d.peer_inputs is not None:d.verify_peer()
         f.page.screenshot(path=str(f.case / 'external-copy-final.png'))
         assert not f.errors and not f.external, (f.errors, f.external)
         f.browser.close()
