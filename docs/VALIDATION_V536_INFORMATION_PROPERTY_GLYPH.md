@@ -63,3 +63,9 @@ Review/Confirm을 진행한다. 실행 권한이나 프로젝트 접근 범위�
   새 RAM Windows 교차 패키지 검사는 실제 Windows 실행이나 파일 전달이 아니다.
 
 집중 8흐름 53확인, 순수 후보 4확인, 요소 아이콘/기존 정보 편집/생산 final CAS 영향 회귀 13확인이 통과했다. 저장된 해제·기존 속성 Undo·부적합 마지막 변경 전체 거절·실제 저장 실패/경합·응답 유실/cold 조회·늦은 glyph/다른 창 입력 보존·명시 compiler Confirm을 확인했다. 원본 팝오버 10영역과 74개 리소스의 바이트/해시도 일치한다.
+
+## 독립 checkout·새 교차 패키지 확정 결과
+
+실행 소스 커밋 `105ca8accd5c87795963a9e0707e2a38574aa5a3`의 변경 Git blob·기존 autocrlf·clean을 확인했다. 정보 정의의 native field ID·타입·값과 부모/외부 원본을 보존했다. 기존 독립 checkout에서 Native/CLI Release·새 Linux 엔진, 직접 정보 속성 아이콘·해제·늦은 입력/다른 창 보호의 독립 창 10확인 및 생산 final CAS 4확인이 통과했다. 새 RAM Windows x64 교차 패키지는 restore·Release·MCP·생성·probe·패키지 자체 속성 아이콘 UI 10확인까지 6단계를 통과했다. 전체 2349개/manifest 2348개 목록·SHA·Core/Native DLL과 변경 제품 소스 바이트를 확인했다.
+
+manifest SHA `0378cb75f2bc7d404ffae18887914760b77471898b2a65a228ab7bb607caa2f3`. 전체 manifest와 fixture/로그/프로필 증거 보관 뒤 이번 실행의 임시 패키지만 정리했고 기존 보관 패키지/SDK/원본/사용자 자료는 삭제하지 않았다. 최종 후속 커밋은 문서/evidence만 달라 실행 코드는 위 소스 커밋과 같다. 실제 Windows apphost/WebView2·모바일 기기/터치·Library 전달 및 전체 UI는 계속 미완료다.
