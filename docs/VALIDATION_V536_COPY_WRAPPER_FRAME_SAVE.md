@@ -40,3 +40,9 @@ receipt 확인도 ABI가 실제 존재하는 frame에서 계약·source/등록 r
 | 원계약을 바꾸는 override·새 독립 계약 ID 복제·모든 target 자동 선택 | 원계약 보존은 사용자 확정 정상 보호. 독립 계약 복제/자동 선택은 필수 제외 | 정상 금지를 미구현으로 세지 않는다. 별도 새 기능·UI를 추가하지 않음 |
 
 위 copy 영향 후보는 기존7행/A4–A6의 같은 항목으로 한 번만 관리한다. ref/out/타입/핀 수/순서의 모든 조합으로 새 수용 목록을 늘리지 않는다. 8행의 여러 함수 C#/중첩/copy 동시 문맥, 9행 고급 핀 타입·표시명/생성 식별자, I6 기호/이모지/로컬 이미지 아이콘·B2 실제 배지·M4 async/M11 C#→graph/M12 Root 분기는 별도 잔여다. 신규 이미지/협의/렌더 backend는 이 복원 묶음 밖이다. 전체 UI·실제 Windows/WebView2·모바일 기기·Library 전달은 미완료다.
+
+## 독립 checkout·새 교차 패키지 확정 결과
+
+실행 소스 커밋 `4fd13dd9f3c76ec449d22d746bc52f504a361e1b`의 변경 Git blob·기존 autocrlf·clean을 확인했다. 기존 독립 checkout에서 Native/CLI Release·새 Linux 엔진, wrapper 갱신·Root 일반 카드 결합의 독립 정보 창 15확인 및 생산 final CAS 4확인이 통과했다. 새 RAM Windows x64 교차 패키지는 restore·Release·MCP·생성·probe·패키지 자체 두 frame UI 15확인까지 6단계를 통과했다. 전체 2349개/manifest 2348개 목록·SHA·Core/Native DLL과 변경 제품 소스 바이트를 확인했다.
+
+manifest SHA `6fd18cd9c7115b47b1cd470054040b21855da605ad9835f005b57007b44e373a`. 전체 manifest와 fixture/로그/프로필 증거 보관 뒤 이번 실행의 임시 패키지만 정리했고 기존 보관 패키지/SDK/원본/사용자 자료는 삭제하지 않았다. 최종 후속 커밋은 문서/evidence만 달라 실행 코드는 위 소스 커밋과 같다. 실제 Windows apphost/WebView2·모바일 기기/터치·Library 전달 및 전체 UI는 계속 미완료다.
