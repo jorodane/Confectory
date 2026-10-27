@@ -387,7 +387,7 @@
     "targets/element-authoring/MixedOwnerCopyEdits.cs": "a293bf803d2cb8261f86909c427c604bafec5a2216b27d14ec347f8714a1042c",
     "examples/editor-home/ui/elements.js": "3a051e9c3239a421a91be7ca6b2fb0379aa4e77bb7db71b6f0eea1a7dbc835f0",
     "examples/editor-home/ui/mixed-declaration.js": "4ec54bf37774c8b517c23190006ddbcd271b0dae9adad8c5f8c27e62cf538b0f",
-    "examples/editor-home/WebBundle.csbody": "255c5fdc6f3c3644fabe518ee47c2185f746a50bda06778d050793343dba32b7",
+    "examples/editor-home/WebBundle.csbody": "ea82c6191a47044b663f71a261856fd42f808d2760a6839cacad658a05396d91",
     "tests/web/v536_element_icon_ui.py": "fdbe843542d51281937ead07a0cf6e4fb9338faa7193c2df2b4ba3973ee0f214",
     "tests/web/v536_object_property_icon.py": "711207eb12506b0dcb72485ae3768b556c26b35e715abd3bcb80bac692a29ee7",
     "tests/web/v536_mixed_declaration.mjs": "1a57455b29073236a49d359e60df966943a80659aa06cd845a71870a49f721fe"
@@ -400,5 +400,27 @@
   "paidInference": false,
   "externalAssetsReadOrUploaded": false,
   "existingDataDeleted": false,
-  "workspaceAvailableBytes": 356573184
+  "workspaceAvailableBytes": 356573184,
+  "focusedRuntimeSourceSha256BeforeFormat": {
+    "targets/element-authoring/MixedOwnerCopyEdits.cs": "a293bf803d2cb8261f86909c427c604bafec5a2216b27d14ec347f8714a1042c",
+    "examples/editor-home/ui/elements.js": "3a051e9c3239a421a91be7ca6b2fb0379aa4e77bb7db71b6f0eea1a7dbc835f0",
+    "examples/editor-home/ui/mixed-declaration.js": "4ec54bf37774c8b517c23190006ddbcd271b0dae9adad8c5f8c27e62cf538b0f",
+    "examples/editor-home/WebBundle.csbody": "255c5fdc6f3c3644fabe518ee47c2185f746a50bda06778d050793343dba32b7",
+    "tests/web/v536_element_icon_ui.py": "fdbe843542d51281937ead07a0cf6e4fb9338faa7193c2df2b4ba3973ee0f214",
+    "tests/web/v536_object_property_icon.py": "711207eb12506b0dcb72485ae3768b556c26b35e715abd3bcb80bac692a29ee7",
+    "tests/web/v536_mixed_declaration.mjs": "1a57455b29073236a49d359e60df966943a80659aa06cd845a71870a49f721fe"
+  },
+  "formatOnlyFollowup": {
+    "failedSourceCommit": "32bcb0951a951bcc7acb1f18b7a134ce7fd1bc4f",
+    "failedStage": "windows-probe",
+    "exit": 1,
+    "reason": "original WebBundle raw-string newlines removed during manifest hash update; original source envelope restored, package probe unchanged",
+    "beforeSha256": "255c5fdc6f3c3644fabe518ee47c2185f746a50bda06778d050793343dba32b7",
+    "afterSha256": "ea82c6191a47044b663f71a261856fd42f808d2760a6839cacad658a05396d91",
+    "sameParsedResourceManifest": true,
+    "originalEnvelopeRestored": true,
+    "uiCssOrResourcePayloadChanged": false,
+    "workspaceFreeBytes": 335716352,
+    "existingDeletion": false
+  }
 }

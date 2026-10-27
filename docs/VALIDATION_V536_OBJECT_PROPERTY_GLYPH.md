@@ -44,3 +44,5 @@ PNG/JPG/WebP 자산 선택·저장·복원은 아직 미완료다. 이들은 원
 전체 UI·실제 Windows/WebView2·모바일 기기·Library 전달은 계속 미완료다.
 
 집중 8흐름 59확인, 순수 후보 4확인, 기존/새 정보 속성·객체 요소 glyph·정보 편집·생산 final CAS 영향 회귀 27확인이 통과했다. 원본 팝오버 10영역의 치수/위치/스타일과 74개 리소스의 바이트/해시를 확인했다. 스키마 실제 경합·쓰기 실패·취소·Undo·응답 유실 조회·늦은 입력·다른 창 보존·compiler Confirm을 분리 검증했다.
+
+첫 새 교차 패키지 생성 뒤 구성 검사는 WebBundle raw string의 원래 줄바꿈이 빠져 manifest 정규식을 읽지 못했다. 검사기를 바꾸지 않고 원본 source envelope를 복원했다. JSON 리소스 목록·해시와 모든 JS/Native 실행 의미는 같으며, 최초 실패 source/로그를 보존했다. 집중 회귀의 원래 source SHA와 형식 복원 후 SHA를 evidence에 구별하고, 최종 독립 checkout·새 교차 패키지로 후속 검증한다.
