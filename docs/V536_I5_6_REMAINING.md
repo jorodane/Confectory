@@ -80,3 +80,5 @@ I5-1~5 지원 경로는 유지한다. I5-6 전체와 v536 전체 UI는 아직 �
 ## 저장 copy의 여러 기존 호출 원자 갱신
 
 [호출 closure 검증](VALIDATION_V536_COPY_CALL_CLOSURE.md)은 단독 배정·단일 target 저장 copy의 선택 private 카드에서 소유 callee의 모든 기존 ordinary wrapped use를 명시 대응하고 한 후보/CAS로 저장하는 단위다. 같은 로컬 ID의 여러 frame·공유 import·본문 기록·실패/Undo 재시도·cold/Confirm을 함께 확인했다. 공개 계약/원본/권한/레이아웃은 유지한다. 새 immutable copy·Root 카드 직접 시작·등록/all-target 및 별도 frame 계약/수동 C# source 결합은 명시 잔여이며 새 조합별 요구로 늘리지 않는다. 9행·I6/B2/M4/M11/M12 및 실제 Windows/mobile/Library와 전체 UI 완료는 별도다.
+
+새 immutable copy의 프로젝트 소유 callee 복수 use 어댑터는 [새 copy closure 검증](VALIDATION_V536_PENDING_CALL_CLOSURE.md)을 따른다. 공개 override 계약은 유지한다. 등록/all-target·별도 frame 계약/본문/opaque closure 및 8/9행의 기존 잔여를 변환 조합별 새 작업으로 확대하지 않는다.

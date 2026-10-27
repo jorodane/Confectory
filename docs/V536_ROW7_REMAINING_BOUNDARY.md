@@ -62,6 +62,10 @@ Library 전달 및 전체 UI 완료는 이번 단위의 결과가 아니다.
 
 선택한 private 카드에서 같은 프로젝트 소유 callee의 여러 기존 ordinary wrapped call을 호출별 명시 대응과 한 후보/CAS로 연결했다. 두 private frame의 실제 기본/독립 UI와 Root/private 혼합 순수 후보를 검증했으며, 공유 import·전체 graph·본문 기록을 함께 검사한다. 공개 override·원본/본문/값/설명·소유권은 유지한다.
 
-원래 잔여는 새 immutable copy의 복수 use 어댑터, Root 카드 직접 진입, 등록/all-target source receipt, 다른 frame 계약/본문 동시 편집과 opaque/whole-body closure다. 현재 단일 저장/기존 wrapped-use 단위와 구별하고 기존 4/8행·A4–A6와 중복 집계하지 않는다. ref/out 변환 조합별 새 요구를 추가하지 않는다. 실제 지원/실패/검증은 위 최신 문서와 evidence를 따른다.
+이 대조 시점의 잔여는 새 immutable copy의 복수 use 어댑터, Root 카드 직접 진입, 등록/all-target source receipt, 다른 frame 계약/본문 동시 편집과 opaque/whole-body closure였다. 새 copy 어댑터의 최신 결과는 아래 절과 해당 검증 문서를 우선한다. 현재 단일 저장/기존 wrapped-use 단위와 구별하고 기존 4/8행·A4–A6와 중복 집계하지 않는다. ref/out 변환 조합별 새 요구를 추가하지 않는다. 실제 지원/실패/검증은 위 최신 문서와 evidence를 따른다.
 
 독립 checkout·교차 패키지 결과는 최신 closure 검증/evidence를 따른다. 실제 Windows/mobile/Library 전달은 별도 미완료다.
+
+## 새 immutable copy의 복수 호출 어댑터
+
+최신 [새 copy 검증](VALIDATION_V536_PENDING_CALL_CLOSURE.md)의 범위를 우선한다. 프로젝트 소유 callee의 기존 ordinary wrapped use들을 원래 snapshot/현재 계약의 별도 식별성과 호출별 명시 대응으로 결합한다. 저장 copy의 완료 단위와 구별하며 등록/all-target receipt·저장 Root 직접 진입·다른 frame 계약/본문/opaque closure는 실제 잔여로 유지한다.

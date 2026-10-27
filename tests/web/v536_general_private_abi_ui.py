@@ -2,7 +2,7 @@
 import json,re,os,pathlib,shutil,signal,subprocess,sys,tempfile,time,urllib.request,uuid
 from playwright.sync_api import sync_playwright,expect
 from editor_navigation import goto_editor
-nested='nested' in sys.argv[4:];is_view='view' in sys.argv[4:];general='remap' in sys.argv[4:]
+nested='nested' in sys.argv[4:];is_view='view' in sys.argv[4:];general='remap' in sys.argv[4:];closure='closure' in sys.argv[4:];assert not closure or nested and general
 repo=pathlib.Path(sys.argv[1]).resolve();report=json.loads(pathlib.Path(sys.argv[2]).read_text());case=pathlib.Path(tempfile.mkdtemp(prefix='confectory-private-copy-ui-'));project=case/'owned project';project.mkdir();storage=case/'profile';storage.mkdir();n='Owned.Elements::';id=n+'Monster'
 items={
 'Main':('function','function '+n+'Main () -> int {provide '+n+'Main with '+n+'MainBody;}'),
@@ -106,6 +106,8 @@ prepared=metadata('blueprintPrepareCall',id=n+'SlotBody',text=initial['implement
 if nested:
  child={'schema':1,'profile':'sync-acyclic-switch-v1','entry':'native','nodes':[json.loads(json.dumps(node))],'edges':[{'from':'native','port':'next','to':'exit:return'}],'exits':{'return':{'node':'native'}},'locals':[{'id':'kept','name':'정확한 private 값','type':'long','initial':{'constant':9223372036854775806}}]};child['nodes'][0]['arguments']={'input':{'input':'amount'}}
  body_node=next(v for v in g['nodes'] if v['id']=='body');body_node['arguments']['amount']={'node':'frame'};g.update(profile='sync-acyclic-nested-v1',entry='frame',nodes=[{'id':'frame','kind':'graph','control':'next','intent':'기존 private 호출','signature':{'args':[{'name':'amount','type':'long'}],'return':'long'},'arguments':{'amount':{'input':'amount'}},'graph':child},*[v for v in g['nodes'] if v['id']!='native']],edges=[{**e,'from':'frame' if e['from']=='native' else e['from']} for e in g['edges']])
+if closure:
+ other=json.loads(json.dumps(g['nodes'][0]));other['id']='other';g['nodes'].insert(1,other);g['edges']=[{'from':'frame','port':'next','to':'other'},{'from':'other','port':'next','to':'body'},*[e for e in g['edges'] if e['from']=='body']]
 defs=metadata('featureBlueprintNodes',featureSource=fn,graph=g,featureContracts={callee:native,n+'Donor':items['Donor'][1]});(project/'SlotBody.celem').write_text(prepared['implementation']);(project/'Slot.graph.json').write_text(json.dumps(g));body='slotCount=amount+1;slotReady=false;return amount+3;';record={'schema':1,'node':'body','definitionHash':next(v for v in defs['nodes'] if v['id']=='body')['definitionHash'],'source':body};(project/'Slot.node.json').write_text(json.dumps(record));original={str(p.relative_to(project)):p.read_bytes() for p in project.rglob('*') if p.is_file()}
 assert metadata('featureBlueprintDescribe',featureSource=fn,graph=g,featureContracts={callee:native,n+'Donor':items['Donor'][1]},implementations={'body':record})['state']=='source-ready'
 def originals():assert all((project/k).read_bytes()==v for k,v in original.items()) and all(p.read_bytes()==v for p,v in foreign_original.items())
@@ -135,11 +137,16 @@ def rejected_save():
 def restart(i):
  global page
  pending();page.close();stop();start(i);page=setup();expect(owner().locator('[aria-label="HP 기본값"]')).to_be_visible(timeout=60000);idle()
+def advance_uses(text,graph,current):
+ request={'id':n+'SlotBody','text':text,'functionText':fn,'graph':graph,'feature':callee,'featureContracts':{callee:current,n+'Donor':items['Donor'][1]},'records':{'body':json.loads((project/'Slot.node.json').read_text())}}
+ group=metadata('blueprintCallAbiUses',**request)
+ for key,plan in group['plans'].items():plan['remap']={'inputs':{'step':{'valueJson':'5' if key=='other/native' else '3'},'renamed':'input'},'outputs':{'return':'total'}}
+ return metadata('blueprintCallAbiUses',**request,binding=group['binding'],plans=group['plans'])
 def advance():
  global original,foreign_original
  source_root=lib if registered else project;before=(source_root/'Native.celem').read_text();replacement='(long input) -> long' if nested and not general else '(int step,double renamed,out long total) -> bool';after=before.replace('(ref long input) -> long',replacement);(source_root/'Native.celem').write_text(after);(source_root/'NativeBody.celem').write_text((source_root/'NativeBody.celem').read_text().replace('(ref long input) -> long',replacement));(source_root/'Native.csbody').write_text('return input+3;' if nested and not general else 'total=checked((long)renamed);return step>0;')
  if registered:foreign_original={p:p.read_bytes() for p in lib.iterdir()}
- text=(project/'SlotBody.celem').read_text();current=json.loads((project/'Slot.graph.json').read_text());defs=metadata('featureBlueprintNodes',featureSource=fn,graph=current,featureContracts={callee:after,n+'Donor':items['Donor'][1]},inspectStalePostCalls=True);row=next(v for v in defs['nestedNodes' if nested else 'nodes'] if v['id']==('frame/native' if nested else 'native'));single=text.replace('body windows "SlotWindows.csbody";','');changed=metadata('blueprintCallAbi',id=n+'SlotBody',text=single,graph=current,node='native',signature=row['currentCallSignature'],contractHash=row['postCallEditor']['contractHash'],**({'privatePath':'frame'} if nested else {}),**({'remap':{'inputs':{'step':{'valueJson':'3'},'renamed':'input'},'outputs':{'return':'total'}}} if not nested or general else {}));(project/'SlotBody.celem').write_text(changed['implementation'].replace('\n}', '\nbody windows "SlotWindows.csbody";\n}'));(project/'Slot.graph.json').write_text(json.dumps(changed['graph']));defs=metadata('featureBlueprintNodes',featureSource=fn,graph=changed['graph'],featureContracts={callee:after,n+'Donor':items['Donor'][1]});(project/'Slot.node.json').write_text(json.dumps({'schema':1,'node':'body','definitionHash':next(v for v in defs['nodes'] if v['id']=='body')['definitionHash'],'source':'slotCount=amount+99;slotReady=true;return amount+99;'}));original={str(p.relative_to(project)):p.read_bytes() for p in project.rglob('*') if p.is_file() and '.confectory' not in p.parts}
+ text=(project/'SlotBody.celem').read_text();current=json.loads((project/'Slot.graph.json').read_text());defs=metadata('featureBlueprintNodes',featureSource=fn,graph=current,featureContracts={callee:after,n+'Donor':items['Donor'][1]},inspectStalePostCalls=True);row=next(v for v in defs['nestedNodes' if nested else 'nodes'] if v['id']==('frame/native' if nested else 'native'));single=text.replace('body windows "SlotWindows.csbody";','');changed=advance_uses(single,current,after) if closure else metadata('blueprintCallAbi',id=n+'SlotBody',text=single,graph=current,node='native',signature=row['currentCallSignature'],contractHash=row['postCallEditor']['contractHash'],**({'privatePath':'frame'} if nested else {}),**({'remap':{'inputs':{'step':{'valueJson':'3'},'renamed':'input'},'outputs':{'return':'total'}}} if not nested or general else {}));(project/'SlotBody.celem').write_text(changed['implementation'].replace('\n}', '\nbody windows "SlotWindows.csbody";\n}'));(project/'Slot.graph.json').write_text(json.dumps(changed['graph']));defs=metadata('featureBlueprintNodes',featureSource=fn,graph=changed['graph'],featureContracts={callee:after,n+'Donor':items['Donor'][1]});(project/'Slot.node.json').write_text(json.dumps({'schema':1,'node':'body','definitionHash':next(v for v in defs['nodes'] if v['id']=='body')['definitionHash'],'source':'slotCount=amount+99;slotReady=true;return amount+99;'}));original={str(p.relative_to(project)):p.read_bytes() for p in project.rglob('*') if p.is_file() and '.confectory' not in p.parts}
 def seed_snapshot():
  checkpoint=next(project.glob('.confectory/edit-workspaces/*/draft.json'));data=json.loads(checkpoint.read_text());seeds=data.get('privateCopies',{});assert len(seeds)==1,seeds;return checkpoint,data,next(iter(seeds.values()))
 def save_owner():
@@ -182,6 +189,12 @@ def finish_boundary():
 def no_membership():
  invoke('schema',{'id':id});d=schema_state();assert d['description']!='비공개 ABI 함께 저장';assert not any(v['origin']==id for v in d['providers']);originals()
 def boundaries(mode,held,checkpoint,immutable):
+ if mode=='invalid-last':
+  before=checkpoint.read_bytes();rejected_save();retained(held);no_membership();assert checkpoint.read_bytes()==before and json.dumps(seed_snapshot()[2],sort_keys=True)==immutable;checked('실제 마지막 호출의 비호환 출력 선택은 모든 copy/import/본문/owner 변경을 미적용하고 seed와 입력을 보존한다')
+  author().locator(':scope > .window-title [data-fold]').first.click();expect(author().locator('[data-bp-node=native]')).to_be_visible();author().locator('.bp-viewport').focus();page.keyboard.press('Control+z');idle();author().locator('[data-bp-overview-node=native]').click();author().locator('[data-bp-node=native] [data-wrapper-refresh]').click();dialog=page.locator('[data-abi-remap-accept]').locator('..').locator('..')
+  for key in ['frame/native','other/native']:
+   form=dialog.locator('[data-abi-target="'+key+'"]');form.locator('[data-abi-input=step]').select_option('value');form.locator('[data-abi-value=step]').fill('5' if key=='other/native' else '3');form.locator('[data-abi-input=renamed]').select_option('pin:input');form.locator('[data-abi-output=return]').select_option('total')
+  dialog.locator('[data-abi-remap-accept]').click();close_author();save_owner();assert not json.loads(checkpoint.read_text()).get('privateCopies');originals();checked('실제 Undo 뒤 새 명시 대응의 재시도는 미적용 실패 기록을 보존하며 전체 copy 후보를 한 번만 저장한다');finish_boundary()
  if mode=='storage':
   before=checkpoint.read_bytes();checkpoint.chmod(0o400)
   try:
@@ -239,13 +252,27 @@ try:
  expect(author().locator('[data-bp-node=native]')).to_be_visible(timeout=60000);idle();assert json.dumps(seed_snapshot()[2],sort_keys=True)==immutable;retained(held);refresh=author().locator('[data-bp-node=native] [data-wrapper-refresh]');expect(refresh).to_be_visible();expect(refresh).to_be_enabled();checked('실제 재시작에서 원래 snapshot·미저장 본문·정확한 long 입력을 복원하며 현재 donor의 새 본문으로 바꾸지 않고 ABI 갱신만 제시한다')
  author().locator(':scope > .window-title').click(position={'x':700,'y':12});author().locator('[data-bp-overview-node="native"]').click();refresh.click()
  if not nested or general:
-  dialog=page.locator('[data-abi-remap-accept]').locator('..').locator('..');dialog.locator('[data-abi-input=step]').select_option('value');dialog.locator('[data-abi-value=step]').fill('3');dialog.locator('[data-abi-input=renamed]').select_option('pin:input');dialog.locator('[data-abi-output=return]').select_option('total');dialog.locator('[data-abi-remap-accept]').click()
- now=pending();wrapper_edit=next(v for _,v in now['blueprint'] if v.get('type')=='wrapper');plan=json.loads(wrapper_edit['text']);assert plan['abi']['privateCopyBinding']['seed']==seed['snapshot']['hash'];assert not plan['abi']['signature']['args'][0].get('mode');assert not registered or plan['abi']['receipt']['id']==callee;assert json.dumps(seed_snapshot()[2],sort_keys=True)==immutable;page.screenshot(path=str(case/'private-explicit-abi-refresh.png'))
+  dialog=page.locator('[data-abi-remap-accept]').locator('..').locator('..')
+  targets=['frame/native','other/native'] if closure else [None]
+  for key in targets:
+   form=dialog.locator('[data-abi-target="'+key+'"]') if key else dialog;form.locator('[data-abi-input=step]').select_option('value');form.locator('[data-abi-value=step]').fill('5' if key=='other/native' else '3');form.locator('[data-abi-input=renamed]').select_option('pin:input');form.locator('[data-abi-output=return]').select_option('total')
+  if closure:
+   page.screenshot(path=str(case/'new-copy-use-mapping.png'));dialog.locator('[data-abi-target="other/native"] [data-abi-value=step]').fill('5e');dialog.locator('[data-abi-remap-accept]').click();expect(dialog.locator('[data-abi-error]')).to_be_visible();assert not any(v.get('type')=='wrapper' for _,v in pending()['blueprint']);dialog.locator('[data-abi-target="other/native"] [data-abi-value=step]').fill('5')
+  if closure and sys.argv[3]=='invalid-last':dialog.locator('[data-abi-target="other/native"] [data-abi-output=return]').select_option('return')
+  dialog.locator('[data-abi-remap-accept]').click()
+ now=pending()
+ if closure:
+  initial_plan=json.loads(next(v['text'] for _,v in now['blueprint'] if v.get('type')=='wrapper'));assert initial_plan['abi']['privateCopyBinding']['useGroup']==initial_plan['abi']['useGroup'];assert set(initial_plan['abi']['usePlans'])=={'frame/native','other/native'};assert initial_plan['abi']['usePlans']['other/native']['remap']['inputs']['step']['valueJson']=='5';originals();checked('새 copy의 기존 대응창은 두 qualified 호출을 구분하고 마지막 불완전 값을 거절하며 원래 snapshot을 변경하지 않는다')
+ wrapper_edit=next(v for _,v in now['blueprint'] if v.get('type')=='wrapper');plan=json.loads(wrapper_edit['text']);assert plan['abi']['privateCopyBinding']['seed']==seed['snapshot']['hash'];assert not plan['abi']['signature']['args'][0].get('mode');assert not registered or plan['abi']['receipt']['id']==callee;assert json.dumps(seed_snapshot()[2],sort_keys=True)==immutable;page.screenshot(path=str(case/'private-explicit-abi-refresh.png'))
  if nested:
   binding=plan['abi']['privateCopyBinding'];assert binding['privatePath']=='frame' and binding['node']=='frame/native';assert wrapper_edit['node']=='native';before_undo=dict(held['blueprint']);after_redo=dict(now['blueprint']);author().locator('.bp-viewport').focus();page.keyboard.press('Control+z');assert dict(pending()['blueprint'])==before_undo;author().locator('.bp-viewport').focus();page.keyboard.press('Control+Shift+z');assert dict(pending()['blueprint'])==after_redo;assert json.dumps(seed_snapshot()[2],sort_keys=True)==immutable;checked('private 호출의 기존 명시 갱신과 Undo/Redo는 qualified frame만 바꾸며 원래 snapshot/다른 본문 입력을 보존한다')
- close_author();held=pending();
+ if closure and sys.argv[3]=='invalid-last':author().locator(':scope > .window-title [data-fold]').first.click()
+ else:close_author()
+ held=pending();
  if len(sys.argv)>3:boundaries(sys.argv[3],held,checkpoint,immutable)
  save_owner();d=schema_state();new=next(v['implementation'] for v in d['providers'] if v['function']==n+'Slot' and v['origin']==id);result=invoke('blueprint',{'action':'read','id':new+'/body:common','owner':id,'ownerHash':d['textHash'],**view_basis()})['result']['result'];assert next(v for v in result['nodes'] if v['id']=='body')['source']=='slotCount=amount+5;slotReady=true;return amount+70;';private=invoke('blueprint',{'action':'read','id':new+'/body:common/graph:frame','owner':id,'ownerHash':d['textHash'],**view_basis()})['result']['result'] if nested else result;assert not next(v for v in private['nodes'] if v['id']=='native')['signature']['args'][0].get('mode');
+ if closure:
+  other=invoke('blueprint',{'action':'read','id':new+'/body:common/graph:other','owner':id,'ownerHash':d['textHash'],**view_basis()})['result']['result'];leaf=next(v for v in other['nodes'] if v['id']=='native');assert json.loads(next(v['valueJson'] for v in leaf['arguments'] if v['name']=='step'))=={'constant':5} and not leaf['postCallStale'];assert json.loads(next(v['valueJson'] for v in next(v for v in private['nodes'] if v['id']=='native')['arguments'] if v['name']=='step'))=={'constant':3};assert other['locals'][0]['initialJson']=='9223372036854775806';checked('새 copy의 두 frame 갱신과 공유 import는 전체 저장되며 같은 local ID의 직접 값3/5와 정확한 int64를 구별한다')
  if is_view:assert state()['draft']['text']==primary_text and not pending()['views'];checked('독립 정보 창의 복사 갱신·저장은 primary 프로젝트 문맥과 원문을 변경하지 않는다')
  if nested:
   assert private['locals'][0]['initialJson']=='9223372036854775806';assert private['edges']==seed['snapshot']['graph']['nodes'][0]['graph']['edges'];assert private['nodes'][0]['postCall']['source']==seed['snapshot']['graph']['nodes'][0]['graph']['nodes'][0]['postCall']['source']
