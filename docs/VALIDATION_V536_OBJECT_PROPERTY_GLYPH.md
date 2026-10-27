@@ -46,3 +46,9 @@ PNG/JPG/WebP 자산 선택·저장·복원은 아직 미완료다. 이들은 원
 집중 8흐름 59확인, 순수 후보 4확인, 기존/새 정보 속성·객체 요소 glyph·정보 편집·생산 final CAS 영향 회귀 27확인이 통과했다. 원본 팝오버 10영역의 치수/위치/스타일과 74개 리소스의 바이트/해시를 확인했다. 스키마 실제 경합·쓰기 실패·취소·Undo·응답 유실 조회·늦은 입력·다른 창 보존·compiler Confirm을 분리 검증했다.
 
 첫 새 교차 패키지 생성 뒤 구성 검사는 WebBundle raw string의 원래 줄바꿈이 빠져 manifest 정규식을 읽지 못했다. 검사기를 바꾸지 않고 원본 source envelope를 복원했다. JSON 리소스 목록·해시와 모든 JS/Native 실행 의미는 같으며, 최초 실패 source/로그를 보존했다. 집중 회귀의 원래 source SHA와 형식 복원 후 SHA를 evidence에 구별하고, 최종 독립 checkout·새 교차 패키지로 후속 검증한다.
+
+## 독립 checkout·새 교차 패키지 확정 결과
+
+실행 소스 커밋 `a1b1b43ca1da201360150f6ebb2f0fcdfb45d374`의 변경 Git blob·기존 autocrlf·clean을 확인했다. 객체/정보 정의의 native field ID·타입·값과 부모/외부 원본을 보존했다. 기존 독립 checkout에서 Native/CLI Release·새 Linux 엔진, 객체의 기존 직접 소유 속성 아이콘·소유 스키마·늦은 입력/다른 창 보호의 독립 창 11확인 및 생산 final CAS 4확인, 이전 형식/객체 스키마 receipt 보호 3확인이 통과했다. 새 RAM Windows x64 교차 패키지는 restore·Release·MCP·생성·probe·패키지 자체 속성 아이콘 UI 11확인까지 6단계를 통과했다. 전체 2349개/manifest 2348개 목록·SHA·Core/Native DLL과 변경 제품 소스 바이트를 확인했다.
+
+manifest SHA `30de8dd0cb6aad7042f09157e65899f586d2c33358c07cbac220fe9e77a88143`. 전체 manifest와 fixture/로그/프로필 증거 보관 뒤 이번 실행의 임시 패키지만 정리했고 기존 보관 패키지/SDK/원본/사용자 자료는 삭제하지 않았다. 최종 후속 커밋은 문서/evidence만 달라 실행 코드는 위 소스 커밋과 같다. 실제 Windows apphost/WebView2·모바일 기기/터치·Library 전달 및 전체 UI는 계속 미완료다.
