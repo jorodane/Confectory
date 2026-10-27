@@ -32,3 +32,9 @@ Save는 초안 보관이고 컴파일 및 물리 원본 반영은 기존 명시 
 이번 완료는 현재 편집 중인 private frame의 Save에서 저장된 ordinary leaf 핀·수동 본문을 여러 frame에 걸쳐 결합하는 경로다. Root로 돌아온 뒤 Save하는 진입은 아직 원래 입력 guard에 막히며 이 단위의 완료로 세지 않는다. 원본 callee ABI 갱신으로 영향받는 forwarded frame 계약·wrapper와 다른 frame의 일반 입력을 결합하는 경로, opaque/whole-body source closure는 이 단위에서 지원하지 않는다. 공개 override 구조 변경은 정상 금지이고 독립 계약 복제는 요구에서 제외한다. 가능한 변환/target 조합을 새 필수 요구로 늘리지 않는다.
 
 고정8행의 여러 함수 C#/중첩/copy 문맥, 9행 고급 정보/참조/기능 핀 타입 및 표시명/생성 식별자, I6 기호·이모지·사용자 로컬 이미지 아이콘, B2 실제 배정 배지, M4 async/M11 C# 동작→graph/M12 root 실행 분기는 별도 잔여다. 이미지·협의·렌더 신규 backend는 이 복원 범위 밖이다. 전체 UI·실제 Windows apphost/WebView2·모바일 기기/터치·Library 전달은 미완료다.
+
+## 독립 checkout·새 교차 패키지 확정 결과
+
+실행 소스 커밋 `335c80d041b2562b7437b01c562608f5fa30a515`의 변경 Git blob·기존 autocrlf·clean을 확인했다. 기존 독립 checkout에서 Native/CLI Release·새 Linux 엔진, 두 private frame의 독립 정보 창 6확인 및 생산 final CAS 4확인이 통과했다. 새 RAM Windows x64 교차 패키지는 restore·Release·MCP·생성·probe·패키지 자체 두 frame UI 6확인까지 6단계를 통과했다. 전체 2349개/manifest 2348개 목록·SHA·Core/Native DLL과 변경 제품 소스 바이트를 확인했다.
+
+manifest SHA `0de3f84f50b027febeb609b1f40f09e31b824e3091d11dc0f11e79196693b6c6`. 전체 manifest와 fixture/로그/프로필 증거 보관 뒤 이번 실행의 임시 패키지만 정리했고 기존 보관 패키지/SDK/원본/사용자 자료는 삭제하지 않았다. 최종 후속 커밋은 문서/evidence만 달라 실행 코드는 위 소스 커밋과 같다. 실제 Windows apphost/WebView2·모바일 기기/터치·Library 전달 및 전체 UI는 계속 미완료다.
