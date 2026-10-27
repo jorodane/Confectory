@@ -4,7 +4,7 @@ Fixture setup shares the finite local call context used by v536_slot_call_abi.
 import hashlib,json,re,os,pathlib,signal,subprocess,sys,tempfile,time,urllib.request,uuid
 from playwright.sync_api import sync_playwright,expect
 from editor_navigation import goto_editor
-nested='nested' in sys.argv[3:];is_view='view' in sys.argv[3:];general='remap' in sys.argv[3:];closure='closure' in sys.argv[3:];correction='correction' in sys.argv[3:];corrected=False
+nested='nested' in sys.argv[3:];is_view='view' in sys.argv[3:];general='remap' in sys.argv[3:];closure='closure' in sys.argv[3:];correction='correction' in sys.argv[3:];corrected=False;root_entry='root-entry' in sys.argv[3:];assert not root_entry or closure
 repo=pathlib.Path(sys.argv[1]).resolve();report=json.loads(pathlib.Path(sys.argv[2]).read_text());case=pathlib.Path(tempfile.mkdtemp(prefix='confectory-saved-copy-abi-'));project=case/'owned project';project.mkdir();n='Owned.Context::'
 env=os.environ.copy();env.update(CONFECTORY_DOTNET=env.get('CONFECTORY_DOTNET','/workspace/toolchains/dotnet-10.0.401/dotnet'))
 def metadata(operation,**data):
@@ -37,6 +37,8 @@ if nested:
  child={'schema':1,'profile':'sync-acyclic-switch-v1','entry':'native','nodes':[__import__('copy').deepcopy(node)],'edges':[{'from':'native','port':'next','to':'exit:return'}],'exits':{'return':{'node':'native'}},'locals':[{'id':'kept','name':'정확한 값','type':'long','initial':{'constant':9223372036854775806}}]};body_node=next(v for v in g['nodes'] if v['id']=='body');body_node['arguments']={'amount':{'node':'frame'}};g.update(profile='sync-acyclic-nested-v1',entry='frame',nodes=[{'id':'frame','kind':'graph','control':'next','intent':'기존 내부 호출','signature':{'args':[{'name':'amount','type':'long'}],'return':'long'},'arguments':{'amount':{'input':'amount'}},'graph':child},*[v for v in g['nodes'] if v['id']!='native']],edges=[{**e,'from':'frame' if e['from']=='native' else e['from']} for e in g['edges']])
  if closure:
   second=__import__('copy').deepcopy(g['nodes'][0]);second['id']='other';second['intent']='다른 frame의 기존 호출';second['arguments']={'amount':{'node':'frame'}};g['nodes'].insert(1,second);next(v for v in g['nodes'] if v['id']=='body')['arguments']={'amount':{'node':'other'}};g['edges']=[{'from':'frame','port':'next','to':'other'},{'from':'other','port':'next','to':'body'},{'from':'body','port':'next','to':'exit:return'}]
+ if root_entry:
+  root_call=__import__('copy').deepcopy(node);g['nodes'].insert(0,root_call);g['profile']='sync-acyclic-switch-v1';g['entry']='native';g['nodes'][1]['arguments']={'amount':{'node':'native'}};g['edges'].insert(0,{'from':'native','port':'next','to':'frame'})
  assert metadata('featureBlueprintDescribe',featureSource=items['Calc'][1],graph=g,featureContracts={callee:callee_text},implementations={'body':record})['state']=='source-ready'
 current_signature={'args':[{'type':'int','name':'step'},{'type':'double','name':'renamed'},{'type':'long','name':'total','mode':'out'}],'return':'bool'} if general else {'args':[{'type':'long','name':'amount'}],'return':'long'}
 current_text=callee_text.replace('(ref long amount) -> long','(int step,double renamed,out long total) -> bool' if general else '(long amount) -> long')
@@ -139,7 +141,7 @@ def open_slot():
  else:
   open_row('A','concept');w=page.locator('.window[data-key=schema]')
  slot=w.locator('[data-module-method="'+n+'Calc"]');expect(slot.locator('[data-function-edit]')).to_be_enabled();slot.locator('[data-function-edit]').click();a=page.locator('.window[data-key=blueprint]');expect(a).to_have_attribute('data-blueprint-owner',n+'A');expect(a).to_have_attribute('data-blueprint-body',n+'Copy/body:common');idle()
- if nested:
+ if nested and not root_entry:
   a.locator('[data-bp-overview-node=frame]').click();a.locator('[data-bp-node=frame] [data-function-write-direct]').click();expect(a.locator('[data-bp-node=native]')).to_be_visible();pending()
  return a
 def view_basis():
@@ -162,7 +164,7 @@ for boundary in ['target','path','multi-target','provenance','unit-provenance','
  else:r['functionText']=r['functionText'].replace(n+'Calc','External.Pack::Calc')
  result=subprocess.run([env['CONFECTORY_DOTNET'],str(repo/'targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll')],input=json.dumps({'operation':'blueprintCopyAbiBinding',**r}),text=True,capture_output=True,env=env,check=True);assert not json.loads(result.stdout)['ok'],boundary
 checked('단일 저장 복사본 receipt를 준비하고 대상·locator·다중본문·출처·공유소유·요구계약 위조 10종을 거절한다')
-def read_copy():return call('blueprint',{'action':'read','id':n+'Copy/body:common'+('/graph:frame' if nested else ''),'owner':n+'A','ownerHash':hashlib.sha256((project/'A.celem').read_bytes()).hexdigest(),**view_basis()})
+def read_copy():return call('blueprint',{'action':'read','id':n+'Copy/body:common'+('/graph:frame' if nested and not root_entry else ''),'owner':n+'A','ownerHash':hashlib.sha256((project/'A.celem').read_bytes()).hexdigest(),**view_basis()})
 def batch(data,plan):return {'action':'authorBatch','id':data['id'],'attempt':uuid.uuid4().hex,'checkpointHash':data['checkpointHash'],'sourceProof':json.dumps(sorted([[v['id'],v['revision'],v['hash']] for v in data['sources']])),'edits':[{'action':'rebindCopyAbi','node':'native','definition':plan}],'owner':n+'A','ownerHash':hashlib.sha256((project/'A.celem').read_bytes()).hexdigest(),**view_basis()}
 if 'metadata-only' in sys.argv[3:]:
  assert closure
@@ -199,7 +201,7 @@ try:
  with sync_playwright() as p:
   expect.set_options(timeout=30000);browser=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox']);page=setup(browser);author=open_slot();card=author.locator('[data-bp-node=native]');refresh=card.locator('[data-wrapper-refresh]');data=read_copy();row=next(v for v in data['nodes'] if v['id']=='native');(case/'initial-read.json').write_text(json.dumps(data,ensure_ascii=False));assert row['callAbiAvailable'] and row['copyAbiBinding']['provenance']==provenance;expect(refresh).to_be_enabled();unchanged();checked('실제 직접 배치된 저장 복사본에만 기존 원본 계약 갱신 버튼을 연결하고 출처를 표시 데이터에 보존한다')
   # Root access without selected direct owner still cannot edit a copied body.
-  root=call('blueprint',{'action':'read','id':n+'Copy/body:common'+('/graph:frame' if nested else '')});assert not next(v for v in root['nodes'] if v['id']=='native')['callAbiAvailable']
+  root=call('blueprint',{'action':'read','id':n+'Copy/body:common'+('/graph:frame' if nested and not root_entry else '')});assert not next(v for v in root['nodes'] if v['id']=='native')['callAbiAvailable']
   author.locator(':scope > .window-title').click(position={'x':700,'y':12});author.locator('[data-bp-overview-node=native]').click();refresh.click()
   if general:
    def choose():
@@ -222,7 +224,7 @@ try:
    author.locator('[data-bp-overview-node=native]').click()
    author.locator('[data-wrapper-refresh]').click()
    form=page.locator('[data-abi-remap-accept]').locator('..').locator('..')
-   selected_form=form.locator('[data-abi-target="frame/native"]') if closure else form
+   selected_form=form.locator('[data-abi-target="'+('native' if root_entry else 'frame/native')+'"]') if closure else form
    expect(selected_form.locator('[data-abi-value=step]')).to_have_value('3')
    expect(selected_form.locator('[data-abi-input=renamed]')).to_have_value('pin:amount')
    expect(selected_form.locator('[data-abi-output=return]')).to_have_value('total')
@@ -237,7 +239,7 @@ try:
    form.locator('[data-abi-remap-accept]').click()
    unchanged()
    checked('기존 내부 계약 갱신의 명시 대응 취소·불완전 값·cold 복원은 입력과 원문을 보존한다')
-  held=pending();assert len(held)==1;plan=json.loads(held[0][1]['text']);assert not closure or plan['abi']['useGroup']==row['callAbiUseGroupBinding'] and set(plan['abi']['usePlans'])=={'frame/native','other/native'};assert plan['abi']['copyBinding']==row['copyAbiBinding'];assert not general or plan['abi']['remap']==explicit_remap;unchanged();page.screenshot(path=str(case/'copy-abi-explicit-refresh.png'));checked('명시적 갱신은 복사 소유자·target·출처와 원본 callee hash를 함께 초안에 고정하고 파일은 쓰지 않는다')
+  held=pending();assert len(held)==1;plan=json.loads(held[0][1]['text']);assert not closure or plan['abi']['useGroup']==row['callAbiUseGroupBinding'] and set(plan['abi']['usePlans'])==({'native','frame/native','other/native'} if root_entry else {'frame/native','other/native'});assert plan['abi']['copyBinding']==row['copyAbiBinding'];assert not general or plan['abi']['remap']==explicit_remap;unchanged();page.screenshot(path=str(case/'copy-abi-explicit-refresh.png'));checked('명시적 갱신은 복사 소유자·target·출처와 원본 callee hash를 함께 초안에 고정하고 파일은 쓰지 않는다')
   if 'peer-input' in sys.argv[3:]:
    checkpoint=next(project.glob('.confectory/edit-workspaces/*/draft.json'));before=checkpoint.read_bytes();author.locator('.bp-breadcrumbs button').first.click();expect(author.locator('[data-bp-node=body]')).to_be_visible();author.locator('[data-bp-overview-node=body]').click();author.locator('[data-bp-node=body] [data-inline-description]').fill('다른 frame의 보존할 입력');author.locator('[data-bp-overview-node=frame]').click();author.locator('[data-bp-node=frame] [data-function-write-direct]').click();expect(author.locator('[data-bp-node=native]')).to_be_visible();all_held=pending();assert any(v.get('type')=='intent' and v['text']=='다른 frame의 보존할 입력' for _,v in all_held);author.locator('[data-bp-save]').click();expect(page.get_by_role('status').last).to_contain_text('같은 구현의 이전 입력',timeout=30000);assert checkpoint.read_bytes()==before and dict(pending())==dict(all_held);unchanged();page.close();stop();start(1);page=setup(browser);author=page.locator('.window[data-key=blueprint]');expect(author.locator('[data-bp-node=native]')).to_be_visible();assert dict(pending())==dict(all_held) and checkpoint.read_bytes()==before;unchanged();checked('다른 frame의 별도 입력이 있으면 ABI 저장을 전체 차단하고 두 문맥의 원문/계획을 cold 복원에서도 보존한다');browser.close();print(json.dumps({'checks':checks,'evidence':str(case)},ensure_ascii=False));sys.exit(0)
   if 'source-change' in sys.argv[3:]:
@@ -321,7 +323,7 @@ try:
   # A rejected compiler review cannot bypass technical contract validation.
   page.close();stop();start(1);page=setup(browser);author=page.locator('.window[data-key=blueprint]');expect(author).to_have_attribute('data-blueprint-owner',n+'A');expect(author.locator('[data-bp-save]')).to_be_enabled();assert pending()==held;unchanged();checked('저장 전 명시적 copy ABI 초안은 cold 재시작에서 소유자·출처·대상과 함께 복원한다')
   mark=len(traffic);author.locator('[data-bp-save]').click();completed('blueprint','authorBatch',mark);assert pending()==[];unchanged();saved=read_copy();node=next(v for v in saved['nodes'] if v['id']=='native');assert node['signature']['args'][0].get('mode') is None and not node['postCallStale'];assert node['copyAbiBinding']==row['copyAbiBinding'];assert saved['slotContext']['copySource']==provenance
-  if nested:
+  if nested and not root_entry:
    assert saved['locals'][0]['initialJson']=='9223372036854775806' and saved['edges']==g['nodes'][0]['graph']['edges'];assert row['copyAbiBinding']['privatePath']=='frame' and row['copyAbiBinding']['privateGraph']==data['id'];assert row['copyAbiBinding']['graph']==data['rootId']
   if is_view:assert state()['draft']['id']==n+'B' and state()['draft']['text']==primary_text;checked('독립 창 private ABI 저장은 다른 primary 문서와 원문을 변경하지 않는다')
   checked('한 authorBatch 후보/CAS에서 복사본 typed import·wrapper·graph만 저장하고 출처·객체·donor 파일은 유지한다')
@@ -338,9 +340,11 @@ try:
   assert result['result'].get('sourceConfirmed');expect(review).to_have_count(0,timeout=90000);changed={k for k,v in original.items() if (project/k).read_bytes()!=v};assert changed=={'Copy.celem','Copy.graph.json'},changed;assert json.loads((project/'Copy.graph.json').read_text())['copySource']==provenance
   if nested:
    expected=__import__('copy').deepcopy(g)
-   for frame in expected['nodes'][:2 if closure else 1]:
+   for frame in [v for v in expected['nodes'] if v['kind']=='graph'][:2 if closure else 1]:
     leaf=frame['graph']['nodes'][0];leaf['signature']=plan['abi']['signature'];leaf['postCall']['contractHash']=plan['contractHash']
     if general:leaf['arguments']={'step':{'constant':5 if closure and frame['id']=='other' else 3},'renamed':{'input':'amount'}};frame['graph']['exits']['return']={'node':'native','output':'total'}
+   if root_entry:
+    leaf=expected['nodes'][0];leaf['signature']=plan['abi']['signature'];leaf['postCall']['contractHash']=plan['contractHash'];leaf['arguments']={'step':{'constant':3},'renamed':{'input':'amount'}};expected['nodes'][1]['arguments']={'amount':{'node':'native','output':'total'}}
    assert json.loads((project/'Copy.graph.json').read_text())==expected
   checked('명시적 compiler Confirm은 Copy 선언과 graph만 반영하고 donor·callee·부모/다른 객체·원본 node 본문은 byte 보존한다')
   assert not errors and not external,(errors,external);page.close();browser.close()
