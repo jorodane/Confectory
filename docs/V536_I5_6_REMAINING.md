@@ -68,3 +68,5 @@ I5-1~5 지원 경로는 유지한다. I5-6 전체와 v536 전체 UI는 아직 �
 ## 저장된 copy private 갱신 연결
 
 [저장 copy private ABI](VALIDATION_V536_SAVED_PRIVATE_ABI.md)는 기존 ref→값 한 호출의 server path binding·단독 배정/출처·원래 후보/CAS·Review/Confirm을 연결하는 단위다. 공개 함수·부모/외부 원본은 보존한다. 미확정 단위와 저장된 단위를 구분하고, 검증 경계 밖의 실제 기존 ABI 조작과 8/9행·별도 UI/플랫폼/Library 잔여를 자동 완료로 세지 않는다.
+
+저장된 copy private ref→값 단위의 확정 결과는 집중 12흐름 65확인, 독립 checkout 2흐름 13확인·순수6, 새 교차 패키지6단계/자체 UI 11확인이다. 해당 검증 문서/evidence를 따른다. 이번 한 호출 경계 밖의 실제 기존 ABI 조작과 8/9행·UI·기기/Library 잔여는 유지한다.

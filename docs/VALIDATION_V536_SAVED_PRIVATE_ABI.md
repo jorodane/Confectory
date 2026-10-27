@@ -25,3 +25,11 @@
 ## 확정 집중 검사
 
 최종 제품 소스 세대를 고정하여 실제 엔진/API·렌더러 12흐름 65확인을 통과했다. 각 저장 copy fixture의 순수 receipt 위조10종도 포함하며, 기본/독립 창·source/CP/nonce/path/owner 거절·물리 변경 전체 미적용·다른 frame 입력 보호·Undo/취소·쓰기 실패·응답 유실·cold·Review/컴파일 Confirm과 root/미확정 copy/모듈/enum 회귀를 확인했다. 초기 실패를 통과로 집계하지 않는다. 최종 independent checkout/교차 패키지 결과는 후속 evidence로 구분한다.
+
+## 독립 checkout·교차 패키지
+
+소스 체크포인트 `75ed5ef243cdb8a9c565a49772deef09c964f1a3`를 기존 독립 checkout에 정상 FF하여 10개 변경 Git blob·원래 autocrlf/clean을 확인했다. Native/CLI Release와 Linux 엔진, 독립 정보 창의 실제 UI/컴파일러 Confirm 및 기존 private enum 회귀 2흐름 13확인, 순수 private 후보 6확인이 통과했다. 집중 검사의 결과와 각 fixture의 순수 receipt 위조10종은 별도다.
+
+restore·솔루션 Release·MCP Release·새 Windows x64 교차 패키지·package probe·패키지 자체 runtime의 독립 창 private ABI UI/컴파일러 11확인까지 6단계가 통과했다. manifest 2346개/전체 2347개 목록·SHA·링크 부재와 Core/Native DLL·검토 소스 바이트가 일치한다. manifest SHA `267b3ea6825e262a8fbd53ad08da2d040ebd84bb3de60e639b0c1d9e83e56158`, Native DLL `43c8007b28923a37679ae47235eaafbb367aebbe2bd700ff64295724861c2e74`다.
+
+이번 패키지는 `/tmp` RAM 기반 검사 산출물이다. 전체 manifest와 fixture/로그/프로필·원본 증거를 보존한 뒤 이번 실행의 임시 패키지만 제거했다. 기존 보관 패키지/SDK/원본/사용자 자료는 지우지 않았다. 다운로드 가능한 새 보관 빌드나 Library 첨부 전달이 아니다. 최종 후속 커밋은 문서/evidence만 추가하며 위 소스 체크포인트의 실행 코드와 동일하다. 실제 Windows apphost/WebView2·모바일 기기/터치와 전체 UI 완료는 미검증/미완료로 유지한다.

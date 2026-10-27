@@ -1,0 +1,234 @@
+{
+  "sourceCommit": "75ed5ef243cdb8a9c565a49772deef09c964f1a3",
+  "package": {
+    "sourceCommit": "75ed5ef243cdb8a9c565a49772deef09c964f1a3",
+    "ephemeralPackagePath": "/tmp/pkg-sim-i9ofn3dz/Windows-x64",
+    "persistentPackageCreated": false,
+    "packageAvailableAfterExec": false,
+    "manifestSha256": "267b3ea6825e262a8fbd53ad08da2d040ebd84bb3de60e639b0c1d9e83e56158",
+    "declaredFiles": 2346,
+    "totalFiles": 2347,
+    "packageBytes": 132875599,
+    "manifestAndFileSetMatch": true,
+    "symlinks": false,
+    "coreCopies": {
+      "Confectory.Core.dll": "480f699b9cbd7aba3714e7ab98a941bb7325397a284fbe79f04511369d57ff2b",
+      "content/src/Confectory.Cli/bin/Release/net10.0/Confectory.Core.dll": "480f699b9cbd7aba3714e7ab98a941bb7325397a284fbe79f04511369d57ff2b",
+      "content/targets/android-export/bin/Release/net10.0/Confectory.Core.dll": "480f699b9cbd7aba3714e7ab98a941bb7325397a284fbe79f04511369d57ff2b",
+      "content/targets/browser-wasm/bin/Release/net10.0/Confectory.Core.dll": "480f699b9cbd7aba3714e7ab98a941bb7325397a284fbe79f04511369d57ff2b",
+      "content/targets/element-authoring/bin/Release/net10.0/Confectory.Core.dll": "480f699b9cbd7aba3714e7ab98a941bb7325397a284fbe79f04511369d57ff2b",
+      "content/targets/desktop-entry/bin/Release/net10.0/Confectory.Core.dll": "480f699b9cbd7aba3714e7ab98a941bb7325397a284fbe79f04511369d57ff2b",
+      "content/targets/project-execution-host/bin/Release/net10.0/Confectory.Core.dll": "480f699b9cbd7aba3714e7ab98a941bb7325397a284fbe79f04511369d57ff2b"
+    },
+    "nativeAssemblySha256": "43c8007b28923a37679ae47235eaafbb367aebbe2bd700ff64295724861c2e74",
+    "productSha256": {
+      "targets/element-authoring/BlueprintCallAbi.cs": "13cefc75d730b0394f0110397533d2141d598bd2fce7f9d8dc53e530b6f7919f",
+      "targets/element-authoring/ImplementationCopy.cs": "a72bd602a85b9f647a99228472a8ebabed6e7db26ed086c9e318352966aafe4b",
+      "targets/element-authoring/PrivateImplementationCopy.cs": "89e87c05408b6fa93869f65c43aa968ed1ed9bcee5202c82636b39f74c3bf7d1",
+      "targets/element-authoring/ImplementationCopyEdits.cs": "c137712d8e10a6c40ca2b505b59f7b1c23aacde8af88ffd1f8d62038ee108a91",
+      "targets/element-authoring/ImplementationCopyTree.cs": "ea3dd30ae1acf3e24ce924838af2c9b861190a9d3d1e2873486a67e2f7acc9be",
+      "packs/edit-workspace/CopyImplementation.csbody": "87f051755e110717b9dad535e3b7355399795689afff189dc24e46c30ab42182",
+      "packs/pack-workspace/Blueprint.csbody": "2e71415658855911a06a7f29cbdd5018ffc5ba542bf9d951975d6d6a81cbae8a",
+      "packs/editor-home-model/Blueprint.csbody": "de9a717ca0a9f46f64ffd6538e8c37f5e9c5f1d1015d7cbe2c09f83c8ce05458",
+      "examples/editor-home/ui/element-functions.js": "acdf3a28f8c0a4ca1433a666185d4a4c98ef0deafaacc9c4970bb2be3ab31ee2",
+      "examples/editor-home/ui/feature-authoring.js": "48c299affe27945f65ff078ae2b2dd4951699d9fd6d4d66a6be89792babee5be",
+      "examples/editor-home/WebBundle.csbody": "0b6fdb01f1ab8256da28219afa1095115ba1bbba38bf2e5e0bb48f881b08601b",
+      "examples/editor-home/ui/style.css": "af9b74e5ba8c4cbebfee93e5e9a056cc0e56bea7151d16796a7c2e2f1945c49c"
+    },
+    "packagedRendererChecks": 11,
+    "actualWindows": false,
+    "webView2Executed": false,
+    "actualMobile": false,
+    "libraryUploaded": false,
+    "oldDurablePackageUnchanged": "/workspace/artifacts/v536-information-shared-callers/Windows-x64",
+    "oldDurableManifestSha256": "9d8f3fa88b1e8c62753ba2fe32228e02aa3be6ef41c34c394a81be15bd42f559",
+    "existingFilesDeleted": false,
+    "workspaceAvailableBytes": 1046855680,
+    "newTemporaryPackageRemovedAfterVerification": true,
+    "fixtureEvidencePreserved": true
+  },
+  "packageSteps": [
+    {
+      "name": "restored-release-inputs",
+      "command": [
+        "/workspace/toolchains/dotnet-10.0.401/dotnet",
+        "restore",
+        "Confectory.sln",
+        "--disable-parallel"
+      ],
+      "exit": 0,
+      "sampleIntervalSeconds": 0.2,
+      "minimumWorkspaceAvailableBytes": 1060257792,
+      "peakCgroupMemoryBytes": 4403785728,
+      "elapsedSeconds": 6.0,
+      "log": "/workspace/scratch/v536-saved-private-abi/restored-release-inputs.log",
+      "workspaceAvailableBytes": 1060261888
+    },
+    {
+      "name": "committed-release",
+      "command": [
+        "/workspace/toolchains/dotnet-10.0.401/dotnet",
+        "build",
+        "Confectory.sln",
+        "-c",
+        "Release",
+        "--no-restore",
+        "-m:1",
+        "-p:UseSharedCompilation=false"
+      ],
+      "exit": 0,
+      "sampleIntervalSeconds": 0.2,
+      "minimumWorkspaceAvailableBytes": 1060253696,
+      "peakCgroupMemoryBytes": 4704223232,
+      "elapsedSeconds": 30.9,
+      "log": "/workspace/scratch/v536-saved-private-abi/committed-release.log",
+      "workspaceAvailableBytes": 1060253696
+    },
+    {
+      "name": "committed-mcp-release",
+      "command": [
+        "/workspace/toolchains/dotnet-10.0.401/dotnet",
+        "build",
+        "targets/mcp-host",
+        "-c",
+        "Release",
+        "--no-restore",
+        "-p:UseSharedCompilation=false"
+      ],
+      "exit": 0,
+      "sampleIntervalSeconds": 0.2,
+      "minimumWorkspaceAvailableBytes": 1060253696,
+      "peakCgroupMemoryBytes": 4462985216,
+      "elapsedSeconds": 2.8,
+      "log": "/workspace/scratch/v536-saved-private-abi/committed-mcp-release.log",
+      "workspaceAvailableBytes": 1060249600
+    },
+    {
+      "name": "windows-package",
+      "command": [
+        "/workspace/toolchains/dotnet-10.0.401/dotnet",
+        "targets/editor-desktop/bin/Release/net10.0/Confectory.dll",
+        "package",
+        "/workspace/Confectory",
+        "/tmp/pkg-sim-i9ofn3dz/Windows-x64"
+      ],
+      "exit": 0,
+      "sampleIntervalSeconds": 0.2,
+      "minimumWorkspaceAvailableBytes": 1046880256,
+      "peakCgroupMemoryBytes": 4783497216,
+      "elapsedSeconds": 74.6,
+      "log": "/workspace/scratch/v536-saved-private-abi/windows-package.log",
+      "workspaceAvailableBytes": 1046876160
+    },
+    {
+      "name": "windows-probe",
+      "command": [
+        "python3",
+        "tests/probes/desktop_package.py",
+        "/workspace/Confectory",
+        "/tmp/pkg-sim-i9ofn3dz/Windows-x64"
+      ],
+      "exit": 0,
+      "sampleIntervalSeconds": 0.2,
+      "minimumWorkspaceAvailableBytes": 1046872064,
+      "peakCgroupMemoryBytes": 5588692992,
+      "elapsedSeconds": 7.8,
+      "log": "/workspace/scratch/v536-saved-private-abi/windows-probe.log",
+      "workspaceAvailableBytes": 1046867968
+    },
+    {
+      "name": "packaged-renderer",
+      "command": [
+        "python3",
+        "tests/web/v536_saved_copy_abi.py",
+        "/tmp/pkg-sim-i9ofn3dz/Windows-x64/content",
+        "/workspace/scratch/v536-saved-private-abi/packaged-engine-report.json",
+        "nested",
+        "view"
+      ],
+      "exit": 0,
+      "sampleIntervalSeconds": 0.2,
+      "minimumWorkspaceAvailableBytes": 1046859776,
+      "peakCgroupMemoryBytes": 5605675008,
+      "elapsedSeconds": 108.6,
+      "log": "/workspace/scratch/v536-saved-private-abi/packaged-renderer.log",
+      "workspaceAvailableBytes": 1046859776
+    }
+  ],
+  "independentCheckout": {
+    "sourceCommit": "75ed5ef243cdb8a9c565a49772deef09c964f1a3",
+    "checkout": "/workspace/scratch/v536-multiple-implementations/checkout",
+    "newCloneCreated": false,
+    "normalFastForward": true,
+    "cleanBeforeAndAfter": true,
+    "originalAutocrlfPreserved": "true",
+    "gitBlobs": {
+      "docs/V536_I5_6_REMAINING.md": "9a4f9e28291708f841ae3e425c5e99a5b999fa91",
+      "docs/VALIDATION_V536_SAVED_PRIVATE_ABI.md": "d23a1ad6ff3a8390a6ce1f2133d1773018ecf741",
+      "docs/evidence/v536-saved-private-abi/focused-verification.json": "c0ce12a132b5bab8b6c6b9d7d265bd11bc329bf2",
+      "examples/editor-home/WebBundle.csbody": "121b2b07360520a72b1fe47433e4b56375feef47",
+      "examples/editor-home/ui/element-functions.js": "dcf046c1bac3c3891cc6378f1b931926d8dfc5be",
+      "examples/editor-home/ui/feature-authoring.js": "61c693ff4b16816305df4c40ca0ad1bf2ee6edd3",
+      "packs/editor-home-model/Blueprint.csbody": "99d7f40c6eff77ae51fda6813688d392e10e94f5",
+      "packs/pack-workspace/Blueprint.csbody": "62d1e38479ba6b499ad1df6cfec659e2da0eb290",
+      "tests/web/v536_saved_copy_abi.py": "c59a7b232639797378ca29359a7ce225580cd0fc"
+    },
+    "cleanAfterVerification": true
+  },
+  "independentFlows": [
+    {
+      "name": "view",
+      "command": [
+        "python3",
+        "/workspace/scratch/v536-multiple-implementations/checkout/tests/web/v536_saved_copy_abi.py",
+        "/workspace/scratch/v536-multiple-implementations/checkout",
+        "/workspace/scratch/v536-saved-private-abi/clean-engine-report.json",
+        "nested",
+        "view"
+      ],
+      "exit": 0,
+      "seconds": 108.8,
+      "minimumWorkspaceBytes": 1060478976,
+      "peakMemoryBytes": 5151236096,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 11,
+      "logSha256": "1c03cef2376a2273d1673c6df601df2654bd07756ef824edcb8c24721036d636"
+    },
+    {
+      "name": "enum",
+      "command": [
+        "python3",
+        "/workspace/scratch/v536-multiple-implementations/checkout/tests/web/v536_information_private_enum_api.py",
+        "/workspace/scratch/v536-multiple-implementations/checkout",
+        "/workspace/scratch/v536-saved-private-abi/clean-engine-report.json",
+        "normal",
+        "source",
+        "switch-code"
+      ],
+      "exit": 0,
+      "seconds": 30.9,
+      "minimumWorkspaceBytes": 1060343808,
+      "peakMemoryBytes": 4476616704,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 2,
+      "logSha256": "859b2882a397492b1270263e71923d5668f065bf87a269e43075fb37fde5566d"
+    }
+  ],
+  "independentChecks": 13,
+  "independentPureChecks": 6,
+  "cleanPureLogSha256": "fc76cb6c2ccc1433fd34e260ad23362da37a82b274c00cf98c58e6507a6710eb",
+  "frozenProductSources": {
+    "packs/pack-workspace/Blueprint.csbody": "2e71415658855911a06a7f29cbdd5018ffc5ba542bf9d951975d6d6a81cbae8a",
+    "packs/editor-home-model/Blueprint.csbody": "de9a717ca0a9f46f64ffd6538e8c37f5e9c5f1d1015d7cbe2c09f83c8ce05458",
+    "examples/editor-home/ui/feature-authoring.js": "48c299affe27945f65ff078ae2b2dd4951699d9fd6d4d66a6be89792babee5be",
+    "examples/editor-home/ui/element-functions.js": "acdf3a28f8c0a4ca1433a666185d4a4c98ef0deafaacc9c4970bb2be3ab31ee2",
+    "examples/editor-home/WebBundle.csbody": "0b6fdb01f1ab8256da28219afa1095115ba1bbba38bf2e5e0bb48f881b08601b"
+  },
+  "actualWindows": false,
+  "webView2Executed": false,
+  "actualMobile": false,
+  "libraryDelivered": false,
+  "finalDocumentationOnlyCodeEquivalence": true
+}
