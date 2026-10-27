@@ -41,3 +41,8 @@ Confirm 전 재편집의 실제 완료 범위와 검증은 [미확정 copy](VALI
 ## 기존 private 직렬 실행선의 최소 단위
 
 [private 실행선 검증](VALIDATION_V536_NESTED_COPY_ROUTES.md)은 이미 있는 ordinary code next와 선언된 exit 사이의 시작/다음 연결·해제를 같은 frame의 최종 후보/CAS로 연결한다. 원문·노드/핀/값·다른 frame/target·공개 override 계약을 보존하고 기존 포트/지도/Undo·Review/Confirm을 사용한다. 기존 empty entry의 정상 종료/기본 반환 정책을 임의 금지하지 않는다. 새 내부 동작/삽입·private callee ABI·내부 enum 어댑터, 고정 8/9행과 I6/B2/A4~A6/M4/M11/M12·플랫폼/전달은 별도 후속이다. 다른 종류의 실행선·모든 계약 조합을 완료로 세거나 새 필수 경우의 수로 확대하지 않는다. 7행 전체 완료가 아니다.
+
+
+## private 일반 동작 생성·삽입
+
+[새 private 동작 검증](VALIDATION_V536_NESTED_COPY_CREATE.md)은 원래 검색/모바일 삽입·별도 추가에서 만든 ordinary code next의 명시 본문·표시 이름·연결을 미확정/저장된 same-contract copy의 한 후보/CAS에 연결한다. 기존 local ID와 qualified 경로·소유 새 기록·원래 snapshot/부모/외부·공개 override 계약을 보존한다. 다음은 private callee ABI와 내부 enum 어댑터이며 다른 control/저장소 조합을 새 요구로 늘리지 않는다. 고정 8/9행과 다른 UI/실제 기기/Library는 별도다. 7행 전체 완료로 세지 않는다.

@@ -77,4 +77,23 @@ if 'routes' in sys.argv[2:]:
  for bad in [[{'node':'left/body','type':'route','text':'right/deep/body'}],[{'node':'left/$entry','type':'entry','text':'exit:return'}],[{'node':'left/tap','type':'route','text':'tap'}],[{'node':'left/body','type':'route','text':'tap'},{'node':'left/tap','type':'route','text':'body'}],[{'node':'left/$entry','type':'entry','text':'unknown'}],[{'node':'left/$exit:return','type':'entry','text':'body'}]]:
   call('implementationCopy',False,**req,edits=[{'node':'right/deep/body','type':'source','text':'return 101; // 거절할 첫 본문'}]+bad);assert all(p.read_bytes()==v for p,v in before.items())
  checked('경계 넘기·순환·미생산 출력·불명 시작/위조 sentinel은 앞선 본문도 반환하지 않고 원문 전체를 보존한다')
+
+if 'create' in sys.argv[2:]:
+ definition={'kind':'code','control':'next','intent':'명시 새 내부 동작','signature':{'args':[{'name':'amount','type':'long'}],'return':'void'}}
+ text='long kept=amount; // 새 원문 😀 9223372036854775806\r\n'
+ def creation(path):return [{'node':path+'/new','type':'create','text':json.dumps(definition)},{'node':path+'/new','type':'rename','text':'새 동작 이름'},{'node':path+'/new','type':'argument:amount','text':'{"constant":9223372036854775804}'},{'node':path+'/new','type':'source','text':text},{'node':path+'/$entry','type':'entry','text':'new'},{'node':path+'/new','type':'route','text':'body'}]
+ added=call('implementationCopy',**req,edits=creation('left')+creation('right/deep'))
+ newrows=[r for r in added['records'] if r['id'] in ['left/new','right/deep/new']];assert len(newrows)==2 and len({r['relative'] for r in newrows})==2
+ for row in newrows:
+  assert row['record']['source']==text and row['record']['node']=='new' and row['record']['definitionHash']!='0'*64
+  node=next(n for n in (added['graph']['nodes'][0]['graph'] if row['id']=='left/new' else added['graph']['nodes'][1]['graph']['nodes'][0]['graph'])['nodes'] if n['id']=='new')
+  assert node['implementation']==row['relative'] and node['displayName']=='새 동작 이름' and node['arguments']['amount']=={'constant':9223372036854775804}
+ assert added['signature']==plan['signature'] and added['implementation']==plan['implementation'] and added['graph']['edges']==plan['graph']['edges'] and added['graph']['exits']==plan['graph']['exits']
+ assert all(p.read_bytes()==v for p,v in before.items())
+ checked('새 private 동작·정확한 값·표시 이름·명시 본문·시작/다음 삽입은 같은 후보에서 qualified 새 파일을 만들며 공개 계약·원본을 보존한다')
+ private_added=call('implementationCopy',**{**private,'preview':False},edits=creation('left'));assert private_added['seedHash']==sealed['snapshot']['hash'] and private_added['records'][-1]['id']=='left/new';assert sealed['snapshot']==seed['snapshot']
+ checked('미등록 copy의 원래 snapshot/seed 식별성을 유지하며 새 내부 동작을 별도 후보로 구성한다')
+ for bad in [creation('left')[:-3],creation('left')+[{'node':'right/deep/body','type':'route','text':'left/new'}],[{'node':'left/body','type':'create','text':json.dumps(definition)}],[{'node':'left/../../new','type':'create','text':json.dumps(definition)}],[{'node':'left/new','type':'create','text':json.dumps({**definition,'branchOwner':'body'})}]]:
+  call('implementationCopy',False,**req,edits=bad);assert all(p.read_bytes()==v for p,v in before.items())
+ checked('본문 누락·다른 frame 연결·중복/위조 ID·분기 소유권 위조의 마지막 오류는 새 노드/기존 본문 모두 반환하지 않고 원본을 보존한다')
 (root/'result.json').write_text(json.dumps({'checks':checks,'evidence':str(root),'pureMetadata':True,'nativeWindows':False},ensure_ascii=False,indent=2));print(json.dumps({'checks':checks,'evidence':str(root),'pureMetadata':True},ensure_ascii=False))

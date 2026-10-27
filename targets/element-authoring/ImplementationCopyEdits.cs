@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 // Private original serial authoring edits. Runs only on a new isolated copy candidate.
 internal static class ImplementationCopyEdits
 {
- public static HashSet<string> Apply(JsonObject graph,JsonArray records,JsonArray edits,Element copy,string implementation,FunctionSignature publicSignature)
+ public static HashSet<string> Apply(JsonObject graph,JsonArray records,JsonArray edits,Element copy,string implementation,FunctionSignature publicSignature,string framePath="")
  {
   if(edits.Count>128)throw new ArgumentException("Bounded private copy edits required");var unique=new HashSet<string>(StringComparer.Ordinal);var reapplied=new HashSet<string>(StringComparer.Ordinal);var nodes=graph["nodes"]!.AsArray();
   JsonNode Node(string id)=>nodes.SingleOrDefault(n=>n!["id"]!.ToString()==id)??throw new ArgumentException("Current copied node required");
@@ -17,26 +17,28 @@ internal static class ImplementationCopyEdits
   var qualified=edits.Where(e=>e!["node"]!.ToString().Contains('/')).ToArray();
   foreach(var group in qualified.GroupBy(e=>e!["node"]!.ToString()[..e["node"]!.ToString().LastIndexOf('/')],StringComparer.Ordinal)){
    string path=group.Key;var frame=BlueprintTree.Select(graph,path);var localEdits=new JsonArray();
-   bool Destination(string to)=>to.Length==0||frame["nodes"]!.AsArray().Any(n=>n!["id"]!.ToString()==to&&n["kind"]?.ToString()=="code"&&n["control"]?.ToString()=="next"&&n["implementationContext"] is null&&n["forwardCallerStorage"]?.GetValue<bool>()!=true&&n["branchOwner"] is null)||to.StartsWith("exit:",StringComparison.Ordinal)&&frame["exits"]!.AsObject().ContainsKey(to[5..]);
+   var created=new Dictionary<string,JsonObject>(StringComparer.Ordinal);foreach(var edit in group.Where(e=>e!["type"]?.ToString()=="create")){string local=edit!["node"]!.ToString()[(path.Length+1)..];var definition=JsonNode.Parse(edit["text"]!.GetValue<string>())!.AsObject();if(definition["kind"]?.ToString()!="code"||definition["control"]?.ToString()!="next"||definition.Any(p=>p.Key is not ("kind" or "intent" or "control" or "signature"))||string.IsNullOrWhiteSpace(group.SingleOrDefault(e=>e!["node"]!.ToString()==edit["node"]!.ToString()&&e["type"]?.ToString()=="intent")?["text"]?.ToString()??definition["intent"]?.ToString()))throw new ArgumentException("Explicit ordinary private node definition required");created.Add(local,definition);}
+   bool Destination(string to)=>to.Length==0||created.ContainsKey(to)||frame["nodes"]!.AsArray().Any(n=>n!["id"]!.ToString()==to&&n["kind"]?.ToString()=="code"&&n["control"]?.ToString()=="next"&&n["implementationContext"] is null&&n["forwardCallerStorage"]?.GetValue<bool>()!=true&&n["branchOwner"] is null)||to.StartsWith("exit:",StringComparison.Ordinal)&&frame["exits"]!.AsObject().ContainsKey(to[5..]);
    foreach(var edit in group){string key=edit!["node"]!.ToString(),type=edit["type"]!.ToString(),local=key[(path.Length+1)..];var leaf=frame["nodes"]!.AsArray().SingleOrDefault(n=>n!["id"]!.ToString()==local);
     if((type is "entry" or "route")&&!Destination(edit["text"]!.GetValue<string>()))throw new ArgumentException("Same private frame serial destination required");
     if(type=="entry"&&local=="$entry"){var entryEdit=edit.DeepClone().AsObject();entryEdit["node"]=local;localEdits.Add(entryEdit);continue;}
+    if(leaf is null&&created.TryGetValue(local,out var added))leaf=added;
     if(leaf is null)throw new ArgumentException("Exact copied private leaf required");
-    if(leaf["kind"]?.ToString()!="code"||leaf["implementationContext"] is not null||type is not ("source" or "intent" or "parameters" or "route")&&!type.StartsWith("argument:",StringComparison.Ordinal)||(type is "parameters" or "route"||type.StartsWith("argument:",StringComparison.Ordinal))&&(leaf["control"]?.ToString()!="next"||leaf["forwardCallerStorage"]?.GetValue<bool>()==true))throw new InvalidOperationException("Ordinary private body/pins/value edits required; preserve public and caller-storage contracts");
-    if(type=="route"&&leaf["branchOwner"] is not null)throw new InvalidOperationException("Preserve branch-owned private routes");
+    if(leaf["kind"]?.ToString()!="code"||leaf["implementationContext"] is not null||type is not ("source" or "intent" or "parameters" or "route" or "create" or "rename")&&!type.StartsWith("argument:",StringComparison.Ordinal)||(type is "parameters" or "route" or "create" or "rename"||type.StartsWith("argument:",StringComparison.Ordinal))&&(leaf["control"]?.ToString()!="next"||leaf["forwardCallerStorage"]?.GetValue<bool>()==true))throw new InvalidOperationException("Ordinary private body/pins/value edits required; preserve public and caller-storage contracts");
+    if((type is "route" or "rename")&&leaf["branchOwner"] is not null)throw new InvalidOperationException("Preserve branch-owned private routes");
     var localEdit=edit.DeepClone().AsObject();localEdit["node"]=local;localEdits.Add(localEdit);
    }
    var rows=records.Where(row=>row!["id"]!.ToString().StartsWith(path+"/",StringComparison.Ordinal)&&!row["id"]!.ToString()[(path.Length+1)..].Contains('/')).ToArray();
    var localRecords=new JsonArray(rows.Select(row=>{var local=row!.DeepClone().AsObject();local["id"]=row["id"]!.ToString()[(path.Length+1)..];return (JsonNode)local;}).ToArray());
-   var applied=Apply(frame,localRecords,localEdits,copy,implementation,publicSignature);
-   foreach(var local in localRecords){var original=rows.Single(row=>row!["id"]!.ToString()==path+"/"+local!["id"]!.ToString());original!["record"]=local!["record"]!.DeepClone();}
+   var applied=Apply(frame,localRecords,localEdits,copy,implementation,publicSignature,framePath.Length==0?path:framePath+"/"+path);
+   foreach(var local in localRecords){string key=path+"/"+local!["id"]!.ToString();var original=rows.SingleOrDefault(row=>row!["id"]!.ToString()==key);if(original is null){var added=local.DeepClone().AsObject();added["id"]=key;records.Add(added);}else original["record"]=local["record"]!.DeepClone();}
    foreach(string id in applied)reapplied.Add(path+"/"+id);
   }
   edits=new JsonArray(edits.Where(e=>!e!["node"]!.ToString().Contains('/')).Select(e=>e!.DeepClone()).ToArray());
   // Membership is prepared before dependent input edits; IDs never become source paths.
   foreach(var edit in edits.Where(e=>e!["type"]!.ToString()=="create")){
    string id=edit!["node"]!.ToString();var definition=JsonNode.Parse(edit["text"]!.GetValue<string>())!.AsObject();if(!Regex.IsMatch(id,@"\A[A-Za-z_][A-Za-z_0-9.-]{0,127}\z")||nodes.Count>=64||nodes.Any(n=>n!["id"]!.ToString()==id)||definition["kind"]?.ToString()!="code"||definition["control"]?.ToString()!="next"||definition.Any(p=>p.Key is not ("kind" or "intent" or "control" or "signature")))throw new ArgumentException("Unique original serial code node definition required");
-   string path="nodes/"+implementation[(implementation.IndexOf("::",StringComparison.Ordinal)+2)..]+"."+JsonData.Digest(id)[..12]+".node.json";
+   string path="nodes/"+implementation[(implementation.IndexOf("::",StringComparison.Ordinal)+2)..]+"."+JsonData.Digest(framePath.Length==0?id:framePath+"/"+id)[..12]+".node.json";
    nodes.Add(new JsonObject{["id"]=id,["kind"]="code",["control"]="next",["intent"]=definition["intent"]!.DeepClone(),["signature"]=definition["signature"]!.DeepClone(),["arguments"]=new JsonObject(),["implementation"]=path});records.Add(new JsonObject{["id"]=id,["relative"]=path,["record"]=new JsonObject{["schema"]=1,["node"]=id,["definitionHash"]=new string('0',64),["source"]=""}});
   }
   // A dropped pin may have an explicit disconnect in this same private transaction.

@@ -1,0 +1,254 @@
+{
+  "base": "62133c5a049b4825b4fbed0458b00e1cb56d9642",
+  "flows": 10,
+  "checks": 105,
+  "pureCandidateChecks": 15,
+  "flowsDetail": [
+    {
+      "name": "view",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-create/ui-engine-report.json",
+        "normal",
+        "view",
+        "nested-source",
+        "nested-create",
+        "cold-private",
+        "pointer-routes",
+        "standalone-create"
+      ],
+      "exit": 0,
+      "seconds": 316.4,
+      "minimumWorkspaceBytes": 1229234176,
+      "peakMemoryBytes": 5034659840,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 14,
+      "log": "/workspace/scratch/v536-nested-create/final/view.log"
+    },
+    {
+      "name": "storage",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-create/ui-engine-report.json",
+        "storage",
+        "view",
+        "nested-source",
+        "nested-create",
+        "confirmed"
+      ],
+      "exit": 0,
+      "seconds": 380.3,
+      "minimumWorkspaceBytes": 1228562432,
+      "peakMemoryBytes": 5107134464,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 14,
+      "log": "/workspace/scratch/v536-nested-create/final/storage.log"
+    },
+    {
+      "name": "conflict",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-create/ui-engine-report.json",
+        "conflict",
+        "nested-source",
+        "nested-create",
+        "confirmed"
+      ],
+      "exit": 0,
+      "seconds": 155.6,
+      "minimumWorkspaceBytes": 1228021760,
+      "peakMemoryBytes": 5060333568,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 9,
+      "log": "/workspace/scratch/v536-nested-create/final/conflict.log"
+    },
+    {
+      "name": "loss",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-create/ui-engine-report.json",
+        "loss",
+        "view",
+        "nested-source",
+        "nested-create"
+      ],
+      "exit": 0,
+      "seconds": 305.3,
+      "minimumWorkspaceBytes": 1227567104,
+      "peakMemoryBytes": 5108596736,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 14,
+      "log": "/workspace/scratch/v536-nested-create/final/loss.log"
+    },
+    {
+      "name": "context",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-create/ui-engine-report.json",
+        "context",
+        "view",
+        "nested-source",
+        "nested-create",
+        "confirmed"
+      ],
+      "exit": 0,
+      "seconds": 367.8,
+      "minimumWorkspaceBytes": 1227022336,
+      "peakMemoryBytes": 5114404864,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 14,
+      "log": "/workspace/scratch/v536-nested-create/final/context.log"
+    },
+    {
+      "name": "projects",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-create/ui-engine-report.json",
+        "projects",
+        "nested-source",
+        "nested-create"
+      ],
+      "exit": 0,
+      "seconds": 303.5,
+      "minimumWorkspaceBytes": 1226457088,
+      "peakMemoryBytes": 5055860736,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 16,
+      "log": "/workspace/scratch/v536-nested-create/final/projects.log"
+    },
+    {
+      "name": "pins-regression",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-create/ui-engine-report.json",
+        "normal",
+        "view",
+        "nested-source",
+        "nested-pins",
+        "cold-private"
+      ],
+      "exit": 0,
+      "seconds": 290.9,
+      "minimumWorkspaceBytes": 1225879552,
+      "peakMemoryBytes": 4994629632,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 12,
+      "log": "/workspace/scratch/v536-nested-create/final/pins-regression.log"
+    },
+    {
+      "name": "module-guards",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_module_view_guards.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-create/ui-engine-report.json",
+        "normal",
+        "view"
+      ],
+      "exit": 0,
+      "seconds": 19.0,
+      "minimumWorkspaceBytes": 1225486336,
+      "peakMemoryBytes": 4064354304,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 4,
+      "log": "/workspace/scratch/v536-nested-create/final/module-guards.log"
+    },
+    {
+      "name": "override",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_inherited_contract_guards.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-create/ui-engine-report.json",
+        "normal"
+      ],
+      "exit": 0,
+      "seconds": 7.0,
+      "minimumWorkspaceBytes": 1225445376,
+      "peakMemoryBytes": 4134666240,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 3,
+      "log": "/workspace/scratch/v536-nested-create/final/override.log"
+    },
+    {
+      "name": "root-selection",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_blueprint_selection_engine.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-create/ui-engine-report.json"
+      ],
+      "exit": 0,
+      "seconds": 44.1,
+      "minimumWorkspaceBytes": 1225383936,
+      "peakMemoryBytes": 4806275072,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 5,
+      "log": "/workspace/scratch/v536-nested-create/final/root-selection.log"
+    }
+  ],
+  "productSha256": {
+    "targets/element-authoring/ImplementationCopyEdits.cs": "7b02e83c51a551d455a0c848967f61721ee1ca6cd0c45ba1ad4a7b073799119f",
+    "packs/pack-workspace/Blueprint.csbody": "33cc455f1f57a7f0258d8743ec684ff7ad8b672c10c16921375a4ba1fce2a771",
+    "packs/editor-home-model/Blueprint.csbody": "6d90882f568df32609f3ca2dff17e968e8fb23781684ce961f0d2d135ed1298e",
+    "examples/editor-home/ui/feature-authoring.js": "d5ebc4785b891544e92261aec83a62c88a06d0c43e3b10378b5169ff13a7194f",
+    "examples/editor-home/WebBundle.csbody": "6b2b8ac7ada998c2f29cdeb3992568803663adc659f955e97cadabc640d019c4"
+  },
+  "layoutResourceProof": {
+    "base": "62133c5a049b4825b4fbed0458b00e1cb56d9642",
+    "resources": 74,
+    "changed": [
+      "feature-authoring.js"
+    ],
+    "unchangedResources": 73,
+    "sourceReference": "196c605",
+    "originalRead": "Confectory-v536/dist/blueprint.js:1236-1250,1361-1369,1465-1466",
+    "originalImage": "/workspace/scratch/v536-reference/v536-mobile-blueprint-flow.png"
+  },
+  "nativeRelease": {
+    "exit": 0,
+    "log": "/workspace/scratch/v536-nested-create/native-build-3.log"
+  },
+  "failedAttemptsPreserved": [
+    "first/primary.log",
+    "flow/primary.log",
+    "portal/primary.log",
+    "mobile/primary.log",
+    "focused/view.log",
+    "acceptance/view.log",
+    "bound/view.log",
+    "pure.log"
+  ],
+  "reusedChecksReason": "Final focused flows use the same frozen product bytes and final engine after ordinary creation/name guard refinement. Earlier workspace/primary was a successful 13-check smoke flow before this final guard and is not counted here. Initial failures were test selection/synchronization of automatic mobile flow, portal inspector and original docked tab caption; no layout/guard was changed to pass. Actual mobile gap and standalone creation, original workspace return, guarded manual body editing and hit-tested pointer links use existing controls. Pure metadata covers both same-local-ID qualified file separation and previous pin/value/route guards. The public web bridge intentionally redacts internal error messages as consumer_error, so the negative API check asserts that actual error code and unchanged live nodes, checkpoint, source and pending inputs. Direct internal serialRoutes and forged graph creation are rejected with original checkpoint/source preservation in the recorded conflict/projects paths.",
+  "existingFilesDeleted": false,
+  "temporaryFixtureEvidencePreserved": true,
+  "actualWindows": false,
+  "actualMobile": false,
+  "libraryDelivered": false,
+  "fullUiComplete": false,
+  "workspaceAvailableBytes": 1225216000
+}
