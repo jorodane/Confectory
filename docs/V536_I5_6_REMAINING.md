@@ -43,3 +43,8 @@ I5-1~5 지원 경로는 유지한다. I5-6 전체와 v536 전체 UI는 아직 �
 ## 기존 private 동작의 내부 입력 핀 편집
 
 [private 핀 계획 검증](VALIDATION_V536_NESTED_COPY_PINS.md)은 기존 ordinary code next의 내부 이름·추가·명시 해제 후 삭제/교체와 수동 C#·값을 같은 후보/CAS에 연결하는 단위다. 기존 exact type/mode 매핑·소비 중 입력/출력/반환 보호를 재사용한다. 공개 override 계약 변경과 독립 계약 복제는 제외이며 부모/외부 원본·함수 ID·다른 프레임/target을 보존한다. 실제 지원/검증은 위 문서의 조작으로 한정하고 복잡한 ref/out/다른 control·출력/반환 조합 전체를 새 필수로 늘리지 않는다. 새 private 동작/실행선·callee ABI·내부 enum 어댑터, 고정 8/9행 및 I6/B2/A4~A6/M4/M11/M12와 플랫폼/전달 잔여는 별도다. 7행 전체 완료로 세지 않는다.
+
+
+## 기존 private 직렬 실행선의 최소 단위
+
+[private 실행선 검증](VALIDATION_V536_NESTED_COPY_ROUTES.md)은 이미 있는 ordinary code next와 선언된 exit 사이의 시작/다음 연결·해제를 같은 frame의 최종 후보/CAS로 연결한다. 원문·노드/핀/값·다른 frame/target·공개 override 계약을 보존하고 기존 포트/지도/Undo·Review/Confirm을 사용한다. 기존 empty entry의 정상 종료/기본 반환 정책을 임의 금지하지 않는다. 새 내부 동작/삽입·private callee ABI·내부 enum 어댑터, 고정 8/9행과 I6/B2/A4~A6/M4/M11/M12·플랫폼/전달은 별도 후속이다. 다른 종류의 실행선·모든 계약 조합을 완료로 세거나 새 필수 경우의 수로 확대하지 않는다. 7행 전체 완료가 아니다.

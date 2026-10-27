@@ -12,18 +12,22 @@ def leaf(name):return {'schema':1,'profile':'sync-acyclic-methods-v1','entry':'b
 def box(name,child):return {'id':name,'kind':'graph','control':'next','intent':'내부 '+name,'signature':copy.deepcopy(sig),'arguments':{'amount':{'input':'amount'}},'graph':child}
 left=leaf('left');right={'schema':1,'profile':'sync-acyclic-nested-v1','entry':'deep','nodes':[box('deep',leaf('right'))],'edges':[{'from':'deep','port':'next','to':'exit:return'}],'exits':{'return':{'node':'deep'}},'locals':[]}
 g.update(profile='sync-acyclic-nested-v1',entry='left',nodes=[box('left',left),box('right',right)],edges=[{'from':'left','port':'next','to':'right'},{'from':'right','port':'next','to':'exit:return'}],exits={'return':{'binary':{'operator':'+','type':'long','operands':[{'node':'left'},{'node':'right'}]}}})
+if 'routes' in sys.argv[2:]:
+ left['nodes'].append({'id':'tap','kind':'code','control':'next','intent':'기존 부수 동작','signature':{'args':[],'return':'void'},'arguments':{},'implementation':'tap.node.json'});left['entry']='tap';left['edges'].append({'from':'tap','port':'next','to':'body'})
 context={'implementation':req['source'],'feature':req['feature'],'signature':sig,'imports':{}}
 defs=call('featureBlueprintNodes',featureSource=fn,implementationContext=context,bodyTarget='common',graph=g);assert defs['state']=='node-definitions',defs
 records={}
 for row in defs['nestedNodes']:
  if row['definition']['kind']!='code':continue
- key=row['id'];name='left' if key=='left/body' else 'right';record={'schema':1,'node':'body','definitionHash':row['definitionHash'],'source':'return amount+'+('1' if name=='left' else '7')+'; // '+name+' 😀 9223372036854775806\r\n','helpers':'private static long Keep(long value){return value;} // '+name+' 원문\r\n'};records[key]=record;(source/(name+'.node.json')).write_text(json.dumps(record))
+ key=row['id'];name='left' if key=='left/body' else 'tap' if key=='left/tap' else 'right';record={'schema':1,'node':'body','definitionHash':row['definitionHash'],'source':'return amount+'+('1' if name=='left' else '7')+'; // '+name+' 😀 9223372036854775806\r\n','helpers':'private static long Keep(long value){return value;} // '+name+' 원문\r\n'};
+ if name=='tap':record.update(node='tap',source='// 기존 부수 동작 😀\r\n',helpers='')
+ records[key]=record;(source/(name+'.node.json')).write_text(json.dumps(record))
 (source/'Body.celem').write_text(prepared['implementation']);(source/'body.graph.json').write_text(json.dumps(g));before={p:p.read_bytes() for p in root.rglob('*') if p.is_file()}
 plan=call('implementationCopy',**req);assert plan['sourceWritten'] is False and all(p.read_bytes()==v for p,v in before.items());assert set(r['id'] for r in plan['records'])==set(records)
 for row in plan['records']:
- assert row['record']['node']=='body' and row['record']['source']==records[row['id']]['source'] and row['record']['helpers']==records[row['id']]['helpers']
+ assert row['record']['node']==row['id'].split('/')[-1] and row['record']['source']==records[row['id']]['source'] and row['record']['helpers']==records[row['id']]['helpers']
  assert row['record']['definitionHash']!=records[row['id']]['definitionHash']
-assert len({r['relative'] for r in plan['records']})==2 and plan['graph']['edges']==g['edges'] and plan['graph']['exits']==g['exits']
+assert len({r['relative'] for r in plan['records']})==len(records) and plan['graph']['edges']==g['edges'] and plan['graph']['exits']==g['exits']
 checks=[]
 def checked(text):checks.append(text);print('PASS '+text,flush=True)
 checked('깊이1/2 동명 leaf는 전체경로·별도파일·copy 소유 해시를 갖고 원계약·route·정확한 값·C#/helpers와 원본을 보존한다')
@@ -63,4 +67,14 @@ if 'pins' in sys.argv[2:]:
  for edits in [pin_edits[:-1], [{'node':'left/body','type':'parameters','text':json.dumps({**pin_plan,'args':[{'name':'received','type':'string'}]})}], [{'node':'left/body','type':'parameters','text':json.dumps(dropped)},{'node':'left/body','type':'source','text':'return Keep(newValue);'}],pin_edits+[{'node':'right/deep/body','type':'parameters','text':'{}'}], [{'node':'left/body','type':'parameters','text':json.dumps({'args':[{'name':'amount','type':'long'}],'returnType':'void','remap':{'amount':'amount'}})},{'node':'left/body','type':'source','text':'return;'}]]:
   call('implementationCopy',False,**req,edits=edits);assert all(p.read_bytes()==v for p,v in before.items())
  checked('stale 본문·호환불가 매핑·사용 중인 입력/반환 제거·마지막 형제 핀 오류는 원본을 보존하고 전체 미적용한다')
+if 'routes' in sys.argv[2:]:
+ routes=[{'node':'left/body','type':'route','text':'tap'},{'node':'left/$entry','type':'entry','text':'body'},{'node':'left/tap','type':'route','text':'exit:return'}]
+ changed=call('implementationCopy',**req,edits=routes);frame=changed['graph']['nodes'][0]['graph'];assert frame['entry']=='body' and {tuple(sorted(e.items())) for e in frame['edges']}=={tuple(sorted(e.items())) for e in [{'from':'body','port':'next','to':'tap'},{'from':'tap','port':'next','to':'exit:return'}]}
+ assert frame['nodes']==plan['graph']['nodes'][0]['graph']['nodes'] and frame['locals']==left['locals'] and frame['exits']==left['exits'];assert changed['records']==plan['records'] and changed['graph']['nodes'][1]==plan['graph']['nodes'][1] and changed['signature']==plan['signature'];assert all(p.read_bytes()==v for p,v in before.items())
+ checked('기존 private 시작/다음 실행선은 최종 후보로 재연결하고 중간 순환·편집 순서와 무관하게 C#/helpers·값·계약·형제를 보존한다')
+ seeded=call('implementationCopy',**{**private,'preview':False},edits=list(reversed(routes)));assert seeded['graph']['nodes'][0]['graph']['entry']=='body' and seeded['seedHash']==private['seed']['snapshot']['hash']
+ checked('미확정 copy도 명시 실행선 계획을 원래 snapshot/선택/소유 ID를 유지한 같은 후보에 적용한다')
+ for bad in [[{'node':'left/body','type':'route','text':'right/deep/body'}],[{'node':'left/$entry','type':'entry','text':'exit:return'}],[{'node':'left/tap','type':'route','text':'tap'}],[{'node':'left/body','type':'route','text':'tap'},{'node':'left/tap','type':'route','text':'body'}],[{'node':'left/$entry','type':'entry','text':'unknown'}],[{'node':'left/$exit:return','type':'entry','text':'body'}]]:
+  call('implementationCopy',False,**req,edits=[{'node':'right/deep/body','type':'source','text':'return 101; // 거절할 첫 본문'}]+bad);assert all(p.read_bytes()==v for p,v in before.items())
+ checked('경계 넘기·순환·미생산 출력·불명 시작/위조 sentinel은 앞선 본문도 반환하지 않고 원문 전체를 보존한다')
 (root/'result.json').write_text(json.dumps({'checks':checks,'evidence':str(root),'pureMetadata':True,'nativeWindows':False},ensure_ascii=False,indent=2));print(json.dumps({'checks':checks,'evidence':str(root),'pureMetadata':True},ensure_ascii=False))

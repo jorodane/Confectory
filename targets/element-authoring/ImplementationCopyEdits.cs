@@ -17,8 +17,13 @@ internal static class ImplementationCopyEdits
   var qualified=edits.Where(e=>e!["node"]!.ToString().Contains('/')).ToArray();
   foreach(var group in qualified.GroupBy(e=>e!["node"]!.ToString()[..e["node"]!.ToString().LastIndexOf('/')],StringComparer.Ordinal)){
    string path=group.Key;var frame=BlueprintTree.Select(graph,path);var localEdits=new JsonArray();
-   foreach(var edit in group){string key=edit!["node"]!.ToString(),type=edit["type"]!.ToString(),local=key[(path.Length+1)..];var leaf=frame["nodes"]!.AsArray().SingleOrDefault(n=>n!["id"]!.ToString()==local)??throw new ArgumentException("Exact copied private leaf required");
-    if(leaf["kind"]?.ToString()!="code"||leaf["implementationContext"] is not null||type is not ("source" or "intent" or "parameters")&&!type.StartsWith("argument:",StringComparison.Ordinal)||(type=="parameters"||type.StartsWith("argument:",StringComparison.Ordinal))&&(leaf["control"]?.ToString()!="next"||leaf["forwardCallerStorage"]?.GetValue<bool>()==true))throw new InvalidOperationException("Ordinary private body/pins/value edits required; preserve public and caller-storage contracts");
+   bool Destination(string to)=>to.Length==0||frame["nodes"]!.AsArray().Any(n=>n!["id"]!.ToString()==to&&n["kind"]?.ToString()=="code"&&n["control"]?.ToString()=="next"&&n["implementationContext"] is null&&n["forwardCallerStorage"]?.GetValue<bool>()!=true&&n["branchOwner"] is null)||to.StartsWith("exit:",StringComparison.Ordinal)&&frame["exits"]!.AsObject().ContainsKey(to[5..]);
+   foreach(var edit in group){string key=edit!["node"]!.ToString(),type=edit["type"]!.ToString(),local=key[(path.Length+1)..];var leaf=frame["nodes"]!.AsArray().SingleOrDefault(n=>n!["id"]!.ToString()==local);
+    if((type is "entry" or "route")&&!Destination(edit["text"]!.GetValue<string>()))throw new ArgumentException("Same private frame serial destination required");
+    if(type=="entry"&&local=="$entry"){var entryEdit=edit.DeepClone().AsObject();entryEdit["node"]=local;localEdits.Add(entryEdit);continue;}
+    if(leaf is null)throw new ArgumentException("Exact copied private leaf required");
+    if(leaf["kind"]?.ToString()!="code"||leaf["implementationContext"] is not null||type is not ("source" or "intent" or "parameters" or "route")&&!type.StartsWith("argument:",StringComparison.Ordinal)||(type is "parameters" or "route"||type.StartsWith("argument:",StringComparison.Ordinal))&&(leaf["control"]?.ToString()!="next"||leaf["forwardCallerStorage"]?.GetValue<bool>()==true))throw new InvalidOperationException("Ordinary private body/pins/value edits required; preserve public and caller-storage contracts");
+    if(type=="route"&&leaf["branchOwner"] is not null)throw new InvalidOperationException("Preserve branch-owned private routes");
     var localEdit=edit.DeepClone().AsObject();localEdit["node"]=local;localEdits.Add(localEdit);
    }
    var rows=records.Where(row=>row!["id"]!.ToString().StartsWith(path+"/",StringComparison.Ordinal)&&!row["id"]!.ToString()[(path.Length+1)..].Contains('/')).ToArray();
