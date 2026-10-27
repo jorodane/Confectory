@@ -7,18 +7,24 @@ mode=sys.argv[3] if len(sys.argv)>3 else 'normal'
 kind=sys.argv[4] if len(sys.argv)>4 else 'schema'
 detached='view' in sys.argv[5:]
 with_peer='peer' in sys.argv[5:]
+is_object_property='object-property' in sys.argv[5:]
 is_new='new-property' in sys.argv[5:]
-is_property='property' in sys.argv[5:] or is_new
+is_property='property' in sys.argv[5:] or is_new or is_object_property
 new_native=None
 new_label='아이콘 새 속성'
-owner=f.n+('Details' if kind=='schema' else 'Slime')
+owner=f.n+('Details' if kind=='schema' else 'Target2' if is_object_property else 'Slime')
 leaf=owner.split('::')[-1];file=f.project/(leaf+'.celem')
 if is_property:
- assert kind=='schema'
+ assert kind==('object' if is_object_property else 'schema')
  (f.project/'IconBase.celem').write_text('schema '+f.n+'IconBase {field Inherited single general long;value editorFieldIcon_Inherited="🌿";}')
- file.write_text(file.read_text().replace(' {',' extends '+f.n+'IconBase {',1).replace('{','{ // property icon fixture preserve\nvalue editorIcon="📦";\n',1))
  f.manifest.write_text(f.manifest.read_text().replace('registry Confectory.Build.DotNet','element IconBase schema "IconBase.celem";registry Confectory.Build.DotNet'))
+ if is_object_property:
+  (f.project/'IconParent.celem').write_text('object '+f.n+'IconParent {use schema '+f.n+'IconBase;data Inherited=7;}')
+  f.manifest.write_text(f.manifest.read_text().replace('registry Confectory.Build.DotNet','element IconParent object "IconParent.celem";registry Confectory.Build.DotNet'))
+  file.write_text(file.read_text().replace(' {',' extends '+f.n+'IconParent {',1).replace('{','{ // object property icon fixture preserve\nvalue editorIcon="📦";\n',1).replace('data Power=2;','data Power=9223372036854775804;'))
+ else:file.write_text(file.read_text().replace(' {',' extends '+f.n+'IconBase {',1).replace('{','{ // property icon fixture preserve\nvalue editorIcon="📦";\n',1))
  f.original={str(path.relative_to(f.project)):path.read_bytes() for path in f.project.rglob('*') if path.is_file()}
+icon_file=f.project/'Details.celem' if is_object_property else file
 f.original[file.name]=file.read_bytes()
 def surface():return f.page.locator('.window[data-key="'+('editor-1' if detached else 'schema')+'"]')
 f.owner=surface
@@ -77,7 +83,7 @@ try:
   if mode=='cancel':
    surface().locator('[data-element-action=discard]').click();saved();expect(new_row()).to_have_count(0) if is_new else expect(icon()).to_have_text(default);restart(2);assert not pending() and checkpoint.read_bytes()==before;f.originals();f.checked('명시적 변경 취소/cold는 아이콘·설명만 취소하고 부모·참조·정확한 기존 값과 원본을 보존한다')
   elif mode=='conflict':
-   peer=file.read_bytes()+b'\n// fixture concurrent source\n';file.write_bytes(peer);f.original[file.name]=peer;f.rejected_save();assert pending()==held and checkpoint.read_bytes()==before;f.originals();restart(2);assert pending()==held;f.rejected_save();assert pending()==held and checkpoint.read_bytes()==before;f.originals();f.checked('실제 source 변경은 후보 전부 미적용·입력 보존이고 재시작 재시도에도 원래 기준을 자동 교체하지 않는다')
+   peer=icon_file.read_bytes()+b'\n// fixture concurrent source\n';icon_file.write_bytes(peer);f.original[icon_file.name]=peer;f.rejected_save();assert pending()==held and checkpoint.read_bytes()==before;f.originals();restart(2);assert pending()==held;f.rejected_save();assert pending()==held and checkpoint.read_bytes()==before;f.originals();f.checked('실제 source 변경은 후보 전부 미적용·입력 보존이고 재시작 재시도에도 원래 기준을 자동 교체하지 않는다')
   else:
    if mode=='storage':
     checkpoint.chmod(0o400)
@@ -124,15 +130,17 @@ try:
     row=next(row for row in own_schema()['rows'] if row['path']==[new_native]);assert row['type']=='long' and row['displayName']==new_label and row['valueJson']=='9223372036854775804';f.checked('새 필드 선언·정확한 long 기본값·glyph는 같은 후보로 저장되고 stable nativeKey로 재시작 복원한다')
    if is_property:
     assert own_schema()['values']['editorIcon']=='📦'
+    if is_object_property:
+     assert next(row for row in own_schema()['rows'] if row['path']==['Power'])['valueJson']=='9223372036854775804';assert 'data Power=9223372036854775804;' in file.read_text();f.checked('객체의 직접 소유 스키마 glyph와 설명을 같은 후보로 저장하고 정확한 값·부모 glyph·참조·원본을 보존한다')
     if mode=='clear':
-     p=popup();p.get_by_role('button',name='아이콘 없음',exact=True).click();assert len(pending())==1 and pending()[0][1]['text']=='';surface().locator('[data-element-action=save]').click();saved();restart(4);expect(icon()).to_have_text('◇');assert ('editorFieldIcon_'+new_native if is_new else 'editorFieldIcon_Power') not in own_schema()['values'];f.checked('저장된 속성 아이콘 해제는 metadata만 원자 제거하고 재시작에도 원래 필드/값/다른 아이콘을 유지한다')
+     p=popup();p.get_by_role('button',name='아이콘 없음',exact=True).click();assert len(pending())==1 and pending()[0][1]['text']=='';surface().locator('[data-element-action=save]').click();saved();restart(4);expect(icon()).to_have_text('◇');assert next(row for row in own_schema()['rows'] if row['path']==['Power']).get('icon') in [None,''] if is_object_property else ('editorFieldIcon_'+new_native if is_new else 'editorFieldIcon_Power') not in own_schema()['values'];f.checked('저장된 속성 아이콘 해제는 metadata만 원자 제거하고 재시작에도 원래 필드/값/다른 아이콘을 유지한다')
    if with_peer:
     surface().locator('[data-element-action=confirm]').click();group=f.page.get_by_role('dialog',name='관련 변경 검토',exact=True);expect(group).to_be_visible();group.locator('#review-creation').click();f.idle();expect(f.page.locator('#status')).to_contain_text('미적용 입력');assert any('|'+f.n+'Target1|' in k and v.get('text')=='9223372036854775804' for k,v in f.pending()['schema']);f.originals();group.get_by_role('button',name='닫기',exact=True).click();peer=f.page.locator('.window[data-key=schema]');peer.locator(':scope>.window-title').click(position={'x':30,'y':25});peer.locator('[data-element-action=discard]').click();f.idle();expect(peer.get_by_label('Power 기본값',exact=True)).to_have_value('1');f.checked('다른 창의 exact64 입력은 Save/cold/Review 거절에 보존되고 그 창에서 명시 취소한 뒤에만 최종 검토를 진행한다')
    r=review();r.locator('[data-reject]').click();expect(r).to_be_hidden();f.originals();r=review()
    if r.locator('[data-review-advanced]').count():
     r.locator('[data-review-advanced]').click()
     if r.locator('[data-advanced-reviewed]').count():r.locator('[data-advanced-reviewed]').check()
-   r.locator('#confirm').click();expect(r).to_have_count(0,timeout=120000);f.idle();assert {k for k,v in f.original.items() if (f.project/k).read_bytes()!=v}=={file.name};assert (('editorFieldIcon_'+new_native if is_new else 'editorFieldIcon_Power') not in file.read_text() if is_property and mode=='clear' else ('editorFieldIcon_'+new_native if is_new else 'editorFieldIcon_Power' if is_property else 'editorIcon') in file.read_text());f.checked('실제 compiler Review 취소 후 새 명시적 Confirm만 해당 선언의 glyph·설명을 반영하고 부모/외부/다른 본문·exact 값을 보존한다')
+   r.locator('#confirm').click();expect(r).to_have_count(0,timeout=120000);f.idle();changed={k for k,v in f.original.items() if (f.project/k).read_bytes()!=v};assert (file.name in changed and changed<={file.name,icon_file.name}) if is_object_property and mode=='clear' else changed==({file.name,icon_file.name} if is_object_property else {file.name});assert (('editorFieldIcon_'+new_native if is_new else 'editorFieldIcon_Power') not in icon_file.read_text() if is_property and mode=='clear' else ('editorFieldIcon_'+new_native if is_new else 'editorFieldIcon_Power' if is_property else 'editorIcon') in icon_file.read_text());f.checked('실제 compiler Review 취소 후 새 명시적 Confirm만 해당 선언의 glyph·설명을 반영하고 부모/외부/다른 본문·exact 값을 보존한다')
    if with_peer:expect(f.page.locator('.window[data-key=schema] .object-title-name')).to_have_text('Target1');expect(f.page.locator('.window[data-key=schema]').get_by_label('Power 기본값',exact=True)).to_have_value('1');f.checked('독립 창 최종 Confirm은 다른 기본 창의 문서 문맥과 원본을 바꾸지 않는다')
   assert not f.errors and not f.external,(f.errors,f.external);f.browser.close()
 except Exception:
