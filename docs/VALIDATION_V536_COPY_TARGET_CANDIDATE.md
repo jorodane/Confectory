@@ -51,3 +51,9 @@ CSS/HTML/레이아웃·권한·main·보관 빌드·원본·사용자 자료는 
 ## 집중·영향 검사 확정 결과
 
 최종 고정 소스에서 실제 UI 9흐름 29확인·순수 후보 2확인과 실제 생산 Review/Confirm/CommitPlan의 통제 의존성 검사4확인이 통과했다. 영향 회귀3흐름의 확인 수는 `{'reg-csharp': 4, 'reg-abi': 5, 'reg-private': 10}`이며, 기존 단독 copy 등록/private ABI·일반 등록 다중 target·소유 C# 전체 본문을 검사했다. 실패한 초기/중간 검사는 이 통과 수에 넣지 않았다. 변경 제품 소스3개와 검사4개의 SHA 및 원인 구분은 위 evidence에 있다.
+
+## 독립 checkout·새 교차 패키지 확정 결과
+
+실행 소스 커밋 `70c7319934018b2b840253cf8f7b59e09e56eb5e`의 변경 Git blob·기존 autocrlf·clean을 확인했다. 기존 독립 checkout에서 Native/CLI Release·새 Linux 엔진 및 실제 독립 정보 창 3확인·순수 후보2확인·생산 Review/Confirm/CommitPlan 4확인이 통과했다. 새 RAM Windows x64 교차 패키지의 restore·Release·MCP·생성·probe·패키지 자체 UI3확인까지 6단계가 통과했다. 전체 2349개/manifest 2348개 목록·SHA·Core/Native DLL과 변경 엔진 소스 바이트를 확인했다.
+
+manifest SHA `f30f94df214c9523a1afea3c280706e2f7c3b87585d18efe0a0c1d1b0ffb8ebd`. 전체 manifest와 fixture/로그/프로필 증거를 보관하고 이번 임시 패키지만 정리했다. 기존 보관 패키지/SDK/원본/사용자 자료는 삭제하지 않았다. 후속 최종 커밋은 문서/evidence만 달라 실행 소스는 위 커밋과 같다. 이 교차 패키지는 실제 Windows apphost/WebView2 실행이나 Library 첨부 성공이 아니며, 네이티브 Windows/mobile·전체 UI·전달은 계속 미완료다.
