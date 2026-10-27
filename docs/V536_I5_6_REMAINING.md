@@ -1,5 +1,7 @@
 # I5-6: 지원 경로와 남은 계약 편집
 
+7행의 최신 유한한 잔여와 정상 보호 구분은 [원래 조작 재대조](V536_ROW7_REMAINING_BOUNDARY.md)를 우선한다. 과거 한정 단위의 미검증 표현을 ref/out/값 변환의 모든 조합별 새 필수 작업으로 늘리지 않는다.
+
 기준은 `196c605`의 저장소 v536 레퍼런스, `openOwnFunctionPopover`, `renderFunctionSignatureEditor`, `renderFeatureDefinition`과 기존 native 함수 계약이다. 원본 상세창은 입력/출력의 이름·타입·추가/삭제를 제공한다. 순서 조작은 `propertyStyle`인 Blueprint 정의에서 제공하며 정보 상세창에 새 드래그 제어를 만들지 않는다. 값/ref/out은 기존 native 계약과 구현 편집 경계를 유지한다. 기능 목록의 순서(I5-5)는 매개변수 순서와 별개다.
 
 기본 수용 범위는 직접 소유한 **함수 하나**의 명시적 기존 핀 대응이다. 아래 8행에는 여러 함수의 값 입력 이름·독립 leaf/call scalar 타입 변경·일반 out 이름/scalar 타입·출력 정의/void 반환 및 비void 반환 타입의 별도 결합 단위를 구분한다. 일반 Blueprint 루트와 실제 호출 입력 이름을 함께 바꾸고, 내부 code 노드의 매개변수·C# 내용은 유지한다. 동일 이름/타입/역할 집합의 순열은 C# 구현의 자체 매개변수 이름을 보존하고, 다중 target·소유 module require·안전한 후처리도 한 후보에 넣는다. 기본/독립 정보 창에서 입력 이름 편집과 저장/복원을 확인했다. 다중 target/순열/후처리 검사는 순수 후보와 실제 API/컴파일러 경로이며 원본 정보 상세창에 매개변수 정렬 UI를 추가했다는 뜻이 아니다.
@@ -70,3 +72,7 @@ I5-1~5 지원 경로는 유지한다. I5-6 전체와 v536 전체 UI는 아직 �
 [저장 copy private ABI](VALIDATION_V536_SAVED_PRIVATE_ABI.md)는 기존 ref→값 한 호출의 server path binding·단독 배정/출처·원래 후보/CAS·Review/Confirm을 연결하는 단위다. 공개 함수·부모/외부 원본은 보존한다. 미확정 단위와 저장된 단위를 구분하고, 검증 경계 밖의 실제 기존 ABI 조작과 8/9행·별도 UI/플랫폼/Library 잔여를 자동 완료로 세지 않는다.
 
 저장된 copy private ref→값 단위의 확정 결과는 집중 12흐름 65확인, 독립 checkout 2흐름 13확인·순수6, 새 교차 패키지6단계/자체 UI 11확인이다. 해당 검증 문서/evidence를 따른다. 이번 한 호출 경계 밖의 실제 기존 ABI 조작과 8/9행·UI·기기/Library 잔여는 유지한다.
+
+## 선택한 내부 호출의 일반 명시 대응
+
+[private ABI 대응 검증](VALIDATION_V536_PRIVATE_ABI_REMAP.md)에서 저장/새 copy의 한 기존 호출에 root와 같은 입력·출력 mapping을 연결했다. 이름·타입·핀 수·반환의 대표 결합과 기본/독립 창·보존/실패 경계를 확인했다. UI·공개 override 계약·donor/부모/외부 원본은 유지한다. 최신 유한한 잔여는 [7행 재대조](V536_ROW7_REMAINING_BOUNDARY.md)의 다른 호출/frame까지 영향을 받는 후보 결합이며 가능한 변환 조합별 새 작업을 만들지 않는다. 8/9행·별도 UI/실제 기기/Library 수용은 별개다.

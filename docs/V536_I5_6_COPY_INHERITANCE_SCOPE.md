@@ -2,6 +2,8 @@
 
 `V536_I5_6_REMAINING.md`의 7행만 다룬다. 같은 함수 하나의 명시적 편집과 원래 소유·출처·계약 증거를 사용하며, 8행의 여러 함수 공유 caller 합성과 9행의 고급 타입/표시명은 별도다.
 
+최신 원래 조작별 대조와 유한한 잔여는 [7행 경계 재대조](V536_ROW7_REMAINING_BOUNDARY.md)를 우선한다. 아래 단위별 한정 기록을 새로운 조합별 필수 요구로 확대하지 않는다.
+
 | 사용자 조작 | 이번 지원과 검증 | 남은 경계 |
 |---|---|---|
 | 정보에 직접 배정한 저장된 복사 구현의 함수를 편집 | 단일 target·단독 직접 배정·프로젝트 소유 함수/복사 ID를 기존 `BlueprintCopyAbi`로 확인한다. copy owner/배정/모듈 또는 직접 포함 정보 함수/원래 provenance/graph·구현 해시/계약 문맥을 원래 입력에 묶는다. native donor를 보존한 입력 이름 변경·복사 C# 편집·원자적 저장/복원/Confirm을 검증한다 | Confirm 전 저장한 단일 소유 copy도 두 파일의 새 생성 기준·정확한 출처·공개/native 계약 receipt를 보관하여 같은 계약의 본문을 재편집한다. 여러 target, 외부 함수 ID와 미확정 copy의 계약 변경은 이 단위에 포함하지 않는다. 다른 소유자의 직접 공유 배정도 단독 갱신하지 않는다 |
@@ -51,3 +53,7 @@ Confirm 전 재편집의 실제 완료 범위와 검증은 [미확정 copy](VALI
 ## 기존 private 실행 enum 편집의 최소 단위
 
 [private enum 편집 검증](VALIDATION_V536_NESTED_COPY_ENUM.md)은 미확정/저장된 same-contract copy의 기존 ordinary switch 노드에서 enum·수동 C#/helpers를 같은 소유 후보/CAS로 연결하는 단위다. 공개 오버라이드 계약 변경과 독립 계약 복제는 제외한다. 연결된 case/primary ID·다른 frame/target·원문/정확한 값·부모/외부 원본을 보존한다. private callee ABI 갱신과 실제 기존 수용 기준의 다른 내부 조작, 고정 8/9행·I6/B2/A4~A6/M4/M11/M12·플랫폼/Library는 별도이며 7행 전체 완료로 세지 않는다. 확정된 검사 결과는 해당 검증 문서와 evidence JSON을 따른다.
+
+## 선택한 내부 호출의 일반 명시 대응
+
+[private ABI 대응 검증](VALIDATION_V536_PRIVATE_ABI_REMAP.md)에서 저장/새 copy의 한 기존 호출에 root와 같은 입력·출력 mapping을 연결했다. 이름·타입·핀 수·반환의 대표 결합과 기본/독립 창·보존/실패 경계를 확인했다. UI·공개 override 계약·donor/부모/외부 원본은 유지한다. 최신 유한한 잔여는 [7행 재대조](V536_ROW7_REMAINING_BOUNDARY.md)의 다른 호출/frame까지 영향을 받는 후보 결합이며 가능한 변환 조합별 새 작업을 만들지 않는다. 8/9행·별도 UI/실제 기기/Library 수용은 별개다.

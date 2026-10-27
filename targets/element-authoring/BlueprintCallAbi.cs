@@ -17,7 +17,9 @@ internal static class BlueprintCallAbi
   FunctionSignature Read(JsonNode value){var rows=value["args"]!.AsArray();if(rows.Count>64)throw new ArgumentException("ABI argument budget");return new(rows.Select(p=>new Parameter(p!["type"]!.ToString(),p["name"]!.ToString(),p["mode"]?.GetValue<string>())).ToList(),value["return"]!.ToString());}
   var before=Read(node["signature"]!);var after=Read(request["signature"]!);
   if(before.Args.Concat(after.Args).Any(p=>p.Mode is not (null or "ref" or "out"))||before.Args.Select(p=>p.Name).Distinct(StringComparer.Ordinal).Count()!=before.Args.Count||after.Args.Select(p=>p.Name).Distinct(StringComparer.Ordinal).Count()!=after.Args.Count)throw new ArgumentException("Unique native parameter identities and supported modes required");
-  if(privatePath.Length>0&&(before.Return!=after.Return||before.Args.Count!=after.Args.Count||before.Args.Where((a,i)=>a.Name!=after.Args[i].Name||a.Type!=after.Args[i].Type||a.Mode!=after.Args[i].Mode&&!(a.IsRef&&after.Args[i].Mode is null)).Any()))throw new ArgumentException("This private refresh preserves names, types, counts, order and outputs; only explicit ref-to-value is connected");
+  // A selected private call uses the same explicit input/output correspondence
+  // as a root call. Rebind only this frame; the workspace validates the complete
+  // resulting graph and typed import together before applying its candidate.
   bool matching=before.Return==after.Return&&before.Args.Count==after.Args.Count&&!before.Args.Where((a,i)=>a.Name!=after.Args[i].Name||a.Type!=after.Args[i].Type||a.IsOut!=after.Args[i].IsOut).Any();
   if(before.Return==after.Return&&before.Args.Select(p=>(p.Name,p.Type,p.Mode)).SequenceEqual(after.Args.Select(p=>(p.Name,p.Type,p.Mode))))throw new ArgumentException("A changed ABI must be explicitly reviewed");
   var arguments=node["arguments"]!.AsObject();if(arguments.Count!=before.Args.Count(p=>!p.IsOut)||before.Args.Where(p=>!p.IsOut).Any(p=>!arguments.ContainsKey(p.Name)))throw new ArgumentException("Every original input binding must be observed explicitly");
