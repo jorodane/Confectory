@@ -7,7 +7,7 @@ using System.Text.Json.Nodes;
 internal static class InformationDefaults
 {
  public const string Marker=SchemaContracts.InformationDefaultsMarker,Profile=SchemaContracts.InformationDefaultsProfile,Prefix=SchemaContracts.InformationDefaultsPrefix;
- public static bool Presentation(string key)=>key is "editorName" or "editorFolder"||key.StartsWith("editorFieldName_",StringComparison.Ordinal);
+ public static bool Presentation(string key)=>key is "editorName" or "editorFolder" or "editorIcon"||key.StartsWith("editorFieldName_",StringComparison.Ordinal)||key.StartsWith("editorFieldIcon_",StringComparison.Ordinal);
  public static bool Recognized(string key)=>Presentation(key)||key==Marker||key.StartsWith(Prefix,StringComparison.Ordinal);
  public static Dictionary<string,SchemaDatum> Stored(Registry registry,string id)=>SchemaContracts.EditorDefaults(registry,id);
  public static (Dictionary<string,SchemaDatum> Values,bool Complete,HashSet<string> Sources) Resolve(Registry registry,string id,HashSet<string>? ancestors=null,int depth=0,int[]? budget=null)

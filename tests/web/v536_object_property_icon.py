@@ -7,8 +7,8 @@ project=root/'project.cproj';project.write_text(manifest)
 for key,(_,text) in sources.items():(root/(key+'.celem')).write_text(text)
 original={p:p.read_bytes() for p in root.rglob('*') if p.is_file()};text=sources['Item'][1];schema=sources['Info'][1];checks=[];sha=lambda s:hashlib.sha256(s.encode()).hexdigest()
 def icon(value,source=schema,**extra):return {'type':'schema-icon','path':['Count'],'contract':{'kind':'general','cardinality':'single','type':'long'},'schema':info,'schemaHash':sha(source),'text':value,**extra}
-def call(changes,ok=True,object_source=text,schema_source=schema):
- drafts=[{'id':n+key,'text':schema_source if key=='Info' else value} for key,(_,value) in sources.items() if key!='Item'];request={'operation':'mixedOwnerCopyEdits','project':str(project),'manifest':manifest,'id':owner,'text':object_source,'drafts':drafts,'changes':changes}
+def call(changes,ok=True,object_source=text,schema_source=schema,operation="mixedOwnerCopyEdits"):
+ drafts=[{'id':n+key,'text':schema_source if key=='Info' else value} for key,(_,value) in sources.items() if key!='Item'];request={'operation':operation,'project':str(project),'manifest':manifest,'id':owner,'text':object_source,'drafts':drafts,'changes':changes}
  r=subprocess.run([os.environ.get('CONFECTORY_DOTNET','/workspace/toolchains/dotnet-10.0.401/dotnet'),str(repo/'targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll')],input=json.dumps(request),text=True,capture_output=True,timeout=60);assert r.returncode==0,r.stderr;data=json.loads(r.stdout);assert data['ok']==ok,data;assert all(p.read_bytes()==b for p,b in original.items());return data.get('result')
 def check(label):checks.append(label);print('PASS '+label,flush=True)
 for glyph in ['🛡️','👨‍👩‍👧‍👦','★']:
@@ -18,4 +18,16 @@ result=call([icon('★')]);updated=result['updates'][0]['text'];cleared=call([ic
 for bad in [icon('ab'),icon('<'),icon(None),icon(' '),icon('★',schemaHash='0'*64),icon('★',schema=n+'Other'),icon('★',schema=n+'Base',path=['Inherited']),icon('★',path=['Count','Child']),icon('★',contract={'kind':'general','cardinality':'single','type':'bool'}),icon('★',extra=True)]:call([{'type':'description','text':'must not remain'},bad],ok=False)
 call([icon('★'),icon('🌍')],ok=False);call([icon('★'),{'type':'schema-remove','path':['Count'],'contract':{'kind':'general','cardinality':'single','type':'long'},'schema':info,'schemaHash':sha(schema)}],ok=False);check('invalid last glyph/duplicate/removal/stale schema/type/inherited/unrelated/nested edits reject the whole candidate without writes')
 call([{'type':'description','text':'no partial owner update'},icon('★')],schema_source=schema+'\n// concurrent schema\n',ok=False);check('real owned schema source change rejects object description and glyph together rather than rebasing the caller input')
+for kind in ['definition','typed-definition','information-definition']:
+ if kind=='definition':change={'type':kind,'name':'Fresh','nativeType':'long','valueJson':'9223372036854775804','icon':'🛡️'}
+ elif kind=='typed-definition':change={'type':kind,'name':'Fresh','contract':{'kind':'general','cardinality':'single','type':'long'},'sources':None,'valueJson':'9223372036854775804','icon':'🛡️'}
+ else:
+  choice=next(row for row in call([],operation='informationTypes') if row['id']==info);change={'type':kind,'name':'Fresh','schema':info,'sources':choice['sources'],'valueJson':'{"Count":9223372036854775804,"Spare":0}','icon':'🛡️'}
+ result=call([{'type':'description','text':'생성·아이콘·등록 결합'},change]);assert len(result['additions'])==1 and not result['updates'] and not result['sourceWritten'];addition=result['additions'][0];assert addition['id'].startswith(owner+'_Properties_') and addition['id'] in result['text'] and addition['path'] in result['manifest'] and 'editorFieldIcon_Fresh' in addition['text'] and '9223372036854775804' in result['text']
+ cleared=call([{**change,'icon':''}]);assert len(cleared['additions'])==1 and 'field Fresh' in cleared['additions'][0]['text'] and 'editorFieldIcon_Fresh' not in cleared['additions'][0]['text']
+ for bad in [{**change,'icon':'ab'},{**change,'icon':None},{**change,'extra':True}]:call([{'type':'description','text':'no partial generation'},bad],ok=False)
+ call([change,{**change,'name':'Last','icon':'ab'}],ok=False);check(kind+' creates glyph/definition/value/registration in one candidate; empty/invalid last metadata never partially creates a schema')
+call([{'type':'description','text':'none applied'},{'type':'definition','name':'Fresh','nativeType':'long','valueJson':'9223372036854775808','icon':'★'}],ok=False);check('invalid exact64 default rejects the new owner value/glyph/schema/registration together')
+glyph_schema=schema.replace('{','{value editorFieldIcon_Count="🌿";',1);choice=next(row for row in call([],schema_source=glyph_schema,operation='informationTypes') if row['id']==info);assert choice['available'] and choice['sources'][info]==sha(glyph_schema)
+unknown=schema.replace('{','{value userCustom="retained legacy record";',1);choice=next(row for row in call([],schema_source=unknown,operation='informationTypes') if row['id']==info);assert not choice['available'] and 'sources' not in choice;check('declared icon presentation metadata stays selectable with exact source proof while unknown custom records remain unavailable and untouched')
 print(json.dumps({'checks':checks,'evidence':str(root),'actualEngine':False,'sourceWritten':False,'projectExecuted':False,'externalAssets':False},indent=2))
