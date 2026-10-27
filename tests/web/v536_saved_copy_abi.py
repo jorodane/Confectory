@@ -4,6 +4,7 @@ Fixture setup shares the finite local call context used by v536_slot_call_abi.
 import hashlib,json,re,os,pathlib,signal,subprocess,sys,tempfile,time,urllib.request,uuid
 from playwright.sync_api import sync_playwright,expect
 from editor_navigation import goto_editor
+nested='nested' in sys.argv[3:];is_view='view' in sys.argv[3:]
 repo=pathlib.Path(sys.argv[1]).resolve();report=json.loads(pathlib.Path(sys.argv[2]).read_text());case=pathlib.Path(tempfile.mkdtemp(prefix='confectory-saved-copy-abi-'));project=case/'owned project';project.mkdir();n='Owned.Context::'
 env=os.environ.copy();env.update(CONFECTORY_DOTNET=env.get('CONFECTORY_DOTNET','/workspace/toolchains/dotnet-10.0.401/dotnet'))
 def metadata(operation,**data):
@@ -18,6 +19,7 @@ items={
  'Rules':('module','module '+n+'Rules {require '+n+'Calc (long) -> long;}'),
  'A':('object','object '+n+'A {module '+n+'Rules;provide '+n+'Calc with '+n+'Copy;}'),
  'B':('object','object '+n+'B {module '+n+'Rules;provide '+n+'Calc with '+n+'Other;}')}
+if is_view:items['A']=('schema',items['A'][1].replace('object ','schema ',1))
 registered='registered' in sys.argv[3:];callee='Lib::Native' if registered else n+'Native';callee_text=items['Native'][1].replace(n+'Native','Lib::Native') if registered else items['Native'][1]
 lib=case/'Lib'
 if registered:
@@ -30,6 +32,9 @@ g=prepared['graph'];g['profile']='sync-acyclic-switch-v1';node=next(v for v in g
 enum={'primary':'next','members':[{'id':'next','name':'NoBranch','value':0}]}
 wrapper=metadata('blueprintCallWrapper',functionText=callee_text,executionEnum=enum,returnMapping='native-return-out-v1',source='return Result.NoBranch;')
 node.update(control='switch',executionEnum=enum,postCall={'mode':'execution-enum','returnMapping':'native-return-out-v1','contractHash':wrapper['contractHash'],'source':wrapper['source'],'helpers':''})
+if nested:
+ child={'schema':1,'profile':'sync-acyclic-switch-v1','entry':'native','nodes':[__import__('copy').deepcopy(node)],'edges':[{'from':'native','port':'next','to':'exit:return'}],'exits':{'return':{'node':'native'}},'locals':[{'id':'kept','name':'정확한 값','type':'long','initial':{'constant':9223372036854775806}}]};body_node=next(v for v in g['nodes'] if v['id']=='body');body_node['arguments']={'amount':{'node':'frame'}};g.update(profile='sync-acyclic-nested-v1',entry='frame',nodes=[{'id':'frame','kind':'graph','control':'next','intent':'기존 내부 호출','signature':{'args':[{'name':'amount','type':'long'}],'return':'long'},'arguments':{'amount':{'input':'amount'}},'graph':child},*[v for v in g['nodes'] if v['id']!='native']],edges=[{**e,'from':'frame' if e['from']=='native' else e['from']} for e in g['edges']])
+ assert metadata('featureBlueprintDescribe',featureSource=items['Calc'][1],graph=g,featureContracts={callee:callee_text},implementations={'body':record})['state']=='source-ready'
 items['Copy']=('implementation',prepared['implementation'])
 items['Native']=(items['Native'][0],items['Native'][1].replace('(ref long','(long'));items['NativeBody']=(items['NativeBody'][0],items['NativeBody'][1].replace('(ref long','(long'))
 # The saved independent donor/copy snapshot predates the callee ABI change.
@@ -40,7 +45,7 @@ donor=__import__('copy').deepcopy(g);next(v for v in donor['nodes'] if v['id']==
 # carries its older snapshot. The product repair must never rewrite the donor.
 if 'stale-donor' not in sys.argv[3:]:
  current_wrapper=metadata('blueprintCallWrapper',functionText=callee_text.replace('(ref long','(long'),executionEnum=enum,returnMapping='native-return-out-v1',source=wrapper['source'])
- current_donor=metadata('blueprintCallAbi',id=n+'Donor',text=items['Donor'][1],graph=donor,node='native',signature={'args':[{'type':'long','name':'amount'}],'return':'long'},contractHash=current_wrapper['contractHash'])
+ current_donor=metadata('blueprintCallAbi',id=n+'Donor',text=items['Donor'][1],graph=donor,node='native',signature={'args':[{'type':'long','name':'amount'}],'return':'long'},contractHash=current_wrapper['contractHash'],**({'privatePath':'frame'} if nested else {}))
  items['Donor']=('implementation',current_donor['implementation']);donor=current_donor['graph']
 sources={'Donor.graph.json':json.dumps(donor),'Donor.node.json':json.dumps(record),'Main.csbody':'return checked((int)calls.Chosen.Invoke(1));','Other.csbody':'return amount+8;','Native.csbody':'return amount+3;','Copy.graph.json':json.dumps(g),'Copy.node.json':json.dumps(record)}
 for name,(kind,text) in items.items():sources[name+'.celem']=text
@@ -92,7 +97,7 @@ def unchanged():
  assert all((project/k).read_bytes()==v for k,v in original.items())
  assert all(p.read_bytes()==v for p,v in foreign_original.items())
 def setup(browser):
- page=browser.new_page(viewport={'width':1480,'height':1050});page.on('pageerror',lambda e:errors.append(str(e)))
+ page=browser.new_page(viewport={'width':2300,'height':1700} if is_view else {'width':1480,'height':1050});page.on('pageerror',lambda e:errors.append(str(e)))
  def observe(response):
   try:
    body=response.request.post_data_json
@@ -115,9 +120,21 @@ def pending():page.evaluate('async()=>await confectoryFlushPresentation()');retu
 def open_row(name,group):
  idle();page.locator('#workspace').click(button='right',position={'x':1240,'y':650});page.get_by_role('button',name='프로젝트 브라우저',exact=True).click();b=page.locator('.window[data-key^="browser:project:"]');b.locator('[data-tab="'+group+'"]').click();row=b.locator('[data-object="'+n+name+'"]');expect(row).to_have_attribute('aria-disabled','false');row.press('Enter');idle();b.locator('[data-close]').click();return b
 def open_slot():
- open_row('A','concept');w=page.locator('.window[data-key=schema]');slot=w.locator('[data-module-method="'+n+'Calc"]');expect(slot.locator('[data-function-edit]')).to_be_enabled();slot.locator('[data-function-edit]').click();a=page.locator('.window[data-key=blueprint]');expect(a).to_have_attribute('data-blueprint-owner',n+'A');expect(a).to_have_attribute('data-blueprint-body',n+'Copy/body:common');idle();return a
+ if is_view:
+  global primary_text
+  call('select',{'id':n+'B'});call('saveDraft',{});primary_text=state()['draft']['text']
+  call('openEditorView',{'view':'1','id':n+'A','viewMode':'properties'});w=page.locator('.window[data-key=editor-1]');expect(w.locator('.object-title-name')).to_have_text('A')
+ else:
+  open_row('A','concept');w=page.locator('.window[data-key=schema]')
+ slot=w.locator('[data-module-method="'+n+'Calc"]');expect(slot.locator('[data-function-edit]')).to_be_enabled();slot.locator('[data-function-edit]').click();a=page.locator('.window[data-key=blueprint]');expect(a).to_have_attribute('data-blueprint-owner',n+'A');expect(a).to_have_attribute('data-blueprint-body',n+'Copy/body:common');idle()
+ if nested:
+  a.locator('[data-bp-overview-node=frame]').click();a.locator('[data-bp-node=frame] [data-function-write-direct]').click();expect(a.locator('[data-bp-node=native]')).to_be_visible();pending()
+ return a
+def view_basis():
+ if not is_view:return {}
+ row=next(r for r in state()['editorViews'] if r['view']=='1');return {'view':'1','viewBinding':row['authorBinding']}
 # Pure receipt tests: the helper verifies source ownership and exact shape, no I/O.
-receipt_request={'id':n+'Copy','text':prepared['implementation'],'implementationPath':'Copy.celem','functionText':items['Calc'][1],'graphId':n+'Copy/body:common','graphPath':'Copy.graph.json','graph':g,'owner':n+'A','ownerText':items['A'][1],'objects':[{'id':n+k,'path':k+'.celem','text':v[1]} for k,v in items.items() if v[0]=='object'],'requirements':[{'function':n+'Calc','signature':{'Args':[{'Type':'long','Name':'amount'}],'return':'long'},'moduleSignature':{'Args':[{'Type':'long','Name':'arg0'}],'return':'long'}}],'providers':[{'function':n+'Calc','implementation':n+'Copy','origin':n+'A','contract':{'status':'valid'}}]}
+receipt_request={'id':n+'Copy','text':prepared['implementation'],'implementationPath':'Copy.celem','functionText':items['Calc'][1],'graphId':n+'Copy/body:common','graphPath':'Copy.graph.json','graph':g,'owner':n+'A','ownerText':items['A'][1],'objects':[{'id':n+k,'path':k+'.celem','text':v[1]} for k,v in items.items() if v[0] in ['object','schema']],'requirements':[{'function':n+'Calc','signature':{'Args':[{'Type':'long','Name':'amount'}],'return':'long'},'moduleSignature':{'Args':[{'Type':'long','Name':'arg0'}],'return':'long'}}],'providers':[{'function':n+'Calc','implementation':n+'Copy','origin':n+'A','contract':{'status':'valid'}}]}
 proof=metadata('blueprintCopyAbiBinding',**receipt_request);assert proof['provenance']==provenance and proof['target']=='common'
 for boundary in ['target','path','multi-target','provenance','unit-provenance','external-owner','shared-owner','no-requirement','invalid-provider','external-function']:
  r=__import__('copy').deepcopy(receipt_request)
@@ -133,8 +150,8 @@ for boundary in ['target','path','multi-target','provenance','unit-provenance','
  else:r['functionText']=r['functionText'].replace(n+'Calc','External.Pack::Calc')
  result=subprocess.run([env['CONFECTORY_DOTNET'],str(repo/'targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll')],input=json.dumps({'operation':'blueprintCopyAbiBinding',**r}),text=True,capture_output=True,env=env,check=True);assert not json.loads(result.stdout)['ok'],boundary
 checked('단일 저장 복사본 receipt를 준비하고 대상·locator·다중본문·출처·공유소유·요구계약 위조 10종을 거절한다')
-def read_copy():return call('blueprint',{'action':'read','id':n+'Copy/body:common','owner':n+'A','ownerHash':hashlib.sha256((project/'A.celem').read_bytes()).hexdigest()})
-def batch(data,plan):return {'action':'authorBatch','id':data['id'],'attempt':uuid.uuid4().hex,'checkpointHash':data['checkpointHash'],'sourceProof':json.dumps(sorted([[v['id'],v['revision'],v['hash']] for v in data['sources']])),'edits':[{'action':'rebindCopyAbi','node':'native','definition':plan}],'owner':n+'A','ownerHash':hashlib.sha256((project/'A.celem').read_bytes()).hexdigest()}
+def read_copy():return call('blueprint',{'action':'read','id':n+'Copy/body:common'+('/graph:frame' if nested else ''),'owner':n+'A','ownerHash':hashlib.sha256((project/'A.celem').read_bytes()).hexdigest(),**view_basis()})
+def batch(data,plan):return {'action':'authorBatch','id':data['id'],'attempt':uuid.uuid4().hex,'checkpointHash':data['checkpointHash'],'sourceProof':json.dumps(sorted([[v['id'],v['revision'],v['hash']] for v in data['sources']])),'edits':[{'action':'rebindCopyAbi','node':'native','definition':plan}],'owner':n+'A','ownerHash':hashlib.sha256((project/'A.celem').read_bytes()).hexdigest(),**view_basis()}
 try:
  start(0)
  call('saveDraft',{})
@@ -142,8 +159,17 @@ try:
  with sync_playwright() as p:
   expect.set_options(timeout=30000);browser=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox']);page=setup(browser);author=open_slot();card=author.locator('[data-bp-node=native]');refresh=card.locator('[data-wrapper-refresh]');data=read_copy();row=next(v for v in data['nodes'] if v['id']=='native');(case/'initial-read.json').write_text(json.dumps(data,ensure_ascii=False));assert row['callAbiAvailable'] and row['copyAbiBinding']['provenance']==provenance;expect(refresh).to_be_enabled();unchanged();checked('실제 직접 배치된 저장 복사본에만 기존 원본 계약 갱신 버튼을 연결하고 출처를 표시 데이터에 보존한다')
   # Root access without selected direct owner still cannot edit a copied body.
-  root=call('blueprint',{'action':'read','id':n+'Copy/body:common'});assert not next(v for v in root['nodes'] if v['id']=='native')['callAbiAvailable']
-  author.locator(':scope > .window-title .caption').click(position={'x':5,'y':8});author.locator('[data-bp-overview-node=native]').click();refresh.click();held=pending();assert len(held)==1;plan=json.loads(held[0][1]['text']);assert plan['abi']['copyBinding']==row['copyAbiBinding'];unchanged();page.screenshot(path=str(case/'copy-abi-explicit-refresh.png'));checked('명시적 갱신은 복사 소유자·target·출처와 원본 callee hash를 함께 초안에 고정하고 파일은 쓰지 않는다')
+  root=call('blueprint',{'action':'read','id':n+'Copy/body:common'+('/graph:frame' if nested else '')});assert not next(v for v in root['nodes'] if v['id']=='native')['callAbiAvailable']
+  author.locator(':scope > .window-title').click(position={'x':700,'y':12});author.locator('[data-bp-overview-node=native]').click();refresh.click();held=pending();assert len(held)==1;plan=json.loads(held[0][1]['text']);assert plan['abi']['copyBinding']==row['copyAbiBinding'];unchanged();page.screenshot(path=str(case/'copy-abi-explicit-refresh.png'));checked('명시적 갱신은 복사 소유자·target·출처와 원본 callee hash를 함께 초안에 고정하고 파일은 쓰지 않는다')
+  if 'peer-input' in sys.argv[3:]:
+   checkpoint=next(project.glob('.confectory/edit-workspaces/*/draft.json'));before=checkpoint.read_bytes();author.locator('.bp-breadcrumbs button').first.click();expect(author.locator('[data-bp-node=body]')).to_be_visible();author.locator('[data-bp-overview-node=body]').click();author.locator('[data-bp-node=body] [data-inline-description]').fill('다른 frame의 보존할 입력');author.locator('[data-bp-overview-node=frame]').click();author.locator('[data-bp-node=frame] [data-function-write-direct]').click();expect(author.locator('[data-bp-node=native]')).to_be_visible();all_held=pending();assert any(v.get('type')=='intent' and v['text']=='다른 frame의 보존할 입력' for _,v in all_held);author.locator('[data-bp-save]').click();expect(page.get_by_role('status').last).to_contain_text('같은 구현의 이전 입력',timeout=30000);assert checkpoint.read_bytes()==before and dict(pending())==dict(all_held);unchanged();page.close();stop();start(1);page=setup(browser);author=page.locator('.window[data-key=blueprint]');expect(author.locator('[data-bp-node=native]')).to_be_visible();assert dict(pending())==dict(all_held) and checkpoint.read_bytes()==before;unchanged();checked('다른 frame의 별도 입력이 있으면 ABI 저장을 전체 차단하고 두 문맥의 원문/계획을 cold 복원에서도 보존한다');browser.close();print(json.dumps({'checks':checks,'evidence':str(case)},ensure_ascii=False));sys.exit(0)
+  if 'source-change' in sys.argv[3:]:
+   checkpoint=next(project.glob('.confectory/edit-workspaces/*/draft.json'));before=checkpoint.read_bytes();file=project/'Copy.node.json';record=json.loads(file.read_text());record['source']='return amount+9;';file.write_text(json.dumps(record));original[file.name]=file.read_bytes();mark=len(traffic);author.locator('[data-bp-save]').click()
+   for _ in range(1800):
+    requests=[r for r in traffic[mark:] if r['endpoint']=='blueprint' and r.get('input',{}).get('action')=='authorBatch'];refused=[results[r['requestId']] for r in requests if r['requestId'] in results and not results[r['requestId']].get('ok') and results[r['requestId']].get('error',{}).get('code')!='stale_revision']
+    if refused:break
+    page.wait_for_timeout(20)
+   assert refused and checkpoint.read_bytes()==before;assert all(dict(pending()).get(k)==v for k,v in held);unchanged();page.close();stop();start(1);page=setup(browser);author=page.locator('.window[data-key=blueprint]');expect(author.locator('[data-bp-node=native]')).to_be_visible();assert all(dict(pending()).get(k)==v for k,v in held);assert checkpoint.read_bytes()==before;unchanged();checked('실제 Root body source 변경은 같은 callee 계획이라도 전체 미적용하고 peer 원문·CP·원래 입력을 재시작에도 보존한다');browser.close();print(json.dumps({'checks':checks,'evidence':str(case)},ensure_ascii=False));sys.exit(0)
   if 'cancel' in sys.argv[3:]:
    author.locator('.bp-viewport').focus();page.keyboard.press('Control+z');assert pending()==[];unchanged();assert next(v for v in read_copy()['nodes'] if v['id']=='native')['signature']['args'][0].get('mode')=='ref';page.close();stop();start(1);page=setup(browser);author=page.locator('.window[data-key=blueprint]');expect(author.locator('[data-bp-save]')).to_be_enabled();assert not pending();assert next(v for v in read_copy()['nodes'] if v['id']=='native')['signature']['args'][0].get('mode')=='ref';unchanged();checked('명시적 갱신 Undo는 복사 ABI 입력만 취소하고 cold 재시작에서도 원본 계약·소스·다른 객체를 보존한다');assert not errors,errors;browser.close();print(json.dumps({'checks':checks,'evidence':str(case)},ensure_ascii=False));sys.exit(0)
   if 'storage' in sys.argv[3:]:
@@ -177,20 +203,35 @@ try:
    assert lost,'missing real successful reply to lose';idle();page.unroute('**/api/request',intercept);assert pending()==[];saved=read_copy();assert not next(v for v in saved['nodes'] if v['id']=='native')['postCallStale'];checkpoint=saved['checkpointHash'];page.close();stop();start(1);page=setup(browser);author=page.locator('.window[data-key=blueprint]');expect(author.locator('[data-bp-save]')).to_be_enabled();assert not pending();assert read_copy()['checkpointHash']==checkpoint;unchanged();checked('실제 성공 응답을 유실해도 복사 ABI receipt가 완료를 확인하며 cold 복원에 중복·부분 저장이나 재전송 입력을 남기지 않는다');assert not errors,errors;browser.close();print(json.dumps({'checks':checks,'evidence':str(case)},ensure_ascii=False));sys.exit(0)
   # Client cannot downgrade to legacy action or forge copy evidence.
   base=batch(read_copy(),plan)
-  for mutation in ['legacy','no-binding','target','donor','no-owner','mixed']:
+  mutations=['legacy','no-binding','target','donor','no-owner','mixed']+(['private-path','private-graph'] if nested else [])
+  for mutation in mutations:
    b=__import__('copy').deepcopy(base);b['attempt']=uuid.uuid4().hex
    if mutation=='legacy':b['edits'][0]['action']='rebindCallAbi'
    elif mutation=='no-binding':del b['edits'][0]['definition']['abi']['copyBinding']
    elif mutation=='target':b['edits'][0]['definition']['abi']['copyBinding']['target']='windows'
    elif mutation=='donor':b['edits'][0]['definition']['abi']['copyBinding']['provenance']['implementation']=n+'Other'
    elif mutation=='no-owner':del b['owner'];del b['ownerHash']
+   elif mutation=='private-path':b['edits'][0]['definition']['abi']['copyBinding']['privatePath']='other'
+   elif mutation=='private-graph':b['edits'][0]['definition']['abi']['copyBinding']['privateGraph']=n+'Copy/body:common/graph:other'
    else:b['edits'].append({'action':'intent','node':'native','text':'not silently mixed'})
    call('blueprint',b,False);unchanged();assert pending()==held
-  checked('legacy 우회·binding 누락/위조·소유자 누락·혼합 요청은 전체 미적용이고 UI 입력과 donor를 보존한다 (6건)')
+  checked('legacy 우회·binding/경로 누락·위조·소유자 누락·혼합 요청은 전체 미적용이고 UI 입력과 donor를 보존한다 ('+str(len(mutations))+'건)')
+  if is_view:
+   for mutation in ['nonce','view','owner']:
+    b=__import__('copy').deepcopy(base);b['attempt']=uuid.uuid4().hex
+    if mutation=='nonce':b['viewBinding']='stale-binding'
+    elif mutation=='view':b['view']='2'
+    else:b['owner']=n+'B'
+    call('blueprint',b,False);unchanged();assert pending()==held
+   checked('독립 정보 창은 현재 owner·nonce·문서 문맥만 허용하고 타창/타owner/이전binding 요청을 전체 거절한다')
   # A rejected compiler review cannot bypass technical contract validation.
   page.close();stop();start(1);page=setup(browser);author=page.locator('.window[data-key=blueprint]');expect(author).to_have_attribute('data-blueprint-owner',n+'A');expect(author.locator('[data-bp-save]')).to_be_enabled();assert pending()==held;unchanged();checked('저장 전 명시적 copy ABI 초안은 cold 재시작에서 소유자·출처·대상과 함께 복원한다')
-  mark=len(traffic);author.locator('[data-bp-save]').click();completed('blueprint','authorBatch',mark);assert pending()==[];unchanged();saved=read_copy();node=next(v for v in saved['nodes'] if v['id']=='native');assert node['signature']['args'][0].get('mode') is None and not node['postCallStale'];assert node['copyAbiBinding']==row['copyAbiBinding'];assert saved['slotContext']['copySource']==provenance;checked('한 authorBatch 후보/CAS에서 복사본 typed import·wrapper·graph만 저장하고 출처·객체·donor 파일은 유지한다')
-  accepted=next(r['input'] for r in traffic[mark:] if r['endpoint']=='blueprint' and r.get('input',{}).get('action')=='authorBatch' and results.get(r['requestId'],{}).get('ok'));replay=call('blueprint',{**accepted,'action':'settledAuthorBatch'});assert replay['settled'];again=call('blueprint',accepted);assert again['settled'];unchanged();assert not pending();checked('동일 attempt 재조회·재시도는 receipt로 이미 저장한 결과를 확인하며 중복 변경하지 않는다')
+  mark=len(traffic);author.locator('[data-bp-save]').click();completed('blueprint','authorBatch',mark);assert pending()==[];unchanged();saved=read_copy();node=next(v for v in saved['nodes'] if v['id']=='native');assert node['signature']['args'][0].get('mode') is None and not node['postCallStale'];assert node['copyAbiBinding']==row['copyAbiBinding'];assert saved['slotContext']['copySource']==provenance
+  if nested:
+   assert saved['locals'][0]['initialJson']=='9223372036854775806' and saved['edges']==g['nodes'][0]['graph']['edges'];assert row['copyAbiBinding']['privatePath']=='frame' and row['copyAbiBinding']['privateGraph']==data['id'];assert row['copyAbiBinding']['graph']==data['rootId']
+  if is_view:assert state()['draft']['id']==n+'B' and state()['draft']['text']==primary_text;checked('독립 창 private ABI 저장은 다른 primary 문서와 원문을 변경하지 않는다')
+  checked('한 authorBatch 후보/CAS에서 복사본 typed import·wrapper·graph만 저장하고 출처·객체·donor 파일은 유지한다')
+  accepted=next(r['input'] for r in traffic[mark:] if r['endpoint']=='blueprint' and r.get('input',{}).get('action')=='authorBatch' and results.get(r['requestId'],{}).get('ok'));replay=call('blueprint',{**accepted,'action':'settledAuthorBatch',**view_basis()});assert replay['settled'];again=call('blueprint',{**accepted,**view_basis()});assert again['settled'];unchanged();assert not pending();checked('동일 attempt 재조회·재시도는 receipt로 이미 저장한 결과를 확인하며 중복 변경하지 않는다')
   page.close();stop();start(2);page=setup(browser);author=page.locator('.window[data-key=blueprint]');expect(author.locator('[data-bp-save]')).to_be_enabled();assert not pending();saved=read_copy();assert saved['slotContext']['copySource']==provenance;author.locator('[data-bp-complete]').click();review=page.locator('.window[data-key=review]');expect(review).to_be_visible(timeout=60000);assert state()['review']['status']=='ready';review.locator('[data-reject]').click();expect(review).to_be_hidden();unchanged();checked('저장된 복사 ABI cold 복원·컴파일 Review와 취소는 원본 파일을 보존한다')
   author.locator('[data-bp-complete]').click();review=page.locator('.window[data-key=review]');expect(review).to_be_visible(timeout=60000)
   if review.locator('[data-review-advanced]').count():
@@ -199,9 +240,15 @@ try:
   mark=len(traffic);review.locator('#confirm').click();result=completed('confirmGroup',None,mark)
   if 'stale-donor' in sys.argv[3:]:
    assert not result['result'].get('sourceConfirmed');unchanged();assert any('CONTRACT_MISMATCH' in v for v in state()['logs']);assert not next(v for v in read_copy()['nodes'] if v['id']=='native')['postCallStale'];checked('다른 donor 자체가 오래된 계약이면 compiler Confirm은 안전하게 거절하고 원본을 자동 수정하거나 복사 저장 초안을 버리지 않는다');assert not errors,errors;browser.close();print(json.dumps({'checks':checks,'evidence':str(case)},ensure_ascii=False));sys.exit(0)
-  assert result['result'].get('sourceConfirmed');expect(review).to_have_count(0,timeout=90000);changed={k for k,v in original.items() if (project/k).read_bytes()!=v};assert changed=={'Copy.celem','Copy.graph.json'},changed;assert json.loads((project/'Copy.graph.json').read_text())['copySource']==provenance;checked('명시적 compiler Confirm은 Copy 선언과 graph만 반영하고 donor·callee·부모/다른 객체·원본 node 본문은 byte 보존한다')
+  if is_view:assert state()['draft']['id']==n+'B' and state()['draft']['text']==primary_text
+  assert result['result'].get('sourceConfirmed');expect(review).to_have_count(0,timeout=90000);changed={k for k,v in original.items() if (project/k).read_bytes()!=v};assert changed=={'Copy.celem','Copy.graph.json'},changed;assert json.loads((project/'Copy.graph.json').read_text())['copySource']==provenance
+  if nested:
+   expected=__import__('copy').deepcopy(g);leaf=expected['nodes'][0]['graph']['nodes'][0];leaf['signature']=plan['abi']['signature'];leaf['postCall']['contractHash']=plan['contractHash'];assert json.loads((project/'Copy.graph.json').read_text())==expected
+  checked('명시적 compiler Confirm은 Copy 선언과 graph만 반영하고 donor·callee·부모/다른 객체·원본 node 본문은 byte 보존한다')
   assert not errors and not external,(errors,external);page.close();browser.close()
 except Exception:
+ try:page.screenshot(path=str(case/'failure.png'))
+ except Exception:pass
  try:(case/'failure-state.json').write_text(json.dumps({k:v for k,v in state().items() if k in ['review','sourceError','logs','operationError']},ensure_ascii=False,indent=2))
  except Exception:pass
  (case/'transport.json').write_text(json.dumps({'traffic':traffic,'results':results},ensure_ascii=False,indent=2));(case/'failure.json').write_text(json.dumps({'checks':checks,'errors':errors,'external':external,'evidence':str(case)},ensure_ascii=False,indent=2));print('EVIDENCE '+str(case),flush=True);raise

@@ -64,3 +64,7 @@ I5-1~5 지원 경로는 유지한다. I5-6 전체와 v536 전체 UI는 아직 �
 [미확정 copy private ABI](VALIDATION_V536_PRIVATE_CALLEE_ABI.md)는 기존 내부 호출의 ref→값 갱신을 원래 snapshot/명시 버튼/typed import 및 한 후보/CAS에 연결하는 최소 단위다. 공개 override 계약과 donor·부모·외부 원본은 유지한다. 저장된 copy private ABI와 다른 실제 기존 조작은 별도 수용 증거가 필요하며 이번 지원 범위나 고정 7행 전체 완료로 합산하지 않는다. 8/9행·I6/B2/A4~A6/M4/M11/M12 및 플랫폼/Library 잔여도 유지한다.
 
 이번 private 갱신 단위의 확정 결과는 집중12흐름62확인·순수10, 기존 독립 checkout의 실제 UI/enum 2흐름9확인·순수6, 새 교차 패키지6단계/패키지 자체 UI7확인이다. [검증 문서](VALIDATION_V536_PRIVATE_CALLEE_ABI.md)와 해당 evidence를 따른다. 저장된 copy private ABI·8/9행·별도 UI 및 실제 기기/Library 잔여는 유지한다.
+
+## 저장된 copy private 갱신 연결
+
+[저장 copy private ABI](VALIDATION_V536_SAVED_PRIVATE_ABI.md)는 기존 ref→값 한 호출의 server path binding·단독 배정/출처·원래 후보/CAS·Review/Confirm을 연결하는 단위다. 공개 함수·부모/외부 원본은 보존한다. 미확정 단위와 저장된 단위를 구분하고, 검증 경계 밖의 실제 기존 ABI 조작과 8/9행·별도 UI/플랫폼/Library 잔여를 자동 완료로 세지 않는다.

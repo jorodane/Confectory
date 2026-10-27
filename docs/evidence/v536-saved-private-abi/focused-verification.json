@@ -1,0 +1,358 @@
+{
+  "baselineCommit": "b331a6e8604a6c72d912601ba585e6ba36475807",
+  "scope": "explicit ref-to-value refresh of one existing execution-enum call in a private frame of a saved exclusively assigned single-target same-contract owned copy",
+  "publicOverrideAbiPreserved": true,
+  "savedCopyPrivateAbiIncluded": true,
+  "automaticCSharpRewrite": false,
+  "newContractId": false,
+  "productSha256": {
+    "packs/pack-workspace/Blueprint.csbody": "2e71415658855911a06a7f29cbdd5018ffc5ba542bf9d951975d6d6a81cbae8a",
+    "packs/editor-home-model/Blueprint.csbody": "de9a717ca0a9f46f64ffd6538e8c37f5e9c5f1d1015d7cbe2c09f83c8ce05458",
+    "examples/editor-home/ui/feature-authoring.js": "48c299affe27945f65ff078ae2b2dd4951699d9fd6d4d66a6be89792babee5be",
+    "examples/editor-home/ui/element-functions.js": "acdf3a28f8c0a4ca1433a666185d4a4c98ef0deafaacc9c4970bb2be3ab31ee2",
+    "examples/editor-home/WebBundle.csbody": "0b6fdb01f1ab8256da28219afa1095115ba1bbba38bf2e5e0bb48f881b08601b"
+  },
+  "pure": {
+    "savedCopyBindingForgeryCases": 10,
+    "isolatedMetadataNoWrites": true
+  },
+  "flows": [
+    {
+      "name": "normal",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_saved_copy_abi.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-saved-private-abi/ui-engine-report.json",
+        "nested"
+      ],
+      "exit": 0,
+      "seconds": 91.2,
+      "minimumWorkspaceBytes": 1070632960,
+      "peakMemoryBytes": 4996100096,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 9,
+      "logSha256": "910919052ffd07b66f975c9e6bb54e116aeee67935fa93c5d0c840121c016c2d",
+      "fixtureEvidence": {
+        "archiveSha256": "f24e31d3d3a395432310f1ad4fbe0604a17e316532d482e6ae811675f310e60f",
+        "files": 35,
+        "archiveBytes": 98875,
+        "fileSetModesAndBytesMatch": true,
+        "excludedRegenerableCacheAndOutputs": true
+      }
+    },
+    {
+      "name": "view",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_saved_copy_abi.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-saved-private-abi/ui-engine-report.json",
+        "nested",
+        "view"
+      ],
+      "exit": 0,
+      "seconds": 109.1,
+      "minimumWorkspaceBytes": 1070493696,
+      "peakMemoryBytes": 5148196864,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 11,
+      "logSha256": "47b0cc4d3fa5f3d4be2a528896c68d81828f877d6a7b2f1226acad3bb1f94f52",
+      "fixtureEvidence": {
+        "archiveSha256": "b81b4318de9ddfded771d814634cc8a026990f2129b13dadefcf318290334946",
+        "files": 35,
+        "archiveBytes": 106921,
+        "fileSetModesAndBytesMatch": true,
+        "excludedRegenerableCacheAndOutputs": true
+      }
+    },
+    {
+      "name": "storage",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_saved_copy_abi.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-saved-private-abi/ui-engine-report.json",
+        "nested",
+        "storage"
+      ],
+      "exit": 0,
+      "seconds": 62.0,
+      "minimumWorkspaceBytes": 1070362624,
+      "peakMemoryBytes": 4916072448,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 4,
+      "logSha256": "1e6439cfc3e4ba405a5a15f16c53cfe6f2022f05fe6197416c39eb4818e082b2",
+      "fixtureEvidence": {
+        "archiveSha256": "12965f908b589e7ce2f013daa389befb838d2a3ec11c3a16ecacf3ccd2516091",
+        "files": 33,
+        "archiveBytes": 99706,
+        "fileSetModesAndBytesMatch": true,
+        "excludedRegenerableCacheAndOutputs": true
+      }
+    },
+    {
+      "name": "loss",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_saved_copy_abi.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-saved-private-abi/ui-engine-report.json",
+        "nested",
+        "response-loss"
+      ],
+      "exit": 0,
+      "seconds": 46.9,
+      "minimumWorkspaceBytes": 1070243840,
+      "peakMemoryBytes": 4918501376,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 4,
+      "logSha256": "edf216571c2bc94fef91a602072da5e6f0fdccbce05bfb20f14476af665337de",
+      "fixtureEvidence": {
+        "archiveSha256": "c5a431339fd5347f73b9d9b0e401c3f50dbeb916f7f540796e91082d1cd8b93e",
+        "files": 33,
+        "archiveBytes": 99649,
+        "fileSetModesAndBytesMatch": true,
+        "excludedRegenerableCacheAndOutputs": true
+      }
+    },
+    {
+      "name": "conflict",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_saved_copy_abi.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-saved-private-abi/ui-engine-report.json",
+        "nested",
+        "conflict"
+      ],
+      "exit": 0,
+      "seconds": 44.1,
+      "minimumWorkspaceBytes": 1070120960,
+      "peakMemoryBytes": 4912889856,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 4,
+      "logSha256": "544941ae8b5133c43e4498d245457f2782fd7cd4bee766262fc01d4c216f8e17",
+      "fixtureEvidence": {
+        "archiveSha256": "6f70c6a4fde3d34b6eab11682376f7e0cf609f3c4130832fee5e901938f67bc7",
+        "files": 33,
+        "archiveBytes": 99366,
+        "fileSetModesAndBytesMatch": true,
+        "excludedRegenerableCacheAndOutputs": true
+      }
+    },
+    {
+      "name": "cancel",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_saved_copy_abi.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-saved-private-abi/ui-engine-report.json",
+        "nested",
+        "cancel"
+      ],
+      "exit": 0,
+      "seconds": 33.7,
+      "minimumWorkspaceBytes": 1070002176,
+      "peakMemoryBytes": 4904275968,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 4,
+      "logSha256": "63cb86c98478913817be1f4e90adcb70ae53d9e18ddda13f91d379157696c03a",
+      "fixtureEvidence": {
+        "archiveSha256": "e9b784c0c6a1dd5fc90a44e00ddb037f1770e5ec6f54e1f562bf44a344e4f058",
+        "files": 32,
+        "archiveBytes": 96640,
+        "fileSetModesAndBytesMatch": true,
+        "excludedRegenerableCacheAndOutputs": true
+      }
+    },
+    {
+      "name": "peer",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_saved_copy_abi.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-saved-private-abi/ui-engine-report.json",
+        "nested",
+        "peer-input"
+      ],
+      "exit": 0,
+      "seconds": 35.7,
+      "minimumWorkspaceBytes": 1069883392,
+      "peakMemoryBytes": 4892590080,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 4,
+      "logSha256": "75952cc4586b58a665b38f9dda38103c4933ce4d9d409003cf1b18d0cdf0868a",
+      "fixtureEvidence": {
+        "archiveSha256": "492056fdca0e9da0e59362108c2debb0a5ace050994cad11feae0378e6dcb3fa",
+        "files": 32,
+        "archiveBytes": 97614,
+        "fileSetModesAndBytesMatch": true,
+        "excludedRegenerableCacheAndOutputs": true
+      }
+    },
+    {
+      "name": "root",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_saved_copy_abi.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-saved-private-abi/ui-engine-report.json"
+      ],
+      "exit": 0,
+      "seconds": 84.6,
+      "minimumWorkspaceBytes": 1069768704,
+      "peakMemoryBytes": 4989587456,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 9,
+      "logSha256": "671518fc92172483b487057d5e3d5271c517efad68d1b8832a563c45c9c82347",
+      "fixtureEvidence": {
+        "archiveSha256": "f23c3969bd60f0ad0e1e901f878f79f30f7139bff973062944098414c94f6aaf",
+        "files": 35,
+        "archiveBytes": 100304,
+        "fileSetModesAndBytesMatch": true,
+        "excludedRegenerableCacheAndOutputs": true
+      }
+    },
+    {
+      "name": "pending",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_general_private_abi_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-saved-private-abi/ui-engine-report.json",
+        "normal",
+        "nested"
+      ],
+      "exit": 0,
+      "seconds": 59.1,
+      "minimumWorkspaceBytes": 1069645824,
+      "peakMemoryBytes": 4973928448,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 6,
+      "logSha256": "7a0cde96e8bbe5f97112243e1e70eb4870e3a5f8250230a7fcc0779e769d95b8",
+      "fixtureEvidence": {
+        "archiveSha256": "88dea9c57765a4a5fc70af092ea04c7e76ff2a47364daec59d90e1accfcc5306",
+        "files": 44,
+        "archiveBytes": 169229,
+        "fileSetModesAndBytesMatch": true,
+        "excludedRegenerableCacheAndOutputs": true
+      }
+    },
+    {
+      "name": "module-guards",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_module_view_guards.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-saved-private-abi/ui-engine-report.json",
+        "normal",
+        "view"
+      ],
+      "exit": 0,
+      "seconds": 19.0,
+      "minimumWorkspaceBytes": 1069453312,
+      "peakMemoryBytes": 4347498496,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 4,
+      "logSha256": "b17d424d515b2d8ffbc175024a779c8bd0b8331d89966ddbc702fd85ec884da4",
+      "fixtureEvidence": {
+        "archiveSha256": "cd23347866597ebb65f475e56dfd54794cbe16221849a8ccfc5d83efc4056e13",
+        "files": 49,
+        "archiveBytes": 18238,
+        "fileSetModesAndBytesMatch": true,
+        "excludedRegenerableCacheAndOutputs": true
+      }
+    },
+    {
+      "name": "enum",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_private_enum_api.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-saved-private-abi/ui-engine-report.json",
+        "normal",
+        "source",
+        "switch-code"
+      ],
+      "exit": 0,
+      "seconds": 30.9,
+      "minimumWorkspaceBytes": 1069404160,
+      "peakMemoryBytes": 4428144640,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 2,
+      "logSha256": "97d30dba6e4b513ebb32b180e7564214ee68ad3aeac34e96db0a087552c06bf6",
+      "fixtureEvidence": {
+        "archiveSha256": "9b30bd7867b990479eec82408e06e1cdb40992dcaf8be3b06fd49d5a333cf542",
+        "files": 85,
+        "archiveBytes": 33427,
+        "fileSetModesAndBytesMatch": true,
+        "excludedRegenerableCacheAndOutputs": true
+      }
+    },
+    {
+      "name": "source",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_saved_copy_abi.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-saved-private-abi/ui-engine-report.json",
+        "nested",
+        "source-change"
+      ],
+      "exit": 0,
+      "seconds": 34.7,
+      "minimumWorkspaceBytes": 1070788608,
+      "peakMemoryBytes": 4905537536,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 4,
+      "logSha256": "4f07c704b14ef52ce826d5c35be3a9e557698090b61dca21ffdb9ab2a387b92a",
+      "fixtureEvidence": {
+        "archiveSha256": "180fd9d2763efa2e8d37f15dff32dc571dd0e3ed37317bbfea6c6821be55273f",
+        "files": 32,
+        "archiveBytes": 98085,
+        "fileSetModesAndBytesMatch": true,
+        "excludedRegenerableCacheAndOutputs": true
+      }
+    }
+  ],
+  "totalChecks": 65,
+  "resources": {
+    "resources": 74,
+    "changedEntries": [
+      "element-functions.js",
+      "feature-authoring.js"
+    ],
+    "unchangedEntries": 72,
+    "allCanonicalBytesMatch": true,
+    "htmlAndCssUnchanged": true,
+    "newLayout": false
+  },
+  "linuxEngineBuild": {
+    "completed": true,
+    "compiledAdapters": true
+  },
+  "initialFailuresRetainedAndExcludedFromPassCount": true,
+  "resolvedImplementationDefects": [
+    "module repairability omitted qualified private callees and hid the existing edit entry",
+    "saved private wrapper plans were blocked before authorBatch routing/recovery",
+    "cached source proof missed a changed physical root-body record before checkpoint; reuse baseline/link checks on apply, settled query and retry proof"
+  ],
+  "actualWindows": false,
+  "actualMobile": false,
+  "libraryDelivered": false,
+  "existingDataDeleted": false,
+  "logsProfilesAndScreenshotsPreservedInScratch": true
+}
