@@ -24,6 +24,7 @@ public static partial class FeatureBlueprint
             ["node"] = selected ? probe![(S(node, "id").Length + 1)..] : null,
             ["featureSource"] = source, ["graph"] = graph, ["sourcePath"] = key, ["sourceOwner"] = parent["sourceOwner"]!.DeepClone(),
             ["featureContracts"] = parent["featureContracts"]?.DeepClone(), ["propertyContracts"] = parent["propertyContracts"]?.DeepClone(),
+            ["inspectStalePostCalls"] = parent["inspectStalePostCalls"]?.DeepClone(),
             ["implementations"] = parent["implementations"]?.DeepClone()
         };
     }

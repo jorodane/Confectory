@@ -1,0 +1,371 @@
+{
+  "baselineCommit": "e78a4f4adbdbc42feda7aa16e71eb584456b932c",
+  "scope": "explicit ref-to-value refresh of one existing execution-enum call in a private frame of an unconfirmed same-contract owned copy",
+  "publicOverrideAbiPreserved": true,
+  "savedCopyPrivateAbiIncluded": false,
+  "automaticCSharpRewrite": false,
+  "newContractId": false,
+  "productSha256": {
+    "examples/editor-home/WebBundle.csbody": "7bba7c9066062d8a974d1ad1924bbc6cf1d149c6070d24098e39d6aebb6a64c8",
+    "examples/editor-home/ui/feature-authoring.js": "8f46aba102d5857f7d04e9b8e26a2e43d363a691d0f72fec5de7007dc6d7259a",
+    "src/Confectory.Core/FeatureBlueprint.Nested.cs": "3bda3b7496cc4a24a1af1a7f543ef6a6032484fdff6fe0cc03fbf7377c5bd8d2",
+    "targets/element-authoring/BlueprintCallAbi.cs": "13cefc75d730b0394f0110397533d2141d598bd2fce7f9d8dc53e530b6f7919f",
+    "targets/element-authoring/PrivateImplementationCopy.cs": "89e87c05408b6fa93869f65c43aa968ed1ed9bcee5202c82636b39f74c3bf7d1"
+  },
+  "pure": {
+    "pure-closure.log": {
+      "checks": 6,
+      "sha256": "f26ccd4c6ec2528d453fb343085b268ecf93b469b9d729d9aa5b57dc89788da0"
+    },
+    "pure-root.log": {
+      "checks": 4,
+      "sha256": "e8f880d4eab0e6ba84ff4e24ae4e7873afcbdb30fc69674d33fbe7b56cf30076"
+    }
+  },
+  "flows": [
+    {
+      "name": "normal",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_general_private_abi_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-private-abi/ui-engine-report.json",
+        "normal",
+        "nested"
+      ],
+      "exit": 0,
+      "seconds": 57.8,
+      "minimumWorkspaceBytes": 1128665088,
+      "peakMemoryBytes": 4907040768,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 6,
+      "logSha256": "5655edb0bba7a8ab523920dc74123c5e2edec5a912f8e23039778bf03e42f497",
+      "fixtureEvidence": {
+        "archiveSha256": "e990f557c70aa356c38be1ab0d3eff308ab7a158010fb8b3557c18361a8a4db8",
+        "files": 44,
+        "archiveBytes": 169726,
+        "fileSetModesAndBytesMatch": true,
+        "excludedRegenerableCacheAndOutputs": true
+      }
+    },
+    {
+      "name": "storage",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_general_private_abi_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-private-abi/ui-engine-report.json",
+        "storage",
+        "nested"
+      ],
+      "exit": 0,
+      "seconds": 53.9,
+      "minimumWorkspaceBytes": 1127858176,
+      "peakMemoryBytes": 4819468288,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 6,
+      "logSha256": "f0f8d3f317cd468fc0968bbdd0d52804da3937717034da778c1a90837418e34e",
+      "fixtureEvidence": {
+        "archiveSha256": "539a6e510f0e24d3dccf532c18d8d79aee57089f2d334136c0f30825111d0b10",
+        "files": 41,
+        "archiveBytes": 169545,
+        "fileSetModesAndBytesMatch": true,
+        "excludedRegenerableCacheAndOutputs": true
+      }
+    },
+    {
+      "name": "loss",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_general_private_abi_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-private-abi/ui-engine-report.json",
+        "response-loss",
+        "nested"
+      ],
+      "exit": 0,
+      "seconds": 54.5,
+      "minimumWorkspaceBytes": 1127653376,
+      "peakMemoryBytes": 4819226624,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 5,
+      "logSha256": "708d9d7044a0da801c6908c7c7e1d31254701cf8501972bc3a29c757f143bcb0",
+      "fixtureEvidence": {
+        "archiveSha256": "83a7543ae17c3a881c648ed51eedd67571d3b6cfa76174b40eba8c068b166948",
+        "files": 41,
+        "archiveBytes": 169389,
+        "fileSetModesAndBytesMatch": true,
+        "excludedRegenerableCacheAndOutputs": true
+      }
+    },
+    {
+      "name": "callee",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_general_private_abi_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-private-abi/ui-engine-report.json",
+        "callee-conflict",
+        "nested"
+      ],
+      "exit": 0,
+      "seconds": 34.7,
+      "minimumWorkspaceBytes": 1127460864,
+      "peakMemoryBytes": 4817076224,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 5,
+      "logSha256": "e6663934cac227c213f8750b95709cdad2282b56bf0b2516bd0fe1e61fed54b2",
+      "fixtureEvidence": {
+        "archiveSha256": "ee0309b446356bcbce6eb97c2c08303ec6e71593cea0b750ac5ab1e77cfe1f58",
+        "files": 38,
+        "archiveBytes": 168127,
+        "fileSetModesAndBytesMatch": true,
+        "excludedRegenerableCacheAndOutputs": true
+      }
+    },
+    {
+      "name": "owner",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_general_private_abi_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-private-abi/ui-engine-report.json",
+        "owner-conflict",
+        "nested"
+      ],
+      "exit": 0,
+      "seconds": 30.9,
+      "minimumWorkspaceBytes": 1127272448,
+      "peakMemoryBytes": 4786765824,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 5,
+      "logSha256": "d451f6446593c7eff7065ffb5afef17787653e009043ee8ce117870b726556f6",
+      "fixtureEvidence": {
+        "archiveSha256": "ebe6d22db82d2467466e434825cf5bb2bfa3cd974a371e548ec8e8105c646ab7",
+        "files": 39,
+        "archiveBytes": 168088,
+        "fileSetModesAndBytesMatch": true,
+        "excludedRegenerableCacheAndOutputs": true
+      }
+    },
+    {
+      "name": "cancel",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_general_private_abi_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-private-abi/ui-engine-report.json",
+        "cancel",
+        "nested"
+      ],
+      "exit": 0,
+      "seconds": 29.9,
+      "minimumWorkspaceBytes": 1127075840,
+      "peakMemoryBytes": 4786225152,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 5,
+      "logSha256": "2cc07b836755eb9f455584fceceee75f401e11becbea2eaf225f5f9e371c5bb2",
+      "fixtureEvidence": {
+        "archiveSha256": "8e0e98cf37f0fd8e2f4b016427abd1d95116ce15c291f4f8616c64f66144347a",
+        "files": 38,
+        "archiveBytes": 163837,
+        "fileSetModesAndBytesMatch": true,
+        "excludedRegenerableCacheAndOutputs": true
+      }
+    },
+    {
+      "name": "root",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_general_private_abi_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-private-abi/ui-engine-report.json",
+        "normal"
+      ],
+      "exit": 0,
+      "seconds": 53.1,
+      "minimumWorkspaceBytes": 1126895616,
+      "peakMemoryBytes": 4935544832,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 5,
+      "logSha256": "d3dd8ce4b7ff3359467f6b6da0689cd0661d01f7d6a1ff8ddfa142bd7438eebb",
+      "fixtureEvidence": {
+        "archiveSha256": "70d0934b73c8ba80036678cc790af81d61f78455e63688278fac6656ccde2dec",
+        "files": 44,
+        "archiveBytes": 191747,
+        "fileSetModesAndBytesMatch": true,
+        "excludedRegenerableCacheAndOutputs": true
+      }
+    },
+    {
+      "name": "module-guards",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_module_view_guards.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-private-abi/ui-engine-report.json",
+        "normal",
+        "view"
+      ],
+      "exit": 0,
+      "seconds": 19.0,
+      "minimumWorkspaceBytes": 1126678528,
+      "peakMemoryBytes": 4306255872,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 4,
+      "logSha256": "1b7ccf9193d7cbe23e278783fef8b1af370ec4e7f8043db85b86e7f88942f2d5",
+      "fixtureEvidence": {
+        "archiveSha256": "8bac6f9d5f6b709b7088c5abc28f2df58e7cda0e2e7507b6de84a6ecfd7c809f",
+        "files": 49,
+        "archiveBytes": 18238,
+        "fileSetModesAndBytesMatch": true,
+        "excludedRegenerableCacheAndOutputs": true
+      }
+    },
+    {
+      "name": "enum",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_private_enum_api.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-private-abi/ui-engine-report.json",
+        "normal",
+        "source",
+        "switch-code"
+      ],
+      "exit": 0,
+      "seconds": 30.9,
+      "minimumWorkspaceBytes": 1126637568,
+      "peakMemoryBytes": 4353777664,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 2,
+      "logSha256": "6479ffe08073357d0ddaf463778c72ab2a710838497d3e4247b764ad0fa31011",
+      "fixtureEvidence": {
+        "archiveSha256": "3c2108bc9a108f1ea7686b13949a332b3a554a67e1fa987d1ab8479ac3abcda4",
+        "files": 85,
+        "archiveBytes": 33425,
+        "fileSetModesAndBytesMatch": true,
+        "excludedRegenerableCacheAndOutputs": true
+      }
+    },
+    {
+      "name": "projects",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-private-abi/ui-engine-report.json",
+        "projects",
+        "nested-source",
+        "nested-enum"
+      ],
+      "exit": 0,
+      "seconds": 244.7,
+      "minimumWorkspaceBytes": 1126572032,
+      "peakMemoryBytes": 5204602880,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 9,
+      "logSha256": "4d225d68f1f497898d471e224736a7e9391449a33654d9807fad2e47b47fb966",
+      "fixtureEvidence": {
+        "archiveSha256": "70c58986f696d8168d46936350c2fdcf84e50bac585666c0a25e3ee061846af1",
+        "files": 128,
+        "archiveBytes": 434165,
+        "fileSetModesAndBytesMatch": true,
+        "excludedRegenerableCacheAndOutputs": true
+      }
+    },
+    {
+      "name": "override",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_inherited_contract_guards.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-private-abi/ui-engine-report.json",
+        "normal"
+      ],
+      "exit": 0,
+      "seconds": 7.2,
+      "minimumWorkspaceBytes": 1126092800,
+      "peakMemoryBytes": 4355141632,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 3,
+      "logSha256": "c23aeb4a5c647a86dcfb5e51fe4b3695ed0959e20df35da72315fe5254e433b8",
+      "fixtureEvidence": {
+        "archiveSha256": "3ae360e099c795f52f88083d2e18e3ed4ff2a6b9150fc8b8c6d475073e5e4b6e",
+        "files": 74,
+        "archiveBytes": 25861,
+        "fileSetModesAndBytesMatch": true,
+        "excludedRegenerableCacheAndOutputs": true
+      }
+    },
+    {
+      "name": "view",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_general_private_abi_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-private-abi/ui-engine-report.json",
+        "normal",
+        "nested",
+        "view"
+      ],
+      "exit": 0,
+      "seconds": 92.4,
+      "minimumWorkspaceBytes": 1126035456,
+      "peakMemoryBytes": 5043142656,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 7,
+      "logSha256": "cba57005719f19a582518a4f8b0053ab8c803917c2ce8d118aca51f24fcc6557",
+      "fixtureEvidence": {
+        "archiveSha256": "f724f2d2ad316a8ee0ecdc8596bdc082f2c320a7e11d739ee44e1de45f65f405",
+        "files": 45,
+        "archiveBytes": 230178,
+        "fileSetModesAndBytesMatch": true,
+        "excludedRegenerableCacheAndOutputs": true
+      }
+    }
+  ],
+  "totalChecks": 62,
+  "resources": {
+    "resources": 74,
+    "changedEntries": [
+      "feature-authoring.js"
+    ],
+    "unchangedEntries": 73,
+    "allCanonicalBytesMatch": true,
+    "htmlAndCssUnchanged": true,
+    "reference": "196c605 repository v536 existing wrapper refresh control",
+    "layoutChanges": false
+  },
+  "nativeAndCliRelease": {
+    "warnings": 0,
+    "errors": 0
+  },
+  "initialFailuresRetainedAndExcludedFromPassCount": true,
+  "fixtureCorrections": [
+    "wait for completed Linux report before starting renderer",
+    "preserve original root out/return export nodes and routes",
+    "flush private navigation presentation before cold shutdown",
+    "activate an exposed original title bar, not a covered caption",
+    "read a saved private frame through its qualified graph identity",
+    "independent authoring uses the existing schema information boundary and typed-default metadata, not an object view or expanded permissions",
+    "use the existing desktop viewport test convention to keep original controls accessible"
+  ],
+  "actualWindows": false,
+  "actualMobile": false,
+  "libraryDelivered": false,
+  "existingDataDeleted": false,
+  "logsProfilesAndScreenshotsPreservedInScratch": true
+}

@@ -58,3 +58,7 @@ I5-1~5 지원 경로는 유지한다. I5-6 전체와 v536 전체 UI는 아직 �
 ## 기존 private 실행 enum 편집의 최소 단위
 
 [private enum 편집 검증](VALIDATION_V536_NESTED_COPY_ENUM.md)은 미확정/저장된 same-contract copy의 기존 ordinary switch 노드에서 enum·수동 C#/helpers를 같은 소유 후보/CAS로 연결하는 단위다. 공개 오버라이드 계약 변경과 독립 계약 복제는 제외한다. 연결된 case/primary ID·다른 frame/target·원문/정확한 값·부모/외부 원본을 보존한다. private callee ABI 갱신과 실제 기존 수용 기준의 다른 내부 조작, 고정 8/9행·I6/B2/A4~A6/M4/M11/M12·플랫폼/Library는 별도이며 7행 전체 완료로 세지 않는다. 확정된 검사 결과는 해당 검증 문서와 evidence JSON을 따른다.
+
+## private callee의 다음 연결 단위
+
+[미확정 copy private ABI](VALIDATION_V536_PRIVATE_CALLEE_ABI.md)는 기존 내부 호출의 ref→값 갱신을 원래 snapshot/명시 버튼/typed import 및 한 후보/CAS에 연결하는 최소 단위다. 공개 override 계약과 donor·부모·외부 원본은 유지한다. 저장된 copy private ABI와 다른 실제 기존 조작은 별도 수용 증거가 필요하며 이번 지원 범위나 고정 7행 전체 완료로 합산하지 않는다. 8/9행·I6/B2/A4~A6/M4/M11/M12 및 플랫폼/Library 잔여도 유지한다.
