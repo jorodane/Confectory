@@ -20,7 +20,38 @@ lock(state){
    if(members.Count>64)throw new ArgumentException("Atomic edit review group budget");var group=new System.Text.Json.Nodes.JsonArray(System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(System.Linq.Enumerable.OrderBy(members,id=>id,StringComparer.Ordinal),id=>(System.Text.Json.Nodes.JsonNode)System.Text.Json.Nodes.JsonValue.Create(id)!)));
    foreach(string id in members){var unit=candidate["units"]![id]??throw new InvalidOperationException("Atomic review member missing");unit["atomicEditGroup"]=group.DeepClone();proof[id]=new System.Text.Json.Nodes.JsonObject{["path"]=unit["path"]!.DeepClone(),["kind"]=unit["kind"]!.DeepClone(),["hash"]=Hash(unit["draft"]!.ToString())};}
   }
-  candidate["units"]![owner]!["slotSaveReceipt"]=new System.Text.Json.Nodes.JsonObject{["version"]=rows[0]?["kind"]?.ToString()=="owner-edit"?3:rows[0]?["declaration"] is null?1:2,["owner"]=owner,["uiSurface"]=rows[0]?["uiSurface"]?.DeepClone(),["declaration"]=rows[0]?["declaration"]?.DeepClone(),["priorOwner"]=rows[0]?["priorOwner"]?.DeepClone(),["intents"]=intents,["sources"]=proof};var history=candidate["history"]!;history["revision"]=history["revision"]!.GetValue<long>()+1;history["undo"]=new System.Text.Json.Nodes.JsonArray();history["redo"]=new System.Text.Json.Nodes.JsonArray();history["boundary"]="OWNERSHIP_CHANGED";
+  // Copy ABI proof includes exclusive assignments and read-only source identity.
+  // Keep those physical baselines through Review and the final file CAS. These
+  // are checks, never additional write targets or an all-target copy policy.
+  var readGuards=new System.Text.Json.Nodes.JsonObject();
+  var copyIds=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
+  var copyPaths=new System.Collections.Generic.Dictionary<string,string>(OperatingSystem.IsWindows()?StringComparer.OrdinalIgnoreCase:StringComparer.Ordinal);
+  string ownedRoot=System.IO.Path.GetFullPath(state["root"]!.ToString());
+  var pathComparison=OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal;
+  foreach(var change in rows[0]?["declaration"]?["changes"]?.AsArray()??new System.Text.Json.Nodes.JsonArray())
+   foreach(var copy in change?["mapping"]?["copies"]?.AsObject()??new System.Text.Json.Nodes.JsonObject()){
+    copyIds.Add(copy.Value!["implementation"]!.ToString());
+    foreach(var dependency in copy.Value["context"]!.AsArray()){
+     string path=System.IO.Path.GetFullPath(dependency!["path"]!.ToString());
+     if(path.StartsWith(ownedRoot+System.IO.Path.DirectorySeparatorChar,pathComparison)){string hash=dependency["hash"]!.ToString();if(copyPaths.TryGetValue(path,out string? prior)&&prior!=hash)throw new InvalidOperationException("Copy dependency changed during selection");copyPaths[path]=hash;}
+    }
+   }
+  void Guard(string relative,string baseline){
+   string path=System.IO.Path.GetFullPath(System.IO.Path.Combine(ownedRoot,relative));
+   if(System.IO.Path.IsPathRooted(relative)||!path.StartsWith(ownedRoot+System.IO.Path.DirectorySeparatorChar,pathComparison))throw new InvalidOperationException("Owned copy dependency required");
+   for(System.IO.FileSystemInfo? entry=new System.IO.FileInfo(path);entry is not null;entry=entry is System.IO.FileInfo file?file.Directory:((System.IO.DirectoryInfo)entry).Parent){if(entry.LinkTarget is not null)throw new InvalidOperationException("Copy dependency cannot traverse links");if(entry.FullName.Equals(ownedRoot,pathComparison))break;}
+   if(readGuards[relative] is not null&&readGuards[relative]!["hash"]!.ToString()!=baseline)throw new InvalidOperationException("Copy dependency baseline differs; all input retained");
+   readGuards[relative]=new System.Text.Json.Nodes.JsonObject{["path"]=relative,["hash"]=baseline};
+  }
+  if(copyIds.Count>0){
+   foreach(var entry in before.AsObject()){
+    var unit=entry.Value!;if(unit["draft"] is null)continue;string path=unit["path"]!.ToString();
+    if(unit["kind"]!.ToString() is "object" or "schema" or "project" or "pack"||System.Linq.Enumerable.Any(copyIds,id=>entry.Key==id||entry.Key.StartsWith(id+"/body:",StringComparison.Ordinal))||copyPaths.ContainsKey(System.IO.Path.GetFullPath(System.IO.Path.Combine(ownedRoot,path))))Guard(path,unit["baseline"]!.ToString());
+   }
+   foreach(var dependency in copyPaths){string path=dependency.Key,relative=System.IO.Path.GetRelativePath(ownedRoot,path);if(readGuards[relative] is not null)continue;if(new System.IO.FileInfo(path).Length>2097152)throw new ArgumentException("Copy dependency read budget");var observed=calls.Snapshot.Invoke(path);if(observed[0]!="exists"||Hash(observed[1])!=dependency.Value)throw new InvalidOperationException("Copy dependency changed; no candidate applied, all input retained");Guard(relative,observed[2]);}
+   if(proof.Count+readGuards.Count>240)throw new ArgumentException("Complete copy CAS budget; all input retained");
+  }
+  candidate["units"]![owner]!["slotSaveReceipt"]=new System.Text.Json.Nodes.JsonObject{["version"]=rows[0]?["kind"]?.ToString()=="owner-edit"?3:rows[0]?["declaration"] is null?1:2,["owner"]=owner,["uiSurface"]=rows[0]?["uiSurface"]?.DeepClone(),["declaration"]=rows[0]?["declaration"]?.DeepClone(),["priorOwner"]=rows[0]?["priorOwner"]?.DeepClone(),["intents"]=intents,["sources"]=proof,["readGuards"]=readGuards};var history=candidate["history"]!;history["revision"]=history["revision"]!.GetValue<long>()+1;history["undo"]=new System.Text.Json.Nodes.JsonArray();history["redo"]=new System.Text.Json.Nodes.JsonArray();history["boundary"]="OWNERSHIP_CHANGED";
   // Persist the complete candidate BEFORE any live mutation or success reply. Commit CAS protects the prior checkpoint/activity.
   string expected=rows[0]!["context"]?["checkpointHash"]?.ToString()??throw new InvalidOperationException("Read a fresh checkpoint-bound slot context");bool recovered=false;OriginalRawSources();try{calls.WriteChecked.Invoke(stagedHandle,expected);}catch(Exception writeFailure){bool identical;try{identical=calls.ReadSaved.Invoke(stagedHandle)==calls.Export.Invoke(stagedHandle);}catch(Exception verifyFailure){throw new AggregateException("Slot checkpoint outcome could not be verified; inputs retained",writeFailure,verifyFailure);}if(!identical)throw;recovered=true;}
   candidate["checkpointVersion"]=Hash(calls.Export.Invoke(stagedHandle));

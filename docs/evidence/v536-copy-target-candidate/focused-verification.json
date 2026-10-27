@@ -1,0 +1,305 @@
+{
+  "baseCommit": "0d0b382de5bc332e08b65aa7a59ef0e90b5a5140",
+  "scope": "Two distinct explicitly selected single-target common/windows copies; one directly owned information callee and manually edited caller bodies; no automatic all-target creation or override contract change",
+  "acceptanceFlows": 10,
+  "acceptanceUiFlows": 9,
+  "acceptanceUiChecks": 29,
+  "pureCandidateChecks": 2,
+  "coreChecks": 4,
+  "coreControlledDependencies": true,
+  "regressionFlows": 3,
+  "regressionChecks": {
+    "reg-csharp": 4,
+    "reg-abi": 5,
+    "reg-private": 10
+  },
+  "results": [
+    {
+      "name": "ownership",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_copy_targets_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-copy-target-closure/frozen-engine-report.json",
+        "ownership-cas"
+      ],
+      "exit": 0,
+      "seconds": 76.6,
+      "minimumWorkspaceBytes": 748179456,
+      "peakMemoryBytes": 7249494016,
+      "pendingCopy": false,
+      "copyImports": false
+    },
+    {
+      "name": "record",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_copy_targets_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-copy-target-closure/frozen-engine-report.json",
+        "record-cas"
+      ],
+      "exit": 0,
+      "seconds": 75.6,
+      "minimumWorkspaceBytes": 747978752,
+      "peakMemoryBytes": 7232663552,
+      "pendingCopy": false,
+      "copyImports": false
+    },
+    {
+      "name": "cancel",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_copy_targets_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-copy-target-closure/frozen-engine-report.json",
+        "cancel"
+      ],
+      "exit": 0,
+      "seconds": 50.3,
+      "minimumWorkspaceBytes": 747741184,
+      "peakMemoryBytes": 6714249216,
+      "pendingCopy": false,
+      "copyImports": false
+    },
+    {
+      "name": "conflict",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_copy_targets_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-copy-target-closure/frozen-engine-report.json",
+        "conflict"
+      ],
+      "exit": 0,
+      "seconds": 50.7,
+      "minimumWorkspaceBytes": 747573248,
+      "peakMemoryBytes": 6681620480,
+      "pendingCopy": false,
+      "copyImports": false
+    },
+    {
+      "name": "last",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_copy_targets_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-copy-target-closure/frozen-engine-report.json",
+        "last-invalid"
+      ],
+      "exit": 0,
+      "seconds": 96.6,
+      "minimumWorkspaceBytes": 747405312,
+      "peakMemoryBytes": 7279763456,
+      "pendingCopy": false,
+      "copyImports": false
+    },
+    {
+      "name": "storage",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_copy_targets_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-copy-target-closure/frozen-engine-report.json",
+        "storage-loss"
+      ],
+      "exit": 0,
+      "seconds": 106.1,
+      "minimumWorkspaceBytes": 747233280,
+      "peakMemoryBytes": 7252975616,
+      "pendingCopy": false,
+      "copyImports": false
+    },
+    {
+      "name": "normal",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_copy_targets_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-copy-target-closure/frozen-engine-report.json",
+        "normal"
+      ],
+      "exit": 0,
+      "seconds": 78.2,
+      "minimumWorkspaceBytes": 747057152,
+      "peakMemoryBytes": 7189630976,
+      "pendingCopy": false,
+      "copyImports": false
+    },
+    {
+      "name": "view",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_copy_targets_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-copy-target-closure/frozen-engine-report.json",
+        "normal",
+        "view"
+      ],
+      "exit": 0,
+      "seconds": 88.8,
+      "minimumWorkspaceBytes": 746881024,
+      "peakMemoryBytes": 7215517696,
+      "pendingCopy": false,
+      "copyImports": false
+    },
+    {
+      "name": "projects",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_copy_targets_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-copy-target-closure/frozen-engine-report.json",
+        "projects"
+      ],
+      "exit": 0,
+      "seconds": 92.6,
+      "minimumWorkspaceBytes": 746442752,
+      "peakMemoryBytes": 7215865856,
+      "pendingCopy": false,
+      "copyImports": false
+    },
+    {
+      "name": "native",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_copy_targets_native.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-copy-target-closure/frozen-engine-report.json",
+        "metadata"
+      ],
+      "exit": 0,
+      "seconds": 7.2,
+      "minimumWorkspaceBytes": 746209280,
+      "peakMemoryBytes": 6110748672,
+      "pendingCopy": false,
+      "copyImports": false
+    },
+    {
+      "name": "cas",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_copy_read_guards_core.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-copy-target-closure/frozen-engine-report.json"
+      ],
+      "exit": 0,
+      "seconds": 4.0,
+      "minimumWorkspaceBytes": 748351488,
+      "peakMemoryBytes": 5922324480,
+      "pendingCopy": false,
+      "copyImports": false
+    },
+    {
+      "name": "reg-csharp",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_context_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-copy-target-closure/frozen-engine-report.json",
+        "normal"
+      ],
+      "exit": 0,
+      "seconds": 103.9,
+      "minimumWorkspaceBytes": 746147840,
+      "peakMemoryBytes": 6824386560,
+      "pendingCopy": false,
+      "copyImports": false
+    },
+    {
+      "name": "reg-abi",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_general_multi_abi.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-copy-target-closure/frozen-engine-report.json",
+        "normal",
+        "registered",
+        "context"
+      ],
+      "exit": 0,
+      "seconds": 64.7,
+      "minimumWorkspaceBytes": 745656320,
+      "peakMemoryBytes": 6592679936,
+      "pendingCopy": false,
+      "copyImports": false
+    },
+    {
+      "name": "reg-private",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_saved_copy_abi.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-copy-target-closure/frozen-engine-report.json",
+        "nested",
+        "remap",
+        "closure",
+        "root-entry",
+        "registered"
+      ],
+      "exit": 0,
+      "seconds": 162.2,
+      "minimumWorkspaceBytes": 745426944,
+      "peakMemoryBytes": 6615232512,
+      "pendingCopy": false,
+      "copyImports": false
+    }
+  ],
+  "sourceSha256": {
+    "packs/save/ApplySlots.csbody": "3f6ad0a01189387d01b28850b292d23ddc517b7fdecf5a111e9ec16c4c0fa7d5",
+    "packs/edit-workspace/ValidateReviewSelection.csbody": "382f4def0cefb7d2f63d452824b220bd12b7115cb2b86edbb093f41c38584bf7",
+    "packs/change-set/ConfirmReviewed.csbody": "88353efbb2b1d9cd997ab170d830daaefe867eee1dc45e697fe2e8974ed3644e",
+    "tests/web/v536_copy_read_guards_core.py": "2e72ec4f02d9d737971c36b665d26bf1fad36cd61ba0f8473293f1266285a075",
+    "tests/web/v536_information_copy_targets_fixture.py": "dc89c57fdb9c2929d7d27c480a060f7546aac952c6a73c004462b169d646cc6d",
+    "tests/web/v536_information_copy_targets_native.py": "772b9825bd05882d43defd17670d1d805733a9c86c34fd0b72858569d5db0b9c",
+    "tests/web/v536_information_copy_targets_ui.py": "e6b4ae4d6c5ce28504d62e5d91bca93d949a6b1c77400ca485dfa6736eb8a7a4"
+  },
+  "originalLayoutUnchanged": true,
+  "actualWindows": false,
+  "actualMobile": false,
+  "libraryDelivered": false,
+  "projectRun": false,
+  "existingDataDeleted": false,
+  "workspaceAvailableBytes": 745000960,
+  "preflight": {
+    "base": "0d0b382de5bc332e08b65aa7a59ef0e90b5a5140",
+    "scope": "two explicitly selected single-target copies common/windows assigned to different owners; one callee edit candidate, never all-target cloning or override contract changes",
+    "workspaceAvailableBytes": 770621440,
+    "tmpAvailableBytes": 9187614720,
+    "workspaceBudgetBytes": 209715200,
+    "ramBudgetBytes": 805306368,
+    "existingFilesDeleted": false
+  },
+  "failuresBeforeCompletion": [
+    {
+      "phase": "acceptance/projects",
+      "kind": "fixture-startup-context",
+      "actual": "After switching back, the test restart still explicitly opened the second clean project, where Confirm is correctly disabled",
+      "correction": "restore the fixture startup project selection before cold restart; keep project input separation and retired callback checks"
+    },
+    {
+      "phase": "boundary/ownership",
+      "kind": "reproduced-product-defect",
+      "actual": "Confirm succeeded after second copy owner physically changed its provider",
+      "fixedBy": "persist original read-only dependencies in slot receipt, Review checks and final CommitPlan CAS"
+    },
+    {
+      "phase": "focused/cancel",
+      "kind": "test-expectation",
+      "actual": "A local draft cancel does not issue browserDrafts discard",
+      "correction": "retain exact CP/input/original assertions and wait for actual local UI to settle"
+    },
+    {
+      "phase": "final/ownership",
+      "kind": "test-expectation",
+      "actual": "Guard must retain old baseline, not the deliberately changed peer hash",
+      "correction": "capture immutable guard baselines independently of current peer preservation snapshot"
+    },
+    {
+      "phase": "confirm-diagnosis/normal",
+      "kind": "fixture-provider",
+      "actual": "Nonexistent Confectory.Build.DotNet::Windows target caused compiler rejection",
+      "correction": "explicit windows fixture target selects existing Portable compiler provider"
+    }
+  ]
+}

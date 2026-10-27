@@ -20,6 +20,12 @@ try
  // Read-only owned target/manifest/record dependencies participate in the same
  // final file CAS as the changed caller and graphs; they are never rewritten.
  var guardedPaths=new System.Collections.Generic.HashSet<string>(paths,OperatingSystem.IsWindows()?StringComparer.OrdinalIgnoreCase:StringComparer.Ordinal);foreach(var check in checks)guardedPaths.Add(check!["path"]!.ToString());foreach(string id in selected)if(draftState?["units"]?[id]?["rootAbiContracts"] is not null)foreach(var member in draftState["units"]![id]!["rootContractGroup"]!.AsArray()){var unit=draftState["units"]![member!.ToString()]!;string path=unit["path"]!.ToString();if(guardedPaths.Add(path))checks.Add(new System.Text.Json.Nodes.JsonObject{["path"]=path,["hash"]=unit["baseline"]!.DeepClone()});}
+ // Recheck saved copy assignment/provenance reads under the same source lease
+ // as every write, closing the gap after compiler validation and Review.
+ foreach(string id in selected)if(draftState?["units"]?[id]?["atomicEditGroup"] is not null)
+  foreach(var guard in draftState["units"]![id]?["slotSaveReceipt"]?["readGuards"]?.AsObject()??new System.Text.Json.Nodes.JsonObject()){
+   string path=guard.Value!["path"]!.ToString();if(guardedPaths.Add(path))checks.Add(guard.Value.DeepClone());
+  }
  var result=checks.Count>0?calls.CommitPlan.Invoke(root,new System.Text.Json.Nodes.JsonObject{["writes"]=writes,["checks"]=checks}.ToJsonString()):calls.Commit.Invoke(root,paths,hashes,texts);if(result[0]!="applied")return result;committed=true;calls.Accept.Invoke(handle,accepted);calls.Acknowledge.Invoke(handle,accepted);return new[]{"confirmed"};
 }
 catch(Exception error){return new[]{committed?"confirmed-with-warning":"invalid",error.Message};}
