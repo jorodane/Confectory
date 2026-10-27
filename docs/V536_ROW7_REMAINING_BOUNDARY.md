@@ -81,3 +81,5 @@ Library 전달 및 전체 UI 완료는 이번 단위의 결과가 아니다.
 ## 저장 copy의 등록 callee 복수 use
 
 최신 [등록 receipt closure 검증](VALIDATION_V536_REGISTERED_CALL_CLOSURE.md)을 우선한다. 기존 direct-dependency 읽기 전용 선언/receipt와 전체 ordinary-use 후보를 Root/private 진입·한 후보/CAS에 결합한다. 다중 target source/등록 receipt 그룹, 새 immutable 초안의 등록 복수 use 및 별도 frame 계약/본문/opaque closure는 실제 잔여로 구별한다.
+
+독립 checkout·교차 패키지 결과는 최신 closure 검증/evidence를 따른다. 실제 Windows/mobile/Library 전달은 별도 미완료다.
