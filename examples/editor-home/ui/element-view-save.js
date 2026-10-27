@@ -1,4 +1,4 @@
-import {mixedCellMatches,receiptFieldProof} from './mixed-declaration.js';
+import {mixedCellMatches,receiptFieldProof,rebaseMixedCell} from './mixed-declaration.js';
 
 // Each detached properties surface keeps its own intent. The server binds the
 // existing view slot and owner; this adapter never edits or cancels a peer view.
@@ -10,7 +10,7 @@ export function createElementViewSave(api){
  async function persist(){api.persist();await api.flush();}
  async function settle(journal,alive){validate(journal);const request={action:'settledSlots',id:api.owner,rows:[],declaration:journal.mixed.request,fingerprint:journal.fingerprint,sourceFingerprint:journal.sourceFingerprint};const result=await rpc('blueprint',request,alive);if(!result.settled)return result;await rpc('schema',{id:api.owner},alive);const schema=api.current.schema;if(schema?.id!==api.owner||!(await rpc('blueprint',request,alive)).settled)throw Error('저장 결과를 확인하는 동안 소스가 바뀌었습니다. 입력은 유지됩니다.');
   for(const [k,v] of journal.mixed.cells)if(same(api.inputs.get(k),v))api.inputs.delete(k);
-  const start=journal.scope+'|'+api.owner+'|element|';for(const [k,v] of api.inputs){if(!k.startsWith(start)||v.hash!==journal.mixed.request.hash)continue;const i=journal.mixed.cells.findIndex(([captured])=>captured===k),proof=receiptFieldProof(v,journal.mixed.request.changes[i],schema);if(proof)api.inputs.set(k,{...v,hash:schema.textHash,revision:schema.revision,...proof.inputPatch,copySavedBasis:proof});}
+  const start=journal.scope+'|'+api.owner+'|element|';for(const [k,v] of api.inputs){if(!k.startsWith(start)||v.hash!==journal.mixed.request.hash)continue;const i=journal.mixed.cells.findIndex(([captured])=>captured===k),proof=receiptFieldProof(v,journal.mixed.request.changes[i],schema);if(proof)rebaseMixedCell(api.inputs,start,k,v,proof,schema);}
   if(api.journals.get(key())===journal||sameWithoutBasis(api.journals.get(key()),journal))api.journals.delete(key());await persist();return {settled:true};
  }
  function sameWithoutBasis(a,b){const canonical=v=>v&&Object.fromEntries(Object.keys(v).filter(k=>k!=='basis').sort().map(k=>[k,v[k]]));return same(canonical(a),canonical(b));}
