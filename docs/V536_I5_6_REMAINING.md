@@ -84,3 +84,5 @@ I5-1~5 지원 경로는 유지한다. I5-6 전체와 v536 전체 UI는 아직 �
 새 immutable copy의 프로젝트 소유 callee 복수 use 어댑터는 [새 copy closure 검증](VALIDATION_V536_PENDING_CALL_CLOSURE.md)을 따른다. 공개 override 계약은 유지한다. 등록/all-target·별도 frame 계약/본문/opaque closure 및 8/9행의 기존 잔여를 변환 조합별 새 작업으로 확대하지 않는다.
 
 저장 copy의 Root 카드 직접 진입은 [Root closure 검증](VALIDATION_V536_ROOT_CALL_CLOSURE.md)을 따른다. 등록/all-target 및 별도 frame 계약/본문/opaque closure는 기존 7/8행·A4–A6의 같은 잔여로만 관리한다. 공개 override 계약 변경과 독립 계약 복제는 추가하지 않는다.
+
+등록 direct-dependency callee의 저장 copy 복수 use는 [등록 receipt closure 검증](VALIDATION_V536_REGISTERED_CALL_CLOSURE.md)을 따른다. 외부 선언은 읽기 전용 값/receipt이며 owned unit이 아니다. 다중 target·새 초안 등록 복수 use·별도 frame 계약/본문/opaque closure는 기존 7/8행·A4–A6의 같은 잔여로 관리한다.

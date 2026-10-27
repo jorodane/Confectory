@@ -21,10 +21,10 @@ items={
  'B':('object','object '+n+'B {module '+n+'Rules;provide '+n+'Calc with '+n+'Other;}')}
 if is_view:items['A']=('schema',items['A'][1].replace('object ','schema ',1))
 assert not closure or nested and general
-registered='registered' in sys.argv[3:];assert not general or nested and not registered;callee='Lib::Native' if registered else n+'Native';callee_text=items['Native'][1].replace(n+'Native','Lib::Native') if registered else items['Native'][1]
+registered='registered' in sys.argv[3:];assert not general or nested;callee='Lib::Native' if registered else n+'Native';callee_text=items['Native'][1].replace(n+'Native','Lib::Native') if registered else items['Native'][1]
 lib=case/'Lib'
 if registered:
- lib.mkdir();(lib/'Native.celem').write_text(callee_text.replace('(ref long','(long'));(lib/'NativeBody.celem').write_text('implementation Lib::NativeBody for Lib::Native (long amount) -> long {body common \"Native.csbody\";}');(lib/'Native.csbody').write_text('return amount+3;');(lib/'pack.cpack').write_text('pack Lib version \"1\" {element Native function \"Native.celem\";element NativeBody implementation \"NativeBody.celem\";}')
+ lib.mkdir();registered_signature='(int step,double renamed,out long total) -> bool' if general else '(long amount) -> long';(lib/'Native.celem').write_text(callee_text.replace('(ref long amount) -> long',registered_signature));(lib/'NativeBody.celem').write_text('implementation Lib::NativeBody for Lib::Native '+registered_signature+' {body common "Native.csbody";}');(lib/'Native.csbody').write_text('total=checked((long)renamed);return step>0;' if general else 'return amount+3;');(lib/'pack.cpack').write_text('pack Lib version \"1\" {element Native function \"Native.celem\";element NativeBody implementation \"NativeBody.celem\";}')
 prepared=metadata('blueprintPrepareFeature',id=n+'Calc',text='function '+n+'Calc (long amount) -> long {}',implementation=n+'Copy',graphPath='Copy.graph.json',nodePath='Copy.node.json')
 defs=metadata('featureBlueprintNodes',featureSource=items['Calc'][1],graph=prepared['graph'])
 record={'schema':1,'node':'body','definitionHash':defs['nodes'][0]['definitionHash'],'source':'return amount;'}
@@ -240,6 +240,8 @@ try:
    unchanged()
    checked('기존 내부 계약 갱신의 명시 대응 취소·불완전 값·cold 복원은 입력과 원문을 보존한다')
   held=pending();assert len(held)==1;plan=json.loads(held[0][1]['text']);assert not closure or plan['abi']['useGroup']==row['callAbiUseGroupBinding'] and set(plan['abi']['usePlans'])==({'native','frame/native','other/native'} if root_entry else {'frame/native','other/native'});assert plan['abi']['copyBinding']==row['copyAbiBinding'];assert not general or plan['abi']['remap']==explicit_remap;unchanged();page.screenshot(path=str(case/'copy-abi-explicit-refresh.png'));checked('명시적 갱신은 복사 소유자·target·출처와 원본 callee hash를 함께 초안에 고정하고 파일은 쓰지 않는다')
+  if registered:
+   assert plan['abi']['receipt']['id']==callee and row['callAbiReceipt']==plan['abi']['receipt'];assert row['copyAbiBinding']['provenance']==provenance;assert not closure or plan['abi']['useGroup']['feature']==callee;unchanged()
   if 'peer-input' in sys.argv[3:]:
    checkpoint=next(project.glob('.confectory/edit-workspaces/*/draft.json'));before=checkpoint.read_bytes();author.locator('.bp-breadcrumbs button').first.click();expect(author.locator('[data-bp-node=body]')).to_be_visible();author.locator('[data-bp-overview-node=body]').click();author.locator('[data-bp-node=body] [data-inline-description]').fill('다른 frame의 보존할 입력');author.locator('[data-bp-overview-node=frame]').click();author.locator('[data-bp-node=frame] [data-function-write-direct]').click();expect(author.locator('[data-bp-node=native]')).to_be_visible();all_held=pending();assert any(v.get('type')=='intent' and v['text']=='다른 frame의 보존할 입력' for _,v in all_held);author.locator('[data-bp-save]').click();expect(page.get_by_role('status').last).to_contain_text('같은 구현의 이전 입력',timeout=30000);assert checkpoint.read_bytes()==before and dict(pending())==dict(all_held);unchanged();page.close();stop();start(1);page=setup(browser);author=page.locator('.window[data-key=blueprint]');expect(author.locator('[data-bp-node=native]')).to_be_visible();assert dict(pending())==dict(all_held) and checkpoint.read_bytes()==before;unchanged();checked('다른 frame의 별도 입력이 있으면 ABI 저장을 전체 차단하고 두 문맥의 원문/계획을 cold 복원에서도 보존한다');browser.close();print(json.dumps({'checks':checks,'evidence':str(case)},ensure_ascii=False));sys.exit(0)
   if 'source-change' in sys.argv[3:]:
@@ -249,6 +251,13 @@ try:
     if refused:break
     page.wait_for_timeout(20)
    assert refused and checkpoint.read_bytes()==before;assert all(dict(pending()).get(k)==v for k,v in held);unchanged();page.close();stop();start(1);page=setup(browser);author=page.locator('.window[data-key=blueprint]');expect(author.locator('[data-bp-node=native]')).to_be_visible();assert all(dict(pending()).get(k)==v for k,v in held);assert checkpoint.read_bytes()==before;unchanged();checked('실제 Root body source 변경은 같은 callee 계획이라도 전체 미적용하고 peer 원문·CP·원래 입력을 재시작에도 보존한다');browser.close();print(json.dumps({'checks':checks,'evidence':str(case)},ensure_ascii=False));sys.exit(0)
+  if 'registry-conflict' in sys.argv[3:]:
+   assert registered;checkpoint=next(project.glob('.confectory/edit-workspaces/*/draft.json'));before=checkpoint.read_bytes();base=batch(read_copy(),plan);manifest=lib/'pack.cpack';manifest.write_text(manifest.read_text()+'\n');foreign_original={p:p.read_bytes() for p in lib.iterdir()};mark=len(traffic);author.locator('[data-bp-save]').click()
+   for _ in range(1800):
+    requests=[r for r in traffic[mark:] if r['endpoint']=='blueprint' and r.get('input',{}).get('action')=='authorBatch'];bad=[results[r['requestId']] for r in requests if r['requestId'] in results and not results[r['requestId']].get('ok') and results[r['requestId']].get('error',{}).get('code')!='stale_revision']
+    if bad:break
+    page.wait_for_timeout(20)
+   assert bad;idle();assert checkpoint.read_bytes()==before;assert all(dict(pending()).get(k)==v for k,v in held);unchanged();settled=call('blueprint',{**base,'action':'settledAuthorBatch'});assert not settled['settled'] and not settled['baselineUnchanged'];page.close();stop();start(1);page=setup(browser);author=page.locator('.window[data-key=blueprint]');expect(author.locator('[data-bp-node=native]')).to_be_visible();pending();assert all(dict(pending()).get(k)==v for k,v in held);assert checkpoint.read_bytes()==before;unchanged();checked('등록 manifest만 바뀌어도 receipt가 전체 저장과 실패 기준 승격을 차단하고 외부 원문·원래 계획·CP를 cold에 보존한다');browser.close();print(json.dumps({'checks':checks,'evidence':str(case)},ensure_ascii=False));sys.exit(0)
   if 'cancel' in sys.argv[3:]:
    author.locator('.bp-viewport').focus();page.keyboard.press('Control+z');assert pending()==[];unchanged();assert next(v for v in read_copy()['nodes'] if v['id']=='native')['signature']['args'][0].get('mode')=='ref';page.close();stop();start(1);page=setup(browser);author=page.locator('.window[data-key=blueprint]');expect(author.locator('[data-bp-save]')).to_be_enabled();assert not pending();assert next(v for v in read_copy()['nodes'] if v['id']=='native')['signature']['args'][0].get('mode')=='ref';unchanged();checked('명시적 갱신 Undo는 복사 ABI 입력만 취소하고 cold 재시작에서도 원본 계약·소스·다른 객체를 보존한다');assert not errors,errors;browser.close();print(json.dumps({'checks':checks,'evidence':str(case)},ensure_ascii=False));sys.exit(0)
   if 'storage' in sys.argv[3:]:
@@ -290,7 +299,7 @@ try:
    author.locator('.bp-viewport').focus();page.keyboard.press('Control+z');corrected=True;author.locator('[data-wrapper-refresh]').click();choose().locator('[data-abi-remap-accept]').click();held=pending();plan=json.loads(next(v['text'] for _,v in held if v.get('type')=='wrapper'));assert plan['abi']['usePlans']['other/native']['remap']['outputs']['return']=='total';assert next(v for _,v in held if v.get('kind')=='author-attempt')==old_attempt;assert checkpoint.read_bytes()==before_rejection;unchanged();checked('마지막 호출 거절 후 실제 Undo와 새 명시 대응은 미적용 기록·원래 기준을 보존하며 올바른 전체 후보로 재시도한다')
   # Client cannot downgrade to legacy action or forge copy evidence.
   base=batch(read_copy(),plan)
-  mutations=['legacy','no-binding','target','donor','no-owner','mixed']+(['private-path','private-graph'] if nested else [])+(['unmapped-output','incompatible-output','missing-input'] if general else [])+(['missing-use','unknown-use','wrong-use-path','stale-use-group','bad-last-output'] if closure else [])
+  mutations=['legacy','no-binding','target','donor','no-owner','mixed']+(['private-path','private-graph'] if nested else [])+(['unmapped-output','incompatible-output','missing-input'] if general else [])+(['missing-use','unknown-use','wrong-use-path','stale-use-group','bad-last-output'] if closure else [])+(['no-receipt','manifest-receipt','text-receipt','receipt-id'] if registered else [])
   for mutation in mutations:
    b=__import__('copy').deepcopy(base);b['attempt']=uuid.uuid4().hex;checkpoint=next(project.glob('.confectory/edit-workspaces/*/draft.json'));checkpoint_bytes=checkpoint.read_bytes()
    if mutation=='legacy':b['edits'][0]['action']='rebindCallAbi'
@@ -307,6 +316,10 @@ try:
    elif mutation=='stale-use-group':b['edits'][0]['definition']['abi']['useGroup']['graphHash']='0'*64
    elif mutation=='bad-last-output':b['edits'][0]['definition']['abi']['usePlans']['other/native']['remap']['outputs']['return']='return'
 
+   elif mutation=='no-receipt':del b['edits'][0]['definition']['abi']['receipt']
+   elif mutation=='manifest-receipt':b['edits'][0]['definition']['abi']['receipt']['manifestHash']='0'*64
+   elif mutation=='text-receipt':b['edits'][0]['definition']['abi']['receipt']['textHash']='0'*64
+   elif mutation=='receipt-id':b['edits'][0]['definition']['abi']['receipt']['id']=n+'Native'
    elif mutation=='private-path':b['edits'][0]['definition']['abi']['copyBinding']['privatePath']='other'
    elif mutation=='private-graph':b['edits'][0]['definition']['abi']['copyBinding']['privateGraph']=n+'Copy/body:common/graph:other'
    else:b['edits'].append({'action':'intent','node':'native','text':'not silently mixed'})
