@@ -69,3 +69,5 @@ Library 전달 및 전체 UI 완료는 이번 단위의 결과가 아니다.
 ## 새 immutable copy의 복수 호출 어댑터
 
 최신 [새 copy 검증](VALIDATION_V536_PENDING_CALL_CLOSURE.md)의 범위를 우선한다. 프로젝트 소유 callee의 기존 ordinary wrapped use들을 원래 snapshot/현재 계약의 별도 식별성과 호출별 명시 대응으로 결합한다. 저장 copy의 완료 단위와 구별하며 등록/all-target receipt·저장 Root 직접 진입·다른 frame 계약/본문/opaque closure는 실제 잔여로 유지한다.
+
+독립 checkout·교차 패키지 결과는 최신 closure 검증/evidence를 따른다. 실제 Windows/mobile/Library 전달은 별도 미완료다.

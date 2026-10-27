@@ -30,3 +30,11 @@
 ## 확정 집중 검사
 
 최종 제품의 실제 엔진/렌더러 10흐름 72확인과 순수 closure7확인이 통과했다. 기본/독립 창의 취소·cold·C# compiler Confirm, 누락/위조/마지막 비호환 대응의 전체 미적용, 쓰기 실패·물리 source/CP 충돌·응답 유실·Undo 후 새 대응 재시도 및 원래 snapshot·별도 본문·owner 정확한 값과 늦은 입력 보존을 확인했다. 새-copy 단일 호출과 저장 copy의 기존 지원도 회귀로 지켰다. 독립 checkout/새 패키지는 별도 후속 evidence다.
+
+## 독립 checkout·새 교차 패키지
+
+소스 커밋 `38a9904320e508b4962e2ae61be19c7361a93ace`의 변경7개 Git blob과 기존 autocrlf/clean을 확인했다. Native/CLI Release·Linux 엔진 및 독립 UI2흐름15확인·closure 순수7확인이 통과했다. 새 RAM Windows x64 교차 패키지의 restore·Release·MCP·생성·probe·패키지 자체 독립 창 UI9확인까지 6단계가 통과했다. 전체 2348개/manifest 2347개 목록·SHA·Core/Native DLL 및 소스 바이트를 확인했다.
+
+manifest SHA `844dea9d00707ca6dae58aa1797f359c573a5e9b0f5c9c08b61bf274ddc10a5c`, Native DLL `def557ae968ed4044fa771dea4355262f46e16807e03aa11573b040fab840a01`다. 전체 manifest·fixture/로그/프로필 증거를 보관한 후 이번 임시 패키지만 정리했다. 보관 패키지/SDK/원본/기존 자료는 그대로다. 다운로드 가능한 새 보관 패키지나 Library 전달이 아니며 실제 Windows apphost/WebView2·모바일 기기는 미검증이다. 후속 최종 커밋은 문서/evidence만 바뀌므로 실행 소스는 이 소스 커밋과 같다.
+
+초기 CLI 환경 지정 누락·fixture 실행선 오류·조회 상수 형태 검사 오류도 각각 scratch 로그에 보존했다. 기존 승인 CLI 환경과 정확한 fixture/조회 기대값으로 수정 후 재검증했다. 첫 시도나 진단 실패를 통과 수에 합산하지 않는다.
