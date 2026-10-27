@@ -48,3 +48,7 @@ Save는 초안 보관이다. 물리 원본 반영과 컴파일은 기존 명시 
 실행 소스 커밋 `20348bdd316501e582c179b43677f0a6271c7004`의 변경 Git blob·기존 autocrlf·clean을 확인했다. 기존 독립 checkout에서 Native/CLI Release·새 Linux 엔진, 두 private frame의 독립 정보 창 6확인 및 생산 final CAS 4확인이 통과했다. 새 RAM Windows x64 교차 패키지는 restore·Release·MCP·생성·probe·패키지 자체 두 frame UI 6확인까지 6단계를 통과했다. 전체 2349개/manifest 2348개 목록·SHA·Core/Native DLL과 변경 제품 소스 바이트를 확인했다.
 
 manifest SHA `fc50d5e4e429348efaaef2982769d4d4d523869182b1aedd8d7fac33aba0939f`. 전체 manifest와 fixture/로그/프로필 증거 보관 뒤 이번 실행의 임시 패키지만 정리했고 기존 보관 패키지/SDK/원본/사용자 자료는 삭제하지 않았다. 최종 후속 커밋은 문서/evidence만 달라 실행 코드는 위 소스 커밋과 같다. 실제 Windows apphost/WebView2·모바일 기기/터치·Library 전달 및 전체 UI는 계속 미완료다.
+
+## 후속 wrapper 영향 후보
+
+[wrapper와 다른 frame 결합 수용](VALIDATION_V536_COPY_WRAPPER_FRAME_SAVE.md)에서 기존 wrapper 명시 갱신과 ordinary 설명/수동 본문을 같은 후보로 연결했다. 이 문서의 당시 wrapper 결합 잔여는 그 지원 범위만 해제한다. 실제 forwarded 부모/본문·opaque/import 및 다른 pin/복합 계획은 후속 표의 기존 영향 후보/안전 경계로 구별하며 가능한 조합별 새 필수 작업으로 늘리지 않는다. 기존 Root ordinary 검사와 실행 커밋 기록은 보존한다.
