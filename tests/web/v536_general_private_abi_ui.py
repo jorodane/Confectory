@@ -98,7 +98,7 @@ def metadata(operation,**request):
 # remains a separate untouched source body; only common is explicitly chosen.
 native='function '+n+'Native (ref long input) -> long {provide '+n+'Native with '+n+'NativeBody;}'
 (project/'Native.celem').write_text(native);(project/'NativeBody.celem').write_text('implementation '+n+'NativeBody for '+n+'Native (ref long input) -> long {body common "Native.csbody";}');(project/'Native.csbody').write_text('return input+3;');manifest=project/'project.cproj';manifest.write_text(manifest.read_text().replace('registry Confectory.Build.DotNet','element Native function "Native.celem";element NativeBody implementation "NativeBody.celem";registry Confectory.Build.DotNet'))
-registered=len(sys.argv)>3 and sys.argv[3]=='registered-callee';callee='Lib::Native' if registered else n+'Native';lib=case/'Lib';foreign_original={}
+registered=len(sys.argv)>3 and (sys.argv[3]=='registered-callee' or 'registered' in sys.argv[4:]);callee='Lib::Native' if registered else n+'Native';lib=case/'Lib';foreign_original={}
 if registered:
  lib.mkdir();native=native.replace(n+'Native',callee);(lib/'Native.celem').write_text(native);(lib/'NativeBody.celem').write_text('implementation Lib::NativeBody for Lib::Native (ref long input) -> long {body common "Native.csbody";}');(lib/'Native.csbody').write_text('return input+3;');(lib/'pack.cpack').write_text('pack Lib version "1" {element Native function "Native.celem";element NativeBody implementation "NativeBody.celem";}');manifest.write_text(manifest.read_text().replace('registry Confectory.Build.DotNet','registry Lib "../Lib/pack.cpack";dependency Lib version "1";registry Confectory.Build.DotNet'));foreign_original={p:p.read_bytes() for p in lib.iterdir()}
 fn='function '+n+'Slot (long amount,out long slotCount,out bool slotReady) -> long {}';initial=metadata('blueprintPrepareFeature',id=n+'Slot',text=fn,implementation=n+'SlotBody',graphPath='Slot.graph.json',nodePath='Slot.node.json');initial['implementation']=initial['implementation'].replace('{','{\nimport '+n+'Donor as Gift (long,out long,out bool) -> long in '+n+'Unit;\n',1).replace('\n}\n','\nbody windows "SlotWindows.csbody";\n}\n')
@@ -201,10 +201,12 @@ def boundaries(mode,held,checkpoint,immutable):
    rejected_save();assert checkpoint.read_bytes()==before;retained(held);no_membership();assert json.dumps(seed_snapshot()[2],sort_keys=True)==immutable;checked('실제 체크포인트 쓰기 거절은 새 copy/import/ABI/owner 값을 모두 미적용하고 원래 seed와 입력을 보존한다');restart(2);retained(held);assert checkpoint.read_bytes()==before;no_membership();assert json.dumps(seed_snapshot()[2],sort_keys=True)==immutable;checked('저장 실패 뒤 cold 복원은 원래 private 기준과 모든 입력을 유지하며 자동 재기준화하지 않는다')
   finally:checkpoint.chmod(0o600)
   save_owner();assert not json.loads(checkpoint.read_text()).get('privateCopies');originals();checked('같은 입력의 다음 명시적 재시도는 한 번만 전체 수용하며 원래 donor/부모/다른 target을 유지한다');finish_boundary()
- if mode in ['callee-conflict','owner-conflict']:
-  if mode=='callee-conflict':
+ if mode in ['callee-conflict','owner-conflict','registry-conflict']:
+  if mode in ['callee-conflict','registry-conflict']:
    # A real file change after explicit review. Do not invent a compatible new plan.
-   native=project/'Native.celem';native.write_text(native.read_text().replace('{','{description \"갱신 뒤 바뀐 실제 호출 계약 문서\";',1));original[str(native.relative_to(project))]=native.read_bytes()
+   native=(lib/'pack.cpack' if mode=='registry-conflict' else (lib if registered else project)/'Native.celem');native.write_bytes(native.read_bytes()+b' ' if mode=='registry-conflict' else native.read_text().replace('{','{description "갱신 뒤 바뀐 실제 호출 계약 문서";',1).encode())
+   if registered:foreign_original[native]=native.read_bytes()
+   else:original[str(native.relative_to(project))]=native.read_bytes()
   else:
    invoke('schema',{'id':id});d=schema_state();invoke('editDescription',{'id':id,'revision':d['revision'],'hash':d['textHash'],'value':'다른 편집자의 저장'});invoke('saveDraft',{})
   before=checkpoint.read_bytes();rejected_save();retained(held);no_membership();assert checkpoint.read_bytes()==before;assert json.dumps(seed_snapshot()[2],sort_keys=True)==immutable;checked('명시적 갱신 뒤 실제 '+mode+' 변경은 전체 거절하고 peer 저장·원래 snapshot·모든 private 입력을 보존한다');restart(2);retained(held);assert checkpoint.read_bytes()==before;assert json.dumps(seed_snapshot()[2],sort_keys=True)==immutable;originals();checked('실제 충돌 뒤 재시작해도 낡은 계획을 새 기준으로 승격하거나 copy를 부분 생성하지 않는다');finish_boundary()
@@ -273,6 +275,8 @@ try:
  save_owner();d=schema_state();new=next(v['implementation'] for v in d['providers'] if v['function']==n+'Slot' and v['origin']==id);result=invoke('blueprint',{'action':'read','id':new+'/body:common','owner':id,'ownerHash':d['textHash'],**view_basis()})['result']['result'];assert next(v for v in result['nodes'] if v['id']=='body')['source']=='slotCount=amount+5;slotReady=true;return amount+70;';private=invoke('blueprint',{'action':'read','id':new+'/body:common/graph:frame','owner':id,'ownerHash':d['textHash'],**view_basis()})['result']['result'] if nested else result;assert not next(v for v in private['nodes'] if v['id']=='native')['signature']['args'][0].get('mode');
  if closure:
   other=invoke('blueprint',{'action':'read','id':new+'/body:common/graph:other','owner':id,'ownerHash':d['textHash'],**view_basis()})['result']['result'];leaf=next(v for v in other['nodes'] if v['id']=='native');assert json.loads(next(v['valueJson'] for v in leaf['arguments'] if v['name']=='step'))=={'constant':5} and not leaf['postCallStale'];assert json.loads(next(v['valueJson'] for v in next(v for v in private['nodes'] if v['id']=='native')['arguments'] if v['name']=='step'))=={'constant':3};assert other['locals'][0]['initialJson']=='9223372036854775806';checked('새 copy의 두 frame 갱신과 공유 import는 전체 저장되며 같은 local ID의 직접 값3/5와 정확한 int64를 구별한다')
+ if registered and closure:
+  saved_copy=next(v for v in json.loads(checkpoint.read_text())['changes'] if v['id']==new);assert saved_copy['privateAbiContracts']['receipts'][callee]==plan['abi']['receipt'];assert saved_copy['privateAbiContracts']['owner']==id;assert all(not v['id'].startswith('Lib::') for v in json.loads(checkpoint.read_text())['changes'])
  if is_view:assert state()['draft']['text']==primary_text and not pending()['views'];checked('독립 정보 창의 복사 갱신·저장은 primary 프로젝트 문맥과 원문을 변경하지 않는다')
  if nested:
   assert private['locals'][0]['initialJson']=='9223372036854775806';assert private['edges']==seed['snapshot']['graph']['nodes'][0]['graph']['edges'];assert private['nodes'][0]['postCall']['source']==seed['snapshot']['graph']['nodes'][0]['graph']['nodes'][0]['postCall']['source']
@@ -282,6 +286,17 @@ try:
  if review.locator('[data-review-advanced]').count():
   review.locator('[data-review-advanced]').click()
   if review.locator('[data-advanced-reviewed]').count():review.locator('[data-advanced-reviewed]').check()
+ if sys.argv[3] in ['registry-confirm','destination-confirm']:
+  before_confirm=checkpoint.read_bytes();peer=None
+  if sys.argv[3]=='registry-confirm':pack=lib/'pack.cpack';pack.write_bytes(pack.read_bytes()+b' ');foreign_original[pack]=pack.read_bytes()
+  else:
+   item=next(v for v in json.loads(checkpoint.read_text())['changes'] if v['id']==new);peer=project/item['path'];assert not peer.exists();peer.parent.mkdir(parents=True,exist_ok=True);peer.write_text('fixture peer destination: preserve this source')
+  mark=len(traffic);review.locator('#confirm').click()
+  for _ in range(6000):
+   ids={v['invoke']['requestId'] for v in traffic[mark:] if v.get('invoke',{}).get('endpoint')=='confirmGroup'};out=[v['result'] for v in traffic[mark:] if v.get('result',{}).get('requestId') in ids]
+   if out:break
+   page.wait_for_timeout(20)
+  assert out and out[-1]['result']['sourceConfirmed'] is False,{'result':out,'logs':state().get('logs')};assert checkpoint.read_bytes()==before_confirm;originals();assert peer is None or peer.read_text()=='fixture peer destination: preserve this source';restart(5);assert checkpoint.read_bytes()==before_confirm;originals();checked('새 copy 혼합 저장 뒤 검토한 등록 manifest 변경은 Confirm 전체를 거절하고 cold에 저장 후보/원본을 보존한다');finish_boundary()
  review.locator('#confirm').click();expect(review).to_have_count(0,timeout=120000);idle();changed={k for k,v in original.items() if (project/k).read_bytes()!=v};assert changed=={('FreeInfo.celem' if is_view else 'Slime.celem'),'project.cproj'},changed;checked('실제 compiler Confirm은 새 copy/owner/등록만 반영하며 현재 donor·부모·Windows target bytes를 보존한다');assert not errors and not external,(errors,external);browser.close();p.stop()
 except Exception:
  evidence={'checks':checks,'errors':errors,'traffic':traffic[-25:]}

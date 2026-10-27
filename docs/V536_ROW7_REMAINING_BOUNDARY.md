@@ -1,5 +1,7 @@
 # 7행 원래 조작과 남은 경계
 
+새 copy 등록 복수 use의 최신 결과는 [새 등록 closure 검증](VALIDATION_V536_PENDING_REGISTERED_CLOSURE.md)을 우선한다. 아래 과거 단위의 같은 미완료 표현은 해당 지원 범위만 해제한다.
+
 대조 기준은 게시 `7ea290211e472a50d661688774ed356c5e163a6e`, 원본 저장소
 `196c605`의 v536 및 고정 9행이다. 과거 문서의 포괄적인 미완료 표현은
 새 요구나 ref/out/값 변환 조합별 작업 목록으로 사용하지 않는다.
@@ -93,3 +95,7 @@ Library 전달 및 전체 UI 완료는 이번 단위의 결과가 아니다.
 ## 명시적으로 배정한 서로 다른 target copy의 한 후보
 
 최신 [copy target 후보 검증](VALIDATION_V536_COPY_TARGET_CANDIDATE.md)은 서로 다른 owner가 기존 선택창에서 common/windows를 각각 명시 복사한 뒤 한 소유 callee와 두 copy 본문을 결합하는 실제 경로를 다룬다. 기존 backend를 재사용하고, 검토 뒤 배정 변경을 놓치던 read-only 원본 CAS만 보완한다. 한 copy의 모든 target 자동 복제와 공개 override 계약 변경은 추가하지 않는다. 새 copy 등록 복수 use·별도 frame 계약/본문·opaque closure와 8/9행·별도 UI·기기/Library는 위 범위의 실제 잔여로 유지한다. 전체 7행 완료로 합산하지 않는다.
+
+## 새 immutable copy의 등록 복수 use
+
+[새 등록 closure 검증](VALIDATION_V536_PENDING_REGISTERED_CLOSURE.md)은 단일 target의 기존 ordinary 호출들을 원래 snapshot/선택 receipt·qualified use 계획·한 후보/CAS에 결합한다. 생성된 copy의 저장 후보에 읽기 전용 receipt를 보관하고 cold·Review/Confirm에 재조회한다. 공개 override·부모/외부 원본·레이아웃/권한은 유지한다. 별도 frame 계약/본문 및 opaque closure, 기존8행 여러 함수 문맥·9행·I6/B2·M4/M11/M12·native/Library는 남긴다. target 자동 복제나 가능한 조합 전체를 새 요구로 추가하지 않으며 7행 전체/UI 완료로 합산하지 않는다.
