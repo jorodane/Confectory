@@ -62,3 +62,9 @@ source 변경을 자동으로 재기준화하지 않는다. 다른 창의 입력
   미완료다. RAM의 새 Windows 교차 패키지 검사는 실제 기기 실행이나 전달이 아니다.
 
 집중 9흐름 49확인, 객체/정보 순수 후보 2확인 및 영향 회귀 8확인이 통과했다. 성공·실패·경합·응답 유실·취소·문자 입력 Undo·cold·Review/Confirm, 성공 응답 대기 중 새 glyph의 receipt 보존과 다른 기본 창 exact64 입력 보존을 확인했다. 원본 팝오버 10영역 비교와 74개 WebBundle 리소스의 바이트/해시가 일치한다.
+
+## 독립 checkout·새 교차 패키지 결과
+
+제품 소스 커밋 `ca03d9ca3311fd2fb573ccbc2d719a3e622d1cc3`와 검사 ZIP 경로만 수정한 `e5e583f3d26fd82702079846f55075fee697d5c3`를 기존 독립 checkout에 정상 fast-forward하여 변경 Git blob·기존 autocrlf·clean을 확인했다. Native/CLI Release와 새 Linux 엔진, 독립 정보 창의 늦은 glyph/기본 창 입력/Review 보호 9확인 및 생산 final CAS 4확인이 통과했다. 새 RAM Windows x64 패키지는 restore·Release·MCP·생성·probe·패키지 자체 glyph 화면 9확인까지 6단계를 통과했다. 전체 2349개/manifest 2348개 목록·SHA·Core/Native DLL 및 변경 제품 소스 바이트를 대조했다.
+
+manifest SHA `52e9560d16d090116f3c3036e6abb0820c29dce8fe20d84332cdc6f4697762ac`. 출시물에 원본 ZIP이 없는 것은 의도된 구성이다. 검사 원본을 검사 저장소에서 읽도록 경로를 고친 뒤, 제품 소스/패키지 해시 불변을 확인하고 기존 새 패키지에서 화면 검사를 재개했다. 통과한 생성/probe 단계를 중복 실행하지 않았다. 전체 manifest와 fixture/로그/프로필 증거를 보관한 뒤 이번 실행의 임시 패키지만 정리했다. 기존 보관 빌드·SDK·원본·사용자 자료는 삭제하지 않았다. 최종 후속 커밋은 문서/evidence만 달라 실행 코드는 위 소스 커밋과 같다. 실제 Windows apphost/WebView2·모바일 기기·Library 전달 및 전체 UI는 계속 미완료다.
