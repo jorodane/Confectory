@@ -49,3 +49,9 @@ B2 실제 배지, M4 async/M11 C#→graph/M12 Root 실행 분기는 별도로 �
 전체 UI·실제 Windows/WebView2·모바일 기기·Library 전달은 미완료다.
 
 집중 8흐름 85확인, 순수 후보 9확인, 기존 객체/정보 속성·새 정보 속성·객체 요소 glyph·정보 편집·생산 final CAS 영향 회귀 34확인이 통과했다. 원본 팝오버 10영역의 치수/위치/스타일과 74개 리소스의 바이트/해시와 이전/새 생성 receipt 보호 5확인을 확인했다. 스키마 실제 경합·쓰기 실패·취소·Undo·응답 유실 조회·늦은 입력·다른 창 보존·compiler Confirm을 분리 검증했다.
+
+## 독립 checkout·새 교차 패키지 확정 결과
+
+실행 소스 커밋 `82564738115eff1d7d74bfc871bca199041a6a68`의 변경 Git blob·기존 autocrlf·clean을 확인했다. 객체 속성의 기존 생성 ID·타입·값과 부모/외부 원본을 보존했다. 기존 독립 checkout에서 Native/CLI Release·새 Linux 엔진, 새 객체 속성 생성·아이콘·늦은 입력/다른 창 보호의 독립 창 15확인 및 생산 final CAS 4확인이 통과했다. 새 RAM Windows x64 교차 패키지는 restore·Release·MCP·생성·probe·패키지 자체 속성 아이콘 UI 15확인까지 6단계를 통과했다. 전체 2349개/manifest 2348개 목록·SHA·Core/Native DLL과 변경 제품 소스 바이트를 확인했다.
+
+manifest SHA `317921fc3f06f49e4fd01317a0003efaa54265a710558732f8b0bd9dec1e875c`. 전체 manifest와 fixture/로그/프로필 증거 보관 뒤 이번 실행의 임시 패키지만 정리했고 기존 보관 패키지/SDK/원본/사용자 자료는 삭제하지 않았다. 최종 후속 커밋은 문서/evidence만 달라 실행 코드는 위 소스 커밋과 같다. 실제 Windows apphost/WebView2·모바일 기기/터치·Library 전달 및 전체 UI는 계속 미완료다.
