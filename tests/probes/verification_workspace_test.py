@@ -3,6 +3,7 @@ import json
 import os
 from pathlib import Path
 import signal
+import socket
 import subprocess
 import sys
 import tempfile
@@ -141,11 +142,12 @@ v.durable_copy(sys.argv[1],sys.argv[2])
     def test_known_dead_runtime_fifo_recorded_without_reading_payload(self):
         w=self.workspace();runtime=w.evidence/'fixtures';runtime.mkdir();w.runtime_directory(runtime)
         pipe=runtime/'clr-debug-pipe-99999999-1-out';os.mkfifo(pipe)
+        nested=runtime/'nested';nested.mkdir();os.mkfifo(nested/'dotnet-diagnostic-99999999-2-socket')
         w.finish();self.assertFalse(w.root.exists())
         proof=json.loads(w.record.with_suffix('.manifest.json').read_text());restored=self.base/'ipc-restore';restored.mkdir()
         v.verify_archive(w.record.with_suffix('.zip'),proof['files'],restored)
         metadata=json.loads((restored/'fixtures/runtime-ipc-metadata.json').read_text())
-        self.assertFalse(metadata[0]['payloadRead']);self.assertFalse((restored/'fixtures'/pipe.name).exists())
+        self.assertEqual(len(metadata),2);self.assertFalse(metadata[0]['payloadRead']);self.assertFalse((restored/'fixtures'/pipe.name).exists())
 
     def test_unknown_fifo_is_never_read_or_removed_for_archive(self):
         w=self.workspace();runtime=w.evidence/'fixtures';runtime.mkdir();w.runtime_directory(runtime)
@@ -153,6 +155,19 @@ v.durable_copy(sys.argv[1],sys.argv[2])
         with self.assertRaisesRegex(RuntimeError,'Uncertified'):w.finish()
         self.assertTrue(pipe.exists());saved=w.preserve_partial('unknown IPC preserved')
         self.assertTrue(saved.exists());self.assertTrue(pipe.exists());pipe.unlink();w.finish()
+
+    def test_truncated_runtime_socket_requires_full_fifo_producer_evidence(self):
+        for truncated in ['dotnet-diagnostic-9999','dotnet-diagnostic']:
+            with self.subTest(prefix=truncated):
+                w=self.workspace();runtime=w.evidence/'fixtures';runtime.mkdir();w.runtime_directory(runtime)
+                parent_size=107-len(truncated)-1
+                parent=runtime/('x'*(parent_size-len(os.fsencode(runtime))-1));parent.mkdir()
+                endpoint=parent/truncated
+                s=socket.socket(socket.AF_UNIX);s.bind(str(endpoint));s.close()
+                with self.assertRaisesRegex(RuntimeError,'Uncertified'):w.finish()
+                self.assertTrue(endpoint.exists())
+                os.mkfifo(parent/'clr-debug-pipe-99999999-1-out')
+                w.finish();self.assertFalse(w.root.exists())
 
 
 class PackageTests(unittest.TestCase):
@@ -164,7 +179,7 @@ class PackageTests(unittest.TestCase):
     def tearDown(self):
         self.store.close();self.temporary.cleanup()
 
-    def candidate(self,commit):
+    def candidate(self,commit,input_identity=None):
         package=self.base/('package-'+commit);package.mkdir()
         (package/'Confectory.exe').write_bytes(b'MZ fixture '+commit.encode());(package/'Confectory.exe').chmod(0o755)
         (package/'input.txt').write_text('원문 '+commit)
@@ -172,7 +187,7 @@ class PackageTests(unittest.TestCase):
         w=v.Workspace(self.records,self.base);(w.evidence/'proof').write_text('fixture engine and renderer passed')
         w.finish()
         archive=self.base/(commit+'.zip')
-        entry=self.store.prepare(package,archive,commit,w.record.with_suffix('.zip'))
+        entry=self.store.prepare(package,archive,commit,w.record.with_suffix('.zip'),input_identity)
         return archive,entry
 
     def test_two_generations_repeat_and_restore(self):
@@ -217,6 +232,12 @@ class PackageTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError,'conflict'):self.store.promote(stale,b)
         self.assertEqual(self.store.index()['latest']['sourceCommit'],'C')
         self.assertEqual(self.store.index()['rollback']['sourceCommit'],'A')
+
+    def test_same_source_different_verified_dependency_input_is_not_reused(self):
+        archive,a=self.candidate('A','sdk-one');self.store.promote(archive,a)
+        archive,b=self.candidate('B','sdk-two');b['sourceCommit']='A';self.store.promote(archive,b)
+        index=self.store.index();self.assertEqual(index['latest']['inputIdentity'],'sdk-two')
+        self.assertEqual(index['rollback']['inputIdentity'],'sdk-one')
 
     def test_existing_directory_cannot_become_managed_store(self):
         old=self.base/'old';old.mkdir();(old/'original').write_text('preserve')

@@ -58,8 +58,19 @@ def resume(record):
                       'sourceCommit':entry['sourceCommit'],'diskAvailable':shutil.disk_usage(work.record.parent).free},indent=2))
 
 
-def preflight(repo, persistent, commit):
-    # Three 60 MiB package archives cover latest + rollback + a new candidate;
+def dependency_identity(sdk, seed, commit):
+    result = {'sourceCommit':commit,'configuration':'Release','rid':'win-x64'}
+    for label,root in [('sdk',sdk),('nuget',seed)]:
+        paths = files(root); digest = hashlib.sha256(); size = 0
+        for name,path in sorted(paths.items()):
+            digest.update(name.encode()+b'\0'+bytes.fromhex(sha(path)));size += path.stat().st_size
+        result[label]={'sha256':digest.hexdigest(),'files':len(paths),'bytes':size}
+    result['identity']=hashlib.sha256(json.dumps(result,sort_keys=True).encode()).hexdigest()
+    return result
+
+
+def preflight(repo, persistent, commit, input_identity=None):
+    # Three hard-limited 56 MiB package archives cover latest + rollback + candidate;
     # evidence/code allowance and the established 64 MiB safety stay separate.
     before = shutil.disk_usage(persistent if persistent.exists() else persistent.parent).free
     if os.stat('/tmp').st_dev == os.stat(repo).st_dev:
@@ -70,7 +81,7 @@ def preflight(repo, persistent, commit):
     memory = int(Path('/sys/fs/cgroup/memory.current').read_text())
     limit = int(Path('/sys/fs/cgroup/memory.max').read_text())
     plan = {'diskAvailable': before, 'diskSafety': 64*MIB,
-            'bootstrapPeakDiskBudget': (3*60+20+4+64)*MIB,
+            'bootstrapPeakDiskBudget': (3*56+20+4+64)*MIB,
             'ramAvailable': shutil.disk_usage('/tmp').free, 'ramFilesystemBudget': 3*1024*MIB,
             'memoryCurrent': memory, 'memoryLimit': limit,
             'additionalMemoryBudget': 7*1024*MIB, 'memorySafety': 1024*MIB,
@@ -78,8 +89,9 @@ def preflight(repo, persistent, commit):
     # Once bootstrapped, existing managed archives already occupy disk. Only
     # one additional candidate plus evidence/code needs new free space.
     managed = persistent/'packages'/'index.json'
-    required = (60+20+4+64)*MIB if managed.exists() else plan['bootstrapPeakDiskBudget']
-    if managed.exists() and json.loads(managed.read_text())['latest']['sourceCommit'] == commit:
+    required = (56+20+4+64)*MIB if managed.exists() else plan['bootstrapPeakDiskBudget']
+    latest = json.loads(managed.read_text())['latest'] if managed.exists() else None
+    if latest and latest['sourceCommit'] == commit and latest.get('inputIdentity') == input_identity:
         required = (20+4+64)*MIB  # full fresh verification; no new durable package generation
     plan['requiredAdditionalDisk'] = required
     if before < required: raise OSError('Disk preflight failed: '+json.dumps(plan))
@@ -101,7 +113,8 @@ def main():
     repo = args.repo.resolve(); persistent = args.persistent.absolute()
     persistent.parent.mkdir(parents=True, exist_ok=True)
     commit = git(repo, 'rev-parse', args.commit+'^{commit}')
-    plan = preflight(repo, persistent, commit)
+    inputs = dependency_identity(args.sdk,args.nuget_seed,commit)
+    plan = preflight(repo, persistent, commit,inputs['identity'])
     if git(repo, 'status', '--porcelain', '--untracked-files=no'):
         raise RuntimeError('Tracked source has uncommitted changes')
     work = Workspace(persistent/'runs', source=commit)
@@ -113,7 +126,7 @@ def main():
     for name in ['verification_workspace.py','verify_desktop.py']:
         shutil.copy2(Path(__file__).parent/name, harness/name)
     atomic_json(work.evidence/'source.json', {'commit': commit, 'tree': git(repo,'rev-parse',commit+'^{tree}'),
-                'sdk': str(args.sdk), 'harnessSha256': {p.name:sha(p) for p in harness.iterdir()}})
+                'sdk': str(args.sdk),'dependencyInputs':inputs, 'harnessSha256': {p.name:sha(p) for p in harness.iterdir()}})
     environments = {}; checkouts = {}; reports = {}
     try:
         for label, crlf in [('lf','false'),('crlf','true')]:
@@ -178,7 +191,7 @@ def main():
             if not matches or any(sha(p)!=sha(origin) for p in matches):
                 raise RuntimeError('Packaged assembly differs: '+name)
         candidate = work.root/'package.zip'
-        entry = store.prepare(package,candidate,commit,work.record.with_suffix('.zip'))
+        entry = store.prepare(package,candidate,commit,work.record.with_suffix('.zip'),inputs['identity'])
         restored = work.root/'restored'; restored.mkdir()
         verify_archive(candidate, entry['files'], restored)
         # Execute the restored archive's package check, engine startup and UI,
@@ -187,6 +200,8 @@ def main():
         atomic_json(packaged_report, {'run':[dotnet,str(restored/'content/runtime/Confectory.App.dll')]})
         work.run('restored-renderer',[sys.executable,str(checkout/'tests/web/v536_local_header_image_ui.py'),str(restored/'content'),str(packaged_report),'late','object'],cwd=checkout,env=env)
         work.run('package-failure-lifetime',[sys.executable,str(checkout/'tests/probes/desktop_package_lifetime.py'),str(checkout),str(restored)],cwd=checkout,env=env)
+        if dependency_identity(args.sdk,args.nuget_seed,commit) != inputs:
+            raise RuntimeError('SDK/dependency seed changed during verification; no package promotion')
         atomic_json(work.evidence/'package.json',entry)
         atomic_json(work.evidence/'summary.json',{'sourceCommit':commit,'independentCheckouts':2,
             'allStagesPassed':True,'actualWindows':False,'actualMobile':False,'libraryDelivered':False,

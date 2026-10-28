@@ -33,6 +33,11 @@ def sha(path):
     return h.hexdigest()
 
 
+def same_input(left, right):
+    return bool(left and right and left['sourceCommit'] == right['sourceCommit'] and
+                left.get('inputIdentity') == right.get('inputIdentity'))
+
+
 def identity(path):
     s = Path(path).lstat()
     if not stat.S_ISDIR(s.st_mode) or s.st_uid != os.getuid():
@@ -110,7 +115,7 @@ def files(root):
     return result
 
 
-def archive(root, target):
+def archive(root, target, compression=zipfile.ZIP_DEFLATED):
     """Freeze all evidence, including profiles, screenshots and failure input."""
     entries = files(root)
     proof = {n: {'sha256': sha(p), 'size': p.stat().st_size,
@@ -123,7 +128,7 @@ def archive(root, target):
             directories[relative] = path
             proof[relative] = {'sha256':hashlib.sha256(b'').hexdigest(),'size':0,
                                'mode':stat.S_IMODE(path.stat().st_mode),'directory':True}
-    with zipfile.ZipFile(target, 'x', zipfile.ZIP_DEFLATED, compresslevel=6) as out:
+    with zipfile.ZipFile(target, 'x', compression, compresslevel=6) as out:
         for name, path in sorted({**entries,**directories}.items()):
             out.write(path, name)
     verify_archive(target, proof)
@@ -264,25 +269,41 @@ class Workspace:
         for row in self.state.get('runtimeDirectories',[]):
             root = self.evidence/row['path']; no_links(root)
             if identity(root) != row['identity']: raise RuntimeError('Runtime directory replaced')
-            retained = []
-            for path in root.iterdir():
-                mode = path.lstat().st_mode
-                if not (stat.S_ISFIFO(mode) or stat.S_ISSOCK(mode)): continue
-                match = re.fullmatch(r'(?:clr-debug-pipe-|dotnet-diagnostic-)([0-9]+)-[0-9]+-(?:in|out|socket)',path.name)
-                if not match or path.lstat().st_uid != os.getuid() or process_identity(int(match[1])) is not None:
-                    raise RuntimeError('Uncertified runtime IPC object; preserve it: '+str(path))
-                before = path.lstat()
-                retained.append({'path':path.name,'mode':before.st_mode,'uid':before.st_uid,
-                    'device':before.st_dev,'inode':before.st_ino,'payloadRead':False,
-                    'reason':'terminated .NET diagnostic IPC; not fixture input'})
-                fd = os.open(root,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW)
+            metadata = root/'runtime-ipc-metadata.json'
+            retained = json.loads(metadata.read_text()) if metadata.exists() else []
+            pending = []
+            for directory,dirs,names in os.walk(root,followlinks=False):
+                for name in names:
+                    path = Path(directory)/name; mode = path.lstat().st_mode
+                    if not (stat.S_ISFIFO(mode) or stat.S_ISSOCK(mode)): continue
+                    match = re.fullmatch(r'(?:clr-debug-pipe-|dotnet-diagnostic-)([0-9]+)-[0-9]+-(?:in|out|socket)',path.name)
+                    producers = [int(match[1])] if match else []
+                    correlated = []
+                    if not match and stat.S_ISSOCK(mode) and len(os.fsencode(path)) == 107 and path.name.startswith('dotnet-'):
+                        for sibling in path.parent.iterdir():
+                            full = re.fullmatch(r'clr-debug-pipe-([0-9]+)-([0-9]+)-(?:in|out)',sibling.name)
+                            if full and stat.S_ISFIFO(sibling.lstat().st_mode) and sibling.lstat().st_uid == os.getuid():
+                                expected = f'dotnet-diagnostic-{full[1]}-{full[2]}-socket'
+                                if expected.startswith(path.name):correlated.append((int(full[1]),sibling.name))
+                        unique = {pid for pid,name in correlated}
+                        if len(unique) == 1:producers = list(unique)
+                    if not producers or path.lstat().st_uid != os.getuid() or any(process_identity(pid) is not None for pid in producers):
+                        raise RuntimeError('Uncertified runtime IPC object; preserve it: '+str(path))
+                    no_links(path.parent);before = path.lstat();pending.append((path,before))
+                    retained.append({'path':path.relative_to(root).as_posix(),'mode':before.st_mode,'uid':before.st_uid,
+                        'device':before.st_dev,'inode':before.st_ino,'payloadRead':False,
+                        'producerPids':producers,'correlatedFullFifoNames':[n for pid,n in correlated],
+                        'reason':'terminated .NET diagnostic IPC; not fixture input'})
+            # Validate all candidates and persist metadata before touching one.
+            if pending: atomic_json(metadata,retained)
+            for path,before in pending:
+                fd = os.open(path.parent,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW)
                 try:
                     now = os.stat(path.name,dir_fd=fd,follow_symlinks=False)
                     if (now.st_dev,now.st_ino) != (before.st_dev,before.st_ino):
                         raise RuntimeError('Runtime IPC object replaced')
                     os.unlink(path.name,dir_fd=fd)
                 finally: os.close(fd)
-            if retained: atomic_json(root/'runtime-ipc-metadata.json',retained)
 
     def _preserve_profile_links(self):
         # Chromium's transient lock/socket links must never be followed into
@@ -396,7 +417,7 @@ class Workspace:
             store = PackageStore(publication['store'])
             try:
                 index = store.recover()
-                if not any(index[k] and index[k]['sourceCommit'] == publication['entry']['sourceCommit'] for k in ['latest','rollback']):
+                if not any(same_input(index[k],publication['entry']) for k in ['latest','rollback']):
                     raise RuntimeError('Verified package not durably retained; keep RAM candidate')
             finally: store.close()
         manifest = json.loads(self.record.with_suffix('.manifest.json').read_text())
@@ -474,7 +495,7 @@ class Workspace:
             store = PackageStore(publication['store'])
             try:
                 index = store.recover()
-                if not any(index[k] and index[k]['sourceCommit'] == publication['entry']['sourceCommit'] for k in ['latest','rollback']):
+                if not any(same_input(index[k],publication['entry']) for k in ['latest','rollback']):
                     store.promote(self.root/publication['candidate'],publication['entry'])
             finally: store.close()
         self.cleanup()
@@ -510,17 +531,19 @@ class PackageStore:
         if sha(path) != entry['sha256']: raise RuntimeError('Package archive changed')
         verify_archive(path, entry['files'], restore)
 
-    def prepare(self, package, output, source, evidence):
+    def prepare(self, package, output, source, evidence, input_identity=None):
         actual = files(package); marker = 'confectory-desktop-package.json'
         manifest = json.loads(actual[marker].read_text())
         if set(actual) != set(manifest['files'])|{marker} or any(sha(actual[n]) != h for n,h in manifest['files'].items()):
             raise RuntimeError('Package manifest/file bytes differ')
-        proof = archive(package, output)
-        if Path(output).stat().st_size > 60*MIB:
-            raise OSError('Package archive exceeds the planned 60 MiB budget; no promotion')
+        proof = archive(package, output,compression=zipfile.ZIP_LZMA)
+        if Path(output).stat().st_size > 56*MIB:
+            raise OSError('Package archive exceeds the enforced 56 MiB budget; no promotion')
         current = self.index()['latest']
         return {'storeId': self.owner['storeId'], 'sha256': sha(output), 'archive': sha(output)+'.zip',
                 'expectedLatest':current['sha256'] if current else None,
+                'inputIdentity':input_identity,
+                'archiveCompression':'ZIP_LZMA',
                 'sourceCommit': source, 'files': proof, 'evidence': str(evidence),
                 'manifestSha256': sha(actual[marker]), 'archiveBytes': Path(output).stat().st_size,
                 'actualWindows': False, 'actualMobile': False, 'libraryDelivered': False}
@@ -542,7 +565,7 @@ class PackageStore:
             verify_archive(archive_path, entry['files'])
             # Repetition still verifies candidate and evidence in full, but it
             # does not displace a distinct known-good rollback.
-            if old['latest'] and old['latest']['sourceCommit'] == entry['sourceCommit']:
+            if same_input(old['latest'],entry):
                 return old
             if (old['latest']['sha256'] if old['latest'] else None) != entry.get('expectedLatest'):
                 raise RuntimeError('Package publication conflict; prior latest changed')
