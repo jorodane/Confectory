@@ -48,6 +48,9 @@ def check_stored(uri):
     else:
         property=next(v for v in s['rows'] if v['path']==[new_native if is_new else 'Power']);assert property['icon']==uri
         assert property['valueJson']==('9223372036854775804' if is_object_property else '9223372036854775805')
+    if not new_function and is_new_object:
+        property=next(v for v in own_schema()['rows'] if v['path']==[new_native]);assert property['fieldSource']==owner and property['schemaOrigin'].startswith(owner+'_Properties_')
+        globals()['icon_file']=f.project/'elements'/(property['schemaOrigin'].split('::')[-1]+'.celem');assert not icon_file.exists()
 def confirmed():
     if new_function:
         changed={k for k,v in f.original.items() if (f.project/k).read_bytes()!=v};assert changed=={file.name,f.manifest.name},changed
