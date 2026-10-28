@@ -64,8 +64,10 @@ check('wrong dimensions/container/base64/URI/mime/metadata and invalid last imag
 
 value = uri(image(True))
 for owner in ['Info','Item','Main']:call([dict(type='icon', text=value), dict(type='icon', text='★')], owner=owner, ok=False)
-call([dict(type='schema-icon', path=['Count'], contract=dict(kind='general', type='long', cardinality='single'), schema=n+'Info', schemaHash=hashlib.sha256(sources['Info'][1].encode()).hexdigest(), text=value)], ok=False)
+property_result=call([dict(type='schema-icon', path=['Count'], contract=dict(kind='general', type='long', cardinality='single'), schema=n+'Info', schemaHash=hashlib.sha256(sources['Info'][1].encode()).hexdigest(), text=value)])
+property_view=call([],operation='effective',text=property_result['text'],schemaView=True)
+assert property_view['schemaModel']['fields']['Count']['icon']==value
 call([dict(type='description', text='no foreign owner'), dict(type='icon', text=value)], owner='Main', id='Foreign::Main',ok=False)
 call([dict(type='icon',text=value)],owner='Main',operation='informationDefinitions',ok=False)
-check('the image path remains information/object/direct-function-header-only; foreign-owner widening, duplicate edits and foreign operations remain rejected')
+check('normalized direct property images are projected exactly; foreign-owner widening, duplicate header edits and foreign operations remain rejected')
 print(json.dumps(dict(checks=checks, evidence=str(root), sourceWritten=False, userFiles=False, projectRun=False)))

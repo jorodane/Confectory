@@ -55,3 +55,8 @@ B2·M4/M11/M12 및 전체 UI는 이 단위와 구분한다. 실제 Windows appho
 Git blob 동일성과 검사 AST의 비실행 분기 변경만 확인한 뒤 원래 증거를 재사용한다.
 마지막 검사는 새 객체·새 함수·독립 창과 CRLF, Native/CAS, 새 패키지/복원 실행을 생략하지 않는다.
 전체 검증 스크립트의 일반 `card-images` 경로도 그대로 남긴다.
+
+이전 헤더 Native 회귀에 남아 있던 직접 속성 이미지 미지원 기대값도 이번 승인된 동작에
+맞춰 수정했다. 정상 속성의 이미지 원문을 effective projection까지 대조하며 기존 foreign/
+inherited/stale·잘못된 마지막 이미지 거절은 유지한다. 제품 코드는 마지막 Undo/Redo 수정
+이후 동일하며, 실제 UI 통과 증거와 제품/검사 Git blob 동일성을 확인해 재사용한다.
