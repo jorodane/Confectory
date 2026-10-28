@@ -11,6 +11,7 @@ internal static class DeclarationAuthoring
  }
  internal static void Icon(Element element,string value)
  {
+  if(element.Kind=="schema"&&RasterIcon.IsImage(value)){element.Values["editorIcon"]=new(System.Text.Json.JsonSerializer.SerializeToElement(value),element.Id,new());return;}
   Glyph(value);
   Apply(element,new JsonObject{["action"]="properties",["values"]=new JsonObject{["icon"]=value}});
  }

@@ -12,7 +12,7 @@ bool Step(){
  var request=context.Request;var response=context.Response;
  try{
   response.Headers["Cache-Control"]="no-store";response.Headers["X-Content-Type-Options"]="nosniff";
-  response.Headers["Content-Security-Policy"]="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'";response.Headers["Referrer-Policy"]="no-referrer";
+  response.Headers["Content-Security-Policy"]="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data: blob:; frame-ancestors 'none'; base-uri 'none'; form-action 'none'";response.Headers["Referrer-Policy"]="no-referrer";
   if(request.Url!.Authority!=new Uri(origin).Authority)throw new UnauthorizedAccessException();
   byte[] bytes;
   if(request.Url.AbsolutePath=="/api/request"){
