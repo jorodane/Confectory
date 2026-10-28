@@ -58,3 +58,9 @@ forwarded 부모/opaque/import 영향 결합·8/9행·B2·M4/M11/M12와 전체 U
 검증 증거를 보관한 뒤 이번 임시 사본만 수명관리로 정리하며 전달 성공으로 표현하지 않는다.
 
 집중 8흐름 41확인, 순수 상속 기능 후보 3확인, 기존 부모 없는 native/화면·contained 함수·생산 final CAS 영향 회귀 24확인이 통과했다. 원본 팝오버 10영역과 75개 리소스 바이트/SHA가 일치한다. CSS·공통 팝오버·루트 핀 코드·기존 F2 선택 가드는 변경하지 않았다.
+
+## 독립 checkout·새 교차 패키지 확정 결과
+
+실행 소스 커밋 `e0024293346dd30943b773d80125e8255d558982`의 변경 Git blob·기존 autocrlf·clean을 확인했다. 함수의 기존 ID·타입·값과 부모/외부 원본을 보존했다. 기존 독립 checkout에서 Native/CLI Release·새 Linux 엔진, 상속 기능 헤더의 다른 함수 전환·Undo 6확인 및 glyph·늦은 설명 보존 6확인 및 부모 원본 충돌 4확인 및 생산 final CAS 4확인이 통과했다. 새 RAM Windows x64 교차 패키지는 restore·Release·MCP·생성·probe·패키지 자체 기능 헤더 아이콘 UI 6확인까지 6단계를 통과했다. 전체 2351개/manifest 2350개 목록·SHA·Core/Native DLL과 변경 제품 소스 바이트를 확인했다.
+
+manifest SHA `89982edd38893460ba800f6519f585f520a78aa7d76cacf5fd4e09d0e0b7012b`. 전체 manifest와 fixture/로그/프로필 증거 보관 뒤 이번 실행의 임시 패키지만 정리했고 기존 보관 패키지/SDK/원본/사용자 자료는 삭제하지 않았다. 최종 후속 커밋은 문서/evidence만 달라 실행 코드는 위 소스 커밋과 같다. 실제 Windows apphost/WebView2·모바일 기기/터치·Library 전달 및 전체 UI는 계속 미완료다.
