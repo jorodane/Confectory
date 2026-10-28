@@ -1,0 +1,282 @@
+{
+  "base": "ad9ae444361215aa6abd9e5876fae288aa70cc51",
+  "flows": 11,
+  "checks": 91,
+  "pureCandidateChecks": 6,
+  "flowsDetail": [
+    {
+      "name": "switch-view",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-values/ui-engine-report.json",
+        "normal",
+        "view",
+        "nested-source",
+        "nested-values",
+        "cold-private",
+        "value-undo"
+      ],
+      "exit": 0,
+      "seconds": 312.7,
+      "minimumWorkspaceBytes": 1396387840,
+      "peakMemoryBytes": 4761808896,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 13,
+      "log": "/workspace/scratch/v536-nested-values/focused-final/switch-view.log",
+      "reusedBeforeNarrowRetryFix": true
+    },
+    {
+      "name": "storage",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-values/ui-engine-report.json",
+        "storage",
+        "view",
+        "nested-source",
+        "nested-values",
+        "confirmed"
+      ],
+      "exit": 0,
+      "seconds": 318.7,
+      "minimumWorkspaceBytes": 1396101120,
+      "peakMemoryBytes": 4979916800,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 11,
+      "log": "/workspace/scratch/v536-nested-values/focused-final/storage.log",
+      "reusedBeforeNarrowRetryFix": true
+    },
+    {
+      "name": "conflict",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-values/ui-engine-report.json",
+        "conflict",
+        "nested-source",
+        "nested-values",
+        "confirmed"
+      ],
+      "exit": 0,
+      "seconds": 224.1,
+      "minimumWorkspaceBytes": 1395957760,
+      "peakMemoryBytes": 4894965760,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 7,
+      "log": "/workspace/scratch/v536-nested-values/focused-final/conflict.log",
+      "reusedBeforeNarrowRetryFix": true
+    },
+    {
+      "name": "loss",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-values/ui-engine-report.json",
+        "loss",
+        "view",
+        "nested-source",
+        "nested-values"
+      ],
+      "exit": 0,
+      "seconds": 277.0,
+      "minimumWorkspaceBytes": 1395732480,
+      "peakMemoryBytes": 4904882176,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 11,
+      "log": "/workspace/scratch/v536-nested-values/focused-final/loss.log",
+      "reusedBeforeNarrowRetryFix": true
+    },
+    {
+      "name": "retry",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-values/ui-engine-report.json",
+        "normal",
+        "view",
+        "nested-source",
+        "nested-values",
+        "retry-values"
+      ],
+      "exit": 0,
+      "seconds": 288.7,
+      "minimumWorkspaceBytes": 1379328000,
+      "peakMemoryBytes": 4934430720,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 12,
+      "log": "/workspace/scratch/v536-nested-values/final-fixed/retry.log",
+      "reusedBeforeNarrowRetryFix": false
+    },
+    {
+      "name": "context",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-values/ui-engine-report.json",
+        "context",
+        "view",
+        "nested-source",
+        "nested-values",
+        "confirmed"
+      ],
+      "exit": 0,
+      "seconds": 325.0,
+      "minimumWorkspaceBytes": 1379168256,
+      "peakMemoryBytes": 5005176832,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 11,
+      "log": "/workspace/scratch/v536-nested-values/final-fixed/context.log",
+      "reusedBeforeNarrowRetryFix": false
+    },
+    {
+      "name": "projects",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-values/ui-engine-report.json",
+        "projects",
+        "nested-source",
+        "nested-values"
+      ],
+      "exit": 0,
+      "seconds": 255.8,
+      "minimumWorkspaceBytes": 1378996224,
+      "peakMemoryBytes": 4897525760,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 11,
+      "log": "/workspace/scratch/v536-nested-values/final-fixed/projects.log",
+      "reusedBeforeNarrowRetryFix": false
+    },
+    {
+      "name": "internal",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_blueprint_internal_flow.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-values/ui-engine-report.json",
+        "normal"
+      ],
+      "exit": 0,
+      "seconds": 34.3,
+      "minimumWorkspaceBytes": 1378828288,
+      "peakMemoryBytes": 4420640768,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 4,
+      "log": "/workspace/scratch/v536-nested-values/final-fixed/internal.log",
+      "reusedBeforeNarrowRetryFix": false
+    },
+    {
+      "name": "private-abi",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_private_copy_metadata.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-values/ui-engine-report.json"
+      ],
+      "exit": 0,
+      "seconds": 5.6,
+      "minimumWorkspaceBytes": 1378754560,
+      "peakMemoryBytes": 3728797696,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 4,
+      "log": "/workspace/scratch/v536-nested-values/final-fixed/private-abi.log",
+      "reusedBeforeNarrowRetryFix": false
+    },
+    {
+      "name": "module-guards",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_module_view_guards.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-values/ui-engine-report.json",
+        "normal",
+        "view"
+      ],
+      "exit": 0,
+      "seconds": 19.0,
+      "minimumWorkspaceBytes": 1378742272,
+      "peakMemoryBytes": 3896840192,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 4,
+      "log": "/workspace/scratch/v536-nested-values/final-fixed/module-guards.log",
+      "reusedBeforeNarrowRetryFix": false
+    },
+    {
+      "name": "override",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_inherited_contract_guards.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-values/ui-engine-report.json",
+        "normal"
+      ],
+      "exit": 0,
+      "seconds": 7.2,
+      "minimumWorkspaceBytes": 1378697216,
+      "peakMemoryBytes": 3946217472,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 3,
+      "log": "/workspace/scratch/v536-nested-values/final-fixed/override.log",
+      "reusedBeforeNarrowRetryFix": false
+    }
+  ],
+  "productSha256": {
+    "examples/editor-home/WebBundle.csbody": "2a3260d4e2899c2757e4e39c2d93ef3fbd8c20193f60be7f120bd66e054b868f",
+    "examples/editor-home/ui/feature-authoring.js": "9ca25d801d81b86eaf44b061a29f3dd6ae455bdc634f3938217df309a03d4be9",
+    "packs/editor-home-model/Blueprint.csbody": "6d0c965de732b06a8d5333bd0725be570ceea8088cd25defe406f99901849a02",
+    "packs/pack-workspace/Blueprint.csbody": "e89af100f6e6b88f5d10cfdf9c06c87a10423eb2726747696730a5f12daba4e0",
+    "targets/element-authoring/ImplementationCopyEdits.cs": "0e4aef2586e92fb14565bd2666b05cd57c26cb70f6af2aba1cafd985a889f4c5"
+  },
+  "layoutResourceProof": {
+    "base": "ad9ae444361215aa6abd9e5876fae288aa70cc51",
+    "resourceCount": 74,
+    "changedResourceOnly": [
+      "feature-authoring.js"
+    ],
+    "otherUiResourceBytesUnchanged": true,
+    "cssHtmlLayoutBytesUnchanged": true,
+    "reference": "196c605",
+    "referenceLocations": [
+      "v536/dist/blueprint.js:1089-1177",
+      "localImplementationDraft"
+    ]
+  },
+  "nativeRelease": {
+    "exit": 0,
+    "log": "/workspace/scratch/v536-nested-values/native-build.log"
+  },
+  "failedAttemptsPreserved": [
+    "undo-before/undo.log",
+    "focused/switch-view.log",
+    "focused-final/context.log",
+    "retry-before/retry.log",
+    "final-focus/retry.log"
+  ],
+  "reusedChecksReason": "The first four flows cover unchanged valid/same-attempt and receipt-recovery paths. The only later product delta proves unchanged-source evidence and permits explicit replacement of a rejected private value; the final engine verifies this branch, physical source mutation rejection, the failed context flow and remaining influence tests.",
+  "existingFilesDeleted": false,
+  "temporaryFixtureEvidencePreserved": true,
+  "actualWindows": false,
+  "actualMobile": false,
+  "libraryDelivered": false,
+  "fullUiComplete": false,
+  "workspaceAvailableBytes": 1378648064
+}

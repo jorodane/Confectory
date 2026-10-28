@@ -1,0 +1,2 @@
+import v536_information_property_inputs_fixture
+import v536_information_input_replacements_ui

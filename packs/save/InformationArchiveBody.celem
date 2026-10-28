@@ -1,0 +1,11 @@
+implementation Confectory.Save::InformationArchiveBody for Confectory.Save::InformationArchive (string handle,string action,string token) -> string {
+import Confectory.EditWorkspace::Retirement as Retirement (string,string,string) -> string;
+import Confectory.EditWorkspace::Read as ReadUnit (string,string) -> string[];
+import Confectory.Save::WriteChecked as WriteChecked (string,string) -> string;
+import Confectory.Save::Read as ReadSaved (string) -> string;
+import Confectory.EditWorkspace::Export as ExportDraft (string) -> string;
+import Confectory.Save::Location as Location (string) -> string;
+import Confectory.FileStream::Snapshot as Snapshot (string) -> string[];
+import Confectory.SchemaEditing::Call as Metadata (string,string) -> string;
+body common "InformationArchive.csbody";
+}

@@ -1,0 +1,400 @@
+{
+  "base": "84f7382e9349f7be7100605f27122b62211d3cb4",
+  "flows": 11,
+  "checks": 66,
+  "focusedRendererFlows": 5,
+  "impactChecks": 6,
+  "results": [
+    {
+      "name": "switch-view",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-copy/ui-engine-report.json",
+        "normal",
+        "view",
+        "nested-source",
+        "cold-private"
+      ],
+      "exit": 0,
+      "seconds": 252.2,
+      "minimumWorkspaceBytes": 1443364864,
+      "peakMemoryBytes": 4679073792,
+      "pendingCopy": false,
+      "copyImports": false,
+      "phase": "focused-final-2",
+      "checks": [
+        "원래 내부 편집/빵부스러기로 깊이1/2 copy를 오가며 동명 leaf의 서로 다른 본문·qualified 입력을 보존한다",
+        "저장 전 private copy의 깊이2 화면과 서로 다른 leaf 입력은 실제 cold 재시작에서 snapshot/선택/경로와 함께 복원한다",
+        "외부 함수의 선택 target만 로컬 소유 copy로 저장하며 정확한64비트 값·등록 원본·다른 target을 보존한다",
+        "저장된 copy의 하위 창과 미저장 leaf 입력도 실제 cold 재시작에서 소유/프로젝트 문맥을 유지한다",
+        "저장된 copy 내부 source-only 후보/CAS는 선택 leaf만 바꾸며 다른 깊이 동명 leaf·원본·공개 계약을 보존한다",
+        "기본/독립 정보 창의 재편집·Undo/Redo·팝업 취소·cold 복원은 같은 copy ID/외부 함수/출처/선택 target과 입력 원문을 유지한다",
+        "명시 Save/재시도는 기존 copy 본문만 저장하며 원본 함수 계약·출처·다른 target은 불변이다",
+        "중첩 copy의 실제 compiler Confirm은 qualified 각 leaf 본문만 반영하고 동명/공개 계약·부모/외부 원문을 보존한다",
+        "재시작·실제 compiler Review 취소와 명시 Confirm은 같은 copy만 반영하고 외부 팩을 쓰지 않는다"
+      ],
+      "logSha256": "e387fb43ed89338887bca93b62646c1ce595752585fea1606e3b6d49b8e2adc6",
+      "archiveSha256": "feda4b97076e2b6e4df61ef5d8f62f5902e17ee5563d9bdaee184c9d11e14ce4",
+      "archiveBytes": 235726
+    },
+    {
+      "name": "storage",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-copy/ui-engine-report.json",
+        "storage",
+        "view",
+        "nested-source",
+        "confirmed"
+      ],
+      "exit": 0,
+      "seconds": 263.8,
+      "minimumWorkspaceBytes": 1443094528,
+      "peakMemoryBytes": 4826902528,
+      "pendingCopy": false,
+      "copyImports": false,
+      "phase": "focused-final-2",
+      "checks": [
+        "원래 내부 편집/빵부스러기로 깊이1/2 copy를 오가며 동명 leaf의 서로 다른 본문·qualified 입력을 보존한다",
+        "외부 함수의 선택 target만 로컬 소유 copy로 저장하며 정확한64비트 값·등록 원본·다른 target을 보존한다",
+        "저장된 copy 내부 source-only 후보/CAS는 선택 leaf만 바꾸며 다른 깊이 동명 leaf·원본·공개 계약을 보존한다",
+        "기본/독립 정보 창의 재편집·Undo/Redo·팝업 취소·cold 복원은 같은 copy ID/외부 함수/출처/선택 target과 입력 원문을 유지한다",
+        "저장 실패는 checkpoint·live 본문·입력 원문·기존 copy를 보존하고 부분 적용하지 않는다",
+        "명시 Save/재시도는 기존 copy 본문만 저장하며 원본 함수 계약·출처·다른 target은 불변이다",
+        "중첩 copy의 실제 compiler Confirm은 qualified 각 leaf 본문만 반영하고 동명/공개 계약·부모/외부 원문을 보존한다",
+        "재시작·실제 compiler Review 취소와 명시 Confirm은 같은 copy만 반영하고 외부 팩을 쓰지 않는다"
+      ],
+      "logSha256": "0084e4209355bcceaa97f7aa879ee5149bc9adaeab7865a4b182da2592ace606",
+      "archiveSha256": "97488593aada15931aec7cff2d58f7fced4cf030e0ba1793d3637914b82fd08f",
+      "archiveBytes": 111828
+    },
+    {
+      "name": "conflict",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-copy/ui-engine-report.json",
+        "conflict",
+        "nested-source",
+        "confirmed"
+      ],
+      "exit": 0,
+      "seconds": 171.0,
+      "minimumWorkspaceBytes": 1442947072,
+      "peakMemoryBytes": 4815462400,
+      "pendingCopy": false,
+      "copyImports": false,
+      "phase": "focused-final-2",
+      "checks": [
+        "원래 내부 편집/빵부스러기로 깊이1/2 copy를 오가며 동명 leaf의 서로 다른 본문·qualified 입력을 보존한다",
+        "외부 함수의 선택 target만 로컬 소유 copy로 저장하며 정확한64비트 값·등록 원본·다른 target을 보존한다",
+        "저장된 copy 내부 source-only 후보/CAS는 선택 leaf만 바꾸며 다른 깊이 동명 leaf·원본·공개 계약을 보존한다",
+        "기본/독립 정보 창의 재편집·Undo/Redo·팝업 취소·cold 복원은 같은 copy ID/외부 함수/출처/선택 target과 입력 원문을 유지한다",
+        "실제 다른 창 저장 경합은 전체 미적용이며 cold 뒤에도 새 peer 초안과 copy 입력 원문을 보존한다"
+      ],
+      "logSha256": "a4493096ddb907260148396ad9895e458c85db670ed1a96021dd54d9bb024e36",
+      "archiveSha256": "cdf681da177fdd135c4ac46ca199aa15e3cb9d4ee669f97f7b36706b9b2e1a6e",
+      "archiveBytes": 146181
+    },
+    {
+      "name": "loss",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-copy/ui-engine-report.json",
+        "loss",
+        "view",
+        "nested-source"
+      ],
+      "exit": 0,
+      "seconds": 219.5,
+      "minimumWorkspaceBytes": 1442766848,
+      "peakMemoryBytes": 4814946304,
+      "pendingCopy": false,
+      "copyImports": false,
+      "phase": "focused-final-2",
+      "checks": [
+        "원래 내부 편집/빵부스러기로 깊이1/2 copy를 오가며 동명 leaf의 서로 다른 본문·qualified 입력을 보존한다",
+        "외부 함수의 선택 target만 로컬 소유 copy로 저장하며 정확한64비트 값·등록 원본·다른 target을 보존한다",
+        "저장된 copy 내부 source-only 후보/CAS는 선택 leaf만 바꾸며 다른 깊이 동명 leaf·원본·공개 계약을 보존한다",
+        "기본/독립 정보 창의 재편집·Undo/Redo·팝업 취소·cold 복원은 같은 copy ID/외부 함수/출처/선택 target과 입력 원문을 유지한다",
+        "저장/결과 조회 응답 유실 뒤 cold에서 기존 receipt를 조회하고 같은 copy를 중복 저장하지 않는다",
+        "명시 Save/재시도는 기존 copy 본문만 저장하며 원본 함수 계약·출처·다른 target은 불변이다",
+        "중첩 copy의 실제 compiler Confirm은 qualified 각 leaf 본문만 반영하고 동명/공개 계약·부모/외부 원문을 보존한다",
+        "재시작·실제 compiler Review 취소와 명시 Confirm은 같은 copy만 반영하고 외부 팩을 쓰지 않는다"
+      ],
+      "logSha256": "849eb3819124973aef528d4069bf9fe7c00959136fb923c25514024f227fe8a0",
+      "archiveSha256": "d350d74fc76cf1eb876a594e794e910be8ce6c1775d11e9b3b6333341ad8812b",
+      "archiveBytes": 108783
+    },
+    {
+      "name": "context",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-copy/ui-engine-report.json",
+        "context",
+        "view",
+        "nested-source",
+        "confirmed"
+      ],
+      "exit": 0,
+      "seconds": 267.0,
+      "minimumWorkspaceBytes": 1442627584,
+      "peakMemoryBytes": 4840656896,
+      "pendingCopy": false,
+      "copyImports": false,
+      "phase": "focused-final-2",
+      "checks": [
+        "원래 내부 편집/빵부스러기로 깊이1/2 copy를 오가며 동명 leaf의 서로 다른 본문·qualified 입력을 보존한다",
+        "외부 함수의 선택 target만 로컬 소유 copy로 저장하며 정확한64비트 값·등록 원본·다른 target을 보존한다",
+        "저장된 copy 내부 source-only 후보/CAS는 선택 leaf만 바꾸며 다른 깊이 동명 leaf·원본·공개 계약을 보존한다",
+        "기본/독립 정보 창의 재편집·Undo/Redo·팝업 취소·cold 복원은 같은 copy ID/외부 함수/출처/선택 target과 입력 원문을 유지한다",
+        "명시 Save/재시도는 기존 copy 본문만 저장하며 원본 함수 계약·출처·다른 target은 불변이다",
+        "copy Save/cold는 다른 창 입력을 보존하며 전역 Review는 미적용 입력을 차단하고 그 창의 명시 취소만 입력을 해제한다",
+        "중첩 copy의 실제 compiler Confirm은 qualified 각 leaf 본문만 반영하고 동명/공개 계약·부모/외부 원문을 보존한다",
+        "재시작·실제 compiler Review 취소와 명시 Confirm은 같은 copy만 반영하고 외부 팩을 쓰지 않는다"
+      ],
+      "logSha256": "26b31bfb025217876094d50214898ff8e92ec733f34e79e309d7980169f55dbd",
+      "archiveSha256": "6d7dec4bbcd5ae2489e50ead9f3085b42027885953dbda5a79c6c709f080cdeb",
+      "archiveBytes": 141297
+    },
+    {
+      "name": "enum",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-copy/ui-engine-report.json",
+        "normal",
+        "view",
+        "switch-source"
+      ],
+      "exit": 0,
+      "seconds": 133.1,
+      "minimumWorkspaceBytes": 1442447360,
+      "peakMemoryBytes": 4641505280,
+      "pendingCopy": false,
+      "copyImports": false,
+      "phase": "impact",
+      "checks": [
+        "외부 함수의 선택 target만 로컬 소유 copy로 저장하며 정확한64비트 값·등록 원본·다른 target을 보존한다",
+        "기본/독립 정보 창의 재편집·Undo/Redo·팝업 취소·cold 복원은 같은 copy ID/외부 함수/출처/선택 target과 입력 원문을 유지한다",
+        "명시 Save/재시도는 기존 copy 본문만 저장하며 원본 함수 계약·출처·다른 target은 불변이다",
+        "copied code switch의 분기/enum ID·값·순서·모든 route·반환과 C#·보조 원문은 실제 compiler Confirm 뒤에도 유지된다",
+        "재시작·실제 compiler Review 취소와 명시 Confirm은 같은 copy만 반영하고 외부 팩을 쓰지 않는다"
+      ],
+      "logSha256": "471e3fd56bc35bdc4e3567fea070b24c311671d6dda5f0f7f62495009b57ec6e",
+      "archiveSha256": "47c4cf296891cef8d57bf3219e542100b0342f9fc0bd42af8f31b9576e2f70e1",
+      "archiveBytes": 248749
+    },
+    {
+      "name": "projects",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-copy/ui-engine-report.json",
+        "projects",
+        "nested-source"
+      ],
+      "exit": 0,
+      "seconds": 202.7,
+      "minimumWorkspaceBytes": 1442164736,
+      "peakMemoryBytes": 4783583232,
+      "pendingCopy": false,
+      "copyImports": false,
+      "phase": "impact",
+      "checks": [
+        "원래 내부 편집/빵부스러기로 깊이1/2 copy를 오가며 동명 leaf의 서로 다른 본문·qualified 입력을 보존한다",
+        "외부 함수의 선택 target만 로컬 소유 copy로 저장하며 정확한64비트 값·등록 원본·다른 target을 보존한다",
+        "저장된 copy 내부 source-only 후보/CAS는 선택 leaf만 바꾸며 다른 깊이 동명 leaf·원본·공개 계약을 보존한다",
+        "기본/독립 정보 창의 재편집·Undo/Redo·팝업 취소·cold 복원은 같은 copy ID/외부 함수/출처/선택 target과 입력 원문을 유지한다",
+        "같은 namespace의 다른 프로젝트로 전환해도 copy 입력을 잘못 적용하지 않고 문서/초안 문맥을 보존한다",
+        "명시 Save/재시도는 기존 copy 본문만 저장하며 원본 함수 계약·출처·다른 target은 불변이다",
+        "중첩 copy의 실제 compiler Confirm은 qualified 각 leaf 본문만 반영하고 동명/공개 계약·부모/외부 원문을 보존한다",
+        "재시작·실제 compiler Review 취소와 명시 Confirm은 같은 copy만 반영하고 외부 팩을 쓰지 않는다"
+      ],
+      "logSha256": "0a6e4d492b54355acf0f106c968ca0d6831f3a916f4b62997b449c07f56a2f1d",
+      "archiveSha256": "7c232e0cf0810cd372ad6fe4fdbc1603f87235c321105be00b7cb1b979017f10",
+      "archiveBytes": 124835
+    },
+    {
+      "name": "internal",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_blueprint_internal_flow.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-copy/ui-engine-report.json",
+        "normal"
+      ],
+      "exit": 0,
+      "seconds": 34.3,
+      "minimumWorkspaceBytes": 1441996800,
+      "peakMemoryBytes": 4326158336,
+      "pendingCopy": false,
+      "copyImports": false,
+      "phase": "impact",
+      "checks": [
+        "original action internal-flow button opens the native owned graph with its original parent button and breadcrumb, without creating or changing source",
+        "Cancel does not stage code; parent/child navigation retains the exact scoped body and keeps the parent with no child-ID collision",
+        "desktop breadcrumb and original internal edit retain the same path; real restart restores the child and exact unposted input",
+        "private Save checkpoints the selected body; Review Cancel leaves originals intact and explicit compiler Confirm changes only its owned leaf"
+      ],
+      "logSha256": "6145ad27754a1007bf7b2ad259502245729a95080df2dac2737b66b309e8de92",
+      "archiveSha256": "29bddb7d8a73e2cf8910ff750125d3939cc4df9ef486ee36e637523eccb70ee5",
+      "archiveBytes": 51374
+    },
+    {
+      "name": "private-abi",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_private_copy_metadata.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-copy/ui-engine-report.json"
+      ],
+      "exit": 0,
+      "seconds": 5.4,
+      "minimumWorkspaceBytes": 1441927168,
+      "peakMemoryBytes": 3639390208,
+      "pendingCopy": false,
+      "copyImports": false,
+      "phase": "impact",
+      "checks": [
+        "immutable seed validates and unchanged current-source candidate preserves original body/provenance",
+        "explicit private ABI plan joins original snapshot/body edit, current typed import and wrapper in a pure candidate; donor/other target untouched",
+        "real compiler validation still rejects the unchanged stale donor with CONTRACT_MISMATCH; pure private candidate never auto-repairs it",
+        "ten missing/forged/stale/foreign/source-change boundaries reject without writes or seed rebasing; cold JSON seed retains original identity"
+      ],
+      "logSha256": "fb434b7fd79f163225949a28e5b83dd122542b0368603cfa19a92f58907230ad",
+      "archiveSha256": "2bbc05a0fdbfa9d1224f17d79957a43a9fb813863c24cfe65bcb819000676e79",
+      "archiveBytes": 2157
+    },
+    {
+      "name": "module-guards",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_module_view_guards.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-copy/ui-engine-report.json",
+        "normal",
+        "view"
+      ],
+      "exit": 0,
+      "seconds": 18.8,
+      "minimumWorkspaceBytes": 1441910784,
+      "peakMemoryBytes": 3801911296,
+      "pendingCopy": false,
+      "copyImports": false,
+      "phase": "impact",
+      "checks": [
+        "모듈 선택은 현재 정보/프로젝트/창 nonce만 허용하며 누락·위조·타 owner·client surface는 미적용한다",
+        "한 창의 import 후보와 완료 receipt는 다른 창/primary가 적용하거나 완료로 채택하지 못하고 primary 원문을 보존한다",
+        "닫힘/reopen은 오래된 nonce를 거절하고 새 명시 창에서 기존 저장 결과만 읽어 확인한다",
+        "직접 본문 편집은 같은 정보라도 실제로 관찰한 view basis와 독점 provide가 필요하고 타창 basis로 변경할 수 없다"
+      ],
+      "logSha256": "a84cc19c846796040c855d5c66890f4e5bb3eeeba88af4f3997cbd1667ed6671",
+      "archiveSha256": "aff51c3a2475122c19a41e3f8fe69138f6924d9551701c623bf84b9de3c75d0d",
+      "archiveBytes": 18232
+    },
+    {
+      "name": "override",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_inherited_contract_guards.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-copy/ui-engine-report.json",
+        "normal"
+      ],
+      "exit": 0,
+      "seconds": 7.0,
+      "minimumWorkspaceBytes": 1441865728,
+      "peakMemoryBytes": 3859390464,
+      "pendingCopy": false,
+      "copyImports": false,
+      "phase": "impact",
+      "checks": [
+        "공개 이름 대응·소유 copy·호출자 후보는 부모/자식 선언을 쓰지 않고 함께 준비한다",
+        "부모/자식 쓰기 위조·타입/핀 수/역할/반환/순서의 계약 변경은 정상 보호로 전체 미적용이다",
+        "실제 부모 파일 경합은 원래 읽기 기준으로 차단하고 후보/복사본 원문을 보존한다"
+      ],
+      "logSha256": "623c7aebddc7ccdb015a8d9280e8d5b7afc1a99b26b9e853deee04cdb0cb0943",
+      "archiveSha256": "91ad76e8647f8c94844239dbe58c69fe37422ed668f88944e841ebea18e08d6f",
+      "archiveBytes": 25860
+    }
+  ],
+  "pure": {
+    "checks": [
+      "깊이1/2 동명 leaf는 전체경로·별도파일·copy 소유 해시를 갖고 원계약·route·정확한 값·C#/helpers와 원본을 보존한다",
+      "미등록 copy seed의 cold JSON·qualified preview 이동은 원래 snapshot/출처를 유지하고 불명 private 경로를 거절한다",
+      "명시한 qualified leaf 본문만 후보에서 바꾸고 동명 형제·부모·원본은 그대로 유지한다",
+      "불완전/위조 경로·경계넘기·private 계약 편집·graph 본문 추측은 전체거절하고 원문을 보존한다"
+    ],
+    "evidence": "/tmp/confectory-nested-copy-metadata-zh5rtera",
+    "pureMetadata": true,
+    "archiveSha256": "51647c70de5b19a5ea03749d016dca9c34d682fe3a822e3e1967b50a8b071b39",
+    "sourceWritten": false
+  },
+  "uiPreservation": {
+    "base": "84f7382e9349f7be7100605f27122b62211d3cb4",
+    "uiFiles": 74,
+    "changed": [
+      "examples/editor-home/ui/feature-authoring.js"
+    ],
+    "unchangedUiFiles": 73,
+    "cssAndHtmlUnchanged": true
+  },
+  "sourceReview": {
+    "reviewedPaths": [
+      "examples/editor-home/WebBundle.csbody",
+      "examples/editor-home/ui/feature-authoring.js",
+      "packs/edit-workspace/CopyImplementation.csbody",
+      "packs/editor-home-model/Blueprint.csbody",
+      "packs/pack-workspace/Blueprint.csbody",
+      "targets/element-authoring/ImplementationCopy.cs",
+      "targets/element-authoring/ImplementationCopyEdits.cs",
+      "targets/element-authoring/ImplementationCopyTree.cs",
+      "targets/element-authoring/PrivateImplementationCopy.cs",
+      "tests/web/v536_information_external_copy_ui.py",
+      "tests/web/v536_nested_copy_metadata.py"
+    ],
+    "sha256": {
+      "examples/editor-home/WebBundle.csbody": "1727ed7ac7c128c4d6b754bc6d9ca921107ba46370380db2c6decd542260b9fc",
+      "examples/editor-home/ui/feature-authoring.js": "d70936d22397fa8a73c62890b491d2ce70e087faee3434969d5491ce67495125",
+      "packs/edit-workspace/CopyImplementation.csbody": "87f051755e110717b9dad535e3b7355399795689afff189dc24e46c30ab42182",
+      "packs/editor-home-model/Blueprint.csbody": "f924d44e86d0d73032e2aa23242af580311b34da6d33adbd610f2958c3591215",
+      "packs/pack-workspace/Blueprint.csbody": "127ad4179e070761015a68555772e0702fad11a5dd9fd698f35d0fa65f99dee7",
+      "targets/element-authoring/ImplementationCopy.cs": "a72bd602a85b9f647a99228472a8ebabed6e7db26ed086c9e318352966aafe4b",
+      "targets/element-authoring/ImplementationCopyEdits.cs": "4f199542f58ab2511e8bb6c8617dad92ee1b78538a51a30270e9fdf64c7fe0f8",
+      "targets/element-authoring/ImplementationCopyTree.cs": "ea3dd30ae1acf3e24ce924838af2c9b861190a9d3d1e2873486a67e2f7acc9be",
+      "targets/element-authoring/PrivateImplementationCopy.cs": "9defd55ea95c479eb0e5b677b7130693a8bdb362dd17f56f5c45ee6fa3387b29",
+      "tests/web/v536_information_external_copy_ui.py": "af993877d55a1a288d148149079d32dc74b0509eea828554469ba279407d40de",
+      "tests/web/v536_nested_copy_metadata.py": "017903b9f108b05cc9cede5c8e18335a8d0b3880964b4975cb132b4a83346514"
+    },
+    "secretPatternMatches": 0,
+    "userDataIncluded": false,
+    "buildArtifactsIncluded": false,
+    "main": "b5ea38c3d7eec3eb20f170e68f0f4215b86b2aee",
+    "testAssertionAdded": "Final nested Confirm also requires byte-exact original helpers; run by subsequent project/clean/package scenarios"
+  },
+  "nativeWindows": false,
+  "mobileDevice": false,
+  "libraryDelivered": false,
+  "fullUiComplete": false,
+  "failuresPreserved": [
+    "pure.log: flat qualified record ID rejected",
+    "pure-2.log: helper/profile fixture invalid",
+    "pure-final.log: private preview top-level lookup",
+    "first: incorrect resource canonical identity",
+    "first-ui: intermediate Native private preview lookup",
+    "focused and focused-final: private cold view path not restored; input/snapshot retained"
+  ],
+  "existingFilesDeleted": false
+}

@@ -1,0 +1,1 @@
+function Confectory.Save::InformationArchive (string handle,string action,string token) -> string {provide Confectory.Save::InformationArchive with Confectory.Save::InformationArchiveBody;description "Save a scoped information-function archive transition as one checked checkpoint; verify durable outcomes before retrying. Final sources still require Review/Confirm.";}

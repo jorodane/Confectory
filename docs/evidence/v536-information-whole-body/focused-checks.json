@@ -1,0 +1,222 @@
+{
+  "scope": "directly owned no-import original whole-body value/ref and retained native out; ordinary caller storage",
+  "results": {
+    "pure-release.log": {
+      "passCount": 2,
+      "checks": [
+        "explicit whole-body/native aliases, retained out storage and caller ref binding share one candidate",
+        "missing text/mapping, stale source, compile/type/out-role/foreign/guessed storage reject every update"
+      ],
+      "summaries": [
+        {
+          "checks": 2,
+          "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-tkqfhpmj",
+          "pureCandidate": true,
+          "executed": false
+        }
+      ]
+    },
+    "api.log": {
+      "passCount": 3,
+      "checks": [
+        "whole-body 본문/원래 증거/컴파일/명시 ref 저장소/호출자 오류는 전체 미적용이다",
+        "명시 본문·native/ref/out·호출자 저장소는 한 후보/CAS로 저장하고 cold에서 정확히 복원한다",
+        "실제 compiler Review/Confirm 이후에만 source/native/context/caller를 함께 반영하며 부모·타 함수·정확한 원문을 보존한다"
+      ],
+      "summaries": [
+        {
+          "checks": [
+            "whole-body 본문/원래 증거/컴파일/명시 ref 저장소/호출자 오류는 전체 미적용이다",
+            "명시 본문·native/ref/out·호출자 저장소는 한 후보/CAS로 저장하고 cold에서 정확히 복원한다",
+            "실제 compiler Review/Confirm 이후에만 source/native/context/caller를 함께 반영하며 부모·타 함수·정확한 원문을 보존한다"
+          ],
+          "actualEngine": true,
+          "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-nnc75eof",
+          "nativeWindows": false,
+          "projectRun": false
+        }
+      ]
+    },
+    "ui-final.log": {
+      "passCount": 4,
+      "checks": [
+        "원본 전체 본문 편집창의 ref/native/out 입력은 취소·불완전 cold·코드 저장·명시 caller 선택·Undo/Redo에서 보존된다",
+        "화면 저장 장치 오류는 source·호출자·checkpoint 부분 적용 없이 명시 입력을 보존한다",
+        "응답과 receipt 유실 뒤 cold/재시도는 결과 조회로 전체 저장을 확인하며 중복 적용하지 않는다",
+        "실제 화면 compiler Review 취소·재검토·명시 Confirm은 ref/out 저장소와 C# 원문을 함께 반영한다"
+      ],
+      "summaries": [
+        {
+          "checks": [
+            "원본 전체 본문 편집창의 ref/native/out 입력은 취소·불완전 cold·코드 저장·명시 caller 선택·Undo/Redo에서 보존된다",
+            "화면 저장 장치 오류는 source·호출자·checkpoint 부분 적용 없이 명시 입력을 보존한다",
+            "응답과 receipt 유실 뒤 cold/재시도는 결과 조회로 전체 저장을 확인하며 중복 적용하지 않는다",
+            "실제 화면 compiler Review 취소·재검토·명시 Confirm은 ref/out 저장소와 C# 원문을 함께 반영한다"
+          ],
+          "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-dg9_1a6j",
+          "actualEngine": true,
+          "nativeWindows": false,
+          "deviceTouch": false
+        }
+      ]
+    },
+    "ui-conflict.log": {
+      "passCount": 2,
+      "checks": [
+        "원본 전체 본문 편집창의 ref/native/out 입력은 취소·불완전 cold·코드 저장·명시 caller 선택·Undo/Redo에서 보존된다",
+        "동시 source 변경은 본문·저장소·호출자 전체를 거절하고 새 입력과 다른 편집자를 보존한다"
+      ],
+      "summaries": [
+        {
+          "checks": [
+            "원본 전체 본문 편집창의 ref/native/out 입력은 취소·불완전 cold·코드 저장·명시 caller 선택·Undo/Redo에서 보존된다",
+            "동시 source 변경은 본문·저장소·호출자 전체를 거절하고 새 입력과 다른 편집자를 보존한다"
+          ],
+          "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-i2bkxh92",
+          "actualEngine": true,
+          "nativeWindows": false,
+          "deviceTouch": false
+        }
+      ]
+    },
+    "ui-normal-cancel.log": {
+      "passCount": 2,
+      "checks": [
+        "원본 전체 본문 편집창의 ref/native/out 입력은 취소·불완전 cold·코드 저장·명시 caller 선택·Undo/Redo에서 보존된다",
+        "변경 취소는 본문·native/ref/out·호출자와 cold 기록을 함께 미적용으로 유지한다"
+      ],
+      "summaries": [
+        {
+          "checks": [
+            "원본 전체 본문 편집창의 ref/native/out 입력은 취소·불완전 cold·코드 저장·명시 caller 선택·Undo/Redo에서 보존된다",
+            "변경 취소는 본문·native/ref/out·호출자와 cold 기록을 함께 미적용으로 유지한다"
+          ],
+          "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-m53m2ghp",
+          "actualEngine": true,
+          "nativeWindows": false,
+          "deviceTouch": false
+        }
+      ]
+    },
+    "ui-normal-projects.log": {
+      "passCount": 2,
+      "checks": [
+        "원본 전체 본문 편집창의 ref/native/out 입력은 취소·불완전 cold·코드 저장·명시 caller 선택·Undo/Redo에서 보존된다",
+        "동일 namespace 두 프로젝트는 whole-body/ref/out 입력을 분리하고 닫힌 편집창 저장을 차단한다"
+      ],
+      "summaries": [
+        {
+          "checks": [
+            "원본 전체 본문 편집창의 ref/native/out 입력은 취소·불완전 cold·코드 저장·명시 caller 선택·Undo/Redo에서 보존된다",
+            "동일 namespace 두 프로젝트는 whole-body/ref/out 입력을 분리하고 닫힌 편집창 저장을 차단한다"
+          ],
+          "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-0hul4k5l",
+          "actualEngine": true,
+          "nativeWindows": false,
+          "deviceTouch": false
+        }
+      ]
+    },
+    "regression-root.log": {
+      "passCount": 5,
+      "checks": [
+        "whole-body root ref preparation preserves native implementation aliases, exact input/storage bindings and original C# file; body input stays explicit",
+        "current context restamp forms exactly4 owned source members and legacy3 remains valid",
+        "unknown body, name/type/count/out-role/mixed publication, copied storage, extra node and wrong context refuse before any write",
+        "stale fourth-member receipt, wrong locator/membership/context and group extension are refused, without relaxing group cardinality",
+        "explicit reverse to value mode retains native aliases, out role and storage mapping without downgrading unrelated profile contracts"
+      ],
+      "summaries": []
+    },
+    "regression-mixed.log": {
+      "passCount": 2,
+      "checks": [
+        "한 구현의 Blueprint/C# 및 호출자의 두 target을 원래 graph/source 증거·명시 매핑·한 후보에 결합한다",
+        "마지막 graph/C# 오류·누락·오래된 증거·외부 본문은 전체 거절하며 모든 target·호출자·원문을 보존한다"
+      ],
+      "summaries": [
+        {
+          "checks": 2,
+          "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-wck96lsw",
+          "pureCandidate": true,
+          "executed": false
+        }
+      ]
+    },
+    "regression-mixed-api.log": {
+      "passCount": 3,
+      "checks": [
+        "명시 C# 본문·현재 계약·호출자 누락 및 컴파일/경로/기준 오류는 전체 미적용이며 원문/checkpoint를 보존한다",
+        "직접 쓴 C# 원문과 함수·구현·호출 인자는 한 후보/CAS로 저장·재시작 복원하며 원본 파일은 유지한다",
+        "실제 compiler Review/Confirm·cold에서만 C#와 계약을 함께 반영하고 다른 함수·부모·target을 보존한다"
+      ],
+      "summaries": [
+        {
+          "checks": [
+            "명시 C# 본문·현재 계약·호출자 누락 및 컴파일/경로/기준 오류는 전체 미적용이며 원문/checkpoint를 보존한다",
+            "직접 쓴 C# 원문과 함수·구현·호출 인자는 한 후보/CAS로 저장·재시작 복원하며 원본 파일은 유지한다",
+            "실제 compiler Review/Confirm·cold에서만 C#와 계약을 함께 반영하고 다른 함수·부모·target을 보존한다"
+          ],
+          "actualEngine": true,
+          "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-3m317b40",
+          "nativeWindows": false
+        }
+      ]
+    },
+    "clean-api.log": {
+      "passCount": 4,
+      "checks": [
+        "whole-body 본문/원래 증거/컴파일/명시 ref 저장소/호출자 오류는 전체 미적용이다",
+        "명시 본문·native/ref/out·호출자 저장소는 한 후보/CAS로 저장하고 cold에서 정확히 복원한다",
+        "실제 compiler Review/Confirm 이후에만 source/native/context/caller를 함께 반영하며 부모·타 함수·정확한 원문을 보존한다",
+        "자기 Confirm 뒤 최신 증거로 다시 편집하여 ref→값을 되돌려도 native/out/source와 저장소를 보존하며 허위 충돌로 차단하지 않는다"
+      ],
+      "summaries": [
+        {
+          "checks": [
+            "whole-body 본문/원래 증거/컴파일/명시 ref 저장소/호출자 오류는 전체 미적용이다",
+            "명시 본문·native/ref/out·호출자 저장소는 한 후보/CAS로 저장하고 cold에서 정확히 복원한다",
+            "실제 compiler Review/Confirm 이후에만 source/native/context/caller를 함께 반영하며 부모·타 함수·정확한 원문을 보존한다",
+            "자기 Confirm 뒤 최신 증거로 다시 편집하여 ref→값을 되돌려도 native/out/source와 저장소를 보존하며 허위 충돌로 차단하지 않는다"
+          ],
+          "actualEngine": true,
+          "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-ktaniab3",
+          "nativeWindows": false,
+          "projectRun": false
+        }
+      ]
+    },
+    "clean-ui.log": {
+      "passCount": 2,
+      "checks": [
+        "원본 전체 본문 편집창의 ref/native/out 입력은 취소·불완전 cold·코드 저장·명시 caller 선택·Undo/Redo에서 보존된다",
+        "변경 취소는 본문·native/ref/out·호출자와 cold 기록을 함께 미적용으로 유지한다"
+      ],
+      "summaries": [
+        {
+          "checks": [
+            "원본 전체 본문 편집창의 ref/native/out 입력은 취소·불완전 cold·코드 저장·명시 caller 선택·Undo/Redo에서 보존된다",
+            "변경 취소는 본문·native/ref/out·호출자와 cold 기록을 함께 미적용으로 유지한다"
+          ],
+          "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-hoqt_8p1",
+          "actualEngine": true,
+          "nativeWindows": false,
+          "deviceTouch": false
+        }
+      ]
+    },
+    "resources-final.log": {
+      "passCount": 1,
+      "checks": [
+        "actual EditorHome retained CRLF after attribute pull and fresh LF; 74 canonical/exact snapshots; content/encoding/BOM/binary/budget rejection; original bytes unchanged"
+      ],
+      "summaries": []
+    }
+  },
+  "nativeWindows": false,
+  "deviceTouch": false,
+  "userAccountOrInference": false,
+  "projectRun": false,
+  "sourceCommit": "d36a2d74539c1f483fdafd214677f59b01606365",
+  "resourceProbeInitialFailure": "Probe launcher omitted CONFECTORY_DOTNET and default dotnet was absent from PATH; reran exact probe with installed .NET10 executable, PASS74. No product bypass/change."
+}

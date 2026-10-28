@@ -99,10 +99,22 @@ internal sealed class BlueprintCompilation(Registry registry, string target, Tar
             var known=registry.Get(id);var parsed=new Parser(Read(known.Loc.File),known.Loc.File).ParseElement();
             if(JsonData.Digest(parsed)!=JsonData.Digest(known))throw new BuildError("BLUEPRINT_SOURCE_CHANGED","Property declaration changed after planning",known.Loc);
         }
+        var bodyContext = FeatureBlueprint.ImplementationContext(implementation);
+        if (body.Origin != implementation.Id && tree.Values.Any(e => e.Node["implementationContext"] is not null))
+        {
+            // Inherited records retain the declaring parent's context and hash.
+            // The selected child's native boundary must match exactly; neither
+            // aliases nor imported scopes can be inferred from inherited code.
+            var declared = FeatureBlueprint.ImplementationContext(registry.Effective(body.Origin));
+            var selected = declared.DeepClone().AsObject(); selected["implementation"] = implementation.Id;
+            if (!JsonNode.DeepEquals(bodyContext, selected))
+                throw new BuildError("BLUEPRINT_INHERITED_CONTEXT", "Inherited Blueprint native parameters or imports differ; select an explicit compatible body", body.Loc);
+            bodyContext = declared;
+        }
         var request = new JsonObject
         {
             ["operation"] = nodeId is null ? "featureBlueprintAssemble" : "featureBlueprintNodeProbe", ["node"] = nodeId, ["featureSource"] = Contract(implementation.Function!),
-            ["implementationContext"] = FeatureBlueprint.ImplementationContext(implementation), ["bodyTarget"] = implementation.Bodies.First(p=>p.Value==body).Key, ["graph"] = graph, ["featureContracts"] = contracts, ["propertyContracts"] = propertyContracts, ["implementations"] = implementations
+            ["implementationContext"] = bodyContext, ["bodyTarget"] = implementation.Bodies.First(p=>p.Value==body).Key, ["graph"] = graph, ["featureContracts"] = contracts, ["propertyContracts"] = propertyContracts, ["implementations"] = implementations
         };
         var result = FeatureBlueprint.Execute(request);
         if (result["state"]?.ToString() != (nodeId is null ? "source-assembled" : "node-source-assembled"))

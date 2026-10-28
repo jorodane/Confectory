@@ -145,6 +145,8 @@ public static partial class FeatureBlueprint
             Need(control != "branch" || signature.Return == "bool", "GRAPH_BRANCH_TYPE", id);
             if(kind=="export")Need(signature.Args.Count==1&&signature.Args[0].Mode is null&&signature.Args[0].Name=="value"&&FeatureOutputs(feature.Signature!).Any(p=>p.Name==S(value,"output")&&p.Type==signature.Args[0].Type)&&control=="next"&&signature.Return=="void","GRAPH_OUTPUT_CONTRACT",id);
             if(kind=="set")Need(signature.Args.Count==1&&signature.Args[0].Mode is null&&signature.Args[0].Name=="value"&&signature.Return=="void"&&control=="next"&&locals.TryGetValue(S(value,"local"),out var storage)&&S(storage,"type")==signature.Args[0].Type,"GRAPH_LOCAL_CONTRACT",id);
+            Need(kind=="set"||!value.ContainsKey("outputLocal"),"GRAPH_SET_OUTPUT_KIND",id);
+            if(kind=="set"&&value.ContainsKey("outputLocal"))Need(locals.TryGetValue(S(value,"outputLocal"),out var stored)&&stored["source"] is null&&S(stored,"type")==signature.Args[0].Type,"GRAPH_SET_OUTPUT_CONTRACT",id);
             var references = new JsonObject();
             string? called = null;
             if (kind == "call")
@@ -209,7 +211,7 @@ public static partial class FeatureBlueprint
                 }
             }
             if(kind=="export")definition["output"]=S(value,"output");
-            if(kind=="set")definition["local"]=S(value,"local");
+            if(kind=="set"){definition["local"]=S(value,"local");if(value.ContainsKey("outputLocal"))definition["outputLocal"]=S(value,"outputLocal");}
             if (value["implementationContext"] is JsonObject context)
             {
                 var actualContext = request["implementationContext"] as JsonObject;
@@ -240,6 +242,8 @@ public static partial class FeatureBlueprint
             nodes.Add(id, new(id, kind, control, signature, definition, value["arguments"]?.AsObject() ?? new JsonObject(), Hash(CanonicalText(definition)), called));
         }
 
+        var outputCells=nodes.Values.Where(n=>n.Kind=="set"&&n.Definition["outputLocal"] is not null).Select(n=>S(n.Definition,"outputLocal")).ToArray();
+        Need(outputCells.Distinct(StringComparer.Ordinal).Count()==outputCells.Length,"GRAPH_SET_OUTPUT_OWNER",feature.Id);
         ValidateAliasLocals(locals,feature,nodes);
         foreach(var node in nodes.Values.Where(n=>n.Kind is "property-set" or "property-ref"))CheckPropertyInputBindings(node,feature.Signature!,nodes,locals);
         bool ForwardCaller(Node node)=>externalRefs&&(node.Definition["forwardCallerStorage"]?.GetValue<bool>()==true||HasContext(node)&&node.Signature.Args.Any(p=>p.Mode is "ref" or "out"));
@@ -303,7 +307,7 @@ public static partial class FeatureBlueprint
             return new JsonObject
             {
                 ["state"] = "node-definitions", ["feature"] = feature.Id, ["profile"] = profile, ["contractHash"] = contractHash, ["signature"] = contract.DeepClone(),
-                ["nodes"] = new JsonArray(nodes.OrderBy(p => p.Key, StringComparer.Ordinal).Select(p => (JsonNode)new JsonObject { ["id"] = p.Key, ["definitionHash"] = p.Value.DefinitionHash, ["definition"] = p.Value.Definition.DeepClone(), ["outputs"] = OutputDocument(p.Value.Signature), ["currentCallSignature"] = p.Value.Kind == "call" ? SignatureDocument(Import(p.Value.Feature!).Element.Signature!) : null, ["callAbiSourceHash"] = p.Value.Kind == "call" ? Import(p.Value.Feature!).SourceHash : null, ["postCallStale"] = p.Value.Definition["postCall"] is not null && p.Value.Definition["postCall"]!["contractHash"]!.ToString() != BlueprintOutputSnapshot.Prepare(Import(p.Value.Feature!).Element)["contractHash"]!.ToString(), ["postCallSignatureMatches"] = p.Value.Kind != "call" || p.Value.Signature.Args.Select(a => (a.Name,a.Type,a.Mode)).SequenceEqual(Import(p.Value.Feature!).Element.Signature!.Args.Select(a => (a.Name,a.Type,a.Mode))) && p.Value.Signature.Return == Import(p.Value.Feature!).Element.Signature!.Return, ["postCallEditor"] = p.Value.Kind == "call" && p.Value.Control == "switch" ? BlueprintCallWrapper.Prepare(Import(p.Value.Feature!).Element, p.Value.Definition["executionEnum"]!.AsObject(), inspectStalePostCalls ? null : p.Value.Definition["postCall"]?["contractHash"]?.ToString(), p.Value.Definition["postCall"]?["source"]?.GetValue<string>(), p.Value.Definition["postCall"]?["helpers"]?.GetValue<string>()??"", p.Value.Definition["postCall"]?["returnMapping"]?.GetValue<string>()) : p.Value.Kind == "call" ? BlueprintCallAfter.Prepare(Import(p.Value.Feature!).Element, inspectStalePostCalls ? null : p.Value.Definition["postCall"]?["contractHash"]?.ToString(), p.Value.Definition["postCall"]?["source"]?.GetValue<string>(), p.Value.Definition["postCall"]?["helpers"]?.GetValue<string>()??"") : null, ["wrapperEditor"] = p.Value.Kind == "call" && p.Value.Control == "next" && p.Value.Definition["postCall"] is null ? BlueprintCallWrapper.Prepare(Import(p.Value.Feature!).Element, new JsonObject { ["primary"] = "next", ["members"] = new JsonArray(new JsonObject { ["id"] = "next", ["name"] = "NoBranch", ["value"] = 0 }) }, returnMapping: p.Value.Signature.Return == "void" ? null : BlueprintCallWrapper.NativeReturnMapping) : null }).ToArray()),
+                ["nodes"] = new JsonArray(nodes.OrderBy(p => p.Key, StringComparer.Ordinal).Select(p => (JsonNode)new JsonObject { ["id"] = p.Key, ["definitionHash"] = p.Value.DefinitionHash, ["definition"] = p.Value.Definition.DeepClone(), ["outputs"] = NodeOutputDocument(p.Value), ["currentCallSignature"] = p.Value.Kind == "call" ? SignatureDocument(Import(p.Value.Feature!).Element.Signature!) : null, ["callAbiSourceHash"] = p.Value.Kind == "call" ? Import(p.Value.Feature!).SourceHash : null, ["postCallStale"] = p.Value.Definition["postCall"] is not null && p.Value.Definition["postCall"]!["contractHash"]!.ToString() != BlueprintOutputSnapshot.Prepare(Import(p.Value.Feature!).Element)["contractHash"]!.ToString(), ["postCallSignatureMatches"] = p.Value.Kind != "call" || p.Value.Signature.Args.Select(a => (a.Name,a.Type,a.Mode)).SequenceEqual(Import(p.Value.Feature!).Element.Signature!.Args.Select(a => (a.Name,a.Type,a.Mode))) && p.Value.Signature.Return == Import(p.Value.Feature!).Element.Signature!.Return, ["postCallEditor"] = p.Value.Kind == "call" && p.Value.Control == "switch" ? BlueprintCallWrapper.Prepare(Import(p.Value.Feature!).Element, p.Value.Definition["executionEnum"]!.AsObject(), inspectStalePostCalls ? null : p.Value.Definition["postCall"]?["contractHash"]?.ToString(), p.Value.Definition["postCall"]?["source"]?.GetValue<string>(), p.Value.Definition["postCall"]?["helpers"]?.GetValue<string>()??"", inspectStalePostCalls ? (Import(p.Value.Feature!).Element.Signature!.Return == "void" ? null : BlueprintCallWrapper.NativeReturnMapping) : p.Value.Definition["postCall"]?["returnMapping"]?.GetValue<string>()) : p.Value.Kind == "call" ? BlueprintCallAfter.Prepare(Import(p.Value.Feature!).Element, inspectStalePostCalls ? null : p.Value.Definition["postCall"]?["contractHash"]?.ToString(), p.Value.Definition["postCall"]?["source"]?.GetValue<string>(), p.Value.Definition["postCall"]?["helpers"]?.GetValue<string>()??"") : null, ["wrapperEditor"] = p.Value.Kind == "call" && p.Value.Control == "next" && p.Value.Definition["postCall"] is null ? BlueprintCallWrapper.Prepare(Import(p.Value.Feature!).Element, new JsonObject { ["primary"] = "next", ["members"] = new JsonArray(new JsonObject { ["id"] = "next", ["name"] = "NoBranch", ["value"] = 0 }) }, returnMapping: p.Value.Signature.Return == "void" ? null : BlueprintCallWrapper.NativeReturnMapping) : null }).ToArray()),
                 ["locals"] = LocalDocument(locals), ["outputs"] = OutputDocument(feature.Signature!), ["contractVersions"] = versions,
                 ["imports"] = new JsonArray(imports.OrderBy(i => i.Key, StringComparer.Ordinal).Select(i => (JsonNode)new JsonObject { ["feature"] = i.Key, ["alias"] = i.Value.Alias, ["contractHash"] = i.Value.Hash, ["binding"] = canonicalImports.Contains(i.Key) ? "canonical" : "implementation-context", ["signature"] = SignatureNode(i.Value.Element.Signature!) }).ToArray()),
                 ["independentNodeCompilation"] = true, ["sourceWritten"] = false, ["compiled"] = false, ["executed"] = false
@@ -413,7 +417,7 @@ public static partial class FeatureBlueprint
         string prefix="__fg_";if(nested)prefix+="p"+Hash(feature.Id+"/"+request["sourcePath"])[..16]+"_";if(multiOutput)while(feature.Signature!.Args.Any(p=>p.Name.StartsWith(prefix,StringComparison.Ordinal)))prefix="_"+prefix;
         string Symbol(string id) => prefix + Hash(id)[..32];
         string Cell(string id)=>Symbol(id)+"_field_cell";
-        string Value(string id,string result="return") => nodes[id].Kind=="property-ref"?Cell(id)+".Value":Symbol(id) + (result=="return"?"_value":"_out_"+Hash(result)[..16]);
+        string Value(string id,string result="return") => nodes[id].Kind=="set"&&result=="stored"&&nodes[id].Definition["outputLocal"] is JsonValue storedLocal?LocalValue(storedLocal.GetValue<string>()):nodes[id].Kind=="property-ref"?Cell(id)+".Value":Symbol(id) + (result=="return"?"_value":"_out_"+Hash(result)[..16]);
         string Assigned(string name)=>prefix+"assigned_"+Hash(name)[..16];
         string ExecutionValue(string id)=>WrappedReturn(nodes[id])?Symbol(id)+"_branch":Value(id);
         string FeatureValue(string name)=>name=="return"?prefix+"output_return":name;
@@ -458,7 +462,7 @@ public static partial class FeatureBlueprint
             {
                 string source = S(binding, "node");
                 string result=multiOutput&&binding.ContainsKey("output")?S(binding,"output"):"return";
-                Need(available.Contains(source),"GRAPH_VALUE_UNAVAILABLE",subject);var output=FeatureOutputs(nodes[source].Signature).SingleOrDefault(p=>p.Name==result);Need(output is not null&&(output.Type==type||!exact&&NumericPromotion(output.Type,type)), "GRAPH_VALUE_UNAVAILABLE", subject);
+                Need(available.Contains(source),"GRAPH_VALUE_UNAVAILABLE",subject);var output=NodeOutputs(nodes[source]).SingleOrDefault(p=>p.Name==result);Need(output is not null&&(output.Type==type||!exact&&NumericPromotion(output.Type,type)), "GRAPH_VALUE_UNAVAILABLE", subject);
                 return output!.Type==type?Value(source,result):Promote(Value(source,result),output.Type,type);
             }
 
@@ -519,7 +523,7 @@ public static partial class FeatureBlueprint
         }
         foreach(var local in locals.Where(p=>p.Value["source"] is null))output.AppendLine(S(local.Value,"type")+" "+LocalValue(local.Key)+" = "+Literal(local.Value["initial"]!["constant"],S(local.Value,"type"))+";");
         if(localProfile)output.AppendLine("#pragma warning restore CS0219");
-        foreach (string id in order)foreach(var result in FeatureOutputs(nodes[id].Signature))
+        foreach (string id in order.Where(id=>nodes[id].Kind!="set"))foreach(var result in NodeOutputs(nodes[id]))
             output.AppendLine(nodes[id].Kind=="property-ref"?FieldCellType(nodes[id])+" "+Cell(id)+";":result.Type + " " + Value(id,result.Name) + ";");
         if(switchFlow)foreach(string id in order.Where(id=>nodes[id].Control=="switch"))output.AppendLine("int "+ExecutionValue(id)+";");
         foreach (string id in definitionOrder.Where(id => bodies.ContainsKey(id) || nodes[id].Kind == "call"))
@@ -573,7 +577,9 @@ public static partial class FeatureBlueprint
                 manifestNodes.Single(n=>n!["id"]!.ToString()==id)!["includedInSource"]=true;
             }
             else if(node.Kind=="set"){
-                string local=S(node.Definition,"local");output.AppendLine((locals[local]["source"] is JsonObject source?Binding(source,S(locals[local],"type"),available,id+"/target"):LocalValue(local))+" = "+Binding(node.Arguments["value"],S(locals[local],"type"),available,id+"/value")+";");manifestNodes.Single(n=>n!["id"]!.ToString()==id)!["includedInSource"]=true;
+                string local=S(node.Definition,"local"),target=locals[local]["source"] is JsonObject source?Binding(source,S(locals[local],"type"),available,id+"/target"):LocalValue(local),value=Binding(node.Arguments["value"],S(locals[local],"type"),available,id+"/value");
+                if(node.Definition["outputLocal"] is JsonValue stored){string temporary=Symbol(id)+"_set_value";output.AppendLine(S(locals[local],"type")+" "+temporary+" = "+value+";\n"+target+" = "+temporary+";\n"+LocalValue(stored.GetValue<string>())+" = "+temporary+";");}else output.AppendLine(target+" = "+value+";");
+                manifestNodes.Single(n=>n!["id"]!.ToString()==id)!["includedInSource"]=true;
             }
             else if(node.Kind=="export"){
                 string exported=S(node.Definition,"output"),outputType=FeatureOutputs(feature.Signature!).Single(p=>p.Name==exported).Type;

@@ -1,0 +1,412 @@
+{
+  "base": "8cd62189a4f219f6d30e511ba0c1f16f83cca7b1",
+  "flows": 14,
+  "checks": 59,
+  "focusedFlows": 10,
+  "impactFlows": 4,
+  "runs": [
+    {
+      "name": "primary",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-external-copy/engine-report.json",
+        "normal"
+      ],
+      "exit": 0,
+      "seconds": 107.3,
+      "minimumWorkspaceBytes": 1612759040,
+      "peakMemoryBytes": 4373282816,
+      "pendingCopy": false,
+      "copyImports": false,
+      "phase": "focused",
+      "checks": [
+        "외부 함수의 선택 target만 로컬 소유 copy로 저장하며 정확한64비트 값·등록 원본·다른 target을 보존한다",
+        "기본/독립 정보 창의 재편집·Undo/Redo·팝업 취소·cold 복원은 같은 copy ID/외부 함수/출처/선택 target과 입력 원문을 유지한다",
+        "명시 Save/재시도는 기존 copy 본문만 저장하며 원본 함수 계약·출처·다른 target은 불변이다",
+        "재시작·실제 compiler Review 취소와 명시 Confirm은 같은 copy만 반영하고 외부 팩을 쓰지 않는다"
+      ],
+      "logSha256": "55f7499d30ddb569b77eb5748a705c61aa6b2625bde33938f8de58ddf724b0b9",
+      "evidenceArchiveSha256": "6aa2c5575c42d5530c9cbbab019fb0f9aa419f90d6051735c46021d2ffb3f3fc"
+    },
+    {
+      "name": "view",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-external-copy/engine-report.json",
+        "normal",
+        "view",
+        "confirmed"
+      ],
+      "exit": 0,
+      "seconds": 147.9,
+      "minimumWorkspaceBytes": 1612607488,
+      "peakMemoryBytes": 4420055040,
+      "pendingCopy": false,
+      "copyImports": false,
+      "phase": "focused",
+      "checks": [
+        "외부 함수의 선택 target만 로컬 소유 copy로 저장하며 정확한64비트 값·등록 원본·다른 target을 보존한다",
+        "기본/독립 정보 창의 재편집·Undo/Redo·팝업 취소·cold 복원은 같은 copy ID/외부 함수/출처/선택 target과 입력 원문을 유지한다",
+        "명시 Save/재시도는 기존 copy 본문만 저장하며 원본 함수 계약·출처·다른 target은 불변이다",
+        "재시작·실제 compiler Review 취소와 명시 Confirm은 같은 copy만 반영하고 외부 팩을 쓰지 않는다"
+      ],
+      "logSha256": "fb9ba27885e788641347089e5e74ab9917b663fc4e0f057328bad140d997441a",
+      "evidenceArchiveSha256": "ad7b7d94ad98f7c22627cb9786a6b4e6664da2051cf950a0acc4b2b0098ab26d"
+    },
+    {
+      "name": "windows",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-external-copy/engine-report.json",
+        "normal",
+        "windows"
+      ],
+      "exit": 0,
+      "seconds": 100.0,
+      "minimumWorkspaceBytes": 1611714560,
+      "peakMemoryBytes": 4383920128,
+      "pendingCopy": false,
+      "copyImports": false,
+      "phase": "focused-final",
+      "checks": [
+        "외부 함수의 선택 target만 로컬 소유 copy로 저장하며 정확한64비트 값·등록 원본·다른 target을 보존한다",
+        "기본/독립 정보 창의 재편집·Undo/Redo·팝업 취소·cold 복원은 같은 copy ID/외부 함수/출처/선택 target과 입력 원문을 유지한다",
+        "명시 Save/재시도는 기존 copy 본문만 저장하며 원본 함수 계약·출처·다른 target은 불변이다",
+        "windows-only 복사본의 Linux compiler Confirm은 거절하며 선택한 target·저장 초안·원본을 보존한다"
+      ],
+      "logSha256": "c4b33e7074f70fb4210151ca13406466a8b8c9bae6df74f9a71398575941477c",
+      "evidenceArchiveSha256": "7b85c1ad3bafe256a11ba2ea0cd9462ad076dc8eb7a6b4a66e814c78a951c6ae"
+    },
+    {
+      "name": "blueprint-source",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-external-copy/engine-report.json",
+        "normal",
+        "view",
+        "blueprint-source"
+      ],
+      "exit": 0,
+      "seconds": 121.3,
+      "minimumWorkspaceBytes": 1611571200,
+      "peakMemoryBytes": 4387504128,
+      "pendingCopy": false,
+      "copyImports": false,
+      "phase": "focused-final",
+      "checks": [
+        "외부 함수의 선택 target만 로컬 소유 copy로 저장하며 정확한64비트 값·등록 원본·다른 target을 보존한다",
+        "기본/독립 정보 창의 재편집·Undo/Redo·팝업 취소·cold 복원은 같은 copy ID/외부 함수/출처/선택 target과 입력 원문을 유지한다",
+        "명시 Save/재시도는 기존 copy 본문만 저장하며 원본 함수 계약·출처·다른 target은 불변이다",
+        "재시작·실제 compiler Review 취소와 명시 Confirm은 같은 copy만 반영하고 외부 팩을 쓰지 않는다"
+      ],
+      "logSha256": "42665970451f814bfb86e621e09ffd264f7e1d09f8e51bd9b0f17e7656654da0",
+      "evidenceArchiveSha256": "b094b7d404cb6880686d93911606f624fcf2eb60d1dc1eba0270467b86f4ea6c"
+    },
+    {
+      "name": "storage",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-external-copy/engine-report.json",
+        "storage",
+        "view",
+        "confirmed"
+      ],
+      "exit": 0,
+      "seconds": 160.2,
+      "minimumWorkspaceBytes": 1611440128,
+      "peakMemoryBytes": 4385792000,
+      "pendingCopy": false,
+      "copyImports": false,
+      "phase": "focused-final",
+      "checks": [
+        "외부 함수의 선택 target만 로컬 소유 copy로 저장하며 정확한64비트 값·등록 원본·다른 target을 보존한다",
+        "기본/독립 정보 창의 재편집·Undo/Redo·팝업 취소·cold 복원은 같은 copy ID/외부 함수/출처/선택 target과 입력 원문을 유지한다",
+        "저장 실패는 checkpoint·live 본문·입력 원문·기존 copy를 보존하고 부분 적용하지 않는다",
+        "명시 Save/재시도는 기존 copy 본문만 저장하며 원본 함수 계약·출처·다른 target은 불변이다",
+        "재시작·실제 compiler Review 취소와 명시 Confirm은 같은 copy만 반영하고 외부 팩을 쓰지 않는다"
+      ],
+      "logSha256": "6b89ae10d9861f6e17df9867c0f21ebb80ae1b078a5abdfdf73475531a1aecaf",
+      "evidenceArchiveSha256": "1d2321946d620dc9d30b3fc079b5eea589fb6ee567d1b278ec7aa4069ef67182"
+    },
+    {
+      "name": "storage-pending",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-external-copy/engine-report.json",
+        "storage"
+      ],
+      "exit": 0,
+      "seconds": 118.5,
+      "minimumWorkspaceBytes": 1611300864,
+      "peakMemoryBytes": 4347920384,
+      "pendingCopy": false,
+      "copyImports": false,
+      "phase": "focused-final",
+      "checks": [
+        "외부 함수의 선택 target만 로컬 소유 copy로 저장하며 정확한64비트 값·등록 원본·다른 target을 보존한다",
+        "기본/독립 정보 창의 재편집·Undo/Redo·팝업 취소·cold 복원은 같은 copy ID/외부 함수/출처/선택 target과 입력 원문을 유지한다",
+        "저장 실패는 checkpoint·live 본문·입력 원문·기존 copy를 보존하고 부분 적용하지 않는다",
+        "명시 Save/재시도는 기존 copy 본문만 저장하며 원본 함수 계약·출처·다른 target은 불변이다",
+        "재시작·실제 compiler Review 취소와 명시 Confirm은 같은 copy만 반영하고 외부 팩을 쓰지 않는다"
+      ],
+      "logSha256": "c79468fc2d14287da166ed1be597b0987f3b7c0638c3014e8e5c33cf11953671",
+      "evidenceArchiveSha256": "b56213a760cca0d6425ffa16de09a4522445819eb83855b06b33e76a1fdc6323"
+    },
+    {
+      "name": "loss",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-external-copy/engine-report.json",
+        "loss",
+        "view",
+        "confirmed"
+      ],
+      "exit": 0,
+      "seconds": 175.4,
+      "minimumWorkspaceBytes": 1611169792,
+      "peakMemoryBytes": 4429238272,
+      "pendingCopy": false,
+      "copyImports": false,
+      "phase": "focused-final",
+      "checks": [
+        "외부 함수의 선택 target만 로컬 소유 copy로 저장하며 정확한64비트 값·등록 원본·다른 target을 보존한다",
+        "기본/독립 정보 창의 재편집·Undo/Redo·팝업 취소·cold 복원은 같은 copy ID/외부 함수/출처/선택 target과 입력 원문을 유지한다",
+        "저장/결과 조회 응답 유실 뒤 cold에서 기존 receipt를 조회하고 같은 copy를 중복 저장하지 않는다",
+        "명시 Save/재시도는 기존 copy 본문만 저장하며 원본 함수 계약·출처·다른 target은 불변이다",
+        "재시작·실제 compiler Review 취소와 명시 Confirm은 같은 copy만 반영하고 외부 팩을 쓰지 않는다"
+      ],
+      "logSha256": "89d5e483611fa9ba73b14c74e62bb7c3e81cd9e35fb026f222a6d0110162bc45",
+      "evidenceArchiveSha256": "d971424849809fb079235c47d8a9d7f01e0e889266946054edce94c9b89be658"
+    },
+    {
+      "name": "conflict",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-external-copy/engine-report.json",
+        "conflict",
+        "view",
+        "confirmed"
+      ],
+      "exit": 0,
+      "seconds": 104.8,
+      "minimumWorkspaceBytes": 1611026432,
+      "peakMemoryBytes": 4347805696,
+      "pendingCopy": false,
+      "copyImports": false,
+      "phase": "focused-final",
+      "checks": [
+        "외부 함수의 선택 target만 로컬 소유 copy로 저장하며 정확한64비트 값·등록 원본·다른 target을 보존한다",
+        "기본/독립 정보 창의 재편집·Undo/Redo·팝업 취소·cold 복원은 같은 copy ID/외부 함수/출처/선택 target과 입력 원문을 유지한다",
+        "실제 다른 창 저장 경합은 전체 미적용이며 cold 뒤에도 새 peer 초안과 copy 입력 원문을 보존한다"
+      ],
+      "logSha256": "599682e3c107cb0f7aee9b8bb65d46809dc706be7e2eedb5b0254a6ebc03b343",
+      "evidenceArchiveSha256": "133db0139da31c51ff522375d5c2c9a69ab24f3262d03953cc398b1c61b72b4b"
+    },
+    {
+      "name": "context",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-external-copy/engine-report.json",
+        "context",
+        "view"
+      ],
+      "exit": 0,
+      "seconds": 144.1,
+      "minimumWorkspaceBytes": 1610584064,
+      "peakMemoryBytes": 4422684672,
+      "pendingCopy": false,
+      "copyImports": false,
+      "phase": "focused-context-supported",
+      "checks": [
+        "외부 함수의 선택 target만 로컬 소유 copy로 저장하며 정확한64비트 값·등록 원본·다른 target을 보존한다",
+        "기본/독립 정보 창의 재편집·Undo/Redo·팝업 취소·cold 복원은 같은 copy ID/외부 함수/출처/선택 target과 입력 원문을 유지한다",
+        "명시 Save/재시도는 기존 copy 본문만 저장하며 원본 함수 계약·출처·다른 target은 불변이다",
+        "copy Save/cold는 다른 창 입력을 보존하며 전역 Review는 미적용 입력을 차단하고 그 창의 명시 취소만 입력을 해제한다",
+        "재시작·실제 compiler Review 취소와 명시 Confirm은 같은 copy만 반영하고 외부 팩을 쓰지 않는다"
+      ],
+      "logSha256": "8d987e1cb21702dbeaf3729b0bb94fbe9f3f2936a3fc55f028c62924d6a1cc68",
+      "evidenceArchiveSha256": "a9e4b2cf0718bc956461b204271fd11f627a823765269994593501d4377e8e31"
+    },
+    {
+      "name": "projects",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-external-copy/engine-report.json",
+        "projects",
+        "view",
+        "confirmed"
+      ],
+      "exit": 0,
+      "seconds": 184.6,
+      "minimumWorkspaceBytes": 1610403840,
+      "peakMemoryBytes": 4433776640,
+      "pendingCopy": false,
+      "copyImports": false,
+      "phase": "focused-context-supported",
+      "checks": [
+        "외부 함수의 선택 target만 로컬 소유 copy로 저장하며 정확한64비트 값·등록 원본·다른 target을 보존한다",
+        "기본/독립 정보 창의 재편집·Undo/Redo·팝업 취소·cold 복원은 같은 copy ID/외부 함수/출처/선택 target과 입력 원문을 유지한다",
+        "같은 namespace의 다른 프로젝트로 전환해도 copy 입력을 잘못 적용하지 않고 문서/초안 문맥을 보존한다",
+        "명시 Save/재시도는 기존 copy 본문만 저장하며 원본 함수 계약·출처·다른 target은 불변이다",
+        "재시작·실제 compiler Review 취소와 명시 Confirm은 같은 copy만 반영하고 외부 팩을 쓰지 않는다"
+      ],
+      "logSha256": "3482ade43409a24dd769bf7cf84c9be4bc44a9aff1ce431901e0342ce539ce43",
+      "evidenceArchiveSha256": "9ed3c6f1a981915906b07d3fd83c9ccfa55ee2cfd5ab338f214505ad6f885d5e"
+    },
+    {
+      "name": "registered",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_module_registered_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-external-copy/engine-report.json",
+        "csharp",
+        "view"
+      ],
+      "exit": 0,
+      "seconds": 113.1,
+      "minimumWorkspaceBytes": 1610231808,
+      "peakMemoryBytes": 4526530560,
+      "pendingCopy": false,
+      "copyImports": false,
+      "phase": "impact",
+      "checks": [
+        "원본 선택창은 상속/등록 구현의 common 실행 대상을 각각 private copy로 열며 두 슬롯·exact64 입력과 모든 원본/다른 target을 보존한다",
+        "마지막 등록 계약이 바뀌면 두 copy·선언 후보 전체를 거절하며 앞선 슬롯이나 값의 부분 저장과 입력 삭제가 없다",
+        "새 명시적 Save와 Review 취소/Confirm은 두 copy·정확한 정보 값을 같은 후보로 반영하며 부모/등록 소스/다른 target은 불변이다",
+        "명시적 등록 callable 가져오기는 해당 정보 슬롯의 wrapper/import만 생성하고 등록 팩과 함수 계약을 바꾸지 않는다"
+      ],
+      "logSha256": "75b35e2eeb9727cf903c6f90cecee97d2f6a4a30025a7fc44a85366678eed26a",
+      "evidenceArchiveSha256": "77ffbd4910e48d61e4c09dd4ba930b7be36823008b070c4805fc68606f28bf0c"
+    },
+    {
+      "name": "registered-blueprint",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_module_registered_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-external-copy/engine-report.json",
+        "blueprint",
+        "view"
+      ],
+      "exit": 0,
+      "seconds": 114.3,
+      "minimumWorkspaceBytes": 1610076160,
+      "peakMemoryBytes": 4508725248,
+      "pendingCopy": false,
+      "copyImports": false,
+      "phase": "impact",
+      "checks": [
+        "원본 선택창은 상속/등록 구현의 common 실행 대상을 각각 private copy로 열며 두 슬롯·exact64 입력과 모든 원본/다른 target을 보존한다",
+        "마지막 등록 계약이 바뀌면 두 copy·선언 후보 전체를 거절하며 앞선 슬롯이나 값의 부분 저장과 입력 삭제가 없다",
+        "새 명시적 Save와 Review 취소/Confirm은 두 copy·정확한 정보 값을 같은 후보로 반영하며 부모/등록 소스/다른 target은 불변이다",
+        "명시적 등록 callable 가져오기는 해당 정보 슬롯의 wrapper/import만 생성하고 등록 팩과 함수 계약을 바꾸지 않는다"
+      ],
+      "logSha256": "5a59443c2b3e822dee04b4065abf77c1759d267b0dee91c1bbc3a5582e635805",
+      "evidenceArchiveSha256": "f5d0166f1ab3e747dcfb7ca6275e11273b0403b04b018e4f8870ed90d9837208"
+    },
+    {
+      "name": "module-guards",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_module_view_guards.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-external-copy/engine-report.json",
+        "normal",
+        "view"
+      ],
+      "exit": 0,
+      "seconds": 19.1,
+      "minimumWorkspaceBytes": 1609928704,
+      "peakMemoryBytes": 3586396160,
+      "pendingCopy": false,
+      "copyImports": false,
+      "phase": "impact",
+      "checks": [
+        "모듈 선택은 현재 정보/프로젝트/창 nonce만 허용하며 누락·위조·타 owner·client surface는 미적용한다",
+        "한 창의 import 후보와 완료 receipt는 다른 창/primary가 적용하거나 완료로 채택하지 못하고 primary 원문을 보존한다",
+        "닫힘/reopen은 오래된 nonce를 거절하고 새 명시 창에서 기존 저장 결과만 읽어 확인한다",
+        "직접 본문 편집은 같은 정보라도 실제로 관찰한 view basis와 독점 provide가 필요하고 타창 basis로 변경할 수 없다"
+      ],
+      "logSha256": "e2e4226a60ce2ea5f4e5a6170f28c415cf410737c011d909db7904554cbf50a5",
+      "evidenceArchiveSha256": "db4f4e01ed38155d4000034f4fa3a1287dffe1b39ad51a1ceb710aef3d6f508c"
+    },
+    {
+      "name": "override",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_inherited_contract_guards.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-external-copy/engine-report.json",
+        "normal"
+      ],
+      "exit": 0,
+      "seconds": 7.2,
+      "minimumWorkspaceBytes": 1609883648,
+      "peakMemoryBytes": 3648356352,
+      "pendingCopy": false,
+      "copyImports": false,
+      "phase": "impact",
+      "checks": [
+        "공개 이름 대응·소유 copy·호출자 후보는 부모/자식 선언을 쓰지 않고 함께 준비한다",
+        "부모/자식 쓰기 위조·타입/핀 수/역할/반환/순서의 계약 변경은 정상 보호로 전체 미적용이다",
+        "실제 부모 파일 경합은 원래 읽기 기준으로 차단하고 후보/복사본 원문을 보존한다"
+      ],
+      "logSha256": "dd1da2d5aaa453c4c6fd8a6b8741671b97c42942cf71347cfe2b4dcd9ac4afa7",
+      "evidenceArchiveSha256": "1361bf1428a4e338810003bb2fb4f70cd001712469e06a7d3daa8ec6b40b213a"
+    }
+  ],
+  "productChanged": [
+    "packs/pack-workspace/Blueprint.csbody"
+  ],
+  "productSourceSha256": {
+    "packs/pack-workspace/Blueprint.csbody": "298760dcf9ab935c28a7f1b5cb86897f3bdc1f35786d8a0d0074b1b8c289e65d"
+  },
+  "ui": {
+    "base": "8cd62189a4f219f6d30e511ba0c1f16f83cca7b1",
+    "uiFiles": 74,
+    "changed": [],
+    "byteIdentical": true,
+    "reference": "origin/main196c605 v536",
+    "webBundleByteIdentical": true,
+    "webBundleSha256": "e5ea4bfdfb2f64372bf4546a0c7cbfaf17fa96005b97a6dba58a7c70751857cf",
+    "uiAndBundleFiles": 75
+  },
+  "actualDefect": "checkpoint write failure cleared saved external-function copy source input and left the live draft ahead of the checkpoint; reuse candidate/CAS/receipt before clearing input",
+  "initialFailures": [
+    "diagnostic helper assumed a detached view during primary run",
+    "collapsed module edit button not visible; use original expand interaction",
+    "HTML textarea LF normalization; retain untouched CRLF donor bytes",
+    "peer fixture overlapped owner and Blueprint close handle; use original title drag to place the peer at x=1100,y=800",
+    "global Review intentionally blocks other unapplied inputs; assert that preservation/guard, then explicit peer discard before compiler Confirm as existing field-definition acceptance does",
+    "windows-only copy cannot compiler Confirm under fixture linux target; assert actual Confirm rejection and checkpoint/source preservation, not early Review state"
+  ],
+  "failedEvidencePreserved": true,
+  "isolatedFixturesOnly": true,
+  "userProjectsExecuted": false,
+  "inferenceCalled": false,
+  "windowsExecuted": false,
+  "mobileExecuted": false,
+  "libraryUploaded": false,
+  "workspaceAvailableBytes": 1609834496
+}

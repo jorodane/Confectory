@@ -1,0 +1,9 @@
+{
+  "pass": true,
+  "sourceCommit": "ab225ccdbf52eb769dbd58836d8ca31eabe00bfd",
+  "resources": 74,
+  "actualGitRetainedCRLFAndFreshLF": true,
+  "contentEncodingBOMBinaryBudgetTamperRejected": true,
+  "originalSourceBytesUnchanged": true,
+  "actualWindowsExecuted": false
+}

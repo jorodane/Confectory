@@ -1,0 +1,203 @@
+{
+  "pure": {
+    "checks": 10,
+    "suites": [
+      {
+        "suite": "pure-branch-code-1",
+        "passedChecks": [
+          "qualified private 호출·depth2·동명 leaf를 고유 frame에서 대응하고 부모/형제/원문을 보존한다",
+          "누락·경계/동명 혼동·stale graph/source 증거는 전체 미적용이며 입력을 유지한다"
+        ],
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-rwt2yypg"
+      },
+      {
+        "suite": "pure-switch-code-1",
+        "passedChecks": [
+          "qualified private 호출·depth2·동명 leaf를 고유 frame에서 대응하고 부모/형제/원문을 보존한다",
+          "누락·경계/동명 혼동·stale graph/source 증거는 전체 미적용이며 입력을 유지한다"
+        ],
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-scj8rkma"
+      },
+      {
+        "suite": "pure-forwarded-1",
+        "passedChecks": [
+          "명시 부모 계약과 depth2 forwarded chain·caller·본문을 한 후보에 결합한다",
+          "누락·경계·stale·사용 중 출력·타입·C# 오류는 chain 전체 미적용과 원문 보존이다"
+        ],
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-7c_7eu65"
+      },
+      {
+        "suite": "pure-computed-3",
+        "passedChecks": [
+          "명시 부모 계약과 depth2 forwarded chain·caller·본문을 한 후보에 결합한다",
+          "누락·경계·stale·사용 중 출력·타입·C# 오류는 chain 전체 미적용과 원문 보존이다",
+          "계산·별칭의 실제 입력/child출력과 부모출력은 각각 명시 대응하며 누락·유실을 전체 거절한다",
+          "부모 계산이 있는 기존 고정 계약의 본문만 편집할 때 불필요한 부모 계약 갱신을 요구하지 않는다"
+        ],
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-hsqbnoyr"
+      }
+    ]
+  },
+  "api": {
+    "checks": 14,
+    "suites": [
+      {
+        "suite": "api-branch-code-3",
+        "passedChecks": [
+          "중첩 호출/record의 경계·source·누락 증거는 전체 거절하며 부모·형제·checkpoint를 보존한다",
+          "depth2·동명 leaf·명시 C#/postCall을 실제 한 후보/CAS에 저장하고 cold에서 분리 복원한다",
+          "실제 compiler Review/Confirm·cold 뒤에도 모든 qualified source·부모/형제·정확한 값이 보존된다"
+        ],
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-asqb33qa"
+      },
+      {
+        "suite": "api-switch-code-3",
+        "passedChecks": [
+          "중첩 호출/record의 경계·source·누락 증거는 전체 거절하며 부모·형제·checkpoint를 보존한다",
+          "depth2·동명 leaf·명시 C#/postCall을 실제 한 후보/CAS에 저장하고 cold에서 분리 복원한다",
+          "실제 compiler Review/Confirm·cold 뒤에도 모든 qualified source·부모/형제·정확한 값이 보존된다"
+        ],
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-r20qtzcq"
+      },
+      {
+        "suite": "api-forwarded-2",
+        "passedChecks": [
+          "중첩 호출/record의 경계·source·누락 증거는 전체 거절하며 부모·형제·checkpoint를 보존한다",
+          "depth2·동명 leaf·명시 C#/postCall을 실제 한 후보/CAS에 저장하고 cold에서 분리 복원한다",
+          "실제 compiler Review/Confirm·cold 뒤에도 모든 qualified source·부모/형제·정확한 값이 보존된다"
+        ],
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-xod8t0ci"
+      },
+      {
+        "suite": "api-computed-1",
+        "passedChecks": [
+          "중첩 호출/record의 경계·source·누락 증거는 전체 거절하며 부모·형제·checkpoint를 보존한다",
+          "depth2·동명 leaf·명시 C#/postCall을 실제 한 후보/CAS에 저장하고 cold에서 분리 복원한다",
+          "실제 compiler Review/Confirm·cold 뒤에도 모든 qualified source·부모/형제·정확한 값이 보존된다"
+        ],
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-inink53l"
+      },
+      {
+        "suite": "api-private-enum-2",
+        "passedChecks": [
+          "가상 private enum·source·helpers는 실제 root한후보/CAS·오류미적용·cold receipt에 묶이며 형제 원문을 보존한다",
+          "실제 compiler Review/Confirm은 private 포트 식별성과 C#·보조 함수만 반영한다"
+        ],
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-_xo656wb"
+      }
+    ]
+  },
+  "ui": {
+    "checks": 26,
+    "suites": [
+      {
+        "suite": "ui-branch-code-1",
+        "passedChecks": [
+          "원본 전체 본문 편집창의 본문·형식 매개변수/입출력은 취소·불완전 cold·코드 저장·명시 caller 선택·Undo/Redo에서 보존된다",
+          "화면 정상 저장·cold는 전체 후보와 C# 원문·호출자를 정확히 복원한다",
+          "실제 화면 compiler Review 취소·재검토·명시 Confirm은 입출력 저장소와 C# 원문을 함께 반영한다"
+        ],
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-sk6omam7"
+      },
+      {
+        "suite": "ui-switch-code-1",
+        "passedChecks": [
+          "원본 전체 본문 편집창의 본문·형식 매개변수/입출력은 취소·불완전 cold·코드 저장·명시 caller 선택·Undo/Redo에서 보존된다",
+          "화면 저장 장치 오류는 source·호출자·checkpoint 부분 적용 없이 명시 입력을 보존한다",
+          "응답과 receipt 유실 뒤 cold/재시도는 결과 조회로 전체 저장을 확인하며 중복 적용하지 않는다",
+          "실제 화면 compiler Review 취소·재검토·명시 Confirm은 입출력 저장소와 C# 원문을 함께 반영한다"
+        ],
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-mha9frh2"
+      },
+      {
+        "suite": "ui-forwarded-1",
+        "passedChecks": [
+          "원본 전체 본문 편집창의 본문·형식 매개변수/입출력은 취소·불완전 cold·코드 저장·명시 caller 선택·Undo/Redo에서 보존된다",
+          "화면 정상 저장·cold는 전체 후보와 C# 원문·호출자를 정확히 복원한다",
+          "실제 화면 compiler Review 취소·재검토·명시 Confirm은 입출력 저장소와 C# 원문을 함께 반영한다"
+        ],
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-ac9lnsc4"
+      },
+      {
+        "suite": "ui-computed-2",
+        "passedChecks": [
+          "원본 전체 본문 편집창의 본문·형식 매개변수/입출력은 취소·불완전 cold·코드 저장·명시 caller 선택·Undo/Redo에서 보존된다",
+          "화면 정상 저장·cold는 전체 후보와 C# 원문·호출자를 정확히 복원한다",
+          "실제 화면 compiler Review 취소·재검토·명시 Confirm은 입출력 저장소와 C# 원문을 함께 반영한다"
+        ],
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-fp43lib5"
+      },
+      {
+        "suite": "ui-computed-loss-1",
+        "passedChecks": [
+          "원본 전체 본문 편집창의 본문·형식 매개변수/입출력은 취소·불완전 cold·코드 저장·명시 caller 선택·Undo/Redo에서 보존된다",
+          "화면 저장 장치 오류는 source·호출자·checkpoint 부분 적용 없이 명시 입력을 보존한다",
+          "응답과 receipt 유실 뒤 cold/재시도는 결과 조회로 전체 저장을 확인하며 중복 적용하지 않는다",
+          "실제 화면 compiler Review 취소·재검토·명시 Confirm은 입출력 저장소와 C# 원문을 함께 반영한다"
+        ],
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-ox0zrok5"
+      },
+      {
+        "suite": "ui-computed-conflict-1",
+        "passedChecks": [
+          "원본 전체 본문 편집창의 본문·형식 매개변수/입출력은 취소·불완전 cold·코드 저장·명시 caller 선택·Undo/Redo에서 보존된다",
+          "동시 source 변경은 본문·저장소·호출자 전체를 거절하고 새 입력과 다른 편집자를 보존한다"
+        ],
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-pgijxs8a"
+      },
+      {
+        "suite": "ui-computed-cancel-1",
+        "passedChecks": [
+          "원본 전체 본문 편집창의 본문·형식 매개변수/입출력은 취소·불완전 cold·코드 저장·명시 caller 선택·Undo/Redo에서 보존된다",
+          "변경 취소는 본문·native 입출력·호출자와 cold 기록을 함께 미적용으로 유지한다"
+        ],
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-eo08_d8o"
+      },
+      {
+        "suite": "ui-computed-projects-1",
+        "passedChecks": [
+          "원본 전체 본문 편집창의 본문·형식 매개변수/입출력은 취소·불완전 cold·코드 저장·명시 caller 선택·Undo/Redo에서 보존된다",
+          "동일 namespace 두 프로젝트는 전체 본문/입출력 입력을 분리하고 닫힌 편집창 저장을 차단한다"
+        ],
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-1uicpfkg"
+      },
+      {
+        "suite": "ui-private-enum-loss-2",
+        "passedChecks": [
+          "private enum 저장 실패는 전체 미적용·입력 보존이며 응답 유실·cold 뒤 원래 source binding의 receipt 조회로 중복 저장을 막는다",
+          "원본 private enum/본문/helper의 취소·순서/이름·cold·단일 root저장은 기존 포트 식별성과 원문을 보존한다",
+          "private enum의 실제 Review 취소·재검토·Confirm은 소유 leaf만 함께 반영하고 형제·부모를 보존한다"
+        ],
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-vsusxx0m"
+      }
+    ]
+  },
+  "regression": {
+    "checks": 8,
+    "suites": [
+      {
+        "suite": "ui-root-enum-regression-1",
+        "passedChecks": [
+          "일반 C# 원본 enum에서 연결된 실행 핀 삭제를 거절하고 취소 시 원본/연결을 보존한다",
+          "일반 enum 이름/값/순서·본문·보조 함수의 미저장 입력을 실제 재시작으로 복원하며 저장 전에 계약/본문을 부분 적용하지 않는다",
+          "일반 enum 계약·본문·보조 함수를 한 authorBatch/checkpoint로 저장하고 기존 핀 식별성·연결과 다른 소스를 보존한다",
+          "실제 compiler Review 취소와 새 명시적 Confirm을 분리하고 일반 enum 계약/본문만 확정한다",
+          "기존 원본 분기 생성 버튼으로 void 일반 노드를 enum으로 전환하고 C# Result 본문과 기존 next 연결을 함께 저장한다",
+          "외부 직접 enum 적용 및 데이터 반환 노드의 enum 위조 요청은 원자 후보를 거절하고 저장본을 보존한다",
+          "실제 다른 편집자/checkpoint 변경 시 enum 계약·본문의 부분 저장 없이 충돌을 거절하고 사용자 입력과 peer 초안을 보존한다"
+        ],
+        "evidence": null
+      },
+      {
+        "suite": "primary-restore-after-3",
+        "passedChecks": [
+          "없는 primary schema를 배경 복원 성공/실패로 표시하지 않고 현재 함수와 입력을 유지하며 정보 재열기로 원래 입력을 복원한다"
+        ],
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-c7cuq013"
+      }
+    ]
+  },
+  "total": 58,
+  "sameScenarioRerunsAndResolvedFailuresCounted": false,
+  "actualWindowsOrDeviceMobile": false
+}

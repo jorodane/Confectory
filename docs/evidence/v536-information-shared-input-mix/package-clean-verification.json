@@ -1,0 +1,226 @@
+{
+  "sourceCommit": "8549f5cbb197d96173f91ab59fc9f7d6279a65ec",
+  "cleanCheckout": {
+    "flows": 5,
+    "checks": 16,
+    "results": [
+      {
+        "name": "joint-pure",
+        "exit": 0,
+        "elapsedSeconds": 13.0,
+        "minimumWorkspaceAvailableBytesSampled": 189972480,
+        "peakMemoryBytesSampled": 16220700672,
+        "checks": [
+          "입력 정의/타입 혼합의 원래 단일 후보는 각각 유효하다",
+          "원래 hash·한 후보·역순은 명시 새 값/기존 값 재사용과 out/return/정확64비트/C# 원문을 보존한다",
+          "사용처/값/해제 증거 누락·타입 오류·출력/순서/역할/반환/본문·선택 변경은 전체 미적용이다",
+          "실제 물리 source 경합은 원래 기준으로 거절하며 입력과 기존 파일을 보존한다"
+        ]
+      },
+      {
+        "name": "joint-view",
+        "exit": 0,
+        "elapsedSeconds": 72.2,
+        "minimumWorkspaceAvailableBytesSampled": 189640704,
+        "peakMemoryBytesSampled": 17160425472,
+        "checks": [
+          "두 원본 상세창의 취소·명시 대응·Undo/Redo·미저장 cold는 두 함수 입력과 exact64 값을 보존한다",
+          "원본 460px 기본/독립 화면의 한 Save·cold·Review 취소/Confirm은 두 함수 계약과 공유 caller를 함께 확정한다"
+        ]
+      },
+      {
+        "name": "impact-policy7",
+        "exit": 0,
+        "elapsedSeconds": 7.4,
+        "minimumWorkspaceAvailableBytesSampled": 188547072,
+        "peakMemoryBytesSampled": 16423387136,
+        "checks": [
+          "공개 이름 대응·소유 copy·호출자 후보는 부모/자식 선언을 쓰지 않고 함께 준비한다",
+          "부모/자식 쓰기 위조·타입/핀 수/역할/반환/순서의 계약 변경은 정상 보호로 전체 미적용이다",
+          "실제 부모 파일 경합은 원래 읽기 기준으로 차단하고 후보/복사본 원문을 보존한다"
+        ]
+      },
+      {
+        "name": "pure",
+        "exit": 0,
+        "elapsedSeconds": 13.6,
+        "minimumWorkspaceAvailableBytesSampled": 188190720,
+        "peakMemoryBytesSampled": 16222797824,
+        "checks": [
+          "입력 정의/타입 혼합의 원래 단일 후보는 각각 유효하다",
+          "원래 hash·한 후보·역순은 명시 새 값/기존 값 재사용과 out/return/정확64비트/C# 원문을 보존한다",
+          "사용처/값/해제 증거 누락·타입 오류·출력/순서/역할/반환/본문·선택 변경은 전체 미적용이다",
+          "실제 물리 source 경합은 원래 기준으로 거절하며 입력과 기존 파일을 보존한다"
+        ]
+      },
+      {
+        "name": "api-normal",
+        "exit": 0,
+        "elapsedSeconds": 34.1,
+        "minimumWorkspaceAvailableBytesSampled": 187871232,
+        "peakMemoryBytesSampled": 16422785024,
+        "checks": [
+          "실제 서버는 두 번째 계약 오류에서 첫 함수와 공유 caller도 checkpoint에 남기지 않는다",
+          "두 callee·공유 caller는 단일 거래로 저장되고 cold 복원에서도 연결과 원문을 유지한다",
+          "실제 compiler Review/Confirm는 두 계약을 함께 확정하고 code/다른 함수·부모 원문을 보존한다"
+        ]
+      }
+    ],
+    "sourceProof": {
+      "sourceCommit": "8549f5cbb197d96173f91ab59fc9f7d6279a65ec",
+      "rootAndIndependentCheckoutClean": true,
+      "existingCrLfConversionPreserved": true,
+      "settingsChanged": false,
+      "files": [
+        {
+          "file": "docs/V536_I5_6_REMAINING.md",
+          "gitBlob": "630108db8c1e0d3472503ead8e3071f6ac520477",
+          "onlyExistingCheckoutNewlinesDiffer": true
+        },
+        {
+          "file": "docs/V536_I5_6_SHARED_CALLERS_SCOPE.md",
+          "gitBlob": "58a5328c028dcbfff5030650f78be212e81ae656",
+          "onlyExistingCheckoutNewlinesDiffer": true
+        },
+        {
+          "file": "docs/VALIDATION_V536_INFORMATION_SHARED_INPUT_DEFINITIONS.md",
+          "gitBlob": "559a0a9bda8233af49a7d6d606538180ca362f96",
+          "onlyExistingCheckoutNewlinesDiffer": true
+        },
+        {
+          "file": "docs/VALIDATION_V536_INFORMATION_SHARED_INPUT_MIX.md",
+          "gitBlob": "e2bf897745a9ed10a3541dfc789737690012a31e",
+          "onlyExistingCheckoutNewlinesDiffer": true
+        },
+        {
+          "file": "docs/evidence/v536-information-shared-input-mix/focused-verification.json",
+          "gitBlob": "d0ee7131c0b84a840194cfef6f0a84782689a88e",
+          "onlyExistingCheckoutNewlinesDiffer": true
+        },
+        {
+          "file": "targets/element-authoring/InformationFunctionBatch.cs",
+          "gitBlob": "667ff0ce1d3e69c7fdd6d90cd5525286918e7554",
+          "onlyExistingCheckoutNewlinesDiffer": true
+        },
+        {
+          "file": "tests/web/v536_information_shared_input_mix_fixture.py",
+          "gitBlob": "d623e465a2d4a0198938bd5d49589af45c7bcda5",
+          "onlyExistingCheckoutNewlinesDiffer": true
+        },
+        {
+          "file": "tests/web/v536_information_shared_input_mix_native.py",
+          "gitBlob": "807a3a54d71de465546032bba7c3e4eeaca2d949",
+          "onlyExistingCheckoutNewlinesDiffer": true
+        },
+        {
+          "file": "tests/web/v536_information_shared_return_types_api.py",
+          "gitBlob": "2fb46f16002344981a75530786069dd9ad8fe666",
+          "onlyExistingCheckoutNewlinesDiffer": true
+        },
+        {
+          "file": "tests/web/v536_information_shared_return_types_ui.py",
+          "gitBlob": "d295102fa7be0cf0ad402322a4918d4a98121701",
+          "onlyExistingCheckoutNewlinesDiffer": true
+        }
+      ]
+    }
+  },
+  "package": {
+    "sourceCommit": "8549f5cbb197d96173f91ab59fc9f7d6279a65ec",
+    "persistentPackageCreated": false,
+    "packageAvailableAfterExec": false,
+    "manifestSha256": "a1a3294583796374ae60f869eb729a3ffbff5d32dec016104faa4b9dad694a30",
+    "declaredFiles": 2343,
+    "totalFiles": 2344,
+    "packageBytes": 132757551,
+    "manifestAndFileSetMatch": true,
+    "symlinks": false,
+    "coreCopies": {
+      "Confectory.Core.dll": "d4e2c8af371a144cbe611810b9a844db9231ab5e2f07f0ec9107ba8c334a1598",
+      "content/src/Confectory.Cli/bin/Release/net10.0/Confectory.Core.dll": "d4e2c8af371a144cbe611810b9a844db9231ab5e2f07f0ec9107ba8c334a1598",
+      "content/targets/android-export/bin/Release/net10.0/Confectory.Core.dll": "d4e2c8af371a144cbe611810b9a844db9231ab5e2f07f0ec9107ba8c334a1598",
+      "content/targets/browser-wasm/bin/Release/net10.0/Confectory.Core.dll": "d4e2c8af371a144cbe611810b9a844db9231ab5e2f07f0ec9107ba8c334a1598",
+      "content/targets/element-authoring/bin/Release/net10.0/Confectory.Core.dll": "d4e2c8af371a144cbe611810b9a844db9231ab5e2f07f0ec9107ba8c334a1598",
+      "content/targets/desktop-entry/bin/Release/net10.0/Confectory.Core.dll": "d4e2c8af371a144cbe611810b9a844db9231ab5e2f07f0ec9107ba8c334a1598",
+      "content/targets/project-execution-host/bin/Release/net10.0/Confectory.Core.dll": "d4e2c8af371a144cbe611810b9a844db9231ab5e2f07f0ec9107ba8c334a1598"
+    },
+    "nativeAssemblySha256": "58aae62a9295654c6d9ecd606124bbc0a7b65a223954d38ea0791aca7c683bc3",
+    "productSha256": {
+      "targets/element-authoring/InformationDefinitions.cs": "20ab49df2032b7c28a35b686b2d68bb84b7cade93934d9a911b83911cbcf3020",
+      "targets/element-authoring/InformationFunctionBatch.cs": "cec59cd9e67aa963a155b79f1c09a08670d2375bf10c7f0a3f48bb07f7ae8e9a"
+    },
+    "packagedBackendChecks": 4,
+    "actualWindows": false,
+    "webView2Executed": false,
+    "actualMobile": false,
+    "libraryUploaded": false,
+    "oldDurableManifestSha256": "9d8f3fa88b1e8c62753ba2fe32228e02aa3be6ef41c34c394a81be15bd42f559",
+    "existingFilesDeleted": false,
+    "workspaceAvailableBytes": 174153728,
+    "newTemporaryPackageRemovedAfterVerification": true,
+    "fixtureEvidencePreserved": true
+  },
+  "phases": [
+    {
+      "name": "committed-release",
+      "exit": 0,
+      "sampleIntervalSeconds": 0.2,
+      "minimumWorkspaceAvailableBytes": 187490304,
+      "peakCgroupMemoryBytes": 16553652224,
+      "elapsedSeconds": 31.1,
+      "workspaceAvailableBytes": 187490304
+    },
+    {
+      "name": "committed-mcp-release",
+      "exit": 0,
+      "sampleIntervalSeconds": 0.2,
+      "minimumWorkspaceAvailableBytes": 187482112,
+      "peakCgroupMemoryBytes": 16313999360,
+      "elapsedSeconds": 3.0,
+      "workspaceAvailableBytes": 187482112
+    },
+    {
+      "name": "windows-package",
+      "exit": 0,
+      "sampleIntervalSeconds": 0.2,
+      "minimumWorkspaceAvailableBytes": 174166016,
+      "peakCgroupMemoryBytes": 16633999360,
+      "elapsedSeconds": 77.4,
+      "workspaceAvailableBytes": 174161920
+    },
+    {
+      "name": "windows-probe",
+      "exit": 0,
+      "sampleIntervalSeconds": 0.2,
+      "minimumWorkspaceAvailableBytes": 174161920,
+      "peakCgroupMemoryBytes": 17176498176,
+      "elapsedSeconds": 8.6,
+      "workspaceAvailableBytes": 174157824
+    },
+    {
+      "name": "packaged-pure",
+      "exit": 0,
+      "sampleIntervalSeconds": 0.2,
+      "minimumWorkspaceAvailableBytes": 174153728,
+      "peakCgroupMemoryBytes": 16491204608,
+      "elapsedSeconds": 13.4,
+      "workspaceAvailableBytes": 174153728
+    }
+  ],
+  "currentSourceAndNativeAssemblyMatchPackage": {
+    "examples/editor-home/ui/v508-runtime.js": "e180c2b7674af30a413f2591329ae522a22711637a03d2dc115d8f7673a33e58",
+    "examples/editor-home/WebBundle.csbody": "295b48a0098628221b8efda2625036c2854bd7851318ba8e0fef90920bb82453",
+    "targets/element-authoring/InformationFunctionBatch.cs": "cec59cd9e67aa963a155b79f1c09a08670d2375bf10c7f0a3f48bb07f7ae8e9a",
+    "targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll": "58aae62a9295654c6d9ecd606124bbc0a7b65a223954d38ea0791aca7c683bc3"
+  },
+  "manifestSha256MatchesSavedFullManifest": true,
+  "unchangedUiResources": 74,
+  "originalV536LayoutUnchanged": true,
+  "cgroupMemoryEvents": "low 0\nhigh 0\nmax 201087\noom 0\noom_kill 0\noom_group_kill 0\n",
+  "workspaceAvailableBytes": 173404160,
+  "newDeliverableRetained": false,
+  "actualWindows": false,
+  "webView2Executed": false,
+  "actualMobile": false,
+  "libraryUploaded": false
+}

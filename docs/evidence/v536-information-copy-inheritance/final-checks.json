@@ -1,0 +1,140 @@
+{
+  "sourceCommit": "5c1d6d795f28b1731fc3a6b55dd6092a571173a8",
+  "focusedChecks": {
+    "count": 38,
+    "pure": 10,
+    "api": 9,
+    "renderer": 13,
+    "regression": 6,
+    "newFeatureCountIncludesCleanReproduction": false
+  },
+  "cleanCheckout": {
+    "sourceUnchanged": true,
+    "nativeBuildWarnings": 0,
+    "nativeBuildErrors": 0,
+    "linuxBuildPass": true,
+    "apiChecks": 9,
+    "independentRendererChecks": 2,
+    "complete": true,
+    "cases": [
+      {
+        "case": "callee-api",
+        "script": "v536_information_saved_copy_api.py",
+        "arguments": [
+          "normal"
+        ],
+        "exitCode": 0,
+        "checks": [
+          "복사 소유·배정·원래 출처의 누락/위조는 실제 서버에서 전체 미적용으로 거절한다",
+          "저장 실패/재시도·cold는 소유 copy만 원자 반영하고 원래 출처와 donor CRLF 바이트를 보존한다",
+          "실제 compiler Review/Confirm과 재시작 후에도 donor·소유 copy ID·원래 출처를 혼동하지 않는다"
+        ],
+        "log": "clean-row7-callee-api-1.log",
+        "seconds": 56.45
+      },
+      {
+        "case": "caller-api",
+        "script": "v536_information_saved_copy_api.py",
+        "arguments": [
+          "normal",
+          "caller-copy"
+        ],
+        "exitCode": 0,
+        "checks": [
+          "복사 소유·배정·원래 출처의 누락/위조는 실제 서버에서 전체 미적용으로 거절한다",
+          "저장 실패/재시도·cold는 소유 copy만 원자 반영하고 원래 출처와 donor CRLF 바이트를 보존한다",
+          "실제 compiler Review/Confirm과 재시작 후에도 donor·소유 copy ID·원래 출처를 혼동하지 않는다"
+        ],
+        "log": "clean-row7-caller-api-1.log",
+        "seconds": 57.05
+      },
+      {
+        "case": "registered-parent-api",
+        "script": "v536_information_registered_api.py",
+        "arguments": [
+          "normal",
+          "cross-parent"
+        ],
+        "exitCode": 0,
+        "checks": [
+          "실제 서버는 누락·위조·바뀐 등록 계약을 저장 전에 거절하고 checkpoint·외부 팩을 보존한다",
+          "명시 계약·C#·import/context를 한 후보/CAS로 저장하고 재시작에서 원문과 외부 출처를 보존한다",
+          "실제 컴파일 Review/Confirm과 재시작 후에도 외부 선언·provider·등록 manifest는 불변이다"
+        ],
+        "log": "clean-row7-registered-parent-api-1.log",
+        "seconds": 32.75
+      },
+      {
+        "case": "copy-independent-ui",
+        "script": "v536_information_saved_copy_ui.py",
+        "arguments": [
+          "ui-simple",
+          "view"
+        ],
+        "exitCode": 0,
+        "checks": [
+          "원본 UI에서 donor/소유 copy를 명시 선택하고 CRLF 원문·취소·불완전 입력·Undo/Redo·cold를 보존한다",
+          "화면 저장·Review 취소/재검토·명시 Confirm·cold는 copy만 갱신하고 donor와 원래 출처를 보존한다"
+        ],
+        "log": "clean-row7-copy-independent-ui-1.log",
+        "seconds": 79.27
+      }
+    ]
+  },
+  "resourceCheckout": {
+    "script": "tests/probes/web_resource_checkout.py",
+    "exitCode": 0,
+    "assertionsUnchanged": true,
+    "gitCommands": 4,
+    "gitExitCodes": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "resources": 74,
+    "retainedCrlfPull": true,
+    "freshLfCheckout": true,
+    "contentEncodingBomUtf16BareCrBudgetAndPngRejections": true,
+    "originalBytesUnchanged": true,
+    "log": "row7-copy-resource-checkout-3.log",
+    "logSha256": "45e626d07834143f19c0b20d3a7ed9b47d576ac5e3b35248db1b368585960ebb",
+    "initialFailure": {
+      "gitExitCode": 128,
+      "confirmedCause": "fatal: cannot create directory at 'scripts': No space left on device"
+    },
+    "intermediateHarnessFailure": {
+      "exitCode": 120,
+      "cause": "stdout/stderr tee flushed after its file had closed",
+      "fixedInCollectorOnly": true,
+      "finalExitCode": 0
+    }
+  },
+  "approvedDuplicateCleanup": {
+    "folders": 8,
+    "allocatedBytes": 896290816,
+    "availableBytesBefore": 349614080,
+    "availableBytesAfter": 1245892608,
+    "allOriginalsPresentAndSha256MatchedBeforeDeletion": true,
+    "retainedEvidenceAndFixturesUnchanged": true,
+    "extraDeletion": false
+  },
+  "windowsCrossPackage": {
+    "pass": true,
+    "manifestFiles": 2342,
+    "actualFiles": 2343,
+    "manifestAndAllFileHashesVerified": true,
+    "allChangedProductionSources": 12,
+    "nativeHostMatches": true,
+    "sdkLessPackagedEngineWebProbePass": true,
+    "actualWindowsExecuted": false,
+    "libraryDelivered": false
+  },
+  "limitations": [
+    "직접 상속 implementation의 부모 header/body 증거·명시 copy/local 편집 진입 미연결",
+    "이 경로의 새 미확정/외부 함수 ID/다중 target copy 차단 유지",
+    "고정 8행 여러 함수 공유 caller와 9행 고급 타입/표시명은 별도 후속",
+    "실제 Windows/WebView2·모바일 기기·실제 계정/추론·사용자 프로젝트 실행·Library 전달 미검증"
+  ],
+  "verifiedAtUtc": "2026-10-25T08:44:39.676736+00:00"
+}

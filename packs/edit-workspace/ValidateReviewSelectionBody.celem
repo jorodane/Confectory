@@ -4,4 +4,5 @@ import Confectory.EditWorkspace::Read as Read (string,string) -> string[];
 import Confectory.SchemaEditing::Call as Metadata (string,string) -> string;
 import Confectory.EditWorkspace::CreationOwners as CreationOwners (string,string) -> string[];
 import Confectory.EditWorkspace::CreationGroup as CreationGroup (string,string) -> string[];
+import Confectory.FileStream::Snapshot as Snapshot (string) -> string[];
 body common "ValidateReviewSelection.csbody";}

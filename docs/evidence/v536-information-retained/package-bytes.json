@@ -1,0 +1,26 @@
+{
+  "sourceCommit": "6eb926cc8cb65d79aa4c3f9960b9f6d00f27c07f",
+  "manifestSha256": "78901ec0d52d0682c2eedae2a102da6d004d20ff3abcd872fcb855ceb8fbe9a8",
+  "manifestFiles": 2338,
+  "actualFiles": 2339,
+  "allManifestHashesValid": true,
+  "sourceAndNativeByteIdentical": [
+    "examples/editor-home/WebBundle.csbody",
+    "examples/editor-home/ui/element-functions.js",
+    "examples/editor-home/ui/feature-authoring.js",
+    "packs/pack-workspace/Blueprint.csbody",
+    "targets/element-authoring/BlueprintRootContract.cs",
+    "targets/element-authoring/InformationFunctionBodies.cs",
+    "targets/element-authoring/InformationFunctionContracts.cs",
+    "targets/element-authoring/InformationFunctionInputUses.cs",
+    "targets/element-authoring/InformationFunctionOutputs.cs",
+    "targets/element-authoring/InformationFunctionPostCalls.cs",
+    "targets/element-authoring/InformationFunctionRetained.cs",
+    "targets/element-authoring/InformationFunctionWholeBody.cs",
+    "targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll",
+    "targets/element-authoring/bin/Release/net10.0/Confectory.Core.dll"
+  ],
+  "package": "/workspace/artifacts/v536-information-retained/Windows-x64",
+  "nativeWindowsExecuted": false,
+  "delivered": false
+}

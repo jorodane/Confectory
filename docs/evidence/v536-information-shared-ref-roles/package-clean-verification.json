@@ -1,0 +1,621 @@
+{
+  "sourceCommit": "cb4a0cd8ff6a9239268c8560da03105d9c81fd78",
+  "cleanCheckout": {
+    "sourceCommit": "cb4a0cd8ff6a9239268c8560da03105d9c81fd78",
+    "checkout": "/workspace/scratch/v536-multiple-implementations/checkout",
+    "newCloneCreated": false,
+    "normalFastForward": true,
+    "cleanBeforeAndAfter": true,
+    "originalAutocrlfPreserved": "true",
+    "gitBlobs": {
+      "docs/V536_I5_6_REMAINING.md": "8e96957bc1b404bc573887c2c1477090fb6fe925",
+      "docs/V536_I5_6_SHARED_CALLERS_SCOPE.md": "7063d45b4e556ad71d272189f57fbf8cd23baf64",
+      "docs/VALIDATION_V536_INFORMATION_SHARED_REF_ROLES.md": "6f57c3603178ce09420fb16cf8924791b867ff48",
+      "docs/evidence/v536-information-shared-ref-roles/focused-verification.json": "aac532a6d97d7d7ce0f4052ea8a42f2b87d55b30",
+      "examples/editor-home/WebBundle.csbody": "87550e25f1262caf8a9a53c2291994da4498cf01",
+      "examples/editor-home/ui/element-functions.js": "23efef090ce58bd82c4f9c3cf9312c532b4eaf91",
+      "targets/element-authoring/InformationFunctionBatch.cs": "f9f21f531d701cfd50049d3e23bdecd04325aff0",
+      "tests/web/v536_information_shared_callers_api.py": "d204b4b84ce13aed0b35cbd9317e2433c2b5916b",
+      "tests/web/v536_information_shared_ref_names_native.py": "67294411966fe2841a21d49084d58c50b68e3ac8",
+      "tests/web/v536_information_shared_ref_roles_fixture.py": "185fa88335da582f5a64c45358172566eba758c2",
+      "tests/web/v536_information_shared_return_types_ui.py": "033f8ce3c2f62e5f7b99498cfe34baad6012cbdb",
+      "tests/web/v536_information_whole_contract_ui.py": "afefa242372fc3b9185bff2b3ae5c5b7efae1f7b"
+    },
+    "cleanAfterVerification": true
+  },
+  "cleanFlows": [
+    {
+      "name": "legacy",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_shared_input_rename_compat_native.py",
+        "/workspace/scratch/v536-multiple-implementations/checkout",
+        "/workspace/scratch/v536-shared-ref-roles/clean-engine-report.json",
+        "normal"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 4.4,
+      "minimumWorkspaceAvailableBytesSampled": 1929003008,
+      "peakMemoryBytesSampled": 2981642240,
+      "log": "clean/legacy.log",
+      "checks": [
+        "출력 없는 기존 입력 전용 이름/타입 결합은 원래 값·C#·원문과 역순 후보를 보존한다"
+      ]
+    },
+    {
+      "name": "up",
+      "command": [
+        "python3",
+        "/workspace/scratch/v536-multiple-implementations/checkout/tests/web/v536_information_shared_ref_names_native.py",
+        "/workspace/scratch/v536-multiple-implementations/checkout",
+        "/workspace/scratch/v536-shared-ref-roles/clean-engine-report.json",
+        "up"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 18.0,
+      "minimumWorkspaceAvailableBytesSampled": 1928929280,
+      "peakMemoryBytesSampled": 3739951104,
+      "log": "clean/up.log",
+      "checks": [
+        "기존 값/ref 전환의 두 단일 후보는 명시 본문·호출 저장소 검토로 유효하다",
+        "한 후보·역순·원래hash는 명시 value/ref와 두 호출의 같은 저장소·실행 경로·C# 원문을 보존한다",
+        "타입/out 역할/순서·모호한 대응·재선택/본문 확대·실제 소스 경합은 모두 미적용이다",
+        "ref 저장소를 임의 값으로 바꾼 선택은 거절하고 원래 입력과 정확한 값을 보존한다"
+      ]
+    },
+    {
+      "name": "up-api",
+      "command": [
+        "python3",
+        "/workspace/scratch/v536-multiple-implementations/checkout/tests/web/v536_information_shared_callers_api.py",
+        "/workspace/scratch/v536-multiple-implementations/checkout",
+        "/workspace/scratch/v536-shared-ref-roles/clean-engine-report.json",
+        "up"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 33.7,
+      "minimumWorkspaceAvailableBytesSampled": 1928880128,
+      "peakMemoryBytesSampled": 3627544576,
+      "log": "clean/up-api.log",
+      "checks": [
+        "실제 서버는 두 번째 계약 오류에서 첫 함수와 공유 caller도 checkpoint에 남기지 않는다",
+        "두 callee·공유 caller는 단일 거래로 저장되고 cold 복원에서도 연결과 원문을 유지한다",
+        "실제 compiler Review/Confirm는 두 계약을 함께 확정하고 code/다른 함수·부모 원문을 보존한다"
+      ]
+    },
+    {
+      "name": "bare-view",
+      "command": [
+        "python3",
+        "/workspace/scratch/v536-multiple-implementations/checkout/tests/web/v536_information_shared_return_types_ui.py",
+        "/workspace/scratch/v536-multiple-implementations/checkout",
+        "/workspace/scratch/v536-shared-ref-roles/clean-engine-report.json",
+        "bare",
+        "view"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 87.8,
+      "minimumWorkspaceAvailableBytesSampled": 1928826880,
+      "peakMemoryBytesSampled": 4331622400,
+      "log": "clean/bare-view.log",
+      "checks": [
+        "두 원본 상세창의 취소·명시 대응·Undo/Redo·미저장 cold는 두 함수 입력과 exact64 값을 보존한다",
+        "원본 460px 기본/독립 화면의 한 Save·cold·Review 취소/Confirm은 두 함수 계약과 공유 caller를 함께 확정한다"
+      ]
+    },
+    {
+      "name": "policy7",
+      "command": [
+        "python3",
+        "/workspace/scratch/v536-multiple-implementations/checkout/tests/web/v536_information_inherited_contract_guards.py",
+        "/workspace/scratch/v536-multiple-implementations/checkout",
+        "/workspace/scratch/v536-shared-ref-roles/clean-engine-report.json",
+        "normal"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 7.2,
+      "minimumWorkspaceAvailableBytesSampled": 1928179712,
+      "peakMemoryBytesSampled": 3282640896,
+      "log": "clean/policy7.log",
+      "checks": [
+        "공개 이름 대응·소유 copy·호출자 후보는 부모/자식 선언을 쓰지 않고 함께 준비한다",
+        "부모/자식 쓰기 위조·타입/핀 수/역할/반환/순서의 계약 변경은 정상 보호로 전체 미적용이다",
+        "실제 부모 파일 경합은 원래 읽기 기준으로 차단하고 후보/복사본 원문을 보존한다"
+      ]
+    }
+  ],
+  "cleanPassedChecks": 13,
+  "package": {
+    "sourceCommit": "cb4a0cd8ff6a9239268c8560da03105d9c81fd78",
+    "persistentPackageCreated": false,
+    "packageAvailableAfterExec": false,
+    "manifestSha256": "d4159465bc837f1accf389d266b757e4d7e53592adbb1edded53a494c81ee5dd",
+    "declaredFiles": 2343,
+    "totalFiles": 2344,
+    "packageBytes": 132775377,
+    "manifestAndFileSetMatch": true,
+    "symlinks": false,
+    "coreCopies": {
+      "Confectory.Core.dll": "8a7f43c3713bd2d65b4c68cc4c6505eec90c01f4a7975470d458d9deef2bee4d",
+      "content/src/Confectory.Cli/bin/Release/net10.0/Confectory.Core.dll": "8a7f43c3713bd2d65b4c68cc4c6505eec90c01f4a7975470d458d9deef2bee4d",
+      "content/targets/android-export/bin/Release/net10.0/Confectory.Core.dll": "8a7f43c3713bd2d65b4c68cc4c6505eec90c01f4a7975470d458d9deef2bee4d",
+      "content/targets/browser-wasm/bin/Release/net10.0/Confectory.Core.dll": "8a7f43c3713bd2d65b4c68cc4c6505eec90c01f4a7975470d458d9deef2bee4d",
+      "content/targets/element-authoring/bin/Release/net10.0/Confectory.Core.dll": "8a7f43c3713bd2d65b4c68cc4c6505eec90c01f4a7975470d458d9deef2bee4d",
+      "content/targets/desktop-entry/bin/Release/net10.0/Confectory.Core.dll": "8a7f43c3713bd2d65b4c68cc4c6505eec90c01f4a7975470d458d9deef2bee4d",
+      "content/targets/project-execution-host/bin/Release/net10.0/Confectory.Core.dll": "8a7f43c3713bd2d65b4c68cc4c6505eec90c01f4a7975470d458d9deef2bee4d"
+    },
+    "nativeAssemblySha256": "9d4d5dbdc1098a2539735e89623e6141ed9bb39cf690bc7a150858c84525f582",
+    "productSha256": {
+      "targets/element-authoring/InformationDefinitions.cs": "20ab49df2032b7c28a35b686b2d68bb84b7cade93934d9a911b83911cbcf3020",
+      "targets/element-authoring/InformationFunctionBatch.cs": "842ccc20b64221cc2a1dc1d887ecc95d48300f10fa4f170e051b1eab6cf216d5",
+      "examples/editor-home/ui/element-functions.js": "128c4f03cc51df5b4360dd8dbc97a86d211275cd3873de5c19cdc6568d2080ab",
+      "examples/editor-home/WebBundle.csbody": "d2b6a730d5e87f9263c866583f9ea5208e23890f1b20b69c812ec0eafcb0daa0"
+    },
+    "packagedBackendChecks": 4,
+    "actualWindows": false,
+    "webView2Executed": false,
+    "actualMobile": false,
+    "libraryUploaded": false,
+    "oldDurablePackageUnchanged": "/workspace/artifacts/v536-information-shared-callers/Windows-x64",
+    "oldDurableManifestSha256": "9d8f3fa88b1e8c62753ba2fe32228e02aa3be6ef41c34c394a81be15bd42f559",
+    "existingFilesDeleted": false,
+    "workspaceAvailableBytes": 1914765312,
+    "newTemporaryPackageRemovedAfterVerification": true,
+    "fixtureEvidencePreserved": true
+  },
+  "phases": [
+    {
+      "name": "restored-release-inputs",
+      "command": [
+        "/workspace/toolchains/dotnet-10.0.401/dotnet",
+        "restore",
+        "Confectory.sln",
+        "--disable-parallel"
+      ],
+      "exit": 0,
+      "sampleIntervalSeconds": 0.2,
+      "minimumWorkspaceAvailableBytes": 1928122368,
+      "peakCgroupMemoryBytes": 3142021120,
+      "elapsedSeconds": 6.2,
+      "log": "/workspace/scratch/v536-shared-ref-roles/restored-release-inputs.log",
+      "workspaceAvailableBytes": 1928126464
+    },
+    {
+      "name": "committed-release",
+      "command": [
+        "/workspace/toolchains/dotnet-10.0.401/dotnet",
+        "build",
+        "Confectory.sln",
+        "-c",
+        "Release",
+        "--no-restore",
+        "-m:1",
+        "-p:UseSharedCompilation=false"
+      ],
+      "exit": 0,
+      "sampleIntervalSeconds": 0.2,
+      "minimumWorkspaceAvailableBytes": 1928118272,
+      "peakCgroupMemoryBytes": 3451105280,
+      "elapsedSeconds": 30.7,
+      "log": "/workspace/scratch/v536-shared-ref-roles/committed-release.log",
+      "workspaceAvailableBytes": 1928118272
+    },
+    {
+      "name": "committed-mcp-release",
+      "command": [
+        "/workspace/toolchains/dotnet-10.0.401/dotnet",
+        "build",
+        "targets/mcp-host",
+        "-c",
+        "Release",
+        "--no-restore",
+        "-p:UseSharedCompilation=false"
+      ],
+      "exit": 0,
+      "sampleIntervalSeconds": 0.2,
+      "minimumWorkspaceAvailableBytes": 1928118272,
+      "peakCgroupMemoryBytes": 3209781248,
+      "elapsedSeconds": 2.8,
+      "log": "/workspace/scratch/v536-shared-ref-roles/committed-mcp-release.log",
+      "workspaceAvailableBytes": 1928114176
+    },
+    {
+      "name": "windows-package",
+      "command": [
+        "/workspace/toolchains/dotnet-10.0.401/dotnet",
+        "targets/editor-desktop/bin/Release/net10.0/Confectory.dll",
+        "package",
+        "/workspace/Confectory",
+        "/tmp/pkg-sim-rwt8u35e/Windows-x64"
+      ],
+      "exit": 0,
+      "sampleIntervalSeconds": 0.2,
+      "minimumWorkspaceAvailableBytes": 1914777600,
+      "peakCgroupMemoryBytes": 3519586304,
+      "elapsedSeconds": 75.0,
+      "log": "/workspace/scratch/v536-shared-ref-roles/windows-package.log",
+      "workspaceAvailableBytes": 1914773504
+    },
+    {
+      "name": "windows-probe",
+      "command": [
+        "python3",
+        "tests/probes/desktop_package.py",
+        "/workspace/Confectory",
+        "/tmp/pkg-sim-rwt8u35e/Windows-x64"
+      ],
+      "exit": 0,
+      "sampleIntervalSeconds": 0.2,
+      "minimumWorkspaceAvailableBytes": 1914773504,
+      "peakCgroupMemoryBytes": 4298379264,
+      "elapsedSeconds": 7.4,
+      "log": "/workspace/scratch/v536-shared-ref-roles/windows-probe.log",
+      "workspaceAvailableBytes": 1914769408
+    },
+    {
+      "name": "packaged-pure",
+      "command": [
+        "python3",
+        "tests/web/v536_information_shared_ref_names_native.py",
+        "/tmp/pkg-sim-rwt8u35e/Windows-x64/content",
+        "/workspace/scratch/v536-information-inherited-contract/clean-engine-1.json",
+        "normal"
+      ],
+      "exit": 0,
+      "sampleIntervalSeconds": 0.2,
+      "minimumWorkspaceAvailableBytes": 1914765312,
+      "peakCgroupMemoryBytes": 3936759808,
+      "elapsedSeconds": 18.0,
+      "log": "/workspace/scratch/v536-shared-ref-roles/packaged-pure.log",
+      "workspaceAvailableBytes": 1914765312
+    }
+  ],
+  "currentSourceAndNativeAssemblyMatchPackage": true,
+  "manifestSha256MatchesSavedFullManifest": true,
+  "resources": {
+    "baseline": "eb914a53cfd9a7f6eff443098790b7798eff29a5",
+    "resourcesAndBundleFiles": 75,
+    "changed": [
+      "examples/editor-home/ui/element-functions.js",
+      "examples/editor-home/WebBundle.csbody"
+    ],
+    "manifestOnlySelectedResourcePinChanged": true,
+    "jsMatchesNarrowUndoChangesOnly": true,
+    "otherResourcesMarkupStylesUnchanged": true,
+    "layoutChanged": false
+  },
+  "allNewEvidenceArchives": [
+    {
+      "path": "package-fixture-evidence/confectory-desktop-package-46cnkztf.zip",
+      "sha256": "0db9752bab9289c69cf38f87ff407d2b6a0a7a76cb1534e4fa30663cc40822b7",
+      "files": 10,
+      "bytes": 60839,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "package-fixture-evidence/confectory-wide-mixed-1x4pbvdt.zip",
+      "sha256": "063ddac76cc96609beb3d660562671f6ee11e922a857adcc7bb139c62f027f0e",
+      "files": 69,
+      "bytes": 25340,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "ui-fixed-3/evidence/up-view.zip",
+      "sha256": "cc13b72f3dfe06995929f56589e85ebd42053a3b8ff5880ab9fa35ed561d1c97",
+      "files": 87,
+      "bytes": 635452,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "ui-fixed-3/evidence/primary.zip",
+      "sha256": "9395d15e16a0e64ceb739e7bfc5f722e24b1f31381cdc03fa8d3b3cedc1dd4e6",
+      "files": 87,
+      "bytes": 701171,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "before-4/evidence/up-before.zip",
+      "sha256": "d5751380f6de61dc63cec1aea5c4720ebbbfdd9ba5ee1b5b577e8aa3ed90ed69",
+      "files": 68,
+      "bytes": 20139,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "before-4/evidence/mixed-before.zip",
+      "sha256": "4fb6632c6145f788b32d637b25a0008841c77c78a04f262def1b1a0841cf6ce2",
+      "files": 68,
+      "bytes": 20178,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "focused-4/evidence/conflict.zip",
+      "sha256": "6e124c95475726edc38974153dab91053e2cf3b21890eaa16a5d900aab3cbb7a",
+      "files": 80,
+      "bytes": 590578,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "focused-4/evidence/loss.zip",
+      "sha256": "60bb179134e0b14d5d8f45c55a55476abe466ee607d336855ee633c67930506e",
+      "files": 85,
+      "bytes": 598040,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "focused-4/evidence/projects.zip",
+      "sha256": "60abf767b10ca0d83933dd6e58355cb8e07d7e267d7964be506a2b67ccb6b1f8",
+      "files": 150,
+      "bytes": 611351,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "focused-4/evidence/up.zip",
+      "sha256": "094db199b14eed04ec6ac6f7596e226680de41c2b7cb4f01c4e8715864a3ca68",
+      "files": 69,
+      "bytes": 25232,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "focused-4/evidence/mixed.zip",
+      "sha256": "0114ba5fc739c40fd1d5e7121aa39cf798acfa63ab4ba2f8dc9a9cbbcc81db9e",
+      "files": 69,
+      "bytes": 25292,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "focused-4/evidence/mixed-view.zip",
+      "sha256": "9dd397618d540be7b1fa9025a04d9f335de662ffd23050d621e15a621f464220",
+      "files": 87,
+      "bytes": 636181,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "focused-4/evidence/pure.zip",
+      "sha256": "489bb0522c914314e7d88bc561d0b50588b306e832a295a1f7e32caa88a3feb7",
+      "files": 69,
+      "bytes": 25299,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "focused-4/evidence/storage.zip",
+      "sha256": "ed6fc2cc81283b99f29f92bed1d643ccf90820882784f89399761b41eba861ae",
+      "files": 87,
+      "bytes": 700900,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "focused-4/evidence/cancel.zip",
+      "sha256": "c68f50135dbc074d029babcee6b2a0895022cae3a8db8409b26e43ec61d940e8",
+      "files": 81,
+      "bytes": 518734,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "focused-4/evidence/retry.zip",
+      "sha256": "6d9f44e1f61bce4a64e2de3ad99e3bca63434a16554c1658c735253f0485e784",
+      "files": 87,
+      "bytes": 700722,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "ui-diagnosis/evidence/primary.zip",
+      "sha256": "bfc00c5800b5d32be203451d5955dca2c7bf5bf259cfa285f435cee88021533d",
+      "files": 79,
+      "bytes": 598318,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "impacts/evidence/legacy.zip",
+      "sha256": "b01e96e3e401b5ff3aac9d90222f5939c91eff778875d5e083813a97a076f102",
+      "files": 66,
+      "bytes": 18575,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "impacts/evidence/impact-names.zip",
+      "sha256": "ea0a2f0f41c6f035d207711c7fddc135a864369529ce1d91f4fc1f15d8c16409",
+      "files": 66,
+      "bytes": 18810,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "impacts/evidence/impact-return.zip",
+      "sha256": "76ea85178ee2730fe632bf797d13cdc66fb99816857fcc8e52080f5d8ad6b6b8",
+      "files": 67,
+      "bytes": 24633,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "impacts/evidence/impact-ref.zip",
+      "sha256": "766e77317cf29d5c36443caacac7cbac5446f1d53d5ced71db50186297fd8957",
+      "files": 67,
+      "bytes": 23652,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "impacts/evidence/policy7.zip",
+      "sha256": "bc9f606f4c210091014ac29fa15b503e54d88512278da8ccab70cf7f6e593beb",
+      "files": 74,
+      "bytes": 25819,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "impacts/evidence/impact-ref-ui.zip",
+      "sha256": "b43b0ca9e846a061f14f21b1226b397db0fd70743c7a2779219f0dd4f35fb2ae",
+      "files": 87,
+      "bytes": 634917,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "impacts/evidence/impact-defs.zip",
+      "sha256": "2785c8e8e8cc39792b5ae1aa28726be6ae8e7a24509a117d9ae68472f8401067",
+      "files": 67,
+      "bytes": 24646,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "impacts/evidence/impact-whole-ui.zip",
+      "sha256": "8ae2099a3b7a72eeb78a57548ac6c504760f62bebf984e83495ceda9e2d9c108",
+      "files": 85,
+      "bytes": 245292,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "ui-fixed-2/evidence/primary.zip",
+      "sha256": "fe6cf9fb3112af21e3c57445ee490e476fb0741a89d24691d8b1dbed2b0b7450",
+      "files": 72,
+      "bytes": 21557,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "focused/evidence/pure.zip",
+      "sha256": "c561d88d48e199182ef85c8469d08f6be4c69bc3dd7470d1eaee0c5c85733fa3",
+      "files": 69,
+      "bytes": 25071,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "before-3/evidence/up-before.zip",
+      "sha256": "fe5e7dad9501efa89b04fa014c8b4cc92bd4f72ed86134f6e065132368a7c91b",
+      "files": 67,
+      "bytes": 19865,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "bare/evidence/bare-view.zip",
+      "sha256": "1d0163ae9c2b8f63fce6eefe80d5002e621c64029e86e185165f5aa19d2275a9",
+      "files": 87,
+      "bytes": 617847,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "clean/evidence/legacy.zip",
+      "sha256": "77b214ad5f34c3a7e44ae439349d6ff7892fc15b34acef9a9d9f3b35cf9e5560",
+      "files": 66,
+      "bytes": 18603,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "clean/evidence/up.zip",
+      "sha256": "d433554bc2ebc50883a89057813e1c8bd37765d1a3dd0f7ebdb4241a8f0a58cb",
+      "files": 69,
+      "bytes": 25290,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "clean/evidence/bare-view.zip",
+      "sha256": "d29d22ec960e1b642a306949264a4d5ec9210db6666fb8df58904931029cf17a",
+      "files": 87,
+      "bytes": 618012,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "clean/evidence/up-api.zip",
+      "sha256": "385892b5e43f4d1d2515ad4b5ddb5b0aaddfd3645495a4826b502bca15b171d1",
+      "files": 79,
+      "bytes": 27080,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "clean/evidence/policy7.zip",
+      "sha256": "e84763c51ea5408c91123b3d69b65690f7619ef19141d459da2e5f3ff61c3885",
+      "files": 74,
+      "bytes": 25888,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "before/evidence/up-before.zip",
+      "sha256": "8f685f276d0bf94714cfb33a1ff4d20e26871ee12840976f78c478edaeca032e",
+      "files": 65,
+      "bytes": 18400,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "before/evidence/before.zip",
+      "sha256": "134c52831450553a85930bfe89d75e9f79b6bd5b9323dde2c1fa357d7e138564",
+      "files": 66,
+      "bytes": 18679,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "focused-2/evidence/up.zip",
+      "sha256": "3c90e0185916fb87f284c77672613a0f3cb60a2e0db25bbac2e11579efde240f",
+      "files": 69,
+      "bytes": 25236,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "focused-2/evidence/mixed.zip",
+      "sha256": "0c634526adab1db434b5e105902908cd3e85129b3c4da094cc6eedae813d8903",
+      "files": 69,
+      "bytes": 25293,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "focused-2/evidence/pure.zip",
+      "sha256": "86f53760ddef9546cc135e6692a7aedca14dc4fbc40f00a5df8343b76720b56b",
+      "files": 69,
+      "bytes": 25301,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "focused-2/evidence/api.zip",
+      "sha256": "8538b1d4b4d404febe7de18960e460091044dd322a991abfe96c5cc6b36c6022",
+      "files": 79,
+      "bytes": 26926,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "ui-fixed/evidence/primary.zip",
+      "sha256": "5667b86074c10da83b3c79579531233e2c37aea28ec2398d7b0a5f01cb377588",
+      "files": 72,
+      "bytes": 21558,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "focused-3/evidence/api.zip",
+      "sha256": "ec1e547bb444a12bb26273bede2af3772c56f3fb183b0a5f4c3a4feb27cd3bce",
+      "files": 79,
+      "bytes": 26999,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "focused-3/evidence/primary.zip",
+      "sha256": "d8bbe11d6b81ea67afe53e2bfe56064521af5403ed67d048d49a055c8a2f14ec",
+      "files": 78,
+      "bytes": 595846,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "focused-3/evidence/up-api.zip",
+      "sha256": "2a2b37927fe4a59f7374602900c55263fa32a61f65be46a081c2701c172ac986",
+      "files": 79,
+      "bytes": 26989,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "before-2/evidence/up-before.zip",
+      "sha256": "e572191614ea82a34b3c6d25a5c9ce76c2ad647273a32c0c674f5608ffbd41e3",
+      "files": 66,
+      "bytes": 18703,
+      "fileSetModesAndBytesMatch": true
+    }
+  ],
+  "allArchiveFileSetsModesAndBytesMatch": true,
+  "existingFilesDeleted": false,
+  "oldEvidenceConvertedOrDeleted": false,
+  "actualWindows": false,
+  "webView2Executed": false,
+  "actualMobile": false,
+  "libraryUploaded": false,
+  "newDeliverableRetained": false,
+  "cgroupMemoryEvents": {
+    "low": "0",
+    "high": "0",
+    "max": "0",
+    "oom": "0",
+    "oom_kill": "0",
+    "oom_group_kill": "0"
+  },
+  "workspaceAvailableBytes": 1914368000
+}

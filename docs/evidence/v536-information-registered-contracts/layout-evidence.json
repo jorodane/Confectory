@@ -1,0 +1,29 @@
+{
+  "checks": "existing v536 HTML/CSS unchanged; manual renderer inspection only, no pixel equivalence claim",
+  "files": [
+    {
+      "path": "examples/editor-home/ui/consumer.css",
+      "sha256": "fc3584f1784ba822fd438edb5fe33deb6527d8e621cc478184d5f5b82244dc3e",
+      "sameAsPublished482d10c": true
+    },
+    {
+      "path": "examples/editor-home/ui/index.html",
+      "sha256": "9c4c08bbd90a15b7e18f65ceae0d9b0e7e1c17189595853a102941e27af778d0",
+      "sameAsPublished482d10c": true
+    },
+    {
+      "path": "examples/editor-home/ui/runtime.css",
+      "sha256": "7ace817c492c5bd51a3b11a2fd6b86fdc3d98e242ae4115d5cc52b179afc6e3e",
+      "sameAsPublished482d10c": true
+    },
+    {
+      "path": "examples/editor-home/ui/style.css",
+      "sha256": "adfc1b205f0d357a380122763d411147e4db7535d1484f0852a6064984912188",
+      "sameAsPublished482d10c": true
+    }
+  ],
+  "screenshots": [
+    "caller-csharp.png",
+    "independent-final.png"
+  ]
+}

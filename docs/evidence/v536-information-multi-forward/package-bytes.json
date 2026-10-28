@@ -1,0 +1,20 @@
+{
+  "pass": true,
+  "package": "/workspace/artifacts/v536-information-multi-forward/Windows-x64",
+  "manifestFiles": 2340,
+  "actualFilesWithManifest": 2341,
+  "manifestSha256": "d0d13decdc706a9452cb4de31b34d1acd6a34e6ea2b2639ef9158674d3869a1a",
+  "everyManifestHashVerified": true,
+  "exactSourceAndDLLBytes": [
+    "examples/editor-home/WebBundle.csbody",
+    "examples/editor-home/ui/element-functions.js",
+    "targets/element-authoring/InformationFunctionContracts.cs",
+    "targets/element-authoring/InformationFunctionPrivateCalls.cs",
+    "targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll",
+    "targets/element-authoring/bin/Release/net10.0/Confectory.Core.dll"
+  ],
+  "fixtureScriptsPackaged": false,
+  "testOnlyEndpointAdded": false,
+  "actualWindowsExecuted": false,
+  "libraryDelivered": false
+}

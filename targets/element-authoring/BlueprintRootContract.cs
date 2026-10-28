@@ -4,14 +4,14 @@ using Confectory.Core;
 // Pure, bounded root contract preparation. No file writes, source stamping or execution.
 static class BlueprintRootContract
 {
- public static JsonObject Prepare(JsonObject request,Func<Element,string> format)
+ public static JsonObject Prepare(JsonObject request,Func<Element,string> format,IReadOnlySet<string>? coordinated=null,IReadOnlyDictionary<string,Element>? stableImports=null)
  {
   var function=new Parser(request["functionText"]!.GetValue<string>(),"<root-function>").ParseElement();
   var implementation=new Parser(request["text"]!.GetValue<string>(),"<root-implementation>").ParseElement();
   string target=request["bodyTarget"]!.GetValue<string>();var graph=request["graph"]!.DeepClone().AsObject();
   if(function.Kind!="function"||implementation.Kind!="implementation"||implementation.Function!=function.Id||implementation.Parent is not null||implementation.Bodies.Count!=1||!implementation.Bodies.TryGetValue(target,out var body)||body.SourceKind!="blueprint"||graph["feature"]!.ToString()!=function.Id)
    throw new InvalidOperationException("Edit one explicitly owned root implementation/body; inherited or multiple bodies need coordinated selection");
-  var plan=request["plan"]!.AsObject();if(plan.Any(p=>p.Key is not ("args" or "returnType" or "remap" or "rootBody" or "inputModes" or "publicOutputs" or "removeOutputs" or "outputCreates" or "outputRoutes" or "outputEntry" or "outputOrder" or "adaptOutput")))throw new ArgumentException("Explicit root contract and remap required");
+  var plan=request["plan"]!.AsObject();if(plan.Any(p=>p.Key is not ("args" or "returnType" or "remap" or "rootBody" or "inputModes" or "publicOutputs" or "removeOutputs" or "outputCreates" or "outputRoutes" or "outputEntry" or "outputOrder" or "adaptOutput" or "outputBindings")))throw new ArgumentException("Explicit root contract and remap required");
   var old=function.Signature!;var remap=plan["remap"]!.AsObject();var next=plan["args"]!.AsArray();
   var published=BlueprintOutputSnapshot.Read(function);
   var adaptOutput=plan["adaptOutput"] as JsonObject;string? adaptedName=null;JsonNode? adaptedValue=null;
@@ -23,20 +23,27 @@ static class BlueprintRootContract
    var source=JsonNode.Parse(adaptOutput["sourceJson"]!.GetValue<string>())!.AsObject();if(BlueprintNumericValues.SourceType(graph,function,id,source)!=to)throw new ArgumentException("Selected storage must have the exact adapted output type");
    adaptedValue=BlueprintNumericValues.Adapt(output.Type,to,adaptOutput["path"]!.AsArray(),adaptOutput["baseJson"]!.GetValue<string>(),source,adaptOutput["valueJson"]?.GetValue<string>());adaptedName=name;
   }
+  var selectedSignature=new Parser("function Blueprint.Validation::Outputs ("+string.Join(",",next.Select(a=>(a!["mode"] is null?"":a["mode"]+" ")+a!["type"]+" "+a["name"]))+") -> "+plan["returnType"]+" {}","<selected-output-contract>").ParseElement().Signature!;
+  var outputBindings=plan["outputBindings"] is JsonArray selectedBindings?BlueprintOutputBindings.Prepare(graph,old,selectedSignature,remap,selectedBindings):new Dictionary<string,BlueprintOutputBindings.Assignment>(StringComparer.Ordinal);
+  var boundTypes=outputBindings.Values.GroupBy(p=>p.Name,StringComparer.Ordinal).ToDictionary(g=>g.Key,g=>g.First().Type,StringComparer.Ordinal);
   var inputModes=plan["inputModes"] is null?new JsonObject():plan["inputModes"]!.AsObject();
   if(inputModes.Count>64||inputModes.Any(pair=>!old.Args.Any(arg=>arg.Name==pair.Key&&!arg.IsOut)||pair.Value is null||pair.Value.GetValue<string>() is not ("value" or "ref")))throw new ArgumentException("Explicit existing value/ref input modes required");
   if(next.Count>64||remap.Count!=old.Args.Count||old.Args.Any(p=>!remap.ContainsKey(p.Name)))throw new ArgumentException("Remap every existing root argument explicitly");
   var signature=new JsonObject{["args"]=next.DeepClone(),["return"]=plan["returnType"]!.DeepClone()};
   DeclarationAuthoring.Apply(function,new JsonObject{["action"]="signature",["value"]=signature});
   var names=new HashSet<string>(StringComparer.Ordinal);
-  foreach(var previous in old.Args){if(remap[previous.Name] is null){if(inputModes.ContainsKey(previous.Name))throw new ArgumentException("A changed input mode must retain its explicit remap");continue;}string name=remap[previous.Name]!.GetValue<string>();var selected=function.Signature!.Args.SingleOrDefault(p=>p.Name==name);string? mode=inputModes.TryGetPropertyValue(previous.Name,out var chosen)?chosen!.GetValue<string>()=="ref"?"ref":null:previous.Mode;if(selected is null||!names.Add(name)||selected.Type!=(previous.IsOut&&previous.Name==adaptedName?adaptOutput!["type"]!.ToString():previous.Type)||selected.Mode!=mode)throw new InvalidOperationException("Root remaps preserve exact type and mode unless the same input has an explicit value/ref change; disconnect before replacing a parameter");}
+  foreach(var previous in old.Args){if(remap[previous.Name] is null){if(inputModes.ContainsKey(previous.Name))throw new ArgumentException("A changed input mode must retain its explicit remap");continue;}string name=remap[previous.Name]!.GetValue<string>();var selected=function.Signature!.Args.SingleOrDefault(p=>p.Name==name);string? mode=inputModes.TryGetPropertyValue(previous.Name,out var chosen)?chosen!.GetValue<string>()=="ref"?"ref":null:previous.Mode;if(selected is null||!names.Add(name)||selected.Type!=(previous.IsOut&&boundTypes.TryGetValue(previous.Name,out var boundType)?boundType:previous.IsOut&&previous.Name==adaptedName?adaptOutput!["type"]!.ToString():previous.Type)||selected.Mode!=mode)throw new InvalidOperationException("Root remaps preserve exact type and mode unless the same input has an explicit value/ref change; disconnect before replacing a parameter");}
   var nodes=graph["nodes"]!.AsArray();
   JsonObject? rootBody=null;FunctionSignature? nativeSignature=null;
   if(plan.ContainsKey("rootBody")){
    rootBody=plan["rootBody"]!.AsObject();if(rootBody.Count!=2||rootBody["node"] is null||rootBody["source"] is null||rootBody["source"]!.GetValue<string>().Length>1048576||plan.Any(p=>p.Key is not ("args" or "returnType" or "remap" or "inputModes" or "rootBody")))throw new ArgumentException("Explicit root mode/body source only; other root edits stay separate");
    string id=rootBody["node"]!.GetValue<string>();var node=nodes.SingleOrDefault(n=>n!["id"]?.ToString()==id) as JsonObject;
    nativeSignature=implementation.Signature;
-   if(implementation.Imports.Count>0)throw new InvalidOperationException("Imported whole-body modes require their complete source contracts; retain source and use the existing body editor");
+   if(implementation.Imports.Count>0){
+    // Only the information editor can supply its already observed source map.
+    // This permits a fixed-contract body edit, never an inferred import repair.
+    if(stableImports is null||implementation.Imports.Count>32||!JsonNode.DeepEquals(FeatureBlueprint.SignatureDocument(old),FeatureBlueprint.SignatureDocument(function.Signature!))||implementation.Imports.Values.Any(import=>!stableImports.TryGetValue(import.Id,out var declaredImport)||declaredImport.Kind!="function"||declaredImport.Signature is null||!import.Signature.Matches(declaredImport.Signature)))throw new InvalidOperationException("Imported whole-body modes require their complete unchanged source contracts; retain source and use the existing body editor");
+   }
    if(nativeSignature is null||!old.Matches(nativeSignature)||node is null||node["kind"]?.ToString()!="code"||node["control"]?.ToString()!="next"||node["implementation"] is null||!JsonNode.DeepEquals(node["signature"],FeatureBlueprint.SignatureDocument(nativeSignature))||!JsonNode.DeepEquals(node["implementationContext"],FeatureBlueprint.ImplementationContext(implementation))||graph["entry"]?.ToString()!=id||graph["contractHash"]?.ToString()!=FeatureBlueprint.ContractHash(new Parser(request["functionText"]!.GetValue<string>(),"<old-root>").ParseElement()))throw new InvalidOperationException("Exact owned whole-body context/signature/source required");
    if(next.Count!=old.Args.Count||function.Signature!.Return!=old.Return||old.Args.Select((p,i)=>(p,i)).Any(x=>function.Signature.Args[x.i].Name!=x.p.Name||function.Signature.Args[x.i].Type!=x.p.Type||remap[x.p.Name]?.ToString()!=x.p.Name||x.p.IsOut&&function.Signature.Args[x.i].Mode!="out"||!x.p.IsOut&&function.Signature.Args[x.i].IsOut))throw new InvalidOperationException("Whole-body mode editing retains names, types, order, return and out roles");
    if(nodes.Count!=(old.Return=="void"?1:2)||graph["locals"] is JsonArray locals&&locals.Count>0||graph["exits"]!.AsObject().Any(p=>p.Value is not null))throw new InvalidOperationException("Coordinate only the original whole-body lift, not additional data/control nodes");
@@ -46,7 +53,7 @@ static class BlueprintRootContract
    }else if(graph["edges"]!.AsArray().Count!=0)throw new InvalidOperationException("Preserve the whole-body void termination");
    nativeSignature=new FunctionSignature(nativeSignature.Args.Select((p,i)=>new Parameter(p.Type,p.Name,function.Signature.Args[i].Mode)).ToList(),nativeSignature.Return);
    implementation.Signature=nativeSignature;node["signature"]=FeatureBlueprint.SignatureDocument(nativeSignature);node["implementationContext"]=FeatureBlueprint.ImplementationContext(implementation);
-  }else if(nodes.Any(n=>n!["implementationContext"] is not null||n["forwardCallerStorage"]?.GetValue<bool>()==true))throw new InvalidOperationException("Whole-body caller-storage root needs coordinated body conversion; sources retained");
+  }else if(nodes.Any(n=>(n!["implementationContext"] is not null||n["forwardCallerStorage"]?.GetValue<bool>()==true)&&coordinated?.Contains(n["id"]!.ToString())!=true))throw new InvalidOperationException("Whole-body caller-storage root needs coordinated body conversion; sources retained");
   var removed=new HashSet<string>(StringComparer.Ordinal);var declared=FeatureBlueprint.FeatureOutputs(function.Signature!).ToDictionary(p=>p.Name,p=>p.Type,StringComparer.Ordinal);
   if(plan["removeOutputs"] is JsonArray removals){if(removals.Count>65)throw new ArgumentException("Output removal budget");var originalOutputs=FeatureBlueprint.FeatureOutputs(old).Select(p=>p.Name).ToHashSet(StringComparer.Ordinal);foreach(var item in removals){string name=item!.GetValue<string>();if(!originalOutputs.Contains(name)||declared.ContainsKey(name)||!removed.Add(name))throw new ArgumentException("Remove only explicitly selected original outputs, also absent from the new signature");}}
   bool outputGraphChanged=removed.Count>0||plan["outputCreates"] is not null||plan["outputRoutes"] is not null||plan.ContainsKey("outputEntry");
@@ -61,11 +68,16 @@ static class BlueprintRootContract
    if(graph["profile"]!.ToString()==FeatureBlueprint.Profile)graph["profile"]=FeatureBlueprint.ImplicitProfile;
   }
   void Inputs(JsonNode? value){if(value is JsonObject obj){if(obj["input"] is JsonValue input){string name=input.GetValue<string>();if(!remap.ContainsKey(name)||remap[name] is null)throw new InvalidOperationException("Disconnect every use before removing or changing a root input");obj["input"]=remap[name]!.DeepClone();return;}foreach(var item in obj)Inputs(item.Value);}else if(value is JsonArray array)foreach(var item in array)Inputs(item);}
-  foreach(var node in nodes)Inputs(node!["arguments"]);Inputs(graph["locals"]);Inputs(graph["exits"]);
-  string? Output(string name){if(name=="return")return adaptedName=="return"||function.Signature!.Return==old.Return?"return":null;var previous=old.Args.SingleOrDefault(p=>p.Name==name&&p.Mode=="out");return previous is null?null:remap[name]?.GetValue<string>();}
+  // Existing slots still use old input names. Explicit output replacements and
+  // new assignments already use the selected current signature and must never
+  // be remapped a second time (including swapped input names).
+  foreach(var node in nodes)if(coordinated?.Contains(node!["id"]!.ToString())!=true&&!outputBindings.ContainsKey(node!["id"]!.ToString())&&!(plan["outputCreates"] is JsonArray currentCreates&&currentCreates.Any(row=>row!["node"]?.ToString()==node["id"]!.ToString())))Inputs(node!["arguments"]);
+  Inputs(graph["locals"]);foreach(var exit in graph["exits"]!.AsObject())if(!outputBindings.ContainsKey("$exit:"+exit.Key))Inputs(exit.Value);
+  string? Output(string name){if(name=="return")return adaptedName=="return"||boundTypes.ContainsKey("return")||function.Signature!.Return==old.Return||old.Return=="void"&&function.Signature!.Return!="void"&&plan["outputCreates"] is JsonArray addedReturns&&addedReturns.Any(row=>row!["output"]?.ToString()=="return")?"return":null;var previous=old.Args.SingleOrDefault(p=>p.Name==name&&p.Mode=="out");return previous is null?null:remap[name]?.GetValue<string>();}
   var exits=new JsonObject();foreach(var item in graph["exits"]!.AsObject()){string? name=Output(item.Key);if(name is null){if(item.Value is not null||nodes.Any(n=>n!["kind"]?.ToString()=="export"&&n["output"]?.ToString()==item.Key)||graph["edges"]!.AsArray().Any(e=>e!["to"]?.ToString()=="exit:"+item.Key)||graph["entry"]?.ToString()=="exit:"+item.Key)throw new InvalidOperationException("Disconnect existing output nodes/routes before changing or removing a root output");continue;}exits[name]=item.Value?.DeepClone();}
   foreach(var node in nodes)if(node!["kind"]?.ToString()=="export"){bool created=plan["outputCreates"] is JsonArray createdRows&&createdRows.Any(row=>row!["node"]!.ToString()==node["id"]!.ToString());string? name=created?node["output"]!.ToString():Output(node["output"]!.ToString());if(name is null)throw new InvalidOperationException("Remove the existing output assignment before replacing its contract");node["output"]=name;}
   if(adaptOutput is not null){string id=adaptOutput["node"]!.ToString();if(id.StartsWith("$exit:",StringComparison.Ordinal))exits[adaptedName!]=adaptedValue;else{var writer=nodes.Single(n=>n!["id"]!.ToString()==id)!;writer["signature"]!["args"]![0]!["type"]=adaptOutput["type"]!.DeepClone();writer["arguments"]!["value"]=adaptedValue;}}
+  foreach(var pair in outputBindings){var value=pair.Value;if(pair.Key.StartsWith("$exit:",StringComparison.Ordinal))exits[Output(value.Name)!]=value.Value.DeepClone();else{var writer=nodes.Single(n=>n!["id"]!.ToString()==pair.Key)!;writer["signature"]!["args"]![0]!["type"]=value.Type;writer["arguments"]!["value"]=value.Value.DeepClone();}}
   foreach(var edge in graph["edges"]!.AsArray())if(edge!["to"]!.ToString().StartsWith("exit:",StringComparison.Ordinal))edge["to"]="exit:"+Output(edge["to"]!.ToString()[5..]);
   if(graph["entry"]!.ToString().StartsWith("exit:",StringComparison.Ordinal))graph["entry"]="exit:"+Output(graph["entry"]!.ToString()[5..]);
   foreach(var p in function.Signature!.Args.Where(p=>p.Mode=="out"))if(!exits.ContainsKey(p.Name))exits[p.Name]=null;

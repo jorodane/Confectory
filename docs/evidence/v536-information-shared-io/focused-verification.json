@@ -1,0 +1,163 @@
+{
+  "focusedFlows": 11,
+  "focusedChecks": 28,
+  "impactChecks": 26,
+  "browserFocusChecks": 2,
+  "sampleIntervalSeconds": 0.2,
+  "peakCgroupMemoryBytesSampled": 17024270336,
+  "minimumWorkspaceAvailableBytesSampled": 328507392,
+  "nativeWarnings": 0,
+  "nativeErrors": 0,
+  "freshLinuxEngineWarnings": [],
+  "browserFocusBugDeterministicallyReproducedAndFixed": true,
+  "fixtureReturnExpectationAndDialogSelectorCorrected": true,
+  "firstLinuxBuildWrongManifestPathRecorded": true,
+  "allFailuresPreservedLocally": true,
+  "actualWindows": false,
+  "actualMobile": false,
+  "libraryDelivered": false,
+  "copyPolicyDecisionUsed": false,
+  "existingFilesDeleted": false,
+  "results": [
+    {
+      "name": "pure",
+      "exit": 0,
+      "elapsedSeconds": 13.6,
+      "minimumWorkspaceAvailableBytesSampled": 356036608,
+      "peakMemoryBytesSampled": 16050118656
+    },
+    {
+      "name": "api-normal",
+      "exit": 0,
+      "elapsedSeconds": 32.1,
+      "minimumWorkspaceAvailableBytesSampled": 359571456,
+      "peakMemoryBytesSampled": 16233762816
+    },
+    {
+      "name": "ui-primary",
+      "exit": 0,
+      "elapsedSeconds": 62.5,
+      "minimumWorkspaceAvailableBytesSampled": 358715392,
+      "peakMemoryBytesSampled": 16991637504
+    },
+    {
+      "name": "api-source",
+      "exit": 0,
+      "elapsedSeconds": 10.6,
+      "minimumWorkspaceAvailableBytesSampled": 357482496,
+      "peakMemoryBytesSampled": 16168026112
+    },
+    {
+      "name": "ui-view",
+      "exit": 0,
+      "elapsedSeconds": 71.8,
+      "minimumWorkspaceAvailableBytesSampled": 357146624,
+      "peakMemoryBytesSampled": 16983900160
+    },
+    {
+      "name": "ui-storage",
+      "exit": 0,
+      "elapsedSeconds": 80.2,
+      "minimumWorkspaceAvailableBytesSampled": 355708928,
+      "peakMemoryBytesSampled": 16968450048
+    },
+    {
+      "name": "ui-loss",
+      "exit": 0,
+      "elapsedSeconds": 46.5,
+      "minimumWorkspaceAvailableBytesSampled": 334012416,
+      "peakMemoryBytesSampled": 17011384320
+    },
+    {
+      "name": "ui-cancel",
+      "exit": 0,
+      "elapsedSeconds": 35.9,
+      "minimumWorkspaceAvailableBytesSampled": 352997376,
+      "peakMemoryBytesSampled": 16992063488
+    },
+    {
+      "name": "ui-conflict",
+      "exit": 0,
+      "elapsedSeconds": 25.5,
+      "minimumWorkspaceAvailableBytesSampled": 352079872,
+      "peakMemoryBytesSampled": 16919363584
+    },
+    {
+      "name": "ui-projects",
+      "exit": 0,
+      "elapsedSeconds": 34.7,
+      "minimumWorkspaceAvailableBytesSampled": 332869632,
+      "peakMemoryBytesSampled": 16921673728
+    },
+    {
+      "name": "ui-retry",
+      "exit": 0,
+      "elapsedSeconds": 74.8,
+      "minimumWorkspaceAvailableBytesSampled": 331505664,
+      "peakMemoryBytesSampled": 17024270336
+    },
+    {
+      "name": "impact-input-names",
+      "exit": 0,
+      "elapsedSeconds": 5.8,
+      "minimumWorkspaceAvailableBytesSampled": 330280960,
+      "peakMemoryBytesSampled": 16084819968
+    },
+    {
+      "name": "impact-input-types",
+      "exit": 0,
+      "elapsedSeconds": 8.6,
+      "minimumWorkspaceAvailableBytesSampled": 329986048,
+      "peakMemoryBytesSampled": 16080973824
+    },
+    {
+      "name": "impact-output-names",
+      "exit": 0,
+      "elapsedSeconds": 7.6,
+      "minimumWorkspaceAvailableBytesSampled": 329691136,
+      "peakMemoryBytesSampled": 16080347136
+    },
+    {
+      "name": "impact-output-types",
+      "exit": 0,
+      "elapsedSeconds": 12.0,
+      "minimumWorkspaceAvailableBytesSampled": 329396224,
+      "peakMemoryBytesSampled": 16087719936
+    },
+    {
+      "name": "impact-definitions",
+      "exit": 0,
+      "elapsedSeconds": 12.0,
+      "minimumWorkspaceAvailableBytesSampled": 329101312,
+      "peakMemoryBytesSampled": 16089116672
+    },
+    {
+      "name": "impact-return-types",
+      "exit": 0,
+      "elapsedSeconds": 12.2,
+      "minimumWorkspaceAvailableBytesSampled": 328806400,
+      "peakMemoryBytesSampled": 16089616384
+    },
+    {
+      "name": "impact-local-imports",
+      "exit": 0,
+      "elapsedSeconds": 9.8,
+      "minimumWorkspaceAvailableBytesSampled": 328507392,
+      "peakMemoryBytesSampled": 16090275840
+    },
+    {
+      "name": "browser-focus",
+      "exit": 0,
+      "elapsedSeconds": 9.8,
+      "minimumWorkspaceAvailableBytesSampled": 334888960,
+      "peakMemoryBytesSampled": 16798253056
+    },
+    {
+      "name": "browser-focus-input",
+      "exit": 0,
+      "elapsedSeconds": 8.6,
+      "minimumWorkspaceAvailableBytesSampled": 334446592,
+      "peakMemoryBytesSampled": 16772354048
+    }
+  ]
+}

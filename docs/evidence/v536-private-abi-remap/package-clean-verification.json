@@ -1,0 +1,236 @@
+{
+  "sourceCommit": "89c9b6669dbdc2e9c64d3a15789513fbc907666a",
+  "baseCommit": "7ea290211e472a50d661688774ed356c5e163a6e",
+  "independentCheckout": {
+    "sourceCommit": "89c9b6669dbdc2e9c64d3a15789513fbc907666a",
+    "checkout": "/workspace/scratch/v536-multiple-implementations/checkout",
+    "newCloneCreated": false,
+    "normalFastForward": true,
+    "cleanBeforeAndAfter": true,
+    "originalAutocrlfPreserved": "true",
+    "gitBlobs": {
+      "docs/V536_I5_6_COPY_INHERITANCE_SCOPE.md": "192da3106f9ac7eebed762c9f1cd399b572d3e78",
+      "docs/V536_I5_6_REMAINING.md": "72116971d8d483e88ad7252f19cfaa75c6092686",
+      "docs/V536_ROW7_REMAINING_BOUNDARY.md": "ecfc985dcafeb2623b8443509ed585ef956a777d",
+      "docs/VALIDATION_V536_PRIVATE_ABI_REMAP.md": "1af2229ebbc3079a4299aec16cb2597156db65a2",
+      "docs/evidence/v536-private-abi-remap/focused-verification.json": "7eebae212950b32359839bb332ec06a57d42b440",
+      "targets/element-authoring/BlueprintCallAbi.cs": "47ea84efa7fd8d866b0575e70b13b4f8b72b939a",
+      "tests/web/v536_general_private_abi_metadata.py": "10bcbd70706bd1d8841c088abf66a388d377331c",
+      "tests/web/v536_general_private_abi_ui.py": "548f9143fea690091e914a4316f463ecd9fdf494",
+      "tests/web/v536_saved_copy_abi.py": "63d8dd91211f37e33a15fec6c4545c87df99fe24"
+    },
+    "cleanAfterVerification": true
+  },
+  "independentResults": [
+    {
+      "name": "view",
+      "command": [
+        "python3",
+        "/workspace/scratch/v536-multiple-implementations/checkout/tests/web/v536_saved_copy_abi.py",
+        "/workspace/scratch/v536-multiple-implementations/checkout",
+        "/workspace/scratch/v536-private-abi-remap/clean-engine-report.json",
+        "nested",
+        "remap",
+        "view"
+      ],
+      "exit": 0,
+      "seconds": 143.7,
+      "minimumWorkspaceBytes": 1020497920,
+      "peakMemoryBytes": 5208064000,
+      "pendingCopy": false,
+      "copyImports": false
+    },
+    {
+      "name": "old-private",
+      "command": [
+        "python3",
+        "/workspace/scratch/v536-multiple-implementations/checkout/tests/web/v536_saved_copy_abi.py",
+        "/workspace/scratch/v536-multiple-implementations/checkout",
+        "/workspace/scratch/v536-private-abi-remap/clean-engine-report.json",
+        "nested"
+      ],
+      "exit": 0,
+      "seconds": 93.0,
+      "minimumWorkspaceBytes": 1019912192,
+      "peakMemoryBytes": 5082636288,
+      "pendingCopy": false,
+      "copyImports": false
+    }
+  ],
+  "independentChecks": 21,
+  "independentPureChecks": 6,
+  "packageStages": [
+    {
+      "name": "restored-release-inputs",
+      "command": [
+        "/workspace/toolchains/dotnet-10.0.401/dotnet",
+        "restore",
+        "Confectory.sln",
+        "--disable-parallel"
+      ],
+      "exit": 0,
+      "sampleIntervalSeconds": 0.2,
+      "minimumWorkspaceAvailableBytes": 1019777024,
+      "peakCgroupMemoryBytes": 4444352512,
+      "elapsedSeconds": 6.0,
+      "log": "/workspace/scratch/v536-private-abi-remap/restored-release-inputs.log",
+      "workspaceAvailableBytes": 1019781120
+    },
+    {
+      "name": "committed-release",
+      "command": [
+        "/workspace/toolchains/dotnet-10.0.401/dotnet",
+        "build",
+        "Confectory.sln",
+        "-c",
+        "Release",
+        "--no-restore",
+        "-m:1",
+        "-p:UseSharedCompilation=false"
+      ],
+      "exit": 0,
+      "sampleIntervalSeconds": 0.2,
+      "minimumWorkspaceAvailableBytes": 1019772928,
+      "peakCgroupMemoryBytes": 4750827520,
+      "elapsedSeconds": 30.9,
+      "log": "/workspace/scratch/v536-private-abi-remap/committed-release.log",
+      "workspaceAvailableBytes": 1019772928
+    },
+    {
+      "name": "committed-mcp-release",
+      "command": [
+        "/workspace/toolchains/dotnet-10.0.401/dotnet",
+        "build",
+        "targets/mcp-host",
+        "-c",
+        "Release",
+        "--no-restore",
+        "-p:UseSharedCompilation=false"
+      ],
+      "exit": 0,
+      "sampleIntervalSeconds": 0.2,
+      "minimumWorkspaceAvailableBytes": 1019768832,
+      "peakCgroupMemoryBytes": 4509831168,
+      "elapsedSeconds": 3.0,
+      "log": "/workspace/scratch/v536-private-abi-remap/committed-mcp-release.log",
+      "workspaceAvailableBytes": 1019768832
+    },
+    {
+      "name": "windows-package",
+      "command": [
+        "/workspace/toolchains/dotnet-10.0.401/dotnet",
+        "targets/editor-desktop/bin/Release/net10.0/Confectory.dll",
+        "package",
+        "/workspace/Confectory",
+        "/tmp/pkg-sim-lng1wcnn/Windows-x64"
+      ],
+      "exit": 0,
+      "sampleIntervalSeconds": 0.2,
+      "minimumWorkspaceAvailableBytes": 1006391296,
+      "peakCgroupMemoryBytes": 4811476992,
+      "elapsedSeconds": 75.2,
+      "log": "/workspace/scratch/v536-private-abi-remap/windows-package.log",
+      "workspaceAvailableBytes": 1006387200
+    },
+    {
+      "name": "windows-probe",
+      "command": [
+        "python3",
+        "tests/probes/desktop_package.py",
+        "/workspace/Confectory",
+        "/tmp/pkg-sim-lng1wcnn/Windows-x64"
+      ],
+      "exit": 0,
+      "sampleIntervalSeconds": 0.2,
+      "minimumWorkspaceAvailableBytes": 1006383104,
+      "peakCgroupMemoryBytes": 5598228480,
+      "elapsedSeconds": 7.4,
+      "log": "/workspace/scratch/v536-private-abi-remap/windows-probe.log",
+      "workspaceAvailableBytes": 1006379008
+    },
+    {
+      "name": "packaged-renderer",
+      "command": [
+        "python3",
+        "tests/web/v536_saved_copy_abi.py",
+        "/tmp/pkg-sim-lng1wcnn/Windows-x64/content",
+        "/workspace/scratch/v536-private-abi-remap/packaged-engine-report.json",
+        "nested",
+        "remap",
+        "view"
+      ],
+      "exit": 0,
+      "sampleIntervalSeconds": 0.2,
+      "minimumWorkspaceAvailableBytes": 1006370816,
+      "peakCgroupMemoryBytes": 5682663424,
+      "elapsedSeconds": 142.1,
+      "log": "/workspace/scratch/v536-private-abi-remap/packaged-renderer.log",
+      "workspaceAvailableBytes": 1006370816
+    }
+  ],
+  "packageByteEvidence": {
+    "sourceCommit": "89c9b6669dbdc2e9c64d3a15789513fbc907666a",
+    "ephemeralPackagePath": "/tmp/pkg-sim-lng1wcnn/Windows-x64",
+    "persistentPackageCreated": false,
+    "packageAvailableAfterExec": false,
+    "manifestSha256": "72ae633de27a329ce769df95f1b22c9329b4a7262aab8bdd720ab85660bd88d1",
+    "declaredFiles": 2346,
+    "totalFiles": 2347,
+    "packageBytes": 132874933,
+    "manifestAndFileSetMatch": true,
+    "symlinks": false,
+    "coreCopies": {
+      "Confectory.Core.dll": "14e7131c1fc2d216c508f16ee230d7f5da13bca4e0857622e84ce96fd543c2b6",
+      "content/src/Confectory.Cli/bin/Release/net10.0/Confectory.Core.dll": "14e7131c1fc2d216c508f16ee230d7f5da13bca4e0857622e84ce96fd543c2b6",
+      "content/targets/android-export/bin/Release/net10.0/Confectory.Core.dll": "14e7131c1fc2d216c508f16ee230d7f5da13bca4e0857622e84ce96fd543c2b6",
+      "content/targets/browser-wasm/bin/Release/net10.0/Confectory.Core.dll": "14e7131c1fc2d216c508f16ee230d7f5da13bca4e0857622e84ce96fd543c2b6",
+      "content/targets/element-authoring/bin/Release/net10.0/Confectory.Core.dll": "14e7131c1fc2d216c508f16ee230d7f5da13bca4e0857622e84ce96fd543c2b6",
+      "content/targets/desktop-entry/bin/Release/net10.0/Confectory.Core.dll": "14e7131c1fc2d216c508f16ee230d7f5da13bca4e0857622e84ce96fd543c2b6",
+      "content/targets/project-execution-host/bin/Release/net10.0/Confectory.Core.dll": "14e7131c1fc2d216c508f16ee230d7f5da13bca4e0857622e84ce96fd543c2b6"
+    },
+    "nativeAssemblySha256": "6b8fbdfc9004d652e3acf805f105160301d390e60133f9975c3fc1ced9bd0666",
+    "productSha256": {
+      "targets/element-authoring/BlueprintCallAbi.cs": "42df9918babf000406335e10128ca193e05ac2536f693135b6ac3d7208bf4579",
+      "targets/element-authoring/ImplementationCopy.cs": "a72bd602a85b9f647a99228472a8ebabed6e7db26ed086c9e318352966aafe4b",
+      "targets/element-authoring/PrivateImplementationCopy.cs": "89e87c05408b6fa93869f65c43aa968ed1ed9bcee5202c82636b39f74c3bf7d1",
+      "targets/element-authoring/ImplementationCopyEdits.cs": "c137712d8e10a6c40ca2b505b59f7b1c23aacde8af88ffd1f8d62038ee108a91",
+      "targets/element-authoring/ImplementationCopyTree.cs": "ea3dd30ae1acf3e24ce924838af2c9b861190a9d3d1e2873486a67e2f7acc9be",
+      "packs/edit-workspace/CopyImplementation.csbody": "87f051755e110717b9dad535e3b7355399795689afff189dc24e46c30ab42182",
+      "packs/pack-workspace/Blueprint.csbody": "2e71415658855911a06a7f29cbdd5018ffc5ba542bf9d951975d6d6a81cbae8a",
+      "packs/editor-home-model/Blueprint.csbody": "de9a717ca0a9f46f64ffd6538e8c37f5e9c5f1d1015d7cbe2c09f83c8ce05458",
+      "examples/editor-home/ui/element-functions.js": "acdf3a28f8c0a4ca1433a666185d4a4c98ef0deafaacc9c4970bb2be3ab31ee2",
+      "examples/editor-home/ui/feature-authoring.js": "48c299affe27945f65ff078ae2b2dd4951699d9fd6d4d66a6be89792babee5be",
+      "examples/editor-home/WebBundle.csbody": "0b6fdb01f1ab8256da28219afa1095115ba1bbba38bf2e5e0bb48f881b08601b",
+      "examples/editor-home/ui/style.css": "af9b74e5ba8c4cbebfee93e5e9a056cc0e56bea7151d16796a7c2e2f1945c49c"
+    },
+    "packagedRendererChecks": 12,
+    "actualWindows": false,
+    "webView2Executed": false,
+    "actualMobile": false,
+    "libraryUploaded": false,
+    "oldDurablePackageUnchanged": "/workspace/artifacts/v536-information-shared-callers/Windows-x64",
+    "oldDurableManifestSha256": "9d8f3fa88b1e8c62753ba2fe32228e02aa3be6ef41c34c394a81be15bd42f559",
+    "existingFilesDeleted": false,
+    "workspaceAvailableBytes": 1006366720,
+    "newTemporaryPackageRemovedAfterVerification": true,
+    "fixtureEvidencePreserved": true
+  },
+  "resourceReview": {
+    "resources": 74,
+    "changedEntries": [],
+    "allCanonicalBytesMatch": true,
+    "allBaseBytesMatch": true,
+    "htmlAndCssUnchanged": true,
+    "newLayout": false
+  },
+  "workspaceAvailableBytes": 1005428736,
+  "initialHarnessFailuresPreserved": {
+    "pure-remap.log": "fixture removed the explicit remap in nested mode; corrected fixture passed6",
+    "connected/normal.log": "fixture closed browser before durable presentation flush",
+    "focused/view.log,diagnose/view.log,trace/view.log": "fixture opened a dialog before cold view restoration completed; traced restoreAuthor/cleanup; wait for original readiness, no product/UI relaxation"
+  },
+  "newExistingDataDeleted": false,
+  "actualWindows": false,
+  "actualMobile": false,
+  "libraryDelivered": false
+}

@@ -1,0 +1,24 @@
+{
+  "pass": true,
+  "package": "/workspace/artifacts/v536-information-private-forward/Windows-x64",
+  "declaredFiles": 2340,
+  "actualFilesWithManifest": 2341,
+  "manifestSha256": "bf29992873e928727cc8ebd9d4e6c240ef31d9a3fb33ced58f10c7c818136768",
+  "everyManifestHashVerified": true,
+  "sourceAndDLLBytesExact": [
+    "examples/editor-home/WebBundle.csbody",
+    "examples/editor-home/ui/element-functions.js",
+    "examples/editor-home/ui/feature-authoring.js",
+    "examples/editor-home/ui/workspace-host.js",
+    "packs/pack-workspace/Blueprint.csbody",
+    "targets/element-authoring/InformationFunctionContracts.cs",
+    "targets/element-authoring/InformationFunctionGraphs.cs",
+    "targets/element-authoring/InformationFunctionPrivateCalls.cs",
+    "targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll",
+    "targets/element-authoring/bin/Release/net10.0/Confectory.Core.dll"
+  ],
+  "newFixtureScriptsPackaged": false,
+  "testOnlyEndpointAdded": false,
+  "windowsExecuted": false,
+  "libraryDelivered": false
+}

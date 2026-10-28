@@ -1,0 +1,25 @@
+{
+  "sourceCommit": "bacb58b09a5cb06949f2195ed4bf38465d80f89b",
+  "manifestSha256": "602ed9b665b1cc3dd24aeb34d6ee19812e107c9472fa9d17ce343a7346d20122",
+  "manifestEntries": 2335,
+  "actualFilesIncludingManifest": 2336,
+  "byteMatchedExecutionInputs": {
+    "examples/editor-home/WebBundle.csbody": "075b1c153c5f3e4b34fd4b829f60c667bcad73761abc4afd1d0840e90ee520b9",
+    "examples/editor-home/ui/declarations.js": "335b124b91ff386e83ded3ff340dfb3dd3d385ed3ca297b61330848115d0000b",
+    "examples/editor-home/ui/element-functions.js": "77a415a4dad98c5ba29c955def415c1876de738f66d39d8475a5bbc8bc592445",
+    "examples/editor-home/ui/feature-authoring.js": "0c9d690e054526e80deca519a3c6a0db317c4ea64c44352c09d222ec87054d0c",
+    "examples/editor-home/ui/feature-editor.js": "fc31e167979d55a62d710ffaf234fc70f21983157c45495c24b5b2b56f04af03",
+    "examples/editor-home/ui/mixed-declaration.js": "9776b5881211c2020a2af4a573c61e5126c449d3787832999cc093dc0491b08d",
+    "examples/editor-home/ui/v508-runtime.js": "e90a214d0d7192651ddf0a1709aaa96406d820832a6024bfc4db8fb69321e005",
+    "packs/pack-workspace/Blueprint.csbody": "52d5ac498409cc7b633c26a7ff3228c899ddfed3184f256706e00f87e0adf7e0",
+    "targets/element-authoring/InformationDefinitions.cs": "5d3ee1f2d92e49f6690bbefe95e3edd8bd9af5d11b82578c9afa72347c468c91",
+    "targets/element-authoring/InformationFunctionBodies.cs": "aa86efa8ef2c0b03c25c2939a36313d3f3fde776d956c6941eb2178c55176f3a",
+    "targets/element-authoring/InformationFunctionContracts.cs": "730f57cb0123985ebafb188c82889c57c1c7d4ce656a5f889befaeb9cf2e4b80",
+    "targets/element-authoring/InformationFunctionInputUses.cs": "3002eb36e24bb7db34535a86c9e7799d780959d7f449f2c555427c3f86df3213",
+    "targets/element-authoring/Program.cs": "137eb65667c10ed02fd869171850918840dad8f8414249331a3730f9fda51816",
+    "targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll": "39c0ee5269af578191561814f5f41e993a0efada637aa324a2d98c2f13bf9730",
+    "targets/element-authoring/bin/Release/net10.0/Confectory.Core.dll": "90b39b746774a82a3bb47e7ec84959bbb81052130478348fc5f4163c89a09999"
+  },
+  "package": "/workspace/artifacts/v536-information-csharp-content/Windows-x64",
+  "windowsExecuted": false
+}

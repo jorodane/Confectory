@@ -1,12 +1,13 @@
 var state=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+handle) as System.Text.Json.Nodes.JsonObject??throw new ObjectDisposedException("EditWorkspace");
 lock(state)
 {
+ foreach(var operation in state["retirements"]?.AsObject()??new System.Text.Json.Nodes.JsonObject()){var receipt=operation.Value!;if(receipt["mode"]?.ToString()=="information-binding-v1"&&receipt["state"]?.ToString() is "pending" or "restoring"&&(Array.IndexOf(selected,receipt["owner"]!.ToString())>=0||Array.IndexOf(selected,receipt["manifest"]!.ToString())>=0)&&System.Linq.Enumerable.Any(receipt["reviewIds"]!.AsArray(),id=>Array.IndexOf(selected,id!.ToString())<0))throw new InvalidOperationException("Review the complete retained provider creation and binding together");}
  var result=new System.Collections.Generic.List<string>();var unique=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
  foreach(string id in selected){if(!unique.Add(id))throw new ArgumentException("Duplicate selected unit.");var unit=state["units"]![id] as System.Text.Json.Nodes.JsonObject??throw new ArgumentException("Unknown owned unit.");
 
  if(unit["draft"] is null)continue;
  if(unit["draft"]!.GetValue<string>()==unit["original"]!.GetValue<string>()&&unit["baseline"]!.GetValue<string>()!="missing"&&unit["retirementGroup"] is null&&unit["hierarchyGroup"] is null)continue;
  result.Add(id);result.Add(unit["path"]!.GetValue<string>());result.Add(unit["baseline"]!.GetValue<string>());result.Add(unit["draft"]!.GetValue<string>());}
- foreach(var operation in state["retirements"]?.AsObject()??new System.Text.Json.Nodes.JsonObject()){var receipt=operation.Value!;if(receipt["state"]?.ToString()!="pending"||Array.IndexOf(selected,receipt["manifest"]!.ToString())<0)continue;foreach(var row in receipt["entries"]!.AsObject()){var unit=row.Value!;result.Add(row.Key);result.Add(unit["path"]!.ToString());result.Add(unit["baseline"]!.ToString());result.Add(unit["original"]!.ToString());}}
+ foreach(var operation in state["retirements"]?.AsObject()??new System.Text.Json.Nodes.JsonObject()){var receipt=operation.Value!;if(receipt["state"]?.ToString()!="pending"||Array.IndexOf(selected,receipt["manifest"]!.ToString())<0)continue;foreach(var row in receipt["entries"]!.AsObject()){var unit=row.Value!;if(receipt["version"]?.GetValue<int>()==2&&unit["baseline"]?.ToString()=="missing")continue;result.Add(row.Key);result.Add(unit["path"]!.ToString());result.Add(unit["baseline"]!.ToString());result.Add(unit["original"]!.ToString());}}
  return result.ToArray();
 }

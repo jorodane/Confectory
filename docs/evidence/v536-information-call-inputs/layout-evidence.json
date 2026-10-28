@@ -1,0 +1,32 @@
+{
+  "baseline": "e46395e137c7386ba43bcea57a05d3bb78bd99d0",
+  "unchanged": {
+    "examples/editor-home/ui/style.css": {
+      "sameAsBaseline": true,
+      "sha256": "adfc1b205f0d357a380122763d411147e4db7535d1484f0852a6064984912188"
+    },
+    "examples/editor-home/ui/consumer.css": {
+      "sameAsBaseline": true,
+      "sha256": "fc3584f1784ba822fd438edb5fe33deb6527d8e621cc478184d5f5b82244dc3e"
+    },
+    "examples/editor-home/ui/runtime.css": {
+      "sameAsBaseline": true,
+      "sha256": "7ace817c492c5bd51a3b11a2fd6b86fdc3d98e242ae4115d5cc52b179afc6e3e"
+    },
+    "examples/editor-home/ui/element-functions.js": {
+      "sameAsBaseline": true,
+      "sha256": "19d959b32f4747d78b47cd530dae50b8380108ce705c849d055cf1c21980024d"
+    },
+    "examples/editor-home/ui/call-abi-remap.js": {
+      "sameAsBaseline": true,
+      "sha256": "3c9e5c2a909791998cb3669378b680f5f172c8275c725799eaffc708f4501e02"
+    },
+    "examples/editor-home/WebBundle.csbody": {
+      "sameAsBaseline": true,
+      "sha256": "6c3ed102eb6b1a6101e08ca3abd01da3c4bf6de484b6f4e9650df2d9f5d12eb2"
+    }
+  },
+  "actualRenderer": true,
+  "nativeWindows": false,
+  "fullPixelEquality": false
+}

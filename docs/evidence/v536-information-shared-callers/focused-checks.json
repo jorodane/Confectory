@@ -1,0 +1,326 @@
+{
+  "scope": "row8 direct flat Blueprint value-input rename only",
+  "checks": 33,
+  "commonChecksRepeatedPerRun": true,
+  "runs": [
+    {
+      "name": "api-normal",
+      "command": [
+        "python3",
+        "tests/web/v536_information_shared_callers_api.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-information-inherited/engine-inherited-2.json",
+        "normal"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 27.3,
+      "log": "/workspace/scratch/v536-shared-callers/api-normal.log",
+      "result": {
+        "checks": [
+          "실제 서버는 두 번째 계약 오류에서 첫 함수와 공유 caller도 checkpoint에 남기지 않는다",
+          "두 callee·공유 caller는 단일 거래로 저장되고 cold 복원에서도 연결과 원문을 유지한다",
+          "실제 compiler Review/Confirm는 두 계약을 함께 확정하고 code/다른 함수·부모 원문을 보존한다"
+        ],
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-i4jkxprd",
+        "mode": "normal",
+        "actualEngine": true,
+        "actualWindows": false
+      }
+    },
+    {
+      "name": "ui-primary",
+      "command": [
+        "python3",
+        "tests/web/v536_information_shared_callers_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-information-inherited/engine-inherited-2.json",
+        "normal"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 48.8,
+      "log": "/workspace/scratch/v536-shared-callers/ui-primary.log",
+      "result": {
+        "checks": [
+          "두 원본 상세창의 취소·명시 입력·Undo/Redo·미저장 cold는 두 함수 입력과 exact64 값을 보존한다",
+          "원본 460px 기본/독립 화면의 한 Save·cold·Review 취소/Confirm은 두 계약과 공유 caller를 함께 확정한다"
+        ],
+        "view": false,
+        "mode": "normal",
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-cg6su5uj",
+        "actualEngineRenderer": true,
+        "actualWindows": false
+      }
+    },
+    {
+      "name": "api-storage",
+      "command": [
+        "python3",
+        "tests/web/v536_information_shared_callers_api.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-information-inherited/engine-inherited-2.json",
+        "storage"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 37.0,
+      "log": "/workspace/scratch/v536-shared-callers/api-storage.log",
+      "result": {
+        "checks": [
+          "실제 서버는 두 번째 계약 오류에서 첫 함수와 공유 caller도 checkpoint에 남기지 않는다",
+          "한 checkpoint 쓰기 실패는 어느 함수·호출자도 부분 반영하지 않는다",
+          "두 callee·공유 caller는 단일 거래로 저장되고 cold 복원에서도 연결과 원문을 유지한다",
+          "실제 compiler Review/Confirm는 두 계약을 함께 확정하고 code/다른 함수·부모 원문을 보존한다"
+        ],
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-v30kr984",
+        "mode": "storage",
+        "actualEngine": true,
+        "actualWindows": false
+      }
+    },
+    {
+      "name": "api-source",
+      "command": [
+        "python3",
+        "tests/web/v536_information_shared_callers_api.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-information-inherited/engine-inherited-2.json",
+        "source"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 7.7,
+      "log": "/workspace/scratch/v536-shared-callers/api-source.log",
+      "result": {
+        "checks": [
+          "실제 서버는 두 번째 계약 오류에서 첫 함수와 공유 caller도 checkpoint에 남기지 않는다",
+          "공유 caller 물리 파일 경합은 기존 checkpoint와 peer 원문을 보존하고 전부 거절한다"
+        ],
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-r16_gj0f",
+        "mode": "source",
+        "actualEngine": true,
+        "actualWindows": false
+      }
+    },
+    {
+      "name": "api-conflict",
+      "command": [
+        "python3",
+        "tests/web/v536_information_shared_callers_api.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-information-inherited/engine-inherited-2.json",
+        "conflict"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 9.9,
+      "log": "/workspace/scratch/v536-shared-callers/api-conflict.log",
+      "result": {
+        "checks": [
+          "실제 서버는 두 번째 계약 오류에서 첫 함수와 공유 caller도 checkpoint에 남기지 않는다",
+          "실제 동시 수정은 두 계약 전체 미적용이며 다른 편집자의 입력을 유지한다"
+        ],
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-ulin97ue",
+        "mode": "conflict",
+        "actualEngine": true,
+        "actualWindows": false
+      }
+    },
+    {
+      "name": "ui-view",
+      "command": [
+        "python3",
+        "tests/web/v536_information_shared_callers_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-information-inherited/engine-inherited-2.json",
+        "normal",
+        "view"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 59.4,
+      "log": "/workspace/scratch/v536-shared-callers/ui-view.log",
+      "result": {
+        "checks": [
+          "두 원본 상세창의 취소·명시 입력·Undo/Redo·미저장 cold는 두 함수 입력과 exact64 값을 보존한다",
+          "원본 460px 기본/독립 화면의 한 Save·cold·Review 취소/Confirm은 두 계약과 공유 caller를 함께 확정한다"
+        ],
+        "view": true,
+        "mode": "normal",
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-q_vocjwv",
+        "actualEngineRenderer": true,
+        "actualWindows": false
+      }
+    },
+    {
+      "name": "ui-storage",
+      "command": [
+        "python3",
+        "tests/web/v536_information_shared_callers_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-information-inherited/engine-inherited-2.json",
+        "storage"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 67.8,
+      "log": "/workspace/scratch/v536-shared-callers/ui-storage.log",
+      "result": {
+        "checks": [
+          "두 원본 상세창의 취소·명시 입력·Undo/Redo·미저장 cold는 두 함수 입력과 exact64 값을 보존한다",
+          "화면 checkpoint 실패는 양쪽 계약·공유 caller 전체 미적용과 입력 보존 후 재시도를 허용한다",
+          "원본 460px 기본/독립 화면의 한 Save·cold·Review 취소/Confirm은 두 계약과 공유 caller를 함께 확정한다"
+        ],
+        "view": false,
+        "mode": "storage",
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-8mcai6nt",
+        "actualEngineRenderer": true,
+        "actualWindows": false
+      }
+    },
+    {
+      "name": "ui-loss",
+      "command": [
+        "python3",
+        "tests/web/v536_information_shared_callers_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-information-inherited/engine-inherited-2.json",
+        "loss"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 34.3,
+      "log": "/workspace/scratch/v536-shared-callers/ui-loss.log",
+      "result": {
+        "checks": [
+          "두 원본 상세창의 취소·명시 입력·Undo/Redo·미저장 cold는 두 함수 입력과 exact64 값을 보존한다",
+          "저장/결과조회 응답 유실 뒤 cold는 결합 receipt를 확인하고 두 계약을 중복 적용하지 않는다"
+        ],
+        "view": false,
+        "mode": "loss",
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-n0c46qni",
+        "actualEngineRenderer": true,
+        "actualWindows": false
+      }
+    },
+    {
+      "name": "ui-cancel",
+      "command": [
+        "python3",
+        "tests/web/v536_information_shared_callers_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-information-inherited/engine-inherited-2.json",
+        "cancel",
+        "view"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 24.5,
+      "log": "/workspace/scratch/v536-shared-callers/ui-cancel.log",
+      "result": {
+        "checks": [
+          "두 원본 상세창의 취소·명시 입력·Undo/Redo·미저장 cold는 두 함수 입력과 exact64 값을 보존한다",
+          "한 변경 취소와 cold는 두 함수 입력만 취소하고 공유 caller·원래 checkpoint를 유지한다"
+        ],
+        "view": true,
+        "mode": "cancel",
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-5yc1bbyz",
+        "actualEngineRenderer": true,
+        "actualWindows": false
+      }
+    },
+    {
+      "name": "ui-conflict",
+      "command": [
+        "python3",
+        "tests/web/v536_information_shared_callers_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-information-inherited/engine-inherited-2.json",
+        "conflict"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 13.4,
+      "log": "/workspace/scratch/v536-shared-callers/ui-conflict.log",
+      "result": {
+        "checks": [
+          "두 원본 상세창의 취소·명시 입력·Undo/Redo·미저장 cold는 두 함수 입력과 exact64 값을 보존한다",
+          "다른 창의 실제 source 경합은 두 함수 전체 미적용이며 peer 입력과 사용자 입력을 유지한다"
+        ],
+        "view": false,
+        "mode": "conflict",
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-wrappjc_",
+        "actualEngineRenderer": true,
+        "actualWindows": false
+      }
+    },
+    {
+      "name": "native-final",
+      "exit": 0,
+      "log": "/workspace/scratch/v536-shared-callers/native-metadata-filter.log",
+      "result": {
+        "checks": [
+          "두 계약과 공유 호출자 입력/연결을 원래 hash 한 개씩 가진 순수 결합 후보로 준비한다",
+          "편집 순서를 뒤집어도 최종 공유 caller와 각 callee 원문이 같은 후보가 된다",
+          "마지막 함수 타입/대응 오류·snapshot 누락·copy/whole 문맥은 첫 계약도 적용하지 않고 거절한다",
+          "여러 설명 편집과 계약 하나+설명 편집은 기존 native/ref 구현에서도 원래 경로를 유지한다"
+        ],
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-w5o3sw47",
+        "pureCandidate": true,
+        "actualWindows": false,
+        "copyIdentityDecisionUsed": false
+      }
+    },
+    {
+      "name": "ui-projects",
+      "exit": 0,
+      "log": "/workspace/scratch/v536-shared-callers/ui-projects.log",
+      "result": {
+        "checks": [
+          "두 원본 상세창의 취소·명시 입력·Undo/Redo·미저장 cold는 두 함수 입력과 exact64 값을 보존한다",
+          "동일 namespace 프로젝트 전환은 두 계약 입력을 A에 보관하고 오래된 상세창의 B 적용을 막는다"
+        ],
+        "view": false,
+        "mode": "projects",
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-9y2zun6e",
+        "actualEngineRenderer": true,
+        "actualWindows": false
+      }
+    },
+    {
+      "name": "ui-retry-3",
+      "exit": 0,
+      "log": "/workspace/scratch/v536-shared-callers/ui-retry-3.log",
+      "result": {
+        "checks": [
+          "두 원본 상세창의 취소·명시 입력·Undo/Redo·미저장 cold는 두 함수 입력과 exact64 값을 보존한다",
+          "마지막 함수 타입 변경 거절은 양쪽 입력을 보존하고 Undo 후 원래 기준으로 명시 재시도한다",
+          "원본 460px 기본/독립 화면의 한 Save·cold·Review 취소/Confirm은 두 계약과 공유 caller를 함께 확정한다"
+        ],
+        "view": false,
+        "mode": "retry",
+        "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-svfs70bc",
+        "actualEngineRenderer": true,
+        "actualWindows": false
+      }
+    }
+  ],
+  "layoutSourceUnchangedFrom": "0f69535",
+  "unchangedUiSha256": {
+    "examples/editor-home/ui/element-functions.js": "5775a9718cd3ed7d57bcdd8a74e4153860242f4078358541d471dcb7510db3e9",
+    "examples/editor-home/ui/feature-authoring.js": "a2c408bab52335137c112f37a5a34375b28bb8008cddb264d2e9b1ab25f198d2",
+    "examples/editor-home/ui/style.css": "adfc1b205f0d357a380122763d411147e4db7535d1484f0852a6064984912188",
+    "examples/editor-home/WebBundle.csbody": "395b77cb19a47b0e9d8182655fdaa80553cb8e79d9d08aaa921bceb9e6ee2f44"
+  },
+  "screenshots": {
+    "primary.png": "e33f2190e56b394cb1ec534c7efe169776dc9caa9a1da838be8aac9106a36e84",
+    "detached.png": "c07006553ef31df176982991d2ab3e883def25a2fd0c1a263572d8937df6dc7e"
+  },
+  "newRpcOrTestApi": false,
+  "copyIdentityDecisionUsed": false,
+  "actualWindows": false,
+  "actualMobile": false,
+  "userProjectRun": false,
+  "loginOrPaidInference": false,
+  "libraryUploaded": false,
+  "supersededSetupFailures": {
+    "oldNativeBeforeConfiguredBuild": "CLI first-run directory was read-only; configured existing CLI home and rebuilt Native before final tests",
+    "secondFixtureStale": "Recomputed original node definition hash against its final declared function, using normal metadata",
+    "uiRetryInitial": "Normal connection-remap modal was still open; now cancel it through the original button before testing Save refusal"
+  },
+  "testedProductSha256": {
+    "targets/element-authoring/InformationFunctionBatch.cs": "e0eeb4f6ff0ef1f845bb12687792ee3512aa0af823c6c52a4c6c67ad9e610bc7",
+    "targets/element-authoring/InformationDefinitions.cs": "a238f794bc5dae93efe3e4462a90284b44909604de8c67fd5b2e6469083b8701"
+  }
+}

@@ -1,0 +1,115 @@
+{
+  "sourceCommit": "df0a6b75182dc0716978a1a6d7b1ca1180a8ad53",
+  "ephemeralPackagePath": "/dev/shm/pkg-srt-80fvb501/Windows-x64",
+  "persistentPackageCreated": false,
+  "packageAvailableAfterExec": false,
+  "manifestSha256": "5aa99cee6055e72fbcbc25ea1316686e4631ce1a7a2e625e286564ad5f5ef9f8",
+  "declaredFiles": 2343,
+  "totalFiles": 2344,
+  "packageBytes": 132745157,
+  "manifestAndFileSetMatch": true,
+  "symlinks": false,
+  "coreCopies": {
+    "Confectory.Core.dll": "d09fa629ecd6d1907314d7be7164c5bfcec9393238b82c9a28bf863e8cea70fc",
+    "content/src/Confectory.Cli/bin/Release/net10.0/Confectory.Core.dll": "d09fa629ecd6d1907314d7be7164c5bfcec9393238b82c9a28bf863e8cea70fc",
+    "content/targets/android-export/bin/Release/net10.0/Confectory.Core.dll": "d09fa629ecd6d1907314d7be7164c5bfcec9393238b82c9a28bf863e8cea70fc",
+    "content/targets/browser-wasm/bin/Release/net10.0/Confectory.Core.dll": "d09fa629ecd6d1907314d7be7164c5bfcec9393238b82c9a28bf863e8cea70fc",
+    "content/targets/element-authoring/bin/Release/net10.0/Confectory.Core.dll": "d09fa629ecd6d1907314d7be7164c5bfcec9393238b82c9a28bf863e8cea70fc",
+    "content/targets/desktop-entry/bin/Release/net10.0/Confectory.Core.dll": "d09fa629ecd6d1907314d7be7164c5bfcec9393238b82c9a28bf863e8cea70fc",
+    "content/targets/project-execution-host/bin/Release/net10.0/Confectory.Core.dll": "d09fa629ecd6d1907314d7be7164c5bfcec9393238b82c9a28bf863e8cea70fc"
+  },
+  "nativeAssemblySha256": "f99861aee8189d21eeb928664de9c216b362e504307684f50de461d6b3b3a351",
+  "productSha256": {
+    "targets/element-authoring/InformationDefinitions.cs": "20ab49df2032b7c28a35b686b2d68bb84b7cade93934d9a911b83911cbcf3020",
+    "targets/element-authoring/InformationFunctionBatch.cs": "a35248bf1beba560b107d00a2208be4e45f664f7b9c49679b55755307f5f4351"
+  },
+  "packagedBackendChecks": 4,
+  "actualWindows": false,
+  "webView2Executed": false,
+  "actualMobile": false,
+  "libraryUploaded": false,
+  "oldDurablePackageUnchanged": "/workspace/artifacts/v536-information-shared-callers/Windows-x64",
+  "oldDurableManifestSha256": "9d8f3fa88b1e8c62753ba2fe32228e02aa3be6ef41c34c394a81be15bd42f559",
+  "existingFilesDeleted": false,
+  "workspaceAvailableBytes": 394317824,
+  "newTemporaryPackageRemovedAfterVerification": true,
+  "fixtureEvidencePreserved": true,
+  "clean": {
+    "sourceCommit": "df0a6b75182dc0716978a1a6d7b1ca1180a8ad53",
+    "bothCheckoutClean": true,
+    "resourcesPerCheckout": 74,
+    "checks": 9,
+    "nativeWarnings": 0,
+    "nativeErrors": 0,
+    "results": [
+      {
+        "name": "pure",
+        "exit": 0,
+        "elapsedSeconds": 12.4,
+        "minimumWorkspaceAvailableBytesSampled": 409432064,
+        "peakMemoryBytesSampled": 15962861568
+      },
+      {
+        "name": "api-normal",
+        "exit": 0,
+        "elapsedSeconds": 32.7,
+        "minimumWorkspaceAvailableBytesSampled": 409120768,
+        "peakMemoryBytesSampled": 16159264768
+      },
+      {
+        "name": "ui-view",
+        "exit": 0,
+        "elapsedSeconds": 72.2,
+        "minimumWorkspaceAvailableBytesSampled": 408735744,
+        "peakMemoryBytesSampled": 16945627136
+      }
+    ]
+  },
+  "packageResults": [
+    {
+      "name": "committed-release",
+      "exit": 0,
+      "sampleIntervalSeconds": 0.2,
+      "minimumWorkspaceAvailableBytes": 407642112,
+      "peakCgroupMemoryBytes": 16291155968,
+      "elapsedSeconds": 31.7,
+      "workspaceAvailableBytes": 407642112
+    },
+    {
+      "name": "committed-mcp-release",
+      "exit": 0,
+      "sampleIntervalSeconds": 0.2,
+      "minimumWorkspaceAvailableBytes": 407633920,
+      "peakCgroupMemoryBytes": 16056086528,
+      "elapsedSeconds": 3.2,
+      "workspaceAvailableBytes": 407633920
+    },
+    {
+      "name": "windows-package",
+      "exit": 0,
+      "sampleIntervalSeconds": 0.2,
+      "minimumWorkspaceAvailableBytes": 394334208,
+      "peakCgroupMemoryBytes": 16379297792,
+      "elapsedSeconds": 77.9,
+      "workspaceAvailableBytes": 394330112
+    },
+    {
+      "name": "windows-probe",
+      "exit": 0,
+      "sampleIntervalSeconds": 0.2,
+      "minimumWorkspaceAvailableBytes": 394330112,
+      "peakCgroupMemoryBytes": 16962670592,
+      "elapsedSeconds": 8.8,
+      "workspaceAvailableBytes": 394326016
+    },
+    {
+      "name": "packaged-pure",
+      "exit": 0,
+      "sampleIntervalSeconds": 0.2,
+      "minimumWorkspaceAvailableBytes": 394317824,
+      "peakCgroupMemoryBytes": 16286396416,
+      "elapsedSeconds": 12.2,
+      "workspaceAvailableBytes": 394317824
+    }
+  ]
+}

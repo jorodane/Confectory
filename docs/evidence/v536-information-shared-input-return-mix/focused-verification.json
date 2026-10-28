@@ -1,0 +1,698 @@
+{
+  "baseCommit": "34d2e4fd1abb6e89c263c23bf73e4b6c868a0ced",
+  "focusedPassedFlows": 15,
+  "focusedPassedChecks": 41,
+  "impactPassedFlows": 6,
+  "impactPassedChecks": 22,
+  "phases": {
+    "before": [
+      {
+        "name": "before",
+        "command": [
+          "python3",
+          "/workspace/Confectory/tests/web/v536_information_shared_input_return_mix_native.py",
+          "/workspace/Confectory",
+          "/workspace/scratch/v536-shared-io/engine-report.json",
+          "reproduce"
+        ],
+        "exit": 0,
+        "elapsedSeconds": 6.6,
+        "minimumWorkspaceAvailableBytesSampled": 2073972736,
+        "peakMemoryBytesSampled": 3041570816,
+        "log": "before/before.log",
+        "checks": [
+          "입력 타입/반환 타입의 원래 단일 후보는 각각 유효하고 원문은 그대로다",
+          "기존 그룹만 유효한 입력 타입/비void 반환 타입 결합을 거절한다"
+        ]
+      },
+      {
+        "name": "joint-before",
+        "command": [
+          "python3",
+          "/workspace/Confectory/tests/web/v536_information_shared_input_return_mix_native.py",
+          "/workspace/Confectory",
+          "/workspace/scratch/v536-shared-io/engine-report.json",
+          "joint-reproduce"
+        ],
+        "exit": 0,
+        "elapsedSeconds": 6.8,
+        "minimumWorkspaceAvailableBytesSampled": 2073923584,
+        "peakMemoryBytesSampled": 3053830144,
+        "log": "before/joint-before.log",
+        "checks": [
+          "입력 타입/반환 타입의 원래 단일 후보는 각각 유효하고 원문은 그대로다",
+          "기존 그룹만 유효한 입력 타입/비void 반환 타입 결합을 거절한다"
+        ]
+      }
+    ],
+    "triple-before": [
+      {
+        "name": "triple-before",
+        "command": [
+          "python3",
+          "/workspace/Confectory/tests/web/v536_information_shared_input_return_mix_native.py",
+          "/workspace/Confectory",
+          "/workspace/scratch/v536-shared-io/engine-report.json",
+          "triple-reproduce"
+        ],
+        "exit": 0,
+        "elapsedSeconds": 6.8,
+        "minimumWorkspaceAvailableBytesSampled": 2073878528,
+        "peakMemoryBytesSampled": 3040940032,
+        "log": "triple-before/triple-before.log",
+        "checks": [
+          "입력 타입/반환 타입의 원래 단일 후보는 각각 유효하고 원문은 그대로다",
+          "기존 그룹만 유효한 입력 타입/비void 반환 타입 결합을 거절한다"
+        ]
+      }
+    ],
+    "focused": [
+      {
+        "name": "pure",
+        "command": [
+          "python3",
+          "/workspace/Confectory/tests/web/v536_information_shared_input_return_mix_native.py",
+          "/workspace/Confectory",
+          "/workspace/scratch/v536-shared-io/engine-report.json",
+          "normal"
+        ],
+        "exit": 0,
+        "elapsedSeconds": 14.4,
+        "minimumWorkspaceAvailableBytesSampled": 2073817088,
+        "peakMemoryBytesSampled": 3055796224,
+        "log": "focused/pure.log",
+        "checks": [
+          "입력 타입/반환 타입의 원래 단일 후보는 각각 유효하고 원문은 그대로다",
+          "한 후보·역순·원래 hash는 명시 사용처/해제와 반환 소비·정확64비트·C# 원문을 보존한다",
+          "원래 사용처/값/해제·writer/소비 누락과 타입/이름/역할/순서/void/본문 오류는 전체 미적용이다",
+          "실제 물리 source 경합은 두 계약을 전부 거절하고 원래 입력·다른 파일을 보존한다"
+        ]
+      },
+      {
+        "name": "joint-pure",
+        "command": [
+          "python3",
+          "/workspace/Confectory/tests/web/v536_information_shared_input_return_mix_native.py",
+          "/workspace/Confectory",
+          "/workspace/scratch/v536-shared-io/engine-report.json",
+          "joint"
+        ],
+        "exit": 0,
+        "elapsedSeconds": 14.6,
+        "minimumWorkspaceAvailableBytesSampled": 2073759744,
+        "peakMemoryBytesSampled": 3055087616,
+        "log": "focused/joint-pure.log",
+        "checks": [
+          "입력 타입/반환 타입의 원래 단일 후보는 각각 유효하고 원문은 그대로다",
+          "한 후보·역순·원래 hash는 명시 사용처/해제와 반환 소비·정확64비트·C# 원문을 보존한다",
+          "원래 사용처/값/해제·writer/소비 누락과 타입/이름/역할/순서/void/본문 오류는 전체 미적용이다",
+          "실제 물리 source 경합은 두 계약을 전부 거절하고 원래 입력·다른 파일을 보존한다"
+        ]
+      },
+      {
+        "name": "triple",
+        "command": [
+          "python3",
+          "/workspace/Confectory/tests/web/v536_information_shared_input_return_mix_native.py",
+          "/workspace/Confectory",
+          "/workspace/scratch/v536-shared-io/engine-report.json",
+          "triple"
+        ],
+        "exit": 0,
+        "elapsedSeconds": 14.6,
+        "minimumWorkspaceAvailableBytesSampled": 2073714688,
+        "peakMemoryBytesSampled": 3056115712,
+        "log": "focused/triple.log",
+        "checks": [
+          "입력 타입/반환 타입의 원래 단일 후보는 각각 유효하고 원문은 그대로다",
+          "한 후보·역순·원래 hash는 명시 사용처/해제와 반환 소비·정확64비트·C# 원문을 보존한다",
+          "원래 사용처/값/해제·writer/소비 누락과 타입/이름/역할/순서/void/본문 오류는 전체 미적용이다",
+          "실제 물리 source 경합은 두 계약을 전부 거절하고 원래 입력·다른 파일을 보존한다"
+        ]
+      },
+      {
+        "name": "api",
+        "command": [
+          "python3",
+          "/workspace/Confectory/tests/web/v536_information_shared_return_types_api.py",
+          "/workspace/Confectory",
+          "/workspace/scratch/v536-shared-io/engine-report.json",
+          "normal"
+        ],
+        "exit": 0,
+        "elapsedSeconds": 31.9,
+        "minimumWorkspaceAvailableBytesSampled": 2073657344,
+        "peakMemoryBytesSampled": 3238690816,
+        "log": "focused/api.log",
+        "checks": [
+          "실제 서버는 두 번째 계약 오류에서 첫 함수와 공유 caller도 checkpoint에 남기지 않는다",
+          "두 callee·공유 caller는 단일 거래로 저장되고 cold 복원에서도 연결과 원문을 유지한다",
+          "실제 compiler Review/Confirm는 두 계약을 함께 확정하고 code/다른 함수·부모 원문을 보존한다"
+        ]
+      },
+      {
+        "name": "joint-api",
+        "command": [
+          "python3",
+          "/workspace/Confectory/tests/web/v536_information_shared_return_types_api.py",
+          "/workspace/Confectory",
+          "/workspace/scratch/v536-shared-io/engine-report.json",
+          "joint"
+        ],
+        "exit": 0,
+        "elapsedSeconds": 31.9,
+        "minimumWorkspaceAvailableBytesSampled": 2073604096,
+        "peakMemoryBytesSampled": 3179343872,
+        "log": "focused/joint-api.log",
+        "checks": [
+          "실제 서버는 두 번째 계약 오류에서 첫 함수와 공유 caller도 checkpoint에 남기지 않는다",
+          "두 callee·공유 caller는 단일 거래로 저장되고 cold 복원에서도 연결과 원문을 유지한다",
+          "실제 compiler Review/Confirm는 두 계약을 함께 확정하고 code/다른 함수·부모 원문을 보존한다"
+        ]
+      },
+      {
+        "name": "triple-api",
+        "command": [
+          "python3",
+          "/workspace/Confectory/tests/web/v536_information_shared_return_types_api.py",
+          "/workspace/Confectory",
+          "/workspace/scratch/v536-shared-io/engine-report.json",
+          "triple"
+        ],
+        "exit": 0,
+        "elapsedSeconds": 32.1,
+        "minimumWorkspaceAvailableBytesSampled": 2073550848,
+        "peakMemoryBytesSampled": 3099488256,
+        "log": "focused/triple-api.log",
+        "checks": [
+          "실제 서버는 두 번째 계약 오류에서 첫 함수와 공유 caller도 checkpoint에 남기지 않는다",
+          "두 callee·공유 caller는 단일 거래로 저장되고 cold 복원에서도 연결과 원문을 유지한다",
+          "실제 compiler Review/Confirm는 두 계약을 함께 확정하고 code/다른 함수·부모 원문을 보존한다"
+        ]
+      },
+      {
+        "name": "primary",
+        "command": [
+          "python3",
+          "/workspace/Confectory/tests/web/v536_information_shared_return_types_ui.py",
+          "/workspace/Confectory",
+          "/workspace/scratch/v536-shared-io/engine-report.json",
+          "normal"
+        ],
+        "exit": 0,
+        "elapsedSeconds": 59.7,
+        "minimumWorkspaceAvailableBytesSampled": 2073477120,
+        "peakMemoryBytesSampled": 3816038400,
+        "log": "focused/primary.log",
+        "checks": [
+          "두 원본 상세창의 취소·명시 대응·Undo/Redo·미저장 cold는 두 함수 입력과 exact64 값을 보존한다",
+          "원본 460px 기본/독립 화면의 한 Save·cold·Review 취소/Confirm은 두 함수 계약과 공유 caller를 함께 확정한다"
+        ]
+      },
+      {
+        "name": "joint-view",
+        "command": [
+          "python3",
+          "/workspace/Confectory/tests/web/v536_information_shared_return_types_ui.py",
+          "/workspace/Confectory",
+          "/workspace/scratch/v536-shared-io/engine-report.json",
+          "joint",
+          "view"
+        ],
+        "exit": 0,
+        "elapsedSeconds": 69.8,
+        "minimumWorkspaceAvailableBytesSampled": 2072715264,
+        "peakMemoryBytesSampled": 3861262336,
+        "log": "focused/joint-view.log",
+        "checks": [
+          "두 원본 상세창의 취소·명시 대응·Undo/Redo·미저장 cold는 두 함수 입력과 exact64 값을 보존한다",
+          "원본 460px 기본/독립 화면의 한 Save·cold·Review 취소/Confirm은 두 함수 계약과 공유 caller를 함께 확정한다"
+        ]
+      },
+      {
+        "name": "triple-ui",
+        "command": [
+          "python3",
+          "/workspace/Confectory/tests/web/v536_information_shared_return_types_ui.py",
+          "/workspace/Confectory",
+          "/workspace/scratch/v536-shared-io/engine-report.json",
+          "triple",
+          "view"
+        ],
+        "exit": 0,
+        "elapsedSeconds": 70.8,
+        "minimumWorkspaceAvailableBytesSampled": 2072043520,
+        "peakMemoryBytesSampled": 3703074816,
+        "log": "focused/triple-ui.log",
+        "checks": [
+          "두 원본 상세창의 취소·명시 대응·Undo/Redo·미저장 cold는 두 함수 입력과 exact64 값을 보존한다",
+          "원본 460px 기본/독립 화면의 한 Save·cold·Review 취소/Confirm은 두 함수 계약과 공유 caller를 함께 확정한다"
+        ]
+      },
+      {
+        "name": "storage",
+        "command": [
+          "python3",
+          "/workspace/Confectory/tests/web/v536_information_shared_return_types_ui.py",
+          "/workspace/Confectory",
+          "/workspace/scratch/v536-shared-io/engine-report.json",
+          "storage"
+        ],
+        "exit": 0,
+        "elapsedSeconds": 79.2,
+        "minimumWorkspaceAvailableBytesSampled": 2071343104,
+        "peakMemoryBytesSampled": 3663958016,
+        "log": "focused/storage.log",
+        "checks": [
+          "두 원본 상세창의 취소·명시 대응·Undo/Redo·미저장 cold는 두 함수 입력과 exact64 값을 보존한다",
+          "화면 checkpoint 실패는 양쪽 계약·공유 caller 전체 미적용과 입력 보존 후 재시도를 허용한다",
+          "원본 460px 기본/독립 화면의 한 Save·cold·Review 취소/Confirm은 두 함수 계약과 공유 caller를 함께 확정한다"
+        ]
+      },
+      {
+        "name": "loss",
+        "command": [
+          "python3",
+          "/workspace/Confectory/tests/web/v536_information_shared_return_types_ui.py",
+          "/workspace/Confectory",
+          "/workspace/scratch/v536-shared-io/engine-report.json",
+          "loss"
+        ],
+        "exit": 0,
+        "elapsedSeconds": 44.5,
+        "minimumWorkspaceAvailableBytesSampled": 2070581248,
+        "peakMemoryBytesSampled": 3697610752,
+        "log": "focused/loss.log",
+        "checks": [
+          "두 원본 상세창의 취소·명시 대응·Undo/Redo·미저장 cold는 두 함수 입력과 exact64 값을 보존한다",
+          "저장/결과조회 응답 유실 뒤 cold는 결합 receipt를 확인하고 두 함수 계약을 중복 적용하지 않는다"
+        ]
+      },
+      {
+        "name": "cancel",
+        "command": [
+          "python3",
+          "/workspace/Confectory/tests/web/v536_information_shared_return_types_ui.py",
+          "/workspace/Confectory",
+          "/workspace/scratch/v536-shared-io/engine-report.json",
+          "cancel",
+          "view"
+        ],
+        "exit": 0,
+        "elapsedSeconds": 34.5,
+        "minimumWorkspaceAvailableBytesSampled": 2069921792,
+        "peakMemoryBytesSampled": 3644727296,
+        "log": "focused/cancel.log",
+        "checks": [
+          "두 원본 상세창의 취소·명시 대응·Undo/Redo·미저장 cold는 두 함수 입력과 exact64 값을 보존한다",
+          "한 변경 취소와 cold는 두 함수 입력만 취소하고 공유 caller·원래 checkpoint를 유지한다"
+        ]
+      },
+      {
+        "name": "conflict",
+        "command": [
+          "python3",
+          "/workspace/Confectory/tests/web/v536_information_shared_return_types_ui.py",
+          "/workspace/Confectory",
+          "/workspace/scratch/v536-shared-io/engine-report.json",
+          "conflict"
+        ],
+        "exit": 0,
+        "elapsedSeconds": 24.1,
+        "minimumWorkspaceAvailableBytesSampled": 2069381120,
+        "peakMemoryBytesSampled": 3677687808,
+        "log": "focused/conflict.log",
+        "checks": [
+          "두 원본 상세창의 취소·명시 대응·Undo/Redo·미저장 cold는 두 함수 입력과 exact64 값을 보존한다",
+          "다른 창의 실제 source 경합은 두 함수 전체 미적용이며 peer 입력과 사용자 입력을 유지한다"
+        ]
+      },
+      {
+        "name": "projects",
+        "command": [
+          "python3",
+          "/workspace/Confectory/tests/web/v536_information_shared_return_types_ui.py",
+          "/workspace/Confectory",
+          "/workspace/scratch/v536-shared-io/engine-report.json",
+          "projects"
+        ],
+        "exit": 0,
+        "elapsedSeconds": 32.7,
+        "minimumWorkspaceAvailableBytesSampled": 2068729856,
+        "peakMemoryBytesSampled": 3634089984,
+        "log": "focused/projects.log",
+        "checks": [
+          "두 원본 상세창의 취소·명시 대응·Undo/Redo·미저장 cold는 두 함수 입력과 exact64 값을 보존한다",
+          "동일 namespace 프로젝트 전환은 두 함수 계약 입력을 A에 보관하고 오래된 상세창의 B 적용을 막는다"
+        ]
+      },
+      {
+        "name": "retry",
+        "command": [
+          "python3",
+          "/workspace/Confectory/tests/web/v536_information_shared_return_types_ui.py",
+          "/workspace/Confectory",
+          "/workspace/scratch/v536-shared-io/engine-report.json",
+          "retry"
+        ],
+        "exit": 0,
+        "elapsedSeconds": 73.0,
+        "minimumWorkspaceAvailableBytesSampled": 2068041728,
+        "peakMemoryBytesSampled": 3717455872,
+        "log": "focused/retry.log",
+        "checks": [
+          "두 원본 상세창의 취소·명시 대응·Undo/Redo·미저장 cold는 두 함수 입력과 exact64 값을 보존한다",
+          "마지막 함수의 미완성 대응 거절은 양쪽 입력을 보존하고 Undo 후 원래 기준으로 명시 재시도한다",
+          "원본 460px 기본/독립 화면의 한 Save·cold·Review 취소/Confirm은 두 함수 계약과 공유 caller를 함께 확정한다"
+        ]
+      }
+    ],
+    "impacts": [
+      {
+        "name": "impact-inputreturn",
+        "command": [
+          "python3",
+          "/workspace/Confectory/tests/web/v536_information_shared_output_return_mix_native.py",
+          "/workspace/Confectory",
+          "/workspace/scratch/v536-shared-io/engine-report.json",
+          "joint"
+        ],
+        "exit": 0,
+        "elapsedSeconds": 14.0,
+        "minimumWorkspaceAvailableBytesSampled": 2067275776,
+        "peakMemoryBytesSampled": 2763853824,
+        "log": "impacts/impact-inputreturn.log",
+        "checks": [
+          "out/반환 결합의 원래 단일 후보는 각각 유효하고 원본은 그대로다",
+          "한 후보·역순·원래 hash는 writer/공유 소비·기존 입력·정확64비트·C# 원문을 보존한다",
+          "명시 bool/한글 string writer도 같은 타입 규칙과 호환 소비 대응으로 준비하며 기존 출력을 보존한다",
+          "writer/소비 누락·타입 오류·입력/이름/순서/역할/void/수/본문·source 변경은 전체 미적용이다",
+          "실제 물리 source 경합은 전체 거절하고 원래 후보와 peer/사용자 입력을 유지한다"
+        ]
+      },
+      {
+        "name": "impact-io",
+        "command": [
+          "python3",
+          "/workspace/Confectory/tests/web/v536_information_shared_io_native.py",
+          "/workspace/Confectory",
+          "/workspace/scratch/v536-shared-io/engine-report.json",
+          "normal"
+        ],
+        "exit": 0,
+        "elapsedSeconds": 13.4,
+        "minimumWorkspaceAvailableBytesSampled": 2067218432,
+        "peakMemoryBytesSampled": 2763800576,
+        "log": "impacts/impact-io.log",
+        "checks": [
+          "두 입력/out 타입·명시 값·writer·해제·출력 대응은 원래 hash 하나씩의 후보로 준비한다",
+          "생산자 대응 뒤에 해제하는 연결은 원래 증거를 보존하고 역순도 같은 결과·정확64비트·C# 원문을 만든다",
+          "서로 다른 bool/string·string/double 조합도 명시 literal과 같은 후보의 기존 타입 검사로 준비한다",
+          "이미 투영한/누락/잘못된 해제 증거·중간 hash·값/writer 오류·역할/수/반환/본문·문맥 변경은 전체 미적용이다",
+          "실제 source 변경은 내부 투영과 구별하여 전체 거절하고 기존 입력/원문을 유지한다"
+        ]
+      },
+      {
+        "name": "impact-namedefs",
+        "command": [
+          "python3",
+          "/workspace/Confectory/tests/web/v536_information_shared_input_name_output_definitions_native.py",
+          "/workspace/Confectory",
+          "/workspace/scratch/v536-shared-io/engine-report.json",
+          "joint"
+        ],
+        "exit": 0,
+        "elapsedSeconds": 14.0,
+        "minimumWorkspaceAvailableBytesSampled": 2067173376,
+        "peakMemoryBytesSampled": 2759176192,
+        "log": "impacts/impact-namedefs.log",
+        "checks": [
+          "입력 이름/출력 정의의 원래 단일 후보는 유효하고 원본은 그대로다",
+          "한 후보·역순·원래 hash는 이름/기존값·모든 writer/소비·정확64비트·본문을 보존한다",
+          "이름/값/전체 배치/경로/소비 대응 누락·타입/입력/순서/역할·source 오류는 전체 미적용이다",
+          "실제 물리 source 경합은 원래 입력·다른 파일을 보존하고 전부 거절한다"
+        ]
+      },
+      {
+        "name": "impact-inputmix",
+        "command": [
+          "python3",
+          "/workspace/Confectory/tests/web/v536_information_shared_input_mix_native.py",
+          "/workspace/Confectory",
+          "/workspace/scratch/v536-shared-io/engine-report.json",
+          "normal"
+        ],
+        "exit": 0,
+        "elapsedSeconds": 13.0,
+        "minimumWorkspaceAvailableBytesSampled": 2067124224,
+        "peakMemoryBytesSampled": 2763145216,
+        "log": "impacts/impact-inputmix.log",
+        "checks": [
+          "입력 정의/타입 혼합의 원래 단일 후보는 각각 유효하다",
+          "원래 hash·한 후보·역순은 명시 새 값/기존 값 재사용과 out/return/정확64비트/C# 원문을 보존한다",
+          "사용처/값/해제 증거 누락·타입 오류·출력/순서/역할/반환/본문·선택 변경은 전체 미적용이다",
+          "실제 물리 source 경합은 원래 기준으로 거절하며 입력과 기존 파일을 보존한다"
+        ]
+      },
+      {
+        "name": "policy7",
+        "command": [
+          "python3",
+          "/workspace/Confectory/tests/web/v536_information_inherited_contract_guards.py",
+          "/workspace/Confectory",
+          "/workspace/scratch/v536-shared-io/engine-report.json",
+          "normal"
+        ],
+        "exit": 0,
+        "elapsedSeconds": 7.2,
+        "minimumWorkspaceAvailableBytesSampled": 2067079168,
+        "peakMemoryBytesSampled": 3022028800,
+        "log": "impacts/policy7.log",
+        "checks": [
+          "공개 이름 대응·소유 copy·호출자 후보는 부모/자식 선언을 쓰지 않고 함께 준비한다",
+          "부모/자식 쓰기 위조·타입/핀 수/역할/반환/순서의 계약 변경은 정상 보호로 전체 미적용이다",
+          "실제 부모 파일 경합은 원래 읽기 기준으로 차단하고 후보/복사본 원문을 보존한다"
+        ]
+      },
+      {
+        "name": "legacy",
+        "command": [
+          "python3",
+          "/workspace/Confectory/tests/web/v536_information_shared_input_rename_compat_native.py",
+          "/workspace/Confectory",
+          "/workspace/scratch/v536-shared-io/engine-report.json",
+          "normal"
+        ],
+        "exit": 0,
+        "elapsedSeconds": 4.6,
+        "minimumWorkspaceAvailableBytesSampled": 2067030016,
+        "peakMemoryBytesSampled": 2762416128,
+        "log": "impacts/legacy.log",
+        "checks": [
+          "출력 없는 기존 입력 전용 이름/타입 결합은 원래 값·C#·원문과 역순 후보를 보존한다"
+        ]
+      }
+    ]
+  },
+  "sourceReview": {
+    "baseCommit": "34d2e4fd1abb6e89c263c23bf73e4b6c868a0ced",
+    "sourceSha256": {
+      "targets/element-authoring/InformationFunctionBatch.cs": "fa65580d45512638a19939f05676cc3b4bcecf25a55800af0c87a9bbab907d22",
+      "tests/web/v536_information_shared_input_return_mix_fixture.py": "e19e406ec8f27c739fbd16ecee3d29c4fc3a8b612059802fc962d624b2ac9549",
+      "tests/web/v536_information_shared_input_return_mix_native.py": "9770e187dabf031c9a11c0ebaecb8071ac3a84452e9211ce1dd69b2fa261e903",
+      "tests/web/v536_information_shared_return_types_api.py": "e25c54104a632a91d61871acc5a14dd31f25b79a721a46bfb7fad7504b7c645f",
+      "tests/web/v536_information_shared_return_types_ui.py": "77a25b1414a53341b958ae45b5b0432093c61db5a15d4d5c00e6d251a9fcfab3"
+    },
+    "mappingProjectionMergeAndOriginalHashCASBodyUnchanged": true,
+    "newContractIds": false,
+    "newUiOrPermissions": false,
+    "existingFilesDeleted": false,
+    "actualWindows": false
+  },
+  "resources": {
+    "baseline": "82e2676",
+    "resourcesAndBundleFiles": 75,
+    "changed": [],
+    "originalLayoutResourcesUnchanged": true
+  },
+  "archives": [
+    {
+      "path": "impacts/evidence/legacy.zip",
+      "sha256": "2f2ff387cb477ad804064ecb42d22f525f68ac07694fcbf940608efb069aa2c1",
+      "files": 66,
+      "bytes": 18575,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "impacts/evidence/impact-inputmix.zip",
+      "sha256": "fb3fc2e5bbe8634d9cdf7dd1f932801a0768ffe472a156aa6edf4986f4d32028",
+      "files": 67,
+      "bytes": 24362,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "impacts/evidence/impact-namedefs.zip",
+      "sha256": "09be4c4633eccc192cd437543dbf152a8c4273937ab70e1701e861715d8ca943",
+      "files": 67,
+      "bytes": 24619,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "impacts/evidence/policy7.zip",
+      "sha256": "723ed7ec284fd64bfb083bd3c7172790f71613269b89564bbde64331fd41d8a1",
+      "files": 74,
+      "bytes": 25816,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "impacts/evidence/impact-io.zip",
+      "sha256": "8917105ae386293e2c8fc9bc1f9e27e7c77d8a5243f1aae6225a4444f3addc0f",
+      "files": 67,
+      "bytes": 24444,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "impacts/evidence/impact-inputreturn.zip",
+      "sha256": "2994d90b572a984539c601aa9e8cf1dc607ebc041e65c374f52644875db3a397",
+      "files": 67,
+      "bytes": 24604,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "focused/evidence/conflict.zip",
+      "sha256": "8533e078add6925f65bfaabc8801b8aec78ca9fe6879a3882f5841a7750ab44e",
+      "files": 77,
+      "bytes": 622745,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "focused/evidence/loss.zip",
+      "sha256": "19db1f9e250dd6ce61aabbc478ad5d2d52839ee36302f1e5acdad2861b66a921",
+      "files": 82,
+      "bytes": 630629,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "focused/evidence/projects.zip",
+      "sha256": "76eb27710ebc79d4d76023ddd554e64f8278fa93379767792246f01e05ab1564",
+      "files": 147,
+      "bytes": 644259,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "focused/evidence/pure.zip",
+      "sha256": "4af98d43d49312edbab4403e94c819dc3ebde191a99cb2a0af2a234d05e88943",
+      "files": 67,
+      "bytes": 24595,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "focused/evidence/joint-view.zip",
+      "sha256": "7437f1f554bb9d6ace6d1cd76472d5a412ed202965a88d4b7ad4baf00b235d96",
+      "files": 84,
+      "bytes": 639611,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "focused/evidence/storage.zip",
+      "sha256": "6acde2a8428c65520543b7cd8ca85ecd642fad01b48f629bdbc240a8b4553535",
+      "files": 84,
+      "bytes": 732539,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "focused/evidence/api.zip",
+      "sha256": "c5873e1873e03aab4d380c54929c5cfa4ae60020e7a411b8a73911e1e13ac20c",
+      "files": 77,
+      "bytes": 26065,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "focused/evidence/primary.zip",
+      "sha256": "f4ed0f93f029fbab88a3a0709d16480d91e3163ad1ad8b07524f72431d0fafcf",
+      "files": 84,
+      "bytes": 732524,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "focused/evidence/cancel.zip",
+      "sha256": "bc8928e02fb6dbee0905bf26e3f65fbdb32b42c90a2a73b1ed279fe79aec5488",
+      "files": 78,
+      "bytes": 514626,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "focused/evidence/triple-ui.zip",
+      "sha256": "f1cc2893a5a6c1fb3296c462c526c784564ba09a0fc071db14c95e814043506e",
+      "files": 84,
+      "bytes": 666841,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "focused/evidence/triple-api.zip",
+      "sha256": "a6dfa16dc12b096d40b0ca48115fc5122f23dcba815096f3d6fc23571c5accbe",
+      "files": 77,
+      "bytes": 26055,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "focused/evidence/triple.zip",
+      "sha256": "d7024a5807952009b8cd820e6f6604b0ac2d6552bbde2248a1fbd79d41e9c277",
+      "files": 67,
+      "bytes": 24570,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "focused/evidence/joint-pure.zip",
+      "sha256": "1670bbed7024dce32d910d408895cb83dd7b3a814ad5a17912d9e58faa682cb8",
+      "files": 67,
+      "bytes": 24567,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "focused/evidence/joint-api.zip",
+      "sha256": "5150abfc671b6ab2cfc27c4fbdab9efa838bc6fa76bd6f9b4642efdddd5d8b82",
+      "files": 77,
+      "bytes": 26062,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "focused/evidence/retry.zip",
+      "sha256": "72a77fbb55d9312c80768512873702e52446f294fa0913710080d6119152cfb1",
+      "files": 84,
+      "bytes": 732545,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "triple-before/evidence/triple-before.zip",
+      "sha256": "bf2696fbfdd4822f36e01e501ddc3b18ef3808aaca2e18c69237410b214481f3",
+      "files": 66,
+      "bytes": 19205,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "before/evidence/before.zip",
+      "sha256": "d14a40b8a86ae2c0a253581bbd9c3691977081e85ae2d83e0bc239b2288a1a39",
+      "files": 66,
+      "bytes": 19205,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "before/evidence/joint-before.zip",
+      "sha256": "d2a777947503e08ee3a85c15b8e420ecae9e7920ab1fc3b8040546b20c9be935",
+      "files": 66,
+      "bytes": 19205,
+      "fileSetModesAndBytesMatch": true
+    }
+  ],
+  "allArchivesReverified": true,
+  "nativeReleaseWarnings": 0,
+  "nativeReleaseErrors": 0,
+  "failedVerificationRuns": [],
+  "existingFilesDeleted": false,
+  "oldEvidenceConvertedOrDeleted": false,
+  "actualWindows": false,
+  "actualMobile": false,
+  "libraryUploaded": false,
+  "workspaceAvailableBytes": 2066984960
+}

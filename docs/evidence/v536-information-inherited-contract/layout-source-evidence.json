@@ -1,0 +1,42 @@
+{
+  "files": [
+    {
+      "path": "examples/editor-home/ui/index.html",
+      "sha256": "9c4c08bbd90a15b7e18f65ceae0d9b0e7e1c17189595853a102941e27af778d0",
+      "unchangedFrom": "74ea8066a5d08b008e0b507c2efae7b5c9d2fc90"
+    },
+    {
+      "path": "examples/editor-home/ui/style.css",
+      "sha256": "adfc1b205f0d357a380122763d411147e4db7535d1484f0852a6064984912188",
+      "unchangedFrom": "74ea8066a5d08b008e0b507c2efae7b5c9d2fc90"
+    },
+    {
+      "path": "examples/editor-home/ui/runtime.css",
+      "sha256": "7ace817c492c5bd51a3b11a2fd6b86fdc3d98e242ae4115d5cc52b179afc6e3e",
+      "unchangedFrom": "74ea8066a5d08b008e0b507c2efae7b5c9d2fc90"
+    },
+    {
+      "path": "examples/editor-home/ui/consumer.css",
+      "sha256": "fc3584f1784ba822fd438edb5fe33deb6527d8e621cc478184d5f5b82244dc3e",
+      "unchangedFrom": "74ea8066a5d08b008e0b507c2efae7b5c9d2fc90"
+    },
+    {
+      "path": "examples/editor-home/ui/element-functions.js",
+      "sha256": "5775a9718cd3ed7d57bcdd8a74e4153860242f4078358541d471dcb7510db3e9",
+      "unchangedFrom": "74ea8066a5d08b008e0b507c2efae7b5c9d2fc90"
+    },
+    {
+      "path": "examples/editor-home/WebBundle.csbody",
+      "sha256": "395b77cb19a47b0e9d8182655fdaa80553cb8e79d9d08aaa921bceb9e6ee2f44",
+      "unchangedFrom": "74ea8066a5d08b008e0b507c2efae7b5c9d2fc90"
+    },
+    {
+      "path": "reference/site-ui/Confectory-Editor-Prototype-v536.zip",
+      "sha256": "b53156e73fdbbe1f6b8b36a0829cdbfdaec002352304da0060fa53026314bd22",
+      "unchangedFrom": "74ea8066a5d08b008e0b507c2efae7b5c9d2fc90"
+    }
+  ],
+  "htmlCSSAndUIAdapterUnchanged": true,
+  "referenceZipUnchanged": true,
+  "pixelEqualityClaimed": false
+}

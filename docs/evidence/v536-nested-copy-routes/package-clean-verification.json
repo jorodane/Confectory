@@ -1,0 +1,368 @@
+{
+  "sourceCommit": "2b381ba0ef568b62e51c697dc2b730828c26731c",
+  "focusedFlows": 11,
+  "focusedChecks": 94,
+  "cleanFlows": 4,
+  "cleanChecks": 24,
+  "clean": [
+    {
+      "name": "view",
+      "command": [
+        "python3",
+        "/workspace/scratch/v536-multiple-implementations/checkout/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/scratch/v536-multiple-implementations/checkout",
+        "/workspace/scratch/v536-nested-routes/clean-engine-report.json",
+        "normal",
+        "view",
+        "nested-source",
+        "nested-routes",
+        "cold-private",
+        "pointer-routes"
+      ],
+      "exit": 0,
+      "seconds": 267.6,
+      "minimumWorkspaceBytes": 1266601984,
+      "peakMemoryBytes": 4918419456,
+      "pendingCopy": false,
+      "copyImports": false
+    },
+    {
+      "name": "conflict",
+      "command": [
+        "python3",
+        "/workspace/scratch/v536-multiple-implementations/checkout/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/scratch/v536-multiple-implementations/checkout",
+        "/workspace/scratch/v536-nested-routes/clean-engine-report.json",
+        "conflict",
+        "nested-source",
+        "nested-routes",
+        "confirmed"
+      ],
+      "exit": 0,
+      "seconds": 129.5,
+      "minimumWorkspaceBytes": 1266196480,
+      "peakMemoryBytes": 4918579200,
+      "pendingCopy": false,
+      "copyImports": false
+    },
+    {
+      "name": "module-guards",
+      "command": [
+        "python3",
+        "/workspace/scratch/v536-multiple-implementations/checkout/tests/web/v536_information_module_view_guards.py",
+        "/workspace/scratch/v536-multiple-implementations/checkout",
+        "/workspace/scratch/v536-nested-routes/clean-engine-report.json",
+        "normal",
+        "view"
+      ],
+      "exit": 0,
+      "seconds": 19.0,
+      "minimumWorkspaceBytes": 1266003968,
+      "peakMemoryBytes": 4069310464,
+      "pendingCopy": false,
+      "copyImports": false
+    },
+    {
+      "name": "override",
+      "command": [
+        "python3",
+        "/workspace/scratch/v536-multiple-implementations/checkout/tests/web/v536_information_inherited_contract_guards.py",
+        "/workspace/scratch/v536-multiple-implementations/checkout",
+        "/workspace/scratch/v536-nested-routes/clean-engine-report.json",
+        "normal"
+      ],
+      "exit": 0,
+      "seconds": 7.0,
+      "minimumWorkspaceBytes": 1265963008,
+      "peakMemoryBytes": 4087062528,
+      "pendingCopy": false,
+      "copyImports": false
+    }
+  ],
+  "independentCheckout": {
+    "sourceCommit": "2b381ba0ef568b62e51c697dc2b730828c26731c",
+    "checkout": "/workspace/scratch/v536-multiple-implementations/checkout",
+    "newCloneCreated": false,
+    "normalFastForward": true,
+    "cleanBeforeAndAfter": true,
+    "originalAutocrlfPreserved": "true",
+    "gitBlobs": {
+      "docs/V536_I5_6_COPY_INHERITANCE_SCOPE.md": "f50c7194b35090dc11649771d8f493d09e31d993",
+      "docs/V536_I5_6_REMAINING.md": "93fdc30edb49c7315b6c26aa9b9850a563194553",
+      "docs/VALIDATION_V536_NESTED_COPY_ROUTES.md": "4514b7c357101dc91e46e8db54b659c605738de9",
+      "docs/evidence/v536-nested-copy-routes/focused-verification.json": "44614a91bc351e1c6a005fb97f88ed623caa6e7d",
+      "examples/editor-home/WebBundle.csbody": "43b38fc827332b50806754325e84d5b450d2ef10",
+      "examples/editor-home/ui/feature-authoring.js": "6d786883ee7c0eff93a5bb0864389064d46bde0c",
+      "packs/editor-home-model/Blueprint.csbody": "621bb0098c973c7dfce4b79758b8a2974db62e9a",
+      "packs/pack-workspace/Blueprint.csbody": "cdd5d7172aa76e85571076dbede8a686877b6761",
+      "targets/element-authoring/ImplementationCopyEdits.cs": "a4ecffff2ddaaa0d3779626950c2c11809b7a183",
+      "tests/web/v536_information_external_copy_ui.py": "c8c7e849c47142a5dcc5320c3d883a3e5cf87814",
+      "tests/web/v536_nested_copy_metadata.py": "0da69ac3235fb04b310629bffac5abc5b8557675"
+    },
+    "cleanAfterVerification": true
+  },
+  "package": [
+    {
+      "name": "restored-release-inputs",
+      "command": [
+        "/workspace/toolchains/dotnet-10.0.401/dotnet",
+        "restore",
+        "Confectory.sln",
+        "--disable-parallel"
+      ],
+      "exit": 0,
+      "sampleIntervalSeconds": 0.2,
+      "minimumWorkspaceAvailableBytes": 1265897472,
+      "peakCgroupMemoryBytes": 4065333248,
+      "elapsedSeconds": 5.0,
+      "log": "/workspace/scratch/v536-nested-routes/restored-release-inputs.log",
+      "workspaceAvailableBytes": 1265901568
+    },
+    {
+      "name": "committed-release",
+      "command": [
+        "/workspace/toolchains/dotnet-10.0.401/dotnet",
+        "build",
+        "Confectory.sln",
+        "-c",
+        "Release",
+        "--no-restore",
+        "-m:1",
+        "-p:UseSharedCompilation=false"
+      ],
+      "exit": 0,
+      "sampleIntervalSeconds": 0.2,
+      "minimumWorkspaceAvailableBytes": 1265893376,
+      "peakCgroupMemoryBytes": 4375924736,
+      "elapsedSeconds": 30.9,
+      "log": "/workspace/scratch/v536-nested-routes/committed-release.log",
+      "workspaceAvailableBytes": 1265893376
+    },
+    {
+      "name": "committed-mcp-release",
+      "command": [
+        "/workspace/toolchains/dotnet-10.0.401/dotnet",
+        "build",
+        "targets/mcp-host",
+        "-c",
+        "Release",
+        "--no-restore",
+        "-p:UseSharedCompilation=false"
+      ],
+      "exit": 0,
+      "sampleIntervalSeconds": 0.2,
+      "minimumWorkspaceAvailableBytes": 1265889280,
+      "peakCgroupMemoryBytes": 4133736448,
+      "elapsedSeconds": 3.0,
+      "log": "/workspace/scratch/v536-nested-routes/committed-mcp-release.log",
+      "workspaceAvailableBytes": 1265889280
+    },
+    {
+      "name": "windows-package",
+      "command": [
+        "/workspace/toolchains/dotnet-10.0.401/dotnet",
+        "targets/editor-desktop/bin/Release/net10.0/Confectory.dll",
+        "package",
+        "/workspace/Confectory",
+        "/tmp/pkg-sim-dzbtq_wp/Windows-x64"
+      ],
+      "exit": 0,
+      "sampleIntervalSeconds": 0.2,
+      "minimumWorkspaceAvailableBytes": 1252532224,
+      "peakCgroupMemoryBytes": 4443717632,
+      "elapsedSeconds": 76.2,
+      "log": "/workspace/scratch/v536-nested-routes/windows-package.log",
+      "workspaceAvailableBytes": 1252528128
+    },
+    {
+      "name": "windows-probe",
+      "command": [
+        "python3",
+        "tests/probes/desktop_package.py",
+        "/workspace/Confectory",
+        "/tmp/pkg-sim-dzbtq_wp/Windows-x64"
+      ],
+      "exit": 0,
+      "sampleIntervalSeconds": 0.2,
+      "minimumWorkspaceAvailableBytes": 1252524032,
+      "peakCgroupMemoryBytes": 5215334400,
+      "elapsedSeconds": 7.8,
+      "log": "/workspace/scratch/v536-nested-routes/windows-probe.log",
+      "workspaceAvailableBytes": 1252519936
+    },
+    {
+      "name": "packaged-renderer",
+      "command": [
+        "python3",
+        "tests/web/v536_information_external_copy_ui.py",
+        "/tmp/pkg-sim-dzbtq_wp/Windows-x64/content",
+        "/workspace/scratch/v536-nested-routes/packaged-engine-report.json",
+        "normal",
+        "view",
+        "nested-source",
+        "nested-routes",
+        "pointer-routes"
+      ],
+      "exit": 0,
+      "sampleIntervalSeconds": 0.2,
+      "minimumWorkspaceAvailableBytes": 1252511744,
+      "peakCgroupMemoryBytes": 5431779328,
+      "elapsedSeconds": 234.6,
+      "log": "/workspace/scratch/v536-nested-routes/packaged-renderer.log",
+      "workspaceAvailableBytes": 1252511744
+    }
+  ],
+  "packageBytes": {
+    "sourceCommit": "2b381ba0ef568b62e51c697dc2b730828c26731c",
+    "ephemeralPackagePath": "/tmp/pkg-sim-dzbtq_wp/Windows-x64",
+    "persistentPackageCreated": false,
+    "packageAvailableAfterExec": false,
+    "manifestSha256": "9cc886fa40f36b137086fb96d58edd1b5dde7d0378c655cc6d0a38beb6bf19d1",
+    "declaredFiles": 2346,
+    "totalFiles": 2347,
+    "packageBytes": 132851780,
+    "manifestAndFileSetMatch": true,
+    "symlinks": false,
+    "coreCopies": {
+      "Confectory.Core.dll": "f159f78f98645446735eff1e79ecd39032f7c7c1714654f17b51a0641f964c63",
+      "content/src/Confectory.Cli/bin/Release/net10.0/Confectory.Core.dll": "f159f78f98645446735eff1e79ecd39032f7c7c1714654f17b51a0641f964c63",
+      "content/targets/android-export/bin/Release/net10.0/Confectory.Core.dll": "f159f78f98645446735eff1e79ecd39032f7c7c1714654f17b51a0641f964c63",
+      "content/targets/browser-wasm/bin/Release/net10.0/Confectory.Core.dll": "f159f78f98645446735eff1e79ecd39032f7c7c1714654f17b51a0641f964c63",
+      "content/targets/element-authoring/bin/Release/net10.0/Confectory.Core.dll": "f159f78f98645446735eff1e79ecd39032f7c7c1714654f17b51a0641f964c63",
+      "content/targets/desktop-entry/bin/Release/net10.0/Confectory.Core.dll": "f159f78f98645446735eff1e79ecd39032f7c7c1714654f17b51a0641f964c63",
+      "content/targets/project-execution-host/bin/Release/net10.0/Confectory.Core.dll": "f159f78f98645446735eff1e79ecd39032f7c7c1714654f17b51a0641f964c63"
+    },
+    "nativeAssemblySha256": "1dab4a2a73714ca79c51b9acc3bb0cf21dda2a3f20e28dd5dc12b6d81ae8b40c",
+    "productSha256": {
+      "targets/element-authoring/ImplementationCopy.cs": "a72bd602a85b9f647a99228472a8ebabed6e7db26ed086c9e318352966aafe4b",
+      "targets/element-authoring/PrivateImplementationCopy.cs": "9defd55ea95c479eb0e5b677b7130693a8bdb362dd17f56f5c45ee6fa3387b29",
+      "targets/element-authoring/ImplementationCopyEdits.cs": "008e9aa7a08542e82ab0e5e10de4e9e20b1f99ff391c97fbec74dad0b4b7443d",
+      "targets/element-authoring/ImplementationCopyTree.cs": "ea3dd30ae1acf3e24ce924838af2c9b861190a9d3d1e2873486a67e2f7acc9be",
+      "packs/edit-workspace/CopyImplementation.csbody": "87f051755e110717b9dad535e3b7355399795689afff189dc24e46c30ab42182",
+      "packs/pack-workspace/Blueprint.csbody": "c79ab00a97ab2e0d37dcfdabecbbd4a6f7778377b7f3a25fa820c5a222a3c008",
+      "packs/editor-home-model/Blueprint.csbody": "5e16114defb261c52ead94735f1cebf959dc00dfd7a39626d24ef858abe66b85",
+      "examples/editor-home/ui/feature-authoring.js": "e6f7f7470bbe8aafbc7286d7fa4f69113d790840fd841d2b29ee45900f1084b1",
+      "examples/editor-home/WebBundle.csbody": "a79bdd82771785c2b42c9baa64d9117c953eec5e3f1f9027e7dc48fe864e2b38",
+      "examples/editor-home/ui/style.css": "adfc1b205f0d357a380122763d411147e4db7535d1484f0852a6064984912188"
+    },
+    "packagedRendererChecks": 10,
+    "actualWindows": false,
+    "webView2Executed": false,
+    "actualMobile": false,
+    "libraryUploaded": false,
+    "oldDurablePackageUnchanged": "/workspace/artifacts/v536-information-shared-callers/Windows-x64",
+    "oldDurableManifestSha256": "9d8f3fa88b1e8c62753ba2fe32228e02aa3be6ef41c34c394a81be15bd42f559",
+    "existingFilesDeleted": false,
+    "workspaceAvailableBytes": 1252507648,
+    "newTemporaryPackageRemovedAfterVerification": true,
+    "fixtureEvidencePreserved": true
+  },
+  "evidenceArchives": [
+    {
+      "path": "clean/evidence/conflict.zip",
+      "sha256": "e2d70d866f2a3db168815b0fad53e647c4721798c99eba0407b6d5bfdf3a0a07",
+      "bytes": 161794
+    },
+    {
+      "path": "clean/evidence/module-guards.zip",
+      "sha256": "c6b04e0c98c5a9fdee3305882a52c90a42d23f763dddef002ca6f366da021dc8",
+      "bytes": 18345
+    },
+    {
+      "path": "clean/evidence/override.zip",
+      "sha256": "9121370f4972962da594c0d4c5cb9e25a036c45205f1f2d9f1122a07ba3cc2fa",
+      "bytes": 25938
+    },
+    {
+      "path": "clean/evidence/view.zip",
+      "sha256": "5e87009580ac442a4a2fe23f2c46997789e6a72dffe4e091b396363c93191557",
+      "bytes": 369732
+    },
+    {
+      "path": "first/evidence/primary.zip",
+      "sha256": "39cf4cadde1e6fd985be397e7c36b47244b79fd566cdefeff84088b2f8f5f7a0",
+      "bytes": 34294
+    },
+    {
+      "path": "first-exit/evidence/primary.zip",
+      "sha256": "0899416454c01d608a168b60eb3d52c030ea33f933116d72188fc109be7b6432",
+      "bytes": 240287
+    },
+    {
+      "path": "first-keyboard/evidence/primary.zip",
+      "sha256": "4a120b5f79d6da2c7919354f236f18e77a7d60fba25de88d0c10fb03e7b73ed0",
+      "bytes": 143632
+    },
+    {
+      "path": "focused/evidence/view.zip",
+      "sha256": "c07a11bdc0bb05f1b1416607fcb2c250a08c4f250d064c5f80cd2b84beab22ab",
+      "bytes": 20830
+    },
+    {
+      "path": "focused-pan/evidence/conflict.zip",
+      "sha256": "984883e47026f243ac9de3b53db87e5bf315d626a253741eecf8a3bf29568dee",
+      "bytes": 161628
+    },
+    {
+      "path": "focused-pan/evidence/context.zip",
+      "sha256": "9ef6d11a37052d43433601a77a55dbe78bdec11df35bd4c16ce9810e45e2f4cb",
+      "bytes": 275521
+    },
+    {
+      "path": "focused-pan/evidence/loss.zip",
+      "sha256": "86c2bb1cc33c46dba6b0db0d184f2c7875cfa69562506928e0dbaa971ad2dab2",
+      "bytes": 242996
+    },
+    {
+      "path": "focused-pan/evidence/module-guards.zip",
+      "sha256": "58bd99d3c9ca0070b79f96b5c06d5316df97971222585bc46a21a1b14d1e2398",
+      "bytes": 18245
+    },
+    {
+      "path": "focused-pan/evidence/override.zip",
+      "sha256": "dae397f2920adf5794a9f80425ccfe30351764432a3ce44d0d5d709fdde796d4",
+      "bytes": 25857
+    },
+    {
+      "path": "focused-pan/evidence/pins-regression.zip",
+      "sha256": "f1e77361802a4298945e64cc02b12d8d7ffcfa2d7ca8e64e78e789449b663ab3",
+      "bytes": 363723
+    },
+    {
+      "path": "focused-pan/evidence/projects.zip",
+      "sha256": "a2b8c6b547a2e6647921ff54432e7256df92a40ca96825fc5264ca430bc5b696",
+      "bytes": 258647
+    },
+    {
+      "path": "focused-pan/evidence/root-selection.zip",
+      "sha256": "9021187d30e6c16b3e8d1e6e9371ee6bd0a9e8b414086876001f7553493898b0",
+      "bytes": 148991
+    },
+    {
+      "path": "focused-pan/evidence/storage.zip",
+      "sha256": "b90c67deaaa34c728f403152ed6a5037f2bb7b353dfb99b22b3ca79be247af91",
+      "bytes": 246083
+    },
+    {
+      "path": "focused-pan/evidence/view.zip",
+      "sha256": "c857dc7f92a723c4fab63ea823f5ceccb3a3c6e06467e47472ded520f57c5bab",
+      "bytes": 369756
+    },
+    {
+      "path": "package-fixture-evidence/confectory-desktop-package-o04ptyvt.zip",
+      "sha256": "a148387cd4fbd0066af5423f9e41ef50105c886eed81b24268ac2999c6589f86",
+      "bytes": 61162
+    },
+    {
+      "path": "package-fixture-evidence/confectory-wide-mixed-j8gwocp5.zip",
+      "sha256": "ae30d0e5b47b00973025638ec0b23541bfc187e513493e0ac03a5be5979aa2df",
+      "bytes": 242835
+    }
+  ],
+  "workspaceAvailableBytes": 1251885056,
+  "executionSourceUnchangedAfterVerification": true,
+  "nativeWindows": false,
+  "mobileDevice": false,
+  "libraryDelivered": false,
+  "fullUiComplete": false
+}

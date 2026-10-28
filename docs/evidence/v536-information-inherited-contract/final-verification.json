@@ -1,0 +1,215 @@
+{
+  "sourceCommit": "d7dc4027bc540c7a7b9b73675419c499bb139c23",
+  "focusedChecks": 42,
+  "regressionChecks": 6,
+  "cleanCheckout": {
+    "path": "/workspace/scratch/v536-multiple-implementations/checkout",
+    "results": [
+      {
+        "name": "source-release-1",
+        "command": [
+          "/workspace/toolchains/dotnet-10.0.401/dotnet",
+          "build",
+          "Confectory.sln",
+          "-c",
+          "Release",
+          "--no-restore",
+          "-m:1"
+        ],
+        "exit": 0,
+        "elapsedSeconds": 13.3,
+        "log": "source-release-1.log"
+      },
+      {
+        "name": "source-mcp-release-1",
+        "command": [
+          "/workspace/toolchains/dotnet-10.0.401/dotnet",
+          "build",
+          "targets/mcp-host",
+          "-c",
+          "Release",
+          "--no-restore"
+        ],
+        "exit": 0,
+        "elapsedSeconds": 1.3,
+        "log": "source-mcp-release-1.log"
+      },
+      {
+        "name": "clean-ff-1",
+        "command": [
+          "git",
+          "pull",
+          "--ff-only",
+          "origin",
+          "work/current"
+        ],
+        "exit": 0,
+        "elapsedSeconds": 0.1,
+        "log": "clean-ff-1.log"
+      },
+      {
+        "name": "clean-release-1",
+        "command": [
+          "/workspace/toolchains/dotnet-10.0.401/dotnet",
+          "build",
+          "Confectory.sln",
+          "-c",
+          "Release",
+          "--no-restore",
+          "-m:1"
+        ],
+        "exit": 0,
+        "elapsedSeconds": 9.3,
+        "log": "clean-release-1.log"
+      },
+      {
+        "name": "clean-contract-api-1",
+        "command": [
+          "python3",
+          "tests/web/v536_information_saved_copy_api.py",
+          "/workspace/scratch/v536-multiple-implementations/checkout",
+          "/workspace/scratch/v536-information-inherited-contract/clean-engine-1.json",
+          "normal",
+          "inherited-copy"
+        ],
+        "exit": 0,
+        "elapsedSeconds": 57.0,
+        "log": "clean-contract-api-1.log",
+        "checks": [
+          "복사 소유·배정·원래 출처의 누락/위조는 실제 서버에서 전체 미적용으로 거절한다",
+          "저장 실패/재시도·cold는 소유 copy만 원자 반영하고 원래 출처와 donor CRLF 바이트를 보존한다",
+          "실제 compiler Review/Confirm과 재시작 후에도 donor·소유 copy ID·원래 출처를 혼동하지 않는다"
+        ],
+        "count": 3,
+        "fixture": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-pvhj3uh_"
+      },
+      {
+        "name": "clean-blueprint-guards-1",
+        "command": [
+          "python3",
+          "tests/web/v536_information_inherited_blueprint_guards.py",
+          "/workspace/scratch/v536-multiple-implementations/checkout",
+          "/workspace/scratch/v536-information-inherited-contract/clean-engine-1.json",
+          "normal",
+          "blueprint-parent"
+        ],
+        "exit": 0,
+        "elapsedSeconds": 6.2,
+        "log": "clean-blueprint-guards-1.log",
+        "checks": [
+          "실제 부모의 whole-body 문맥을 검증한 뒤 선택한 소유 copy ID로만 결부한다",
+          "같은 실제 상속 문맥은 원본 child의 compiler probe에서도 통과하고 본문을 실행하거나 다시 쓰지 않는다",
+          "상속 child의 다른 native 별칭·위조된 문맥·오래된 부모 노드 정의는 추측 변환 없이 거절한다"
+        ],
+        "count": 3,
+        "fixture": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-9zmsfcig"
+      },
+      {
+        "name": "clean-blueprint-ui-1",
+        "command": [
+          "python3",
+          "tests/web/v536_information_inherited_copy_ui.py",
+          "/workspace/scratch/v536-multiple-implementations/checkout",
+          "/workspace/scratch/v536-information-inherited-contract/clean-engine-1.json",
+          "normal",
+          "blueprint-parent",
+          "serial-extra",
+          "view"
+        ],
+        "exit": 0,
+        "elapsedSeconds": 91.9,
+        "log": "clean-blueprint-ui-1.log",
+        "checks": [
+          "독립 정보 창의 기존 상속 복사 선택·취소·C# Undo/Redo·cold는 원본/정확한 값/새 복사 ID를 보존한다",
+          "실제 Save·재시작·Review 취소/재검토·명시 Confirm은 새 소유 복사본만 반영하며 함수/부모/호출자를 보존한다",
+          "추가 직렬 동작과 반환 writer를 포함한 부모 그래프는 선택한 본문만 편집하고 다른 노드 원문을 보존한다"
+        ],
+        "count": 3,
+        "fixture": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-485m4kof"
+      }
+    ],
+    "checkCount": 9,
+    "linuxToolOk": true,
+    "linuxStderrBytes": 0
+  },
+  "windowsCrossPackage": {
+    "sourceCommit": "d7dc4027bc540c7a7b9b73675419c499bb139c23",
+    "package": "/workspace/artifacts/v536-information-inherited-contract/Windows-x64",
+    "declaredFiles": 2342,
+    "totalFiles": 2343,
+    "allManifestHashesMatch": true,
+    "noSymlinks": true,
+    "manifestSha256": "53f8f9a6a814384401a0194e0608a0698f585d3fc5d7d328b8703ff05dcb794f",
+    "testedProductSha256": {
+      "src/Confectory.Core/BlueprintCompilation.cs": "69888944ae44f70cc52a84270fd0ef071013fa353b65ab65bc72bdba6941ea48",
+      "targets/element-authoring/ImplementationCopy.cs": "437fa1cda001522f4868e5b96fad6f47496b1a9ea5a3fdcf3d0101cda68af6b7",
+      "targets/element-authoring/InformationFunctionContracts.cs": "e98a3178c07ca28a6f3b4c5243c85e14fae1b69e00f2c2cf999449a637d3b67c"
+    },
+    "packagedSourceMatches": [
+      "targets/element-authoring/ImplementationCopy.cs",
+      "targets/element-authoring/InformationFunctionContracts.cs"
+    ],
+    "coreSourcePackaged": false,
+    "coreSourceVerifiedBy": "current Release Core binaries and packaged compiler probe",
+    "coreCopies": {
+      "Confectory.Core.dll": "f15ca807964bae8581f2d4537640697e92ea7896bd7ddffe0c49477c83616140",
+      "content/src/Confectory.Cli/bin/Release/net10.0/Confectory.Core.dll": "f15ca807964bae8581f2d4537640697e92ea7896bd7ddffe0c49477c83616140",
+      "content/targets/project-execution-host/bin/Release/net10.0/Confectory.Core.dll": "f15ca807964bae8581f2d4537640697e92ea7896bd7ddffe0c49477c83616140",
+      "content/targets/desktop-entry/bin/Release/net10.0/Confectory.Core.dll": "f15ca807964bae8581f2d4537640697e92ea7896bd7ddffe0c49477c83616140",
+      "content/targets/element-authoring/bin/Release/net10.0/Confectory.Core.dll": "f15ca807964bae8581f2d4537640697e92ea7896bd7ddffe0c49477c83616140",
+      "content/targets/browser-wasm/bin/Release/net10.0/Confectory.Core.dll": "f15ca807964bae8581f2d4537640697e92ea7896bd7ddffe0c49477c83616140",
+      "content/targets/android-export/bin/Release/net10.0/Confectory.Core.dll": "f15ca807964bae8581f2d4537640697e92ea7896bd7ddffe0c49477c83616140"
+    },
+    "nativeAssemblySha256": "028bd63f742933dfc9ff0597d892abc94625e2474af33a139ee8300fd518c1fc",
+    "actualWindows": false,
+    "webView2Executed": false,
+    "actualLoginOrInference": false,
+    "libraryUploaded": false
+  },
+  "packagedEngineProbe": {
+    "pass": true,
+    "package": "/workspace/artifacts/v536-information-inherited-contract/Windows-x64",
+    "files": 2342,
+    "crossPublishedWindowsX64PE": true,
+    "unrelatedWorkingDirectory": true,
+    "packageTamperAndMissingDependencyRejected": true,
+    "packagedEngineWebStartup": true,
+    "runtimeOnlyNoInstalledSDK": true,
+    "existingCheckoutProfileReusedAndExplicitOverrideRetained": true,
+    "resources": 74,
+    "renderedMinimalLogin": true,
+    "windowsApphostExecuted": false,
+    "webView2Executed": false,
+    "actualLoginOrInference": false,
+    "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-desktop-package-vpba_s82"
+  },
+  "packagedCompilerChecks": {
+    "checks": [
+      "실제 부모의 whole-body 문맥을 검증한 뒤 선택한 소유 copy ID로만 결부한다",
+      "같은 실제 상속 문맥은 원본 child의 compiler probe에서도 통과하고 본문을 실행하거나 다시 쓰지 않는다",
+      "상속 child의 다른 native 별칭·위조된 문맥·오래된 부모 노드 정의는 추측 변환 없이 거절한다"
+    ],
+    "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-ph1z58ck",
+    "pureCandidate": true,
+    "actualWindows": false
+  },
+  "logSha256": {
+    "source-release-1.log": "6eb95725b414abb6db2b03c14b24cff1050aa452169d4abceb49e73bda118677",
+    "source-mcp-release-1.log": "3ffeafec2cb878a979fe5fc145b0669fcf2b1e25f45803949ba39349cdc682f9",
+    "clean-ff-1.log": "2a3fd4acf120996f7f79c3c6c4b901a544929b699e2541f031a4fb44a867c404",
+    "clean-release-1.log": "0553749d0e76035a61073198e2e67c8bfd56bee1615e97d680da970e4b1f6748",
+    "clean-contract-api-1.log": "2e87e1efe55eb221908e173bbe92df71e77b05fde809eb69eff907e37cefc51d",
+    "clean-blueprint-guards-1.log": "1eff4fced83ce7fc7676abf17f9ec14755494c5f95ea4220d76ef55e7d0796a6",
+    "clean-blueprint-ui-1.log": "67ad0dc81642373cd19ff64da6092f540e770a72d7545ff108d0589d6c454280",
+    "clean-engine-1.json": "9a1a9d45d5a2ed2172156d88487cc875c7cdbd8e22c82c19309fce8dc9fb432f",
+    "clean-engine-1.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "windows-package-1.log": "b19c8d89d8cf178b93fe348091505cc3327bf246991f00e29745cb7e75420d51",
+    "windows-probe-1.log": "1ef604a1f9ee120eb754c06e6591d16d0d9d6d9690dbc222507a3938aca4f83e",
+    "packaged-blueprint-guards-1.log": "94052c217e6282e03fdc743c938f1447be3030be6b7af3f067790d49c5e3b457"
+  },
+  "additionalExistingFilesDeleted": false,
+  "actualWindows": false,
+  "actualMobileDevice": false,
+  "actualLoginOrInference": false,
+  "libraryDelivered": false
+}

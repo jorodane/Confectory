@@ -27,6 +27,24 @@ try
         case "blueprintCallWrapper":reply=BlueprintCallWrapper.Prepare(new Parser(S("functionText"),"<wrapper-contract>").ParseElement(),request["executionEnum"]!.AsObject(),request["expected"]?.GetValue<string>(),request["source"]?.GetValue<string>(),request["helpers"]?.GetValue<string>()??"",request["returnMapping"]?.GetValue<string>());break;
         case "blueprintCallAfter":reply=BlueprintCallAfter.Prepare(new Parser(S("functionText"),"<post-call-contract>").ParseElement(),request["expected"]?.GetValue<string>(),request["source"]?.GetValue<string>(),request["helpers"]?.GetValue<string>()??"");break;
         case "blueprintCallAbi":reply=BlueprintCallAbi.Prepare(request,Format);break;
+        case "blueprintCallAbiUses":reply=BlueprintCallAbiUses.Prepare(request,Format);break;
+        case "blueprintCallAbiGroup":reply=BlueprintCallAbiGroup.Prepare(request,Format);break;
+        case "blueprintCopyAbiBinding":reply=BlueprintCopyAbi.Bind(request);break;
+        case "blueprintRegisteredCopyAbiBinding":reply=BlueprintRegisteredCopyAbi.Query(request);break;
+        case "functionPresentation":reply=FunctionPresentation.Prepare(request,Format,FormatManifest);break;
+        case "mixedOwnerCopyEdits":reply=MixedOwnerCopyEdits.Prepare(request,Format,FormatManifest);break;
+        case "informationTypes":reply=InformationTypes.Query(request,FormatManifest);break;
+        case "informationFunctionInputUses":reply=InformationFunctionInputUses.Read(request);break;
+        case "informationFunctionDependencies":reply=InformationFunctionDependencies.Query(request);break;
+        case "informationFunctionCopies":reply=InformationFunctionCopies.Query(request);break;
+        case "informationFunctionBodies":reply=InformationFunctionBodies.Read(request);break;
+        case "informationFunctionInputs":reply=InformationFunctionContracts.Inputs(request);break;
+        case "informationFunctionOutputs":reply=InformationFunctionOutputs.Read(request);break;
+        case "informationFunctionOutputGraphs":reply=InformationFunctionOutputs.Graphs(request);break;
+        case "informationDefinitions":reply=InformationDefinitions.Prepare(request,Format,FormatManifest);break;
+        case "informationFunctionRetirement":reply=InformationFunctionRetirement.Execute(request,Format,FormatManifest);break;
+        case "rawOwnerEdits":reply=RawOwnerEdits.Prepare(request,Format,FormatManifest);break;
+        case "mergeDeclarationText":reply=JsonValue.Create(DeclarationTextMerge.Merge(S("text"),S("typed"),S("raw"),Format));break;
         case "blueprintAliases":reply=BlueprintAliases.Prepare(request);break;
         case "blueprintInputAdaptation":reply=BlueprintInputAdaptation.Prepare(request);break;
         case "blueprintFeatureBodies":reply=BlueprintFeatureBodies.Query(request);break;
@@ -83,8 +101,9 @@ try
         case "catalog":
             reply=SemanticCatalogService.Query(S("project"),request["request"]!.AsObject(),path=>{var file=new FileInfo(path);if(!file.Exists||file.Length>1048576||file.LinkTarget is not null)throw new IOException("Owned document unavailable");return path;});break;
         case "effective":
-            reply=EffectiveMetadata.Query(S("project"),S("manifest"),S("id"),S("text"),FormatManifest,path=>{if(new FileInfo(path).Length>1048576)throw new IOException("Manifest budget");return File.ReadAllText(path);},request["drafts"]?.AsArray(),request["schemaView"]?.GetValue<bool>()==true,request["validateObjects"]?.GetValue<bool>()==true,request["observeSources"]?.GetValue<bool>()==true);break;
+            reply=EffectiveMetadata.Query(S("project"),S("manifest"),S("id"),S("text"),FormatManifest,path=>{if(new FileInfo(path).Length>1048576)throw new IOException("Manifest budget");return File.ReadAllText(path);},request["drafts"]?.AsArray(),request["schemaView"]?.GetValue<bool>()==true,request["validateObjects"]?.GetValue<bool>()==true,request["observeSources"]?.GetValue<bool>()==true,request["definitionTypes"]?.GetValue<bool>()==true);break;
         case "implementationCopy":reply=ImplementationCopy.Query(request,Format);break;
+        case "privateCopySeed":reply=PrivateImplementationCopy.Validate(request);break;
         case "referenceDefinition":
             reply=ReferenceDefinition.Query(S("project"),S("manifest"),S("sourceId"),S("text"),S("id"),path=>{var file=new FileInfo(path);if(!file.Exists||file.Length>1048576||file.LinkTarget is not null)throw new IOException("Definition unavailable");return File.ReadAllText(path,new System.Text.UTF8Encoding(false,true));});break;
         case "locate":
@@ -137,7 +156,7 @@ try
             var manifest=new Parser(S("text"),"<draft>").ParseManifest();string id=S("id");
             if(!id.StartsWith(manifest.Namespace+"::",StringComparison.Ordinal))throw new ArgumentException("Creation belongs to selected project namespace.");
             string name=id[(manifest.Namespace.Length+2)..];manifest.Elements.Add(name,new(S("kind"),S("path"),new()));
-            string text=FormatManifest(manifest);new Parser(text,"<draft>").ParseManifest();reply=JsonValue.Create(text);break;
+            string text=DeclarationTextMerge.MergeManifest(S("text"),FormatManifest(manifest),FormatManifest);new Parser(text,"<draft>").ParseManifest();reply=JsonValue.Create(text);break;
         }
         case "prepare":
         {

@@ -1,0 +1,31 @@
+{
+  "clean-api": {
+    "checks": [
+      "명시 C# 본문·현재 계약·호출자 누락 및 컴파일/경로/기준 오류는 전체 미적용이며 원문/checkpoint를 보존한다",
+      "직접 쓴 C# 원문과 함수·구현·호출 인자는 한 후보/CAS로 저장·재시작 복원하며 원본 파일은 유지한다",
+      "실제 compiler Review/Confirm·cold에서만 C#와 계약을 함께 반영하고 다른 함수·부모·target을 보존한다"
+    ],
+    "actualEngine": true,
+    "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-_ma7r8lh",
+    "nativeWindows": false
+  },
+  "clean-ui": {
+    "checks": [
+      "원본 함수·직접 편집한 C#의 취소·Undo/Redo·미저장 cold는 계약·정확한 입력을 보존한다",
+      "직접 편집한 C#·계약·호출자는 화면 저장·재시작·Review 취소/Confirm에서 한 후보로 반영된다"
+    ],
+    "mode": "normal",
+    "view": true,
+    "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-1yf1sfis",
+    "actualEngineRenderer": true,
+    "nativeWindows": false
+  },
+  "sourceCommit": "af6b26b685b39122e94e08bec0887462597097b0",
+  "cleanNativeWarnings": 0,
+  "cleanNativeErrors": 0,
+  "cleanLinuxStderrBytes": 0,
+  "resourceResult": "PASS actual EditorHome retained CRLF after attribute pull and fresh LF; 74 canonical/exact snapshots; content/encoding/BOM/binary/budget rejection; original bytes unchanged",
+  "fixtureOnly": true,
+  "windowsNativeExecuted": false,
+  "libraryDelivered": false
+}

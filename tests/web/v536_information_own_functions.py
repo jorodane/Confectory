@@ -1,0 +1,36 @@
+"""Pure contained information-function candidates, isolated sources and no execution."""
+import copy,hashlib,json,os,pathlib,subprocess,sys,tempfile
+repo=pathlib.Path(sys.argv[1]).resolve();root=pathlib.Path(tempfile.mkdtemp(prefix='confectory-information-functions-'));n='Owned.Information::';owner=n+'Details';fn=owner+'_Function_'+'1'*32
+sources={
+ 'Main':('function','function '+n+'Main () -> int {}'),
+ 'Base':('schema','schema '+n+'Base {contain function '+n+'Inherited;field Count single general long;}'),
+ 'Inherited':('function','function '+n+'Inherited () -> void {description "부모 함수";}'),
+ 'Details':('schema','schema '+owner+' extends '+n+'Base { // 원래 주석\nfield Power single general long;value editorInformationDefaults="typed-json-v1";value editorFieldDefault_Power="9223372036854775806";}'),
+}
+for name,(_,text) in sources.items():(root/(name+'.celem')).write_text(text)
+manifest='project Owned.Information version "1" {standalone true;entry '+n+'Main;'+''.join('element '+name+' '+kind+' "'+name+'.celem";' for name,(kind,_) in sources.items())+'}'
+(root/'project.cproj').write_text(manifest);original={p:p.read_bytes() for p in root.iterdir() if p.is_file()};tool=repo/'targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll';dotnet=os.environ.get('CONFECTORY_DOTNET','/workspace/toolchains/dotnet-10.0.401/dotnet');checks=[]
+def run(operation,ok=True,**request):
+ p=subprocess.run([dotnet,str(tool)],input=json.dumps({'operation':operation,**request},ensure_ascii=False),capture_output=True,text=True,check=True);v=json.loads(p.stdout);assert bool(v['ok']) is ok,v
+ assert all(path.read_bytes()==data for path,data in original.items()) and set(root.iterdir())==set(original),'metadata wrote source files'
+ return v.get('result')
+def prepare(changes,ok=True):return run('informationDefinitions',ok,project=str(root/'project.cproj'),manifest=manifest,id=owner,text=sources['Details'][1],drafts=[],changes=changes)
+def add(id=fn,name='정보 함수',description='한글 설명 😀'):return {'type':'function-add','id':id,'name':name,'description':description}
+def check(text):checks.append(text);print('PASS '+text,flush=True)
+changed=prepare([add(),{'type':'data','path':['Power'],'contract':{'kind':'general','cardinality':'single','type':'long'},'valueJson':'9223372036854775805'}]);assert not changed['sourceWritten'] and not changed['compiled'];assert len(changed['additions'])==1;member=changed['additions'][0];assert member['id']==fn and member['kind']=='function' and member['path']=='elements/'+fn.split('::')[1]+'.celem';assert '() -> void' in member['text'] and 'editorName' in member['text'];assert 'contain function '+fn in changed['text'] and '// 원래 주석' in changed['text'] and '9223372036854775805' in changed['text'] and 'extends '+n+'Base' in changed['text'];check('정보의 새 native contain 함수와 한글 표시명·정확한 long 기본값은 원본/상속을 보존하는 한 순수 후보다')
+projected=run('effective',project=str(root/'project.cproj'),manifest=changed['manifest'],id=owner,text=changed['text'],drafts=[{'id':member['id'],'text':member['text']}],schemaView=True,validateObjects=True,observeSources=True);assert projected['status']=='available';own=next(row for row in projected['ownFunctions'] if row['id']==fn);parent=next(row for row in projected['ownFunctions'] if row['id']==n+'Inherited');assert own['name']=='정보 함수' and own['description']=='한글 설명 😀' and own['origin']==owner and own['writable'];assert parent['origin']==n+'Base' and not parent['writable'];assert projected['bodyReads']==0;check('실제 contained 함수 투영은 자기/상속 출처·계약·source hash를 구별하고 본문을 읽거나 실행하지 않는다')
+for request in [[add(id=n+'Else_Function_'+'1'*32)],[add(),add()],[{**add(),'implementation':n+'Donor'}],[add(name='')],[add(description='x'*241)]]:prepare(request,False)
+check('다른 owner·중복 native id·알 수 없는 권한 필드·불완전 이름/과도한 설명은 원문을 변경하지 않고 거절한다')
+twice=prepare([add(),add(id=owner+'_Function_'+'2'*32)]);assert len(twice['additions'])==2;check('같은 표시명의 서로 다른 native 함수도 원본처럼 독립 identity와 순서를 유지하고 임의 이름 제약을 추가하지 않는다')
+observed={pathlib.Path(row['path']).name:row['hash'] for row in changed['observations']};assert observed['Inherited.celem']==hashlib.sha256(sources['Inherited'][1].encode()).hexdigest();assert all(not name.endswith('.csbody') for name in observed);check('기존 상속 함수의 불변 source 근거를 보존하고 새 overlay 파일을 존재하는 원본으로 위조하지 않는다')
+typed=prepare([{**add(),'signature':{'args':[{'name':'amount','type':'long'},{'name':'active','type':'bool','mode':'out'}],'return':'double'}}]);typed_source=typed['additions'][0]['text'];assert '(long amount, out bool active) -> double' in typed_source;change={'type':'function-edit','id':fn,'hash':hashlib.sha256(typed_source.encode()).hexdigest(),'name':'다시 이름','description':'설명 변경','signature':{'args':[{'name':'amount2','type':'long'},{'name':'active','type':'bool','mode':'out'}],'return':'double'}}
+def edit(change,ok=True,extra=None):return run('informationDefinitions',ok,project=str(root/'project.cproj'),manifest=typed['manifest'].replace('{','{element Caller implementation \"Caller.celem\";',1) if extra else typed['manifest'],id=owner,text=typed['text'],drafts=[{'id':fn,'text':typed_source},*(extra or [])],changes=[change])
+updated=edit(change);assert len(updated['updates'])==1 and updated['updates'][0]['hash']==change['hash'] and 'long amount2' in updated['updates'][0]['text'] and 'editorName' in updated['updates'][0]['text'];edit({**change,'hash':'0'*64},False);check('새 typed 함수와 저장된 이름/미연결 핀 편집은 원래 함수 hash를 요구하고 메타데이터와 선언을 보존한다')
+consumer={'id':n+'Caller','text':'implementation '+n+'Caller for '+n+'Main () -> int {import '+fn+' as Call (long,out bool) -> double;}'};edit(change,False,[consumer]);same_contract={**change,'signature':{'args':[{'name':'amount','type':'long'},{'name':'active','type':'bool','mode':'out'}],'return':'double'}};assert edit(same_contract,True,[consumer])['updates'];check('기존 typed import의 계약 변경은 전체 거절하고 서명 그대로인 이름/설명 편집은 허용한다')
+
+glyph=prepare([{**add(),'icon':'🛡️'}]);member=glyph['additions'][0];projected=run('effective',project=str(root/'project.cproj'),manifest=glyph['manifest'],id=owner,text=glyph['text'],drafts=[{'id':member['id'],'text':member['text']}],schemaView=True,validateObjects=True);assert next(row for row in projected['ownFunctions'] if row['id']==fn)['icon']=='🛡️';check('새 함수 glyph는 기존 contain/등록 생성 후보에 보관되며 부모 원문·정확한 값·native identity를 유지한다')
+metadata={**same_contract,'icon':'👑'};result=edit(metadata,True,[consumer]);assert len(result['updates'])==1 and result['updates'][0]['id']==fn and 'editorIcon' in result['updates'][0]['text'] and '(long amount, out bool active) -> double' in result['updates'][0]['text'];assert not result['additions'];check('연결된 함수의 glyph metadata만 변경하면 서명·typed import·호출자·본문을 재작성하지 않고 같은 원자 후보로 보관한다')
+for bad in ['',None,'ab','<',' ']:
+ prepare([{**add(),'icon':bad}],False);edit({**same_contract,'icon':bad},False,[consumer])
+edit({**metadata,'hash':'0'*64},False,[consumer]);prepare([{'type':'description','text':'must not remain'},{**add(),'icon':'ab'}],False);check('부적합 마지막 glyph·오래된 함수 source는 기존 이름/설명/등록 후보까지 전부 거절하고 원문·입력을 보존한다')
+print(json.dumps({'checks':checks,'evidence':str(root),'renderer':False,'engine':False,'sourceWritten':False,'accountOrInference':False},ensure_ascii=False))

@@ -2,24 +2,49 @@ using Confectory.Core;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 
-// Private original serial authoring edits. Runs only on a new isolated copy candidate.
+// Original private body/pin/enum edits. Runs only on a new isolated copy candidate.
 internal static class ImplementationCopyEdits
 {
- public static HashSet<string> Apply(JsonObject graph,JsonArray records,JsonArray edits,Element copy,string implementation)
+ public static HashSet<string> Apply(JsonObject graph,JsonArray records,JsonArray edits,Element copy,string implementation,FunctionSignature publicSignature,string framePath="")
  {
   if(edits.Count>128)throw new ArgumentException("Bounded private copy edits required");var unique=new HashSet<string>(StringComparer.Ordinal);var reapplied=new HashSet<string>(StringComparer.Ordinal);var nodes=graph["nodes"]!.AsArray();
   JsonNode Node(string id)=>nodes.SingleOrDefault(n=>n!["id"]!.ToString()==id)??throw new ArgumentException("Current copied node required");
+  JsonNode? Input(JsonNode node,string name){if(node["kind"]?.ToString()!="export")return node["signature"]!["args"]!.AsArray().SingleOrDefault(a=>a!["name"]!.ToString()==name&&a["mode"]?.ToString()!="out");if(name!="value")return null;string output=node["output"]!.ToString(),type=output=="return"?publicSignature.Return:publicSignature.Args.Single(a=>a.Name==output&&a.IsOut).Type;if(type=="void")throw new ArgumentException("Declared copied output required");return new JsonObject{["name"]="value",["type"]=type};}
   bool Uses(JsonNode? value,string id){if(value is JsonObject obj){if(obj["node"]?.ToString()==id)return true;return obj.Any(p=>Uses(p.Value,id));}return value is JsonArray array&&array.Any(v=>Uses(v,id));}
   foreach(var edit in edits){string type=edit!["type"]!.GetValue<string>(),id=edit["node"]!.GetValue<string>(),text=edit["text"]!.GetValue<string>();if(text.Length>1048576||!unique.Add(id+"|"+type))throw new ArgumentException("Bounded distinct private edits required");}
+  // Reuse the existing ordinary pin rules inside the exact selected frame.
+  // Qualified identity never becomes a file path or a public override contract.
+  var qualified=edits.Where(e=>e!["node"]!.ToString().Contains('/')).ToArray();
+  foreach(var group in qualified.GroupBy(e=>e!["node"]!.ToString()[..e["node"]!.ToString().LastIndexOf('/')],StringComparer.Ordinal)){
+   string path=group.Key;var frame=BlueprintTree.Select(graph,path);var localEdits=new JsonArray();
+   var created=new Dictionary<string,JsonObject>(StringComparer.Ordinal);foreach(var edit in group.Where(e=>e!["type"]?.ToString()=="create")){string local=edit!["node"]!.ToString()[(path.Length+1)..];var definition=JsonNode.Parse(edit["text"]!.GetValue<string>())!.AsObject();if(definition["kind"]?.ToString()!="code"||definition["control"]?.ToString()!="next"||definition.Any(p=>p.Key is not ("kind" or "intent" or "control" or "signature"))||string.IsNullOrWhiteSpace(group.SingleOrDefault(e=>e!["node"]!.ToString()==edit["node"]!.ToString()&&e["type"]?.ToString()=="intent")?["text"]?.ToString()??definition["intent"]?.ToString()))throw new ArgumentException("Explicit ordinary private node definition required");created.Add(local,definition);}
+   bool Destination(string to)=>to.Length==0||created.ContainsKey(to)||frame["nodes"]!.AsArray().Any(n=>n!["id"]!.ToString()==to&&n["kind"]?.ToString()=="code"&&n["control"]?.ToString()=="next"&&n["implementationContext"] is null&&n["forwardCallerStorage"]?.GetValue<bool>()!=true&&n["branchOwner"] is null)||to.StartsWith("exit:",StringComparison.Ordinal)&&frame["exits"]!.AsObject().ContainsKey(to[5..]);
+   foreach(var edit in group){string key=edit!["node"]!.ToString(),type=edit["type"]!.ToString(),local=key[(path.Length+1)..];var leaf=frame["nodes"]!.AsArray().SingleOrDefault(n=>n!["id"]!.ToString()==local);
+    if((type is "entry" or "route")&&!Destination(edit["text"]!.GetValue<string>()))throw new ArgumentException("Same private frame serial destination required");
+    if(type=="entry"&&local=="$entry"){var entryEdit=edit.DeepClone().AsObject();entryEdit["node"]=local;localEdits.Add(entryEdit);continue;}
+    if(leaf is null&&created.TryGetValue(local,out var added))leaf=added;
+    if(leaf is null)throw new ArgumentException("Exact copied private leaf required");
+    if(leaf["kind"]?.ToString()!="code"||leaf["implementationContext"] is not null||type is not ("source" or "intent" or "parameters" or "route" or "create" or "rename" or "enum-code")&&!type.StartsWith("argument:",StringComparison.Ordinal)||(type is "parameters" or "route" or "create" or "rename"||type.StartsWith("argument:",StringComparison.Ordinal))&&(leaf["control"]?.ToString()!="next"||leaf["forwardCallerStorage"]?.GetValue<bool>()==true))throw new InvalidOperationException("Ordinary private body/pins/value edits required; preserve public and caller-storage contracts");
+    if(type=="enum-code"&&(leaf["control"]?.ToString()!="switch"||leaf["forwardCallerStorage"]?.GetValue<bool>()==true))throw new InvalidOperationException("Existing private execution enum required");
+    if((type is "route" or "rename")&&leaf["branchOwner"] is not null)throw new InvalidOperationException("Preserve branch-owned private routes");
+    var localEdit=edit.DeepClone().AsObject();localEdit["node"]=local;localEdits.Add(localEdit);
+   }
+   var rows=records.Where(row=>row!["id"]!.ToString().StartsWith(path+"/",StringComparison.Ordinal)&&!row["id"]!.ToString()[(path.Length+1)..].Contains('/')).ToArray();
+   var localRecords=new JsonArray(rows.Select(row=>{var local=row!.DeepClone().AsObject();local["id"]=row["id"]!.ToString()[(path.Length+1)..];return (JsonNode)local;}).ToArray());
+   var applied=Apply(frame,localRecords,localEdits,copy,implementation,publicSignature,framePath.Length==0?path:framePath+"/"+path);
+   foreach(var local in localRecords){string key=path+"/"+local!["id"]!.ToString();var original=rows.SingleOrDefault(row=>row!["id"]!.ToString()==key);if(original is null){var added=local.DeepClone().AsObject();added["id"]=key;records.Add(added);}else original["record"]=local["record"]!.DeepClone();}
+   foreach(string id in applied)reapplied.Add(path+"/"+id);
+  }
+  edits=new JsonArray(edits.Where(e=>!e!["node"]!.ToString().Contains('/')).Select(e=>e!.DeepClone()).ToArray());
   // Membership is prepared before dependent input edits; IDs never become source paths.
   foreach(var edit in edits.Where(e=>e!["type"]!.ToString()=="create")){
    string id=edit!["node"]!.ToString();var definition=JsonNode.Parse(edit["text"]!.GetValue<string>())!.AsObject();if(!Regex.IsMatch(id,@"\A[A-Za-z_][A-Za-z_0-9.-]{0,127}\z")||nodes.Count>=64||nodes.Any(n=>n!["id"]!.ToString()==id)||definition["kind"]?.ToString()!="code"||definition["control"]?.ToString()!="next"||definition.Any(p=>p.Key is not ("kind" or "intent" or "control" or "signature")))throw new ArgumentException("Unique original serial code node definition required");
-   string path="nodes/"+implementation[(implementation.IndexOf("::",StringComparison.Ordinal)+2)..]+"."+JsonData.Digest(id)[..12]+".node.json";
+   string path="nodes/"+implementation[(implementation.IndexOf("::",StringComparison.Ordinal)+2)..]+"."+JsonData.Digest(framePath.Length==0?id:framePath+"/"+id)[..12]+".node.json";
    nodes.Add(new JsonObject{["id"]=id,["kind"]="code",["control"]="next",["intent"]=definition["intent"]!.DeepClone(),["signature"]=definition["signature"]!.DeepClone(),["arguments"]=new JsonObject(),["implementation"]=path});records.Add(new JsonObject{["id"]=id,["relative"]=path,["record"]=new JsonObject{["schema"]=1,["node"]=id,["definitionHash"]=new string('0',64),["source"]=""}});
   }
   // A dropped pin may have an explicit disconnect in this same private transaction.
   // Apply only declared, ordinary null disconnects before remapping; never infer one.
-  foreach(var edit in edits.Where(e=>e!["type"]!.ToString().StartsWith("argument:",StringComparison.Ordinal))){if(JsonNode.Parse(edit!["text"]!.GetValue<string>()) is not null)continue;string id=edit["node"]!.ToString(),name=edit["type"]!.ToString()[9..];var node=Node(id);var argument=node["signature"]!["args"]!.AsArray().SingleOrDefault(a=>a!["name"]!.ToString()==name&&a["mode"]?.ToString()!="out");if(argument is null||argument["mode"]?.ToString()=="ref"||node["forwardCallerStorage"]?.GetValue<bool>()==true)throw new InvalidOperationException("Declared ordinary copy pin required for explicit disconnect");node["arguments"]??=new JsonObject();node["arguments"]![name]=null;}
+  foreach(var edit in edits.Where(e=>e!["type"]!.ToString().StartsWith("argument:",StringComparison.Ordinal))){if(JsonNode.Parse(edit!["text"]!.GetValue<string>()) is not null)continue;string id=edit["node"]!.ToString(),name=edit["type"]!.ToString()[9..];var node=Node(id);var argument=Input(node,name);if(argument is null||argument["mode"]?.ToString()=="ref"||node["forwardCallerStorage"]?.GetValue<bool>()==true)throw new InvalidOperationException("Declared ordinary copy pin required for explicit disconnect");node["arguments"]??=new JsonObject();node["arguments"]![name]=null;}
   foreach(var edit in edits.Where(e=>e!["type"]!.ToString()=="parameters"))Parameters(graph,Node(edit!["node"]!.ToString()),JsonNode.Parse(edit["text"]!.GetValue<string>())!.AsObject());
   foreach(var edit in edits){string type=edit!["type"]!.ToString(),id=edit["node"]!.ToString(),text=edit["text"]!.GetValue<string>();
    if(type is "create" or "parameters" or "remove")continue;
@@ -27,11 +52,24 @@ internal static class ImplementationCopyEdits
    if(type=="entry"&&id=="$entry"){if(text.Length>0&&!nodes.Any(n=>n!["id"]!.ToString()==text)&&!(text.StartsWith("exit:",StringComparison.Ordinal)&&graph["exits"]!.AsObject().ContainsKey(text[5..])))throw new ArgumentException("Declared copied entry required");graph["entry"]=text;continue;}
    if(type=="exit"&&id.StartsWith("$exit:",StringComparison.Ordinal)&&graph["exits"]!.AsObject().ContainsKey(id[6..])){graph["exits"]![id[6..]]=JsonNode.Parse(text);continue;}
    var node=Node(id);
-   if(type=="source"&&node["kind"]!.ToString()=="code"){records.Single(n=>n!["id"]!.ToString()==id)!["record"]!["source"]=text;reapplied.Add(id);}
+   if(type=="wrapper"&&node["kind"]?.ToString()=="call"&&node["control"]?.ToString()=="switch"&&node["postCall"]?["mode"]?.ToString()=="execution-enum"){
+    var plan=JsonNode.Parse(text)!.AsObject();var post=node["postCall"]!;
+    if(plan.Any(p=>p.Key is not ("source" or "helpers" or "executionEnum" or "contractHash" or "returnMapping"))||plan["contractHash"]?.ToString()!=post["contractHash"]?.ToString()||plan["returnMapping"]?.ToString()!=post["returnMapping"]?.ToString()||plan["source"] is not JsonValue||plan["executionEnum"] is not JsonObject)throw new InvalidOperationException("Exact current copy wrapper contract required; stale ABI needs its separate plan");
+    string source=plan["source"]!.GetValue<string>(),helpers=plan["helpers"]?.GetValue<string>()??"";if(source.Length>65536||helpers.Length>65536)throw new ArgumentException("Copied wrapper source budget");post["source"]=source;post["helpers"]=helpers;node["executionEnum"]=plan["executionEnum"]!.DeepClone();
+   }
+   else if(type=="enum-code"){
+    if(framePath.Length==0||node["kind"]?.ToString()!="code"||node["control"]?.ToString()!="switch"||node["signature"]?["return"]?.ToString()!="void"||node["implementationContext"] is not null||node["forwardCallerStorage"]?.GetValue<bool>()==true||graph["profile"]?.ToString() is not (FeatureBlueprint.SwitchProfile or FeatureBlueprint.PropertySetProfile or FeatureBlueprint.PropertyRefProfile))throw new InvalidOperationException("Owned ordinary private execution enum required");
+    var plan=JsonNode.Parse(text)!.AsObject();if(plan.Count!=3||plan.Any(p=>p.Key is not ("executionEnum" or "source" or "helpers")))throw new ArgumentException("Explicit enum/body/helpers required");
+    var execution=plan["executionEnum"]!.AsObject();if(execution.Count!=2||execution.Any(p=>p.Key is not ("primary" or "members"))||execution["primary"]?.ToString()!=node["executionEnum"]?["primary"]?.ToString())throw new InvalidOperationException("Preserve primary execution identity");
+    var validated=BlueprintEnumContract.Validate(new JsonObject{["schema"]=1,["kind"]="execution-enum-proposal",["sourceId"]=framePath+"/"+id,["definitionHash"]=new string('0',64),["sourceHash"]=new string('0',64),["primary"]=execution["primary"]!.DeepClone(),["members"]=execution["members"]!.DeepClone()});
+    if(graph["edges"]!.AsArray().Any(e=>e!["from"]?.ToString()==id&&e["port"]!.ToString().StartsWith("case:",StringComparison.Ordinal)&&!validated["members"]!.AsArray().Any(m=>m!["id"]!.ToString()==e["port"]!.ToString()[5..])))throw new InvalidOperationException("Disconnect consumed execution ports explicitly before removal");
+    var record=records.Single(r=>r!["id"]!.ToString()==id)!["record"]!;record["source"]=plan["source"]!.GetValue<string>();record["helpers"]=plan["helpers"]!.GetValue<string>();node["executionEnum"]=new JsonObject{["primary"]=validated["primary"]!.DeepClone(),["members"]=validated["members"]!.DeepClone()};reapplied.Add(id);
+   }
+   else if(type=="source"&&node["kind"]!.ToString()=="code"){records.Single(n=>n!["id"]!.ToString()==id)!["record"]!["source"]=text;reapplied.Add(id);}
    else if(type=="intent"&&node["kind"]!.ToString()=="code"){if(text.Length>16384)throw new ArgumentException("Intent budget");node["intent"]=text;}
    else if(type=="rename"&&node["implementationContext"] is null&&node["kind"]!.ToString()=="code"){if(text.Length is <1 or >256||text!=text.Trim()||text.Any(char.IsControl))throw new ArgumentException("Trimmed copied display name required");node["displayName"]=text;}
    else if(type.StartsWith("argument:",StringComparison.Ordinal)){
-    string name=type[9..];var argument=node["signature"]!["args"]!.AsArray().SingleOrDefault(a=>a!["name"]!.ToString()==name&&a["mode"]?.ToString()!="out");if(argument is null){var remapEdit=edits.SingleOrDefault(e=>e!["type"]!.ToString()=="parameters"&&e["node"]!.ToString()==id);var remap=remapEdit is null?null:JsonNode.Parse(remapEdit["text"]!.GetValue<string>())!["remap"]?.AsObject();if(JsonNode.Parse(text) is null&&remap?.ContainsKey(name)==true&&remap[name] is null)continue;throw new ArgumentException("Declared copy input required");}if(argument["mode"]?.ToString()=="ref"||node["forwardCallerStorage"]?.GetValue<bool>()==true)throw new InvalidOperationException("Preserve caller-storage bindings; their external contract is not a private value edit");node["arguments"]??=new JsonObject();node["arguments"]![name]=JsonNode.Parse(text);
+    string name=type[9..];var argument=Input(node,name);if(argument is null){var remapEdit=edits.SingleOrDefault(e=>e!["type"]!.ToString()=="parameters"&&e["node"]!.ToString()==id);var remap=remapEdit is null?null:JsonNode.Parse(remapEdit["text"]!.GetValue<string>())!["remap"]?.AsObject();if(JsonNode.Parse(text) is null&&remap?.ContainsKey(name)==true&&remap[name] is null)continue;throw new ArgumentException("Declared copy input required");}if(argument["mode"]?.ToString()=="ref"||node["forwardCallerStorage"]?.GetValue<bool>()==true)throw new InvalidOperationException("Preserve caller-storage bindings; their external contract is not a private value edit");node["arguments"]??=new JsonObject();node["arguments"]![name]=JsonNode.Parse(text);
    }else if(type=="route"&&node["control"]!.ToString()=="next"){
     if(text.Length>0&&!nodes.Any(n=>n!["id"]!.ToString()==text)&&!(text.StartsWith("exit:",StringComparison.Ordinal)&&graph["exits"]!.AsObject().ContainsKey(text[5..])))throw new ArgumentException("Declared serial copy route required");var edges=graph["edges"]!.AsArray();foreach(var edge in edges.Where(e=>e!["from"]!.ToString()==id&&e["port"]!.ToString()=="next").ToArray())edges.Remove(edge);if(text.Length>0)edges.Add(new JsonObject{["from"]=id,["port"]="next",["to"]=text});
    }else throw new ArgumentException("This private copy edit is not connected; inputs retained");

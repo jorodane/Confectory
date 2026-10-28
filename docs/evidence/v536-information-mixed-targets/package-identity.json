@@ -1,0 +1,18 @@
+{
+  "sourceCommit": "af6b26b685b39122e94e08bec0887462597097b0",
+  "manifestSha256": "02f061a4713fd4a0cde1c4245de25d61cfe3031e86f9ec780f56e5e2286c9ea7",
+  "manifestEntries": 2335,
+  "actualFilesIncludingManifest": 2336,
+  "byteMatchedExecutionInputs": {
+    "examples/editor-home/WebBundle.csbody": "a42a272d59172fdaaa8af883caab06ef82a75c79cb77202e6ad735c597286994",
+    "examples/editor-home/ui/element-functions.js": "794ee41b595f7c5a47cf1c6b149e49904d98fc5d0f62cf139c348c7426fdf50b",
+    "examples/editor-home/ui/feature-authoring.js": "59209fc2b1dc3d8ba4d60fd17d3912f373bc717c89aa99f4a1ad1db2c76bbf6f",
+    "packs/pack-workspace/Blueprint.csbody": "08e03d0209884892195d386196552ebd21852992472baad557f7245fe8b767c4",
+    "targets/element-authoring/InformationFunctionBodies.cs": "c452c6036d0deace48cfa3f4b5c0f0446068b6086835017e231c43c8e84b00af",
+    "targets/element-authoring/InformationFunctionContracts.cs": "5d9faa40ebe7ecb95acdade61dfcdc940716bef043389daed46d6ca90edc32c8",
+    "targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll": "b34bdc20bc1eb05273b6f02580a12e1ac358460aead3e1488ab777806d9a365f",
+    "targets/element-authoring/bin/Release/net10.0/Confectory.Core.dll": "cc3fc750d49b1b19268b1b0a893e4bc709f56e14db09a796452d9eb06c1bfc84"
+  },
+  "package": "/workspace/artifacts/v536-information-mixed-targets/Windows-x64",
+  "windowsExecuted": false
+}

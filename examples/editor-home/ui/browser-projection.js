@@ -3,7 +3,7 @@
 export function createBrowserProjection(api){
  const caches=new Map(),group=kind=>kind==='function'||kind==='implementation'?'feature':kind==='module'?'module':kind==='schema'?'info':'concept';
  const declaration=kind=>['object','schema','category','concept','function','module','implementation'].includes(kind);
- const observed=()=>[...(api.current?.units||[]),...(api.current?.draft?[api.current.draft]:[])].filter(row=>declaration(row.kind)&&row.id.startsWith(api.current.namespace+'::'));
+ const observed=()=>[...(api.current?.units||[]),...(api.current?.draft?[api.current.draft]:[]),...(api.current?.editorViews||[]).map(row=>row.draft).filter(Boolean)].filter(row=>declaration(row.kind)&&row.id.startsWith(api.current.namespace+'::'));
  const stateKey=()=>JSON.stringify(observed().map(row=>[row.id,row.revision]).sort());
  function entry(){const id=api.current?.projectId;if(!id)return null;if(!caches.has(id))caches.set(id,{});const cache=caches.get(id),incoming=api.current.relationsMap;if(incoming&&incoming.version!==cache.map?.version){cache.map=incoming;cache.failed=null;}return cache;}
  function needsRead(){const cache=entry();if(!cache||cache.failed===stateKey())return false;if(!cache.map)return true;return observed().some(row=>!cache.map.nodes.some(node=>node.owned&&node.id===row.id&&node.revision===row.revision));}

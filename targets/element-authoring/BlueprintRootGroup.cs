@@ -1,11 +1,13 @@
 using System.Text.Json.Nodes;
 using Confectory.Core;
 
-// No file I/O or source acceptance. Legacy3 or exactly one owned whole-body record.
+// No source writes. Legacy3/4 validation is pure; multi-target groups may
+// explicitly recheck registered receipts at Save, Review and Confirm.
 static class BlueprintRootGroup
 {
  public static JsonObject Validate(JsonObject request)
  {
+  if(request["group"]!.AsArray().Count>4)return BlueprintCallAbiGroup.ValidateGroup(request);
   var group=request["group"]!.AsArray();var units=request["units"]!.AsObject();string ns=request["namespace"]!.GetValue<string>();var ids=group.Select(p=>p!.GetValue<string>()).ToArray();
   if(ids.Length is not (3 or 4)||ids.Distinct(StringComparer.Ordinal).Count()!=ids.Length||ids.Any(id=>!id.StartsWith(ns+"::",StringComparison.Ordinal)||units[id] is null||!JsonNode.DeepEquals(units[id]!["rootContractGroup"],group)))throw new ArgumentException("Exact root group membership required");
   if(units[ids[0]]!["kind"]?.ToString()!="function"||units[ids[1]]!["kind"]?.ToString()!="implementation"||units[ids[2]]!["kind"]?.ToString()!="blueprint"||!ids[2].StartsWith(ids[1]+"/body:",StringComparison.Ordinal))throw new ArgumentException("Root group kinds required");

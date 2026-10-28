@@ -1,0 +1,113 @@
+# v536 입력 이름·출력 타입 결합 — 2026-10-25
+
+정보 창의 기존 함수 상세창에서 값 입력의 이름과 scalar out/비void 반환 타입을
+편집하고 창의 임시 저장을 한 번 누르는 동작이다. 입력의 타입·수·역할·순서는
+유지한다. 함수 간 입력 이름 전용/출력 타입 편집과 같은 함수 안의 결합에서 원래
+단일 후보는 성공하고 기존 그룹만 거절하는 것을 수정 전에 재현했다.
+
+## 계약과 지원 경계
+
+직접 소유 일반 Blueprint 2~8 함수의 기존 code/export leaf callee·call/export
+직렬 caller 및 이미 지원한 고정 로컬 import 경계다. 입력 이름은 원래 핀→새
+이름의 명시 대응을 사용하며 C# 노드의 매개변수·본문을 바꾸지 않는다. 출력의
+이름·수·역할·순서는 유지하고 타입이 바뀐 모든 writer와 호환 소비를 선택한다.
+
+입력 이름 전용 행은 기존 두 항목의 before/args 계획만 허용하고 원래 출력과
+바인딩을 유지한다. 같은 행의 출력 타입도 바뀌면 caller의 새 공개 입력 이름→
+원래 인자 바인딩을 검증하며 재선택/해제하지 않는다. 입력 타입 변경은 이 출력 결합
+단위에서 거절한다. 기존 입력/out 타입 동시 편집과 출력 없는 입력 전용 경로는 유지한다.
+반환 타입 편집은 명시 이름 대응 후 값 입력의 타입·순서·역할이 같아야 한다.
+
+원래 모든 단일 closure를 먼저 검증하고 내부 overlay에 합성한다. 실제 source
+변경에 동의를 재사용하지 않으며 사용자 원래 hash·파일 관측·단일 후보/CAS·
+receipt·Review/Confirm을 유지한다. 새 레이아웃/메뉴·계약 ID·기본값 추정·C#
+문자열 치환은 추가하지 않는다.
+
+## 실제 fixture와 검사
+
+원래 A/B는 `(long amount,double real,out long count,out long stable)->long`이며
+A.return→B.amount, B.count→Caller 반환이 연결된다.
+
+- 함수 간: A.amount만 leftAmount로 바꾸고 B의 count/반환을 double로 바꾼다.
+- 같은 함수: A/B의 amount를 각각 leftAmount/rightAmount로 바꾸고 count/반환도
+  double로 바꾼다. 각 writer는 real(double), 원래 long 소비는 stable(long)을
+  명시 선택한다. 새 입력 이름은 원래 amount의 값을 그대로 사용한다.
+
+코드 노드의 원래 amount 매개변수에는 새 root 이름을 바인딩한다. C# 본문·정확한
+64비트 값·제어 경로·노드/함수 ID·공개 출력과 기존 설명을 보존한다. 이름 대응과
+값/writer/소비가 빠지거나 실제 소스가 바뀌면 전체 미적용이어야 한다.
+
+이름 전용 편집은 원본 UI에서 ABI 대화창을 열지 않는다. 테스트는 이 기존 동작과
+타입 편집의 명시 대화창을 각각 확인한다. native import는 타입/전달 방식/반환을
+직렬화하므로 API 검사는 공개 이름이 다른 같은 native 계약의 실제 빈도를 검사한다.
+그래프의 공개 이름·인자 값·함수 ID 대응은 별도로 정확히 확인한다.
+
+## 공간과 증거 보관
+
+기존 방식의48MiB 증가 예산+64MiB reserve는 현재104.2MiB보다 약7.8MiB 크다.
+기존 자료는 읽기만 하여 작은 파일들의 실제 할당량과 새 ZIP 예상량을 대조했다.
+최근 전체 단위32.5MiB 증가 중 fixture 증거17.4MiB를 새로 ZIP 보관하면 같은
+검증의 환산 증가량은 약22.4MiB다. 증가 예산36MiB+reserve64MiB=100MiB를 확보한
+뒤 진행했다. 기존 증거/로그/fixture/보관 빌드/캐시는 변환하거나 삭제하지 않는다.
+
+이번 실행이 만든 RAM fixture의 원문·프로필·화면·로그는 파일 목록/권한/SHA-256을
+검증한 새 ZIP과 manifest로 보관한다. 원본과 archive의 모든 바이트가 같음을
+확인한 후 현재 소유 RAM 복사본만 정리한다. 이전처럼 재생성 가능한 fixture
+compiler cache/output만 증거에서 제외한다. 검사 내용과 실제 실패 검증은 유지한다.
+
+## 집중·영향 검증 완료
+
+초기 집중 13흐름/34확인에서 기본/독립 창의 취소·Undo/Redo·미저장/저장 재시작·
+Review 취소·Confirm, checkpoint 실패/전체 미적용/재시도, 응답·조회 유실 후
+receipt 조회와 중복 방지, 실제 파일/peer 경합·프로젝트 전환·Undo 재시도를 확인했다.
+
+게시 전 검토에서 초안의 전역 이름/타입 차단이 출력 없는 기존 입력 전용 편집을
+과도하게 거절하는 것을 재현했다. 원래 82e2676 코드에서 같은 후보가 성공함을
+확인하고 전역 차단을 제거했다. 출력 타입 문맥의 기존 고정 이름 필터는 값 입력
+타입도 바뀌는 경우 유지한다. 이 차단은 미게시 초안에서만 존재했다. 최종 소스의
+기존 입력 전용 회귀·두 순수 후보·실제 API·같은 함수 독립 UI 5흐름/14확인이
+통과했다. 관련 기존 이름·입력 정의/타입·out/반환·출력 정의/타입·입력/out 타입·
+오버라이드 보호의 영향 6흐름/25확인도 통과했다.
+
+Native Release warning/error 0, OOM/oom_kill 0이며 원본 UI 74리소스/WebBundle은
+82e2676 그대로다. 실제 모든 신규 ZIP의 파일 집합·권한·바이트를 재검증했다.
+[집중·회귀 증거](evidence/v536-information-shared-input-name-output-mix/focused-verification.json)에 초기 검사와 최종 소스 재검증을 구별해 기록한다. 독립 checkout/패키지는 아래 결과로 구분한다.
+
+## 정확한 고정 잔여
+
+8행 전체 완료는 아니다. 입력 이름과 출력 정의 추가/삭제·void 전환의 결합,
+입력 정의와 출력 타입/정의/반환의 결합, 입력 타입과 출력 정의/반환의 결합, ref·역할·매개변수 순서, 수동 C#/혼합 native·중첩/private/
+whole/postCall, 같은 원래 계약 안의 copy/상속/등록/소유 정보 속성 혼합과 scalar
+밖 함수 타입은 별도다. 이미 지원한 입력/out 타입 결합과 출력 정의/타입 결합을
+다시 잔여로 분류하지 않는다. 9행 named 정보/참조/외부 함수 타입·표시명/native
+식별자 분리도 미완료다.
+
+오버라이드는 원래 매개변수·출력 계약을 유지한다. 위반 거절은 정상 보호이며
+독립 계약 복제/새 ID는 필수 복원에서 제외한다. 기존 새 함수 생성/직접 소유
+편집과 다른 수용 경계는 유지한다. 전체 UI·실제 Windows/WebView2·모바일 기기·
+Library 전달 완료가 아니며 사용자 프로젝트/실제 계정/유료 추론은 사용하지 않는다.
+
+## 커밋 후 독립 checkout·새 교차 패키지 완료
+
+실행 소스는 `5713087757c3f5ea7915f2d97e5829ef2b011abf`다. 독립 checkout의
+10개 동일 Git blob과 기존 LF/CRLF 설정·clean 상태를 확인했고 Native Release는
+warning/error 0이다. 기존 입력 전용 회귀·새 후보·실제 API·독립 UI·오버라이드
+보호 5흐름/13확인이 통과했다. root solution Release와 별도 MCP Release도
+warning/error 0이다. 대형 검사는 모두 순차 실행했다.
+
+단계 시작 전88MiB(64MiB reserve+24MiB 빌드 증가 예산)를 확보하고 새 Windows
+x64 패키지를 RAM에 생성했다. manifest 2,343항목/marker 포함 2,344파일,
+132,761,790바이트의 집합·전체 해시와 현재 Native DLL/제품 소스·7개 Core DLL
+일치를 확인했다. manifest SHA-256은
+`1d2dc72ea1950d30a567fda30913efa5c353b6c0fdac9b0f9715acc902288e5e`다.
+기존 SDK 없는 runtime fixture는 읽기 전용 재사용했고 managed 엔진 웹 기동·
+무관한 cwd·74리소스·synthetic profile/override 보존·변조/DLL 누락 거절 및
+패키지의 새 backend 후보 4확인이 통과했다.
+
+전체 manifest와 새 fixture 증거35개 ZIP의 파일 목록·권한·내용을 재검증한 뒤
+이번 RAM 패키지만 정리했다. 기존 자료는 삭제/변환하지 않았으며 새 배포 파일을
+보관·전달한 결과가 아니다. 패키지 단계 최저 디스크 여유88,535,040바이트,
+OOM/oom_kill 0이다. 단위 증가36MiB 예산과64MiB reserve를 유지했다. 후속 커밋은
+결과 문서만 바꾸므로 실행 코드는 위 소스와 같다. 실제 Windows apphost/WebView2·
+모바일 기기·Library 전달은 미검증이다.
+[checkout·패키지 증거](evidence/v536-information-shared-input-name-output-mix/package-clean-verification.json)에 단계·소스·해시·증거 보관·한계를 기록한다.

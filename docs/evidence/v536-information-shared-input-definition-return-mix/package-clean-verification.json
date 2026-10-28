@@ -1,0 +1,504 @@
+{
+  "sourceCommit": "e537aa71ccba993762e77ac96efa9fcb42ca62a7",
+  "cleanCheckout": {
+    "sourceCommit": "e537aa71ccba993762e77ac96efa9fcb42ca62a7",
+    "checkout": "/workspace/scratch/v536-multiple-implementations/checkout",
+    "newCloneCreated": false,
+    "normalFastForward": true,
+    "cleanBeforeAndAfter": true,
+    "originalAutocrlfPreserved": "true",
+    "gitBlobs": {
+      "docs/V536_I5_6_REMAINING.md": "98efbc14af2dabef778426c80b801df17605c6f7",
+      "docs/V536_I5_6_SHARED_CALLERS_SCOPE.md": "e4be5217e863a3a3e714682378f5215cf07e7a67",
+      "docs/VALIDATION_V536_INFORMATION_SHARED_INPUT_DEFINITION_RETURN_MIX.md": "dcae37bd274958c84bc03cd9f61894e3b063d12c",
+      "docs/evidence/v536-information-shared-input-definition-return-mix/focused-verification.json": "b5b11477292e520ee50c421f6409860c72994f71",
+      "targets/element-authoring/InformationFunctionBatch.cs": "90b29a8318494082a4b035bf48ae09d6e08a3023",
+      "tests/web/v536_information_shared_input_definition_return_mix_fixture.py": "20a98a83ee488eda61911c563568141e229a8800",
+      "tests/web/v536_information_shared_input_definition_return_mix_native.py": "6c77ddfed2c57b14719ae56e8c6dd8e0b659c948",
+      "tests/web/v536_information_shared_return_types_api.py": "f501f84574b11bf8644d9065ab21cd72542ef803",
+      "tests/web/v536_information_shared_return_types_ui.py": "5710d60103588bd894cca78707e3fbaa7a2b6c83"
+    }
+  },
+  "cleanFlows": [
+    {
+      "name": "legacy",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_shared_input_rename_compat_native.py",
+        "/workspace/scratch/v536-multiple-implementations/checkout",
+        "/workspace/scratch/v536-shared-io/clean-engine-report.json",
+        "normal"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 4.6,
+      "minimumWorkspaceAvailableBytesSampled": 2020548608,
+      "peakMemoryBytesSampled": 2831785984,
+      "log": "clean/legacy.log",
+      "checks": [
+        "출력 없는 기존 입력 전용 이름/타입 결합은 원래 값·C#·원문과 역순 후보를 보존한다"
+      ]
+    },
+    {
+      "name": "pure",
+      "command": [
+        "python3",
+        "/workspace/scratch/v536-multiple-implementations/checkout/tests/web/v536_information_shared_input_definition_return_mix_native.py",
+        "/workspace/scratch/v536-multiple-implementations/checkout",
+        "/workspace/scratch/v536-shared-io/clean-engine-report.json",
+        "normal"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 14.0,
+      "minimumWorkspaceAvailableBytesSampled": 2020474880,
+      "peakMemoryBytesSampled": 2835951616,
+      "log": "clean/pure.log",
+      "checks": [
+        "입력 정의/출력·반환 타입의 원래 단일 후보는 유효하고 원문은 그대로다",
+        "역순·원래 hash·모든 writer/소비 대응·공유 바인딩·정확64비트·본문을 한 후보로 보존한다",
+        "입력 값/사용처·writer/소비·역할/순서/원문 증거 누락은 두 계약 전체 미적용이다",
+        "실제 물리 source 충돌은 전체 미적용이며 다른 원문과 입력을 보존한다"
+      ]
+    },
+    {
+      "name": "api",
+      "command": [
+        "python3",
+        "/workspace/scratch/v536-multiple-implementations/checkout/tests/web/v536_information_shared_return_types_api.py",
+        "/workspace/scratch/v536-multiple-implementations/checkout",
+        "/workspace/scratch/v536-shared-io/clean-engine-report.json",
+        "normal"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 32.7,
+      "minimumWorkspaceAvailableBytesSampled": 2020425728,
+      "peakMemoryBytesSampled": 3029917696,
+      "log": "clean/api.log",
+      "checks": [
+        "실제 서버는 두 번째 계약 오류에서 첫 함수와 공유 caller도 checkpoint에 남기지 않는다",
+        "두 callee·공유 caller는 단일 거래로 저장되고 cold 복원에서도 연결과 원문을 유지한다",
+        "실제 compiler Review/Confirm는 두 계약을 함께 확정하고 code/다른 함수·부모 원문을 보존한다"
+      ]
+    },
+    {
+      "name": "joint-view",
+      "command": [
+        "python3",
+        "/workspace/scratch/v536-multiple-implementations/checkout/tests/web/v536_information_shared_return_types_ui.py",
+        "/workspace/scratch/v536-multiple-implementations/checkout",
+        "/workspace/scratch/v536-shared-io/clean-engine-report.json",
+        "joint",
+        "view"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 70.6,
+      "minimumWorkspaceAvailableBytesSampled": 2020372480,
+      "peakMemoryBytesSampled": 3821391872,
+      "log": "clean/joint-view.log",
+      "checks": [
+        "두 원본 상세창의 취소·명시 대응·Undo/Redo·미저장 cold는 두 함수 입력과 exact64 값을 보존한다",
+        "원본 460px 기본/독립 화면의 한 Save·cold·Review 취소/Confirm은 두 함수 계약과 공유 caller를 함께 확정한다"
+      ]
+    },
+    {
+      "name": "policy7",
+      "command": [
+        "python3",
+        "/workspace/scratch/v536-multiple-implementations/checkout/tests/web/v536_information_inherited_contract_guards.py",
+        "/workspace/scratch/v536-multiple-implementations/checkout",
+        "/workspace/scratch/v536-shared-io/clean-engine-report.json",
+        "normal"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 7.2,
+      "minimumWorkspaceAvailableBytesSampled": 2019672064,
+      "peakMemoryBytesSampled": 3105468416,
+      "log": "clean/policy7.log",
+      "checks": [
+        "공개 이름 대응·소유 copy·호출자 후보는 부모/자식 선언을 쓰지 않고 함께 준비한다",
+        "부모/자식 쓰기 위조·타입/핀 수/역할/반환/순서의 계약 변경은 정상 보호로 전체 미적용이다",
+        "실제 부모 파일 경합은 원래 읽기 기준으로 차단하고 후보/복사본 원문을 보존한다"
+      ]
+    }
+  ],
+  "cleanPassedChecks": 13,
+  "package": {
+    "sourceCommit": "e537aa71ccba993762e77ac96efa9fcb42ca62a7",
+    "persistentPackageCreated": false,
+    "packageAvailableAfterExec": false,
+    "manifestSha256": "d0e6e6d6cf5174cfa7ea7c13b249de8f57866b64ebb9c812bb2a645be9e2245f",
+    "declaredFiles": 2343,
+    "totalFiles": 2344,
+    "packageBytes": 132766565,
+    "manifestAndFileSetMatch": true,
+    "symlinks": false,
+    "coreCopies": {
+      "Confectory.Core.dll": "3a73c04083d7d60cde211e757437619e4ee86a1c20e65b5c8bf4ce0efbe83d3b",
+      "content/src/Confectory.Cli/bin/Release/net10.0/Confectory.Core.dll": "3a73c04083d7d60cde211e757437619e4ee86a1c20e65b5c8bf4ce0efbe83d3b",
+      "content/targets/android-export/bin/Release/net10.0/Confectory.Core.dll": "3a73c04083d7d60cde211e757437619e4ee86a1c20e65b5c8bf4ce0efbe83d3b",
+      "content/targets/browser-wasm/bin/Release/net10.0/Confectory.Core.dll": "3a73c04083d7d60cde211e757437619e4ee86a1c20e65b5c8bf4ce0efbe83d3b",
+      "content/targets/element-authoring/bin/Release/net10.0/Confectory.Core.dll": "3a73c04083d7d60cde211e757437619e4ee86a1c20e65b5c8bf4ce0efbe83d3b",
+      "content/targets/desktop-entry/bin/Release/net10.0/Confectory.Core.dll": "3a73c04083d7d60cde211e757437619e4ee86a1c20e65b5c8bf4ce0efbe83d3b",
+      "content/targets/project-execution-host/bin/Release/net10.0/Confectory.Core.dll": "3a73c04083d7d60cde211e757437619e4ee86a1c20e65b5c8bf4ce0efbe83d3b"
+    },
+    "nativeAssemblySha256": "23cb79abb1ec9d51ccfca55e0843e492676ab747bf921a8c8ade115d731cd93c",
+    "productSha256": {
+      "targets/element-authoring/InformationDefinitions.cs": "20ab49df2032b7c28a35b686b2d68bb84b7cade93934d9a911b83911cbcf3020",
+      "targets/element-authoring/InformationFunctionBatch.cs": "015a56853035242402b8869995a36b39a5fe7c60c8b9eb8fb52a905e59526e33"
+    },
+    "packagedBackendChecks": 4,
+    "actualWindows": false,
+    "webView2Executed": false,
+    "actualMobile": false,
+    "libraryUploaded": false,
+    "oldDurablePackageUnchanged": "/workspace/artifacts/v536-information-shared-callers/Windows-x64",
+    "oldDurableManifestSha256": "9d8f3fa88b1e8c62753ba2fe32228e02aa3be6ef41c34c394a81be15bd42f559",
+    "existingFilesDeleted": false,
+    "workspaceAvailableBytes": 2006265856,
+    "newTemporaryPackageRemovedAfterVerification": true,
+    "fixtureEvidencePreserved": true
+  },
+  "phases": [
+    {
+      "name": "restored-release-inputs",
+      "command": [
+        "/workspace/toolchains/dotnet-10.0.401/dotnet",
+        "restore",
+        "Confectory.sln",
+        "--disable-parallel"
+      ],
+      "exit": 0,
+      "sampleIntervalSeconds": 0.2,
+      "minimumWorkspaceAvailableBytes": 2019614720,
+      "peakCgroupMemoryBytes": 2982109184,
+      "elapsedSeconds": 1.8,
+      "log": "/workspace/scratch/v536-shared-input-definition-return-mix/restored-release-inputs.log",
+      "workspaceAvailableBytes": 2019618816
+    },
+    {
+      "name": "committed-release",
+      "command": [
+        "/workspace/toolchains/dotnet-10.0.401/dotnet",
+        "build",
+        "Confectory.sln",
+        "-c",
+        "Release",
+        "--no-restore",
+        "-m:1",
+        "-p:UseSharedCompilation=false"
+      ],
+      "exit": 0,
+      "sampleIntervalSeconds": 0.2,
+      "minimumWorkspaceAvailableBytes": 2019610624,
+      "peakCgroupMemoryBytes": 3303960576,
+      "elapsedSeconds": 30.3,
+      "log": "/workspace/scratch/v536-shared-input-definition-return-mix/committed-release.log",
+      "workspaceAvailableBytes": 2019610624
+    },
+    {
+      "name": "committed-mcp-release",
+      "command": [
+        "/workspace/toolchains/dotnet-10.0.401/dotnet",
+        "build",
+        "targets/mcp-host",
+        "-c",
+        "Release",
+        "--no-restore",
+        "-p:UseSharedCompilation=false"
+      ],
+      "exit": 0,
+      "sampleIntervalSeconds": 0.2,
+      "minimumWorkspaceAvailableBytes": 2019610624,
+      "peakCgroupMemoryBytes": 3063631872,
+      "elapsedSeconds": 2.8,
+      "log": "/workspace/scratch/v536-shared-input-definition-return-mix/committed-mcp-release.log",
+      "workspaceAvailableBytes": 2019606528
+    },
+    {
+      "name": "windows-package",
+      "command": [
+        "/workspace/toolchains/dotnet-10.0.401/dotnet",
+        "targets/editor-desktop/bin/Release/net10.0/Confectory.dll",
+        "package",
+        "/workspace/Confectory",
+        "/tmp/pkg-sim-u741q6rv/Windows-x64"
+      ],
+      "exit": 0,
+      "sampleIntervalSeconds": 0.2,
+      "minimumWorkspaceAvailableBytes": 2006278144,
+      "peakCgroupMemoryBytes": 3388305408,
+      "elapsedSeconds": 75.2,
+      "log": "/workspace/scratch/v536-shared-input-definition-return-mix/windows-package.log",
+      "workspaceAvailableBytes": 2006274048
+    },
+    {
+      "name": "windows-probe",
+      "command": [
+        "python3",
+        "tests/probes/desktop_package.py",
+        "/workspace/Confectory",
+        "/tmp/pkg-sim-u741q6rv/Windows-x64"
+      ],
+      "exit": 0,
+      "sampleIntervalSeconds": 0.2,
+      "minimumWorkspaceAvailableBytes": 2006269952,
+      "peakCgroupMemoryBytes": 4167880704,
+      "elapsedSeconds": 7.8,
+      "log": "/workspace/scratch/v536-shared-input-definition-return-mix/windows-probe.log",
+      "workspaceAvailableBytes": 2006269952
+    },
+    {
+      "name": "packaged-pure",
+      "command": [
+        "python3",
+        "tests/web/v536_information_shared_input_definition_return_mix_native.py",
+        "/tmp/pkg-sim-u741q6rv/Windows-x64/content",
+        "/workspace/scratch/v536-information-inherited-contract/clean-engine-1.json",
+        "normal"
+      ],
+      "exit": 0,
+      "sampleIntervalSeconds": 0.2,
+      "minimumWorkspaceAvailableBytes": 2006265856,
+      "peakCgroupMemoryBytes": 3312455680,
+      "elapsedSeconds": 14.2,
+      "log": "/workspace/scratch/v536-shared-input-definition-return-mix/packaged-pure.log",
+      "workspaceAvailableBytes": 2006265856
+    }
+  ],
+  "currentSourceAndNativeAssemblyMatchPackage": true,
+  "manifestSha256MatchesSavedFullManifest": true,
+  "resources": {
+    "baseline": "82e2676",
+    "resourcesAndBundleFiles": 75,
+    "changed": [],
+    "originalLayoutResourcesUnchanged": true
+  },
+  "allNewEvidenceArchives": [
+    {
+      "path": "package-fixture-evidence/confectory-desktop-package-iwopv5n6.zip",
+      "sha256": "28cd2a604afdef09534179de04d2b90402c23b38913ca9631abbd19ece19b6c9",
+      "files": 10,
+      "bytes": 61161,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "package-fixture-evidence/confectory-wide-mixed-xxfrdjru.zip",
+      "sha256": "b6a8063763a084b3a3dadc922e0449d4e486ac491da05c3664aa31cae39628f8",
+      "files": 67,
+      "bytes": 24676,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "impacts/evidence/legacy.zip",
+      "sha256": "6e0435a8ec06b1ab4d8c44d09095eb1bc4a73a3f31ba0423e289544653c98570",
+      "files": 66,
+      "bytes": 18575,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "impacts/evidence/impact-prev.zip",
+      "sha256": "c56332322fa0becab4fcf30c192032eb28641d30fc3b1ba167dbbc642045607c",
+      "files": 67,
+      "bytes": 24656,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "impacts/evidence/impact-inputmix.zip",
+      "sha256": "9b77266671d45ee6ae6bffa9416bf37076b9bb2520390e3b98b4738c2b3de423",
+      "files": 67,
+      "bytes": 24374,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "impacts/evidence/impact-return.zip",
+      "sha256": "90fd00dcada584fffb14d3dcad4c6a835934376bc37c77ec724381c891ba0338",
+      "files": 67,
+      "bytes": 24572,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "impacts/evidence/policy7.zip",
+      "sha256": "2119b92b6a4dacaa71fb59091afcd3636cdd839557ba7f03865a61689c0215db",
+      "files": 74,
+      "bytes": 25818,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "impacts/evidence/impact-defs.zip",
+      "sha256": "6138f33ffe0502dc74cdcc8bbafa2ffd8e77b8a5c95231fbf2a911b968b1f929",
+      "files": 67,
+      "bytes": 24337,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "focused/evidence/conflict.zip",
+      "sha256": "658e0fbccb924089309e8d28d2527f83e25b80a8bd0b15f4d100999f85b2e7cf",
+      "files": 77,
+      "bytes": 636970,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "focused/evidence/delete-api.zip",
+      "sha256": "8df3ab76e6064481dee232e2d3cd02852afa8ea8e5b82faf515b9573d3b886d7",
+      "files": 77,
+      "bytes": 26114,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "focused/evidence/loss.zip",
+      "sha256": "e88c050467396fdf36208584bbed57cae0a6d1cee22329d9fca4d076e0e5fb6e",
+      "files": 82,
+      "bytes": 645173,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "focused/evidence/projects.zip",
+      "sha256": "c9e9069a7ac523cc36e441dd8a6162b5a81d17971edb0b1921e44b16b62f22e8",
+      "files": 147,
+      "bytes": 658549,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "focused/evidence/delete.zip",
+      "sha256": "9ce5b245ea528c53a0bb38e67bcd65c710fdc3b9390b379d4f94296e65751a32",
+      "files": 67,
+      "bytes": 24646,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "focused/evidence/pure.zip",
+      "sha256": "624c9f3339256a62ecfb1a6b55666a7084fc9eb1ae6f4de9b984a150d311b14f",
+      "files": 67,
+      "bytes": 24638,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "focused/evidence/joint-view.zip",
+      "sha256": "90ecc7ea0100350b6890a7aa4de98394e62d2d2dcb65f7c393d919d64e6be755",
+      "files": 84,
+      "bytes": 667721,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "focused/evidence/storage.zip",
+      "sha256": "69eb07fb73f5af1181e8b0aef0dda8a99d8bf7a82d475800f1012d1e9eb336dd",
+      "files": 84,
+      "bytes": 747037,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "focused/evidence/api.zip",
+      "sha256": "9a191605b06b08b39aff8b9e719d3067c44438ec2107c745051732aab196a26e",
+      "files": 77,
+      "bytes": 26098,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "focused/evidence/delete-ui.zip",
+      "sha256": "27667219573ac142e9957b73245ec8976ac99bd1878c4ec2a2c909dd7dff63f0",
+      "files": 84,
+      "bytes": 769759,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "focused/evidence/primary.zip",
+      "sha256": "2619d8015390ccfbe79d437967b6c5f071316e677054ebc12edc3d5a6e850582",
+      "files": 84,
+      "bytes": 746950,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "focused/evidence/cancel.zip",
+      "sha256": "166aea6e01a5b57b3a255015e8f05b838a1cab12b9503b9000bc9a5b0811423f",
+      "files": 78,
+      "bytes": 520569,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "focused/evidence/joint-pure.zip",
+      "sha256": "3340f0d8b12bbdc61308f8608c1ea4b1a58c59cd408a682f6ccb2d78bf5f4c81",
+      "files": 67,
+      "bytes": 24634,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "focused/evidence/joint-api.zip",
+      "sha256": "31e3f1dd6a7bb8c299c04d79f7c098cac86b35960b0d9046f2894c71b7212474",
+      "files": 77,
+      "bytes": 26093,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "focused/evidence/retry.zip",
+      "sha256": "b48d7ab1fd5f2f0d4f2cfd5992de3ade427fcc946e0271c75bd83c87b71d8e56",
+      "files": 84,
+      "bytes": 747045,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "clean/evidence/legacy.zip",
+      "sha256": "0460ef56df820205431c889775a66baa6aa9197b419b61f23b85253cfa46d9b4",
+      "files": 66,
+      "bytes": 18603,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "clean/evidence/pure.zip",
+      "sha256": "bcfee4911286b0581e14c447c52039e1a750ba66b9849fdc6044423bfe34bd49",
+      "files": 67,
+      "bytes": 24685,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "clean/evidence/joint-view.zip",
+      "sha256": "6a0fff86b37643c15de4a30caa8b10c5fae23173a9fb38496b733f66a97e4f55",
+      "files": 84,
+      "bytes": 667812,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "clean/evidence/api.zip",
+      "sha256": "ef4d38eec27f91dc1c550c6de658b9febbb73d9f9184cd0334d2a6bcd547e60b",
+      "files": 77,
+      "bytes": 26178,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "clean/evidence/policy7.zip",
+      "sha256": "7dce756709d383c989f90013789993922357557c78679f1faefbbbd87f0c34d1",
+      "files": 74,
+      "bytes": 25884,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "before/evidence/delete-before.zip",
+      "sha256": "aa267dc79995278b63c091a22f234aad499caf05296e99a9bcc3bb2b97481563",
+      "files": 66,
+      "bytes": 19252,
+      "fileSetModesAndBytesMatch": true
+    },
+    {
+      "path": "before/evidence/joint-before.zip",
+      "sha256": "3dd1b850174cf24d0af2131aed945d3622272cab2f2ad17e52fecf68602fd932",
+      "files": 66,
+      "bytes": 19252,
+      "fileSetModesAndBytesMatch": true
+    }
+  ],
+  "allArchiveFileSetsModesAndBytesMatch": true,
+  "existingFilesDeleted": false,
+  "oldEvidenceConvertedOrDeleted": false,
+  "actualWindows": false,
+  "webView2Executed": false,
+  "actualMobile": false,
+  "libraryUploaded": false,
+  "newDeliverableRetained": false,
+  "cgroupMemoryEvents": {
+    "low": "0",
+    "high": "0",
+    "max": "0",
+    "oom": "0",
+    "oom_kill": "0",
+    "oom_group_kill": "0"
+  },
+  "workspaceAvailableBytes": 2005868544
+}

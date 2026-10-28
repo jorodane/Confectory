@@ -1,0 +1,218 @@
+{
+  "checks": 38,
+  "repeatedFailedFixtureAttemptsCounted": false,
+  "cases": [
+    {
+      "checks": 2,
+      "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-189k043u",
+      "executed": false,
+      "case": "pure-4"
+    },
+    {
+      "checks": 2,
+      "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-sitaum1t",
+      "executed": false,
+      "cpp": true,
+      "postMode": "post",
+      "case": "pure-6"
+    },
+    {
+      "checks": 2,
+      "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-ryrl8vnp",
+      "executed": false,
+      "cpp": true,
+      "postMode": "enum",
+      "case": "pure-enum-7"
+    },
+    {
+      "checks": 2,
+      "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-q4z14hvl",
+      "executed": false,
+      "cpp": false,
+      "postMode": null,
+      "callee": true,
+      "case": "pure-callee-8"
+    },
+    {
+      "checks": 2,
+      "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-cn3s895q",
+      "executed": false,
+      "cpp": true,
+      "postMode": "post",
+      "callee": false,
+      "case": "pure-forward-10"
+    },
+    {
+      "checks": [
+        "중첩 호출/record의 경계·source·누락 증거는 전체 거절하며 부모·형제·checkpoint를 보존한다",
+        "depth2·동명 leaf·명시 C#/postCall을 실제 한 후보/CAS에 저장하고 cold에서 분리 복원한다",
+        "실제 compiler Review/Confirm·cold 뒤에도 모든 qualified source·부모/형제·정확한 값이 보존된다"
+      ],
+      "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-8wu0lzfv",
+      "cpp": true,
+      "postMode": "post",
+      "actualEngine": true,
+      "projectRun": false,
+      "nativeWindows": false,
+      "case": "api-1"
+    },
+    {
+      "checks": [
+        "중첩 호출/record의 경계·source·누락 증거는 전체 거절하며 부모·형제·checkpoint를 보존한다",
+        "depth2·동명 leaf·명시 C#/postCall을 실제 한 후보/CAS에 저장하고 cold에서 분리 복원한다",
+        "실제 compiler Review/Confirm·cold 뒤에도 모든 qualified source·부모/형제·정확한 값이 보존된다"
+      ],
+      "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-5qty2s2o",
+      "cpp": false,
+      "postMode": null,
+      "actualEngine": true,
+      "projectRun": false,
+      "nativeWindows": false,
+      "case": "api-callee-4"
+    },
+    {
+      "checks": [
+        "원본 전체 본문 편집창의 본문·형식 매개변수/입출력은 취소·불완전 cold·코드 저장·명시 caller 선택·Undo/Redo에서 보존된다",
+        "화면 정상 저장·cold는 전체 후보와 C# 원문·호출자를 정확히 복원한다",
+        "실제 화면 compiler Review 취소·재검토·명시 Confirm은 입출력 저장소와 C# 원문을 함께 반영한다"
+      ],
+      "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-x7f3o7vj",
+      "actualEngine": true,
+      "scenario": "types",
+      "chain": false,
+      "mode": "normal-simple",
+      "nested": true,
+      "cpp": true,
+      "postMode": "post",
+      "nativeWindows": false,
+      "deviceTouch": false,
+      "case": "ui-1"
+    },
+    {
+      "checks": [
+        "원본 전체 본문 편집창의 본문·형식 매개변수/입출력은 취소·불완전 cold·코드 저장·명시 caller 선택·Undo/Redo에서 보존된다",
+        "화면 저장 장치 오류는 source·호출자·checkpoint 부분 적용 없이 명시 입력을 보존한다",
+        "응답과 receipt 유실 뒤 cold/재시도는 결과 조회로 전체 저장을 확인하며 중복 적용하지 않는다",
+        "실제 화면 compiler Review 취소·재검토·명시 Confirm은 입출력 저장소와 C# 원문을 함께 반영한다"
+      ],
+      "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-nukki_bp",
+      "actualEngine": true,
+      "scenario": "types",
+      "chain": false,
+      "mode": "normal",
+      "nested": true,
+      "cpp": true,
+      "postMode": "enum",
+      "nativeWindows": false,
+      "deviceTouch": false,
+      "case": "ui-loss-enum-2"
+    },
+    {
+      "checks": [
+        "원본 전체 본문 편집창의 본문·형식 매개변수/입출력은 취소·불완전 cold·코드 저장·명시 caller 선택·Undo/Redo에서 보존된다",
+        "동시 source 변경은 본문·저장소·호출자 전체를 거절하고 새 입력과 다른 편집자를 보존한다"
+      ],
+      "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-vymzy329",
+      "actualEngine": true,
+      "scenario": "types",
+      "chain": false,
+      "mode": "normal-conflict",
+      "nested": true,
+      "cpp": true,
+      "postMode": "post",
+      "nativeWindows": false,
+      "deviceTouch": false,
+      "case": "ui-conflict-3"
+    },
+    {
+      "checks": [
+        "원본 전체 본문 편집창의 본문·형식 매개변수/입출력은 취소·불완전 cold·코드 저장·명시 caller 선택·Undo/Redo에서 보존된다",
+        "변경 취소는 본문·native 입출력·호출자와 cold 기록을 함께 미적용으로 유지한다"
+      ],
+      "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-4c07q8gj",
+      "actualEngine": true,
+      "scenario": "types",
+      "chain": false,
+      "mode": "normal-cancel",
+      "nested": true,
+      "cpp": true,
+      "postMode": "post",
+      "nativeWindows": false,
+      "deviceTouch": false,
+      "case": "ui-cancel-4"
+    },
+    {
+      "checks": [
+        "원본 전체 본문 편집창의 본문·형식 매개변수/입출력은 취소·불완전 cold·코드 저장·명시 caller 선택·Undo/Redo에서 보존된다",
+        "동일 namespace 두 프로젝트는 전체 본문/입출력 입력을 분리하고 닫힌 편집창 저장을 차단한다"
+      ],
+      "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-yckkqfrk",
+      "actualEngine": true,
+      "scenario": "types",
+      "chain": false,
+      "mode": "normal-projects",
+      "nested": true,
+      "cpp": true,
+      "postMode": "post",
+      "nativeWindows": false,
+      "deviceTouch": false,
+      "case": "ui-projects-5"
+    },
+    {
+      "checks": [
+        "원본 전체 본문 편집창의 본문·형식 매개변수/입출력은 취소·불완전 cold·코드 저장·명시 caller 선택·Undo/Redo에서 보존된다",
+        "화면 정상 저장·cold는 전체 후보와 C# 원문·호출자를 정확히 복원한다",
+        "실제 화면 compiler Review 취소·재검토·명시 Confirm은 입출력 저장소와 C# 원문을 함께 반영한다"
+      ],
+      "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-zmcqswit",
+      "actualEngine": true,
+      "scenario": "types",
+      "chain": false,
+      "mode": "view-simple",
+      "nested": true,
+      "cpp": true,
+      "postMode": "post",
+      "nativeWindows": false,
+      "deviceTouch": false,
+      "case": "ui-view-6"
+    },
+    {
+      "checks": [
+        "원본 내부 흐름·상위/깊이2 재진입·폭 전환·cold는 동명 leaf source와 다른 정보 입력을 분리 보존한다"
+      ],
+      "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-ha5lqbf3",
+      "actualEngineRenderer": true,
+      "nativeWindowsOrMobile": false,
+      "projectRun": false,
+      "case": "navigation-2"
+    },
+    {
+      "checks": [
+        "원본 전체 본문 편집창의 본문·형식 매개변수/입출력은 취소·불완전 cold·코드 저장·명시 caller 선택·Undo/Redo에서 보존된다",
+        "화면 정상 저장·cold는 전체 후보와 C# 원문·호출자를 정확히 복원한다",
+        "실제 화면 compiler Review 취소·재검토·명시 Confirm은 입출력 저장소와 C# 원문을 함께 반영한다"
+      ],
+      "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-yepxu2sv",
+      "actualEngine": true,
+      "scenario": "types",
+      "chain": false,
+      "mode": "normal-simple",
+      "nested": true,
+      "independent": true,
+      "forward": true,
+      "cpp": true,
+      "postMode": "post",
+      "nativeWindows": false,
+      "deviceTouch": false,
+      "case": "ui-forward-view-7"
+    },
+    {
+      "checks": 2,
+      "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-_5jq396v",
+      "storage": true,
+      "postMode": "enum",
+      "executed": false,
+      "case": "retained-regression-1"
+    }
+  ]
+}

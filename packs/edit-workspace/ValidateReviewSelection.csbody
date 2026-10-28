@@ -1,8 +1,42 @@
 var state=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+handle) as System.Text.Json.Nodes.JsonObject??throw new ObjectDisposedException("EditWorkspace");
 lock(state){
+ foreach(string id in selected)if(state["units"]?[id]?["atomicEditGroup"] is not null&&System.Linq.Enumerable.Any(calls.CreationGroup.Invoke(handle,id),member=>Array.IndexOf(selected,member)<0))throw new InvalidOperationException("Review all atomic schema/declaration/body/copy members together");
  foreach(string id in selected)if(state["units"]?[id]?["retirementGroup"] is not null&&System.Linq.Enumerable.Any(calls.CreationGroup.Invoke(handle,id),member=>Array.IndexOf(selected,member)<0))throw new InvalidOperationException("Review the recovered sources and registration together");
  foreach(string id in selected)if(state["units"]?[id]?["hierarchyGroup"] is not null){var required=calls.CreationGroup.Invoke(handle,id);if(System.Linq.Enumerable.Any(required,member=>!System.Linq.Enumerable.Contains(selected,member,StringComparer.Ordinal)))throw new InvalidOperationException("Review the complete hierarchy move together");}
  foreach(string id in selected)if(state["units"]?[id]?["rootContractGroup"] is not null){var group=calls.CreationGroup.Invoke(handle,id);if(System.Linq.Enumerable.Any(group,key=>Array.IndexOf(selected,key)<0))throw new InvalidOperationException("Review the function, implementation and root graph together");}
+
+ // A copy caller can remain unchanged in Review, while its assignment must
+ // still match the sources verified at Save. Restoring a checkpoint preserves
+ // these checks; it does not silently rebase them onto newer physical files.
+ foreach(string id in selected)if(state["units"]?[id]?["atomicEditGroup"] is not null&&state["units"]?[id]?["slotSaveReceipt"] is System.Text.Json.Nodes.JsonObject receipt){
+  bool copies=System.Linq.Enumerable.Any(receipt["declaration"]?["changes"]?.AsArray()??new System.Text.Json.Nodes.JsonArray(),change=>change?["mapping"]?["copies"] is System.Text.Json.Nodes.JsonObject map&&map.Count>0);
+  if(!copies)continue;
+  var guards=receipt["readGuards"]?.AsObject()??throw new InvalidOperationException("Save the copy candidate explicitly again to bind its original sources; all draft input retained");
+  if(guards.Count is <1 or >240)throw new InvalidOperationException("Complete bounded copy source checks required");
+  string root=System.IO.Path.GetFullPath(state["root"]!.ToString());var comparison=OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal;
+  foreach(var guard in guards){string relative=guard.Value!["path"]!.ToString(),path=System.IO.Path.GetFullPath(System.IO.Path.Combine(root,relative));
+   if(guard.Key!=relative||System.IO.Path.IsPathRooted(relative)||!path.StartsWith(root+System.IO.Path.DirectorySeparatorChar,comparison))throw new InvalidOperationException("Copy source check must stay in its original project");
+   for(System.IO.FileSystemInfo? entry=new System.IO.FileInfo(path);entry is not null;entry=entry is System.IO.FileInfo file?file.Directory:((System.IO.DirectoryInfo)entry).Parent){if(entry.LinkTarget is not null)throw new InvalidOperationException("Copy source check cannot traverse links");if(entry.FullName.Equals(root,comparison))break;}
+   if(System.IO.File.Exists(path)&&new System.IO.FileInfo(path).Length>2097152)throw new InvalidOperationException("Copy source changed beyond its read budget");
+   if(calls.Snapshot.Invoke(path)[2]!=guard.Value["hash"]!.ToString())throw new InvalidOperationException("Copy assignment or source changed; no candidate applied, saved draft and input retained");
+  }
+ }
+
+ // A newly created private copy keeps the exact external declarations approved
+ // before its registration. Query only that original direct-dependency scope;
+ // never turn an external ID into a writable unit or refresh its receipt silently.
+ foreach(string id in selected)if(state["units"]?[id]?["baseline"]?.ToString()=="missing"&&state["units"]?[id]?["privateAbiContracts"] is System.Text.Json.Nodes.JsonObject proof){
+  var unit=state["units"]![id]!;string owner=proof["owner"]!.ToString(),manifestId=state["namespace"]!.ToString()+"::ProjectManifest";
+  if(unit["kind"]?.ToString()!="implementation"||unit["creationOwner"]?.ToString()!=owner||unit["copySource"] is null||state["units"]?[owner]?["kind"]?.ToString() is not ("object" or "schema")||proof["receipts"] is not System.Text.Json.Nodes.JsonObject receipts||receipts.Count is <1 or >32)throw new InvalidOperationException("Exact new private copy contract scope required; saved draft retained");
+  calls.Read.Invoke(handle,manifestId);calls.Read.Invoke(handle,owner);string contractManifest=state["units"]![manifestId]!["original"]!.ToString(),ownerText=state["units"]![owner]!["original"]!.ToString();
+  foreach(var receipt in receipts){var current=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("blueprintCallableContracts",new System.Text.Json.Nodes.JsonObject{["action"]="read",["project"]=state["project"]!.DeepClone(),["manifest"]=contractManifest,["sourceId"]=owner,["text"]=ownerText,["id"]=receipt.Key}.ToJsonString()))!;
+   if(!System.Text.Json.Nodes.JsonNode.DeepEquals(current["receipt"],receipt.Value)||current["bodyReads"]?.GetValue<int>()!=0)throw new InvalidOperationException("Private registered contract changed; no candidate applied, saved copy and all input retained");
+  }
+ }
+
+ // Saved external declarations are restored as evidence, but both Review and
+ // Confirm must recheck the current registry in the current project's context.
+ foreach(string id in selected)if(state["units"]?[id]?["rootAbiContracts"] is not null){var unit=state["units"]![id]!;var group=unit["rootContractGroup"]!.AsArray();var rows=new System.Text.Json.Nodes.JsonObject();foreach(var member in group){string key=member!.ToString();var source=state["units"]![key]!;string root=System.IO.Path.GetFullPath(state["root"]!.ToString()),path=System.IO.Path.GetFullPath(System.IO.Path.Combine(root,source["path"]!.ToString()));var comparison=OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal;if(!path.StartsWith(root+System.IO.Path.DirectorySeparatorChar,comparison))throw new InvalidOperationException("Owned registered target source required");for(System.IO.FileSystemInfo? node=new System.IO.FileInfo(path);node is not null;node=node is System.IO.FileInfo file?file.Directory:((System.IO.DirectoryInfo)node).Parent){if(node.LinkTarget is not null)throw new InvalidOperationException("Registered target source cannot traverse links");if(node.FullName.Equals(root,comparison))break;}if(new System.IO.FileInfo(path).Length>2097152)throw new InvalidOperationException("Registered target source changed beyond its read budget");var physical=calls.Snapshot.Invoke(path);if(physical[0]!="exists"||physical[2]!=source["baseline"]?.ToString())throw new InvalidOperationException("Registered target source changed; preserve the complete draft and review again");rows[key]=new System.Text.Json.Nodes.JsonObject{["kind"]=source["kind"]!.DeepClone(),["path"]=source["path"]!.DeepClone(),["draft"]=source["draft"]!.DeepClone(),["rootContractGroup"]=group.DeepClone(),["rootAbiContracts"]=source["rootAbiContracts"]?.DeepClone()};}calls.Metadata.Invoke("blueprintRootGroup",new System.Text.Json.Nodes.JsonObject{["namespace"]=state["namespace"]!.DeepClone(),["group"]=group.DeepClone(),["units"]=rows,["verifyRegistered"]=true,["project"]=state["project"]!.DeepClone()}.ToJsonString());}
 
  var folderMembers=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);foreach(string id in selected)if(state["units"]?[id]?["hierarchyGroup"] is System.Text.Json.Nodes.JsonArray members&&System.Linq.Enumerable.Any(members,member=>state["units"]?[member!.ToString()]?["kind"]?.ToString()=="category"))foreach(var member in members)folderMembers.Add(member!.ToString());
  if(folderMembers.Count>0){var folderUnits=new System.Text.Json.Nodes.JsonArray();foreach(string id in folderMembers){var unit=state["units"]![id]!;folderUnits.Add(new System.Text.Json.Nodes.JsonObject{["id"]=id,["kind"]=unit["kind"]!.DeepClone(),["text"]=unit["draft"]!.DeepClone()});}calls.Metadata.Invoke("browserFolderValidate",new System.Text.Json.Nodes.JsonObject{["namespace"]=state["namespace"]!.DeepClone(),["units"]=folderUnits}.ToJsonString());}

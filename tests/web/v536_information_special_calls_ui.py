@@ -1,0 +1,2 @@
+import v536_information_special_calls_fixture
+import v536_information_input_replacements_ui

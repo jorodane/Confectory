@@ -1,0 +1,90 @@
+# I5-6: 지원 경로와 남은 계약 편집
+
+7행의 최신 유한한 잔여와 정상 보호 구분은 [원래 조작 재대조](V536_ROW7_REMAINING_BOUNDARY.md)를 우선한다. 과거 한정 단위의 미검증 표현을 ref/out/값 변환의 모든 조합별 새 필수 작업으로 늘리지 않는다.
+
+기준은 `196c605`의 저장소 v536 레퍼런스, `openOwnFunctionPopover`, `renderFunctionSignatureEditor`, `renderFeatureDefinition`과 기존 native 함수 계약이다. 원본 상세창은 입력/출력의 이름·타입·추가/삭제를 제공한다. 순서 조작은 `propertyStyle`인 Blueprint 정의에서 제공하며 정보 상세창에 새 드래그 제어를 만들지 않는다. 값/ref/out은 기존 native 계약과 구현 편집 경계를 유지한다. 기능 목록의 순서(I5-5)는 매개변수 순서와 별개다.
+
+기본 수용 범위는 직접 소유한 **함수 하나**의 명시적 기존 핀 대응이다. 아래 8행에는 여러 함수의 값 입력 이름·독립 leaf/call scalar 타입 변경·일반 out 이름/scalar 타입·출력 정의/void 반환 및 비void 반환 타입의 별도 결합 단위를 구분한다. 일반 Blueprint 루트와 실제 호출 입력 이름을 함께 바꾸고, 내부 code 노드의 매개변수·C# 내용은 유지한다. 동일 이름/타입/역할 집합의 순열은 C# 구현의 자체 매개변수 이름을 보존하고, 다중 target·소유 module require·안전한 후처리도 한 후보에 넣는다. 기본/독립 정보 창에서 입력 이름 편집과 저장/복원을 확인했다. 다중 target/순열/후처리 검사는 순수 후보와 실제 API/컴파일러 경로이며 원본 정보 상세창에 매개변수 정렬 UI를 추가했다는 뜻이 아니다.
+
+| 화면과 사용자 조작 | 현재 결과 | 남은 연결/완료 기준 |
+|---|---|---|
+| 함수 상세창에서 연결된 입력을 다른 타입으로 바꾸거나 삭제한 뒤 저장 | 미사용 입력 삭제와 일반 code/call 값 인자의 직접 연결과 수식 전체, Set/export 값, root 별칭 저장소·exit의 삭제/타입 변경 대응을 명시 후보에 연결했다(VALIDATION_V536_INFORMATION_VALUE_USES.md). C# 매개변수/본문은 유지한다 | 1행의 기존 값 입력 문맥은 property 수신자/쓰기·branch/enum/After까지 연결했다(VALIDATION_V536_INFORMATION_PROPERTY_CALLS.md, V536_I5_6_ROW1_SCOPE.md). 별칭은 같은 타입의 현재 root 저장소만 명시 선택하며 값 복사로 바꾸지 않는다. callee/C# 형식 매개변수·nested/whole-body/ref 역할 변경은 4~7행의 별도 경계다. 함수 밖 계약이나 타입을 추측하지 않는다. 삭제/추가에서 기존 caller 저장소 재사용도 지원하며 모순된 동시 해제는 거절한다. 자동 연결 삭제는 없다. |
+| 함수 상세창에서 입력을 추가하고, 사용 중인 호출에도 새 값을 전달 | 일반 scalar의 명시 값/기존 caller 바인딩 선택을 같은 후보/CAS에 연결했다(VALIDATION_V536_INFORMATION_INPUTS.md). 빠진 호출/값은 전체 거절 | 임의 기본값·새 저장소를 만들지 않는다. C#/중첩/복잡한 ref/out은 별도 경계다. |
+| 함수 상세창에서 출력 이름·타입·추가/삭제 또는 반환 타입을 바꾸고 사용처 유지 | 일반 out 이름 변경은 기본/독립 상세창에서 내보내기·consumer·공개 metadata와 함께 검증했다(VALIDATION_V536_INFORMATION_OUT.md). 현재 native 식별자 문법 범위다. 기존 out/반환의 단일 숫자 출력 타입 변경을 exact-typed 현재 root 입력과 caller 출력의 명시 대응으로 연결했다(VALIDATION_V536_INFORMATION_OUTPUT_TYPES.md) | 출력 추가/전체 배치 삭제·양방향 void 반환 전환을 명시 값/삽입 위치·caller outputs와 같은 후보에 연결했다(VALIDATION_V536_INFORMATION_OUTPUT_DEFINITIONS.md). 다중 writer/여러 출력 동시·비숫자 출력의 타입 변경과 exact-typed root/노드 결과/지역값·명시 리터럴을 연결했다(VALIDATION_V536_INFORMATION_OUTPUT_REMAP.md). 출력 이름·타입·추가를 같은 후보에 묶고 모든 원래 writer/exit와 소비자 대응을 검증한다. 입력 계약 변경+출력 정의/타입 변경도 같은 원래 graph 증거·한 후보/CAS에 결합했다(VALIDATION_V536_INFORMATION_IO_CONTRACTS.md). 직접 소유 일반 Blueprint/현재 기본형·배열 선택기의 3행 지원 경로 완료. C#·중첩·전체 저장소·출처·여러 함수·고급 핀/표시명은 4~9행으로 구별한다. |
+| 원본 구현/C# 편집창에서 새 본문을 명시하고 함수의 이름/타입/역할도 바꾸기 | 직접 소유 native C# target 및 C# 호출자/일반 Blueprint 호출자의 명시 본문·계약을 같은 후보/CAS에서 검증·저장한다(VALIDATION_V536_INFORMATION_CSHARP_CONTENT.md). 자동 재작성은 없다 | native-only 및 혼합 Blueprint/C# target을 각 원래 증거·명시 본문/핀 대응·한 후보/CAS에 결합했다(VALIDATION_V536_INFORMATION_MIXED_TARGETS.md). 현재 기본형/배열·직접 소유 native body/직접 C# 및 일반 Blueprint caller라는 고정 4행 지원 경계를 마감한다. 자동 C# 재작성은 하지 않는다. 등록/상속/copy·중첩·전체 저장소·고급 타입은 각 5~9행과 구분한다. 기존 source/서명/현재 계약의 명시 증거·컴파일·입력 보존 없이는 허용하지 않는다. |
+| 내부 흐름에 들어가 중첩 그래프 안의 호출 계약을 바꾸기 | 직접 소유 qualified private 호출의 명시 입력·출력 대응과 일반 next C#·serial/enum 후처리를 같은 후보/CAS에 연결했다. 부모/형제와 동명 leaf를 구분한다(V536_I5_6_NESTED_SCOPE.md) | 부모 private 계약·저장소·계층별 명시 출력과 추가 계산/별칭을 한 후보에 연결했다. private branch/switch 수동 C#/helpers 및 별도 private enum 저장도 연결한다. 같은 함수의 여러 forwarded 자식·깊이별 부모를 합성하여 한 후보/CAS에 연결했고 연결된 부모 간 입력도 두 단계로 보존한다(VALIDATION_V536_INFORMATION_MULTI_FORWARD.md). 현재 직접 소유/명시 대응의 고정 5행 지원 경계를 마감한다(V536_I5_6_NESTED_SCOPE.md). copy/등록 receipt는 7행이다. 기존 경계를 넘어 자동 추정하지 않는다. 5행 전체 완료와 이번 지원 단위를 구분한다. |
+| 전체 본문 문맥/호출자 저장소를 쓰는 구현의 값/ref/out 변경 | 직접 소유·import 없는 원래 전체 본문 lift의 명시 C#·타입/핀 추가삭제·값/ref/out 역할·반환 타입/void 전환을 일반 caller의 저장소·출력 대응과 한 후보/CAS에 연결했다. V536_I5_6_WHOLE_CONTRACT_SCOPE.md, VALIDATION_V536_INFORMATION_WHOLE_CONTRACT.md에 검증 범위를 기록한다 | 프로젝트 소유 callee를 import하는 직접 소유 whole-body caller는 자신의 ABI·저장소를 유지한 수동 C#·import/context 갱신을 같은 후보에 연결했다(VALIDATION_V536_INFORMATION_CONTEXTS.md). 추가 일반 노드·locals/별칭의 callee, 별도 forwardCallerStorage code/call·serial/enum postCall의 명시 갱신을 같은 후보/CAS에 연결했다(V536_I5_6_RETAINED_SCOPE.md, VALIDATION_V536_INFORMATION_RETAINED.md). 원문·실제 셀/별칭·현재 import·호환 출력 대응을 검증한다. 등록/상속/copy caller는 7행 별도다. ref는 현재 기존 call 바인딩을 명시 선택해야 하며 임의 셀·별칭을 만들지 않는다. 고정 6행의 직접 소유 지원 경계는 위 수용 문서로 마감하며 nested/copy/등록·여러 함수·고급 타입은 5/7/8/9행이다. |
+| 등록 팩 함수가 함께 호출되는 구현·출처가 있는 복사 구현의 전체 계약 변경 | 직접 등록 계약 첫 단위에 이어, 저장된 단일 target 소유 copy의 owner/assignment/provenance와 callee/caller 편집을 같은 후보/CAS에 연결했다. 등록 함수의 실제 부모 edge·선언된 팩 dependency·전체 부모 receipt도 읽기 전용으로 결합했다. 직접 소유 정보 함수의 상속 C# copy는 같은 ABI 본문 편집에 이어 native 위치·타입·역할을 유지하는 공개 입력/out 이름 대응을 연결했다. Blueprint 부모의 실제 문맥·노드/hash를 보존한 복사와 compiler Confirm도 연결했다(V536_I5_6_INHERITED_CONTRACT_SCOPE.md). Confirm 전 저장한 단일 소유 copy의 같은 계약 본문 재편집과 기존 생성/배정의 완전한 Review 그룹도 연결한다(VALIDATION_V536_INFORMATION_PENDING_COPY.md). donor·부모·외부 팩은 보존한다. 등록 함수를 구현하는 단독 local copy의 같은 계약 본문 재편집은 저장 실패 입력 보호까지 연결했다(VALIDATION_V536_INFORMATION_EXTERNAL_COPY.md). 이 copy 내부의 owned/등록 callee ref→값 명시 갱신도 외부 root 읽기 전용 receipt·소유 closure의 한 후보/CAS·기본/독립 정보 창 Save/Review/Confirm에 연결했다(VALIDATION_V536_REGISTERED_ROOT_COPY_ABI.md). 외부 implemented 계약과 provenance는 변경하지 않는다 | 오버라이드의 타입·핀 수·역할·반환 구조 변경은 정상 금지이며 필수 잔여에서 제외한다. 독립 계약 복제/새 계약 ID 기능은 추가하지 않는다(V536_OVERRIDE_CONTRACT_POLICY.md). 7행 전체 완료로 자동 분류하지 않는다. 같은 계약의 미확정 단일 copy 본문 재진입은 별도 검증 단위로 마감한다. 외부 함수/다중 target copy의 편집·배정 연계, 기존 native 별칭과 안정된 외부 import를 보존한 로컬 copy 본문 재편집은 별도 수용 검증으로 연결한다(VALIDATION_V536_INFORMATION_COPY_IMPORTS.md). 원본 Result enum code switch의 복사·표시·기존 C# 본문은 선택 target·같은 공개 계약과 한 후보/CAS로 연결했다(VALIDATION_V536_ENUM_COPY_BODY.md). 같은 공개 계약의 기존 중첩/private graph 복사·이동·qualified leaf C# 본문/설명은 한 후보/CAS와 기본/독립 창 Save/Review/Confirm에 연결했다(VALIDATION_V536_NESTED_COPY_BODY.md). copy의 기존 private ordinary code next 값·입력 핀·시작/다음 연결과 새 일반 동작의 생성/삽입·명시 본문은 각 수용 단위로 연결한다(VALIDATION_V536_NESTED_COPY_VALUES.md, VALIDATION_V536_NESTED_COPY_PINS.md, VALIDATION_V536_NESTED_COPY_ROUTES.md, VALIDATION_V536_NESTED_COPY_CREATE.md). 기존 private ordinary switch의 enum 이름·순서·int32 값과 수동 C#/helpers는 단일 후보/CAS·실제 UI/컴파일러로 연결했다(VALIDATION_V536_NESTED_COPY_ENUM.md). private callee ABI는 별도 어댑터 잔여다. next→switch/새 case 실행선은 이번 지원 단위 밖이며 원래 수용 범위를 대조한 필요한 조작만 후속으로 남긴다. 공개 오버라이드 구조 변경 거절과 혼동하지 않는다. native alias/import 전용 UI·legacy bool 시각 분기·임의 raw/C# 조합을 새 7행 필수 요구로 늘리지 않는다. 원래 UI 노출과 현재 guard/실제 수용 증거를 구분한다. 정확한 지원/제한은 V536_I5_6_COPY_INHERITANCE_SCOPE.md에 고정하며 8행 여러 함수 공유 caller·9행 고급 타입/표시명과 구분한다. |
+| 정보 한 창에서 연결된 함수 둘 이상의 계약을 바꾸고 한 번에 저장 | 같은 위치·타입의 값 입력 이름 및 일반 out 이름 및 독립 leaf/call의 scalar out 타입 변경, 같은 위치·이름 scalar 값 입력 타입 변경은 직접 소유 일반 Blueprint 2~8개의 내부 후보 overlay에서 공유 caller 대응을 합성하고 원래 해시·단일 CAS로 저장한다(V536_I5_6_SHARED_CALLERS_SCOPE.md, VALIDATION_V536_INFORMATION_SHARED_TYPES.md, VALIDATION_V536_INFORMATION_SHARED_OUTPUT_NAMES.md, VALIDATION_V536_INFORMATION_SHARED_OUTPUT_TYPES.md). 같은 독립 leaf/call 경계의 명시 out 추가·전체 writer 삭제·삭제/추가 혼합과 양방향 void 반환 전환도 원래 graph 계획·소비 대응을 검증하여 결합한다(VALIDATION_V536_INFORMATION_SHARED_OUTPUT_DEFINITIONS.md). 인자 계약을 전부 유지한 여러 scalar 비void 반환 타입 변경도 원래 writer/caller의 명시 대응과 한 후보로 저장한다(VALIDATION_V536_INFORMATION_SHARED_RETURN_TYPES.md); 미선택 직접 로컬 함수의 typed import와 C# 노드 원문·별도 caller 호출을 읽기 의존성으로 보존하는 경계도 연결했다(VALIDATION_V536_INFORMATION_SHARED_LOCAL_IMPORTS.md); 모든 선택 함수의 이름/수/위치/역할/반환을 유지한 값 입력/out scalar 타입 동시 변경도 원래 사용처·해제·출력 대응과 한 후보/CAS로 연결한다(VALIDATION_V536_INFORMATION_SHARED_IO.md) | 입력 전용·출력 전용·입력/out 동시 scalar 타입 편집도 함수별 명시 대응을 검증하여 한 후보에 결합했다(VALIDATION_V536_INFORMATION_SHARED_MIXED_TYPES.md). out을 유지한 여러 함수의 입력 타입만 변경하는 그룹도 기존 사용처/해제 증거와 단일 후보/CAS에 연결한다(VALIDATION_V536_INFORMATION_SHARED_INPUTS_WITH_OUT.md). scalar 값 입력 추가·삭제/추가·삭제 전용의 명시 caller 값/재사용/해제와 callee 사용처도 별도 그룹에 연결한다(VALIDATION_V536_INFORMATION_SHARED_INPUT_DEFINITIONS.md). 입력 정의와 scalar 타입 편집의 함수 간/같은 함수 내 결합도 명시 사용처·값·해제로 검증한다(VALIDATION_V536_INFORMATION_SHARED_INPUT_MIX.md). 값 입력/핀 이름·수·역할·순서를 유지한 scalar out/비void 반환 타입도 함수 간/같은 함수 내 명시 writer·호환 소비 대응으로 결합한다(VALIDATION_V536_INFORMATION_SHARED_OUTPUT_RETURN_MIX.md). 출력 정의 추가/삭제·양방향 void 전환과 유지 out/비void 반환 타입 편집도 원래 그래프·writer·호환 소비를 검증하여 함수 간/같은 함수 안에서 결합한다(VALIDATION_V536_INFORMATION_SHARED_OUTPUT_DEFINITION_MIX.md). 값 입력의 타입/수/역할/순서를 유지한 명시 이름 변경과 scalar out/비void 반환 타입 편집도 원래 값·writer·호환 소비를 보존해 함수 간/같은 함수 안에서 결합한다(VALIDATION_V536_INFORMATION_SHARED_INPUT_NAME_OUTPUT_MIX.md). 입력 이름과 출력 추가/전체 writer 삭제·양방향 void 반환 전환도 원래 바인딩·graph 계획·호환 소비를 보존하여 함수 간/같은 함수 안에서 한 후보/CAS로 결합한다(VALIDATION_V536_INFORMATION_SHARED_INPUT_NAME_OUTPUT_DEFINITIONS.md). 값 입력 타입·scalar 비void 반환 타입의 함수 간/같은 함수 내 결합과 기존 out 타입 계획도 원래 사용처/값/해제·writer/호환 소비 및 한 후보/CAS로 결합한다(VALIDATION_V536_INFORMATION_SHARED_INPUT_RETURN_MIX.md). 값 입력 타입과 출력 추가/전체 writer 삭제·양방향 void 전환도 명시 사용처/값/해제·전체 graph/writer/소비 증거와 한 후보/CAS로 결합한다(VALIDATION_V536_INFORMATION_SHARED_INPUT_OUTPUT_DEFINITION_MIX.md). 입력 정의 추가·사용 중 삭제/삭제 후 새 입력 대응과 기존 scalar out/비void 반환 타입도 원래 입력 값·재사용/해제·모든 writer/호환 소비와 한 후보/CAS로 결합한다(VALIDATION_V536_INFORMATION_SHARED_INPUT_DEFINITION_RETURN_MIX.md). scalar 입력 정의 추가·사용 중 삭제/새 입력 대응과 출력 추가·전체 writer 삭제/양방향 void 전환도 원래 사용처·값·재사용/해제·graph/writer/소비 증거 및 한 후보/CAS로 결합한다(VALIDATION_V536_INFORMATION_SHARED_INPUT_OUTPUT_DEFINITIONS.md). 남은 입력과 출력의 식별자/역할/순서는 유지한다. ref를 포함한 직접 계약의 값/ref 이름 편집은 원래 위치별 타입/역할/수/순서/반환과 저장소를 유지하며, 필요한 저장소 전달 본문·호출 확인을 명시 검토해 한 후보/CAS로 결합한다(VALIDATION_V536_INFORMATION_SHARED_REF_NAMES.md). 후속 기존 저장소의 값↔ref 전환도 위치별 타입·수·순서·out 역할·반환과 caller 바인딩을 유지하고 명시 native 본문/호출 검토·typed import를 한 후보/CAS에 연결한다(VALIDATION_V536_INFORMATION_SHARED_REF_ROLES.md). 정확한 whole-body code/return lift의 ref→out도 위치별 타입·이름·수·순서·반환과 남는 caller 바인딩/출력을 유지하고 제거 입력의 명시 해제·native 본문/whole receipt·typed import를 한 후보/CAS로 연결한다(VALIDATION_V536_INFORMATION_SHARED_REF_OUT.md). 정확한 whole-body의 out→ref도 새 ref의 기존 caller 입력 저장소·다른 입력의 명시 값과 이전 out 소비자의 호환 return 대응을 원래 증거·한 후보/CAS로 결합한다(VALIDATION_V536_INFORMATION_SHARED_OUT_REF.md). 정확한 whole-body의 out→값도 새 값 입력/원래 바인딩과 이전 out 소비자의 호환 return 대응을 원래 증거·한 후보/CAS로 결합한다(VALIDATION_V536_INFORMATION_SHARED_OUT_VALUE.md). 정확한 whole-body의 값→out도 제거 입력의 원래 바인딩 명시 해제·native/public out·본문/whole receipt와 기존 반환 소비를 한 후보/CAS로 결합한다(VALIDATION_V536_INFORMATION_SHARED_VALUE_OUT.md). 새 out은 자동 연결/공개하지 않는다. 후속 정확한 whole-body 순열은 기존 C# 매개변수 이름·타입·역할 집합과 공개 핀 식별자를 유지하고, 모든 본문/whole receipt·caller의 명시 원래 바인딩·typed import를 한 후보/CAS로 연결한다(VALIDATION_V536_INFORMATION_SHARED_ORDER.md). 이름/타입/역할을 함께 바꾼 순서 입력은 추측하지 않고 보존·거절한다. 정보 상세창의 새 정렬 제어는 만들지 않는다. 계약이 그대로인 직접 소유 단일 native C# 본문 여러 개의 편집도 기존 본문 검증·한 후보/CAS로 결합하는 별도 최소 단위다(VALIDATION_V536_INFORMATION_SHARED_BODIES.md). 순열 제한은 검증된 현재 구현 경계이며 새 영구 UX 정책이 아니다. 일반 retained 그래프·다른 문맥 및 위 단위 밖 계약 결합은 별도다. 8행 전체는 미완료다. 독립 leaf/call 밖 및 위 단위 밖 입력/out/반환/정의 동시 편집·ref/출력 역할/순서·수동 C# 본문·중첩/private/whole/wrapper 및 copy/상속/등록 문맥의 여러 closure 결합은 입력을 유지하며 거절한다. 함수와 다른 속성 편집의 혼합은 별도다. 7행 오버라이드의 원래 계약 유지 정책을 보존하며 독립 계약 복제는 필수 범위에서 제외한다. |
+| 상세창에서 정보/참조/외부 타입을 함수 핀 타입으로 선택 | 현재 상세 타입 선택기는 기본형/배열 범위다 | 기존 타입 catalogue·native 함수 타입 검증에 연결할 어댑터가 남았다. 일반 속성 타입 편집(I1~I3)의 완료와 혼동하지 않는다. |
+
+이 표는 기존 I5-6 완료 조건의 세부 조작이다. 어려운 구현을 사용자 설계 결정으로 돌리거나 새 기능 요구로 분류하지 않는다. 서로 다른 새 조합을 추가해 완료 경계를 넓히지 않는다.
+
+일반 out 이름 변경과 설명/입력 이름의 같은 후보 저장은 수용 검증을 마쳤다. 상세 표시명과 native 식별자의 분리(한글·공백 이름), 출력 타입/추가삭제·반환 변경은 전체 완료로 처리하지 않는다. 일반 입력 추가/미사용 입력 삭제와 caller의 명시 값·기존 바인딩/해제의 첫 단위를 연결했다. 정확한 수용/제한은 VALIDATION_V536_INFORMATION_INPUTS.md에 기록한다. 직접 code 값 인자의 사용 중인 입력 삭제·타입 변경 및 삭제/추가 혼합 대응도 명시 후보에 연결했다(VALIDATION_V536_INFORMATION_INPUT_REPLACEMENTS.md). 일반 call의 직접 root 값 인자는 기존 선택창과 후보/CAS에 연결했다. 수식/복합 바인딩 전체 값, root 별칭 저장소, Set/export·exit의 명시 대체도 연결했다(VALIDATION_V536_INFORMATION_VALUE_USES.md). 수식의 부분식 자동 재작성과 다른 저장소 역할의 추측은 하지 않는다. 기존 `BlueprintCallAbi.remap.inputs`의 선택을 사용하고, 새 값을 추정하거나 연결을 자동 삭제하지 않는다. 출력/반환 변경도 기존 내보내기·호출 매핑을 제출할 수 있을 때만 다음 후보로 다룬다. C#·중첩·전체 저장소 역할은 별도 명시 후보 없이 허용하지 않는다.
+
+I5-1~5 지원 경로는 유지한다. I5-6 전체와 v536 전체 UI는 아직 완료가 아니다. I6/B2 및 A4~A6/M4/M11/M12, Helper 실제 작업은 기존 별도 후속이다.
+
+
+## 고정 잔여의 우선순위와 종료 기준
+
+위 9행의 범위를 유지한다. 아래 순서는 새 요구나 새로운 조합 목록이 아니라 그 9행을 마감할 순서다.
+
+1. 입력 사용처: 일반 code/call의 직접 값·수식 전체, root alias 저장소·Set 값·exit/내보내기의 이번 단위를 마감했다. 표 1행의 property 수신자/쓰기 및 기존 branch/enum/After 값 인자도 고정 수용 범위로 마감했다. callee/C# 형식 매개변수·nested/whole-body/ref 역할 변경은 각 4~7행에 유지한다. 수식의 일부를 추측해 지우거나 별칭을 값 스냅샷으로 바꾸지 않는다. 출력 타입·추가삭제·반환 편집도 기존 output/remap 후보로 마감한다(표 1~3행).
+2. 사용자가 명시 편집한 C# 원문과 전체 본문/저장소 역할(ref/out)을 기존 계약에 결합한다. 자동 소스 치환은 하지 않는다(4·6행).
+3. 중첩 그래프 private path, 소유 복사본·등록 callable receipt, 함수 둘 이상의 공유 caller 후보를 순서대로 결합한다. 외부 원본은 변경하지 않는다(5·7·8행).
+4. 상세창의 정보/참조/외부 타입 선택과 원래 표시명/native 식별자 경계를 마감한다(9행 및 기존 표시명 제한).
+
+각 단위는 원본 UI에서 정상/취소/Undo·재시도/실패·충돌/응답 유실/재시작/명시적 Review·Confirm 및 해당 원문·입력·소유권 보존을 확인한 뒤 닫는다. 같은 기반에서 영향 없는 검사 조합을 계속 추가하지 않는다. **I5-6 전체 완료 기준은 위 표의 원본 사용자 조작이 모두 실제 경로로 연결·검증되는 것**이다. 안전한 거절만 구현한 항목은 완료가 아니다. 범위를 명시적으로 바꾸지 않는 한 이를 충족한 뒤 I6 아이콘/B2 배지, A4~A6/M4/M11/M12의 기존 후속으로 넘어간다. 실제 Windows·모바일 실행, 이미지 생성/협의/렌더 새 backend, Helper 작업 도구는 이 완료 판단과 분리한다.
+
+
+## 기존 하위 값 입력 연결의 최소 단위
+
+[하위 copy 값 입력 검증](VALIDATION_V536_NESTED_COPY_VALUES.md)은 기존 private `code next`의 일반 값 입력을 명시 상수·같은 프레임 input/local로 선택하고 본문과 한 후보/CAS로 저장하는 단위다. qualified 경로·정확한 숫자·다른 프레임 입력과 원본을 보존한다. 공개 오버라이드 계약 변경은 정상 금지이며 독립 계약 복제는 요구에서 제외한다. private 핀 정의·새 동작/route·callee ABI·내부 enum 어댑터는 실제 후속으로 남기고 가능한 조합 전체를 늘리지 않는다. 7행 전체 완료, 8/9행 또는 I6/B2/A4~A6/M4/M11/M12 완료로 세지 않는다.
+
+
+## 기존 private 동작의 내부 입력 핀 편집
+
+[private 핀 계획 검증](VALIDATION_V536_NESTED_COPY_PINS.md)은 기존 ordinary code next의 내부 이름·추가·명시 해제 후 삭제/교체와 수동 C#·값을 같은 후보/CAS에 연결하는 단위다. 기존 exact type/mode 매핑·소비 중 입력/출력/반환 보호를 재사용한다. 공개 override 계약 변경과 독립 계약 복제는 제외이며 부모/외부 원본·함수 ID·다른 프레임/target을 보존한다. 실제 지원/검증은 위 문서의 조작으로 한정하고 복잡한 ref/out/다른 control·출력/반환 조합 전체를 새 필수로 늘리지 않는다. 새 private 동작/실행선·callee ABI·내부 enum 어댑터, 고정 8/9행 및 I6/B2/A4~A6/M4/M11/M12와 플랫폼/전달 잔여는 별도다. 7행 전체 완료로 세지 않는다.
+
+
+## 기존 private 직렬 실행선의 최소 단위
+
+[private 실행선 검증](VALIDATION_V536_NESTED_COPY_ROUTES.md)은 이미 있는 ordinary code next와 선언된 exit 사이의 시작/다음 연결·해제를 같은 frame의 최종 후보/CAS로 연결한다. 원문·노드/핀/값·다른 frame/target·공개 override 계약을 보존하고 기존 포트/지도/Undo·Review/Confirm을 사용한다. 기존 empty entry의 정상 종료/기본 반환 정책을 임의 금지하지 않는다. 새 내부 동작/삽입·private callee ABI·내부 enum 어댑터, 고정 8/9행과 I6/B2/A4~A6/M4/M11/M12·플랫폼/전달은 별도 후속이다. 다른 종류의 실행선·모든 계약 조합을 완료로 세거나 새 필수 경우의 수로 확대하지 않는다. 7행 전체 완료가 아니다.
+
+
+## private 일반 동작 생성·삽입
+
+[새 private 동작 검증](VALIDATION_V536_NESTED_COPY_CREATE.md)은 원래 검색/모바일 삽입·별도 추가에서 만든 ordinary code next의 명시 본문·표시 이름·연결을 미확정/저장된 same-contract copy의 한 후보/CAS에 연결한다. 기존 local ID와 qualified 경로·소유 새 기록·원래 snapshot/부모/외부·공개 override 계약을 보존한다. 다음은 private callee ABI와 내부 enum 어댑터이며 다른 control/저장소 조합을 새 요구로 늘리지 않는다. 고정 8/9행과 다른 UI/실제 기기/Library는 별도다. 7행 전체 완료로 세지 않는다.
+
+
+## 기존 private 실행 enum 편집의 최소 단위
+
+[private enum 편집 검증](VALIDATION_V536_NESTED_COPY_ENUM.md)은 미확정/저장된 same-contract copy의 기존 ordinary switch 노드에서 enum·수동 C#/helpers를 같은 소유 후보/CAS로 연결하는 단위다. 공개 오버라이드 계약 변경과 독립 계약 복제는 제외한다. 연결된 case/primary ID·다른 frame/target·원문/정확한 값·부모/외부 원본을 보존한다. private callee ABI 갱신과 실제 기존 수용 기준의 다른 내부 조작, 고정 8/9행·I6/B2/A4~A6/M4/M11/M12·플랫폼/Library는 별도이며 7행 전체 완료로 세지 않는다. 확정된 검사 결과는 해당 검증 문서와 evidence JSON을 따른다.
+
+## private callee의 다음 연결 단위
+
+[미확정 copy private ABI](VALIDATION_V536_PRIVATE_CALLEE_ABI.md)는 기존 내부 호출의 ref→값 갱신을 원래 snapshot/명시 버튼/typed import 및 한 후보/CAS에 연결하는 최소 단위다. 공개 override 계약과 donor·부모·외부 원본은 유지한다. 저장된 copy private ABI와 다른 실제 기존 조작은 별도 수용 증거가 필요하며 이번 지원 범위나 고정 7행 전체 완료로 합산하지 않는다. 8/9행·I6/B2/A4~A6/M4/M11/M12 및 플랫폼/Library 잔여도 유지한다.
+
+이번 private 갱신 단위의 확정 결과는 집중12흐름62확인·순수10, 기존 독립 checkout의 실제 UI/enum 2흐름9확인·순수6, 새 교차 패키지6단계/패키지 자체 UI7확인이다. [검증 문서](VALIDATION_V536_PRIVATE_CALLEE_ABI.md)와 해당 evidence를 따른다. 저장된 copy private ABI·8/9행·별도 UI 및 실제 기기/Library 잔여는 유지한다.
+
+## 저장된 copy private 갱신 연결
+
+[저장 copy private ABI](VALIDATION_V536_SAVED_PRIVATE_ABI.md)는 기존 ref→값 한 호출의 server path binding·단독 배정/출처·원래 후보/CAS·Review/Confirm을 연결하는 단위다. 공개 함수·부모/외부 원본은 보존한다. 미확정 단위와 저장된 단위를 구분하고, 검증 경계 밖의 실제 기존 ABI 조작과 8/9행·별도 UI/플랫폼/Library 잔여를 자동 완료로 세지 않는다.
+
+저장된 copy private ref→값 단위의 확정 결과는 집중 12흐름 65확인, 독립 checkout 2흐름 13확인·순수6, 새 교차 패키지6단계/자체 UI 11확인이다. 해당 검증 문서/evidence를 따른다. 이번 한 호출 경계 밖의 실제 기존 ABI 조작과 8/9행·UI·기기/Library 잔여는 유지한다.
+
+## 선택한 내부 호출의 일반 명시 대응
+
+[private ABI 대응 검증](VALIDATION_V536_PRIVATE_ABI_REMAP.md)에서 저장/새 copy의 한 기존 호출에 root와 같은 입력·출력 mapping을 연결했다. 이름·타입·핀 수·반환의 대표 결합과 기본/독립 창·보존/실패 경계를 확인했다. UI·공개 override 계약·donor/부모/외부 원본은 유지한다. 최신 유한한 잔여는 [7행 재대조](V536_ROW7_REMAINING_BOUNDARY.md)의 다른 호출/frame까지 영향을 받는 후보 결합이며 가능한 변환 조합별 새 작업을 만들지 않는다. 8/9행·별도 UI/실제 기기/Library 수용은 별개다.
+
+## 저장 copy의 여러 기존 호출 원자 갱신
+
+[호출 closure 검증](VALIDATION_V536_COPY_CALL_CLOSURE.md)은 단독 배정·단일 target 저장 copy의 선택 private 카드에서 소유 callee의 모든 기존 ordinary wrapped use를 명시 대응하고 한 후보/CAS로 저장하는 단위다. 같은 로컬 ID의 여러 frame·공유 import·본문 기록·실패/Undo 재시도·cold/Confirm을 함께 확인했다. 공개 계약/원본/권한/레이아웃은 유지한다. 새 immutable copy·Root 카드 직접 시작·등록/all-target 및 별도 frame 계약/수동 C# source 결합은 명시 잔여이며 새 조합별 요구로 늘리지 않는다. 9행·I6/B2/M4/M11/M12 및 실제 Windows/mobile/Library와 전체 UI 완료는 별도다.
+
+새 immutable copy의 프로젝트 소유 callee 복수 use 어댑터는 [새 copy closure 검증](VALIDATION_V536_PENDING_CALL_CLOSURE.md)을 따른다. 공개 override 계약은 유지한다. 등록/all-target·별도 frame 계약/본문/opaque closure 및 8/9행의 기존 잔여를 변환 조합별 새 작업으로 확대하지 않는다.
+
+저장 copy의 Root 카드 직접 진입은 [Root closure 검증](VALIDATION_V536_ROOT_CALL_CLOSURE.md)을 따른다. 등록/all-target 및 별도 frame 계약/본문/opaque closure는 기존 7/8행·A4–A6의 같은 잔여로만 관리한다. 공개 override 계약 변경과 독립 계약 복제는 추가하지 않는다.
+
+등록 direct-dependency callee의 저장 copy 복수 use는 [등록 receipt closure 검증](VALIDATION_V536_REGISTERED_CALL_CLOSURE.md)을 따른다. 외부 선언은 읽기 전용 값/receipt이며 owned unit이 아니다. 다중 target·새 초안 등록 복수 use·별도 frame 계약/본문/opaque closure는 기존 7/8행·A4–A6의 같은 잔여로 관리한다.
+
+[일반 다중 target 등록 ABI](VALIDATION_V536_REGISTERED_TARGET_ABI.md)는 기존 target별 mapping과 읽기 전용 snapshot/receipt를 직접 소유 all-Blueprint 구현의 한 후보/CAS 및 저장·복원·Review/Confirm에 연결한다. same-contract copy의 여러 target 그룹, 새 copy 등록 복수 use 및 별도 frame/opaque closure는 동일한 기존 7/8행·A4–A6 잔여다. override 계약 위반 차단은 정상 보호이며 독립 계약 복제는 요구에서 제외한다. 이번 단위를 7행 전체/I5/UI 또는 실제 기기·Library 완료로 세지 않는다.

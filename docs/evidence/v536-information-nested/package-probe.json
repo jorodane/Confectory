@@ -1,0 +1,17 @@
+{
+  "pass": true,
+  "package": "/workspace/artifacts/v536-information-nested/Windows-x64",
+  "files": 2339,
+  "crossPublishedWindowsX64PE": true,
+  "unrelatedWorkingDirectory": true,
+  "packageTamperAndMissingDependencyRejected": true,
+  "packagedEngineWebStartup": true,
+  "runtimeOnlyNoInstalledSDK": true,
+  "existingCheckoutProfileReusedAndExplicitOverrideRetained": true,
+  "resources": 74,
+  "renderedMinimalLogin": true,
+  "windowsApphostExecuted": false,
+  "webView2Executed": false,
+  "actualLoginOrInference": false,
+  "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-desktop-package-uv1p1k1_"
+}

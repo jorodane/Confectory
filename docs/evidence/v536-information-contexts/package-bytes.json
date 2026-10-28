@@ -1,0 +1,19 @@
+{
+  "sourceCommit": "612a40913498abb8225af43fb280029d871cc018",
+  "manifestSha256": "b2fca70b91320ad343ade4204826fa0280900243d758ae4c2d7729b51c2c2fd7",
+  "manifestFiles": 2336,
+  "actualFiles": 2337,
+  "allManifestHashesValid": true,
+  "sourceAndNativeByteIdentical": [
+    "examples/editor-home/WebBundle.csbody",
+    "examples/editor-home/ui/feature-authoring.js",
+    "targets/element-authoring/InformationFunctionBodies.cs",
+    "targets/element-authoring/InformationFunctionContracts.cs",
+    "targets/element-authoring/InformationFunctionWholeBody.cs",
+    "targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll",
+    "targets/element-authoring/bin/Release/net10.0/Confectory.Core.dll"
+  ],
+  "package": "/workspace/artifacts/v536-information-contexts/Windows-x64",
+  "nativeWindowsExecuted": false,
+  "delivered": false
+}

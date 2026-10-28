@@ -1,0 +1,30 @@
+{
+  "before": {
+    "hit": "editor-1",
+    "rect": {
+      "x": 997.375,
+      "y": 246.5,
+      "width": 44.09375,
+      "height": 28,
+      "top": 246.5,
+      "right": 1041.46875,
+      "bottom": 274.5,
+      "left": 997.375
+    }
+  },
+  "after": {
+    "hit": "blueprint",
+    "rect": {
+      "x": 997.375,
+      "y": 246.5,
+      "width": 44.09375,
+      "height": 28,
+      "top": 246.5,
+      "right": 1041.46875,
+      "bottom": 274.5,
+      "left": 997.375
+    }
+  },
+  "ownerKey": "editor-1",
+  "browserOpen": "context-new-window"
+}

@@ -1,0 +1,595 @@
+{
+  "baseCommit": "82e2676ff221b50b6328deb69301f852321408c7",
+  "before": [
+    {
+      "name": "before",
+      "exit": 0,
+      "elapsedSeconds": 6.6,
+      "minimumWorkspaceAvailableBytesSampled": 109150208,
+      "peakMemoryBytesSampled": 16206483456,
+      "checks": [
+        "입력 이름/출력 타입 결합의 원래 단일 후보는 각각 유효하고 원본은 그대로다",
+        "기존 그룹 가드는 유효한 입력 이름과 out/반환 타입의 결합을 거절한다"
+      ]
+    },
+    {
+      "name": "joint-before",
+      "exit": 0,
+      "elapsedSeconds": 6.8,
+      "minimumWorkspaceAvailableBytesSampled": 109101056,
+      "peakMemoryBytesSampled": 16200785920,
+      "checks": [
+        "입력 이름/출력 타입 결합의 원래 단일 후보는 각각 유효하고 원본은 그대로다",
+        "기존 그룹 가드는 유효한 입력 이름과 out/반환 타입의 결합을 거절한다"
+      ]
+    }
+  ],
+  "preliminaryFocusedFlows": 13,
+  "preliminaryFocusedChecks": 34,
+  "preliminaryFocused": [
+    {
+      "name": "pure",
+      "exit": 0,
+      "elapsedSeconds": 15.0,
+      "minimumWorkspaceAvailableBytesSampled": 109051904,
+      "peakMemoryBytesSampled": 16212295680,
+      "checks": [
+        "입력 이름/출력 타입 결합의 원래 단일 후보는 각각 유효하고 원본은 그대로다",
+        "한 후보·역순·원래 hash는 이름 대응의 기존 값·출력 소비·정확64비트·C# 매개변수/본문을 보존한다",
+        "이름/기존 값 대응 누락·타입/입력/역할/순서·writer/소비/본문·선택 오류는 전체 미적용이다",
+        "실제 물리 source 경합은 전체 거절하고 원문과 원래 입력을 보존한다"
+      ]
+    },
+    {
+      "name": "joint-pure",
+      "exit": 0,
+      "elapsedSeconds": 14.8,
+      "minimumWorkspaceAvailableBytesSampled": 108998656,
+      "peakMemoryBytesSampled": 16212873216,
+      "checks": [
+        "입력 이름/출력 타입 결합의 원래 단일 후보는 각각 유효하고 원본은 그대로다",
+        "한 후보·역순·원래 hash는 이름 대응의 기존 값·출력 소비·정확64비트·C# 매개변수/본문을 보존한다",
+        "이름/기존 값 대응 누락·타입/입력/역할/순서·writer/소비/본문·선택 오류는 전체 미적용이다",
+        "실제 물리 source 경합은 전체 거절하고 원문과 원래 입력을 보존한다"
+      ]
+    },
+    {
+      "name": "api",
+      "exit": 0,
+      "elapsedSeconds": 32.3,
+      "minimumWorkspaceAvailableBytesSampled": 108953600,
+      "peakMemoryBytesSampled": 16412463104,
+      "checks": [
+        "실제 서버는 두 번째 계약 오류에서 첫 함수와 공유 caller도 checkpoint에 남기지 않는다",
+        "두 callee·공유 caller는 단일 거래로 저장되고 cold 복원에서도 연결과 원문을 유지한다",
+        "실제 compiler Review/Confirm는 두 계약을 함께 확정하고 code/다른 함수·부모 원문을 보존한다"
+      ]
+    },
+    {
+      "name": "joint-api",
+      "exit": 0,
+      "elapsedSeconds": 32.9,
+      "minimumWorkspaceAvailableBytesSampled": 108900352,
+      "peakMemoryBytesSampled": 16413138944,
+      "checks": [
+        "실제 서버는 두 번째 계약 오류에서 첫 함수와 공유 caller도 checkpoint에 남기지 않는다",
+        "두 callee·공유 caller는 단일 거래로 저장되고 cold 복원에서도 연결과 원문을 유지한다",
+        "실제 compiler Review/Confirm는 두 계약을 함께 확정하고 code/다른 함수·부모 원문을 보존한다"
+      ]
+    },
+    {
+      "name": "primary",
+      "exit": 0,
+      "elapsedSeconds": 57.5,
+      "minimumWorkspaceAvailableBytesSampled": 108834816,
+      "peakMemoryBytesSampled": 17116491776,
+      "checks": [
+        "두 원본 상세창의 취소·명시 대응·Undo/Redo·미저장 cold는 두 함수 입력과 exact64 값을 보존한다",
+        "원본 460px 기본/독립 화면의 한 Save·cold·Review 취소/Confirm은 두 함수 계약과 공유 caller를 함께 확정한다"
+      ]
+    },
+    {
+      "name": "joint-view",
+      "exit": 0,
+      "elapsedSeconds": 71.8,
+      "minimumWorkspaceAvailableBytesSampled": 108244992,
+      "peakMemoryBytesSampled": 17173671936,
+      "checks": [
+        "두 원본 상세창의 취소·명시 대응·Undo/Redo·미저장 cold는 두 함수 입력과 exact64 값을 보존한다",
+        "원본 460px 기본/독립 화면의 한 Save·cold·Review 취소/Confirm은 두 함수 계약과 공유 caller를 함께 확정한다"
+      ]
+    },
+    {
+      "name": "source",
+      "exit": 0,
+      "elapsedSeconds": 10.8,
+      "minimumWorkspaceAvailableBytesSampled": 107573248,
+      "peakMemoryBytesSampled": 16347512832,
+      "checks": [
+        "실제 서버는 두 번째 계약 오류에서 첫 함수와 공유 caller도 checkpoint에 남기지 않는다",
+        "참조 중인 물리 파일 경합은 기존 checkpoint와 peer 원문을 보존하고 전부 거절한다"
+      ]
+    },
+    {
+      "name": "storage",
+      "exit": 0,
+      "elapsedSeconds": 75.0,
+      "minimumWorkspaceAvailableBytesSampled": 107520000,
+      "peakMemoryBytesSampled": 17139331072,
+      "checks": [
+        "두 원본 상세창의 취소·명시 대응·Undo/Redo·미저장 cold는 두 함수 입력과 exact64 값을 보존한다",
+        "화면 checkpoint 실패는 양쪽 계약·공유 caller 전체 미적용과 입력 보존 후 재시도를 허용한다",
+        "원본 460px 기본/독립 화면의 한 Save·cold·Review 취소/Confirm은 두 함수 계약과 공유 caller를 함께 확정한다"
+      ]
+    },
+    {
+      "name": "loss",
+      "exit": 0,
+      "elapsedSeconds": 41.7,
+      "minimumWorkspaceAvailableBytesSampled": 106930176,
+      "peakMemoryBytesSampled": 17063718912,
+      "checks": [
+        "두 원본 상세창의 취소·명시 대응·Undo/Redo·미저장 cold는 두 함수 입력과 exact64 값을 보존한다",
+        "저장/결과조회 응답 유실 뒤 cold는 결합 receipt를 확인하고 두 함수 계약을 중복 적용하지 않는다"
+      ]
+    },
+    {
+      "name": "cancel",
+      "exit": 0,
+      "elapsedSeconds": 31.3,
+      "minimumWorkspaceAvailableBytesSampled": 106438656,
+      "peakMemoryBytesSampled": 17078398976,
+      "checks": [
+        "두 원본 상세창의 취소·명시 대응·Undo/Redo·미저장 cold는 두 함수 입력과 exact64 값을 보존한다",
+        "한 변경 취소와 cold는 두 함수 입력만 취소하고 공유 caller·원래 checkpoint를 유지한다"
+      ]
+    },
+    {
+      "name": "conflict",
+      "exit": 0,
+      "elapsedSeconds": 20.7,
+      "minimumWorkspaceAvailableBytesSampled": 106024960,
+      "peakMemoryBytesSampled": 17085083648,
+      "checks": [
+        "두 원본 상세창의 취소·명시 대응·Undo/Redo·미저장 cold는 두 함수 입력과 exact64 값을 보존한다",
+        "다른 창의 실제 source 경합은 두 함수 전체 미적용이며 peer 입력과 사용자 입력을 유지한다"
+      ]
+    },
+    {
+      "name": "projects",
+      "exit": 0,
+      "elapsedSeconds": 29.5,
+      "minimumWorkspaceAvailableBytesSampled": 105549824,
+      "peakMemoryBytesSampled": 17039073280,
+      "checks": [
+        "두 원본 상세창의 취소·명시 대응·Undo/Redo·미저장 cold는 두 함수 입력과 exact64 값을 보존한다",
+        "동일 namespace 프로젝트 전환은 두 함수 계약 입력을 A에 보관하고 오래된 상세창의 B 적용을 막는다"
+      ]
+    },
+    {
+      "name": "retry",
+      "exit": 0,
+      "elapsedSeconds": 71.2,
+      "minimumWorkspaceAvailableBytesSampled": 105033728,
+      "peakMemoryBytesSampled": 17096876032,
+      "checks": [
+        "두 원본 상세창의 취소·명시 대응·Undo/Redo·미저장 cold는 두 함수 입력과 exact64 값을 보존한다",
+        "마지막 함수의 미완성 대응 거절은 양쪽 입력을 보존하고 Undo 후 원래 기준으로 명시 재시도한다",
+        "원본 460px 기본/독립 화면의 한 Save·cold·Review 취소/Confirm은 두 함수 계약과 공유 caller를 함께 확정한다"
+      ]
+    }
+  ],
+  "guardRefinement": "Removed overbroad draft-only global name/type rejection; kept old fixed-name filter for typed output groups; original no-out input-only path retained",
+  "legacyBeforeFix": [
+    {
+      "name": "legacy-reject",
+      "exit": 0,
+      "elapsedSeconds": 3.8,
+      "minimumWorkspaceAvailableBytesSampled": 104443904,
+      "peakMemoryBytesSampled": 16184918016,
+      "checks": [
+        "넓은 새 가드는 원래 유효한 출력 없는 입력 전용 이름/타입 결합을 과도하게 거절한다"
+      ]
+    }
+  ],
+  "legacyOriginalPublishedCode": [
+    {
+      "name": "legacy",
+      "exit": 0,
+      "elapsedSeconds": 4.6,
+      "minimumWorkspaceAvailableBytesSampled": 104390656,
+      "peakMemoryBytesSampled": 16190980096,
+      "checks": [
+        "출력 없는 기존 입력 전용 이름/타입 결합은 원래 값·C#·원문과 역순 후보를 보존한다"
+      ]
+    }
+  ],
+  "finalFocusedFlows": 5,
+  "finalFocusedChecks": 14,
+  "finalFocused": [
+    {
+      "name": "legacy",
+      "exit": 0,
+      "elapsedSeconds": 4.6,
+      "minimumWorkspaceAvailableBytesSampled": 104333312,
+      "peakMemoryBytesSampled": 16208224256,
+      "checks": [
+        "출력 없는 기존 입력 전용 이름/타입 결합은 원래 값·C#·원문과 역순 후보를 보존한다"
+      ]
+    },
+    {
+      "name": "pure",
+      "exit": 0,
+      "elapsedSeconds": 15.2,
+      "minimumWorkspaceAvailableBytesSampled": 104280064,
+      "peakMemoryBytesSampled": 16209944576,
+      "checks": [
+        "입력 이름/출력 타입 결합의 원래 단일 후보는 각각 유효하고 원본은 그대로다",
+        "한 후보·역순·원래 hash는 이름 대응의 기존 값·출력 소비·정확64비트·C# 매개변수/본문을 보존한다",
+        "이름/기존 값 대응 누락·타입/입력/역할/순서·writer/소비/본문·선택 오류는 전체 미적용이다",
+        "실제 물리 source 경합은 전체 거절하고 원문과 원래 입력을 보존한다"
+      ]
+    },
+    {
+      "name": "joint-pure",
+      "exit": 0,
+      "elapsedSeconds": 14.8,
+      "minimumWorkspaceAvailableBytesSampled": 104235008,
+      "peakMemoryBytesSampled": 16209190912,
+      "checks": [
+        "입력 이름/출력 타입 결합의 원래 단일 후보는 각각 유효하고 원본은 그대로다",
+        "한 후보·역순·원래 hash는 이름 대응의 기존 값·출력 소비·정확64비트·C# 매개변수/본문을 보존한다",
+        "이름/기존 값 대응 누락·타입/입력/역할/순서·writer/소비/본문·선택 오류는 전체 미적용이다",
+        "실제 물리 source 경합은 전체 거절하고 원문과 원래 입력을 보존한다"
+      ]
+    },
+    {
+      "name": "api",
+      "exit": 0,
+      "elapsedSeconds": 32.5,
+      "minimumWorkspaceAvailableBytesSampled": 104177664,
+      "peakMemoryBytesSampled": 16407080960,
+      "checks": [
+        "실제 서버는 두 번째 계약 오류에서 첫 함수와 공유 caller도 checkpoint에 남기지 않는다",
+        "두 callee·공유 caller는 단일 거래로 저장되고 cold 복원에서도 연결과 원문을 유지한다",
+        "실제 compiler Review/Confirm는 두 계약을 함께 확정하고 code/다른 함수·부모 원문을 보존한다"
+      ]
+    },
+    {
+      "name": "joint-view",
+      "exit": 0,
+      "elapsedSeconds": 72.8,
+      "minimumWorkspaceAvailableBytesSampled": 104124416,
+      "peakMemoryBytesSampled": 17146081280,
+      "checks": [
+        "두 원본 상세창의 취소·명시 대응·Undo/Redo·미저장 cold는 두 함수 입력과 exact64 값을 보존한다",
+        "원본 460px 기본/독립 화면의 한 Save·cold·Review 취소/Confirm은 두 함수 계약과 공유 caller를 함께 확정한다"
+      ]
+    }
+  ],
+  "impactFlows": 6,
+  "impactChecks": 25,
+  "impacts": [
+    {
+      "name": "impact-names",
+      "exit": 0,
+      "elapsedSeconds": 5.8,
+      "minimumWorkspaceAvailableBytesSampled": 103436288,
+      "peakMemoryBytesSampled": 16206663680,
+      "checks": [
+        "두 계약과 공유 호출자 입력/연결을 원래 hash 한 개씩 가진 순수 결합 후보로 준비한다",
+        "편집 순서를 뒤집어도 최종 공유 caller와 각 callee 원문이 같은 후보가 된다",
+        "마지막 함수 타입/대응 오류·snapshot 누락·copy/whole 문맥은 첫 계약도 적용하지 않고 거절한다",
+        "여러 설명 편집과 계약 하나+설명 편집은 기존 native/ref 구현에서도 원래 경로를 유지한다"
+      ]
+    },
+    {
+      "name": "impact-inputmix",
+      "exit": 0,
+      "elapsedSeconds": 13.6,
+      "minimumWorkspaceAvailableBytesSampled": 103387136,
+      "peakMemoryBytesSampled": 16209604608,
+      "checks": [
+        "입력 정의/타입 혼합의 원래 단일 후보는 각각 유효하다",
+        "원래 hash·한 후보·역순은 명시 새 값/기존 값 재사용과 out/return/정확64비트/C# 원문을 보존한다",
+        "사용처/값/해제 증거 누락·타입 오류·출력/순서/역할/반환/본문·선택 변경은 전체 미적용이다",
+        "실제 물리 source 경합은 원래 기준으로 거절하며 입력과 기존 파일을 보존한다"
+      ]
+    },
+    {
+      "name": "impact-returnmix",
+      "exit": 0,
+      "elapsedSeconds": 14.0,
+      "minimumWorkspaceAvailableBytesSampled": 103342080,
+      "peakMemoryBytesSampled": 16210907136,
+      "checks": [
+        "out/반환 결합의 원래 단일 후보는 각각 유효하고 원본은 그대로다",
+        "한 후보·역순·원래 hash는 writer/공유 소비·기존 입력·정확64비트·C# 원문을 보존한다",
+        "명시 bool/한글 string writer도 같은 타입 규칙과 호환 소비 대응으로 준비하며 기존 출력을 보존한다",
+        "writer/소비 누락·타입 오류·입력/이름/순서/역할/void/수/본문·source 변경은 전체 미적용이다",
+        "실제 물리 source 경합은 전체 거절하고 원래 후보와 peer/사용자 입력을 유지한다"
+      ]
+    },
+    {
+      "name": "impact-defmix",
+      "exit": 0,
+      "elapsedSeconds": 15.8,
+      "minimumWorkspaceAvailableBytesSampled": 103292928,
+      "peakMemoryBytesSampled": 16209686528,
+      "checks": [
+        "출력 정의/타입 결합의 원래 단일 후보는 각각 유효하고 원본은 그대로다",
+        "한 후보·역순·원래 hash는 전체 writer/삽입 경로·공유 소비·공개 범위·정확64비트·C# 원문을 보존한다",
+        "전체 배치/경로/새 값/writer/소비 누락·타입/입력/역할/순서/본문·source 오류는 전체 미적용이다",
+        "실제 물리 source 경합은 전체 거절하고 원문과 원래 입력을 보존한다"
+      ]
+    },
+    {
+      "name": "impact-types",
+      "exit": 0,
+      "elapsedSeconds": 16.2,
+      "minimumWorkspaceAvailableBytesSampled": 103243776,
+      "peakMemoryBytesSampled": 16210112512,
+      "checks": [
+        "입력만/출력만의 원래 단일 후보는 각각 유효하고 원본 파일을 바꾸지 않는다",
+        "다른 입력/out 편집 종류도 원래 hash의 한 후보이며 역순·정확64비트·원문과 소비 연결을 보존한다",
+        "입력/out 동시 변경도 입력 전용·출력 전용과 섞이며 양방향 후보 순서와 원래 해제 증거를 보존한다",
+        "불완전·타입/대응 오류·추가 계획·역할/수/반환/이름/본문 변경은 원래 파일에 전부 미적용이다",
+        "실제 물리 source 변경은 내부 후보 합성과 달리 전부 거절하고 peer와 입력을 보존한다"
+      ]
+    },
+    {
+      "name": "policy7",
+      "exit": 0,
+      "elapsedSeconds": 7.4,
+      "minimumWorkspaceAvailableBytesSampled": 103198720,
+      "peakMemoryBytesSampled": 16410755072,
+      "checks": [
+        "공개 이름 대응·소유 copy·호출자 후보는 부모/자식 선언을 쓰지 않고 함께 준비한다",
+        "부모/자식 쓰기 위조·타입/핀 수/역할/반환/순서의 계약 변경은 정상 보호로 전체 미적용이다",
+        "실제 부모 파일 경합은 원래 읽기 기준으로 차단하고 후보/복사본 원문을 보존한다"
+      ]
+    }
+  ],
+  "archiveFormat": {
+    "newEvidenceOnly": true,
+    "oldEvidenceConvertedOrDeleted": false,
+    "allNewArchiveFileSetsModesAndBytesMatch": true,
+    "archiveScriptSha256": "738ea78217b2b93398d1c4fbe7fabe434168a4b3c8af994968b20aa2202c1350",
+    "archives": [
+      {
+        "archive": "final-focus/evidence/legacy.zip",
+        "sha256": "76fca622e51e218759812420847fce6dba7f64cd85342333350fcd1bb520b91b",
+        "files": 66,
+        "originalFileBytes": 17447,
+        "archiveBytes": 18575,
+        "fileSetModesAndBytesMatch": true
+      },
+      {
+        "archive": "final-focus/evidence/pure.zip",
+        "sha256": "72988362087302cec98598aefd263c99ce1006baf2ac5678efd16d83d1668cae",
+        "files": 67,
+        "originalFileBytes": 45653,
+        "archiveBytes": 24574,
+        "fileSetModesAndBytesMatch": true
+      },
+      {
+        "archive": "final-focus/evidence/joint-view.zip",
+        "sha256": "cd5b00b405b598915375d490c7c351bb7bd2b629b9f5994ab8c5ed36200cc3b6",
+        "files": 84,
+        "originalFileBytes": 747806,
+        "archiveBytes": 647248,
+        "fileSetModesAndBytesMatch": true
+      },
+      {
+        "archive": "final-focus/evidence/api.zip",
+        "sha256": "69684a7fa92aa735e5af3d6a419fb74eb46891b58fae5f792e9843756dd9e2b4",
+        "files": 77,
+        "originalFileBytes": 38317,
+        "archiveBytes": 26050,
+        "fileSetModesAndBytesMatch": true
+      },
+      {
+        "archive": "final-focus/evidence/joint-pure.zip",
+        "sha256": "75597fb3be2a087ce51b8993870c13314d10685af4e8d371dce7da114c2e692e",
+        "files": 67,
+        "originalFileBytes": 45679,
+        "archiveBytes": 24556,
+        "fileSetModesAndBytesMatch": true
+      },
+      {
+        "archive": "impacts/evidence/impact-inputmix.zip",
+        "sha256": "2fd4522a2f76614ccd36ed1f47427e19eb86cd9f06ce4096090f0cc5391a9180",
+        "files": 67,
+        "originalFileBytes": 43526,
+        "archiveBytes": 24365,
+        "fileSetModesAndBytesMatch": true
+      },
+      {
+        "archive": "impacts/evidence/impact-names.zip",
+        "sha256": "29a596965ad4bdfd72c9557d0bd6170469de86391f7ae7a9dce8f3cbe038e4cf",
+        "files": 66,
+        "originalFileBytes": 18065,
+        "archiveBytes": 18810,
+        "fileSetModesAndBytesMatch": true
+      },
+      {
+        "archive": "impacts/evidence/impact-defmix.zip",
+        "sha256": "2b9bfa0826b59dc4658207a512bde57d0181368e0cc47d26c558e4f3498704ec",
+        "files": 67,
+        "originalFileBytes": 46565,
+        "archiveBytes": 24718,
+        "fileSetModesAndBytesMatch": true
+      },
+      {
+        "archive": "impacts/evidence/impact-returnmix.zip",
+        "sha256": "67f8d34dbdacb20f53b02402177a0f9746006363563c91c21840b4e1b130068e",
+        "files": 67,
+        "originalFileBytes": 45820,
+        "archiveBytes": 24637,
+        "fileSetModesAndBytesMatch": true
+      },
+      {
+        "archive": "impacts/evidence/policy7.zip",
+        "sha256": "a48ae9861eee7b0f7d7cdc0cc02eebe3b040e2a4de77de1dd7d2f8761186a340",
+        "files": 74,
+        "originalFileBytes": 40187,
+        "archiveBytes": 25829,
+        "fileSetModesAndBytesMatch": true
+      },
+      {
+        "archive": "impacts/evidence/impact-types.zip",
+        "sha256": "eac543d96fa01c4ca63d1f5e745ba2d2d65edd5505effda168613b88ed8d053f",
+        "files": 67,
+        "originalFileBytes": 43753,
+        "archiveBytes": 24442,
+        "fileSetModesAndBytesMatch": true
+      },
+      {
+        "archive": "focused/evidence/conflict.zip",
+        "sha256": "e83e8dbb14b3c03fc39123338e4c9411508c87b7e53a96722b9a39cb5626f5d7",
+        "files": 76,
+        "originalFileBytes": 504256,
+        "archiveBytes": 449915,
+        "fileSetModesAndBytesMatch": true
+      },
+      {
+        "archive": "focused/evidence/loss.zip",
+        "sha256": "8e595c0a47428590fa2586bade4536bbce167493c042b535630251bfd02aa138",
+        "files": 81,
+        "originalFileBytes": 562778,
+        "archiveBytes": 457919,
+        "fileSetModesAndBytesMatch": true
+      },
+      {
+        "archive": "focused/evidence/source.zip",
+        "sha256": "fa99e56e54da9ce5981d650700c1a64f5e77bc88460ae44aaca4a69cccdceabf",
+        "files": 71,
+        "originalFileBytes": 21199,
+        "archiveBytes": 21396,
+        "fileSetModesAndBytesMatch": true
+      },
+      {
+        "archive": "focused/evidence/projects.zip",
+        "sha256": "b9398c51c7884d8dceb15598593a11b537e13a72c1f155f8345025c6bfec15ec",
+        "files": 146,
+        "originalFileBytes": 526855,
+        "archiveBytes": 471424,
+        "fileSetModesAndBytesMatch": true
+      },
+      {
+        "archive": "focused/evidence/pure.zip",
+        "sha256": "a7976e898ab2ce6bc30821f27f6536417d6e2bb4ad0d6a2601a83870dcebcd12",
+        "files": 67,
+        "originalFileBytes": 45653,
+        "archiveBytes": 24573,
+        "fileSetModesAndBytesMatch": true
+      },
+      {
+        "archive": "focused/evidence/joint-view.zip",
+        "sha256": "7ccf2db200796ec2193e2dfe165bd29adc861238edb93655f1dab8a9200f8446",
+        "files": 84,
+        "originalFileBytes": 747452,
+        "archiveBytes": 647082,
+        "fileSetModesAndBytesMatch": true
+      },
+      {
+        "archive": "focused/evidence/storage.zip",
+        "sha256": "36e1145a0d0621b0cfb0d1768bc7c3f469be9176a93b546b69d8c82413a48634",
+        "files": 83,
+        "originalFileBytes": 641677,
+        "archiveBytes": 560998,
+        "fileSetModesAndBytesMatch": true
+      },
+      {
+        "archive": "focused/evidence/api.zip",
+        "sha256": "e2127f00fbf8fcba8b73ebb12bd8a4acd80f33a4808cc383594d55cc52d04c8a",
+        "files": 77,
+        "originalFileBytes": 38317,
+        "archiveBytes": 26056,
+        "fileSetModesAndBytesMatch": true
+      },
+      {
+        "archive": "focused/evidence/primary.zip",
+        "sha256": "2dfadfb68797ade1ce0922447065c89eb51f7f82c73ee57c935cb62d92d49663",
+        "files": 83,
+        "originalFileBytes": 641457,
+        "archiveBytes": 560920,
+        "fileSetModesAndBytesMatch": true
+      },
+      {
+        "archive": "focused/evidence/cancel.zip",
+        "sha256": "b9f1f97af06b9fbffd0eb174de63c593bd4470dae2328a64058df8d3436d45ed",
+        "files": 77,
+        "originalFileBytes": 441541,
+        "archiveBytes": 388309,
+        "fileSetModesAndBytesMatch": true
+      },
+      {
+        "archive": "focused/evidence/joint-pure.zip",
+        "sha256": "cb3885c01f65b14ba4532c36df59ee7007306bcfc51bc2ae2e4f605954e751e7",
+        "files": 67,
+        "originalFileBytes": 45679,
+        "archiveBytes": 24558,
+        "fileSetModesAndBytesMatch": true
+      },
+      {
+        "archive": "focused/evidence/joint-api.zip",
+        "sha256": "5e4fbd46747d6037722f7b5b48545b5d39308e2fa8f4228d299ada9b91c185fc",
+        "files": 77,
+        "originalFileBytes": 38347,
+        "archiveBytes": 26058,
+        "fileSetModesAndBytesMatch": true
+      },
+      {
+        "archive": "focused/evidence/retry.zip",
+        "sha256": "5a72365f84a35f3f4c8eca45e6bfc5bb18dfeee7b6560da3ae12fd385bca6f7c",
+        "files": 83,
+        "originalFileBytes": 641702,
+        "archiveBytes": 560993,
+        "fileSetModesAndBytesMatch": true
+      },
+      {
+        "archive": "legacy-original/evidence/legacy.zip",
+        "sha256": "92efd5042a266b3889ff6a068d257d2a4cda355cc906b7f914fc3ebf06395e0f",
+        "files": 66,
+        "originalFileBytes": 17483,
+        "archiveBytes": 18603,
+        "fileSetModesAndBytesMatch": true
+      },
+      {
+        "archive": "before/evidence/before.zip",
+        "sha256": "39fb22365e63bfd09824243727281cecf059af6d7e8c602b876699637fa56508",
+        "files": 66,
+        "originalFileBytes": 20471,
+        "archiveBytes": 19218,
+        "fileSetModesAndBytesMatch": true
+      },
+      {
+        "archive": "before/evidence/joint-before.zip",
+        "sha256": "4c6626d407ee01b2db3f497af84140944e3f6f1a9c63b1f0b3adfc2e0364396f",
+        "files": 66,
+        "originalFileBytes": 20471,
+        "archiveBytes": 19218,
+        "fileSetModesAndBytesMatch": true
+      },
+      {
+        "archive": "legacy-before-fix/evidence/legacy-reject.zip",
+        "sha256": "84ff9eebe1e5eac36c408022bee0227fd75e66d39a5a3bcda39e702d13acfd91",
+        "files": 66,
+        "originalFileBytes": 17446,
+        "archiveBytes": 18567,
+        "fileSetModesAndBytesMatch": true
+      }
+    ]
+  },
+  "originalUiResourcesUnchanged": 74,
+  "nativeReleaseWarnings": 0,
+  "nativeReleaseErrors": 0,
+  "cgroupMemoryEvents": "low 0\nhigh 0\nmax 201842\noom 0\noom_kill 0\noom_group_kill 0\n",
+  "workspaceAvailableBytes": 103149568,
+  "existingFilesDeleted": false,
+  "actualWindows": false,
+  "webView2Executed": false,
+  "actualMobile": false,
+  "libraryUploaded": false
+}

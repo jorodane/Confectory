@@ -1,0 +1,376 @@
+{
+  "baseCommit": "dec8ea02475ea335eb7455d298545d2850282f6a",
+  "scope": "One new immutable single-target copy; existing ordinary wrapped uses of one registered direct-dependency callee, explicit per-use mapping and original receipt; no automatic targets or public override change",
+  "focusedFlows": 12,
+  "focusedUiFlows": 11,
+  "focusedUiChecks": 76,
+  "pureChecks": 8,
+  "regressionFlows": 4,
+  "regressionChecks": {
+    "owned": 8,
+    "copy-targets": 3,
+    "metadata-owned": 7,
+    "cas": 4
+  },
+  "results": [
+    {
+      "name": "metadata",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_general_private_abi_metadata.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-pending-registered-closure/frozen-engine-report.json",
+        "nested",
+        "remap",
+        "closure",
+        "registered"
+      ],
+      "exit": 0,
+      "seconds": 11.2,
+      "minimumWorkspaceBytes": 707878912,
+      "peakMemoryBytes": 5830418432,
+      "pendingCopy": false,
+      "copyImports": false
+    },
+    {
+      "name": "confirm",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_general_private_abi_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-pending-registered-closure/frozen-engine-report.json",
+        "registry-confirm",
+        "nested",
+        "remap",
+        "closure",
+        "registered"
+      ],
+      "exit": 0,
+      "seconds": 60.8,
+      "minimumWorkspaceBytes": 707854336,
+      "peakMemoryBytes": 6570328064,
+      "pendingCopy": false,
+      "copyImports": false
+    },
+    {
+      "name": "destination",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_general_private_abi_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-pending-registered-closure/frozen-engine-report.json",
+        "destination-confirm",
+        "nested",
+        "remap",
+        "closure",
+        "registered"
+      ],
+      "exit": 0,
+      "seconds": 60.7,
+      "minimumWorkspaceBytes": 707563520,
+      "peakMemoryBytes": 6545055744,
+      "pendingCopy": false,
+      "copyImports": false
+    },
+    {
+      "name": "normal",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_general_private_abi_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-pending-registered-closure/frozen-engine-report.json",
+        "normal",
+        "nested",
+        "remap",
+        "closure",
+        "registered"
+      ],
+      "exit": 0,
+      "seconds": 63.5,
+      "minimumWorkspaceBytes": 707276800,
+      "peakMemoryBytes": 6633340928,
+      "pendingCopy": false,
+      "copyImports": false
+    },
+    {
+      "name": "view",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_general_private_abi_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-pending-registered-closure/frozen-engine-report.json",
+        "normal",
+        "nested",
+        "remap",
+        "closure",
+        "registered",
+        "view"
+      ],
+      "exit": 0,
+      "seconds": 99.0,
+      "minimumWorkspaceBytes": 706969600,
+      "peakMemoryBytes": 6825299968,
+      "pendingCopy": false,
+      "copyImports": false
+    },
+    {
+      "name": "storage",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_general_private_abi_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-pending-registered-closure/frozen-engine-report.json",
+        "storage",
+        "nested",
+        "remap",
+        "closure",
+        "registered"
+      ],
+      "exit": 0,
+      "seconds": 55.1,
+      "minimumWorkspaceBytes": 706547712,
+      "peakMemoryBytes": 6565232640,
+      "pendingCopy": false,
+      "copyImports": false
+    },
+    {
+      "name": "loss",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_general_private_abi_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-pending-registered-closure/frozen-engine-report.json",
+        "response-loss",
+        "nested",
+        "remap",
+        "closure",
+        "registered"
+      ],
+      "exit": 0,
+      "seconds": 55.9,
+      "minimumWorkspaceBytes": 706252800,
+      "peakMemoryBytes": 6575915008,
+      "pendingCopy": false,
+      "copyImports": false
+    },
+    {
+      "name": "source",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_general_private_abi_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-pending-registered-closure/frozen-engine-report.json",
+        "callee-conflict",
+        "nested",
+        "remap",
+        "closure",
+        "registered"
+      ],
+      "exit": 0,
+      "seconds": 40.3,
+      "minimumWorkspaceBytes": 705966080,
+      "peakMemoryBytes": 6517702656,
+      "pendingCopy": false,
+      "copyImports": false
+    },
+    {
+      "name": "registry",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_general_private_abi_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-pending-registered-closure/frozen-engine-report.json",
+        "registry-conflict",
+        "nested",
+        "remap",
+        "closure",
+        "registered"
+      ],
+      "exit": 0,
+      "seconds": 38.7,
+      "minimumWorkspaceBytes": 705683456,
+      "peakMemoryBytes": 6526930944,
+      "pendingCopy": false,
+      "copyImports": false
+    },
+    {
+      "name": "conflict",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_general_private_abi_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-pending-registered-closure/frozen-engine-report.json",
+        "owner-conflict",
+        "nested",
+        "remap",
+        "closure",
+        "registered"
+      ],
+      "exit": 0,
+      "seconds": 31.7,
+      "minimumWorkspaceBytes": 705392640,
+      "peakMemoryBytes": 6514917376,
+      "pendingCopy": false,
+      "copyImports": false
+    },
+    {
+      "name": "cancel",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_general_private_abi_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-pending-registered-closure/frozen-engine-report.json",
+        "cancel",
+        "nested",
+        "remap",
+        "closure",
+        "registered"
+      ],
+      "exit": 0,
+      "seconds": 31.1,
+      "minimumWorkspaceBytes": 705114112,
+      "peakMemoryBytes": 6549602304,
+      "pendingCopy": false,
+      "copyImports": false
+    },
+    {
+      "name": "invalid",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_general_private_abi_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-pending-registered-closure/frozen-engine-report.json",
+        "invalid-last",
+        "nested",
+        "remap",
+        "closure",
+        "registered"
+      ],
+      "exit": 0,
+      "seconds": 42.5,
+      "minimumWorkspaceBytes": 704839680,
+      "peakMemoryBytes": 6558298112,
+      "pendingCopy": false,
+      "copyImports": false
+    },
+    {
+      "name": "owned",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_general_private_abi_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-pending-registered-closure/frozen-engine-report.json",
+        "normal",
+        "nested",
+        "remap",
+        "closure"
+      ],
+      "exit": 0,
+      "seconds": 60.4,
+      "minimumWorkspaceBytes": 704548864,
+      "peakMemoryBytes": 6662504448,
+      "pendingCopy": false,
+      "copyImports": false
+    },
+    {
+      "name": "copy-targets",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_copy_targets_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-pending-registered-closure/frozen-engine-report.json",
+        "normal"
+      ],
+      "exit": 0,
+      "seconds": 78.0,
+      "minimumWorkspaceBytes": 704253952,
+      "peakMemoryBytes": 7274201088,
+      "pendingCopy": false,
+      "copyImports": false
+    },
+    {
+      "name": "metadata-owned",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_general_private_abi_metadata.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-pending-registered-closure/frozen-engine-report.json",
+        "nested",
+        "remap",
+        "closure"
+      ],
+      "exit": 0,
+      "seconds": 9.0,
+      "minimumWorkspaceBytes": 704081920,
+      "peakMemoryBytes": 5854375936,
+      "pendingCopy": false,
+      "copyImports": false
+    },
+    {
+      "name": "cas",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_copy_read_guards_core.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-pending-registered-closure/frozen-engine-report.json"
+      ],
+      "exit": 0,
+      "seconds": 3.8,
+      "minimumWorkspaceBytes": 704065536,
+      "peakMemoryBytes": 5976145920,
+      "pendingCopy": false,
+      "copyImports": false
+    }
+  ],
+  "sourceSha256": {
+    "targets/element-authoring/PrivateImplementationCopy.cs": "6ace82fda03b6f45d392e8f7d3b7d609e9441837be46c9176c75b1b62ebd389f",
+    "packs/edit-workspace/CopyImplementation.csbody": "5ea70902e9836e8a61cc68cc2c468441aaa45a3693478c3bc6b935bbd88ce067",
+    "packs/edit-workspace/ValidateReviewSelection.csbody": "2b1ff1c4b608d7db2160ef44045d0f3c0dc425c8cd32d4a76d229ad3e247c4eb",
+    "tests/web/v536_general_private_abi_metadata.py": "e0d9f98d7db9c3c4400042bb9c406734a08d88f47063782a0cd43526c8cba6e2",
+    "tests/web/v536_general_private_abi_ui.py": "a3ff78a54dae526e0c4a95fc49c5ef581299f1db6193499b91fc15a75c43133e"
+  },
+  "layoutUnchanged": true,
+  "actualWindows": false,
+  "actualMobile": false,
+  "libraryDelivered": false,
+  "projectRun": false,
+  "existingDataDeleted": false,
+  "preflight": {
+    "base": "dec8ea02475ea335eb7455d298545d2850282f6a",
+    "workspaceAvailableBytes": 722722816,
+    "tmpAvailableBytes": 9183014912,
+    "workspaceBudgetBytes": 209715200,
+    "ramTemporaryBudgetBytes": 805306368,
+    "scope": "immutable new single-target copy with multiple uses of one registered direct-dependency callee; original explicit plans/receipt; no automatic target selection",
+    "oldFilesDeleted": false
+  },
+  "failuresBeforeCompletion": [
+    {
+      "stage": "baseline-corrected/metadata",
+      "type": "missing-connection",
+      "actual": "Registered declaration is stale but callAbiAvailable=false because UsePreview requires owned namespace"
+    },
+    {
+      "stage": "confirm-boundary/confirm",
+      "type": "product-defect",
+      "actual": "Confirm succeeded after registered manifest changed following saved/ready Review",
+      "fix": "Persist selected read-only receipts in the new creation candidate and requery original scope on Review/Confirm"
+    },
+    {
+      "stage": "baseline/metadata",
+      "type": "fixture",
+      "actual": "Fixture callee ID text did not match registered qualified ID; fixed test only"
+    },
+    {
+      "stage": "engine-build-final",
+      "type": "compile",
+      "actual": "New manifest local conflicted with existing outer variable; renamed before final build"
+    },
+    {
+      "stage": "documentation",
+      "type": "transport",
+      "actual": "Exec transport reported disconnected; read-only check confirmed write completed and running tests survived; no duplicate write/build or environment change"
+    }
+  ],
+  "workspaceAvailableBytes": 703913984
+}

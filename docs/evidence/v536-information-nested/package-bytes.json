@@ -1,0 +1,23 @@
+{
+  "sourceCommit": "e95f247fcde8d6f422f87003747f9cbd6749aacd",
+  "manifestSha256": "2cd34c6f728cfc0cb62312c97b8c804452d5b0046e00edf398474466e87cbaa6",
+  "manifestFiles": 2339,
+  "actualFiles": 2340,
+  "allManifestHashesValid": true,
+  "sourceAndNativeByteIdentical": [
+    "examples/editor-home/WebBundle.csbody",
+    "examples/editor-home/ui/element-functions.js",
+    "examples/editor-home/ui/feature-authoring.js",
+    "targets/element-authoring/InformationFunctionBodies.cs",
+    "targets/element-authoring/InformationFunctionContracts.cs",
+    "targets/element-authoring/InformationFunctionGraphs.cs",
+    "targets/element-authoring/InformationFunctionInputUses.cs",
+    "targets/element-authoring/InformationFunctionPostCalls.cs",
+    "targets/element-authoring/InformationFunctionWholeBody.cs",
+    "targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll",
+    "targets/element-authoring/bin/Release/net10.0/Confectory.Core.dll"
+  ],
+  "package": "/workspace/artifacts/v536-information-nested/Windows-x64",
+  "nativeWindowsExecuted": false,
+  "delivered": false
+}

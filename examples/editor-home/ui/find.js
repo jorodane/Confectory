@@ -38,11 +38,11 @@ export function createPlacedTextFind(api){
   hostObserver.observe(context.host,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['hidden','aria-hidden']});pageObserver.observe(document.body,{childList:true,subtree:true});resize.observe(context.host);
   context.host.addEventListener('click',()=>queueMicrotask(()=>{if(panel.isConnected)search(false,false);}),{signal:events.signal});context.host.addEventListener('input',()=>search(false,false),{signal:events.signal});context.host.addEventListener('change',()=>search(false,false),{signal:events.signal});window.addEventListener('resize',position,{signal:events.signal});
   input.oninput=()=>search();panel.querySelector('[data-find-prev]').onclick=()=>step(-1);panel.querySelector('[data-find-next]').onclick=()=>step(1);panel.querySelector('[data-find-close]').onclick=dispose;
-  panel.onkeydown=event=>{event.stopPropagation();if(event.key==='Escape'){event.preventDefault();dispose();context.host.focus({preventScroll:true});}else if(event.key==='Enter'){event.preventDefault();step(event.shiftKey?-1:1);}else if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='f'){event.preventDefault();input.select();}};
+  panel.onkeydown=event=>{event.stopPropagation();if(event.isComposing||event.keyCode===229)return;if(event.key==='Escape'){event.preventDefault();dispose();context.host.focus({preventScroll:true});}else if(event.key==='Enter'){event.preventDefault();step(event.shiftKey?-1:1);}else if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='f'){event.preventDefault();input.select();}};
   active={panel,input,context,close:dispose};position();search();input.focus();
  }
  function track(event){if(event.target.closest?.('.placed-text-find,.nav-menu'))return;lastHost=event.target.closest?.('.window,.tab-document')||null;}
  document.addEventListener('pointerdown',track,true);document.addEventListener('focusin',track,true);
- document.addEventListener('keydown',event=>{if(event.defaultPrevented||!(event.ctrlKey||event.metaKey)||event.key.toLowerCase()!=='f')return;const context=api.context(lastHost);if(!context)return;event.preventDefault();open(context);});
+ document.addEventListener('keydown',event=>{if(event.isComposing||event.keyCode===229||event.defaultPrevented||!(event.ctrlKey||event.metaKey)||event.key.toLowerCase()!=='f')return;const context=api.context(lastHost);if(!context)return;event.preventDefault();open(context);});
  return {open,close};
 }

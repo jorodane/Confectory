@@ -1,0 +1,138 @@
+{
+  "original": [
+    {
+      "selector": ":scope",
+      "x": 0,
+      "y": 0,
+      "width": 300,
+      "height": 225,
+      "color": "rgb(238, 238, 238)",
+      "background": "rgb(39, 39, 39)",
+      "font": "12px \"DM Sans\", \"Noto Sans KR\", sans-serif",
+      "padding": "9px"
+    },
+    {
+      "selector": "input",
+      "x": 10,
+      "y": 10,
+      "width": 280,
+      "height": 34,
+      "color": "rgb(255, 255, 255)",
+      "background": "rgb(23, 23, 23)",
+      "font": "12px \"DM Sans\", \"Noto Sans KR\", sans-serif",
+      "padding": "10px"
+    },
+    {
+      "selector": ".behavior-link-options",
+      "x": 10,
+      "y": 51,
+      "width": 280,
+      "height": 164,
+      "color": "rgb(238, 238, 238)",
+      "background": "rgba(0, 0, 0, 0)",
+      "font": "12px \"DM Sans\", \"Noto Sans KR\", sans-serif",
+      "padding": "0px"
+    },
+    {
+      "selector": "[data-link-id=\"Owned.Elements::Rules\"]",
+      "x": 10,
+      "y": 51,
+      "width": 280,
+      "height": 52,
+      "color": "rgb(238, 238, 238)",
+      "background": "rgba(255, 255, 255, 0.03)",
+      "font": "12px \"DM Sans\", \"Noto Sans KR\", sans-serif",
+      "padding": "7px 8px"
+    },
+    {
+      "selector": "[data-link-id=\"Owned.Elements::Extra\"]",
+      "x": 10,
+      "y": 107,
+      "width": 280,
+      "height": 52,
+      "color": "rgb(238, 238, 238)",
+      "background": "rgba(255, 255, 255, 0.03)",
+      "font": "12px \"DM Sans\", \"Noto Sans KR\", sans-serif",
+      "padding": "7px 8px"
+    },
+    {
+      "selector": "[data-link-id=\"Owned.Elements::Empty\"]",
+      "x": 10,
+      "y": 163,
+      "width": 280,
+      "height": 52,
+      "color": "rgb(238, 238, 238)",
+      "background": "rgba(255, 255, 255, 0.03)",
+      "font": "12px \"DM Sans\", \"Noto Sans KR\", sans-serif",
+      "padding": "7px 8px"
+    }
+  ],
+  "actual": [
+    {
+      "selector": ":scope",
+      "x": 0,
+      "y": 0,
+      "width": 300,
+      "height": 225,
+      "color": "rgb(238, 238, 238)",
+      "background": "rgb(39, 39, 39)",
+      "font": "12px \"DM Sans\", \"Noto Sans KR\", sans-serif",
+      "padding": "9px"
+    },
+    {
+      "selector": "input",
+      "x": 10,
+      "y": 10,
+      "width": 280,
+      "height": 34,
+      "color": "rgb(255, 255, 255)",
+      "background": "rgb(23, 23, 23)",
+      "font": "12px \"DM Sans\", \"Noto Sans KR\", sans-serif",
+      "padding": "10px"
+    },
+    {
+      "selector": ".behavior-link-options",
+      "x": 10,
+      "y": 51,
+      "width": 280,
+      "height": 164,
+      "color": "rgb(238, 238, 238)",
+      "background": "rgba(0, 0, 0, 0)",
+      "font": "12px \"DM Sans\", \"Noto Sans KR\", sans-serif",
+      "padding": "0px"
+    },
+    {
+      "selector": "[data-link-id=\"Owned.Elements::Rules\"]",
+      "x": 10,
+      "y": 51,
+      "width": 280,
+      "height": 52,
+      "color": "rgb(238, 238, 238)",
+      "background": "rgba(255, 255, 255, 0.03)",
+      "font": "12px \"DM Sans\", \"Noto Sans KR\", sans-serif",
+      "padding": "7px 8px"
+    },
+    {
+      "selector": "[data-link-id=\"Owned.Elements::Extra\"]",
+      "x": 10,
+      "y": 107,
+      "width": 280,
+      "height": 52,
+      "color": "rgb(238, 238, 238)",
+      "background": "rgba(255, 255, 255, 0.03)",
+      "font": "12px \"DM Sans\", \"Noto Sans KR\", sans-serif",
+      "padding": "7px 8px"
+    },
+    {
+      "selector": "[data-link-id=\"Owned.Elements::Empty\"]",
+      "x": 10,
+      "y": 163,
+      "width": 280,
+      "height": 52,
+      "color": "rgb(238, 238, 238)",
+      "background": "rgba(255, 255, 255, 0.03)",
+      "font": "12px \"DM Sans\", \"Noto Sans KR\", sans-serif",
+      "padding": "7px 8px"
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 using Confectory.Core;
 using System.Text.Json.Nodes;
 namespace Confectory.Tests;
-public sealed class LocalBlueprintTests : TestCase
+public sealed partial class LocalBlueprintTests : TestCase
 {
     const string Feature="function Api::Value (int n,out int count) -> int {}";
     static JsonObject Local(string id,string type,JsonNode initial)=>new(){["id"]=id,["name"]="Local "+id,["type"]=type,["initial"]=new JsonObject{["constant"]=initial}};

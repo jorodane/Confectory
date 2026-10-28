@@ -1,0 +1,27 @@
+{
+  "candidateAccepted": true,
+  "actualRightArguments": {
+    "text": {
+      "constant": "오른쪽 부모"
+    },
+    "increment": {
+      "node": "left"
+    }
+  },
+  "expectedRightArguments": {
+    "text": {
+      "constant": "오른쪽 부모"
+    },
+    "increment": {
+      "node": "left",
+      "output": "total"
+    }
+  },
+  "originalRootInput": {
+    "value": {
+      "node": "left"
+    }
+  },
+  "allPhysicalSourceUnchanged": true,
+  "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-vdz0frnb"
+}

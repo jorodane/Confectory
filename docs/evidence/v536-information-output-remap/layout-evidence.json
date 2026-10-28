@@ -1,0 +1,27 @@
+{
+  "baseline": "5735516",
+  "css": {
+    "examples/editor-home/ui/consumer.css": {
+      "unchanged": true,
+      "sha256": "fc3584f1784ba822fd438edb5fe33deb6527d8e621cc478184d5f5b82244dc3e"
+    },
+    "examples/editor-home/ui/runtime.css": {
+      "unchanged": true,
+      "sha256": "7ace817c492c5bd51a3b11a2fd6b86fdc3d98e242ae4115d5cc52b179afc6e3e"
+    },
+    "examples/editor-home/ui/style.css": {
+      "unchanged": true,
+      "sha256": "adfc1b205f0d357a380122763d411147e4db7535d1484f0852a6064984912188"
+    }
+  },
+  "screenshotsReviewed": [
+    "typed-output-popover.png",
+    "typed-output-mapping.png"
+  ],
+  "pixelExactComparison": false,
+  "nativeWindows": false,
+  "sourceCommit": "531a1f279fc4487304bd01c00ebbbe469ae11ba2",
+  "cleanUiEvidence": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-19b9yt3t",
+  "cleanUiChecks": 2,
+  "cleanApiChecks": 3
+}

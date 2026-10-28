@@ -1,0 +1,290 @@
+{
+  "implementationCommit": "070d5a6c87fcd3cd428c352cc4080dcfc086ea2c",
+  "initialImplementationCommit": "7d81edde581699608054f1cb5851f465f4178dc0",
+  "metadataOnlyRegressionFixed": true,
+  "sourceReleaseWarnings": 0,
+  "sourceReleaseErrors": 0,
+  "focusedChecks": 33,
+  "cleanCheckout": "/workspace/scratch/v536-multiple-implementations/checkout",
+  "cleanChecks": 9,
+  "finalSourceAndCleanRuns": [
+    {
+      "name": "r2-source-release",
+      "command": [
+        "/workspace/toolchains/dotnet-10.0.401/dotnet",
+        "build",
+        "Confectory.sln",
+        "-c",
+        "Release",
+        "--no-restore",
+        "-m:1"
+      ],
+      "cwd": "/workspace/Confectory",
+      "exit": 0,
+      "elapsedSeconds": 8.8,
+      "log": "/workspace/scratch/v536-shared-callers/r2-source-release.log"
+    },
+    {
+      "name": "r2-source-mcp",
+      "command": [
+        "/workspace/toolchains/dotnet-10.0.401/dotnet",
+        "build",
+        "targets/mcp-host",
+        "-c",
+        "Release",
+        "--no-restore"
+      ],
+      "cwd": "/workspace/Confectory",
+      "exit": 0,
+      "elapsedSeconds": 1.2,
+      "log": "/workspace/scratch/v536-shared-callers/r2-source-mcp.log"
+    },
+    {
+      "name": "r2-clean-ff",
+      "command": [
+        "git",
+        "pull",
+        "--ff-only",
+        "/workspace/Confectory",
+        "work/current"
+      ],
+      "cwd": "/workspace/scratch/v536-multiple-implementations/checkout",
+      "exit": 0,
+      "elapsedSeconds": 0.1,
+      "log": "/workspace/scratch/v536-shared-callers/r2-clean-ff.log"
+    },
+    {
+      "name": "r2-clean-native-build",
+      "command": [
+        "/workspace/toolchains/dotnet-10.0.401/dotnet",
+        "build",
+        "targets/element-authoring",
+        "-c",
+        "Release",
+        "--no-restore"
+      ],
+      "cwd": "/workspace/scratch/v536-multiple-implementations/checkout",
+      "exit": 0,
+      "elapsedSeconds": 3.9,
+      "log": "/workspace/scratch/v536-shared-callers/r2-clean-native-build.log"
+    },
+    {
+      "name": "r2-clean-native",
+      "command": [
+        "python3",
+        "tests/web/v536_information_shared_callers_native.py",
+        "/workspace/scratch/v536-multiple-implementations/checkout",
+        "/workspace/scratch/v536-information-inherited-contract/clean-engine-1.json",
+        "normal"
+      ],
+      "cwd": "/workspace/scratch/v536-multiple-implementations/checkout",
+      "exit": 0,
+      "elapsedSeconds": 5.6,
+      "log": "/workspace/scratch/v536-shared-callers/r2-clean-native.log"
+    },
+    {
+      "name": "r2-clean-api",
+      "command": [
+        "python3",
+        "tests/web/v536_information_shared_callers_api.py",
+        "/workspace/scratch/v536-multiple-implementations/checkout",
+        "/workspace/scratch/v536-information-inherited-contract/clean-engine-1.json",
+        "normal"
+      ],
+      "cwd": "/workspace/scratch/v536-multiple-implementations/checkout",
+      "exit": 0,
+      "elapsedSeconds": 28.4,
+      "log": "/workspace/scratch/v536-shared-callers/r2-clean-api.log"
+    },
+    {
+      "name": "r2-clean-view",
+      "command": [
+        "python3",
+        "tests/web/v536_information_shared_callers_ui.py",
+        "/workspace/scratch/v536-multiple-implementations/checkout",
+        "/workspace/scratch/v536-information-inherited-contract/clean-engine-1.json",
+        "normal",
+        "view"
+      ],
+      "cwd": "/workspace/scratch/v536-multiple-implementations/checkout",
+      "exit": 0,
+      "elapsedSeconds": 60.5,
+      "log": "/workspace/scratch/v536-shared-callers/r2-clean-view.log"
+    }
+  ],
+  "impactRegressionChecks": 5,
+  "sourceAndImpactRuns": [
+    {
+      "name": "single-function-regression",
+      "command": [
+        "python3",
+        "tests/web/v536_information_function_contracts_api.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-information-inherited/engine-inherited-2.json",
+        "normal"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 23.6,
+      "log": "/workspace/scratch/v536-shared-callers/single-function-regression.log"
+    },
+    {
+      "name": "inherited-guard-regression",
+      "command": [
+        "python3",
+        "tests/web/v536_information_inherited_contract_guards.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-information-inherited/engine-inherited-2.json",
+        "normal"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 7.0,
+      "log": "/workspace/scratch/v536-shared-callers/inherited-guard-regression.log"
+    },
+    {
+      "name": "source-mcp-release",
+      "command": [
+        "/workspace/toolchains/dotnet-10.0.401/dotnet",
+        "build",
+        "targets/mcp-host",
+        "-c",
+        "Release",
+        "--no-restore"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 1.2,
+      "log": "/workspace/scratch/v536-shared-callers/source-mcp-release.log"
+    },
+    {
+      "name": "source-linux",
+      "command": [
+        "/workspace/toolchains/dotnet-10.0.401/dotnet",
+        "src/Confectory.Cli/bin/Release/net10.0/Confectory.Cli.dll",
+        "build",
+        "examples/editor-home/project.cpack",
+        "linux"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 70.2,
+      "log": "/workspace/scratch/v536-shared-callers/source-linux.log"
+    }
+  ],
+  "package": {
+    "sourceCommit": "070d5a6c87fcd3cd428c352cc4080dcfc086ea2c",
+    "package": "/workspace/artifacts/v536-information-shared-callers/Windows-x64",
+    "declaredFiles": 2343,
+    "totalFiles": 2344,
+    "manifestSha256": "9d8f3fa88b1e8c62753ba2fe32228e02aa3be6ef41c34c394a81be15bd42f559",
+    "allManifestHashesMatch": true,
+    "coreCopies": {
+      "Confectory.Core.dll": "bf1506651142fccb4c9be40b498211979ccab0837f01eecd2ea0ee5c0dcae92e",
+      "content/src/Confectory.Cli/bin/Release/net10.0/Confectory.Core.dll": "bf1506651142fccb4c9be40b498211979ccab0837f01eecd2ea0ee5c0dcae92e",
+      "content/targets/project-execution-host/bin/Release/net10.0/Confectory.Core.dll": "bf1506651142fccb4c9be40b498211979ccab0837f01eecd2ea0ee5c0dcae92e",
+      "content/targets/desktop-entry/bin/Release/net10.0/Confectory.Core.dll": "bf1506651142fccb4c9be40b498211979ccab0837f01eecd2ea0ee5c0dcae92e",
+      "content/targets/element-authoring/bin/Release/net10.0/Confectory.Core.dll": "bf1506651142fccb4c9be40b498211979ccab0837f01eecd2ea0ee5c0dcae92e",
+      "content/targets/browser-wasm/bin/Release/net10.0/Confectory.Core.dll": "bf1506651142fccb4c9be40b498211979ccab0837f01eecd2ea0ee5c0dcae92e",
+      "content/targets/android-export/bin/Release/net10.0/Confectory.Core.dll": "bf1506651142fccb4c9be40b498211979ccab0837f01eecd2ea0ee5c0dcae92e"
+    },
+    "nativeAssemblySha256": "fd41242c66f33405c2cb63cdc545f14d116f4cda44d7095739b1dcc7c27cf6b0",
+    "testedProductSha256": {
+      "targets/element-authoring/InformationDefinitions.cs": "a238f794bc5dae93efe3e4462a90284b44909604de8c67fd5b2e6469083b8701",
+      "targets/element-authoring/InformationFunctionBatch.cs": "e0eeb4f6ff0ef1f845bb12687792ee3512aa0af823c6c52a4c6c67ad9e610bc7"
+    },
+    "packagedBackendChecks": 4,
+    "actualWindows": false,
+    "webView2Executed": false,
+    "actualMobile": false,
+    "libraryUploaded": false,
+    "existingArtifactsDeleted": false,
+    "previousPackageRetained": "/workspace/artifacts/v536-information-shared-callers/Windows-x64.previous-202610251159243430967",
+    "browserScratch": "/dev/shm/confectory-shared-callers-browser-070d5a6",
+    "legacyFixtureHardLinkedReadOnly": true
+  },
+  "packageProbe": {
+    "pass": true,
+    "package": "/workspace/artifacts/v536-information-shared-callers/Windows-x64",
+    "files": 2343,
+    "crossPublishedWindowsX64PE": true,
+    "unrelatedWorkingDirectory": true,
+    "packageTamperAndMissingDependencyRejected": true,
+    "packagedEngineWebStartup": true,
+    "runtimeOnlyNoInstalledSDK": true,
+    "existingCheckoutProfileReusedAndExplicitOverrideRetained": true,
+    "fixtureCopiesReusedReadOnly": "/tmp/confectory-desktop-package-7gk4rmzn",
+    "resources": 74,
+    "renderedMinimalLogin": true,
+    "windowsApphostExecuted": false,
+    "webView2Executed": false,
+    "actualLoginOrInference": false,
+    "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-desktop-package-r9w4oqpq"
+  },
+  "packageRuns": [
+    {
+      "name": "r2-windows-package",
+      "command": [
+        "/workspace/toolchains/dotnet-10.0.401/dotnet",
+        "targets/editor-desktop/bin/Release/net10.0/Confectory.dll",
+        "package",
+        "/workspace/Confectory",
+        "/workspace/artifacts/v536-information-shared-callers/Windows-x64"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 75.9,
+      "log": "/workspace/scratch/v536-shared-callers/r2-windows-package.log"
+    },
+    {
+      "name": "r2-windows-probe",
+      "command": [
+        "python3",
+        "tests/probes/desktop_package.py",
+        "/workspace/Confectory",
+        "/workspace/artifacts/v536-information-shared-callers/Windows-x64",
+        "/tmp/confectory-desktop-package-7gk4rmzn"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 8.4,
+      "log": "/workspace/scratch/v536-shared-callers/r2-windows-probe.log"
+    },
+    {
+      "name": "r2-packaged-native",
+      "command": [
+        "python3",
+        "tests/web/v536_information_shared_callers_native.py",
+        "/workspace/artifacts/v536-information-shared-callers/Windows-x64/content",
+        "/workspace/scratch/v536-information-inherited-contract/clean-engine-1.json",
+        "normal"
+      ],
+      "exit": 0,
+      "elapsedSeconds": 5.6,
+      "log": "/workspace/scratch/v536-shared-callers/r2-packaged-native.log"
+    }
+  ],
+  "spacePreflight": {
+    "availableBytes": {
+      "workspace": 231186432,
+      "tmp": 106323968,
+      "browserScratch": 9441337344
+    },
+    "previousPackageBytes": 132441095,
+    "buildAndReserveBytes": 62914560,
+    "oldPackageWillBeRetained": true,
+    "runtimeFixtureReused": "/tmp/confectory-desktop-package-7gk4rmzn/runtime only",
+    "newLegacyFixtureUsesReadOnlyHardLinks": true,
+    "existingArtifactsDeleted": false
+  },
+  "initialProbeFailure": {
+    "logSha256": "7e432c54a72546a603b71b47a133ffb6dd44bbcbcba2ba14040c09fd5df0438c",
+    "observed": "Chromium Target crashed before welcome selector",
+    "causeConfirmed": false,
+    "recovery": "Exact SDK-less runtime reused read-only; current package legacy fixture hard-linked for read-only checks; browser temporary files confined to a private RAM scratch directory; all checks retained"
+  },
+  "postImplementationChanges": [
+    "probe browser scratch support",
+    "validation docs/evidence"
+  ],
+  "runtimeSourceChangesAfterImplementation": false,
+  "actualWindows": false,
+  "actualMobile": false,
+  "actualLoginOrInference": false,
+  "libraryUploaded": false,
+  "existingArtifactsDeleted": false
+}

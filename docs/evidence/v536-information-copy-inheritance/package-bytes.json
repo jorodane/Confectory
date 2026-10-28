@@ -1,0 +1,103 @@
+{
+  "sourceCommit": "5c1d6d795f28b1731fc3a6b55dd6092a571173a8",
+  "package": "/workspace/artifacts/v536-information-copy-inheritance/Windows-x64",
+  "manifestSha256": "f9c248cd79a26ee19db41c2572f66a9e18ee241b07b738d2fb8a0dd349259178",
+  "manifestFiles": 2342,
+  "actualFiles": 2343,
+  "allManifestHashesMatch": true,
+  "allChangedProductionSourcesMatch": true,
+  "changedProductionFiles": 12,
+  "sourceAndHostComparisons": [
+    {
+      "source": "examples/editor-home/WebBundle.csbody",
+      "package": "content/examples/editor-home/WebBundle.csbody",
+      "sha256": "820dd84a50e2f112d05acbe57dc4bfcbd63a301b1accbeac45e37a5ce278c839"
+    },
+    {
+      "source": "examples/editor-home/ui/element-functions.js",
+      "package": "content/examples/editor-home/ui/element-functions.js",
+      "sha256": "48de0467f1311707f15d6abf650c4638d8f53c9bcd493f938ef34231be83e15b"
+    },
+    {
+      "source": "examples/editor-home/ui/feature-authoring.js",
+      "package": "content/examples/editor-home/ui/feature-authoring.js",
+      "sha256": "a2c408bab52335137c112f37a5a34375b28bb8008cddb264d2e9b1ab25f198d2"
+    },
+    {
+      "source": "packs/pack-workspace/Blueprint.csbody",
+      "package": "content/packs/pack-workspace/Blueprint.csbody",
+      "sha256": "31c7ae008b17b931ce95cf818e8b2de8d36a2aad8f0d194e23dbc0b6002eaa6a"
+    },
+    {
+      "source": "targets/element-authoring/BlueprintCallableContracts.cs",
+      "package": "content/targets/element-authoring/BlueprintCallableContracts.cs",
+      "sha256": "bfcb571396111bebfda1f8baaa4614bd9c6155e5cf043abf7952dc2669abbf4c"
+    },
+    {
+      "source": "targets/element-authoring/InformationFunctionBodies.cs",
+      "package": "content/targets/element-authoring/InformationFunctionBodies.cs",
+      "sha256": "72e2f0dbf23290e80df1be2d53ceaf41a50ff408e3198f3a23162bdcc160234f"
+    },
+    {
+      "source": "targets/element-authoring/InformationFunctionContracts.cs",
+      "package": "content/targets/element-authoring/InformationFunctionContracts.cs",
+      "sha256": "f8b83ff21ea9322673e56ecbced09b4c972d0fcdba09815792ac3fb5732cf465"
+    },
+    {
+      "source": "targets/element-authoring/InformationFunctionCopies.cs",
+      "package": "content/targets/element-authoring/InformationFunctionCopies.cs",
+      "sha256": "eeb0290099552b81967bc2194515603d052b702c2e8ef78114ab3c5c631c881c"
+    },
+    {
+      "source": "targets/element-authoring/InformationFunctionDependencies.cs",
+      "package": "content/targets/element-authoring/InformationFunctionDependencies.cs",
+      "sha256": "78b2e5047c5106d5e2176b0732e0f42ee5983f1150c4a4fbc27623bf44f69732"
+    },
+    {
+      "source": "targets/element-authoring/InformationFunctionPostCalls.cs",
+      "package": "content/targets/element-authoring/InformationFunctionPostCalls.cs",
+      "sha256": "d6b1dc0c227674614285fc1f4637bf9856c787cc2363640805e7586c5ff91224"
+    },
+    {
+      "source": "targets/element-authoring/InformationFunctionPrivateCalls.cs",
+      "package": "content/targets/element-authoring/InformationFunctionPrivateCalls.cs",
+      "sha256": "b2a6dfe750d348dee8d5b2507a53c5d2cacda29274791ddad96e6a0fa104a663"
+    },
+    {
+      "source": "targets/element-authoring/Program.cs",
+      "package": "content/targets/element-authoring/Program.cs",
+      "sha256": "a07747e50e740f76e471c370a787d8d273f1dab2731993e2c27ecc7939d19721"
+    },
+    {
+      "source": "targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll",
+      "package": "content/targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll",
+      "sha256": "2d08811b639659e1211bf0649eacf5db90258290b8ee142a2f41663092e6fe05"
+    },
+    {
+      "source": "targets/element-authoring/bin/Release/net10.0/Confectory.Core.dll",
+      "package": "content/targets/element-authoring/bin/Release/net10.0/Confectory.Core.dll",
+      "sha256": "96937a28f7f41e03c28313a716db2204c88b58247e0dd91e729514f9e4d23a64"
+    }
+  ],
+  "packageCoreMatchesCurrentCoreBuild": true,
+  "packageProbe": {
+    "pass": true,
+    "package": "/workspace/artifacts/v536-information-copy-inheritance/Windows-x64",
+    "files": 2342,
+    "crossPublishedWindowsX64PE": true,
+    "unrelatedWorkingDirectory": true,
+    "packageTamperAndMissingDependencyRejected": true,
+    "packagedEngineWebStartup": true,
+    "runtimeOnlyNoInstalledSDK": true,
+    "existingCheckoutProfileReusedAndExplicitOverrideRetained": true,
+    "resources": 74,
+    "renderedMinimalLogin": true,
+    "windowsApphostExecuted": false,
+    "webView2Executed": false,
+    "actualLoginOrInference": false,
+    "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-desktop-package-7awdalsd"
+  },
+  "actualWindowsExecuted": false,
+  "libraryDelivered": false,
+  "verifiedAtUtc": "2026-10-25T08:41:17.411953+00:00"
+}

@@ -1,0 +1,10 @@
+{
+  "pass": true,
+  "sourceCommit": "9c6fd9fa3ed3f1b9c3314c9dd1ea74a607eaafda",
+  "resources": 74,
+  "actualGitRetainedCRLFAfterAttributesPull": true,
+  "freshLF": true,
+  "contentEncodingBOMBinaryBudgetTamperRejected": true,
+  "originalRootBytesUnchanged": true,
+  "nativeWindowsExecuted": false
+}

@@ -1,0 +1,165 @@
+{
+  "sourceCommit": "f9a97fe57dd14ae9871d1947d59f5a32a7b40097",
+  "focusedChecks": 25,
+  "savedCopyRegressionChecks": 5,
+  "cleanCheckout": {
+    "path": "/workspace/scratch/v536-multiple-implementations/checkout",
+    "nativeReleaseBuildSucceeded": true,
+    "nativeWarnings": 0,
+    "nativeErrors": 0,
+    "linuxToolOk": true,
+    "linuxStderrBytes": 0,
+    "checks": [
+      {
+        "name": "api",
+        "command": [
+          "python3",
+          "tests/web/v536_information_inherited_copy_api.py",
+          "/workspace/scratch/v536-multiple-implementations/checkout",
+          "/workspace/scratch/v536-information-inherited/clean-engine-inherited-1.json",
+          "normal"
+        ],
+        "exit": 0,
+        "elapsedSeconds": 48.0,
+        "log": "clean-inherited-api-1.log",
+        "checkCount": 3,
+        "checks": [
+          "자체 정보 함수의 기존 선택/비공개 초안 경로는 부모 header/body와 원래 snapshot을 보관하며 모듈 UI를 추가하지 않는다",
+          "오류는 전체 미적용이고 명시 재시도/원자 저장/cold는 새 복사본만 연결하며 부모·함수·호출자를 보존한다",
+          "복사 후 본문 재편집은 미사용 상속 선언을 바꾸지 않고 같은 ABI/전체 후보 검증으로 보관한다"
+        ],
+        "fixture": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-mtb8ift6"
+      },
+      {
+        "name": "guards",
+        "command": [
+          "python3",
+          "tests/web/v536_information_inherited_copy_guards.py",
+          "/workspace/scratch/v536-multiple-implementations/checkout",
+          "/workspace/scratch/v536-information-inherited/clean-engine-inherited-1.json",
+          "normal"
+        ],
+        "exit": 0,
+        "elapsedSeconds": 15.3,
+        "log": "clean-inherited-guards-1.log",
+        "checkCount": 4,
+        "checks": [
+          "위조된 본문 계획으로 부모를 수정하려 해도 같은 ABI의 예외를 쓰기 권한으로 사용할 수 없다",
+          "직접 상속 ABI 변경은 전체 명시 후보가 없으면 여전히 거절하며 부모·원문·초안을 보존한다",
+          "직접 소유하지 않은 상속 함수는 새 copy 진입의 대상으로 승격되지 않는다",
+          "읽기 선택기에서도 상속 선언의 위조된 ID/locator는 건너뛰지 않고 거절한다"
+        ],
+        "fixture": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-pvva9qrd"
+      },
+      {
+        "name": "ui",
+        "command": [
+          "python3",
+          "tests/web/v536_information_inherited_copy_ui.py",
+          "/workspace/scratch/v536-multiple-implementations/checkout",
+          "/workspace/scratch/v536-information-inherited/clean-engine-inherited-1.json",
+          "normal",
+          "view"
+        ],
+        "exit": 0,
+        "elapsedSeconds": 89.6,
+        "log": "clean-inherited-ui-1.log",
+        "checkCount": 2,
+        "checks": [
+          "독립 정보 창의 기존 상속 복사 선택·취소·C# Undo/Redo·cold는 원본/정확한 값/새 복사 ID를 보존한다",
+          "실제 Save·재시작·Review 취소/재검토·명시 Confirm은 새 소유 복사본만 반영하며 함수/부모/호출자를 보존한다"
+        ],
+        "fixture": "/workspace/scratch/v536-information-binding/tmp/confectory-wide-mixed-9l0ehlof"
+      }
+    ],
+    "totalChecks": 9
+  },
+  "actualResourceCheckout": {
+    "canonicalExactSnapshots": 74,
+    "gitOperations": 4,
+    "gitExitCodes": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "retainedCRLFAfterPull": true,
+    "freshLF": true,
+    "contentEncodingBinaryBudgetRejections": true,
+    "originalBytesPreserved": true
+  },
+  "windowsCrossPackage": {
+    "sourceCommit": "f9a97fe57dd14ae9871d1947d59f5a32a7b40097",
+    "package": "/workspace/artifacts/v536-information-inherited-copy/Windows-x64",
+    "declaredFiles": 2342,
+    "totalFiles": 2343,
+    "allManifestHashesMatch": true,
+    "noSymlinks": true,
+    "manifestSha256": "4817b0a869a712523e12ddfee69e1c0d01f7eaecb20581fc47c0cacd93c59d40",
+    "productSourceMatches": {
+      "examples/editor-home/WebBundle.csbody": "395b77cb19a47b0e9d8182655fdaa80553cb8e79d9d08aaa921bceb9e6ee2f44",
+      "examples/editor-home/ui/element-functions.js": "5775a9718cd3ed7d57bcdd8a74e4153860242f4078358541d471dcb7510db3e9",
+      "packs/edit-workspace/SlotBatch.csbody": "3896a7a6d18c23f90c72525ad3f64a6db739fa3a721c751cd40219d265c3e654",
+      "packs/pack-workspace/Blueprint.csbody": "c5a07052ff857b8557eb4f27e0b6bc93450fce8920cdf72a2ccc30e9cd6f6ef8",
+      "targets/element-authoring/EffectiveMetadata.cs": "f555563ab37b1d81e44d807cc89f8cc8de80421282f8e7fd890b2f45ca210b15",
+      "targets/element-authoring/InformationFunctionContracts.cs": "696c3d351a2b4602fce2db45462b2e0658b57e2fcc200923a9a8d057a48087ba",
+      "targets/element-authoring/InformationFunctionInputUses.cs": "878c6e5381a742d7e1572eaad7b094fc302dc8c47414f3d8effb62d46a6af26b"
+    },
+    "binaryMatches": {
+      "content/targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll": {
+        "local": "targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll",
+        "sha256": "dfed3ad3a0704d13d45ae60054ed723532ee3a624066f2438779ae31594580f6"
+      },
+      "content/targets/element-authoring/bin/Release/net10.0/Confectory.Core.dll": {
+        "local": "targets/element-authoring/bin/Release/net10.0/Confectory.Core.dll",
+        "sha256": "5062ef8714aa526ee5ad9c022432e993c8e2326375f4cccb1bec891c353d93f9"
+      },
+      "Confectory.Core.dll": {
+        "local": "src/Confectory.Core/bin/Release/net10.0/Confectory.Core.dll",
+        "sha256": "c966ed1e9e2d84c95978430e21267ad304837c107a680d1f2848fc96976abff2"
+      }
+    },
+    "actualWindows": false,
+    "webView2Executed": false,
+    "actualLoginOrInference": false,
+    "libraryUploaded": false
+  },
+  "packagedEngineProbe": {
+    "pass": true,
+    "package": "/workspace/artifacts/v536-information-inherited-copy/Windows-x64",
+    "files": 2342,
+    "crossPublishedWindowsX64PE": true,
+    "unrelatedWorkingDirectory": true,
+    "packageTamperAndMissingDependencyRejected": true,
+    "packagedEngineWebStartup": true,
+    "runtimeOnlyNoInstalledSDK": true,
+    "existingCheckoutProfileReusedAndExplicitOverrideRetained": true,
+    "resources": 74,
+    "renderedMinimalLogin": true,
+    "windowsApphostExecuted": false,
+    "webView2Executed": false,
+    "actualLoginOrInference": false,
+    "evidence": "/workspace/scratch/v536-information-binding/tmp/confectory-desktop-package-3msxhwo2"
+  },
+  "logSha256": {
+    "clean-inherited-native-1.log": "79d384204c9080f3ddd5766e487d2ce624acb8d4e8faf87241b4d733ad493df5",
+    "clean-engine-inherited-1.json": "d3d419edba3852e3118dbc24043cb54be3913c9e79bcfd1b57954f4db5a748dc",
+    "clean-engine-inherited-1.err": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "inherited-resource-checkout-1.log": "45e626d07834143f19c0b20d3a7ed9b47d576ac5e3b35248db1b368585960ebb",
+    "inherited-resource-checkout-1-git.jsonl": "ca45604bf85d3c55c63fe327a891b4ea2062f26ec9ee23c218d679cee483a4f7",
+    "clean-inherited-api-1.log": "1c246e2bf8f9b1b8c9db9c9126ac5e8c79070a0048e72b77f369e8dc3d5bc534",
+    "clean-inherited-guards-1.log": "9087f86c257c8ba38375ccbef703aa1e9135cdf54273c4c12a0908b98448d72d",
+    "clean-inherited-ui-1.log": "340ff461e52f27b25fac7806805aabf25c9655596549f28cf8d165f3141f7e93",
+    "inherited-windows-package-1.log": "1809108b556843c34db54dffd60d8df7d0c5f1adaa3b429018d39dd21ed173f2",
+    "inherited-windows-probe-1.log": "74baed40cdeb2e2aad64236e633d3db80b301ac9991d418bdcdf0ee8f12f204f"
+  },
+  "limitations": [
+    "same-public-ABI inherited C# copy editing only; row7 remains partial",
+    "inherited declarations plus simultaneous public ABI edit remains guarded",
+    "general Blueprint parent information-window acceptance not closed by this C# unit",
+    "new/unconfirmed external-function-ID and multi-target copy contract edits retain guards",
+    "row8 shared callers and row9 advanced types/display-name handling are separate",
+    "actual Windows/WebView2 and mobile devices not executed",
+    "no actual login, paid inference, user project execution or Library delivery"
+  ]
+}

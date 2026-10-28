@@ -22,11 +22,21 @@ public static class SchemaContracts
         return fields;
     }
 
-    public static List<ElementReference> Validate(Registry registry, string id)
+    public static List<ElementReference> Validate(Registry registry, string id) => Validate(registry, id, null);
+
+    public static List<ElementReference> Validate(Registry registry, string id, Dictionary<string, SchemaDatum>? schemaDefaults)
     {
         var e = registry.Effective(id);
         List<ElementReference> references = [];
-        if (e.Kind == "schema") ValidateFields(e.Fields);
+        if (e.Kind == "schema")
+        {
+            ValidateFields(e.Fields);
+            if (schemaDefaults is not null) ValidateMembers(e.Fields, schemaDefaults);
+            // Editor defaults are snapshots for new values. Validate explicitly
+            // versioned records during compilation too, without making metadata
+            // targets active execution dependencies or populating object data.
+            else if (e.Values.ContainsKey(InformationDefaultsMarker)) EditorDefaults(registry, id);
+        }
         if (e.Kind == "object") ValidateMembers(Fields(registry, id), e.Data);
         return references;
 
@@ -84,6 +94,39 @@ public static class SchemaContracts
             while (seen.Add(current)) { if (current == required) return true; var schema = registry.Get(current, "schema"); if (schema.Parent is null) return false; current = schema.Parent; }
             registry.Effective(current); return false;
         }
+    }
+
+    public const string InformationDefaultsMarker = "editorInformationDefaults";
+    public const string InformationDefaultsProfile = "typed-json-v1";
+    public const string InformationDefaultsPrefix = "editorFieldDefault_";
+
+    public static Dictionary<string, SchemaDatum> EditorDefaults(Registry registry, string id)
+    {
+        var schema = registry.Effective(registry.Get(id, "schema").Id);
+        Dictionary<string, SchemaDatum> result = new(StringComparer.Ordinal);
+        if (schema.Values.TryGetValue(InformationDefaultsMarker, out var marker)
+            && (marker.Value.ValueKind != JsonValueKind.String || marker.Value.GetString() != InformationDefaultsProfile))
+            throw new BuildError("INFORMATION_DEFAULT_PROFILE", "Unknown information defaults profile retained", marker.Loc);
+        foreach (var (key, record) in schema.Values.Where(p => p.Key.StartsWith(InformationDefaultsPrefix, StringComparison.Ordinal)))
+        {
+            string field = key[InformationDefaultsPrefix.Length..];
+            var source = registry.Get(record.Origin, "schema");
+            if (!source.Values.TryGetValue(InformationDefaultsMarker, out var profile)
+                || profile.Value.ValueKind != JsonValueKind.String || profile.Value.GetString() != InformationDefaultsProfile)
+                throw new BuildError("INFORMATION_DEFAULT_PROFILE", "Unmarked default record retained; explicit migration required", record.Loc);
+            if (!schema.Fields.ContainsKey(field) || record.Value.ValueKind != JsonValueKind.String)
+                throw new BuildError("INFORMATION_DEFAULT_FIELD", "Default record must address its existing field", record.Loc);
+            string json = record.Value.GetString()!;
+            if (json.Length > 65536) throw new BuildError("INFORMATION_DEFAULT_BUDGET", "Bounded typed default required", record.Loc);
+            try
+            {
+                using var parsed = JsonDocument.Parse(json, new() { MaxDepth = 64 });
+                result.Add(field, FromTransport(parsed.RootElement, record.Origin));
+            }
+            catch (JsonException) { throw new BuildError("INFORMATION_DEFAULT_JSON", "Invalid typed information default; original retained", record.Loc); }
+        }
+        Validate(registry, id, result);
+        return result;
     }
     private static void Mismatch(string name, SchemaDatum datum) => throw new BuildError("SCHEMA_TYPE", $"Data field {name} does not match its declared type/cardinality", datum.Loc);
     private static bool Primitive(string type, JsonElement value) => type switch

@@ -1,0 +1,14 @@
+{
+  "baselineCommit": "c370e5aa3d5e6bf6308d1fa2dfcf86788d06d531",
+  "cssByteEqual": {
+    "style.css": "adfc1b205f0d357a380122763d411147e4db7535d1484f0852a6064984912188",
+    "consumer.css": "fc3584f1784ba822fd438edb5fe33deb6527d8e621cc478184d5f5b82244dc3e",
+    "runtime.css": "7ace817c492c5bd51a3b11a2fd6b86fdc3d98e242ae4115d5cc52b179afc6e3e"
+  },
+  "reference": "196c605:reference/site-ui/Confectory-Editor-Prototype-v536.zip",
+  "rendererScreenshots": [
+    "primary.png",
+    "detached.png"
+  ],
+  "scope": "existing own function detail popup and information shell; no CSS/HTML redesign, no native/pixel equality claim"
+}

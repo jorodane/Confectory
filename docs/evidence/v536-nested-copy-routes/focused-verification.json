@@ -1,0 +1,274 @@
+{
+  "base": "0e321531387eb82230763ab8015c583ae360aa3d",
+  "flows": 11,
+  "checks": 94,
+  "pureCandidateChecks": 12,
+  "flowsDetail": [
+    {
+      "name": "primary",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-routes/ui-engine-report.json",
+        "normal",
+        "nested-source",
+        "nested-routes"
+      ],
+      "exit": 0,
+      "seconds": 210.5,
+      "minimumWorkspaceBytes": 1278390272,
+      "peakMemoryBytes": 4870721536,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 10,
+      "log": "/workspace/scratch/v536-nested-routes/first-exit/primary.log"
+    },
+    {
+      "name": "view",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-routes/ui-engine-report.json",
+        "normal",
+        "view",
+        "nested-source",
+        "nested-routes",
+        "cold-private",
+        "pointer-routes"
+      ],
+      "exit": 0,
+      "seconds": 270.4,
+      "minimumWorkspaceBytes": 1277923328,
+      "peakMemoryBytes": 4928024576,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 11,
+      "log": "/workspace/scratch/v536-nested-routes/focused-pan/view.log"
+    },
+    {
+      "name": "storage",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-routes/ui-engine-report.json",
+        "storage",
+        "view",
+        "nested-source",
+        "nested-routes",
+        "confirmed"
+      ],
+      "exit": 0,
+      "seconds": 314.5,
+      "minimumWorkspaceBytes": 1277517824,
+      "peakMemoryBytes": 4950405120,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 11,
+      "log": "/workspace/scratch/v536-nested-routes/focused-pan/storage.log"
+    },
+    {
+      "name": "conflict",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-routes/ui-engine-report.json",
+        "conflict",
+        "nested-source",
+        "nested-routes",
+        "confirmed"
+      ],
+      "exit": 0,
+      "seconds": 126.1,
+      "minimumWorkspaceBytes": 1277239296,
+      "peakMemoryBytes": 4842270720,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 5,
+      "log": "/workspace/scratch/v536-nested-routes/focused-pan/conflict.log"
+    },
+    {
+      "name": "loss",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-routes/ui-engine-report.json",
+        "loss",
+        "view",
+        "nested-source",
+        "nested-routes"
+      ],
+      "exit": 0,
+      "seconds": 257.6,
+      "minimumWorkspaceBytes": 1277046784,
+      "peakMemoryBytes": 4889329664,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 11,
+      "log": "/workspace/scratch/v536-nested-routes/focused-pan/loss.log"
+    },
+    {
+      "name": "context",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-routes/ui-engine-report.json",
+        "context",
+        "view",
+        "nested-source",
+        "nested-routes",
+        "confirmed"
+      ],
+      "exit": 0,
+      "seconds": 324.5,
+      "minimumWorkspaceBytes": 1276768256,
+      "peakMemoryBytes": 5003710464,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 11,
+      "log": "/workspace/scratch/v536-nested-routes/focused-pan/context.log"
+    },
+    {
+      "name": "projects",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-routes/ui-engine-report.json",
+        "projects",
+        "nested-source",
+        "nested-routes"
+      ],
+      "exit": 0,
+      "seconds": 250.4,
+      "minimumWorkspaceBytes": 1276461056,
+      "peakMemoryBytes": 4935413760,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 11,
+      "log": "/workspace/scratch/v536-nested-routes/focused-pan/projects.log"
+    },
+    {
+      "name": "pins-regression",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_external_copy_ui.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-routes/ui-engine-report.json",
+        "normal",
+        "view",
+        "nested-source",
+        "nested-pins",
+        "cold-private"
+      ],
+      "exit": 0,
+      "seconds": 288.7,
+      "minimumWorkspaceBytes": 1276153856,
+      "peakMemoryBytes": 4972445696,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 12,
+      "log": "/workspace/scratch/v536-nested-routes/focused-pan/pins-regression.log"
+    },
+    {
+      "name": "module-guards",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_module_view_guards.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-routes/ui-engine-report.json",
+        "normal",
+        "view"
+      ],
+      "exit": 0,
+      "seconds": 18.8,
+      "minimumWorkspaceBytes": 1275760640,
+      "peakMemoryBytes": 4050792448,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 4,
+      "log": "/workspace/scratch/v536-nested-routes/focused-pan/module-guards.log"
+    },
+    {
+      "name": "override",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_information_inherited_contract_guards.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-routes/ui-engine-report.json",
+        "normal"
+      ],
+      "exit": 0,
+      "seconds": 7.0,
+      "minimumWorkspaceBytes": 1275719680,
+      "peakMemoryBytes": 4117389312,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 3,
+      "log": "/workspace/scratch/v536-nested-routes/focused-pan/override.log"
+    },
+    {
+      "name": "root-selection",
+      "command": [
+        "python3",
+        "/workspace/Confectory/tests/web/v536_blueprint_selection_engine.py",
+        "/workspace/Confectory",
+        "/workspace/scratch/v536-nested-routes/ui-engine-report.json"
+      ],
+      "exit": 0,
+      "seconds": 43.7,
+      "minimumWorkspaceBytes": 1275662336,
+      "peakMemoryBytes": 4831993856,
+      "pendingCopy": false,
+      "copyImports": false,
+      "checks": 5,
+      "log": "/workspace/scratch/v536-nested-routes/focused-pan/root-selection.log"
+    }
+  ],
+  "productSha256": {
+    "targets/element-authoring/ImplementationCopyEdits.cs": "008e9aa7a08542e82ab0e5e10de4e9e20b1f99ff391c97fbec74dad0b4b7443d",
+    "packs/pack-workspace/Blueprint.csbody": "c79ab00a97ab2e0d37dcfdabecbbd4a6f7778377b7f3a25fa820c5a222a3c008",
+    "packs/editor-home-model/Blueprint.csbody": "5e16114defb261c52ead94735f1cebf959dc00dfd7a39626d24ef858abe66b85",
+    "examples/editor-home/ui/feature-authoring.js": "e6f7f7470bbe8aafbc7286d7fa4f69113d790840fd841d2b29ee45900f1084b1",
+    "examples/editor-home/WebBundle.csbody": "a79bdd82771785c2b42c9baa64d9117c953eec5e3f1f9027e7dc48fe864e2b38"
+  },
+  "layoutResourceProof": {
+    "base": "0e321531387eb82230763ab8015c583ae360aa3d",
+    "reference": "196c605",
+    "resourceCount": 74,
+    "changedResourceOnly": [
+      "feature-authoring.js"
+    ],
+    "other73UiResourcesCssHtmlBytesUnchanged": true,
+    "referenceOperations": [
+      "connect execution ports",
+      "Delete execution link",
+      "openInternal",
+      "mobile selection connection menu"
+    ],
+    "originalReferenceImage": "/workspace/scratch/v536-reference/v536-mobile-blueprint-flow.png",
+    "actualPreparedImage": "keyboard-route-plan.png"
+  },
+  "nativeRelease": {
+    "exit": 0,
+    "log": "/workspace/scratch/v536-nested-routes/native-build.log"
+  },
+  "failedAttemptsPreserved": [
+    "first/primary.log",
+    "first-keyboard/primary.log",
+    "focused/view.log"
+  ],
+  "reusedChecksReason": "All successful flows use the same frozen product bytes and final engine. Pure metadata also covers the previous pin/value guards. Only test pointer targeting and the wrong expectation that an empty start is invalid were corrected. Existing empty-entry type-default termination semantics were retained. A direct serialRoutes invocation with an observed basis is also tested in freshly loaded projects/conflict paths, including the independent checkout; exact successful flow logs distinguish where this later negative assertion ran. First keyboard primary and later actual hit-tested pointer flows are recorded separately.",
+  "existingFilesDeleted": false,
+  "temporaryFixtureEvidencePreserved": true,
+  "actualWindows": false,
+  "actualMobile": false,
+  "libraryDelivered": false,
+  "fullUiComplete": false,
+  "workspaceAvailableBytes": 1275490304
+}

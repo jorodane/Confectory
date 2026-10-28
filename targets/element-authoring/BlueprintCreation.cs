@@ -7,7 +7,7 @@ internal static class BlueprintCreation
  {
   var function=new Parser(request["text"]!.GetValue<string>(),"<existing-function>").ParseElement();
   var owner=new Parser(request["ownerText"]!.GetValue<string>(),"<implementation-owner>").ParseElement();
-  if(owner.Kind!="object"||owner.Id!=request["owner"]!.GetValue<string>()||function.Kind!="function"||function.Id!=request["id"]!.GetValue<string>()||function.Signature is null||function.Parent is not null||PackPaths.Namespace(owner.Id)!=PackPaths.Namespace(request["implementation"]!.GetValue<string>()))
+  if(owner.Kind is not ("object" or "schema")||owner.Id!=request["owner"]!.GetValue<string>()||function.Kind!="function"||function.Id!=request["id"]!.GetValue<string>()||function.Signature is null||function.Parent is not null||PackPaths.Namespace(owner.Id)!=PackPaths.Namespace(request["implementation"]!.GetValue<string>()))
    throw new ArgumentException("An owned object and the existing function's explicit contract are required");
   // Reuse only the contract generator. Its temporary default never replaces the real function.
   function.Provides.Clear();if(string.IsNullOrWhiteSpace(function.Description)){function.Description="Implement "+function.Id+" for "+owner.Id;function.DescriptionPresent=true;}var input=(JsonObject)request.DeepClone();input["text"]=format(function);

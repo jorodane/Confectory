@@ -1,0 +1,104 @@
+# v536 값 입력·비void 반환 타입 결합 — 2026-10-26
+
+정보 창의 기존 함수 상세창에서 값 입력 타입과 scalar 비void 반환 타입을 편집한
+뒤 창의 임시 저장을 한 번 누르는 동작을 연결한다. 원래 단일 후보들은 유효하지만
+그룹만 거절하는 것을 함수 간·같은 함수·입력/out/반환의 세 경우로 수정 전에 재현했다.
+
+## 지원 경계
+
+직접 소유 일반 Blueprint 2~8 함수의 기존 code/export leaf callee와 call/export
+직렬 caller 및 고정 로컬 import 경계다. 값 입력 타입 전용·반환 타입 전용을
+함수 간에 결합하거나 같은 함수 안에서 함께 편집한다. 이미 지원한 scalar out
+타입의 명시 writer/호환 소비 대응도 같은 후보에 포함한다.
+
+기존 입력과 유지 출력의 이름·수·위치·역할을 고정하고 기존 scalar 타입 집합을
+사용한다. 값 입력의 타입 교체는 원래 핀의 null 대응, 모든 callee 사용처의
+명시 대체, caller의 새 값/기존 바인딩 선택과 명시 해제 증거가 필요하다.
+null은 기존 타입 교체 선택이며 값이나 새 핀 이름을 추정하는 표시가 아니다.
+반환/out writer는 현재 타입에 맞는 값을 명시 선택하고 모든 원래 소비의 호환
+대응을 검증한다. 기존 값·정확한 수치·공개 출력·설명·ID·C# 매개변수/본문은 보존한다.
+
+입력 정체성/순서는 반환 guard에서 확인하고, 기존 순회가 각 타입 교체와 유지
+핀의 명시 대응을 검증한다. 모든 단일 closure는 원래 스냅샷에서 먼저 검증한다.
+앞선 반환 생산자 대응이 뒤 caller의 해제 대상 바인딩을 옮긴 경우 기존 투영기로
+원래 증거와 내부 overlay의 전체 그래프를 대조한다. 사용자 원래 hash와 물리 관측,
+한 후보/CAS·receipt·Review/Confirm은 바꾸지 않는다. 중간 결과는 저장하지 않는다.
+
+새 레이아웃/메뉴·권한·계약 ID·기본값 추정·자동 연결 삭제·C# 문자열 재작성은 없다.
+출력 정의 추가/삭제·void 반환 전환·입력 정의 추가/삭제·ref/역할/순서는 이번 확장에
+넣지 않는다. 오버라이드는 원래 매개변수·출력 계약을 유지한다.
+
+## 실제 fixture
+
+원래 두 함수는 `(long amount,double real,out long count,out long stable)->long`이며
+A.return→B.amount와 B.count→caller 반환이 연결된다.
+
+- 함수 간: A 반환만 double, B 값 입력만 string으로 바꾼다.
+- 같은 함수: A/B 모두 값 입력을 string, 반환을 double로 바꾼다.
+- 기존 out 결합: 같은 후보에서 count도 double로 바꾸고 원래 long 소비를 stable에
+  명시 대응한다.
+
+caller의 새 string 값은 명시한 한글/이모지 문자열이며 callee의 원래 long C#
+입력 사용처에는 명시 리터럴 41을 선택한다. 반환/count writer는 double real을
+선택한다. 원래 코드 매개변수와 C# 원문을 보존하고 caller의 값 교체와 해제를
+구분한다. 함수 편집 순서를 뒤집어도 최종 후보와 원래 source hash가 같아야 한다.
+
+누락/잘못된 callee 사용처·새 값·해제·writer·소비, 실제 caller snapshot/물리 파일
+변경, 입력 이름/핀 추가/순서/역할/void/본문 변경은 전체 미적용이어야 한다.
+실제 저장/실패·충돌·응답 유실·취소·Undo 재시도·재시작·Review/Confirm은 격리
+fixture에서 확인하며 사용자 프로젝트·계정·유료 추론을 사용하지 않는다.
+
+## 정확한 잔여
+
+8행 전체 완료는 아니다. 입력 정의와 출력 타입/정의/반환의 결합, 입력 타입과
+출력 정의·void 전환의 결합, ref·역할·매개변수 순서, 수동 C#/혼합 native·중첩/
+private/whole/postCall, 같은 원래 계약의 copy/상속/등록/소유 정보 속성 혼합과
+scalar 밖 함수 타입은 별도다. 이미 지원한 값 입력/out 타입과 이번 비void 반환의
+결합을 다시 미완료로 분류하지 않는다.
+
+7행 오버라이드 계약 위반 거절은 정상 보호이며 독립 계약 복제/새 ID는 필수
+복원에서 제외한다. 9행 정보/참조/외부 함수 타입과 표시명/native 식별자 분리,
+I6/B2·A4~A6·M4/M11/M12와 Helper 실제 편집 도구는 후속이다. 전체 v536 UI,
+실제 Windows/WebView2·모바일 기기 실행, Library 전달 완료를 의미하지 않는다.
+기존 자료 추가 삭제나 이전 증거 변환은 하지 않는다.
+
+## 집중·영향 회귀 완료
+
+Native Release는 경고/오류 0이다. 집중 15흐름·41확인에서 세 순수 후보의 역순·
+원래 hash·오류/경합 전체 거절, 실제 API/컴파일, 기본·독립 창의 편집·취소·
+Undo/Redo·미저장/저장 재시작·Review 취소/Confirm을 확인했다. 저장 장치 실패와
+재시도, 응답/조회 유실 receipt·중복 방지, 다른 편집자/프로젝트 전환의 입력 보존,
+마지막 미완성 대응 거절→Undo→명시 재시도도 통과했다.
+
+기존 out/반환, 입력/out, 입력 이름/출력 정의, 입력 정의/타입, 오버라이드 계약 보호,
+출력 없는 기존 입력 전용 경로의 영향 6흐름·22확인도 통과했다. 수정 전 재현
+3흐름·6확인과 이후 검사를 구분한다. 실제 원본 460px 정보 창과 입력 연결/
+호출 계약 갱신창의 렌더를 확인했으며 원래 UI 74리소스와 WebBundle은
+82e2676와 바이트가 같다. 24개 새 증거 ZIP의 집합·권한·내용·해시를 재검증했다.
+[집중·회귀 증거](evidence/v536-information-shared-input-return-mix/focused-verification.json)에 기록한다.
+독립 checkout과 새 교차 패키지는 이후 별도로 기록한다.
+
+## 독립 checkout·새 교차 패키지 완료
+
+실행 소스는 `8e02f8f3c2e028f661f7337df3571641a260b5d5`다. 기존 독립 checkout을 정상 fast-forward하고
+9개 Git blob·기존 LF/CRLF 설정·clean 상태를 확인했다. Native Release 경고/오류 0,
+기존 입력 전용·새 후보·실제 API·독립 UI·오버라이드 보호의 5흐름·13확인이 통과했다.
+root solution과 별도 MCP Release도 경고/오류 0이다.
+
+Windows x64 패키지를 새로 교차 빌드했다. manifest 2,343항목/marker 포함
+2,344파일, 132,763,586바이트의 집합/전체 해시와 현재 제품 소스·
+Native DLL 및 7개 Core DLL 일치를 확인했다. manifest SHA-256은
+`2b493d9eac309455eb5b8d679c291bd7449efc5b3463f2cd4f3dbc80b7637bae`,
+Native DLL SHA-256은 `cb927285230452d625c7f1da7d3423f4a40d05393d0379e9d854627a38871444`이다.
+
+새 SDK 없는 소유 runtime에서 무관한 cwd의 실제 managed 엔진 웹 기동,
+74리소스·synthetic profile/명시 override 보존·변조/DLL 누락 거절과 패키지
+backend 후보 4확인이 통과했다. 검사 6단계 모두 성공했으며 대형 검사는 순차 실행했다.
+실제 Windows apphost/WebView2·모바일 기기 실행과 구별한다.
+
+31개 새 증거 ZIP의 파일 집합·권한·전체 바이트를 재검증하고 전체 manifest와
+fixture 증거를 보존한 뒤 이번 임시 RAM 패키지만 정리했다. 기존 자료 삭제·
+변환이나 새 배포 파일 보관·Library 전달은 하지 않았다. 패키지 단계 최저 디스크
+여유는 2,052,354,048바이트이며 OOM/oom_kill 0이다. 후속 결과 문서 커밋은
+실행 코드를 바꾸지 않는다.
+[checkout·패키지 증거](evidence/v536-information-shared-input-return-mix/package-clean-verification.json)에 소스·단계·해시·한계를 기록한다.

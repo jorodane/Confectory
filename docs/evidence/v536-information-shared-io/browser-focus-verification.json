@@ -1,0 +1,42 @@
+{
+  "before": {
+    "before": {
+      "focused": "Owned.Elements::FreeInfo",
+      "connected": true
+    },
+    "after": {
+      "focused": null,
+      "tag": "BODY",
+      "oldConnected": false
+    },
+    "reproduce": true
+  },
+  "afterCard": {
+    "before": {
+      "focused": "Owned.Elements::FreeInfo",
+      "connected": true
+    },
+    "after": {
+      "focused": "Owned.Elements::FreeInfo",
+      "tag": "DIV",
+      "oldConnected": false
+    },
+    "reproduce": false
+  },
+  "afterInput": {
+    "before": {
+      "focused": "Owned.Elements::FreeInfo",
+      "connected": true
+    },
+    "after": {
+      "focused": null,
+      "tag": "INPUT",
+      "oldConnected": false
+    },
+    "reproduce": false
+  },
+  "realDelayedStatusRequest": true,
+  "singleEnterAfterRefresh": true,
+  "inputCaretPreserved": true,
+  "layoutChanged": false
+}
