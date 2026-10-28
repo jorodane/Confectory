@@ -5,13 +5,20 @@ import v536_wide_mixed as f
 mode=sys.argv[3] if len(sys.argv)>3 else 'normal';owner=f.n+'Donor';leaf='Donor';file=f.project/'Donor.celem';is_property=is_function=is_new=False;new_label=''
 # The same original-popup geometry oracle used by existing element glyph acceptance.
 p=pathlib.Path(__file__).with_name('v536_element_icon_ui.py');tree=ast.parse(p.read_text());node=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='compare');exec(compile(ast.Module(body=[node],type_ignores=[]),str(p),'exec'))
+parent=None
+if f.os.environ.get('CONFECTORY_FEATURE_PARENT')=='1':
+ parent=f.project/'FeatureBase.celem';parent.write_text('function '+f.n+'FeatureBase (long input,out long count,out bool active) -> long { // preserve parent contract\nvalue editorIcon="👑";description "부모의 설명";}');f.manifest=f.project/'project.cproj';f.manifest.write_text(f.manifest.read_text().replace('registry Confectory.Build.DotNet','element FeatureBase function "FeatureBase.celem";registry Confectory.Build.DotNet'));file.write_text(file.read_text().replace(' {',' extends '+f.n+'FeatureBase {value editorIcon="💎";value Exact=9223372036854775805;',1));f.original.update({str(v.relative_to(f.project)):v.read_bytes() for v in [parent,f.manifest,file]})
 original_fn=file.read_text().replace('{','{ // preserve feature glyph comment\n',1);file.write_text(original_fn);f.original[file.name]=file.read_bytes();baseline_signature=f.metadata('inspect',text=original_fn)['signature']
 def surface():return f.page.locator('.window[data-key=declaration]')
 def icon():return surface().locator('.object-icon-control>.obj-icon')
 def pending():return [(k,v) for k,v in f.pending()['schema'] if '|'+owner+'|element|' in k]
 def popup():surface().locator('.object-icon-edit').click();p=f.page.get_by_role('dialog',name='Donor 아이콘 편집',exact=True);expect(p).to_be_visible();return p
 def open_card(target=owner):
- f.page.locator('#workspace').click(button='right',position={'x':80,'y':100});f.page.get_by_role('button',name='프로젝트 브라우저',exact=True).click();b=f.page.locator('.window[data-key^="browser:project:"]');b.locator('[data-tab=feature]').click();b.locator('[data-object="'+target+'"]').press('F2');expect(surface().locator('.object-title-name')).to_have_text(target.split('::')[-1]);f.idle();b.locator('[data-close]').first.click()
+ f.page.locator('#workspace').click(button='right',position={'x':80,'y':100});f.page.get_by_role('button',name='프로젝트 브라우저',exact=True).click();b=f.page.locator('.window[data-key^="browser:project:"]');b.locator('[data-tab=feature]').click()
+ if parent is not None:
+  b.locator('[data-catalog-root]').click()
+  if target==owner:b.locator('[data-browser-enter="'+f.n+'FeatureBase"]').click();expect(b.locator('[data-ancestor="'+f.n+'FeatureBase"]')).to_be_visible()
+ b.locator('[data-object="'+target+'"]').press('F2');expect(surface().locator('.object-title-name')).to_have_text(target.split('::')[-1]);f.idle();b.locator('[data-close]').first.click()
 def saved():
  for _ in range(600):
   now=f.pending();journal=[v for _,v in now['blueprint'] if v.get('kind')=='owner-attempt' and v.get('owner')==owner]
@@ -43,8 +50,22 @@ try:
     route.continue_()
    f.page.route('**/api/request',admission);open_card(f.n+'Native');assert stale;f.page.unroute_all(behavior='wait');surface().locator('.object-icon-edit').focus();f.page.keyboard.press('Control+z');assert pending()==held;assert not [(k,v) for k,v in f.pending()['schema'] if '|'+f.n+'Native|element|' in k];open_card();expect(icon()).to_have_text('🛡️');expect(surface().get_by_label('기능 설명',exact=True)).to_have_value('아이콘과 설명 원자 저장');assert pending()==held;f.checked('F2 선택의 실제 stale admission을 재시도하고 다른 함수의 Undo는 원래 glyph/설명·재진입 입력을 보존한다')
   restart(1);assert pending()==held;expect(icon()).to_have_text('🛡️');f.checked('적용·Undo/Redo·설명 결합·미저장 재시작은 glyph와 원래 함수/typed caller·C#·정확한 값을 보존한다')
-  if mode=='conflict':
-   peer=file.read_bytes()+b'\n// fixture concurrent source\n';file.write_bytes(peer);f.original[file.name]=peer;save(False);assert pending()==held and checkpoint.read_bytes()==before;unchanged();restart(2);save(False);assert pending()==held and checkpoint.read_bytes()==before;unchanged();f.checked('실제 함수 source 변경은 전체 후보 미적용·입력 보존이며 재시작에도 원래 기준을 자동 교체하지 않는다')
+  if mode in ['conflict','parent-conflict']:
+   target=parent if mode=='parent-conflict' else file;assert target is not None;parked=[]
+   if mode=='parent-conflict':
+    def race(route):
+     data=route.request.post_data_json
+     if data and data.get('op')=='invoke' and data.get('endpoint')=='blueprint' and data.get('input',{}).get('action')=='applySlots' and not parked:parked.append(route);return
+     route.continue_()
+    f.page.route('**/api/request',race);surface().locator('[data-feature-action=save]').click()
+    for _ in range(600):
+     if parked:break
+     f.page.wait_for_timeout(20)
+    assert parked
+   peer=target.read_bytes()+b'\n// fixture concurrent source\n';target.write_bytes(peer);f.original[target.name]=peer
+   if mode=='parent-conflict':parked[0].continue_();expect(surface().locator('[data-feature-error]')).not_to_have_text('',timeout=60000);f.idle();f.page.unroute_all(behavior='wait')
+   else:save(False)
+   assert pending()==held and checkpoint.read_bytes()==before;unchanged();restart(2);save(False);assert pending()==held and checkpoint.read_bytes()==before;unchanged();f.checked('선택 원본 또는 검증 후보 뒤 부모 source 경합은 전체 미적용·입력 보존이며 재시작에도 원래 기준을 자동 교체하지 않는다')
   elif mode=='cancel':
    surface().locator('[data-feature-action=discard]').click();saved();restart(2);assert not pending() and checkpoint.read_bytes()==before;expect(icon()).to_have_text(default);unchanged();f.checked('명시적 변경 취소/cold는 glyph·설명만 취소하고 원본·부모·typed 참조·C#을 보존한다')
   else:
@@ -82,7 +103,7 @@ try:
    if r.locator('[data-review-advanced]').count():
     r.locator('[data-review-advanced]').click()
     if r.locator('[data-advanced-reviewed]').count():r.locator('[data-advanced-reviewed]').check()
-   r.locator('#confirm').click();expect(r).to_have_count(0,timeout=120000);f.idle();assert {k for k,v in f.original.items() if (f.project/k).read_bytes()!=v}=={'Donor.celem'};assert 'preserve feature glyph comment' in file.read_text();assert f.metadata('inspect',text=file.read_text())['signature']==baseline_signature;f.checked('Review 취소 뒤 새 명시적 compiler Confirm만 함수 glyph·설명을 반영하며 원문·구현·typed caller·다른 파일·권한을 보존한다')
+   r.locator('#confirm').click();expect(r).to_have_count(0,timeout=120000);f.idle();assert {k for k,v in f.original.items() if (f.project/k).read_bytes()!=v}=={'Donor.celem'};assert 'preserve feature glyph comment' in file.read_text();assert f.metadata('inspect',text=file.read_text())['signature']==baseline_signature;assert parent is None or f.metadata('inspect',text=file.read_text())['values']['Exact']==9223372036854775805;f.checked('Review 취소 뒤 새 명시적 compiler Confirm만 함수 glyph·설명을 반영하며 원문·구현·typed caller·다른 파일·권한을 보존한다')
   assert not f.errors and not f.external,(f.errors,f.external);f.browser.close()
 except Exception:
  try:(f.case/'feature-icon-failure.json').write_text(json.dumps({'state':f.state(),'traffic':f.traffic[-90:],'errors':f.errors},ensure_ascii=False,indent=2))

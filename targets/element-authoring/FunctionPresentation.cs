@@ -9,7 +9,7 @@ internal static class FunctionPresentation
  {
   string project=request["project"]!.GetValue<string>(),manifest=request["manifest"]!.GetValue<string>(),id=request["id"]!.GetValue<string>(),text=request["text"]!.GetValue<string>();
   var function=new Parser(text,"<function-presentation>").ParseElement();var registration=new Parser(manifest,"<function-presentation-project>").ParseManifest();var changes=request["changes"]!.AsArray();
-  if(registration.Kind!="project"||function.Id!=id||function.Kind!="function"||function.Parent is not null||!id.StartsWith(registration.Namespace+"::",StringComparison.Ordinal)||changes.Count is <1 or >2)throw new ArgumentException("Direct owned function presentation required");
+  if(registration.Kind!="project"||function.Id!=id||function.Kind!="function"||!id.StartsWith(registration.Namespace+"::",StringComparison.Ordinal)||changes.Count is <1 or >2)throw new ArgumentException("Direct owned function presentation required");
   string local=id[(registration.Namespace.Length+2)..];if(!registration.Elements.TryGetValue(local,out var locator)||locator.Kind!="function")throw new ArgumentException("Registered owned function required");
   var drafts=request["drafts"]!.AsArray();if(drafts.Count>255)throw new ArgumentException("Function presentation source budget");
   string Read(string path){var file=new FileInfo(path);if(!file.Exists||file.Length>1048576)throw new IOException("Presentation source budget");return File.ReadAllText(path);}

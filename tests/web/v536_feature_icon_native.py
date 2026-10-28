@@ -8,5 +8,5 @@ before=f.metadata('inspect',text=source);result=call([{'type':'icon','text':'�
 for bad in ['',None,'ab','<','\n',' ']:call([{'type':'description','text':'must not remain'},{'type':'icon','text':bad}],False)
 for changes in [[{'type':'icon','text':'★'},{'type':'icon','text':'👑'}],[{'type':'signature','text':'changed'}],[{'type':'icon','text':'★','extra':True}]]:call(changes,False)
 f.originals();f.checked('마지막 glyph 오류·중복·계약 변경·알 수 없는 필드는 전체 후보를 거절하고 원문과 입력을 보존한다')
-call([{'type':'icon','text':'★'}],False,id=f.n+'Other');call([{'type':'icon','text':'★'}],False,text=source.replace(' {',' extends '+f.n+'Parent {',1));call([{'type':'icon','text':'★'}],False,id='Foreign::Donor',text=source.replace(owner,'Foreign::Donor'));f.originals();f.checked('다른 identity·외부 namespace·상속 함수는 표시 저장의 직접 소유 경계를 넘지 못한다')
+call([{'type':'icon','text':'★'}],False,id=f.n+'Other');call([{'type':'icon','text':'★'}],False,text=source.replace(' {',' extends '+f.n+'Parent {',1));call([{'type':'icon','text':'★'}],False,id='Foreign::Donor',text=source.replace(owner,'Foreign::Donor'));f.originals();f.checked('다른 identity·외부 namespace·해결되지 않는 부모는 표시 저장의 직접 소유 경계를 넘지 못한다')
 print(json.dumps({'checks':f.checks,'evidence':str(f.case),'sourceWritten':False,'projectExecuted':False,'accountOrInference':False},ensure_ascii=False))
