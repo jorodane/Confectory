@@ -173,6 +173,9 @@ def main():
             modes = ['normal','storage','loss','conflict','cancel','late'] if label=='lf' else ['late']
             for mode in modes:
                 work.run(label+'-ui-'+mode,[sys.executable,str(checkout/'tests/web/v536_local_header_image_ui.py'),str(checkout),str(report),mode,'object'],cwd=checkout,env=env)
+            for mode in modes:
+                work.run(label+'-feature-image-'+mode,[sys.executable,str(checkout/'tests/web/v536_local_header_image_ui.py'),str(checkout),str(report),mode,'feature'],cwd=checkout,env=env)
+            work.run(label+'-feature-glyph',[sys.executable,str(checkout/'tests/web/v536_feature_icon_ui.py'),str(checkout),str(report),'contexts'],cwd=checkout,env=env)
             work.run(label+'-detached',[sys.executable,str(checkout/'tests/web/v536_local_header_image_ui.py'),str(checkout),str(report),'late','object','view','peer'],cwd=checkout,env=env)
             for script in ['v536_copy_read_guards_core.py','v536_local_header_image_native.py']:
                 work.run(label+'-'+Path(script).stem,[sys.executable,str(checkout/'tests/web'/script),str(checkout),str(report)],cwd=checkout,env=env)
@@ -185,6 +188,7 @@ def main():
         packaged_report = work.evidence/'packaged-engine.json'
         atomic_json(packaged_report, {'run':[dotnet,str(package/'content/runtime/Confectory.App.dll')]})
         work.run('packaged-renderer',[sys.executable,str(checkout/'tests/web/v536_local_header_image_ui.py'),str(package/'content'),str(packaged_report),'late','object'],cwd=checkout,env=env)
+        work.run('packaged-feature-renderer',[sys.executable,str(checkout/'tests/web/v536_local_header_image_ui.py'),str(package/'content'),str(packaged_report),'late','feature'],cwd=checkout,env=env)
         for name in ['Confectory.Core.dll','Confectory.ElementAuthoring.dll']:
             matches = [p for p in files(package).values() if p.name==name]
             origin = checkout/('src/Confectory.Core/bin/Release/net10.0/'+name if name=='Confectory.Core.dll' else 'targets/element-authoring/bin/Release/net10.0/'+name)
@@ -199,6 +203,7 @@ def main():
         work.run('restored-probe',[sys.executable,str(checkout/'tests/probes/desktop_package.py'),str(checkout),str(restored)],cwd=checkout,env=env)
         atomic_json(packaged_report, {'run':[dotnet,str(restored/'content/runtime/Confectory.App.dll')]})
         work.run('restored-renderer',[sys.executable,str(checkout/'tests/web/v536_local_header_image_ui.py'),str(restored/'content'),str(packaged_report),'late','object'],cwd=checkout,env=env)
+        work.run('restored-feature-renderer',[sys.executable,str(checkout/'tests/web/v536_local_header_image_ui.py'),str(restored/'content'),str(packaged_report),'late','feature'],cwd=checkout,env=env)
         work.run('package-failure-lifetime',[sys.executable,str(checkout/'tests/probes/desktop_package_lifetime.py'),str(checkout),str(restored)],cwd=checkout,env=env)
         if dependency_identity(args.sdk,args.nuget_seed,commit) != inputs:
             raise RuntimeError('SDK/dependency seed changed during verification; no package promotion')

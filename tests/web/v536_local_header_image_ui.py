@@ -1,4 +1,4 @@
-"""Original information/object local-image header, synthetic isolated files only."""
+"""Original information/object/function local-image header, synthetic isolated files only."""
 import ast, base64, io, json, pathlib, re, sys, time, zipfile
 from PIL import Image
 from playwright.sync_api import sync_playwright, expect
@@ -6,11 +6,18 @@ import v536_wide_mixed as f
 
 mode=sys.argv[3] if len(sys.argv)>3 else 'normal'
 detached='view' in sys.argv[4:];with_peer='peer' in sys.argv[4:]
-is_object='object' in sys.argv[4:]
-leaf='Slime' if is_object else 'Details';owner=f.n+leaf;kind='object' if is_object else 'schema';is_function=is_property=is_new=False;new_label=''
+is_object='object' in sys.argv[4:];is_feature='feature' in sys.argv[4:]
+leaf='Donor' if is_feature else 'Slime' if is_object else 'Details';owner=f.n+leaf;kind='function' if is_feature else 'object' if is_object else 'schema';is_function=is_property=is_new=False;new_label=''
 file=f.project/(leaf+'.celem')
 values='use schema '+f.n+'Details;data Power=9223372036854775805;data Label="원래 객체 값";' if is_object else 'value editorInformationDefaults="typed-json-v1";value editorFieldDefault_Power="9223372036854775805";'
+parent=None
+if is_feature:
+    parent=f.project/'FeatureBase.celem';parent.write_text('function '+f.n+'FeatureBase (long input,out long count,out bool active) -> long { // preserve parent contract\nvalue editorIcon="👑";description "부모 설명";}')
+    f.manifest.write_text(f.manifest.read_text().replace('registry Confectory.Build.DotNet','element FeatureBase function "FeatureBase.celem";registry Confectory.Build.DotNet'))
+    file.write_text(file.read_text().replace(' {',' extends '+f.n+'FeatureBase {',1))
+    values='value Exact=9223372036854775805;'
 file.write_text(file.read_text().replace('{','{ // keep owner source\nvalue editorIcon="📦";'+values,1))
+if is_feature:baseline_signature=f.metadata('inspect',text=file.read_text())['signature']
 f.original={str(p.relative_to(f.project)):p.read_bytes() for p in f.project.rglob('*') if p.is_file()}
 helper=pathlib.Path(__file__).with_name('v536_element_icon_ui.py')
 names={'surface','pending','own_schema','open_card','icon','popup','saved','restart','review','compare'}
@@ -18,6 +25,16 @@ functions=[n for n in ast.parse(helper.read_text()).body if isinstance(n,ast.Fun
 assert len(functions)==len(names)
 exec(compile(ast.Module(body=functions,type_ignores=[]),str(helper),'exec'))
 f.owner=surface
+if is_feature:
+    feature_helper=pathlib.Path(__file__).with_name('v536_feature_icon_ui.py')
+    feature_names={'surface','icon','pending','popup','open_card','saved','restart','review'}
+    functions=[n for n in ast.parse(feature_helper.read_text()).body if isinstance(n,ast.FunctionDef) and n.name in feature_names]
+    assert len(functions)==len(feature_names)
+    exec(compile(ast.Module(body=functions,type_ignores=[]),str(feature_helper),'exec'))
+    f.owner=surface
+
+def action(name):return surface().locator('[data-'+('feature' if is_feature else 'element')+'-action='+name+']')
+def description():return surface().get_by_label('기능 설명',exact=True) if is_feature else surface().locator('.object-title-description')
 
 def raster(fmt,color=(40,90,150,130)):
     output=io.BytesIO();image=Image.new('RGBA',(32,16),color)
@@ -31,9 +48,9 @@ def upload(p,fmt='PNG',color=(40,90,150,130)):
 def rendered(uri):
     image=icon().locator('img');expect(image).to_have_attribute('src',uri);assert image.evaluate('e=>e.complete&&e.naturalWidth===128&&e.naturalHeight===128')
 def save(ok=True):
-    surface().locator('[data-element-action=save]').click()
+    action('save').click()
     if ok:saved()
-    else:expect(surface().locator('[data-element-error]')).not_to_have_text('',timeout=60000);f.idle();assert pending()
+    else:expect(surface().locator('[data-feature-error]' if is_feature else '[data-element-error]')).not_to_have_text('',timeout=60000);f.idle();assert pending()
 
 try:
     f.start(0);f.invoke('select',{'id':owner});f.invoke('saveDraft',{});checkpoint=next(f.project.glob('.confectory/edit-workspaces/*/draft.json'));before=checkpoint.read_bytes()
@@ -55,10 +72,10 @@ try:
             surface().locator('.object-icon-edit').press('Control+z');expect(icon()).to_have_text('📦');assert pending()==baseline
             surface().locator('.object-icon-edit').press('Control+y');rendered(uri)
             if fmt!='WEBP':surface().locator('.object-icon-edit').press('Control+z');assert pending()==baseline
-        p=popup();expect(p.get_by_label('기호나 이모지',exact=True)).to_have_value('');expect(p.locator('.object-icon-preview img')).to_have_attribute('src',uri);p.locator('[data-cancel]').click();surface().locator('.object-title-description').fill('로컬 이미지와 설명 원자 저장');held=pending();assert len(held)==2;assert checkpoint.read_bytes()==before;f.originals();restart(1);assert pending()==held;rendered(uri);f.checked('PNG/JPG/WebP 선택은 원본처럼 128px WebP로만 보관하고 Undo/Redo·설명·cold에 정확한 값과 부모/본문을 보존한다')
+        p=popup();expect(p.get_by_label('기호나 이모지',exact=True)).to_have_value('');expect(p.locator('.object-icon-preview img')).to_have_attribute('src',uri);p.locator('[data-cancel]').click();description().fill('로컬 이미지와 설명 원자 저장');held=pending();assert len(held)==2;assert checkpoint.read_bytes()==before;f.originals();restart(1);assert pending()==held;rendered(uri);f.checked('PNG/JPG/WebP 선택은 원본처럼 128px WebP로만 보관하고 Undo/Redo·설명·cold에 정확한 값과 부모/본문을 보존한다')
 
         if mode=='cancel':
-            surface().locator('[data-element-action=discard]').click();saved();restart(2);assert not pending() and checkpoint.read_bytes()==before;expect(icon()).to_have_text('📦');f.originals();f.checked('명시적 취소/cold는 이미지·설명 초안만 취소하며 프로젝트 자산 파일이나 원본을 생성/삭제하지 않는다')
+            action('discard').click();saved();restart(2);assert not pending() and checkpoint.read_bytes()==before;expect(icon()).to_have_text('📦');f.originals();f.checked('명시적 취소/cold는 이미지·설명 초안만 취소하며 프로젝트 자산 파일이나 원본을 생성/삭제하지 않는다')
         elif mode=='conflict':
             raw=file.read_bytes()+b'\n// fixture source race\n';file.write_bytes(raw);f.original[file.name]=raw;save(False);assert pending()==held and checkpoint.read_bytes()==before;f.originals();restart(2);save(False);assert pending()==held and checkpoint.read_bytes()==before;f.originals();f.checked('실제 소유 source 충돌은 이미지/설명 전부 미적용이며 cold 재시도에도 원래 기준·입력을 유지한다')
         else:
@@ -79,7 +96,7 @@ try:
                     for value in payload.get('results',[]):
                         if value['requestId'] in applies|queries:rid=value['requestId'];lost.append(rid);value.clear();value.update(requestId=rid,ok=False,error={'code':'transport-interrupted'})
                     route.fulfill(response=response,json=payload)
-                f.page.route('**/api/request',intercept);surface().locator('[data-element-action=save]').click()
+                f.page.route('**/api/request',intercept);action('save').click()
                 for _ in range(600):
                     if applies and any(v in queries for v in lost):break
                     f.page.wait_for_timeout(50)
@@ -92,7 +109,7 @@ try:
                     response=route.fetch();payload=response.json()
                     if not paused and any(v.get('ok') and v.get('requestId') in ids for v in payload.get('results',[])):paused.update(route=route,response=response);return
                     route.fulfill(response=response)
-                f.page.route('**/api/request',hold);surface().locator('[data-element-action=save]').click()
+                f.page.route('**/api/request',hold);action('save').click()
                 for _ in range(600):
                     if paused:break
                     f.page.wait_for_timeout(50)
@@ -102,12 +119,16 @@ try:
                     f.page.wait_for_timeout(50)
                 assert pending()[0][1]['text']==late_uri and pending()[0][1]['copySavedBasis']['accepted']==uri;uri=late_uri;restart(2);rendered(uri);save();f.checked('저장 응답 대기의 새 이미지는 receipt 기준의 별도 입력으로 보존되고 cold 뒤 명시적 Save만 반영한다')
             else:save()
-            assert own_schema()['values']['editorIcon']==uri and next(v for v in own_schema()['rows'] if v['path']==['Power'])['valueJson']=='9223372036854775805'
+            if is_feature:
+                inspected=f.metadata('inspect',text=f.state()['draft']['text']);assert inspected['values']['editorIcon']==uri and inspected['signature']==baseline_signature and inspected['parent']==f.n+'FeatureBase'
+            else:assert own_schema()['values']['editorIcon']==uri and next(v for v in own_schema()['rows'] if v['path']==['Power'])['valueJson']=='9223372036854775805'
             if is_object:assert own_schema()['parent']==f.n+'Monster' and next(v for v in own_schema()['rows'] if v['path']==['Label'])['valueJson']=='"원래 객체 값"'
             f.originals();restart(3);assert not pending();rendered(uri);f.checked('한 후보/최종 CAS Save와 cold는 이미지·설명을 함께 저장하고 실제 source·정확64비트·본문·권한을 보존한다')
             if with_peer:
-                surface().locator('[data-element-action=confirm]').click();group=f.page.get_by_role('dialog',name='관련 변경 검토',exact=True);expect(group).to_be_visible();group.locator('#review-creation').click();f.idle();expect(f.page.locator('#status')).to_contain_text('미적용 입력');assert any('|'+f.n+'Target1|' in k and v.get('text')=='9223372036854775804' for k,v in f.pending()['schema']);f.originals();group.get_by_role('button',name='닫기',exact=True).click();peer=f.page.locator('.window[data-key=schema]');peer.locator(':scope>.window-title').click(position={'x':30,'y':25});peer.locator('[data-element-action=discard]').click();f.idle();f.checked('독립 이미지 창의 Save/cold/Review 거절은 다른 창 문서와 정확64비트 입력을 보존한다')
+                action('confirm').click();group=f.page.get_by_role('dialog',name='관련 변경 검토',exact=True);expect(group).to_be_visible();group.locator('#review-creation').click();f.idle();expect(f.page.locator('#status')).to_contain_text('미적용 입력');assert any('|'+f.n+'Target1|' in k and v.get('text')=='9223372036854775804' for k,v in f.pending()['schema']);f.originals();group.get_by_role('button',name='닫기',exact=True).click();peer=f.page.locator('.window[data-key=schema]');peer.locator(':scope>.window-title').click(position={'x':30,'y':25});peer.locator('[data-element-action=discard]').click();f.idle();f.checked('독립 이미지 창의 Save/cold/Review 거절은 다른 창 문서와 정확64비트 입력을 보존한다')
             r=review();r.locator('[data-reject]').click();expect(r).to_be_hidden();f.originals();r=review()
+            if is_feature:
+                for cb in r.locator('[data-review-id]').all():cb.check()
             if r.locator('[data-review-advanced]').count():
                 r.locator('[data-review-advanced]').click()
                 if r.locator('[data-advanced-reviewed]').count():r.locator('[data-advanced-reviewed]').check()
