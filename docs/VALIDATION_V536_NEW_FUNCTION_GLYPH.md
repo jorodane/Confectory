@@ -50,3 +50,11 @@ I6 자체 중첩 정의·원본에서 실제 편집 가능한 다른 아이콘·
 전체 UI·실제 Windows apphost/WebView2·모바일 기기·Library 전달은 미완료다.
 
 집중 7흐름 39확인, receipt 단위 7확인과 기존 Native/저장 함수 카드/상속 헤더/final CAS 영향 회귀 24확인이 통과했다. 원래 팝오버 10영역과 75개 리소스 바이트/SHA가 일치한다. 이번 변경은 검사와 수용 문서뿐이며 제품 코드·레이아웃·권한은 변경하지 않았다.
+
+## 독립 checkout·새 교차 패키지 확정
+
+검증 소스 `220c2de3cd2f23c8b10a919774372794bcde95df`의 변경은 tests/docs뿐이고 기존 제품 소스·리소스는 이전 게시본과 동일하다. 기존 독립 checkout을 정상 FF해 Git blob·autocrlf·clean을 확인하고 Native/CLI Release·현재 Linux 엔진을 생성했다. 새 함수 glyph의 늦은 입력 6확인, 독립 창/peer 8확인, 생산 final CAS 4확인 및 receipt 단위 7확인이 통과했다.
+
+새 RAM Windows x64 교차 패키지는 restore·Release·MCP·생성·probe·실제 패키지 엔진/렌더러의 새 함수 glyph 생성 6확인까지 6단계를 통과했다. 전체 2351개(선언 manifest 2350개)의 목록·SHA와 Core/Native DLL·제품 소스 바이트를 대조했다. manifest SHA `185595b3e947d9a54200eaad8c3c22d8e886320eb7691809c44b72ce42d7e699`. 전체 manifest·fixture/로그/프로필 증거 보관 뒤 이번 생성 RAM 사본만 정리했다. 보관 빌드·SDK·원본·사용자 자료를 추가 삭제하지 않았다.
+
+최종 후속 커밋은 문서/evidence만 달라 위 검증 소스와 제품 실행 코드는 같다. 실제 Windows apphost/WebView2·실제 모바일 기기·Library 전달과 전체 UI는 계속 미완료다.
