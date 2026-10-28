@@ -43,3 +43,8 @@ Native의 잘못된 마지막 이미지·중복·foreign/inherited/stale 요청�
 I6 자체 중첩 정의·다른 원본 노출 아이콘, 고정7/8행 실제 영향 closure·9행,
 B2·M4/M11/M12 및 전체 UI는 이 단위와 구분한다. 실제 Windows apphost/WebView2·
 실제 모바일 기기 실행과 Space/Library 전달은 교차 패키지/복원 검사로 완료 처리하지 않는다.
+
+첫 실제 속성 화면 검사는 Undo 뒤 Redo가 원래 속성 history에 연결되지 않아 실패했다.
+원본 프로젝트 편집의 Redo를 기존 snapshot history에 연결하고 scope/ID/hash/revision 및
+이후 입력 동일성으로 제한했다. 실행/서버 권한이나 저장/CAS를 완화하지 않고 아이콘 키보드
+초점도 같은 행에 복원한다. 실패 fixture/스크린샷/로그는 지속 증거 ZIP에 보존한다.
