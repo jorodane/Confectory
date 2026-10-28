@@ -72,7 +72,13 @@ try:
             surface().locator('.object-icon-edit').press('Control+z');expect(icon()).to_have_text('📦');assert pending()==baseline
             surface().locator('.object-icon-edit').press('Control+y');rendered(uri)
             if fmt!='WEBP':surface().locator('.object-icon-edit').press('Control+z');assert pending()==baseline
-        p=popup();expect(p.get_by_label('기호나 이모지',exact=True)).to_have_value('');expect(p.locator('.object-icon-preview img')).to_have_attribute('src',uri);p.locator('[data-cancel]').click();description().fill('로컬 이미지와 설명 원자 저장');held=pending();assert len(held)==2;assert checkpoint.read_bytes()==before;f.originals();restart(1);assert pending()==held;rendered(uri);f.checked('PNG/JPG/WebP 선택은 원본처럼 128px WebP로만 보관하고 Undo/Redo·설명·cold에 정확한 값과 부모/본문을 보존한다')
+        p=popup();expect(p.get_by_label('기호나 이모지',exact=True)).to_have_value('');expect(p.locator('.object-icon-preview img')).to_have_attribute('src',uri);p.locator('[data-cancel]').click();description().fill('로컬 이미지와 설명 원자 저장');held=pending();assert len(held)==2;assert checkpoint.read_bytes()==before;f.originals()
+        if is_feature and mode=='contexts':
+            open_card(f.n+'Native');surface().locator('.object-icon-edit').press('Control+z');assert pending()==held
+            assert not [(k,v) for k,v in f.pending()['schema'] if '|'+f.n+'Native|element|' in k]
+            open_card();rendered(uri);assert pending()==held;expect(description()).to_have_value('로컬 이미지와 설명 원자 저장');f.originals()
+            f.checked('다른 기능 전환·그 창의 Undo·원래 기능 재진입은 이미지/설명과 기존 source를 보존한다')
+        restart(1);assert pending()==held;rendered(uri);f.checked('PNG/JPG/WebP 선택은 원본처럼 128px WebP로만 보관하고 Undo/Redo·설명·cold에 정확한 값과 부모/본문을 보존한다')
 
         if mode=='cancel':
             action('discard').click();saved();restart(2);assert not pending() and checkpoint.read_bytes()==before;expect(icon()).to_have_text('📦');f.originals();f.checked('명시적 취소/cold는 이미지·설명 초안만 취소하며 프로젝트 자산 파일이나 원본을 생성/삭제하지 않는다')

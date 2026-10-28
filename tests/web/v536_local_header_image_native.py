@@ -6,13 +6,14 @@ repo = pathlib.Path(sys.argv[1]).resolve()
 root = pathlib.Path(tempfile.mkdtemp(prefix='confectory-header-image-native-'))
 n = 'Owned.Image::'
 sources = {
+    'Entry': ('function', f'function {n}Entry () -> int {{}}'),
     'Main': ('function', f'function {n}Main (long input,out bool active) -> long extends {n}FeatureBase {{ // preserve function source\nvalue Exact=9223372036854775805;}}'),
     'FeatureBase': ('function', f'function {n}FeatureBase (long input,out bool active) -> long {{description "preserved function parent";}}'),
     'Info': ('schema', f'schema {n}Info {{ // preserve schema source\nfield Count single general long;value editorInformationDefaults="typed-json-v1";value editorFieldDefault_Count="9223372036854775806";}}'),
     'Base': ('object', f'object {n}Base {{description "preserved parent";value editorIcon="🌿";}}'),
     'Item': ('object', f'object {n}Item extends {n}Base {{ // preserve object source\nuse schema {n}Info;data Count=9223372036854775805;}}'),
 }
-manifest = f'project Owned.Image version "1" {{standalone true;entry {n}Main;' + ''.join(f'element {key} {kind} "{key}.celem";' for key, (kind, _) in sources.items()) + '}'
+manifest = f'project Owned.Image version "1" {{standalone true;entry {n}Entry;' + ''.join(f'element {key} {kind} "{key}.celem";' for key, (kind, _) in sources.items()) + '}'
 project = root/'project.cproj'
 project.write_text(manifest)
 for key, (_, text) in sources.items(): (root/(key+'.celem')).write_text(text)
