@@ -1,4 +1,4 @@
-"""Original local-image header flow, synthetic files and isolated engine only."""
+"""Original information/object local-image header, synthetic isolated files only."""
 import ast, base64, io, json, pathlib, re, sys, time, zipfile
 from PIL import Image
 from playwright.sync_api import sync_playwright, expect
@@ -6,9 +6,11 @@ import v536_wide_mixed as f
 
 mode=sys.argv[3] if len(sys.argv)>3 else 'normal'
 detached='view' in sys.argv[4:];with_peer='peer' in sys.argv[4:]
-owner=f.n+'Details';leaf='Details';kind='schema';is_function=is_property=is_new=False;new_label=''
-file=f.project/'Details.celem'
-file.write_text(file.read_text().replace('{','{ // keep owner source\nvalue editorIcon="📦";value editorInformationDefaults="typed-json-v1";value editorFieldDefault_Power="9223372036854775805";',1))
+is_object='object' in sys.argv[4:]
+leaf='Slime' if is_object else 'Details';owner=f.n+leaf;kind='object' if is_object else 'schema';is_function=is_property=is_new=False;new_label=''
+file=f.project/(leaf+'.celem')
+values='use schema '+f.n+'Details;data Power=9223372036854775805;data Label="원래 객체 값";' if is_object else 'value editorInformationDefaults="typed-json-v1";value editorFieldDefault_Power="9223372036854775805";'
+file.write_text(file.read_text().replace('{','{ // keep owner source\nvalue editorIcon="📦";'+values,1))
 f.original={str(p.relative_to(f.project)):p.read_bytes() for p in f.project.rglob('*') if p.is_file()}
 helper=pathlib.Path(__file__).with_name('v536_element_icon_ui.py')
 names={'surface','pending','own_schema','open_card','icon','popup','saved','restart','review','compare'}
@@ -100,14 +102,16 @@ try:
                     f.page.wait_for_timeout(50)
                 assert pending()[0][1]['text']==late_uri and pending()[0][1]['copySavedBasis']['accepted']==uri;uri=late_uri;restart(2);rendered(uri);save();f.checked('저장 응답 대기의 새 이미지는 receipt 기준의 별도 입력으로 보존되고 cold 뒤 명시적 Save만 반영한다')
             else:save()
-            assert own_schema()['values']['editorIcon']==uri and next(v for v in own_schema()['rows'] if v['path']==['Power'])['valueJson']=='9223372036854775805';f.originals();restart(3);assert not pending();rendered(uri);f.checked('한 후보/최종 CAS Save와 cold는 이미지·설명을 함께 저장하고 실제 source·정확64비트·본문·권한을 보존한다')
+            assert own_schema()['values']['editorIcon']==uri and next(v for v in own_schema()['rows'] if v['path']==['Power'])['valueJson']=='9223372036854775805'
+            if is_object:assert own_schema()['parent']==f.n+'Monster' and next(v for v in own_schema()['rows'] if v['path']==['Label'])['valueJson']=='"원래 객체 값"'
+            f.originals();restart(3);assert not pending();rendered(uri);f.checked('한 후보/최종 CAS Save와 cold는 이미지·설명을 함께 저장하고 실제 source·정확64비트·본문·권한을 보존한다')
             if with_peer:
                 surface().locator('[data-element-action=confirm]').click();group=f.page.get_by_role('dialog',name='관련 변경 검토',exact=True);expect(group).to_be_visible();group.locator('#review-creation').click();f.idle();expect(f.page.locator('#status')).to_contain_text('미적용 입력');assert any('|'+f.n+'Target1|' in k and v.get('text')=='9223372036854775804' for k,v in f.pending()['schema']);f.originals();group.get_by_role('button',name='닫기',exact=True).click();peer=f.page.locator('.window[data-key=schema]');peer.locator(':scope>.window-title').click(position={'x':30,'y':25});peer.locator('[data-element-action=discard]').click();f.idle();f.checked('독립 이미지 창의 Save/cold/Review 거절은 다른 창 문서와 정확64비트 입력을 보존한다')
             r=review();r.locator('[data-reject]').click();expect(r).to_be_hidden();f.originals();r=review()
             if r.locator('[data-review-advanced]').count():
                 r.locator('[data-review-advanced]').click()
                 if r.locator('[data-advanced-reviewed]').count():r.locator('[data-advanced-reviewed]').check()
-            r.locator('#confirm').click();expect(r).to_have_count(0,timeout=120000);f.idle();assert {k for k,v in f.original.items() if (f.project/k).read_bytes()!=v}=={file.name};assert 'keep owner source' in file.read_text() and '9223372036854775805' in file.read_text();assert not [p for p in f.project.rglob('*') if p.is_file() and p.suffix.lower() in ['.png','.jpg','.webp']];f.checked('명시적 compiler Confirm만 선택 정보의 inline 이미지/설명을 반영하며 다른 source/등록/부모와 개인 파일은 건드리지 않는다')
+            r.locator('#confirm').click();expect(r).to_have_count(0,timeout=120000);f.idle();assert {k for k,v in f.original.items() if (f.project/k).read_bytes()!=v}=={file.name};assert 'keep owner source' in file.read_text() and '9223372036854775805' in file.read_text();assert not [p for p in f.project.rglob('*') if p.is_file() and p.suffix.lower() in ['.png','.jpg','.webp']];f.checked('명시적 compiler Confirm만 선택 요소의 inline 이미지/설명을 반영하며 다른 source/등록/부모와 개인 파일은 건드리지 않는다')
             if with_peer:expect(f.page.locator('.window[data-key=schema] .object-title-name')).to_have_text('Target1')
         assert not f.errors and not f.external,(f.errors,f.external);f.browser.close()
 except Exception:

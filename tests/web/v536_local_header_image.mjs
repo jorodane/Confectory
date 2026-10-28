@@ -7,10 +7,11 @@ const {captureMixedCell,mixedCellMatches,receiptFieldProof,restoredMixedProof}=a
 const esc=value=>String(value).replaceAll('&','&amp;').replaceAll('"','&quot;').replaceAll('<','&lt;');
 const image='data:image/webp;base64,'+'UklGRgAA'.repeat(200),lateImage='data:image/webp;base64,'+'UklGRgBB'.repeat(200);
 assert.equal(browserIconMarkup({kind:'schema',icon:image},esc),'<img src="'+image+'" alt="">');
-for(const kind of ['object','function','implementation','module'])assert(!browserIconMarkup({kind,icon:image},esc).includes('<img'));
+assert.equal(browserIconMarkup({kind:'object',icon:image},esc),'<img src="'+image+'" alt="">');
+for(const kind of ['function','implementation','module'])assert(!browserIconMarkup({kind,icon:image},esc).includes('<img'));
 for(const icon of ['https://example.invalid/image.webp','file:///private/image.webp','data:image/svg+xml;base64,PHN2Zz4=','data:text/html;base64,PGgxPg==','data:image/webp;base64,AAAA" onerror="bad','data:image/webp;base64,'+'A'.repeat(65500)])assert(!browserIconMarkup({kind:'schema',icon},esc).includes('<img'));
 assert.equal(browserIconMarkup({kind:'schema',icon:'🛡️'},esc),'🛡️');
-console.log('PASS Browser images are bounded inline WebP on information rows only; paths, remote/SVG/HTML/injected sources and other element kinds never become image requests');
+console.log('PASS Browser images are bounded inline WebP on information/object rows only; paths, remote/SVG/HTML/injected sources and other element kinds never become image requests');
 const before={id:'Owned::Info',kind:'schema',revision:0,textHash:'a'.repeat(64),values:{editorIcon:'📦'}},value={kind:'icon',text:image,revision:0,hash:before.textHash},change=captureMixedCell(value,before),key='p|Owned::Info|element|icon';
 assert.deepEqual(change,{type:'icon',text:image});assert(mixedCellMatches(key,value,change,'p|Owned::Info|element|'));assert(!mixedCellMatches(key,{...value,text:lateImage},change,'p|Owned::Info|element|'));
 const after={...before,revision:2,textHash:'b'.repeat(64),values:{editorIcon:image}},proof=receiptFieldProof({...value,text:lateImage},change,after);assert(proof);assert.equal(proof.accepted,image);
