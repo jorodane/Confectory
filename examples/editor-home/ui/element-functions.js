@@ -1,3 +1,4 @@
+import {browserIconMarkup} from './browser-data.js';
 import {openCallAbiRemap,defaultAbiRemap,abiBindingLabel} from './call-abi-remap.js';
 import {captureMixedCell} from './mixed-declaration.js';
 // Original v508 module cards and function nodes over real declaration contracts.
@@ -13,7 +14,7 @@ function functionPinsMarkup(method,side){
  const label=side==='inputs'?'입력':'출력',fields=functionSignatureFields(method,side);
  return '<div class="received-function-pin-column" data-pin-side="'+side+'" role="group" aria-label="'+label+'">'+fields.map(field=>{const type=field.pending?'미정':propertyTypeSummary(field),name=field.name||label,meta=' data-function-pin-type="'+esc(type)+'" data-function-pin-name="'+esc(name)+'"';return '<div class="received-function-pin" data-function-pin-unit'+meta+' style="--pin-color:'+functionPinColor(field)+'" tabindex="0" role="img" aria-label="'+esc(name+' · '+type)+'"'+(field.pending?' data-pin-pending':'')+'><span class="function-pin-handle" aria-hidden="true">'+functionPinContourMarkup(side)+'</span><span class="function-pin-name">'+esc(name)+'</span></div>'}).join('')+'</div>';
 }
- const blueprintIsAsync=()=>false,blueprintClockMarkup=()=>'',blueprintIsComplete=()=>false,profileIconMarkup=value=>esc(value||'◇');
+ const blueprintIsAsync=()=>false,blueprintClockMarkup=()=>'',blueprintIsComplete=()=>false,profileIconMarkup=value=>browserIconMarkup({kind:'function',icon:value||'◇'},esc);
 function functionFlowMarkup(method,{readonly=false,objectId=null}={}){
  const description=readonly?'<div class="function-node-readonly-description">'+esc(method.description||'설명이 없습니다.')+'</div>':'<textarea class="function-node-description'+(objectId?' object-title-description feature-object-description':'')+'" data-inline-description'+(objectId?' data-obj="'+esc(objectId)+'" data-prop="description"':'')+' aria-label="기능 설명" placeholder="설명을 입력하세요…" maxlength="240" rows="1">'+esc(method.description||'')+'</textarea>';
  return '<div class="function-node-flow function-node-pin-body">'+functionPinsMarkup(method,'inputs')+description+functionPinsMarkup(method,'outputs')+'</div>';

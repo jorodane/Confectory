@@ -109,6 +109,7 @@ def main():
     parser.add_argument('--commit', required=True)
     parser.add_argument('--sdk', type=Path, required=True)
     parser.add_argument('--nuget-seed', type=Path, required=True)
+    parser.add_argument('--suite',choices=['headers','card-images'],default='headers')
     args = parser.parse_args()
     repo = args.repo.resolve(); persistent = args.persistent.absolute()
     persistent.parent.mkdir(parents=True, exist_ok=True)
@@ -170,15 +171,37 @@ def main():
                 raise RuntimeError('Engine wrote outside its owned checkout')
             for script in ['v536_mixed_declaration.mjs','v536_local_header_image.mjs']:
                 work.run(label+'-'+Path(script).stem,['node',str(checkout/'tests/web'/script),str(checkout)],cwd=checkout,env=env)
-            modes = ['normal','storage','loss','conflict','cancel','late'] if label=='lf' else ['late']
-            for mode in modes:
-                work.run(label+'-ui-'+mode,[sys.executable,str(checkout/'tests/web/v536_local_header_image_ui.py'),str(checkout),str(report),mode,'object'],cwd=checkout,env=env)
-            for mode in modes+(['contexts'] if label=='lf' else []):
-                work.run(label+'-feature-image-'+mode,[sys.executable,str(checkout/'tests/web/v536_local_header_image_ui.py'),str(checkout),str(report),mode,'feature'],cwd=checkout,env=env)
-            work.run(label+'-feature-glyph',[sys.executable,str(checkout/'tests/web/v536_feature_icon_ui.py'),str(checkout),str(report),'contexts'],cwd=checkout,env=env)
-            work.run(label+'-detached',[sys.executable,str(checkout/'tests/web/v536_local_header_image_ui.py'),str(checkout),str(report),'late','object','view','peer'],cwd=checkout,env=env)
-            for script in ['v536_copy_read_guards_core.py','v536_local_header_image_native.py']:
-                work.run(label+'-'+Path(script).stem,[sys.executable,str(checkout/'tests/web'/script),str(checkout),str(report)],cwd=checkout,env=env)
+            if args.suite=='card-images':
+                # Same engine/renderer/CAS depth over the newly connected original cards.
+                card = str(checkout/'tests/web/v536_card_image_ui.py')
+                work.run(label+'-card-native',[sys.executable,str(checkout/'tests/web/v536_card_image_native.py'),str(checkout),str(report)],cwd=checkout,env=env)
+                cases = ([('property-normal','normal','schema','property'),('function-normal','normal','schema','function')]
+                    +[(target+'-'+mode,mode,'schema',target) for target in ['property','function'] for mode in ['storage','loss','conflict','cancel','late']]
+                    +[('new-property-'+mode,mode,'schema','new-property') for mode in ['normal','late']]
+                    +[('object-property-'+mode,mode,'object','object-property') for mode in ['normal','conflict']]
+                    +[('new-object-'+mode,mode,'object','new-object-property') for mode in ['normal','late']]
+                    +[('new-function-'+mode,mode,'schema','new-function') for mode in ['normal','late']]
+                    +[('property-detached','late','schema','property','view','peer'),('function-detached','late','schema','function','view','peer')]) if label=='lf' else [
+                    ('property-late','late','schema','property'),('function-late','late','schema','function'),('new-function-detached','late','schema','new-function','view','peer')]
+                for name,mode,kind,*flags in cases:
+                    work.run(label+'-card-'+name,[sys.executable,card,str(checkout),str(report),mode,kind,*flags],cwd=checkout,env=env)
+                for kind in ['object','feature']:
+                    work.run(label+'-header-'+kind,[sys.executable,str(checkout/'tests/web/v536_local_header_image_ui.py'),str(checkout),str(report),'late',kind],cwd=checkout,env=env)
+                work.run(label+'-property-glyph',[sys.executable,str(checkout/'tests/web/v536_element_icon_ui.py'),str(checkout),str(report),'normal','schema','property'],cwd=checkout,env=env)
+                work.run(label+'-function-glyph',[sys.executable,str(checkout/'tests/web/v536_element_icon_ui.py'),str(checkout),str(report),'normal','schema','function'],cwd=checkout,env=env)
+                work.run(label+'-card-receipts',['node',str(checkout/'tests/web/v536_card_image.mjs'),str(checkout)],cwd=checkout,env=env)
+                for script in ['v536_copy_read_guards_core.py','v536_local_header_image_native.py']:
+                    work.run(label+'-'+Path(script).stem,[sys.executable,str(checkout/'tests/web'/script),str(checkout),str(report)],cwd=checkout,env=env)
+            else:
+                modes = ['normal','storage','loss','conflict','cancel','late'] if label=='lf' else ['late']
+                for mode in modes:
+                    work.run(label+'-ui-'+mode,[sys.executable,str(checkout/'tests/web/v536_local_header_image_ui.py'),str(checkout),str(report),mode,'object'],cwd=checkout,env=env)
+                for mode in modes+(['contexts'] if label=='lf' else []):
+                    work.run(label+'-feature-image-'+mode,[sys.executable,str(checkout/'tests/web/v536_local_header_image_ui.py'),str(checkout),str(report),mode,'feature'],cwd=checkout,env=env)
+                work.run(label+'-feature-glyph',[sys.executable,str(checkout/'tests/web/v536_feature_icon_ui.py'),str(checkout),str(report),'contexts'],cwd=checkout,env=env)
+                work.run(label+'-detached',[sys.executable,str(checkout/'tests/web/v536_local_header_image_ui.py'),str(checkout),str(report),'late','object','view','peer'],cwd=checkout,env=env)
+                for script in ['v536_copy_read_guards_core.py','v536_local_header_image_native.py']:
+                    work.run(label+'-'+Path(script).stem,[sys.executable,str(checkout/'tests/web'/script),str(checkout),str(report)],cwd=checkout,env=env)
             if git(checkout,'status','--porcelain'):
                 raise RuntimeError('Checkout changed during verification')
         checkout = checkouts['lf']; env = environments['lf']; dotnet = str(args.sdk/'dotnet')
@@ -187,8 +210,12 @@ def main():
         work.run('windows-probe',[sys.executable,str(checkout/'tests/probes/desktop_package.py'),str(checkout),str(package)],cwd=checkout,env=env)
         packaged_report = work.evidence/'packaged-engine.json'
         atomic_json(packaged_report, {'run':[dotnet,str(package/'content/runtime/Confectory.App.dll')]})
-        work.run('packaged-renderer',[sys.executable,str(checkout/'tests/web/v536_local_header_image_ui.py'),str(package/'content'),str(packaged_report),'late','object'],cwd=checkout,env=env)
-        work.run('packaged-feature-renderer',[sys.executable,str(checkout/'tests/web/v536_local_header_image_ui.py'),str(package/'content'),str(packaged_report),'late','feature'],cwd=checkout,env=env)
+        if args.suite=='card-images':
+            for target in ['property','function']:
+                work.run('packaged-card-'+target,[sys.executable,str(checkout/'tests/web/v536_card_image_ui.py'),str(package/'content'),str(packaged_report),'late','schema',target],cwd=checkout,env=env)
+        else:
+            work.run('packaged-renderer',[sys.executable,str(checkout/'tests/web/v536_local_header_image_ui.py'),str(package/'content'),str(packaged_report),'late','object'],cwd=checkout,env=env)
+            work.run('packaged-feature-renderer',[sys.executable,str(checkout/'tests/web/v536_local_header_image_ui.py'),str(package/'content'),str(packaged_report),'late','feature'],cwd=checkout,env=env)
         for name in ['Confectory.Core.dll','Confectory.ElementAuthoring.dll']:
             matches = [p for p in files(package).values() if p.name==name]
             origin = checkout/('src/Confectory.Core/bin/Release/net10.0/'+name if name=='Confectory.Core.dll' else 'targets/element-authoring/bin/Release/net10.0/'+name)
@@ -202,14 +229,18 @@ def main():
         # not just its ZIP CRC or a manifest comparison.
         work.run('restored-probe',[sys.executable,str(checkout/'tests/probes/desktop_package.py'),str(checkout),str(restored)],cwd=checkout,env=env)
         atomic_json(packaged_report, {'run':[dotnet,str(restored/'content/runtime/Confectory.App.dll')]})
-        work.run('restored-renderer',[sys.executable,str(checkout/'tests/web/v536_local_header_image_ui.py'),str(restored/'content'),str(packaged_report),'late','object'],cwd=checkout,env=env)
-        work.run('restored-feature-renderer',[sys.executable,str(checkout/'tests/web/v536_local_header_image_ui.py'),str(restored/'content'),str(packaged_report),'late','feature'],cwd=checkout,env=env)
+        if args.suite=='card-images':
+            for target in ['property','function']:
+                work.run('restored-card-'+target,[sys.executable,str(checkout/'tests/web/v536_card_image_ui.py'),str(restored/'content'),str(packaged_report),'late','schema',target],cwd=checkout,env=env)
+        else:
+            work.run('restored-renderer',[sys.executable,str(checkout/'tests/web/v536_local_header_image_ui.py'),str(restored/'content'),str(packaged_report),'late','object'],cwd=checkout,env=env)
+            work.run('restored-feature-renderer',[sys.executable,str(checkout/'tests/web/v536_local_header_image_ui.py'),str(restored/'content'),str(packaged_report),'late','feature'],cwd=checkout,env=env)
         work.run('package-failure-lifetime',[sys.executable,str(checkout/'tests/probes/desktop_package_lifetime.py'),str(checkout),str(restored)],cwd=checkout,env=env)
         if dependency_identity(args.sdk,args.nuget_seed,commit) != inputs:
             raise RuntimeError('SDK/dependency seed changed during verification; no package promotion')
         atomic_json(work.evidence/'package.json',entry)
         atomic_json(work.evidence/'summary.json',{'sourceCommit':commit,'independentCheckouts':2,
-            'allStagesPassed':True,'actualWindows':False,'actualMobile':False,'libraryDelivered':False,
+            'allStagesPassed':True,'suite':args.suite,'actualWindows':False,'actualMobile':False,'libraryDelivered':False,
             'sourceRepositoryUnchanged':git(repo,'rev-parse','HEAD'),
             'archiveBytes':candidate.stat().st_size,'diskBefore':plan['diskAvailable'],
             'diskBeforePersistence':shutil.disk_usage(persistent).free})
