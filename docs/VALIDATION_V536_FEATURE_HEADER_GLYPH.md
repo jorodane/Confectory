@@ -67,3 +67,9 @@ B2 실제 배지, M4 async·M11 C#→graph·M12 Root 실행 분기도 별도 잔
 전체 UI·실제 Windows/WebView2·모바일 기기·Library 전달은 미완료다.
 
 집중 7흐름 37확인, 순수 후보 3확인, 기존 contained 함수 카드·새 객체 속성·기존 정보 속성 glyph와 생산 final CAS 영향 회귀 32확인이 통과했다. 원본 팝오버 10영역과 75개 리소스 바이트/SHA가 일치하고 CSS·원래 숨긴 핀/입력 계약 코드는 바꾸지 않았다.
+
+## 독립 checkout·새 교차 패키지 확정 결과
+
+실행 소스 커밋 `b4299c203a8961574233b2081acdc390c770c553`의 변경 Git blob·기존 autocrlf·clean을 확인했다. 함수의 기존 ID·타입·값과 부모/외부 원본을 보존했다. 기존 독립 checkout에서 Native/CLI Release·새 Linux 엔진, 독립 기능 헤더의 다른 함수 전환·Undo 6확인 및 glyph·늦은 설명 보존 6확인 및 생산 final CAS 4확인이 통과했다. 새 RAM Windows x64 교차 패키지는 restore·Release·MCP·생성·probe·패키지 자체 기능 헤더 아이콘 UI 6확인까지 6단계를 통과했다. 전체 2351개/manifest 2350개 목록·SHA·Core/Native DLL과 변경 제품 소스 바이트를 확인했다.
+
+manifest SHA `78467db83e6dcdd0e4b635d033f6321e7dad865b744a8a936f4e4ff313305488`. 전체 manifest와 fixture/로그/프로필 증거 보관 뒤 이번 실행의 임시 패키지만 정리했고 기존 보관 패키지/SDK/원본/사용자 자료는 삭제하지 않았다. 최종 후속 커밋은 문서/evidence만 달라 실행 코드는 위 소스 커밋과 같다. 실제 Windows apphost/WebView2·모바일 기기/터치·Library 전달 및 전체 UI는 계속 미완료다.
