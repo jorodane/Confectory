@@ -46,6 +46,9 @@ try:
         zoom_to(400);zoom_to(500);expect(node).to_have_value(held);guarded()
         viewport=f.author().locator('.bp-viewport');box=viewport.bounding_box();x=box['x']+box['width']/2;y=box['y']+box['height']/2
         f.page.mouse.move(x,y);f.page.keyboard.down('Control');f.page.mouse.wheel(0,-1000);f.page.keyboard.up('Control');expect(f.author().locator('[data-bp-percent]')).to_have_text('500%');expect(node).to_have_value(held);guarded();f.checked('최대 확대의 Ctrl+wheel과 반복 배율 변경은 기존 미저장 본문 설명·정확한 원문을 보존한다')
+        f.page.mouse.wheel(0,100);expect(f.author().locator('[data-bp-percent]')).to_have_text('475%');assert f.author().locator('.bp-plane').evaluate('el=>new DOMMatrix(getComputedStyle(el).transform).a')==4.75
+        f.page.keyboard.down('Control');f.page.mouse.wheel(0,-100);f.page.keyboard.up('Control');expect(f.author().locator('[data-bp-percent]')).to_have_text('500%');expect(node).to_have_value(held);guarded();f.checked('일반 휠과 Ctrl 휠은 원본의 500→475→500% 단계를 실제 plane에 적용하고 source 쓰기를 하지 않는다')
+        dialog=popup();dialog.screenshot(path=str(f.case/'zoom-popup.png'));dialog.locator('[data-zoom-value]').press('Escape')
         zoom_to(400);f.page.set_viewport_size({'width':430,'height':900})
         graph=f.author().locator('[data-mobile-flow]').first
         if f.author().locator('[data-flow-graph]').is_visible():f.author().locator('[data-flow-graph]').click()

@@ -174,6 +174,7 @@ def main():
             if args.suite=='canvas':
                 work.run(label+'-v666-zoom-reference',[sys.executable,str(checkout/'tests/probes/v666_canvas_zoom.py'),str(checkout)],cwd=checkout,env=env)
                 work.run(label+'-v666-native-zoom',[sys.executable,str(checkout/'tests/web/v666_native_zoom_ui.py'),str(checkout)],cwd=checkout,env=env)
+                work.run(label+'-serial-renderer',[sys.executable,str(checkout/'tests/web/v508_feature_serial_canvas.py'),str(checkout)],cwd=checkout,env=env)
                 work.run(label+'-v666-zoom-ui',[sys.executable,str(checkout/'tests/web/v666_canvas_zoom_ui.py'),str(checkout),str(report)],cwd=checkout,env=env)
                 for target in ['property','function']:
                     work.run(label+'-card-'+target,[sys.executable,str(checkout/'tests/web/v536_card_image_ui.py'),str(checkout),str(report),'late','schema',target],cwd=checkout,env=env)
