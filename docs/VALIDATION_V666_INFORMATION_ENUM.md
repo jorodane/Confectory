@@ -26,6 +26,19 @@ base `442102a`, 집중 기록 `/workspace/artifacts/v536-verification-managed/ru
 
 ## 최종 마감
 
-`tools/verify_desktop.py --suite enum-definitions`는 기존 70단계와 Core/native/UI·신규 생성·패키지/복원 enum 검사 9단계를 합친 79단계다. 정확한 commit의 LF/CRLF 독립 checkout, 새 교차 패키지, 전체 파일 SHA/CRC/모드 복원·실행 UI, 최신/롤백 지속 보관과 임시물 정리 결과를 최종 검증 뒤 기록한다. 공용 SDK/의존성 seed와 이전 정상 롤백 증거의 재사용은 새 실행과 구별한다.
+`9d6f95080d7a1b42389b9f33416e7053eea5bc04`에서 `tools/verify_desktop.py --suite enum-definitions`의 **79단계가 모두 통과**했다. LF 독립 checkout 34단계, CRLF 독립 checkout 29단계, 새 교차 패키지·압축 복원·실패 수명관리 16단계다. 기존 70단계도 이번 코드에서 다시 실행했고 종류의 Core/native/UI·원본 메뉴 생성·패키지/복원 검사 9단계를 추가했다. 단계 수는 빌드·probe를 포함하며 사용자 흐름 수로 세지 않는다. 별도 집중 기록의 통과 29단계와 진단 실패 3단계는 최종 79단계와 구별해 보존했다.
+
+최종 기록은 `/workspace/artifacts/v536-verification-managed/runs/d0994843e3cb4047b5780769ca7daa17.json`, 증거 ZIP은 같은 이름의 `.zip`이다. 증거 8,665,453 bytes의 SHA-256은 `3305e8017ccdf3d786f9c200ecfcf4adeb18a5878e3b6a9ba50c57fc16f2a04c`다. 환경 재연결 뒤 도구 세션은 유실됐지만 같은 creator PID와 record·로그의 진척을 회수했고 검증을 중복 실행하지 않았다. 최종 로그는 `passed`, record는 오류 없는 `cleaned`, 실행별 RAM root는 부재다. 입력·fixture·프로필·스크린샷·실패/재현 자료를 지속 증거로 보존한 뒤 직접 만든 임시물만 정리했다.
+
+관리 보관소 `/workspace/artifacts/v536-verification-managed/packages`의 최신/롤백 두 세대는 다음과 같다. 최신 ZIP과 복원본의 전체 파일 SHA·CRC·모드를 검증하고 복원본 UI까지 새로 실행했다. 승격 후 두 지속 ZIP도 다시 전체 대조했으며 롤백 entry는 승격 전 최신 entry와 동일하다. 기존 관리 보관소의 승인된 두 세대 교체 외 과거 산출물을 삭제하지 않았다.
+
+| 보관본 | 실행 코드 출처 | ZIP SHA-256 | 크기·목록 |
+|---|---|---|---|
+| 최신 | `9d6f95080d7a1b42389b9f33416e7053eea5bc04` | `98faec83b2121d221abb5e2a6ca406924e110ef252727c74598e1bfe7f20319a` | 51,217,934 bytes, 파일 2,359 + 디렉터리 147 |
+| 롤백 | `2e4b8e444a63c4a6d77a8f292df7de15c4d98af1` | `6d47e892b9bda5d4546c055181a4b971e10ecc4f3d4ed728c11f481a8412fb74` | 51,206,752 bytes, 파일 2,358 + 디렉터리 147 |
+
+최신 package manifest SHA-256은 `6b4ea198a904063d641db0795b8f4b16d686487fd7f8bbb20dcfd8ed690a0db9`다. SDK 10.0.401·의존성 seed의 검증된 바이트와 이전 정상 롤백의 실행 증거는 재사용했다. 롤백 ZIP 무결성은 다시 확인했지만 해당 구버전 UI를 이번에 재실행하지 않았다. 최종 결과 기록 커밋은 이 검증 문서와 수용 목록만 바꾸며 실행·검사 코드는 위 패키지 출처와 같다. 새 종류 문법을 구버전 롤백 parser로 읽을 수 있다는 뜻은 아니다.
+
+사전 예산은 지속 공간 144MiB(안전 여유 64MiB 포함), 별도 RAM 파일시스템 3GiB, 추가 메모리 7GiB와 안전 여유 1GiB를 유지했다. 최종 실행 전후 지속 공간 여유는 2,290,642,944 → 2,279,153,664 bytes로 순증가 **11,489,280 bytes(10.96MiB)**다. 집중 검사 시작부터 최종 실행 정리 시점까지 순증가는 **13,905,920 bytes(13.26MiB)**이며 증거·코드·초기 문서를 포함한다. 작업자 측 최소 관측 여유는 2,289,434,624 bytes, cgroup 메모리 최고 관측값은 4,517,404,672 bytes다. 전체 빌드·checkout·캐시·패키징 임시물은 제거됐고 증거와 최신/롤백 압축본이 지속 보관됐다. 수치 보고는 `/workspace/scratch/v666-information-enum/FINAL_REPORT.json`에 남긴다.
 
 Set 미지원 문맥과 기존 ABI closure·고급 타입/핀 표시명·B2·M4·M11·M12·V2–V9는 이 단위에 포함하지 않는다. 3D/권한 별도 팩, 이동 연출과 실행 분리, 공개 override 원계약 유지 합의는 그대로다. 실제 Windows/WebView2·물리 모바일·전체 UI·Space/Library 전달은 미검증이다. 배율 일시 실패의 원인은 미확정으로 유지한다.
