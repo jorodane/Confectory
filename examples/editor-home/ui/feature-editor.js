@@ -8,7 +8,7 @@ import {createElementAuthorSurface} from './element-author-surface.js';
 export function createFeatureEditors(api){
  const {$,$$,esc,inputs}=api,short=id=>id?.split('::').at(-1)||'Root';
  const author=createFeatureAuthoring(api),moduleAuthors=new Map();
- function moduleAuthor({slot,id}){const scope=api.current.projectId,row=api.current.editorViews?.find(r=>r.view===slot&&r.id===id&&r.mode==='properties'),key=scope+'|'+slot+'|'+id+'|'+(row?.authorBinding||'restore');if(!moduleAuthors.has(key))moduleAuthors.set(key,createFeatureAuthoring(createElementAuthorSurface(api,{scope,slot,id})));return moduleAuthors.get(key);}
+ function moduleAuthor({slot,id,mode='properties'}){const scope=api.current.projectId,row=api.current.editorViews?.find(r=>r.view===slot&&r.id===id&&r.mode===mode),key=scope+'|'+slot+'|'+id+'|'+mode+'|'+(row?.authorBinding||'restore');if(!moduleAuthors.has(key))moduleAuthors.set(key,createFeatureAuthoring(createElementAuthorSurface(api,{scope,slot,id,mode})));return moduleAuthors.get(key);}
  function activeAuthor(meta){return meta?.moduleAuthor?moduleAuthor({slot:meta.authorView,id:meta.slotOwner}):author;}
  const presentation=createFunctionPresentation({$,$$,esc,name:short});
  const cacheKey=(scope,id)=>scope+'|primary|'+id,pending=(scope,id)=>inputs.get(cacheKey(scope,id))||{};

@@ -53,4 +53,4 @@ Core는 기호의 grapheme·길이·금지 문자와 기존 128×128 WebP contai
 
 최신 UI/runtime을 함께 사용한다. 새 `icon` private 입력/저널을 모르는 구버전과 혼용한 재개·저장은 보장하지 않으며 별도 마이그레이션을 수행하지 않는다. 모든 graph/profile/target의 조합을 새 필수 목록으로 늘리지 않는다.
 
-분류·개념·모듈 헤더, 모듈 핀·Set 출력, 종류 항목의 나머지 원본 노출 아이콘은 고정 후속이다. 원본에서 readonly인 call/wrapper를 편집하지 않는 것은 정상 보호다. ABI closure·고급 타입/표시명·B2/M4/M11/M12·V2–V9 및 확대의 독립 창/프로젝트 전환 검증도 이번 완료로 묶지 않는다. 이번 아이콘의 별도 실제 프로젝트 왕복은 집중 UI에서 실행하지 않았으며 모든 프로젝트 문맥 검증 완료로 표시하지 않는다. 3D/권한 별도 팩과 이동/실행 분리 합의는 유지한다. 실제 Windows/WebView2·물리 모바일·DPI/IME·Space/Library 전달은 별도 미검증이다.
+분류·개념·모듈 헤더, 모듈 핀·Set 출력, 종류 항목의 나머지 원본 노출 아이콘은 고정 후속이다. 원본에서 readonly인 call/wrapper를 편집하지 않는 것은 정상 보호다. ABI closure·고급 타입/표시명·B2/M4/M11/M12·V2–V9 및 확대의 독립 창/프로젝트 전환 검증도 이번 완료로 묶지 않는다. 최초 단위에서 미실행이던 일반 graph 동작 카드 아이콘의 실제 프로젝트 왕복은 후속 헤더 단위에서 같은 namespace/ID의 다른 프로젝트를 거쳐 이미지·private 입력·원문 보존을 확인했다. 모든 graph/profile/창 조합의 프로젝트 검증 완료로 확대하지 않는다. [후속 검증](VALIDATION_V666_DECLARATION_ICONS.md). 3D/권한 별도 팩과 이동/실행 분리 합의는 유지한다. 실제 Windows/WebView2·물리 모바일·DPI/IME·Space/Library 전달은 별도 미검증이다.

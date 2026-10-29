@@ -1,5 +1,5 @@
 """Original action card picker, actual engine candidate/receipt/Confirm; synthetic assets only."""
-import copy,json,pathlib,sys,time
+import copy,json,pathlib,shutil,sys,time
 from playwright.sync_api import sync_playwright,expect
 import v536_wide_mixed as f
 mode=sys.argv[3] if len(sys.argv)>3 else 'normal';private='private' in sys.argv[4:];feature_label='IconPrivate' if private else 'Slot';feature_id=f.n+feature_label;graph_id=f.n+'SlotBody/body:common'
@@ -47,6 +47,8 @@ try:
   start_position=position();pick('★');assert position()==start_position;button().press('Control+z');assert not pending();button().press('Control+y');expect(button()).to_have_text('★');original();restart(1);expect(button()).to_have_text('★');assert position()==start_position;f.checked('기존 private Undo/Redo와 cold는 해당 동작 아이콘만 보존하고 공유 함수·부모·다른 target 원본을 쓰지 않는다')
   p=popup();asset=f.page.evaluate("()=>{const c=document.createElement('canvas');c.width=c.height=32;const x=c.getContext('2d');x.fillStyle='#2c9';x.fillRect(0,0,32,32);return c.toDataURL('image/png')}");import base64
   p.locator('[type=file]').set_input_files({'name':'synthetic-action.png','mimeType':'image/png','buffer':base64.b64decode(asset.split(',')[1])});expect(p.locator('.object-icon-preview img')).to_be_visible();p.get_by_role('button',name='적용',exact=True).click();expect(button().locator('img')).to_be_visible();wanted=pending()[0][1]['text'];assert wanted.startswith('data:image/webp;base64,');held=pending();original();f.checked('사용자가 선택한 생성 PNG를 기존 로컬 128×128 WebP 경로로 정규화하며 외부 업로드 없이 카드에 표시한다')
+  if mode=='project':
+   other=f.case/'other project';shutil.copytree(f.project,other,ignore=shutil.ignore_patterns('.confectory'));other_bytes=(other/graph_file.name).read_bytes();f.pending();f.page.close();f.stop();f.env['CONFECTORY_WEB_PROJECT']=str(other/'project.cproj');f.start(10);f.page=f.setup();f.page.set_viewport_size({'width':1800,'height':1400});open_graph();assert not pending();pick('🔥');f.pending();f.page.close();f.stop();f.env['CONFECTORY_WEB_PROJECT']=str(f.project/'project.cproj');f.start(11);f.page=f.setup();f.page.set_viewport_size({'width':1800,'height':1400});open_graph();assert pending()==held;expect(button().locator('img')).to_be_visible();assert (other/graph_file.name).read_bytes()==other_bytes;original();f.checked('같은 namespace/동작 ID의 다른 실제 프로젝트를 왕복해도 이미지·private 입력·원문은 섞이지 않는다')
   if mode=='cancel':
    p=popup();p.locator('[data-icon-choice="🔥"]').click();p.locator('[data-cancel]').click();assert pending()==held and checkpoint.read_bytes()==before_checkpoint;original();restart(2);assert pending()==held;f.checked('새 팝오버 입력 취소·cold는 앞서 보존한 이미지 입력과 공유 초안·원본을 유지한다')
   else:

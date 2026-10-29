@@ -15,7 +15,7 @@ internal static class DeclarationAuthoring
  }
  internal static void Icon(Element element,string value,bool functionImage=false)
  {
-  if((element.Kind is "schema" or "object"||functionImage&&element.Kind=="function")&&RasterIcon.IsImage(value)){element.Values["editorIcon"]=new(System.Text.Json.JsonSerializer.SerializeToElement(value),element.Id,new());return;}
+  if((element.Kind is "schema" or "object" or "category" or "concept" or "module"||functionImage&&element.Kind=="function")&&RasterIcon.IsImage(value)){element.Values["editorIcon"]=new(System.Text.Json.JsonSerializer.SerializeToElement(value),element.Id,new());return;}
   Glyph(value);
   Apply(element,new JsonObject{["action"]="properties",["values"]=new JsonObject{["icon"]=value}});
  }
@@ -53,7 +53,7 @@ internal static class DeclarationAuthoring
      if(pair.Key=="parent"){element.Parent=pair.Value is null?null:Id(values,"parent");continue;}
      string value=pair.Value?.GetValue<string>()??throw new ArgumentException("Property string required");
      if(pair.Key=="description"){if(value.Length>16384)throw new ArgumentException("Description budget");element.Description=value;element.DescriptionPresent=true;}
-     else if(pair.Key is "displayName" or "icon"){if(value.Length>(pair.Key=="displayName"?256:64))throw new ArgumentException("Display metadata budget");element.Values[pair.Key=="displayName"?"editorName":"editorIcon"]=new(System.Text.Json.JsonSerializer.SerializeToElement(value),element.Id,new());}
+     else if(pair.Key is "displayName" or "icon"){if(pair.Key=="icon"&&element.Kind is ("category" or "concept" or "module")&&value.StartsWith("data:",StringComparison.Ordinal)&&!RasterIcon.IsImage(value))throw new ArgumentException("Normalized local header image required");if(value.Length>(pair.Key=="displayName"?256:64)&&!(pair.Key=="icon"&&element.Kind is ("category" or "concept" or "module")&&RasterIcon.IsImage(value)))throw new ArgumentException("Display metadata budget");element.Values[pair.Key=="displayName"?"editorName":"editorIcon"]=new(System.Text.Json.JsonSerializer.SerializeToElement(value),element.Id,new());}
      else throw new ArgumentException("Supported declaration property required");
     }break;
    }
