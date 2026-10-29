@@ -48,9 +48,10 @@ try:
   p=popup();uri=f.page.evaluate("()=>{const c=document.createElement('canvas');c.width=64;c.height=32;const x=c.getContext('2d');x.fillStyle='#936';x.fillRect(0,0,64,32);return c.toDataURL('image/png')}");p.locator('[type=file]').set_input_files(dict(name='synthetic-header.png',mimeType='image/png',buffer=base64.b64decode(uri.split(',')[1])));expect(p.locator('.object-icon-preview img')).to_be_visible();p.get_by_role('button',name='적용',exact=True).click();expect(icon().locator('img')).to_be_visible();wanted=next(json.loads(v['text'])['icon'] for _,v in pending() if v['kind']=='module-pin-icon');panel().locator('[data-decl-property=description]').fill('이미지·설명 한 후보');held=pending();original();assert checkpoint.read_bytes()==before_checkpoint
   if mode=='reset':p=popup();p.get_by_role('button',name='아이콘 없음',exact=True).click();wanted='';held=pending();expect(icon()).to_have_text('◇')
   if mode=='multi':
-   prior=target_pin
-   for target_pin,glyph in [('a1','🔥'),('return','🧪')]:pick(glyph)
-   target_pin=prior;held=pending();assert len([v for _,v in held if v['kind']=='module-pin-icon'])==3;original()
+   prior=target_pin;multi_icons={prior:wanted}
+   for target_pin,glyph in [('a0','★'),('a1','🔥'),('return','🧪')]:
+    if target_pin!=prior:pick(glyph);multi_icons[target_pin]=glyph
+   target_pin=prior;held=pending();actual={json.loads(v['text'])['pin']:json.loads(v['text'])['icon'] for _,v in held if v['kind']=='module-pin-icon'};assert actual==multi_icons;original()
   if mode=='mixed-preserve':
    panel().locator('[data-declaration-header-action=save]').click();f.idle();assert pending()==held and checkpoint.read_bytes()==before_checkpoint;original();panel().locator('[data-declaration-header-action=discard]').click();f.idle();assert not pending();expect(panel().locator('[data-decl-property=displayName]')).to_have_value('보존할 기존 표시 이름 입력');restart(2);assert not pending();expect(panel().locator('[data-decl-property=displayName]')).to_have_value('보존할 기존 표시 이름 입력');original();f.checked('다른 기존 선언 입력과의 저장 경계는 이미지 선택을 유실하지 않으며 헤더 취소도 다른 표시 이름 입력을 지우지 않는다');f.browser.close();raise SystemExit(0)
   if mode=='project':
@@ -113,7 +114,7 @@ try:
    else:save()
    current=saved_value();
    if mode=='multi':
-    for pin,glyph in [('a1','🔥'),('return','🧪')]:assert json.loads(current['values']['editorModulePinIcon_f'+(f.n+'Slot').encode().hex()+'_'+pin])['icon']==glyph
+    for pin,glyph in multi_icons.items():assert json.loads(current['values']['editorModulePinIcon_f'+(f.n+'Slot').encode().hex()+'_'+pin])['icon']==glyph
    assert shown(current)==wanted and current['values']['editorIcon']=='📦';assert current['values']['Exact']==9223372036854775805;assert current['parent']==f.n+leaf+'Base';original();restart(4);assert not pending();expect(icon().locator('img') if wanted.startswith('data:') else icon()).to_be_visible();f.checked('metadata 전용 한 후보/CAS Save·cold는 이미지/설명만 저장하고 Exact64·부모·모듈 계약·본문을 유지한다')
    panel().locator('[data-declaration-header-action=confirm]').click();r=f.page.locator('.window[data-key=review]');expect(r).to_be_visible(timeout=120000);r.locator('[data-reject]').click();expect(r).to_be_hidden();original();panel().locator('[data-declaration-header-action=confirm]').click();expect(r).to_be_visible(timeout=120000)
    if r.locator('[data-review-advanced]').count():
