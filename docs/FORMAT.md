@@ -150,4 +150,6 @@ enum Example.App::Mood {
 }
 ```
 
-행 순서는 정수 값으로 변환하지 않는다. 종류는 상속/실행/모듈 계약을 갖지 않으며, 현재 단위는 정의·미참조 항목 편집까지다. 속성/함수의 종류 타입·값 소비 연결은 별도 구현이며 임의 문자열을 참조로 해석하지 않는다. 알려지지 않은 profile은 자동 변환하지 않는다. 구버전 parser의 새 문법 하위 호환은 제공하지 않는다. 상세 지원·검증 경계는 [종류 정의 검증](VALIDATION_V666_INFORMATION_ENUM.md)에 기록한다.
+행 순서는 정수 값으로 변환하지 않는다. 종류는 상속/실행/모듈 계약을 갖지 않는다. 알려지지 않은 profile은 자동 변환하지 않는다. 구버전 parser의 새 문법 하위 호환은 제공하지 않는다. 정의와 항목의 최초 지원 경계는 [종류 정의 검증](VALIDATION_V666_INFORMATION_ENUM.md)에 기록한다.
+
+속성은 `field Mood single enum Example.App::Mood;`로 종류 owner를 명시하고, `data Mood = "stable-item-id";`로 해당 항목 ID 문자열을 저장한다. `multiple`은 항목 ID 문자열 배열이다. 정보 기본값은 기존 `editorInformationDefaults="typed-json-v1"`와 `editorFieldDefault_Mood="\"stable-item-id\""`를 사용한다. 빈 문자열은 미선택 상태다. 다른 표시명·숫자를 항목 ID로 추정하지 않으며 없는 ID는 schema 검증에서 거절한다. 항목 이름/순서를 바꾸어도 저장된 선택 ID는 유지된다. 사용 중 ID를 제거해 값/기본값이 무효가 되는 후보는 전체 미적용한다. 함수/C# ABI 및 실행용 property 노드의 종류 표현은 아직 연결하지 않았고 CLR 타입을 추정하지 않는다. [속성 값/기본값 지원 경계](VALIDATION_V666_INFORMATION_ENUM_VALUES.md)를 참조한다.

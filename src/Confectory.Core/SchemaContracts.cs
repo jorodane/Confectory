@@ -44,7 +44,7 @@ public static class SchemaContracts
         {
             foreach (var field in fields.Values.Where(f => f.Kind != "general"))
             {
-                string kind = field.Kind == "function" ? "function" : "schema";
+                string kind = field.Kind is "function" or "enum" ? field.Kind : "schema";
                 registry.Get(field.Type, kind, field.Origin, field.Loc);
                 references.Add(new(field.Type, field.Loc, field.Origin, kind));
             }
@@ -67,6 +67,13 @@ public static class SchemaContracts
         {
             switch (field.Kind)
             {
+                case "enum":
+                    var choices = EnumDefinition.Members(registry.Get(field.Type, "enum", field.Origin, field.Loc));
+                    // Empty is the prototype's unselected value. Never infer a
+                    // different member from a display name, order or integer.
+                    if (datum.Kind != "general" || datum.Scalar is not JsonElement selected || selected.ValueKind != JsonValueKind.String ||
+                        selected.GetString() is string member && member.Length != 0 && !choices.Any(item => item!["id"]!.GetValue<string>() == member)) Mismatch(name, datum);
+                    break;
                 case "general":
                     if (datum.Kind != "general" || datum.Scalar is not JsonElement scalar || !Primitive(field.Type, scalar)) Mismatch(name, datum);
                     break;

@@ -20,7 +20,7 @@ internal static class MixedOwnerCopyEdits
    else if(shape["kind"]!.ToString()=="compound"&&segment is JsonValue name&&name.TryGetValue<string>(out var key))shape=Shape(model["schemas"]?[shape["type"]!.ToString()]?["fields"]?[key]??throw new ArgumentException("Existing compound member required"));
    else throw new ArgumentException("Typed path cannot edit another referenced owner");
   }
-  if(shape["kind"]!.ToString() is not ("general" or "compound" or "reference" or "function"))throw new ArgumentException("Supported typed value required");return shape;
+  if(shape["kind"]!.ToString() is not ("general" or "compound" or "reference" or "function" or "enum"))throw new ArgumentException("Supported typed value required");return shape;
  }
  public static JsonObject Prepare(JsonObject request,Func<Element,string> format,Func<Manifest,string> formatManifest)
  {

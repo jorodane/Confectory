@@ -12,17 +12,19 @@ internal static class FieldTypes
   string ns=PackPaths.Namespace(owner);var packs=registry.Packs.Where(p=>p.Key==ns||registry.Packs[ns].Dependencies.ContainsKey(p.Key)).ToArray();
   var declarations=packs.SelectMany(p=>p.Value.Elements.Select(e=>(Id:p.Key+"::"+e.Key,Kind:e.Value.Kind))).ToArray();
   var result=new JsonArray();int targets=0;
-  foreach(var item in declarations.Where(e=>e.Kind is "schema" or "function").OrderBy(e=>e.Id,StringComparer.Ordinal)){
+  foreach(var item in declarations.Where(e=>e.Kind is "schema" or "function" or "enum").OrderBy(e=>e.Id,StringComparer.Ordinal)){
    try{if(item.Kind=="schema"&&OwnedInformationDefinitions.PrivateSchema(registry.Get(item.Id,"schema")))continue;}catch(BuildError){/* Keep the existing unavailable catalogue row. */}
    if(result.Count>=256)throw new ArgumentException("Field type catalogue budget");
-   foreach(string kind in item.Kind=="schema"?new[]{"compound","reference"}:new[]{"function"}){
+   foreach(string kind in item.Kind=="schema"?new[]{"compound","reference"}:new[]{item.Kind}){
     var row=new JsonObject{["id"]=item.Id,["kind"]=kind,["available"]=false};result.Add(row);
     try{
      var proofs=new JsonObject();var seen=new HashSet<string>(StringComparer.Ordinal);
      void Observe(string id){if(!seen.Add(id))return;if(seen.Count>128)throw new ArgumentException("Field type proof budget");var element=registry.Get(id);proofs[id]=JsonData.HashBytes(Encoding.UTF8.GetBytes(source(id)));if(element.Parent is not null)Observe(element.Parent);foreach(var field in element.Fields.Values.Where(f=>f.Kind!="general"))Observe(field.Type);}
      Observe(item.Id);var definition=registry.Effective(item.Id);SchemaContracts.Validate(registry,item.Id);row["name"]=definition.Values.TryGetValue("editorName",out var label)&&label.Value.ValueKind==JsonValueKind.String?label.Value.GetString():item.Id.Split("::")[1];
      if(kind=="compound"){
-      new Planner(registry,"metadata").Structural(item.Id);var defaults=InformationDefaults.Resolve(registry,item.Id);foreach(string id in defaults.Sources)Observe(id);var types=new JsonObject();foreach(string id in seen.Where(id=>registry.Get(id).Kind=="schema").ToArray()){var fields=new JsonObject();foreach(var field in registry.Effective(id).Fields)fields[field.Key]=JsonSerializer.SerializeToNode(new{kind=field.Value.Kind,cardinality=field.Value.Cardinality,type=field.Value.Type});types[id]=new JsonObject{["fields"]=fields};}row["types"]=types;row["valueJson"]=new JsonObject(defaults.Values.Select(p=>KeyValuePair.Create<string,JsonNode?>(p.Key,InformationDefaults.Transport(p.Value)))).ToJsonString();
+      new Planner(registry,"metadata").Structural(item.Id);var defaults=InformationDefaults.Resolve(registry,item.Id);foreach(string id in defaults.Sources)Observe(id);var types=new JsonObject();foreach(string id in seen.Where(id=>registry.Get(id).Kind=="schema").ToArray()){var fields=new JsonObject();foreach(var field in registry.Effective(id).Fields){fields[field.Key]=JsonSerializer.SerializeToNode(new{kind=field.Value.Kind,cardinality=field.Value.Cardinality,type=field.Value.Type});}types[id]=new JsonObject{["fields"]=fields};}row["types"]=types;row["enums"]=new JsonObject(seen.Where(id=>registry.Get(id).Kind=="enum").Select(id=>KeyValuePair.Create<string,JsonNode?>(id,EnumDefinition.Members(registry.Get(id,"enum")))));row["valueJson"]=new JsonObject(defaults.Values.Select(p=>KeyValuePair.Create<string,JsonNode?>(p.Key,InformationDefaults.Transport(p.Value)))).ToJsonString();
+     }else if(kind=="enum"){
+      var members=EnumDefinition.Members(definition);row["targets"]=members;row["valueJson"]=JsonSerializer.Serialize(members.FirstOrDefault()?["id"]?.GetValue<string>()??"");
      }else{
       var choices=new JsonArray();foreach(var candidate in declarations.Where(e=>e.Kind==(kind=="reference"?"object":"implementation")).OrderBy(e=>e.Id,StringComparer.Ordinal)){
        try{

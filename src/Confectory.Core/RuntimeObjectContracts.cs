@@ -41,7 +41,7 @@ public static class RuntimeObjectContracts
                     registry.Get(field.Type, "schema", field.Origin, field.Loc);
                     Ancestors(field.Type, "schema", _ => { });
                 }
-                else if (field.Kind == "function") dependencies.Add(registry.Get(field.Type, "function", field.Origin, field.Loc).Id);
+                else if (field.Kind is "function" or "enum") dependencies.Add(registry.Get(field.Type, field.Kind, field.Origin, field.Loc).Id);
             }
         }
         if (fields.Count > 256) throw new BuildError("PROPERTY_FIELD_BUDGET", "At most 256 effective property fields", declared.Loc);
@@ -54,7 +54,7 @@ public static class RuntimeObjectContracts
             {
                 ["id"] = field.Origin + "/field:" + name, ["name"] = name, ["origin"] = field.Origin,
                 ["kind"] = field.Kind, ["cardinality"] = field.Cardinality, ["type"] = field.Type,
-                ["clrType"] = type + (field.Cardinality == "multiple" ? "[]" : ""), ["supported"] = supported
+                ["clrType"] = field.Kind == "enum" ? null : type + (field.Cardinality == "multiple" ? "[]" : ""), ["supported"] = supported
             };
             row["hash"] = JsonData.Digest(row);
             rows.Add(row);

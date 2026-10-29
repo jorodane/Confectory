@@ -88,13 +88,14 @@ var module=effective.Kind=="module"?planner.Module(id):planner.ModulesFor(id);
  }
  static System.Text.Json.Nodes.JsonObject SchemaModel(Confectory.Core.Registry registry,Confectory.Core.Element element,System.Collections.Generic.Dictionary<string,Confectory.Core.SchemaField> fields,Func<string,string> definitionSource)
  {
-  var schemas=new System.Text.Json.Nodes.JsonObject();var functions=new System.Text.Json.Nodes.JsonObject();var implementations=new System.Text.Json.Nodes.JsonObject();
+  var schemas=new System.Text.Json.Nodes.JsonObject();var functions=new System.Text.Json.Nodes.JsonObject();var implementations=new System.Text.Json.Nodes.JsonObject();var enums=new System.Text.Json.Nodes.JsonObject();
   var sourceHashes=new System.Collections.Generic.Dictionary<string,string>(StringComparer.Ordinal);
   System.Text.Json.Nodes.JsonNode Fields(System.Collections.Generic.Dictionary<string,Confectory.Core.SchemaField> items){var result=new System.Text.Json.Nodes.JsonObject();foreach(var pair in items){var field=pair.Value;var definition=registry.Effective(field.Origin);string label=pair.Key;if(definition.Values.TryGetValue("editorFieldName_"+pair.Key,out var display)&&display.Value.ValueKind==System.Text.Json.JsonValueKind.String)label=display.Value.GetString()!;if(!sourceHashes.TryGetValue(field.Origin,out string? hash)){hash=Confectory.Core.JsonData.HashBytes(System.Text.Encoding.UTF8.GetBytes(definitionSource(field.Origin)));sourceHashes[field.Origin]=hash;}result[pair.Key]=new System.Text.Json.Nodes.JsonObject{["cardinality"]=field.Cardinality,["kind"]=field.Kind,["type"]=field.Type,["origin"]=field.Origin,["displayName"]=label,["schemaHash"]=hash};if(definition.Values.TryGetValue("editorFieldIcon_"+pair.Key,out var icon)&&icon.Value.ValueKind==System.Text.Json.JsonValueKind.String&&(icon.Value.GetString()!.Length<=64||RasterIcon.IsImage(icon.Value.GetString()!)))result[pair.Key]!["icon"]=icon.Value.GetString();}return result;}
   void Contracts(System.Collections.Generic.Dictionary<string,Confectory.Core.SchemaField> items)
   {
    foreach(var field in items.Values){
     if(field.Kind=="function"){var fn=registry.Get(field.Type,"function",field.Origin,field.Loc);functions[fn.Id]=System.Text.Json.JsonSerializer.SerializeToNode(fn.Signature,Confectory.Core.JsonData.Options);}
+    else if(field.Kind=="enum"){var choice=registry.Get(field.Type,"enum",field.Origin,field.Loc);enums[field.Type]=Confectory.Core.EnumDefinition.Members(choice);}
     else if(field.Kind=="compound"){
      if(schemas.ContainsKey(field.Type))continue;
      new Confectory.Core.Planner(registry,"metadata").Structural(field.Type);var schema=registry.Effective(registry.Get(field.Type,"schema",field.Origin,field.Loc).Id);
@@ -118,7 +119,7 @@ var module=effective.Kind=="module"?planner.Module(id):planner.ModulesFor(id);
   System.Text.Json.Nodes.JsonObject validation;
   try{Confectory.Core.SchemaContracts.Validate(registry,element.Id);validation=new System.Text.Json.Nodes.JsonObject{["status"]="valid"};}
   catch(Confectory.Core.BuildError error){validation=new System.Text.Json.Nodes.JsonObject{["status"]="invalid",["code"]=error.Diagnostic.Code,["message"]=error.Message};}
-  return new System.Text.Json.Nodes.JsonObject{["id"]=element.Id,["kind"]=element.Kind,["information"]=information,["validation"]=validation,["fields"]=Fields(fields),["data"]=System.Text.Json.JsonSerializer.SerializeToNode(projectedData,Confectory.Core.JsonData.Options),["schemas"]=schemas,["functions"]=functions,["implementations"]=implementations,["targets"]=System.Text.Json.JsonSerializer.SerializeToNode(registry.Project.Targets.Keys.Order(StringComparer.Ordinal).ToArray()),["executionAuthorized"]=false};
+  return new System.Text.Json.Nodes.JsonObject{["id"]=element.Id,["kind"]=element.Kind,["information"]=information,["validation"]=validation,["fields"]=Fields(fields),["data"]=System.Text.Json.JsonSerializer.SerializeToNode(projectedData,Confectory.Core.JsonData.Options),["enums"]=enums,["schemas"]=schemas,["functions"]=functions,["implementations"]=implementations,["targets"]=System.Text.Json.JsonSerializer.SerializeToNode(registry.Project.Targets.Keys.Order(StringComparer.Ordinal).ToArray()),["executionAuthorized"]=false};
  }
 
 }

@@ -287,8 +287,8 @@ public sealed class Parser
                     string fieldName = Name(), cardinality = Name();
                     if (cardinality is not ("single" or "multiple")) throw new BuildError("SCHEMA_CARDINALITY", "Expected single or multiple", token.Loc);
                     string fieldKind = Name(), fieldType;
-                    if (fieldKind is "compound" or "reference" or "function") fieldType = Name(true);
-                    else { if (fieldKind != "general") throw new BuildError("SCHEMA_FIELD_KIND", "Expected general, compound, reference or function", token.Loc); fieldType = Type(true, false); if (fieldType.EndsWith("[]", StringComparison.Ordinal)) throw new BuildError("SCHEMA_CARDINALITY", "Use multiple instead of an array field type", token.Loc); }
+                    if (fieldKind is "compound" or "reference" or "function" or "enum") fieldType = Name(true);
+                    else { if (fieldKind != "general") throw new BuildError("SCHEMA_FIELD_KIND", "Expected general, compound, reference, function or enum", token.Loc); fieldType = Type(true, false); if (fieldType.EndsWith("[]", StringComparison.Ordinal)) throw new BuildError("SCHEMA_CARDINALITY", "Use multiple instead of an array field type", token.Loc); }
                     Unique(e.Fields, fieldName, new(cardinality, fieldKind, fieldType, e.Id, token.Loc), token.Loc); break;
                 case "data" when e.Kind == "object":
                     string dataName = Name(); Expect("="); Unique(e.Data, dataName, Datum(e.Id), token.Loc); break;
