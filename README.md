@@ -1,5 +1,7 @@
 # Confectory C# build core
 
+현재 에디터 UI 구현 기준은 사용자 승인 [v666 고정 수용 목록](docs/V666_ACCEPTANCE.md)이다. 저장소에 보관한 원본을 기준으로 단위별 구현·검증을 진행하며, 참조 버전과 전체 UI 구현 완료를 구별한다.
+
 Windows entry: **[Confectory.bat](Confectory.bat)**. After a Windows package build, open **`Builds/Windows-x64/Confectory.exe`** with its complete output folder; see [exe package prerequisites and commands](docs/WINDOWS_LAUNCHER.md#빌드-후-exe-실행). See [direct startup and developer tools](docs/WINDOWS_LAUNCHER.md). Windows defaults to the embedded HTML editor. The v196 integration is partial; see [verified and remaining features](docs/EMBEDDED_WEB_UI.md). External-browser use remains developer diagnostics.
 
 

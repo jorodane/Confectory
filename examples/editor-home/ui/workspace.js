@@ -1,29 +1,6 @@
+import {clampCanvasZoom,canvasZoomPercent,createSteppedZoomWheel,CANVAS_ZOOM_PRESETS} from './canvas-zoom.js';
 import {createWorkspaceLinks} from './workspace-links.js';
 import {noteHtml,noteMarkup,bindNoteEditor,applyNoteTitle} from './notes.js';
-
-function clampCanvasZoom(scale){return Math.max(.03125,Math.min(3,scale))}
-function canvasZoomPercent(scale){return Number((scale*100).toFixed(5))}
-function createSteppedZoomWheel(){
- let accumulated=0,lastTime=0;
- const stops=[1,1.25,1.5,1.75,2,2.25,2.5,2.75,3];
- for(let upper=1;upper>=.0625;upper/=2)for(let part=4;part<8;part++)stops.push(upper*part/8);
- stops.sort((a,b)=>a-b);
- const step=(scale,event)=>{
-  const delta=event.deltaY*(event.deltaMode===1?40:event.deltaMode===2?800:1),now=performance.now();
-  if(!delta)return scale;
-  if(now-lastTime>250||Math.sign(delta)!==Math.sign(accumulated))accumulated=0;
-  lastTime=now;accumulated+=delta;const ticks=Math.floor(Math.abs(accumulated)/100);
-  if(!ticks)return scale;
-  const direction=Math.sign(accumulated);accumulated-=direction*ticks*100;
-  let next=scale;
-  for(let i=0;i<Math.min(ticks,stops.length);i++){
-   const stop=direction>0?[...stops].reverse().find(value=>value<next-1e-7):stops.find(value=>value>next+1e-7);
-   if(stop===undefined)break;next=stop;
-  }
-  return next;
- };
- step.reset=()=>{accumulated=0;lastTime=0};return step;
-}
 
 const workspaceObjectTypes=[
  {kind:'Concept',group:'concept',label:'개념',icon:'◇'},
@@ -61,7 +38,7 @@ function setupWorkspaceNavigation(){
  zoom.setAttribute('aria-haspopup','dialog');zoom.setAttribute('aria-expanded','false');zoom.onclick=()=>{
   if(zoomMenu){closeZoom();return}
   zoomMenu=document.createElement('section');zoomMenu.className='workspace-zoom-menu';zoomMenu.setAttribute('role','dialog');zoomMenu.setAttribute('aria-label','화면 배율');
-  zoomMenu.innerHTML='<div class="workspace-zoom-controls"><label for="workspace-zoom-value">배율</label><label class="workspace-zoom-value" for="workspace-zoom-value"><input id="workspace-zoom-value" data-zoom-value type="text" inputmode="decimal" value="'+canvasZoomPercent(view.scale)+'" aria-label="화면 배율 직접 입력" autocomplete="off"><span aria-hidden="true">%</span></label><input data-zoom-slider type="range" min="3.125" max="300" step="any" value="'+canvasZoomPercent(view.scale)+'" aria-label="화면 배율 조절"></div><div class="workspace-zoom-presets">'+[3.125,6.25,12.5,25,50,75,100,150,200,300].map(value=>'<button type="button" data-zoom-preset="'+value+'">'+value+'%</button>').join('')+'</div>';
+  zoomMenu.innerHTML='<div class="workspace-zoom-controls"><label for="workspace-zoom-value">배율</label><label class="workspace-zoom-value" for="workspace-zoom-value"><input id="workspace-zoom-value" data-zoom-value type="text" inputmode="decimal" value="'+canvasZoomPercent(view.scale)+'" aria-label="화면 배율 직접 입력" autocomplete="off"><span aria-hidden="true">%</span></label><input data-zoom-slider type="range" min="3.125" max="500" step="any" value="'+canvasZoomPercent(view.scale)+'" aria-label="화면 배율 조절"></div><div class="workspace-zoom-presets">'+CANVAS_ZOOM_PRESETS.map(value=>'<button type="button" data-zoom-preset="'+value+'">'+value+'%</button>').join('')+'</div>';
   canvas.append(zoomMenu);zoom.setAttribute('aria-expanded','true');
   const valueInput=zoomMenu.querySelector('[data-zoom-value]'),slider=zoomMenu.querySelector('[data-zoom-slider]');
   commitZoomInput=()=>{const raw=valueInput.value.trim(),value=Number(raw);if(raw&&Number.isFinite(value))setZoom(value/100);else valueInput.value=canvasZoomPercent(view.scale)};

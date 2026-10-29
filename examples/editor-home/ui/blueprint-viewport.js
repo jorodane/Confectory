@@ -1,8 +1,9 @@
+import {clampCanvasZoom,createSteppedZoomWheel,CANVAS_ZOOM_PRESETS} from './canvas-zoom.js';
 // Presentation only: coordinates, zoom and gestures never carry a source basis.
-export const clampBlueprintZoom=value=>Math.max(.03125,Math.min(3,Number.isFinite(value)?value:1));
+export const clampBlueprintZoom=clampCanvasZoom;
 const finite=(value,fallback=0)=>Number.isFinite(value)&&Math.abs(value)<=1e7?value:fallback;
-// A world position up to 1e7 at 300% zoom needs a larger private camera range.
-const finiteCamera=value=>Number.isFinite(value)&&Math.abs(value)<=4e7?value:0;
+// A world position up to 1e7 at 500% zoom needs a larger private camera range.
+const finiteCamera=value=>Number.isFinite(value)&&Math.abs(value)<=6e7?value:0;
 export function activateBlueprintView(w,data){
  if(!data)return;
  if(w.meta.blueprintGraph!==data.id){
@@ -12,11 +13,7 @@ export function activateBlueprintView(w,data){
  }
  w.meta.blueprintGraph=data.id;
 }
-function wheelSteps(){
- let accumulated=0,lastTime=0;const stops=[1,1.25,1.5,1.75,2,2.25,2.5,2.75,3];
- for(let upper=1;upper>=.0625;upper/=2)for(let part=4;part<8;part++)stops.push(upper*part/8);stops.sort((a,b)=>a-b);
- return {reset(){accumulated=0;lastTime=0;},step(scale,event){const delta=event.deltaY*(event.deltaMode===1?40:event.deltaMode===2?800:1),now=performance.now();if(!delta)return scale;if(now-lastTime>250||Math.sign(delta)!==Math.sign(accumulated))accumulated=0;lastTime=now;accumulated+=delta;const ticks=Math.floor(Math.abs(accumulated)/100);if(!ticks)return scale;const direction=Math.sign(accumulated);accumulated-=direction*ticks*100;let next=scale;for(let i=0;i<Math.min(ticks,stops.length);i++){const stop=direction>0?[...stops].reverse().find(value=>value<next-1e-7):stops.find(value=>value>next+1e-7);if(stop===undefined)break;next=stop;}return next;}};
-}
+function wheelSteps(){const step=createSteppedZoomWheel();return {step,reset:step.reset};}
 export function mountBlueprintViewport({w,data,$,$$,persist,isCurrent,hasWire,cancelWire,headerClick}){
  const viewport=$('.bp-scroll',w.body),canvas=$('.bp-canvas',w.body),events=new AbortController(),wheel=wheelSteps();
  let scale=clampBlueprintZoom(Number(w.meta.blueprintZoom)/100),camera={x:finiteCamera(w.meta.blueprintCamera?.x),y:finiteCamera(w.meta.blueprintCamera?.y)},gesture=null,menu=null,menuEvents=null,closed=false;
@@ -80,7 +77,7 @@ export function mountBlueprintViewport({w,data,$,$$,persist,isCurrent,hasWire,ca
  function fit(){const boxes=sceneBounds().boxes;if(!boxes.length)return;wheel.reset();const left=Math.min(...boxes.map(b=>b.x)),top=Math.min(...boxes.map(b=>b.y)),right=Math.max(...boxes.map(b=>b.x+b.width)),bottom=Math.max(...boxes.map(b=>b.y+b.height));scale=Math.max(.05,Math.min(1,(viewport.clientWidth-40)/(right-left+40),(viewport.clientHeight-40)/(bottom-top+40)));camera={x:(viewport.clientWidth-(right-left)*scale)/2-left*scale,y:(viewport.clientHeight-(bottom-top)*scale)/2-top*scale};draw();save();}
  function closeMenu(commit=true){if(!menu)return;const old=menu;menu=null;$('[data-zoom-value]',old).onblur=null;if(commit){const input=$('[data-zoom-value]',old),raw=input.value.trim(),value=Number(raw);if(raw&&Number.isFinite(value))setZoom(value/100);}menuEvents?.abort();menuEvents=null;old.remove();$('[data-bp-percent]',w.body)?.setAttribute('aria-expanded','false');}
  $('[data-bp-percent]',w.body).onclick=()=>{
-  if(menu){closeMenu();return;}menu=document.createElement('section');menu.className='bp-zoom-menu';menu.setAttribute('role','dialog');menu.setAttribute('aria-label','노드 화면 배율');menu.innerHTML='<label>배율 <input data-zoom-value type="text" inputmode="decimal" aria-label="화면 배율 직접 입력"> %</label><input data-zoom-slider type="range" min="3.125" max="300" step="any" aria-label="화면 배율 조절"><div>'+[3.125,6.25,12.5,25,50,75,100,150,200,300].map(value=>`<button data-zoom-preset="${value}">${value}%</button>`).join('')+'</div><button data-zoom-fit>전체 보기</button>';document.body.append(menu);menuEvents=new AbortController();
+  if(menu){closeMenu();return;}menu=document.createElement('section');menu.className='bp-zoom-menu';menu.setAttribute('role','dialog');menu.setAttribute('aria-label','노드 화면 배율');menu.innerHTML='<label>배율 <input data-zoom-value type="text" inputmode="decimal" aria-label="화면 배율 직접 입력"> %</label><input data-zoom-slider type="range" min="3.125" max="500" step="any" aria-label="화면 배율 조절"><div>'+CANVAS_ZOOM_PRESETS.map(value=>`<button data-zoom-preset="${value}">${value}%</button>`).join('')+'</div><button data-zoom-fit>전체 보기</button>';document.body.append(menu);menuEvents=new AbortController();
   const button=$('[data-bp-percent]',w.body),rect=button.getBoundingClientRect();Object.assign(menu.style,{left:Math.max(8,Math.min(rect.left,innerWidth-menu.offsetWidth-8))+'px',top:Math.max(8,Math.min(rect.bottom+6,innerHeight-menu.offsetHeight-8))+'px'});button.setAttribute('aria-expanded','true');draw();
   const input=$('[data-zoom-value]',menu),commit=()=>{const raw=input.value.trim(),value=Number(raw);if(raw&&Number.isFinite(value))setZoom(value/100);input.value=Number((scale*100).toFixed(5));};input.value=Number((scale*100).toFixed(5));input.onblur=commit;input.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();e.stopPropagation();commit();input.select();}};
   $('[data-zoom-slider]',menu).oninput=e=>setZoom(Number(e.target.value)/100);for(const b of $$('[data-zoom-preset]',menu))b.onclick=()=>setZoom(Number(b.dataset.zoomPreset)/100);$('[data-zoom-fit]',menu).onclick=()=>{fit();input.value=Number((scale*100).toFixed(5));};

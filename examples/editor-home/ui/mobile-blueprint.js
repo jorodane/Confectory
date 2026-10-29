@@ -1,3 +1,4 @@
+import {clampCanvasZoom} from './canvas-zoom.js';
 // v536 card-flow/inspector presentation. All edits delegate to the existing owned editor.
 export function mountMobileBlueprint(root,api){
  const {esc}=api,events=new AbortController(),state=api.view.meta.mobileFlow??={tab:'flow',folds:{},scroll:0};
@@ -82,7 +83,7 @@ export function bindBlueprintTouch(element,{state,change,done,background,hold,ta
  },options);
  element.addEventListener('pointermove',event=>{
   if(event.pointerType!=='touch'||!points.has(event.pointerId))return;const p=points.get(event.pointerId);p.x=event.clientX;p.y=event.clientY;if(Math.hypot(p.x-p.initialX,p.y-p.initialY)>7)clearHold();
-  if(mode==='pinch'&&points.size>=2){event.preventDefault();event.stopImmediatePropagation();const c=center(),scale=Math.max(.03125,Math.min(3,start.scale*distance()/start.distance));change({scale,x:c.x-(start.center.x-start.x)*scale/start.scale,y:c.y-(start.center.y-start.y)*scale/start.scale});return}
+  if(mode==='pinch'&&points.size>=2){event.preventDefault();event.stopImmediatePropagation();const c=center(),scale=clampCanvasZoom(start.scale*distance()/start.distance);change({scale,x:c.x-(start.center.x-start.x)*scale/start.scale,y:c.y-(start.center.y-start.y)*scale/start.scale});return}
   if(mode==='pan'){event.preventDefault();event.stopImmediatePropagation();if(Math.hypot(p.x-start.x0,p.y-start.y0)<5&&!start.moved)return;start.moved=true;change({scale:start.scale,x:start.x+p.x-start.x0,y:start.y+p.y-start.y0})}
   if(mode==='held'||mode==='blocked'){event.preventDefault();event.stopImmediatePropagation()}
  },options);

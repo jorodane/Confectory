@@ -109,7 +109,7 @@ def main():
     parser.add_argument('--commit', required=True)
     parser.add_argument('--sdk', type=Path, required=True)
     parser.add_argument('--nuget-seed', type=Path, required=True)
-    parser.add_argument('--suite',choices=['headers','card-images'],default='headers')
+    parser.add_argument('--suite',choices=['headers','card-images','canvas'],default='headers')
     args = parser.parse_args()
     repo = args.repo.resolve(); persistent = args.persistent.absolute()
     persistent.parent.mkdir(parents=True, exist_ok=True)
@@ -171,7 +171,13 @@ def main():
                 raise RuntimeError('Engine wrote outside its owned checkout')
             for script in ['v536_mixed_declaration.mjs','v536_local_header_image.mjs']:
                 work.run(label+'-'+Path(script).stem,['node',str(checkout/'tests/web'/script),str(checkout)],cwd=checkout,env=env)
-            if args.suite=='card-images':
+            if args.suite=='canvas':
+                work.run(label+'-v666-zoom-reference',[sys.executable,str(checkout/'tests/probes/v666_canvas_zoom.py'),str(checkout)],cwd=checkout,env=env)
+                work.run(label+'-v666-native-zoom',[sys.executable,str(checkout/'tests/web/v666_native_zoom_ui.py'),str(checkout)],cwd=checkout,env=env)
+                work.run(label+'-v666-zoom-ui',[sys.executable,str(checkout/'tests/web/v666_canvas_zoom_ui.py'),str(checkout),str(report)],cwd=checkout,env=env)
+                for target in ['property','function']:
+                    work.run(label+'-card-'+target,[sys.executable,str(checkout/'tests/web/v536_card_image_ui.py'),str(checkout),str(report),'late','schema',target],cwd=checkout,env=env)
+            elif args.suite=='card-images':
                 # Same engine/renderer/CAS depth over the newly connected original cards.
                 card = str(checkout/'tests/web/v536_card_image_ui.py')
                 work.run(label+'-card-native',[sys.executable,str(checkout/'tests/web/v536_card_image_native.py'),str(checkout),str(report)],cwd=checkout,env=env)
@@ -210,7 +216,10 @@ def main():
         work.run('windows-probe',[sys.executable,str(checkout/'tests/probes/desktop_package.py'),str(checkout),str(package)],cwd=checkout,env=env)
         packaged_report = work.evidence/'packaged-engine.json'
         atomic_json(packaged_report, {'run':[dotnet,str(package/'content/runtime/Confectory.App.dll')]})
-        if args.suite=='card-images':
+        if args.suite=='canvas':
+            work.run('packaged-v666-zoom',[sys.executable,str(checkout/'tests/web/v666_canvas_zoom_ui.py'),str(package/'content'),str(packaged_report)],cwd=checkout,env=env)
+            work.run('packaged-image-regression',[sys.executable,str(checkout/'tests/web/v536_local_header_image_ui.py'),str(package/'content'),str(packaged_report),'late','object'],cwd=checkout,env=env)
+        elif args.suite=='card-images':
             for target in ['property','function']:
                 work.run('packaged-card-'+target,[sys.executable,str(checkout/'tests/web/v536_card_image_ui.py'),str(package/'content'),str(packaged_report),'late','schema',target],cwd=checkout,env=env)
         else:
@@ -229,7 +238,10 @@ def main():
         # not just its ZIP CRC or a manifest comparison.
         work.run('restored-probe',[sys.executable,str(checkout/'tests/probes/desktop_package.py'),str(checkout),str(restored)],cwd=checkout,env=env)
         atomic_json(packaged_report, {'run':[dotnet,str(restored/'content/runtime/Confectory.App.dll')]})
-        if args.suite=='card-images':
+        if args.suite=='canvas':
+            work.run('restored-v666-zoom',[sys.executable,str(checkout/'tests/web/v666_canvas_zoom_ui.py'),str(restored/'content'),str(packaged_report)],cwd=checkout,env=env)
+            work.run('restored-image-regression',[sys.executable,str(checkout/'tests/web/v536_local_header_image_ui.py'),str(restored/'content'),str(packaged_report),'late','feature'],cwd=checkout,env=env)
+        elif args.suite=='card-images':
             for target in ['property','function']:
                 work.run('restored-card-'+target,[sys.executable,str(checkout/'tests/web/v536_card_image_ui.py'),str(restored/'content'),str(packaged_report),'late','schema',target],cwd=checkout,env=env)
         else:
