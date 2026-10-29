@@ -22,7 +22,15 @@
 
 첫 최종 실행 `dbeb14f829de4d61bafd9898146f52e4`는 LF Release/MCP·빈 캐시 엔진·mixed 선언 검사를 통과한 뒤, 이전 Browser 검사에서 `module` 이미지를 금지하던 낡은 기대값으로 실패했다. 제품 소스는 그대로 두고 기존 검사에서 승인된 여섯 종류의 inline 이미지를 명시 확인하며, implementation/body/blueprint/project/pack/unknown 및 위험 URI 거절과 receipt 검사를 유지했다. 실패 증거를 보존하고 최종 후보 검증을 새로 수행한다.
 
-최종 소스의 LF/CRLF 독립 checkout·새 교차 패키지·압축 복원·실제 패키지 엔진/UI·최신/롤백 지속 보관은 `tools/verify_desktop.py --suite declaration-icons`의 57단계로 별도 마감한다. 결과와 source commit·manifest·실행/재사용/미실행 및 공간 수치는 완료 후 이 문서에 추가한다.
+최종 후보 `b4a83596710015a524d2fd14079b2123408fc489`를 `tools/verify_desktop.py --suite declaration-icons`로 새로 실행해 **57/57단계**가 통과했다. LF 25·CRLF 22단계는 Git 객체를 공유하지 않는 독립 checkout·별도 HOME/NuGet·빈 엔진 캐시에서 Release/MCP/엔진을 빌드했다. 새 교차 패키지/압축 복원/수명관리 10단계도 통과했다. 기존 action-icons 49단계를 유지하고 헤더 native·기본/독립 창·프로젝트 왕복·패키지/복원 UI 8단계를 추가했다. 기존 카드 이미지·중첩 정의·소유 복합 전환·배율 검사를 생략하지 않았다.
+
+- 최종 실행/증거: `/workspace/artifacts/v536-verification-managed/runs/3112635420c7419c9748bc26b2b81fa8.{json,zip,manifest.json}`. 증거 ZIP SHA-256 `178be403bda8ee1e56b688540a530f99129a6699694a29457e5777581850938c`. 같은 source/tree의 LF/CRLF와 전체 통과·복원 결과, 로그·스크린샷·프로필·fixture 및 재생성 출력의 파일 해시를 지속 보관했다. 집중 증거 ZIP SHA-256 `577d4abbabe1a2e98e8de6b69bc546084911cbc5383836b3722151e856d41ee8`도 보존했다.
+- 신규/재사용: 최종 57단계는 모두 이번 후보에서 실행했으며 과거 통과 결과로 대체하지 않았다. 기존 팝오버/후보·receipt/CAS/검사/보관 기반과 공개 SDK·NuGet 입력만 재사용했다. 집중 검사는 base/각 overlay를 기록한 별도 증거이고 최종 정확한 commit 검증과 구별한다. LF/CRLF 배율은 각각 원래 8개 확인이 통과했지만 과거 일시 실패 원인을 해결했다는 뜻은 아니다.
+- 최신 패키지: source `b4a83596710015a524d2fd14079b2123408fc489`, ZIP `293dea989c27da167db833fe88b0aca00d9ef585bf1972e4901d86ea049a2aec`, 51,202,397 bytes, 2,503항목(2,356파일), manifest SHA-256 `f6ac249a66cb73efd8c590448c83fa6719f72a6e420003c0486b8e9ba4b34e55`.
+- 롤백 패키지: source `450ce7620282105bb63ece5e3be6ebd6f87c7f01`, ZIP `c2752a8078dbc897e72b9113269968fb25259688ef1eb684aaa3be1b78f45de9`, 51,196,450 bytes, 2,502항목(2,355파일), manifest SHA-256 `184137e0b345359cb8bedd6aac181c1e934d6522a42095cde6aab3e3e2f93ca8`. 두 ZIP은 `/workspace/artifacts/v536-verification-managed/packages/index.json`의 정확한 두 경로로 보관하며 승격 시 전체 파일 SHA·ZIP CRC·모드를 재검증했다. 최신본 복원 UI는 이번 실행이고, 롤백본 UI는 기존 `83e498ee7f7642c9bf3915ebb054ce33` 증거를 유지한 것으로 구분한다. 새 정상본/증거를 지속 보관한 후에만 승인된 관리형 이전 롤백을 교체했다. 다른 과거 자료는 정리하지 않았다.
+- 공간: 최종 실행 전 2215.36MiB → 정리/보관 후 2208.14MiB, 순증가 **7.21MiB**. 집중 증거 보관은 별도로 3.30MiB 증가했다. 사전 추가 디스크 예산 144MiB(64MiB 안전 여유 포함), 별도 RAM 파일시스템 예산 3GiB를 유지했다. 검사 worker에서 관측한 cgroup 메모리 최대는 4.04GiB다. 성공·실패 증거를 보존한 뒤 해당 실행이 직접 만든 RAM checkout·캐시·패키지·테스트 복사본만 정리했고 두 실행의 임시 root가 없음을 확인했다. `3~6MiB`를 보장값으로 사용하지 않는다.
+
+후속 게시 기록 commit은 이 결과 문서만 마감한다. 실행 패키지의 출처는 위 테스트 후보이며 비문서 파일이 같은지 게시 전에 비교한다. 빌드 산출물·증거 ZIP·개인 파일은 Git에 넣지 않는다.
 
 기존 배율 메뉴 일시 실패는 이전 `c6cf72b5e98f4e28bb4ee97184714366` 실행에서 cold 메뉴 재진입만 실패했고, 후속 재현·LF/CRLF가 통과한 상태다. 원인은 여전히 미확정이다. 이번 헤더 수명 수정과 같은 원인이라고 추정하지 않으며 기존 배율 검사의 성공 조건은 바꾸지 않는다. [원래 실패·후속 증거](VALIDATION_V666_ACTION_ICONS.md).
 
