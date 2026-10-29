@@ -20,6 +20,8 @@
 
 ## 최종 마감과 잔여
 
+첫 최종 실행 `dbeb14f829de4d61bafd9898146f52e4`는 LF Release/MCP·빈 캐시 엔진·mixed 선언 검사를 통과한 뒤, 이전 Browser 검사에서 `module` 이미지를 금지하던 낡은 기대값으로 실패했다. 제품 소스는 그대로 두고 기존 검사에서 승인된 여섯 종류의 inline 이미지를 명시 확인하며, implementation/body/blueprint/project/pack/unknown 및 위험 URI 거절과 receipt 검사를 유지했다. 실패 증거를 보존하고 최종 후보 검증을 새로 수행한다.
+
 최종 소스의 LF/CRLF 독립 checkout·새 교차 패키지·압축 복원·실제 패키지 엔진/UI·최신/롤백 지속 보관은 `tools/verify_desktop.py --suite declaration-icons`의 57단계로 별도 마감한다. 결과와 source commit·manifest·실행/재사용/미실행 및 공간 수치는 완료 후 이 문서에 추가한다.
 
 기존 배율 메뉴 일시 실패는 이전 `c6cf72b5e98f4e28bb4ee97184714366` 실행에서 cold 메뉴 재진입만 실패했고, 후속 재현·LF/CRLF가 통과한 상태다. 원인은 여전히 미확정이다. 이번 헤더 수명 수정과 같은 원인이라고 추정하지 않으며 기존 배율 검사의 성공 조건은 바꾸지 않는다. [원래 실패·후속 증거](VALIDATION_V666_ACTION_ICONS.md).
