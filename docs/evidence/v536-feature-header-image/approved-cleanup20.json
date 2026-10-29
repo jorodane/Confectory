@@ -1,0 +1,268 @@
+{
+  "beforeFree": 154603520,
+  "deleteBeforeFree": 151773184,
+  "afterFree": 2440355840,
+  "actualDfReclaimed": 2288582656,
+  "protected": {
+    "/workspace/artifacts/Confectory-v536-Windows-x64-c08d08f.zip": "573cc69aeae5bca5121c308e3f2989f0f51075647bc48db4a729ae9bec5dbb5f",
+    "/workspace/artifacts/v536-verification-managed/packages/index.json": "6983295d558296b909ed27f3292383400a444fc544631dfce2965c34a02d210e",
+    "/workspace/artifacts/v536-verification-managed/packages/7ecce52473150c2b2b3ef8584f97ca91b9ed09f79cf6bff9113521cc637dcc47.zip": "7ecce52473150c2b2b3ef8584f97ca91b9ed09f79cf6bff9113521cc637dcc47",
+    "/workspace/artifacts/v536-verification-managed/packages/7709ce78264c8937c6e9e9c3578ba5efac2d835c3992a67df77a76a46fa794ca.zip": "7709ce78264c8937c6e9e9c3578ba5efac2d835c3992a67df77a76a46fa794ca"
+  },
+  "protectedAfterDelete": {
+    "/workspace/artifacts/Confectory-v536-Windows-x64-c08d08f.zip": "573cc69aeae5bca5121c308e3f2989f0f51075647bc48db4a729ae9bec5dbb5f",
+    "/workspace/artifacts/v536-verification-managed/packages/index.json": "6983295d558296b909ed27f3292383400a444fc544631dfce2965c34a02d210e",
+    "/workspace/artifacts/v536-verification-managed/packages/7ecce52473150c2b2b3ef8584f97ca91b9ed09f79cf6bff9113521cc637dcc47.zip": "7ecce52473150c2b2b3ef8584f97ca91b9ed09f79cf6bff9113521cc637dcc47",
+    "/workspace/artifacts/v536-verification-managed/packages/7709ce78264c8937c6e9e9c3578ba5efac2d835c3992a67df77a76a46fa794ca.zip": "7709ce78264c8937c6e9e9c3578ba5efac2d835c3992a67df77a76a46fa794ca"
+  },
+  "restoreRecord": "/workspace/scratch/v536-approved-cleanup20/restore-records/bf00073223a74d39b2dae77833ca7014.json",
+  "treeProofSha256": "628bf3182ac75cd0366e54dce9f98c1b014dc45f468e45bdd4b41616122e1a85",
+  "targets": [
+    {
+      "path": "/workspace/scratch/v536-info-definitions/tmp/confectory-desktop-package-9141ophx/runtime only",
+      "kind": "runtime",
+      "source": "/workspace/toolchains/dotnet-10.0.401",
+      "identity": [
+        27,
+        321837,
+        1000
+      ],
+      "allocated": 83021824,
+      "status": "deleted"
+    },
+    {
+      "path": "/workspace/scratch/v536-info-definitions/tmp/confectory-desktop-package-9141ophx/owned checkout/Builds/Windows-x64",
+      "kind": "package",
+      "source": "/workspace/artifacts/Confectory-v536-raw-copies-final/Windows-x64",
+      "identity": [
+        27,
+        452939,
+        1000
+      ],
+      "allocated": 140087296,
+      "status": "deleted"
+    },
+    {
+      "path": "/workspace/scratch/v536-info-definitions/tmp/confectory-desktop-package-u58o4r1m/runtime only",
+      "kind": "runtime",
+      "source": "/workspace/toolchains/dotnet-10.0.401",
+      "identity": [
+        27,
+        322665,
+        1000
+      ],
+      "allocated": 83021824,
+      "status": "deleted"
+    },
+    {
+      "path": "/workspace/scratch/v536-info-definitions/tmp/confectory-desktop-package-u58o4r1m/owned checkout/Builds/Windows-x64",
+      "kind": "package",
+      "source": "/workspace/artifacts/Confectory-v536-a7-m6/Windows-x64",
+      "identity": [
+        27,
+        454881,
+        1000
+      ],
+      "allocated": 140099584,
+      "status": "deleted"
+    },
+    {
+      "path": "/workspace/scratch/v536-info-definitions/tmp/confectory-desktop-package-kuc1vtvq/runtime only",
+      "kind": "runtime",
+      "source": "/workspace/toolchains/dotnet-10.0.401",
+      "identity": [
+        27,
+        450930,
+        1000
+      ],
+      "allocated": 83021824,
+      "status": "deleted"
+    },
+    {
+      "path": "/workspace/scratch/v536-info-definitions/tmp/confectory-desktop-package-kuc1vtvq/owned checkout/Builds/Windows-x64",
+      "kind": "package",
+      "source": "/workspace/artifacts/Confectory-v536-raw-owner/Windows-x64",
+      "identity": [
+        27,
+        451128,
+        1000
+      ],
+      "allocated": 140075008,
+      "status": "deleted"
+    },
+    {
+      "path": "/workspace/scratch/v536-information-views/tmp/confectory-desktop-package-xc59cpe1/runtime only",
+      "kind": "runtime",
+      "source": "/workspace/toolchains/dotnet-10.0.401",
+      "identity": [
+        27,
+        589491,
+        1000
+      ],
+      "allocated": 83021824,
+      "status": "deleted"
+    },
+    {
+      "path": "/workspace/scratch/v536-information-views/tmp/confectory-desktop-package-xc59cpe1/owned checkout/Builds/Windows-x64",
+      "kind": "package",
+      "source": "/workspace/artifacts/Confectory-v536-information-views/Windows-x64",
+      "identity": [
+        27,
+        708071,
+        1000
+      ],
+      "allocated": 140132352,
+      "status": "deleted"
+    },
+    {
+      "path": "/workspace/scratch/v536-information-views/tmp/confectory-desktop-package-txtxb_cv/runtime only",
+      "kind": "runtime",
+      "source": "/workspace/toolchains/dotnet-10.0.401",
+      "identity": [
+        27,
+        589261,
+        1000
+      ],
+      "allocated": 83021824,
+      "status": "deleted"
+    },
+    {
+      "path": "/workspace/scratch/v536-information-views/tmp/confectory-desktop-package-txtxb_cv/owned checkout/Builds/Windows-x64",
+      "kind": "package",
+      "source": "/workspace/artifacts/Confectory-v536-information-views-final/Windows-x64",
+      "identity": [
+        27,
+        709461,
+        1000
+      ],
+      "allocated": 140132352,
+      "status": "deleted"
+    },
+    {
+      "path": "/workspace/scratch/v536-information-reimplementation/tmp/confectory-desktop-package-t1s4msbr/runtime only",
+      "kind": "runtime",
+      "source": "/workspace/toolchains/dotnet-10.0.401",
+      "identity": [
+        27,
+        983193,
+        1000
+      ],
+      "allocated": 83021824,
+      "status": "deleted"
+    },
+    {
+      "path": "/workspace/scratch/v536-information-reimplementation/tmp/confectory-desktop-package-t1s4msbr/owned checkout/Builds/Windows-x64",
+      "kind": "package",
+      "source": "/workspace/artifacts/v536-information-reimplementation/Windows-x64",
+      "identity": [
+        27,
+        983183,
+        1000
+      ],
+      "allocated": 140365824,
+      "status": "deleted"
+    },
+    {
+      "path": "/workspace/scratch/v536-field-types/tmp/confectory-desktop-package-jc86rlss/runtime only",
+      "kind": "runtime",
+      "source": "/workspace/toolchains/dotnet-10.0.401",
+      "identity": [
+        27,
+        456449,
+        1000
+      ],
+      "allocated": 83021824,
+      "status": "deleted"
+    },
+    {
+      "path": "/workspace/scratch/v536-field-types/tmp/confectory-desktop-package-jc86rlss/owned checkout/Builds/Windows-x64",
+      "kind": "package",
+      "source": "/workspace/artifacts/Confectory-v536-field-definitions/Windows-x64",
+      "identity": [
+        27,
+        587599,
+        1000
+      ],
+      "allocated": 140128256,
+      "status": "deleted"
+    },
+    {
+      "path": "/workspace/scratch/v536-schema-parents/tmp/confectory-desktop-package-hopla54x/runtime only",
+      "kind": "runtime",
+      "source": "/workspace/toolchains/dotnet-10.0.401",
+      "identity": [
+        27,
+        589627,
+        1000
+      ],
+      "allocated": 83021824,
+      "status": "deleted"
+    },
+    {
+      "path": "/workspace/scratch/v536-schema-parents/tmp/confectory-desktop-package-hopla54x/owned checkout/Builds/Windows-x64",
+      "kind": "package",
+      "source": "/workspace/artifacts/Confectory-v536-information-parent/Windows-x64",
+      "identity": [
+        27,
+        702877,
+        1000
+      ],
+      "allocated": 140128256,
+      "status": "deleted"
+    },
+    {
+      "path": "/workspace/scratch/v536-schema-parents/tmp/confectory-desktop-package-dkp10cc_/runtime only",
+      "kind": "runtime",
+      "source": "/workspace/toolchains/dotnet-10.0.401",
+      "identity": [
+        27,
+        584109,
+        1000
+      ],
+      "allocated": 83021824,
+      "status": "deleted"
+    },
+    {
+      "path": "/workspace/scratch/v536-schema-parents/tmp/confectory-desktop-package-dkp10cc_/owned checkout/Builds/Windows-x64",
+      "kind": "package",
+      "source": "/workspace/artifacts/Confectory-v536-information-parent-final/Windows-x64",
+      "identity": [
+        27,
+        704673,
+        1000
+      ],
+      "allocated": 140128256,
+      "status": "deleted"
+    },
+    {
+      "path": "/workspace/artifacts/Confectory-v536-reviewed-0f91794/Windows-x64",
+      "kind": "zip",
+      "source": "/workspace/artifacts/Confectory-v536-Windows-x64-c08d08f.zip",
+      "identity": [
+        27,
+        440929,
+        1000
+      ],
+      "allocated": 139558912,
+      "status": "deleted"
+    },
+    {
+      "path": "/workspace/artifacts/v536-information-out/Windows-x64",
+      "kind": "package",
+      "source": "/workspace/artifacts/v536-information-function-contracts/Windows-x64",
+      "identity": [
+        27,
+        1514003,
+        1000
+      ],
+      "allocated": 140554240,
+      "status": "deleted"
+    }
+  ],
+  "usageLimit": "FD/maps/cwd permission restrictions were not bypassed; public metadata showed only unrelated daemon processes and no target consumer.",
+  "reviewedDirectoryModes": {
+    "count": 145,
+    "mode": "0700",
+    "physicalRamRestore": true
+  }
+}

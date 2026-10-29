@@ -9,8 +9,13 @@ internal static class DeclarationAuthoring
   if(allowEmpty&&value.Length==0)return;
   if(value!=value.Trim()||value.Length is <1 or >64||System.Globalization.StringInfo.ParseCombiningCharacters(value).Length!=1||value.Any(c=>char.IsControl(c)||c is '<' or '>' or '&'))throw new ArgumentException("One symbol or emoji required; original input retained");
  }
- internal static void Icon(Element element,string value)
+ internal static void PresentationIcon(string value,bool allowEmpty=false)
  {
+  if(!RasterIcon.IsImage(value))Glyph(value,allowEmpty);
+ }
+ internal static void Icon(Element element,string value,bool functionImage=false)
+ {
+  if((element.Kind is "schema" or "object"||functionImage&&element.Kind=="function")&&RasterIcon.IsImage(value)){element.Values["editorIcon"]=new(System.Text.Json.JsonSerializer.SerializeToElement(value),element.Id,new());return;}
   Glyph(value);
   Apply(element,new JsonObject{["action"]="properties",["values"]=new JsonObject{["icon"]=value}});
  }

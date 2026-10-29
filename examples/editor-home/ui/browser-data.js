@@ -102,8 +102,10 @@ export function createStandaloneBrowserData(api){
  return {render,saved:()=>{for(const w of api.windows.values())if(w.browserDataView?.scope===api.current.projectId)w.browserDataView.saved();}};
 }
 
-// Stored bounded character icons only. Image creation/assets remain a separate contract.
+// Original local picker output only: embedded canvas WebP, never a file/remote URL.
+export function localIconImage(value){return typeof value==='string'&&value.length<=65500&&/^data:image\/webp;base64,[A-Za-z0-9+/]+={0,2}$/.test(value);}
 export function browserIconMarkup(row,esc){
  const fallback={info:'▤',feature:'✦',module:'▣',concept:'◇'}[row?.group||({schema:'info',function:'feature',implementation:'feature',module:'module'}[row?.kind]||'concept')];
+ if((row?.kind==='schema'||row?.kind==='object'||row?.kind==='function'||row?.group==='info')&&localIconImage(row.icon))return '<img src="'+esc(row.icon)+'" alt="">';
  return esc(typeof row?.icon==='string'&&row.icon.length<=64&&row.icon?row.icon:fallback);
 }
