@@ -34,7 +34,9 @@ try:
         workspace_zoom=f.page.locator('#workspace .workspace-zoom').first;expect(workspace_zoom).to_have_text('500%')
         workspace_zoom.click();workspace_menu=f.page.locator('.workspace-zoom-menu:not(.bp-zoom-menu)');workspace_menu.locator('[data-zoom-preset="100"]').click();workspace_menu.locator('[data-zoom-value]').press('Escape')
         f.checked('Workspace의 원본 프리셋·개인 저장·엔진 재시작도 500%를 복원하며 원본 파일을 보존한다')
-        f.open_owner(f.n+'Slot')
+        f.page.locator('#workspace').click(button='right',position={'x':700,'y':300});f.page.get_by_role('button',name='프로젝트 브라우저',exact=True).click()
+        browser=f.page.locator('.window[data-key^="browser:project:"]');browser.get_by_role('button',name='기능',exact=True).click();browser.locator('[data-browser-control="object-query"]').fill('Slot');browser.locator('[data-browser-control="object-search"]').click()
+        row=browser.locator('[data-object="'+f.n+'Slot"]');expect(row).to_have_attribute('aria-disabled','false');row.press('Enter');browser.locator('[data-close]').first.click();f.idle()
         f.page.locator('[data-operation=feature-author-open]').first.click()
         expect(f.author().locator('.bp-viewport')).to_be_visible()
         f.traffic.clear()
@@ -44,10 +46,10 @@ try:
         zoom_to(400);zoom_to(500);expect(node).to_have_value(held);guarded()
         viewport=f.author().locator('.bp-viewport');box=viewport.bounding_box();x=box['x']+box['width']/2;y=box['y']+box['height']/2
         f.page.mouse.move(x,y);f.page.keyboard.down('Control');f.page.mouse.wheel(0,-1000);f.page.keyboard.up('Control');expect(f.author().locator('[data-bp-percent]')).to_have_text('500%');expect(node).to_have_value(held);guarded();f.checked('최대 확대의 Ctrl+wheel과 반복 배율 변경은 기존 미저장 본문 설명·정확한 원문을 보존한다')
-        f.page.set_viewport_size({'width':430,'height':900})
+        zoom_to(400);f.page.set_viewport_size({'width':430,'height':900})
         graph=f.author().locator('[data-mobile-flow]').first
         if f.author().locator('[data-flow-graph]').is_visible():f.author().locator('[data-flow-graph]').click()
-        viewport=f.author().locator('.bp-viewport');box=viewport.bounding_box();cx=box['x']+box['width']/2;cy=box['y']+box['height']/2;cdp=f.page.context.new_cdp_session(f.page)
+        viewport=f.author().locator('.bp-viewport');point=viewport.evaluate('''el=>{const r=el.getBoundingClientRect();for(let y=r.top+35;y<r.bottom-25;y+=25)for(let x=r.left+30;x<r.right-30;x+=25){const eligible=p=>{const target=document.elementFromPoint(p,y);return target&&el.contains(target)&&!target.closest('input,textarea,select,[contenteditable=true]');};if(eligible(x-20)&&eligible(x+20))return {x,y};}throw Error('No eligible two-touch viewport position');}''');cx=point['x'];cy=point['y'];cdp=f.page.context.new_cdp_session(f.page)
         cdp.send('Input.dispatchTouchEvent',{'type':'touchStart','touchPoints':[{'id':1,'x':cx-20,'y':cy},{'id':2,'x':cx+20,'y':cy}]})
         cdp.send('Input.dispatchTouchEvent',{'type':'touchMove','touchPoints':[{'id':1,'x':cx-55,'y':cy},{'id':2,'x':cx+55,'y':cy}]})
         cdp.send('Input.dispatchTouchEvent',{'type':'touchEnd','touchPoints':[]});cdp.detach()
