@@ -114,7 +114,7 @@ try
         case "inspect":
         {
             var element=new Parser(S("text"),"<draft>").ParseElement();
-            reply=new JsonObject{["id"]=element.Id,["kind"]=element.Kind,["parent"]=element.Parent,["function"]=element.Function,["descriptionDefined"]=element.DescriptionPresent,["relations"]=DeclaredRelations.Describe(element),["description"]=element.Description,["signature"]=JsonSerializer.SerializeToNode(element.Signature),["editor"]=AlgorithmProjectionOperations.Editor(element),["fields"]=JsonSerializer.SerializeToNode(element.Fields),["data"]=JsonSerializer.SerializeToNode(element.Data),["values"]=JsonSerializer.SerializeToNode(element.Values.ToDictionary(x=>x.Key,x=>x.Value.Value))};break;
+            reply=new JsonObject{["id"]=element.Id,["kind"]=element.Kind,["parent"]=element.Parent,["function"]=element.Function,["descriptionDefined"]=element.DescriptionPresent,["relations"]=DeclaredRelations.Describe(element),["description"]=element.Description,["signature"]=JsonSerializer.SerializeToNode(element.Signature),["editor"]=AlgorithmProjectionOperations.Editor(element),["fields"]=JsonSerializer.SerializeToNode(element.Fields),["data"]=JsonSerializer.SerializeToNode(element.Data),["values"]=JsonSerializer.SerializeToNode(element.Values.ToDictionary(x=>x.Key,x=>x.Value.Value)),["enumValues"]=element.Kind=="enum"?EnumDefinition.Members(element):null};break;
         }
         case "unregisterDeclarations":
         {
@@ -124,7 +124,7 @@ try
         case "editDeclaration":
         {
             var element=new Parser(S("text"),"<draft>").ParseElement();string id=element.Id,kind=element.Kind;
-            if(kind is not ("category" or "concept" or "function" or "module" or "object" or "schema" or "implementation"))throw new ArgumentException("Authored declaration required");
+            if(kind is not ("category" or "concept" or "function" or "module" or "object" or "schema" or "enum" or "implementation"))throw new ArgumentException("Authored declaration required");
             DeclarationAuthoring.Apply(element,request["edit"]?.AsObject()??throw new ArgumentException("Declaration edit required"));
             string formatted=Format(element);var parsed=new Parser(formatted,"<draft>").ParseElement();
             if(parsed.Id!=id||parsed.Kind!=kind)throw new ArgumentException("Stable declaration ID and kind required");
@@ -148,7 +148,7 @@ try
         }
         case "create":
         {
-            string kind=S("kind"),id=S("id");if(kind is not ("category" or "concept" or "function" or "module" or "object" or "schema"))throw new ArgumentException("Unsupported authored kind.");
+            string kind=S("kind"),id=S("id");if(kind is not ("category" or "concept" or "function" or "module" or "object" or "schema" or "enum"))throw new ArgumentException("Unsupported authored kind.");
             string text=$"{kind} {id}"+(kind=="function"?" () -> int":"")+" { }\n";
             new Parser(text,"<new>").ParseElement();reply=JsonValue.Create(text);break;
         }
@@ -269,7 +269,7 @@ static JsonObject ReviewSummary(string kind,string before,string after)
   }else if(kind is "body" or "blueprint" or "blueprint-node")additional=true;
   else{
    bool created=before.Length==0;var next=new Parser(after,"<review>").ParseElement();var old=created?new Element{Kind=next.Kind,Id=next.Id}:new Parser(before,"<review>").ParseElement();
-   if(created)Add(kind=="object"?"개념 생성":kind=="schema"?"스키마 생성":"선언 생성",null,JsonValue.Create(next.Id.Split("::").Last()),false,true);
+   if(created)Add(kind=="object"?"개념 생성":kind=="schema"?"스키마 생성":kind=="enum"?"종류 생성":"선언 생성",null,JsonValue.Create(next.Id.Split("::").Last()),false,true);
    // Explain declaration contracts without hiding changes to bodies, tools, identity or comments.
    void Contract(string label,JsonNode? prior,JsonNode? current){if(!JsonNode.DeepEquals(prior,current))Add(label,prior,current,prior is not null,current is not null);}
    JsonNode? Sig(FunctionSignature? signature)=>signature is null?null:JsonValue.Create(Signature(signature,true));
@@ -283,7 +283,12 @@ static JsonObject ReviewSummary(string kind,string before,string after)
    next.Signature=old.Signature;next.Parent=old.Parent;next.Modules=old.Modules;next.Includes=old.Includes;next.Requires=old.Requires;next.Defaults=old.Defaults;next.Provides=old.Provides;next.Uses=old.Uses;next.Contains=old.Contains;next.Imports=old.Imports;
    if(old.Description!=next.Description||old.DescriptionPresent!=next.DescriptionPresent)Add("설명",old.DescriptionPresent?JsonValue.Create(old.Description):null,next.DescriptionPresent?JsonValue.Create(next.Description):null,old.DescriptionPresent,next.DescriptionPresent);
    JsonNode? FolderLabel(JsonNode? value){if(value is null)return null;string location=value.GetValue<string>();return JsonValue.Create(location.Length==0?"Root":location.Split("::")[^1]);}
-   foreach(string name in old.Values.Keys.Union(next.Values.Keys)){var a=old.Values.TryGetValue(name,out var av)?JsonNode.Parse(av.Value.GetRawText()):null;var b=next.Values.TryGetValue(name,out var bv)?JsonNode.Parse(bv.Value.GetRawText()):null;if(a is not null&&b is not null&&JsonNode.DeepEquals(a,b)&&a.ToJsonString()!=b.ToJsonString())additional=true;if(old.Values.ContainsKey(name)!=next.Values.ContainsKey(name)||!JsonNode.DeepEquals(a,b))Add(name=="editorFolder"?"분류 위치":name=="editorName"?"표시 이름":"값 · "+name,name=="editorFolder"?FolderLabel(a):a,name=="editorFolder"?FolderLabel(b):b,old.Values.ContainsKey(name),next.Values.ContainsKey(name));}
+   if(kind=="enum"){
+    var priorMembers=EnumDefinition.Members(old);var nextMembers=EnumDefinition.Members(next);
+    JsonArray MemberLabels(JsonArray rows)=>new(rows.Select(row=>(JsonNode)new JsonObject{["이름"]=row!["name"]!.DeepClone(),["항목 값 ID"]=row["id"]!.DeepClone(),["아이콘"]=row["icon"]?.ToString() is string icon&&icon.Length>0?(RasterIcon.IsImage(icon)?"로컬 이미지":icon):"기본 아이콘"}).ToArray());
+    if(!JsonNode.DeepEquals(priorMembers,nextMembers))Add("종류 항목",MemberLabels(priorMembers),MemberLabels(nextMembers));
+   }
+   foreach(string name in old.Values.Keys.Union(next.Values.Keys)){if(kind=="enum"&&name is (EnumDefinition.ProfileKey or EnumDefinition.MembersKey))continue;var a=old.Values.TryGetValue(name,out var av)?JsonNode.Parse(av.Value.GetRawText()):null;var b=next.Values.TryGetValue(name,out var bv)?JsonNode.Parse(bv.Value.GetRawText()):null;if(a is not null&&b is not null&&JsonNode.DeepEquals(a,b)&&a.ToJsonString()!=b.ToJsonString())additional=true;if(old.Values.ContainsKey(name)!=next.Values.ContainsKey(name)||!JsonNode.DeepEquals(a,b))Add(name=="editorFolder"?"분류 위치":name=="editorName"?"표시 이름":"값 · "+name,name=="editorFolder"?FolderLabel(a):a,name=="editorFolder"?FolderLabel(b):b,old.Values.ContainsKey(name),next.Values.ContainsKey(name));}
    foreach(string name in old.Data.Keys.Union(next.Data.Keys)){var a=old.Data.TryGetValue(name,out var av)?Datum(av):null;var b=next.Data.TryGetValue(name,out var bv)?Datum(bv):null;if(a is not null&&b is not null&&JsonNode.DeepEquals(a,b)&&a.ToJsonString()!=b.ToJsonString())additional=true;if(old.Data.ContainsKey(name)!=next.Data.ContainsKey(name)||!JsonNode.DeepEquals(a,b))Add("필드 값 · "+name,a,b,old.Data.ContainsKey(name),next.Data.ContainsKey(name));}
    foreach(string name in old.Fields.Keys.Union(next.Fields.Keys)){JsonNode? Field(SchemaField? f)=>f is null?null:JsonValue.Create(f.Type+" · "+f.Kind+" · "+f.Cardinality);var a=Field(old.Fields.GetValueOrDefault(name));var b=Field(next.Fields.GetValueOrDefault(name));if(!JsonNode.DeepEquals(a,b))Add("필드 정의 · "+name,a,b,old.Fields.ContainsKey(name),next.Fields.ContainsKey(name));}
    additional|=!old.Values.Keys.Where(k=>next.Values.ContainsKey(k)).SequenceEqual(next.Values.Keys.Where(k=>old.Values.ContainsKey(k)))||!old.Data.Keys.Where(k=>next.Data.ContainsKey(k)).SequenceEqual(next.Data.Keys.Where(k=>old.Data.ContainsKey(k)))||!old.Fields.Keys.Where(k=>next.Fields.ContainsKey(k)).SequenceEqual(next.Fields.Keys.Where(k=>old.Fields.ContainsKey(k)));next.Description=old.Description;next.DescriptionPresent=old.DescriptionPresent;next.Values=old.Values;next.Data=old.Data;next.Fields=old.Fields;

@@ -91,7 +91,7 @@ public sealed class Parser
     private const string NamePattern = @"[A-Za-z_][A-Za-z_0-9]*(?:\.[A-Za-z_][A-Za-z_0-9]*)*";
     private const string QualifiedPattern = NamePattern + @"::[A-Za-z_][A-Za-z_0-9]*";
     private static readonly Regex Tokens = new(@"\G(?:(?<space>\s+)|(?<comment>//[^\n]*)|(?<string>""(?:[^""\\]|\\.)*"")|(?<arrow>->)|(?<qid>" + QualifiedPattern + @")|(?<name>" + NamePattern + @")|(?<number>-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)|(?<punct>[{}();,=\[\]]))", RegexOptions.CultureInvariant);
-    private static readonly HashSet<string> Kinds = ["function", "implementation", "module", "category", "concept", "schema", "object", "stage", "view", "buildtarget"];
+    private static readonly HashSet<string> Kinds = ["function", "implementation", "module", "category", "concept", "schema", "object", "enum", "stage", "view", "buildtarget"];
     private static readonly HashSet<string> Types = ["void", "bool", "int", "long", "float", "double", "string", "object"];
     private static readonly HashSet<string> Keywords = new(("abstract as base bool break byte case catch char checked class const continue decimal default delegate do double else enum event explicit extern false finally fixed float for foreach goto if implicit in int interface internal is lock long namespace new null object operator out override params private protected public readonly ref return sbyte sealed short sizeof stackalloc static string struct switch this throw true try typeof uint ulong unchecked unsafe ushort using virtual void volatile while").Split(' '));
     private readonly List<Token> tokens = [];
@@ -316,6 +316,7 @@ public sealed class Parser
             Expect(";");
         }
         Expect("<eof>");
+        if (e.Kind == "enum") EnumDefinition.Members(e);
         return e;
     }
 }

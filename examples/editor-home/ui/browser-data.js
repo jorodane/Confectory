@@ -105,7 +105,7 @@ export function createStandaloneBrowserData(api){
 // Original local picker output only: embedded canvas WebP, never a file/remote URL.
 export function localIconImage(value){return typeof value==='string'&&value.length<=65500&&/^data:image\/webp;base64,[A-Za-z0-9+/]+={0,2}$/.test(value);}
 export function browserIconMarkup(row,esc){
- const fallback={info:'▤',feature:'✦',module:'▣',concept:'◇'}[row?.group||({schema:'info',function:'feature',implementation:'feature',module:'module'}[row?.kind]||'concept')];
+ const fallback=row?.kind==='enum'?'≡':{info:'▤',feature:'✦',module:'▣',concept:'◇'}[row?.group||({schema:'info',function:'feature',implementation:'feature',module:'module'}[row?.kind]||'concept')];
  if((row?.kind==='schema'||row?.kind==='object'||row?.kind==='function'||['category','concept','module'].includes(row?.kind)||row?.group==='info')&&localIconImage(row.icon))return '<img src="'+esc(row.icon)+'" alt="">';
  return esc(typeof row?.icon==='string'&&row.icon.length<=64&&row.icon?row.icon:fallback);
 }

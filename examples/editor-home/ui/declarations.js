@@ -1,3 +1,4 @@
+import {renderEnumDefinition} from './enum-definition.js';
 import {createDeclarationIcons} from './declaration-icons.js';
 import {createFeatureEditors} from './feature-editor.js';
 // Human declaration editing over the consumer's scoped draft operations.
@@ -37,7 +38,7 @@ export function createDeclarationEditors(api){
   for(const field of $$('[data-decl-property]',w.body)){
    const name=field.dataset.declProperty;field.value=Object.hasOwn(common,name)?common[name]??'':display[name];field.oninput=()=>{if(header?.has()&&['icon','description'].includes(name)){header.record(name,field.value);header.draw();}else local(info,row,'properties',{}).value[name]=name==='parent'?(field.value.trim()||null):field.value;persist();notice();};
   }
-  header=headerIcons.bind(w,info,row,()=>show(fresh(info.id,row),row,true),notice);if(header?.has())$('[data-decl-property=description]',w.body).value=header.value('description')||'';notice();
+  header=headerIcons.bind(w,info,row,()=>show(fresh(info.id,row),row,true),notice);if(info.kind==='enum'){const parent=$('[data-decl-property=parent]',w.body);if(parent)parent.closest('label').hidden=true;renderEnumDefinition({api,w,info,header});}if(header?.has())$('[data-decl-property=description]',w.body).value=header.value('description')||'';notice();
   $('[data-declaration-properties]',w.body).onsubmit=e=>{e.preventDefault();if(header?.has())return api.work(()=>header.save(),'');const changes=inputs.get(cacheKey)?.properties;if(!changes||!Object.keys(changes.value).length){api.toast('적용할 입력이 없습니다.');return;}stage({action:'properties',values:changes.value},'properties');};
   $('[data-unset-description]',w.body).onclick=()=>stage({action:'unset-description'},null);
   function renderSignature(){
@@ -118,7 +119,7 @@ export function createDeclarationEditors(api){
     }
     for(const fn of ids)form($('[data-module-contracts]',root),fn);if(!ids.length)$('[data-module-contracts]',root).textContent='선언된 요구 기능이 없습니다.';form($('[data-module-new-form]',root),'',true);
    }
-  function renderRelations(){
+  function renderRelations(){if(info.kind==='enum')return;
    const root=$('[data-relation-editor]',w.body),roles=['module','provide','use','contain',...(info.kind==='module'?['include','require','default']:[]),...(info.kind==='implementation'?['import']:[])];
    root.innerHTML='<h3>직접 선언한 연결</h3>';
    for(const role of roles){

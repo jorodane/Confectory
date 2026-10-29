@@ -6,7 +6,7 @@ using System.Text.Json.Nodes;
 internal static class BrowserFolderLayout
 {
  internal static string Group(Element element) => element.Kind switch {
-  "function" or "implementation" => "feature", "schema" => "info", "module" => "module",
+  "function" or "implementation" => "feature", "schema" or "enum" => "info", "module" => "module",
   "category" when element.Values.TryGetValue("editorBrowserGroup",out var group) => group.Value.ValueKind==JsonValueKind.String && group.Value.GetString() is ("concept" or "info" or "feature" or "module") ? group.Value.GetString()! : throw new ArgumentException("Invalid Browser category group"),
   _ => "concept"
  };
@@ -18,7 +18,7 @@ internal static class BrowserFolderLayout
  public static JsonObject Execute(JsonObject request,Func<Element,string> format,bool validateOnly) {
   string ns=request["namespace"]!.GetValue<string>();var rows=request["units"]!.AsArray();if(rows.Count is <1 or >256)throw new ArgumentException("Browser folder graph budget");
   var elements=new Dictionary<string,Element>(StringComparer.Ordinal);var proofs=new Dictionary<string,JsonNode>(StringComparer.Ordinal);
-  foreach(var row in rows){string id=row!["id"]!.GetValue<string>();var element=new Parser(row["text"]!.GetValue<string>(),"<browser-classification>").ParseElement();if(!id.StartsWith(ns+"::",StringComparison.Ordinal)||element.Id!=id||element.Kind!=row["kind"]!.ToString()||element.Kind is not ("object" or "concept" or "category" or "schema" or "function" or "module" or "implementation")||!elements.TryAdd(id,element))throw new ArgumentException("Owned Browser classification identity required");proofs.Add(id,row);}
+  foreach(var row in rows){string id=row!["id"]!.GetValue<string>();var element=new Parser(row["text"]!.GetValue<string>(),"<browser-classification>").ParseElement();if(!id.StartsWith(ns+"::",StringComparison.Ordinal)||element.Id!=id||element.Kind!=row["kind"]!.ToString()||element.Kind is not ("object" or "concept" or "category" or "schema" or "function" or "module" or "implementation" or "enum")||!elements.TryAdd(id,element))throw new ArgumentException("Owned Browser classification identity required");proofs.Add(id,row);}
   void Validate(){foreach(var element in elements.Values){string? folder=Folder(element).Id;var seen=new HashSet<string>(StringComparer.Ordinal){element.Id};while(folder is not null){if(!seen.Add(folder))throw new ArgumentException("Browser category cycle");if(!elements.TryGetValue(folder,out var target)||target.Kind!="category"||Group(target)!=Group(element))throw new ArgumentException("Browser folder must be an owned category in the same tab");folder=Folder(target).Id;}}foreach(var element in elements.Values){string? Parent(string id){var row=elements[id];string? folder=Effective(id);return Folder(row).Defined?folder:row.Parent is string parent&&elements.ContainsKey(parent)&&Group(elements[parent])==Group(row)&&Effective(parent)==folder?parent:folder;}var seen=new HashSet<string>(StringComparer.Ordinal){element.Id};string? at=Parent(element.Id);while(at is not null){if(!elements.ContainsKey(at)||!seen.Add(at))throw new ArgumentException("Browser classification hierarchy cycle");at=Parent(at);}}}
   Validate();if(validateOnly)return new JsonObject{["valid"]=true};
   var moves=request["moves"]!.AsArray();if(moves.Count is <1 or >32)throw new ArgumentException("Explicit Browser folder moves required");

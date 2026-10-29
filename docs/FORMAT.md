@@ -138,3 +138,16 @@ Assembly validates definitions, stale/missing implementations, ports, acyclic ex
 Graph/node source kinds are `blueprint`/`blueprint-node` in owned workspace metadata. They use source CAS, durable drafts and compiler-backed Confirm. A node-specific Worker uses `DevelopmentTools.OpenNode` and cannot acquire another node, graph topology or generated C# through that capability. Loop/async/exception routing at graph level remains outside this versioned profile; code inside a node retains ordinary C# semantics.
 
 노드 정의 조회는 topology 연결 완료와 분리한다. 연결 전 노드도 자신의 의도·입출력·계약으로 준비할 수 있으며, 실행 시에는 entry에서 도달하는 노드와 값 경로를 검증한다. compiler 진단 marker는 기능 ID·노드 ID·본문/정의 해시를 포함하고 원본 경로·JSON 위치·본문 줄/열로 대응한다. 일반 `check` 결과에도 컴파일된 Blueprint 증거가 포함된다.
+
+## 정보 종류 정의
+
+`enum Example.App::Mood {}`는 항목 ID를 값으로 사용하는 정보 종류다. 실행 분기 `executionEnum`과 C# 정수 enum은 별도 계약이다. 항목은 별도 `.celem`/manifest locator를 만들지 않으며 정의 안의 안정된 ID·표시명·선택 아이콘으로 저장한다. 기존 metadata 형식의 예는 다음과 같다.
+
+```text
+enum Example.App::Mood {
+    value editorEnumProfile = "nominal-members-v1";
+    value editorEnumValues = "[{\"id\":\"stable-ready\",\"name\":\"준비 됨\",\"icon\":\"★\"}]";
+}
+```
+
+행 순서는 정수 값으로 변환하지 않는다. 종류는 상속/실행/모듈 계약을 갖지 않으며, 현재 단위는 정의·미참조 항목 편집까지다. 속성/함수의 종류 타입·값 소비 연결은 별도 구현이며 임의 문자열을 참조로 해석하지 않는다. 알려지지 않은 profile은 자동 변환하지 않는다. 구버전 parser의 새 문법 하위 호환은 제공하지 않는다. 상세 지원·검증 경계는 [종류 정의 검증](VALIDATION_V666_INFORMATION_ENUM.md)에 기록한다.

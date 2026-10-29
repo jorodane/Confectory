@@ -73,7 +73,7 @@ internal static class DeclarationTextMerge
     {
         var original = new Parser(baseline, "<presentation-baseline>").ParseElement();
         var next = new Parser(typed, "<presentation-candidate>").ParseElement();
-        if (original.Kind is not ("category" or "concept" or "module") || next.Kind != original.Kind || next.Id != original.Id || next.Parent != original.Parent)
+        if (original.Kind is not ("category" or "concept" or "module" or "enum") || next.Kind != original.Kind || next.Id != original.Id || next.Parent != original.Parent)
             throw new ArgumentException("Same owned header identity required; retain all input");
         return Combine(baseline, typed, baseline, s => format(new Parser(s, "<presentation-merge>").ParseElement()));
     }

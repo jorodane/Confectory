@@ -1,8 +1,8 @@
 // Existing confirmed identities + versioned owned declared relations. This is a
 // private read projection; every edit/reference read still uses its owner gate.
 export function createBrowserProjection(api){
- const caches=new Map(),group=kind=>kind==='function'||kind==='implementation'?'feature':kind==='module'?'module':kind==='schema'?'info':'concept';
- const declaration=kind=>['object','schema','category','concept','function','module','implementation'].includes(kind);
+ const caches=new Map(),group=kind=>kind==='function'||kind==='implementation'?'feature':kind==='module'?'module':['schema','enum'].includes(kind)?'info':'concept';
+ const declaration=kind=>['object','schema','category','concept','function','module','implementation','enum'].includes(kind);
  const observed=()=>[...(api.current?.units||[]),...(api.current?.draft?[api.current.draft]:[]),...(api.current?.editorViews||[]).map(row=>row.draft).filter(Boolean)].filter(row=>declaration(row.kind)&&row.id.startsWith(api.current.namespace+'::'));
  const stateKey=()=>JSON.stringify(observed().map(row=>[row.id,row.revision]).sort());
  function entry(){const id=api.current?.projectId;if(!id)return null;if(!caches.has(id))caches.set(id,{});const cache=caches.get(id),incoming=api.current.relationsMap;if(incoming&&incoming.version!==cache.map?.version){cache.map=incoming;cache.failed=null;}return cache;}
