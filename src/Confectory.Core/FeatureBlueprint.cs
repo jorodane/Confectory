@@ -134,6 +134,7 @@ public static partial class FeatureBlueprint
             string id = Id(value, "id"), kind = S(value, "kind"), control = S(value, "control"), intent = S(value, "intent");
             Need(!nodes.ContainsKey(id), "GRAPH_DUPLICATE_NODE", id);
             _ = DisplayName(value);
+            _ = Icon(value);
             Need(kind is "code" or "call" || nested && kind=="graph" || properties && kind=="property" || SupportsPropertySets(profile) && kind=="property-set" || profile==PropertyRefProfile && kind=="property-ref" || implicitEnd && kind=="export" || localProfile && kind=="set", "GRAPH_NODE_KIND", id);
             Need(control is "next" or "branch" || switchFlow && control=="switch", "GRAPH_CONTROL", id);
             Need(!string.IsNullOrWhiteSpace(intent), "NODE_INTENT", id);

@@ -24,6 +24,7 @@ internal static class ImplementationCopyEdits
     if(type=="entry"&&local=="$entry"){var entryEdit=edit.DeepClone().AsObject();entryEdit["node"]=local;localEdits.Add(entryEdit);continue;}
     if(leaf is null&&created.TryGetValue(local,out var added))leaf=added;
     if(leaf is null)throw new ArgumentException("Exact copied private leaf required");
+    if(type=="icon"){if(leaf["kind"]?.ToString() is not ("code" or "graph"))throw new InvalidOperationException("Owned copied action icon required");var iconEdit=edit.DeepClone().AsObject();iconEdit["node"]=local;localEdits.Add(iconEdit);continue;}
     if(leaf["kind"]?.ToString()!="code"||leaf["implementationContext"] is not null||type is not ("source" or "intent" or "parameters" or "route" or "create" or "rename" or "enum-code")&&!type.StartsWith("argument:",StringComparison.Ordinal)||(type is "parameters" or "route" or "create" or "rename"||type.StartsWith("argument:",StringComparison.Ordinal))&&(leaf["control"]?.ToString()!="next"||leaf["forwardCallerStorage"]?.GetValue<bool>()==true))throw new InvalidOperationException("Ordinary private body/pins/value edits required; preserve public and caller-storage contracts");
     if(type=="enum-code"&&(leaf["control"]?.ToString()!="switch"||leaf["forwardCallerStorage"]?.GetValue<bool>()==true))throw new InvalidOperationException("Existing private execution enum required");
     if((type is "route" or "rename")&&leaf["branchOwner"] is not null)throw new InvalidOperationException("Preserve branch-owned private routes");
@@ -67,6 +68,7 @@ internal static class ImplementationCopyEdits
    }
    else if(type=="source"&&node["kind"]!.ToString()=="code"){records.Single(n=>n!["id"]!.ToString()==id)!["record"]!["source"]=text;reapplied.Add(id);}
    else if(type=="intent"&&node["kind"]!.ToString()=="code"){if(text.Length>16384)throw new ArgumentException("Intent budget");node["intent"]=text;}
+   else if(type=="icon"&&node["kind"]?.ToString() is "code" or "graph"){node["icon"]=text;_=FeatureBlueprint.Icon(node.AsObject());}
    else if(type=="rename"&&node["implementationContext"] is null&&node["kind"]!.ToString()=="code"){if(text.Length is <1 or >256||text!=text.Trim()||text.Any(char.IsControl))throw new ArgumentException("Trimmed copied display name required");node["displayName"]=text;}
    else if(type.StartsWith("argument:",StringComparison.Ordinal)){
     string name=type[9..];var argument=Input(node,name);if(argument is null){var remapEdit=edits.SingleOrDefault(e=>e!["type"]!.ToString()=="parameters"&&e["node"]!.ToString()==id);var remap=remapEdit is null?null:JsonNode.Parse(remapEdit["text"]!.GetValue<string>())!["remap"]?.AsObject();if(JsonNode.Parse(text) is null&&remap?.ContainsKey(name)==true&&remap[name] is null)continue;throw new ArgumentException("Declared copy input required");}if(argument["mode"]?.ToString()=="ref"||node["forwardCallerStorage"]?.GetValue<bool>()==true)throw new InvalidOperationException("Preserve caller-storage bindings; their external contract is not a private value edit");node["arguments"]??=new JsonObject();node["arguments"]![name]=JsonNode.Parse(text);

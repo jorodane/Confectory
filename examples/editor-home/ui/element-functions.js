@@ -54,7 +54,7 @@ function setupFunctionNodeDescriptions(w,section){
  w.functionNodeDescriptionObserver=new ResizeObserver(entries=>{for(const {target} of entries){const width=target.clientWidth;if(width&&width!==widths.get(target)){widths.set(target,width);fit(target)}}});
  section.querySelectorAll('.function-node-description').forEach(input=>{input.addEventListener('input',()=>fit(input));fit(input);w.functionNodeDescriptionObserver.observe(input)});
 }
- return {functionPinContourMarkup,functionFlowMarkup,functionWritingActionsMarkup,functionNodeMarkup,bindFunctionOutputPins,setupFunctionNodeDescriptions,cleanup:w=>{w.functionDetailClose?.();w.functionOutputCleanup?.();w.functionNodeDescriptionObserver?.disconnect();}};
+ return {functionIconMarkup,functionPinContourMarkup,functionFlowMarkup,functionWritingActionsMarkup,functionNodeMarkup,bindFunctionOutputPins,setupFunctionNodeDescriptions,cleanup:w=>{w.functionDetailClose?.();w.functionOutputCleanup?.();w.functionNodeDescriptionObserver?.disconnect();}};
 }
 export function createElementFunctions(api){
  const {$,$$,esc,inputs}=api,key=w=>w.elementScope+'|'+w.elementSchema.id+'|element|modules';
