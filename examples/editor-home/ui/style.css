@@ -1111,7 +1111,7 @@ button.worker-count{border:0;cursor:pointer;flex-shrink:0;padding:0 5px}
 .property-reset{width:26px;height:28px;padding:0;color:var(--accent);font-size:19px;background:transparent;border:0}
 .property-reset[hidden]{display:none}
 .property-value-box{grid-template-columns:18px minmax(0,1fr) 26px}
-.property-multi-item{display:block}
+.property-multi-item,.property-multi-item.is-complex{display:block}
 .behavior-link-options{display:grid;gap:4px;max-height:290px;overflow:auto;margin-top:12px}
 .behavior-link-option{display:grid;gap:3px;width:100%;padding:9px;text-align:left;background:#ffffff08;border:1px solid transparent;border-radius:5px}
 .behavior-link-option:hover{border-color:var(--accent)}

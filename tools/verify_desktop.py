@@ -109,7 +109,7 @@ def main():
     parser.add_argument('--commit', required=True)
     parser.add_argument('--sdk', type=Path, required=True)
     parser.add_argument('--nuget-seed', type=Path, required=True)
-    parser.add_argument('--suite',choices=['headers','card-images','canvas','owned-information'],default='headers')
+    parser.add_argument('--suite',choices=['headers','card-images','canvas','owned-information','owned-conversion'],default='headers')
     args = parser.parse_args()
     repo = args.repo.resolve(); persistent = args.persistent.absolute()
     persistent.parent.mkdir(parents=True, exist_ok=True)
@@ -171,13 +171,20 @@ def main():
                 raise RuntimeError('Engine wrote outside its owned checkout')
             for script in ['v536_mixed_declaration.mjs','v536_local_header_image.mjs']:
                 work.run(label+'-'+Path(script).stem,['node',str(checkout/'tests/web'/script),str(checkout)],cwd=checkout,env=env)
-            if args.suite=='owned-information':
+            if args.suite in ['owned-information','owned-conversion']:
                 work.run(label+'-owned-native',[sys.executable,str(checkout/'tests/web/v666_owned_information_native.py'),str(checkout)],cwd=checkout,env=env)
                 for script in ['v536_information_types.py','v536_schema_save_metadata.py']:
                     work.run(label+'-'+Path(script).stem,[sys.executable,str(checkout/'tests/web'/script),str(checkout)],cwd=checkout,env=env)
-                cases=[('primary','normal',[]),('detached','normal',['view'])] if label=='lf' else [('object','normal',['object']),('late-detached','late',['view'])]
-                for name,mode,flags in cases:
-                    work.run(label+'-owned-'+name,[sys.executable,str(checkout/'tests/web/v666_owned_information_ui.py'),str(checkout),str(report),mode,*flags],cwd=checkout,env=env)
+                if args.suite=='owned-conversion':
+                    work.run(label+'-conversion-native',[sys.executable,str(checkout/'tests/web/v666_owned_conversion_native.py'),str(checkout)],cwd=checkout,env=env)
+                    cases=[('general','normal','general',[]),('reference-array','normal','ref-array',[])] if label=='lf' else [('named-detached','normal','named',['view']),('late-object','late','object',[])]
+                    for name,mode,scenario,flags in cases:
+                        work.run(label+'-conversion-'+name,[sys.executable,str(checkout/'tests/web/v666_owned_conversion_ui.py'),str(checkout),str(report),mode,scenario,*flags],cwd=checkout,env=env)
+                    work.run(label+'-owned-regression',[sys.executable,str(checkout/'tests/web/v666_owned_information_ui.py'),str(checkout),str(report),'normal',*(['object'] if label=='crlf' else [])],cwd=checkout,env=env)
+                else:
+                    cases=[('primary','normal',[]),('detached','normal',['view'])] if label=='lf' else [('object','normal',['object']),('late-detached','late',['view'])]
+                    for name,mode,flags in cases:
+                        work.run(label+'-owned-'+name,[sys.executable,str(checkout/'tests/web/v666_owned_information_ui.py'),str(checkout),str(report),mode,*flags],cwd=checkout,env=env)
                 work.run(label+'-v666-zoom-ui',[sys.executable,str(checkout/'tests/web/v666_canvas_zoom_ui.py'),str(checkout),str(report)],cwd=checkout,env=env)
                 work.run(label+'-image-regression',[sys.executable,str(checkout/'tests/web/v536_card_image_ui.py'),str(checkout),str(report),'late','schema','property'],cwd=checkout,env=env)
             elif args.suite=='canvas':
@@ -226,7 +233,9 @@ def main():
         work.run('windows-probe',[sys.executable,str(checkout/'tests/probes/desktop_package.py'),str(checkout),str(package)],cwd=checkout,env=env)
         packaged_report = work.evidence/'packaged-engine.json'
         atomic_json(packaged_report, {'run':[dotnet,str(package/'content/runtime/Confectory.App.dll')]})
-        if args.suite=='owned-information':
+        if args.suite=='owned-conversion':
+            work.run('packaged-owned-conversion',[sys.executable,str(checkout/'tests/web/v666_owned_conversion_ui.py'),str(package/'content'),str(packaged_report),'normal','ref-array'],cwd=checkout,env=env)
+        elif args.suite=='owned-information':
             work.run('packaged-owned-information',[sys.executable,str(checkout/'tests/web/v666_owned_information_ui.py'),str(package/'content'),str(packaged_report),'normal'],cwd=checkout,env=env)
         elif args.suite=='canvas':
             work.run('packaged-v666-zoom',[sys.executable,str(checkout/'tests/web/v666_canvas_zoom_ui.py'),str(package/'content'),str(packaged_report)],cwd=checkout,env=env)
@@ -250,7 +259,9 @@ def main():
         # not just its ZIP CRC or a manifest comparison.
         work.run('restored-probe',[sys.executable,str(checkout/'tests/probes/desktop_package.py'),str(checkout),str(restored)],cwd=checkout,env=env)
         atomic_json(packaged_report, {'run':[dotnet,str(restored/'content/runtime/Confectory.App.dll')]})
-        if args.suite=='owned-information':
+        if args.suite=='owned-conversion':
+            work.run('restored-owned-conversion',[sys.executable,str(checkout/'tests/web/v666_owned_conversion_ui.py'),str(restored/'content'),str(packaged_report),'late','general','view'],cwd=checkout,env=env)
+        elif args.suite=='owned-information':
             work.run('restored-owned-information',[sys.executable,str(checkout/'tests/web/v666_owned_information_ui.py'),str(restored/'content'),str(packaged_report),'late','view'],cwd=checkout,env=env)
         elif args.suite=='canvas':
             work.run('restored-v666-zoom',[sys.executable,str(checkout/'tests/web/v666_canvas_zoom_ui.py'),str(restored/'content'),str(packaged_report)],cwd=checkout,env=env)
