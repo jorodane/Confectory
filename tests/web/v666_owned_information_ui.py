@@ -87,13 +87,14 @@ try:
      if paused:break
      f.page.wait_for_timeout(50)
     assert paused and len(ids)==1;name(tree_rows(own()).first,'저장 중 새 이름');paused['route'].fulfill(response=paused['response']);f.page.unroute('**/api/request',hold)
-    for _ in range(600):
-     if pending() and pending()[0][1].get('copySavedBasis'):break
-     f.page.wait_for_timeout(50)
+    f.idle();now=pending()
+    if not now or not now[0][1].get('copySavedBasis'):
+     (f.case/'late-receipt-diagnostic.json').write_text(json.dumps(dict(schema=own_schema(),captured=staged,now=now),ensure_ascii=False,indent=2))
+    assert now and now[0][1].get('copySavedBasis'), 'late receipt proof missing; see retained diagnostic'
     late=next(v for _,v in pending() if v['kind']=='owned-definition');assert pending()[0][1]['tree']['fields'][0]['name']=='저장 중 새 이름' and pending()[0][1]['copySavedBasis']['accepted']['tree']['fields'][0]['name']=='힘';restart(2);expect(direct(tree_rows(own()).first,'data-property-name')).to_have_value('저장 중 새 이름');save();staged=late;f.checked('저장 응답 대기의 새 자식 입력은 새 source 증거로 재기준해 cold 뒤 명시적 재저장하며 이전 응답에 유실되지 않는다')
    else:save()
    assert not pending();s=own_schema();assert native in s['ownedDefinitions'];assert len(s['ownedDefinitions'][native]['sources'])==2;files_same();f.checked('실제 Save는 정보·등록·두 소유 자식 schema를 한 draft/CAS에 저장하며 파일은 Confirm 전 보존한다')
-   restart(3);expect(own()).to_be_visible();assert own_schema()['ownedDefinitions'][native]['tree']==staged['tree'];files_same();f.checked('엔진 cold는 같은 소유 ID·정의·아이콘·정확한 기본값과 창 문맥을 복원한다')
+   restart(3);expect(own()).to_be_visible();assert own_schema()['ownedDefinitions'][native]['tree']==staged['tree'];assert json.loads(next(r['valueJson'] for r in own_schema()['rows'] if r['path']==[native]))==json.loads(staged['text']);files_same();f.checked('엔진 cold는 같은 소유 ID·정의·아이콘·정확한 기본값과 창 문맥을 복원한다')
    first=tree_rows(own()).first;name(first,'힘 재편집');choose(first,'bool');first=tree_rows(own()).first;save_button=surface().locator('[data-element-action=save]');save_button.click();expect(surface().locator('[data-element-error]')).not_to_have_text('');assert pending();files_same();value(first,'true');save();assert not pending();files_same();f.checked('호환 불가 타입 변경은 전체 미적용·입력 보존이며 사용자가 고친 기본값만 정의와 원자 저장한다')
    if mode=='normal':
     direct(tree_rows(own()).first,'data-schema-remove').click();expect(tree_rows(own())).to_have_count(1);direct(own(),'data-property-icon').focus();f.page.keyboard.press('Control+z');expect(tree_rows(own())).to_have_count(2);f.page.keyboard.press('Control+y');expect(tree_rows(own())).to_have_count(1);save();restart(4);expect(tree_rows(own())).to_have_count(1);files_same();f.checked('명시 자식 삭제·Undo/Redo·Save/cold는 삭제한 값만 제거하고 내부 자식 ID와 보관 소스를 보존한다')

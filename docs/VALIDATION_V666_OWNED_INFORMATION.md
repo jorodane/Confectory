@@ -15,6 +15,7 @@ native의 기존 qualified schema 선언 및 객체의 로컬 속성 schema를 �
 - renderer 모듈 초기화에서 live API getter를 spread하여 `view` 초기화 전에 읽던 오류를 prototype facade로 수정했다.
 - nested UI를 저장한 뒤 cold 복원이 object 소유 새 schema만 허용하던 누락을 수정했다. 생성 그룹/복원/Confirm은 정확한 프로필·ID·owner·locator를 native에서 검증한 schema 소유 자식만 허용한다. 일반 권한 검사를 완화하지 않는다.
 - 저장 응답과 metadata의 객체 속성 순서 차이를 의미 비교로 처리하고, 늦은 입력을 새 source 증거와 canonical private key로 재기준한다. 표시명 앞뒤 공백은 기존 native 정규화와 대응한다.
+- 같은 이모지의 문자/Unicode escape 표기를 다르게 비교하여 늦은 입력의 receipt 재기준이 누락되던 오류를 수정했다. 문자열은 값으로 비교하고 숫자 원문 토큰은 유지하며, cold 뒤 전체 typed 값의 의미도 대조한다. 검사 자체의 보류 응답/idle 대기 교착은 별도 수정했고 실패 로그를 보존했다.
 - 기본 화면 회귀의 버튼 가림은 cold 후 검사 viewport가 바뀐 경우였다. 검사 창 크기를 일관되게 유지했고 제품 CSS/레이아웃이나 클릭 검증을 약화하지 않았다.
 
 ## 검증·제한
