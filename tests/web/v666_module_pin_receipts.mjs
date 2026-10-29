@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import path from 'node:path';
+import {pathToFileURL} from 'node:url';
+const root=process.argv[2],load=n=>import(pathToFileURL(path.join(root,'examples/editor-home/ui',n)));
+const {modulePinKey}=await load('module-pin-presentation.js');
+assert.equal(modulePinKey('Owned.표시::핀','a0'),'editorModulePinIcon_f'+Buffer.from('Owned.표시::핀','utf8').toString('hex')+'_a0');
+const {captureMixedCell,mixedCellMatches,receiptFieldProof,rebaseMixedCell,restoredMixedProof}=await load('mixed-declaration.js');
+const fn='Owned.Pin::Function',signature={args:[{type:'long',mode:''},{type:'string',mode:'out'}],return:'long'},edit={function:fn,pin:'a1',signature,icon:'★'},schema={id:'Owned.Pin::Module',kind:'module',revision:0,textHash:'a'.repeat(64),relations:{edges:[{role:'require',target:fn,signature}]},values:{}};
+const start='project|'+schema.id+'|element|',key=start+'module-pin-icon:'+JSON.stringify([fn,'a1']),value={kind:'module-pin-icon',text:JSON.stringify(edit),revision:0,hash:schema.textHash},change=captureMixedCell(value,schema);
+assert(mixedCellMatches(key,value,change,start));assert(!mixedCellMatches(key+'other',value,change,start));
+const current={...schema,revision:2,textHash:'b'.repeat(64),values:{[modulePinKey(fn,'a1')]:JSON.stringify(edit)}},late={...value,text:JSON.stringify({...edit,icon:'🛡️'})};
+const proof=receiptFieldProof(late,change,current);assert(proof);const cells=new Map([[key,late]]);assert(rebaseMixedCell(cells,start,key,late,proof,current));assert.equal(JSON.parse(cells.get(key).text).icon,'🛡️');assert(restoredMixedProof(cells.get(key),current));
+for(const wrong of [{...edit,function:'Other::Function'},{...edit,pin:'return'},{...edit,signature:{...signature,return:'string'}}])assert.equal(receiptFieldProof({...late,text:JSON.stringify(wrong)},change,current),null);
+assert(!restoredMixedProof({...cells.get(key),text:JSON.stringify({...edit,pin:'return'})},current));assert(!restoredMixedProof(cells.get(key),{...current,textHash:'c'.repeat(64)}));
+const cleared={...current,values:{}},reset={type:'module-pin-icon',text:JSON.stringify({...edit,icon:''})};assert(receiptFieldProof(late,reset,cleared));assert.equal(receiptFieldProof(late,change,{...current,kind:'category'}),null);
+const attested={...current};delete attested.relations;assert(receiptFieldProof(late,change,attested));
+console.log('PASS module pin receipts retain exact qualified owner/function/position/contract and late input; wrong fields, contracts, keys, source and kinds never rebase; reset and native-settled schema projection stay supported');

@@ -1,3 +1,4 @@
+import {modulePinContract,modulePinValue} from './module-pin-presentation.js';
 import {browserIconMarkup,localIconImage} from './browser-data.js';
 import {openGlyphPopover} from './glyph-popover.js';
 import {createElementAuthorSurface} from './element-author-surface.js';
@@ -33,9 +34,9 @@ export function createDeclarationIcons(api,features){
   const header=w.el.querySelector(':scope>.object-header'),icon=header.querySelector('.object-icon-control>.obj-icon'),button=header.querySelector('.object-icon-edit');
   const pending=()=>inputs.get(cacheKey)||{},has=()=>cells().length>0||author.hasOwnerAttempt(id);
   const value=kind=>scoped.ownerInputs.get(start+kind)?.text??pending().properties?.value?.[kind]??(kind==='icon'?info.values?.editorIcon:info.description);
-  const draw=()=>{icon.innerHTML=browserIconMarkup({kind:info.kind,icon:value('icon')},esc);const raw=$('[data-decl-property=icon]',w.body);if(raw){raw.value=localIconImage(value('icon'))?'':value('icon')||'';raw.placeholder=localIconImage(value('icon'))?'로컬 이미지 선택됨':'';}notice();};
+  const pinButtons=[];const draw=()=>{for(const p of pinButtons){const saved=scoped.ownerInputs.get(start+p.suffix),image=saved?JSON.parse(saved.text).icon:modulePinValue(info,p.edit).icon;p.button.innerHTML=browserIconMarkup({kind:'schema',icon:image||'◇'},esc);}icon.innerHTML=browserIconMarkup({kind:info.kind,icon:value('icon')},esc);const raw=$('[data-decl-property=icon]',w.body);if(raw){raw.value=localIconImage(value('icon'))?'':value('icon')||'';raw.placeholder=localIconImage(value('icon'))?'로컬 이미지 선택됨':'';}notice();};
   header.querySelector('.object-title-info').innerHTML='<div class="object-parent-reference"><small>부모</small><span>'+esc(info.parent?.split('::').at(-1)||'Root')+'</span></div><div class="object-title-name-line"><h2 class="object-title-name">'+esc(info.values?.editorName||id.split('::').at(-1))+'</h2></div>';
-  const record=(kind,text)=>{const prior=scoped.ownerInputs.get(start+kind);scoped.ownerInputs.set(start+kind,{kind,text,revision:prior?.revision??info.revision,hash:prior?.hash??info.textHash});api.persist();};
+  const record=(kind,text,suffix=kind)=>{const prior=scoped.ownerInputs.get(start+suffix);scoped.ownerInputs.set(start+suffix,{kind,text,revision:prior?.revision??info.revision,hash:prior?.hash??info.textHash});api.persist();};
   function migrate(){
    const cache=pending();if(Object.keys(cache).some(k=>k!=='properties')||cache.properties&&Object.keys(cache.properties.value).some(k=>!['icon','description'].includes(k)))throw Error('다른 선언 입력을 먼저 적용해 주세요. 모든 입력은 유지됩니다.');
    if(cache.properties){for(const [kind,text] of Object.entries(cache.properties.value)){if(!scoped.ownerInputs.has(start+kind))scoped.ownerInputs.set(start+kind,{kind,text,revision:cache.properties.revision,hash:cache.properties.hash});}delete cache.properties;if(!Object.keys(cache).length)inputs.delete(cacheKey);}
@@ -55,7 +56,7 @@ export function createDeclarationIcons(api,features){
   async function save(complete=false){
    check();migrate();let recovered=false;
    if(author.hasOwnerAttempt(id))recovered=(await author.recoverOwnerEditsInWork(id,owns))?.settled===true;
-   if(!recovered&&cells().length){const submitted=cells();if(submitted.some(([,v])=>!['icon','description'].includes(v.kind)||v.hash!==info.textHash))throw Error('헤더 원본이 바뀌었습니다. 입력은 유지됩니다.');await author.saveOwnerEditsInWork(id,{request:{id,hash:info.textHash,changes:submitted.map(([,v])=>({type:v.kind,text:v.text}))},cells:submitted},owns);}
+   if(!recovered&&cells().length){const submitted=cells();if(submitted.some(([,v])=>!['icon','description',...(info.kind==='module'?['module-pin-icon']:[])].includes(v.kind)||v.hash!==info.textHash))throw Error('헤더 원본이 바뀌었습니다. 입력은 유지됩니다.');await author.saveOwnerEditsInWork(id,{request:{id,hash:info.textHash,changes:submitted.map(([,v])=>({type:v.kind,text:v.text}))},cells:submitted},owns);}
    await scoped.view.call('inspectDeclaration',{id});w.declarationIconUndo=[];w.declarationIconRedo=[];refresh();
    if(cells().length)throw Error('저장 중 새 입력은 보존했습니다. 다음 저장으로 확인해 주세요.');
    if(complete){const draft=scoped.current.draft;if(draft?.id!==id)throw Error('검토할 선언을 다시 확인해 주세요.');await api.reviewAuthor(draft.creationReviewIds?.length?draft.creationReviewIds:[id]);}
@@ -71,7 +72,8 @@ export function createDeclarationIcons(api,features){
   }
   for(const b of header.querySelectorAll('[data-declaration-header-action]'))b.remove();
   for(const [action,label] of [['discard','변경 취소'],['save','임시 저장'],['confirm','확정']]){const b=document.createElement('button');b.type='button';b.className='secondary window-commit-action';b.dataset.declarationHeaderAction=action;b.dataset.operation='declaration-header-'+action;b.textContent=label;b.disabled=info.editable!==true;header.querySelector('.row').insertBefore(b,header.querySelector('[data-fold]'));b.onclick=()=>api.work(()=>action==='discard'?discard():save(action==='confirm'),'');}
-  draw();return {has,save,discard,record,draw,value,stale:()=>cells().some(([,v])=>v.hash!==info.textHash)};
+  function pin(button,fn,key,signature){const edit={function:fn,pin:key,signature:modulePinContract(signature),icon:''},suffix='module-pin-icon:'+JSON.stringify([fn,key]),state=modulePinValue(info,edit);pinButtons.push({button,edit,suffix});button.disabled=info.editable!==true||!state.valid;button.onclick=()=>{if(!owns()||button.disabled)return;const current=scoped.ownerInputs.get(start+suffix);openGlyphPopover({api,w,anchor:button,title:button.getAttribute('aria-label').replace(/ 아이콘 편집$/,''),value:current?JSON.parse(current.text).icon:state.icon||'◇',allowEmpty:true,allowImage:true,alive:()=>owns()&&button.isConnected&&!w.el.hidden&&w.declarationIconInfo?.textHash===info.textHash,onApply:image=>{if(!owns())return;const before=snapshot();record('module-pin-icon',JSON.stringify({...edit,icon:image}),suffix);w.declarationIconUndo??=[];w.declarationIconUndo.push({before,after:snapshot(),hash:info.textHash});w.declarationIconRedo=[];draw();}});};draw();}
+  draw();return {has,save,discard,record,draw,value,pin,stale:()=>cells().some(([,v])=>v.hash!==info.textHash)};
  }
  return {reset,bind};
 }

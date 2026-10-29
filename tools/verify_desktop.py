@@ -109,7 +109,7 @@ def main():
     parser.add_argument('--commit', required=True)
     parser.add_argument('--sdk', type=Path, required=True)
     parser.add_argument('--nuget-seed', type=Path, required=True)
-    parser.add_argument('--suite',choices=['headers','card-images','canvas','owned-information','owned-conversion','action-icons','declaration-icons'],default='headers')
+    parser.add_argument('--suite',choices=['headers','card-images','canvas','owned-information','owned-conversion','action-icons','declaration-icons','pin-icons'],default='headers')
     args = parser.parse_args()
     repo = args.repo.resolve(); persistent = args.persistent.absolute()
     persistent.parent.mkdir(parents=True, exist_ok=True)
@@ -171,27 +171,34 @@ def main():
                 raise RuntimeError('Engine wrote outside its owned checkout')
             for script in ['v536_mixed_declaration.mjs','v536_local_header_image.mjs']:
                 work.run(label+'-'+Path(script).stem,['node',str(checkout/'tests/web'/script),str(checkout)],cwd=checkout,env=env)
-            if args.suite in ['owned-information','owned-conversion','action-icons','declaration-icons']:
+            if args.suite in ['owned-information','owned-conversion','action-icons','declaration-icons','pin-icons']:
                 work.run(label+'-owned-native',[sys.executable,str(checkout/'tests/web/v666_owned_information_native.py'),str(checkout)],cwd=checkout,env=env)
                 for script in ['v536_information_types.py','v536_schema_save_metadata.py']:
                     work.run(label+'-'+Path(script).stem,[sys.executable,str(checkout/'tests/web'/script),str(checkout)],cwd=checkout,env=env)
-                if args.suite in ['owned-conversion','action-icons','declaration-icons']:
+                if args.suite in ['owned-conversion','action-icons','declaration-icons','pin-icons']:
                     work.run(label+'-conversion-native',[sys.executable,str(checkout/'tests/web/v666_owned_conversion_native.py'),str(checkout)],cwd=checkout,env=env)
                     cases=[('general','normal','general',[]),('reference-array','normal','ref-array',[])] if label=='lf' else [('named-detached','normal','named',['view']),('late-object','late','object',[])]
                     for name,mode,scenario,flags in cases:
                         work.run(label+'-conversion-'+name,[sys.executable,str(checkout/'tests/web/v666_owned_conversion_ui.py'),str(checkout),str(report),mode,scenario,*flags],cwd=checkout,env=env)
-                    if args.suite in ['action-icons','declaration-icons']:
+                    if args.suite in ['action-icons','declaration-icons','pin-icons']:
                         work.run(label+'-action-icon-native',[sys.executable,str(checkout/'tests/web/v666_action_icon_native.py'),str(checkout)],cwd=checkout,env=env)
                         work.run(label+'-action-icon-ui',[sys.executable,str(checkout/'tests/web/v666_action_icon_ui.py'),str(checkout),str(report),'normal' if label=='lf' else 'late'],cwd=checkout,env=env)
                         work.run(label+'-action-copy-icons',[sys.executable,str(checkout/'tests/web/v666_action_icon_copy_ui.py'),str(checkout),str(report),'normal',*(['view'] if label=='crlf' else [])],cwd=checkout,env=env)
                         if label=='lf':
                             work.run(label+'-action-private-icons',[sys.executable,str(checkout/'tests/web/v666_action_icon_ui.py'),str(checkout),str(report),'normal','private'],cwd=checkout,env=env)
-                    if args.suite=='declaration-icons':
+                    if args.suite in ['declaration-icons','pin-icons']:
                         work.run(label+'-declaration-icon-native',[sys.executable,str(checkout/'tests/web/v666_declaration_icon_native.py'),str(checkout)],cwd=checkout,env=env)
                         work.run(label+'-declaration-icons',[sys.executable,str(checkout/'tests/web/v666_declaration_icon_ui.py'),str(checkout),str(report),'normal' if label=='lf' else 'late','category' if label=='lf' else 'module',*(['view'] if label=='crlf' else [])],cwd=checkout,env=env)
                         if label=='lf':
                             work.run('lf-declaration-project',[sys.executable,str(checkout/'tests/web/v666_declaration_icon_ui.py'),str(checkout),str(report),'project','concept'],cwd=checkout,env=env)
                             work.run('lf-action-icon-project',[sys.executable,str(checkout/'tests/web/v666_action_icon_ui.py'),str(checkout),str(report),'project'],cwd=checkout,env=env)
+                    if args.suite=='pin-icons':
+                        work.run(label+'-module-pin-receipts',['node',str(checkout/'tests/web/v666_module_pin_receipts.mjs'),str(checkout)],cwd=checkout,env=env)
+                        work.run(label+'-module-pin-native',[sys.executable,str(checkout/'tests/web/v666_module_pin_native.py'),str(checkout)],cwd=checkout,env=env)
+                        work.run(label+'-module-pins',[sys.executable,str(checkout/'tests/web/v666_module_pin_ui.py'),str(checkout),str(report),'multi' if label=='lf' else 'late','view','a1'],cwd=checkout,env=env)
+                        work.run(label+'-set-output-icons',[sys.executable,str(checkout/'tests/web/v666_set_output_icon_ui.py'),str(checkout),str(report),'plan-preserve' if label=='lf' else 'late'],cwd=checkout,env=env)
+                        if label=='lf':
+                            work.run('lf-new-set-output-icon',[sys.executable,str(checkout/'tests/web/v666_new_set_output_icon_ui.py'),str(checkout),str(report)],cwd=checkout,env=env)
                     work.run(label+'-owned-regression',[sys.executable,str(checkout/'tests/web/v666_owned_information_ui.py'),str(checkout),str(report),'normal',*(['object'] if label=='crlf' else [])],cwd=checkout,env=env)
                 else:
                     cases=[('primary','normal',[]),('detached','normal',['view'])] if label=='lf' else [('object','normal',['object']),('late-detached','late',['view'])]
@@ -245,7 +252,7 @@ def main():
         work.run('windows-probe',[sys.executable,str(checkout/'tests/probes/desktop_package.py'),str(checkout),str(package)],cwd=checkout,env=env)
         packaged_report = work.evidence/'packaged-engine.json'
         atomic_json(packaged_report, {'run':[dotnet,str(package/'content/runtime/Confectory.App.dll')]})
-        if args.suite in ['owned-conversion','action-icons','declaration-icons']:
+        if args.suite in ['owned-conversion','action-icons','declaration-icons','pin-icons']:
             work.run('packaged-owned-conversion',[sys.executable,str(checkout/'tests/web/v666_owned_conversion_ui.py'),str(package/'content'),str(packaged_report),'normal','ref-array'],cwd=checkout,env=env)
         elif args.suite=='owned-information':
             work.run('packaged-owned-information',[sys.executable,str(checkout/'tests/web/v666_owned_information_ui.py'),str(package/'content'),str(packaged_report),'normal'],cwd=checkout,env=env)
@@ -258,10 +265,13 @@ def main():
         else:
             work.run('packaged-renderer',[sys.executable,str(checkout/'tests/web/v536_local_header_image_ui.py'),str(package/'content'),str(packaged_report),'late','object'],cwd=checkout,env=env)
             work.run('packaged-feature-renderer',[sys.executable,str(checkout/'tests/web/v536_local_header_image_ui.py'),str(package/'content'),str(packaged_report),'late','feature'],cwd=checkout,env=env)
-        if args.suite in ['action-icons','declaration-icons']:
+        if args.suite in ['action-icons','declaration-icons','pin-icons']:
             work.run('packaged-action-icons',[sys.executable,str(checkout/'tests/web/v666_action_icon_ui.py'),str(package/'content'),str(packaged_report),'normal'],cwd=checkout,env=env)
-        if args.suite=='declaration-icons':
+        if args.suite in ['declaration-icons','pin-icons']:
             work.run('packaged-declaration-icons',[sys.executable,str(checkout/'tests/web/v666_declaration_icon_ui.py'),str(package/'content'),str(packaged_report),'normal','module'],cwd=checkout,env=env)
+        if args.suite=='pin-icons':
+            work.run('packaged-module-pins',[sys.executable,str(checkout/'tests/web/v666_module_pin_ui.py'),str(package/'content'),str(packaged_report),'multi','view'],cwd=checkout,env=env)
+            work.run('packaged-set-output-icons',[sys.executable,str(checkout/'tests/web/v666_set_output_icon_ui.py'),str(package/'content'),str(packaged_report),'normal'],cwd=checkout,env=env)
         for name in ['Confectory.Core.dll','Confectory.ElementAuthoring.dll']:
             matches = [p for p in files(package).values() if p.name==name]
             origin = checkout/('src/Confectory.Core/bin/Release/net10.0/'+name if name=='Confectory.Core.dll' else 'targets/element-authoring/bin/Release/net10.0/'+name)
@@ -275,7 +285,7 @@ def main():
         # not just its ZIP CRC or a manifest comparison.
         work.run('restored-probe',[sys.executable,str(checkout/'tests/probes/desktop_package.py'),str(checkout),str(restored)],cwd=checkout,env=env)
         atomic_json(packaged_report, {'run':[dotnet,str(restored/'content/runtime/Confectory.App.dll')]})
-        if args.suite in ['owned-conversion','action-icons','declaration-icons']:
+        if args.suite in ['owned-conversion','action-icons','declaration-icons','pin-icons']:
             work.run('restored-owned-conversion',[sys.executable,str(checkout/'tests/web/v666_owned_conversion_ui.py'),str(restored/'content'),str(packaged_report),'late','general','view'],cwd=checkout,env=env)
         elif args.suite=='owned-information':
             work.run('restored-owned-information',[sys.executable,str(checkout/'tests/web/v666_owned_information_ui.py'),str(restored/'content'),str(packaged_report),'late','view'],cwd=checkout,env=env)
@@ -288,10 +298,13 @@ def main():
         else:
             work.run('restored-renderer',[sys.executable,str(checkout/'tests/web/v536_local_header_image_ui.py'),str(restored/'content'),str(packaged_report),'late','object'],cwd=checkout,env=env)
             work.run('restored-feature-renderer',[sys.executable,str(checkout/'tests/web/v536_local_header_image_ui.py'),str(restored/'content'),str(packaged_report),'late','feature'],cwd=checkout,env=env)
-        if args.suite in ['action-icons','declaration-icons']:
+        if args.suite in ['action-icons','declaration-icons','pin-icons']:
             work.run('restored-action-icons',[sys.executable,str(checkout/'tests/web/v666_action_icon_ui.py'),str(restored/'content'),str(packaged_report),'late'],cwd=checkout,env=env)
-        if args.suite=='declaration-icons':
+        if args.suite in ['declaration-icons','pin-icons']:
             work.run('restored-declaration-icons',[sys.executable,str(checkout/'tests/web/v666_declaration_icon_ui.py'),str(restored/'content'),str(packaged_report),'late','category','view'],cwd=checkout,env=env)
+        if args.suite=='pin-icons':
+            work.run('restored-module-pins',[sys.executable,str(checkout/'tests/web/v666_module_pin_ui.py'),str(restored/'content'),str(packaged_report),'late','view','return'],cwd=checkout,env=env)
+            work.run('restored-set-output-icons',[sys.executable,str(checkout/'tests/web/v666_set_output_icon_ui.py'),str(restored/'content'),str(packaged_report),'late'],cwd=checkout,env=env)
         work.run('package-failure-lifetime',[sys.executable,str(checkout/'tests/probes/desktop_package_lifetime.py'),str(checkout),str(restored)],cwd=checkout,env=env)
         if dependency_identity(args.sdk,args.nuget_seed,commit) != inputs:
             raise RuntimeError('SDK/dependency seed changed during verification; no package promotion')
