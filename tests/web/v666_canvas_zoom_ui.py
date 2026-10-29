@@ -50,9 +50,10 @@ try:
         f.page.keyboard.down('Control');f.page.mouse.wheel(0,-100);f.page.keyboard.up('Control');expect(f.author().locator('[data-bp-percent]')).to_have_text('500%');expect(node).to_have_value(held);guarded();f.checked('일반 휠과 Ctrl 휠은 원본의 500→475→500% 단계를 실제 plane에 적용하고 source 쓰기를 하지 않는다')
         dialog=popup();dialog.screenshot(path=str(f.case/'zoom-popup.png'));dialog.locator('[data-zoom-value]').press('Escape')
         zoom_to(400);f.page.set_viewport_size({'width':430,'height':900})
-        graph=f.author().locator('[data-mobile-flow]').first
-        if f.author().locator('[data-flow-graph]').is_visible():f.author().locator('[data-flow-graph]').click()
-        viewport=f.author().locator('.bp-viewport');point=viewport.evaluate('''el=>{const r=el.getBoundingClientRect();for(let y=r.top+35;y<r.bottom-25;y+=25)for(let x=r.left+30;x<r.right-30;x+=25){const eligible=p=>{const target=document.elementFromPoint(p,y);return target&&el.contains(target)&&!target.closest('input,textarea,select,[contenteditable=true]');};if(eligible(x-20)&&eligible(x+20))return {x,y};}throw Error('No eligible two-touch viewport position');}''');cx=point['x'];cy=point['y'];cdp=f.page.context.new_cdp_session(f.page)
+        flow=f.author().locator('[aria-label="카드 흐름 편집"]');expect(flow).to_be_visible();flow.locator('[data-flow-graph]').click()
+        viewport=f.author().locator('.bp-viewport');expect(viewport).to_be_visible()
+        (f.case/'mobile-before-touch.json').write_text(json.dumps(viewport.evaluate('el=>({rect:el.getBoundingClientRect().toJSON(),rootClass:el.closest(".blueprint-editor").className,bodyClass:document.body.className})'),ensure_ascii=False,indent=2)+'\n')
+        point=viewport.evaluate('''el=>{const r=el.getBoundingClientRect();for(let y=Math.max(8,r.top+12);y<Math.min(innerHeight-8,r.bottom-8);y+=12)for(let x=Math.max(28,r.left+28);x<Math.min(innerWidth-28,r.right-28);x+=12){const eligible=p=>{const target=document.elementFromPoint(p,y);return target&&el.contains(target)&&!target.closest('input,textarea,select,[contenteditable=true]');};if(eligible(x-20)&&eligible(x+20))return {x,y};}throw Error('No eligible two-touch viewport position');}''');cx=point['x'];cy=point['y'];cdp=f.page.context.new_cdp_session(f.page)
         cdp.send('Input.dispatchTouchEvent',{'type':'touchStart','touchPoints':[{'id':1,'x':cx-20,'y':cy},{'id':2,'x':cx+20,'y':cy}]})
         cdp.send('Input.dispatchTouchEvent',{'type':'touchMove','touchPoints':[{'id':1,'x':cx-55,'y':cy},{'id':2,'x':cx+55,'y':cy}]})
         cdp.send('Input.dispatchTouchEvent',{'type':'touchEnd','touchPoints':[]});cdp.detach()
