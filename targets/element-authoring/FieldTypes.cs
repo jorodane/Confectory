@@ -13,6 +13,7 @@ internal static class FieldTypes
   var declarations=packs.SelectMany(p=>p.Value.Elements.Select(e=>(Id:p.Key+"::"+e.Key,Kind:e.Value.Kind))).ToArray();
   var result=new JsonArray();int targets=0;
   foreach(var item in declarations.Where(e=>e.Kind is "schema" or "function").OrderBy(e=>e.Id,StringComparer.Ordinal)){
+   try{if(item.Kind=="schema"&&OwnedInformationDefinitions.PrivateSchema(registry.Get(item.Id,"schema")))continue;}catch(BuildError){/* Keep the existing unavailable catalogue row. */}
    if(result.Count>=256)throw new ArgumentException("Field type catalogue budget");
    foreach(string kind in item.Kind=="schema"?new[]{"compound","reference"}:new[]{"function"}){
     var row=new JsonObject{["id"]=item.Id,["kind"]=kind,["available"]=false};result.Add(row);

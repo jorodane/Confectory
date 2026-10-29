@@ -24,6 +24,7 @@ internal static class MixedOwnerCopyEdits
  }
  public static JsonObject Prepare(JsonObject request,Func<Element,string> format,Func<Manifest,string> formatManifest)
  {
+  if(OwnedInformationDefinitions.Has(request["changes"]!.AsArray()))return OwnedInformationDefinitions.Prepare(request,format,formatManifest,r=>Prepare(r,format,formatManifest));
   string project=request["project"]!.GetValue<string>(),manifest=request["manifest"]!.GetValue<string>(),id=request["id"]!.GetValue<string>(),text=request["text"]!.GetValue<string>();var changes=request["changes"]!.AsArray();var element=new Parser(text,"<mixed-copy-owner>").ParseElement();var registration=new Parser(manifest,"<mixed-copy-registration>").ParseManifest();string ns=registration.Namespace;
   if(element.Kind!="object"||element.Id!=id||!id.StartsWith(ns+"::",StringComparison.Ordinal)||registration.Kind!="project"||changes.Count is <1 or >64)throw new ArgumentException("Bounded same-owner object changes required");
   var drafts=request["drafts"]!.AsArray();if(drafts.Count>255)throw new ArgumentException("Mixed source graph budget");
