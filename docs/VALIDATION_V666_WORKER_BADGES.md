@@ -29,3 +29,24 @@
 ## 집중 검증 기록
 
 실행 기록은 `/workspace/artifacts/v536-verification-managed/runs/54d2e3765bc449d39c91ad51bd0a002a.json`이다. `ui-cancel-refresh`의 전체 배정/취소/cold/프로젝트/가시성 검사, `contributions-confirm`의 실제 생산 provider/tool 출처와 명시 compiler Confirm 후 제거 검사, `projection-final`이 통과했다. 진단 실패의 원문·소유 fixture·스크린샷·후속 수정 근거를 동일 실행 증거 ZIP에 보존했다. 증거 SHA/현재 소스 overlay와 재생성 가능한 출력 manifest를 남긴 뒤 이 실행이 만든 RAM workspace만 정리했으며 과거 자료는 삭제하지 않았다. 최종 패키지 검증에는 기존 Worker 조작 요약을 그대로 보존한 소스가 사용된다.
+
+## 최종 검증·지속 보관
+
+출처 코드 commit은 `1d601ad8c3f3bc8fa9186231c67d417233985687`이다. 독립 LF/CRLF checkout과 새 Windows 교차 패키지·전체 압축 복원 검증 **99단계(LF 42, CRLF 35, 패키지/복원/수명 22)가 모두 통과**했다. 기존 enum-retirement 91단계를 그대로 유지하고 B2의 projection·실제 UI·실제 생산 provider/tools 출처 검사를 양쪽 checkout에, B2 UI를 패키지와 복원본에 추가했다. LF/CRLF 엔진은 새로 빌드했으며 기존 실행파일·기존 검사 결과로 대체하지 않았다.
+
+최종 실행은 `/workspace/artifacts/v536-verification-managed/runs/9106a283adab4b98b6928a33996669f0.json`이다. 지속 증거 ZIP은 `/workspace/artifacts/v536-verification-managed/runs/9106a283adab4b98b6928a33996669f0.zip`, SHA-256은 `b8449aeea6dc7df832325ff5cba4a77842645983e58a3bd0b17eda920b1b22ad`, 크기는 11,369,563 bytes다. 소유 fixture·원문·Task 저널·진단·실제 캡처·전체 입력/manifest를 보존하고 컴파일/캐시 출력은 재생성 manifest를 남겼다. 실행의 자식 프로세스 종료와 소유권을 확인한 뒤 해당 RAM workspace만 정리했다. `cleaned`, 오류 없음, 임시 root 제거를 확인했다. 초기 호출 인자 오류는 workspace 생성 전에 거절됐으며 별도 scratch 로그에 보존했다.
+
+| 보관본 | 출처 commit | ZIP SHA-256 | bytes | 전체 항목 |
+|---|---|---|---:|---:|
+| 최신 | `1d601ad8c3f3bc8fa9186231c67d417233985687` | `c1eb37755c56d8fb3313016a0002b7b3aa382b87a6d3ee0558e0023197d08c3a` | 51,233,552 | 2,509(파일 2,362 / 디렉터리 147) |
+| 롤백 | `9ebfbabf6d282ff0e26fdab1355a7fc2d131637c` | `35f0d64cbdbc4c6d1cad9bb099d5291be4d90cefe13e00ec87873551a7d04db1` | 51,227,251 | 2,508(파일 2,361 / 디렉터리 147) |
+
+최신 전체 manifest SHA-256은 `a6954b42da2f3fc724cb964470f21fa2c9d6c350d68a82e3fc408be25a0fd2b7`이다. 두 지속 ZIP의 CRC/전체 파일 SHA-256/모드를 검증했고 최신은 압축에서 복원한 엔진·UI도 실행했다. 롤백은 이번 승격 전 최신 index/압축본과 동일하다. B2는 Task 저널·종류 문법/보관 기록의 저장 형식을 변경하지 않는다. 롤백에는 B2 표시 어댑터가 없지만 앞서 지원한 종류 보관·복구는 포함돼 있다. 검증 뒤 추가하는 게시 마감 변경은 문서뿐이며 실행 코드·테스트·검증 도구가 위 출처와 동일한지 Git으로 확인한다.
+
+최종 실행 전 지속 공간 추가 예산은 **144MiB(안전 64MiB 포함)**, 별도 RAM 파일시스템 예산 3GiB와 512MiB 여유, 추가 메모리 7GiB와 1GiB 여유를 유지했다. 최종 실행 디스크 순증가는 **13,545,472 bytes(12.92MiB)**, 집중 시작 이후는 **18,653,184 bytes(17.79MiB)**였다. child 측정 최소 디스크 여유는 2,244,194,304 bytes, 최대 cgroup 메모리는 4,720,275,456 bytes다. 보관/정리 직후 여유는 2,230,771,712 bytes(2127.4MiB)였다. 이후 문서/Git metadata의 작은 증가는 별도이며 이 수치를 향후 보장값으로 쓰지 않는다. 승인된 최신/롤백 회전과 이 실행 자체의 임시물 정리만 사용했고 과거 자료의 추가 정리/보관정책 변경은 하지 않았다.
+
+## 남은 범위
+
+이번 **로컬 소유 활성 ProjectContext의 B2 지원 단위**는 마감했다. 다른 사용자/그룹 가시성은 실제 신원/권한 backend와 별도 권한팩이 선행한다. cold의 현재 실행 owner 부재와 출처 증거 부족은 위 보호 경계를 유지한다. 3D 팩 및 권한팩을 구현하거나 이동 완료를 실행 조건으로 만들지 않았다.
+
+C# 종류 표현, 사용 중 종류 항목 삭제의 명시적 소비자 대응, 기존 ABI closure/고급 함수 타입·핀 표시명, M4/M11/M12 및 다른 V666 수용 항목은 기존 유한 잔여 표에 유지한다. 정상 거절과 원본에 없는 조합을 새 미구현으로 늘리지 않는다. 기존 배율 메뉴 일시 실패의 원인은 이번 통과만으로 해결됐다고 하지 않는다. 실제 Windows apphost/WebView2·물리 모바일·전체 UI·Library/Space 전달은 미검증이다.
