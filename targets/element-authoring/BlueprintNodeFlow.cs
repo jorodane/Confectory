@@ -34,6 +34,12 @@ internal static class BlueprintNodeFlow
             edges.Add(new JsonObject{["from"]="body",["port"]="next",["to"]="return"});
         }
         outer["graph"]=new JsonObject{["schema"]=1,["profile"]=frameProfile,["entry"]="body",["nodes"]=nodes,["edges"]=edges,["exits"]=new JsonObject()};
+        if(request["executionExits"] is JsonObject exitPlan){
+            if(!execution||exitPlan.Count!=3||exitPlan.Any(p=>p.Key is not ("exits" or "edges" or "entry"))||exitPlan["exits"] is not JsonObject selected||selected.Count is <1 or >64||exitPlan["edges"] is not JsonArray wires||wires.Count>256)throw new ArgumentException("Exact bounded original execution exit plan required");
+            foreach(var end in selected)if(!System.Text.RegularExpressions.Regex.IsMatch(end.Key,@"\A[A-Za-z_][A-Za-z_0-9.-]{0,127}\z"))throw new ArgumentException("Local exit identity required");
+            foreach(var wire in wires)if(wire is not JsonObject link||link.Count!=3||link.Any(p=>p.Key is not ("from" or "port" or "to")))throw new ArgumentException("Exact local execution connections required");
+            var selectedGraph=outer["graph"]!.AsObject();selectedGraph["schema"]=2;selectedGraph["executionExitMode"]=true;selectedGraph["entry"]=exitPlan["entry"]!.DeepClone();selectedGraph["exits"]=selected.DeepClone();selectedGraph["edges"]=wires.DeepClone();
+        }
         outer["retainedCode"]=new JsonObject{["version"]=1,["nonce"]=nonce,["sourceId"]=sourceId,["sourceTextHash"]=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(recordText))).ToLowerInvariant(),["definition"]=before.DeepClone()};
         parent["nodes"]![index]=outer;
         var described=Definitions(next);if(described["state"]?.ToString()!="node-definitions")throw new ArgumentException(described.ToJsonString());

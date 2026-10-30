@@ -27,7 +27,7 @@ public static class BlueprintTree
                 yield return new(key, node, at);
                 if (node["kind"]?.ToString() == "graph")
                 {
-                    if (!FeatureBlueprint.SupportsPrivateGraphs(root["profile"]?.ToString()) || node["graph"] is not JsonObject child || child["schema"]?.GetValue<int>() != 1 || child.ContainsKey("feature") || child.ContainsKey("contractHash") || !FeatureBlueprint.SupportsPrivateGraphs(child["profile"]?.ToString()))
+                    if (!FeatureBlueprint.SupportsPrivateGraphs(root["profile"]?.ToString()) || node["graph"] is not JsonObject child || (child["schema"]?.GetValue<int>() != 1 && !(child["schema"]?.GetValue<int>()==2 && child["executionExitMode"]?.GetValue<bool>()==true && node["control"]?.ToString()=="switch" && node["executionSource"] is not null)) || child.ContainsKey("feature") || child.ContainsKey("contractHash") || !FeatureBlueprint.SupportsPrivateGraphs(child["profile"]?.ToString()))
                         throw new ArgumentException("Private graph contract is owned by its parent node signature");
                     foreach (var nested in Walk(child, key, at + "/graph", depth + 1)) yield return nested;
                 }
