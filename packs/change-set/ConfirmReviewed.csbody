@@ -20,6 +20,12 @@ try
  // Read-only owned target/manifest/record dependencies participate in the same
  // final file CAS as the changed caller and graphs; they are never rewritten.
  var guardedPaths=new System.Collections.Generic.HashSet<string>(paths,OperatingSystem.IsWindows()?StringComparer.OrdinalIgnoreCase:StringComparer.Ordinal);foreach(var check in checks)guardedPaths.Add(check!["path"]!.ToString());foreach(string id in selected)if(draftState?["units"]?[id]?["rootAbiContracts"] is not null)foreach(var member in draftState["units"]![id]!["rootContractGroup"]!.AsArray()){var unit=draftState["units"]![member!.ToString()]!;string path=unit["path"]!.ToString();if(guardedPaths.Add(path))checks.Add(new System.Text.Json.Nodes.JsonObject{["path"]=path,["hash"]=unit["baseline"]!.DeepClone()});}
+ // Single-node C# wrapping retains its old source and all observed contracts.
+ // Check unchanged members under the final source lease, without writing them.
+ foreach(string id in selected)if(draftState?["units"]?[id]?["nodeFlowOrigin"] is not null)
+  foreach(var member in draftState["units"]![id]!["atomicEditGroup"]!.AsArray()){
+   var unit=draftState["units"]![member!.ToString()]!;string path=unit["path"]!.ToString();if(guardedPaths.Add(path))checks.Add(new System.Text.Json.Nodes.JsonObject{["path"]=path,["hash"]=unit["baseline"]!.DeepClone()});
+  }
  // Recheck saved copy assignment/provenance reads under the same source lease
  // as every write, closing the gap after compiler validation and Review.
  foreach(string id in selected)if(draftState?["units"]?[id]?["atomicEditGroup"] is not null)
