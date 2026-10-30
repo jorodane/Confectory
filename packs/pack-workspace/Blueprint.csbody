@@ -214,7 +214,7 @@ lock(state){
   if(slot?["checkpointPlain"]?.GetValue<bool>()!=true||slot["copySource"] is null||observed is null)throw new InvalidOperationException("Exclusive saved copy ownership receipt required; preserve reference/parent sources");
   var selectedGraph=graph;foreach(string part in path.Split('/',StringSplitOptions.RemoveEmptyEntries)){var frame=System.Linq.Enumerable.Single(selectedGraph["nodes"]!.AsArray(),r=>r!["id"]!.ToString()==part)!;if(frame["kind"]?.ToString()!="graph")throw new InvalidOperationException("Exact owned copy frame required");selectedGraph=frame["graph"]!.AsObject();}
   var selected=System.Linq.Enumerable.Single(selectedGraph["nodes"]!.AsArray(),r=>r!["id"]!.ToString()==node)!;
-  if(selected["kind"]?.ToString()!="code"||selected["control"]?.ToString()!="next"||selected["implementationContext"] is not null||selected["forwardCallerStorage"]?.GetValue<bool>()==true||System.Linq.Enumerable.Any(selected["signature"]!["args"]!.AsArray(),a=>a!["mode"]?.ToString() is "ref" or "out"))throw new InvalidOperationException("Saved copy ordinary C# frame required; preserve other native contracts");
+  if(selected["kind"]?.ToString()!="code"||selected["control"]?.ToString()!="next"||selected["implementationContext"] is not null)throw new InvalidOperationException("Saved copy ordinary C# frame required; preserve other native contracts");
   var binding=CopyAbiBinding(rootId[..rootId.IndexOf("/body:",StringComparison.Ordinal)],rootId,graph,slot,true,path);
   if(!System.Text.Json.Nodes.JsonNode.DeepEquals(binding,observed))throw new InvalidOperationException("Copy assignment/target/provenance changed; retain input");return binding;
  }

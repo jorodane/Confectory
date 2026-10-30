@@ -15,7 +15,7 @@ def save():
  while time.monotonic()<deadline:
   f.page.wait_for_timeout(60)
   if not pending() and '저장 중' not in panel().locator('.bp-status').inner_text():break
- assert not pending(),panel().locator('.bp-status').inner_text();f.idle();rows={r['id']:r for r in json.loads(checkpoint.read_text())['changes']};assert json.loads(rows[n.graph]['draft'])['copySource']==n.provenance;assert json.loads(rows[n.leaf]['draft'])['source']==('return amount+9;' if mode=='late' else 'return amount+8;')
+ assert not pending(),panel().locator('.bp-status').inner_text();f.idle();rows={r['id']:r for r in json.loads(checkpoint.read_text())['changes']};assert json.loads(rows[n.graph]['draft'])['copySource']==n.provenance;assert json.loads(rows[n.leaf]['draft'])['source']==n.edit_source(2 if mode=='late' else 1)
 def restart(i):
  held=copy.deepcopy(pending());f.page.close();f.stop();f.start(i);f.page=f.setup();f.page.set_viewport_size({'width':2300,'height':1700});f.idle();expect(panel()).to_be_visible();assert pending()==held
 try:
@@ -24,7 +24,11 @@ try:
   expect.set_options(timeout=60000);f.browser=pw.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox']);f.page=f.setup();f.page.set_viewport_size({'width':2300,'height':1700});n.d.open_info();title=f.owner().locator('.object-title-name').bounding_box();box=f.owner().bounding_box();f.page.mouse.move(title['x']+5,title['y']+5);f.page.mouse.down();f.page.mouse.move(1780+title['x']-box['x']+5,80+title['y']-box['y']+5,steps=10);f.page.mouse.up();slot=f.owner().locator('[data-module-method="'+feature+'"]')
   if not slot.locator('[data-function-edit],[data-function-write-direct]').first.is_visible():f.owner().locator('[data-behavior-toggle="'+n.module+'"]').click()
   slot.locator('[data-function-edit],[data-function-write-direct]').first.click();open_parent();expect(panel().locator('[data-bp-node=calculate] [data-internal-flow]')).to_be_enabled();panel().locator('[data-bp-node=calculate] [data-internal-flow]').click();expect(panel().locator('[data-bp-node=body]')).to_be_visible();panel().locator('.bp-viewport').press('Control+z');expect(panel().locator('[data-bp-node=calculate]')).to_be_visible();panel().locator('.bp-viewport').press('Control+y');expect(panel().locator('[data-bp-node=body]')).to_be_visible();assert checkpoint.read_bytes()==before;original();f.checked('저장된 copy의 기존 내부 진입과 Undo/Redo는 원문·출처·소유 배정·공개 계약을 보존한다')
-  code('return amount+8;',True);assert not pending();code('return amount+8;');assert len(pending())==1;assert '|private:'+(n.path+'/' if n.path else '')+'calculate|' in pending()[0][0];held=copy.deepcopy(pending());original();restart(1);assert pending()==held;f.checked('copy 내부 C# 취소·편집·cold는 slot/frame 키와 늦은 입력의 소유 범위를 유지한다')
+  if n.storage:
+   panel().locator('[data-bp-node=body] [data-internal-code]').click();dialog=f.page.get_by_role('dialog',name='C# Script · body',exact=True);raw=dialog.locator('[data-code-source]').input_value()
+   for arg in n.storage.params:assert arg['mode']+' '+arg['type']+' '+arg['name'] in raw
+   dialog.locator('[data-code-cancel]').click()
+  code(n.edit_source(1),True);assert not pending();code(n.edit_source(1));assert len(pending())==1;assert '|private:'+(n.path+'/' if n.path else '')+'calculate|' in pending()[0][0];held=copy.deepcopy(pending());original();restart(1);assert pending()==held;f.checked('copy 내부 C# 취소·편집·cold는 slot/frame 키와 늦은 입력의 소유 범위를 유지한다')
   if mode=='project':
    other=f.case/'same IDs other project';shutil.copytree(f.project,other,ignore=shutil.ignore_patterns('.confectory'));f.page.close();f.stop();f.env['CONFECTORY_WEB_PROJECT']=str(other/'project.cproj');f.start(10);f.page=f.setup();f.page.set_viewport_size({'width':2300,'height':1700});f.idle();assert not pending();f.page.close();f.stop();f.env['CONFECTORY_WEB_PROJECT']=str(n.f.manifest);f.start(11);f.page=f.setup();f.page.set_viewport_size({'width':2300,'height':1700});f.idle();expect(panel().locator('[data-bp-node=body]')).to_be_visible();assert pending()==held;original();f.checked('동일 namespace·copy ID·private 경로의 다른 프로젝트와 왕복해도 입력/owner/provenance를 섞지 않는다')
   if mode!='late':panel().locator('.bp-breadcrumbs button').first.click();root_visible();assert pending()
@@ -54,7 +58,7 @@ try:
      f.page.wait_for_timeout(30)
     assert len(applies)==1
     if mode=='late':
-     assert paused;code('return amount+9;');paused['route'].fulfill(response=paused['response']);f.page.unroute('**/api/request',intercept);f.idle();assert pending() and pending()[0][1]['text']=='return amount+9;';restart(3);save()
+     assert paused;code(n.edit_source(2));paused['route'].fulfill(response=paused['response']);f.page.unroute('**/api/request',intercept);f.idle();assert pending() and pending()[0][1]['text']==n.edit_source(2);restart(3);save()
     else:
      assert any(v in queries for v in lost);f.page.unroute_all(behavior='wait');f.idle();restart(3);mark=len(f.traffic);save();assert not any(v.get('invoke',{}).get('input',{}).get('action')=='authorBatch' for v in f.traffic[mark:])
    else:save()
