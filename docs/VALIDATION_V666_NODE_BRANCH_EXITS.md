@@ -28,4 +28,28 @@ Review→Confirm과 최종 파일 CAS, 원문 guard, 취소·Undo·재시작·�
 
 이번 단위는 직접 소유 내부 함수의 명시적 분기 반환이다. M11의 copy/상속/참조 전환과 private 미지원 기존 profile, M4/M12, B2 다른 사용자/그룹 권한 backend, 종류 C# 표현/사용 중 삭제 대응 및 3D·권한 별도 팩은 별도 고정 잔여다. 3D 이동은 표시이며 실행 선행 조건이 아니다. 실제 Windows apphost/WebView2·모바일 기기·전체 UI·Library/Space 전달은 교차 패키지와 구분한다. 이 종료 선택 작업으로 C# 임의 의미 변환이나 기존 profile 자동 승격을 구현하지 않는다.
 
-최종 코드·신규/재사용 검사·정상 롤백 형식 거절·패키지/증거·임시물 정리와 공간 실측은 최종 검증 뒤 기록한다.
+## 최종 검증 결과
+
+최종 패키지 source commit은 `dae566a1fecc0fcdb0fa80120603b13c3dfdf120`다. 제품 코드 `31a4ece93de279e526a4dcbd7c1e7e37f3b88ced`의 독립 LF **22단계**, CRLF **18단계**가 모두 통과했다. 이후 생성 패키지에서 검사 helper를 제품 `content/tests` 아래에서 찾는 경로 오류가 발견됐다. assertion·제품 코드를 바꾸지 않고 helper를 실행 검사 스크립트 옆에서 읽도록 두 줄만 수정했다. 정확한 Git diff와 전체 보관 증거를 확인하여 제품 코드 동등성이 입증된 checkout **40단계**를 재사용했다. 이 실패를 통과로 합산하지 않았다.
+
+최종 source로 새 독립 LF checkout/복원/Release/MCP/엔진 **6개 준비 단계**를 수행하고, 새 교차 패키지·전체 압축 복원·실패 수명관리 **8단계**를 모두 통과했다. 따라서 수용 검증은 LF22·CRLF18·최종 패키지8의 **48단계**이며, 수정 뒤 추가 준비6과 최초 패키지 통과3/실패1은 따로 기록한다. 두 기존 checkout 각각 native switch/중첩/whole-body/ref-out **28개**와 소유 보호 **2개**가 실패/skip 없이 통과했다. 기존 일반 Root·void·공통 선언/헤더 이미지·원문 편집·계산 Result 전달 API를 이번 단위에서 실행했고, LF에서는 기존 늦은 ref/out 본문 입력 화면도 실행했다.
+
+신규 API는 기본·중첩·ref/out 실제 호출, 정확한 거절 진단, 미확정 원문 guard 경합, 최종 CAS·cold·원문/바깥 연결 보존을 확인했다. 신규 화면은 첫 미리보기의 결합 Save, 저장된 흐름의 Root Save, 선택 취소·카드 삭제 취소·실행선 정렬·Undo/Redo·쓰기 실패·충돌·응답 유실·늦은 ref/out 입력·Review 취소/Confirm·재시작을 확인했다. 생성 패키지의 첫 미리보기와 전체 복원본의 ref/out 응답 유실 흐름도 Linux .NET 런타임에서 확인했다. 최종 패키지 8단계는 수정된 검사와 최종 source에서 새로 실행했다.
+
+이번 변경과 독립적인 이전 57단계에서 확인한 프로젝트 왕복 화면·고정 call/After compiler·whole-body 문맥/저장소 API 결과는 재사용 근거로 구분한다. 구형 정상 패키지 `ce127d874a049cfb4460b5361086392ceffaa799`는 전체 SHA/CRC/모드 복원 후 새 private schema를 명시 거절하고 입력 소스 파일을 변경하지 않는 집중 검사를 통과했다. 이 호환성 집중 증거는 최종 코드 검증과 함께 보관하며, 구형 실행 파일로 새 형식을 실행했다는 뜻은 아니다.
+
+- 최종 패키지 관리 record: `/workspace/artifacts/v536-verification-managed/runs/aabf40bae305496c9da92d154dab16d2.json` (14단계, cleaned).
+- 재사용 checkout/경로 오류 record: `/workspace/artifacts/v536-verification-managed/runs/f78216c0877c4bc994ca4c777f8ff1b6.json` (43통과·1실패, cleaned), 증거 `/workspace/artifacts/v536-verification-managed/runs/f78216c0877c4bc994ca4c777f8ff1b6.zip`, SHA-256 `682a4f75c127f675fd38101d578c446b047a5d260e085da5521caa94544f0cb0`. 최종 증거의 `checkout-reuse.json`에 정확한 동등성 근거가 있다.
+- 증거 ZIP: `/workspace/artifacts/v536-verification-managed/runs/aabf40bae305496c9da92d154dab16d2.zip`, SHA-256 `7e4b982535eb72929ad8413bae69e2ed1a7f7c594948f667f87439e697fcf10d`.
+- 집중 증거: `/workspace/artifacts/v536-verification-managed/runs/4bd4332a4246498e9af3ab5dcafc8a25.zip`, SHA-256 `465962ee77318fcf421673c01c650481551bd26ba7daa26b87971236c6be66c9`.
+
+| 보관본 | 실행 코드 commit | ZIP SHA-256 | bytes | manifest SHA-256 |
+|---|---|---|---|---|
+| 최신 | `dae566a1fecc0fcdb0fa80120603b13c3dfdf120` | `2c44b766588b73fc6fa2aff84e52e0cf8ea59e77d4be42656a5f2885bd8ea58a` | 51,261,730 | `2b3cd6aa50d404db196aa432ddccd5325ccc2faf2cf1ff9a2520273ce5cd72a9` |
+| 정상 롤백 | `ce127d874a049cfb4460b5361086392ceffaa799` | `ef92b8bb8338f1fa1ec65e79e8bb921ea4309954aba43f46ca2f536ed84edd1e` | 51,251,080 | `8537cf2e79d74106e93865f7e143219e4d7fbed3874e7f14c76beaf897660bf0` |
+
+보관 index는 `/workspace/artifacts/v536-verification-managed/packages/index.json`이다. 최신은 이번 코드로 새 생성·전체 파일 SHA/CRC/모드 복원과 복원본 실행을 검증했다. 롤백의 이전 정상 실행 증거를 재사용하고 ZIP SHA를 다시 확인했다. 최신 2510항목(2363파일/147디렉터리) / 롤백 2510항목(2363파일/147디렉터리). 새 schema의 프로젝트는 최신 실행 코드가 필요하며 롤백으로 묵시적으로 이전 의미를 적용하지 않는다.
+
+최종 검증 두 시도의 디스크 여유는 2071.96 MiB → 정리 후 2064.67 MiB, 순증가 **7.29 MiB**였다. 단계 샘플 최소 여유 2066.89 MiB, cgroup 메모리 피크 4388.56 MiB였다. 기존 144 MiB 추가 디스크 예산(64 MiB 안전 여유 포함)과 RAM/메모리 예산을 유지했다. 집중/최초 실패/최종 소유 임시 root는 증거 보관 뒤 정리했다. 승인된 관리 저장소의 최신/롤백 회전과 해당 실행의 임시물 정리만 수행했고 과거 비관리 자료를 추가 삭제하지 않았다. 이번 순증가는 향후 보장값이 아니다.
+
+결과 보고 HEAD와 패키지 코드 commit의 차이는 문서뿐임을 확인한다. 보관 패키지는 위 코드 commit에서 생성한 바이트이며 보고서 commit으로 다시 빌드했다는 뜻은 아니다. 해당 종료점 지원 단위와 M11 전체 완료를 구분한다. 실제 Windows apphost/WebView2·모바일·전체 UI·Library/Space 전달 및 위 별도 문맥은 미완료다.
