@@ -710,7 +710,7 @@ function blueprintNormalizeControls(scope){
 
  const flowParentFrame=proposal=>proposal.frame||proposal.root,flowChildFrame=proposal=>flowParentFrame(proposal)+'/graph:'+proposal.node,flowChildPath=proposal=>flowChildFrame(proposal).split('/graph:').slice(1).join('/');
  function flowInputPrefix(w,proposal){return w.authorScope+'|v508-author|'+(w.meta.authorView?'view:'+w.meta.authorView+'|':'')+w.meta.id+(w.meta.implementationBody?'|body:'+w.meta.implementationBody:'')+'|private:'+flowChildPath(proposal)+'|';}
- function canInternalCode(w,row){const d=w.authorData;return !!row&&row.kind==='code'&&row.control==='next'&&!row.implementationContext&&!row.executionEnum&&!row.forwardCallerStorage&&!d.privateCopy&&!d.privateConversion&&!d.slotContext&&!w.meta.nodeFlowDraft&&d.id&&['sync-acyclic-nested-v1','sync-acyclic-methods-v1','sync-acyclic-property-v1','sync-acyclic-switch-v1','sync-acyclic-property-set-v1','sync-acyclic-property-ref-v1'].includes(d.profile)&&!signature(row.signature).args.some(a=>a.mode);}
+ function canInternalCode(w,row){const d=w.authorData;return !!row&&row.kind==='code'&&row.control==='next'&&!row.implementationContext&&!row.executionEnum&&!d.privateCopy&&!d.privateConversion&&!d.slotContext&&!w.meta.nodeFlowDraft&&d.id&&['sync-acyclic-nested-v1','sync-acyclic-methods-v1','sync-acyclic-property-v1','sync-acyclic-switch-v1','sync-acyclic-property-set-v1','sync-acyclic-property-ref-v1'].includes(d.profile);}
  async function nodeFlowView(w,proposal,frame,alive,restored=false){
   if(proposal.feature!==w.meta.id||proposal.scope!==w.authorScope)throw Error('내부 흐름의 프로젝트·함수가 바뀌었습니다. 입력은 유지됩니다.');
   const root=await call(w,{action:'read',id:flowParentFrame(proposal)},alive);

@@ -57,7 +57,7 @@ if __name__=='__main__':
    elif name in ['branch','switch']:candidate['nodes'][0]['control']=name
    else:doc['definitionHash']='0'*64
    r=subprocess.run([f.env['CONFECTORY_DOTNET'],str(f.repo/'targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll')],input=json.dumps({'operation':'blueprintNodeFlow','id':graph,'node':'calculate','nonce':nonce,'record':json.dumps(doc),'graph':candidate,'ownerRequest':owner_request}),text=True,capture_output=True,env=f.env,check=True);assert not json.loads(r.stdout)['ok'],name
-  assert checkpoint()==before;original();f.checked('구형 profile·whole-body 문맥·ref/out·switch·낡은 receipt는 원본 보존 상태로 거절한다')
+  assert checkpoint()==before;original();f.checked('구형 profile·whole-body·switch와 관측되지 않은 ref/out/forwarded 계약·낡은 receipt는 원본을 보존하며 거절한다')
   req=request(d,nonce);bad=copy.deepcopy(req);bad['sourceProof']=bad['sourceProof'].replace(d['sources'][0]['hash'],'0'*64);rpc('authorBatch',False,**bad);assert checkpoint()==before;original()
   for nonce_bad in ['../escape','A'*32]:rpc('previewNodeInternal',False,node='calculate',definition={'nonce':nonce_bad});assert checkpoint()==before
   # Physical originals must be checked too, not just the in-memory receipt.

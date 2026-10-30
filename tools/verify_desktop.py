@@ -109,7 +109,7 @@ def main():
     parser.add_argument('--commit', required=True)
     parser.add_argument('--sdk', type=Path, required=True)
     parser.add_argument('--nuget-seed', type=Path, required=True)
-    parser.add_argument('--suite',choices=['headers','card-images','canvas','owned-information','owned-conversion','action-icons','declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement','worker-badges','node-internal','node-internal-nested'],default='headers')
+    parser.add_argument('--suite',choices=['headers','card-images','canvas','owned-information','owned-conversion','action-icons','declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement','worker-badges','node-internal','node-internal-nested','node-internal-storage'],default='headers')
     args = parser.parse_args()
     repo = args.repo.resolve(); persistent = args.persistent.absolute()
     persistent.parent.mkdir(parents=True, exist_ok=True)
@@ -171,7 +171,7 @@ def main():
                 raise RuntimeError('Engine wrote outside its owned checkout')
             # Existing suites keep their regression lists. The nested extension
             # selects the affected Root/private/source/ownership paths explicitly.
-            if args.suite in ['node-internal','node-internal-nested']:
+            if args.suite in ['node-internal','node-internal-nested','node-internal-storage']:
                 work.run(label+'-node-internal-api',[sys.executable,str(checkout/'tests/web/v666_node_internal_api.py'),str(checkout),str(report)],cwd=checkout,env=env)
                 work.run(label+'-node-internal-void',[sys.executable,str(checkout/'tests/web/v666_node_internal_api.py'),str(checkout),str(report),'void'],cwd=checkout,env=env)
                 work.run(label+'-node-internal-ui',[sys.executable,str(checkout/'tests/web/v666_node_internal_ui.py'),str(checkout),str(report),'normal' if label=='lf' else 'loss'],cwd=checkout,env=env)
@@ -240,6 +240,14 @@ def main():
                     work.run(label+'-nested-ui-'+mode,[sys.executable,str(checkout/'tests/web/v666_node_internal_nested_ui.py'),str(checkout),str(report),mode,'--depth=2'],cwd=checkout,env=env)
                 work.run(label+'-action-private-icons',[sys.executable,str(checkout/'tests/web/v666_action_icon_ui.py'),str(checkout),str(report),'normal','private'],cwd=checkout,env=env)
                 work.run(label+'-action-copy-icons',[sys.executable,str(checkout/'tests/web/v666_action_icon_copy_ui.py'),str(checkout),str(report),'normal'],cwd=checkout,env=env)
+            elif args.suite=='node-internal-storage':
+                work.run(label+'-storage-native',[dotnet,str(checkout/'tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll'),'ExternalRefTests','static_private_helpers_preserve_repeated_ref_out_caller_storage','whole_body_context_preserves_calls_scope_this_recursion_names_targets_and_crlf','whole_out_body_conversion_preserves_original_member_scoped_import_and_other_target','--require-runtime'],cwd=checkout,env=env)
+                cases=[('root',[]),('out-only',['--out-only']),('exception',['--exception'])] if label=='lf' else [('private-local',['--private','--local']),('array',['--array'])]
+                for name,flags in cases:
+                    work.run(label+'-storage-api-'+name,[sys.executable,str(checkout/'tests/web/v666_node_internal_storage_api.py'),str(checkout),str(report),*flags],cwd=checkout,env=env)
+                for mode in (['normal','storage'] if label=='lf' else ['loss','late']):
+                    work.run(label+'-storage-ui-'+mode,[sys.executable,str(checkout/'tests/web/v666_node_internal_storage_ui.py'),str(checkout),str(report),mode,*(['--private','--local'] if mode=='late' else [])],cwd=checkout,env=env)
+                work.run(label+'-nested-value-regression',[sys.executable,str(checkout/'tests/web/v666_node_internal_nested_api.py'),str(checkout),str(report),'--depth=2'],cwd=checkout,env=env)
             elif args.suite=='canvas':
                 work.run(label+'-v666-zoom-reference',[sys.executable,str(checkout/'tests/probes/v666_canvas_zoom.py'),str(checkout)],cwd=checkout,env=env)
                 work.run(label+'-v666-native-zoom',[sys.executable,str(checkout/'tests/web/v666_native_zoom_ui.py'),str(checkout)],cwd=checkout,env=env)
@@ -289,6 +297,9 @@ def main():
         if args.suite=='node-internal-nested':
             work.run('packaged-node-internal',[sys.executable,str(checkout/'tests/web/v666_node_internal_ui.py'),str(package/'content'),str(packaged_report),'normal'],cwd=checkout,env=env)
             work.run('packaged-nested-node-internal',[sys.executable,str(checkout/'tests/web/v666_node_internal_nested_ui.py'),str(package/'content'),str(packaged_report),'normal','--depth=2'],cwd=checkout,env=env)
+        elif args.suite=='node-internal-storage':
+            work.run('packaged-node-internal',[sys.executable,str(checkout/'tests/web/v666_node_internal_ui.py'),str(package/'content'),str(packaged_report),'normal'],cwd=checkout,env=env)
+            work.run('packaged-storage-node-internal',[sys.executable,str(checkout/'tests/web/v666_node_internal_storage_ui.py'),str(package/'content'),str(packaged_report),'normal'],cwd=checkout,env=env)
         elif args.suite in ['owned-conversion','action-icons','declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement','worker-badges','node-internal']:
             work.run('packaged-owned-conversion',[sys.executable,str(checkout/'tests/web/v666_owned_conversion_ui.py'),str(package/'content'),str(packaged_report),'normal','ref-array'],cwd=checkout,env=env)
         elif args.suite=='owned-information':
@@ -335,6 +346,9 @@ def main():
         if args.suite=='node-internal-nested':
             work.run('restored-node-internal',[sys.executable,str(checkout/'tests/web/v666_node_internal_ui.py'),str(restored/'content'),str(packaged_report),'storage'],cwd=checkout,env=env)
             work.run('restored-nested-node-internal',[sys.executable,str(checkout/'tests/web/v666_node_internal_nested_ui.py'),str(restored/'content'),str(packaged_report),'loss','--depth=2'],cwd=checkout,env=env)
+        elif args.suite=='node-internal-storage':
+            work.run('restored-node-internal',[sys.executable,str(checkout/'tests/web/v666_node_internal_ui.py'),str(restored/'content'),str(packaged_report),'storage'],cwd=checkout,env=env)
+            work.run('restored-storage-node-internal',[sys.executable,str(checkout/'tests/web/v666_node_internal_storage_ui.py'),str(restored/'content'),str(packaged_report),'loss','--private','--local'],cwd=checkout,env=env)
         elif args.suite in ['owned-conversion','action-icons','declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement','worker-badges','node-internal']:
             work.run('restored-owned-conversion',[sys.executable,str(checkout/'tests/web/v666_owned_conversion_ui.py'),str(restored/'content'),str(packaged_report),'late','general','view'],cwd=checkout,env=env)
         elif args.suite=='owned-information':
