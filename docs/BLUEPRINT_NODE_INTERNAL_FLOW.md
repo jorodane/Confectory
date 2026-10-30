@@ -14,7 +14,7 @@ Save는 기존 `authorBatch` 격리 후보와 최종 체크포인트 CAS를 사�
 
 ## 남은 경계
 
-M11 전체 완료는 아니다. 기존 whole-implementation `implementationContext`/`this`/import 문맥, ref/out 저장소, next 밖의 분기 제어·실행 enum/switch, copy/상속/참조 문맥의 노드 전환은 이번 진입에서 원본을 보존하며 거절한다. 구형 profile을 자동 승격하여 암시적 종료/반환 정책을 바꾸지도 않는다. 이 제한은 현재 구현·검증 경계이며 새 영구 UX 정책이 아니다. 기존 whole-body C# 변환 및 native M3 graph 편집 경로는 유지한다.
+M11 전체 완료는 아니다. 이미 중첩된 graph 안의 개별 C# 전환, 기존 whole-implementation `implementationContext`/`this`/import 문맥, ref/out 저장소, next 밖의 분기 제어·실행 enum/switch, copy/상속/참조 문맥의 노드 전환은 이번 진입에서 원본을 보존하며 거절한다. 구형 profile을 자동 승격하여 암시적 종료/반환 정책을 바꾸지도 않는다. 이 제한은 현재 구현·검증 경계이며 새 영구 UX 정책이 아니다. 기존 whole-body C# 변환 및 native M3 graph 편집 경로는 유지한다.
 
 사용자 C# 원문을 유지하는 것과 모든 관측 가능한 C# 의미가 동일함을 증명하는 것은 다르다. 생성된 메서드 위치/호출 경로가 달라질 수 있으므로 caller-info·stack/reflection 등에 의존한 임의 본문의 완전한 동등성을 주장하지 않는다. 자동 추론으로 보정하지 않으며 실제 지원 fixture의 컴파일·호출 결과와 원문 보존을 따로 검증한다.
 
