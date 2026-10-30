@@ -13,9 +13,9 @@
 
 ## C# 및 호환성 경계
 
-이 단위는 선언된 속성의 편집/저장 데이터다. C# enum/정수/문자열 CLR 타입을 확정하거나 dispatcher·함수 ABI·자동 본문 변환을 추가하지 않는다. runtime property descriptor는 이 종류 필드에 `supported:false`, `clrType:null`을 명시한다. 실행용 property read/set/ref 노드는 기존 지원 검사에서 거절하며 추측한 CLR 계약으로 생성하지 않는다. 따라서 C# 표현 결정은 이 편집/저장 흐름의 선행 조건이 아니다. 함수/실행 경로를 연결할 때 별도로 결정해야 한다.
+이 단위는 선언된 속성의 편집/저장 데이터다. C# enum/정수/문자열 CLR 타입을 확정하거나 dispatcher·함수 ABI·자동 본문 변환을 추가하지 않는다. runtime property descriptor는 이 종류 필드에 `supported:false`, `clrType:null`을 명시한다. 실행용 property read/set/ref 노드는 기존 지원 검사에서 거절하며 추측한 CLR 계약으로 생성하지 않는다. 따라서 C# 표현 결정은 이 편집/저장 흐름의 선행 조건이 아니다. 이미 실행용 property 노드가 소비하는 속성의 종류 전환·함수 ABI 연결은 이번 완료 범위가 아니며, 함수/실행 경로를 연결할 때 별도로 결정해야 한다.
 
-새 native `enum` 선언과 `field ... enum Qualified::Owner`는 갱신된 parser가 필요하다. 구버전 롤백 패키지는 새 종류 데이터를 읽지 못하며 자동 구버전 변환이나 프로젝트 마이그레이션을 하지 않는다. 알려지지 않은 profile을 보존한 채 거절한다. 패키지 복원 검증과 구버전 데이터 호환성을 혼동하지 않는다.
+새 `field ... enum Qualified::Owner`는 갱신된 parser가 필요하다. 보관 롤백 `9d6f950`은 종류 `enum` 선언은 읽지만 이번 종류 속성 문법은 읽지 못한다. 자동 구버전 변환이나 프로젝트 마이그레이션을 하지 않으며 알려지지 않은 profile을 보존한 채 거절한다. 패키지 복원 검증과 구버전 데이터 호환성을 혼동하지 않는다.
 
 ## 검증과 마감
 
@@ -25,6 +25,19 @@
 
 초기 진단 실패는 별도 보존한다. 검사 입력의 중복 표시명과 object 값 요청 형식은 실제 계약에 맞춰 수정했다. 객체 typed path와 frontend 저장 직렬화의 종류 허용 누락은 기존 ID/소유/계약 검사를 유지하며 enum만 추가했다. 리소스 재핀 과정의 바이너리/canonical 혼합은 바이너리 항목을 원본 그대로 복원해 수정했다. Undo 검사는 기존 속성 section에 포커스를 두고 실행한다. 응답 보류 검사는 보류 중 전역 idle을 기다리지 않되 실제 응답 보류·새 입력·receipt·cold/재저장 검사를 유지한다.
 
-최종 정확한 source commit의 LF/CRLF 독립 checkout·새 교차 패키지·압축 전체 SHA/CRC/모드 복원·UI·실패 수명관리 및 최신/롤백 지속 보관 결과는 최종 실행 뒤 기록한다. 기존 79단계를 유지하고 새 native/UI/객체/패키지 흐름 7단계를 더한 `--suite enum-values` 86단계가 대상이다. SDK/의존성 seed와 이전 정상 롤백 증거의 재사용은 새 실행과 구별한다. 실제 Windows/WebView2·물리 모바일·전체 UI·Space/Library 전달은 미검증이다.
+최종 source `7191fb1932543171752b2f73115f358888f53dcd`에서 `--suite enum-values` **86단계가 모두 통과**했다. LF 독립 checkout 37단계, CRLF 독립 checkout 31단계, 새 교차 패키지/전체 SHA·CRC·모드 복원/UI/실패 수명관리 18단계다. 기존 79단계도 이번 코드에서 재실행했고 새 native/UI/객체/패키지 흐름 7단계를 더했다. 단계 수는 빌드·probe를 포함하며 사용자 흐름 수와 구별한다. 새 속성의 타입·선택 ID가 Save/cold 후에도 남는 것을 기본/독립 화면과 패키지/복원본에서 확인했다. 이전 단계의 수치를 합쳐 이번 실행 성공으로 세지 않는다.
+
+최종 기록은 `/workspace/artifacts/v536-verification-managed/runs/ade2f988fce9473996d68e3d9f716e82.json`, 증거 ZIP은 같은 이름의 `.zip`이다. 증거 크기 9,070,629 bytes, SHA-256은 `77bfaa238f401c3396b1a62d7c6847ed48e588703e8aca5b7a84f11e2ea1787e`다. 동일 환경의 재연결 뒤 creator PID/시작 시각과 root를 확인해 기존 실행을 유지했다. 도구 세션 유실을 검사 재실행으로 처리하지 않았다. 최종 로그는 `passed`, record는 오류 없는 `cleaned`, 실행별 RAM root는 제거됐다.
+
+관리 보관소 `/workspace/artifacts/v536-verification-managed/packages`에 아래 두 세대를 지속 보관했다. 새 압축본의 전체 파일·CRC·SHA·권한을 복원하고 실제 복원본 UI를 실행했다. 승격 후 최신/롤백 ZIP 전체도 다시 대조했고 롤백 entry는 승격 전 최신 entry와 동일하다. 최종 결과 기록 커밋은 이 문서와 수용 목록만 바꾸며 실행·검사 코드는 패키지 출처와 같다.
+
+| 보관본 | 실행 코드 출처 | ZIP SHA-256 | 크기·목록 |
+|---|---|---|---|
+| 최신 | `7191fb1932543171752b2f73115f358888f53dcd` | `693e540e55f5ca4b91a4d23ed9b290f47ac04ce76968a09b45087c63242fb55e` | 51,222,474 bytes, 파일 2,360 + 디렉터리 147 |
+| 롤백 | `9d6f95080d7a1b42389b9f33416e7053eea5bc04` | `98faec83b2121d221abb5e2a6ca406924e110ef252727c74598e1bfe7f20319a` | 51,217,934 bytes, 파일 2,359 + 디렉터리 147 |
+
+최신 package manifest SHA-256은 `8cc0b5e851c549ee824204e13b9ea645cf6975112e4f28c756473c5a540d94fb`다. SDK 10.0.401/의존성 seed의 검증된 바이트와 이전 정상 롤백의 실행 증거는 재사용했다. 롤백 ZIP은 이번에도 전체 무결성을 대조했지만 그 구버전 UI를 다시 실행하지 않았다. 실제 Windows/WebView2·물리 모바일·전체 UI·Space/Library 전달은 미검증이다.
+
+사전 예산은 지속 공간 144MiB(안전 여유 64MiB 포함), 별도 RAM 파일시스템 3GiB, 추가 메모리 7GiB와 안전 여유 1GiB를 유지했다. 최종 실행 전후 지속 공간 여유는 2,275,610,624 → 2,264,702,976 bytes로 순증가 **10,907,648 bytes(10.40MiB)**다. 집중 검사 시작부터 최종 실행 정리까지 순증가는 **14,352,384 bytes(13.69MiB)**다. 작업자 측 최소 관측 여유는 2,275,500,032 bytes, cgroup 메모리 최고 관측값은 4,546,109,440 bytes다. 증거와 두 패키지를 보존한 뒤 해당 실행이 만든 빌드·checkout·캐시·패키징 임시물만 정리했다. 승인된 관리 보관소의 두 세대 교체 외 과거 자료는 삭제하지 않았다. 수치 보고는 `/workspace/scratch/v666-information-enum-values/FINAL_REPORT.json`에 남긴다.
 
 종류 전체 보관/복구·소비자 삭제 대응 UI·C# 표현은 이번 완료와 구분한다. 기존 ABI/Set 지원 경계, B2/M4/M11/M12 및 V2–V9는 그대로다. 3D/권한 별도 팩, 이동 연출과 작업 실행 분리 합의도 유지한다.
