@@ -58,3 +58,5 @@
 M11 독립 슬롯 창의 새 전환, 모바일 viewport 진입과 ref/out의 모든 타입/profile/제어 조합은 이번 UI 검사 완료로 집계하지 않는다.
 
 실제 Windows apphost/WebView2·실제 모바일 기기·전체 UI·Library/Space 전달 완료를 뜻하지 않는다. B2 권한 backend, 종류 C# 표현/사용 중 삭제 대응, M4/M12 및 3D·권한 별도 팩은 기존 고정 잔여다. 3D 이동은 표시 연출이고 작업 실행 조건이 아니다.
+
+이 문서는 일반 ref/out 단위 게시 당시의 경계다. 이후 직접 소유 whole-body의 this·재귀·scoped import 연결은 [문맥 지원 검증](VALIDATION_V666_NODE_INTERNAL_CONTEXT.md)에서 별도로 다룬다. 기존 검사의 whole-body 거절 사례는 관측되지 않은 다른 구현 receiver로 좁혀 기존 보호를 검증한다.

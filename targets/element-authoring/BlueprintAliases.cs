@@ -7,7 +7,7 @@ internal static class BlueprintAliases
  public static JsonObject Prepare(JsonObject request)
  {
   var graph=request["graph"]!.DeepClone().AsObject();var feature=new Parser(request["featureSource"]!.GetValue<string>(),"<alias-feature>").ParseElement();
-  if(feature.Kind!="function"||graph["feature"]?.ToString()!=feature.Id||graph["nodes"]!.AsArray().Any(n=>n!["implementationContext"] is not null||n["forwardCallerStorage"]?.GetValue<bool>()==true))throw new ArgumentException("Ordinary owned root alias plan required");
+  if(feature.Kind!="function"||graph["feature"]?.ToString()!=feature.Id||(graph["nodes"]!.AsArray().Any(n=>n!["implementationContext"] is not null||n["forwardCallerStorage"]?.GetValue<bool>()==true)||FeatureBlueprint.SupportsPrivateGraphs(graph["profile"]?.ToString())&&BlueprintTree.Nodes(graph).Any(entry=>entry.Node["implementationContext"] is not null)))throw new ArgumentException("Ordinary owned root alias plan required");
   var plan=request["plan"]!.AsObject();if(plan.Any(p=>p.Key is not ("aliases" or "bindings"))||plan["aliases"] is not JsonArray edits||edits.Count is <1 or >64||plan["bindings"] is not JsonArray bindings||bindings.Count>128)throw new ArgumentException("Bounded alias names and binding plan required");
   string profile=graph["profile"]!.ToString();if(profile is FeatureBlueprint.Profile or FeatureBlueprint.ImplicitProfile or FeatureBlueprint.MultiOutputProfile or FeatureBlueprint.LocalsProfile or FeatureBlueprint.RefNodesProfile or FeatureBlueprint.ExternalRefsProfile)graph["profile"]=FeatureBlueprint.AliasLocalsProfile;
   else if(!FeatureBlueprint.SupportsPrivateGraphs(profile)&&profile!=FeatureBlueprint.AliasLocalsProfile)throw new ArgumentException("Current alias profile required");

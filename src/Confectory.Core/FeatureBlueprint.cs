@@ -95,6 +95,7 @@ public static partial class FeatureBlueprint
         Need(operation is "featureBlueprintDescribe" or "featureBlueprintAssemble" or "featureBlueprintNodes" or "featureBlueprintNodeProbe", "GRAPH_OPERATION", operation);
         var feature = new Parser(S(request, "featureSource"), "<feature-contract>").ParseElement();
         Need(feature.Kind == "function" && feature.Signature is not null, "GRAPH_FEATURE_CONTRACT", feature.Id);
+        if(request["sourcePath"] is null && request["implementationContext"] is JsonObject rootContext && SupportsPrivateGraphs(request["graph"]?["profile"]?.ToString()) && PrivateContext(request["graph"]!.AsObject()))Need(rootContext["feature"]?.ToString()==feature.Id,"GRAPH_IMPLEMENTATION_CONTEXT_CONTRACT",feature.Id);
         _ = BlueprintOutputSnapshot.Read(feature);
         var contract = SignatureNode(feature.Signature!);
         string contractHash = Hash(CanonicalText(new JsonObject { ["feature"] = feature.Id, ["signature"] = contract.DeepClone() }));
@@ -142,7 +143,7 @@ public static partial class FeatureBlueprint
             Need(properties||!HasObjectSignature(signature),"GRAPH_OBJECT_PROFILE",id);
             Need(refProfile || !signature.Args.Any(p=>p.IsRef),"GRAPH_REF_PROFILE",id);
             Need(multiOutput || !signature.Args.Any(p=>p.IsOut), "GRAPH_PARAMETER_MODE_PROFILE", id);
-            Need(value["implementationContext"] is JsonObject || !signature.Args.Any(p => (p.Name.StartsWith("__fg_", StringComparison.Ordinal) || p.Name.StartsWith("fg_call_", StringComparison.Ordinal))), "NODE_RESERVED_NAME", id);
+            Need(value["implementationContext"] is JsonObject || kind=="graph"&&PrivateContext(value["graph"]!.AsObject()) || !signature.Args.Any(p => (p.Name.StartsWith("__fg_", StringComparison.Ordinal) || p.Name.StartsWith("fg_call_", StringComparison.Ordinal))), "NODE_RESERVED_NAME", id);
             Need(control != "branch" || signature.Return == "bool", "GRAPH_BRANCH_TYPE", id);
             if(kind=="export")Need(signature.Args.Count==1&&signature.Args[0].Mode is null&&signature.Args[0].Name=="value"&&FeatureOutputs(feature.Signature!).Any(p=>p.Name==S(value,"output")&&p.Type==signature.Args[0].Type)&&control=="next"&&signature.Return=="void","GRAPH_OUTPUT_CONTRACT",id);
             if(kind=="set")Need(signature.Args.Count==1&&signature.Args[0].Mode is null&&signature.Args[0].Name=="value"&&signature.Return=="void"&&control=="next"&&locals.TryGetValue(S(value,"local"),out var storage)&&S(storage,"type")==signature.Args[0].Type,"GRAPH_LOCAL_CONTRACT",id);
@@ -189,8 +190,9 @@ public static partial class FeatureBlueprint
             if(kind=="graph"){
                 var childRequest=PrivateRequest(request,value,signature);
                 var child=Process(childRequest);request["privateChildren"]![id]=child;
+                if(child["usesImplementationContext"]?.GetValue<bool>()==true)definition["contextBoundary"]=true;
                 definition["graph"]=SemanticGraph(value["graph"]!.AsObject());
-                foreach(var imported in child["imports"]?.AsArray()??new JsonArray())references[S(imported,"feature")]=Import(S(imported,"feature")).Hash;
+                foreach(var imported in child["imports"]?.AsArray()??new JsonArray())references[S(imported,"feature")]=Import(S(imported,"feature"),imported!["binding"]?.ToString()!="implementation-context").Hash;
             }
             Need(switchFlow||!value.ContainsKey("branchOwner")&&!value.ContainsKey("executionEnum"),"GRAPH_SWITCH_PROFILE",id);
             if(value.ContainsKey("branchOwner"))definition["branchOwner"]=Id(value,"branchOwner");
@@ -217,7 +219,7 @@ public static partial class FeatureBlueprint
             {
                 var actualContext = request["implementationContext"] as JsonObject;
                 Need(implicitEnd && kind == "code" && actualContext is not null && context["implementation"]?.ToString() == actualContext["implementation"]?.ToString() && context["feature"]?.ToString() == actualContext["feature"]?.ToString() && (multiOutput || JsonNode.DeepEquals(context["signature"], actualContext["signature"])) && context["imports"]!.AsObject().All(p => actualContext["imports"]!.AsObject().ContainsKey(p.Key) && JsonNode.DeepEquals(p.Value, actualContext["imports"]![p.Key])), "GRAPH_IMPLEMENTATION_CONTEXT_STALE", id);
-                Need(context["feature"]?.ToString() == feature.Id && CanonicalText(context["signature"]) == CanonicalText(SignatureNode(signature)), "GRAPH_IMPLEMENTATION_CONTEXT_CONTRACT", id);
+                Need(context["feature"]?.ToString() == (request["sourcePath"] is null ? feature.Id : actualContext!["feature"]?.ToString()) && CanonicalText(context["signature"]) == CanonicalText(SignatureNode(signature)) && (request["sourcePath"] is null || signature.Matches(feature.Signature)), "GRAPH_IMPLEMENTATION_CONTEXT_CONTRACT", id);
                 Need(!nodes.Values.Any(HasContext), "GRAPH_IMPLEMENTATION_CONTEXT_DUPLICATE", id);
                 foreach (var binding in actualContext!["imports"]!.AsObject()) references[S(binding.Value, "feature")] = Import(S(binding.Value, "feature"), false).Hash;
                 var boundContext=actualContext!.DeepClone().AsObject();
@@ -413,7 +415,7 @@ public static partial class FeatureBlueprint
             ["compiled"] = false,
             ["executed"] = false
         };
-        IEnumerable<string> NodeImports(Node node) => ((JsonObject)node.Definition["featureContracts"]!).Select(p => p.Key).Order(StringComparer.Ordinal);
+        IEnumerable<string> NodeImports(Node node) => ((JsonObject)node.Definition["featureContracts"]!).Select(p => p.Key).Where(id=>node.Kind!="graph"||request["privateChildren"]![node.Id]!["imports"]!.AsArray().Any(import=>import!["feature"]!.ToString()==id&&import["binding"]?.ToString()!="implementation-context")).Order(StringComparer.Ordinal);
         string ImportParameter(string feature) => Import(feature).Alias;
         string prefix="__fg_";if(nested)prefix+="p"+Hash(feature.Id+"/"+request["sourcePath"])[..16]+"_";if(multiOutput)while(feature.Signature!.Args.Any(p=>p.Name.StartsWith(prefix,StringComparison.Ordinal)))prefix="_"+prefix;
         string Symbol(string id) => prefix + Hash(id)[..32];
@@ -541,7 +543,7 @@ public static partial class FeatureBlueprint
             // A prepared independent node is checked without calling it or allocating a delegate.
             // Suppress only the generated local function declaration's unused warning.
             if (!reachable.Contains(id)) output.AppendLine("#pragma warning disable CS8321");
-            output.AppendLine("static " + ExecutionType(node) + " " + Symbol(id) + "(" + string.Join(",", node.Signature.Args.Select(p => p.Declaration()).Concat(WrappedReturn(node) ? new[] { "out " + node.Signature.Return + " __fg_wrapped_return" } : Array.Empty<string>()).Concat(NodeImports(node).Select(f => Generation.Interface(f) + " " + ImportParameter(f)))) + ") {");
+            output.AppendLine((node.Definition["contextBoundary"]?.GetValue<bool>()==true?"":"static ") + ExecutionType(node) + " " + Symbol(id) + "(" + string.Join(",", node.Signature.Args.Select(p => p.Declaration()).Concat(WrappedReturn(node) ? new[] { "out " + node.Signature.Return + " __fg_wrapped_return" } : Array.Empty<string>()).Concat(NodeImports(node).Select(f => Generation.Interface(f) + " " + ImportParameter(f)))) + ") {");
             if (!reachable.Contains(id)) output.AppendLine("#pragma warning restore CS8321");
             string marker = "node:" + feature.Id + "/" + id + "@" + manifestNodes.Single(n => n!["id"]!.ToString() == id)![node.Kind == "call" ? "definitionHash" : "implementationHash"]!.ToString();
             output.AppendLine("#line 1 " + JsonSerializer.Serialize(marker));

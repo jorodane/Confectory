@@ -24,6 +24,7 @@ public static partial class FeatureBlueprint
             ["node"] = selected ? probe![(S(node, "id").Length + 1)..] : null,
             ["featureSource"] = source, ["graph"] = graph, ["sourcePath"] = key, ["sourceOwner"] = parent["sourceOwner"]!.DeepClone(),
             ["featureContracts"] = parent["featureContracts"]?.DeepClone(), ["propertyContracts"] = parent["propertyContracts"]?.DeepClone(),
+            ["implementationContext"] = parent["implementationContext"]?.DeepClone(),
             ["inspectStalePostCalls"] = parent["inspectStalePostCalls"]?.DeepClone(),
             ["implementations"] = parent["implementations"]?.DeepClone()
         };
@@ -33,6 +34,8 @@ public static partial class FeatureBlueprint
     {
         var request = original.DeepClone().AsObject();
         request["privateChildren"] = new JsonObject();
+        if (request["sourcePath"] is null && SupportsPrivateGraphs(request["graph"]?["profile"]?.ToString()))
+            Need(BlueprintTree.Nodes(request["graph"]!.AsObject()).Count(entry => entry.Node["implementationContext"] is JsonObject) <= 1, "GRAPH_IMPLEMENTATION_CONTEXT_DUPLICATE", "physical implementation member");
         if(SupportsPrivateGraphs(request["graph"]?["profile"]?.ToString()) && request["sourceOwner"] is null){
             string owner=request["implementationContext"]?["implementation"]?.ToString()??S(request["graph"],"feature");
             request["sourceOwner"]=owner+(request["bodyTarget"] is null?"":"/body:"+S(request,"bodyTarget"));
@@ -45,6 +48,7 @@ public static partial class FeatureBlueprint
             if (path is not null && !refusal.Subject.StartsWith(path + "/", StringComparison.Ordinal)) throw new Refusal(refusal.Code, path + "/" + refusal.Subject);
             throw;
         }
+        result["usesImplementationContext"] = request["graph"]!["nodes"]!.AsArray().Any(node => node?["implementationContext"] is JsonObject) || request["privateChildren"]!.AsObject().Any(child => child.Value?["usesImplementationContext"]?.GetValue<bool>() == true);
         // A qualified independent leaf probe already carries its complete path.
         if (S(request, "operation") == "featureBlueprintNodeProbe" && request["node"]!.ToString().Contains('/')) return result;
         string? prefix = request["sourcePath"]?.ToString();

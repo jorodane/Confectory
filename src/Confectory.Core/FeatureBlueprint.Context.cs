@@ -21,6 +21,7 @@ public static partial class FeatureBlueprint
     };
 
     static bool HasContext(Node node) => node.Definition["implementationContext"] is JsonObject;
+    static bool PrivateContext(JsonObject graph) => BlueprintTree.Nodes(graph).Any(entry => entry.Node["implementationContext"] is JsonObject);
     static string ContextMarker(Node node,string fallback) => node.Definition["sourceIdentity"]?.GetValue<string>() ?? fallback;
     static string ContextMember(Node node, string source, string marker) =>
         "public " + node.Signature.Return + " Invoke(" + string.Join(",", node.Signature.Args.Select(p => p.Declaration())) + ") {\n#line 1 " +
