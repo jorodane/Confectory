@@ -1,9 +1,9 @@
 """원본 분기 반환 카드의 생성·선택·연결·저장과 실패 복구."""
-import ast,copy,json,sys
+import ast,copy,json,pathlib,sys
 from playwright.sync_api import sync_playwright,expect
 import v666_node_branch_exit_fixture as e
 n=e.n;x=e.x;f=e.f;feature=n.feature;graph=n.root;child=n.child;mode=sys.argv[3] if len(sys.argv)>3 else 'normal'
-helper=f.repo/'tests/web/v666_node_internal_ui.py';names={'original','panel','pending','restart','save','review','open_graph'};exec(compile(ast.Module(body=[r for r in ast.parse(helper.read_text()).body if isinstance(r,ast.FunctionDef) and r.name in names],type_ignores=[]),str(helper),'exec'))
+helper=pathlib.Path(__file__).with_name('v666_node_internal_ui.py');names={'original','panel','pending','restart','save','review','open_graph'};exec(compile(ast.Module(body=[r for r in ast.parse(helper.read_text()).body if isinstance(r,ast.FunctionDef) and r.name in names],type_ignores=[]),str(helper),'exec'))
 def pending():return [(key,value) for key,value in f.pending()['blueprint'] if value.get('type')=='branch-exits']
 def add(y,member=None):
  before=set(panel().locator('[data-bp-node^="$exit:"]').evaluate_all('(els)=>els.map(el=>el.dataset.bpNode)'));panel().locator('.bp-viewport').click(button='right',position={'x':700,'y':y});p=f.page.get_by_role('dialog',name='블루프린트 노드 검색',exact=True);p.locator('[data-resource-kind]').select_option('branch-exit');p.locator('[data-resource-branch-exit]').click();ids=panel().locator('[data-bp-node^="$exit:"]').evaluate_all('(els)=>els.map(el=>el.dataset.bpNode)');id=next(v for v in ids if v not in before)
