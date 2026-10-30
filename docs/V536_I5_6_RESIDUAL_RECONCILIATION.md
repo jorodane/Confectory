@@ -13,7 +13,7 @@
 | 9: 함수 핀 타입 | 원본 타입 선택의 정보/참조/기능·외부 타입 선택 | `Parser.Types`/`Type`은 기본 CLR형과 배열만 받는다. 속성 schema의 typed datum 구현과 함수 계약은 별개 | 기존 명세의 문법/타입 및 UI 연결 미구현. 선택기를 켜는 것만으로 완료 아님 |
 | 9: 표시명 | 한글·공백 표시명과 생성 코드의 식별자를 구별 | 현재 함수 pin name이 native parameter 식별자에 직접 사용됨 | 표시 metadata/기존 의미 대응 미구현. 별도 영구 pin ID 재설계는 승인되지 않았으며 추가하지 않음 |
 | I6: 아이콘 | 원본 `editIconValue`의 기호/이모지/사용자 로컬 PNG/JPG/WebP 선택·적용 | 요소/속성/함수 icon callback이 unsupported, 모바일 pin icon은 disabled. 저장 metadata/후보 연결 부족 | 원본 UI 연결 잔여. AI 이미지 생성 provider와 분리 |
-| B2: 실제 작업자 배지 | 선언별 실제 배정/변경 중 작업자 표시 | `WebState.csbody`에 이미 `assignedNode`, `supportingDraftIds`, `changedIds`, 상태·Helper가 있다. 원본 배지와의 정확한 범위/표시 연결이 빠짐 | 전부 backend 부재로 세지 않는다. 기존 실제 데이터의 adapter·project 범위 검증이 우선. 가짜 작업자 생성 금지 |
+| B2: 실제 작업자 배지 | 선언별 실제 배정/변경 중 작업자 표시 | `WebState.csbody`에 이미 `assignedNode`, `supportingDraftIds`, `changedIds`, 상태·Helper가 있다. v666에서 실제 배정/관측 변경/지원 초안을 소유 선언·폴더·기본/독립 헤더로 연결함 | [B2 실제 지원/검증](VALIDATION_V666_WORKER_BADGES.md). 현재 로컬 소유 ProjectContext 범위이며 다른 사용자/그룹은 권한 backend 선행. 가짜 작업자 생성 금지 |
 | A4–A6 | 등록/all-target, copy/상속, whole/forward/동일 callee 복수 사용의 명시 ABI 갱신 | 단일 receipt와 all-target 그룹 결합·모든 사용처/소유 source의 결합 검증이 부족 | 기존 요구의 결합 구현. 외부 권한 확대/자동 재작성과 구별 |
 | M4 | 원본 async 전환 | 현재 sync 실행 profile와 await/저장 연결이 없음 | 실행 계약 구현 잔여. 버튼만 활성화하지 않음 |
 | M11 | C# 동작→내부 graph | 전체 구현 C# lift 기반은 있으나 개별 node의 활성 구현/원문을 보존하는 전환 거래가 없음 | node 단위 변환 연결 잔여. 임의 C#→시각 로직 추론을 요구하지 않음 |

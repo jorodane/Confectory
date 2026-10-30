@@ -8,7 +8,7 @@
 | 실제 상속 변경 | 요소 부모 선택의 별도 경로와 기존 effective schema guard. private 취소·Save·cold·Review/명시 Confirm 회귀 | 분류 드롭을 parent=null로 해석하지 않음. 잘못된 상속 데이터는 자동 복사/삭제해 통과시키지 않음 |
 | 이름·변형·Data | 앞선 F2/개념 부모·자손·inline 바리에이션·embedded 직접 셀 편집·그룹 확정 유지. 독립 소유 개념 Data의 실제 저장/취소/cold/참조 상세/명시 Confirm9건, embedded7건 검증 | object 외 여섯 선언의 공통 설명 셀과 직접 등록 참조·문자 아이콘/이름을 이번 유한 목록으로 연결한다. source별 실제 서명/스키마/모듈 계약은 기존 상세 편집, 외부 runtime Data/배정 backend는 별도 제한이다. 마지막 수용 결과는 새 검증 문서를 따른다 |
 | 삭제·복구 | 참조된 대상 차단, 비파괴 등록 해제·원본/초안 archive·사용자 메뉴·다중 선택·취소/cold/명시 확정 및 복구 | 원본 물리 파일 영구 삭제 아님. declared reference만 검사하며 C# 문자열/자연어의 모든 사용처를 증명하지 않음. receipt import/commit check-path 집중 검사는 게시 전 잔여 |
-| 원본 화면 | 창678×458, title/tabs/tools/pane/tree/items6 영역의 동일 viewport 실제 치수 일치, 주요 실제 캡처 확인. 독립 Data 행11영역 크기/글꼴/여백/모서리 및 실제 상속 Hover/Shift 역참조 검증 | 저장 문자 아이콘 Data 11영역 및 tree/목록 이름을 연결한다. 원본 숫자 배지는 자식 수가 아니라 배정 작업자 수이며 해당 선언별 배정 backend는 없다. 이미지 asset·OS drag preview/모든 화면 pixel equality 미검증. 원본 demo 데이터/사용자 이름을 복사하지 않음 |
+| 원본 화면 | 창678×458, title/tabs/tools/pane/tree/items6 영역의 동일 viewport 실제 치수 일치, 주요 실제 캡처 확인. 독립 Data 행11영역 크기/글꼴/여백/모서리 및 실제 상속 Hover/Shift 역참조 검증 | 저장 문자 아이콘 Data 11영역 및 tree/목록 이름을 연결한다. 원본 숫자 배지는 자식 수가 아니라 배정 작업자 수이며 현재 v666 B2에서 기존 실제 배정·변경 데이터의 소유 선언/폴더/헤더 어댑터를 연결했다. [현재 범위](VALIDATION_V666_WORKER_BADGES.md)를 따른다. 이미지 asset·OS drag preview/모든 화면 pixel equality 미검증. 원본 demo 데이터/사용자 이름을 복사하지 않음 |
 | 환경/게시 | Linux 생성 엔진·Chromium·portable compiler, 격리 자료만 사용 | 실제 Windows/Android/OS drag/touch/실계정·유료 inference 미실행. 이전 c08d08f 중간 package/checkout/게시 완료. 이번 Browser 단계의 별도 결과와 남은 전달 제한은 새 검증 문서에 구분 |
 
 ## 다음 고정 순서

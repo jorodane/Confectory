@@ -109,7 +109,7 @@ def main():
     parser.add_argument('--commit', required=True)
     parser.add_argument('--sdk', type=Path, required=True)
     parser.add_argument('--nuget-seed', type=Path, required=True)
-    parser.add_argument('--suite',choices=['headers','card-images','canvas','owned-information','owned-conversion','action-icons','declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement'],default='headers')
+    parser.add_argument('--suite',choices=['headers','card-images','canvas','owned-information','owned-conversion','action-icons','declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement','worker-badges'],default='headers')
     args = parser.parse_args()
     repo = args.repo.resolve(); persistent = args.persistent.absolute()
     persistent.parent.mkdir(parents=True, exist_ok=True)
@@ -170,22 +170,26 @@ def main():
             if not Path(full['output']).is_relative_to(checkout/'examples/editor-home/.confectory'):
                 raise RuntimeError('Engine wrote outside its owned checkout')
             # Check the selected unit first; every existing regression still runs.
-            if args.suite=='enum-retirement':
+            if args.suite=='worker-badges':
+                work.run(label+'-worker-badges-projection',['node',str(checkout/'tests/web/v666_worker_badges_projection.mjs'),str(checkout)],cwd=checkout,env=env)
+                work.run(label+'-worker-badges-ui',[sys.executable,str(checkout/'tests/web/v666_worker_badges_ui.py'),str(checkout),str(report)],cwd=checkout,env=env)
+                work.run(label+'-worker-badges-contributions',[sys.executable,str(checkout/'tests/web/v666_worker_badges_contributions.py'),str(checkout),str(report)],cwd=checkout,env=env)
+            if args.suite in ['enum-retirement','worker-badges']:
                 work.run(label+'-information-enum-retirement',[sys.executable,str(checkout/'tests/web/v666_information_enum_retirement_ui.py'),str(checkout),str(report),'normal' if label=='lf' else 'loss',*(['view'] if label=='crlf' else [])],cwd=checkout,env=env)
                 if label=='lf':
                     work.run('lf-information-enum-retirement-unedited',[sys.executable,str(checkout/'tests/web/v666_information_enum_retirement_ui.py'),str(checkout),str(report),'unedited'],cwd=checkout,env=env)
-            if args.suite in ['enum-values','enum-retirement']:
+            if args.suite in ['enum-values','enum-retirement','worker-badges']:
                 work.run(label+'-information-enum-values-native',[sys.executable,str(checkout/'tests/web/v666_information_enum_values_native.py'),str(checkout)],cwd=checkout,env=env)
                 work.run(label+'-information-enum-values-ui',[sys.executable,str(checkout/'tests/web/v666_information_enum_values_ui.py'),str(checkout),str(report),'normal' if label=='lf' else 'late',*(['view'] if label=='crlf' else [])],cwd=checkout,env=env)
                 if label=='lf':
                     work.run('lf-information-enum-object-values',[sys.executable,str(checkout/'tests/web/v666_information_enum_values_ui.py'),str(checkout),str(report),'normal','object'],cwd=checkout,env=env)
-            if args.suite in ['enum-definitions','enum-values','enum-retirement']:
+            if args.suite in ['enum-definitions','enum-values','enum-retirement','worker-badges']:
                 work.run(label+'-information-enum-core',[dotnet,str(checkout/'tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll'),'EnumDefinitionTests','EnumContractTests','--require-runtime'],cwd=checkout,env=env)
                 work.run(label+'-information-enum-native',[sys.executable,str(checkout/'tests/web/v666_information_enum_native.py'),str(checkout)],cwd=checkout,env=env)
                 work.run(label+'-information-enum-ui',[sys.executable,str(checkout/'tests/web/v666_information_enum_ui.py'),str(checkout),str(report),'normal' if label=='lf' else 'late',*(['view'] if label=='crlf' else [])],cwd=checkout,env=env)
                 if label=='lf':
                     work.run('lf-information-enum-create',[sys.executable,str(checkout/'tests/web/v666_information_enum_create_ui.py'),str(checkout),str(report)],cwd=checkout,env=env)
-            if args.suite in ['pin-icons','enum-definitions','enum-values','enum-retirement']:
+            if args.suite in ['pin-icons','enum-definitions','enum-values','enum-retirement','worker-badges']:
                 work.run(label+'-module-pin-receipts',['node',str(checkout/'tests/web/v666_module_pin_receipts.mjs'),str(checkout)],cwd=checkout,env=env)
                 work.run(label+'-module-pin-native',[sys.executable,str(checkout/'tests/web/v666_module_pin_native.py'),str(checkout)],cwd=checkout,env=env)
                 work.run(label+'-module-pins',[sys.executable,str(checkout/'tests/web/v666_module_pin_ui.py'),str(checkout),str(report),'multi' if label=='lf' else 'late','view','a1'],cwd=checkout,env=env)
@@ -194,22 +198,22 @@ def main():
                     work.run('lf-new-set-output-icon',[sys.executable,str(checkout/'tests/web/v666_new_set_output_icon_ui.py'),str(checkout),str(report)],cwd=checkout,env=env)
             for script in ['v536_mixed_declaration.mjs','v536_local_header_image.mjs']:
                 work.run(label+'-'+Path(script).stem,['node',str(checkout/'tests/web'/script),str(checkout)],cwd=checkout,env=env)
-            if args.suite in ['owned-information','owned-conversion','action-icons','declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement']:
+            if args.suite in ['owned-information','owned-conversion','action-icons','declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement','worker-badges']:
                 work.run(label+'-owned-native',[sys.executable,str(checkout/'tests/web/v666_owned_information_native.py'),str(checkout)],cwd=checkout,env=env)
                 for script in ['v536_information_types.py','v536_schema_save_metadata.py']:
                     work.run(label+'-'+Path(script).stem,[sys.executable,str(checkout/'tests/web'/script),str(checkout)],cwd=checkout,env=env)
-                if args.suite in ['owned-conversion','action-icons','declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement']:
+                if args.suite in ['owned-conversion','action-icons','declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement','worker-badges']:
                     work.run(label+'-conversion-native',[sys.executable,str(checkout/'tests/web/v666_owned_conversion_native.py'),str(checkout)],cwd=checkout,env=env)
                     cases=[('general','normal','general',[]),('reference-array','normal','ref-array',[])] if label=='lf' else [('named-detached','normal','named',['view']),('late-object','late','object',[])]
                     for name,mode,scenario,flags in cases:
                         work.run(label+'-conversion-'+name,[sys.executable,str(checkout/'tests/web/v666_owned_conversion_ui.py'),str(checkout),str(report),mode,scenario,*flags],cwd=checkout,env=env)
-                    if args.suite in ['action-icons','declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement']:
+                    if args.suite in ['action-icons','declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement','worker-badges']:
                         work.run(label+'-action-icon-native',[sys.executable,str(checkout/'tests/web/v666_action_icon_native.py'),str(checkout)],cwd=checkout,env=env)
                         work.run(label+'-action-icon-ui',[sys.executable,str(checkout/'tests/web/v666_action_icon_ui.py'),str(checkout),str(report),'normal' if label=='lf' else 'late'],cwd=checkout,env=env)
                         work.run(label+'-action-copy-icons',[sys.executable,str(checkout/'tests/web/v666_action_icon_copy_ui.py'),str(checkout),str(report),'normal',*(['view'] if label=='crlf' else [])],cwd=checkout,env=env)
                         if label=='lf':
                             work.run(label+'-action-private-icons',[sys.executable,str(checkout/'tests/web/v666_action_icon_ui.py'),str(checkout),str(report),'normal','private'],cwd=checkout,env=env)
-                    if args.suite in ['declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement']:
+                    if args.suite in ['declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement','worker-badges']:
                         work.run(label+'-declaration-icon-native',[sys.executable,str(checkout/'tests/web/v666_declaration_icon_native.py'),str(checkout)],cwd=checkout,env=env)
                         work.run(label+'-declaration-icons',[sys.executable,str(checkout/'tests/web/v666_declaration_icon_ui.py'),str(checkout),str(report),'normal' if label=='lf' else 'late','category' if label=='lf' else 'module',*(['view'] if label=='crlf' else [])],cwd=checkout,env=env)
                         if label=='lf':
@@ -268,7 +272,7 @@ def main():
         work.run('windows-probe',[sys.executable,str(checkout/'tests/probes/desktop_package.py'),str(checkout),str(package)],cwd=checkout,env=env)
         packaged_report = work.evidence/'packaged-engine.json'
         atomic_json(packaged_report, {'run':[dotnet,str(package/'content/runtime/Confectory.App.dll')]})
-        if args.suite in ['owned-conversion','action-icons','declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement']:
+        if args.suite in ['owned-conversion','action-icons','declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement','worker-badges']:
             work.run('packaged-owned-conversion',[sys.executable,str(checkout/'tests/web/v666_owned_conversion_ui.py'),str(package/'content'),str(packaged_report),'normal','ref-array'],cwd=checkout,env=env)
         elif args.suite=='owned-information':
             work.run('packaged-owned-information',[sys.executable,str(checkout/'tests/web/v666_owned_information_ui.py'),str(package/'content'),str(packaged_report),'normal'],cwd=checkout,env=env)
@@ -281,24 +285,26 @@ def main():
         else:
             work.run('packaged-renderer',[sys.executable,str(checkout/'tests/web/v536_local_header_image_ui.py'),str(package/'content'),str(packaged_report),'late','object'],cwd=checkout,env=env)
             work.run('packaged-feature-renderer',[sys.executable,str(checkout/'tests/web/v536_local_header_image_ui.py'),str(package/'content'),str(packaged_report),'late','feature'],cwd=checkout,env=env)
-        if args.suite in ['action-icons','declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement']:
+        if args.suite in ['action-icons','declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement','worker-badges']:
             work.run('packaged-action-icons',[sys.executable,str(checkout/'tests/web/v666_action_icon_ui.py'),str(package/'content'),str(packaged_report),'normal'],cwd=checkout,env=env)
-        if args.suite in ['declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement']:
+        if args.suite in ['declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement','worker-badges']:
             work.run('packaged-declaration-icons',[sys.executable,str(checkout/'tests/web/v666_declaration_icon_ui.py'),str(package/'content'),str(packaged_report),'normal','module'],cwd=checkout,env=env)
-        if args.suite in ['pin-icons','enum-definitions','enum-values','enum-retirement']:
+        if args.suite in ['pin-icons','enum-definitions','enum-values','enum-retirement','worker-badges']:
             work.run('packaged-module-pins',[sys.executable,str(checkout/'tests/web/v666_module_pin_ui.py'),str(package/'content'),str(packaged_report),'multi','view'],cwd=checkout,env=env)
             work.run('packaged-set-output-icons',[sys.executable,str(checkout/'tests/web/v666_set_output_icon_ui.py'),str(package/'content'),str(packaged_report),'normal'],cwd=checkout,env=env)
-        if args.suite in ['enum-definitions','enum-values','enum-retirement']:
+        if args.suite in ['enum-definitions','enum-values','enum-retirement','worker-badges']:
             work.run('packaged-information-enum',[sys.executable,str(checkout/'tests/web/v666_information_enum_ui.py'),str(package/'content'),str(packaged_report),'normal'],cwd=checkout,env=env)
         for name in ['Confectory.Core.dll','Confectory.ElementAuthoring.dll']:
             matches = [p for p in files(package).values() if p.name==name]
             origin = checkout/('src/Confectory.Core/bin/Release/net10.0/'+name if name=='Confectory.Core.dll' else 'targets/element-authoring/bin/Release/net10.0/'+name)
             if not matches or any(sha(p)!=sha(origin) for p in matches):
                 raise RuntimeError('Packaged assembly differs: '+name)
-        if args.suite in ['enum-values','enum-retirement']:
+        if args.suite in ['enum-values','enum-retirement','worker-badges']:
             work.run('packaged-information-enum-values',[sys.executable,str(checkout/'tests/web/v666_information_enum_values_ui.py'),str(package/'content'),str(packaged_report),'normal'],cwd=checkout,env=env)
-        if args.suite=='enum-retirement':
+        if args.suite in ['enum-retirement','worker-badges']:
             work.run('packaged-information-enum-retirement',[sys.executable,str(checkout/'tests/web/v666_information_enum_retirement_ui.py'),str(package/'content'),str(packaged_report),'normal'],cwd=checkout,env=env)
+        if args.suite=='worker-badges':
+            work.run('packaged-worker-badges',[sys.executable,str(checkout/'tests/web/v666_worker_badges_ui.py'),str(package/'content'),str(packaged_report)],cwd=checkout,env=env)
         candidate = work.root/'package.zip'
         entry = store.prepare(package,candidate,commit,work.record.with_suffix('.zip'),inputs['identity'])
         restored = work.root/'restored'; restored.mkdir()
@@ -307,7 +313,7 @@ def main():
         # not just its ZIP CRC or a manifest comparison.
         work.run('restored-probe',[sys.executable,str(checkout/'tests/probes/desktop_package.py'),str(checkout),str(restored)],cwd=checkout,env=env)
         atomic_json(packaged_report, {'run':[dotnet,str(restored/'content/runtime/Confectory.App.dll')]})
-        if args.suite in ['owned-conversion','action-icons','declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement']:
+        if args.suite in ['owned-conversion','action-icons','declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement','worker-badges']:
             work.run('restored-owned-conversion',[sys.executable,str(checkout/'tests/web/v666_owned_conversion_ui.py'),str(restored/'content'),str(packaged_report),'late','general','view'],cwd=checkout,env=env)
         elif args.suite=='owned-information':
             work.run('restored-owned-information',[sys.executable,str(checkout/'tests/web/v666_owned_information_ui.py'),str(restored/'content'),str(packaged_report),'late','view'],cwd=checkout,env=env)
@@ -320,19 +326,21 @@ def main():
         else:
             work.run('restored-renderer',[sys.executable,str(checkout/'tests/web/v536_local_header_image_ui.py'),str(restored/'content'),str(packaged_report),'late','object'],cwd=checkout,env=env)
             work.run('restored-feature-renderer',[sys.executable,str(checkout/'tests/web/v536_local_header_image_ui.py'),str(restored/'content'),str(packaged_report),'late','feature'],cwd=checkout,env=env)
-        if args.suite in ['action-icons','declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement']:
+        if args.suite in ['action-icons','declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement','worker-badges']:
             work.run('restored-action-icons',[sys.executable,str(checkout/'tests/web/v666_action_icon_ui.py'),str(restored/'content'),str(packaged_report),'late'],cwd=checkout,env=env)
-        if args.suite in ['declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement']:
+        if args.suite in ['declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement','worker-badges']:
             work.run('restored-declaration-icons',[sys.executable,str(checkout/'tests/web/v666_declaration_icon_ui.py'),str(restored/'content'),str(packaged_report),'late','category','view'],cwd=checkout,env=env)
-        if args.suite in ['pin-icons','enum-definitions','enum-values','enum-retirement']:
+        if args.suite in ['pin-icons','enum-definitions','enum-values','enum-retirement','worker-badges']:
             work.run('restored-module-pins',[sys.executable,str(checkout/'tests/web/v666_module_pin_ui.py'),str(restored/'content'),str(packaged_report),'late','view','return'],cwd=checkout,env=env)
             work.run('restored-set-output-icons',[sys.executable,str(checkout/'tests/web/v666_set_output_icon_ui.py'),str(restored/'content'),str(packaged_report),'late'],cwd=checkout,env=env)
-        if args.suite in ['enum-definitions','enum-values','enum-retirement']:
+        if args.suite in ['enum-definitions','enum-values','enum-retirement','worker-badges']:
             work.run('restored-information-enum',[sys.executable,str(checkout/'tests/web/v666_information_enum_ui.py'),str(restored/'content'),str(packaged_report),'late','view'],cwd=checkout,env=env)
-        if args.suite in ['enum-values','enum-retirement']:
+        if args.suite in ['enum-values','enum-retirement','worker-badges']:
             work.run('restored-information-enum-values',[sys.executable,str(checkout/'tests/web/v666_information_enum_values_ui.py'),str(restored/'content'),str(packaged_report),'late','view'],cwd=checkout,env=env)
-        if args.suite=='enum-retirement':
+        if args.suite in ['enum-retirement','worker-badges']:
             work.run('restored-information-enum-retirement',[sys.executable,str(checkout/'tests/web/v666_information_enum_retirement_ui.py'),str(restored/'content'),str(packaged_report),'loss','view'],cwd=checkout,env=env)
+        if args.suite=='worker-badges':
+            work.run('restored-worker-badges',[sys.executable,str(checkout/'tests/web/v666_worker_badges_ui.py'),str(restored/'content'),str(packaged_report)],cwd=checkout,env=env)
         work.run('package-failure-lifetime',[sys.executable,str(checkout/'tests/probes/desktop_package_lifetime.py'),str(checkout),str(restored)],cwd=checkout,env=env)
         if dependency_identity(args.sdk,args.nuget_seed,commit) != inputs:
             raise RuntimeError('SDK/dependency seed changed during verification; no package promotion')

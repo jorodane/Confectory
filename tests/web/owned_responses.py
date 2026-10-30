@@ -4,8 +4,8 @@ No provider substitution, credential, external service, or product-only test bra
 """
 import http.server,json,threading
 class OwnedResponses:
- def __init__(self,target):
-  self.target=target;self.requests=[];self.errors=[];fixture=self
+ def __init__(self,target,node_source="return value + 5;"):
+  self.target=target;self.node_source=node_source;self.requests=[];self.errors=[];fixture=self
   class Handler(http.server.BaseHTTPRequestHandler):
    def log_message(self,*args):pass
    def do_POST(self):
@@ -35,7 +35,7 @@ class OwnedResponses:
      elif len(outputs)==1:
       unit=json.loads(outputs[0]['output'])
       if node_task:
-       record=json.loads(unit['text']);record['definitionHash']=unit['assignment']['definitionHash'];record['source']='return value + 5;'
+       record=json.loads(unit['text']);record['definitionHash']=unit['assignment']['definitionHash'];record['source']=fixture.node_source
        output=call('workspace_stage',{'projectId':project,'id':fixture.target,'expectedRevision':unit['revision'],'expectedHash':unit['textHash'],'text':json.dumps(record)})
       else:output=call('workspace_stage',{'projectId':project,'id':fixture.target,'expectedRevision':unit['revision'],'text':unit['text']+'\n// owned HTTP Worker draft; human review required\n'})
      else:
