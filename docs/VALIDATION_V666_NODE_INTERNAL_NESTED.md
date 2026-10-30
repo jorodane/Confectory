@@ -18,7 +18,21 @@
 
 ## 최종 독립 검사와 보관
 
-최종 실행 결과·source commit·전체 manifest·최신/롤백 패키지 및 공간 실측은 검증을 마친 뒤 이 절에 기록한다. 기존 `node-internal` 107단계 suite는 변경하지 않으며 중첩 확장의 영향 검사는 별도 `node-internal-nested` suite로 선택한다. 이전 통과 결과와 새 실행을 구분한다.
+- 실행 코드·검사 commit은 `6174389ca1a8cc300f40cae80a23d439a029fe85`이다. 최종 보고 커밋은 문서만 바꾸며 실행 코드 동등성을 별도 확인한다.
+- 최종 실행 `/workspace/artifacts/v536-verification-managed/runs/6668afd9437f4ebfb2370585da88c645.json`의 **48단계 전부 통과**: LF 22, CRLF 18, 새 교차 패키지/전체 ZIP 복원/실패 수명관리 8. 독립 Git 객체·캐시·의존 저장소로 두 checkout을 새로 만들었다.
+- 양쪽에서 Root 일반 반환/void API와 원본 화면, 중첩 API/화면, private/copy 아이콘 회귀를 새로 실행했다. native 중첩/변환 13개와 상속 소유권 2개도 **각 checkout에서 모두 통과했고 skip은 0**이다. LF는 깊이 2·7·8과 normal/storage/conflict/project, CRLF는 깊이 2와 loss/late를 실행했다.
+- 새 패키지 및 전체 파일 SHA/모드 manifest로 압축을 복원한 패키지에서 Root/중첩 UI를 실제 managed 엔진으로 다시 실행했다. 복원본의 storage/loss 및 패키지 실패 수명관리도 새 검사다. 이전 패키지의 결과로 대체하지 않았다.
+- 기존 `node-internal` 107단계 suite는 그대로 남겼다. 이번에는 영향 범위를 고른 `node-internal-nested` suite를 추가했다. 종류·작업자 배지·기타 무변경 기능의 이전 107단계 결과는 앞선 Root commit에 대한 재사용 근거이며, 최종 코드에서 107개 전체를 다시 실행했다고 집계하지 않는다. 집중 검사는 최종 production 파일 해시 일치를 확인해 보존했다.
+- 최종 증거 ZIP: `/workspace/artifacts/v536-verification-managed/runs/6668afd9437f4ebfb2370585da88c645.zip`, SHA-256 `62e548df6be0c9e9fbb031f301c5dd383d6dd1f4ca779c4b666a407d5c73eb53`. 집중 증거 ZIP SHA-256은 `d0a8e4e8682cb7461b2c66303d23ea5d53d7cb60cb055cba5b271bbf56750713`이다. 초기 빌드 진단 실패도 보존하며 정상 통과로 바꾸지 않았다.
+
+| 보관본 | 실행 코드 commit | ZIP SHA-256 | 크기 | manifest SHA-256 |
+|---|---|---|---|---|
+| 최신 | `6174389ca1a8cc300f40cae80a23d439a029fe85` | `e3ed67225865cf735b0f4cb0477feb6ad02b9615e16cde40d7c1f9357dedb137` | 51,243,792 bytes | `96c012aac675bb97f33933eb979b8970ddab034b9a0c0e3842e553bf832bdc9a` |
+| 정상 롤백 | `8269dd7270a2cd5754fd6d0131322f717077b4da` | `6d5dc695a9f2982849e5a37ca75aeebec5e4c2baf48d31e12d149b74796d5766` | 51,242,377 bytes | `dff8ef0f926d79db5201cd7e2915bc72c8d63c98eab71d96a9d1ab067020ee27` |
+
+보관 index는 `/workspace/artifacts/v536-verification-managed/packages/index.json`이다. 최신/롤백 ZIP 모두 SHA를 재확인했고 각 manifest는 2510개 항목(2363 파일/147 디렉터리)을 기록한다. 최신은 새로 전체 복원/실행했고 롤백은 직전 107단계 검증본을 유지했다. 롤백 UI로 미반영 중첩 전환 초안을 편집/확정하는 호환성은 검증하지 않았으며 현재 검증본을 사용한다.
+
+최종 관리 실행의 디스크 여유는 시작 2105.93 MiB → 정리 후 2100.43 MiB로, 순증가 **5.50 MiB**다. 실행 중 단계 샘플의 최소 여유는 2105.88 MiB, cgroup 메모리 피크는 4604.56 MiB였다. 이 수치는 해당 실행의 실측이며 이후 증가량 보장은 아니다. 집중/최종 실행의 소유 RAM root는 증거 보존 후 제거했고 최신/롤백과 로그·스크린샷·합성 입력·재생성 출력 manifest는 지속 공간에 남겼다. 기존 비관리 산출물·원본·사용자 데이터는 정리하지 않았다.
 
 ## 남은 경계
 
