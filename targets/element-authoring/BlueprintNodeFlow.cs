@@ -12,7 +12,7 @@ internal static class BlueprintNodeFlow
         if(request["ownerRequest"] is JsonObject owner&&new Parser(owner["text"]!.GetValue<string>(),"<node-flow-owner>").ParseElement().Parent is not null)throw new InvalidOperationException("Preserve inherited implementation sources; a directly owned C# body is required");
         var original=request["graph"]!.DeepClone().AsObject();string profile=original["profile"]!.GetValue<string>();
         if(!FeatureBlueprint.SupportsPrivateGraphs(profile))throw new InvalidOperationException("Review the existing private graph profile before wrapping a C# action");
-        var frame=BlueprintTree.Select(original,path);var before=frame["nodes"]!.AsArray().Single(row=>row!["id"]!.ToString()==nodeId)!.AsObject();
+        var frame=BlueprintTree.Select(original,path);string frameProfile=frame["profile"]!.GetValue<string>();var before=frame["nodes"]!.AsArray().Single(row=>row!["id"]!.ToString()==nodeId)!.AsObject();
         if(before["kind"]?.ToString()!="code"||before["control"]?.ToString()!="next"||before["forwardCallerStorage"]?.GetValue<bool>()==true||before.ContainsKey("implementationContext")||before.ContainsKey("executionEnum")||before.ContainsKey("retainedCode"))throw new InvalidOperationException("An owned standalone next C# action is required; preserve other active implementations");
         if(before["signature"]!["args"]!.AsArray().Any(arg=>arg!["mode"] is not null))throw new InvalidOperationException("Internal-flow caller storage requires its separate explicit contract; retain ref/out code");
         string key=path.Length==0?nodeId:path+"/"+nodeId,sourceId=BlueprintTree.SourceId(rootId,key),childKey=key+"/body",childId=BlueprintTree.SourceId(rootId,childKey);
@@ -30,7 +30,7 @@ internal static class BlueprintNodeFlow
             nodes.Add(new JsonObject{["id"]="return",["kind"]="export",["intent"]="기존 C# 반환값 유지",["control"]="next",["output"]="return",["signature"]=new JsonObject{["args"]=new JsonArray(new JsonObject{["name"]="value",["type"]=returns}),["return"]="void"},["arguments"]=new JsonObject{["value"]=new JsonObject{["node"]="body"}}});
             edges.Add(new JsonObject{["from"]="body",["port"]="next",["to"]="return"});
         }
-        outer["graph"]=new JsonObject{["schema"]=1,["profile"]=profile,["entry"]="body",["nodes"]=nodes,["edges"]=edges,["exits"]=new JsonObject()};
+        outer["graph"]=new JsonObject{["schema"]=1,["profile"]=frameProfile,["entry"]="body",["nodes"]=nodes,["edges"]=edges,["exits"]=new JsonObject()};
         outer["retainedCode"]=new JsonObject{["version"]=1,["nonce"]=nonce,["sourceId"]=sourceId,["sourceTextHash"]=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(recordText))).ToLowerInvariant(),["definition"]=before.DeepClone()};
         parent["nodes"]![index]=outer;
         var described=Definitions(next);if(described["state"]?.ToString()!="node-definitions")throw new ArgumentException(described.ToJsonString());
