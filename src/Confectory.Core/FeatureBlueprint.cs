@@ -57,7 +57,7 @@ public static partial class FeatureBlueprint
     {
         try
         {
-            Need(!request.ContainsKey("sourcePath")&&!request.ContainsKey("sourceOwner")&&!request.ContainsKey("privateChildren"),"GRAPH_REQUEST_FIELD","private compiler context");
+            Need(!request.ContainsKey("sourcePath")&&!request.ContainsKey("sourceOwner")&&!request.ContainsKey("privateChildren")&&!request.ContainsKey("executionForward"),"GRAPH_REQUEST_FIELD","private compiler context");
             if(SupportsPrivateGraphs(request["graph"]?["profile"]?.ToString()))BlueprintTree.Nodes(request["graph"]!.AsObject()).ToArray();
             return Process(request);
         }
@@ -100,6 +100,9 @@ public static partial class FeatureBlueprint
         var contract = SignatureNode(feature.Signature!);
         string contractHash = Hash(CanonicalText(new JsonObject { ["feature"] = feature.Id, ["signature"] = contract.DeepClone() }));
         var graph = request["graph"]!.AsObject();
+        var executionForward=request["executionForward"] as JsonObject;
+        string? executionSource=executionForward is null?null:Id(executionForward,"source");
+        if(executionForward is not null)Need(request["sourcePath"] is not null&&SupportsSwitches(S(graph,"profile"))&&feature.Signature!.Return=="void","GRAPH_EXECUTION_FORWARD_PROFILE",feature.Id);
         Need(graph["schema"]?.GetValue<int>() == 1, "GRAPH_SCHEMA", "schema");
         string profile=S(graph,"profile");bool switchFlow=SupportsSwitches(profile),properties=SupportsProperties(profile),nested=SupportsPrivateGraphs(profile),aliasLocals=nested||profile==AliasLocalsProfile,externalRefs=SupportsExternalRefs(profile),refProfile=externalRefs||profile==RefNodesProfile,localProfile=profile==LocalsProfile||refProfile,multiOutput=profile==MultiOutputProfile||localProfile, implicitEnd=profile==ImplicitProfile||multiOutput;string generator=profile==PropertyRefProfile?PropertyRefGenerator:profile==PropertySetProfile?PropertySetGenerator:switchFlow?SwitchGenerator:profile==MethodsProfile?MethodsGenerator:properties?PropertyGenerator:nested?NestedGenerator:aliasLocals?AliasLocalsGenerator:externalRefs?ExternalRefsGenerator:refProfile?RefNodesGenerator:localProfile?LocalsGenerator:multiOutput?MultiOutputGenerator:implicitEnd?ImplicitGenerator:Generator;
         Need(profile==Profile||implicitEnd,"GRAPH_PROFILE_UNSUPPORTED",profile);
@@ -187,7 +190,9 @@ public static partial class FeatureBlueprint
             };
             if (value.ContainsKey("postCall")) definition["postCall"] = value["postCall"]!.DeepClone();
             if(nested&&(request["sourcePath"] is not null||kind=="graph"))definition["ownerPath"]=S(request,"sourceOwner")+"/"+(request["sourcePath"]?.ToString()??"");
+            Need(!value.ContainsKey("executionSource")||kind=="graph"&&control=="switch","GRAPH_EXECUTION_FORWARD_KIND",id);
             if(kind=="graph"){
+                if(control=="switch")definition["executionSource"]=Id(value,"executionSource");
                 var childRequest=PrivateRequest(request,value,signature);
                 var child=Process(childRequest);request["privateChildren"]![id]=child;
                 if(child["usesImplementationContext"]?.GetValue<bool>()==true)definition["contextBoundary"]=true;
@@ -197,9 +202,13 @@ public static partial class FeatureBlueprint
             Need(switchFlow||!value.ContainsKey("branchOwner")&&!value.ContainsKey("executionEnum"),"GRAPH_SWITCH_PROFILE",id);
             if(value.ContainsKey("branchOwner"))definition["branchOwner"]=Id(value,"branchOwner");
             if(control=="switch"){
-                Need((kind=="code"&&signature.Return=="void"||kind=="call"&&value["postCall"]?["mode"]?.ToString()=="execution-enum")&&!value.ContainsKey("implementationContext"),"GRAPH_SWITCH_CONTRACT",id);
+                Need(((kind is "code" or "graph")&&signature.Return=="void"||kind=="call"&&value["postCall"]?["mode"]?.ToString()=="execution-enum")&&!value.ContainsKey("implementationContext"),"GRAPH_SWITCH_CONTRACT",id);
                 definition["executionEnum"]=EnumContract(value["executionEnum"]??throw new Refusal("GRAPH_ENUM_REQUIRED",id));
             }else Need(!value.ContainsKey("executionEnum"),"GRAPH_ENUM_CONTROL",id);
+            if(executionSource==id){
+                Need((kind is "code" or "graph")&&control=="switch"&&CanonicalText(SignatureNode(signature))==CanonicalText(contract)&&CanonicalText(definition["executionEnum"])==CanonicalText(EnumContract(executionForward!["enum"]!)),"GRAPH_EXECUTION_FORWARD_CONTRACT",id);
+                definition["executionForwarded"]=true;
+            }
             if(IsPropertyNode(kind)){
                 bool writing=kind=="property-set",referencing=kind=="property-ref";
                 Need(signature.Args.Count==(writing?2:1)&&signature.Args[0].Type=="object"&&signature.Args[0].Name=="target"&&signature.Args.All(p=>p.Mode is null)&&(writing?signature.Return=="void"&&control=="next"&&signature.Args[1].Name=="value":signature.Return!="void"&&(!referencing||control=="next")),"PROPERTY_SIGNATURE",id);
@@ -247,6 +256,7 @@ public static partial class FeatureBlueprint
 
         var outputCells=nodes.Values.Where(n=>n.Kind=="set"&&n.Definition["outputLocal"] is not null).Select(n=>S(n.Definition,"outputLocal")).ToArray();
         Need(outputCells.Distinct(StringComparer.Ordinal).Count()==outputCells.Length,"GRAPH_SET_OUTPUT_OWNER",feature.Id);
+        if(executionSource is not null)Need(nodes.ContainsKey(executionSource),"GRAPH_EXECUTION_FORWARD_SOURCE",executionSource);
         ValidateAliasLocals(locals,feature,nodes);
         foreach(var node in nodes.Values.Where(n=>n.Kind is "property-set" or "property-ref"))CheckPropertyInputBindings(node,feature.Signature!,nodes,locals);
         bool ForwardCaller(Node node)=>externalRefs&&(node.Definition["forwardCallerStorage"]?.GetValue<bool>()==true||HasContext(node)&&node.Signature.Args.Any(p=>p.Mode is "ref" or "out"));
@@ -370,6 +380,11 @@ public static partial class FeatureBlueprint
                 own.IntersectWith(dominators[p]);
             own.Add(id);
             dominators[id] = own;
+        }
+        if(executionSource is not null){
+            Need(reachable.Contains(executionSource),"GRAPH_EXECUTION_FORWARD_DOMINANCE",executionSource);
+            foreach(var end in edges.Where(e=>reachable.Contains(e.Key.Item1)&&(Exit(e.Value)||Terminal(e.Value))))
+                Need(dominators[end.Key.Item1].Contains(executionSource),"GRAPH_EXECUTION_FORWARD_DOMINANCE",end.Key.Item1+"/"+end.Key.Item2);
         }
 
         var sourceMaps = new JsonArray();
@@ -614,10 +629,10 @@ public static partial class FeatureBlueprint
             var available = incoming.Length == 0 ? new HashSet<string>(StringComparer.Ordinal) : new HashSet<string>(dominators[incoming[0]], StringComparer.Ordinal);
             foreach (string p in incoming.Skip(1))
                 available.IntersectWith(dominators[p]);
-            output.AppendLine(Label(target) + ": { "+CompleteOuts()+"return" + (feature.Signature!.Return == "void" ? "" : " " + (implicitEnd&&exit.Value is null?FeatureValue("return"):Binding(exit.Value, feature.Signature.Return, available, target))) + "; }");
+            output.AppendLine(Label(target) + ": { "+CompleteOuts()+"return" + (executionSource is not null?" "+ExecutionValue(executionSource):feature.Signature!.Return == "void" ? "" : " " + (implicitEnd&&exit.Value is null?FeatureValue("return"):Binding(exit.Value, feature.Signature.Return, available, target))) + "; }");
         }
 
-        if(implicitEnd)foreach(string target in edges.Where(edge=>reachable.Contains(edge.Key.Item1)).Select(edge=>edge.Value).Append(entry).Where(Terminal).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal))output.AppendLine(Label(target)+": { "+CompleteOuts()+"return"+(feature.Signature!.Return=="void"?"":" "+FeatureValue("return"))+"; }");
+        if(implicitEnd)foreach(string target in edges.Where(edge=>reachable.Contains(edge.Key.Item1)).Select(edge=>edge.Value).Append(entry).Where(Terminal).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal))output.AppendLine(Label(target)+": { "+CompleteOuts()+"return"+(executionSource is not null?" "+ExecutionValue(executionSource):feature.Signature!.Return=="void"?"":" "+FeatureValue("return"))+"; }");
         output.AppendLine("#line default");
         reply["state"] = "source-assembled";
         reply["body"] = output.ToString().Replace("\r\n", "\n");

@@ -2,7 +2,7 @@
 
 기준은 저장소의 `Confectory-Editor-Prototype-v666.zip`이다. 원본 카드의 `data-function-write-direct` → `openInternal(node,false)` 및 모바일 `data-flow-internal` 연결을 따른다. 원본 `dist/blueprint.js`의 `openInternal`(838행 부근), `api.internal`(1472행 부근), 개별 동작의 C# / 내부 흐름 버튼(1630행 부근)은 선택한 동작 정의를 내부 문맥으로 넘긴다. C#을 의미 단위로 분석하거나 완전한 그래프로 역변환한다는 계약은 아니다.
 
-현재 지원은 **이미 private graph를 지원하는 profile의 저장된 직접 소유 Root 및 중첩 graph에 있는 일반 `next` C# 동작**이다. 일반 ref/out과 관측된 whole-body 멤버 문맥도 기존 native 저장소·인스턴스 규칙으로 연결한다. 내부는 원문을 그대로 담은 코드 노드 하나와 기존 반환 내보내기로 시작한다. 원래 바깥 노드 ID, 입출력 signature, 값 연결, 실행선, 아이콘/표시명/설명을 보존한다. 자동 분해·본문 치환·타입 변환·새 공개 계약이나 핀 ID 발급은 하지 않는다.
+현재 지원은 **이미 private graph를 지원하는 profile의 저장된 직접 소유 Root 및 중첩 graph에 있는 일반 `next` C# 동작**이다. 일반 ref/out과 관측된 whole-body 멤버 문맥도 기존 native 저장소·인스턴스 규칙으로 연결한다. 직접 소유 실행 enum 선택기는 같은 계약의 내부 코드에서 실행 선택값을 그대로 전달한다. 내부는 원문을 그대로 담은 코드 노드 하나와 기존 반환 내보내기로 시작한다. 원래 바깥 노드 ID, 입출력 signature, 값 연결, 실행선, 아이콘/표시명/설명을 보존한다. 자동 분해·본문 치환·타입 변환·새 공개 계약이나 핀 ID 발급은 하지 않는다.
 
 진입은 창별 미리보기다. 코드 대화상자의 기존 고정 선언 보호를 유지하며 선택한 새 내부 코드 본문을 편집할 수 있다. 미리보기에서는 구조 및 다른 조상 코드 편집을 잠그고, 최초 Save 후 기존 M3 내부 graph 편집으로 이어간다. 모든 정확한 조상과 Root 왕복도 같은 미리보기 후보를 사용하며 그 위치에서 Save할 수 있다. 저장 전 Undo/Redo와 코드 대화상자 취소는 물리 소스나 공용 체크포인트를 쓰지 않는다. cold 복원은 동일 프로젝트와 원본 전체 closure/체크포인트를 확인한 뒤 미리보기를 다시 준비한다.
 
@@ -18,7 +18,7 @@ Save는 기존 `authorBatch` 격리 후보와 최종 체크포인트 CAS를 사�
 
 ## 남은 경계
 
-M11 전체 완료는 아니다. 직접 소유 whole-body의 `implementationContext`는 관측된 소유 구현과 공개 계약을 검증한 뒤 내부 leaf에 전달한다. 원래 공개 `Invoke` 멤버를 같은 생성 구현 클래스에 한 번만 두고, 해당 문맥을 포함하는 private ancestor만 인스턴스를 전달한다. 원문 `this.Invoke` 재귀와 `this.calls`/`IImports`의 scoped import를 그대로 사용하며 canonical 호출로 바꾸지 않는다. `sourceIdentity`와 멤버명도 보존한다. derived `contextBoundary`는 바깥 Root/alias/핀 편집이 원래 멤버 계약 보호를 풀지 않도록 한다. [whole-body 문맥 검증](VALIDATION_V666_NODE_INTERNAL_CONTEXT.md)을 따른다. next 밖의 분기 제어·실행 enum/switch, copy/상속/참조 문맥의 노드 전환은 별도 기존 잔여다. 사용자 본문에서 this/calls를 추측해 치환하지 않는다. 편집하지 않은 CRLF/혼합 줄바꿈은 부분 텍스트 편집과 Undo/Redo에서도 보존하여 verbatim 문자열의 값이 바뀌지 않도록 한다. 구형 profile을 자동 승격하여 암시적 종료/반환 정책을 바꾸지도 않는다. 특히 private graph를 지원하지 않는 `sync-acyclic-ref-v1`의 자동 승격은 이번 ref/out 지원에 포함되지 않는다. 이 제한은 현재 구현·검증 경계이며 새 영구 UX 정책이 아니다. 기존 whole-body C# 변환 및 native M3 graph 편집 경로는 유지한다. Root 첫 단위와 [중첩 지원 검증](VALIDATION_V666_NODE_INTERNAL_NESTED.md)은 구분한다.
+M11 전체 완료는 아니다. 직접 소유 whole-body의 `implementationContext`는 관측된 소유 구현과 공개 계약을 검증한 뒤 내부 leaf에 전달한다. 원래 공개 `Invoke` 멤버를 같은 생성 구현 클래스에 한 번만 두고, 해당 문맥을 포함하는 private ancestor만 인스턴스를 전달한다. 원문 `this.Invoke` 재귀와 `this.calls`/`IImports`의 scoped import를 그대로 사용하며 canonical 호출로 바꾸지 않는다. `sourceIdentity`와 멤버명도 보존한다. derived `contextBoundary`는 바깥 Root/alias/핀 편집이 원래 멤버 계약 보호를 풀지 않도록 한다. [whole-body 문맥 검증](VALIDATION_V666_NODE_INTERNAL_CONTEXT.md)을 따른다. 실행 enum/switch의 단일 선택기 래핑·본문/helpers 편집은 [실행 분기 검증](VALIDATION_V666_NODE_INTERNAL_BRANCHES.md)을 따른다. 내부 graph 종료점의 직접 분기 반환, copy/상속/참조 문맥 전환은 별도 기존 잔여다. 사용자 본문에서 this/calls를 추측해 치환하지 않는다. 편집하지 않은 CRLF/혼합 줄바꿈은 부분 텍스트 편집과 Undo/Redo에서도 보존하여 verbatim 문자열의 값이 바뀌지 않도록 한다. 구형 profile을 자동 승격하여 암시적 종료/반환 정책을 바꾸지도 않는다. 특히 private graph를 지원하지 않는 `sync-acyclic-ref-v1`의 자동 승격은 이번 ref/out 지원에 포함되지 않는다. 이 제한은 현재 구현·검증 경계이며 새 영구 UX 정책이 아니다. 기존 whole-body C# 변환 및 native M3 graph 편집 경로는 유지한다. Root 첫 단위와 [중첩 지원 검증](VALIDATION_V666_NODE_INTERNAL_NESTED.md)은 구분한다.
 
 사용자 C# 원문을 유지하는 것과 모든 관측 가능한 C# 의미가 동일함을 증명하는 것은 다르다. 생성된 메서드 위치/호출 경로가 달라질 수 있으므로 caller-info·stack/reflection 등에 의존한 임의 본문의 완전한 동등성을 주장하지 않는다. 자동 추론으로 보정하지 않으며 실제 지원 fixture의 컴파일·호출 결과와 원문 보존을 따로 검증한다.
 

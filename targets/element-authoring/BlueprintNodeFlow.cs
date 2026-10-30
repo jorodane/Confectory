@@ -13,7 +13,8 @@ internal static class BlueprintNodeFlow
         var original=request["graph"]!.DeepClone().AsObject();string profile=original["profile"]!.GetValue<string>();
         if(!FeatureBlueprint.SupportsPrivateGraphs(profile))throw new InvalidOperationException("Review the existing private graph profile before wrapping a C# action");
         var frame=BlueprintTree.Select(original,path);string frameProfile=frame["profile"]!.GetValue<string>();var before=frame["nodes"]!.AsArray().Single(row=>row!["id"]!.ToString()==nodeId)!.AsObject();
-        if(before["kind"]?.ToString()!="code"||before["control"]?.ToString()!="next"||before.ContainsKey("executionEnum")||before.ContainsKey("retainedCode"))throw new InvalidOperationException("An owned next C# action with its observed member context is required");
+        bool execution=before["control"]?.ToString()=="switch";
+        if(before["kind"]?.ToString()!="code"||before["control"]?.ToString() is not ("next" or "switch")||!execution&&before.ContainsKey("executionEnum")||before.ContainsKey("retainedCode"))throw new InvalidOperationException("An owned C# action with its observed member and execution contract is required");
         string key=path.Length==0?nodeId:path+"/"+nodeId,sourceId=BlueprintTree.SourceId(rootId,key),childKey=key+"/body",childId=BlueprintTree.SourceId(rootId,childKey);
         var record=JsonNode.Parse(recordText)!.AsObject();BlueprintDocuments.Validate(sourceId,"blueprint-node",recordText);
         JsonObject Definitions(JsonObject graph){if(request["ownerRequest"] is JsonObject owned){var input=owned.DeepClone().AsObject();input["graph"]=graph.DeepClone();input["definitionsOnly"]=true;input.Remove("privatePath");return BlueprintDocuments.DescribeOwned(input);}return FeatureBlueprint.Execute(new JsonObject{["operation"]="featureBlueprintNodes",["featureSource"]=request["featureSource"]!.DeepClone(),["featureContracts"]=request["featureContracts"]?.DeepClone(),["propertyContracts"]=request["propertyContracts"]?.DeepClone(),["implementationContext"]=request["implementationContext"]?.DeepClone(),["bodyTarget"]=request["bodyTarget"]?.DeepClone(),["graph"]=graph.DeepClone()});}
@@ -22,7 +23,8 @@ internal static class BlueprintNodeFlow
         if(record["definitionHash"]?.ToString()!=Find(initial,key)["definitionHash"]?.ToString())throw new InvalidOperationException("Read the current C# definition receipt before wrapping; source retained");
         var next=original.DeepClone().AsObject();var parent=BlueprintTree.Select(next,path);int index=parent["nodes"]!.AsArray().IndexOf(parent["nodes"]!.AsArray().Single(row=>row!["id"]!.ToString()==nodeId));
         var outer=before.DeepClone().AsObject();outer["kind"]="graph";outer.Remove("implementation");
-        var inner=before.DeepClone().AsObject();inner["id"]="body";inner["control"]="next";inner.Remove("branchOwner");inner.Remove("forwardCallerStorage");inner["implementation"]="nodes/internal_"+nonce+".node.json";
+        var inner=before.DeepClone().AsObject();inner["id"]="body";if(!execution)inner["control"]="next";inner.Remove("branchOwner");inner.Remove("forwardCallerStorage");inner["implementation"]="nodes/internal_"+nonce+".node.json";
+        if(execution)outer["executionSource"]="body";
         bool callerStorage=before["signature"]!["args"]!.AsArray().Any(arg=>arg!["mode"]?.ToString() is "ref" or "out");if(callerStorage)inner["forwardCallerStorage"]=true;
         if(before["implementationContext"] is JsonObject){outer.Remove("implementationContext");outer.Remove("sourceIdentity");if(callerStorage)outer["forwardCallerStorage"]=true;}
         var arguments=new JsonObject();foreach(var argument in before["signature"]!["args"]!.AsArray().Where(arg=>arg!["mode"]?.ToString()!="out"))arguments[argument!["name"]!.ToString()]=new JsonObject{["input"]=argument["name"]!.DeepClone()};inner["arguments"]=arguments;

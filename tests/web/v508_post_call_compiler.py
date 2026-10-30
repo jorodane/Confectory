@@ -3,7 +3,7 @@ No live provider, account, project Run, or filesystem source publication.
 """
 import copy,hashlib,json,os,pathlib,subprocess,sys,tempfile
 repo=pathlib.Path(sys.argv[1]).resolve();dotnet='/workspace/toolchains/dotnet-10.0.401/dotnet';host=repo/'targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll';case=pathlib.Path(tempfile.mkdtemp(prefix='confectory-post-call-compiler-'));checks=[]
-env=os.environ.copy();env.update(DOTNET_CLI_HOME='/tmp/confectory-dotnet10-final',NUGET_PACKAGES='/tmp/confectory-site-nuget')
+env=os.environ.copy();env.update(DOTNET_CLI_HOME=os.environ.get('DOTNET_CLI_HOME',str(case/'dotnet-home')),NUGET_PACKAGES=os.environ.get('NUGET_PACKAGES',str(case/'nuget')))
 def sdk(operation,ok=True,**body):
  p=subprocess.run([dotnet,str(host)],input=json.dumps({'operation':operation,**body}),text=True,capture_output=True,env=env,check=True);v=json.loads(p.stdout);assert v['ok']==ok,v;return v.get('result') if ok else v
 def check(text):checks.append(text);print('PASS '+text,flush=True)

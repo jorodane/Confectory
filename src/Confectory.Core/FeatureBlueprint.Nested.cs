@@ -25,6 +25,7 @@ public static partial class FeatureBlueprint
             ["featureSource"] = source, ["graph"] = graph, ["sourcePath"] = key, ["sourceOwner"] = parent["sourceOwner"]!.DeepClone(),
             ["featureContracts"] = parent["featureContracts"]?.DeepClone(), ["propertyContracts"] = parent["propertyContracts"]?.DeepClone(),
             ["implementationContext"] = parent["implementationContext"]?.DeepClone(),
+            ["executionForward"] = node["control"]?.ToString()=="switch" ? new JsonObject { ["source"]=node["executionSource"]?.DeepClone(), ["enum"]=node["executionEnum"]?.DeepClone() } : null,
             ["inspectStalePostCalls"] = parent["inspectStalePostCalls"]?.DeepClone(),
             ["implementations"] = parent["implementations"]?.DeepClone()
         };
