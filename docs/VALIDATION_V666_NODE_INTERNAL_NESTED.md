@@ -34,7 +34,9 @@
 
 최종 관리 실행의 디스크 여유는 시작 2105.93 MiB → 정리 후 2100.43 MiB로, 순증가 **5.50 MiB**다. 실행 중 단계 샘플의 최소 여유는 2105.88 MiB, cgroup 메모리 피크는 4604.56 MiB였다. 이 수치는 해당 실행의 실측이며 이후 증가량 보장은 아니다. 집중/최종 실행의 소유 RAM root는 증거 보존 후 제거했고 최신/롤백과 로그·스크린샷·합성 입력·재생성 출력 manifest는 지속 공간에 남겼다. 기존 비관리 산출물·원본·사용자 데이터는 정리하지 않았다.
 
-## 남은 경계
+## 중첩 단위 종료 당시 경계
+
+후속 [일반 ref/out 저장소 지원](VALIDATION_V666_NODE_INTERNAL_STORAGE.md)은 별도 단위에서 마감했다. 아래는 이 중첩 최초 검증 시점의 경계이며 현재 지원은 [지원 경계](BLUEPRINT_NODE_INTERNAL_FLOW.md)를 따른다.
 
 이번 완료 대상은 저장된 직접 소유 Root/private graph의 일반 next C# 진입이다. whole-body `implementationContext`/this/import, ref/out 저장소, 분기/실행 enum, copy/상속/참조 전환은 별도 M11 경계이며 모든 가능한 조합을 새 필수 작업으로 늘리지 않는다. 공개 override 원계약 보호와 독립 계약 복제 미채택은 유지한다. 구형 profile 자동 승격이나 임의 본문의 관측 가능한 모든 C# 의미의 동등성을 주장하지 않는다.
 
