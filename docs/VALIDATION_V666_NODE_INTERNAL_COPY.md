@@ -35,4 +35,25 @@ M4/M12, 고정 8/9행, B2 다른 사용자/그룹 권한 backend, 정보 종류 
 
 격리 fixture와 생성한 자료만 사용한다. 초기 fixture의 element 등록명, schema receipt 위치, cold 선택 복원 누락은 검사 준비 오류로 구분한다. 실제 UI 미리보기의 slot receipt 전달 누락과 독립 창 동작 허용 누락은 제품 연결을 보완했다. 응답 유실 후 cold에서 이전 owner revision을 그대로 재사용해 읽기가 거절되던 실제 복원 누락도 위 hash/receipt 보호를 유지하여 보완했다. copy의 기존 상태 문구를 일반 “저장됨” 문구로 기대한 검사 오류는 상태 문구를 바꾸지 않고 실제 checkpoint graph/leaf·입력 해제·Confirm/호출 결과 검사로 바로잡았다. 실패를 통과에 합산하지 않는다.
 
-최종 코드·집중/독립 LF/CRLF·새 패키지/압축 복원/수명관리의 신규·재사용 결과와 최신/롤백·증거·공간 실측은 검증 뒤 기록한다. 실제 Windows apphost/WebView2·모바일 기기·전체 UI·Library/Space 전달과 구분한다.
+## 최종 결과
+
+실행 코드 commit은 `233ecb6cdb7ad3de3cb2b04428d2f78e10b0cfac`다. 최종 소스의 새 독립 LF **18단계**, CRLF **14단계**, 새 Windows 교차 패키지·전체 압축 복원·실패 수명관리 **8단계**, 총 **40단계**가 모두 통과했다. 양쪽 checkout의 소유/상속 compiler 보호 **각 2개**도 skip·실패 없이 통과했다. 기존 직접 소유 일반/void API, 직접 소유 늦은 입력 화면, 독립 창 copy root/private 아이콘과 공통 선언·헤더·원문 편집 회귀를 해당 실행에서 새로 검사했다.
+
+신규 copy API는 owner 누락/위조·donor 재지정·공개 계약 변경 거절, 미리보기 무쓰기, 전체 후보/CAS, 반복 시도 receipt·cold, Review 뒤 물리 원문 경합의 최종 CAS 거절과 명시 복구/Confirm, 동일 copy ID·출처·원문·helpers·공개 계약·기존 연결과 실제 호출 결과를 확인했다. 다른 정보에 공유된 copy의 단독 변경도 새로 거절 검증했다. 화면은 기존 정보 편집→내부 진입→C# 취소/편집→Undo/Redo→Root Save→Review 취소/Confirm→재진입/cold를 기본·독립 창에서 확인하며 쓰기 실패·원문 충돌·응답 유실·늦은 입력을 포함한다. 생성 패키지의 기본 copy 흐름과 전체 복원본의 독립 창 응답 유실 흐름도 새로 실행했다.
+
+40단계는 과거 실행을 재사용해 통과로 합산하지 않았다. 집중 단계별 제품/입력 해시·수정 전 실패와 통과는 별도 증거에 남긴다. 변경하지 않은 Core의 이전 M11 중첩/ref-out/whole-body/실행 분기 전체 compiler 결과는 이력 참고이며 이번 새 소스의 재실행 수에 포함하지 않는다. 이번 copy 내부 전환의 실제 프로젝트 왕복은 새로 실행하지 않았으며, 앞선 직접 소유 흐름의 왕복 결과는 이력 참고로만 유지한다. 실제 Windows apphost/WebView2·모바일·DPI/IME·전체 UI·Library/Space 전달은 미실행이다.
+
+- 최종 관리 record: `/workspace/artifacts/v536-verification-managed/runs/f4c27a2ebeb24813a300f8dba89cc22c.json` (40단계, cleaned).
+- 최종 증거: `/workspace/artifacts/v536-verification-managed/runs/f4c27a2ebeb24813a300f8dba89cc22c.zip`, SHA-256 `e048205bf90bcbf1476933fca4399e3ae62903c9034b0db557110bddbdff2c89`.
+- 집중 record: `/workspace/artifacts/v536-verification-managed/runs/81313effec3643288037032046857275.json`, 증거 `/workspace/artifacts/v536-verification-managed/runs/81313effec3643288037032046857275.zip`, SHA-256 `bbdedc73c43b5d4d521afd0af3a94aed126c1669db316658b5c73b0a58a4ecd4`.
+
+| 지속 보관본 | 코드 commit | ZIP SHA-256 | bytes | 전체 manifest SHA-256 |
+|---|---|---|---|---|
+| 최신 | `233ecb6cdb7ad3de3cb2b04428d2f78e10b0cfac` | `69d926992060a8ab7b8b099f1bc7155b9b3be8e249bb2f16b378dc4738027967` | 51,262,952 | `077b511da59e3a9bccd1b8e0b0debf731e2de6543475535ae93f4aa770e50c49` |
+| 정상 롤백 | `dae566a1fecc0fcdb0fa80120603b13c3dfdf120` | `2c44b766588b73fc6fa2aff84e52e0cf8ea59e77d4be42656a5f2885bd8ea58a` | 51,261,730 | `2b3cd6aa50d404db196aa432ddccd5325ccc2faf2cf1ff9a2520273ce5cd72a9` |
+
+보관 index는 `/workspace/artifacts/v536-verification-managed/packages/index.json`이다. 최신은 최종 코드에서 새로 생성하고 전체 SHA/CRC/파일·디렉터리 모드를 복원한 뒤 복원본을 실행했다. 롤백은 이전 정상 검증 증거를 재사용하고 ZIP SHA를 재확인했다. 최신 2363파일·147디렉터리 / 롤백 2363파일·147디렉터리. 이후 보고서 commit과 위 실행 코드 commit의 차이는 문서뿐이며 보고서 commit에서 다시 패키징했다고 주장하지 않는다.
+
+집중 검증 여유 2064.60→2061.31 MiB, 최종 검증 여유 2060.99→2056.68 MiB였다. 최종 실행 순증가 **4.31 MiB**, 단계 샘플 최소 2060.93 MiB, cgroup 메모리 피크 4735.34 MiB였다. 기존 추가 디스크 예산 144 MiB(64 MiB 안전 여유 포함)과 RAM/메모리 예산을 유지했다. 집중/최종 소유 임시 root는 증거를 검증·보관한 뒤 정리했고 승인된 최신/롤백 회전 외 과거 자료를 삭제하지 않았다. 이번 순증가는 향후 보장값이 아니다.
+
+이번에 검증한 copy는 프로젝트 소유 함수를 구현하는 정보의 단독 배정 copy다. 등록 함수·다른 native 계약/target·상속/참조·private/생성 중 copy의 M11 전환 전체 검증을 뜻하지 않으며 위 유한한 경계표로 유지한다. 정상 보호와 실제 미구현·미검증을 구분하고 새로운 C# 조합을 필수 잔여로 추가하지 않는다.
