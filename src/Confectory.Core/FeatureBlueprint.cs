@@ -11,7 +11,13 @@ namespace Confectory.Core;
 public static partial class FeatureBlueprint
 {
     public const string Profile = "sync-acyclic-v1", Generator = "feature-blueprint-source-v2";
-    public static string ContractHash(Element feature) => Hash(CanonicalText(new JsonObject { ["feature"] = feature.Id, ["signature"] = SignatureNode(feature.Signature!) }));
+    public static string ContractHash(Element feature)
+    {
+        var contract = new JsonObject { ["feature"] = feature.Id, ["signature"] = SignatureNode(feature.Signature!) };
+        var branches = BlueprintExecutionBranches.Read(feature);
+        if (BlueprintExecutionBranches.Has(feature)) contract["executionBranches"] = branches;
+        return Hash(CanonicalText(contract));
+    }
     public static string ImportAlias(string featureId) => "fg_call_" + Hash(featureId)[..24];
     sealed class Refusal(string code, string subject) : Exception(code)
     {
@@ -98,19 +104,24 @@ public static partial class FeatureBlueprint
         if(request["sourcePath"] is null && request["implementationContext"] is JsonObject rootContext && SupportsPrivateGraphs(request["graph"]?["profile"]?.ToString()) && PrivateContext(request["graph"]!.AsObject()))Need(rootContext["feature"]?.ToString()==feature.Id,"GRAPH_IMPLEMENTATION_CONTEXT_CONTRACT",feature.Id);
         _ = BlueprintOutputSnapshot.Read(feature);
         var contract = SignatureNode(feature.Signature!);
-        string contractHash = Hash(CanonicalText(new JsonObject { ["feature"] = feature.Id, ["signature"] = contract.DeepClone() }));
+        string contractHash = ContractHash(feature);
         var graph = request["graph"]!.AsObject();
         var executionForward=request["executionForward"] as JsonObject;
         string? executionSource=executionForward is null?null:Id(executionForward,"source");
         if(executionForward is not null)Need(request["sourcePath"] is not null&&SupportsSwitches(S(graph,"profile"))&&feature.Signature!.Return=="void","GRAPH_EXECUTION_FORWARD_PROFILE",feature.Id);
+        var publicBranches = BlueprintExecutionBranches.Read(feature);
+        bool publicExecution = BlueprintExecutionBranches.Has(feature);
+        Need(!publicExecution || request["sourcePath"] is null && executionForward is null && SupportsSwitches(S(graph,"profile")) && !graph["nodes"]!.AsArray().Any(n => n!["implementationContext"] is not null), "GRAPH_PUBLIC_EXECUTION_CONTEXT", feature.Id);
+        var exitEnum = publicExecution ? BlueprintExecutionBranches.Enum(feature) : executionForward?["enum"];
         bool executionExitMode=graph["executionExitMode"]?.GetValue<bool>()==true;
-        Need(!graph.ContainsKey("executionExitMode")||executionExitMode&&executionSource is not null,"GRAPH_EXECUTION_EXIT_CONTEXT",feature.Id);
+        Need(!publicExecution || executionExitMode, "GRAPH_PUBLIC_EXECUTION_EXITS", feature.Id);
+        Need(!graph.ContainsKey("executionExitMode")||executionExitMode&&(executionSource is not null||publicExecution),"GRAPH_EXECUTION_EXIT_CONTEXT",feature.Id);
         var executionExits=new Dictionary<string,int>(StringComparer.Ordinal);
         foreach(var pair in graph["exits"]!.AsObject()){
             if(!executionExitMode){Need(pair.Value is not JsonObject value||!value.ContainsKey("executionBranch"),"GRAPH_EXECUTION_EXIT_CONTEXT",pair.Key);continue;}
             Need(pair.Value is JsonObject choice&&choice.Count==1&&choice.ContainsKey("executionBranch"),"GRAPH_EXECUTION_EXIT_SELECTION",pair.Key);
             string branch=pair.Value!["executionBranch"]?.GetValue<string>()??"";
-            var member=EnumContract(executionForward!["enum"]!)["members"]!.AsArray().SingleOrDefault(m=>S(m,"id")==branch);
+            var member=EnumContract(exitEnum!)["members"]!.AsArray().SingleOrDefault(m=>S(m,"id")==branch);
             Need(member is not null,"GRAPH_EXECUTION_EXIT_BRANCH",pair.Key);
             executionExits.Add(pair.Key,member!["value"]!.GetValue<int>());
         }
@@ -134,7 +145,7 @@ public static partial class FeatureBlueprint
             var element = new Parser(source, "<called-feature>").ParseElement();
             Need(element.Id == id && element.Kind == "function" && element.Signature is not null, "GRAPH_CALLEE_CONTRACT", id);
             _ = BlueprintOutputSnapshot.Read(element);
-            string hash = Hash(CanonicalText(new JsonObject { ["feature"] = id, ["signature"] = SignatureNode(element.Signature!) }));
+            string hash = ContractHash(element);
             var result = (element, ImportAlias(id), hash, Hash(source));
             imports.Add(id, result);
             return result;
@@ -173,6 +184,8 @@ public static partial class FeatureBlueprint
                 Need(signature.Matches(imported.Element.Signature) || inspectStalePostCalls && value.ContainsKey("postCall"), "GRAPH_CALLEE_SIGNATURE", id);
                 references[called] = imported.Hash;
             }
+            bool executionCall = value.ContainsKey("publicExecution");
+            Need(!executionCall || kind == "call" && control == "switch" && !value.ContainsKey("postCall") && value["publicExecution"]?.ToString() == Import(called!).Hash && BlueprintExecutionBranches.Has(Import(called!).Element) && JsonNode.DeepEquals(value["executionEnum"], BlueprintExecutionBranches.Enum(Import(called!).Element)), "GRAPH_PUBLIC_EXECUTION_CALL", id);
             if (value.ContainsKey("postCall")) {
                 Need(kind == "call" && (control == "next" || control == "switch" && switchFlow) && SupportsMethods(profile), "GRAPH_POST_CALL_PROFILE", id);
                 var after = value["postCall"] as JsonObject;
@@ -200,6 +213,7 @@ public static partial class FeatureBlueprint
                 ["calledFeature"] = called,
                 ["featureContracts"] = references
             };
+            if (executionCall) { definition["publicExecution"] = value["publicExecution"]!.DeepClone(); definition["publicExecutionBranches"] = BlueprintExecutionBranches.Read(Import(called!).Element); }
             if (value.ContainsKey("postCall")) definition["postCall"] = value["postCall"]!.DeepClone();
             if(nested&&(request["sourcePath"] is not null||kind=="graph"))definition["ownerPath"]=S(request,"sourceOwner")+"/"+(request["sourcePath"]?.ToString()??"");
             Need(!value.ContainsKey("executionSource")||kind=="graph"&&control=="switch","GRAPH_EXECUTION_FORWARD_KIND",id);
@@ -214,7 +228,7 @@ public static partial class FeatureBlueprint
             Need(switchFlow||!value.ContainsKey("branchOwner")&&!value.ContainsKey("executionEnum"),"GRAPH_SWITCH_PROFILE",id);
             if(value.ContainsKey("branchOwner"))definition["branchOwner"]=Id(value,"branchOwner");
             if(control=="switch"){
-                Need(((kind is "code" or "graph")&&signature.Return=="void"||kind=="call"&&value["postCall"]?["mode"]?.ToString()=="execution-enum")&&!value.ContainsKey("implementationContext"),"GRAPH_SWITCH_CONTRACT",id);
+                Need(((kind is "code" or "graph")&&signature.Return=="void"||kind=="call"&&(executionCall||value["postCall"]?["mode"]?.ToString()=="execution-enum"))&&!value.ContainsKey("implementationContext"),"GRAPH_SWITCH_CONTRACT",id);
                 definition["executionEnum"]=EnumContract(value["executionEnum"]??throw new Refusal("GRAPH_ENUM_REQUIRED",id));
             }else Need(!value.ContainsKey("executionEnum"),"GRAPH_ENUM_CONTROL",id);
             if(executionSource==id){
@@ -331,8 +345,8 @@ public static partial class FeatureBlueprint
             versions[feature.Id] = contractHash;
             return new JsonObject
             {
-                ["state"] = "node-definitions", ["feature"] = feature.Id, ["profile"] = profile, ["contractHash"] = contractHash, ["signature"] = contract.DeepClone(),
-                ["nodes"] = new JsonArray(nodes.OrderBy(p => p.Key, StringComparer.Ordinal).Select(p => (JsonNode)new JsonObject { ["id"] = p.Key, ["definitionHash"] = p.Value.DefinitionHash, ["definition"] = p.Value.Definition.DeepClone(), ["outputs"] = NodeOutputDocument(p.Value), ["currentCallSignature"] = p.Value.Kind == "call" ? SignatureDocument(Import(p.Value.Feature!).Element.Signature!) : null, ["callAbiSourceHash"] = p.Value.Kind == "call" ? Import(p.Value.Feature!).SourceHash : null, ["postCallStale"] = p.Value.Definition["postCall"] is not null && p.Value.Definition["postCall"]!["contractHash"]!.ToString() != BlueprintOutputSnapshot.Prepare(Import(p.Value.Feature!).Element)["contractHash"]!.ToString(), ["postCallSignatureMatches"] = p.Value.Kind != "call" || p.Value.Signature.Args.Select(a => (a.Name,a.Type,a.Mode)).SequenceEqual(Import(p.Value.Feature!).Element.Signature!.Args.Select(a => (a.Name,a.Type,a.Mode))) && p.Value.Signature.Return == Import(p.Value.Feature!).Element.Signature!.Return, ["postCallEditor"] = p.Value.Kind == "call" && p.Value.Control == "switch" ? BlueprintCallWrapper.Prepare(Import(p.Value.Feature!).Element, p.Value.Definition["executionEnum"]!.AsObject(), inspectStalePostCalls ? null : p.Value.Definition["postCall"]?["contractHash"]?.ToString(), p.Value.Definition["postCall"]?["source"]?.GetValue<string>(), p.Value.Definition["postCall"]?["helpers"]?.GetValue<string>()??"", inspectStalePostCalls ? (Import(p.Value.Feature!).Element.Signature!.Return == "void" ? null : BlueprintCallWrapper.NativeReturnMapping) : p.Value.Definition["postCall"]?["returnMapping"]?.GetValue<string>()) : p.Value.Kind == "call" ? BlueprintCallAfter.Prepare(Import(p.Value.Feature!).Element, inspectStalePostCalls ? null : p.Value.Definition["postCall"]?["contractHash"]?.ToString(), p.Value.Definition["postCall"]?["source"]?.GetValue<string>(), p.Value.Definition["postCall"]?["helpers"]?.GetValue<string>()??"") : null, ["wrapperEditor"] = p.Value.Kind == "call" && p.Value.Control == "next" && p.Value.Definition["postCall"] is null ? BlueprintCallWrapper.Prepare(Import(p.Value.Feature!).Element, new JsonObject { ["primary"] = "next", ["members"] = new JsonArray(new JsonObject { ["id"] = "next", ["name"] = "NoBranch", ["value"] = 0 }) }, returnMapping: p.Value.Signature.Return == "void" ? null : BlueprintCallWrapper.NativeReturnMapping) : null }).ToArray()),
+                ["state"] = "node-definitions", ["feature"] = feature.Id, ["profile"] = profile, ["contractHash"] = contractHash, ["publicExecutionBranches"] = publicBranches.DeepClone(), ["signature"] = contract.DeepClone(),
+                ["nodes"] = new JsonArray(nodes.OrderBy(p => p.Key, StringComparer.Ordinal).Select(p => (JsonNode)new JsonObject { ["id"] = p.Key, ["definitionHash"] = p.Value.DefinitionHash, ["definition"] = p.Value.Definition.DeepClone(), ["outputs"] = NodeOutputDocument(p.Value), ["currentCallSignature"] = p.Value.Kind == "call" ? SignatureDocument(Import(p.Value.Feature!).Element.Signature!) : null, ["callAbiSourceHash"] = p.Value.Kind == "call" ? Import(p.Value.Feature!).SourceHash : null, ["postCallStale"] = p.Value.Definition["postCall"] is not null && p.Value.Definition["postCall"]!["contractHash"]!.ToString() != BlueprintOutputSnapshot.Prepare(Import(p.Value.Feature!).Element)["contractHash"]!.ToString(), ["postCallSignatureMatches"] = p.Value.Kind != "call" || p.Value.Signature.Args.Select(a => (a.Name,a.Type,a.Mode)).SequenceEqual(Import(p.Value.Feature!).Element.Signature!.Args.Select(a => (a.Name,a.Type,a.Mode))) && p.Value.Signature.Return == Import(p.Value.Feature!).Element.Signature!.Return, ["postCallEditor"] = p.Value.Definition["publicExecution"] is not null ? null : p.Value.Kind == "call" && p.Value.Control == "switch" ? BlueprintCallWrapper.Prepare(Import(p.Value.Feature!).Element, p.Value.Definition["executionEnum"]!.AsObject(), inspectStalePostCalls ? null : p.Value.Definition["postCall"]?["contractHash"]?.ToString(), p.Value.Definition["postCall"]?["source"]?.GetValue<string>(), p.Value.Definition["postCall"]?["helpers"]?.GetValue<string>()??"", inspectStalePostCalls ? (Import(p.Value.Feature!).Element.Signature!.Return == "void" ? null : BlueprintCallWrapper.NativeReturnMapping) : p.Value.Definition["postCall"]?["returnMapping"]?.GetValue<string>()) : p.Value.Kind == "call" ? BlueprintCallAfter.Prepare(Import(p.Value.Feature!).Element, inspectStalePostCalls ? null : p.Value.Definition["postCall"]?["contractHash"]?.ToString(), p.Value.Definition["postCall"]?["source"]?.GetValue<string>(), p.Value.Definition["postCall"]?["helpers"]?.GetValue<string>()??"") : null, ["wrapperEditor"] = p.Value.Kind == "call" && p.Value.Control == "next" && p.Value.Definition["postCall"] is null ? BlueprintCallWrapper.Prepare(Import(p.Value.Feature!).Element, new JsonObject { ["primary"] = "next", ["members"] = new JsonArray(new JsonObject { ["id"] = "next", ["name"] = "NoBranch", ["value"] = 0 }) }, returnMapping: p.Value.Signature.Return == "void" ? null : BlueprintCallWrapper.NativeReturnMapping) : null }).ToArray()),
                 ["locals"] = LocalDocument(locals), ["outputs"] = OutputDocument(feature.Signature!), ["contractVersions"] = versions,
                 ["imports"] = new JsonArray(imports.OrderBy(i => i.Key, StringComparer.Ordinal).Select(i => (JsonNode)new JsonObject { ["feature"] = i.Key, ["alias"] = i.Value.Alias, ["contractHash"] = i.Value.Hash, ["binding"] = canonicalImports.Contains(i.Key) ? "canonical" : "implementation-context", ["signature"] = SignatureNode(i.Value.Element.Signature!) }).ToArray()),
                 ["independentNodeCompilation"] = true, ["sourceWritten"] = false, ["compiled"] = false, ["executed"] = false
@@ -393,11 +407,11 @@ public static partial class FeatureBlueprint
             own.Add(id);
             dominators[id] = own;
         }
-        if(executionExitMode){
+        if(executionExitMode&&!publicExecution){
             Need(!Terminal(entry)&&executionExits.Count>0,"GRAPH_EXECUTION_EXIT_INCOMPLETE",feature.Id);
             foreach(var end in edges.Where(e=>reachable.Contains(e.Key.Item1)))Need(!Terminal(end.Value),"GRAPH_EXECUTION_EXIT_INCOMPLETE",end.Key.Item1+"/"+end.Key.Item2);
             foreach(string end in executionExits.Keys)Need(entry=="exit:"+end||edges.Any(e=>reachable.Contains(e.Key.Item1)&&e.Value=="exit:"+end),"GRAPH_EXECUTION_EXIT_DISCONNECTED",end);
-            var declaredExecution=EnumContract(executionForward!["enum"]!);foreach(var member in declaredExecution["members"]!.AsArray().Where(m=>S(m,"id")!=S(declaredExecution,"primary")))Need(graph["exits"]!.AsObject().Any(e=>e.Value!["executionBranch"]!.ToString()==S(member,"id")),"GRAPH_EXECUTION_EXIT_COVERAGE",S(member,"id"));
+            var declaredExecution=EnumContract(exitEnum!);foreach(var member in declaredExecution["members"]!.AsArray().Where(m=>S(m,"id")!=S(declaredExecution,"primary")))Need(graph["exits"]!.AsObject().Any(e=>e.Value!["executionBranch"]!.ToString()==S(member,"id")),"GRAPH_EXECUTION_EXIT_COVERAGE",S(member,"id"));
         }
         else if(executionSource is not null){
             Need(reachable.Contains(executionSource),"GRAPH_EXECUTION_FORWARD_DOMINANCE",executionSource);
@@ -585,6 +599,8 @@ public static partial class FeatureBlueprint
                 membersOutput.Append(node.Control == "switch" ? BlueprintCallWrapper.Member(Import(node.Feature!).Element, postCall, node.Definition["executionEnum"]!.AsObject(), type, Generation.Interface(node.Feature!), marker) : BlueprintCallAfter.Member(Import(node.Feature!).Element, postCall, type, Generation.Interface(node.Feature!), marker));
                 output.AppendLine((ExecutionType(node) == "void" ? "" : "return ") + (node.Control == "switch" ? "(int)" : "") + type + ".Execute(" + ImportParameter(node.Feature!) + (node.Signature.Args.Count > 0 ? ", " : "") + string.Join(", ", node.Signature.Args.Select(p => (p.Mode is "out" or "ref" ? p.Mode + " " : "") + p.Name)) + (WrappedReturn(node) ? ", out __fg_wrapped_return" : "") + ");");
             }
+            else if (node.Kind == "call" && node.Definition["publicExecution"] is not null)
+                output.AppendLine("return (int)((" + BlueprintExecutionBranches.Interface(node.Feature!) + ")" + ImportParameter(node.Feature!) + ").InvokeExecution(" + string.Join(",", node.Signature.Args.Select(p => p.Name)) + ");");
             else if (node.Kind == "call")
                 output.AppendLine((node.Signature.Return == "void" ? "" : "return ") + ImportParameter(node.Feature!) + ".Invoke(" + string.Join(",", node.Signature.Args.Select(p => (p.Mode is "out" or "ref"?p.Mode+" ":"")+p.Name)) + ");");
             else if (node.Kind == "code" && SupportsMethods(profile)) {
@@ -650,13 +666,14 @@ public static partial class FeatureBlueprint
             output.AppendLine(Label(target) + ": { "+CompleteOuts()+"return" + (executionExitMode?" "+executionExits[exit.Key].ToString(System.Globalization.CultureInfo.InvariantCulture):executionSource is not null?" "+ExecutionValue(executionSource):feature.Signature!.Return == "void" ? "" : " " + (implicitEnd&&exit.Value is null?FeatureValue("return"):Binding(exit.Value, feature.Signature.Return, available, target))) + "; }");
         }
 
-        if(implicitEnd)foreach(string target in edges.Where(edge=>reachable.Contains(edge.Key.Item1)).Select(edge=>edge.Value).Append(entry).Where(Terminal).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal))output.AppendLine(Label(target)+": { "+CompleteOuts()+"return"+(executionSource is not null?" "+ExecutionValue(executionSource):feature.Signature!.Return=="void"?"":" "+FeatureValue("return"))+"; }");
+        if(implicitEnd)foreach(string target in edges.Where(edge=>reachable.Contains(edge.Key.Item1)).Select(edge=>edge.Value).Append(entry).Where(Terminal).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal))output.AppendLine(Label(target)+": { "+CompleteOuts()+"return"+(publicExecution?" 0":executionSource is not null?" "+ExecutionValue(executionSource):feature.Signature!.Return=="void"?"":" "+FeatureValue("return"))+"; }");
         output.AppendLine("#line default");
         reply["state"] = "source-assembled";
         reply["body"] = output.ToString().Replace("\r\n", "\n");
         reply["members"] = membersOutput.ToString();
         reply["explicitEntry"] = multiOutput || nodes.Values.Any(HasContext);
         reply["entrySignature"] = contract.DeepClone();
+        if (publicExecution) reply["publicExecutionBranches"] = publicBranches.DeepClone();
         reply["bodyHash"] = Hash(reply["body"]!.ToString()+membersOutput);
         reply["sourceMap"] = sourceMaps;
         reply["graphMap"] = new JsonObject { ["marker"] = "graph:" + feature.Id + "@" + topologyHash, ["jsonPointer"] = "/edges", ["topologyHash"] = topologyHash };

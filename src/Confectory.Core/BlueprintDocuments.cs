@@ -12,7 +12,7 @@ public static class BlueprintDocuments
     public static JsonObject Validate(string id, string kind, string text)
     {
         var document = JsonNode.Parse(text)?.AsObject() ?? throw new ArgumentException("Blueprint source object required");
-        Require(document["schema"]?.GetValue<int>() == 1, "Blueprint source schema required");
+        Require(document["schema"]?.GetValue<int>() == 1 || kind == "blueprint" && document["schema"]?.GetValue<int>() == 2 && document["executionExitMode"]?.GetValue<bool>() == true && document["profile"]?.ToString() == FeatureBlueprint.SwitchProfile, "Blueprint source schema required");
         if (kind == "blueprint-node")
         {
             int marker = id.LastIndexOf("/node:", StringComparison.Ordinal);

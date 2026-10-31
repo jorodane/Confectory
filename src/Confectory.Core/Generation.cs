@@ -16,6 +16,7 @@ public static class Generation
         // Generated public function contract for {{fn.Id}}; {{Abi}}
         namespace Confectory.Contracts.{{Symbol(fn.Id)}}
         {
+            {{ExecutionContract(fn)}}
             public interface IInvoke
             {
                 {{fn.Signature!.Return}} Invoke({{Parameters(fn.Signature)}});
@@ -23,8 +24,16 @@ public static class Generation
         }
         """ + "\n";
 
-    public static string ImplementationSource(Element e, string body, string path, string members = "", FunctionSignature? entry = null)
+    private static string ExecutionContract(Element fn)
     {
+        var branches = BlueprintExecutionBranches.Read(fn);
+        return !BlueprintExecutionBranches.Has(fn) ? "" : "public enum ExecutionResult : int { None = 0, " + string.Join(", ", branches.Select(b => BlueprintExecutionBranches.Member(b!["id"]!.GetValue<string>()) + " = " + b["value"])) + " }\npublic interface IExecutionInvoke : IInvoke { ExecutionResult InvokeExecution(" + Parameters(fn.Signature!) + "); }";
+    }
+
+    public static string ImplementationSource(Element e, string body, string path, string members = "", FunctionSignature? entry = null, Element? feature = null)
+    {
+        bool execution = feature is not null && BlueprintExecutionBranches.Has(feature);
+        string executionAdapter = execution ? "public void Invoke(" + Parameters(e.Signature!) + ") { _ = ((" + BlueprintExecutionBranches.Interface(e.Function!) + ")this).InvokeExecution(" + Arguments(e.Signature!) + "); }\n" + BlueprintExecutionBranches.Result(e.Function!) + " " + BlueprintExecutionBranches.Interface(e.Function!) + ".InvokeExecution(" + Parameters(e.Signature!) + ") { return (" + BlueprintExecutionBranches.Result(e.Function!) + ")this.ExecuteBranches(" + Arguments(e.Signature!) + "); }" : "";
         string imports = string.Join("\n", e.Imports.OrderBy(x => x.Key, StringComparer.Ordinal).Select(x => $"        {Interface(x.Value.Id)} {x.Key} {{ get; }}"));
         string quotedPath = JsonSerializer.Serialize(path, JsonData.Options);
         return $$"""
@@ -32,7 +41,7 @@ public static class Generation
             using System;
             namespace Confectory.Implementations.{{Symbol(PackPaths.Namespace(e.Id))}}
             {
-                public sealed class {{Symbol(e.Id)}} : {{Interface(e.Function!)}}
+                public sealed class {{Symbol(e.Id)}} : {{(execution ? BlueprintExecutionBranches.Interface(e.Function!) : Interface(e.Function!))}}
                 {
                     public interface IImports
                     {
@@ -40,7 +49,8 @@ public static class Generation
                     }
                     private readonly IImports calls;
                     public {{Symbol(e.Id)}}(IImports calls) { this.calls = calls; }
-                    {{(entry is null ? "public " : "")}}{{e.Signature!.Return}} {{(entry is null ? "" : Interface(e.Function!) + ".")}}Invoke({{Parameters(entry ?? e.Signature)}})
+                    {{executionAdapter}}
+                    {{(execution ? "private int ExecuteBranches" : (entry is null ? "public " : "") + e.Signature!.Return + " " + (entry is null ? "" : Interface(e.Function!) + ".") + "Invoke")}}({{Parameters(entry ?? e.Signature!)}})
                     {
             #line 1 {{quotedPath}}
             {{body}}
@@ -59,10 +69,13 @@ public static class Generation
         {
             var fn = plan.Registry.Get(node.Function, "function"); var sig = fn.Signature!;
             string name = BindingSymbol(key), impl = Implementation(node.Implementation), prefix = sig.Return == "void" ? "" : "return ";
-            lines.AppendLine($"internal sealed class {name} : {Interface(fn.Id)}"); lines.AppendLine("{");
+            bool execution = BlueprintExecutionBranches.Has(fn);
+            lines.AppendLine($"internal sealed class {name} : {(execution ? BlueprintExecutionBranches.Interface(fn.Id) : Interface(fn.Id))}"); lines.AppendLine("{");
             lines.AppendLine($"    public {sig.Return} Invoke({Parameters(sig)})"); lines.AppendLine("    {");
             lines.AppendLine($"        {prefix}(({Interface(fn.Id)})new {impl}(new {name}Imports())).Invoke({Arguments(sig)});");
-            lines.AppendLine("    }"); lines.AppendLine("}");
+            lines.AppendLine("    }");
+            if (execution) lines.AppendLine($"    public {BlueprintExecutionBranches.Result(fn.Id)} InvokeExecution({Parameters(sig)}) => (({BlueprintExecutionBranches.Interface(fn.Id)})new {impl}(new {name}Imports())).InvokeExecution({Arguments(sig)});");
+            lines.AppendLine("}");
             lines.AppendLine($"internal sealed class {name}Imports : {impl}.IImports"); lines.AppendLine("{");
             foreach (var (alias, imported) in node.Imports.OrderBy(x => x.Key, StringComparer.Ordinal))
                 lines.AppendLine($"    public {Interface(imported[1])} {alias} => new {BindingSymbol(new(imported[0], imported[1]))}();");
@@ -100,7 +113,7 @@ public static class Generation
             formatVersion = 1, abi = Abi, surface = "linked-elements", project = plan.Registry.Project.Namespace, entry = plan.Registry.Project.Entry, target,
             packs = plan.Reached.Select(PackPaths.Namespace).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).Select(ns => new { @namespace = ns, version = plan.Registry.Packs[ns].Version }).ToArray(),
             elements,
-            functions = contracts.Keys.Order(StringComparer.Ordinal).Select(id => new { id, contract = plan.Registry.Get(id).Signature, interfaceType = Interface(id)["global::".Length..], assembly = Path.GetFileName(contracts[id]["assembly"]!.GetValue<string>()) }).ToArray(),
+            functions = contracts.Keys.Order(StringComparer.Ordinal).Select(id => new { id, contract = plan.Registry.Get(id).Signature, interfaceType = Interface(id)["global::".Length..], executionBranches = BlueprintExecutionBranches.Read(plan.Registry.Get(id)), executionInterfaceType = BlueprintExecutionBranches.Has(plan.Registry.Get(id)) ? BlueprintExecutionBranches.Interface(id)["global::".Length..] : null, assembly = Path.GetFileName(contracts[id]["assembly"]!.GetValue<string>()) }).ToArray(),
             implementations = plan.Implementations.OrderBy(x => x.Key, StringComparer.Ordinal).Select(x => new { id = x.Key, function = x.Value.Function, implementationType = Implementation(x.Key)["global::".Length..], assembly = Path.GetFileName(packs[PackPaths.Namespace(x.Key)]["implementationArtifacts"]![x.Key]!["assembly"]!.GetValue<string>()), bodySelection = x.Value.Bodies.ContainsKey(target) ? target : "common", sourceKind = (x.Value.Bodies.GetValueOrDefault(target) ?? x.Value.Bodies.GetValueOrDefault("common"))?.SourceKind }).ToArray(),
             bindings = plan.Bindings.Values.ToArray(), coreProvidesRuntimeModLoader = false
         });

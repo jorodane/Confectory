@@ -190,8 +190,10 @@ public sealed class Builder
             Registry.Implementation(e.Function!, e.Id, e.Id, e.Loc);
             if (!e.Bodies.TryGetValue(Target, out var body) && !e.Bodies.TryGetValue("common", out body)) throw new BuildError("MISSING_TARGET_IMPLEMENTATION", $"No {Target}/common body for {e.Id}", e.Loc);
             string path = PackPaths.Owned(Path.GetDirectoryName(Registry.Paths[PackPaths.Namespace(body.Origin)])!, body.Path, body.Loc);
+            var executionFeature = Registry.Get(e.Function!, "function");
+            if (BlueprintExecutionBranches.Has(executionFeature) && (body.SourceKind != "blueprint" || e.Parent is not null || e.Bodies.Count != 1)) throw new BuildError("BLUEPRINT_EXECUTION_PROVIDER", "Public execution branches require one directly owned Blueprint target", e.Loc);
             string source = body.SourceKind == "blueprint" ? (blueprint ??= new BlueprintCompilation(Registry, Target, Tool)).Assemble(e, body, path) : Documents.Body(path);
-            sources.Add((e.Id, Generation.ImplementationSource(e, source, body.SourceKind == "blueprint" ? "graph:" + e.Function : path, blueprint?.Members.GetValueOrDefault(e.Id) ?? "", blueprint?.EntrySignatures.GetValueOrDefault(e.Id))));
+            sources.Add((e.Id, Generation.ImplementationSource(e, source, body.SourceKind == "blueprint" ? "graph:" + e.Function : path, blueprint?.Members.GetValueOrDefault(e.Id) ?? "", blueprint?.EntrySignatures.GetValueOrDefault(e.Id), executionFeature)));
             foreach (string fn in new[] { e.Function! }.Concat(e.Imports.Values.Select(x => x.Id))) refs[fn] = Contract(fn);
         }
         string key = JsonData.Digest(new object[] { ArtifactLayout, Generation.Abi, Tool.Identity, "implementations", ns,

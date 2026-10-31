@@ -61,6 +61,10 @@ public sealed class Registry
             string path = PackPaths.Owned(Path.GetDirectoryName(Paths[ns])!, locator.Path, locator.Loc);
             element = Documents.Element(path);
             if (element.Id != id || element.Kind != locator.Kind) throw new BuildError("LOCATOR_MISMATCH", $"Locator {id} {locator.Kind} points to {element.Id} {element.Kind}", element.Loc);
+            if (element.Kind == "function") {
+                try { _ = BlueprintExecutionBranches.Read(element); }
+                catch (Exception error) when (error is ArgumentException or InvalidOperationException or System.Text.Json.JsonException or FormatException or OverflowException) { throw new BuildError("EXECUTION_BRANCH_CONTRACT", error.Message, element.Loc); }
+            }
             Elements.Add(id, element);
         }
         return element;

@@ -7,6 +7,8 @@ static class BlueprintRootGroup
 {
  public static JsonObject Validate(JsonObject request)
  {
+  var headId=request["group"]![0]!.ToString();
+  if(request["units"]?[headId]?["kind"]?.ToString()=="function" && BlueprintExecutionBranches.Has(new Parser(request["units"]![headId]!["draft"]!.GetValue<string>(),"<group-contract>").ParseElement()) && request["group"]!.AsArray().Count>=6)return BlueprintRootExecution.ValidateGroup(request);
   if(request["group"]!.AsArray().Count>4)return BlueprintCallAbiGroup.ValidateGroup(request);
   var group=request["group"]!.AsArray();var units=request["units"]!.AsObject();string ns=request["namespace"]!.GetValue<string>();var ids=group.Select(p=>p!.GetValue<string>()).ToArray();
   if(ids.Length is not (3 or 4)||ids.Distinct(StringComparer.Ordinal).Count()!=ids.Length||ids.Any(id=>!id.StartsWith(ns+"::",StringComparison.Ordinal)||units[id] is null||!JsonNode.DeepEquals(units[id]!["rootContractGroup"],group)))throw new ArgumentException("Exact root group membership required");

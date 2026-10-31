@@ -22,6 +22,9 @@ try
         case "blueprintNodeFlow":reply=BlueprintNodeFlow.Prepare(request);break;
         case "blueprintPrepareFeature":reply=BlueprintCreation.Prepare(request,Format);break;
         case "blueprintPrepareImplementation":reply=BlueprintCreation.PrepareForOwner(request,Format);break;
+        case "blueprintRootExecutionGuards":reply=BlueprintRootExecution.Guards(request);break;
+        case "blueprintRootExecutionCandidates":reply=BlueprintRootExecution.Candidates(request);break;
+        case "blueprintRootExecution":reply=BlueprintRootExecution.Prepare(request,Format);break;
         case "blueprintRootContract":reply=BlueprintRootContract.Prepare(request,Format);break;
         case "blueprintRootGroup":reply=BlueprintRootGroup.Validate(request);break;
         case "blueprintOutputSnapshot":reply=BlueprintOutputSnapshot.Prepare(new Parser(S("functionText"),"<published-output-contract>").ParseElement(),request["expected"]?.GetValue<string>());break;
