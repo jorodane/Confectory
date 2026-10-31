@@ -9,7 +9,7 @@ try:
  import hashlib
  for id,unit in pure['units'].items():unit['baseline']=hashlib.sha256((f.project/unit['path']).read_bytes()).hexdigest()
  assert len(f.metadata('blueprintRootExecutionGuards',namespace='Owned.Elements',units=pure['units'])['checks'])==8
- x.build('before',7,'callee:1\nafter');f.start(0);d=x.read();assert d['rootExecution'],d.get('rootExecutionError');assert d['rootExecution']['callers'][0]['graph']==x.caller;before=x.checkpoint();req=x.request(d);x.original();f.checked('원래 sync void 원문·일반 호출 실행과 명시 호출자 후보를 확인한다')
+ x.build('before',x.result_code,x.initial_stdout);f.start(0);d=x.read();assert d['rootExecution'],d.get('rootExecutionError');assert d['rootExecution']['callers'][0]['graph']==x.caller;before=x.checkpoint();req=x.request(d);x.original();f.checked('원래 sync void 원문·일반 호출 실행과 명시 호출자 후보를 확인한다')
  for field in ['missing-caller','unknown-branch','stale-proof','bad-id','changed-value']:
   bad=copy.deepcopy(req)
   if field=='missing-caller':bad['edits'][0]['definition']['caller']['graph']=''
@@ -24,7 +24,8 @@ try:
  f.stop();f.start(1);assert x.checkpoint()==saved;assert x.read()['diagnostics']['state']=='source-ready';assert x.rpc('settledAuthorBatch',**req)['settled'];x.original();f.checked('재시작에서 같은 branch ID·호출자 receipt·원자 그룹을 복원하고 응답 재조회는 중복 저장하지 않는다')
  f.invoke('reviewGroup',{'ids':[x.graph]},False);x.original();ids=x.read()['reviewIds'];view=f.invoke('reviewGroup',{'ids':ids});assert not view['state']['review'].get('errors');x.original();f.checked('부분 Review를 거절하고 전체 Review 준비·취소는 원본을 쓰지 않는다')
  review_checkpoint=x.checkpoint();token=view['state']['review']['token'];source.write_bytes(x.physical[source]+b' ');failed=f.invoke('confirmGroup',{'ids':ids,'token':token})['result']['result'];assert failed['sourceConfirmed'] is False;source.write_bytes(x.physical[source]);x.original();assert x.checkpoint()==review_checkpoint;f.stop();f.start(2);f.checked('Review 뒤 호출자 변경은 최종 CAS에서 전부 미반영하고 저장된 후보를 유지한다')
- view=f.invoke('reviewGroup',{'ids':x.read()['reviewIds']});f.invoke('confirmGroup',{'ids':x.read()['reviewIds'],'token':view['state']['review']['token']});assert (f.project/'Flow.node.json').read_bytes()==x.physical[f.project/'Flow.node.json'];assert (f.project/'After.node.json').read_bytes()==x.physical[f.project/'After.node.json'];x.build('after');f.checked('Confirm 뒤 기존 C# 바이트·ordinary 계약을 보존하며 성공 분기는 직접 호출자의 반환 경로로 실제 실행한다')
+ view=f.invoke('reviewGroup',{'ids':x.read()['reviewIds']});f.invoke('confirmGroup',{'ids':x.read()['reviewIds'],'token':view['state']['review']['token']});assert (f.project/'Flow.node.json').read_bytes()==x.physical[f.project/'Flow.node.json'];assert (f.project/'After.node.json').read_bytes()==x.physical[f.project/'After.node.json'];x.build('after');assert not x.out_mode or x.read(x.caller)['nodes'][0]['outputs']==[{'name':'result','type':'int'}];f.checked('Confirm 뒤 기존 C# 바이트·ordinary 계약을 보존하며 성공 분기는 직접 호출자의 반환 경로로 실제 실행한다')
+ if x.out_mode:f.checked('정수 out의 기존 호출 계약과 출력 카드·소비 연결을 보존하고 분기 반환 시 데이터 10을 먼저 발행해 실제 반환한다')
  f.stop();f.start(3);assert x.read()['diagnostics']['state']=='source-ready';assert x.read(x.caller)['diagnostics']['state']=='source-ready';f.checked('최종 반영 후 cold 재시작에서 공개 분기와 연결을 다시 읽는다')
  print('M12_FIXTURE '+str(f.case),flush=True)
 finally:

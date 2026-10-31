@@ -65,4 +65,29 @@ public sealed class RootExecutionBranchTests : TestCase
         var branch=new JsonObject { ["id"]=null,["name"]="Invalid",["value"]=1 };f.Add("Api","function","Value",Function(new JsonArray(branch)));
         f.Add("Provider","implementation","ValueBody","implementation Provider::ValueBody for Api::Value (int mode) -> void {body common \"original.csbody\";}");f.Body("Provider","original.csbody","return;");f.Add("App","implementation","MainBody","implementation App::MainBody for App::Main () -> int {import Api::Value as Original (int) -> void;body common \"main.csbody\";}");f.Body("App","main.csbody","calls.Original.Invoke(1);return 0;");f.Sync();Error("EXECUTION_BRANCH_CONTRACT",()=>Build());
     }
+    public void test_single_int_out_is_published_before_public_branch_and_continuation_without_changing_void_invoke() {
+        string source=Function().Replace("int mode", "int mode,out int result", StringComparison.Ordinal),main="function App::Main () -> int {}";
+        var contract=new Parser(source,"<out-contract>").ParseElement();var callee=Callee(source);callee["nodes"]![0]!["signature"]!["args"]!.AsArray().Add(new JsonObject { ["type"]="int",["name"]="result",["mode"]="out" });
+        foreach(string name in new[]{"yes","no"}) {
+            string id="publish_"+name;callee["nodes"]!.AsArray().Add(new JsonObject { ["id"]=id,["kind"]="export",["control"]="next",["intent"]="Publish the original int output",["output"]="result",["signature"]=Signature("void",new Parameter("int","value")),["arguments"]=new JsonObject { ["value"]=new JsonObject { ["node"]="choose",["output"]="result" } } });
+            foreach(var edge in callee["edges"]!.AsArray())if(edge!["to"]!.ToString()=="exit:"+name)edge["to"]=id;
+            callee["edges"]!.AsArray().Add(Edge(id,"exit:"+name));
+        }
+        const string original="// 원문 😀\r\nConsole.WriteLine(\"callee:\"+mode);\r\nresult=mode*10;return mode>0;\r\n";
+        Records("Provider",callee,source,new() { ["choose"]=original });f.Add("Api","function","Value",source);f.Add("Provider","implementation","ValueBody","implementation Provider::ValueBody for Api::Value (int mode,out int result) -> void {blueprint common \"callee.graph.json\";}");f.Body("Provider","callee.graph.json",callee.ToJsonString());
+        var caller=Graph("App::Main",main,"call");caller["nodes"]=new JsonArray(new JsonObject { ["id"]="call",["kind"]="call",["control"]="switch",["intent"]="Keep output and result separate",["feature"]="Api::Value",["signature"]=FeatureBlueprint.SignatureDocument(contract.Signature!),["arguments"]=new JsonObject { ["mode"]=new JsonObject { ["constant"]=1 } },["publicExecution"]=FeatureBlueprint.ContractHash(contract),["executionEnum"]=BlueprintExecutionBranches.Enum(contract) });
+        foreach(string id in new[]{"yes","no","after"}) {var node=new JsonObject { ["id"]=id,["kind"]="code",["control"]="next",["intent"]="Read published output in "+id,["signature"]=Signature("void",new Parameter("int","value")),["arguments"]=new JsonObject { ["value"]=new JsonObject { ["node"]="call",["output"]="result" } },["implementation"]=id+".node.json" };if(id!="after")node["branchOwner"]="call";caller["nodes"]!.AsArray().Add(node);}
+        caller["edges"]=new JsonArray(Edge("call","yes","case:success"),Edge("call","no","case:failure"),Edge("call","after"),Edge("after","exit:done"));caller["exits"]=new JsonObject { ["done"]=new JsonObject { ["constant"]=0 } };
+        var contracts=new JsonObject { ["Api::Value"]=source };Records("App",caller,main,new() { ["yes"]="Console.WriteLine(\"success:\"+value);",["no"]="Console.WriteLine(\"failure:\"+value);",["after"]="Console.WriteLine(\"continue:\"+value);" },contracts);
+        f.Add("App","implementation","MainBody","implementation App::MainBody for App::Main () -> int {import Api::Value as "+FeatureBlueprint.ImportAlias("Api::Value")+" (int,out int) -> void;blueprint common \"caller.graph.json\";}");f.Body("App","caller.graph.json",caller.ToJsonString());f.Sync();byte[] before=File.ReadAllBytes(Path.Combine(f.Packs["Provider"].Root,"choose.node.json"));Output(Build(),"callee:1\nsuccess:10\ncontinue:10");
+        caller["nodes"]![0]!["arguments"]!["mode"]!["constant"]=-1;f.Body("App","caller.graph.json",caller.ToJsonString());Output(Build(),"callee:-1\nfailure:-10\ncontinue:-10");
+        callee["exits"]!["no"]!["executionBranch"]="none";f.Body("Provider","callee.graph.json",callee.ToJsonString());Output(Build(),"callee:-1\ncontinue:-10");
+        f.Add("App","implementation","MainBody","implementation App::MainBody for App::Main () -> int {import Api::Value as Original (int,out int) -> void;body common \"legacy.csbody\";}");f.Body("App","legacy.csbody","calls.Original.Invoke(3,out int value);Console.WriteLine(\"legacy:\"+value);return 0;");f.Sync();Output(Build(),"callee:3\nlegacy:30");Sequence(before,File.ReadAllBytes(Path.Combine(f.Packs["Provider"].Root,"choose.node.json")));
+    }
+    public void test_public_out_contract_keeps_ref_multiple_out_other_type_and_nonvoid_outside_this_slice() {
+        foreach(string signature in new[]{"ref int mode", "int mode,out long result", "int mode,out int a,out int b"}) {
+            bool rejected=false;try { _=BlueprintExecutionBranches.Read(new Parser(Function().Replace("int mode",signature,StringComparison.Ordinal),"<unsupported>").ParseElement()); }catch(ArgumentException){rejected=true;}True(rejected,signature);
+        }
+        bool nonvoid=false;try{_=BlueprintExecutionBranches.Read(new Parser(Function().Replace("-> void","-> int",StringComparison.Ordinal),"<nonvoid>").ParseElement());}catch(ArgumentException){nonvoid=true;}True(nonvoid);
+    }
 }

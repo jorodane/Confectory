@@ -600,7 +600,7 @@ public static partial class FeatureBlueprint
                 output.AppendLine((ExecutionType(node) == "void" ? "" : "return ") + (node.Control == "switch" ? "(int)" : "") + type + ".Execute(" + ImportParameter(node.Feature!) + (node.Signature.Args.Count > 0 ? ", " : "") + string.Join(", ", node.Signature.Args.Select(p => (p.Mode is "out" or "ref" ? p.Mode + " " : "") + p.Name)) + (WrappedReturn(node) ? ", out __fg_wrapped_return" : "") + ");");
             }
             else if (node.Kind == "call" && node.Definition["publicExecution"] is not null)
-                output.AppendLine("return (int)((" + BlueprintExecutionBranches.Interface(node.Feature!) + ")" + ImportParameter(node.Feature!) + ").InvokeExecution(" + string.Join(",", node.Signature.Args.Select(p => p.Name)) + ");");
+                output.AppendLine("return (int)((" + BlueprintExecutionBranches.Interface(node.Feature!) + ")" + ImportParameter(node.Feature!) + ").InvokeExecution(" + string.Join(",", node.Signature.Args.Select(p => (p.Mode is "out" or "ref" ? p.Mode + " " : "") + p.Name)) + ");");
             else if (node.Kind == "call")
                 output.AppendLine((node.Signature.Return == "void" ? "" : "return ") + ImportParameter(node.Feature!) + ".Invoke(" + string.Join(",", node.Signature.Args.Select(p => (p.Mode is "out" or "ref"?p.Mode+" ":"")+p.Name)) + ");");
             else if (node.Kind == "code" && SupportsMethods(profile)) {

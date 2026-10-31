@@ -13,7 +13,7 @@ static class BlueprintRootExecution
     static JsonObject Graph(JsonObject units,string id) {
         if(units[id]?["kind"]?.ToString()!="blueprint")throw new ArgumentException("Owned Blueprint root required");
         var graph=JsonNode.Parse(units[id]!["draft"]!.GetValue<string>())!.AsObject();BlueprintDocuments.Validate(id,"blueprint",graph.ToJsonString());
-        if(graph["profile"]?.ToString()!=FeatureBlueprint.SwitchProfile||graph["copySource"] is not null||graph["nodes"]!.AsArray().Any(n=>n!["kind"]?.ToString() is not ("call" or "code")||n["control"]?.ToString()=="branch"||n["implementationContext"] is not null||n["postCall"] is not null))throw new ArgumentException("Existing ordinary switch-profile roots required; preserve other contexts");return graph;
+        if(graph["profile"]?.ToString()!=FeatureBlueprint.SwitchProfile||graph["copySource"] is not null||graph["nodes"]!.AsArray().Any(n=>n!["kind"]?.ToString() is not ("call" or "code" or "export")||n["control"]?.ToString()=="branch"||n["implementationContext"] is not null||n["postCall"] is not null))throw new ArgumentException("Existing ordinary switch-profile roots required; preserve other contexts");return graph;
     }
     static (Element Function,Element Implementation,JsonObject Graph) Root(JsonObject units,string graphId) {
         int marker=graphId.IndexOf("/body:",StringComparison.Ordinal);if(marker<0||graphId.Contains("/graph:",StringComparison.Ordinal))throw new ArgumentException("Direct root source required");
@@ -38,7 +38,7 @@ static class BlueprintRootExecution
     }
     public static JsonObject Candidates(JsonObject request) {
         var units=request["units"]!.AsObject();string rootId=request["id"]!.GetValue<string>();var root=Root(units,rootId);
-        if(root.Function.Signature!.Return!="void"||root.Function.Signature.Args.Any(p=>p.Mode is not null)||root.Implementation.Imports.Count!=0)throw new ArgumentException("Direct synchronous void/value-input root without imported body context required");
+        if(!BlueprintExecutionBranches.SupportsSignature(root.Function.Signature!)||root.Implementation.Imports.Count!=0)throw new ArgumentException("Direct synchronous void/value-input root with at most one int out and without imported body context required");
         if(units.Where(p=>p.Value?["kind"]?.ToString()=="implementation").Select(p=>Declaration(units,p.Key,"implementation")).Count(i=>i.Function==root.Function.Id||i.Parent==root.Implementation.Id)!=1)throw new ArgumentException("A shared provider/override requires a separately coordinated contract; keep it unchanged");
         var rows=new JsonArray();
         foreach(var pair in units.Where(p=>p.Value?["kind"]?.ToString()=="blueprint"&&p.Key!=rootId)) {
