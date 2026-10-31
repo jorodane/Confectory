@@ -6,16 +6,24 @@ try:
  n.build('before');f.start(0);f.invoke('select',{'id':n.owner});f.invoke('saveDraft',{});baseline=n.selection();before=x.checkpoint();n.unchanged();assert n.impl not in n.changes()
  if '--legacy' in sys.argv:
   n.rpc('readImplementationCopy',False,id=n.owner,function=n.feature,source=x.impl,target='common',implementation=n.impl,revision=n.schema()['revision'],hash=n.schema()['textHash'],privatePath=n.node,internalFlow={'node':n.node,'nonce':uuid.uuid4().hex});assert x.checkpoint()==before;n.unchanged();f.checked('실제로 실행 가능한 구형 ref profile은 자동 승격하지 않고 기존 copy 선택과 원문을 보존한다');raise SystemExit(0)
- preview,plan=n.proposal();assert x.checkpoint()==before and n.impl not in n.changes();assert preview['preview']['privatePath']==n.node;body=next(r for r in preview['preview']['nodes'] if r['id']=='body');assert body['source']==n.source;n.unchanged();f.checked('등록 전 copy의 내부 미리보기는 source/계약/출처를 보존하며 checkpoint나 원본을 쓰지 않는다')
- for kind in ['binding','missing','path']:
+ preview,plan=n.proposal();assert x.checkpoint()==before and n.impl not in n.changes();assert preview['preview']['privatePath']==n.node_key;body=next(r for r in preview['preview']['nodes'] if r['id']=='body');assert body['source']==n.source;
+ if n.branch:assert body['helpers']==n.helpers and body['executionEnum']==n.branch.execution and body['executionForwarded']
+ n.unchanged();f.checked('등록 전 copy의 내부 미리보기는 source/계약/출처를 보존하며 checkpoint나 원본을 쓰지 않는다')
+ for kind in ['binding','missing','path','frame',*(['enum'] if n.branch else [])]:
   bad=copy.deepcopy(plan)
   if kind=='binding':bad['binding']['sourceHash']='0'*64
   elif kind=='missing':bad.pop('binding')
-  else:bad['nonce']='../escape'
-  n.rpc('applySlots',False,id=n.owner,rows=[n.copy_row(preview,bad)]);assert x.checkpoint()==before;n.unchanged()
+  elif kind=='path':bad['nonce']='../escape'
+  elif kind=='frame':bad['node']='peer/'+n.node
+  else:bad['executionEnum']=copy.deepcopy(n.branch.execution);bad['executionEnum']['members'][0]['value']=123
+  bad_row=n.copy_row(preview,bad);bad_row['edits'][0]['node']=bad['node'];n.rpc('applySlots',False,id=n.owner,rows=[bad_row]);assert x.checkpoint()==before;n.unchanged()
  f.checked('누락/위조 source binding과 경로 입력은 copy 생성·배정·내부 소스를 모두 미적용한다')
- plan['source']=n.edited();row=n.copy_row(preview,plan);command={'id':n.owner,'rows':[row]};n.rpc('applySlots',**command);assert n.rpc('settledSlots',**command)['settled'];saved=x.checkpoint();rows=n.changes();assert n.impl in rows and n.root in rows and n.root+'/node:'+n.node+'/node:body' in rows;assert n.root+'/node:'+n.node not in rows
- outer=next(r for r in json.loads(rows[n.root]['draft'])['nodes'] if r['id']==n.node);assert outer['retainedCode']['definition']['kind']=='code';assert outer['retainedCode']['definition']['id']==n.node;assert outer['kind']=='graph';assert n.read(n.child)['diagnostics']['state']=='source-ready';n.unchanged();f.checked('첫 Save는 copy/manifest/owner 배정/내부 leaf를 하나의 후보로 저장하고 가상 원본 record를 물리 파일로 만들지 않는다')
+ plan['source']=n.edited();
+ if n.branch:plan.update(executionEnum=copy.deepcopy(n.branch.execution),helpers=n.helpers+'// explicit preserved helper input\r\n')
+ row=n.copy_row(preview,plan);command={'id':n.owner,'rows':[row]};n.rpc('applySlots',**command);assert n.rpc('settledSlots',**command)['settled'];saved=x.checkpoint();rows=n.changes();assert n.impl in rows and n.root in rows and n.leaf in rows;assert n.leaf.rsplit('/node:',1)[0] not in rows
+ outer=next(r for r in n.at(json.loads(rows[n.root]['draft']))['nodes'] if r['id']==n.node);assert outer['retainedCode']['definition']['kind']=='code';assert outer['retainedCode']['definition']['id']==n.node;assert outer['kind']=='graph';
+ if n.branch:assert outer['executionEnum']==n.branch.execution and outer['executionSource']=='body' and json.loads(rows[n.leaf]['draft'])['helpers']==plan['helpers']
+ assert n.read(n.child)['diagnostics']['state']=='source-ready';n.unchanged();f.checked('첫 Save는 copy/manifest/owner 배정/내부 leaf를 하나의 후보로 저장하고 가상 원본 record를 물리 파일로 만들지 않는다')
  f.stop();f.start(1);f.invoke('select',{'id':n.owner});assert x.checkpoint()==saved and n.rpc('settledSlots',**command)['settled'];assert n.read(n.child)['diagnostics']['state']=='source-ready';n.unchanged();f.checked('첫 Save receipt와 전체 원자 그룹은 cold에서 복원되며 같은 요청은 중복 copy를 만들지 않는다')
  if '--compile' in sys.argv:
   def body(text):
