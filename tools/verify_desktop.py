@@ -109,7 +109,7 @@ def main():
     parser.add_argument('--commit', required=True)
     parser.add_argument('--sdk', type=Path, required=True)
     parser.add_argument('--nuget-seed', type=Path, required=True)
-    parser.add_argument('--suite',choices=['headers','card-images','canvas','owned-information','owned-conversion','action-icons','declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement','worker-badges','node-internal','node-internal-nested','node-internal-storage','node-internal-context','node-internal-branches','node-branch-exits','node-internal-copy','node-internal-copy-nested','node-internal-copy-storage'],default='headers')
+    parser.add_argument('--suite',choices=['headers','card-images','canvas','owned-information','owned-conversion','action-icons','declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement','worker-badges','node-internal','node-internal-nested','node-internal-storage','node-internal-context','node-internal-branches','node-branch-exits','node-internal-copy','node-internal-copy-nested','node-internal-copy-storage','node-internal-copy-branches'],default='headers')
     args = parser.parse_args()
     repo = args.repo.resolve(); persistent = args.persistent.absolute()
     persistent.parent.mkdir(parents=True, exist_ok=True)
@@ -259,6 +259,18 @@ def main():
                     work.run(label+'-context-ui-'+mode,[sys.executable,str(checkout/'tests/web/v666_node_internal_context_ui.py'),str(checkout),str(report),mode,*(['--refs'] if mode=='late' else [])],cwd=checkout,env=env)
                 work.run(label+'-context-storage-regression',[sys.executable,str(checkout/'tests/web/v666_node_internal_storage_api.py'),str(checkout),str(report),*(['--private','--local'] if label=='crlf' else [])],cwd=checkout,env=env)
                 work.run(label+'-context-nested-regression',[sys.executable,str(checkout/'tests/web/v666_node_internal_nested_api.py'),str(checkout),str(report),'--depth=2'],cwd=checkout,env=env)
+            elif args.suite=='node-internal-copy-branches':
+                work.run(label+'-script-raw-edits',['node',str(checkout/'tests/web/v666_script_raw_edits.mjs'),str(checkout)],cwd=checkout,env=env)
+                work.run(label+'-branch-native',[dotnet,str(checkout/'tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll'),'SwitchBlueprintTests','NestedBlueprintTests','BlueprintConversionTests','ExternalRefTests','--require-runtime'],cwd=checkout,env=env)
+                work.run(label+'-copy-ownership',[dotnet,str(checkout/'tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll'),'blueprint_inherited_body_retains_declaring_node_owner','blueprint_independently_declared_body_cannot_borrow_another_node_owner','--require-runtime'],cwd=checkout,env=env)
+                work.run(label+'-direct-branch-regression',[sys.executable,str(checkout/'tests/web/v666_node_internal_branch_api.py'),str(checkout),str(report),*(['--nested'] if label=='crlf' else [])],cwd=checkout,env=env)
+                work.run(label+'-copy-storage-regression',[sys.executable,str(checkout/'tests/web/v666_node_internal_copy_api.py'),str(checkout),str(report),'normal','--storage-copy',*(['--private','--local'] if label=='crlf' else [])],cwd=checkout,env=env)
+                cases=[('root',[]),('owned-case',['--owned-case','--repeat']),('shared',['--shared'])] if label=='lf' else [('nested',['--nested']),('refs',['--refs','--nested'])]
+                for name,flags in cases:
+                    work.run(label+'-copy-branch-api-'+name,[sys.executable,str(checkout/'tests/web/v666_node_internal_branch_api.py'),str(checkout),str(report),'--copy',*flags],cwd=checkout,env=env)
+                cases=[('normal',[]),('storage',['view','--nested']),('conflict',[])] if label=='lf' else [('loss',['view','--nested']),('late',['--refs','--nested']),('project',[])]
+                for mode,flags in cases:
+                    work.run(label+'-copy-branch-ui-'+mode,[sys.executable,str(checkout/'tests/web/v666_node_internal_branch_ui.py'),str(checkout),str(report),mode,'--copy',*flags],cwd=checkout,env=env)
             elif args.suite=='node-internal-copy-storage':
                 work.run(label+'-script-raw-edits',['node',str(checkout/'tests/web/v666_script_raw_edits.mjs'),str(checkout)],cwd=checkout,env=env)
                 work.run(label+'-copy-ownership',[dotnet,str(checkout/'tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll'),'blueprint_inherited_body_retains_declaring_node_owner','blueprint_independently_declared_body_cannot_borrow_another_node_owner','--require-runtime'],cwd=checkout,env=env)
@@ -363,6 +375,9 @@ def main():
         elif args.suite=='node-internal-storage':
             work.run('packaged-node-internal',[sys.executable,str(checkout/'tests/web/v666_node_internal_ui.py'),str(package/'content'),str(packaged_report),'normal'],cwd=checkout,env=env)
             work.run('packaged-storage-node-internal',[sys.executable,str(checkout/'tests/web/v666_node_internal_storage_ui.py'),str(package/'content'),str(packaged_report),'normal'],cwd=checkout,env=env)
+        elif args.suite=='node-internal-copy-branches':
+            work.run('packaged-direct-branch',[sys.executable,str(checkout/'tests/web/v666_node_internal_branch_ui.py'),str(package/'content'),str(packaged_report),'normal'],cwd=checkout,env=env)
+            work.run('packaged-copy-branch',[sys.executable,str(checkout/'tests/web/v666_node_internal_branch_ui.py'),str(package/'content'),str(packaged_report),'normal','--copy',*([])],cwd=checkout,env=env)
         elif args.suite=='node-internal-copy-storage':
             work.run('packaged-node-internal',[sys.executable,str(checkout/'tests/web/v666_node_internal_ui.py'),str(package/'content'),str(packaged_report),'normal'],cwd=checkout,env=env)
             work.run('packaged-copy-storage',[sys.executable,str(checkout/'tests/web/v666_node_internal_copy_ui.py'),str(package/'content'),str(packaged_report),'normal','--storage-copy'],cwd=checkout,env=env)
@@ -432,6 +447,9 @@ def main():
         elif args.suite=='node-internal-storage':
             work.run('restored-node-internal',[sys.executable,str(checkout/'tests/web/v666_node_internal_ui.py'),str(restored/'content'),str(packaged_report),'storage'],cwd=checkout,env=env)
             work.run('restored-storage-node-internal',[sys.executable,str(checkout/'tests/web/v666_node_internal_storage_ui.py'),str(restored/'content'),str(packaged_report),'loss','--private','--local'],cwd=checkout,env=env)
+        elif args.suite=='node-internal-copy-branches':
+            work.run('restored-direct-branch',[sys.executable,str(checkout/'tests/web/v666_node_internal_branch_ui.py'),str(restored/'content'),str(packaged_report),'normal'],cwd=checkout,env=env)
+            work.run('restored-copy-branch',[sys.executable,str(checkout/'tests/web/v666_node_internal_branch_ui.py'),str(restored/'content'),str(packaged_report),'loss','--copy',*(['view','--nested','--refs'])],cwd=checkout,env=env)
         elif args.suite=='node-internal-copy-storage':
             work.run('restored-node-internal',[sys.executable,str(checkout/'tests/web/v666_node_internal_ui.py'),str(restored/'content'),str(packaged_report),'storage'],cwd=checkout,env=env)
             work.run('restored-copy-storage',[sys.executable,str(checkout/'tests/web/v666_node_internal_copy_ui.py'),str(restored/'content'),str(packaged_report),'loss','view','--storage-copy','--private','--local'],cwd=checkout,env=env)

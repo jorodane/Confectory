@@ -1,4 +1,4 @@
-"""M11 원래 실행 enum 선택값/소유 분기/계속 흐름의 직접 소유 fixture."""
+"""M11 실행 선택기: 직접 소유 및 저장된 단독 배정 copy의 Root/private fixture."""
 import copy,json,pathlib,subprocess,sys
 import v666_node_internal_api as x
 f=x.f;feature=x.feature;root=x.graph;refs='--refs' in sys.argv;nested='--nested' in sys.argv;owned_case='--owned-case' in sys.argv
@@ -41,9 +41,35 @@ for name,text in [('Flow.celem',function),('FlowBody.celem',implementation),('ot
 defs=f.metadata('featureBlueprintNodes',featureSource=function,graph=graph,implementationContext={'implementation':x.impl},bodyTarget='common');assert defs['state']=='node-definitions',defs
 for name,(body,helper) in bodies.items():
  key=(frame+'/' if frame else '')+name;row=next(r for r in defs['nodes']+defs.get('nestedNodes',[]) if r['id']==key);record={'schema':1,'node':name,'definitionHash':row['definitionHash'],'source':body,'helpers':helper};(f.project/('Flow.node.json' if name=='calculate' else name+'.node.json')).write_text(json.dumps(record,ensure_ascii=False))
-x.physical={p:p.read_bytes() for p in f.project.iterdir() if p.is_file()}
+copy_mode='--copy' in sys.argv
+implementation_id=x.impl;implementation_file='FlowBody.celem';graph_file='Flow.graph.json';guard=f.project/'Flow.node.json';owner=None
+if copy_mode:
+ import v536_field_definitions_ui as d
+ owner=d.owner;module=f.n+'M11Rules';implementation_id=f.n+'M11OwnedCopy';implementation_file='M11Copy.celem'
+ info=f.project/'FreeInfo.celem';call_signature=declaration(args,result,False)
+ (f.project/'M11Rules.celem').write_text('module '+module+' {require '+feature+' '+call_signature+';}')
+ info.write_text(info.read_text().replace('FreeInfo {','FreeInfo {module '+module+';',1))
+ f.manifest=x.manifest;f.manifest.write_text(f.manifest.read_text().replace('registry Confectory.Build.DotNet','element M11Rules module "M11Rules.celem";registry Confectory.Build.DotNet',1))
+ copied=f.metadata('implementationCopy',project=str(f.manifest),action='prepare',feature=feature,source=x.impl,target='common',implementation=implementation_id,owner=owner,ownerText=info.read_text())
+ (f.project/implementation_file).write_text(copied['implementation']);info.write_text(copied['owner'])
+ f.manifest.write_text(f.manifest.read_text().replace('registry Confectory.Build.DotNet','element M11OwnedCopy implementation "M11Copy.celem";registry Confectory.Build.DotNet',1))
+ graph_file=copied['graphPath'];(f.project/graph_file).parent.mkdir(parents=True,exist_ok=True);graph=copied['graph'];(f.project/graph_file).write_text(json.dumps(graph,ensure_ascii=False))
+ for row in copied['records']:
+  file=f.project/pathlib.Path(graph_file).parent/row['relative'];file.parent.mkdir(parents=True,exist_ok=True);file.write_text(json.dumps(row['record'],ensure_ascii=False))
+ guard=f.project/pathlib.Path(graph_file).parent/next(r['relative'] for r in copied['records'] if r['id']==('frame/' if nested else '')+'calculate')
+ root=implementation_id+'/body:common';parent=root+('/graph:frame' if nested else '');child=parent+'/graph:calculate'
+ (f.project/'MainBody.celem').write_text('implementation '+f.n+'MainBody for '+f.n+'Main () -> int {import '+feature+' as Flow '+call_signature+' in '+owner+';body common "Main.csbody";}')
+ if '--shared' in sys.argv:
+  file=f.project/'Vitals.celem';file.write_text(file.read_text().replace('Vitals {','Vitals {module '+module+';provide '+feature+' with '+implementation_id+';',1))
+x.physical={p:p.read_bytes() for p in f.project.rglob('*') if p.is_file() and '.confectory' not in p.parts}
+def original():assert all(p.read_bytes()==v for p,v in x.physical.items())
+def owner_binding():
+ if not copy_mode:return {}
+ schema=f.invoke('schema',{'id':owner})['state']['schema'];return {'owner':owner,'ownerHash':schema['textHash'],'ownerRevision':schema['revision']}
+
+def source_path(node):return f.project/pathlib.Path(graph_file).parent/node['implementation']
 def at(g):return next(n for n in g['nodes'] if n['id']=='frame')['graph'] if nested else g
-def rpc(action,ok=True,**kw):return f.invoke('blueprint',{'action':action,'id':parent,**kw},ok)['result'].get('result')
+def rpc(action,ok=True,**kw):return f.invoke('blueprint',{'action':action,'id':parent,**owner_binding(),**kw},ok)['result'].get('result')
 def read(id=parent):return rpc('read',id=id)
 def request(data,nonce=None,body=None,helper=None):
  import uuid
