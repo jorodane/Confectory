@@ -29,3 +29,41 @@ Save checkpoint와 Confirm source commit은 기존 파일 lease 안에서 동일
 `tools/verify_desktop.py --suite node-internal-external-override`로 독립 LF/CRLF·native/소유/copy 회귀·등록 부모 Root/중첩 API와 화면의 Undo/Redo·취소·쓰기 실패·부모 충돌·응답 유실·늦은 입력·cold/프로젝트 왕복·Review/Confirm을 검증한다. 실제 Confirm/CommitPlan 본문에 재검증 이후 부모 변경·소실·잘못된 hash·쓰기 실패를 주입한다. 그 probe의 metadata/컴파일러는 통제된 의존성이며 실제 registry·컴파일·실행은 API/UI에서 별도 검증한다.
 
 신규 교차 패키지·전체 SHA/ZIP CRC/모드 복원·복원본 실행·실패 수명관리를 수행하고 최신/정상 롤백과 입력·로그·스크린샷·manifest를 지속 보관한다. 실행의 소유 임시물만 기존 수명관리로 정리하고 과거 비관리 자료는 삭제하지 않는다. 최종 source·신규/재사용/미실행 수치·보관 SHA·공간 실측은 종료 후 아래에 기록한다.
+
+## 최종 검증 결과
+
+최종 동결 source는 `ccfb03452bb2654153ab510cc399a9f607cb2cad`다. **51단계 전부 신규 실행·통과**했으며 과거 실행/집중 진단의 통과를 재사용하거나 실패/skip을 통과로 집계하지 않았다.
+
+| 검증 묶음 | 신규 통과 | 재사용 |
+|---|---:|---:|
+| 독립 LF clone·checkout·restore·Release/MCP/엔진·영향 회귀·API/화면 | 22 | 0 |
+| 독립 CRLF의 같은 준비·영향 회귀·API/화면 | 21 | 0 |
+| 새 교차 패키지·전체 복원·복원본 실행·실패 수명관리 | 8 | 0 |
+| 합계 | 51 | 0 |
+
+양쪽 checkout은 `--no-hardlinks` 독립 clone과 별도 cache/tool home으로 만들었다. 각각 native 분기·중첩·whole-body/ref/out 28개, 상속 본문 소유 보호 2개, 새 최종 read CAS 5개와 기존 owned CAS 4개가 통과했다. 기존 혼합 선언·헤더 이미지·C# 원문 편집·private copy checkpoint, 저장 whole-body copy 및 중첩 ref/out 반복 실행 분기 copy를 영향 회귀로 확인했다. 단위 수는 여러 native 사례를 포함하는 실행 단계 수다.
+
+Root/중첩 등록 부모 API는 실제 실행 7 → 사용자 편집 후 11, 영수증 누락/변조/다른 경로·소유, 부모 파일 소실/읽기 권한 부재/미선언 의존성, Save 전 부모 변경을 확인했다. cold 체크포인트의 누락/변조는 Restore가 사용하는 같은 검증기로 거절했다. 같은 요청의 cold/retry는 중복 저장하지 않았고, 부분 Review 및 Review 뒤 부모 변경의 Confirm·재검토도 거절했다. 이때 부모·자기 원본과 저장된 입력·상대 변경을 보존했다.
+
+화면은 정상·취소·부모 충돌·쓰기 실패 복구·응답 유실·늦은 입력·동일 ID 프로젝트 왕복·Undo/Redo·cold·Review 취소/Confirm·반영 후 재시작을 확인했다. 새 패키지에서 기존 직접 소유 및 이번 등록 부모 화면을 실행하고, 전체 파일 SHA/ZIP CRC/모드 복원 후 새 copy 중첩 ref/out·응답 유실과 등록 부모 늦은 입력을 다시 실행했다. 외부 부모 파일 bytes와 0440 모드는 유지됐다. 실제 Windows apphost/WebView2·모바일·전체 UI·Library/Space 전달은 실행하지 않았다. 모든 독립 정보 view/타입/target 조합을 이번 신규 검증으로 주장하지 않는다.
+
+별도 집중 실행은 36단계 중 31통과·진단 실패 5건을 그대로 보존했다. 첫 3건은 같은 JSON 노드 소유 오류를 상세화한 실행, 1건은 Review checkpoint 기준을 바로잡은 검사 진단, 1건은 등록 부모 헤더가 목록에서 미확정이던 제품 누락이다. 수정 후 Root/중첩·CAS 및 화면 통과를 보존했으며, 최종 위 51단계는 모두 다시 새 실행했다. 집중 마지막 제품 overlay와 동결 Git blob의 SHA 동등성도 확인했다.
+
+- 최종 record: `/workspace/artifacts/v536-verification-managed/runs/6f6c4e41f8c84664b513f8d5edb5c554.json` (`cleaned`, 51/51).
+- 최종 증거: `/workspace/artifacts/v536-verification-managed/runs/6f6c4e41f8c84664b513f8d5edb5c554.zip`, SHA-256 `923147e926b1db59f222a791c10fc8e2952c02925aa450679ced90bdeec11ce3`.
+- 집중 증거: `/workspace/artifacts/v536-verification-managed/runs/e8a666a1731e417d93ce345d5b70b1cc.zip`, SHA-256 `4397bfa544836adbfc7456c8bf9db9c799e8c8e01a499372b22f8931cb565e70`.
+
+## 패키지 보관과 공간 실측
+
+| 보관본 | source commit | ZIP SHA-256 | bytes | manifest SHA-256 |
+|---|---|---|---:|---|
+| 최신 | `ccfb03452bb2654153ab510cc399a9f607cb2cad` | `2b5440224bcb3b39fa5b1e8fec8fbc1b029aba22b60e30d002d1134e118466ae` | 51,279,519 | `5d565f2ba001b740c1d109b79e29c0f90586eb0450b70dd18b547dfa1066da96` |
+| 정상 롤백 | `1d9bdf6aeacb798ac603adf79b3c52750cad6ccb` | `6e4b242050277807571b75c7789474b2fdadf5973c9adaba02fe96286134b11e` | 51,269,008 | `fd3ba5118d37185e3f1388face3214ed49b039eb6a513f5ca059f411ecf05597` |
+
+index는 `/workspace/artifacts/v536-verification-managed/packages/index.json`이다. 최신은 2365파일·147디렉터리, 롤백은 2364파일·147디렉터리다. 최신은 새 생성·전체 복원·복원본 실행을 마쳤다. 롤백은 직전 정상본의 실행 증거를 재사용하고 archive SHA를 다시 확인했다. 유일한 정상본을 먼저 없애지 않는 기존 관리형 승격/회전만 사용했다. 롤백본에는 이번 등록 부모 영수증/외부 read CAS가 없으므로 새 미확정 초안은 검증된 현재 본에서 확정해야 한다. 구버전 Confirm이 같은 보호를 적용하는 호환성을 보장하지 않으며 자동 마이그레이션은 추가하지 않았다.
+
+최종 실행의 디스크 여유는 **1988.97 → 1984.75 MiB**, 순증가 **4.21 MiB**였다. 집중 증거 순증가는 별도 **3.12 MiB**다. 최종 단계 샘플의 최소 여유는 1988.90 MiB, cgroup 메모리 피크는 4574.62 MiB였다. 144 MiB 추가 디스크 예산(64 MiB 안전 여유 포함)과 기존 RAM/메모리 예산을 낮추지 않았다. 미래 단위의 증가량을 보장하는 수치는 아니다.
+
+정상 반복·복사 중 예외·UI 실패·변조 확인 실패에서 예상 오류·증거를 보존하고 각 실행의 소유 복사본만 제거했다. SDK·원본 패키지는 변하지 않았다. 집중/최종 임시 root는 증거 보관·소유 자식 종료 확인 뒤 제거됐고 과거 비관리 자료를 추가 삭제하지 않았다.
+
+검증 후 결과 문서만 추가한 게시 HEAD와 위 source의 차이는 문서뿐임을 확인한다. 보고 commit으로 패키지를 재생성했다고 표현하지 않는다. **원래 고정 M11의 소유 구현 편집·복구 거래는 이번 등록 부모 관측/CAS까지 마감**하며 정상 거절과 미검증 기기/전체 UI를 별도로 유지한다. 다음 기존 독립 구현 우선순위는 M4/M12이고, 다른 고정 ABI/권한/리소스 등의 잔여는 위 유한한 목록대로 남긴다.
