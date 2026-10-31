@@ -32,3 +32,41 @@
 원래 경계의 재현은 부모가 다른 구현을 가지는 실제 실행 가능한 자식 fixture에서 확인했다. 자식 본문은 7을 반환하지만 기존 M11은 Parent 존재만으로 거절했다. 수정 후 Root/중첩 API는 같은 원문을 보존하며 사용자가 지정한 11로 실행 결과를 바꾸고 부모·상속 참조를 보존한다. 누락/위조 ancestry, 상속 본문 소유권 사칭·비소유 ID·계약 변경 및 저장 전/Review 후 부모 충돌도 검사한다. 재현·실패 증거와 최종 통과는 구분한다.
 
 실제 Windows apphost/WebView2·모바일·전체 UI·Library/Space 전달은 교차 패키지와 별도로 미완료다. 최종 코드의 신규/재사용/미실행 검사와 보관 수치는 아래에 기록한다.
+
+## 최종 동결 코드와 검증 결과
+
+패키지와 모든 최종 실행의 source는 `1d9bdf6aeacb798ac603adf79b3c52750cad6ccb`다. **45단계 모두 신규 실행·통과**했으며 과거 통과를 합산하거나 실패/skip을 통과로 바꾸지 않았다.
+
+| 검증 묶음 | 신규 통과 | 재사용 |
+|---|---:|---:|
+| 독립 LF checkout·빌드·API·화면·영향 회귀 | 19 | 0 |
+| 독립 CRLF checkout·빌드·API·화면·영향 회귀 | 18 | 0 |
+| 새 교차 패키지·전체 복원·복원본 실행·실패 수명관리 | 8 | 0 |
+| 합계 | 45 | 0 |
+
+양쪽 checkout은 `--no-hardlinks` 독립 clone과 별도 restore/Release/MCP/새 엔진·cache를 사용했다. 각 checkout에서 native 분기·중첩·whole-body·ref/out 28개와 상속 본문 소유 보호 2개를 새로 통과했다. 기존 혼합 선언·헤더 이미지·원문 편집·private copy checkpoint 및 저장 whole-body/실행 분기 copy도 영향 회귀로 확인했다.
+
+Root/중첩 override API는 부모 영수증 누락·변조, 상속 본문 소유권 사칭, 비소유 ID와 실제 게시 선언의 계약 변경을 거절했다. 관측 후 부모 변경의 전체 Save 거절·입력 보존, 같은 요청 반복의 중복 방지, 부분 Review 거절, Review 후 부모 변경의 최종 Confirm CAS 거절과 상대 원문 보존을 검증했다. 부모의 실제 C# 구현은 자식과 다르게 두었고, 자식 실행 7 → 사용자가 편집한 11을 확인하면서 부모 본문·상속 참조의 bytes와 모드를 보존했다.
+
+화면 검사는 원본 내부 진입·단일 코드 래핑·Undo/Redo·대화상자 취소/적용·Root 왕복·cold 복원을 확인했다. 부모 원문 충돌, 쓰기 실패 후 복구, 응답 유실, 저장 중 늦은 입력의 별도 Save, 동일 ID 다른 프로젝트 왕복, Review 취소/Confirm과 반영 뒤 재시작도 통과했다. 새 패키지에서 기존 직접 소유 및 이번 override 화면을 실행했고, 전체 SHA/ZIP CRC/권한 모드 복원 후 새 copy 중첩 ref/out·응답 유실과 override 늦은 입력 화면을 다시 실행했다. 이 실행은 실제 Windows apphost/WebView2 기기 검증이 아니다.
+
+별도 집중 실행의 19단계도 통과했다. 여기에는 수정 전 실행 가능한 자식 본문을 Parent 존재만으로 거절하던 경계 재현이 포함되며, 최종 45단계에 중복 합산하지 않는다. 집중 실행의 변경된 제품 입력은 최종 Git blob과 SHA로 대조했다. 최종 결과 집계 도우미가 `refused-reference.json`을 `reference.json` suffix로 선택한 오류는 정확한 루트 증거 경로로 수정했다. 제품/검사 실패로 숨기거나 검증을 재실행하지 않았으며 원본 증거 ZIP은 변경하지 않았다.
+
+- 최종 record: `/workspace/artifacts/v536-verification-managed/runs/85363c362e20410484136af561313b56.json` (`cleaned`, 45/45).
+- 최종 증거: `/workspace/artifacts/v536-verification-managed/runs/85363c362e20410484136af561313b56.zip`, SHA-256 `680adcfc69d802fbeb0e10c3acf59ba34307bc4b01ea74ec203456d6e14ef0b7`.
+- 집중 증거: `/workspace/artifacts/v536-verification-managed/runs/71d6a998551546b2a11b6e17c28d8f78.zip`, SHA-256 `d42d7078ec4161829150065f2ce83e2c60d1da5124da280605d0e4c69ea6bdcc`.
+
+## 지속 보관과 공간
+
+| 보관본 | source commit | ZIP SHA-256 | bytes | manifest SHA-256 |
+|---|---|---|---:|---|
+| 최신 | `1d9bdf6aeacb798ac603adf79b3c52750cad6ccb` | `6e4b242050277807571b75c7789474b2fdadf5973c9adaba02fe96286134b11e` | 51,269,008 | `fd3ba5118d37185e3f1388face3214ed49b039eb6a513f5ca059f411ecf05597` |
+| 정상 롤백 | `3d91ba6acea42354afdc48b9f0c2a08887e2b8d9` | `067f332da31eb0e6877026b072bf03309408359933165a73f4687f417ba9e074` | 51,266,676 | `841791b87360f67b8338f21cc316825cc8d68a1f52c2c5d77d9e7f35a6b4e62a` |
+
+index는 `/workspace/artifacts/v536-verification-managed/packages/index.json`이며 양쪽 모두 2364파일·147디렉터리다. 최신은 이번 새 생성·전체 복원·복원본 실행을 검증했다. 롤백은 직전 정상본의 실행 증거를 재사용하고 archive SHA를 다시 확인했다. 기존 관리형 원자 승격/회전만 사용했으며 유일한 정상본을 먼저 제거하지 않았다.
+
+최종 실행의 디스크 여유는 **1996.41 → 1992.44 MiB**, 순증가 **3.96 MiB**다. 집중 실행의 증거 증가는 별도 **2.04 MiB**이며 합산해 다음 단위 증가량을 보장하지 않는다. 최종 단계 샘플 최소 여유는 1996.36 MiB, cgroup 메모리 피크는 4576.36 MiB였다. 144 MiB 추가 디스크 예산(64 MiB 안전 여유 포함), 기존 RAM/메모리 예산은 낮추지 않았다.
+
+정상 반복·복사 중 예외·UI 실패·변조 확인 실패에서 예상 오류를 그대로 기록하고 증거를 보존한 뒤 해당 실행의 소유 복사본만 제거했다. 원본 패키지/SDK는 변하지 않았다. 집중·최종 실행의 임시 root는 소유 자식 종료와 증거 보관 뒤 제거됐으며 과거 비관리 자료는 추가 삭제하지 않았다.
+
+검증 후 게시할 HEAD와 위 source의 차이는 결과 문서뿐임을 확인한다. 보고서 commit으로 새 패키지를 생성했다는 뜻은 아니다. 이번 지원은 **프로젝트 내 관측 가능한 부모 체인과 직접 선언된 자기 Blueprint target의 편집**이다. 등록 외부 부모의 관측 영수증/최종 CAS 연동은 실제 다음 M11 잔여이며, 부모/참조 원본 쓰기·공개 override 계약 변경·legacy 자동 승격·독립 공개 계약 복제를 새 필수 요구로 만들지 않는다.
