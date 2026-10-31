@@ -4,12 +4,37 @@ using System.Text.Json.Nodes;
 // Pure single-node wrapping, never a C# parser/decompiler or source writer.
 internal static class BlueprintNodeFlow
 {
+    // Inheriting a contract does not transfer ownership of the parent's body.
+    // An override may wrap only its own explicitly declared, published target.
+    static void ValidateOwnedOverride(JsonObject owner,string rootId)
+    {
+        var declared=new Parser(owner["text"]!.GetValue<string>(),"<node-flow-owner>").ParseElement();
+        if(declared.Parent is null)return;
+        string target=owner["bodyTarget"]!.GetValue<string>(),project=Path.GetFullPath(owner["project"]!.GetValue<string>());
+        if(owner["id"]?.ToString()!=declared.Id||rootId!=declared.Id+"/body:"+target||
+           !declared.Bodies.TryGetValue(target,out var body)||body.SourceKind!="blueprint"||body.Origin!=declared.Id)
+            throw new InvalidOperationException("Preserve inherited/reference sources; explicitly owned override body required");
+        var observed=owner["ancestorSources"]?.AsObject()??throw new InvalidOperationException("Observe the owned override ancestry before entering its body");
+        if(observed.Count>63||observed.ToJsonString().Length>2097152)throw new ArgumentException("Bounded override ancestry required");
+        var registry=new Registry(project,new Documents(Path.Combine(Path.GetDirectoryName(project)!,".confectory","document-cache"),new BuildStatistics()),new BuildStatistics());
+        if(PackPaths.Namespace(declared.Id)!=registry.Project.Namespace||File.ReadAllText(registry.Get(declared.Id,"implementation").Loc.File)!=owner["text"]!.ToString())
+            throw new InvalidOperationException("Confirm the owned override declaration before entering its body");
+        var seen=new HashSet<string>(StringComparer.Ordinal){declared.Id};var current=declared;
+        while(current.Parent is string parent){
+            if(!seen.Add(parent)||seen.Count>64||PackPaths.Namespace(parent)!=registry.Project.Namespace||observed[parent] is not JsonValue)
+                throw new InvalidOperationException("Exact observable project override ancestry required; preserve parent sources");
+            current=registry.Get(parent,"implementation",current.Id);
+            if(File.ReadAllText(current.Loc.File)!=observed[parent]!.GetValue<string>())throw new InvalidOperationException("Override ancestry changed; retain input");
+        }
+        if(observed.Count!=seen.Count-1)throw new InvalidOperationException("Exact override ancestry receipt required");
+        registry.Effective(declared.Id); // Existing function/signature inheritance rules remain authoritative.
+    }
     public static JsonObject Prepare(JsonObject request)
     {
         string rootId=request["id"]!.GetValue<string>(),path=request["privatePath"]?.GetValue<string>()??"",nodeId=request["node"]!.GetValue<string>();
         string nonce=request["nonce"]!.GetValue<string>(),recordText=request["record"]!.GetValue<string>();
         if(!System.Text.RegularExpressions.Regex.IsMatch(nonce,"\\A[a-f0-9]{32}\\z")||recordText.Length>1048576)throw new ArgumentException("Bounded explicit internal-flow proposal required");
-        if(request["ownerRequest"] is JsonObject owner&&new Parser(owner["text"]!.GetValue<string>(),"<node-flow-owner>").ParseElement().Parent is not null)throw new InvalidOperationException("Preserve inherited implementation sources; a directly owned C# body is required");
+        if(request["ownerRequest"] is JsonObject owner)ValidateOwnedOverride(owner,rootId);
         var original=request["graph"]!.DeepClone().AsObject();string profile=original["profile"]!.GetValue<string>();
         if(!FeatureBlueprint.SupportsPrivateGraphs(profile))throw new InvalidOperationException("Review the existing private graph profile before wrapping a C# action");
         var frame=BlueprintTree.Select(original,path);string frameProfile=frame["profile"]!.GetValue<string>();var before=frame["nodes"]!.AsArray().Single(row=>row!["id"]!.ToString()==nodeId)!.AsObject();
