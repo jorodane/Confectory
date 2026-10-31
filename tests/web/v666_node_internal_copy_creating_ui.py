@@ -23,7 +23,7 @@ def code(text,cancel=False):
  if n.branch:
   helper=dialog.locator('[data-code-region=helpers]').text_content();editor.evaluate('(el,helper)=>{const at=el.value.lastIndexOf(helper);if(at<0)throw Error("helpers not found");el.focus();el.setSelectionRange(at,at+helper.length)}',helper);f.page.keyboard.insert_text(n.helpers+'// explicit UI helper input\r\n')
  dialog.locator('[data-code-cancel]' if cancel else '[data-code-save]').click()
- if n.branch and not cancel:n.expected_helpers=json.loads(next(v['text'] for _,v in cells() if v['type']=='enum-code'))['helpers']
+ if n.branch and not cancel and not hasattr(n,'expected_helpers'):n.expected_helpers=json.loads(next(v['text'] for _,v in cells() if v['type']=='enum-code'))['helpers']
 def save(owner=False):
  if owner:f.close_author();f.owner().locator('[data-element-action=save]').click()
  else:panel().locator('[data-bp-save]').click()
