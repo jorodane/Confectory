@@ -54,6 +54,7 @@ try
         case "blueprintPropertyCatalog":reply=BlueprintProperty.Query(request);break;
         case "blueprintPrepareProperty":reply=BlueprintProperty.Prepare(request,Format);break;
         case "blueprintCallableContracts":reply=BlueprintCallableContracts.Query(request);break;
+        case "blueprintOverrideContracts":reply=BlueprintOverrideContracts.Query(request);break;
         case "blueprintSourceValidate":reply=BlueprintDocuments.Validate(S("id"),S("kind"),S("text"));break;
         case "browserFolderMove":case "browserFolderValidate":reply=BrowserFolderLayout.Execute(request,Format,S("operation")=="browserFolderValidate");break;
         case "relationsMap":reply=RelationMapBatch.Query(request);break;

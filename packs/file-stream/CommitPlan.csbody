@@ -1,4 +1,4 @@
-if(plan.Length>16777216)throw new ArgumentException("Commit plan budget");var input=System.Text.Json.Nodes.JsonNode.Parse(plan)!.AsObject();if(input.Count!=2||input["writes"] is not System.Text.Json.Nodes.JsonArray writes||input["checks"] is not System.Text.Json.Nodes.JsonArray checks||writes.Count+checks.Count is <1 or >256)throw new ArgumentException("Typed writes and checks required");
+if(plan.Length>16777216)throw new ArgumentException("Commit plan budget");var input=System.Text.Json.Nodes.JsonNode.Parse(plan)!.AsObject();if(input.Count is <2 or >3||System.Linq.Enumerable.Any(input,p=>p.Key is not ("writes" or "checks" or "reads"))||input["writes"] is not System.Text.Json.Nodes.JsonArray writes||input["checks"] is not System.Text.Json.Nodes.JsonArray checks||input["reads"] is not null&&input["reads"] is not System.Text.Json.Nodes.JsonArray||writes.Count+checks.Count+(input["reads"]?.AsArray().Count??0) is <1 or >256)throw new ArgumentException("Typed writes and checks required");
 var paths=new string[writes.Count+checks.Count];var hashes=new string[paths.Length];var texts=new string[writes.Count];for(int i=0;i<paths.Length;i++){bool write=i<writes.Count;var row=(write?writes[i]:checks[i-writes.Count])!.AsObject();if(row.Count!=(write?3:2)||System.Linq.Enumerable.Any(row,p=>p.Key is not ("path" or "hash" or "text"))||!write&&row.ContainsKey("text"))throw new ArgumentException("Explicit typed commit item required");paths[i]=row["path"]!.GetValue<string>();hashes[i]=row["hash"]!.GetValue<string>();if(write)texts[i]=row["text"]!.GetValue<string>();}
 root=System.IO.Path.GetFullPath(root);if(!System.IO.Directory.Exists(root))throw new ArgumentException("Existing root required.");
 string prefix=root.TrimEnd(System.IO.Path.DirectorySeparatorChar)+System.IO.Path.DirectorySeparatorChar;
@@ -12,6 +12,10 @@ for(int i=0;i<paths.Length;i++)
  string? current=full;while(current is not null&&current.Length>=root.Length){if((System.IO.File.Exists(current)||System.IO.Directory.Exists(current))&&(System.IO.File.GetAttributes(current)&System.IO.FileAttributes.ReparsePoint)!=0)throw new ArgumentException("Symlink destinations are not owned files.");current=System.IO.Path.GetDirectoryName(current);}
  if(i<writes.Count&&System.IO.File.Exists(full)&&(System.IO.File.GetAttributes(full)&System.IO.FileAttributes.ReadOnly)!=0)throw new UnauthorizedAccessException("Selected file is read-only.");destinations[i]=full;
 }
+// Only these typed observations may be outside root. They never become writes
+// or create a lease/file there; callers derive them through registered receipts.
+var reads=input["reads"]?.AsArray()??new System.Text.Json.Nodes.JsonArray();var readPaths=new System.Collections.Generic.List<(string Path,string Hash)>();
+foreach(var item in reads){var row=item!.AsObject();string path=row["path"]!.GetValue<string>(),hash=row["hash"]!.GetValue<string>();if(row.Count!=2||System.Linq.Enumerable.Any(row,p=>p.Key is not ("path" or "hash"))||!System.IO.Path.IsPathFullyQualified(path)||System.IO.Path.GetFullPath(path)!=path||!unique.Add(path)||!System.Text.RegularExpressions.Regex.IsMatch(hash,@"\A[a-f0-9]{64}\z"))throw new ArgumentException("Exact unique read-only observation required");for(System.IO.FileSystemInfo? file=new System.IO.FileInfo(path);file is not null;file=file is System.IO.FileInfo f?f.Directory:((System.IO.DirectoryInfo)file).Parent)if(file.LinkTarget is not null)throw new ArgumentException("Read-only observations cannot traverse links");readPaths.Add((path,hash));}
 string leasePath=calls.LeasePath.Invoke(root);
 for(string? current=leasePath;current is not null&&current.Length>=root.Length;current=System.IO.Path.GetDirectoryName(current))
  if((System.IO.File.Exists(current)||System.IO.Directory.Exists(current))&&(System.IO.File.GetAttributes(current)&System.IO.FileAttributes.ReparsePoint)!=0)throw new ArgumentException("Source lease must remain inside owned storage.");
@@ -19,7 +23,13 @@ System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(leasePath)!)
 System.IO.FileStream? lease=null;var watch=System.Diagnostics.Stopwatch.StartNew();while(lease is null){try{lease=new System.IO.FileStream(leasePath,System.IO.FileMode.OpenOrCreate,System.IO.FileAccess.ReadWrite,System.IO.FileShare.None);}catch(System.IO.IOException){if(watch.ElapsedMilliseconds>=5000)throw new TimeoutException("Source lease is busy; retry without discarding drafts.");System.Threading.Thread.Sleep(10);}}
 using(lease)
 {
+ var held=new System.Collections.Generic.List<System.IO.FileStream>();try{
  var conflicts=new System.Collections.Generic.List<string>{"conflict"};
+ foreach(var read in System.Linq.Enumerable.OrderBy(readPaths,p=>p.Path,StringComparer.Ordinal)){
+  if(!System.IO.File.Exists(read.Path)){conflicts.Add(read.Path);continue;}
+  var stream=new System.IO.FileStream(read.Path,System.IO.FileMode.Open,System.IO.FileAccess.Read,System.IO.FileShare.Read);held.Add(stream);if(stream.Length>2097152)throw new ArgumentException("Read-only observation budget exceeded");
+  string actual=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(stream)).ToLowerInvariant();if(actual!=read.Hash)conflicts.Add(read.Path);
+ }
  for(int i=0;i<paths.Length;i++)
  {
   // Hash and rollback image must describe the same read, including BOM/encoding bytes.
@@ -45,4 +55,5 @@ using(lease)
   throw new AggregateException("Commit failed; original bytes restored where possible. Draft remains caller-owned.",failures);
  }
  return new[]{"applied"};
+ }finally{foreach(var stream in held)stream.Dispose();}
 }

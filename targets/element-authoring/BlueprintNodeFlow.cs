@@ -19,14 +19,16 @@ internal static class BlueprintNodeFlow
         var registry=new Registry(project,new Documents(Path.Combine(Path.GetDirectoryName(project)!,".confectory","document-cache"),new BuildStatistics()),new BuildStatistics());
         if(PackPaths.Namespace(declared.Id)!=registry.Project.Namespace||File.ReadAllText(registry.Get(declared.Id,"implementation").Loc.File)!=owner["text"]!.ToString())
             throw new InvalidOperationException("Confirm the owned override declaration before entering its body");
-        var seen=new HashSet<string>(StringComparer.Ordinal){declared.Id};var current=declared;
+        var registered=owner["registeredAncestry"]?.AsObject();if(registered is not null)BlueprintOverrideContracts.Query(new JsonObject{["action"]="verify",["project"]=project,["id"]=declared.Id,["text"]=owner["text"]!.DeepClone(),["target"]=target,["snapshot"]=registered.DeepClone()});
+        var seen=new HashSet<string>(StringComparer.Ordinal){declared.Id};var current=declared;int ownedCount=0;
         while(current.Parent is string parent){
-            if(!seen.Add(parent)||seen.Count>64||PackPaths.Namespace(parent)!=registry.Project.Namespace||observed[parent] is not JsonValue)
-                throw new InvalidOperationException("Exact observable project override ancestry required; preserve parent sources");
-            current=registry.Get(parent,"implementation",current.Id);
-            if(File.ReadAllText(current.Loc.File)!=observed[parent]!.GetValue<string>())throw new InvalidOperationException("Override ancestry changed; retain input");
+            if(!seen.Add(parent)||seen.Count>64)throw new InvalidOperationException("Bounded exact override ancestry required");
+            current=registry.Get(parent,"implementation",current.Id);string expected;
+            if(PackPaths.Namespace(parent)==registry.Project.Namespace){ownedCount++;expected=observed[parent]?.GetValue<string>()??throw new InvalidOperationException("Observe the owned ancestor source");}
+            else expected=registered?["ancestors"]?[parent]?["text"]?.GetValue<string>()??throw new InvalidOperationException("Observe the registered ancestor receipt; preserve parent sources");
+            if(File.ReadAllText(current.Loc.File)!=expected)throw new InvalidOperationException("Override ancestry changed; retain input");
         }
-        if(observed.Count!=seen.Count-1)throw new InvalidOperationException("Exact override ancestry receipt required");
+        if(observed.Count!=ownedCount)throw new InvalidOperationException("Exact override ancestry receipt required");
         registry.Effective(declared.Id); // Existing function/signature inheritance rules remain authoritative.
     }
     public static JsonObject Prepare(JsonObject request)

@@ -50,6 +50,7 @@ lock(state){
   if(!path.StartsWith(root+System.IO.Path.DirectorySeparatorChar,comparison))throw new InvalidOperationException("Retained C# must remain in its owned project");for(System.IO.FileSystemInfo? entry=new System.IO.FileInfo(path);entry is not null;entry=entry is System.IO.FileInfo file?file.Directory:((System.IO.DirectoryInfo)entry).Parent){if(entry.LinkTarget is not null)throw new InvalidOperationException("Retained C# cannot traverse links");if(entry.FullName.Equals(root,comparison))break;}
   if(System.IO.File.Exists(path)&&new System.IO.FileInfo(path).Length>2097152)throw new InvalidOperationException("Retained C# changed beyond its read budget");var snapshot=calls.Snapshot.Invoke(path);if(snapshot[0]!="exists"||snapshot[2]!=old["baseline"]!.ToString()||snapshot[1]!=old["original"]!.ToString())throw new InvalidOperationException("Retained C# changed; keep the complete internal flow draft without applying it");
  }
+ if(System.Linq.Enumerable.Any(state["units"]!.AsObject(),u=>u.Value?["nodeFlowOrigin"] is not null))calls.Metadata.Invoke("blueprintOverrideContracts",new System.Text.Json.Nodes.JsonObject{["action"]="verifyGroup",["project"]=state["project"]!.DeepClone(),["units"]=state["units"]!.DeepClone(),["selected"]=System.Text.Json.JsonSerializer.SerializeToNode(selected)}.ToJsonString());
  var conversionChanges=calls.Changes.Invoke(handle,selected);
  foreach(var conversion in state["units"]!.AsObject()){
   if(conversion.Value?["conversionOrigin"] is null||conversion.Value["baseline"]?.ToString()!="missing")continue;

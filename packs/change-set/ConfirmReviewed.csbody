@@ -32,7 +32,9 @@ try
   foreach(var guard in draftState["units"]![id]?["slotSaveReceipt"]?["readGuards"]?.AsObject()??new System.Text.Json.Nodes.JsonObject()){
    string path=guard.Value!["path"]!.ToString();if(guardedPaths.Add(path))checks.Add(guard.Value.DeepClone());
   }
- var result=checks.Count>0?calls.CommitPlan.Invoke(root,new System.Text.Json.Nodes.JsonObject{["writes"]=writes,["checks"]=checks}.ToJsonString()):calls.Commit.Invoke(root,paths,hashes,texts);if(result[0]!="applied")return result;committed=true;calls.Accept.Invoke(handle,accepted);calls.Acknowledge.Invoke(handle,accepted);return new[]{"confirmed"};
+ var registeredReads=!System.Linq.Enumerable.Any(draftState!["units"]!.AsObject(),u=>u.Value?["nodeFlowOrigin"] is not null)?new System.Text.Json.Nodes.JsonArray():System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("blueprintOverrideContracts",new System.Text.Json.Nodes.JsonObject{["action"]="verifyGroup",["project"]=identity[0],["units"]=draftState!["units"]!.DeepClone(),["selected"]=System.Text.Json.JsonSerializer.SerializeToNode(selected)}.ToJsonString()))!["reads"]!.AsArray();
+ var fullGuarded=new System.Collections.Generic.HashSet<string>(System.Linq.Enumerable.Select(guardedPaths,p=>System.IO.Path.GetFullPath(System.IO.Path.Combine(root,p))),OperatingSystem.IsWindows()?StringComparer.OrdinalIgnoreCase:StringComparer.Ordinal);var reads=new System.Text.Json.Nodes.JsonArray();foreach(var read in registeredReads){string path=read!["path"]!.ToString();if(fullGuarded.Add(path))reads.Add(read.DeepClone());}
+ var result=checks.Count>0||reads.Count>0?calls.CommitPlan.Invoke(root,new System.Text.Json.Nodes.JsonObject{["writes"]=writes,["checks"]=checks,["reads"]=reads}.ToJsonString()):calls.Commit.Invoke(root,paths,hashes,texts);if(result[0]!="applied")return result;committed=true;calls.Accept.Invoke(handle,accepted);calls.Acknowledge.Invoke(handle,accepted);return new[]{"confirmed"};
 }
 catch(Exception error){return new[]{committed?"confirmed-with-warning":"invalid",error.Message};}
 finally{if(System.IO.Directory.Exists(candidate))System.IO.Directory.Delete(candidate,true);}

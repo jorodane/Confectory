@@ -13,6 +13,8 @@
 
 Commit rejects absolute paths, root escapes, duplicates, symlink destinations and read-only files. Cooperating consumers hold LeasePath with exclusive FileShare.None. Nonparticipating editors are not locked. Multi-file operations are not crash-proof transactions; failed rollback is reported rather than hidden. Empty/missing baselines are distinct. Save policy, selection policy and draft lifetimes belong to other packs.
 
+`CommitPlan` also accepts optional typed `reads` with absolute path/hash only, for server-derived registered dependency observations. These rows are never writes, cannot carry text, reject links/duplicates and remain open with read sharing during the final owned source lease. Existing `writes`/`checks` remain owned relative paths. Registered authority is rechecked by the calling authoring/Save/Confirm packs; this IO operation creates no external grant or external lease. Arbitrary nonparticipating editors and crashes retain the limitations above.
+
 The example ProjectPack exercises actual IO and cleanup. The test separately verifies functional behavior and Snapshot-only provider rebuild locality, plus Android target body selection. Android selection is managed build coverage, not APK/device execution.
 
 From the repository root, with .NET 8 configured:

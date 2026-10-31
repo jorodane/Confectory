@@ -11,5 +11,6 @@ import Confectory.FileStream::Commit as Commit (string, string[], string[], stri
 import Confectory.Save::Acknowledge as Acknowledge (string, string[]) -> void;
 import Confectory.Save::Activity as Activity (string,string) -> string[];
 import Confectory.FileStream::CommitPlan as CommitPlan (string,string) -> string[];
+import Confectory.SchemaEditing::Call as Metadata (string,string) -> string;
 body common "ConfirmReviewed.csbody";
 }

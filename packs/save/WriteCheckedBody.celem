@@ -5,4 +5,6 @@ import Confectory.EditWorkspace::Identity as Identity (string) -> string[];
 import Confectory.EditWorkspace::Export as Export (string) -> string;
 import Confectory.FileStream::Snapshot as Snapshot (string) -> string[];
 import Confectory.FileStream::Commit as Commit (string, string[], string[], string[]) -> string[];
+import Confectory.SchemaEditing::Call as Metadata (string,string) -> string;
+import Confectory.FileStream::CommitPlan as CommitPlan (string,string) -> string[];
 body common "WriteChecked.csbody";}
