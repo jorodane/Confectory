@@ -215,7 +215,7 @@ lock(state){
   var selectedGraph=graph;foreach(string part in path.Split('/',StringSplitOptions.RemoveEmptyEntries)){var frame=System.Linq.Enumerable.Single(selectedGraph["nodes"]!.AsArray(),r=>r!["id"]!.ToString()==part)!;if(frame["kind"]?.ToString()!="graph")throw new InvalidOperationException("Exact owned copy frame required");selectedGraph=frame["graph"]!.AsObject();}
   var selected=System.Linq.Enumerable.Single(selectedGraph["nodes"]!.AsArray(),r=>r!["id"]!.ToString()==node)!;
   bool supportedControl=selected["control"]?.ToString()=="next"&&selected["executionEnum"] is null||selected["control"]?.ToString()=="switch"&&selected["executionEnum"]?["members"] is System.Text.Json.Nodes.JsonArray members&&members.Count>0&&selected["signature"]?["return"]?.ToString()=="void";
-  if(selected["kind"]?.ToString()!="code"||!supportedControl||selected["implementationContext"] is not null)throw new InvalidOperationException("Saved copy ordinary or execution-selector C# frame required; preserve other native contracts");
+  if(selected["kind"]?.ToString()!="code"||!supportedControl)throw new InvalidOperationException("Saved copy C# frame with its validated native contract required");
   var binding=CopyAbiBinding(rootId[..rootId.IndexOf("/body:",StringComparison.Ordinal)],rootId,graph,slot,true,path);
   if(!System.Text.Json.Nodes.JsonNode.DeepEquals(binding,observed))throw new InvalidOperationException("Copy assignment/target/provenance changed; retain input");return binding;
  }
