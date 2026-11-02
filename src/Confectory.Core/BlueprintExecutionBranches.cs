@@ -35,6 +35,21 @@ public static class BlueprintExecutionBranches
         }
         return branches.DeepClone().AsArray();
     }
+    // Public return-routing transactions edit execution selection, not data.
+    // Reuse the same shape and data-preservation rule for owned/copy/registered
+    // bodies and for restored receipts. Ordinary body value edits stay separate.
+    public static void ValidateReturnSelections(Element function,JsonObject before,JsonObject selected)
+    {
+        var allowed=Read(function).Select(b=>b!["id"]!.ToString()).Append("none").ToHashSet(StringComparer.Ordinal);
+        bool native=function.Signature!.Return!="void";
+        foreach(var row in selected) {
+            if(!Regex.IsMatch(row.Key,@"\A[A-Za-z_][A-Za-z_0-9.-]{0,127}\z")||row.Value is not JsonObject choice||choice.Count!=(native?2:1)||choice.Any(p=>p.Key!="executionBranch"&&(!native||p.Key!="value"))||choice["executionBranch"] is not JsonValue value||!value.TryGetValue<string>(out var branch)||!allowed.Contains(branch)||native&&!choice.ContainsKey("value"))throw new ArgumentException("Select an existing public branch and retain the native return data");
+        }
+        if(native)foreach(var row in before) {
+            var data=row.Value?["value"];
+            if(!selected.ContainsKey(row.Key)&&data is not null||selected.ContainsKey(row.Key)&&!JsonNode.DeepEquals(data,selected[row.Key]?["value"]))throw new ArgumentException("Public return selection cannot replace or discard an original data binding");
+        }
+    }
     public static void Set(Element function, JsonArray branches)
     {
         var copy = new Element { Kind = function.Kind, Id = function.Id, Parent = function.Parent, Signature = function.Signature };

@@ -26,9 +26,11 @@ try:
    c.restore_parent();x.manifest.write_bytes(c.physical[x.manifest])
   assert c.checkpoint()==before;c.original()
  f.checked('기존 직접 등록 함수/manifest 두 헤더만 읽고 영수증 누락/변조·경로/소유 위조·누락/권한/등록 철회·원시 BOM 변경을 거절한다')
- for name in ['unknown-branch','contract-edit','incomplete-exit','stale-proof']:
+ for name in ['unknown-branch','contract-edit','incomplete-exit','stale-proof']+(['data-missing','data-changed'] if x.nonvoid_mode else []):
   bad=copy.deepcopy(req)
-  if name=='unknown-branch':bad['edits'][0]['definition']['exits']['yes']={'executionBranch':'invented'}
+  if name=='data-missing':bad['edits'][0]['definition']['exits']['yes'].pop('value')
+  elif name=='data-changed':bad['edits'][0]['definition']['exits']['yes']['value']={'constant':999}
+  elif name=='unknown-branch':bad['edits'][0]['definition']['exits']['yes']['executionBranch']='invented'
   elif name=='contract-edit':bad['edits'][0]['definition']['branches']=[]
   elif name=='incomplete-exit':bad['edits'][0]['definition']['edges'].append(x.edge('choose','exit:missing','case:negative'))
   else:bad['sourceProof']=bad['sourceProof'].replace(d['sources'][0]['hash'],'0'*64)
@@ -40,7 +42,7 @@ try:
  assert c.rpc('authorBatch',**req)['checkpointSaved'];assert c.rpc('settledAuthorBatch',**req)['settled'];c.original();cp=c.checkpoint()
  snapshot=json.loads(next(iter(cp.values())));units={r['id']:r for r in snapshot['changes']};origin=units[c.graph]['publicBodyOrigin'];assert origin['version']==1
  guard=f.metadata('blueprintOverrideContracts',action='verifyGroup',project=str(x.manifest),units=units);assert {'FreeInfo.celem','FlowBody.celem','Flow.graph.json','Flow.node.json'}<={r['path'] for r in guard['checks']};assert bool(guard['reads'])==c.external
- for mode in ['missing-origin','missing-source','changed-source','changed-node','invalid-branch']+(['missing-external','tampered-external'] if c.external else []):
+ for mode in ['missing-origin','missing-source','changed-source','changed-node','invalid-branch']+(['missing-external','tampered-external'] if c.external else [])+(['data-missing','data-changed'] if x.nonvoid_mode else []):
   bad=copy.deepcopy(units);g=bad[c.graph]
   if mode=='missing-origin':g.pop('publicBodyOrigin')
   elif mode=='missing-source':g['publicBodyOrigin']['sources'].pop(c.impl)
@@ -49,8 +51,10 @@ try:
   elif mode=='tampered-external':g['publicBodyOrigin']['registeredFunction']['observations'][0]['hash']='0'*64
   else:
    doc=json.loads(g['draft'])
-   if mode=='changed-node':doc['nodes'][0]['intent']='tampered'
-   else:doc['exits']['yes']={'executionBranch':'invalid'}
+   if mode=='data-missing':doc['exits']['yes'].pop('value')
+   elif mode=='data-changed':doc['exits']['yes']['value']={'constant':999}
+   elif mode=='changed-node':doc['nodes'][0]['intent']='tampered'
+   else:doc['exits']['yes']['executionBranch']='invalid'
    g['draft']=json.dumps(doc)
   proc=subprocess.run([f.env['CONFECTORY_DOTNET'],str(f.repo/'targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll')],input=json.dumps({'operation':'blueprintOverrideContracts','action':'verifyGroup','project':str(x.manifest),'units':bad}),capture_output=True,text=True,env=f.env,check=True);assert json.loads(proc.stdout)['ok'] is False,(mode,proc.stdout)
  f.stop();f.start(1);f.invoke('select',{'id':c.owner});assert c.checkpoint()==cp and c.rpc('settledAuthorBatch',**req)['settled'];assert c.read()['diagnostics']['state']=='source-ready';c.original()

@@ -12,7 +12,7 @@ info=f.project/'FreeInfo.celem'
 if not info.exists():
  info.write_text('schema '+owner+' {}');x.manifest.write_text(x.manifest.read_text().replace('registry Confectory.Build.DotNet','element FreeInfo schema "FreeInfo.celem";registry Confectory.Build.DotNet',1))
 info.write_text(info.read_text().replace('FreeInfo {','FreeInfo {module '+module+';',1))
-(f.project/'M12Rules.celem').write_text('module '+module+' {require '+x.feature+' '+x.signature.replace(' amount','').replace(' result','')+' -> void;}')
+(f.project/'M12Rules.celem').write_text('module '+module+' {require '+x.feature+' '+x.import_signature+' -> '+x.native_return+';}')
 x.manifest.write_text(x.manifest.read_text().replace('registry Confectory.Build.DotNet','element M12Rules module "M12Rules.celem";registry Confectory.Build.DotNet',1))
 prepared=f.metadata('implementationCopy',project=str(x.manifest),action='prepare',feature=x.feature,source=x.impl,target='common',implementation=implementation,owner=owner,ownerText=info.read_text())
 (f.project/'M12Copy.celem').write_text(prepared['implementation']);info.write_text(prepared['owner']);graph_path=prepared['graphPath']
@@ -20,7 +20,7 @@ prepared=f.metadata('implementationCopy',project=str(x.manifest),action='prepare
 for row in prepared['records']:
  path=f.project/pathlib.Path(graph_path).parent/row['relative'];path.parent.mkdir(parents=True,exist_ok=True);path.write_text(json.dumps(row['record'],ensure_ascii=False))
 x.manifest.write_text(x.manifest.read_text().replace('registry Confectory.Build.DotNet','element M12Copy implementation "M12Copy.celem";registry Confectory.Build.DotNet',1))
-path=f.project/'MainBody.celem';path.write_text(path.read_text().replace(' -> void;',' -> void in '+owner+';',1))
+path=f.project/'MainBody.celem';path.write_text(path.read_text().replace(' -> '+x.native_return+';',' -> '+x.native_return+' in '+owner+';',1))
 caller=json.loads((f.project/'Main.graph.json').read_text());caller['nodes'].append({'id':'failed','kind':'code','control':'next','intent':'기존 실패 분기 소비','signature':{'args':[],'return':'void'},'arguments':{},'implementation':'Failed.node.json','branchOwner':'invoke'});caller['edges'] += [x.edge('invoke','failed','case:failure'),x.edge('failed','return:invoke')]
 definitions=f.metadata('featureBlueprintNodes',featureSource=(f.project/'Main.celem').read_text(),graph=caller,featureContracts={x.feature:(f.project/'Flow.celem').read_text()});assert definitions['state']=='node-definitions',definitions
 (f.project/'Main.graph.json').write_text(json.dumps(caller));(f.project/'Failed.node.json').write_text(json.dumps({'schema':1,'node':'failed','definitionHash':next(n['definitionHash'] for n in definitions['nodes'] if n['id']=='failed'),'source':'global::System.Console.WriteLine("failure");'}))
@@ -34,7 +34,7 @@ def binding():
 def rpc(action,ok=True,**kw):return f.invoke('blueprint',{'action':action,'id':graph,**binding(),**kw},ok)['result'].get('result')
 def read():return rpc('read')
 def plan(data,branch='failure'):
- exits={r['name']:json.loads(r['valueJson']) for r in data['exits']};exits['yes']={'executionBranch':branch};return {'entry':data['entry'],'edges':copy.deepcopy(data['edges']),'exits':exits}
+ exits={r['name']:json.loads(r['valueJson']) for r in data['exits']};exits['yes']['executionBranch']=branch;return {'entry':data['entry'],'edges':copy.deepcopy(data['edges']),'exits':exits}
 def request(data,selection=None):return {'id':graph,**binding(),'attempt':uuid.uuid4().hex,'checkpointHash':data['checkpointHash'],'sourceProof':x.proof(data),'edits':[{'action':'branchExits','node':'$branches','definition':selection or plan(data)}]}
 def checkpoint():return x.checkpoint()
-def build(label,after=False,branch='failure'):x.build(label,stdout=('callee:1\n'+('failure\n' if branch=='failure' else '')+'after:10') if after else 'callee:1')
+def build(label,after=False,branch='failure'):x.build(label,stdout=('callee:1\n'+('failure\n' if branch=='failure' else '')+x.initial_stdout.split('\n',1)[1]) if after else 'callee:1')

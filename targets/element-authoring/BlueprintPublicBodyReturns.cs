@@ -51,8 +51,7 @@ internal static class BlueprintPublicBodyReturns
             Element feature;
             if(externalFunction){var manifest=units.Single(u=>u.Value?["kind"]?.ToString()=="project").Value!["draft"]!.GetValue<string>();feature=BlueprintPublicReturnContract.Validate(origin["registeredFunction"]!.AsObject(),owner,manifest,implementation["draft"]!.ToString());}
             else{var function=units[owner.Function!];if(function?["kind"]?.ToString()!="function")throw new ArgumentException("Retain the owned public function contract");feature=new Parser(function["draft"]!.GetValue<string>(),"<retained-public-contract>").ParseElement();}
-            var branches=BlueprintExecutionBranches.Read(feature);var allowed=new HashSet<string>(branches.Select(b=>b!["id"]!.ToString()),StringComparer.Ordinal){"none"};
-            foreach(var exit in graph["exits"]!.AsObject())if(exit.Value is not JsonObject choice||choice.Count!=1||!allowed.Contains(choice["executionBranch"]?.ToString()??""))throw new ArgumentException("Choose an existing public execution branch or None");
+            BlueprintExecutionBranches.ValidateReturnSelections(feature,JsonNode.Parse(flow.Value["original"]!.GetValue<string>())!["exits"]!.AsObject(),graph["exits"]!.AsObject());
         }
         return new JsonArray(checks.Values.Select(v=>v.DeepClone()).ToArray());
     }

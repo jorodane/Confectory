@@ -8,7 +8,7 @@ candidate=f.metadata('blueprintRootExecution',namespace=f.n[:-2],id=graph,units=
 for row in candidate['units'].values():(f.project/row['path']).write_text(row['draft'])
 parent=('External.Ancestors::' if external else f.n)+'Parent';borrower=f.n+'Inherited';folder=f.case/'registered ancestors' if external else f.project
 if external:folder.mkdir()
-(folder/'Parent.celem').write_text('implementation '+parent+' for '+feature+' '+x.signature+' -> void {blueprint common "Parent.graph.json";}')
+(folder/'Parent.celem').write_text('implementation '+parent+' for '+feature+' '+x.signature+' -> '+x.native_return+' {blueprint common "Parent.graph.json";}')
 (folder/'Parent.graph.json').write_bytes((f.project/graph_path).read_bytes());(folder/'Parent.node.json').write_bytes((f.project/'Flow.node.json').read_bytes())
 p=folder/'Parent.graph.json';p.write_text(p.read_text().replace('Flow.node.json','Parent.node.json'))
 if external:
@@ -16,7 +16,7 @@ if external:
  extra='dependency External.Ancestors version "1";registry External.Ancestors "'+str(folder/'pack.cpack')+'";'
 else:extra='element Parent implementation "Parent.celem";'
 p=f.project/'FlowBody.celem';p.write_text(p.read_text().replace(' {',' extends '+parent+' {',1))
-(f.project/'Inherited.celem').write_text('implementation '+borrower+' for '+feature+' '+x.signature+' -> void extends '+parent+' {}')
+(f.project/'Inherited.celem').write_text('implementation '+borrower+' for '+feature+' '+x.signature+' -> '+x.native_return+' extends '+parent+' {}')
 x.manifest.write_text(x.manifest.read_text().replace('registry Confectory.Build.DotNet',extra+'element Inherited implementation "Inherited.celem";registry Confectory.Build.DotNet',1))
 if external:
  for p in folder.iterdir():p.chmod(0o440)
@@ -30,10 +30,10 @@ def originals_retained():assert all(p.read_bytes()==v for p,v in physical.items(
 def rpc(action,ok=True,**kw):return f.invoke('blueprint',{'action':action,'id':graph,**kw},ok)['result'].get('result')
 def read():return rpc('read')
 def plan(data,branch='failure'):
- exits={r['name']:json.loads(r['valueJson']) for r in data['exits']};exits['yes']={'executionBranch':branch};return {'entry':data['entry'],'edges':copy.deepcopy(data['edges']),'exits':exits}
+ exits={r['name']:json.loads(r['valueJson']) for r in data['exits']};exits['yes']['executionBranch']=branch;return {'entry':data['entry'],'edges':copy.deepcopy(data['edges']),'exits':exits}
 def request(data,selection=None):return {'id':graph,'attempt':uuid.uuid4().hex,'checkpointHash':data['checkpointHash'],'sourceProof':x.proof(data),'dependencyHash':data['nodeFlowDependencyHash'],'edits':[{'action':'branchExits','node':'$branches','definition':selection or plan(data)}]}
 def checkpoint():return x.checkpoint()
-def build(label,after=False,branch='failure'):x.build(label,stdout=('callee:1\nafter:10' if '--out-root' in sys.argv else 'callee:1\nafter') if after else 'callee:1')
+def build(label,after=False,branch='failure'):x.build(label,stdout=x.initial_stdout if after else 'callee:1')
 def mutate_parent(suffix=b' '):
  parent_file.chmod(0o640)
  try:parent_file.write_bytes(physical[parent_file]+suffix)

@@ -107,3 +107,8 @@ sealed 선택의 기존 관측 원문을 원자 그룹과 첫 Save 영수증에 
 ## 기존 반환값과 공개 분기의 별도 전달
 
 직접 소유 동기 ordinary Root의 반환값은 기존 IInvoke 반환형을 유지하며 생성 실행 진입의 별도 out 캡처로 전달한다. 직접 종료점 값과 export-return/default를 구별해 보존하고 값 발행 후 분기/후속 동작을 실행한다. [검증 범위와 유한한 잔여](VALIDATION_V666_ROOT_EXECUTION_NONVOID.md). M4의 동기 caller는 사용자가 명시적으로 async로 전환하기 전까지 호환되지 않는 호출을 오류로 거절한다는 정책이 확정됐으며 실제 async 구현은 별도 잔여다.
+
+
+## copy·자식 소유·등록 외부의 기존 데이터 반환
+
+ordinary switch-profile의 기존 공개 분기/None 반환에 비void 직접 종료점 값·export-return/default와 typed out/ref를 보존한다. 저장/새 same-contract copy, 직접 선언한 자식 target, 이미 등록된 외부 함수의 로컬 provider·저장/새 copy를 연결한다. 함수/override IO·분기 정의와 부모/외부 원본은 readonly다. [지원 경계·검증·유한한 다음 흐름](VALIDATION_V666_PUBLIC_RETURN_DATA.md).

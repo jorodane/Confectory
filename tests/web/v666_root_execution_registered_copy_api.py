@@ -4,9 +4,11 @@ import v666_root_execution_registered_copy_fixture as c
 f=c.f;x=c.x
 try:
  c.build('copy-before');f.start(0);f.invoke('select',{'id':c.owner});f.invoke('saveDraft',{});d=c.read();assert d['diagnostics']['state']=='source-ready' and d['executionExitMode'] and d['slotContext']['checkpointPlain'] and d['slotContext']['copySource'];assert d['rootExecution'] is None;assert [b['id'] for b in d['publicExecutionBranches']]==['success','failure'];req=c.request(d);before=c.checkpoint();c.original()
- for name in ['unknown-branch','contract-edit','incomplete-exit','stale-proof','wrong-owner']:
+ for name in ['unknown-branch','contract-edit','incomplete-exit','stale-proof','wrong-owner']+(['data-missing','data-changed'] if x.nonvoid_mode else []):
   bad=copy.deepcopy(req)
-  if name=='unknown-branch':bad['edits'][0]['definition']['exits']['yes']={'executionBranch':'invented'}
+  if name=='data-missing':bad['edits'][0]['definition']['exits']['yes'].pop('value')
+  elif name=='data-changed':bad['edits'][0]['definition']['exits']['yes']['value']={'constant':999}
+  elif name=='unknown-branch':bad['edits'][0]['definition']['exits']['yes']['executionBranch']='invented'
   elif name=='contract-edit':bad['edits'][0]['definition']['branches']=[]
   elif name=='incomplete-exit':bad['edits'][0]['definition']['edges'].append({'from':'choose','port':'case:negative','to':'exit:missing'})
   elif name=='stale-proof':bad['sourceProof']=bad['sourceProof'].replace(d['sources'][0]['hash'],'0'*64)
@@ -27,7 +29,7 @@ try:
    out=subprocess.run([f.env['CONFECTORY_DOTNET'],str(f.repo/'targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll')],input=json.dumps({'operation':'blueprintOverrideContracts','action':'verifyGroup','project':str(x.manifest),'units':bad}),capture_output=True,text=True,env=f.env,check=True);assert not json.loads(out.stdout)['ok'],mode
   finally:c.restore_parent()
  f.checked('외부 계약은 쓰기 그룹에 포함하지 않고 두 헤더의 원시 SHA/경로 영수증을 최종 typed CAS에 결합한다')
- for kind in ['missing-group','missing-receipt','missing-source','source-hash','owner-hash','provenance','missing-external','tampered-external','contract-text']:
+ for kind in ['missing-group','missing-receipt','missing-source','source-hash','owner-hash','provenance','missing-external','tampered-external','contract-text']+(['data-missing','data-changed'] if x.nonvoid_mode else []):
   bad=copy.deepcopy(units);g=bad[c.graph]
   if kind=='missing-group':
    for row in bad.values():row.pop('atomicEditGroup',None)
@@ -35,6 +37,8 @@ try:
   elif kind=='missing-source':g['authorSaveReceipt']['sources'].pop(c.impl)
   elif kind=='source-hash':g['authorSaveReceipt']['sources'][c.impl]['hash']='0'*64
   elif kind=='owner-hash':g['authorSaveReceipt']['slotRequest']['ownerHash']='0'*64
+  elif kind=='data-missing':doc=json.loads(g['draft']);doc['exits']['yes'].pop('value');g['draft']=json.dumps(doc)
+  elif kind=='data-changed':doc=json.loads(g['draft']);doc['exits']['yes']['value']={'constant':999};g['draft']=json.dumps(doc)
   elif kind=='provenance':doc=json.loads(g['draft']);doc['copySource']['implementation']=f.n+'Other';g['draft']=json.dumps(doc)
   elif kind=='missing-external':g['authorSaveReceipt'].pop('registeredFunction')
   elif kind=='tampered-external':g['authorSaveReceipt']['registeredFunction']['ownerHash']='0'*64

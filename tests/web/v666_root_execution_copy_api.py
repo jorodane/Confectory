@@ -4,9 +4,11 @@ import v666_root_execution_copy_fixture as c
 f=c.f;x=c.x
 try:
  c.build('copy-before');f.start(0);f.invoke('select',{'id':c.owner});f.invoke('saveDraft',{});d=c.read();assert d['diagnostics']['state']=='source-ready' and d['executionExitMode'] and d['slotContext']['checkpointPlain'] and d['slotContext']['copySource'];assert d['rootExecution'] is None;assert [b['id'] for b in d['publicExecutionBranches']]==['success','failure'];req=c.request(d);before=c.checkpoint();c.original()
- for name in ['unknown-branch','contract-edit','incomplete-exit','stale-proof','wrong-owner']:
+ for name in ['unknown-branch','contract-edit','incomplete-exit','stale-proof','wrong-owner']+(['data-missing','data-changed'] if x.nonvoid_mode else []):
   bad=copy.deepcopy(req)
-  if name=='unknown-branch':bad['edits'][0]['definition']['exits']['yes']={'executionBranch':'invented'}
+  if name=='data-missing':bad['edits'][0]['definition']['exits']['yes'].pop('value')
+  elif name=='data-changed':bad['edits'][0]['definition']['exits']['yes']['value']={'constant':999}
+  elif name=='unknown-branch':bad['edits'][0]['definition']['exits']['yes']['executionBranch']='invented'
   elif name=='contract-edit':bad['edits'][0]['definition']['branches']=[]
   elif name=='incomplete-exit':bad['edits'][0]['definition']['edges'].append({'from':'choose','port':'case:negative','to':'exit:missing'})
   elif name=='stale-proof':bad['sourceProof']=bad['sourceProof'].replace(d['sources'][0]['hash'],'0'*64)
@@ -16,7 +18,7 @@ try:
  guard=f.project/'Flow.celem';guard.write_bytes(c.physical[guard]+b' ');c.rpc('authorBatch',False,**req);guard.write_bytes(c.physical[guard]);assert c.checkpoint()==before;c.original()
  saved=c.rpc('authorBatch',**req);assert saved['settled'] and saved['checkpointSaved'];assert c.rpc('settledAuthorBatch',**req)['settled'];c.original();cp=c.checkpoint();f.stop();f.start(1);f.invoke('select',{'id':c.owner});assert c.checkpoint()==cp and c.rpc('settledAuthorBatch',**req)['settled'];assert c.read()['diagnostics']['state']=='source-ready';c.original();f.checked('copy 반환·배정 소유자와 원문 closure는 한 후보/checkpoint CAS로 저장하고 cold/receipt 재시도는 중복 저장하지 않는다')
  snapshot=json.loads(next(iter(cp.values())));(f.case/'saved-before-review.json').write_text(json.dumps(snapshot,ensure_ascii=False,indent=2));units={row['id']:row for row in snapshot['changes']};checks=f.metadata('blueprintPublicCopyReturnGuards',namespace=f.n[:-2],units=units)['checks'];assert {'Flow.celem','FreeInfo.celem','M12Copy.celem',c.graph_path}<={row['path'] for row in checks}
- for kind in ['missing-group','missing-receipt','missing-source','source-hash','owner-hash','provenance','public-contract']:
+ for kind in ['missing-group','missing-receipt','missing-source','source-hash','owner-hash','provenance','public-contract']+(['data-missing','data-changed'] if x.nonvoid_mode else []):
   bad=copy.deepcopy(units);g=bad[c.graph]
   if kind=='missing-group':
    for row in bad.values():row.pop('atomicEditGroup',None)
@@ -24,6 +26,8 @@ try:
   elif kind=='missing-source':g['authorSaveReceipt']['sources'].pop(c.x.feature)
   elif kind=='source-hash':g['authorSaveReceipt']['sources'][c.x.feature]['hash']='0'*64
   elif kind=='owner-hash':g['authorSaveReceipt']['slotRequest']['ownerHash']='0'*64
+  elif kind=='data-missing':doc=json.loads(g['draft']);doc['exits']['yes'].pop('value');g['draft']=json.dumps(doc)
+  elif kind=='data-changed':doc=json.loads(g['draft']);doc['exits']['yes']['value']={'constant':999};g['draft']=json.dumps(doc)
   elif kind=='provenance':doc=json.loads(g['draft']);doc['copySource']['implementation']=f.n+'Other';g['draft']=json.dumps(doc)
   else:bad[c.x.feature]['draft']+=' '
   r=subprocess.run([f.env['CONFECTORY_DOTNET'],str(f.repo/'targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll')],input=json.dumps({'operation':'blueprintPublicCopyReturnGuards','namespace':f.n[:-2],'units':bad}),capture_output=True,text=True,env=f.env,check=True);reply=json.loads(r.stdout);assert reply['ok'] is False and reply['code']=='AUTHORING',reply

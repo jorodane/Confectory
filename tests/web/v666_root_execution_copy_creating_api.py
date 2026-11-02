@@ -6,9 +6,11 @@ else:import v666_root_execution_copy_creating_fixture as c
 f=c.f
 try:
  c.build('creating-before');f.start(0);f.invoke('select',{'id':c.owner});f.invoke('saveDraft',{});selected=c.selection();d=selected['preview'];assert d['id'] is None and d['executionExitMode'] and [b['id'] for b in d['publicExecutionBranches']]==['success','failure'];request=c.row(selected);before=c.checkpoint();c.original()
- for kind in ['unknown','contract','shape','nested','deleted','duplicate']:
+ for kind in ['unknown','contract','shape','nested','deleted','duplicate']+(['data-missing','data-changed'] if c.x.nonvoid_mode else []):
   bad=copy.deepcopy(request);edit=bad['edits'][0];plan=json.loads(edit['text'])
-  if kind=='unknown':plan['exits']['yes']['executionBranch']='invented'
+  if kind=='data-missing':plan['exits']['yes'].pop('value')
+  elif kind=='data-changed':plan['exits']['yes']['value']={'constant':999}
+  elif kind=='unknown':plan['exits']['yes']['executionBranch']='invented'
   elif kind=='contract':plan['branches']=[]
   elif kind=='shape':plan['edges'][0]['extra']='ignored'
   elif kind=='nested':edit['node']='choose/$branches'
@@ -47,7 +49,7 @@ try:
   done=subprocess.run([f.env['CONFECTORY_DOTNET'],str(f.repo/'targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll')],input=json.dumps({'operation':'blueprintPublicCopyReturnGuards','namespace':f.n[:-2],'units':bad}),capture_output=True,text=True,env=f.env,check=True);assert json.loads(done.stdout)['ok'] is False,kind
  assert c.checkpoint()==saved;c.original();f.checked('첫 생성의 완전한 관측 그룹·영수증·원문 읽기 CAS와 출처를 복원 validator에서도 검증하며 누락/변조를 거절한다')
  for branch in ['none','failure']:
-  current=c.read();binding=c.binding();exits={r['name']:json.loads(r['valueJson']) for r in current['exits']};exits['yes']={'executionBranch':branch};c.rpc('authorBatch',id=c.graph,owner=c.owner,ownerHash=binding['hash'],ownerRevision=binding['revision'],attempt=uuid.uuid4().hex,checkpointHash=current['checkpointHash'],sourceProof=c.x.proof(current),**({'dependencyHash':current['nodeFlowDependencyHash']} if registered else {}),edits=[{'action':'branchExits','node':'$branches','definition':{'exits':exits,'entry':current['entry'],'edges':copy.deepcopy(current['edges'])}}]);c.original();assert c.read()['diagnostics']['state']=='source-ready'
+  current=c.read();binding=c.binding();exits={r['name']:json.loads(r['valueJson']) for r in current['exits']};exits['yes']['executionBranch']=branch;c.rpc('authorBatch',id=c.graph,owner=c.owner,ownerHash=binding['hash'],ownerRevision=binding['revision'],attempt=uuid.uuid4().hex,checkpointHash=current['checkpointHash'],sourceProof=c.x.proof(current),**({'dependencyHash':current['nodeFlowDependencyHash']} if registered else {}),edits=[{'action':'branchExits','node':'$branches','definition':{'exits':exits,'entry':current['entry'],'edges':copy.deepcopy(current['edges'])}}]);c.original();assert c.read()['diagnostics']['state']=='source-ready'
  f.checked('첫 Save 후 아직 미확정인 copy의 반복 반환 편집도 생성 출처와 기존 원문 읽기 증거를 유지한다')
  ids=c.read()['reviewIds'];f.invoke('reviewGroup',{'ids':[c.graph],'target':'portable'},False);review=f.invoke('reviewGroup',{'ids':ids,'target':'portable'});assert not review['state']['review'].get('errors');c.mutate_source() if registered else source.write_bytes(c.physical[source]+b' ');result=f.invoke('confirmGroup',{'ids':ids,'token':review['state']['review']['token']})['result']['result'];assert not result['sourceConfirmed'];c.restore_source() if registered else source.write_bytes(c.physical[source]);c.original();f.stop();f.start(2);f.invoke('select',{'id':c.owner});assert c.confirm(c.read()['reviewIds'])['sourceConfirmed'];c.retained();
  if registered:

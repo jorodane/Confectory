@@ -53,3 +53,6 @@ raw+저장 copy ABI/다중 target/Set-property/독립 properties+copy의 넓은 
 직접 소유 ordinary Root의 비void 반환값과 공개 분기는 원래 Invoke·C#·데이터 연결을 유지하는 별도 생성 캡처로 함께 전달한다. [이번 지원·검증과 유한한 잔여](VALIDATION_V666_ROOT_EXECUTION_NONVOID.md)를 기준으로 copy/자식·등록외부 데이터 흐름, 중첩/private·외부 import 관측, 여러 직접 소유 provider의 원자 계약 갱신을 구별한다. 임의 타입/문맥 곱을 새 필수 목록으로 만들지 않는다. M4 호환 정책은 사용자 결정으로 확정됐다: 호출자가 명시적으로 async로 바뀌기 전에는 호환되지 않는 호출을 오류로 거절하고 자동 대기/자동 변환을 하지 않는다. 실제 async 저장·호출·완료 구현은 남아 있다.
 
 비void 동결 코드의 최종 **신규 LF21·CRLF18·패키지/전체 복원/실패 수명관리6, 총45단계(Core/runtime·소유 경계86개 포함)**가 통과했고 집중 실패·최종 증거 및 최신/정상 롤백을 지속 보관했다. [최종 결과](VALIDATION_V666_ROOT_EXECUTION_NONVOID.md).
+
+
+M12 ordinary 비void 데이터 반환의 기존 소유 흐름(저장/새 copy·자식 직접 본문·등록 외부 함수의 local provider와 저장/새 copy)을 같은 실행 선택·데이터 보존 검증에 연결한다. [지원과 검증 범위](VALIDATION_V666_PUBLIC_RETURN_DATA.md). 남은 M12는 중첩/private/native·외부 import의 실제 호출 계약 결합과 여러 직접 소유 provider의 완전한 명시 대응이다. 정상 예약 이름/소유권 거절이나 구형 자동 migration은 새 필수 항목이 아니다.

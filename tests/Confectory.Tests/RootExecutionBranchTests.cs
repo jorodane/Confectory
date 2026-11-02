@@ -154,4 +154,36 @@ public sealed class RootExecutionBranchTests : TestCase
         Equal("invalid",Text(Query(source,graph,records:records),"state"));
     }
 
+    public void test_public_return_selections_preserve_native_data_while_changing_only_branch_ids() {
+        var fn=new Parser(Function().Replace("-> void","-> int",StringComparison.Ordinal),"<return-selection>").ParseElement();
+        var before=new JsonObject { ["original"]=new JsonObject { ["executionBranch"]="success",["value"]=new JsonObject { ["input"]="mode" } } };
+        var next=before.DeepClone().AsObject();next["original"]!["executionBranch"]="failure";
+        BlueprintExecutionBranches.ValidateReturnSelections(fn,before,next);
+        foreach(string kind in new[]{"missing-value","changed-value","drop-data","unknown-branch"}) {
+            var invalid=next.DeepClone().AsObject();
+            if(kind=="missing-value")invalid["original"]!.AsObject().Remove("value");
+            else if(kind=="changed-value")invalid["original"]!["value"]=new JsonObject { ["constant"]=99 };
+            else if(kind=="drop-data")invalid.Remove("original");
+            else invalid["original"]!["executionBranch"]="invented";
+            bool rejected=false;try{BlueprintExecutionBranches.ValidateReturnSelections(fn,before,invalid);}catch(ArgumentException){rejected=true;}True(rejected,kind);
+        }
+    }
+    public void test_public_return_selections_keep_existing_void_shape_and_explicit_none() {
+        var fn=new Parser(Function(),"<void-return-selection>").ParseElement();
+        var before=new JsonObject { ["original"]=new JsonObject { ["executionBranch"]="success" } };
+        var next=new JsonObject { ["original"]=new JsonObject { ["executionBranch"]="none" } };
+        BlueprintExecutionBranches.ValidateReturnSelections(fn,before,next);
+        next["original"]!["value"]=null;bool rejected=false;try{BlueprintExecutionBranches.ValidateReturnSelections(fn,before,next);}catch(ArgumentException){rejected=true;}True(rejected);
+    }
+
+    public void test_public_native_return_call_retains_existing_reserved_node_name_protection() {
+        string source=Function().Replace("(int mode) -> void","(int __fg_wrapped_return) -> int",StringComparison.Ordinal),main="function App::Main () -> int {}";
+        var fn=new Parser(source,"<return-capture-name>").ParseElement();var callee=Graph("Api::Value",source,"exit:done");callee["schema"]=2;callee["executionExitMode"]=true;callee["exits"]=new JsonObject { ["done"]=new JsonObject { ["executionBranch"]="success",["value"]=new JsonObject { ["input"]="__fg_wrapped_return" } } };
+        f.Add("Api","function","Value",source);f.Add("Provider","implementation","ValueBody","implementation Provider::ValueBody for Api::Value (int __fg_wrapped_return) -> int {blueprint common \"callee.graph.json\";}");f.Body("Provider","callee.graph.json",callee.ToJsonString());
+        var caller=Graph("App::Main",main,"call");caller["nodes"]=new JsonArray(new JsonObject { ["id"]="call",["kind"]="call",["control"]="switch",["intent"]="Keep the user's parameter identity",["feature"]="Api::Value",["signature"]=FeatureBlueprint.SignatureDocument(fn.Signature!),["arguments"]=new JsonObject { ["__fg_wrapped_return"]=new JsonObject { ["constant"]=42 } },["publicExecution"]=FeatureBlueprint.ContractHash(fn),["executionEnum"]=BlueprintExecutionBranches.Enum(fn) },new JsonObject { ["id"]="print",["kind"]="code",["control"]="next",["intent"]="Consume the original return",["signature"]=Signature("void",new Parameter("int","value")),["arguments"]=new JsonObject { ["value"]=new JsonObject { ["node"]="call",["output"]="return" } },["implementation"]="print.node.json" });
+        caller["edges"]=new JsonArray(Edge("call","print"),Edge("print","exit:done"));caller["exits"]=new JsonObject { ["done"]=new JsonObject { ["constant"]=0 } };
+        var inspected=Query(main,caller,new JsonObject { ["Api::Value"]=source },operation:"featureBlueprintNodes");
+        Equal("invalid",Text(inspected,"state"));Equal("NODE_RESERVED_NAME",Text(inspected["diagnostics"]![0]!,"code"));Equal("__fg_wrapped_return",fn.Signature!.Args[0].Name);
+    }
+
 }

@@ -15,11 +15,11 @@ def binding():
 def rpc(action,ok=True,**kw):return f.invoke('blueprint',{'action':action,'id':owner,**kw},ok)['result'].get('result')
 def selection():return rpc('readImplementationCopy',function=x.feature,source=x.impl,target='common',implementation=implementation,**binding())
 def row(selected,branch='failure'):
- d=selected['preview'];exits={r['name']:json.loads(r['valueJson']) for r in d['exits']};exits['yes']={'executionBranch':branch}
+ d=selected['preview'];exits={r['name']:json.loads(r['valueJson']) for r in d['exits']};exits['yes']['executionBranch']=branch
  return {'function':x.feature,'implementation':implementation,'copySource':x.impl,'copyTarget':'common','basis':selected['basis'],'fingerprint':selected['fingerprint'],'edits':[{'type':'branch-exits','node':'$branches','text':json.dumps({'entry':d['entry'],'edges':copy.deepcopy(d['edges']),'exits':exits})}]}
 def read():
  b=binding();return rpc('read',id=graph,owner=owner,ownerHash=b['hash'],ownerRevision=b['revision'])
 def checkpoint():return x.checkpoint()
 def confirm(ids):
  review=f.invoke('reviewGroup',{'ids':ids,'target':'portable'});assert not review['state']['review'].get('errors');return f.invoke('confirmGroup',{'ids':ids,'token':review['state']['review']['token']})['result']['result']
-def build(label,branch=None):x.build(label,stdout='callee:1' if branch is None or branch=='success' else 'callee:1\n'+('failure\n' if branch=='failure' else '')+('after:10' if x.out_mode else 'after'))
+def build(label,branch=None):x.build(label,stdout='callee:1' if branch is None or branch=='success' else 'callee:1\n'+('failure\n' if branch=='failure' else '')+x.initial_stdout.split('\n',1)[1])
