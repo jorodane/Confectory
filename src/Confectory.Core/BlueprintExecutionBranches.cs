@@ -11,13 +11,12 @@ public static class BlueprintExecutionBranches
     public const string Metadata = "blueprintExecutionBranches";
     public static bool Has(Element function) => function.Values.ContainsKey(Metadata);
     public static bool SupportsSignature(FunctionSignature signature) => signature.Return == "void"
-        && signature.Args.Count(p => p.IsOut) <= 1
-        && signature.Args.All(p => p.Mode is null || p.IsOut && p.Type == "int");
+        && signature.Args.All(p => p.Mode is null or "out" or "ref");
     public static JsonArray Read(Element function)
     {
         if (!function.Values.TryGetValue(Metadata, out var value)) return new();
         if (function.Kind != "function" || function.Signature is not { } signature || !SupportsSignature(signature) || function.Parent is not null)
-            throw new ArgumentException("Public execution branches require a direct synchronous void contract with value inputs and at most one int out");
+            throw new ArgumentException("Public execution branches require a direct synchronous void contract with existing value/ref/out parameters");
         if (value.Value.ValueKind != JsonValueKind.String || JsonNode.Parse(value.Value.GetString()!) is not JsonObject document || document.Count != 2 || document["schema"]?.GetValue<int>() != 1 || document["branches"] is not JsonArray branches || branches.Count > 31)
             throw new ArgumentException("Versioned public execution branch contract required");
         var ids = new HashSet<string>(StringComparer.Ordinal); var names = new HashSet<string>(StringComparer.Ordinal); var numbers = new HashSet<int>();

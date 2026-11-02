@@ -109,7 +109,7 @@ def main():
     parser.add_argument('--commit', required=True)
     parser.add_argument('--sdk', type=Path, required=True)
     parser.add_argument('--nuget-seed', type=Path, required=True)
-    parser.add_argument('--suite',choices=['headers','card-images','canvas','owned-information','owned-conversion','action-icons','declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement','worker-badges','node-internal','node-internal-nested','node-internal-storage','node-internal-context','node-internal-branches','node-branch-exits','node-internal-copy','node-internal-copy-nested','node-internal-copy-storage','node-internal-copy-branches','node-internal-copy-context','node-internal-copy-creating','node-internal-copy-frames','node-internal-override','node-internal-external-override','root-execution','root-execution-out','root-execution-closure','root-execution-copy','root-execution-copy-creating','root-execution-override','root-execution-registered','root-execution-registered-copy','root-execution-registered-creating'],default='headers')
+    parser.add_argument('--suite',choices=['headers','card-images','canvas','owned-information','owned-conversion','action-icons','declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement','worker-badges','node-internal','node-internal-nested','node-internal-storage','node-internal-context','node-internal-branches','node-branch-exits','node-internal-copy','node-internal-copy-nested','node-internal-copy-storage','node-internal-copy-branches','node-internal-copy-context','node-internal-copy-creating','node-internal-copy-frames','node-internal-override','node-internal-external-override','root-execution','root-execution-out','root-execution-closure','root-execution-copy','root-execution-copy-creating','root-execution-override','root-execution-registered','root-execution-registered-copy','root-execution-registered-creating','root-execution-data-void'],default='headers')
     args = parser.parse_args()
     repo = args.repo.resolve(); persistent = args.persistent.absolute()
     persistent.parent.mkdir(parents=True, exist_ok=True)
@@ -327,19 +327,23 @@ def main():
                 regression='v666_node_branch_exit_api.py' if label=='lf' else 'v666_node_internal_external_override_api.py'
                 work.run(label+'-m11-regression',[sys.executable,str(checkout/'tests/web'/regression),str(checkout),str(report)],cwd=checkout,env=env)
                 work.run(label+'-owned-final-read-cas',[sys.executable,str(checkout/'tests/web/v536_copy_read_guards_core.py'),str(checkout)],cwd=checkout,env=env)
-            elif args.suite in ['root-execution','root-execution-out']:
+            elif args.suite in ['root-execution','root-execution-out','root-execution-data-void']:
+                root_args=['--data-root'] if args.suite=='root-execution-data-void' else ['--out-root'] if args.suite=='root-execution-out' else []
                 work.run(label+'-root-script',['node','--check',str(checkout/'examples/editor-home/ui/feature-authoring.js')],cwd=checkout,env=env)
                 work.run(label+'-root-native',[dotnet,str(checkout/'tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll'),'RootExecutionBranchTests','SwitchBlueprintTests','NestedBlueprintTests','BlueprintConversionTests','ExternalRefTests','--require-runtime'],cwd=checkout,env=env)
                 work.run(label+'-root-ownership',[dotnet,str(checkout/'tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll'),'blueprint_inherited_body_retains_declaring_node_owner','blueprint_independently_declared_body_cannot_borrow_another_node_owner','--require-runtime'],cwd=checkout,env=env)
-                work.run(label+'-root-api',[sys.executable,str(checkout/'tests/web/v666_root_execution_api.py'),str(checkout),str(report),*(['--out-root'] if args.suite=='root-execution-out' else [])],cwd=checkout,env=env)
+                work.run(label+'-root-api',[sys.executable,str(checkout/'tests/web/v666_root_execution_api.py'),str(checkout),str(report),*root_args],cwd=checkout,env=env)
                 for mode in (['normal','cancel','storage','conflict'] if label=='lf' else ['loss','late']):
-                    work.run(label+'-root-ui-'+mode,[sys.executable,str(checkout/'tests/web/v666_root_execution_ui.py'),str(checkout),str(report),mode,*(['--out-root'] if args.suite=='root-execution-out' else [])],cwd=checkout,env=env)
-                if args.suite=='root-execution-out':
+                    work.run(label+'-root-ui-'+mode,[sys.executable,str(checkout/'tests/web/v666_root_execution_ui.py'),str(checkout),str(report),mode,*root_args],cwd=checkout,env=env)
+                if args.suite in ['root-execution-out','root-execution-data-void']:
                     baseline='v666_root_execution_api.py' if label=='lf' else 'v666_root_execution_ui.py'
-                    work.run(label+'-root-void-regression',[sys.executable,str(checkout/'tests/web'/baseline),str(checkout),str(report),*(['normal'] if label=='crlf' else [])],cwd=checkout,env=env)
+                    work.run(label+'-root-void-regression',[sys.executable,str(checkout/'tests/web'/baseline),str(checkout),str(report),*(['normal'] if label=='crlf' else []),*(['--out-root'] if args.suite=='root-execution-data-void' else [])],cwd=checkout,env=env)
                 regression='v666_node_branch_exit_api.py' if label=='lf' else 'v666_node_internal_external_override_api.py'
                 work.run(label+'-m11-regression',[sys.executable,str(checkout/'tests/web'/regression),str(checkout),str(report)],cwd=checkout,env=env)
                 work.run(label+'-owned-final-read-cas',[sys.executable,str(checkout/'tests/web/v536_copy_read_guards_core.py'),str(checkout)],cwd=checkout,env=env)
+                if args.suite=='root-execution-data-void':
+                    regression='v666_root_execution_copy_creating_api.py' if label=='lf' else 'v666_root_execution_registered_copy_api.py'
+                    work.run(label+'-copy-contract-regression',[sys.executable,str(checkout/'tests/web'/regression),str(checkout),str(report),'--out-root',*(['--registered-creating'] if label=='lf' else [])],cwd=checkout,env=env)
             elif args.suite=='node-internal-nested':
                 work.run(label+'-nested-native',[dotnet,str(checkout/'tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll'),'NestedBlueprintTests','BlueprintConversionTests','--require-runtime'],cwd=checkout,env=env)
                 work.run(label+'-nested-ownership',[dotnet,str(checkout/'tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll'),'blueprint_inherited_body_retains_declaring_node_owner','blueprint_independently_declared_body_cannot_borrow_another_node_owner','--require-runtime'],cwd=checkout,env=env)
@@ -541,8 +545,8 @@ def main():
             work.run('packaged-public-copy-creating',[sys.executable,str(checkout/'tests/web/v666_root_execution_copy_creating_ui.py'),str(package/'content'),str(packaged_report),'normal','--out-root'],cwd=checkout,env=env)
         elif args.suite=='root-execution-copy':
             work.run('packaged-public-copy',[sys.executable,str(checkout/'tests/web/v666_root_execution_copy_ui.py'),str(package/'content'),str(packaged_report),'normal','--out-root'],cwd=checkout,env=env)
-        elif args.suite in ['root-execution','root-execution-out','root-execution-closure']:
-            work.run('packaged-root-execution',[sys.executable,str(checkout/'tests/web/v666_root_execution_ui.py'),str(package/'content'),str(packaged_report),'normal',*(['--multi-root'] if args.suite=='root-execution-closure' else ['--out-root'] if args.suite=='root-execution-out' else [])],cwd=checkout,env=env)
+        elif args.suite in ['root-execution','root-execution-out','root-execution-closure','root-execution-data-void']:
+            work.run('packaged-root-execution',[sys.executable,str(checkout/'tests/web/v666_root_execution_ui.py'),str(package/'content'),str(packaged_report),'normal',*(['--multi-root'] if args.suite=='root-execution-closure' else ['--data-root'] if args.suite=='root-execution-data-void' else ['--out-root'] if args.suite=='root-execution-out' else [])],cwd=checkout,env=env)
         elif args.suite in ['node-internal-override','node-internal-external-override']:
             work.run('packaged-direct-node',[sys.executable,str(checkout/'tests/web/v666_node_internal_ui.py'),str(package/'content'),str(packaged_report),'normal'],cwd=checkout,env=env)
             work.run('packaged-owned-override',[sys.executable,str(checkout/'tests/web'/('v666_node_internal_external_override_ui.py' if args.suite=='node-internal-external-override' else 'v666_node_internal_override_ui.py')),str(package/'content'),str(packaged_report),'normal'],cwd=checkout,env=env)
@@ -637,8 +641,8 @@ def main():
             work.run('restored-public-copy-creating',[sys.executable,str(checkout/'tests/web/v666_root_execution_copy_creating_ui.py'),str(restored/'content'),str(packaged_report),'late','view','--out-root'],cwd=checkout,env=env)
         elif args.suite=='root-execution-copy':
             work.run('restored-public-copy',[sys.executable,str(checkout/'tests/web/v666_root_execution_copy_ui.py'),str(restored/'content'),str(packaged_report),'late','--out-root'],cwd=checkout,env=env)
-        elif args.suite in ['root-execution','root-execution-out','root-execution-closure']:
-            work.run('restored-root-execution',[sys.executable,str(checkout/'tests/web/v666_root_execution_ui.py'),str(restored/'content'),str(packaged_report),'late',*(['--multi-root'] if args.suite=='root-execution-closure' else ['--out-root'] if args.suite=='root-execution-out' else [])],cwd=checkout,env=env)
+        elif args.suite in ['root-execution','root-execution-out','root-execution-closure','root-execution-data-void']:
+            work.run('restored-root-execution',[sys.executable,str(checkout/'tests/web/v666_root_execution_ui.py'),str(restored/'content'),str(packaged_report),'late',*(['--multi-root'] if args.suite=='root-execution-closure' else ['--data-root'] if args.suite=='root-execution-data-void' else ['--out-root'] if args.suite=='root-execution-out' else [])],cwd=checkout,env=env)
         elif args.suite in ['node-internal-override','node-internal-external-override']:
             work.run('restored-copy-regression',[sys.executable,str(checkout/'tests/web/v666_node_internal_copy_creating_ui.py'),str(restored/'content'),str(packaged_report),'loss','view','--branch','--nested','--refs'],cwd=checkout,env=env)
             work.run('restored-owned-override',[sys.executable,str(checkout/'tests/web'/('v666_node_internal_external_override_ui.py' if args.suite=='node-internal-external-override' else 'v666_node_internal_override_ui.py')),str(restored/'content'),str(packaged_report),'late'],cwd=checkout,env=env)

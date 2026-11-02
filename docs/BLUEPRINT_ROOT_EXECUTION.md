@@ -79,7 +79,7 @@ sealed 선택의 기존 관측 원문을 원자 그룹과 첫 Save 영수증에 
 |---|---|
 | 직접 소유 함수에 공개 분기를 정의하고 관련 Blueprint target·직접 호출자에 명시 대응 | 동기 void·값 입력·선택적 int out 하나, 복수 호출자/target은 지원·검증했다. |
 | 기존 분기를 copy·자식 소유 본문에서 반환 | 소유 함수의 저장/새 copy, 자식이 직접 선언한 ordinary target, 등록 외부 함수의 ordinary provider와 저장 copy를 지원한다. **외부 함수 새 copy의 미리보기/첫 저장**도 아래 단위로 연결했다. 다음 실제 경계는 데이터 ABI와 복합 호출의 명시 대응이다. |
-| 원래 데이터 입출력과 공개 분기를 함께 전달 | int out 하나까지 지원한다. 다른 출력/복수 out·ref·비void의 일반 실행 결과 전달은 현재 명시적 ABI 경계이며 완료로 세지 않는다. 변경 시 원문 재작성 없이 ordinary Invoke와 출력 발행 순서를 보존해야 한다. |
+| 원래 데이터 입출력과 공개 분기를 함께 전달 | 동기 void의 기존 typed out·복수 out·ref를 원래 by-reference 전달과 공개 분기에 연결한다. ordinary 비void의 값과 실행 분기를 함께 전달하는 경로는 실제 잔여다. 원문 재작성 없이 ordinary Invoke·저장소 alias·출력 발행 순서를 보존한다. [지원·검증](VALIDATION_V666_ROOT_EXECUTION_DATA_VOID.md). |
 | 기존 복합 그래프/호출 문맥에서 공개 계약을 갱신 | 중첩/private 호출, 다른 import가 섞인 caller, 여러 provider에 영향받는 공개 계약의 완전한 명시 대응은 현재 후보 closure 경계 밖이다. 단일 본문 반환의 타입 조합으로 별도 무한 목록을 만들지 않는다. |
 | 비동기 완료와 분기 실행 | 별도 고정 M4다. 원본의 await→출력 발행→완료→결과 분기→다음 동작 순서를 유지해야 하며 이번 M12 반환 변경으로 완료되지 않는다. |
 
@@ -95,3 +95,10 @@ sealed 선택의 기존 관측 원문을 원자 그룹과 첫 Save 영수증에 
 보강 전 미확정 외부 public-copy checkpoint에 이 origin/최초 관측 해시가 없으면 이를 추정해 승격하지 않는다. 원본 checkpoint와 입력을 보존하는 호환성 경계다. [첫 저장 검증·보관 기록](VALIDATION_V666_ROOT_EXECUTION_REGISTERED_CREATING.md).
 
 확정으로 전체 그룹이 깨끗해진 뒤 남는 완료 author receipt는 새 반환 거래가 아니다. 활성 그룹 없이 원문과 같은 Root만 종료 상태로 처리하며, 수정된 Root의 그룹 누락은 계속 거절한다. 같은 세션의 후속 Save와 확정 뒤 donor 원문 변경을 확인해 생성 관측이 다시 활성화되지 않도록 한다.
+
+
+## 동기 void의 여러 typed out과 ref 저장소
+
+기존 공개 실행 결과 인터페이스와 생성 어댑터는 원래 value/ref/out 인수를 그대로 전달한다. 정수 out 하나만 허용하던 수용 경계를 동기 void의 기존 typed out·복수 out·ref로 넓힌다. C# 원문·ordinary Invoke·공개 매개변수/핀 ID/타입·값 연결·ref 저장소의 정체성을 변경하지 않는다. 기존 profile의 정확한 타입·쓰기 가능한 ref 저장소와 None/미할당 출력 기본값 검증을 재사용하며 암묵적 참조 변환을 허용하지 않는다.
+
+직접 소유 함수의 분기 정의·target 반환·명시한 직접 호출자의 원자 후보와 Review/Confirm을 검증한다. readonly 부모/외부 계약 보호나 override 입출력 계약을 완화하는 변경이 아니다. ordinary 비void의 값 반환, 복합 호출 closure와 M4는 별도 실제 잔여다. [검증과 보관](VALIDATION_V666_ROOT_EXECUTION_DATA_VOID.md).

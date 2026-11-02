@@ -1,9 +1,14 @@
 """Bounded M12: owned sync void root and explicit direct Blueprint caller."""
 import copy,hashlib,json,pathlib,subprocess,sys,uuid
 import v536_wide_mixed as f
-out_mode=any(flag in sys.argv for flag in ['--out-root','--multi-root','--no-callers'])
+data_mode='--data-root' in sys.argv
+out_mode=data_mode or any(flag in sys.argv for flag in ['--out-root','--multi-root','--no-callers'])
 result_code=10 if out_mode else 7;initial_stdout='callee:1\nafter:10' if out_mode else 'callee:1\nafter';final_stdout='callee:1'
 signature='(long amount,out int result)' if out_mode else '(long amount)'
+if data_mode:
+ signature='(long amount,ref int total,out long result,out string label)'
+ result_code=42;initial_stdout='callee:1\nafter:420:value:42:42'
+expected_outputs=[{'name':'result','type':'long'},{'name':'label','type':'string'}] if data_mode else [{'name':'result','type':'int'}] if out_mode else []
 n=f.n;feature=n+'Flow';impl=n+'FlowBody';graph=impl+'/body:common';caller=n+'MainBody/body:common';manifest=f.project/'project.cproj'
 function='function '+feature+' '+signature+' -> void {description "실행 분기 기능";provide '+feature+' with '+impl+';}'
 prepared=f.metadata('blueprintPrepareFeature',id=feature,text='function '+feature+' '+signature+' -> void {}',implementation=impl,graphPath='Flow.graph.json',nodePath='Flow.node.json')
@@ -11,23 +16,34 @@ def edge(a,b,port='next'):return {'from':a,'port':port,'to':b}
 original_source='// 원문·줄바꿈 보존 😀\r\nglobal::System.Console.WriteLine("callee:"+amount);\r\nreturn amount>0?Result.Positive:Result.Negative;\r\n'
 root={'schema':1,'profile':'sync-acyclic-switch-v1','feature':feature,'contractHash':prepared['graph']['contractHash'],'entry':'choose','nodes':[{'id':'choose','kind':'code','control':'switch','intent':'기존 C# 판단','signature':{'args':[{'type':'long','name':'amount'}],'return':'void'},'executionEnum':{'primary':'next','members':[{'id':'next','name':'None','value':0},{'id':'positive','name':'Positive','value':1},{'id':'negative','name':'Negative','value':2}]},'arguments':{'amount':{'input':'amount'}},'implementation':'Flow.node.json'}],'edges':[edge('choose','exit:none'),edge('choose','exit:yes','case:positive'),edge('choose','exit:no','case:negative')],'exits':{'yes':None,'no':None,'none':None}}
 if out_mode:
- original_source=original_source.replace('return amount>0', 'result=checked((int)amount*10);\r\nreturn amount>0')
- root['nodes'][0]['signature']['args'].append({'type':'int','name':'result','mode':'out'})
+ original_source=original_source.replace('return amount>0', ('total=checked(total+(int)amount);\r\nresult=checked(total*10L);\r\nlabel="value:"+total;\r\n' if data_mode else 'result=checked((int)amount*10);\r\n')+'return amount>0')
+ if data_mode:
+  root['nodes'][0]['signature']['args'].append({'type':'int','name':'total','mode':'ref'})
+  root['nodes'][0]['arguments']['total']={'input':'total'}
+ root['nodes'][0]['signature']['args'] += [dict(type=p['type'],name=p['name'],mode='out') for p in expected_outputs]
  for name in ['yes','no','none']:
-  node='publish_'+name
-  root['nodes'].append({'id':node,'kind':'export','control':'next','intent':'기존 정수 출력 발행','output':'result','signature':{'args':[{'type':'int','name':'value'}],'return':'void'},'arguments':{'value':{'node':'choose','output':'result'}}})
-  if name!='none':root['nodes'][-1]['branchOwner']='choose'
-  for link in root['edges']:
-   if link['to']=='exit:'+name:link['to']=node
-  root['edges'].append(edge(node,'exit:'+name))
-main=(f.project/'Main.celem').read_text();main_id=n+'Main';call_sig={'args':[{'type':'long','name':'amount'}]+([{'type':'int','name':'result','mode':'out'}] if out_mode else []),'return':'void'}
+  for p in expected_outputs:
+   node='publish_'+name+('_'+p['name'] if data_mode else '')
+   root['nodes'].append({'id':node,'kind':'export','control':'next','intent':'기존 출력 발행','output':p['name'],'signature':{'args':[{'type':p['type'],'name':'value'}],'return':'void'},'arguments':{'value':{'node':'choose','output':p['name']}}})
+   if name!='none':root['nodes'][-1]['branchOwner']='choose'
+   for link in root['edges']:
+    if link['to']=='exit:'+name:link['to']=node
+   root['edges'].append(edge(node,'exit:'+name))
+main=(f.project/'Main.celem').read_text();main_id=n+'Main';call_sig=copy.deepcopy(root['nodes'][0]['signature'])
 cg={'schema':1,'profile':'sync-acyclic-switch-v1','feature':main_id,'contractHash':f.metadata('blueprintPrepareFeature',id=main_id,text='function '+main_id+' () -> int {}',implementation=n+'MainBody',graphPath='Main.graph.json',nodePath='After.node.json')['graph']['contractHash'],'entry':'invoke','nodes':[{'id':'invoke','kind':'call','control':'next','intent':'명시 원본 호출','feature':feature,'signature':call_sig,'arguments':{'amount':{'constant':1}}},{'id':'after','kind':'code','control':'next','intent':'기존 다음 동작','signature':{'args':[],'return':'void'},'arguments':{},'implementation':'After.node.json'}],'edges':[edge('invoke','after'),edge('after','exit:return')],'exits':{'return':{'constant':7}}}
 if out_mode:
- cg['nodes'][1]['signature']['args']=[{'type':'int','name':'value'}];cg['nodes'][1]['arguments']={'value':{'node':'invoke','output':'result'}}
+ cg['nodes'][1]['signature']['args']=[{'type':expected_outputs[0]['type'],'name':'value'}];cg['nodes'][1]['arguments']={'value':{'node':'invoke','output':'result'}}
  cg['exits']['return']={'node':'invoke','output':'result'}
+if data_mode:
+ cg['locals']=[{'id':'counter','name':'counter','type':'int','initial':{'constant':41}}]
+ cg['nodes'][0]['arguments']['total']={'local':'counter'}
+ cg['nodes'][1]['signature']['args'] += [{'type':'string','name':'text'},{'type':'int','name':'cell'}]
+ cg['nodes'][1]['arguments'].update(text={'node':'invoke','output':'label'},cell={'local':'counter'})
+ cg['exits']['return']={'local':'counter'}
 alias='fg_call_'+hashlib.sha256(feature.encode()).hexdigest()[:24]
-for name,text in [('Flow.celem',function),('FlowBody.celem',prepared['implementation']),('Flow.graph.json',json.dumps(root)),('MainBody.celem','implementation '+n+'MainBody for '+main_id+' () -> int {import '+feature+' as '+alias+(' (long,out int)' if out_mode else ' (long)')+' -> void;blueprint common "Main.graph.json";}'),('Main.graph.json',json.dumps(cg))]:(f.project/name).write_text(text)
-for g,fn,file,node,source,contracts in [(root,function,'Flow.node.json','choose',original_source,{}),(cg,main,'After.node.json','after',('global::System.Console.WriteLine("after:"+value);' if out_mode else 'global::System.Console.WriteLine("after");'),{feature:function})]:
+import_signature=' (long,ref int,out long,out string)' if data_mode else ' (long,out int)' if out_mode else ' (long)'
+for name,text in [('Flow.celem',function),('FlowBody.celem',prepared['implementation']),('Flow.graph.json',json.dumps(root)),('MainBody.celem','implementation '+n+'MainBody for '+main_id+' () -> int {import '+feature+' as '+alias+import_signature+' -> void;blueprint common "Main.graph.json";}'),('Main.graph.json',json.dumps(cg))]:(f.project/name).write_text(text)
+for g,fn,file,node,source,contracts in [(root,function,'Flow.node.json','choose',original_source,{}),(cg,main,'After.node.json','after',('global::System.Console.WriteLine("after:"+value+":"+text+":"+cell);' if data_mode else 'global::System.Console.WriteLine("after:"+value);' if out_mode else 'global::System.Console.WriteLine("after");'),{feature:function})]:
  defs=f.metadata('featureBlueprintNodes',featureSource=fn,graph=g,featureContracts=contracts);assert defs['state']=='node-definitions',defs
  record={'schema':1,'node':node,'definitionHash':next(r['definitionHash'] for r in defs['nodes'] if r['id']==node),'source':source};(f.project/file).write_text(json.dumps(record,ensure_ascii=False))
 manifest.write_text(manifest.read_text().replace('registry Confectory.Build.DotNet','element Flow function "Flow.celem";element FlowBody implementation "FlowBody.celem";registry Confectory.Build.DotNet',1))

@@ -41,7 +41,7 @@ try:
   panel().locator('[data-root-branch-add]').click();branches=current_plan()['branches'];ids=[b['id'] for b in branches]
   for id,name in zip(ids,['성공','실패']):
    field=panel().locator('[data-root-branch="'+id+'"] [data-root-branch-name]');field.fill(name);field.press('Tab')
-  panel().locator('[data-bp-percent]').click();zoom=f.page.get_by_role('dialog',name='노드 화면 배율',exact=True);zoom.locator('[data-zoom-preset="25"]').click();zoom.locator('[data-zoom-value]').press('Escape')
+  panel().locator('[data-bp-percent]').click();zoom=f.page.get_by_role('dialog',name='노드 화면 배율',exact=True);zoom.locator('[data-bp-fit]' if getattr(x,'data_mode',False) else '[data-zoom-preset="25"]').click();zoom.locator('[data-zoom-value]').press('Escape')
   for exit,id in zip(['yes','no'],ids):
    panel().locator('[data-bp-node="$exit:'+exit+'"] [data-bp-branch-select]').click();f.page.locator('[data-branch-option="'+id+'"]').click()
   assert {current_plan()['exits'][name]['executionBranch'] for name in ['yes','no']}==set(ids) and current_plan()['exits']['none']['executionBranch']=='none';panel().locator('[data-bp-save]').click();f.idle();assert pending() and checkpoint.read_bytes()==before;x.original();f.checked('기존 반환 카드를 정확한 공개 ID에 배정하며 호출자 미선택 Save는 전체 입력을 유지한다')
@@ -94,7 +94,7 @@ try:
    open_graph(f.n+'Main',getattr(x,'route_node','invoke'));call_node=panel().locator('[data-bp-node="'+getattr(x,'route_node','invoke')+'"]');expect(call_node.locator('[data-port="case:'+ids[0]+'"]')).to_be_visible();expect(call_node.locator('[data-branch-name]')).to_have_count(2);assert call_node.locator('[data-branch-name]').first.get_attribute('readonly') is not None
    call_node.locator('[data-port="case:'+ids[0]+'"]').click();panel().locator('[data-bp-node="$exit:return"] .bp-exec-header-in').click();assert pending();save();x.original();f.checked('명시 호출자 화면의 readonly 공개 분기 포트를 기존 반환 카드에 연결해 같은 그룹으로 저장한다')
    r=review();r.locator('[data-reject]').click();expect(r).to_be_hidden();x.original();r=review();r.locator('#confirm').click();expect(r).to_be_hidden(timeout=120000);f.idle();verify_run();assert (f.project/'Flow.node.json').read_bytes()==x.physical[f.project/'Flow.node.json'];assert (f.project/'After.node.json').read_bytes()==x.physical[f.project/'After.node.json'];f.checked('Review 취소와 최종 Confirm을 구별하고 원문 바이트 및 미연결 다음 줄 실행을 보존한다')
-   if x.out_mode:f.checked('공개 성공 포트에서 다음 줄을 건너뛰어도 이미 발행한 정수 out을 기존 데이터 반환 카드로 읽는다')
+   if x.out_mode:f.checked('공개 성공 포트에서 다음 줄을 건너뛰어도 기존 out/ref 데이터 저장소는 이미 발행되어 있다')
    restart(4);assert x.read()['diagnostics']['state']=='source-ready';assert x.read(x.caller)['diagnostics']['state']=='source-ready';f.checked('최종 반영 뒤 재시작에서 공개 분기·반환·직접 호출자 포트를 복원한다')
   assert not f.errors and not f.external,(f.errors,f.external);f.page.screenshot(path=str(f.case/'m12-final.png'),full_page=True);f.browser.close()
 except Exception:

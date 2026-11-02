@@ -4,7 +4,7 @@
 
 | 흐름 | 원본으로 확정된 요구 | 현재 경계/다음 구현 |
 |---|---|---|
-| M12 데이터와 분기 동시 반환 | 입출력 ID/타입/역할과 ordinary Invoke/C# 원문을 유지한다. 데이터 발행 뒤 결과 분기와 다음 동작을 실행한다. | void·값 입력·선택적 int out 하나까지 지원. 남은 동기 typed 출력/복수 out/ref/ordinary 반환을 하나의 데이터 전달 확장으로 다룬다. |
+| M12 데이터와 분기 동시 반환 | 입출력 ID/타입/역할과 ordinary Invoke/C# 원문을 유지한다. 데이터 발행 뒤 결과 분기와 다음 동작을 실행한다. | 동기 void의 typed out·복수 out·ref를 기존 by-reference 전달에 연결한다. ordinary 비void 반환은 별도 결과 데이터 경로가 필요하며 아직 잔여다. [지원·검증](VALIDATION_V666_ROOT_EXECUTION_DATA_VOID.md). |
 | M12 복합 호출 계약 갱신 | 영향받는 caller/target 전부의 명시 대응·한 후보/CAS·원본 보존이 필요하다. | 중첩/private 호출, 다른 import가 섞인 caller, 여러 provider의 공개 분기 변경은 현재 완전한 closure 경계 밖이다. 새 자동 선택 정책을 만들지 않는다. |
 | M4 비동기 실행 | await → 출력 발행 → 완료 → 결과 분기 → 다음 동작. ref 입력은 거절하며 본문 await/내부 async가 남았으면 동기 전환을 거절한다. | 실제 async 저장·실행·호출 어댑터가 남아 있다. 표시만 async로 바꾸거나 Task를 무시하고 다음 동작으로 진행하지 않는다. |
 
@@ -12,7 +12,7 @@
 
 `dist/app.js:2469–2476`은 inputs/outputs/parameters/returns/executionOutputs를 구현보다 우선한다. `dist/blueprint.js:248`의 실행 계획은 `publish-outputs`를 완료/결과 분기보다 앞에 둔다. None과 기존 branch ID는 정보 EnumValue와 구별하며 예외를 임의의 실패 분기로 치환하지 않는다.
 
-동기 M12의 다른 CLR 데이터 전달을 위한 별도 결과 인터페이스/생성 어댑터 표현은 원래 Invoke·노드 출력 정체성·저장소 alias·실행 순서를 보존하는 구현 선택이다. 원래 반환 값을 버리거나 공개 C# 본문을 tuple/enum 반환으로 재작성하는 선택은 허용되지 않는다. 현재 구현의 int out 제한을 언어 자체의 영구 제한으로 규정하지 않는다. 정보 종류(Enum/EnumValue)의 CLR 표현 결정은 별도 잔여이며, 그 결정을 기다릴 필요 없는 기존 CLR 데이터 경로는 독립적으로 진행한다.
+동기 M12의 다른 CLR 데이터 전달을 위한 별도 결과 인터페이스/생성 어댑터 표현은 원래 Invoke·노드 출력 정체성·저장소 alias·실행 순서를 보존하는 구현 선택이다. 동기 void의 여러 typed out/ref는 기존 메서드 인수로 전달하므로 새 공개 결과 구조가 필요하지 않다. 원래 반환 값을 버리거나 공개 C# 본문을 tuple/enum 반환으로 재작성하는 선택은 허용되지 않는다. 과거 구현의 int out 제한을 언어 자체의 영구 제한으로 규정하지 않는다. 정보 종류(Enum/EnumValue)의 CLR 표현 결정은 별도 잔여이며, 그 결정을 기다릴 필요 없는 기존 CLR 데이터 경로는 독립적으로 진행한다.
 
 ## M4에서 따로 대조해야 할 호환성
 

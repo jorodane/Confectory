@@ -84,11 +84,38 @@ public sealed class RootExecutionBranchTests : TestCase
         callee["exits"]!["no"]!["executionBranch"]="none";f.Body("Provider","callee.graph.json",callee.ToJsonString());Output(Build(),"callee:-1\ncontinue:-10");
         f.Add("App","implementation","MainBody","implementation App::MainBody for App::Main () -> int {import Api::Value as Original (int,out int) -> void;body common \"legacy.csbody\";}");f.Body("App","legacy.csbody","calls.Original.Invoke(3,out int value);Console.WriteLine(\"legacy:\"+value);return 0;");f.Sync();Output(Build(),"callee:3\nlegacy:30");Sequence(before,File.ReadAllBytes(Path.Combine(f.Packs["Provider"].Root,"choose.node.json")));
     }
-    public void test_public_out_contract_keeps_ref_multiple_out_other_type_and_nonvoid_outside_this_slice() {
-        foreach(string signature in new[]{"ref int mode", "int mode,out long result", "int mode,out int a,out int b"}) {
-            bool rejected=false;try { _=BlueprintExecutionBranches.Read(new Parser(Function().Replace("int mode",signature,StringComparison.Ordinal),"<unsupported>").ParseElement()); }catch(ArgumentException){rejected=true;}True(rejected,signature);
-        }
+    public void test_nonvoid_public_branch_contract_remains_rejected_without_discarding_return_data() {
         bool nonvoid=false;try{_=BlueprintExecutionBranches.Read(new Parser(Function().Replace("-> void","-> int",StringComparison.Ordinal),"<nonvoid>").ParseElement());}catch(ArgumentException){nonvoid=true;}True(nonvoid);
+    }
+    public void test_typed_outputs_and_aliased_refs_are_visible_before_branch_and_continuation() {
+        const string parameters="(int mode,ref int x,ref int y,out long wide,out string label)";
+        string source=Function().Replace("(int mode)",parameters,StringComparison.Ordinal),main="function App::Main () -> int {}";
+        var contract=new Parser(source,"<data-contract>").ParseElement();var callee=Callee(source);var choose=callee["nodes"]![0]!;
+        foreach(var p in contract.Signature!.Args.Skip(1))choose["signature"]!["args"]!.AsArray().Add(new JsonObject { ["type"]=p.Type,["name"]=p.Name,["mode"]=p.Mode });
+        choose["arguments"]!["x"]=new JsonObject { ["input"]="x" };choose["arguments"]!["y"]=new JsonObject { ["input"]="y" };
+        foreach(string name in new[]{"yes","no"}) {
+            foreach(var p in contract.Signature.Args.Where(p=>p.IsOut)) {
+                string id="publish_"+name+"_"+p.Name;callee["nodes"]!.AsArray().Add(new JsonObject { ["id"]=id,["kind"]="export",["control"]="next",["intent"]="Publish "+p.Name,["output"]=p.Name,["signature"]=Signature("void",new Parameter(p.Type,"value")),["arguments"]=new JsonObject { ["value"]=new JsonObject { ["node"]="choose",["output"]=p.Name } } });
+                foreach(var edge in callee["edges"]!.AsArray())if(edge!["to"]!.ToString()=="exit:"+name)edge["to"]=id;
+                callee["edges"]!.AsArray().Add(Edge(id,"exit:"+name));
+            }
+        }
+        const string original="// 원문 ref/out 😀\r\nx+=mode;y+=x;wide=y*10L;label=\"value:\"+y;return mode>0;\r\n";
+        Records("Provider",callee,source,new() { ["choose"]=original });f.Add("Api","function","Value",source);f.Add("Provider","implementation","ValueBody","implementation Provider::ValueBody for Api::Value "+parameters+" -> void {blueprint common \"callee.graph.json\";}");f.Body("Provider","callee.graph.json",callee.ToJsonString());
+        var caller=Graph("App::Main",main,"call");caller["locals"]=new JsonArray(new JsonObject { ["id"]="counter",["name"]="counter",["type"]="int",["initial"]=new JsonObject { ["constant"]=41 } });
+        caller["nodes"]=new JsonArray(new JsonObject { ["id"]="call",["kind"]="call",["control"]="switch",["intent"]="Preserve one aliased caller cell",["feature"]="Api::Value",["signature"]=FeatureBlueprint.SignatureDocument(contract.Signature),["arguments"]=new JsonObject { ["mode"]=new JsonObject { ["constant"]=1 },["x"]=new JsonObject { ["local"]="counter" },["y"]=new JsonObject { ["local"]="counter" } },["publicExecution"]=FeatureBlueprint.ContractHash(contract),["executionEnum"]=BlueprintExecutionBranches.Enum(contract) });
+        foreach(string id in new[]{"yes","no","after"}) {
+            var node=new JsonObject { ["id"]=id,["kind"]="code",["control"]="next",["intent"]="Read published typed data in "+id,["signature"]=Signature("void",new Parameter("long","value"),new Parameter("string","text"),new Parameter("int","cell")),["arguments"]=new JsonObject { ["value"]=new JsonObject { ["node"]="call",["output"]="wide" },["text"]=new JsonObject { ["node"]="call",["output"]="label" },["cell"]=new JsonObject { ["local"]="counter" } },["implementation"]=id+".node.json" };if(id!="after")node["branchOwner"]="call";caller["nodes"]!.AsArray().Add(node);
+        }
+        caller["edges"]=new JsonArray(Edge("call","yes","case:success"),Edge("call","no","case:failure"),Edge("call","after"),Edge("after","exit:done"));caller["exits"]=new JsonObject { ["done"]=new JsonObject { ["constant"]=0 } };
+        var contracts=new JsonObject { ["Api::Value"]=source };var callerRecords=Records("App",caller,main,new() { ["yes"]="Console.WriteLine(\"success:\"+value+\":\"+text+\":\"+cell);",["no"]="Console.WriteLine(\"failure:\"+value+\":\"+text+\":\"+cell);",["after"]="Console.WriteLine(\"continue:\"+value+\":\"+text+\":\"+cell);" },contracts);
+        var bad=caller.DeepClone().AsObject();bad["nodes"]![0]!["arguments"]!["x"]=new JsonObject { ["constant"]=41 };Equal("GRAPH_REF_STORAGE",Text(Query(main,bad,contracts,callerRecords)["diagnostics"]![0]!,"code"));
+        bad=caller.DeepClone().AsObject();bad["locals"]![0]!["type"]="long";Equal("GRAPH_LOCAL_TYPE",Text(Query(main,bad,contracts,callerRecords)["diagnostics"]![0]!,"code"));
+        f.Add("App","implementation","MainBody","implementation App::MainBody for App::Main () -> int {import Api::Value as "+FeatureBlueprint.ImportAlias("Api::Value")+" (int,ref int,ref int,out long,out string) -> void;blueprint common \"caller.graph.json\";}");f.Body("App","caller.graph.json",caller.ToJsonString());f.Sync();byte[] before=File.ReadAllBytes(Path.Combine(f.Packs["Provider"].Root,"choose.node.json"));Output(Build(),"success:840:value:84:84\ncontinue:840:value:84:84");
+        caller["nodes"]![0]!["arguments"]!["mode"]!["constant"]=-1;f.Body("App","caller.graph.json",caller.ToJsonString());Output(Build(),"failure:800:value:80:80\ncontinue:800:value:80:80");
+        callee["exits"]!["no"]!["executionBranch"]="none";f.Body("Provider","callee.graph.json",callee.ToJsonString());Output(Build(),"continue:800:value:80:80");
+        f.Add("App","implementation","MainBody","implementation App::MainBody for App::Main () -> int {import Api::Value as Original (int,ref int,ref int,out long,out string) -> void;body common \"legacy.csbody\";}");f.Body("App","legacy.csbody","int cell=5;calls.Original.Invoke(3,ref cell,ref cell,out long wide,out string label);Console.WriteLine(cell+\":\"+wide+\":\"+label);return 0;");f.Sync();Output(Build(),"16:160:value:16");
+        callee["entry"]="";callee["nodes"]=new JsonArray();callee["edges"]=new JsonArray();callee["exits"]=new JsonObject();f.Body("Provider","callee.graph.json",callee.ToJsonString());f.Body("App","legacy.csbody","int cell=7;var branch=(("+BlueprintExecutionBranches.Interface("Api::Value")+")calls.Original).InvokeExecution(3,ref cell,ref cell,out long wide,out string label);Console.WriteLine((int)branch+\":\"+cell+\":\"+wide+\":\"+(label is null));return 0;");Output(Build(),"0:7:0:True");Sequence(before,File.ReadAllBytes(Path.Combine(f.Packs["Provider"].Root,"choose.node.json")));
     }
     public void test_public_branches_refuse_opaque_unselected_target_without_a_partial_provider_contract() {
         string source=Function();var graph=Callee(source);Records("Provider",graph,source,new() { ["choose"]="return mode>0;" });
