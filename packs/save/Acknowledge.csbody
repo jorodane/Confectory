@@ -6,6 +6,7 @@ var saved=System.Text.Json.Nodes.JsonNode.Parse(snapshot[1])!.AsObject();var cha
 // If any member has changed, preserve the COMPLETE saved group for explicit review.
 var grouped=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
 var settled=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
+var closedExecutionGroups=new System.Collections.Generic.List<System.Text.Json.Nodes.JsonArray>();
 foreach(var unit in changes){
  string groupField=unit?["retirementGroup"] is System.Text.Json.Nodes.JsonArray?"retirementGroup":unit?["hierarchyGroup"] is System.Text.Json.Nodes.JsonArray?"hierarchyGroup":unit?["atomicEditGroup"] is System.Text.Json.Nodes.JsonArray?"atomicEditGroup":"rootContractGroup";if(unit?[groupField] is not System.Text.Json.Nodes.JsonArray group)continue;
  var members=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(group,id=>id!.GetValue<string>()));foreach(string id in members)grouped.Add(id);
@@ -19,7 +20,10 @@ foreach(var unit in changes){
  // The shared validator distinguishes public execution groups from legacy
  // whole-body groups. Member count alone cannot identify their semantics.
  if(complete&&groupField=="rootContractGroup"){try{calls.RootGroup.Invoke(handle,members[0]);}catch{complete=false;}}
- if(complete)foreach(string id in members)settled.Add(id);
+ if(complete){
+  if(groupField=="rootContractGroup"&&members.Length>=3){var root=calls.Read.Invoke(handle,members[2]);if(root[1]=="blueprint"){var graph=System.Text.Json.Nodes.JsonNode.Parse(root[3]);if(graph?["schema"]?.GetValue<int>()==2&&graph["executionExitMode"]?.GetValue<bool>()==true&&graph["feature"]?.ToString()==members[0])closedExecutionGroups.Add(group.DeepClone().AsArray());}}
+  foreach(string id in members)settled.Add(id);
+ }
 }
 for(int i=changes.Count-1;i>=0;i--)
 {
@@ -29,4 +33,13 @@ for(int i=changes.Count-1;i>=0;i--)
 var workspaceState=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+handle) as System.Text.Json.Nodes.JsonObject;if(saved["retirements"] is System.Text.Json.Nodes.JsonObject archivedRows&&workspaceState is not null)lock(workspaceState){foreach(var operation in System.Linq.Enumerable.ToArray(archivedRows)){if(Array.IndexOf(selected,operation.Value!["manifest"]!.ToString())<0)continue;var actual=workspaceState["retirements"]?[operation.Key];if(actual is null)archivedRows.Remove(operation.Key);else archivedRows[operation.Key]=actual.DeepClone();changed=true;}}
 if(!changed)return;var identity=calls.Identity.Invoke(handle);var result=calls.Commit.Invoke(identity[3],new[]{System.IO.Path.GetRelativePath(identity[3],path)},new[]{snapshot[2]},new[]{saved.ToJsonString()});if(result[0]!="applied")throw new InvalidOperationException("Concurrent saved-draft change; final source already confirmed, saved bookkeeping needs review.");
 
-string confirmedSaved=saved.ToJsonString();var state=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+handle) as System.Text.Json.Nodes.JsonObject;if(state is not null)lock(state){if(state["checkpointVersion"]?.ToString()==snapshot[2])state["checkpointVersion"]=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(confirmedSaved))).ToLowerInvariant();}
+string confirmedSaved=saved.ToJsonString();var state=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+handle) as System.Text.Json.Nodes.JsonObject;if(state is not null)lock(state){
+ string confirmedHash=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(confirmedSaved))).ToLowerInvariant();if(state["checkpointVersion"]?.ToString()==snapshot[2])state["checkpointVersion"]=confirmedHash;
+ // Once the durable checkpoint and every public execution member are settled,
+ // retire that transaction's live metadata too. Otherwise a later copy is
+ // mistaken for an unreviewed public-contract provider in the same session.
+ if(state["checkpointVersion"]?.ToString()==confirmedHash)foreach(var group in closedExecutionGroups){
+  if(!System.Linq.Enumerable.All(group,m=>settled.Contains(m!.ToString())&&state["units"]?[m.ToString()] is System.Text.Json.Nodes.JsonObject unit&&System.Text.Json.Nodes.JsonNode.DeepEquals(unit["rootContractGroup"],group)&&unit["baseline"]?.ToString()!="missing"&&unit["draft"]?.ToString()==unit["original"]?.ToString()))continue;
+  foreach(var member in group){var unit=state["units"]![member!.ToString()]!.AsObject();unit.Remove("rootContractGroup");unit.Remove("rootAbiContracts");}
+ }
+}

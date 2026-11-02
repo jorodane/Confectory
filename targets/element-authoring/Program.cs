@@ -23,6 +23,7 @@ try
         case "blueprintPrepareFeature":reply=BlueprintCreation.Prepare(request,Format);break;
         case "blueprintPrepareImplementation":reply=BlueprintCreation.PrepareForOwner(request,Format);break;
         case "blueprintRootExecutionGuards":reply=BlueprintRootExecution.Guards(request);break;
+        case "blueprintPublicCopyReturnGuards":reply=BlueprintPublicCopyReturns.Guards(request);break;
         case "blueprintRootExecutionCandidates":reply=BlueprintRootExecution.Candidates(request);break;
         case "blueprintRootExecution":reply=BlueprintRootExecution.Prepare(request,Format);break;
         case "blueprintRootContract":reply=BlueprintRootContract.Prepare(request,Format);break;
