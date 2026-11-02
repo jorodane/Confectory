@@ -90,4 +90,9 @@ public sealed class RootExecutionBranchTests : TestCase
         }
         bool nonvoid=false;try{_=BlueprintExecutionBranches.Read(new Parser(Function().Replace("-> void","-> int",StringComparison.Ordinal),"<nonvoid>").ParseElement());}catch(ArgumentException){nonvoid=true;}True(nonvoid);
     }
+    public void test_public_branches_refuse_opaque_unselected_target_without_a_partial_provider_contract() {
+        string source=Function();var graph=Callee(source);Records("Provider",graph,source,new() { ["choose"]="return mode>0;" });
+        f.Add("Api","function","Value",source);f.Add("Provider","implementation","ValueBody","implementation Provider::ValueBody for Api::Value (int mode) -> void {blueprint common \"callee.graph.json\";body linux \"original.csbody\";}");f.Body("Provider","callee.graph.json",graph.ToJsonString());f.Body("Provider","original.csbody","Console.WriteLine(mode);return;");
+        f.Add("App","implementation","MainBody","implementation App::MainBody for App::Main () -> int {import Api::Value as Original (int) -> void;body common \"main.csbody\";}");f.Body("App","main.csbody","calls.Original.Invoke(1);return 0;");f.Sync();byte[] original=File.ReadAllBytes(Path.Combine(f.Packs["Provider"].Root,"original.csbody"));Error("BLUEPRINT_EXECUTION_PROVIDER",()=>Build());Sequence(original,File.ReadAllBytes(Path.Combine(f.Packs["Provider"].Root,"original.csbody")));
+    }
 }

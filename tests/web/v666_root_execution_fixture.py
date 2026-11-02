@@ -1,7 +1,7 @@
 """Bounded M12: owned sync void root and explicit direct Blueprint caller."""
 import copy,hashlib,json,pathlib,subprocess,sys,uuid
 import v536_wide_mixed as f
-out_mode='--out-root' in sys.argv
+out_mode=any(flag in sys.argv for flag in ['--out-root','--multi-root','--no-callers'])
 result_code=10 if out_mode else 7;initial_stdout='callee:1\nafter:10' if out_mode else 'callee:1\nafter';final_stdout='callee:1'
 signature='(long amount,out int result)' if out_mode else '(long amount)'
 n=f.n;feature=n+'Flow';impl=n+'FlowBody';graph=impl+'/body:common';caller=n+'MainBody/body:common';manifest=f.project/'project.cproj'

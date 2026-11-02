@@ -16,13 +16,9 @@ foreach(var unit in changes){
   var current=calls.Read.Invoke(handle,id);
   if(current[6]!="clean"||current[3]!=row["draft"]!.GetValue<string>()||current[1]!=row["kind"]!.ToString()||current[2]!=row["path"]!.ToString()){complete=false;break;}
  }
- if(complete&&groupField=="rootContractGroup"&&members.Length>4){try{calls.RootGroup.Invoke(handle,members[0]);}catch{complete=false;}}
- if(complete&&groupField=="rootContractGroup"&&members.Length==4){
-  try{calls.RootGroup.Invoke(handle,members[0]);var fn=calls.Read.Invoke(handle,members[0]);var impl=calls.Read.Invoke(handle,members[1]);var graph=calls.Read.Invoke(handle,members[2]);var body=calls.Read.Invoke(handle,members[3]);string prefix=members[2]+"/node:";
-   if(fn[1]!="function"||impl[1]!="implementation"||graph[1]!="blueprint"||body[1]!="blueprint-node"||!members[2].StartsWith(members[1]+"/body:",StringComparison.Ordinal)||!members[3].StartsWith(prefix,StringComparison.Ordinal))complete=false;
-   else{var graphJson=System.Text.Json.Nodes.JsonNode.Parse(graph[3])!;var node=System.Linq.Enumerable.SingleOrDefault(graphJson["nodes"]!.AsArray(),n=>n!["id"]?.ToString()==members[3][prefix.Length..]);if(node?["kind"]?.ToString()!="code"||node["implementationContext"]?["implementation"]?.ToString()!=members[1]||node["implementationContext"]?["feature"]?.ToString()!=members[0])complete=false;}
-  }catch{complete=false;}
- }
+ // The shared validator distinguishes public execution groups from legacy
+ // whole-body groups. Member count alone cannot identify their semantics.
+ if(complete&&groupField=="rootContractGroup"){try{calls.RootGroup.Invoke(handle,members[0]);}catch{complete=false;}}
  if(complete)foreach(string id in members)settled.Add(id);
 }
 for(int i=changes.Count-1;i>=0;i--)
