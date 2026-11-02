@@ -80,7 +80,7 @@ sealed 선택의 기존 관측 원문을 원자 그룹과 첫 Save 영수증에 
 | 직접 소유 함수에 공개 분기를 정의하고 관련 Blueprint target·직접 호출자에 명시 대응 | 동기 void·값 입력·선택적 int out 하나, 복수 호출자/target은 지원·검증했다. |
 | 기존 분기를 copy·자식 소유 본문에서 반환 | 소유 함수의 저장/새 copy, 자식이 직접 선언한 ordinary target, 등록 외부 함수의 ordinary provider와 저장 copy를 지원한다. **외부 함수 새 copy의 미리보기/첫 저장**도 아래 단위로 연결했다. 다음 실제 경계는 데이터 ABI와 복합 호출의 명시 대응이다. |
 | 원래 데이터 입출력과 공개 분기를 함께 전달 | 동기 void의 기존 typed out·복수 out·ref를 원래 by-reference 전달과 공개 분기에 연결한다. ordinary 비void의 값과 실행 분기를 함께 전달하는 경로는 실제 잔여다. 원문 재작성 없이 ordinary Invoke·저장소 alias·출력 발행 순서를 보존한다. [지원·검증](VALIDATION_V666_ROOT_EXECUTION_DATA_VOID.md). |
-| 기존 복합 그래프/호출 문맥에서 공개 계약을 갱신 | 중첩/private 호출, 다른 import가 섞인 caller, 여러 provider에 영향받는 공개 계약의 완전한 명시 대응은 현재 후보 closure 경계 밖이다. 단일 본문 반환의 타입 조합으로 별도 무한 목록을 만들지 않는다. |
+| 기존 복합 그래프/호출 문맥에서 공개 계약을 갱신 | 다른 직접 소유 함수를 함께 호출하는 ordinary caller는 추가 헤더를 readonly 관측 멤버로 같은 그룹에 결합한다. 중첩/private·등록 외부 import receipt·여러 provider의 공개 계약 변경을 포함한 완전한 명시 대응은 실제 잔여다. [지원·검증](VALIDATION_V666_ROOT_EXECUTION_COMPOUND_OWNED.md). 단일 본문 반환의 타입 조합으로 별도 무한 목록을 만들지 않는다. |
 | 비동기 완료와 분기 실행 | 별도 고정 M4다. 원본의 await→출력 발행→완료→결과 분기→다음 동작 순서를 유지해야 하며 이번 M12 반환 변경으로 완료되지 않는다. |
 
 부모/참조 원본 쓰기·override 입출력/분기 정의 변경은 정상 보호다. 구형 profile 자동 승격·별도 핀 ID 재설계·독립 계약 복제는 필수 잔여가 아니다. 다른 출력 ABI나 복합 호출의 현재 안전 거절은 영구 UX 정책으로 확정하지 않는다. M11은 새 회귀 증거가 없으면 완료 상태를 유지한다.

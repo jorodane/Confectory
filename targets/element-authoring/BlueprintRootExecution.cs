@@ -5,6 +5,7 @@ using System.Text.Json.Nodes;
 // Pure candidate preparation. The workspace owns checkpoint/physical CAS.
 static class BlueprintRootExecution
 {
+    static string Hash(string text)=>JsonData.HashBytes(System.Text.Encoding.UTF8.GetBytes(text));
     static Element Declaration(JsonObject units,string id,string kind) {
         var unit=units[id]??throw new ArgumentException("Owned execution source required");
         var value=new Parser(unit["draft"]!.GetValue<string>(),"<root-execution>").ParseElement();
@@ -38,8 +39,17 @@ static class BlueprintRootExecution
         if(ids.Select(id=>units[id]!["path"]!.ToString()).Distinct(StringComparer.Ordinal).Count()!=ids.Length)throw new ArgumentException("Aliased target files require one unambiguous owned draft; preserve the sources");return ids;
     }
     static string CallKey(JsonNode row)=>row["graph"]!.ToString()+"|node:"+row["node"]!.ToString();
+    static string[] ObservedContracts(JsonObject units,string rootId,IEnumerable<string> callerIds) {
+        var roots=new[]{rootId}.Concat(callerIds).Distinct(StringComparer.Ordinal).Select(id=>Root(units,id)).ToArray();
+        var owners=roots.Select(r=>r.Function.Id).ToHashSet(StringComparer.Ordinal);
+        var imports=roots.SelectMany(r=>r.Implementation.Imports.Values.Select(i=>i.Id)).Where(id=>!owners.Contains(id)).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
+        foreach(string id in imports){if(PackPaths.Namespace(id)!=PackPaths.Namespace(rootId))throw new ArgumentException("Registered imported contracts need their readonly receipt boundary; preserve the sources");_=Declaration(units,id,"function");}
+        return imports;
+    }
     static JsonArray Members(JsonObject units,string rootId,IEnumerable<string> callerIds) {
+        callerIds=callerIds.ToArray();
         var ids=new List<string>();foreach(string graphId in Targets(units,rootId).Concat(callerIds.Order(StringComparer.Ordinal)).Distinct(StringComparer.Ordinal)) {var root=Root(units,graphId);foreach(string id in new[]{root.Function.Id,root.Implementation.Id,graphId})if(!ids.Contains(id,StringComparer.Ordinal))ids.Add(id);foreach(var node in root.Graph["nodes"]!.AsArray().Where(n=>n!["kind"]?.ToString()=="code")){string id=graphId+"/node:"+node!["id"];if(!ids.Contains(id,StringComparer.Ordinal))ids.Add(id);}}
+        foreach(string id in ObservedContracts(units,rootId,callerIds))if(!ids.Contains(id,StringComparer.Ordinal))ids.Add(id);
         return new JsonArray(ids.Select(id=>JsonValue.Create(id)).ToArray());
     }
     public static JsonObject Candidates(JsonObject request) {
@@ -51,7 +61,8 @@ static class BlueprintRootExecution
             var graph=JsonNode.Parse(pair.Value!["draft"]!.GetValue<string>())!;
             var uses=BlueprintTree.Nodes(graph.AsObject()).Where(p=>p.Node["kind"]?.ToString()=="call"&&p.Node["feature"]?.ToString()==root.Function.Id).ToArray();if(uses.Length==0)continue;
             var caller=Root(units,pair.Key);
-            if(BlueprintExecutionBranches.Has(caller.Function)||caller.Function.Id==root.Function.Id||caller.Implementation.Imports.Values.Any(i=>i.Id!=root.Function.Id)||uses.Any(p=>p.Key!=p.Node["id"]?.ToString()||p.Node["branchOwner"] is not null||p.Node["control"]?.ToString() is not ("next" or "switch")))throw new ArgumentException("Direct caller uses with explicit owned contracts required; preserve other contexts");
+            if(BlueprintExecutionBranches.Has(caller.Function)||caller.Function.Id==root.Function.Id||uses.Any(p=>p.Key!=p.Node["id"]?.ToString()||p.Node["branchOwner"] is not null||p.Node["control"]?.ToString() is not ("next" or "switch")))throw new ArgumentException("Direct caller uses with explicit owned contracts required; preserve other contexts");
+            _=ObservedContracts(units,rootId,new[]{pair.Key});
             _=Definitions(units,pair.Key,true);callerOwners.Add(caller.Implementation.Id);
             foreach(var use in uses.OrderBy(p=>p.Key,StringComparer.Ordinal))rows.Add(new JsonObject { ["graph"]=pair.Key,["node"]=use.Node["id"]!.DeepClone(),["name"]=caller.Function.Description.Length>0?caller.Function.Description:caller.Function.Id,["nodes"]=caller.Graph["nodes"]!.DeepClone(),["edges"]=caller.Graph["edges"]!.DeepClone() });
         }
@@ -59,7 +70,7 @@ static class BlueprintRootExecution
         if(units.Where(p=>p.Value?["kind"]?.ToString()=="implementation").Select(p=>Declaration(units,p.Key,"implementation")).Any(i=>!callerOwners.Contains(i.Id)&&i.Bodies.Values.Any(b=>b.SourceKind=="blueprint")&&i.Imports.Values.Any(import=>import.Id==root.Function.Id)))throw new ArgumentException("Other native/private/import callers require explicit coordination; preserve their sources");
         var targets=new JsonArray();foreach(string id in targetIds){_=Definitions(units,id,true);var selected=Root(units,id);targets.Add(new JsonObject { ["graph"]=id,["name"]=id[(id.IndexOf("/body:",StringComparison.Ordinal)+6)..],["entry"]=selected.Graph["entry"]!.DeepClone(),["edges"]=selected.Graph["edges"]!.DeepClone(),["exits"]=selected.Graph["exits"]!.DeepClone() });}
         foreach(var row in rows)row!["key"]=CallKey(row);
-        return new JsonObject { ["branches"]=BlueprintExecutionBranches.Read(root.Function),["targets"]=targets,["callers"]=rows };
+        return new JsonObject { ["branches"]=BlueprintExecutionBranches.Read(root.Function),["targets"]=targets,["callers"]=rows,["observedContracts"]=new JsonArray(ObservedContracts(units,rootId,rows.Select(c=>c!["graph"]!.ToString())).Select(id=>JsonValue.Create(id)).ToArray()) };
     }
     public static JsonObject Prepare(JsonObject request,Func<Element,string> format) {
         var units=request["units"]!.DeepClone().AsObject();string rootId=request["id"]!.GetValue<string>();var choices=Candidates(new JsonObject { ["id"]=rootId,["units"]=units.DeepClone() });var plan=request["plan"]!.AsObject();var selectedCalls=new JsonArray();var selectedTargets=new JsonArray();
@@ -87,7 +98,7 @@ static class BlueprintRootExecution
         }
         foreach(string id in Targets(units,rootId).Concat(selectedCalls.Select(c=>c!["graph"]!.ToString())).Distinct(StringComparer.Ordinal))_=Definitions(units,id,true);
         var group=Members(units,rootId,selectedCalls.Select(c=>c!["graph"]!.ToString()));var result=new JsonObject();foreach(var member in group){string id=member!.ToString();result[id]=units[id]!.DeepClone();result[id]!["rootContractGroup"]=group.DeepClone();}
-        ValidateGroup(new JsonObject { ["namespace"]=request["namespace"]!.DeepClone(),["group"]=group.DeepClone(),["units"]=result.DeepClone() });return new JsonObject { ["group"]=group,["units"]=result,["sourceWritten"]=false,["executed"]=false };
+        ValidateGroup(new JsonObject { ["namespace"]=request["namespace"]!.DeepClone(),["group"]=group.DeepClone(),["units"]=result.DeepClone() });return new JsonObject { ["group"]=group,["units"]=result,["observedContracts"]=choices["observedContracts"]!.DeepClone(),["sourceWritten"]=false,["executed"]=false };
     }
     public static JsonObject ValidateGroup(JsonObject request) {
         var units=request["units"]!.AsObject();var group=request["group"]!.AsArray();string ns=request["namespace"]!.ToString();var ids=group.Select(m=>m!.ToString()).ToArray();
@@ -96,6 +107,9 @@ static class BlueprintRootExecution
         var candidates=Candidates(new JsonObject { ["id"]=rootId,["units"]=units.DeepClone() });var callers=candidates["callers"]!.AsArray();
         if(!Members(units,rootId,callers.Select(c=>c!["graph"]!.ToString())).Select(n=>n!.ToString()).ToHashSet(StringComparer.Ordinal).SetEquals(ids))throw new ArgumentException("No missing/unrelated execution group member permitted");
         foreach(var selected in callers){var caller=Root(units,selected!["graph"]!.ToString());var node=caller.Graph["nodes"]!.AsArray().Single(n=>n!["id"]?.ToString()==selected["node"]!.ToString())!;if(node["publicExecution"]?.ToString()!=FeatureBlueprint.ContractHash(root.Function))throw new ArgumentException("Exact public execution caller receipt required");}
+        var observed=units[rootId]?["authorSaveReceipt"]?["sources"] as JsonObject;
+        if(candidates["observedContracts"]!.AsArray().Count>0&&units[rootId]?["original"] is not null&&observed is null)throw new ArgumentException("Retain the observed imported-contract source receipt");
+        foreach(var dependency in candidates["observedContracts"]!.AsArray()){string id=dependency!.ToString();var unit=units[id]!;if(unit["original"] is not null&&unit["draft"]?.ToString()!=unit["original"]?.ToString()||observed is not null&&observed[id]?["hash"]?.ToString()!=Hash(unit["draft"]!.ToString()))throw new ArgumentException("Imported contracts are readonly observations of this execution transaction");}
         return new JsonObject { ["valid"]=true,["ids"]=group.DeepClone(),["sourceWritten"]=false,["executed"]=false };
     }
     public static JsonObject Guards(JsonObject request) {

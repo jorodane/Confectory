@@ -1,13 +1,16 @@
 """Bounded M12: owned sync void root and explicit direct Blueprint caller."""
 import copy,hashlib,json,pathlib,subprocess,sys,uuid
 import v536_wide_mixed as f
-data_mode='--data-root' in sys.argv
+compound_mode='--compound-root' in sys.argv
+data_mode=compound_mode or '--data-root' in sys.argv
 out_mode=data_mode or any(flag in sys.argv for flag in ['--out-root','--multi-root','--no-callers'])
 result_code=10 if out_mode else 7;initial_stdout='callee:1\nafter:10' if out_mode else 'callee:1\nafter';final_stdout='callee:1'
 signature='(long amount,out int result)' if out_mode else '(long amount)'
 if data_mode:
  signature='(long amount,ref int total,out long result,out string label)'
  result_code=42;initial_stdout='callee:1\nafter:420:value:42:42'
+if compound_mode:initial_stdout='callee:1\nother:99\nafter:420:value:42:42:99'
+expected_review_members=9 if compound_mode else 8
 expected_outputs=[{'name':'result','type':'long'},{'name':'label','type':'string'}] if data_mode else [{'name':'result','type':'int'}] if out_mode else []
 n=f.n;feature=n+'Flow';impl=n+'FlowBody';graph=impl+'/body:common';caller=n+'MainBody/body:common';manifest=f.project/'project.cproj'
 function='function '+feature+' '+signature+' -> void {description "실행 분기 기능";provide '+feature+' with '+impl+';}'
@@ -42,11 +45,24 @@ if data_mode:
  cg['exits']['return']={'local':'counter'}
 alias='fg_call_'+hashlib.sha256(feature.encode()).hexdigest()[:24]
 import_signature=' (long,ref int,out long,out string)' if data_mode else ' (long,out int)' if out_mode else ' (long)'
-for name,text in [('Flow.celem',function),('FlowBody.celem',prepared['implementation']),('Flow.graph.json',json.dumps(root)),('MainBody.celem','implementation '+n+'MainBody for '+main_id+' () -> int {import '+feature+' as '+alias+import_signature+' -> void;blueprint common "Main.graph.json";}'),('Main.graph.json',json.dumps(cg))]:(f.project/name).write_text(text)
-for g,fn,file,node,source,contracts in [(root,function,'Flow.node.json','choose',original_source,{}),(cg,main,'After.node.json','after',('global::System.Console.WriteLine("after:"+value+":"+text+":"+cell);' if data_mode else 'global::System.Console.WriteLine("after:"+value);' if out_mode else 'global::System.Console.WriteLine("after");'),{feature:function})]:
+extra_import='';extra_contracts={}
+if compound_mode:
+ other_feature=n+'Other';other_function='function '+other_feature+' (int seed) -> int {provide '+other_feature+' with '+n+'OtherBody;}'
+ extra_import='import '+other_feature+' as fg_call_'+hashlib.sha256(other_feature.encode()).hexdigest()[:24]+' (int) -> int;'
+ extra_contracts[other_feature]=other_function
+ cg['nodes'].append({'id':'other','kind':'call','control':'next','intent':'그대로 유지할 다른 직접 호출','feature':other_feature,'signature':{'args':[{'type':'int','name':'seed'}],'return':'int'},'arguments':{'seed':{'constant':99}}})
+ next(link for link in cg['edges'] if link['from']=='invoke' and link['port']=='next')['to']='other';cg['edges'].append(edge('other','after'))
+ cg['nodes'][1]['signature']['args'].append({'type':'int','name':'other'});cg['nodes'][1]['arguments']['other']={'node':'other','output':'return'}
+ for name,text in [('Other.celem',other_function),('OtherBody.celem','implementation '+n+'OtherBody for '+other_feature+' (int seed) -> int {body common "Other.csbody";}'),('Other.csbody','global::System.Console.WriteLine("other:"+seed);return seed;')]:(f.project/name).write_text(text)
+for name,text in [('Flow.celem',function),('FlowBody.celem',prepared['implementation']),('Flow.graph.json',json.dumps(root)),('MainBody.celem','implementation '+n+'MainBody for '+main_id+' () -> int {import '+feature+' as '+alias+import_signature+' -> void;'+extra_import+'blueprint common "Main.graph.json";}'),('Main.graph.json',json.dumps(cg))]:(f.project/name).write_text(text)
+after_source='global::System.Console.WriteLine("after:"+value+":"+text+":"+cell+":"+other);' if compound_mode else 'global::System.Console.WriteLine("after:"+value+":"+text+":"+cell);' if data_mode else 'global::System.Console.WriteLine("after:"+value);' if out_mode else 'global::System.Console.WriteLine("after");'
+for g,fn,file,node,source,contracts in [(root,function,'Flow.node.json','choose',original_source,{}),(cg,main,'After.node.json','after',after_source,{feature:function,**extra_contracts})]:
  defs=f.metadata('featureBlueprintNodes',featureSource=fn,graph=g,featureContracts=contracts);assert defs['state']=='node-definitions',defs
  record={'schema':1,'node':node,'definitionHash':next(r['definitionHash'] for r in defs['nodes'] if r['id']==node),'source':source};(f.project/file).write_text(json.dumps(record,ensure_ascii=False))
 manifest.write_text(manifest.read_text().replace('registry Confectory.Build.DotNet','element Flow function "Flow.celem";element FlowBody implementation "FlowBody.celem";registry Confectory.Build.DotNet',1))
+if compound_mode:
+ manifest.write_text(manifest.read_text().replace('registry Confectory.Build.DotNet','element Other function "Other.celem";element OtherBody implementation "OtherBody.celem";registry Confectory.Build.DotNet',1))
+ for name in ['Other.celem','OtherBody.celem','Other.csbody']:(f.project/name).chmod(0o400)
 physical={p:p.read_bytes() for p in f.project.rglob('*') if p.is_file() and '.confectory' not in p.parts}
 def original():assert all(p.read_bytes()==v for p,v in physical.items())
 def read(id=graph):return f.invoke('blueprint',{'action':'read','id':id})['result']['result']
