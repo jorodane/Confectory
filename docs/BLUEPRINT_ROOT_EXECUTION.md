@@ -20,14 +20,14 @@
 
 ## 기존 공개 계약을 유지하는 copy 본문 반환
 
-정보(schema)에 단독 배정되어 저장된 same-contract copy의 일반 switch-profile Root는 기존 공개 분기 ID/None을 반환 카드에서 선택·배치·연결할 수 있도록 연결 중이다. 이번 구현 경계는 직접 소유 함수 계약과 저장된 소유 copy이며, 새 copy 미리보기·부모/외부 함수 계약·자식 override 본문까지 완료했다는 뜻이 아니다. 이들 차이는 정상 금지 정책으로 확정하지 않는다.
+정보(schema)에 단독 배정되어 저장된 same-contract copy의 일반 switch-profile Root는 기존 공개 분기 ID/None을 반환 카드에서 선택·배치·연결할 수 있도록 연결했다. 이번 구현 경계는 직접 소유 함수 계약과 저장된 소유 copy이며, 새 copy 미리보기·부모/외부 함수 계약·자식 override 본문까지 완료했다는 뜻이 아니다. 이들 차이는 정상 금지 정책으로 확정하지 않는다.
 
 분기 정의의 이름·추가·삭제는 읽기 전용이며 함수 선언, IO/값/핀, caller의 receipt/연결과 donor/복사 C# record·provenance를 바꾸지 않는다. 편집 계획은 반환/실행선/시작점만 받는다. 공개 정의 변경 거래와 본문 반환 선택 거래를 구별한다.
 
-본문에서 관측한 소스를 완전한 atomic 그룹과 저장 receipt에 보존한다. 저장/복원/Review에서 동일 소유 배정·owner hash·공개 계약·source proof를 확인하며 최종 파일 CAS에 변경하지 않는 원문도 포함한다. Review 뒤 함수 원문이 바뀌어도 부분 Confirm하지 않는다. 공개 루트 Confirm은 지속 checkpoint와 모든 멤버가 완전히 정착한 뒤에만 해당 거래의 live metadata를 종료한다. 이 메타데이터가 다음 copy를 미확정 provider로 오인해 막지 않도록 하며, 활성/불완전 거래는 보존한다. 지원 경계 밖의 외부 함수는 소유 함수로 바꾸지 않는다. 최종 동결 코드의 독립 checkout·새 패키지/복원 검증은 아직 진행 전이다.
+본문에서 관측한 소스를 완전한 atomic 그룹과 저장 receipt에 보존한다. 저장/복원/Review에서 동일 소유 배정·owner hash·공개 계약·source proof를 확인하며 최종 파일 CAS에 변경하지 않는 원문도 포함한다. Review 뒤 함수 원문이 바뀌어도 부분 Confirm하지 않는다. 공개 루트 Confirm은 지속 checkpoint와 모든 멤버가 완전히 정착한 뒤에만 해당 거래의 live metadata를 종료한다. 이 메타데이터가 다음 copy를 미확정 provider로 오인해 막지 않도록 하며, 활성/불완전 거래는 보존한다. 지원 경계 밖의 외부 함수는 소유 함수로 바꾸지 않는다. 최종 동결 코드의 신규 LF23·CRLF19·새 패키지/전체 복원/실패 수명관리6, 총48단계가 통과했다. [지원 범위와 검증/보관](VALIDATION_V666_ROOT_EXECUTION_COPY.md).
 
 ## 별도 잔여와 호환성
 
-이 단위는 모든 공개 함수 형태의 M12 완료를 뜻하지 않는다. same-contract copy/자식 소유 본문의 기존 공개 분기 반환과 다른 원래 호출 문맥은 다음 잔여다. 이번 계약 편집은 일반 switch-profile Root와 직접 호출만 지원한다. 중첩/private 호출, 다른 callee import가 섞인 호출자, 여러 provider의 계약 변경은 아직 원자 결합 경계 밖이며 정상 금지 정책으로 확정하지 않는다. 정수 out 하나 밖의 ordinary 값 출력·ref/out 결합은 별도 원래 지원 경계로 남긴다. 계약이 바뀌는 override나 독립 새 계약 복제는 구현 대상이 아니다. 구형 profile을 자동 승격하지 않는다. M4 async 전환·완료 순서는 이번에 구현하지 않는다.
+이 단위는 모든 공개 함수 형태의 M12 완료를 뜻하지 않는다. 위 저장된 정보 단독 copy의 지원 경계 밖인 새 copy 미리보기·자식 소유 본문·등록 외부 함수와 다른 원래 호출 문맥은 다음 잔여다. 이번 계약 편집은 일반 switch-profile Root와 직접 호출만 지원한다. 중첩/private 호출, 다른 callee import가 섞인 호출자, 여러 provider의 계약 변경은 아직 원자 결합 경계 밖이며 정상 금지 정책으로 확정하지 않는다. 정수 out 하나 밖의 ordinary 값 출력·ref/out 결합은 별도 원래 지원 경계로 남긴다. 계약이 바뀌는 override나 독립 새 계약 복제는 구현 대상이 아니다. 구형 profile을 자동 승격하지 않는다. M4 async 전환·완료 순서는 이번에 구현하지 않는다.
 
 새 metadata/루트 schema 2를 이해하지 못하는 과거 실행 패키지로 새 자료를 열 수 있다고 보장하지 않는다. 최신/롤백 패키지와 전체 SHA manifest·복원 증거를 보관하며, 이전 패키지의 원래 데이터는 보존한다. 교차 패키지·Linux hosted UI 검사는 실제 Windows/WebView2·모바일 실행이나 전체 UI 및 Space/Library 전달 검증과 구별한다.
