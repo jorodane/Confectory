@@ -109,7 +109,7 @@ def main():
     parser.add_argument('--commit', required=True)
     parser.add_argument('--sdk', type=Path, required=True)
     parser.add_argument('--nuget-seed', type=Path, required=True)
-    parser.add_argument('--suite',choices=['headers','card-images','canvas','owned-information','owned-conversion','action-icons','declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement','worker-badges','node-internal','node-internal-nested','node-internal-storage','node-internal-context','node-internal-branches','node-branch-exits','node-internal-copy','node-internal-copy-nested','node-internal-copy-storage','node-internal-copy-branches','node-internal-copy-context','node-internal-copy-creating','node-internal-copy-frames','node-internal-override','node-internal-external-override','root-execution','root-execution-out','root-execution-closure','root-execution-copy','root-execution-copy-creating','root-execution-override'],default='headers')
+    parser.add_argument('--suite',choices=['headers','card-images','canvas','owned-information','owned-conversion','action-icons','declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement','worker-badges','node-internal','node-internal-nested','node-internal-storage','node-internal-context','node-internal-branches','node-branch-exits','node-internal-copy','node-internal-copy-nested','node-internal-copy-storage','node-internal-copy-branches','node-internal-copy-context','node-internal-copy-creating','node-internal-copy-frames','node-internal-override','node-internal-external-override','root-execution','root-execution-out','root-execution-closure','root-execution-copy','root-execution-copy-creating','root-execution-override','root-execution-registered'],default='headers')
     args = parser.parse_args()
     repo = args.repo.resolve(); persistent = args.persistent.absolute()
     persistent.parent.mkdir(parents=True, exist_ok=True)
@@ -231,6 +231,16 @@ def main():
                         work.run(label+'-owned-'+name,[sys.executable,str(checkout/'tests/web/v666_owned_information_ui.py'),str(checkout),str(report),mode,*flags],cwd=checkout,env=env)
                 work.run(label+'-v666-zoom-ui',[sys.executable,str(checkout/'tests/web/v666_canvas_zoom_ui.py'),str(checkout),str(report)],cwd=checkout,env=env)
                 work.run(label+'-image-regression',[sys.executable,str(checkout/'tests/web/v536_card_image_ui.py'),str(checkout),str(report),'late','schema','property'],cwd=checkout,env=env)
+            elif args.suite=='root-execution-registered':
+                work.run(label+'-registered-script',['node','--check',str(checkout/'examples/editor-home/ui/feature-authoring.js')],cwd=checkout,env=env)
+                work.run(label+'-registered-api',[sys.executable,str(checkout/'tests/web/v666_root_execution_registered_api.py'),str(checkout),str(report),'--out-root'],cwd=checkout,env=env)
+                for mode in (['normal','project'] if label=='lf' else ['loss','late']):
+                    work.run(label+'-registered-ui-'+mode,[sys.executable,str(checkout/'tests/web/v666_root_execution_registered_ui.py'),str(checkout),str(report),mode,'--out-root',*(['view'] if label=='crlf' and mode=='late' else [])],cwd=checkout,env=env)
+                if label=='lf':
+                    work.run('lf-registered-no-out-api',[sys.executable,str(checkout/'tests/web/v666_root_execution_registered_api.py'),str(checkout),str(report)],cwd=checkout,env=env)
+                    work.run('lf-owned-override-regression',[sys.executable,str(checkout/'tests/web/v666_root_execution_override_api.py'),str(checkout),str(report),'--out-root','--external-parent'],cwd=checkout,env=env)
+                work.run(label+'-public-return-final-cas',[sys.executable,str(checkout/'tests/web/v666_root_execution_override_cas_core.py'),str(checkout)],cwd=checkout,env=env)
+                work.run(label+'-owned-final-read-cas',[sys.executable,str(checkout/'tests/web/v536_copy_read_guards_core.py'),str(checkout)],cwd=checkout,env=env)
             elif args.suite=='root-execution-override':
                 work.run(label+'-root-script',['node','--check',str(checkout/'examples/editor-home/ui/feature-authoring.js')],cwd=checkout,env=env)
                 work.run(label+'-root-native',[dotnet,str(checkout/'tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll'),'RootExecutionBranchTests','SwitchBlueprintTests','NestedBlueprintTests','BlueprintConversionTests','ExternalRefTests','--require-runtime'],cwd=checkout,env=env)
@@ -495,6 +505,8 @@ def main():
         elif args.suite=='node-internal-storage':
             work.run('packaged-node-internal',[sys.executable,str(checkout/'tests/web/v666_node_internal_ui.py'),str(package/'content'),str(packaged_report),'normal'],cwd=checkout,env=env)
             work.run('packaged-storage-node-internal',[sys.executable,str(checkout/'tests/web/v666_node_internal_storage_ui.py'),str(package/'content'),str(packaged_report),'normal'],cwd=checkout,env=env)
+        elif args.suite=='root-execution-registered':
+            work.run('packaged-registered-return',[sys.executable,str(checkout/'tests/web/v666_root_execution_registered_ui.py'),str(package/'content'),str(packaged_report),'normal','--out-root'],cwd=checkout,env=env)
         elif args.suite=='root-execution-override':
             work.run('packaged-public-override',[sys.executable,str(checkout/'tests/web/v666_root_execution_override_ui.py'),str(package/'content'),str(packaged_report),'normal','--out-root','--external-parent'],cwd=checkout,env=env)
         elif args.suite=='root-execution-copy-creating':
@@ -585,6 +597,8 @@ def main():
         elif args.suite=='node-internal-storage':
             work.run('restored-node-internal',[sys.executable,str(checkout/'tests/web/v666_node_internal_ui.py'),str(restored/'content'),str(packaged_report),'storage'],cwd=checkout,env=env)
             work.run('restored-storage-node-internal',[sys.executable,str(checkout/'tests/web/v666_node_internal_storage_ui.py'),str(restored/'content'),str(packaged_report),'loss','--private','--local'],cwd=checkout,env=env)
+        elif args.suite=='root-execution-registered':
+            work.run('restored-registered-return',[sys.executable,str(checkout/'tests/web/v666_root_execution_registered_ui.py'),str(restored/'content'),str(packaged_report),'late','--out-root','view'],cwd=checkout,env=env)
         elif args.suite=='root-execution-override':
             work.run('restored-public-override',[sys.executable,str(checkout/'tests/web/v666_root_execution_override_ui.py'),str(restored/'content'),str(packaged_report),'late','--out-root','--external-parent'],cwd=checkout,env=env)
         elif args.suite=='root-execution-copy-creating':

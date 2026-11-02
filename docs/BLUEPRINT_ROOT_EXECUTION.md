@@ -52,3 +52,12 @@ sealed 선택의 기존 관측 원문을 원자 그룹과 첫 Save 영수증에 
 이미 등록된 외부 부모는 기존 M11 ancestry 관측 계약을 읽기 전용으로 재사용한다. 최초 화면의 dependency hash를 입력 및 Save 시도 journal에 보존하고, 변경된 부모를 새 관측으로 묵시적으로 대체하지 않는다. Save·응답 복구·Review·Confirm과 최종 lease에서 외부 헤더/manifest 관측을 확인한다. 외부 부모의 본문이나 권한을 쓰거나 새 접근권한을 만들지 않는다.
 
 부모 계약을 바꾸는 override·부모/참조 원본 직접 편집은 정상 거절이다. 등록 외부 **함수** 계약 자체를 구현하는 반환 편집, 다른 원래 출력/호출 문맥과 M4는 이 경로 완료로 표시하지 않는다. 구형 profile의 자동 변환은 새 필수 요구가 아니다. 검증 결과는 [자식 소유 반환 검증](VALIDATION_V666_ROOT_EXECUTION_OVERRIDE.md)에 기록한다.
+
+
+## 등록 외부 함수의 로컬 provider 반환
+
+기존 ProjectPack의 직접 의존성으로 등록된 공개 함수도 정보(schema)에 명시 배정된 로컬 소유 provider의 ordinary Root(code/export)에서 기존 공개 분기/None을 반환한다. 함수의 ID·입출력·분기 정의와 provider 배정은 바꾸지 않는다. 외부 함수는 편집 source/원자 그룹에 추가하지 않고 기존 callable 계약의 함수·팩 manifest 헤더 관측만 재사용한다. local 프로젝트/구현 등록이 실제 파일과 일치하는지 먼저 확인하여 등록 철회 뒤 옛 manifest로 새 읽기를 진행하지 않는다.
+
+외부 헤더의 text hash와 원시 파일 hash를 함께 보존한다. 최초 관측과 local 원문 closure를 Save 시도/복원/Review에 묶고, Confirm의 마지막 source lease에 외부 typed read를 결합한다. 본문·계정·외부 권한을 새로 읽거나 변경하지 않는다. 기존 switch C# 카드는 backend가 반환 편집을 허용한 경우에만 표시를 연결하며, 이 조건으로 C# 계약 편집을 새로 허용하지 않는다.
+
+이번 검증 경계는 직접 등록된 동기 void·값 입력·선택적인 정수 out 하나, schema의 단독 명시 배정과 기존 공통 팝오버/Review 경로다. 외부 함수 공개 계약 변경은 readonly 보호이며, 외부 함수의 public same-contract copy·나머지 기존 데이터/호출 문맥은 이 경로 완료로 표시하지 않는다. [등록 함수 반환 검증](VALIDATION_V666_ROOT_EXECUTION_REGISTERED.md).

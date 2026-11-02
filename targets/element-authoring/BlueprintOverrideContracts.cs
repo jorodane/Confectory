@@ -9,6 +9,7 @@ internal static class BlueprintOverrideContracts
     static string Hash(string text)=>JsonData.HashBytes(Encoding.UTF8.GetBytes(text));
     public static JsonObject Query(JsonObject request)
     {
+        if(request["action"]?.ToString() is "readReturnContract" or "verifyReturnContract" or "validateReturnContract")return BlueprintPublicReturnContract.Query(request);
         if(request["action"]?.ToString()=="prepareReturns")return BlueprintPublicBodyReturns.Prepare(request);
         if(request["action"]?.ToString() is "validateGroup" or "verifyGroup")return Group(request);
         string action=request["action"]!.GetValue<string>(),text=request["text"]!.GetValue<string>(),id=request["id"]!.GetValue<string>(),target=request["target"]!.GetValue<string>();
@@ -60,7 +61,18 @@ internal static class BlueprintOverrideContracts
             var group=flow.Value!["atomicEditGroup"]?.AsArray()??throw new ArgumentException("Complete internal flow group required");
             if(selected is not null&&!selected.Any(s=>group.Any(m=>m!.ToString()==s!.ToString())))continue;
             int marker=flow.Key.IndexOf("/body:",StringComparison.Ordinal);if(marker<0)throw new ArgumentException("Owned body target required");string id=flow.Key[..marker],target=flow.Key[(marker+6)..],text=units[id]?["draft"]?.GetValue<string>()??throw new ArgumentException("Retain the owned override declaration");
-            var child=new Parser(text,"<retained-override>").ParseElement();var seen=new HashSet<string>(StringComparer.Ordinal){id};var current=child;bool required=false;
+            var child=new Parser(text,"<retained-override>").ParseElement();
+            if(flow.Value["publicBodyOrigin"] is not null&&PackPaths.Namespace(child.Function!)!=PackPaths.Namespace(id)){
+                var contract=origin["registeredFunction"]?.AsObject()??throw new ArgumentException("Retain the registered public function receipt");
+                string manifest=units.Single(u=>u.Value?["kind"]?.ToString()=="project").Value!["draft"]!.GetValue<string>();
+                BlueprintPublicReturnContract.Validate(contract,child,manifest,text);
+                if(verify)BlueprintPublicReturnContract.Query(new(){["action"]="verifyReturnContract",["project"]=request["project"]!.DeepClone(),["manifest"]=manifest,["text"]=text,["snapshot"]=contract.DeepClone()});
+                foreach(var observed in contract["observations"]!.AsArray()){
+                    string path=observed!["path"]!.ToString();var row=new JsonObject{["path"]=path,["hash"]=observed["hash"]!.DeepClone()};
+                    if(reads.TryGetValue(path,out var prior)&&!JsonNode.DeepEquals(prior,row))throw new InvalidOperationException("Public contract and ancestry versions differ");reads[path]=row;
+                }
+            }
+            var seen=new HashSet<string>(StringComparer.Ordinal){id};var current=child;bool required=false;
             while(current.Parent is string parent){
                 if(!seen.Add(parent)||seen.Count>64)throw new ArgumentException("Bounded override source closure required");
                 if(PackPaths.Namespace(parent)!=PackPaths.Namespace(id)){required=true;break;}
