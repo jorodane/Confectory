@@ -116,14 +116,16 @@ public static partial class FeatureBlueprint
         bool executionExitMode=graph["executionExitMode"]?.GetValue<bool>()==true;
         Need(!publicExecution || executionExitMode, "GRAPH_PUBLIC_EXECUTION_EXITS", feature.Id);
         Need(!graph.ContainsKey("executionExitMode")||executionExitMode&&(executionSource is not null||publicExecution),"GRAPH_EXECUTION_EXIT_CONTEXT",feature.Id);
+        var dataExits=graph["exits"]!.DeepClone().AsObject();
         var executionExits=new Dictionary<string,int>(StringComparer.Ordinal);
         foreach(var pair in graph["exits"]!.AsObject()){
             if(!executionExitMode){Need(pair.Value is not JsonObject value||!value.ContainsKey("executionBranch"),"GRAPH_EXECUTION_EXIT_CONTEXT",pair.Key);continue;}
-            Need(pair.Value is JsonObject choice&&choice.Count==1&&choice.ContainsKey("executionBranch"),"GRAPH_EXECUTION_EXIT_SELECTION",pair.Key);
+            Need(pair.Value is JsonObject choice&&choice.Count==(publicExecution&&feature.Signature!.Return!="void"?2:1)&&choice.ContainsKey("executionBranch")&&choice.All(p=>p.Key=="executionBranch"||publicExecution&&feature.Signature!.Return!="void"&&p.Key=="value"),"GRAPH_EXECUTION_EXIT_SELECTION",pair.Key);
             string branch=pair.Value!["executionBranch"]?.GetValue<string>()??"";
             var member=EnumContract(exitEnum!)["members"]!.AsArray().SingleOrDefault(m=>S(m,"id")==branch);
             Need(member is not null,"GRAPH_EXECUTION_EXIT_BRANCH",pair.Key);
             executionExits.Add(pair.Key,member!["value"]!.GetValue<int>());
+            dataExits[pair.Key]=pair.Value!["value"]?.DeepClone();
         }
 
         Need(graph["schema"]?.GetValue<int>() == (executionExitMode?2:1), "GRAPH_SCHEMA", "schema");
@@ -548,11 +550,11 @@ public static partial class FeatureBlueprint
             var available = incoming.Length == 0 ? new HashSet<string>(StringComparer.Ordinal) : new HashSet<string>(dominators[incoming[0]], StringComparer.Ordinal);
             foreach (string p in incoming.Skip(1))
                 available.IntersectWith(dominators[p]);
-            if (feature.Signature!.Return != "void"&&(!implicitEnd||exit.Value is not null))
-                Binding(exit.Value, feature.Signature.Return, available, target);
+            if (feature.Signature!.Return != "void"&&(!implicitEnd||dataExits[exit.Key] is not null))
+                Binding(dataExits[exit.Key], feature.Signature.Return, available, target);
         }
 
-        if(implicitEnd){var flow=switchFlow?DescribeSwitchTerminations(entry,feature,nodes,edges,order,predecessors,exits,forwardedOutputs,switchRouting.Item3):multiOutput?DescribeMultiTerminations(entry,feature,nodes,edges,order,predecessors,exits,externalRefs?forwardedOutputs:null):DescribeImplicitTerminations(entry,feature,nodes,edges,order,predecessors,exits);reply["outputs"]=OutputDocument(feature.Signature!);reply["terminations"]=flow.Ends;reply["warnings"]=flow.Warnings;reply["unassignedReturnPolicy"]="csharp-type-default";}
+        if(implicitEnd){var flow=switchFlow?DescribeSwitchTerminations(entry,feature,nodes,edges,order,predecessors,dataExits,forwardedOutputs,switchRouting.Item3):multiOutput?DescribeMultiTerminations(entry,feature,nodes,edges,order,predecessors,exits,externalRefs?forwardedOutputs:null):DescribeImplicitTerminations(entry,feature,nodes,edges,order,predecessors,exits);reply["outputs"]=OutputDocument(feature.Signature!);reply["terminations"]=flow.Ends;reply["warnings"]=flow.Warnings;reply["unassignedReturnPolicy"]="csharp-type-default";}
         if(switchFlow){reply["branchReturns"]=branchReturns;reply["continuations"]=new JsonObject(continuations.Select(p=>new KeyValuePair<string,JsonNode?>(p.Key,JsonValue.Create(p.Value))));reply["executionModel"]="sequential-switch-continuation";}
         reply["contractVersions"] = new JsonObject(imports.OrderBy(p => p.Key, StringComparer.Ordinal).Select(p => new KeyValuePair<string, JsonNode?>(p.Key, JsonValue.Create(p.Value.Hash))));
         reply["contractVersions"]![feature.Id] = contractHash;
@@ -600,7 +602,7 @@ public static partial class FeatureBlueprint
                 output.AppendLine((ExecutionType(node) == "void" ? "" : "return ") + (node.Control == "switch" ? "(int)" : "") + type + ".Execute(" + ImportParameter(node.Feature!) + (node.Signature.Args.Count > 0 ? ", " : "") + string.Join(", ", node.Signature.Args.Select(p => (p.Mode is "out" or "ref" ? p.Mode + " " : "") + p.Name)) + (WrappedReturn(node) ? ", out __fg_wrapped_return" : "") + ");");
             }
             else if (node.Kind == "call" && node.Definition["publicExecution"] is not null)
-                output.AppendLine("return (int)((" + BlueprintExecutionBranches.Interface(node.Feature!) + ")" + ImportParameter(node.Feature!) + ").InvokeExecution(" + string.Join(",", node.Signature.Args.Select(p => (p.Mode is "out" or "ref" ? p.Mode + " " : "") + p.Name)) + ");");
+                output.AppendLine("return (int)((" + BlueprintExecutionBranches.Interface(node.Feature!) + ")" + ImportParameter(node.Feature!) + ").InvokeExecution(" + string.Join(",", node.Signature.Args.Select(p => (p.Mode is "out" or "ref" ? p.Mode + " " : "") + p.Name).Concat(WrappedReturn(node)?new[]{"out __fg_wrapped_return"}:Array.Empty<string>())) + ");");
             else if (node.Kind == "call")
                 output.AppendLine((node.Signature.Return == "void" ? "" : "return ") + ImportParameter(node.Feature!) + ".Invoke(" + string.Join(",", node.Signature.Args.Select(p => (p.Mode is "out" or "ref"?p.Mode+" ":"")+p.Name)) + ");");
             else if (node.Kind == "code" && SupportsMethods(profile)) {
@@ -663,10 +665,10 @@ public static partial class FeatureBlueprint
             var available = incoming.Length == 0 ? new HashSet<string>(StringComparer.Ordinal) : new HashSet<string>(dominators[incoming[0]], StringComparer.Ordinal);
             foreach (string p in incoming.Skip(1))
                 available.IntersectWith(dominators[p]);
-            output.AppendLine(Label(target) + ": { "+CompleteOuts()+"return" + (executionExitMode?" "+executionExits[exit.Key].ToString(System.Globalization.CultureInfo.InvariantCulture):executionSource is not null?" "+ExecutionValue(executionSource):feature.Signature!.Return == "void" ? "" : " " + (implicitEnd&&exit.Value is null?FeatureValue("return"):Binding(exit.Value, feature.Signature.Return, available, target))) + "; }");
+            output.AppendLine(Label(target) + ": { "+CompleteOuts()+(publicExecution&&feature.Signature!.Return!="void"?BlueprintExecutionBranches.CaptureName(feature.Signature)+" = "+(dataExits[exit.Key] is null?FeatureValue("return"):Binding(dataExits[exit.Key],feature.Signature.Return,available,target))+"; ":"")+"return" + (executionExitMode?" "+executionExits[exit.Key].ToString(System.Globalization.CultureInfo.InvariantCulture):executionSource is not null?" "+ExecutionValue(executionSource):feature.Signature!.Return == "void" ? "" : " " + (implicitEnd&&exit.Value is null?FeatureValue("return"):Binding(exit.Value, feature.Signature.Return, available, target))) + "; }");
         }
 
-        if(implicitEnd)foreach(string target in edges.Where(edge=>reachable.Contains(edge.Key.Item1)).Select(edge=>edge.Value).Append(entry).Where(Terminal).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal))output.AppendLine(Label(target)+": { "+CompleteOuts()+"return"+(publicExecution?" 0":executionSource is not null?" "+ExecutionValue(executionSource):feature.Signature!.Return=="void"?"":" "+FeatureValue("return"))+"; }");
+        if(implicitEnd)foreach(string target in edges.Where(edge=>reachable.Contains(edge.Key.Item1)).Select(edge=>edge.Value).Append(entry).Where(Terminal).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal))output.AppendLine(Label(target)+": { "+CompleteOuts()+(publicExecution&&feature.Signature!.Return!="void"?BlueprintExecutionBranches.CaptureName(feature.Signature)+" = "+FeatureValue("return")+"; ":"")+"return"+(publicExecution?" 0":executionSource is not null?" "+ExecutionValue(executionSource):feature.Signature!.Return=="void"?"":" "+FeatureValue("return"))+"; }");
         output.AppendLine("#line default");
         reply["state"] = "source-assembled";
         reply["body"] = output.ToString().Replace("\r\n", "\n");

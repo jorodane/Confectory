@@ -10,13 +10,20 @@ public static class BlueprintExecutionBranches
 {
     public const string Metadata = "blueprintExecutionBranches";
     public static bool Has(Element function) => function.Values.ContainsKey(Metadata);
-    public static bool SupportsSignature(FunctionSignature signature) => signature.Return == "void"
-        && signature.Args.All(p => p.Mode is null or "out" or "ref");
+    public static bool SupportsSignature(FunctionSignature signature) => signature.Args.All(p => p.Mode is null or "out" or "ref");
+    // A separate generated capture preserves the ordinary return type and all
+    // existing ref/out storage, including parameters using our preferred name.
+    public static string CaptureName(FunctionSignature signature) {
+        string name="__fg_native_return";
+        while(signature.Args.Any(p=>p.Name==name))name+="_";
+        return name;
+    }
+    public static string CaptureParameter(FunctionSignature signature) => signature.Return=="void"?"":"out "+signature.Return+" "+CaptureName(signature);
     public static JsonArray Read(Element function)
     {
         if (!function.Values.TryGetValue(Metadata, out var value)) return new();
         if (function.Kind != "function" || function.Signature is not { } signature || !SupportsSignature(signature) || function.Parent is not null)
-            throw new ArgumentException("Public execution branches require a direct synchronous void contract with existing value/ref/out parameters");
+            throw new ArgumentException("Public execution branches require a direct synchronous contract with existing value/ref/out parameters");
         if (value.Value.ValueKind != JsonValueKind.String || JsonNode.Parse(value.Value.GetString()!) is not JsonObject document || document.Count != 2 || document["schema"]?.GetValue<int>() != 1 || document["branches"] is not JsonArray branches || branches.Count > 31)
             throw new ArgumentException("Versioned public execution branch contract required");
         var ids = new HashSet<string>(StringComparer.Ordinal); var names = new HashSet<string>(StringComparer.Ordinal); var numbers = new HashSet<int>();

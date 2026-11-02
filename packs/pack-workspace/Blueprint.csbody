@@ -980,7 +980,7 @@ lock(state){
  if(registeredFunction is not null){featureDefinition=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("inspect",System.Text.Json.JsonSerializer.Serialize(new{text=registeredFunction["text"]!.ToString()})))!;featureDefinition["readOnly"]=true;featureDefinition["textHash"]=Hash(registeredFunction["text"]!.ToString());}
  if(registeredAncestry is not null&&checked(sourceBytes+System.Text.Encoding.UTF8.GetByteCount(registeredAncestry.ToJsonString()))>2097152)throw new InvalidOperationException("Complete registered override source budget exceeded; retain all input");
  System.Text.Json.Nodes.JsonObject? rootExecutionUnits=null;System.Text.Json.Nodes.JsonNode? rootExecution=null;string? rootExecutionError=null;
- if(privatePath.Length==0&&slotContext is null&&implementationMetadata["parent"] is null&&rootGraph["profile"]?.ToString()=="sync-acyclic-switch-v1"&&definitions["signature"]?["return"]?.ToString()=="void"){
+ if(privatePath.Length==0&&slotContext is null&&implementationMetadata["parent"] is null&&rootGraph["profile"]?.ToString()=="sync-acyclic-switch-v1" ){
   var executionPriorSources=sources.DeepClone().AsObject();int executionPriorBytes=sourceBytes;
   try{
    var all=calls.List.Invoke(draft);if(all.Length>64)throw new InvalidOperationException("Root execution source closure budget exceeded");var snapshot=new System.Text.Json.Nodes.JsonObject();

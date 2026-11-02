@@ -54,7 +54,7 @@ static class BlueprintRootExecution
     }
     public static JsonObject Candidates(JsonObject request) {
         var units=request["units"]!.AsObject();string rootId=request["id"]!.GetValue<string>();var root=Root(units,rootId);var targetIds=Targets(units,rootId);var targetSet=targetIds.ToHashSet(StringComparer.Ordinal);
-        if(!BlueprintExecutionBranches.SupportsSignature(root.Function.Signature!))throw new ArgumentException("Direct synchronous void root with existing value/ref/out parameters required");
+        if(!BlueprintExecutionBranches.SupportsSignature(root.Function.Signature!))throw new ArgumentException("Direct synchronous root with existing value/ref/out parameters required");
         _=ObservedContracts(units,rootId,Array.Empty<string>());
         if(units.Where(p=>p.Value?["kind"]?.ToString()=="implementation").Select(p=>Declaration(units,p.Key,"implementation")).Count(i=>i.Function==root.Function.Id||i.Parent==root.Implementation.Id)!=1)throw new ArgumentException("A shared provider/override requires a separately coordinated contract; keep it unchanged");
         var rows=new JsonArray();var callerOwners=new HashSet<string>(StringComparer.Ordinal);
@@ -84,7 +84,11 @@ static class BlueprintRootExecution
         var root=Root(units,rootId);var before=BlueprintExecutionBranches.Read(root.Function);var branches=plan["branches"]!.AsArray();
         foreach(var branch in branches) {var prior=before.SingleOrDefault(b=>b!["id"]?.ToString()==branch!["id"]?.ToString());if(prior is not null&&prior["value"]?.ToString()!=branch!["value"]?.ToString()||prior is null&&before.Any(b=>b!["value"]?.ToString()==branch!["value"]?.ToString()))throw new ArgumentException("Retain existing branch IDs and allocated values");}
         BlueprintExecutionBranches.Set(root.Function,branches);units[root.Function.Id]!["draft"]=format(root.Function);
-        foreach(string id in Targets(units,rootId)) {var target=Root(units,id);JsonNode mapping=id==rootId?plan:selectedTargets.Single(t=>t!["graph"]!.ToString()==id)!;target.Graph["schema"]=2;target.Graph["executionExitMode"]=true;target.Graph["contractHash"]=FeatureBlueprint.ContractHash(root.Function);foreach(string key in new[]{"entry","edges","exits"})target.Graph[key]=mapping[key]!.DeepClone();units[id]!["draft"]=target.Graph.ToJsonString();}
+        foreach(string id in Targets(units,rootId)) {var target=Root(units,id);JsonNode mapping=id==rootId?plan:selectedTargets.Single(t=>t!["graph"]!.ToString()==id)!;if(root.Function.Signature!.Return!="void") {
+            var previous=target.Graph["exits"]!.AsObject();var next=mapping["exits"]!.AsObject();
+            foreach(var pair in previous){var data=target.Graph["executionExitMode"]?.GetValue<bool>()==true?pair.Value?["value"]:pair.Value;if(!next.ContainsKey(pair.Key)&&data is not null||next.ContainsKey(pair.Key)&&(!next[pair.Key]!.AsObject().ContainsKey("value")||!JsonNode.DeepEquals(data,next[pair.Key]!["value"])))throw new ArgumentException("Preserve each original native return binding with its explicit branch selection");}
+        }
+        target.Graph["schema"]=2;target.Graph["executionExitMode"]=true;target.Graph["contractHash"]=FeatureBlueprint.ContractHash(root.Function);foreach(string key in new[]{"entry","edges","exits"})target.Graph[key]=mapping[key]!.DeepClone();units[id]!["draft"]=target.Graph.ToJsonString();}
         var allowed=branches.Select(b=>"case:"+b!["id"]).Append("case:none").ToHashSet(StringComparer.Ordinal);
         foreach(var selected in selectedCalls){string callerId=selected!["graph"]!.ToString(),callId=selected["node"]!.ToString();var caller=Root(units,callerId);var call=caller.Graph["nodes"]!.AsArray().Single(n=>n!["id"]?.ToString()==callId)!;call["control"]="switch";call["publicExecution"]=FeatureBlueprint.ContractHash(root.Function);call["executionEnum"]=BlueprintExecutionBranches.Enum(root.Function);
             foreach(var route in selected["routes"]?.AsArray()??new JsonArray()) {

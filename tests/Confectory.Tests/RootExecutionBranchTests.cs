@@ -84,8 +84,10 @@ public sealed class RootExecutionBranchTests : TestCase
         callee["exits"]!["no"]!["executionBranch"]="none";f.Body("Provider","callee.graph.json",callee.ToJsonString());Output(Build(),"callee:-1\ncontinue:-10");
         f.Add("App","implementation","MainBody","implementation App::MainBody for App::Main () -> int {import Api::Value as Original (int,out int) -> void;body common \"legacy.csbody\";}");f.Body("App","legacy.csbody","calls.Original.Invoke(3,out int value);Console.WriteLine(\"legacy:\"+value);return 0;");f.Sync();Output(Build(),"callee:3\nlegacy:30");Sequence(before,File.ReadAllBytes(Path.Combine(f.Packs["Provider"].Root,"choose.node.json")));
     }
-    public void test_nonvoid_public_branch_contract_remains_rejected_without_discarding_return_data() {
-        bool nonvoid=false;try{_=BlueprintExecutionBranches.Read(new Parser(Function().Replace("-> void","-> int",StringComparison.Ordinal),"<nonvoid>").ParseElement());}catch(ArgumentException){nonvoid=true;}True(nonvoid);
+    public void test_nonvoid_branch_contract_keeps_ordinary_return_separate_from_branch_capture() {
+        var contract=new Parser(Function().Replace("-> void","-> int",StringComparison.Ordinal),"<nonvoid>").ParseElement();
+        Equal(2,BlueprintExecutionBranches.Read(contract).Count);
+        string generated=Generation.ContractSource(contract);True(generated.Contains("int Invoke(int mode);",StringComparison.Ordinal));True(generated.Contains("ExecutionResult InvokeExecution(int mode, out int ",StringComparison.Ordinal));
     }
     public void test_typed_outputs_and_aliased_refs_are_visible_before_branch_and_continuation() {
         const string parameters="(int mode,ref int x,ref int y,out long wide,out string label)";
@@ -122,4 +124,34 @@ public sealed class RootExecutionBranchTests : TestCase
         f.Add("Api","function","Value",source);f.Add("Provider","implementation","ValueBody","implementation Provider::ValueBody for Api::Value (int mode) -> void {blueprint common \"callee.graph.json\";body linux \"original.csbody\";}");f.Body("Provider","callee.graph.json",graph.ToJsonString());f.Body("Provider","original.csbody","Console.WriteLine(mode);return;");
         f.Add("App","implementation","MainBody","implementation App::MainBody for App::Main () -> int {import Api::Value as Original (int) -> void;body common \"main.csbody\";}");f.Body("App","main.csbody","calls.Original.Invoke(1);return 0;");f.Sync();byte[] original=File.ReadAllBytes(Path.Combine(f.Packs["Provider"].Root,"original.csbody"));Error("BLUEPRINT_EXECUTION_PROVIDER",()=>Build());Sequence(original,File.ReadAllBytes(Path.Combine(f.Packs["Provider"].Root,"original.csbody")));
     }
+    public void test_native_return_capture_preserves_original_invoke_ref_out_exit_values_and_none() {
+        string source=Function().Replace("(int mode) -> void", "(int mode,ref int __fg_native_return,out long wide) -> int",StringComparison.Ordinal);
+        var graph=Callee(source);var choose=graph["nodes"]![0]!;
+        choose["signature"]=Signature("bool",new Parameter("int","mode"),new Parameter("int","cell","ref"),new Parameter("long","wide","out"));
+        choose["arguments"]!["cell"]=new JsonObject { ["input"]="__fg_native_return" };
+        graph["exits"]!["yes"]=new JsonObject { ["executionBranch"]="success",["value"]=new JsonObject { ["input"]="__fg_native_return" } };
+        graph["exits"]!["no"]=new JsonObject { ["executionBranch"]="failure",["value"]=new JsonObject { ["constant"]=-11 } };
+        foreach(string name in new[]{"yes","no"}) {
+            graph["nodes"]!.AsArray().Add(new JsonObject { ["id"]="publish_"+name,["kind"]="export",["control"]="next",["output"]="wide",["intent"]="Preserve out publication",["signature"]=Signature("void",new Parameter("long","value")),["arguments"]=new JsonObject { ["value"]=new JsonObject { ["node"]="choose",["output"]="wide" } } });
+        }
+        graph["edges"]=new JsonArray(Edge("choose","publish_yes","true"),Edge("choose","publish_no","false"),Edge("publish_yes","exit:yes"),Edge("publish_no","exit:no"));
+        const string original="cell+=mode;wide=cell*10L;return mode>0;";
+        var records=Records("Provider",graph,source,new() { ["choose"]=original });
+        var ready=Query(source,graph,records:records);True(ready["state"]?.ToString()=="source-ready",ready.ToJsonString());
+        f.Add("Api","function","Value",source);f.Add("Provider","implementation","ValueBody","implementation Provider::ValueBody for Api::Value (int mode,ref int __fg_native_return,out long wide) -> int {blueprint common \"callee.graph.json\";}");f.Body("Provider","callee.graph.json",graph.ToJsonString());
+        f.Add("App","implementation","MainBody","implementation App::MainBody for App::Main () -> int {import Api::Value as Original (int,ref int,out long) -> int;body common \"main.csbody\";}");
+        f.Body("App","main.csbody","int cell=41;int value=calls.Original.Invoke(1,ref cell,out long wide);Console.WriteLine(value+\":\"+cell+\":\"+wide);var branch=(("+BlueprintExecutionBranches.Interface("Api::Value")+")calls.Original).InvokeExecution(-1,ref cell,out wide,out value);Console.WriteLine((int)branch+\":\"+value+\":\"+cell+\":\"+wide);return 0;");f.Sync();Output(Build(),"42:42:420\n13:-11:41:410");
+        graph["nodes"]!.AsArray().Add(new JsonObject { ["id"]="publish",["kind"]="export",["control"]="next",["output"]="return",["intent"]="Retain exported return",["signature"]=Signature("void",new Parameter("int","value")),["arguments"]=new JsonObject { ["value"]=new JsonObject { ["constant"]=77 } } });
+        graph["entry"]="publish";graph["edges"]=new JsonArray(Edge("publish","exit:yes"));graph["exits"]!["yes"]!["value"]=null;f.Body("Provider","callee.graph.json",graph.ToJsonString());Output(Build(),"77:41:0\n7:77:41:0");
+        graph["entry"]="";graph["nodes"]=new JsonArray();graph["edges"]=new JsonArray();graph["exits"]=new JsonObject();f.Body("Provider","callee.graph.json",graph.ToJsonString());Output(Build(),"0:41:0\n0:0:41:0");Equal(original,records["choose"]!["source"]!.ToString());
+    }
+    public void test_native_branch_exit_requires_independent_typed_value_selection() {
+        string source=Function().Replace("-> void", "-> int",StringComparison.Ordinal);var graph=Callee(source);
+        Equal("GRAPH_EXECUTION_EXIT_SELECTION",Text(Query(source,graph)["diagnostics"]![0]!,"code"));
+        graph["exits"]!["yes"]!["value"]=new JsonObject { ["constant"]="wrong type" };graph["exits"]!["no"]!["value"]=null;
+        var records=new JsonObject();var definitions=Query(source,graph,operation:"featureBlueprintNodes");Equal("node-definitions",Text(definitions,"state"));
+        records["choose"]=new JsonObject { ["schema"]=1,["node"]="choose",["definitionHash"]=definitions["nodes"]![0]!["definitionHash"]!.DeepClone(),["source"]="return mode>0;" };
+        Equal("invalid",Text(Query(source,graph,records:records),"state"));
+    }
+
 }

@@ -1,9 +1,10 @@
 """Bounded M12: owned sync void root and explicit direct Blueprint caller."""
 import copy,hashlib,json,pathlib,subprocess,sys,uuid
 import v536_wide_mixed as f
+nonvoid_mode='--nonvoid-root' in sys.argv
 provider_import_mode='--provider-import' in sys.argv
 compound_mode=provider_import_mode or '--compound-root' in sys.argv
-data_mode=compound_mode or '--data-root' in sys.argv
+data_mode=nonvoid_mode or compound_mode or '--data-root' in sys.argv
 out_mode=data_mode or any(flag in sys.argv for flag in ['--out-root','--multi-root','--no-callers'])
 result_code=10 if out_mode else 7;initial_stdout='callee:1\nafter:10' if out_mode else 'callee:1\nafter';final_stdout='callee:1'
 signature='(long amount,out int result)' if out_mode else '(long amount)'
@@ -14,8 +15,9 @@ if compound_mode:initial_stdout='callee:1\nother:99\nafter:420:value:42:42:99'
 expected_review_members=9 if compound_mode else 8
 expected_outputs=[{'name':'result','type':'long'},{'name':'label','type':'string'}] if data_mode else [{'name':'result','type':'int'}] if out_mode else []
 n=f.n;feature=n+'Flow';impl=n+'FlowBody';graph=impl+'/body:common';caller=n+'MainBody/body:common';manifest=f.project/'project.cproj'
-function='function '+feature+' '+signature+' -> void {description "실행 분기 기능";provide '+feature+' with '+impl+';}'
-prepared=f.metadata('blueprintPrepareFeature',id=feature,text='function '+feature+' '+signature+' -> void {}',implementation=impl,graphPath='Flow.graph.json',nodePath='Flow.node.json')
+native_return='int' if nonvoid_mode else 'void'
+function='function '+feature+' '+signature+' -> '+native_return+' {description "실행 분기 기능";provide '+feature+' with '+impl+';}'
+prepared=f.metadata('blueprintPrepareFeature',id=feature,text='function '+feature+' '+signature+' -> '+native_return+' {}',implementation=impl,graphPath='Flow.graph.json',nodePath='Flow.node.json')
 def edge(a,b,port='next'):return {'from':a,'port':port,'to':b}
 original_source='// 원문·줄바꿈 보존 😀\r\nglobal::System.Console.WriteLine("callee:"+amount);\r\nreturn amount>0?Result.Positive:Result.Negative;\r\n'
 root={'schema':1,'profile':'sync-acyclic-switch-v1','feature':feature,'contractHash':prepared['graph']['contractHash'],'entry':'choose','nodes':[{'id':'choose','kind':'code','control':'switch','intent':'기존 C# 판단','signature':{'args':[{'type':'long','name':'amount'}],'return':'void'},'executionEnum':{'primary':'next','members':[{'id':'next','name':'None','value':0},{'id':'positive','name':'Positive','value':1},{'id':'negative','name':'Negative','value':2}]},'arguments':{'amount':{'input':'amount'}},'implementation':'Flow.node.json'}],'edges':[edge('choose','exit:none'),edge('choose','exit:yes','case:positive'),edge('choose','exit:no','case:negative')],'exits':{'yes':None,'no':None,'none':None}}
@@ -33,6 +35,12 @@ if out_mode:
    for link in root['edges']:
     if link['to']=='exit:'+name:link['to']=node
    root['edges'].append(edge(node,'exit:'+name))
+if nonvoid_mode:
+ root['exits']={'yes':{'input':'total'},'no':{'constant':-11},'none':None}
+ root['nodes'].append({'id':'publish_none_return','kind':'export','control':'next','intent':'기존 반환값 발행','output':'return','signature':{'args':[{'type':'int','name':'value'}],'return':'void'},'arguments':{'value':{'constant':84}}})
+ for link in root['edges']:
+  if link['to']=='exit:none':link['to']='publish_none_return'
+ root['edges'].append(edge('publish_none_return','exit:none'))
 main=(f.project/'Main.celem').read_text();main_id=n+'Main';call_sig=copy.deepcopy(root['nodes'][0]['signature'])
 cg={'schema':1,'profile':'sync-acyclic-switch-v1','feature':main_id,'contractHash':f.metadata('blueprintPrepareFeature',id=main_id,text='function '+main_id+' () -> int {}',implementation=n+'MainBody',graphPath='Main.graph.json',nodePath='After.node.json')['graph']['contractHash'],'entry':'invoke','nodes':[{'id':'invoke','kind':'call','control':'next','intent':'명시 원본 호출','feature':feature,'signature':call_sig,'arguments':{'amount':{'constant':1}}},{'id':'after','kind':'code','control':'next','intent':'기존 다음 동작','signature':{'args':[],'return':'void'},'arguments':{},'implementation':'After.node.json'}],'edges':[edge('invoke','after'),edge('after','exit:return')],'exits':{'return':{'constant':7}}}
 if out_mode:
@@ -44,6 +52,14 @@ if data_mode:
  cg['nodes'][1]['signature']['args'] += [{'type':'string','name':'text'},{'type':'int','name':'cell'}]
  cg['nodes'][1]['arguments'].update(text={'node':'invoke','output':'label'},cell={'local':'counter'})
  cg['exits']['return']={'local':'counter'}
+if nonvoid_mode:
+ call_sig['return']=native_return
+ cg['nodes'][0]['signature']['return']=native_return
+ cg['nodes'][1]['signature']['args'].append({'type':'int','name':'native'})
+ cg['nodes'][1]['arguments']['native']={'node':'invoke','output':'return'}
+ cg['exits']['return']={'node':'invoke','output':'return'}
+ expected_outputs.insert(0,{'name':'return','type':'int'})
+ initial_stdout='callee:1\nafter:420:value:42:42:42'
 alias='fg_call_'+hashlib.sha256(feature.encode()).hexdigest()[:24]
 import_signature=' (long,ref int,out long,out string)' if data_mode else ' (long,out int)' if out_mode else ' (long)'
 extra_import='';extra_contracts={}
@@ -61,8 +77,9 @@ if compound_mode:
   original_source=original_source.replace('"callee:"+amount','"callee:"+amount+":"+dependency');prepared['implementation']=prepared['implementation'].replace('{','{'+extra_import,1)
   cg['nodes']=[node for node in cg['nodes'] if node['id']!='other'];cg['nodes'][1]['signature']['args']=[p for p in cg['nodes'][1]['signature']['args'] if p['name']!='other'];cg['nodes'][1]['arguments'].pop('other');cg['edges']=[link for link in cg['edges'] if link['from']!='other'];next(link for link in cg['edges'] if link['from']=='invoke' and link['port']=='next')['to']='after'
   initial_stdout='other:77\ncallee:1:77\nafter:420:value:42:42';final_stdout='other:77\ncallee:1:77'
-for name,text in [('Flow.celem',function),('FlowBody.celem',prepared['implementation']),('Flow.graph.json',json.dumps(root)),('MainBody.celem','implementation '+n+'MainBody for '+main_id+' () -> int {import '+feature+' as '+alias+import_signature+' -> void;'+('' if provider_import_mode else extra_import)+'blueprint common "Main.graph.json";}'),('Main.graph.json',json.dumps(cg))]:(f.project/name).write_text(text)
+for name,text in [('Flow.celem',function),('FlowBody.celem',prepared['implementation']),('Flow.graph.json',json.dumps(root)),('MainBody.celem','implementation '+n+'MainBody for '+main_id+' () -> int {import '+feature+' as '+alias+import_signature+' -> '+native_return+';'+('' if provider_import_mode else extra_import)+'blueprint common "Main.graph.json";}'),('Main.graph.json',json.dumps(cg))]:(f.project/name).write_text(text)
 after_source='global::System.Console.WriteLine("after:"+value+":"+text+":"+cell+":"+other);' if compound_mode and not provider_import_mode else 'global::System.Console.WriteLine("after:"+value+":"+text+":"+cell);' if data_mode else 'global::System.Console.WriteLine("after:"+value);' if out_mode else 'global::System.Console.WriteLine("after");'
+if nonvoid_mode:after_source='global::System.Console.WriteLine("after:"+value+":"+text+":"+cell+":"+native);'
 for g,fn,file,node,source,contracts in [(root,function,'Flow.node.json','choose',original_source,extra_contracts if provider_import_mode else {}),(cg,main,'After.node.json','after',after_source,{feature:function,**({} if provider_import_mode else extra_contracts)})]:
  defs=f.metadata('featureBlueprintNodes',featureSource=fn,graph=g,featureContracts=contracts);assert defs['state']=='node-definitions',defs
  record={'schema':1,'node':node,'definitionHash':next(r['definitionHash'] for r in defs['nodes'] if r['id']==node),'source':source};(f.project/file).write_text(json.dumps(record,ensure_ascii=False))
@@ -74,7 +91,11 @@ physical={p:p.read_bytes() for p in f.project.rglob('*') if p.is_file() and '.co
 def original():assert all(p.read_bytes()==v for p,v in physical.items())
 def read(id=graph):return f.invoke('blueprint',{'action':'read','id':id})['result']['result']
 def proof(data):return json.dumps(sorted([[r['id'],r['revision'],r['hash']] for r in data['sources']]),separators=(',',':'))
-def plan(data):return {'branches':[{'id':'success','name':'성공','value':1},{'id':'failure','name':'실패','value':2}],'entry':data['entry'],'edges':copy.deepcopy(data['edges']),'exits':{'yes':{'executionBranch':'success'},'no':{'executionBranch':'failure'},'none':{'executionBranch':'none'}},'caller':{'graph':caller,'node':'invoke','routes':[{'branch':'success','to':'exit:return'}]}}
+def plan(data):
+ selected= {'branches':[{'id':'success','name':'성공','value':1},{'id':'failure','name':'실패','value':2}],'entry':data['entry'],'edges':copy.deepcopy(data['edges']),'exits':{'yes':{'executionBranch':'success'},'no':{'executionBranch':'failure'},'none':{'executionBranch':'none'}},'caller':{'graph':caller,'node':'invoke','routes':[{'branch':'success','to':'exit:return'}]}}
+ if nonvoid_mode:
+  for name,choice in selected['exits'].items():choice['value']=copy.deepcopy(root['exits'][name])
+ return selected
 def request(data,selected=None):return {'id':graph,'attempt':uuid.uuid4().hex,'checkpointHash':data['checkpointHash'],'sourceProof':proof(data),'edits':[{'action':'rootExecution','node':'$root','definition':selected or plan(data)}]}
 def rpc(action,success=True,**body):return f.invoke('blueprint',{'action':action,**body},success)['result'].get('result')
 def checkpoint():return {str(p):p.read_bytes() for p in f.project.glob('.confectory/edit-workspaces/*/draft.json')}

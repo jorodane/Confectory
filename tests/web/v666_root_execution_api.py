@@ -21,12 +21,14 @@ try:
   bad=copy.deepcopy(pure['units']);bad.pop(x.other_feature);reject_metadata(bad)
   bad=copy.deepcopy(pure['units']);bad[x.other_feature]['original']=bad[x.other_feature]['draft'];bad[x.other_feature]['draft']+=' ';reject_metadata(bad)
  x.build('before',x.result_code,x.initial_stdout);f.start(0);d=x.read();assert d['rootExecution'],d.get('rootExecutionError');assert d['rootExecution']['callers'][0]['graph']==x.caller;before=x.checkpoint();req=x.request(d);x.original();f.checked('원래 sync void 원문·일반 호출 실행과 명시 호출자 후보를 확인한다')
- for field in ['missing-caller','unknown-branch','stale-proof','bad-id','changed-value']:
+ for field in ['missing-caller','unknown-branch','stale-proof','bad-id','changed-value']+(['changed-data','missing-data'] if x.nonvoid_mode else []):
   bad=copy.deepcopy(req)
   if field=='missing-caller':bad['edits'][0]['definition']['caller']['graph']=''
   elif field=='unknown-branch':bad['edits'][0]['definition']['exits']['yes']['executionBranch']='unknown'
   elif field=='stale-proof':bad['sourceProof']=bad['sourceProof'].replace(d['sources'][0]['hash'],'0'*64)
   elif field=='bad-id':bad['edits'][0]['definition']['branches'][0]['id']='../escape'
+  elif field=='changed-data':bad['edits'][0]['definition']['exits']['yes']['value']={'constant':999}
+  elif field=='missing-data':bad['edits'][0]['definition']['exits']['yes'].pop('value')
   else:bad['edits'][0]['definition']['branches'][0]['value']=0
   x.rpc('authorBatch',False,**bad);assert x.checkpoint()==before;x.original()
  f.checked('명시 호출자 누락·잘못된 분기/값·낡은 증거는 원자 거절하며 입력과 원본을 유지한다')
@@ -50,6 +52,10 @@ try:
   ids=x.read()['reviewIds'];view=f.invoke('reviewGroup',{'ids':ids});header_review_checkpoint=x.checkpoint();header_bytes(x.physical[header]+b' ');failed=f.invoke('confirmGroup',{'ids':ids,'token':view['state']['review']['token']})['result']['result'];assert failed['sourceConfirmed'] is False;header_bytes(x.physical[header]);assert x.checkpoint()==header_review_checkpoint;x.original();f.checked('Review 뒤 다른 import 헤더 변경도 최종 CAS에서 전체 미반영한다')
  view=f.invoke('reviewGroup',{'ids':x.read()['reviewIds']});f.invoke('confirmGroup',{'ids':x.read()['reviewIds'],'token':view['state']['review']['token']});assert (f.project/'Flow.node.json').read_bytes()==x.physical[f.project/'Flow.node.json'];assert (f.project/'After.node.json').read_bytes()==x.physical[f.project/'After.node.json'];x.build('after');assert x.read(x.caller)['nodes'][0]['outputs']==x.expected_outputs;f.checked('Confirm 뒤 기존 C# 바이트·ordinary 계약을 보존하며 성공 분기는 직접 호출자의 반환 경로로 실제 실행한다')
  if x.out_mode:f.checked('기존 out/ref 계약과 출력 카드·소비 연결을 보존하고 분기 진입 전에 데이터를 발행해 실제 반환한다')
+ if x.nonvoid_mode:
+  saved_graph=json.loads((f.project/'Flow.graph.json').read_text())
+  assert {key:v['value'] for key,v in saved_graph['exits'].items()}==x.root['exits']
+  f.checked('기존 직접 종료점 값 연결과 export-return을 분기와 별도로 보존하며 native 반환 소비자를 유지한다')
  if x.compound_mode:
   for name in ['Other.celem','OtherBody.celem','Other.csbody']:assert stat.S_IMODE((f.project/name).stat().st_mode)==0o400
   dependency_path=f.project/('Flow.graph.json' if x.provider_import_mode else 'Main.graph.json');dependency_node='root_other' if x.provider_import_mode else 'other';assert next(n for n in json.loads(dependency_path.read_bytes())['nodes'] if n['id']==dependency_node)==next(n for n in json.loads(x.physical[dependency_path])['nodes'] if n['id']==dependency_node)
@@ -58,6 +64,14 @@ try:
   try:x.build('unrouted-continuation',x.result_code,x.initial_stdout)
   finally:caller_path.write_bytes(confirmed)
   f.checked('다른 호출·C#·import와 readonly 모드를 유지하고 결과 분기 뒤 기존 다음 호출/데이터 소비를 실제 실행한다')
+ if x.nonvoid_mode:
+  caller_file=f.project/'Main.graph.json';saved_caller=caller_file.read_bytes();g=json.loads(saved_caller);g['edges']=[e for e in g['edges'] if not(e['from']=='invoke' and e['port'].startswith('case:'))];caller_file.write_text(json.dumps(g))
+  try:x.build('native-continuation',x.result_code,x.initial_stdout)
+  finally:caller_file.write_bytes(saved_caller)
+  body_file=f.project/'MainBody.celem';saved_body=body_file.read_bytes();body_file.write_text('implementation '+f.n+'MainBody for '+f.n+'Main () -> int {import '+x.feature+' as Original (long,ref int,out long,out string) -> int;body common "Legacy.csbody";}');(f.project/'Legacy.csbody').write_text('int cell=41;int value=calls.Original.Invoke(1,ref cell,out long result,out string label);global::System.Console.WriteLine("legacy:"+value+":"+result+":"+label+":"+cell);return value;')
+  try:x.build('native-ordinary',42,'callee:1\nlegacy:42:420:value:42:42')
+  finally:body_file.write_bytes(saved_body)
+  f.checked('분기 뒤 continuation의 원래 반환 소비와 기존 C# IInvoke 반환형/ref/out를 별도 실제 실행으로 보존한다')
  f.stop();f.start(3);assert x.read()['diagnostics']['state']=='source-ready';assert x.read(x.caller)['diagnostics']['state']=='source-ready';f.checked('최종 반영 후 cold 재시작에서 공개 분기와 연결을 다시 읽는다')
  print('M12_FIXTURE '+str(f.case),flush=True)
 finally:

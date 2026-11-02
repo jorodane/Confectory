@@ -79,7 +79,7 @@ sealed 선택의 기존 관측 원문을 원자 그룹과 첫 Save 영수증에 
 |---|---|
 | 직접 소유 함수에 공개 분기를 정의하고 관련 Blueprint target·직접 호출자에 명시 대응 | 동기 void·값 입력·선택적 int out 하나, 복수 호출자/target은 지원·검증했다. |
 | 기존 분기를 copy·자식 소유 본문에서 반환 | 소유 함수의 저장/새 copy, 자식이 직접 선언한 ordinary target, 등록 외부 함수의 ordinary provider와 저장 copy를 지원한다. **외부 함수 새 copy의 미리보기/첫 저장**도 아래 단위로 연결했다. 다음 실제 경계는 데이터 ABI와 복합 호출의 명시 대응이다. |
-| 원래 데이터 입출력과 공개 분기를 함께 전달 | 동기 void의 기존 typed out·복수 out·ref를 원래 by-reference 전달과 공개 분기에 연결한다. ordinary 비void의 값과 실행 분기를 함께 전달하는 경로는 실제 잔여다. 원문 재작성 없이 ordinary Invoke·저장소 alias·출력 발행 순서를 보존한다. [지원·검증](VALIDATION_V666_ROOT_EXECUTION_DATA_VOID.md). |
+| 원래 데이터 입출력과 공개 분기를 함께 전달 | 동기 void의 기존 typed out·복수 out·ref를 원래 by-reference 전달과 공개 분기에 연결한다. ordinary 비void의 값과 실행 분기는 직접 소유 ordinary Root에서 원래 Invoke 반환형·생성 out 캡처·종료점 데이터 보존으로 연결한다. [지원 경계](VALIDATION_V666_ROOT_EXECUTION_NONVOID.md). 원문 재작성 없이 ordinary Invoke·저장소 alias·출력 발행 순서를 보존한다. [지원·검증](VALIDATION_V666_ROOT_EXECUTION_DATA_VOID.md). |
 | 기존 복합 그래프/호출 문맥에서 공개 계약을 갱신 | 다른 직접 소유 함수를 호출하는 ordinary 본문·caller는 추가 헤더를 readonly 관측 멤버로 같은 그룹에 결합한다. [본문 import 검증](VALIDATION_V666_ROOT_EXECUTION_PROVIDER_IMPORT.md). 중첩/private·등록 외부 import receipt·여러 provider의 공개 계약 변경을 포함한 완전한 명시 대응은 실제 잔여다. [지원·검증](VALIDATION_V666_ROOT_EXECUTION_COMPOUND_OWNED.md). 단일 본문 반환의 타입 조합으로 별도 무한 목록을 만들지 않는다. |
 | 비동기 완료와 분기 실행 | 별도 고정 M4다. 원본의 await→출력 발행→완료→결과 분기→다음 동작 순서를 유지해야 하며 이번 M12 반환 변경으로 완료되지 않는다. |
 
@@ -102,3 +102,8 @@ sealed 선택의 기존 관측 원문을 원자 그룹과 첫 Save 영수증에 
 기존 공개 실행 결과 인터페이스와 생성 어댑터는 원래 value/ref/out 인수를 그대로 전달한다. 정수 out 하나만 허용하던 수용 경계를 동기 void의 기존 typed out·복수 out·ref로 넓힌다. C# 원문·ordinary Invoke·공개 매개변수/핀 ID/타입·값 연결·ref 저장소의 정체성을 변경하지 않는다. 기존 profile의 정확한 타입·쓰기 가능한 ref 저장소와 None/미할당 출력 기본값 검증을 재사용하며 암묵적 참조 변환을 허용하지 않는다.
 
 직접 소유 함수의 분기 정의·target 반환·명시한 직접 호출자의 원자 후보와 Review/Confirm을 검증한다. readonly 부모/외부 계약 보호나 override 입출력 계약을 완화하는 변경이 아니다. ordinary 비void의 값 반환, 복합 호출 closure와 M4는 별도 실제 잔여다. [검증과 보관](VALIDATION_V666_ROOT_EXECUTION_DATA_VOID.md).
+
+
+## 기존 반환값과 공개 분기의 별도 전달
+
+직접 소유 동기 ordinary Root의 반환값은 기존 IInvoke 반환형을 유지하며 생성 실행 진입의 별도 out 캡처로 전달한다. 직접 종료점 값과 export-return/default를 구별해 보존하고 값 발행 후 분기/후속 동작을 실행한다. [검증 범위와 유한한 잔여](VALIDATION_V666_ROOT_EXECUTION_NONVOID.md). M4의 동기 caller는 사용자가 명시적으로 async로 전환하기 전까지 호환되지 않는 호출을 오류로 거절한다는 정책이 확정됐으며 실제 async 구현은 별도 잔여다.

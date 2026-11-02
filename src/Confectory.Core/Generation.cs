@@ -24,16 +24,20 @@ public static class Generation
         }
         """ + "\n";
 
+    private static string ExecutionParameters(FunctionSignature signature) => string.Join(", ",new[]{Parameters(signature),BlueprintExecutionBranches.CaptureParameter(signature)}.Where(s=>s.Length>0));
+    private static string ExecutionArguments(FunctionSignature signature, string? capture=null) => string.Join(", ",new[]{Arguments(signature),signature.Return=="void"?"":"out "+(capture??BlueprintExecutionBranches.CaptureName(signature))}.Where(s=>s.Length>0));
     private static string ExecutionContract(Element fn)
     {
         var branches = BlueprintExecutionBranches.Read(fn);
-        return !BlueprintExecutionBranches.Has(fn) ? "" : "public enum ExecutionResult : int { None = 0, " + string.Join(", ", branches.Select(b => BlueprintExecutionBranches.Member(b!["id"]!.GetValue<string>()) + " = " + b["value"])) + " }\npublic interface IExecutionInvoke : IInvoke { ExecutionResult InvokeExecution(" + Parameters(fn.Signature!) + "); }";
+        return !BlueprintExecutionBranches.Has(fn) ? "" : "public enum ExecutionResult : int { None = 0, " + string.Join(", ", branches.Select(b => BlueprintExecutionBranches.Member(b!["id"]!.GetValue<string>()) + " = " + b["value"])) + " }\npublic interface IExecutionInvoke : IInvoke { ExecutionResult InvokeExecution(" + ExecutionParameters(fn.Signature!) + "); }";
     }
 
     public static string ImplementationSource(Element e, string body, string path, string members = "", FunctionSignature? entry = null, Element? feature = null)
     {
         bool execution = feature is not null && BlueprintExecutionBranches.Has(feature);
-        string executionAdapter = execution ? "public void Invoke(" + Parameters(e.Signature!) + ") { _ = ((" + BlueprintExecutionBranches.Interface(e.Function!) + ")this).InvokeExecution(" + Arguments(e.Signature!) + "); }\n" + BlueprintExecutionBranches.Result(e.Function!) + " " + BlueprintExecutionBranches.Interface(e.Function!) + ".InvokeExecution(" + Parameters(e.Signature!) + ") { return (" + BlueprintExecutionBranches.Result(e.Function!) + ")this.ExecuteBranches(" + Arguments(e.Signature!) + "); }" : "";
+        string captured=BlueprintExecutionBranches.CaptureName(e.Signature!);
+        string ordinary=execution?"public "+e.Signature!.Return+" Invoke("+Parameters(e.Signature)+") { _ = (("+BlueprintExecutionBranches.Interface(e.Function!)+")this).InvokeExecution("+ExecutionArguments(e.Signature,e.Signature.Return=="void"?null:e.Signature.Return+" "+captured)+"); "+(e.Signature.Return=="void"?"":"return "+captured+";")+" }\n":"";
+        string executionAdapter = execution ? ordinary+BlueprintExecutionBranches.Result(e.Function!)+" "+BlueprintExecutionBranches.Interface(e.Function!)+".InvokeExecution("+ExecutionParameters(e.Signature!)+") { return ("+BlueprintExecutionBranches.Result(e.Function!)+")this.ExecuteBranches("+ExecutionArguments(e.Signature!)+"); }" : "";
         string imports = string.Join("\n", e.Imports.OrderBy(x => x.Key, StringComparer.Ordinal).Select(x => $"        {Interface(x.Value.Id)} {x.Key} {{ get; }}"));
         string quotedPath = JsonSerializer.Serialize(path, JsonData.Options);
         return $$"""
@@ -50,7 +54,7 @@ public static class Generation
                     private readonly IImports calls;
                     public {{Symbol(e.Id)}}(IImports calls) { this.calls = calls; }
                     {{executionAdapter}}
-                    {{(execution ? "private int ExecuteBranches" : (entry is null ? "public " : "") + e.Signature!.Return + " " + (entry is null ? "" : Interface(e.Function!) + ".") + "Invoke")}}({{Parameters(entry ?? e.Signature!)}})
+                    {{(execution ? "private int ExecuteBranches" : (entry is null ? "public " : "") + e.Signature!.Return + " " + (entry is null ? "" : Interface(e.Function!) + ".") + "Invoke")}}({{(execution ? ExecutionParameters(entry ?? e.Signature!) : Parameters(entry ?? e.Signature!))}})
                     {
             #line 1 {{quotedPath}}
             {{body}}
@@ -74,7 +78,7 @@ public static class Generation
             lines.AppendLine($"    public {sig.Return} Invoke({Parameters(sig)})"); lines.AppendLine("    {");
             lines.AppendLine($"        {prefix}(({Interface(fn.Id)})new {impl}(new {name}Imports())).Invoke({Arguments(sig)});");
             lines.AppendLine("    }");
-            if (execution) lines.AppendLine($"    public {BlueprintExecutionBranches.Result(fn.Id)} InvokeExecution({Parameters(sig)}) => (({BlueprintExecutionBranches.Interface(fn.Id)})new {impl}(new {name}Imports())).InvokeExecution({Arguments(sig)});");
+            if (execution) lines.AppendLine($"    public {BlueprintExecutionBranches.Result(fn.Id)} InvokeExecution({ExecutionParameters(sig)}) => (({BlueprintExecutionBranches.Interface(fn.Id)})new {impl}(new {name}Imports())).InvokeExecution({ExecutionArguments(sig)});");
             lines.AppendLine("}");
             lines.AppendLine($"internal sealed class {name}Imports : {impl}.IImports"); lines.AppendLine("{");
             foreach (var (alias, imported) in node.Imports.OrderBy(x => x.Key, StringComparer.Ordinal))
