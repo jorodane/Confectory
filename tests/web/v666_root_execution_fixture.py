@@ -1,7 +1,8 @@
 """Bounded M12: owned sync void root and explicit direct Blueprint caller."""
 import copy,hashlib,json,pathlib,subprocess,sys,uuid
 import v536_wide_mixed as f
-compound_mode='--compound-root' in sys.argv
+provider_import_mode='--provider-import' in sys.argv
+compound_mode=provider_import_mode or '--compound-root' in sys.argv
 data_mode=compound_mode or '--data-root' in sys.argv
 out_mode=data_mode or any(flag in sys.argv for flag in ['--out-root','--multi-root','--no-callers'])
 result_code=10 if out_mode else 7;initial_stdout='callee:1\nafter:10' if out_mode else 'callee:1\nafter';final_stdout='callee:1'
@@ -54,9 +55,15 @@ if compound_mode:
  next(link for link in cg['edges'] if link['from']=='invoke' and link['port']=='next')['to']='other';cg['edges'].append(edge('other','after'))
  cg['nodes'][1]['signature']['args'].append({'type':'int','name':'other'});cg['nodes'][1]['arguments']['other']={'node':'other','output':'return'}
  for name,text in [('Other.celem',other_function),('OtherBody.celem','implementation '+n+'OtherBody for '+other_feature+' (int seed) -> int {body common "Other.csbody";}'),('Other.csbody','global::System.Console.WriteLine("other:"+seed);return seed;')]:(f.project/name).write_text(text)
-for name,text in [('Flow.celem',function),('FlowBody.celem',prepared['implementation']),('Flow.graph.json',json.dumps(root)),('MainBody.celem','implementation '+n+'MainBody for '+main_id+' () -> int {import '+feature+' as '+alias+import_signature+' -> void;'+extra_import+'blueprint common "Main.graph.json";}'),('Main.graph.json',json.dumps(cg))]:(f.project/name).write_text(text)
-after_source='global::System.Console.WriteLine("after:"+value+":"+text+":"+cell+":"+other);' if compound_mode else 'global::System.Console.WriteLine("after:"+value+":"+text+":"+cell);' if data_mode else 'global::System.Console.WriteLine("after:"+value);' if out_mode else 'global::System.Console.WriteLine("after");'
-for g,fn,file,node,source,contracts in [(root,function,'Flow.node.json','choose',original_source,{}),(cg,main,'After.node.json','after',after_source,{feature:function,**extra_contracts})]:
+ if provider_import_mode:
+  choose=next(node for node in root['nodes'] if node['id']=='choose');choose['signature']['args'].append({'type':'int','name':'dependency'});choose['arguments']['dependency']={'node':'root_other','output':'return'}
+  root['nodes'].insert(0,{'id':'root_other','kind':'call','control':'next','intent':'원래 본문 의존성 호출','feature':other_feature,'signature':{'args':[{'type':'int','name':'seed'}],'return':'int'},'arguments':{'seed':{'constant':77}}});root['entry']='root_other';root['edges'].insert(0,edge('root_other','choose'))
+  original_source=original_source.replace('"callee:"+amount','"callee:"+amount+":"+dependency');prepared['implementation']=prepared['implementation'].replace('{','{'+extra_import,1)
+  cg['nodes']=[node for node in cg['nodes'] if node['id']!='other'];cg['nodes'][1]['signature']['args']=[p for p in cg['nodes'][1]['signature']['args'] if p['name']!='other'];cg['nodes'][1]['arguments'].pop('other');cg['edges']=[link for link in cg['edges'] if link['from']!='other'];next(link for link in cg['edges'] if link['from']=='invoke' and link['port']=='next')['to']='after'
+  initial_stdout='other:77\ncallee:1:77\nafter:420:value:42:42';final_stdout='other:77\ncallee:1:77'
+for name,text in [('Flow.celem',function),('FlowBody.celem',prepared['implementation']),('Flow.graph.json',json.dumps(root)),('MainBody.celem','implementation '+n+'MainBody for '+main_id+' () -> int {import '+feature+' as '+alias+import_signature+' -> void;'+('' if provider_import_mode else extra_import)+'blueprint common "Main.graph.json";}'),('Main.graph.json',json.dumps(cg))]:(f.project/name).write_text(text)
+after_source='global::System.Console.WriteLine("after:"+value+":"+text+":"+cell+":"+other);' if compound_mode and not provider_import_mode else 'global::System.Console.WriteLine("after:"+value+":"+text+":"+cell);' if data_mode else 'global::System.Console.WriteLine("after:"+value);' if out_mode else 'global::System.Console.WriteLine("after");'
+for g,fn,file,node,source,contracts in [(root,function,'Flow.node.json','choose',original_source,extra_contracts if provider_import_mode else {}),(cg,main,'After.node.json','after',after_source,{feature:function,**({} if provider_import_mode else extra_contracts)})]:
  defs=f.metadata('featureBlueprintNodes',featureSource=fn,graph=g,featureContracts=contracts);assert defs['state']=='node-definitions',defs
  record={'schema':1,'node':node,'definitionHash':next(r['definitionHash'] for r in defs['nodes'] if r['id']==node),'source':source};(f.project/file).write_text(json.dumps(record,ensure_ascii=False))
 manifest.write_text(manifest.read_text().replace('registry Confectory.Build.DotNet','element Flow function "Flow.celem";element FlowBody implementation "FlowBody.celem";registry Confectory.Build.DotNet',1))

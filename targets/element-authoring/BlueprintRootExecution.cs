@@ -54,7 +54,8 @@ static class BlueprintRootExecution
     }
     public static JsonObject Candidates(JsonObject request) {
         var units=request["units"]!.AsObject();string rootId=request["id"]!.GetValue<string>();var root=Root(units,rootId);var targetIds=Targets(units,rootId);var targetSet=targetIds.ToHashSet(StringComparer.Ordinal);
-        if(!BlueprintExecutionBranches.SupportsSignature(root.Function.Signature!)||root.Implementation.Imports.Count!=0)throw new ArgumentException("Direct synchronous void root with existing value/ref/out parameters and without imported body context required");
+        if(!BlueprintExecutionBranches.SupportsSignature(root.Function.Signature!))throw new ArgumentException("Direct synchronous void root with existing value/ref/out parameters required");
+        _=ObservedContracts(units,rootId,Array.Empty<string>());
         if(units.Where(p=>p.Value?["kind"]?.ToString()=="implementation").Select(p=>Declaration(units,p.Key,"implementation")).Count(i=>i.Function==root.Function.Id||i.Parent==root.Implementation.Id)!=1)throw new ArgumentException("A shared provider/override requires a separately coordinated contract; keep it unchanged");
         var rows=new JsonArray();var callerOwners=new HashSet<string>(StringComparer.Ordinal);
         foreach(var pair in units.Where(p=>p.Value?["kind"]?.ToString()=="blueprint"&&!targetSet.Contains(p.Key)).OrderBy(p=>p.Key,StringComparer.Ordinal)) {

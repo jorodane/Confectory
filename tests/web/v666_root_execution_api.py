@@ -52,7 +52,8 @@ try:
  if x.out_mode:f.checked('기존 out/ref 계약과 출력 카드·소비 연결을 보존하고 분기 진입 전에 데이터를 발행해 실제 반환한다')
  if x.compound_mode:
   for name in ['Other.celem','OtherBody.celem','Other.csbody']:assert stat.S_IMODE((f.project/name).stat().st_mode)==0o400
-  caller_path=f.project/'Main.graph.json';confirmed=caller_path.read_bytes();caller_graph=json.loads(confirmed);before_caller=json.loads(x.physical[caller_path]);assert next(n for n in caller_graph['nodes'] if n['id']=='other')==next(n for n in before_caller['nodes'] if n['id']=='other')
+  dependency_path=f.project/('Flow.graph.json' if x.provider_import_mode else 'Main.graph.json');dependency_node='root_other' if x.provider_import_mode else 'other';assert next(n for n in json.loads(dependency_path.read_bytes())['nodes'] if n['id']==dependency_node)==next(n for n in json.loads(x.physical[dependency_path])['nodes'] if n['id']==dependency_node)
+  caller_path=f.project/'Main.graph.json';confirmed=caller_path.read_bytes();caller_graph=json.loads(confirmed)
   caller_graph['edges']=[e for e in caller_graph['edges'] if not(e['from']=='invoke' and e['port'].startswith('case:'))];caller_path.write_text(json.dumps(caller_graph))
   try:x.build('unrouted-continuation',x.result_code,x.initial_stdout)
   finally:caller_path.write_bytes(confirmed)
