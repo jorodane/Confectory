@@ -1,7 +1,9 @@
 """A new copy edits existing public returns before its atomic first Save."""
 import ast,copy,json,pathlib,shutil,sys,time,uuid
 from playwright.sync_api import sync_playwright,expect
-import v666_root_execution_copy_creating_fixture as c
+registered='--registered-creating' in sys.argv
+if registered:import v666_root_execution_registered_creating_fixture as c
+else:import v666_root_execution_copy_creating_fixture as c
 f=c.f;mode=sys.argv[3] if len(sys.argv)>3 else 'normal';is_view='view' in sys.argv[4:]
 if is_view:f.owner=lambda:f.page.locator('.window[data-key=editor-1]')
 viewport={'width':2300 if is_view else 1800,'height':1700 if is_view else 1400}
@@ -75,7 +77,7 @@ try:
     finally:checkpoint.chmod(0o600)
     restart(2);f.checked('첫 Save 쓰기 실패는 등록·배정·반환을 모두 미적용하고 입력을 cold에도 보존한다')
    if mode=='conflict':
-    source=f.project/'Flow.celem';source.write_bytes(c.physical[source]+b' ');c.physical[source]=source.read_bytes();panel().locator('[data-bp-save]').click();f.idle();assert pending() and checkpoint.read_bytes()==before;c.original();f.checked('첫 Save 원문 경합은 외부 수정과 copy 입력을 유지하며 새 구현을 만들지 않는다')
+    source=c.source_file if registered else f.project/'Flow.celem';c.mutate_source() if registered else source.write_bytes(c.physical[source]+b' ');c.physical[source]=source.read_bytes();panel().locator('[data-bp-save]').click();f.idle();assert pending() and checkpoint.read_bytes()==before;c.original();f.checked('첫 Save 원문 경합은 외부 수정과 copy 입력을 유지하며 새 구현을 만들지 않는다')
    else:
     if mode in ['loss','late']:
      applies=set();queries=set();lost=[];paused={}

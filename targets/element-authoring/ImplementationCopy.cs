@@ -82,7 +82,7 @@ internal static class ImplementationCopy
   var preview=new JsonObject{["id"]=null,["rootId"]=implementation+"/body:"+target,["feature"]=feature,["privatePath"]=privatePath,["signature"]=definitions["signature"]!.DeepClone(),["profile"]=graph["profile"]!.DeepClone(),["entry"]=graph["entry"]?.DeepClone(),["nodes"]=projected,["edges"]=graph["edges"]!.DeepClone(),["exits"]=exits,["locals"]=localRows,["outputOrder"]=graph["outputOrder"]?.DeepClone(),["implementationDescription"]=copy.Description,["diagnostics"]=new JsonObject{["state"]="private-copy"}};
   preview["executionExitMode"]=graph["executionExitMode"]?.DeepClone();
   preview["publicExecutionBranches"]=privatePath.Length==0&&BlueprintExecutionBranches.Has(fn)?BlueprintExecutionBranches.Read(fn):null;
-  preview["publicCopyReturnsAvailable"]=privatePath.Length==0&&fn.Parent is null&&PackPaths.Namespace(fn.Id)==PackPaths.Namespace(copy.Id)&&BlueprintExecutionBranches.Has(fn);
+  preview["publicCopyReturnsAvailable"]=privatePath.Length==0&&fn.Parent is null&&BlueprintExecutionBranches.Has(fn);
   return preview;
  }
 

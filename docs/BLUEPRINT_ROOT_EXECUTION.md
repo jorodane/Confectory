@@ -69,7 +69,7 @@ sealed 선택의 기존 관측 원문을 원자 그룹과 첫 Save 영수증에 
 
 기존 등록 함수의 두 헤더 관측을 원래 저장된 copy 선언에 연결한다. 첫 dependency hash와 author 저장 receipt를 checkpoint/복구·반복 Save·Review·최종 typed read CAS까지 보존한다. 현재 프로젝트/구현 등록을 먼저 확인한 뒤 기존 registry로만 외부 경로를 재도출한다. 누락·변조·낡은 receipt, 명시 배정/관측 source 불일치, Review 이후 외부 변경은 입력을 보존하며 전체 거절한다. Confirm이 정착한 뒤의 재편집은 완료된 거래의 receipt를 새 거래로 잘못 재사용하지 않는다.
 
-이 단위는 이미 저장된 copy의 반환 흐름이다. 등록 외부 함수의 **새 copy 미리보기/첫 Save**에는 아직 동일 연결이 없으며 별도 생성 수명 경계로 남긴다. 새 접근권한, 외부 공개 계약 편집, 자동 provider 선택이나 독립 새 계약 복제는 추가하지 않는다. [검증·보관 기록](VALIDATION_V666_ROOT_EXECUTION_REGISTERED_COPY.md).
+이 단위는 이미 저장된 copy의 반환 흐름이다. 등록 외부 함수의 **새 copy 미리보기/첫 Save**는 아래 별도 생성 수명 단위에서 연결한다. 새 접근권한, 외부 공개 계약 편집, 자동 provider 선택이나 독립 새 계약 복제는 추가하지 않는다. [검증·보관 기록](VALIDATION_V666_ROOT_EXECUTION_REGISTERED_COPY.md).
 
 ## 유한한 M12 대조표
 
@@ -78,9 +78,20 @@ sealed 선택의 기존 관측 원문을 원자 그룹과 첫 Save 영수증에 
 | 사용자 흐름 | 현재 상태와 다음 경계 |
 |---|---|
 | 직접 소유 함수에 공개 분기를 정의하고 관련 Blueprint target·직접 호출자에 명시 대응 | 동기 void·값 입력·선택적 int out 하나, 복수 호출자/target은 지원·검증했다. |
-| 기존 분기를 copy·자식 소유 본문에서 반환 | 소유 함수의 저장/새 copy, 자식이 직접 선언한 ordinary target, 등록 외부 함수의 ordinary provider와 저장 copy를 지원한다. **외부 함수 새 copy의 미리보기/첫 저장**이 다음 최소 미구현이다. |
+| 기존 분기를 copy·자식 소유 본문에서 반환 | 소유 함수의 저장/새 copy, 자식이 직접 선언한 ordinary target, 등록 외부 함수의 ordinary provider와 저장 copy를 지원한다. **외부 함수 새 copy의 미리보기/첫 저장**도 아래 단위로 연결했다. 다음 실제 경계는 데이터 ABI와 복합 호출의 명시 대응이다. |
 | 원래 데이터 입출력과 공개 분기를 함께 전달 | int out 하나까지 지원한다. 다른 출력/복수 out·ref·비void의 일반 실행 결과 전달은 현재 명시적 ABI 경계이며 완료로 세지 않는다. 변경 시 원문 재작성 없이 ordinary Invoke와 출력 발행 순서를 보존해야 한다. |
 | 기존 복합 그래프/호출 문맥에서 공개 계약을 갱신 | 중첩/private 호출, 다른 import가 섞인 caller, 여러 provider에 영향받는 공개 계약의 완전한 명시 대응은 현재 후보 closure 경계 밖이다. 단일 본문 반환의 타입 조합으로 별도 무한 목록을 만들지 않는다. |
 | 비동기 완료와 분기 실행 | 별도 고정 M4다. 원본의 await→출력 발행→완료→결과 분기→다음 동작 순서를 유지해야 하며 이번 M12 반환 변경으로 완료되지 않는다. |
 
 부모/참조 원본 쓰기·override 입출력/분기 정의 변경은 정상 보호다. 구형 profile 자동 승격·별도 핀 ID 재설계·독립 계약 복제는 필수 잔여가 아니다. 다른 출력 ABI나 복합 호출의 현재 안전 거절은 영구 UX 정책으로 확정하지 않는다. M11은 새 회귀 증거가 없으면 완료 상태를 유지한다.
+
+
+## 등록 외부 함수 새 copy의 첫 저장
+
+직접 소유 정보(schema)의 기존 구현 선택에서 등록 외부 함수의 donor와 target을 명시 선택하면, 새 copy의 미리보기에서도 공개 분기 ID/None 반환을 편집한다. 생성·ProjectPack 등록·정보 배정·반환 계획은 기존 첫 Save 후보/CAS/Review 그룹 하나다. 입력/출력·원래 C#·donor·부모/외부 원본·공개 함수 정의는 바꾸지 않는다. 지원 범위는 앞선 단위와 같은 동기 void·값 입력·선택적인 int out 하나, 기존 execution-exit switch Root다. 원본에 없는 자동 target/계약 복제·구형 profile 자동 변환은 추가하지 않는다.
+
+선택 시 관측한 donor/함수/등록 원문을 최소 origin과 첫 Save 영수증의 해시에 보존한다. 외부 함수는 writable source가 아니다. 이후 미확정 copy의 본문 Save도 최초 origin·owner·provenance와 별도 author receipt를 유지한다. 복원은 구조·관측 해시를 확인하고, Save/Review/Confirm은 기존 registry/선택된 donor 관측으로 경로를 다시 도출한다. 저장된 경로를 임의 파일 읽기로 사용하지 않으며 최종 typed read lease가 원시 관측을 확인한다. Confirm 뒤 일반 saved-copy 편집은 완료된 생성 관측을 새 donor 의존성으로 재사용하지 않는다.
+
+보강 전 미확정 외부 public-copy checkpoint에 이 origin/최초 관측 해시가 없으면 이를 추정해 승격하지 않는다. 원본 checkpoint와 입력을 보존하는 호환성 경계다. [첫 저장 검증·보관 기록](VALIDATION_V666_ROOT_EXECUTION_REGISTERED_CREATING.md).
+
+확정으로 전체 그룹이 깨끗해진 뒤 남는 완료 author receipt는 새 반환 거래가 아니다. 활성 그룹 없이 원문과 같은 Root만 종료 상태로 처리하며, 수정된 Root의 그룹 누락은 계속 거절한다. 같은 세션의 후속 Save와 확정 뒤 donor 원문 변경을 확인해 생성 관측이 다시 활성화되지 않도록 한다.

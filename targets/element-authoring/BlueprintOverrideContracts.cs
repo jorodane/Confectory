@@ -7,11 +7,11 @@ using System.Text.Json.Nodes;
 internal static class BlueprintOverrideContracts
 {
     static string Hash(string text)=>JsonData.HashBytes(Encoding.UTF8.GetBytes(text));
-    public static JsonObject Query(JsonObject request)
+    public static JsonObject Query(JsonObject request,Func<Element,string>? format=null)
     {
         if(request["action"]?.ToString() is "readReturnContract" or "verifyReturnContract" or "validateReturnContract")return BlueprintPublicReturnContract.Query(request);
         if(request["action"]?.ToString()=="prepareReturns")return BlueprintPublicBodyReturns.Prepare(request);
-        if(request["action"]?.ToString() is "validateGroup" or "verifyGroup")return Group(request);
+        if(request["action"]?.ToString() is "validateGroup" or "verifyGroup")return Group(request,format);
         string action=request["action"]!.GetValue<string>(),text=request["text"]!.GetValue<string>(),id=request["id"]!.GetValue<string>(),target=request["target"]!.GetValue<string>();
         var child=new Parser(text,"<owned-override>").ParseElement();
         if(child.Kind!="implementation"||child.Id!=id||!child.Bodies.TryGetValue(target,out var body)||body.SourceKind!="blueprint"||body.Origin!=id)throw new ArgumentException("Explicitly owned override target required");
@@ -52,10 +52,18 @@ internal static class BlueprintOverrideContracts
         if(action=="verify"&&!JsonNode.DeepEquals(snapshot,request["snapshot"]))throw new InvalidOperationException("Registered override dependency changed or receipt is missing; preserve every input and explicitly refresh");
         return new(){["snapshot"]=snapshot,["registeredBytes"]=bytes,["bodyReads"]=0,["readOnly"]=true};
     }
-    static JsonObject Group(JsonObject request)
+    static JsonObject Group(JsonObject request,Func<Element,string>? format)
     {
         var units=request["units"]!.AsObject();var selected=request["selected"]?.AsArray();bool verify=request["action"]!.ToString()=="verifyGroup";
         var reads=new SortedDictionary<string,JsonNode>(OperatingSystem.IsWindows()?StringComparer.OrdinalIgnoreCase:StringComparer.Ordinal);
+        foreach(var pair in units){
+            var source=pair.Value;if(source?["kind"]?.ToString()!="implementation"||source["baseline"]?.ToString()!="missing"||source["publicCopyOrigin"] is not JsonObject origin)continue;
+            var group=source["atomicEditGroup"]?.AsArray()??throw new ArgumentException("Complete first-copy observation group required");if(selected is not null&&!selected.Any(s=>group.Any(m=>m!.ToString()==s!.ToString())))continue;
+            var copy=new Parser(source["draft"]!.GetValue<string>(),"<first-copy-declaration>").ParseElement();string ownerId=source["creationOwner"]!.ToString();var ownerUnit=units[ownerId]??throw new ArgumentException("Original copy owner required");string ownerText=ownerUnit["original"]!.GetValue<string>(),manifest=units.Single(u=>u.Value?["kind"]?.ToString()=="project").Value!["original"]!.GetValue<string>();var owner=new Parser(ownerText,"<first-copy-owner>").ParseElement();
+            var graph=JsonNode.Parse(units[pair.Key+"/body:"+origin["target"]]!["draft"]!.GetValue<string>())!.AsObject();BlueprintCopyReturnOrigin.Validate(origin,copy,owner,ownerText,manifest,graph);
+            if(verify)BlueprintCopyReturnOrigin.Verify(origin,copy,owner,ownerText,manifest,graph,request["project"]!.GetValue<string>(),format??throw new InvalidOperationException("First-copy source formatter required"));
+            foreach(var observed in origin["observations"]!.AsArray()){string path=observed!["path"]!.ToString();var row=new JsonObject{["path"]=path,["hash"]=observed["sha256"]!.DeepClone()};if(reads.TryGetValue(path,out var prior)&&!JsonNode.DeepEquals(prior,row))throw new InvalidOperationException("First-copy source versions differ");reads[path]=row;}
+        }
         foreach(var flow in units){
             if(flow.Value?["kind"]?.ToString()!="blueprint"||flow.Value["draft"] is null||flow.Value["baseline"]?.ToString()=="missing")continue;
             var graph=JsonNode.Parse(flow.Value["draft"]!.GetValue<string>())!.AsObject();if(graph["executionExitMode"]?.GetValue<bool>()!=true||graph["copySource"] is null)continue;
