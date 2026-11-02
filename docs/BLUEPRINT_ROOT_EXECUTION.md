@@ -20,7 +20,7 @@
 
 ## 기존 공개 계약을 유지하는 copy 본문 반환
 
-정보(schema)에 단독 배정되어 저장된 same-contract copy의 일반 switch-profile Root는 기존 공개 분기 ID/None을 반환 카드에서 선택·배치·연결할 수 있도록 연결했다. 이번 구현 경계는 직접 소유 함수 계약과 저장된 소유 copy이며, 새 copy 미리보기·부모/외부 함수 계약·자식 override 본문까지 완료했다는 뜻이 아니다. 이들 차이는 정상 금지 정책으로 확정하지 않는다.
+정보(schema)에 단독 배정되어 저장된 same-contract copy의 일반 switch-profile Root는 기존 공개 분기 ID/None을 반환 카드에서 선택·배치·연결할 수 있도록 연결했다. 이 첫 단위는 직접 소유 함수 계약과 저장된 소유 copy를 마감했다. 이후 추가한 새 copy·자식 소유 본문·등록 외부 함수의 현재 상태는 아래 항목과 유한한 M12 대조표를 기준으로 한다. 본문 반환 지원을 공개 원계약 편집 권한으로 확대하지 않는다.
 
 분기 정의의 이름·추가·삭제는 읽기 전용이며 함수 선언, IO/값/핀, caller의 receipt/연결과 donor/복사 C# record·provenance를 바꾸지 않는다. 편집 계획은 반환/실행선/시작점만 받는다. 공개 정의 변경 거래와 본문 반환 선택 거래를 구별한다.
 
@@ -38,7 +38,7 @@ sealed 선택의 기존 관측 원문을 원자 그룹과 첫 Save 영수증에 
 
 ## 별도 잔여와 호환성
 
-이 단위는 모든 공개 함수 형태의 M12 완료를 뜻하지 않는다. 위 정보 단독 copy의 지원 경계 밖인 자식 소유 본문·등록 외부 함수와 다른 원래 호출 문맥은 다음 잔여다. 이번 계약 편집은 일반 switch-profile Root와 직접 호출만 지원한다. 중첩/private 호출, 다른 callee import가 섞인 호출자, 여러 provider의 계약 변경은 아직 원자 결합 경계 밖이며 정상 금지 정책으로 확정하지 않는다. 정수 out 하나 밖의 ordinary 값 출력·ref/out 결합은 별도 원래 지원 경계로 남긴다. 계약이 바뀌는 override나 독립 새 계약 복제는 구현 대상이 아니다. 구형 profile을 자동 승격하지 않는다. M4 async 전환·완료 순서는 이번에 구현하지 않는다.
+이 단위는 모든 공개 함수 형태의 M12 완료를 뜻하지 않는다. 자식이 직접 선언한 ordinary 본문, 등록 외부 함수의 ordinary provider와 저장 copy 반환은 아래 후속 단위에서 연결했다. 외부 함수의 새 copy 첫 Save·다른 데이터 ABI·복합 호출은 아래 유한한 대조표의 실제 잔여다. 이번 계약 편집은 일반 switch-profile Root와 직접 호출만 지원한다. 중첩/private 호출, 다른 callee import가 섞인 호출자, 여러 provider의 계약 변경은 아직 원자 결합 경계 밖이며 정상 금지 정책으로 확정하지 않는다. 정수 out 하나 밖의 ordinary 값 출력·ref/out 결합은 별도 원래 지원 경계로 남긴다. 계약이 바뀌는 override나 독립 새 계약 복제는 구현 대상이 아니다. 구형 profile을 자동 승격하지 않는다. M4 async 전환·완료 순서는 이번에 구현하지 않는다.
 
 새 metadata/루트 schema 2를 이해하지 못하는 과거 실행 패키지로 새 자료를 열 수 있다고 보장하지 않는다. 최신/롤백 패키지와 전체 SHA manifest·복원 증거를 보관하며, 이전 패키지의 원래 데이터는 보존한다. 교차 패키지·Linux hosted UI 검사는 실제 Windows/WebView2·모바일 실행이나 전체 UI 및 Space/Library 전달 검증과 구별한다.
 
@@ -51,7 +51,7 @@ sealed 선택의 기존 관측 원문을 원자 그룹과 첫 Save 영수증에 
 
 이미 등록된 외부 부모는 기존 M11 ancestry 관측 계약을 읽기 전용으로 재사용한다. 최초 화면의 dependency hash를 입력 및 Save 시도 journal에 보존하고, 변경된 부모를 새 관측으로 묵시적으로 대체하지 않는다. Save·응답 복구·Review·Confirm과 최종 lease에서 외부 헤더/manifest 관측을 확인한다. 외부 부모의 본문이나 권한을 쓰거나 새 접근권한을 만들지 않는다.
 
-부모 계약을 바꾸는 override·부모/참조 원본 직접 편집은 정상 거절이다. 등록 외부 **함수** 계약 자체를 구현하는 반환 편집, 다른 원래 출력/호출 문맥과 M4는 이 경로 완료로 표시하지 않는다. 구형 profile의 자동 변환은 새 필수 요구가 아니다. 검증 결과는 [자식 소유 반환 검증](VALIDATION_V666_ROOT_EXECUTION_OVERRIDE.md)에 기록한다.
+부모 계약을 바꾸는 override·부모/참조 원본 직접 편집은 정상 거절이다. 등록 외부 **함수**의 ordinary provider와 저장 copy 반환은 아래 후속 단위에서 다룬다. 다른 원래 출력/호출 문맥과 M4는 이 경로 완료로 표시하지 않는다. 구형 profile의 자동 변환은 새 필수 요구가 아니다. 검증 결과는 [자식 소유 반환 검증](VALIDATION_V666_ROOT_EXECUTION_OVERRIDE.md)에 기록한다.
 
 
 ## 등록 외부 함수의 로컬 provider 반환
@@ -60,7 +60,7 @@ sealed 선택의 기존 관측 원문을 원자 그룹과 첫 Save 영수증에 
 
 외부 헤더의 text hash와 원시 파일 hash를 함께 보존한다. 최초 관측과 local 원문 closure를 Save 시도/복원/Review에 묶고, Confirm의 마지막 source lease에 외부 typed read를 결합한다. 본문·계정·외부 권한을 새로 읽거나 변경하지 않는다. 기존 switch C# 카드는 backend가 반환 편집을 허용한 경우에만 표시를 연결하며, 이 조건으로 C# 계약 편집을 새로 허용하지 않는다.
 
-이번 검증 경계는 직접 등록된 동기 void·값 입력·선택적인 정수 out 하나, schema의 단독 명시 배정과 기존 공통 팝오버/Review 경로다. 외부 함수 공개 계약 변경은 readonly 보호이며, 외부 함수의 public same-contract copy·나머지 기존 데이터/호출 문맥은 이 경로 완료로 표시하지 않는다. [등록 함수 반환 검증](VALIDATION_V666_ROOT_EXECUTION_REGISTERED.md).
+이번 검증 경계는 직접 등록된 동기 void·값 입력·선택적인 정수 out 하나, schema의 단독 명시 배정과 기존 공통 팝오버/Review 경로다. 외부 함수 공개 계약 변경은 readonly 보호이며, 외부 함수의 저장 public same-contract copy는 아래 후속 단위에서 연결했다. 새 copy 첫 Save·나머지 기존 데이터/호출 문맥은 완료로 표시하지 않는다. [등록 함수 반환 검증](VALIDATION_V666_ROOT_EXECUTION_REGISTERED.md).
 
 
 ## 저장된 등록 외부 함수 copy의 기존 분기 반환
