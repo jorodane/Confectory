@@ -22,4 +22,4 @@ def read():
 def checkpoint():return x.checkpoint()
 def confirm(ids):
  review=f.invoke('reviewGroup',{'ids':ids,'target':'portable'});assert not review['state']['review'].get('errors');return f.invoke('confirmGroup',{'ids':ids,'token':review['state']['review']['token']})['result']['result']
-def build(label,branch=None):x.build(label,stdout='callee:1' if branch is None or branch=='success' else 'callee:1\n'+('failure\n' if branch=='failure' else '')+'after:10')
+def build(label,branch=None):x.build(label,stdout='callee:1' if branch is None or branch=='success' else 'callee:1\n'+('failure\n' if branch=='failure' else '')+('after:10' if x.out_mode else 'after'))
