@@ -6,6 +6,20 @@ using System.Text.Json.Nodes;
 // This helper never writes files, registers a declaration or edits its donor.
 internal static class PrivateImplementationCopy
 {
+ // A new copy keeps the sealed public contract. Only its root return cards,
+ // local connections and entry are edited before the existing first-save plan.
+ static JsonArray PublicReturns(JsonObject graph,JsonArray edits,Element function,Element copy)
+ {
+  var returns=edits.Where(e=>e?["type"]?.ToString()=="branch-exits").ToArray();if(returns.Length==0)return edits;
+  if(returns.Length!=1||returns[0] is not JsonObject edit||edit.Count!=3||edit.Any(p=>p.Key is not ("type" or "node" or "text"))||edit["node"]?.ToString()!="$branches"||edit["text"] is not JsonValue text||text.GetValue<string>().Length>1048576||graph["copySource"] is null||graph["schema"]?.GetValue<int>()!=2||graph["executionExitMode"]?.GetValue<bool>()!=true||function.Parent is not null||PackPaths.Namespace(function.Id)!=PackPaths.Namespace(copy.Id)||!BlueprintExecutionBranches.Has(function))throw new InvalidOperationException("An existing owned public root contract and exact copy input are required; external contracts retain their observation boundary");
+  var plan=JsonNode.Parse(text.GetValue<string>())!.AsObject();
+  if(plan.Count!=3||plan.Any(p=>p.Key is not ("exits" or "edges" or "entry"))||plan["exits"] is not JsonObject exits||exits.Count is <1 or >64||plan["edges"] is not JsonArray edges||edges.Count>256||plan["entry"] is not JsonValue entry||!entry.TryGetValue<string>(out _))throw new ArgumentException("Exact bounded copy return selection and connection plan required");
+  var branches=BlueprintExecutionBranches.Read(function).Select(b=>b!["id"]!.ToString()).Append("none").ToHashSet(StringComparer.Ordinal);
+  foreach(var exit in exits)if(!System.Text.RegularExpressions.Regex.IsMatch(exit.Key,@"\A[A-Za-z_][A-Za-z_0-9.-]{0,127}\z")||exit.Value is not JsonObject selected||selected.Count!=1||selected["executionBranch"] is not JsonValue branch||!branch.TryGetValue<string>(out var id)||!branches.Contains(id))throw new ArgumentException("Select an existing public branch ID for each copied return");
+  foreach(var wire in edges)if(wire is not JsonObject link||link.Count!=3||link.Any(p=>p.Key is not ("from" or "port" or "to")))throw new ArgumentException("Exact local copy connections required");
+  graph["entry"]=plan["entry"]!.DeepClone();graph["edges"]=edges.DeepClone();graph["exits"]=exits.DeepClone();
+  return new JsonArray(edits.Where(e=>!returns.Contains(e)).Select(e=>e!.DeepClone()).ToArray());
+ }
  static string Hash(JsonNode node)=>JsonData.Digest(node.ToJsonString());
  static JsonObject WithoutHash(JsonObject value){var copy=value.DeepClone().AsObject();copy.Remove("hash");return copy;}
  static void Ready(JsonObject value){if(value["state"]?.ToString()!="source-ready"||ImplementationCopyTree.Rows(value).Any(n=>n["status"]?.ToString() is "missing" or "stale"))throw new InvalidOperationException("Private copy has an unverified record/import/wrapper; retain input");}
@@ -86,7 +100,8 @@ internal static class PrivateImplementationCopy
     prepared=BlueprintCallAbiUses.Prepare(useRequest,format);
    }else prepared=BlueprintCallAbi.Prepare(new JsonObject{["id"]=id,["text"]=format(copy),["graph"]=graph.DeepClone(),["privatePath"]=path,["node"]=local,["signature"]=abi["signature"]!.DeepClone(),["contractHash"]=plan["contractHash"]!.DeepClone(),["source"]=plan["source"]!.DeepClone(),["helpers"]=plan["helpers"]?.DeepClone(),["executionEnum"]=plan["executionEnum"]!.DeepClone(),["remap"]=abi["remap"]?.DeepClone()},format);copy=new Parser(prepared["implementation"]!.GetValue<string>(),"<private-abi-candidate>").ParseElement();graph=prepared["graph"]!.DeepClone().AsObject();
   }
-  var ordinary=new JsonArray(edits.Where(e=>!abiEdits.Contains(e)).Select(e=>e!.DeepClone()).ToArray());var reapplied=ImplementationCopyEdits.Apply(graph,records,ordinary,copy,id,fn.Signature!);var finalDefinitions=Definitions(snapshot,copy,graph,contracts,false);if(finalDefinitions["state"]?.ToString()!="node-definitions")throw new InvalidOperationException("Private ABI/import candidate invalid");foreach(var row in records.Where(r=>reapplied.Contains(r!["id"]!.ToString())))row!["record"]!["definitionHash"]=ImplementationCopyTree.Definition(finalDefinitions,row["id"]!.ToString())!["definitionHash"]!.DeepClone();Ready(Describe(snapshot,copy,graph,records,contracts));
+  if(edits.Any(e=>e?["type"]?.ToString()=="branch-exits")&&new Parser(request["ownerText"]!.GetValue<string>(),"<public-copy-owner>").ParseElement().Kind!="schema")throw new InvalidOperationException("Use the supported owned information copy return context; other owner flows retain their existing save boundary");
+  var ordinary=PublicReturns(graph,new JsonArray(edits.Where(e=>!abiEdits.Contains(e)).Select(e=>e!.DeepClone()).ToArray()),fn,copy);var reapplied=ImplementationCopyEdits.Apply(graph,records,ordinary,copy,id,fn.Signature!);var finalDefinitions=Definitions(snapshot,copy,graph,contracts,false);if(finalDefinitions["state"]?.ToString()!="node-definitions")throw new InvalidOperationException("Private ABI/import candidate invalid");foreach(var row in records.Where(r=>reapplied.Contains(r!["id"]!.ToString())))row!["record"]!["definitionHash"]=ImplementationCopyTree.Definition(finalDefinitions,row["id"]!.ToString())!["definitionHash"]!.DeepClone();Ready(Describe(snapshot,copy,graph,records,contracts));
   var owner=new Parser(request["ownerText"]!.GetValue<string>(),"<private-owner>").ParseElement();if(owner.Kind is not ("object" or "schema")||owner.Id!=ownerId||!JsonNode.DeepEquals(graph["copySource"],snapshot["graph"]!["copySource"]))throw new InvalidOperationException("Private owner or provenance changed");owner.Provides[feature]=new ElementReference(id,new(),ownerId);
   // Re-observe through the same registry rules after all candidate work.
   var verify=ImplementationCopy.Query(observe,format);if(!JsonNode.DeepEquals(current,verify))throw new InvalidOperationException("Private live sources changed during preparation; retain every input");

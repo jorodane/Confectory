@@ -80,6 +80,9 @@ internal static class ImplementationCopy
   var exits=new JsonArray();foreach(var exit in graph["exits"]!.AsObject())exits.Add(new JsonObject{["name"]=exit.Key,["valueJson"]=exit.Value?.ToJsonString()??"null"});
   var localRows=new JsonArray();foreach(var local in definitions["locals"]!.AsArray()){var row=new JsonObject{["id"]=local!["id"]!.DeepClone(),["name"]=local["name"]!.DeepClone(),["type"]=local["type"]!.DeepClone()};if(local.AsObject().ContainsKey("source"))row["sourceJson"]=local["source"]!.ToJsonString();else row["initialJson"]=local["initial"]!["constant"]?.ToJsonString()??"null";localRows.Add(row);}
   var preview=new JsonObject{["id"]=null,["rootId"]=implementation+"/body:"+target,["feature"]=feature,["privatePath"]=privatePath,["signature"]=definitions["signature"]!.DeepClone(),["profile"]=graph["profile"]!.DeepClone(),["entry"]=graph["entry"]?.DeepClone(),["nodes"]=projected,["edges"]=graph["edges"]!.DeepClone(),["exits"]=exits,["locals"]=localRows,["outputOrder"]=graph["outputOrder"]?.DeepClone(),["implementationDescription"]=copy.Description,["diagnostics"]=new JsonObject{["state"]="private-copy"}};
+  preview["executionExitMode"]=graph["executionExitMode"]?.DeepClone();
+  preview["publicExecutionBranches"]=privatePath.Length==0&&BlueprintExecutionBranches.Has(fn)?BlueprintExecutionBranches.Read(fn):null;
+  preview["publicCopyReturnsAvailable"]=privatePath.Length==0&&fn.Parent is null&&PackPaths.Namespace(fn.Id)==PackPaths.Namespace(copy.Id)&&BlueprintExecutionBranches.Has(fn);
   return preview;
  }
 
