@@ -57,6 +57,23 @@ internal static class BlueprintOverrideContracts
         var units=request["units"]!.AsObject();var selected=request["selected"]?.AsArray();bool verify=request["action"]!.ToString()=="verifyGroup";
         var reads=new SortedDictionary<string,JsonNode>(OperatingSystem.IsWindows()?StringComparer.OrdinalIgnoreCase:StringComparer.Ordinal);
         foreach(var flow in units){
+            if(flow.Value?["kind"]?.ToString()!="blueprint"||flow.Value["draft"] is null||flow.Value["baseline"]?.ToString()=="missing")continue;
+            var graph=JsonNode.Parse(flow.Value["draft"]!.GetValue<string>())!.AsObject();if(graph["executionExitMode"]?.GetValue<bool>()!=true||graph["copySource"] is null)continue;
+            var original=JsonNode.Parse(flow.Value["original"]!.GetValue<string>())!.AsObject();
+            if(flow.Value["authorSaveReceipt"]?["publicCopyReturns"]?.GetValue<bool>()!=true&&new[]{"entry","edges","exits"}.All(k=>JsonNode.DeepEquals(graph[k],original[k])))continue;
+            string feature=graph["feature"]!.ToString();int split=flow.Key.IndexOf("/body:",StringComparison.Ordinal);if(split<0||PackPaths.Namespace(feature)==PackPaths.Namespace(flow.Key))continue;
+            var group=flow.Value["atomicEditGroup"] as JsonArray;if(group is null)continue;if(selected is not null&&!selected.Any(s=>group.Any(m=>m!.ToString()==s!.ToString())))continue;
+            if(!group.Any(m=>units[m!.ToString()]?["draft"]?.ToString()!=units[m.ToString()]?["original"]?.ToString()))continue;
+            var impl=units[flow.Key[..split]]??throw new ArgumentException("Retain the owned saved copy declaration");string text=impl["original"]!.GetValue<string>();var owner=new Parser(text,"<registered-copy-return>").ParseElement();
+            var snapshot=flow.Value["authorSaveReceipt"]?["registeredFunction"]?.AsObject()??throw new ArgumentException("Retain the saved copy's registered public contract receipt");string manifest=units.Single(u=>u.Value?["kind"]?.ToString()=="project").Value!["draft"]!.GetValue<string>();
+            BlueprintPublicReturnContract.Validate(snapshot,owner,manifest,text);
+            if(verify)BlueprintPublicReturnContract.Query(new(){["action"]="verifyReturnContract",["project"]=request["project"]!.DeepClone(),["manifest"]=manifest,["text"]=text,["snapshot"]=snapshot.DeepClone()});
+            foreach(var observation in snapshot["observations"]!.AsArray()){
+                string path=observation!["path"]!.ToString();var row=new JsonObject{["path"]=path,["hash"]=observation["hash"]!.DeepClone()};
+                if(reads.TryGetValue(path,out var prior)&&!JsonNode.DeepEquals(prior,row))throw new InvalidOperationException("Copy return contract versions differ");reads[path]=row;
+            }
+        }
+        foreach(var flow in units){
             if((flow.Value?["nodeFlowOrigin"]??flow.Value?["publicBodyOrigin"]) is not JsonObject origin)continue;
             var group=flow.Value!["atomicEditGroup"]?.AsArray()??throw new ArgumentException("Complete internal flow group required");
             if(selected is not null&&!selected.Any(s=>group.Any(m=>m!.ToString()==s!.ToString())))continue;

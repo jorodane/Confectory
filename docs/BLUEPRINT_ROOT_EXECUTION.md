@@ -61,3 +61,26 @@ sealed 선택의 기존 관측 원문을 원자 그룹과 첫 Save 영수증에 
 외부 헤더의 text hash와 원시 파일 hash를 함께 보존한다. 최초 관측과 local 원문 closure를 Save 시도/복원/Review에 묶고, Confirm의 마지막 source lease에 외부 typed read를 결합한다. 본문·계정·외부 권한을 새로 읽거나 변경하지 않는다. 기존 switch C# 카드는 backend가 반환 편집을 허용한 경우에만 표시를 연결하며, 이 조건으로 C# 계약 편집을 새로 허용하지 않는다.
 
 이번 검증 경계는 직접 등록된 동기 void·값 입력·선택적인 정수 out 하나, schema의 단독 명시 배정과 기존 공통 팝오버/Review 경로다. 외부 함수 공개 계약 변경은 readonly 보호이며, 외부 함수의 public same-contract copy·나머지 기존 데이터/호출 문맥은 이 경로 완료로 표시하지 않는다. [등록 함수 반환 검증](VALIDATION_V666_ROOT_EXECUTION_REGISTERED.md).
+
+
+## 저장된 등록 외부 함수 copy의 기존 분기 반환
+
+직접 등록된 외부 함수를 구현하는 **저장된 로컬 same-contract copy**도 정보(schema)의 기존 단독 명시 배정에서 공개 분기 ID/None 반환을 선택·배치·연결한다. 등록 함수 계약과 donor는 readonly이며 외부 함수는 쓰기 source나 Review 그룹에 넣지 않는다. 기존 copy ABI binding·provenance, 원래 implementation/target·핀·C#와 caller 연결을 유지한다. 기존 함수의 동기 void·값 입력·선택적인 정수 out 하나와 switch-profile Root를 사용한다.
+
+기존 등록 함수의 두 헤더 관측을 원래 저장된 copy 선언에 연결한다. 첫 dependency hash와 author 저장 receipt를 checkpoint/복구·반복 Save·Review·최종 typed read CAS까지 보존한다. 현재 프로젝트/구현 등록을 먼저 확인한 뒤 기존 registry로만 외부 경로를 재도출한다. 누락·변조·낡은 receipt, 명시 배정/관측 source 불일치, Review 이후 외부 변경은 입력을 보존하며 전체 거절한다. Confirm이 정착한 뒤의 재편집은 완료된 거래의 receipt를 새 거래로 잘못 재사용하지 않는다.
+
+이 단위는 이미 저장된 copy의 반환 흐름이다. 등록 외부 함수의 **새 copy 미리보기/첫 Save**에는 아직 동일 연결이 없으며 별도 생성 수명 경계로 남긴다. 새 접근권한, 외부 공개 계약 편집, 자동 provider 선택이나 독립 새 계약 복제는 추가하지 않는다. [검증·보관 기록](VALIDATION_V666_ROOT_EXECUTION_REGISTERED_COPY.md).
+
+## 유한한 M12 대조표
+
+원본 `dist/blueprint.js:969–976`은 readonly 정의에서도 기존 분기 반환 배치를 제공하며, `dist/app.js:2469–2476`은 원본 입출력/실행 분기를 구현보다 우선한다. 이 근거로 본문 반환 편집과 공개 계약 변경을 구분한다. 아래는 사용자 흐름별 경계이며 타입/역할/중첩 조합의 곱을 새 필수 항목으로 만들지 않는다.
+
+| 사용자 흐름 | 현재 상태와 다음 경계 |
+|---|---|
+| 직접 소유 함수에 공개 분기를 정의하고 관련 Blueprint target·직접 호출자에 명시 대응 | 동기 void·값 입력·선택적 int out 하나, 복수 호출자/target은 지원·검증했다. |
+| 기존 분기를 copy·자식 소유 본문에서 반환 | 소유 함수의 저장/새 copy, 자식이 직접 선언한 ordinary target, 등록 외부 함수의 ordinary provider와 저장 copy를 지원한다. **외부 함수 새 copy의 미리보기/첫 저장**이 다음 최소 미구현이다. |
+| 원래 데이터 입출력과 공개 분기를 함께 전달 | int out 하나까지 지원한다. 다른 출력/복수 out·ref·비void의 일반 실행 결과 전달은 현재 명시적 ABI 경계이며 완료로 세지 않는다. 변경 시 원문 재작성 없이 ordinary Invoke와 출력 발행 순서를 보존해야 한다. |
+| 기존 복합 그래프/호출 문맥에서 공개 계약을 갱신 | 중첩/private 호출, 다른 import가 섞인 caller, 여러 provider에 영향받는 공개 계약의 완전한 명시 대응은 현재 후보 closure 경계 밖이다. 단일 본문 반환의 타입 조합으로 별도 무한 목록을 만들지 않는다. |
+| 비동기 완료와 분기 실행 | 별도 고정 M4다. 원본의 await→출력 발행→완료→결과 분기→다음 동작 순서를 유지해야 하며 이번 M12 반환 변경으로 완료되지 않는다. |
+
+부모/참조 원본 쓰기·override 입출력/분기 정의 변경은 정상 보호다. 구형 profile 자동 승격·별도 핀 ID 재설계·독립 계약 복제는 필수 잔여가 아니다. 다른 출력 ABI나 복합 호출의 현재 안전 거절은 영구 UX 정책으로 확정하지 않는다. M11은 새 회귀 증거가 없으면 완료 상태를 유지한다.

@@ -1,7 +1,8 @@
 """Explicit child body: readonly public contract and parent, editable return cards."""
 import ast,copy,json,pathlib,shutil,sys,time
 from playwright.sync_api import sync_playwright,expect
-import v666_root_execution_registered_fixture as c
+if '--registered-copy' in sys.argv:import v666_root_execution_registered_copy_fixture as c
+else:import v666_root_execution_registered_fixture as c
 f=c.f;mode=sys.argv[3] if len(sys.argv)>3 else 'normal';is_view='view' in sys.argv[4:]
 if is_view:f.owner=lambda:f.page.locator('.window[data-key=editor-1]')
 viewport={'width':2300 if is_view else 1800,'height':1700 if is_view else 1400}
@@ -25,7 +26,7 @@ def save():
  while time.monotonic()<deadline:
   f.page.wait_for_timeout(60)
   if not pending() and '저장 중' not in panel().locator('.bp-status').inner_text():break
- assert not pending(),panel().locator('.bp-status').inner_text();f.idle();rows={r['id']:r for r in json.loads(checkpoint.read_text())['changes']};stored=json.loads(rows[c.graph]['draft']);assert {k:stored[k] for k in ['entry','edges','exits']}==expected and rows[c.graph]['publicBodyOrigin']['version']==1 and rows[c.graph]['authorSaveReceipt']['dependencyHash']==c.read()['nodeFlowDependencyHash'];assert c.read()['diagnostics']['state']=='source-ready'
+ assert not pending(),panel().locator('.bp-status').inner_text();f.idle();rows={r['id']:r for r in json.loads(checkpoint.read_text())['changes']};stored=json.loads(rows[c.graph]['draft']);assert {k:stored[k] for k in ['entry','edges','exits']}==expected and (rows[c.graph]['authorSaveReceipt'].get('publicCopyReturns') is True and rows[c.graph]['authorSaveReceipt'].get('registeredFunction') and 'publicBodyOrigin' not in rows[c.graph] if '--registered-copy' in sys.argv else rows[c.graph]['publicBodyOrigin']['version']==1) and rows[c.graph]['authorSaveReceipt']['dependencyHash']==c.read()['nodeFlowDependencyHash'];assert c.read()['diagnostics']['state']=='source-ready'
 def restart(i):
  held=copy.deepcopy(pending());f.page.close();f.stop();f.start(i);f.page=f.setup();f.page.set_viewport_size(viewport);f.idle();arrange()
  if is_view and i==4 and not panel().is_visible():edit_provider()

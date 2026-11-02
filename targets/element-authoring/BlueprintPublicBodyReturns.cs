@@ -24,7 +24,7 @@ internal static class BlueprintPublicBodyReturns
         foreach(var flow in units){
             if(flow.Value?["kind"]?.ToString()!="blueprint"||flow.Value["draft"] is null)continue;
             var graph=JsonNode.Parse(flow.Value["draft"]!.GetValue<string>())!.AsObject();
-            if(graph["executionExitMode"]?.GetValue<bool>()!=true)continue;
+            if(graph["executionExitMode"]?.GetValue<bool>()!=true||graph["copySource"] is not null)continue;
             int marker=flow.Key.IndexOf("/body:",StringComparison.Ordinal);if(marker<0)continue;
             var implementation=units[flow.Key[..marker]];if(implementation?["draft"] is null)continue;
             var owner=new Parser(implementation["draft"]!.GetValue<string>(),"<retained-return-owner>").ParseElement();
