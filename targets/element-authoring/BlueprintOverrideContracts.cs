@@ -9,6 +9,7 @@ internal static class BlueprintOverrideContracts
     static string Hash(string text)=>JsonData.HashBytes(Encoding.UTF8.GetBytes(text));
     public static JsonObject Query(JsonObject request)
     {
+        if(request["action"]?.ToString()=="prepareReturns")return BlueprintPublicBodyReturns.Prepare(request);
         if(request["action"]?.ToString() is "validateGroup" or "verifyGroup")return Group(request);
         string action=request["action"]!.GetValue<string>(),text=request["text"]!.GetValue<string>(),id=request["id"]!.GetValue<string>(),target=request["target"]!.GetValue<string>();
         var child=new Parser(text,"<owned-override>").ParseElement();
@@ -55,8 +56,8 @@ internal static class BlueprintOverrideContracts
         var units=request["units"]!.AsObject();var selected=request["selected"]?.AsArray();bool verify=request["action"]!.ToString()=="verifyGroup";
         var reads=new SortedDictionary<string,JsonNode>(OperatingSystem.IsWindows()?StringComparer.OrdinalIgnoreCase:StringComparer.Ordinal);
         foreach(var flow in units){
-            if(flow.Value?["nodeFlowOrigin"] is not JsonObject origin)continue;
-            var group=flow.Value["atomicEditGroup"]?.AsArray()??throw new ArgumentException("Complete internal flow group required");
+            if((flow.Value?["nodeFlowOrigin"]??flow.Value?["publicBodyOrigin"]) is not JsonObject origin)continue;
+            var group=flow.Value!["atomicEditGroup"]?.AsArray()??throw new ArgumentException("Complete internal flow group required");
             if(selected is not null&&!selected.Any(s=>group.Any(m=>m!.ToString()==s!.ToString())))continue;
             int marker=flow.Key.IndexOf("/body:",StringComparison.Ordinal);if(marker<0)throw new ArgumentException("Owned body target required");string id=flow.Key[..marker],target=flow.Key[(marker+6)..],text=units[id]?["draft"]?.GetValue<string>()??throw new ArgumentException("Retain the owned override declaration");
             var child=new Parser(text,"<retained-override>").ParseElement();var seen=new HashSet<string>(StringComparer.Ordinal){id};var current=child;bool required=false;
@@ -75,7 +76,7 @@ internal static class BlueprintOverrideContracts
             }
         }
         if(reads.Count>128)throw new ArgumentException("Combined override observation budget exceeded");
-        return new(){["reads"]=new JsonArray(reads.Values.Select(v=>v.DeepClone()).ToArray()),["readOnly"]=true};
+        return new(){["reads"]=new JsonArray(reads.Values.Select(v=>v.DeepClone()).ToArray()),["checks"]=BlueprintPublicBodyReturns.Guards(units,selected),["readOnly"]=true};
     }
     static void Validate(JsonObject snapshot,Element child,string target,string text)
     {

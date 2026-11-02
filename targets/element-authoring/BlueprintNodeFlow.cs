@@ -6,7 +6,7 @@ internal static class BlueprintNodeFlow
 {
     // Inheriting a contract does not transfer ownership of the parent's body.
     // An override may wrap only its own explicitly declared, published target.
-    static void ValidateOwnedOverride(JsonObject owner,string rootId)
+    internal static void ValidateOwnedOverride(JsonObject owner,string rootId)
     {
         var declared=new Parser(owner["text"]!.GetValue<string>(),"<node-flow-owner>").ParseElement();
         if(declared.Parent is null)return;

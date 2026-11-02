@@ -41,3 +41,14 @@ sealed 선택의 기존 관측 원문을 원자 그룹과 첫 Save 영수증에 
 이 단위는 모든 공개 함수 형태의 M12 완료를 뜻하지 않는다. 위 정보 단독 copy의 지원 경계 밖인 자식 소유 본문·등록 외부 함수와 다른 원래 호출 문맥은 다음 잔여다. 이번 계약 편집은 일반 switch-profile Root와 직접 호출만 지원한다. 중첩/private 호출, 다른 callee import가 섞인 호출자, 여러 provider의 계약 변경은 아직 원자 결합 경계 밖이며 정상 금지 정책으로 확정하지 않는다. 정수 out 하나 밖의 ordinary 값 출력·ref/out 결합은 별도 원래 지원 경계로 남긴다. 계약이 바뀌는 override나 독립 새 계약 복제는 구현 대상이 아니다. 구형 profile을 자동 승격하지 않는다. M4 async 전환·완료 순서는 이번에 구현하지 않는다.
 
 새 metadata/루트 schema 2를 이해하지 못하는 과거 실행 패키지로 새 자료를 열 수 있다고 보장하지 않는다. 최신/롤백 패키지와 전체 SHA manifest·복원 증거를 보관하며, 이전 패키지의 원래 데이터는 보존한다. 교차 패키지·Linux hosted UI 검사는 실제 Windows/WebView2·모바일 실행이나 전체 UI 및 Space/Library 전달 검증과 구별한다.
+
+
+## 자식 소유 본문의 기존 분기 반환
+
+자식 implementation이 직접 선언한 ordinary `sync-acyclic-switch-v1` Blueprint target(code/export, native context·call·중첩 없는 Root)은 원래 공개 분기와 None을 반환·배치·연결한다. 부모 유무만으로 실행을 거절하던 엔진 경계를 제거하고, opaque 유효 target의 기존 거절은 유지한다. 상속받기만 한 Blueprint의 실행은 선언 소유자의 node source를 사용하며 자식 locator를 통한 부모 본문 쓰기는 허용하지 않는다.
+
+이 경로는 직접 소유 함수의 기존 동기 void/값 입력/선택적인 int out 하나 계약을 유지한다. 공개 분기 정의·입출력·부모 및 C# record·node ID/인수/데이터 연결은 바꾸지 않는다. 반환의 entry/edges/exits만 하나의 checkpoint/Review 그룹으로 저장한다. 원본 노드와 헤더의 관측 receipt를 복원·Review와 최종 파일 CAS에 재검증한다.
+
+이미 등록된 외부 부모는 기존 M11 ancestry 관측 계약을 읽기 전용으로 재사용한다. 최초 화면의 dependency hash를 입력 및 Save 시도 journal에 보존하고, 변경된 부모를 새 관측으로 묵시적으로 대체하지 않는다. Save·응답 복구·Review·Confirm과 최종 lease에서 외부 헤더/manifest 관측을 확인한다. 외부 부모의 본문이나 권한을 쓰거나 새 접근권한을 만들지 않는다.
+
+부모 계약을 바꾸는 override·부모/참조 원본 직접 편집은 정상 거절이다. 등록 외부 **함수** 계약 자체를 구현하는 반환 편집, 다른 원래 출력/호출 문맥과 M4는 이 경로 완료로 표시하지 않는다. 구형 profile의 자동 변환은 새 필수 요구가 아니다. 검증 결과는 [자식 소유 반환 검증](VALIDATION_V666_ROOT_EXECUTION_OVERRIDE.md)에 기록한다.
