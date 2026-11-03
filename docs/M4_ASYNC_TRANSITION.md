@@ -23,4 +23,4 @@ M11·M12는 구체적 회귀가 없으므로 닫힌 상태를 유지한다. V2�
 
 ## 검증 방법
 
-`tools/verify_desktop.py --suite async-transition`은 최종 commit의 독립 LF/CRLF checkout·독립 캐시로 API/영수증 거절, 실제 메뉴·Undo/Redo·Save·cold·Review/Confirm, 저장 실패·경합·응답 유실·늦은 입력을 실행한다. 기존 async/switch runtime과 M12 관련 회귀도 검사한다. 새 Windows 교차 패키지와 전체 SHA/manifest 압축 복원본에서 같은 UI·실제 Task runtime·저장 실패를 검사하고 증거를 지속 보관한 뒤 해당 실행 소유 임시물만 정리한다. Linux에서 수행하며 실제 Windows/모바일 실행을 뜻하지 않는다. 최종 수치와 보관 SHA는 검증 종료 기록에 남긴다.
+`tools/verify_desktop.py --suite async-transition`은 최종 commit의 독립 LF/CRLF checkout·독립 캐시로 API/영수증 거절, 실제 메뉴·Undo/Redo·Save·cold·Review/Confirm, 저장 실패·경합·응답 유실·늦은 입력을 실행한다. 기존 async/switch runtime과 M12 관련 회귀도 검사한다. 새 Windows 교차 패키지와 전체 SHA/manifest 압축 복원본에서 같은 UI·실제 Task runtime·저장 실패를 검사하고 증거를 지속 보관한 뒤 해당 실행 소유 임시물만 정리한다. Linux에서 수행하며 실제 Windows/모바일 실행을 뜻하지 않는다. 최종 신규 40단계·재사용 0 및 보관 SHA/공간은 [검증 종료 기록](VALIDATION_V666_ASYNC_TRANSITION.md)에 남겼다.
