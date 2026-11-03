@@ -5,7 +5,7 @@
 | 실제 사용자 흐름 | 현재 근거와 닫을 범위 |
 |---|---|
 | 데이터와 공개 분기를 함께 반환 | 기존 value/ref/out·ordinary 비void 반환, 소유/저장·새 copy/자식 직접 본문·등록 외부의 ordinary 반환을 이미 연결했다. 새로운 타입/소유 조합을 별도 잔여로 늘리지 않는다. |
-| 직접 소유 공개 함수의 계약을 전체 caller/provider에 갱신 | 여러 provider/target·ordinary/private frame은 연결했다. native whole-body의 기존 instance 진입과 원래 C#·`this.Invoke`·수신자/재귀·import 의미를 보존한다. 자체 결과를 계산하는 postCall wrapper와 ordinary IInvoke 소비자는 새 공개 분기로 자동 재해석하지 않고 실제 영향만 대조한다. caller 자신의 공개 분기·private forwarding 계약도 보존해야 한다. 현재 native 진입 연결을 구현/검증 중이다. |
+| 직접 소유 공개 함수의 계약을 전체 caller/provider에 갱신 | 여러 provider/target·ordinary/private frame은 연결했다. native whole-body의 기존 instance 진입과 원래 C#·`this.Invoke`·수신자/재귀·import 의미를 보존한다. 자체 결과를 계산하는 postCall wrapper와 ordinary IInvoke 소비자는 새 공개 분기로 자동 재해석하지 않고 실제 영향만 대조한다. caller 자신의 공개 분기·private forwarding 계약도 보존해야 한다. native whole-body 진입은 원문/receiver/재귀/scoped import·원자 저장/최종 CAS 및 새 패키지/복원 검증까지 마감했다. caller 자신의 공개 분기나 private forwarding과 postCall은 실제 의미/영향을 대조할 다음 복합 호출 경계다. |
 | 이미 존재하는 같은 계약 copy·자식 소유 본문이 포함된 전체 갱신 | 완료한 본문 반환 선택과 공개 정의 갱신을 구별한다. 소유한 공개 선언을 바꾸는 거래에서 실제 소유 target/호출 대응과 기존 provenance/배정·상속 소유자를 명시적으로 결합한다. 부모/참조 원본을 쓰거나 override에서 독립 IO/계약을 만들지 않는다. 실제 누락과 정상 보호를 원래 소유 규칙으로 판정한다. |
 | 등록된 외부 import를 포함한 관측과 저장 | 새 접근권한 없이 기존 등록/의존성을 따라 외부 함수/manifest를 readonly로 관측한다. 소유 manifest·scope·원시 receipt를 저장/복원/Review/최종 CAS까지 결합하고 경합/누락/변조를 거절한다. 외부 선언은 writable member로 위장하지 않는다. |
 

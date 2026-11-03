@@ -66,3 +66,6 @@ ordinary 소유/등록 데이터 반환의 최종 **신규 LF20·CRLF19·패키�
 소유 ordinary switch-profile private caller도 물리 Root+전체 node 경로로 명시 대응하고 local frame의 반환/실행선만 갱신한다. 재귀적인 leaf 원문 관측과 body target을 같은 후보/CAS/Review 그룹에 유지한다. [중첩 호출 경계와 검증](VALIDATION_V666_ROOT_EXECUTION_NESTED.md).
 
 소유 private caller 결합의 최종 **총45단계(신규39·동등재사용6; LF21·CRLF18·패키지/복원6, 계약/runtime·소유 경계36개 중 신규18·재사용18 포함)**가 통과했고 증거·최신/롤백을 지속 보관했다. [결과와 실제 경계](VALIDATION_V666_ROOT_EXECUTION_NESTED.md).
+
+
+기존 branch-capable native whole-body의 공개 실행 진입을 원래 instance Invoke/this·재귀/scoped import/소스 위치와 분리해 연결하고 scope object·import 함수의 읽기 관측을 같은 CAS/Review 그룹에 보존했다. 최종 동결 코드의 **신규 LF19·CRLF16·새 패키지/전체 복원/실패 수명관리6, 총41단계**가 모두 통과했다(계약/runtime·소유 경계 38개 포함, 재사용 0). [지원·증거](VALIDATION_V666_ROOT_EXECUTION_NATIVE.md)와 [M12의 유한한 실제 흐름·종료 조건](M12_CLOSURE.md)을 기준으로 남은 caller 계약·copy/자식·등록 import를 구분한다. M4의 확정된 동기 caller 오류 정책과 실제 async 구현, 원래 V2–V9/UI 후속 및 기기 검증은 이 단위로 완료되지 않는다.
