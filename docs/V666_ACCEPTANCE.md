@@ -58,3 +58,5 @@ raw+저장 copy ABI/다중 target/Set-property/독립 properties+copy의 넓은 
 M12 ordinary 비void 데이터 반환의 기존 소유 흐름(저장/새 copy·자식 직접 본문·등록 외부 함수의 local provider와 저장/새 copy)을 같은 실행 선택·데이터 보존 검증에 연결한다. [지원과 검증 범위](VALIDATION_V666_PUBLIC_RETURN_DATA.md). 남은 M12는 중첩/private/native·외부 import의 실제 호출 계약 결합과 여러 직접 소유 provider의 완전한 명시 대응이다. 정상 예약 이름/소유권 거절이나 구형 자동 migration은 새 필수 항목이 아니다.
 
 ordinary 소유/등록 데이터 반환의 최종 **신규 LF20·CRLF19·패키지/전체 복원/실패 수명관리6, 총45단계(반환 계약/runtime·소유 경계36개 포함)**가 통과했고 최신/롤백·집중/최종 증거를 지속 보존했다. [결과와 경계](VALIDATION_V666_PUBLIC_RETURN_DATA.md).
+
+같은 함수의 여러 직접 소유 ordinary provider·각 target·실제 직접 caller를 전체 명시 대응에 연결한다. 실행 provider의 기존 scoped 배정은 변경하지 않고 다른 provider의 import도 readonly 최종 CAS 관측에 포함한다. [이번 범위와 검증](VALIDATION_V666_ROOT_EXECUTION_PROVIDERS.md). 남은 공개 계약 결합은 중첩/private/native와 등록 외부 import 경계다.

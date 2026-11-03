@@ -112,3 +112,8 @@ sealed 선택의 기존 관측 원문을 원자 그룹과 첫 Save 영수증에 
 ## copy·자식 소유·등록 외부의 기존 데이터 반환
 
 ordinary switch-profile의 기존 공개 분기/None 반환에 비void 직접 종료점 값·export-return/default와 typed out/ref를 보존한다. 저장/새 same-contract copy, 직접 선언한 자식 target, 이미 등록된 외부 함수의 로컬 provider·저장/새 copy를 연결한다. 함수/override IO·분기 정의와 부모/외부 원본은 readonly다. [지원 경계·검증·유한한 다음 흐름](VALIDATION_V666_PUBLIC_RETURN_DATA.md).
+
+
+## 여러 직접 소유 ordinary provider의 계약 갱신
+
+같은 공개 함수를 구현하는 직접 소유 ordinary Blueprint provider들의 모든 target과 실제 직접 caller를 기존 명시 대응 후보/CAS/Review 그룹으로 결합한다. 다른 provider의 import도 readonly 관측에 포함하며 실행 provider 선택·기존 scoped 배정을 바꾸지 않는다. opaque/override/비소유 원본과 공유 물리 그래프 보호는 유지한다. [지원과 검증 경계](VALIDATION_V666_ROOT_EXECUTION_PROVIDERS.md).

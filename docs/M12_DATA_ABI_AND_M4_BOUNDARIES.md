@@ -5,7 +5,7 @@
 | 흐름 | 원본으로 확정된 요구 | 현재 경계/다음 구현 |
 |---|---|---|
 | M12 데이터와 분기 동시 반환 | 입출력 ID/타입/역할과 ordinary Invoke/C# 원문을 유지한다. 데이터 발행 뒤 결과 분기와 다음 동작을 실행한다. | 동기 void의 typed out·복수 out·ref를 기존 by-reference 전달에 연결한다. ordinary 비void는 원래 반환형을 유지하는 별도 생성 out 캡처와 종료점 데이터/분기 병존으로 연결한다. [직접 Root](VALIDATION_V666_ROOT_EXECUTION_NONVOID.md)와 [기존 copy/자식·등록 경계](VALIDATION_V666_PUBLIC_RETURN_DATA.md)에 같은 데이터/분기 보존을 연결한다. [지원·검증](VALIDATION_V666_ROOT_EXECUTION_DATA_VOID.md). |
-| M12 복합 호출 계약 갱신 | 영향받는 caller/target 전부의 명시 대응·한 후보/CAS·원본 보존이 필요하다. | 다른 직접 소유 함수 import를 쓰는 ordinary 본문·caller는 추가 헤더의 readonly 관측과 같은 거래에 연결한다. 중첩/private·등록 외부 import receipt·여러 provider의 공개 계약 변경은 완전한 closure의 실제 잔여다. [호출자 검증](VALIDATION_V666_ROOT_EXECUTION_COMPOUND_OWNED.md), [본문 검증](VALIDATION_V666_ROOT_EXECUTION_PROVIDER_IMPORT.md). 새 자동 선택 정책을 만들지 않는다. |
+| M12 복합 호출 계약 갱신 | 영향받는 caller/target 전부의 명시 대응·한 후보/CAS·원본 보존이 필요하다. | 다른 직접 소유 함수 import를 쓰는 ordinary 본문·caller는 추가 헤더의 readonly 관측과 같은 거래에 연결한다. 여러 직접 소유 ordinary provider의 모든 target/caller·추가 import 관측도 같은 명시 거래에 연결한다. [provider 갱신 경계](VALIDATION_V666_ROOT_EXECUTION_PROVIDERS.md). 중첩/private/native·등록 외부 import receipt는 완전한 closure의 실제 잔여다. [호출자 검증](VALIDATION_V666_ROOT_EXECUTION_COMPOUND_OWNED.md), [본문 검증](VALIDATION_V666_ROOT_EXECUTION_PROVIDER_IMPORT.md). 새 자동 선택 정책을 만들지 않는다. |
 | M4 비동기 실행 | await → 출력 발행 → 완료 → 결과 분기 → 다음 동작. ref 입력은 거절하며 본문 await/내부 async가 남았으면 동기 전환을 거절한다. | 실제 async 저장·실행·호출 어댑터가 남아 있다. 표시만 async로 바꾸거나 Task를 무시하고 다음 동작으로 진행하지 않는다. |
 
 ## 원본이 정한 것과 내부 표현

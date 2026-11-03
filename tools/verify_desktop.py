@@ -109,7 +109,7 @@ def main():
     parser.add_argument('--commit', required=True)
     parser.add_argument('--sdk', type=Path, required=True)
     parser.add_argument('--nuget-seed', type=Path, required=True)
-    parser.add_argument('--suite',choices=['headers','card-images','canvas','owned-information','owned-conversion','action-icons','declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement','worker-badges','node-internal','node-internal-nested','node-internal-storage','node-internal-context','node-internal-branches','node-branch-exits','node-internal-copy','node-internal-copy-nested','node-internal-copy-storage','node-internal-copy-branches','node-internal-copy-context','node-internal-copy-creating','node-internal-copy-frames','node-internal-override','node-internal-external-override','root-execution','root-execution-out','root-execution-closure','root-execution-copy','root-execution-copy-creating','root-execution-override','root-execution-registered','root-execution-registered-copy','root-execution-registered-creating','root-execution-data-void','root-execution-compound-owned','root-execution-provider-import','root-execution-nonvoid','public-return-data'],default='headers')
+    parser.add_argument('--suite',choices=['headers','card-images','canvas','owned-information','owned-conversion','action-icons','declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement','worker-badges','node-internal','node-internal-nested','node-internal-storage','node-internal-context','node-internal-branches','node-branch-exits','node-internal-copy','node-internal-copy-nested','node-internal-copy-storage','node-internal-copy-branches','node-internal-copy-context','node-internal-copy-creating','node-internal-copy-frames','node-internal-override','node-internal-external-override','root-execution','root-execution-out','root-execution-closure','root-execution-copy','root-execution-copy-creating','root-execution-override','root-execution-registered','root-execution-registered-copy','root-execution-registered-creating','root-execution-data-void','root-execution-compound-owned','root-execution-provider-import','root-execution-nonvoid','public-return-data','root-execution-providers'],default='headers')
     args = parser.parse_args()
     repo = args.repo.resolve(); persistent = args.persistent.absolute()
     persistent.parent.mkdir(parents=True, exist_ok=True)
@@ -326,6 +326,17 @@ def main():
                 work.run(label+'-root-void-regression',[sys.executable,str(checkout/'tests/web'/baseline),str(checkout),str(report),*(['normal'] if label=='crlf' else []),'--out-root'],cwd=checkout,env=env)
                 regression='v666_node_branch_exit_api.py' if label=='lf' else 'v666_node_internal_external_override_api.py'
                 work.run(label+'-m11-regression',[sys.executable,str(checkout/'tests/web'/regression),str(checkout),str(report)],cwd=checkout,env=env)
+                work.run(label+'-owned-final-read-cas',[sys.executable,str(checkout/'tests/web/v536_copy_read_guards_core.py'),str(checkout)],cwd=checkout,env=env)
+            elif args.suite=='root-execution-providers':
+                work.run(label+'-providers-script',['node','--check',str(checkout/'examples/editor-home/ui/feature-authoring.js')],cwd=checkout,env=env)
+                work.run(label+'-providers-native',[dotnet,str(checkout/'tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll'),'RootExecutionBranchTests','--require-runtime'],cwd=checkout,env=env)
+                work.run(label+'-providers-ownership',[dotnet,str(checkout/'tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll'),'blueprint_inherited_body_retains_declaring_node_owner','blueprint_independently_declared_body_cannot_borrow_another_node_owner','--require-runtime'],cwd=checkout,env=env)
+                work.run(label+'-providers-api',[sys.executable,str(checkout/'tests/web/v666_root_execution_multi_api.py'),str(checkout),str(report),'--multi-root','--providers-root'],cwd=checkout,env=env)
+                for mode in (['normal','cancel','storage','conflict'] if label=='lf' else ['loss','late']):
+                    work.run(label+'-providers-ui-'+mode,[sys.executable,str(checkout/'tests/web/v666_root_execution_ui.py'),str(checkout),str(report),mode,'--multi-root','--providers-root'],cwd=checkout,env=env)
+                work.run(label+'-providers-zero-regression',[sys.executable,str(checkout/'tests/web/v666_root_execution_multi_api.py'),str(checkout),str(report),'--no-callers','--single-target'],cwd=checkout,env=env)
+                work.run(label+'-providers-native-data-regression',[sys.executable,str(checkout/'tests/web/v666_root_execution_api.py'),str(checkout),str(report),'--nonvoid-root'],cwd=checkout,env=env)
+                work.run(label+'-providers-copy-regression',[sys.executable,str(checkout/('tests/web/v666_root_execution_copy_'+('api.py' if label=='lf' else 'ui.py'))),str(checkout),str(report),*(['cancel'] if label=='crlf' else []),'--nonvoid-root'],cwd=checkout,env=env)
                 work.run(label+'-owned-final-read-cas',[sys.executable,str(checkout/'tests/web/v536_copy_read_guards_core.py'),str(checkout)],cwd=checkout,env=env)
             elif args.suite=='public-return-data':
                 work.run(label+'-return-script',['node','--check',str(checkout/'examples/editor-home/ui/feature-authoring.js')],cwd=checkout,env=env)
@@ -548,6 +559,8 @@ def main():
         elif args.suite=='node-internal-storage':
             work.run('packaged-node-internal',[sys.executable,str(checkout/'tests/web/v666_node_internal_ui.py'),str(package/'content'),str(packaged_report),'normal'],cwd=checkout,env=env)
             work.run('packaged-storage-node-internal',[sys.executable,str(checkout/'tests/web/v666_node_internal_storage_ui.py'),str(package/'content'),str(packaged_report),'normal'],cwd=checkout,env=env)
+        elif args.suite=='root-execution-providers':
+            work.run('packaged-providers',[sys.executable,str(checkout/'tests/web/v666_root_execution_ui.py'),str(package/'content'),str(packaged_report),'normal','--multi-root','--providers-root'],cwd=checkout,env=env)
         elif args.suite=='public-return-data':
             work.run('packaged-return-data',[sys.executable,str(checkout/'tests/web/v666_root_execution_copy_creating_ui.py'),str(package/'content'),str(packaged_report),'normal','--nonvoid-root','--registered-creating'],cwd=checkout,env=env)
         elif args.suite=='root-execution-registered-creating':
@@ -646,6 +659,8 @@ def main():
         elif args.suite=='node-internal-storage':
             work.run('restored-node-internal',[sys.executable,str(checkout/'tests/web/v666_node_internal_ui.py'),str(restored/'content'),str(packaged_report),'storage'],cwd=checkout,env=env)
             work.run('restored-storage-node-internal',[sys.executable,str(checkout/'tests/web/v666_node_internal_storage_ui.py'),str(restored/'content'),str(packaged_report),'loss','--private','--local'],cwd=checkout,env=env)
+        elif args.suite=='root-execution-providers':
+            work.run('restored-providers',[sys.executable,str(checkout/'tests/web/v666_root_execution_ui.py'),str(restored/'content'),str(packaged_report),'late','--multi-root','--providers-root'],cwd=checkout,env=env)
         elif args.suite=='public-return-data':
             work.run('restored-return-data',[sys.executable,str(checkout/'tests/web/v666_root_execution_registered_ui.py'),str(restored/'content'),str(packaged_report),'late','--nonvoid-root','--registered-copy'],cwd=checkout,env=env)
         elif args.suite=='root-execution-registered-creating':

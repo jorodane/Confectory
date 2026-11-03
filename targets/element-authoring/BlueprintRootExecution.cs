@@ -1,7 +1,8 @@
 using Confectory.Core;
 using System.Text.Json.Nodes;
 
-// One direct owned sync-void contract, its targets and explicit direct caller closure.
+// One direct owned synchronous contract, all ordinary owned providers/targets,
+// and the explicit direct caller closure. This never chooses a runtime provider.
 // Pure candidate preparation. The workspace owns checkpoint/physical CAS.
 static class BlueprintRootExecution
 {
@@ -34,13 +35,20 @@ static class BlueprintRootExecution
         if(reply["state"]?.ToString()!=(assemble?"source-ready":"node-definitions"))throw new InvalidOperationException("Root/caller source is not ready: "+reply.ToJsonString());return reply;
     }
     static string[] Targets(JsonObject units,string rootId) {
-        var root=Root(units,rootId);var ids=new[]{rootId}.Concat(root.Implementation.Bodies.Keys.Order(StringComparer.Ordinal).Select(t=>root.Implementation.Id+"/body:"+t)).Distinct(StringComparer.Ordinal).ToArray();
+        var root=Root(units,rootId);
+        var implementations=units.Where(p=>p.Value?["kind"]?.ToString()=="implementation").Select(p=>Declaration(units,p.Key,"implementation")).ToArray();
+        var providers=implementations.Where(i=>i.Function==root.Function.Id).OrderBy(i=>i.Id,StringComparer.Ordinal).ToArray();
+        var providerIds=providers.Select(i=>i.Id).ToHashSet(StringComparer.Ordinal);
+        if(providers.Any(i=>i.Parent is not null)||implementations.Any(i=>i.Parent is not null&&providerIds.Contains(i.Parent)))throw new ArgumentException("Override contracts require their existing ownership boundary; preserve the sources");
+        if(providers.Any(i=>i.Bodies.Count==0||i.Bodies.Values.Any(b=>b.SourceKind!="blueprint")))throw new ArgumentException("Every provider needs explicit ordinary Blueprint return mappings; preserve opaque sources");
+        var ids=new[]{rootId}.Concat(providers.SelectMany(i=>i.Bodies.Keys.Order(StringComparer.Ordinal).Select(t=>i.Id+"/body:"+t))).Distinct(StringComparer.Ordinal).ToArray();
         foreach(string id in ids)_=Root(units,id);
-        if(ids.Select(id=>units[id]!["path"]!.ToString()).Distinct(StringComparer.Ordinal).Count()!=ids.Length)throw new ArgumentException("Aliased target files require one unambiguous owned draft; preserve the sources");return ids;
+        string virtualRoot=Path.Combine(Path.GetTempPath(),"confectory-root-execution-targets");
+        if(ids.Select(id=>PackPaths.Owned(virtualRoot,units[id]!["path"]!.ToString())).Distinct(OperatingSystem.IsWindows()?StringComparer.OrdinalIgnoreCase:StringComparer.Ordinal).Count()!=ids.Length)throw new ArgumentException("Aliased target files require one unambiguous owned draft; preserve the sources");return ids;
     }
     static string CallKey(JsonNode row)=>row["graph"]!.ToString()+"|node:"+row["node"]!.ToString();
     static string[] ObservedContracts(JsonObject units,string rootId,IEnumerable<string> callerIds) {
-        var roots=new[]{rootId}.Concat(callerIds).Distinct(StringComparer.Ordinal).Select(id=>Root(units,id)).ToArray();
+        var roots=Targets(units,rootId).Concat(callerIds).Distinct(StringComparer.Ordinal).Select(id=>Root(units,id)).ToArray();
         var owners=roots.Select(r=>r.Function.Id).ToHashSet(StringComparer.Ordinal);
         var imports=roots.SelectMany(r=>r.Implementation.Imports.Values.Select(i=>i.Id)).Where(id=>!owners.Contains(id)).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
         foreach(string id in imports){if(PackPaths.Namespace(id)!=PackPaths.Namespace(rootId))throw new ArgumentException("Registered imported contracts need their readonly receipt boundary; preserve the sources");_=Declaration(units,id,"function");}
@@ -56,7 +64,6 @@ static class BlueprintRootExecution
         var units=request["units"]!.AsObject();string rootId=request["id"]!.GetValue<string>();var root=Root(units,rootId);var targetIds=Targets(units,rootId);var targetSet=targetIds.ToHashSet(StringComparer.Ordinal);
         if(!BlueprintExecutionBranches.SupportsSignature(root.Function.Signature!))throw new ArgumentException("Direct synchronous root with existing value/ref/out parameters required");
         _=ObservedContracts(units,rootId,Array.Empty<string>());
-        if(units.Where(p=>p.Value?["kind"]?.ToString()=="implementation").Select(p=>Declaration(units,p.Key,"implementation")).Count(i=>i.Function==root.Function.Id||i.Parent==root.Implementation.Id)!=1)throw new ArgumentException("A shared provider/override requires a separately coordinated contract; keep it unchanged");
         var rows=new JsonArray();var callerOwners=new HashSet<string>(StringComparer.Ordinal);
         foreach(var pair in units.Where(p=>p.Value?["kind"]?.ToString()=="blueprint"&&!targetSet.Contains(p.Key)).OrderBy(p=>p.Key,StringComparer.Ordinal)) {
             var graph=JsonNode.Parse(pair.Value!["draft"]!.GetValue<string>())!;
@@ -69,7 +76,8 @@ static class BlueprintRootExecution
         }
 
         if(units.Where(p=>p.Value?["kind"]?.ToString()=="implementation").Select(p=>Declaration(units,p.Key,"implementation")).Any(i=>!callerOwners.Contains(i.Id)&&i.Bodies.Values.Any(b=>b.SourceKind=="blueprint")&&i.Imports.Values.Any(import=>import.Id==root.Function.Id)))throw new ArgumentException("Other native/private/import callers require explicit coordination; preserve their sources");
-        var targets=new JsonArray();foreach(string id in targetIds){_=Definitions(units,id,true);var selected=Root(units,id);targets.Add(new JsonObject { ["graph"]=id,["name"]=id[(id.IndexOf("/body:",StringComparison.Ordinal)+6)..],["entry"]=selected.Graph["entry"]!.DeepClone(),["edges"]=selected.Graph["edges"]!.DeepClone(),["exits"]=selected.Graph["exits"]!.DeepClone() });}
+        bool multipleProviders=targetIds.Select(id=>Root(units,id).Implementation.Id).Distinct(StringComparer.Ordinal).Count()>1;
+        var targets=new JsonArray();foreach(string id in targetIds){_=Definitions(units,id,true);var selected=Root(units,id);string name=id[(id.IndexOf("/body:",StringComparison.Ordinal)+6)..];targets.Add(new JsonObject { ["graph"]=id,["name"]=multipleProviders?selected.Implementation.Id+" · "+name:name,["entry"]=selected.Graph["entry"]!.DeepClone(),["edges"]=selected.Graph["edges"]!.DeepClone(),["exits"]=selected.Graph["exits"]!.DeepClone() });}
         foreach(var row in rows)row!["key"]=CallKey(row);
         return new JsonObject { ["branches"]=BlueprintExecutionBranches.Read(root.Function),["targets"]=targets,["callers"]=rows,["observedContracts"]=new JsonArray(ObservedContracts(units,rootId,rows.Select(c=>c!["graph"]!.ToString())).Select(id=>JsonValue.Create(id)).ToArray()) };
     }
