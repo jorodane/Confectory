@@ -8,7 +8,7 @@ v536 기록은 과거 검증 증거이며 기존 기능을 미구현으로 되�
 
 아래 긴 표의 누적 문장은 각 당시 검증의 기록이다. 현재 잔여 판단은 [유한한 M12 마감표](M12_CLOSURE.md)를 우선한다. M11의 원래 소유 구현 편집은 마감했으며 구체적 회귀 없이 다시 열지 않는다. M12는 데이터 반환·소유 provider/target·일반 및 native 진입·공개/private 실행 계약 caller의 보존을 연결했고, 남은 실제 흐름은 다음 세 가지다.
 
-- ordinary IInvoke/native import의 관측과 원래 wrapper의 명시적 계약·OriginalResult 연결.
+- 원래 wrapper의 명시적 실제 공개 계약·OriginalResult 연결. ordinary IInvoke/native import와 기존 NoBranch wrapper의 의미를 보존하는 관측 후보는 [이번 검증 기록](VALIDATION_V666_ROOT_EXECUTION_OBSERVERS.md)을 따른다.
 - 같은 계약 copy·자식 소유 본문이 포함된 공개 정의 전체 갱신.
 - 등록 외부 import·manifest·scope의 읽기 전용 receipt를 전체 거래에 결합.
 

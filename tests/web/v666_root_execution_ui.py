@@ -1,7 +1,9 @@
 """M12 authored sidebar, return cards and explicit caller; interrupted UI saves."""
 import copy,json,sys
 from playwright.sync_api import sync_playwright,expect
-if '--forward-caller' in sys.argv:
+if '--observer-root' in sys.argv:
+ import v666_root_execution_observers_fixture as x
+elif '--forward-caller' in sys.argv:
  import v666_root_execution_forwarding_fixture as x
 elif '--branch-caller' in sys.argv:
  import v666_root_execution_caller_fixture as x
