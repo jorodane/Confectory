@@ -9,6 +9,7 @@ internal static class BlueprintOverrideContracts
     static string Hash(string text)=>JsonData.HashBytes(Encoding.UTF8.GetBytes(text));
     public static JsonObject Query(JsonObject request,Func<Element,string>? format=null)
     {
+        if(request["action"]?.ToString() is "readRootImports" or "verifyRootImports" or "validateRootImports")return BlueprintRootExecutionImports.Query(request);
         if(request["action"]?.ToString() is "readReturnContract" or "verifyReturnContract" or "validateReturnContract")return BlueprintPublicReturnContract.Query(request);
         if(request["action"]?.ToString()=="prepareReturns")return BlueprintPublicBodyReturns.Prepare(request);
         if(request["action"]?.ToString() is "validateGroup" or "verifyGroup")return Group(request,format);
@@ -112,6 +113,7 @@ internal static class BlueprintOverrideContracts
                 if(reads.TryGetValue(path,out var prior)&&!JsonNode.DeepEquals(prior,row))throw new InvalidOperationException("Override dependency versions differ; preserve all input");reads[path]=row;
             }
         }
+        BlueprintRootExecutionImports.Group(request,reads);
         if(reads.Count>128)throw new ArgumentException("Combined override observation budget exceeded");
         return new(){["reads"]=new JsonArray(reads.Values.Select(v=>v.DeepClone()).ToArray()),["checks"]=BlueprintPublicBodyReturns.Guards(units,selected),["readOnly"]=true};
     }

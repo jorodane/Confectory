@@ -41,6 +41,6 @@ string confirmedSaved=saved.ToJsonString();var state=AppDomain.CurrentDomain.Get
  if(state["checkpointVersion"]?.ToString()==confirmedHash)foreach(string id in selected)if(state["units"]?[id] is System.Text.Json.Nodes.JsonObject unit&&unit["draft"]?.ToString()==unit["original"]?.ToString()&&unit["authorSaveReceipt"] is System.Text.Json.Nodes.JsonObject receipt)receipt.Remove("publicWrapper");
  if(state["checkpointVersion"]?.ToString()==confirmedHash)foreach(var group in closedExecutionGroups){
   if(!System.Linq.Enumerable.All(group,m=>settled.Contains(m!.ToString())&&state["units"]?[m.ToString()] is System.Text.Json.Nodes.JsonObject unit&&System.Text.Json.Nodes.JsonNode.DeepEquals(unit["rootContractGroup"],group)&&unit["baseline"]?.ToString()!="missing"&&unit["draft"]?.ToString()==unit["original"]?.ToString()))continue;
-  foreach(var member in group){var unit=state["units"]![member!.ToString()]!.AsObject();unit.Remove("rootContractGroup");unit.Remove("rootAbiContracts");}
+  foreach(var member in group){var unit=state["units"]![member!.ToString()]!.AsObject();unit.Remove("rootContractGroup");unit.Remove("rootAbiContracts");unit.Remove("rootExecutionImports");}
  }
 }

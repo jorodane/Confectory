@@ -24,7 +24,8 @@ static partial class BlueprintRootExecution
     }
     static JsonObject Definitions(JsonObject units,string graphId,bool assemble=false) {
         var root=Root(units,graphId,false);var records=new JsonObject();var contracts=new JsonObject();
-        foreach(string id in ReferencedFunctions(root.Implementation,root.Graph))contracts[id]=units[id]?["draft"]?.DeepClone()??throw new ArgumentException("Owned exact imported contract required");
+        var registered=BlueprintRootExecutionImports.Contracts(units,root.Implementation.Id);
+        foreach(string id in ReferencedFunctions(root.Implementation,root.Graph))contracts[id]=units[id]?["draft"]?.DeepClone()??registered[id]?.DeepClone()??throw new ArgumentException("Exact imported contract and registered receipt required");
         string virtualRoot=Path.Combine(Path.GetTempPath(),"confectory-root-execution");
         foreach(var entry in BlueprintTree.Nodes(root.Graph).Where(n=>n.Node["kind"]?.ToString()=="code")) {
             var node=entry.Node;string id=BlueprintTree.SourceId(graphId,entry.Key);var unit=units[id];
@@ -52,8 +53,10 @@ static partial class BlueprintRootExecution
         var imports=roots.SelectMany(r=>r.Implementation.Imports.Values).ToArray();
         var functions=roots.SelectMany(r=>ReferencedFunctions(r.Implementation,r.Graph)).ToHashSet(StringComparer.Ordinal);
         var observed=functions.Concat(imports.Where(i=>i.Scope is not null).Select(i=>i.Scope!)).Concat(OwnershipObservations(units,rootId,contexts)).Where(id=>!owners.Contains(id)).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
-        foreach(string id in observed){if(PackPaths.Namespace(id)!=PackPaths.Namespace(rootId))throw new ArgumentException("Registered imported contracts need their readonly receipt boundary; preserve the sources");string kind=units[id]?["kind"]?.ToString()??"";if(kind is not ("function" or "object" or "schema" or "module" or "implementation" or "project"))throw new ArgumentException("Observe existing owned contracts and source ownership without changing them");if(kind!="project")_=Declaration(units,id,kind);if(functions.Contains(id)&&kind!="function")throw new ArgumentException("Exact imported function contract required");}
-        return observed;
+        var external=roots.Select(r=>units[r.Implementation.Id]?["rootExecutionImports"] as JsonObject).Where(s=>s is not null).ToArray();
+        foreach(var root in roots)_=BlueprintRootExecutionImports.Contracts(units,root.Implementation.Id);
+        foreach(string id in observed){if(PackPaths.Namespace(id)!=PackPaths.Namespace(rootId)){if(!external.Any(s=>s!["headers"]?[id] is not null))throw new ArgumentException("Registered import/scope receipt missing; preserve the sources");continue;}string kind=units[id]?["kind"]?.ToString()??"";if(kind is not ("function" or "object" or "schema" or "module" or "implementation" or "project"))throw new ArgumentException("Observe existing owned contracts and source ownership without changing them");if(kind!="project")_=Declaration(units,id,kind);if(functions.Contains(id)&&kind!="function")throw new ArgumentException("Exact imported function contract required");}
+        return observed.Where(id=>PackPaths.Namespace(id)==PackPaths.Namespace(rootId)).ToArray();
     }
     static JsonArray Members(JsonObject units,string rootId,IEnumerable<string> callerIds) {
         callerIds=callerIds.ToArray();

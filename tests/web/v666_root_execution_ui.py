@@ -1,7 +1,9 @@
 """M12 authored sidebar, return cards and explicit caller; interrupted UI saves."""
 import copy,json,sys
 from playwright.sync_api import sync_playwright,expect
-if '--observer-root' in sys.argv:
+if '--imports-root' in sys.argv:
+ import v666_root_execution_imports_fixture as x
+elif '--observer-root' in sys.argv:
  import v666_root_execution_observers_fixture as x
 elif '--forward-caller' in sys.argv:
  import v666_root_execution_forwarding_fixture as x
@@ -80,9 +82,14 @@ try:
    try:panel().locator('[data-bp-save]').click();f.idle();assert pending() and checkpoint.read_bytes()==before;x.original()
    finally:checkpoint.chmod(0o600)
    restart(2);f.checked('저장 권한 실패와 재시작은 루트/호출자 원본 및 private 입력을 보존한다')
-  if mode=='conflict':
+  if mode=='external-conflict':
+   path=x.pack/'Scope.celem';x.mutate(path)
+   try:panel().locator('[data-bp-save]').click();f.idle();assert pending() and checkpoint.read_bytes()==before
+   finally:x.restore(path)
+   x.original();f.checked('등록 외부 scope의 Save 전 경합도 원본·private 입력·checkpoint를 보존한다')
+  elif mode=='conflict':
    file=f.project/getattr(x,'conflict_file','NestedAfter.node.json' if getattr(x,'nested_mode',False) else 'After.node.json');file.write_bytes(x.physical[file]+b' ');x.physical[file]=file.read_bytes();panel().locator('[data-bp-save]').click();f.idle();assert pending() and checkpoint.read_bytes()==before;x.original();f.checked('다른 frame인 호출자 물리 원문 충돌도 전체 미적용하고 입력을 유지한다')
-  else:
+  elif mode!='external-conflict':
    if mode in ['loss','late']:
     requests=set();queries=set();paused={};lost=[]
     def interrupt(route):
