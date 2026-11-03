@@ -15,7 +15,7 @@ static class BlueprintRootExecution
     static JsonObject Graph(JsonObject units,string id) {
         if(units[id]?["kind"]?.ToString()!="blueprint")throw new ArgumentException("Owned Blueprint root required");
         var graph=JsonNode.Parse(units[id]!["draft"]!.GetValue<string>())!.AsObject();BlueprintDocuments.Validate(id,"blueprint",graph.ToJsonString());
-        if(graph["profile"]?.ToString()!=FeatureBlueprint.SwitchProfile||graph["copySource"] is not null||BlueprintTree.Nodes(graph).Any(n=>n.Node["kind"]?.ToString() is not ("call" or "code" or "export" or "graph")||n.Node["control"]?.ToString()=="branch"||n.Node["implementationContext"] is not null||n.Node["postCall"] is not null))throw new ArgumentException("Existing ordinary switch-profile roots required; preserve other contexts");return graph;
+        if(graph["profile"]?.ToString()!=FeatureBlueprint.SwitchProfile||graph["copySource"] is not null||BlueprintTree.Nodes(graph).Any(n=>n.Node["kind"]?.ToString() is not ("call" or "code" or "export" or "graph")||n.Node["control"]?.ToString()=="branch"||n.Node["postCall"] is not null))throw new ArgumentException("Existing switch-profile roots required; preserve other contexts");return graph;
     }
     static (Element Function,Element Implementation,JsonObject Graph) Root(JsonObject units,string graphId) {
         int marker=graphId.IndexOf("/body:",StringComparison.Ordinal);if(marker<0||graphId.Contains("/graph:",StringComparison.Ordinal))throw new ArgumentException("Direct root source required");
@@ -51,9 +51,10 @@ static class BlueprintRootExecution
     static string[] ObservedContracts(JsonObject units,string rootId,IEnumerable<string> callerIds) {
         var roots=Targets(units,rootId).Concat(callerIds).Distinct(StringComparer.Ordinal).Select(id=>Root(units,id)).ToArray();
         var owners=roots.Select(r=>r.Function.Id).ToHashSet(StringComparer.Ordinal);
-        var imports=roots.SelectMany(r=>r.Implementation.Imports.Values.Select(i=>i.Id)).Where(id=>!owners.Contains(id)).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
-        foreach(string id in imports){if(PackPaths.Namespace(id)!=PackPaths.Namespace(rootId))throw new ArgumentException("Registered imported contracts need their readonly receipt boundary; preserve the sources");_=Declaration(units,id,"function");}
-        return imports;
+        var imports=roots.SelectMany(r=>r.Implementation.Imports.Values).ToArray();
+        var observed=imports.Select(i=>i.Id).Concat(imports.Where(i=>i.Scope is not null).Select(i=>i.Scope!)).Where(id=>!owners.Contains(id)).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
+        foreach(string id in observed){if(PackPaths.Namespace(id)!=PackPaths.Namespace(rootId))throw new ArgumentException("Registered imported contracts need their readonly receipt boundary; preserve the sources");string kind=units[id]?["kind"]?.ToString()??"";if(kind is not ("function" or "object"))throw new ArgumentException("Observe an existing owned function or object scope without changing it");_=Declaration(units,id,kind);if(imports.Any(i=>i.Id==id)&&kind!="function")throw new ArgumentException("Exact imported function contract required");}
+        return observed;
     }
     static JsonArray Members(JsonObject units,string rootId,IEnumerable<string> callerIds) {
         callerIds=callerIds.ToArray();

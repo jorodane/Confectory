@@ -1,7 +1,9 @@
 """M12 authored sidebar, return cards and explicit caller; interrupted UI saves."""
 import copy,json,sys
 from playwright.sync_api import sync_playwright,expect
-if '--nested-root' in sys.argv:
+if '--native-root' in sys.argv:
+ import v666_root_execution_native_fixture as x
+elif '--nested-root' in sys.argv:
  import v666_root_execution_nested_fixture as x
 elif '--multi-root' in sys.argv:
  import v666_root_execution_multi_fixture as x

@@ -985,7 +985,7 @@ lock(state){
   var executionPriorSources=sources.DeepClone().AsObject();int executionPriorBytes=sourceBytes;
   try{
    var all=calls.List.Invoke(draft);if(all.Length>64)throw new InvalidOperationException("Root execution source closure budget exceeded");var snapshot=new System.Text.Json.Nodes.JsonObject();
-   foreach(string sourceId in all){var status=calls.Status.Invoke(draft,sourceId);if(status[1] is not ("function" or "implementation" or "blueprint" or "blueprint-node"))continue;var source=Read(sourceId);if(source[5]=="missing")throw new InvalidOperationException("Confirm existing creation drafts before changing a public execution contract");snapshot[sourceId]=new System.Text.Json.Nodes.JsonObject{["kind"]=source[1],["path"]=source[2],["draft"]=source[3]};}
+   foreach(string sourceId in all){var status=calls.Status.Invoke(draft,sourceId);if(status[1] is not ("function" or "implementation" or "blueprint" or "blueprint-node" or "object"))continue;var source=Read(sourceId);if(source[5]=="missing")throw new InvalidOperationException("Confirm existing creation drafts before changing a public execution contract");snapshot[sourceId]=new System.Text.Json.Nodes.JsonObject{["kind"]=source[1],["path"]=source[2],["draft"]=source[3]};}
    rootExecution=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("blueprintRootExecutionCandidates",new System.Text.Json.Nodes.JsonObject{["id"]=graphId,["units"]=snapshot.DeepClone()}.ToJsonString()));rootExecutionUnits=snapshot;
   }catch(Exception error){rootExecutionError=error.Message;sources=executionPriorSources;sourceBytes=executionPriorBytes;}
  }

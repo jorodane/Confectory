@@ -111,7 +111,7 @@ public static partial class FeatureBlueprint
         if(executionForward is not null)Need(request["sourcePath"] is not null&&SupportsSwitches(S(graph,"profile"))&&feature.Signature!.Return=="void","GRAPH_EXECUTION_FORWARD_PROFILE",feature.Id);
         var publicBranches = BlueprintExecutionBranches.Read(feature);
         bool publicExecution = BlueprintExecutionBranches.Has(feature);
-        Need(!publicExecution || request["sourcePath"] is null && executionForward is null && SupportsSwitches(S(graph,"profile")) && !graph["nodes"]!.AsArray().Any(n => n!["implementationContext"] is not null), "GRAPH_PUBLIC_EXECUTION_CONTEXT", feature.Id);
+        Need(!publicExecution || request["sourcePath"] is null && executionForward is null && SupportsSwitches(S(graph,"profile")), "GRAPH_PUBLIC_EXECUTION_CONTEXT", feature.Id);
         var exitEnum = publicExecution ? BlueprintExecutionBranches.Enum(feature) : executionForward?["enum"];
         bool executionExitMode=graph["executionExitMode"]?.GetValue<bool>()==true;
         Need(!publicExecution || executionExitMode, "GRAPH_PUBLIC_EXECUTION_EXITS", feature.Id);

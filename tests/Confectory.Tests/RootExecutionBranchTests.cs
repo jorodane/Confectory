@@ -186,4 +186,41 @@ public sealed class RootExecutionBranchTests : TestCase
         Equal("invalid",Text(inspected,"state"));Equal("NODE_RESERVED_NAME",Text(inspected["diagnostics"]![0]!,"code"));Equal("__fg_wrapped_return",fn.Signature!.Args[0].Name);
     }
 
+
+    public void test_public_execution_keeps_native_invoke_receiver_recursion_scope_and_source_identity() {
+        string source=Function().Replace("(int mode)","(long amount,out int result)",StringComparison.Ordinal);
+        const string other="function Api::Other (long value) -> long {}";
+        const string implementation="implementation Provider::ValueBody for Api::Value (long input,out int copied) -> void {import Api::Other as Scoped (long) -> long in Provider::Scope;blueprint common \"native.graph.json\";}";
+        var owner=new Parser(implementation,"<native-provider>").ParseElement();var context=FeatureBlueprint.ImplementationContext(owner);var graph=Graph("Api::Value",source,"original");
+        string identity=Path.Combine(f.Packs["Provider"].Root,"original.csbody");
+        const string original="// Keep native context and CRLF\r\nif(input<0){this.Invoke(-input,out copied);return;}\r\nIImports same=this.calls;\r\nstring File([System.Runtime.CompilerServices.CallerFilePath] string path=\"\")=>System.IO.Path.GetFileName(path);\r\nstring Member([System.Runtime.CompilerServices.CallerMemberName] string member=\"\")=>member;\r\ncopied=checked((int)same.Scoped.Invoke(input));\r\nConsole.WriteLine(File()+\":\"+Member()+\":\"+(GetType()==typeof(IImports).DeclaringType)+\":\"+copied);\r\n";
+        graph["schema"]=2;graph["executionExitMode"]=true;
+        graph["nodes"]=new JsonArray(new JsonObject { ["id"]="original",["kind"]="code",["control"]="next",["intent"]="Existing instance implementation",["signature"]=FeatureBlueprint.SignatureDocument(owner.Signature!),["arguments"]=new JsonObject { ["input"]=new JsonObject { ["input"]="amount" } },["implementation"]="original.node.json",["implementationContext"]=context.DeepClone(),["sourceIdentity"]=identity });
+        graph["edges"]=new JsonArray(Edge("original","exit:done"));graph["exits"]=new JsonObject { ["done"]=new JsonObject { ["executionBranch"]="success" } };
+        var definitions=FeatureBlueprint.Execute(new JsonObject { ["operation"]="featureBlueprintNodes",["featureSource"]=source,["implementationContext"]=context.DeepClone(),["bodyTarget"]="common",["featureContracts"]=new JsonObject { ["Api::Other"]=other },["graph"]=graph.DeepClone() });True(definitions["state"]?.ToString()=="node-definitions",definitions.ToJsonString());
+        f.Body("Provider","original.node.json",new JsonObject { ["schema"]=1,["node"]="original",["definitionHash"]=definitions["nodes"]![0]!["definitionHash"]!.DeepClone(),["source"]=original }.ToJsonString());
+        f.Body("Provider","original.csbody",original);byte[] preserved=File.ReadAllBytes(identity);
+        f.Add("Api","function","Value",source);f.Add("Api","function","Other",other);f.Add("Provider","implementation","ValueBody",implementation);f.Body("Provider","native.graph.json",graph.ToJsonString());
+        f.Add("Provider","object","Scope","object Provider::Scope {provide Api::Other with Provider::OtherBody;}");
+        f.Add("Provider","implementation","OtherBody","implementation Provider::OtherBody for Api::Other (long value) -> long {body common \"right.csbody\";}");f.Body("Provider","right.csbody","return value+3;");
+        f.Add("Provider","implementation","WrongBody","implementation Provider::WrongBody for Api::Other (long value) -> long {body common \"wrong.csbody\";}");f.Body("Provider","wrong.csbody","return value+30;");
+        f.Add("App","implementation","MainBody","implementation App::MainBody for App::Main () -> int {import Api::Value as Original (long,out int) -> void;body common \"main.csbody\";}");
+        f.Body("App","main.csbody","calls.Original.Invoke(-2,out int ordinary);Console.WriteLine(\"ordinary:\"+ordinary);var branch=(("+BlueprintExecutionBranches.Interface("Api::Value")+")calls.Original).InvokeExecution(-3,out int executed);Console.WriteLine(\"execution:\"+(int)branch+\":\"+executed);return 0;");
+        f.Main("provide Api::Value with Provider::ValueBody;provide Api::Other with Provider::WrongBody;");
+        f.Sync();Output(Build(),"original.csbody:Invoke:True:5\nordinary:5\noriginal.csbody:Invoke:True:6\nexecution:7:6");Sequence(preserved,File.ReadAllBytes(identity));
+        // Nonvoid native return is captured separately; recursion still resolves to the native method.
+        source=source.Replace("-> void","-> int",StringComparison.Ordinal);
+        string returning=implementation.Replace("-> void","-> int",StringComparison.Ordinal);
+        owner=new Parser(returning,"<native-return-provider>").ParseElement();context=FeatureBlueprint.ImplementationContext(owner);
+        graph["contractHash"]=FeatureBlueprint.ContractHash(new Parser(source,"<native-return-function>").ParseElement());
+        graph["nodes"]![0]!["signature"]=FeatureBlueprint.SignatureDocument(owner.Signature!);graph["nodes"]![0]!["implementationContext"]=context.DeepClone();
+        graph["exits"]!["done"]!["value"]=new JsonObject { ["node"]="original",["output"]="return" };
+        string returnSource=original.Replace("this.Invoke(-input,out copied);return;","return this.Invoke(-input,out copied);",StringComparison.Ordinal)+"return copied+100;\r\n";
+        definitions=FeatureBlueprint.Execute(new JsonObject { ["operation"]="featureBlueprintNodes",["featureSource"]=source,["implementationContext"]=context.DeepClone(),["bodyTarget"]="common",["featureContracts"]=new JsonObject { ["Api::Other"]=other },["graph"]=graph.DeepClone() });True(definitions["state"]?.ToString()=="node-definitions",definitions.ToJsonString());
+        f.Body("Provider","original.node.json",new JsonObject { ["schema"]=1,["node"]="original",["definitionHash"]=definitions["nodes"]![0]!["definitionHash"]!.DeepClone(),["source"]=returnSource }.ToJsonString());f.Body("Provider","original.csbody",returnSource);preserved=File.ReadAllBytes(identity);
+        f.Add("Api","function","Value",source);f.Add("Provider","implementation","ValueBody",returning);f.Body("Provider","native.graph.json",graph.ToJsonString());
+        f.Add("App","implementation","MainBody","implementation App::MainBody for App::Main () -> int {import Api::Value as Original (long,out int) -> int;body common \"main.csbody\";}");
+        f.Body("App","main.csbody","int first=calls.Original.Invoke(-2,out int ordinary);Console.WriteLine(\"ordinary:\"+first+\":\"+ordinary);var branch=(("+BlueprintExecutionBranches.Interface("Api::Value")+")calls.Original).InvokeExecution(-3,out int executed,out int value);Console.WriteLine(\"execution:\"+(int)branch+\":\"+value+\":\"+executed);return 0;");
+        f.Sync();Output(Build(),"original.csbody:Invoke:True:5\nordinary:105:5\noriginal.csbody:Invoke:True:6\nexecution:7:106:6");Sequence(preserved,File.ReadAllBytes(identity));
+    }
 }

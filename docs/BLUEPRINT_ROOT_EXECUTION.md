@@ -4,7 +4,7 @@
 
 ## 이번 지원 경계
 
-직접 소유한 동기 `void` 함수, 값 입력과 선택적인 **정수 `out int` 하나**, 이미 저장된 직접 소유 Blueprint target 전부와 명시 선택한 직접 Blueprint 호출자들을 다룬다. 같은 그래프의 반복 호출과 여러 호출자/target을 하나의 계약 변경에 포함한다. Blueprint 호출자가 없어도 분기를 정의할 수 있으며 기존 C# `IInvoke` 소비자는 유지한다. 모든 Root는 기존 `sync-acyclic-switch-v1`이어야 한다. 루트의 C# 원문, 노드 ID·핀·입력 값과 화면 위치를 보존한다. 함수의 공개 입력/ordinary 출력 계약을 변경하지 않는다. 원본 부모/외부/참조, override 입출력 계약 및 권한을 확장하지 않는다.
+직접 소유한 동기 함수의 기존 value/ref/out과 ordinary 비void 반환을 공개 결과 분기와 별도로 보존한다. 여러 ordinary provider/target·직접/소유 private caller를 하나의 명시 계약 갱신에 연결하며, native whole-body의 원래 instance 진입도 기존 문맥 검증으로 연결한다. Blueprint caller가 없어도 분기를 정의할 수 있고 기존 C# `IInvoke` 소비자는 유지한다. 모든 Root는 기존 `sync-acyclic-switch-v1`이어야 한다. 루트의 C# 원문, 노드 ID·핀·입력 값과 화면 위치를 보존하며 공개 입력/ordinary 출력 계약을 변경하지 않는다. 기존 공개 계약을 유지하는 copy·자식 소유·등록 외부 provider의 본문 반환 편집은 지원하지만, 이들이 포함된 공개 정의 전체 갱신과 등록 import 관측의 남은 경계는 [유한한 종료 표](M12_CLOSURE.md)를 따른다. 부모/외부/참조 원본·override 입출력 계약·권한을 확장하지 않는다.
 
 기존 분기 사이드바에서 추가/이름/삭제, 반환 카드 배치/기존 ID 선택과 실행선 연결을 사용한다. 함께 갱신할 호출자는 자동으로 고르지 않는다. 현재 영향받는 호출 위치 전부를 직접 선택해야 하며 누락/중복은 거절한다. 다른 target의 반환도 공개 ID 또는 `None`으로 명시 대응한다. 물리 파일을 공유하는 target은 모호한 초안 소유권을 피하기 위해 현재 거절하며, 이를 영구 UX 정책이나 필수 마이그레이션으로 확정하지 않는다. 삭제 전에 반환 카드와 호출자의 연결을 명시적으로 해제해야 한다. 호출자의 기존 다음 줄은 유지한다. 분기 줄은 기존 노드 실행 규칙에 따라 실행한 뒤 다음 줄로 돌아가며, 함수 반환 카드는 해당 함수에서 즉시 반환한다. 미연결 일반 종료는 `None`이며 성공/실패를 추정하지 않는다. 불완전 반환 선택이나 삭제된 ID는 거절한다.
 
@@ -14,7 +14,7 @@
 
 루트 schema 2 / `executionExitMode`와 정확한 함수 계약 hash, 호출자의 `publicExecution` receipt를 함께 검증한다. 각 반환 위치는 공개 분기 ID 하나를 참조한다. 기존 M11 private 종료점의 완전성/coverage 검증은 바꾸지 않는다. 공개 계약과 대응 없는 새 caller 분기나 낡은 receipt는 거절한다.
 
-정수 출력은 기존 export 카드와 데이터 연결을 유지한다. 기존 `IInvoke(..., out int)`와 선택적 `IExecutionInvoke.InvokeExecution(..., out int)`가 같은 out 매개변수를 전달하며, 결과 enum은 별도 반환한다. 호출은 한 번만 일어나고 out 값을 발행한 뒤 호출자가 결과 분기를 실행하며 다음 줄로 이어진다. C# 본문에 매개변수를 추가하거나 결과 tuple로 재작성하지 않는다. 출력 미배정/예외의 기존 컴파일 경고·기본값·저장소 규칙은 유지하고 새 성공/실패나 출력 값을 추정하지 않는다. 다른 out 타입·복수 out·ref 입력·비void 반환은 이번 지원 경계 밖이다.
+최초 정수 out 단위는 기존 export 카드와 데이터 연결을 유지했다. 기존 `IInvoke(..., out int)`와 선택적 `IExecutionInvoke.InvokeExecution(..., out int)`가 같은 out 매개변수를 전달하며, 결과 enum은 별도 반환한다. 호출은 한 번만 일어나고 out 값을 발행한 뒤 호출자가 결과 분기를 실행하며 다음 줄로 이어진다. C# 본문에 매개변수를 추가하거나 결과 tuple로 재작성하지 않는다. 출력 미배정/예외의 기존 컴파일 경고·기본값·저장소 규칙은 유지하고 새 성공/실패나 출력 값을 추정하지 않는다. 후속 typed out/ref·비void·소유 문맥 지원과 검증은 아래 누적 항목과 유한한 종료 표를 따른다.
 
 루트 함수·구현·그래프와 호출자 함수·구현·그래프 및 원래 C# record가 하나의 `rootContractGroup`이다. 전체 후보를 준비한 뒤 체크포인트 CAS로 저장하고 전체 그룹을 Review→Confirm한다. 바꾸지 않는 원문과 헤더도 체크포인트 저장 및 최종 파일 commit lease의 읽기 전용 hash 검사에 포함한다. Confirm 이후에는 그룹 크기로 의미를 추정하지 않고 공통 그룹 검증을 통과한 전체 멤버의 기준본을 갱신한다. 호출자가 없는 작은 그룹도 같은 검증을 사용하여 재시작 후 재편집에서 낡은 기준본을 남기지 않는다. 일부 Review, 외부 변경, 쓰기 실패는 전체 미적용하며 원본과 편집 입력을 보존한다. 응답이 유실되면 기존 attempt/receipt로 저장 결과를 조회한다.
 
@@ -122,3 +122,7 @@ ordinary switch-profile의 기존 공개 분기/None 반환에 비void 직접 �
 ## 소유 private frame의 실제 호출 위치
 
 기존 ordinary switch-profile private caller의 전체 경로와 local 실행선을 공개 분기 계약 후보에 연결한다. 모든 C# leaf를 qualified source ID로 관측하고 기존 body target/sourceOwner와 부모 continuation·형제·권한을 유지한다. profile/전달 계약 자동 변환은 하지 않는다. [지원/검증 경계](VALIDATION_V666_ROOT_EXECUTION_NESTED.md).
+
+## native whole-body의 공개 실행 진입
+
+직접 소유한 기존 switch-profile native Root의 원문 `Invoke`와 그래프의 명시적 `IInvoke` 진입을 구분하여 this/재귀/receiver·scoped import·원문 위치를 유지한다. scope object와 import 함수도 변경 없는 관측/CAS 멤버다. [지원·검증](VALIDATION_V666_ROOT_EXECUTION_NATIVE.md)과 [유한한 M12 종료 조건](M12_CLOSURE.md)을 기준으로 실제 잔여를 구별한다.
