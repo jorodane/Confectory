@@ -337,7 +337,7 @@ def main():
                 if label=='lf':
                     work.run('lf-public-wrapper-regression',[sys.executable,str(checkout/'tests/web/v666_root_execution_wrapper_api.py'),str(checkout),str(report),'--out-root'],cwd=checkout,env=env)
                     work.run('lf-saved-copy-data-regression',[sys.executable,str(checkout/'tests/web/v666_root_execution_copy_api.py'),str(checkout),str(report),'--nonvoid-root'],cwd=checkout,env=env)
-                    work.run('lf-all-target-regression',[sys.executable,str(checkout/'tests/web/v666_root_execution_multi_api.py'),str(checkout),str(report)],cwd=checkout,env=env)
+                    work.run('lf-all-target-regression',[sys.executable,str(checkout/'tests/web/v666_root_execution_multi_api.py'),str(checkout),str(report),'--out-root'],cwd=checkout,env=env)
                 else:
                     work.run('crlf-registered-child-regression',[sys.executable,str(checkout/'tests/web/v666_root_execution_override_api.py'),str(checkout),str(report),'--out-root','--external-parent'],cwd=checkout,env=env)
                     work.run('crlf-nonvoid-regression',[sys.executable,str(checkout/'tests/web/v666_root_execution_api.py'),str(checkout),str(report),'--nonvoid-root'],cwd=checkout,env=env)
