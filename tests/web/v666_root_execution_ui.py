@@ -79,7 +79,7 @@ try:
    finally:checkpoint.chmod(0o600)
    restart(2);f.checked('저장 권한 실패와 재시작은 루트/호출자 원본 및 private 입력을 보존한다')
   if mode=='conflict':
-   file=f.project/('NestedAfter.node.json' if getattr(x,'nested_mode',False) else 'After.node.json');file.write_bytes(x.physical[file]+b' ');x.physical[file]=file.read_bytes();panel().locator('[data-bp-save]').click();f.idle();assert pending() and checkpoint.read_bytes()==before;x.original();f.checked('다른 frame인 호출자 물리 원문 충돌도 전체 미적용하고 입력을 유지한다')
+   file=f.project/getattr(x,'conflict_file','NestedAfter.node.json' if getattr(x,'nested_mode',False) else 'After.node.json');file.write_bytes(x.physical[file]+b' ');x.physical[file]=file.read_bytes();panel().locator('[data-bp-save]').click();f.idle();assert pending() and checkpoint.read_bytes()==before;x.original();f.checked('다른 frame인 호출자 물리 원문 충돌도 전체 미적용하고 입력을 유지한다')
   else:
    if mode in ['loss','late']:
     requests=set();queries=set();paused={};lost=[]

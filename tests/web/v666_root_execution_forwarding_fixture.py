@@ -6,6 +6,7 @@ feature=base.feature;impl=base.impl;graph=base.graph;caller=base.caller
 caller_node='frame/invoke';frame_id=caller+'/graph:frame';peer_id=caller+'/node:peer/node:after'
 root=base.root;function=base.function;manifest=base.manifest;edge=base.edge
 nested_mode=True;forward_caller_mode=True;out_mode=True;data_mode=True;result_code=10;expected_review_members=12
+conflict_file='After.node.json'
 initial_stdout='callee:1\nafter:10\nprivate:17:10\nroot-after:10';final_stdout='callee:1\nprivate:17:10\nroot-after:10'
 execution={'primary':'next','members':[{'id':'next','name':'Continue','value':0},{'id':'done','name':'Done','value':17}]}
 signature={'args':[{'type':'long','name':'amount'},{'type':'int','name':'result','mode':'out'}],'return':'void'}
