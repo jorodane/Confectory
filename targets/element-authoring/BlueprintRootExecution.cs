@@ -71,9 +71,12 @@ static class BlueprintRootExecution
             var graph=JsonNode.Parse(pair.Value!["draft"]!.GetValue<string>())!;
             var uses=BlueprintTree.Nodes(graph.AsObject()).Where(p=>p.Node["kind"]?.ToString()=="call"&&p.Node["feature"]?.ToString()==root.Function.Id).ToArray();if(uses.Length==0)continue;
             var caller=Root(units,pair.Key);
-            if(caller.Function.Id==root.Function.Id||uses.Any(p=>p.Node["branchOwner"] is not null||p.Node["control"]?.ToString() is not ("next" or "switch")))throw new ArgumentException("Caller uses with explicit owned contracts required; preserve other contexts");
-            if(uses.Any(p=>{var frame=CallerFrame(caller.Graph,p.Key).Frame;return frame["profile"]?.ToString()!=FeatureBlueprint.SwitchProfile||frame["executionExitMode"]?.GetValue<bool>()==true&&(!ReferenceEquals(frame,caller.Graph)||!BlueprintExecutionBranches.Has(caller.Function));}))throw new ArgumentException("Ordinary switch-profile caller frames required; preserve private forwarded contracts");
+            if(caller.Function.Id==root.Function.Id||uses.Any(p=>p.Node["control"]?.ToString() is not ("next" or "switch")))throw new ArgumentException("Caller uses with explicit owned contracts required; preserve other contexts");
+            if(uses.Any(p=>CallerFrame(caller.Graph,p.Key).Frame["profile"]?.ToString()!=FeatureBlueprint.SwitchProfile))throw new ArgumentException("Existing switch-profile caller frames required; preserve other profiles");
             _=ObservedContracts(units,rootId,new[]{pair.Key});
+            // Validate the complete original CFG, including the caller's private
+            // source/enum/exit and branch-owner contracts, before proposing edits.
+            // Callee public branches never replace those enclosing contracts.
             _=Definitions(units,pair.Key,true);callerOwners.Add(caller.Implementation.Id);
             foreach(var use in uses.OrderBy(p=>p.Key,StringComparer.Ordinal)){var frame=CallerFrame(caller.Graph,use.Key).Frame;rows.Add(new JsonObject { ["graph"]=pair.Key,["node"]=use.Key,["name"]=caller.Function.Description.Length>0?caller.Function.Description:caller.Function.Id,["nodes"]=frame["nodes"]!.DeepClone(),["edges"]=frame["edges"]!.DeepClone() });}
         }

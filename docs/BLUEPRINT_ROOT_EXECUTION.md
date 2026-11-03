@@ -130,3 +130,6 @@ ordinary switch-profile의 기존 공개 분기/None 반환에 비void 직접 �
 ## 호출자 자신의 공개 분기·반환
 
 직접 소유 caller Root의 기존 공개 metadata와 종료점은 피호출자 정의 갱신과 분리해 보존한다. 정확한 기존 거래의 call 포트 연결은 같은 후보의 경로 변경으로 처리하며, 다른 함수의 분기 ID를 서로 대체하지 않는다. [지원·검증 경계](VALIDATION_V666_ROOT_EXECUTION_CALLER.md).
+## 기존 private 실행 경계의 호출
+
+기존 switch-profile private frame의 `executionSource`·enum·종료점과 분기 영역의 소유 관계는 피호출자의 공개 계약과 별도로 유지한다. 전체 그래프의 원래/후보 검증이 source·서명·enum·owner·coverage를 계속 확인하며 해당 frame을 이유 없이 자동 변환하지 않는다. [지원·검증 경계](VALIDATION_V666_ROOT_EXECUTION_FORWARDING.md).
