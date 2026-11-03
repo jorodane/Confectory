@@ -110,3 +110,5 @@ ordinary IInvoke/native import와 legacy NoBranch wrapper를 공개 계약 갱�
 직접 소유한 기존 ordinary 함수/Blueprint target·직접 Blueprint 호출자의 완료를 같은 ID·값·literal 연결의 일반 공개 Result로 전환한다. C#·IO·지역 Result를 보존하며 기존 반환 카드의 명시 선택/이름 편집과 async 재활성화에 연결한다. [정확한 경계와 호환성](M4_PUBLIC_COMPLETION.md). Root 전환·실제 호출자 전체 관측과 final CAS를 유지하고, 재시작의 무관한 lazy body와 필수 importing body 누락을 구분한다.
 
 다음 M4 흐름은 Result 없는 소유 next/native/whole-body 본문의 원문/출력 보존 어댑터, 새/내부 소유 본문의 명시 전환, property 보조 편집이다. 완료한 ordinary 공개 완료/지역 Result/Set을 다시 조합별 잔여로 추가하지 않는다. M11/M12는 관련 회귀를 제외하면 닫힌 상태를 유지하며 V2–V9·팩/backend·종류 호환성 및 실제 기기/전체 UI/Space 전달은 기존 별도 잔여다.
+
+공개 완료의 최종 동결 `262f1a5`를 신규 52단계(재사용 0)로 검증하고 최신/롤백·전체 증거를 보관했다. [최종 검증 기록](VALIDATION_V666_PUBLIC_COMPLETION.md).

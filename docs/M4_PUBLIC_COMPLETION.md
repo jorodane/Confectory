@@ -17,3 +17,5 @@ M4의 다음 유한한 흐름은 Result 없는 next/native/whole-body 본문의 
 새 `blueprintFunctionCompletion`과 호출자 literal 포트 대응을 이전 parser가 동일하게 해석한다고 보장하지 않는다. 소스 rollback과 프로젝트/초안 복구를 구분하고 원본·최신 보관본을 함께 보존한다. Linux 검증과 Windows 교차 패키지는 실제 Windows/모바일 기기 검증이나 전체 UI/Space 전달 완료가 아니다.
 
 최종 검증은 `tools/verify_desktop.py --suite async-function`에서 독립 LF/CRLF·fresh package/전체 복원·실패 수명관리를 수행한다. 동결 source와 새/재사용 검사는 종료 기록에 구분한다.
+
+[최종 검증·보관 기록](VALIDATION_V666_PUBLIC_COMPLETION.md)에 동결 source·신규/재사용·보관 SHA와 공간을 기록한다.
