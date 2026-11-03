@@ -85,3 +85,6 @@ ordinary 소유/등록 데이터 반환의 최종 **신규 LF20·CRLF19·패키�
 
 
 기존 private 실행 frame·그 분기 영역 안의 callee 공개 계약 갱신을 연결했다. caller의 source/enum/서명/owner/종료점과 원래 `17`·out `10`·부모 분기/연속 실행을 보존한다. 최종 LF19·CRLF16·새 패키지/전체 복원/실패 수명관리6, **총41단계(신규33·동등 근거 재사용8)**가 통과했다. 재사용 Core 직접 검사38개 및 경합 경로 수리에 영향 없는 기존 LF 4단계와, 신규 충돌·CRLF API/UI·빌드·패키지 검사를 구분하고 [지원·증거·실제 경계](VALIDATION_V666_ROOT_EXECUTION_FORWARDING.md)에 기록했다. 이후 [유한한 M12 표](M12_CLOSURE.md)의 실제 소비자 관측/명시 wrapper 계약, 같은 계약 copy·자식 전체 갱신과 등록 import를 마감하며 조합별 필수 항목을 새로 만들지 않는다.
+
+
+ordinary IInvoke/native import와 legacy NoBranch wrapper를 공개 계약 갱신의 읽기 관측·생성 receipt 갱신에 연결했다. 원래 profile·C#·IO·source identity·scope/자체 분기를 보존하고 실제 public caller만 명시 대응한다. 최종 **LF20·CRLF16·새 패키지/전체 복원/실패 수명관리6, 총42단계(신규38·동등 재사용4)**가 통과했다. [정확한 지원·신규/재사용 근거·증거와 잔여](VALIDATION_V666_ROOT_EXECUTION_OBSERVERS.md)를 따른다. wrapper의 실제 공개 OriginalResult 명시 연결과 copy/자식·등록 외부의 전체 갱신은 유한한 M12 표에 유지한다.
