@@ -48,7 +48,7 @@ static partial class BlueprintRootExecution
             // members and readonly observations under the same final lease.
             if(group is not null&&units[group[0]!.ToString()]?["draft"]?.ToString().Contains(BlueprintExecutionBranches.Metadata,StringComparison.Ordinal)==true)continue;
             if(PackPaths.Namespace(pair.Key)!=ns)throw new ArgumentException("Owned public wrapper receipt required");
-            var root=Root(units,pair.Key,false);_=Definitions(units,pair.Key,true);
+            var root=Root(units,pair.Key,false);if(root.Implementation.Parent is not null||root.Graph["copySource"] is not null)throw new ArgumentException("Retain the existing public wrapper ownership boundary");_=Definitions(units,pair.Key,true);
             var original=unit["original"] is null?null:JsonNode.Parse(unit["original"]!.ToString()) as JsonObject;
             var previous=original?["nodes"] is JsonArray?BlueprintTree.Nodes(original).ToDictionary(n=>n.Key,n=>n.Node,StringComparer.Ordinal):new Dictionary<string,JsonObject>(StringComparer.Ordinal);
             bool changed=wrappers.Any(w=>!previous.TryGetValue(w.Key,out var old)||!JsonNode.DeepEquals(old["postCall"],w.Node["postCall"])||!JsonNode.DeepEquals(old["executionEnum"],w.Node["executionEnum"])||!JsonNode.DeepEquals(old["signature"],w.Node["signature"])||old["feature"]?.ToString()!=w.Node["feature"]?.ToString());

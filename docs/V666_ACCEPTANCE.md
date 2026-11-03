@@ -9,7 +9,7 @@ v536 기록은 과거 검증 증거이며 기존 기능을 미구현으로 되�
 아래 긴 표의 누적 문장은 각 당시 검증의 기록이다. 현재 잔여 판단은 [유한한 M12 마감표](M12_CLOSURE.md)를 우선한다. M11의 원래 소유 구현 편집은 마감했으며 구체적 회귀 없이 다시 열지 않는다. M12는 데이터 반환·소유 provider/target·일반 및 native 진입·공개/private 실행 계약 caller의 보존을 연결했고, 현재 실제 흐름의 마감 경계는 다음과 같다.
 
 - ordinary IInvoke/native import·기존 NoBranch의 관측은 [검증 기록](VALIDATION_V666_ROOT_EXECUTION_OBSERVERS.md)을 따른다. 실제 공개 OriginalResult를 명시 wrapper로 연결하고 원본 계약의 전체 갱신 후보를 [wrapper 검증 기록](VALIDATION_V666_ROOT_EXECUTION_WRAPPERS.md)에 연결한다. 나머지 M12는 다음 두 흐름이다.
-- 같은 계약 copy·자식 소유 본문이 포함된 공개 정의 전체 갱신.
+- 같은 계약 copy·자식 소유 target의 전체 명시 갱신과 inherited-only 관측을 [전체 갱신 기록](VALIDATION_V666_ROOT_EXECUTION_OWNED_UPDATES.md)에 연결한다. 집중 API/UI는 통과했고 최종 동결 검증 결과를 해당 기록에 유지한다.
 - 등록 외부 import·manifest·scope의 읽기 전용 receipt를 전체 거래에 결합.
 
 wrapper의 정상 stale 거절을 자동 변환 요구로, 비소유 부모/참조 쓰기나 override IO 변경을 미구현으로 늘리지 않는다. 새 타입·문맥 조합을 이 목록에 추가하지 않는다. M4의 실제 async 저장·실행은 남아 있으며 동기 caller가 명시적으로 async로 바뀌기 전에는 오류로 거절한다. V2–V9와 기존 별도 UI/권한 backend·종류 C# 표현/사용 중 삭제 대응·실기기 검증의 남은 범위는 해당 고정 행을 따른다.

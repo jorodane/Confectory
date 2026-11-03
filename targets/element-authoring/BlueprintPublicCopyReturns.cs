@@ -45,6 +45,7 @@ static class BlueprintPublicCopyReturns
                 Creating(units,pair.Key,ns,checks,paths);continue;
             }
             if(graph["copySource"] is null)continue;
+            if(BlueprintRootExecution.OwnsDefinitionTransaction(units,pair.Key))continue;
             if(unit["atomicEditGroup"] is null&&unit["draft"]?.ToString()==unit["original"]?.ToString())continue; // Completed receipt, no pending return transaction.
             var originalGraph=JsonNode.Parse(unit["original"]!.GetValue<string>())!.AsObject();
             if(unit["authorSaveReceipt"]?["publicCopyReturns"]?.GetValue<bool>()!=true&&new[]{"entry","edges","exits"}.All(key=>JsonNode.DeepEquals(graph[key],originalGraph[key])))continue;

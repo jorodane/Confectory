@@ -30,6 +30,7 @@ internal static class BlueprintPublicBodyReturns
             var owner=new Parser(implementation["draft"]!.GetValue<string>(),"<retained-return-owner>").ParseElement();
             bool externalFunction=PackPaths.Namespace(owner.Function!)!=PackPaths.Namespace(owner.Id);
             if(owner.Parent is null&&!externalFunction||flow.Value["nodeFlowOrigin"] is not null)continue;
+            if(BlueprintRootExecution.OwnsDefinitionTransaction(units,flow.Key))continue;
             if(flow.Value["draft"]!.ToString()==flow.Value["original"]?.ToString()&&flow.Value["publicBodyOrigin"] is null)continue;
             if(graph["profile"]?.ToString()!="sync-acyclic-switch-v1"||graph["nodes"]!.AsArray().Any(n=>n!["kind"]?.ToString() is not ("code" or "export")||n["implementationContext"] is not null||n["postCall"] is not null))throw new ArgumentException("Review the existing imported/private/native body boundary separately");
             var origin=flow.Value["publicBodyOrigin"]?.AsObject()??throw new ArgumentException("Retain the child public return source receipt");
