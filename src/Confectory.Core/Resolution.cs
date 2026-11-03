@@ -64,6 +64,8 @@ public sealed class Registry
             if (element.Kind == "function") {
                 try { _ = BlueprintExecutionBranches.Read(element); }
                 catch (Exception error) when (error is ArgumentException or InvalidOperationException or System.Text.Json.JsonException or FormatException or OverflowException) { throw new BuildError("EXECUTION_BRANCH_CONTRACT", error.Message, element.Loc); }
+                try { _ = BlueprintAsync.Read(element); }
+                catch (Exception error) when (error is ArgumentException or InvalidOperationException or System.Text.Json.JsonException or FormatException or OverflowException) { throw new BuildError("ASYNC_CONTRACT", error.Message, element.Loc); }
             }
             Elements.Add(id, element);
         }

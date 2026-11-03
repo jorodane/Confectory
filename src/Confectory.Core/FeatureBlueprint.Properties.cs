@@ -7,9 +7,9 @@ public static partial class FeatureBlueprint
 {
     public const string PropertyProfile = "sync-acyclic-property-v1", PropertyGenerator = "feature-blueprint-source-v10", PropertyReader = "Confectory.ObjectModel::Read";
     public const string PropertySetProfile = "sync-acyclic-property-set-v1", PropertySetGenerator = "feature-blueprint-source-v13", PropertySetter = "Confectory.ObjectModel::Set";
-    public static bool SupportsPrivateGraphs(string? profile) => profile is NestedProfile or PropertyProfile or MethodsProfile or SwitchProfile or PropertySetProfile or PropertyRefProfile;
+    public static bool SupportsPrivateGraphs(string? profile) => profile is NestedProfile or PropertyProfile or MethodsProfile or SwitchProfile or PropertySetProfile or PropertyRefProfile or BlueprintAsync.Profile;
     public static bool IsPropertyNode(string? kind) => kind is "property" or "property-set" or "property-ref";
-    public static bool SupportsSwitches(string? profile) => profile is SwitchProfile or PropertySetProfile or PropertyRefProfile;
+    public static bool SupportsSwitches(string? profile) => profile is SwitchProfile or PropertySetProfile or PropertyRefProfile or BlueprintAsync.Profile;
     public static bool IsObjectType(string type) => type is "object" or "object[]";
     public static bool HasObjectSignature(FunctionSignature signature) => IsObjectType(signature.Return) || signature.Args.Any(p => IsObjectType(p.Type));
 

@@ -42,6 +42,11 @@ internal static class BlueprintCreation
   graph=prepared["graph"]!.AsObject();var arguments=graph["nodes"]![0]!["arguments"]!.AsObject();for(int index=0;index<signature.Args.Count;index++)if(!signature.Args[index].IsOut)arguments[donor.Signature.Args[index].Name]=new JsonObject{["input"]=signature.Args[index].Name};
   if(signature.Args.Any(p=>p.Mode is "ref" or "out")){graph["nodes"]![0]!["forwardCallerStorage"]=true;graph["edges"]!.AsArray().Add(new JsonObject{["from"]="imported",["port"]="next",["to"]="exit:return"});}
   else graph["edges"]!.AsArray().Add(new JsonObject{["from"]="imported",["port"]="next",["to"]="exit:return"});function.Provides.Add(function.Id,new ElementReference(implementationId,new(),function.Id));
+  if(BlueprintAsync.Has(function)) {
+   _=BlueprintAsync.Read(function);graph["profile"]=BlueprintAsync.Profile;graph["nodes"]![0]!.AsObject().Remove("forwardCallerStorage");graph["edges"]=new JsonArray();graph["exits"]=new JsonObject();WireOutputs(graph,"imported",donor.Signature,signature);
+   if(BlueprintExecutionBranches.Has(function)){graph["schema"]=2;graph["executionExitMode"]=true;}
+  }
+  if(BlueprintAsync.Has(donor)&&!BlueprintAsync.Has(function))throw new ArgumentException("Explicitly convert the caller to async before importing this async function");
   string text=format(function);var checkedGraph=FeatureBlueprint.Execute(new JsonObject{["operation"]="featureBlueprintNodes",["featureSource"]=text,["featureContracts"]=new JsonObject{[reference]=referenceText},["graph"]=graph.DeepClone()});if(checkedGraph["state"]?.ToString()!="node-definitions")throw new ArgumentException(checkedGraph.ToJsonString());
   return new JsonObject{["function"]=text,["implementation"]=prepared["implementation"]!.DeepClone(),["graph"]=graph.DeepClone(),["reference"]=reference,["referenceSignature"]=SignatureNode(donor.Signature),["scope"]=prepared["scope"]?.DeepClone()};
  }
@@ -69,6 +74,10 @@ internal static class BlueprintCreation
   };
   if(functionSignature.Args.Any(p=>p.IsRef)||FeatureBlueprint.HasObjectSignature(functionSignature)&&functionSignature.Args.Any(p=>p.IsOut))graph["nodes"]![0]!["forwardCallerStorage"]=true;
   else if(functionSignature.Args.Any(p=>p.IsOut)){graph["profile"]=FeatureBlueprint.MultiOutputProfile;graph["exits"]=new JsonObject();graph["edges"]=new JsonArray();WireOutputs(graph,"body",functionSignature,functionSignature);}
+  if(BlueprintAsync.Has(function)) {
+   _=BlueprintAsync.Read(function);graph["profile"]=BlueprintAsync.Profile;graph["nodes"]![0]!["async"]=true;
+   if(BlueprintExecutionBranches.Has(function)) {graph["schema"]=2;graph["executionExitMode"]=true;foreach(var exit in graph["exits"]!.AsObject().ToArray()){var selection=new JsonObject{["executionBranch"]="none"};if(functionSignature.Return!="void")selection["value"]=exit.Value?.DeepClone();graph["exits"]![exit.Key]=selection;}}
+  }
   string text=format(function);var checkedGraph=FeatureBlueprint.Execute(new JsonObject{["operation"]="featureBlueprintNodes",["featureSource"]=text,["graph"]=graph.DeepClone()});
   if(checkedGraph["state"]?.ToString()!="node-definitions")throw new ArgumentException(checkedGraph.ToJsonString());
   return new JsonObject{["function"]=text,["implementation"]=implementation,["graph"]=graph,["node"]=new JsonObject{["schema"]=1,["node"]="body",["definitionHash"]=new string('0',64),["source"]=""}};

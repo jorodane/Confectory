@@ -16,6 +16,7 @@ public static partial class FeatureBlueprint
         var contract = new JsonObject { ["feature"] = feature.Id, ["signature"] = SignatureNode(feature.Signature!) };
         var branches = BlueprintExecutionBranches.Read(feature);
         if (BlueprintExecutionBranches.Has(feature)) contract["executionBranches"] = branches;
+        if (BlueprintAsync.Read(feature) is JsonObject asynchronous) contract["async"] = asynchronous;
         return Hash(CanonicalText(contract));
     }
     public static string ImportAlias(string featureId) => "fg_call_" + Hash(featureId)[..24];
@@ -111,6 +112,8 @@ public static partial class FeatureBlueprint
         if(executionForward is not null)Need(request["sourcePath"] is not null&&SupportsSwitches(S(graph,"profile"))&&feature.Signature!.Return=="void","GRAPH_EXECUTION_FORWARD_PROFILE",feature.Id);
         var publicBranches = BlueprintExecutionBranches.Read(feature);
         bool publicExecution = BlueprintExecutionBranches.Has(feature);
+        bool asyncFeature = BlueprintAsync.Read(feature) is not null;
+        Need(asyncFeature == (S(graph,"profile") == BlueprintAsync.Profile), "GRAPH_ASYNC_PROFILE", feature.Id);
         Need(!publicExecution || request["sourcePath"] is null && executionForward is null && SupportsSwitches(S(graph,"profile")), "GRAPH_PUBLIC_EXECUTION_CONTEXT", feature.Id);
         var exitEnum = publicExecution ? BlueprintExecutionBranches.Enum(feature) : executionForward?["enum"];
         bool executionExitMode=graph["executionExitMode"]?.GetValue<bool>()==true;
@@ -129,7 +132,7 @@ public static partial class FeatureBlueprint
         }
 
         Need(graph["schema"]?.GetValue<int>() == (executionExitMode?2:1), "GRAPH_SCHEMA", "schema");
-        string profile=S(graph,"profile");bool switchFlow=SupportsSwitches(profile),properties=SupportsProperties(profile),nested=SupportsPrivateGraphs(profile),aliasLocals=nested||profile==AliasLocalsProfile,externalRefs=SupportsExternalRefs(profile),refProfile=externalRefs||profile==RefNodesProfile,localProfile=profile==LocalsProfile||refProfile,multiOutput=profile==MultiOutputProfile||localProfile, implicitEnd=profile==ImplicitProfile||multiOutput;string generator=profile==PropertyRefProfile?PropertyRefGenerator:profile==PropertySetProfile?PropertySetGenerator:switchFlow?SwitchGenerator:profile==MethodsProfile?MethodsGenerator:properties?PropertyGenerator:nested?NestedGenerator:aliasLocals?AliasLocalsGenerator:externalRefs?ExternalRefsGenerator:refProfile?RefNodesGenerator:localProfile?LocalsGenerator:multiOutput?MultiOutputGenerator:implicitEnd?ImplicitGenerator:Generator;
+        string profile=S(graph,"profile");bool switchFlow=SupportsSwitches(profile),properties=SupportsProperties(profile),nested=SupportsPrivateGraphs(profile),aliasLocals=nested||profile==AliasLocalsProfile,externalRefs=SupportsExternalRefs(profile),refProfile=externalRefs||profile==RefNodesProfile,localProfile=profile==LocalsProfile||refProfile,multiOutput=profile==MultiOutputProfile||localProfile, implicitEnd=profile==ImplicitProfile||multiOutput;string generator=asyncFeature?BlueprintAsync.Generator:profile==PropertyRefProfile?PropertyRefGenerator:profile==PropertySetProfile?PropertySetGenerator:switchFlow?SwitchGenerator:profile==MethodsProfile?MethodsGenerator:properties?PropertyGenerator:nested?NestedGenerator:aliasLocals?AliasLocalsGenerator:externalRefs?ExternalRefsGenerator:refProfile?RefNodesGenerator:localProfile?LocalsGenerator:multiOutput?MultiOutputGenerator:implicitEnd?ImplicitGenerator:Generator;
         Need(profile==Profile||implicitEnd,"GRAPH_PROFILE_UNSUPPORTED",profile);
         Need(properties||!HasObjectSignature(feature.Signature!),"GRAPH_OBJECT_PROFILE",feature.Id);
         Need(externalRefs||!feature.Signature!.Args.Any(p=>p.IsRef),"GRAPH_REF_FEATURE_UNSUPPORTED",feature.Id);
@@ -215,6 +218,12 @@ public static partial class FeatureBlueprint
                 ["calledFeature"] = called,
                 ["featureContracts"] = references
             };
+            bool asyncNode = kind == "call" ? BlueprintAsync.Has(Import(called!).Element) : value["async"]?.GetValue<bool>() == true;
+            Need(!value.ContainsKey("async") || kind == "code" && value["async"] is JsonValue asyncValue && asyncValue.TryGetValue<bool>(out _), "GRAPH_ASYNC_NODE_KIND", id);
+            if(asyncNode) {
+                Need(kind is "code" or "call" && control is "next" or "switch" && signature.Args.All(p=>p.Mode is null or "out") && !value.ContainsKey("postCall") && !value.ContainsKey("implementationContext"), "GRAPH_ASYNC_NODE_CONTRACT", id);
+                definition["async"] = true;
+            }
             if (executionCall) { definition["publicExecution"] = value["publicExecution"]!.DeepClone(); definition["publicExecutionBranches"] = BlueprintExecutionBranches.Read(Import(called!).Element); }
             if (value.ContainsKey("postCall")) definition["postCall"] = value["postCall"]!.DeepClone();
             if(nested&&(request["sourcePath"] is not null||kind=="graph"))definition["ownerPath"]=S(request,"sourceOwner")+"/"+(request["sourcePath"]?.ToString()??"");
@@ -282,6 +291,7 @@ public static partial class FeatureBlueprint
             nodes.Add(id, new(id, kind, control, signature, definition, value["arguments"]?.AsObject() ?? new JsonObject(), Hash(CanonicalText(definition)), called));
         }
 
+        Need(!asyncFeature || feature.Signature!.Args.All(p=>p.Mode is null or "out") && nodes.Values.All(n=>!HasContext(n) && n.Definition["forwardCallerStorage"]?.GetValue<bool>()!=true), "GRAPH_ASYNC_CONTEXT", feature.Id);
         var outputCells=nodes.Values.Where(n=>n.Kind=="set"&&n.Definition["outputLocal"] is not null).Select(n=>S(n.Definition,"outputLocal")).ToArray();
         Need(outputCells.Distinct(StringComparer.Ordinal).Count()==outputCells.Length,"GRAPH_SET_OUTPUT_OWNER",feature.Id);
         if(executionSource is not null)Need(nodes.ContainsKey(executionSource),"GRAPH_EXECUTION_FORWARD_SOURCE",executionSource);
@@ -309,7 +319,11 @@ public static partial class FeatureBlueprint
             marker = ContextMarker(node,marker);
             string members = HasContext(node) ? ContextMember(node, source, marker) : "";
             if (HasContext(node)) code = "throw new global::System.InvalidOperationException(\"Independent context probe must never execute\");";
-            if(SupportsMethods(profile) && !HasContext(node)) {
+            if(AsyncNode(node)) {
+                members = AsyncMethodsMember(MethodClass(request,id),node,string.Join(",",used.Select(f=>Generation.ImportInterface(Import(f).Element)+" "+Import(f).Alias)),string.Join(",",used.Select(f=>Import(f).Alias)),source,helper,marker);
+                code = "throw new global::System.InvalidOperationException(\"Independent async probe must never execute\");";
+            }
+            else if(SupportsMethods(profile) && !HasContext(node)) {
                 string declarations = string.Join(",", node.Signature.Args.Select(p=>p.Declaration()).Concat(used.Select(f=>Generation.Interface(f)+" "+Import(f).Alias)));
                 members = MethodsMember(MethodClass(request,id),node,declarations,source,helper,marker);
                 code = "throw new global::System.InvalidOperationException(\"Independent static method probe must never execute\");";
@@ -393,7 +407,8 @@ public static partial class FeatureBlueprint
         Visit(entry);
         foreach (var node in nodes.Values.Where(n => reachable.Contains(n.Id)))
         {
-            string[] ports = node.Control == "switch" ? edges.Keys.Where(k=>k.Item1==node.Id).Select(k=>k.Item2).ToArray() : node.Control == "branch" ? ["true", "false"] : ["next"];
+            Need(asyncFeature || !AsyncNode(node), "GRAPH_ASYNC_CALLER_REQUIRED", node.Id);
+            string[] ports = FlowOwner(node) ? edges.Keys.Where(k=>k.Item1==node.Id).Select(k=>k.Item2).ToArray() : node.Control == "branch" ? ["true", "false"] : ["next"];
             Need(edges.Keys.Where(k => k.Item1 == node.Id).Select(k => k.Item2).Order().SequenceEqual(ports.Order()), "GRAPH_PORTS", node.Id);
         }
 
@@ -570,7 +585,8 @@ public static partial class FeatureBlueprint
         if(multiOutput)foreach(var parameter in feature.Signature!.Args.Where(p=>p.IsOut)){
             // Definite-assignment marker only: SkipInit does not write caller storage.
             // A missing graph out gets its default at termination, after all alias-visible work.
-            if(externalRefs)output.AppendLine("global::System.Runtime.CompilerServices.Unsafe.SkipInit(out "+parameter.Name+");\nbool "+Assigned(parameter.Name)+" = false;");
+            if(asyncFeature)output.AppendLine(parameter.Type+" "+parameter.Name+" = default!;");
+            else if(externalRefs)output.AppendLine("global::System.Runtime.CompilerServices.Unsafe.SkipInit(out "+parameter.Name+");\nbool "+Assigned(parameter.Name)+" = false;");
             else output.AppendLine(parameter.Name+" = default("+parameter.Type+")!;");
         }
         foreach(var local in locals.Where(p=>p.Value["source"] is null))output.AppendLine(S(local.Value,"type")+" "+LocalValue(local.Key)+" = "+Literal(local.Value["initial"]!["constant"],S(local.Value,"type"))+";");
@@ -578,6 +594,7 @@ public static partial class FeatureBlueprint
         foreach (string id in order.Where(id=>nodes[id].Kind!="set"))foreach(var result in NodeOutputs(nodes[id]))
             output.AppendLine(nodes[id].Kind=="property-ref"?FieldCellType(nodes[id])+" "+Cell(id)+";":result.Type + " " + Value(id,result.Name) + ";");
         if(switchFlow)foreach(string id in order.Where(id=>nodes[id].Control=="switch"))output.AppendLine("int "+ExecutionValue(id)+";");
+        foreach(string id in order.Where(id=>AsyncNode(nodes[id])&&edges.ContainsKey((id,"completion"))))output.AppendLine("bool "+Symbol(id)+"_completing = false;");
         foreach (string id in definitionOrder.Where(id => bodies.ContainsKey(id) || nodes[id].Kind == "call"))
         {
             var node = nodes[id];
@@ -589,10 +606,19 @@ public static partial class FeatureBlueprint
                 manifestNodes.Single(n => n!["id"]!.ToString() == id)!["includedInSource"] = true;
                 continue;
             }
+            if(AsyncNode(node)) {
+                if(node.Kind=="code") {
+                    string asyncMarker="node:"+feature.Id+"/"+id+"@"+manifestNodes.Single(n=>n!["id"]!.ToString()==id)!["implementationHash"]!.ToString();
+                    membersOutput.Append(AsyncMethodsMember(MethodClass(request,id),node,string.Join(",",NodeImports(node).Select(f=>Generation.ImportInterface(Import(f).Element)+" "+ImportParameter(f))),string.Join(",",NodeImports(node).Select(ImportParameter)),bodies[id],helpers[id],asyncMarker));
+                    sourceMaps.Add(new JsonObject{["node"]=id,["definitionHash"]=node.DefinitionHash,["marker"]=asyncMarker});
+                }
+                manifestNodes.Single(n=>n!["id"]!.ToString()==id)!["includedInSource"]=true;
+                continue;
+            }
             // A prepared independent node is checked without calling it or allocating a delegate.
             // Suppress only the generated local function declaration's unused warning.
             if (!reachable.Contains(id)) output.AppendLine("#pragma warning disable CS8321");
-            output.AppendLine((node.Definition["contextBoundary"]?.GetValue<bool>()==true?"":"static ") + ExecutionType(node) + " " + Symbol(id) + "(" + string.Join(",", node.Signature.Args.Select(p => p.Declaration()).Concat(WrappedReturn(node) ? new[] { "out " + node.Signature.Return + " __fg_wrapped_return" } : Array.Empty<string>()).Concat(NodeImports(node).Select(f => Generation.Interface(f) + " " + ImportParameter(f)))) + ") {");
+            output.AppendLine((node.Definition["contextBoundary"]?.GetValue<bool>()==true?"":"static ") + ExecutionType(node) + " " + Symbol(id) + "(" + string.Join(",", node.Signature.Args.Select(p => p.Declaration()).Concat(WrappedReturn(node) ? new[] { "out " + node.Signature.Return + " __fg_wrapped_return" } : Array.Empty<string>()).Concat(NodeImports(node).Select(f => Generation.ImportInterface(Import(f).Element) + " " + ImportParameter(f)))) + ") {");
             if (!reachable.Contains(id)) output.AppendLine("#pragma warning restore CS8321");
             string marker = "node:" + feature.Id + "/" + id + "@" + manifestNodes.Single(n => n!["id"]!.ToString() == id)![node.Kind == "call" ? "definitionHash" : "implementationHash"]!.ToString();
             output.AppendLine("#line 1 " + JsonSerializer.Serialize(marker));
@@ -607,7 +633,7 @@ public static partial class FeatureBlueprint
                 output.AppendLine((node.Signature.Return == "void" ? "" : "return ") + ImportParameter(node.Feature!) + ".Invoke(" + string.Join(",", node.Signature.Args.Select(p => (p.Mode is "out" or "ref"?p.Mode+" ":"")+p.Name)) + ");");
             else if (node.Kind == "code" && SupportsMethods(profile)) {
                 string type=MethodClass(request,id);
-                membersOutput.Append(MethodsMember(type,node,string.Join(",",node.Signature.Args.Select(p=>p.Declaration()).Concat(NodeImports(node).Select(f=>Generation.Interface(f)+" "+ImportParameter(f)))),bodies[id],helpers[id],marker));
+                membersOutput.Append(MethodsMember(type,node,string.Join(",",node.Signature.Args.Select(p=>p.Declaration()).Concat(NodeImports(node).Select(f=>Generation.ImportInterface(Import(f).Element)+" "+ImportParameter(f)))),bodies[id],helpers[id],marker));
                 output.AppendLine((ExecutionType(node)=="void"?"":"return ")+(node.Control=="switch"?"(int)":"")+type+".Execute("+string.Join(",",node.Signature.Args.Select(p=>(p.Mode is "ref" or "out"?p.Mode+" ":"")+p.Name).Concat(NodeImports(node).Select(ImportParameter)))+");");
             }
             else
@@ -618,6 +644,12 @@ public static partial class FeatureBlueprint
         }
 
         output.AppendLine("#line 1 " + JsonSerializer.Serialize("graph:" + feature.Id + "@" + topologyHash));
+        string Jump(string from,string port,string target) {
+            var returning=branchReturns.FirstOrDefault(row=>row!["from"]!.ToString()==from&&row["port"]!.ToString()==port);
+            var owners=returning?["owners"] as JsonArray ?? new JsonArray(returning?["owner"]?.DeepClone());
+            string route="";foreach(var owner in owners.Where(o=>o is not null).Select(o=>o!.ToString()).Where(o=>nodes.TryGetValue(o,out var n)&&AsyncNode(n)&&edges.ContainsKey((o,"completion"))))route+="if ("+Symbol(owner)+"_completing) { "+Symbol(owner)+"_completing = false; goto "+Label("async-dispatch:"+owner)+"; } ";
+            return route+"goto "+Label(target)+";";
+        }
         output.AppendLine("goto " + Label(entry) + ";");
         foreach (string id in order)
         {
@@ -638,24 +670,35 @@ public static partial class FeatureBlueprint
             else if(node.Kind=="export"){
                 string exported=S(node.Definition,"output"),outputType=FeatureOutputs(feature.Signature!).Single(p=>p.Name==exported).Type;
                 output.AppendLine(FeatureValue(exported)+" = "+Binding(node.Arguments["value"],outputType,available,id+"/value")+";");
-                if(externalRefs&&exported!="return")output.AppendLine(Assigned(exported)+" = true;");
+                if(externalRefs&&!asyncFeature&&exported!="return")output.AppendLine(Assigned(exported)+" = true;");
                 sourceMaps.Add(new JsonObject{["node"]=id,["definitionHash"]=node.DefinitionHash,["marker"]="graph:"+feature.Id+"@"+topologyHash});manifestNodes.Single(n=>n!["id"]!.ToString()==id)!["includedInSource"]=true;
+            }
+            else if(AsyncNode(node)) {
+                string args=string.Join(",",node.Signature.Args.Where(p=>!p.IsOut).Select(p=>ArgumentBinding(p,node.Arguments[p.Name],available,id+"/"+p.Name)));
+                string call=node.Kind=="call" ? (request["sourcePath"] is null?"calls.":"")+Import(node.Feature!).Alias+".InvokeAsync("+args+")" : MethodClass(request,id)+".InvokeAsync("+string.Join(",",new[]{args,string.Join(",",NodeImports(node).Select(f=>(request["sourcePath"] is null?"calls.":"")+Import(f).Alias))}.Where(s=>s.Length>0))+")";
+                string result=Symbol(id)+"_awaited";
+                output.AppendLine("var "+result+" = await "+call+";");
+                foreach(var parameter in node.Signature.Args.Where(p=>p.IsOut))output.AppendLine(Value(id,parameter.Name)+" = "+result+"."+parameter.Name+";");
+                if(node.Signature.Return!="void")output.AppendLine(Value(id)+" = "+result+"."+BlueprintAsync.ReturnName(node.Signature)+";");
+                if(node.Control=="switch")output.AppendLine(ExecutionValue(id)+" = (int)"+result+"."+BlueprintAsync.BranchName(node.Signature)+";");
+                if(edges.TryGetValue((id,"completion"),out string? completion))output.AppendLine(Symbol(id)+"_completing = true; "+Jump(id,"completion",completion));
+                if(edges.ContainsKey((id,"completion")))output.AppendLine("}\n"+Label("async-dispatch:"+id)+": {");
             }
             else output.AppendLine((ExecutionType(node) == "void" ? "" : ExecutionValue(id) + " = ") + (HasContext(node) ? "this.Invoke" : Symbol(id)) + "(" + string.Join(",", node.Signature.Args.Select(p => p.IsOut?"out "+(ForwardCaller(node)?CallerOut(node,p.Name):Value(id,p.Name)):ArgumentBinding(p,node.Arguments[p.Name],available,id+"/"+p.Name)).Concat(WrappedReturn(node) ? new[] { "out " + Value(id) } : Array.Empty<string>()).Concat(HasContext(node) ? Array.Empty<string>() : NodeImports(node).Select(f => (request["sourcePath"] is null ? "calls." : "") + Import(f).Alias))) + ");");
             if(ForwardCaller(node))foreach(var parameter in node.Signature.Args.Where(p=>p.IsOut))output.AppendLine(Value(id,parameter.Name)+" = "+CallerOut(node,parameter.Name)+";\n"+Assigned(CallerOut(node,parameter.Name))+" = true;");
             if(node.Control=="switch"){
                 output.AppendLine("switch ("+ExecutionValue(id)+") {");
-                foreach(var member in node.Definition["executionEnum"]!["members"]!.AsArray())if(edges.TryGetValue((id,"case:"+S(member,"id")),out string? target))output.AppendLine("case "+member!["value"]!.ToJsonString()+": goto "+Label(target)+";");
-                output.AppendLine("default: goto "+Label(edges.TryGetValue((id,"default"),out string? fallback)?fallback:continuations[id])+";\n}");
+                foreach(var member in node.Definition["executionEnum"]!["members"]!.AsArray())if(edges.TryGetValue((id,"case:"+S(member,"id")),out string? target))output.AppendLine("case "+member!["value"]!.ToJsonString()+": "+Jump(id,"case:"+S(member,"id"),target));
+                output.AppendLine("default: "+Jump(id,edges.ContainsKey((id,"default"))?"default":"unmatched",edges.TryGetValue((id,"default"),out string? fallback)?fallback:continuations[id])+"\n}");
             }
             else if (node.Control == "branch")
-                output.AppendLine("if (" + Value(id) + ") goto " + Label(edges[(id, "true")]) + "; else goto " + Label(edges[(id, "false")]) + ";");
+                output.AppendLine("if (" + Value(id) + ") { " + Jump(id,"true",edges[(id,"true")]) + " } else { " + Jump(id,"false",edges[(id,"false")]) + " }");
             else
-                output.AppendLine("goto " + Label(edges[(id, "next")]) + ";");
+                output.AppendLine(Jump(id,"next",FlowOwner(node)?continuations[id]:edges[(id,"next")]));
             output.AppendLine("}");
         }
 
-        string CompleteOuts()=>externalRefs?string.Join(" ",feature.Signature!.Args.Where(p=>p.IsOut).Select(p=>"if (!"+Assigned(p.Name)+") "+p.Name+" = default("+p.Type+")!; ")):"";
+        string CompleteOuts()=>externalRefs&&!asyncFeature?string.Join(" ",feature.Signature!.Args.Where(p=>p.IsOut).Select(p=>"if (!"+Assigned(p.Name)+") "+p.Name+" = default("+p.Type+")!; ")):"";
         foreach (var exit in exits.OrderBy(e => e.Key, StringComparer.Ordinal))
         {
             string target = "exit:" + exit.Key;
@@ -665,10 +708,17 @@ public static partial class FeatureBlueprint
             var available = incoming.Length == 0 ? new HashSet<string>(StringComparer.Ordinal) : new HashSet<string>(dominators[incoming[0]], StringComparer.Ordinal);
             foreach (string p in incoming.Skip(1))
                 available.IntersectWith(dominators[p]);
+            if(asyncFeature) {
+                string native=feature.Signature!.Return=="void"?"":dataExits[exit.Key] is null?FeatureValue("return"):Binding(dataExits[exit.Key],feature.Signature.Return,available,target);
+                output.AppendLine(Label(target)+": { return "+AsyncResultExpression(feature,executionExitMode?executionExits[exit.Key].ToString(System.Globalization.CultureInfo.InvariantCulture):"0",native,p=>p.Name)+"; }");
+                continue;
+            }
             output.AppendLine(Label(target) + ": { "+CompleteOuts()+(publicExecution&&feature.Signature!.Return!="void"?BlueprintExecutionBranches.CaptureName(feature.Signature)+" = "+(dataExits[exit.Key] is null?FeatureValue("return"):Binding(dataExits[exit.Key],feature.Signature.Return,available,target))+"; ":"")+"return" + (executionExitMode?" "+executionExits[exit.Key].ToString(System.Globalization.CultureInfo.InvariantCulture):executionSource is not null?" "+ExecutionValue(executionSource):feature.Signature!.Return == "void" ? "" : " " + (implicitEnd&&exit.Value is null?FeatureValue("return"):Binding(exit.Value, feature.Signature.Return, available, target))) + "; }");
         }
 
-        if(implicitEnd)foreach(string target in edges.Where(edge=>reachable.Contains(edge.Key.Item1)).Select(edge=>edge.Value).Append(entry).Where(Terminal).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal))output.AppendLine(Label(target)+": { "+CompleteOuts()+(publicExecution&&feature.Signature!.Return!="void"?BlueprintExecutionBranches.CaptureName(feature.Signature)+" = "+FeatureValue("return")+"; ":"")+"return"+(publicExecution?" 0":executionSource is not null?" "+ExecutionValue(executionSource):feature.Signature!.Return=="void"?"":" "+FeatureValue("return"))+"; }");
+        if(implicitEnd)foreach(string target in edges.Where(edge=>reachable.Contains(edge.Key.Item1)).Select(edge=>edge.Value).Append(entry).Where(Terminal).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal)){
+            if(asyncFeature){output.AppendLine(Label(target)+": { return "+AsyncResultExpression(feature,"0",feature.Signature!.Return=="void"?"":FeatureValue("return"),p=>p.Name)+"; }");continue;}
+            output.AppendLine(Label(target)+": { "+CompleteOuts()+(publicExecution&&feature.Signature!.Return!="void"?BlueprintExecutionBranches.CaptureName(feature.Signature)+" = "+FeatureValue("return")+"; ":"")+"return"+(publicExecution?" 0":executionSource is not null?" "+ExecutionValue(executionSource):feature.Signature!.Return=="void"?"":" "+FeatureValue("return"))+"; }");}
         output.AppendLine("#line default");
         reply["state"] = "source-assembled";
         reply["body"] = output.ToString().Replace("\r\n", "\n");

@@ -109,7 +109,7 @@ def main():
     parser.add_argument('--commit', required=True)
     parser.add_argument('--sdk', type=Path, required=True)
     parser.add_argument('--nuget-seed', type=Path, required=True)
-    parser.add_argument('--suite',choices=['headers','card-images','canvas','owned-information','owned-conversion','action-icons','declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement','worker-badges','node-internal','node-internal-nested','node-internal-storage','node-internal-context','node-internal-branches','node-branch-exits','node-internal-copy','node-internal-copy-nested','node-internal-copy-storage','node-internal-copy-branches','node-internal-copy-context','node-internal-copy-creating','node-internal-copy-frames','node-internal-override','node-internal-external-override','root-execution','root-execution-out','root-execution-closure','root-execution-copy','root-execution-copy-creating','root-execution-override','root-execution-registered','root-execution-registered-copy','root-execution-registered-creating','root-execution-data-void','root-execution-compound-owned','root-execution-provider-import','root-execution-nonvoid','public-return-data','root-execution-providers','root-execution-nested','root-execution-native','root-execution-caller','root-execution-forwarding','root-execution-observers','root-execution-wrappers','root-execution-owned-updates','root-execution-import-observations'],default='headers')
+    parser.add_argument('--suite',choices=['headers','card-images','canvas','owned-information','owned-conversion','action-icons','declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement','worker-badges','node-internal','node-internal-nested','node-internal-storage','node-internal-context','node-internal-branches','node-branch-exits','node-internal-copy','node-internal-copy-nested','node-internal-copy-storage','node-internal-copy-branches','node-internal-copy-context','node-internal-copy-creating','node-internal-copy-frames','node-internal-override','node-internal-external-override','root-execution','root-execution-out','root-execution-closure','root-execution-copy','root-execution-copy-creating','root-execution-override','root-execution-registered','root-execution-registered-copy','root-execution-registered-creating','root-execution-data-void','root-execution-compound-owned','root-execution-provider-import','root-execution-nonvoid','public-return-data','root-execution-providers','root-execution-nested','root-execution-native','root-execution-caller','root-execution-forwarding','root-execution-observers','root-execution-wrappers','root-execution-owned-updates','root-execution-import-observations','async-runtime'],default='headers')
     args = parser.parse_args()
     repo = args.repo.resolve(); persistent = args.persistent.absolute()
     persistent.parent.mkdir(parents=True, exist_ok=True)
@@ -327,7 +327,10 @@ def main():
                 regression='v666_node_branch_exit_api.py' if label=='lf' else 'v666_node_internal_external_override_api.py'
                 work.run(label+'-m11-regression',[sys.executable,str(checkout/'tests/web'/regression),str(checkout),str(report)],cwd=checkout,env=env)
                 work.run(label+'-owned-final-read-cas',[sys.executable,str(checkout/'tests/web/v536_copy_read_guards_core.py'),str(checkout)],cwd=checkout,env=env)
-            elif args.suite=='root-execution-import-observations':
+            elif args.suite in ['root-execution-import-observations','async-runtime']:
+                if args.suite=='async-runtime':
+                    work.run(label+'-async-core',[dotnet,str(checkout/'tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll'),'AsyncBlueprintTests','SwitchBlueprintTests','--require-runtime'],cwd=checkout,env=env)
+                    work.run(label+'-async-runtime',[sys.executable,str(checkout/'tests/probes/async_runtime.py'),str(checkout)],cwd=checkout,env=env)
                 work.run(label+'-imports-script',['node','--check',str(checkout/'examples/editor-home/ui/feature-authoring.js')],cwd=checkout,env=env)
                 work.run(label+'-imports-runtime',[dotnet,str(checkout/'tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll'),'RootExecutionBranchTests','--require-runtime'],cwd=checkout,env=env)
                 work.run(label+'-imports-ownership',[dotnet,str(checkout/'tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll'),'blueprint_inherited_body_retains_declaring_node_owner','blueprint_independently_declared_body_cannot_borrow_another_node_owner','--require-runtime'],cwd=checkout,env=env)
@@ -648,7 +651,7 @@ def main():
         elif args.suite=='node-internal-storage':
             work.run('packaged-node-internal',[sys.executable,str(checkout/'tests/web/v666_node_internal_ui.py'),str(package/'content'),str(packaged_report),'normal'],cwd=checkout,env=env)
             work.run('packaged-storage-node-internal',[sys.executable,str(checkout/'tests/web/v666_node_internal_storage_ui.py'),str(package/'content'),str(packaged_report),'normal'],cwd=checkout,env=env)
-        elif args.suite=='root-execution-import-observations':
+        elif args.suite in ['root-execution-import-observations','async-runtime']:
             work.run('packaged-imports',[sys.executable,str(checkout/'tests/web/v666_root_execution_ui.py'),str(package/'content'),str(packaged_report),'normal','--out-root','--imports-root'],cwd=checkout,env=env)
         elif args.suite=='root-execution-owned-updates':
             work.run('packaged-owned-update',[sys.executable,str(checkout/'tests/web/v666_root_execution_owned_update_ui.py'),str(package/'content'),str(packaged_report),'normal','--out-root'],cwd=checkout,env=env)
@@ -748,6 +751,8 @@ def main():
             work.run('packaged-worker-badges',[sys.executable,str(checkout/'tests/web/v666_worker_badges_ui.py'),str(package/'content'),str(packaged_report)],cwd=checkout,env=env)
         if args.suite=='node-internal':
             work.run('packaged-node-internal',[sys.executable,str(checkout/'tests/web/v666_node_internal_ui.py'),str(package/'content'),str(packaged_report),'normal'],cwd=checkout,env=env)
+        if args.suite=='async-runtime':
+            work.run('packaged-async-runtime',[sys.executable,str(checkout/'tests/probes/async_runtime.py'),str(package/'content')],cwd=checkout,env=env)
         candidate = work.root/'package.zip'
         entry = store.prepare(package,candidate,commit,work.record.with_suffix('.zip'),inputs['identity'])
         restored = work.root/'restored'; restored.mkdir()
@@ -756,13 +761,15 @@ def main():
         # not just its ZIP CRC or a manifest comparison.
         work.run('restored-probe',[sys.executable,str(checkout/'tests/probes/desktop_package.py'),str(checkout),str(restored)],cwd=checkout,env=env)
         atomic_json(packaged_report, {'run':[dotnet,str(restored/'content/runtime/Confectory.App.dll')]})
+        if args.suite=='async-runtime':
+            work.run('restored-async-runtime',[sys.executable,str(checkout/'tests/probes/async_runtime.py'),str(restored/'content')],cwd=checkout,env=env)
         if args.suite=='node-internal-nested':
             work.run('restored-node-internal',[sys.executable,str(checkout/'tests/web/v666_node_internal_ui.py'),str(restored/'content'),str(packaged_report),'storage'],cwd=checkout,env=env)
             work.run('restored-nested-node-internal',[sys.executable,str(checkout/'tests/web/v666_node_internal_nested_ui.py'),str(restored/'content'),str(packaged_report),'loss','--depth=2'],cwd=checkout,env=env)
         elif args.suite=='node-internal-storage':
             work.run('restored-node-internal',[sys.executable,str(checkout/'tests/web/v666_node_internal_ui.py'),str(restored/'content'),str(packaged_report),'storage'],cwd=checkout,env=env)
             work.run('restored-storage-node-internal',[sys.executable,str(checkout/'tests/web/v666_node_internal_storage_ui.py'),str(restored/'content'),str(packaged_report),'loss','--private','--local'],cwd=checkout,env=env)
-        elif args.suite=='root-execution-import-observations':
+        elif args.suite in ['root-execution-import-observations','async-runtime']:
             work.run('restored-imports',[sys.executable,str(checkout/'tests/web/v666_root_execution_ui.py'),str(restored/'content'),str(packaged_report),'late','--out-root','--imports-root'],cwd=checkout,env=env)
         elif args.suite=='root-execution-owned-updates':
             work.run('restored-owned-update',[sys.executable,str(checkout/'tests/web/v666_root_execution_owned_update_ui.py'),str(restored/'content'),str(packaged_report),'late','--out-root','--child-dispatch'],cwd=checkout,env=env)
