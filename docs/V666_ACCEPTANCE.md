@@ -88,3 +88,6 @@ ordinary 소유/등록 데이터 반환의 최종 **신규 LF20·CRLF19·패키�
 
 
 ordinary IInvoke/native import와 legacy NoBranch wrapper를 공개 계약 갱신의 읽기 관측·생성 receipt 갱신에 연결했다. 원래 profile·C#·IO·source identity·scope/자체 분기를 보존하고 실제 public caller만 명시 대응한다. 최종 **LF20·CRLF16·새 패키지/전체 복원/실패 수명관리6, 총42단계(신규38·동등 재사용4)**가 통과했다. [정확한 지원·신규/재사용 근거·증거와 잔여](VALIDATION_V666_ROOT_EXECUTION_OBSERVERS.md)를 따른다. wrapper의 실제 공개 OriginalResult 명시 연결과 copy/자식·등록 외부의 전체 갱신은 유한한 M12 표에 유지한다.
+
+
+직접 소유 Root caller의 공개 OriginalResult wrapper·기존 데이터 ABI와 원본 계약의 전체 명시 wrapper 선택을 연결했다. legacy NoBranch adapter·원문·ID·자체 enum/연결은 보존한다. 최종 **LF20·CRLF16·새 패키지/전체 복원/실패 수명관리6, 총42단계(신규42·재사용0)**가 통과했다. [정확한 지원/검증/호환/증거](VALIDATION_V666_ROOT_EXECUTION_WRAPPERS.md)를 따른다. 남은 M12는 같은 계약 copy·자식 본문이 포함된 정의 전체 갱신과 등록 외부 readonly import 관측 두 흐름이다.
