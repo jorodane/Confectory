@@ -67,7 +67,7 @@ static partial class BlueprintRootExecution
         var units=request["units"]!.AsObject();string rootId=request["id"]!.GetValue<string>();var root=Root(units,rootId);var targetIds=Targets(units,rootId);var targetSet=targetIds.ToHashSet(StringComparer.Ordinal);
         if(!BlueprintExecutionBranches.SupportsSignature(root.Function.Signature!))throw new ArgumentException("Direct synchronous root with existing value/ref/out parameters required");
         _=ObservedContracts(units,rootId,Array.Empty<string>());
-        var rows=new JsonArray();var observers=new JsonArray();var contextIds=new HashSet<string>(targetSet,StringComparer.Ordinal);
+        var rows=new JsonArray();var wrappers=new JsonArray();var observers=new JsonArray();var contextIds=new HashSet<string>(targetSet,StringComparer.Ordinal);
         foreach(var pair in units.Where(p=>p.Value?["kind"]?.ToString()=="blueprint"&&!targetSet.Contains(p.Key)).OrderBy(p=>p.Key,StringComparer.Ordinal)) {
             var graph=JsonNode.Parse(pair.Value!["draft"]!.GetValue<string>())!.AsObject();int marker=pair.Key.IndexOf("/body:",StringComparison.Ordinal);if(marker<0)throw new ArgumentException("Owned physical Blueprint root required");
             var declared=Declaration(units,pair.Key[..marker],"implementation");if(!UsesFunction(declared,graph,root.Function.Id))continue;
@@ -82,6 +82,7 @@ static partial class BlueprintRootExecution
             // source/enum/exit and branch-owner contracts, before proposing edits.
             // Callee public branches never replace those enclosing contracts.
             _=Definitions(units,pair.Key,true);contextIds.Add(pair.Key);if(uses.Length==0)observers.Add(pair.Key);
+            foreach(var wrapped in BlueprintTree.Nodes(caller.Graph).Where(n=>n.Node["kind"]?.ToString()=="call"&&n.Node["feature"]?.ToString()==root.Function.Id&&n.Node["postCall"]?["originalExecution"] is not null))wrappers.Add(new JsonObject{["graph"]=pair.Key,["node"]=wrapped.Key,["name"]=caller.Function.Id,["key"]=pair.Key+"|node:"+wrapped.Key,["originalExecution"]=wrapped.Node["postCall"]!["originalExecution"]!.DeepClone(),["contractHash"]=wrapped.Node["postCall"]!["contractHash"]!.DeepClone()});
             foreach(var use in uses.OrderBy(p=>p.Key,StringComparer.Ordinal)){var frame=CallerFrame(caller.Graph,use.Key).Frame;rows.Add(new JsonObject { ["graph"]=pair.Key,["node"]=use.Key,["name"]=caller.Function.Description.Length>0?caller.Function.Description:caller.Function.Id,["nodes"]=frame["nodes"]!.DeepClone(),["edges"]=frame["edges"]!.DeepClone() });}
         }
 
@@ -89,16 +90,18 @@ static partial class BlueprintRootExecution
         bool multipleProviders=targetIds.Select(id=>Root(units,id).Implementation.Id).Distinct(StringComparer.Ordinal).Count()>1;
         var targets=new JsonArray();foreach(string id in targetIds){_=Definitions(units,id,true);var selected=Root(units,id);string name=id[(id.IndexOf("/body:",StringComparison.Ordinal)+6)..];targets.Add(new JsonObject { ["graph"]=id,["name"]=multipleProviders?selected.Implementation.Id+" · "+name:name,["entry"]=selected.Graph["entry"]!.DeepClone(),["edges"]=selected.Graph["edges"]!.DeepClone(),["exits"]=selected.Graph["exits"]!.DeepClone() });}
         foreach(var row in rows)row!["key"]=CallKey(row);
-        return new JsonObject { ["branches"]=BlueprintExecutionBranches.Read(root.Function),["targets"]=targets,["callers"]=rows,["observers"]=observers,["observedContracts"]=new JsonArray(ObservedContracts(units,rootId,contextIds).Select(id=>JsonValue.Create(id)).ToArray()) };
+        return new JsonObject { ["branches"]=BlueprintExecutionBranches.Read(root.Function),["targets"]=targets,["callers"]=rows,["wrappers"]=wrappers,["observers"]=observers,["observedContracts"]=new JsonArray(ObservedContracts(units,rootId,contextIds).Select(id=>JsonValue.Create(id)).ToArray()) };
     }
     public static JsonObject Prepare(JsonObject request,Func<Element,string> format) {
         var units=request["units"]!.DeepClone().AsObject();string rootId=request["id"]!.GetValue<string>();var choices=Candidates(new JsonObject { ["id"]=rootId,["units"]=units.DeepClone() });var plan=request["plan"]!.AsObject();var selectedCalls=new JsonArray();var selectedTargets=new JsonArray();
         bool legacy=plan.ContainsKey("caller");
-        if(legacy){if(plan.Count!=5||plan.Any(p=>p.Key is not ("branches" or "entry" or "edges" or "exits" or "caller"))||choices["callers"]!.AsArray().Count!=1||choices["targets"]!.AsArray().Count!=1)throw new ArgumentException("Explicit complete caller/target mapping required");selectedCalls.Add(plan["caller"]!.DeepClone());}
-        else {if(plan.Count!=6||plan.Any(p=>p.Key is not ("branches" or "entry" or "edges" or "exits" or "callers" or "targets")))throw new ArgumentException("Explicit branches, all target returns and all callers required");selectedCalls=plan["callers"]!.DeepClone().AsArray();selectedTargets=plan["targets"]!.DeepClone().AsArray();}
+        if(legacy){if(plan.Count!=5||plan.Any(p=>p.Key is not ("branches" or "entry" or "edges" or "exits" or "caller"))||choices["callers"]!.AsArray().Count!=1||choices["targets"]!.AsArray().Count!=1||choices["wrappers"]!.AsArray().Count!=0)throw new ArgumentException("Explicit complete caller/target mapping required");selectedCalls.Add(plan["caller"]!.DeepClone());}
+        else {if(plan.Count!=(choices["wrappers"]!.AsArray().Count>0?7:6)||plan.Any(p=>p.Key is not ("branches" or "entry" or "edges" or "exits" or "callers" or "targets" or "wrappers")))throw new ArgumentException("Explicit branches, all target returns and all callers required");selectedCalls=plan["callers"]!.DeepClone().AsArray();selectedTargets=plan["targets"]!.DeepClone().AsArray();}
         if(selectedCalls.Any(c=>c is not JsonObject row||row.Count is <2 or >3||row.Any(p=>p.Key is not ("graph" or "node" or "routes"))||row["graph"] is null||row["node"] is null)||selectedCalls.Select(c=>CallKey(c!)).Distinct(StringComparer.Ordinal).Count()!=selectedCalls.Count||!selectedCalls.Select(c=>CallKey(c!)).ToHashSet(StringComparer.Ordinal).SetEquals(choices["callers"]!.AsArray().Select(c=>CallKey(c!))))throw new ArgumentException("Every affected caller must have one explicit mapping; no automatic selection");
         var extraTargets=choices["targets"]!.AsArray().Where(t=>t!["graph"]!.ToString()!=rootId).Select(t=>t!["graph"]!.ToString()).ToHashSet(StringComparer.Ordinal);
         if(selectedTargets.Any(t=>t is not JsonObject row||row.Count!=4||row.Any(p=>p.Key is not ("graph" or "entry" or "edges" or "exits"))||row["graph"] is null)||selectedTargets.Select(t=>t!["graph"]!.ToString()).Distinct(StringComparer.Ordinal).Count()!=selectedTargets.Count||!selectedTargets.Select(t=>t!["graph"]!.ToString()).ToHashSet(StringComparer.Ordinal).SetEquals(extraTargets))throw new ArgumentException("Every other implementation target requires explicit return mapping");
+        var selectedWrappers=plan["wrappers"]?.AsArray()??new JsonArray();var requiredWrappers=choices["wrappers"]!.AsArray();
+        if(selectedWrappers.Count!=requiredWrappers.Count||selectedWrappers.Any(w=>w is not JsonObject row||row.Count!=4||row.Any(p=>p.Key is not ("graph" or "node" or "originalExecution" or "contractHash"))||row["graph"] is null||row["node"] is null)||selectedWrappers.Select(w=>CallKey(w!)).Distinct(StringComparer.Ordinal).Count()!=selectedWrappers.Count||selectedWrappers.Any(w=>!requiredWrappers.Any(r=>CallKey(r!)==CallKey(w!)&&JsonNode.DeepEquals(r!["originalExecution"],w!["originalExecution"])&&JsonNode.DeepEquals(r["contractHash"],w["contractHash"]))))throw new ArgumentException("Explicitly acknowledge every original public wrapper contract; retain its C# and local branches");
         var contextIds=ContextIds(choices);var originalDefinitions=contextIds.ToDictionary(id=>id,id=>CodeDefinitions(Definitions(units,id)),StringComparer.Ordinal);
         var root=Root(units,rootId);var before=BlueprintExecutionBranches.Read(root.Function);var branches=plan["branches"]!.AsArray();
         string originalContract=FeatureBlueprint.ContractHash(root.Function);
@@ -121,6 +124,7 @@ static partial class BlueprintRootExecution
             if(frame["edges"]!.AsArray().Any(e=>e!["from"]?.ToString()==callId&&e["port"]!.ToString().StartsWith("case:",StringComparison.Ordinal)&&!allowed.Contains(e["port"]!.ToString())))throw new ArgumentException("Disconnect removed caller branches explicitly before deleting their definitions");
             units[callerId]!["draft"]=caller.Graph.ToJsonString();
         }
+        foreach(var selected in selectedWrappers){string id=selected!["graph"]!.ToString();var caller=Root(units,id,false);var call=BlueprintTree.Nodes(caller.Graph).Single(n=>n.Key==selected["node"]!.ToString()).Node;var post=call["postCall"]!.AsObject();post["originalExecution"]=FeatureBlueprint.ContractHash(root.Function);post["contractHash"]=BlueprintCallWrapper.ContractHash(root.Function,true);units[id]!["draft"]=caller.Graph.ToJsonString();}
         foreach(string id in contextIds)RefreshCodeReceipts(units,id,originalDefinitions[id],CodeDefinitions(Definitions(units,id)),root.Function.Id,originalContract,FeatureBlueprint.ContractHash(root.Function));
         foreach(string id in contextIds)_=Definitions(units,id,true);
         var group=Members(units,rootId,contextIds);var result=new JsonObject();foreach(var member in group){string id=member!.ToString();result[id]=units[id]!.DeepClone();result[id]!["rootContractGroup"]=group.DeepClone();}
@@ -155,6 +159,7 @@ static partial class BlueprintRootExecution
                 if(paths.Add(path))checks.Add(new JsonObject { ["path"]=path,["hash"]=hash });
             }
         }
+        PublicWrapperChecks(units,request["namespace"]!.ToString(),selected,paths,checks);
         return new JsonObject { ["checks"]=checks,["sourceWritten"]=false,["executed"]=false };
     }
 }

@@ -29,7 +29,7 @@ try
         case "blueprintRootContract":reply=BlueprintRootContract.Prepare(request,Format);break;
         case "blueprintRootGroup":reply=BlueprintRootGroup.Validate(request);break;
         case "blueprintOutputSnapshot":reply=BlueprintOutputSnapshot.Prepare(new Parser(S("functionText"),"<published-output-contract>").ParseElement(),request["expected"]?.GetValue<string>());break;
-        case "blueprintCallWrapper":reply=BlueprintCallWrapper.Prepare(new Parser(S("functionText"),"<wrapper-contract>").ParseElement(),request["executionEnum"]!.AsObject(),request["expected"]?.GetValue<string>(),request["source"]?.GetValue<string>(),request["helpers"]?.GetValue<string>()??"",request["returnMapping"]?.GetValue<string>());break;
+        case "blueprintCallWrapper":reply=BlueprintCallWrapper.Prepare(new Parser(S("functionText"),"<wrapper-contract>").ParseElement(),request["executionEnum"]!.AsObject(),request["expected"]?.GetValue<string>(),request["source"]?.GetValue<string>(),request["helpers"]?.GetValue<string>()??"",request["returnMapping"]?.GetValue<string>(),request["originalExecution"]?.GetValue<string>());break;
         case "blueprintCallAfter":reply=BlueprintCallAfter.Prepare(new Parser(S("functionText"),"<post-call-contract>").ParseElement(),request["expected"]?.GetValue<string>(),request["source"]?.GetValue<string>(),request["helpers"]?.GetValue<string>()??"");break;
         case "blueprintCallAbi":reply=BlueprintCallAbi.Prepare(request,Format);break;
         case "blueprintCallAbiUses":reply=BlueprintCallAbiUses.Prepare(request,Format);break;

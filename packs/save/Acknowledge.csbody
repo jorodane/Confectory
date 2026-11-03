@@ -38,6 +38,7 @@ string confirmedSaved=saved.ToJsonString();var state=AppDomain.CurrentDomain.Get
  // Once the durable checkpoint and every public execution member are settled,
  // retire that transaction's live metadata too. Otherwise a later copy is
  // mistaken for an unreviewed public-contract provider in the same session.
+ if(state["checkpointVersion"]?.ToString()==confirmedHash)foreach(string id in selected)if(state["units"]?[id] is System.Text.Json.Nodes.JsonObject unit&&unit["draft"]?.ToString()==unit["original"]?.ToString()&&unit["authorSaveReceipt"] is System.Text.Json.Nodes.JsonObject receipt)receipt.Remove("publicWrapper");
  if(state["checkpointVersion"]?.ToString()==confirmedHash)foreach(var group in closedExecutionGroups){
   if(!System.Linq.Enumerable.All(group,m=>settled.Contains(m!.ToString())&&state["units"]?[m.ToString()] is System.Text.Json.Nodes.JsonObject unit&&System.Text.Json.Nodes.JsonNode.DeepEquals(unit["rootContractGroup"],group)&&unit["baseline"]?.ToString()!="missing"&&unit["draft"]?.ToString()==unit["original"]?.ToString()))continue;
   foreach(var member in group){var unit=state["units"]![member!.ToString()]!.AsObject();unit.Remove("rootContractGroup");unit.Remove("rootAbiContracts");}

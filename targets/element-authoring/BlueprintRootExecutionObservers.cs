@@ -38,4 +38,33 @@ static partial class BlueprintRootExecution
             record["definitionHash"]=next["definitionHash"]!.DeepClone();unit["draft"]=record.ToJsonString();
         }
     }
+    static void PublicWrapperChecks(JsonObject units,string ns,HashSet<string>? selected,HashSet<string> paths,JsonArray checks) {
+        foreach(var pair in units.Where(p=>p.Value?["kind"]?.ToString()=="blueprint"&&(selected is null||selected.Contains(p.Key)))){
+            var unit=pair.Value!;bool pending=unit["authorSaveReceipt"]?["publicWrapper"]?.GetValue<bool>()==true;
+            if(!pending&&unit["draft"]?.ToString()==unit["original"]?.ToString())continue;
+            var graph=JsonNode.Parse(unit["draft"]!.ToString())!.AsObject();var wrappers=BlueprintTree.Nodes(graph).Where(n=>n.Node["postCall"]?["originalExecution"] is not null).ToArray();if(wrappers.Length==0)continue;
+            var group=unit["rootContractGroup"] as JsonArray;
+            // The enclosing public definition transaction already guards these
+            // members and readonly observations under the same final lease.
+            if(group is not null&&units[group[0]!.ToString()]?["draft"]?.ToString().Contains(BlueprintExecutionBranches.Metadata,StringComparison.Ordinal)==true)continue;
+            if(PackPaths.Namespace(pair.Key)!=ns)throw new ArgumentException("Owned public wrapper receipt required");
+            var root=Root(units,pair.Key,false);_=Definitions(units,pair.Key,true);
+            var original=unit["original"] is null?null:JsonNode.Parse(unit["original"]!.ToString()) as JsonObject;
+            var previous=original?["nodes"] is JsonArray?BlueprintTree.Nodes(original).ToDictionary(n=>n.Key,n=>n.Node,StringComparer.Ordinal):new Dictionary<string,JsonObject>(StringComparer.Ordinal);
+            bool changed=wrappers.Any(w=>!previous.TryGetValue(w.Key,out var old)||!JsonNode.DeepEquals(old["postCall"],w.Node["postCall"])||!JsonNode.DeepEquals(old["executionEnum"],w.Node["executionEnum"])||!JsonNode.DeepEquals(old["signature"],w.Node["signature"])||old["feature"]?.ToString()!=w.Node["feature"]?.ToString());
+            if(changed&&!pending)throw new ArgumentException("Retain the atomic public wrapper checkpoint receipt");
+            var features=wrappers.Select(n=>n.Node["feature"]!.ToString()).ToHashSet(StringComparer.Ordinal);
+            var dependencies=features.Concat(root.Implementation.Imports.Values.Where(i=>features.Contains(i.Id)&&i.Scope is not null).Select(i=>i.Scope!)).Concat(new[]{root.Function.Id,root.Implementation.Id}).Distinct(StringComparer.Ordinal).ToArray();
+            JsonObject? sources=null;
+            if(pending){var receipt=unit["authorSaveReceipt"]!;sources=receipt["sources"] as JsonObject??throw new ArgumentException("Retain the complete wrapper source receipt");
+                if(receipt["version"]?.GetValue<int>()!=1||receipt["graph"]?.ToString()!=pair.Key||sources.Count is <2 or >64||!sources.ContainsKey(pair.Key))throw new ArgumentException("Complete bounded public wrapper observation required");
+                foreach(string id in dependencies)if(sources[id] is null||units[id] is null||sources[id]?["hash"]?.ToString()!=Hash(units[id]!["draft"]!.ToString()))throw new ArgumentException("The observed original wrapper contract or scope changed; retain input");
+            }
+            foreach(string id in sources?.Select(p=>p.Key)??dependencies){var member=units[id]??throw new ArgumentException("Missing observed wrapper source");string path=member["path"]!.ToString(),baseline=member["baseline"]!.ToString();var proof=sources?[id];
+                if(PackPaths.Namespace(id)!=ns||proof is not null&&(proof["path"]?.ToString()!=path||proof["kind"]?.ToString()!=member["kind"]?.ToString()||!System.Text.RegularExpressions.Regex.IsMatch(proof["hash"]?.ToString()??"",@"\A[a-f0-9]{64}\z"))||baseline!="missing"&&!System.Text.RegularExpressions.Regex.IsMatch(baseline,@"\A[a-f0-9]{64}\z"))throw new ArgumentException("Exact owned wrapper dependency locator/baseline required");
+                _=PackPaths.Owned(Path.Combine(Path.GetTempPath(),"confectory-public-wrapper-guards"),path);if(paths.Add(path))checks.Add(new JsonObject{["path"]=path,["hash"]=baseline});
+            }
+        }
+    }
+
 }
