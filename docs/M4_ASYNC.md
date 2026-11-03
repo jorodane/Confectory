@@ -24,3 +24,9 @@ M12는 [고정 마감표](M12_CLOSURE.md)에서 닫혔다. 종류 C# 표현·사
 `tools/verify_desktop.py --suite async-runtime`은 독립 LF/CRLF checkout에서 async/기존 switch·M12 실행 및 소유 경계, 기존 M12 저장·중단·취소·Undo·cold restart·응답 유실·늦은 입력·외부 충돌을 새로 실행한다. 새로운 async 전환 UI의 검사로 부르지 않는다.
 
 `tests/probes/async_runtime.py`는 checkout·새 교차 패키지·전체 압축 복원본 각각의 실제 Core/CLI/metadata/컴파일러로 생성한 테스트 프로젝트를 빌드·실행한다. await와 출력/완료/분기 순서, 반복, 원래 Task 오류, 실행 중 자체 child 중단·재시도, 동기 호출자 거절 및 원문 보존을 검증한다. 최신/롤백·전체 manifest/SHA·복원 검증·실패 수명관리와 소유 임시물 종료 정리는 기존 절차를 유지한다. Linux에서 수행한 검사이며 실제 Windows 실행을 뜻하지 않는다.
+
+## 보관본/호환성
+
+최종 신규 LF22·CRLF20·패키지/전체 복원/실패 수명관리8, 총50단계가 통과했다. [전체 기록과 지속 패키지·공간](VALIDATION_V666_ASYNC_RUNTIME.md)을 따른다. 보조 pure metadata 3개는 별도 증거이며 50단계와 중복 계산하지 않는다.
+
+롤백 M12 패키지는 기존 동기 자료의 정상본이다. 새 async metadata는 기존 value 문법을 사용하지만 구버전 compiler/editor는 새 async graph profile을 지원하지 않으므로 새 자료의 실행/편집을 보장하지 않는다. 코드 rollback만으로 새 async 프로젝트를 자동 변환하지 않는다. 최신 패키지·원본/초안 증거를 함께 보존하며 필요한 데이터 복원과 정상 보유 원본을 구별한다.
