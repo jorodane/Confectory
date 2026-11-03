@@ -1,6 +1,9 @@
 """Real API/checkpoint/Confirm and execution checks for bounded M12."""
-import copy,json,subprocess,stat
-import v666_root_execution_fixture as x
+import copy,json,subprocess,stat,sys
+if '--branch-caller' in sys.argv:
+ import v666_root_execution_caller_fixture as x
+else:
+ import v666_root_execution_fixture as x
 f=x.f
 try:
  units={}
@@ -32,6 +35,7 @@ try:
   else:bad['edits'][0]['definition']['branches'][0]['value']=0
   x.rpc('authorBatch',False,**bad);assert x.checkpoint()==before;x.original()
  f.checked('명시 호출자 누락·잘못된 분기/값·낡은 증거는 원자 거절하며 입력과 원본을 유지한다')
+ if getattr(x,'branch_caller_mode',False):x.check_caller_guards(d,pure,req,before)
  source=f.project/'After.node.json';source.write_bytes(x.physical[source]+b' ');x.rpc('authorBatch',False,**req);source.write_bytes(x.physical[source]);assert x.checkpoint()==before;x.original();f.checked('다른 호출자 frame의 물리 원문 경합도 전체 저장 전 확인한다')
  if x.compound_mode:
   header=f.project/'Other.celem';header_bytes(x.physical[header]+b' ');x.rpc('authorBatch',False,**req);header_bytes(x.physical[header]);assert x.checkpoint()==before;x.original();f.checked('다른 import 헤더의 Save 전 물리 경합은 전체 후보를 거절하며 readonly 원본을 보존한다')
@@ -47,6 +51,8 @@ try:
   f.checked('추가 계약은 변경 없는 전체 Review 멤버이며 header draft·누락/변조 receipt는 실제 검증에서 거절한다')
  f.stop();f.start(1);assert x.checkpoint()==saved;assert x.read()['diagnostics']['state']=='source-ready';assert x.rpc('settledAuthorBatch',**req)['settled'];x.original();f.checked('재시작에서 같은 branch ID·호출자 receipt·원자 그룹을 복원하고 응답 재조회는 중복 저장하지 않는다')
  f.invoke('reviewGroup',{'ids':[x.graph]},False);x.original();ids=x.read()['reviewIds'];view=f.invoke('reviewGroup',{'ids':ids});assert not view['state']['review'].get('errors');x.original();f.checked('부분 Review를 거절하고 전체 Review 준비·취소는 원본을 쓰지 않는다')
+ if getattr(x,'branch_caller_mode',False):
+  x.check_caller_final_cas(view,ids);view=f.invoke('reviewGroup',{'ids':x.read()['reviewIds']})
  review_checkpoint=x.checkpoint();token=view['state']['review']['token'];source.write_bytes(x.physical[source]+b' ');failed=f.invoke('confirmGroup',{'ids':ids,'token':token})['result']['result'];assert failed['sourceConfirmed'] is False;source.write_bytes(x.physical[source]);x.original();assert x.checkpoint()==review_checkpoint;f.stop();f.start(2);f.checked('Review 뒤 호출자 변경은 최종 CAS에서 전부 미반영하고 저장된 후보를 유지한다')
  if x.compound_mode:
   ids=x.read()['reviewIds'];view=f.invoke('reviewGroup',{'ids':ids});header_review_checkpoint=x.checkpoint();header_bytes(x.physical[header]+b' ');failed=f.invoke('confirmGroup',{'ids':ids,'token':view['state']['review']['token']})['result']['result'];assert failed['sourceConfirmed'] is False;header_bytes(x.physical[header]);assert x.checkpoint()==header_review_checkpoint;x.original();f.checked('Review 뒤 다른 import 헤더 변경도 최종 CAS에서 전체 미반영한다')
@@ -72,6 +78,7 @@ try:
   try:x.build('native-ordinary',42,'callee:1\nlegacy:42:420:value:42:42')
   finally:body_file.write_bytes(saved_body)
   f.checked('분기 뒤 continuation의 원래 반환 소비와 기존 C# IInvoke 반환형/ref/out를 별도 실제 실행으로 보존한다')
+ if getattr(x,'branch_caller_mode',False):x.check_caller_execution_outcomes()
  f.stop();f.start(3);assert x.read()['diagnostics']['state']=='source-ready';assert x.read(x.caller)['diagnostics']['state']=='source-ready';f.checked('최종 반영 후 cold 재시작에서 공개 분기와 연결을 다시 읽는다')
  print('M12_FIXTURE '+str(f.case),flush=True)
 finally:

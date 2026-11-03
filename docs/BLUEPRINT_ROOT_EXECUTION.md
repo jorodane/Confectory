@@ -126,3 +126,7 @@ ordinary switch-profile의 기존 공개 분기/None 반환에 비void 직접 �
 ## native whole-body의 공개 실행 진입
 
 직접 소유한 기존 switch-profile native Root의 원문 `Invoke`와 그래프의 명시적 `IInvoke` 진입을 구분하여 this/재귀/receiver·scoped import·원문 위치를 유지한다. scope object와 import 함수도 변경 없는 관측/CAS 멤버다. [지원·검증](VALIDATION_V666_ROOT_EXECUTION_NATIVE.md)과 [유한한 M12 종료 조건](M12_CLOSURE.md)을 기준으로 실제 잔여를 구별한다.
+
+## 호출자 자신의 공개 분기·반환
+
+직접 소유 caller Root의 기존 공개 metadata와 종료점은 피호출자 정의 갱신과 분리해 보존한다. 정확한 기존 거래의 call 포트 연결은 같은 후보의 경로 변경으로 처리하며, 다른 함수의 분기 ID를 서로 대체하지 않는다. [지원·검증 경계](VALIDATION_V666_ROOT_EXECUTION_CALLER.md).

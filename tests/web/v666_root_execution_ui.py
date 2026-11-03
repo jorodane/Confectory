@@ -1,7 +1,9 @@
 """M12 authored sidebar, return cards and explicit caller; interrupted UI saves."""
 import copy,json,sys
 from playwright.sync_api import sync_playwright,expect
-if '--native-root' in sys.argv:
+if '--branch-caller' in sys.argv:
+ import v666_root_execution_caller_fixture as x
+elif '--native-root' in sys.argv:
  import v666_root_execution_native_fixture as x
 elif '--nested-root' in sys.argv:
  import v666_root_execution_nested_fixture as x
@@ -103,7 +105,10 @@ try:
    else:save()
    assert not pending();x.original();assert x.read()['diagnostics']['state']=='source-ready';assert x.read(x.caller)['diagnostics']['state']=='source-ready';f.checked('저장은 루트 계약·반환과 명시 호출자의 실행 포트를 한 checkpoint 후보로 결합한다')
    open_graph(f.n+'Main',getattr(x,'route_node','invoke'));call_node=panel().locator('[data-bp-node="'+getattr(x,'route_node','invoke')+'"]');expect(call_node.locator('[data-port="case:'+ids[0]+'"]')).to_be_visible();expect(call_node.locator('[data-branch-name]')).to_have_count(2);assert call_node.locator('[data-branch-name]').first.get_attribute('readonly') is not None
-   call_node.locator('[data-port="case:'+ids[0]+'"]').click();panel().locator('[data-bp-node="$exit:return"] .bp-exec-header-in').click();assert pending();save();x.original();f.checked('명시 호출자 화면의 readonly 공개 분기 포트를 기존 반환 카드에 연결해 같은 그룹으로 저장한다')
+   call_node.locator('[data-port="case:'+ids[0]+'"]').click();panel().locator('[data-bp-node="$exit:return"] .bp-exec-header-in').click();
+   if getattr(x,'branch_caller_mode',False):
+    f.page.screenshot(path=str(f.case/'caller-route.png'));(f.case/'caller-route.html').write_text(f.page.content());(f.case/'caller-route.json').write_text(json.dumps({'pending':pending(),'state':f.state()},ensure_ascii=False));assert all(v['type'].startswith('route:case:') for _,v in pending());assert (f.project/'Main.celem').read_bytes()==x.caller_source
+   assert pending();save();x.original();f.checked('명시 호출자 화면의 readonly 공개 분기 포트를 기존 반환 카드에 연결해 같은 그룹으로 저장한다')
    r=review();r.locator('[data-reject]').click();expect(r).to_be_hidden();x.original();r=review();r.locator('#confirm').click();expect(r).to_be_hidden(timeout=120000);f.idle();verify_run();assert (f.project/'Flow.node.json').read_bytes()==x.physical[f.project/'Flow.node.json'];assert (f.project/'After.node.json').read_bytes()==x.physical[f.project/'After.node.json'];f.checked('Review 취소와 최종 Confirm을 구별하고 원문 바이트 및 미연결 다음 줄 실행을 보존한다')
    if x.out_mode:f.checked('공개 성공 포트에서 다음 줄을 건너뛰어도 기존 out/ref 데이터 저장소는 이미 발행되어 있다')
    restart(4);assert x.read()['diagnostics']['state']=='source-ready';assert x.read(x.caller)['diagnostics']['state']=='source-ready';f.checked('최종 반영 뒤 재시작에서 공개 분기·반환·직접 호출자 포트를 복원한다')
