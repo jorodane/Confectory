@@ -101,3 +101,5 @@ ordinary IInvoke/native import와 legacy NoBranch wrapper를 공개 계약 갱�
 직접 소유 ordinary root 안의 기존 C# Result 동작은 완료의 literal 포트/연결과 원문을 보존하는 일반 지역 분기로 전환하고 같은 ID로 async 재활성화한다. UI 표시명과 C# 식별자를 분리한다. async ordinary root의 Set 계획도 기존 소유/타입/원자 검증을 재사용한다. [정확한 경계](M4_ASYNC_TRANSITION.md).
 
 유한한 M4 후속은 **공개 함수·호출자의 완료 일반분기 어댑터**, **Result 없는 next/native/whole-body 원문 보존 어댑터**, **새/내부 소유 본문과 실제 보조 편집 통합**이다. 앞선 지역 Result 지원과 Set 지원을 다시 잔여로 세지 않는다. 정상 비소유/override/ref/실제 await 거절 및 선택적 legacy 자동 변환은 새 필수 조합이 아니다. M11/M12는 닫힌 상태를 유지한다. V2–V9와 별도 팩·backend/종류 호환성 결정, 실제 기기·전체 UI·Space 전달은 기존 별도 잔여다.
+
+완료 일반 분기·ordinary async Set의 동결 코드 `a24e3e2`를 신규 47단계(재사용 0)로 검증하고 최신/롤백 및 전체 증거를 보관했다. [최종 검증 기록](VALIDATION_V666_ASYNC_COMPLETION.md).
