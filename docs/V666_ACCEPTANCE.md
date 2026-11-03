@@ -64,3 +64,5 @@ ordinary 소유/등록 데이터 반환의 최종 **신규 LF20·CRLF19·패키�
 여러 직접 소유 provider의 최종 **신규 LF20·CRLF18·패키지/전체 복원/실패 수명관리6, 총44단계(반환/runtime·소유 경계36개 포함)**가 통과했고 증거·최신/롤백을 지속 보관했다. [결과와 경계](VALIDATION_V666_ROOT_EXECUTION_PROVIDERS.md).
 
 소유 ordinary switch-profile private caller도 물리 Root+전체 node 경로로 명시 대응하고 local frame의 반환/실행선만 갱신한다. 재귀적인 leaf 원문 관측과 body target을 같은 후보/CAS/Review 그룹에 유지한다. [중첩 호출 경계와 검증](VALIDATION_V666_ROOT_EXECUTION_NESTED.md).
+
+소유 private caller 결합의 최종 **총45단계(신규39·동등재사용6; LF21·CRLF18·패키지/복원6, 계약/runtime·소유 경계36개 중 신규18·재사용18 포함)**가 통과했고 증거·최신/롤백을 지속 보관했다. [결과와 실제 경계](VALIDATION_V666_ROOT_EXECUTION_NESTED.md).
