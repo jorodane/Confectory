@@ -69,3 +69,6 @@ ordinary 소유/등록 데이터 반환의 최종 **신규 LF20·CRLF19·패키�
 
 
 기존 branch-capable native whole-body의 공개 실행 진입을 원래 instance Invoke/this·재귀/scoped import/소스 위치와 분리해 연결하고 scope object·import 함수의 읽기 관측을 같은 CAS/Review 그룹에 보존했다. 최종 동결 코드의 **신규 LF19·CRLF16·새 패키지/전체 복원/실패 수명관리6, 총41단계**가 모두 통과했다(계약/runtime·소유 경계 38개 포함, 재사용 0). [지원·증거](VALIDATION_V666_ROOT_EXECUTION_NATIVE.md)와 [M12의 유한한 실제 흐름·종료 조건](M12_CLOSURE.md)을 기준으로 남은 caller 계약·copy/자식·등록 import를 구분한다. M4의 확정된 동기 caller 오류 정책과 실제 async 구현, 원래 V2–V9/UI 후속 및 기기 검증은 이 단위로 완료되지 않는다.
+
+
+피호출자의 공개 분기 갱신 중 호출자 자신이 가진 공개 Root 분기·반환 데이터·readonly 선언을 보존하고, 원래 반환 카드에 연결하는 흐름을 마감했다. 최종 LF19·CRLF16·새 패키지/전체 복원/실패 수명관리6, **총41단계(신규37·동등 근거 재사용4)**가 통과했다. 재사용은 소스/SDK 입력이 동일한 Core 직접 검사 38개에만 해당하며 변경된 후보/API/UI·빌드·패키지는 신규다. [지원·검증·재사용 근거](VALIDATION_V666_ROOT_EXECUTION_CALLER.md). 남은 M12는 [유한한 종료 표](M12_CLOSURE.md)의 private forwarding/postCall 실제 영향, 같은 계약 copy·자식 전체 갱신과 등록 import 경계이며 임의 조합을 새 필수 행으로 늘리지 않는다.
