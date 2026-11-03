@@ -12,7 +12,7 @@ v536 기록은 과거 검증 증거이며 기존 기능을 미구현으로 되�
 - 같은 계약 copy·자식 소유 target의 전체 명시 갱신과 inherited-only 관측은 최종 검증까지 마감했다. [전체 갱신 기록](VALIDATION_V666_ROOT_EXECUTION_OWNED_UPDATES.md)에 신규/재사용과 환경 중단 복구 근거를 유지한다.
 - 등록 외부 import·manifest·scope/포함 모듈의 읽기 전용 receipt도 저장·복원·Review·최종 CAS·실제 실행까지 마감했다. [최종 44단계와 패키지/복원 증거](VALIDATION_V666_ROOT_EXECUTION_IMPORTS.md)를 따른다. 네 원래 흐름으로 M12를 완료하며 조합별 새 잔여를 추가하지 않는다.
 
-wrapper의 정상 stale 거절을 자동 변환 요구로, 비소유 부모/참조 쓰기나 override IO 변경을 미구현으로 늘리지 않는다. 새 타입·문맥 조합을 이 목록에 추가하지 않는다. M4의 직접 소유 ordinary 함수·동작/호출자의 명시적 Task 실행 기반은 [현재 지원 경계](M4_ASYNC.md)에 연결했다. 최종 신규 LF22·CRLF20·패키지/전체 복원/실패 수명관리8, 총50단계를 통과했다([검증·보관 기록](VALIDATION_V666_ASYNC_RUNTIME.md)). 직접 소유 ordinary Root의 원본 전환 메뉴·초안/원자 저장 연결은 [이번 지원 경계](M4_ASYNC_TRANSITION.md)를 따른다. 이 UI 단위의 [최종 신규 40단계·재사용 0](VALIDATION_V666_ASYNC_TRANSITION.md)을 마감했다. 지역 C# Result 완료 분기의 동기 복귀와 ordinary async Set 연동은 아래 후속에 연결했고, 공개 함수/Result 없는 본문 어댑터와 새/내부 소유 문맥은 남는다. 동기 caller는 명시적으로 async로 바뀌기 전에는 오류로 거절한다. V2–V9와 기존 별도 UI/권한 backend·종류 C# 표현/사용 중 삭제 대응·실기기 검증의 남은 범위는 해당 고정 행을 따른다.
+wrapper의 정상 stale 거절을 자동 변환 요구로, 비소유 부모/참조 쓰기나 override IO 변경을 미구현으로 늘리지 않는다. 새 타입·문맥 조합을 이 목록에 추가하지 않는다. M4의 직접 소유 ordinary 함수·동작/호출자의 명시적 Task 실행 기반은 [현재 지원 경계](M4_ASYNC.md)에 연결했다. 최종 신규 LF22·CRLF20·패키지/전체 복원/실패 수명관리8, 총50단계를 통과했다([검증·보관 기록](VALIDATION_V666_ASYNC_RUNTIME.md)). 직접 소유 ordinary Root의 원본 전환 메뉴·초안/원자 저장 연결은 [이번 지원 경계](M4_ASYNC_TRANSITION.md)를 따른다. 이 UI 단위의 [최종 신규 40단계·재사용 0](VALIDATION_V666_ASYNC_TRANSITION.md)을 마감했다. 지역 C# Result 완료 분기의 동기 복귀와 ordinary async Set 연동은 아래 후속에 연결했고, ordinary 공개 완료는 후속에 연결했고, 명시 native/Result 없는 본문·새/내부 소유·property 문맥은 남는다. 동기 caller는 명시적으로 async로 바뀌기 전에는 오류로 거절한다. V2–V9와 기존 별도 UI/권한 backend·종류 C# 표현/사용 중 삭제 대응·실기기 검증의 남은 범위는 해당 고정 행을 따른다.
 
 ## 기존 미완료 사용자 흐름
 
@@ -103,3 +103,10 @@ ordinary IInvoke/native import와 legacy NoBranch wrapper를 공개 계약 갱�
 유한한 M4 후속은 **공개 함수·호출자의 완료 일반분기 어댑터**, **Result 없는 next/native/whole-body 원문 보존 어댑터**, **새/내부 소유 본문과 실제 보조 편집 통합**이다. 앞선 지역 Result 지원과 Set 지원을 다시 잔여로 세지 않는다. 정상 비소유/override/ref/실제 await 거절 및 선택적 legacy 자동 변환은 새 필수 조합이 아니다. M11/M12는 닫힌 상태를 유지한다. V2–V9와 별도 팩·backend/종류 호환성 결정, 실제 기기·전체 UI·Space 전달은 기존 별도 잔여다.
 
 완료 일반 분기·ordinary async Set의 동결 코드 `a24e3e2`를 신규 47단계(재사용 0)로 검증하고 최신/롤백 및 전체 증거를 보관했다. [최종 검증 기록](VALIDATION_V666_ASYNC_COMPLETION.md).
+
+
+## M4 공개 함수 완료 후속
+
+직접 소유한 기존 ordinary 함수/Blueprint target·직접 Blueprint 호출자의 완료를 같은 ID·값·literal 연결의 일반 공개 Result로 전환한다. C#·IO·지역 Result를 보존하며 기존 반환 카드의 명시 선택/이름 편집과 async 재활성화에 연결한다. [정확한 경계와 호환성](M4_PUBLIC_COMPLETION.md). Root 전환·실제 호출자 전체 관측과 final CAS를 유지하고, 재시작의 무관한 lazy body와 필수 importing body 누락을 구분한다.
+
+다음 M4 흐름은 Result 없는 소유 next/native/whole-body 본문의 원문/출력 보존 어댑터, 새/내부 소유 본문의 명시 전환, property 보조 편집이다. 완료한 ordinary 공개 완료/지역 Result/Set을 다시 조합별 잔여로 추가하지 않는다. M11/M12는 관련 회귀를 제외하면 닫힌 상태를 유지하며 V2–V9·팩/backend·종류 호환성 및 실제 기기/전체 UI/Space 전달은 기존 별도 잔여다.

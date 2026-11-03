@@ -15,7 +15,7 @@ static partial class BlueprintRootExecution
     static JsonObject Graph(JsonObject units,string id,bool publicDispatch=true) {
         if(units[id]?["kind"]?.ToString()!="blueprint")throw new ArgumentException("Owned Blueprint root required");
         var graph=JsonNode.Parse(units[id]!["draft"]!.GetValue<string>())!.AsObject();BlueprintDocuments.Validate(id,"blueprint",graph.ToJsonString());
-        if(publicDispatch&&(graph["profile"]?.ToString()!=FeatureBlueprint.SwitchProfile||BlueprintTree.Nodes(graph).Any(n=>n.Node["kind"]?.ToString() is not ("call" or "code" or "export" or "graph")||n.Node["control"]?.ToString()=="branch")))throw new ArgumentException("Existing owned dispatch roots required; preserve other contexts");return graph;
+        if(publicDispatch&&(graph["profile"]?.ToString() is not (FeatureBlueprint.SwitchProfile or BlueprintAsync.Profile)||BlueprintTree.Nodes(graph).Any(n=>n.Node["kind"]?.ToString() is not ("call" or "code" or "export" or "graph" or "set")||n.Node["control"]?.ToString()=="branch")))throw new ArgumentException("Existing owned dispatch roots required; preserve other contexts");return graph;
     }
     static (Element Function,Element Implementation,JsonObject Graph) Root(JsonObject units,string graphId,bool publicDispatch=true) {
         int marker=graphId.IndexOf("/body:",StringComparison.Ordinal);if(marker<0||graphId.Contains("/graph:",StringComparison.Ordinal))throw new ArgumentException("Direct root source required");
@@ -77,7 +77,7 @@ static partial class BlueprintRootExecution
             var uses=BlueprintTree.Nodes(graph).Where(p=>p.Node["kind"]?.ToString()=="call"&&p.Node["feature"]?.ToString()==root.Function.Id&&p.Node["postCall"] is null).ToArray();
             var caller=Root(units,pair.Key,uses.Length>0);
             if(caller.Function.Id==root.Function.Id||uses.Any(p=>p.Node["control"]?.ToString() is not ("next" or "switch")))throw new ArgumentException("Caller uses with explicit owned contracts required; preserve other contexts");
-            if(uses.Any(p=>CallerFrame(caller.Graph,p.Key).Frame["profile"]?.ToString()!=FeatureBlueprint.SwitchProfile))throw new ArgumentException("Existing switch-profile caller frames required; preserve other profiles");
+            if(uses.Any(p=>CallerFrame(caller.Graph,p.Key).Frame["profile"]?.ToString() is not (FeatureBlueprint.SwitchProfile or BlueprintAsync.Profile)))throw new ArgumentException("Existing switch-profile caller frames required; preserve other profiles");
             _=ObservedContracts(units,rootId,new[]{pair.Key});
             // Validate the complete original CFG, including the caller's private
             // source/enum/exit and branch-owner contracts, before proposing edits.
@@ -105,9 +105,9 @@ static partial class BlueprintRootExecution
         if(selectedWrappers.Count!=requiredWrappers.Count||selectedWrappers.Any(w=>w is not JsonObject row||row.Count!=4||row.Any(p=>p.Key is not ("graph" or "node" or "originalExecution" or "contractHash"))||row["graph"] is null||row["node"] is null)||selectedWrappers.Select(w=>CallKey(w!)).Distinct(StringComparer.Ordinal).Count()!=selectedWrappers.Count||selectedWrappers.Any(w=>!requiredWrappers.Any(r=>CallKey(r!)==CallKey(w!)&&JsonNode.DeepEquals(r!["originalExecution"],w!["originalExecution"])&&JsonNode.DeepEquals(r["contractHash"],w["contractHash"]))))throw new ArgumentException("Explicitly acknowledge every original public wrapper contract; retain its C# and local branches");
         var contextIds=ContextIds(choices);var originalDefinitions=contextIds.ToDictionary(id=>id,id=>CodeDefinitions(Definitions(units,id)),StringComparer.Ordinal);
         var root=Root(units,rootId);var before=BlueprintExecutionBranches.Read(root.Function);var branches=plan["branches"]!.AsArray();
-        string originalContract=FeatureBlueprint.ContractHash(root.Function);
+        string originalContract=FeatureBlueprint.ContractHash(root.Function);string? priorCompletion=BlueprintFunctionCompletion.Read(root.Function)?["id"]?.ToString();
         foreach(var branch in branches) {var prior=before.SingleOrDefault(b=>b!["id"]?.ToString()==branch!["id"]?.ToString());if(prior is not null&&prior["value"]?.ToString()!=branch!["value"]?.ToString()||prior is null&&before.Any(b=>b!["value"]?.ToString()==branch!["value"]?.ToString()))throw new ArgumentException("Retain existing branch IDs and allocated values");}
-        BlueprintExecutionBranches.Set(root.Function,branches);units[root.Function.Id]!["draft"]=format(root.Function);
+        BlueprintExecutionBranches.Set(root.Function,branches);BlueprintFunctionCompletion.Reconcile(root.Function);units[root.Function.Id]!["draft"]=format(root.Function);
         foreach(string id in Targets(units,rootId)) {var target=Root(units,id);JsonNode mapping=id==rootId?plan:selectedTargets.Single(t=>t!["graph"]!.ToString()==id)!;if(root.Function.Signature!.Return!="void") {
             var previous=target.Graph["exits"]!.AsObject();var next=mapping["exits"]!.AsObject();
             foreach(var pair in previous){var data=target.Graph["executionExitMode"]?.GetValue<bool>()==true?pair.Value?["value"]:pair.Value;if(!next.ContainsKey(pair.Key)&&data is not null||next.ContainsKey(pair.Key)&&(!next[pair.Key]!.AsObject().ContainsKey("value")||!JsonNode.DeepEquals(data,next[pair.Key]!["value"])))throw new ArgumentException("Preserve each original native return binding with its explicit branch selection");}
@@ -120,7 +120,7 @@ static partial class BlueprintRootExecution
                 string? to=row["to"]?.ToString();var target=to is null?null:frame["nodes"]!.AsArray().SingleOrDefault(n=>n!["id"]?.ToString()==to);
                 if(target is not null&&target["branchOwner"]?.ToString()!=callId)throw new ArgumentException("Route to an existing node of this caller branch; moving authored code between regions is separate");
                 if(to is not null&&target is null&&to!="return:"+callId&&!to.StartsWith("exit:",StringComparison.Ordinal))throw new ArgumentException("Existing branch return target required");
-                var edges=frame["edges"]!.AsArray();for(int i=edges.Count-1;i>=0;i--)if(edges[i]!["from"]?.ToString()==callId&&edges[i]!["port"]?.ToString()=="case:"+row["branch"])edges.RemoveAt(i);if(to is not null)edges.Add(new JsonObject { ["from"]=callId,["port"]="case:"+row["branch"],["to"]=to });
+                string branch=row["branch"]!.ToString(),port=branch==priorCompletion?"completion":"case:"+branch;var edges=frame["edges"]!.AsArray();for(int i=edges.Count-1;i>=0;i--)if(edges[i]!["from"]?.ToString()==callId&&(edges[i]!["port"]?.ToString()==port||edges[i]!["port"]?.ToString()=="case:"+branch))edges.RemoveAt(i);if(to is not null)edges.Add(new JsonObject { ["from"]=callId,["port"]=port,["to"]=to });
             }
             if(frame["edges"]!.AsArray().Any(e=>e!["from"]?.ToString()==callId&&e["port"]!.ToString().StartsWith("case:",StringComparison.Ordinal)&&!allowed.Contains(e["port"]!.ToString())))throw new ArgumentException("Disconnect removed caller branches explicitly before deleting their definitions");
             units[callerId]!["draft"]=caller.Graph.ToJsonString();

@@ -14,6 +14,7 @@ public static partial class FeatureBlueprint
     public static string ContractHash(Element feature)
     {
         var contract = new JsonObject { ["feature"] = feature.Id, ["signature"] = SignatureNode(feature.Signature!) };
+        _=BlueprintFunctionCompletion.Read(feature);
         var branches = BlueprintExecutionBranches.Read(feature);
         if (BlueprintExecutionBranches.Has(feature)) contract["executionBranches"] = branches;
         if (BlueprintAsync.Read(feature) is JsonObject asynchronous) contract["async"] = asynchronous;
@@ -233,6 +234,7 @@ public static partial class FeatureBlueprint
                 BlueprintCompletionBranch.Validate(value,asyncNode);
                 definition[BlueprintCompletionBranch.Metadata]=value[BlueprintCompletionBranch.Metadata]!.DeepClone();
             }
+            if(executionCall&&!asyncNode&&BlueprintFunctionCompletion.Read(Import(called!).Element) is not null)definition[BlueprintCompletionBranch.Metadata]=BlueprintFunctionCompletion.NodeMarker(Import(called!).Element);
             if (executionCall) { definition["publicExecution"] = value["publicExecution"]!.DeepClone(); definition["publicExecutionBranches"] = BlueprintExecutionBranches.Read(Import(called!).Element); }
             if (value.ContainsKey("postCall")) definition["postCall"] = value["postCall"]!.DeepClone();
             if(nested&&(request["sourcePath"] is not null||kind=="graph"))definition["ownerPath"]=S(request,"sourceOwner")+"/"+(request["sourcePath"]?.ToString()??"");
