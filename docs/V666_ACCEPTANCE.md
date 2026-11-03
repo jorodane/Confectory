@@ -112,3 +112,7 @@ ordinary IInvoke/native import와 legacy NoBranch wrapper를 공개 계약 갱�
 다음 M4 흐름은 Result 없는 소유 next/native/whole-body 본문의 원문/출력 보존 어댑터, 새/내부 소유 본문의 명시 전환, property 보조 편집이다. 완료한 ordinary 공개 완료/지역 Result/Set을 다시 조합별 잔여로 추가하지 않는다. M11/M12는 관련 회귀를 제외하면 닫힌 상태를 유지하며 V2–V9·팩/backend·종류 호환성 및 실제 기기/전체 UI/Space 전달은 기존 별도 잔여다.
 
 공개 완료의 최종 동결 `262f1a5`를 신규 52단계(재사용 0)로 검증하고 최신/롤백·전체 증거를 보관했다. [최종 검증 기록](VALIDATION_V666_PUBLIC_COMPLETION.md).
+
+## M4 속성 편집 후속
+
+기존 직접 소유 async root의 속성 검색·receiver/소비 연결·필드 쓰기를 원래 속성 UI와 propertyPlan 후보에 연결한다. 전환 가능 여부와 현재 async 시계 표시를 분리하며 프로젝트 관측을 최종 CAS까지 유지한다. [정확한 경계와 검증 계획](M4_ASYNC_PROPERTIES.md). 기존 Result 없는 본문 어댑터와 새/내부 소유 본문 전환은 남고, 기존 copy/slot/private 보호를 새 조합 요구로 확대하지 않는다. 최종 검증 수치는 종료 기록에서 확정한다.

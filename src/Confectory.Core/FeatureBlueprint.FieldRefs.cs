@@ -4,7 +4,7 @@ namespace Confectory.Core;
 public static partial class FeatureBlueprint
 {
     public const string PropertyRefProfile="sync-acyclic-property-ref-v1",PropertyRefGenerator="feature-blueprint-source-v14",PropertyRefAccessor="Confectory.ObjectModel::RefCell";
-    public static bool SupportsPropertySets(string? profile)=>profile is PropertySetProfile or PropertyRefProfile;
+    public static bool SupportsPropertySets(string? profile)=>profile is PropertySetProfile or PropertyRefProfile or BlueprintAsync.Profile;
     public static bool SafeFieldRef(JsonNode field)=>field["kind"]?.ToString()=="general"&&field["cardinality"]?.ToString()=="single"&&field["type"]?.ToString() is "bool" or "int" or "long";
     static string FieldCellType(Node node)=>"global::System.Runtime.CompilerServices.StrongBox<"+node.Signature.Return+">";
     static string FieldCellAccess(Node node,string target,string accessor)

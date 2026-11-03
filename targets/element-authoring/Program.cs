@@ -28,6 +28,7 @@ try
         case "blueprintAsyncCandidates":reply=BlueprintAsyncTransition.Candidates(request);break;
         case "blueprintAsyncTransition":reply=BlueprintAsyncTransition.Prepare(request,Format);break;
         case "blueprintAsyncGuards":reply=BlueprintAsyncTransition.Validate(request);break;
+        case "blueprintPropertyObservations":reply=BlueprintPropertyObservations.Query(request);break;
         case "blueprintRootExecutionGuards":reply=BlueprintRootExecution.Guards(request);break;
         case "blueprintPublicCopyReturnGuards":reply=BlueprintPublicCopyReturns.Guards(request);break;
         case "blueprintRootExecutionCandidates":reply=BlueprintRootExecution.Candidates(request);break;

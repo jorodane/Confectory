@@ -12,7 +12,7 @@ Save는 함수/모든 소유 Blueprint target와 해당 실제 호출자·C# 영
 
 이 경계는 기존 직접 소유 ordinary root/provider와 직접 Blueprint 호출자다. 명시 C# import 호출이나 native 호출자의 소스 계약을 자동 재작성하지 않는다. 그 문맥은 명시적인 기존 소스 계약 검토가 필요한 호환성 오류로 보존한다. 자동 소스/호출 어댑터를 새 필수 요구로 늘리지 않는다. 미등록 외부 소스 접근이나 비소유 원본 편집을 추가하지 않는다.
 
-M4의 다음 유한한 흐름은 Result 없는 next/native/whole-body 본문의 출력 보존 어댑터, 새/내부 소유 본문의 명시 전환, property 보조 편집 연결이다. 공개 완료의 지원 완료 부분을 다시 조합별 잔여로 늘리지 않는다. ref 입력·실제 await·내부 async 호출의 동기 복귀 거절과 override 공개 계약 보호는 정상 동작이다. M11/M12는 이 M4 연결의 회귀를 제외하면 닫힌 상태를 유지한다.
+M4의 다음 유한한 흐름은 Result 없는 next/native/whole-body 본문의 출력 보존 어댑터와 새/내부 소유 본문의 명시 전환이다. 기존 async root의 property 보조 편집은 [속성 편집 후속](M4_ASYNC_PROPERTIES.md)에 연결했다. 공개 완료의 지원 완료 부분을 다시 조합별 잔여로 늘리지 않는다. ref 입력·실제 await·내부 async 호출의 동기 복귀 거절과 override 공개 계약 보호는 정상 동작이다. M11/M12는 이 M4 연결의 회귀를 제외하면 닫힌 상태를 유지한다.
 
 새 `blueprintFunctionCompletion`과 호출자 literal 포트 대응을 이전 parser가 동일하게 해석한다고 보장하지 않는다. 소스 rollback과 프로젝트/초안 복구를 구분하고 원본·최신 보관본을 함께 보존한다. Linux 검증과 Windows 교차 패키지는 실제 Windows/모바일 기기 검증이나 전체 UI/Space 전달 완료가 아니다.
 

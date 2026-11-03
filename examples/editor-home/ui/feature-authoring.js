@@ -80,7 +80,7 @@ function blueprintNormalizeControls(scope){
  scope.querySelectorAll('[data-bp-remove],[data-function-delete],[data-branch-remove],[data-contract-remove],[data-signature-remove]').forEach(button=>{button.classList.add('bp-control-button');button.innerHTML=blueprintControlIconMarkup('close')});
  scope.querySelectorAll('[data-function-toggle]').forEach(button=>{button.classList.add('bp-control-button');button.innerHTML=blueprintControlIconMarkup();button.setAttribute('aria-expanded',String(!button.closest('.function-node')?.classList.contains('is-collapsed')))});
 }
- function asyncPlan(w){const held=inputs.get(prefix(w)+'$async|async-plan');return held?JSON.parse(held.text):{enabled:w.authorData?.asyncTransition?.enabled===true,nodes:[]};}
+ function asyncPlan(w){const held=inputs.get(prefix(w)+'$async|async-plan');return held?JSON.parse(held.text):{enabled:w.authorData?.profile==='async-acyclic-switch-v1',nodes:[]};}
  function nodeAsync(w,row){const plan=asyncPlan(w);return row.kind==='code'?(plan.nodes.find(n=>n.node===row.id)?.enabled??row.async===true):row.async===true;}
  function branchPort(row,member){return row.completionBranch?.id===member.id?'completion':'case:'+member.id;}
  function branchLabel(row,member){return row.completionBranch?.id===member.id?row.completionBranch.label:member.name;}
