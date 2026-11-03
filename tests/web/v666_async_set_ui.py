@@ -22,8 +22,8 @@ try:
   if t.is_visible():t.locator('[data-target-choice]').select_option('portable');t.locator('[data-close]').click();panel().locator('[data-bp-complete]').click()
   r=f.page.locator('.window[data-key=review]');expect(r).to_be_visible(timeout=90000);a=r.locator('[data-review-advanced]')
   if a.is_visible():a.click();r.locator('[data-advanced-reviewed]').check()
-  r.locator('[data-confirm]').click();expect(r).to_be_hidden(timeout=90000);f.idle();x.code_unchanged();x.build('async-set-confirmed',10,'callee:1\ncompleted:10\nafter:10');f.checked('Confirm 후 실제 실행은 Set 출력→await 결과→완료→결과→다음 순서를 보존한다')
-  f.page.screenshot(path=str(f.case/'async-set-final.png'));f.browser.close()
+  r.locator('#confirm').click();expect(r).to_be_hidden(timeout=90000);f.idle();x.code_unchanged();x.build('async-set-confirmed',10,'callee:1\ncompleted:10\nafter:10');f.checked('Confirm 후 실제 실행은 Set 출력→await 결과→완료→결과→다음 순서를 보존한다')
+  assert not f.errors and not f.external,(f.errors,f.external);f.page.screenshot(path=str(f.case/'async-set-final.png'));f.browser.close()
  print(json.dumps({'checks':f.checks,'actualEngine':True,'actualWindows':False,'evidence':str(f.case)},ensure_ascii=False))
 except Exception:
  (f.case/'failure-state.json').write_text(json.dumps(f.state(),ensure_ascii=False,indent=2));raise
