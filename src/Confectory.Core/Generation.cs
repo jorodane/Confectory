@@ -47,7 +47,7 @@ public static partial class Generation
         // The graph entry uses the same explicit IInvoke boundary as sync M11.
         string ordinary=execution?(entry is null?"public ":"")+e.Signature!.Return+" "+(entry is null?"":Interface(e.Function!)+".")+"Invoke("+Parameters(e.Signature)+") { _ = (("+BlueprintExecutionBranches.Interface(e.Function!)+")this).InvokeExecution("+ExecutionArguments(e.Signature,e.Signature.Return=="void"?null:e.Signature.Return+" "+captured)+"); "+(e.Signature.Return=="void"?"":"return "+captured+";")+" }\n":"";
         string executionAdapter = execution ? ordinary+BlueprintExecutionBranches.Result(e.Function!)+" "+BlueprintExecutionBranches.Interface(e.Function!)+".InvokeExecution("+ExecutionParameters(e.Signature!)+") { return ("+BlueprintExecutionBranches.Result(e.Function!)+")this.ExecuteBranches("+ExecutionArguments(e.Signature!)+"); }" : "";
-        string imports = string.Join("\n", e.Imports.OrderBy(x => x.Key, StringComparer.Ordinal).Select(x => $"        {(asyncImports?.Contains(x.Value.Id) == true ? BlueprintAsync.Interface(x.Value.Id) : Interface(x.Value.Id))} {x.Key} {{ get; }}"));
+        string imports = string.Join("\n", e.Imports.OrderBy(x => x.Key, StringComparer.Ordinal).Select(x => $"        {Interface(x.Value.Id)} {x.Key} {{ get; }}"));
         string quotedPath = JsonSerializer.Serialize(path, JsonData.Options);
         return $$"""
             // Generated implementation boundary for {{e.Id}}; {{Abi}}
@@ -94,7 +94,7 @@ public static partial class Generation
             }
             lines.AppendLine($"internal sealed class {name}Imports : {impl}.IImports"); lines.AppendLine("{");
             foreach (var (alias, imported) in node.Imports.OrderBy(x => x.Key, StringComparer.Ordinal))
-                lines.AppendLine($"    public {ImportInterface(plan.Registry.Get(imported[1], "function"))} {alias} => new {BindingSymbol(new(imported[0], imported[1]))}();");
+                lines.AppendLine($"    public {(BlueprintAsync.Has(fn) ? ImportInterface(plan.Registry.Get(imported[1], "function")) : Interface(imported[1]))} {alias} => new {BindingSymbol(new(imported[0], imported[1]))}();");
             lines.AppendLine("}");
         }
         string entry = plan.Registry.Project.Entry!;

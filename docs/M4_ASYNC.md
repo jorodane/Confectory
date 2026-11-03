@@ -6,7 +6,7 @@
 
 직접 소유 함수의 명시적인 `blueprintAsync` metadata(`schema:1`, 고유 `completion` ID)와 `async-acyclic-switch-v1` graph를 연결했다. 일반 C# 동작을 명시적으로 async로 표시하여 실제 Task/await를 실행하고, Blueprint 호출자도 명시적으로 async인 경우에만 그 호출을 실행한다. 값 입력·out·native 반환과 기존 공개 실행 분기의 ID/숫자값을 유지한다. ref 입력과 호환되지 않는 호출은 거절한다.
 
-기존 `IInvoke`의 메서드 모양은 남기고 비동기 계약에서만 오류로 표시한다. 새 `IAsyncInvoke.InvokeAsync`는 native 반환·out·실행 결과를 가진 Task 결과 객체를 돌려준다. 생성된 동기 어댑터도 기다리지 않고 명확한 오류를 낸다. 기존 동기 계약에는 이 확장을 적용하지 않는다. 이름이 Branch/Return/FunctionResult인 출력과 충돌하지 않도록 생성 이름을 배정한다.
+기존 `IInvoke`의 메서드 모양은 남기고 비동기 계약에서만 오류로 표시한다. 새 `IAsyncInvoke.InvokeAsync`는 native 반환·out·실행 결과를 가진 Task 결과 객체를 돌려준다. 동기 C# 구현의 import에는 IInvoke만 노출하여 InvokeAsync에 바로 접근할 수도 없다. 생성된 동기 어댑터도 기다리지 않고 명확한 오류를 낸다. 기존 동기 계약에는 이 확장을 적용하지 않는다. 이름이 Branch/Return/FunctionResult인 출력과 충돌하지 않도록 생성 이름을 배정한다.
 
 실행 순서는 await 완료 → 결과의 out/native 값 게시 → completion 영역 → 정확한 결과 분기 → 다음 동작이다. 완료 영역이 비어 있거나 결과가 None이어도 다음 단계가 누락되거나 암묵적인 성공 분기가 선택되지 않는다. 원래 Task 예외는 그대로 전파하며 실패 분기 값으로 바꾸지 않는다. 동작의 C# source/헬퍼는 재작성하지 않고 Execute 이름과 source marker를 유지한다.
 

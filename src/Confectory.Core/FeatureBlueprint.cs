@@ -609,7 +609,7 @@ public static partial class FeatureBlueprint
             if(AsyncNode(node)) {
                 if(node.Kind=="code") {
                     string asyncMarker="node:"+feature.Id+"/"+id+"@"+manifestNodes.Single(n=>n!["id"]!.ToString()==id)!["implementationHash"]!.ToString();
-                    membersOutput.Append(AsyncMethodsMember(MethodClass(request,id),node,string.Join(",",NodeImports(node).Select(f=>Generation.ImportInterface(Import(f).Element)+" "+ImportParameter(f))),string.Join(",",NodeImports(node).Select(ImportParameter)),bodies[id],helpers[id],asyncMarker));
+                    membersOutput.Append(AsyncMethodsMember(MethodClass(request,id),node,string.Join(",",NodeImports(node).Select(f=>(asyncFeature?Generation.ImportInterface(Import(f).Element):Generation.Interface(f))+" "+ImportParameter(f))),string.Join(",",NodeImports(node).Select(ImportParameter)),bodies[id],helpers[id],asyncMarker));
                     sourceMaps.Add(new JsonObject{["node"]=id,["definitionHash"]=node.DefinitionHash,["marker"]=asyncMarker});
                 }
                 manifestNodes.Single(n=>n!["id"]!.ToString()==id)!["includedInSource"]=true;
@@ -618,7 +618,7 @@ public static partial class FeatureBlueprint
             // A prepared independent node is checked without calling it or allocating a delegate.
             // Suppress only the generated local function declaration's unused warning.
             if (!reachable.Contains(id)) output.AppendLine("#pragma warning disable CS8321");
-            output.AppendLine((node.Definition["contextBoundary"]?.GetValue<bool>()==true?"":"static ") + ExecutionType(node) + " " + Symbol(id) + "(" + string.Join(",", node.Signature.Args.Select(p => p.Declaration()).Concat(WrappedReturn(node) ? new[] { "out " + node.Signature.Return + " __fg_wrapped_return" } : Array.Empty<string>()).Concat(NodeImports(node).Select(f => Generation.ImportInterface(Import(f).Element) + " " + ImportParameter(f)))) + ") {");
+            output.AppendLine((node.Definition["contextBoundary"]?.GetValue<bool>()==true?"":"static ") + ExecutionType(node) + " " + Symbol(id) + "(" + string.Join(",", node.Signature.Args.Select(p => p.Declaration()).Concat(WrappedReturn(node) ? new[] { "out " + node.Signature.Return + " __fg_wrapped_return" } : Array.Empty<string>()).Concat(NodeImports(node).Select(f => (asyncFeature?Generation.ImportInterface(Import(f).Element):Generation.Interface(f)) + " " + ImportParameter(f)))) + ") {");
             if (!reachable.Contains(id)) output.AppendLine("#pragma warning restore CS8321");
             string marker = "node:" + feature.Id + "/" + id + "@" + manifestNodes.Single(n => n!["id"]!.ToString() == id)![node.Kind == "call" ? "definitionHash" : "implementationHash"]!.ToString();
             output.AppendLine("#line 1 " + JsonSerializer.Serialize(marker));
@@ -633,7 +633,7 @@ public static partial class FeatureBlueprint
                 output.AppendLine((node.Signature.Return == "void" ? "" : "return ") + ImportParameter(node.Feature!) + ".Invoke(" + string.Join(",", node.Signature.Args.Select(p => (p.Mode is "out" or "ref"?p.Mode+" ":"")+p.Name)) + ");");
             else if (node.Kind == "code" && SupportsMethods(profile)) {
                 string type=MethodClass(request,id);
-                membersOutput.Append(MethodsMember(type,node,string.Join(",",node.Signature.Args.Select(p=>p.Declaration()).Concat(NodeImports(node).Select(f=>Generation.ImportInterface(Import(f).Element)+" "+ImportParameter(f)))),bodies[id],helpers[id],marker));
+                membersOutput.Append(MethodsMember(type,node,string.Join(",",node.Signature.Args.Select(p=>p.Declaration()).Concat(NodeImports(node).Select(f=>(asyncFeature?Generation.ImportInterface(Import(f).Element):Generation.Interface(f))+" "+ImportParameter(f)))),bodies[id],helpers[id],marker));
                 output.AppendLine((ExecutionType(node)=="void"?"":"return ")+(node.Control=="switch"?"(int)":"")+type+".Execute("+string.Join(",",node.Signature.Args.Select(p=>(p.Mode is "ref" or "out"?p.Mode+" ":"")+p.Name).Concat(NodeImports(node).Select(ImportParameter)))+");");
             }
             else
