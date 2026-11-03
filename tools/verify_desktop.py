@@ -109,7 +109,7 @@ def main():
     parser.add_argument('--commit', required=True)
     parser.add_argument('--sdk', type=Path, required=True)
     parser.add_argument('--nuget-seed', type=Path, required=True)
-    parser.add_argument('--suite',choices=['headers','card-images','canvas','owned-information','owned-conversion','action-icons','declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement','worker-badges','node-internal','node-internal-nested','node-internal-storage','node-internal-context','node-internal-branches','node-branch-exits','node-internal-copy','node-internal-copy-nested','node-internal-copy-storage','node-internal-copy-branches','node-internal-copy-context','node-internal-copy-creating','node-internal-copy-frames','node-internal-override','node-internal-external-override','root-execution','root-execution-out','root-execution-closure','root-execution-copy','root-execution-copy-creating','root-execution-override','root-execution-registered','root-execution-registered-copy','root-execution-registered-creating','root-execution-data-void','root-execution-compound-owned','root-execution-provider-import','root-execution-nonvoid','public-return-data','root-execution-providers','root-execution-nested','root-execution-native','root-execution-caller','root-execution-forwarding','root-execution-observers','root-execution-wrappers','root-execution-owned-updates','root-execution-import-observations','async-runtime'],default='headers')
+    parser.add_argument('--suite',choices=['headers','card-images','canvas','owned-information','owned-conversion','action-icons','declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement','worker-badges','node-internal','node-internal-nested','node-internal-storage','node-internal-context','node-internal-branches','node-branch-exits','node-internal-copy','node-internal-copy-nested','node-internal-copy-storage','node-internal-copy-branches','node-internal-copy-context','node-internal-copy-creating','node-internal-copy-frames','node-internal-override','node-internal-external-override','root-execution','root-execution-out','root-execution-closure','root-execution-copy','root-execution-copy-creating','root-execution-override','root-execution-registered','root-execution-registered-copy','root-execution-registered-creating','root-execution-data-void','root-execution-compound-owned','root-execution-provider-import','root-execution-nonvoid','public-return-data','root-execution-providers','root-execution-nested','root-execution-native','root-execution-caller','root-execution-forwarding','root-execution-observers','root-execution-wrappers','root-execution-owned-updates','root-execution-import-observations','async-runtime','async-transition'],default='headers')
     args = parser.parse_args()
     repo = args.repo.resolve(); persistent = args.persistent.absolute()
     persistent.parent.mkdir(parents=True, exist_ok=True)
@@ -327,6 +327,16 @@ def main():
                 regression='v666_node_branch_exit_api.py' if label=='lf' else 'v666_node_internal_external_override_api.py'
                 work.run(label+'-m11-regression',[sys.executable,str(checkout/'tests/web'/regression),str(checkout),str(report)],cwd=checkout,env=env)
                 work.run(label+'-owned-final-read-cas',[sys.executable,str(checkout/'tests/web/v536_copy_read_guards_core.py'),str(checkout)],cwd=checkout,env=env)
+            elif args.suite=='async-transition':
+                work.run(label+'-async-script',['node','--check',str(checkout/'examples/editor-home/ui/feature-authoring.js')],cwd=checkout,env=env)
+                work.run(label+'-async-core',[dotnet,str(checkout/'tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll'),'AsyncBlueprintTests','SwitchBlueprintTests','--require-runtime'],cwd=checkout,env=env)
+                work.run(label+'-async-guards',[sys.executable,str(checkout/'tests/web/v666_async_transition_guards.py'),str(checkout)],cwd=checkout,env=env)
+                work.run(label+'-async-api',[sys.executable,str(checkout/'tests/web/v666_async_transition_api.py'),str(checkout),str(report),'--out-root'],cwd=checkout,env=env)
+                for mode in (['normal','storage','conflict'] if label=='lf' else ['loss','late']):
+                    work.run(label+'-async-ui-'+mode,[sys.executable,str(checkout/'tests/web/v666_async_transition_ui.py'),str(checkout),str(report),mode,'--out-root'],cwd=checkout,env=env)
+                regression='v666_root_execution_imports_api.py' if label=='lf' else 'v666_root_execution_api.py'
+                work.run(label+'-m12-regression',[sys.executable,str(checkout/'tests/web'/regression),str(checkout),str(report),'--out-root' if label=='lf' else '--nonvoid-root'],cwd=checkout,env=env)
+
             elif args.suite in ['root-execution-import-observations','async-runtime']:
                 if args.suite=='async-runtime':
                     work.run(label+'-async-core',[dotnet,str(checkout/'tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll'),'AsyncBlueprintTests','SwitchBlueprintTests','--require-runtime'],cwd=checkout,env=env)
@@ -651,6 +661,10 @@ def main():
         elif args.suite=='node-internal-storage':
             work.run('packaged-node-internal',[sys.executable,str(checkout/'tests/web/v666_node_internal_ui.py'),str(package/'content'),str(packaged_report),'normal'],cwd=checkout,env=env)
             work.run('packaged-storage-node-internal',[sys.executable,str(checkout/'tests/web/v666_node_internal_storage_ui.py'),str(package/'content'),str(packaged_report),'normal'],cwd=checkout,env=env)
+        elif args.suite=='async-transition':
+            work.run('packaged-async-ui',[sys.executable,str(checkout/'tests/web/v666_async_transition_ui.py'),str(package/'content'),str(packaged_report),'normal','--out-root'],cwd=checkout,env=env)
+            work.run('packaged-async-runtime',[sys.executable,str(checkout/'tests/probes/async_runtime.py'),str(package/'content')],cwd=checkout,env=env)
+
         elif args.suite in ['root-execution-import-observations','async-runtime']:
             work.run('packaged-imports',[sys.executable,str(checkout/'tests/web/v666_root_execution_ui.py'),str(package/'content'),str(packaged_report),'normal','--out-root','--imports-root'],cwd=checkout,env=env)
         elif args.suite=='root-execution-owned-updates':
@@ -769,6 +783,11 @@ def main():
         elif args.suite=='node-internal-storage':
             work.run('restored-node-internal',[sys.executable,str(checkout/'tests/web/v666_node_internal_ui.py'),str(restored/'content'),str(packaged_report),'storage'],cwd=checkout,env=env)
             work.run('restored-storage-node-internal',[sys.executable,str(checkout/'tests/web/v666_node_internal_storage_ui.py'),str(restored/'content'),str(packaged_report),'loss','--private','--local'],cwd=checkout,env=env)
+        elif args.suite=='async-transition':
+            work.run('restored-async-ui',[sys.executable,str(checkout/'tests/web/v666_async_transition_ui.py'),str(restored/'content'),str(packaged_report),'late','--out-root'],cwd=checkout,env=env)
+            work.run('restored-async-storage',[sys.executable,str(checkout/'tests/web/v666_async_transition_ui.py'),str(restored/'content'),str(packaged_report),'storage','--out-root'],cwd=checkout,env=env)
+            work.run('restored-async-runtime',[sys.executable,str(checkout/'tests/probes/async_runtime.py'),str(restored/'content')],cwd=checkout,env=env)
+
         elif args.suite in ['root-execution-import-observations','async-runtime']:
             work.run('restored-imports',[sys.executable,str(checkout/'tests/web/v666_root_execution_ui.py'),str(restored/'content'),str(packaged_report),'late','--out-root','--imports-root'],cwd=checkout,env=env)
         elif args.suite=='root-execution-owned-updates':

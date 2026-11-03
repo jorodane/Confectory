@@ -7,6 +7,10 @@ lock(state){
 
  if(System.Linq.Enumerable.Any(state["units"]!.AsObject(),u=>u.Value?["kind"]?.ToString()=="blueprint"&&u.Value?["draft"] is System.Text.Json.Nodes.JsonValue sourceText&&System.Text.Json.Nodes.JsonNode.Parse(sourceText.GetValue<string>()) is System.Text.Json.Nodes.JsonObject sourceGraph&&sourceGraph["executionExitMode"]?.GetValue<bool>()==true&&(sourceGraph["copySource"] is not null||u.Value?["baseline"]?.ToString()=="missing"&&sourceGraph["feature"]?.ToString().StartsWith(state!["namespace"]!.ToString()+"::",StringComparison.Ordinal)==true)))calls.Metadata.Invoke("blueprintPublicCopyReturnGuards",new System.Text.Json.Nodes.JsonObject{["namespace"]=state["namespace"]!.DeepClone(),["units"]=state["units"]!.DeepClone(),["selected"]=System.Text.Json.JsonSerializer.SerializeToNode(selected)}.ToJsonString());
 
+ if(System.Linq.Enumerable.Any(state["units"]!.AsObject(),u=>u.Value?["asyncTransition"] is not null)){
+  var guards=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("blueprintAsyncGuards",new System.Text.Json.Nodes.JsonObject{["namespace"]=state["namespace"]!.DeepClone(),["units"]=state["units"]!.DeepClone(),["selected"]=System.Text.Json.JsonSerializer.SerializeToNode(selected)}.ToJsonString()))!["checks"]!.AsArray();
+  foreach(var guard in guards){string root=System.IO.Path.GetFullPath(state["root"]!.ToString()),path=System.IO.Path.GetFullPath(System.IO.Path.Combine(root,guard!["path"]!.ToString()));for(System.IO.FileSystemInfo? entry=new System.IO.FileInfo(path);entry is not null;entry=entry is System.IO.FileInfo file?file.Directory:((System.IO.DirectoryInfo)entry).Parent){if(entry.LinkTarget is not null)throw new UnauthorizedAccessException("Async source cannot traverse links");if(entry.FullName==root)break;}if(calls.Snapshot.Invoke(path)[2]!=guard["hash"]!.ToString())throw new InvalidOperationException("Async source changed after Save; retain the complete candidate");}
+ }
  // A copy caller can remain unchanged in Review, while its assignment must
  // still match the sources verified at Save. Restoring a checkpoint preserves
  // these checks; it does not silently rebase them onto newer physical files.

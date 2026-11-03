@@ -190,7 +190,12 @@ public static partial class FeatureBlueprint
                 references[called] = imported.Hash;
             }
             bool executionCall = value.ContainsKey("publicExecution");
-            Need(!executionCall || kind == "call" && control == "switch" && !value.ContainsKey("postCall") && value["publicExecution"]?.ToString() == Import(called!).Hash && BlueprintExecutionBranches.Has(Import(called!).Element) && JsonNode.DeepEquals(value["executionEnum"], BlueprintExecutionBranches.Enum(Import(called!).Element)), "GRAPH_PUBLIC_EXECUTION_CALL", id);
+            // Read-only authoring can show a caller whose callee's async contract
+            // changed. Assembly/Describe remain strict; mutation must explicitly
+            // bind the exact old/new contracts in the async transition candidate.
+            bool inspectAsync = operation == "featureBlueprintNodes" && request["inspectStaleAsyncCalls"]?.GetValue<bool>() == true;
+
+            Need(!executionCall || kind == "call" && control == "switch" && !value.ContainsKey("postCall") && (value["publicExecution"]?.ToString() == Import(called!).Hash || inspectAsync) && BlueprintExecutionBranches.Has(Import(called!).Element) && JsonNode.DeepEquals(value["executionEnum"], BlueprintExecutionBranches.Enum(Import(called!).Element)), "GRAPH_PUBLIC_EXECUTION_CALL", id);
             if (value.ContainsKey("postCall")) {
                 Need(kind == "call" && (control == "next" || control == "switch" && switchFlow) && SupportsMethods(profile), "GRAPH_POST_CALL_PROFILE", id);
                 var after = value["postCall"] as JsonObject;

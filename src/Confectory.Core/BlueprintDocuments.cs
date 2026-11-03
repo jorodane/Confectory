@@ -12,7 +12,7 @@ public static class BlueprintDocuments
     public static JsonObject Validate(string id, string kind, string text)
     {
         var document = JsonNode.Parse(text)?.AsObject() ?? throw new ArgumentException("Blueprint source object required");
-        Require(document["schema"]?.GetValue<int>() == 1 || kind == "blueprint" && document["schema"]?.GetValue<int>() == 2 && document["executionExitMode"]?.GetValue<bool>() == true && document["profile"]?.ToString() == FeatureBlueprint.SwitchProfile, "Blueprint source schema required");
+        Require(document["schema"]?.GetValue<int>() == 1 || kind == "blueprint" && document["schema"]?.GetValue<int>() == 2 && document["executionExitMode"]?.GetValue<bool>() == true && document["profile"]?.ToString() is FeatureBlueprint.SwitchProfile or BlueprintAsync.Profile, "Blueprint source schema required");
         if (kind == "blueprint-node")
         {
             int marker = id.LastIndexOf("/node:", StringComparison.Ordinal);
@@ -25,7 +25,7 @@ public static class BlueprintDocuments
         else if (kind == "blueprint")
         {
             Require(id.Contains("/body:", StringComparison.Ordinal), "Explicit implementation target source required");
-            Require(document["profile"]?.ToString() is FeatureBlueprint.Profile or FeatureBlueprint.ImplicitProfile or FeatureBlueprint.MultiOutputProfile or FeatureBlueprint.LocalsProfile or FeatureBlueprint.RefNodesProfile or FeatureBlueprint.ExternalRefsProfile or FeatureBlueprint.AliasLocalsProfile or FeatureBlueprint.NestedProfile or FeatureBlueprint.PropertyProfile or FeatureBlueprint.MethodsProfile or FeatureBlueprint.SwitchProfile or FeatureBlueprint.PropertySetProfile or FeatureBlueprint.PropertyRefProfile, "Supported Blueprint profile required");
+            Require(document["profile"]?.ToString() is FeatureBlueprint.Profile or FeatureBlueprint.ImplicitProfile or FeatureBlueprint.MultiOutputProfile or FeatureBlueprint.LocalsProfile or FeatureBlueprint.RefNodesProfile or FeatureBlueprint.ExternalRefsProfile or FeatureBlueprint.AliasLocalsProfile or FeatureBlueprint.NestedProfile or FeatureBlueprint.PropertyProfile or FeatureBlueprint.MethodsProfile or FeatureBlueprint.SwitchProfile or FeatureBlueprint.PropertySetProfile or FeatureBlueprint.PropertyRefProfile or BlueprintAsync.Profile, "Supported Blueprint profile required");
             Require(Regex.IsMatch(document["feature"]?.ToString() ?? "", @"\A[A-Za-z_][A-Za-z_0-9]*(?:\.[A-Za-z_][A-Za-z_0-9]*)*::[A-Za-z_][A-Za-z_0-9]*\z", RegexOptions.CultureInvariant), "Qualified feature identity required");
             Require(document["nodes"] is JsonArray && document["edges"] is JsonArray && document["exits"] is JsonObject, "Graph source collections required");
             if(FeatureBlueprint.SupportsPrivateGraphs(document["profile"]?.ToString()))BlueprintTree.Nodes(document).ToArray();
@@ -86,6 +86,7 @@ public static class BlueprintDocuments
         {
             ["operation"] = request["definitionsOnly"]?.GetValue<bool>() == true ? "featureBlueprintNodes" : "featureBlueprintDescribe", ["featureSource"] = featureSource,
             ["inspectStalePostCalls"] = request["definitionsOnly"]?.GetValue<bool>() == true && request["inspectStalePostCalls"]?.GetValue<bool>() == true,
+            ["inspectStaleAsyncCalls"] = request["definitionsOnly"]?.GetValue<bool>() == true && request["inspectStaleAsyncCalls"]?.GetValue<bool>() == true,
             ["implementationContext"] = FeatureBlueprint.ImplementationContext(implementation), ["bodyTarget"] = request["bodyTarget"]?.DeepClone(), ["featureContracts"] = contracts, ["graph"] = graph,
             ["implementations"] = request["implementations"]?.DeepClone(), ["propertyContracts"] = propertyContracts
         });

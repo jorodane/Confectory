@@ -22,6 +22,9 @@ try
         case "blueprintNodeFlow":reply=BlueprintNodeFlow.Prepare(request);break;
         case "blueprintPrepareFeature":reply=BlueprintCreation.Prepare(request,Format);break;
         case "blueprintPrepareImplementation":reply=BlueprintCreation.PrepareForOwner(request,Format);break;
+        case "blueprintAsyncCandidates":reply=BlueprintAsyncTransition.Candidates(request);break;
+        case "blueprintAsyncTransition":reply=BlueprintAsyncTransition.Prepare(request,Format);break;
+        case "blueprintAsyncGuards":reply=BlueprintAsyncTransition.Validate(request);break;
         case "blueprintRootExecutionGuards":reply=BlueprintRootExecution.Guards(request);break;
         case "blueprintPublicCopyReturnGuards":reply=BlueprintPublicCopyReturns.Guards(request);break;
         case "blueprintRootExecutionCandidates":reply=BlueprintRootExecution.Candidates(request);break;
