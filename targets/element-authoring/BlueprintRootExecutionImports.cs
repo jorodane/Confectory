@@ -92,12 +92,12 @@ internal static class BlueprintRootExecutionImports
     {
         var units=request["units"]!.AsObject();var selected=request["selected"]?.AsArray();
         foreach(var pair in units){var unit=pair.Value;if(unit?["rootContractGroup"] is not JsonArray group||unit["kind"]?.ToString()!="implementation"||selected is not null&&!selected.Any(s=>group.Any(m=>m!.ToString()==s!.ToString())))continue;
-            string text=unit["draft"]!.ToString();var snapshot=unit["rootExecutionImports"] as JsonObject;
-            // Re-query even an absent receipt: a registered dependency may be
-            // reached transitively through a local scope/module header.
-            if(request["action"]?.ToString()=="verifyGroup")Query(new(){["action"]="verifyRootImports",["project"]=request["project"]!.DeepClone(),["text"]=text,["snapshot"]=snapshot?.DeepClone()});
-            if(snapshot is null)continue;
-            _=Contracts(units,pair.Key);
+            // Other Root ABI transactions have their own receipts and may
+            // legitimately edit implementation headers. Do not enroll them in
+            // this readonly execution-observation protocol without a sidecar.
+            if(unit["rootExecutionImports"] is not JsonObject snapshot)continue;
+            string text=unit["draft"]!.ToString();_=Contracts(units,pair.Key);
+            if(request["action"]?.ToString()=="verifyGroup")Query(new(){["action"]="verifyRootImports",["project"]=request["project"]!.DeepClone(),["text"]=text,["snapshot"]=snapshot.DeepClone()});
             foreach(var proof in snapshot["observations"]!.AsArray()){string path=proof!["path"]!.ToString();var row=new JsonObject{["path"]=path,["hash"]=proof["hash"]!.DeepClone()};if(reads.TryGetValue(path,out var prior)&&!JsonNode.DeepEquals(prior,row))throw new InvalidOperationException("Registered execution observation versions differ");reads[path]=row;}
         }
     }

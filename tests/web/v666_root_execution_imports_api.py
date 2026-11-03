@@ -3,6 +3,11 @@ import copy,json,hashlib
 import v666_root_execution_imports_fixture as x
 f=x.f
 try:
+ # This lease helper must leave unrelated ordinary Root ABI groups to their
+ # existing validator, including legitimate pending implementation headers.
+ original=(f.project/'FlowBody.celem').read_text();ordinary={x.x.impl:{'kind':'implementation','path':'FlowBody.celem','original':original,'draft':original.rstrip()[:-1]+' description "독립 헤더 초안";}','rootContractGroup':[x.x.feature,x.x.impl,x.x.graph]}}
+ unrelated=f.metadata('blueprintOverrideContracts',action='verifyGroup',project=str(x.x.manifest),units=ordinary);assert unrelated['reads']==[] and unrelated['checks']==[],unrelated
+ f.checked('새 readonly sidecar가 없는 일반 Root 계약 그룹은 기존 검증 경계를 유지하며 소유 헤더 초안을 묵시적으로 거절하지 않는다')
  x.build('registered-import-before',x.x.result_code,x.x.initial_stdout);f.start(0);d=x.read();assert d['rootExecution'],d.get('rootExecutionError');assert len(d['rootExecutionDependencyHash'])==64
  assert all(not row['id'].startswith('External.Observed::') for row in d['sources'])
  req=x.request(d);before=x.checkpoint();x.original()

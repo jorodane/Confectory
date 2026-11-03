@@ -6,7 +6,7 @@
 
 - `BlueprintRootExecutionImports`는 기존 ProjectPack registry/직접 dependency와 선언 locator로 import 함수·scope·부모/모듈/스키마·기존 배정 헤더 및 해당 manifest를 읽는다. 함수 계약은 compiler가 사용하는 원래 선언 text이며 실행 C# 본문은 읽지 않는다. 관측 budget과 링크 거절을 유지한다.
 - 외부 선언은 writable unit/group member로 만들지 않는다. 각 소유 implementation의 `rootExecutionImports` sidecar에 헤더 text·정확한 locator·원시/디코드 SHA를 보관한다. 순수 후보/복원 검증은 저장된 구조와 완전한 헤더 closure를 확인하며, Save/Review/Confirm은 현재 등록에서 경로를 다시 도출해 관측을 대조한다. 저장된 임의 경로를 읽기 권한으로 사용하지 않는다.
-- `rootExecutionDependencyHash`를 private 입력과 author-attempt journal에 결합한다. 입력 후 외부 관측이 바뀌면 묵시적으로 최신 기준으로 바꾸지 않고 입력을 유지한다. 현재 등록의 receipt 누락도 재검사하므로 로컬 scope를 통한 간접 외부 참조가 검사를 건너뛰지 않는다.
+- `rootExecutionDependencyHash`를 private 입력과 author-attempt journal에 결합한다. 입력 후 외부 관측이 바뀌면 묵시적으로 최신 기준으로 바꾸지 않고 입력을 유지한다. 등록 외부 함수/직접 scope에 필요한 receipt 누락은 순수 Root 후보/복원 검증에서 거절한다. 새 sidecar가 없는 일반 Root ABI 그룹은 기존 검증 계약을 유지하며 이 readonly 거래에 묵시적으로 편입하지 않는다.
 - 기존 override 관측의 최종 raw-read CAS 경로를 재사용한다. owned checkpoint와 Review 후보의 읽기 증거를 같은 원자적 저장에 결합하고 완료한 sidecar는 기존 그룹과 함께 퇴역한다. 후속 독립 편집을 잠그지 않는다.
 - 기존 C# bytes/source identity·ordinary IInvoke·ref/out·NoBranch와 공개/override 계약, 부모/외부 원본, UI 배치와 Review→Confirm을 보존한다. 비소유 target의 자동 materialization, 구형 profile migration과 새 타입/문맥 조합을 필수 잔여로 만들지 않는다.
 
