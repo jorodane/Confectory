@@ -1,7 +1,9 @@
 """M12 authored sidebar, return cards and explicit caller; interrupted UI saves."""
 import copy,json,sys
 from playwright.sync_api import sync_playwright,expect
-if '--multi-root' in sys.argv:
+if '--nested-root' in sys.argv:
+ import v666_root_execution_nested_fixture as x
+elif '--multi-root' in sys.argv:
  import v666_root_execution_multi_fixture as x
 else:
  import v666_root_execution_fixture as x
@@ -12,9 +14,16 @@ def open_graph(feature=x.feature,node="choose"):
  f.idle()
  if panel().is_visible() and panel().locator('[data-bp-node="'+node+'"]').count():return
  f.page.locator('#workspace').click(button='right',position={'x':1300,'y':300});f.page.get_by_role('button',name='프로젝트 브라우저',exact=True).click();b=f.page.locator('.window[data-key^="browser:project:"]');b.get_by_role('button',name='기능',exact=True).click();b.locator('[data-browser-control=object-query]').fill(feature.split('::')[-1]);b.locator('[data-browser-control=object-search]').click();b.locator('[data-object="'+feature+'"]').press('Enter');b.locator('[data-close]').first.click();f.idle();f.page.locator('[data-operation=feature-author-open]').first.click()
+ if getattr(x,'nested_mode',False) and feature==f.n+'Main':
+  expect(panel().locator('[data-bp-node=frame],[data-bp-node=invoke]').first).to_be_visible()
+  if panel().locator('[data-bp-node=frame]').count():panel().locator('[data-bp-node=frame] [data-function-write-direct]').click()
  try:expect(panel().locator('[data-bp-node="'+node+'"]')).to_be_visible()
  except Exception:
   (f.case/'open-dom.html').write_text(f.page.content());(f.case/'open-text.txt').write_text(f.page.locator('body').inner_text());f.page.screenshot(path=str(f.case/'open-failure.png'));raise
+ if getattr(x,'nested_mode',False) and feature==f.n+'Main':
+  f.page.screenshot(path=str(f.case/'private-before-fit.png'))
+  panel().locator('[data-bp-percent]').click();zoom=f.page.get_by_role('dialog',name='노드 화면 배율',exact=True);zoom.locator('[data-bp-fit]').click();zoom.locator('[data-zoom-value]').press('Escape')
+  f.page.screenshot(path=str(f.case/'private-after-fit.png'))
 def restart(i):
  f.pending();f.page.close();f.stop();f.start(i);f.page=f.setup();f.page.set_viewport_size({'width':1800,'height':1400});f.idle();expect(panel()).to_be_visible()
 def current_plan():return json.loads(next(v['text'] for _,v in pending() if v['type']=='root-execution'))
@@ -54,7 +63,7 @@ try:
     for name in target['exits']:panel().locator('[data-root-target="'+target['graph']+'"][data-root-target-exit="'+name+'"]').select_option({'yes':ids[0],'no':ids[1],'none':'none'}[name])
    assert len(current_plan()['callers'])==len(keys);f.checked('복수 호출자 선택 누락과 다른 target의 미지정 반환은 전체 입력을 유지하며, 모든 대응은 직접 선택한다')
   else:
-   panel().locator('[data-root-caller]').select_option(x.caller);assert current_plan()['caller']=={'graph':x.caller,'node':'invoke'}
+   panel().locator('[data-root-caller]').select_option(x.caller);assert current_plan()['caller']=={'graph':x.caller,'node':getattr(x,'caller_node','invoke')}
   held=copy.deepcopy(pending());restart(1);assert pending()==held;x.original();f.checked('명시 호출자 선택·한글 분기명·반환 연결을 cold 재시작에서 같은 ID와 source proof로 복원한다')
   if mode=='cancel':
    panel().locator('.bp-viewport').press('Control+z');assert pending();panel().locator('.bp-viewport').press('Control+y');assert pending()==held;x.original();f.checked('재시작 후 편집 Undo/Redo도 동일 후보와 원본을 보존한다')

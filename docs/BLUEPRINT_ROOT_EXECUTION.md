@@ -117,3 +117,8 @@ ordinary switch-profile의 기존 공개 분기/None 반환에 비void 직접 �
 ## 여러 직접 소유 ordinary provider의 계약 갱신
 
 같은 공개 함수를 구현하는 직접 소유 ordinary Blueprint provider들의 모든 target과 실제 직접 caller를 기존 명시 대응 후보/CAS/Review 그룹으로 결합한다. 다른 provider의 import도 readonly 관측에 포함하며 실행 provider 선택·기존 scoped 배정을 바꾸지 않는다. opaque/override/비소유 원본과 공유 물리 그래프 보호는 유지한다. [지원과 검증 경계](VALIDATION_V666_ROOT_EXECUTION_PROVIDERS.md).
+
+
+## 소유 private frame의 실제 호출 위치
+
+기존 ordinary switch-profile private caller의 전체 경로와 local 실행선을 공개 분기 계약 후보에 연결한다. 모든 C# leaf를 qualified source ID로 관측하고 기존 body target/sourceOwner와 부모 continuation·형제·권한을 유지한다. profile/전달 계약 자동 변환은 하지 않는다. [지원/검증 경계](VALIDATION_V666_ROOT_EXECUTION_NESTED.md).

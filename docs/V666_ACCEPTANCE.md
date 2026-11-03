@@ -62,3 +62,5 @@ ordinary 소유/등록 데이터 반환의 최종 **신규 LF20·CRLF19·패키�
 같은 함수의 여러 직접 소유 ordinary provider·각 target·실제 직접 caller를 전체 명시 대응에 연결한다. 실행 provider의 기존 scoped 배정은 변경하지 않고 다른 provider의 import도 readonly 최종 CAS 관측에 포함한다. [이번 범위와 검증](VALIDATION_V666_ROOT_EXECUTION_PROVIDERS.md). 남은 공개 계약 결합은 중첩/private/native와 등록 외부 import의 실제 caller/provider closure다. 기존 copy provenance가 포함되는 공개 계약 갱신도 같은 경계 대조에 묶고, 완료한 본문 반환 편집이나 독립 새 계약 복제와 구별한다.
 
 여러 직접 소유 provider의 최종 **신규 LF20·CRLF18·패키지/전체 복원/실패 수명관리6, 총44단계(반환/runtime·소유 경계36개 포함)**가 통과했고 증거·최신/롤백을 지속 보관했다. [결과와 경계](VALIDATION_V666_ROOT_EXECUTION_PROVIDERS.md).
+
+소유 ordinary switch-profile private caller도 물리 Root+전체 node 경로로 명시 대응하고 local frame의 반환/실행선만 갱신한다. 재귀적인 leaf 원문 관측과 body target을 같은 후보/CAS/Review 그룹에 유지한다. [중첩 호출 경계와 검증](VALIDATION_V666_ROOT_EXECUTION_NESTED.md).

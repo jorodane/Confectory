@@ -15,7 +15,7 @@ static class BlueprintRootExecution
     static JsonObject Graph(JsonObject units,string id) {
         if(units[id]?["kind"]?.ToString()!="blueprint")throw new ArgumentException("Owned Blueprint root required");
         var graph=JsonNode.Parse(units[id]!["draft"]!.GetValue<string>())!.AsObject();BlueprintDocuments.Validate(id,"blueprint",graph.ToJsonString());
-        if(graph["profile"]?.ToString()!=FeatureBlueprint.SwitchProfile||graph["copySource"] is not null||graph["nodes"]!.AsArray().Any(n=>n!["kind"]?.ToString() is not ("call" or "code" or "export")||n["control"]?.ToString()=="branch"||n["implementationContext"] is not null||n["postCall"] is not null))throw new ArgumentException("Existing ordinary switch-profile roots required; preserve other contexts");return graph;
+        if(graph["profile"]?.ToString()!=FeatureBlueprint.SwitchProfile||graph["copySource"] is not null||BlueprintTree.Nodes(graph).Any(n=>n.Node["kind"]?.ToString() is not ("call" or "code" or "export" or "graph")||n.Node["control"]?.ToString()=="branch"||n.Node["implementationContext"] is not null||n.Node["postCall"] is not null))throw new ArgumentException("Existing ordinary switch-profile roots required; preserve other contexts");return graph;
     }
     static (Element Function,Element Implementation,JsonObject Graph) Root(JsonObject units,string graphId) {
         int marker=graphId.IndexOf("/body:",StringComparison.Ordinal);if(marker<0||graphId.Contains("/graph:",StringComparison.Ordinal))throw new ArgumentException("Direct root source required");
@@ -26,12 +26,12 @@ static class BlueprintRootExecution
         var root=Root(units,graphId);var records=new JsonObject();var contracts=new JsonObject();
         foreach(var import in root.Implementation.Imports.Values)contracts[import.Id]=units[import.Id]?["draft"]?.DeepClone()??throw new ArgumentException("Owned exact imported contract required");
         string virtualRoot=Path.Combine(Path.GetTempPath(),"confectory-root-execution");
-        foreach(var node in root.Graph["nodes"]!.AsArray().Where(n=>n!["kind"]?.ToString()=="code")) {
-            string id=graphId+"/node:"+node!["id"];var unit=units[id];
+        foreach(var entry in BlueprintTree.Nodes(root.Graph).Where(n=>n.Node["kind"]?.ToString()=="code")) {
+            var node=entry.Node;string id=BlueprintTree.SourceId(graphId,entry.Key);var unit=units[id];
             if(unit?["kind"]?.ToString()!="blueprint-node"||PackPaths.Owned(virtualRoot,unit["path"]!.ToString())!=PackPaths.Owned(Path.GetDirectoryName(PackPaths.Owned(virtualRoot,units[graphId]!["path"]!.ToString()))!,node["implementation"]!.ToString()))throw new ArgumentException("Exact owned original code record required");
-            records[node["id"]!.ToString()]=JsonNode.Parse(unit["draft"]!.GetValue<string>());
+            records[entry.Key]=JsonNode.Parse(unit["draft"]!.GetValue<string>());
         }
-        var reply=FeatureBlueprint.Execute(new JsonObject { ["operation"]=assemble?"featureBlueprintDescribe":"featureBlueprintNodes",["featureSource"]=units[root.Function.Id]!["draft"]!.DeepClone(),["implementationContext"]=FeatureBlueprint.ImplementationContext(root.Implementation),["featureContracts"]=contracts,["graph"]=root.Graph,["implementations"]=records });
+        var reply=FeatureBlueprint.Execute(new JsonObject { ["operation"]=assemble?"featureBlueprintDescribe":"featureBlueprintNodes",["featureSource"]=units[root.Function.Id]!["draft"]!.DeepClone(),["implementationContext"]=FeatureBlueprint.ImplementationContext(root.Implementation),["bodyTarget"]=graphId[(graphId.IndexOf("/body:",StringComparison.Ordinal)+6)..],["featureContracts"]=contracts,["graph"]=root.Graph,["implementations"]=records });
         if(reply["state"]?.ToString()!=(assemble?"source-ready":"node-definitions"))throw new InvalidOperationException("Root/caller source is not ready: "+reply.ToJsonString());return reply;
     }
     static string[] Targets(JsonObject units,string rootId) {
@@ -47,6 +47,7 @@ static class BlueprintRootExecution
         if(ids.Select(id=>PackPaths.Owned(virtualRoot,units[id]!["path"]!.ToString())).Distinct(OperatingSystem.IsWindows()?StringComparer.OrdinalIgnoreCase:StringComparer.Ordinal).Count()!=ids.Length)throw new ArgumentException("Aliased target files require one unambiguous owned draft; preserve the sources");return ids;
     }
     static string CallKey(JsonNode row)=>row["graph"]!.ToString()+"|node:"+row["node"]!.ToString();
+    static (JsonObject Frame,string LocalId) CallerFrame(JsonObject graph,string key) {int slash=key.LastIndexOf('/');return(BlueprintTree.Select(graph,slash<0?"":key[..slash]),slash<0?key:key[(slash+1)..]);}
     static string[] ObservedContracts(JsonObject units,string rootId,IEnumerable<string> callerIds) {
         var roots=Targets(units,rootId).Concat(callerIds).Distinct(StringComparer.Ordinal).Select(id=>Root(units,id)).ToArray();
         var owners=roots.Select(r=>r.Function.Id).ToHashSet(StringComparer.Ordinal);
@@ -56,7 +57,7 @@ static class BlueprintRootExecution
     }
     static JsonArray Members(JsonObject units,string rootId,IEnumerable<string> callerIds) {
         callerIds=callerIds.ToArray();
-        var ids=new List<string>();foreach(string graphId in Targets(units,rootId).Concat(callerIds.Order(StringComparer.Ordinal)).Distinct(StringComparer.Ordinal)) {var root=Root(units,graphId);foreach(string id in new[]{root.Function.Id,root.Implementation.Id,graphId})if(!ids.Contains(id,StringComparer.Ordinal))ids.Add(id);foreach(var node in root.Graph["nodes"]!.AsArray().Where(n=>n!["kind"]?.ToString()=="code")){string id=graphId+"/node:"+node!["id"];if(!ids.Contains(id,StringComparer.Ordinal))ids.Add(id);}}
+        var ids=new List<string>();foreach(string graphId in Targets(units,rootId).Concat(callerIds.Order(StringComparer.Ordinal)).Distinct(StringComparer.Ordinal)) {var root=Root(units,graphId);foreach(string id in new[]{root.Function.Id,root.Implementation.Id,graphId})if(!ids.Contains(id,StringComparer.Ordinal))ids.Add(id);foreach(var node in BlueprintTree.Nodes(root.Graph).Where(n=>n.Node["kind"]?.ToString()=="code")){string id=BlueprintTree.SourceId(graphId,node.Key);if(!ids.Contains(id,StringComparer.Ordinal))ids.Add(id);}}
         foreach(string id in ObservedContracts(units,rootId,callerIds))if(!ids.Contains(id,StringComparer.Ordinal))ids.Add(id);
         return new JsonArray(ids.Select(id=>JsonValue.Create(id)).ToArray());
     }
@@ -69,10 +70,11 @@ static class BlueprintRootExecution
             var graph=JsonNode.Parse(pair.Value!["draft"]!.GetValue<string>())!;
             var uses=BlueprintTree.Nodes(graph.AsObject()).Where(p=>p.Node["kind"]?.ToString()=="call"&&p.Node["feature"]?.ToString()==root.Function.Id).ToArray();if(uses.Length==0)continue;
             var caller=Root(units,pair.Key);
-            if(BlueprintExecutionBranches.Has(caller.Function)||caller.Function.Id==root.Function.Id||uses.Any(p=>p.Key!=p.Node["id"]?.ToString()||p.Node["branchOwner"] is not null||p.Node["control"]?.ToString() is not ("next" or "switch")))throw new ArgumentException("Direct caller uses with explicit owned contracts required; preserve other contexts");
+            if(BlueprintExecutionBranches.Has(caller.Function)||caller.Function.Id==root.Function.Id||uses.Any(p=>p.Node["branchOwner"] is not null||p.Node["control"]?.ToString() is not ("next" or "switch")))throw new ArgumentException("Caller uses with explicit owned contracts required; preserve other contexts");
+            if(uses.Any(p=>CallerFrame(caller.Graph,p.Key).Frame["profile"]?.ToString()!=FeatureBlueprint.SwitchProfile||CallerFrame(caller.Graph,p.Key).Frame["executionExitMode"]?.GetValue<bool>()==true))throw new ArgumentException("Ordinary switch-profile caller frames required; preserve private forwarded contracts");
             _=ObservedContracts(units,rootId,new[]{pair.Key});
             _=Definitions(units,pair.Key,true);callerOwners.Add(caller.Implementation.Id);
-            foreach(var use in uses.OrderBy(p=>p.Key,StringComparer.Ordinal))rows.Add(new JsonObject { ["graph"]=pair.Key,["node"]=use.Node["id"]!.DeepClone(),["name"]=caller.Function.Description.Length>0?caller.Function.Description:caller.Function.Id,["nodes"]=caller.Graph["nodes"]!.DeepClone(),["edges"]=caller.Graph["edges"]!.DeepClone() });
+            foreach(var use in uses.OrderBy(p=>p.Key,StringComparer.Ordinal)){var frame=CallerFrame(caller.Graph,use.Key).Frame;rows.Add(new JsonObject { ["graph"]=pair.Key,["node"]=use.Key,["name"]=caller.Function.Description.Length>0?caller.Function.Description:caller.Function.Id,["nodes"]=frame["nodes"]!.DeepClone(),["edges"]=frame["edges"]!.DeepClone() });}
         }
 
         if(units.Where(p=>p.Value?["kind"]?.ToString()=="implementation").Select(p=>Declaration(units,p.Key,"implementation")).Any(i=>!callerOwners.Contains(i.Id)&&i.Bodies.Values.Any(b=>b.SourceKind=="blueprint")&&i.Imports.Values.Any(import=>import.Id==root.Function.Id)))throw new ArgumentException("Other native/private/import callers require explicit coordination; preserve their sources");
@@ -98,15 +100,15 @@ static class BlueprintRootExecution
         }
         target.Graph["schema"]=2;target.Graph["executionExitMode"]=true;target.Graph["contractHash"]=FeatureBlueprint.ContractHash(root.Function);foreach(string key in new[]{"entry","edges","exits"})target.Graph[key]=mapping[key]!.DeepClone();units[id]!["draft"]=target.Graph.ToJsonString();}
         var allowed=branches.Select(b=>"case:"+b!["id"]).Append("case:none").ToHashSet(StringComparer.Ordinal);
-        foreach(var selected in selectedCalls){string callerId=selected!["graph"]!.ToString(),callId=selected["node"]!.ToString();var caller=Root(units,callerId);var call=caller.Graph["nodes"]!.AsArray().Single(n=>n!["id"]?.ToString()==callId)!;call["control"]="switch";call["publicExecution"]=FeatureBlueprint.ContractHash(root.Function);call["executionEnum"]=BlueprintExecutionBranches.Enum(root.Function);
+        foreach(var selected in selectedCalls){string callerId=selected!["graph"]!.ToString();var caller=Root(units,callerId);var (frame,callId)=CallerFrame(caller.Graph,selected["node"]!.ToString());var call=frame["nodes"]!.AsArray().Single(n=>n!["id"]?.ToString()==callId)!;call["control"]="switch";call["publicExecution"]=FeatureBlueprint.ContractHash(root.Function);call["executionEnum"]=BlueprintExecutionBranches.Enum(root.Function);
             foreach(var route in selected["routes"]?.AsArray()??new JsonArray()) {
                 if(route is not JsonObject row||row.Count!=2||row["branch"] is null||!row.ContainsKey("to")||!allowed.Contains("case:"+row["branch"])&&!(row["to"] is null&&before.Any(b=>b!["id"]?.ToString()==row["branch"]!.ToString())))throw new ArgumentException("Exact declared branch route/disconnection required");
-                string? to=row["to"]?.ToString();var target=to is null?null:caller.Graph["nodes"]!.AsArray().SingleOrDefault(n=>n!["id"]?.ToString()==to);
+                string? to=row["to"]?.ToString();var target=to is null?null:frame["nodes"]!.AsArray().SingleOrDefault(n=>n!["id"]?.ToString()==to);
                 if(target is not null&&target["branchOwner"]?.ToString()!=callId)throw new ArgumentException("Route to an existing node of this caller branch; moving authored code between regions is separate");
                 if(to is not null&&target is null&&to!="return:"+callId&&!to.StartsWith("exit:",StringComparison.Ordinal))throw new ArgumentException("Existing branch return target required");
-                var edges=caller.Graph["edges"]!.AsArray();for(int i=edges.Count-1;i>=0;i--)if(edges[i]!["from"]?.ToString()==callId&&edges[i]!["port"]?.ToString()=="case:"+row["branch"])edges.RemoveAt(i);if(to is not null)edges.Add(new JsonObject { ["from"]=callId,["port"]="case:"+row["branch"],["to"]=to });
+                var edges=frame["edges"]!.AsArray();for(int i=edges.Count-1;i>=0;i--)if(edges[i]!["from"]?.ToString()==callId&&edges[i]!["port"]?.ToString()=="case:"+row["branch"])edges.RemoveAt(i);if(to is not null)edges.Add(new JsonObject { ["from"]=callId,["port"]="case:"+row["branch"],["to"]=to });
             }
-            if(caller.Graph["edges"]!.AsArray().Any(e=>e!["from"]?.ToString()==callId&&e["port"]!.ToString().StartsWith("case:",StringComparison.Ordinal)&&!allowed.Contains(e["port"]!.ToString())))throw new ArgumentException("Disconnect removed caller branches explicitly before deleting their definitions");
+            if(frame["edges"]!.AsArray().Any(e=>e!["from"]?.ToString()==callId&&e["port"]!.ToString().StartsWith("case:",StringComparison.Ordinal)&&!allowed.Contains(e["port"]!.ToString())))throw new ArgumentException("Disconnect removed caller branches explicitly before deleting their definitions");
             units[callerId]!["draft"]=caller.Graph.ToJsonString();
         }
         foreach(string id in Targets(units,rootId).Concat(selectedCalls.Select(c=>c!["graph"]!.ToString())).Distinct(StringComparer.Ordinal))_=Definitions(units,id,true);
@@ -119,7 +121,7 @@ static class BlueprintRootExecution
         string rootId=ids[2];var root=Root(units,rootId);if(root.Function.Id!=ids[0]||root.Implementation.Id!=ids[1]||!BlueprintExecutionBranches.Has(root.Function))throw new ArgumentException("Ordered root execution contract group required");
         var candidates=Candidates(new JsonObject { ["id"]=rootId,["units"]=units.DeepClone() });var callers=candidates["callers"]!.AsArray();
         if(!Members(units,rootId,callers.Select(c=>c!["graph"]!.ToString())).Select(n=>n!.ToString()).ToHashSet(StringComparer.Ordinal).SetEquals(ids))throw new ArgumentException("No missing/unrelated execution group member permitted");
-        foreach(var selected in callers){var caller=Root(units,selected!["graph"]!.ToString());var node=caller.Graph["nodes"]!.AsArray().Single(n=>n!["id"]?.ToString()==selected["node"]!.ToString())!;if(node["publicExecution"]?.ToString()!=FeatureBlueprint.ContractHash(root.Function))throw new ArgumentException("Exact public execution caller receipt required");}
+        foreach(var selected in callers){var caller=Root(units,selected!["graph"]!.ToString());var node=BlueprintTree.Nodes(caller.Graph).Single(n=>n.Key==selected["node"]!.ToString()).Node;if(node["publicExecution"]?.ToString()!=FeatureBlueprint.ContractHash(root.Function))throw new ArgumentException("Exact public execution caller receipt required");}
         var observed=units[rootId]?["authorSaveReceipt"]?["sources"] as JsonObject;
         if(candidates["observedContracts"]!.AsArray().Count>0&&units[rootId]?["original"] is not null&&observed is null)throw new ArgumentException("Retain the observed imported-contract source receipt");
         foreach(var dependency in candidates["observedContracts"]!.AsArray()){string id=dependency!.ToString();var unit=units[id]!;if(unit["original"] is not null&&unit["draft"]?.ToString()!=unit["original"]?.ToString()||observed is not null&&observed[id]?["hash"]?.ToString()!=Hash(unit["draft"]!.ToString()))throw new ArgumentException("Imported contracts are readonly observations of this execution transaction");}
