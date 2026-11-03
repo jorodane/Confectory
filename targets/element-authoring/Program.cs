@@ -22,6 +22,9 @@ try
         case "blueprintNodeFlow":reply=BlueprintNodeFlow.Prepare(request);break;
         case "blueprintPrepareFeature":reply=BlueprintCreation.Prepare(request,Format);break;
         case "blueprintPrepareImplementation":reply=BlueprintCreation.PrepareForOwner(request,Format);break;
+        case "blueprintCompletionEdit": {
+            var node=request["node"]!.DeepClone().AsObject();BlueprintCompletionBranch.Edit(node,request["edges"]!.AsArray(),request["label"]?.GetValue<string>());reply=node;break;
+        }
         case "blueprintAsyncCandidates":reply=BlueprintAsyncTransition.Candidates(request);break;
         case "blueprintAsyncTransition":reply=BlueprintAsyncTransition.Prepare(request,Format);break;
         case "blueprintAsyncGuards":reply=BlueprintAsyncTransition.Validate(request);break;

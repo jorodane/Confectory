@@ -229,6 +229,10 @@ public static partial class FeatureBlueprint
                 Need(kind is "code" or "call" && control is "next" or "switch" && signature.Args.All(p=>p.Mode is null or "out") && !value.ContainsKey("postCall") && !value.ContainsKey("implementationContext"), "GRAPH_ASYNC_NODE_CONTRACT", id);
                 definition["async"] = true;
             }
+            if(value.ContainsKey(BlueprintCompletionBranch.Metadata)) {
+                BlueprintCompletionBranch.Validate(value,asyncNode);
+                definition[BlueprintCompletionBranch.Metadata]=value[BlueprintCompletionBranch.Metadata]!.DeepClone();
+            }
             if (executionCall) { definition["publicExecution"] = value["publicExecution"]!.DeepClone(); definition["publicExecutionBranches"] = BlueprintExecutionBranches.Read(Import(called!).Element); }
             if (value.ContainsKey("postCall")) definition["postCall"] = value["postCall"]!.DeepClone();
             if(nested&&(request["sourcePath"] is not null||kind=="graph"))definition["ownerPath"]=S(request,"sourceOwner")+"/"+(request["sourcePath"]?.ToString()??"");

@@ -94,3 +94,10 @@ ordinary IInvoke/native import와 legacy NoBranch wrapper를 공개 계약 갱�
 
 
 같은 공개 계약 copy·직접 자식 target과 inherited-only 관측을 전체 명시 반환/호출자 갱신·checkpoint/Review/최종 CAS에 연결했다. 원문/IO·donor provenance·부모 소유권·기존 화면을 보존한다. 최종 **LF19·CRLF16·패키지/전체 복원/실패 수명관리6, 총41단계(신규28·동등 재사용13)**가 통과했다. [범위·중단 복구·신규/재사용 증거와 잔여](VALIDATION_V666_ROOT_EXECUTION_OWNED_UPDATES.md)를 따른다. 유한한 남은 M12는 등록 외부 import/manifest/scope의 readonly 관측 결합이다. M4 및 고정 UI/실기기 검증은 별도다.
+
+
+## M4 완료의 일반 분기 복귀 후속
+
+직접 소유 ordinary root 안의 기존 C# Result 동작은 완료의 literal 포트/연결과 원문을 보존하는 일반 지역 분기로 전환하고 같은 ID로 async 재활성화한다. UI 표시명과 C# 식별자를 분리한다. async ordinary root의 Set 계획도 기존 소유/타입/원자 검증을 재사용한다. [정확한 경계](M4_ASYNC_TRANSITION.md).
+
+유한한 M4 후속은 **공개 함수·호출자의 완료 일반분기 어댑터**, **Result 없는 next/native/whole-body 원문 보존 어댑터**, **새/내부 소유 본문과 실제 보조 편집 통합**이다. 앞선 지역 Result 지원과 Set 지원을 다시 잔여로 세지 않는다. 정상 비소유/override/ref/실제 await 거절 및 선택적 legacy 자동 변환은 새 필수 조합이 아니다. M11/M12는 닫힌 상태를 유지한다. V2–V9와 별도 팩·backend/종류 호환성 결정, 실제 기기·전체 UI·Space 전달은 기존 별도 잔여다.

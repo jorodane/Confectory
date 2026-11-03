@@ -22,6 +22,13 @@ public static partial class FeatureBlueprint
     // not recursive node calls and not feature-end labels.
     static (Dictionary<string,string> Continuations,JsonArray Returns,Dictionary<(string,string),(string,string)> EndOrigins) SwitchFlow(Dictionary<string,Node> nodes, Dictionary<(string,string),string> edges)
     {
+        foreach(var node in nodes.Values.Where(n=>!AsyncNode(n)&&n.Definition[BlueprintCompletionBranch.Metadata] is not null)) {
+            if(edges.Remove((node.Id,"completion"),out string? target)) {
+                string port="case:"+S(node.Definition[BlueprintCompletionBranch.Metadata],"id");
+                Need(!edges.ContainsKey((node.Id,port)),"GRAPH_COMPLETION_ALIAS",node.Id);
+                edges.Add((node.Id,port),target);
+            }
+        }
         foreach(var node in nodes.Values){
             string owner=Owner(node);var seen=new HashSet<string>(StringComparer.Ordinal){node.Id};int depth=0;
             while(owner.Length>0){Need(nodes.TryGetValue(owner,out var parent)&&FlowOwner(parent)&&seen.Add(owner)&&++depth<=8,"GRAPH_BRANCH_OWNER",node.Id);owner=Owner(parent!);}
