@@ -25,6 +25,13 @@ assert.equal(check(late,{...origin,node:'peer'},prior),false);
 assert.equal(check(late,{...origin,type:'source'},prior),false);
 assert.equal(check({...late,proof:prior},origin,prior),true);
 assert.equal(check({...late,type:'source'},{...origin,type:'source'},prior),false);
+const codeOrigin={...origin,type:'source'},codeLate={...codeOrigin,text:'late explicit C#'};
+// Only the verified async journal that captured this same source may opt in.
+assert.equal(check(codeLate,codeOrigin,prior,true),true);
+assert.equal(check(codeLate,null,prior,true),false);
+assert.equal(check(codeLate,{...codeOrigin,node:'peer'},prior,true),false);
+assert.equal(check(codeLate,{...codeOrigin,proof:prior},prior,true),false);
+for(const changed of [rows.slice(0,1),rows.map((r,i)=>i?[r[0],0,'c'.repeat(64)]:r),rows.map((r,i)=>i?['Peer::body',0,r[2]]:r),[...rows,rows[0]]])assert.equal(check(codeLate,codeOrigin,JSON.stringify(changed),true),false);
 for(const changed of [rows.slice(0,1),rows.map((r,i)=>i?[r[0],0,'c'.repeat(64)]:r),rows.map((r,i)=>i?['Peer::body',0,r[2]]:r),[...rows,rows[0]]])assert.equal(check(late,origin,JSON.stringify(changed)),false);
 assert.equal(check({...late,proof:JSON.stringify(rows.slice(0,1))},origin,prior),false);
 assert.equal(check(late,origin,'malformed'),false);

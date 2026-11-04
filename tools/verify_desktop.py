@@ -109,6 +109,7 @@ def main():
     parser.add_argument('--commit', required=True)
     parser.add_argument('--sdk', type=Path, required=True)
     parser.add_argument('--nuget-seed', type=Path, required=True)
+    parser.add_argument('--reuse-coupled-backend',type=Path,help='Sealed completed backend checks after a UI-only recovery correction; all UI/build/package checks remain fresh')
     parser.add_argument('--suite',choices=['headers','card-images','canvas','owned-information','owned-conversion','action-icons','declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement','worker-badges','node-internal','node-internal-nested','node-internal-storage','node-internal-context','node-internal-branches','node-branch-exits','node-internal-copy','node-internal-copy-nested','node-internal-copy-storage','node-internal-copy-branches','node-internal-copy-context','node-internal-copy-creating','node-internal-copy-frames','node-internal-override','node-internal-external-override','root-execution','root-execution-out','root-execution-closure','root-execution-copy','root-execution-copy-creating','root-execution-override','root-execution-registered','root-execution-registered-copy','root-execution-registered-creating','root-execution-data-void','root-execution-compound-owned','root-execution-provider-import','root-execution-nonvoid','public-return-data','root-execution-providers','root-execution-nested','root-execution-native','root-execution-caller','root-execution-forwarding','root-execution-observers','root-execution-wrappers','root-execution-owned-updates','root-execution-import-observations','async-runtime','async-transition','async-completion','async-function','async-property','async-adapter','async-context','async-creating','async-new-function','async-private','async-private-returns','async-coupled','async-information'],default='headers')
     args = parser.parse_args()
     repo = args.repo.resolve(); persistent = args.persistent.absolute()
@@ -124,12 +125,16 @@ def main():
     # The harness may be bootstrapping the previous published source. Preserve
     # the exact harness bytes as well as the product commit/tree.
     harness = work.evidence/'harness'; harness.mkdir()
-    for name in ['verification_workspace.py','verify_desktop.py']:
+    for name in ['verification_workspace.py','verify_desktop.py','verification_coupled_reuse.py']:
         shutil.copy2(Path(__file__).parent/name, harness/name)
     atomic_json(work.evidence/'source.json', {'commit': commit, 'tree': git(repo,'rev-parse',commit+'^{tree}'),
                 'sdk': str(args.sdk),'dependencyInputs':inputs, 'harnessSha256': {p.name:sha(p) for p in harness.iterdir()}})
     environments = {}; checkouts = {}; reports = {}
     try:
+        if args.reuse_coupled_backend:
+            if args.suite!='async-coupled': raise ValueError('Reuse is limited to the coupled async suite')
+            from verification_coupled_reuse import bind
+            bind(repo,args.reuse_coupled_backend,commit,inputs,work)
         for label, crlf in [('lf','false'),('crlf','true')]:
             checkout = work.root/label; checkouts[label] = checkout
             work.run(label+'-clone', ['git','clone','--no-hardlinks','--no-checkout','-c','core.autocrlf='+crlf,str(repo),str(checkout)])
@@ -1128,6 +1133,7 @@ def main():
         atomic_json(work.evidence/'package.json',entry)
         atomic_json(work.evidence/'summary.json',{'sourceCommit':commit,'independentCheckouts':2,
             'allStagesPassed':True,'suite':args.suite,'actualWindows':False,'actualMobile':False,'libraryDelivered':False,
+            'freshStages':len(work.state['results']),'reusedChecks':work.state.get('reusedChecks',[]),
             'sourceRepositoryUnchanged':git(repo,'rev-parse','HEAD'),
             'archiveBytes':candidate.stat().st_size,'diskBefore':plan['diskAvailable'],
             'diskBeforePersistence':shutil.disk_usage(persistent).free})
