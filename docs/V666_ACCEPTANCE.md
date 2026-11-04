@@ -140,3 +140,5 @@ Result 없는 ordinary 동작 완료 어댑터의 최종 동결 `76f9837`은 **�
 새 ordinary leaf의 첫 Confirm 전 async 전환을 총 45단계(LF/CRLF·새 패키지/전체 복원·실패 수명관리; 신규 39, 동일 입력 재사용 6)로 검증했다. [정확한 지원/실패·보관·유한 잔여](VALIDATION_V666_ASYNC_CREATING.md)를 따른다.
 
 새 전역 함수의 첫 Confirm 전 async 생성 흐름은 신규 본 검사 48단계와 강제 포함 컴파일 보완 3단계를 통과했다(재사용 0). [지원 경계·증거·유한 잔여](VALIDATION_V666_ASYNC_NEW_FUNCTION.md)를 따른다.
+
+정보 자체 함수의 직접 생성/배정 async 흐름은 최종 신규 51단계(재사용 0)를 통과했다. [지원·실패 수정·검증·보관과 유한 잔여](VALIDATION_V666_ASYNC_INFORMATION.md)를 따른다. M4 내부 Task·첫 생성 Save 전 입력 결합은 남는다.
