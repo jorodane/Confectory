@@ -65,3 +65,5 @@ override 공개 IO 변경, 비소유 원본 쓰기와 선택적 legacy 자동 mi
 초안/데이터가 자동 이행되는 것은 아니며, 원문·checkpoint와 보관 증거를 유지한다.
 
 이전 private Task 기반의 신규 55단계는 [기존 최종 기록](VALIDATION_V666_ASYNC_PRIVATE.md)에 보존한다. 연결된 완료선의 일반 결과 복귀는 별도 최종 검증 기록으로 구분하며, 첫 생성 Save 전 입력 결합은 남는다.
+
+연결된 완료선의 일반 결과 복귀에 대한 최종 수치·실패 수정·보관은 [최종 기록](VALIDATION_V666_ASYNC_PRIVATE_RETURNS.md)을 따른다.
