@@ -3,6 +3,15 @@ using System.Text.Json.Nodes;
 
 internal static partial class BlueprintAsyncTransition
 {
+    // Menu state for the observed, unbound first graph. Allocation and writes
+    // still use the original feature/owner proof and the normal final batch.
+    public static JsonObject CreationPreview(JsonObject request)
+    {
+        var fn=new Parser(S(request,"text"),"<new-function-preview>").ParseElement();
+        if(fn.Kind!="function"||fn.Parent is not null||fn.Signature is null||fn.Signature.Args.Any(a=>a.Mode is not (null or "out")))throw new ArgumentException("Keep ref/parent contracts; explicit owned value/out creation required");
+        bool enabled=BlueprintAsync.Read(fn) is not null;
+        return new(){["enabled"]=enabled,["profile"]=enabled?BlueprintAsync.Profile:FeatureBlueprint.SwitchProfile,["rootCompletion"]=FunctionDemotion(fn),["nodes"]=new JsonArray(new JsonObject{["id"]="body",["enabled"]=false,["demotion"]=null}),["provisional"]=true};
+    }
     static bool SameOwnedBodyPath(string a,string b){string root=Path.Combine(Path.GetTempPath(),"confectory-async-scope");return string.Equals(PackPaths.Owned(root,a),PackPaths.Owned(root,b),OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal);}
     // No on-disk function contract exists yet. Keep the user's first explicit
     // transition contract, and prove every new destination against the existing

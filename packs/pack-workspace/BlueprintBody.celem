@@ -1,4 +1,6 @@
 implementation Confectory.PackWorkspace::BlueprintBody for Confectory.PackWorkspace::Blueprint (string handle,string operation,string payload) -> string {
+import Confectory.EditWorkspace::Create as CreateDeclaration (string,string,string) -> void;
+import Confectory.EditWorkspace::SetTextIfRevision as EditDeclaration (string,string,string,long) -> bool;
 import Confectory.EditWorkspace::Read as Read (string,string) -> string[];
 import Confectory.EditWorkspace::List as List (string) -> string[];
 import Confectory.EditWorkspace::Status as Status (string,string) -> string[];

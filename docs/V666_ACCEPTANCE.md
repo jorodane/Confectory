@@ -6,11 +6,13 @@ v536 기록은 과거 검증 증거이며 기존 기능을 미구현으로 되�
 
 ## 현재 M11·M12·M4 경계
 
-직접 소유 내부 Task의 명시 전환·저장·실행은 [private 지원 경계](M4_ASYNC_PRIVATE.md)를 따른다. 연결된 내부 완료 실행선의 일반 결과 보존 동기 복귀와 첫 생성 Save 전 입력 결합이 남으며, 현재의 안전한 거절을 그 원본 흐름의 완료로 계산하지 않는다.
+첫 생성 Save 전 소유 C#·값·표시·지역 핀/연결과 명시 Task 입력의 결합은 [현재 지원 경계](M4_ASYNC_FIRST_SAVE.md)를 따른다. 생성 전 Undo/취소/cold와 선언 자체의 미저장 복구를 다룬다. 공개 Root IO 변경은 기존 원본 ABI 거래의 실제 경계로 남으며 현재 거절을 영구 UX 정책으로 확정하지 않는다. 최종 검증 수치는 종료 기록에서 확정한다.
 
-정보 자체 함수의 생성·배정 async 연결은 [직접 소유 경계](M4_ASYNC_INFORMATION.md)를 따른다. 검증 마감 수치는 해당 최종 기록에서 확정한다. 내부 Task는 위 private 경계를 따르고 첫 생성 Save 전 입력 결합은 남는다.
+직접 소유 내부 Task의 명시 전환·저장·실행은 [private 지원 경계](M4_ASYNC_PRIVATE.md)를 따른다. 연결된 내부 완료 실행선의 일반 결과 보존 동기 복귀는 마감했다. 첫 생성 Save 입력의 현재 지원/잔여는 위 경계를 따른다.
 
-새 전역 함수/구현/graph/코드의 첫 Confirm 전 async 전환은 [생성 소유권 경계](M4_ASYNC_NEW_FUNCTION.md)를 따른다. 정보 소유 함수의 직접 생성/배정은 위 정보 소유 경계를 따르며 내부 Task 및 첫 생성 Save 전 입력 결합은 별도 실제 잔여다.
+정보 자체 함수의 생성·배정 async 연결은 [직접 소유 경계](M4_ASYNC_INFORMATION.md)를 따른다. 검증 마감 수치는 해당 최종 기록에서 확정한다. 내부 Task는 위 private 경계를 따르고 첫 생성 Save 입력의 현재 지원/잔여는 위 경계를 따른다.
+
+새 전역 함수/구현/graph/코드의 첫 Confirm 전 async 전환은 [생성 소유권 경계](M4_ASYNC_NEW_FUNCTION.md)를 따른다. 정보 소유 함수의 직접 생성/배정은 위 정보 소유 경계를 따르며 내부 Task와 첫 Save 입력은 위 현재 경계를 따른다.
 
 새 ordinary C# 동작의 첫 Confirm 전 명시 async 전환은 [새 leaf 소유/저장 경계](M4_ASYNC_CREATING.md)를 따른다. 기존 직접 소유 Root에 생성 초안을 저장한 뒤 새 record의 missing CAS를 유지하며 메뉴·코드 편집·전체 Confirm으로 연결한다. 정보 소유 생성/배정은 위 경계에 연결했으며 private/internal Task 경계는 다음 유한한 M4다. 첫 생성 Save 전 혼합 입력 제한을 영구 UX 정책으로 정하지 않는다.
 
@@ -20,7 +22,7 @@ v536 기록은 과거 검증 증거이며 기존 기능을 미구현으로 되�
 - 같은 계약 copy·자식 소유 target의 전체 명시 갱신과 inherited-only 관측은 최종 검증까지 마감했다. [전체 갱신 기록](VALIDATION_V666_ROOT_EXECUTION_OWNED_UPDATES.md)에 신규/재사용과 환경 중단 복구 근거를 유지한다.
 - 등록 외부 import·manifest·scope/포함 모듈의 읽기 전용 receipt도 저장·복원·Review·최종 CAS·실제 실행까지 마감했다. [최종 44단계와 패키지/복원 증거](VALIDATION_V666_ROOT_EXECUTION_IMPORTS.md)를 따른다. 네 원래 흐름으로 M12를 완료하며 조합별 새 잔여를 추가하지 않는다.
 
-wrapper의 정상 stale 거절을 자동 변환 요구로, 비소유 부모/참조 쓰기나 override IO 변경을 미구현으로 늘리지 않는다. 새 타입·문맥 조합을 이 목록에 추가하지 않는다. M4의 직접 소유 ordinary 함수·동작/호출자의 명시적 Task 실행 기반은 [현재 지원 경계](M4_ASYNC.md)에 연결했다. 최종 신규 LF22·CRLF20·패키지/전체 복원/실패 수명관리8, 총50단계를 통과했다([검증·보관 기록](VALIDATION_V666_ASYNC_RUNTIME.md)). 직접 소유 ordinary Root의 원본 전환 메뉴·초안/원자 저장 연결은 [이번 지원 경계](M4_ASYNC_TRANSITION.md)를 따른다. 이 UI 단위의 [최종 신규 40단계·재사용 0](VALIDATION_V666_ASYNC_TRANSITION.md)을 마감했다. 지역 C# Result 완료 분기의 동기 복귀와 ordinary async Set 연동은 아래 후속에 연결했고, ordinary 공개 완료는 후속에 연결했고, async root 속성 편집은 [현재 단위](M4_ASYNC_PROPERTIES.md)로 연결했다. 기존 ordinary Root의 Result 없는 next 본문은 [원문/출력 보존 어댑터](M4_COMPLETION_ADAPTER.md)에 연결했다. 직접 소유하고 이미 Blueprint로 확정한 instance/native whole-body Root의 문맥 보존과 명시 전환은 [소유 whole-body 지원](M4_ASYNC_CONTEXT.md)에 연결했다. 직접 소유 내부 본문의 명시 전환은 위 private 지원 경계를 따르며, 연결된 private 완료 실행선의 일반 결과 보존 동기 복귀는 [private 지원 경계](M4_ASYNC_PRIVATE.md)에 연결하며, 남은 유한한 M4는 첫 생성 Save 전 입력 결합이다. 동기 caller는 명시적으로 async로 바뀌기 전에는 오류로 거절한다. V2–V9와 기존 별도 UI/권한 backend·종류 C# 표현/사용 중 삭제 대응·실기기 검증의 남은 범위는 해당 고정 행을 따른다.
+wrapper의 정상 stale 거절을 자동 변환 요구로, 비소유 부모/참조 쓰기나 override IO 변경을 미구현으로 늘리지 않는다. 새 타입·문맥 조합을 이 목록에 추가하지 않는다. M4의 직접 소유 ordinary 함수·동작/호출자의 명시적 Task 실행 기반은 [현재 지원 경계](M4_ASYNC.md)에 연결했다. 최종 신규 LF22·CRLF20·패키지/전체 복원/실패 수명관리8, 총50단계를 통과했다([검증·보관 기록](VALIDATION_V666_ASYNC_RUNTIME.md)). 직접 소유 ordinary Root의 원본 전환 메뉴·초안/원자 저장 연결은 [이번 지원 경계](M4_ASYNC_TRANSITION.md)를 따른다. 이 UI 단위의 [최종 신규 40단계·재사용 0](VALIDATION_V666_ASYNC_TRANSITION.md)을 마감했다. 지역 C# Result 완료 분기의 동기 복귀와 ordinary async Set 연동은 아래 후속에 연결했고, ordinary 공개 완료는 후속에 연결했고, async root 속성 편집은 [현재 단위](M4_ASYNC_PROPERTIES.md)로 연결했다. 기존 ordinary Root의 Result 없는 next 본문은 [원문/출력 보존 어댑터](M4_COMPLETION_ADAPTER.md)에 연결했다. 직접 소유하고 이미 Blueprint로 확정한 instance/native whole-body Root의 문맥 보존과 명시 전환은 [소유 whole-body 지원](M4_ASYNC_CONTEXT.md)에 연결했다. 직접 소유 내부 본문의 명시 전환은 위 private 지원 경계를 따르며, 연결된 private 완료 실행선의 일반 결과 보존 동기 복귀는 [private 지원 경계](M4_ASYNC_PRIVATE.md)에 연결하며, 첫 생성 Save 입력의 현재 지원/공개 Root 계약 잔여는 위 경계를 따른다. 동기 caller는 명시적으로 async로 바뀌기 전에는 오류로 거절한다. V2–V9와 기존 별도 UI/권한 backend·종류 C# 표현/사용 중 삭제 대응·실기기 검증의 남은 범위는 해당 고정 행을 따른다.
 
 ## 기존 미완료 사용자 흐름
 
@@ -150,3 +152,7 @@ Result 없는 ordinary 동작 완료 어댑터의 최종 동결 `76f9837`은 **�
 연결된 private Task 완료선은 같은 marker/선·native 반환/out을 보존하는 일반 결과로 동기 복귀하고, 기존 반환 카드에서 명시 선택한다. 기본 None과 완료 선택을 구별하며 공개 IO·원문을 바꾸지 않는다. 첫 생성 Save 전 입력 결합은 별도 유한한 M4 잔여다.
 
 연결된 private 완료선의 일반 결과 복귀를 최종 신규 **57단계(재사용 0)**로 검증하고 새 패키지/전체 복원·최신/롤백·증거를 보관했다. [최종 결과](VALIDATION_V666_ASYNC_PRIVATE_RETURNS.md). 남은 유한한 M4는 첫 생성 Save 전 입력 결합이다.
+
+## M4 첫 생성 Save 입력 결합 후속
+
+새 전역/정보 소유 함수와 새 ordinary 동작 및 기존 직접 소유 내부 본문에서 C#·표시/값·지역 핀/연결과 명시 Task를 기존 원자 후보에 결합한다. 선언 자체가 아직 checkpoint되지 않은 전역 함수도 같은 소유 프로젝트/등록/원문/checkpoint의 정확한 일치로만 메모리 복구한다. [지원/미지원·유한한 후속](M4_ASYNC_FIRST_SAVE.md)과 [최종 검증 기록](VALIDATION_V666_ASYNC_FIRST_SAVE.md)을 따른다. 공개 Root 핀 계약 변경은 기존 Confirm 원본 요구에 걸리는 실제 ABI 잔여이며 완료로 계산하지 않는다. V2–V9와 기존 팩/backend·종류 결정·실기기/전체 UI/Space 전달은 그대로 구분한다.
