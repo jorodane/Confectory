@@ -22,6 +22,7 @@ internal static partial class BlueprintAsyncTransition
     }
     static bool NewOwnedCreation(JsonObject units,string id,string root,string path,string? function)
     {
+        if(NewInformationCreation(units,id,root,path,function))return true;
         if(function is null||units[function] is not JsonObject fnUnit||fnUnit["baseline"]?.ToString()!="missing"||S(fnUnit,"original")!=""||fnUnit["creationOwner"] is not null)return false;
         var fn=Element(units,function,"function");if(fn.Parent is not null)return false;
         var source=units[id];if(source is null||source["baseline"]?.ToString()!="missing"||S(source,"original")!=""||source["creationOwner"] is not null||source["copySource"] is not null)return false;

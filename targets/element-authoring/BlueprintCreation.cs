@@ -12,7 +12,8 @@ internal static class BlueprintCreation
   // Reuse only the contract generator. Its temporary default never replaces the real function.
   function.Provides.Clear();if(string.IsNullOrWhiteSpace(function.Description)){function.Description="Implement "+function.Id+" for "+owner.Id;function.DescriptionPresent=true;}var input=(JsonObject)request.DeepClone();input["text"]=format(function);
   var slotSignature=function.Signature!;
-  var result=request["reference"] is null?Scaffold(function,input,format):ReferenceScaffold(function,input,format);result.Remove("function");
+  bool ownInformation=owner.Kind=="schema"&&function.Id.StartsWith(owner.Id+"_Function_",StringComparison.Ordinal)&&owner.Contains.Count(c=>c.Kind=="function"&&c.Id==function.Id)==1;
+  var result=request["reference"] is null?Scaffold(function,input,format,ownInformation):ReferenceScaffold(function,input,format);result.Remove("function");
   string implementation=request["implementation"]!.GetValue<string>();
   owner.Provides[function.Id]=new ElementReference(implementation,new(),function.Id);
   result["owner"]=format(owner);result["feature"]=function.Id;
