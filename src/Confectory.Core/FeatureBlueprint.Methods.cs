@@ -14,11 +14,11 @@ public static partial class FeatureBlueprint
         Need(helpers.Length == 0 || !HasContext(node), "NODE_HELPERS_CONTEXT", node.Id);
         return helpers.Replace("\r\n", "\n");
     }
-    static string NodeCodeHash(Node node, string body, string helpers) => node.Control == "switch" ? Hash(CanonicalText(new JsonObject{["source"]=body.Replace("\r\n","\n"),["helpers"]=helpers,["executionEnum"]=node.Definition["executionEnum"]!.DeepClone()})) : helpers.Length == 0
+    static string NodeCodeHash(Node node, string body, string helpers) => node.Control == "switch"&&!CompletionAdapter(node) ? Hash(CanonicalText(new JsonObject{["source"]=body.Replace("\r\n","\n"),["helpers"]=helpers,["executionEnum"]=node.Definition["executionEnum"]!.DeepClone()})) : helpers.Length == 0
         ? Hash(HasContext(node) ? body : body.Replace("\r\n", "\n"))
         : Hash(CanonicalText(new JsonObject { ["source"] = body.Replace("\r\n", "\n"), ["helpers"] = helpers }));
     static string MethodClass(JsonObject request, string id) => "__fg_methods_" + Hash((request["sourceOwner"]?.ToString() ?? S(request["graph"], "feature")) + "/" + RecordKey(request, id))[..32];
     static string MethodsMember(string type, Node node, string declarations, string source, string helpers, string marker) =>
-        "private static class " + type + " {\n"+EnumDeclaration(node)+"public static " + (node.Control=="switch"?"Result":node.Signature.Return) + " Execute(" + declarations + ") {\n#line 1 " + JsonSerializer.Serialize(marker) + "\n" + source +
+        "private static class " + type + " {\n"+(CompletionAdapter(node)?"":EnumDeclaration(node))+"public static " + (node.Control=="switch"&&!CompletionAdapter(node)?"Result":node.Signature.Return) + " Execute(" + declarations + ") {\n#line 1 " + JsonSerializer.Serialize(marker) + "\n" + source +
         "\n#line default\n}\n#line 1 " + JsonSerializer.Serialize(marker + "/helpers") + "\n" + helpers + "\n#line default\n}\n";
 }

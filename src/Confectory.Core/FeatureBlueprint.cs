@@ -230,6 +230,7 @@ public static partial class FeatureBlueprint
                 Need(kind is "code" or "call" && control is "next" or "switch" && signature.Args.All(p=>p.Mode is null or "out") && !value.ContainsKey("postCall") && !value.ContainsKey("implementationContext"), "GRAPH_ASYNC_NODE_CONTRACT", id);
                 definition["async"] = true;
             }
+            if(value.ContainsKey(BlueprintCompletionAdapter.Metadata)){_=BlueprintCompletionAdapter.Read(value);definition[BlueprintCompletionAdapter.Metadata]=value[BlueprintCompletionAdapter.Metadata]!.DeepClone();}
             if(value.ContainsKey(BlueprintCompletionBranch.Metadata)) {
                 BlueprintCompletionBranch.Validate(value,asyncNode);
                 definition[BlueprintCompletionBranch.Metadata]=value[BlueprintCompletionBranch.Metadata]!.DeepClone();
@@ -250,7 +251,7 @@ public static partial class FeatureBlueprint
             Need(switchFlow||!value.ContainsKey("branchOwner")&&!value.ContainsKey("executionEnum"),"GRAPH_SWITCH_PROFILE",id);
             if(value.ContainsKey("branchOwner"))definition["branchOwner"]=Id(value,"branchOwner");
             if(control=="switch"){
-                Need(((kind is "code" or "graph")&&signature.Return=="void"||kind=="call"&&(executionCall||value["postCall"]?["mode"]?.ToString()=="execution-enum"))&&!value.ContainsKey("implementationContext"),"GRAPH_SWITCH_CONTRACT",id);
+                Need(((kind is "code" or "graph")&&(signature.Return=="void"||kind=="code"&&value.ContainsKey(BlueprintCompletionAdapter.Metadata))||kind=="call"&&(executionCall||value["postCall"]?["mode"]?.ToString()=="execution-enum"))&&!value.ContainsKey("implementationContext"),"GRAPH_SWITCH_CONTRACT",id);
                 definition["executionEnum"]=EnumContract(value["executionEnum"]??throw new Refusal("GRAPH_ENUM_REQUIRED",id));
             }else Need(!value.ContainsKey("executionEnum"),"GRAPH_ENUM_CONTROL",id);
             if(executionSource==id){
@@ -626,10 +627,20 @@ public static partial class FeatureBlueprint
                 manifestNodes.Single(n=>n!["id"]!.ToString()==id)!["includedInSource"]=true;
                 continue;
             }
+            if(CompletionAdapter(node)) {
+                string type=MethodClass(request,id),adapterMarker="node:"+feature.Id+"/"+id+"@"+manifestNodes.Single(n=>n!["id"]!.ToString()==id)!["implementationHash"]!.ToString();
+                string adapterImports=string.Join(",",NodeImports(node).Select(f=>(asyncFeature?Generation.ImportInterface(Import(f).Element):Generation.Interface(f))+" "+ImportParameter(f)));
+                membersOutput.Append(MethodsMember(type,node,string.Join(",",node.Signature.Args.Select(p=>p.Declaration()).Concat(adapterImports.Length==0?Array.Empty<string>():new[]{adapterImports})),bodies[id],helpers[id],adapterMarker));
+                membersOutput.Append(CompletionSelector(type+"_completion",node,adapterMarker));
+                if(!reachable.Contains(id))output.AppendLine("#pragma warning disable CS8321");
+                output.Append(CompletionSyncMember(type,node,adapterImports,string.Join(",",NodeImports(node).Select(ImportParameter)),Symbol(id)));
+                if(!reachable.Contains(id))output.AppendLine("#pragma warning restore CS8321");
+                sourceMaps.Add(new JsonObject{["node"]=id,["definitionHash"]=node.DefinitionHash,["marker"]=adapterMarker});manifestNodes.Single(n=>n!["id"]!.ToString()==id)!["includedInSource"]=true;continue;
+            }
             // A prepared independent node is checked without calling it or allocating a delegate.
             // Suppress only the generated local function declaration's unused warning.
             if (!reachable.Contains(id)) output.AppendLine("#pragma warning disable CS8321");
-            output.AppendLine((node.Definition["contextBoundary"]?.GetValue<bool>()==true?"":"static ") + ExecutionType(node) + " " + Symbol(id) + "(" + string.Join(",", node.Signature.Args.Select(p => p.Declaration()).Concat(WrappedReturn(node) ? new[] { "out " + node.Signature.Return + " __fg_wrapped_return" } : Array.Empty<string>()).Concat(NodeImports(node).Select(f => (asyncFeature?Generation.ImportInterface(Import(f).Element):Generation.Interface(f)) + " " + ImportParameter(f)))) + ") {");
+            output.AppendLine((node.Definition["contextBoundary"]?.GetValue<bool>()==true?"":"static ") + ExecutionType(node) + " " + Symbol(id) + "(" + string.Join(",", node.Signature.Args.Select(p => p.Declaration()).Concat(WrappedReturn(node) ? new[] { "out " + node.Signature.Return + " "+WrappedCapture(node) } : Array.Empty<string>()).Concat(NodeImports(node).Select(f => (asyncFeature?Generation.ImportInterface(Import(f).Element):Generation.Interface(f)) + " " + ImportParameter(f)))) + ") {");
             if (!reachable.Contains(id)) output.AppendLine("#pragma warning restore CS8321");
             string marker = "node:" + feature.Id + "/" + id + "@" + manifestNodes.Single(n => n!["id"]!.ToString() == id)![node.Kind == "call" ? "definitionHash" : "implementationHash"]!.ToString();
             output.AppendLine("#line 1 " + JsonSerializer.Serialize(marker));
@@ -741,6 +752,7 @@ public static partial class FeatureBlueprint
         reply["sourceMap"] = sourceMaps;
         reply["graphMap"] = new JsonObject { ["marker"] = "graph:" + feature.Id + "@" + topologyHash, ["jsonPointer"] = "/edges", ["topologyHash"] = topologyHash };
         reply["nodeSources"] = new JsonArray(bodies.Where(p => nodes[p.Key].Kind == "code").OrderBy(p => p.Key, StringComparer.Ordinal).Select(p => (JsonNode)new JsonObject { ["id"] = p.Key, ["source"] = p.Value, ["helpers"] = helpers[p.Key], ["preserveImplementationContext"] = HasContext(nodes[p.Key]), ["marker"] = sourceMaps.Single(n => n!["node"]!.ToString() == p.Key)!["marker"]!.DeepClone() }).ToArray());
+        foreach(var pair in nodes.Where(p=>CompletionAdapter(p.Value)))reply["nodeSources"]!.AsArray().Add(new JsonObject{["id"]=pair.Key+"/completion",["source"]=pair.Value.Definition[BlueprintCompletionAdapter.Metadata]!["source"]!.DeepClone(),["helpers"]="",["marker"]=sourceMaps.Single(n=>n!["node"]!.ToString()==pair.Key)!["marker"]!.ToString()+"/completion"});
         reply["imports"] = new JsonArray(imports.OrderBy(i => i.Key, StringComparer.Ordinal).Select(i => (JsonNode)new JsonObject { ["feature"] = i.Key, ["alias"] = i.Value.Alias, ["contractHash"] = i.Value.Hash, ["binding"] = canonicalImports.Contains(i.Key) ? "canonical" : "implementation-context", ["signature"] = SignatureNode(i.Value.Element.Signature!) }).ToArray());
         return reply;
     }

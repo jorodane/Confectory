@@ -8,7 +8,7 @@ public static partial class FeatureBlueprint
     public static bool SupportsMethods(string? profile) => profile is MethodsProfile or SwitchProfile or PropertySetProfile or PropertyRefProfile or BlueprintAsync.Profile;
     static bool FlowOwner(Node node) => node.Control == "switch" || AsyncNode(node);
     static string Owner(Node node) => node.Definition["branchOwner"]?.GetValue<string>() ?? "";
-    static bool WrappedReturn(Node node) => node.Kind == "call" && node.Control == "switch" && node.Signature.Return != "void";
+    static bool WrappedReturn(Node node) => (node.Kind == "call"||CompletionAdapter(node)) && node.Control == "switch" && node.Signature.Return != "void";
     static string ExecutionType(Node node) => node.Control == "switch" ? "int" : node.Signature.Return;
     static JsonObject EnumContract(JsonNode value)
     {

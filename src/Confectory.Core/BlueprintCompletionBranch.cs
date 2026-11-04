@@ -20,9 +20,10 @@ public static class BlueprintCompletionBranch
     }
     public static JsonObject Preview(JsonObject node,string identity)
     {
-        if(node["kind"]?.ToString()!="code"||node["control"]?.ToString()!="switch"||node["signature"]?["return"]?.ToString()!="void"||node["implementationContext"] is not null||node["forwardCallerStorage"]?.GetValue<bool>()==true)throw new ArgumentException("This original body needs its output-preserving completion adapter before sync conversion");
+        bool next=node["control"]?.ToString()=="next"&&node["executionEnum"] is null&&node["signature"]!["args"]!.AsArray().All(p=>p!["mode"]?.ToString() is null or "out");
+        if(node["kind"]?.ToString()!="code"||!next&&(node["control"]?.ToString()!="switch"||node["signature"]?["return"]?.ToString()!="void"&&BlueprintCompletionAdapter.Read(node) is null)||node["implementationContext"] is not null||node["forwardCallerStorage"]?.GetValue<bool>()==true)throw new ArgumentException("This original body needs its output-preserving completion adapter before sync conversion");
         if(Read(node) is JsonObject existing)return existing;
-        var rows=Enum(node)["members"]!.AsArray();if(rows.Count>=32)throw new ArgumentException("Keep room for the retained completion branch in the Result contract");
+        var rows=next?new JsonArray(new JsonObject{["id"]="none",["name"]="None",["value"]=0}):Enum(node)["members"]!.AsArray();if(rows.Count>=32)throw new ArgumentException("Keep room for the retained completion branch in the Result contract");
         string prefix="completed_"+JsonData.Digest(identity)[..20],id=prefix,name="완료_시";int suffix=2;
         while(rows.Any(r=>r!["id"]?.ToString()==id))id=prefix+"_"+suffix++;
         suffix=2;while(rows.Any(r=>r!["name"]?.ToString().TrimStart('@')==name))name="완료_시_"+suffix++;
@@ -37,14 +38,14 @@ public static class BlueprintCompletionBranch
             node["async"]=true;
         } else {
             if(marker is null&&node["async"]?.GetValue<bool>()!=true)return;
-            marker??=Preview(node,identity);var rows=Enum(node)["members"]!.AsArray();if(!rows.Any(r=>r!["id"]?.ToString()==S(marker,"id")))rows.Insert(rows[0]?["id"]?.ToString()==Enum(node)["primary"]?.ToString()?1:0,Member(marker));
+            marker??=Preview(node,identity);if(node["control"]?.ToString()=="next")BlueprintCompletionAdapter.Attach(node);var rows=Enum(node)["members"]!.AsArray();if(!rows.Any(r=>r!["id"]?.ToString()==S(marker,"id")))rows.Insert(rows[0]?["id"]?.ToString()==Enum(node)["primary"]?.ToString()?1:0,Member(marker));
             node[Metadata]=marker;node.Remove("async");
         }
     }
     public static void Validate(JsonObject node,bool asynchronous)
     {
         var marker=Read(node);if(marker is null)return;
-        if(node["kind"]?.ToString()!="code"||node["control"]?.ToString()!="switch"||node["signature"]?["return"]?.ToString()!="void"||node["implementationContext"] is not null||node["forwardCallerStorage"]?.GetValue<bool>()==true)throw new ArgumentException("Ordinary owned Result completion branch required");
+        if(node["kind"]?.ToString()!="code"||node["control"]?.ToString()!="switch"||node["signature"]?["return"]?.ToString()!="void"&&BlueprintCompletionAdapter.Read(node) is null||node["implementationContext"] is not null||node["forwardCallerStorage"]?.GetValue<bool>()==true)throw new ArgumentException("Ordinary owned Result completion branch required");
         var execution=Enum(node);if(execution["primary"]?.ToString()==S(marker,"id"))throw new ArgumentException("Completion cannot replace the original primary result");
         var rows=execution["members"]!.AsArray();var member=rows.SingleOrDefault(r=>r!["id"]?.ToString()==S(marker,"id"));
         if(asynchronous ? member is not null||rows.Any(r=>r!["name"]!.ToString().TrimStart('@')==S(marker,"name").TrimStart('@')||r["value"]!.GetValue<int>()==marker["value"]!.GetValue<int>()) : member is null||!JsonNode.DeepEquals(member,Member(marker)))throw new ArgumentException("Retain the exact completion member identity and reserved Result name/value");

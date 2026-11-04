@@ -27,6 +27,8 @@ try
         }
         case "blueprintAsyncCandidates":reply=BlueprintAsyncTransition.Candidates(request);break;
         case "blueprintAsyncTransition":reply=BlueprintAsyncTransition.Prepare(request,Format);break;
+        case "blueprintCompletionCode":reply=BlueprintAsyncTransition.CompletionCode(request);break;
+        case "blueprintCompletionEditor":reply=BlueprintCompletionAdapter.Editor(request["node"]!.AsObject(),request["source"]!.GetValue<string>(),request["helpers"]?.GetValue<string>()??"");break;
         case "blueprintAsyncGuards":reply=BlueprintAsyncTransition.Validate(request);break;
         case "blueprintPropertyObservations":reply=BlueprintPropertyObservations.Query(request);break;
         case "blueprintRootExecutionGuards":reply=BlueprintRootExecution.Guards(request);break;
