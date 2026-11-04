@@ -37,3 +37,5 @@ M11·M12는 구체적 회귀가 없으므로 닫힌 상태를 유지한다. V2�
 이번 완료 일반 분기·Set 단위의 [최종 검증·보관 기록](VALIDATION_V666_ASYNC_COMPLETION.md)에 신규/재사용·호환성·공간을 기록한다.
 
 새 ordinary leaf의 파일 확정 전 전환은 [첫 Confirm 전 경계](M4_ASYNC_CREATING.md)를 따른다. 새 헤더/graph 및 private Task 경계와 구별한다.
+
+새 전역 함수의 첫 Confirm 전 전환은 [등록/생성 계약 보존](M4_ASYNC_NEW_FUNCTION.md)에 연결한다. 정보 소유 배정과 내부 Task/생성 입력 결합은 별도 경계다.

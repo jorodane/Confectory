@@ -55,9 +55,9 @@ internal static class BlueprintCreation
   var function=new Parser(request["text"]!.GetValue<string>(),"<new-function>").ParseElement();
   string implementationId=request["implementation"]!.GetValue<string>();
   if(function.Kind!="function"||function.Id!=request["id"]!.GetValue<string>()||function.Signature is null||function.Parent is not null||function.Provides.ContainsKey(function.Id)||PackPaths.Namespace(function.Id)!=PackPaths.Namespace(implementationId))throw new ArgumentException("An owned new function with its exact identity, an explicit signature and no existing implementation is required");
-  return Scaffold(function,request,format);
+  return Scaffold(function,request,format,true);
  }
- private static JsonObject Scaffold(Element function,JsonObject request,Func<Element,string> format)
+ private static JsonObject Scaffold(Element function,JsonObject request,Func<Element,string> format,bool currentMethods=false)
  {
   string implementationId=request["implementation"]!.GetValue<string>(),graphPath=request["graphPath"]!.GetValue<string>(),nodePath=request["nodePath"]!.GetValue<string>();
   var functionSignature=function.Signature??throw new ArgumentException("Explicit function signature required");
@@ -67,13 +67,13 @@ internal static class BlueprintCreation
   function.Provides.Add(function.Id,new ElementReference(implementationId,new(),function.Id));
   var args=SignatureNode(functionSignature)["args"]!.DeepClone();var arguments=new JsonObject();foreach(var arg in functionSignature.Args.Where(p=>!p.IsOut))arguments[arg.Name]=new JsonObject{["input"]=arg.Name};
   var graph=new JsonObject{
-   ["schema"]=1,["profile"]=FeatureBlueprint.HasObjectSignature(functionSignature)?FeatureBlueprint.PropertyProfile:functionSignature.Args.Any(p=>p.IsRef)?FeatureBlueprint.ExternalRefsProfile:FeatureBlueprint.Profile,["feature"]=function.Id,["contractHash"]=FeatureBlueprint.ContractHash(function),["entry"]="body",
+   ["schema"]=1,["profile"]=currentMethods&&!functionSignature.Args.Any(p=>p.IsRef)?FeatureBlueprint.SwitchProfile:FeatureBlueprint.HasObjectSignature(functionSignature)?FeatureBlueprint.PropertyProfile:functionSignature.Args.Any(p=>p.IsRef)?FeatureBlueprint.ExternalRefsProfile:FeatureBlueprint.Profile,["feature"]=function.Id,["contractHash"]=FeatureBlueprint.ContractHash(function),["entry"]="body",
    ["nodes"]=new JsonArray(new JsonObject{["id"]="body",["kind"]="code",["control"]="next",["intent"]=string.IsNullOrWhiteSpace(function.Description)?"Implement "+function.Id:function.Description,["signature"]=new JsonObject{["args"]=args,["return"]=functionSignature.Return},["arguments"]=arguments,["implementation"]=nodePath}),
    ["edges"]=new JsonArray(new JsonObject{["from"]="body",["port"]="next",["to"]="exit:return"}),
    ["exits"]=new JsonObject{["return"]=functionSignature.Return=="void"?null:new JsonObject{["node"]="body"}}
   };
-  if(functionSignature.Args.Any(p=>p.IsRef)||FeatureBlueprint.HasObjectSignature(functionSignature)&&functionSignature.Args.Any(p=>p.IsOut))graph["nodes"]![0]!["forwardCallerStorage"]=true;
-  else if(functionSignature.Args.Any(p=>p.IsOut)){graph["profile"]=FeatureBlueprint.MultiOutputProfile;graph["exits"]=new JsonObject();graph["edges"]=new JsonArray();WireOutputs(graph,"body",functionSignature,functionSignature);}
+  if(functionSignature.Args.Any(p=>p.IsRef)||!currentMethods&&FeatureBlueprint.HasObjectSignature(functionSignature)&&functionSignature.Args.Any(p=>p.IsOut))graph["nodes"]![0]!["forwardCallerStorage"]=true;
+  else if(functionSignature.Args.Any(p=>p.IsOut)){if(!currentMethods)graph["profile"]=FeatureBlueprint.MultiOutputProfile;graph["exits"]=new JsonObject();graph["edges"]=new JsonArray();WireOutputs(graph,"body",functionSignature,functionSignature);}
   if(BlueprintAsync.Has(function)) {
    _=BlueprintAsync.Read(function);graph["profile"]=BlueprintAsync.Profile;graph["nodes"]![0]!["async"]=true;
    if(BlueprintExecutionBranches.Has(function)) {graph["schema"]=2;graph["executionExitMode"]=true;foreach(var exit in graph["exits"]!.AsObject().ToArray()){var selection=new JsonObject{["executionBranch"]="none"};if(functionSignature.Return!="void")selection["value"]=exit.Value?.DeepClone();graph["exits"]![exit.Key]=selection;}}
