@@ -26,6 +26,7 @@ try
             var node=request["node"]!.DeepClone().AsObject();BlueprintCompletionBranch.Edit(node,request["edges"]!.AsArray(),request["label"]?.GetValue<string>());reply=node;break;
         }
         case "blueprintAsyncCreationPreview":reply=BlueprintAsyncTransition.CreationPreview(request);break;
+        case "blueprintNewRootGroup":reply=BlueprintAsyncTransition.CreationRootGroup(request);break;
         case "blueprintAsyncCandidates":reply=BlueprintAsyncTransition.Candidates(request);break;
         case "blueprintAsyncTransition":reply=BlueprintAsyncTransition.Prepare(request,Format);break;
         case "blueprintCompletionCode":reply=BlueprintAsyncTransition.CompletionCode(request);break;

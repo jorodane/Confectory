@@ -3,6 +3,23 @@ using System.Text.Json.Nodes;
 
 internal static partial class BlueprintAsyncTransition
 {
+    static bool OwnedCreationRootGroup(JsonObject units,string function,JsonArray group)
+    {
+        try {
+            var ids=group.Select(x=>x!.GetValue<string>()).ToArray();
+            if(ids.Length!=3||ids.Distinct(StringComparer.Ordinal).Count()!=3||ids[0]!=function)return false;
+            var root=Root(units,ids[2]);
+            if(root.Function.Id!=function||root.Implementation.Id!=ids[1]||Targets(units,ids[2]).Length!=1)return false;
+            string scope=Path.Combine(Path.GetTempPath(),"confectory-creation-root-contract");
+            return ids.All(id=>units[id]?["creationOwner"] is null&&NewOwnedCreation(units,id,scope,PackPaths.Owned(scope,S(units[id]!,"path")),function));
+        }catch{return false;}
+    }
+    public static JsonObject CreationRootGroup(JsonObject request)
+    {
+        var units=request["units"]!.AsObject();var group=request["group"]!.AsArray();
+        if(!OwnedCreationRootGroup(units,S(request,"function"),group))throw new ArgumentException("Exact new owned function/implementation/root registration required; retain published, inherited and shared contracts");
+        return new(){["valid"]=true,["sourceWritten"]=false,["executed"]=false};
+    }
     // Menu state for the observed, unbound first graph. Allocation and writes
     // still use the original feature/owner proof and the normal final batch.
     public static JsonObject CreationPreview(JsonObject request)
@@ -22,6 +39,7 @@ internal static partial class BlueprintAsyncTransition
         if(unit["baseline"]?.ToString()!="missing")return S(unit,"original");
         string scope=Path.Combine(Path.GetTempPath(),"confectory-async-scope");
         if(!NewOwnedCreation(units,id,scope,PackPaths.Owned(scope,S(unit,"path")),id))throw new ArgumentException("Owned new function registration required");
+        if(unit["rootContractGroup"] is JsonArray creationRoot&&OwnedCreationRootGroup(units,id,creationRoot))return S(unit,"draft");
         return unit[Receipt]?["creationFunction"]?.GetValue<string>()??S(unit,"draft");
     }
     static Element OriginalFunction(JsonObject units,string id)

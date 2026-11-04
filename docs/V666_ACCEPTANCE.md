@@ -158,3 +158,7 @@ Result 없는 ordinary 동작 완료 어댑터의 최종 동결 `76f9837`은 **�
 새 전역/정보 소유 함수와 새 ordinary 동작 및 기존 직접 소유 내부 본문에서 C#·표시/값·지역 핀/연결과 명시 Task를 기존 원자 후보에 결합한다. 선언 자체가 아직 checkpoint되지 않은 전역 함수도 같은 소유 프로젝트/등록/원문/checkpoint의 정확한 일치로만 메모리 복구한다. [지원/미지원·유한한 후속](M4_ASYNC_FIRST_SAVE.md)과 [최종 검증 기록](VALIDATION_V666_ASYNC_FIRST_SAVE.md)을 따른다. 공개 Root 핀 계약 변경은 기존 Confirm 원본 요구에 걸리는 실제 ABI 잔여이며 완료로 계산하지 않는다. V2–V9와 기존 팩/backend·종류 결정·실기기/전체 UI/Space 전달은 그대로 구분한다.
 
 첫 생성 Save의 직렬 소유 입력 결합은 최종 **68단계(신규 32·동등 근거 재사용 36)**로 검증했다. [검증·지속 보관·남은 두 원래 거래](VALIDATION_V666_ASYNC_FIRST_SAVE.md)를 따른다. 공개 Root IO와 분기 실행선에서 만드는 새 동작의 첫 Task 결합을 남기며, 정상 보호나 타입 조합을 새 목록으로 늘리지 않는다.
+
+## M4 첫 Confirm 전 공개 IO 결합
+
+새 직접 소유 전역 함수의 단일 구현/target에서 원본 공개 IO·값/연결과 명시 Task를 첫 원자 후보에 결합하고, Confirm 전 명시 재편집을 같은 생성 증명으로 다룬다. [정확한 경계](M4_ASYNC_ROOT_IO.md)와 [검증 진행/최종 기록](VALIDATION_V666_ASYNC_ROOT_IO.md)을 따른다. 분기선에 만든 새 동작의 첫 Task 결합은 다음 단위로 남기며 M11/M12·기존 팩/backend/기기 잔여를 확대하거나 완료로 계산하지 않는다.

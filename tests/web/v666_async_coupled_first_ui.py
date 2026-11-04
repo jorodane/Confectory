@@ -6,6 +6,10 @@ elif '--information'in sys.argv:import v666_async_information_fixture as x
 else:import v666_async_new_function_fixture as x
 leaf='--leaf'in sys.argv;information='--information'in sys.argv
 f=x.f;mode=sys.argv[3] if len(sys.argv)>3 else 'normal';expected_source=x.new_source
+root_io='--root-io'in sys.argv
+if root_io:
+ import v666_async_root_io_fixture as io
+ io.bind(x)
 def panel():return f.author()
 def pending():return f.pending()['blueprint']
 def retained(held):
@@ -19,6 +23,7 @@ def open_graph(feature=x.feature,node=x.node):
 def toggle(node=None):
  target=panel().locator('[data-bp-node="'+node+'"] .function-node-heading') if node else panel().locator('.bp-identity')
  panel().locator('[data-bp-overview-node="'+node+'"]').click() if node else None
+ if root_io and node:io.pan(x,panel)
  target.click(button='right');f.page.screenshot(path=str(f.case/('menu-'+(node or 'root')+'.png')));(f.case/'menu.html').write_text(f.page.content());f.page.locator('[data-bp-async="'+(node or '$root')+'"]').click()
 def save():
  panel().locator('[data-bp-save]').click();expect(panel().locator('.bp-status')).to_have_text('저장됨',timeout=90000);f.idle()
@@ -54,6 +59,7 @@ try:
   expect.set_options(timeout=60000);f.browser=pw.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox']);f.page=f.setup();f.page.set_viewport_size({'width':1800,'height':1400});open_graph(node='body')
   if information:
    bind_created();before=x.checkpoint();checkpoint=next(f.project.glob('.confectory/edit-workspaces/*/draft.json'));x.original();f.checked('정보 직접 작성 진입의 기존 소유 구현 checkpoint를 유지하고 첫 Blueprint Save 전 입력을 작성한다')
+  if root_io:io.stage(x,panel)
   if leaf:
    v=panel().locator('.bp-viewport').bounding_box();panel().locator('.bp-viewport').click(button='right',position={'x':v['width']*.65,'y':v['height']*.8});f.page.get_by_role('button',name='동작 만들기',exact=True).click();x.node=next(v['node']for _,v in pending()if v['type']=='create');panel().locator('[data-bp-overview-node="'+x.node+'"]').click();panel().locator('[data-bp-node="'+x.node+'"] [data-inline-description]').fill('첫 저장에 함께 만들 비동기 동작');panel().locator('[data-bp-overview-node="$entry"]').click();panel().locator('.bp-port[data-node="$entry"][data-side=out]:not([data-kind])').click();panel().locator('[data-bp-overview-node="'+x.node+'"]').click();panel().locator('[data-bp-node="'+x.node+'"] .bp-exec-header-in').click();panel().locator('[data-bp-overview-node="'+x.node+'"]').click();panel().locator('[data-bp-node="'+x.node+'"] .bp-exec-line-out[data-port=next]').click();panel().locator('[data-bp-overview]').press('Home');panel().locator('[data-bp-node=body] .bp-exec-header-in').click()
   else:toggle()

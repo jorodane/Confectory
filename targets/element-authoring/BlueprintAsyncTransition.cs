@@ -28,7 +28,7 @@ internal static partial class BlueprintAsyncTransition
         if(providers.Any(e=>e.Parent is not null||e.Bodies.Count==0||e.Bodies.Any(p=>p.Value.SourceKind!="blueprint")))throw new ArgumentException("Explicit ordinary owned targets required before async conversion");
         var targets=providers.SelectMany(e=>e.Bodies.Keys.Order(StringComparer.Ordinal).Select(t=>e.Id+"/body:"+t)).Distinct(StringComparer.Ordinal).ToArray();foreach(string target in targets)_=Root(units,target);return targets;
     }
-    static Dictionary<string,string> Contracts(JsonObject units,bool previous=false) => units.Where(p=>p.Value?["kind"]?.ToString()=="function").ToDictionary(p=>p.Key,p=>previous&&p.Value?["baseline"]?.ToString()!="missing"&&p.Value?["original"] is JsonValue old?old.GetValue<string>():previous&&p.Value?[Receipt]?["creationFunction"] is JsonValue created?created.GetValue<string>():S(p.Value!,"draft"),StringComparer.Ordinal);
+    static Dictionary<string,string> Contracts(JsonObject units,bool previous=false) => units.Where(p=>p.Value?["kind"]?.ToString()=="function").ToDictionary(p=>p.Key,p=>previous&&p.Value?["baseline"]?.ToString()!="missing"&&p.Value?["original"] is JsonValue old?old.GetValue<string>():previous&&p.Value?["rootContractGroup"] is JsonArray creationRoot&&OwnedCreationRootGroup(units,p.Key,creationRoot)?S(p.Value!,"draft"):previous&&p.Value?[Receipt]?["creationFunction"] is JsonValue created?created.GetValue<string>():S(p.Value!,"draft"),StringComparer.Ordinal);
     static string WithoutAsync(Element fn) {var copy=JsonData.Clone(fn);copy.Values.Remove(BlueprintAsync.Metadata);return FeatureBlueprint.ContractHash(copy);}
     static bool AsyncOnly(string before,string after) {var a=new Parser(before,"<before-async>").ParseElement();var b=new Parser(after,"<after-async>").ParseElement();return a.Id==b.Id&&WithoutAsync(a)==WithoutAsync(b);}
     static void RefreshCalls(JsonObject units,JsonObject graph,string changedFunction) {
@@ -105,7 +105,7 @@ internal static partial class BlueprintAsyncTransition
         foreach(string target in changed){RefreshCode(units,before,target);var status=Definitions(units,target,describe:true);if(status["state"]?.ToString()=="invalid")throw new ArgumentException("Async execution shape refused: "+status.ToJsonString());}
         var members=Members(units,targets,root.Function.Id).Concat(Observations(units,root.Function.Id)).ToHashSet(StringComparer.Ordinal);
         foreach(string member in members.ToArray())if(units[member]?["rootContractGroup"] is JsonArray priorRoot) {
-            if(priorRoot.Any(x=>units[x!.ToString()]?["draft"]?.ToString()!=units[x!.ToString()]?["original"]?.ToString()))throw new ArgumentException("Confirm the previous public contract group first; async input is retained");
+            if(priorRoot.Any(x=>units[x!.ToString()]?["draft"]?.ToString()!=units[x!.ToString()]?["original"]?.ToString())&&!OwnedCreationRootGroup(before,root.Function.Id,priorRoot))throw new ArgumentException("Confirm the previous public contract group first; async input is retained");
             foreach(var x in priorRoot)units[x!.ToString()]!.AsObject().Remove("rootContractGroup");
         }
         foreach(string member in members.ToArray())if(units[member]?["atomicEditGroup"] is JsonArray existing){if(existing.Any(x=>units[x!.ToString()]?[Receipt] is null)&&!InformationCreationGroup(before,root.Function.Id,existing))throw new ArgumentException("Confirm other pending atomic edits before an async transition");foreach(var x in existing)members.Add(x!.ToString());}
