@@ -1,0 +1,24 @@
+// Execute the actual receipt-proof predicate against cold epochs and peers.
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const source=fs.readFileSync(new URL('../../examples/editor-home/ui/feature-authoring.js',import.meta.url),'utf8');
+const functions=['sameRestoredSources','sameSettledInput'].map(name=>source.split('\n').find(line=>line.startsWith(' function '+name+'(')));
+assert(functions.every(Boolean));
+const proof=data=>JSON.stringify(data.sources.map(r=>[r.id,r.revision,r.hash]).sort((a,b)=>a[0].localeCompare(b[0])));
+const check=new Function('proof',functions.join('\n')+';return sameSettledInput;')(proof);
+const rows=[['Owned::Flow',0,'a'.repeat(64)],['Owned::Flow/node:body',0,'b'.repeat(64)]];
+const before=JSON.stringify(rows.map(([id,revision,hash])=>[id,revision+2,hash]));
+const prior=JSON.stringify(rows);
+const origin={node:'body',type:'completion-code',proof:before,text:'old selection'};
+const late={...origin,text:'late selection'};
+assert.equal(check(late,origin,prior),true);
+assert.equal(check({...late,type:'branch-exits'},{...origin,type:'branch-exits'},prior),true);
+assert.equal(check(late,null,prior),false);
+assert.equal(check(late,{...origin,node:'peer'},prior),false);
+assert.equal(check(late,{...origin,type:'source'},prior),false);
+assert.equal(check({...late,proof:prior},origin,prior),true);
+assert.equal(check({...late,type:'source'},{...origin,type:'source'},prior),false);
+for(const changed of [rows.slice(0,1),rows.map((r,i)=>i?[r[0],0,'c'.repeat(64)]:r),rows.map((r,i)=>i?['Peer::body',0,r[2]]:r),[...rows,rows[0]]])assert.equal(check(late,origin,JSON.stringify(changed)),false);
+assert.equal(check({...late,proof:JSON.stringify(rows.slice(0,1))},origin,prior),false);
+assert.equal(check(late,origin,'malformed'),false);
+console.log('PASS exact settled input keeps late code across epochs; missing/peer/tampered/unknown sources fail closed');

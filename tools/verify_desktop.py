@@ -328,6 +328,7 @@ def main():
                 work.run(label+'-m11-regression',[sys.executable,str(checkout/'tests/web'/regression),str(checkout),str(report)],cwd=checkout,env=env)
                 work.run(label+'-owned-final-read-cas',[sys.executable,str(checkout/'tests/web/v536_copy_read_guards_core.py'),str(checkout)],cwd=checkout,env=env)
             elif args.suite=='async-adapter':
+                work.run(label+'-settled-input-proof',['node',str(checkout/'tests/web/v666_completion_recovery.mjs')],cwd=checkout,env=env)
                 work.run(label+'-adapter-script',['node','--check',str(checkout/'examples/editor-home/ui/feature-authoring.js')],cwd=checkout,env=env)
                 work.run(label+'-adapter-runtime',[dotnet,str(checkout/'tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll'),'CompletionAdapterTests','AsyncBlueprintTests','SwitchBlueprintTests','--require-runtime'],cwd=checkout,env=env)
                 work.run(label+'-adapter-guards',[sys.executable,str(checkout/'tests/web/v666_async_adapter_guards.py'),str(checkout)],cwd=checkout,env=env)

@@ -34,6 +34,7 @@ export function createFeatureAuthoring(api){
  // same complete owned source identities and bytes before accepting a new server receipt.
  // Preserve original proof; changed/missing/unknown closures still fail closed.
  function sameRestoredSources(saved,data){try{const before=JSON.parse(saved),after=JSON.parse(proof(data));if(!Array.isArray(before)||!before.length||before.length!==after.length)return false;const valid=rows=>rows.every(r=>Array.isArray(r)&&r.length===3&&typeof r[0]==='string'&&Number.isSafeInteger(r[1])&&r[1]>=0&&typeof r[2]==='string'&&/^[a-f0-9]{64}$/.test(r[2]))&&new Set(rows.map(r=>r[0])).size===rows.length;if(!valid(before)||!valid(after))return false;return before.every((r,i)=>r[0]===after[i][0]&&r[2]===after[i][2]);}catch{return false;}}
+ function sameSettledInput(value,origin,priorProof){if(value.proof===priorProof)return true;if(!['branch-exits','completion-code'].includes(value.type)||!origin||origin.node!==value.node||origin.type!==value.type||value.proof!==origin.proof)return false;try{return sameRestoredSources(origin.proof,{sources:JSON.parse(priorProof).map(([id,revision,hash])=>({id,revision,hash}))});}catch{return false;}}
 
  const copyScope=scope=>scope+'|'+(api.authorSurface?'view:'+api.authorSurface+'|':'');
  const copyKey=(scope,owner,feature)=>copyScope(scope)+'v508-copy|'+owner+'|'+feature;
@@ -703,8 +704,7 @@ function blueprintNormalizeControls(scope){
   // The receipt and exact settled closure above prove our own accepted write.
   // Rebase only late input from that exact prior proof, never a peer/stale grant.
   // A later source/checkpoint change is still rejected by the next candidate.
-  const acceptedBasis={sources:JSON.parse(journal.sourceProof).map(([id,revision,hash])=>({id,revision,hash}))};
-   for(const [key,value] of saveEntries(w)){const origin=journal.cells.find(([prior,cell])=>prior===key&&cell.node===value.node&&cell.type===value.type)?.[1],coldExit=value.type==='branch-exits'&&origin&&value.proof===origin.proof&&sameRestoredSources(origin.proof,acceptedBasis);if(value.proof===journal.sourceProof||coldExit)inputs.set(key,{...value,proof:proof(current),basis:current.basis});}
+  for(const [key,value] of saveEntries(w)){const origin=journal.cells.find(([prior,cell])=>prior===key&&cell.node===value.node&&cell.type===value.type)?.[1];if(sameSettledInput(value,origin,journal.sourceProof))inputs.set(key,{...value,proof:proof(current),basis:current.basis});}
   const key=authorAttemptKey(w);if(inputs.get(key)===journal||JSON.stringify(inputs.get(key))===JSON.stringify(journal))inputs.delete(key);
   const slot=current.slotContext,selection=slot?.copySource&&inputs.get(copyKey(journal.scope,slot.owner,journal.feature));
   if(selection?.accepted&&selection.copy.implementation===slot.implementation&&selection.copy.source===slot.copySource.implementation&&selection.copy.target===slot.copySource.target&&current.rootId===selection.copy.implementation+'/body:'+selection.copy.target&&!privateCells(journal.scope,selection.copy).length&&!hasCopyAttempt(slot.owner))forgetCopy(selection.copy);
