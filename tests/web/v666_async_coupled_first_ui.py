@@ -1,10 +1,12 @@
 """The first graph Save binds pending C# and explicit async before allocation."""
 import copy,json,sys,time
 from playwright.sync_api import sync_playwright,expect
-if '--leaf'in sys.argv:import v666_async_creating_fixture as x
+if '--branch-line'in sys.argv:import v666_async_branch_creation_fixture as x
+elif '--leaf'in sys.argv:import v666_async_creating_fixture as x
 elif '--information'in sys.argv:import v666_async_information_fixture as x
 else:import v666_async_new_function_fixture as x
-leaf='--leaf'in sys.argv;information='--information'in sys.argv
+branch_line='--branch-line'in sys.argv
+leaf='--leaf'in sys.argv or branch_line;information='--information'in sys.argv
 f=x.f;mode=sys.argv[3] if len(sys.argv)>3 else 'normal';expected_source=x.new_source
 root_io='--root-io'in sys.argv
 if root_io:
@@ -23,7 +25,9 @@ def open_graph(feature=x.feature,node=x.node):
 def toggle(node=None):
  target=panel().locator('[data-bp-node="'+node+'"] .function-node-heading') if node else panel().locator('.bp-identity')
  panel().locator('[data-bp-overview-node="'+node+'"]').click() if node else None
- if root_io and node:io.pan(x,panel)
+ if (root_io or branch_line) and node:
+  import v666_async_root_io_fixture as viewport
+  viewport.pan(x,panel)
  target.click(button='right');f.page.screenshot(path=str(f.case/('menu-'+(node or 'root')+'.png')));(f.case/'menu.html').write_text(f.page.content());f.page.locator('[data-bp-async="'+(node or '$root')+'"]').click()
 def save():
  panel().locator('[data-bp-save]').click();expect(panel().locator('.bp-status')).to_have_text('저장됨',timeout=90000);f.idle()
@@ -56,17 +60,19 @@ try:
   if mode not in ['unsaved-declaration','no-checkpoint']:f.invoke('saveDraft',{})
  checkpoint=next(f.project.glob('.confectory/edit-workspaces/*/draft.json'),None);before=x.checkpoint();assert leaf or not[u for u in x.units()if u['kind']=='blueprint'and x.feature in u['id']]if checkpoint else True
  with sync_playwright()as pw:
-  expect.set_options(timeout=60000);f.browser=pw.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox']);f.page=f.setup();f.page.set_viewport_size({'width':1800,'height':1400});open_graph(node='body')
+  expect.set_options(timeout=60000);f.browser=pw.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox']);f.page=f.setup();f.page.set_viewport_size({'width':1800,'height':1400});open_graph(node='choose'if branch_line else'body')
   if information:
    bind_created();before=x.checkpoint();checkpoint=next(f.project.glob('.confectory/edit-workspaces/*/draft.json'));x.original();f.checked('정보 직접 작성 진입의 기존 소유 구현 checkpoint를 유지하고 첫 Blueprint Save 전 입력을 작성한다')
   if root_io:io.stage(x,panel)
-  if leaf:
+  if branch_line:
+   x.stage(x,panel);expected_source=x.new_source
+  elif leaf:
    v=panel().locator('.bp-viewport').bounding_box();panel().locator('.bp-viewport').click(button='right',position={'x':v['width']*.65,'y':v['height']*.8});f.page.get_by_role('button',name='동작 만들기',exact=True).click();x.node=next(v['node']for _,v in pending()if v['type']=='create');panel().locator('[data-bp-overview-node="'+x.node+'"]').click();panel().locator('[data-bp-node="'+x.node+'"] [data-inline-description]').fill('첫 저장에 함께 만들 비동기 동작');panel().locator('[data-bp-overview-node="$entry"]').click();panel().locator('.bp-port[data-node="$entry"][data-side=out]:not([data-kind])').click();panel().locator('[data-bp-overview-node="'+x.node+'"]').click();panel().locator('[data-bp-node="'+x.node+'"] .bp-exec-header-in').click();panel().locator('[data-bp-overview-node="'+x.node+'"]').click();panel().locator('[data-bp-node="'+x.node+'"] .bp-exec-line-out[data-port=next]').click();panel().locator('[data-bp-overview]').press('Home');panel().locator('[data-bp-node=body] .bp-exec-header-in').click()
   else:toggle()
   toggle(x.node)
   if mode=='normal':
    flags=copy.deepcopy(pending());toggle(x.node);panel().locator('.bp-viewport').press('Control+z');assert retained(flags);panel().locator('.bp-viewport').press('Control+y');assert not retained(flags);panel().locator('.bp-viewport').press('Control+z');assert retained(flags);d=editor();f.page.keyboard.insert_text('// cancelled input');d.locator('[data-code-cancel]').click();assert retained(flags)and not any(v['type']=='source'for _,v in pending());f.checked('첫 생성 전 명시 전환 Undo/Redo와 C# 편집 취소는 원래 입력을 보존하고 저장하지 않는다')
-  d=editor();assert 'Task'in d.locator('[data-code-source]').input_value();f.page.keyboard.insert_text(x.new_source);d.locator('[data-code-save]').click();held=copy.deepcopy(pending());assert any(v['type']=='source'for _,v in held)and any(v['type']=='async-plan'for _,v in held);assert x.checkpoint()==before;x.original();restart(1);assert retained(held);f.checked('그래프 생성 전 Root/동작 async와 C# 입력을 첫 Save 없이 작성·cold 복원하고 원본/초안을 보존한다')
+  d=editor();assert 'Task'in d.locator('[data-code-source]').input_value();f.page.keyboard.insert_text(x.new_source);d.locator('[data-code-save]').click();held=copy.deepcopy(pending());assert any(v['type']=='source'for _,v in held)and any(v['type']=='async-plan'for _,v in held);assert x.checkpoint()==before;x.original();restart(1);assert retained(held);f.checked('분기선 새 동작의 명시 Task·원문·연결을 첫 Save 없이 cold 복원하고 원본/초안을 보존한다'if branch_line else'그래프 생성 전 Root/동작 async와 C# 입력을 첫 Save 없이 작성·cold 복원하고 원본/초안을 보존한다')
   if mode=='storage':
    checkpoint.chmod(0o400)
    try:panel().locator('[data-bp-save]').click();f.idle();assert retained(held)and x.checkpoint()==before;x.original()
@@ -110,7 +116,7 @@ try:
     assert lost;f.page.unroute_all(behavior='wait');f.idle();assert pending();restart(2);save();saved=True
    f.checked('최초 '+target+' 응답 중단/새 입력은 원래 소유 경계에서 복구하고 저장을 중복하지 않는다')
   if not saved:save()
-  bind_created();applied=[r['invoke']['input']for r in f.traffic[mark:]if r.get('invoke',{}).get('input',{}).get('action')=='authorBatch'];assert len(applied)==(2 if information and mode=='late'else 1),applied;assert len({a['attempt']for a in applied})==len(applied);assert sum(any(e['action']=='asyncTransition'for e in a['edits'])for a in applied)==1;assert len(applied)==1 or applied[1]['edits']==[dict(action='source',node=x.node,text=expected_source)];assert applied[0]['edits'][-1]['action']=='asyncTransition'and any(e['action']=='source'for e in applied[0]['edits']);assert json.loads(x.draft_unit()['draft'])['source']==expected_source;assert x.read()['asyncTransition']['enabled'];assert not pending();x.original();assert not x.path().exists()if leaf else not any(p.exists()for p in x.paths.values());f.checked('첫 Save 한 번은 생성된 소유 graph·원문·명시 Task를 같은 author 후보/checkpoint CAS로 저장한다')
+  bind_created();applied=[r['invoke']['input']for r in f.traffic[mark:]if r.get('invoke',{}).get('input',{}).get('action')=='authorBatch'];assert len(applied)==(2 if information and mode=='late'else 1),applied;assert len({a['attempt']for a in applied})==len(applied);assert sum(any(e['action']=='asyncTransition'for e in a['edits'])for a in applied)==1;assert len(applied)==1 or applied[1]['edits']==[dict(action='source',node=x.node,text=expected_source)];assert applied[0]['edits'][-1]['action']=='asyncTransition'and any(e['action']=='source'for e in applied[0]['edits']);assert json.loads(x.draft_unit()['draft'])['source']==expected_source;assert x.read()['asyncTransition']['enabled'];assert not pending();x.original();assert not x.path().exists()if leaf else not any(p.exists()for p in x.paths.values());f.checked('분기선 새 동작·원문·명시 Task의 첫 Save는 기존 graph의 같은 author 후보/checkpoint CAS다'if branch_line else'첫 Save 한 번은 생성된 소유 graph·원문·명시 Task를 같은 author 후보/checkpoint CAS로 저장한다')
   restart(3);bind_created();assert json.loads(x.draft_unit()['draft'])['source']==expected_source;save();r=review();r.locator('[data-reject]').click();expect(r).to_be_hidden();x.original();r=review();r.locator('#confirm').click();expect(r).to_be_hidden(timeout=120000);f.idle();x.build('first-save-execution',True)if leaf else x.build_new('first-save-execution');None if leaf else x.run(f.project,'original-entry',7,'');x.unchanged();assert json.loads(x.path().read_text())['source']==expected_source;restart(4);bind_created();assert x.read()['asyncTransition']['enabled'];x.unchanged();assert not f.errors and not f.external,(f.errors,f.external);f.page.screenshot(path=str(f.case/'coupled-first-save.png'),full_page=True);f.checked('반복 Save·Review 취소/Confirm·실제 Task 실행·확정 cold는 원래 진입점과 새 원문/등록/입출력을 보존한다');f.browser.close()
 except Exception:
  try:f.page.screenshot(path=str(f.case/'failure.png'));(f.case/'failure.html').write_text(f.page.content())
