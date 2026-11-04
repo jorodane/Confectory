@@ -109,8 +109,9 @@ public static partial class FeatureBlueprint
         string contractHash = ContractHash(feature);
         var graph = request["graph"]!.AsObject();
         var executionForward=request["executionForward"] as JsonObject;
-        string? executionSource=executionForward is null?null:Id(executionForward,"source");
-        if(executionForward is not null)Need(request["sourcePath"] is not null&&SupportsSwitches(S(graph,"profile"))&&feature.Signature!.Return=="void","GRAPH_EXECUTION_FORWARD_PROFILE",feature.Id);
+        bool privateNative=executionForward?["native"]?.GetValue<bool>()==true;
+        string? executionSource=executionForward is null||privateNative?null:Id(executionForward,"source");
+        if(executionForward is not null)Need(request["sourcePath"] is not null&&SupportsSwitches(S(graph,"profile"))&&(privateNative||feature.Signature!.Return=="void"),"GRAPH_EXECUTION_FORWARD_PROFILE",feature.Id);
         var publicBranches = BlueprintExecutionBranches.Read(feature);
         bool publicExecution = BlueprintExecutionBranches.Has(feature);
         bool asyncFeature = BlueprintAsync.Read(feature) is not null;
@@ -119,12 +120,13 @@ public static partial class FeatureBlueprint
         var exitEnum = publicExecution ? BlueprintExecutionBranches.Enum(feature) : executionForward?["enum"];
         bool executionExitMode=graph["executionExitMode"]?.GetValue<bool>()==true;
         Need(!publicExecution || executionExitMode, "GRAPH_PUBLIC_EXECUTION_EXITS", feature.Id);
-        Need(!graph.ContainsKey("executionExitMode")||executionExitMode&&(executionSource is not null||publicExecution),"GRAPH_EXECUTION_EXIT_CONTEXT",feature.Id);
+        Need(!privateNative || executionExitMode,"GRAPH_PRIVATE_COMPLETION_EXITS",feature.Id);
+        Need(!graph.ContainsKey("executionExitMode")||executionExitMode&&(executionSource is not null||publicExecution||privateNative),"GRAPH_EXECUTION_EXIT_CONTEXT",feature.Id);
         var dataExits=graph["exits"]!.DeepClone().AsObject();
         var executionExits=new Dictionary<string,int>(StringComparer.Ordinal);
         foreach(var pair in graph["exits"]!.AsObject()){
             if(!executionExitMode){Need(pair.Value is not JsonObject value||!value.ContainsKey("executionBranch"),"GRAPH_EXECUTION_EXIT_CONTEXT",pair.Key);continue;}
-            Need(pair.Value is JsonObject choice&&choice.Count==(publicExecution&&feature.Signature!.Return!="void"?2:1)&&choice.ContainsKey("executionBranch")&&choice.All(p=>p.Key=="executionBranch"||publicExecution&&feature.Signature!.Return!="void"&&p.Key=="value"),"GRAPH_EXECUTION_EXIT_SELECTION",pair.Key);
+            Need(pair.Value is JsonObject choice&&choice.Count==((publicExecution||privateNative)&&feature.Signature!.Return!="void"?2:1)&&choice.ContainsKey("executionBranch")&&choice.All(p=>p.Key=="executionBranch"||(publicExecution||privateNative)&&feature.Signature!.Return!="void"&&p.Key=="value"),"GRAPH_EXECUTION_EXIT_SELECTION",pair.Key);
             string branch=pair.Value!["executionBranch"]?.GetValue<string>()??"";
             var member=EnumContract(exitEnum!)["members"]!.AsArray().SingleOrDefault(m=>S(m,"id")==branch);
             Need(member is not null,"GRAPH_EXECUTION_EXIT_BRANCH",pair.Key);
@@ -241,7 +243,7 @@ public static partial class FeatureBlueprint
             if(nested&&(request["sourcePath"] is not null||kind=="graph"))definition["ownerPath"]=S(request,"sourceOwner")+"/"+(request["sourcePath"]?.ToString()??"");
             Need(!value.ContainsKey("executionSource")||kind=="graph"&&control=="switch","GRAPH_EXECUTION_FORWARD_KIND",id);
             if(kind=="graph"){
-                if(control=="switch")definition["executionSource"]=Id(value,"executionSource");
+                if(control=="switch"&&!BlueprintPrivateCompletion.OwnsResults(value))definition["executionSource"]=Id(value,"executionSource");
                 var childRequest=PrivateRequest(request,value,signature);
                 var child=Process(childRequest);request["privateChildren"]![id]=child;
                 if(child["usesImplementationContext"]?.GetValue<bool>()==true)definition["contextBoundary"]=true;
@@ -251,7 +253,7 @@ public static partial class FeatureBlueprint
             Need(switchFlow||!value.ContainsKey("branchOwner")&&!value.ContainsKey("executionEnum"),"GRAPH_SWITCH_PROFILE",id);
             if(value.ContainsKey("branchOwner"))definition["branchOwner"]=Id(value,"branchOwner");
             if(control=="switch"){
-                Need(((kind is "code" or "graph")&&(signature.Return=="void"||kind=="code"&&value.ContainsKey(BlueprintCompletionAdapter.Metadata))||kind=="call"&&(executionCall||value["postCall"]?["mode"]?.ToString()=="execution-enum"))&&!value.ContainsKey("implementationContext"),"GRAPH_SWITCH_CONTRACT",id);
+                Need(((kind is "code" or "graph")&&(signature.Return=="void"||kind=="code"&&value.ContainsKey(BlueprintCompletionAdapter.Metadata)||BlueprintPrivateCompletion.OwnsResults(value))||kind=="call"&&(executionCall||value["postCall"]?["mode"]?.ToString()=="execution-enum"))&&!value.ContainsKey("implementationContext"),"GRAPH_SWITCH_CONTRACT",id);
                 definition["executionEnum"]=EnumContract(value["executionEnum"]??throw new Refusal("GRAPH_ENUM_REQUIRED",id));
             }else Need(!value.ContainsKey("executionEnum"),"GRAPH_ENUM_CONTROL",id);
             if(executionSource==id){
@@ -448,7 +450,8 @@ public static partial class FeatureBlueprint
             Need(!Terminal(entry)&&executionExits.Count>0,"GRAPH_EXECUTION_EXIT_INCOMPLETE",feature.Id);
             foreach(var end in edges.Where(e=>reachable.Contains(e.Key.Item1)))Need(!Terminal(end.Value),"GRAPH_EXECUTION_EXIT_INCOMPLETE",end.Key.Item1+"/"+end.Key.Item2);
             foreach(string end in executionExits.Keys)Need(entry=="exit:"+end||edges.Any(e=>reachable.Contains(e.Key.Item1)&&e.Value=="exit:"+end),"GRAPH_EXECUTION_EXIT_DISCONNECTED",end);
-            var declaredExecution=EnumContract(exitEnum!);foreach(var member in declaredExecution["members"]!.AsArray().Where(m=>S(m,"id")!=S(declaredExecution,"primary")))Need(graph["exits"]!.AsObject().Any(e=>e.Value!["executionBranch"]!.ToString()==S(member,"id")),"GRAPH_EXECUTION_EXIT_COVERAGE",S(member,"id"));
+            var retainedCompletions=(executionForward?["completionIds"] as JsonArray??new JsonArray()).Select(x=>x!.ToString()).ToHashSet(StringComparer.Ordinal);
+            var declaredExecution=EnumContract(exitEnum!);foreach(var member in declaredExecution["members"]!.AsArray().Where(m=>S(m,"id")!=S(declaredExecution,"primary")&&!retainedCompletions.Contains(S(m,"id"))))Need(graph["exits"]!.AsObject().Any(e=>e.Value!["executionBranch"]!.ToString()==S(member,"id")),"GRAPH_EXECUTION_EXIT_COVERAGE",S(member,"id"));
         }
         else if(executionSource is not null){
             Need(reachable.Contains(executionSource),"GRAPH_EXECUTION_FORWARD_DOMINANCE",executionSource);
@@ -750,12 +753,12 @@ public static partial class FeatureBlueprint
                 output.AppendLine(Label(target)+": { return "+AsyncResultExpression(feature,executionExitMode?executionExits[exit.Key].ToString(System.Globalization.CultureInfo.InvariantCulture):executionSource is not null?ExecutionValue(executionSource):"0",native,p=>p.Name,request["sourcePath"] is not null)+"; }");
                 continue;
             }
-            output.AppendLine(Label(target) + ": { "+CompleteOuts()+(publicExecution&&feature.Signature!.Return!="void"?BlueprintExecutionBranches.CaptureName(feature.Signature)+" = "+(dataExits[exit.Key] is null?FeatureValue("return"):Binding(dataExits[exit.Key],feature.Signature.Return,available,target))+"; ":"")+"return" + (executionExitMode?" "+executionExits[exit.Key].ToString(System.Globalization.CultureInfo.InvariantCulture):executionSource is not null?" "+ExecutionValue(executionSource):feature.Signature!.Return == "void" ? "" : " " + (implicitEnd&&exit.Value is null?FeatureValue("return"):Binding(exit.Value, feature.Signature.Return, available, target))) + "; }");
+            output.AppendLine(Label(target) + ": { "+CompleteOuts()+((publicExecution||privateNative)&&feature.Signature!.Return!="void"?BlueprintExecutionBranches.CaptureName(feature.Signature)+" = "+(dataExits[exit.Key] is null?FeatureValue("return"):Binding(dataExits[exit.Key],feature.Signature.Return,available,target))+"; ":"")+"return" + (executionExitMode?" "+executionExits[exit.Key].ToString(System.Globalization.CultureInfo.InvariantCulture):executionSource is not null?" "+ExecutionValue(executionSource):feature.Signature!.Return == "void" ? "" : " " + (implicitEnd&&exit.Value is null?FeatureValue("return"):Binding(exit.Value, feature.Signature.Return, available, target))) + "; }");
         }
 
         if(implicitEnd)foreach(string target in edges.Where(edge=>reachable.Contains(edge.Key.Item1)).Select(edge=>edge.Value).Append(entry).Where(Terminal).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal)){
             if(asyncFeature){output.AppendLine(Label(target)+": { return "+AsyncResultExpression(feature,executionSource is not null?ExecutionValue(executionSource):"0",feature.Signature!.Return=="void"?"":FeatureValue("return"),p=>p.Name,request["sourcePath"] is not null)+"; }");continue;}
-            output.AppendLine(Label(target)+": { "+CompleteOuts()+(publicExecution&&feature.Signature!.Return!="void"?BlueprintExecutionBranches.CaptureName(feature.Signature)+" = "+FeatureValue("return")+"; ":"")+"return"+(publicExecution?" 0":executionSource is not null?" "+ExecutionValue(executionSource):feature.Signature!.Return=="void"?"":" "+FeatureValue("return"))+"; }");}
+            output.AppendLine(Label(target)+": { "+CompleteOuts()+((publicExecution||privateNative)&&feature.Signature!.Return!="void"?BlueprintExecutionBranches.CaptureName(feature.Signature)+" = "+FeatureValue("return")+"; ":"")+"return"+(publicExecution?" 0":executionSource is not null?" "+ExecutionValue(executionSource):feature.Signature!.Return=="void"?"":" "+FeatureValue("return"))+"; }");}
         output.AppendLine("#line default");
         reply["state"] = "source-assembled";
         reply["body"] = output.ToString().Replace("\r\n", "\n");

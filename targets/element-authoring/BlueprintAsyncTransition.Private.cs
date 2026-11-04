@@ -19,22 +19,19 @@ internal static partial class BlueprintAsyncTransition
     }
     static JsonObject? NodeDemotion(JsonObject graph,JsonObject node,string identity)
     {
-        if(node["kind"]?.ToString()!="graph")return Demotion(node,identity);
-        // An async-only completion wire cannot silently acquire another meaning.
-        // Disconnect it explicitly before demoting this private Task boundary.
-        return graph["edges"]!.AsArray().Any(e=>e!["from"]?.ToString()==node["id"]?.ToString()&&e["port"]?.ToString()=="completion")?null:new JsonObject{["privateTask"]=true};
+        return Demotion(node,node["kind"]?.ToString()=="graph"?identity.Replace("/graph:","/node:",StringComparison.Ordinal):identity);
     }
     static void SetNodeAsync(JsonObject graph,JsonObject node,bool enabled,string identity)
     {
         if(node["kind"]?.ToString()=="code") { BlueprintCompletionBranch.Set(node,enabled,identity);return; }
         if(node["kind"]?.ToString()!="graph"||node["signature"]!["args"]!.AsArray().Any(p=>p!["mode"]?.ToString() is not (null or "out"))||BlueprintTree.Nodes(node["graph"]!.AsObject()).Any(n=>n.Node["implementationContext"] is not null||n.Node["forwardCallerStorage"]?.GetValue<bool>()==true))throw new ArgumentException("Owned private Task cannot borrow ref storage or a native receiver");
         var child=node["graph"]!.AsObject();
-        if(enabled){child["asyncOriginProfile"]??=child["profile"]?.ToString()==BlueprintAsync.Profile?JsonValue.Create(FeatureBlueprint.SwitchProfile):child["profile"]!.DeepClone();child["profile"]=BlueprintAsync.Profile;node["async"]=true;}
+        if(enabled){child["asyncOriginProfile"]??=child["profile"]?.ToString()==BlueprintAsync.Profile?JsonValue.Create(FeatureBlueprint.SwitchProfile):child["profile"]!.DeepClone();BlueprintCompletionBranch.Set(node,true,identity.Replace("/graph:","/node:",StringComparison.Ordinal));child["profile"]=BlueprintAsync.Profile;PushPrivateEnum(node);}
         else {
-            if(NodeDemotion(graph,node,identity) is null)throw new ArgumentException("Disconnect this private Task completion wire explicitly before sync conversion; retain all input");
             if(BlueprintTree.Nodes(child).Any(n=>n.Node["async"]?.GetValue<bool>()==true))throw new ArgumentException("Explicitly convert the private async operations before their caller");
+            BlueprintCompletionBranch.Set(node,false,identity.Replace("/graph:","/node:",StringComparison.Ordinal));PushPrivateEnum(node);PrivateReturnChoices(node);
             string profile=child["asyncOriginProfile"]?.ToString()??FeatureBlueprint.SwitchProfile;
-            if(!FeatureBlueprint.SupportsSwitches(profile)&&child["nodes"]!.AsArray().Any(n=>n!["control"]?.ToString()=="switch"))profile=FeatureBlueprint.SwitchProfile;
+            if(!FeatureBlueprint.SupportsSwitches(profile)&&(BlueprintPrivateCompletion.OwnsResults(node)||child["nodes"]!.AsArray().Any(n=>n!["control"]?.ToString()=="switch")))profile=FeatureBlueprint.SwitchProfile;
             child["profile"]=profile;child.Remove("asyncOriginProfile");node.Remove("async");
         }
     }

@@ -22,4 +22,32 @@ for tag in ['wrong-owner','missing-record','changed-source-proof','copied-root',
 print('PASS exact owned view, original hashes, complete source closure and non-owned guards remain enforced',flush=True)
 # Disable the child operation explicitly before its caller. Its source remains
 # the original integer-return body behind the existing completion adapter.
-v=m('blueprintAsyncTransition',namespace=ns,id=view,units=current,plan=dict(enabled=True,nodes=[dict(node='body',enabled=False)]));current.update(v['units']);wire=copy.deepcopy(current);t=json.loads(wire[gid]['draft']);t['edges'].append({'from':'task','port':'completion','to':'return:task'});wire[gid]['draft']=json.dumps(t);m('blueprintAsyncTransition',False,namespace=ns,id=gid,units=wire,plan=dict(enabled=True,nodes=[dict(node='task',enabled=False)]));v=m('blueprintAsyncTransition',namespace=ns,id=view,units=current,plan=dict(enabled=False,nodes=[]));current.update(v['units']);assert current[fn]['draft']==public and json.loads(current[nid]['draft'])['source']==record['source'];m('blueprintAsyncGuards',namespace=ns,units=current);print('PASS explicit sync return retains source and public contract; a connected completion wire is never discarded',flush=True)
+v=m('blueprintAsyncTransition',namespace=ns,id=view,units=current,plan=dict(enabled=True,nodes=[dict(node='body',enabled=False)]));current.update(v['units']);wire=copy.deepcopy(current);t=json.loads(wire[gid]['draft']);t['edges'].append({'from':'task','port':'completion','to':'return:task'});wire[gid]['draft']=json.dumps(t);wired=m('blueprintAsyncTransition',namespace=ns,id=gid,units=wire,plan=dict(enabled=True,nodes=[dict(node='task',enabled=False)]));wired_graph=json.loads(wired['units'][gid]['draft']);assert wired_graph['edges']==t['edges'];wired_marker=wired_graph['nodes'][0]['completionBranch'];v=m('blueprintAsyncTransition',namespace=ns,id=view,units=current,plan=dict(enabled=False,nodes=[]));current.update(v['units']);assert current[fn]['draft']==public and json.loads(current[nid]['draft'])['source']==record['source'];assert json.loads(current[gid]['draft'])['nodes'][0]['completionBranch']==wired_marker;m('blueprintAsyncGuards',namespace=ns,units=current);print('PASS connected sync return retains source, data, public contract and one completion ID from either view',flush=True)
+# Existing void Result forwarding keeps its source member IDs as well as the
+# parent's connected completion. It is not converted to a new public contract.
+a=m('blueprintPrepareFeature',id=fn,text='function '+fn+' () -> void {}',implementation=impl,graphPath='Flow.graph.json',nodePath='Flow.node.json')
+enum={'primary':'none','members':[{'id':'none','name':'None','value':0},{'id':'success','name':'Success','value':7}]}
+leaf=copy.deepcopy(a['graph']['nodes'][0]);leaf.update(control='switch',executionEnum=copy.deepcopy(enum))
+inside=dict(schema=2,profile='sync-acyclic-switch-v1',executionExitMode=True,entry='body',nodes=[leaf],edges=[{'from':'body','port':'case:success','to':'exit:yes'},{'from':'body','port':'next','to':'exit:no'}],exits={'yes':{'executionBranch':'success'},'no':{'executionBranch':'none'}})
+g=a['graph'];g.update(profile='sync-acyclic-switch-v1',entry='task',nodes=[dict(id='task',kind='graph',control='switch',intent='Original forwarded results',signature=copy.deepcopy(leaf['signature']),arguments={},executionSource='body',executionEnum=copy.deepcopy(enum),graph=inside)],edges=[{'from':'task','port':'next','to':'exit:done'}],exits={'done':None})
+d=m('featureBlueprintNodes',featureSource=a['function'],graph=g,implementationContext=dict(implementation=impl,feature=fn,signature=leaf['signature'],imports={}),bodyTarget='common')
+record=dict(schema=1,node='body',definitionHash=next(n['definitionHash']for n in d['nestedNodes']if n['id']=='task/body'),source='// original Result CRLF\r\nreturn Result.Success;\r\n')
+units={}
+unit(fn,'function','Flow.celem',a['function'])
+unit(impl,'implementation','FlowBody.celem',a['implementation'])
+unit(gid,'blueprint','Flow.graph.json',json.dumps(g))
+unit(nid,'blueprint-node','Flow.node.json',json.dumps(record))
+v=m('blueprintAsyncTransition',namespace=ns,id=gid,units=units,plan=dict(enabled=True,nodes=[dict(node='task',enabled=True)]))
+units.update(v['units'])
+g=json.loads(units[gid]['draft']);g['edges'].append({'from':'task','port':'completion','to':'return:task'});units[gid]['draft']=json.dumps(g)
+public=units[fn]['draft']
+v=m('blueprintAsyncTransition',namespace=ns,id=view,units=units,plan=dict(enabled=False,nodes=[]))
+units.update(v['units'])
+demoted=json.loads(units[gid]['draft'])
+boundary=demoted['nodes'][0]
+assert demoted['edges']==g['edges']and boundary['executionSource']=='body'
+assert boundary['executionEnum']==boundary['graph']['nodes'][0]['executionEnum']
+assert all(member in boundary['executionEnum']['members']for member in enum['members'])
+assert json.loads(units[nid]['draft'])['source']==record['source']and units[fn]['draft']==public
+m('blueprintAsyncGuards',namespace=ns,units=units)
+print('PASS forwarded Result source/IDs/public IO/C# and connected completion remain one exact candidate',flush=True)

@@ -6,7 +6,7 @@ namespace Confectory.Core;
 public static partial class FeatureBlueprint
 {
     static bool CompletionAdapter(Node node)=>node.Definition[BlueprintCompletionAdapter.Metadata] is not null;
-    static string WrappedCapture(Node node)=>CompletionAdapter(node)?BlueprintExecutionBranches.CaptureName(node.Signature):"__fg_wrapped_return";
+    static string WrappedCapture(Node node)=>CompletionAdapter(node)||BlueprintPrivateCompletion.OwnsResults(node.Definition)?BlueprintExecutionBranches.CaptureName(node.Signature):"__fg_wrapped_return";
     static string CompletionSelector(string type,Node node,string marker)
     {
         var context=BlueprintCompletionAdapter.Context(node.Signature);var fields=context["fields"]!.AsArray();
