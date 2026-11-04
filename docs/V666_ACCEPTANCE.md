@@ -14,7 +14,7 @@ v536 기록은 과거 검증 증거이며 기존 기능을 미구현으로 되�
 
 새 전역 함수/구현/graph/코드의 첫 Confirm 전 async 전환은 [생성 소유권 경계](M4_ASYNC_NEW_FUNCTION.md)를 따른다. 정보 소유 함수의 직접 생성/배정은 위 정보 소유 경계를 따르며 내부 Task와 첫 Save 입력은 위 현재 경계를 따른다.
 
-새 ordinary C# 동작의 첫 Confirm 전 명시 async 전환은 [새 leaf 소유/저장 경계](M4_ASYNC_CREATING.md)를 따른다. 기존 직접 소유 Root에 생성 초안을 저장한 뒤 새 record의 missing CAS를 유지하며 메뉴·코드 편집·전체 Confirm으로 연결한다. 정보 소유 생성/배정은 위 경계에 연결했으며 private/internal Task 경계는 다음 유한한 M4다. 첫 생성 Save 전 혼합 입력 제한을 영구 UX 정책으로 정하지 않는다.
+새 ordinary C# 동작의 첫 Confirm 전 명시 async 전환은 [새 leaf 소유/저장 경계](M4_ASYNC_CREATING.md)를 따른다. 기존 직접 소유 Root에 생성 초안을 저장한 뒤 새 record의 missing CAS를 유지하며 메뉴·코드 편집·전체 Confirm으로 연결한다. 정보 소유 생성/배정과 private/internal Task는 위 지원 경계를 따른다. 첫 생성 Save의 코드/표시/값·지역 핀과 명시 Task 결합은 현재 경계에 연결했고, 공개 Root IO·분기선 생성 결합의 실제 잔여는 따로 유지한다.
 
 아래 긴 표의 누적 문장은 각 당시 검증의 기록이다. 현재 잔여 판단은 [유한한 M12 마감표](M12_CLOSURE.md)를 우선한다. M11의 원래 소유 구현 편집은 마감했으며 구체적 회귀 없이 다시 열지 않는다. M12는 데이터 반환·소유 provider/target·일반 및 native 진입·공개/private 실행 계약 caller의 보존을 연결했고, 현재 실제 흐름의 마감 경계는 다음과 같다.
 
@@ -156,3 +156,5 @@ Result 없는 ordinary 동작 완료 어댑터의 최종 동결 `76f9837`은 **�
 ## M4 첫 생성 Save 입력 결합 후속
 
 새 전역/정보 소유 함수와 새 ordinary 동작 및 기존 직접 소유 내부 본문에서 C#·표시/값·지역 핀/연결과 명시 Task를 기존 원자 후보에 결합한다. 선언 자체가 아직 checkpoint되지 않은 전역 함수도 같은 소유 프로젝트/등록/원문/checkpoint의 정확한 일치로만 메모리 복구한다. [지원/미지원·유한한 후속](M4_ASYNC_FIRST_SAVE.md)과 [최종 검증 기록](VALIDATION_V666_ASYNC_FIRST_SAVE.md)을 따른다. 공개 Root 핀 계약 변경은 기존 Confirm 원본 요구에 걸리는 실제 ABI 잔여이며 완료로 계산하지 않는다. V2–V9와 기존 팩/backend·종류 결정·실기기/전체 UI/Space 전달은 그대로 구분한다.
+
+첫 생성 Save의 직렬 소유 입력 결합은 최종 **68단계(신규 32·동등 근거 재사용 36)**로 검증했다. [검증·지속 보관·남은 두 원래 거래](VALIDATION_V666_ASYNC_FIRST_SAVE.md)를 따른다. 공개 Root IO와 분기 실행선에서 만드는 새 동작의 첫 Task 결합을 남기며, 정상 보호나 타입 조합을 새 목록으로 늘리지 않는다.
