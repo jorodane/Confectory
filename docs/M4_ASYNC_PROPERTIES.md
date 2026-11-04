@@ -15,3 +15,5 @@
 `tools/verify_desktop.py --suite async-property`는 독립 LF/CRLF·캐시에서 실제 Task/await fixture의 속성 UI·저장 실패·경합·응답 유실·늦은 입력·Review 취소/Confirm·실제 CLR 실행을 확인한다. 기존 동기 속성·공개 완료/async 전환도 영향 회귀로 확인한다. 새 교차 패키지와 전체 SHA/manifest 압축 복원본에서 UI/실행·실패 수명관리를 검사한 뒤 최신/롤백·증거를 보관하고 해당 실행 소유 임시물만 정리한다. 최종 단계 수·출처·신규/재사용·보관 SHA는 검증 종료 기록에서 확정한다. 실제 Windows/모바일 기기·전체 UI·Space 전달 완료를 뜻하지 않는다.
 
 이전 M4 compiler는 async profile의 property-set을 거절한다. 코드 rollback만으로 새 async 속성 프로젝트의 실행/편집 복구를 보장하지 않으며 최신 패키지와 프로젝트 원본/초안을 함께 보존한다. 이전 저장 응답 영수증을 새 물리적 관측으로 묵시적으로 해석하지 않는다. 새 propertyPlan 저장에서만 현재의 명시적 전체 읽기 관측을 확정하며 기존 초안·입력을 자동 변환하지 않는다. 선택적 legacy 자동 변환을 새 필수 요구로 만들지 않는다.
+
+[최종 검증·보관 기록](VALIDATION_V666_ASYNC_PROPERTIES.md)에 동결 source·신규/재사용·보관 SHA와 공간을 기록한다.

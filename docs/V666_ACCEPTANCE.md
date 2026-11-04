@@ -116,3 +116,5 @@ ordinary IInvoke/native import와 legacy NoBranch wrapper를 공개 계약 갱�
 ## M4 속성 편집 후속
 
 기존 직접 소유 async root의 속성 검색·receiver/소비 연결·필드 쓰기를 원래 속성 UI와 propertyPlan 후보에 연결한다. 전환 가능 여부와 현재 async 시계 표시를 분리하며 프로젝트 관측을 최종 CAS까지 유지한다. 물리 원본 관측과 저장 응답 후보 해시를 분리해 후속 C# 편집·재시작을 허용하고, 전체 Confirm 뒤 관측을 종료해 반복 저장을 유지한다. [정확한 경계와 검증 계획](M4_ASYNC_PROPERTIES.md). 기존 Result 없는 본문 어댑터와 새/내부 소유 본문 전환은 남고, 기존 copy/slot/private 보호를 새 조합 요구로 확대하지 않는다. 최종 검증 수치는 종료 기록에서 확정한다.
+
+속성 편집·관측/CAS의 최종 동결 `e4c0646`를 신규 48단계(재사용 0)로 검증하고 최신/롤백·전체 증거를 보관했다. [최종 검증 기록](VALIDATION_V666_ASYNC_PROPERTIES.md).
