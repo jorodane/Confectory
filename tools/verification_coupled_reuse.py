@@ -18,6 +18,7 @@ def bind(repo, record, commit, inputs, work):
         'examples/editor-home/ui/feature-authoring.js',
         'examples/editor-home/WebBundle.csbody',
         'tests/web/v666_completion_recovery.mjs',
+        'tests/web/v666_async_coupled_first_ui.py',
         'tools/verify_desktop.py', 'tools/verification_coupled_reuse.py',
     }
     changed = subprocess.check_output(['git','diff','--name-only',prior['source'],commit],cwd=repo,text=True).splitlines()
