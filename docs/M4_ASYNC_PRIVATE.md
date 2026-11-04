@@ -58,3 +58,5 @@ override 공개 IO 변경, 비소유 원본 쓰기와 선택적 legacy 자동 mi
 
 이전 rollback은 새 private Task 노드/receipt를 거절할 수 있다. 코드 롤백으로 새
 초안/데이터가 자동 이행되는 것은 아니며, 원문·checkpoint와 보관 증거를 유지한다.
+
+동결 코드의 최종 신규 55단계·실패 수정·보관 증거를 [최종 기록](VALIDATION_V666_ASYNC_PRIVATE.md)에 마감했다. 연결된 내부 완료 분기 보존 동기 복귀와 첫 생성 Save 전 입력 결합은 남는다.
