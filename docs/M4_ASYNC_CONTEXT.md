@@ -11,3 +11,5 @@
 이번 흐름의 종료 조건은 native/void 반환과 out의 실제 실행, 원문/instance 문맥 보존, 함수와 호출자 명시 전환·sync 복귀·재활성화, Review/CAS 및 UI 실패/복원, 독립 LF/CRLF와 새 패키지/전체 복원 통과다. 새/직접 소유 내부 본문 전환은 다음 유한한 M4 흐름이다. M11/M12 및 완료한 일반 완료/속성/Set을 조합별 잔여로 다시 열지 않는다. V1 검증 잔여·V2–V9와 팩/backend/종류 결정·실제 기기/전체 UI/Space 전달은 별도다.
 
 완료 계약을 가진 피호출자를 다시 async로 바꿀 때, 동기 caller가 남아 있다는 이유로 후보 저장 자체가 막히던 결함을 수정했다. 전환 후보 전용 Describe는 나머지 구조·원문을 계속 검사하면서 `pendingAsyncCallers`를 명시한다. 일반 화면 Describe와 Assemble/실행은 같은 호출을 계속 오류로 거절한다. 동기 caller의 flag나 원문을 자동 변경하지 않으며 Review는 diff·소유 범위 검토를 유지하며, 명시 전환 후에만 Confirm의 후보 컴파일·실행이 성공한다.
+
+최종 동결 `b3fa243`의 [검증·실패 수정·보관 기록](VALIDATION_V666_ASYNC_CONTEXT.md)을 마감했다.

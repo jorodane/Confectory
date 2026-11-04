@@ -12,7 +12,7 @@ v536 기록은 과거 검증 증거이며 기존 기능을 미구현으로 되�
 - 같은 계약 copy·자식 소유 target의 전체 명시 갱신과 inherited-only 관측은 최종 검증까지 마감했다. [전체 갱신 기록](VALIDATION_V666_ROOT_EXECUTION_OWNED_UPDATES.md)에 신규/재사용과 환경 중단 복구 근거를 유지한다.
 - 등록 외부 import·manifest·scope/포함 모듈의 읽기 전용 receipt도 저장·복원·Review·최종 CAS·실제 실행까지 마감했다. [최종 44단계와 패키지/복원 증거](VALIDATION_V666_ROOT_EXECUTION_IMPORTS.md)를 따른다. 네 원래 흐름으로 M12를 완료하며 조합별 새 잔여를 추가하지 않는다.
 
-wrapper의 정상 stale 거절을 자동 변환 요구로, 비소유 부모/참조 쓰기나 override IO 변경을 미구현으로 늘리지 않는다. 새 타입·문맥 조합을 이 목록에 추가하지 않는다. M4의 직접 소유 ordinary 함수·동작/호출자의 명시적 Task 실행 기반은 [현재 지원 경계](M4_ASYNC.md)에 연결했다. 최종 신규 LF22·CRLF20·패키지/전체 복원/실패 수명관리8, 총50단계를 통과했다([검증·보관 기록](VALIDATION_V666_ASYNC_RUNTIME.md)). 직접 소유 ordinary Root의 원본 전환 메뉴·초안/원자 저장 연결은 [이번 지원 경계](M4_ASYNC_TRANSITION.md)를 따른다. 이 UI 단위의 [최종 신규 40단계·재사용 0](VALIDATION_V666_ASYNC_TRANSITION.md)을 마감했다. 지역 C# Result 완료 분기의 동기 복귀와 ordinary async Set 연동은 아래 후속에 연결했고, ordinary 공개 완료는 후속에 연결했고, async root 속성 편집은 [현재 단위](M4_ASYNC_PROPERTIES.md)로 연결했다. 기존 ordinary Root의 Result 없는 next 본문은 [원문/출력 보존 어댑터](M4_COMPLETION_ADAPTER.md)에 연결했다. instance/native whole-body 문맥과 새/내부 소유 전환은 남는다. 동기 caller는 명시적으로 async로 바뀌기 전에는 오류로 거절한다. V2–V9와 기존 별도 UI/권한 backend·종류 C# 표현/사용 중 삭제 대응·실기기 검증의 남은 범위는 해당 고정 행을 따른다.
+wrapper의 정상 stale 거절을 자동 변환 요구로, 비소유 부모/참조 쓰기나 override IO 변경을 미구현으로 늘리지 않는다. 새 타입·문맥 조합을 이 목록에 추가하지 않는다. M4의 직접 소유 ordinary 함수·동작/호출자의 명시적 Task 실행 기반은 [현재 지원 경계](M4_ASYNC.md)에 연결했다. 최종 신규 LF22·CRLF20·패키지/전체 복원/실패 수명관리8, 총50단계를 통과했다([검증·보관 기록](VALIDATION_V666_ASYNC_RUNTIME.md)). 직접 소유 ordinary Root의 원본 전환 메뉴·초안/원자 저장 연결은 [이번 지원 경계](M4_ASYNC_TRANSITION.md)를 따른다. 이 UI 단위의 [최종 신규 40단계·재사용 0](VALIDATION_V666_ASYNC_TRANSITION.md)을 마감했다. 지역 C# Result 완료 분기의 동기 복귀와 ordinary async Set 연동은 아래 후속에 연결했고, ordinary 공개 완료는 후속에 연결했고, async root 속성 편집은 [현재 단위](M4_ASYNC_PROPERTIES.md)로 연결했다. 기존 ordinary Root의 Result 없는 next 본문은 [원문/출력 보존 어댑터](M4_COMPLETION_ADAPTER.md)에 연결했다. 직접 소유하고 이미 Blueprint로 확정한 instance/native whole-body Root의 문맥 보존과 명시 전환은 [소유 whole-body 지원](M4_ASYNC_CONTEXT.md)에 연결했다. 남은 유한한 M4는 새/직접 소유 내부 본문의 명시 전환이다. 동기 caller는 명시적으로 async로 바뀌기 전에는 오류로 거절한다. V2–V9와 기존 별도 UI/권한 backend·종류 C# 표현/사용 중 삭제 대응·실기기 검증의 남은 범위는 해당 고정 행을 따른다.
 
 ## 기존 미완료 사용자 흐름
 
@@ -128,3 +128,5 @@ Result 없는 ordinary 동작 완료 어댑터의 최종 동결 `76f9837`은 **�
 ## M4 소유 whole-body 함수 후속
 
 직접 소유하고 이미 Blueprint로 전환·확정한 native whole-body Root의 명시적 함수 async 전환을 연결한다. 원래 같은 클래스의 Invoke/this·직접 재귀/scoped import·소스 위치/CRLF·native 반환/out을 보존하고 동기 호출자의 오류와 별도 명시 전환을 유지한다. [정확한 경계와 유한한 종료 조건](M4_ASYNC_CONTEXT.md)을 따른다. 새/직접 소유 내부 본문 전환은 남으며 자동 원문 async 재작성·비소유/override/ref/구형 자동 migration은 새 요구로 추가하지 않는다. 최종 검증 수치는 종료 기록에서 확정한다.
+
+소유 native Root async 전환의 최종 동결 `b3fa243`를 신규 42단계(재사용 0, LF/CRLF Core 각 18개 포함)로 검증하고 새 패키지/전체 복원과 최신/rollback·전체 증거를 보관했다. [정확한 검증·수정·호환/잔여](VALIDATION_V666_ASYNC_CONTEXT.md)를 따른다. 새/직접 소유 내부 본문의 명시 전환과 기존 고정 UI/backend/기기 잔여는 유지한다.

@@ -17,7 +17,7 @@ Save는 원래 함수·소유 provider의 모든 Blueprint target·C# record와 
 M4 전체가 완료된 것은 아니다. 다음 원래 흐름은 계속 남는다.
 
 1. 공개 함수 전체와 직접 Blueprint 호출자의 완료 보존은 [공개 완료 전환](M4_PUBLIC_COMPLETION.md)에 연결했다. 명시 C# import/native 호출자의 호환되지 않는 기존 소스 계약은 자동 재작성하지 않고 거절한다. 자동 호출 어댑터는 새 필수 요구가 아니다.
-2. Result 없는 기존 ordinary Root의 next 본문은 [별도 선택기](M4_COMPLETION_ADAPTER.md)로 원문·void/native 반환·out을 보존한다. instance/native whole-body의 소유 문맥 보존은 후속이며, 임의로 반환형을 바꾸거나 원문을 재작성하지 않는다.
+2. Result 없는 기존 ordinary Root의 next 본문은 [별도 선택기](M4_COMPLETION_ADAPTER.md)로 원문·void/native 반환·out을 보존한다. 직접 소유하고 이미 Blueprint로 확정한 instance/native whole-body Root는 [소유 문맥 전환](M4_ASYNC_CONTEXT.md)으로 연결했다. 새/내부 소유 본문은 다음 항목이며, 임의로 반환형을 바꾸거나 원문을 재작성하지 않는다.
 3. 새/내부 직접 소유 본문의 명시 전환. 기존 async root의 속성 보조 편집은 [속성 편집 후속](M4_ASYNC_PROPERTIES.md)에 연결했다. 비소유 원본 쓰기/override IO 변경은 정상 거절이고 legacy 자동 마이그레이션은 필수 요구가 아니다.
 
 직접 소유한 기존 root의 일반 C# Result 동작은 완료를 **일반 지역 Result 분기**로 전환한다. 기존 `completion` wire 키·목적지, Result ID/값/기본 분기와 C# 원문을 보존한다. `completionBranch`는 별도 ID·유효한 C# 이름·정수값·화면 표시명을 저장하고 async 재전환 때 같은 정체성을 예약한다. 동기에서는 원래 C#이 그 Result를 명시 반환할 때만 해당 줄을 실행한다. 자동 완료 실행이나 본문 재작성은 하지 않는다. 연결된 분기 삭제·변조·중복 별칭은 거절한다. 캔버스/요약/소형 화면은 같은 포트 의미를 사용한다.
