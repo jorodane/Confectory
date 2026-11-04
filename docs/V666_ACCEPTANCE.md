@@ -124,3 +124,7 @@ ordinary IInvoke/native import와 legacy NoBranch wrapper를 공개 계약 갱�
 기존 직접 소유 Root의 next 동작은 void/native 반환·out·원문/helper/source marker와 완료 ID/연결을 보존하는 별도 지역 선택기로 동기 복귀한다. 기본 None과 명시 완료 선택을 구별하고, 확정 후 원문/선택기 편집도 전체 관측·원자 저장·Review/최종 CAS에 연결한다. 창 숨김에서 팝업 입력을 보존하고 원래 본문 문맥으로 재진입하는 cold 복원을 검증한다. [정확한 지원·호환성과 유한한 후속](M4_COMPLETION_ADAPTER.md)을 따른다. 최종 LF/CRLF·패키지/전체 복원 수치는 종료 검증 기록에서 확정한다.
 
 Result 없는 ordinary 동작 완료 어댑터의 최종 동결 `76f9837`은 **신규 39·동일 근거 재사용 9, 총 48단계**를 통과했다. 새 LF/CRLF 빌드·모든 UI·교차 패키지/전체 복원/실패 수명관리는 신규이며 [출처·실패 수정·정확한 재사용·보관 기록](VALIDATION_V666_COMPLETION_ADAPTER.md)에 경계를 유지한다. 다음 M4는 instance/native whole-body 문맥 및 새/내부 소유 본문 전환이며, 기존 완료 범위를 조합별 잔여로 다시 늘리지 않는다.
+
+## M4 소유 whole-body 함수 후속
+
+직접 소유하고 이미 Blueprint로 전환·확정한 native whole-body Root의 명시적 함수 async 전환을 연결한다. 원래 같은 클래스의 Invoke/this·직접 재귀/scoped import·소스 위치/CRLF·native 반환/out을 보존하고 동기 호출자의 오류와 별도 명시 전환을 유지한다. [정확한 경계와 유한한 종료 조건](M4_ASYNC_CONTEXT.md)을 따른다. 새/직접 소유 내부 본문 전환은 남으며 자동 원문 async 재작성·비소유/override/ref/구형 자동 migration은 새 요구로 추가하지 않는다. 최종 검증 수치는 종료 기록에서 확정한다.

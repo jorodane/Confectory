@@ -303,13 +303,14 @@ public static partial class FeatureBlueprint
             nodes.Add(id, new(id, kind, control, signature, definition, value["arguments"]?.AsObject() ?? new JsonObject(), Hash(CanonicalText(definition)), called));
         }
 
-        Need(!asyncFeature || feature.Signature!.Args.All(p=>p.Mode is null or "out") && nodes.Values.All(n=>!HasContext(n) && n.Definition["forwardCallerStorage"]?.GetValue<bool>()!=true), "GRAPH_ASYNC_CONTEXT", feature.Id);
+        // The async entry may call the unchanged instance Invoke; private/static frames cannot borrow that context.
+        Need(!asyncFeature || feature.Signature!.Args.All(p=>p.Mode is null or "out") && nodes.Values.All(n=>(!HasContext(n)||request["sourcePath"] is null&&n.Control=="next"&&n.Signature.Matches(feature.Signature)&&n.Signature.Args.All(p=>p.Mode is null or "out")) && n.Definition["forwardCallerStorage"]?.GetValue<bool>()!=true), "GRAPH_ASYNC_CONTEXT", feature.Id);
         var outputCells=nodes.Values.Where(n=>n.Kind=="set"&&n.Definition["outputLocal"] is not null).Select(n=>S(n.Definition,"outputLocal")).ToArray();
         Need(outputCells.Distinct(StringComparer.Ordinal).Count()==outputCells.Length,"GRAPH_SET_OUTPUT_OWNER",feature.Id);
         if(executionSource is not null)Need(nodes.ContainsKey(executionSource),"GRAPH_EXECUTION_FORWARD_SOURCE",executionSource);
         ValidateAliasLocals(locals,feature,nodes);
         foreach(var node in nodes.Values.Where(n=>n.Kind is "property-set" or "property-ref"))CheckPropertyInputBindings(node,feature.Signature!,nodes,locals);
-        bool ForwardCaller(Node node)=>externalRefs&&(node.Definition["forwardCallerStorage"]?.GetValue<bool>()==true||HasContext(node)&&node.Signature.Args.Any(p=>p.Mode is "ref" or "out"));
+        bool ForwardCaller(Node node)=>externalRefs&&!asyncFeature&&(node.Definition["forwardCallerStorage"]?.GetValue<bool>()==true||HasContext(node)&&node.Signature.Args.Any(p=>p.Mode is "ref" or "out"));
         string CallerOut(Node node,string name)=>feature.Signature!.Args[node.Signature.Args.FindIndex(p=>p.Name==name)].Name;
         var forwardedOutputs=nodes.Values.Where(ForwardCaller).ToDictionary(n=>n.Id,n=>n.Signature.Args.Where(p=>p.IsOut).Select(p=>CallerOut(n,p.Name)).ToArray(),StringComparer.Ordinal);
 
@@ -707,6 +708,8 @@ public static partial class FeatureBlueprint
                 if(edges.ContainsKey((id,"completion")))output.AppendLine("}\n"+Label("async-dispatch:"+id)+": {");
             }
             else output.AppendLine((ExecutionType(node) == "void" ? "" : ExecutionValue(id) + " = ") + (HasContext(node) ? "this.Invoke" : Symbol(id)) + "(" + string.Join(",", node.Signature.Args.Select(p => p.IsOut?"out "+(ForwardCaller(node)?CallerOut(node,p.Name):Value(id,p.Name)):ArgumentBinding(p,node.Arguments[p.Name],available,id+"/"+p.Name)).Concat(WrappedReturn(node) ? new[] { "out " + Value(id) } : Array.Empty<string>()).Concat(HasContext(node) ? Array.Empty<string>() : NodeImports(node).Select(f => (request["sourcePath"] is null ? "calls." : "") + Import(f).Alias))) + ");");
+            // Task results own their output locals; match original native out names by signature position.
+            if(asyncFeature&&HasContext(node))foreach(var item in node.Signature.Args.Select((p,index)=>(p,index)).Where(x=>x.p.IsOut))output.AppendLine(feature.Signature!.Args[item.index].Name+" = "+Value(id,item.p.Name)+";");
             if(ForwardCaller(node))foreach(var parameter in node.Signature.Args.Where(p=>p.IsOut))output.AppendLine(Value(id,parameter.Name)+" = "+CallerOut(node,parameter.Name)+";\n"+Assigned(CallerOut(node,parameter.Name))+" = true;");
             if(node.Control=="switch"){
                 output.AppendLine("switch ("+ExecutionValue(id)+") {");
