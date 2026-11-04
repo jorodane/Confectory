@@ -335,6 +335,7 @@ def main():
             elif args.suite=='async-coupled':
                 work.run(label+'-coupled-recovery-proof',['node',str(checkout/'tests/web/v666_completion_recovery.mjs')],cwd=checkout,env=env)
                 work.run(label+'-coupled-script',['node','--check',str(checkout/'examples/editor-home/ui/feature-authoring.js')],cwd=checkout,env=env)
+                if label=='lf':work.run('lf-coupled-cold-source-epoch',[sys.executable,str(checkout/'tests/web/v666_async_coupled_first_ui.py'),str(checkout),str(report),'late','--information'],cwd=checkout,env=env)
                 work.run(label+'-coupled-runtime',[dotnet,str(checkout/'tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll'),'AsyncContextTests','AsyncBlueprintTests','BlueprintConversionTests','--require-runtime'],cwd=checkout,env=env)
                 for name,script in [('information-guards','v666_async_information_guards.py'),('private-guards','v666_async_private_guards.py'),('global-guards','v666_async_new_function_guards.py'),('global-templates','v666_async_new_function_templates.py')]:
                     work.run(label+'-'+name,[sys.executable,str(checkout/'tests/web'/script),str(checkout)],cwd=checkout,env=env)
