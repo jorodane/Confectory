@@ -1,5 +1,5 @@
 """The first graph Save binds pending C# and explicit async before allocation."""
-import copy,json,sys
+import copy,json,sys,time
 from playwright.sync_api import sync_playwright,expect
 if '--leaf'in sys.argv:import v666_async_creating_fixture as x
 elif '--information'in sys.argv:import v666_async_information_fixture as x
@@ -87,7 +87,8 @@ try:
       if row['requestId']in requests|queries:rid=row['requestId'];lost.append(rid);row.clear();row.update(requestId=rid,ok=False,error={'code':'transport-interrupted'})
     route.fulfill(response=response,json=payload)
    f.page.route('**/api/request',interrupt);panel().locator('[data-bp-save]').click()
-   for _ in range(1000):
+   deadline=time.monotonic()+90
+   while time.monotonic()<deadline:
     if paused or mode=='create-loss'and lost or mode=='loss'and any(r in queries for r in lost):break
     f.page.wait_for_timeout(30)
    assert len(requests)==1

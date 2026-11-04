@@ -74,3 +74,54 @@ def bind(repo, record, commit, inputs, work):
         return row
 
     work.run = run
+
+
+def bind_ui(repo, record, commit, inputs, work):
+    """Resume passed browser checks only after the exact polling-deadline fix."""
+    prior = json.loads(Path(record).read_text())
+    manifest = json.loads(Path(record).with_suffix('.manifest.json').read_text())
+    if prior['status'] != 'cleaned' or sha(prior['evidence']) != prior['evidenceSha256'] or manifest['archiveSha256'] != prior['evidenceSha256']:
+        raise RuntimeError('Sealed completed UI evidence required')
+    verify_archive(prior['evidence'], manifest['files'])
+    script = 'tests/web/v666_async_coupled_first_ui.py'
+    allowed = {script, 'tools/verify_desktop.py', 'tools/verification_coupled_reuse.py'}
+    changed = subprocess.check_output(['git','diff','--name-only',prior['source'],commit],cwd=repo,text=True).splitlines()
+    if any(name not in allowed and not name.startswith('docs/') for name in changed):
+        raise RuntimeError('Product or other test inputs changed; execute UI freshly')
+    old = subprocess.check_output(['git','show',prior['source']+':'+script],cwd=repo,text=True)
+    new = subprocess.check_output(['git','show',commit+':'+script],cwd=repo,text=True)
+    normalized = new.replace('import copy,json,sys,time\n','import copy,json,sys\n').replace('   deadline=time.monotonic()+90\n   while time.monotonic()<deadline:\n','   for _ in range(1000):\n')
+    if normalized != old:
+        raise RuntimeError('UI assertions or operations changed beyond the response wait')
+    with zipfile.ZipFile(prior['evidence']) as archive:
+        source = json.loads(archive.read('source.json'))
+        if source['commit'] != prior['source'] or any(source['dependencyInputs'].get(k) != inputs.get(k) for k in ['sdk','nuget','configuration','rid']):
+            raise RuntimeError('UI dependency inputs differ')
+        for label, crlf in [('lf','false'),('crlf','true')]:
+            checkout = json.loads(archive.read(label+'-checkout.json'))
+            if checkout['commit'] != prior['source'] or checkout['coreAutocrlf'] != crlf or checkout['noSharedGitObjects'] is not True:
+                raise RuntimeError('UI independent checkout/EOL identity differs')
+    rows = {r['name']:r for r in prior['results'] if r['exit']==0 and
+            any(str(arg).endswith('/'+script) for arg in r['command'])}
+    if not rows: raise RuntimeError('No completed passing UI checks')
+    proof = dict(previousRecord=str(record), previousSource=prior['source'], sourceCommit=commit,
+                 previousArchive=prior['evidence'], archiveSha256=prior['evidenceSha256'],
+                 identicalProductAndDependencies=True, onlyTestChange='30s polling window to bounded 90s deadline; assertions unchanged',
+                 failedChecksReused=False, buildsAndPackagesReused=False, stages=[])
+    atomic_json(work.evidence/'ui-reuse.json',proof)
+    original = work.run
+
+    def run(name, command, *args, **kwargs):
+        if name not in rows: return original(name,command,*args,**kwargs)
+        row = rows[name]
+        normalized = lambda command, root: [str(arg).replace(root,'$OWNED_WORKSPACE') for arg in command]
+        if kwargs.get('expected',0) != 0 or normalized(row['command'],prior['root']) != normalized(command,str(work.root)):
+            raise RuntimeError('Reused UI invocation differs: '+name)
+        proof['stages'].append(name)
+        work.state.setdefault('reusedChecks',[]).append(dict(name=name,sourceCommit=prior['source'],record=str(record),archiveSha256=prior['evidenceSha256'],kind='ui'))
+        work.save(); atomic_json(work.evidence/'ui-reuse.json',proof)
+        atomic_json(work.evidence/(name+'.reused.json'),dict(proof=proof,priorResult=row))
+        print(json.dumps(dict(stage=name,reused=True,kind='ui',sourceCommit=prior['source'])),flush=True)
+        return row
+
+    work.run = run

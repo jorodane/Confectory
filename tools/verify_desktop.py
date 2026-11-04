@@ -110,6 +110,7 @@ def main():
     parser.add_argument('--sdk', type=Path, required=True)
     parser.add_argument('--nuget-seed', type=Path, required=True)
     parser.add_argument('--reuse-coupled-backend',type=Path,help='Sealed completed backend checks after a UI-only recovery correction; all UI/build/package checks remain fresh')
+    parser.add_argument('--reuse-coupled-ui',type=Path,help='Sealed passed UI checks with identical product and only the bounded response-wait fixture correction')
     parser.add_argument('--suite',choices=['headers','card-images','canvas','owned-information','owned-conversion','action-icons','declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement','worker-badges','node-internal','node-internal-nested','node-internal-storage','node-internal-context','node-internal-branches','node-branch-exits','node-internal-copy','node-internal-copy-nested','node-internal-copy-storage','node-internal-copy-branches','node-internal-copy-context','node-internal-copy-creating','node-internal-copy-frames','node-internal-override','node-internal-external-override','root-execution','root-execution-out','root-execution-closure','root-execution-copy','root-execution-copy-creating','root-execution-override','root-execution-registered','root-execution-registered-copy','root-execution-registered-creating','root-execution-data-void','root-execution-compound-owned','root-execution-provider-import','root-execution-nonvoid','public-return-data','root-execution-providers','root-execution-nested','root-execution-native','root-execution-caller','root-execution-forwarding','root-execution-observers','root-execution-wrappers','root-execution-owned-updates','root-execution-import-observations','async-runtime','async-transition','async-completion','async-function','async-property','async-adapter','async-context','async-creating','async-new-function','async-private','async-private-returns','async-coupled','async-information'],default='headers')
     args = parser.parse_args()
     repo = args.repo.resolve(); persistent = args.persistent.absolute()
@@ -135,6 +136,10 @@ def main():
             if args.suite!='async-coupled': raise ValueError('Reuse is limited to the coupled async suite')
             from verification_coupled_reuse import bind
             bind(repo,args.reuse_coupled_backend,commit,inputs,work)
+        if args.reuse_coupled_ui:
+            if args.suite!='async-coupled': raise ValueError('UI reuse is limited to the coupled async suite')
+            from verification_coupled_reuse import bind_ui
+            bind_ui(repo,args.reuse_coupled_ui,commit,inputs,work)
         for label, crlf in [('lf','false'),('crlf','true')]:
             checkout = work.root/label; checkouts[label] = checkout
             work.run(label+'-clone', ['git','clone','--no-hardlinks','--no-checkout','-c','core.autocrlf='+crlf,str(repo),str(checkout)])
@@ -335,6 +340,7 @@ def main():
             elif args.suite=='async-coupled':
                 work.run(label+'-coupled-recovery-proof',['node',str(checkout/'tests/web/v666_completion_recovery.mjs')],cwd=checkout,env=env)
                 work.run(label+'-coupled-script',['node','--check',str(checkout/'examples/editor-home/ui/feature-authoring.js')],cwd=checkout,env=env)
+                if label=='crlf':work.run(label+'-coupled-new-node-ui',[sys.executable,str(checkout/'tests/web/v666_async_coupled_first_ui.py'),str(checkout),str(report),'late','--leaf'],cwd=checkout,env=env)
                 if label=='lf':work.run('lf-coupled-cold-source-epoch',[sys.executable,str(checkout/'tests/web/v666_async_coupled_first_ui.py'),str(checkout),str(report),'late','--information'],cwd=checkout,env=env)
                 work.run(label+'-coupled-runtime',[dotnet,str(checkout/'tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll'),'AsyncContextTests','AsyncBlueprintTests','BlueprintConversionTests','--require-runtime'],cwd=checkout,env=env)
                 for name,script in [('information-guards','v666_async_information_guards.py'),('private-guards','v666_async_private_guards.py'),('global-guards','v666_async_new_function_guards.py'),('global-templates','v666_async_new_function_templates.py')]:
@@ -345,7 +351,7 @@ def main():
                 for mode in (['normal','unsaved-declaration','storage','create-loss'] if label=='lf' else ['no-checkpoint','conflict','loss','late','create-late']):
                     work.run(label+'-coupled-first-'+mode,[sys.executable,str(checkout/'tests/web/v666_async_coupled_first_ui.py'),str(checkout),str(report),mode],cwd=checkout,env=env)
                 work.run(label+'-coupled-information-ui',[sys.executable,str(checkout/'tests/web/v666_async_coupled_first_ui.py'),str(checkout),str(report),'normal' if label=='lf' else 'late','--information'],cwd=checkout,env=env)
-                work.run(label+'-coupled-new-node-ui',[sys.executable,str(checkout/'tests/web/v666_async_coupled_first_ui.py'),str(checkout),str(report),'normal' if label=='lf' else 'late','--leaf'],cwd=checkout,env=env)
+                if label=='lf':work.run(label+'-coupled-new-node-ui',[sys.executable,str(checkout/'tests/web/v666_async_coupled_first_ui.py'),str(checkout),str(report),'normal','--leaf'],cwd=checkout,env=env)
                 work.run(label+'-private-returns-regression',[sys.executable,str(checkout/'tests/web/v666_async_private_returns_api.py'),str(checkout),str(report)],cwd=checkout,env=env)
                 work.run(label+'-async-receipt-guards',[sys.executable,str(checkout/'tests/web/v666_async_transition_guards.py'),str(checkout)],cwd=checkout,env=env)
                 if label=='lf':work.run('lf-coupled-final-read-cas',[sys.executable,str(checkout/'tests/web/v536_copy_read_guards_core.py'),str(checkout)],cwd=checkout,env=env)
