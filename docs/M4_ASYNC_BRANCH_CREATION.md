@@ -1,6 +1,8 @@
 # M4: 분기선에 만든 동작의 첫 Task 결합
 
-기준은 저장소의 v666 `dist/blueprint.js`다. 완료와 결과 분기를 구분하고,
+기준은 `reference/site-ui/Confectory-Editor-Prototype-v666.zip`의
+`Confectory-v666/dist/blueprint.js`다. ZIP SHA256은
+`7b6b4ba585fc46843f09d8bcd15072b704cc2dc994988400b0a25061e0400d23`이다. 완료와 결과 분기를 구분하고,
 `await-before-publish-and-branches`·`dispatch-result-then-continue` 순서를 유지한다.
 새 동작의 Task 본문은 사용자가 명시적으로 작성하며 C#을 자동 변환하지 않는다.
 
