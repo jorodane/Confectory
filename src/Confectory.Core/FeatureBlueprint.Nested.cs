@@ -11,7 +11,8 @@ public static partial class FeatureBlueprint
     {
         string key = RecordKey(parent, S(node, "id"));
         string feature = "Blueprint.Private::N" + Hash(S(parent,"sourceOwner") + "/" + key)[..32];
-        string source = "function " + feature + " " + signature.Format() + " {}";
+        string source = "function " + feature + " " + signature.Format() + (node["async"]?.GetValue<bool>() == true
+            ? " { value blueprintAsync = " + System.Text.Json.JsonSerializer.Serialize(new JsonObject { ["schema"]=1,["completion"]="private_completion" }.ToJsonString()) + "; }" : " {}");
         var graph = node["graph"]!.DeepClone().AsObject();
         graph["feature"] = feature;
         graph["contractHash"] = ContractHash(new Parser(source, "<private-contract>").ParseElement());
@@ -27,6 +28,8 @@ public static partial class FeatureBlueprint
             ["implementationContext"] = parent["implementationContext"]?.DeepClone(),
             ["executionForward"] = node["control"]?.ToString()=="switch" ? new JsonObject { ["source"]=node["executionSource"]?.DeepClone(), ["enum"]=node["executionEnum"]?.DeepClone() } : null,
             ["inspectStalePostCalls"] = parent["inspectStalePostCalls"]?.DeepClone(),
+            ["inspectStaleAsyncCalls"] = parent["inspectStaleAsyncCalls"]?.DeepClone(),
+            ["inspectPendingAsyncCaller"] = parent["inspectPendingAsyncCaller"]?.DeepClone(),
             ["implementations"] = parent["implementations"]?.DeepClone()
         };
     }

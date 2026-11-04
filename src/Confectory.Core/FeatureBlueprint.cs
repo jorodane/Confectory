@@ -225,9 +225,9 @@ public static partial class FeatureBlueprint
                 ["featureContracts"] = references
             };
             bool asyncNode = kind == "call" ? BlueprintAsync.Has(Import(called!).Element) : value["async"]?.GetValue<bool>() == true;
-            Need(!value.ContainsKey("async") || kind == "code" && value["async"] is JsonValue asyncValue && asyncValue.TryGetValue<bool>(out _), "GRAPH_ASYNC_NODE_KIND", id);
+            Need(!value.ContainsKey("async") || kind is "code" or "graph" && value["async"] is JsonValue asyncValue && asyncValue.TryGetValue<bool>(out _), "GRAPH_ASYNC_NODE_KIND", id);
             if(asyncNode) {
-                Need(kind is "code" or "call" && control is "next" or "switch" && signature.Args.All(p=>p.Mode is null or "out") && !value.ContainsKey("postCall") && !value.ContainsKey("implementationContext"), "GRAPH_ASYNC_NODE_CONTRACT", id);
+                Need(kind is "code" or "call" or "graph" && control is "next" or "switch" && signature.Args.All(p=>p.Mode is null or "out") && !value.ContainsKey("postCall") && !value.ContainsKey("implementationContext") && (kind!="graph" || !PrivateContext(value["graph"]!.AsObject())), "GRAPH_ASYNC_NODE_CONTRACT", id);
                 definition["async"] = true;
             }
             if(value.ContainsKey(BlueprintCompletionAdapter.Metadata)){_=BlueprintCompletionAdapter.Read(value);definition[BlueprintCompletionAdapter.Metadata]=value[BlueprintCompletionAdapter.Metadata]!.DeepClone();}
@@ -633,6 +633,10 @@ public static partial class FeatureBlueprint
                     membersOutput.Append(AsyncMethodsMember(MethodClass(request,id),node,string.Join(",",NodeImports(node).Select(f=>(asyncFeature?Generation.ImportInterface(Import(f).Element):Generation.Interface(f))+" "+ImportParameter(f))),string.Join(",",NodeImports(node).Select(ImportParameter)),bodies[id],helpers[id],asyncMarker));
                     sourceMaps.Add(new JsonObject{["node"]=id,["definitionHash"]=node.DefinitionHash,["marker"]=asyncMarker});
                 }
+                else if(node.Kind=="graph") {
+                    membersOutput.Append(AsyncPrivateMember(MethodClass(request,id),node,string.Join(",",NodeImports(node).Select(f=>Generation.ImportInterface(Import(f).Element)+" "+ImportParameter(f))),bodies[id]));
+                    sourceMaps.Add(new JsonObject{["node"]=id,["definitionHash"]=node.DefinitionHash,["marker"]="graph:"+feature.Id+"/"+id});
+                }
                 manifestNodes.Single(n=>n!["id"]!.ToString()==id)!["includedInSource"]=true;
                 continue;
             }
@@ -743,14 +747,14 @@ public static partial class FeatureBlueprint
                 available.IntersectWith(dominators[p]);
             if(asyncFeature) {
                 string native=feature.Signature!.Return=="void"?"":dataExits[exit.Key] is null?FeatureValue("return"):Binding(dataExits[exit.Key],feature.Signature.Return,available,target);
-                output.AppendLine(Label(target)+": { return "+AsyncResultExpression(feature,executionExitMode?executionExits[exit.Key].ToString(System.Globalization.CultureInfo.InvariantCulture):"0",native,p=>p.Name)+"; }");
+                output.AppendLine(Label(target)+": { return "+AsyncResultExpression(feature,executionExitMode?executionExits[exit.Key].ToString(System.Globalization.CultureInfo.InvariantCulture):executionSource is not null?ExecutionValue(executionSource):"0",native,p=>p.Name,request["sourcePath"] is not null)+"; }");
                 continue;
             }
             output.AppendLine(Label(target) + ": { "+CompleteOuts()+(publicExecution&&feature.Signature!.Return!="void"?BlueprintExecutionBranches.CaptureName(feature.Signature)+" = "+(dataExits[exit.Key] is null?FeatureValue("return"):Binding(dataExits[exit.Key],feature.Signature.Return,available,target))+"; ":"")+"return" + (executionExitMode?" "+executionExits[exit.Key].ToString(System.Globalization.CultureInfo.InvariantCulture):executionSource is not null?" "+ExecutionValue(executionSource):feature.Signature!.Return == "void" ? "" : " " + (implicitEnd&&exit.Value is null?FeatureValue("return"):Binding(exit.Value, feature.Signature.Return, available, target))) + "; }");
         }
 
         if(implicitEnd)foreach(string target in edges.Where(edge=>reachable.Contains(edge.Key.Item1)).Select(edge=>edge.Value).Append(entry).Where(Terminal).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal)){
-            if(asyncFeature){output.AppendLine(Label(target)+": { return "+AsyncResultExpression(feature,"0",feature.Signature!.Return=="void"?"":FeatureValue("return"),p=>p.Name)+"; }");continue;}
+            if(asyncFeature){output.AppendLine(Label(target)+": { return "+AsyncResultExpression(feature,executionSource is not null?ExecutionValue(executionSource):"0",feature.Signature!.Return=="void"?"":FeatureValue("return"),p=>p.Name,request["sourcePath"] is not null)+"; }");continue;}
             output.AppendLine(Label(target)+": { "+CompleteOuts()+(publicExecution&&feature.Signature!.Return!="void"?BlueprintExecutionBranches.CaptureName(feature.Signature)+" = "+FeatureValue("return")+"; ":"")+"return"+(publicExecution?" 0":executionSource is not null?" "+ExecutionValue(executionSource):feature.Signature!.Return=="void"?"":" "+FeatureValue("return"))+"; }");}
         output.AppendLine("#line default");
         reply["state"] = "source-assembled";

@@ -6,13 +6,23 @@ namespace Confectory.Core;
 public static partial class FeatureBlueprint
 {
     static bool AsyncNode(Node node) => node.Definition["async"]?.GetValue<bool>() == true;
-    static string AsyncResultExpression(Element feature, string branch, string? native, Func<Parameter, string> output)
+    static string AsyncResultExpression(Element feature, string branch, string? native, Func<Parameter, string> output, bool privateGraph = false)
     {
         var signature = feature.Signature!;
-        var assignments = new List<string> { BlueprintAsync.BranchName(signature) + " = (" + BlueprintExecutionBranches.Result(feature.Id) + ")(" + branch + ")" };
+        var assignments = new List<string> { BlueprintAsync.BranchName(signature) + " = (" + (privateGraph ? "int" : BlueprintExecutionBranches.Result(feature.Id)) + ")(" + branch + ")" };
         if (signature.Return != "void") assignments.Add(BlueprintAsync.ReturnName(signature) + " = " + (native ?? "default(" + signature.Return + ")!"));
         assignments.AddRange(signature.Args.Where(p => p.IsOut).Select(p => p.Name + " = " + output(p)));
-        return "new " + BlueprintAsync.Result(feature) + " { " + string.Join(", ", assignments) + " }";
+        return "new " + (privateGraph ? "__fg_async_result" : BlueprintAsync.Result(feature)) + " { " + string.Join(", ", assignments) + " }";
+    }
+    // Private Task boundaries own only generated result storage. They do not
+    // create a public declaration, borrow an instance receiver or rewrite C#.
+    static string AsyncPrivateMember(string type, Node node, string imports, string body)
+    {
+        string fields = "public int " + BlueprintAsync.BranchName(node.Signature) + ";\n" +
+            (node.Signature.Return == "void" ? "" : "public " + node.Signature.Return + " " + BlueprintAsync.ReturnName(node.Signature) + " = default!;\n") +
+            string.Join("\n", node.Signature.Args.Where(p=>p.IsOut).Select(p=>"public " + p.Type + " " + p.Name + " = default!;"));
+        string parameters = string.Join(",",node.Signature.Args.Where(p=>!p.IsOut).Select(p=>p.Declaration()).Concat(imports.Length==0?Array.Empty<string>():new[]{imports}));
+        return "private static class " + type + " { public sealed class __fg_async_result { " + fields + " }\n#pragma warning disable CS1998\npublic static async global::System.Threading.Tasks.Task<__fg_async_result> InvokeAsync(" + parameters + ") {\n" + body + "\n}\n#pragma warning restore CS1998\n}\n";
     }
     static string AsyncMethodsMember(string type, Node node, string imports, string importArguments, string source, string helpers, string marker)
     {

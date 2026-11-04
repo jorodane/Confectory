@@ -1,0 +1,25 @@
+"""Explicit private Task transitions retain public IO, source and receipts."""
+import copy,hashlib,json,os,pathlib,subprocess,sys
+c=pathlib.Path(sys.argv[1]);tool=c/'targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll';ns='Private.Async';fn=ns+'::Flow';impl=ns+'::FlowBody';gid=impl+'/body:common';view=gid+'/graph:task';nid=gid+'/node:task/node:body';units={}
+def m(op,ok=True,**q):
+ r=subprocess.run([os.environ['CONFECTORY_DOTNET'],str(tool)],input=json.dumps(dict(operation=op,**q)),text=True,capture_output=True,check=True);v=json.loads(r.stdout);assert v['ok']==ok,v;return v.get('result',v)
+def unit(id,kind,path,text):units[id]=dict(kind=kind,path=path,original=text,draft=text,baseline=hashlib.sha256(text.encode()).hexdigest(),revision=1)
+a=m('blueprintPrepareFeature',id=fn,text='function '+fn+' () -> int {}',implementation=impl,graphPath='Flow.graph.json',nodePath='Flow.node.json');g=a['graph'];g['profile']='sync-acyclic-nested-v1';leaf=copy.deepcopy(g['nodes'][0]);child=dict(schema=1,profile=g['profile'],entry='body',nodes=[leaf],edges=[dict(from_='body',port='next',to='exit:done')],exits={'done':{'node':'body'}});child['edges'][0]['from']=child['edges'][0].pop('from_');g['nodes']=[dict(id='task',kind='graph',control='next',intent='Owned private boundary',signature=copy.deepcopy(leaf['signature']),arguments={},graph=child)];g['entry']='task';g['edges']=[{'from':'task','port':'next','to':'exit:done'}];g['exits']={'done':{'node':'task'}}
+context=dict(implementation=impl,feature=fn,signature=leaf['signature'],imports={});d=m('featureBlueprintNodes',featureSource=a['function'],graph=g,implementationContext=context,bodyTarget='common');assert d['state']=='node-definitions',d;record=dict(schema=1,node='body',definitionHash=next(n['definitionHash']for n in d['nestedNodes']if n['id']=='task/body'),source='// original CRLF 😀\r\nreturn 7;\r\n')
+unit(fn,'function','Flow.celem',a['function']);unit(impl,'implementation','FlowBody.celem',a['implementation']);unit(gid,'blueprint','Flow.graph.json',json.dumps(g));unit(nid,'blueprint-node','Flow.node.json',json.dumps(record,ensure_ascii=False))
+held=copy.deepcopy(units);m('blueprintAsyncTransition',False,namespace=ns,id=view,units=units,plan=dict(enabled=True,nodes=[]));assert units==held;print('PASS private Task requires explicit async containing function; no automatic promotion',flush=True)
+v=m('blueprintAsyncTransition',namespace=ns,id=gid,units=units,plan=dict(enabled=True,nodes=[dict(node='task',enabled=True)]));current=copy.deepcopy(units);current.update(v['units']);public=current[fn]['draft'];assert m('blueprintAsyncCandidates',namespace=ns,id=view,units=current)['enabled'];assert json.loads(current[nid]['draft'])['source']==record['source'];m('blueprintAsyncGuards',namespace=ns,units=current)
+v=m('blueprintAsyncTransition',namespace=ns,id=view,units=current,plan=dict(enabled=True,nodes=[dict(node='body',enabled=True)]));current.update(v['units']);assert current[fn]['draft']==public and json.loads(current[nid]['draft'])['source']==record['source'];m('blueprintAsyncGuards',namespace=ns,units=current);print('PASS private leaf transition refreshes complete nested source hashes without changing public IO or C#',flush=True)
+for tag in ['wrong-owner','missing-record','changed-source-proof','copied-root','inherited-implementation','invalid-private-path']:
+ bad=copy.deepcopy(current);args=dict(namespace=ns,id=view,units=bad,plan=dict(enabled=True,nodes=[]))
+ if tag=='wrong-owner':args['owner']=ns+'::Other'
+ elif tag=='missing-record':bad.pop(nid)
+ elif tag=='changed-source-proof':bad[nid]['baseline']='0'*64
+ elif tag=='copied-root':t=json.loads(bad[gid]['draft']);t['copySource']={};bad[gid]['draft']=json.dumps(t)
+ elif tag=='inherited-implementation':bad[impl]['draft']='implementation '+impl+' for '+fn+' () -> int extends '+ns+'::Parent {blueprint common "Flow.graph.json";}'
+ else:args['id']=gid+'/graph:task/graph:absent'
+ m('blueprintAsyncTransition',False,**args)
+print('PASS exact owned view, original hashes, complete source closure and non-owned guards remain enforced',flush=True)
+# Disable the child operation explicitly before its caller. Its source remains
+# the original integer-return body behind the existing completion adapter.
+v=m('blueprintAsyncTransition',namespace=ns,id=view,units=current,plan=dict(enabled=True,nodes=[dict(node='body',enabled=False)]));current.update(v['units']);wire=copy.deepcopy(current);t=json.loads(wire[gid]['draft']);t['edges'].append({'from':'task','port':'completion','to':'return:task'});wire[gid]['draft']=json.dumps(t);m('blueprintAsyncTransition',False,namespace=ns,id=gid,units=wire,plan=dict(enabled=True,nodes=[dict(node='task',enabled=False)]));v=m('blueprintAsyncTransition',namespace=ns,id=view,units=current,plan=dict(enabled=False,nodes=[]));current.update(v['units']);assert current[fn]['draft']==public and json.loads(current[nid]['draft'])['source']==record['source'];m('blueprintAsyncGuards',namespace=ns,units=current);print('PASS explicit sync return retains source and public contract; a connected completion wire is never discarded',flush=True)

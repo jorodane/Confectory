@@ -1,0 +1,57 @@
+"""Execute private Task boundaries with real output/completion ordering.
+
+Reuse the generated public async fixture, then move only its owned graph body
+behind an explicit private Task. The original user C# bytes remain unchanged.
+"""
+import copy,json,pathlib,runpy,sys
+scope=runpy.run_path(str(pathlib.Path(__file__).with_name('async_runtime.py')))
+globals().update({k:v for k,v in scope.items() if not k.startswith('__')})
+old=copy.deepcopy(flow['graph']);child=copy.deepcopy(old)
+for field in ['feature','contractHash','executionExitMode','asyncOriginProfile']:child.pop(field,None)
+child['schema']=1;child['exits']={'done':{'node':'body'}}
+boundary={'id':'task','kind':'graph','control':'next','async':True,'intent':'Explicit private Task; retain original source','signature':copy.deepcopy(old['nodes'][0]['signature']),'arguments':copy.deepcopy(old['nodes'][0]['arguments']),'graph':child}
+g=flow['graph'];g['nodes']=[boundary,*[copy.deepcopy(n)for n in old['nodes']if n['kind']=='export']]
+for n in g['nodes'][1:]:n['arguments']['value']={'node':'task','output':n['output']}
+g['entry']='task';g['edges']=[{'from':'task','port':'next','to':g['nodes'][1]['id']}]+[copy.deepcopy(e)for e in old['edges']if e['from']!='body'];g['exits']={'done':{'executionBranch':'success','value':{'node':'task'}}}
+context={'implementation':'Async.Fixture::FlowBody','feature':'Async.Fixture::Flow','signature':copy.deepcopy(boundary['signature']),'imports':{}}
+defs=metadata('featureBlueprintNodes',featureSource=flow['function'],graph=g,featureContracts={'Async.Fixture::Flow':flow['function']},implementationContext=context,bodyTarget='common');assert defs['state']=='node-definitions',defs
+leaf=next(n for n in defs['nestedNodes']if n['id']=='task/body');record=copy.deepcopy(records['Flow.node.json']);record['definitionHash']=leaf['definitionHash'];record_path=project/'Flow.node.json';record_path.write_text(json.dumps(record,ensure_ascii=False));(project/'Flow.graph.json').write_text(json.dumps(g,ensure_ascii=False))
+assert json.loads(record_path.read_text())['source']==original
+private_before={p:p.read_bytes()for p in project.iterdir()if p.is_file()}
+r=run('private-first',build('private-first'));assert(r.returncode,r.stdout.strip())==(0,'awaited\ncomplete:6,10\nsuccess:6,10\nafter:6,10'),(r.returncode,r.stdout,r.stderr);check('private Task await preserves native/out data before outer completion/result/continuation')
+r=run('private-repeat',build('private-repeat'));assert r.returncode==0 and r.stdout.count('awaited')==1;assert all(p.read_bytes()==v for p,v in private_before.items());check('repeated private Task execution preserves original CRLF C# and all graph IDs')
+record['source']='await global::System.Threading.Tasks.Task.Delay(10);throw new InvalidOperationException("private-task-failure");';record_path.write_text(json.dumps(record));r=run('private-failure',build('private-failure'));assert r.returncode!=0 and 'private-task-failure'in r.stderr and not any(x in r.stdout for x in ['complete:','success:','after:']);record_path.write_bytes(private_before[record_path]);check('private Task failure propagates without publishing completion or continuation')
+sync_source='function Async.Fixture::Flow (int n,out int audit) -> int {}';sync=copy.deepcopy(g);sync['profile']='sync-acyclic-switch-v1';sync['contractHash']=metadata('blueprintPrepareFeature',id='Async.Fixture::Flow',text=sync_source,implementation='Async.Fixture::FlowBody',graphPath='Flow.graph.json',nodePath='Flow.node.json')['graph']['contractHash'];sync.pop('executionExitMode',None);sync['schema']=1;sync['exits']={'done':{'node':'task'}}
+held=json.dumps(sync);denied=metadata('featureBlueprintDescribe',featureSource=sync_source,graph=sync,featureContracts={});assert denied['state']=='invalid' and denied['diagnostics'][0]['code']=='GRAPH_ASYNC_CALLER_REQUIRED',denied;assert held==json.dumps(sync);check('private Task cannot implicitly convert or synchronously block its containing function')
+assert all(p.read_bytes()==v for p,v in private_before.items());(case/'private-evidence.json').write_text(json.dumps(dict(checks=checks,sourcePreserved=True,publicContractsUnchanged=True,actualWindows=False),ensure_ascii=False,indent=2));print('ASYNC_PRIVATE_FIXTURE '+str(case),flush=True)
+
+# A private switch frame forwards its authored stable branch, rather than
+# returning None or reinterpreting EnumValue data as an execution result.
+bp=case/'branch-project';bp.mkdir();branch=prepare('BranchFlow','(int n,out int audit) -> void',True);bg=branch['graph'];bsig=copy.deepcopy(bg['nodes'][0]['signature']);enum={'primary':'none','members':[{'id':'none','name':'None','value':0},{'id':'success','name':'Success','value':7},{'id':'failure','name':'Failure','value':13}]}
+choose=dict(id='choose',kind='code',control='switch',async_=True,intent='Preserve private branch ID',signature=copy.deepcopy(bsig),arguments={'n':{'input':'n'}},implementation='Branch.node.json',executionEnum=copy.deepcopy(enum));choose['async']=choose.pop('async_')
+def publish(owner,source):return dict(id='publish',kind='export',control='next',intent='Publish exact output',branchOwner=owner,output='audit',signature={'args':[{'type':'int','name':'value'}],'return':'void'},arguments={'value':{'node':source,'output':'audit'}})
+inside=dict(schema=2,profile='async-acyclic-switch-v1',executionExitMode=True,entry='choose',nodes=[choose,publish('choose','choose')],edges=[{'from':'choose','port':'case:success','to':'publish'},{'from':'publish','port':'next','to':'exit:done'}],exits={'done':{'executionBranch':'success'}})
+task=dict(id='task',kind='graph',control='switch',async_=True,intent='Private execution frame',signature=copy.deepcopy(bsig),arguments={'n':{'input':'n'}},executionEnum=copy.deepcopy(enum),executionSource='choose',graph=inside);task['async']=task.pop('async_')
+done=dict(id='privateDone',kind='code',control='next',branchOwner='task',intent='Observe output before private result routing',signature={'args':[{'type':'int','name':'audit'}],'return':'void'},arguments={'audit':{'node':'task','output':'audit'}},implementation='PrivateDone.node.json')
+bg.update(schema=2,executionExitMode=True,entry='task',nodes=[task,publish('task','task'),done],edges=[{'from':'task','port':'completion','to':'privateDone'},{'from':'privateDone','port':'next','to':'return:task'},{'from':'task','port':'case:success','to':'publish'},{'from':'publish','port':'next','to':'exit:done'}],exits={'done':{'executionBranch':'success'}})
+inside['edges'].append({'from':'choose','port':'next','to':'exit:none'});inside['exits']['none']={'executionBranch':'none'};bg['edges'].append({'from':'task','port':'next','to':'exit:none'});bg['exits']['none']={'executionBranch':'none'}
+for document,owner,source_id in [(inside,'choose','choose'),(bg,'task','task')]:
+ failure=publish(owner,source_id);failure['id']='publishFailure';document['nodes'].append(failure);document['edges'] += [{'from':owner,'port':'case:failure','to':'publishFailure'},{'from':'publishFailure','port':'next','to':'exit:failure'}];document['exits']['failure']={'executionBranch':'failure'}
+bcontext=dict(implementation='Async.Fixture::BranchFlowBody',feature='Async.Fixture::BranchFlow',signature=copy.deepcopy(bsig),imports={});bd=metadata('featureBlueprintNodes',featureSource=branch['function'],graph=bg,implementationContext=bcontext,bodyTarget='common');assert bd['state']=='node-definitions',bd
+branch_source='// original Result/CRLF 😀\r\nawait global::System.Threading.Tasks.Task.Delay(10);audit=n*2;Console.WriteLine("branch-awaited");return n>0?Result.Success:Result.Failure;\r\n'
+for key,path,source in [('task/choose','Branch.node.json',branch_source),('privateDone','PrivateDone.node.json','Console.WriteLine("private-complete:"+audit);')]:
+ row=next(n for n in bd['nodes']+bd.get('nestedNodes',[])if n['id']==key);(bp/path).write_text(json.dumps(dict(schema=1,node=key.split('/')[-1],definitionHash=row['definitionHash'],source=source),ensure_ascii=False))
+mc=copy.deepcopy(main['graph']);call=mc['nodes'][0];call.update(feature='Async.Fixture::BranchFlow',signature=copy.deepcopy(bsig),publicExecution=bg['contractHash'])
+for node in mc['nodes'][1:]:node['arguments']['native']={'constant':6}
+md=metadata('featureBlueprintNodes',featureSource=main['function'],graph=mc,featureContracts={'Async.Fixture::BranchFlow':branch['function']});assert md['state']=='node-definitions',md
+for node in mc['nodes'][1:]:
+ name=node['id'];row=next(n for n in md['nodes']if n['id']==name);(bp/node['implementation']).write_text(json.dumps(dict(schema=1,node=name,definitionHash=row['definitionHash'],source=records[node['implementation']]['source'])))
+balias='fg_call_'+hashlib.sha256(b'Async.Fixture::BranchFlow').hexdigest()[:24]
+for name,value in [('BranchFlow.celem',branch['function']),('BranchFlowBody.celem',branch['implementation']),('BranchFlow.graph.json',json.dumps(bg)),('Main.celem',main['function']),('MainBody.celem','implementation Async.Fixture::MainBody for Async.Fixture::Main () -> int {import Async.Fixture::BranchFlow as '+balias+' (int,out int) -> void;blueprint common "Main.graph.json";}'),('Main.graph.json',json.dumps(mc))]:(bp/name).write_text(value)
+bmanifest=bp/'project.cproj';bmanifest.write_text('project Async.Fixture version "1" {entry Async.Fixture::Main;dependency Confectory.Build.DotNet version "0.1.0";registry Confectory.Build.DotNet '+quote(str(repo/'targets/dotnet/pack.cpack'))+';target portable Confectory.Build.DotNet::Portable;'+''.join('element '+name+' '+kind+' '+quote(name+'.celem')+';'for name,kind in [('BranchFlow','function'),('BranchFlowBody','implementation'),('Main','function'),('MainBody','implementation')])+'}')
+branch_before={p:p.read_bytes()for p in bp.iterdir()if p.is_file()};built=invoke([dotnet,str(cli),'build',str(bmanifest),'portable']);(case/'private-branch-build.log').write_text(built.stdout+built.stderr);assert built.returncode==0,built.stdout+built.stderr;r=invoke(json.loads(built.stdout)['run']);(case/'private-branch-execution.json').write_text(json.dumps(dict(exit=r.returncode,stdout=r.stdout,stderr=r.stderr)));assert(r.returncode,r.stdout.strip())==(0,'branch-awaited\nprivate-complete:10\ncomplete:6,10\nsuccess:6,10\nafter:6,10'),(r.returncode,r.stdout,r.stderr);assert all(p.read_bytes()==v for p,v in branch_before.items());check('private branch ID and output publication precede completion, exact result routing and continuation')
+mc['nodes'][0]['arguments']['n']={'constant':-5};(bp/'Main.graph.json').write_text(json.dumps(mc))
+try:
+ built=invoke([dotnet,str(cli),'build',str(bmanifest),'portable']);(case/'private-failure-branch-build.log').write_text(built.stdout+built.stderr);assert built.returncode==0,built.stdout+built.stderr;r=invoke(json.loads(built.stdout)['run']);(case/'private-failure-branch-execution.json').write_text(json.dumps(dict(exit=r.returncode,stdout=r.stdout,stderr=r.stderr)));assert(r.returncode,r.stdout.strip())==(0,'branch-awaited\nprivate-complete:-10\ncomplete:6,-10\nafter:6,-10'),(r.returncode,r.stdout,r.stderr)
+finally:(bp/'Main.graph.json').write_bytes(branch_before[bp/'Main.graph.json'])
+assert all(p.read_bytes()==v for p,v in branch_before.items());check('private failure branch keeps its distinct ID and never executes the success route');(case/'private-evidence.json').write_text(json.dumps(dict(checks=checks,sourcePreserved=True,publicContractsUnchanged=True,actualWindows=False),ensure_ascii=False,indent=2))
