@@ -109,7 +109,7 @@ def main():
     parser.add_argument('--commit', required=True)
     parser.add_argument('--sdk', type=Path, required=True)
     parser.add_argument('--nuget-seed', type=Path, required=True)
-    parser.add_argument('--suite',choices=['headers','card-images','canvas','owned-information','owned-conversion','action-icons','declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement','worker-badges','node-internal','node-internal-nested','node-internal-storage','node-internal-context','node-internal-branches','node-branch-exits','node-internal-copy','node-internal-copy-nested','node-internal-copy-storage','node-internal-copy-branches','node-internal-copy-context','node-internal-copy-creating','node-internal-copy-frames','node-internal-override','node-internal-external-override','root-execution','root-execution-out','root-execution-closure','root-execution-copy','root-execution-copy-creating','root-execution-override','root-execution-registered','root-execution-registered-copy','root-execution-registered-creating','root-execution-data-void','root-execution-compound-owned','root-execution-provider-import','root-execution-nonvoid','public-return-data','root-execution-providers','root-execution-nested','root-execution-native','root-execution-caller','root-execution-forwarding','root-execution-observers','root-execution-wrappers','root-execution-owned-updates','root-execution-import-observations','async-runtime','async-transition','async-completion','async-function','async-property','async-adapter','async-context'],default='headers')
+    parser.add_argument('--suite',choices=['headers','card-images','canvas','owned-information','owned-conversion','action-icons','declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement','worker-badges','node-internal','node-internal-nested','node-internal-storage','node-internal-context','node-internal-branches','node-branch-exits','node-internal-copy','node-internal-copy-nested','node-internal-copy-storage','node-internal-copy-branches','node-internal-copy-context','node-internal-copy-creating','node-internal-copy-frames','node-internal-override','node-internal-external-override','root-execution','root-execution-out','root-execution-closure','root-execution-copy','root-execution-copy-creating','root-execution-override','root-execution-registered','root-execution-registered-copy','root-execution-registered-creating','root-execution-data-void','root-execution-compound-owned','root-execution-provider-import','root-execution-nonvoid','public-return-data','root-execution-providers','root-execution-nested','root-execution-native','root-execution-caller','root-execution-forwarding','root-execution-observers','root-execution-wrappers','root-execution-owned-updates','root-execution-import-observations','async-runtime','async-transition','async-completion','async-function','async-property','async-adapter','async-context','async-creating'],default='headers')
     args = parser.parse_args()
     repo = args.repo.resolve(); persistent = args.persistent.absolute()
     persistent.parent.mkdir(parents=True, exist_ok=True)
@@ -327,6 +327,19 @@ def main():
                 regression='v666_node_branch_exit_api.py' if label=='lf' else 'v666_node_internal_external_override_api.py'
                 work.run(label+'-m11-regression',[sys.executable,str(checkout/'tests/web'/regression),str(checkout),str(report)],cwd=checkout,env=env)
                 work.run(label+'-owned-final-read-cas',[sys.executable,str(checkout/'tests/web/v536_copy_read_guards_core.py'),str(checkout)],cwd=checkout,env=env)
+            elif args.suite=='async-creating':
+                work.run(label+'-creating-script',['node','--check',str(checkout/'examples/editor-home/ui/feature-authoring.js')],cwd=checkout,env=env)
+                work.run(label+'-creating-runtime',[dotnet,str(checkout/'tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll'),'AsyncContextTests','AsyncBlueprintTests','BlueprintConversionTests','--require-runtime'],cwd=checkout,env=env)
+                work.run(label+'-creating-guards',[sys.executable,str(checkout/'tests/web/v666_async_creating_guards.py'),str(checkout)],cwd=checkout,env=env)
+                work.run(label+'-creating-api',[sys.executable,str(checkout/'tests/web/v666_async_creating_api.py'),str(checkout),str(report)],cwd=checkout,env=env)
+                for mode in (['normal','storage','conflict'] if label=='lf' else ['loss','late']):
+                    work.run(label+'-creating-ui-'+mode,[sys.executable,str(checkout/'tests/web/v666_async_creating_ui.py'),str(checkout),str(report),mode],cwd=checkout,env=env)
+                work.run(label+'-async-receipt-guards',[sys.executable,str(checkout/'tests/web/v666_async_transition_guards.py'),str(checkout)],cwd=checkout,env=env)
+                regression='v666_async_context_api.py' if label=='lf' else 'v666_async_adapter_api.py'
+                work.run(label+'-confirmed-body-regression',[sys.executable,str(checkout/'tests/web'/regression),str(checkout),str(report)],cwd=checkout,env=env)
+                if label=='lf':
+                    work.run('lf-owned-final-read-cas',[sys.executable,str(checkout/'tests/web/v536_copy_read_guards_core.py'),str(checkout)],cwd=checkout,env=env)
+
             elif args.suite=='async-context':
                 work.run(label+'-context-script',['node','--check',str(checkout/'examples/editor-home/ui/feature-authoring.js')],cwd=checkout,env=env)
                 work.run(label+'-context-runtime',[dotnet,str(checkout/'tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll'),'AsyncContextTests','AsyncBlueprintTests','BlueprintConversionTests','--require-runtime'],cwd=checkout,env=env)
@@ -729,6 +742,10 @@ def main():
         elif args.suite=='node-internal-storage':
             work.run('packaged-node-internal',[sys.executable,str(checkout/'tests/web/v666_node_internal_ui.py'),str(package/'content'),str(packaged_report),'normal'],cwd=checkout,env=env)
             work.run('packaged-storage-node-internal',[sys.executable,str(checkout/'tests/web/v666_node_internal_storage_ui.py'),str(package/'content'),str(packaged_report),'normal'],cwd=checkout,env=env)
+        elif args.suite=='async-creating':
+            work.run('packaged-creating-ui',[sys.executable,str(checkout/'tests/web/v666_async_creating_ui.py'),str(package/'content'),str(packaged_report),'normal'],cwd=checkout,env=env)
+            work.run('packaged-async-runtime',[sys.executable,str(checkout/'tests/probes/async_runtime.py'),str(package/'content')],cwd=checkout,env=env)
+
         elif args.suite=='async-context':
             work.run('packaged-context-ui',[sys.executable,str(checkout/'tests/web/v666_async_context_ui.py'),str(package/'content'),str(packaged_report),'normal'],cwd=checkout,env=env)
             work.run('packaged-async-runtime',[sys.executable,str(checkout/'tests/probes/async_runtime.py'),str(package/'content')],cwd=checkout,env=env)
@@ -873,6 +890,11 @@ def main():
         elif args.suite=='node-internal-storage':
             work.run('restored-node-internal',[sys.executable,str(checkout/'tests/web/v666_node_internal_ui.py'),str(restored/'content'),str(packaged_report),'storage'],cwd=checkout,env=env)
             work.run('restored-storage-node-internal',[sys.executable,str(checkout/'tests/web/v666_node_internal_storage_ui.py'),str(restored/'content'),str(packaged_report),'loss','--private','--local'],cwd=checkout,env=env)
+        elif args.suite=='async-creating':
+            work.run('restored-creating-ui',[sys.executable,str(checkout/'tests/web/v666_async_creating_ui.py'),str(restored/'content'),str(packaged_report),'late'],cwd=checkout,env=env)
+            work.run('restored-creating-storage',[sys.executable,str(checkout/'tests/web/v666_async_creating_ui.py'),str(restored/'content'),str(packaged_report),'storage'],cwd=checkout,env=env)
+            work.run('restored-async-runtime',[sys.executable,str(checkout/'tests/probes/async_runtime.py'),str(restored/'content')],cwd=checkout,env=env)
+
         elif args.suite=='async-context':
             work.run('restored-context-ui',[sys.executable,str(checkout/'tests/web/v666_async_context_ui.py'),str(restored/'content'),str(packaged_report),'late'],cwd=checkout,env=env)
             work.run('restored-context-storage',[sys.executable,str(checkout/'tests/web/v666_async_context_ui.py'),str(restored/'content'),str(packaged_report),'storage'],cwd=checkout,env=env)

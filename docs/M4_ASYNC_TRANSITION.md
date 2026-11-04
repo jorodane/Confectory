@@ -35,3 +35,5 @@ M11·M12는 구체적 회귀가 없으므로 닫힌 상태를 유지한다. V2�
 일반 완료 분기의 `completionBranch` metadata와 literal 포트 대응을 이전 빌드가 동일하게 해석한다고 보장하지 않는다. 최신 소스·프로젝트 원본·초안을 함께 보존하며 코드 rollback과 데이터/초안 복구를 구분한다.
 
 이번 완료 일반 분기·Set 단위의 [최종 검증·보관 기록](VALIDATION_V666_ASYNC_COMPLETION.md)에 신규/재사용·호환성·공간을 기록한다.
+
+새 ordinary leaf의 파일 확정 전 전환은 [첫 Confirm 전 경계](M4_ASYNC_CREATING.md)를 따른다. 새 헤더/graph 및 private Task 경계와 구별한다.

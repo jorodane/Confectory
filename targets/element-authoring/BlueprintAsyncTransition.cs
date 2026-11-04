@@ -60,7 +60,24 @@ internal static partial class BlueprintAsyncTransition
     }
     static void Scope(JsonObject units,IEnumerable<string> ids,string ns) {
         var paths=new HashSet<string>(OperatingSystem.IsWindows()?StringComparer.OrdinalIgnoreCase:StringComparer.Ordinal);string root=Path.Combine(Path.GetTempPath(),"confectory-async-scope");
-        foreach(string id in ids){var unit=units[id]??throw new ArgumentException("Complete async member required");if(PackPaths.Namespace(id)!=ns||unit["baseline"]?.ToString()=="missing"||unit["draft"] is null||unit["original"] is null)throw new ArgumentException("Existing owned async sources required");string path=PackPaths.Owned(root,S(unit,"path"));if(!paths.Add(path))throw new ArgumentException("Async target paths must not alias");if(JsonData.HashBytes(System.Text.Encoding.UTF8.GetBytes(S(unit,"original")))!=S(unit,"baseline"))throw new ArgumentException("Original async source baseline required");}
+        foreach(string id in ids){var unit=units[id]??throw new ArgumentException("Complete async member required");if(PackPaths.Namespace(id)!=ns||unit["draft"] is null||unit["original"] is null)throw new ArgumentException("Owned async sources required");string path=PackPaths.Owned(root,S(unit,"path"));if(!paths.Add(path))throw new ArgumentException("Async target paths must not alias");if(unit["baseline"]?.ToString()=="missing"){if(!NewOwnedCode(units,id,root,path))throw new ArgumentException("New async source requires its existing owned graph and absent original identity/path");}else if(JsonData.HashBytes(System.Text.Encoding.UTF8.GetBytes(S(unit,"original")))!=S(unit,"baseline"))throw new ArgumentException("Original async source baseline required");}
+    }
+    // A newly authored ordinary leaf is not a missing original. Its existing
+    // physical graph and direct owner prove membership; the receipt retains
+    // "missing" so the final file CAS cannot overwrite a file that appears.
+    static bool NewOwnedCode(JsonObject units,string id,string root,string path) {
+        var unit=units[id]!;int marker=id.IndexOf("/node:",StringComparison.Ordinal);
+        if(unit["kind"]?.ToString()!="blueprint-node"||S(unit,"original")!=""||marker<1)return false;
+        string graphId=id[..marker],nodeId=id[(marker+6)..];if(nodeId.Contains('/')||nodeId.Length==0)return false;
+        var owner=Root(units,graphId);var source=units[graphId]!;
+        if(source["baseline"]?.ToString()=="missing"||JsonData.HashBytes(System.Text.Encoding.UTF8.GetBytes(S(source,"original")))!=S(source,"baseline"))return false;
+        var original=JsonNode.Parse(S(source,"original"))!.AsObject();if(original["feature"]?.ToString()!=owner.Function.Id)return false;
+        var node=owner.Graph["nodes"]!.AsArray().SingleOrDefault(n=>n!["id"]?.ToString()==nodeId);
+        if(node?["kind"]?.ToString()!="code"||node["implementationContext"] is not null||node["forwardCallerStorage"]?.GetValue<bool>()==true)return false;
+        string directory=Path.GetDirectoryName(S(source,"path"))??"";var comparison=OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal;
+        if(!string.Equals(PackPaths.Owned(root,Path.Combine(directory,S(node,"implementation"))),path,comparison))return false;
+        if(BlueprintTree.Nodes(original).Any(n=>n.Key==nodeId||n.Node["kind"]?.ToString()=="code"&&string.Equals(PackPaths.Owned(root,Path.Combine(directory,S(n.Node,"implementation"))),path,comparison)))return false;
+        BlueprintDocuments.Validate(id,"blueprint-node",S(unit,"draft"));return JsonNode.Parse(S(unit,"draft"))!["node"]?.ToString()==nodeId;
     }
     static JsonObject? FunctionDemotion(Element fn){try{return BlueprintFunctionCompletion.Preview(fn);}catch(ArgumentException){return null;}}
     static JsonObject? Demotion(JsonObject node,string identity) {try{return BlueprintCompletionBranch.Preview(node,identity);}catch(ArgumentException){return null;}}

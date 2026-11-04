@@ -6,6 +6,8 @@ v536 기록은 과거 검증 증거이며 기존 기능을 미구현으로 되�
 
 ## 현재 M11·M12·M4 경계
 
+새 ordinary C# 동작의 첫 Confirm 전 명시 async 전환은 [새 leaf 소유/저장 경계](M4_ASYNC_CREATING.md)를 따른다. 기존 직접 소유 Root에 생성 초안을 저장한 뒤 새 record의 missing CAS를 유지하며 메뉴·코드 편집·전체 Confirm으로 연결한다. 새 함수/구현/graph와 private/internal Task 경계는 다음 유한한 M4이며, 첫 생성 Save 전 혼합 입력 제한을 영구 UX 정책으로 정하지 않는다.
+
 아래 긴 표의 누적 문장은 각 당시 검증의 기록이다. 현재 잔여 판단은 [유한한 M12 마감표](M12_CLOSURE.md)를 우선한다. M11의 원래 소유 구현 편집은 마감했으며 구체적 회귀 없이 다시 열지 않는다. M12는 데이터 반환·소유 provider/target·일반 및 native 진입·공개/private 실행 계약 caller의 보존을 연결했고, 현재 실제 흐름의 마감 경계는 다음과 같다.
 
 - ordinary IInvoke/native import·기존 NoBranch의 관측은 [검증 기록](VALIDATION_V666_ROOT_EXECUTION_OBSERVERS.md)을 따른다. 실제 공개 OriginalResult를 명시 wrapper로 연결하고 원본 계약의 전체 갱신 후보를 [wrapper 검증 기록](VALIDATION_V666_ROOT_EXECUTION_WRAPPERS.md)에 연결한다. 네 원래 흐름의 지원과 마감 근거는 다음과 같다.
