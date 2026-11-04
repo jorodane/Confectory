@@ -39,3 +39,5 @@ M11/M12를 다시 미완료로 열거나 legacy 자동 migration, 부모/참조 
 서버의 두 번 확인된 settled 영수증, 같은 전체 ID/hash를 만족할 때에만 cold epoch의
 revision 차이를 수용한다. 같은 bytes의 자체 저장에 대한 복원이며 peer·누락·변조
 closure나 일반 source 입력의 묵시적 재적용을 허용하지 않는다.
+
+동결 `981d288`의 [신규 최종 검증·보관](VALIDATION_V666_ASYNC_CREATING.md)을 마감했다.

@@ -132,3 +132,5 @@ Result 없는 ordinary 동작 완료 어댑터의 최종 동결 `76f9837`은 **�
 직접 소유하고 이미 Blueprint로 전환·확정한 native whole-body Root의 명시적 함수 async 전환을 연결한다. 원래 같은 클래스의 Invoke/this·직접 재귀/scoped import·소스 위치/CRLF·native 반환/out을 보존하고 동기 호출자의 오류와 별도 명시 전환을 유지한다. [정확한 경계와 유한한 종료 조건](M4_ASYNC_CONTEXT.md)을 따른다. 새/직접 소유 내부 본문 전환은 남으며 자동 원문 async 재작성·비소유/override/ref/구형 자동 migration은 새 요구로 추가하지 않는다. 최종 검증 수치는 종료 기록에서 확정한다.
 
 소유 native Root async 전환의 최종 동결 `b3fa243`를 신규 42단계(재사용 0, LF/CRLF Core 각 18개 포함)로 검증하고 새 패키지/전체 복원과 최신/rollback·전체 증거를 보관했다. [정확한 검증·수정·호환/잔여](VALIDATION_V666_ASYNC_CONTEXT.md)를 따른다. 새/직접 소유 내부 본문의 명시 전환과 기존 고정 UI/backend/기기 잔여는 유지한다.
+
+새 ordinary leaf의 첫 Confirm 전 async 전환을 총 45단계(LF/CRLF·새 패키지/전체 복원·실패 수명관리; 신규 39, 동일 입력 재사용 6)로 검증했다. [정확한 지원/실패·보관·유한 잔여](VALIDATION_V666_ASYNC_CREATING.md)를 따른다.
