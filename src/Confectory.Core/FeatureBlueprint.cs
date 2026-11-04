@@ -418,9 +418,16 @@ public static partial class FeatureBlueprint
         }
 
         Visit(entry);
+        var pendingAsyncCallers = new JsonArray();
         foreach (var node in nodes.Values.Where(n => reachable.Contains(n.Id)))
         {
-            Need(asyncFeature || !AsyncNode(node), "GRAPH_ASYNC_CALLER_REQUIRED", node.Id);
+            if(!asyncFeature && AsyncNode(node)) {
+                // A transition candidate may retain a sync caller as an explicit
+                // error while validating the rest of its shape. Assembly stays
+                // strict, and ordinary editor Describe does not opt into this.
+                Need(operation=="featureBlueprintDescribe" && request["inspectPendingAsyncCaller"]?.GetValue<bool>()==true, "GRAPH_ASYNC_CALLER_REQUIRED", node.Id);
+                pendingAsyncCallers.Add(node.Id);
+            }
             string[] ports = FlowOwner(node) ? edges.Keys.Where(k=>k.Item1==node.Id).Select(k=>k.Item2).ToArray() : node.Control == "branch" ? ["true", "false"] : ["next"];
             Need(edges.Keys.Where(k => k.Item1 == node.Id).Select(k => k.Item2).Order().SequenceEqual(ports.Order()), "GRAPH_PORTS", node.Id);
         }
@@ -587,6 +594,7 @@ public static partial class FeatureBlueprint
         reply["contractVersions"] = new JsonObject(imports.OrderBy(p => p.Key, StringComparer.Ordinal).Select(p => new KeyValuePair<string, JsonNode?>(p.Key, JsonValue.Create(p.Value.Hash))));
         reply["contractVersions"]![feature.Id] = contractHash;
         reply["imports"] = new JsonArray(imports.OrderBy(i => i.Key, StringComparer.Ordinal).Select(i => (JsonNode)new JsonObject { ["feature"] = i.Key, ["alias"] = i.Value.Alias, ["contractHash"] = i.Value.Hash, ["binding"] = canonicalImports.Contains(i.Key) ? "canonical" : "implementation-context", ["signature"] = SignatureNode(i.Value.Element.Signature!) }).ToArray());
+        if(pendingAsyncCallers.Count>0)reply["pendingAsyncCallers"]=pendingAsyncCallers;
         if (operation == "featureBlueprintDescribe" || missing.Count > 0)
             return reply;
         var output = new StringBuilder();

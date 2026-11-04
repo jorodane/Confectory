@@ -103,4 +103,12 @@ public sealed class AsyncBlueprintTests : TestCase
         string source=Source("Api::Value","() -> void"), main="function App::Main () -> int {}";var fn=new Parser(source,"<async>").ParseElement();var graph=Graph(main,"call");graph["nodes"]=new JsonArray(new JsonObject { ["id"]="call",["kind"]="call",["control"]="next",["intent"]="Incompatible existing sync caller",["feature"]=fn.Id,["signature"]=FeatureBlueprint.SignatureDocument(fn.Signature!),["arguments"]=new JsonObject() });
         string before=graph.ToJsonString();var result=Query(main,graph,contracts:new(){[fn.Id]=source});Equal("invalid",Text(result,"state"));Equal("GRAPH_ASYNC_CALLER_REQUIRED",Text(result["diagnostics"]![0]!,"code"));Equal(before,graph.ToJsonString());True(!BlueprintAsync.Has(new Parser(main,"<caller>").ParseElement()));
     }
+    public void test_pending_sync_caller_inspection_validates_shape_but_never_assembles_or_changes_the_caller() {
+        string source=Source("Api::Value","() -> void"),main="function App::Main () -> int {}";var fn=new Parser(source,"<async>").ParseElement();var graph=Graph(main,"call");graph["nodes"]=new JsonArray(new JsonObject{["id"]="call",["kind"]="call",["control"]="next",["intent"]="Retain explicit caller conversion",["feature"]=fn.Id,["signature"]=FeatureBlueprint.SignatureDocument(fn.Signature!),["arguments"]=new JsonObject()});
+        string before=graph.ToJsonString();var request=new JsonObject{["operation"]="featureBlueprintDescribe",["inspectPendingAsyncCaller"]=true,["featureSource"]=main,["graph"]=graph.DeepClone(),["featureContracts"]=new JsonObject{[fn.Id]=source}};
+        var result=FeatureBlueprint.Execute(request);True(Text(result,"state")!="invalid");Equal("call",result["pendingAsyncCallers"]![0]!.ToString());True(result["body"] is null);Equal(before,graph.ToJsonString());
+        request["operation"]="featureBlueprintAssemble";result=FeatureBlueprint.Execute(request);Equal("GRAPH_ASYNC_CALLER_REQUIRED",result["diagnostics"]![0]!["code"]!.ToString());
+        request["operation"]="featureBlueprintDescribe";request["graph"]!["nodes"]![0]!["arguments"]!["unexpected"]=new JsonObject{["constant"]=1};result=FeatureBlueprint.Execute(request);Equal("invalid",Text(result,"state"));Equal("GRAPH_ARGUMENTS",result["diagnostics"]![0]!["code"]!.ToString());
+        Equal("invalid",Text(Query(main,graph,contracts:new(){[fn.Id]=source}),"state"));True(!BlueprintAsync.Has(new Parser(main,"<caller>").ParseElement()));
+    }
 }

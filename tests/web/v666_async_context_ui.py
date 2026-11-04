@@ -59,7 +59,7 @@ try:
     f.page.wait_for_timeout(30)
    assert len(requests)==1
    if mode=='late':
-    assert paused;toggle();paused['route'].fulfill(response=paused['response']);f.page.unroute('**/api/request',interrupt);f.idle();assert pending();restart(3);mark=len(f.traffic);save();applied=[r['invoke']['input']for r in f.traffic[mark:]if r.get('invoke',{}).get('input',{}).get('action')=='authorBatch'];assert len(applied)==1 and applied[0]['edits'][0]['definition']['enabled'] is False;assert not x.read()['asyncTransition']['enabled'];toggle();save();f.checked('늦은 명시 전환은 cold 뒤 이전 receipt만 조회하고 새 입력은 별도 Save로 보존한다')
+    assert paused;toggle();paused['route'].fulfill(response=paused['response']);f.page.unroute('**/api/request',interrupt);f.idle();assert pending();restart(3);mark=len(f.traffic);panel().locator('[data-bp-save]').click();f.idle();assert pending();assert not any(r.get('invoke',{}).get('input',{}).get('action')=='authorBatch'for r in f.traffic[mark:]);(f.case/'late-input-after-query.json').write_text(json.dumps(pending(),ensure_ascii=False,indent=2));save();applied=[r['invoke']['input']for r in f.traffic[mark:]if r.get('invoke',{}).get('input',{}).get('action')=='authorBatch'];assert len(applied)==1 and applied[0]['edits'][0]['definition']['enabled'] is False;assert not x.read()['asyncTransition']['enabled'];toggle();save();f.checked('늦은 명시 전환은 cold 뒤 이전 receipt만 조회하고 새 입력은 별도 Save로 보존한다')
    else:
     assert any(r in queries for r in lost) and pending();f.page.unroute_all(behavior='wait');restart(3);mark=len(f.traffic);save();assert not any(r.get('invoke',{}).get('input',{}).get('action')=='authorBatch' for r in f.traffic[mark:]);f.checked('응답 유실 뒤 cold 재조회는 동일 async 전환을 중복 저장하지 않는다')
   else:save()
