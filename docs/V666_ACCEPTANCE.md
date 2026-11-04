@@ -8,7 +8,7 @@ v536 기록은 과거 검증 증거이며 기존 기능을 미구현으로 되�
 
 새 전역 함수/구현/graph/코드의 첫 Confirm 전 async 전환은 [생성 소유권 경계](M4_ASYNC_NEW_FUNCTION.md)를 따른다. 정보 소유 함수의 배정, 내부 Task 및 첫 생성 Save 전 입력 결합은 별도 실제 잔여다.
 
-새 ordinary C# 동작의 첫 Confirm 전 명시 async 전환은 [새 leaf 소유/저장 경계](M4_ASYNC_CREATING.md)를 따른다. 기존 직접 소유 Root에 생성 초안을 저장한 뒤 새 record의 missing CAS를 유지하며 메뉴·코드 편집·전체 Confirm으로 연결한다. 새 함수/구현/graph와 private/internal Task 경계는 다음 유한한 M4이며, 첫 생성 Save 전 혼합 입력 제한을 영구 UX 정책으로 정하지 않는다.
+새 ordinary C# 동작의 첫 Confirm 전 명시 async 전환은 [새 leaf 소유/저장 경계](M4_ASYNC_CREATING.md)를 따른다. 기존 직접 소유 Root에 생성 초안을 저장한 뒤 새 record의 missing CAS를 유지하며 메뉴·코드 편집·전체 Confirm으로 연결한다. 정보 소유 함수 생성/배정과 private/internal Task 경계는 다음 유한한 M4이며, 첫 생성 Save 전 혼합 입력 제한을 영구 UX 정책으로 정하지 않는다.
 
 아래 긴 표의 누적 문장은 각 당시 검증의 기록이다. 현재 잔여 판단은 [유한한 M12 마감표](M12_CLOSURE.md)를 우선한다. M11의 원래 소유 구현 편집은 마감했으며 구체적 회귀 없이 다시 열지 않는다. M12는 데이터 반환·소유 provider/target·일반 및 native 진입·공개/private 실행 계약 caller의 보존을 연결했고, 현재 실제 흐름의 마감 경계는 다음과 같다.
 
@@ -136,3 +136,5 @@ Result 없는 ordinary 동작 완료 어댑터의 최종 동결 `76f9837`은 **�
 소유 native Root async 전환의 최종 동결 `b3fa243`를 신규 42단계(재사용 0, LF/CRLF Core 각 18개 포함)로 검증하고 새 패키지/전체 복원과 최신/rollback·전체 증거를 보관했다. [정확한 검증·수정·호환/잔여](VALIDATION_V666_ASYNC_CONTEXT.md)를 따른다. 새/직접 소유 내부 본문의 명시 전환과 기존 고정 UI/backend/기기 잔여는 유지한다.
 
 새 ordinary leaf의 첫 Confirm 전 async 전환을 총 45단계(LF/CRLF·새 패키지/전체 복원·실패 수명관리; 신규 39, 동일 입력 재사용 6)로 검증했다. [정확한 지원/실패·보관·유한 잔여](VALIDATION_V666_ASYNC_CREATING.md)를 따른다.
+
+새 전역 함수의 첫 Confirm 전 async 생성 흐름은 신규 본 검사 48단계와 강제 포함 컴파일 보완 3단계를 통과했다(재사용 0). [지원 경계·증거·유한 잔여](VALIDATION_V666_ASYNC_NEW_FUNCTION.md)를 따른다.
