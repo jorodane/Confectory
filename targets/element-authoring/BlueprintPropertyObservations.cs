@@ -1,7 +1,7 @@
 using Confectory.Core;
 using System.Text.Json.Nodes;
 
-// Reuse the server-authored property candidate's existing observation receipt.
+// Physical read baselines are separate from mutable candidate/acknowledgement hashes.
 // No source ID/path in the receipt creates a writable unit or external grant.
 internal static class BlueprintPropertyObservations
 {
@@ -9,9 +9,9 @@ internal static class BlueprintPropertyObservations
     static IEnumerable<(string Id,JsonObject Unit,JsonObject Sources)> Receipts(JsonObject units)
     {
         foreach(var pair in units){
-            if(pair.Value?["kind"]?.ToString()!="blueprint"||pair.Value?["draft"] is not JsonValue text||pair.Value?["authorSaveReceipt"] is not JsonObject receipt||!pair.Key.Contains("/body:",StringComparison.Ordinal)||pair.Key.Contains("/graph:",StringComparison.Ordinal))continue;
+            if(pair.Value?["kind"]?.ToString()!="blueprint"||pair.Value?["draft"] is not JsonValue text||pair.Value?["propertyObservations"] is not JsonObject receipt||!pair.Key.Contains("/body:",StringComparison.Ordinal)||pair.Key.Contains("/graph:",StringComparison.Ordinal))continue;
             var graph=JsonNode.Parse(text.GetValue<string>())!.AsObject();
-            if(graph["copySource"] is not null||receipt["slotRequest"] is JsonObject slot&&slot.Count>0||!BlueprintTree.Nodes(graph).Any(n=>FeatureBlueprint.IsPropertyNode(n.Node["kind"]?.ToString())))continue;
+            if(graph["copySource"] is not null)throw new ArgumentException("Owned ordinary property body required");
             var sources=receipt["sources"] as JsonObject??throw new ArgumentException("Saved property observations required");
             if(receipt["version"]?.GetValue<int>()!=1||receipt["graph"]?.ToString()!=pair.Key||sources.Count is <3 or >64||!sources.ContainsKey(pair.Key)||!sources.ContainsKey(pair.Key[..pair.Key.IndexOf("/body:",StringComparison.Ordinal)]))throw new ArgumentException("Exact property observation closure required");
             yield return(pair.Key,pair.Value.AsObject(),sources);
@@ -26,7 +26,10 @@ internal static class BlueprintPropertyObservations
         var selected=request["selected"]?.AsArray().Select(id=>id!.ToString()).ToHashSet(StringComparer.Ordinal);var checks=new JsonArray();var paths=new HashSet<string>(OperatingSystem.IsWindows()?StringComparer.OrdinalIgnoreCase:StringComparer.Ordinal);
         string root=Path.Combine(Path.GetTempPath(),"confectory-property-observations");
         foreach(var row in receipts){
-            if(selected is not null&&!selected.Contains(row.Id))continue;
+            if(selected is not null&&!selected.Contains(row.Id)){
+                if(row.Sources.Any(p=>selected.Contains(p.Key)&&units[p.Key]?["draft"]?.ToString()!=units[p.Key]?["original"]?.ToString()))throw new ArgumentException("Review the complete property body and its observed sources together");
+                continue;
+            }
             string implementation=row.Id[..row.Id.IndexOf("/body:",StringComparison.Ordinal)],target=row.Id[(row.Id.IndexOf("/body:",StringComparison.Ordinal)+6)..];
             var owner=new Parser(S(units[implementation]!,"draft"),"<property-observation>").ParseElement();
             if(owner.Kind!="implementation"||owner.Id!=implementation||!owner.Bodies.TryGetValue(target,out var body)||body.SourceKind!="blueprint"||body.Origin!=implementation||body.Path!=row.Unit["path"]?.ToString()||units[implementation]?["copySource"] is not null)throw new ArgumentException("Explicit owned property body required; retain parent/copy originals");
@@ -54,7 +57,7 @@ internal static class BlueprintPropertyObservations
             foreach(var source in row.Sources){
                 if(selected is not null&&!selected.Contains(source.Key))throw new ArgumentException("Review the complete property body and its observed sources together");
                 var unit=units[source.Key]!;var proof=source.Value as JsonObject??throw new ArgumentException("Exact property source receipt required");
-                if(proof.Count!=3||proof.Any(p=>p.Key is not ("path" or "kind" or "hash"))||unit["draft"] is null||unit["original"] is null||unit["baseline"]?.ToString()=="missing"||S(unit,"path")!=S(proof,"path")||S(unit,"kind")!=S(proof,"kind")||JsonData.HashBytes(System.Text.Encoding.UTF8.GetBytes(S(unit,"draft")))!=S(proof,"hash")||JsonData.HashBytes(System.Text.Encoding.UTF8.GetBytes(S(unit,"original")))!=S(unit,"baseline"))throw new ArgumentException("Property source/receipt changed; preserve the saved candidate");
+                if(proof.Count!=3||proof.Any(p=>p.Key is not ("path" or "kind" or "hash"))||unit["draft"] is null||unit["original"] is null||S(unit,"path")!=S(proof,"path")||S(unit,"kind")!=S(proof,"kind")||S(unit,"baseline")!=S(proof,"hash")||(S(unit,"baseline")=="missing"?S(unit,"original")!="":JsonData.HashBytes(System.Text.Encoding.UTF8.GetBytes(S(unit,"original")))!=S(unit,"baseline")))throw new ArgumentException("Property original/read baseline changed; preserve the saved candidate");
                 _=PackPaths.Owned(root,S(unit,"path"));if(!rowPaths.Add(S(unit,"path")))throw new ArgumentException("Property source paths must not alias");if(paths.Add(S(unit,"path")))checks.Add(new JsonObject{["path"]=unit["path"]!.DeepClone(),["hash"]=unit["baseline"]!.DeepClone()});
             }
         }

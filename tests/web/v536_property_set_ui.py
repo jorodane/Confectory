@@ -108,12 +108,14 @@ try:
   page.close();stop();start(1);page=setup(browser);page.set_viewport_size({'width':390,'height':844});expect(author().locator('[data-bp-save]')).to_be_enabled();idle();assert pending()==held;mark=len(traffic);requests=async_checks.save(globals(),held) if asynchronous else None
   if not asynchronous:author().locator('[data-bp-save]').click();requests=saved(mark)
   assert requests[-1]['input']['edits'][0]['action']=='propertyPlan';data=current();assert data['diagnostics']['state'] in ['source-ready','source-assembled'],data['diagnostics'];assert next(v for v in data['nodes'] if v['id']=='second')['arguments'][0]['valueJson']==json.dumps({'node':created,'output':'return'},separators=(',',':'));assert {'from':'write','port':'next','to':created} in data['edges'] and {'from':created,'port':'next','to':'second'} in data['edges'];assert next(v for v in data['nodes'] if v['id']=='first')['arguments'][0]['valueJson']=='{"node":"before","output":"return"}';unchanged();checked('재시작 후 하나의 후보/CAS로 새 읽기·typed 가져오기·receiver·소비 binding·실행 attachment를 함께 저장하며 첫 출력/원본을 보존한다')
+  if asynchronous:async_checks.after_saved(globals())
   author().locator('[data-bp-complete]').click();review=page.locator('.window[data-key=review]');expect(review).to_be_visible(timeout=120000)
   if review.locator('[data-review-advanced]').count():
    review.locator('[data-review-advanced]').click()
    if review.locator('[data-advanced-reviewed]').count():review.locator('[data-advanced-reviewed]').check()
   if asynchronous:review=async_checks.review(globals(),review)
-  review.locator('#confirm').click();expect(review).not_to_be_visible(timeout=120000);idle();assert {name for name,b in original.items() if (project/name).read_bytes()!=b}=={'Calc.graph.json'},'existing typed imports and exact implementation bytes must be preserved';checked('화면의 명시적 compiler Confirm만 새 읽기/Set 연결 graph를 반영하고 다른 원본은 유지한다')
+  review.locator('#confirm').click();expect(review).not_to_be_visible(timeout=120000);idle();assert {name for name,b in original.items() if (project/name).read_bytes()!=b}==globals().get('expected_changed',{'Calc.graph.json'}),'existing typed imports and exact implementation bytes must be preserved';checked('화면의 명시적 compiler Confirm만 새 읽기/Set 연결 graph를 반영하고 다른 원본은 유지한다')
+  if asynchronous:async_checks.after_confirm(globals())
   output=subprocess.run([env['CONFECTORY_DOTNET'],str(repo/'src/Confectory.Cli/bin/Release/net10.0/Confectory.Cli.dll'),'build',str(project/'project.cproj'),'portable'],cwd=repo,env=env,text=True,capture_output=True,check=True);built=json.loads(output.stdout);(case/'fixture-build.json').write_text(output.stdout);run=subprocess.run(built['run'],cwd=project,env=env,text=True,capture_output=True,check=True);assert run.stdout.strip()=='1020\n2030',(run.stdout,run.stderr);checked('격리 CLR 실행에서10→쓰기20→별도 읽기20과 다음 호출20→30을 확인하고 같은 대상에 후속 Set을 해도 앞 보관 출력10/20을 유지한다')
   assert not errors,errors;browser.close()
 except Exception:

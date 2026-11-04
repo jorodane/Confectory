@@ -125,3 +125,25 @@ def review(c,first):
         if current.is_visible():current.locator('[data-reject]').click()
         c['checked']('Review 뒤 프로젝트 변경도 최종 CAS에서 전부 미반영하고 저장된 후보를 보존한다');current=review_ready(c)
     return current
+
+def after_saved(c):
+    if c['async_mode']!='normal':return
+    page=c['page'];panel=c['author'];expect=c['expect'];page.set_viewport_size({'width':1480,'height':1050});c['idle']()
+    panel().locator('[data-bp-percent]').click();zoom=page.get_by_role('dialog',name='노드 화면 배율',exact=True);zoom.get_by_role('button',name='전체 보기',exact=True).click();page.keyboard.press('Escape')
+    baseline={u['id']:u for u in json.loads(c['_checkpoint'].read_text())['changes']}
+    def edit(cancel):
+        panel().locator('[data-bp-node=combine] [data-internal-code]').click();dialog=page.get_by_role('dialog',name='C# Script · 보관값 합치기',exact=True);editor=dialog.locator('[data-code-source]');body=dialog.locator('[data-code-region=body]').text_content();text=body+'\n// 명시적 후속 본문 편집'
+        editor.evaluate('(el,body)=>{const at=el.value.indexOf(body);if(at<0)throw Error("body missing");el.focus();el.setSelectionRange(at,at+body.length)}',body);page.keyboard.insert_text(text);dialog.locator('[data-code-cancel]'if cancel else'[data-code-save]').click();return text
+    held=c['pending']();edit(True);assert c['pending']()==held
+    text=edit(False);mark=len(c['traffic']);panel().locator('[data-bp-save]').click()
+    for _ in range(1000):
+        rows=[c['results'].get(r['requestId'])for r in c['traffic'][mark:]if r['endpoint']=='saveDraft']
+        if any(v and v.get('ok')for v in rows):break
+        failures=[v for v in rows if v and not v.get('ok')and v.get('error',{}).get('code')not in['stale_revision','busy','stale_scope']];assert not failures,failures;page.wait_for_timeout(30)
+    else:raise AssertionError('subsequent C# Save acknowledgement missing')
+    c['idle']();assert not c['pending']();after={u['id']:u for u in json.loads(c['_checkpoint'].read_text())['changes']};gid=c['n']+'CalcBody/body:common';assert after[gid]['propertyObservations']==baseline[gid]['propertyObservations'];assert json.loads(after[gid+'/node:combine']['draft'])['source']==text;c['unchanged']()
+    restart(c,4);assert next(v for v in c['current']()['nodes']if v['id']=='combine')['source']==text
+    c['expected_changed']={'Calc.graph.json','combine.node.json'};c['checked']('속성 저장 뒤 기존 C# 편집·취소·Save·cold 복원은 원본 관측을 재기준화하지 않고 새 본문만 보존한다')
+
+def after_confirm(c):
+    c['call']('saveDraft',{});assert c['current']()['diagnostics']['state']in['source-ready','source-assembled'];c['checked']('Confirm의 실제 반영 후 이전 원본 관측을 종료하여 같은 세션의 반복 Save도 허용한다')

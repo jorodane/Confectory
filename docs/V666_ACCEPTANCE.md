@@ -12,7 +12,7 @@ v536 기록은 과거 검증 증거이며 기존 기능을 미구현으로 되�
 - 같은 계약 copy·자식 소유 target의 전체 명시 갱신과 inherited-only 관측은 최종 검증까지 마감했다. [전체 갱신 기록](VALIDATION_V666_ROOT_EXECUTION_OWNED_UPDATES.md)에 신규/재사용과 환경 중단 복구 근거를 유지한다.
 - 등록 외부 import·manifest·scope/포함 모듈의 읽기 전용 receipt도 저장·복원·Review·최종 CAS·실제 실행까지 마감했다. [최종 44단계와 패키지/복원 증거](VALIDATION_V666_ROOT_EXECUTION_IMPORTS.md)를 따른다. 네 원래 흐름으로 M12를 완료하며 조합별 새 잔여를 추가하지 않는다.
 
-wrapper의 정상 stale 거절을 자동 변환 요구로, 비소유 부모/참조 쓰기나 override IO 변경을 미구현으로 늘리지 않는다. 새 타입·문맥 조합을 이 목록에 추가하지 않는다. M4의 직접 소유 ordinary 함수·동작/호출자의 명시적 Task 실행 기반은 [현재 지원 경계](M4_ASYNC.md)에 연결했다. 최종 신규 LF22·CRLF20·패키지/전체 복원/실패 수명관리8, 총50단계를 통과했다([검증·보관 기록](VALIDATION_V666_ASYNC_RUNTIME.md)). 직접 소유 ordinary Root의 원본 전환 메뉴·초안/원자 저장 연결은 [이번 지원 경계](M4_ASYNC_TRANSITION.md)를 따른다. 이 UI 단위의 [최종 신규 40단계·재사용 0](VALIDATION_V666_ASYNC_TRANSITION.md)을 마감했다. 지역 C# Result 완료 분기의 동기 복귀와 ordinary async Set 연동은 아래 후속에 연결했고, ordinary 공개 완료는 후속에 연결했고, 명시 native/Result 없는 본문·새/내부 소유·property 문맥은 남는다. 동기 caller는 명시적으로 async로 바뀌기 전에는 오류로 거절한다. V2–V9와 기존 별도 UI/권한 backend·종류 C# 표현/사용 중 삭제 대응·실기기 검증의 남은 범위는 해당 고정 행을 따른다.
+wrapper의 정상 stale 거절을 자동 변환 요구로, 비소유 부모/참조 쓰기나 override IO 변경을 미구현으로 늘리지 않는다. 새 타입·문맥 조합을 이 목록에 추가하지 않는다. M4의 직접 소유 ordinary 함수·동작/호출자의 명시적 Task 실행 기반은 [현재 지원 경계](M4_ASYNC.md)에 연결했다. 최종 신규 LF22·CRLF20·패키지/전체 복원/실패 수명관리8, 총50단계를 통과했다([검증·보관 기록](VALIDATION_V666_ASYNC_RUNTIME.md)). 직접 소유 ordinary Root의 원본 전환 메뉴·초안/원자 저장 연결은 [이번 지원 경계](M4_ASYNC_TRANSITION.md)를 따른다. 이 UI 단위의 [최종 신규 40단계·재사용 0](VALIDATION_V666_ASYNC_TRANSITION.md)을 마감했다. 지역 C# Result 완료 분기의 동기 복귀와 ordinary async Set 연동은 아래 후속에 연결했고, ordinary 공개 완료는 후속에 연결했고, async root 속성 편집은 [현재 단위](M4_ASYNC_PROPERTIES.md)로 연결했다. 명시 native/Result 없는 본문·새/내부 소유 전환은 남는다. 동기 caller는 명시적으로 async로 바뀌기 전에는 오류로 거절한다. V2–V9와 기존 별도 UI/권한 backend·종류 C# 표현/사용 중 삭제 대응·실기기 검증의 남은 범위는 해당 고정 행을 따른다.
 
 ## 기존 미완료 사용자 흐름
 
@@ -115,4 +115,4 @@ ordinary IInvoke/native import와 legacy NoBranch wrapper를 공개 계약 갱�
 
 ## M4 속성 편집 후속
 
-기존 직접 소유 async root의 속성 검색·receiver/소비 연결·필드 쓰기를 원래 속성 UI와 propertyPlan 후보에 연결한다. 전환 가능 여부와 현재 async 시계 표시를 분리하며 프로젝트 관측을 최종 CAS까지 유지한다. [정확한 경계와 검증 계획](M4_ASYNC_PROPERTIES.md). 기존 Result 없는 본문 어댑터와 새/내부 소유 본문 전환은 남고, 기존 copy/slot/private 보호를 새 조합 요구로 확대하지 않는다. 최종 검증 수치는 종료 기록에서 확정한다.
+기존 직접 소유 async root의 속성 검색·receiver/소비 연결·필드 쓰기를 원래 속성 UI와 propertyPlan 후보에 연결한다. 전환 가능 여부와 현재 async 시계 표시를 분리하며 프로젝트 관측을 최종 CAS까지 유지한다. 물리 원본 관측과 저장 응답 후보 해시를 분리해 후속 C# 편집·재시작을 허용하고, 전체 Confirm 뒤 관측을 종료해 반복 저장을 유지한다. [정확한 경계와 검증 계획](M4_ASYNC_PROPERTIES.md). 기존 Result 없는 본문 어댑터와 새/내부 소유 본문 전환은 남고, 기존 copy/slot/private 보호를 새 조합 요구로 확대하지 않는다. 최종 검증 수치는 종료 기록에서 확정한다.
