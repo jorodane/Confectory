@@ -6,7 +6,7 @@ v536 기록은 과거 검증 증거이며 기존 기능을 미구현으로 되�
 
 ## 현재 M11·M12·M4 경계
 
-첫 생성 Save 전 소유 C#·값·표시·지역 핀/연결과 명시 Task 입력의 결합은 [현재 지원 경계](M4_ASYNC_FIRST_SAVE.md)를 따른다. 생성 전 Undo/취소/cold와 선언 자체의 미저장 복구를 다룬다. 공개 Root IO 변경은 기존 원본 ABI 거래의 실제 경계로 남으며 현재 거절을 영구 UX 정책으로 확정하지 않는다. 최종 검증 수치는 종료 기록에서 확정한다.
+첫 생성 Save 전 소유 C#·값·표시·지역 핀/연결과 명시 Task 입력의 결합은 [현재 지원 경계](M4_ASYNC_FIRST_SAVE.md)를 따른다. 생성 전 Undo/취소/cold와 선언 자체의 미저장 복구를 다룬다. 공개 Root IO의 새 전역 생성 결합은 [첫 Confirm 전 IO 거래](M4_ASYNC_ROOT_IO.md)로 연결했다. 기존 원본·정보 owner·복수 계약의 공동 갱신 보호는 유지하며, 분기선 생성의 첫 Task 결합은 다음 단위다. 최종 검증 수치는 [종료 기록](VALIDATION_V666_ASYNC_ROOT_IO.md)을 따른다.
 
 직접 소유 내부 Task의 명시 전환·저장·실행은 [private 지원 경계](M4_ASYNC_PRIVATE.md)를 따른다. 연결된 내부 완료 실행선의 일반 결과 보존 동기 복귀는 마감했다. 첫 생성 Save 입력의 현재 지원/잔여는 위 경계를 따른다.
 
@@ -14,7 +14,7 @@ v536 기록은 과거 검증 증거이며 기존 기능을 미구현으로 되�
 
 새 전역 함수/구현/graph/코드의 첫 Confirm 전 async 전환은 [생성 소유권 경계](M4_ASYNC_NEW_FUNCTION.md)를 따른다. 정보 소유 함수의 직접 생성/배정은 위 정보 소유 경계를 따르며 내부 Task와 첫 Save 입력은 위 현재 경계를 따른다.
 
-새 ordinary C# 동작의 첫 Confirm 전 명시 async 전환은 [새 leaf 소유/저장 경계](M4_ASYNC_CREATING.md)를 따른다. 기존 직접 소유 Root에 생성 초안을 저장한 뒤 새 record의 missing CAS를 유지하며 메뉴·코드 편집·전체 Confirm으로 연결한다. 정보 소유 생성/배정과 private/internal Task는 위 지원 경계를 따른다. 첫 생성 Save의 코드/표시/값·지역 핀과 명시 Task 결합은 현재 경계에 연결했고, 공개 Root IO·분기선 생성 결합의 실제 잔여는 따로 유지한다.
+새 ordinary C# 동작의 첫 Confirm 전 명시 async 전환은 [새 leaf 소유/저장 경계](M4_ASYNC_CREATING.md)를 따른다. 기존 직접 소유 Root에 생성 초안을 저장한 뒤 새 record의 missing CAS를 유지하며 메뉴·코드 편집·전체 Confirm으로 연결한다. 정보 소유 생성/배정과 private/internal Task는 위 지원 경계를 따른다. 첫 생성 Save의 코드/표시/값·지역 핀과 명시 Task 결합은 현재 경계에, 공개 Root IO 후속은 [새 전역 root 경계](M4_ASYNC_ROOT_IO.md)에 연결했다. 분기선 생성의 첫 Task 결합은 남는다.
 
 아래 긴 표의 누적 문장은 각 당시 검증의 기록이다. 현재 잔여 판단은 [유한한 M12 마감표](M12_CLOSURE.md)를 우선한다. M11의 원래 소유 구현 편집은 마감했으며 구체적 회귀 없이 다시 열지 않는다. M12는 데이터 반환·소유 provider/target·일반 및 native 진입·공개/private 실행 계약 caller의 보존을 연결했고, 현재 실제 흐름의 마감 경계는 다음과 같다.
 
@@ -155,10 +155,12 @@ Result 없는 ordinary 동작 완료 어댑터의 최종 동결 `76f9837`은 **�
 
 ## M4 첫 생성 Save 입력 결합 후속
 
-새 전역/정보 소유 함수와 새 ordinary 동작 및 기존 직접 소유 내부 본문에서 C#·표시/값·지역 핀/연결과 명시 Task를 기존 원자 후보에 결합한다. 선언 자체가 아직 checkpoint되지 않은 전역 함수도 같은 소유 프로젝트/등록/원문/checkpoint의 정확한 일치로만 메모리 복구한다. [지원/미지원·유한한 후속](M4_ASYNC_FIRST_SAVE.md)과 [최종 검증 기록](VALIDATION_V666_ASYNC_FIRST_SAVE.md)을 따른다. 공개 Root 핀 계약 변경은 기존 Confirm 원본 요구에 걸리는 실제 ABI 잔여이며 완료로 계산하지 않는다. V2–V9와 기존 팩/backend·종류 결정·실기기/전체 UI/Space 전달은 그대로 구분한다.
+새 전역/정보 소유 함수와 새 ordinary 동작 및 기존 직접 소유 내부 본문에서 C#·표시/값·지역 핀/연결과 명시 Task를 기존 원자 후보에 결합한다. 선언 자체가 아직 checkpoint되지 않은 전역 함수도 같은 소유 프로젝트/등록/원문/checkpoint의 정확한 일치로만 메모리 복구한다. [지원/미지원·유한한 후속](M4_ASYNC_FIRST_SAVE.md)과 [최종 검증 기록](VALIDATION_V666_ASYNC_FIRST_SAVE.md)을 따른다. 공개 Root 핀 계약의 새 전역 생성 후속은 [정확한 root IO 경계](M4_ASYNC_ROOT_IO.md)에서 연결했다. 이미 있는 원본·owner·복수 계약의 공동 갱신 보호는 유지한다. V2–V9와 기존 팩/backend·종류 결정·실기기/전체 UI/Space 전달은 그대로 구분한다.
 
-첫 생성 Save의 직렬 소유 입력 결합은 최종 **68단계(신규 32·동등 근거 재사용 36)**로 검증했다. [검증·지속 보관·남은 두 원래 거래](VALIDATION_V666_ASYNC_FIRST_SAVE.md)를 따른다. 공개 Root IO와 분기 실행선에서 만드는 새 동작의 첫 Task 결합을 남기며, 정상 보호나 타입 조합을 새 목록으로 늘리지 않는다.
+첫 생성 Save의 직렬 소유 입력 결합은 최종 **68단계(신규 32·동등 근거 재사용 36)**로 검증했다. [당시 검증·지속 보관·후속 두 거래](VALIDATION_V666_ASYNC_FIRST_SAVE.md)를 따른다. 당시 남긴 공개 Root IO는 아래 후속으로 연결했고, 분기 실행선에서 만드는 새 동작의 첫 Task 결합은 남는다. 정상 보호나 타입 조합을 새 목록으로 늘리지 않는다.
 
 ## M4 첫 Confirm 전 공개 IO 결합
 
-새 직접 소유 전역 함수의 단일 구현/target에서 원본 공개 IO·값/연결과 명시 Task를 첫 원자 후보에 결합하고, Confirm 전 명시 재편집을 같은 생성 증명으로 다룬다. [정확한 경계](M4_ASYNC_ROOT_IO.md)와 [검증 진행/최종 기록](VALIDATION_V666_ASYNC_ROOT_IO.md)을 따른다. 분기선에 만든 새 동작의 첫 Task 결합은 다음 단위로 남기며 M11/M12·기존 팩/backend/기기 잔여를 확대하거나 완료로 계산하지 않는다.
+새 직접 소유 전역 함수의 단일 구현/target에서 원본 공개 IO·값/연결과 명시 Task를 첫 원자 후보에 결합하고, Confirm 전 명시 재편집을 같은 생성 증명으로 다룬다. [정확한 경계](M4_ASYNC_ROOT_IO.md)와 [최종 검증 기록](VALIDATION_V666_ASYNC_ROOT_IO.md)을 따른다. 분기선에 만든 새 동작의 첫 Task 결합은 다음 단위로 남긴다. M11/M12는 닫힌 상태를 유지하고 기존 팩/backend/기기 잔여는 별도로 구분한다.
+
+첫 Confirm 전 새 전역 root의 공개 IO 결합은 최종 **50단계(신규 50·재사용 0)**로 검증하고 최신/롤백과 증거를 지속 보관했다. [실제 지원·실패 수정·보관·후속](VALIDATION_V666_ASYNC_ROOT_IO.md)을 따른다. 분기선 새 동작의 첫 Task 결합은 다음 단위이며 기타 고정 잔여를 완료로 계산하지 않는다.

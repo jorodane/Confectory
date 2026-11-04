@@ -42,10 +42,11 @@ checkpoint와 전체 선언/등록 입력이 일치하는 경우에만 해당 �
 
 ## 남는 고정 범위
 
-이 단위는 `root-parameters` 공개 IO 변경 거래나 별도 Set/property/실행 분기 계획을
-async와 임의로 합치지 않는다. 특히 새 함수의 Blueprint Root 핀 계약 변경은 기존
-Root 계약 거래가 아직 Confirm한 원본을 요구하는 실제 경계다. 이는 정상 영구 UX
-정책으로 확정한 금지가 아니며, 고정 입력/출력 계약 편집의 다음 구현 범위로 남는다.
+이 기본 단위에서 남겼던 `root-parameters` 공개 IO는 후속
+[새 직접 소유 전역 root 거래](M4_ASYNC_ROOT_IO.md)로 연결했다. 해당 새 선언·구현·
+본문/target의 생성 증명과 명시 대응을 따르며, 이미 있는 원본·정보 owner·복수 계약을
+그 예외로 우회하지 않는다. 별도 Set/property/실행 분기 계획 전체를 async와 임의로
+합치는 확장으로 만들지 않는다.
 생성 전에 선언 편집기로 적용한 IO의 정체성과 원문은 이번 복구에서 보존한다.
 완료/결과 실행선에 삽입한 새 동작은 `route:completion`/`route:case` 입력을 만든다.
 현재 async 결합은 next `route`만 허용하므로 그 최초 결합도 실제 후속이며, 이번 직렬
