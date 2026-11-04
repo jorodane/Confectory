@@ -13,6 +13,13 @@ const origin={node:'body',type:'completion-code',proof:before,text:'old selectio
 const late={...origin,text:'late selection'};
 assert.equal(check(late,origin,prior),true);
 assert.equal(check({...late,type:'branch-exits'},{...origin,type:'branch-exits'},prior),true);
+const asyncOrigin={...origin,node:'$async',type:'async-plan'},asyncLate={...asyncOrigin,text:'new explicit plan'};
+assert.equal(check(asyncLate,asyncOrigin,prior),true);
+assert.equal(check(asyncLate,null,prior),false);
+assert.equal(check(asyncLate,{...asyncOrigin,node:'peer'},prior),false);
+assert.equal(check(asyncLate,{...asyncOrigin,type:'source'},prior),false);
+assert.equal(check(asyncLate,asyncOrigin,'malformed'),false);
+for(const changed of [rows.slice(0,1),rows.map((r,i)=>i?[r[0],0,'c'.repeat(64)]:r),rows.map((r,i)=>i?['Peer::body',0,r[2]]:r),[...rows,rows[0]]])assert.equal(check(asyncLate,asyncOrigin,JSON.stringify(changed)),false);
 assert.equal(check(late,null,prior),false);
 assert.equal(check(late,{...origin,node:'peer'},prior),false);
 assert.equal(check(late,{...origin,type:'source'},prior),false);
@@ -21,4 +28,4 @@ assert.equal(check({...late,type:'source'},{...origin,type:'source'},prior),fals
 for(const changed of [rows.slice(0,1),rows.map((r,i)=>i?[r[0],0,'c'.repeat(64)]:r),rows.map((r,i)=>i?['Peer::body',0,r[2]]:r),[...rows,rows[0]]])assert.equal(check(late,origin,JSON.stringify(changed)),false);
 assert.equal(check({...late,proof:JSON.stringify(rows.slice(0,1))},origin,prior),false);
 assert.equal(check(late,origin,'malformed'),false);
-console.log('PASS exact settled input keeps late code across epochs; missing/peer/tampered/unknown sources fail closed');
+console.log('PASS exact settled input keeps late code and explicit async plan across epochs; missing/peer/tampered/unknown sources fail closed');

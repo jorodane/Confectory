@@ -328,11 +328,12 @@ def main():
                 work.run(label+'-m11-regression',[sys.executable,str(checkout/'tests/web'/regression),str(checkout),str(report)],cwd=checkout,env=env)
                 work.run(label+'-owned-final-read-cas',[sys.executable,str(checkout/'tests/web/v536_copy_read_guards_core.py'),str(checkout)],cwd=checkout,env=env)
             elif args.suite=='async-creating':
+                work.run(label+'-creating-recovery-proof',['node',str(checkout/'tests/web/v666_completion_recovery.mjs')],cwd=checkout,env=env)
                 work.run(label+'-creating-script',['node','--check',str(checkout/'examples/editor-home/ui/feature-authoring.js')],cwd=checkout,env=env)
                 work.run(label+'-creating-runtime',[dotnet,str(checkout/'tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll'),'AsyncContextTests','AsyncBlueprintTests','BlueprintConversionTests','--require-runtime'],cwd=checkout,env=env)
                 work.run(label+'-creating-guards',[sys.executable,str(checkout/'tests/web/v666_async_creating_guards.py'),str(checkout)],cwd=checkout,env=env)
                 work.run(label+'-creating-api',[sys.executable,str(checkout/'tests/web/v666_async_creating_api.py'),str(checkout),str(report)],cwd=checkout,env=env)
-                for mode in (['normal','storage','conflict'] if label=='lf' else ['loss','late']):
+                for mode in (['late','normal','storage'] if label=='lf' else ['loss','conflict']):
                     work.run(label+'-creating-ui-'+mode,[sys.executable,str(checkout/'tests/web/v666_async_creating_ui.py'),str(checkout),str(report),mode],cwd=checkout,env=env)
                 work.run(label+'-async-receipt-guards',[sys.executable,str(checkout/'tests/web/v666_async_transition_guards.py'),str(checkout)],cwd=checkout,env=env)
                 regression='v666_async_context_api.py' if label=='lf' else 'v666_async_adapter_api.py'

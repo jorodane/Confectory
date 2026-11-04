@@ -34,3 +34,8 @@ M11/M12를 다시 미완료로 열거나 legacy 자동 migration, 부모/참조 
 임의 타입/문맥 조합을 새 수용 요건으로 늘리지 않는다. 동기 호출자는 명시 async
 전환 전까지 오류이며 자동 대기/변환하지 않는다. 원문·권한·팝오버/레이아웃과
 최신/롤백/증거 수명은 기존 계약을 유지한다.
+
+자체 저장 응답 뒤의 늦은 async-plan도 이전 origin cell의 동일 node/type/proof와
+서버의 두 번 확인된 settled 영수증, 같은 전체 ID/hash를 만족할 때에만 cold epoch의
+revision 차이를 수용한다. 같은 bytes의 자체 저장에 대한 복원이며 peer·누락·변조
+closure나 일반 source 입력의 묵시적 재적용을 허용하지 않는다.

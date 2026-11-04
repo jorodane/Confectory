@@ -34,7 +34,7 @@ export function createFeatureAuthoring(api){
  // same complete owned source identities and bytes before accepting a new server receipt.
  // Preserve original proof; changed/missing/unknown closures still fail closed.
  function sameRestoredSources(saved,data){try{const before=JSON.parse(saved),after=JSON.parse(proof(data));if(!Array.isArray(before)||!before.length||before.length!==after.length)return false;const valid=rows=>rows.every(r=>Array.isArray(r)&&r.length===3&&typeof r[0]==='string'&&Number.isSafeInteger(r[1])&&r[1]>=0&&typeof r[2]==='string'&&/^[a-f0-9]{64}$/.test(r[2]))&&new Set(rows.map(r=>r[0])).size===rows.length;if(!valid(before)||!valid(after))return false;return before.every((r,i)=>r[0]===after[i][0]&&r[2]===after[i][2]);}catch{return false;}}
- function sameSettledInput(value,origin,priorProof){if(value.proof===priorProof)return true;if(!['branch-exits','completion-code'].includes(value.type)||!origin||origin.node!==value.node||origin.type!==value.type||value.proof!==origin.proof)return false;try{return sameRestoredSources(origin.proof,{sources:JSON.parse(priorProof).map(([id,revision,hash])=>({id,revision,hash}))});}catch{return false;}}
+ function sameSettledInput(value,origin,priorProof){if(value.proof===priorProof)return true;if(!['branch-exits','completion-code','async-plan'].includes(value.type)||!origin||origin.node!==value.node||origin.type!==value.type||value.proof!==origin.proof)return false;try{return sameRestoredSources(origin.proof,{sources:JSON.parse(priorProof).map(([id,revision,hash])=>({id,revision,hash}))});}catch{return false;}}
 
  const copyScope=scope=>scope+'|'+(api.authorSurface?'view:'+api.authorSurface+'|':'');
  const copyKey=(scope,owner,feature)=>copyScope(scope)+'v508-copy|'+owner+'|'+feature;
