@@ -1,6 +1,7 @@
 """Reuse only sealed, byte-identical non-browser checks after a UI recovery fix."""
 import json
 from pathlib import Path
+import re
 import subprocess
 import zipfile
 
@@ -22,6 +23,13 @@ def bind(repo, record, commit, inputs, work):
     changed = subprocess.check_output(['git','diff','--name-only',prior['source'],commit],cwd=repo,text=True).splitlines()
     if any(name not in allowed and not name.startswith('docs/') for name in changed):
         raise RuntimeError('Backend/test/build inputs changed; execute them freshly')
+    bundle = 'examples/editor-home/WebBundle.csbody'
+    def descriptor(version):
+        text = subprocess.check_output(['git','show',version+':'+bundle],cwd=repo,text=True)
+        return re.sub(r'"canonicalSize":\d+,"canonicalSha256":"[a-f0-9]{64}"',
+                      '"canonicalSize":0,"canonicalSha256":"PINNED_RESOURCE"',text)
+    if descriptor(prior['source']) != descriptor(commit):
+        raise RuntimeError('Bundle behavior/endpoints changed; execute backend checks freshly')
     with zipfile.ZipFile(prior['evidence']) as archive:
         source = json.loads(archive.read('source.json'))
         old_inputs = source['dependencyInputs']
