@@ -1,6 +1,11 @@
 """Audit the bounded human-facing copy delta; do not translate backend errors."""
 import hashlib,json,pathlib,re,subprocess,sys
-repo=pathlib.Path(sys.argv[1]).resolve();plan=json.loads((repo/'docs/v666-code-editor-copy.json').read_text())
+repo=pathlib.Path(sys.argv[1]).resolve()
+if(repo/'docs/v666-value-guidance-copy.json').exists():
+ import runpy
+ runpy.run_path(str(pathlib.Path(__file__).with_name('v666_guidance_values_copy.py')),run_name='__main__')
+ raise SystemExit(0)
+plan=json.loads((repo/'docs/v666-code-editor-copy.json').read_text())
 def original(path):return subprocess.check_output(['git','show',plan['baseCommit']+':'+path],cwd=repo,text=True)
 source='examples/editor-home/ui/feature-authoring.js';before=original(source);expected=before
 for row in plan['changes']:
