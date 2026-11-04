@@ -19,7 +19,7 @@
 
 48단계 모두 통과했다. 두 checkout의 새 Release 빌드는 경고·오류 0이다. 모든 UI 검사, 두 새 빌드, 새 패키지와 전체 복원은 이번 동결본에서 실행했다. UI는 정상/취소·Undo/Redo·창 숨김/cold·반복 저장, checkpoint 실패·원문 경합, 응답 유실·늦은 입력, Review 취소/Confirm·실제 CLR 실행과 원문 CRLF/helper·출력/연결을 확인한다. copy와 속성 UI 회귀도 새로 실행했다. 선택기의 readonly 영역 탈출은 compiler body 검사로 거절하며 source marker를 별도로 유지한다.
 
-재사용 9단계는 이전 동결 `bf276b1eebfd3cc02d17ab820d22a9234efcce16`의 **통과 결과만** 사용한다. LF의 runtime/metadata 거절/API/기존 완료 API/공개 완료 API/영수증 6단계와 CRLF의 runtime/metadata 거절/API 3단계다. Core/runtime 20개 검사는 각 EOL에서 기존 실행 근거를 재사용했다. C#/API 소스·검사 입력·SDK/NuGet 전체 SHA가 동일하며, 이후 변경은 browser proof 연결·그 자산 manifest·검사/문서뿐이다. API는 browser 코드를 실행하지 않는다. 이전에 미실행인 CRLF의 기존 완료·공개 완료·영수증 회귀는 새로 실행했다.
+재사용 9단계는 이전 동결 `bf276b1eebfd3cc02d17ab820d22a9234efcce16`의 **통과 결과만** 사용한다. LF의 runtime/metadata 거절/API/기존 완료 API/공개 완료 API/영수증 6단계와 CRLF의 runtime/metadata 거절/API 3단계다. Core/runtime 20개 검사는 각 EOL에서 기존 실행 근거를 재사용했다. 재사용한 Core/targets/packs의 C# 실행 코드와 API 검사 입력·SDK/NuGet 전체 SHA가 동일하다. 이후 변경은 browser proof 연결·WebBundle의 자산 manifest 데이터·해당 UI/직접 검사·문서뿐이다. API는 browser 코드를 실행하지 않는다. 이전에 미실행인 CRLF의 기존 완료·공개 완료·영수증 회귀는 새로 실행했다.
 
 이 판정은 최종 증거의 `reuse-audit.json`, `harness/audited_verify.py`, 각 `*.result.json`에 원래 commit·명령·로그 SHA·의존성 및 허용된 소스 차이와 함께 보존했다. 재사용을 신규 실행으로 세지 않는다. 실패했던 늦은 입력 검사는 재사용하지 않았다.
 
