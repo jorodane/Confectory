@@ -338,6 +338,7 @@ def main():
                 work.run(label+'-async-transition-regression',[sys.executable,str(checkout/'tests/web/v666_async_transition_api.py'),str(checkout),str(report),'--out-root'],cwd=checkout,env=env)
                 work.run(label+'-property-plan-regression',[sys.executable,str(checkout/'tests/web/v536_property_plan.py'),str(checkout),str(report)],cwd=checkout,env=env)
                 if label=='lf':work.run('lf-sync-property-ui',[sys.executable,str(checkout/'tests/web/v536_property_set_ui.py'),str(checkout),str(report)],cwd=checkout,env=env)
+                if label=='lf':work.run('lf-copy-source-regression',[sys.executable,str(checkout/'tests/web/v666_node_internal_copy_ui.py'),str(checkout),str(report),'normal'],cwd=checkout,env=env)
 
             elif args.suite=='async-function':
                 for asset in ['feature-authoring.js','set-authoring.js']:

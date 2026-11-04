@@ -40,6 +40,7 @@ def begin(c):
     plan=dict(reads=[dict(node='rejectedRead',owner=c['n']+'Monster',field='health',descriptor=c['descriptor'],targetJson='{"input":"replacement"}')],changes=[dict(action='route',node='write',port='next',to='rejectedRead'),dict(action='route',node='rejectedRead',port='next',to='second'),dict(action='argument',node='second',name='value',valueJson='{"node":"rejectedRead","output":"return"}')])
     request=dict(id=data['id'],attempt='1'*32,checkpointHash=data['checkpointHash'],sourceProof=json.dumps(sorted([[v['id'],v['revision'],v['hash']]for v in data['sources']]),separators=(',',':')),edits=[dict(action='propertyPlan',node='$properties',definition=plan)])
     before=c['_checkpoint'].read_bytes();c['call']('blueprint',dict(action='authorBatch',**request),False);assert c['_checkpoint'].read_bytes()==before;assert c['current']()['checkpointHash']==data['checkpointHash'];c['unchanged']()
+    source_only=copy.deepcopy(request);source_only['attempt']='2'*32;source_only['edits']=[dict(action='source',node='combine',text=next(v for v in data['nodes']if v['id']=='combine')['source'])];c['call']('blueprint',dict(action='authorBatch',**source_only),False);assert c['_checkpoint'].read_bytes()==before
     c['checked']('async 속성 receiver 자료형 오류와 field-ref 문맥은 거절하고 원본/Task/입력을 보존한다')
     c['checked']('async 속성 읽기는 등록 프로젝트·객체·스키마 관측과 원래 Task 계약을 보존한다')
 
@@ -135,12 +136,12 @@ def after_saved(c):
         panel().locator('[data-bp-node=combine] [data-internal-code]').click();dialog=page.get_by_role('dialog',name='C# Script · 보관값 합치기',exact=True);editor=dialog.locator('[data-code-source]');body=dialog.locator('[data-code-region=body]').text_content();text=body+'\n// 명시적 후속 본문 편집'
         editor.evaluate('(el,body)=>{const at=el.value.indexOf(body);if(at<0)throw Error("body missing");el.focus();el.setSelectionRange(at,at+body.length)}',body);page.keyboard.insert_text(text);dialog.locator('[data-code-cancel]'if cancel else'[data-code-save]').click();return text
     held=c['pending']();edit(True);assert c['pending']()==held
-    text=edit(False);mark=len(c['traffic']);panel().locator('[data-bp-save]').click()
-    for _ in range(1000):
-        rows=[c['results'].get(r['requestId'])for r in c['traffic'][mark:]if r['endpoint']=='saveDraft']
-        if any(v and v.get('ok')for v in rows):break
-        failures=[v for v in rows if v and not v.get('ok')and v.get('error',{}).get('code')not in['stale_revision','busy','stale_scope']];assert not failures,failures;page.wait_for_timeout(30)
-    else:raise AssertionError('subsequent C# Save acknowledgement missing')
+    text=edit(False);held=c['pending']();checkpoint=c['_checkpoint'];before=checkpoint.read_bytes();before_source=next(v for v in c['current']()['nodes']if v['id']=='combine')['source'];mark=len(c['traffic']);checkpoint.chmod(0o400)
+    try:
+        panel().locator('[data-bp-save]').click();failure=refused(c,mark);c['idle']();now=c['pending']();(c['case']/'csharp-save-failure.json').write_text(json.dumps(dict(before=held,after=now,response=failure),ensure_ascii=False,indent=2));assert all(dict(now).get(k)==v for k,v in held),'C# private input lost before checkpoint save';assert checkpoint.read_bytes()==before;assert next(v for v in c['current']()['nodes']if v['id']=='combine')['source']==before_source
+    finally:checkpoint.chmod(0o600)
+    c['checked']('속성 뒤 C# 본문 저장 실패도 개인 입력·기존 checkpoint·원본을 보존하고 같은 후보로 재시도한다')
+    mark=len(c['traffic']);panel().locator('[data-bp-save]').click();c['saved'](mark)
     c['idle']();assert not c['pending']();after={u['id']:u for u in json.loads(c['_checkpoint'].read_text())['changes']};gid=c['n']+'CalcBody/body:common';assert after[gid]['propertyObservations']==baseline[gid]['propertyObservations'];assert json.loads(after[gid+'/node:combine']['draft'])['source']==text;c['unchanged']()
     restart(c,4);assert next(v for v in c['current']()['nodes']if v['id']=='combine')['source']==text
     c['expected_changed']={'Calc.graph.json','combine.node.json'};c['checked']('속성 저장 뒤 기존 C# 편집·취소·Save·cold 복원은 원본 관측을 재기준화하지 않고 새 본문만 보존한다')
