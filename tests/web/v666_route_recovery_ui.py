@@ -71,7 +71,7 @@ def main():
   assert not has(wanted)and current()==wanted
   writes=[r['invoke']['input']for r in f.traffic[mark:]if r.get('invoke',{}).get('endpoint')=='blueprint'and r['invoke']['input'].get('action')=='authorBatch']
   if mode=='loss':assert not writes,writes
-  else:assert all(edit.get('text')!=text for write in writes for edit in write['edits'])
+  else:assert writes and all(edit.get('to')==late for write in writes for edit in write['edits'])
   f.checked('next route '+mode+': exact receipt/new route separation without replay of earlier route')
  else:saved()
  value=late if mode in ['storage-new','late']else text;assert current()==value and not has(value);history('undo');assert current()==(text if mode=='late'else 'exit:return');history('redo');assert current()==value;f.invoke('saveDraft',{});restart(4);assert not has(value);check_editor(value);x.original();f.checked('next route supports shared draft Undo/Redo/cold with unchanged contracts and physical originals')
