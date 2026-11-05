@@ -1,0 +1,89 @@
+{
+  "baseCommit": "2a553854ad254994c1b361a472c42a0c1ba8bdf8",
+  "deltas": [
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": " function ownedRootOutputOrder(w,cells,data=w.authorData)",
+      "after": " function ownedRootInputName(w,cells,data=w.authorData){if(!data.id||data.id!==data.rootId||data.privatePath||data.slotContext||data.privateCopy||w.meta.copyDraft||data.executionExitMode||data.asyncTransition?.enabled||cells.length!==1||cells[0][1].type!=='root-parameters'||cells[0][1].node!=='$root'||cellFrame(w,cells[0][0])&&cellFrame(w,cells[0][0])!==data.id||data.nodes.some(n=>n.implementationContext||n.contextBoundary||n.forwardCallerStorage))return false;try{const plan=JSON.parse(cells[0][1].text),sig=signature(data.signature),arg=plan.args?.[0];return Object.keys(plan).length===4&&Object.keys(plan).every(k=>['args','returnType','remap','outputOrder'].includes(k))&&sig.args.length===1&&!sig.args[0].mode&&sig.return!=='void'&&plan.args.length===1&&Object.keys(arg).length===2&&Object.keys(arg).every(k=>['name','type'].includes(k))&&typeof arg.name==='string'&&/^[_A-Za-z][_A-Za-z0-9]{0,59}$/.test(arg.name)&&arg.type===sig.args[0].type&&plan.returnType===sig.return&&Object.keys(plan.remap).length===1&&plan.remap[sig.args[0].name]===arg.name&&JSON.stringify(plan.outputOrder)==='[\"return\"]'&&JSON.stringify(data.outputOrder)==='[\"return\"]';}catch{return false;}}\n function ownedRootOutputOrder(w,cells,data=w.authorData)",
+      "count": 1
+    },
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": "   const correctedOwnedRootOutputOrder=",
+      "after": "   const correctedOwnedRootInputName=ownedRootInputName(w,journal.cells)&&ownedRootInputName(w,captured)&&w.authorData.checkpointHash===journal.checkpointHash&&journal.cells[0][0]===captured[0][0]&&sameCell({...journal.cells[0][1],text:captured[0][1].text},captured[0][1]);\n   const correctedOwnedRootOutputOrder=",
+      "count": 1
+    },
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": "correctedMapping||correctedOwnedRootOutputOrder",
+      "after": "correctedMapping||correctedOwnedRootInputName||correctedOwnedRootOutputOrder",
+      "count": 1
+    },
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": "(ownedRootOutputOrder(w,captured,current)||",
+      "after": "(ownedRootInputName(w,captured,current)||ownedRootInputName(w,inputs.get(authorAttemptKey(w))?.cells||[],current)||ownedRootOutputOrder(w,captured,current)||",
+      "count": 1
+    },
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": "if(sameSettledInput(value,origin,journal.sourceProof,journal.edits.some(edit=>edit.action==='asyncTransition')))inputs.set(key,{...value,proof:proof(current),basis:current.basis});",
+      "after": "if(sameSettledInput(value,origin,journal.sourceProof,journal.edits.some(edit=>edit.action==='asyncTransition'))){let next=value;if(origin&&journal.cells.length===1&&journal.cells[0][0]===key&&origin.type==='root-parameters'&&value.type==='root-parameters'){try{const accepted=JSON.parse(origin.text),plan=JSON.parse(value.text),sig=signature(current.signature),old=Object.keys(accepted.remap),baseline={...current,signature:{args:[{...sig.args[0],name:old[0]}],return:sig.return}};if(old.length===1&&ownedRootInputName(w,journal.cells,baseline)&&ownedRootInputName(w,[[key,value]],baseline)){if(sig.args[0]?.name!==accepted.args[0].name)continue;next={...value,text:JSON.stringify({...plan,remap:{[accepted.args[0].name]:plan.args[0].name}})};if(!ownedRootInputName(w,[[key,next]],current))continue;}}catch{continue;}}inputs.set(key,{...next,proof:proof(current),basis:current.basis});}",
+      "count": 1
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": " bool ownedRootOutputOrderBatch=",
+      "after": " bool ownedRootInputNameBatch=request[\"owner\"] is null&&graphId==physicalGraphId&&edits.Count==1&&edits[0]!.AsObject().Count==3&&edits[0]?[\"action\"]?.ToString()==\"rootParameters\"&&edits[0]?[\"node\"]?.ToString()==\"$root\"&&edits[0]?[\"definition\"] is System.Text.Json.Nodes.JsonObject rootInputNamePlan&&rootInputNamePlan.Count==4&&System.Linq.Enumerable.All(rootInputNamePlan,p=>p.Key is \"args\" or \"returnType\" or \"remap\" or \"outputOrder\")&&rootInputNamePlan[\"args\"] is System.Text.Json.Nodes.JsonArray rootInputNameArgs&&rootInputNameArgs.Count==1&&rootInputNameArgs[0] is System.Text.Json.Nodes.JsonObject rootInputNameArg&&rootInputNameArg.Count==2&&System.Linq.Enumerable.All(rootInputNameArg,p=>p.Key is \"name\" or \"type\")&&rootInputNameArg[\"name\"] is System.Text.Json.Nodes.JsonValue rootInputNameValue&&rootInputNameValue.TryGetValue<string>(out _)&&rootInputNamePlan[\"remap\"] is System.Text.Json.Nodes.JsonObject rootInputNameRemap&&rootInputNameRemap.Count==1&&rootInputNamePlan[\"returnType\"] is System.Text.Json.Nodes.JsonValue rootInputNameReturn&&rootInputNameReturn.TryGetValue<string>(out _)&&rootInputNamePlan[\"outputOrder\"] is System.Text.Json.Nodes.JsonArray rootInputNameOrder&&rootInputNameOrder.Count==1&&rootInputNameOrder[0]?.ToString()==\"return\";\n bool ownedRootOutputOrderBatch=",
+      "count": 1
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": "bool ownedNodeInputBatch=ownedRootOutputOrderBatch||",
+      "after": "bool ownedNodeInputBatch=ownedRootInputNameBatch||ownedRootOutputOrderBatch||",
+      "count": 1
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": "!asyncBatch&&!ownedRootOutputOrderBatch||",
+      "after": "!asyncBatch&&!ownedRootOutputOrderBatch&&!ownedRootInputNameBatch||",
+      "count": 1
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": "edit=>!ownedRootOutputOrderBatch&&!ownedRootReturnBatch",
+      "after": "edit=>!ownedRootInputNameBatch&&!ownedRootOutputOrderBatch&&!ownedRootReturnBatch",
+      "count": 1
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": "    if(ownedRootOutputOrderBatch){",
+      "after": "    if(ownedRootInputNameBatch){var plan=edits[0]![\"definition\"]!;var args=current[\"signature\"]![\"args\"]!.AsArray();var next=plan[\"args\"]![0]!;if(args.Count!=1||args[0]?[\"mode\"] is not null||current[\"signature\"]?[\"return\"]?.ToString()==\"void\"||next[\"type\"]?.ToString()!=args[0]?[\"type\"]?.ToString()||plan[\"returnType\"]!.ToString()!=current[\"signature\"]![\"return\"]!.ToString()||!System.Text.RegularExpressions.Regex.IsMatch(next[\"name\"]!.GetValue<string>(),@\"\\A[_A-Za-z][_A-Za-z0-9]{0,59}\\z\")||plan[\"remap\"]?[args[0]![\"name\"]!.ToString()]?.ToString()!=next[\"name\"]!.ToString()||current[\"outputOrder\"] is not System.Text.Json.Nodes.JsonArray order||order.Count!=1||order[0]?.ToString()!=\"return\"||current[\"executionExitMode\"]?.GetValue<bool>()==true||current[\"asyncTransition\"]?[\"enabled\"]?.GetValue<bool>()==true||System.Linq.Enumerable.Any(current[\"nodes\"]!.AsArray(),n=>n?[\"implementationContext\"] is not null||n?[\"contextBoundary\"]?.GetValue<bool>()==true||n?[\"forwardCallerStorage\"]?.GetValue<bool>()==true))throw new InvalidOperationException(\"One explicit owned value-input rename with unchanged positional ABI required; preserve input\");}\n    if(ownedRootOutputOrderBatch){",
+      "count": 1
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": "(asyncBatch||ownedRootOutputOrderBatch)&&action==\"rootParameters\"",
+      "after": "(asyncBatch||ownedRootOutputOrderBatch||ownedRootInputNameBatch)&&action==\"rootParameters\"",
+      "count": 1
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": "if(ownedRootOutputOrderBatch)candidate[\"units\"]![physicalGraphId]![\"authorSaveReceipt\"]![\"ownedRootOutputOrder\"]=true;",
+      "after": "if(ownedRootInputNameBatch)candidate[\"units\"]![physicalGraphId]![\"authorSaveReceipt\"]![\"ownedRootInputName\"]=true;if(ownedRootOutputOrderBatch)candidate[\"units\"]![physicalGraphId]![\"authorSaveReceipt\"]![\"ownedRootOutputOrder\"]=true;",
+      "count": 1
+    },
+    {
+      "path": "packs/edit-workspace/Export.csbody",
+      "before": "member[\"authorSaveReceipt\"]?[\"ownedRootOutputOrder\"]?.GetValue<bool>()==true",
+      "after": "(member[\"authorSaveReceipt\"]?[\"ownedRootOutputOrder\"]?.GetValue<bool>()==true||member[\"authorSaveReceipt\"]?[\"ownedRootInputName\"]?.GetValue<bool>()==true)",
+      "count": 1
+    },
+    {
+      "path": "packs/edit-workspace/Export.csbody",
+      "before": "unit[\"authorSaveReceipt\"]?[\"ownedRootOutputOrder\"]?.GetValue<bool>()==true||",
+      "after": "unit[\"authorSaveReceipt\"]?[\"ownedRootInputName\"]?.GetValue<bool>()==true||unit[\"authorSaveReceipt\"]?[\"ownedRootOutputOrder\"]?.GetValue<bool>()==true||",
+      "count": 1
+    }
+  ]
+}
