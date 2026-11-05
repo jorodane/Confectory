@@ -111,7 +111,7 @@ def main():
     parser.add_argument('--nuget-seed', type=Path, required=True)
     parser.add_argument('--reuse-coupled-backend',type=Path,help='Sealed completed backend checks after a UI-only recovery correction; all UI/build/package checks remain fresh')
     parser.add_argument('--reuse-coupled-ui',type=Path,help='Sealed passed UI checks with identical product and only the bounded response-wait fixture correction')
-    parser.add_argument('--suite',choices=['headers','card-images','canvas','owned-information','owned-conversion','action-icons','declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement','worker-badges','node-internal','node-internal-nested','node-internal-storage','node-internal-context','node-internal-branches','node-branch-exits','node-internal-copy','node-internal-copy-nested','node-internal-copy-storage','node-internal-copy-branches','node-internal-copy-context','node-internal-copy-creating','node-internal-copy-frames','node-internal-override','node-internal-external-override','root-execution','root-execution-out','root-execution-closure','root-execution-copy','root-execution-copy-creating','root-execution-override','root-execution-registered','root-execution-registered-copy','root-execution-registered-creating','root-execution-data-void','root-execution-compound-owned','root-execution-provider-import','root-execution-nonvoid','public-return-data','root-execution-providers','root-execution-nested','root-execution-native','root-execution-caller','root-execution-forwarding','root-execution-observers','root-execution-wrappers','root-execution-owned-updates','root-execution-import-observations','async-runtime','async-transition','async-completion','async-function','async-property','async-adapter','async-context','async-creating','async-new-function','async-private','async-private-returns','async-coupled','async-root-io','async-branch-creation','guidance-code-editor','guidance-values','async-information'],default='headers')
+    parser.add_argument('--suite',choices=['headers','card-images','canvas','owned-information','owned-conversion','action-icons','declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement','worker-badges','node-internal','node-internal-nested','node-internal-storage','node-internal-context','node-internal-branches','node-branch-exits','node-internal-copy','node-internal-copy-nested','node-internal-copy-storage','node-internal-copy-branches','node-internal-copy-context','node-internal-copy-creating','node-internal-copy-frames','node-internal-override','node-internal-external-override','root-execution','root-execution-out','root-execution-closure','root-execution-copy','root-execution-copy-creating','root-execution-override','root-execution-registered','root-execution-registered-copy','root-execution-registered-creating','root-execution-data-void','root-execution-compound-owned','root-execution-provider-import','root-execution-nonvoid','public-return-data','root-execution-providers','root-execution-nested','root-execution-native','root-execution-caller','root-execution-forwarding','root-execution-observers','root-execution-wrappers','root-execution-owned-updates','root-execution-import-observations','async-runtime','async-transition','async-completion','async-function','async-property','async-adapter','async-context','async-creating','async-new-function','async-private','async-private-returns','async-coupled','async-root-io','async-branch-creation','guidance-code-editor','guidance-values','description-recovery','async-information'],default='headers')
     args = parser.parse_args()
     repo = args.repo.resolve(); persistent = args.persistent.absolute()
     persistent.parent.mkdir(parents=True, exist_ok=True)
@@ -337,6 +337,15 @@ def main():
                 regression='v666_node_branch_exit_api.py' if label=='lf' else 'v666_node_internal_external_override_api.py'
                 work.run(label+'-m11-regression',[sys.executable,str(checkout/'tests/web'/regression),str(checkout),str(report)],cwd=checkout,env=env)
                 work.run(label+'-owned-final-read-cas',[sys.executable,str(checkout/'tests/web/v536_copy_read_guards_core.py'),str(checkout)],cwd=checkout,env=env)
+            elif args.suite=='description-recovery':
+                work.run(label+'-description-copy-boundary',[sys.executable,str(checkout/'tests/web/v666_guidance_code_editor_copy.py'),str(checkout)],cwd=checkout,env=env)
+                for name in ['feature-authoring.js','feature-editor.js']:
+                    work.run(label+'-description-script-'+name,[ 'node','--check',str(checkout/'examples/editor-home/ui'/name)],cwd=checkout,env=env)
+                work.run(label+'-description-history-runtime',[dotnet,str(checkout/'tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll'),'DraftHistoryTests','BlueprintDisplayNameTests','--require-runtime'],cwd=checkout,env=env)
+                work.run(label+'-description-api',[sys.executable,str(checkout/'tests/web/v666_description_recovery_api.py'),str(checkout),str(report),'--out-root'],cwd=checkout,env=env)
+                work.run(label+'-value-regression',[sys.executable,str(checkout/'tests/web/v666_guidance_values_api.py'),str(checkout),str(report),'--out-root'],cwd=checkout,env=env)
+                for target,mode in ([('node','storage-new'),('function','entry'),('node','late')]if label=='lf'else[('node','conflict'),('function','storage-new'),('function','loss')]):
+                    work.run(label+'-description-'+target+'-'+mode,[sys.executable,str(checkout/'tests/web/v666_description_recovery_ui.py'),str(checkout),str(report),target,mode,'--out-root'],cwd=checkout,env=env)
             elif args.suite=='guidance-values':
                 work.run(label+'-value-native-guards',[sys.executable,str(checkout/'tests/web/v666_guidance_values_api.py'),str(checkout),str(report),'--out-root'],cwd=checkout,env=env)
                 work.run(label+'-value-copy-boundary',[sys.executable,str(checkout/'tests/web/v666_guidance_code_editor_copy.py'),str(checkout)],cwd=checkout,env=env)
@@ -863,6 +872,9 @@ def main():
         elif args.suite=='node-internal-storage':
             work.run('packaged-node-internal',[sys.executable,str(checkout/'tests/web/v666_node_internal_ui.py'),str(package/'content'),str(packaged_report),'normal'],cwd=checkout,env=env)
             work.run('packaged-storage-node-internal',[sys.executable,str(checkout/'tests/web/v666_node_internal_storage_ui.py'),str(package/'content'),str(packaged_report),'normal'],cwd=checkout,env=env)
+        elif args.suite=='description-recovery':
+            for target,mode in [('node','normal'),('function','conflict')]:
+                work.run('packaged-description-'+target,[sys.executable,str(checkout/'tests/web/v666_description_recovery_ui.py'),str(package/'content'),str(packaged_report),target,mode,'--out-root'],cwd=checkout,env=env)
         elif args.suite=='guidance-values':
             work.run('packaged-value-ui',[sys.executable,str(checkout/'tests/web/v666_guidance_values_ui.py'),str(package/'content'),str(packaged_report),'normal','--out-root'],cwd=checkout,env=env)
         elif args.suite=='guidance-code-editor':
@@ -1040,6 +1052,9 @@ def main():
         elif args.suite=='node-internal-storage':
             work.run('restored-node-internal',[sys.executable,str(checkout/'tests/web/v666_node_internal_ui.py'),str(restored/'content'),str(packaged_report),'storage'],cwd=checkout,env=env)
             work.run('restored-storage-node-internal',[sys.executable,str(checkout/'tests/web/v666_node_internal_storage_ui.py'),str(restored/'content'),str(packaged_report),'loss','--private','--local'],cwd=checkout,env=env)
+        elif args.suite=='description-recovery':
+            for target,mode in [('node','loss'),('function','late')]:
+                work.run('restored-description-'+target,[sys.executable,str(checkout/'tests/web/v666_description_recovery_ui.py'),str(restored/'content'),str(packaged_report),target,mode,'--out-root'],cwd=checkout,env=env)
         elif args.suite=='guidance-values':
             work.run('restored-value-ui',[sys.executable,str(checkout/'tests/web/v666_guidance_values_ui.py'),str(restored/'content'),str(packaged_report),'storage','--data-root'],cwd=checkout,env=env)
             work.run('restored-code-guidance-regression',[sys.executable,str(checkout/'tests/web/v666_guidance_code_editor_ui.py'),str(restored/'content'),str(packaged_report),'normal','--out-root'],cwd=checkout,env=env)
