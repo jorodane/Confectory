@@ -236,3 +236,7 @@ Result 없는 ordinary 동작 완료 어댑터의 최종 동결 `76f9837`은 **�
 ## V2 새 일반 동작 직접 배치 첫 저장 복구
 
 기존 root 그래프의 원래 다음 줄에 새 일반 void 동작 하나를 명시 삽입하는 생성·이름·설명·본문·두 실행선의 첫 Save를 원자 후보/receipt와 닫힌 미적용 기준 관측에 연결했다. **최종 LF 17·CRLF 16·패키지/전체 복원/실패 수명관리 8, 총 41단계(신규 34·재사용 7)**를 통과했다. 생성의 기존 `OWNERSHIP_CHANGED` 이력 경계와 이후 별도 본문 공유 이력을 구분해 보존한다. 공개 계약·native 권한·원본 C#·Review→Confirm·최종 CAS·기존 레이아웃은 유지한다. [지원 경계](V2_DIRECT_CREATION_RECOVERY.md)와 [검증 상태](VALIDATION_V666_DIRECT_CREATION_RECOVERY.md)를 따른다. 다른 root·혼합 계약·직접 배치 점검 후보와 기존 고정 잔여는 넓히지 않는다.
+
+## V2 기존 동작 표시명·본문 함께 저장 복구
+
+직접 소유 root의 같은 일반 next code 노드에서 표시명과 C# 본문을 함께 Save하는 두 입력의 유실을 재현했다. 정확한 두 편집을 기존 원자 후보·ownedSource receipt·공유 이력에 연결하여 검증 중이다. 기존 계약/권한/원본/레이아웃과 Review→Confirm·최종 CAS를 보존한다. [지원 경계](V2_TEXT_PAIR_RECOVERY.md)와 [검증 기록](VALIDATION_V666_TEXT_PAIR_RECOVERY.md)을 따른다. 다른 root·혼합 계약·직접 배치 형태는 별도 점검 후보이며 새 필수 조합으로 늘리지 않는다.

@@ -20,7 +20,7 @@ try:
  rejected('blank display name is rejected',lambda q:q['edits'][0].update(text=' '))
  rejected('control characters are rejected',lambda q:q['edits'][0].update(text='name\ninvalid'))
  rejected('over-budget display name is rejected',lambda q:q['edits'][0].update(text='a'*257))
- rejected('rename cannot grant source mixing',lambda q:q['edits'].append(dict(action='source',node='after',text=x.after_source)))
+ rejected('rename cannot grant source mixing onto a referenced call',lambda q:q['edits'].append(dict(action='source',node='invoke',text=x.after_source)))
  p=f.project/'After.node.json';raw=p.read_bytes();p.write_bytes(raw+b' ')
  try:q=request();reply=f.invoke('blueprint',q)['result']['result'];assert reply['checkpointSaved']and reply['sourceWritten']is False;assert p.read_bytes()==raw+b' ';assert all(path.read_bytes()==value for path,value in x.physical.items()if path!=p)
  finally:p.write_bytes(raw)

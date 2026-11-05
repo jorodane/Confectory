@@ -1,6 +1,9 @@
 """Exact UI-only candidate/retry wiring, unchanged native contracts and authored layout."""
 import hashlib,json,pathlib,re,subprocess,sys
-r=pathlib.Path(sys.argv[1]).resolve();plan=json.loads((r/'docs/v666-direct-creation-recovery-delta.json').read_text())
+r=pathlib.Path(sys.argv[1]).resolve()
+if (r/'docs/v666-text-pair-recovery-delta.json').exists():
+ subprocess.run([sys.executable,str(r/'tests/web/v666_text_pair_recovery_copy.py'),str(r)],check=True);raise SystemExit(0)
+plan=json.loads((r/'docs/v666-direct-creation-recovery-delta.json').read_text())
 def old(name):return subprocess.check_output(['git','show',plan['baseCommit']+':'+name],cwd=r,text=True)
 name='examples/editor-home/ui/feature-authoring.js';expected=old(name)
 assert {d['path']for d in plan['deltas']}=={name,'packs/pack-workspace/Blueprint.csbody'}

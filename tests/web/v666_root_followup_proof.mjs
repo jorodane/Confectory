@@ -4,12 +4,12 @@ import path from 'node:path';
 import vm from 'node:vm';
 
 const source=fs.readFileSync(path.join(process.argv[2],'examples/editor-home/ui/feature-authoring.js'),'utf8');
-const names=['sameRestoredSources','sameSettledInput','restoredOwnedSource'];
+const names=['sameRestoredSources','sameSettledInput','restoredOwnedSource',...(source.includes(' function ownedTextPair(')?['ownedTextPair']:[])];
 const functions=names.map(name=>source.split('\n').find(line=>line.trimStart().startsWith('function '+name+'(')));
 assert(functions.every(Boolean));
 const proof=source.split('\n').find(line=>line.includes(',proof=d=>')).split(',proof=')[1];
 const context=vm.createContext({});
-vm.runInContext('const proof='+proof+'\n'+functions.join('\n')+'\nglobalThis.check={sameSettledInput,restoredOwnedSource};',context);
+vm.runInContext('const cellFrame=(w,key)=>key==="foreign"?"other":null;const proof='+proof+'\n'+functions.join('\n')+'\nglobalThis.check={sameSettledInput,restoredOwnedSource};',context);
 const {sameSettledInput,restoredOwnedSource}=context.check;
 const before=JSON.stringify([['G',0,'a'.repeat(64)],['G/node:body',0,'b'.repeat(64)]]);
 const restored=JSON.stringify([['G',1,'a'.repeat(64)],['G/node:body',1,'b'.repeat(64)]]);
@@ -32,4 +32,14 @@ for(const patch of [{implementationContext:{}},{forwardCallerStorage:true},{kind
 for(const patch of [{frame:'inner'},{node:'other'},{action:'rootParameters'}])
  assert.equal(restoredOwnedSource(w,{...journal,edits:[{...journal.edits[0],...patch}]}),false);
 assert.equal(restoredOwnedSource(w,{...journal,cells:[...journal.cells,...journal.cells]}),false);
-console.log('PASS real source-proof recovery helpers: exact bytes/identity/origin only, scoped to one owned ordinary source; peer bytes, missing origin and non-owned/compound contexts rejected');
+if(names.includes('ownedTextPair')){
+ const pairWindow={meta:{},authorData:{...w.authorData,nodes:[{id:'body',kind:'code',control:'next'}]}},nameOrigin={node:'body',type:'rename',proof:before,text:'accepted name'};
+ const pair={cells:[['name',nameOrigin],['source',origin]],edits:[{action:'rename',node:'body',text:nameOrigin.text},{action:'source',node:'body',text:origin.text}]};
+ assert.equal(restoredOwnedSource(pairWindow,pair),true);
+ assert.equal(restoredOwnedSource(pairWindow,{...pair,cells:[pair.cells[0],['source',{...origin,node:'other'}]]}),false);
+ assert.equal(sameSettledInput({...nameOrigin,text:'late name'},nameOrigin,restored,false,true),true);
+ assert.equal(sameSettledInput({...nameOrigin,text:'late name'},nameOrigin,restored,true),false);
+ assert.equal(sameSettledInput({...nameOrigin,text:'late name'},nameOrigin,restored.replace('a'.repeat(64),'c'.repeat(64)),false,true),false);
+ assert.equal(sameSettledInput({...nameOrigin,text:'late name'},null,restored,false,true),false);
+}
+console.log('PASS real source-proof recovery helpers: exact bytes/identity/origin only; explicit same-node text pair, peer hashes, missing origin and non-owned contexts checked');
