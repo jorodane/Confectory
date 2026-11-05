@@ -1,6 +1,11 @@
 """Only retain the validated closure of already-retained author receipts."""
 import hashlib,json,pathlib,re,subprocess,sys
-r=pathlib.Path(sys.argv[1]).resolve();plan=json.loads((r/'docs/v666-root-followup-recovery-delta.json').read_text());path='packs/edit-workspace/Export.csbody';v=plan['deltas'][0];assert v['path']==path and v['count']==1
+r=pathlib.Path(sys.argv[1]).resolve()
+if(r/'docs/v666-direct-creation-recovery-delta.json').exists():
+ import runpy
+ runpy.run_path(str(pathlib.Path(__file__).with_name('v666_direct_creation_recovery_copy.py')),run_name='__main__')
+ raise SystemExit(0)
+plan=json.loads((r/'docs/v666-root-followup-recovery-delta.json').read_text());path='packs/edit-workspace/Export.csbody';v=plan['deltas'][0];assert v['path']==path and v['count']==1
 old=lambda name:subprocess.check_output(['git','show',plan['baseCommit']+':'+name],cwd=r,text=True)
 original=old(path);assert original==v['before'] and(r/path).read_text()==v['after']
 assert {d['path']for d in plan['deltas']}=={path,'examples/editor-home/ui/feature-authoring.js'}

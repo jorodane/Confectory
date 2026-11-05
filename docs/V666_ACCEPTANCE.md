@@ -232,3 +232,7 @@ Result 없는 ordinary 동작 완료 어댑터의 최종 동결 `76f9837`은 **�
 이미 저장한 zero-dirty root 묶음에서 일반 C# source Save의 durable receipt가 바뀌어도 기존 함수·구현·그래프 멤버를 함께 보관한다. 새 편집/receipt·그룹 재구성·권한을 허용하지 않으며 원래 소유/계약/Restore/Review→Confirm/CAS/Undo와 UI를 보존한다. [지원 범위](V2_ROOT_FOLLOWUP_RECOVERY.md)와 [검증 상태](VALIDATION_V666_ROOT_FOLLOWUP_RECOVERY.md)를 따른다. 최종 **LF 18·CRLF 19·패키지/전체 복원/실패 수명관리 8, 총 45단계(신규 40·재사용 5)**를 통과했다. 다른 root 정의·혼합 계약 Save·직접 배치 점검과 V2 후속·실기기/전체 UI/Space는 별도 잔여다.
 
 동일 흐름에서 cold revision만 달라진 개인 본문을 저장하는 동안 생긴 늦은 입력도 복구한다. 직접 소유한 단일 일반 source에서 정확한 성공 receipt·같은 캡처 입력·전체 소스 ID/해시가 확인돼야 새 기준에 연결한다. 다른 원본/입력이나 copy·비소유·혼합 계약으로 편집 범위를 넓히지 않는다.
+
+## V2 새 일반 동작 직접 배치 첫 저장 복구
+
+기존 root 그래프의 원래 다음 줄에 새 일반 void 동작 하나를 명시 삽입하는 생성·이름·설명·본문·두 실행선의 첫 Save를 기존 원자 후보/receipt에 연결하여 검증 중이다. 공개 계약·native 권한·원본 C#·Review→Confirm·최종 CAS·기존 레이아웃은 유지한다. [지원 경계](V2_DIRECT_CREATION_RECOVERY.md)와 [검증 상태](VALIDATION_V666_DIRECT_CREATION_RECOVERY.md)를 따른다. 다른 root·혼합 계약·직접 배치 점검 후보와 기존 고정 잔여는 넓히지 않는다.
