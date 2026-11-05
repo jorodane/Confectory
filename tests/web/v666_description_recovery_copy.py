@@ -1,5 +1,8 @@
 """Exact reviewed description recovery and guidance delta, canonical assets and prior copy."""
 import hashlib,json,pathlib,re,subprocess,sys
+if(pathlib.Path(sys.argv[1])/'docs/v666-source-recovery-delta.json').exists():
+ import runpy
+ runpy.run_path(str(pathlib.Path(__file__).with_name('v666_source_recovery_copy.py')),run_name='__main__');sys.exit(0)
 r=pathlib.Path(sys.argv[1]).resolve();plan=json.loads((r/'docs/v666-description-recovery-delta.json').read_text());paths={row['path']for row in plan['deltas']}
 def old(path):return subprocess.check_output(['git','show',plan['baseCommit']+':'+path],cwd=r,text=True)
 for path in paths:

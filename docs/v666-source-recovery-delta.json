@@ -1,0 +1,105 @@
+{
+  "baseCommit": "dfdf043749272ffe3941eb8602129a5c810bae25",
+  "reference": "reference/site-ui/Confectory-Editor-Prototype-v666.zip / Confectory-v666/dist/blueprint.js:159,799,959 C# editor; 313-317,1267,1291 Save/complete guidance",
+  "scope": "Reproduced directly owned ordinary root C# source Save input loss; source/intent/argument candidates only; existing property observation boundaries preserved; 6 guidance messages/8 existing occurrences",
+  "deltas": [
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": "(v.type==='intent'||v.type.startsWith('argument:'))",
+      "after": "(['source','intent'].includes(v.type)||v.type.startsWith('argument:'))",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": "correctedOwnedIntent",
+      "after": "correctedOwnedText",
+      "count": 2,
+      "kind": "logic"
+    },
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": "old.type==='intent'&&captured.some(([candidate,now])=>candidate===key&&old.text!==now.text)",
+      "after": "['source','intent'].includes(old.type)&&captured.some(([candidate,now])=>candidate===key&&old.text!==now.text)",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": "(old.type==='intent'?sameCell({...old,text:now.text},now):old.type.startsWith('argument:')&&sameCell(old,now))",
+      "after": "(['source','intent'].includes(old.type)?sameCell({...old,text:now.text},now):old.type.startsWith('argument:')&&sameCell(old,now))",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": "(e?[\"action\"]?.ToString() is \"argument\" or \"intent\")",
+      "after": "(e?[\"action\"]?.ToString() is \"argument\" or \"intent\" or \"source\")",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": "  if(propertySourceBatch&&live[\"units\"]?[physicalGraphId]?[\"propertyObservations\"] is null)throw new InvalidOperationException(\"Existing saved property observations required for atomic source editing\");\n  lock(live){",
+      "after": "  lock(live){\n   // Ordinary code source and observed property source use distinct existing guards.\n   // A property graph without a saved observation still cannot borrow plain-source admission.\n   if(ownedNodeInputBatch&&propertySourceBatch){var classification=System.Text.Json.Nodes.JsonNode.Parse(Process(targetHandle,\"read\",BatchRead().ToJsonString()))!;bool propertyContext=live[\"units\"]?[physicalGraphId]?[\"propertyObservations\"] is not null||System.Linq.Enumerable.Any(classification[\"nodes\"]!.AsArray(),node=>node?[\"kind\"]?.ToString() is \"property\" or \"property-set\");if(propertyContext)ownedNodeInputBatch=false;else{propertySourceBatch=false;propertyBatch=false;}}\n   if(propertySourceBatch&&live[\"units\"]?[physicalGraphId]?[\"propertyObservations\"] is null)throw new InvalidOperationException(\"Existing saved property observations required for atomic source editing\");",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": "Direct owned root code argument/intent batch required; preserve input",
+      "after": "Direct owned root code argument/intent/source batch required; preserve input",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": "ownedNodeInputBatch&&System.Linq.Enumerable.Any(edits,edit=>edit?[\"action\"]?.ToString()==\"intent\")",
+      "after": "ownedNodeInputBatch&&System.Linq.Enumerable.Any(edits,edit=>edit?[\"action\"]?.ToString() is \"intent\" or \"source\")",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": "선택한 내부 코드 초안을 먼저 저장해 주세요. 원문과 입력은 유지됩니다.",
+      "after": "선택한 내부 코드 초안을 먼저 저장해 주십시오. 원문과 입력은 유지됩니다.",
+      "count": 1,
+      "kind": "wording"
+    },
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": "입력 자료형을 먼저 저장한 뒤 기존 본문을 확인해 주세요. 입력은 유지됩니다.",
+      "after": "입력 자료형을 먼저 저장한 뒤 기존 본문을 확인해 주십시오. 입력은 유지됩니다.",
+      "count": 1,
+      "kind": "wording"
+    },
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": "편집 기준이 바뀌었습니다. 기존 입력을 보존하고 다시 확인해 주세요.",
+      "after": "편집 기준이 바뀌었습니다. 기존 입력을 보존하고 다시 확인해 주십시오.",
+      "count": 2,
+      "kind": "wording"
+    },
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": "내부 코드의 원래 범위를 확인하지 못했어요. 입력은 유지됩니다.",
+      "after": "내부 코드의 원래 범위를 확인하지 못했습니다. 입력은 유지됩니다.",
+      "count": 1,
+      "kind": "wording"
+    },
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": "보관한 저장 범위를 확인하지 못했어요. 입력은 유지됩니다.",
+      "after": "보관한 저장 범위를 확인하지 못했습니다. 입력은 유지됩니다.",
+      "count": 2,
+      "kind": "wording"
+    },
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": "저장 중 생긴 새 입력은 보존했습니다. 다시 확인해 주세요.",
+      "after": "저장 중 생긴 새 입력은 보존했습니다. 다시 확인해 주십시오.",
+      "count": 1,
+      "kind": "wording"
+    }
+  ]
+}
