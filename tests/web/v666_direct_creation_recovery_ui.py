@@ -30,7 +30,9 @@ def stage():
  return snapshot
 def save():
  show();started=time.monotonic()
- try:panel().locator('[data-bp-save]').click();f.idle()
+ # Cold corrected creation includes two baseline observations, validation and
+ # receipt/read verification; one measured success took 73.6s end to end.
+ try:panel().locator('[data-bp-save]').click();expect(f.page.locator('.brand')).to_be_enabled(timeout=120000)
  finally:
   _save_timings.append(dict(start=started,end=time.monotonic(),brandDisabled=f.page.locator('.brand').is_disabled(),status=panel().locator('.bp-status').inner_text()));(f.case/'save-timings.json').write_text(json.dumps(_save_timings,ensure_ascii=False))
 def restart(i):f.pending();f.page.close();f.stop();f.start(i);f.page=f.setup();f.page.set_viewport_size({'width':1800,'height':1400});f.idle();show()
