@@ -1,0 +1,84 @@
+{
+  "baseCommit": "5db09dcbe9beefdd9a706071b19568c4d63cacf1",
+  "reference": "Confectory-Editor-Prototype-v666.zip: dist/blueprint.js 442,526,547–548,778,1267,1291",
+  "scope": "One directly owned ordinary root code next destination/explicit disconnect; existing ports; 2 guidance messages/2 occurrences; no public/override/ownership/layout change",
+  "deltas": [
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": "journal.cells.every(([,old])=>old.type!=='rename'||journal.cells.length===1)&&journal.cells.some(([key,old])=>['source','intent','rename'].includes(old.type)",
+      "after": "journal.cells.every(([,old])=>!['rename','route'].includes(old.type)||journal.cells.length===1)&&journal.cells.some(([key,old])=>['source','intent','rename','route'].includes(old.type)",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": "(['source','intent','rename'].includes(old.type)?sameCell({...old,text:now.text}",
+      "after": "(['source','intent','rename','route'].includes(old.type)?sameCell({...old,text:now.text}",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": "captured.length===1&&v.type==='rename')&&current.nodes.some(row=>row.id===v.node&&row.kind==='code'&&!row.implementationContext&&!row.forwardCallerStorage)",
+      "after": "captured.length===1&&['rename','route'].includes(v.type))&&current.nodes.some(row=>row.id===v.node&&row.kind==='code'&&(v.type!=='route'||row.control==='next')&&!row.implementationContext&&!row.forwardCallerStorage)",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": " bool ownedRenameBatch=",
+      "after": " bool ownedRouteBatch=request[\"owner\"] is null&&graphId==physicalGraphId&&edits.Count==1&&edits[0]?[\"frame\"] is null&&edits[0]?[\"action\"]?.ToString()==\"route\"&&edits[0]?[\"port\"]?.ToString()==\"next\";\n bool ownedRenameBatch=",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": "bool ownedNodeInputBatch=ownedRenameBatch||",
+      "after": "bool ownedNodeInputBatch=ownedRouteBatch||ownedRenameBatch||",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": "node[\"kind\"]?.ToString()==\"code\"&&node[\"implementationContext\"] is null&&node[\"forwardCallerStorage\"]?.GetValue<bool>()!=true))))throw new InvalidOperationException(\"Direct owned root code argument/intent/source or single display name batch required; preserve input\");",
+      "after": "node[\"kind\"]?.ToString()==\"code\"&&(!ownedRouteBatch||node[\"control\"]?.ToString()==\"next\")&&node[\"implementationContext\"] is null&&node[\"forwardCallerStorage\"]?.GetValue<bool>()!=true))))throw new InvalidOperationException(\"Direct owned root code inputs, single display name or next route batch required; preserve input\");",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": "if(ownedRenameBatch)candidate[\"units\"]![physicalGraphId]![\"authorSaveReceipt\"]![\"ownedRename\"]=true;",
+      "after": "if(ownedRouteBatch)candidate[\"units\"]![physicalGraphId]![\"authorSaveReceipt\"]![\"ownedRoute\"]=true;if(ownedRenameBatch)candidate[\"units\"]![physicalGraphId]![\"authorSaveReceipt\"]![\"ownedRename\"]=true;",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": "if(ownedNodeInputBatch&&System.Linq.Enumerable.Any(edits,edit=>edit?[\"action\"]?.ToString() is \"intent\" or \"source\" or \"rename\")",
+      "after": "if(ownedNodeInputBatch&&System.Linq.Enumerable.Any(edits,edit=>edit?[\"action\"]?.ToString() is \"intent\" or \"source\" or \"rename\" or \"route\")",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "packs/edit-workspace/Export.csbody",
+      "before": "unit[\"authorSaveReceipt\"]?[\"ownedRename\"]?.GetValue<bool>()==true)",
+      "after": "unit[\"authorSaveReceipt\"]?[\"ownedRename\"]?.GetValue<bool>()==true||unit[\"authorSaveReceipt\"]?[\"ownedRoute\"]?.GetValue<bool>()==true)",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": "연결된 실행 줄을 먼저 해제해 주세요. 기존 입력은 유지됩니다.",
+      "after": "연결된 실행 줄을 먼저 해제해 주십시오. 기존 입력은 유지됩니다.",
+      "count": 1,
+      "kind": "guidance"
+    },
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": "이 노드의 실행 줄과 시작 연결을 먼저 해제해 주세요.",
+      "after": "이 노드의 실행 줄과 시작 연결을 먼저 해제해 주십시오.",
+      "count": 1,
+      "kind": "guidance"
+    }
+  ]
+}
