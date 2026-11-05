@@ -2,7 +2,7 @@
 import ast,copy,json,pathlib,sys
 from playwright.sync_api import sync_playwright,expect
 import v666_root_execution_fixture as x
-f=x.f;target=sys.argv[3];mode=sys.argv[4];text='확인한 설명 α 😀';late='늦게 입력한 설명 β 🛡️';helper=f.repo/'tests/web/v666_async_transition_ui.py'
+f=x.f;target=sys.argv[3];mode=sys.argv[4];text='확인한 설명 α 😀';late='늦게 입력한 설명 β 🛡️';helper=pathlib.Path(__file__).with_name('v666_async_transition_ui.py')
 names={'panel','open_graph'}
 exec(compile(ast.Module(body=[n for n in ast.parse(helper.read_text()).body if isinstance(n,ast.FunctionDef)and n.name in names],type_ignores=[]),str(helper),'exec'))
 def private():

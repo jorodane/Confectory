@@ -1,4 +1,4 @@
-"""Reuse sealed LF checks after exact bounded Review/paused-response fixture fixes."""
+"""Reuse sealed LF checks after exact bounded Review/paused-response/helper-path fixture fixes."""
 import json
 from pathlib import Path
 import subprocess
@@ -24,20 +24,26 @@ def bind(repo,record,commit,inputs,work):
     expected=old.replace(before,after)
     lateBefore="if mode=='late':assert paused;stage(late);paused['route'].fulfill"
     lateAfter="if mode=='late':assert paused;control().fill(late);paused['route'].fulfill"
-    if old.count(lateBefore)!=1 or expected.replace(lateBefore,lateAfter)!=new:
-        raise RuntimeError('Only optional Review acknowledgement and paused-response flush fixture corrections are reusable')
+    lateFix=old.count(lateBefore)==1
+    helperBefore="helper=f.repo/'tests/web/v666_async_transition_ui.py'"
+    helperAfter="helper=pathlib.Path(__file__).with_name('v666_async_transition_ui.py')"
+    if old.count(helperBefore)!=1 or expected.replace(lateBefore,lateAfter).replace(helperBefore,helperAfter)!=new:
+        raise RuntimeError('Only exact Review/paused-response/helper-path fixture corrections are reusable')
     with zipfile.ZipFile(prior['evidence'])as archive:
         source=json.loads(archive.read('source.json'));checkout=json.loads(archive.read('lf-checkout.json'))
         if source['commit']!=prior['source'] or any(source['dependencyInputs'].get(k)!=inputs.get(k)for k in ['sdk','nuget','configuration','rid']):
             raise RuntimeError('Dependency/configuration identity differs')
         if checkout['commit']!=prior['source']or checkout['coreAutocrlf']!='false'or checkout['noSharedGitObjects']is not True:
             raise RuntimeError('Independent LF identity differs')
-    names=({'lf-description-history-runtime','lf-description-api','lf-value-regression','lf-description-node-storage-new'}if reviewFix else{'lf-description-function-entry'})
+        if not reviewFix and not lateFix:
+            crlf=json.loads(archive.read('crlf-checkout.json'))
+            if crlf['commit']!=prior['source']or crlf['coreAutocrlf']!='true'or crlf['noSharedGitObjects']is not True:raise RuntimeError('Independent CRLF identity differs')
+    names=({'lf-description-history-runtime','lf-description-api','lf-value-regression','lf-description-node-storage-new'}if reviewFix else{'lf-description-function-entry'}if lateFix else{'lf-description-node-late','crlf-description-history-runtime','crlf-description-api','crlf-value-regression','crlf-description-node-conflict','crlf-description-function-storage-new','crlf-description-function-loss'})
     rows={r['name']:r for r in prior['results']if r['name']in names and r['exit']==0}
     if set(rows)!=names:raise RuntimeError('Exact passing LF checks required; failures never reused')
     proof=dict(previousRecord=str(record),previousSource=prior['source'],sourceCommit=commit,
         archiveSha256=prior['evidenceSha256'],identicalProductAndDependencies=True,
-        onlyUiChange='Optional acknowledgement presence and no busy flush while a response is paused. Reused storage/entry paths never pause a response; passed node path checked acknowledgement.',
+        onlyUiChange='Exact optional acknowledgement, paused-response flush and script-relative helper fixes; unchanged passed mode paths and source-checkout helper resolve identically. Failed package check never reused.',
         buildsAndPackagesReused=False,failedChecksReused=False,stages=[])
     proofPath=work.evidence/('description-reuse-'+prior['source'][:7]+'.json');atomic_json(proofPath,proof);original=work.run
     def run(name,command,*args,**kwargs):
