@@ -1,5 +1,7 @@
 """Exact source Save/guidance delta and unchanged authored layout/contracts."""
 import pathlib as _p,runpy as _run,sys as _sys
+if (_p.Path(_sys.argv[1])/'docs/v666-root-output-order-recovery-delta.json').exists():
+ _run.run_path(str(_p.Path(__file__).with_name('v666_root_output_order_recovery_copy.py')),run_name='__main__');_sys.exit(0)
 if (_p.Path(_sys.argv[1])/'docs/v666-export-creation-recovery-delta.json').exists():
  _run.run_path(str(_p.Path(__file__).with_name('v666_export_creation_recovery_copy.py')),run_name='__main__');_sys.exit(0)
 if (_p.Path(_sys.argv[1])/'docs/v666-export-removal-recovery-delta.json').exists():
