@@ -7,3 +7,5 @@
 실패와 cold로 재현했다. 최초 probe는 multiline source를 JSON 직렬화 문자열에서 그대로
 찾는 잘못된 fixture 가정을 사용했다. 실제 blueprint cell의 text를 비교하도록 바로잡고
 제품 변경 전 손실을 확인했다. baseline·실패·재현 자료를 보존한다.
+
+초기 동결 254ea89에서 LF 17단계와 CRLF native/API/설명 회귀는 통과했다. 다음 property guard 호출의 engine report 인자가 빠져 fixture 초기화 전에 IndexError로 종료됐다. 기존 호출 예와 같이 인자만 추가하며 제품/검사 byte는 그대로다. 봉인된 동등 통과 10개만 SHA·전체 manifest·Git·SDK/NuGet·명령/EOL 일치로 재사용하고, 실패한 관측 검사·checkout/빌드·새 패키지/복원은 새로 실행한다.

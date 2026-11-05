@@ -109,6 +109,7 @@ def main():
     parser.add_argument('--commit', required=True)
     parser.add_argument('--sdk', type=Path, required=True)
     parser.add_argument('--nuget-seed', type=Path, required=True)
+    parser.add_argument('--reuse-source',type=Path,help='Ten sealed identical source checks after the property guard report argument correction')
     parser.add_argument('--reuse-description',type=Path,action='append',help='Sealed passing LF checks after exact bounded Review/paused-response fixture corrections')
     parser.add_argument('--reuse-coupled-backend',type=Path,help='Sealed completed backend checks after a UI-only recovery correction; all UI/build/package checks remain fresh')
     parser.add_argument('--reuse-coupled-ui',type=Path,help='Sealed passed UI checks with identical product and only the bounded response-wait fixture correction')
@@ -127,12 +128,16 @@ def main():
     # The harness may be bootstrapping the previous published source. Preserve
     # the exact harness bytes as well as the product commit/tree.
     harness = work.evidence/'harness'; harness.mkdir()
-    for name in ['verification_workspace.py','verify_desktop.py','verification_coupled_reuse.py','verification_description_reuse.py']:
+    for name in ['verification_workspace.py','verify_desktop.py','verification_coupled_reuse.py','verification_description_reuse.py','verification_source_reuse.py']:
         shutil.copy2(Path(__file__).parent/name, harness/name)
     atomic_json(work.evidence/'source.json', {'commit': commit, 'tree': git(repo,'rev-parse',commit+'^{tree}'),
                 'sdk': str(args.sdk),'dependencyInputs':inputs, 'harnessSha256': {p.name:sha(p) for p in harness.iterdir()}})
     environments = {}; checkouts = {}; reports = {}
     try:
+        if args.reuse_source:
+            if args.suite!='source-recovery': raise ValueError('Source reuse requires its own suite')
+            from verification_source_reuse import bind
+            bind(repo,args.reuse_source,commit,inputs,work)
         if args.reuse_description:
             if args.suite!='description-recovery': raise ValueError('Description reuse requires its own suite')
             from verification_description_reuse import bind
@@ -349,7 +354,7 @@ def main():
                 work.run(label+'-source-api',[sys.executable,str(checkout/'tests/web/v666_source_recovery_api.py'),str(checkout),str(report),'--out-root'],cwd=checkout,env=env)
                 work.run(label+'-description-regression',[sys.executable,str(checkout/'tests/web/v666_description_recovery_api.py'),str(checkout),str(report),'--out-root'],cwd=checkout,env=env)
                 if label=='lf':work.run(label+'-property-source-regression',[sys.executable,str(checkout/'tests/web/v666_async_property_ui.py'),str(checkout),str(report),'normal'],cwd=checkout,env=env)
-                else:work.run(label+'-property-observation-guards',[sys.executable,str(checkout/'tests/web/v666_async_property_guards.py'),str(checkout)],cwd=checkout,env=env)
+                else:work.run(label+'-property-observation-guards',[sys.executable,str(checkout/'tests/web/v666_async_property_guards.py'),str(checkout),str(report)],cwd=checkout,env=env)
                 for mode in (['storage-new','conflict','late']if label=='lf'else['normal','loss','compiler']):
                     work.run(label+'-source-ui-'+mode,[sys.executable,str(checkout/'tests/web/v666_source_recovery_ui.py'),str(checkout),str(report),mode,'--out-root'],cwd=checkout,env=env)
             elif args.suite=='description-recovery':
