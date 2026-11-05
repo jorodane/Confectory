@@ -33,7 +33,8 @@ def review():
  if t.is_visible():
   t.locator('[data-target-choice]').select_option('portable');t.locator('[data-close]').click();(panel().locator('[data-bp-complete]')if target=='node'else declaration().locator('[data-feature-action=confirm]')).click()
  r=f.page.locator('.window[data-key=review]');expect(r).to_be_visible(timeout=90000)
- if r.locator('[data-review-advanced]').is_visible():r.locator('[data-review-advanced]').click();r.locator('[data-advanced-reviewed]').check()
+ if r.locator('[data-review-advanced]').is_visible():r.locator('[data-review-advanced]').click()
+ if r.locator('[data-advanced-reviewed]').count():r.locator('[data-advanced-reviewed]').check()
  return r
 def history(direction):
  state=f.invoke('draftHistory',{'action':'inspect'})['result']['result'];assert state[direction]['available'];result=f.invoke('draftHistory',{'action':direction,'token':state[direction]['token']})['result']['result'];assert result['accepted'];x.original()
