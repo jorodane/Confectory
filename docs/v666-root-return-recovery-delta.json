@@ -1,0 +1,119 @@
+{
+  "baseCommit": "f37c06237eed76bcc674a05a92bc0df3a609553a",
+  "reference": "Confectory-Editor-Prototype-v666.zip: dist/blueprint.js root output pins and value menu 1015–1017,1054–1061,1267,1291; existing v508_feature_serial_engine return terminal path",
+  "scope": "One existing directly owned ordinary nonvoid root return terminal value with no export writer; existing expression/type validation; no pin definition/type/order/branch/override/permission/layout change",
+  "deltas": [
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": " function ownedExportBinding(w,cells,data=w.authorData){",
+      "after": " function ownedRootReturn(w,cells,data=w.authorData){return !!data.id&&data.id===data.rootId&&!data.privatePath&&!data.slotContext&&!data.privateCopy&&!w.meta.copyDraft&&!data.executionExitMode&&signature(data.signature).return!=='void'&&cells.length===1&&cells[0][1].type==='exit'&&cells[0][1].node==='$exit:return'&&(!cellFrame(w,cells[0][0])||cellFrame(w,cells[0][0])===data.id)&&data.exits.some(e=>e.name==='return')&&!data.nodes.some(n=>n.kind==='export'&&n.output==='return');}\n function ownedExportBinding(w,cells,data=w.authorData){",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": "function batchEdits(w,cells,graph=w.authorData.id){if(ownedExportBinding(w,cells))",
+      "after": "function batchEdits(w,cells,graph=w.authorData.id){if(ownedRootReturn(w,cells)){const v=cells[0][1];return [{action:'exit',node:v.node,name:'return',valueJson:v.text}];}if(ownedExportBinding(w,cells))",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": "   const correctedOwnedExportBinding=",
+      "after": "   const correctedOwnedRootReturn=ownedRootReturn(w,journal.cells)&&ownedRootReturn(w,captured)&&w.authorData.checkpointHash===journal.checkpointHash&&journal.cells[0][0]===captured[0][0]&&sameCell({...journal.cells[0][1],text:captured[0][1].text},captured[0][1]);\n   const correctedOwnedExportBinding=",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": "correctedMapping||correctedOwnedExportBinding||",
+      "after": "correctedMapping||correctedOwnedRootReturn||correctedOwnedExportBinding||",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": "current.id===data.id&&(ownedExportBinding(w,captured,current)||",
+      "after": "current.id===data.id&&(ownedRootReturn(w,captured,current)||ownedExportBinding(w,captured,current)||",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": " bool ownedEntryBatch=",
+      "after": " bool ownedRootReturnBatch=request[\"owner\"] is null&&graphId==physicalGraphId&&edits.Count==1&&edits[0]!.AsObject().Count==4&&edits[0]?[\"action\"]?.ToString()==\"exit\"&&edits[0]?[\"node\"]?.ToString()==\"$exit:return\"&&edits[0]?[\"name\"]?.ToString()==\"return\"&&edits[0]?[\"valueJson\"] is System.Text.Json.Nodes.JsonValue rootReturnValue&&rootReturnValue.TryGetValue<string>(out _);\n bool ownedEntryBatch=",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": "bool ownedNodeInputBatch=ownedOutputBatch||",
+      "after": "bool ownedNodeInputBatch=ownedRootReturnBatch||ownedOutputBatch||",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": "foreach(var edit in edits){string action=edit![\"action\"]!.ToString();if(action==\"outputNodes\"",
+      "after": "foreach(var edit in edits){string action=edit![\"action\"]!.ToString();if(action==\"exit\"&&!ownedRootReturnBatch)throw new ArgumentException(\"One exact owned ordinary root return value required\");if(action==\"outputNodes\"",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": "action is not (\"outputNodes\" or \"internalizeNode\"",
+      "after": "action is not (\"exit\" or \"outputNodes\" or \"internalizeNode\"",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": "edit=>!ownedOutputBatch&&",
+      "after": "edit=>!ownedRootReturnBatch&&!ownedOutputBatch&&",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": "    if(ownedOutputBatch&&!System.Linq.Enumerable.Any(current[\"nodes\"]",
+      "after": "    if(ownedRootReturnBatch&&(current[\"signature\"]?[\"return\"]?.ToString()==\"void\"||current[\"executionExitMode\"]?.GetValue<bool>()==true||!System.Linq.Enumerable.Any(current[\"exits\"]!.AsArray(),exit=>exit?[\"name\"]?.ToString()==\"return\")||System.Linq.Enumerable.Any(current[\"nodes\"]!.AsArray(),node=>node?[\"kind\"]?.ToString()==\"export\"&&node?[\"output\"]?.ToString()==\"return\")))throw new InvalidOperationException(\"Observed ordinary nonvoid return terminal without an export writer required; preserve input\");\n    if(ownedOutputBatch&&!System.Linq.Enumerable.Any(current[\"nodes\"]",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": "if(ownedOutputBatch&&action==\"outputNodes\")",
+      "after": "if(ownedRootReturnBatch&&action==\"exit\")next.Remove(\"node\");if(ownedOutputBatch&&action==\"outputNodes\")",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": "if(action is \"outputNodes\" or \"rootExecution\"",
+      "after": "if(action is \"exit\" or \"outputNodes\" or \"rootExecution\"",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": "if(ownedOutputValueBatch)candidate[\"units\"]![physicalGraphId]![\"authorSaveReceipt\"]![\"ownedOutputValue\"]=true;",
+      "after": "if(ownedRootReturnBatch)candidate[\"units\"]![physicalGraphId]![\"authorSaveReceipt\"]![\"ownedRootReturn\"]=true;if(ownedOutputValueBatch)candidate[\"units\"]![physicalGraphId]![\"authorSaveReceipt\"]![\"ownedOutputValue\"]=true;",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": "or \"entry\" or \"outputNodes\")&&candidate[\"units\"]",
+      "after": "or \"entry\" or \"outputNodes\" or \"exit\")&&candidate[\"units\"]",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "packs/edit-workspace/Export.csbody",
+      "before": "unit[\"authorSaveReceipt\"]?[\"ownedOutputBinding\"]?.GetValue<bool>()==true)",
+      "after": "unit[\"authorSaveReceipt\"]?[\"ownedOutputBinding\"]?.GetValue<bool>()==true||unit[\"authorSaveReceipt\"]?[\"ownedRootReturn\"]?.GetValue<bool>()==true)",
+      "count": 1,
+      "kind": "logic"
+    }
+  ]
+}
