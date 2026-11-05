@@ -1,4 +1,7 @@
 """Exact source Save/guidance delta and unchanged authored layout/contracts."""
+import pathlib as _p,runpy as _run,sys as _sys
+if (_p.Path(_sys.argv[1])/'docs/v666-export-binding-recovery-delta.json').exists():
+ _run.run_path(str(_p.Path(__file__).with_name('v666_export_binding_recovery_copy.py')),run_name='__main__');_sys.exit(0)
 import hashlib,json,pathlib,re,subprocess,sys
 r=pathlib.Path(sys.argv[1]).resolve();plan=json.loads((r/'docs/v666-export-value-recovery-delta.json').read_text());paths={v['path']for v in plan['deltas']}
 def old(path):return subprocess.check_output(['git','show',plan['baseCommit']+':'+path],cwd=r,text=True)

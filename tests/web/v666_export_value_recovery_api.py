@@ -19,7 +19,7 @@ try:
  rejected('export value cannot edit a referenced call',lambda q:edit(q).update(node='invoke'))
  rejected('export value cannot infer owner/slot permission',lambda q:q.update(owner=f.id,ownerHash='0'*64,ownerRevision=0))
  rejected('export value cannot infer private frame permission',lambda q:q['edits'][0].update(frame=t.graph+'/graph:missing'))
- rejected('export value cannot infer output binding changes',lambda q:edit(q).update(kind='bind',output='result'))
+ rejected('export value cannot mix output binding fields',lambda q:edit(q).update(kind='bind',output='result'))
  rejected('export value cannot infer node creation',lambda q:edit(q).update(kind='create',output='result'))
  rejected('export value cannot infer node deletion',lambda q:edit(q).update(kind='remove'))
  rejected('export value requires one explicit assignment',lambda q:q['edits'][0]['definition']['edits'].append(copy.deepcopy(edit(q))))

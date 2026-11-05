@@ -1,0 +1,112 @@
+{
+  "baseCommit": "c2380222c3cf179e613c81e7a709036c5ba8a671",
+  "reference": "Confectory-Editor-Prototype-v666.zip: dist/blueprint.js 725,748–766,1015–1017,1267,1291",
+  "scope": "One output reassignment of an existing directly owned root export; existing same-type/value/declared-output and topology validation; no public/override contract, value, create/remove/route/permission/layout change",
+  "deltas": [
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": " function ownedExportValue(w,cells,data=w.authorData){",
+      "after": " function ownedExportBinding(w,cells,data=w.authorData){return !!data.id&&data.id===data.rootId&&!data.privatePath&&!data.slotContext&&!data.privateCopy&&!w.meta.copyDraft&&cells.length===1&&cells[0][1].type==='export-output'&&(!cellFrame(w,cells[0][0])||cellFrame(w,cells[0][0])===data.id)&&data.nodes.some(n=>n.id===cells[0][1].node&&n.kind==='export'&&n.control==='next');}\n function ownedExportValue(w,cells,data=w.authorData){",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": "function batchEdits(w,cells,graph=w.authorData.id){if(ownedExportValue(w,cells))",
+      "after": "function batchEdits(w,cells,graph=w.authorData.id){if(ownedExportBinding(w,cells)){const v=cells[0][1];return [{action:'outputNodes',node:'$exports',definition:{edits:[{kind:'bind',node:v.node,output:v.text}]}}];}if(ownedExportValue(w,cells))",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": "   const correctedOwnedExportValue=",
+      "after": "   const correctedOwnedExportBinding=ownedExportBinding(w,journal.cells)&&ownedExportBinding(w,captured)&&w.authorData.checkpointHash===journal.checkpointHash&&journal.cells[0][0]===captured[0][0]&&sameCell({...journal.cells[0][1],text:captured[0][1].text},captured[0][1]);\n   const correctedOwnedExportValue=",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": "correctedMapping||correctedOwnedExportValue||",
+      "after": "correctedMapping||correctedOwnedExportBinding||correctedOwnedExportValue||",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": "if((current.id===data.id&&ownedExportValue(w,captured,current)||",
+      "after": "if((current.id===data.id&&(ownedExportBinding(w,captured,current)||ownedExportValue(w,captured,current))||",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": " bool ownedEntryBatch=",
+      "after": " bool ownedOutputBindingBatch=request[\"owner\"] is null&&graphId==physicalGraphId&&edits.Count==1&&edits[0]!.AsObject().Count==3&&edits[0]?[\"action\"]?.ToString()==\"outputNodes\"&&edits[0]?[\"node\"]?.ToString()==\"$exports\"&&edits[0]?[\"definition\"] is System.Text.Json.Nodes.JsonObject outputBindingPlan&&outputBindingPlan.Count==1&&outputBindingPlan[\"edits\"] is System.Text.Json.Nodes.JsonArray outputBindingRows&&outputBindingRows.Count==1&&outputBindingRows[0] is System.Text.Json.Nodes.JsonObject outputBindingRow&&outputBindingRow.Count==3&&outputBindingRow[\"kind\"]?.ToString()==\"bind\"&&outputBindingRow[\"node\"] is System.Text.Json.Nodes.JsonValue outputBindingNode&&outputBindingNode.TryGetValue<string>(out _)&&outputBindingRow[\"output\"] is System.Text.Json.Nodes.JsonValue outputBindingName&&outputBindingName.TryGetValue<string>(out _);\n bool ownedOutputBatch=ownedOutputValueBatch||ownedOutputBindingBatch;\n bool ownedEntryBatch=",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": "bool ownedNodeInputBatch=ownedOutputValueBatch||",
+      "after": "bool ownedNodeInputBatch=ownedOutputBatch||",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": "if(action==\"outputNodes\"&&!ownedOutputValueBatch)",
+      "after": "if(action==\"outputNodes\"&&!ownedOutputBatch)",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": "edit=>!ownedOutputValueBatch&&",
+      "after": "edit=>!ownedOutputBatch&&",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": "if(ownedOutputValueBatch&&!System.Linq.Enumerable.Any(current[\"nodes\"]",
+      "after": "if(ownedOutputBatch&&!System.Linq.Enumerable.Any(current[\"nodes\"]",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": "if(ownedOutputValueBatch&&action==\"outputNodes\")",
+      "after": "if(ownedOutputBatch&&action==\"outputNodes\")",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": "if(ownedOutputValueBatch)candidate[\"units\"]![physicalGraphId]![\"authorSaveReceipt\"]![\"ownedOutputValue\"]=true;",
+      "after": "if(ownedOutputValueBatch)candidate[\"units\"]![physicalGraphId]![\"authorSaveReceipt\"]![\"ownedOutputValue\"]=true;if(ownedOutputBindingBatch)candidate[\"units\"]![physicalGraphId]![\"authorSaveReceipt\"]![\"ownedOutputBinding\"]=true;",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "packs/edit-workspace/Export.csbody",
+      "before": "unit[\"authorSaveReceipt\"]?[\"ownedOutputValue\"]?.GetValue<bool>()==true)",
+      "after": "unit[\"authorSaveReceipt\"]?[\"ownedOutputValue\"]?.GetValue<bool>()==true||unit[\"authorSaveReceipt\"]?[\"ownedOutputBinding\"]?.GetValue<bool>()==true)",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": "기존 출력 이름을 선택해 주세요. 입력은 유지됩니다.",
+      "after": "기존 출력 이름을 선택해 주십시오. 입력은 유지됩니다.",
+      "count": 1,
+      "kind": "guidance"
+    },
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": "자료형이 다른 출력으로 바꾸기 전에 값 연결을 해제해 주세요.",
+      "after": "자료형이 다른 출력으로 바꾸기 전에 값 연결을 해제해 주십시오.",
+      "count": 1,
+      "kind": "guidance"
+    }
+  ]
+}
