@@ -27,6 +27,9 @@ def restart(i):
  f.pending();f.page.close();f.stop();f.start(i);f.page=f.setup();f.page.set_viewport_size({'width':1800,'height':1400});f.idle();show()
 def check_editor(value):
  d=editor();assert d.locator('[data-code-region=body]').text_content()==value;d.locator('[data-code-cancel]').click()
+def restored_proof():
+ held=next(v['proof']for _,v in private()if v.get('type')=='source');now=x.proof(t.read());assert held!=now
+ assert [(v[0],v[2])for v in json.loads(held)]==[(v[0],v[2])for v in json.loads(now)]
 def review():
  show();panel().locator('[data-bp-complete]').click();f.idle()
  if f.page.locator('#review-creation').is_visible():f.page.locator('#review-creation').click();f.idle()
@@ -48,6 +51,7 @@ def main():
   finally:checkpoint.chmod(0o600)
   stage(late);restart(2);assert has(late);check_editor(late);x.original();f.checked('failed C# checkpoint retains input/live state; newer source survives cold and explicit retry')
  if mode in ['loss','late']:
+  restored_proof()
   requests=set();queries=set();paused={};lost=[]
   def interrupt(route):
    body=route.request.post_data_json

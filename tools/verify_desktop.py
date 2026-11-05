@@ -358,7 +358,7 @@ def main():
                 if label=='crlf':
                     work.run(label+'-property-observation-guards',[sys.executable,str(checkout/'tests/web/v666_async_property_guards.py'),str(checkout),str(report)],cwd=checkout,env=env)
                     work.run(label+'-root-followup-compiler-ui',[sys.executable,str(checkout/'tests/web/v666_root_followup_recovery_ui.py'),str(checkout),str(report),'compiler','--out-root'],cwd=checkout,env=env)
-                for mode in (['storage-new','conflict','late']if label=='lf'else['normal','loss']):
+                for mode in (['late','storage-new','conflict']if label=='lf'else['normal','loss']):
                     work.run(label+'-root-followup-ui-'+mode,[sys.executable,str(checkout/'tests/web/v666_root_followup_recovery_ui.py'),str(checkout),str(report),mode,'--out-root'],cwd=checkout,env=env)
             elif args.suite=='root-input-name-recovery':
                 work.run(label+'-root-input-name-copy-boundary',[sys.executable,str(checkout/'tests/web/v666_guidance_code_editor_copy.py'),str(checkout)],cwd=checkout,env=env)

@@ -30,7 +30,15 @@ compact JSON으로 fixture만 맞춘 뒤 위 zero-dirty 경로를 재현했다. 
 Restore·묶음/소유/경로 검증·원자 checkpoint CAS·Review→Confirm·최종 CAS·Undo 규칙,
 타입/호출/override 계약·원래 ID/값/연결·권한·팝오버·문구·레이아웃은 바꾸지 않는다.
 원래 C#은 명시적으로 편집한 본문만 Confirm 뒤 반영한다. 다른 C#과 부모/외부 원본은
-보존한다. 개인 입력 저장/응답 회수 로직도 바꾸지 않는다.
+보존한다.
+
+후속 늦은 본문 검사에서는 cold 복원으로 revision만 달라진 개인 입력이 성공 receipt 뒤에도
+이전 proof를 유지하여 다시 저장되지 않는 결함도 재현했다. 직접 소유 root의 단일 일반
+C# 노드 source 저장에서만 기존 receipt 복구의 동일 원본 해시 판정을 사용한다. 정확한
+저장 시도·두 번의 receipt 확인 뒤, 캡처한 같은 입력/노드/종류와 전체 소스 ID/해시가
+일치해야 늦은 본문을 새 proof에 연결한다. peer 본문/누락 소스/다른 입력 proof는 허용하지
+않고 private/copy/slot/whole-body 전달·혼합 저장으로 이 규칙을 넓히지 않는다.
+화면/문구/레이아웃은 같으며 canonical UI 자산의 크기·SHA만 갱신한다.
 
 정상 후속 저장·반복/변경 없는 저장·원래 본문으로 되돌린 저장 모두 완전한 그룹과 receipt를
 복원한다. 누락·다른 그룹·경로/namespace·receipt 변조는 기존 검증으로 계속 거절한다.
