@@ -1,0 +1,41 @@
+{
+  "baseCommit": "3b6191591fd920678d4c9e0458f8703deead4277",
+  "deltas": [
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": " function ownedExportBinding(w,cells,data=w.authorData)",
+      "after": " function ownedExportRemoval(w,cells,data=w.authorData){return !!data.id&&data.id===data.rootId&&!data.privatePath&&!data.slotContext&&!data.privateCopy&&!w.meta.copyDraft&&cells.length===1&&cells[0][1].type==='export-remove'&&cells[0][1].text===''&&(!cellFrame(w,cells[0][0])||cellFrame(w,cells[0][0])===data.id)&&data.nodes.some(n=>n.id===cells[0][1].node&&n.kind==='export'&&n.control==='next');}\n function ownedExportBinding(w,cells,data=w.authorData)",
+      "count": 1
+    },
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": "function batchEdits(w,cells,graph=w.authorData.id){",
+      "after": "function batchEdits(w,cells,graph=w.authorData.id){if(cells.length===1&&cells[0][1].type==='export-remove'&&cells[0][1].text===''){return [{action:'outputNodes',node:'$exports',definition:{edits:[{kind:'remove',node:cells[0][1].node}]}}];}",
+      "count": 1
+    },
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": "ownedRootReturn(w,captured,current)||ownedExportBinding(w,captured,current)",
+      "after": "ownedExportRemoval(w,captured,current)||ownedExportRemoval(w,inputs.get(authorAttemptKey(w))?.cells||[],current)||ownedRootReturn(w,captured,current)||ownedExportBinding(w,captured,current)",
+      "count": 1
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": " bool ownedOutputBatch=ownedOutputValueBatch||ownedOutputBindingBatch;",
+      "after": " bool ownedOutputRemovalBatch=request[\"owner\"] is null&&graphId==physicalGraphId&&edits.Count==1&&edits[0]!.AsObject().Count==3&&edits[0]?[\"action\"]?.ToString()==\"outputNodes\"&&edits[0]?[\"node\"]?.ToString()==\"$exports\"&&edits[0]?[\"definition\"] is System.Text.Json.Nodes.JsonObject outputRemovalPlan&&outputRemovalPlan.Count==1&&outputRemovalPlan[\"edits\"] is System.Text.Json.Nodes.JsonArray outputRemovalRows&&outputRemovalRows.Count==1&&outputRemovalRows[0] is System.Text.Json.Nodes.JsonObject outputRemovalRow&&outputRemovalRow.Count==2&&outputRemovalRow[\"kind\"]?.ToString()==\"remove\"&&outputRemovalRow[\"node\"] is System.Text.Json.Nodes.JsonValue outputRemovalNode&&outputRemovalNode.TryGetValue<string>(out _);\n bool ownedOutputBatch=ownedOutputRemovalBatch||ownedOutputValueBatch||ownedOutputBindingBatch;",
+      "count": 1
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": "if(ownedOutputBindingBatch)candidate[\"units\"]![physicalGraphId]![\"authorSaveReceipt\"]![\"ownedOutputBinding\"]=true;",
+      "after": "if(ownedOutputBindingBatch)candidate[\"units\"]![physicalGraphId]![\"authorSaveReceipt\"]![\"ownedOutputBinding\"]=true;if(ownedOutputRemovalBatch)candidate[\"units\"]![physicalGraphId]![\"authorSaveReceipt\"]![\"ownedOutputRemoval\"]=true;",
+      "count": 1
+    },
+    {
+      "path": "packs/edit-workspace/Export.csbody",
+      "before": "unit[\"authorSaveReceipt\"]?[\"ownedOutputBinding\"]?.GetValue<bool>()==true||",
+      "after": "unit[\"authorSaveReceipt\"]?[\"ownedOutputBinding\"]?.GetValue<bool>()==true||unit[\"authorSaveReceipt\"]?[\"ownedOutputRemoval\"]?.GetValue<bool>()==true||",
+      "count": 1
+    }
+  ]
+}
