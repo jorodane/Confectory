@@ -11,3 +11,5 @@
 초기 동결 2a358c7의 독립 LF 검사에서 API/공유 history/기존 값 회귀를 확인했다. 함수 선언의 Unicode escape 저장은 native 파서로 다시 읽어 비교하도록 수정했고, display-name native 검사 선택을 실제 메서드 이름으로 바로잡았다. 초기 실행은 증거를 보존하고 종료하며, 제품 byte는 바꾸지 않고 새 동결 검사에서 명시적으로 확인한다.
 
 설명 단독 Review에는 additionalChanges가 없어 acknowledgement가 렌더되지 않는다. 자동화의 무조건 checkbox 기대를 렌더 조건에 맞게 수정했다. 제품은 동일하며, seal/전체 SHA와 Git diff·의존성·명령 일치를 확인한 통과 LF 4개만 재사용한다. 실패한 함수 검사·빌드/독립 checkout·패키지/복원은 새로 실행한다.
+
+늦은 응답 검사에서 의도적으로 응답을 멈춘 뒤 busy 해제를 기다리는 flush를 호출한 fixture 교착을 확인했다. 입력만 바꾼 뒤 응답을 해제하고 flush/보존/cold를 검사하도록 고쳤다. 이미 통과한 함수 entry는 해당 pause를 쓰지 않아 sealed 동일성 검증 후 추가 재사용한다. 제품은 변경하지 않는다.

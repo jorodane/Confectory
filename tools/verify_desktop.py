@@ -109,7 +109,7 @@ def main():
     parser.add_argument('--commit', required=True)
     parser.add_argument('--sdk', type=Path, required=True)
     parser.add_argument('--nuget-seed', type=Path, required=True)
-    parser.add_argument('--reuse-description',type=Path,help='Four sealed passing LF checks after the bounded optional Review acknowledgement fixture correction')
+    parser.add_argument('--reuse-description',type=Path,action='append',help='Sealed passing LF checks after exact bounded Review/paused-response fixture corrections')
     parser.add_argument('--reuse-coupled-backend',type=Path,help='Sealed completed backend checks after a UI-only recovery correction; all UI/build/package checks remain fresh')
     parser.add_argument('--reuse-coupled-ui',type=Path,help='Sealed passed UI checks with identical product and only the bounded response-wait fixture correction')
     parser.add_argument('--suite',choices=['headers','card-images','canvas','owned-information','owned-conversion','action-icons','declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement','worker-badges','node-internal','node-internal-nested','node-internal-storage','node-internal-context','node-internal-branches','node-branch-exits','node-internal-copy','node-internal-copy-nested','node-internal-copy-storage','node-internal-copy-branches','node-internal-copy-context','node-internal-copy-creating','node-internal-copy-frames','node-internal-override','node-internal-external-override','root-execution','root-execution-out','root-execution-closure','root-execution-copy','root-execution-copy-creating','root-execution-override','root-execution-registered','root-execution-registered-copy','root-execution-registered-creating','root-execution-data-void','root-execution-compound-owned','root-execution-provider-import','root-execution-nonvoid','public-return-data','root-execution-providers','root-execution-nested','root-execution-native','root-execution-caller','root-execution-forwarding','root-execution-observers','root-execution-wrappers','root-execution-owned-updates','root-execution-import-observations','async-runtime','async-transition','async-completion','async-function','async-property','async-adapter','async-context','async-creating','async-new-function','async-private','async-private-returns','async-coupled','async-root-io','async-branch-creation','guidance-code-editor','guidance-values','description-recovery','async-information'],default='headers')
@@ -136,7 +136,7 @@ def main():
         if args.reuse_description:
             if args.suite!='description-recovery': raise ValueError('Description reuse requires its own suite')
             from verification_description_reuse import bind
-            bind(repo,args.reuse_description,commit,inputs,work)
+            for record in args.reuse_description: bind(repo,record,commit,inputs,work)
         if args.reuse_coupled_backend:
             if args.suite!='async-coupled': raise ValueError('Reuse is limited to the coupled async suite')
             from verification_coupled_reuse import bind

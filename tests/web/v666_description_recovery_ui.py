@@ -77,7 +77,7 @@ def main():
    if paused or requests and any(r in queries for r in lost):break
    f.page.wait_for_timeout(30)
   assert len(requests)==1
-  if mode=='late':assert paused;stage(late);paused['route'].fulfill(response=paused['response']);f.page.unroute('**/api/request',interrupt);f.idle();assert has(late)
+  if mode=='late':assert paused;control().fill(late);paused['route'].fulfill(response=paused['response']);f.page.unroute('**/api/request',interrupt);f.idle();assert has(late)
   else:assert any(r in queries for r in lost);f.page.unroute_all(behavior='wait');f.idle();assert has(text)
   restart(3);wanted=late if mode=='late'else text;assert has(wanted);mark=len(f.traffic);save()
   if has(wanted):save()
