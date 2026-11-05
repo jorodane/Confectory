@@ -1,0 +1,119 @@
+{
+  "baseCommit": "6b70043833a739e875d542c53066b8ac136a90a3",
+  "reference": "Confectory-Editor-Prototype-v666.zip: dist/blueprint.js 1015–1017,1054,1267,1291",
+  "scope": "One value on an existing directly owned root export; existing expression/type validation; no export create/remove/bind/route or public/override/permission/layout change",
+  "deltas": [
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": " function batchEdits(w,cells,graph=w.authorData.id){",
+      "after": " function ownedExportValue(w,cells,data=w.authorData){return !!data.id&&data.id===data.rootId&&!data.privatePath&&!data.slotContext&&!data.privateCopy&&!w.meta.copyDraft&&cells.length===1&&cells[0][1].type==='argument:value'&&(!cellFrame(w,cells[0][0])||cellFrame(w,cells[0][0])===data.id)&&data.nodes.some(n=>n.id===cells[0][1].node&&n.kind==='export'&&n.control==='next');}\n function batchEdits(w,cells,graph=w.authorData.id){if(ownedExportValue(w,cells)){const v=cells[0][1];return [{action:'outputNodes',node:'$exports',definition:{edits:[{kind:'value',node:v.node,valueJson:v.text}]}}];}",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": "   const correctedOwnedEntry=",
+      "after": "   const correctedOwnedExportValue=ownedExportValue(w,journal.cells)&&ownedExportValue(w,captured)&&w.authorData.checkpointHash===journal.checkpointHash&&journal.cells[0][0]===captured[0][0]&&sameCell({...journal.cells[0][1],text:captured[0][1].text},captured[0][1]);\n   const correctedOwnedEntry=",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": "correctedMapping||correctedOwnedEntry||",
+      "after": "correctedMapping||correctedOwnedExportValue||correctedOwnedEntry||",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": "if((atomicOwnedEntry||",
+      "after": "if((current.id===data.id&&ownedExportValue(w,captured,current)||atomicOwnedEntry||",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": " bool ownedEntryBatch=",
+      "after": " bool ownedOutputValueBatch=request[\"owner\"] is null&&graphId==physicalGraphId&&edits.Count==1&&edits[0]!.AsObject().Count==3&&edits[0]?[\"action\"]?.ToString()==\"outputNodes\"&&edits[0]?[\"node\"]?.ToString()==\"$exports\"&&edits[0]?[\"definition\"] is System.Text.Json.Nodes.JsonObject outputValuePlan&&outputValuePlan.Count==1&&outputValuePlan[\"edits\"] is System.Text.Json.Nodes.JsonArray outputValueRows&&outputValueRows.Count==1&&outputValueRows[0] is System.Text.Json.Nodes.JsonObject outputValueRow&&outputValueRow.Count==3&&outputValueRow[\"kind\"]?.ToString()==\"value\"&&outputValueRow[\"node\"] is System.Text.Json.Nodes.JsonValue outputValueNode&&outputValueNode.TryGetValue<string>(out _)&&outputValueRow[\"valueJson\"] is System.Text.Json.Nodes.JsonValue outputValueJson&&outputValueJson.TryGetValue<string>(out _);\n bool ownedEntryBatch=",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": "bool ownedNodeInputBatch=ownedEntryBatch||",
+      "after": "bool ownedNodeInputBatch=ownedOutputValueBatch||ownedEntryBatch||",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": "foreach(var edit in edits){string action=edit![\"action\"]!.ToString();if(action==\"rootParameters\"",
+      "after": "foreach(var edit in edits){string action=edit![\"action\"]!.ToString();if(action==\"outputNodes\"&&!ownedOutputValueBatch)throw new ArgumentException(\"One exact owned export value required\");if(action==\"rootParameters\"",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": "action is not (\"internalizeNode\" or \"createNode\"",
+      "after": "action is not (\"outputNodes\" or \"internalizeNode\" or \"createNode\"",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": "edit=>!(ownedEntryBatch&&edit![\"node\"]?.ToString()==\"$entry\")",
+      "after": "edit=>!ownedOutputValueBatch&&!(ownedEntryBatch&&edit![\"node\"]?.ToString()==\"$entry\")",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": "    if(rootExecutionBatch&&request[\"dependencyHash\"]",
+      "after": "    if(ownedOutputValueBatch&&!System.Linq.Enumerable.Any(current[\"nodes\"]!.AsArray(),node=>node?[\"id\"]?.ToString()==edits[0]?[\"definition\"]?[\"edits\"]?[0]?[\"node\"]?.ToString()&&node?[\"kind\"]?.ToString()==\"export\"&&node?[\"control\"]?.ToString()==\"next\"))throw new InvalidOperationException(\"Existing owned serial export required; preserve input\");\n    if(rootExecutionBatch&&request[\"dependencyHash\"]",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": "if(asyncBatch&&action==\"rootParameters\")",
+      "after": "if(ownedOutputValueBatch&&action==\"outputNodes\"){next[\"edits\"]=next[\"definition\"]![\"edits\"]!.DeepClone();next.Remove(\"definition\");next.Remove(\"node\");}if(asyncBatch&&action==\"rootParameters\")",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": "if(ownedEntryBatch)candidate[\"units\"]![physicalGraphId]![\"authorSaveReceipt\"]![\"ownedEntry\"]=true;",
+      "after": "if(ownedOutputValueBatch)candidate[\"units\"]![physicalGraphId]![\"authorSaveReceipt\"]![\"ownedOutputValue\"]=true;if(ownedEntryBatch)candidate[\"units\"]![physicalGraphId]![\"authorSaveReceipt\"]![\"ownedEntry\"]=true;",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": "is \"intent\" or \"source\" or \"rename\" or \"route\" or \"entry\")&&candidate[\"units\"]",
+      "after": "is \"intent\" or \"source\" or \"rename\" or \"route\" or \"entry\" or \"outputNodes\")&&candidate[\"units\"]",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "packs/edit-workspace/Export.csbody",
+      "before": "unit[\"authorSaveReceipt\"]?[\"ownedEntry\"]?.GetValue<bool>()==true)",
+      "after": "unit[\"authorSaveReceipt\"]?[\"ownedEntry\"]?.GetValue<bool>()==true||unit[\"authorSaveReceipt\"]?[\"ownedOutputValue\"]?.GetValue<bool>()==true)",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": "내보내기와 다른 노드의 입력은 나누어 저장해 주세요. 모든 입력은 유지됩니다.",
+      "after": "내보내기와 다른 노드의 입력은 나누어 저장해 주십시오. 모든 입력은 유지됩니다.",
+      "count": 1,
+      "kind": "guidance"
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": "if(action is \"rootExecution\" or \"wrapCall\" or \"branchExits\" or \"setPlan\" or \"propertyPlan\"&&current[\"diagnostics\"]",
+      "after": "if(action is \"outputNodes\" or \"rootExecution\" or \"wrapCall\" or \"branchExits\" or \"setPlan\" or \"propertyPlan\"&&current[\"diagnostics\"]",
+      "count": 1,
+      "kind": "logic"
+    }
+  ]
+}
