@@ -1,0 +1,98 @@
+{
+  "baseCommit": "98a3098e9ead13a5a9e0c3292147f10a7ae5bfb7",
+  "reference": "Confectory-Editor-Prototype-v666.zip: dist/blueprint.js 926–943,1267,1291",
+  "scope": "One directly owned ordinary root code display name; existing compact inspector; 3 guidance messages/3 occurrences; no identifiers/contracts/ownership/layout changes",
+  "deltas": [
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": "journal.cells.some(([key,old])=>['source','intent'].includes(old.type)",
+      "after": "journal.cells.every(([,old])=>old.type!=='rename'||journal.cells.length===1)&&journal.cells.some(([key,old])=>['source','intent','rename'].includes(old.type)",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": "(['source','intent'].includes(old.type)?sameCell({...old,text:now.text}",
+      "after": "(['source','intent','rename'].includes(old.type)?sameCell({...old,text:now.text}",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": "(['source','intent'].includes(v.type)||v.type.startsWith('argument:'))&&current.nodes.some",
+      "after": "(['source','intent'].includes(v.type)||v.type.startsWith('argument:')||captured.length===1&&v.type==='rename')&&current.nodes.some",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": "const mobileWrite=(id,kind,text)=>{if(!canvasOwns()||api.busy||data.privateConversion)return;const row=rows.find(r=>r.id===id);if(!row||!['code','graph'].includes(row.kind)||row.renameable===false)return;",
+      "after": "const mobileWrite=(id,kind,text)=>{if(!canvasOwns()||data.privateConversion)return;const row=rows.find(r=>r.id===id);if(!row||!['code','graph'].includes(row.kind)||row.renameable===false)return;if(api.busy&&!(kind==='rename'&&w.authorSavePending&&!data.privatePath&&!data.slotContext&&!data.privateCopy&&!w.meta.copyDraft&&row.kind==='code'&&!row.implementationContext&&!row.forwardCallerStorage))return;",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": " bool ownedNodeInputBatch=",
+      "after": " bool ownedRenameBatch=request[\"owner\"] is null&&graphId==physicalGraphId&&edits.Count==1&&edits[0]?[\"frame\"] is null&&edits[0]?[\"action\"]?.ToString()==\"rename\";\n bool ownedNodeInputBatch=",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": "bool ownedNodeInputBatch=request[\"owner\"] is null",
+      "after": "bool ownedNodeInputBatch=ownedRenameBatch||request[\"owner\"] is null",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": "Direct owned root code argument/intent/source batch required;",
+      "after": "Direct owned root code argument/intent/source or single display name batch required;",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": "if(publicWrapperBatch)candidate[\"units\"]![physicalGraphId]![\"authorSaveReceipt\"]![\"publicWrapper\"]=true;",
+      "after": "if(ownedRenameBatch)candidate[\"units\"]![physicalGraphId]![\"authorSaveReceipt\"]![\"ownedRename\"]=true;if(publicWrapperBatch)candidate[\"units\"]![physicalGraphId]![\"authorSaveReceipt\"]![\"publicWrapper\"]=true;",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": "if(ownedNodeInputBatch&&System.Linq.Enumerable.Any(edits,edit=>edit?[\"action\"]?.ToString() is \"intent\" or \"source\")",
+      "after": "if(ownedNodeInputBatch&&System.Linq.Enumerable.Any(edits,edit=>edit?[\"action\"]?.ToString() is \"intent\" or \"source\" or \"rename\")",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "packs/edit-workspace/Export.csbody",
+      "before": "unit[\"authorSaveReceipt\"]?[\"ownedSource\"]?.GetValue<bool>()==true&&",
+      "after": "(unit[\"authorSaveReceipt\"]?[\"ownedSource\"]?.GetValue<bool>()==true||unit[\"authorSaveReceipt\"]?[\"ownedRename\"]?.GetValue<bool>()==true)&&",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": "이전 노드 입력을 아직 연결하지 못했어요. 입력은 유지됩니다.",
+      "after": "이전 노드 입력을 아직 연결하지 못했습니다. 입력은 유지됩니다.",
+      "count": 1,
+      "kind": "guidance"
+    },
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": "저장한 편집 대상을 확인하지 못했어요. 입력은 유지됩니다.",
+      "after": "저장한 편집 대상을 확인하지 못했습니다. 입력은 유지됩니다.",
+      "count": 1,
+      "kind": "guidance"
+    },
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": "확정 후 정보 원본이 바뀌었어요. 입력은 유지됩니다.",
+      "after": "확정 후 정보 원본이 바뀌었습니다. 입력은 유지됩니다.",
+      "count": 1,
+      "kind": "guidance"
+    }
+  ]
+}
