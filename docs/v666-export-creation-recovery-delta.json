@@ -1,0 +1,65 @@
+{
+  "baseCommit": "f813c5780de4930feed67e5d62187f3f016de65a",
+  "deltas": [
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": " function ownedExportRemoval(w,cells,data=w.authorData)",
+      "after": " function exportCreationEdits(cells){const created=cells.filter(([,v])=>v.type==='export-create'),values=cells.filter(([,v])=>v.type==='argument:value'),routes=cells.filter(([,v])=>v.type==='route');if(cells.length!==4||created.length!==1||values.length!==1||routes.length!==2)return null;const c=created[0][1],v=values[0][1],incoming=routes.find(([,r])=>r.node!==c.node)?.[1],outgoing=routes.find(([,r])=>r.node===c.node)?.[1];if(!c.node||typeof c.text!=='string'||!c.text||v.node!==c.node||typeof v.text!=='string'||!incoming||!outgoing||incoming.text!==c.node||!incoming.node||typeof outgoing.text!=='string'||!outgoing.text||outgoing.text===c.node)return null;return [{kind:'create',node:c.node,output:c.text},{kind:'value',node:c.node,valueJson:v.text},{kind:'route',node:incoming.node,to:c.node},{kind:'route',node:c.node,to:outgoing.text}];}\n function ownedExportCreation(w,cells,data=w.authorData){const plan=exportCreationEdits(cells);return !!plan&&!!data.id&&data.id===data.rootId&&!data.privatePath&&!data.slotContext&&!data.privateCopy&&!w.meta.copyDraft&&cells.every(([key])=>!cellFrame(w,key)||cellFrame(w,key)===data.id)&&!data.nodes.some(n=>n.id===plan[0].node)&&data.nodes.some(n=>n.id===plan[2].node&&n.kind==='code'&&n.control==='next'&&!n.branchOwner&&!n.implementationContext&&!n.forwardCallerStorage)&&data.edges.some(e=>e.from===plan[2].node&&e.port==='next'&&(e.to.startsWith('$exit:')?e.to.slice(1):e.to)===plan[3].to);}\n function ownedExportRemoval(w,cells,data=w.authorData)",
+      "count": 1
+    },
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": "function batchEdits(w,cells,graph=w.authorData.id){",
+      "after": "function batchEdits(w,cells,graph=w.authorData.id){const creation=exportCreationEdits(cells);if(creation)return [{action:'outputNodes',node:'$exports',definition:{edits:creation}}];",
+      "count": 1
+    },
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": "   const correctedOwnedRootReturn=",
+      "after": "   const correctedOwnedExportCreation=ownedExportCreation(w,journal.cells)&&ownedExportCreation(w,captured)&&w.authorData.checkpointHash===journal.checkpointHash&&journal.cells.length===captured.length&&journal.cells.every(([key,old])=>captured.some(([candidate,now])=>candidate===key&&(old.type==='argument:value'?sameCell({...old,text:now.text},now):sameCell(old,now))));\n   const correctedOwnedRootReturn=",
+      "count": 1
+    },
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": "registeredRefresh||correctedMapping||correctedOwnedRootReturn",
+      "after": "registeredRefresh||correctedMapping||correctedOwnedExportCreation||correctedOwnedRootReturn",
+      "count": 1
+    },
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": "ownedExportRemoval(w,captured,current)||ownedExportRemoval(w,inputs.get(authorAttemptKey(w))?.cells||[],current)",
+      "after": "ownedExportCreation(w,captured,current)||ownedExportCreation(w,inputs.get(authorAttemptKey(w))?.cells||[],current)||ownedExportRemoval(w,captured,current)||ownedExportRemoval(w,inputs.get(authorAttemptKey(w))?.cells||[],current)",
+      "count": 1
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": " bool ownedOutputRemovalBatch=",
+      "after": " bool ExactOutputCreationRow(System.Text.Json.Nodes.JsonNode? row,string kind,params string[] keys)=>row is System.Text.Json.Nodes.JsonObject item&&item.Count==keys.Length&&item[\"kind\"]?.ToString()==kind&&System.Linq.Enumerable.All(keys,key=>item[key] is System.Text.Json.Nodes.JsonValue value&&value.TryGetValue<string>(out _));\n bool ownedOutputCreationBatch=request[\"owner\"] is null&&graphId==physicalGraphId&&edits.Count==1&&edits[0]!.AsObject().Count==3&&edits[0]?[\"action\"]?.ToString()==\"outputNodes\"&&edits[0]?[\"node\"]?.ToString()==\"$exports\"&&edits[0]?[\"definition\"] is System.Text.Json.Nodes.JsonObject outputCreationPlan&&outputCreationPlan.Count==1&&outputCreationPlan[\"edits\"] is System.Text.Json.Nodes.JsonArray outputCreationRows&&outputCreationRows.Count==4&&ExactOutputCreationRow(outputCreationRows[0],\"create\",\"kind\",\"node\",\"output\")&&ExactOutputCreationRow(outputCreationRows[1],\"value\",\"kind\",\"node\",\"valueJson\")&&ExactOutputCreationRow(outputCreationRows[2],\"route\",\"kind\",\"node\",\"to\")&&ExactOutputCreationRow(outputCreationRows[3],\"route\",\"kind\",\"node\",\"to\")&&outputCreationRows[0]![\"node\"]!.ToString()==outputCreationRows[1]![\"node\"]!.ToString()&&outputCreationRows[0]![\"node\"]!.ToString()==outputCreationRows[2]![\"to\"]!.ToString()&&outputCreationRows[0]![\"node\"]!.ToString()==outputCreationRows[3]![\"node\"]!.ToString()&&outputCreationRows[2]![\"node\"]!.ToString()!=outputCreationRows[0]![\"node\"]!.ToString()&&outputCreationRows[3]![\"to\"]!.ToString()!=outputCreationRows[0]![\"node\"]!.ToString();\n bool ownedOutputRemovalBatch=",
+      "count": 1
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": "bool ownedOutputBatch=ownedOutputRemovalBatch||",
+      "after": "bool ownedOutputBatch=ownedOutputCreationBatch||ownedOutputRemovalBatch||",
+      "count": 1
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": "    if(ownedOutputBatch&&!System.Linq.Enumerable.Any(current[\"nodes\"]!.AsArray()",
+      "after": "    if(ownedOutputCreationBatch){var rows=edits[0]![\"definition\"]![\"edits\"]!.AsArray();string newId=rows[0]![\"node\"]!.ToString(),from=rows[2]![\"node\"]!.ToString(),to=rows[3]![\"to\"]!.ToString();if(System.Linq.Enumerable.Any(current[\"nodes\"]!.AsArray(),n=>n?[\"id\"]?.ToString()==newId)||!System.Linq.Enumerable.Any(current[\"nodes\"]!.AsArray(),n=>n?[\"id\"]?.ToString()==from&&n?[\"kind\"]?.ToString()==\"code\"&&n?[\"control\"]?.ToString()==\"next\"&&string.IsNullOrEmpty(n?[\"branchOwner\"]?.ToString())&&n?[\"implementationContext\"] is null&&n?[\"forwardCallerStorage\"]?.GetValue<bool>()!=true)||!System.Linq.Enumerable.Any(current[\"edges\"]!.AsArray(),e=>e?[\"from\"]?.ToString()==from&&e?[\"port\"]?.ToString()==\"next\"&&e?[\"to\"]?.ToString()==to))throw new InvalidOperationException(\"One new export on the observed owned code next edge required; preserve input\");}\n    if(ownedOutputBatch&&!ownedOutputCreationBatch&&!System.Linq.Enumerable.Any(current[\"nodes\"]!.AsArray()",
+      "count": 1
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": "if(ownedOutputRemovalBatch)candidate[\"units\"]![physicalGraphId]![\"authorSaveReceipt\"]![\"ownedOutputRemoval\"]=true;",
+      "after": "if(ownedOutputRemovalBatch)candidate[\"units\"]![physicalGraphId]![\"authorSaveReceipt\"]![\"ownedOutputRemoval\"]=true;if(ownedOutputCreationBatch)candidate[\"units\"]![physicalGraphId]![\"authorSaveReceipt\"]![\"ownedOutputCreation\"]=true;",
+      "count": 1
+    },
+    {
+      "path": "packs/edit-workspace/Export.csbody",
+      "before": "unit[\"authorSaveReceipt\"]?[\"ownedOutputRemoval\"]?.GetValue<bool>()==true||",
+      "after": "unit[\"authorSaveReceipt\"]?[\"ownedOutputRemoval\"]?.GetValue<bool>()==true||unit[\"authorSaveReceipt\"]?[\"ownedOutputCreation\"]?.GetValue<bool>()==true||",
+      "count": 1
+    }
+  ]
+}
