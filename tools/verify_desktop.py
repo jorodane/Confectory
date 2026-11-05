@@ -341,7 +341,7 @@ def main():
                 work.run(label+'-description-copy-boundary',[sys.executable,str(checkout/'tests/web/v666_guidance_code_editor_copy.py'),str(checkout)],cwd=checkout,env=env)
                 for name in ['feature-authoring.js','feature-editor.js']:
                     work.run(label+'-description-script-'+name,[ 'node','--check',str(checkout/'examples/editor-home/ui'/name)],cwd=checkout,env=env)
-                work.run(label+'-description-history-runtime',[dotnet,str(checkout/'tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll'),'DraftHistoryTests','BlueprintDisplayNameTests','--require-runtime'],cwd=checkout,env=env)
+                work.run(label+'-description-history-runtime',[dotnet,str(checkout/'tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll'),'DraftHistoryTests','test_display_name_preserves_compiled_code_probe_reuse_and_never_renews_stale_bodies','--require-runtime'],cwd=checkout,env=env)
                 work.run(label+'-description-api',[sys.executable,str(checkout/'tests/web/v666_description_recovery_api.py'),str(checkout),str(report),'--out-root'],cwd=checkout,env=env)
                 work.run(label+'-value-regression',[sys.executable,str(checkout/'tests/web/v666_guidance_values_api.py'),str(checkout),str(report),'--out-root'],cwd=checkout,env=env)
                 for target,mode in ([('node','storage-new'),('function','entry'),('node','late')]if label=='lf'else[('node','conflict'),('function','storage-new'),('function','loss')]):

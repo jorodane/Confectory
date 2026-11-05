@@ -97,7 +97,7 @@ def main():
  if r.is_visible():r.locator('[data-reject]').click()
  r=review();r.locator('#confirm').click();expect(r).to_be_hidden(timeout=120000);f.idle();assert all(path.read_bytes()==original for path,original in x.physical.items()if path.name not in ({'Flow.graph.json','Flow.node.json'}if target=='node'else{'Flow.celem'}))
  if target=='node':assert json.loads((f.project/'Flow.node.json').read_text())['source'].encode()==x.original_source.encode();g=json.loads(p.read_text());assert g['edges']==x.root['edges']and g['profile']==x.root['profile']and next(n['intent']for n in g['nodes']if n['id']=='choose')==value
- else:assert value in p.read_text()
+ else:assert p.read_bytes()!=physical and current_text()==value
  x.build('description-execution',10,'callee:1\nafter:10');restart(5);expect(control()).to_have_value(value);assert not has(value);assert not f.errors and not f.external,(f.errors,f.external);f.page.screenshot(path=str(f.case/'description-final.png'),timeout=5000,full_page=True);f.checked(target+': Review cancel/final CAS refusal/new Confirm/real execution/cold preserve original code and connections')
 try:
  f.start(0);f.invoke('select',dict(id=x.feature));f.invoke('saveDraft',{});checkpoint=next(f.project.glob('.confectory/edit-workspaces/*/draft.json'));before=checkpoint.read_bytes()
