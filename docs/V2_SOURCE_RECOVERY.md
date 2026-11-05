@@ -24,6 +24,11 @@ Source는 현재 정의 계약으로 기록하고 실제 컴파일/물리 쓰기
 결과가 불확실하면 입력과 시도를 유지한다. 응답 유실·늦은 새 본문은 정확한 receipt로
 분리한다. 구조/소유권을 바꾸지 않는 경우 기존 제한의 공유 history를 후보에서 기록한다.
 
+source-only 저장은 그래프 text가 그대로여도 서버가 만든 ownedSource receipt를 같은
+checkpoint에 보존한다. source 파일이 전혀 dirty하지 않은 명시적 반복 Save도 포함한다.
+복구는 기존 attempt/plan/closure/checkpoint와 현재 노드의 정확한 C# 본문을 대조한다.
+receipt를 보관하려고 그래프나 사용자 C#을 가짜로 바꾸지 않는다.
+
 속성 읽기/쓰기 노드 또는 보관된 propertyObservations가 있는 그래프는 기존 property
 source 경로를 유지한다. 최초 관측 없는 property source 저장 거절·readonly receiver/
 객체/스키마/등록 관측·전체 Review/최종 CAS를 일반 code source 진입으로 우회하지 않는다.

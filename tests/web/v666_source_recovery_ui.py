@@ -1,5 +1,5 @@
 """Real ordinary owned C# body Save and compiler/failure/receipt recovery."""
-import ast,copy,json,pathlib,sys
+import ast,copy,json,pathlib,sys,uuid
 from playwright.sync_api import sync_playwright,expect
 import v666_root_execution_fixture as x
 f=x.f;mode=sys.argv[3];text=x.after_source.replace('after:','edited:')+'\n// 명시한 C# α 😀';late=text.replace('edited:','latest:')+'\n// 늦은 입력 β'
@@ -82,6 +82,8 @@ def main():
  finally:p.write_bytes(physical)
  if r.is_visible():r.locator('[data-reject]').click()
  r=review();r.locator('#confirm').click();expect(r).to_be_hidden(timeout=120000);f.idle();assert json.loads(p.read_text())['source']==value;assert json.loads((f.project/'Main.graph.json').read_text())==x.cg;assert all(path.read_bytes()==raw for path,raw in x.physical.items()if path.name not in ['After.node.json','Main.graph.json']);x.build('ordinary-source-execution',10,'callee:1\n'+('latest:10'if value==late else'edited:10'));restart(5);check_editor(value);assert not private()and not f.errors and not f.external,(private(),f.errors,f.external);f.page.screenshot(path=str(f.case/'source-final.png'),timeout=5000,full_page=True);f.checked('C# Review cancel/final CAS/new Confirm/actual execution/cold preserve untouched C#, IDs, profile and connections')
+ if mode=='normal':
+  physical_now={p:p.read_bytes()for p in x.physical};data=x.read(x.caller);q=dict(action='authorBatch',id=x.caller,attempt=uuid.uuid4().hex,checkpointHash=data['checkpointHash'],sourceProof=x.proof(data),edits=[dict(action='source',node='after',text=value)]);assert f.invoke('blueprint',q)['result']['result']['checkpointSaved'];raw=checkpoint.read_bytes();doc=json.loads(raw);assert not any(u['draft']!=u['original']for u in doc['changes']);g=next(u for u in doc['changes']if u['id']==x.caller);assert g['authorSaveReceipt']['ownedSource']is True;restart(6);assert f.invoke('blueprint',{**q,'action':'settledAuthorBatch'})['result']['result']['settled'];assert checkpoint.read_bytes()==raw and all(p.read_bytes()==v for p,v in physical_now.items());assert not private();f.checked('unchanged C# source Save keeps a durable receipt even with zero dirty source files; cold settles without physical writes')
 try:
  f.start(0);f.invoke('select',dict(id=x.main_id));f.invoke('saveDraft',{});checkpoint=next(f.project.glob('.confectory/edit-workspaces/*/draft.json'));before=checkpoint.read_bytes()
  with sync_playwright()as pw:

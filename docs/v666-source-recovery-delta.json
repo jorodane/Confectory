@@ -100,6 +100,27 @@
       "after": "저장 중 생긴 새 입력은 보존했습니다. 다시 확인해 주십시오.",
       "count": 1,
       "kind": "wording"
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": "if(publicWrapperBatch)candidate[\"units\"]![physicalGraphId]![\"authorSaveReceipt\"]![\"publicWrapper\"]=true;",
+      "after": "if(ownedNodeInputBatch&&System.Linq.Enumerable.Any(edits,edit=>edit?[\"action\"]?.ToString()==\"source\"))candidate[\"units\"]![physicalGraphId]![\"authorSaveReceipt\"]![\"ownedSource\"]=true;if(publicWrapperBatch)candidate[\"units\"]![physicalGraphId]![\"authorSaveReceipt\"]![\"publicWrapper\"]=true;",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": "if((current[\"publicBodyReturnsAvailable\"]?.GetValue<bool>()==true||current[\"publicCopyReturnsAvailable\"]?.GetValue<bool>()==true)&&request[\"dependencyHash\"]?.ToString()!=current[\"nodeFlowDependencyHash\"]?.ToString())return false;",
+      "after": "if(ownedNodeInputBatch)foreach(var edit in edits)if(edit?[\"action\"]?.ToString()==\"source\"){var sourceNode=System.Linq.Enumerable.SingleOrDefault(current[\"nodes\"]!.AsArray(),node=>node?[\"id\"]?.ToString()==edit[\"node\"]?.ToString());if(sourceNode is null||sourceNode[\"kind\"]?.ToString()!=\"code\"||sourceNode[\"implementationContext\"] is not null||sourceNode[\"forwardCallerStorage\"]?.GetValue<bool>()==true||sourceNode[\"source\"]?.GetValue<string>()!=edit[\"text\"]?.GetValue<string>())return false;}if((current[\"publicBodyReturnsAvailable\"]?.GetValue<bool>()==true||current[\"publicCopyReturnsAvailable\"]?.GetValue<bool>()==true)&&request[\"dependencyHash\"]?.ToString()!=current[\"nodeFlowDependencyHash\"]?.ToString())return false;",
+      "count": 1,
+      "kind": "logic"
+    },
+    {
+      "path": "packs/edit-workspace/Export.csbody",
+      "before": "if(activeAtomic||activeRoot||activeHierarchy||activeRetirement||",
+      "after": "if((unit[\"kind\"]?.ToString()==\"blueprint\"&&unit[\"authorSaveReceipt\"]?[\"version\"]?.GetValue<int>()==1&&unit[\"authorSaveReceipt\"]?[\"ownedSource\"]?.GetValue<bool>()==true&&unit[\"authorSaveReceipt\"]?[\"graph\"]?.ToString()==entry.Key)||activeAtomic||activeRoot||activeHierarchy||activeRetirement||",
+      "count": 1,
+      "kind": "logic"
     }
   ]
 }

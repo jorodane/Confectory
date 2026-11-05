@@ -9,3 +9,5 @@
 제품 변경 전 손실을 확인했다. baseline·실패·재현 자료를 보존한다.
 
 초기 동결 254ea89에서 LF 17단계와 CRLF native/API/설명 회귀는 통과했다. 다음 property guard 호출의 engine report 인자가 빠져 fixture 초기화 전에 IndexError로 종료됐다. 기존 호출 예와 같이 인자만 추가하며 제품/검사 byte는 그대로다. 봉인된 동등 통과 10개만 SHA·전체 manifest·Git·SDK/NuGet·명령/EOL 일치로 재사용하고, 실패한 관측 검사·checkout/빌드·새 패키지/복원은 새로 실행한다.
+
+응답 유실/cold에서 실제 추가 결함을 발견했다. source-only의 graph draft text가 원문과 같아 Export가 graph receipt를 checkpoint에서 제외했다. C#은 이미 저장됐지만 재시작 후 settled 판정이 불가능해 입력 복구가 막혔다. owned source receipt만 명시적으로 보존하고 현재 C# 본문 일치도 검증한다. No-op Save·위조 receipt 거절을 추가하며 제품 변경 때문에 최종 영향 검증은 모두 새로 실행한다.
