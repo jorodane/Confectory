@@ -1,0 +1,18 @@
+{
+  "baseCommit": "e97c76f98b0b21619c2f11c476e11c303126efce",
+  "deltas": [
+    {
+      "path": "packs/editor-home-model/TableCommand.csbody",
+      "before": "   row[\"fields\"]!.AsArray().Add(new System.Text.Json.Nodes.JsonObject{[\"name\"]=\"정의\",[\"state\"]=\"present\",[\"valueJson\"]=BrowserJson(definition)});\n",
+      "after": "   row[\"fields\"]!.AsArray().Add(new System.Text.Json.Nodes.JsonObject{[\"name\"]=\"정의\",[\"state\"]=\"present\",[\"valueJson\"]=BrowserJson(definition)});\n   if(source[1]==\"schema\"){\n    // Defaults are typed JSON strings in storage, not searchable raw metadata.\n    const string defaultPrefix=\"editorFieldDefault_\",defaultMarker=\"editorInformationDefaults\";var fields=row[\"fields\"]!.AsArray();\n    for(int fieldIndex=fields.Count-1;fieldIndex>=0;fieldIndex--){string name=fields[fieldIndex]![\"name\"]!.ToString();if(name==defaultMarker||name.StartsWith(defaultPrefix,StringComparison.Ordinal))fields.RemoveAt(fieldIndex);}\n    bool incomplete=false;int count=0,bytes=0;var values=info[\"values\"]!.AsObject();\n    foreach(var pair in values){if(!pair.Key.StartsWith(defaultPrefix,StringComparison.Ordinal))continue;\n     try{if(++count>64||values[defaultMarker]?.ToString()!=\"typed-json-v1\")throw new ArgumentException(\"Known bounded defaults required\");string name=pair.Key[defaultPrefix.Length..];if(!info[\"fields\"]!.AsObject().ContainsKey(name))throw new ArgumentException(\"Directly declared default field required\");string json=pair.Value!.GetValue<string>();int length=System.Text.Encoding.UTF8.GetByteCount(json);if(length>65536||bytes+length>65536)throw new ArgumentException(\"Default projection budget\");using var parsed=System.Text.Json.JsonDocument.Parse(json,new System.Text.Json.JsonDocumentOptions{MaxDepth=64});bytes+=length;fields.Add(new System.Text.Json.Nodes.JsonObject{[\"name\"]=\"기본값 · \"+name,[\"state\"]=\"present\",[\"valueJson\"]=json});}\n     catch{incomplete=true;}\n    }\n    row[\"incomplete\"]=incomplete;\n   }\n",
+      "count": 1
+    },
+    {
+      "path": "examples/editor-home/ui/finder-content.js",
+      "before": " function text(row){\n  let size=0,incomplete=row.incomplete===true;const parts=[];const add=value=>{if(size>=20000)return;const flat=String(value??'').replace(/\\s+/g,' ').trim();if(!flat||/^data:/i.test(flat))return;const part=flat.slice(0,20000-size);parts.push(part);size+=part.length;};\n",
+      "after": " function text(row){\n  let size=0,incomplete=row.incomplete===true;const parts=[];const add=value=>{const flat=String(value??'').replace(/\\s+/g,' ').trim();if(!flat||/^data:/i.test(flat))return;if(size>=20000){incomplete=true;return;}if(flat.length>20000-size)incomplete=true;const part=flat.slice(0,20000-size);parts.push(part);size+=part.length;};\n",
+      "count": 1
+    }
+  ],
+  "newFiles": {}
+}

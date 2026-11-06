@@ -17,7 +17,7 @@ export function createFinderContent(api){
   const serial=epoch;phase='queued';changed();timer=setTimeout(()=>{timer=null;if(enabled&&epoch===serial)void load(own,serial);},180);
  }
  function text(row){
-  let size=0,incomplete=row.incomplete===true;const parts=[];const add=value=>{if(size>=20000)return;const flat=String(value??'').replace(/\s+/g,' ').trim();if(!flat||/^data:/i.test(flat))return;const part=flat.slice(0,20000-size);parts.push(part);size+=part.length;};
+  let size=0,incomplete=row.incomplete===true;const parts=[];const add=value=>{const flat=String(value??'').replace(/\s+/g,' ').trim();if(!flat||/^data:/i.test(flat))return;if(size>=20000){incomplete=true;return;}if(flat.length>20000-size)incomplete=true;const part=flat.slice(0,20000-size);parts.push(part);size+=part.length;};
   if(!Array.isArray(row.fields))throw Error('finder-content-fields');
   for(const field of row.fields){
    if(typeof field.name!=='string')throw Error('finder-content-field');if(skipped.has(field.name))continue;add(field.name);if(field.state!=='present'){incomplete=true;continue;}if(typeof field.valueJson!=='string')throw Error('finder-content-value');JSON.parse(field.valueJson);
