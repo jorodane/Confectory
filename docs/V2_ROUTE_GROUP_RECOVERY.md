@@ -36,4 +36,5 @@ export·source/이름/계약 혼합·생성·private/copy/slot·부모/외부 �
 최종 물리 CAS·원본 레이아웃은 그대로다. 이 경계는 현재 안전한 구현 범위이며,
 다른 조합을 영구 금지하는 새 UX 정책이나 새 필수 잔여 목록이 아니다.
 
-[정확한 delta](v666-route-group-recovery-delta.json)와 최종 검증 기록을 함께 따른다.
+[정확한 delta](v666-route-group-recovery-delta.json)와
+[최종 검증 기록](VALIDATION_V666_ROUTE_GROUP_RECOVERY.md)을 함께 따른다.
