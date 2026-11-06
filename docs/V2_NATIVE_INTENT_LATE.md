@@ -28,3 +28,5 @@ Apply하지 않으며 현재 source 읽기와 명시 기준 재검토/입력 취
 실제 Windows/WebView2·모바일·DPI/IME 이벤트·전체 UI·Library/Space 전달은 미실행이다.
 V3–V7 실제 backend/packs·V8 실제 영상/오디오·V9 신원/가시성과 기존 종류 정책은 남는다.
 M11/M12/M4의 실행 의미나 main은 변경하지 않는다.
+
+[최종 검증·보관 기록](VALIDATION_V666_NATIVE_INTENT_LATE.md): 31단계, 신규 31·재사용 0.

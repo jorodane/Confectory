@@ -65,7 +65,7 @@ Workspace 확대 팝오버의 재개방·프로젝트 전환 후 폐기 콜백 �
 일반 Blueprint 설명의 Apply 중 원래 관측 값/같은 문자열로 돌아온 새 입력은
 [현재 V2 보존 경계](V2_NATIVE_INTENT_LATE.md)에 연결한다. 입력 비활성화와 서버 basis/
 CAS·명시 기준 재검토·공유 Undo를 유지하며 새 입력만 자동 폐기하지 않는다.
-최종 native intent 검증 수치는 마감 기록에서 확정한다.
+[최종 31단계(신규 31·재사용 0)](VALIDATION_V666_NATIVE_INTENT_LATE.md)를 통과했다.
 
 ## 기존 미완료 사용자 흐름
 
