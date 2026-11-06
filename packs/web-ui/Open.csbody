@@ -43,7 +43,9 @@ string entry=bundle["entry"]!.ToString();if(!assets.ContainsKey(entry)||assets[e
 var endpoints=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
 foreach(var e in bundle["endpoints"]!.AsArray())if(e!.GetValue<string>().StartsWith("host.",StringComparison.Ordinal)||!endpoints.Add(e.GetValue<string>()))throw new ArgumentException("Duplicate endpoint");
 var hostActions=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);foreach(var action in bundle["hostActions"]?.AsArray()??new System.Text.Json.Nodes.JsonArray()){string name=action!.GetValue<string>();if(hostActions.Count>=32||!System.Text.RegularExpressions.Regex.IsMatch(name,@"^[a-z][a-z0-9-]{0,63}$")||!hostActions.Add(name))throw new ArgumentException("Bounded distinct native actions required");}
-string token=Guid.NewGuid().ToString("N");object gate=new(),execution=new();bool closing=false,closed=false;
+// Trusted bundles opt in read-only observations; they cannot reuse retained invocation endpoints.
+var observations=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);foreach(var row in bundle["observations"]?.AsArray()??new System.Text.Json.Nodes.JsonArray()){string name=row!.GetValue<string>();if(observations.Count>=32||!System.Text.RegularExpressions.Regex.IsMatch(name,"^[A-Za-z][A-Za-z0-9]{0,63}$")||endpoints.Contains(name)||!observations.Add(name))throw new ArgumentException("Bounded distinct observation endpoints required");}
+string token=Guid.NewGuid().ToString("N");object gate=new(),execution=new();bool closing=false,closed=false;int observationsInFlight=0;
 var retiredViews=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
 var owner=calls.CreateOwner.Invoke(1);int revisionInstance=calls.CreateInstance.Invoke(owner,"Confectory.WebUI::Revision");
 var views=new System.Collections.Generic.Dictionary<string,(string Scope,string[] Subscription)>(StringComparer.Ordinal);
@@ -54,12 +56,29 @@ void Trace(string stage,long start,string endpoint="",string code=""){if(trace)C
 System.Text.Json.Nodes.JsonObject State(string stage="snapshot"){long started=System.Diagnostics.Stopwatch.GetTimestamp();try{string text=calls.State.Invoke(context);if(text.Length>2097152)throw new InvalidOperationException("State budget exceeded");var s=System.Text.Json.Nodes.JsonNode.Parse(text)!.AsObject();if(s["scope"] is not System.Text.Json.Nodes.JsonObject||s["revision"]!.GetValue<long>()<0||s["state"] is null)throw new InvalidOperationException("Invalid consumer state");return s;}finally{Trace(stage,started);}}
 System.Text.Json.Nodes.JsonObject Error(string code,string id="")=>new(){["ok"]=false,["requestId"]=id,["error"]=new System.Text.Json.Nodes.JsonObject{["code"]=code}};
 System.Text.Json.Nodes.JsonObject? Refresh(){if(!System.Threading.Monitor.TryEnter(execution))return null;try{var s=State();calls.Write.Invoke(owner,revisionInstance,s["revision"]!.GetValue<long>());return s;}finally{System.Threading.Monitor.Exit(execution);}}
+// No completed-request retention: large read-only frames never enter the mutation/replay journal.
+string Observation(System.Text.Json.Nodes.JsonObject req){
+ try{
+  foreach(var field in req)if(field.Key is not ("op" or "view" or "scope" or "endpoint" or "input"))return Error("observation_fields").ToJsonString();
+  string v=req["view"]!.GetValue<string>(),endpoint=req["endpoint"]!.GetValue<string>(),payload=req["input"]?.AsObject().ToJsonString()??"{}";if(!observations.Contains(endpoint))return Error("endpoint_denied").ToJsonString();if(payload.Length>8192)return Error("request_too_large").ToJsonString();
+  if(!System.Threading.Monitor.TryEnter(execution))return Error("busy").ToJsonString();bool admitted=false;
+  try{
+   string scope;lock(gate){if(closing)return Error("owner_closed").ToJsonString();if(!views.TryGetValue(v,out var mounted))return Error("view_closed").ToJsonString();scope=mounted.Scope;observationsInFlight++;admitted=true;}
+   if(!System.Text.Json.Nodes.JsonNode.DeepEquals(req["scope"],System.Text.Json.Nodes.JsonNode.Parse(scope)))return Error("scope_mismatch").ToJsonString();
+   if(!System.Text.Json.Nodes.JsonNode.DeepEquals(State("observe-before")["scope"],req["scope"]))return Error("scope_changed").ToJsonString();
+   string cancellation=Guid.NewGuid().ToString("N");AppDomain.CurrentDomain.SetData("Confectory.WebUI.Cancel."+cancellation,(Func<bool>)(()=>{lock(gate)return closing||!views.ContainsKey(v);}));
+   try{string result=calls.Invoke.Invoke(context,endpoint,payload,cancellation);if(result.Length>2097152)throw new InvalidOperationException("Observation result budget");lock(gate){if(closing||!views.ContainsKey(v))return Error("view_closed").ToJsonString();}if(!System.Text.Json.Nodes.JsonNode.DeepEquals(State("observe-after")["scope"],req["scope"]))return Error("scope_changed").ToJsonString();return new System.Text.Json.Nodes.JsonObject{["ok"]=true,["result"]=System.Text.Json.Nodes.JsonNode.Parse(result)}.ToJsonString();}
+   finally{AppDomain.CurrentDomain.SetData("Confectory.WebUI.Cancel."+cancellation,null);}
+  }finally{if(admitted)lock(gate)observationsInFlight--;System.Threading.Monitor.Exit(execution);}
+ }catch{return Error("observation_failed").ToJsonString();}
+}
 string Dispatch(string text){
  if(text.Length>2097152)return Error("request_too_large").ToJsonString();
+ System.Text.Json.Nodes.JsonObject req;try{req=System.Text.Json.Nodes.JsonNode.Parse(text)!.AsObject();if(req["op"]?.ToString()=="observe")return Observation(req);}catch{return Error("invalid_request").ToJsonString();}
  lock(gate){
   try{
    if(closing)return Error("owner_closed").ToJsonString();
-   var req=System.Text.Json.Nodes.JsonNode.Parse(text)!.AsObject();string op=req["op"]!.ToString();
+   string op=req["op"]!.ToString();
    if(op=="mount"){
     if(views.Count>=32||views.Count+retiredViews.Count>=1024)return Error("view_budget").ToJsonString();var s=Refresh();if(s is null)return Error("busy").ToJsonString();string view=Guid.NewGuid().ToString("N");
     views.Add(view,(s["scope"]!.ToJsonString(),calls.Subscribe.Invoke(owner,revisionInstance,"Confectory.WebUI::Revision")));
@@ -110,7 +129,7 @@ string Dispatch(string text){
   }catch(Exception){return Error("invalid_request").ToJsonString();}
  }
 }
-bool Close(){lock(gate){if(closed)return true;closing=true;foreach(var v in views.Values)calls.Unsubscribe.Invoke(v.Subscription);views.Clear();foreach(var row in requests.Values)row.Cancel.Cancel();foreach(var row in requests.Values)if(row.Row["status"]!.ToString()=="pending")return false;calls.DisposeOwner.Invoke(owner);foreach(var row in requests.Values)row.Cancel.Dispose();closed=true;AppDomain.CurrentDomain.SetData("Confectory.WebUI."+token,null);return true;}}
+bool Close(){lock(gate){if(closed)return true;closing=true;foreach(var v in views.Values)calls.Unsubscribe.Invoke(v.Subscription);views.Clear();foreach(var row in requests.Values)row.Cancel.Cancel();if(observationsInFlight>0)return false;foreach(var row in requests.Values)if(row.Row["status"]!.ToString()=="pending")return false;calls.DisposeOwner.Invoke(owner);foreach(var row in requests.Values)row.Cancel.Dispose();closed=true;AppDomain.CurrentDomain.SetData("Confectory.WebUI."+token,null);return true;}}
 string Native(string action,string payload){if(payload.Length>(action=="site-relay"?1572864:16384)||!hostActions.Contains(action))return Error("host_action_denied").ToJsonString();lock(execution){lock(gate){if(closing)return Error("owner_closed").ToJsonString();}string cancellation=Guid.NewGuid().ToString("N");AppDomain.CurrentDomain.SetData("Confectory.WebUI.Cancel."+cancellation,(Func<bool>)(()=>closing));try{return new System.Text.Json.Nodes.JsonObject{["ok"]=true,["result"]=System.Text.Json.Nodes.JsonNode.Parse(calls.Invoke.Invoke(context,"host."+action,payload,cancellation))}.ToJsonString();}catch(Exception){return Error("consumer_error").ToJsonString();}finally{AppDomain.CurrentDomain.SetData("Confectory.WebUI.Cancel."+cancellation,null);}}}
 AppDomain.CurrentDomain.SetData("Confectory.WebUI."+token,new object[]{(Func<string,string>)Dispatch,(Func<string,string[]>)(path=>{lock(gate){if(closing)throw new ObjectDisposedException("WebUI");return (string[])(assets.TryGetValue(path=="/"?entry:path.TrimStart('/'),out var asset)?asset.Clone():throw new ArgumentException("Unknown resource"));}}),(Func<bool>)Close,(Func<string,string,string>)Native});
 return token;

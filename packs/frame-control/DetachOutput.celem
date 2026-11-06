@@ -1,0 +1,1 @@
+function Confectory.FrameControl::DetachOutput (string owner,object reader) -> void {provide Confectory.FrameControl::DetachOutput with Confectory.FrameControl::DetachOutputBody;}

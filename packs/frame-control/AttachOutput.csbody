@@ -1,0 +1,1 @@
+var state=AppDomain.CurrentDomain.GetData(owner)as object[];if(state is null)throw new ObjectDisposedException("Frame owner");if(state.Length<4)throw new InvalidOperationException("Frame provider has no output binding");((Action<object,bool>)state[3])(reader,false);

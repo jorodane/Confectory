@@ -1,0 +1,3 @@
+string loop=calls.Open.Invoke(),surface=calls.OpenSurface.Invoke(loop);long frame=0;
+try{while(true){System.Threading.Thread.Sleep(16);if(calls.Begin.Invoke(loop)==0)continue;frame++;var pixels=new byte[64*36*4];for(int y=0;y<36;y++)for(int x=0;x<64;x++){int at=(y*64+x)*4;pixels[at]=(byte)(frame%256);pixels[at+1]=(byte)(x*4);pixels[at+2]=(byte)(y*7);pixels[at+3]=255;}calls.Present.Invoke(surface,64,36,Convert.ToBase64String(pixels));calls.Complete.Invoke(loop);}}
+finally{calls.CloseSurface.Invoke(surface);calls.Close.Invoke(loop);}

@@ -1,0 +1,1 @@
+function Confectory.RunSurface::Present (string owner,int width,int height,string rgba) -> long { provide Confectory.RunSurface::Present with Confectory.RunSurface::PresentBody; }

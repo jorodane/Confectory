@@ -5,7 +5,7 @@ from editor_navigation import goto_editor
 repo=pathlib.Path(sys.argv[1]).resolve();report=json.loads(pathlib.Path(sys.argv[2]).read_text());root=pathlib.Path(tempfile.mkdtemp(prefix='confectory-run-windows-ui-'))
 projects=[]
 for name in ['first','second']:
- p=root/name;shutil.copytree(pathlib.Path(__file__).resolve().parents[2]/'examples/frame-loop',p,ignore=shutil.ignore_patterns('.confectory','.build'));m=p/'project.cpack';m.write_text(m.read_text().replace('../../',str(repo)+'/'));projects.append(m)
+ p=root/name;shutil.copytree(pathlib.Path(__file__).resolve().parents[2]/('examples/software-output' if '--software-output' in sys.argv else 'examples/frame-loop'),p,ignore=shutil.ignore_patterns('.confectory','.build'));m=p/'project.cpack';m.write_text(m.read_text().replace('../../',str(repo)+'/'));projects.append(m)
 before={str(p):p.read_bytes() for m in projects for p in m.parent.rglob('*') if p.is_file()};env=os.environ.copy();env.update(CONFECTORY_UI='web',CONFECTORY_EDITOR_REPO=str(repo),CONFECTORY_HOME_STORAGE=str(root/'profile'),CONFECTORY_ENTRY_STORAGE=str(root/'profile'),CONFECTORY_MCP_DIRECTORY=str(root/'instances'),CONFECTORY_WEB_PROJECT=str(projects[0]));env['PATH']=str(pathlib.Path(env['CONFECTORY_DOTNET']).parent)+os.pathsep+env['PATH'];host=None;stream=None;checks=[]
 def checked(message):
  checks.append(message);(root/'checks.json').write_text(json.dumps(checks,ensure_ascii=False,indent=2));print('PASS '+message,flush=True)
@@ -72,12 +72,15 @@ def setup(browser):
   if route.request.method=='POST':
    try:
     body=route.request.post_data_json
-    if isinstance(body,dict)and body.get('op')=='invoke':requests.append(body)
+    if isinstance(body,dict)and body.get('op')in ['invoke','observe']:requests.append(body)
    except Exception:pass
   route.continue_()
  def observe(response):
   try:
    body=response.request.post_data_json
+   if isinstance(body,dict)and body.get('op')=='observe':
+    packet=response.json();row=packet.get('result');
+    if packet.get('ok')and isinstance(row,dict)and'lease'in row:traffic.append(row)
    if isinstance(body,dict)and body.get('op')=='update':
     for row in response.json().get('results',[]):
      if row.get('ok')and isinstance(row.get('result'),dict)and'lease'in row['result']:traffic.append(row['result'])

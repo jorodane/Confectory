@@ -529,6 +529,51 @@ public sealed class WebUITests : TestCase
         var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests","probes","web_resource_checkout.py"),Fixture.Repo,report},timeoutSeconds:180);
         True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS actual EditorHome retained CRLF after attribute pull and fresh LF"));
     }
+    public void test_web_ui_read_observations_are_scoped_unretained_and_disposable()
+    {
+        foreach(var (ns,path) in new[]{("Confectory.WebUI","web-ui"),("Confectory.RuntimeBase","runtime-base")})
+        {
+            string local=Path.Combine(f.Root,path);Fixture.CopyTree(Path.Combine(Fixture.Repo,"packs",path),local);
+            f.ExtraRegistry[ns]=Path.Combine(local,"pack.cpack");f.Packs["App"].Dependencies[ns]="0.1.0";
+        }
+        f.Main("provide Confectory.WebUI::State with App::State; provide Confectory.WebUI::Invoke with App::Invoke; "+string.Join(" ",new[]{"CreateOwner","CreateInstance","Write","Subscribe","Poll","Unsubscribe","DisposeOwner"}.Select(n=>$"provide Confectory.RuntimeBase::{n} with Confectory.RuntimeBase::{n}Body;")));
+        f.Add("App","implementation","State", """implementation App::State for Confectory.WebUI::State (string context) -> string { body common "state.csbody"; }""");
+        f.Body("App","state.csbody","return (string)AppDomain.CurrentDomain.GetData(context)!;");
+        f.Add("App","implementation","Invoke", """
+        implementation App::Invoke for Confectory.WebUI::Invoke (string context,string endpoint,string input,string cancellation) -> string {
+        import Confectory.WebUI::Cancelled as Cancelled (string) -> bool;body common "invoke.csbody"; }
+        """);
+        f.Body("App","invoke.csbody", """
+        if(endpoint=="hold"){AppDomain.CurrentDomain.SetData(context+"started",true);while(!calls.Cancelled.Invoke(cancellation))System.Threading.Thread.Sleep(1);throw new OperationCanceledException();}
+        if(endpoint=="switch")AppDomain.CurrentDomain.SetData(context,"{\"scope\":{\"project\":\"other\"},\"revision\":0,\"state\":{}}");
+        return System.Text.Json.JsonSerializer.Serialize(new{value=AppDomain.CurrentDomain.GetData(context+"value"),pixels=new string('x',262144)});
+        """);
+        f.Add("App","implementation","MainBody", """
+        implementation App::MainBody for App::Main () -> int {import Confectory.WebUI::Open as Open (string,string) -> string;import Confectory.WebUI::Request as Request (string,string) -> string;import Confectory.WebUI::Close as Close (string) -> bool;body common "main.csbody";}
+        """);
+        f.Body("App","main.csbody", """
+        void Check(bool b,string message){if(!b)throw new Exception(message);}
+        string context="observed-context",initial="{\"scope\":{\"project\":\"own\"},\"revision\":0,\"state\":{}}";AppDomain.CurrentDomain.SetData(context,initial);
+        var descriptor=System.Text.Json.Nodes.JsonNode.Parse("{\"id\":\"observer\",\"version\":\"1\",\"entry\":\"index.html\",\"endpoints\":[\"mutate\"],\"observations\":[\"read\",\"hold\",\"switch\"],\"resources\":{\"index.html\":{\"mime\":\"text/html\",\"base64\":\"PGgxPm88L2gxPg==\"}}}")!;
+        string owner=calls.Open.Invoke(context,descriptor.ToJsonString());
+        System.Text.Json.Nodes.JsonNode Send(object value)=>System.Text.Json.Nodes.JsonNode.Parse(calls.Request.Invoke(owner,System.Text.Json.JsonSerializer.Serialize(value)))!;
+        try{
+         var mounted=Send(new{op="mount"});string view=mounted["view"]!.ToString();var scope=mounted["scope"]!.DeepClone();
+         for(int n=0;n<64;n++){AppDomain.CurrentDomain.SetData(context+"value",n);var observed=Send(new{op="observe",view,scope,endpoint="read",input=new{}});Check(observed["ok"]!.GetValue<bool>()&&observed["result"]!["value"]!.GetValue<int>()==n,"fresh unretained read");Check(Send(new{op="update",view,scope})["results"]!.AsArray().Count==0,"frames never enter completed-request cache");}
+         Check(Send(new{op="observe",view,scope,endpoint="mutate",input=new{}})["error"]!["code"]!.ToString()=="endpoint_denied","mutation endpoint cannot bypass invocation journal");
+         Check(Send(new{op="observe",view,scope,endpoint="read",input=new{text=new string('x',8193)}})["error"]!["code"]!.ToString()=="request_too_large","bounded input");
+         Check(!Send(new{op="observe",view,scope=new{project="foreign"},endpoint="read",input=new{}})["ok"]!.GetValue<bool>(),"foreign scope refused");
+         Check(Send(new{op="observe",view,scope,endpoint="switch",input=new{}})["error"]!["code"]!.ToString()=="scope_changed","scope rechecked after consumer read");AppDomain.CurrentDomain.SetData(context,initial);
+         var held=System.Threading.Tasks.Task.Run(()=>Send(new{op="observe",view,scope,endpoint="hold",input=new{}}));var end=DateTime.UtcNow.AddSeconds(5);while(AppDomain.CurrentDomain.GetData(context+"started")is null&&DateTime.UtcNow<end)System.Threading.Thread.Sleep(1);Check(AppDomain.CurrentDomain.GetData(context+"started")is true,"observation admitted");
+         Check(Send(new{op="mount"})["error"]!["code"]!.ToString()=="busy","busy observation does not deadlock mount");Check(Send(new{op="dispose",view})["ok"]!.GetValue<bool>(),"dispose bypasses observation execution lock");Check(held.Wait(5000)&&!held.Result["ok"]!.GetValue<bool>(),"retired read never publishes reply");
+         Check(Send(new{op="observe",view,scope,endpoint="read",input=new{}})["error"]!["code"]!.ToString()=="view_closed","closed view read refused");
+         var again=Send(new{op="mount"});view=again["view"]!.ToString();AppDomain.CurrentDomain.SetData(context+"started",null);var closing=System.Threading.Tasks.Task.Run(()=>Send(new{op="observe",view,scope,endpoint="hold",input=new{}}));end=DateTime.UtcNow.AddSeconds(5);while(AppDomain.CurrentDomain.GetData(context+"started")is null&&DateTime.UtcNow<end)System.Threading.Thread.Sleep(1);Check(AppDomain.CurrentDomain.GetData(context+"started")is true,"held read before close");Check(!calls.Close.Invoke(owner),"close retains resources until admitted observation exits");Check(closing.Wait(5000)&&!closing.Result["ok"]!.GetValue<bool>(),"close cancels/fences admitted read without reply");
+        }finally{Check(calls.Close.Invoke(owner),"owner cleanup");}
+        descriptor["observations"]=new System.Text.Json.Nodes.JsonArray("mutate");bool rejected=false;try{var bad=calls.Open.Invoke(context,descriptor.ToJsonString());calls.Close.Invoke(bad);}catch(ArgumentException){rejected=true;}Check(rejected,"retained and observation endpoint collision refused");Console.WriteLine("Unretained scoped observation/no mutation bypass/disposal PASS");return 0;
+        """);
+        var report=Build();Output(report,"Unretained scoped observation/no mutation bypass/disposal PASS");
+    }
+
     public void test_web_ui_scope_revision_cancellation_disposal_and_pack_locality()
     {
         foreach(var (ns,path) in new[]{("Confectory.WebUI","web-ui"),("Confectory.RuntimeBase","runtime-base")})

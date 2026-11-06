@@ -1,0 +1,1 @@
+function Example.SoftwareOutput::Main () -> int {provide Example.SoftwareOutput::Main with Example.SoftwareOutput::MainBody;}

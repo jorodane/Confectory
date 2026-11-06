@@ -1,0 +1,1 @@
+implementation Confectory.RunSurface::CloseBody for Confectory.RunSurface::Close (string owner) -> void { body common "Close.csbody"; }

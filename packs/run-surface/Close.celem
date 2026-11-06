@@ -1,0 +1,1 @@
+function Confectory.RunSurface::Close (string owner) -> void { provide Confectory.RunSurface::Close with Confectory.RunSurface::CloseBody; }

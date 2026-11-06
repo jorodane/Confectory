@@ -1,0 +1,1 @@
+var state=AppDomain.CurrentDomain.GetData(owner)as object[]??throw new ObjectDisposedException("Software surface");return((Func<int,int,string,long>)state[0])(width,height,rgba);

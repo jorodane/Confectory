@@ -1,0 +1,9 @@
+import assert from 'node:assert/strict';import{pathToFileURL}from'node:url';
+const{decodeRunSurface:decode}=await import(pathToFileURL(process.argv[2]+'/examples/editor-home/ui/run-surface.js'));
+const bytes=Uint8Array.from([255,0,0,255,0,255,0,255]),pixels=Buffer.from(bytes).toString('base64url'),sha256=Buffer.from(await crypto.subtle.digest('SHA-256',bytes)).toString('hex'),runtime='a'.repeat(32),handle='owned';
+const packet={available:true,runtime,revision:'1',cursor:runtime+':1',format:'rgba8',encoding:'base64url',width:2,height:1,sha256,pixels,unchanged:false};
+let value=await decode(packet,null,handle);assert.deepEqual([...value.pixels],[...bytes]);assert(Object.isFrozen(value));assert.equal(await decode({...packet,pixels:undefined,unchanged:true},value,handle),value);assert.equal(await decode({available:false},value,handle),null);
+for(const bad of [{sha256:'0'.repeat(64)},{width:513},{height:0},{format:'svg'},{encoding:'html'},{pixels:'<svg>'},{revision:'01'},{revision:'0'},{cursor:'foreign'},{runtime:'x'},{pixels:Buffer.from([1,2,3]).toString('base64url')}])await assert.rejects(()=>decode({...packet,...bad},value,handle));
+await assert.rejects(()=>decode({...packet,pixels:undefined,unchanged:true},null,handle));await assert.rejects(()=>decode({...packet,pixels:undefined,unchanged:true},value,'other'));await assert.rejects(()=>decode(packet,{...value,revision:'2'},handle));
+const max=new Uint8Array(512*512*4).fill(251),maxPacket={...packet,width:512,height:512,pixels:Buffer.from(max).toString('base64url'),sha256:Buffer.from(await crypto.subtle.digest('SHA-256',max)).toString('hex')};assert.equal((await decode(maxPacket,null,handle)).pixels.length,1048576);assert(!/[+/=]/.test(maxPacket.pixels));
+console.log('PASS actual RGBA decode/SHA/size/cursor/order; full maximum frame without JSON escaping; malformed/foreign/unchanged-without-baseline rejected; no URL/media execution');

@@ -1,0 +1,1 @@
+implementation Confectory.FrameControl::AttachOutputBody for Confectory.FrameControl::AttachOutput (string owner,object reader) -> void {body common "AttachOutput.csbody";}

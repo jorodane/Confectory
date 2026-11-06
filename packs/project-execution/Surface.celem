@@ -1,0 +1,1 @@
+function Confectory.ProjectExecution::Surface (string[] session,string handle,string cursor) -> string { provide Confectory.ProjectExecution::Surface with Confectory.ProjectExecution::SurfaceBody; }

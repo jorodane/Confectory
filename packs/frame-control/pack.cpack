@@ -1,4 +1,5 @@
 pack Confectory.FrameControl version "0.1.0" { standalone false;
+element AttachOutput function "AttachOutput.celem";element AttachOutputBody implementation "AttachOutputBody.celem";element DetachOutput function "DetachOutput.celem";element DetachOutputBody implementation "DetachOutputBody.celem";
 element Open function "Open.celem"; element OpenBody implementation "OpenBody.celem";
 element Begin function "Begin.celem"; element BeginBody implementation "BeginBody.celem";
 element Complete function "Complete.celem"; element CompleteBody implementation "CompleteBody.celem";

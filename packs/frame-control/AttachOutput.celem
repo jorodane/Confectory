@@ -1,0 +1,1 @@
+function Confectory.FrameControl::AttachOutput (string owner,object reader) -> void {provide Confectory.FrameControl::AttachOutput with Confectory.FrameControl::AttachOutputBody;}
