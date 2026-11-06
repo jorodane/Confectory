@@ -28,3 +28,5 @@ V2 전체를 완료 처리하지 않는다. 다른 실제 노출 안내와 V1 �
 결정은 기존 고정 잔여다. Run의 제어 IPC·RenderInput Draw/Pump는 내장 렌더/오디오
 전달 provider가 아니며 모의 화면·소리를 실제 연결로 표시하지 않는다. 실제 Windows/
 WebView2·모바일·DPI/IME·전체 UI·Library/Space 전달은 별도다. main은 사용자가 병합한다.
+
+[최종 35단계(신규 32·재사용 3) 검증](VALIDATION_V666_REVIEW_GUIDANCE.md)을 통과했다.

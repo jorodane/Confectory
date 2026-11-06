@@ -7,7 +7,8 @@ v536 기록은 과거 검증 증거이며 기존 기능을 미구현으로 되�
 ## 현재 V2 검토 안내
 
 실제 Review/Confirm의 영어 완료 안내·구어체 19개/24곳을 원본 문체와 native 의미 보존에 맞춰
-[검토·확정 안내](V2_REVIEW_GUIDANCE.md)에 연결한다. 선택/고급 확인·compiler·최종 CAS는 유지한다.
+[검토·확정 안내](V2_REVIEW_GUIDANCE.md)에 연결했다. 선택/고급 확인·compiler·최종 CAS는 유지한다.
+[최종 35단계(신규 32·재사용 3)](VALIDATION_V666_REVIEW_GUIDANCE.md)를 통과했다.
 
 ## 현재 저장 복구 점검
 
