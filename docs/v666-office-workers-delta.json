@@ -2,13 +2,13 @@
   "baseCommit": "e948bdbabcf5b8fe8d11b83c9cd771116633d5bd",
   "scope": "existing native public Worker observation adapter only; no IO inference, execution/permission/journal/source contract changes",
   "productFiles": {
-    "examples/editor-home/WebBundle.csbody": "b2a8e8c504024626e5c6b20a07b5ea0cab6ef52100a7f9d1b872464858c8d28e",
+    "examples/editor-home/WebBundle.csbody": "b28d7e3f9080985c4abe61b652d4285ede5503beb57dde9b1098ff0b6d2c6e86",
     "examples/editor-home/ui/v508-runtime.js": "97c456edb1889d90e78bab1d6f4d7f37a044d56ea57353ac6e6cc9f1c97b32ce",
-    "examples/editor-home/ui/workspace-host.js": "e61c93dbd783ab31deca82efc97dbc767787d247a4d025f2f372c5201e67094e",
-    "packs/workspace-3d/ui/adapter.js": "7798a972784b9de89ceedbc1e31b5b9220f59557d727fecfd557e2f6be27735b",
-    "packs/workspace-3d/ui/manifest.json": "76c758839bccb56d57f54065532780211600166d0f4276ce0bc2ed0ae34abcf9",
+    "examples/editor-home/ui/workspace-host.js": "be70998447829952f8a3effa50b4547422c7d9d5542ba924fb199c3d8cf26097",
+    "packs/workspace-3d/ui/adapter.js": "58a1176362d779c3774b4b8f80355bfe7ddc37c72ceb711d0b0a995f1207293c",
+    "packs/workspace-3d/ui/manifest.json": "6862822138da8501f30665d7d36f24c47633c0ccc1130ff216646dac4ae913dd",
     "packs/workspace-3d/ui/office-actors.js": "846b3ef105c1895b2d6f30ab2aa3776a65b30e6af6cae3a058b3447a15791011",
-    "packs/workspace-3d/ui/office.js": "9dee10e8542e63d74d68e7f501e07d01b9aa777f7be402221942af44d876e0a6",
+    "packs/workspace-3d/ui/office.js": "63d1b6ac1ef3d89103c3e3ef8889698c4fdea18e8e34bbcb88099ca611fe20f1",
     "packs/workspace-3d/ui/workers.js": "4f2614183a3667bfc876a12d28ddd8961c16d772d7fb165a6e615cbcf8e14cd0"
   }
 }

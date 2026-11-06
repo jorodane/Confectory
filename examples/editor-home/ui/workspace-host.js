@@ -57,7 +57,7 @@ export function createActualWorkspace(api) {
     office=createOfficeView({canvas:()=>api.$('#workspace'),owner:()=>project?runtime.workspaceRecord():null,
       identity:()=>scope+'|'+runtime.state.activeWorkspaceId,visible:()=>!!project&&!host.activeFixedTab,
       persist:()=>schedule('layout'),toast:api.toast,steppedZoom:createSteppedZoomWheel,observe:()=>api.observeOffice(),
-      workerState:()=>({projectId:api.current.projectId,workers:api.current.assignmentWorkers,participants:api.officeParticipants().map(row=>({id:row.id,name:row.name}))}),
+      workerState:()=>({projectId:api.current.projectId,workers:api.current.assignmentWorkers,status:api.current.assignmentWorkersStatus,participants:api.officeParticipants().map(row=>({id:row.id,name:row.name}))}),
       read:()=>({id:scope,name:api.current.title||api.current.namespace||scope,objects:api.projection.workspaceRows().filter(row=>row.owned===true).map(row=>({...row,kind:({category:'Category',object:'Concept',schema:'Info',function:'Feature',module:'Module',enum:'Enum'})[row.kind]||row.kind,parent:api.projection.browserParent(row.id)})),helpers:[],helperTitles:{},issues:[],skins:{},resources:[]}),
       openObject:id=>api.openDeclaration(id),openCategory:(group,parent)=>{const w=api.openBrowser(group,null,false,'browser',parent);if(w){w.placed=false;runtime.placeWindow(w);runtime.focusWindow(w);runtime.saveLayouts();}}
     });office.update();

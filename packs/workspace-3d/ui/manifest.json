@@ -5,8 +5,8 @@
     "mime": "application/json"
   },
   "adapter.js": {
-    "size": 7074,
-    "sha256": "7798a972784b9de89ceedbc1e31b5b9220f59557d727fecfd557e2f6be27735b",
+    "size": 7411,
+    "sha256": "58a1176362d779c3774b4b8f80355bfe7ddc37c72ceb711d0b0a995f1207293c",
     "mime": "text/javascript"
   },
   "assets/three.module-0.160.1.js": {
@@ -30,8 +30,8 @@
     "mime": "text/css"
   },
   "office.js": {
-    "size": 165762,
-    "sha256": "9dee10e8542e63d74d68e7f501e07d01b9aa777f7be402221942af44d876e0a6",
+    "size": 166124,
+    "sha256": "63d1b6ac1ef3d89103c3e3ef8889698c4fdea18e8e34bbcb88099ca611fe20f1",
     "mime": "text/javascript"
   },
   "voxel-character.js": {

@@ -78,7 +78,13 @@ class VoxelOffice{
  roomFor(object){if(object?.group==='resource')return this.rooms.get('__resources');let p=object,seen=new Set();while(p&&!seen.has(p.id)){seen.add(p.id);if(this.rooms.has(p.id))return this.rooms.get(p.id);p=this.objectsById.get(p.parent)}return this.rooms.get('__'+zoneOf(object))||this.rooms.get('__lobby')}
  castSignature(){return JSON.stringify([this.bridge.workspaceId(),this.source.name,this.source.objects.map(o=>[o.id,o.name,o.kind,o.parent,o.group,o.helper,o.icon]),this.source.helpers.map(h=>[h.id,h.name,h.workers,h.voxelCharacter,h.shortDescription,h.description,h.status,h.image,h.bustImage]),this.source.helperTitles,this.source.issues.map(i=>[i.id,i.done,i.requesterId]),this.source.skins])}
  signature(){return JSON.stringify([this.castSignature(),this.source.resources||[]])}
- refreshSource(){this.source=this.bridge.read();if(this.signature()===this.signatureValue)return false;this.rebuild(true);return true}
+ refreshSource(){this.source=this.bridge.read();if(this.signature()===this.signatureValue)return false;
+  if(this.bridge.observedOnly){
+   const visible=new Set(this.source.helpers.flatMap(h=>[h.id,...h.workers.map(w=>'worker:'+this.workerKey(h.id,w.id))]));
+   if(this.following&&!this.following.startsWith('cleaner:')&&!visible.has(this.following))this.stopFollowing();
+   this.closeRadial(true);this.inspector.hidden=true;this.inspector.replaceChildren();
+  }
+  this.rebuild(true);return true}
  rebuild(preserveCast=false){
   this.clearActionPreview();this.hoverPick=null;this.source=this.bridge.read();this.objectsById=new Map([...this.source.objects,...(this.source.resources||[]).map(item=>({...item,group:'resource'}))].map(o=>[o.id,o]));const layout=this.layout;
   if(layout.floorplanVersion!==2){layout.previousFloorplan={rooms:structuredClone(layout.rooms),stations:structuredClone(layout.stations),camera:structuredClone(layout.camera)};layout.rooms={};layout.stations={};layout.floorplanVersion=2;layout.initialized=false;layout.seenHelpers=this.source.helpers.map(h=>h.id)}

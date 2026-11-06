@@ -1,11 +1,11 @@
 import {projectOfficeWorkers} from './workers.js';
 // Display-only pack: no source, permission, execution or Worker dispatch API.
 export function createOfficeView(api){
- let canvas=null,controls=null,engine=null,owner=null,key='',epoch=0,loading=false,observed=false,zoom=null,editorZoom=null;
+ let canvas=null,controls=null,engine=null,owner=null,key='',epoch=0,loading=false,observed=false,workerStatus=null,zoom=null,editorZoom=null;
  const stylesheet=document.createElement('link');stylesheet.rel='stylesheet';stylesheet.href=new URL('./office.css',import.meta.url);document.head.append(stylesheet);
  const visible=()=>!!owner&&owner.workspacePresentation==='office'&&api.visible();
  const alive=(token,host,record)=>epoch===token&&canvas===host&&owner===record&&host?.isConnected&&api.owner()===record;
- const clean=()=>{epoch++;loading=false;observed=false;try{engine?.dispose();}finally{engine=null;if(zoom){zoom.onclick=editorZoom;canvas?.append(zoom);}zoom=null;editorZoom=null;canvas?.classList.remove('is-voxel-office');controls?.remove();controls=null;canvas=null;owner=null;key='';}};
+ const clean=()=>{epoch++;loading=false;observed=false;workerStatus=null;try{engine?.dispose();}finally{engine=null;if(zoom){zoom.onclick=editorZoom;canvas?.append(zoom);}zoom=null;editorZoom=null;canvas?.classList.remove('is-voxel-office');controls?.remove();controls=null;canvas=null;owner=null;key='';}};
  function update(){
   const host=api.canvas(),record=api.owner(),identity=api.identity();
   if(!host||!record){if(canvas)clean();return;}
@@ -30,7 +30,7 @@ export function createOfficeView(api){
    if(!alive(token,host,record)||!visible())return;
    const valid=()=>alive(token,host,record)&&visible();
    const wheel=api.steppedZoom();
-   const read=()=>{if(!valid())return {name:'',objects:[],helpers:[],helperTitles:{},issues:[],skins:{},resources:[]};const source=api.read(),observation=api.workerState();source.helpers=observation?.projectId===source.id?projectOfficeWorkers(observation,source.objects):[];return source;};
+   const read=()=>{if(!valid())return {name:'',objects:[],helpers:[],helperTitles:{},issues:[],skins:{},resources:[]};const source=api.read(),observation=api.workerState();if(observation?.projectId===source.id){host.dataset.officeWorkersStatus=observation.status||'unavailable';if(observation.status==='partial'&&workerStatus!=='partial')api.toast('일부 작업 기록을 확인할 수 없습니다. 확인된 상태만 표시합니다.');workerStatus=observation.status;}source.helpers=observation?.projectId===source.id?projectOfficeWorkers(observation,source.objects):[];return source;};
    engine=mount(host,{observedOnly:true,read,owner:()=>record,workspaceId:()=>key,save:()=>{if(valid())api.persist();},zoom:()=>{if(valid()&&zoom)zoom.textContent=Math.round((record.officeLayout?.camera?.scale||1)*10000)/100+'%';},steppedZoom:wheel,
     announce:text=>{if(valid())controls.dataset.lastSelection=text;},notify:text=>{if(valid())api.toast(text);},
     openObject:id=>{if(valid()&&read().objects.some(row=>row.id===id))api.openObject(id);},
