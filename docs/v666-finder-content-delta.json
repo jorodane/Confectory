@@ -1,0 +1,56 @@
+{
+  "baseCommit": "d92e7b09448e5c9d0c6caa19f3e5ef28835ea5b3",
+  "deltas": [
+    {
+      "path": "examples/editor-home/ui/v508-runtime.js",
+      "before": "import {createWorkspaceFinder} from './workspace-finder.js';",
+      "after": "import {createWorkspaceFinder} from './workspace-finder.js';\nimport {createFinderContent} from './finder-content.js';",
+      "count": 1
+    },
+    {
+      "path": "examples/editor-home/ui/v508-runtime.js",
+      "before": "const workspaceFinder=createWorkspaceFinder({",
+      "after": "async function readFinderContent(ids,alive){\n await whenIdle();if(!alive())return;let result,failure;\n await work(async()=>{try{for(let attempt=0;attempt<3;attempt++){await view.update();if(!alive())return false;try{result=await view.call('browserElements',{ids});break;}catch(error){if(error.message!=='stale_revision'||attempt===2)throw error;}}}catch(error){failure=error;}return false;},null,{flushWorkspace:false});\n if(failure)throw failure;if(alive()&&!result)throw Error('finder-content-unavailable');return result;\n}\nconst finderContent=createFinderContent({\n context:()=>page==='work'&&current.projectId?{key:current.projectId+'|'+view.generation+'|'+workspaceRuntime.state.activeWorkspaceId,projectId:current.projectId,namespace:current.namespace,basis:JSON.stringify([browserProjection.workspaceRows().map(row=>[row.id,row.kind,row.revision,row.textHash,row.valid]),current.units?.map(row=>[row.id,row.revision,row.dirty]),current.retirements])}:null,\n objects:()=>browserProjection.workspaceRows(),ready:()=>!busy&&!actualWorkspace.loading&&!inventoryLoadScheduled&&!inventoryRequest&&!browserProjection.needsRead(),read:readFinderContent,changed:()=>workspaceFinder.update()\n});\nconst workspaceFinder=createWorkspaceFinder({",
+      "count": 1
+    },
+    {
+      "path": "examples/editor-home/ui/v508-runtime.js",
+      "before": "nodes:()=>workspaceRuntime.state.workspaceNodes.values(),windows:()=>windows.values(),objects:()=>browserProjection.workspaceRows(),text:element=>placedFind.text(element),decorationName:item=>workspaceRuntime.decorationName(item),",
+      "after": "nodes:()=>workspaceRuntime.state.workspaceNodes.values(),windows:()=>windows.values(),objects:()=>browserProjection.workspaceRows(),text:element=>placedFind.text(element),decorationName:item=>workspaceRuntime.decorationName(item),\n namespace:()=>current.namespace,contentEnsure:wanted=>finderContent.ensure(wanted),contentRows:()=>finderContent.rows,contentStatus:()=>finderContent.status,contentRefresh:()=>finderContent.refresh(),contentClose:()=>finderContent.close(),",
+      "count": 1
+    },
+    {
+      "path": "examples/editor-home/ui/workspace-finder.js",
+      "before": "active=null;state.events.abort();",
+      "after": "active=null;api.contentClose?.();state.events.abort();",
+      "count": 1
+    },
+    {
+      "path": "examples/editor-home/ui/workspace-finder.js",
+      "before": "const title=row.name||row.title||row.id.split('::').at(-1),detail=labels[row.kind]||row.kind||'요소';\n   if(represented.has(row.id)||!matches(title+' '+detail))continue;\n   found.push({key:'object:'+row.id,id:row.id,kind:'object',title,detail,icon:glyph(row.icon)});",
+      "after": "const title=row.name||row.title||row.id.split('::').at(-1),detail=labels[row.kind]||row.kind||'요소',owned=row.owned!==false&&row.id.startsWith((api.namespace?.()||'')+'::'),content=title+' '+detail+(mode==='text'&&owned?' '+(row.description||'')+' '+(api.contentRows?.().get(row.id)?.text||''):'');\n   if(mode!=='text'&&represented.has(row.id)||!matches(content))continue;\n   found.push({key:'object:'+row.id,id:row.id,kind:'object',title,detail:mode==='text'?detail+' · '+excerpt(content):detail,icon:glyph(row.icon)});",
+      "count": 1
+    },
+    {
+      "path": "examples/editor-home/ui/workspace-finder.js",
+      "before": "if(!valid()){close();return;}const query=input.value.trim().toLocaleLowerCase(),rows=candidates(mode,query),ready=api.ready(),load=api.loadState?.(),next=JSON.stringify([mode,query,ready,load,rows]);",
+      "after": "if(!valid()){close();return;}const query=input.value.trim().toLocaleLowerCase();api.contentEnsure?.(mode==='text'&&!!query);const content=api.contentStatus?.(),rows=candidates(mode,query),ready=api.ready()&&!['queued','loading'].includes(content?.phase),load=api.loadState?.(),next=JSON.stringify([mode,query,ready,load,content,rows]);",
+      "count": 1
+    },
+    {
+      "path": "examples/editor-home/ui/workspace-finder.js",
+      "before": "   if(load==='failed'){const retry=document.createElement('button');retry.type='button';retry.dataset.findRetry='';retry.textContent='다시 불러오기';retry.onclick=()=>api.load?.();status.append(retry);}",
+      "after": "   if(load==='failed'){const retry=document.createElement('button');retry.type='button';retry.dataset.findRetry='';retry.textContent='다시 불러오기';retry.onclick=()=>api.load?.();status.append(retry);}\n   if(mode==='text'&&query&&load!=='loading'&&load!=='failed'&&content){\n    if(['queued','loading'].includes(content.phase))status.textContent='소유 객체의 정의·값 내용을 확인하고 있어요. '+content.loaded+'개 확인';\n    else if(content.phase==='restricted')status.textContent='이 설정 프로젝트는 내용 조회를 허용하지 않아요. 이름·배치된 글자 찾기는 유지해요.';\n    else if(content.phase==='failed')status.textContent='객체 내용을 확인하지 못했어요. 현재 결과는 일부일 수 있어요.';\n    else if(content.phase==='partial')status.textContent=rows.length+'개 결과 · 정의·값 '+content.loaded+'개 확인 · '+(content.unsupported+content.unavailable)+'개 미지원/확인 불가';\n    else if(content.phase==='ready')status.textContent=rows.length+'개 결과 · 정의·값 '+content.loaded+'개 확인';\n    if(['ready','partial','failed'].includes(content.phase)){const refresh=document.createElement('button');refresh.type='button';refresh.dataset.findContentRefresh='';refresh.textContent=content.phase==='failed'?'내용 다시 불러오기':'내용 새로 확인';refresh.onclick=()=>api.contentRefresh?.();status.append(refresh);}\n   }",
+      "count": 1
+    },
+    {
+      "path": "examples/editor-home/ui/workspace-finder.js",
+      "before": "if(!valid()||!api.ready())return;const current=candidates(",
+      "after": "if(!valid()||!api.ready()||['queued','loading'].includes(api.contentStatus?.().phase))return;const current=candidates(",
+      "count": 1
+    }
+  ],
+  "newFiles": {
+    "examples/editor-home/ui/finder-content.js": "0c8095e2b96c8f42d9bb75638f9385064cd8ac32471b666ea82cb01177be3a30"
+  }
+}

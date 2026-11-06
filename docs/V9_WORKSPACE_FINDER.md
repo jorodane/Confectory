@@ -28,7 +28,8 @@
 
 원래 데스크톱/모바일 검색 패널 CSS를 재사용한다. 원본을 실제 native 상태로 번역하는
 경계이며 프로젝트 전체 원문 검색·비공개 metadata 검색으로 확대하지 않는다.
-배치하지 않은 객체의 전체 내용 검색은 실제 읽기 adapter의 후속 경계로 남는다.
+배치하지 않은 소유 선언의 설명·Browser Data 값은 [내용 읽기 adapter](V9_FINDER_CONTENT.md)로
+이어서 연결한다. 원문/미지원 종류의 전체 내용은 그 문서의 별도 경계로 남는다.
 팝오버/창 배치·C# bytes·공개/override 계약·source ownership·권한·Review→Confirm·최종
 CAS와 M11/M12/M4·완료된 저장 복구·Run 최대화는 그대로다.
 

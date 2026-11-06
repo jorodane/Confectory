@@ -29,6 +29,7 @@ import {createNodeTasks} from './node-tasks.js';
 import {createBlueprint} from './blueprint.js';
 import {createPlacedTextFind} from './find.js';
 import {createWorkspaceFinder} from './workspace-finder.js';
+import {createFinderContent} from './finder-content.js';
 import {createContextActions} from './context-actions.js';
 const $=(s,root=document)=>root.querySelector(s), $$=(s,root=document)=>[...root.querySelectorAll(s)];
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -112,11 +113,21 @@ const placedFind=createPlacedTextFind({context:host=>{
  };
 }});
 
+async function readFinderContent(ids,alive){
+ await whenIdle();if(!alive())return;let result,failure;
+ await work(async()=>{try{for(let attempt=0;attempt<3;attempt++){await view.update();if(!alive())return false;try{result=await view.call('browserElements',{ids});break;}catch(error){if(error.message!=='stale_revision'||attempt===2)throw error;}}}catch(error){failure=error;}return false;},null,{flushWorkspace:false});
+ if(failure)throw failure;if(alive()&&!result)throw Error('finder-content-unavailable');return result;
+}
+const finderContent=createFinderContent({
+ context:()=>page==='work'&&current.projectId?{key:current.projectId+'|'+view.generation+'|'+workspaceRuntime.state.activeWorkspaceId,projectId:current.projectId,namespace:current.namespace,basis:JSON.stringify([browserProjection.workspaceRows().map(row=>[row.id,row.kind,row.revision,row.textHash,row.valid]),current.units?.map(row=>[row.id,row.revision,row.dirty]),current.retirements])}:null,
+ objects:()=>browserProjection.workspaceRows(),ready:()=>!busy&&!actualWorkspace.loading&&!inventoryLoadScheduled&&!inventoryRequest&&!browserProjection.needsRead(),read:readFinderContent,changed:()=>workspaceFinder.update()
+});
 const workspaceFinder=createWorkspaceFinder({
  context:()=>{const host=$('#workspace'),anchor=$('#worker-finder-bubble');return page==='work'&&current.projectId&&host&&anchor&&!actualWorkspace.loading?{host,anchor,key:current.projectId+'|'+view.generation+'|'+workspaceRuntime.state.activeWorkspaceId}:null;},
  ready:()=>!busy&&!actualWorkspace.loading&&!inventoryLoadScheduled&&!inventoryRequest&&!$('.modal[aria-modal="true"]'),beforeOpen:()=>placedFind.close(),
  loadState:()=>inventoryLoadScheduled?'loading':browserProjection.error?'failed':null,load:()=>{if(browserProjection.error)browserProjection.retry();ensureBrowserInventory();},
  nodes:()=>workspaceRuntime.state.workspaceNodes.values(),windows:()=>windows.values(),objects:()=>browserProjection.workspaceRows(),text:element=>placedFind.text(element),decorationName:item=>workspaceRuntime.decorationName(item),
+ namespace:()=>current.namespace,contentEnsure:wanted=>finderContent.ensure(wanted),contentRows:()=>finderContent.rows,contentStatus:()=>finderContent.status,contentRefresh:()=>finderContent.refresh(),contentClose:()=>finderContent.close(),
  openObject:id=>{if(browserProjection.workspaceRows().some(row=>row.id===id))actualWorkspaceOpenDeclaration(id);},
  focusNode:key=>{const node=workspaceRuntime.state.workspaceNodes.get(key)||windows.get(key);if(!node?.el.isConnected||node.el.hidden)return;if(windows.get(key)===node){actualWorkspace.reveal(key);if(!node.documentDocked)workspaceRuntime.focusWorkspaceWindow(node);}else{actualWorkspace.activateBackground();workspaceRuntime.focusWorkspaceNode(node);workspaceRuntime.workspaceCenterOn(node.x+node.width/2,node.y+node.height/2);}}
 });

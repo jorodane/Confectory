@@ -1,6 +1,9 @@
 """Reviewed authored finder delta; native ownership and completed flows stay unchanged."""
 import hashlib,json,pathlib,re,subprocess,sys,zipfile
-r=pathlib.Path(sys.argv[1]).resolve();plan=json.loads((r/'docs/v666-workspace-finder-delta.json').read_text())
+r=pathlib.Path(sys.argv[1]).resolve()
+if (r/'docs/v666-finder-content-delta.json').exists():
+ subprocess.run([sys.executable,str(r/'tests/web/v666_finder_content_copy.py'),str(r)],check=True);raise SystemExit(0)
+plan=json.loads((r/'docs/v666-workspace-finder-delta.json').read_text())
 def old(n):return subprocess.check_output(['git','show',plan['baseCommit']+':'+n],cwd=r,text=True)
 for name in {row['path']for row in plan['deltas']}:
  expected=old(name)
