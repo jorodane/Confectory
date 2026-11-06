@@ -25,7 +25,7 @@ lock(owner){
  }
  if((bool)owner[6])throw new ObjectDisposedException("EditorHome closing");
  foreach(var field in input)if(field.Key is not ("context" or "view" or "lease" or "command" or "target" or "handle" or "action" or "runtime" or "ack" or "sequence" or "cursor" or "publisher" or "sizeSequence" or "width" or "height"))throw new UnauthorizedAccessException("Run view input fields");
- if(operation is not ("open" or "read" or "start" or "stop" or "close" or "control" or "surface" or "surface-size"))throw new ArgumentException("Run view operation");
+ if(operation is not ("open" or "read" or "start" or "stop" or "close" or "control" or "surface" or "surface-size" or "audio"))throw new ArgumentException("Run view operation");
  var selected=model["selected"]??throw new UnauthorizedAccessException("Open the owned project first");string current=selected["context"]!.ToString();if(Text("context")!=current)throw new UnauthorizedAccessException("Run view project changed");var child=calls.Context.Invoke(manager,current);if(child[1]!=selected["path"]!.ToString())throw new UnauthorizedAccessException("Run view manifest changed");
  string id=Text("view");if(id.Length==0&&operation=="open")id=Guid.NewGuid().ToString("N");if(!Guid.TryParseExact(id,"N",out _))throw new ArgumentException("Run view identity");
  if(rows.TryGetValue(id,out var view)&&(view["context"]!.ToString()!=current||view["manifest"]!.ToString()!=child[1]))throw new UnauthorizedAccessException("Run view belongs to another project");
@@ -47,6 +47,7 @@ lock(owner){
  }
  if(Text("handle")!=view["handle"]?.ToString())throw new UnauthorizedAccessException("Run handle changed");
  if(operation=="surface-size"){var accepted=System.Text.Json.Nodes.JsonNode.Parse(calls.ResizeSurface.Invoke(Execution(),Text("handle"),Text("publisher"),input["sizeSequence"]!.GetValue<int>(),Text("command"),input["width"]!.GetValue<int>(),input["height"]!.GetValue<int>()))!;Observe(view);var result=Public(view);result["sizeRequest"]=accepted;return result.ToJsonString();}
+ if(operation=="audio"){var samples=System.Text.Json.Nodes.JsonNode.Parse(calls.Audio.Invoke(Execution(),Text("handle"),Text("cursor")))!;return samples.ToJsonString();}
  if(operation=="surface"){var pixels=System.Text.Json.Nodes.JsonNode.Parse(calls.Surface.Invoke(Execution(),Text("handle"),Text("cursor")))!;view["surfaceObserved"]=pixels["available"]?.GetValue<bool>()==true;return pixels.ToJsonString();}
  if(operation=="stop"){if(Text("handle").Length>0)calls.Stop.Invoke(Execution(),Text("handle"));Observe(view);return Public(view).ToJsonString();}
  if(operation=="close"){Close(view);return Public(view).ToJsonString();}

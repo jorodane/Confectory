@@ -1,0 +1,1 @@
+implementation Confectory.FrameControl::DetachAudioBody for Confectory.FrameControl::DetachAudio (string owner,object reader) -> void {body common "DetachAudio.csbody";}

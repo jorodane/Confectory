@@ -1,0 +1,1 @@
+implementation Confectory.FrameControl::AttachAudioBody for Confectory.FrameControl::AttachAudio (string owner,object reader) -> void {body common "AttachAudio.csbody";}

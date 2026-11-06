@@ -1,0 +1,1 @@
+function Confectory.FrameControl::DetachAudio (string owner,object reader) -> void {provide Confectory.FrameControl::DetachAudio with Confectory.FrameControl::DetachAudioBody;}

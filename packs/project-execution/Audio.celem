@@ -1,0 +1,1 @@
+function Confectory.ProjectExecution::Audio (string[] session,string handle,string cursor) -> string {provide Confectory.ProjectExecution::Audio with Confectory.ProjectExecution::AudioBody;}

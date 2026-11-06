@@ -1,0 +1,61 @@
+"""Native project PCM to real Chromium AudioContext. No physical audibility/device claim."""
+import json,sys,time,traceback
+from playwright.sync_api import sync_playwright,expect
+sys.argv.append('--audio-output')
+import v666_run_fullscreen_fixture as f
+mode=sys.argv[3];page=None
+INSTRUMENT=r'''(()=>{const c={contexts:[],buffers:[],starts:0,stops:0,oscillators:0,chunks:[],held:0,hold:false,release:null,breakAudio:false,denyClose:false};globalThis.__audio=c;
+const gain=AudioContext.prototype.createGain,buffer=AudioContext.prototype.createBuffer,source=AudioContext.prototype.createBufferSource,oscillator=AudioContext.prototype.createOscillator,close=AudioContext.prototype.close;
+AudioContext.prototype.createGain=function(...a){if(!c.contexts.includes(this))c.contexts.push(this);return gain.apply(this,a);};
+AudioContext.prototype.createBuffer=function(...a){const b=buffer.apply(this,a),copy=b.copyToChannel;b.copyToChannel=function(values,...rest){const raw=new Uint8Array(values.length*2),v=new DataView(raw.buffer);for(let i=0;i<values.length;i++)v.setInt16(i*2,Math.round(values[i]*32768),true);const row={n:values.length,rate:b.sampleRate,channels:b.numberOfChannels,sha:null};if(c.buffers.length<256)c.buffers.push(row);crypto.subtle.digest('SHA-256',raw).then(h=>row.sha=Array.from(new Uint8Array(h),n=>n.toString(16).padStart(2,'0')).join(''));return copy.call(this,values,...rest);};return b;};
+AudioContext.prototype.createBufferSource=function(...a){const n=source.apply(this,a),start=n.start,stop=n.stop;n.start=function(...a){c.starts++;return start.apply(this,a);};n.stop=function(...a){c.stops++;return stop.apply(this,a);};return n;};AudioContext.prototype.createOscillator=function(...a){c.oscillators++;return oscillator.apply(this,a);};
+const base=fetch;fetch=async(...args)=>{let body;try{body=JSON.parse(args[1]?.body||'{}')}catch{}if(body?.op==='invoke'&&body.endpoint==='runWindow'&&body.input.operation==='close'&&c.denyClose){body.input.lease='f'.repeat(32);args[1]={...args[1],body:JSON.stringify(body)};}const response=await base(...args);if(body?.op==='observe'&&body.endpoint==='runAudio'){const p=await response.clone().json();if(p.ok&&p.result?.available){for(const q of p.result.chunks)c.chunks.push({sha:q.sha256,n:q.samples,start:q.start});if(c.breakAudio){c.breakAudio=false;p.result.rate=48000;return new Response(JSON.stringify(p),{status:200,headers:{'Content-Type':'application/json'}});}if(c.hold&&p.result.chunks.length){c.hold=false;c.held++;await new Promise(r=>c.release=r);return new Response(JSON.stringify(p),{status:200,headers:{'Content-Type':'application/json'}});}}}return response;};})();'''
+
+def open_run():
+ page.get_by_role('tab',name='Workspace',exact=True).click();page.locator('#run').click();w=page.locator('.run-window:visible');expect(w.locator('[data-run-play]')).to_be_enabled();key=w.get_attribute('data-key');return page.locator('.window[data-key="'+key+'"]'),key
+
+def menu(w):
+ w.locator('[data-run-developer]').click();m=page.get_by_role('dialog',name='실행 개발 메뉴',exact=True);expect(m).to_be_visible();return m
+
+def start(w,key):
+ w.locator('[data-run-play]').click();expect(w.locator('.caption strong')).to_have_text('실행 중',timeout=180000);expect(w.locator('[data-run-pause]')).to_be_enabled();m=menu(w);expect(m.locator('[data-run-sound]')).to_be_enabled();return m,f.run('read',f.data(key))
+
+def on(m):
+ m.locator('[data-run-sound]').check();expect(m.locator('[data-run-sound]')).to_be_checked();expect(m.locator('[data-run-sound-test]')).to_be_enabled();page.wait_for_function('()=>__audio.starts>0')
+def stats():return page.evaluate('()=>({contexts:__audio.contexts.length,closed:__audio.contexts.filter(c=>c.state==="closed").length,starts:__audio.starts,stops:__audio.stops,oscillators:__audio.oscillators})')
+def closed(count):page.wait_for_function('(n)=>__audio.contexts.filter(c=>c.state==="closed").length===n',arg=count)
+
+def normal():
+ page.locator('#chat-input').fill('소리는 명시적 표시이며 작업과 권한은 독립');w,key=open_run();m,row=start(w,key);expect(m.locator('[data-run-sound]')).not_to_be_checked();assert stats()['contexts']==0;expect(m.locator('[data-run-sound-test]')).to_be_disabled();f.checked('actual PCM producer enables authored sound switch, default Off creates no AudioContext or execution action')
+ on(m);page.wait_for_function('()=>__audio.buffers.length>=2&&__audio.buffers.every(b=>b.sha)');data=page.evaluate('()=>({buffers:__audio.buffers,chunks:__audio.chunks,states:__audio.contexts.map(c=>c.state)})');assert all(b['rate']==16000 and b['channels']==1 and any(q['sha']==b['sha']and q['n']==b['n']for q in data['chunks'])for b in data['buffers']),data;assert data['states']==['running'];m.locator('[data-run-debug="info"]').check();expect(w.locator('.run-debug-info')).to_contain_text('PCM16');m.locator('[data-run-sound-test]').click();assert stats()['oscillators']==1;f.checked('trusted switch creates real running Chromium AudioContext; actual mono 16k PCM copied to real buffers has whole SHA matching native observation; explicit Test adds one separate local oscillator')
+ m.locator('[data-run-sound]').uncheck();closed(1);before=stats();page.wait_for_timeout(900);assert stats()['starts']==before['starts'];assert stats()['stops']>0;expect(m.locator('[data-run-sound-test]')).to_be_disabled();assert f.run('read',row)['state']=='running';f.checked('Off stops/disconnects only local audio graph, no later samples scheduled and actual process remains running')
+ on(m);page.evaluate('()=>__audio.breakAudio=true');expect(m.locator('[data-run-sound]')).not_to_be_checked();closed(2);expect(m.locator('[data-run-audio-status]')).to_contain_text('다시 켜서');expect(m.locator('[data-run-sound]')).to_be_enabled();on(m);page.wait_for_function('()=>__audio.contexts.length===3');m.locator('[data-dev-close]').click();w.locator('[data-run-pause]').click();expect(w.locator('[data-run-step]')).to_be_enabled();page.wait_for_timeout(700);pause_count=stats()['starts'];page.wait_for_timeout(900);assert stats()['starts']==pause_count;w.locator('[data-run-step]').click();expect(w.locator('[data-run-step]')).to_be_enabled();page.wait_for_function('(n)=>__audio.starts>n',arg=pause_count);once=stats()['starts'];page.wait_for_timeout(900);assert stats()['starts']==once;f.checked('malformed observed format closes playback; explicit On recovers; paused repeats produce no duplicate audio, one actual Step produces new PCM only')
+ page.screenshot(path=str(f.root/'actual-audio.png'));other,otherkey=open_run();closed(3);om=menu(other);expect(om.locator('[data-run-sound]')).to_be_disabled();om.locator('[data-dev-close]').click();page.locator('[data-window-tab="'+key+'"]').click();m=menu(w);expect(m.locator('[data-run-sound]')).not_to_be_checked();expect(m.locator('[data-run-sound]')).to_be_enabled();assert stats()['contexts']==3;expect(page.locator('#chat-input')).to_have_value('소리는 명시적 표시이며 작업과 권한은 독립');m.locator('[data-dev-close]').click();w.locator('[data-run-play]').click();expect(w.locator('[data-run-pixels]')).to_be_hidden();m,fresh=start(w,key);assert fresh['handle']!=row['handle'];expect(m.locator('[data-run-sound]')).not_to_be_checked();assert stats()['contexts']==3;m.locator('[data-dev-close]').click();f.checked('hidden sibling stops only former local graph; another Run has no inherited audio/handle and Stop/restart requires a fresh explicit user gesture')
+
+def lifecycle(browser):
+ global page
+ page.locator('#chat-input').fill('늦은 오디오 뒤 남겨둘 새 입력');w,key=open_run();m,row=start(w,key);on(m);page.evaluate('()=>__audio.hold=true');page.wait_for_function('()=>__audio.held===1');m.locator('[data-run-sound]').uncheck();closed(1);before=stats()['starts'];page.evaluate('()=>__audio.release()');page.wait_for_timeout(900);assert stats()['starts']==before;expect(m.locator('[data-run-sound]')).not_to_be_checked();f.checked('audio read accepted then held beyond Off cannot recreate graph or schedule stale PCM after release')
+ on(m);page.evaluate('()=>__audio.denyClose=true');m.locator('[data-dev-close]').click();page.locator('[data-window-tab-close="'+key+'"]').click();expect(w.locator('[data-run-retry]')).to_be_visible();closed(2);assert f.run('read',row)['state']=='running';w.locator('[data-run-retry]').click();expect(w.locator('[data-run-retry]')).to_be_hidden();m=menu(w);expect(m.locator('[data-run-sound]')).not_to_be_checked();expect(m.locator('[data-run-sound]')).to_be_enabled();on(m);page.evaluate('()=>{__audio.hold=true;__audio.denyClose=false;}');page.wait_for_function('()=>__audio.held===2');m.locator('[data-run-sound]').evaluate('(input)=>{globalThis.__oldSound=input;globalThis.__oldSoundChange=input.onchange;}');m.locator('[data-dev-close]').click();page.locator('[data-window-tab-close="'+key+'"]').click();expect(w).to_be_hidden();closed(3);before=stats()['starts'];fresh,newkey=open_run();page.evaluate('()=>{__audio.release();__oldSound.checked=true;__oldSoundChange({currentTarget:__oldSound});}');page.wait_for_timeout(700);assert stats()['starts']==before and stats()['contexts']==3;expect(page.locator('#chat-input')).to_have_value('늦은 오디오 뒤 남겨둘 새 입력');page.evaluate('()=>confectoryFlushPresentation()');page.close();f.stop();f.start(1);page=f.setup(browser);fresh=page.locator('.window[data-key="'+newkey+'"]');expect(fresh.locator('[data-run-play]')).to_be_enabled();m=menu(fresh);expect(m.locator('[data-run-sound]')).to_be_disabled();assert stats()['contexts']==0 and not f.data(newkey)['handle'];expect(page.locator('#chat-input')).to_have_value('늦은 오디오 뒤 남겨둘 새 입력');m.locator('[data-dev-close]').click();f.checked('denied close preserves actual process/input with local sound safely Off; retired handler and late closed-view response cannot affect sibling; cold restores layout/input without audio/process replay')
+ # A real change of ProjectContext must also dispose active graph and reject the former owner.
+ page.close();f.stop();f.env['CONFECTORY_WEB_PROJECT']=str(f.projects[1]);f.start(2);page=f.setup(browser);other_listing=f.state()['listingId'];page.close();f.stop();f.env['CONFECTORY_WEB_PROJECT']=str(f.projects[0]);f.start(3);page=f.setup(browser);first_listing=f.state()['listingId'];w,key=open_run();m,row=start(w,key);on(m);page.evaluate('()=>confectoryFlushPresentation()');f.call('leaveProject',{});f.call('openProject',{'id':other_listing});page.wait_for_timeout(1000);closed(1);v=f.mount()
+ try:assert not f.raw({'op':'observe','view':v['view'],'scope':v['scope'],'endpoint':'runAudio','input':{'view':row['view'],'lease':row['lease'],'handle':row['handle']}})['ok']
+ finally:f.raw({'op':'dispose','view':v['view']})
+ f.call('leaveProject',{});f.call('openProject',{'id':first_listing});page.reload();f.goto_editor(page,f.url);page.locator('.work-body').wait_for();expect(page.locator('#chat-input')).to_have_value('늦은 오디오 뒤 남겨둘 새 입력');assert stats()['contexts']==0;f.checked('registered project switch disposes real local audio graph, former-context PCM owner rejected; original input preserved on return without autoplay')
+try:
+ f.start(0)
+ with sync_playwright()as pw:
+  expect.set_options(timeout=60000);browser=pw.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox']);context=browser.new_context(viewport={'width':1440,'height':1000});context.add_init_script(INSTRUMENT);page=f.setup(context)
+  try:
+   if mode=='normal':normal()
+   else:lifecycle(context)
+   f.original();assert not f.errors and not f.external,(f.errors,f.external)
+   (f.root/'audio-graph-summary.json').write_text(json.dumps(stats(),ensure_ascii=False,indent=2));page.close();context.close();browser.close()
+  except Exception:
+   if not page.is_closed():
+    try:page.screenshot(path=str(f.root/'failure.png'),timeout=5000);(f.root/'failure.html').write_text(page.content());(f.root/'audio-graph-summary.json').write_text(json.dumps(stats()))
+    except Exception:pass
+   raise
+except Exception as error:
+ (f.root/'failure.json').write_text(json.dumps(dict(error=repr(error),traceback=traceback.format_exc(),errors=f.errors),ensure_ascii=False));raise
+finally:f.save_evidence();f.stop()
+print('RUN_AUDIO_UI',f.root,flush=True)

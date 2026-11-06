@@ -1,0 +1,1 @@
+implementation Confectory.RunAudio::CloseBody for Confectory.RunAudio::Close (string owner) -> void {body common "Close.csbody";}

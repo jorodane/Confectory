@@ -1,0 +1,1 @@
+function Confectory.RunAudio::Close (string owner) -> void {provide Confectory.RunAudio::Close with Confectory.RunAudio::CloseBody;}

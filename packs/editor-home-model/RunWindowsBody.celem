@@ -8,5 +8,6 @@ import Confectory.ProjectExecution::Control as Control (string[],string,string) 
 import Confectory.ProjectExecution::Stop as Stop (string[],string) -> void;
 import Confectory.ProjectExecution::Surface as Surface (string[],string,string) -> string;
 import Confectory.ProjectExecution::ResizeSurface as ResizeSurface (string[],string,string,int,string,int,int) -> string;
+import Confectory.ProjectExecution::Audio as Audio (string[],string,string) -> string;
 body common "RunWindows.csbody";
 }

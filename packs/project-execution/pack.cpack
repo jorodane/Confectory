@@ -28,4 +28,5 @@ dependency Confectory.FileStream version "0.1.0";
  element Output function "Output.celem";
  element OutputBody implementation "OutputBody.celem";
 element ResizeSurface function "ResizeSurface.celem";element ResizeSurfaceBody implementation "ResizeSurfaceBody.celem";
+element Audio function "Audio.celem";element AudioBody implementation "AudioBody.celem";
 }

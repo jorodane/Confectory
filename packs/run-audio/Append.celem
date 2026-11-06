@@ -1,0 +1,1 @@
+function Confectory.RunAudio::Append (string owner,string pcm) -> long {provide Confectory.RunAudio::Append with Confectory.RunAudio::AppendBody;}

@@ -1,0 +1,1 @@
+function Example.AudioOutput::Main () -> int {provide Example.AudioOutput::Main with Example.AudioOutput::MainBody;}

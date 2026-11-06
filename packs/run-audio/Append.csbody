@@ -1,0 +1,1 @@
+var state=AppDomain.CurrentDomain.GetData(owner)as object[]??throw new ObjectDisposedException("Audio output");return ((Func<string,long>)state[0])(pcm);

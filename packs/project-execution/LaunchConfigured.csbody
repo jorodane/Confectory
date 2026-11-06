@@ -8,7 +8,7 @@ project=System.IO.Path.GetFullPath(project);string handle=Guid.NewGuid().ToStrin
 string pipe="confectory-frame-"+Guid.NewGuid().ToString("N"),secret=Convert.ToHexString(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32));
 object controlGate=new();string runtime="";int sent=0;long observedFrame=0;int observedAck=0;string sentAction="";long requestedFrame=0;bool attached=true;System.Text.Json.Nodes.JsonObject? latest=null;
 
-var record=new object[]{new string[]{handle,"building",project,entry,target,"",""},null!,false,new System.Collections.Generic.Queue<string>(),null!,new object[]{"run-history-v1",new object(),new System.Text.Json.Nodes.JsonObject()},new object[]{new object(),pipe,secret,"",0L,"",0,0,new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal),"",null!}};
+var record=new object[]{new string[]{handle,"building",project,entry,target,"",""},null!,false,new System.Collections.Generic.Queue<string>(),null!,new object[]{"run-history-v1",new object(),new System.Text.Json.Nodes.JsonObject()},new object[]{new object(),pipe,secret,"",0L,"",0,0,new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal),"",null!,new object[]{"",0L,0L,0L,0L,new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal),new System.Collections.Generic.Dictionary<long,long>()}}};
 lock(records)records.Add(handle,record);
 void Checkpoint(){try{calls.RunHistory.Invoke(session,project,"checkpoint",new System.Text.Json.Nodes.JsonObject{["execution"]=handle}.ToJsonString());}catch{}}
 Checkpoint();

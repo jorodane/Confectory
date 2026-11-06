@@ -1,0 +1,1 @@
+implementation Confectory.RunAudio::OpenBody for Confectory.RunAudio::Open (string frameOwner) -> string {import Confectory.FrameControl::AttachAudio as Attach (string,object) -> void;import Confectory.FrameControl::DetachAudio as Detach (string,object) -> void;body common "Open.csbody";}

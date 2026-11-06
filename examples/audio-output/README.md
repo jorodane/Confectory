@@ -1,0 +1,1 @@
+Explicit software RGBA and PCM16 mono output. The owned project generates its own 440Hz fixture signal from actual sample positions at permitted frames; no personal assets or external audio. Consumers mute locally without changing producer execution. This is a software preview, not physical-device or real-time-DSP validation.

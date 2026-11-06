@@ -1,0 +1,1 @@
+var state=AppDomain.CurrentDomain.GetData(owner)as object[];if(state is null)return;if(state.Length<6)throw new InvalidOperationException("Frame provider has no explicit audio binding");((Action<object,bool>)state[5])(reader,true);
