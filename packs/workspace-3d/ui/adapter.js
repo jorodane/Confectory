@@ -1,11 +1,11 @@
 import {projectOfficeWorkers} from './workers.js';
 // Display-only pack: no source, permission, execution or Worker dispatch API.
 export function createOfficeView(api){
- let canvas=null,controls=null,engine=null,owner=null,key='',epoch=0,loading=false,observed=false,workerStatus=null,zoom=null,editorZoom=null;
+ let canvas=null,controls=null,engine=null,owner=null,key='',epoch=0,loading=false,observed=false,workerStatus=null,zoom=null,editorZoom=null,arrange=null;
  const stylesheet=document.createElement('link');stylesheet.rel='stylesheet';stylesheet.href=new URL('./office.css',import.meta.url);document.head.append(stylesheet);
  const visible=()=>!!owner&&owner.workspacePresentation==='office'&&api.visible();
  const alive=(token,host,record)=>epoch===token&&canvas===host&&owner===record&&host?.isConnected&&api.owner()===record;
- const clean=()=>{epoch++;loading=false;observed=false;workerStatus=null;try{engine?.dispose();}finally{engine=null;if(zoom){zoom.onclick=editorZoom;canvas?.append(zoom);}zoom=null;editorZoom=null;canvas?.classList.remove('is-voxel-office');controls?.remove();controls=null;canvas=null;owner=null;key='';}};
+ const clean=()=>{epoch++;loading=false;observed=false;workerStatus=null;try{engine?.dispose();}finally{engine=null;if(zoom){zoom.onclick=editorZoom;canvas?.append(zoom);}zoom=null;editorZoom=null;canvas?.classList.remove('is-voxel-office');controls?.remove();controls=null;arrange?.remove();arrange=null;canvas=null;owner=null;key='';}};
  function update(){
   const host=api.canvas(),record=api.owner(),identity=api.identity();
   if(!host||!record){if(canvas)clean();return;}
@@ -16,10 +16,11 @@ export function createOfficeView(api){
    const collapse=document.createElement('button');collapse.type='button';collapse.className='workspace-map-toggle';collapse.innerHTML='<span aria-hidden="true"></span>';
    const syncMap=()=>{const hidden=!!record.miniMapCollapsed;controls.classList.toggle('is-map-collapsed',hidden);collapse.setAttribute('aria-label',hidden?'미니맵 펼치기':'미니맵 접기');collapse.setAttribute('aria-expanded',String(!hidden));};syncMap();
    controls.append(zoom,map,collapse);host.append(controls);delete host.dataset.officeRenderer;const token=epoch;
+   const dock=host.querySelector('.bubble-dock');if(dock){const search=dock.querySelector('#worker-finder-bubble');(search||dock).insertAdjacentHTML(search?'afterend':'beforeend','<button class="bubble" id="office-arrange-bubble" aria-label="작업실 배치" title="방과 가구 배치" aria-pressed="false" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M17.5 13v8m-4-4h8"/></svg><span class="dock-label">배치</span></button>');arrange=dock.querySelector('#office-arrange-bubble');arrange.onpointerdown=e=>e.stopPropagation();arrange.addEventListener('click',e=>e.stopPropagation());}
    collapse.onclick=e=>{e.stopPropagation();if(!alive(token,host,record))return;record.miniMapCollapsed=!record.miniMapCollapsed;syncMap();api.persist();};
    map.onclick=e=>{e.stopPropagation();if(alive(token,host,record)&&visible())engine?.openMap();};controls.onpointerdown=e=>e.stopPropagation();controls.onclick=e=>{const view=e.target.closest('[data-workspace-view]')?.dataset.workspaceView;if(!view||!alive(token,host,record))return;record.workspacePresentation=view;api.persist();update();};
   }
-  const active=visible(),wasActive=canvas.classList.contains('is-voxel-office');canvas.classList.toggle('is-voxel-office',active);controls.hidden=!api.visible();
+  const active=visible(),wasActive=canvas.classList.contains('is-voxel-office');canvas.classList.toggle('is-voxel-office',active);controls.hidden=!api.visible();if(arrange){arrange.hidden=!active;arrange.disabled=!api.arrangementAvailable();}
   for(const b of controls.querySelectorAll('[data-workspace-view]'))b.setAttribute('aria-pressed',String(b.dataset.workspaceView===(owner.workspacePresentation==='office'?'office':'editor')));
   if(zoom){const generation=epoch,button=zoom;zoom.onclick=active?()=>{if(alive(generation,host,record)&&visible()&&zoom===button)engine?.showZoom(button);}:editorZoom;if(active)zoom.textContent=Math.round((engine?.layout.camera.scale||owner.officeLayout?.camera?.scale||1)*10000)/100+'%';else if(wasActive)canvas.updateWorkspaceView?.();}
   if(engine&&engine.active!==active)engine.setVisible(active);else if(engine?.active)engine.refreshSource();
@@ -35,7 +36,7 @@ export function createOfficeView(api){
     announce:text=>{if(valid())controls.dataset.lastSelection=text;},notify:text=>{if(valid())api.toast(text);},
     openObject:id=>{if(valid()&&read().objects.some(row=>row.id===id))api.openObject(id);},
     openCategory:(group,parent)=>{if(valid()&&['concept','info','feature','module'].includes(group)&&(!parent||read().objects.some(row=>row.id===parent&&row.kind==='Category')))api.openCategory(group,parent);else if(valid()&&group==='resource')api.toast('자료 Browser는 아직 연결되지 않았습니다.');},
-    canChat:()=>false,chat:()=>{},canWrite:()=>false,canArrange:()=>false,canInspectTask:(helper,row)=>valid()&&read().helpers.some(h=>h.id===helper.id&&h.workers.some(w=>w.id===row.id&&w.objectId===row.objectId)),
+    canChat:()=>false,chat:()=>{},canWrite:id=>valid()&&(id.startsWith('__')||read().objects.some(row=>row.id===id&&row.owned===true)),canArrange:()=>valid()&&!!arrange?.isConnected&&api.arrangementAvailable(),canInspectTask:(helper,row)=>valid()&&read().helpers.some(h=>h.id===helper.id&&h.workers.some(w=>w.id===row.id&&w.objectId===row.objectId)),
     recover:()=>{if(valid())fail(new Error('Workspace3D context lost'),token,host,record);}});
    engine.root.addEventListener('pointerdown',e=>e.stopPropagation(),{signal:engine.events.signal});engine.root.addEventListener('contextmenu',e=>e.stopPropagation(),{signal:engine.events.signal});engine.root.addEventListener('keydown',e=>e.stopPropagation(),{signal:engine.events.signal});engine.setVisible(true);host.dataset.officeRenderer='ready';
   }).catch(error=>fail(error,token,host,record)).finally(()=>{if(alive(token,host,record))loading=false;});
@@ -47,5 +48,5 @@ export function createOfficeView(api){
   host.querySelectorAll('.voxel-office,.office-workspace-map-shield').forEach(el=>el.remove());host.dataset.officeRenderer='unavailable';
   record.workspacePresentation='editor';api.persist();update();api.toast('이 환경에서 3D 작업실을 열지 못했습니다. 편집 Workspace로 전환했습니다.');
  }
- return {update,dispose:clean};
+ return {update,dispose:clean,captureSnapshot:value=>{const target=owner&&api.snapshotOwner(value,owner);if(target&&engine)target.officeLayout=engine.checkpointLayout();}};
 }

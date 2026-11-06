@@ -1,6 +1,9 @@
 """Exact display-only delta from the verified 3D checkpoint; no backend authority changes."""
 import hashlib,json,pathlib,subprocess,sys
-r=pathlib.Path(sys.argv[1]);d=json.loads((r/'docs/v666-office-workers-delta.json').read_text());base=d['baseCommit'];paths=set(subprocess.check_output(['git','diff','--name-only',base,'--','src','targets','packs','examples'],cwd=r,text=True).splitlines());assert paths==set(d['productFiles']),paths
+r=pathlib.Path(sys.argv[1]);
+if (r/'docs/v666-office-arrangement-delta.json').exists():
+ subprocess.run([sys.executable,str(r/'tests/web/v666_office_arrangement_copy.py'),str(r)],check=True);sys.exit(0)
+d=json.loads((r/'docs/v666-office-workers-delta.json').read_text());base=d['baseCommit'];paths=set(subprocess.check_output(['git','diff','--name-only',base,'--','src','targets','packs','examples'],cwd=r,text=True).splitlines());assert paths==set(d['productFiles']),paths
 for name,digest in d['productFiles'].items():assert hashlib.sha256((r/name).read_text().encode()).hexdigest()==digest,name
 assert not any(p.startswith(('src/','targets/','packs/editor-home-model/','packs/worker-tasks/'))for p in paths)
 assert {p for p in paths if p.endswith(('.csbody','.celem','.cpack'))}=={'examples/editor-home/WebBundle.csbody'}

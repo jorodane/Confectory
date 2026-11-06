@@ -10,8 +10,11 @@
 카메라/보기는 기존 프로젝트별 private presentation에만 저장한다. source 저장이나
 Review/Confirm의 권한·토큰·CAS를 대신하지 않는다.
 
-`canArrange`, `canWrite`, `canChat`, `canInspectTask`는 현재 연결에서 false다. 원본의
-배치 편집과 Helper/Worker 실제 이벤트 표시, 하위 작업실별 전체 조작 검증은 후속 범위다.
+기존 공개 Helper/Worker 상태와 철회는 [상태 연결](../../docs/V3_WORKSPACE_WORKERS.md)을
+따른다. 활성 개인 Workspace에서 원본 배치 도구를 private presentation에 연결하며,
+미확정 geometry는 다른 입력/카메라 checkpoint에 섞이지 않는다. 이 연결의 canArrange/
+canWrite는 개인 표시 배치에만 적용하고 source 권한을 부여하지 않는다. canChat은 false다.
+개별 read/write 신호와 하위 작업실별 전체 조작 검증은 후속 범위다.
 Helpers/Workers에 시연 데이터를 넣지 않는다. 권한 관리는 별도 팩이며 이 팩은 판정이나
 허용 API를 제공하지 않는다. 위치·이동·도착은 작업 실행이나 권한 검사의 조건이 아니다.
 

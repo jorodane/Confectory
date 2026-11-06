@@ -1,0 +1,13 @@
+{
+  "baseCommit": "03426e3740f51c78132e413349bd033bfc8bb8af",
+  "scope": "private 3D arrangement and committed presentation snapshots; no source/execution/permission backend changes",
+  "productFiles": {
+    "examples/editor-home/WebBundle.csbody": "fc0fe1dbde370406bde90bf1dd6ade857b24379f13e3fa2d5a760046f86cd7aa",
+    "examples/editor-home/ui/workspace-host.js": "7704ef9077934ffc440e10f742d35cb7c90dcf97f4f258786243a49d47517d26",
+    "packs/workspace-3d/README.md": "c2d67f039fc0eea10f534d7ce3e9309c0f5ba0f59a47a5abf017cf5e624bbe03",
+    "packs/workspace-3d/ui/adapter.js": "4c6bec08b6fab288688196184c60688e069838334807c95eed8618131c0ffe0a",
+    "packs/workspace-3d/ui/arrangement.js": "d46f8723ebb4e2160b9fe90b1377ee16c2c2b47a6274bc90c172fb6107f7560b",
+    "packs/workspace-3d/ui/manifest.json": "0ff1c555a9ed562ea9e8e2703c31927c63bc76ac445fcb4a920159ab064a558b",
+    "packs/workspace-3d/ui/office.js": "59617a3d7cbbfafa57df0506297ac31f33781045293e3555930cefcc6bd8bf83"
+  }
+}

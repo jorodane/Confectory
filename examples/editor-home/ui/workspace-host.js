@@ -57,6 +57,8 @@ export function createActualWorkspace(api) {
     office=createOfficeView({canvas:()=>api.$('#workspace'),owner:()=>project?runtime.workspaceRecord():null,
       identity:()=>scope+'|'+runtime.state.activeWorkspaceId,visible:()=>!!project&&!host.activeFixedTab,
       persist:()=>schedule('layout'),toast:api.toast,steppedZoom:createSteppedZoomWheel,observe:()=>api.observeOffice(),
+      arrangementAvailable:()=>!!project&&!loading&&!project.recoveryFailed,
+      snapshotOwner:(value,record)=>record===project?value:project?.workspaces?.includes(record)?value.workspaces.find(row=>row.id===record.id):null,
       workerState:()=>({projectId:api.current.projectId,workers:api.current.assignmentWorkers,status:api.current.assignmentWorkersStatus,participants:api.officeParticipants().map(row=>({id:row.id,name:row.name}))}),
       read:()=>({id:scope,name:api.current.title||api.current.namespace||scope,objects:api.projection.workspaceRows().filter(row=>row.owned===true).map(row=>({...row,kind:({category:'Category',object:'Concept',schema:'Info',function:'Feature',module:'Module',enum:'Enum'})[row.kind]||row.kind,parent:api.projection.browserParent(row.id)})),helpers:[],helperTitles:{},issues:[],skins:{},resources:[]}),
       openObject:id=>api.openDeclaration(id),openCategory:(group,parent)=>{const w=api.openBrowser(group,null,false,'browser',parent);if(w){w.placed=false;runtime.placeWindow(w);runtime.focusWindow(w);runtime.saveLayouts();}}
@@ -95,7 +97,7 @@ export function createActualWorkspace(api) {
     // Persist fresh input while a pointer gesture is provisional, using its last
     // committed geometry. A cancel can never leave an intermediate disk layout.
     const gesture=runtime.state.gesture;if(gesture?.project===project){const owner=gesture.workspaceId==='root'?value:value.workspaces.find(space=>space.id===gesture.workspaceId);if(owner)for(const item of gesture.entries){const row=item.kind==='window'?owner.layout.find(row=>row.key===item.key):(gesture.workspaceId==='root'?owner.workspaceItems:owner.items).find(row=>row.id===item.itemId);if(row)Object.assign(row,item.geometry);}}
-    return value;}
+    office?.captureSnapshot(value);return value;}
   function inputKey(value){const notes=[];for(const item of value.workspaceItems||[])if(item.kind==='note')notes.push([item.id,item.text,item.richText,item.titleStyle]);for(const child of value.workspaces||[])for(const item of child.items||[])if(item.kind==='note')notes.push([item.id,item.text,item.richText,item.titleStyle]);return JSON.stringify([value.inputs,value.selectedObjectId,value.editorBindings,notes]);}
   function same(left,right){return JSON.stringify(left)===JSON.stringify(right);}
   function pending(){if(!project||loading)return false;return !same(snapshot(),checkpoints.get(scope));}

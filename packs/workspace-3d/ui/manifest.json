@@ -5,8 +5,13 @@
     "mime": "application/json"
   },
   "adapter.js": {
-    "size": 7411,
-    "sha256": "58a1176362d779c3774b4b8f80355bfe7ddc37c72ceb711d0b0a995f1207293c",
+    "size": 8659,
+    "sha256": "4c6bec08b6fab288688196184c60688e069838334807c95eed8618131c0ffe0a",
+    "mime": "text/javascript"
+  },
+  "arrangement.js": {
+    "size": 376,
+    "sha256": "d46f8723ebb4e2160b9fe90b1377ee16c2c2b47a6274bc90c172fb6107f7560b",
     "mime": "text/javascript"
   },
   "assets/three.module-0.160.1.js": {
@@ -30,8 +35,8 @@
     "mime": "text/css"
   },
   "office.js": {
-    "size": 166211,
-    "sha256": "b5bb7516217a33a6396b686716a222817e4bf2e511e27060a6be7a059bc8f6b4",
+    "size": 167455,
+    "sha256": "59617a3d7cbbfafa57df0506297ac31f33781045293e3555930cefcc6bd8bf83",
     "mime": "text/javascript"
   },
   "voxel-character.js": {

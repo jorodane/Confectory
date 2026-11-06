@@ -69,7 +69,7 @@ try:
     switch('office');ready();assert abs(camera()['scale']-1.5)<.001;guards();f.checked('camera 150% survives repeated panel/office toggles; closed zoom callback cannot change the current private camera; no layout/source edits')
     # Original storage -> native Browser; never a separate prototype editor.
     page.locator('[data-office-map]').click();office().locator('[data-office-map-list="'+folder+'"]').click()
-    expect(office().locator('[data-office-radial="rearrange"]')).to_have_count(0)
+    expect(office().locator('[data-office-radial="rearrange"]')).to_have_count(1 if (f.repo/'docs/v666-office-arrangement-delta.json').exists()else 0)
     office().locator('[data-office-radial="open"]').click()
     expect(page.locator('.window[data-key="browser"]')).to_be_visible(timeout=20000)
     guards();f.checked('original owned room radial entry delegates to the existing permission-checked feature Browser rather than copying or editing declaration sources')
