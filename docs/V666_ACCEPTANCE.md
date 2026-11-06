@@ -60,7 +60,7 @@ Workspace 확대 팝오버의 재개방·프로젝트 전환 후 폐기 콜백 �
 
 일반 Blueprint 읽기 중 창 닫기의 늦은 응답 경계는 [현재 지원 범위](V1_NATIVE_READ_CLOSE.md)에
 연결한다. 기존 숨긴 창의 명시 재열기·현재 source 관측·private 배치와 권한을 보존한다.
-최종 검증 수치는 마감 기록에서 확정한다.
+[최종 29단계(신규 29·재사용 0)](VALIDATION_V666_NATIVE_READ_CLOSE.md)를 통과했다.
 
 ## 기존 미완료 사용자 흐름
 

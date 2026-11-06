@@ -25,3 +25,5 @@ SHA/CRC/권한 복원본과 임시물 수명관리·최신/롤백·증거를 마
 실제 Windows/WebView2·모바일·DPI/IME·전체 UI·독립 정보 창의 모든 문맥·Library/Space
 전달은 이 단위의 완료가 아니다. V3–V7 실제 backend/packs, V8 실제 영상/오디오 provider,
 V9 실제 신원/가시성과 기존 종류 정책 잔여도 유지한다. main은 사용자가 병합한다.
+
+[최종 검증·보관 기록](VALIDATION_V666_NATIVE_READ_CLOSE.md): 29단계, 신규 29·재사용 0.
