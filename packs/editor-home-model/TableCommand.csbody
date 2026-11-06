@@ -39,6 +39,30 @@ lock(state){
   string contentHash=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(content.ToJsonString()))).ToLowerInvariant();
   return new System.Text.Json.Nodes.JsonObject{["id"]=id,["status"]="available",["revision"]=observed["revision"]!.DeepClone(),["textHash"]=observed["textHash"]!.DeepClone(),["viewHash"]=observed["viewHash"]!.DeepClone(),["contentHash"]=contentHash,["fields"]=fields};
  }
+ if(action=="finder-content"){
+  // Search adds declared structure to the existing owned Data projection. It
+  // never exposes source paths/bodies or extends the generic Browser edit kinds.
+  foreach(var field in args)if(field.Key is not ("action" or "ids" or "context"))throw new UnauthorizedAccessException("finder-content-fields");
+  if(args["context"] is not null&&args["context"]!.ToString()!=context)throw new UnauthorizedAccessException("finder-content-owner");
+  var ids=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(args["ids"]?.AsArray()??throw new ArgumentException("Explicit finder owners required"),row=>row!.GetValue<string>()));
+  if(ids.Length<1||ids.Length>64||System.Linq.Enumerable.Count(System.Linq.Enumerable.Distinct(ids,StringComparer.Ordinal))!=ids.Length)throw new ArgumentException("Bounded unique finder owners required");
+  string draft=calls.Borrow.Invoke(workspace),ns=selected["namespace"]!.ToString()+"::";
+  foreach(string id in ids){string kind=calls.Status.Invoke(draft,id)[1];if(!id.StartsWith(ns,StringComparison.Ordinal)||!BrowserKind(kind)&&kind!="enum")throw new UnauthorizedAccessException("finder-content-owner");}
+  var result=new System.Text.Json.Nodes.JsonArray();
+  foreach(string id in ids){try{
+   var source=calls.Read.Invoke(draft,id);var info=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("inspect",System.Text.Json.JsonSerializer.Serialize(new{text=source[3]})))!;
+   if(info["id"]?.ToString()!=id||info["kind"]?.ToString()!=source[1])throw new UnauthorizedAccessException("finder-content-identity");
+   var definition=new System.Text.Json.Nodes.JsonArray();
+   foreach(var pair in info["fields"]!.AsObject()){definition.Add(pair.Key);foreach(string definitionPart in new[]{"Kind","Type","Cardinality"})if(pair.Value![definitionPart] is not null)definition.Add(pair.Value[definitionPart]!.DeepClone());}
+   if(info["signature"] is System.Text.Json.Nodes.JsonObject signature){foreach(var argument in signature["Args"]!.AsArray())foreach(string definitionPart in new[]{"Name","Type","Mode"})if(argument![definitionPart] is not null)definition.Add(argument[definitionPart]!.DeepClone());definition.Add(signature["return"]!.DeepClone());}
+   foreach(var member in info["enumValues"]?.AsArray()??new System.Text.Json.Nodes.JsonArray())definition.Add(member!["name"]!.DeepClone());
+   string hash=BrowserHash(source[3]);var row=source[1]=="enum"?new System.Text.Json.Nodes.JsonObject{["id"]=id,["kind"]="enum",["status"]="available",["revision"]=long.Parse(source[4],System.Globalization.CultureInfo.InvariantCulture),["textHash"]=hash,["viewHash"]=hash,["contentHash"]=hash,["fields"]=new System.Text.Json.Nodes.JsonArray(new System.Text.Json.Nodes.JsonObject{["name"]="설명",["state"]="present",["valueJson"]=BrowserJson(info["description"]??System.Text.Json.Nodes.JsonValue.Create(""))})}:BrowserRow(draft,id);
+   row["fields"]!.AsArray().Add(new System.Text.Json.Nodes.JsonObject{["name"]="정의",["state"]="present",["valueJson"]=BrowserJson(definition)});
+   var latest=calls.Read.Invoke(draft,id);if(latest[4]!=source[4]||latest[3]!=source[3]||row["textHash"]?.ToString()!=hash)throw new InvalidOperationException("Finder owner changed during read");
+   row["contentHash"]=BrowserHash(row["contentHash"]!.ToString()+"\n"+definition.ToJsonString());result.Add(row);
+  }catch{result.Add(new System.Text.Json.Nodes.JsonObject{["id"]=id,["status"]="unavailable",["code"]="finder-content-unavailable"});}}
+  model["finderContent"]=new System.Text.Json.Nodes.JsonObject{["projectId"]=selected["projectId"]!.DeepClone(),["rows"]=result};return;
+ }
  if(action=="browser-elements"){
   foreach(var field in args)if(field.Key is not ("action" or "ids" or "context"))throw new UnauthorizedAccessException("browser-elements-fields");if(args["context"] is not null&&args["context"]!.ToString()!=context)throw new UnauthorizedAccessException("browser-elements-owner");
   var ids=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(args["ids"]?.AsArray()??throw new ArgumentException("Explicit browser objects required"),row=>row!.GetValue<string>()));

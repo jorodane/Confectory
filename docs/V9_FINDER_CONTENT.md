@@ -1,5 +1,8 @@
 # V9 배치하지 않은 소유 선언의 내용 찾기
 
+이 문서는 `47cd51d`에서 마감한 Data 경계다. 현재 필드·함수 서명·종류 항목의 검색 전용
+읽기 확장은 [정의 구조 검색](V9_FINDER_DEFINITIONS.md)을 따른다. 기존 Data API는 유지한다.
+
 기준은 보관한 `reference/site-ui/Confectory-Editor-Prototype-v666.zip`의
 `Confectory-v666/dist/app.js`다. `openWorkspaceFinder`는 글자 검색에서 배치되지 않은
 `project.objects`에도 `workspaceSearchText(object)`를 적용한다. 현재 구현은 시연 객체 대신

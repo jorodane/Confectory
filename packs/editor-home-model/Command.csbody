@@ -370,7 +370,7 @@ model["chatHelperSelections"]??=new System.Text.Json.Nodes.JsonObject();if(ids.C
  var result=System.Text.Json.Nodes.JsonNode.Parse(calls.PackCommand.Invoke(Workspace(context),"reference-definition",request.ToJsonString()))!;
  model["referenceDefinition"]=new System.Text.Json.Nodes.JsonObject{["context"]=context,["result"]=result["referenceDefinition"]!.DeepClone()};model["status"]="Declared reference definition read without opening an editable owner";
  }
- else if(operation=="table"){string context=Active();calls.Tables.Invoke(session,context,Workspace(context),args.ToJsonString());if(Value("action")!="browser-elements"){bool properties=Value("action")=="browser-element-edit"&&model["workspace"]?["schemaView"] is not null;model["workspace"]=System.Text.Json.Nodes.JsonNode.Parse(properties?calls.PackCommand.Invoke(Workspace(context),"schema-view","{}"):calls.PackSnapshot.Invoke(Workspace(context)));RefreshViews(context);}}
+ else if(operation=="table"){string context=Active();calls.Tables.Invoke(session,context,Workspace(context),args.ToJsonString());if(Value("action")!="browser-elements"&&Value("action")!="finder-content"){bool properties=Value("action")=="browser-element-edit"&&model["workspace"]?["schemaView"] is not null;model["workspace"]=System.Text.Json.Nodes.JsonNode.Parse(properties?calls.PackCommand.Invoke(Workspace(context),"schema-view","{}"):calls.PackSnapshot.Invoke(Workspace(context)));RefreshViews(context);}}
  else if(operation=="workspace"){
  string context=Active(),view=Value("view"),action=Value("action","open");
  if(view.Length>0&&view is not ("1" or "2" or "3"))throw new ArgumentException("Editor view slot must be 1..3");

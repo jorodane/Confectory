@@ -115,7 +115,7 @@ const placedFind=createPlacedTextFind({context:host=>{
 
 async function readFinderContent(ids,alive){
  await whenIdle();if(!alive())return;let result,failure;
- await work(async()=>{try{for(let attempt=0;attempt<3;attempt++){await view.update();if(!alive())return false;try{result=await view.call('browserElements',{ids});break;}catch(error){if(error.message!=='stale_revision'||attempt===2)throw error;}}}catch(error){failure=error;}return false;},null,{flushWorkspace:false});
+ await work(async()=>{try{for(let attempt=0;attempt<3;attempt++){await view.update();if(!alive())return false;try{result=await view.call('finderContent',{ids});break;}catch(error){if(error.message!=='stale_revision'||attempt===2)throw error;}}}catch(error){failure=error;}return false;},null,{flushWorkspace:false});
  if(failure)throw failure;if(alive()&&!result)throw Error('finder-content-unavailable');return result;
 }
 const finderContent=createFinderContent({

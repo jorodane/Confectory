@@ -1,7 +1,7 @@
 // Transient index of the existing owned Browser Data read representation.
 // No raw source paths, external IDs, grants, edits or persistent search state.
 export function createFinderContent(api){
- const supported=new Set(['object','schema','function','implementation','module','category','concept']);
+ const supported=new Set(['object','schema','function','implementation','module','category','concept','enum']);
  const skipped=new Set(['image','bustImage','voxelCharacter','thumbnail','blob','dataUrl','editorIcon']);
  let enabled=false,identity='',epoch=0,job=null,timer=null,phase='idle',rows=new Map(),unsupported=0,unavailable=0;
  const context=()=>api.context();
