@@ -1,6 +1,8 @@
 """Only generic input accounting after an Apply attempt and canonical resource pin."""
 import hashlib,json,pathlib,re,subprocess,sys
 r=pathlib.Path(sys.argv[1]).resolve();d=json.loads((r/'docs/v666-native-intent-late-delta.json').read_text());old=lambda p:subprocess.check_output(['git','show',d['baseCommit']+':'+p],cwd=r,text=True)
+if(r/'docs/v666-office-view-delta.json').exists():
+ subprocess.run([sys.executable,str(r/'tests/web/v666_office_view_copy.py'),str(r)],check=True);sys.exit(0)
 expected=old(d['path'])
 for c in d['changes']:
  assert expected.count(c['before'])==1;expected=expected.replace(c['before'],c['after'])

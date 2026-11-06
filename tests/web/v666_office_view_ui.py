@@ -28,7 +28,9 @@ def zoom(value):
 def camera():return private()['officeLayout']['camera']
 try:
  if mode=='tampered':saved_asset=damaged.read_bytes();damaged.write_bytes(saved_asset+b'\n// controlled owned-fixture integrity failure\n')
- f.start(0)
+ if mode=='normal':
+  f.env['CONFECTORY_WEB_PROJECT']=str(f.projects[1]);f.start(0);second=f.state()['listingId'];f.stop();f.env['CONFECTORY_WEB_PROJECT']=str(f.projects[0]);f.start(1)
+ else:f.start(0)
  with sync_playwright()as p:
   expect.set_options(timeout=60000);browser=p.chromium.launch(executable_path='/usr/bin/chromium',headless=True,args=['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader'])
   try:
@@ -90,8 +92,8 @@ try:
     elif mode=='cold':
      stored=camera();page.close();f.stop();f.start(1);page=f.setup(browser);ready();assert camera()==stored;guards();f.checked('fresh engine restores display preference and private camera from durable presentation without restoring source-edit or execution authority')
     elif mode=='normal':
-     old=camera();f.call('leaveProject',{});page.wait_for_selector('.home-grid');f.call('openProject',{'manifest':str(f.projects[1])});page.wait_for_selector('.work-body');expect(page.get_by_role('button',name='패널 Workspace',exact=True)).to_have_attribute('aria-pressed','true');expect(office()).to_have_count(0)
-     f.call('leaveProject',{});page.wait_for_selector('.home-grid');f.call('openProject',{'manifest':str(f.projects[0])});page.wait_for_selector('.work-body');ready();assert camera()==old;guards();f.checked('actual project A/home/B/A isolates office preference/camera and restores A; same displayed declaration names never select another project')
+     old=camera();first=f.state()['listingId'];f.call('leaveProject',{});page.wait_for_selector('.home-grid');f.call('openProject',{'id':second});page.wait_for_selector('.work-body');expect(page.get_by_role('button',name='패널 Workspace',exact=True)).to_have_attribute('aria-pressed','true');expect(office()).to_have_count(0)
+     f.call('leaveProject',{});page.wait_for_selector('.home-grid');f.call('openProject',{'id':first});page.wait_for_selector('.work-body');ready();assert camera()==old;guards();f.checked('actual project A/home/B/A isolates office preference/camera and restores A; same displayed declaration names never select another project')
    page.screenshot(path=str(f.root/('office-view-'+mode+'.png')));guards();browser.close()
   except Exception as e:
    try:page.screenshot(path=str(f.root/'failure.png'));(f.root/'failure.html').write_text(page.content())

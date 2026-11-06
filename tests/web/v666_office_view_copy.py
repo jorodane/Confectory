@@ -2,6 +2,8 @@
 import hashlib,json,pathlib,subprocess,sys,re
 from zipfile import ZipFile
 r=pathlib.Path(sys.argv[1]);base='3a1d6df3643ebad6a64931249963a71c406061b3'
+delta=json.loads((r/'docs/v666-office-view-delta.json').read_text())
+for name,digest in delta['productFiles'].items():assert hashlib.sha256((r/name).read_text().encode()).hexdigest()==digest,name
 root=r/'packs/workspace-3d/ui';manifest=json.loads((root/'manifest.json').read_text())
 for name,row in manifest.items():
  data=(root/name).read_text().encode();assert len(data)==row['size']and hashlib.sha256(data).hexdigest()==row['sha256']
@@ -17,5 +19,6 @@ assert not any(value in adapter for value in ['fetch(','view.call(','requestAnim
 expected={'examples/editor-home/WebBundle.csbody','examples/editor-home/WebBundleBody.celem','examples/editor-home/project.cpack','examples/editor-home/ui/workspace-host.js','examples/editor-home/ui/v508-runtime.js'}
 changed=set(subprocess.check_output(['git','diff','--name-only',base,'--','src','targets','packs','examples'],cwd=r,text=True).splitlines())
 assert {p for p in changed if not p.startswith('packs/workspace-3d/')}==expected,changed
+assert changed==set(delta['productFiles']),changed
 subprocess.run(['node','--input-type=module','-e',"globalThis.window={};await import('./packs/workspace-3d/ui/adapter.js');await import('./packs/workspace-3d/ui/office.js');"],cwd=r,check=True)
 print('PASS independent display pack/local pinned v666 renderer/license; only owned declared rooms; no Worker/ACL/dispatch/source/runtime/CAS/Review/Confirm changes')

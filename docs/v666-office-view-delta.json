@@ -1,0 +1,26 @@
+{
+  "baseCommit": "3a1d6df3643ebad6a64931249963a71c406061b3",
+  "scope": "V3 owned room display, private camera, existing Browser entry; no source/Worker/permission contract mutation",
+  "productFiles": {
+    "examples/editor-home/WebBundle.csbody": "3afdacaa182a0798969e9f014ba3bdb23a5a2d96579da5fa1e1c13a5938b5df6",
+    "examples/editor-home/WebBundleBody.celem": "39dcc8eb7bab170fd3c8a44c69b273dcdcafc4b89c3d3d913258b417bdd7885c",
+    "examples/editor-home/project.cpack": "37ac0d10465c566d166be7d02c3ca9af41356cf84d0bcfaa59259f9897d0c88b",
+    "examples/editor-home/ui/v508-runtime.js": "045c4ba7692195bc6e598adb81659cc4372668db8f161d87750217b55fc6d6fe",
+    "examples/editor-home/ui/workspace-host.js": "17679c51038d13468a0a06b7b9d7e045bfafb1c2e7a5d2eba1f97e77dd135c0d",
+    "packs/workspace-3d/Bundle.celem": "f61f11d59d164d25990c578978ed5beda74aefca01195ff1c7e8424032fe464f",
+    "packs/workspace-3d/Bundle.csbody": "0e36a2c62367c07aca865242e5dba2cfab47f1508033fab40c10890e91ca4b2c",
+    "packs/workspace-3d/BundleBody.celem": "f4addbb49521a2eb53ee13a4f54833743ac57c4560c8b20a36d435504259f5bf",
+    "packs/workspace-3d/README.md": "0ea2ae0a75fbc9d48c247502b4883b781d1f4490d23081306c2783e0742a0d52",
+    "packs/workspace-3d/pack.cpack": "524548c33cb111606dd015394057ad23acf077cbe3b380b05f86e7b7934cf7d9",
+    "packs/workspace-3d/ui/UPSTREAM.json": "9453b07cd092ab01e583c29e28f037bf0b238130933045c9ad07181e9e0f36aa",
+    "packs/workspace-3d/ui/adapter.js": "f7dc0300d3d38eeb89b9e81f071b5b8cfcf1e5b4a14b822534ba987d8a529b1d",
+    "packs/workspace-3d/ui/assets/three-LICENSE.txt": "852e0e8699169bf9f6fdc6bda3e682d078dcbc738b5d33e74df594721bff271d",
+    "packs/workspace-3d/ui/assets/three.module-0.160.1.js": "3e690ac7d180b0aadf0891bea39eec643e29e2d3e75c99b18689518665f69ba6",
+    "packs/workspace-3d/ui/manifest.json": "27e4d35cf3c74a124fa5da85c03e6c9aea5800d97c9d55ed5e63a477d423ff67",
+    "packs/workspace-3d/ui/office-actors.js": "fa2db8afa71b15f909232cd7bd3e9b3b0af65b6829a44331b72961d3237392d2",
+    "packs/workspace-3d/ui/office-world.js": "b3e3385313136ee43fbec06a336247ea01a89f9d30183ddb3e4aefa1ef74d81d",
+    "packs/workspace-3d/ui/office.css": "4f19a77398958c41226b2bc0c649c3a890ec50eca67f941f9b8f36d3f1d632d0",
+    "packs/workspace-3d/ui/office.js": "a04cb4e396d6f894f01cab2663616e9589a040461485e37851658022e0b33c40",
+    "packs/workspace-3d/ui/voxel-character.js": "089591c160cc5d2dcebb586fc747f1148f223a9eadf446070e1c0f02d6bbfd9b"
+  }
+}
