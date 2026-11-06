@@ -50,6 +50,10 @@ v536 기록은 과거 검증 증거이며 기존 기능을 미구현으로 되�
 
 wrapper의 정상 stale 거절을 자동 변환 요구로, 비소유 부모/참조 쓰기나 override IO 변경을 미구현으로 늘리지 않는다. 새 타입·문맥 조합을 이 목록에 추가하지 않는다. M4의 직접 소유 ordinary 함수·동작/호출자의 명시적 Task 실행 기반은 [현재 지원 경계](M4_ASYNC.md)에 연결했다. 최종 신규 LF22·CRLF20·패키지/전체 복원/실패 수명관리8, 총50단계를 통과했다([검증·보관 기록](VALIDATION_V666_ASYNC_RUNTIME.md)). 직접 소유 ordinary Root의 원본 전환 메뉴·초안/원자 저장 연결은 [이번 지원 경계](M4_ASYNC_TRANSITION.md)를 따른다. 이 UI 단위의 [최종 신규 40단계·재사용 0](VALIDATION_V666_ASYNC_TRANSITION.md)을 마감했다. 지역 C# Result 완료 분기의 동기 복귀와 ordinary async Set 연동은 아래 후속에 연결했고, ordinary 공개 완료는 후속에 연결했고, async root 속성 편집은 [현재 단위](M4_ASYNC_PROPERTIES.md)로 연결했다. 기존 ordinary Root의 Result 없는 next 본문은 [원문/출력 보존 어댑터](M4_COMPLETION_ADAPTER.md)에 연결했다. 직접 소유하고 이미 Blueprint로 확정한 instance/native whole-body Root의 문맥 보존과 명시 전환은 [소유 whole-body 지원](M4_ASYNC_CONTEXT.md)에 연결했다. 직접 소유 내부 본문의 명시 전환은 위 private 지원 경계를 따르며, 연결된 private 완료 실행선의 일반 결과 보존 동기 복귀는 [private 지원 경계](M4_ASYNC_PRIVATE.md)에 연결하며, 첫 생성 Save 입력의 현재 지원/공개 Root 계약 잔여는 위 경계를 따른다. 동기 caller는 명시적으로 async로 바뀌기 전에는 오류로 거절한다. V2–V9와 기존 별도 UI/권한 backend·종류 C# 표현/사용 중 삭제 대응·실기기 검증의 남은 범위는 해당 고정 행을 따른다.
 
+Workspace 확대 팝오버의 재개방·프로젝트 전환 후 폐기 콜백 보호는
+[V1 수명 경계](V1_ZOOM_LIFETIME.md)로 연결한다. 기존 Blueprint 보호와 구분하고
+독립 정보 편집 창의 모든 배율 문맥·실기기 미검증은 유지한다. 최종 검증은 마감 기록을 따른다.
+
 ## 기존 미완료 사용자 흐름
 
 아래는 기존 27행/ABI 9행의 같은 흐름을 묶은 목록이다. ref/out·target·프레임의 가능한 조합마다 새 필수 행을 추가하지 않는다. 원본 ZIP의 `app.js`/`blueprint.js`에 대응하며 완료 조건은 해당 원본 조작의 정상 저장·원자 실패·명시 대응·입력 보존 및 영향 검증이다.

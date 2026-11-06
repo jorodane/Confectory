@@ -28,23 +28,27 @@ function setupWorkspaceNavigation(){
  view.x=Number.isFinite(view.x)?view.x:0;view.y=Number.isFinite(view.y)?view.y:0;
  view.scale=Number.isFinite(view.scale)?clampCanvasZoom(view.scale):1;host.project.workspaceView=view;
  state.zoomCleanup?.();
+ const project=host.project,zoomOwner={};state.zoomOwner=zoomOwner;
  let zoom=canvas.querySelector('[data-workspace-zoom]');if(!zoom){zoom=document.createElement('button');zoom.type='button';zoom.className='workspace-zoom';zoom.dataset.workspaceZoom='';zoom.setAttribute('aria-label','현재 워크스페이스 줌');canvas.append(zoom)}
+ const ownsZoom=()=>host.project===project&&state.zoomOwner===zoomOwner&&canvas.isConnected&&zoom.isConnected;
  const apply=()=>{view=host.project.workspaceView;clampWorkspaceView();zoom.textContent=canvasZoomPercent(view.scale)+'%';canvas.classList.toggle('is-grid-hidden',view.scale<.25);canvas.style.setProperty('--canvas-grid-size',22*view.scale+'px');canvas.style.setProperty('--canvas-grid-x',view.x+'px');canvas.style.setProperty('--canvas-grid-y',view.y+'px');state.windows.forEach(w=>{if(w.placed)placeWindow(w)});positionWorkspaceDecorations();linkRuntime.schedule()};
  const zoomWheel=createSteppedZoomWheel();
  let zoomMenu=null,zoomEvents=null,commitZoomInput=null;
- const closeZoom=(cancel=false)=>{const commit=commitZoomInput;commitZoomInput=null;if(!cancel)commit?.();zoomEvents?.abort();zoomEvents=null;zoomMenu?.remove();zoomMenu=null;zoom.setAttribute('aria-expanded','false')};
+ const closeZoom=(cancel=false)=>{const commit=commitZoomInput;commitZoomInput=null;if(!cancel)commit?.();zoomEvents?.abort();zoomEvents=null;if(zoomMenu)zoomMenu.querySelector('[data-zoom-value]').onblur=null;zoomMenu?.remove();zoomMenu=null;zoom.setAttribute('aria-expanded','false')};
  state.zoomCleanup=()=>closeZoom(true);
- const setZoom=scale=>{zoomWheel.reset();const next=clampCanvasZoom(scale),x=canvas.clientWidth/2,y=canvas.clientHeight/2,ratio=next/view.scale;view.x=x-(x-view.x)*ratio;view.y=y-(y-view.y)*ratio;view.scale=next;host.project.workspaceView=view;apply();host.persist();if(zoomMenu){zoomMenu.querySelector('[data-zoom-slider]').value=canvasZoomPercent(next);zoomMenu.querySelector('[data-zoom-value]').value=canvasZoomPercent(next);zoomMenu.querySelectorAll('[data-zoom-preset]').forEach(button=>button.setAttribute('aria-pressed',String(Number(button.dataset.zoomPreset)===canvasZoomPercent(next))))}};
+ const setZoom=scale=>{if(!ownsZoom())return;zoomWheel.reset();const next=clampCanvasZoom(scale),x=canvas.clientWidth/2,y=canvas.clientHeight/2,ratio=next/view.scale;view.x=x-(x-view.x)*ratio;view.y=y-(y-view.y)*ratio;view.scale=next;host.project.workspaceView=view;apply();host.persist();if(zoomMenu){zoomMenu.querySelector('[data-zoom-slider]').value=canvasZoomPercent(next);zoomMenu.querySelector('[data-zoom-value]').value=canvasZoomPercent(next);zoomMenu.querySelectorAll('[data-zoom-preset]').forEach(button=>button.setAttribute('aria-pressed',String(Number(button.dataset.zoomPreset)===canvasZoomPercent(next))))}};
  zoom.setAttribute('aria-haspopup','dialog');zoom.setAttribute('aria-expanded','false');zoom.onclick=()=>{
+  if(!ownsZoom())return;
   if(zoomMenu){closeZoom();return}
   zoomMenu=document.createElement('section');zoomMenu.className='workspace-zoom-menu';zoomMenu.setAttribute('role','dialog');zoomMenu.setAttribute('aria-label','화면 배율');
   zoomMenu.innerHTML='<div class="workspace-zoom-controls"><label for="workspace-zoom-value">배율</label><label class="workspace-zoom-value" for="workspace-zoom-value"><input id="workspace-zoom-value" data-zoom-value type="text" inputmode="decimal" value="'+canvasZoomPercent(view.scale)+'" aria-label="화면 배율 직접 입력" autocomplete="off"><span aria-hidden="true">%</span></label><input data-zoom-slider type="range" min="3.125" max="500" step="any" value="'+canvasZoomPercent(view.scale)+'" aria-label="화면 배율 조절"></div><div class="workspace-zoom-presets">'+CANVAS_ZOOM_PRESETS.map(value=>'<button type="button" data-zoom-preset="'+value+'">'+value+'%</button>').join('')+'</div>';
   canvas.append(zoomMenu);zoom.setAttribute('aria-expanded','true');
+  const instance=zoomMenu,alive=()=>zoomMenu===instance&&instance.isConnected&&ownsZoom();
   const valueInput=zoomMenu.querySelector('[data-zoom-value]'),slider=zoomMenu.querySelector('[data-zoom-slider]');
-  commitZoomInput=()=>{const raw=valueInput.value.trim(),value=Number(raw);if(raw&&Number.isFinite(value))setZoom(value/100);else valueInput.value=canvasZoomPercent(view.scale)};
-  valueInput.onfocus=()=>valueInput.select();valueInput.onblur=()=>commitZoomInput?.();valueInput.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();e.stopPropagation();commitZoomInput();valueInput.select()}};
-  slider.oninput=e=>setZoom(Number(e.target.value)/100);
-  zoomMenu.querySelectorAll('[data-zoom-preset]').forEach(button=>{button.onclick=()=>setZoom(Number(button.dataset.zoomPreset)/100);button.setAttribute('aria-pressed',String(Number(button.dataset.zoomPreset)===canvasZoomPercent(view.scale)))});
+  const commitInput=()=>{if(!alive())return;const raw=valueInput.value.trim(),value=Number(raw);if(raw&&Number.isFinite(value))setZoom(value/100);else valueInput.value=canvasZoomPercent(view.scale)};
+  commitZoomInput=commitInput;valueInput.onfocus=()=>valueInput.select();valueInput.onblur=commitInput;valueInput.onkeydown=e=>{if(alive()&&e.key==='Enter'){e.preventDefault();e.stopPropagation();commitInput();valueInput.select()}};
+  slider.oninput=e=>{if(alive())setZoom(Number(e.target.value)/100)};
+  zoomMenu.querySelectorAll('[data-zoom-preset]').forEach(button=>{button.onclick=()=>{if(alive())setZoom(Number(button.dataset.zoomPreset)/100)};button.setAttribute('aria-pressed',String(Number(button.dataset.zoomPreset)===canvasZoomPercent(view.scale)))});
   zoomEvents=new AbortController();document.addEventListener('pointerdown',e=>{if(!zoomMenu.contains(e.target)&&!zoom.contains(e.target))closeZoom()},{capture:true,signal:zoomEvents.signal});
   document.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();closeZoom(true);zoom.focus({preventScroll:true})}},{capture:true,signal:zoomEvents.signal});valueInput.focus({preventScroll:true})
  };
