@@ -4,7 +4,8 @@ import path from 'node:path';
 import vm from 'node:vm';
 
 const source=fs.readFileSync(path.join(process.argv[2],'examples/editor-home/ui/feature-authoring.js'),'utf8');
-const names=['sameRestoredSources','sameSettledInput','restoredOwnedSource',...(source.includes(' function ownedTextPair(')?['ownedTextPair']:[])];
+const textGuard=source.includes(' function ownedTextFields(')?'ownedTextFields':source.includes(' function ownedTextPair(')?'ownedTextPair':null;
+const names=['sameRestoredSources','sameSettledInput','restoredOwnedSource',...(textGuard?[textGuard]:[])];
 const functions=names.map(name=>source.split('\n').find(line=>line.trimStart().startsWith('function '+name+'(')));
 assert(functions.every(Boolean));
 const proof=source.split('\n').find(line=>line.includes(',proof=d=>')).split(',proof=')[1];
@@ -32,7 +33,7 @@ for(const patch of [{implementationContext:{}},{forwardCallerStorage:true},{kind
 for(const patch of [{frame:'inner'},{node:'other'},{action:'rootParameters'}])
  assert.equal(restoredOwnedSource(w,{...journal,edits:[{...journal.edits[0],...patch}]}),false);
 assert.equal(restoredOwnedSource(w,{...journal,cells:[...journal.cells,...journal.cells]}),false);
-if(names.includes('ownedTextPair')){
+if(textGuard){
  const pairWindow={meta:{},authorData:{...w.authorData,nodes:[{id:'body',kind:'code',control:'next'}]}},nameOrigin={node:'body',type:'rename',proof:before,text:'accepted name'};
  const pair={cells:[['name',nameOrigin],['source',origin]],edits:[{action:'rename',node:'body',text:nameOrigin.text},{action:'source',node:'body',text:origin.text}]};
  assert.equal(restoredOwnedSource(pairWindow,pair),true);

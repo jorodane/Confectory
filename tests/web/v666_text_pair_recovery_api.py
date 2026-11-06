@@ -17,7 +17,7 @@ try:
  rejected('paired text cannot infer private frame authority',lambda q:q['edits'][1].update(frame=t.graph+'/graph:missing'))
  rejected('paired text cannot grant parameter changes',lambda q:q['edits'].append(dict(action='parameters',node=t.node,definition={})))
  rejected('paired text cannot grant mixed routes',lambda q:q['edits'].append(dict(action='route',node=t.node,port='next',to='exit:return')))
- rejected('paired text cannot infer a third description edit',lambda q:q['edits'].append(dict(action='intent',node=t.node,text='extra')))
+ rejected('paired text cannot grant unrelated argument mixing',lambda q:q['edits'].append(dict(action='argument',node=t.node,name='amount',valueJson='8')))
  rejected('paired text rejects blank display name',lambda q:q['edits'][0].update(text=' '))
  rejected('paired text rejects control characters in display name',lambda q:q['edits'][0].update(text='name\ninvalid'))
  rejected('paired text rejects over-budget display name',lambda q:q['edits'][0].update(text='a'*257))

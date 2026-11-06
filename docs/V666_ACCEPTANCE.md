@@ -244,3 +244,7 @@ Result 없는 ordinary 동작 완료 어댑터의 최종 동결 `76f9837`은 **�
 ## V2 여러 값 입력 중 하나의 이름 저장 복구
 
 원래 노출된 root 입력 이름 편집에서 입력이 둘 이상일 때 재현된 실패 유실을 같은 원자 후보·receipt·공유 이력으로 연결한다. 기존 1–64개 값 입력 중 하나의 이름만 명시 remap으로 바꾸며, 다른 입력·위치 기반 계약·C# bytes·원본/권한/레이아웃·Review→Confirm/CAS를 보존한다. **최종 LF 17·CRLF 17·패키지/전체 복원/실패 수명관리 8, 총 42단계(신규 42·재사용 0)**를 통과했다. [정확한 지원 경계](V2_ROOT_VALUE_RENAME_RECOVERY.md)와 [검증 기록](VALIDATION_V666_ROOT_VALUE_RENAME_RECOVERY.md)을 따른다. 다른 root·혼합 계약·직접 배치는 재현 기반 점검 후보이며 조합별 새 필수 항목이 아니다.
+
+## V2 같은 동작의 이름·설명·본문 함께 저장 복구
+
+같은 직접 소유 ordinary root code/next 노드의 세 텍스트 입력이 쓰기 실패 뒤 유실되는 것을 재현했다. 이름·설명·본문 중 중복 없는 2–3개를 기존 원자 후보·receipt·공유 이력과 정확한 origin의 늦은 입력 복구에 연결한다. 기존 원문·계약·권한·레이아웃·Review→Confirm/CAS는 보존한다. [닫힌 범위](V2_NODE_TEXT_RECOVERY.md)와 [검증 기록](VALIDATION_V666_NODE_TEXT_RECOVERY.md)을 따른다. 다른 편집 종류나 조합을 새 필수 작업으로 추가하지 않는다.

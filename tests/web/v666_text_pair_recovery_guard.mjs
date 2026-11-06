@@ -1,4 +1,5 @@
 import fs from 'node:fs';import vm from 'node:vm';import assert from 'node:assert/strict';
+if(fs.existsSync(process.argv[2]+'/docs/v666-node-text-recovery-delta.json')){await import('./v666_node_text_recovery_guard.mjs');process.exit(0);}
 const source=fs.readFileSync(process.argv[2]+'/examples/editor-home/ui/feature-authoring.js','utf8');
 const line=source.split('\n').find(s=>s.startsWith(' function ownedTextPair('));assert(line);
 const run=vm.runInNewContext('(()=>{const cellFrame=(w,key)=>key.includes("foreign")?"foreign":null;'+line+';return ownedTextPair;})()');
