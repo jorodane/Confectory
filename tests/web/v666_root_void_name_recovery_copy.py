@@ -1,6 +1,8 @@
 """Exact void-root value-input name admission delta and canonical bundle only."""
 import hashlib,json,pathlib,re,subprocess,sys
 r=pathlib.Path(sys.argv[1]).resolve();p=json.loads((r/'docs/v666-root-void-name-recovery-delta.json').read_text())
+if (r/'docs/v666-route-group-recovery-delta.json').exists():
+ subprocess.run([sys.executable,str(r/'tests/web/v666_route_group_recovery_copy.py'),str(r)],check=True);raise SystemExit(0)
 def old(n):return subprocess.check_output(['git','show',p['baseCommit']+':'+n],cwd=r,text=True)
 for name in {d['path']for d in p['deltas']}:
  expected=old(name)
