@@ -6,7 +6,7 @@ import {activateBlueprintView,mountBlueprintViewport,clampBlueprintZoom} from '.
 import {mountBlueprintPins} from './blueprint-pins.js';
 // Graph values remain exact JSON strings. Only private layout and unsent input are restored.
 export function createBlueprint(api){
- const {$,$$,esc}=api,inputs=api.inputs;
+ const {$,$$,esc}=api,inputs=api.inputs,inputAttempts=new WeakMap();
  const key=(graph,type,id)=>api.current.projectId+'|'+graph+'|'+type+'|'+id;
  const scopeSources=data=>[data.id,...data.sources.map(s=>s.id)];
  const short=id=>id?.split('::').at(-1)||'';
@@ -26,13 +26,13 @@ export function createBlueprint(api){
  async function read(id){return api.view.call('blueprint',{action:'read',id});}
  function pending(data,type,id,value){const k=key(data.id,type,id);return {key:k,entry:inputs.get(k),value:inputs.get(k)?.text??value};}
  function bindInput(w,data,type,id,element,value,send){
-  const item=pending(data,type,id,value);element.value=item.value;element.dataset.operation="blueprint-input";
-  element.oninput=()=>{if(element.value===value)inputs.delete(item.key);else inputs.set(item.key,{text:element.value,basis:inputs.has(item.key)?inputs.get(item.key).basis:data.basis});api.persist();};
+  const item=pending(data,type,id,value),scope=w.blueprintScope;let attempts=inputAttempts.get(data);if(!attempts){attempts=new Set();inputAttempts.set(data,attempts);}element.value=item.value;element.dataset.operation="blueprint-input";
+  element.oninput=()=>{if(api.current.projectId!==scope||w.blueprintData!==data||!element.isConnected)return;if(element.value===value&&!attempts.has(item.key))inputs.delete(item.key);else inputs.set(item.key,{text:element.value,basis:inputs.has(item.key)?inputs.get(item.key).basis:data.basis});api.persist();};
   const apply=$('[data-apply]',element.parentElement),cancel=$('[data-reset]',element.parentElement),rebase=$('[data-rebase]',element.parentElement);
   apply.onclick=()=>api.work(async()=>{
    if(api.current.projectId!==w.blueprintScope||api.otherPending(scopeSources(data)))throw Error('다른 창의 미적용 입력을 먼저 처리하세요. 입력은 유지됩니다.');
    const captured=inputs.get(item.key),basis=captured?captured.basis:data.basis;if(!basis)throw Error('복원한 입력은 현재 원본을 읽고 기준 재검토를 선택하세요. 입력은 유지됩니다.');
-   const submitted=element.value;await api.view.call('blueprint',{id:data.id,basis,...send(submitted)});if(!inputs.has(item.key)||inputs.get(item.key).text===submitted)inputs.delete(item.key);const next=await read(data.id);show(next,w.meta,w.blueprintList);refreshCode(next);api.persist();
+   const submitted=element.value;attempts.add(item.key);await api.view.call('blueprint',{id:data.id,basis,...send(submitted)});if(inputs.get(item.key)===captured)inputs.delete(item.key);const next=await read(data.id);show(next,w.meta,w.blueprintList);refreshCode(next);api.persist();
   },'공유 초안 적용 · Save와 compiler Review/Confirm은 별도입니다.');
   cancel.onclick=()=>{inputs.delete(item.key);element.value=value;api.persist();};
   rebase.onclick=()=>{const captured=inputs.get(item.key);if(captured){captured.basis=data.basis;api.persist();}api.toast('현재 읽은 원본을 기준으로 입력을 재검토했습니다. 적용은 별도입니다.');};

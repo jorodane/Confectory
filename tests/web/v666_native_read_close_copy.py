@@ -1,6 +1,9 @@
 """Only visibility-at-start and late readonly completion guard, plus canonical pin."""
 import hashlib,json,pathlib,re,subprocess,sys
-r=pathlib.Path(sys.argv[1]).resolve();d=json.loads((r/'docs/v666-native-read-close-delta.json').read_text());old=lambda p:subprocess.check_output(['git','show',d['baseCommit']+':'+p],cwd=r,text=True)
+r=pathlib.Path(sys.argv[1]).resolve()
+if(r/'docs/v666-native-intent-late-delta.json').exists():
+ subprocess.run([sys.executable,str(r/'tests/web/v666_native_intent_late_copy.py'),str(r)],check=True);sys.exit(0)
+d=json.loads((r/'docs/v666-native-read-close-delta.json').read_text());old=lambda p:subprocess.check_output(['git','show',d['baseCommit']+':'+p],cwd=r,text=True)
 expected=old(d['path'])
 for c in d['changes']:
  assert expected.count(c['before'])==1;expected=expected.replace(c['before'],c['after'])
