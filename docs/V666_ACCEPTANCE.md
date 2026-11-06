@@ -28,7 +28,7 @@ Run 영상/오디오 backend나 별도 권한 팩의 구현 완료를 뜻하지 
 직접 출력하지 않는 기존 프로젝트는 미지원 표시를 유지한다. 실제 출력 크기만 읽으며
 해상도 변경/preset·렌더 FPS·GPU/native Window 캡처·오디오는 기존 고정 잔여다.
 실제 Windows/모바일·전체 UI·Space/Library 전달은 이번 자동화 검증과 구분한다.
-[검증·보관 기록](VALIDATION_V666_RUN_SOFTWARE_OUTPUT.md)을 따른다.
+[최종 신규 44단계·재사용 0](VALIDATION_V666_RUN_SOFTWARE_OUTPUT.md)와 최신/롤백 보관 기록을 따른다.
 
 ## 현재 V9 모듈 직접 기능 이름 검색
 
