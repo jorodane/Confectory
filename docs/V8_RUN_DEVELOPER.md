@@ -1,5 +1,8 @@
 # V8 Run 개발 메뉴와 실제 프레임 진단
 
+이 문서는 최초 메뉴 단위의 검증 기록이다. 이후 선택적 실제 영상·출력 크기 표시와
+미보관 읽기 전환은 [소프트웨어 출력 경계](V8_RUN_SOFTWARE_OUTPUT.md)를 따른다.
+
 저장소 v666 ZIP `Confectory-v666/dist/app.js`의 `setupRunDeveloperMenu`와
 `openRunViewport`에 노출된 개발 버튼·디버그 정보 선택·출력 영역을 현재 Run 창에 연결한다.
 같은 ZIP의 toolbar/popover/debug CSS를 그대로 추출했다. 별도의 새 화면을 설계하지 않는다.

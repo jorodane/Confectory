@@ -571,7 +571,7 @@ public sealed class WebUITests : TestCase
         }finally{Check(calls.Close.Invoke(owner),"owner cleanup");}
         descriptor["observations"]=new System.Text.Json.Nodes.JsonArray("mutate");bool rejected=false;try{var bad=calls.Open.Invoke(context,descriptor.ToJsonString());calls.Close.Invoke(bad);}catch(ArgumentException){rejected=true;}Check(rejected,"retained and observation endpoint collision refused");Console.WriteLine("Unretained scoped observation/no mutation bypass/disposal PASS");return 0;
         """);
-        var report=Build();Output(report,"Unretained scoped observation/no mutation bypass/disposal PASS");
+        f.Sync();var report=Build();Output(report,"Unretained scoped observation/no mutation bypass/disposal PASS");
     }
 
     public void test_web_ui_scope_revision_cancellation_disposal_and_pack_locality()

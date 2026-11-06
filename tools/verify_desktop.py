@@ -470,7 +470,9 @@ def main():
                 for name in ['copy','projection','client']:
                     extension='py' if name=='copy' else 'mjs'
                     work.run(label+'-run-surface-'+name,[sys.executable if name=='copy'else'node',str(checkout/('tests/web/v666_run_surface_'+name+'.'+extension)),str(checkout)],cwd=checkout,env=env)
-                work.run(label+'-run-surface-native',[dotnet,str(checkout/'tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll'),'RunSurfaceTests','test_web_ui_read_observations','test_web_ui_scope_revision_cancellation_disposal_and_pack_locality','--require-runtime'],cwd=checkout,env=env)
+                work.run(label+'-run-surface-native',[dotnet,str(checkout/'tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll'),'RunSurfaceTests','test_web_ui_read_observations','test_web_ui_scope_revision_cancellation_disposal_and_pack_locality','test_frame_control_actual_boundary_order_repeat_thread_and_close','test_actual_owned_cooperative_frames_pause_step_reconnect_and_stop','--require-runtime'],cwd=checkout,env=env)
+                for mode in ['heartbeat','faults','maximum']:
+                    work.run(label+'-run-surface-api-'+mode,[sys.executable,str(checkout/'tests/web/v666_run_surface_api.py'),str(checkout),str(report),mode],cwd=checkout,env=env)
                 work.run(label+'-run-surface-ui',[sys.executable,str(checkout/'tests/web/v666_run_surface_ui.py'),str(checkout),str(report),'normal'if label=='lf'else'lifecycle'],cwd=checkout,env=env)
                 work.run(label+'-run-developer-regression',[sys.executable,str(checkout/'tests/web/v666_run_developer_ui.py'),str(checkout),str(report),'normal'if label=='lf'else'lifecycle'],cwd=checkout,env=env)
                 work.run(label+'-run-fullscreen-regression',[sys.executable,str(checkout/'tests/web/v666_run_fullscreen_ui.py'),str(checkout),str(report),'normal'if label=='lf'else'race'],cwd=checkout,env=env)

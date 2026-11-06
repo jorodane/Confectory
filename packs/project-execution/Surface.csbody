@@ -20,5 +20,5 @@ lock(state[0]){
   lock(records){if(((string[])record[0])[1]!="running")return Unavailable("execution-not-running");}
   if(prior.Length>0&&prior!=runtime){if(retired.Count>=16)throw new System.IO.InvalidDataException("Surface owner replacement budget");retired.Add(prior);}state[3]=runtime;state[4]=number;state[5]=sha;state[6]=width;state[7]=height;
   var result=new System.Text.Json.Nodes.JsonObject();foreach(string field in new[]{"available","runtime","revision","cursor","format","encoding","width","height","sha256","unchanged","pixels"})if(frame[field]is not null)result[field]=frame[field]!.DeepClone();return result.ToJsonString();
- }catch(Exception error)when(error is System.IO.IOException or System.OperationCanceledException or System.Text.Json.JsonException or System.FormatException or System.OverflowException or System.InvalidOperationException or System.ArgumentException or System.Text.DecoderFallbackException){return Unavailable("surface-unavailable");}
+ }catch(Exception error)when(error is System.IO.InvalidDataException or System.IO.IOException or System.OperationCanceledException or System.Text.Json.JsonException or System.FormatException or System.OverflowException or System.InvalidOperationException or System.ArgumentException or System.Text.DecoderFallbackException){return Unavailable("surface-unavailable");}
 }
