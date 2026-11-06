@@ -265,4 +265,4 @@ Review→Confirm/CAS는 보존한다. out 상대 순서 변경은 실제 ABI 변
 표시명만 원자 후보/ownedRename receipt/공유 이력으로 연결한다. C#/계약/ID/값/연결·
 권한·원본 레이아웃·Review→Confirm/CAS는 보존하며 다른 필드/계약 조합을 새로 허용하지
 않는다. [닫힌 범위](V2_NODE_NAMES_RECOVERY.md)와
-[검증 기록](VALIDATION_V666_NODE_NAMES_RECOVERY.md)을 따른다. 최종 검증은 진행 중이다.
+[검증 기록](VALIDATION_V666_NODE_NAMES_RECOVERY.md)을 따른다. 최종 **LF 17·CRLF 17·패키지/전체 복원/실패 수명관리 8, 총 42단계(신규 42·재사용 0)**를 통과했다.
