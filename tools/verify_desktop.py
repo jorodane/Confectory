@@ -138,6 +138,10 @@ def main():
             if args.suite!='source-recovery': raise ValueError('Source reuse requires its own suite')
             from verification_source_reuse import bind
             bind(repo,args.reuse_source,commit,inputs,work)
+        if args.suite=='run-fullscreen':
+            work.run('run-fullscreen-owned-ipc-lifetime',
+                [sys.executable,str(repo/'tests/probes/verification_workspace_test.py')],cwd=repo,
+                env=dict(os.environ,PYTHONDONTWRITEBYTECODE='1'))
         if args.reuse_description:
             if args.suite!='description-recovery': raise ValueError('Description reuse requires its own suite')
             from verification_description_reuse import bind

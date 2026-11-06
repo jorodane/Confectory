@@ -18,7 +18,7 @@ import verification_workspace as v
 
 class LifetimeTests(unittest.TestCase):
     def setUp(self):
-        self.temporary = tempfile.TemporaryDirectory(prefix='verify-owner-tests-',dir='/tmp')
+        self.temporary = tempfile.TemporaryDirectory(prefix='vo-',dir='/tmp')
         self.base = Path(self.temporary.name)
         self.records = self.base/'records'; self.records.mkdir()
 
@@ -155,6 +155,40 @@ v.durable_copy(sys.argv[1],sys.argv[2])
         with self.assertRaisesRegex(RuntimeError,'Uncertified'):w.finish()
         self.assertTrue(pipe.exists());saved=w.preserve_partial('unknown IPC preserved')
         self.assertTrue(saved.exists());self.assertTrue(pipe.exists());pipe.unlink();w.finish()
+
+    def test_owned_frame_socket_requires_terminated_workers_and_no_bound_endpoint(self):
+        w=self.workspace();runtime=w.evidence/'ipc';runtime.mkdir();w.runtime_directory(runtime)
+        endpoint=runtime/('CoreFxPipe_confectory-frame-'+'a'*32)
+        # A failed fixture leaves an orphan socket; the worker reaps its
+        # detached producer before certifying completion.
+        producer='import socket,sys,time; s=socket.socket(socket.AF_UNIX);s.bind(sys.argv[1]);print("bound",flush=True);time.sleep(90)'
+        fixture='import subprocess,sys; p=subprocess.Popen([sys.executable,"-c",sys.argv[1],sys.argv[2]],stdout=subprocess.PIPE,start_new_session=True);assert p.stdout.readline()==b"bound\\n";raise SystemExit(7)'
+        with self.assertRaises(RuntimeError):
+            w.run('failed-frame',[sys.executable,'-c',fixture,producer,str(endpoint)])
+        self.assertTrue(endpoint.exists());w.finish('failed fixture, evidence retained')
+        proof=json.loads(w.record.with_suffix('.manifest.json').read_text());restored=self.base/'frame-restore';restored.mkdir()
+        v.verify_archive(w.record.with_suffix('.zip'),proof['files'],restored)
+        row=json.loads((restored/'ipc/runtime-ipc-metadata.json').read_text())[0]
+        self.assertFalse(row['payloadRead']);self.assertEqual(row['completedWorkerIdentities'],[w.state['workers'][0]['identity']])
+        self.assertFalse(w.root.exists());self.assertFalse((restored/'ipc'/endpoint.name).exists())
+
+    def test_active_unknown_and_uncertified_frame_sockets_are_preserved(self):
+        for case in ['active','unknown','no-worker','kernel-unreadable']:
+            with self.subTest(case=case):
+                w=self.workspace();runtime=w.evidence/'ipc';runtime.mkdir();w.runtime_directory(runtime)
+                endpoint=runtime/('input-socket' if case=='unknown' else 'CoreFxPipe_confectory-frame-'+'b'*32)
+                sock=socket.socket(socket.AF_UNIX);sock.bind(str(endpoint))
+                if case!='active':sock.close()
+                if case!='no-worker':w.run('completed',[sys.executable,'-c','pass'])
+                original=Path.read_text
+                def read(path,*args,**kwargs):
+                    if case=='kernel-unreadable' and str(path)=='/proc/net/unix':raise PermissionError('fixture denial')
+                    return original(path,*args,**kwargs)
+                with patch.object(Path,'read_text',read),self.assertRaises((RuntimeError,PermissionError)):
+                    w.finish()
+                self.assertTrue(endpoint.exists());sock.close()
+                # Exact test-owned socket only; the failed archive never did it.
+                endpoint.unlink();w.finish()
 
     def test_truncated_runtime_socket_requires_full_fifo_producer_evidence(self):
         for truncated in ['dotnet-diagnostic-9999','dotnet-diagnostic']:

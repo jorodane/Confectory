@@ -279,6 +279,26 @@ class Workspace:
                     match = re.fullmatch(r'(?:clr-debug-pipe-|dotnet-diagnostic-)([0-9]+)-[0-9]+-(?:in|out|socket)',path.name)
                     producers = [int(match[1])] if match else []
                     correlated = []
+                    worker_receipts = []
+                    frame_socket = (stat.S_ISSOCK(mode) and
+                        re.fullmatch(r'CoreFxPipe_confectory-frame-[0-9a-f]{32}',path.name))
+                    if frame_socket:
+                        # Frame pipe names intentionally contain no PID. Only
+                        # the explicitly registered execution-owned runtime
+                        # tree qualifies; never adopt an arbitrary socket.
+                        # The subreaper receipts certify every launched child,
+                        # including detached frame hosts, has terminated.
+                        for worker in self.state['workers']:
+                            self._completed(worker)
+                            worker_receipts.append(worker['identity'])
+                        # A bound endpoint is still in use, even if it has no
+                        # listener. Do not connect to/read its control payload,
+                        # infer ownership from restricted FD/maps, or unlink it.
+                        active = {line.split(maxsplit=7)[7].strip() for line in
+                            Path('/proc/net/unix').read_text().splitlines()[1:]
+                            if len(line.split(maxsplit=7)) == 8}
+                        if not worker_receipts or str(path) in active:
+                            raise RuntimeError('Uncertified/active frame IPC object; preserve it: '+str(path))
                     if not match and stat.S_ISSOCK(mode) and len(os.fsencode(path)) == 107 and path.name.startswith('dotnet-'):
                         for sibling in path.parent.iterdir():
                             full = re.fullmatch(r'clr-debug-pipe-([0-9]+)-([0-9]+)-(?:in|out)',sibling.name)
@@ -287,13 +307,15 @@ class Workspace:
                                 if expected.startswith(path.name):correlated.append((int(full[1]),sibling.name))
                         unique = {pid for pid,name in correlated}
                         if len(unique) == 1:producers = list(unique)
-                    if not producers or path.lstat().st_uid != os.getuid() or any(process_identity(pid) is not None for pid in producers):
+                    if (not producers and not worker_receipts) or path.lstat().st_uid != os.getuid() or any(process_identity(pid) is not None for pid in producers):
                         raise RuntimeError('Uncertified runtime IPC object; preserve it: '+str(path))
                     no_links(path.parent);before = path.lstat();pending.append((path,before))
                     retained.append({'path':path.relative_to(root).as_posix(),'mode':before.st_mode,'uid':before.st_uid,
                         'device':before.st_dev,'inode':before.st_ino,'payloadRead':False,
                         'producerPids':producers,'correlatedFullFifoNames':[n for pid,n in correlated],
-                        'reason':'terminated .NET diagnostic IPC; not fixture input'})
+                        'completedWorkerIdentities':worker_receipts,
+                        'reason':('terminated owned frame IPC; absent from kernel bound endpoints; not fixture input'
+                            if worker_receipts else 'terminated .NET diagnostic IPC; not fixture input')})
             # Validate all candidates and persist metadata before touching one.
             if pending: atomic_json(metadata,retained)
             for path,before in pending:
