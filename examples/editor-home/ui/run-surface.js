@@ -2,7 +2,7 @@
 export async function decodeRunSurface(packet,prior,handle){
  if(packet?.available!==true)return null;
  const {runtime,revision,cursor,format,encoding,width,height,sha256,unchanged}=packet;
- if(typeof handle!=='string'||!handle||typeof runtime!=='string'||!/^[a-f0-9]{32}$/.test(runtime)||typeof revision!=='string'||! /^(0|[1-9][0-9]{0,18})$/.test(revision)||BigInt(revision)<=0n||BigInt(revision)>9223372036854775807n||cursor!==runtime+':'+revision||format!=='rgba8'||encoding!=='base64url'||!Number.isInteger(width)||!Number.isInteger(height)||width<1||height<1||width>512||height>512||typeof sha256!=='string'||!/^[a-f0-9]{64}$/.test(sha256)||typeof unchanged!=='boolean')throw Error('surface_invalid');
+ if(typeof handle!=='string'||!handle||typeof runtime!=='string'||runtime.length!==32||!/^[a-f0-9]{32}$/.test(runtime)||typeof revision!=='string'||! /^(0|[1-9][0-9]{0,18})$/.test(revision)||BigInt(revision)<=0n||BigInt(revision)>9223372036854775807n||cursor!==runtime+':'+revision||format!=='rgba8'||encoding!=='base64url'||!Number.isInteger(width)||!Number.isInteger(height)||width<1||height<1||width>512||height>512||typeof sha256!=='string'||sha256.length!==64||!/^[a-f0-9]{64}$/.test(sha256)||typeof unchanged!=='boolean')throw Error('surface_invalid');
  const resize=decodeRunSize(packet.resize,prior?.handle===handle&&prior.runtime===runtime?prior.resize:null,width,height);
  const same=prior?.handle===handle&&prior.runtime===runtime;
  if(same&&BigInt(prior.revision)>BigInt(revision))throw Error('surface_stale');
@@ -20,7 +20,7 @@ export function decodeRunSize(value,prior,width,height){
  if(value===undefined){if(prior)throw Error('size_capability_changed');return null;}
  if(!value||typeof value!=='object'||Array.isArray(value))throw Error('size_invalid');
  const {sequence,ack,command,width:requestedWidth,height:requestedHeight,min,max}=value;
- if(!Number.isInteger(sequence)||sequence<0||sequence>64||!Number.isInteger(ack)||ack<0||ack>sequence||sequence-ack>1||min!==240||max!==512||![requestedWidth,requestedHeight].every(n=>Number.isInteger(n)&&n>=1&&n<=512)||typeof command!=='string'||(sequence===0?command!=='':!/^[a-f0-9]{32}$/.test(command))||sequence>0&&(requestedWidth<min||requestedHeight<min)||ack===sequence&&(width!==requestedWidth||height!==requestedHeight))throw Error('size_invalid');
+ if(!Number.isInteger(sequence)||sequence<0||sequence>64||!Number.isInteger(ack)||ack<0||ack>sequence||sequence-ack>1||min!==240||max!==512||![requestedWidth,requestedHeight].every(n=>Number.isInteger(n)&&n>=1&&n<=512)||typeof command!=='string'||(sequence>0&&command.length!==32)||(sequence===0?command!=='':!/^[a-f0-9]{32}$/.test(command))||sequence>0&&(requestedWidth<min||requestedHeight<min)||ack===sequence&&(width!==requestedWidth||height!==requestedHeight))throw Error('size_invalid');
  if(prior&&(sequence<prior.sequence||ack<prior.ack||sequence===prior.sequence&&(command!==prior.command||requestedWidth!==prior.width||requestedHeight!==prior.height)))throw Error('size_stale');
  return Object.freeze({sequence,ack,command,width:requestedWidth,height:requestedHeight,min,max});
 }

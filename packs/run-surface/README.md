@@ -15,3 +15,12 @@ frame loop remains local, with no IPC. Close must run on the owning loop thread 
 its own reader. Frame ownership may close first; the output can then retire safely. Pixels/owners
 are volatile, never files or layout data. GPU, native Window capture, render FPS, resizing and
 Android/browser execution are outside this software-output slice.
+
+Explicit size control is optional: ConfigureSize(owner, initialWidth, initialHeight) once before
+first pixels; consume RequestedSize(owner) on the frame owner thread at a permitted frame. The
+existing readonly output is unchanged unless the project opts in. Custom requests are 240..512,
+initial sizes 1..512. A distinct publisher/size sequence/command CAS permits one pending request,
+up to 64 per runtime. Only matching actual Present pixels acknowledge the request. This never
+resumes/steps a loop, acknowledges FrameControl commands or renews its heartbeat. Input/receipt
+failure is reconciled by observation, not automatic replay; Stop/new owner clears runtime requests.
+Auto/presets, larger surfaces, GPU capture and audio remain outside this bounded size API.

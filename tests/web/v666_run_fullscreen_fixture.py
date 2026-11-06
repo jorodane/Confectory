@@ -64,7 +64,7 @@ def connected(row):return wait(row,lambda s:s['state']=='running' and s['control
 def control(row,action,ok=True):
  c=row['control'];return run('control',row,ok,action=action,**{k:str(c[k]) for k in ['runtime','ack','sequence']})
 
-errors=[];external=[];traffic=[];requests=[]
+errors=[];external=[];traffic=[];requests=[];observed_request_ids=set()
 def setup(browser):
  page=browser.new_page(viewport={'width':1440,'height':1000});page.on('pageerror',lambda e:errors.append(str(e)))
  def intercept(route):
@@ -83,7 +83,7 @@ def setup(browser):
     if packet.get('ok')and isinstance(row,dict)and'lease'in row:traffic.append(row)
    if isinstance(body,dict)and body.get('op')=='update':
     for row in response.json().get('results',[]):
-     if row.get('ok')and isinstance(row.get('result'),dict)and'lease'in row['result']:traffic.append(row['result'])
+     if row.get('ok')and isinstance(row.get('result'),dict)and'lease'in row['result']and row['requestId']not in observed_request_ids:observed_request_ids.add(row['requestId']);traffic.append(row['result'])
   except Exception:pass
  page.route('**/*',intercept);page.on('response',observe);goto_editor(page,url);page.locator('.work-body').wait_for();return page
 def original():assert all(pathlib.Path(p).read_bytes()==raw for p,raw in before.items())

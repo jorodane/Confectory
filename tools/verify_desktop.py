@@ -478,6 +478,7 @@ def main():
                     work.run(label+'-run-surface-api-'+mode,[sys.executable,str(checkout/'tests/web/v666_run_surface_api.py'),str(checkout),str(report),mode],cwd=checkout,env=env)
                 work.run(label+'-run-surface-ui',[sys.executable,str(checkout/'tests/web/v666_run_surface_ui.py'),str(checkout),str(report),'normal'if label=='lf'else'lifecycle'],cwd=checkout,env=env)
                 if args.suite=='run-resolution':
+                    work.run(label+'-run-resolution-receipts',[sys.executable,str(checkout/'tests/web/v666_run_resolution_receipts_api.py'),str(checkout),str(report)],cwd=checkout,env=env)
                     work.run(label+'-run-resolution-ui',[sys.executable,str(checkout/'tests/web/v666_run_resolution_ui.py'),str(checkout),str(report),'normal'if label=='lf'else'lifecycle'],cwd=checkout,env=env)
                 work.run(label+'-run-developer-regression',[sys.executable,str(checkout/'tests/web/v666_run_developer_ui.py'),str(checkout),str(report),'normal'if label=='lf'else'lifecycle'],cwd=checkout,env=env)
                 work.run(label+'-run-fullscreen-regression',[sys.executable,str(checkout/'tests/web/v666_run_fullscreen_ui.py'),str(checkout),str(report),'normal'if label=='lf'else'race'],cwd=checkout,env=env)

@@ -1,5 +1,8 @@
 # V8 Run의 명시적 소프트웨어 영상 출력
 
+이 문서는 최초 출력 단위다. 명시적으로 허용한 출력의 직접 크기 변경은
+[후속 크기 요청·실제 프레임 확인](V8_RUN_RESOLUTION.md)을 따른다.
+
 저장소 v666 ZIP의 `Confectory-v666/dist/app.js` 내 `openRunViewport`와
 `setupRunDeveloperMenu`에 있는 Run 출력 영역을 실제 프로젝트 영상에 연결한다.
 원본 viewport·개발 메뉴·창 배치는 유지한다. 원본의 모의 장면/FPS/WebAudio를
