@@ -1,10 +1,10 @@
 // Display-only pack: no source, permission, execution or Worker dispatch API.
 export function createOfficeView(api){
- let canvas=null,controls=null,engine=null,owner=null,key='',epoch=0,loading=false,zoom=null,editorZoom=null;
+ let canvas=null,controls=null,engine=null,owner=null,key='',epoch=0,loading=false,observed=false,zoom=null,editorZoom=null;
  const stylesheet=document.createElement('link');stylesheet.rel='stylesheet';stylesheet.href=new URL('./office.css',import.meta.url);document.head.append(stylesheet);
  const visible=()=>!!owner&&owner.workspacePresentation==='office'&&api.visible();
  const alive=(token,host,record)=>epoch===token&&canvas===host&&owner===record&&host?.isConnected&&api.owner()===record;
- const clean=()=>{epoch++;loading=false;try{engine?.dispose();}finally{engine=null;if(zoom){zoom.onclick=editorZoom;canvas?.append(zoom);}zoom=null;editorZoom=null;canvas?.classList.remove('is-voxel-office');controls?.remove();controls=null;canvas=null;owner=null;key='';}};
+ const clean=()=>{epoch++;loading=false;observed=false;try{engine?.dispose();}finally{engine=null;if(zoom){zoom.onclick=editorZoom;canvas?.append(zoom);}zoom=null;editorZoom=null;canvas?.classList.remove('is-voxel-office');controls?.remove();controls=null;canvas=null;owner=null;key='';}};
  function update(){
   const host=api.canvas(),record=api.owner(),identity=api.identity();
   if(!host||!record){if(canvas)clean();return;}
@@ -22,12 +22,13 @@ export function createOfficeView(api){
   for(const b of controls.querySelectorAll('[data-workspace-view]'))b.setAttribute('aria-pressed',String(b.dataset.workspaceView===(owner.workspacePresentation==='office'?'office':'editor')));
   if(zoom){zoom.onclick=active?()=>engine?.showZoom(zoom):editorZoom;if(active)zoom.textContent=Math.round((engine?.layout.camera.scale||owner.officeLayout?.camera?.scale||1)*10000)/100+'%';else if(wasActive)canvas.updateWorkspaceView?.();}
   if(engine&&engine.active!==active)engine.setVisible(active);
+  if(active&&!observed){observed=true;api.observe();}
   if(!active||engine||loading)return;
   loading=true;const token=epoch;
   import('./office.js').then(({mount})=>{
    if(!alive(token,host,record)||!visible())return;
    const valid=()=>alive(token,host,record)&&visible();
-   const wheel=(current,event)=>Math.max(.3,Math.min(5,current*Math.exp(-Math.max(-120,Math.min(120,event.deltaY))*.002)));wheel.reset=()=>{};
+   const wheel=api.steppedZoom();
    const read=()=>{if(!valid())return {name:'',objects:[],helpers:[],helperTitles:{},issues:[],skins:{},resources:[]};return api.read();};
    engine=mount(host,{read,owner:()=>record,workspaceId:()=>key,save:()=>{if(valid())api.persist();},zoom:()=>{if(valid()&&zoom)zoom.textContent=Math.round((record.officeLayout?.camera?.scale||1)*10000)/100+'%';},steppedZoom:wheel,
     announce:text=>{if(valid())controls.dataset.lastSelection=text;},notify:text=>{if(valid())api.toast(text);},

@@ -17,4 +17,5 @@ assert not any(value in adapter for value in ['fetch(','view.call(','requestAnim
 expected={'examples/editor-home/WebBundle.csbody','examples/editor-home/WebBundleBody.celem','examples/editor-home/project.cpack','examples/editor-home/ui/workspace-host.js','examples/editor-home/ui/v508-runtime.js'}
 changed=set(subprocess.check_output(['git','diff','--name-only',base,'--','src','targets','packs','examples'],cwd=r,text=True).splitlines())
 assert {p for p in changed if not p.startswith('packs/workspace-3d/')}==expected,changed
+subprocess.run(['node','--input-type=module','-e',"globalThis.window={};await import('./packs/workspace-3d/ui/adapter.js');await import('./packs/workspace-3d/ui/office.js');"],cwd=r,check=True)
 print('PASS independent display pack/local pinned v666 renderer/license; only owned declared rooms; no Worker/ACL/dispatch/source/runtime/CAS/Review/Confirm changes')

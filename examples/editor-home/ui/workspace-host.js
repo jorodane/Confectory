@@ -1,3 +1,4 @@
+import {createSteppedZoomWheel} from './canvas-zoom.js';
 import {createPrivateLayoutHistory} from './workspace-history.js';
 import {createWindowDocuments} from './window-documents.js';
 import {createNoteDocuments} from './note-documents.js';
@@ -55,9 +56,9 @@ export function createActualWorkspace(api) {
   import('./workspace-3d/adapter.js').then(({createOfficeView})=>{
     office=createOfficeView({canvas:()=>api.$('#workspace'),owner:()=>project?runtime.workspaceRecord():null,
       identity:()=>scope+'|'+runtime.state.activeWorkspaceId,visible:()=>!!project&&!host.activeFixedTab,
-      persist:()=>schedule('layout'),toast:api.toast,
+      persist:()=>schedule('layout'),toast:api.toast,steppedZoom:createSteppedZoomWheel,observe:()=>api.observeOffice(),
       read:()=>({id:scope,name:api.current.title||api.current.namespace||scope,objects:api.projection.workspaceRows().filter(row=>row.owned===true).map(row=>({...row,kind:({category:'Category',object:'Concept',schema:'Info',function:'Feature',module:'Module',enum:'Enum'})[row.kind]||row.kind,parent:api.projection.browserParent(row.id)})),helpers:[],helperTitles:{},issues:[],skins:{},resources:[]}),
-      openObject:id=>api.openDeclaration(id),openCategory:(group,parent)=>api.openBrowser(group,null,false,'browser',parent)
+      openObject:id=>api.openDeclaration(id),openCategory:(group,parent)=>{const w=api.openBrowser(group,null,false,'browser',parent);if(w){w.placed=false;runtime.placeWindow(w);runtime.focusWindow(w);runtime.saveLayouts();}}
     });office.update();
   }).catch(()=>api.toast('3D 표시 팩을 열지 못했습니다. 기존 편집 기능은 계속 사용할 수 있습니다.'));
 

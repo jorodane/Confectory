@@ -3,7 +3,7 @@ import json,sys,traceback,time
 from playwright.sync_api import sync_playwright,expect
 import v666_finder_content_fixture as f
 
-mode=sys.argv[3];page=None
+mode=sys.argv[3];page=None;damaged=f.repo/'packs/workspace-3d/ui/office.js';saved_asset=None
 folder=f.namespace+'OfficeFolder'
 for manifest in f.projects:
  path=manifest.parent/'OfficeFolder.celem';path.write_text('category '+folder+' {value editorBrowserGroup="feature";value editorName="OwnedFeatureRoom";}')
@@ -27,6 +27,7 @@ def zoom(value):
  menu.locator('input[type=number]').fill(str(value));menu.locator('input[type=number]').press('Tab');menu.press('Escape')
 def camera():return private()['officeLayout']['camera']
 try:
+ if mode=='tampered':saved_asset=damaged.read_bytes();damaged.write_bytes(saved_asset+b'\n// controlled owned-fixture integrity failure\n')
  f.start(0)
  with sync_playwright()as p:
   expect.set_options(timeout=60000);browser=p.chromium.launch(executable_path='/usr/bin/chromium',headless=True,args=['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader'])
@@ -35,7 +36,9 @@ try:
     browser_context=browser.new_context();browser_context.add_init_script("const original=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type,...args){return /webgl/i.test(type)?null:original.call(this,type,...args)};")
     page=f.setup(browser_context)
    else:page=f.setup(browser)
-   expect(page.get_by_role('button',name='패널 Workspace',exact=True)).to_have_attribute('aria-pressed','true')
+   if mode=='tampered':
+    expect(page.get_by_role('button',name='패널 Workspace',exact=True)).to_have_count(0);page.locator('[data-workspace-zoom]').click();page.get_by_role('button',name='150%',exact=True).click();assert abs(private()['workspaceView']['scale']-1.5)<.001;guards();f.checked('tampered optional display asset fails its full SHA and withholds the 3D bundle; existing editor/private zoom and source protections still work')
+   else:expect(page.get_by_role('button',name='패널 Workspace',exact=True)).to_have_attribute('aria-pressed','true')
    if mode=='interrupted':
     held={}
     def pause(route):held['route']=route
@@ -44,8 +47,9 @@ try:
     while not held and time.monotonic()<end:page.wait_for_timeout(50)
     assert held;switch('editor');held['route'].continue_();page.unroute('**/workspace-3d/office.js',pause);page.wait_for_timeout(200)
     expect(office()).to_have_count(0);guards();f.checked('late module import after explicit panel return cannot mount a retired 3D view or mutate project source')
-   switch('office')
-   if mode=='unavailable':
+   if mode!='tampered':switch('office')
+   if mode=='tampered':pass
+   elif mode=='unavailable':
     expect(page.locator('#workspace')).to_have_attribute('data-office-renderer','unavailable',timeout=30000);expect(office()).to_have_count(0)
     expect(page.get_by_role('button',name='패널 Workspace',exact=True)).to_have_attribute('aria-pressed','true')
     assert private()['workspacePresentation']=='editor';guards();f.checked('controlled WebGL-unavailable context falls back to the existing editor, preserving private data and source without pretending to render')
@@ -78,5 +82,7 @@ try:
    except Exception:pass
    (f.root/'failure.json').write_text(json.dumps(dict(error=repr(e),traceback=traceback.format_exc()),ensure_ascii=False));raise
 finally:
- f.stop();f.save_evidence();(f.root/'office-view.json').write_text(json.dumps(dict(mode=mode,checks=f.checks,actualManagedEngine=True,softwareWebGL=True,simulatedUnavailable=mode=='unavailable',actualWindows=False,actualMobile=False,workerDisplay=False),ensure_ascii=False,indent=2))
+ f.stop();
+ if saved_asset is not None:damaged.write_bytes(saved_asset)
+ f.save_evidence();(f.root/'office-view.json').write_text(json.dumps(dict(mode=mode,checks=f.checks,actualManagedEngine=True,softwareWebGL=True,simulatedUnavailable=mode=='unavailable',actualWindows=False,actualMobile=False,workerDisplay=False),ensure_ascii=False,indent=2))
 print('OFFICE_VIEW_FIXTURE',f.root,flush=True)
