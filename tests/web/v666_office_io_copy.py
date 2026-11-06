@@ -1,6 +1,10 @@
 """Reviewed completed-tool observation delta; no execution/permission/source-writing changes."""
 import hashlib,json,pathlib,subprocess,sys
-r=pathlib.Path(sys.argv[1]);d=json.loads((r/'docs/v666-office-io-delta.json').read_text())
+r=pathlib.Path(sys.argv[1]);
+if(r/'docs/v666-run-developer-delta.json').exists():
+ import runpy
+ runpy.run_path(str(r/'tests/web/v666_run_developer_copy.py'),run_name='__main__');raise SystemExit(0)
+d=json.loads((r/'docs/v666-office-io-delta.json').read_text())
 def base(path):return subprocess.check_output(['git','show',d['baseCommit']+':'+path],cwd=r,text=True)
 paths=set(subprocess.check_output(['git','diff','--name-only',d['baseCommit'],'--','src','targets','packs','examples'],cwd=r,text=True).splitlines());assert paths==set(d['productFiles']),paths
 for name,digest in d['productFiles'].items():assert hashlib.sha256((r/name).read_text().encode()).hexdigest()==digest,name

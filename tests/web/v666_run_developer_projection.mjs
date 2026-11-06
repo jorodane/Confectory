@@ -1,0 +1,8 @@
+import assert from 'node:assert/strict';
+import {pathToFileURL}from'node:url';
+const {runDebugFacts:f}=await import(pathToFileURL(process.argv[2]+'/examples/editor-home/ui/run-windows.js'));
+const sample={state:'running',handle:'secret-handle',lease:'secret-lease',control:{available:true,connected:true,runtime:'secret-epoch',mode:'paused',frame:'9007199254740993',ack:2,sequence:2,pending:0}};
+let value=f(sample);assert(value.connected);assert(value.lines.includes('프레임: 9007199254740993'));assert(value.lines.includes('제어: 일시 정지'));assert(value.lines.includes('명령 확인: 2 / 2'));assert(value.lines.includes('렌더 FPS: 미지원'));assert(value.lines.includes('렌더 해상도: 미지원'));assert(value.lines.includes('오디오: 미지원'));assert(!JSON.stringify(value).includes('secret'));assert(Object.isFrozen(value)&&Object.isFrozen(value.lines));
+for(const data of [null,{}, {...sample,closed:true},{...sample,state:'exited'},{...sample,state:'toString'},...['available','connected'].map(key=>({...sample,control:{...sample.control,[key]:false}})),...[NaN,-1,1.5,'<script>','1e6','9223372036854775808','01'].map(frame=>({...sample,control:{...sample.control,frame}}))]){const v=f(data);assert.equal(v.connected,false);assert(!v.lines.some(x=>x.startsWith('프레임:')));}
+value=f(sample,true);assert(!value.connected);assert(value.lines.includes('상태: 확인 필요'));assert(!JSON.stringify(value).includes('9007199254740993'));
+assert.equal(sample.control.frame,'9007199254740993');console.log('PASS factual immutable Run frame/ACK diagnostics; exact Int64 display; missing/stale/error/malformed counters withheld; no render FPS, resolution, audio, handle/lease disclosure or execution action');
