@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';import{readFile}from'node:fs/promises';
+const{runAutoDimensions,createRunAutoFit}=await import('data:text/javascript;base64,'+Buffer.from(await readFile(process.argv[2]+'/examples/editor-home/ui/run-auto-fit.js')).toString('base64'));
+assert.deepEqual(runAutoDimensions(240,512),{width:240,height:512});for(const x of [0,239,513,NaN,Infinity,320.5])assert.equal(runAutoDimensions(x,300),null);
+const wait=()=>new Promise(r=>setTimeout(r,25));let s={runtime:'first',visible:true,ready:true,width:64,height:36},size=[320,240],sent=[],release=null,fail=false;
+const fit=createRunAutoFit({read:()=>s,measure:()=>size,send:async d=>{sent.push(d);if(release===false)await new Promise(r=>release=r);s.ready=false;return !fail;},changed(){},delay:1});
+fit.notify();await wait();assert.equal(sent.length,0);fit.activate('first');for(let n=0;n<20;n++)fit.notify();await wait();assert.equal(sent.length,1);size=[400,280];fit.notify();await wait();assert.equal(sent.length,1);s={...s,ready:true,width:320,height:240};fit.notify();await wait();assert.deepEqual(sent.at(-1),{width:400,height:280});
+s={...s,ready:true,width:400,height:280};fit.notify();await wait();assert.equal(sent.length,2);size=[900,600];fit.notify();await wait();assert.equal(sent.length,2);size=[480,300];s.visible=false;fit.notify();await wait();assert.equal(sent.length,2);s.visible=true;fit.disable();fit.notify();await wait();assert.equal(sent.length,2);
+fit.activate('first');s.runtime='new';await wait();assert.equal(fit.runtime,null);assert.equal(sent.length,2);
+s.runtime='new';fail=true;fit.activate('new');await wait();assert(fit.blocked);s.ready=true;for(let n=0;n<10;n++)fit.notify();await wait();assert.equal(sent.length,3);
+fail=false;release=false;s.ready=true;fit.activate('new');await wait();assert.equal(sent.length,4);fit.disable();release();await wait();assert.equal(fit.blocked,false);s.ready=true;fit.activate('new');fit.dispose();await wait();assert.equal(sent.length,4);
+console.log('PASS exact CSS bounds, explicit publisher activation, one pending ACK, latest geometry after ACK, unchanged/hidden/out-of-range suppression, cancellation, restart, failure latch and disposal');
