@@ -46,3 +46,5 @@ V3–V7 팩/backend·V8 실제 화면/오디오, V9 신원/가시성 adapter와 
 WebView2·모바일·DPI/IME·전체 UI·Library/Space 전달은 교차 패키지와 구분한다.
 
 최종 독립 LF/CRLF·패키지/전체 복원·실패 수명관리 결과는 검증 마감 기록에서 확정한다.
+
+[최종 39단계(신규 39·재사용 0) 검증](VALIDATION_V666_DECLARATION_RELOAD.md)을 통과했다.
