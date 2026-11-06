@@ -114,7 +114,7 @@ def main():
     parser.add_argument('--reuse-description',type=Path,action='append',help='Sealed passing LF checks after exact bounded Review/paused-response fixture corrections')
     parser.add_argument('--reuse-coupled-backend',type=Path,help='Sealed completed backend checks after a UI-only recovery correction; all UI/build/package checks remain fresh')
     parser.add_argument('--reuse-coupled-ui',type=Path,help='Sealed passed UI checks with identical product and only the bounded response-wait fixture correction')
-    parser.add_argument('--suite',choices=['run-surface','run-developer','office-io','office-arrangement','office-workers','office-view','headers','card-images','canvas','owned-information','owned-conversion','action-icons','declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement','worker-badges','node-internal','node-internal-nested','node-internal-storage','node-internal-context','node-internal-branches','node-branch-exits','node-internal-copy','node-internal-copy-nested','node-internal-copy-storage','node-internal-copy-branches','node-internal-copy-context','node-internal-copy-creating','node-internal-copy-frames','node-internal-override','node-internal-external-override','root-execution','root-execution-out','root-execution-closure','root-execution-copy','root-execution-copy-creating','root-execution-override','root-execution-registered','root-execution-registered-copy','root-execution-registered-creating','root-execution-data-void','root-execution-compound-owned','root-execution-provider-import','root-execution-nonvoid','public-return-data','root-execution-providers','root-execution-nested','root-execution-native','root-execution-caller','root-execution-forwarding','root-execution-observers','root-execution-wrappers','root-execution-owned-updates','root-execution-import-observations','async-runtime','async-transition','async-completion','async-function','async-property','async-adapter','async-context','async-creating','async-new-function','async-private','async-private-returns','async-coupled','async-root-io','async-branch-creation','guidance-code-editor','guidance-values','description-recovery','source-recovery','name-recovery','route-recovery','entry-recovery','export-value-recovery','export-binding-recovery','root-return-recovery','export-removal-recovery','export-creation-recovery','root-output-order-recovery','root-input-name-recovery','root-followup-recovery','direct-creation-recovery','text-pair-recovery','root-value-rename-recovery','node-text-recovery','root-return-position-recovery','node-names-recovery','root-void-name-recovery','route-group-recovery','run-fullscreen','workspace-finder','finder-content','finder-definitions','finder-bodies','finder-defaults','declaration-reload','guidance-review','finder-modules','zoom-lifetime','native-zoom-lifetime','native-read-close','native-intent-late','async-information'],default='headers')
+    parser.add_argument('--suite',choices=['run-resolution','run-surface','run-developer','office-io','office-arrangement','office-workers','office-view','headers','card-images','canvas','owned-information','owned-conversion','action-icons','declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement','worker-badges','node-internal','node-internal-nested','node-internal-storage','node-internal-context','node-internal-branches','node-branch-exits','node-internal-copy','node-internal-copy-nested','node-internal-copy-storage','node-internal-copy-branches','node-internal-copy-context','node-internal-copy-creating','node-internal-copy-frames','node-internal-override','node-internal-external-override','root-execution','root-execution-out','root-execution-closure','root-execution-copy','root-execution-copy-creating','root-execution-override','root-execution-registered','root-execution-registered-copy','root-execution-registered-creating','root-execution-data-void','root-execution-compound-owned','root-execution-provider-import','root-execution-nonvoid','public-return-data','root-execution-providers','root-execution-nested','root-execution-native','root-execution-caller','root-execution-forwarding','root-execution-observers','root-execution-wrappers','root-execution-owned-updates','root-execution-import-observations','async-runtime','async-transition','async-completion','async-function','async-property','async-adapter','async-context','async-creating','async-new-function','async-private','async-private-returns','async-coupled','async-root-io','async-branch-creation','guidance-code-editor','guidance-values','description-recovery','source-recovery','name-recovery','route-recovery','entry-recovery','export-value-recovery','export-binding-recovery','root-return-recovery','export-removal-recovery','export-creation-recovery','root-output-order-recovery','root-input-name-recovery','root-followup-recovery','direct-creation-recovery','text-pair-recovery','root-value-rename-recovery','node-text-recovery','root-return-position-recovery','node-names-recovery','root-void-name-recovery','route-group-recovery','run-fullscreen','workspace-finder','finder-content','finder-definitions','finder-bodies','finder-defaults','declaration-reload','guidance-review','finder-modules','zoom-lifetime','native-zoom-lifetime','native-read-close','native-intent-late','async-information'],default='headers')
     args = parser.parse_args()
     repo = args.repo.resolve(); persistent = args.persistent.absolute()
     persistent.parent.mkdir(parents=True, exist_ok=True)
@@ -143,7 +143,7 @@ def main():
             if args.suite!='source-recovery': raise ValueError('Source reuse requires its own suite')
             from verification_source_reuse import bind
             bind(repo,args.reuse_source,commit,inputs,work)
-        if args.suite in ['run-surface','run-developer','run-fullscreen','workspace-finder','finder-content','finder-definitions','finder-bodies','finder-defaults','declaration-reload']:
+        if args.suite in ['run-resolution','run-surface','run-developer','run-fullscreen','workspace-finder','finder-content','finder-definitions','finder-bodies','finder-defaults','declaration-reload']:
             work.run(args.suite+'-owned-ipc-lifetime',
                 [sys.executable,str(repo/'tests/probes/verification_workspace_test.py')],cwd=repo,
                 env=dict(os.environ,PYTHONDONTWRITEBYTECODE='1'))
@@ -466,14 +466,19 @@ def main():
                 for mode in (['basic','scope','load']if label=='lf'else['basic','scope']):
                     work.run(label+'-workspace-finder-'+mode,[sys.executable,str(checkout/'tests/web/v666_workspace_finder_ui.py'),str(checkout),str(report),mode],cwd=checkout,env=env)
 
-            elif args.suite=='run-surface':
+            elif args.suite in ['run-resolution','run-surface']:
                 for name in ['copy','projection','client']:
                     extension='py' if name=='copy' else 'mjs'
                     work.run(label+'-run-surface-'+name,[sys.executable if name=='copy'else'node',str(checkout/('tests/web/v666_run_surface_'+name+'.'+extension)),str(checkout)],cwd=checkout,env=env)
+                if args.suite=='run-resolution':
+                    work.run(label+'-run-resolution-boundary',[sys.executable,str(checkout/'tests/web/v666_run_resolution_copy.py'),str(checkout)],cwd=checkout,env=env)
+                    work.run(label+'-run-resolution-projection',['node',str(checkout/'tests/web/v666_run_resolution_projection.mjs'),str(checkout)],cwd=checkout,env=env)
                 work.run(label+'-run-surface-native',[dotnet,str(checkout/'tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll'),'RunSurfaceTests','test_web_ui_read_observations','test_web_ui_scope_revision_cancellation_disposal_and_pack_locality','test_frame_control_actual_boundary_order_repeat_thread_and_close','test_actual_owned_cooperative_frames_pause_step_reconnect_and_stop','--require-runtime'],cwd=checkout,env=env)
                 for mode in ['heartbeat','faults','maximum']:
                     work.run(label+'-run-surface-api-'+mode,[sys.executable,str(checkout/'tests/web/v666_run_surface_api.py'),str(checkout),str(report),mode],cwd=checkout,env=env)
                 work.run(label+'-run-surface-ui',[sys.executable,str(checkout/'tests/web/v666_run_surface_ui.py'),str(checkout),str(report),'normal'if label=='lf'else'lifecycle'],cwd=checkout,env=env)
+                if args.suite=='run-resolution':
+                    work.run(label+'-run-resolution-ui',[sys.executable,str(checkout/'tests/web/v666_run_resolution_ui.py'),str(checkout),str(report),'normal'if label=='lf'else'lifecycle'],cwd=checkout,env=env)
                 work.run(label+'-run-developer-regression',[sys.executable,str(checkout/'tests/web/v666_run_developer_ui.py'),str(checkout),str(report),'normal'if label=='lf'else'lifecycle'],cwd=checkout,env=env)
                 work.run(label+'-run-fullscreen-regression',[sys.executable,str(checkout/'tests/web/v666_run_fullscreen_ui.py'),str(checkout),str(report),'normal'if label=='lf'else'race'],cwd=checkout,env=env)
             elif args.suite=='run-developer':
@@ -1351,7 +1356,8 @@ def main():
             for mode in ['basic','scope']:
                 work.run('packaged-workspace-finder-'+mode,[sys.executable,str(checkout/'tests/web/v666_workspace_finder_ui.py'),str(package/'content'),str(packaged_report),mode],cwd=checkout,env=env)
 
-        elif args.suite=='run-surface':
+        elif args.suite in ['run-resolution','run-surface']:
+            if args.suite=='run-resolution':work.run('packaged-run-resolution',[sys.executable,str(checkout/'tests/web/v666_run_resolution_ui.py'),str(package/'content'),str(packaged_report),'normal'],cwd=checkout,env=env)
             work.run('packaged-run-surface',[sys.executable,str(checkout/'tests/web/v666_run_surface_ui.py'),str(package/'content'),str(packaged_report),'normal'],cwd=checkout,env=env)
 
         elif args.suite=='run-developer':
@@ -1661,7 +1667,8 @@ def main():
             for mode in ['basic','load']:
                 work.run('restored-workspace-finder-'+mode,[sys.executable,str(checkout/'tests/web/v666_workspace_finder_ui.py'),str(restored/'content'),str(packaged_report),mode],cwd=checkout,env=env)
 
-        elif args.suite=='run-surface':
+        elif args.suite in ['run-resolution','run-surface']:
+            if args.suite=='run-resolution':work.run('restored-run-resolution',[sys.executable,str(checkout/'tests/web/v666_run_resolution_ui.py'),str(restored/'content'),str(packaged_report),'lifecycle'],cwd=checkout,env=env)
             work.run('restored-run-surface',[sys.executable,str(checkout/'tests/web/v666_run_surface_ui.py'),str(restored/'content'),str(packaged_report),'lifecycle'],cwd=checkout,env=env)
             work.run('restored-run-developer',[sys.executable,str(checkout/'tests/web/v666_run_developer_ui.py'),str(restored/'content'),str(packaged_report),'lifecycle'],cwd=checkout,env=env)
         elif args.suite=='run-developer':

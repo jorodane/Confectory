@@ -4,4 +4,6 @@ element Open function "Open.celem"; element OpenBody implementation "OpenBody.ce
 element Begin function "Begin.celem"; element BeginBody implementation "BeginBody.celem";
 element Complete function "Complete.celem"; element CompleteBody implementation "CompleteBody.celem";
 element Close function "Close.celem"; element CloseBody implementation "CloseBody.celem";
+element AttachOutputCommand function "AttachOutputCommand.celem";element AttachOutputCommandBody implementation "AttachOutputCommandBody.celem";
+element DetachOutputCommand function "DetachOutputCommand.celem";element DetachOutputCommandBody implementation "DetachOutputCommandBody.celem";
 }

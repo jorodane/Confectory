@@ -1,0 +1,4 @@
+implementation Example.ResizableOutput::MainBody for Example.ResizableOutput::Main () -> int {
+import Confectory.FrameControl::Open as Open () -> string;import Confectory.FrameControl::Begin as Begin (string) -> int;import Confectory.FrameControl::Complete as Complete (string) -> void;import Confectory.FrameControl::Close as Close (string) -> void;
+import Confectory.RunSurface::Open as OpenSurface (string) -> string;import Confectory.RunSurface::Present as Present (string,int,int,string) -> long;import Confectory.RunSurface::Close as CloseSurface (string) -> void;
+import Confectory.RunSurface::ConfigureSize as ConfigureSize (string,int,int) -> void;import Confectory.RunSurface::RequestedSize as RequestedSize (string) -> int[];body common "Main.csbody";}

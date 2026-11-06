@@ -1,0 +1,1 @@
+var state=AppDomain.CurrentDomain.GetData(owner)as object[];if(state is null)return;if(state.Length<5)throw new InvalidOperationException("Frame provider has no explicit output command binding");((Action<object,bool>)state[4])(reader,true);

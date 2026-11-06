@@ -1,0 +1,1 @@
+function Confectory.RunSurface::ConfigureSize (string owner,int width,int height) -> void {provide Confectory.RunSurface::ConfigureSize with Confectory.RunSurface::ConfigureSizeBody;}

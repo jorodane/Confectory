@@ -1,0 +1,1 @@
+implementation Confectory.FrameControl::DetachOutputCommandBody for Confectory.FrameControl::DetachOutputCommand (string owner,object reader) -> void {body common "DetachOutputCommand.csbody";}

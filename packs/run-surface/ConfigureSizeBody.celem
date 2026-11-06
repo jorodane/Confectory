@@ -1,0 +1,1 @@
+implementation Confectory.RunSurface::ConfigureSizeBody for Confectory.RunSurface::ConfigureSize (string owner,int width,int height) -> void {body common "ConfigureSize.csbody";}

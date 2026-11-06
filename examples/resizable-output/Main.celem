@@ -1,0 +1,1 @@
+function Example.ResizableOutput::Main () -> int {provide Example.ResizableOutput::Main with Example.ResizableOutput::MainBody;}

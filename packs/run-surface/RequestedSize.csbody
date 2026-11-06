@@ -1,0 +1,1 @@
+var state=AppDomain.CurrentDomain.GetData(owner)as object[]??throw new ObjectDisposedException("Software surface");if(state.Length<4)throw new InvalidOperationException("Output provider has no explicit size support");return ((Func<int[]>)state[3])();

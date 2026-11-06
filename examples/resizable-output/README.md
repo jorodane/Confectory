@@ -1,0 +1,1 @@
+Explicit resizable software output example. ConfigureSize once before first pixels; adopt RequestedSize only at an actual permitted frame and Present that complete image. Resize never resumes/steps execution or changes authored source. Legacy software-output does not opt in.
