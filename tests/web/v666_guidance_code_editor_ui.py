@@ -12,6 +12,16 @@ def replace(d,old,new):
 def body(d,text):replace(d,d.locator('[data-code-region=body]').text_content(),text)
 def unchanged(held):
  now=dict(pending());return all(k in now and all(now[k].get(p)==v.get(p)for p in ['type','node','text'])for k,v in held)
+def review_guidance(r):
+ if '--review-guidance'not in sys.argv:return
+ expect(r).to_contain_text('확정할 변경을 선택하십시오. 같은 객체의 변경은 함께 선택됩니다. 최종 소스는 Confirm에서만 반영됩니다.')
+ expect(r.locator('[data-review-source]')).to_contain_text('변경 전 소스');expect(r.locator('[data-review-source]')).to_contain_text('변경 후 소스')
+ checks=r.locator('[data-review-group]');confirm=r.locator('#confirm');ack=r.locator('[data-advanced-reviewed]');assert checks.count()
+ for i in range(checks.count()):checks.nth(i).uncheck()
+ expect(confirm).to_be_disabled();expect(r.locator('[data-review-selection-status]')).to_have_text('선택한 변경이 없습니다. 취소하거나 다시 선택하십시오.')
+ for i in range(checks.count()):checks.nth(i).check()
+ if ack.count():expect(confirm).to_be_disabled();expect(ack).not_to_be_checked();ack.check()
+ expect(confirm).to_be_enabled();x.original();f.checked('검토 안내·실제 전후 소스·빈 선택 거절과 재선택 뒤 고급 확인 초기화를 원본 미변경 상태에서 확인한다')
 try:
  f.start(0);f.invoke('select',dict(id=x.feature));f.invoke('saveDraft',{});checkpoint=next(f.project.glob('.confectory/edit-workspaces/*/draft.json'));before=checkpoint.read_bytes()
  with sync_playwright()as pw:
@@ -25,7 +35,7 @@ try:
    try:panel().locator('[data-bp-save]').click();f.idle();assert unchanged(held)and checkpoint.read_bytes()==prior
    finally:checkpoint.chmod(0o600)
    x.original();restart(2);assert unchanged(held);f.checked('checkpoint 쓰기 실패 뒤 cold와 명시 재시도는 개인 C# 입력과 기존 checkpoint를 보존한다')
-  save();r=review();invalid=checkpoint.read_bytes();mark=len(f.traffic);r.locator('#confirm').click();f.idle();raw=[f.state(),f.traffic[mark:]];(f.case/'compiler-failure.json').write_text(json.dumps(raw,ensure_ascii=False));assert 'CS0103'in json.dumps(raw)and'UnknownV666GuidanceSymbol'in json.dumps(raw),'Compiler diagnostic must remain verbatim';assert checkpoint.read_bytes()==invalid;x.original();expect(r).to_be_visible();r.locator('[data-reject]').click();expect(r).to_be_hidden();f.checked('실제 compiler Confirm의 CS0103 원문 응답과 미확정 상태를 유지하며 원본·초안을 보존한다')
+  save();r=review();review_guidance(r);invalid=checkpoint.read_bytes();mark=len(f.traffic);r.locator('#confirm').click();f.idle();raw=[f.state(),f.traffic[mark:]];(f.case/'compiler-failure.json').write_text(json.dumps(raw,ensure_ascii=False));assert 'CS0103'in json.dumps(raw)and'UnknownV666GuidanceSymbol'in json.dumps(raw),'Compiler diagnostic must remain verbatim';assert checkpoint.read_bytes()==invalid;x.original();expect(r).to_be_visible();r.locator('[data-reject]').click();expect(r).to_be_hidden();f.checked('실제 compiler Confirm의 CS0103 원문 응답과 미확정 상태를 유지하며 원본·초안을 보존한다')
   d=editor();replace(d,'UnknownV666GuidanceSymbol();\n','');body(d,text);d.locator('[data-code-save]').click();save();r=review();r.locator('[data-reject]').click();expect(r).to_be_hidden();x.original();r=review();held=checkpoint.read_bytes();p=f.project/'Flow.node.json';old=p.read_bytes();p.write_bytes(old+b' ')
   try:
    r.locator('#confirm').click();f.idle();assert checkpoint.read_bytes()==held;assert p.read_bytes()==old+b' ';assert all(p.read_bytes()==value for p,value in x.physical.items()if p.name!='Flow.node.json')

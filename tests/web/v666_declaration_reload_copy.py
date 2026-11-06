@@ -1,6 +1,11 @@
 """Exact declaration reread/input-discard fence; no source/backend/layout mutation."""
 import hashlib,json,pathlib,re,subprocess,sys
-r=pathlib.Path(sys.argv[1]).resolve();plan=json.loads((r/'docs/v666-declaration-reload-delta.json').read_text())
+r=pathlib.Path(sys.argv[1]).resolve()
+if(r/'docs/v666-review-guidance-copy.json').exists():
+ import runpy
+ runpy.run_path(str(pathlib.Path(__file__).with_name('v666_guidance_review_copy.py')),run_name='__main__')
+ raise SystemExit(0)
+plan=json.loads((r/'docs/v666-declaration-reload-delta.json').read_text())
 def old(name):return subprocess.check_output(['git','show',plan['baseCommit']+':'+name],cwd=r,text=True)
 for name in {row['path']for row in plan['deltas']}:
  expected=old(name)

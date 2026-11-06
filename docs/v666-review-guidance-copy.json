@@ -1,0 +1,142 @@
+{
+  "baseCommit": "ad2cc016981b90de535e6d9df2ac9cc4ab27b0e9",
+  "source": "reference/site-ui/Confectory-Editor-Prototype-v666.zip",
+  "sourceSha256": "7b6b4ba585fc46843f09d8bcd15072b704cc2dc994988400b0a25061e0400d23",
+  "path": "examples/editor-home/ui/v508-runtime.js",
+  "scope": "V2 existing Review/Confirm guidance only; all commands, guards, markup and backend diagnostics retained",
+  "changes": [
+    {
+      "before": "Review ready; final sources unchanged",
+      "after": "변경 검토가 준비되었습니다. 최종 소스는 유지됩니다.",
+      "count": 6,
+      "reference": "Confectory-v666/dist/app.js:3484",
+      "referenceRole": "v666 review wording adapted to existing native Review/Confirm, compilation and CAS; not identical prototype storage semantics"
+    },
+    {
+      "before": "Source confirmed",
+      "after": "검토한 변경을 최종 소스에 반영했습니다.",
+      "count": 1,
+      "reference": "Confectory-v666/dist/app.js:3484",
+      "referenceRole": "v666 review wording adapted to existing native Review/Confirm, compilation and CAS; not identical prototype storage semantics"
+    },
+    {
+      "before": "확정할 변경을 선택하세요. 같은 객체의 변경은 함께 선택됩니다.",
+      "after": "확정할 변경을 선택하십시오. 같은 객체의 변경은 함께 선택됩니다. 최종 소스는 Confirm에서만 반영됩니다.",
+      "count": 1,
+      "reference": "Confectory-v666/dist/app.js:3484",
+      "referenceRole": "v666 review wording adapted to existing native Review/Confirm, compilation and CAS; not identical prototype storage semantics"
+    },
+    {
+      "before": "선택한 변경이 없습니다. 취소하거나 다시 선택하세요.",
+      "after": "선택한 변경이 없습니다. 취소하거나 다시 선택하십시오.",
+      "count": 1,
+      "reference": "Confectory-v666/dist/app.js:3484",
+      "referenceRole": "v666 review wording adapted to existing native Review/Confirm, compilation and CAS; not identical prototype storage semantics"
+    },
+    {
+      "before": "선택이 바뀌었습니다. 선택한 변경을 다시 검토한 뒤 확정하세요.",
+      "after": "선택이 바뀌었습니다. 선택한 변경을 다시 검토한 뒤 확정하십시오.",
+      "count": 1,
+      "reference": "Confectory-v666/dist/app.js:3484",
+      "referenceRole": "v666 review wording adapted to existing native Review/Confirm, compilation and CAS; not identical prototype storage semantics"
+    },
+    {
+      "before": "원본 파일이 바뀌었습니다. 실제 내용을 비교하고 새 Review를 만드세요.",
+      "after": "원본 파일이 바뀌었습니다. 실제 내용을 비교하고 새 Review를 만들어 주십시오.",
+      "count": 1,
+      "reference": "Confectory-v666/dist/app.js:3484",
+      "referenceRole": "v666 review wording adapted to existing native Review/Confirm, compilation and CAS; not identical prototype storage semantics"
+    },
+    {
+      "before": "선택한 변경을 다시 검토하세요.",
+      "after": "선택한 변경을 다시 검토해 주십시오.",
+      "count": 1,
+      "reference": "Confectory-v666/dist/app.js:3484",
+      "referenceRole": "v666 review wording adapted to existing native Review/Confirm, compilation and CAS; not identical prototype storage semantics"
+    },
+    {
+      "before": "추가 변경을 고급 검토에서 확인하세요.",
+      "after": "추가 변경을 고급 검토에서 확인해 주십시오.",
+      "count": 1,
+      "reference": "Confectory-v666/dist/app.js:3484",
+      "referenceRole": "v666 review wording adapted to existing native Review/Confirm, compilation and CAS; not identical prototype storage semantics"
+    },
+    {
+      "before": "검토한 범위가 바뀌었습니다. 다시 검토하세요.",
+      "after": "검토한 범위가 바뀌었습니다. 다시 검토해 주십시오.",
+      "count": 1,
+      "reference": "Confectory-v666/dist/app.js:3484",
+      "referenceRole": "v666 review wording adapted to existing native Review/Confirm, compilation and CAS; not identical prototype storage semantics"
+    },
+    {
+      "before": "최종 소스에 반영되지 않았습니다. 컴파일 검증·충돌 상태를 확인하고 초안을 수정한 뒤 다시 Review하세요.",
+      "after": "최종 소스에 반영되지 않았습니다. 컴파일 검증·충돌 상태를 확인하고 초안을 수정한 뒤 다시 Review해 주십시오.",
+      "count": 1,
+      "reference": "Confectory-v666/dist/app.js:3484",
+      "referenceRole": "v666 review wording adapted to existing native Review/Confirm, compilation and CAS; not identical prototype storage semantics"
+    },
+    {
+      "before": "검토 중 새 입력이 생겼어요. 입력을 적용한 뒤 다시 검토해 주세요.",
+      "after": "검토 중 새 입력이 생겼습니다. 입력을 적용한 뒤 다시 검토해 주십시오.",
+      "count": 1,
+      "reference": "Confectory-v666/dist/app.js:3484",
+      "referenceRole": "v666 review wording adapted to existing native Review/Confirm, compilation and CAS; not identical prototype storage semantics"
+    },
+    {
+      "before": "값을 적용하는 중이에요. 완료한 뒤 다시 검토해 주세요.",
+      "after": "값을 적용하는 중입니다. 완료한 뒤 다시 검토해 주십시오.",
+      "count": 1,
+      "reference": "Confectory-v666/dist/app.js:3484",
+      "referenceRole": "v666 review wording adapted to existing native Review/Confirm, compilation and CAS; not identical prototype storage semantics"
+    },
+    {
+      "before": "보관된 Data 입력을 Enter로 적용하거나 Esc로 취소한 뒤 다시 검토해 주세요. 입력은 유지됩니다.",
+      "after": "보관된 Data 입력을 Enter로 적용하거나 Esc로 취소한 뒤 다시 검토해 주십시오. 입력은 유지됩니다.",
+      "count": 1,
+      "reference": "Confectory-v666/dist/app.js:3484",
+      "referenceRole": "v666 review wording adapted to existing native Review/Confirm, compilation and CAS; not identical prototype storage semantics"
+    },
+    {
+      "before": "속성 정의·값·구현 등 아래 변경을 함께 검토해요. 최종 반영은 다음 화면에서 확정해요.",
+      "after": "속성 정의·값·구현 등 아래 변경을 함께 검토합니다. 최종 반영은 다음 화면에서 확정합니다.",
+      "count": 1,
+      "reference": "Confectory-v666/dist/app.js:3484",
+      "referenceRole": "v666 review wording adapted to existing native Review/Confirm, compilation and CAS; not identical prototype storage semantics"
+    },
+    {
+      "before": "등록부의 다른 변경도 다음 화면에서 확인하세요.",
+      "after": "등록부의 다른 변경도 다음 화면에서 확인해 주십시오.",
+      "count": 1,
+      "reference": "Confectory-v666/dist/app.js:3484",
+      "referenceRole": "v666 review wording adapted to existing native Review/Confirm, compilation and CAS; not identical prototype storage semantics"
+    },
+    {
+      "before": "생성 변경이 바뀌었습니다. 다시 검토하세요.",
+      "after": "생성 변경이 바뀌었습니다. 다시 검토해 주십시오.",
+      "count": 1,
+      "reference": "Confectory-v666/dist/app.js:3484",
+      "referenceRole": "v666 review wording adapted to existing native Review/Confirm, compilation and CAS; not identical prototype storage semantics"
+    },
+    {
+      "before": "검토할 생성 변경이나 입력이 바뀌었습니다. 다시 검토하세요.",
+      "after": "검토할 생성 변경이나 입력이 바뀌었습니다. 다시 검토해 주십시오.",
+      "count": 1,
+      "reference": "Confectory-v666/dist/app.js:3484",
+      "referenceRole": "v666 review wording adapted to existing native Review/Confirm, compilation and CAS; not identical prototype storage semantics"
+    },
+    {
+      "before": ">Before</h3>",
+      "after": ">변경 전 소스</h3>",
+      "count": 1,
+      "reference": "Confectory-v666/dist/app.js:3484",
+      "referenceRole": "v666 review wording adapted to existing native Review/Confirm, compilation and CAS; not identical prototype storage semantics"
+    },
+    {
+      "before": ">After</h3>",
+      "after": ">변경 후 소스</h3>",
+      "count": 1,
+      "reference": "Confectory-v666/dist/app.js:3484",
+      "referenceRole": "v666 review wording adapted to existing native Review/Confirm, compilation and CAS; not identical prototype storage semantics"
+    }
+  ]
+}
