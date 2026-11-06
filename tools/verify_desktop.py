@@ -109,6 +109,7 @@ def main():
     parser.add_argument('--commit', required=True)
     parser.add_argument('--sdk', type=Path, required=True)
     parser.add_argument('--nuget-seed', type=Path, required=True)
+    parser.add_argument('--reuse-review',type=Path,help='Three sealed passing UI checks after exact late-input Save-count correction; failed checks/builds/packages fresh')
     parser.add_argument('--reuse-source',type=Path,help='Ten sealed identical source checks after the property guard report argument correction')
     parser.add_argument('--reuse-description',type=Path,action='append',help='Sealed passing LF checks after exact bounded Review/paused-response fixture corrections')
     parser.add_argument('--reuse-coupled-backend',type=Path,help='Sealed completed backend checks after a UI-only recovery correction; all UI/build/package checks remain fresh')
@@ -128,12 +129,16 @@ def main():
     # The harness may be bootstrapping the previous published source. Preserve
     # the exact harness bytes as well as the product commit/tree.
     harness = work.evidence/'harness'; harness.mkdir()
-    for name in ['verification_workspace.py','verify_desktop.py','verification_coupled_reuse.py','verification_description_reuse.py','verification_source_reuse.py']:
+    for name in ['verification_workspace.py','verify_desktop.py','verification_coupled_reuse.py','verification_description_reuse.py','verification_source_reuse.py','verification_review_reuse.py']:
         shutil.copy2(Path(__file__).parent/name, harness/name)
     atomic_json(work.evidence/'source.json', {'commit': commit, 'tree': git(repo,'rev-parse',commit+'^{tree}'),
                 'sdk': str(args.sdk),'dependencyInputs':inputs, 'harnessSha256': {p.name:sha(p) for p in harness.iterdir()}})
     environments = {}; checkouts = {}; reports = {}
     try:
+        if args.reuse_review:
+            if args.suite!='guidance-review': raise ValueError('Review reuse requires its own suite')
+            from verification_review_reuse import bind
+            bind(repo,args.reuse_review,commit,inputs,work)
         if args.reuse_source:
             if args.suite!='source-recovery': raise ValueError('Source reuse requires its own suite')
             from verification_source_reuse import bind
