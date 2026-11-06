@@ -1,8 +1,8 @@
 {
   "baseCommit": "261429840a90ef4ddd45fdcc6c0aec5abf9bf257",
   "productFiles": {
-    "examples/editor-home/WebBundle.csbody": "610d0bc7f8650298ab1f1956b367ab14a89ad79c9301e31d899ec7867d442be5",
-    "examples/editor-home/ui/run-windows.js": "b5aa8adef8e625b0e40574ce615bb4a9bd53c13ff8babfae4e40d52ad7870e9f",
+    "examples/editor-home/WebBundle.csbody": "b4193ef368b3d58d1f1ad4757270ccf73dc6db629e621333ec6c5037c37ac594",
+    "examples/editor-home/ui/run-windows.js": "50e5a11c45bf2a1db55205d81d9aeb0f868472ac0bcf87ee56d5e8c8d1b83479",
     "examples/editor-home/ui/style.css": "edd0116f8173eefabb747f8efe0c7d36154062c114e89b290a9307ad59cafd70"
   },
   "referenceCss": [

@@ -9,6 +9,7 @@ with zipfile.ZipFile(r/'reference/site-ui/Confectory-Editor-Prototype-v666.zip')
  for row in d['referenceCss']:assert row in css
 assert (r/'examples/editor-home/ui/style.css').read_text()==old('examples/editor-home/ui/style.css')+'\n/* Authored v666 Run developer menu and diagnostic overlay. */\n'+'\n'.join(d['referenceCss'])+'\n'
 p='examples/editor-home/ui/run-windows.js';before=old(p);after=(r/p).read_text();a=' async function query(';b=' function show(';assert before[before.index(a):before.index(b)]==after[after.index(a):after.index(b)]
+assert 'if(!owns(w)||w.runPending||w.runClosing||w.runError)continue;'in after
 for token in ['api.view.call(',"query(w,'start'","query(w,'control'"]:assert before.count(token)==after.count(token),token
 for token in ['AudioContext','requestAnimationFrame','performance.now','fetch(','localStorage']:assert token not in after
 assert (r/'packs/editor-home-model/RunWindows.csbody').read_text()==old('packs/editor-home-model/RunWindows.csbody')
