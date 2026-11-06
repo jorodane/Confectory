@@ -26,7 +26,7 @@ Run 영상/오디오 backend나 별도 권한 팩의 구현 완료를 뜻하지 
 [소프트웨어 출력](V8_RUN_SOFTWARE_OUTPUT.md) 경계로 표시한다. 영상은 scope/소유자·
 전체 SHA·순서를 전후 확인한 미보관 관측이며 ACK/heartbeat/실행 조건과 분리한다.
 직접 출력하지 않는 기존 프로젝트는 미지원 표시를 유지한다. 실제 출력 크기만 읽으며
-명시적으로 허용한 출력에는 [240–512 px 직접 크기 요청과 실제 프레임 확인](V8_RUN_RESOLUTION.md)을 연결한다. 자동 창 해상도/preset·큰 surface·렌더 FPS·GPU/native Window 캡처·오디오는 기존 고정 잔여다.
+명시적으로 허용한 출력에는 [240–512 px 직접 크기 요청과 실제 프레임 확인](V8_RUN_RESOLUTION.md)을 연결한다. [최종 신규 54단계·재사용 0](VALIDATION_V666_RUN_RESOLUTION.md)를 마감했다. 자동 창 해상도/preset·큰 surface·렌더 FPS·GPU/native Window 캡처·오디오는 기존 고정 잔여다.
 실제 Windows/모바일·전체 UI·Space/Library 전달은 이번 자동화 검증과 구분한다.
 [최종 신규 44단계·재사용 0](VALIDATION_V666_RUN_SOFTWARE_OUTPUT.md)와 최신/롤백 보관 기록을 따른다.
 

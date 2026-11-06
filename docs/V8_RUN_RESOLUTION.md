@@ -36,3 +36,7 @@ source/프로젝트 설정·개인 레이아웃에 저장하지 않는다. cold�
 3D는 별도 표시 팩이며 이동은 실행 조건이 아니다. 진행 중 IO의 비차단 제공 경계,
 신원/권한·자산·참여자/대화 등 고정 잔여는 이 해상도 연결과 구분한다. 실제 Windows/
 모바일·하드웨어·전체 UI·Space/Library 전달은 별도 검증 대상이다.
+
+새 API를 사용하는 프로젝트에는 최신의 짝맞춘 RunSurface/FrameControl provider가 필요하다. 이전 롤백본의 새 API 지원은 보장하지 않는다.
+
+[최종 검증·보관·공간 기록](VALIDATION_V666_RUN_RESOLUTION.md)을 따른다.
