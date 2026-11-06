@@ -274,4 +274,4 @@ Review→Confirm/CAS는 보존한다. out 상대 순서 변경은 실제 ABI 변
 remap 경계를 void에도 연결하며 원래 반환 void와 출력 없음·위치 기반 호출 계약을
 유지한다. nonvoid 지원·C#/원본·권한·레이아웃·Review→Confirm/CAS는 그대로다.
 [닫힌 범위](V2_ROOT_VOID_NAME_RECOVERY.md)와
-[검증 기록](VALIDATION_V666_ROOT_VOID_NAME_RECOVERY.md)을 따른다. 최종 검증은 진행 중이다.
+[검증 기록](VALIDATION_V666_ROOT_VOID_NAME_RECOVERY.md)을 따른다. 최종 **LF 17·CRLF 17·패키지/전체 복원/실패 수명관리 8, 총 42단계(신규 42·재사용 0)**를 통과했다.
