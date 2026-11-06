@@ -1,6 +1,9 @@
 """Finite authored viewport mode; unchanged native contracts, source and ownership."""
 import pathlib,json,subprocess,hashlib,sys,zipfile
-r=pathlib.Path(sys.argv[1]);d=json.loads((r/'docs/v666-run-auto-delta.json').read_text());paths=set(subprocess.check_output(['git','diff','--name-only',d['baseCommit'],'--','src','targets','packs','examples'],cwd=r,text=True).splitlines());assert paths==set(d['productFiles']),paths
+r=pathlib.Path(sys.argv[1]);
+if (r/'docs/v666-run-wide-delta.json').exists():
+ subprocess.run([sys.executable,str(r/'tests/web/v666_run_wide_copy.py'),str(r)],check=True);sys.exit(0)
+d=json.loads((r/'docs/v666-run-auto-delta.json').read_text());paths=set(subprocess.check_output(['git','diff','--name-only',d['baseCommit'],'--','src','targets','packs','examples'],cwd=r,text=True).splitlines());assert paths==set(d['productFiles']),paths
 assert paths=={'examples/editor-home/ui/run-auto-fit.js','examples/editor-home/ui/run-windows.js','examples/editor-home/WebBundle.csbody'},paths
 for p,h in d['productFiles'].items():assert hashlib.sha256((r/p).read_text().encode()).hexdigest()==h,p
 assert hashlib.sha256((r/'reference/site-ui/Confectory-Editor-Prototype-v666.zip').read_bytes()).hexdigest()==d['referenceSha256']
