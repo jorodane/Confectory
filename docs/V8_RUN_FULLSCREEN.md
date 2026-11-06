@@ -46,7 +46,8 @@ FD/maps 제한을 우회하지 않으며, 성공/실패 fixture·활성 소켓 �
 
 ## 남은 고정 범위와 검증 한계
 
-해상도/preset·오디오·디버그 렌더 정보는 실제 surface/audio backend 선행 범위다.
+원본 개발 메뉴와 실제 실행 프레임/ACK 표시는 [후속 진단 연결](V8_RUN_DEVELOPER.md)을 따른다.
+해상도/preset·오디오·디버그 렌더 정보는 여전히 실제 surface/audio backend 선행 범위다.
 모바일 가로 방향 자동 회전은 실제 렌더 크기·기기 capability와 함께 검토하며, 현재
 브라우저 viewport 검사를 실제 모바일·물리 Back/방향 잠금 검증으로 표현하지 않는다.
 실제 Windows apphost/WebView2·모바일·전체 UI·Space 전달은 별도 검증/전달 항목이다.
