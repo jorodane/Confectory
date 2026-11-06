@@ -8,6 +8,7 @@ const task=(extra={})=>({id,projectId:'p',ownerHelper:'h',status:'ready',assigne
 const observation=workers=>({projectId:'p',participants:[{id:'h',name:'실제 도우미'},{id:'idle',name:'유휴 도우미'}],workers});
 const original=JSON.stringify(observation([task()]));let result=project(JSON.parse(original),objects);
 assert.equal(JSON.stringify(observation([task()])),original);assert.equal(result.length,2);assert.equal(result[0].workers[0].objectId,'Own::Impl');assert.equal(result[0].workers[0].access,'idle');assert(Object.isFrozen(result[0].workers[0]));
+assert.equal(result[0].workers[0].id,id);assert.equal(result[0].workers[0].label,'Worker '+id.slice(0,12));assert.equal(result[0].status,'확인된 작업 1건');assert.equal(result[1].status,'확인된 작업 0건');
 const expected={ready:['idle','배정 대기'],dispatching:['running','실행 준비 중'],running:['running','작업 중'],'awaiting-verification':['verification','완료 검증 대기'],completed:['done','완료'],cancelled:['cancelled','취소됨'],interrupted:['interrupted','중단됨'],error:['error','오류']};
 const context={bridge:{observedOnly:true,canInspectTask:()=>true},source:{id:'p'},objectsById:new Map(objects.filter(o=>o.owned).map(o=>[o.id,o])),roomFor:()=>({id:'room'})};
 for(const [status,[state,label]]of Object.entries(expected)){

@@ -1,6 +1,6 @@
 """Actual native Worker records and owned loopback provider; no live AI or credentials."""
 import hashlib,json,pathlib,shutil,time,uuid,sys,traceback,threading
-from playwright.sync_api import sync_playwright,expect,TimeoutError as UITimeout
+from playwright.sync_api import sync_playwright,expect
 from owned_responses import OwnedResponses
 import v536_wide_mixed as f
 mode=sys.argv[3];node=f.n+'SlotBody/body:common/node:body';graph=f.n+'SlotBody/body:common';allowed={};owned=None;gate=threading.Event();entered=threading.Event()
@@ -37,16 +37,11 @@ def status(id,value):
  label=office().locator('.office-worker-label[data-native-task="'+id+'"]');expect(label).to_have_attribute('data-native-status',value);return label
 def inspect_current(id):
  f.idle();expect(status(id,'interrupted')).to_contain_text('SlotBody');expect(office().locator('.office-helper-label')).to_contain_text('실제 배정 도우미')
- # An async public observation may legitimately retire a display-only menu.
- # Reopen only that UI, never retry a Task/source operation or weaken revocation.
- for _ in range(4):
-  name=office().locator('[data-office-radial-name]')
-  if not name.count():status(id,'interrupted').evaluate('el=>el.onclick({clientX:800,clientY:350})')
-  try:name.click(timeout=1500)
-  except UITimeout:pass
-  if office().locator('.office-inspector').is_visible():return
-  f.page.wait_for_timeout(100)
- raise AssertionError('current observed Worker inspector did not settle')
+ # The authored menu follows moving actors, so a pointer stability wait is
+ # inappropriate. Use its real keyboard controls; no forced click/DOM handler.
+ label=status(id,'interrupted');expect(label).to_be_visible();label.focus();label.press('Enter')
+ name=office().locator('[data-office-radial-name]');name.focus();name.press('Enter')
+ expect(name).to_have_attribute('aria-expanded','true');expect(office().locator('.office-inspector')).to_be_visible();expect(office().locator('.office-inspector')).to_contain_text('실행 확인 필요')
 def assign():
  before={row['id']for row in f.state()['assignmentWorkers']};plan=invoke('nodeTask',action='inspect',node=node)
  task=invoke('nodeTask',action='assign',node=node,assignmentHash=plan['assignmentHash'],commandID=uuid.uuid4().hex,rationale='owned 3D observation fixture')
@@ -104,6 +99,10 @@ try:
     second,secondid=assign();projected(2);invoke('selectWorker',task=second['task']);invoke('cancelReadyWorker',task=second['task'],commandID=uuid.uuid4().hex,reason='owned fixture explicit cancellation');expect(status(secondid,'cancelled')).to_contain_text('취소됨');status(id,'completed');physical();assert len(owned.requests)==count;f.checked('explicit ready cancellation is shown alongside the distinct completed Worker; original journal retention and other tasks are unchanged')
    else:
     path=f.project/'.confectory/ai-development/helpers'/hashlib.sha256(chief.encode()).hexdigest()[:16]/'tasks.json';f.pending();f.page.close();f.stop();document=json.loads(path.read_bytes());first=next(iter(document['tasks']));document['tasks'][first]['status']='running';crash=json.dumps(document,ensure_ascii=False).encode();path.write_bytes(crash);f.start(1);f.page=f.setup();ready();f.idle();projected(1);expect(status(id,'interrupted')).to_contain_text('실행 확인 필요');assert not f.state()['planningOwnerAvailable'];unchanged_journal(path,crash);physical();f.checked('owned crash fixture cold-running record is read as check-required interruption; camera/source observation never opens an owner, recovers, dispatches or rewrites the journal')
+    # Original distant LOD exposes Worker labels. Also inspect the actual native
+    # object-form Helper workers, rather than the prototype array-form alone.
+    f.page.locator('[data-workspace-zoom]').click();zoom=f.page.get_by_role('dialog',name='복셀 작업실 배율',exact=True);zoom.locator('input[type=number]').fill('50');zoom.locator('input[type=number]').press('Tab');zoom.press('Escape')
+    label=office().locator('.office-helper-label');label.focus();label.press('Enter');name=office().locator('[data-office-radial-name]');name.focus();name.press('Enter');expect(office().locator('.office-inspector')).to_contain_text('확인된 작업 1건');expect(office().locator('.office-helper-worker-state')).to_have_attribute('aria-label','Worker '+id[:12]+' · 실행 확인 필요');name.press('Escape');physical();f.checked('actual native Helper/Worker keyboard details accept object observations and preserve full task identity behind a bounded display label while the actor moves')
     for variant in ['owner','project','helper','invalid']:
      bad=json.loads(crash)
      if variant=='owner':bad['owner']='foreign-user'

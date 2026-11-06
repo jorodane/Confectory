@@ -6,9 +6,9 @@
     "examples/editor-home/ui/v508-runtime.js": "97c456edb1889d90e78bab1d6f4d7f37a044d56ea57353ac6e6cc9f1c97b32ce",
     "examples/editor-home/ui/workspace-host.js": "be70998447829952f8a3effa50b4547422c7d9d5542ba924fb199c3d8cf26097",
     "packs/workspace-3d/ui/adapter.js": "58a1176362d779c3774b4b8f80355bfe7ddc37c72ceb711d0b0a995f1207293c",
-    "packs/workspace-3d/ui/manifest.json": "6862822138da8501f30665d7d36f24c47633c0ccc1130ff216646dac4ae913dd",
-    "packs/workspace-3d/ui/office-actors.js": "846b3ef105c1895b2d6f30ab2aa3776a65b30e6af6cae3a058b3447a15791011",
-    "packs/workspace-3d/ui/office.js": "63d1b6ac1ef3d89103c3e3ef8889698c4fdea18e8e34bbcb88099ca611fe20f1",
-    "packs/workspace-3d/ui/workers.js": "4f2614183a3667bfc876a12d28ddd8961c16d772d7fb165a6e615cbcf8e14cd0"
+    "packs/workspace-3d/ui/manifest.json": "11dc068e2c5e5474641e2311870a1bade2bc6b008e553d7709446987ff589ea8",
+    "packs/workspace-3d/ui/office-actors.js": "eb06c8fd0a9c46a74ed4cf6f215c5931922c52fb7ed49c7daad93d7131b78c0a",
+    "packs/workspace-3d/ui/office.js": "b5bb7516217a33a6396b686716a222817e4bf2e511e27060a6be7a059bc8f6b4",
+    "packs/workspace-3d/ui/workers.js": "ecfc84fc843fcad73517217b31103b72bde0bd6d9fbd9446ad1f8e64b0b22e4a"
   }
 }

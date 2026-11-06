@@ -47,12 +47,12 @@ export const actorMethods={
    return [actor.id,{x:p.x,z:p.z,rotation:actor.group.rotation.y,coffeeCarry:!!actor.coffeeCarry,anchor:anchor?.id,localX:anchor?p.x-anchor.origin.x:0,localZ:anchor?p.z-anchor.origin.z:0,arriving:actor.arriving,arrivalPhase:actor.arrivalPhase,arrivalOrder:actor.arrivalOrder,arrivalUntil:actor.arrivalUntil,gateLane:actor.gateLane,taskKind:actor.task?.kind,activityKey:keyFor(actor.activity),terminalIndex:actor.terminal?.index,job:actor.job}];
   }));
  },
- buildActor(helper,id,role,workerId){
-  const rig=createCharacter(helper,this.source.skins[helper.id]||helper.voxelCharacter),actor={...rig,id,role,helper,helperId:helper.id,workerId,path:[],speed:role==='worker'?7.2:3.1,carrying:false,taskStarted:null};
+ buildActor(helper,id,role,workerId,workerLabel=workerId){
+  const rig=createCharacter(helper,this.source.skins[helper.id]||helper.voxelCharacter),actor={...rig,id,role,helper,helperId:helper.id,workerId,workerLabel,path:[],speed:role==='worker'?7.2:3.1,carrying:false,taskStarted:null};
   actor.group.scale.setScalar(role==='worker'?.5:1);this.model.add(actor.group);this.actorProps(actor);
   const pick={kind:role,id};actor.group.traverse(mesh=>{if(mesh.isMesh){mesh.userData.pick=pick;this.pickables.push(mesh)}});
   actor.shadow=new THREE.Mesh(this.shadowGeometry,this.shadowMaterial);actor.shadow.rotation.x=-Math.PI/2;actor.shadow.position.y=.08;actor.group.add(actor.shadow);
-  this.label(role==='worker'?helper.name+' · '+workerId:helper.name,role,id,()=>actor.group.position.clone().add(new THREE.Vector3(0,role==='worker'?1.42:2.8,0)),'준비 중',role==='helper'?helper.image:'');this.actors.push(actor);return actor;
+  this.label(role==='worker'?helper.name+' · '+workerLabel:helper.name,role,id,()=>actor.group.position.clone().add(new THREE.Vector3(0,role==='worker'?1.42:2.8,0)),'준비 중',role==='helper'?helper.image:'');this.actors.push(actor);return actor;
  },
  placeActor(actor,old,fallback){
   let start=fallback;
@@ -71,7 +71,7 @@ export const actorMethods={
   for(const host of this.helperActors){
    const rows=this.workerRows(host.helper);host.workers=[];
    rows.forEach((row,index)=>{
-    const id='worker:'+this.workerKey(host.id,row.workerId),actor=this.buildActor(host.helper,id,'worker',row.workerId),old=previous.get(id);
+    const id='worker:'+this.workerKey(host.id,row.workerId),actor=this.buildActor(host.helper,id,'worker',row.workerId,row.raw.label||row.workerId),old=previous.get(id);
     actor.host=host;actor.activity=this.workerActivity(host.helper,row,index);actor.job=this.createWorkerJob(actor,old);actor.suspended=!this.bridge.observedOnly&&host.arriving;actor.group.visible=!actor.suspended;
     this.placeActor(actor,old,{x:host.group.position.x+(index%3-1)*.7,z:host.group.position.z+.8});actor.old=old;host.workers.push(actor);this.workerActors.push(actor);
    });

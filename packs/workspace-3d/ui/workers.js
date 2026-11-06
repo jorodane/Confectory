@@ -16,10 +16,10 @@ export function projectOfficeWorkers(observation,objects){
   // Multiple assignments or invisible targets do not select an execution target.
   const target=targets.size===1?[...targets][0]:null,objectId=target&&owned.has(target)?target:undefined;
   const [state,jobState,label]=states[row.status];
-  helpers.get(row.ownerHelper).workers.push(Object.freeze({id:row.id,projectId:project,ownerHelper:row.ownerHelper,
+  helpers.get(row.ownerHelper).workers.push(Object.freeze({id:row.id,label:'Worker '+row.id.slice(0,12),projectId:project,ownerHelper:row.ownerHelper,
    state,access:'idle',objectId,nativeStatus:row.status,jobState,
    jobLabel:row.needsCheck?'실행 확인 필요':label,needsCheck:row.needsCheck===true}));
  }
- for(const helper of helpers.values())helper.workers.sort((a,b)=>a.id.localeCompare(b.id));
+ for(const helper of helpers.values()){helper.workers.sort((a,b)=>a.id.localeCompare(b.id));helper.status='확인된 작업 '+helper.workers.length+'건';}
  return [...helpers.values()];
 }

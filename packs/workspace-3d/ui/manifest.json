@@ -15,8 +15,8 @@
     "mime": "text/javascript"
   },
   "office-actors.js": {
-    "size": 27217,
-    "sha256": "846b3ef105c1895b2d6f30ab2aa3776a65b30e6af6cae3a058b3447a15791011",
+    "size": 27281,
+    "sha256": "eb06c8fd0a9c46a74ed4cf6f215c5931922c52fb7ed49c7daad93d7131b78c0a",
     "mime": "text/javascript"
   },
   "office-world.js": {
@@ -30,8 +30,8 @@
     "mime": "text/css"
   },
   "office.js": {
-    "size": 166124,
-    "sha256": "63d1b6ac1ef3d89103c3e3ef8889698c4fdea18e8e34bbcb88099ca611fe20f1",
+    "size": 166211,
+    "sha256": "b5bb7516217a33a6396b686716a222817e4bf2e511e27060a6be7a059bc8f6b4",
     "mime": "text/javascript"
   },
   "voxel-character.js": {
@@ -40,8 +40,8 @@
     "mime": "text/javascript"
   },
   "workers.js": {
-    "size": 2065,
-    "sha256": "4f2614183a3667bfc876a12d28ddd8961c16d772d7fb165a6e615cbcf8e14cd0",
+    "size": 2164,
+    "sha256": "ecfc84fc843fcad73517217b31103b72bde0bd6d9fbd9446ad1f8e64b0b22e4a",
     "mime": "text/javascript"
   }
 }
