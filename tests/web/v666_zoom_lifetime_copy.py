@@ -1,6 +1,9 @@
 """Bounded presentation-only delta, including canonical web resource pin."""
 import hashlib,json,pathlib,re,subprocess,sys
-r=pathlib.Path(sys.argv[1]).resolve();d=json.loads((r/'docs/v666-zoom-lifetime-delta.json').read_text())
+r=pathlib.Path(sys.argv[1]).resolve()
+if(r/'docs/v666-native-zoom-lifetime-delta.json').exists():
+ subprocess.run([sys.executable,str(r/'tests/web/v666_native_zoom_lifetime_copy.py'),str(r)],check=True);sys.exit(0)
+d=json.loads((r/'docs/v666-zoom-lifetime-delta.json').read_text())
 old=lambda path:subprocess.check_output(['git','show',d['baseCommit']+':'+path],cwd=r,text=True)
 assert old(d['path']).count(d['before'])==1;assert(r/d['path']).read_text()==old(d['path']).replace(d['before'],d['after'])
 bundle='examples/editor-home/WebBundle.csbody';data=(r/d['path']).read_text().encode();pattern=r'("workspace.js":\{"file":"workspace.js","mime":"text/javascript","bytePolicy":"utf8-lf-v1","canonicalSize":)\d+(,"canonicalSha256":")[0-9a-f]+(")'

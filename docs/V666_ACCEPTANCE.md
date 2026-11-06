@@ -54,6 +54,10 @@ Workspace 확대 팝오버의 재개방·프로젝트 전환 후 폐기 콜백 �
 [V1 수명 경계](V1_ZOOM_LIFETIME.md)로 연결한다. 기존 Blueprint 보호와 구분하고
 독립 정보 편집 창의 모든 배율 문맥·실기기 미검증은 유지한다. [최종 31단계(신규 31·재사용 0)](VALIDATION_V666_ZOOM_LIFETIME.md)를 통과했다.
 
+일반 Blueprint의 별도 viewport 읽기·확대 수명은 [현재 지원 경계](V1_NATIVE_ZOOM_LIFETIME.md)에
+연결한다. Browser 갱신과 겹친 진입 읽기의 제한적 stale 재관측과 재개방/숨김/폐기 popup
+보호를 다루며 source 저장·실행 계약은 미변경이다. 최종 수치는 마감 기록에서 확정한다.
+
 ## 기존 미완료 사용자 흐름
 
 아래는 기존 27행/ABI 9행의 같은 흐름을 묶은 목록이다. ref/out·target·프레임의 가능한 조합마다 새 필수 행을 추가하지 않는다. 원본 ZIP의 `app.js`/`blueprint.js`에 대응하며 완료 조건은 해당 원본 조작의 정상 저장·원자 실패·명시 대응·입력 보존 및 영향 검증이다.
