@@ -36,9 +36,9 @@ Review→Confirm·최종 CAS·권한·override 원계약·완료된 M11/M12/M4�
 
 ## 유한 잔여와 환경
 
-이번 경계는 직접 선언된 필드/서명/종류 항목과 기존 Data 표현이다. 임의 원문 C#/그래프
-본문의 전체 검색은 별도 읽기 경계이며, 이름/정의 구조 검색을 새 타입/문맥 조합으로 늘리지
-않는다. 참가자/Helper·연락처/대화는 V4/V5 실제 신원/가시성, office 검색은 V3 표시 팩에
+이번 경계는 직접 선언된 필드/서명/종류 항목과 기존 Data 표현이다. 원본 객체의
+`functionDefinition.body`처럼 보관된 구현 본문의 깊이/문자 한도 내 검색은 별도 읽기 경계다.
+임의 파일 전체 스캔·모든 graph 깊이를 새 필수 요구로 만들거나 타입/문맥 조합을 늘리지 않는다. 참가자/Helper·연락처/대화는 V4/V5 실제 신원/가시성, office 검색은 V3 표시 팩에
 의존한다. 종류의 C# 실행 표현/사용중 삭제 대응 정책은 이번 읽기로 결정하지 않는다.
 
 V6/V7 자산과 V8 내장 surface/audio provider는 고정 잔여다. 현재 Run의 소유 프로세스/제어
@@ -46,3 +46,5 @@ V6/V7 자산과 V8 내장 surface/audio provider는 고정 잔여다. 현재 Run
 시연 화면/사운드를 실제 renderer/backend 성공으로 기록하지 않는다. 3D/권한 별도 팩과
 이동 연출/실행 분리·명시 async caller 규칙도 유지한다. 실제 Windows/WebView2·모바일·
 DPI/IME·전체 UI·Library/Space 전달은 교차 패키지·Chromium 검사와 별개다.
+
+[최종 43단계(신규 43·재사용 0) 검증](VALIDATION_V666_FINDER_DEFINITIONS.md)을 통과했다.
