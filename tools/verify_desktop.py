@@ -689,9 +689,11 @@ def main():
             elif args.suite=='guidance-review':
                 work.run(label+'-review-copy-boundary',[sys.executable,str(checkout/'tests/web/v666_guidance_review_copy.py'),str(checkout)],cwd=checkout,env=env)
                 work.run(label+'-review-admission',['node',str(checkout/'tests/web/review_admission.mjs'),str(checkout)],cwd=checkout,env=env)
+                work.run(label+'-review-layer-hit-test',[sys.executable,str(checkout/'tests/web/v666_review_layer_ui.py'),str(checkout)],cwd=checkout,env=env)
                 work.run(label+'-review-ui',[sys.executable,str(checkout/'tests/web/v666_guidance_code_editor_ui.py'),str(checkout),str(report),'normal'if label=='lf'else'storage','--out-root','--review-guidance'],cwd=checkout,env=env)
                 work.run(label+'-review-task-regression',[sys.executable,str(checkout/'tests/web/v666_async_coupled_first_ui.py'),str(checkout),str(report),'normal'if label=='lf'else'late','--branch-line','--out-root'],cwd=checkout,env=env)
                 if label=='crlf':work.run(label+'-declaration-reread-regression',[sys.executable,str(checkout/'tests/web/v666_declaration_reload_ui.py'),str(checkout),str(report),'normal','view'],cwd=checkout,env=env)
+                if label=='crlf':work.run(label+'-review-run-regression',[sys.executable,str(checkout/'tests/web/v666_run_fullscreen_ui.py'),str(checkout),str(report),'normal'],cwd=checkout,env=env)
 
             elif args.suite=='guidance-code-editor':
                 work.run(label+'-guidance-copy-boundary',[sys.executable,str(checkout/'tests/web/v666_guidance_code_editor_copy.py'),str(checkout)],cwd=checkout,env=env)

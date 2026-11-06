@@ -159,6 +159,8 @@
 .window-document>.document-toolbar [data-close],.window-document>.document-toolbar [data-fold]{display:none}
 .workspace>.workspace-floating-window-layer{position:absolute;inset:0;z-index:80;pointer-events:none}
 .workspace>.workspace-floating-window-layer>.window{pointer-events:auto}
+/* Placed focus order stays inside the canvas; floating reviews remain above it. */
+.workspace>.workspace-world-layer{isolation:isolate}
 .document-tab-drop-preview.is-floating{position:fixed;z-index:2000;pointer-events:none}
 .is-mobile-editor .workspace-window-document-layer,.is-mobile-editor .workspace-note-document-layer{inset:32px 0 0}
 
