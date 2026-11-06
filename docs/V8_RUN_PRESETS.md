@@ -56,3 +56,5 @@ runtime은 독립적이다. 등록 삭제는 이미 적용되거나 요청 중�
 DPI/IME·전체 UI·Space/Library 전달은 교차 패키지와 구별한다.
 
 [검증·보관·공간 기록](VALIDATION_V666_RUN_PRESETS.md)을 따른다.
+
+후속: 현재240–512px 창 영역의 명시적 자동 맞춤은 [실제 창 크기/출력 ACK](V8_RUN_AUTO.md)에 연결했다. 당시 검증과 원래 provider 한도는 보존한다.
