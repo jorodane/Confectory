@@ -20,7 +20,7 @@ export function createOfficeView(api){
   }
   const active=visible(),wasActive=canvas.classList.contains('is-voxel-office');canvas.classList.toggle('is-voxel-office',active);controls.hidden=!api.visible();
   for(const b of controls.querySelectorAll('[data-workspace-view]'))b.setAttribute('aria-pressed',String(b.dataset.workspaceView===(owner.workspacePresentation==='office'?'office':'editor')));
-  if(zoom){zoom.onclick=active?()=>engine?.showZoom(zoom):editorZoom;if(active)zoom.textContent=Math.round((engine?.layout.camera.scale||owner.officeLayout?.camera?.scale||1)*10000)/100+'%';else if(wasActive)canvas.updateWorkspaceView?.();}
+  if(zoom){const generation=epoch,button=zoom;zoom.onclick=active?()=>{if(alive(generation,host,record)&&visible()&&zoom===button)engine?.showZoom(button);}:editorZoom;if(active)zoom.textContent=Math.round((engine?.layout.camera.scale||owner.officeLayout?.camera?.scale||1)*10000)/100+'%';else if(wasActive)canvas.updateWorkspaceView?.();}
   if(engine&&engine.active!==active)engine.setVisible(active);
   if(active&&!observed){observed=true;api.observe();}
   if(!active||engine||loading)return;

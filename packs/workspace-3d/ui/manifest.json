@@ -5,8 +5,8 @@
     "mime": "application/json"
   },
   "adapter.js": {
-    "size": 6593,
-    "sha256": "f7dc0300d3d38eeb89b9e81f071b5b8cfcf1e5b4a14b822534ba987d8a529b1d",
+    "size": 6692,
+    "sha256": "d35bbfddb0d54fa6e7b31fd68ad65e355198d3314e07d750cb0d261676120639",
     "mime": "text/javascript"
   },
   "assets/three.module-0.160.1.js": {

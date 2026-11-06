@@ -92,7 +92,8 @@ try:
     elif mode=='cold':
      stored=camera();page.close();f.stop();f.start(1);page=f.setup(browser);ready();assert camera()==stored;guards();f.checked('fresh engine restores display preference and private camera from durable presentation without restoring source-edit or execution authority')
     elif mode=='normal':
-     old=camera();first=f.state()['listingId'];f.call('leaveProject',{});page.wait_for_selector('.home-grid');f.call('openProject',{'id':second});page.wait_for_selector('.work-body');expect(page.get_by_role('button',name='패널 Workspace',exact=True)).to_have_attribute('aria-pressed','true');expect(office()).to_have_count(0)
+     old=camera();page.locator('[data-workspace-zoom]').evaluate('el=>globalThis.__retiredOfficeOpen=el.onclick');first=f.state()['listingId'];f.call('leaveProject',{});page.wait_for_selector('.home-grid');f.call('openProject',{'id':second});page.wait_for_selector('.work-body');expect(page.get_by_role('button',name='패널 Workspace',exact=True)).to_have_attribute('aria-pressed','true');expect(office()).to_have_count(0)
+     switch('office');ready();page.evaluate('()=>__retiredOfficeOpen()');expect(page.get_by_role('dialog',name='복셀 작업실 배율',exact=True)).to_have_count(0);switch('editor');private()
      f.call('leaveProject',{});page.wait_for_selector('.home-grid');f.call('openProject',{'id':first});page.wait_for_selector('.work-body');ready();assert camera()==old;guards();f.checked('actual project A/home/B/A isolates office preference/camera and restores A; same displayed declaration names never select another project')
    page.screenshot(path=str(f.root/('office-view-'+mode+'.png')));guards();browser.close()
   except Exception as e:
