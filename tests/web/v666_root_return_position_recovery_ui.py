@@ -46,7 +46,11 @@ def main():
   finally:checkpoint.chmod(0o600)
   if mode=='unapplied-new':
    f.page.set_viewport_size({'width':390,'height':844});panel().locator('[data-flow-node=body]').click();field=f.page.locator('.bp-flow-inspector:visible [data-flow-node-name]');field.fill('무관한 새 동작 이름');f.page.locator('.bp-flow-inspector:visible [data-flow-done]').click();f.page.set_viewport_size({'width':1800,'height':1400});held=checkpoint.read_bytes();save();assert has(text)and any(v.get('type')=='rename'and v.get('text')=='무관한 새 동작 이름'for _,v in private())and sum(bool(v.get('type'))for _,v in private())==2 and checkpoint.read_bytes()==held and t.current()==t.original_order;restart(2);save();assert has(text)and any(v.get('type')=='rename'and v.get('text')=='무관한 새 동작 이름'for _,v in private())and sum(bool(v.get('type'))for _,v in private())==2 and checkpoint.read_bytes()==held and t.current()==t.original_order;x.original();f.checked('unapplied root return position plus unrelated display name retains both inputs across cold and never runs legacy live root/graph edits');return
-  canvas_history('undo');assert not private()and displayed()==t.original_order;save();assert not private()and checkpoint.read_bytes()==before and t.current()==t.original_order;canvas_history('redo');assert has(text);stage(late);restart(2);assert has(late)and displayed()==late and t.current()==t.original_order;f.checked('failed root checkpoint keeps private order/live graph; Undo does not replay cancelled order, Redo/corrected order cold retry preserve all sources')
+  attempts=[v for _,v in private()if v.get('kind')=='author-attempt'];assert len(attempts)==1
+  canvas_history('undo');assert not any(v.get('type')for _,v in private())and displayed()==t.original_order and [v for _,v in private()if v.get('kind')=='author-attempt']==attempts
+  mark=len(f.traffic);save();assert not any(v.get('type')for _,v in private())and checkpoint.read_bytes()==before and t.current()==t.original_order
+  assert not any(row.get('invoke',{}).get('endpoint')=='blueprint'and row['invoke']['input'].get('action')=='authorBatch'for row in f.traffic[mark:])
+  canvas_history('redo');assert has(text);stage(late);restart(2);assert has(late)and displayed()==late and t.current()==t.original_order;f.checked('failed root checkpoint keeps private order/live graph and retry journal; Undo does not replay cancelled order, Redo/corrected order cold retry preserve all sources')
  if mode in ['loss','late']:
   requests=set();queries=set();paused={};lost=[]
   def interrupt(route):
